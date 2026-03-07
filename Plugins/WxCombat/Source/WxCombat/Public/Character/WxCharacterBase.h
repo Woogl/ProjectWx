@@ -20,6 +20,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBas
  * 플레이어·에너미 공통 베이스 캐릭터.
  * ASC와 AttributeSet을 캐릭터에 직접 소유.
  * 스탯 초기화는 DefaultAttributeEffect(GameplayEffect)로, 어빌리티는 DefaultAbilities로 부여.
+ *
+ * ASC를 캐릭터에 직접 소유 (리스폰 시 스탯을 새로 초기화하므로 PlayerState 불필요).
  */
 UCLASS(Abstract)
 class WXCOMBAT_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface
