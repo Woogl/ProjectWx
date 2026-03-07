@@ -3,6 +3,8 @@
 #include "GAS/WxAttributeSet.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
+#include "Character/WxCharacterBase.h"
+#include "WxGameplayTags.h"
 
 UWxAttributeSet::UWxAttributeSet() {}
 
@@ -60,6 +62,20 @@ void UWxAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 	else if (Data.EvaluatedData.Attribute == GetMPAttribute())
 	{
 		SetMP(FMath::Clamp(GetMP(), 0.f, GetMaxMP()));
+	}
+
+	// HP가 0 이하이고 아직 사망 처리 전인 경우 HandleDeath 호출
+	// State.Dead 태그로 중복 호출 방지
+	if (GetHP() <= 0.f)
+	{
+		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+		if (ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
+		{
+			if (AWxCharacterBase* Character = Cast<AWxCharacterBase>(GetOwningActor()))
+			{
+				Character->HandleDeath();
+			}
+		}
 	}
 }
 
