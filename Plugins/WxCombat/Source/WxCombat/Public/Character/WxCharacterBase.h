@@ -77,6 +77,4 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Movement", meta = (AllowPrivateAccess = "true"))
 	float BaseWalkSpeed = 600.f;
 
-private:
-	FGameplayTag DeadTag;
 };

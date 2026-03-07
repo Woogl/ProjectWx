@@ -16,6 +16,10 @@
 		{
 			"Name": "GameplayAbilities",
 			"Enabled": true
+		},
+		{
+			"Name": "WxCore",
+			"Enabled": true
 		}
 	]
 }

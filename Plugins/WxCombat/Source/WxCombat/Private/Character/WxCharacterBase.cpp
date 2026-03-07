@@ -4,6 +4,7 @@
 #include "GAS/WxAbilitySystemComponent.h"
 #include "GAS/WxAttributeSet.h"
 #include "GAS/WxGameplayAbility.h"
+#include "WxGameplayTags.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -13,8 +14,6 @@ AWxCharacterBase::AWxCharacterBase()
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	AttributeSet = CreateDefaultSubobject<UWxAttributeSet>(TEXT("AttributeSet"));
-
-	DeadTag = FGameplayTag::RequestGameplayTag(FName("State.Dead"));
 }
 
 UAbilitySystemComponent* AWxCharacterBase::GetAbilitySystemComponent() const
@@ -77,7 +76,7 @@ void AWxCharacterBase::ApplyDefaultAttributes()
 
 void AWxCharacterBase::HandleDeath()
 {
-	AbilitySystemComponent->AddLooseGameplayTag(DeadTag);
+	AbilitySystemComponent->AddLooseGameplayTag(WxGameplayTags::State_Dead);
 	OnDeath.Broadcast(this);
 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
