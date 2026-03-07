@@ -1,0 +1,95 @@
+// Copyright Epic Games, Inc. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "GameplayTagContainer.h"
+#include "WxWeaponBase.generated.h"
+
+class USkeletalMeshComponent;
+class UBoxComponent;
+class UGameplayEffect;
+
+/** 무기 데이터 (BP에서 설정) */
+USTRUCT(BlueprintType)
+struct WXCOMBAT_API FWxWeaponData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float BaseDamage = 20.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float AttackSpeed = 1.f;
+
+	/** 근접 공격 유효 사거리 (cm) */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float AttackRange = 100.f;
+};
+
+/**
+ * 무기 베이스 클래스.
+ *
+ * 사용 흐름:
+ *  1. SpawnActor → AttachToCharacter(Character, SocketName)
+ *  2. 공격 어빌리티에서 SetCollisionEnabled(true) 호출 → 히트 감지 시작
+ *  3. 스윙 종료 시 SetCollisionEnabled(false) 호출
+ *
+ * 히트 판정은 HitCollision(BoxComponent) Overlap 기반.
+ * 한 스윙에서 동일 액터는 최대 1회만 피격 (HitActorsThisSwing으로 관리).
+ */
+UCLASS(Abstract, Blueprintable)
+class WXCOMBAT_API AWxWeaponBase : public AActor
+{
+	GENERATED_BODY()
+
+public:
+	AWxWeaponBase();
+
+	/** 캐릭터 메시의 SocketName에 부착 */
+	UFUNCTION(BlueprintCallable, Category = "Wx|Weapon")
+	void AttachToCharacter(ACharacter* Character, FName SocketName);
+
+	UFUNCTION(BlueprintCallable, Category = "Wx|Weapon")
+	void DetachFromCharacter();
+
+	/**
+	 * 히트 콜리전 활성/비활성.
+	 * bEnabled = true 시 HitActorsThisSwing을 초기화하여 새 스윙 시작.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Wx|Weapon")
+	void SetWeaponCollisionEnabled(bool bEnabled);
+
+	const FWxWeaponData& GetWeaponData() const { return WeaponData; }
+
+	/** 피격 대상에게 적용할 GameplayEffect (보통 Instant Damage) */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
+	TSubclassOf<UGameplayEffect> DamageEffectClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
+	FGameplayTag WeaponTag;
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Weapon")
+	TObjectPtr<USkeletalMeshComponent> WeaponMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Weapon")
+	TObjectPtr<UBoxComponent> HitCollision;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
+	FWxWeaponData WeaponData;
+
+	UFUNCTION()
+	virtual void OnHitCollisionOverlap(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult);
+
+private:
+	/** 한 스윙 내 이미 피격된 액터 목록 */
+	TSet<TObjectPtr<AActor>> HitActorsThisSwing;
+};

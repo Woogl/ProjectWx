@@ -1,0 +1,21 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "WxCombat",
+	"Description": "GAS 기반 액션 RPG 전투 시스템.",
+	"Category": "Wx",
+	"Modules": [
+		{
+			"Name": "WxCombat",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "GameplayAbilities",
+			"Enabled": true
+		}
+	]
+}
