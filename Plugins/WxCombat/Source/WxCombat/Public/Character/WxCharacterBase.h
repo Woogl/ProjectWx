@@ -38,6 +38,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx|Character")
 	bool IsAlive() const;
 
+	/** HP == 0 시 호출. WxAttributeSet에서 호출하며, 파생 클래스에서 override하여 사망 연출 추가 */
+	virtual void HandleDeath();
+
 	UPROPERTY(BlueprintAssignable, Category = "Wx|Character")
 	FWxOnDeathSignature OnDeath;
 
@@ -63,9 +66,6 @@ protected:
 
 	void GiveDefaultAbilities();
 	void ApplyDefaultAttributes();
-
-	/** HP == 0 시 호출. 파생 클래스에서 override하여 사망 연출 추가 */
-	virtual void HandleDeath();
 
 	/**
 	 * SPD 어트리뷰트 변경 콜백.
