@@ -55,7 +55,15 @@ void AWxCharacterBase::GiveDefaultAbilities()
 	{
 		if (AbilityClass)
 		{
-			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(AbilityClass, 1));
+			FGameplayAbilitySpec Spec(AbilityClass, 1);
+			if (const UWxGameplayAbility* DefaultAbility = AbilityClass.GetDefaultObject())
+			{
+				if (DefaultAbility->ActivationInputTag.IsValid())
+				{
+					Spec.GetDynamicSpecSourceTags().AddTag(DefaultAbility->ActivationInputTag);
+				}
+			}
+			AbilitySystemComponent->GiveAbility(Spec);
 		}
 	}
 }

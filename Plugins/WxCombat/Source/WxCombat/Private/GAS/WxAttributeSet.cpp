@@ -34,11 +34,19 @@ void UWxAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, fl
 	}
 	else if (Attribute == GetHPAttribute())
 	{
-		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxHP());
+		const float CurrentMaxHP = GetMaxHP();
+		if (CurrentMaxHP > 0.f)
+		{
+			NewValue = FMath::Clamp(NewValue, 0.f, CurrentMaxHP);
+		}
 	}
 	else if (Attribute == GetMPAttribute())
 	{
-		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxMP());
+		const float CurrentMaxMP = GetMaxMP();
+		if (CurrentMaxMP > 0.f)
+		{
+			NewValue = FMath::Clamp(NewValue, 0.f, CurrentMaxMP);
+		}
 	}
 }
 
@@ -64,9 +72,9 @@ void UWxAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 		SetMP(FMath::Clamp(GetMP(), 0.f, GetMaxMP()));
 	}
 
-	// HP가 0 이하이고 아직 사망 처리 전인 경우 HandleDeath 호출
-	// State.Dead 태그로 중복 호출 방지
-	if (GetHP() <= 0.f)
+	// IncomingDamage에 의해 HP가 0 이하가 된 경우에만 사망 처리
+	// 초기화 시 순서 문제로 오발동되지 않도록 IncomingDamage 분기 내에서만 체크
+	if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute() && GetHP() <= 0.f)
 	{
 		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
 		if (ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead))

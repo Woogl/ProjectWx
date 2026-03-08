@@ -7,6 +7,8 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Input/WxInputConfig.h"
+#include "GAS/WxAbilitySystemComponent.h"
 
 AWxPlayerCharacter::AWxPlayerCharacter()
 {
@@ -55,11 +57,6 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 	UEnhancedInputComponent* EIC = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 
-	if (JumpAction)
-	{
-		EIC->BindAction(JumpAction, ETriggerEvent::Started,   this, &ACharacter::Jump);
-		EIC->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-	}
 	if (MoveAction)
 	{
 		EIC->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AWxPlayerCharacter::Move);
@@ -67,6 +64,19 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	if (LookAction)
 	{
 		EIC->BindAction(LookAction, ETriggerEvent::Triggered, this, &AWxPlayerCharacter::Look);
+	}
+
+	// 어빌리티 입력 바인딩: InputConfig의 각 매핑에 대해 Press/Release 바인딩
+	if (InputConfig)
+	{
+		for (const FWxInputAbilityBinding& Binding : InputConfig->AbilityInputBindings)
+		{
+			if (Binding.InputAction && Binding.InputTag.IsValid())
+			{
+				EIC->BindAction(Binding.InputAction, ETriggerEvent::Triggered, this, &AWxPlayerCharacter::AbilityInputPressed,  Binding.InputTag);
+				EIC->BindAction(Binding.InputAction, ETriggerEvent::Completed, this, &AWxPlayerCharacter::AbilityInputReleased, Binding.InputTag);
+			}
+		}
 	}
 }
 
@@ -86,4 +96,20 @@ void AWxPlayerCharacter::Look(const FInputActionValue& Value)
 	const FVector2D LookAxis = Value.Get<FVector2D>();
 	AddControllerYawInput(LookAxis.X);
 	AddControllerPitchInput(LookAxis.Y);
+}
+
+void AWxPlayerCharacter::AbilityInputPressed(FGameplayTag InputTag)
+{
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->AbilityInputTagPressed(InputTag);
+	}
+}
+
+void AWxPlayerCharacter::AbilityInputReleased(FGameplayTag InputTag)
+{
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->AbilityInputTagReleased(InputTag);
+	}
 }

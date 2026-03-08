@@ -17,4 +17,9 @@ namespace WxGameplayTags
 
 	/** 사망 상태. HandleDeath 시 ASC에 부여되며, 부활 시 제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dead);
+
+	// ── Input ──────────────────────────────────────────────────────────────
+
+	/** 점프 입력 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Jump);
 }

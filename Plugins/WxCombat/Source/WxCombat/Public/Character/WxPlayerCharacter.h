@@ -10,6 +10,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
+class UWxInputConfig;
 struct FInputActionValue;
 
 /**
@@ -46,11 +47,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TObjectPtr<UInputAction> LookAction;
 
+	/** 어빌리티 입력 바인딩 설정. InputAction → InputTag 매핑 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
-	TObjectPtr<UInputAction> JumpAction;
+	TObjectPtr<const UWxInputConfig> InputConfig;
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
+
+	void AbilityInputPressed(FGameplayTag InputTag);
+	void AbilityInputReleased(FGameplayTag InputTag);
 
 	virtual void InitAbilityActorInfo() override;
 };

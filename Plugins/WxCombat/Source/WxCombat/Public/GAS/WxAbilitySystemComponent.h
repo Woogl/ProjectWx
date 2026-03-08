@@ -13,4 +13,10 @@ class WXCOMBAT_API UWxAbilitySystemComponent : public UAbilitySystemComponent
 
 public:
 	UWxAbilitySystemComponent();
+
+	/** 입력 태그에 매칭되는 어빌리티 활성화 (입력 눌림) */
+	void AbilityInputTagPressed(const FGameplayTag& InputTag);
+
+	/** 입력 태그에 매칭되는 어빌리티에 입력 해제 전달 */
+	void AbilityInputTagReleased(const FGameplayTag& InputTag);
 };
