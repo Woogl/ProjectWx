@@ -89,7 +89,7 @@ protected:
 	TSubclassOf<AWxWeaponBase> DefaultWeaponClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
-	FName WeaponSocketName = TEXT("hand_rSocket");
+	FName WeaponSocketName = TEXT("hand_r");
 
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Weapon")
 	TObjectPtr<AWxWeaponBase> EquippedWeapon;

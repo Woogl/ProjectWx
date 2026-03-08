@@ -21,7 +21,7 @@ void UWxGA_MeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, AttackMontage, MontagePlayRate);
+		this, NAME_None, AttackMontage);
 
 	MontageTask->OnCompleted.AddDynamic(this, &UWxGA_MeleeAttack::OnMontageCompleted);
 	MontageTask->OnBlendOut.AddDynamic(this, &UWxGA_MeleeAttack::OnMontageBlendOut);

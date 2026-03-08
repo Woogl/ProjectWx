@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GAS/WxGameplayAbility.h"
+#include "Ability/WxGameplayAbility.h"
 #include "WxGA_Jump.generated.h"
 
 /**

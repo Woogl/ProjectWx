@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GAS/WxGameplayAbility.h"
+#include "Ability/WxGameplayAbility.h"
 #include "WxGA_MeleeAttack.generated.h"
 
 class UAnimMontage;
@@ -30,9 +30,6 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> AttackMontage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	float MontagePlayRate = 1.0f;
 
 private:
 	UFUNCTION()

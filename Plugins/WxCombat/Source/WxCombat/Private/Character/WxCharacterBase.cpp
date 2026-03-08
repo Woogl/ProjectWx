@@ -1,9 +1,9 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Character/WxCharacterBase.h"
-#include "GAS/WxAbilitySystemComponent.h"
-#include "GAS/WxAttributeSet.h"
-#include "GAS/WxGameplayAbility.h"
+#include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "AbilitySystem/WxAttributeSet.h"
+#include "Ability/WxGameplayAbility.h"
 #include "WxGameplayTags.h"
 #include "Weapon/WxWeaponBase.h"
 #include "Components/CapsuleComponent.h"

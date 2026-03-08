@@ -8,7 +8,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Input/WxInputConfig.h"
-#include "GAS/WxAbilitySystemComponent.h"
+#include "AbilitySystem/WxAbilitySystemComponent.h"
 
 AWxPlayerCharacter::AWxPlayerCharacter()
 {
