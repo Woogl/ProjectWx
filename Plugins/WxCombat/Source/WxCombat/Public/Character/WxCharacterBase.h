@@ -13,6 +13,7 @@ class UWxAbilitySystemComponent;
 class UWxAttributeSet;
 class UWxGameplayAbility;
 class UGameplayEffect;
+class AWxWeaponBase;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBase*, DeadCharacter);
 
@@ -39,6 +40,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Wx|Character")
 	bool IsAlive() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Wx|Weapon")
+	AWxWeaponBase* GetEquippedWeapon() const { return EquippedWeapon; }
 
 	/** HP == 0 시 호출. WxAttributeSet에서 호출하며, 파생 클래스에서 override하여 사망 연출 추가 */
 	virtual void HandleDeath();
@@ -78,5 +82,18 @@ protected:
 	/** 기본 이동 속도 (cm/s). SPD Multiplier의 기준값. BP에서 설정 가능 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Movement", meta = (AllowPrivateAccess = "true"))
 	float BaseWalkSpeed = 600.f;
+
+	// ── Weapon ─────────────────────────────────────────────────────────────
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
+	TSubclassOf<AWxWeaponBase> DefaultWeaponClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
+	FName WeaponSocketName = TEXT("hand_rSocket");
+
+	UPROPERTY(BlueprintReadOnly, Category = "Wx|Weapon")
+	TObjectPtr<AWxWeaponBase> EquippedWeapon;
+
+	void SpawnDefaultWeapon();
 
 };

@@ -22,4 +22,7 @@ namespace WxGameplayTags
 
 	/** 점프 입력 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Jump);
+
+	/** 공격 입력 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Attack);
 }

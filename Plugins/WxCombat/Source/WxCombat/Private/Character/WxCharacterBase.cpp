@@ -5,6 +5,7 @@
 #include "GAS/WxAttributeSet.h"
 #include "GAS/WxGameplayAbility.h"
 #include "WxGameplayTags.h"
+#include "Weapon/WxWeaponBase.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -29,6 +30,22 @@ bool AWxCharacterBase::IsAlive() const
 void AWxCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+	SpawnDefaultWeapon();
+}
+
+void AWxCharacterBase::SpawnDefaultWeapon()
+{
+	if (!DefaultWeaponClass || !HasAuthority()) return;
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.Instigator = this;
+
+	EquippedWeapon = GetWorld()->SpawnActor<AWxWeaponBase>(DefaultWeaponClass, SpawnParams);
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->AttachToCharacter(this, WeaponSocketName);
+	}
 }
 
 void AWxCharacterBase::InitAbilityActorInfo()
