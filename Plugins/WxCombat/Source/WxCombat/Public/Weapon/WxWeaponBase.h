@@ -14,23 +14,6 @@ class UCapsuleComponent;
 class USkeletalMeshComponent;
 class UGameplayEffect;
 
-/** 무기 데이터 (BP에서 설정) */
-USTRUCT(BlueprintType)
-struct WXCOMBAT_API FWxWeaponData
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float BaseDamage = 20.f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float AttackSpeed = 1.f;
-
-	/** 근접 공격 유효 사거리 (cm) */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float AttackRange = 100.f;
-};
-
 /**
  * 무기 베이스 클래스.
  *
@@ -63,8 +46,6 @@ public:
 	 */
 	void SetWeaponCollisionEnabled(bool bEnabled);
 
-	const FWxWeaponData& GetWeaponData() const { return WeaponData; }
-
 	/** 피격 대상에게 적용할 GameplayEffect (보통 Instant Damage) */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
 	TSubclassOf<UGameplayEffect> DamageEffectClass;
@@ -87,9 +68,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Weapon")
 	TObjectPtr<UCapsuleComponent> HitCollision;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
-	FWxWeaponData WeaponData;
 
 	UFUNCTION()
 	virtual void HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

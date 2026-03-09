@@ -24,9 +24,3 @@ void AWxEnemyCharacter::InitAbilityActorInfo()
 {
 	Super::InitAbilityActorInfo();
 }
-
-void AWxEnemyCharacter::HandleDeath()
-{
-	Super::HandleDeath();
-	SetLifeSpan(DeathLifeSpan);
-}

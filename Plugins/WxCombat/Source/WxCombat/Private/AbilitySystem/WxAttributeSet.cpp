@@ -17,6 +17,7 @@ void UWxAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxAttributeSet, MP,    COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxAttributeSet, MaxMP, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxAttributeSet, ATK,   COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UWxAttributeSet, DEF,   COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxAttributeSet, SPD,   COND_None, REPNOTIFY_Always);
 }
 
@@ -110,6 +111,11 @@ void UWxAttributeSet::OnRep_MaxMP(const FGameplayAttributeData& OldMaxMP)
 void UWxAttributeSet::OnRep_ATK(const FGameplayAttributeData& OldATK)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxAttributeSet, ATK, OldATK);
+}
+
+void UWxAttributeSet::OnRep_DEF(const FGameplayAttributeData& OldDEF)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxAttributeSet, DEF, OldDEF);
 }
 
 void UWxAttributeSet::OnRep_SPD(const FGameplayAttributeData& OldSPD)

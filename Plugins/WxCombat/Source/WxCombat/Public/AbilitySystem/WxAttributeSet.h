@@ -18,7 +18,7 @@
  * 캐릭터 스탯 어트리뷰트 세트.
  *
  * Vital  (복제됨): HP, MaxHP, MP, MaxMP
- * Combat (복제됨): ATK, SPD
+ * Combat (복제됨): ATK, DEF, SPD
  * Meta   (복제 안 함): IncomingDamage
  *
  * 약어 정의
@@ -27,6 +27,7 @@
  *   MP    - Mana Points        : 현재 마나
  *   MaxMP - Max Mana Points    : 최대 마나
  *   ATK   - Attack             : 공격력
+ *   DEF   - Defense            : 방어력
  *   SPD   - Speed              : 이동 속도
  *
  * IncomingDamage: GameplayEffect ExecutionCalculation에서 최종 데미지를 이 어트리뷰트로 전달하고
@@ -73,6 +74,11 @@ public:
 	FGameplayAttributeData ATK;
 	ATTRIBUTE_ACCESSORS(UWxAttributeSet, ATK)
 
+	/** DEF (Defense) : 방어력. 데미지 감소 계산에 사용 */
+	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Combat", ReplicatedUsing = OnRep_DEF)
+	FGameplayAttributeData DEF;
+	ATTRIBUTE_ACCESSORS(UWxAttributeSet, DEF)
+
 	/** SPD (Speed) : 이동 속도 배율. CharacterMovement의 MaxWalkSpeed에 곱해지는 Multiplier (기본값 1.0) */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Combat", ReplicatedUsing = OnRep_SPD)
 	FGameplayAttributeData SPD;
@@ -96,6 +102,8 @@ protected:
 	void OnRep_MaxMP(const FGameplayAttributeData& OldMaxMP);
 	UFUNCTION()
 	void OnRep_ATK(const FGameplayAttributeData& OldATK);
+	UFUNCTION()
+	void OnRep_DEF(const FGameplayAttributeData& OldDEF);
 	UFUNCTION()
 	void OnRep_SPD(const FGameplayAttributeData& OldSPD);
 };

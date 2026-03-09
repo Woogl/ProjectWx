@@ -4,9 +4,9 @@
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxAttributeSet.h"
 #include "Ability/WxGameplayAbility.h"
+#include "Component/WxRagdollComponent.h"
 #include "WxGameplayTags.h"
 #include "Weapon/WxWeaponBase.h"
-#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 AWxCharacterBase::AWxCharacterBase()
@@ -15,6 +15,8 @@ AWxCharacterBase::AWxCharacterBase()
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	AttributeSet = CreateDefaultSubobject<UWxAttributeSet>(TEXT("AttributeSet"));
+
+	RagdollComponent = CreateDefaultSubobject<UWxRagdollComponent>(TEXT("RagdollComponent"));
 }
 
 UAbilitySystemComponent* AWxCharacterBase::GetAbilitySystemComponent() const
@@ -104,7 +106,5 @@ void AWxCharacterBase::HandleDeath()
 	AbilitySystemComponent->AddLooseGameplayTag(WxGameplayTags::State_Dead);
 	OnDeath.Broadcast(this);
 
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GetCharacterMovement()->GravityScale = 0.f;
-	GetCharacterMovement()->Velocity     = FVector::ZeroVector;
+	RagdollComponent->EnableRagdoll();
 }
