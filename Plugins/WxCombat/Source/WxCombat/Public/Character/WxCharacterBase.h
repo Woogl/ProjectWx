@@ -5,13 +5,12 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
-#include "GameplayTagContainer.h"
 #include "GameplayEffectTypes.h"
 #include "WxCharacterBase.generated.h"
 
 class UWxAbilitySystemComponent;
 class UWxAttributeSet;
-class UWxGameplayAbility;
+class UGameplayAbility;
 class UGameplayEffect;
 class AWxWeaponBase;
 class UWxRagdollComponent;
@@ -21,7 +20,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBas
 /**
  * 플레이어·에너미 공통 베이스 캐릭터.
  * ASC와 AttributeSet을 캐릭터에 직접 소유.
- * 스탯 초기화는 DefaultAttributeEffect(GameplayEffect)로, 어빌리티는 DefaultAbilities로 부여.
+ * 스탯 초기화는 DefaultEffects로, 어빌리티는 DefaultAbilities로 부여.
  *
  * ASC를 캐릭터에 직접 소유 (리스폰 시 스탯을 새로 초기화하므로 PlayerState 불필요).
  */
@@ -56,13 +55,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|GAS")
 	TObjectPtr<UWxAttributeSet> AttributeSet;
 
-	/** BP에서 기본 어빌리티 목록 지정 */
+	/** 초기 어빌리티 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|GAS")
-	TArray<TSubclassOf<UWxGameplayAbility>> DefaultAbilities;
+	TArray<TSubclassOf<UGameplayAbility>> DefaultAbilities;
 
-	/** 초기 스탯 값을 설정하는 Instant GameplayEffect */
+	/** 초기 이펙트 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|GAS")
-	TSubclassOf<UGameplayEffect> DefaultAttributeEffect;
+	TArray<TSubclassOf<UGameplayEffect>> DefaultEffects;
 
 	virtual void BeginPlay() override;
 
@@ -70,7 +69,7 @@ protected:
 	virtual void InitAbilityActorInfo();
 
 	void GiveDefaultAbilities();
-	void ApplyDefaultAttributes();
+	void ApplyDefaultEffects();
 
 	/**
 	 * SPD 어트리뷰트 변경 콜백.
@@ -78,8 +77,7 @@ protected:
 	 */
 	void HandleSPDAttributeChanged(const FOnAttributeChangeData& Data);
 
-	/** 기본 이동 속도 (cm/s). SPD Multiplier의 기준값. BP에서 설정 가능 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Movement")
+	/** 기본 이동 속도 (cm/s). SPD Multiplier의 기준값 */
 	float BaseWalkSpeed = 600.f;
 
 	// ── Weapon ─────────────────────────────────────────────────────────────

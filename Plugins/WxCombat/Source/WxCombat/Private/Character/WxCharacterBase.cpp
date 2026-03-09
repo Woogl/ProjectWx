@@ -32,7 +32,9 @@ bool AWxCharacterBase::IsAlive() const
 void AWxCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+	
 	SpawnDefaultWeapon();
+	BaseWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 }
 
 void AWxCharacterBase::SpawnDefaultWeapon()
@@ -53,7 +55,7 @@ void AWxCharacterBase::SpawnDefaultWeapon()
 void AWxCharacterBase::InitAbilityActorInfo()
 {
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
-	ApplyDefaultAttributes();
+	ApplyDefaultEffects();
 	GiveDefaultAbilities();
 
 	// SPD 변경 시 실제 이동 속도에 반영
@@ -70,12 +72,12 @@ void AWxCharacterBase::GiveDefaultAbilities()
 {
 	if (!HasAuthority() || !AbilitySystemComponent) return;
 
-	for (const TSubclassOf<UWxGameplayAbility>& AbilityClass : DefaultAbilities)
+	for (const TSubclassOf<UGameplayAbility>& AbilityClass : DefaultAbilities)
 	{
 		if (AbilityClass)
 		{
 			FGameplayAbilitySpec Spec(AbilityClass, 1);
-			if (const UWxGameplayAbility* DefaultAbility = AbilityClass.GetDefaultObject())
+			if (const UWxGameplayAbility* DefaultAbility = Cast<UWxGameplayAbility>(AbilityClass.GetDefaultObject()))
 			{
 				if (DefaultAbility->ActivationInputTag.IsValid())
 				{
@@ -87,17 +89,20 @@ void AWxCharacterBase::GiveDefaultAbilities()
 	}
 }
 
-void AWxCharacterBase::ApplyDefaultAttributes()
+void AWxCharacterBase::ApplyDefaultEffects()
 {
-	if (!AbilitySystemComponent || !DefaultAttributeEffect) return;
+	if (!AbilitySystemComponent || DefaultEffects.IsEmpty()) return;
 
 	FGameplayEffectContextHandle Context = AbilitySystemComponent->MakeEffectContext();
 	Context.AddSourceObject(this);
 
-	const FGameplayEffectSpecHandle Spec = AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributeEffect, 1.f, Context);
-	if (Spec.IsValid())
+	for (const TSubclassOf<UGameplayEffect>& DefaultEffect : DefaultEffects)
 	{
-		AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
+		const FGameplayEffectSpecHandle Spec = AbilitySystemComponent->MakeOutgoingSpec(DefaultEffect, 1.f, Context);
+		if (Spec.IsValid())
+		{
+			AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
+		}
 	}
 }
 
