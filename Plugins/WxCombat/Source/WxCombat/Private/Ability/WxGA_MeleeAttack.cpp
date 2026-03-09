@@ -2,8 +2,6 @@
 
 #include "Ability/WxGA_MeleeAttack.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "Character/WxCharacterBase.h"
-#include "Weapon/WxWeaponBase.h"
 #include "WxGameplayTags.h"
 
 UWxGA_MeleeAttack::UWxGA_MeleeAttack()
@@ -23,42 +21,29 @@ void UWxGA_MeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this, NAME_None, AttackMontage);
 
-	MontageTask->OnCompleted.AddDynamic(this, &UWxGA_MeleeAttack::OnMontageCompleted);
-	MontageTask->OnBlendOut.AddDynamic(this, &UWxGA_MeleeAttack::OnMontageBlendOut);
-	MontageTask->OnInterrupted.AddDynamic(this, &UWxGA_MeleeAttack::OnMontageInterrupted);
-	MontageTask->OnCancelled.AddDynamic(this, &UWxGA_MeleeAttack::OnMontageCancelled);
+	MontageTask->OnCompleted.AddDynamic(this, &UWxGA_MeleeAttack::HandleMontageCompleted);
+	MontageTask->OnBlendOut.AddDynamic(this, &UWxGA_MeleeAttack::HandleMontageBlendOut);
+	MontageTask->OnInterrupted.AddDynamic(this, &UWxGA_MeleeAttack::HandleMontageInterrupted);
+	MontageTask->OnCancelled.AddDynamic(this, &UWxGA_MeleeAttack::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
 }
 
-void UWxGA_MeleeAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
-{
-	if (AWxCharacterBase* Character = Cast<AWxCharacterBase>(GetAvatarActorFromActorInfo()))
-	{
-		if (AWxWeaponBase* Weapon = Character->GetEquippedWeapon())
-		{
-			Weapon->SetWeaponCollisionEnabled(false);
-		}
-	}
-
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-}
-
-void UWxGA_MeleeAttack::OnMontageCompleted()
+void UWxGA_MeleeAttack::HandleMontageCompleted()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
-void UWxGA_MeleeAttack::OnMontageBlendOut()
+void UWxGA_MeleeAttack::HandleMontageBlendOut()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
-void UWxGA_MeleeAttack::OnMontageInterrupted()
+void UWxGA_MeleeAttack::HandleMontageInterrupted()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
 
-void UWxGA_MeleeAttack::OnMontageCancelled()
+void UWxGA_MeleeAttack::HandleMontageCancelled()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }

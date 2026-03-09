@@ -17,17 +17,17 @@ AWxProjectileBase::AWxProjectileBase()
 	CollisionSphere->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
 	CollisionSphere->SetCollisionResponseToChannel(ECC_WorldStatic,  ECR_Block);
 	CollisionSphere->SetCollisionResponseToChannel(ECC_Pawn,         ECR_Overlap);
-	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AWxProjectileBase::OnSphereOverlap);
+	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AWxProjectileBase::HandleSphereOverlap);
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
-	ProjectileMovement->InitialSpeed          = InitialSpeed;
-	ProjectileMovement->MaxSpeed              = MaxSpeed;
 	ProjectileMovement->ProjectileGravityScale = 0.f;
 }
 
 void AWxProjectileBase::BeginPlay()
 {
 	Super::BeginPlay();
+	ProjectileMovement->InitialSpeed = InitialSpeed;
+	ProjectileMovement->MaxSpeed     = MaxSpeed;
 	SetLifeSpan(LifeSpanSeconds);
 }
 
@@ -36,7 +36,7 @@ void AWxProjectileBase::SetDamageEffectSpecHandle(const FGameplayEffectSpecHandl
 	DamageEffectSpecHandle = InHandle;
 }
 
-void AWxProjectileBase::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AWxProjectileBase::HandleSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!OtherActor || OtherActor == GetOwner()) return;
 

@@ -56,10 +56,10 @@ void AWxCharacterBase::InitAbilityActorInfo()
 
 	// SPD 변경 시 실제 이동 속도에 반영
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UWxAttributeSet::GetSPDAttribute())
-		.AddUObject(this, &AWxCharacterBase::OnSPDAttributeChanged);
+		.AddUObject(this, &AWxCharacterBase::HandleSPDAttributeChanged);
 }
 
-void AWxCharacterBase::OnSPDAttributeChanged(const FOnAttributeChangeData& Data)
+void AWxCharacterBase::HandleSPDAttributeChanged(const FOnAttributeChangeData& Data)
 {
 	GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed * Data.NewValue;
 }

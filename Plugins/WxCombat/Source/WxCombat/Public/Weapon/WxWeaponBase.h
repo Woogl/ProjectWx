@@ -7,6 +7,8 @@
 #include "GameplayTagContainer.h"
 #include "WxWeaponBase.generated.h"
 
+class UAnimInstance;
+class UAnimMontage;
 class UArrowComponent;
 class UCapsuleComponent;
 class USkeletalMeshComponent;
@@ -51,17 +53,14 @@ public:
 	AWxWeaponBase();
 
 	/** 캐릭터 메시의 SocketName에 부착 */
-	UFUNCTION(BlueprintCallable, Category = "Wx|Weapon")
 	void AttachToCharacter(ACharacter* Character, FName SocketName);
 
-	UFUNCTION(BlueprintCallable, Category = "Wx|Weapon")
 	void DetachFromCharacter();
 
 	/**
 	 * 히트 콜리전 활성/비활성.
 	 * bEnabled = true 시 HitActorsThisSwing을 초기화하여 새 스윙 시작.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "Wx|Weapon")
 	void SetWeaponCollisionEnabled(bool bEnabled);
 
 	const FWxWeaponData& GetWeaponData() const { return WeaponData; }
@@ -93,9 +92,14 @@ protected:
 	FWxWeaponData WeaponData;
 
 	UFUNCTION()
-	virtual void OnHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	virtual void HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 private:
+	void BindMontageEndedCallback(bool bBind);
+
+	UFUNCTION()
+	void HandleOwnerMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
 	/** 한 스윙 내 이미 피격된 액터 목록 */
 	TSet<TObjectPtr<AActor>> HitActorsThisSwing;
 };

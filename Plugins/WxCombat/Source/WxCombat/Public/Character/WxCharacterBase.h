@@ -35,13 +35,8 @@ public:
 	// IAbilitySystemInterface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	UFUNCTION(BlueprintCallable, Category = "Wx|Character")
 	UWxAttributeSet* GetAttributeSet() const { return AttributeSet; }
-
-	UFUNCTION(BlueprintCallable, Category = "Wx|Character")
 	bool IsAlive() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Wx|Weapon")
 	AWxWeaponBase* GetEquippedWeapon() const { return EquippedWeapon; }
 
 	/** HP == 0 시 호출. WxAttributeSet에서 호출하며, 파생 클래스에서 override하여 사망 연출 추가 */
@@ -77,10 +72,10 @@ protected:
 	 * SPD 어트리뷰트 변경 콜백.
 	 * MaxWalkSpeed = BaseWalkSpeed * NewSPD 로 실제 이동 속도에 반영.
 	 */
-	void OnSPDAttributeChanged(const FOnAttributeChangeData& Data);
+	void HandleSPDAttributeChanged(const FOnAttributeChangeData& Data);
 
 	/** 기본 이동 속도 (cm/s). SPD Multiplier의 기준값. BP에서 설정 가능 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Movement", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Movement")
 	float BaseWalkSpeed = 600.f;
 
 	// ── Weapon ─────────────────────────────────────────────────────────────

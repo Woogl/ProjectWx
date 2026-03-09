@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Weapon/WxWeaponBase.h"
+#include "Animation/AnimInstance.h"
 #include "Components/ArrowComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -32,7 +33,7 @@ AWxWeaponBase::AWxWeaponBase()
 	HitCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HitCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
 	HitCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	HitCollision->OnComponentBeginOverlap.AddDynamic(this, &AWxWeaponBase::OnHitCollisionOverlap);
+	HitCollision->OnComponentBeginOverlap.AddDynamic(this, &AWxWeaponBase::HandleHitCollisionOverlap);
 }
 
 void AWxWeaponBase::AttachToCharacter(ACharacter* Character, FName SocketName)
@@ -54,9 +55,30 @@ void AWxWeaponBase::SetWeaponCollisionEnabled(bool bEnabled)
 {
 	HitActorsThisSwing.Empty();
 	HitCollision->SetCollisionEnabled(bEnabled ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+	BindMontageEndedCallback(bEnabled);
 }
 
-void AWxWeaponBase::OnHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AWxWeaponBase::BindMontageEndedCallback(bool bBind)
+{
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	if (!OwnerCharacter) return;
+
+	UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
+	if (!AnimInstance) return;
+
+	AnimInstance->OnMontageEnded.RemoveDynamic(this, &AWxWeaponBase::HandleOwnerMontageEnded);
+	if (bBind)
+	{
+		AnimInstance->OnMontageEnded.AddDynamic(this, &AWxWeaponBase::HandleOwnerMontageEnded);
+	}
+}
+
+void AWxWeaponBase::HandleOwnerMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	SetWeaponCollisionEnabled(false);
+}
+
+void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	AActor* WeaponOwner = GetOwner();
 	if (!OtherActor || OtherActor == WeaponOwner) return;
