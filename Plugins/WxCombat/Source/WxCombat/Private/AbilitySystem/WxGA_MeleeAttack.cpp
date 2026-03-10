@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "Ability/WxGA_MeleeAttack.h"
+#include "AbilitySystem/WxGA_MeleeAttack.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "WxGameplayTags.h"
 

@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "Ability/WxGameplayAbility.h"
+#include "AbilitySystem/WxGameplayAbility.h"
 #include "AbilitySystemComponent.h"
 
 UWxGameplayAbility::UWxGameplayAbility()

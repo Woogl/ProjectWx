@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Ability/WxGameplayAbility.h"
+#include "AbilitySystem/WxGameplayAbility.h"
 #include "WxGA_MeleeAttack.generated.h"
 
 class UAnimMontage;

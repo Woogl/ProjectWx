@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "Ability/WxGA_Jump.h"
+#include "AbilitySystem/WxGA_Jump.h"
 #include "GameFramework/Character.h"
 #include "WxGameplayTags.h"
 
