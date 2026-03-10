@@ -35,9 +35,9 @@ public:
 	// IAbilitySystemInterface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	UWxAttributeSet* GetAttributeSet() const { return AttributeSet; }
+	UWxAttributeSet* GetAttributeSet() const;
 	bool IsAlive() const;
-	AWxWeaponBase* GetEquippedWeapon() const { return EquippedWeapon; }
+	AWxWeaponBase* GetEquippedWeapon() const;
 
 	/** HP == 0 시 호출. WxAttributeSet에서 호출하며, 파생 클래스에서 override하여 사망 연출 추가 */
 	virtual void HandleDeath();

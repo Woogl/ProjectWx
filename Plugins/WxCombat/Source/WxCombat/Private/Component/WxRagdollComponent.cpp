@@ -10,12 +10,23 @@ UWxRagdollComponent::UWxRagdollComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+bool UWxRagdollComponent::IsRagdollActive() const
+{
+	return bRagdollActive;
+}
+
 void UWxRagdollComponent::EnableRagdoll()
 {
-	if (bRagdollActive) return;
+	if (bRagdollActive)
+	{
+		return;
+	}
 
 	ACharacter* Character = Cast<ACharacter>(GetOwner());
-	if (!Character) return;
+	if (!Character)
+	{
+		return;
+	}
 
 	bRagdollActive = true;
 
@@ -31,10 +42,16 @@ void UWxRagdollComponent::EnableRagdoll()
 
 void UWxRagdollComponent::DisableRagdoll()
 {
-	if (!bRagdollActive) return;
+	if (!bRagdollActive)
+	{
+		return;
+	}
 
 	ACharacter* Character = Cast<ACharacter>(GetOwner());
-	if (!Character) return;
+	if (!Character)
+	{
+		return;
+	}
 
 	bRagdollActive = false;
 

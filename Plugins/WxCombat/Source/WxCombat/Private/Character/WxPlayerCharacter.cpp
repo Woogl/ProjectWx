@@ -40,7 +40,10 @@ void AWxPlayerCharacter::InitAbilityActorInfo()
 	Super::InitAbilityActorInfo();
 
 	const APlayerController* PC = Cast<APlayerController>(GetController());
-	if (!PC) return;
+	if (!PC)
+	{
+		return;
+	}
 
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
 	{
@@ -82,7 +85,10 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 void AWxPlayerCharacter::Move(const FInputActionValue& Value)
 {
-	if (!Controller) return;
+	if (!Controller)
+	{
+		return;
+	}
 
 	const FVector2D MovementVector = Value.Get<FVector2D>();
 	const FRotator  YawRotation(0, Controller->GetControlRotation().Yaw, 0);

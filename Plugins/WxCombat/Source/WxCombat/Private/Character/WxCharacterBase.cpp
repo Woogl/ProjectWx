@@ -24,6 +24,16 @@ UAbilitySystemComponent* AWxCharacterBase::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 
+UWxAttributeSet* AWxCharacterBase::GetAttributeSet() const
+{
+	return AttributeSet;
+}
+
+AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const
+{
+	return EquippedWeapon;
+}
+
 bool AWxCharacterBase::IsAlive() const
 {
 	return AttributeSet && AttributeSet->GetHP() > 0.f;
@@ -39,7 +49,10 @@ void AWxCharacterBase::BeginPlay()
 
 void AWxCharacterBase::SpawnDefaultWeapon()
 {
-	if (!DefaultWeaponClass || !HasAuthority()) return;
+	if (!DefaultWeaponClass || !HasAuthority())
+	{
+		return;
+	}
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
@@ -70,7 +83,10 @@ void AWxCharacterBase::HandleSPDAttributeChanged(const FOnAttributeChangeData& D
 
 void AWxCharacterBase::GiveDefaultAbilities()
 {
-	if (!HasAuthority() || !AbilitySystemComponent) return;
+	if (!HasAuthority() || !AbilitySystemComponent)
+	{
+		return;
+	}
 
 	for (const TSubclassOf<UGameplayAbility>& AbilityClass : DefaultAbilities)
 	{
@@ -91,7 +107,10 @@ void AWxCharacterBase::GiveDefaultAbilities()
 
 void AWxCharacterBase::ApplyDefaultEffects()
 {
-	if (!AbilitySystemComponent || DefaultEffects.IsEmpty()) return;
+	if (!AbilitySystemComponent || DefaultEffects.IsEmpty())
+	{
+		return;
+	}
 
 	FGameplayEffectContextHandle Context = AbilitySystemComponent->MakeEffectContext();
 	Context.AddSourceObject(this);

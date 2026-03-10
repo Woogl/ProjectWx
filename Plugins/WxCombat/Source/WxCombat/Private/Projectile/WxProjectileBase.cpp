@@ -38,7 +38,10 @@ void AWxProjectileBase::SetDamageEffectSpecHandle(const FGameplayEffectSpecHandl
 
 void AWxProjectileBase::HandleSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!OtherActor || OtherActor == GetOwner()) return;
+	if (!OtherActor || OtherActor == GetOwner())
+	{
+		return;
+	}
 
 	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
 	{

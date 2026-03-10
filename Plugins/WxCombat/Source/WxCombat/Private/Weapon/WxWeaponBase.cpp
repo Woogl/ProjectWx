@@ -38,7 +38,10 @@ AWxWeaponBase::AWxWeaponBase()
 
 void AWxWeaponBase::AttachToCharacter(ACharacter* Character, FName SocketName)
 {
-	if (!Character) return;
+	if (!Character)
+	{
+		return;
+	}
 
 	AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
 	SetOwner(Character);
@@ -61,10 +64,16 @@ void AWxWeaponBase::SetWeaponCollisionEnabled(bool bEnabled)
 void AWxWeaponBase::BindMontageEndedCallback(bool bBind)
 {
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
-	if (!OwnerCharacter) return;
+	if (!OwnerCharacter)
+	{
+		return;
+	}
 
 	UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
-	if (!AnimInstance) return;
+	if (!AnimInstance)
+	{
+		return;
+	}
 
 	AnimInstance->OnMontageEnded.RemoveDynamic(this, &AWxWeaponBase::HandleOwnerMontageEnded);
 	if (bBind)
@@ -81,8 +90,14 @@ void AWxWeaponBase::HandleOwnerMontageEnded(UAnimMontage* Montage, bool bInterru
 void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	AActor* WeaponOwner = GetOwner();
-	if (!OtherActor || OtherActor == WeaponOwner) return;
-	if (HitActorsThisSwing.Contains(OtherActor)) return;
+	if (!OtherActor || OtherActor == WeaponOwner)
+	{
+		return;
+	}
+	if (HitActorsThisSwing.Contains(OtherActor))
+	{
+		return;
+	}
 
 	HitActorsThisSwing.Add(OtherActor);
 

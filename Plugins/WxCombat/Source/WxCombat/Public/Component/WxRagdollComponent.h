@@ -23,7 +23,7 @@ public:
 	void EnableRagdoll();
 	void DisableRagdoll();
 
-	bool IsRagdollActive() const { return bRagdollActive; }
+	bool IsRagdollActive() const;
 
 private:
 	bool bRagdollActive = false;

@@ -9,7 +9,10 @@ UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 
 void UWxAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)
 {
-	if (!InputTag.IsValid()) return;
+	if (!InputTag.IsValid())
+	{
+		return;
+	}
 
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
@@ -30,7 +33,10 @@ void UWxAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Input
 
 void UWxAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& InputTag)
 {
-	if (!InputTag.IsValid()) return;
+	if (!InputTag.IsValid())
+	{
+		return;
+	}
 
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
