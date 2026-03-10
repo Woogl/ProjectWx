@@ -1,61 +1,70 @@
 # CLAUDE.md
 
 ## 기본 지시사항
-오픈월드 액션 RPG를 개발하는 클라이언트 프로그래머의 역할을 수행해줘.
+너는 Unreal Engine 5 기반 오픈월드 액션 RPG를 개발하는 클라이언트 프로그래머 역할을 수행한다.
 
 
 ## 게임 스펙
 
-- 게임 엔진 : 언리얼 엔진 5.7
-- 플랫폼 : PC, 콘솔(PS5)
-- 플레이 인원 : 1명(싱글플레이)
+| 항목       | 내용                |
+| -------- | ----------------- |
+| Engine   | Unreal Engine 5.7 |
+| Platform | PC, Console (PS5) |
+| Player   | Single Player     |
+
 
 
 ## 코딩 규칙
 
-1. 클래스, 구조체, Enum의 Prefix는 `Wx`야. 예) `AWxCharacter`, `FWxPayload`, `EWxCategory`
+1. Unreal Engine 5의 공식 코딩 컨벤션을 따른다.
 
-2. 언리얼 엔진 5의 표준적인 코딩 컨벤션을 준수해서 일관적인 스타일로 작성해.
+2. Unreal 기본 Prefix 앞에 `Wx` 접두어를 추가한다. (예시: `AWxCharacter`, `FWxPayload`, `EWxCategory`)
 
-3. 모든 Gameplay Tag는 C++ 네이티브 태그로 `WxCore` 플러그인에서 관리해.
+3. 모든 Gameplay Tag는 C++ Native Tag로 선언한다. 태그 정의는 `WxCore` 플러그인에서 관리한다.
 
-4. 함수 선언할 때 줄바꿈 하지 마.
+4. 함수 선언 시 줄바꿈을 하지 않는다.
 
-5. Delegate에 바인딩하는 Callback 함수 이름은 `Handle`로 시작해. 예) `HandleMontageEnded`, `HandleDeath`
+5. Delegate에 바인딩되는 Callback 함수는 `Handle`을 Prefix로 사용한다. (예시: `HandleMontageEnded`, `HandleDeath`)
 
-6. Blueprint Function Library 내부가 아니면 `BlueprintCallble` 지정자를 사용하지 마.
+6. `BlueprintCallable` 지정자는 Blueprint Function Library 내부에서만 사용한다.
 
-7. 헤더에서 inline 함수를 정의하지 마.
+7. `.h` 파일에서 inline 함수 정의를 금지한다.
 
-8. 람다식은 꼭 필요한 경우가 아니면 쓰지 마.
+8. 람다식은 반드시 필요한 경우에만 사용한다.
 
-9. if-else 문의 실행 블록은 항상 중괄호로 묶고 줄바꿈 해.
+9. if-else 문의 실행 블록은 반드시 중괄호 `{}`를 사용한다.
 
 
-## 모듈 및 플러그인 구성
+## 모듈 및 플러그인 구조
 
-우리 게임을 구성하는 시스템들을 여러개의 언리얼 엔진 플러그인으로 분리해서 개발할거야.
+* 게임의 주요 시스템은 Unreal Engine Plugin 단위로 분리하여 개발한다.
+* 모든 플러그인은 `WxCore`에 의존할 수 있다. `WxCore`를 제외한 플러그인 간 직접 의존은 금지한다.
 
-전체 플러그인 목록은 다음과 같고, `WxCore`를 제외한 플러그인 간에는 직접적인 종속성이 없어야 해.
-
-0. `Wx` : 기본 게임 모듈. 이하 플러그인들을 사용함.
-1. `WxCore` : 공용 태그, 인터페이스 등 공유 정의 전용. 다른 모든 플러그인에서 의존 가능.
-2. `WxCombat` : 전투 시스템 플러그인.
-3. `WxUI` : UI 시스템 플러그인.
+| Module     | 설명                                |
+| ---------- | --------------------------------- |
+| `Wx`       | 기본 게임 모듈. 아래 플러그인들을 사용            |
+| `WxCore`   | 공용 정의 (Gameplay Tag, Interface 등) |
+| `WxCombat` | 전투 시스템                            |
+| `WxUI`     | UI 시스템                            |
 
 
 ### 전투 시스템 (`WxCombat`)
 
-언리얼 GAS 플러그인 기반으로 전투가 가능한 액션 게임 캐릭터를 개발해줘.
+전투 시스템은 Unreal Engine 5 의 Gameplay Ability System (GAS) 기반으로 구현한다.
 
-* 구성 요소
-  - 플레이어 캐릭터 클래스
-  - 에너미 캐릭터 클래스
-  - 어트리뷰트(스탯) 클래스
-  - 어빌리티 클래스
-  - 무기 클래스
-  - 투사체 클래스
+#### 주요 구성 요소
+* Character
+  * Player Character
+  * Enemy Character
+* Ability System
+  * Ability System Component
+  * Gameplay Ability
+  * Gameplay Effect
+  * AttributeSet
+* Weapon System
+  * Weapon
+  * Projectile
 
 
 ### UI 시스템 (`WxUI`)
-추후 개발 예정이야.
+추후 개발 예정이다.
