@@ -1,13 +1,13 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Weapon/WxWeaponBase.h"
-#include "Animation/AnimInstance.h"
 #include "Components/ArrowComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "WxGameplayTags.h"
 
 AWxWeaponBase::AWxWeaponBase()
 {
@@ -46,10 +46,26 @@ void AWxWeaponBase::AttachToCharacter(ACharacter* Character, FName SocketName)
 	AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
 	SetOwner(Character);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Character))
+	{
+		ASC->RegisterGameplayTagEvent(WxGameplayTags::ANS_WeaponCollision, EGameplayTagEventType::NewOrRemoved)
+			.AddUObject(this, &AWxWeaponBase::HandleWeaponCollisionTagChanged);
+	}
 }
 
 void AWxWeaponBase::DetachFromCharacter()
 {
+	if (AActor* OwnerActor = GetOwner())
+	{
+		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OwnerActor))
+		{
+			ASC->RegisterGameplayTagEvent(WxGameplayTags::ANS_WeaponCollision, EGameplayTagEventType::NewOrRemoved)
+				.RemoveAll(this);
+		}
+	}
+
+	SetWeaponCollisionEnabled(false);
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	SetOwner(nullptr);
 }
@@ -58,33 +74,11 @@ void AWxWeaponBase::SetWeaponCollisionEnabled(bool bEnabled)
 {
 	HitActorsThisSwing.Empty();
 	HitCollision->SetCollisionEnabled(bEnabled ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
-	BindMontageEndedCallback(bEnabled);
 }
 
-void AWxWeaponBase::BindMontageEndedCallback(bool bBind)
+void AWxWeaponBase::HandleWeaponCollisionTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
 {
-	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
-	if (!OwnerCharacter)
-	{
-		return;
-	}
-
-	UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
-	if (!AnimInstance)
-	{
-		return;
-	}
-
-	AnimInstance->OnMontageEnded.RemoveDynamic(this, &AWxWeaponBase::HandleOwnerMontageEnded);
-	if (bBind)
-	{
-		AnimInstance->OnMontageEnded.AddDynamic(this, &AWxWeaponBase::HandleOwnerMontageEnded);
-	}
-}
-
-void AWxWeaponBase::HandleOwnerMontageEnded(UAnimMontage* Montage, bool bInterrupted)
-{
-	SetWeaponCollisionEnabled(false);
+	SetWeaponCollisionEnabled(NewCount > 0);
 }
 
 void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

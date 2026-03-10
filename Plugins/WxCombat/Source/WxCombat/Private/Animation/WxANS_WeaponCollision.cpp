@@ -1,8 +1,9 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Animation/WxANS_WeaponCollision.h"
-#include "Character/WxCharacterBase.h"
-#include "Weapon/WxWeaponBase.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
+#include "WxGameplayTags.h"
 
 void UWxANS_WeaponCollision::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
@@ -10,12 +11,9 @@ void UWxANS_WeaponCollision::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnim
 
 	if (AActor* Owner = MeshComp->GetOwner())
 	{
-		if (AWxCharacterBase* Character = Cast<AWxCharacterBase>(Owner))
+		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
 		{
-			if (AWxWeaponBase* Weapon = Character->GetEquippedWeapon())
-			{
-				Weapon->SetWeaponCollisionEnabled(true);
-			}
+			ASC->AddLooseGameplayTag(WxGameplayTags::ANS_WeaponCollision);
 		}
 	}
 }
@@ -26,12 +24,9 @@ void UWxANS_WeaponCollision::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSe
 
 	if (AActor* Owner = MeshComp->GetOwner())
 	{
-		if (AWxCharacterBase* Character = Cast<AWxCharacterBase>(Owner))
+		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
 		{
-			if (AWxWeaponBase* Weapon = Character->GetEquippedWeapon())
-			{
-				Weapon->SetWeaponCollisionEnabled(false);
-			}
+			ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_WeaponCollision);
 		}
 	}
 }
