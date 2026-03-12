@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Woogle. All Rights Reserved.
 
 #include "Animation/WxANS_WeaponCollision.h"
 #include "AbilitySystemBlueprintLibrary.h"

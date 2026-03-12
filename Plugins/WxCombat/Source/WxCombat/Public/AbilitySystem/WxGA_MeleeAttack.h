@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
@@ -35,10 +35,13 @@ protected:
 private:
 	UFUNCTION()
 	void HandleMontageCompleted();
+
 	UFUNCTION()
 	void HandleMontageBlendOut();
+
 	UFUNCTION()
 	void HandleMontageInterrupted();
+
 	UFUNCTION()
 	void HandleMontageCancelled();
 };

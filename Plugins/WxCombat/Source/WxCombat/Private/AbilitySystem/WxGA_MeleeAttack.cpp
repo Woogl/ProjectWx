@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/WxGA_MeleeAttack.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"

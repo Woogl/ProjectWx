@@ -34,6 +34,10 @@
 
 9. if-else 문의 실행 블록은 반드시 중괄호`{}`를 사용한다.
 
+10. 모든 소스 파일의 첫 줄은 `// Copyright Woogle. All Rights Reserved.`로 시작한다.
+
+11. 연속된 `UFUNCTION()` 또는 `UPROPERTY()` 선언 사이에는 빈 줄을 삽입한다.
+
 
 ## 모듈 및 플러그인 구조
 

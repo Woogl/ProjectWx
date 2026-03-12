@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
@@ -94,16 +94,22 @@ public:
 protected:
 	UFUNCTION()
 	void OnRep_HP(const FGameplayAttributeData& OldHP);
+
 	UFUNCTION()
 	void OnRep_MaxHP(const FGameplayAttributeData& OldMaxHP);
+
 	UFUNCTION()
 	void OnRep_MP(const FGameplayAttributeData& OldMP);
+
 	UFUNCTION()
 	void OnRep_MaxMP(const FGameplayAttributeData& OldMaxMP);
+
 	UFUNCTION()
 	void OnRep_ATK(const FGameplayAttributeData& OldATK);
+
 	UFUNCTION()
 	void OnRep_DEF(const FGameplayAttributeData& OldDEF);
+
 	UFUNCTION()
 	void OnRep_SPD(const FGameplayAttributeData& OldSPD);
 };
