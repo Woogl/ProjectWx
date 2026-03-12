@@ -7,7 +7,9 @@ public class Wx : ModuleRules
 	public Wx(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-	
+
+		PublicIncludePaths.AddRange(new string[] { ModuleDirectory });
+
 		PublicDependencyModuleNames.AddRange(new string[]
 		{
 			"Core",
