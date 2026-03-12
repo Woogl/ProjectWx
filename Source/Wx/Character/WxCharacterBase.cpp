@@ -99,6 +99,28 @@ void AWxCharacterBase::HandleDeathTagChanged(const FGameplayTag CallbackTag, int
 	}
 }
 
+void AWxCharacterBase::OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode)
+{
+	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
+
+	if (!AbilitySystemComponent)
+	{
+		return;
+	}
+
+	const EMovementMode CurrentMode = GetCharacterMovement()->MovementMode;
+	const bool bIsAirborne = (CurrentMode == MOVE_Falling || CurrentMode == MOVE_Flying);
+
+	if (bIsAirborne)
+	{
+		AbilitySystemComponent->AddLooseGameplayTag(WxGameplayTags::State_Airborne);
+	}
+	else
+	{
+		AbilitySystemComponent->RemoveLooseGameplayTag(WxGameplayTags::State_Airborne);
+	}
+}
+
 void AWxCharacterBase::GiveDefaultAbilities()
 {
 	if (!HasAuthority() || !AbilitySystemComponent)
