@@ -3,7 +3,6 @@
 #include "AbilitySystem/WxAttributeSet.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
-#include "Character/WxCharacterBase.h"
 #include "WxGameplayTags.h"
 
 UWxAttributeSet::UWxAttributeSet() {}
@@ -80,10 +79,7 @@ void UWxAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
 		if (ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
 		{
-			if (AWxCharacterBase* Character = Cast<AWxCharacterBase>(GetOwningActor()))
-			{
-				Character->HandleDeath();
-			}
+			ASC->AddLooseGameplayTag(WxGameplayTags::State_Dead);
 		}
 	}
 }

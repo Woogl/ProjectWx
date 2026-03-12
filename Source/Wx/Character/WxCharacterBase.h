@@ -25,7 +25,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBas
  * ASC를 캐릭터에 직접 소유 (리스폰 시 스탯을 새로 초기화하므로 PlayerState 불필요).
  */
 UCLASS(Abstract)
-class WXCOMBAT_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface
+class WX_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -39,7 +39,7 @@ public:
 	bool IsAlive() const;
 	AWxWeaponBase* GetEquippedWeapon() const;
 
-	/** HP == 0 시 호출. WxAttributeSet에서 호출하며, 파생 클래스에서 override하여 사망 연출 추가 */
+	/** HP == 0 시 호출. 파생 클래스에서 override하여 사망 연출 추가 */
 	virtual void HandleDeath();
 
 	UPROPERTY(BlueprintAssignable, Category = "Wx|Character")
@@ -76,6 +76,9 @@ protected:
 	 * MaxWalkSpeed = BaseWalkSpeed * NewSPD 로 실제 이동 속도에 반영.
 	 */
 	void HandleSPDAttributeChanged(const FOnAttributeChangeData& Data);
+
+	/** State_Dead 태그 변경 콜백. 태그 부여 시 HandleDeath 호출 */
+	void HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
 	/** 기본 이동 속도 (cm/s). SPD Multiplier의 기준값 */
 	float BaseWalkSpeed = 600.f;

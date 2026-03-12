@@ -20,7 +20,7 @@ struct FInputActionValue;
  * - PossessedBy에서 ASC InitAbilityActorInfo 호출
  */
 UCLASS()
-class WXCOMBAT_API AWxPlayerCharacter : public AWxCharacterBase
+class WX_API AWxPlayerCharacter : public AWxCharacterBase
 {
 	GENERATED_BODY()
 

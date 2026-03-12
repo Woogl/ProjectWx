@@ -42,7 +42,7 @@ bool AWxCharacterBase::IsAlive() const
 void AWxCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	SpawnDefaultWeapon();
 	BaseWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 }
@@ -74,11 +74,23 @@ void AWxCharacterBase::InitAbilityActorInfo()
 	// SPD 변경 시 실제 이동 속도에 반영
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UWxAttributeSet::GetSPDAttribute())
 		.AddUObject(this, &AWxCharacterBase::HandleSPDAttributeChanged);
+
+	// State_Dead 태그 부여 시 사망 처리
+	AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
+		.AddUObject(this, &AWxCharacterBase::HandleDeathTagChanged);
 }
 
 void AWxCharacterBase::HandleSPDAttributeChanged(const FOnAttributeChangeData& Data)
 {
 	GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed * Data.NewValue;
+}
+
+void AWxCharacterBase::HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	if (NewCount > 0)
+	{
+		HandleDeath();
+	}
 }
 
 void AWxCharacterBase::GiveDefaultAbilities()
@@ -127,8 +139,6 @@ void AWxCharacterBase::ApplyDefaultEffects()
 
 void AWxCharacterBase::HandleDeath()
 {
-	AbilitySystemComponent->AddLooseGameplayTag(WxGameplayTags::State_Dead);
 	OnDeath.Broadcast(this);
-
 	RagdollComponent->EnableRagdoll();
 }

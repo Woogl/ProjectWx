@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(\"C:/Program Files/Epic Games/UE_5.7/Engine/Build/BatchFiles/Build.bat\" WxEditor:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(ls:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(wc:*)",
+      "Bash(find /c/Wx/Source -type f -name \"*.h\" -o -name \"*.cpp\" 2>/dev/null | sort)"
     ]
   }
 }

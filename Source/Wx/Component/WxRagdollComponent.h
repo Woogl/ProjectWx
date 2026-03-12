@@ -13,7 +13,7 @@
  * 캡슐 콜리전 비활성화, 무브먼트 비활성화를 함께 처리.
  */
 UCLASS(meta = (BlueprintSpawnableComponent))
-class WXCOMBAT_API UWxRagdollComponent : public UActorComponent
+class WX_API UWxRagdollComponent : public UActorComponent
 {
 	GENERATED_BODY()
 

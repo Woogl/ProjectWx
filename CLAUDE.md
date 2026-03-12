@@ -42,10 +42,23 @@
 
 | Module     | 설명                                |
 | ---------- | --------------------------------- |
-| `Wx`       | 기본 게임 모듈. 아래 플러그인들을 사용            |
+| `Wx`       | 기본 게임 모듈. Character, Component 등  |
 | `WxCore`   | 공용 정의 (Gameplay Tag, Interface 등) |
 | `WxCombat` | 전투 시스템                            |
 | `WxUI`     | UI 시스템                            |
+
+
+### 게임 모듈 (`Wx`)
+
+캐릭터와 범용 컴포넌트를 포함한다. 아래 플러그인들을 사용한다.
+
+#### 주요 구성 요소
+* Character
+  * Character Base
+  * Player Character
+  * Enemy Character
+* Component
+  * Ragdoll Component
 
 
 ### 전투 시스템 (`WxCombat`)
@@ -53,9 +66,6 @@
 전투 시스템은 Unreal Engine 5 의 Gameplay Ability System (GAS) 기반으로 구현한다.
 
 #### 주요 구성 요소
-* Character
-  * Player Character
-  * Enemy Character
 * Ability System
   * Ability System Component
   * Gameplay Ability
