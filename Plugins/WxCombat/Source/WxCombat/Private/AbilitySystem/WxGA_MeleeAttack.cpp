@@ -6,7 +6,6 @@
 
 UWxGA_MeleeAttack::UWxGA_MeleeAttack()
 {
-	ActivationInputTag = WxGameplayTags::Input_Attack;
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 }
 
@@ -35,7 +34,7 @@ void UWxGA_MeleeAttack::HandleMontageCompleted()
 
 void UWxGA_MeleeAttack::HandleMontageBlendOut()
 {
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	// OnCompleted가 후속 발동하므로 여기서는 처리하지 않음
 }
 
 void UWxGA_MeleeAttack::HandleMontageInterrupted()

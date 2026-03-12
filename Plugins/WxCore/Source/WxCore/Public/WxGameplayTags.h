@@ -23,6 +23,16 @@ namespace WxGameplayTags
 	/** 무기 콜리전 활성 구간. ANS_WeaponCollision이 부여/제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_WeaponCollision);
 
+	/** 콤보 입력 수용 구간. ANS_ComboWindow가 부여/제거 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_ComboWindow);
+
+	// ── Ability ───────────────────────────────────────────────────────────
+
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Combo1);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Combo2);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Combo3);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Combo4);
+
 	// ── Input ──────────────────────────────────────────────────────────────
 
 	/** 점프 입력 */

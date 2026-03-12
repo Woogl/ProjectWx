@@ -12,11 +12,11 @@ class UAnimMontage;
  * 근접 공격 어빌리티.
  *
  * 사용 흐름:
- *  1. 입력 → ActivateAbility → PlayMontageAndWait
- *  2. 몽타주 내 WxANS_WeaponCollision 노티파이 스테이트가 무기 콜리전 on/off
- *  3. 몽타주 완료/중단 → EndAbility
+ *  1. 입력 → ActivateAbility → AttackMontage 재생
+ *  2. 몽타주 완료/중단 → EndAbility
  *
- * 무기 콜리전 안전 해제는 AWxWeaponBase가 OnMontageEnded 콜백으로 자체 관리.
+ * 콤보 체인은 GAS 태그 제약(ActivationRequiredTags, ActivationBlockedTags)으로 구성.
+ * ANS_ComboWindow 구간에서 공격 입력 시 GAS가 태그 조건에 맞는 다음 콤보를 자동 활성화.
  */
 UCLASS()
 class WXCOMBAT_API UWxGA_MeleeAttack : public UWxGameplayAbility
