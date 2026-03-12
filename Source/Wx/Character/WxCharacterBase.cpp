@@ -39,12 +39,18 @@ bool AWxCharacterBase::IsAlive() const
 	return AttributeSet && AttributeSet->GetHP() > 0.f;
 }
 
+void AWxCharacterBase::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	BaseWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
+}
+
 void AWxCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 
 	SpawnDefaultWeapon();
-	BaseWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 }
 
 void AWxCharacterBase::SpawnDefaultWeapon()

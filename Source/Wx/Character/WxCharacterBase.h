@@ -63,6 +63,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|GAS")
 	TArray<TSubclassOf<UGameplayEffect>> DefaultEffects;
 
+	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 
 	/** 서버·클라이언트 모두 호출되므로 파생 클래스에서 타이밍에 맞게 override */
