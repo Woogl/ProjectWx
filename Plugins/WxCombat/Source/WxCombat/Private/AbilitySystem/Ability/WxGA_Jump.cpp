@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/WxGA_Jump.h"
+#include "AbilitySystem/Ability/WxGA_Jump.h"
 #include "GameFramework/Character.h"
 #include "WxGameplayTags.h"
 

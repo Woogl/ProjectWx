@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/WxGA_HitReact.h"
+#include "AbilitySystem/Ability/WxGA_HitReact.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "WxGameplayTags.h"
 

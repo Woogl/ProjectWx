@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/WxDamageExecCalc.h"
+#include "AbilitySystem/Effect/WxDamageExecCalc.h"
 #include "AbilitySystem/WxAttributeSet.h"
 
 struct FWxDamageStatics

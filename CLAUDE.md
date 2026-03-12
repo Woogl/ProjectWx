@@ -72,9 +72,9 @@
 #### 주요 구성 요소
 * Ability System
   * Ability System Component
-  * Gameplay Ability
-  * Gameplay Effect
-  * AttributeSet
+  * Attribute Set
+  * Ability
+  * Effect
 * Weapon System
   * Weapon
   * Projectile

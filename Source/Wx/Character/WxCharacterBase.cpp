@@ -3,7 +3,7 @@
 #include "Character/WxCharacterBase.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxAttributeSet.h"
-#include "AbilitySystem/WxGameplayAbility.h"
+#include "AbilitySystem/Ability/WxGameplayAbility.h"
 #include "Component/WxRagdollComponent.h"
 #include "WxGameplayTags.h"
 #include "Weapon/WxWeaponBase.h"

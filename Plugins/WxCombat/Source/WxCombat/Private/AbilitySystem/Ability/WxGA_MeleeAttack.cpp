@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/WxGA_MeleeAttack.h"
+#include "AbilitySystem/Ability/WxGA_MeleeAttack.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "WxGameplayTags.h"
 

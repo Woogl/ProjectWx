@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/WxGameplayAbility.h"
+#include "AbilitySystem/Ability/WxGameplayAbility.h"
 #include "AbilitySystemComponent.h"
 
 UWxGameplayAbility::UWxGameplayAbility()
