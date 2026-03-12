@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Woogle. All Rights Reserved.
 
 #include "Weapon/WxWeaponBase.h"
 #include "Components/ArrowComponent.h"
@@ -109,4 +109,10 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 			SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
 		}
 	}
+
+	// 피격 반응: 데미지 계산과 분리하여 히트 감지 시점에 즉시 발송
+	FGameplayEventData EventData;
+	EventData.Instigator = WeaponOwner;
+	EventData.Target = OtherActor;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OtherActor, WxGameplayTags::Event_HitReact, EventData);
 }

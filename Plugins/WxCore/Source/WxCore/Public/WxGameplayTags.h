@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
@@ -20,6 +20,11 @@ namespace WxGameplayTags
 
 	/** 공중 상태. Falling/Flying 시 부여, 착지 시 제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Airborne);
+
+	// ── Event ─────────────────────────────────────────────────────────────
+
+	/** 피격 시 발생하는 이벤트. HitReact 어빌리티의 트리거 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact);
 
 	// ── ANS ───────────────────────────────────────────────────────────────
 

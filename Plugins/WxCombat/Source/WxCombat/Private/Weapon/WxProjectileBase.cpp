@@ -1,10 +1,11 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Woogle. All Rights Reserved.
 
 #include "Weapon/WxProjectileBase.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "WxGameplayTags.h"
 
 AWxProjectileBase::AWxProjectileBase()
 {
@@ -50,6 +51,12 @@ void AWxProjectileBase::HandleSphereOverlap(UPrimitiveComponent* OverlappedCompo
 			TargetASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data.Get());
 		}
 	}
+
+	// 피격 반응: 데미지 계산과 분리하여 히트 감지 시점에 즉시 발송
+	FGameplayEventData EventData;
+	EventData.Instigator = GetOwner();
+	EventData.Target = OtherActor;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OtherActor, WxGameplayTags::Event_HitReact, EventData);
 
 	Destroy();
 }
