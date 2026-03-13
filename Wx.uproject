@@ -5,7 +5,7 @@
 	"Description": "",
 	"Modules": [
 		{
-			"Name": "Wx",
+			"Name": "WxGame",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}

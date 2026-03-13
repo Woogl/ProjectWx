@@ -1,15 +1,15 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Ability/WxGameplayAbility.h"
+#include "AbilitySystem/Ability/WxAbility.h"
 #include "AbilitySystemComponent.h"
 
-UWxGameplayAbility::UWxGameplayAbility()
+UWxAbility::UWxAbility()
 {
 	InstancingPolicy  = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 }
 
-void UWxGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
+void UWxAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
 

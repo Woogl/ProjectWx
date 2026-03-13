@@ -3,7 +3,7 @@
 	"Version": 1,
 	"VersionName": "1.0",
 	"FriendlyName": "WxCombat",
-	"Description": "GAS 기반 액션 RPG 전투 시스템.",
+	"Description": "Action RPG combat system built with GAS (Gameplay Ability System)",
 	"Category": "Wx",
 	"Modules": [
 		{

@@ -15,7 +15,7 @@ class UWxInputConfig;
  * 입력 관련 데이터(MappingContext, InputAction, InputConfig)를 소유.
  */
 UCLASS()
-class WX_API AWxPlayerController : public APlayerController
+class WXGAME_API AWxPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 

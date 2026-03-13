@@ -29,7 +29,7 @@ struct FWxInputAbilityBinding
  * 플레이어 캐릭터에서 이 에셋을 참조하여 입력 시 ASC에 태그 기반 어빌리티 활성화 요청.
  */
 UCLASS(BlueprintType, Const)
-class WXCOMBAT_API UWxInputConfig : public UDataAsset
+class WXGAME_API UWxInputConfig : public UDataAsset
 {
 	GENERATED_BODY()
 

@@ -1,11 +1,11 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Effect/WxGEC_SendHitReactEvent.h"
+#include "AbilitySystem/Effect/WxEffectComp_SendHitReactEvent.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "WxGameplayTags.h"
 
-void UWxGEC_SendHitReactEvent::OnGameplayEffectExecuted(FActiveGameplayEffectsContainer& ActiveGEContainer, FGameplayEffectSpec& GESpec, FPredictionKey& PredictionKey) const
+void UWxEffectComp_SendHitReactEvent::OnGameplayEffectExecuted(FActiveGameplayEffectsContainer& ActiveGEContainer, FGameplayEffectSpec& GESpec, FPredictionKey& PredictionKey) const
 {
 	UAbilitySystemComponent* TargetASC = ActiveGEContainer.Owner;
 	if (!TargetASC)

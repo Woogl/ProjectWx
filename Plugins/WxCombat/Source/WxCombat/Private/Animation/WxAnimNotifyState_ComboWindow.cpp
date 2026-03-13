@@ -1,11 +1,11 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Animation/WxANS_ComboWindow.h"
+#include "Animation/WxAnimNotifyState_ComboWindow.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "WxGameplayTags.h"
 
-void UWxANS_ComboWindow::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
+void UWxAnimNotifyState_ComboWindow::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
@@ -18,7 +18,7 @@ void UWxANS_ComboWindow::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequ
 	}
 }
 
-void UWxANS_ComboWindow::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
+void UWxAnimNotifyState_ComboWindow::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
 
@@ -31,7 +31,7 @@ void UWxANS_ComboWindow::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequen
 	}
 }
 
-FString UWxANS_ComboWindow::GetNotifyName_Implementation() const
+FString UWxAnimNotifyState_ComboWindow::GetNotifyName_Implementation() const
 {
 	return TEXT("Combo Window");
 }

@@ -1,11 +1,11 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Animation/WxANS_WeaponCollision.h"
+#include "Animation/WxAnimNotifyState_WeaponCollision.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "WxGameplayTags.h"
 
-void UWxANS_WeaponCollision::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
+void UWxAnimNotifyState_WeaponCollision::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
@@ -18,7 +18,7 @@ void UWxANS_WeaponCollision::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnim
 	}
 }
 
-void UWxANS_WeaponCollision::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
+void UWxAnimNotifyState_WeaponCollision::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
 
@@ -31,7 +31,7 @@ void UWxANS_WeaponCollision::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSe
 	}
 }
 
-FString UWxANS_WeaponCollision::GetNotifyName_Implementation() const
+FString UWxAnimNotifyState_WeaponCollision::GetNotifyName_Implementation() const
 {
 	return TEXT("Weapon Collision");
 }

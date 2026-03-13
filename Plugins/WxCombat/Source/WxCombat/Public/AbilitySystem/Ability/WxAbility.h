@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "WxGameplayAbility.generated.h"
+#include "WxAbility.generated.h"
 
 /** 어빌리티 활성화 정책 */
 UENUM(BlueprintType)
@@ -21,12 +21,12 @@ enum class EWxAbilityActivationPolicy : uint8
  * 모든 어빌리티는 이 클래스를 상속받아 작성.
  */
 UCLASS(Abstract, BlueprintType, Blueprintable)
-class WXCOMBAT_API UWxGameplayAbility : public UGameplayAbility
+class WXCOMBAT_API UWxAbility : public UGameplayAbility
 {
 	GENERATED_BODY()
 
 public:
-	UWxGameplayAbility();
+	UWxAbility();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	EWxAbilityActivationPolicy ActivationPolicy = EWxAbilityActivationPolicy::OnInputTriggered;

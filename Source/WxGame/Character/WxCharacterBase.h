@@ -22,7 +22,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBas
  * 초기 Ability, Effect, AttributeSet은 AbilitySet 데이터 에셋으로 일괄 관리.
  */
 UCLASS(Abstract)
-class WX_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface
+class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 

@@ -47,13 +47,13 @@
 
 | Module     | 설명                                |
 | ---------- | --------------------------------- |
-| `Wx`       | 기본 게임 모듈  |
-| `WxCore`   | 공용 정의 (Gameplay Tag, Enum 등) |
+| `WxGame`   | 기본 게임 모듈  |
+| `WxCore`   | 공용 정의  |
 | `WxCombat` | 전투 시스템                            |
 | `WxUI`     | UI 시스템                            |
 
 
-### 기본 게임 모듈 (`Wx`)
+### 기본 게임 모듈 (`WxGame`)
 
 다른 플러그인들을 사용해 구체적인 게임 컨텐츠를 만든다.
 
@@ -67,6 +67,10 @@
   * AI Controller
 * Component
   * Ragdoll Component
+
+### 공용 정의 (`WxCore`)
+
+프로젝트 전체 플러그인이 공유하는 공용 정의를 관리한다. (Gameplay Tag, Enum 등)
 
 
 ### 전투 시스템 (`WxCombat`)

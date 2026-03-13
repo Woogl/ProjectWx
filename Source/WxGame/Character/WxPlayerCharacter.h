@@ -17,7 +17,7 @@ struct FInputActionValue;
  * - 입력 데이터는 WxPlayerController에서 관리
  */
 UCLASS()
-class WX_API AWxPlayerCharacter : public AWxCharacterBase
+class WXGAME_API AWxPlayerCharacter : public AWxCharacterBase
 {
 	GENERATED_BODY()
 

@@ -3,7 +3,7 @@
 	"Version": 1,
 	"VersionName": "1.0",
 	"FriendlyName": "WxCore",
-	"Description": "프로젝트 전체 플러그인이 공유하는 공용 정의 (태그, 인터페이스, 상수 등). 다른 Wx 플러그인에 대한 의존성 없음.",
+	"Description": "Shared definitions used by all project plugins (tags, constants, etc.).",
 	"Category": "Wx",
 	"Modules": [
 		{

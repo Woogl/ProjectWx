@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class Wx : ModuleRules
+public class WxGame : ModuleRules
 {
-	public Wx(ReadOnlyTargetRules Target) : base(Target)
+	public WxGame(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 

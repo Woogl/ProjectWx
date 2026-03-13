@@ -4,16 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
-#include "WxANS_WeaponCollision.generated.h"
+#include "WxAnimNotifyState_ComboWindow.generated.h"
 
 /**
- * 무기 콜리전 활성/비활성 AnimNotifyState.
+ * 콤보 입력 수용 구간 AnimNotifyState.
  *
  * 공격 몽타주에 배치하면 NotifyBegin~NotifyEnd 구간 동안
- * 캐릭터의 EquippedWeapon 히트 콜리전을 활성화.
+ * 캐릭터 ASC에 ANS.ComboWindow 태그를 부여.
+ * 이 구간 내 공격 입력 시 다음 콤보 어빌리티 발동.
  */
-UCLASS(DisplayName = "Wx Weapon Collision")
-class WXCOMBAT_API UWxANS_WeaponCollision : public UAnimNotifyState
+UCLASS(DisplayName = "Wx Combo Window")
+class WXCOMBAT_API UWxAnimNotifyState_ComboWindow : public UAnimNotifyState
 {
 	GENERATED_BODY()
 

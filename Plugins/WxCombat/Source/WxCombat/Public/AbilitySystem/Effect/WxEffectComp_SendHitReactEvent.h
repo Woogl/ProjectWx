@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayEffectComponent.h"
-#include "WxGEC_SendHitReactEvent.generated.h"
+#include "WxEffectComp_SendHitReactEvent.generated.h"
 
 /**
  * GE 적용 시 대상에게 Event.HitReact 이벤트를 발송하는 GameplayEffectComponent.
@@ -14,7 +14,7 @@
  * GA_HitReact 어빌리티가 트리거된다.
  */
 UCLASS(DisplayName = "Send HitReact Event")
-class WXCOMBAT_API UWxGEC_SendHitReactEvent : public UGameplayEffectComponent
+class WXCOMBAT_API UWxEffectComp_SendHitReactEvent : public UGameplayEffectComponent
 {
 	GENERATED_BODY()
 

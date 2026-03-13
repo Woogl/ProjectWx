@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Ability/WxGameplayAbility.h"
-#include "WxGA_HitReact.generated.h"
+#include "AbilitySystem/Ability/WxAbility.h"
+#include "WxAbility_HitReact.generated.h"
 
 class UAnimMontage;
 
@@ -19,12 +19,12 @@ class UAnimMontage;
  * State.Dead 시 활성화 차단.
  */
 UCLASS()
-class WXCOMBAT_API UWxGA_HitReact : public UWxGameplayAbility
+class WXCOMBAT_API UWxAbility_HitReact : public UWxAbility
 {
 	GENERATED_BODY()
 
 public:
-	UWxGA_HitReact();
+	UWxAbility_HitReact();
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 

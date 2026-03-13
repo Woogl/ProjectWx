@@ -2,7 +2,7 @@
 
 #include "AbilitySystem/WxAbilitySet.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
-#include "AbilitySystem/Ability/WxGameplayAbility.h"
+#include "AbilitySystem/Ability/WxAbility.h"
 #include "AbilitySystem/WxAttributeSet.h"
 
 void FWxAbilitySetGrantedHandles::RemoveFromAbilitySystem(UWxAbilitySystemComponent* ASC)
@@ -62,7 +62,7 @@ void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC, FWxAbili
 	}
 
 	// Ability 부여
-	for (const TSubclassOf<UWxGameplayAbility>& Ability : GrantedAbilities)
+	for (const TSubclassOf<UWxAbility>& Ability : GrantedAbilities)
 	{
 		if (!Ability)
 		{
@@ -71,7 +71,7 @@ void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC, FWxAbili
 
 		FGameplayAbilitySpec Spec(Ability, 1);
 
-		if (const UWxGameplayAbility* DefaultAbility = Ability.GetDefaultObject())
+		if (const UWxAbility* DefaultAbility = Ability.GetDefaultObject())
 		{
 			if (DefaultAbility->ActivationInputTag.IsValid())
 			{

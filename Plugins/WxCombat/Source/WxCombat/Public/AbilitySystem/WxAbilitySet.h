@@ -8,7 +8,7 @@
 #include "ActiveGameplayEffectHandle.h"
 #include "WxAbilitySet.generated.h"
 
-class UWxGameplayAbility;
+class UWxAbility;
 class UGameplayEffect;
 class UWxAbilitySystemComponent;
 
@@ -44,7 +44,7 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
-	TArray<TSubclassOf<UWxGameplayAbility>> GrantedAbilities;
+	TArray<TSubclassOf<UWxAbility>> GrantedAbilities;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Effects")
 	TArray<TSubclassOf<UGameplayEffect>> GrantedEffects;

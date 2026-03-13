@@ -12,7 +12,7 @@
  * - PossessedBy에서 ASC InitAbilityActorInfo 호출
  */
 UCLASS()
-class WX_API AWxEnemyCharacter : public AWxCharacterBase
+class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase
 {
 	GENERATED_BODY()
 

@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Ability/WxGameplayAbility.h"
-#include "WxGA_MeleeAttack.generated.h"
+#include "AbilitySystem/Ability/WxAbility.h"
+#include "WxAbility_MeleeAttack.generated.h"
 
 class UAnimMontage;
 
@@ -19,12 +19,12 @@ class UAnimMontage;
  * ANS_ComboWindow 구간에서 공격 입력 시 GAS가 태그 조건에 맞는 다음 콤보를 자동 활성화.
  */
 UCLASS()
-class WXCOMBAT_API UWxGA_MeleeAttack : public UWxGameplayAbility
+class WXCOMBAT_API UWxAbility_MeleeAttack : public UWxAbility
 {
 	GENERATED_BODY()
 
 public:
-	UWxGA_MeleeAttack();
+	UWxAbility_MeleeAttack();
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
