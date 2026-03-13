@@ -34,6 +34,9 @@ namespace WxGameplayTags
 	/** 콤보 입력 수용 구간. ANS_ComboWindow가 부여/제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_ComboWindow);
 
+	/** 무적 구간. ANS_Invincible이 부여/제거 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_Invincible);
+
 	// ── Ability ───────────────────────────────────────────────────────────
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Combo1);
@@ -48,4 +51,7 @@ namespace WxGameplayTags
 
 	/** 공격 입력 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Attack);
+
+	/** 회피 입력 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Dodge);
 }

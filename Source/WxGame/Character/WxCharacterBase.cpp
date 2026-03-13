@@ -16,6 +16,10 @@ AWxCharacterBase::AWxCharacterBase()
 	AttributeSet = CreateDefaultSubobject<UWxAttributeSet>(TEXT("AttributeSet"));
 
 	RagdollComponent = CreateDefaultSubobject<UWxRagdollComponent>(TEXT("RagdollComponent"));
+
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw   = false;
+	bUseControllerRotationRoll  = false;
 }
 
 UAbilitySystemComponent* AWxCharacterBase::GetAbilitySystemComponent() const
@@ -47,6 +51,12 @@ void AWxCharacterBase::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	BaseWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
+}
+
+void AWxCharacterBase::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	InitAbilityActorInfo();
 }
 
 void AWxCharacterBase::BeginPlay()
@@ -117,7 +127,7 @@ void AWxCharacterBase::OnMovementModeChanged(EMovementMode PrevMovementMode, uin
 	{
 		AbilitySystemComponent->AddLooseGameplayTag(WxGameplayTags::State_Airborne);
 	}
-	else
+	else if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Airborne))
 	{
 		AbilitySystemComponent->RemoveLooseGameplayTag(WxGameplayTags::State_Airborne);
 	}

@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "GameplayTagContainer.h"
 #include "WxWeaponBase.generated.h"
 
 class UArrowComponent;
@@ -43,9 +42,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
 	TSubclassOf<UGameplayEffect> DamageEffectClass;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
-	FGameplayTag WeaponTag;
-
 protected:
 	/** 손잡이 위치. 캐릭터 소켓에 부착되는 기준점 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Weapon")
@@ -57,7 +53,7 @@ protected:
 #endif
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Weapon")
-	TObjectPtr<USkeletalMeshComponent> WeaponMesh;
+	TObjectPtr<USkeletalMeshComponent> Mesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Weapon")
 	TObjectPtr<UCapsuleComponent> HitCollision;

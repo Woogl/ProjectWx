@@ -2,6 +2,8 @@
 
 #include "AbilitySystem/Effect/WxDamageExecCalc.h"
 #include "AbilitySystem/WxAttributeSet.h"
+#include "AbilitySystemComponent.h"
+#include "WxGameplayTags.h"
 
 struct FWxDamageStatics
 {
@@ -32,6 +34,13 @@ UWxDamageExecCalc::UWxDamageExecCalc()
 
 void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
+	// 타겟이 무적 상태이면 대미지를 적용하지 않음
+	const UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent();
+	if (TargetASC && TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_Invincible))
+	{
+		return;
+	}
+
 	const FWxDamageStatics& Statics = GetDamageStatics();
 
 	FAggregatorEvaluateParameters EvalParams;

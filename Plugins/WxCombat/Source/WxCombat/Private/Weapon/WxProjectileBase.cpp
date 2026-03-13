@@ -2,6 +2,7 @@
 
 #include "Weapon/WxProjectileBase.h"
 #include "Components/SphereComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
@@ -10,8 +11,12 @@ AWxProjectileBase::AWxProjectileBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
+	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
+	SetRootComponent(Mesh);
+	Mesh->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+
 	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"));
-	SetRootComponent(CollisionSphere);
+	CollisionSphere->SetupAttachment(Mesh);
 	CollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	CollisionSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
 	CollisionSphere->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);

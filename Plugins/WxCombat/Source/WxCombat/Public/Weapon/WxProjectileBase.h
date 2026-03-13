@@ -8,6 +8,7 @@
 #include "WxProjectileBase.generated.h"
 
 class USphereComponent;
+class USkeletalMeshComponent;
 class UProjectileMovementComponent;
 
 /**
@@ -31,6 +32,9 @@ public:
 	void SetDamageEffectSpecHandle(const FGameplayEffectSpecHandle& InHandle);
 
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Projectile")
+	TObjectPtr<USkeletalMeshComponent> Mesh;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Projectile")
 	TObjectPtr<USphereComponent> CollisionSphere;
 

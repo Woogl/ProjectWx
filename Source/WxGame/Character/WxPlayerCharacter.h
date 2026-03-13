@@ -25,7 +25,6 @@ public:
 	AWxPlayerCharacter();
 
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-	virtual void PossessedBy(AController* NewController) override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Camera")

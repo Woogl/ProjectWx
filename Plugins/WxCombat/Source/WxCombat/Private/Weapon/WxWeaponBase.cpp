@@ -25,8 +25,9 @@ AWxWeaponBase::AWxWeaponBase()
 	}
 #endif
 
-	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
-	WeaponMesh->SetupAttachment(GripPoint);
+	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
+	Mesh->SetupAttachment(GripPoint);
+	Mesh->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
 	HitCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("HitCollision"));
 	HitCollision->SetupAttachment(GripPoint);
@@ -45,7 +46,7 @@ void AWxWeaponBase::AttachToCharacter(ACharacter* Character, FName SocketName)
 
 	AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
 	SetOwner(Character);
-	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Character))
 	{

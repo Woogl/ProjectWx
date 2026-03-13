@@ -22,18 +22,8 @@ AWxPlayerCharacter::AWxPlayerCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
 
-	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw   = false;
-	bUseControllerRotationRoll  = false;
-
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f);
-}
-
-void AWxPlayerCharacter::PossessedBy(AController* NewController)
-{
-	Super::PossessedBy(NewController);
-	InitAbilityActorInfo();
 }
 
 void AWxPlayerCharacter::InitAbilityActorInfo()
