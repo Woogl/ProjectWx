@@ -6,12 +6,11 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayEffectTypes.h"
+#include "AbilitySystem/WxAbilitySet.h"
 #include "WxCharacterBase.generated.h"
 
 class UWxAbilitySystemComponent;
 class UWxAttributeSet;
-class UGameplayAbility;
-class UGameplayEffect;
 class AWxWeaponBase;
 class UWxRagdollComponent;
 
@@ -19,10 +18,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBas
 
 /**
  * 플레이어·에너미 공통 베이스 캐릭터.
- * ASC와 AttributeSet을 캐릭터에 직접 소유.
- * 스탯 초기화는 DefaultEffects로, 어빌리티는 DefaultAbilities로 부여.
- *
  * ASC를 캐릭터에 직접 소유 (리스폰 시 스탯을 새로 초기화하므로 PlayerState 불필요).
+ * 초기 Ability, Effect, AttributeSet은 AbilitySet 데이터 에셋으로 일괄 관리.
  */
 UCLASS(Abstract)
 class WX_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface
@@ -35,7 +32,7 @@ public:
 	// IAbilitySystemInterface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	UWxAttributeSet* GetAttributeSet() const;
+	UWxAbilitySet* GetAbilitySet() const;
 	bool IsAlive() const;
 	AWxWeaponBase* GetEquippedWeapon() const;
 
@@ -51,17 +48,13 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|GAS")
 	TObjectPtr<UWxAbilitySystemComponent> AbilitySystemComponent;
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|GAS")
 	TObjectPtr<UWxAttributeSet> AttributeSet;
 
-	/** 초기 어빌리티 */
+	/** Ability, Effect, AttributeSet 초기 데이터 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|GAS")
-	TArray<TSubclassOf<UGameplayAbility>> DefaultAbilities;
-
-	/** 초기 이펙트 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|GAS")
-	TArray<TSubclassOf<UGameplayEffect>> DefaultEffects;
+	TObjectPtr<UWxAbilitySet> AbilitySet;
 
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
@@ -69,8 +62,9 @@ protected:
 	/** 서버·클라이언트 모두 호출되므로 파생 클래스에서 타이밍에 맞게 override */
 	virtual void InitAbilityActorInfo();
 
-	void GiveDefaultAbilities();
-	void ApplyDefaultEffects();
+	void GiveAbilitySet();
+
+	FWxAbilitySetGrantedHandles AbilitySetGrantedHandles;
 
 	/**
 	 * SPD 어트리뷰트 변경 콜백.

@@ -9,12 +9,12 @@ UWxGameplayAbility::UWxGameplayAbility()
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 }
 
-void UWxGameplayAbility::OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
+void UWxGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
-	Super::OnAvatarSet(ActorInfo, Spec);
+	Super::OnGiveAbility(ActorInfo, Spec);
 
 	if (ActivationPolicy == EWxAbilityActivationPolicy::OnGranted)
 	{
-		ActorInfo->AbilitySystemComponent.Get()->TryActivateAbility(Spec.Handle, false);
+		ActorInfo->AbilitySystemComponent->TryActivateAbility(Spec.Handle);
 	}
 }

@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Character/WxPlayerCharacter.h"
+#include "Controller/WxPlayerController.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -39,17 +40,17 @@ void AWxPlayerCharacter::InitAbilityActorInfo()
 {
 	Super::InitAbilityActorInfo();
 
-	const APlayerController* PC = Cast<APlayerController>(GetController());
-	if (!PC)
+	const AWxPlayerController* WxPC = Cast<AWxPlayerController>(GetController());
+	if (!WxPC)
 	{
 		return;
 	}
 
-	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(WxPC->GetLocalPlayer()))
 	{
-		if (DefaultMappingContext)
+		if (UInputMappingContext* MappingContext = WxPC->GetDefaultMappingContext())
 		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			Subsystem->AddMappingContext(MappingContext, 0);
 		}
 	}
 }
@@ -58,19 +59,25 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	const AWxPlayerController* WxPC = Cast<AWxPlayerController>(GetController());
+	if (!WxPC)
+	{
+		return;
+	}
+
 	UEnhancedInputComponent* EIC = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 
-	if (MoveAction)
+	if (const UInputAction* MoveAction = WxPC->GetMoveAction())
 	{
 		EIC->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AWxPlayerCharacter::Move);
 	}
-	if (LookAction)
+	if (const UInputAction* LookAction = WxPC->GetLookAction())
 	{
 		EIC->BindAction(LookAction, ETriggerEvent::Triggered, this, &AWxPlayerCharacter::Look);
 	}
 
 	// 어빌리티 입력 바인딩: InputConfig의 각 매핑에 대해 Press/Release 바인딩
-	if (InputConfig)
+	if (const UWxInputConfig* InputConfig = WxPC->GetInputConfig())
 	{
 		for (const FWxInputAbilityBinding& Binding : InputConfig->AbilityInputBindings)
 		{

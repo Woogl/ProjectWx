@@ -8,16 +8,13 @@
 
 class USpringArmComponent;
 class UCameraComponent;
-class UInputMappingContext;
-class UInputAction;
-class UWxInputConfig;
 struct FInputActionValue;
 
 /**
  * 플레이어 캐릭터.
  * - SpringArm + Camera (3인칭 뷰)
- * - Enhanced Input 이동/시점
  * - PossessedBy에서 ASC InitAbilityActorInfo 호출
+ * - 입력 데이터는 WxPlayerController에서 관리
  */
 UCLASS()
 class WX_API AWxPlayerCharacter : public AWxCharacterBase
@@ -36,20 +33,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Camera")
 	TObjectPtr<UCameraComponent> FollowCamera;
-
-	// ── Input ──────────────────────────────────────────────────────────────
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
-	TObjectPtr<UInputMappingContext> DefaultMappingContext;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
-	TObjectPtr<UInputAction> MoveAction;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
-	TObjectPtr<UInputAction> LookAction;
-
-	/** 어빌리티 입력 바인딩 설정. InputAction → InputTag 매핑 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
-	TObjectPtr<const UWxInputConfig> InputConfig;
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);

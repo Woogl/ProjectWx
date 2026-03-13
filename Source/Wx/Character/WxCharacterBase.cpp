@@ -3,7 +3,6 @@
 #include "Character/WxCharacterBase.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxAttributeSet.h"
-#include "AbilitySystem/Ability/WxGameplayAbility.h"
 #include "Component/WxRagdollComponent.h"
 #include "WxGameplayTags.h"
 #include "Weapon/WxWeaponBase.h"
@@ -24,9 +23,9 @@ UAbilitySystemComponent* AWxCharacterBase::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 
-UWxAttributeSet* AWxCharacterBase::GetAttributeSet() const
+UWxAbilitySet* AWxCharacterBase::GetAbilitySet() const
 {
-	return AttributeSet;
+	return AbilitySet;
 }
 
 AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const
@@ -36,7 +35,11 @@ AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const
 
 bool AWxCharacterBase::IsAlive() const
 {
-	return AttributeSet && AttributeSet->GetHP() > 0.f;
+	if (const UWxAttributeSet* AttrSet = AbilitySystemComponent->GetSet<UWxAttributeSet>())
+	{
+		return AttrSet->GetHP() > 0.f;
+	}
+	return false;
 }
 
 void AWxCharacterBase::PostInitializeComponents()
@@ -74,16 +77,15 @@ void AWxCharacterBase::SpawnDefaultWeapon()
 void AWxCharacterBase::InitAbilityActorInfo()
 {
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
-	ApplyDefaultEffects();
-	GiveDefaultAbilities();
 
-	// SPD 변경 시 실제 이동 속도에 반영
+	// GiveAbilitySet보다 먼저 등록해야 초기 어트리뷰트 변경(SPD 등)이 콜백에 반영됨
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UWxAttributeSet::GetSPDAttribute())
 		.AddUObject(this, &AWxCharacterBase::HandleSPDAttributeChanged);
 
-	// State_Dead 태그 부여 시 사망 처리
 	AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &AWxCharacterBase::HandleDeathTagChanged);
+
+	GiveAbilitySet();
 }
 
 void AWxCharacterBase::HandleSPDAttributeChanged(const FOnAttributeChangeData& Data)
@@ -121,48 +123,14 @@ void AWxCharacterBase::OnMovementModeChanged(EMovementMode PrevMovementMode, uin
 	}
 }
 
-void AWxCharacterBase::GiveDefaultAbilities()
+void AWxCharacterBase::GiveAbilitySet()
 {
-	if (!HasAuthority() || !AbilitySystemComponent)
+	if (!AbilitySystemComponent || !AbilitySet)
 	{
 		return;
 	}
 
-	for (const TSubclassOf<UGameplayAbility>& AbilityClass : DefaultAbilities)
-	{
-		if (AbilityClass)
-		{
-			FGameplayAbilitySpec Spec(AbilityClass, 1);
-			if (const UWxGameplayAbility* DefaultAbility = Cast<UWxGameplayAbility>(AbilityClass.GetDefaultObject()))
-			{
-				if (DefaultAbility->ActivationInputTag.IsValid())
-				{
-					Spec.GetDynamicSpecSourceTags().AddTag(DefaultAbility->ActivationInputTag);
-				}
-			}
-			AbilitySystemComponent->GiveAbility(Spec);
-		}
-	}
-}
-
-void AWxCharacterBase::ApplyDefaultEffects()
-{
-	if (!AbilitySystemComponent || DefaultEffects.IsEmpty())
-	{
-		return;
-	}
-
-	FGameplayEffectContextHandle Context = AbilitySystemComponent->MakeEffectContext();
-	Context.AddSourceObject(this);
-
-	for (const TSubclassOf<UGameplayEffect>& DefaultEffect : DefaultEffects)
-	{
-		const FGameplayEffectSpecHandle Spec = AbilitySystemComponent->MakeOutgoingSpec(DefaultEffect, 1.f, Context);
-		if (Spec.IsValid())
-		{
-			AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
-		}
-	}
+	AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, &AbilitySetGrantedHandles);
 }
 
 void AWxCharacterBase::HandleDeath()
