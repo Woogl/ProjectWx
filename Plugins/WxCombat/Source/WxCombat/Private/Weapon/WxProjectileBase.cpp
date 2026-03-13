@@ -15,14 +15,14 @@ AWxProjectileBase::AWxProjectileBase()
 	SetRootComponent(Mesh);
 	Mesh->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
-	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"));
-	CollisionSphere->SetupAttachment(Mesh);
-	CollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	CollisionSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
-	CollisionSphere->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
-	CollisionSphere->SetCollisionResponseToChannel(ECC_WorldStatic,  ECR_Block);
-	CollisionSphere->SetCollisionResponseToChannel(ECC_Pawn,         ECR_Overlap);
-	CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AWxProjectileBase::HandleSphereOverlap);
+	HitCollision = CreateDefaultSubobject<USphereComponent>(TEXT("HitCollision"));
+	HitCollision->SetupAttachment(Mesh);
+	HitCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	HitCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+	HitCollision->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+	HitCollision->SetCollisionResponseToChannel(ECC_WorldStatic,  ECR_Block);
+	HitCollision->SetCollisionResponseToChannel(ECC_Pawn,         ECR_Overlap);
+	HitCollision->OnComponentBeginOverlap.AddDynamic(this, &AWxProjectileBase::HandleHitCollisionOverlap);
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovement->ProjectileGravityScale = 0.f;
@@ -41,7 +41,7 @@ void AWxProjectileBase::SetDamageEffectSpecHandle(const FGameplayEffectSpecHandl
 	DamageEffectSpecHandle = InHandle;
 }
 
-void AWxProjectileBase::HandleSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!OtherActor || OtherActor == GetOwner())
 	{

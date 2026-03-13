@@ -4,12 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystem/Ability/WxAbility.h"
-#include "WxAbility_MeleeAttack.generated.h"
+#include "WxAbility_Attack.generated.h"
 
 class UAnimMontage;
 
 /**
- * 근접 공격 어빌리티.
+ * 공격 어빌리티.
  *
  * 사용 흐름:
  *  1. 입력 → ActivateAbility → AttackMontage 재생
@@ -19,12 +19,12 @@ class UAnimMontage;
  * ANS_ComboWindow 구간에서 공격 입력 시 GAS가 태그 조건에 맞는 다음 콤보를 자동 활성화.
  */
 UCLASS()
-class WXCOMBAT_API UWxAbility_MeleeAttack : public UWxAbility
+class WXCOMBAT_API UWxAbility_Attack : public UWxAbility
 {
 	GENERATED_BODY()
 
 public:
-	UWxAbility_MeleeAttack();
+	UWxAbility_Attack();
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 

@@ -84,7 +84,7 @@
   * Attribute Set
   * Ability
   * Effect
-* Weapon System
+* Weapon
   * Weapon
   * Projectile
 

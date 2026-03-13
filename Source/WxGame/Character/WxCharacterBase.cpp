@@ -20,6 +20,9 @@ AWxCharacterBase::AWxCharacterBase()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw   = false;
 	bUseControllerRotationRoll  = false;
+	
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f);
 }
 
 UAbilitySystemComponent* AWxCharacterBase::GetAbilitySystemComponent() const
@@ -49,8 +52,6 @@ bool AWxCharacterBase::IsAlive() const
 void AWxCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-
-	BaseWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 }
 
 void AWxCharacterBase::PossessedBy(AController* NewController)
@@ -86,6 +87,8 @@ void AWxCharacterBase::SpawnDefaultWeapon()
 
 void AWxCharacterBase::InitAbilityActorInfo()
 {
+	BaseWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
+
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 
 	// GiveAbilitySet보다 먼저 등록해야 초기 어트리뷰트 변경(SPD 등)이 콜백에 반영됨

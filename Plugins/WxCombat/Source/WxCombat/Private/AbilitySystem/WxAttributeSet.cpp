@@ -4,6 +4,7 @@
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
 #include "WxGameplayTags.h"
+#include "Perception/AISense_Damage.h"
 
 UWxAttributeSet::UWxAttributeSet() {}
 
@@ -61,6 +62,13 @@ void UWxAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 		if (Damage > 0.f)
 		{
 			SetHP(FMath::Max(GetHP() - Damage, 0.f));
+
+			AActor* TargetActor = GetOwningActor();
+			AActor* SourceActor = Data.EffectSpec.GetEffectContext().GetInstigator();
+			if (TargetActor && SourceActor)
+			{
+				UAISense_Damage::ReportDamageEvent(TargetActor->GetWorld(), TargetActor, SourceActor, Damage, SourceActor->GetActorLocation(), TargetActor->GetActorLocation());
+			}
 		}
 	}
 	else if (Data.EvaluatedData.Attribute == GetHPAttribute())

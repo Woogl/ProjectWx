@@ -20,6 +20,8 @@ public class WxGame : ModuleRules
 			"GameplayAbilities",
 			"GameplayTags",
 			"GameplayTasks",
+			"AIModule",
+			"NavigationSystem",
 			"WxCore",
 			"WxCombat",
 		});

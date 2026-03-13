@@ -36,7 +36,7 @@ protected:
 	TObjectPtr<USkeletalMeshComponent> Mesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Projectile")
-	TObjectPtr<USphereComponent> CollisionSphere;
+	TObjectPtr<USphereComponent> HitCollision;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Projectile")
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
@@ -53,7 +53,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	virtual void HandleSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	virtual void HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 private:
 	FGameplayEffectSpecHandle DamageEffectSpecHandle;
