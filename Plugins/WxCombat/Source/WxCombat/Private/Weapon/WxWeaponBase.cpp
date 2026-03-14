@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 
 AWxWeaponBase::AWxWeaponBase()
@@ -32,6 +33,7 @@ AWxWeaponBase::AWxWeaponBase()
 	HitCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("HitCollision"));
 	HitCollision->SetupAttachment(GripPoint);
 	HitCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HitCollision->SetCollisionObjectType(WxCollision::Attack);
 	HitCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
 	HitCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	HitCollision->OnComponentBeginOverlap.AddDynamic(this, &AWxWeaponBase::HandleHitCollisionOverlap);

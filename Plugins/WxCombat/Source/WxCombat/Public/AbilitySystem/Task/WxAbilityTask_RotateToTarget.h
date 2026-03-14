@@ -7,7 +7,7 @@
 #include "WxAbilityTask_RotateToTarget.generated.h"
 
 /**
- * 타겟 액터를 향해 CharacterMovementComponent의 RotationRate로 부드럽게 회전하는 AbilityTask.
+ * 타겟 액터를 향해 지정된 회전 속도로 부드럽게 회전하는 AbilityTask.
  * 회전이 완료되거나 타겟이 유효하지 않으면 자동 종료.
  */
 UCLASS()
@@ -16,7 +16,8 @@ class WXCOMBAT_API UWxAbilityTask_RotateToTarget : public UAbilityTask
 	GENERATED_BODY()
 
 public:
-	static UWxAbilityTask_RotateToTarget* CreateTask(UGameplayAbility* OwningAbility, AActor* InTargetActor);
+	UWxAbilityTask_RotateToTarget();
+	static UWxAbilityTask_RotateToTarget* CreateTask(UGameplayAbility* OwningAbility, AActor* InTargetActor, float InRotationRateYaw = 360.f);
 
 	virtual void Activate() override;
 	virtual void TickTask(float DeltaTime) override;
@@ -24,6 +25,8 @@ public:
 private:
 	UPROPERTY()
 	TWeakObjectPtr<AActor> TargetActor;
+
+	float RotationRateYaw;
 
 	static constexpr float RotationTolerance = 3.f;
 };

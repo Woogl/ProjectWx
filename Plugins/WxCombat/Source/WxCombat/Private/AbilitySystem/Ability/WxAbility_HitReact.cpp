@@ -9,6 +9,8 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
+	
+	bRetriggerInstancedAbility = true;
 
 	FAbilityTriggerData TriggerData;
 	TriggerData.TriggerTag = WxGameplayTags::Event_HitReact;

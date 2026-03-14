@@ -24,6 +24,10 @@
 		{
 			"Name": "WxCore",
 			"Enabled": true
+		},
+		{
+			"Name": "TargetingSystem",
+			"Enabled": true
 		}
 	]
 }

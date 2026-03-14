@@ -4,6 +4,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "WxCollisionChannels.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 
@@ -18,10 +19,10 @@ AWxProjectileBase::AWxProjectileBase()
 	HitCollision = CreateDefaultSubobject<USphereComponent>(TEXT("HitCollision"));
 	HitCollision->SetupAttachment(Mesh);
 	HitCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	HitCollision->SetCollisionObjectType(WxCollision::Attack);
 	HitCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitCollision->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
-	HitCollision->SetCollisionResponseToChannel(ECC_WorldStatic,  ECR_Block);
-	HitCollision->SetCollisionResponseToChannel(ECC_Pawn,         ECR_Overlap);
+	HitCollision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+	HitCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	HitCollision->OnComponentBeginOverlap.AddDynamic(this, &AWxProjectileBase::HandleHitCollisionOverlap);
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));

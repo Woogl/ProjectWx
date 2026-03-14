@@ -6,6 +6,7 @@
 #include "Component/WxRagdollComponent.h"
 #include "WxGameplayTags.h"
 #include "Components/CapsuleComponent.h"
+#include "WxCollisionChannels.h"
 #include "Weapon/WxWeaponBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -13,6 +14,7 @@ AWxCharacterBase::AWxCharacterBase()
 {
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(WxCollision::Attack, ECR_Overlap);
 	
 	AbilitySystemComponent = CreateDefaultSubobject<UWxAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);

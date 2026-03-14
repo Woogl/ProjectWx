@@ -1,21 +1,24 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Task/WxAbilityTask_RotateToTarget.h"
-#include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
 
-UWxAbilityTask_RotateToTarget* UWxAbilityTask_RotateToTarget::CreateTask(UGameplayAbility* OwningAbility, AActor* InTargetActor)
+UWxAbilityTask_RotateToTarget::UWxAbilityTask_RotateToTarget()
+	: RotationRateYaw(360.f)
+{
+	bTickingTask = true;
+}
+
+UWxAbilityTask_RotateToTarget* UWxAbilityTask_RotateToTarget::CreateTask(UGameplayAbility* OwningAbility, AActor* InTargetActor, float InRotationRateYaw)
 {
 	UWxAbilityTask_RotateToTarget* Task = NewAbilityTask<UWxAbilityTask_RotateToTarget>(OwningAbility);
 	Task->TargetActor = InTargetActor;
+	Task->RotationRateYaw = InRotationRateYaw;
 	return Task;
 }
 
 void UWxAbilityTask_RotateToTarget::Activate()
 {
 	Super::Activate();
-
-	bTickingTask = true;
 
 	if (!TargetActor.IsValid())
 	{
@@ -44,9 +47,6 @@ void UWxAbilityTask_RotateToTarget::TickTask(float DeltaTime)
 
 	const FRotator DesiredRotation = Direction.Rotation();
 	const FRotator CurrentRotation = AvatarActor->GetActorRotation();
-
-	const ACharacter* Character = Cast<ACharacter>(AvatarActor);
-	const float RotationRateYaw = Character ? Character->GetCharacterMovement()->RotationRate.Yaw : 360.f;
 
 	const FRotator NewRotation = FMath::RInterpConstantTo(CurrentRotation, DesiredRotation, DeltaTime, RotationRateYaw);
 	AvatarActor->SetActorRotation(NewRotation);

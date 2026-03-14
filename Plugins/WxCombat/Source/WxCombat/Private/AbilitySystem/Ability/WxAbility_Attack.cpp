@@ -3,6 +3,8 @@
 #include "AbilitySystem/Ability/WxAbility_Attack.h"
 #include "AbilitySystem/Task/WxAbilityTask_RotateToTarget.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "TargetingSystem/TargetingSubsystem.h"
 #include "WxGameplayTags.h"
 
@@ -21,7 +23,7 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	RotateToNearestTarget();
+	RotateToTarget();
 
 	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, AttackMontage);
 	if (!MontageTask)
@@ -37,7 +39,7 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	MontageTask->ReadyForActivation();
 }
 
-void UWxAbility_Attack::RotateToNearestTarget()
+void UWxAbility_Attack::RotateToTarget()
 {
 	if (!TargetingPreset)
 	{
@@ -69,7 +71,13 @@ void UWxAbility_Attack::RotateToNearestTarget()
 
 	if (Targets.Num() > 0)
 	{
-		UWxAbilityTask_RotateToTarget* RotateTask = UWxAbilityTask_RotateToTarget::CreateTask(this, Targets[0]);
+		float RotationRateYaw = 360.f;
+		if (const ACharacter* Character = Cast<ACharacter>(AvatarActor))
+		{
+			RotationRateYaw = Character->GetCharacterMovement()->RotationRate.Yaw;
+		}
+
+		UWxAbilityTask_RotateToTarget* RotateTask = UWxAbilityTask_RotateToTarget::CreateTask(this, Targets[0], RotationRateYaw);
 		RotateTask->ReadyForActivation();
 	}
 }

@@ -43,7 +43,7 @@ protected:
 
 private:
 	/** TargetingPreset으로 가장 가까운 적을 탐색하고, 해당 방향으로 회전 태스크를 시작 */
-	void RotateToNearestTarget();
+	void RotateToTarget();
 
 	UFUNCTION()
 	void HandleMontageCompleted();

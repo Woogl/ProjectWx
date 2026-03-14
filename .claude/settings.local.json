@@ -10,7 +10,19 @@
       "Bash(wc:*)",
       "Bash(find /c/Wx/Source -type f -name \"*.h\" -o -name \"*.cpp\" 2>/dev/null | sort)",
       "Bash(git checkout:*)",
-      "Bash(find /c/Wx/Source /c/Wx/Plugins -path '*/Source/*' \\\\\\( -name '*.h' -o -name '*.cpp' -o -name '*.cs' \\\\\\) ! -path '*/Intermediate/*' -exec sed -i 's|// Copyright Epic Games, Inc. All Rights Reserved.|// Copyright Woogle. All Rights Reserved.|g' {} +)"
+      "Bash(find /c/Wx/Source /c/Wx/Plugins -path '*/Source/*' \\\\\\( -name '*.h' -o -name '*.cpp' -o -name '*.cs' \\\\\\) ! -path '*/Intermediate/*' -exec sed -i 's|// Copyright Epic Games, Inc. All Rights Reserved.|// Copyright Woogle. All Rights Reserved.|g' {} +)",
+      "Bash(cd /c/Wx/Plugins/WxCombat/Source/WxCombat && mv Public/AbilitySystem/Ability/WxGameplayAbility.h Public/AbilitySystem/Ability/WxAbility.h && mv Private/AbilitySystem/Ability/WxGameplayAbility.cpp Private/AbilitySystem/Ability/WxAbility.cpp && mv Public/AbilitySystem/Ability/WxGA_HitReact.h Public/AbilitySystem/Ability/WxAbility_HitReact.h && mv Private/AbilitySystem/Ability/WxGA_HitReact.cpp Private/AbilitySystem/Ability/WxAbility_HitReact.cpp && mv Public/AbilitySystem/Ability/WxGA_Jump.h Public/AbilitySystem/Ability/WxAbility_Jump.h && mv Private/AbilitySystem/Ability/WxGA_Jump.cpp Private/AbilitySystem/Ability/WxAbility_Jump.cpp && mv Public/AbilitySystem/Ability/WxGA_MeleeAttack.h Public/AbilitySystem/Ability/WxAbility_MeleeAttack.h && mv Private/AbilitySystem/Ability/WxGA_MeleeAttack.cpp Private/AbilitySystem/Ability/WxAbility_MeleeAttack.cpp)",
+      "Bash(find /c/Wx/Source -type f \\\\\\( -name \"*.h\" -o -name \"*.cpp\" \\\\\\) 2>/dev/null | head -20)",
+      "Bash(find /c/Wx/Plugins -type f \\\\\\( -name \"*.h\" -o -name \"*.cpp\" \\\\\\) 2>/dev/null | head -30)",
+      "Bash(find /c/Wx -name \"*Controller*\" -type f \\\\\\( -name \"*.h\" -o -name \"*.cpp\" \\\\\\) 2>/dev/null | grep -v \"Intermediate\\\\|Binaries\" | sort)",
+      "Bash(find /c/Wx/Source/WxGame -type f -name \"*.h\" -o -name \"*.cpp\" 2>/dev/null | sort)",
+      "Bash(find . -type f \\\\\\( -name \"*.h\" -o -name \"*.cpp\" \\\\\\) | xargs grep -l \"AbilitySet\\\\|GrantedAbilities\" | head -10)",
+      "Bash(find . -type f -name \"*.h\" | xargs grep -l \"OnGiveAbility\" | head -10)",
+      "Bash(find . -type f \\\\\\( -name \"*.md\" -o -name \"*.txt\" \\\\\\) | xargs grep -l \"combo\\\\|Combo\" 2>/dev/null | head -5)",
+      "Bash(git rm:*)",
+      "Bash(find \"C:/Program Files/Epic Games\" -name \"*.h\" -type f -path \"*GameplayAbilities*\" 2>/dev/null | grep -i \"ability\" | head -20)",
+      "Bash(find \"C:/Program Files/Epic Games\" -name \"*.h\" -type f 2>/dev/null | xargs grep -l \"FAbilityEndedData\" 2>/dev/null)",
+      "Bash(find:*)"
     ]
   }
 }
