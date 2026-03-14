@@ -13,6 +13,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(ANS_ComboWindow, "ANS.ComboWindow");
 	UE_DEFINE_GAMEPLAY_TAG(ANS_Invincible, "ANS.Invincible");
 
+	UE_DEFINE_GAMEPLAY_TAG(Ability, "Ability");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack, "Ability.Attack");
 
 	UE_DEFINE_GAMEPLAY_TAG(Input_Jump, "Input.Jump");

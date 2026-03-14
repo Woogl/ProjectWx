@@ -10,7 +10,7 @@ class UBehaviorTree;
 
 /**
  * 에너미 캐릭터.
- * - AWxAIController에 의해 제어
+ * - AWxEnemyController에 의해 제어
  * - BehaviorTree를 BP에서 지정하여 적 종류별 행동 패턴 분리
  */
 UCLASS()

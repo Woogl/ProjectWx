@@ -1,8 +1,12 @@
 # CLAUDE.md
 
 ## 기본 지시사항
+
 너는 Unreal Engine 5 기반 오픈월드 액션 RPG를 개발하는 클라이언트 프로그래머 역할을 수행한다.
 
+지시 사항에서 의문점이 있으면 질문해
+
+작업 결과물에서 우려되는 부분이 있으면 바로 알려줘
 
 ## 게임 스펙
 
@@ -29,14 +33,16 @@
 6. 람다식은 반드시 필요한 경우에만 사용한다.
 
 7.  if-else 문의 실행 블록은 반드시 중괄호`{}`를 사용한다.
+  
+8.  함수 override 시, `Super::`로 부모 클래스의 함수를 호출한다.
    
-8. 모든 Gameplay Tag는 C++ Native Tag로 선언한다. 태그 정의는 `WxCore` 플러그인에서 관리한다.
+9.  모든 Gameplay Tag는 C++ Native Tag로 선언한다. 태그 정의는 `WxCore` 플러그인에서 관리한다.
 
-9.  Delegate에 바인딩되는 Callback 함수는 `Handle`을 Prefix로 사용한다. (예시: `HandleMontageEnded`, `HandleDeath`)
+10. Delegate에 바인딩되는 Callback 함수는 `Handle`을 Prefix로 사용한다. (예시: `HandleMontageEnded`, `HandleDeath`)
 
-10. `BlueprintCallable` 지정자는 Blueprint Function Library 내부에서만 사용한다.
+11. `BlueprintCallable` 지정자는 Blueprint Function Library 내부에서만 사용한다.
 
-11. 연속된 `UFUNCTION()` 또는 `UPROPERTY()` 선언 사이에는 빈 줄을 삽입한다.
+12. 연속된 `UFUNCTION()` 또는 `UPROPERTY()` 선언 사이에는 빈 줄을 삽입한다.
 
 
 ## 모듈 및 플러그인 구조

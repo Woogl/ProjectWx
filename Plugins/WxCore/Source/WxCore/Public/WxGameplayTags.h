@@ -39,6 +39,7 @@ namespace WxGameplayTags
 
 	// ── Ability ───────────────────────────────────────────────────────────
 
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack);
 
 	// ── Input ──────────────────────────────────────────────────────────────

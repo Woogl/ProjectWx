@@ -4,10 +4,12 @@
 #include "AIController.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
 
 UWxBTTask_ActivateAbility::UWxBTTask_ActivateAbility()
 {
 	NodeName = TEXT("Activate Ability");
+	bCreateNodeInstance = true;
 }
 
 EBTNodeResult::Type UWxBTTask_ActivateAbility::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -30,7 +32,17 @@ EBTNodeResult::Type UWxBTTask_ActivateAbility::ExecuteTask(UBehaviorTreeComponen
 		return EBTNodeResult::Failed;
 	}
 
-	if (!ASC->TryActivateAbilitiesByTag(AbilityTag.GetSingleTagContainer()))
+	FGameplayAbilitySpec* Spec = nullptr;
+	for (FGameplayAbilitySpec& IterSpec : ASC->GetActivatableAbilities())
+	{
+		if (IterSpec.Ability && IterSpec.Ability->GetAssetTags().HasTag(AbilityTag))
+		{
+			Spec = &IterSpec;
+			break;
+		}
+	}
+
+	if (!Spec || !ASC->TryActivateAbility(Spec->Handle))
 	{
 		return EBTNodeResult::Failed;
 	}
@@ -53,7 +65,7 @@ EBTNodeResult::Type UWxBTTask_ActivateAbility::AbortTask(UBehaviorTreeComponent&
 void UWxBTTask_ActivateAbility::HandleAbilityEnded(const FAbilityEndedData& AbilityEndedData)
 {
 	if (!AbilityEndedData.AbilityThatEnded ||
-		!AbilityEndedData.AbilityThatEnded->AbilityTags.HasTag(AbilityTag))
+		!AbilityEndedData.AbilityThatEnded->GetAssetTags().HasTag(AbilityTag))
 	{
 		return;
 	}

@@ -5,11 +5,15 @@
 #include "AbilitySystem/WxAttributeSet.h"
 #include "Component/WxRagdollComponent.h"
 #include "WxGameplayTags.h"
+#include "Components/CapsuleComponent.h"
 #include "Weapon/WxWeaponBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 AWxCharacterBase::AWxCharacterBase()
 {
+	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	
 	AbilitySystemComponent = CreateDefaultSubobject<UWxAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
@@ -87,9 +91,9 @@ void AWxCharacterBase::SpawnDefaultWeapon()
 
 void AWxCharacterBase::InitAbilityActorInfo()
 {
-	BaseWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
-
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+
+	BaseWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 
 	// GiveAbilitySet보다 먼저 등록해야 초기 어트리뷰트 변경(SPD 등)이 콜백에 반영됨
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UWxAttributeSet::GetSPDAttribute())

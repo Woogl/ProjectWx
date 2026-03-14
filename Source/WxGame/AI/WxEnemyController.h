@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "AIController.h"
 #include "Perception/AIPerceptionTypes.h"
-#include "WxAIController.generated.h"
+#include "WxEnemyController.generated.h"
 
 class UBehaviorTree;
 class UAIPerceptionComponent;
@@ -19,12 +19,12 @@ class UAISenseConfig_Damage;
  * 감지된 타겟은 Blackboard의 "TargetActor" 키에 자동 반영.
  */
 UCLASS()
-class WXGAME_API AWxAIController : public AAIController
+class WXGAME_API AWxEnemyController : public AAIController
 {
 	GENERATED_BODY()
 
 public:
-	AWxAIController();
+	AWxEnemyController();
 
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
@@ -40,7 +40,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|AI")
 	float SightAngle = 90.f;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|AI")
 	float MemoryLength = 5.f;
 
@@ -53,7 +53,6 @@ private:
 	UPROPERTY()
 	TObjectPtr<UAISenseConfig_Sight> SightConfig;
 
-	bool bAlerted = false;
-
 	static const FName BBKey_TargetActor;
+	static const FName BBKey_Alerted;
 };

@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AI/WxAIController.h"
+#include "AI/WxEnemyController.h"
 #include "Character/WxEnemyCharacter.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -8,9 +8,10 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Damage.h"
 
-const FName AWxAIController::BBKey_TargetActor = TEXT("TargetActor");
+const FName AWxEnemyController::BBKey_TargetActor = TEXT("TargetActor");
+const FName AWxEnemyController::BBKey_Alerted = TEXT("Alerted");
 
-AWxAIController::AWxAIController()
+AWxEnemyController::AWxEnemyController()
 {
 	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComponent"));
 
@@ -30,10 +31,10 @@ AWxAIController::AWxAIController()
 	AIPerceptionComponent->ConfigureSense(*DamageConfig);
 
 	AIPerceptionComponent->SetDominantSense(UAISense_Sight::StaticClass());
-	AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AWxAIController::HandleTargetPerceptionUpdated);
+	AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AWxEnemyController::HandleTargetPerceptionUpdated);
 }
 
-void AWxAIController::OnPossess(APawn* InPawn)
+void AWxEnemyController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
@@ -46,7 +47,7 @@ void AWxAIController::OnPossess(APawn* InPawn)
 	}
 }
 
-void AWxAIController::HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
+void AWxEnemyController::HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
 	UBlackboardComponent* BB = GetBlackboardComponent();
 	if (!BB)
@@ -69,14 +70,20 @@ void AWxAIController::HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulus S
 	}
 }
 
-void AWxAIController::SetAlerted(bool bNewAlerted)
+void AWxEnemyController::SetAlerted(bool bNewAlerted)
 {
-	if (bAlerted == bNewAlerted)
+	UBlackboardComponent* BB = GetBlackboardComponent();
+	if (!BB)
 	{
 		return;
 	}
 
-	bAlerted = bNewAlerted;
-	SightConfig->PeripheralVisionAngleDegrees = bAlerted ? 180.f : SightAngle;
+	if (BB->GetValueAsBool(BBKey_Alerted) == bNewAlerted)
+	{
+		return;
+	}
+
+	BB->SetValueAsBool(BBKey_Alerted, bNewAlerted);
+	SightConfig->PeripheralVisionAngleDegrees = bNewAlerted ? 180.f : SightAngle;
 	AIPerceptionComponent->RequestStimuliListenerUpdate();
 }

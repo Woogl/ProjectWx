@@ -6,6 +6,7 @@
 #include "AbilitySystem/Ability/WxAbility.h"
 #include "WxAbility_Attack.generated.h"
 
+class UAbilityTask_PlayMontageAndWait;
 class UAnimMontage;
 
 /**
@@ -31,6 +32,9 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> AttackMontage;
+	
+	UPROPERTY()
+	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
 
 private:
 	UFUNCTION()
