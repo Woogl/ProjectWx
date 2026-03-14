@@ -13,6 +13,8 @@ AWxEnemyCharacter::AWxEnemyCharacter()
 	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	
+	bUseControllerRotationYaw = true;
+	
 	GetCharacterMovement()->MaxWalkSpeed = 400.f;
 }
 

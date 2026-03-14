@@ -45,7 +45,7 @@
 * 모든 플러그인은 `WxCore`에 의존할 수 있다.
 * `WxCore`를 제외한 플러그인 간 직접 의존은 금지한다.
 
-| Module     | 설명                                |
+| Module     | Description                                |
 | ---------- | --------------------------------- |
 | `WxGame`   | 기본 게임 모듈  |
 | `WxCore`   | 공용 정의  |
@@ -64,7 +64,7 @@
   * Enemy Character
 * Controller
   * Player Controller
-  * AI Controller
+  * Enemy Controller
 * Component
   * Ragdoll Component
 

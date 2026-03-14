@@ -28,12 +28,20 @@ class WXCOMBAT_API UWxAbility : public UGameplayAbility
 public:
 	UWxAbility();
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	EWxAbilityActivationPolicy ActivationPolicy = EWxAbilityActivationPolicy::OnInputTriggered;
 
 	/** 이 어빌리티를 활성화할 입력 태그. GiveAbility 시 DynamicAbilityTags에 추가됨 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	FGameplayTag ActivationInputTag;
+
+	/** true 시 이 어빌리티는 ActivationInputTag 기준 콤보 체인의 일부로 등록된다 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
+	bool bIsComboAbility = false;
+
+	/** 콤보 내 순서 (1부터 시작) */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx", meta = (EditCondition = "bIsComboAbility", ClampMin = "1"))
+	int32 ComboIndex = 1;
 
 protected:
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
