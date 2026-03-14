@@ -29,6 +29,10 @@
 		{
 			"Name": "WxCombat",
 			"Enabled": true
+		},
+		{
+			"Name": "TargetingSystem",
+			"Enabled": true
 		}
 	]
 }

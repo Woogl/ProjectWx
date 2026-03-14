@@ -1,7 +1,9 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Attack.h"
+#include "AbilitySystem/Task/WxAbilityTask_RotateToTarget.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "TargetingSystem/TargetingSubsystem.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_Attack::UWxAbility_Attack()
@@ -12,12 +14,14 @@ UWxAbility_Attack::UWxAbility_Attack()
 void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	
+
 	if (!AttackMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
+
+	RotateToNearestTarget();
 
 	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, AttackMontage);
 	if (!MontageTask)
@@ -31,6 +35,43 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Attack::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Attack::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
+}
+
+void UWxAbility_Attack::RotateToNearestTarget()
+{
+	if (!TargetingPreset)
+	{
+		return;
+	}
+
+	AActor* AvatarActor = GetAvatarActorFromActorInfo();
+	if (!AvatarActor)
+	{
+		return;
+	}
+
+	UTargetingSubsystem* TargetingSubsystem = UTargetingSubsystem::Get(GetWorld());
+	if (!TargetingSubsystem)
+	{
+		return;
+	}
+
+	FTargetingSourceContext SourceContext;
+	SourceContext.SourceActor = AvatarActor;
+	SourceContext.InstigatorActor = AvatarActor;
+
+	FTargetingRequestHandle Handle = TargetingSubsystem->MakeTargetRequestHandle(TargetingPreset, SourceContext);
+	TargetingSubsystem->ExecuteTargetingRequestWithHandle(Handle);
+
+	TArray<AActor*> Targets;
+	TargetingSubsystem->GetTargetingResultsActors(Handle, Targets);
+	TargetingSubsystem->ReleaseTargetRequestHandle(Handle);
+
+	if (Targets.Num() > 0)
+	{
+		UWxAbilityTask_RotateToTarget* RotateTask = UWxAbilityTask_RotateToTarget::CreateTask(this, Targets[0]);
+		RotateTask->ReadyForActivation();
+	}
 }
 
 void UWxAbility_Attack::HandleMontageCompleted()

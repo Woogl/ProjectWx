@@ -8,12 +8,13 @@
 
 class UAbilityTask_PlayMontageAndWait;
 class UAnimMontage;
+class UTargetingPreset;
 
 /**
  * 공격 어빌리티.
  *
  * 사용 흐름:
- *  1. 입력 → ActivateAbility → AttackMontage 재생
+ *  1. 입력 → ActivateAbility → 타겟팅 → 가장 가까운 적 방향으로 회전 → AttackMontage 재생
  *  2. 몽타주 완료/중단 → EndAbility
  *
  * 콤보 체인은 GAS 태그 제약(ActivationRequiredTags, ActivationBlockedTags)으로 구성.
@@ -32,11 +33,18 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> AttackMontage;
-	
+
+	/** 공격 시 가장 가까운 적을 탐색하기 위한 타겟팅 프리셋 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TObjectPtr<UTargetingPreset> TargetingPreset;
+
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
 
 private:
+	/** TargetingPreset으로 가장 가까운 적을 탐색하고, 해당 방향으로 회전 태스크를 시작 */
+	void RotateToNearestTarget();
+
 	UFUNCTION()
 	void HandleMontageCompleted();
 

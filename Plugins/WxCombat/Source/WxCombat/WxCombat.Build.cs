@@ -25,6 +25,7 @@ public class WxCombat : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"InputCore",
+			"TargetingSystem",
 		});
 	}
 }
