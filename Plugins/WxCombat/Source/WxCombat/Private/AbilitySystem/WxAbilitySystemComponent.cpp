@@ -9,6 +9,31 @@ UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 	SetIsReplicated(true);
 }
 
+void UWxAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor)
+{
+	Super::InitAbilityActorInfo(InOwnerActor, InAvatarActor);
+
+	GiveAbilitySet();
+
+	bInitialized = true;
+	OnInitialized.Broadcast(this);
+}
+
+bool UWxAbilitySystemComponent::IsInitialized() const
+{
+	return bInitialized;
+}
+
+void UWxAbilitySystemComponent::GiveAbilitySet()
+{
+	if (!AbilitySet)
+	{
+		return;
+	}
+
+	AbilitySet->GiveToAbilitySystem(this, &AbilitySetGrantedHandles);
+}
+
 void UWxAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)
 {
 	if (!InputTag.IsValid())

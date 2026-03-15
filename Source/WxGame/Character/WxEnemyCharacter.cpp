@@ -38,6 +38,13 @@ void AWxEnemyCharacter::BeginPlay()
 	}
 }
 
+void AWxEnemyCharacter::HandleDeath()
+{
+	Super::HandleDeath();
+
+	HealthBarComponent->SetVisibility(false);
+}
+
 UBehaviorTree* AWxEnemyCharacter::GetBehaviorTree() const
 {
 	return BehaviorTreeAsset;

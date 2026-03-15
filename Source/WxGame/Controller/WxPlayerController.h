@@ -9,10 +9,12 @@
 class UInputMappingContext;
 class UInputAction;
 class UWxInputConfig;
+class UAbilitySystemComponent;
 
 /**
  * 플레이어 컨트롤러.
  * 입력 관련 데이터(MappingContext, InputAction, InputConfig)를 소유.
+ * 현재 빙의 중인 캐릭터의 Health ViewModel을 Global Collection에 등록/관리.
  */
 UCLASS()
 class WXGAME_API AWxPlayerController : public APlayerController
@@ -26,6 +28,10 @@ public:
 	const UWxInputConfig* GetInputConfig() const;
 
 protected:
+	virtual void OnPossess(APawn* InPawn) override;
+	virtual void OnUnPossess() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TObjectPtr<UInputMappingContext> DefaultMappingContext;
 
@@ -38,4 +44,7 @@ protected:
 	/** 어빌리티 입력 바인딩 설정. InputAction → InputTag 매핑 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TObjectPtr<const UWxInputConfig> InputConfig;
+
+private:
+	void HandleAbilitySystemInitialized(UAbilitySystemComponent* ASC);
 };

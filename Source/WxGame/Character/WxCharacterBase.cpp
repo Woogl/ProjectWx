@@ -36,11 +36,6 @@ UAbilitySystemComponent* AWxCharacterBase::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 
-UWxAbilitySet* AWxCharacterBase::GetAbilitySet() const
-{
-	return AbilitySet;
-}
-
 AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const
 {
 	return EquippedWeapon;
@@ -93,8 +88,6 @@ void AWxCharacterBase::SpawnDefaultWeapon()
 
 void AWxCharacterBase::InitAbilityActorInfo()
 {
-	AbilitySystemComponent->InitAbilityActorInfo(this, this);
-
 	BaseWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 
 	// GiveAbilitySet보다 먼저 등록해야 초기 어트리뷰트 변경(SPD 등)이 콜백에 반영됨
@@ -104,7 +97,7 @@ void AWxCharacterBase::InitAbilityActorInfo()
 	AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &AWxCharacterBase::HandleDeathTagChanged);
 
-	GiveAbilitySet();
+	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 }
 
 void AWxCharacterBase::HandleSPDAttributeChanged(const FOnAttributeChangeData& Data)
@@ -140,16 +133,6 @@ void AWxCharacterBase::OnMovementModeChanged(EMovementMode PrevMovementMode, uin
 	{
 		AbilitySystemComponent->RemoveLooseGameplayTag(WxGameplayTags::State_Airborne);
 	}
-}
-
-void AWxCharacterBase::GiveAbilitySet()
-{
-	if (!AbilitySystemComponent || !AbilitySet)
-	{
-		return;
-	}
-
-	AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, &AbilitySetGrantedHandles);
 }
 
 void AWxCharacterBase::HandleDeath()

@@ -24,6 +24,8 @@ public:
 
 	UBehaviorTree* GetBehaviorTree() const;
 
+	virtual void HandleDeath() override;
+
 protected:
 	virtual void BeginPlay() override;
 
