@@ -7,7 +7,6 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
-#include "Input/WxInputConfig.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 
 AWxPlayerCharacter::AWxPlayerCharacter()
@@ -62,16 +61,13 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EIC->BindAction(LookAction, ETriggerEvent::Triggered, this, &AWxPlayerCharacter::Look);
 	}
 
-	// 어빌리티 입력 바인딩: InputConfig의 각 매핑에 대해 Press/Release 바인딩
-	if (const UWxInputConfig* InputConfig = WxPC->GetInputConfig())
+	// 어빌리티 입력 바인딩: 각 매핑에 대해 Press/Release 바인딩
+	for (const FWxInputAbilityBinding& Binding : WxPC->GetAbilityInputBindings())
 	{
-		for (const FWxInputAbilityBinding& Binding : InputConfig->AbilityInputBindings)
+		if (Binding.InputAction && Binding.InputTag.IsValid())
 		{
-			if (Binding.InputAction && Binding.InputTag.IsValid())
-			{
-				EIC->BindAction(Binding.InputAction, ETriggerEvent::Triggered, this, &AWxPlayerCharacter::AbilityInputPressed,  Binding.InputTag);
-				EIC->BindAction(Binding.InputAction, ETriggerEvent::Completed, this, &AWxPlayerCharacter::AbilityInputReleased, Binding.InputTag);
-			}
+			EIC->BindAction(Binding.InputAction, ETriggerEvent::Triggered, this, &AWxPlayerCharacter::AbilityInputPressed,  Binding.InputTag);
+			EIC->BindAction(Binding.InputAction, ETriggerEvent::Completed, this, &AWxPlayerCharacter::AbilityInputReleased, Binding.InputTag);
 		}
 	}
 }

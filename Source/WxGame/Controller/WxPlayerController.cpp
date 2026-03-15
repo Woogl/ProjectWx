@@ -5,6 +5,10 @@
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "MVVMGameSubsystem.h"
 #include "WxViewModel_Health.h"
+#include "WxActivatableWidget.h"
+#include "WxUIManagerSubsystem.h"
+#include "WxGameplayTags.h"
+#include "AbilitySystem/WxAttributeSet.h"
 
 namespace
 {
@@ -32,9 +36,22 @@ const UInputAction* AWxPlayerController::GetLookAction() const
 	return LookAction;
 }
 
-const UWxInputConfig* AWxPlayerController::GetInputConfig() const
+const TArray<FWxInputAbilityBinding>& AWxPlayerController::GetAbilityInputBindings() const
 {
-	return InputConfig;
+	return AbilityInputBindings;
+}
+
+void AWxPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (GameHUDClass)
+	{
+		if (UWxUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UWxUIManagerSubsystem>())
+		{
+			UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Game, GameHUDClass);
+		}
+	}
 }
 
 void AWxPlayerController::OnPossess(APawn* InPawn)
@@ -101,5 +118,5 @@ void AWxPlayerController::HandleAbilitySystemInitialized(UAbilitySystemComponent
 		GlobalCollection->AddViewModelInstance(Context, ViewModel);
 	}
 
-	ViewModel->InitializeWithASC(ASC);
+	ViewModel->InitializeWithASC(ASC, UWxAttributeSet::GetHPAttribute(), UWxAttributeSet::GetMaxHPAttribute());
 }

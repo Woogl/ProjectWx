@@ -4,12 +4,26 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "GameplayTagContainer.h"
 #include "WxPlayerController.generated.h"
 
 class UInputMappingContext;
 class UInputAction;
-class UWxInputConfig;
 class UAbilitySystemComponent;
+class UWxActivatableWidget;
+
+/** Enhanced Input Action과 Gameplay Tag를 매핑하는 단일 항목 */
+USTRUCT(BlueprintType)
+struct FWxInputAbilityBinding
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<const UInputAction> InputAction = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (Categories = "Input"))
+	FGameplayTag InputTag;
+};
 
 /**
  * 플레이어 컨트롤러.
@@ -25,9 +39,10 @@ public:
 	UInputMappingContext* GetDefaultMappingContext() const;
 	const UInputAction* GetMoveAction() const;
 	const UInputAction* GetLookAction() const;
-	const UWxInputConfig* GetInputConfig() const;
+	const TArray<FWxInputAbilityBinding>& GetAbilityInputBindings() const;
 
 protected:
+	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnUnPossess() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -43,7 +58,10 @@ protected:
 
 	/** 어빌리티 입력 바인딩 설정. InputAction → InputTag 매핑 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
-	TObjectPtr<const UWxInputConfig> InputConfig;
+	TArray<FWxInputAbilityBinding> AbilityInputBindings;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|UI")
+	TSubclassOf<UWxActivatableWidget> GameHUDClass;
 
 private:
 	void HandleAbilitySystemInitialized(UAbilitySystemComponent* ASC);

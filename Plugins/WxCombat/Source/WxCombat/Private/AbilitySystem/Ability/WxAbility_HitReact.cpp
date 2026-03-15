@@ -9,6 +9,7 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
+	ActivationBlockedTags.AddTag(WxGameplayTags::ANS_Invincible);
 	
 	bRetriggerInstancedAbility = true;
 

@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "View/MVVMView.h"
 #include "WxViewModel_Health.h"
+#include "AbilitySystem/WxAttributeSet.h"
 
 AWxEnemyCharacter::AWxEnemyCharacter()
 {
@@ -32,7 +33,7 @@ void AWxEnemyCharacter::BeginPlay()
 		if (UMVVMView* View = HealthBarWidget->GetExtension<UMVVMView>())
 		{
 			UWxViewModel_Health* ViewModel = NewObject<UWxViewModel_Health>(HealthBarWidget);
-			ViewModel->InitializeWithASC(GetAbilitySystemComponent());
+			ViewModel->InitializeWithASC(GetAbilitySystemComponent(), UWxAttributeSet::GetHPAttribute(), UWxAttributeSet::GetMaxHPAttribute());
 			View->SetViewModelByClass(ViewModel);
 		}
 	}

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AttributeSet.h"
 #include "WxViewModel.h"
 #include "WxViewModel_Health.generated.h"
 
@@ -19,10 +20,7 @@ class WXUI_API UWxViewModel_Health : public UWxViewModel
 	GENERATED_BODY()
 
 public:
-	void InitializeWithASC(UAbilitySystemComponent* InASC, FName InHPName = TEXT("HP"), FName InMaxHPName = TEXT("MaxHP"));
-	void DeinitializeFromASC();
-
-	virtual void Deinitialize() override;
+	void InitializeWithASC(UAbilitySystemComponent* InASC, FGameplayAttribute InHPAttribute, FGameplayAttribute InMaxHPAttribute);
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Health")
 	float CurrentHP = 0.f;
@@ -42,12 +40,16 @@ public:
 	float GetHealthPercent() const;
 	void SetHealthPercent(float NewValue);
 
+protected:
+	virtual void Deinitialize() override;
+
 private:
+	void DeinitializeFromASC();
 	void HandleHPChanged(const FOnAttributeChangeData& Data);
 	void HandleMaxHPChanged(const FOnAttributeChangeData& Data);
 	void RecalculateHealthPercent();
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
-	FName HPName;
-	FName MaxHPName;
+	FGameplayAttribute BoundHPAttribute;
+	FGameplayAttribute BoundMaxHPAttribute;
 };

@@ -3,22 +3,7 @@
 #include "WxViewModel_Health.h"
 #include "AbilitySystemComponent.h"
 
-namespace
-{
-	FGameplayAttribute FindAttributeOnASC(const UAbilitySystemComponent* ASC, FName AttributeName)
-	{
-		for (const UAttributeSet* Set : ASC->GetSpawnedAttributes())
-		{
-			if (FProperty* Prop = Set->GetClass()->FindPropertyByName(AttributeName))
-			{
-				return FGameplayAttribute(Prop);
-			}
-		}
-		return FGameplayAttribute();
-	}
-}
-
-void UWxViewModel_Health::InitializeWithASC(UAbilitySystemComponent* InASC, FName InHPName, FName InMaxHPName)
+void UWxViewModel_Health::InitializeWithASC(UAbilitySystemComponent* InASC, FGameplayAttribute InHPAttribute, FGameplayAttribute InMaxHPAttribute)
 {
 	if (!InASC)
 	{
@@ -27,23 +12,20 @@ void UWxViewModel_Health::InitializeWithASC(UAbilitySystemComponent* InASC, FNam
 
 	DeinitializeFromASC();
 	CachedASC = InASC;
-	HPName = InHPName;
-	MaxHPName = InMaxHPName;
 
-	const FGameplayAttribute HPAttr = FindAttributeOnASC(InASC, HPName);
-	const FGameplayAttribute MaxHPAttr = FindAttributeOnASC(InASC, MaxHPName);
-
-	if (HPAttr.IsValid())
+	if (InHPAttribute.IsValid())
 	{
-		SetCurrentHP(InASC->GetNumericAttribute(HPAttr));
-		InASC->GetGameplayAttributeValueChangeDelegate(HPAttr)
+		BoundHPAttribute = InHPAttribute;
+		SetCurrentHP(InASC->GetNumericAttribute(InHPAttribute));
+		InASC->GetGameplayAttributeValueChangeDelegate(InHPAttribute)
 			.AddUObject(this, &UWxViewModel_Health::HandleHPChanged);
 	}
 
-	if (MaxHPAttr.IsValid())
+	if (InMaxHPAttribute.IsValid())
 	{
-		SetMaxHP(InASC->GetNumericAttribute(MaxHPAttr));
-		InASC->GetGameplayAttributeValueChangeDelegate(MaxHPAttr)
+		BoundMaxHPAttribute = InMaxHPAttribute;
+		SetMaxHP(InASC->GetNumericAttribute(InMaxHPAttribute));
+		InASC->GetGameplayAttributeValueChangeDelegate(InMaxHPAttribute)
 			.AddUObject(this, &UWxViewModel_Health::HandleMaxHPChanged);
 	}
 
@@ -53,29 +35,27 @@ void UWxViewModel_Health::InitializeWithASC(UAbilitySystemComponent* InASC, FNam
 void UWxViewModel_Health::Deinitialize()
 {
 	DeinitializeFromASC();
+	Super::Deinitialize();
 }
 
 void UWxViewModel_Health::DeinitializeFromASC()
 {
 	if (UAbilitySystemComponent* ASC = CachedASC.Get())
 	{
-		const FGameplayAttribute HPAttr = FindAttributeOnASC(ASC, HPName);
-		const FGameplayAttribute MaxHPAttr = FindAttributeOnASC(ASC, MaxHPName);
-
-		if (HPAttr.IsValid())
+		if (BoundHPAttribute.IsValid())
 		{
-			ASC->GetGameplayAttributeValueChangeDelegate(HPAttr).RemoveAll(this);
+			ASC->GetGameplayAttributeValueChangeDelegate(BoundHPAttribute).RemoveAll(this);
 		}
 
-		if (MaxHPAttr.IsValid())
+		if (BoundMaxHPAttribute.IsValid())
 		{
-			ASC->GetGameplayAttributeValueChangeDelegate(MaxHPAttr).RemoveAll(this);
+			ASC->GetGameplayAttributeValueChangeDelegate(BoundMaxHPAttribute).RemoveAll(this);
 		}
 	}
 
 	CachedASC.Reset();
-	HPName = NAME_None;
-	MaxHPName = NAME_None;
+	BoundHPAttribute = FGameplayAttribute();
+	BoundMaxHPAttribute = FGameplayAttribute();
 }
 
 float UWxViewModel_Health::GetCurrentHP() const
