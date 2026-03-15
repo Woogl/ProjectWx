@@ -36,11 +36,11 @@
   
 8.  함수 override 시, `Super::`로 부모 클래스의 함수를 호출한다.
    
-9.  모든 Gameplay Tag는 C++ Native Tag로 선언한다. 태그 정의는 `WxCore` 플러그인에서 관리한다.
+9.  모든 Gameplay Tag는 C++ Native Tag로 선언한다.
 
 10. Delegate에 바인딩되는 Callback 함수는 `Handle`을 Prefix로 사용한다. (예시: `HandleMontageEnded`, `HandleDeath`)
 
-11. `BlueprintCallable` 지정자는 Blueprint Function Library 내부에서만 사용한다.
+11. `BlueprintCallable` 지정자는 Blueprint Function Library, Blueprint Async Action의 팩토리 함수에서만 사용한다.
 
 12. 연속된 `UFUNCTION()` 또는 `UPROPERTY()` 선언 사이에는 빈 줄을 삽입한다.
 
@@ -98,8 +98,7 @@
 ### UI 시스템 (`WxUI`)
 추후 개발 예정.
 
-<!-- 나중에 개발 시작할 때 주석 해제 예정
-UI 시스템은 Unreal Engine 5 의 Common UI 기반으로 멀티플랫폼을 고려하여 구현한다.
+UI 시스템은 Unreal Engine 5 의 CommonUI 기반으로 멀티플랫폼을 고려하여 구현한다.
 
 Unreal Engine 5의 UMG MVVM을 사용하여, 비즈니스 로직과 프레젠테이션 로직을 완전히 분리해야한다.
 
@@ -119,7 +118,3 @@ Unreal Engine 5의 UMG MVVM을 사용하여, 비즈니스 로직과 프레젠테
     * Character View Model
     * Ability View Model
     * Effect View Model
-* Action
-  * AsyncAction_PushContentToLayer
-  * AsyncAction_ShowConfirmation
-  * AsyncAction_ShowNotification -->

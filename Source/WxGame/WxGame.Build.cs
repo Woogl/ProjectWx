@@ -24,6 +24,7 @@ public class WxGame : ModuleRules
 			"NavigationSystem",
 			"WxCore",
 			"WxCombat",
+			"WxUI",
 		});
 
 		// Uncomment if you are using Slate UI

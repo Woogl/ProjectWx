@@ -52,4 +52,18 @@ namespace WxGameplayTags
 
 	/** 회피 입력 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Dodge);
+
+	// ── UI ────────────────────────────────────────────────────────────────
+
+	/** HUD 레이어 (체력 바 등) */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_Game);
+
+	/** 게임 메뉴 레이어 (아이템 획득 알림 등, 메뉴 아래) */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_GameMenu);
+
+	/** 메뉴 레이어 (인벤토리, 설정 등) */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_Menu);
+
+	/** 모달 레이어 (확인 창 등) */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_Modal);
 }
