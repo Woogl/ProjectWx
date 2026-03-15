@@ -44,7 +44,19 @@ void AWxEnemyController::OnPossess(APawn* InPawn)
 		{
 			RunBehaviorTree(BT);
 		}
+
+		Enemy->OnDeath.AddDynamic(this, &AWxEnemyController::HandleDeath);
 	}
+}
+
+void AWxEnemyController::OnUnPossess()
+{
+	if (AWxEnemyCharacter* Enemy = Cast<AWxEnemyCharacter>(GetPawn()))
+	{
+		Enemy->OnDeath.RemoveDynamic(this, &AWxEnemyController::HandleDeath);
+	}
+
+	Super::OnUnPossess();
 }
 
 void AWxEnemyController::HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
@@ -67,6 +79,14 @@ void AWxEnemyController::HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulu
 			BB->ClearValue(BBKey_TargetActor);
 			SetAlerted(false);
 		}
+	}
+}
+
+void AWxEnemyController::HandleDeath(AWxCharacterBase* DeadCharacter)
+{
+	if (UBrainComponent* Brain = GetBrainComponent())
+	{
+		Brain->StopLogic(TEXT("Death"));
 	}
 }
 

@@ -22,6 +22,8 @@ public class WxGame : ModuleRules
 			"GameplayTasks",
 			"AIModule",
 			"NavigationSystem",
+			"UMG",
+			"ModelViewViewModel",
 			"WxCore",
 			"WxCombat",
 			"WxUI",

@@ -28,6 +28,7 @@ public:
 
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
+	virtual void OnUnPossess() override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|AI")
 	TObjectPtr<UAIPerceptionComponent> AIPerceptionComponent;
@@ -47,6 +48,9 @@ protected:
 private:
 	UFUNCTION()
 	void HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+
+	UFUNCTION()
+	void HandleDeath(AWxCharacterBase* DeadCharacter);
 
 	void SetAlerted(bool bNewAlerted);
 

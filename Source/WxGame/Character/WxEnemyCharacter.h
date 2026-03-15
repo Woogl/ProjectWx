@@ -7,6 +7,7 @@
 #include "WxEnemyCharacter.generated.h"
 
 class UBehaviorTree;
+class UWidgetComponent;
 
 /**
  * 에너미 캐릭터.
@@ -24,6 +25,11 @@ public:
 	UBehaviorTree* GetBehaviorTree() const;
 
 protected:
+	virtual void BeginPlay() override;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|AI")
 	TObjectPtr<UBehaviorTree> BehaviorTreeAsset;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|UI")
+	TObjectPtr<UWidgetComponent> HealthBarComponent;
 };

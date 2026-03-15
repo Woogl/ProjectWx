@@ -14,6 +14,7 @@ public class WxUI : ModuleRules
 				"Core",
 				"WxCore",
 				"CommonUI",
+				"ModelViewViewModel",
 			}
 		);
 
@@ -25,6 +26,7 @@ public class WxUI : ModuleRules
 				"Slate",
 				"SlateCore",
 				"UMG",
+				"GameplayAbilities",
 				"GameplayTags",
 				"DeveloperSettings",
 			}
