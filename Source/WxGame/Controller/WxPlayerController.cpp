@@ -47,9 +47,12 @@ void AWxPlayerController::BeginPlay()
 
 	if (GameHUDClass)
 	{
-		if (UWxUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UWxUIManagerSubsystem>())
+		if (UGameInstance* GameInst = GetGameInstance())
 		{
-			UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Game, GameHUDClass);
+			if (UWxUIManagerSubsystem* UIManager = GameInst->GetSubsystem<UWxUIManagerSubsystem>())
+			{
+				UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Game, GameHUDClass);
+			}
 		}
 	}
 }
@@ -102,7 +105,13 @@ void AWxPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AWxPlayerController::HandleAbilitySystemInitialized(UAbilitySystemComponent* ASC)
 {
-	UMVVMGameSubsystem* MVVMGameSubsystem = GetGameInstance()->GetSubsystem<UMVVMGameSubsystem>();
+	UGameInstance* GameInst = GetGameInstance();
+	if (!GameInst)
+	{
+		return;
+	}
+
+	UMVVMGameSubsystem* MVVMGameSubsystem = GameInst->GetSubsystem<UMVVMGameSubsystem>();
 	if (!MVVMGameSubsystem)
 	{
 		return;

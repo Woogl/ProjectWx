@@ -43,6 +43,8 @@ public:
 	TSubclassOf<UGameplayEffect> DamageEffectClass;
 
 protected:
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	/** 손잡이 위치. 캐릭터 소켓에 부착되는 기준점 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Weapon")
 	TObjectPtr<USceneComponent> GripPoint;

@@ -39,6 +39,12 @@ AWxWeaponBase::AWxWeaponBase()
 	HitCollision->OnComponentBeginOverlap.AddDynamic(this, &AWxWeaponBase::HandleHitCollisionOverlap);
 }
 
+void AWxWeaponBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	DetachFromCharacter();
+	Super::EndPlay(EndPlayReason);
+}
+
 void AWxWeaponBase::AttachToCharacter(ACharacter* Character, FName SocketName)
 {
 	if (!Character)

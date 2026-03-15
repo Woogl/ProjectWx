@@ -21,6 +21,8 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 
 void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
 	if (!HitReactMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
@@ -29,6 +31,11 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this, NAME_None, HitReactMontage);
+	if (!MontageTask)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
 
 	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_HitReact::HandleMontageCompleted);
 	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_HitReact::HandleMontageBlendOut);
