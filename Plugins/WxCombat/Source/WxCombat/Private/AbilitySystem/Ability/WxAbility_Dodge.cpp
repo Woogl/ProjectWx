@@ -6,6 +6,7 @@
 
 UWxAbility_Dodge::UWxAbility_Dodge()
 {
+	AbilityTags.AddTag(WxGameplayTags::Ability_Dodge);
 	ActivationInputTag = WxGameplayTags::Input_Dodge;
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 }
