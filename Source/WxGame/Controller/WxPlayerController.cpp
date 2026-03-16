@@ -45,7 +45,7 @@ void AWxPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (GameHUDClass)
+	if (IsLocalController() && GameHUDClass)
 	{
 		if (UGameInstance* GameInst = GetGameInstance())
 		{
@@ -61,33 +61,31 @@ void AWxPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	if (AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(InPawn))
+	// 리슨 서버: 서버이면서 로컬 컨트롤러인 경우 ViewModel 초기화
+	if (IsLocalController())
 	{
-		if (UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(WxCharacter->GetAbilitySystemComponent()))
+		if (AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(InPawn))
 		{
-			if (ASC->IsInitialized())
+			if (UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(WxCharacter->GetAbilitySystemComponent()))
 			{
-				HandleAbilitySystemInitialized(ASC);
-			}
-			else
-			{
-				ASC->OnInitialized.AddUObject(this, &AWxPlayerController::HandleAbilitySystemInitialized);
+				InitializePlayerHealthViewModel(ASC);
 			}
 		}
 	}
 }
 
-void AWxPlayerController::OnUnPossess()
+void AWxPlayerController::OnRep_Pawn()
 {
+	Super::OnRep_Pawn();
+
+	// 원격 클라이언트: Pawn 복제 시 ViewModel 초기화
 	if (AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(GetPawn()))
 	{
 		if (UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(WxCharacter->GetAbilitySystemComponent()))
 		{
-			ASC->OnInitialized.RemoveAll(this);
+			InitializePlayerHealthViewModel(ASC);
 		}
 	}
-
-	Super::OnUnPossess();
 }
 
 void AWxPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -103,7 +101,7 @@ void AWxPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void AWxPlayerController::HandleAbilitySystemInitialized(UAbilitySystemComponent* ASC)
+void AWxPlayerController::InitializePlayerHealthViewModel(UAbilitySystemComponent* ASC)
 {
 	UGameInstance* GameInst = GetGameInstance();
 	if (!GameInst)

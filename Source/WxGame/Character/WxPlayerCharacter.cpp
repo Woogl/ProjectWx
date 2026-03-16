@@ -19,11 +19,20 @@ AWxPlayerCharacter::AWxPlayerCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
+	
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 }
 
-void AWxPlayerCharacter::InitAbilityActorInfo()
+void AWxPlayerCharacter::OnRep_PlayerState()
 {
-	Super::InitAbilityActorInfo();
+	Super::OnRep_PlayerState();
+	
+	InitAbilitySystem();
+}
+
+void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	const AWxPlayerController* WxPC = Cast<AWxPlayerController>(GetController());
 	if (!WxPC)
@@ -37,17 +46,6 @@ void AWxPlayerCharacter::InitAbilityActorInfo()
 		{
 			Subsystem->AddMappingContext(MappingContext, 0);
 		}
-	}
-}
-
-void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	const AWxPlayerController* WxPC = Cast<AWxPlayerController>(GetController());
-	if (!WxPC)
-	{
-		return;
 	}
 
 	UEnhancedInputComponent* EIC = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);

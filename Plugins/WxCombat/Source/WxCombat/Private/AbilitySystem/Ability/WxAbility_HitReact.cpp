@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_HitReact.h"
+#include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "WxGameplayTags.h"
 
@@ -10,7 +11,7 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	ActivationBlockedTags.AddTag(WxGameplayTags::ANS_Invincible);
-	
+
 	bRetriggerInstancedAbility = true;
 
 	FAbilityTriggerData TriggerData;
@@ -23,14 +24,18 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (!HitReactMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	const bool bIsGuarding = ActorInfo->AbilitySystemComponent.IsValid()
+		&& ActorInfo->AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::ANS_Guard);
+	UAnimMontage* MontageToPlay = bIsGuarding ? GuardHitReactMontage : HitReactMontage;
+
+	if (!MontageToPlay || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, HitReactMontage);
+		this, NAME_None, MontageToPlay);
 	if (!MontageTask)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
@@ -49,7 +54,7 @@ void UWxAbility_HitReact::HandleMontageCompleted()
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
-void UWxAbility_HitReact::HandleMontageBlendOut()
+void UWxAbility_HitReact::HandleMontageBlendOut() 
 {
 }
 

@@ -6,22 +6,7 @@
 
 UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 {
-	SetIsReplicated(true);
-}
-
-void UWxAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor)
-{
-	Super::InitAbilityActorInfo(InOwnerActor, InAvatarActor);
-
-	GiveAbilitySet();
-
-	bInitialized = true;
-	OnInitialized.Broadcast(this);
-}
-
-bool UWxAbilitySystemComponent::IsInitialized() const
-{
-	return bInitialized;
+	SetIsReplicatedByDefault(true);
 }
 
 void UWxAbilitySystemComponent::GiveAbilitySet()

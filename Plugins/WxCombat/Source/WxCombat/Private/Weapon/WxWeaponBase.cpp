@@ -13,6 +13,7 @@
 AWxWeaponBase::AWxWeaponBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	bReplicates = true;
 
 	GripPoint = CreateDefaultSubobject<USceneComponent>(TEXT("GripPoint"));
 	SetRootComponent(GripPoint);

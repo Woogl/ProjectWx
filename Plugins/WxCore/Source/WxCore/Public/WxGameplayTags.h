@@ -37,11 +37,15 @@ namespace WxGameplayTags
 	/** 무적 구간. ANS_Invincible이 부여/제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_Invincible);
 
+	/** 가드 판정 구간. ANS_Guard가 부여/제거 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_Guard);
+
 	// ── Ability ───────────────────────────────────────────────────────────
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Dodge);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Guard);
 
 	// ── Input ──────────────────────────────────────────────────────────────
 
@@ -53,6 +57,9 @@ namespace WxGameplayTags
 
 	/** 회피 입력 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Dodge);
+
+	/** 가드 입력 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Guard);
 
 	// ── UI ────────────────────────────────────────────────────────────────
 

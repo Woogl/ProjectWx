@@ -49,12 +49,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|GAS")
 	TObjectPtr<UWxAttributeSet> AttributeSet;
 
-	virtual void PostInitializeComponents() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void BeginPlay() override;
 
-	/** 서버·클라이언트 모두 호출되므로 파생 클래스에서 타이밍에 맞게 override */
-	virtual void InitAbilityActorInfo();
+	/**
+	 * ASC ActorInfo 설정, 어트리뷰트 콜백 등록, AbilitySet 부여를 수행.
+	 * 서버: PossessedBy에서 호출. 클라이언트: 파생 클래스에서 OnRep을 통해 호출.
+	 */
+	virtual void InitAbilitySystem();
 
 	/**
 	 * SPD 어트리뷰트 변경 콜백.
@@ -78,7 +81,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
 	FName WeaponSocketName = TEXT("hand_r");
 
-	UPROPERTY(BlueprintReadOnly, Category = "Wx|Weapon")
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Wx|Weapon")
 	TObjectPtr<AWxWeaponBase> EquippedWeapon;
 
 	void SpawnDefaultWeapon();

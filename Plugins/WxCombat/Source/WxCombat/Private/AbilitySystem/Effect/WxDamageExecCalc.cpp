@@ -55,7 +55,14 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
 
 	// FinalDamage = ATK * (190 / (190 + DEF))
 	const float DamageReduction = 190.f / (190.f + TargetDEF);
-	const float FinalDamage = FMath::Max(SourceATK * DamageReduction, 0.f);
+	float FinalDamage = FMath::Max(SourceATK * DamageReduction, 0.f);
+
+	// 가드 중이면 데미지 50% 감소
+	if (TargetASC && TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_Guard))
+	{
+		constexpr float GuardDamageReductionRate = 0.5f;
+		FinalDamage *= GuardDamageReductionRate;
+	}
 
 	if (FinalDamage > 0.f)
 	{

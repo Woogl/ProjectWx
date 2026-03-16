@@ -44,7 +44,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
-	virtual void OnUnPossess() override;
+	virtual void OnRep_Pawn() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
@@ -64,5 +64,5 @@ protected:
 	TSubclassOf<UWxActivatableWidget> GameHUDClass;
 
 private:
-	void HandleAbilitySystemInitialized(UAbilitySystemComponent* ASC);
+	void InitializePlayerHealthViewModel(UAbilitySystemComponent* ASC);
 };

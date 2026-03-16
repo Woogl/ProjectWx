@@ -14,7 +14,7 @@
 | -------- | ----------------- |
 | Engine   | Unreal Engine 5.7 |
 | Platform | PC |
-| Player   | Single Player     |
+| Player   | 최대 4인 |
 
 
 

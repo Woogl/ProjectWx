@@ -7,8 +7,6 @@
 #include "WxAbilitySet.h"
 #include "WxAbilitySystemComponent.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnAbilitySystemInitialized, UAbilitySystemComponent* /*ASC*/);
-
 UCLASS()
 class WXCOMBAT_API UWxAbilitySystemComponent : public UAbilitySystemComponent
 {
@@ -17,12 +15,8 @@ class WXCOMBAT_API UWxAbilitySystemComponent : public UAbilitySystemComponent
 public:
 	UWxAbilitySystemComponent();
 
-	virtual void InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor) override;
-
-	bool IsInitialized() const;
-
-	FWxOnAbilitySystemInitialized OnInitialized;
-
+	void GiveAbilitySet();
+	
 	/** 입력 태그에 매칭되는 어빌리티 활성화 (입력 눌림) */
 	void AbilityInputTagPressed(const FGameplayTag& InputTag);
 
@@ -39,12 +33,7 @@ public:
 
 protected:
 	virtual void OnGiveAbility(FGameplayAbilitySpec& AbilitySpec) override;
-
-private:
-	void GiveAbilitySet();
-
-	bool bInitialized = false;
-
+	
 	/** Ability, Effect 초기 데이터 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|GAS")
 	TObjectPtr<UWxAbilitySet> AbilitySet;

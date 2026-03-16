@@ -1,19 +1,18 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "WxPrimaryGameLayout.h"
-#include "WxGameplayTags.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 #include "CommonActivatableWidget.h"
-
+#include "WxGameplayTags.h"
 
 void UWxPrimaryGameLayout::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	RegisterLayer(WxGameplayTags::UI_Layer_Game, GameLayer);
-	RegisterLayer(WxGameplayTags::UI_Layer_GameMenu, GameMenuLayer);
-	RegisterLayer(WxGameplayTags::UI_Layer_Menu, MenuLayer);
-	RegisterLayer(WxGameplayTags::UI_Layer_Modal, ModalLayer);
+	LayerMap.Add(WxGameplayTags::UI_Layer_Game, GameLayer);
+	LayerMap.Add(WxGameplayTags::UI_Layer_GameMenu, GameMenuLayer);
+	LayerMap.Add(WxGameplayTags::UI_Layer_Menu, MenuLayer);
+	LayerMap.Add(WxGameplayTags::UI_Layer_Modal, ModalLayer);
 }
 
 UCommonActivatableWidgetStack* UWxPrimaryGameLayout::GetLayerWidgetStack(FGameplayTag LayerTag) const
@@ -51,12 +50,4 @@ UCommonActivatableWidget* UWxPrimaryGameLayout::PushWidgetInstanceToLayerStack(F
 
 	Stack->AddWidgetInstance(*WidgetInstance);
 	return WidgetInstance;
-}
-
-void UWxPrimaryGameLayout::RegisterLayer(FGameplayTag LayerTag, UCommonActivatableWidgetStack* Stack)
-{
-	if (Stack)
-	{
-		LayerMap.Add(LayerTag, Stack);
-	}
 }

@@ -38,7 +38,6 @@ protected:
 	TObjectPtr<UCommonActivatableWidgetStack> ModalLayer;
 
 private:
-	void RegisterLayer(FGameplayTag LayerTag, UCommonActivatableWidgetStack* Stack);
-
+	UPROPERTY(Transient)
 	TMap<FGameplayTag, TObjectPtr<UCommonActivatableWidgetStack>> LayerMap;
 };
