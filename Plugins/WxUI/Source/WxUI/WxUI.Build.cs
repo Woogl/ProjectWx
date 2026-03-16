@@ -14,6 +14,7 @@ public class WxUI : ModuleRules
 				"Core",
 				"WxCore",
 				"CommonUI",
+				"CommonInput",
 				"ModelViewViewModel",
 			}
 		);

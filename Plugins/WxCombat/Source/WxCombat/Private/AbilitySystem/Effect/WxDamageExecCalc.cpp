@@ -3,7 +3,9 @@
 #include "AbilitySystem/Effect/WxDamageExecCalc.h"
 #include "AbilitySystem/WxAttributeSet.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "WxGameplayTags.h"
+#include "Perception/AISense_Damage.h"
 
 struct FWxDamageStatics
 {
@@ -67,5 +69,23 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
 	if (FinalDamage > 0.f)
 	{
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, FinalDamage));
+
+		// 전투 피격 후처리 (환경 데미지와 구분하기 위해 DamageExecCalc에서 처리)
+		AActor* TargetActor = TargetASC->GetOwnerActor();
+		AActor* SourceActor = ExecutionParams.GetOwningSpec().GetEffectContext().GetInstigator();
+		if (TargetActor)
+		{
+			// AI 데미지 감지
+			if (SourceActor)
+			{
+				UAISense_Damage::ReportDamageEvent(TargetActor->GetWorld(), TargetActor, SourceActor, FinalDamage, SourceActor->GetActorLocation(), TargetActor->GetActorLocation());
+			}
+
+			// HitReact 이벤트 발송
+			FGameplayEventData EventData;
+			EventData.Instigator = ExecutionParams.GetOwningSpec().GetEffectContext().GetOriginalInstigator();
+			EventData.Target = TargetActor;
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_HitReact, EventData);
+		}
 	}
 }
