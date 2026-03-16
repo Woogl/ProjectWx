@@ -9,6 +9,7 @@
 #include "WxCollisionChannels.h"
 #include "Weapon/WxWeaponBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Net/UnrealNetwork.h"
 
 AWxCharacterBase::AWxCharacterBase()
 {
@@ -17,7 +18,7 @@ AWxCharacterBase::AWxCharacterBase()
 	GetCapsuleComponent()->SetCollisionResponseToChannel(WxCollision::Attack, ECR_Overlap);
 	
 	AbilitySystemComponent = CreateDefaultSubobject<UWxAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
-	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+	AbilitySystemComponent->SetIsReplicated(true);
 
 	AttributeSet = CreateDefaultSubobject<UWxAttributeSet>(TEXT("AttributeSet"));
 
@@ -29,6 +30,13 @@ AWxCharacterBase::AWxCharacterBase()
 	
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f);
+}
+
+void AWxCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AWxCharacterBase, EquippedWeapon);
 }
 
 UAbilitySystemComponent* AWxCharacterBase::GetAbilitySystemComponent() const
@@ -50,15 +58,11 @@ bool AWxCharacterBase::IsAlive() const
 	return false;
 }
 
-void AWxCharacterBase::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
-}
-
 void AWxCharacterBase::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-	InitAbilityActorInfo();
+	
+	InitAbilitySystem();
 }
 
 void AWxCharacterBase::BeginPlay()
@@ -86,18 +90,24 @@ void AWxCharacterBase::SpawnDefaultWeapon()
 	}
 }
 
-void AWxCharacterBase::InitAbilityActorInfo()
+void AWxCharacterBase::InitAbilitySystem()
 {
 	BaseWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 
-	// GiveAbilitySet보다 먼저 등록해야 초기 어트리뷰트 변경(SPD 등)이 콜백에 반영됨
+	AbilitySystemComponent->RefreshAbilityActorInfo();
+
+	// InitializeAbilities보다 먼저 등록해야 초기 어트리뷰트 변경(SPD 등)이 콜백에 반영됨
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UWxAttributeSet::GetSPDAttribute())
 		.AddUObject(this, &AWxCharacterBase::HandleSPDAttributeChanged);
 
 	AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &AWxCharacterBase::HandleDeathTagChanged);
 
-	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	// GiveAbility는 서버에서만 허용. 클라이언트에는 서버로부터 복제됨
+	if (HasAuthority())
+	{
+		AbilitySystemComponent->GiveAbilitySet();
+	}
 }
 
 void AWxCharacterBase::HandleSPDAttributeChanged(const FOnAttributeChangeData& Data)

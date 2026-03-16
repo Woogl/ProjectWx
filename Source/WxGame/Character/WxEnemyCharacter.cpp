@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "View/MVVMView.h"
 #include "WxViewModel_Health.h"
+#include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxAttributeSet.h"
 
 AWxEnemyCharacter::AWxEnemyCharacter()
@@ -16,6 +17,8 @@ AWxEnemyCharacter::AWxEnemyCharacter()
 	bUseControllerRotationYaw = true;
 
 	GetCharacterMovement()->MaxWalkSpeed = 400.f;
+
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 
 	HealthBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBarComponent"));
 	HealthBarComponent->SetupAttachment(GetRootComponent());
