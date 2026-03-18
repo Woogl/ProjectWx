@@ -32,11 +32,11 @@
    
 6. 람다식은 반드시 필요한 경우에만 사용한다.
 
-7.  if-else 문의 실행 블록은 반드시 중괄호`{}`를 사용한다.
+7. if-else 문의 실행 블록은 반드시 중괄호`{}`를 사용한다.
   
-8.  함수 override 시, `Super::`로 부모 클래스의 함수를 호출한다.
+8. 함수 override 시, `Super::`로 부모 클래스의 함수를 호출한다.
    
-9.  모든 Gameplay Tag는 C++ Native Tag로 선언한다.
+9. 모든 Gameplay Tag는 C++ Native Tag로 선언한다.
 
 10. Delegate에 바인딩되는 Callback 함수는 `Handle`을 Prefix로 사용한다. (예시: `HandleMontageEnded`, `HandleDeath`)
 
@@ -110,7 +110,6 @@ Unreal Engine 5의 UMG MVVM을 사용하여, 비즈니스 로직과 프레젠테
 * Widget
   * Activatable Widget
   * Confirmation Widget
-  * Notification Entry Widget
   * Button
   * Action Button
 * MVVM
