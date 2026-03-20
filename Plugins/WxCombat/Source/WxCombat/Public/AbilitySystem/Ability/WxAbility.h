@@ -35,14 +35,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	FGameplayTag ActivationInputTag;
 
-	/** true 시 이 어빌리티는 ActivationInputTag 기준 콤보 체인의 일부로 등록된다 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
-	bool bIsComboAbility = false;
-
-	/** 콤보 내 순서 (1부터 시작) */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx", meta = (EditCondition = "bIsComboAbility", ClampMin = "1"))
-	int32 ComboIndex = 1;
-
 protected:
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 };

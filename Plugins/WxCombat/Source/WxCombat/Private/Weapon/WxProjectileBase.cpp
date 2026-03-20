@@ -4,9 +4,9 @@
 #include "Components/SphereComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "WxCollisionChannels.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "WxCollisionChannels.h"
 
 AWxProjectileBase::AWxProjectileBase()
 {
@@ -35,11 +35,14 @@ void AWxProjectileBase::BeginPlay()
 	ProjectileMovement->InitialSpeed = InitialSpeed;
 	ProjectileMovement->MaxSpeed     = MaxSpeed;
 	SetLifeSpan(LifeSpanSeconds);
-}
 
-void AWxProjectileBase::SetDamageEffectSpecHandle(const FGameplayEffectSpecHandle& InHandle)
-{
-	DamageEffectSpecHandle = InHandle;
+	if (DamageEffectClass)
+	{
+		if (UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner()))
+		{
+			DamageEffectSpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, 1.f, SourceASC->MakeEffectContext());
+		}
+	}
 }
 
 void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -49,9 +52,9 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 		return;
 	}
 
-	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
+	if (DamageEffectSpecHandle.IsValid())
 	{
-		if (DamageEffectSpecHandle.IsValid())
+		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
 		{
 			TargetASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data.Get());
 		}

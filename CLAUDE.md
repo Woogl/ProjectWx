@@ -96,7 +96,6 @@
 
 
 ### UI 시스템 (`WxUI`)
-추후 개발 예정.
 
 UI 시스템은 Unreal Engine 5 의 CommonUI 기반으로 멀티플랫폼을 고려하여 구현한다.
 
