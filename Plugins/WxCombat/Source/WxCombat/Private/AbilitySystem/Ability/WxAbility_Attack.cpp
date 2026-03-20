@@ -1,12 +1,8 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Attack.h"
-#include "AbilitySystem/Task/WxAbilityTask_RotateToTarget.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystemComponent.h"
-#include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "TargetingSystem/TargetingSubsystem.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_Attack::UWxAbility_Attack()
@@ -25,7 +21,6 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 
 	CurrentComboIndex = 0;
-	RotateToTarget();
 	PlayComboMontage();
 }
 
@@ -44,7 +39,6 @@ void UWxAbility_Attack::InputPressed(const FGameplayAbilitySpecHandle Handle, co
 	}
 
 	CurrentComboIndex = NextIndex;
-	RotateToTarget();
 	PlayComboMontage();
 }
 
@@ -82,49 +76,6 @@ void UWxAbility_Attack::PlayComboMontage()
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Attack::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Attack::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
-}
-
-void UWxAbility_Attack::RotateToTarget()
-{
-	if (!TargetingPreset)
-	{
-		return;
-	}
-
-	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	if (!AvatarActor)
-	{
-		return;
-	}
-
-	UTargetingSubsystem* TargetingSubsystem = UTargetingSubsystem::Get(GetWorld());
-	if (!TargetingSubsystem)
-	{
-		return;
-	}
-
-	FTargetingSourceContext SourceContext;
-	SourceContext.SourceActor = AvatarActor;
-	SourceContext.InstigatorActor = AvatarActor;
-
-	FTargetingRequestHandle Handle = TargetingSubsystem->MakeTargetRequestHandle(TargetingPreset, SourceContext);
-	TargetingSubsystem->ExecuteTargetingRequestWithHandle(Handle);
-
-	TArray<AActor*> Targets;
-	TargetingSubsystem->GetTargetingResultsActors(Handle, Targets);
-	TargetingSubsystem->ReleaseTargetRequestHandle(Handle);
-
-	if (Targets.Num() > 0)
-	{
-		float RotationRateYaw = 360.f;
-		if (const ACharacter* Character = Cast<ACharacter>(AvatarActor))
-		{
-			RotationRateYaw = Character->GetCharacterMovement()->RotationRate.Yaw;
-		}
-
-		UWxAbilityTask_RotateToTarget* RotateTask = UWxAbilityTask_RotateToTarget::CreateTask(this, Targets[0], RotationRateYaw);
-		RotateTask->ReadyForActivation();
-	}
 }
 
 void UWxAbility_Attack::HandleMontageCompleted()

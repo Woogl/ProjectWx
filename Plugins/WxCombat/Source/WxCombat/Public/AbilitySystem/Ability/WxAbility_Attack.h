@@ -8,18 +8,18 @@
 
 class UAbilityTask_PlayMontageAndWait;
 class UAnimMontage;
-class UTargetingPreset;
 
 /**
  * 공격 어빌리티.
  *
  * 사용 흐름:
- *  1. 입력 → ActivateAbility → 타겟팅 → 가장 가까운 적 방향으로 회전 → 첫 번째 콤보 몽타주 재생
+ *  1. 입력 → ActivateAbility → 첫 번째 콤보 몽타주 재생
  *  2. 콤보 윈도우 중 재입력 → InputPressed → 다음 콤보 몽타주로 전환
  *  3. 마지막 몽타주 완료 또는 콤보 미입력 → EndAbility
  *
  * 콤보 체인은 ComboMontages 배열 순서대로 진행.
  * ANS_ComboWindow 구간에서 공격 입력 시 다음 단계 몽타주를 즉시 재생.
+ * 타겟 방향 회전은 ANS_RotateToTarget이 담당.
  */
 UCLASS()
 class WXCOMBAT_API UWxAbility_Attack : public UWxAbility
@@ -38,16 +38,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TArray<TObjectPtr<UAnimMontage>> ComboMontages;
 
-	/** 공격 시 가장 가까운 적을 탐색하기 위한 타겟팅 프리셋 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UTargetingPreset> TargetingPreset;
-
 private:
 	/** 현재 콤보 몽타주를 재생한다. 기존 몽타주 태스크가 있으면 정리 후 교체 */
 	void PlayComboMontage();
-
-	/** TargetingPreset으로 가장 가까운 적을 탐색하고, 해당 방향으로 회전 태스크를 시작 */
-	void RotateToTarget();
 
 	UFUNCTION()
 	void HandleMontageCompleted();
