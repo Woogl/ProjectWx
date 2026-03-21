@@ -668,7 +668,14 @@
 
   <div class="notify-grid">
     <div class="notify-card">
-      <h4><span class="color-dot" style="background: #f87171;"></span> WeaponCollision</h4>
+      <h4><span class="color-dot" style="background: linear-gradient(90deg, #6c8aff, #818cf8); width: 24px; height: 12px; border-radius: 4px;"></span> TurnAround</h4>
+      <p style="color: var(--text-dim); font-size: 0.88em;">캐릭터를 타겟 방향으로 부드럽게 회전시킵니다.<br>주로 공격/스킬 시작 구간에 배치합니다.</p>
+      <table class="prop-table" style="margin-top: 12px;">
+        <tr><td><code>TargetingPreset</code></td><td>타겟 탐색에 사용할 타겟팅 프리셋</td></tr>
+      </table>
+    </div>
+    <div class="notify-card">
+      <h4><span class="color-dot" style="background: linear-gradient(90deg, #f87171, #fb923c); width: 24px; height: 12px; border-radius: 4px;"></span> WeaponCollision</h4>
       <p style="color: var(--text-dim); font-size: 0.88em;">무기의 데미지 판정을 활성화합니다. 이 구간 동안만 무기가 적에게 데미지를 줍니다.</p>
       <div class="tip" style="margin-top: 8px;">
         <span class="tip-icon">💡</span>
@@ -676,7 +683,7 @@
       </div>
     </div>
     <div class="notify-card">
-      <h4><span class="color-dot" style="background: #34d399;"></span> ComboWindow</h4>
+      <h4><span class="color-dot" style="background: linear-gradient(90deg, #34d399, #6ee7b7); width: 24px; height: 12px; border-radius: 4px;"></span> ComboWindow</h4>
       <p style="color: var(--text-dim); font-size: 0.88em;">콤보 입력을 받는 구간입니다. 이 구간에서 공격 입력 시 다음 콤보로 이어집니다.</p>
       <div class="tip" style="margin-top: 8px;">
         <span class="tip-icon">💡</span>
@@ -684,19 +691,12 @@
       </div>
     </div>
     <div class="notify-card">
-      <h4><span class="color-dot" style="background: #22d3ee;"></span> Invincible</h4>
+      <h4><span class="color-dot" style="background: linear-gradient(90deg, #22d3ee, #67e8f9); width: 24px; height: 12px; border-radius: 4px;"></span> Invincible</h4>
       <p style="color: var(--text-dim); font-size: 0.88em;">무적 상태를 부여합니다. 회피의 핵심 이동 구간이나 스킬 선딜에 사용합니다.</p>
     </div>
     <div class="notify-card">
-      <h4><span class="color-dot" style="background: #a78bfa;"></span> Guard</h4>
+      <h4><span class="color-dot" style="background: linear-gradient(90deg, #a78bfa, #c4b5fd); width: 24px; height: 12px; border-radius: 4px;"></span> Guard</h4>
       <p style="color: var(--text-dim); font-size: 0.88em;">가드 상태를 활성화합니다. 피격 시 가드 전용 HitReact가 발동됩니다.</p>
-    </div>
-    <div class="notify-card">
-      <h4><span class="color-dot" style="background: #6c8aff;"></span> TurnAround</h4>
-      <p style="color: var(--text-dim); font-size: 0.88em;">캐릭터를 타겟 방향으로 부드럽게 회전시킵니다.<br>주로 공격/스킬 시작 구간에 배치합니다.</p>
-      <table class="prop-table" style="margin-top: 12px;">
-        <tr><td><code>TargetingPreset</code></td><td>타겟 탐색에 사용할 타겟팅 프리셋</td></tr>
-      </table>
     </div>
     <div class="notify-card">
       <h4><span class="color-dot" style="background: var(--yellow); width: 12px; height: 12px; border-radius: 50%;"></span> SpawnProjectile <span class="badge badge-red" style="font-size: 0.7em;">AnimNotify</span></h4>
