@@ -32,5 +32,5 @@ protected:
 
 	/** 투사체 스폰 위치 소켓 이름 */
 	UPROPERTY(EditAnywhere, Category = "Wx|Projectile")
-	FName SpawnSocketName = "Muzzle";
+	FName SpawnSocketName = TEXT("hand_r");
 };

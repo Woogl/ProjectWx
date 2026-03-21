@@ -164,3 +164,13 @@ void UWxViewModel_Ability::SetbIsOnCooldown(bool NewValue)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(bIsOnCooldown, NewValue);
 }
+
+UTexture2D* UWxViewModel_Ability::GetIcon() const
+{
+	return Icon;
+}
+
+void UWxViewModel_Ability::SetIcon(UTexture2D* NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(Icon, NewValue);
+}

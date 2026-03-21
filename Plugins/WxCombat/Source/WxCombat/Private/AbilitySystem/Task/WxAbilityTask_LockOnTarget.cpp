@@ -4,16 +4,18 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Camera/PlayerCameraManager.h"
+#include "Components/WidgetComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "WxGameplayTags.h"
 
-UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAbility* OwningAbility, AActor* InTarget, float InInterpSpeed, float InMaxPitchOffset, float InMaxDistance)
+UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAbility* OwningAbility, AActor* InTarget, float InInterpSpeed, float InMaxPitchOffset, float InMaxDistance, TSubclassOf<UUserWidget> InReticleWidgetClass)
 {
 	UWxAbilityTask_LockOnTarget* Task = NewAbilityTask<UWxAbilityTask_LockOnTarget>(OwningAbility);
 	Task->Target = InTarget;
 	Task->InterpSpeed = InInterpSpeed;
 	Task->MaxPitchOffset = InMaxPitchOffset;
 	Task->MaxDistanceSquared = InMaxDistance * InMaxDistance;
+	Task->ReticleWidgetClass = InReticleWidgetClass;
 	Task->bTickingTask = true;
 	return Task;
 }
@@ -31,6 +33,8 @@ void UWxAbilityTask_LockOnTarget::Activate()
 			TargetASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
 				.AddUObject(this, &UWxAbilityTask_LockOnTarget::HandleTargetDeathTagChanged);
 		}
+
+		CreateReticleWidget();
 	}
 }
 
@@ -81,6 +85,8 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 
 void UWxAbilityTask_LockOnTarget::OnDestroy(bool bInOwnerFinished)
 {
+	DestroyReticleWidget();
+
 	if (AActor* TargetActor = Target.Get())
 	{
 		TargetActor->OnDestroyed.RemoveDynamic(this, &UWxAbilityTask_LockOnTarget::HandleTargetDestroyed);
@@ -105,5 +111,31 @@ void UWxAbilityTask_LockOnTarget::HandleTargetDeathTagChanged(const FGameplayTag
 	if (NewCount > 0)
 	{
 		OnTargetLost.Broadcast();
+	}
+}
+
+void UWxAbilityTask_LockOnTarget::CreateReticleWidget()
+{
+	AActor* TargetActor = Target.Get();
+	if (!TargetActor || !ReticleWidgetClass)
+	{
+		return;
+	}
+
+	ReticleWidgetComponent = NewObject<UWidgetComponent>(TargetActor);
+	ReticleWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	ReticleWidgetComponent->SetWidgetClass(ReticleWidgetClass);
+	ReticleWidgetComponent->SetDrawAtDesiredSize(true);
+	ReticleWidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ReticleWidgetComponent->RegisterComponent();
+	ReticleWidgetComponent->AttachToComponent(TargetActor->GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+}
+
+void UWxAbilityTask_LockOnTarget::DestroyReticleWidget()
+{
+	if (ReticleWidgetComponent)
+	{
+		ReticleWidgetComponent->DestroyComponent();
+		ReticleWidgetComponent = nullptr;
 	}
 }

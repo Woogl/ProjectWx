@@ -39,6 +39,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	bool bIsOnCooldown = false;
 
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	TObjectPtr<UTexture2D> Icon = nullptr;
+
 	float GetCooldownRemaining() const;
 	void SetCooldownRemaining(float NewValue);
 
@@ -50,6 +53,9 @@ public:
 
 	bool GetbIsOnCooldown() const;
 	void SetbIsOnCooldown(bool NewValue);
+
+	UTexture2D* GetIcon() const;
+	void SetIcon(UTexture2D* NewValue);
 
 protected:
 	virtual void Deinitialize() override;

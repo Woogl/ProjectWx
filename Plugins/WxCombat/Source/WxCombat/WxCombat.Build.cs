@@ -26,6 +26,7 @@ public class WxCombat : ModuleRules
 		{
 			"InputCore",
 			"TargetingSystem",
+			"UMG",
 		});
 	}
 }

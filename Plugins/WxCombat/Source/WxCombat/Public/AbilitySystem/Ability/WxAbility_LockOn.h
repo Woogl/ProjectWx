@@ -7,6 +7,7 @@
 #include "WxAbility_LockOn.generated.h"
 
 class UTargetingPreset;
+class UUserWidget;
 class UWxAbilityTask_LockOnTarget;
 
 /**
@@ -44,6 +45,10 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	float MaxDistance = 2000.f;
+
+	/** 락온 대상에 표시할 조준점 위젯 클래스 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TSubclassOf<UUserWidget> ReticleWidgetClass;
 
 private:
 	UFUNCTION()

@@ -2,6 +2,7 @@
 
 #include "Weapon/WxProjectileBase.h"
 #include "Components/SphereComponent.h"
+#include "Components/ArrowComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -12,29 +13,34 @@ AWxProjectileBase::AWxProjectileBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
+	Arrow = CreateDefaultSubobject<UArrowComponent>(TEXT("Arrow"));
+	SetRootComponent(Arrow);
+
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
-	SetRootComponent(Mesh);
-	Mesh->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	Mesh->SetupAttachment(Arrow);
+	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	HitCollision = CreateDefaultSubobject<USphereComponent>(TEXT("HitCollision"));
-	HitCollision->SetupAttachment(Mesh);
+	HitCollision->SetupAttachment(Arrow);
 	HitCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	HitCollision->SetCollisionObjectType(WxCollision::Attack);
 	HitCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitCollision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+	HitCollision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
+	HitCollision->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
 	HitCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	HitCollision->OnComponentBeginOverlap.AddDynamic(this, &AWxProjectileBase::HandleHitCollisionOverlap);
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovement->ProjectileGravityScale = 0.f;
+	ProjectileMovement->InitialSpeed = 500.f;
+	ProjectileMovement->MaxSpeed = 500;
+
+	InitialLifeSpan = 10.f;
 }
 
 void AWxProjectileBase::BeginPlay()
 {
 	Super::BeginPlay();
-	ProjectileMovement->InitialSpeed = InitialSpeed;
-	ProjectileMovement->MaxSpeed     = MaxSpeed;
-	SetLifeSpan(LifeSpanSeconds);
 
 	if (DamageEffectClass)
 	{

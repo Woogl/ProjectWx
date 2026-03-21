@@ -41,6 +41,16 @@ void UWxAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Input
 	}
 }
 
+void UWxAbilitySystemComponent::SetLockOnTarget(AActor* InTarget)
+{
+	LockOnTarget = InTarget;
+}
+
+AActor* UWxAbilitySystemComponent::GetLockOnTarget() const
+{
+	return LockOnTarget.Get();
+}
+
 void UWxAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& InputTag)
 {
 	if (!InputTag.IsValid())

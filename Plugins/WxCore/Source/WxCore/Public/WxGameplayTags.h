@@ -51,6 +51,8 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Guard);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Jump);
 
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill);
+
 	// ── Cooldown ──────────────────────────────────────────────────────────
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Attack);
@@ -60,6 +62,8 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Guard);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Jump);
+
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Skill);
 
 	// ── Input ──────────────────────────────────────────────────────────────
 
@@ -76,6 +80,8 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Guard);
 
 	/** 락온 입력 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Skill);
+
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_LockOn);
 
 	// ── UI ────────────────────────────────────────────────────────────────

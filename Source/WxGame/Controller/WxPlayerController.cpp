@@ -11,6 +11,7 @@
 #include "System/WxUIManagerSubsystem.h"
 #include "WxGameplayTags.h"
 #include "AbilitySystem/WxAttributeSet.h"
+#include "WxAssetUtils.h"
 
 namespace
 {
@@ -173,5 +174,6 @@ void AWxPlayerController::InitializePlayerAbilityViewModels(UAbilitySystemCompon
 		}
 
 		ViewModel->Initialize(ASC, AbilityCDO);
+		WxAssetUtils::AsyncLoad(AbilityCDO->AbilityIcon, ViewModel, &UWxViewModel_Ability::SetIcon);
 	}
 }

@@ -1,6 +1,8 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Animation/WxAnimNotifyState_RotateToTarget.h"
+#include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TargetingSystem/TargetingSubsystem.h"
@@ -16,6 +18,22 @@ void UWxAnimNotifyState_RotateToTarget::NotifyBegin(USkeletalMeshComponent* Mesh
 
 	AActor* Owner = MeshComp->GetOwner();
 	if (!Owner)
+	{
+		return;
+	}
+
+	// 락온 대상이 있으면 우선 사용
+	if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner)))
+	{
+		if (AActor* LockOnTarget = WxASC->GetLockOnTarget())
+		{
+			OwnerToTargetMap.Add(Owner, LockOnTarget);
+			return;
+		}
+	}
+
+	// 락온 대상이 없으면 TargetingSubsystem으로 탐색
+	if (!TargetingPreset)
 	{
 		return;
 	}

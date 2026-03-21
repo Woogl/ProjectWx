@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/Tasks/AbilityTask.h"
+#include "Blueprint/UserWidget.h"
 #include "WxAbilityTask_LockOnTarget.generated.h"
+
+class UWidgetComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnTargetLost);
 
@@ -19,7 +22,7 @@ class WXCOMBAT_API UWxAbilityTask_LockOnTarget : public UAbilityTask
 	GENERATED_BODY()
 
 public:
-	static UWxAbilityTask_LockOnTarget* CreateTask(UGameplayAbility* OwningAbility, AActor* InTarget, float InInterpSpeed = 10.f, float InMaxPitchOffset = 20.f, float InMaxDistance = 2000.f);
+	static UWxAbilityTask_LockOnTarget* CreateTask(UGameplayAbility* OwningAbility, AActor* InTarget, float InInterpSpeed = 10.f, float InMaxPitchOffset = 20.f, float InMaxDistance = 2000.f, TSubclassOf<UUserWidget> InReticleWidgetClass = nullptr);
 
 	UPROPERTY()
 	FWxOnTargetLost OnTargetLost;
@@ -35,8 +38,15 @@ private:
 
 	void HandleTargetDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
+	void CreateReticleWidget();
+	void DestroyReticleWidget();
+
 	TWeakObjectPtr<AActor> Target;
 	float InterpSpeed = 10.f;
 	float MaxPitchOffset = 20.f;
 	float MaxDistanceSquared = 2000.f * 2000.f;
+	TSubclassOf<UUserWidget> ReticleWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UWidgetComponent> ReticleWidgetComponent;
 };

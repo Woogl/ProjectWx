@@ -35,6 +35,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	FGameplayTag ActivationInputTag;
 
+	/** 어빌리티 아이콘. UI에서 표시 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
+	TSoftObjectPtr<UTexture2D> AbilityIcon;
+
 	/** 쿨다운 지속 시간 (초). 0 이하이면 쿨다운 미적용 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cooldown")
 	float CooldownDuration = 0.f;

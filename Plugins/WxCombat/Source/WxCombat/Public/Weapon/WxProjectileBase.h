@@ -7,6 +7,7 @@
 #include "GameplayEffectTypes.h"
 #include "WxProjectileBase.generated.h"
 
+class UArrowComponent;
 class UGameplayEffect;
 class USphereComponent;
 class USkeletalMeshComponent;
@@ -31,6 +32,9 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Projectile")
+	TObjectPtr<UArrowComponent> Arrow;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Projectile")
 	TObjectPtr<USkeletalMeshComponent> Mesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Projectile")
@@ -42,15 +46,6 @@ protected:
 	/** 피격 대상에 적용할 데미지 이펙트 클래스 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Projectile")
 	TSubclassOf<UGameplayEffect> DamageEffectClass;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Projectile")
-	float InitialSpeed = 1500.f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Projectile")
-	float MaxSpeed = 1500.f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Projectile")
-	float LifeSpanSeconds = 5.f;
 
 	virtual void BeginPlay() override;
 

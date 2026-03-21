@@ -18,7 +18,9 @@ void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAn
 		return;
 	}
 
-	const FTransform SpawnTransform = MeshComp->GetSocketTransform(SpawnSocketName);
+	const FVector SpawnLocation = MeshComp->GetSocketLocation(SpawnSocketName);
+	const FRotator SpawnRotation = Owner->GetActorRotation();
+	const FTransform SpawnTransform(SpawnRotation, SpawnLocation);
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = Owner;

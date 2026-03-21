@@ -2,7 +2,7 @@
 
 #include "AbilitySystem/Ability/WxAbility_LockOn.h"
 #include "AbilitySystem/Task/WxAbilityTask_LockOnTarget.h"
-#include "AbilitySystemComponent.h"
+#include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "TargetingSystem/TargetingSubsystem.h"
 #include "Types/TargetingSystemTypes.h"
 #include "WxGameplayTags.h"
@@ -57,11 +57,15 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	// State_LockOn 태그 추가
+	// State_LockOn 태그 추가 및 락온 대상 등록
 	ActorInfo->AbilitySystemComponent->AddLooseGameplayTag(WxGameplayTags::State_LockOn);
+	if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get()))
+	{
+		WxASC->SetLockOnTarget(FoundTarget);
+	}
 
 	// 락온 태스크 생성
-	LockOnTask = UWxAbilityTask_LockOnTarget::CreateTask(this, FoundTarget, CameraInterpSpeed, MaxPitchOffset, MaxDistance);
+	LockOnTask = UWxAbilityTask_LockOnTarget::CreateTask(this, FoundTarget, CameraInterpSpeed, MaxPitchOffset, MaxDistance, ReticleWidgetClass);
 	LockOnTask->OnTargetLost.AddDynamic(this, &UWxAbility_LockOn::HandleTargetLost);
 	LockOnTask->ReadyForActivation();
 }
@@ -76,6 +80,10 @@ void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 	if (ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
 	{
 		ActorInfo->AbilitySystemComponent->RemoveLooseGameplayTag(WxGameplayTags::State_LockOn);
+		if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get()))
+		{
+			WxASC->SetLockOnTarget(nullptr);
+		}
 	}
 
 	LockOnTask = nullptr;
