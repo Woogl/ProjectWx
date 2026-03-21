@@ -17,7 +17,7 @@ AWxPlayerCharacter::AWxPlayerCharacter()
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength      = 400.f;
-	CameraBoom->SocketOffset         = FVector(0.f, 0.f, 30.f);
+	CameraBoom->TargetOffset         = FVector(0.f, 0.f, 35.f);
 	CameraBoom->bUsePawnControlRotation = true;
 	CameraBoom->bEnableCameraLag     = true;
 	CameraBoom->CameraLagSpeed       = 8.f;
