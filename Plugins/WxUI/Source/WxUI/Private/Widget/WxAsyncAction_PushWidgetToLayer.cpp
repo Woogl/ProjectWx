@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "WxAsyncAction_PushWidgetToLayer.h"
-#include "WxUIManagerSubsystem.h"
+#include "Widget/WxAsyncAction_PushWidgetToLayer.h"
+#include "System/WxUIManagerSubsystem.h"
 #include "CommonActivatableWidget.h"
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"

@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "WxActivatableWidget.h"
+#include "Widget/WxActivatableWidget.h"
 
 TOptional<FUIInputConfig> UWxActivatableWidget::GetDesiredInputConfig() const
 {

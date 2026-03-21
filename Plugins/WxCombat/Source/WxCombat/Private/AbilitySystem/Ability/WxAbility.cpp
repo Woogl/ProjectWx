@@ -8,7 +8,6 @@ UWxAbility::UWxAbility()
 {
 	InstancingPolicy  = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
-	CooldownGameplayEffectClass = UWxEffect_Cooldown::StaticClass();
 }
 
 void UWxAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
@@ -25,7 +24,12 @@ UGameplayEffect* UWxAbility::GetCooldownGameplayEffect() const
 {
 	if (CooldownDuration > 0.f && CooldownTag.IsValid())
 	{
-		return Super::GetCooldownGameplayEffect();
+		if (UGameplayEffect* ParentCooldownGE = Super::GetCooldownGameplayEffect())
+		{
+			return ParentCooldownGE;
+		}
+
+		return UWxEffect_Cooldown::StaticClass()->GetDefaultObject<UGameplayEffect>();
 	}
 
 	return nullptr;

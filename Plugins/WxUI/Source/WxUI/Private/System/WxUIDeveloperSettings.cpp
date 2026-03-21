@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "WxUIDeveloperSettings.h"
+#include "System/WxUIDeveloperSettings.h"
 
 UWxUIDeveloperSettings::UWxUIDeveloperSettings()
 {

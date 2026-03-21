@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
-#include "WxViewModel.h"
+#include "MVVM/WxViewModel.h"
 #include "WxViewModel_Health.generated.h"
 
 struct FOnAttributeChangeData;
@@ -20,7 +20,7 @@ class WXUI_API UWxViewModel_Health : public UWxViewModel
 	GENERATED_BODY()
 
 public:
-	void InitializeWithASC(UAbilitySystemComponent* InASC, FGameplayAttribute InHPAttribute, FGameplayAttribute InMaxHPAttribute);
+	void Initialize(UAbilitySystemComponent* InASC, FGameplayAttribute InHPAttribute, FGameplayAttribute InMaxHPAttribute);
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Health")
 	float CurrentHP = 0.f;
@@ -44,7 +44,6 @@ protected:
 	virtual void Deinitialize() override;
 
 private:
-	void DeinitializeFromASC();
 	void HandleHPChanged(const FOnAttributeChangeData& Data);
 	void HandleMaxHPChanged(const FOnAttributeChangeData& Data);
 	void RecalculateHealthPercent();

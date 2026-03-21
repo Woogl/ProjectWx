@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "WxViewModel.h"
+#include "MVVM/WxViewModel.h"
 
 void UWxViewModel::BeginDestroy()
 {

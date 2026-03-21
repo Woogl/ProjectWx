@@ -1,16 +1,16 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "WxViewModel_Health.h"
+#include "MVVM/WxViewModel_Health.h"
 #include "AbilitySystemComponent.h"
 
-void UWxViewModel_Health::InitializeWithASC(UAbilitySystemComponent* InASC, FGameplayAttribute InHPAttribute, FGameplayAttribute InMaxHPAttribute)
+void UWxViewModel_Health::Initialize(UAbilitySystemComponent* InASC, FGameplayAttribute InHPAttribute, FGameplayAttribute InMaxHPAttribute)
 {
 	if (!InASC)
 	{
 		return;
 	}
 
-	DeinitializeFromASC();
+	Deinitialize();
 	CachedASC = InASC;
 
 	if (InHPAttribute.IsValid())
@@ -34,12 +34,6 @@ void UWxViewModel_Health::InitializeWithASC(UAbilitySystemComponent* InASC, FGam
 
 void UWxViewModel_Health::Deinitialize()
 {
-	DeinitializeFromASC();
-	Super::Deinitialize();
-}
-
-void UWxViewModel_Health::DeinitializeFromASC()
-{
 	if (UAbilitySystemComponent* ASC = CachedASC.Get())
 	{
 		if (BoundHPAttribute.IsValid())
@@ -56,6 +50,8 @@ void UWxViewModel_Health::DeinitializeFromASC()
 	CachedASC.Reset();
 	BoundHPAttribute = FGameplayAttribute();
 	BoundMaxHPAttribute = FGameplayAttribute();
+
+	Super::Deinitialize();
 }
 
 float UWxViewModel_Health::GetCurrentHP() const

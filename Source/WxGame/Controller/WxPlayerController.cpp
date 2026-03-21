@@ -4,9 +4,11 @@
 #include "Character/WxCharacterBase.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "MVVMGameSubsystem.h"
-#include "WxViewModel_Health.h"
-#include "WxActivatableWidget.h"
-#include "WxUIManagerSubsystem.h"
+#include "MVVM/WxViewModel_Health.h"
+#include "MVVM/WxViewModel_Ability.h"
+#include "AbilitySystem/Ability/WxAbility.h"
+#include "Widget/WxActivatableWidget.h"
+#include "System/WxUIManagerSubsystem.h"
 #include "WxGameplayTags.h"
 #include "AbilitySystem/WxAttributeSet.h"
 
@@ -60,8 +62,7 @@ void AWxPlayerController::BeginPlay()
 void AWxPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-
-	// 리슨 서버: 서버이면서 로컬 컨트롤러인 경우 ViewModel 초기화
+	
 	if (IsLocalController())
 	{
 		if (AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(InPawn))
@@ -69,6 +70,7 @@ void AWxPlayerController::OnPossess(APawn* InPawn)
 			if (UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(WxCharacter->GetAbilitySystemComponent()))
 			{
 				InitializePlayerHealthViewModel(ASC);
+				InitializePlayerAbilityViewModels(ASC);
 			}
 		}
 	}
@@ -84,6 +86,7 @@ void AWxPlayerController::OnRep_Pawn()
 		if (UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(WxCharacter->GetAbilitySystemComponent()))
 		{
 			InitializePlayerHealthViewModel(ASC);
+			InitializePlayerAbilityViewModels(ASC);
 		}
 	}
 }
@@ -125,5 +128,50 @@ void AWxPlayerController::InitializePlayerHealthViewModel(UAbilitySystemComponen
 		GlobalCollection->AddViewModelInstance(Context, ViewModel);
 	}
 
-	ViewModel->InitializeWithASC(ASC, UWxAttributeSet::GetHPAttribute(), UWxAttributeSet::GetMaxHPAttribute());
+	ViewModel->Initialize(ASC, UWxAttributeSet::GetHPAttribute(), UWxAttributeSet::GetMaxHPAttribute());
+}
+
+void AWxPlayerController::InitializePlayerAbilityViewModels(UAbilitySystemComponent* ASC)
+{
+	UGameInstance* GameInst = GetGameInstance();
+	if (!GameInst)
+	{
+		return;
+	}
+
+	UMVVMGameSubsystem* MVVMGameSubsystem = GameInst->GetSubsystem<UMVVMGameSubsystem>();
+	if (!MVVMGameSubsystem)
+	{
+		return;
+	}
+
+	UMVVMViewModelCollectionObject* GlobalCollection = MVVMGameSubsystem->GetViewModelCollection();
+
+	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+	{
+		UWxAbility* AbilityCDO = Cast<UWxAbility>(Spec.Ability);
+		if (!AbilityCDO || !AbilityCDO->CooldownTag.IsValid())
+		{
+			continue;
+		}
+
+		const FGameplayTagContainer& AssetTags = AbilityCDO->GetAssetTags();
+		if (AssetTags.IsEmpty())
+		{
+			continue;
+		}
+
+		FMVVMViewModelContext Context;
+		Context.ContextClass = UWxViewModel_Ability::StaticClass();
+		Context.ContextName = AssetTags.First().GetTagName();
+
+		UWxViewModel_Ability* ViewModel = Cast<UWxViewModel_Ability>(GlobalCollection->FindViewModelInstance(Context));
+		if (!ViewModel)
+		{
+			ViewModel = NewObject<UWxViewModel_Ability>(this);
+			GlobalCollection->AddViewModelInstance(Context, ViewModel);
+		}
+
+		ViewModel->Initialize(ASC, AbilityCDO);
+	}
 }

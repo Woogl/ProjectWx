@@ -1,8 +1,8 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "WxUIManagerSubsystem.h"
-#include "WxPrimaryGameLayout.h"
-#include "WxUIDeveloperSettings.h"
+#include "System/WxUIManagerSubsystem.h"
+#include "System/WxPrimaryGameLayout.h"
+#include "System/WxUIDeveloperSettings.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/GameInstance.h"
 #include "GameFramework/PlayerController.h"

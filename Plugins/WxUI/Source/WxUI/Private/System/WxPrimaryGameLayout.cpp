@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "WxPrimaryGameLayout.h"
+#include "System/WxPrimaryGameLayout.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 #include "CommonActivatableWidget.h"
 #include "WxGameplayTags.h"
