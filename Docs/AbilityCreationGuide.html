@@ -625,7 +625,7 @@
           <td>GameplayTag</td>
           <td>
             <code>Input.Attack</code> <code>Input.Skill</code> <code>Input.Dodge</code>
-            <code>Input.Guard</code> <code>Input.Jump</code> <code>Input.LockOn</code>
+            <code>Input.Guard</code> <code>Input.Jump</code> <code>Input.Sprint</code> <code>Input.LockOn</code>
           </td>
         </tr>
         <tr>
@@ -656,7 +656,7 @@
   <p style="color: var(--text-dim); margin-bottom: 20px;">몽타주 타임라인에 드래그하여 <strong>구간</strong>을 지정합니다. 해당 구간 동안 상태가 활성화됩니다.</p>
 
   <div class="legend">
-    <div class="legend-item"><div class="legend-color" style="background: linear-gradient(90deg, #6c8aff, #818cf8);"></div> RotateToTarget</div>
+    <div class="legend-item"><div class="legend-color" style="background: linear-gradient(90deg, #6c8aff, #818cf8);"></div> TurnAround</div>
     <div class="legend-item"><div class="legend-color" style="background: linear-gradient(90deg, #f87171, #fb923c);"></div> WeaponCollision</div>
     <div class="legend-item"><div class="legend-color" style="background: linear-gradient(90deg, #34d399, #6ee7b7);"></div> ComboWindow</div>
     <div class="legend-item"><div class="legend-color" style="background: linear-gradient(90deg, #22d3ee, #67e8f9);"></div> Invincible</div>
@@ -668,14 +668,18 @@
     <div class="notify-card">
       <h4><span class="color-dot" style="background: #f87171;"></span> WeaponCollision</h4>
       <p style="color: var(--text-dim); font-size: 0.88em;">무기의 데미지 판정을 활성화합니다. 이 구간 동안만 무기가 적에게 데미지를 줍니다.</p>
-      <div class="tip tip-warn" style="margin-top: 12px;">
-        <span class="tip-icon">&#9888;</span>
+      <div class="tip" style="margin-top: 8px;">
+        <span class="tip-icon">💡</span>
         <span>구간이 너무 넓으면 부자연스러운 판정이 발생합니다. 실제 스윙 프레임에 정확히 맞추세요.</span>
       </div>
     </div>
     <div class="notify-card">
       <h4><span class="color-dot" style="background: #34d399;"></span> ComboWindow</h4>
       <p style="color: var(--text-dim); font-size: 0.88em;">콤보 입력을 받는 구간입니다. 이 구간에서 공격 입력 시 다음 콤보로 이어집니다.</p>
+      <div class="tip" style="margin-top: 8px;">
+        <span class="tip-icon">💡</span>
+        <span>현재 WxAbility_Attack에서만 사용 가능합니다.</span>
+      </div>
     </div>
     <div class="notify-card">
       <h4><span class="color-dot" style="background: #22d3ee;"></span> Invincible</h4>
@@ -686,8 +690,11 @@
       <p style="color: var(--text-dim); font-size: 0.88em;">가드 상태를 활성화합니다. 피격 시 가드 전용 HitReact가 발동됩니다.</p>
     </div>
     <div class="notify-card">
-      <h4><span class="color-dot" style="background: #6c8aff;"></span> RotateToTarget</h4>
-      <p style="color: var(--text-dim); font-size: 0.88em;">캐릭터를 타겟 방향으로 회전시킵니다. 공격/스킬 시작 구간에 배치합니다.</p>
+      <h4><span class="color-dot" style="background: #6c8aff;"></span> TurnAround</h4>
+      <p style="color: var(--text-dim); font-size: 0.88em;">캐릭터를 타겟 방향으로 부드럽게 회전시킵니다.<br>주로 공격/스킬 시작 구간에 배치합니다.</p>
+      <table class="prop-table" style="margin-top: 12px;">
+        <tr><td><code>TargetingPreset</code></td><td>타겟 탐색에 사용할 타겟팅 프리셋</td></tr>
+      </table>
     </div>
     <div class="notify-card">
       <h4><span class="color-dot" style="background: var(--yellow); width: 12px; height: 12px; border-radius: 50%;"></span> SpawnProjectile <span class="badge badge-red" style="font-size: 0.7em;">AnimNotify</span></h4>
@@ -728,57 +735,57 @@
     <div class="sub-section">
       <h4>몽타주 타임라인 예시</h4>
       <div class="timeline-container" style="margin-top: 8px;">
-        <div class="timeline-title">콤보 1단 (중간 콤보)</div>
+        <div class="timeline-title">콤보 1단 및 중간 콤보</div>
         <div class="timeline">
           <div class="timeline-track">
-            <div class="timeline-label">RotateToTarget</div>
+            <div class="timeline-label">TurnAround</div>
             <div class="timeline-bar-area">
-              <div class="timeline-bar bar-rotate" style="left: 0%; width: 25%;">회전</div>
+              <div class="timeline-bar bar-rotate" style="left: 0%; width: 28%;">회전</div>
             </div>
           </div>
           <div class="timeline-track">
             <div class="timeline-label">WeaponCollision</div>
             <div class="timeline-bar-area">
-              <div class="timeline-bar bar-weapon" style="left: 20%; width: 30%;">데미지</div>
+              <div class="timeline-bar bar-weapon" style="left: 22%; width: 35%;">데미지</div>
             </div>
           </div>
           <div class="timeline-track">
             <div class="timeline-label">ComboWindow</div>
             <div class="timeline-bar-area">
-              <div class="timeline-bar bar-combo" style="left: 40%; width: 50%;">콤보 입력 대기</div>
+              <div class="timeline-bar bar-combo" style="left: 45%; width: 55%;">콤보 입력 대기</div>
             </div>
           </div>
         </div>
         <div class="timeline-ruler">
           <span style="left: 0%;">0.0s</span>
-          <span style="left: 25%;">0.25s</span>
-          <span style="left: 50%;">0.5s</span>
-          <span style="left: 75%;">0.75s</span>
-          <span style="left: 100%;">1.0s</span>
+          <span style="left: 25%;">0.23s</span>
+          <span style="left: 50%;">0.45s</span>
+          <span style="left: 75%;">0.68s</span>
+          <span style="left: 100%;">0.9s</span>
         </div>
       </div>
       <div class="timeline-container">
-        <div class="timeline-title">콤보 마지막 단 (ComboWindow 없음)</div>
+        <div class="timeline-title">콤보 마지막 단</div>
         <div class="timeline">
           <div class="timeline-track">
-            <div class="timeline-label">RotateToTarget</div>
+            <div class="timeline-label">TurnAround</div>
             <div class="timeline-bar-area">
-              <div class="timeline-bar bar-rotate" style="left: 0%; width: 25%;">회전</div>
+              <div class="timeline-bar bar-rotate" style="left: 0%; width: 33%;">회전</div>
             </div>
           </div>
           <div class="timeline-track">
             <div class="timeline-label">WeaponCollision</div>
             <div class="timeline-bar-area">
-              <div class="timeline-bar bar-weapon" style="left: 25%; width: 35%;">데미지</div>
+              <div class="timeline-bar bar-weapon" style="left: 33%; width: 47%;">데미지</div>
             </div>
           </div>
         </div>
         <div class="timeline-ruler">
           <span style="left: 0%;">0.0s</span>
-          <span style="left: 25%;">0.3s</span>
-          <span style="left: 50%;">0.6s</span>
-          <span style="left: 75%;">0.9s</span>
-          <span style="left: 100%;">1.2s</span>
+          <span style="left: 25%;">0.2s</span>
+          <span style="left: 50%;">0.4s</span>
+          <span style="left: 75%;">0.6s</span>
+          <span style="left: 100%;">0.8s</span>
         </div>
       </div>
     </div>
@@ -825,21 +832,21 @@
           <div class="timeline-title">근접 스킬</div>
           <div class="timeline">
             <div class="timeline-track">
-              <div class="timeline-label">RotateToTarget</div>
+              <div class="timeline-label">TurnAround</div>
               <div class="timeline-bar-area">
-                <div class="timeline-bar bar-rotate" style="left: 0%; width: 20%;">회전</div>
+                <div class="timeline-bar bar-rotate" style="left: 0%; width: 33%;">회전</div>
               </div>
             </div>
             <div class="timeline-track">
               <div class="timeline-label">Invincible</div>
               <div class="timeline-bar-area">
-                <div class="timeline-bar bar-invincible" style="left: 8%; width: 20%;">무적</div>
+                <div class="timeline-bar bar-invincible" style="left: 13%; width: 34%;">무적</div>
               </div>
             </div>
             <div class="timeline-track">
               <div class="timeline-label">WeaponCollision</div>
               <div class="timeline-bar-area">
-                <div class="timeline-bar bar-weapon" style="left: 30%; width: 30%;">데미지</div>
+                <div class="timeline-bar bar-weapon" style="left: 50%; width: 50%;">데미지</div>
               </div>
             </div>
           </div>
@@ -848,16 +855,16 @@
           <div class="timeline-title">원거리 스킬</div>
           <div class="timeline">
             <div class="timeline-track">
-              <div class="timeline-label">RotateToTarget</div>
+              <div class="timeline-label">TurnAround</div>
               <div class="timeline-bar-area">
-                <div class="timeline-bar bar-rotate" style="left: 0%; width: 25%;">회전</div>
+                <div class="timeline-bar bar-rotate" style="left: 0%; width: 45%;">회전</div>
               </div>
             </div>
             <div class="timeline-track">
               <div class="timeline-label">SpawnProjectile</div>
               <div class="timeline-bar-area">
-                <div class="timeline-bar bar-spawn" style="left: 42%;"></div>
-                <span style="position: absolute; left: 46%; top: 50%; transform: translateY(-50%); font-size: 0.75em; color: var(--yellow);">&#9668; 발사</span>
+                <div class="timeline-bar bar-spawn" style="left: 80%;"></div>
+                <span style="position: absolute; left: 84%; top: 50%; transform: translateY(-50%); font-size: 0.75em; color: var(--yellow);">&#9668; 발사</span>
               </div>
             </div>
           </div>
@@ -874,7 +881,7 @@
           &nbsp;&nbsp;├── <span class="key">ActivationInputTag:</span> <span class="val-blue">Input.Skill</span><br>
           &nbsp;&nbsp;├── <span class="key">AbilityIcon:</span> <span class="val">T_Icon_Fireball</span><br>
           &nbsp;&nbsp;├── <span class="key">CooldownDuration:</span> <span class="val-orange">5.0</span><br>
-          &nbsp;&nbsp;├── <span class="key">CooldownTag:</span> <span class="val-blue">Ability.Skill.Fireball.Cooldown</span><br>
+          &nbsp;&nbsp;├── <span class="key">CooldownTag:</span> <span class="val-blue">Cooldown.Skill</span><br>
           &nbsp;&nbsp;└── <span class="key">SkillMontage:</span> <span class="val-orange">AM_Cast_Fireball</span>
         </div>
         <hr style="margin: 16px 0; border-color: var(--border);">
@@ -893,7 +900,7 @@
       <div class="ability-icon" style="background: linear-gradient(135deg, #22d3ee30, #34d39930); border: 1px solid #22d3ee50;">&#10150;</div>
       <div>
         <h3>회피 <span class="badge badge-cyan">WxAbility_Dodge</span></h3>
-        <p>회피 동작을 수행합니다. 무적 구간을 포함할 수 있습니다.</p>
+        <p>회피 동작을 수행합니다. 이동 입력 방향으로 부드럽게 회전하며 무적 구간을 포함할 수 있습니다.</p>
       </div>
     </div>
 
@@ -912,14 +919,14 @@
           <div class="timeline-track">
             <div class="timeline-label">Invincible</div>
             <div class="timeline-bar-area">
-              <div class="timeline-bar bar-invincible" style="left: 5%; width: 45%;">무적</div>
+              <div class="timeline-bar bar-invincible" style="left: 10%; width: 90%;">무적</div>
             </div>
           </div>
         </div>
         <div class="timeline-ruler">
           <span style="left: 0%;">0.0s</span>
-          <span style="left: 50%;">0.4s</span>
-          <span style="left: 100%;">0.8s</span>
+          <span style="left: 50%;">0.2s</span>
+          <span style="left: 100%;">0.4s</span>
         </div>
       </div>
     </div>
@@ -932,7 +939,7 @@
           &nbsp;&nbsp;├── <span class="key">ActivationPolicy:</span> <span class="val-blue">OnInputTriggered</span><br>
           &nbsp;&nbsp;├── <span class="key">ActivationInputTag:</span> <span class="val-blue">Input.Dodge</span><br>
           &nbsp;&nbsp;├── <span class="key">CooldownDuration:</span> <span class="val-orange">0.5</span><br>
-          &nbsp;&nbsp;├── <span class="key">CooldownTag:</span> <span class="val-blue">Ability.Dodge.Cooldown</span><br>
+          &nbsp;&nbsp;├── <span class="key">CooldownTag:</span> <span class="val-blue">Cooldown.Dodge</span><br>
           &nbsp;&nbsp;└── <span class="key">DodgeMontage:</span> <span class="val-orange">AM_Dodge_Roll</span>
         </div>
       </div>
@@ -990,7 +997,7 @@
       <div class="ability-icon" style="background: linear-gradient(135deg, #f8717130, #f472b630); border: 1px solid #f8717150;">&#128165;</div>
       <div>
         <h3>피격 리액션 <span class="badge badge-red">WxAbility_HitReact</span></h3>
-        <p>피격 시 GameplayEvent로 자동 발동. 가드 여부에 따라 다른 몽타주를 재생합니다.</p>
+        <p>피격 시 GameplayEvent로 자동 발동. 가드 여부에 따라 다른 몽타주를 재생합니다. 가드 피격 시 BlendOut 타이밍에 종료되어 Guard로 자연스럽게 복귀합니다.</p>
       </div>
     </div>
 
@@ -1038,6 +1045,42 @@
     </div>
   </div>
 
+  <!-- Sprint -->
+  <div class="ability-card">
+    <div class="ability-card-header">
+      <div class="ability-icon" style="background: linear-gradient(135deg, #fbbf2430, #34d39930); border: 1px solid #fbbf2450;">&#9889;</div>
+      <div>
+        <h3>달리기 <span class="badge badge-green">WxAbility_Sprint</span></h3>
+        <p>입력을 누르고 있는 동안 이동 속도를 증가시킵니다. 별도 몽타주 불필요.</p>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <h4>BP 설정 속성</h4>
+      <table class="prop-table">
+        <thead><tr><th>속성</th><th>타입</th><th>설명</th></tr></thead>
+        <tr><td><code>SprintSpeedBonus</code></td><td>float</td><td>SPD에 더해지는 값 (기본 1.0). SPD 기본값이 1.0이므로 +1.0 = 2배 속도</td></tr>
+      </table>
+    </div>
+
+    <div class="sub-section">
+      <h4>설정 예시</h4>
+      <div class="example-box">
+        <div class="example-tree">
+          <strong style="color: var(--green);">BP_Ability_Sprint</strong> <span class="key">(Parent: WxAbility_Sprint)</span><br>
+          &nbsp;&nbsp;├── <span class="key">ActivationPolicy:</span> <span class="val-blue">OnInputTriggered</span><br>
+          &nbsp;&nbsp;├── <span class="key">ActivationInputTag:</span> <span class="val-blue">Input.Sprint</span><br>
+          &nbsp;&nbsp;└── <span class="key">SprintSpeedBonus:</span> <span class="val-orange">1.0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <span class="tip-icon">&#128161;</span>
+      <span>홀드 방식 어빌리티입니다. 버튼을 누르면 SPD가 증가하고, 놓으면 원래대로 돌아갑니다.</span>
+    </div>
+  </div>
+
   <!-- LockOn -->
   <div class="ability-card">
     <div class="ability-card-header">
@@ -1056,7 +1099,7 @@
         <tr><td><code>CameraInterpSpeed</code></td><td>float</td><td>카메라 전환 보간 속도</td></tr>
         <tr><td><code>MaxPitchOffset</code></td><td>float</td><td>카메라 피치 최대 오프셋</td></tr>
         <tr><td><code>MaxDistance</code></td><td>float</td><td>락온 유지 최대 거리</td></tr>
-        <tr><td><code>ReticleWidgetClass</code></td><td>TSubclassOf</td><td>락온 레티클 UI 클래스</td></tr>
+        <tr><td><code>ReticleWidgetClass</code></td><td>UUserWidget</td><td>락온 레티클 UI 클래스</td></tr>
       </table>
     </div>
 
@@ -1085,7 +1128,7 @@
   <h2 class="section-title" id="sec-abilityset">AbilitySet &mdash; 캐릭터에 어빌리티 부여</h2>
   <p style="color: var(--text-dim); margin-bottom: 20px;">
     <code>WxAbilitySet</code>은 어빌리티와 이펙트를 묶어놓은 <strong>데이터 에셋</strong>입니다.
-    콘텐츠 브라우저 &rarr; 우클릭 &rarr; Miscellaneous &rarr; Data Asset &rarr; <code>WxAbilitySet</code> 선택
+    캐릭터의 <strong>초기 어빌리티</strong>와 <strong>초기 이펙트</strong>를 설정하는 용도로 사용됩니다.
   </p>
 
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
@@ -1099,6 +1142,7 @@
         &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="val">BP_Ability_DodgeRoll</span> <span class="key">Lv.1</span><br>
         &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="val">BP_Ability_ShieldGuard</span> <span class="key">Lv.1</span><br>
         &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="val">BP_Ability_Jump</span> <span class="key">Lv.1</span><br>
+        &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="val">BP_Ability_Sprint</span> <span class="key">Lv.1</span><br>
         &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="val">BP_Ability_LockOn</span> <span class="key">Lv.1</span><br>
         &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="val">BP_Ability_HitReact</span> <span class="key">Lv.1</span><br>
         &nbsp;&nbsp;└── <span class="key">GrantedEffects:</span><br>
@@ -1141,16 +1185,16 @@
             <div class="timeline-title">AM_Greatsword_Combo1 (1.0s)</div>
             <div class="timeline">
               <div class="timeline-track">
-                <div class="timeline-label">RotateToTarget</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 20%;">회전</div></div>
+                <div class="timeline-label">TurnAround</div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 28%;">회전</div></div>
               </div>
               <div class="timeline-track">
                 <div class="timeline-label">WeaponCollision</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 20%; width: 30%;">데미지</div></div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 22%; width: 35%;">데미지</div></div>
               </div>
               <div class="timeline-track">
                 <div class="timeline-label">ComboWindow</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-combo" style="left: 40%; width: 50%;">콤보 입력 대기</div></div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-combo" style="left: 45%; width: 55%;">콤보 입력 대기</div></div>
               </div>
             </div>
           </div>
@@ -1158,16 +1202,16 @@
             <div class="timeline-title">AM_Greatsword_Combo2 (1.0s)</div>
             <div class="timeline">
               <div class="timeline-track">
-                <div class="timeline-label">RotateToTarget</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 15%;">회전</div></div>
+                <div class="timeline-label">TurnAround</div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 18%;">회전</div></div>
               </div>
               <div class="timeline-track">
                 <div class="timeline-label">WeaponCollision</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 15%; width: 30%;">데미지</div></div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 18%; width: 35%;">데미지</div></div>
               </div>
               <div class="timeline-track">
                 <div class="timeline-label">ComboWindow</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-combo" style="left: 35%; width: 50%;">콤보 입력 대기</div></div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-combo" style="left: 42%; width: 58%;">콤보 입력 대기</div></div>
               </div>
             </div>
           </div>
@@ -1175,12 +1219,12 @@
             <div class="timeline-title">AM_Greatsword_Combo3 (1.2s) &mdash; 마지막, ComboWindow 없음</div>
             <div class="timeline">
               <div class="timeline-track">
-                <div class="timeline-label">RotateToTarget</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 25%;">회전</div></div>
+                <div class="timeline-label">TurnAround</div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 33%;">회전</div></div>
               </div>
               <div class="timeline-track">
                 <div class="timeline-label">WeaponCollision</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 25%; width: 35%;">데미지</div></div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 33%; width: 47%;">데미지</div></div>
               </div>
             </div>
           </div>
@@ -1219,14 +1263,14 @@
             <div class="timeline-title">AM_Cast_IceBolt (1.2s)</div>
             <div class="timeline">
               <div class="timeline-track">
-                <div class="timeline-label">RotateToTarget</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 25%;">회전</div></div>
+                <div class="timeline-label">TurnAround</div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 45%;">회전</div></div>
               </div>
               <div class="timeline-track">
                 <div class="timeline-label">SpawnProjectile</div>
                 <div class="timeline-bar-area">
-                  <div class="timeline-bar bar-spawn" style="left: 42%;"></div>
-                  <span style="position: absolute; left: 46%; top: 50%; transform: translateY(-50%); font-size: 0.75em; color: var(--yellow);">&#9668; 발사</span>
+                  <div class="timeline-bar bar-spawn" style="left: 80%;"></div>
+                  <span style="position: absolute; left: 84%; top: 50%; transform: translateY(-50%); font-size: 0.75em; color: var(--yellow);">&#9668; 발사</span>
                 </div>
               </div>
             </div>
@@ -1261,7 +1305,7 @@
             <div class="timeline">
               <div class="timeline-track">
                 <div class="timeline-label">Invincible</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-invincible" style="left: 5%; width: 45%;">무적</div></div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-invincible" style="left: 10%; width: 90%;">무적</div></div>
               </div>
             </div>
           </div>
@@ -1293,12 +1337,12 @@
             <div class="timeline-title">AM_Goblin_Attack (0.8s)</div>
             <div class="timeline">
               <div class="timeline-track">
-                <div class="timeline-label">RotateToTarget</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 19%;">회전</div></div>
+                <div class="timeline-label">TurnAround</div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 34%;">회전</div></div>
               </div>
               <div class="timeline-track">
                 <div class="timeline-label">WeaponCollision</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 25%; width: 31%;">데미지</div></div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 34%; width: 46%;">데미지</div></div>
               </div>
             </div>
           </div>
@@ -1358,7 +1402,7 @@
         <span style="display: inline-flex; flex-direction: column; align-items: center; gap: 0; line-height: 1.3;">
           <span style="color: var(--accent); padding: 0 12px;">190</span>
           <span style="display: block; width: 100%; height: 2px; background: var(--text-dim);"></span>
-          <span style="padding: 0 12px; color: var(--text-dim);">190 + <span style="color: var(--cyan);">DEF<sub style="font-size: 0.5em; font-weight: 400; vertical-align: baseline; margin-left: 2px;">피격자</sub></span></span>
+          <span style="padding: 0 12px; color: var(--text-dim);"><span style="color: var(--accent);">190</span> + <span style="color: var(--cyan);">DEF<sub style="font-size: 0.5em; font-weight: 400; vertical-align: baseline; margin-left: 2px;">피격자</sub></span></span>
         </span>
       </div>
     </div>

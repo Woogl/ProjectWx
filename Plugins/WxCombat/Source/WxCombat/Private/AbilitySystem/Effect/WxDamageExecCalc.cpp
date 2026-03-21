@@ -55,8 +55,8 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
 	float TargetDEF = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.DEFDef, EvalParams, TargetDEF);
 
-	// FinalDamage = ATK * (190 / (190 + DEF))
-	const float DamageReduction = 190.f / (190.f + TargetDEF);
+	// FinalDamage = ATK_공격자 * (100 / (100 + DEF_피격자))
+	const float DamageReduction = 100.f / (100.f + TargetDEF);
 	float FinalDamage = FMath::Max(SourceATK * DamageReduction, 0.f);
 
 	// 가드 중이면 데미지 50% 감소
