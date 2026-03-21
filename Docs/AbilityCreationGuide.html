@@ -23,6 +23,7 @@
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
 
   body {
     font-family: 'Segoe UI', -apple-system, sans-serif;
@@ -32,7 +33,41 @@
     padding: 40px 20px;
   }
 
-  .container { max-width: 1200px; margin: 0 auto; }
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  /* Sidebar TOC */
+  .toc {
+    position: fixed;
+    top: 40px;
+    right: 24px;
+    width: 180px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 16px;
+    z-index: 100;
+  }
+  .toc h3 {
+    font-size: 0.75em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+  .toc a {
+    display: block;
+    padding: 4px 0;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.8em;
+    transition: color 0.2s;
+    line-height: 1.5;
+  }
+  .toc a:hover { color: var(--accent); }
+
+  @media (max-width: 1100px) {
+    .toc { display: none; }
+  }
 
   /* Header */
   .hero {
@@ -505,7 +540,7 @@
 <!-- SECTION: Overview -->
 <!-- ============================================ -->
 <div class="section">
-  <h2 class="section-title">핵심 구성 요소</h2>
+  <h2 class="section-title" id="sec-components">핵심 구성 요소</h2>
   <div class="card-grid">
     <div class="card">
       <h3><span class="badge badge-blue">Blueprint</span> WxAbility</h3>
@@ -538,7 +573,7 @@
 <!-- SECTION: Workflow -->
 <!-- ============================================ -->
 <div class="section">
-  <h2 class="section-title">작업 흐름</h2>
+  <h2 class="section-title" id="sec-workflow">작업 흐름</h2>
   <div class="flow">
     <div class="flow-step">
       <span class="step-num">1</span>
@@ -570,7 +605,7 @@
 <!-- SECTION: Common Settings -->
 <!-- ============================================ -->
 <div class="section">
-  <h2 class="section-title">어빌리티 공통 설정</h2>
+  <h2 class="section-title" id="sec-common">어빌리티 공통 설정</h2>
   <div class="card" style="padding: 0; overflow: hidden;">
     <table class="prop-table">
       <thead>
@@ -617,7 +652,7 @@
 <!-- SECTION: AnimNotifyState -->
 <!-- ============================================ -->
 <div class="section">
-  <h2 class="section-title">AnimNotifyState &mdash; 몽타주 구간 이벤트</h2>
+  <h2 class="section-title" id="sec-ans">AnimNotifyState &mdash; 몽타주 구간 이벤트</h2>
   <p style="color: var(--text-dim); margin-bottom: 20px;">몽타주 타임라인에 드래그하여 <strong>구간</strong>을 지정합니다. 해당 구간 동안 상태가 활성화됩니다.</p>
 
   <div class="legend">
@@ -626,7 +661,7 @@
     <div class="legend-item"><div class="legend-color" style="background: linear-gradient(90deg, #34d399, #6ee7b7);"></div> ComboWindow</div>
     <div class="legend-item"><div class="legend-color" style="background: linear-gradient(90deg, #22d3ee, #67e8f9);"></div> Invincible</div>
     <div class="legend-item"><div class="legend-color" style="background: linear-gradient(90deg, #a78bfa, #c4b5fd);"></div> Guard</div>
-    <div class="legend-item"><div class="legend-color" style="background: var(--yellow); width: 14px; height: 14px; border-radius: 50%;"></div> SpawnProjectile (시점)</div>
+    <div class="legend-item"><div class="legend-color" style="background: var(--yellow); width: 14px; height: 14px; border-radius: 50%;"></div> SpawnProjectile</div>
   </div>
 
   <div class="notify-grid">
@@ -663,13 +698,14 @@
       </table>
     </div>
   </div>
+
 </div>
 
 <!-- ============================================ -->
 <!-- SECTION: Ability Types -->
 <!-- ============================================ -->
 <div class="section">
-  <h2 class="section-title">어빌리티 종류별 제작</h2>
+  <h2 class="section-title" id="sec-types">어빌리티 종류별 제작</h2>
 
   <!-- Attack -->
   <div class="ability-card">
@@ -684,12 +720,13 @@
     <div class="sub-section">
       <h4>BP 설정 속성</h4>
       <table class="prop-table">
+        <thead><tr><th>속성</th><th>타입</th><th>설명</th></tr></thead>
         <tr><td><code>ComboMontages</code></td><td>AnimMontage 배열</td><td>콤보 순서대로 재생할 몽타주 목록</td></tr>
       </table>
     </div>
 
     <div class="sub-section">
-      <h4>몽타주 Notify 배치 패턴</h4>
+      <h4>몽타주 타임라인 예시</h4>
       <div class="timeline-container" style="margin-top: 8px;">
         <div class="timeline-title">콤보 1단 (중간 콤보)</div>
         <div class="timeline">
@@ -776,12 +813,13 @@
     <div class="sub-section">
       <h4>BP 설정 속성</h4>
       <table class="prop-table">
+        <thead><tr><th>속성</th><th>타입</th><th>설명</th></tr></thead>
         <tr><td><code>SkillMontage</code></td><td>AnimMontage</td><td>스킬 재생 시 사용할 몽타주</td></tr>
       </table>
     </div>
 
     <div class="sub-section">
-      <h4>몽타주 패턴</h4>
+      <h4>몽타주 타임라인 예시</h4>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
         <div class="timeline-container">
           <div class="timeline-title">근접 스킬</div>
@@ -862,18 +900,19 @@
     <div class="sub-section">
       <h4>BP 설정 속성</h4>
       <table class="prop-table">
+        <thead><tr><th>속성</th><th>타입</th><th>설명</th></tr></thead>
         <tr><td><code>DodgeMontage</code></td><td>AnimMontage</td><td>회피 시 재생할 몽타주</td></tr>
       </table>
     </div>
 
     <div class="sub-section">
-      <h4>몽타주 패턴</h4>
+      <h4>몽타주 타임라인 예시</h4>
       <div class="timeline-container">
         <div class="timeline">
           <div class="timeline-track">
             <div class="timeline-label">Invincible</div>
             <div class="timeline-bar-area">
-              <div class="timeline-bar bar-invincible" style="left: 5%; width: 45%;">무적 구간</div>
+              <div class="timeline-bar bar-invincible" style="left: 5%; width: 45%;">무적</div>
             </div>
           </div>
         </div>
@@ -913,12 +952,13 @@
     <div class="sub-section">
       <h4>BP 설정 속성</h4>
       <table class="prop-table">
+        <thead><tr><th>속성</th><th>타입</th><th>설명</th></tr></thead>
         <tr><td><code>GuardMontage</code></td><td>AnimMontage</td><td>가드 시 재생할 몽타주</td></tr>
       </table>
     </div>
 
     <div class="sub-section">
-      <h4>몽타주 패턴</h4>
+      <h4>몽타주 타임라인 예시</h4>
       <div class="timeline-container">
         <div class="timeline">
           <div class="timeline-track">
@@ -957,6 +997,7 @@
     <div class="sub-section">
       <h4>BP 설정 속성</h4>
       <table class="prop-table">
+        <thead><tr><th>속성</th><th>타입</th><th>설명</th></tr></thead>
         <tr><td><code>HitReactMontage</code></td><td>AnimMontage</td><td>일반 피격 몽타주</td></tr>
         <tr><td><code>GuardHitReactMontage</code></td><td>AnimMontage</td><td>가드 중 피격 몽타주</td></tr>
       </table>
@@ -1010,6 +1051,7 @@
     <div class="sub-section">
       <h4>BP 설정 속성</h4>
       <table class="prop-table">
+        <thead><tr><th>속성</th><th>타입</th><th>설명</th></tr></thead>
         <tr><td><code>TargetingPreset</code></td><td>UTargetingPreset</td><td>타겟 검색 범위/필터 설정</td></tr>
         <tr><td><code>CameraInterpSpeed</code></td><td>float</td><td>카메라 전환 보간 속도</td></tr>
         <tr><td><code>MaxPitchOffset</code></td><td>float</td><td>카메라 피치 최대 오프셋</td></tr>
@@ -1040,7 +1082,7 @@
 <!-- SECTION: AbilitySet -->
 <!-- ============================================ -->
 <div class="section">
-  <h2 class="section-title">AbilitySet &mdash; 캐릭터에 어빌리티 부여</h2>
+  <h2 class="section-title" id="sec-abilityset">AbilitySet &mdash; 캐릭터에 어빌리티 부여</h2>
   <p style="color: var(--text-dim); margin-bottom: 20px;">
     <code>WxAbilitySet</code>은 어빌리티와 이펙트를 묶어놓은 <strong>데이터 에셋</strong>입니다.
     콘텐츠 브라우저 &rarr; 우클릭 &rarr; Miscellaneous &rarr; Data Asset &rarr; <code>WxAbilitySet</code> 선택
@@ -1079,7 +1121,7 @@
 <!-- SECTION: Full Examples -->
 <!-- ============================================ -->
 <div class="section">
-  <h2 class="section-title">실전 예제</h2>
+  <h2 class="section-title" id="sec-examples">실전 예제</h2>
 
   <!-- Example 1 -->
   <div class="ability-card" style="border-left: 3px solid var(--orange);">
@@ -1100,15 +1142,15 @@
             <div class="timeline">
               <div class="timeline-track">
                 <div class="timeline-label">RotateToTarget</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 20%;"></div></div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 20%;">회전</div></div>
               </div>
               <div class="timeline-track">
                 <div class="timeline-label">WeaponCollision</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 20%; width: 30%;"></div></div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 20%; width: 30%;">데미지</div></div>
               </div>
               <div class="timeline-track">
                 <div class="timeline-label">ComboWindow</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-combo" style="left: 40%; width: 50%;"></div></div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-combo" style="left: 40%; width: 50%;">콤보 입력 대기</div></div>
               </div>
             </div>
           </div>
@@ -1117,15 +1159,15 @@
             <div class="timeline">
               <div class="timeline-track">
                 <div class="timeline-label">RotateToTarget</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 15%;"></div></div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 15%;">회전</div></div>
               </div>
               <div class="timeline-track">
                 <div class="timeline-label">WeaponCollision</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 15%; width: 30%;"></div></div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 15%; width: 30%;">데미지</div></div>
               </div>
               <div class="timeline-track">
                 <div class="timeline-label">ComboWindow</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-combo" style="left: 35%; width: 50%;"></div></div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-combo" style="left: 35%; width: 50%;">콤보 입력 대기</div></div>
               </div>
             </div>
           </div>
@@ -1134,11 +1176,11 @@
             <div class="timeline">
               <div class="timeline-track">
                 <div class="timeline-label">RotateToTarget</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 25%;"></div></div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 25%;">회전</div></div>
               </div>
               <div class="timeline-track">
                 <div class="timeline-label">WeaponCollision</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 25%; width: 35%;"></div></div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 25%; width: 35%;">데미지</div></div>
               </div>
             </div>
           </div>
@@ -1178,7 +1220,7 @@
             <div class="timeline">
               <div class="timeline-track">
                 <div class="timeline-label">RotateToTarget</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 25%;"></div></div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 25%;">회전</div></div>
               </div>
               <div class="timeline-track">
                 <div class="timeline-label">SpawnProjectile</div>
@@ -1208,26 +1250,18 @@
 
   <!-- Example 3 -->
   <div class="ability-card" style="border-left: 3px solid var(--cyan);">
-    <h3 style="margin-bottom: 20px;">예제 3: 무적 돌진 반격 스킬</h3>
+    <h3 style="margin-bottom: 20px;">예제 3: 구르기 회피</h3>
 
     <div class="steps">
       <div class="step-item">
         <div>
           <strong>AnimMontage 준비</strong>
-          <span>AM_Skill_CounterDash (1.5s)</span>
+          <span>AM_Dodge_Roll (0.8s)</span>
           <div class="timeline-container" style="margin-top: 8px;">
             <div class="timeline">
               <div class="timeline-track">
                 <div class="timeline-label">Invincible</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-invincible" style="left: 0%; width: 33%;">무적 돌진</div></div>
-              </div>
-              <div class="timeline-track">
-                <div class="timeline-label">RotateToTarget</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 27%;"></div></div>
-              </div>
-              <div class="timeline-track">
-                <div class="timeline-label">WeaponCollision</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 33%; width: 20%;">반격</div></div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-invincible" style="left: 5%; width: 45%;">무적</div></div>
               </div>
             </div>
           </div>
@@ -1236,7 +1270,7 @@
       <div class="step-item">
         <div>
           <strong>Ability BP 생성</strong>
-          <span>WxAbility_Skill을 부모로 생성. CooldownDuration: 12.0</span>
+          <span>WxAbility_Dodge를 부모로 생성. DodgeMontage: AM_Dodge_Roll, CooldownDuration: 0.5</span>
         </div>
       </div>
       <div class="step-item">
@@ -1260,11 +1294,11 @@
             <div class="timeline">
               <div class="timeline-track">
                 <div class="timeline-label">RotateToTarget</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 19%;"></div></div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 19%;">회전</div></div>
               </div>
               <div class="timeline-track">
                 <div class="timeline-label">WeaponCollision</div>
-                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 25%; width: 31%;"></div></div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 25%; width: 31%;">데미지</div></div>
               </div>
             </div>
           </div>
@@ -1273,7 +1307,7 @@
       <div class="step-item">
         <div>
           <strong>Ability BP 생성</strong>
-          <span>WxAbility_Attack을 부모로 생성. ComboMontages에 1개만 등록. BT Task에서 ASC를 통해 발동</span>
+          <span>WxAbility_Attack을 부모로 생성. ComboMontages에 1개만 등록</span>
         </div>
       </div>
       <div class="step-item">
@@ -1290,7 +1324,7 @@
 <!-- SECTION: Damage Pipeline -->
 <!-- ============================================ -->
 <div class="section">
-  <h2 class="section-title">데미지 파이프라인 (참고)</h2>
+  <h2 class="section-title" id="sec-damage">데미지 파이프라인</h2>
   <div class="flow">
     <div class="flow-step" style="border-color: var(--orange);">
       <span class="step-label" style="color: var(--orange);">무기/투사체 충돌</span>
@@ -1312,93 +1346,79 @@
       <span class="step-desc">HP 감소<br>HP ≤ 0 → 사망</span>
     </div>
   </div>
-  <div class="tip">
-    <span class="tip-icon">&#128161;</span>
-    <span>무기의 <code>DamageEffectClass</code>, 투사체의 <code>DamageEffectClass</code>에 적절한 GameplayEffect를 설정해야 데미지가 적용됩니다.</span>
-  </div>
 
-  <!-- Damage Formula -->
-  <div style="margin-top: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 32px; text-align: center;">
-    <h4 style="color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.85em; margin-bottom: 24px;">데미지 공식</h4>
-
-    <!-- Main formula -->
-    <div style="display: inline-block; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 24px 40px; margin-bottom: 24px;">
-      <div style="display: flex; align-items: center; gap: 12px; font-size: 1.6em; font-weight: 700; font-family: 'Cascadia Code', 'Fira Code', monospace; letter-spacing: 1px;">
+  <!-- Formula -->
+  <div style="text-align: center; margin-top: 28px;">
+    <div style="display: inline-block; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 28px 48px; margin-bottom: 20px;">
+      <div style="display: flex; align-items: center; gap: 14px; font-size: 1.6em; font-weight: 700; font-family: 'Cascadia Code', 'Fira Code', monospace;">
         <span style="color: var(--red);">FinalDamage</span>
         <span style="color: var(--text-dim);">=</span>
-        <span style="color: var(--orange);">ATK</span>
+        <span style="color: var(--orange);">ATK<sub style="font-size: 0.5em; font-weight: 400; vertical-align: baseline; margin-left: 2px;">공격자</sub></span>
         <span style="color: var(--text-dim);">&times;</span>
-        <span style="display: inline-flex; flex-direction: column; align-items: center; gap: 0; line-height: 1.2;">
-          <span style="color: var(--accent); padding: 0 8px;">190</span>
+        <span style="display: inline-flex; flex-direction: column; align-items: center; gap: 0; line-height: 1.3;">
+          <span style="color: var(--accent); padding: 0 12px;">190</span>
           <span style="display: block; width: 100%; height: 2px; background: var(--text-dim);"></span>
-          <span style="padding: 0 8px;"><span style="color: var(--text-dim);">190 + </span><span style="color: var(--cyan);">DEF</span></span>
+          <span style="padding: 0 12px; color: var(--text-dim);">190 + <span style="color: var(--cyan);">DEF<sub style="font-size: 0.5em; font-weight: 400; vertical-align: baseline; margin-left: 2px;">피격자</sub></span></span>
         </span>
       </div>
     </div>
 
-    <!-- Guard modifier -->
-    <div style="display: block; margin-bottom: 20px;">
-      <div style="display: inline-block; background: #a78bfa15; border: 1px solid #a78bfa30; border-radius: 10px; padding: 14px 28px;">
+    <!-- Modifiers -->
+    <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 28px;">
+      <div style="background: #a78bfa15; border: 1px solid #a78bfa30; border-radius: 10px; padding: 14px 28px;">
         <span style="font-size: 0.9em; font-family: 'Cascadia Code', 'Fira Code', monospace;">
           <span style="color: var(--accent2);">&#128737; 가드 중</span>
-          <span style="color: var(--text-dim);"> &rarr; FinalDamage &times; </span>
+          <span style="color: var(--text-dim);"> &rarr; &times; </span>
           <span style="color: var(--yellow); font-weight: 700;">0.5</span>
-          <span style="color: var(--text-dim);"> (50% 감소)</span>
         </span>
       </div>
-    </div>
-
-    <!-- Invincible -->
-    <div style="display: block; margin-bottom: 28px;">
-      <div style="display: inline-block; background: #22d3ee15; border: 1px solid #22d3ee30; border-radius: 10px; padding: 14px 28px;">
+      <div style="background: #22d3ee15; border: 1px solid #22d3ee30; border-radius: 10px; padding: 14px 28px;">
         <span style="font-size: 0.9em; font-family: 'Cascadia Code', 'Fira Code', monospace;">
           <span style="color: var(--cyan);">&#10024; 무적 상태</span>
           <span style="color: var(--text-dim);"> &rarr; 데미지 </span>
           <span style="color: var(--green); font-weight: 700;">0</span>
-          <span style="color: var(--text-dim);"> (완전 무효)</span>
         </span>
       </div>
     </div>
+  </div>
 
-    <!-- Example calculations -->
-    <div style="text-align: left; max-width: 600px; margin: 0 auto;">
-      <h4 style="color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.8em; margin-bottom: 14px;">계산 예시</h4>
-      <table class="prop-table" style="margin: 0;">
-        <thead>
-          <tr><th>상황</th><th>ATK</th><th>DEF</th><th>상태</th><th>최종 데미지</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>기본 공격</td>
-            <td><code>100</code></td>
-            <td><code>10</code></td>
-            <td>&mdash;</td>
-            <td style="color: var(--red); font-weight: 600;">95</td>
-          </tr>
-          <tr>
-            <td>높은 방어력</td>
-            <td><code>100</code></td>
-            <td><code>190</code></td>
-            <td>&mdash;</td>
-            <td style="color: var(--red); font-weight: 600;">50</td>
-          </tr>
-          <tr>
-            <td>가드 중 피격</td>
-            <td><code>100</code></td>
-            <td><code>10</code></td>
-            <td><span class="badge badge-purple">가드</span></td>
-            <td style="color: var(--red); font-weight: 600;">47.5</td>
-          </tr>
-          <tr>
-            <td>무적 상태</td>
-            <td><code>100</code></td>
-            <td><code>10</code></td>
-            <td><span class="badge badge-cyan">무적</span></td>
-            <td style="color: var(--green); font-weight: 600;">0</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+  <!-- Example calculations -->
+  <div class="card" style="padding: 0; overflow: hidden; max-width: 640px; margin: 0 auto;">
+    <table class="prop-table" style="margin: 0;">
+      <thead>
+        <tr><th>상황</th><th>ATK</th><th>DEF</th><th>상태</th><th>최종 데미지</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>기본 공격</td>
+          <td><code>100</code></td>
+          <td><code>10</code></td>
+          <td>&mdash;</td>
+          <td style="color: var(--red); font-weight: 600;">95</td>
+        </tr>
+        <tr>
+          <td>높은 방어력</td>
+          <td><code>100</code></td>
+          <td><code>190</code></td>
+          <td>&mdash;</td>
+          <td style="color: var(--red); font-weight: 600;">50</td>
+        </tr>
+        <tr>
+          <td>가드 중 피격</td>
+          <td><code>100</code></td>
+          <td><code>10</code></td>
+          <td><span class="badge badge-purple">가드</span></td>
+          <td style="color: var(--red); font-weight: 600;">47.5</td>
+        </tr>
+        <tr>
+          <td>무적 상태</td>
+          <td><code>100</code></td>
+          <td><code>10</code></td>
+          <td><span class="badge badge-cyan">무적</span></td>
+          <td style="color: var(--green); font-weight: 600;">0</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
@@ -1406,11 +1426,11 @@
 <!-- SECTION: FAQ -->
 <!-- ============================================ -->
 <div class="section">
-  <h2 class="section-title">자주 묻는 질문</h2>
+  <h2 class="section-title" id="sec-faq">자주 묻는 질문</h2>
 
   <details class="faq-item">
-    <summary>무기의 DamageEffectClass는 어디서 설정하나요?</summary>
-    <p>무기 BP(WxWeaponBase 기반)의 <code>DamageEffectClass</code> 속성에 GameplayEffect를 설정합니다. 무기 충돌 시 이 이펙트가 적에게 적용됩니다.</p>
+    <summary>DamageEffectClass는 어디서 설정하나요?</summary>
+    <p>무기 BP(<code>WxWeaponBase</code> 기반)와 투사체 BP(<code>WxProjectileBase</code> 기반) 모두 <code>DamageEffectClass</code> 속성을 가지고 있습니다. 여기에 적절한 GameplayEffect를 설정해야 데미지가 적용됩니다.</p>
   </details>
 
   <details class="faq-item">
@@ -1433,10 +1453,6 @@
     <p>적 캐릭터는 Behavior Tree의 BT Task에서 ASC를 통해 어빌리티를 발동합니다.</p>
   </details>
 
-  <details class="faq-item">
-    <summary>쿨다운 태그는 어떤 규칙으로 만드나요?</summary>
-    <p><code>Ability.{종류}.{이름}.Cooldown</code> 형식을 권장합니다. 예: <code>Ability.Skill.Fireball.Cooldown</code></p>
-  </details>
 </div>
 
 <!-- Footer -->
@@ -1445,5 +1461,18 @@
 </div>
 
 </div>
+<nav class="toc">
+  <h3>목차</h3>
+  <a href="#sec-components">핵심 구성 요소</a>
+  <a href="#sec-workflow">작업 흐름</a>
+  <a href="#sec-common">어빌리티 공통 설정</a>
+  <a href="#sec-ans">AnimNotifyState</a>
+  <a href="#sec-types">어빌리티 종류별 제작</a>
+  <a href="#sec-abilityset">AbilitySet</a>
+  <a href="#sec-examples">실전 예제</a>
+  <a href="#sec-damage">데미지 파이프라인</a>
+  <a href="#sec-faq">자주 묻는 질문</a>
+</nav>
+
 </body>
 </html>
