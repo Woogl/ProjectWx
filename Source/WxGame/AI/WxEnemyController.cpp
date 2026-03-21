@@ -16,22 +16,34 @@ AWxEnemyController::AWxEnemyController()
 	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComponent"));
 
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
-	SightConfig->SightRadius = SightRadius;
-	SightConfig->LoseSightRadius = LoseSightRadius;
-	SightConfig->PeripheralVisionAngleDegrees = SightAngle;
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
 	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
 	SightConfig->DetectionByAffiliation.bDetectFriendlies = false;
-	SightConfig->SetMaxAge(MemoryLength);
 
-	AIPerceptionComponent->ConfigureSense(*SightConfig);
-
-	UAISenseConfig_Damage* DamageConfig = CreateDefaultSubobject<UAISenseConfig_Damage>(TEXT("DamageConfig"));
-	DamageConfig->SetMaxAge(MemoryLength);
-	AIPerceptionComponent->ConfigureSense(*DamageConfig);
+	DamageConfig = CreateDefaultSubobject<UAISenseConfig_Damage>(TEXT("DamageConfig"));
 
 	AIPerceptionComponent->SetDominantSense(UAISense_Sight::StaticClass());
 	AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AWxEnemyController::HandleTargetPerceptionUpdated);
+}
+
+void AWxEnemyController::PostInitProperties()
+{
+	Super::PostInitProperties();
+
+	if (SightConfig)
+	{
+		SightConfig->SightRadius = SightRadius;
+		SightConfig->LoseSightRadius = LoseSightRadius;
+		SightConfig->PeripheralVisionAngleDegrees = SightAngle;
+		SightConfig->SetMaxAge(MemoryLength);
+		AIPerceptionComponent->ConfigureSense(*SightConfig);
+	}
+
+	if (DamageConfig)
+	{
+		DamageConfig->SetMaxAge(MemoryLength);
+		AIPerceptionComponent->ConfigureSense(*DamageConfig);
+	}
 }
 
 void AWxEnemyController::OnPossess(APawn* InPawn)

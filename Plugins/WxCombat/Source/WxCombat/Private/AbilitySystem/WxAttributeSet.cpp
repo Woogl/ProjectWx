@@ -61,6 +61,16 @@ void UWxAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 		if (Damage > 0.f)
 		{
 			SetHP(FMath::Max(GetHP() - Damage, 0.f));
+
+			// IncomingDamage에 의해 HP가 0 이하가 된 경우에만 사망 처리
+			if (GetHP() <= 0.f)
+			{
+				UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+				if (ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
+				{
+					ASC->AddLooseGameplayTag(WxGameplayTags::State_Dead);
+				}
+			}
 		}
 	}
 	else if (Data.EvaluatedData.Attribute == GetHPAttribute())
@@ -70,17 +80,6 @@ void UWxAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 	else if (Data.EvaluatedData.Attribute == GetMPAttribute())
 	{
 		SetMP(FMath::Clamp(GetMP(), 0.f, GetMaxMP()));
-	}
-
-	// IncomingDamage에 의해 HP가 0 이하가 된 경우에만 사망 처리
-	// 초기화 시 순서 문제로 오발동되지 않도록 IncomingDamage 분기 내에서만 체크
-	if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute() && GetHP() <= 0.f)
-	{
-		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
-		if (ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
-		{
-			ASC->AddLooseGameplayTag(WxGameplayTags::State_Dead);
-		}
 	}
 }
 

@@ -27,6 +27,7 @@ public:
 	AWxEnemyController();
 
 protected:
+	virtual void PostInitProperties() override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnUnPossess() override;
 
@@ -56,6 +57,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UAISenseConfig_Sight> SightConfig;
+
+	UPROPERTY()
+	TObjectPtr<UAISenseConfig_Damage> DamageConfig;
 
 	static const FName BBKey_TargetActor;
 	static const FName BBKey_Alerted;
