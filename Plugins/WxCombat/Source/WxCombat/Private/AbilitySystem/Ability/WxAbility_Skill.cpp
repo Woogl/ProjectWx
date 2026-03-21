@@ -6,7 +6,9 @@
 
 UWxAbility_Skill::UWxAbility_Skill()
 {
-	AbilityTags.AddTag(WxGameplayTags::Ability_Skill);
+	FGameplayTagContainer AssetTags;
+	AssetTags.AddTag(WxGameplayTags::Ability_Skill);
+	SetAssetTags(AssetTags);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 
 	ActivationInputTag = WxGameplayTags::Input_Skill;

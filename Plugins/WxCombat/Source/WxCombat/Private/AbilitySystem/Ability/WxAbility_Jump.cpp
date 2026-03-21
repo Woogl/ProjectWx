@@ -6,7 +6,9 @@
 
 UWxAbility_Jump::UWxAbility_Jump()
 {
-	AbilityTags.AddTag(WxGameplayTags::Ability_Jump);
+	FGameplayTagContainer AssetTags;
+	AssetTags.AddTag(WxGameplayTags::Ability_Jump);
+	SetAssetTags(AssetTags);
 	ActivationInputTag = WxGameplayTags::Input_Jump;
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	CooldownTag = WxGameplayTags::Cooldown_Jump;

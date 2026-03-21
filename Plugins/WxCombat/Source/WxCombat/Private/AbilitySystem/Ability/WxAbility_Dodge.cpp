@@ -6,7 +6,9 @@
 
 UWxAbility_Dodge::UWxAbility_Dodge()
 {
-	AbilityTags.AddTag(WxGameplayTags::Ability_Dodge);
+	FGameplayTagContainer AssetTags;
+	AssetTags.AddTag(WxGameplayTags::Ability_Dodge);
+	SetAssetTags(AssetTags);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 

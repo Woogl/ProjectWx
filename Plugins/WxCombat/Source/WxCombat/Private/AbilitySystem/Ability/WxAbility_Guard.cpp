@@ -6,7 +6,9 @@
 
 UWxAbility_Guard::UWxAbility_Guard()
 {
-	AbilityTags.AddTag(WxGameplayTags::Ability_Guard);
+	FGameplayTagContainer AssetTags;
+	AssetTags.AddTag(WxGameplayTags::Ability_Guard);
+	SetAssetTags(AssetTags);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
