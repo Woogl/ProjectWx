@@ -37,6 +37,8 @@ protected:
 	TObjectPtr<UAnimMontage> GuardHitReactMontage;
 
 private:
+	bool bWasGuardHitReact = false;
+
 	UFUNCTION()
 	void HandleMontageCompleted();
 

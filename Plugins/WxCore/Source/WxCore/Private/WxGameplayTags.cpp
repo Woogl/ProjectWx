@@ -21,6 +21,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Guard, "Ability.Guard");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Jump, "Ability.Jump");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill, "Ability.Skill");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Sprint, "Ability.Sprint");
 
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Attack, "Cooldown.Attack");
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Dodge, "Cooldown.Dodge");
@@ -33,6 +34,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Input_Dodge, "Input.Dodge");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Guard, "Input.Guard");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Skill, "Input.Skill");
+	UE_DEFINE_GAMEPLAY_TAG(Input_Sprint, "Input.Sprint");
 	UE_DEFINE_GAMEPLAY_TAG(Input_LockOn, "Input.LockOn");
 
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Game, "UI.Layer.Game");

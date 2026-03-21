@@ -2,6 +2,8 @@
 
 #include "AbilitySystem/Ability/WxAbility_Dodge.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "AbilitySystem/Task/WxAbilityTask_TurnAround.h"
+#include "GameFramework/Character.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_Dodge::UWxAbility_Dodge()
@@ -19,7 +21,19 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	
+
+	// 이동 입력 방향으로 부드럽게 회전
+	if (const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
+	{
+		const FVector InputDirection = Character->GetLastMovementInputVector();
+		if (!InputDirection.IsNearlyZero())
+		{
+			UWxAbilityTask_TurnAround* TurnAroundTask = UWxAbilityTask_TurnAround::CreateTask(
+				this, InputDirection);
+			TurnAroundTask->ReadyForActivation();
+		}
+	}
+
 	if (!DodgeMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);

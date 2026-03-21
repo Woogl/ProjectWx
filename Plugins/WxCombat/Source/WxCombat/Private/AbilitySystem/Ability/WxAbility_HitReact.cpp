@@ -25,9 +25,9 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	const bool bIsGuarding = ActorInfo->AbilitySystemComponent.IsValid()
+	bWasGuardHitReact = ActorInfo->AbilitySystemComponent.IsValid()
 		&& ActorInfo->AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::ANS_Guard);
-	UAnimMontage* MontageToPlay = bIsGuarding ? GuardHitReactMontage : HitReactMontage;
+	UAnimMontage* MontageToPlay = bWasGuardHitReact ? GuardHitReactMontage : HitReactMontage;
 
 	if (!MontageToPlay || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
@@ -52,11 +52,18 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 void UWxAbility_HitReact::HandleMontageCompleted()
 {
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	if (!bWasGuardHitReact)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
 }
 
-void UWxAbility_HitReact::HandleMontageBlendOut() 
+void UWxAbility_HitReact::HandleMontageBlendOut()
 {
+	if (bWasGuardHitReact)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
 }
 
 void UWxAbility_HitReact::HandleMontageInterrupted()

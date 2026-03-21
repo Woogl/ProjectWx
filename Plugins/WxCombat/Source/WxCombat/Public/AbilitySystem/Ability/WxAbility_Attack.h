@@ -19,7 +19,7 @@ class UAnimMontage;
  *
  * 콤보 체인은 ComboMontages 배열 순서대로 진행.
  * ANS_ComboWindow 구간에서 공격 입력 시 다음 단계 몽타주를 즉시 재생.
- * 타겟 방향 회전은 ANS_RotateToTarget이 담당.
+ * 타겟 방향 회전은 ANS_TurnAround이 담당.
  */
 UCLASS()
 class WXCOMBAT_API UWxAbility_Attack : public UWxAbility

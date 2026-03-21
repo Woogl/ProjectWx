@@ -13,7 +13,7 @@ class UAnimMontage;
  * 스킬 어빌리티.
  *
  * 입력 시 단일 몽타주를 재생하고, 완료 또는 중단 시 EndAbility.
- * 타겟 방향 회전은 ANS_RotateToTarget이 담당.
+ * 타겟 방향 회전은 ANS_TurnAround이 담당.
  */
 UCLASS()
 class WXCOMBAT_API UWxAbility_Skill : public UWxAbility

@@ -1,13 +1,13 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Animation/WxAnimNotifyState_RotateToTarget.h"
+#include "Animation/WxAnimNotifyState_TurnAround.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TargetingSystem/TargetingSubsystem.h"
 
-void UWxAnimNotifyState_RotateToTarget::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
+void UWxAnimNotifyState_TurnAround::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
@@ -65,7 +65,7 @@ void UWxAnimNotifyState_RotateToTarget::NotifyBegin(USkeletalMeshComponent* Mesh
 	}
 }
 
-void UWxAnimNotifyState_RotateToTarget::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference)
+void UWxAnimNotifyState_TurnAround::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyTick(MeshComp, Animation, FrameDeltaTime, EventReference);
 
@@ -113,7 +113,7 @@ void UWxAnimNotifyState_RotateToTarget::NotifyTick(USkeletalMeshComponent* MeshC
 	Owner->SetActorRotation(NewRotation);
 }
 
-void UWxAnimNotifyState_RotateToTarget::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
+void UWxAnimNotifyState_TurnAround::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
 
@@ -123,7 +123,7 @@ void UWxAnimNotifyState_RotateToTarget::NotifyEnd(USkeletalMeshComponent* MeshCo
 	}
 }
 
-FString UWxAnimNotifyState_RotateToTarget::GetNotifyName_Implementation() const
+FString UWxAnimNotifyState_TurnAround::GetNotifyName_Implementation() const
 {
-	return TEXT("Rotate To Target");
+	return TEXT("Turn Around");
 }

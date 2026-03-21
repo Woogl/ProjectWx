@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
-#include "WxAnimNotifyState_RotateToTarget.generated.h"
+#include "WxAnimNotifyState_TurnAround.generated.h"
 
 class UTargetingPreset;
 
@@ -14,8 +14,8 @@ class UTargetingPreset;
  * 공격 몽타주에 배치하면 NotifyBegin에서 TargetingPreset으로 가장 가까운 적을 탐색하고,
  * NotifyTick 구간 동안 해당 적 방향으로 부드럽게 회전한다.
  */
-UCLASS(DisplayName = "Wx Rotate To Target")
-class WXCOMBAT_API UWxAnimNotifyState_RotateToTarget : public UAnimNotifyState
+UCLASS(DisplayName = "Wx Turn Around")
+class WXCOMBAT_API UWxAnimNotifyState_TurnAround : public UAnimNotifyState
 {
 	GENERATED_BODY()
 
