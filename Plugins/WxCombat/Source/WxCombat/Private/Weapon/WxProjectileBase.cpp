@@ -12,6 +12,7 @@
 AWxProjectileBase::AWxProjectileBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	bReplicates = true;
 
 	Arrow = CreateDefaultSubobject<UArrowComponent>(TEXT("Arrow"));
 	SetRootComponent(Arrow);

@@ -79,7 +79,7 @@ namespace WxGameplayTags
 	/** 가드 입력 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Guard);
 
-	/** 락온 입력 */
+	/** 스킬 입력 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Skill);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_LockOn);

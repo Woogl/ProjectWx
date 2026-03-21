@@ -7,6 +7,7 @@
 
 UWxAbility_HitReact::UWxAbility_HitReact()
 {
+	// AssetTag 의도적 미설정: 이벤트 트리거 전용 어빌리티이므로 입력/BT에서 태그 검색 대상이 아님
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);

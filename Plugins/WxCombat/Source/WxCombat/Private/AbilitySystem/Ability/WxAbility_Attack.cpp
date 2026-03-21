@@ -62,6 +62,7 @@ void UWxAbility_Attack::PlayComboMontage()
 		MontageTask->OnBlendOut.RemoveDynamic(this, &UWxAbility_Attack::HandleMontageBlendOut);
 		MontageTask->OnInterrupted.RemoveDynamic(this, &UWxAbility_Attack::HandleMontageInterrupted);
 		MontageTask->OnCancelled.RemoveDynamic(this, &UWxAbility_Attack::HandleMontageCancelled);
+		MontageTask->EndTask();
 	}
 
 	if (!ComboMontages.IsValidIndex(CurrentComboIndex) || !ComboMontages[CurrentComboIndex])
