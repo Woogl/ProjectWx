@@ -9,6 +9,7 @@ UWxAbility_Jump::UWxAbility_Jump()
 	AbilityTags.AddTag(WxGameplayTags::Ability_Jump);
 	ActivationInputTag = WxGameplayTags::Input_Jump;
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
+	CooldownTag = WxGameplayTags::Cooldown_Jump;
 }
 
 bool UWxAbility_Jump::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const

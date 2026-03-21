@@ -9,8 +9,9 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 	AbilityTags.AddTag(WxGameplayTags::Ability_Dodge);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
-	
+
 	ActivationInputTag = WxGameplayTags::Input_Dodge;
+	CooldownTag = WxGameplayTags::Cooldown_Dodge;
 }
 
 void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

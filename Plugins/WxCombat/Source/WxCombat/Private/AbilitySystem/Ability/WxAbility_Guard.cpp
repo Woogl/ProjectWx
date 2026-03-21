@@ -10,8 +10,9 @@ UWxAbility_Guard::UWxAbility_Guard()
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
-	
+
 	ActivationInputTag = WxGameplayTags::Input_Guard;
+	CooldownTag = WxGameplayTags::Cooldown_Guard;
 }
 
 void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
