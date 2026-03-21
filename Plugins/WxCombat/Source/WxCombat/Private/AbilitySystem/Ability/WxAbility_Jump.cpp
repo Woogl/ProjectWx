@@ -6,6 +6,7 @@
 
 UWxAbility_Jump::UWxAbility_Jump()
 {
+	AbilityTags.AddTag(WxGameplayTags::Ability_Jump);
 	ActivationInputTag = WxGameplayTags::Input_Jump;
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 }

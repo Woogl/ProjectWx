@@ -7,10 +7,11 @@
 UWxAbility_Guard::UWxAbility_Guard()
 {
 	AbilityTags.AddTag(WxGameplayTags::Ability_Guard);
-	ActivationInputTag = WxGameplayTags::Input_Guard;
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
+	
+	ActivationInputTag = WxGameplayTags::Input_Guard;
 }
 
 void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -40,12 +41,9 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
+	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
+	
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-}
-
-void UWxAbility_Guard::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
-{
-	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 }
 
 void UWxAbility_Guard::HandleMontageCompleted()

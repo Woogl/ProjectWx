@@ -40,7 +40,10 @@ void AWxProjectileBase::BeginPlay()
 	{
 		if (UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner()))
 		{
-			DamageEffectSpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, 1.f, SourceASC->MakeEffectContext());
+			FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
+			Context.AddSourceObject(this);
+			Context.AddInstigator(GetOwner(), GetInstigator());
+			DamageEffectSpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, 1.f, Context);
 		}
 	}
 }

@@ -21,6 +21,9 @@ namespace WxGameplayTags
 	/** 공중 상태. Falling/Flying 시 부여, 착지 시 제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Airborne);
 
+	/** 락온 상태. 락온 어빌리티 활성 중 부여, Look 입력 억제 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_LockOn);
+
 	// ── Event ─────────────────────────────────────────────────────────────
 
 	/** 피격 시 발생하는 이벤트. HitReact 어빌리티의 트리거 */
@@ -46,6 +49,7 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Dodge);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Guard);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Jump);
 
 	// ── Input ──────────────────────────────────────────────────────────────
 
@@ -60,6 +64,9 @@ namespace WxGameplayTags
 
 	/** 가드 입력 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Guard);
+
+	/** 락온 입력 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_LockOn);
 
 	// ── UI ────────────────────────────────────────────────────────────────
 

@@ -8,6 +8,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "WxGameplayTags.h"
 
 AWxPlayerCharacter::AWxPlayerCharacter()
 {
@@ -86,6 +87,11 @@ void AWxPlayerCharacter::Move(const FInputActionValue& Value)
 
 void AWxPlayerCharacter::Look(const FInputActionValue& Value)
 {
+	if (AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_LockOn))
+	{
+		return;
+	}
+
 	const FVector2D LookAxis = Value.Get<FVector2D>();
 	AddControllerYawInput(LookAxis.X);
 	AddControllerPitchInput(LookAxis.Y);

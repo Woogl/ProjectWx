@@ -7,7 +7,10 @@
 
 UWxAbility_Attack::UWxAbility_Attack()
 {
+	AbilityTags.AddTag(WxGameplayTags::Ability_Attack);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
+
+	ActivationInputTag = WxGameplayTags::Input_Attack;
 }
 
 void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
