@@ -42,6 +42,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	float MaxPitchOffset = 20.f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	float MaxDistance = 2000.f;
+
 private:
 	UFUNCTION()
 	void HandleTargetLost();

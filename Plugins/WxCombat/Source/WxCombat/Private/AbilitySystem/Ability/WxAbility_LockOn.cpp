@@ -61,7 +61,7 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	ActorInfo->AbilitySystemComponent->AddLooseGameplayTag(WxGameplayTags::State_LockOn);
 
 	// 락온 태스크 생성
-	LockOnTask = UWxAbilityTask_LockOnTarget::CreateTask(this, FoundTarget, CameraInterpSpeed, MaxPitchOffset);
+	LockOnTask = UWxAbilityTask_LockOnTarget::CreateTask(this, FoundTarget, CameraInterpSpeed, MaxPitchOffset, MaxDistance);
 	LockOnTask->OnTargetLost.AddDynamic(this, &UWxAbility_LockOn::HandleTargetLost);
 	LockOnTask->ReadyForActivation();
 }

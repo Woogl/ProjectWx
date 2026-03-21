@@ -19,7 +19,7 @@ class WXCOMBAT_API UWxAbilityTask_LockOnTarget : public UAbilityTask
 	GENERATED_BODY()
 
 public:
-	static UWxAbilityTask_LockOnTarget* CreateTask(UGameplayAbility* OwningAbility, AActor* InTarget, float InInterpSpeed = 10.f, float InMaxPitchOffset = 20.f);
+	static UWxAbilityTask_LockOnTarget* CreateTask(UGameplayAbility* OwningAbility, AActor* InTarget, float InInterpSpeed = 10.f, float InMaxPitchOffset = 20.f, float InMaxDistance = 2000.f);
 
 	UPROPERTY()
 	FWxOnTargetLost OnTargetLost;
@@ -33,7 +33,10 @@ private:
 	UFUNCTION()
 	void HandleTargetDestroyed(AActor* DestroyedActor);
 
+	void HandleTargetDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
 	TWeakObjectPtr<AActor> Target;
 	float InterpSpeed = 10.f;
 	float MaxPitchOffset = 20.f;
+	float MaxDistanceSquared = 2000.f * 2000.f;
 };

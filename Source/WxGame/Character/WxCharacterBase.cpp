@@ -44,6 +44,14 @@ UAbilitySystemComponent* AWxCharacterBase::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 
+void AWxCharacterBase::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->GetOwnedGameplayTags(TagContainer);
+	}
+}
+
 AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const
 {
 	return EquippedWeapon;
