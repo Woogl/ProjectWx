@@ -71,6 +71,10 @@ ETeamAttitude::Type AWxCharacterBase::GetTeamAttitudeTowards(const AActor& Other
 {
 	if (const IGenericTeamAgentInterface* OtherTeamAgent = Cast<IGenericTeamAgentInterface>(&Other))
 	{
+		if (Team == EWxTeam::Neutral || static_cast<EWxTeam>(OtherTeamAgent->GetGenericTeamId().GetId()) == EWxTeam::Neutral)
+		{
+			return ETeamAttitude::Neutral;
+		}
 		return GetGenericTeamId() == OtherTeamAgent->GetGenericTeamId() ? ETeamAttitude::Friendly : ETeamAttitude::Hostile;
 	}
 	return ETeamAttitude::Neutral;

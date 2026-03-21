@@ -7,11 +7,12 @@
 #include "GameFramework/PlayerController.h"
 #include "WxGameplayTags.h"
 
-UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAbility* OwningAbility, AActor* InTarget, float InInterpSpeed, float InMaxDistance, TSubclassOf<UUserWidget> InReticleWidgetClass)
+UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAbility* OwningAbility, AActor* InTarget, float InInterpSpeed, float InPitchOffset, float InMaxDistance, TSubclassOf<UUserWidget> InReticleWidgetClass)
 {
 	UWxAbilityTask_LockOnTarget* Task = NewAbilityTask<UWxAbilityTask_LockOnTarget>(OwningAbility);
 	Task->Target = InTarget;
 	Task->InterpSpeed = InInterpSpeed;
+	Task->PitchOffset = InPitchOffset;
 	Task->MaxDistanceSquared = InMaxDistance * InMaxDistance;
 	Task->ReticleWidgetClass = InReticleWidgetClass;
 	Task->bTickingTask = true;
@@ -69,7 +70,8 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 		return;
 	}
 
-	const FRotator DesiredRotation = (TargetLocation - AvatarPawn->GetActorLocation()).Rotation();
+	FRotator DesiredRotation = (TargetLocation - AvatarPawn->GetActorLocation()).Rotation();
+	DesiredRotation.Pitch += PitchOffset;
 
 	const FRotator CurrentRotation = PC->GetControlRotation();
 	const FRotator NewRotation = FMath::RInterpTo(CurrentRotation, DesiredRotation, DeltaTime, InterpSpeed);

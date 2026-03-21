@@ -41,6 +41,9 @@ protected:
 	float CameraInterpSpeed = 8.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	float CameraPitchOffset = -15.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	float MaxDistance = 2000.f;
 
 	/** 락온 대상에 표시할 조준점 위젯 클래스 */

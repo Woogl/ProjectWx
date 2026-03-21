@@ -65,7 +65,7 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 
 	// 락온 태스크 생성
-	LockOnTask = UWxAbilityTask_LockOnTarget::CreateTask(this, FoundTarget, CameraInterpSpeed, MaxDistance, ReticleWidgetClass);
+	LockOnTask = UWxAbilityTask_LockOnTarget::CreateTask(this, FoundTarget, CameraInterpSpeed, CameraPitchOffset, MaxDistance, ReticleWidgetClass);
 	LockOnTask->OnTargetLost.AddDynamic(this, &UWxAbility_LockOn::HandleTargetLost);
 	LockOnTask->ReadyForActivation();
 }
