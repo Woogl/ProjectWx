@@ -75,4 +75,4 @@ Plugins/**/Intermediate/*
 DerivedDataCache/*
 
 # Claude
-.claude/*
+.claude/**/*.local.json

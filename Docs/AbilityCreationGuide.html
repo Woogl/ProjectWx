@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wx 어빌리티 제작 가이드</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #232736;
+    --border: #2e3348;
+    --text: #e2e4ed;
+    --text-dim: #8b8fa3;
+    --accent: #6c8aff;
+    --accent2: #a78bfa;
+    --green: #34d399;
+    --orange: #fb923c;
+    --red: #f87171;
+    --yellow: #fbbf24;
+    --cyan: #22d3ee;
+    --pink: #f472b6;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 40px 20px;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  /* Header */
+  .hero {
+    text-align: center;
+    padding: 60px 20px;
+    background: linear-gradient(135deg, #1a1d2780, #2e334880);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    margin-bottom: 48px;
+  }
+  .hero h1 {
+    font-size: 2.8em;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+  }
+  .hero p { color: var(--text-dim); font-size: 1.15em; }
+
+  /* Section */
+  .section {
+    margin-bottom: 48px;
+  }
+  .section-title {
+    font-size: 1.6em;
+    font-weight: 700;
+    margin-bottom: 24px;
+    padding-left: 16px;
+    border-left: 4px solid var(--accent);
+  }
+
+  /* Cards */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card h3 {
+    font-size: 1.15em;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card p { color: var(--text-dim); font-size: 0.92em; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.75em;
+    font-weight: 600;
+  }
+  .badge-blue { background: #6c8aff25; color: var(--accent); }
+  .badge-green { background: #34d39925; color: var(--green); }
+  .badge-orange { background: #fb923c25; color: var(--orange); }
+  .badge-red { background: #f8717125; color: var(--red); }
+  .badge-purple { background: #a78bfa25; color: var(--accent2); }
+  .badge-cyan { background: #22d3ee25; color: var(--cyan); }
+  .badge-pink { background: #f472b625; color: var(--pink); }
+
+  /* Flow diagram */
+  .flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    flex-wrap: wrap;
+    padding: 32px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 20px;
+  }
+  .flow-step {
+    text-align: center;
+    padding: 16px 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    min-width: 160px;
+  }
+  .flow-step .step-num {
+    display: inline-block;
+    width: 28px; height: 28px;
+    line-height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.8em;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .flow-step .step-label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.95em;
+  }
+  .flow-step .step-desc {
+    color: var(--text-dim);
+    font-size: 0.8em;
+    margin-top: 4px;
+  }
+  .flow-arrow {
+    font-size: 1.5em;
+    color: var(--accent);
+    padding: 0 8px;
+    user-select: none;
+  }
+
+  /* Timeline */
+  .timeline-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .timeline-title {
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .timeline {
+    position: relative;
+    height: auto;
+    margin: 8px 0;
+  }
+  .timeline-track {
+    position: relative;
+    height: 36px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+  }
+  .timeline-label {
+    width: 160px;
+    font-size: 0.82em;
+    font-weight: 600;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    text-align: right;
+    padding-right: 16px;
+  }
+  .timeline-bar-area {
+    flex: 1;
+    position: relative;
+    height: 100%;
+    background: var(--surface2);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .timeline-bar {
+    position: absolute;
+    top: 4px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75em;
+    font-weight: 600;
+    color: #fff;
+    min-width: 24px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+  .bar-rotate   { background: linear-gradient(90deg, #6c8aff, #818cf8); }
+  .bar-weapon   { background: linear-gradient(90deg, #f87171, #fb923c); }
+  .bar-combo    { background: linear-gradient(90deg, #34d399, #6ee7b7); color: #0f1117; }
+  .bar-invincible { background: linear-gradient(90deg, #22d3ee, #67e8f9); color: #0f1117; }
+  .bar-guard    { background: linear-gradient(90deg, #a78bfa, #c4b5fd); }
+  .bar-spawn    { background: var(--yellow); color: #0f1117; width: 8px !important; min-width: 8px !important; border-radius: 50%; height: 28px; }
+
+  .timeline-ruler {
+    display: flex;
+    margin-left: 160px;
+    margin-top: 4px;
+    font-size: 0.7em;
+    color: var(--text-dim);
+    position: relative;
+    height: 20px;
+  }
+  .timeline-ruler span {
+    position: absolute;
+    transform: translateX(-50%);
+  }
+
+  /* Property table */
+  .prop-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+    margin-top: 12px;
+  }
+  .prop-table th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--surface2);
+    color: var(--text-dim);
+    font-weight: 600;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .prop-table td {
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+  }
+  .prop-table tr:hover td { background: var(--surface2); }
+  .prop-table code {
+    background: var(--surface2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: var(--accent);
+  }
+
+  /* Ability type cards */
+  .ability-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+  .ability-card-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .ability-icon {
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8em;
+    flex-shrink: 0;
+  }
+  .ability-card-header h3 { font-size: 1.3em; }
+  .ability-card-header p { color: var(--text-dim); font-size: 0.9em; margin-top: 2px; }
+
+  .ability-card .sub-section {
+    margin-top: 20px;
+  }
+  .ability-card .sub-section h4 {
+    font-size: 0.95em;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Example box */
+  .example-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 12px;
+  }
+  .example-box h5 {
+    font-size: 0.9em;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .example-tree {
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 0.85em;
+    line-height: 1.8;
+    color: var(--text);
+  }
+  .example-tree .key { color: var(--text-dim); }
+  .example-tree .val { color: var(--green); }
+  .example-tree .val-blue { color: var(--accent); }
+  .example-tree .val-orange { color: var(--orange); }
+
+  /* Tips */
+  .tip {
+    display: flex;
+    gap: 12px;
+    padding: 16px 20px;
+    background: #6c8aff10;
+    border: 1px solid #6c8aff30;
+    border-radius: 10px;
+    margin-top: 12px;
+    font-size: 0.88em;
+    color: var(--text-dim);
+  }
+  .tip-icon { font-size: 1.2em; flex-shrink: 0; }
+  .tip-warn {
+    background: #fb923c10;
+    border-color: #fb923c30;
+  }
+
+  /* Notify cards */
+  .notify-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 16px;
+  }
+  .notify-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .notify-card h4 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .color-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  /* FAQ */
+  .faq-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 12px;
+  }
+  .faq-item summary {
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .faq-item summary::before {
+    content: "Q";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px; height: 24px;
+    border-radius: 6px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.75em;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .faq-item[open] summary { margin-bottom: 12px; }
+  .faq-item p {
+    color: var(--text-dim);
+    font-size: 0.9em;
+    padding-left: 34px;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 16px;
+    font-size: 0.82em;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend-color {
+    width: 28px; height: 14px;
+    border-radius: 4px;
+  }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; margin-bottom: 0; }
+  .tab {
+    padding: 10px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+    cursor: pointer;
+    font-size: 0.88em;
+    font-weight: 600;
+    color: var(--text-dim);
+    transition: all 0.2s;
+  }
+  .tab.active {
+    background: var(--surface2);
+    color: var(--text);
+    border-color: var(--accent);
+    border-bottom: 1px solid var(--surface2);
+  }
+  .tab-content {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 0 14px 14px 14px;
+    padding: 28px;
+    display: none;
+  }
+  .tab-content.active { display: block; }
+
+  /* Step list */
+  .steps { counter-reset: step; }
+  .step-item {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+  }
+  .step-item::before {
+    counter-increment: step;
+    content: counter(step);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85em;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .step-item div { flex: 1; }
+  .step-item strong { display: block; margin-bottom: 4px; }
+  .step-item span { color: var(--text-dim); font-size: 0.9em; }
+
+  /* Divider */
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 40px 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 1.8em; }
+    .flow { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); }
+    .timeline-label { width: 100px; font-size: 0.72em; }
+    .card-grid { grid-template-columns: 1fr; }
+    .notify-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- Hero -->
+<div class="hero">
+  <h1>Wx 어빌리티 제작 가이드</h1>
+  <p>기획자를 위한 Blueprint 어빌리티 설정 가이드</p>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION: Overview -->
+<!-- ============================================ -->
+<div class="section">
+  <h2 class="section-title">핵심 구성 요소</h2>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="badge badge-blue">Blueprint</span> WxAbility</h3>
+      <p>어빌리티의 로직을 정의합니다. 언제 발동하고, 무엇을 하는지 결정합니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-orange">애니메이션</span> AnimMontage</h3>
+      <p>어빌리티가 재생하는 애니메이션입니다. Notify를 배치할 수 있습니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-green">구간</span> AnimNotifyState</h3>
+      <p>몽타주의 특정 <strong>구간</strong>에 배치하여 상태를 활성화합니다. (무기 충돌, 콤보 입력 등)</p>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-red">시점</span> AnimNotify</h3>
+      <p>몽타주의 특정 <strong>시점</strong>에 이벤트를 발생시킵니다. (투사체 발사 등)</p>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-purple">수치</span> GameplayEffect</h3>
+      <p>데미지, 버프, 디버프 등의 수치 변경을 담당합니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="badge badge-cyan">데이터</span> AbilitySet</h3>
+      <p>캐릭터에 부여할 어빌리티/이펙트 목록을 정의하는 데이터 에셋입니다.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION: Workflow -->
+<!-- ============================================ -->
+<div class="section">
+  <h2 class="section-title">작업 흐름</h2>
+  <div class="flow">
+    <div class="flow-step">
+      <span class="step-num">1</span>
+      <span class="step-label">AnimMontage 준비</span>
+      <span class="step-desc">애니메이션 에셋</span>
+    </div>
+    <span class="flow-arrow">&#10132;</span>
+    <div class="flow-step">
+      <span class="step-num">2</span>
+      <span class="step-label">Notify 배치</span>
+      <span class="step-desc">타이밍 설정</span>
+    </div>
+    <span class="flow-arrow">&#10132;</span>
+    <div class="flow-step">
+      <span class="step-num">3</span>
+      <span class="step-label">Ability BP 생성</span>
+      <span class="step-desc">로직 설정</span>
+    </div>
+    <span class="flow-arrow">&#10132;</span>
+    <div class="flow-step">
+      <span class="step-num">4</span>
+      <span class="step-label">AbilitySet에 등록</span>
+      <span class="step-desc">캐릭터에 부여</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION: Common Settings -->
+<!-- ============================================ -->
+<div class="section">
+  <h2 class="section-title">어빌리티 공통 설정</h2>
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <table class="prop-table">
+      <thead>
+        <tr><th>속성</th><th>타입</th><th>설명</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>ActivationPolicy</code></td>
+          <td>Enum</td>
+          <td>
+            <strong>OnInputTriggered</strong> &mdash; 버튼 누르면 발동<br>
+            <strong>OnInputStarted</strong> &mdash; 입력 시작 시 발동<br>
+            <strong>OnGiven</strong> &mdash; 부여 즉시 자동 발동
+          </td>
+        </tr>
+        <tr>
+          <td><code>ActivationInputTag</code></td>
+          <td>GameplayTag</td>
+          <td>
+            <code>Input.Attack</code> <code>Input.Skill</code> <code>Input.Dodge</code>
+            <code>Input.Guard</code> <code>Input.Jump</code> <code>Input.LockOn</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>AbilityIcon</code></td>
+          <td>Texture2D</td>
+          <td>UI에 표시될 아이콘</td>
+        </tr>
+        <tr>
+          <td><code>CooldownDuration</code></td>
+          <td>float</td>
+          <td>쿨다운 시간(초). <code>0</code>이면 쿨다운 없음</td>
+        </tr>
+        <tr>
+          <td><code>CooldownTag</code></td>
+          <td>GameplayTag</td>
+          <td>쿨다운 중임을 나타내는 태그</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION: AnimNotifyState -->
+<!-- ============================================ -->
+<div class="section">
+  <h2 class="section-title">AnimNotifyState &mdash; 몽타주 구간 이벤트</h2>
+  <p style="color: var(--text-dim); margin-bottom: 20px;">몽타주 타임라인에 드래그하여 <strong>구간</strong>을 지정합니다. 해당 구간 동안 상태가 활성화됩니다.</p>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-color" style="background: linear-gradient(90deg, #6c8aff, #818cf8);"></div> RotateToTarget</div>
+    <div class="legend-item"><div class="legend-color" style="background: linear-gradient(90deg, #f87171, #fb923c);"></div> WeaponCollision</div>
+    <div class="legend-item"><div class="legend-color" style="background: linear-gradient(90deg, #34d399, #6ee7b7);"></div> ComboWindow</div>
+    <div class="legend-item"><div class="legend-color" style="background: linear-gradient(90deg, #22d3ee, #67e8f9);"></div> Invincible</div>
+    <div class="legend-item"><div class="legend-color" style="background: linear-gradient(90deg, #a78bfa, #c4b5fd);"></div> Guard</div>
+    <div class="legend-item"><div class="legend-color" style="background: var(--yellow); width: 14px; height: 14px; border-radius: 50%;"></div> SpawnProjectile (시점)</div>
+  </div>
+
+  <div class="notify-grid">
+    <div class="notify-card">
+      <h4><span class="color-dot" style="background: #f87171;"></span> WeaponCollision</h4>
+      <p style="color: var(--text-dim); font-size: 0.88em;">무기의 데미지 판정을 활성화합니다. 이 구간 동안만 무기가 적에게 데미지를 줍니다.</p>
+      <div class="tip tip-warn" style="margin-top: 12px;">
+        <span class="tip-icon">&#9888;</span>
+        <span>구간이 너무 넓으면 부자연스러운 판정이 발생합니다. 실제 스윙 프레임에 정확히 맞추세요.</span>
+      </div>
+    </div>
+    <div class="notify-card">
+      <h4><span class="color-dot" style="background: #34d399;"></span> ComboWindow</h4>
+      <p style="color: var(--text-dim); font-size: 0.88em;">콤보 입력을 받는 구간입니다. 이 구간에서 공격 입력 시 다음 콤보로 이어집니다.</p>
+      <div class="tip" style="margin-top: 12px;">
+        <span class="tip-icon">&#128161;</span>
+        <span>WeaponCollision과 약간 겹치면 공격 중에도 콤보 입력이 가능해져 반응성이 좋아집니다.</span>
+      </div>
+    </div>
+    <div class="notify-card">
+      <h4><span class="color-dot" style="background: #22d3ee;"></span> Invincible</h4>
+      <p style="color: var(--text-dim); font-size: 0.88em;">무적 상태를 부여합니다. 회피의 핵심 이동 구간이나 스킬 선딜에 사용합니다.</p>
+    </div>
+    <div class="notify-card">
+      <h4><span class="color-dot" style="background: #a78bfa;"></span> Guard</h4>
+      <p style="color: var(--text-dim); font-size: 0.88em;">가드 상태를 활성화합니다. 피격 시 가드 전용 HitReact가 발동됩니다.</p>
+    </div>
+    <div class="notify-card">
+      <h4><span class="color-dot" style="background: #6c8aff;"></span> RotateToTarget</h4>
+      <p style="color: var(--text-dim); font-size: 0.88em;">캐릭터를 타겟 방향으로 회전시킵니다. 공격/스킬 시작 구간에 배치합니다.</p>
+      <div class="tip" style="margin-top: 12px;">
+        <span class="tip-icon">&#128161;</span>
+        <span>WeaponCollision 시작 전에 끝나도록 배치하면 자연스럽습니다.</span>
+      </div>
+    </div>
+    <div class="notify-card">
+      <h4><span class="color-dot" style="background: var(--yellow); width: 12px; height: 12px; border-radius: 50%;"></span> SpawnProjectile <span class="badge badge-red" style="font-size: 0.7em;">AnimNotify</span></h4>
+      <p style="color: var(--text-dim); font-size: 0.88em;">특정 시점에 투사체를 생성합니다. 구간이 아닌 <strong>단일 시점</strong>에 배치합니다.</p>
+      <table class="prop-table" style="margin-top: 12px;">
+        <tr><td><code>ProjectileClass</code></td><td>생성할 투사체 BP 클래스</td></tr>
+        <tr><td><code>SpawnSocketName</code></td><td>투사체가 생성될 소켓 (예: <code>Muzzle_R</code>)</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION: Ability Types -->
+<!-- ============================================ -->
+<div class="section">
+  <h2 class="section-title">어빌리티 종류별 제작</h2>
+
+  <!-- Attack -->
+  <div class="ability-card">
+    <div class="ability-card-header">
+      <div class="ability-icon" style="background: linear-gradient(135deg, #f8717130, #fb923c30); border: 1px solid #f8717150;">&#9876;</div>
+      <div>
+        <h3>공격 <span class="badge badge-orange">WxAbility_Attack</span></h3>
+        <p>콤보 공격. 입력을 연속으로 누르면 다음 콤보로 연결됩니다.</p>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <h4>BP 설정 속성</h4>
+      <table class="prop-table">
+        <tr><td><code>ComboMontages</code></td><td>AnimMontage 배열</td><td>콤보 순서대로 재생할 몽타주 목록</td></tr>
+      </table>
+    </div>
+
+    <div class="sub-section">
+      <h4>몽타주 Notify 배치 패턴</h4>
+      <div class="timeline-container" style="margin-top: 8px;">
+        <div class="timeline-title">콤보 1단 (중간 콤보)</div>
+        <div class="timeline">
+          <div class="timeline-track">
+            <div class="timeline-label">RotateToTarget</div>
+            <div class="timeline-bar-area">
+              <div class="timeline-bar bar-rotate" style="left: 0%; width: 25%;">회전</div>
+            </div>
+          </div>
+          <div class="timeline-track">
+            <div class="timeline-label">WeaponCollision</div>
+            <div class="timeline-bar-area">
+              <div class="timeline-bar bar-weapon" style="left: 20%; width: 30%;">데미지</div>
+            </div>
+          </div>
+          <div class="timeline-track">
+            <div class="timeline-label">ComboWindow</div>
+            <div class="timeline-bar-area">
+              <div class="timeline-bar bar-combo" style="left: 40%; width: 50%;">콤보 입력 대기</div>
+            </div>
+          </div>
+        </div>
+        <div class="timeline-ruler">
+          <span style="left: 0%;">0.0s</span>
+          <span style="left: 25%;">0.25s</span>
+          <span style="left: 50%;">0.5s</span>
+          <span style="left: 75%;">0.75s</span>
+          <span style="left: 100%;">1.0s</span>
+        </div>
+      </div>
+      <div class="timeline-container">
+        <div class="timeline-title">콤보 마지막 단 (ComboWindow 없음)</div>
+        <div class="timeline">
+          <div class="timeline-track">
+            <div class="timeline-label">RotateToTarget</div>
+            <div class="timeline-bar-area">
+              <div class="timeline-bar bar-rotate" style="left: 0%; width: 25%;">회전</div>
+            </div>
+          </div>
+          <div class="timeline-track">
+            <div class="timeline-label">WeaponCollision</div>
+            <div class="timeline-bar-area">
+              <div class="timeline-bar bar-weapon" style="left: 25%; width: 35%;">데미지</div>
+            </div>
+          </div>
+        </div>
+        <div class="timeline-ruler">
+          <span style="left: 0%;">0.0s</span>
+          <span style="left: 25%;">0.3s</span>
+          <span style="left: 50%;">0.6s</span>
+          <span style="left: 75%;">0.9s</span>
+          <span style="left: 100%;">1.2s</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <h4>설정 예시: 대검 3단 콤보</h4>
+      <div class="example-box">
+        <div class="example-tree">
+          <strong style="color: var(--orange);">BP_Ability_GreatswordCombo</strong> <span class="key">(Parent: WxAbility_Attack)</span><br>
+          &nbsp;&nbsp;├── <span class="key">ActivationPolicy:</span> <span class="val-blue">OnInputTriggered</span><br>
+          &nbsp;&nbsp;├── <span class="key">ActivationInputTag:</span> <span class="val-blue">Input.Attack</span><br>
+          &nbsp;&nbsp;├── <span class="key">AbilityIcon:</span> <span class="val">T_Icon_Greatsword</span><br>
+          &nbsp;&nbsp;└── <span class="key">ComboMontages:</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="key">[0]</span> <span class="val-orange">AM_Greatsword_Slash1</span> <span class="key">← 횡베기</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="key">[1]</span> <span class="val-orange">AM_Greatsword_Slash2</span> <span class="key">← 올려베기</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="key">[2]</span> <span class="val-orange">AM_Greatsword_Slash3</span> <span class="key">← 내려찍기</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Skill -->
+  <div class="ability-card">
+    <div class="ability-card-header">
+      <div class="ability-icon" style="background: linear-gradient(135deg, #a78bfa30, #6c8aff30); border: 1px solid #a78bfa50;">&#10038;</div>
+      <div>
+        <h3>스킬 <span class="badge badge-purple">WxAbility_Skill</span></h3>
+        <p>단일 몽타주를 재생하는 스킬. 근접/원거리 모두 가능합니다.</p>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <h4>BP 설정 속성</h4>
+      <table class="prop-table">
+        <tr><td><code>SkillMontage</code></td><td>AnimMontage</td><td>스킬 재생 시 사용할 몽타주</td></tr>
+      </table>
+    </div>
+
+    <div class="sub-section">
+      <h4>몽타주 패턴</h4>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="timeline-container">
+          <div class="timeline-title">근접 스킬</div>
+          <div class="timeline">
+            <div class="timeline-track">
+              <div class="timeline-label">RotateToTarget</div>
+              <div class="timeline-bar-area">
+                <div class="timeline-bar bar-rotate" style="left: 0%; width: 20%;">회전</div>
+              </div>
+            </div>
+            <div class="timeline-track">
+              <div class="timeline-label">Invincible</div>
+              <div class="timeline-bar-area">
+                <div class="timeline-bar bar-invincible" style="left: 8%; width: 20%;">무적</div>
+              </div>
+            </div>
+            <div class="timeline-track">
+              <div class="timeline-label">WeaponCollision</div>
+              <div class="timeline-bar-area">
+                <div class="timeline-bar bar-weapon" style="left: 30%; width: 30%;">데미지</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="timeline-container">
+          <div class="timeline-title">원거리 스킬</div>
+          <div class="timeline">
+            <div class="timeline-track">
+              <div class="timeline-label">RotateToTarget</div>
+              <div class="timeline-bar-area">
+                <div class="timeline-bar bar-rotate" style="left: 0%; width: 25%;">회전</div>
+              </div>
+            </div>
+            <div class="timeline-track">
+              <div class="timeline-label">SpawnProjectile</div>
+              <div class="timeline-bar-area">
+                <div class="timeline-bar bar-spawn" style="left: 42%;"></div>
+                <span style="position: absolute; left: 46%; top: 50%; transform: translateY(-50%); font-size: 0.75em; color: var(--yellow);">&#9668; 발사</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <h4>설정 예시: 파이어볼</h4>
+      <div class="example-box">
+        <div class="example-tree">
+          <strong style="color: var(--accent2);">BP_Ability_Fireball</strong> <span class="key">(Parent: WxAbility_Skill)</span><br>
+          &nbsp;&nbsp;├── <span class="key">ActivationPolicy:</span> <span class="val-blue">OnInputTriggered</span><br>
+          &nbsp;&nbsp;├── <span class="key">ActivationInputTag:</span> <span class="val-blue">Input.Skill</span><br>
+          &nbsp;&nbsp;├── <span class="key">AbilityIcon:</span> <span class="val">T_Icon_Fireball</span><br>
+          &nbsp;&nbsp;├── <span class="key">CooldownDuration:</span> <span class="val-orange">5.0</span><br>
+          &nbsp;&nbsp;├── <span class="key">CooldownTag:</span> <span class="val-blue">Ability.Skill.Fireball.Cooldown</span><br>
+          &nbsp;&nbsp;└── <span class="key">SkillMontage:</span> <span class="val-orange">AM_Cast_Fireball</span>
+        </div>
+        <hr style="margin: 16px 0; border-color: var(--border);">
+        <div class="example-tree">
+          <span class="key">몽타주 내 SpawnProjectile 설정:</span><br>
+          &nbsp;&nbsp;├── <span class="key">ProjectileClass:</span> <span class="val">BP_Projectile_Fireball</span><br>
+          &nbsp;&nbsp;└── <span class="key">SpawnSocketName:</span> <span class="val">Muzzle_R</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dodge -->
+  <div class="ability-card">
+    <div class="ability-card-header">
+      <div class="ability-icon" style="background: linear-gradient(135deg, #22d3ee30, #34d39930); border: 1px solid #22d3ee50;">&#10150;</div>
+      <div>
+        <h3>회피 <span class="badge badge-cyan">WxAbility_Dodge</span></h3>
+        <p>회피 동작을 수행합니다. 무적 구간을 포함할 수 있습니다.</p>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <h4>BP 설정 속성</h4>
+      <table class="prop-table">
+        <tr><td><code>DodgeMontage</code></td><td>AnimMontage</td><td>회피 시 재생할 몽타주</td></tr>
+      </table>
+    </div>
+
+    <div class="sub-section">
+      <h4>몽타주 패턴</h4>
+      <div class="timeline-container">
+        <div class="timeline">
+          <div class="timeline-track">
+            <div class="timeline-label">Invincible</div>
+            <div class="timeline-bar-area">
+              <div class="timeline-bar bar-invincible" style="left: 5%; width: 45%;">무적 구간</div>
+            </div>
+          </div>
+        </div>
+        <div class="timeline-ruler">
+          <span style="left: 0%;">0.0s</span>
+          <span style="left: 50%;">0.4s</span>
+          <span style="left: 100%;">0.8s</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <h4>설정 예시</h4>
+      <div class="example-box">
+        <div class="example-tree">
+          <strong style="color: var(--cyan);">BP_Ability_DodgeRoll</strong> <span class="key">(Parent: WxAbility_Dodge)</span><br>
+          &nbsp;&nbsp;├── <span class="key">ActivationPolicy:</span> <span class="val-blue">OnInputTriggered</span><br>
+          &nbsp;&nbsp;├── <span class="key">ActivationInputTag:</span> <span class="val-blue">Input.Dodge</span><br>
+          &nbsp;&nbsp;├── <span class="key">CooldownDuration:</span> <span class="val-orange">0.5</span><br>
+          &nbsp;&nbsp;├── <span class="key">CooldownTag:</span> <span class="val-blue">Ability.Dodge.Cooldown</span><br>
+          &nbsp;&nbsp;└── <span class="key">DodgeMontage:</span> <span class="val-orange">AM_Dodge_Roll</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Guard -->
+  <div class="ability-card">
+    <div class="ability-card-header">
+      <div class="ability-icon" style="background: linear-gradient(135deg, #a78bfa30, #c4b5fd30); border: 1px solid #a78bfa50;">&#128737;</div>
+      <div>
+        <h3>가드 <span class="badge badge-purple">WxAbility_Guard</span></h3>
+        <p>방어 자세를 취합니다. 가드 중 피격 시 가드 전용 HitReact가 발동됩니다.</p>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <h4>BP 설정 속성</h4>
+      <table class="prop-table">
+        <tr><td><code>GuardMontage</code></td><td>AnimMontage</td><td>가드 시 재생할 몽타주</td></tr>
+      </table>
+    </div>
+
+    <div class="sub-section">
+      <h4>몽타주 패턴</h4>
+      <div class="timeline-container">
+        <div class="timeline">
+          <div class="timeline-track">
+            <div class="timeline-label">Guard</div>
+            <div class="timeline-bar-area">
+              <div class="timeline-bar bar-guard" style="left: 0%; width: 100%;">가드 상태 유지</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <h4>설정 예시</h4>
+      <div class="example-box">
+        <div class="example-tree">
+          <strong style="color: var(--accent2);">BP_Ability_ShieldGuard</strong> <span class="key">(Parent: WxAbility_Guard)</span><br>
+          &nbsp;&nbsp;├── <span class="key">ActivationPolicy:</span> <span class="val-blue">OnInputStarted</span><br>
+          &nbsp;&nbsp;├── <span class="key">ActivationInputTag:</span> <span class="val-blue">Input.Guard</span><br>
+          &nbsp;&nbsp;└── <span class="key">GuardMontage:</span> <span class="val-orange">AM_Guard_Shield</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HitReact -->
+  <div class="ability-card">
+    <div class="ability-card-header">
+      <div class="ability-icon" style="background: linear-gradient(135deg, #f8717130, #f472b630); border: 1px solid #f8717150;">&#128165;</div>
+      <div>
+        <h3>피격 리액션 <span class="badge badge-red">WxAbility_HitReact</span></h3>
+        <p>피격 시 자동 발동. 가드 여부에 따라 다른 몽타주를 재생합니다.</p>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <h4>BP 설정 속성</h4>
+      <table class="prop-table">
+        <tr><td><code>HitReactMontage</code></td><td>AnimMontage</td><td>일반 피격 몽타주</td></tr>
+        <tr><td><code>GuardHitReactMontage</code></td><td>AnimMontage</td><td>가드 중 피격 몽타주</td></tr>
+      </table>
+    </div>
+
+    <div class="sub-section">
+      <h4>설정 예시</h4>
+      <div class="example-box">
+        <div class="example-tree">
+          <strong style="color: var(--red);">BP_Ability_HitReact</strong> <span class="key">(Parent: WxAbility_HitReact)</span><br>
+          &nbsp;&nbsp;├── <span class="key">ActivationPolicy:</span> <span class="val-blue">OnGiven</span> <span class="key">← 자동 발동, 입력 태그 불필요</span><br>
+          &nbsp;&nbsp;├── <span class="key">HitReactMontage:</span> <span class="val-orange">AM_HitReact_Normal</span><br>
+          &nbsp;&nbsp;└── <span class="key">GuardHitReactMontage:</span> <span class="val-orange">AM_HitReact_Guard</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Jump -->
+  <div class="ability-card">
+    <div class="ability-card-header">
+      <div class="ability-icon" style="background: linear-gradient(135deg, #34d39930, #6ee7b730); border: 1px solid #34d39950;">&#8679;</div>
+      <div>
+        <h3>점프 <span class="badge badge-green">WxAbility_Jump</span></h3>
+        <p>캐릭터 점프. 별도 몽타주 설정이 필요 없습니다.</p>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <h4>설정 예시</h4>
+      <div class="example-box">
+        <div class="example-tree">
+          <strong style="color: var(--green);">BP_Ability_Jump</strong> <span class="key">(Parent: WxAbility_Jump)</span><br>
+          &nbsp;&nbsp;├── <span class="key">ActivationPolicy:</span> <span class="val-blue">OnInputStarted</span><br>
+          &nbsp;&nbsp;└── <span class="key">ActivationInputTag:</span> <span class="val-blue">Input.Jump</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LockOn -->
+  <div class="ability-card">
+    <div class="ability-card-header">
+      <div class="ability-icon" style="background: linear-gradient(135deg, #fbbf2430, #fb923c30); border: 1px solid #fbbf2450;">&#9678;</div>
+      <div>
+        <h3>락온 <span class="badge badge-orange">WxAbility_LockOn</span></h3>
+        <p>적에게 카메라를 고정합니다.</p>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <h4>BP 설정 속성</h4>
+      <table class="prop-table">
+        <tr><td><code>TargetingPreset</code></td><td>UTargetingPreset</td><td>타겟 검색 범위/필터 설정</td></tr>
+        <tr><td><code>CameraInterpSpeed</code></td><td>float</td><td>카메라 전환 보간 속도</td></tr>
+        <tr><td><code>MaxPitchOffset</code></td><td>float</td><td>카메라 피치 최대 오프셋</td></tr>
+        <tr><td><code>MaxDistance</code></td><td>float</td><td>락온 유지 최대 거리</td></tr>
+        <tr><td><code>ReticleWidgetClass</code></td><td>TSubclassOf</td><td>락온 레티클 UI 클래스</td></tr>
+      </table>
+    </div>
+
+    <div class="sub-section">
+      <h4>설정 예시</h4>
+      <div class="example-box">
+        <div class="example-tree">
+          <strong style="color: var(--orange);">BP_Ability_LockOn</strong> <span class="key">(Parent: WxAbility_LockOn)</span><br>
+          &nbsp;&nbsp;├── <span class="key">ActivationPolicy:</span> <span class="val-blue">OnInputTriggered</span><br>
+          &nbsp;&nbsp;├── <span class="key">ActivationInputTag:</span> <span class="val-blue">Input.LockOn</span><br>
+          &nbsp;&nbsp;├── <span class="key">TargetingPreset:</span> <span class="val">TP_LockOn_Default</span><br>
+          &nbsp;&nbsp;├── <span class="key">CameraInterpSpeed:</span> <span class="val-orange">5.0</span><br>
+          &nbsp;&nbsp;├── <span class="key">MaxPitchOffset:</span> <span class="val-orange">30.0</span><br>
+          &nbsp;&nbsp;├── <span class="key">MaxDistance:</span> <span class="val-orange">2000.0</span><br>
+          &nbsp;&nbsp;└── <span class="key">ReticleWidgetClass:</span> <span class="val">WBP_LockOnReticle</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION: AbilitySet -->
+<!-- ============================================ -->
+<div class="section">
+  <h2 class="section-title">AbilitySet &mdash; 캐릭터에 어빌리티 부여</h2>
+  <p style="color: var(--text-dim); margin-bottom: 20px;">
+    <code>WxAbilitySet</code>은 어빌리티와 이펙트를 묶어놓은 <strong>데이터 에셋</strong>입니다.
+    콘텐츠 브라우저 &rarr; 우클릭 &rarr; Miscellaneous &rarr; Data Asset &rarr; <code>WxAbilitySet</code> 선택
+  </p>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div class="example-box">
+      <h5 style="color: var(--green);">플레이어용 AbilitySet</h5>
+      <div class="example-tree">
+        <strong style="color: var(--green);">DA_AbilitySet_Player</strong><br>
+        &nbsp;&nbsp;├── <span class="key">GrantedAbilities:</span><br>
+        &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="val">BP_Ability_SwordCombo</span> <span class="key">Lv.1</span><br>
+        &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="val">BP_Ability_Fireball</span> <span class="key">Lv.1</span><br>
+        &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="val">BP_Ability_DodgeRoll</span> <span class="key">Lv.1</span><br>
+        &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="val">BP_Ability_ShieldGuard</span> <span class="key">Lv.1</span><br>
+        &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="val">BP_Ability_Jump</span> <span class="key">Lv.1</span><br>
+        &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="val">BP_Ability_LockOn</span> <span class="key">Lv.1</span><br>
+        &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="val">BP_Ability_HitReact</span> <span class="key">Lv.1</span><br>
+        &nbsp;&nbsp;└── <span class="key">GrantedEffects:</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="val-blue">GE_InitStats</span> <span class="key">Lv.1</span>
+      </div>
+    </div>
+    <div class="example-box">
+      <h5 style="color: var(--red);">적 캐릭터용 AbilitySet</h5>
+      <div class="example-tree">
+        <strong style="color: var(--red);">DA_AbilitySet_Goblin</strong><br>
+        &nbsp;&nbsp;├── <span class="key">GrantedAbilities:</span><br>
+        &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="val">BP_Ability_GoblinAttack</span> <span class="key">Lv.1</span><br>
+        &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="val">BP_Ability_HitReact</span> <span class="key">Lv.1</span><br>
+        &nbsp;&nbsp;└── <span class="key">GrantedEffects:</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="val-blue">GE_InitStats_Goblin</span> <span class="key">Lv.1</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION: Full Examples -->
+<!-- ============================================ -->
+<div class="section">
+  <h2 class="section-title">실전 예제</h2>
+
+  <!-- Example 1 -->
+  <div class="ability-card" style="border-left: 3px solid var(--orange);">
+    <h3 style="margin-bottom: 20px;">예제 1: 대검 3단 콤보</h3>
+
+    <div class="steps">
+      <div class="step-item">
+        <div>
+          <strong>AnimMontage 3개 준비</strong>
+          <span>AM_Greatsword_Combo1 (횡베기), AM_Greatsword_Combo2 (올려베기), AM_Greatsword_Combo3 (내려찍기)</span>
+        </div>
+      </div>
+      <div class="step-item">
+        <div>
+          <strong>각 몽타주에 Notify 배치</strong>
+          <div class="timeline-container" style="margin-top: 8px;">
+            <div class="timeline-title">AM_Greatsword_Combo1 (1.0s)</div>
+            <div class="timeline">
+              <div class="timeline-track">
+                <div class="timeline-label">RotateToTarget</div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 20%;"></div></div>
+              </div>
+              <div class="timeline-track">
+                <div class="timeline-label">WeaponCollision</div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 20%; width: 30%;"></div></div>
+              </div>
+              <div class="timeline-track">
+                <div class="timeline-label">ComboWindow</div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-combo" style="left: 40%; width: 50%;"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-container" style="margin-top: 8px;">
+            <div class="timeline-title">AM_Greatsword_Combo2 (1.0s)</div>
+            <div class="timeline">
+              <div class="timeline-track">
+                <div class="timeline-label">RotateToTarget</div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 15%;"></div></div>
+              </div>
+              <div class="timeline-track">
+                <div class="timeline-label">WeaponCollision</div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 15%; width: 30%;"></div></div>
+              </div>
+              <div class="timeline-track">
+                <div class="timeline-label">ComboWindow</div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-combo" style="left: 35%; width: 50%;"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-container" style="margin-top: 8px;">
+            <div class="timeline-title">AM_Greatsword_Combo3 (1.2s) &mdash; 마지막, ComboWindow 없음</div>
+            <div class="timeline">
+              <div class="timeline-track">
+                <div class="timeline-label">RotateToTarget</div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 25%;"></div></div>
+              </div>
+              <div class="timeline-track">
+                <div class="timeline-label">WeaponCollision</div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 25%; width: 35%;"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div>
+          <strong>Ability BP 생성</strong>
+          <span>WxAbility_Attack을 부모로 BP 생성 → ComboMontages에 3개 몽타주 등록</span>
+        </div>
+      </div>
+      <div class="step-item">
+        <div>
+          <strong>AbilitySet에 등록</strong>
+          <span>DA_AbilitySet_Player의 GrantedAbilities에 추가</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Example 2 -->
+  <div class="ability-card" style="border-left: 3px solid var(--accent2);">
+    <h3 style="margin-bottom: 20px;">예제 2: 아이스볼트 원거리 스킬</h3>
+
+    <div class="steps">
+      <div class="step-item">
+        <div>
+          <strong>투사체 BP 준비</strong>
+          <span>WxProjectileBase를 부모로 BP_Projectile_IceBolt 생성. DamageEffectClass에 GE_Damage_IceBolt 설정</span>
+        </div>
+      </div>
+      <div class="step-item">
+        <div>
+          <strong>AnimMontage에 Notify 배치</strong>
+          <div class="timeline-container" style="margin-top: 8px;">
+            <div class="timeline-title">AM_Cast_IceBolt (1.2s)</div>
+            <div class="timeline">
+              <div class="timeline-track">
+                <div class="timeline-label">RotateToTarget</div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 25%;"></div></div>
+              </div>
+              <div class="timeline-track">
+                <div class="timeline-label">SpawnProjectile</div>
+                <div class="timeline-bar-area">
+                  <div class="timeline-bar bar-spawn" style="left: 42%;"></div>
+                  <span style="position: absolute; left: 46%; top: 50%; transform: translateY(-50%); font-size: 0.75em; color: var(--yellow);">&#9668; 발사</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tip" style="margin-top: 8px;">
+            <span class="tip-icon">&#128161;</span>
+            <span>SpawnProjectile의 ProjectileClass에 <code>BP_Projectile_IceBolt</code>, SpawnSocketName에 <code>Muzzle_R</code> 설정</span>
+          </div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div>
+          <strong>Ability BP 생성</strong>
+          <span>WxAbility_Skill을 부모로 생성. CooldownDuration: 8.0, CooldownTag: Ability.Skill.IceBolt.Cooldown</span>
+        </div>
+      </div>
+      <div class="step-item">
+        <div>
+          <strong>AbilitySet에 등록</strong>
+          <span>DA_AbilitySet_Player의 GrantedAbilities에 추가</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Example 3 -->
+  <div class="ability-card" style="border-left: 3px solid var(--cyan);">
+    <h3 style="margin-bottom: 20px;">예제 3: 무적 돌진 반격 스킬</h3>
+
+    <div class="steps">
+      <div class="step-item">
+        <div>
+          <strong>AnimMontage 준비</strong>
+          <span>AM_Skill_CounterDash (1.5s)</span>
+          <div class="timeline-container" style="margin-top: 8px;">
+            <div class="timeline">
+              <div class="timeline-track">
+                <div class="timeline-label">Invincible</div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-invincible" style="left: 0%; width: 33%;">무적 돌진</div></div>
+              </div>
+              <div class="timeline-track">
+                <div class="timeline-label">RotateToTarget</div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 27%;"></div></div>
+              </div>
+              <div class="timeline-track">
+                <div class="timeline-label">WeaponCollision</div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 33%; width: 20%;">반격</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div>
+          <strong>Ability BP 생성</strong>
+          <span>WxAbility_Skill을 부모로 생성. CooldownDuration: 12.0</span>
+        </div>
+      </div>
+      <div class="step-item">
+        <div>
+          <strong>AbilitySet에 등록</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Example 4 -->
+  <div class="ability-card" style="border-left: 3px solid var(--red);">
+    <h3 style="margin-bottom: 20px;">예제 4: 적(고블린) 기본 공격</h3>
+
+    <div class="steps">
+      <div class="step-item">
+        <div>
+          <strong>AnimMontage 준비</strong>
+          <div class="timeline-container" style="margin-top: 8px;">
+            <div class="timeline-title">AM_Goblin_Attack (0.8s)</div>
+            <div class="timeline">
+              <div class="timeline-track">
+                <div class="timeline-label">RotateToTarget</div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-rotate" style="left: 0%; width: 19%;"></div></div>
+              </div>
+              <div class="timeline-track">
+                <div class="timeline-label">WeaponCollision</div>
+                <div class="timeline-bar-area"><div class="timeline-bar bar-weapon" style="left: 25%; width: 31%;"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div>
+          <strong>Ability BP 생성</strong>
+          <span>WxAbility_Attack을 부모로 생성. ComboMontages에 1개만 등록. ActivationPolicy: <strong>OnGiven</strong> (BT에서 활성화)</span>
+        </div>
+      </div>
+      <div class="step-item">
+        <div>
+          <strong>적 전용 AbilitySet 생성</strong>
+          <span>DA_AbilitySet_Goblin에 BP_Ability_GoblinAttack + BP_Ability_HitReact 등록</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION: Damage Pipeline -->
+<!-- ============================================ -->
+<div class="section">
+  <h2 class="section-title">데미지 파이프라인 (참고)</h2>
+  <div class="flow">
+    <div class="flow-step" style="border-color: var(--orange);">
+      <span class="step-label" style="color: var(--orange);">무기/투사체 충돌</span>
+      <span class="step-desc">WeaponCollision 구간 또는<br>Projectile Overlap</span>
+    </div>
+    <span class="flow-arrow">&#10132;</span>
+    <div class="flow-step" style="border-color: var(--accent2);">
+      <span class="step-label" style="color: var(--accent2);">DamageEffect 적용</span>
+      <span class="step-desc">무기/투사체의<br>DamageEffectClass</span>
+    </div>
+    <span class="flow-arrow">&#10132;</span>
+    <div class="flow-step" style="border-color: var(--accent);">
+      <span class="step-label" style="color: var(--accent);">ExecCalc 계산</span>
+      <span class="step-desc">ATK, DEF 기반<br>최종 데미지 계산</span>
+    </div>
+    <span class="flow-arrow">&#10132;</span>
+    <div class="flow-step" style="border-color: var(--red);">
+      <span class="step-label" style="color: var(--red);">AttributeSet 반영</span>
+      <span class="step-desc">HP 감소<br>HP ≤ 0 → 사망</span>
+    </div>
+  </div>
+  <div class="tip">
+    <span class="tip-icon">&#128161;</span>
+    <span>무기의 <code>DamageEffectClass</code>, 투사체의 <code>DamageEffectClass</code>에 적절한 GameplayEffect를 설정해야 데미지가 적용됩니다.</span>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION: FAQ -->
+<!-- ============================================ -->
+<div class="section">
+  <h2 class="section-title">자주 묻는 질문</h2>
+
+  <details class="faq-item">
+    <summary>무기의 DamageEffectClass는 어디서 설정하나요?</summary>
+    <p>무기 BP(WxWeaponBase 기반)의 <code>DamageEffectClass</code> 속성에 GameplayEffect를 설정합니다. 무기 충돌 시 이 이펙트가 적에게 적용됩니다.</p>
+  </details>
+
+  <details class="faq-item">
+    <summary>새로운 Gameplay Tag가 필요하면 어떻게 하나요?</summary>
+    <p>Gameplay Tag는 C++ 코드에서 선언해야 합니다. 필요한 태그를 프로그래머에게 요청하세요.</p>
+  </details>
+
+  <details class="faq-item">
+    <summary>콤보 공격의 속도를 조절하려면?</summary>
+    <p>AnimMontage의 PlayRate를 조절하거나, 몽타주 에디터에서 애니메이션 속도를 변경합니다. Notify 구간도 함께 조정해야 합니다.</p>
+  </details>
+
+  <details class="faq-item">
+    <summary>하나의 캐릭터에 여러 공격 어빌리티를 넣을 수 있나요?</summary>
+    <p>가능하지만, 같은 ActivationInputTag를 사용하면 충돌합니다. 서로 다른 입력 태그를 사용하거나, 무기 교체 시스템과 연동해야 합니다.</p>
+  </details>
+
+  <details class="faq-item">
+    <summary>적 캐릭터의 어빌리티는 어떻게 발동시키나요?</summary>
+    <p>적 캐릭터는 Behavior Tree에서 어빌리티를 발동합니다. ActivationPolicy를 OnGiven으로 설정하거나, BT Task에서 ASC를 통해 직접 발동할 수 있습니다.</p>
+  </details>
+
+  <details class="faq-item">
+    <summary>쿨다운 태그는 어떤 규칙으로 만드나요?</summary>
+    <p><code>Ability.{종류}.{이름}.Cooldown</code> 형식을 권장합니다. 예: <code>Ability.Skill.Fireball.Cooldown</code></p>
+  </details>
+</div>
+
+<!-- Footer -->
+<div style="text-align: center; padding: 40px 0; color: var(--text-dim); font-size: 0.85em;">
+  Wx Project &mdash; Ability Creation Guide
+</div>
+
+</div>
+</body>
+</html>
