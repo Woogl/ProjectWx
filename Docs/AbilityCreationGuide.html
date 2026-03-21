@@ -582,8 +582,7 @@
           <td>Enum</td>
           <td>
             <strong>OnInputTriggered</strong> &mdash; 버튼 누르면 발동<br>
-            <strong>OnInputStarted</strong> &mdash; 입력 시작 시 발동<br>
-            <strong>OnGiven</strong> &mdash; 부여 즉시 자동 발동
+            <strong>OnGranted</strong> &mdash; 부여 즉시 자동 발동 (패시브, 상시 버프 등)
           </td>
         </tr>
         <tr>
@@ -642,10 +641,6 @@
     <div class="notify-card">
       <h4><span class="color-dot" style="background: #34d399;"></span> ComboWindow</h4>
       <p style="color: var(--text-dim); font-size: 0.88em;">콤보 입력을 받는 구간입니다. 이 구간에서 공격 입력 시 다음 콤보로 이어집니다.</p>
-      <div class="tip" style="margin-top: 12px;">
-        <span class="tip-icon">&#128161;</span>
-        <span>WeaponCollision과 약간 겹치면 공격 중에도 콤보 입력이 가능해져 반응성이 좋아집니다.</span>
-      </div>
     </div>
     <div class="notify-card">
       <h4><span class="color-dot" style="background: #22d3ee;"></span> Invincible</h4>
@@ -658,17 +653,13 @@
     <div class="notify-card">
       <h4><span class="color-dot" style="background: #6c8aff;"></span> RotateToTarget</h4>
       <p style="color: var(--text-dim); font-size: 0.88em;">캐릭터를 타겟 방향으로 회전시킵니다. 공격/스킬 시작 구간에 배치합니다.</p>
-      <div class="tip" style="margin-top: 12px;">
-        <span class="tip-icon">&#128161;</span>
-        <span>WeaponCollision 시작 전에 끝나도록 배치하면 자연스럽습니다.</span>
-      </div>
     </div>
     <div class="notify-card">
       <h4><span class="color-dot" style="background: var(--yellow); width: 12px; height: 12px; border-radius: 50%;"></span> SpawnProjectile <span class="badge badge-red" style="font-size: 0.7em;">AnimNotify</span></h4>
       <p style="color: var(--text-dim); font-size: 0.88em;">특정 시점에 투사체를 생성합니다. 구간이 아닌 <strong>단일 시점</strong>에 배치합니다.</p>
       <table class="prop-table" style="margin-top: 12px;">
         <tr><td><code>ProjectileClass</code></td><td>생성할 투사체 BP 클래스</td></tr>
-        <tr><td><code>SpawnSocketName</code></td><td>투사체가 생성될 소켓 (예: <code>Muzzle_R</code>)</td></tr>
+        <tr><td><code>SpawnSocketName</code></td><td>투사체가 생성될 소켓 (예: <code>hand_r</code>)</td></tr>
       </table>
     </div>
   </div>
@@ -852,7 +843,7 @@
         <div class="example-tree">
           <span class="key">몽타주 내 SpawnProjectile 설정:</span><br>
           &nbsp;&nbsp;├── <span class="key">ProjectileClass:</span> <span class="val">BP_Projectile_Fireball</span><br>
-          &nbsp;&nbsp;└── <span class="key">SpawnSocketName:</span> <span class="val">Muzzle_R</span>
+          &nbsp;&nbsp;└── <span class="key">SpawnSocketName:</span> <span class="val">hand_r</span>
         </div>
       </div>
     </div>
@@ -945,7 +936,7 @@
       <div class="example-box">
         <div class="example-tree">
           <strong style="color: var(--accent2);">BP_Ability_ShieldGuard</strong> <span class="key">(Parent: WxAbility_Guard)</span><br>
-          &nbsp;&nbsp;├── <span class="key">ActivationPolicy:</span> <span class="val-blue">OnInputStarted</span><br>
+          &nbsp;&nbsp;├── <span class="key">ActivationPolicy:</span> <span class="val-blue">OnInputTriggered</span><br>
           &nbsp;&nbsp;├── <span class="key">ActivationInputTag:</span> <span class="val-blue">Input.Guard</span><br>
           &nbsp;&nbsp;└── <span class="key">GuardMontage:</span> <span class="val-orange">AM_Guard_Shield</span>
         </div>
@@ -959,7 +950,7 @@
       <div class="ability-icon" style="background: linear-gradient(135deg, #f8717130, #f472b630); border: 1px solid #f8717150;">&#128165;</div>
       <div>
         <h3>피격 리액션 <span class="badge badge-red">WxAbility_HitReact</span></h3>
-        <p>피격 시 자동 발동. 가드 여부에 따라 다른 몽타주를 재생합니다.</p>
+        <p>피격 시 GameplayEvent로 자동 발동. 가드 여부에 따라 다른 몽타주를 재생합니다.</p>
       </div>
     </div>
 
@@ -976,7 +967,7 @@
       <div class="example-box">
         <div class="example-tree">
           <strong style="color: var(--red);">BP_Ability_HitReact</strong> <span class="key">(Parent: WxAbility_HitReact)</span><br>
-          &nbsp;&nbsp;├── <span class="key">ActivationPolicy:</span> <span class="val-blue">OnGiven</span> <span class="key">← 자동 발동, 입력 태그 불필요</span><br>
+          &nbsp;&nbsp;├── <span class="key">ActivationPolicy:</span> <span class="val-blue">OnInputTriggered</span> <span class="key">← GameplayEvent로 발동 (입력 태그 불필요)</span><br>
           &nbsp;&nbsp;├── <span class="key">HitReactMontage:</span> <span class="val-orange">AM_HitReact_Normal</span><br>
           &nbsp;&nbsp;└── <span class="key">GuardHitReactMontage:</span> <span class="val-orange">AM_HitReact_Guard</span>
         </div>
@@ -999,7 +990,7 @@
       <div class="example-box">
         <div class="example-tree">
           <strong style="color: var(--green);">BP_Ability_Jump</strong> <span class="key">(Parent: WxAbility_Jump)</span><br>
-          &nbsp;&nbsp;├── <span class="key">ActivationPolicy:</span> <span class="val-blue">OnInputStarted</span><br>
+          &nbsp;&nbsp;├── <span class="key">ActivationPolicy:</span> <span class="val-blue">OnInputTriggered</span><br>
           &nbsp;&nbsp;└── <span class="key">ActivationInputTag:</span> <span class="val-blue">Input.Jump</span>
         </div>
       </div>
@@ -1069,8 +1060,7 @@
         &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="val">BP_Ability_LockOn</span> <span class="key">Lv.1</span><br>
         &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="val">BP_Ability_HitReact</span> <span class="key">Lv.1</span><br>
         &nbsp;&nbsp;└── <span class="key">GrantedEffects:</span><br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="val-blue">GE_InitStats</span> <span class="key">Lv.1</span>
-      </div>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="val-blue">GE_InitStats</span>      </div>
     </div>
     <div class="example-box">
       <h5 style="color: var(--red);">적 캐릭터용 AbilitySet</h5>
@@ -1080,8 +1070,7 @@
         &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="val">BP_Ability_GoblinAttack</span> <span class="key">Lv.1</span><br>
         &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="val">BP_Ability_HitReact</span> <span class="key">Lv.1</span><br>
         &nbsp;&nbsp;└── <span class="key">GrantedEffects:</span><br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="val-blue">GE_InitStats_Goblin</span> <span class="key">Lv.1</span>
-      </div>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="val-blue">GE_InitStats_Goblin</span>      </div>
     </div>
   </div>
 </div>
@@ -1200,10 +1189,6 @@
               </div>
             </div>
           </div>
-          <div class="tip" style="margin-top: 8px;">
-            <span class="tip-icon">&#128161;</span>
-            <span>SpawnProjectile의 ProjectileClass에 <code>BP_Projectile_IceBolt</code>, SpawnSocketName에 <code>Muzzle_R</code> 설정</span>
-          </div>
         </div>
       </div>
       <div class="step-item">
@@ -1288,7 +1273,7 @@
       <div class="step-item">
         <div>
           <strong>Ability BP 생성</strong>
-          <span>WxAbility_Attack을 부모로 생성. ComboMontages에 1개만 등록. ActivationPolicy: <strong>OnGiven</strong> (BT에서 활성화)</span>
+          <span>WxAbility_Attack을 부모로 생성. ComboMontages에 1개만 등록. BT Task에서 ASC를 통해 발동</span>
         </div>
       </div>
       <div class="step-item">
@@ -1331,6 +1316,90 @@
     <span class="tip-icon">&#128161;</span>
     <span>무기의 <code>DamageEffectClass</code>, 투사체의 <code>DamageEffectClass</code>에 적절한 GameplayEffect를 설정해야 데미지가 적용됩니다.</span>
   </div>
+
+  <!-- Damage Formula -->
+  <div style="margin-top: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 32px; text-align: center;">
+    <h4 style="color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.85em; margin-bottom: 24px;">데미지 공식</h4>
+
+    <!-- Main formula -->
+    <div style="display: inline-block; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 24px 40px; margin-bottom: 24px;">
+      <div style="display: flex; align-items: center; gap: 12px; font-size: 1.6em; font-weight: 700; font-family: 'Cascadia Code', 'Fira Code', monospace; letter-spacing: 1px;">
+        <span style="color: var(--red);">FinalDamage</span>
+        <span style="color: var(--text-dim);">=</span>
+        <span style="color: var(--orange);">ATK</span>
+        <span style="color: var(--text-dim);">&times;</span>
+        <span style="display: inline-flex; flex-direction: column; align-items: center; gap: 0; line-height: 1.2;">
+          <span style="color: var(--accent); padding: 0 8px;">190</span>
+          <span style="display: block; width: 100%; height: 2px; background: var(--text-dim);"></span>
+          <span style="padding: 0 8px;"><span style="color: var(--text-dim);">190 + </span><span style="color: var(--cyan);">DEF</span></span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Guard modifier -->
+    <div style="display: block; margin-bottom: 20px;">
+      <div style="display: inline-block; background: #a78bfa15; border: 1px solid #a78bfa30; border-radius: 10px; padding: 14px 28px;">
+        <span style="font-size: 0.9em; font-family: 'Cascadia Code', 'Fira Code', monospace;">
+          <span style="color: var(--accent2);">&#128737; 가드 중</span>
+          <span style="color: var(--text-dim);"> &rarr; FinalDamage &times; </span>
+          <span style="color: var(--yellow); font-weight: 700;">0.5</span>
+          <span style="color: var(--text-dim);"> (50% 감소)</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Invincible -->
+    <div style="display: block; margin-bottom: 28px;">
+      <div style="display: inline-block; background: #22d3ee15; border: 1px solid #22d3ee30; border-radius: 10px; padding: 14px 28px;">
+        <span style="font-size: 0.9em; font-family: 'Cascadia Code', 'Fira Code', monospace;">
+          <span style="color: var(--cyan);">&#10024; 무적 상태</span>
+          <span style="color: var(--text-dim);"> &rarr; 데미지 </span>
+          <span style="color: var(--green); font-weight: 700;">0</span>
+          <span style="color: var(--text-dim);"> (완전 무효)</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Example calculations -->
+    <div style="text-align: left; max-width: 600px; margin: 0 auto;">
+      <h4 style="color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.8em; margin-bottom: 14px;">계산 예시</h4>
+      <table class="prop-table" style="margin: 0;">
+        <thead>
+          <tr><th>상황</th><th>ATK</th><th>DEF</th><th>상태</th><th>최종 데미지</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>기본 공격</td>
+            <td><code>100</code></td>
+            <td><code>10</code></td>
+            <td>&mdash;</td>
+            <td style="color: var(--red); font-weight: 600;">95</td>
+          </tr>
+          <tr>
+            <td>높은 방어력</td>
+            <td><code>100</code></td>
+            <td><code>190</code></td>
+            <td>&mdash;</td>
+            <td style="color: var(--red); font-weight: 600;">50</td>
+          </tr>
+          <tr>
+            <td>가드 중 피격</td>
+            <td><code>100</code></td>
+            <td><code>10</code></td>
+            <td><span class="badge badge-purple">가드</span></td>
+            <td style="color: var(--red); font-weight: 600;">47.5</td>
+          </tr>
+          <tr>
+            <td>무적 상태</td>
+            <td><code>100</code></td>
+            <td><code>10</code></td>
+            <td><span class="badge badge-cyan">무적</span></td>
+            <td style="color: var(--green); font-weight: 600;">0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <!-- ============================================ -->
@@ -1361,7 +1430,7 @@
 
   <details class="faq-item">
     <summary>적 캐릭터의 어빌리티는 어떻게 발동시키나요?</summary>
-    <p>적 캐릭터는 Behavior Tree에서 어빌리티를 발동합니다. ActivationPolicy를 OnGiven으로 설정하거나, BT Task에서 ASC를 통해 직접 발동할 수 있습니다.</p>
+    <p>적 캐릭터는 Behavior Tree의 BT Task에서 ASC를 통해 어빌리티를 발동합니다.</p>
   </details>
 
   <details class="faq-item">

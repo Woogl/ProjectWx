@@ -97,7 +97,11 @@
   * Ability Set
   * Attribute Set
   * Ability
+  * Ability Task
   * Effect
+* Animation
+  * AnimNotifyState
+  * AnimNotify
 * Weapon
   * Weapon
   * Projectile
