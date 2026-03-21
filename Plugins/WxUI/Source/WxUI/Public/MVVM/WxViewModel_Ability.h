@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Containers/Ticker.h"
 #include "GameplayTagContainer.h"
 #include "MVVM/WxViewModel.h"
 #include "WxViewModel_Ability.generated.h"
@@ -37,7 +38,7 @@ public:
 	float CooldownPercent = 0.f;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
-	bool bIsOnCooldown = false;
+	bool IsOnCooldown = false;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	TObjectPtr<UTexture2D> Icon = nullptr;
@@ -51,8 +52,8 @@ public:
 	float GetCooldownPercent() const;
 	void SetCooldownPercent(float NewValue);
 
-	bool GetbIsOnCooldown() const;
-	void SetbIsOnCooldown(bool NewValue);
+	bool GetIsOnCooldown() const;
+	void SetIsOnCooldown(bool NewValue);
 
 	UTexture2D* GetIcon() const;
 	void SetIcon(UTexture2D* NewValue);
@@ -62,9 +63,11 @@ protected:
 
 private:
 	void HandleCooldownTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
-	void UpdateCooldownState();
+	bool UpdateCooldownState(float DeltaTime);
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	FGameplayTag BoundCooldownTag;
-	FTimerHandle CooldownTimerHandle;
+	float CooldownEndTime = 0.f;
+	float CachedCooldownDuration = 0.f;
+	FTSTicker::FDelegateHandle TickerHandle;
 };

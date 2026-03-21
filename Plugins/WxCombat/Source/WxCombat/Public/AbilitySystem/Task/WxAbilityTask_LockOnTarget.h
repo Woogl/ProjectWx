@@ -22,7 +22,7 @@ class WXCOMBAT_API UWxAbilityTask_LockOnTarget : public UAbilityTask
 	GENERATED_BODY()
 
 public:
-	static UWxAbilityTask_LockOnTarget* CreateTask(UGameplayAbility* OwningAbility, AActor* InTarget, float InInterpSpeed = 10.f, float InMaxPitchOffset = 20.f, float InMaxDistance = 2000.f, TSubclassOf<UUserWidget> InReticleWidgetClass = nullptr);
+	static UWxAbilityTask_LockOnTarget* CreateTask(UGameplayAbility* OwningAbility, AActor* InTarget, float InInterpSpeed = 10.f, float InMaxDistance = 2000.f, TSubclassOf<UUserWidget> InReticleWidgetClass = nullptr);
 
 	UPROPERTY()
 	FWxOnTargetLost OnTargetLost;
@@ -42,8 +42,7 @@ private:
 	void DestroyReticleWidget();
 
 	TWeakObjectPtr<AActor> Target;
-	float InterpSpeed = 10.f;
-	float MaxPitchOffset = 20.f;
+	float InterpSpeed = 8.f;
 	float MaxDistanceSquared = 2000.f * 2000.f;
 	TSubclassOf<UUserWidget> ReticleWidgetClass;
 

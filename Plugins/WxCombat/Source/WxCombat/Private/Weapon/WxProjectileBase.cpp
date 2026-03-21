@@ -6,7 +6,8 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
-#include "AbilitySystemComponent.h"
+#include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "WxCollisionChannels.h"
 
 AWxProjectileBase::AWxProjectileBase()
@@ -43,9 +44,19 @@ void AWxProjectileBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator())))
+	{
+		if (AActor* LockOnTarget = WxASC->GetLockOnTarget())
+		{
+			const FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), LockOnTarget->GetActorLocation());
+			SetActorRotation(LookAtRotation);
+			ProjectileMovement->Velocity = LookAtRotation.Vector() * ProjectileMovement->InitialSpeed;
+		}
+	}
+
 	if (DamageEffectClass)
 	{
-		if (UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner()))
+		if (UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator()))
 		{
 			FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
 			Context.AddSourceObject(this);
@@ -57,7 +68,7 @@ void AWxProjectileBase::BeginPlay()
 
 void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!OtherActor || OtherActor == GetOwner())
+	if (!OtherActor || OtherActor == GetOwner() || OtherActor == GetInstigator())
 	{
 		return;
 	}

@@ -3,7 +3,6 @@
 #include "MVVM/WxViewModel_Ability.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
-#include "TimerManager.h"
 
 void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility)
 {
@@ -35,11 +34,12 @@ void UWxViewModel_Ability::Deinitialize()
 			ASC->RegisterGameplayTagEvent(BoundCooldownTag, EGameplayTagEventType::NewOrRemoved)
 				.RemoveAll(this);
 		}
+	}
 
-		if (const UWorld* World = ASC->GetWorld())
-		{
-			World->GetTimerManager().ClearTimer(CooldownTimerHandle);
-		}
+	if (TickerHandle.IsValid())
+	{
+		FTSTicker::GetCoreTicker().RemoveTicker(TickerHandle);
+		TickerHandle.Reset();
 	}
 
 	CachedASC.Reset();
@@ -59,9 +59,6 @@ void UWxViewModel_Ability::HandleCooldownTagChanged(const FGameplayTag CallbackT
 	if (NewCount > 0)
 	{
 		// 쿨다운 시작: ASC의 Active Effect에서 남은 시간과 전체 시간 추출
-		float TimeRemaining = 0.f;
-		float TotalDuration = 0.f;
-
 		FGameplayEffectQuery Query;
 		Query.OwningTagQuery = FGameplayTagQuery::MakeQuery_MatchAnyTags(FGameplayTagContainer(BoundCooldownTag));
 
@@ -70,59 +67,62 @@ void UWxViewModel_Ability::HandleCooldownTagChanged(const FGameplayTag CallbackT
 
 		if (RemainingTimes.Num() > 0)
 		{
-			TimeRemaining = RemainingTimes[0];
-			TotalDuration = Durations[0];
-		}
+			const UWorld* World = ASC->GetWorld();
+			if (!World)
+			{
+				return;
+			}
 
-		SetCooldownDuration(TotalDuration);
-		SetCooldownRemaining(TimeRemaining);
-		SetCooldownPercent(TotalDuration > 0.f ? TimeRemaining / TotalDuration : 0.f);
-		SetbIsOnCooldown(true);
+			CachedCooldownDuration = Durations[0];
+			CooldownEndTime = World->GetTimeSeconds() + RemainingTimes[0];
 
-		// 타이머로 매 프레임 갱신
-		if (const UWorld* World = ASC->GetWorld())
-		{
-			World->GetTimerManager().SetTimer(
-				CooldownTimerHandle,
-				FTimerDelegate::CreateUObject(this, &UWxViewModel_Ability::UpdateCooldownState),
-				0.016f,
-				true
-			);
+			SetCooldownDuration(CachedCooldownDuration);
+			SetCooldownRemaining(RemainingTimes[0]);
+			SetCooldownPercent(CachedCooldownDuration > 0.f ? RemainingTimes[0] / CachedCooldownDuration : 0.f);
+			SetIsOnCooldown(true);
+
+			if (!TickerHandle.IsValid())
+			{
+				TickerHandle = FTSTicker::GetCoreTicker().AddTicker(
+					FTickerDelegate::CreateUObject(this, &UWxViewModel_Ability::UpdateCooldownState)
+				);
+			}
 		}
 	}
 	else
 	{
 		// 쿨다운 종료
-		if (const UWorld* World = ASC->GetWorld())
+		if (TickerHandle.IsValid())
 		{
-			World->GetTimerManager().ClearTimer(CooldownTimerHandle);
+			FTSTicker::GetCoreTicker().RemoveTicker(TickerHandle);
+			TickerHandle.Reset();
 		}
 
 		SetCooldownRemaining(0.f);
 		SetCooldownPercent(0.f);
-		SetbIsOnCooldown(false);
+		SetIsOnCooldown(false);
 	}
 }
 
-void UWxViewModel_Ability::UpdateCooldownState()
+bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
 	if (!ASC)
 	{
-		return;
+		return false;
 	}
 
-	FGameplayEffectQuery Query;
-	Query.OwningTagQuery = FGameplayTagQuery::MakeQuery_MatchAnyTags(FGameplayTagContainer(BoundCooldownTag));
-
-	TArray<float> RemainingTimes = ASC->GetActiveEffectsTimeRemaining(Query);
-	TArray<float> Durations = ASC->GetActiveEffectsDuration(Query);
-
-	if (RemainingTimes.Num() > 0)
+	const UWorld* World = ASC->GetWorld();
+	if (!World)
 	{
-		SetCooldownRemaining(FMath::Max(RemainingTimes[0], 0.f));
-		SetCooldownPercent(Durations[0] > 0.f ? FMath::Max(RemainingTimes[0] / Durations[0], 0.f) : 0.f);
+		return false;
 	}
+
+	const float Remaining = FMath::Max(CooldownEndTime - World->GetTimeSeconds(), 0.f);
+	SetCooldownRemaining(Remaining);
+	SetCooldownPercent(CachedCooldownDuration > 0.f ? Remaining / CachedCooldownDuration : 0.f);
+
+	return true;
 }
 
 float UWxViewModel_Ability::GetCooldownRemaining() const
@@ -155,14 +155,14 @@ void UWxViewModel_Ability::SetCooldownPercent(float NewValue)
 	UE_MVVM_SET_PROPERTY_VALUE(CooldownPercent, NewValue);
 }
 
-bool UWxViewModel_Ability::GetbIsOnCooldown() const
+bool UWxViewModel_Ability::GetIsOnCooldown() const
 {
-	return bIsOnCooldown;
+	return IsOnCooldown;
 }
 
-void UWxViewModel_Ability::SetbIsOnCooldown(bool NewValue)
+void UWxViewModel_Ability::SetIsOnCooldown(bool NewValue)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(bIsOnCooldown, NewValue);
+	UE_MVVM_SET_PROPERTY_VALUE(IsOnCooldown, NewValue);
 }
 
 UTexture2D* UWxViewModel_Ability::GetIcon() const

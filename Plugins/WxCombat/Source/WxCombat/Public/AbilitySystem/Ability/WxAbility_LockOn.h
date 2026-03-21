@@ -38,10 +38,7 @@ protected:
 	TObjectPtr<UTargetingPreset> TargetingPreset;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	float CameraInterpSpeed = 10.f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	float MaxPitchOffset = 20.f;
+	float CameraInterpSpeed = 8.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	float MaxDistance = 2000.f;

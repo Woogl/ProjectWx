@@ -11,6 +11,8 @@
 
 AWxEnemyCharacter::AWxEnemyCharacter()
 {
+	Team = EWxTeam::Enemy;
+
 	AIControllerClass = AWxEnemyController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 

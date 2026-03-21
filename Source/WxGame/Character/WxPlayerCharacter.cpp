@@ -12,10 +12,14 @@
 
 AWxPlayerCharacter::AWxPlayerCharacter()
 {
+	Team = EWxTeam::Player;
+
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength      = 400.f;
 	CameraBoom->bUsePawnControlRotation = true;
+	CameraBoom->bEnableCameraLag     = true;
+	CameraBoom->CameraLagSpeed       = 8.f;
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);

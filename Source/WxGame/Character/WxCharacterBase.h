@@ -6,7 +6,9 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayTagAssetInterface.h"
+#include "GenericTeamAgentInterface.h"
 #include "GameplayEffectTypes.h"
+#include "WxTeamTypes.h"
 #include "WxCharacterBase.generated.h"
 
 class UWxAbilitySystemComponent;
@@ -21,7 +23,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBas
  * ASC를 캐릭터에 직접 소유 (리스폰 시 스탯을 새로 초기화하므로 PlayerState 불필요).
  */
 UCLASS(Abstract)
-class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface
+class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -33,6 +35,11 @@ public:
 
 	// IGameplayTagAssetInterface
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
+
+	// IGenericTeamAgentInterface
+	virtual void SetGenericTeamId(const FGenericTeamId& InTeamId) override;
+	virtual FGenericTeamId GetGenericTeamId() const override;
+	virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
 
 	bool IsAlive() const;
 	AWxWeaponBase* GetEquippedWeapon() const;
@@ -73,6 +80,10 @@ protected:
 	void HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
 	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) override;
+
+	/** 캐릭터의 팀. 같은 팀끼리는 아군, 다른 팀끼리는 적군 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Team")
+	EWxTeam Team = EWxTeam::Player;
 
 	/** 기본 이동 속도 (cm/s). SPD Multiplier의 기준값 */
 	float BaseWalkSpeed = 600.f;

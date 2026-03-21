@@ -3,17 +3,15 @@
 #include "AbilitySystem/Task/WxAbilityTask_LockOnTarget.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "Camera/PlayerCameraManager.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "WxGameplayTags.h"
 
-UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAbility* OwningAbility, AActor* InTarget, float InInterpSpeed, float InMaxPitchOffset, float InMaxDistance, TSubclassOf<UUserWidget> InReticleWidgetClass)
+UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAbility* OwningAbility, AActor* InTarget, float InInterpSpeed, float InMaxDistance, TSubclassOf<UUserWidget> InReticleWidgetClass)
 {
 	UWxAbilityTask_LockOnTarget* Task = NewAbilityTask<UWxAbilityTask_LockOnTarget>(OwningAbility);
 	Task->Target = InTarget;
 	Task->InterpSpeed = InInterpSpeed;
-	Task->MaxPitchOffset = InMaxPitchOffset;
 	Task->MaxDistanceSquared = InMaxDistance * InMaxDistance;
 	Task->ReticleWidgetClass = InReticleWidgetClass;
 	Task->bTickingTask = true;
@@ -66,19 +64,15 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 	}
 
 	APlayerController* PC = Cast<APlayerController>(AvatarPawn->GetController());
-	if (!PC || !PC->PlayerCameraManager)
+	if (!PC)
 	{
 		return;
 	}
 
-	const FVector CameraLocation = PC->PlayerCameraManager->GetCameraLocation();
-	const FRotator DesiredRotation = (TargetLocation - CameraLocation).Rotation();
+	const FRotator DesiredRotation = (TargetLocation - AvatarPawn->GetActorLocation()).Rotation();
 
 	const FRotator CurrentRotation = PC->GetControlRotation();
-	FRotator NewRotation = FMath::RInterpTo(CurrentRotation, DesiredRotation, DeltaTime, InterpSpeed);
-
-	// 피치 제한
-	NewRotation.Pitch = FMath::ClampAngle(NewRotation.Pitch, -MaxPitchOffset, MaxPitchOffset);
+	const FRotator NewRotation = FMath::RInterpTo(CurrentRotation, DesiredRotation, DeltaTime, InterpSpeed);
 
 	PC->SetControlRotation(NewRotation);
 }

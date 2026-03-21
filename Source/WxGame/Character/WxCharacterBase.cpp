@@ -57,6 +57,25 @@ AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const
 	return EquippedWeapon;
 }
 
+void AWxCharacterBase::SetGenericTeamId(const FGenericTeamId& InTeamId)
+{
+	Team = static_cast<EWxTeam>(InTeamId.GetId());
+}
+
+FGenericTeamId AWxCharacterBase::GetGenericTeamId() const
+{
+	return FGenericTeamId(static_cast<uint8>(Team));
+}
+
+ETeamAttitude::Type AWxCharacterBase::GetTeamAttitudeTowards(const AActor& Other) const
+{
+	if (const IGenericTeamAgentInterface* OtherTeamAgent = Cast<IGenericTeamAgentInterface>(&Other))
+	{
+		return GetGenericTeamId() == OtherTeamAgent->GetGenericTeamId() ? ETeamAttitude::Friendly : ETeamAttitude::Hostile;
+	}
+	return ETeamAttitude::Neutral;
+}
+
 bool AWxCharacterBase::IsAlive() const
 {
 	if (const UWxAttributeSet* AttrSet = AbilitySystemComponent->GetSet<UWxAttributeSet>())
