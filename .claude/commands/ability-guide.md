@@ -21,15 +21,16 @@
 - `WxAbility_Guard` — GuardMontage
 - `WxAbility_HitReact` — HitReactMontage, GuardHitReactMontage, AbilityTriggers 발동 방식
 - `WxAbility_Jump` — 점프 로직
-- `WxAbility_LockOn` — TargetingPreset, CameraInterpSpeed, MaxPitchOffset, MaxDistance, ReticleWidgetClass
+- `WxAbility_Sprint` — 달리기 로직
+- `WxAbility_LockOn` — TargetingPreset, CameraInterpSpeed, CameraPitchOffset, MaxDistance, ReticleWidgetClass
 
 **AnimNotifyState / AnimNotify:**
 - `WxAnimNotifyState_WeaponCollision` — 무기 충돌 판정 활성화
 - `WxAnimNotifyState_ComboWindow` — 콤보 입력 수용 구간
 - `WxAnimNotifyState_Invincible` — 무적 상태 부여
 - `WxAnimNotifyState_Guard` — 가드 판정 활성화
-- `WxAnimNotifyState_RotateToTarget` — TargetingPreset
-- `WxAnimNotify_SpawnProjectile` — ProjectileClass, SpawnSocketName (기본값: hand_r)
+- `WxAnimNotifyState_TurnAround` — TargetingPreset
+- `WxAnimNotify_SpawnProjectile` — ProjectileClass, SpawnSocketName
 
 **데이터 에셋:**
 - `WxAbilitySet` — GrantedAbilities, GrantedEffects
@@ -65,15 +66,15 @@
    - BP 설정 속성 테이블 (코드에서 읽은 실제 EditDefaultsOnly 속성)
    - 몽타주 Notify 배치 패턴 (타임라인 바 시각화)
    - 설정 예시 (트리 구조)
+   - 접이식
 7. **AbilitySet 설정** — 플레이어용, 적용 예시
 8. **실전 예제** — 최소 4가지 (근접 콤보, 원거리 스킬, 회피+반격, 적 공격)
 9. **데미지 파이프라인** — 플로우 다이어그램 + 실제 코드에서 읽은 데미지 공식 + 계산 예시 테이블
-10. **FAQ** — 접이식
+10. **FAQ**
 
 **주의사항:**
-- ActivationPolicy enum 값은 반드시 코드에서 읽은 실제 값을 사용하라. 존재하지 않는 enum 값을 만들지 마라.
-- HitReact는 AbilityTriggers + GameplayEvent로 발동된다. ActivationPolicy와 무관하다.
-- 적 캐릭터 공격은 BT Task에서 ASC를 통해 발동한다.
+- 아직 구현 안된 시스템을 추가하거나 추측하지 말 것.
+- 코드 상에 존재하지 않는 변수 이름이나 enum 등을 만들지 말 것.
 
 ### 4단계: 기존 파일 비교
 
