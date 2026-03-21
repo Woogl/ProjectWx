@@ -676,7 +676,7 @@
     </div>
     <div class="notify-card">
       <h4><span class="color-dot" style="background: linear-gradient(90deg, #f87171, #fb923c); width: 24px; height: 12px; border-radius: 4px;"></span> WeaponCollision</h4>
-      <p style="color: var(--text-dim); font-size: 0.88em;">무기의 데미지 판정을 활성화합니다. 이 구간 동안만 무기가 적에게 데미지를 줍니다.</p>
+      <p style="color: var(--text-dim); font-size: 0.88em;">무기의 데미지 판정을 활성화합니다.<br>이 구간 동안만 무기가 적에게 데미지를 줍니다.</p>
       <div class="tip" style="margin-top: 8px;">
         <span class="tip-icon">💡</span>
         <span>구간이 너무 넓으면 부자연스러운 판정이 발생합니다. 실제 스윙 프레임에 정확히 맞추세요.</span>
@@ -684,7 +684,7 @@
     </div>
     <div class="notify-card">
       <h4><span class="color-dot" style="background: linear-gradient(90deg, #34d399, #6ee7b7); width: 24px; height: 12px; border-radius: 4px;"></span> ComboWindow</h4>
-      <p style="color: var(--text-dim); font-size: 0.88em;">콤보 입력을 받는 구간입니다. 이 구간에서 공격 입력 시 다음 콤보로 이어집니다.</p>
+      <p style="color: var(--text-dim); font-size: 0.88em;">콤보 입력을 받는 구간입니다.<br>이 구간에서 공격 입력 시 다음 콤보로 이어집니다.</p>
       <div class="tip" style="margin-top: 8px;">
         <span class="tip-icon">💡</span>
         <span>현재 WxAbility_Attack에서만 사용 가능합니다.</span>
@@ -902,7 +902,7 @@
       <div class="ability-icon" style="background: linear-gradient(135deg, #22d3ee30, #34d39930); border: 1px solid #22d3ee50;">&#10150;</div>
       <div>
         <h3>회피 <span class="badge badge-cyan">WxAbility_Dodge</span></h3>
-        <p>회피 동작을 수행합니다. 이동 입력 방향으로 부드럽게 회전하며 무적 구간을 포함할 수 있습니다.</p>
+        <p>회피 동작을 수행합니다.<br>이동 입력 방향으로 부드럽게 회전하며, 무적 구간을 포함할 수 있습니다.</p>
       </div>
     </div>
 
@@ -954,7 +954,7 @@
       <div class="ability-icon" style="background: linear-gradient(135deg, #a78bfa30, #c4b5fd30); border: 1px solid #a78bfa50;">&#128737;</div>
       <div>
         <h3>가드 <span class="badge badge-purple">WxAbility_Guard</span></h3>
-        <p>방어 자세를 취합니다. 가드 중 피격 시 가드 전용 HitReact가 발동됩니다.</p>
+        <p>버튼을 누르고 있는 동안 방어 자세를 유지하는 홀드 방식 어빌리티입니다.<br>버튼을 놓으면 해제됩니다. 가드 중 피격 시 가드 전용 HitReact가 발동됩니다.</p>
       </div>
     </div>
 
@@ -999,7 +999,7 @@
       <div class="ability-icon" style="background: linear-gradient(135deg, #f8717130, #f472b630); border: 1px solid #f8717150;">&#128165;</div>
       <div>
         <h3>피격 리액션 <span class="badge badge-red">WxAbility_HitReact</span></h3>
-        <p>피격 시 GameplayEvent로 자동 발동. 가드 여부에 따라 다른 몽타주를 재생합니다. 가드 피격 시 BlendOut 타이밍에 종료되어 Guard로 자연스럽게 복귀합니다.</p>
+        <p>피격 시 GameplayEvent로 자동 발동됩니다.<br>가드 여부에 따라 다른 몽타주를 재생하며, 가드 피격 시 BlendOut 타이밍에 종료되어 Guard로 자연스럽게 복귀합니다.</p>
       </div>
     </div>
 
@@ -1053,7 +1053,7 @@
       <div class="ability-icon" style="background: linear-gradient(135deg, #fbbf2430, #34d39930); border: 1px solid #fbbf2450;">&#9889;</div>
       <div>
         <h3>달리기 <span class="badge badge-green">WxAbility_Sprint</span></h3>
-        <p>입력을 누르고 있는 동안 이동 속도를 증가시킵니다. 별도 몽타주 불필요.</p>
+        <p>버튼을 누르고 있는 동안 이동 속도를 증가시키는 홀드 방식 어빌리티입니다.<br>버튼을 놓으면 원래 속도로 돌아갑니다. 별도 몽타주 불필요.</p>
       </div>
     </div>
 
@@ -1077,10 +1077,6 @@
       </div>
     </div>
 
-    <div class="tip">
-      <span class="tip-icon">&#128161;</span>
-      <span>홀드 방식 어빌리티입니다. 버튼을 누르면 SPD가 증가하고, 놓으면 원래대로 돌아갑니다.</span>
-    </div>
   </div>
 
   <!-- LockOn -->
@@ -1089,7 +1085,7 @@
       <div class="ability-icon" style="background: linear-gradient(135deg, #fbbf2430, #fb923c30); border: 1px solid #fbbf2450;">&#9678;</div>
       <div>
         <h3>락온 <span class="badge badge-orange">WxAbility_LockOn</span></h3>
-        <p>적에게 카메라를 고정합니다.</p>
+        <p>적에게 카메라를 고정하는 토글 방식 어빌리티입니다.<br>재입력하거나 대상이 사라지면 자동으로 해제됩니다.</p>
       </div>
     </div>
 
@@ -1539,7 +1535,7 @@
 
   <details class="faq-item" open>
     <summary>DamageEffectClass는 어디서 설정하나요?</summary>
-    <p>무기 BP(<code>WxWeaponBase</code> 기반)와 투사체 BP(<code>WxProjectileBase</code> 기반) 모두 <code>DamageEffectClass</code> 속성을 가지고 있습니다. 여기에 적절한 GameplayEffect를 설정해야 데미지가 적용됩니다.</p>
+    <p>무기 BP(<code>WxWeaponBase</code> 기반)와 투사체 BP(<code>WxProjectileBase</code> 기반) 모두 <code>DamageEffectClass</code> 속성을 가지고 있습니다.<br>여기에 적절한 GameplayEffect를 설정해야 데미지가 적용됩니다.</p>
   </details>
 
   <details class="faq-item" open>
@@ -1549,12 +1545,12 @@
 
   <details class="faq-item" open>
     <summary>콤보 공격의 속도를 조절하려면?</summary>
-    <p>AnimMontage의 PlayRate를 조절하거나, 몽타주 에디터에서 애니메이션 속도를 변경합니다. Notify 구간도 함께 조정해야 합니다.</p>
+    <p>AnimMontage의 PlayRate를 조절하거나, 몽타주 에디터에서 애니메이션 속도를 변경합니다.<br>Notify 구간도 함께 조정해야 합니다.</p>
   </details>
 
   <details class="faq-item" open>
     <summary>하나의 캐릭터에 여러 공격 어빌리티를 넣을 수 있나요?</summary>
-    <p>가능하지만, 같은 ActivationInputTag를 사용하면 충돌합니다. 여러 공격 어빌리티를 넣으려면 서로 다른 입력 태그를 사용해야 합니다.</p>
+    <p>가능하지만, 같은 ActivationInputTag를 사용하면 충돌합니다.<br>여러 공격 어빌리티를 넣으려면 서로 다른 입력 태그를 사용해야 합니다.</p>
   </details>
 
   <details class="faq-item" open>
