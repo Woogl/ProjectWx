@@ -14,7 +14,6 @@
 class UWxAbilitySystemComponent;
 class UWxCombatAttributeSet;
 class AWxWeaponBase;
-class UWxRagdollComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBase*, DeadCharacter);
 
@@ -51,9 +50,6 @@ public:
 	FWxOnDeathSignature OnDeath;
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Ragdoll")
-	TObjectPtr<UWxRagdollComponent> RagdollComponent;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|GAS")
 	TObjectPtr<UWxAbilitySystemComponent> AbilitySystemComponent;
 	

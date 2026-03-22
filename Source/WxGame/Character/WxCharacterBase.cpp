@@ -3,7 +3,6 @@
 #include "Character/WxCharacterBase.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
-#include "Component/WxRagdollComponent.h"
 #include "WxGameplayTags.h"
 #include "Components/CapsuleComponent.h"
 #include "WxCollisionChannels.h"
@@ -21,8 +20,6 @@ AWxCharacterBase::AWxCharacterBase()
 	AbilitySystemComponent->SetIsReplicated(true);
 
 	AttributeSet = CreateDefaultSubobject<UWxCombatAttributeSet>(TEXT("AttributeSet"));
-
-	RagdollComponent = CreateDefaultSubobject<UWxRagdollComponent>(TEXT("RagdollComponent"));
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw   = false;
@@ -179,5 +176,4 @@ void AWxCharacterBase::OnMovementModeChanged(EMovementMode PrevMovementMode, uin
 void AWxCharacterBase::HandleDeath()
 {
 	OnDeath.Broadcast(this);
-	RagdollComponent->EnableRagdoll();
 }

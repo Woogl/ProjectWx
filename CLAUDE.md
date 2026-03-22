@@ -77,8 +77,6 @@
 * Controller
   * Player Controller
   * Enemy Controller
-* Component
-  * Ragdoll Component
 
 ### 공용 기능 (`WxCore`)
 

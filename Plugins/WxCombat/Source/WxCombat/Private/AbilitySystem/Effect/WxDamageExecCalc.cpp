@@ -3,6 +3,7 @@
 #include "AbilitySystem/Effect/WxDamageExecCalc.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
+#include "GameplayEffect.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "WxGameplayTags.h"
 #include "Perception/AISense_Damage.h"
@@ -108,7 +109,7 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
 		float TargetMaxDP = 0.f;
 		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.MaxDPDef, EvalParams, TargetMaxDP);
 
-		if (TargetDP + FinalDamage >= TargetMaxDP)
+		if (TargetMaxDP > 0.f && TargetDP + FinalDamage >= TargetMaxDP)
 		{
 			TargetASC->AddLooseGameplayTag(WxGameplayTags::State_Groggy);
 		}
@@ -116,7 +117,28 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
 
 	// 전투 피격 후처리
 	AActor* TargetActor = TargetASC->GetOwnerActor();
-	AActor* SourceActor = ExecutionParams.GetOwningSpec().GetEffectContext().GetInstigator();
+	AActor* SourceActor = ExecutionParams.GetSourceAbilitySystemComponent()->GetOwnerActor();
+	UAbilitySystemComponent* SourceASC = ExecutionParams.GetSourceAbilitySystemComponent();
+	if (SourceASC)
+	{
+		// 공격자 MP 5 회복
+		static UGameplayEffect* MPRecoveryEffect = nullptr;
+		if (!MPRecoveryEffect)
+		{
+			constexpr float MPRecoveryOnHit = 5.f;
+			MPRecoveryEffect = NewObject<UGameplayEffect>(GetTransientPackage(), FName(TEXT("MPRecoveryOnHit")));
+			MPRecoveryEffect->AddToRoot();
+			MPRecoveryEffect->DurationPolicy = EGameplayEffectDurationType::Instant;
+
+			FGameplayModifierInfo ModInfo;
+			ModInfo.Attribute = UWxCombatAttributeSet::GetMPAttribute();
+			ModInfo.ModifierOp = EGameplayModOp::Additive;
+			ModInfo.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(MPRecoveryOnHit));
+			MPRecoveryEffect->Modifiers.Add(ModInfo);
+		}
+
+		SourceASC->ApplyGameplayEffectToSelf(MPRecoveryEffect, 1.f, SourceASC->MakeEffectContext());
+	}
 	if (TargetActor)
 	{
 		// AI 데미지 감지
@@ -127,7 +149,7 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
     
 		// HitReact 이벤트 발송
 		FGameplayEventData EventData;
-		EventData.Instigator = ExecutionParams.GetOwningSpec().GetEffectContext().GetOriginalInstigator();
+		EventData.Instigator = SourceActor;
 		EventData.Target = TargetActor;
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_HitReact, EventData);
 	}

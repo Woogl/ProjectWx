@@ -65,5 +65,6 @@ protected:
 
 private:
 	void InitializePlayerHealthViewModel(UAbilitySystemComponent* ASC);
+	void InitializePlayerManaViewModel(UAbilitySystemComponent* ASC);
 	void InitializePlayerAbilityViewModels(UAbilitySystemComponent* ASC);
 };
