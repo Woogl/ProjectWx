@@ -76,3 +76,6 @@ DerivedDataCache/*
 
 # Claude
 .claude/**/*.local.json
+
+# IDE
+*.DotSettings.user
