@@ -9,7 +9,7 @@
 /**
  * 데미지 계산 ExecutionCalculation.
  *
- * 공식: FinalDamage = SourceATK * (190 / (190 + TargetDEF))
+ * 공식: FinalDamage = SourceATK * (100 / (100 + TargetDEF))
  * 결과를 대상의 IncomingDamage 메타 어트리뷰트에 전달.
  */
 UCLASS()

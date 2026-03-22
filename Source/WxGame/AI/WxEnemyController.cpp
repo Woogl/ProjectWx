@@ -30,6 +30,15 @@ void AWxEnemyController::PostInitProperties()
 {
 	Super::PostInitProperties();
 
+	if (DamageConfig)
+	{
+		AIPerceptionComponent->ConfigureSense(*DamageConfig);
+	}
+}
+
+void AWxEnemyController::OnPossess(APawn* InPawn)
+{
+	// EditDefaultsOnly 프로퍼티가 디시리얼라이즈된 이후 SenseConfig를 구성
 	if (SightConfig)
 	{
 		SightConfig->SightRadius = SightRadius;
@@ -44,10 +53,7 @@ void AWxEnemyController::PostInitProperties()
 		DamageConfig->SetMaxAge(MemoryLength);
 		AIPerceptionComponent->ConfigureSense(*DamageConfig);
 	}
-}
 
-void AWxEnemyController::OnPossess(APawn* InPawn)
-{
 	Super::OnPossess(InPawn);
 
 	if (AWxEnemyCharacter* Enemy = Cast<AWxEnemyCharacter>(InPawn))

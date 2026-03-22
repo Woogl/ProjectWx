@@ -33,11 +33,6 @@ void UWxAnimNotifyState_TurnAround::NotifyBegin(USkeletalMeshComponent* MeshComp
 	}
 
 	// 락온 대상이 없으면 TargetingSubsystem으로 탐색
-	if (!TargetingPreset)
-	{
-		return;
-	}
-
 	UTargetingSubsystem* TargetingSubsystem = UTargetingSubsystem::Get(Owner->GetWorld());
 	if (!TargetingSubsystem)
 	{

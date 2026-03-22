@@ -2,9 +2,6 @@
 
 #include "Animation/WxAnimNotify_SpawnProjectile.h"
 #include "Weapon/WxProjectileBase.h"
-#include "AbilitySystem/WxAbilitySystemComponent.h"
-#include "AbilitySystemBlueprintLibrary.h"
-#include "GameFramework/ProjectileMovementComponent.h"
 
 void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
@@ -30,21 +27,7 @@ void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAn
 	SpawnParams.Instigator = Cast<APawn>(Owner);
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	AWxProjectileBase* Projectile = Owner->GetWorld()->SpawnActor<AWxProjectileBase>(ProjectileClass, SpawnTransform, SpawnParams);
-	if (Projectile)
-	{
-		if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner)))
-		{
-			if (AActor* LockOnTarget = WxASC->GetLockOnTarget())
-			{
-				UProjectileMovementComponent* ProjMovement = Projectile->FindComponentByClass<UProjectileMovementComponent>();
-				if (ProjMovement)
-				{
-					ProjMovement->HomingTargetComponent = LockOnTarget->GetRootComponent();
-				}
-			}
-		}
-	}
+	Owner->GetWorld()->SpawnActor<AWxProjectileBase>(ProjectileClass, SpawnTransform, SpawnParams);
 }
 
 FString UWxAnimNotify_SpawnProjectile::GetNotifyName_Implementation() const
