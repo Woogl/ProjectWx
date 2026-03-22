@@ -49,5 +49,10 @@ private:
 	UFUNCTION()
 	void HandleMontageCancelled();
 
+	void PlayGroggyMontage();
+	
+	UFUNCTION()
+	void HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
 	FDelegateHandle GroggyTagDelegateHandle;
 };

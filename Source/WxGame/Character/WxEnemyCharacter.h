@@ -33,5 +33,5 @@ protected:
 	TObjectPtr<UBehaviorTree> BehaviorTreeAsset;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|UI")
-	TObjectPtr<UWidgetComponent> HealthBarComponent;
+	TObjectPtr<UWidgetComponent> NameplateComponent;
 };

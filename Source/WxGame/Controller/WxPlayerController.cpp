@@ -4,7 +4,7 @@
 #include "Character/WxCharacterBase.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "MVVMGameSubsystem.h"
-#include "MVVM/WxViewModel_Health.h"
+#include "MVVM/WxViewModel_Attribute.h"
 #include "MVVM/WxViewModel_Ability.h"
 #include "AbilitySystem/Ability/WxAbility.h"
 #include "Widget/WxActivatableWidget.h"
@@ -18,7 +18,7 @@ namespace
 	FMVVMViewModelContext GetPlayerHealthViewModelContext()
 	{
 		FMVVMViewModelContext Context;
-		Context.ContextClass = UWxViewModel_Health::StaticClass();
+		Context.ContextClass = UWxViewModel_Attribute::StaticClass();
 		Context.ContextName = FName(TEXT("PlayerHealth"));
 		return Context;
 	}
@@ -122,10 +122,10 @@ void AWxPlayerController::InitializePlayerHealthViewModel(UAbilitySystemComponen
 	UMVVMViewModelCollectionObject* GlobalCollection = MVVMGameSubsystem->GetViewModelCollection();
 	const FMVVMViewModelContext Context = GetPlayerHealthViewModelContext();
 
-	UWxViewModel_Health* ViewModel = Cast<UWxViewModel_Health>(GlobalCollection->FindViewModelInstance(Context));
+	UWxViewModel_Attribute* ViewModel = Cast<UWxViewModel_Attribute>(GlobalCollection->FindViewModelInstance(Context));
 	if (!ViewModel)
 	{
-		ViewModel = NewObject<UWxViewModel_Health>(this);
+		ViewModel = NewObject<UWxViewModel_Attribute>(this);
 		GlobalCollection->AddViewModelInstance(Context, ViewModel);
 	}
 

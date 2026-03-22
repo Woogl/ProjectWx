@@ -5,7 +5,7 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "View/MVVMView.h"
-#include "MVVM/WxViewModel_Health.h"
+#include "MVVM/WxViewModel_Attribute.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 
@@ -22,24 +22,28 @@ AWxEnemyCharacter::AWxEnemyCharacter()
 
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 
-	HealthBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBarComponent"));
-	HealthBarComponent->SetupAttachment(GetRootComponent());
-	HealthBarComponent->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
-	HealthBarComponent->SetWidgetSpace(EWidgetSpace::Screen);
-	HealthBarComponent->SetDrawAtDesiredSize(true);
+	NameplateComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("NameplateComponent"));
+	NameplateComponent->SetupAttachment(GetRootComponent());
+	NameplateComponent->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
+	NameplateComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	NameplateComponent->SetDrawAtDesiredSize(true);
 }
 
 void AWxEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (UUserWidget* HealthBarWidget = HealthBarComponent->GetWidget())
+	if (UUserWidget* NameplateWidget = NameplateComponent->GetWidget())
 	{
-		if (UMVVMView* View = HealthBarWidget->GetExtension<UMVVMView>())
+		if (UMVVMView* View = NameplateWidget->GetExtension<UMVVMView>())
 		{
-			UWxViewModel_Health* ViewModel = NewObject<UWxViewModel_Health>(HealthBarWidget);
-			ViewModel->Initialize(GetAbilitySystemComponent(), UWxCombatAttributeSet::GetHPAttribute(), UWxCombatAttributeSet::GetMaxHPAttribute());
-			View->SetViewModelByClass(ViewModel);
+			UWxViewModel_Attribute* HealthViewModel = NewObject<UWxViewModel_Attribute>(NameplateWidget);
+			HealthViewModel->Initialize(GetAbilitySystemComponent(), UWxCombatAttributeSet::GetHPAttribute(), UWxCombatAttributeSet::GetMaxHPAttribute());
+			View->SetViewModel(TEXT("Health"), HealthViewModel);
+
+			UWxViewModel_Attribute* DazeViewModel = NewObject<UWxViewModel_Attribute>(NameplateWidget);
+			DazeViewModel->Initialize(GetAbilitySystemComponent(), UWxCombatAttributeSet::GetDPAttribute(), UWxCombatAttributeSet::GetMaxDPAttribute());
+			View->SetViewModel(TEXT("Daze"), DazeViewModel);
 		}
 	}
 }
@@ -48,7 +52,6 @@ void AWxEnemyCharacter::HandleDeath()
 {
 	Super::HandleDeath();
 
-	HealthBarComponent->SetVisibility(false);
 }
 
 UBehaviorTree* AWxEnemyCharacter::GetBehaviorTree() const

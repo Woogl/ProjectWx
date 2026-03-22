@@ -38,23 +38,19 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	GroggyTagDelegateHandle = ASC->RegisterGameplayTagEvent(WxGameplayTags::State_Groggy, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &UWxAbility_Groggy::HandleGroggyTagChanged);
 
-	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, GroggyMontage);
-	if (!MontageTask)
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
-	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Groggy::HandleMontageCompleted);
-	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Groggy::HandleMontageBlendOut);
-	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Groggy::HandleMontageInterrupted);
-	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Groggy::HandleMontageCancelled);
-	MontageTask->ReadyForActivation();
+	PlayGroggyMontage();
 }
 
 void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	if (ActorInfo)
+	{
+		if (UAnimInstance* AnimInstance = ActorInfo->GetAnimInstance())
+		{
+			AnimInstance->OnMontageEnded.RemoveDynamic(this, &UWxAbility_Groggy::HandleMontageEnded);
+		}
+	}
+
 	if (GroggyTagDelegateHandle.IsValid() && ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
 	{
 		ActorInfo->AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::State_Groggy, EGameplayTagEventType::NewOrRemoved)
@@ -85,10 +81,52 @@ void UWxAbility_Groggy::HandleMontageBlendOut()
 
 void UWxAbility_Groggy::HandleMontageInterrupted()
 {
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+	// 다른 몽타주(HitReact 등)에 의해 중단된 경우, 해당 몽타주 종료 후 그로기 몽타주 재재생
+	if (CurrentActorInfo && CurrentActorInfo->AbilitySystemComponent.IsValid()
+		&& CurrentActorInfo->AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
+	{
+		if (UAnimInstance* AnimInstance = CurrentActorInfo->GetAnimInstance())
+		{
+			AnimInstance->OnMontageEnded.AddDynamic(this, &UWxAbility_Groggy::HandleMontageEnded);
+		}
+	}
 }
 
 void UWxAbility_Groggy::HandleMontageCancelled()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+}
+
+void UWxAbility_Groggy::HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (CurrentActorInfo)
+	{
+		if (UAnimInstance* AnimInstance = CurrentActorInfo->GetAnimInstance())
+		{
+			AnimInstance->OnMontageEnded.RemoveDynamic(this, &UWxAbility_Groggy::HandleMontageEnded);
+		}
+	}
+
+	if (CurrentActorInfo && CurrentActorInfo->AbilitySystemComponent.IsValid()
+		&& CurrentActorInfo->AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
+	{
+		PlayGroggyMontage();
+	}
+}
+
+void UWxAbility_Groggy::PlayGroggyMontage()
+{
+	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		this, NAME_None, GroggyMontage);
+	if (!MontageTask)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		return;
+	}
+
+	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Groggy::HandleMontageCompleted);
+	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Groggy::HandleMontageBlendOut);
+	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Groggy::HandleMontageInterrupted);
+	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Groggy::HandleMontageCancelled);
+	MontageTask->ReadyForActivation();
 }

@@ -38,11 +38,7 @@
 **데미지 시스템:**
 - `WxDamageExecCalc` — 데미지 공식 확인
 
-### 2단계: Gameplay Tag 확인
-
-`WxGameplayTags.h/cpp`를 읽어 현재 선언된 입력 태그, 어빌리티 태그, ANS 태그 목록을 정리하라.
-
-### 3단계: HTML 문서 생성
+### 2단계: HTML 문서 생성
 
 `Docs/AbilityCreationGuide.html`에 다음 내용을 포함하는 비주얼 HTML 문서를 작성하라.
 
@@ -57,26 +53,27 @@
 
 **포함할 섹션:**
 
-1. **핵심 구성 요소** — WxAbility, AnimMontage, AnimNotifyState, AnimNotify, GameplayEffect, AbilitySet 역할 설명 카드
-2. **작업 흐름** — AnimMontage 준비 → Notify 배치 → Ability BP 생성 → AbilitySet 등록 플로우 다이어그램
-3. **어빌리티 공통 설정** — 코드에서 읽은 실제 ActivationPolicy enum 값과 공통 속성 테이블
-4. **AnimNotifyState 종류** — 각 NotifyState의 역할, 배치 팁, 컬러 범례 포함
-5. **AnimNotify 종류** — SpawnProjectile 설정 속성
-6. **어빌리티 종류별 제작** — 각 어빌리티 타입별:
+1. **제목** — 문서 최상단 제목 바로 아래에 `최근 수정: YYYY-MM-DD` 형식으로 오늘 날짜를 표시하라.
+2. **핵심 구성 요소** — WxAbility, AnimMontage, AnimNotifyState, AnimNotify, GameplayEffect, AbilitySet 역할 설명 카드
+3. **작업 흐름** — AnimMontage 준비 → Notify 배치 → Ability BP 생성 → AbilitySet 등록 플로우 다이어그램
+4. **어빌리티 공통 설정** — 코드에서 읽은 실제 ActivationPolicy enum 값과 공통 속성 테이블
+5. **AnimNotifyState 종류** — 각 NotifyState의 역할, 배치 팁, 컬러 범례 포함
+6. **AnimNotify 종류** — SpawnProjectile 설정 속성
+7. **어빌리티 종류별 제작** — 각 어빌리티 타입별:
    - BP 설정 속성 테이블 (코드에서 읽은 실제 EditDefaultsOnly 속성)
    - 몽타주 Notify 배치 패턴 (타임라인 바 시각화)
    - 설정 예시 (트리 구조)
    - 접이식
-7. **AbilitySet 설정** — 플레이어용, 적용 예시
-8. **실전 예제** — 최소 4가지 (근접 콤보, 원거리 스킬, 회피+반격, 적 공격)
-9. **데미지 파이프라인** — 플로우 다이어그램 + 실제 코드에서 읽은 데미지 공식 + 계산 예시 테이블
-10. **FAQ**
+8. **AbilitySet 설정** — 플레이어용, 적용 예시
+9. **실전 예제** — 최소 4가지 (근접 콤보, 원거리 스킬, 회피+반격, 적 공격)
+10. **데미지 파이프라인** — 플로우 다이어그램 + 실제 코드에서 읽은 데미지 공식 + 계산 예시 테이블
+11. **FAQ**
 
 **주의사항:**
-- 아직 구현 안된 시스템을 추가하거나 추측하지 말 것.
+- 아직 구현되지 않은 시스템을 추가하거나 추측하지 말 것.
 - 코드 상에 존재하지 않는 변수 이름이나 enum 등을 만들지 말 것.
 
-### 4단계: 기존 파일 비교
+### 3단계: 기존 파일 비교
 
 기존 `Docs/AbilityCreationGuide.html`이 있으면 읽어서 참고하되, 코드 분석 결과와 다른 부분은 코드 기준으로 수정하라.
 

@@ -14,6 +14,8 @@ struct FWxDamageStatics
 	DECLARE_ATTRIBUTE_CAPTUREDEF(CritRate);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(CritDMG);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(IncomingDamage);
+	DECLARE_ATTRIBUTE_CAPTUREDEF(DP);
+	DECLARE_ATTRIBUTE_CAPTUREDEF(MaxDP);
 
 	FWxDamageStatics()
 	{
@@ -22,6 +24,8 @@ struct FWxDamageStatics
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, CritRate, Source, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, CritDMG, Source, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, IncomingDamage, Target, false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, DP, Target, false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, MaxDP, Target, false);
 	}
 };
 
@@ -38,12 +42,14 @@ UWxDamageExecCalc::UWxDamageExecCalc()
 	RelevantAttributesToCapture.Add(Statics.DEFDef);
 	RelevantAttributesToCapture.Add(Statics.CritRateDef);
 	RelevantAttributesToCapture.Add(Statics.CritDMGDef);
+	RelevantAttributesToCapture.Add(Statics.DPDef);
+	RelevantAttributesToCapture.Add(Statics.MaxDPDef);
 }
 
 void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
 	// 타겟이 무적 상태이면 대미지를 적용하지 않음
-	const UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent();
+	UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent();
 	if (TargetASC && TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_Invincible))
 	{
 		return;
@@ -91,7 +97,23 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
 	}
 	
 	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, FinalDamage));
-    
+	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.DPProperty, EGameplayModOp::Additive, FinalDamage));
+
+	// DP가 MaxDP 이상이면 그로기 상태 부여
+	if (TargetASC && !TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
+	{
+		float TargetDP = 0.f;
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.DPDef, EvalParams, TargetDP);
+
+		float TargetMaxDP = 0.f;
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.MaxDPDef, EvalParams, TargetMaxDP);
+
+		if (TargetDP + FinalDamage >= TargetMaxDP)
+		{
+			TargetASC->AddLooseGameplayTag(WxGameplayTags::State_Groggy);
+		}
+	}
+
 	// 전투 피격 후처리
 	AActor* TargetActor = TargetASC->GetOwnerActor();
 	AActor* SourceActor = ExecutionParams.GetOwningSpec().GetEffectContext().GetInstigator();
