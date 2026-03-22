@@ -3,7 +3,7 @@
 #include "AbilitySystem/WxAbilitySet.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Ability/WxAbility.h"
-#include "AbilitySystem/WxAttributeSet.h"
+#include "AbilitySystem/WxCombatAttributeSet.h"
 
 void FWxAbilitySetGrantedHandles::RemoveFromAbilitySystem(UWxAbilitySystemComponent* ASC)
 {

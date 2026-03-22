@@ -12,7 +12,7 @@
 #include "WxCharacterBase.generated.h"
 
 class UWxAbilitySystemComponent;
-class UWxAttributeSet;
+class UWxCombatAttributeSet;
 class AWxWeaponBase;
 class UWxRagdollComponent;
 
@@ -58,7 +58,7 @@ protected:
 	TObjectPtr<UWxAbilitySystemComponent> AbilitySystemComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|GAS")
-	TObjectPtr<UWxAttributeSet> AttributeSet;
+	TObjectPtr<UWxCombatAttributeSet> AttributeSet;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PossessedBy(AController* NewController) override;
@@ -76,7 +76,7 @@ protected:
 	 */
 	void HandleSPDAttributeChanged(const FOnAttributeChangeData& Data);
 
-	/** State_Dead 태그 변경 콜백. 태그 부여 시 HandleDeath 호출 */
+	/** State.Dead 태그 변경 콜백. 태그 부여 시 HandleDeath 호출 */
 	void HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
 	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) override;

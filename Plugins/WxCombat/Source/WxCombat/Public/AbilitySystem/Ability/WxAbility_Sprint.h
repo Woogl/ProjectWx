@@ -29,7 +29,7 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	float SprintSpeedBonus = 1.f;
+	float SprintSpeedBonus = 0.5f;
 
 private:
 	UPROPERTY()

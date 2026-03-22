@@ -21,6 +21,9 @@ namespace WxGameplayTags
 	/** 공중 상태. Falling/Flying 시 부여, 착지 시 제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Airborne);
 
+	/** 그로기 상태. DP가 MaxDP에 도달 시 부여 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Groggy);
+
 	/** 락온 상태. 락온 어빌리티 활성 중 부여, Look 입력 억제 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_LockOn);
 
@@ -65,6 +68,11 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Jump);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Skill);
+
+	// ── SetByCaller ──────────────────────────────────────────────────────
+
+	/** MP 코스트 SetByCaller 키. WxEffect_Cost에서 사용 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Cost_MP);
 
 	// ── Input ──────────────────────────────────────────────────────────────
 

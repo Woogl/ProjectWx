@@ -6,6 +6,7 @@ namespace WxGameplayTags
 {
 	UE_DEFINE_GAMEPLAY_TAG(State_Dead, "State.Dead");
 	UE_DEFINE_GAMEPLAY_TAG(State_Airborne, "State.Airborne");
+	UE_DEFINE_GAMEPLAY_TAG(State_Groggy, "State.Groggy");
 	UE_DEFINE_GAMEPLAY_TAG(State_LockOn, "State.LockOn");
 
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact, "Event.HitReact");
@@ -28,6 +29,8 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Guard, "Cooldown.Guard");
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Jump, "Cooldown.Jump");
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill, "Cooldown.Skill");
+
+	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Cost_MP, "SetByCaller.Cost.MP");
 
 	UE_DEFINE_GAMEPLAY_TAG(Input_Jump, "Input.Jump");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Attack, "Input.Attack");

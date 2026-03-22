@@ -2,7 +2,7 @@
 
 #include "Character/WxCharacterBase.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
-#include "AbilitySystem/WxAttributeSet.h"
+#include "AbilitySystem/WxCombatAttributeSet.h"
 #include "Component/WxRagdollComponent.h"
 #include "WxGameplayTags.h"
 #include "Components/CapsuleComponent.h"
@@ -20,7 +20,7 @@ AWxCharacterBase::AWxCharacterBase()
 	AbilitySystemComponent = CreateDefaultSubobject<UWxAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 
-	AttributeSet = CreateDefaultSubobject<UWxAttributeSet>(TEXT("AttributeSet"));
+	AttributeSet = CreateDefaultSubobject<UWxCombatAttributeSet>(TEXT("AttributeSet"));
 
 	RagdollComponent = CreateDefaultSubobject<UWxRagdollComponent>(TEXT("RagdollComponent"));
 
@@ -82,7 +82,7 @@ ETeamAttitude::Type AWxCharacterBase::GetTeamAttitudeTowards(const AActor& Other
 
 bool AWxCharacterBase::IsAlive() const
 {
-	if (const UWxAttributeSet* AttrSet = AbilitySystemComponent->GetSet<UWxAttributeSet>())
+	if (const UWxCombatAttributeSet* AttrSet = AbilitySystemComponent->GetSet<UWxCombatAttributeSet>())
 	{
 		return AttrSet->GetHP() > 0.f;
 	}
@@ -128,7 +128,7 @@ void AWxCharacterBase::InitAbilitySystem()
 	AbilitySystemComponent->RefreshAbilityActorInfo();
 
 	// InitializeAbilities보다 먼저 등록해야 초기 어트리뷰트 변경(SPD 등)이 콜백에 반영됨
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UWxAttributeSet::GetSPDAttribute())
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetSPDAttribute())
 		.AddUObject(this, &AWxCharacterBase::HandleSPDAttributeChanged);
 
 	AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)

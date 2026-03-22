@@ -2,7 +2,7 @@
 
 #include "AbilitySystem/Ability/WxAbility_Sprint.h"
 #include "AbilitySystemComponent.h"
-#include "AbilitySystem/WxAttributeSet.h"
+#include "AbilitySystem/WxCombatAttributeSet.h"
 #include "GameplayEffect.h"
 #include "WxGameplayTags.h"
 
@@ -19,7 +19,7 @@ UWxAbility_Sprint::UWxAbility_Sprint()
 	SprintSpeedEffect = NewObject<UGameplayEffect>(GetTransientPackage(), FName(TEXT("SprintSpeedEffect")));
 	SprintSpeedEffect->DurationPolicy = EGameplayEffectDurationType::Infinite;
 	FGameplayModifierInfo Modifier;
-	Modifier.Attribute = UWxAttributeSet::GetSPDAttribute();
+	Modifier.Attribute = UWxCombatAttributeSet::GetSPDAttribute();
 	Modifier.ModifierOp = EGameplayModOp::Additive;
 	Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(SprintSpeedBonus));
 	SprintSpeedEffect->Modifiers.Add(Modifier);

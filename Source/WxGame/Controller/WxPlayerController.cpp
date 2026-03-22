@@ -10,7 +10,7 @@
 #include "Widget/WxActivatableWidget.h"
 #include "System/WxUIManagerSubsystem.h"
 #include "WxGameplayTags.h"
-#include "AbilitySystem/WxAttributeSet.h"
+#include "AbilitySystem/WxCombatAttributeSet.h"
 #include "WxAssetUtils.h"
 
 namespace
@@ -129,7 +129,7 @@ void AWxPlayerController::InitializePlayerHealthViewModel(UAbilitySystemComponen
 		GlobalCollection->AddViewModelInstance(Context, ViewModel);
 	}
 
-	ViewModel->Initialize(ASC, UWxAttributeSet::GetHPAttribute(), UWxAttributeSet::GetMaxHPAttribute());
+	ViewModel->Initialize(ASC, UWxCombatAttributeSet::GetHPAttribute(), UWxCombatAttributeSet::GetMaxHPAttribute());
 }
 
 void AWxPlayerController::InitializePlayerAbilityViewModels(UAbilitySystemComponent* ASC)
