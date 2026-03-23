@@ -168,11 +168,10 @@ void UWxAbility_Groggy::HandleDPDrainTick()
 	const float CurrentDP = AttrSet->GetDP();
 
 	constexpr float DrainTickRate = 1.f / 30.f;
-	constexpr float DrainRatePerSecond = 0.1f;
-	const float DrainAmount = MaxDP * DrainRatePerSecond * DrainTickRate;
+	const float DrainAmount = (MaxDP / GroggyDuration) * DrainTickRate;
 	const float NewDP = FMath::Max(CurrentDP - DrainAmount, 0.f);
 
-	ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetDPAttribute(), NewDP);
+	ASC->ApplyModToAttribute(UWxCombatAttributeSet::GetDPAttribute(), EGameplayModOp::Additive, -DrainAmount);
 
 	if (NewDP <= 0.f)
 	{

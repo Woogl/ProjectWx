@@ -33,6 +33,9 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> GroggyMontage;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	float GroggyDuration = 5.f;
 
 private:
 	void HandleGroggyTagChanged(const FGameplayTag CallbackTag, int32 NewCount);

@@ -8,6 +8,7 @@
 #include "MVVM/WxViewModel_Attribute.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
+#include "MVVM/WxViewModel_GameplayTag.h"
 
 AWxEnemyCharacter::AWxEnemyCharacter()
 {
@@ -44,6 +45,10 @@ void AWxEnemyCharacter::BeginPlay()
 			UWxViewModel_Attribute* DazeViewModel = NewObject<UWxViewModel_Attribute>(NameplateWidget);
 			DazeViewModel->Initialize(GetAbilitySystemComponent(), UWxCombatAttributeSet::GetDPAttribute(), UWxCombatAttributeSet::GetMaxDPAttribute());
 			View->SetViewModel(TEXT("Daze"), DazeViewModel);
+			
+			UWxViewModel_GameplayTag* GameplayTagViewModel = NewObject<UWxViewModel_GameplayTag>(NameplateWidget);
+			GameplayTagViewModel->Initialize(GetAbilitySystemComponent());
+			View->SetViewModel(TEXT("GameplayTag"), GameplayTagViewModel);
 		}
 	}
 }

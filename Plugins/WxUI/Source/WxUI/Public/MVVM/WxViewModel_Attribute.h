@@ -31,6 +31,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Attribute")
 	float AttributePercent = 0.f;
 
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Attribute")
+	bool IsAttributeAboveZero = false;
+
 	float GetCurrentAttribute() const;
 	void SetCurrentAttribute(float NewValue);
 
@@ -39,6 +42,9 @@ public:
 
 	float GetAttributePercent() const;
 	void SetAttributePercent(float NewValue);
+
+	bool GetIsAttributeAboveZero() const;
+	void SetIsAttributeAboveZero(bool bNewValue);
 
 protected:
 	virtual void Deinitialize() override;

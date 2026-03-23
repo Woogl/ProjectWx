@@ -54,7 +54,7 @@ protected:
 	TObjectPtr<UWxAbilitySystemComponent> AbilitySystemComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|GAS")
-	TObjectPtr<UWxCombatAttributeSet> AttributeSet;
+	TObjectPtr<UWxCombatAttributeSet> CombatAttributeSet;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PossessedBy(AController* NewController) override;

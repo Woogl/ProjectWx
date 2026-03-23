@@ -69,60 +69,18 @@
 
 다른 플러그인들을 사용해 구체적인 게임 컨텐츠를 만든다.
 
-#### 주요 구성 요소
-* Character
-  * Character Base
-  * Player Character
-  * Enemy Character
-* Controller
-  * Player Controller
-  * Enemy Controller
-
 ### 공용 기능 (`WxCore`)
 
 프로젝트 전체 플러그인이 공유하는 공용 정의를 관리한다. (Gameplay Tag, Enum 등)
 
 프로젝트 전체 플러그인에서 사용할 수 있는 유틸리티를 관리한다.
 
-
 ### 전투 시스템 (`WxCombat`)
 
 전투 시스템은 Unreal Engine 5 의 Gameplay Ability System (GAS) 기반으로 구현한다.
-
-#### 주요 구성 요소
-* Ability System
-  * Ability System Component
-  * Ability Set
-  * Attribute Set
-  * Ability
-  * Ability Task
-  * Effect
-* Animation
-  * AnimNotifyState
-  * AnimNotify
-* Weapon
-  * Weapon
-  * Projectile
-
 
 ### UI 시스템 (`WxUI`)
 
 UI 시스템은 Unreal Engine 5 의 CommonUI 기반으로 멀티플랫폼을 고려하여 구현한다.
 
-Unreal Engine 5의 UMG MVVM을 사용하여, 비즈니스 로직과 프레젠테이션 로직을 완전히 분리해야한다.
-
-#### 주요 구성 요소
-* System
-  * UI Manager Subsystem
-  * Primary Game Layout
-  * UI Library
-* Widget
-  * Activatable Widget
-  * Confirmation Widget
-  * Button
-  * Action Button
-* MVVM
-  * View Model
-    * Character View Model
-    * Ability View Model
-    * Effect View Model
+Unreal Engine 5의 UMG View Model을 사용하여, 비즈니스 로직과 프레젠테이션 로직을 완전히 분리해야한다.

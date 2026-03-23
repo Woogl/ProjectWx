@@ -16,7 +16,9 @@ void UWxViewModel_Attribute::Initialize(UAbilitySystemComponent* InASC, FGamepla
 	if (InAttribute.IsValid())
 	{
 		BoundAttribute = InAttribute;
-		SetCurrentAttribute(InASC->GetNumericAttribute(InAttribute));
+		const float InitialValue = InASC->GetNumericAttribute(InAttribute);
+		SetCurrentAttribute(InitialValue);
+		SetIsAttributeAboveZero(InitialValue > 0.f);
 		InASC->GetGameplayAttributeValueChangeDelegate(InAttribute)
 			.AddUObject(this, &UWxViewModel_Attribute::HandleAttributeChanged);
 	}
@@ -84,9 +86,20 @@ void UWxViewModel_Attribute::SetAttributePercent(float NewValue)
 	UE_MVVM_SET_PROPERTY_VALUE(AttributePercent, NewValue);
 }
 
+bool UWxViewModel_Attribute::GetIsAttributeAboveZero() const
+{
+	return IsAttributeAboveZero;
+}
+
+void UWxViewModel_Attribute::SetIsAttributeAboveZero(bool bNewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(IsAttributeAboveZero, bNewValue);
+}
+
 void UWxViewModel_Attribute::HandleAttributeChanged(const FOnAttributeChangeData& Data)
 {
 	SetCurrentAttribute(Data.NewValue);
+	SetIsAttributeAboveZero(Data.NewValue > 0.f);
 	RecalculateAttributePercent();
 }
 

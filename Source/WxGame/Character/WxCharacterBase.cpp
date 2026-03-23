@@ -19,7 +19,7 @@ AWxCharacterBase::AWxCharacterBase()
 	AbilitySystemComponent = CreateDefaultSubobject<UWxAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 
-	AttributeSet = CreateDefaultSubobject<UWxCombatAttributeSet>(TEXT("AttributeSet"));
+	CombatAttributeSet = CreateDefaultSubobject<UWxCombatAttributeSet>(TEXT("CombatAttributeSet"));
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw   = false;
