@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/Ability/WxAbility_Groggy.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystem/WxCombatAttributeSet.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "WxGameplayTags.h"
 
@@ -39,6 +40,7 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		.AddUObject(this, &UWxAbility_Groggy::HandleGroggyTagChanged);
 
 	PlayGroggyMontage();
+	StartDPDrain();
 }
 
 void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -49,6 +51,11 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 		{
 			AnimInstance->OnMontageEnded.RemoveDynamic(this, &UWxAbility_Groggy::HandleMontageEnded);
 		}
+	}
+
+	if (ActorInfo && ActorInfo->OwnerActor.IsValid())
+	{
+		ActorInfo->OwnerActor->GetWorldTimerManager().ClearTimer(DPDrainTimerHandle);
 	}
 
 	if (GroggyTagDelegateHandle.IsValid() && ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
@@ -129,4 +136,46 @@ void UWxAbility_Groggy::PlayGroggyMontage()
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Groggy::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Groggy::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
+}
+
+void UWxAbility_Groggy::StartDPDrain()
+{
+	if (!CurrentActorInfo || !CurrentActorInfo->OwnerActor.IsValid())
+	{
+		return;
+	}
+
+	constexpr float DrainTickRate = 1.f / 30.f;
+	CurrentActorInfo->OwnerActor->GetWorldTimerManager().SetTimer(
+		DPDrainTimerHandle, this, &UWxAbility_Groggy::HandleDPDrainTick, DrainTickRate, true);
+}
+
+void UWxAbility_Groggy::HandleDPDrainTick()
+{
+	UAbilitySystemComponent* ASC = CurrentActorInfo ? CurrentActorInfo->AbilitySystemComponent.Get() : nullptr;
+	if (!ASC)
+	{
+		return;
+	}
+
+	const UWxCombatAttributeSet* AttrSet = ASC->GetSet<UWxCombatAttributeSet>();
+	if (!AttrSet)
+	{
+		return;
+	}
+
+	const float MaxDP = AttrSet->GetMaxDP();
+	const float CurrentDP = AttrSet->GetDP();
+
+	constexpr float DrainTickRate = 1.f / 30.f;
+	constexpr float DrainRatePerSecond = 0.1f;
+	const float DrainAmount = MaxDP * DrainRatePerSecond * DrainTickRate;
+	const float NewDP = FMath::Max(CurrentDP - DrainAmount, 0.f);
+
+	ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetDPAttribute(), NewDP);
+
+	if (NewDP <= 0.f)
+	{
+		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Groggy);
+	}
 }

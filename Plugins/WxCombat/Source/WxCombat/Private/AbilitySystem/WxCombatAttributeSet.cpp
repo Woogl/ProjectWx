@@ -64,6 +64,17 @@ void UWxCombatAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribu
 	}
 }
 
+void UWxCombatAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
+{
+	Super::PostAttributeChange(Attribute, OldValue, NewValue);
+
+	if (Attribute == GetMaxHPAttribute() && OldValue > 0.f && NewValue > 0.f)
+	{
+		const float Ratio = GetHP() / OldValue;
+		SetHP(NewValue * Ratio);
+	}
+}
+
 void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);

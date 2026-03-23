@@ -50,9 +50,12 @@ private:
 	void HandleMontageCancelled();
 
 	void PlayGroggyMontage();
-	
+	void StartDPDrain();
+	void HandleDPDrainTick();
+
 	UFUNCTION()
 	void HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 	FDelegateHandle GroggyTagDelegateHandle;
+	FTimerHandle DPDrainTimerHandle;
 };

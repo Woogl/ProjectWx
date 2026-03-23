@@ -39,6 +39,15 @@ void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC, FWxAbili
 		return;
 	}
 	
+	// 초기 어트리뷰트 값 설정
+	for (const FWxAttributeInitializer& Entry : GrantedAttributes)
+	{
+		if (Entry.Attribute.IsValid())
+		{
+			ASC->SetNumericAttributeBase(Entry.Attribute, Entry.Value);
+		}
+	}
+
 	// Effect 적용
 	FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
 	Context.AddSourceObject(ASC->GetOwner());

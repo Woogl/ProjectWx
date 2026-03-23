@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "AttributeSet.h"
 #include "GameplayAbilitySpecHandle.h"
 #include "ActiveGameplayEffectHandle.h"
 #include "WxAbilitySet.generated.h"
@@ -27,6 +28,19 @@ struct WXCOMBAT_API FWxAbilitySetGrantedHandles
 	TArray<FActiveGameplayEffectHandle> EffectHandles;
 };
 
+/** 어트리뷰트 초기값 항목 */
+USTRUCT(BlueprintType)
+struct FWxAttributeInitializer
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly)
+	FGameplayAttribute Attribute;
+
+	UPROPERTY(EditDefaultsOnly)
+	float Value = 0.f;
+};
+
 /**
  * Ability, Effect 초기 데이터를 하나의 에셋으로 관리하는 데이터 에셋.
  *
@@ -43,6 +57,10 @@ public:
 	void GiveToAbilitySystem(UWxAbilitySystemComponent* ASC, FWxAbilitySetGrantedHandles* OutHandles) const;
 
 protected:
+	/** 초기 어트리뷰트 값. AbilitySet 부여 시 BaseValue로 설정된다 */
+	UPROPERTY(EditDefaultsOnly, Category = "Attributes")
+	TArray<FWxAttributeInitializer> GrantedAttributes;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
 	TArray<TSubclassOf<UWxAbility>> GrantedAbilities;
 

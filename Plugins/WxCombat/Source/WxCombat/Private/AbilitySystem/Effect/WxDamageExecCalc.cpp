@@ -98,11 +98,12 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
 	}
 	
 	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, FinalDamage));
-	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.DPProperty, EGameplayModOp::Additive, FinalDamage));
 
-	// DP가 MaxDP 이상이면 그로기 상태 부여
+	// 그로기 상태가 아닐 때만 DP 증가 및 그로기 판정
 	if (TargetASC && !TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
 	{
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.DPProperty, EGameplayModOp::Additive, FinalDamage));
+
 		float TargetDP = 0.f;
 		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.DPDef, EvalParams, TargetDP);
 
