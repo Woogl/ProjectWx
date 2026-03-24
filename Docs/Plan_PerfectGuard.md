@@ -1,15 +1,5 @@
 # 퍼펙트 가드 설계 문서
 
-## 지시 사항
-
-퍼펙트 가드 설계 문서를 작성해
-WxAnimNotifyState_PerfectGuard를 추가하면 돼.
-
-1. WxAnimNotifyState_PerfectGuard 시간 동안에는 WxDamageExecCalc에서 대미지 피해를 받지 않는다.
-2. WxAnimNotifyState_PerfectGuard 시간 동안에 피격을 당하면, 공격자에게 DP 피해를 입힌다. DP 피해량 공식은 WxDamageExecCalc를 참고한다.
-
----
-
 ## 개요
 
 가드 몽타주 초반에 배치하는 퍼펙트 가드 구간. 이 구간 동안 피격 시 대미지를 받지 않고, 공격자에게 DP 피해를 반사한다.
