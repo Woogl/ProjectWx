@@ -2,7 +2,7 @@
 
 프로젝트의 어빌리티 관련 코드를 분석하여 기획자가 Blueprint로 어빌리티를 만들 수 있도록 HTML 가이드 문서를 생성하라.
 
-출력 파일: `Docs/AbilityCreationGuide.html`
+출력 파일: `.claude/Guides/AbilityCreationGuide.html`
 
 ## 절차
 
@@ -40,7 +40,7 @@
 
 ### 2단계: HTML 문서 생성
 
-`Docs/AbilityCreationGuide.html`에 다음 내용을 포함하는 비주얼 HTML 문서를 작성하라.
+`.claude/Guides/AbilityCreationGuide.html`에 다음 내용을 포함하는 비주얼 HTML 문서를 작성하라.
 
 **디자인 요구사항:**
 - 다크 테마 (배경: #0f1117 계열)
@@ -75,8 +75,8 @@
 
 ### 3단계: 기존 파일 비교
 
-기존 `Docs/AbilityCreationGuide.html`이 있으면 읽어서 참고하되, 코드 분석 결과와 다른 부분은 코드 기준으로 수정하라.
+기존 `.claude/Guides/AbilityCreationGuide.html`이 있으면 읽어서 참고하되, 코드 분석 결과와 다른 부분은 코드 기준으로 수정하라.
 
-### 5단계: 결과 보고
+### 4단계: 결과 보고
 
 생성 완료 후 문서에 포함된 섹션 목록과 발견된 변경 사항을 보고하라.

@@ -1,4 +1,4 @@
-# 프로젝트 분석
+# 게임 프로젝트 분석
 
 이 Unreal Engine 5 프로젝트의 현재 상태를 종합적으로 분석하라.
 
@@ -47,15 +47,13 @@ CLAUDE.md의 모듈 규칙(WxCore 외 플러그인 간 직접 의존 금지)이 
 ### 5단계: 코딩 컨벤션 검증
 
 CLAUDE.md에 정의된 코딩 규칙 준수 여부를 확인하라:
-1. Copyright 헤더
-2. Wx 접두사
-3. .h 파일 inline 함수 금지
-4. 함수 선언 줄바꿈 금지
-5. Handle 접두사 콜백
-6. UFUNCTION/UPROPERTY 사이 빈 줄
-7. 중괄호 사용
-8. Super:: 호출
-9. Native Gameplay Tag
+1. Wx 접두사
+2. .h 파일 inline 함수 금지
+3. 함수 선언 줄바꿈 금지
+4. Handle 접두사 콜백
+5. 중괄호 사용
+6. Super:: 호출
+7. Native Gameplay Tag
 
 ### 6단계: 현재 작업 상태
 

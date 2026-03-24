@@ -158,4 +158,4 @@ Guard Montage Timeline
 ## 고려 사항
 
 - **HitReact 이벤트**: 퍼펙트 가드 성공 시 기존 `Event_HitReact` 대신 별도 이벤트(`Event_PerfectGuard`)를 발송하여, 전용 리액션 어빌리티(반격 연출, 이펙트 등)를 트리거할 수 있다. 필요 시 후속 작업으로 추가한다.
-- **AI 감지**: 퍼펙트 가드 시에도 `UAISense_Damage::ReportDamageEvent`를 호출할지 결정이 필요하다. 대미지가 0이므로 호출하지 않는 것이 자연스럽다.
+- **AI 감지**: 퍼펙트 가드 시에도 `UAISense_Damage::ReportDamageEvent`를 호출할지 결정이 필요하다. 대미지가 0이므로 호출하지 않는 것이 자연스럽다. -> 호출 안해도 되는 것으로 결정함
