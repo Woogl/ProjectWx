@@ -49,6 +49,4 @@ private:
 
 	UFUNCTION()
 	void HandleMontageCancelled();
-
-	void RemoveInvincibleTag();
 };

@@ -11,7 +11,6 @@
 #include "System/WxUIManagerSubsystem.h"
 #include "WxGameplayTags.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
-#include "WxAssetUtils.h"
 
 namespace
 {
@@ -189,7 +188,7 @@ void AWxPlayerController::InitializePlayerAbilityViewModels(UAbilitySystemCompon
 	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
 	{
 		UWxAbility* AbilityCDO = Cast<UWxAbility>(Spec.Ability);
-		if (!AbilityCDO || !AbilityCDO->CooldownTag.IsValid())
+		if (!AbilityCDO)
 		{
 			continue;
 		}
@@ -212,6 +211,6 @@ void AWxPlayerController::InitializePlayerAbilityViewModels(UAbilitySystemCompon
 		}
 
 		ViewModel->Initialize(ASC, AbilityCDO);
-		WxAssetUtils::AsyncLoad(AbilityCDO->AbilityIcon, ViewModel, &UWxViewModel_Ability::SetIcon);
+		ViewModel->SetIcon(AbilityCDO->AbilityIcon.LoadSynchronous());
 	}
 }

@@ -37,6 +37,8 @@ protected:
 
 private:
 	void HandleSequenceFinished();
+	void AddInvincibleTag();
+	void RemoveInvincibleTag();
 	void RestoreTimeDilation();
 	void CleanupSequenceActor();
 
@@ -48,4 +50,5 @@ private:
 
 	float OriginalTimeDilation = 1.f;
 	bool bTimeDilationModified = false;
+	bool bInvincibleTagAdded = false;
 };

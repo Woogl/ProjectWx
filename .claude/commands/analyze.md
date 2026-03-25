@@ -85,3 +85,7 @@ CLAUDE.md에 정의된 코딩 규칙 준수 여부를 확인하라:
 ## 최근 변경 사항
 ## 개선 제안
 ```
+
+## 결과 저장
+
+분석 완료 후 보고서를 `.claude/Reports/Report_ProjectAnalysis_{YYYYMMDD}.md` 파일로 저장하라. 파일 제목은 `# 프로젝트 분석 보고서 (YYYY-MM-DD)`로 시작한다.

@@ -3,7 +3,6 @@
 #include "AbilitySystem/Ability/WxAbility_Ultimate.h"
 #include "AbilitySystem/Task/WxAbilityTask_PlayCutscene.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "AbilitySystemComponent.h"
 #include "LevelSequence.h"
 #include "WxGameplayTags.h"
 
@@ -33,13 +32,6 @@ void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		return;
 	}
 
-	// 무적 태그 부여
-	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-	if (ASC)
-	{
-		ASC->AddLooseGameplayTag(WxGameplayTags::ANS_Invincible);
-	}
-
 	// 컷신 재생
 	ULevelSequence* Sequence = CutsceneSequence.LoadSynchronous();
 	if (Sequence)
@@ -60,9 +52,6 @@ void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 void UWxAbility_Ultimate::HandleCutsceneCompleted()
 {
-	// 무적 태그 제거
-	RemoveInvincibleTag();
-
 	if (!UltimateMontage)
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
@@ -70,7 +59,7 @@ void UWxAbility_Ultimate::HandleCutsceneCompleted()
 	}
 
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, UltimateMontage);
+		this, NAME_None, UltimateMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
 	if (!MontageTask)
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
@@ -86,7 +75,6 @@ void UWxAbility_Ultimate::HandleCutsceneCompleted()
 
 void UWxAbility_Ultimate::HandleCutsceneCancelled()
 {
-	RemoveInvincibleTag();
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
 
@@ -109,11 +97,3 @@ void UWxAbility_Ultimate::HandleMontageCancelled()
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
 
-void UWxAbility_Ultimate::RemoveInvincibleTag()
-{
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (ASC)
-	{
-		ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_Invincible);
-	}
-}

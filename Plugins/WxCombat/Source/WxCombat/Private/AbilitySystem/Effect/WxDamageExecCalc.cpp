@@ -84,11 +84,11 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
 			Spec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_ReflectDP, Reflect);
 			SourceASC->ApplyGameplayEffectSpecToSelf(Spec);
 
-			// 공격자 그로기 판정
+			// 공격자 그로기 판정: Reflect GE 적용 시점이 보장되지 않으므로 반사량을 직접 합산하여 비교
 			if (!SourceASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
 			{
 				const UWxCombatAttributeSet* SourceAttrSet = SourceASC->GetSet<UWxCombatAttributeSet>();
-				if (SourceAttrSet && SourceAttrSet->GetMaxDP() > 0.f && SourceAttrSet->GetDP() >= SourceAttrSet->GetMaxDP())
+				if (SourceAttrSet && SourceAttrSet->GetMaxDP() > 0.f && SourceAttrSet->GetDP() + Reflect >= SourceAttrSet->GetMaxDP())
 				{
 					SourceASC->AddLooseGameplayTag(WxGameplayTags::State_Groggy);
 				}

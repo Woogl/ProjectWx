@@ -1,9 +1,11 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Task/WxAbilityTask_PlayCutscene.h"
+#include "AbilitySystemComponent.h"
 #include "LevelSequenceActor.h"
 #include "LevelSequencePlayer.h"
 #include "Kismet/GameplayStatics.h"
+#include "WxGameplayTags.h"
 
 UWxAbilityTask_PlayCutscene* UWxAbilityTask_PlayCutscene::CreateTask(UGameplayAbility* OwningAbility, ULevelSequence* InLevelSequence)
 {
@@ -23,6 +25,9 @@ void UWxAbilityTask_PlayCutscene::Activate()
 		EndTask();
 		return;
 	}
+
+	// 무적 태그 부여
+	AddInvincibleTag();
 
 	// Time Dilation 설정
 	constexpr float CutsceneTimeDilation = 0.001f;
@@ -53,6 +58,7 @@ void UWxAbilityTask_PlayCutscene::Activate()
 
 void UWxAbilityTask_PlayCutscene::OnDestroy(bool bInOwnerFinished)
 {
+	RemoveInvincibleTag();
 	RestoreTimeDilation();
 	CleanupSequenceActor();
 
@@ -82,6 +88,29 @@ void UWxAbilityTask_PlayCutscene::RestoreTimeDilation()
 			UGameplayStatics::SetGlobalTimeDilation(World, OriginalTimeDilation);
 		}
 		bTimeDilationModified = false;
+	}
+}
+
+void UWxAbilityTask_PlayCutscene::AddInvincibleTag()
+{
+	UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
+	if (ASC)
+	{
+		ASC->AddLooseGameplayTag(WxGameplayTags::ANS_Invincible);
+		bInvincibleTagAdded = true;
+	}
+}
+
+void UWxAbilityTask_PlayCutscene::RemoveInvincibleTag()
+{
+	if (bInvincibleTagAdded)
+	{
+		UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
+		if (ASC)
+		{
+			ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_Invincible);
+		}
+		bInvincibleTagAdded = false;
 	}
 }
 

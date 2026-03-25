@@ -124,7 +124,7 @@ void UWxAbility_Groggy::HandleMontageEnded(UAnimMontage* Montage, bool bInterrup
 void UWxAbility_Groggy::PlayGroggyMontage()
 {
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, GroggyMontage);
+		this, NAME_None, GroggyMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
 	if (!MontageTask)
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
