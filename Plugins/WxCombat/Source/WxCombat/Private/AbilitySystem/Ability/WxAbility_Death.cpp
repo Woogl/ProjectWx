@@ -10,6 +10,8 @@
 
 UWxAbility_Death::UWxAbility_Death()
 {
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
+
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 
@@ -56,7 +58,6 @@ void UWxAbility_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 void UWxAbility_Death::HandleMontageCompleted()
 {
 	EnableRagdoll();
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UWxAbility_Death::HandleMontageBlendOut()
@@ -67,13 +68,11 @@ void UWxAbility_Death::HandleMontageBlendOut()
 void UWxAbility_Death::HandleMontageInterrupted()
 {
 	EnableRagdoll();
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
 
 void UWxAbility_Death::HandleMontageCancelled()
 {
 	EnableRagdoll();
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
 
 void UWxAbility_Death::EnableRagdoll()
@@ -88,7 +87,6 @@ void UWxAbility_Death::EnableRagdoll()
 	Mesh->SetCollisionProfileName(TEXT("Ragdoll"));
 	Mesh->SetAllBodiesSimulatePhysics(true);
 	Mesh->SetSimulatePhysics(true);
-	Mesh->WakeAllRigidBodies();
 
 	Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Character->GetCharacterMovement()->DisableMovement();

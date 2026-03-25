@@ -36,7 +36,9 @@ protected:
 	virtual void OnDestroy(bool bInOwnerFinished) override;
 
 private:
+	UFUNCTION()
 	void HandleSequenceFinished();
+	
 	void AddInvincibleTag();
 	void RemoveInvincibleTag();
 	void RestoreTimeDilation();

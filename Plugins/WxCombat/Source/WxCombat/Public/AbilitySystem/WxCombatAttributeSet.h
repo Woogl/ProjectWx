@@ -97,12 +97,12 @@ public:
 	FGameplayAttributeData SPD;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, SPD)
 
-	/** CritRate (Critical Rate) : 치명타 확률. 1당 1% (기본값 0) */
+	/** CritRate (Critical Rate) : 치명타 확률. 1당 1% */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Combat", ReplicatedUsing = OnRep_CritRate)
 	FGameplayAttributeData CritRate;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, CritRate)
 
-	/** CritDMG (Critical Damage) : 치명타 추가 피해. 1당 1% 추가 데미지 (기본값 50) */
+	/** CritDMG (Critical Damage) : 치명타 추가 피해. 1당 1% 추가 데미지 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Combat", ReplicatedUsing = OnRep_CritDMG)
 	FGameplayAttributeData CritDMG;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, CritDMG)

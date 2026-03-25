@@ -6,6 +6,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "GenericTeamAgentInterface.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "WxCollisionChannels.h"
@@ -72,6 +73,16 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 	if (!OtherActor || OtherActor == GetOwner() || OtherActor == GetInstigator())
 	{
 		return;
+	}
+	
+	const IGenericTeamAgentInterface* OwnerTeam = Cast<IGenericTeamAgentInterface>(GetInstigator());
+	if (OwnerTeam)
+	{
+		const ETeamAttitude::Type Attitude = OwnerTeam->GetTeamAttitudeTowards(*OtherActor);
+		if (Attitude != ETeamAttitude::Hostile)
+		{
+			return;
+		}
 	}
 
 	if (DamageEffectSpecHandle.IsValid())

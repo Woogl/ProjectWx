@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "GenericTeamAgentInterface.h"
 #include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 
@@ -43,6 +44,7 @@ AWxWeaponBase::AWxWeaponBase()
 void AWxWeaponBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	DetachFromCharacter();
+	
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -101,6 +103,16 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 	if (HitActorsThisSwing.Contains(OtherActor))
 	{
 		return;
+	}
+	
+	const IGenericTeamAgentInterface* OwnerTeam = Cast<IGenericTeamAgentInterface>(WeaponOwner);
+	if (OwnerTeam)
+	{
+		const ETeamAttitude::Type Attitude = OwnerTeam->GetTeamAttitudeTowards(*OtherActor);
+		if (Attitude != ETeamAttitude::Hostile)
+		{
+			return;
+		}
 	}
 
 	HitActorsThisSwing.Add(OtherActor);

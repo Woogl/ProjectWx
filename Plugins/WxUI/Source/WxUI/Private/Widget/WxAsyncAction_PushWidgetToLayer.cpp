@@ -2,10 +2,12 @@
 
 #include "Widget/WxAsyncAction_PushWidgetToLayer.h"
 #include "System/WxUIManagerSubsystem.h"
+#include "System/WxPrimaryGameLayout.h"
 #include "CommonActivatableWidget.h"
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
 #include "Engine/GameInstance.h"
+#include "Kismet/GameplayStatics.h"
 
 UWxAsyncAction_PushWidgetToLayer* UWxAsyncAction_PushWidgetToLayer::PushWidgetToLayer(UObject* InWorldContextObject, FGameplayTag InLayerTag, TSoftClassPtr<UCommonActivatableWidget> InWidgetClass)
 {
@@ -40,20 +42,13 @@ void UWxAsyncAction_PushWidgetToLayer::Activate()
 
 void UWxAsyncAction_PushWidgetToLayer::HandleWidgetClassLoaded()
 {
-	if (!WorldContextObject || !WidgetClass.IsValid())
+	if (!IsValid(WorldContextObject) || !WidgetClass.IsValid())
 	{
 		SetReadyToDestroy();
 		return;
 	}
 
-	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	if (!World)
-	{
-		SetReadyToDestroy();
-		return;
-	}
-
-	UGameInstance* GameInstance = World->GetGameInstance();
+	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(WorldContextObject);
 	if (!GameInstance)
 	{
 		SetReadyToDestroy();
@@ -67,6 +62,13 @@ void UWxAsyncAction_PushWidgetToLayer::HandleWidgetClassLoaded()
 		return;
 	}
 
+	UWxPrimaryGameLayout* Layout = UIManager->GetPrimaryGameLayout();
+	if (!Layout)
+	{
+		SetReadyToDestroy();
+		return;
+	}
+
 	TSubclassOf<UCommonActivatableWidget> LoadedClass = WidgetClass.Get();
 	if (!LoadedClass)
 	{
@@ -74,7 +76,14 @@ void UWxAsyncAction_PushWidgetToLayer::HandleWidgetClassLoaded()
 		return;
 	}
 
-	UCommonActivatableWidget* WidgetInstance = UIManager->PushContentToLayer(LayerTag, LoadedClass);
+	APlayerController* OwningPlayer = Layout->GetOwningPlayer();
+	if (!OwningPlayer)
+	{
+		SetReadyToDestroy();
+		return;
+	}
+
+	UCommonActivatableWidget* WidgetInstance = CreateWidget<UCommonActivatableWidget>(OwningPlayer, LoadedClass);
 	if (!WidgetInstance)
 	{
 		SetReadyToDestroy();
@@ -82,6 +91,13 @@ void UWxAsyncAction_PushWidgetToLayer::HandleWidgetClassLoaded()
 	}
 
 	BeforePush.Broadcast(WidgetInstance);
+
+	if (!UIManager->PushWidgetInstanceToLayer(LayerTag, WidgetInstance))
+	{
+		SetReadyToDestroy();
+		return;
+	}
+
 	AfterPush.Broadcast(WidgetInstance);
 
 	SetReadyToDestroy();

@@ -61,6 +61,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<UAISenseConfig_Damage> DamageConfig;
 
+	static const FName BBKey_SelfActor;
 	static const FName BBKey_TargetActor;
 	static const FName BBKey_Alerted;
 };

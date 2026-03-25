@@ -8,6 +8,7 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Damage.h"
 
+const FName AWxEnemyController::BBKey_SelfActor = TEXT("SelfActor");
 const FName AWxEnemyController::BBKey_TargetActor = TEXT("TargetActor");
 const FName AWxEnemyController::BBKey_Alerted = TEXT("Alerted");
 
@@ -17,7 +18,7 @@ AWxEnemyController::AWxEnemyController()
 
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
-	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
+	SightConfig->DetectionByAffiliation.bDetectNeutrals = false;
 	SightConfig->DetectionByAffiliation.bDetectFriendlies = false;
 
 	DamageConfig = CreateDefaultSubobject<UAISenseConfig_Damage>(TEXT("DamageConfig"));
@@ -29,16 +30,7 @@ AWxEnemyController::AWxEnemyController()
 void AWxEnemyController::PostInitProperties()
 {
 	Super::PostInitProperties();
-
-	if (DamageConfig)
-	{
-		AIPerceptionComponent->ConfigureSense(*DamageConfig);
-	}
-}
-
-void AWxEnemyController::OnPossess(APawn* InPawn)
-{
-	// EditDefaultsOnly 프로퍼티가 디시리얼라이즈된 이후 SenseConfig를 구성
+	
 	if (SightConfig)
 	{
 		SightConfig->SightRadius = SightRadius;
@@ -53,8 +45,16 @@ void AWxEnemyController::OnPossess(APawn* InPawn)
 		DamageConfig->SetMaxAge(MemoryLength);
 		AIPerceptionComponent->ConfigureSense(*DamageConfig);
 	}
+}
 
+void AWxEnemyController::OnPossess(APawn* InPawn)
+{
 	Super::OnPossess(InPawn);
+
+	if (UBlackboardComponent* BB = GetBlackboardComponent())
+	{
+		BB->SetValueAsObject(BBKey_SelfActor, InPawn);
+	}
 
 	if (AWxEnemyCharacter* Enemy = Cast<AWxEnemyCharacter>(InPawn))
 	{
@@ -69,6 +69,11 @@ void AWxEnemyController::OnPossess(APawn* InPawn)
 
 void AWxEnemyController::OnUnPossess()
 {
+	if (UBlackboardComponent* BB = GetBlackboardComponent())
+	{
+		BB->SetValueAsObject(BBKey_SelfActor, nullptr);
+	}
+	
 	if (AWxEnemyCharacter* Enemy = Cast<AWxEnemyCharacter>(GetPawn()))
 	{
 		Enemy->OnDeath.RemoveDynamic(this, &AWxEnemyController::HandleDeath);

@@ -8,6 +8,8 @@
 
 UWxAbility_Groggy::UWxAbility_Groggy()
 {
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
+
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
