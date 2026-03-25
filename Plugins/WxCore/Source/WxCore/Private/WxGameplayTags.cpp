@@ -15,6 +15,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(ANS_ComboWindow, "ANS.ComboWindow");
 	UE_DEFINE_GAMEPLAY_TAG(ANS_Invincible, "ANS.Invincible");
 	UE_DEFINE_GAMEPLAY_TAG(ANS_Guard, "ANS.Guard");
+	UE_DEFINE_GAMEPLAY_TAG(ANS_PerfectGuard, "ANS.PerfectGuard");
 
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Damage, "GameplayCue.Damage");
 
@@ -27,14 +28,17 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Jump, "Ability.Jump");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill, "Ability.Skill");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Sprint, "Ability.Sprint");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Ultimate, "Ability.Ultimate");
 
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Attack, "Cooldown.Attack");
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Dodge, "Cooldown.Dodge");
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Guard, "Cooldown.Guard");
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Jump, "Cooldown.Jump");
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill, "Cooldown.Skill");
+	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Ultimate, "Cooldown.Ultimate");
 
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Cost_MP, "SetByCaller.Cost.MP");
+	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_ReflectDP, "SetByCaller.ReflectDP");
 
 	UE_DEFINE_GAMEPLAY_TAG(Input_Jump, "Input.Jump");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Attack, "Input.Attack");
@@ -42,6 +46,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Input_Guard, "Input.Guard");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Skill, "Input.Skill");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Sprint, "Input.Sprint");
+	UE_DEFINE_GAMEPLAY_TAG(Input_Ultimate, "Input.Ultimate");
 	UE_DEFINE_GAMEPLAY_TAG(Input_LockOn, "Input.LockOn");
 
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Game, "UI.Layer.Game");

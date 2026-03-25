@@ -25,6 +25,8 @@ public class WxCombat : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"InputCore",
+			"LevelSequence",
+			"MovieScene",
 			"Niagara",
 			"TargetingSystem",
 			"UMG",

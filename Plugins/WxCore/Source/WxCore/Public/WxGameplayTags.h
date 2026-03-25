@@ -46,6 +46,9 @@ namespace WxGameplayTags
 	/** 가드 판정 구간. ANS_Guard가 부여/제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_Guard);
 
+	/** 퍼펙트 가드 판정 구간. ANS_PerfectGuard가 부여/제거 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_PerfectGuard);
+
 	// ── GameplayCue ──────────────────────────────────────────────────────
 
 	/** 데미지 플로터 표시 Cue */
@@ -67,6 +70,8 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Sprint);
 
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Ultimate);
+
 	// ── Cooldown ──────────────────────────────────────────────────────────
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Attack);
@@ -79,10 +84,15 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Skill);
 
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Ultimate);
+
 	// ── SetByCaller ──────────────────────────────────────────────────────
 
 	/** MP 코스트 SetByCaller 키. WxEffect_Cost에서 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Cost_MP);
+
+	/** DP 반사량 SetByCaller 키. 퍼펙트 가드에서 사용 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_ReflectDP);
 
 	// ── Input ──────────────────────────────────────────────────────────────
 
@@ -103,6 +113,9 @@ namespace WxGameplayTags
 
 	/** 스프린트 입력 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Sprint);
+
+	/** 궁극기 입력 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Ultimate);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_LockOn);
 

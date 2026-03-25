@@ -1,6 +1,8 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Effect/WxDamageExecCalc.h"
+#include "AbilitySystem/Effect/WxEffect_MPRecovery.h"
+#include "AbilitySystem/Effect/WxEffect_Reflect.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
@@ -67,6 +69,34 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
 
 	float TargetDEF = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.DEFDef, EvalParams, TargetDEF);
+
+	// 퍼펙트 가드: 대미지 무효화 + 공격자에게 DP 반사
+	if (TargetASC && TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_PerfectGuard))
+	{
+		UAbilitySystemComponent* SourceASC = ExecutionParams.GetSourceAbilitySystemComponent();
+		if (SourceASC)
+		{
+			const float Reflect = FMath::Max(SourceATK * (100.f / (100.f + TargetDEF)), 0.f);
+
+			// 공격자에게 DP 반사 적용
+			const UGameplayEffect* ReflectEffect = UWxEffect_Reflect::StaticClass()->GetDefaultObject<UGameplayEffect>();
+			FGameplayEffectSpec Spec(ReflectEffect, SourceASC->MakeEffectContext(), 1.f);
+			Spec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_ReflectDP, Reflect);
+			SourceASC->ApplyGameplayEffectSpecToSelf(Spec);
+
+			// 공격자 그로기 판정
+			if (!SourceASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
+			{
+				const UWxCombatAttributeSet* SourceAttrSet = SourceASC->GetSet<UWxCombatAttributeSet>();
+				if (SourceAttrSet && SourceAttrSet->GetMaxDP() > 0.f && SourceAttrSet->GetDP() >= SourceAttrSet->GetMaxDP())
+				{
+					SourceASC->AddLooseGameplayTag(WxGameplayTags::State_Groggy);
+				}
+			}
+		}
+
+		return;
+	}
 
 	float SourceCritRate = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.CritRateDef, EvalParams, SourceCritRate);
@@ -142,21 +172,7 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
 	if (SourceASC)
 	{
 		// 공격자 MP 5 회복
-		static UGameplayEffect* MPRecoveryEffect = nullptr;
-		if (!MPRecoveryEffect)
-		{
-			constexpr float MPRecoveryOnHit = 5.f;
-			MPRecoveryEffect = NewObject<UGameplayEffect>(GetTransientPackage(), FName(TEXT("MPRecoveryOnHit")));
-			MPRecoveryEffect->AddToRoot();
-			MPRecoveryEffect->DurationPolicy = EGameplayEffectDurationType::Instant;
-
-			FGameplayModifierInfo ModInfo;
-			ModInfo.Attribute = UWxCombatAttributeSet::GetMPAttribute();
-			ModInfo.ModifierOp = EGameplayModOp::Additive;
-			ModInfo.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(MPRecoveryOnHit));
-			MPRecoveryEffect->Modifiers.Add(ModInfo);
-		}
-
+		const UGameplayEffect* MPRecoveryEffect = UWxEffect_MPRecovery::StaticClass()->GetDefaultObject<UGameplayEffect>();
 		SourceASC->ApplyGameplayEffectToSelf(MPRecoveryEffect, 1.f, SourceASC->MakeEffectContext());
 	}
 	if (TargetActor)

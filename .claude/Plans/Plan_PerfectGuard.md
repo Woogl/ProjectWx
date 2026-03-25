@@ -69,37 +69,19 @@ Execute_Implementation()
 
 #### DP 반사 적용 방법
 
-ExecCalc의 `OutExecutionOutput`은 **타겟**의 어트리뷰트만 수정할 수 있으므로, 공격자(Source)의 DP를 직접 수정할 수 없다. 따라서 공격자의 ASC에 별도의 Instant GameplayEffect를 적용하여 DP를 가산한다.
-
-기존 `WxDamageExecCalc`의 MP 회복 패턴(`static UGameplayEffect*` + `AddToRoot`)을 따르되, 반사량은 매번 다르므로 `WxEffect_Cost`의 SetByCaller 패턴을 사용한다.
+ExecCalc의 `OutExecutionOutput`은 **타겟**의 어트리뷰트만 수정할 수 있으므로, 공격자(Source)의 DP를 직접 수정할 수 없다. 따라서 공격자의 ASC에 `UWxEffect_Reflect`(SetByCaller 기반 Instant GE)를 적용하여 DP를 가산한다.
 
 ```cpp
 // 공격자에게 DP 반사 적용
 if (SourceASC)
 {
-    static UGameplayEffect* DPReflectEffect = nullptr;
-    if (!DPReflectEffect)
-    {
-        DPReflectEffect = NewObject<UGameplayEffect>(GetTransientPackage(), FName(TEXT("PerfectGuardDPReflect")));
-        DPReflectEffect->AddToRoot();
-        DPReflectEffect->DurationPolicy = EGameplayEffectDurationType::Instant;
-
-        FSetByCallerFloat SetByCaller;
-        SetByCaller.DataTag = WxGameplayTags::SetByCaller_ReflectDP;
-
-        FGameplayModifierInfo ModInfo;
-        ModInfo.Attribute = UWxCombatAttributeSet::GetDPAttribute();
-        ModInfo.ModifierOp = EGameplayModOp::Additive;
-        ModInfo.ModifierMagnitude = FGameplayEffectModifierMagnitude(SetByCaller);
-        DPReflectEffect->Modifiers.Add(ModInfo);
-    }
-
-    FGameplayEffectSpec Spec(DPReflectEffect, SourceASC->MakeEffectContext(), 1.f);
-    Spec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_ReflectDP, ReflectDP);
+    const UGameplayEffect* ReflectEffect = UWxEffect_Reflect::StaticClass()->GetDefaultObject<UGameplayEffect>();
+    FGameplayEffectSpec Spec(ReflectEffect, SourceASC->MakeEffectContext(), 1.f);
+    Spec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_ReflectDP, Reflect);
     SourceASC->ApplyGameplayEffectSpecToSelf(Spec);
 
     // 그로기 판정
-    // (Source의 현재 DP + ReflectDP ≥ MaxDP → State_Groggy 부여)
+    // (Source의 현재 DP + Reflect ≥ MaxDP → State_Groggy 부여)
 }
 ```
 
@@ -146,7 +128,8 @@ Guard Montage Timeline
 |---|------|------|
 | 1 | `ANS_PerfectGuard`, `SetByCaller_ReflectDP` 태그 추가 | `WxGameplayTags.h/.cpp` |
 | 2 | `UWxAnimNotifyState_PerfectGuard` 구현 | 신규 (WxCombat) |
-| 3 | `UWxDamageExecCalc`에 퍼펙트 가드 분기 추가 | `WxDamageExecCalc.cpp` |
+| 3 | `UWxEffect_Reflect` 구현 (SetByCaller 기반 DP 가산 GE) | 신규 (WxCombat) |
+| 4 | `UWxDamageExecCalc`에 퍼펙트 가드 분기 추가 | `WxDamageExecCalc.cpp` |
 
 ### 에디터 작업
 | # | 작업 | 비고 |
