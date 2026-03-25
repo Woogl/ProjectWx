@@ -1,9 +1,9 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "GameplayCue/WxGameplayCueNotify_Damage.h"
-#include "GameplayCue/WxDamageFloaterActor.h"
+#include "AbilitySystem/Cue/WxGameplayCueNotify_Damage.h"
 #include "NiagaraFunctionLibrary.h"
 #include "WxGameplayTags.h"
+#include "AbilitySystem/Cue/WxDamageFloaterActor.h"
 
 UWxGameplayCueNotify_Damage::UWxGameplayCueNotify_Damage()
 {
