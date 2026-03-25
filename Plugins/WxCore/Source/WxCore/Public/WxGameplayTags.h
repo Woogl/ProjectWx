@@ -46,6 +46,16 @@ namespace WxGameplayTags
 	/** 가드 판정 구간. ANS_Guard가 부여/제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_Guard);
 
+	// ── GameplayCue ──────────────────────────────────────────────────────
+
+	/** 데미지 플로터 표시 Cue */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Damage);
+
+	// ── Damage ────────────────────────────────────────────────────────────
+
+	/** 치명타 판정 결과 태그 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Critical);
+
 	// ── Ability ───────────────────────────────────────────────────────────
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability);

@@ -29,17 +29,17 @@ WxDamageExecCalc (WxCombat)
     │
     │  GameplayCue.Damage 실행 (FGameplayCueParameters에 데미지 정보 전달)
     ▼
-UWxGameplayCueNotify_Damage (C++, WxGame)
+UWxGameplayCueNotify_Damage (C++, WxCombat)
     │
-    │  BP 서브클래스에서 HandleGameplayCue 오버라이드
+    │  HandleGameplayCue에서 DamageFloater 액터 스폰 + 나이아가라 히트 이펙트 스폰
     ▼
-BP_WxGameplayCue_Damage (BP, 에디터)
+AWxDamageFloaterActor (C++, WxCombat)
     │
-    │  위젯 생성, 데이터 전달, 화면 배치
+    │  WidgetComponent에 위젯 생성, IWxDamageFloaterInterface로 데이터 전달
     ▼
 WBP_DamageFloater (BP 위젯, 에디터)
     │
-    │  애니메이션 재생 후 자동 제거
+    │  데미지 표시, 애니메이션 재생 후 액터 자기 파괴
     ▼
   제거
 ```
@@ -48,60 +48,68 @@ WBP_DamageFloater (BP 위젯, 에디터)
 
 | 클래스 | 모듈 | 근거 |
 |--------|------|------|
-| `GameplayCue.Damage` 태그 | WxCore | 공용 태그 정의 |
-| `UWxGameplayCueNotify_Damage` | WxGame | C++ 베이스. GameplayCue Tag 매핑 및 확장 포인트 제공 |
-| `BP_WxGameplayCue_Damage` | 에디터 | BP 서브클래스. 위젯 생성 및 데이터 전달 로직 처리 |
-| `WBP_DamageFloater` | 에디터 | UMG BP 위젯. 비주얼 및 애니메이션 담당 |
+| `GameplayCue.Damage`, `Damage.Critical` 태그 | WxCore | 공용 태그 정의 |
+| `IWxDamageFloaterInterface` | WxCombat | 데미지 플로터 데이터 전달 인터페이스 |
+| `UWxGameplayCueNotify_Damage` | WxCombat | GameplayCue Tag 매핑, DamageFloater 액터 스폰, 나이아가라 히트 이펙트 스폰 |
+| `AWxDamageFloaterActor` | WxCombat | WidgetComponent 보유, 데미지 정보 전달 |
+| `BP_WxDamageFloater` | 에디터 | 액터 BP 서브클래스. FloaterWidgetClass, 애니메이션 설정 |
+| `WBP_DamageFloater` | 에디터 | UMG BP 위젯. 비주얼 담당 |
 
 ---
 
 ## 클래스 설계
 
-### UWxGameplayCueNotify_Damage (C++, WxGame)
+### IWxDamageFloaterInterface (C++, WxCombat)
+
+데미지 플로터 위젯이 구현해야 하는 인터페이스. C++에서 위젯 생성 후 이 인터페이스를 통해 데미지 정보를 전달한다.
+
+| 함수 | 파라미터 | 설명 |
+|------|----------|------|
+| `InitDamageInfo` | `float DamageAmount, bool bIsCritical` | BlueprintNativeEvent. BP 위젯이 구현하여 데미지 정보를 수신 |
+
+### AWxDamageFloaterActor (C++, WxCombat)
+
+```
+AActor
+  └─ AWxDamageFloaterActor
+```
+
+데미지 플로터 액터. 피격 위치에 스폰되어 WidgetComponent로 데미지 수치를 월드 스페이스에 표시한다. BP 서브클래스에서 위젯 클래스 설정, 떠오르기·페이드 아웃·자기 파괴를 처리한다.
+
+#### 주요 프로퍼티
+
+| 프로퍼티 | 타입 | 설명 |
+|----------|------|------|
+| `WidgetComponent` | `UWidgetComponent*` | Screen 스페이스 위젯 컴포넌트 (RootComponent) |
+| `FloaterWidgetClass` | `TSubclassOf<UUserWidget>` | 데미지 플로터 위젯 클래스 (IWxDamageFloaterInterface 구현 필수) |
+
+#### InitDamageInfo 처리 흐름
+
+1. `FloaterWidgetClass`로 WidgetComponent에 위젯 생성
+2. `IWxDamageFloaterInterface::Execute_InitDamageInfo`로 데미지/크리티컬 값 전달
+
+### UWxGameplayCueNotify_Damage (C++, WxCombat)
 
 ```
 UGameplayCueNotify_Static
   └─ UWxGameplayCueNotify_Damage
 ```
 
-C++ 베이스 클래스. GameplayCue Tag 매핑과 BP 확장 포인트를 제공한다. 프로젝트 최초의 GameplayCue 클래스이므로, 이후 추가될 GameplayCue의 패턴 기준이 된다.
+GameplayCue Tag 매핑, DamageFloater 액터 스폰, 나이아가라 히트 이펙트 스폰을 처리한다.
 
-#### 주요 구현
+#### 주요 프로퍼티
 
-```cpp
-UCLASS(Abstract, Blueprintable)
-class WXGAME_API UWxGameplayCueNotify_Damage : public UGameplayCueNotify_Static
-{
-    GENERATED_BODY()
+| 프로퍼티 | 타입 | 설명 |
+|----------|------|------|
+| `FloaterActorClass` | `TSubclassOf<AWxDamageFloaterActor>` | 데미지 플로터 액터 클래스 |
+| `HitNiagaraSystem` | `TObjectPtr<UNiagaraSystem>` | 히트 시 스폰할 나이아가라 이펙트 |
 
-public:
-    UWxGameplayCueNotify_Damage();
-};
-```
+#### HandleGameplayCue 처리 흐름
 
-#### 생성자
-
-```cpp
-UWxGameplayCueNotify_Damage::UWxGameplayCueNotify_Damage()
-{
-    GameplayCueTag = WxGameplayTags::GameplayCue_Damage;
-}
-```
-
-- `Abstract`: 직접 사용 불가, BP 서브클래스 필수
-- `Blueprintable`: BP에서 `HandleGameplayCue`를 오버라이드할 수 있도록 허용
-- 생성자에서 `GameplayCueTag`를 설정하여 `GameplayCue.Damage` 태그와 자동 매핑
-
-#### BP 서브클래스 (BP_WxGameplayCue_Damage)에서 처리할 내용
-
-`HandleGameplayCue` 이벤트를 오버라이드하여 다음을 처리:
-
-1. `Parameters.RawMagnitude`에서 데미지 수치 추출
-2. `Parameters.AggregatedSourceTags`에서 `Damage_Critical` 태그 포함 여부 확인
-3. `Parameters.Location`으로 월드 좌표 획득
-4. 로컬 플레이어의 `PlayerController`를 통해 위젯 생성
-5. `ProjectWorldLocationToScreen`으로 스크린 좌표 변환
-6. 위젯(`WBP_DamageFloater`)을 뷰포트에 추가하고 데미지/크리티컬 값 전달
+1. `FloaterActorClass`를 `Parameters.Location`에 스폰
+2. `Parameters.RawMagnitude`에서 데미지 수치, `Parameters.AggregatedSourceTags`에서 치명타 여부 추출
+3. `AWxDamageFloaterActor::InitDamageInfo`로 데이터 전달
+4. `HitNiagaraSystem`이 설정되어 있으면 `Parameters.Location`에 나이아가라 스폰
 
 ---
 
@@ -156,14 +164,17 @@ WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Critical);
 | # | 작업 | 파일 |
 |---|------|------|
 | 1 | `GameplayCue_Damage`, `Damage_Critical` 태그 추가 | `WxGameplayTags.h/.cpp` |
-| 2 | `UWxGameplayCueNotify_Damage` 구현 | 신규 (WxGame) |
-| 3 | `UWxDamageExecCalc`에 치명타 플래그 추출 및 Cue 실행 코드 추가 | `WxDamageExecCalc.cpp` |
+| 2 | `IWxDamageFloaterInterface` 구현 | 신규 (WxCombat) |
+| 3 | `AWxDamageFloaterActor` 구현 (WidgetComponent, InitDamageInfo) | 신규 (WxCombat) |
+| 4 | `UWxGameplayCueNotify_Damage` 구현 (액터 스폰, HandleGameplayCue) | 신규 (WxCombat) |
+| 5 | `UWxDamageExecCalc`에 치명타 플래그 추출 및 Cue 실행 코드 추가 | `WxDamageExecCalc.cpp` |
 
 ### 에디터 작업
 | # | 작업 | 비고 |
 |---|------|------|
-| 1 | `BP_WxGameplayCue_Damage` BP 서브클래스 제작 (HandleGameplayCue 오버라이드) | 에디터 |
-| 2 | `WBP_DamageFloater` UMG 위젯 제작 (레이아웃, 애니메이션) | UMG 에디터 |
+| 1 | `WBP_DamageFloater` UMG 위젯 제작 (`IWxDamageFloaterInterface` 구현, 데미지 텍스트 표시) | UMG 에디터 |
+| 2 | `BP_WxDamageFloater` 액터 BP 서브클래스 제작 (`FloaterWidgetClass` 설정, 떠오르기·페이드 아웃·자기 파괴) | 에디터 |
+| 3 | `GC_Damage` GameplayCue BP 서브클래스에서 `FloaterActorClass`, `HitNiagaraSystem` 설정 | 에디터 |
 
 ---
 

@@ -80,7 +80,8 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
 
 	// 치명타 판정: CritRate 1당 1% 확률, 치명타 시 (1 + CritDMG * 0.01) 배율 적용
 	const float CritChance = FMath::Clamp(SourceCritRate * 0.01f, 0.f, 1.f);
-	if (FMath::FRand() < CritChance)
+	const bool bIsCritical = FMath::FRand() < CritChance;
+	if (bIsCritical)
 	{
 		FinalDamage *= (1.f + SourceCritDMG * 0.01f);
 	}
@@ -114,6 +115,24 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
 		{
 			TargetASC->AddLooseGameplayTag(WxGameplayTags::State_Groggy);
 		}
+	}
+
+	// 데미지 플로터 GameplayCue 실행
+	{
+		AActor* TargetActor = TargetASC->GetOwnerActor();
+		FGameplayCueParameters CueParams;
+		CueParams.RawMagnitude = FinalDamage;
+		CueParams.Location = TargetActor ? TargetActor->GetActorLocation() : FVector::ZeroVector;
+		CueParams.EffectContext = ExecutionParams.GetOwningSpec().GetEffectContext();
+
+		if (bIsCritical)
+		{
+			FGameplayTagContainer DamageInfoTags;
+			DamageInfoTags.AddTag(WxGameplayTags::Damage_Critical);
+			CueParams.AggregatedSourceTags = DamageInfoTags;
+		}
+
+		TargetASC->ExecuteGameplayCue(WxGameplayTags::GameplayCue_Damage, CueParams);
 	}
 
 	// 전투 피격 후처리

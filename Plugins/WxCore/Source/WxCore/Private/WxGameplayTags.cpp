@@ -16,6 +16,10 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(ANS_Invincible, "ANS.Invincible");
 	UE_DEFINE_GAMEPLAY_TAG(ANS_Guard, "ANS.Guard");
 
+	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Damage, "GameplayCue.Damage");
+
+	UE_DEFINE_GAMEPLAY_TAG(Damage_Critical, "Damage.Critical");
+
 	UE_DEFINE_GAMEPLAY_TAG(Ability, "Ability");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack, "Ability.Attack");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Dodge, "Ability.Dodge");
