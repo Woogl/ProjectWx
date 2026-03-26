@@ -55,14 +55,13 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
 
 	UAbilitySystemComponent* SourceASC = ExecutionParams.GetSourceAbilitySystemComponent();
 
-	// 타겟이 무적 상태이면 대미지를 적용하지 않음
 	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_Invincible))
 	{
 		return;
 	}
 
 	AActor* TargetActor = TargetASC->GetOwnerActor();
-	AActor* SourceActor = SourceASC->GetOwnerActor();
+	AActor* SourceActor = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
 
 	const FWxDamageStatics& Statics = GetDamageStatics();
 
@@ -79,32 +78,64 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
 	const float DefenseMultiplier = 100.f / (100.f + TargetDEF);
 
 	// 퍼펙트 가드: 대미지 무효화 + 공격자에게 DP 반사
-	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_PerfectGuard))
+	if (HandlePerfectGuard(SourceASC, TargetASC, SourceActor, TargetActor, SourceATK, DefenseMultiplier))
 	{
-		if (SourceASC)
-		{
-			const float Reflect = FMath::Max(SourceATK * DefenseMultiplier, 0.f);
-
-			// 공격자에게 DP 반사 적용. 그로기 판정은 PostGameplayEffectExecute에서 수행
-			const UGameplayEffect* ReflectEffect = UWxEffect_Reflect::StaticClass()->GetDefaultObject<UGameplayEffect>();
-			FGameplayEffectSpec Spec(ReflectEffect, SourceASC->MakeEffectContext(), 1.f);
-			Spec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_ReflectDP, Reflect);
-			SourceASC->ApplyGameplayEffectSpecToSelf(Spec);
-		}
-
-		// 퍼펙트 가드 성공 시에도 HitReact 발동
-		if (TargetActor)
-		{
-			FGameplayEventData EventData;
-			EventData.Instigator = SourceActor;
-			EventData.Target = TargetActor;
-			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_HitReact, EventData);
-		}
-
 		return;
 	}
 
-	// ── 대미지 계산 ─────────────────────────────────────────────────────
+	// 데미지 계산
+	FWxDamageResult DamageResult = CalcDamage(ExecutionParams, EvalParams, SourceATK, DefenseMultiplier, TargetASC);
+	if (DamageResult.FinalDamage <= 0.f)
+	{
+		return;
+	}
+
+	// IncomingDamage 어트리뷰트 전달
+	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
+
+	// 그로기 상태가 아닐 때만 DP 증가
+	if (!TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
+	{
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.DPProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
+	}
+
+	// 피격 후처리
+	ApplyPostDamageEffects(SourceASC, TargetASC, SourceActor, TargetActor, ExecutionParams.GetOwningSpec(), DamageResult);
+}
+
+bool UWxDamageExecCalc::HandlePerfectGuard(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, AActor* SourceActor, AActor* TargetActor, float SourceATK, float DefenseMultiplier) const
+{
+	if (!TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_PerfectGuard))
+	{
+		return false;
+	}
+
+	// 공격자에게 DP 반사 적용. 그로기 판정은 PostGameplayEffectExecute에서 수행
+	if (SourceASC)
+	{
+		const float Reflect = FMath::Max(SourceATK * DefenseMultiplier, 0.f);
+
+		const UGameplayEffect* ReflectEffect = UWxEffect_Reflect::StaticClass()->GetDefaultObject<UGameplayEffect>();
+		FGameplayEffectSpec Spec(ReflectEffect, SourceASC->MakeEffectContext(), 1.f);
+		Spec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_ReflectDP, Reflect);
+		SourceASC->ApplyGameplayEffectSpecToSelf(Spec);
+	}
+
+	// 퍼펙트 가드 성공 시에도 HitReact 발동
+	if (TargetActor)
+	{
+		FGameplayEventData EventData;
+		EventData.Instigator = SourceActor;
+		EventData.Target = TargetActor;
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_HitReact, EventData);
+	}
+
+	return true;
+}
+
+FWxDamageResult UWxDamageExecCalc::CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, float SourceATK, float DefenseMultiplier, UAbilitySystemComponent* TargetASC) const
+{
+	const FWxDamageStatics& Statics = GetDamageStatics();
 
 	float SourceCritRate = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.CritRateDef, EvalParams, SourceCritRate);
@@ -113,48 +144,37 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.CritDMGDef, EvalParams, SourceCritDMG);
 
 	// FinalDamage = ATK_공격자 * (100 / (100 + DEF_피격자))
-	float FinalDamage = FMath::Max(SourceATK * DefenseMultiplier, 0.f);
+	FWxDamageResult Result;
+	Result.FinalDamage = FMath::Max(SourceATK * DefenseMultiplier, 0.f);
 
 	// 치명타 판정: CritRate 1당 1% 확률, 치명타 시 (1 + CritDMG * 0.01) 배율 적용
 	const float CritChance = FMath::Clamp(SourceCritRate * 0.01f, 0.f, 1.f);
-	const bool bIsCritical = FMath::FRand() < CritChance;
-	if (bIsCritical)
+	Result.bIsCritical = FMath::FRand() < CritChance;
+	if (Result.bIsCritical)
 	{
-		FinalDamage *= (1.f + SourceCritDMG * 0.01f);
+		Result.FinalDamage *= (1.f + SourceCritDMG * 0.01f);
 	}
 
 	// 가드 중이면 데미지 50% 감소
 	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_Guard))
 	{
 		constexpr float GuardDamageReductionRate = 0.5f;
-		FinalDamage *= GuardDamageReductionRate;
+		Result.FinalDamage *= GuardDamageReductionRate;
 	}
 
-	if (FinalDamage <= 0.f)
-	{
-		return;
-	}
+	return Result;
+}
 
-	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, FinalDamage));
-
-	// ── DP ──────────────────────────────────────────────────────────────
-	// 그로기 상태가 아닐 때만 DP 증가. 그로기 판정은 PostGameplayEffectExecute에서 수행
-
-	if (!TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
-	{
-		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.DPProperty, EGameplayModOp::Additive, FinalDamage));
-	}
-
-	// ── 피격 후처리 ─────────────────────────────────────────────────────
-
+void UWxDamageExecCalc::ApplyPostDamageEffects(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, AActor* SourceActor, AActor* TargetActor, const FGameplayEffectSpec& OwningSpec, const FWxDamageResult& DamageResult) const
+{
 	// 데미지 플로터 GameplayCue 실행
 	{
 		FGameplayCueParameters CueParams;
-		CueParams.RawMagnitude = FinalDamage;
+		CueParams.RawMagnitude = DamageResult.FinalDamage;
 		CueParams.Location = TargetActor ? TargetActor->GetActorLocation() : FVector::ZeroVector;
-		CueParams.EffectContext = ExecutionParams.GetOwningSpec().GetEffectContext();
+		CueParams.EffectContext = OwningSpec.GetEffectContext();
 
-		if (bIsCritical)
+		if (DamageResult.bIsCritical)
 		{
 			FGameplayTagContainer DamageInfoTags;
 			DamageInfoTags.AddTag(WxGameplayTags::Damage_Critical);
@@ -176,7 +196,7 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
 		// AI 데미지 감지
 		if (SourceActor)
 		{
-			UAISense_Damage::ReportDamageEvent(TargetActor->GetWorld(), TargetActor, SourceActor, FinalDamage, SourceActor->GetActorLocation(), TargetActor->GetActorLocation());
+			UAISense_Damage::ReportDamageEvent(TargetActor->GetWorld(), TargetActor, SourceActor, DamageResult.FinalDamage, SourceActor->GetActorLocation(), TargetActor->GetActorLocation());
 		}
 
 		// HitReact 이벤트 발송

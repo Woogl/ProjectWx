@@ -6,6 +6,14 @@
 #include "GameplayEffectExecutionCalculation.h"
 #include "WxDamageExecCalc.generated.h"
 
+class UAbilitySystemComponent;
+
+struct FWxDamageResult
+{
+	float FinalDamage = 0.f;
+	bool bIsCritical = false;
+};
+
 /**
  * 데미지 계산 ExecutionCalculation.
  *
@@ -21,4 +29,11 @@ public:
 	UWxDamageExecCalc();
 
 	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
+
+private:
+	bool HandlePerfectGuard(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, AActor* SourceActor, AActor* TargetActor, float SourceATK, float DefenseMultiplier) const;
+
+	FWxDamageResult CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, float SourceATK, float DefenseMultiplier, UAbilitySystemComponent* TargetASC) const;
+
+	void ApplyPostDamageEffects(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, AActor* SourceActor, AActor* TargetActor, const FGameplayEffectSpec& OwningSpec, const FWxDamageResult& DamageResult) const;
 };
