@@ -1,16 +1,16 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Cue/WxGameplayCueNotify_Damage.h"
+#include "AbilitySystem/Cue/WxCueNotify_Damage.h"
 #include "NiagaraFunctionLibrary.h"
 #include "WxGameplayTags.h"
 #include "AbilitySystem/Cue/WxDamageFloaterActor.h"
 
-UWxGameplayCueNotify_Damage::UWxGameplayCueNotify_Damage()
+UWxCueNotify_Damage::UWxCueNotify_Damage()
 {
 	GameplayCueTag = WxGameplayTags::GameplayCue_Damage;
 }
 
-void UWxGameplayCueNotify_Damage::HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters)
+void UWxCueNotify_Damage::HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters)
 {
 	Super::HandleGameplayCue(MyTarget, EventType, Parameters);
 

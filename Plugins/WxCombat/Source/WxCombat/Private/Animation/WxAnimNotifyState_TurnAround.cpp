@@ -1,8 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Animation/WxAnimNotifyState_TurnAround.h"
-#include "AbilitySystem/WxAbilitySystemComponent.h"
-#include "AbilitySystemBlueprintLibrary.h"
+#include "Combat/WxLockOnComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TargetingSystem/TargetingSubsystem.h"
@@ -23,9 +22,9 @@ void UWxAnimNotifyState_TurnAround::NotifyBegin(USkeletalMeshComponent* MeshComp
 	}
 
 	// 락온 대상이 있으면 우선 사용
-	if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner)))
+	if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(Owner))
 	{
-		if (AActor* LockOnTarget = WxASC->GetLockOnTarget())
+		if (AActor* LockOnTarget = LockOnComp->GetLockOnTarget())
 		{
 			OwnerToTargetMap.Add(Owner, LockOnTarget);
 			return;

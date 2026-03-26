@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayCueNotify_Static.h"
-#include "WxGameplayCueNotify_Damage.generated.h"
+#include "WxCueNotify_Damage.generated.h"
 
 class AWxDamageFloaterActor;
 class UNiagaraSystem;
@@ -15,12 +15,12 @@ class UNiagaraSystem;
  * BP 서브클래스에서 FloaterActorClass를 설정한다.
  */
 UCLASS(Abstract, Blueprintable)
-class WXCOMBAT_API UWxGameplayCueNotify_Damage : public UGameplayCueNotify_Static
+class WXCOMBAT_API UWxCueNotify_Damage : public UGameplayCueNotify_Static
 {
 	GENERATED_BODY()
 
 public:
-	UWxGameplayCueNotify_Damage();
+	UWxCueNotify_Damage();
 
 	virtual void HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters) override;
 

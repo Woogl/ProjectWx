@@ -6,8 +6,9 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "GenericTeamAgentInterface.h"
-#include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "Combat/WxLockOnComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "WxCollisionChannels.h"
 
@@ -45,9 +46,9 @@ void AWxProjectileBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator())))
+	if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(GetInstigator()))
 	{
-		if (AActor* LockOnTarget = WxASC->GetLockOnTarget())
+		if (AActor* LockOnTarget = LockOnComp->GetLockOnTarget())
 		{
 			const FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), LockOnTarget->GetActorLocation());
 			SetActorRotation(LookAtRotation);

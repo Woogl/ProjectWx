@@ -2,7 +2,8 @@
 
 #include "AbilitySystem/Ability/WxAbility_LockOn.h"
 #include "AbilitySystem/Task/WxAbilityTask_LockOnTarget.h"
-#include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "AbilitySystemComponent.h"
+#include "Combat/WxLockOnComponent.h"
 #include "TargetingSystem/TargetingSubsystem.h"
 #include "Types/TargetingSystemTypes.h"
 #include "WxGameplayTags.h"
@@ -59,9 +60,9 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 	// State_LockOn 태그 추가 및 락온 대상 등록
 	ActorInfo->AbilitySystemComponent->AddLooseGameplayTag(WxGameplayTags::State_LockOn);
-	if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get()))
+	if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(GetOwningActorFromActorInfo()))
 	{
-		WxASC->SetLockOnTarget(FoundTarget);
+		LockOnComp->SetLockOnTarget(FoundTarget);
 	}
 
 	// 락온 태스크 생성
@@ -80,9 +81,9 @@ void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 	if (ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
 	{
 		ActorInfo->AbilitySystemComponent->RemoveLooseGameplayTag(WxGameplayTags::State_LockOn);
-		if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get()))
+		if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(GetOwningActorFromActorInfo()))
 		{
-			WxASC->SetLockOnTarget(nullptr);
+			LockOnComp->SetLockOnTarget(nullptr);
 		}
 	}
 

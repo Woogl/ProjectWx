@@ -3,6 +3,7 @@
 #include "Character/WxCharacterBase.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
+#include "Combat/WxLockOnComponent.h"
 #include "WxGameplayTags.h"
 #include "Components/CapsuleComponent.h"
 #include "WxCollisionChannels.h"
@@ -20,6 +21,8 @@ AWxCharacterBase::AWxCharacterBase()
 	AbilitySystemComponent->SetIsReplicated(true);
 
 	CombatAttributeSet = CreateDefaultSubobject<UWxCombatAttributeSet>(TEXT("CombatAttributeSet"));
+
+	LockOnComponent = CreateDefaultSubobject<UWxLockOnComponent>(TEXT("LockOnComponent"));
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw   = false;

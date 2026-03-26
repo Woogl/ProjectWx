@@ -13,6 +13,7 @@
 
 class UWxAbilitySystemComponent;
 class UWxCombatAttributeSet;
+class UWxLockOnComponent;
 class AWxWeaponBase;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBase*, DeadCharacter);
@@ -55,6 +56,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|GAS")
 	TObjectPtr<UWxCombatAttributeSet> CombatAttributeSet;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")
+	TObjectPtr<UWxLockOnComponent> LockOnComponent;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PossessedBy(AController* NewController) override;
