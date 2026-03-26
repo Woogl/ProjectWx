@@ -18,6 +18,7 @@ UWxAbility_Ultimate::UWxAbility_Ultimate()
 	CooldownTag = WxGameplayTags::Cooldown_Ultimate;
 
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Groggy);
 }
