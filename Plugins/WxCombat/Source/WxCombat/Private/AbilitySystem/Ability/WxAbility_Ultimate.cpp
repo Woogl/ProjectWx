@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Ultimate.h"
-#include "AbilitySystem/Task/WxAbilityTask_PlayCutscene.h"
+#include "AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "LevelSequence.h"
 #include "WxGameplayTags.h"
@@ -36,7 +36,7 @@ void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	ULevelSequence* Sequence = CutsceneSequence.LoadSynchronous();
 	if (Sequence)
 	{
-		UWxAbilityTask_PlayCutscene* CutsceneTask = UWxAbilityTask_PlayCutscene::CreateTask(this, Sequence);
+		UWxAbilityTask_PlaySkillCutscene* CutsceneTask = UWxAbilityTask_PlaySkillCutscene::CreateTask(this, Sequence);
 		if (CutsceneTask)
 		{
 			CutsceneTask->OnCompleted.AddDynamic(this, &UWxAbility_Ultimate::HandleCutsceneCompleted);

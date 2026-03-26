@@ -1,20 +1,22 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Task/WxAbilityTask_PlayCutscene.h"
+#include "AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.h"
 #include "AbilitySystemComponent.h"
+#include "DefaultLevelSequenceInstanceData.h"
 #include "LevelSequenceActor.h"
 #include "LevelSequencePlayer.h"
 #include "Kismet/GameplayStatics.h"
 #include "WxGameplayTags.h"
 
-UWxAbilityTask_PlayCutscene* UWxAbilityTask_PlayCutscene::CreateTask(UGameplayAbility* OwningAbility, ULevelSequence* InLevelSequence)
+UWxAbilityTask_PlaySkillCutscene* UWxAbilityTask_PlaySkillCutscene::CreateTask(UGameplayAbility* OwningAbility, ULevelSequence* InLevelSequence, float InGlobalTimeDilation)
 {
-	UWxAbilityTask_PlayCutscene* Task = NewAbilityTask<UWxAbilityTask_PlayCutscene>(OwningAbility);
+	UWxAbilityTask_PlaySkillCutscene* Task = NewAbilityTask<UWxAbilityTask_PlaySkillCutscene>(OwningAbility);
 	Task->LevelSequence = InLevelSequence;
+	Task->GlobalTimeDilation = InGlobalTimeDilation;
 	return Task;
 }
 
-void UWxAbilityTask_PlayCutscene::Activate()
+void UWxAbilityTask_PlaySkillCutscene::Activate()
 {
 	Super::Activate();
 
@@ -30,9 +32,8 @@ void UWxAbilityTask_PlayCutscene::Activate()
 	AddInvincibleTag();
 
 	// Time Dilation 설정
-	constexpr float CutsceneTimeDilation = 0.001f;
 	OriginalTimeDilation = UGameplayStatics::GetGlobalTimeDilation(World);
-	UGameplayStatics::SetGlobalTimeDilation(World, CutsceneTimeDilation);
+	UGameplayStatics::SetGlobalTimeDilation(World, GlobalTimeDilation);
 	bTimeDilationModified = true;
 
 	// Level Sequence Actor 스폰 및 재생
@@ -50,13 +51,37 @@ void UWxAbilityTask_PlayCutscene::Activate()
 		return;
 	}
 
+	// AvatarActor 기준으로 TransformOrigin 및 액터 리바인딩 설정
+	AActor* AvatarActor = GetAvatarActor();
+	if (AvatarActor && SequenceActor)
+	{
+		// TransformOrigin: AvatarActor의 Transform을 시퀀스 원점으로 사용
+		SequenceActor->bOverrideInstanceData = true;
+		if (UDefaultLevelSequenceInstanceData* InstanceData = Cast<UDefaultLevelSequenceInstanceData>(SequenceActor->DefaultInstanceData))
+		{
+			InstanceData->TransformOrigin = AvatarActor->GetActorTransform();
+		}
+
+		// 액터 리바인딩: 시퀀스에서 Binding Tag가 "Player"인 바인딩을 AvatarActor로 교체
+		{
+			static const FName PlayerBindingTag = TEXT("Player");
+			TArray<AActor*> Actors;
+			Actors.Add(AvatarActor);
+			SequenceActor->SetBindingByTag(PlayerBindingTag, Actors, true);
+		}
+	}
+
 	// PlayRate를 Time Dilation의 역수로 보정하여 시퀀스만 정상 속도로 재생
-	SequencePlayer->SetPlayRate(1.f / CutsceneTimeDilation);
-	SequencePlayer->OnFinished.AddDynamic(this, &UWxAbilityTask_PlayCutscene::HandleSequenceFinished);
+	if (GlobalTimeDilation > 0.f && GlobalTimeDilation != 1.f)
+	{
+		SequencePlayer->SetPlayRate(1.f / GlobalTimeDilation);
+	}
+
+	SequencePlayer->OnFinished.AddDynamic(this, &UWxAbilityTask_PlaySkillCutscene::HandleSequenceFinished);
 	SequencePlayer->Play();
 }
 
-void UWxAbilityTask_PlayCutscene::OnDestroy(bool bInOwnerFinished)
+void UWxAbilityTask_PlaySkillCutscene::OnDestroy(bool bInOwnerFinished)
 {
 	RemoveInvincibleTag();
 	RestoreTimeDilation();
@@ -65,7 +90,7 @@ void UWxAbilityTask_PlayCutscene::OnDestroy(bool bInOwnerFinished)
 	Super::OnDestroy(bInOwnerFinished);
 }
 
-void UWxAbilityTask_PlayCutscene::HandleSequenceFinished()
+void UWxAbilityTask_PlaySkillCutscene::HandleSequenceFinished()
 {
 	RestoreTimeDilation();
 	CleanupSequenceActor();
@@ -78,7 +103,7 @@ void UWxAbilityTask_PlayCutscene::HandleSequenceFinished()
 	EndTask();
 }
 
-void UWxAbilityTask_PlayCutscene::RestoreTimeDilation()
+void UWxAbilityTask_PlaySkillCutscene::RestoreTimeDilation()
 {
 	if (bTimeDilationModified)
 	{
@@ -91,7 +116,7 @@ void UWxAbilityTask_PlayCutscene::RestoreTimeDilation()
 	}
 }
 
-void UWxAbilityTask_PlayCutscene::AddInvincibleTag()
+void UWxAbilityTask_PlaySkillCutscene::AddInvincibleTag()
 {
 	UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
 	if (ASC)
@@ -101,7 +126,7 @@ void UWxAbilityTask_PlayCutscene::AddInvincibleTag()
 	}
 }
 
-void UWxAbilityTask_PlayCutscene::RemoveInvincibleTag()
+void UWxAbilityTask_PlaySkillCutscene::RemoveInvincibleTag()
 {
 	if (bInvincibleTagAdded)
 	{
@@ -114,7 +139,7 @@ void UWxAbilityTask_PlayCutscene::RemoveInvincibleTag()
 	}
 }
 
-void UWxAbilityTask_PlayCutscene::CleanupSequenceActor()
+void UWxAbilityTask_PlaySkillCutscene::CleanupSequenceActor()
 {
 	if (SequenceActor)
 	{
