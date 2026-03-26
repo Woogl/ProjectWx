@@ -23,6 +23,10 @@ public:
 	/** 입력 태그에 매칭되는 어빌리티에 입력 해제 전달 */
 	void AbilityInputTagReleased(const FGameplayTag& InputTag);
 
+	/** 래그돌 활성화. 모든 클라이언트에서 실행 */
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastEnableRagdoll();
+
 protected:
 	/** Ability, Effect 초기 데이터 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|GAS")

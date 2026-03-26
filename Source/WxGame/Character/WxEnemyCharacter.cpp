@@ -32,6 +32,13 @@ AWxEnemyCharacter::AWxEnemyCharacter()
 
 void AWxEnemyCharacter::BeginPlay()
 {
+	// AI 캐릭터는 OnRep_PlayerState가 없으므로 클라이언트에서 BeginPlay 시 ASC 초기화.
+	// 서버에서는 PossessedBy에서 InitAbilitySystem이 이미 호출됨.
+	if (!HasAuthority())
+	{
+		InitAbilitySystem();
+	}
+
 	Super::BeginPlay();
 
 	if (UUserWidget* NameplateWidget = NameplateComponent->GetWidget())

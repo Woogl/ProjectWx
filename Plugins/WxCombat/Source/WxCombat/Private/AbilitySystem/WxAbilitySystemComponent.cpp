@@ -1,6 +1,9 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
 
 UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 {
@@ -39,6 +42,23 @@ void UWxAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Input
 			}
 		}
 	}
+}
+
+void UWxAbilitySystemComponent::MulticastEnableRagdoll_Implementation()
+{
+	ACharacter* Character = Cast<ACharacter>(GetOwnerActor());
+	if (!Character)
+	{
+		return;
+	}
+
+	USkeletalMeshComponent* Mesh = Character->GetMesh();
+	Mesh->SetCollisionProfileName(TEXT("Ragdoll"));
+	Mesh->SetAllBodiesSimulatePhysics(true);
+	Mesh->SetSimulatePhysics(true);
+
+	Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Character->GetCharacterMovement()->DisableMovement();
 }
 
 void UWxAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& InputTag)

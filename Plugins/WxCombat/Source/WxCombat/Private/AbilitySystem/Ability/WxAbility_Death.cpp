@@ -1,12 +1,9 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Death.h"
-#include "AbilitySystemComponent.h"
+#include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "WxGameplayTags.h"
-#include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "Components/CapsuleComponent.h"
 
 UWxAbility_Death::UWxAbility_Death()
 {
@@ -77,17 +74,9 @@ void UWxAbility_Death::HandleMontageCancelled()
 
 void UWxAbility_Death::EnableRagdoll()
 {
-	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
-	if (!Character)
+	UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
+	if (WxASC)
 	{
-		return;
+		WxASC->MulticastEnableRagdoll();
 	}
-
-	USkeletalMeshComponent* Mesh = Character->GetMesh();
-	Mesh->SetCollisionProfileName(TEXT("Ragdoll"));
-	Mesh->SetAllBodiesSimulatePhysics(true);
-	Mesh->SetSimulatePhysics(true);
-
-	Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	Character->GetCharacterMovement()->DisableMovement();
 }
