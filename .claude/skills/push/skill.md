@@ -1,3 +1,10 @@
+---
+name: push
+description: 원격 저장소에 커밋 및 푸시
+user-invocable: true
+allowed-tools: Bash
+---
+
 # 원격 저장소에 커밋 및 푸시
 
 변경 사항을 커밋하고 원격 저장소에 푸시하라.
@@ -55,4 +62,3 @@ EOF
 ### 6단계: 결과 보고
 
 커밋 해시, 메시지, 푸시 결과를 요약하여 보고하라.
-

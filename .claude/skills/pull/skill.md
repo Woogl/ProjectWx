@@ -1,3 +1,10 @@
+---
+name: pull
+description: 원격 저장소 최신버전 가져오기
+user-invocable: true
+allowed-tools: Bash
+---
+
 # 원격 저장소 최신버전 가져오기
 
 원격 저장소의 최신 내용을 현재 브랜치에 가져오라.

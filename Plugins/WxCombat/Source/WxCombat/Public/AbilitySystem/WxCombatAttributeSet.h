@@ -17,10 +17,6 @@
 /**
  * 캐릭터 스탯 어트리뷰트 세트.
  *
- * Vital  (복제됨): HP, MaxHP, MP, MaxMP, DP, MaxDP
- * Combat (복제됨): ATK, DEF, SPD, CritRate, CritDMG
- * Meta   (복제 안 함): IncomingDamage
- *
  * 약어 정의
  *   HP       - Health Points      : 현재 체력
  *   MaxHP    - Max Health Points  : 최대 체력
@@ -36,6 +32,9 @@
  *
  * IncomingDamage: GameplayEffect ExecutionCalculation에서 최종 데미지를 이 어트리뷰트로 전달하고
  *                 PostGameplayEffectExecute에서 HP를 차감하는 패턴으로 사용.
+ *                 
+ * 복제됨: HP, MaxHP, MP, MaxMP, DP, MaxDP, ATK, DEF, SPD, CritRate, CritDMG
+ * 복제 안 함 (Meta): IncomingDamage
  */
 UCLASS()
 class WXCOMBAT_API UWxCombatAttributeSet : public UAttributeSet

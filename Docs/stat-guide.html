@@ -3,932 +3,704 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wx - 스탯 가이드</title>
+<title>스탯 가이드 - Wx Project</title>
 <style>
   :root {
     --bg: #0f1117;
-    --surface: #161922;
-    --surface2: #1c2030;
-    --border: #2a2e3e;
+    --bg-card: #1a1d27;
+    --bg-card-hover: #202430;
+    --border: #2a2e3a;
     --text: #e2e4ea;
-    --text-dim: #8b90a0;
-    --accent: #6c8aff;
-    --accent-dim: #3d5299;
-    --hp: #e05555;
-    --hp-bg: #3a1c1c;
-    --mp: #5580e0;
-    --mp-bg: #1c2440;
-    --dp: #e0a030;
-    --dp-bg: #3a3018;
-    --atk: #e07040;
-    --def: #50a8a0;
-    --spd: #60c860;
-    --crit: #d060d0;
-    --meta: #808898;
+    --text-dim: #8b8fa3;
+    --text-heading: #f0f1f4;
+    --hp: #ef4444;
+    --hp-bg: rgba(239,68,68,0.12);
+    --mp: #3b82f6;
+    --mp-bg: rgba(59,130,246,0.12);
+    --dp: #eab308;
+    --dp-bg: rgba(234,179,8,0.12);
+    --atk: #f97316;
+    --atk-bg: rgba(249,115,22,0.12);
+    --def: #06b6d4;
+    --def-bg: rgba(6,182,212,0.12);
+    --spd: #22c55e;
+    --spd-bg: rgba(34,197,94,0.12);
+    --crit: #a855f7;
+    --crit-bg: rgba(168,85,247,0.12);
+    --accent: #818cf8;
+    --formula-bg: #151820;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
     background: var(--bg);
     color: var(--text);
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
     line-height: 1.7;
-    padding: 40px 20px;
+    padding: 2rem 1rem;
   }
 
-  .container {
-    max-width: 960px;
-    margin: 0 auto;
-  }
+  .container { max-width: 960px; margin: 0 auto; }
 
   header {
     text-align: center;
-    margin-bottom: 60px;
-    padding-bottom: 40px;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
     border-bottom: 1px solid var(--border);
   }
 
   header h1 {
-    font-size: 2.2em;
-    font-weight: 700;
+    font-size: 2rem;
+    color: var(--text-heading);
+    margin-bottom: 0.25rem;
     letter-spacing: -0.02em;
-    margin-bottom: 8px;
   }
 
-  header p {
+  header .subtitle {
     color: var(--text-dim);
-    font-size: 1.05em;
+    font-size: 0.9rem;
   }
 
-  /* ── Section ──────────────────────────── */
-
-  section {
-    margin-bottom: 56px;
-  }
-
-  section > h2 {
-    font-size: 1.35em;
-    font-weight: 600;
-    margin-bottom: 20px;
-    padding-left: 14px;
-    border-left: 3px solid var(--accent);
-  }
-
-  section > p {
+  header .date {
     color: var(--text-dim);
-    margin-bottom: 20px;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
   }
 
-  /* ── Stat Card ────────────────────────── */
+  h2 {
+    font-size: 1.4rem;
+    color: var(--text-heading);
+    margin: 2.5rem 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
 
-  .stat-card {
-    background: var(--surface);
+  h3 {
+    font-size: 1.1rem;
+    color: var(--text-heading);
+    margin: 1.5rem 0 0.75rem;
+  }
+
+  .card {
+    background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 28px 32px;
-    margin-bottom: 16px;
-    transition: border-color 0.15s;
-  }
-
-  .stat-card:hover {
-    border-color: var(--accent-dim);
-  }
-
-  .stat-header {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 14px;
-  }
-
-  .stat-icon {
-    width: 42px;
-    height: 42px;
     border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    transition: background 0.15s;
+  }
+
+  .card:hover { background: var(--bg-card-hover); }
+
+  .card-header {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 1.15em;
-    font-weight: 700;
-    flex-shrink: 0;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
   }
 
-  .stat-header h3 {
-    font-size: 1.15em;
+  .card-header .badge {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
     font-weight: 600;
+    letter-spacing: 0.03em;
   }
 
-  .stat-header h3 span {
-    font-weight: 400;
-    color: var(--text-dim);
-    font-size: 0.85em;
-    margin-left: 6px;
-  }
+  .card-header h3 { margin: 0; font-size: 1.05rem; }
 
-  .stat-body p {
-    color: var(--text-dim);
-    margin-bottom: 10px;
-  }
+  .badge-hp    { background: var(--hp-bg);   color: var(--hp); }
+  .badge-mp    { background: var(--mp-bg);   color: var(--mp); }
+  .badge-dp    { background: var(--dp-bg);   color: var(--dp); }
+  .badge-atk   { background: var(--atk-bg);  color: var(--atk); }
+  .badge-def   { background: var(--def-bg);  color: var(--def); }
+  .badge-spd   { background: var(--spd-bg);  color: var(--spd); }
+  .badge-crit  { background: var(--crit-bg); color: var(--crit); }
 
-  .stat-body p:last-child {
-    margin-bottom: 0;
-  }
-
-  /* ── Color themes ─────────────────────── */
-
-  .stat-card.hp  { border-left: 3px solid var(--hp); }
-  .stat-card.hp  .stat-icon { background: var(--hp-bg); color: var(--hp); }
-  .stat-card.mp  { border-left: 3px solid var(--mp); }
-  .stat-card.mp  .stat-icon { background: var(--mp-bg); color: var(--mp); }
-  .stat-card.dp  { border-left: 3px solid var(--dp); }
-  .stat-card.dp  .stat-icon { background: var(--dp-bg); color: var(--dp); }
-  .stat-card.atk { border-left: 3px solid var(--atk); }
-  .stat-card.atk .stat-icon { background: #3a2218; color: var(--atk); }
-  .stat-card.def { border-left: 3px solid var(--def); }
-  .stat-card.def .stat-icon { background: #183a36; color: var(--def); }
-  .stat-card.spd { border-left: 3px solid var(--spd); }
-  .stat-card.spd .stat-icon { background: #1a3a1a; color: var(--spd); }
-  .stat-card.crit { border-left: 3px solid var(--crit); }
-  .stat-card.crit .stat-icon { background: #381838; color: var(--crit); }
-  .stat-card.meta { border-left: 3px solid var(--meta); }
-  .stat-card.meta .stat-icon { background: var(--surface2); color: var(--meta); }
-
-  /* ── Detail rows ──────────────────────── */
-
-  .details {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px 24px;
-    margin-top: 14px;
-    padding-top: 14px;
-    border-top: 1px solid var(--border);
-  }
-
-  .detail-item {
-    display: flex;
-    gap: 8px;
-  }
-
-  .detail-label {
-    color: var(--text-dim);
-    font-size: 0.88em;
-    white-space: nowrap;
-  }
-
-  .detail-value {
-    font-size: 0.88em;
-    font-weight: 500;
-  }
-
-  /* ── Formula box ──────────────────────── */
-
-  .formula-box {
-    background: var(--surface);
+  .formula-block {
+    background: var(--formula-bg);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px 28px;
-    margin-bottom: 16px;
-  }
-
-  .formula-box h4 {
-    font-size: 1em;
-    font-weight: 600;
-    margin-bottom: 12px;
-  }
-
-  .formula {
-    background: var(--surface2);
     border-radius: 8px;
-    padding: 16px 20px;
-    font-family: 'Consolas', 'Menlo', monospace;
-    font-size: 0.92em;
+    padding: 1rem 1.25rem;
+    margin: 0.75rem 0;
+    font-size: 0.95rem;
     line-height: 1.8;
-    color: var(--accent);
     overflow-x: auto;
-    margin-bottom: 12px;
   }
 
-  .formula:last-child {
-    margin-bottom: 0;
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.9rem;
   }
 
-  .formula .comment {
+  th, td {
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    background: var(--bg-card);
     color: var(--text-dim);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
-  .formula-box p {
-    color: var(--text-dim);
-    font-size: 0.92em;
-    margin-bottom: 8px;
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* 파이프라인 (플로우 다이어그램) */
+  .pipeline {
+    position: relative;
+    padding-left: 2rem;
   }
 
-  .formula-box p:last-child {
-    margin-bottom: 0;
+  .pipeline::before {
+    content: '';
+    position: absolute;
+    left: 0.6rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
   }
 
-  /* ── Flow diagram ─────────────────────── */
+  .pipeline-step {
+    position: relative;
+    margin-bottom: 1.25rem;
+    padding: 1rem 1.25rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
 
-  .flow {
+  .pipeline-step::before {
+    content: attr(data-step);
+    position: absolute;
+    left: -2.1rem;
+    top: 1rem;
+    width: 1.4rem;
+    height: 1.4rem;
+    background: var(--accent);
+    color: var(--bg);
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 700;
     display: flex;
     align-items: center;
-    gap: 0;
-    padding: 20px 0;
-    overflow-x: auto;
     justify-content: center;
+  }
+
+  .pipeline-step h4 {
+    font-size: 0.95rem;
+    color: var(--text-heading);
+    margin-bottom: 0.4rem;
+  }
+
+  .pipeline-step p, .pipeline-step .formula-block {
+    font-size: 0.88rem;
+    color: var(--text-dim);
+  }
+
+  .pipeline-step .formula-block {
+    color: var(--text);
+  }
+
+  .example-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+
+  @media (min-width: 640px) {
+    .example-grid { grid-template-columns: 1fr 1fr 1fr; }
+  }
+
+  .example-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+  }
+
+  .example-card h4 {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-heading);
+  }
+
+  .example-card .step {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .example-card .result {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+    font-weight: 600;
+  }
+
+  .highlight-hp   { color: var(--hp); }
+  .highlight-mp   { color: var(--mp); }
+  .highlight-dp   { color: var(--dp); }
+  .highlight-atk  { color: var(--atk); }
+  .highlight-def  { color: var(--def); }
+  .highlight-spd  { color: var(--spd); }
+  .highlight-crit { color: var(--crit); }
+
+  .toc {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .toc h3 { margin: 0 0 0.75rem; font-size: 0.95rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .toc ol {
+    padding-left: 1.25rem;
+    font-size: 0.9rem;
+  }
+
+  .toc li { margin-bottom: 0.3rem; }
+
+  .toc a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .toc a:hover { text-decoration: underline; }
+
+  .note {
+    background: rgba(129,140,248,0.08);
+    border-left: 3px solid var(--accent);
+    padding: 0.75rem 1rem;
+    border-radius: 0 6px 6px 0;
+    margin: 0.75rem 0;
+    font-size: 0.88rem;
+    color: var(--text-dim);
+  }
+
+  .state-card {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
     flex-wrap: wrap;
   }
 
-  .flow-step {
-    background: var(--surface2);
+  .state-card > div {
+    flex: 1;
+    min-width: 280px;
+    background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 10px 16px;
-    font-size: 0.85em;
-    font-weight: 500;
-    white-space: nowrap;
-    text-align: center;
+    padding: 1rem 1.25rem;
   }
 
-  .flow-arrow {
-    color: var(--text-dim);
-    padding: 0 6px;
-    font-size: 1.1em;
+  .state-card h4 {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
   }
 
-  /* ── Table ────────────────────────────── */
-
-  .stat-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9em;
-    margin-top: 8px;
-  }
-
-  .stat-table th {
-    text-align: left;
-    padding: 10px 14px;
-    background: var(--surface2);
-    color: var(--text-dim);
-    font-weight: 600;
-    font-size: 0.85em;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .stat-table th:first-child { border-radius: 8px 0 0 0; }
-  .stat-table th:last-child  { border-radius: 0 8px 0 0; }
-
-  .stat-table td {
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
-  }
-
-  .stat-table tr:last-child td {
-    border-bottom: none;
-  }
-
-  .stat-table tbody tr:hover td {
-    background: var(--surface2);
-  }
-
-  .tag {
-    display: inline-block;
-    font-size: 0.78em;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 4px;
-    letter-spacing: 0.02em;
-  }
-
-  .tag-vital   { background: var(--hp-bg);  color: var(--hp); }
-  .tag-combat  { background: var(--mp-bg);  color: var(--mp); }
-  .tag-meta    { background: var(--surface2); color: var(--meta); }
-
-  /* ── Example box ──────────────────────── */
-
-  .example-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px 28px;
-    margin-bottom: 16px;
-  }
-
-  .example-box h4 {
-    font-size: 0.95em;
-    font-weight: 600;
-    margin-bottom: 14px;
-    color: var(--accent);
-  }
-
-  .example-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 0;
-    font-size: 0.9em;
-  }
-
-  .example-row + .example-row {
-    border-top: 1px solid var(--border);
-    padding-top: 6px;
-  }
-
-  .example-label {
+  .state-card ul {
+    padding-left: 1.2rem;
+    font-size: 0.88rem;
     color: var(--text-dim);
   }
 
-  .example-value {
-    font-family: 'Consolas', 'Menlo', monospace;
-    font-weight: 500;
-  }
+  .state-card li { margin-bottom: 0.25rem; }
 
-  .note {
-    background: var(--surface2);
-    border-left: 3px solid var(--accent);
-    border-radius: 0 8px 8px 0;
-    padding: 14px 18px;
-    margin-top: 12px;
-    font-size: 0.88em;
+  .scenario-desc {
+    font-size: 0.82rem;
     color: var(--text-dim);
-  }
-
-  @media (max-width: 640px) {
-    .details { grid-template-columns: 1fr; }
-    .flow { justify-content: flex-start; }
-    .stat-card { padding: 20px 20px; }
+    font-style: italic;
+    margin-bottom: 0.5rem;
   }
 </style>
 </head>
 <body>
 <div class="container">
 
-<!-- ════════════════════════════════════════ Header ═══ -->
-
 <header>
-  <h1>Wx Stat Guide</h1>
-  <p>전투 시스템 어트리뷰트 및 공식 레퍼런스</p>
+  <h1>스탯 가이드</h1>
+  <p class="subtitle">Wx Project &mdash; 어트리뷰트 &amp; 대미지 시스템 레퍼런스</p>
+  <p class="date">2026-03-27</p>
 </header>
 
-<!-- ════════════════════════════════════════ Overview ═══ -->
+<nav class="toc">
+  <h3>목차</h3>
+  <ol>
+    <li><a href="#summary">어트리뷰트 요약</a></li>
+    <li><a href="#vital">생존 스탯 (HP, MP, DP)</a></li>
+    <li><a href="#combat">전투 스탯 (ATK, DEF, SPD, CritRate, CritDMG)</a></li>
+    <li><a href="#pipeline">대미지 계산 흐름</a></li>
+    <li><a href="#examples">전체 계산 예시</a></li>
+    <li><a href="#states">특수 상태</a></li>
+    <li><a href="#cost">어빌리티 비용</a></li>
+  </ol>
+</nav>
 
-<section>
-  <h2>어트리뷰트 요약</h2>
-  <p>모든 전투 어트리뷰트는 <code>UWxCombatAttributeSet</code>에 정의되며, 3개 카테고리로 나뉜다.</p>
+<!-- ───────────────────── 1. 요약 테이블 ───────────────────── -->
+<h2 id="summary">1. 어트리뷰트 요약</h2>
 
-  <table class="stat-table">
-    <thead>
-      <tr>
-        <th>어트리뷰트</th>
-        <th>카테고리</th>
-        <th>범위</th>
-        <th>설명</th>
-      </tr>
-    </thead>
+<table>
+  <thead>
+    <tr><th>어트리뷰트</th><th>카테고리</th><th>범위</th><th>설명</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><span class="highlight-hp">HP</span></td><td>생존</td><td>0 ~ MaxHP</td><td>현재 체력. 0이 되면 사망</td></tr>
+    <tr><td><span class="highlight-hp">MaxHP</span></td><td>생존</td><td>1 이상</td><td>최대 체력</td></tr>
+    <tr><td><span class="highlight-mp">MP</span></td><td>생존</td><td>0 ~ MaxMP</td><td>현재 마나. 어빌리티 사용 시 소모</td></tr>
+    <tr><td><span class="highlight-mp">MaxMP</span></td><td>생존</td><td>0 이상</td><td>최대 마나</td></tr>
+    <tr><td><span class="highlight-dp">DP</span></td><td>생존</td><td>0 ~ MaxDP</td><td>그로기 수치. MaxDP에 도달하면 그로기 발동</td></tr>
+    <tr><td><span class="highlight-dp">MaxDP</span></td><td>생존</td><td>1 이상</td><td>최대 그로기 수치</td></tr>
+    <tr><td><span class="highlight-atk">ATK</span></td><td>전투</td><td>제한 없음</td><td>공격력. 대미지 계산의 기반값</td></tr>
+    <tr><td><span class="highlight-def">DEF</span></td><td>전투</td><td>제한 없음</td><td>방어력. 받는 대미지를 경감</td></tr>
+    <tr><td><span class="highlight-spd">SPD</span></td><td>전투</td><td>제한 없음</td><td>이동속도 배율 (기본 1.0)</td></tr>
+    <tr><td><span class="highlight-crit">CritRate</span></td><td>전투</td><td>제한 없음</td><td>치명타 확률. 1당 1%</td></tr>
+    <tr><td><span class="highlight-crit">CritDMG</span></td><td>전투</td><td>제한 없음</td><td>치명타 추가 대미지. 1당 +1%</td></tr>
+  </tbody>
+</table>
+
+<!-- ───────────────────── 2. 생존 스탯 ───────────────────── -->
+<h2 id="vital">2. 생존 스탯</h2>
+
+<div class="card">
+  <div class="card-header">
+    <span class="badge badge-hp">HP</span>
+    <h3>HP &amp; MaxHP &mdash; 체력</h3>
+  </div>
+  <p>HP는 캐릭터가 버틸 수 있는 체력이다. 대미지를 받으면 HP가 줄어들고, <strong>HP가 0</strong>이 되면 캐릭터가 <strong>사망</strong>한다.</p>
+
+  <h3>범위</h3>
+  <p>HP는 항상 <strong>0 ~ MaxHP</strong> 사이로 유지된다. MaxHP는 최소 <strong>1</strong> 이상이어야 한다.</p>
+
+  <h3>MaxHP 변경 시 비율 유지</h3>
+  <p>버프나 레벨업으로 MaxHP가 바뀌면, 현재 HP가 같은 비율로 조정된다. 예를 들어 MaxHP 100에서 HP 60(60%)인 상태에서 MaxHP가 200으로 증가하면, HP도 120(60%)이 된다.</p>
+  <div class="formula-block">새 HP = 새 MaxHP &times; (현재 HP &divide; 이전 MaxHP)</div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="badge badge-mp">MP</span>
+    <h3>MP &amp; MaxMP &mdash; 마나</h3>
+  </div>
+  <p>MP는 어빌리티를 사용하기 위한 자원이다. MP 비용이 설정된 어빌리티는 MP가 부족하면 사용할 수 없다.</p>
+
+  <h3>범위</h3>
+  <p>MP는 항상 <strong>0 ~ MaxMP</strong> 사이로 유지된다. MaxMP는 최소 <strong>0</strong> 이상이다.</p>
+
+  <h3>적중 시 MP 회복</h3>
+  <p>공격이 적중할 때마다 <strong>공격자</strong>의 MP가 <strong>+5</strong> 회복된다. 단, 상대가 무적이거나 퍼펙트 가드에 성공한 경우에는 대미지가 발생하지 않으므로 회복도 일어나지 않는다.</p>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="badge badge-dp">DP</span>
+    <h3>DP &amp; MaxDP &mdash; 그로기 수치</h3>
+  </div>
+  <p>DP는 대미지를 받을 때마다 누적되는 &ldquo;충격 게이지&rdquo;이다. DP가 MaxDP에 도달하면 캐릭터가 <strong>그로기</strong> 상태에 빠져 일정 시간 무방비가 된다.</p>
+
+  <h3>범위</h3>
+  <p>DP는 항상 <strong>0 ~ MaxDP</strong> 사이로 유지된다. MaxDP는 최소 <strong>1</strong> 이상이어야 한다.</p>
+
+  <h3>DP 누적 규칙</h3>
+  <p>대미지를 받으면 <strong>최종 대미지와 같은 수치</strong>만큼 DP가 증가한다. 단, 이미 그로기 상태인 동안에는 DP가 추가로 누적되지 않는다.</p>
+
+  <h3>그로기 발동</h3>
+  <p>DP가 MaxDP에 도달하면 자동으로 그로기 상태에 진입한다. 자세한 내용은 <a href="#states" style="color: var(--accent);">특수 상태</a> 섹션을 참고한다.</p>
+
+  <h3>그로기 중 DP 드레인</h3>
+  <p>그로기 상태에 진입하면 DP가 <strong>5.0초</strong>에 걸쳐 자동으로 0까지 감소한다. 초당 30회 감소하며, DP가 0이 되면 그로기가 해제된다.</p>
+  <div class="formula-block">틱당 감소량 = MaxDP &divide; (5.0초 &times; 30) = MaxDP &divide; 150</div>
+  <p class="note">예시: MaxDP가 300이면 틱당 2.0씩 감소한다. 150번의 틱(= 5초) 후에 DP가 완전히 드레인된다.</p>
+
+  <h3>퍼펙트 가드 DP 반사</h3>
+  <p>퍼펙트 가드에 성공하면 피격자는 대미지를 받지 않고, 대신 <strong>공격자</strong>의 DP가 증가한다. 반사되는 DP는 기본 대미지 공식과 동일하게 계산된다.</p>
+  <div class="formula-block">반사 DP = ATK<sub>공격자</sub> &times; 방어배율</div>
+</div>
+
+<!-- ───────────────────── 3. 전투 스탯 ───────────────────── -->
+<h2 id="combat">3. 전투 스탯</h2>
+
+<div class="card">
+  <div class="card-header">
+    <span class="badge badge-atk">ATK</span>
+    <h3>ATK &mdash; 공격력</h3>
+  </div>
+  <p>ATK는 대미지의 기준이 되는 수치이다. ATK가 높을수록 한 번의 공격에 더 큰 대미지를 준다.</p>
+  <div class="formula-block">기본 대미지 = ATK &times; 방어배율</div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="badge badge-def">DEF</span>
+    <h3>DEF &mdash; 방어력</h3>
+  </div>
+  <p>DEF는 받는 대미지를 줄여주는 수치이다. DEF가 높을수록 대미지 경감률이 커지지만, 쌓을수록 효율이 떨어지는 <strong>수확 체감</strong> 구조이다. DEF를 아무리 높여도 대미지를 100% 막을 수는 없다.</p>
+  <div class="formula-block">방어배율 = 100 &divide; (100 + DEF)</div>
+
+  <h3>DEF별 경감률 표</h3>
+  <table>
+    <thead><tr><th>DEF</th><th>방어배율</th><th>실질 경감률</th></tr></thead>
     <tbody>
-      <tr>
-        <td><strong>HP</strong></td>
-        <td><span class="tag tag-vital">Vital</span></td>
-        <td>0 ~ MaxHP</td>
-        <td>현재 체력. 0 이하 시 사망</td>
-      </tr>
-      <tr>
-        <td><strong>MaxHP</strong></td>
-        <td><span class="tag tag-vital">Vital</span></td>
-        <td>&ge; 1</td>
-        <td>최대 체력. 변경 시 HP 비율 유지</td>
-      </tr>
-      <tr>
-        <td><strong>MP</strong></td>
-        <td><span class="tag tag-vital">Vital</span></td>
-        <td>0 ~ MaxMP</td>
-        <td>마나. 어빌리티 사용 비용</td>
-      </tr>
-      <tr>
-        <td><strong>MaxMP</strong></td>
-        <td><span class="tag tag-vital">Vital</span></td>
-        <td>&ge; 0</td>
-        <td>최대 마나</td>
-      </tr>
-      <tr>
-        <td><strong>DP</strong></td>
-        <td><span class="tag tag-vital">Vital</span></td>
-        <td>0 ~ MaxDP</td>
-        <td>무력화 게이지. MaxDP 도달 시 그로기</td>
-      </tr>
-      <tr>
-        <td><strong>MaxDP</strong></td>
-        <td><span class="tag tag-vital">Vital</span></td>
-        <td>&ge; 1</td>
-        <td>무력화 최대치 (그로기 임계값)</td>
-      </tr>
-      <tr>
-        <td><strong>ATK</strong></td>
-        <td><span class="tag tag-combat">Combat</span></td>
-        <td>제한 없음</td>
-        <td>공격력. 대미지 공식의 기본값</td>
-      </tr>
-      <tr>
-        <td><strong>DEF</strong></td>
-        <td><span class="tag tag-combat">Combat</span></td>
-        <td>제한 없음</td>
-        <td>방어력. 대미지 경감률에 사용</td>
-      </tr>
-      <tr>
-        <td><strong>SPD</strong></td>
-        <td><span class="tag tag-combat">Combat</span></td>
-        <td>제한 없음</td>
-        <td>이동속도 배율 (기본값 1.0)</td>
-      </tr>
-      <tr>
-        <td><strong>CritRate</strong></td>
-        <td><span class="tag tag-combat">Combat</span></td>
-        <td>제한 없음</td>
-        <td>치명타 확률 (1당 1%)</td>
-      </tr>
-      <tr>
-        <td><strong>CritDMG</strong></td>
-        <td><span class="tag tag-combat">Combat</span></td>
-        <td>제한 없음</td>
-        <td>치명타 피해 보너스 (1당 +1%)</td>
-      </tr>
-      <tr>
-        <td><strong>IncomingDamage</strong></td>
-        <td><span class="tag tag-meta">Meta</span></td>
-        <td>-</td>
-        <td>대미지 전달용 임시 어트리뷰트 (비복제)</td>
-      </tr>
+      <tr><td>0</td><td>100.0%</td><td>0%</td></tr>
+      <tr><td>50</td><td>66.7%</td><td>33.3%</td></tr>
+      <tr><td>100</td><td>50.0%</td><td>50.0%</td></tr>
+      <tr><td>200</td><td>33.3%</td><td>66.7%</td></tr>
+      <tr><td>300</td><td>25.0%</td><td>75.0%</td></tr>
+      <tr><td>500</td><td>16.7%</td><td>83.3%</td></tr>
     </tbody>
   </table>
-</section>
+</div>
 
-<!-- ════════════════════════════════════════ Vital Stats ═══ -->
+<div class="card">
+  <div class="card-header">
+    <span class="badge badge-spd">SPD</span>
+    <h3>SPD &mdash; 이동속도</h3>
+  </div>
+  <p>SPD는 캐릭터의 기본 걸음 속도에 곱해지는 <strong>배율</strong>이다. 기본값은 <strong>1.0</strong>(=100%)이다.</p>
+  <div class="formula-block">실제 이동속도 = 기본 걸음 속도 &times; SPD</div>
 
-<section>
-  <h2>생존 스탯</h2>
+  <h3>대시 (스프린트)</h3>
+  <p>대시 버튼을 누르고 있으면 SPD에 <strong>+0.5</strong>가 더해진다. 버튼을 놓으면 보너스가 사라진다.</p>
+  <div class="formula-block">대시 중: SPD + 0.5 &rarr; 기본 SPD 1.0 기준 이동속도 <strong>150%</strong></div>
+  <p class="note">사망 상태에서는 대시를 사용할 수 없다.</p>
+</div>
 
-  <!-- HP -->
-  <div class="stat-card hp">
-    <div class="stat-header">
-      <div class="stat-icon">HP</div>
-      <h3>HP <span>Health Points</span></h3>
+<div class="card">
+  <div class="card-header">
+    <span class="badge badge-crit">CRIT</span>
+    <h3>CritRate &amp; CritDMG &mdash; 치명타</h3>
+  </div>
+  <p>CritRate는 공격할 때 치명타가 터질 확률을 결정한다. CritDMG는 치명타가 터졌을 때 얼마나 더 강한 대미지를 줄지 결정한다.</p>
+
+  <h3>치명타 확률</h3>
+  <p>CritRate <strong>1당 1%</strong> 확률이다. CritRate 50이면 50% 확률로 치명타가 발동한다. 확률은 0% ~ 100% 범위로 제한된다.</p>
+
+  <h3>치명타 배율</h3>
+  <p>치명타가 발동하면 대미지에 추가 배율이 적용된다. CritDMG <strong>1당 +1%</strong> 추가이다.</p>
+  <div class="formula-block">치명타 대미지 = 기본 대미지 &times; (1 + CritDMG &times; 0.01)</div>
+
+  <h3>치명타 예시 표</h3>
+  <table>
+    <thead><tr><th>CritRate</th><th>확률</th><th>CritDMG</th><th>치명타 배율</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>0%</td><td>50</td><td>&mdash;</td></tr>
+      <tr><td>25</td><td>25%</td><td>50</td><td>&times;1.5</td></tr>
+      <tr><td>50</td><td>50%</td><td>100</td><td>&times;2.0</td></tr>
+      <tr><td>100</td><td>100%</td><td>150</td><td>&times;2.5</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ───────────────────── 4. 대미지 계산 흐름 ───────────────────── -->
+<h2 id="pipeline">4. 대미지 계산 흐름</h2>
+<p>공격이 적중하면 다음 순서로 대미지가 계산된다.</p>
+
+<div class="pipeline">
+  <div class="pipeline-step" data-step="1">
+    <h4>무적 판정</h4>
+    <p>피격자가 <strong>무적</strong>(ANS.Invincible) 상태이면, 모든 계산을 건너뛴다. 대미지도, DP 누적도, MP 회복도 일어나지 않는다.</p>
+  </div>
+
+  <div class="pipeline-step" data-step="2">
+    <h4>퍼펙트 가드 판정</h4>
+    <p>피격자가 <strong>퍼펙트 가드</strong>(ANS.PerfectGuard) 상태이면:</p>
+    <div class="formula-block">
+      &bull; 피격자: 대미지 없음<br>
+      &bull; 공격자: DP += ATK<sub>공격자</sub> &times; 방어배율 (DP 반사)<br>
+      &bull; 피격자에게 피격 리액션 발생
     </div>
-    <div class="stat-body">
-      <p>캐릭터의 현재 체력. 대미지를 받으면 감소하며, <strong>0 이하가 되면 사망 상태</strong>(<code>State.Dead</code>)가 발동한다.</p>
-      <div class="details">
-        <div class="detail-item">
-          <span class="detail-label">범위:</span>
-          <span class="detail-value">0 ~ MaxHP (클램프)</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">사망 조건:</span>
-          <span class="detail-value">IncomingDamage에 의해 HP &le; 0</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">비율 유지:</span>
-          <span class="detail-value">MaxHP 변경 시 HP를 비율로 재조정</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">복제:</span>
-          <span class="detail-value">항상 복제 (REPNOTIFY_Always)</span>
-        </div>
-      </div>
+    <p>이후 계산은 중단된다.</p>
+  </div>
+
+  <div class="pipeline-step" data-step="3">
+    <h4>기본 대미지 계산</h4>
+    <p>공격자의 ATK와 피격자의 DEF를 사용하여 기본 대미지를 산출한다. 결과가 0 이하면 중단.</p>
+    <div class="formula-block">
+      방어배율 = 100 &divide; (100 + DEF<sub>피격자</sub>)<br>
+      기본 대미지 = ATK<sub>공격자</sub> &times; 방어배율 (최소 0)
     </div>
   </div>
 
-  <!-- MP -->
-  <div class="stat-card mp">
-    <div class="stat-header">
-      <div class="stat-icon">MP</div>
-      <h3>MP <span>Mana Points</span></h3>
-    </div>
-    <div class="stat-body">
-      <p>어빌리티를 사용하기 위한 자원. 어빌리티마다 고유한 MP 소모량이 있으며, MP가 부족하면 어빌리티를 사용할 수 없다. 공격이 적중하면 <strong>5 MP</strong>가 자동으로 회복된다.</p>
-      <div class="details">
-        <div class="detail-item">
-          <span class="detail-label">범위:</span>
-          <span class="detail-value">0 ~ MaxMP (클램프)</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">적중 시 회복:</span>
-          <span class="detail-value">+5 MP (고정값)</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">궁극기 비용:</span>
-          <span class="detail-value">100 MP</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">복제:</span>
-          <span class="detail-value">항상 복제</span>
-        </div>
-      </div>
+  <div class="pipeline-step" data-step="4">
+    <h4>치명타 판정</h4>
+    <p>공격자의 CritRate에 따라 치명타 여부를 확률적으로 결정한다. 치명타가 발동하면 CritDMG만큼 대미지가 증폭된다.</p>
+    <div class="formula-block">
+      치명타 발동 시: 대미지 &times;= (1 + CritDMG<sub>공격자</sub> &times; 0.01)
     </div>
   </div>
 
-  <!-- DP -->
-  <div class="stat-card dp">
-    <div class="stat-header">
-      <div class="stat-icon">DP</div>
-      <h3>DP <span>Daze Points</span></h3>
-    </div>
-    <div class="stat-body">
-      <p>무력화 게이지. 피격 시 최종 대미지만큼 DP가 누적되며, <strong>MaxDP에 도달하면 그로기 상태</strong>(<code>State.Groggy</code>)가 발동한다. 그로기 상태에서는 DP가 시간에 따라 자동 감소하며, 0이 되면 그로기가 해제된다.</p>
-      <div class="details">
-        <div class="detail-item">
-          <span class="detail-label">범위:</span>
-          <span class="detail-value">0 ~ MaxDP (클램프)</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">누적량:</span>
-          <span class="detail-value">= 최종 대미지</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">그로기 조건:</span>
-          <span class="detail-value">DP &ge; MaxDP</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">그로기 중 누적:</span>
-          <span class="detail-value">불가 (그로기 상태에서 DP 미증가)</span>
-        </div>
-      </div>
+  <div class="pipeline-step" data-step="5">
+    <h4>가드 감소</h4>
+    <p>피격자가 <strong>가드</strong>(ANS.Guard) 상태이면, 대미지가 <strong>50%</strong> 감소한다.</p>
+    <div class="formula-block">가드 중: 대미지 &times;= 0.5</div>
+  </div>
+
+  <div class="pipeline-step" data-step="6">
+    <h4>대미지 &amp; DP 적용</h4>
+    <p>최종 대미지가 0보다 크면 피격자에게 적용한다.</p>
+    <div class="formula-block">
+      &bull; 피격자 HP -= 최종 대미지<br>
+      &bull; 피격자 DP += 최종 대미지 (단, 그로기 상태가 아닐 때만)
     </div>
   </div>
 
-  <div class="formula-box">
-    <h4>그로기 DP 드레인</h4>
-    <p>그로기가 발동하면 DP가 일정 속도로 감소한다. 총 드레인 시간은 <code>GroggyDuration</code> 프로퍼티로 설정한다.</p>
-    <div class="formula">
-<span class="comment">// 초당 30회 틱으로 DP를 감소</span>
-DrainPerTick = (MaxDP / GroggyDuration) &times; (1 / 30)
-NewDP = max(CurrentDP - DrainPerTick, 0)
-
-<span class="comment">// DP가 0에 도달하면 그로기 해제</span>
-if NewDP &le; 0 &rarr; State.Groggy 태그 제거
+  <div class="pipeline-step" data-step="7">
+    <h4>피격 후처리</h4>
+    <div class="formula-block">
+      &bull; 대미지 숫자 표시 (치명타이면 강조 표시)<br>
+      &bull; 공격자 MP +5 회복<br>
+      &bull; 피격자에게 피격 리액션 발생
     </div>
   </div>
-</section>
+</div>
 
-<!-- ════════════════════════════════════════ Combat Stats ═══ -->
+<h3>대미지 공식 요약</h3>
+<div class="formula-block">
+  <strong>최종 대미지</strong> = ATK<sub>공격자</sub> &times; 100 &divide; (100 + DEF<sub>피격자</sub>) &times; 치명타 배율 &times; 가드 배율<br><br>
+  &bull; 치명타 배율 = 치명타 발동 시 (1 + CritDMG &times; 0.01), 미발동 시 1.0<br>
+  &bull; 가드 배율 = 가드 중 0.5, 아닐 때 1.0
+</div>
 
-<section>
-  <h2>전투 스탯</h2>
+<!-- ───────────────────── 5. 계산 예시 ───────────────────── -->
+<h2 id="examples">5. 전체 계산 예시</h2>
+<p>공격자: <strong>ATK 100, CritRate 25, CritDMG 150</strong> / 피격자: <strong>DEF 100, MaxDP 300</strong></p>
 
-  <!-- ATK -->
-  <div class="stat-card atk">
-    <div class="stat-header">
-      <div class="stat-icon">ATK</div>
-      <h3>ATK <span>Attack</span></h3>
-    </div>
-    <div class="stat-body">
-      <p>공격력. 대미지 계산 공식의 기본값으로 사용된다. 공격자의 ATK가 높을수록 더 많은 대미지를 준다.</p>
-      <div class="details">
-        <div class="detail-item">
-          <span class="detail-label">역할:</span>
-          <span class="detail-value">대미지 공식의 Source 값</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">클램프:</span>
-          <span class="detail-value">없음</span>
-        </div>
-      </div>
+<div class="example-grid">
+  <div class="example-card">
+    <h4 class="highlight-atk">일반 공격</h4>
+    <p class="scenario-desc">평범한 한 타. 치명타 미발동, 가드 없음.</p>
+    <p class="step">기본 대미지 = 100 &times; (100&divide;200) = <strong>50</strong></p>
+    <p class="step">치명타 미발동 (75% 확률)</p>
+    <p class="step">가드 없음</p>
+    <div class="result">
+      <span class="highlight-hp">HP -50</span> &nbsp;
+      <span class="highlight-dp">DP +50</span> &nbsp;
+      <span class="highlight-mp">공격자 MP +5</span>
     </div>
   </div>
 
-  <!-- DEF -->
-  <div class="stat-card def">
-    <div class="stat-header">
-      <div class="stat-icon">DEF</div>
-      <h3>DEF <span>Defense</span></h3>
-    </div>
-    <div class="stat-body">
-      <p>방어력. 경감률 계산에 사용되어 받는 대미지를 줄인다. DEF 100이면 대미지 50% 감소, DEF 200이면 약 67% 감소.</p>
-      <div class="details">
-        <div class="detail-item">
-          <span class="detail-label">역할:</span>
-          <span class="detail-value">대미지 경감률의 Target 값</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">경감률 공식:</span>
-          <span class="detail-value">100 / (100 + DEF)</span>
-        </div>
-      </div>
+  <div class="example-card">
+    <h4 class="highlight-crit">치명타 공격</h4>
+    <p class="scenario-desc">운 좋게 치명타가 터진 상황.</p>
+    <p class="step">기본 대미지 = 50</p>
+    <p class="step">치명타! &times;(1 + 150&times;0.01) = 50 &times; 2.5 = <strong>125</strong></p>
+    <p class="step">가드 없음</p>
+    <div class="result">
+      <span class="highlight-hp">HP -125</span> &nbsp;
+      <span class="highlight-dp">DP +125</span> &nbsp;
+      <span class="highlight-mp">공격자 MP +5</span>
     </div>
   </div>
 
-  <div class="example-box">
-    <h4>DEF에 따른 대미지 경감률</h4>
-    <div class="example-row">
-      <span class="example-label">DEF 0</span>
-      <span class="example-value">100 / (100 + 0) = 100% 대미지</span>
-    </div>
-    <div class="example-row">
-      <span class="example-label">DEF 50</span>
-      <span class="example-value">100 / (100 + 50) = 66.7% 대미지</span>
-    </div>
-    <div class="example-row">
-      <span class="example-label">DEF 100</span>
-      <span class="example-value">100 / (100 + 100) = 50.0% 대미지</span>
-    </div>
-    <div class="example-row">
-      <span class="example-label">DEF 200</span>
-      <span class="example-value">100 / (100 + 200) = 33.3% 대미지</span>
-    </div>
-    <div class="example-row">
-      <span class="example-label">DEF 400</span>
-      <span class="example-value">100 / (100 + 400) = 20.0% 대미지</span>
+  <div class="example-card">
+    <h4 class="highlight-def">가드</h4>
+    <p class="scenario-desc">피격자가 가드를 올린 상태에서 맞은 경우.</p>
+    <p class="step">기본 대미지 = 50</p>
+    <p class="step">치명타 미발동</p>
+    <p class="step">가드: 50 &times; 0.5 = <strong>25</strong></p>
+    <div class="result">
+      <span class="highlight-hp">HP -25</span> &nbsp;
+      <span class="highlight-dp">DP +25</span> &nbsp;
+      <span class="highlight-mp">공격자 MP +5</span>
     </div>
   </div>
 
-  <!-- SPD -->
-  <div class="stat-card spd">
-    <div class="stat-header">
-      <div class="stat-icon">SPD</div>
-      <h3>SPD <span>Speed</span></h3>
-    </div>
-    <div class="stat-body">
-      <p>이동속도 배율. 캐릭터의 기본 이동속도(<code>BaseWalkSpeed</code>)에 곱하여 최종 이동속도를 결정한다. 기본값 1.0으로, 대시 중에는 +0.5가 더해져 1.5배속이 된다.</p>
-      <div class="details">
-        <div class="detail-item">
-          <span class="detail-label">기본값:</span>
-          <span class="detail-value">1.0 (배율)</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">적용 공식:</span>
-          <span class="detail-value">MaxWalkSpeed = BaseWalkSpeed &times; SPD</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">대시 보너스:</span>
-          <span class="detail-value">SPD + 0.5 (대시 중)</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">복제:</span>
-          <span class="detail-value">항상 복제</span>
-        </div>
-      </div>
+  <div class="example-card">
+    <h4 class="highlight-crit">가드 + 치명타</h4>
+    <p class="scenario-desc">가드 중에 치명타를 맞은 최악의 상황.</p>
+    <p class="step">기본 대미지 = 50</p>
+    <p class="step">치명타! 50 &times; 2.5 = 125</p>
+    <p class="step">가드: 125 &times; 0.5 = <strong>62.5</strong></p>
+    <div class="result">
+      <span class="highlight-hp">HP -62.5</span> &nbsp;
+      <span class="highlight-dp">DP +62.5</span> &nbsp;
+      <span class="highlight-mp">공격자 MP +5</span>
     </div>
   </div>
 
-  <!-- CritRate & CritDMG -->
-  <div class="stat-card crit">
-    <div class="stat-header">
-      <div class="stat-icon">CR</div>
-      <h3>CritRate <span>Critical Rate</span></h3>
-    </div>
-    <div class="stat-body">
-      <p>치명타 확률. <strong>1당 1%</strong>의 확률로 치명타가 발동한다. 치명타 확률은 0~100% 범위로 클램프된다.</p>
-      <div class="details">
-        <div class="detail-item">
-          <span class="detail-label">단위:</span>
-          <span class="detail-value">1 = 1% 확률</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">공식:</span>
-          <span class="detail-value">Clamp(CritRate &times; 0.01, 0, 1)</span>
-        </div>
-      </div>
+  <div class="example-card">
+    <h4 class="highlight-dp">퍼펙트 가드</h4>
+    <p class="scenario-desc">타이밍을 맞춰 퍼펙트 가드에 성공한 경우.</p>
+    <p class="step">반사 DP = 100 &times; (100&divide;200) = <strong>50</strong></p>
+    <p class="step">피격자: 대미지 없음</p>
+    <p class="step">공격자: DP +50</p>
+    <div class="result">
+      <span class="highlight-hp">피격자 HP &plusmn;0</span> &nbsp;
+      <span class="highlight-dp">공격자 DP +50</span>
     </div>
   </div>
 
-  <div class="stat-card crit">
-    <div class="stat-header">
-      <div class="stat-icon">CD</div>
-      <h3>CritDMG <span>Critical Damage</span></h3>
-    </div>
-    <div class="stat-body">
-      <p>치명타 추가 피해. <strong>1당 +1%</strong>의 추가 대미지를 적용한다. CritDMG 100이면 치명타 시 2배 대미지.</p>
-      <div class="details">
-        <div class="detail-item">
-          <span class="detail-label">단위:</span>
-          <span class="detail-value">1 = +1% 추가 피해</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">배율 공식:</span>
-          <span class="detail-value">1 + CritDMG &times; 0.01</span>
-        </div>
-      </div>
+  <div class="example-card">
+    <h4 style="color: var(--text-dim)">무적</h4>
+    <p class="scenario-desc">무적 상태에서 공격을 받은 경우.</p>
+    <p class="step">무적 상태 감지</p>
+    <p class="step">모든 계산 건너뜀</p>
+    <p class="step">대미지, DP, MP 회복 모두 없음</p>
+    <div class="result">
+      <span style="color: var(--text-dim)">모두 &plusmn;0</span>
     </div>
   </div>
+</div>
 
-  <div class="example-box">
-    <h4>치명타 계산 예시</h4>
-    <p style="color: var(--text-dim); font-size: 0.9em; margin-bottom: 10px;">CritRate = 50, CritDMG = 150 인 경우:</p>
-    <div class="example-row">
-      <span class="example-label">치명타 확률</span>
-      <span class="example-value">50 &times; 0.01 = 50%</span>
-    </div>
-    <div class="example-row">
-      <span class="example-label">치명타 배율</span>
-      <span class="example-value">1 + 150 &times; 0.01 = 2.5x</span>
-    </div>
-    <div class="example-row">
-      <span class="example-label">일반 피해 (ATK 200, DEF 100)</span>
-      <span class="example-value">200 &times; 0.5 = 100</span>
-    </div>
-    <div class="example-row">
-      <span class="example-label">치명타 피해</span>
-      <span class="example-value">100 &times; 2.5 = 250</span>
-    </div>
+<!-- ───────────────────── 6. 특수 상태 ───────────────────── -->
+<h2 id="states">6. 특수 상태</h2>
+
+<div class="state-card">
+  <div>
+    <h4><span class="highlight-hp">사망</span> (State.Dead)</h4>
+    <ul>
+      <li><strong>발동 조건</strong>: 대미지를 받아 HP가 0 이하로 떨어졌을 때 (이미 사망 상태가 아닌 경우에만)</li>
+      <li><strong>진입 시 동작</strong>: 캐릭터에 State.Dead 태그가 부여되고, 사망 처리가 실행된다</li>
+      <li><strong>영향</strong>: 대시 등 State.Dead에 의해 차단되는 어빌리티를 사용할 수 없게 된다</li>
+    </ul>
   </div>
-</section>
+  <div>
+    <h4><span class="highlight-dp">그로기</span> (State.Groggy)</h4>
+    <ul>
+      <li><strong>발동 조건</strong>: 대미지를 받아 DP가 MaxDP에 도달했을 때 (이미 그로기 상태가 아닌 경우에만)</li>
+      <li><strong>진입 시 동작</strong>: 캐릭터에 State.Groggy 태그가 부여되고, 그로기 어빌리티가 자동 활성화된다</li>
+      <li><strong>그로기 중</strong>: 사용 중이던 모든 어빌리티가 취소되고, 새로운 어빌리티 사용이 차단된다. 그로기 전용 모션이 재생된다</li>
+      <li><strong>지속 시간</strong>: DP가 <strong>5.0초</strong>에 걸쳐 0까지 자동 감소한다</li>
+      <li><strong>해제 조건</strong>: DP가 0에 도달하면 State.Groggy 태그가 제거되고, 정상 상태로 돌아간다</li>
+      <li><strong>그로기 중 추가 DP</strong>: 그로기 상태에서는 대미지를 받아도 DP가 추가 누적되지 않는다 (드레인만 진행)</li>
+    </ul>
+  </div>
+</div>
 
-<!-- ════════════════════════════════════════ Damage Pipeline ═══ -->
+<!-- ───────────────────── 7. 어빌리티 비용 ───────────────────── -->
+<h2 id="cost">7. 어빌리티 비용</h2>
 
-<section>
-  <h2>대미지 계산 파이프라인</h2>
-  <p>공격이 적중하면 <code>WxDamageExecCalc</code>에서 다음 순서로 대미지를 계산한다.</p>
-
-  <div class="flow">
-    <div class="flow-step">무적 체크</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-step">퍼펙트 가드 체크</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-step">기본 대미지</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-step">치명타 판정</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-step">가드 감소</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-step">HP 감소 + DP 누적</div>
+<div class="card">
+  <div class="card-header">
+    <span class="badge badge-mp">MP 비용</span>
+    <h3>MP 소모와 쿨다운</h3>
   </div>
 
-  <div class="formula-box">
-    <h4>1. 무적 체크</h4>
-    <p>대상이 <code>ANS.Invincible</code> 태그를 보유하면 대미지를 적용하지 않고 즉시 종료한다.</p>
-  </div>
+  <h3>MP 비용</h3>
+  <p>각 어빌리티는 고유의 <strong>MP 비용</strong>을 가질 수 있다 (기본값: 0). MP 비용이 0보다 큰 어빌리티는 사용 시 다음 과정을 거친다:</p>
+  <table>
+    <thead><tr><th>단계</th><th>내용</th></tr></thead>
+    <tbody>
+      <tr><td><strong>비용 검사</strong></td><td>현재 MP가 MP 비용 이상이어야 어빌리티를 사용할 수 있다. 부족하면 사용이 차단된다.</td></tr>
+      <tr><td><strong>비용 차감</strong></td><td>어빌리티가 성공적으로 활성화되면 MP에서 비용만큼 즉시 차감된다.</td></tr>
+    </tbody>
+  </table>
 
-  <div class="formula-box">
-    <h4>2. 퍼펙트 가드</h4>
-    <p>대상이 <code>ANS.PerfectGuard</code> 태그를 보유하면 대미지를 무효화하고, 공격자에게 DP를 반사한다.</p>
-    <div class="formula">
-ReflectDP = ATK<sub>공격자</sub> &times; (100 / (100 + DEF<sub>방어자</sub>))
-<span class="comment">// 반사된 DP는 공격자의 무력화 게이지에 누적</span>
-    </div>
-  </div>
-
-  <div class="formula-box">
-    <h4>3. 기본 대미지 계산</h4>
-    <div class="formula">
-DefenseMultiplier = 100 / (100 + DEF<sub>피격자</sub>)
-BaseDamage = ATK<sub>공격자</sub> &times; DefenseMultiplier
-    </div>
-  </div>
-
-  <div class="formula-box">
-    <h4>4. 치명타 판정</h4>
-    <div class="formula">
-CritChance = Clamp(CritRate<sub>공격자</sub> &times; 0.01, 0, 1)
-if rand() &lt; CritChance:
-    FinalDamage = BaseDamage &times; (1 + CritDMG<sub>공격자</sub> &times; 0.01)
-    </div>
-  </div>
-
-  <div class="formula-box">
-    <h4>5. 가드 감소</h4>
-    <p>대상이 <code>ANS.Guard</code> 태그를 보유하면 최종 대미지가 <strong>50%</strong> 감소한다.</p>
-    <div class="formula">
-if Guard:
-    FinalDamage = FinalDamage &times; 0.5
-    </div>
-  </div>
-
-  <div class="formula-box">
-    <h4>6. 적용</h4>
-    <p>최종 대미지가 0보다 크면 다음이 적용된다:</p>
-    <div class="formula">
-HP<sub>피격자</sub> -= FinalDamage             <span class="comment">// IncomingDamage를 통해 간접 적용</span>
-DP<sub>피격자</sub> += FinalDamage             <span class="comment">// 그로기 상태가 아닐 때만</span>
-MP<sub>공격자</sub> += 5                       <span class="comment">// 공격자 마나 회복 (고정값)</span>
-    </div>
-    <div class="note">
-      HP가 0 이하가 되면 <code>State.Dead</code> 태그가 부여되어 사망 어빌리티가 발동한다.<br>
-      DP가 MaxDP에 도달하면 <code>State.Groggy</code> 태그가 부여되어 그로기 어빌리티가 발동한다.<br>
-      두 판정 모두 <code>PostGameplayEffectExecute</code>에서 수행되어, 어트리뷰트 값이 확정된 후 처리된다.
-    </div>
-  </div>
-</section>
-
-<!-- ════════════════════════════════════════ Full Example ═══ -->
-
-<section>
-  <h2>전체 계산 예시</h2>
-
-  <div class="example-box">
-    <h4>상황: 일반 공격</h4>
-    <p style="color: var(--text-dim); font-size: 0.9em; margin-bottom: 14px;">
-      공격자 ATK=200, CritRate=30, CritDMG=100<br>
-      피격자 DEF=100, HP=500, DP=20, MaxDP=200
-    </p>
-    <div class="example-row">
-      <span class="example-label">방어 배율</span>
-      <span class="example-value">100 / (100 + 100) = 0.5</span>
-    </div>
-    <div class="example-row">
-      <span class="example-label">기본 대미지</span>
-      <span class="example-value">200 &times; 0.5 = 100</span>
-    </div>
-    <div class="example-row">
-      <span class="example-label">치명타 확률</span>
-      <span class="example-value">30 &times; 0.01 = 30%</span>
-    </div>
-    <div class="example-row" style="border-top: 1px dashed var(--border); padding-top: 10px; margin-top: 4px;">
-      <span class="example-label">일반 히트 시</span>
-      <span class="example-value">HP: 500 &rarr; 400 &ensp;|&ensp; DP: 20 &rarr; 120</span>
-    </div>
-    <div class="example-row">
-      <span class="example-label">치명타 히트 시 (2.0x)</span>
-      <span class="example-value">HP: 500 &rarr; 300 &ensp;|&ensp; DP: 20 &rarr; 220 &rarr; 200 (그로기!)</span>
-    </div>
-  </div>
-
-  <div class="example-box">
-    <h4>상황: 가드 중 피격</h4>
-    <p style="color: var(--text-dim); font-size: 0.9em; margin-bottom: 14px;">
-      동일 조건에서 피격자가 가드 중 (치명타 미발생)
-    </p>
-    <div class="example-row">
-      <span class="example-label">가드 전 대미지</span>
-      <span class="example-value">100</span>
-    </div>
-    <div class="example-row">
-      <span class="example-label">가드 감소 (50%)</span>
-      <span class="example-value">100 &times; 0.5 = 50</span>
-    </div>
-    <div class="example-row">
-      <span class="example-label">결과</span>
-      <span class="example-value">HP: 500 &rarr; 450 &ensp;|&ensp; DP: 20 &rarr; 70</span>
-    </div>
-  </div>
-
-  <div class="example-box">
-    <h4>상황: 퍼펙트 가드</h4>
-    <p style="color: var(--text-dim); font-size: 0.9em; margin-bottom: 14px;">
-      동일 조건에서 피격자가 퍼펙트 가드 성공
-    </p>
-    <div class="example-row">
-      <span class="example-label">피격자 대미지</span>
-      <span class="example-value">0 (무효화)</span>
-    </div>
-    <div class="example-row">
-      <span class="example-label">공격자 DP 반사</span>
-      <span class="example-value">200 &times; 0.5 = 100 DP</span>
-    </div>
-    <div class="example-row">
-      <span class="example-label">결과</span>
-      <span class="example-value">피격자: 변동 없음 &ensp;|&ensp; 공격자: DP += 100</span>
-    </div>
-  </div>
-</section>
-
-<!-- ════════════════════════════════════════ State Triggers ═══ -->
-
-<section>
-  <h2>상태 전이</h2>
-
-  <div class="formula-box">
-    <h4>사망 (State.Dead)</h4>
-    <div class="formula">
-조건: IncomingDamage에 의해 HP &le; 0
-발동: 사망 몽타주 재생 &rarr; 래그돌 전환
-특성: 사망 중 다른 모든 어빌리티 취소 및 차단
-    </div>
-  </div>
-
-  <div class="formula-box">
-    <h4>그로기 (State.Groggy)</h4>
-    <div class="formula">
-조건: DP &ge; MaxDP
-발동: 그로기 몽타주 재생 + DP 자동 드레인 시작
-해제: DP가 0에 도달 시 그로기 태그 제거
-특성: 그로기 중 다른 모든 어빌리티 취소 및 차단
-      그로기 중 피격 시 DP가 추가 누적되지 않음
-      그로기 몽타주가 다른 몽타주에 의해 중단되면, 해당 몽타주 종료 후 자동 재재생
-    </div>
-  </div>
-</section>
-
-<!-- ════════════════════════════════════════ Ability Cost ═══ -->
-
-<section>
-  <h2>어빌리티 비용 시스템</h2>
-  <p>모든 어빌리티는 MP를 소모하며, <code>CommitAbility</code> 시점에 비용이 차감된다.</p>
-
-  <div class="formula-box">
-    <h4>비용 검사 및 차감</h4>
-    <div class="formula">
-<span class="comment">// CheckCost: 어빌리티 사용 가능 여부</span>
-가능 조건: CurrentMP &ge; MPCost
-
-<span class="comment">// ApplyCost: 비용 차감</span>
-MP -= MPCost
-    </div>
-    <div class="note">
-      MP가 부족하면 어빌리티가 활성화되지 않는다. 궁극기의 경우 비용이 100 MP이다.
-    </div>
-  </div>
-</section>
+  <h3>쿨다운</h3>
+  <p>어빌리티에 <strong>쿨다운 시간</strong>과 <strong>쿨다운 태그</strong>가 설정되어 있으면, 사용 후 설정된 시간 동안 같은 어빌리티를 다시 사용할 수 없다. 쿨다운이 끝나면 자동으로 재사용 가능해진다.</p>
+</div>
 
 </div>
 </body>
