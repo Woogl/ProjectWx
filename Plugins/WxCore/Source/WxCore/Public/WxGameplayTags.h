@@ -19,7 +19,7 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dead);
 
 	/** 공중 상태. Falling/Flying 시 부여, 착지 시 제거 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Airborne);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Aerial);
 
 	/** 그로기 상태. DP가 MaxDP에 도달 시 부여 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Groggy);

@@ -5,7 +5,7 @@
 namespace WxGameplayTags
 {
 	UE_DEFINE_GAMEPLAY_TAG(State_Dead, "State.Dead");
-	UE_DEFINE_GAMEPLAY_TAG(State_Airborne, "State.Airborne");
+	UE_DEFINE_GAMEPLAY_TAG(State_Aerial, "State.Aerial");
 	UE_DEFINE_GAMEPLAY_TAG(State_Groggy, "State.Groggy");
 	UE_DEFINE_GAMEPLAY_TAG(State_LockOn, "State.LockOn");
 

@@ -1,9 +1,9 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Cue/WxCueNotify_Damage.h"
+#include "AbilitySystem/Cue/WxDamageFloaterActor.h"
 #include "NiagaraFunctionLibrary.h"
 #include "WxGameplayTags.h"
-#include "AbilitySystem/Cue/WxDamageFloaterActor.h"
 
 UWxCueNotify_Damage::UWxCueNotify_Damage()
 {
@@ -19,7 +19,7 @@ void UWxCueNotify_Damage::HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent:
 		return;
 	}
 
-	if (!MyTarget || !FloaterActorClass)
+	if (!MyTarget || !FloaterWidgetClass)
 	{
 		return;
 	}
@@ -32,12 +32,12 @@ void UWxCueNotify_Damage::HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent:
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	AWxDamageFloaterActor* FloaterActor = World->SpawnActor<AWxDamageFloaterActor>(FloaterActorClass, Parameters.Location, FRotator::ZeroRotator, SpawnParams);
+	AWxDamageFloaterActor* FloaterActor = World->SpawnActor<AWxDamageFloaterActor>(Parameters.Location, FRotator::ZeroRotator, SpawnParams);
 	if (FloaterActor)
 	{
 		const float Damage = Parameters.RawMagnitude;
 		const bool bIsCritical = Parameters.AggregatedSourceTags.HasTag(WxGameplayTags::Damage_Critical);
-		FloaterActor->InitDamageInfo(Damage, bIsCritical);
+		FloaterActor->InitDamageInfo(FloaterWidgetClass, Damage, bIsCritical);
 	}
 
 	if (HitNiagaraSystem)

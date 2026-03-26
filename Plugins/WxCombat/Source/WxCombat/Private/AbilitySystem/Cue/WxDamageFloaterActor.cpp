@@ -13,20 +13,15 @@ AWxDamageFloaterActor::AWxDamageFloaterActor()
 	WidgetComponent->SetDrawAtDesiredSize(true);
 	WidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	RootComponent = WidgetComponent;
-	
+
 	InitialLifeSpan = 5.f;
 }
 
-void AWxDamageFloaterActor::BeginPlay()
+void AWxDamageFloaterActor::InitDamageInfo(TSubclassOf<UUserWidget> InWidgetClass, float InDamageAmount, bool bInIsCritical)
 {
-	Super::BeginPlay();
-}
-
-void AWxDamageFloaterActor::InitDamageInfo(float InDamageAmount, bool bInIsCritical)
-{
-	if (FloaterWidgetClass)
+	if (InWidgetClass)
 	{
-		WidgetComponent->SetWidgetClass(FloaterWidgetClass);
+		WidgetComponent->SetWidgetClass(InWidgetClass);
 		WidgetComponent->InitWidget();
 	}
 

@@ -168,11 +168,11 @@ void AWxCharacterBase::OnMovementModeChanged(EMovementMode PrevMovementMode, uin
 
 	if (bIsAirborne)
 	{
-		AbilitySystemComponent->AddLooseGameplayTag(WxGameplayTags::State_Airborne);
+		AbilitySystemComponent->AddLooseGameplayTag(WxGameplayTags::State_Aerial);
 	}
-	else if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Airborne))
+	else if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Aerial))
 	{
-		AbilitySystemComponent->RemoveLooseGameplayTag(WxGameplayTags::State_Airborne);
+		AbilitySystemComponent->RemoveLooseGameplayTag(WxGameplayTags::State_Aerial);
 	}
 }
 
