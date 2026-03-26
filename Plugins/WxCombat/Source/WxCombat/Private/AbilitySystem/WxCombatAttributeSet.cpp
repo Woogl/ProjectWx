@@ -93,7 +93,7 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 				UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
 				if (ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
 				{
-					ASC->AddLooseGameplayTag(WxGameplayTags::State_Dead);
+					ASC->AddLooseGameplayTag(WxGameplayTags::State_Dead, 1, EGameplayTagReplicationState::TagOnly);
 				}
 			}
 		}
@@ -109,6 +109,15 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 	else if (Data.EvaluatedData.Attribute == GetDPAttribute())
 	{
 		SetDP(FMath::Clamp(GetDP(), 0.f, GetMaxDP()));
+
+		if (GetMaxDP() > 0.f && GetDP() >= GetMaxDP())
+		{
+			UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+			if (ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
+			{
+				ASC->AddLooseGameplayTag(WxGameplayTags::State_Groggy, 1, EGameplayTagReplicationState::TagOnly);
+			}
+		}
 	}
 }
 

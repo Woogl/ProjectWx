@@ -18,7 +18,6 @@ struct FWxDamageStatics
 	DECLARE_ATTRIBUTE_CAPTUREDEF(CritDMG);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(IncomingDamage);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(DP);
-	DECLARE_ATTRIBUTE_CAPTUREDEF(MaxDP);
 
 	FWxDamageStatics()
 	{
@@ -28,7 +27,6 @@ struct FWxDamageStatics
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, CritDMG, Source, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, IncomingDamage, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, DP, Target, false);
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, MaxDP, Target, false);
 	}
 };
 
@@ -45,8 +43,6 @@ UWxDamageExecCalc::UWxDamageExecCalc()
 	RelevantAttributesToCapture.Add(Statics.DEFDef);
 	RelevantAttributesToCapture.Add(Statics.CritRateDef);
 	RelevantAttributesToCapture.Add(Statics.CritDMGDef);
-	RelevantAttributesToCapture.Add(Statics.DPDef);
-	RelevantAttributesToCapture.Add(Statics.MaxDPDef);
 }
 
 void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
@@ -89,21 +85,11 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
 		{
 			const float Reflect = FMath::Max(SourceATK * DefenseMultiplier, 0.f);
 
-			// 공격자에게 DP 반사 적용
+			// 공격자에게 DP 반사 적용. 그로기 판정은 PostGameplayEffectExecute에서 수행
 			const UGameplayEffect* ReflectEffect = UWxEffect_Reflect::StaticClass()->GetDefaultObject<UGameplayEffect>();
 			FGameplayEffectSpec Spec(ReflectEffect, SourceASC->MakeEffectContext(), 1.f);
 			Spec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_ReflectDP, Reflect);
 			SourceASC->ApplyGameplayEffectSpecToSelf(Spec);
-
-			// 공격자 그로기 판정: Reflect GE 적용 시점이 보장되지 않으므로 반사량을 직접 합산하여 비교
-			if (!SourceASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
-			{
-				const UWxCombatAttributeSet* SourceAttrSet = SourceASC->GetSet<UWxCombatAttributeSet>();
-				if (SourceAttrSet && SourceAttrSet->GetMaxDP() > 0.f && SourceAttrSet->GetDP() + Reflect >= SourceAttrSet->GetMaxDP())
-				{
-					SourceASC->AddLooseGameplayTag(WxGameplayTags::State_Groggy);
-				}
-			}
 		}
 
 		// 퍼펙트 가드 성공 시에도 HitReact 발동
@@ -151,22 +137,12 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
 
 	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, FinalDamage));
 
-	// ── DP / 그로기 ─────────────────────────────────────────────────────
+	// ── DP ──────────────────────────────────────────────────────────────
+	// 그로기 상태가 아닐 때만 DP 증가. 그로기 판정은 PostGameplayEffectExecute에서 수행
 
 	if (!TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
 	{
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.DPProperty, EGameplayModOp::Additive, FinalDamage));
-
-		float TargetDP = 0.f;
-		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.DPDef, EvalParams, TargetDP);
-
-		float TargetMaxDP = 0.f;
-		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.MaxDPDef, EvalParams, TargetMaxDP);
-
-		if (TargetMaxDP > 0.f && TargetDP + FinalDamage >= TargetMaxDP)
-		{
-			TargetASC->AddLooseGameplayTag(WxGameplayTags::State_Groggy);
-		}
 	}
 
 	// ── 피격 후처리 ─────────────────────────────────────────────────────

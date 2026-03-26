@@ -177,6 +177,6 @@ void UWxAbility_Groggy::HandleDPDrainTick()
 
 	if (NewDP <= 0.f)
 	{
-		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Groggy);
+		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Groggy, 1, EGameplayTagReplicationState::TagOnly);
 	}
 }
