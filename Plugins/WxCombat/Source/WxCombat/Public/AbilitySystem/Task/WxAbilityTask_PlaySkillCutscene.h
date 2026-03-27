@@ -26,11 +26,11 @@ class WXCOMBAT_API UWxAbilityTask_PlaySkillCutscene : public UAbilityTask
 public:
 	/**
 	 * @param InLevelSequence         재생할 Level Sequence 에셋
-	 * @param InGlobalTimeDilation    컷신 재생 중 적용할 Global Time Dilation (기본값 1.0)
+	 * @param InGlobalTimeDilation    컷신 재생 중 적용할 Global Time Dilation
 	 *
 	 * AvatarActor를 시퀀스에 리바인딩하려면 LevelSequence 에디터에서 Binding Tag를 "Player"로 설정해야 한다.
 	 */
-	static UWxAbilityTask_PlaySkillCutscene* CreateTask(UGameplayAbility* OwningAbility, ULevelSequence* InLevelSequence, float InGlobalTimeDilation = 1.f);
+	static UWxAbilityTask_PlaySkillCutscene* CreateTask(UGameplayAbility* OwningAbility, ULevelSequence* InLevelSequence, float InGlobalTimeDilation);
 
 	UPROPERTY()
 	FWxOnCutsceneCompleted OnCompleted;
@@ -59,6 +59,4 @@ private:
 
 	float GlobalTimeDilation = 1.f;
 	float OriginalTimeDilation = 1.f;
-	bool bTimeDilationModified = false;
-	bool bInvincibleTagAdded = false;
 };

@@ -7,6 +7,7 @@
 #include "LevelSequencePlayer.h"
 #include "Kismet/GameplayStatics.h"
 #include "WxGameplayTags.h"
+#include "GameFramework/Character.h"
 
 UWxAbilityTask_PlaySkillCutscene* UWxAbilityTask_PlaySkillCutscene::CreateTask(UGameplayAbility* OwningAbility, ULevelSequence* InLevelSequence, float InGlobalTimeDilation)
 {
@@ -31,10 +32,25 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 	// 무적 태그 부여
 	AddInvincibleTag();
 
+	// TimeDilation으로 0, 음수 사용 방지
+	if (GlobalTimeDilation <= 0.f)
+	{
+		GlobalTimeDilation = 0.001f;
+	}
+	
 	// Time Dilation 설정
 	OriginalTimeDilation = UGameplayStatics::GetGlobalTimeDilation(World);
 	UGameplayStatics::SetGlobalTimeDilation(World, GlobalTimeDilation);
-	bTimeDilationModified = true;
+	
+	// 캐릭터가 재생 중이던 애님 몽타주 정지
+	AActor* AvatarActor = GetAvatarActor();
+	if (AvatarActor)
+	{
+		if (ACharacter* AvatarCharacter = Cast<ACharacter>(AvatarActor))
+		{
+			AvatarCharacter->StopAnimMontage();
+		}
+	}
 
 	// Level Sequence Actor 스폰 및 재생
 	FMovieSceneSequencePlaybackSettings PlaybackSettings;
@@ -52,7 +68,6 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 	}
 
 	// AvatarActor 기준으로 TransformOrigin 및 액터 리바인딩 설정
-	AActor* AvatarActor = GetAvatarActor();
 	if (AvatarActor && SequenceActor)
 	{
 		// TransformOrigin: AvatarActor의 Transform을 시퀀스 원점으로 사용
@@ -63,12 +78,10 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 		}
 
 		// 액터 리바인딩: 시퀀스에서 Binding Tag가 "Player"인 바인딩을 AvatarActor로 교체
-		{
-			static const FName PlayerBindingTag = TEXT("Player");
-			TArray<AActor*> Actors;
-			Actors.Add(AvatarActor);
-			SequenceActor->SetBindingByTag(PlayerBindingTag, Actors, true);
-		}
+		static const FName PlayerBindingTag = TEXT("Player");
+		TArray<AActor*> Actors;
+		Actors.Add(AvatarActor);
+		SequenceActor->SetBindingByTag(PlayerBindingTag, Actors, true);
 	}
 
 	// PlayRate를 Time Dilation의 역수로 보정하여 시퀀스만 정상 속도로 재생
@@ -105,14 +118,10 @@ void UWxAbilityTask_PlaySkillCutscene::HandleSequenceFinished()
 
 void UWxAbilityTask_PlaySkillCutscene::RestoreTimeDilation()
 {
-	if (bTimeDilationModified)
+	UWorld* World = GetWorld();
+	if (World)
 	{
-		UWorld* World = GetWorld();
-		if (World)
-		{
-			UGameplayStatics::SetGlobalTimeDilation(World, OriginalTimeDilation);
-		}
-		bTimeDilationModified = false;
+		UGameplayStatics::SetGlobalTimeDilation(World, OriginalTimeDilation);
 	}
 }
 
@@ -122,20 +131,15 @@ void UWxAbilityTask_PlaySkillCutscene::AddInvincibleTag()
 	if (ASC)
 	{
 		ASC->AddLooseGameplayTag(WxGameplayTags::ANS_Invincible);
-		bInvincibleTagAdded = true;
 	}
 }
 
 void UWxAbilityTask_PlaySkillCutscene::RemoveInvincibleTag()
 {
-	if (bInvincibleTagAdded)
+	UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
+	if (ASC)
 	{
-		UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
-		if (ASC)
-		{
-			ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_Invincible);
-		}
-		bInvincibleTagAdded = false;
+		ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_Invincible);
 	}
 }
 
