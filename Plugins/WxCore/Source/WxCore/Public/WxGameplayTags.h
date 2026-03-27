@@ -54,6 +54,12 @@ namespace WxGameplayTags
 	/** 데미지 플로터 표시 Cue */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Damage);
 
+	/** ATK 버프 지속 Cue */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_BuffATK);
+
+	/** 출혈 지속 Cue */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Bleed);
+
 	// ── Damage ────────────────────────────────────────────────────────────
 
 	/** 치명타 판정 결과 태그 */
