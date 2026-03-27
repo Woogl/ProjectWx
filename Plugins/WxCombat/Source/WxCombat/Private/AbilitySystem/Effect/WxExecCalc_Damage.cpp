@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Effect/WxDamageExecCalc.h"
+#include "AbilitySystem/Effect/WxExecCalc_Damage.h"
 #include "AbilitySystem/Effect/WxEffect_MPRecovery.h"
 #include "AbilitySystem/Effect/WxEffect_Reflect.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
@@ -36,7 +36,7 @@ static const FWxDamageStatics& GetDamageStatics()
 	return DamageStatics;
 }
 
-UWxDamageExecCalc::UWxDamageExecCalc()
+UWxExecCalc_Damage::UWxExecCalc_Damage()
 {
 	const FWxDamageStatics& Statics = GetDamageStatics();
 	RelevantAttributesToCapture.Add(Statics.ATKDef);
@@ -45,7 +45,7 @@ UWxDamageExecCalc::UWxDamageExecCalc()
 	RelevantAttributesToCapture.Add(Statics.CritDMGDef);
 }
 
-void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
+void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
 	UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent();
 	if (!TargetASC)
@@ -103,7 +103,7 @@ void UWxDamageExecCalc::Execute_Implementation(const FGameplayEffectCustomExecut
 	ApplyPostDamageEffects(SourceASC, TargetASC, SourceActor, TargetActor, ExecutionParams.GetOwningSpec(), DamageResult);
 }
 
-bool UWxDamageExecCalc::HandlePerfectGuard(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, AActor* SourceActor, AActor* TargetActor, float SourceATK, float DefenseMultiplier) const
+bool UWxExecCalc_Damage::HandlePerfectGuard(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, AActor* SourceActor, AActor* TargetActor, float SourceATK, float DefenseMultiplier) const
 {
 	if (!TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_PerfectGuard))
 	{
@@ -133,7 +133,7 @@ bool UWxDamageExecCalc::HandlePerfectGuard(UAbilitySystemComponent* SourceASC, U
 	return true;
 }
 
-FWxDamageResult UWxDamageExecCalc::CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, float SourceATK, float DefenseMultiplier, UAbilitySystemComponent* TargetASC) const
+FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, float SourceATK, float DefenseMultiplier, UAbilitySystemComponent* TargetASC) const
 {
 	const FWxDamageStatics& Statics = GetDamageStatics();
 
@@ -165,7 +165,7 @@ FWxDamageResult UWxDamageExecCalc::CalcDamage(const FGameplayEffectCustomExecuti
 	return Result;
 }
 
-void UWxDamageExecCalc::ApplyPostDamageEffects(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, AActor* SourceActor, AActor* TargetActor, const FGameplayEffectSpec& OwningSpec, const FWxDamageResult& DamageResult) const
+void UWxExecCalc_Damage::ApplyPostDamageEffects(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, AActor* SourceActor, AActor* TargetActor, const FGameplayEffectSpec& OwningSpec, const FWxDamageResult& DamageResult) const
 {
 	// 데미지 플로터 GameplayCue 실행
 	{

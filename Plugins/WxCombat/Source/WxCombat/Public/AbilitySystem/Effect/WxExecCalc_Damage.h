@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayEffectExecutionCalculation.h"
-#include "WxDamageExecCalc.generated.h"
+#include "WxExecCalc_Damage.generated.h"
 
 class UAbilitySystemComponent;
 
@@ -21,12 +21,12 @@ struct FWxDamageResult
  * 결과를 대상의 IncomingDamage 메타 어트리뷰트에 전달.
  */
 UCLASS()
-class WXCOMBAT_API UWxDamageExecCalc : public UGameplayEffectExecutionCalculation
+class WXCOMBAT_API UWxExecCalc_Damage : public UGameplayEffectExecutionCalculation
 {
 	GENERATED_BODY()
 
 public:
-	UWxDamageExecCalc();
+	UWxExecCalc_Damage();
 
 	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
 

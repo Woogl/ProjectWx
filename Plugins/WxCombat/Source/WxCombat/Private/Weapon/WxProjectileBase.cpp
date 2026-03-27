@@ -57,14 +57,20 @@ void AWxProjectileBase::BeginPlay()
 		}
 	}
 
-	if (DamageEffectClass)
+	if (UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator()))
 	{
-		if (UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator()))
+		FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
+		Context.AddSourceObject(this);
+		Context.AddInstigator(GetOwner(), GetInstigator());
+
+		for (const TSubclassOf<UGameplayEffect>& EffectClass : EffectClasses)
 		{
-			FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
-			Context.AddSourceObject(this);
-			Context.AddInstigator(GetOwner(), GetInstigator());
-			DamageEffectSpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, 1.f, Context);
+			if (!EffectClass)
+			{
+				continue;
+			}
+
+			EffectSpecHandles.Add(SourceASC->MakeOutgoingSpec(EffectClass, 1.f, Context));
 		}
 	}
 }
@@ -86,11 +92,14 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 		}
 	}
 
-	if (DamageEffectSpecHandle.IsValid())
+	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
 	{
-		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
+		for (const FGameplayEffectSpecHandle& SpecHandle : EffectSpecHandles)
 		{
-			TargetASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data.Get());
+			if (SpecHandle.IsValid())
+			{
+				TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}
 		}
 	}
 

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayEffectExecutionCalculation.h"
-#include "WxBleedExecCalc.generated.h"
+#include "WxExecCalc_Bleed.generated.h"
 
 /**
  * 출혈 데미지 ExecutionCalculation.
@@ -14,12 +14,12 @@
  * 결과를 대상의 IncomingDamage와 DP에 전달한다.
  */
 UCLASS()
-class WXCOMBAT_API UWxBleedExecCalc : public UGameplayEffectExecutionCalculation
+class WXCOMBAT_API UWxExecCalc_Bleed : public UGameplayEffectExecutionCalculation
 {
 	GENERATED_BODY()
 
 public:
-	UWxBleedExecCalc();
+	UWxExecCalc_Bleed();
 
 	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
 

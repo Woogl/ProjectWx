@@ -38,9 +38,9 @@ public:
 
 	void DetachFromCharacter();
 
-	/** 피격 대상에게 적용할 GameplayEffect (보통 Instant Damage) */
+	/** 피격 대상에게 적용할 GameplayEffect 목록 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
-	TSubclassOf<UGameplayEffect> DamageEffectClass;
+	TArray<TSubclassOf<UGameplayEffect>> EffectClasses;
 
 protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

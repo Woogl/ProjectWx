@@ -27,7 +27,7 @@ allowed-tools: Read, Grep, Glob, Write, Agent
 12. **궁극기**: `WxAbility_Ultimate.h` / `WxAbility_Ultimate.cpp` — 컷씬, 시간 왜곡, 비용
 13. **게임플레이 태그**: `WxGameplayTags.h` — 상태 태그, 이벤트 태그, ANS 태그
 14. **어빌리티 셋**: `WxAbilitySet.h` — 캐릭터에 부여되는 어빌리티/이펙트 목록
-15. **대미지 계산**: `WxDamageExecCalc.h` / `WxDamageExecCalc.cpp` — 가드 감소, 퍼펙트 가드 반사, DP 누적
+15. **대미지 계산**: `WxExecCalc_Damage.h` / `WxExecCalc_Damage.cpp` — 가드 감소, 퍼펙트 가드 반사, DP 누적
 16. **이펙트**: `WxEffect_Cost.h`, `WxEffect_Cooldown.h`, `WxEffect_Reflect.h` — 비용/쿨다운/반사 이펙트
 
 파일 경로가 변경되었을 수 있으므로 Glob으로 찾아서 읽어라.
@@ -103,7 +103,7 @@ allowed-tools: Read, Grep, Glob, Write, Agent
   - 전투: 빨강 (#ff6b6b)
   - 방어: 청록 (#4ecdc4)
   - 이동: 초록 (#95e86e)
-  - 반응형(자동): 노랑 (#ffd93d)
+  - 기타: 노랑 (#ffd93d)
 - 각 어빌리티 카드에 카테고리 색상의 좌측 보더를 적용한다
 - 다이어그램은 순수 HTML+CSS로 구현한다 (SVG 허용)
 - 반응형 레이아웃 (max-width: 960px)

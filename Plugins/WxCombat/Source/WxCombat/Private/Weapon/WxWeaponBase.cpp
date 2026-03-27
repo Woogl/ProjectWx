@@ -120,16 +120,24 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
 	UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(WeaponOwner);
 
-	if (TargetASC && SourceASC && DamageEffectClass)
+	if (TargetASC && SourceASC)
 	{
 		FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
 		Context.AddSourceObject(this);
 		Context.AddInstigator(WeaponOwner, WeaponOwner);
 
-		const FGameplayEffectSpecHandle Spec = SourceASC->MakeOutgoingSpec(DamageEffectClass, 1.f, Context);
-		if (Spec.IsValid())
+		for (const TSubclassOf<UGameplayEffect>& EffectClass : EffectClasses)
 		{
-			SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
+			if (!EffectClass)
+			{
+				continue;
+			}
+
+			const FGameplayEffectSpecHandle Spec = SourceASC->MakeOutgoingSpec(EffectClass, 1.f, Context);
+			if (Spec.IsValid())
+			{
+				SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
+			}
 		}
 	}
 }

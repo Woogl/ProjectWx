@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Effect/WxBleedExecCalc.h"
+#include "AbilitySystem/Effect/WxExecCalc_Bleed.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "WxGameplayTags.h"
@@ -27,14 +27,14 @@ static const FWxBleedStatics& GetBleedStatics()
 	return BleedStatics;
 }
 
-UWxBleedExecCalc::UWxBleedExecCalc()
+UWxExecCalc_Bleed::UWxExecCalc_Bleed()
 {
 	const FWxBleedStatics& Statics = GetBleedStatics();
 	RelevantAttributesToCapture.Add(Statics.ATKDef);
 	RelevantAttributesToCapture.Add(Statics.DEFDef);
 }
 
-void UWxBleedExecCalc::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
+void UWxExecCalc_Bleed::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
 	UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent();
 	if (!TargetASC)

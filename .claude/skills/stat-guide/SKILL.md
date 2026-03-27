@@ -15,7 +15,7 @@ allowed-tools: Read, Grep, Glob, Write, Agent
 
 1. **어트리뷰트 정의**: `WxCombatAttributeSet.h` — 어트리뷰트 목록, 타입, 복제 여부
 2. **어트리뷰트 로직**: `WxCombatAttributeSet.cpp` — 클램프 규칙, 사망/그로기 판정, MaxHP 비율 유지
-3. **대미지 공식**: `WxDamageExecCalc.cpp` — 대미지 계산 파이프라인 (방어 배율, 치명타, 가드 감소, DP 누적, MP 회복, 퍼펙트 가드 반사)
+3. **대미지 공식**: `WxExecCalc_Damage.cpp` — 대미지 계산 파이프라인 (방어 배율, 치명타, 가드 감소, DP 누적, MP 회복, 퍼펙트 가드 반사)
 4. **그로기 시스템**: `WxAbility_Groggy.cpp` — DP 드레인 속도, 그로기 해제 조건
 5. **어빌리티 비용**: `WxAbility.cpp` / `WxAbility.h` — MP 비용 검사 및 차감
 6. **MP 회복**: `WxEffect_MPRecovery.h` — 적중 시 MP 회복량
@@ -30,7 +30,7 @@ allowed-tools: Read, Grep, Glob, Write, Agent
 
 이 문서의 대상 독자는 **게임 기획자**이다. 다음 원칙을 지켜라:
 
-- C++ 클래스명, 함수명을 노출하지 않는다 (예: `UWxDamageExecCalc`, `PostGameplayEffectExecute`, `PreAttributeChange`, `SetNumericAttributeBase`, `TArray<>` 등)
+- C++ 클래스명, 함수명을 노출하지 않는다 (예: `UWxExecCalc_Damage`, `PostGameplayEffectExecute`, `PreAttributeChange`, `SetNumericAttributeBase`, `TArray<>` 등)
 - 의사코드(`if/else`, `random()`, `Clamp()` 등)를 사용하지 않는다. 조건과 공식은 자연어 문장이나 수식 표기로 설명한다
 - "복제", "메타 어트리뷰트", "캡처", "Additive", "SetByCaller", "TagOnly" 같은 GAS 내부 용어를 사용하지 않는다
 - 공식은 수학 표기법으로 작성한다 (예: `(ATK × 방어배율)`)
@@ -39,13 +39,10 @@ allowed-tools: Read, Grep, Glob, Write, Agent
 ### 필수 섹션
 
 0. **문서 생성일**: 헤더 영역에 문서가 생성된 날짜를 `YYYY-MM-DD` 형식으로 표시하라
-1. **어트리뷰트 요약 테이블**: 모든 어트리뷰트의 이름, 카테고리(생존/전투), 범위, 한 줄 설명. "복제" 컬럼은 제외하고, IncomingDamage 같은 내부 전용 어트리뷰트도 제외한다
-2. **생존 스탯 상세** (HP, MP, DP): 각 스탯의 게임 내 역할, 최솟값/최댓값, 경계값에서 일어나는 일 (사망, 그로기), 그로기 지속시간과 회복 설명
-3. **전투 스탯 상세** (ATK, DEF, SPD, CritRate, CritDMG): 각 스탯의 역할과 공식, DEF 경감률 예시 표, 치명타 계산 예시
-4. **데미지 파이프라인** 플로우 다이어그램, 실제 코드에서 읽은 데미지 공식, 계산 예시 테이블
-5. **전체 계산 예시**: 일반 공격, 치명타, 가드, 가드+치명타, 퍼펙트 가드, 무적 상황별 수치 계산. 각 예시에 짧은 상황 설명을 덧붙여라
-6. **특수 상태**: 사망과 그로기의 발동 조건, 진입 시 일어나는 일, 해제 조건을 게임 플레이 관점에서 설명
-7. **어빌리티 비용**: MP 비용과 쿨다운 시스템을 간결하게 설명
+1. **어트리뷰트 요약 테이블**: 모든 어트리뷰트의 이름, 범위, 한 줄 설명. "복제" 컬럼은 제외하고, IncomingDamage 같은 내부 전용 어트리뷰트도 제외한다
+2. **스탯 상세** (HP, MP, DP, ATK, DEF, SPD, CritRate, CritDMG): 각 스탯의 게임 내 역할과 계산 공식
+3. **데미지 파이프라인** 플로우 다이어그램, 실제 코드에서 읽은 데미지 공식, 치명타 계산 예시
+4. **특수 상태**: 사망과 그로기의 발동 조건, 진입 시 일어나는 일, 해제 조건을 게임 플레이 관점에서 설명
 
 ### 수치 정확성
 

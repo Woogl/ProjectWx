@@ -17,8 +17,8 @@ class UProjectileMovementComponent;
  * 투사체 베이스 클래스.
  *
  * 사용 흐름:
- *  1. AnimNotify에서 SpawnActor → BeginPlay에서 Owner의 ASC로 DamageEffectSpec 생성 (발사 시점 스탯 확정)
- *  2. Pawn/WorldDynamic에 Overlap 시 캐싱된 Spec을 대상 ASC에 적용 후 Destroy
+ *  1. AnimNotify에서 SpawnActor → BeginPlay에서 Owner의 ASC로 EffectSpec 목록 생성 (발사 시점 스탯 확정)
+ *  2. Pawn/WorldDynamic에 Overlap 시 캐싱된 Spec 목록을 대상 ASC에 적용 후 Destroy
  *
  * 중력 없는 직선 투사체가 기본값. BP에서 ProjectileMovement 설정으로 조정 가능.
  */
@@ -43,9 +43,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Projectile")
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
 
-	/** 피격 대상에 적용할 데미지 이펙트 클래스 */
+	/** 피격 대상에 적용할 GameplayEffect 목록 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Projectile")
-	TSubclassOf<UGameplayEffect> DamageEffectClass;
+	TArray<TSubclassOf<UGameplayEffect>> EffectClasses;
 
 	virtual void BeginPlay() override;
 
@@ -53,5 +53,5 @@ protected:
 	virtual void HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 private:
-	FGameplayEffectSpecHandle DamageEffectSpecHandle;
+	TArray<FGameplayEffectSpecHandle> EffectSpecHandles;
 };
