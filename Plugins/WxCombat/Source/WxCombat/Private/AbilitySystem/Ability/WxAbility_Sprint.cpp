@@ -45,13 +45,13 @@ void UWxAbility_Sprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UWxAbility_Sprint::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	if (SpeedEffectHandle.IsValid() && ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
-	{
-		ActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffect(SpeedEffectHandle);
-		SpeedEffectHandle.Invalidate();
-	}
-
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+	
+	if (SpeedEffectHandle.IsValid() && ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
+    {
+    	ActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffect(SpeedEffectHandle);
+    	SpeedEffectHandle.Invalidate();
+    }
 }
 
 void UWxAbility_Sprint::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
