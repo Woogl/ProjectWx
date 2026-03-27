@@ -79,3 +79,4 @@ DerivedDataCache/*
 
 # IDE
 *.DotSettings.user
+.idea/

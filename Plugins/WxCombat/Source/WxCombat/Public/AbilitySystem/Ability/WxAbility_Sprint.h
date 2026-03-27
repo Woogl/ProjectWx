@@ -27,13 +27,9 @@ public:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
-protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	float SprintSpeedBonus = 0.5f;
-
 private:
 	UPROPERTY()
-	TObjectPtr<UGameplayEffect> SprintSpeedEffect;
+	TSubclassOf<UGameplayEffect> SprintEffectClass;
 
 	FActiveGameplayEffectHandle SpeedEffectHandle;
 };

@@ -2,9 +2,8 @@
 
 #include "AbilitySystem/Ability/WxAbility_Sprint.h"
 #include "AbilitySystemComponent.h"
-#include "AbilitySystem/WxCombatAttributeSet.h"
-#include "GameplayEffect.h"
 #include "WxGameplayTags.h"
+#include "AbilitySystem/Effect/WxEffect_Sprint.h"
 
 UWxAbility_Sprint::UWxAbility_Sprint()
 {
@@ -14,15 +13,8 @@ UWxAbility_Sprint::UWxAbility_Sprint()
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 
 	ActivationInputTag = WxGameplayTags::Input_Sprint;
-
-	// SPD += SprintSpeedBonus (Infinite, ActivateAbility에서 적용 / EndAbility에서 제거)
-	SprintSpeedEffect = NewObject<UGameplayEffect>(GetTransientPackage(), FName(TEXT("SprintSpeedEffect")));
-	SprintSpeedEffect->DurationPolicy = EGameplayEffectDurationType::Infinite;
-	FGameplayModifierInfo Modifier;
-	Modifier.Attribute = UWxCombatAttributeSet::GetSPDAttribute();
-	Modifier.ModifierOp = EGameplayModOp::Additive;
-	Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(SprintSpeedBonus));
-	SprintSpeedEffect->Modifiers.Add(Modifier);
+	
+	SprintEffectClass = UWxEffect_Sprint::StaticClass();
 }
 
 void UWxAbility_Sprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -42,7 +34,13 @@ void UWxAbility_Sprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	SpeedEffectHandle = ASC->ApplyGameplayEffectToSelf(SprintSpeedEffect, 1.f, ASC->MakeEffectContext());
+	if (!SprintEffectClass)
+	{
+		return;
+	}
+
+	UGameplayEffect* EffectCDO = SprintEffectClass->GetDefaultObject<UGameplayEffect>();
+	SpeedEffectHandle = ASC->ApplyGameplayEffectToSelf(EffectCDO, 1.f, ASC->MakeEffectContext());
 }
 
 void UWxAbility_Sprint::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)

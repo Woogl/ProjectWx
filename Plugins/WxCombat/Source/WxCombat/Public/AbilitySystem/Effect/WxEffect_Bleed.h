@@ -6,6 +6,7 @@
 #include "GameplayEffect.h"
 #include "WxEffect_Bleed.generated.h"
 
+class UWxEffectComponent_UIData;
 /**
  * 출혈 GameplayEffect.
  *
@@ -20,4 +21,7 @@ class WXCOMBAT_API UWxEffect_Bleed : public UGameplayEffect
 
 public:
 	UWxEffect_Bleed();
+	
+	UPROPERTY()
+	TObjectPtr<UWxEffectComponent_UIData> WxUIData;
 };

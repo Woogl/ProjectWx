@@ -24,8 +24,6 @@ public:
 
 	UBehaviorTree* GetBehaviorTree() const;
 
-	virtual void HandleDeath() override;
-
 protected:
 	virtual void BeginPlay() override;
 
@@ -34,4 +32,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|UI")
 	TObjectPtr<UWidgetComponent> NameplateComponent;
+	
+private:
+	void HandleEffectApplied(UAbilitySystemComponent* ASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle ActiveEffect);
+	void HandleEffectRemoved(const FActiveGameplayEffect& ActiveEffect);
 };

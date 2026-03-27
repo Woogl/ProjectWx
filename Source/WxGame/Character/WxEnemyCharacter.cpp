@@ -8,6 +8,8 @@
 #include "MVVM/WxViewModel_Attribute.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
+#include "AbilitySystem/Effect/WxEffectComponent_UIData.h"
+#include "MVVM/WxViewModel_Effect.h"
 #include "MVVM/WxViewModel_GameplayTag.h"
 
 AWxEnemyCharacter::AWxEnemyCharacter()
@@ -32,13 +34,6 @@ AWxEnemyCharacter::AWxEnemyCharacter()
 
 void AWxEnemyCharacter::BeginPlay()
 {
-	// AI 캐릭터는 OnRep_PlayerState가 없으므로 클라이언트에서 BeginPlay 시 ASC 초기화.
-	// 서버에서는 PossessedBy에서 InitAbilitySystem이 이미 호출됨.
-	if (!HasAuthority())
-	{
-		InitAbilitySystem();
-	}
-
 	Super::BeginPlay();
 
 	if (UUserWidget* NameplateWidget = NameplateComponent->GetWidget())
@@ -58,12 +53,47 @@ void AWxEnemyCharacter::BeginPlay()
 			View->SetViewModel(TEXT("GameplayTag"), GameplayTagViewModel);
 		}
 	}
+	
+	AbilitySystemComponent->OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &AWxEnemyCharacter::HandleEffectApplied);
+	AbilitySystemComponent->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &AWxEnemyCharacter::HandleEffectRemoved);
 }
 
-void AWxEnemyCharacter::HandleDeath()
+void AWxEnemyCharacter::HandleEffectApplied(UAbilitySystemComponent* ASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle ActiveEffect)
 {
-	Super::HandleDeath();
+	if (UUserWidget* NameplateWidget = NameplateComponent->GetWidget())
+	{
+		if (UMVVMView* View = NameplateWidget->GetExtension<UMVVMView>())
+		{
+			if (const UWxEffectComponent_UIData* UIData = Spec.Def->FindComponent<UWxEffectComponent_UIData>())
+			{
+				UWxViewModel_Effect* EffectViewModel = NewObject<UWxViewModel_Effect>(NameplateWidget);
+				FText EffectName = UIData->DisplayName;
+				UTexture2D* EffectIcon = UIData->Icon.IsNull() ? nullptr : UIData->Icon.LoadSynchronous();
+				EffectViewModel->Initialize(ASC, ActiveEffect, EffectName, EffectIcon);
+				View->SetViewModel(TEXT("Effect"), EffectViewModel);
+			}
+		}
+	}
+}
 
+void AWxEnemyCharacter::HandleEffectRemoved(const FActiveGameplayEffect& ActiveEffect)
+{
+	if (UUserWidget* NameplateWidget = NameplateComponent->GetWidget())
+	{
+		if (UMVVMView* View = NameplateWidget->GetExtension<UMVVMView>())
+		{
+			if (TScriptInterface<INotifyFieldValueChanged> ViewModelInterface = View->GetViewModel(TEXT("Effect")))
+			{
+				if (UWxViewModel_Effect* EffectViewModel = Cast<UWxViewModel_Effect>(ViewModelInterface.GetObject()))
+				{
+					if (EffectViewModel->GetBoundHandle() == ActiveEffect.Handle)
+					{
+						View->SetViewModel(TEXT("Effect"), nullptr);
+					}
+				}
+			}
+		}
+	}
 }
 
 UBehaviorTree* AWxEnemyCharacter::GetBehaviorTree() const

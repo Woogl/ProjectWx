@@ -44,7 +44,7 @@ bool AWxCueNotify_Bleed::OnRemove_Implementation(AActor* MyTarget, const FGamepl
 
 	if (SpawnedNiagaraComponent)
 	{
-		SpawnedNiagaraComponent->DeactivateImmediate();
+		SpawnedNiagaraComponent->Deactivate();
 		SpawnedNiagaraComponent = nullptr;
 	}
 
