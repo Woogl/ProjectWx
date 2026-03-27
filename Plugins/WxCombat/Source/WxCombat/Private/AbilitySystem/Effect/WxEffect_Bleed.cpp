@@ -17,7 +17,7 @@ UWxEffect_Bleed::UWxEffect_Bleed()
 	Executions.Add(ExecDef);
 
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
-	StackingType = EGameplayEffectStackingType::AggregateBySource;
+	StackingType = EGameplayEffectStackingType::AggregateByTarget;
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
 	StackLimitCount = 0;
 	StackDurationRefreshPolicy = EGameplayEffectStackingDurationPolicy::NeverRefresh;
