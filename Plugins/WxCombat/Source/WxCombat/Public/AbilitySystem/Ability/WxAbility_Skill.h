@@ -15,7 +15,7 @@ class UAnimMontage;
  * 입력 시 단일 몽타주를 재생하고, 완료 또는 중단 시 EndAbility.
  * 타겟 방향 회전은 ANS_TurnAround이 담당.
  */
-UCLASS()
+UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Skill : public UWxAbility
 {
 	GENERATED_BODY()
@@ -28,6 +28,13 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> SkillMontage;
+	
+	/** MP 소모량. 0 이하이면 코스트 미적용 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cost")
+	float MPCost = 0.f;
+	
+	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
 private:
 	UFUNCTION()

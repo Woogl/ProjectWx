@@ -1,18 +1,20 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Effect/WxEffect_Cost.h"
-#include "AbilitySystem/WxCombatAttributeSet.h"
-#include "WxGameplayTags.h"
 
-UWxEffect_Cost::UWxEffect_Cost()
+#include "AbilitySystem/Effect/WxEffect_CostUP.h"
+
+#include "WxGameplayTags.h"
+#include "AbilitySystem/WxCombatAttributeSet.h"
+
+UWxEffect_CostUP::UWxEffect_CostUP()
 {
 	DurationPolicy = EGameplayEffectDurationType::Instant;
 
 	FSetByCallerFloat SetByCaller;
-	SetByCaller.DataTag = WxGameplayTags::SetByCaller_Cost_MP;
+	SetByCaller.DataTag = WxGameplayTags::SetByCaller_Cost_UP;
 
 	FGameplayModifierInfo Modifier;
-	Modifier.Attribute = UWxCombatAttributeSet::GetMPAttribute();
+	Modifier.Attribute = UWxCombatAttributeSet::GetUPAttribute();
 	Modifier.ModifierOp = EGameplayModOp::Additive;
 	Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(SetByCaller);
 	Modifiers.Add(Modifier);

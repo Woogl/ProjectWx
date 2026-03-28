@@ -16,7 +16,7 @@ class UAnimMontage;
  *  2. 몽타주의 ANS_Invincible 구간 동안 무적
  *  3. 몽타주 완료/중단 → EndAbility
  */
-UCLASS()
+UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Dodge : public UWxAbility
 {
 	GENERATED_BODY()

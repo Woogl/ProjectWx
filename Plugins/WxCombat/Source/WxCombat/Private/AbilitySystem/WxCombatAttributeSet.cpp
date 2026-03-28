@@ -17,15 +17,19 @@ void UWxCombatAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, HP,    COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, MaxHP, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, MP,    COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, MaxMP,  COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, DP,     COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, MaxDP,  COND_None, REPNOTIFY_Always);
+	
+	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, MP,    COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, MaxMP,  COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, UP, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, MaxUP,  COND_None, REPNOTIFY_Always);
+	
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, ATK,    COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, DEF,   COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, SPD,      COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, CritRate, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, CritDMG,  COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, SPD,      COND_None, REPNOTIFY_Always);
 }
 
 void UWxCombatAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
@@ -125,6 +129,10 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 			}
 		}
 	}
+	else if (Data.EvaluatedData.Attribute == GetUPAttribute())
+	{
+		SetUP(FMath::Clamp(GetUP(), 0.f, GetMaxUP()));
+	}
 }
 
 void UWxCombatAttributeSet::OnRep_HP(const FGameplayAttributeData& OldHP)
@@ -137,6 +145,16 @@ void UWxCombatAttributeSet::OnRep_MaxHP(const FGameplayAttributeData& OldMaxHP)
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, MaxHP, OldMaxHP);
 }
 
+void UWxCombatAttributeSet::OnRep_DP(const FGameplayAttributeData& OldDP)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, DP, OldDP);
+}
+
+void UWxCombatAttributeSet::OnRep_MaxDP(const FGameplayAttributeData& OldMaxDP)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, MaxDP, OldMaxDP);
+}
+
 void UWxCombatAttributeSet::OnRep_MP(const FGameplayAttributeData& OldMP)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, MP, OldMP);
@@ -145,6 +163,16 @@ void UWxCombatAttributeSet::OnRep_MP(const FGameplayAttributeData& OldMP)
 void UWxCombatAttributeSet::OnRep_MaxMP(const FGameplayAttributeData& OldMaxMP)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, MaxMP, OldMaxMP);
+}
+
+void UWxCombatAttributeSet::OnRep_UP(const FGameplayAttributeData& OldUP)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, UP, OldUP);
+}
+
+void UWxCombatAttributeSet::OnRep_MaxUP(const FGameplayAttributeData& OldMaxUP)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, MaxUP, OldMaxUP);
 }
 
 void UWxCombatAttributeSet::OnRep_ATK(const FGameplayAttributeData& OldATK)
@@ -157,11 +185,6 @@ void UWxCombatAttributeSet::OnRep_DEF(const FGameplayAttributeData& OldDEF)
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, DEF, OldDEF);
 }
 
-void UWxCombatAttributeSet::OnRep_SPD(const FGameplayAttributeData& OldSPD)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, SPD, OldSPD);
-}
-
 void UWxCombatAttributeSet::OnRep_CritRate(const FGameplayAttributeData& OldCritRate)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, CritRate, OldCritRate);
@@ -172,12 +195,7 @@ void UWxCombatAttributeSet::OnRep_CritDMG(const FGameplayAttributeData& OldCritD
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, CritDMG, OldCritDMG);
 }
 
-void UWxCombatAttributeSet::OnRep_DP(const FGameplayAttributeData& OldDP)
+void UWxCombatAttributeSet::OnRep_SPD(const FGameplayAttributeData& OldSPD)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, DP, OldDP);
-}
-
-void UWxCombatAttributeSet::OnRep_MaxDP(const FGameplayAttributeData& OldMaxDP)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, MaxDP, OldMaxDP);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, SPD, OldSPD);
 }

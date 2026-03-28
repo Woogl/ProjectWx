@@ -1,17 +1,19 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Effect/WxEffect_MPRecovery.h"
+#include "AbilitySystem/Effect/WxEffect_CostMP.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
+#include "WxGameplayTags.h"
 
-UWxEffect_MPRecovery::UWxEffect_MPRecovery()
+UWxEffect_CostMP::UWxEffect_CostMP()
 {
 	DurationPolicy = EGameplayEffectDurationType::Instant;
 
-	constexpr float MPRecoveryOnHit = 5.f;
+	FSetByCallerFloat SetByCaller;
+	SetByCaller.DataTag = WxGameplayTags::SetByCaller_Cost_MP;
 
 	FGameplayModifierInfo Modifier;
 	Modifier.Attribute = UWxCombatAttributeSet::GetMPAttribute();
 	Modifier.ModifierOp = EGameplayModOp::Additive;
-	Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(MPRecoveryOnHit));
+	Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(SetByCaller);
 	Modifiers.Add(Modifier);
 }

@@ -64,7 +64,8 @@ protected:
 	TSubclassOf<UWxActivatableWidget> GameHUDClass;
 
 private:
-	void InitializePlayerHealthViewModel(UAbilitySystemComponent* ASC);
-	void InitializePlayerManaViewModel(UAbilitySystemComponent* ASC);
+	void InitializePlayerHPViewModel(UAbilitySystemComponent* ASC);
+	void InitializePlayerMPViewModel(UAbilitySystemComponent* ASC);
+	void InitializePlayerUPViewModel(UAbilitySystemComponent* ASC);
 	void InitializePlayerAbilityViewModels(UAbilitySystemComponent* ASC);
 };
