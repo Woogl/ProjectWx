@@ -7,7 +7,7 @@ allowed-tools: Read, Grep, Glob, Write, Agent
 
 # 어빌리티 가이드 생성
 
-게임 코드를 분석하여 어빌리티 가이드 HTML 문서를 `Docs/ability-guide.html`에 생성하라.
+게임 코드를 분석하여 어빌리티 가이드 HTML 문서를 `Docs/Guides/ability-guide.html`에 생성하라.
 
 ## 분석 대상
 
@@ -113,4 +113,4 @@ allowed-tools: Read, Grep, Glob, Write, Agent
 
 ## 출력
 
-`Docs/ability-guide.html`에 생성하라. 기존 파일이 있으면 덮어쓴다.
+`Docs/Guides/ability-guide.html`에 생성하라. 기존 파일이 있으면 덮어쓴다.

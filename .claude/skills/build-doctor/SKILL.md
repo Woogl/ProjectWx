@@ -46,7 +46,6 @@ Always answer in Korean using this structure:
 ```markdown
 ## 빌드 결과
 - 상태: 성공 | 실패
-- 실행 명령: `<exact command or attempted command>`
 
 ## 원인 요약
 - <1-3줄 요약>
@@ -56,7 +55,7 @@ Always answer in Korean using this structure:
 > <most relevant log line 2>
 > <optional line 3>
 
-## 바로 시도할 수정 방법
+## 수정 방법
 1. <highest-confidence action>
 2. <next action>
 3. <optional validation step>
