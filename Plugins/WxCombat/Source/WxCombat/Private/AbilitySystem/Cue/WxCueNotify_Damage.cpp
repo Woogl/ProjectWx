@@ -5,10 +5,6 @@
 #include "WxGameplayTags.h"
 #include "Components/WidgetComponent.h"
 
-UWxCueNotify_Damage::UWxCueNotify_Damage()
-{
-}
-
 void UWxCueNotify_Damage::HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters)
 {
 	Super::HandleGameplayCue(MyTarget, EventType, Parameters);
@@ -29,8 +25,8 @@ void UWxCueNotify_Damage::HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent:
 		return;
 	}
 
-	// 0이면 데미지 플로터 출력 안함
-	if (Parameters.NormalizedMagnitude != 0)
+	// 데미지 플로터 출력 여부 확인
+	if (!Parameters.AggregatedSourceTags.HasTag(WxGameplayTags::Damage_SuppressFloater))
 	{
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;

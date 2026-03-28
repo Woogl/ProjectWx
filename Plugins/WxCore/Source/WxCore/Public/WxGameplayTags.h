@@ -64,32 +64,28 @@ namespace WxGameplayTags
 
 	/** 치명타 판정 결과 태그 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Critical);
+	
+	/** 데미지 플로터 출력 억제 태그 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_SuppressFloater);
 
 	// ── Ability ───────────────────────────────────────────────────────────
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Jump);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Dodge);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Guard);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Jump);
-
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Sprint);
-
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Guard);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Ultimate);
 
 	// ── Cooldown ──────────────────────────────────────────────────────────
 
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Attack);
-
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Dodge);
-
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Guard);
-
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Jump);
-
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Attack);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Dodge);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Guard);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Skill);
-
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Ultimate);
 
 	// ── SetByCaller ──────────────────────────────────────────────────────
@@ -102,32 +98,18 @@ namespace WxGameplayTags
 
 	// ── Input ──────────────────────────────────────────────────────────────
 
-	/** 점프 입력 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Jump);
-
-	/** 공격 입력 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Attack);
-
-	/** 회피 입력 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Dodge);
-
-	/** 가드 입력 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Guard);
-
-	/** 스킬 입력 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Skill);
-
-	/** 스프린트 입력 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Sprint);
-
-	/** 궁극기 입력 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Guard);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Skill);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Ultimate);
-
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_LockOn);
 
 	// ── UI ────────────────────────────────────────────────────────────────
 
-	/** HUD 레이어 (체력 바 등) */
+	/** HUD 레이어 (플레이어 체력 바 등) */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_Game);
 
 	/** 게임 메뉴 레이어 (아이템 획득 알림 등, 메뉴 아래) */

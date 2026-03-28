@@ -184,16 +184,18 @@ void UWxExecCalc_Damage::ExecuteGameplayCueDamage(UAbilitySystemComponent* Targe
 	}
 	
 	FGameplayCueParameters CueParams;
-	CueParams.NormalizedMagnitude = bDisplayDamagefloater ? 1 : 0;	// 0 이면 데미지 플로터 출력 안함
 	CueParams.RawMagnitude = DamageAmount;
 	CueParams.Location = HitLocation; // HitLocation을 OwingSpec으로부터 가져올까?
 	CueParams.EffectContext = OwningSpec.GetEffectContext();
 
 	if (bIsCritical)
 	{
-		FGameplayTagContainer DamageInfoTags;
-		DamageInfoTags.AddTag(WxGameplayTags::Damage_Critical);
-		CueParams.AggregatedSourceTags = DamageInfoTags;
+		CueParams.AggregatedSourceTags.AddTag(WxGameplayTags::Damage_Critical);
+	}
+	
+	if (!bDisplayDamagefloater)
+	{
+		CueParams.AggregatedSourceTags.AddTag(WxGameplayTags::Damage_SuppressFloater);
 	}
 
 	// 데미지 GameplayCue 실행

@@ -22,20 +22,21 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Bleed, "GameplayCue.Bleed");
 
 	UE_DEFINE_GAMEPLAY_TAG(Damage_Critical, "Damage.Critical");
+	UE_DEFINE_GAMEPLAY_TAG(Damage_SuppressFloater, "Damage.SuppressFloater");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability, "Ability");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Jump, "Ability.Jump");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack, "Ability.Attack");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Dodge, "Ability.Dodge");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Guard, "Ability.Guard");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Jump, "Ability.Jump");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill, "Ability.Skill");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Sprint, "Ability.Sprint");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Guard, "Ability.Guard");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill, "Ability.Skill");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Ultimate, "Ability.Ultimate");
 
+	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Jump, "Cooldown.Jump");
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Attack, "Cooldown.Attack");
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Dodge, "Cooldown.Dodge");
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Guard, "Cooldown.Guard");
-	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Jump, "Cooldown.Jump");
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill, "Cooldown.Skill");
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Ultimate, "Cooldown.Ultimate");
 
@@ -45,9 +46,9 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Input_Jump, "Input.Jump");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Attack, "Input.Attack");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Dodge, "Input.Dodge");
+	UE_DEFINE_GAMEPLAY_TAG(Input_Sprint, "Input.Sprint");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Guard, "Input.Guard");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Skill, "Input.Skill");
-	UE_DEFINE_GAMEPLAY_TAG(Input_Sprint, "Input.Sprint");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Ultimate, "Input.Ultimate");
 	UE_DEFINE_GAMEPLAY_TAG(Input_LockOn, "Input.LockOn");
 
