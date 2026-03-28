@@ -39,8 +39,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill, "Cooldown.Skill");
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Ultimate, "Cooldown.Ultimate");
 
-	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Cost_MP, "SetByCaller.Cost.MP");
-	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Cost_UP, "SetByCaller.Cost.UP");
+	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Cost, "SetByCaller.Cost");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_ReflectDP, "SetByCaller.ReflectDP");
 
 	UE_DEFINE_GAMEPLAY_TAG(Input_Jump, "Input.Jump");

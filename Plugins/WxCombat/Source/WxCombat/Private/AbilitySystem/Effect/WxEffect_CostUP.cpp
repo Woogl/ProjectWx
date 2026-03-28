@@ -11,7 +11,7 @@ UWxEffect_CostUP::UWxEffect_CostUP()
 	DurationPolicy = EGameplayEffectDurationType::Instant;
 
 	FSetByCallerFloat SetByCaller;
-	SetByCaller.DataTag = WxGameplayTags::SetByCaller_Cost_UP;
+	SetByCaller.DataTag = WxGameplayTags::SetByCaller_Cost;
 
 	FGameplayModifierInfo Modifier;
 	Modifier.Attribute = UWxCombatAttributeSet::GetUPAttribute();

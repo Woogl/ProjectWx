@@ -52,14 +52,14 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	{
 		return;
 	}
-
-	UAbilitySystemComponent* SourceASC = ExecutionParams.GetSourceAbilitySystemComponent();
-
+	
 	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_Invincible))
 	{
 		return;
 	}
 
+	UAbilitySystemComponent* SourceASC = ExecutionParams.GetSourceAbilitySystemComponent();
+	
 	AActor* TargetActor = TargetASC->GetOwnerActor();
 	AActor* SourceActor = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
 
@@ -91,6 +91,8 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 			SourceASC->ApplyGameplayEffectSpecToSelf(Spec);
 		}
 		
+		// 대미지 플로터만 출력 안함
+		ExecuteGameplayCueDamage(TargetASC, 0.f, TargetActor->GetActorLocation(), ExecutionParams.GetOwningSpec(), false, false);
 		return;
 	}
 
@@ -109,7 +111,10 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	}
 
 	// 피격 후처리
-	ApplyPostDamageEffects(SourceASC, TargetASC, SourceActor, TargetActor, ExecutionParams.GetOwningSpec(), DamageResult);
+	ApplyPostDamageEffects(SourceASC, TargetASC, ExecutionParams.GetOwningSpec(), DamageResult);
+
+	// 대미지 플로터도 출력함
+	ExecuteGameplayCueDamage(TargetASC, DamageResult.FinalDamage, TargetActor->GetActorLocation(), ExecutionParams.GetOwningSpec(), DamageResult.bIsCritical, true);
 }
 
 FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, float SourceATK, float DefenseMultiplier, UAbilitySystemComponent* TargetASC) const
@@ -144,25 +149,8 @@ FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecut
 	return Result;
 }
 
-void UWxExecCalc_Damage::ApplyPostDamageEffects(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, AActor* SourceActor, AActor* TargetActor, const FGameplayEffectSpec& OwningSpec, const FWxDamageResult& DamageResult) const
+void UWxExecCalc_Damage::ApplyPostDamageEffects(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, const FGameplayEffectSpec& OwningSpec, const FWxDamageResult& DamageResult) const
 {
-	// 데미지 플로터 GameplayCue 실행
-	{
-		FGameplayCueParameters CueParams;
-		CueParams.RawMagnitude = DamageResult.FinalDamage;
-		CueParams.Location = TargetActor ? TargetActor->GetActorLocation() : FVector::ZeroVector;
-		CueParams.EffectContext = OwningSpec.GetEffectContext();
-
-		if (DamageResult.bIsCritical)
-		{
-			FGameplayTagContainer DamageInfoTags;
-			DamageInfoTags.AddTag(WxGameplayTags::Damage_Critical);
-			CueParams.AggregatedSourceTags = DamageInfoTags;
-		}
-
-		TargetASC->ExecuteGameplayCue(WxGameplayTags::GameplayCue_Damage, CueParams);
-	}
-
 	// 공격자 MP 회복
 	if (SourceASC)
 	{
@@ -170,8 +158,10 @@ void UWxExecCalc_Damage::ApplyPostDamageEffects(UAbilitySystemComponent* SourceA
 		SourceASC->ApplyGameplayEffectToSelf(MPRecoveryEffect, 1.f, SourceASC->MakeEffectContext());
 	}
 
-	if (TargetActor)
+	if (TargetASC)
 	{
+		AActor* SourceActor = SourceASC->GetOwnerActor();
+		AActor* TargetActor = TargetASC->GetOwnerActor();
 		// AI 데미지 감지
 		if (SourceActor)
 		{
@@ -186,7 +176,7 @@ void UWxExecCalc_Damage::ApplyPostDamageEffects(UAbilitySystemComponent* SourceA
 	}
 }
 
-void UWxExecCalc_Damage::ExecuteGameplayCueDamage(UAbilitySystemComponent* TargetASC, float DamageAmount, FVector HitLocation, const FGameplayEffectSpec& OwningSpec, bool bIsCritical, bool bDisplayDamagefloater)
+void UWxExecCalc_Damage::ExecuteGameplayCueDamage(UAbilitySystemComponent* TargetASC, float DamageAmount, FVector HitLocation, const FGameplayEffectSpec& OwningSpec, bool bIsCritical, bool bDisplayDamagefloater) const
 {
 	if (!TargetASC)
 	{
@@ -196,7 +186,7 @@ void UWxExecCalc_Damage::ExecuteGameplayCueDamage(UAbilitySystemComponent* Targe
 	FGameplayCueParameters CueParams;
 	CueParams.NormalizedMagnitude = bDisplayDamagefloater ? 1 : 0;	// 0 이면 데미지 플로터 출력 안함
 	CueParams.RawMagnitude = DamageAmount;
-	CueParams.Location = HitLocation;
+	CueParams.Location = HitLocation; // HitLocation을 OwingSpec으로부터 가져올까?
 	CueParams.EffectContext = OwningSpec.GetEffectContext();
 
 	if (bIsCritical)

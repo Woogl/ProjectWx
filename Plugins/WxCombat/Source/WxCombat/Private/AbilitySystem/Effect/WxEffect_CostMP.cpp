@@ -9,7 +9,7 @@ UWxEffect_CostMP::UWxEffect_CostMP()
 	DurationPolicy = EGameplayEffectDurationType::Instant;
 
 	FSetByCallerFloat SetByCaller;
-	SetByCaller.DataTag = WxGameplayTags::SetByCaller_Cost_MP;
+	SetByCaller.DataTag = WxGameplayTags::SetByCaller_Cost;
 
 	FGameplayModifierInfo Modifier;
 	Modifier.Attribute = UWxCombatAttributeSet::GetMPAttribute();
