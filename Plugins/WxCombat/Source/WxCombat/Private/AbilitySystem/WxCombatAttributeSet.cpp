@@ -5,6 +5,12 @@
 #include "GameplayEffectExtension.h"
 #include "WxGameplayTags.h"
 
+UWxCombatAttributeSet::UWxCombatAttributeSet()
+{
+	// Set default values
+	InitSPD(1.f);
+}
+
 void UWxCombatAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

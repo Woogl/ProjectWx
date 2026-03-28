@@ -46,7 +46,7 @@ Unreal Engine 5 기반 오픈월드 액션 RPG를 개발하는 클라이언트 �
 
 13. 모든 코드는 UE 5.7 API에서 검증되어야하며, Deprecated 처리된 API는 사용하지 않는다.
 
-14. 코드 작성 후 빌드가 성공하는지 반드시 점검한다. 빌드 명령어: `"C:\Program Files\Epic Games\UE_5.7\Engine\Build\BatchFiles\Build.bat" WxEditor Win64 Development "C:\Wx\Wx.uproject" -WaitMutex`
+14. 코드 작성 후 빌드가 성공하는지 반드시 점검한다. 빌드 명령어: `"BatchFiles/BuildProjectFiles.bat"`
 
 ---
 

@@ -42,6 +42,8 @@ class WXCOMBAT_API UWxCombatAttributeSet : public UAttributeSet
 	GENERATED_BODY()
 
 public:
+	UWxCombatAttributeSet();
+	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
