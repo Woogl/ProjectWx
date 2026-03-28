@@ -1,9 +1,5 @@
 @echo off
 setlocal
-echo ========================================
-echo  Wx Project Build Test
-echo ========================================
-echo.
 
 set "ProjectFile=%~dp0..\Wx.uproject"
 

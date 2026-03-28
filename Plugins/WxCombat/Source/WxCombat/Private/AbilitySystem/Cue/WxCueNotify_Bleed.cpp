@@ -3,11 +3,9 @@
 #include "AbilitySystem/Cue/WxCueNotify_Bleed.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
-#include "WxGameplayTags.h"
 
 AWxCueNotify_Bleed::AWxCueNotify_Bleed()
 {
-	GameplayCueTag = WxGameplayTags::GameplayCue_Bleed;
 	bAutoDestroyOnRemove = true;
 }
 

@@ -8,7 +8,6 @@
 
 UWxCueNotify_Damage::UWxCueNotify_Damage()
 {
-	GameplayCueTag = WxGameplayTags::GameplayCue_Damage;
 }
 
 void UWxCueNotify_Damage::HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters)

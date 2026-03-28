@@ -1,6 +1,6 @@
 ---
 name: build-doctor
-description: Unreal Engine 5 C++ 프로젝트를 빌드하고 진단합니다. (Wx)
+description: 프로젝트 빌드 에러를 진단하고 해결법을 제시합니다. 사용자가 원한다면 로컬에서 임시 수정합니다.
 ---
 
 Build UE5 C++ projects and explain failures in Korean.
