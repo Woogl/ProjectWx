@@ -14,6 +14,7 @@ UWxAbility_LockOn::UWxAbility_LockOn()
 	// CancelAbilitiesWithTag(Ability)에 의해 락온이 해제되지 않는다.
 	ActivationInputTag = WxGameplayTags::Input_LockOn;
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
+	ActivationOwnedTags.AddTag(WxGameplayTags::State_LockOn);
 }
 
 void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -58,8 +59,7 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	// State_LockOn 태그 추가 및 락온 대상 등록
-	ActorInfo->AbilitySystemComponent->AddLooseGameplayTag(WxGameplayTags::State_LockOn);
+	// 락온 대상 등록
 	if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(GetOwningActorFromActorInfo()))
 	{
 		LockOnComp->SetLockOnTarget(FoundTarget);
@@ -80,7 +80,6 @@ void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 {
 	if (ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
 	{
-		ActorInfo->AbilitySystemComponent->RemoveLooseGameplayTag(WxGameplayTags::State_LockOn);
 		if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(GetOwningActorFromActorInfo()))
 		{
 			LockOnComp->SetLockOnTarget(nullptr);
