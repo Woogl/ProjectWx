@@ -1,11 +1,11 @@
 # 게임 개발에서 AI 활용
 
 > **📢 한 줄 요약**  
-> 게임 프로그래밍 업무의 AI 자동화는 아직 현실적으로 어렵다.
+> 게임 프로그래밍 업무의 AI 사용은 다소 보수적으로 접근해야한다.
 
 ---
 
-## AI 활용의 두 가지 흐름
+## AI 활용의 두 가지 방향
 
 현재 AI 활용 방향은 크게 두 가지로 나뉩니다.  
 게임 개발에서는 보다 **보수적인 접근**이 필요하다고 생각합니다.
@@ -105,6 +105,9 @@ Claude Code 및 Gemini CLI에서 사용할 수 있는 공용 AI Skill을 만들�
 6. `/code-reviewer` *(예정)*  
    작성 중인 코드 리뷰
 
+7. `/code-commenter` *(예정)*  
+   작업 중인 코드를 읽어서 Submit 코멘트 작성
+
 
 ### AI Skill 추가 가능
 
@@ -121,6 +124,9 @@ Claude Code 및 Gemini CLI에서 사용할 수 있는 공용 AI Skill을 만들�
 
 - [AI 타임즈] "AI, 검색으로만 쓰면 뒤처져"...앤트로픽이 지적한 학습 곡선과 기술 격차  
   https://www.aitimes.com/news/articleView.html?idxno=208438
+
+- [GeekNews] 이해 부채: LLM이 만든 코드가 남기는 시한폭탄  
+  https://news.hada.io/topic?id=23384
 
 ---
 
