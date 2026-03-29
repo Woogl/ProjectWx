@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/Effect/WxExecCalc_Damage.h"
 #include "AbilitySystem/Effect/WxEffect_GainMP.h"
+#include "AbilitySystem/Effect/WxEffect_GainUP.h"
 #include "AbilitySystem/Effect/WxEffect_Reflect.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
@@ -47,22 +48,27 @@ UWxExecCalc_Damage::UWxExecCalc_Damage()
 
 void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
+	UAbilitySystemComponent* SourceASC = ExecutionParams.GetSourceAbilitySystemComponent();
 	UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent();
 	if (!TargetASC)
 	{
 		return;
 	}
 	
+	// --- 1. 무적 판정 (극한 회피) ---
 	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_Invincible))
 	{
+		if (const UGameplayAbility* Ability = TargetASC->GetAnimatingAbility())
+		{
+			if (Ability->GetAssetTags().HasTag(WxGameplayTags::Ability_Dodge))
+			{
+				ApplyResourceRecovery(TargetASC, UWxEffect_RecoveryMP::StaticClass(), 5.f);
+			}
+		}
 		return;
 	}
 
-	UAbilitySystemComponent* SourceASC = ExecutionParams.GetSourceAbilitySystemComponent();
-	
-	AActor* TargetActor = TargetASC->GetOwnerActor();
-	AActor* SourceActor = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
-
+	// --- 2. 어트리뷰트 캡처 ---
 	const FWxDamageStatics& Statics = GetDamageStatics();
 
 	FAggregatorEvaluateParameters EvalParams;
@@ -77,10 +83,13 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	const float DefenseMultiplier = 100.f / (100.f + TargetDEF);
 
-	// 퍼펙트 가드: 대미지 무효화 + 공격자에게 DP 반사
-	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_PerfectGuard))
+	// --- 3. 대미지 판정 ---
+	const bool bHasPerfectGuard = TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_PerfectGuard);
+	FWxDamageResult DamageResult;
+
+	if (bHasPerfectGuard)
 	{
-		// 공격자에게 DP 반사 적용. 그로기 판정은 PostGameplayEffectExecute에서 수행
+		// 퍼펙트 가드: 대미지 무효화, 공격자에게 DP 반사. 그로기 판정은 PostGameplayEffectExecute에서 수행
 		if (SourceASC)
 		{
 			const float Reflect = FMath::Max(SourceATK * DefenseMultiplier, 0.f);
@@ -90,31 +99,62 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 			Spec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_ReflectDP, Reflect);
 			SourceASC->ApplyGameplayEffectSpecToSelf(Spec);
 		}
-		
-		// 대미지 플로터만 출력 안함
-		ExecuteGameplayCueDamage(TargetASC, 0.f, TargetActor->GetActorLocation(), ExecutionParams.GetOwningSpec(), false, false);
-		return;
 	}
-
-	// 데미지 계산
-	FWxDamageResult DamageResult = CalcDamage(ExecutionParams, EvalParams, SourceATK, DefenseMultiplier, TargetASC);
-	if (DamageResult.FinalDamage > 0.f)
+	else
 	{
-		// IncomingDamage 어트리뷰트 전달
-		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
-
-		// 그로기 상태가 아닐 때만 DP 증가
-		if (!TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
+		// 일반/가드 피격: 데미지 계산 및 어트리뷰트 전달
+		DamageResult = CalcDamage(ExecutionParams, EvalParams, SourceATK, DefenseMultiplier, TargetASC);
+		if (DamageResult.FinalDamage > 0.f)
 		{
-			OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.DPProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
+			OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
+
+			if (!TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
+			{
+				OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.DPProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
+			}
+		}
+	}
+	
+	// --- 4. 자원 회복 ---
+	if (bHasPerfectGuard)
+	{
+		// 패링 성공: 방어자 MP 회복
+		ApplyResourceRecovery(TargetASC, UWxEffect_RecoveryMP::StaticClass(), 5.f);
+	}
+	else if (SourceASC)
+	{
+		// 공격 적중: 공격자 자원 회복 (평타 → MP, 스킬 → UP)
+		const UGameplayAbility* OwningAbility = ExecutionParams.GetOwningSpec().GetContext().GetAbility();
+		FGameplayTagContainer AbilityTags = OwningAbility->GetAssetTags();
+
+		if (AbilityTags.HasTag(WxGameplayTags::Ability_Attack))
+		{
+			ApplyResourceRecovery(SourceASC, UWxEffect_RecoveryMP::StaticClass(), 5.f);
+		}
+		else if (AbilityTags.HasTag(WxGameplayTags::Ability_Skill))
+		{
+			ApplyResourceRecovery(SourceASC, UWxEffect_RecoveryUP::StaticClass(), 5.f);
 		}
 	}
 
-	// 피격 후처리
-	ApplyPostDamageEffects(SourceASC, TargetASC, ExecutionParams.GetOwningSpec(), DamageResult);
+	// --- 5. 피격 통지 (HitReact + AI 감지) ---
+	{
+		AActor* SourceActor = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
+		AActor* TargetActor = TargetASC->GetOwnerActor();
 
-	// 대미지 플로터도 출력함
-	ExecuteGameplayCueDamage(TargetASC, DamageResult.FinalDamage, TargetActor->GetActorLocation(), ExecutionParams.GetOwningSpec(), DamageResult.bIsCritical, true);
+		FGameplayEventData EventData;
+		EventData.Instigator = SourceActor;
+		EventData.Target = TargetActor;
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_HitReact, EventData);
+
+		if (SourceActor)
+		{
+			UAISense_Damage::ReportDamageEvent(TargetActor->GetWorld(), TargetActor, SourceActor, DamageResult.FinalDamage, SourceActor->GetActorLocation(), TargetActor->GetActorLocation());
+		}
+	}
+
+	// --- 6. 대미지 GameplayCue ---
+	ExecuteGameplayCueDamage(TargetASC, DamageResult.FinalDamage, TargetASC->GetAvatarActor()->GetActorLocation(), ExecutionParams.GetOwningSpec(), DamageResult.bIsCritical, !bHasPerfectGuard);
 }
 
 FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, float SourceATK, float DefenseMultiplier, UAbilitySystemComponent* TargetASC) const
@@ -149,32 +189,17 @@ FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecut
 	return Result;
 }
 
-void UWxExecCalc_Damage::ApplyPostDamageEffects(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, const FGameplayEffectSpec& OwningSpec, const FWxDamageResult& DamageResult) const
+void UWxExecCalc_Damage::ApplyResourceRecovery(UAbilitySystemComponent* ASC, TSubclassOf<UGameplayEffect> RecoveryEffect, float Amount) const
 {
-	// 공격자 MP 회복
-	if (SourceASC)
+	if (ASC && RecoveryEffect && Amount > 0.f)
 	{
-		const UGameplayEffect* MPRecoveryEffect = UWxEffect_GainMP::StaticClass()->GetDefaultObject<UGameplayEffect>();
-		SourceASC->ApplyGameplayEffectToSelf(MPRecoveryEffect, 1.f, SourceASC->MakeEffectContext());
-	}
-
-	if (TargetASC)
-	{
-		AActor* SourceActor = SourceASC->GetOwnerActor();
-		AActor* TargetActor = TargetASC->GetOwnerActor();
-		// AI 데미지 감지
-		if (SourceActor)
-		{
-			UAISense_Damage::ReportDamageEvent(TargetActor->GetWorld(), TargetActor, SourceActor, DamageResult.FinalDamage, SourceActor->GetActorLocation(), TargetActor->GetActorLocation());
-		}
-
-		// HitReact 이벤트 발송
-		FGameplayEventData EventData;
-		EventData.Instigator = SourceActor;
-		EventData.Target = TargetActor;
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_HitReact, EventData);
+		const UGameplayEffect* Effect = RecoveryEffect->GetDefaultObject<UGameplayEffect>();
+		FGameplayEffectSpec Spec(Effect, ASC->MakeEffectContext(), 1.f);
+		Spec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery, Amount);
+		ASC->ApplyGameplayEffectSpecToSelf(Spec);
 	}
 }
+
 
 void UWxExecCalc_Damage::ExecuteGameplayCueDamage(UAbilitySystemComponent* TargetASC, float DamageAmount, FVector HitLocation, const FGameplayEffectSpec& OwningSpec, bool bIsCritical, bool bDisplayDamagefloater) const
 {

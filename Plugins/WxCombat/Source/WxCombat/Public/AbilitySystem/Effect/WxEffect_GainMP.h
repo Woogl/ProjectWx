@@ -13,10 +13,10 @@
  * UWxExecCalc_Damage에서 공격 적중 시 공격자에게 적용.
  */
 UCLASS()
-class WXCOMBAT_API UWxEffect_GainMP : public UGameplayEffect
+class WXCOMBAT_API UWxEffect_RecoveryMP : public UGameplayEffect
 {
 	GENERATED_BODY()
 
 public:
-	UWxEffect_GainMP();
+	UWxEffect_RecoveryMP();
 };

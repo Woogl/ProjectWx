@@ -125,6 +125,7 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 		FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
 		Context.AddSourceObject(this);
 		Context.AddInstigator(WeaponOwner, WeaponOwner);
+		Context.SetAbility(SourceASC->GetAnimatingAbility());
 
 		for (const TSubclassOf<UGameplayEffect>& EffectClass : EffectClasses)
 		{

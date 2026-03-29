@@ -90,8 +90,11 @@ namespace WxGameplayTags
 
 	// ── SetByCaller ──────────────────────────────────────────────────────
 
-	/** 어빌리티 코스트 SetByCaller 키. WxEffect_CostMP, WxEffect_CostUP에서에서 사용 */
+	/** 어빌리티 코스트 SetByCaller 키. WxEffect_CostMP, WxEffect_CostUP에서 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Cost);
+
+	/** 자원 회복량 SetByCaller 키. WxEffect_RecoveryMP, WxEffect_RecoveryUP에서 사용 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Recovery);
 
 	/** DP 반사량 SetByCaller 키. 퍼펙트 가드에서 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_ReflectDP);

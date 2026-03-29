@@ -2,18 +2,19 @@
 
 
 #include "AbilitySystem/Effect/WxEffect_GainUP.h"
-
 #include "AbilitySystem/WxCombatAttributeSet.h"
+#include "WxGameplayTags.h"
 
-UWxEffect_GainUP::UWxEffect_GainUP()
+UWxEffect_RecoveryUP::UWxEffect_RecoveryUP()
 {
 	DurationPolicy = EGameplayEffectDurationType::Instant;
 
-	constexpr float UPGainOnHit = 5.f;
+	FSetByCallerFloat SetByCaller;
+	SetByCaller.DataTag = WxGameplayTags::SetByCaller_Recovery;
 
 	FGameplayModifierInfo Modifier;
 	Modifier.Attribute = UWxCombatAttributeSet::GetUPAttribute();
 	Modifier.ModifierOp = EGameplayModOp::Additive;
-	Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(UPGainOnHit));
+	Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(SetByCaller);
 	Modifiers.Add(Modifier);
 }

@@ -62,6 +62,7 @@ void AWxProjectileBase::BeginPlay()
 		FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
 		Context.AddSourceObject(this);
 		Context.AddInstigator(GetOwner(), GetInstigator());
+		Context.SetAbility(SourceASC->GetAnimatingAbility());
 
 		for (const TSubclassOf<UGameplayEffect>& EffectClass : EffectClasses)
 		{
@@ -70,7 +71,8 @@ void AWxProjectileBase::BeginPlay()
 				continue;
 			}
 
-			EffectSpecHandles.Add(SourceASC->MakeOutgoingSpec(EffectClass, 1.f, Context));
+			FGameplayEffectSpecHandle EffectSpec = SourceASC->MakeOutgoingSpec(EffectClass, 1.f, Context);
+			EffectSpecHandles.Add(EffectSpec);
 		}
 	}
 }
