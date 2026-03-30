@@ -140,5 +140,13 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 				SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
 			}
 		}
+
+		// 역경직: 공격자의 몽타주를 잠시 일시 정지
+		if (HitStopDuration > 0.f)
+		{
+			FGameplayCueParameters HitStopParams;
+			HitStopParams.RawMagnitude = HitStopDuration;
+			SourceASC->ExecuteGameplayCue(WxGameplayTags::GameplayCue_HitStop, HitStopParams);
+		}
 	}
 }

@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Character/WxEnemyCharacter.h"
-#include "AI/WxEnemyController.h"
+#include "Controller/WxEnemyController.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "View/MVVMView.h"

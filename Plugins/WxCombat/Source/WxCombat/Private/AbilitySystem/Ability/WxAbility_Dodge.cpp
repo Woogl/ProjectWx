@@ -2,7 +2,9 @@
 
 #include "AbilitySystem/Ability/WxAbility_Dodge.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
 #include "AbilitySystem/Task/WxAbilityTask_TurnAround.h"
+#include "AbilitySystemComponent.h"
 #include "GameFramework/Character.h"
 #include "WxGameplayTags.h"
 
@@ -22,15 +24,48 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	// 이동 입력 방향으로 부드럽게 회전
-	if (const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+
+	if (IsLocallyControlled())
 	{
-		const FVector InputDirection = Character->GetLastMovementInputVector();
-		if (!InputDirection.IsNearlyZero())
+		// 로컬 클라이언트(또는 리슨 서버 호스트): 입력 방향을 직접 읽어 회전 적용
+		FVector DodgeDirection = FVector::ZeroVector;
+		if (const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
 		{
-			UWxAbilityTask_TurnAround* TurnAroundTask = UWxAbilityTask_TurnAround::CreateTask(
-				this, InputDirection);
-			TurnAroundTask->ReadyForActivation();
+			DodgeDirection = Character->GetLastMovementInputVector();
+		}
+
+		ApplyDodgeDirection(DodgeDirection);
+
+		// 리모트 클라이언트인 경우 서버에 방향 전송
+		if (ASC && !HasAuthority(&ActivationInfo))
+		{
+			FGameplayAbilityTargetDataHandle DataHandle;
+			FWxAbilityTargetData_Direction* DirectionData = new FWxAbilityTargetData_Direction();
+			DirectionData->Direction = DodgeDirection;
+			DataHandle.Add(DirectionData);
+
+			ASC->CallServerSetReplicatedTargetData(
+				Handle,
+				ActivationInfo.GetActivationPredictionKey(),
+				DataHandle,
+				FGameplayTag(),
+				ASC->ScopedPredictionKey);
+		}
+	}
+	else if (HasAuthority(&ActivationInfo))
+	{
+		// 서버(리모트 플레이어 처리): 클라이언트로부터 방향 데이터 수신 대기
+		if (ASC)
+		{
+			FAbilityTargetDataSetDelegate& Delegate = ASC->AbilityTargetDataSetDelegate(
+				Handle,
+				ActivationInfo.GetActivationPredictionKey());
+			Delegate.AddUObject(this, &UWxAbility_Dodge::HandleTargetDataReceived);
+
+			ASC->CallReplicatedTargetDataDelegatesIfSet(
+				Handle,
+				ActivationInfo.GetActivationPredictionKey());
 		}
 	}
 
@@ -53,6 +88,31 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Dodge::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Dodge::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
+}
+
+void UWxAbility_Dodge::ApplyDodgeDirection(const FVector& Direction)
+{
+	if (!Direction.IsNearlyZero())
+	{
+		UWxAbilityTask_TurnAround* TurnAroundTask = UWxAbilityTask_TurnAround::CreateTask(this, Direction);
+		TurnAroundTask->ReadyForActivation();
+	}
+}
+
+void UWxAbility_Dodge::HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag)
+{
+	const FWxAbilityTargetData_Direction* DirectionData =
+		static_cast<const FWxAbilityTargetData_Direction*>(DataHandle.Get(0));
+	if (DirectionData)
+	{
+		ApplyDodgeDirection(DirectionData->Direction);
+	}
+
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (ASC)
+	{
+		ASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
+	}
 }
 
 void UWxAbility_Dodge::HandleMontageCompleted()

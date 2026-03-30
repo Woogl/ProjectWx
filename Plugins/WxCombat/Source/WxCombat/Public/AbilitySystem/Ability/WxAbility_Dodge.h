@@ -7,6 +7,7 @@
 #include "WxAbility_Dodge.generated.h"
 
 class UAnimMontage;
+struct FGameplayAbilityTargetDataHandle;
 
 /**
  * 회피 어빌리티.
@@ -15,6 +16,9 @@ class UAnimMontage;
  *  1. 입력 → ActivateAbility → DodgeMontage 재생
  *  2. 몽타주의 ANS_Invincible 구간 동안 무적
  *  3. 몽타주 완료/중단 → EndAbility
+ *
+ * 클라이언트는 입력 방향을 TargetData로 서버에 전송하여
+ * 서버에서도 올바른 방향으로 회전.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Dodge : public UWxAbility
@@ -31,6 +35,9 @@ protected:
 	TObjectPtr<UAnimMontage> DodgeMontage;
 
 private:
+	void ApplyDodgeDirection(const FVector& Direction);
+	void HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag);
+
 	UFUNCTION()
 	void HandleMontageCompleted();
 

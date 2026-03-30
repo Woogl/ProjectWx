@@ -42,6 +42,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
 	TArray<TSubclassOf<UGameplayEffect>> EffectClasses;
 
+	/** 역경직 지속 시간 (초). 0 이하이면 역경직 미적용 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
+	float HitStopDuration = 0.125f;
+
 protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 

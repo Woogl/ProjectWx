@@ -51,7 +51,7 @@ namespace WxGameplayTags
 
 	// ── GameplayCue ──────────────────────────────────────────────────────
 
-	/** 데미지 플로터 표시 Cue */
+	/** 데미지 플로터 출력 Cue */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Damage);
 
 	/** ATK 버프 지속 Cue */
@@ -59,6 +59,9 @@ namespace WxGameplayTags
 
 	/** 출혈 지속 Cue */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Bleed);
+
+	/** 역경직(히트 스톱) Cue. WxWeaponBase로 공격 적중 시 공격자·피격자의 애니메이션 일시 정지 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_HitStop);
 
 	// ── Damage ────────────────────────────────────────────────────────────
 

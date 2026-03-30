@@ -21,6 +21,8 @@ class WXCOMBAT_API UWxCueNotify_Damage : public UGameplayCueNotify_Static
 	GENERATED_BODY()
 
 public:
+	UWxCueNotify_Damage();
+	
 	virtual void HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters) override;
 
 protected:
