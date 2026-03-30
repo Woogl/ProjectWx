@@ -100,5 +100,4 @@ protected:
 	TObjectPtr<AWxWeaponBase> EquippedWeapon;
 
 	void SpawnDefaultWeapon();
-
 };

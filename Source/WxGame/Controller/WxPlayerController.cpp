@@ -2,7 +2,6 @@
 
 #include "Controller/WxPlayerController.h"
 #include "Character/WxCharacterBase.h"
-#include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "MVVMGameSubsystem.h"
 #include "MVVM/WxViewModel_Attribute.h"
 #include "MVVM/WxViewModel_Ability.h"
@@ -11,6 +10,7 @@
 #include "System/WxUIManagerSubsystem.h"
 #include "WxGameplayTags.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
+#include "Character/WxPlayerCharacter.h"
 
 namespace WxGlobalViewModelContext
 {
@@ -63,13 +63,21 @@ void AWxPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (IsLocalController() && GameHUDClass)
+	if (!IsLocalController())
 	{
-		if (UGameInstance* GameInst = GetGameInstance())
+		return;
+	}
+
+	if (AWxPlayerCharacter* WxPlayerCharacter = Cast<AWxPlayerCharacter>(GetPawn()))
+	{
+		if (TSubclassOf<UWxActivatableWidget> GameHUDClass = WxPlayerCharacter->GetGameHUDClass())
 		{
-			if (UWxUIManagerSubsystem* UIManager = GameInst->GetSubsystem<UWxUIManagerSubsystem>())
+			if (UGameInstance* GameInst = GetGameInstance())
 			{
-				UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Game, GameHUDClass);
+				if (UWxUIManagerSubsystem* UIManager = GameInst->GetSubsystem<UWxUIManagerSubsystem>())
+				{
+					UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Game, GameHUDClass);
+				}
 			}
 		}
 	}
@@ -79,17 +87,19 @@ void AWxPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 	
-	if (IsLocalController())
+	if (!IsLocalController())
 	{
-		if (AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(InPawn))
+		return;
+	}
+	
+	if (AWxPlayerCharacter* WxPlayerCharacter = Cast<AWxPlayerCharacter>(InPawn))
+	{
+		if (UAbilitySystemComponent* ASC = WxPlayerCharacter->GetAbilitySystemComponent())
 		{
-			if (UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(WxCharacter->GetAbilitySystemComponent()))
-			{
-				InitializePlayerHPViewModel(ASC);
-				InitializePlayerMPViewModel(ASC);
-				InitializePlayerUPViewModel(ASC);
-				InitializePlayerAbilityViewModels(ASC);
-			}
+			InitializePlayerHPViewModel(ASC);
+			InitializePlayerMPViewModel(ASC);
+			InitializePlayerUPViewModel(ASC);
+			InitializePlayerAbilityViewModels(ASC);
 		}
 	}
 }
@@ -98,10 +108,15 @@ void AWxPlayerController::OnRep_Pawn()
 {
 	Super::OnRep_Pawn();
 
+	if (!IsLocalController())
+	{
+		return;
+	}
+	
 	// 원격 클라이언트: Pawn 복제 시 ViewModel 초기화
 	if (AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(GetPawn()))
 	{
-		if (UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(WxCharacter->GetAbilitySystemComponent()))
+		if (UAbilitySystemComponent* ASC = WxCharacter->GetAbilitySystemComponent())
 		{
 			InitializePlayerHPViewModel(ASC);
 			InitializePlayerMPViewModel(ASC);
@@ -113,6 +128,8 @@ void AWxPlayerController::OnRep_Pawn()
 
 void AWxPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	Super::EndPlay(EndPlayReason);
+	
 	if (UGameInstance* GameInst = GetGameInstance())
 	{
 		if (UMVVMGameSubsystem* MVVMGameSubsystem = GameInst->GetSubsystem<UMVVMGameSubsystem>())
@@ -122,8 +139,6 @@ void AWxPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 			MVVMGameSubsystem->GetViewModelCollection()->RemoveViewModel(WxGlobalViewModelContext::PlayerUP());
 		}
 	}
-
-	Super::EndPlay(EndPlayReason);
 }
 
 void AWxPlayerController::InitializePlayerHPViewModel(UAbilitySystemComponent* ASC)
@@ -143,13 +158,8 @@ void AWxPlayerController::InitializePlayerHPViewModel(UAbilitySystemComponent* A
 	UMVVMViewModelCollectionObject* GlobalCollection = MVVMGameSubsystem->GetViewModelCollection();
 	const FMVVMViewModelContext Context = WxGlobalViewModelContext::PlayerHP();
 
-	UWxViewModel_Attribute* ViewModel = Cast<UWxViewModel_Attribute>(GlobalCollection->FindViewModelInstance(Context));
-	if (!ViewModel)
-	{
-		ViewModel = NewObject<UWxViewModel_Attribute>(this);
-		GlobalCollection->AddViewModelInstance(Context, ViewModel);
-	}
-
+	UWxViewModel_Attribute* ViewModel = ViewModel = NewObject<UWxViewModel_Attribute>(ASC);
+	GlobalCollection->AddViewModelInstance(Context, ViewModel);
 	ViewModel->Initialize(ASC, UWxCombatAttributeSet::GetHPAttribute(), UWxCombatAttributeSet::GetMaxHPAttribute());
 }
 
@@ -170,13 +180,8 @@ void AWxPlayerController::InitializePlayerMPViewModel(UAbilitySystemComponent* A
 	UMVVMViewModelCollectionObject* GlobalCollection = MVVMGameSubsystem->GetViewModelCollection();
 	const FMVVMViewModelContext Context = WxGlobalViewModelContext::PlayerMP();
 
-	UWxViewModel_Attribute* ViewModel = Cast<UWxViewModel_Attribute>(GlobalCollection->FindViewModelInstance(Context));
-	if (!ViewModel)
-	{
-		ViewModel = NewObject<UWxViewModel_Attribute>(this);
-		GlobalCollection->AddViewModelInstance(Context, ViewModel);
-	}
-
+	UWxViewModel_Attribute* ViewModel = ViewModel = NewObject<UWxViewModel_Attribute>(ASC);
+	GlobalCollection->AddViewModelInstance(Context, ViewModel);
 	ViewModel->Initialize(ASC, UWxCombatAttributeSet::GetMPAttribute(), UWxCombatAttributeSet::GetMaxMPAttribute());
 }
 
@@ -197,13 +202,8 @@ void AWxPlayerController::InitializePlayerUPViewModel(UAbilitySystemComponent* A
 	UMVVMViewModelCollectionObject* GlobalCollection = MVVMGameSubsystem->GetViewModelCollection();
 	const FMVVMViewModelContext Context = WxGlobalViewModelContext::PlayerUP();
 
-	UWxViewModel_Attribute* ViewModel = Cast<UWxViewModel_Attribute>(GlobalCollection->FindViewModelInstance(Context));
-	if (!ViewModel)
-	{
-		ViewModel = NewObject<UWxViewModel_Attribute>(this);
-		GlobalCollection->AddViewModelInstance(Context, ViewModel);
-	}
-
+	UWxViewModel_Attribute* ViewModel = NewObject<UWxViewModel_Attribute>(ASC);
+	GlobalCollection->AddViewModelInstance(Context, ViewModel);
 	ViewModel->Initialize(ASC, UWxCombatAttributeSet::GetUPAttribute(), UWxCombatAttributeSet::GetMaxUPAttribute());
 }
 
@@ -241,14 +241,9 @@ void AWxPlayerController::InitializePlayerAbilityViewModels(UAbilitySystemCompon
 		Context.ContextClass = UWxViewModel_Ability::StaticClass();
 		Context.ContextName = AssetTags.First().GetTagName();
 
-		UWxViewModel_Ability* ViewModel = Cast<UWxViewModel_Ability>(GlobalCollection->FindViewModelInstance(Context));
-		if (!ViewModel)
-		{
-			ViewModel = NewObject<UWxViewModel_Ability>(this);
-			GlobalCollection->AddViewModelInstance(Context, ViewModel);
-		}
-
-		ViewModel->Initialize(ASC, AbilityCDO);
+		UWxViewModel_Ability* ViewModel = ViewModel = NewObject<UWxViewModel_Ability>(ASC);
+		GlobalCollection->AddViewModelInstance(Context, ViewModel);
 		ViewModel->SetIcon(AbilityCDO->AbilityIcon.LoadSynchronous());
+		ViewModel->Initialize(ASC, AbilityCDO);
 	}
 }

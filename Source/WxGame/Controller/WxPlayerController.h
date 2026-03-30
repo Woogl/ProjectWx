@@ -10,7 +10,6 @@
 class UInputMappingContext;
 class UInputAction;
 class UAbilitySystemComponent;
-class UWxActivatableWidget;
 
 /** Enhanced Input Action과 Gameplay Tag를 매핑하는 단일 항목 */
 USTRUCT(BlueprintType)
@@ -59,9 +58,6 @@ protected:
 	/** 어빌리티 입력 바인딩 설정. InputAction → InputTag 매핑 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TArray<FWxInputAbilityBinding> AbilityInputBindings;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|UI")
-	TSubclassOf<UWxActivatableWidget> GameHUDClass;
 
 private:
 	void InitializePlayerHPViewModel(UAbilitySystemComponent* ASC);

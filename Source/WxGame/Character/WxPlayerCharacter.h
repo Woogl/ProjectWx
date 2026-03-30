@@ -6,6 +6,7 @@
 #include "Character/WxCharacterBase.h"
 #include "WxPlayerCharacter.generated.h"
 
+class UWxActivatableWidget;
 class USpringArmComponent;
 class UCameraComponent;
 struct FInputActionValue;
@@ -25,6 +26,8 @@ public:
 	AWxPlayerCharacter();
 
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	
+	TSubclassOf<UWxActivatableWidget> GetGameHUDClass() const;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Camera")
@@ -40,4 +43,7 @@ protected:
 
 	void AbilityInputPressed(FGameplayTag InputTag);
 	void AbilityInputReleased(FGameplayTag InputTag);
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|UI")
+	TSubclassOf<UWxActivatableWidget> GameHUDClass;
 };
