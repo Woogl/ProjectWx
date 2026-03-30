@@ -73,11 +73,15 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UWxAbility_LockOn::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
+	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
+	
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
 void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+	
 	if (ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
 	{
 		if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(GetOwningActorFromActorInfo()))
@@ -87,8 +91,6 @@ void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 	}
 
 	LockOnTask = nullptr;
-
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void UWxAbility_LockOn::HandleTargetLost()

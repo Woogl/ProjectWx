@@ -32,6 +32,8 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UWxAbility_Attack::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
+	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
+	
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	if (!ASC || !ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_ComboWindow))
 	{
@@ -45,22 +47,14 @@ void UWxAbility_Attack::InputPressed(const FGameplayAbilitySpecHandle Handle, co
 	}
 
 	CurrentComboIndex = NextIndex;
-
-	if (!ASC->IsOwnerActorAuthoritative())
-	{
-		FScopedPredictionWindow ScopedPrediction(ASC, true);
-		PlayComboMontage();
-	}
-	else
-	{
-		PlayComboMontage();
-	}
+	PlayComboMontage();
 }
 
 void UWxAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	CurrentComboIndex = 0;
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+	
+	CurrentComboIndex = 0;
 }
 
 void UWxAbility_Attack::PlayComboMontage()

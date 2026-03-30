@@ -22,13 +22,13 @@ void UWxAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const
 
 UGameplayEffect* UWxAbility::GetCooldownGameplayEffect() const
 {
+	if (UGameplayEffect* ParentCooldownGE = Super::GetCooldownGameplayEffect())
+	{
+		return ParentCooldownGE;
+	}
+	
 	if (CooldownDuration > 0.f && CooldownTag.IsValid())
 	{
-		if (UGameplayEffect* ParentCooldownGE = Super::GetCooldownGameplayEffect())
-		{
-			return ParentCooldownGE;
-		}
-
 		return UWxEffect_Cooldown::StaticClass()->GetDefaultObject<UGameplayEffect>();
 	}
 
@@ -55,6 +55,8 @@ const FGameplayTagContainer* UWxAbility::GetCooldownTags() const
 
 void UWxAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
 {
+	Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
+	
 	if (CooldownDuration <= 0.f || !CooldownTag.IsValid())
 	{
 		return;

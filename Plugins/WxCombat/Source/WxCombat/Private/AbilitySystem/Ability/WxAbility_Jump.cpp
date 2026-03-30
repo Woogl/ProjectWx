@@ -41,6 +41,8 @@ void UWxAbility_Jump::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 
 void UWxAbility_Jump::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
+	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
+	
 	if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
 	{
 		Character->StopJumping();
@@ -51,10 +53,10 @@ void UWxAbility_Jump::InputReleased(const FGameplayAbilitySpecHandle Handle, con
 
 void UWxAbility_Jump::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
+	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+	
 	if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
 	{
 		Character->StopJumping();
 	}
-
-	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 }

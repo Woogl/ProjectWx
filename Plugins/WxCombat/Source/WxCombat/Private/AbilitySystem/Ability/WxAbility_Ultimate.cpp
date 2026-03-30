@@ -10,8 +10,6 @@
 
 UWxAbility_Ultimate::UWxAbility_Ultimate()
 {
-	UPCost = 100.f;
-
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Ultimate);
 	SetAssetTags(AssetTags);
