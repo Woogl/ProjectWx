@@ -32,8 +32,4 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|UI")
 	TObjectPtr<UWidgetComponent> NameplateComponent;
-	
-private:
-	void HandleEffectApplied(UAbilitySystemComponent* ASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle ActiveEffect);
-	void HandleEffectRemoved(const FActiveGameplayEffect& ActiveEffect);
 };

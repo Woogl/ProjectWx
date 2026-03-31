@@ -6,7 +6,7 @@
 #include "MVVMViewModelBase.h"
 #include "WxViewModel.generated.h"
 
-UCLASS(Abstract)
+UCLASS(Abstract, BlueprintType)
 class WXUI_API UWxViewModel : public UMVVMViewModelBase
 {
 	GENERATED_BODY()

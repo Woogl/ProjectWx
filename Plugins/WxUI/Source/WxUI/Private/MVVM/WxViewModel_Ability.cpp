@@ -14,8 +14,14 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 	Deinitialize();
 	CachedASC = InASC;
 
+	const FGameplayTagContainer& AssetTags = InAbility->GetAssetTags();
+	if (!AssetTags.IsEmpty())
+	{
+		AbilityTag = AssetTags.First();
+	}
+
 	const FGameplayTagContainer* CooldownTags = InAbility->GetCooldownTags();
-	if (CooldownTags->IsValid())
+	if (CooldownTags && !CooldownTags->IsEmpty())
 	{
 		BoundCooldownTag = CooldownTags->First();
 		InASC->RegisterGameplayTagEvent(BoundCooldownTag, EGameplayTagEventType::NewOrRemoved)
@@ -171,4 +177,9 @@ UTexture2D* UWxViewModel_Ability::GetIcon() const
 void UWxViewModel_Ability::SetIcon(UTexture2D* NewValue)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(Icon, NewValue);
+}
+
+FGameplayTag UWxViewModel_Ability::GetAbilityTag() const
+{
+	return AbilityTag;
 }

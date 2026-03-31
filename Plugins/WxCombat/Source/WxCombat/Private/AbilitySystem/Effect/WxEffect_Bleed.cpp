@@ -3,7 +3,6 @@
 #include "AbilitySystem/Effect/WxEffect_Bleed.h"
 #include "AbilitySystem/Effect/WxExecCalc_Bleed.h"
 #include "WxGameplayTags.h"
-#include "AbilitySystem/Effect/WxEffectComponent_UIData.h"
 
 UWxEffect_Bleed::UWxEffect_Bleed()
 {
@@ -12,9 +11,6 @@ UWxEffect_Bleed::UWxEffect_Bleed()
 
 	Period = FScalableFloat(UWxExecCalc_Bleed::BleedPeriod);
 	bExecutePeriodicEffectOnApplication = false;
-
-	WxUIData = CreateDefaultSubobject<UWxEffectComponent_UIData>(TEXT("WxUIData"));
-	GEComponents.Add(WxUIData);
 
 	FGameplayEffectExecutionDefinition ExecDef;
 	ExecDef.CalculationClass = UWxExecCalc_Bleed::StaticClass();

@@ -38,6 +38,14 @@ namespace WxGlobalViewModelContext
 		Context.ContextName = FName(TEXT("PlayerUP"));
 		return Context;
 	}
+	
+	FMVVMViewModelContext PlayerAbilitySystem()
+	{
+		FMVVMViewModelContext Context;
+		Context.ContextClass = UWxViewModel_AbilitySystem::StaticClass();
+		Context.ContextName = FName(TEXT("PlayerAbilitySystem"));
+		return Context;
+	}
 }
 
 UInputMappingContext* AWxPlayerController::GetDefaultMappingContext() const
@@ -78,6 +86,7 @@ void AWxPlayerController::OnPossess(APawn* InPawn)
 	{
 		if (UAbilitySystemComponent* ASC = WxPlayerCharacter->GetAbilitySystemComponent())
 		{
+			InitializePlayerAbilitySystemViewModel(ASC);
 			InitializePlayerHPViewModel(ASC);
 			InitializePlayerMPViewModel(ASC);
 			InitializePlayerUPViewModel(ASC);
@@ -148,6 +157,28 @@ void AWxPlayerController::PushGameHUD(AWxPlayerCharacter* PlayerCharacter)
 	}
 
 	GameHUD = Cast<UWxActivatableWidget>(UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Game, HUDClass));
+}
+
+void AWxPlayerController::InitializePlayerAbilitySystemViewModel(UAbilitySystemComponent* ASC)
+{
+	UGameInstance* GameInst = GetGameInstance();
+	if (!GameInst)
+	{
+		return;
+	}
+
+	UMVVMGameSubsystem* MVVMGameSubsystem = GameInst->GetSubsystem<UMVVMGameSubsystem>();
+	if (!MVVMGameSubsystem)
+	{
+		return;
+	}
+
+	UMVVMViewModelCollectionObject* GlobalCollection = MVVMGameSubsystem->GetViewModelCollection();
+	const FMVVMViewModelContext Context = WxGlobalViewModelContext::PlayerAbilitySystem();
+
+	UWxViewModel_AbilitySystem* ViewModel = NewObject<UWxViewModel_AbilitySystem>(ASC);
+	GlobalCollection->AddViewModelInstance(Context, ViewModel);
+	ViewModel->Initialize(ASC);
 }
 
 void AWxPlayerController::InitializePlayerHPViewModel(UAbilitySystemComponent* ASC)
@@ -250,9 +281,12 @@ void AWxPlayerController::InitializePlayerAbilityViewModels(UAbilitySystemCompon
 		Context.ContextClass = UWxViewModel_Ability::StaticClass();
 		Context.ContextName = AssetTags.First().GetTagName();
 
-		UWxViewModel_Ability* ViewModel = ViewModel = NewObject<UWxViewModel_Ability>(ASC);
-		GlobalCollection->AddViewModelInstance(Context, ViewModel);
-		ViewModel->SetIcon(AbilityCDO->AbilityIcon.LoadSynchronous());
-		ViewModel->Initialize(ASC, AbilityCDO);
+		if (UTexture2D* AbilityIcon = AbilityCDO->AbilityIcon.LoadSynchronous())
+		{
+			UWxViewModel_Ability* ViewModel = ViewModel = NewObject<UWxViewModel_Ability>(ASC);
+			GlobalCollection->AddViewModelInstance(Context, ViewModel);
+			ViewModel->SetIcon(AbilityIcon);
+			ViewModel->Initialize(ASC, AbilityCDO);
+		}
 	}
 }

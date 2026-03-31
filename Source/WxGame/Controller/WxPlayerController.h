@@ -64,6 +64,7 @@ protected:
 private:
 	void PushGameHUD(AWxPlayerCharacter* PlayerCharacter);
 
+	void InitializePlayerAbilitySystemViewModel(UAbilitySystemComponent* ASC);
 	void InitializePlayerHPViewModel(UAbilitySystemComponent* ASC);
 	void InitializePlayerMPViewModel(UAbilitySystemComponent* ASC);
 	void InitializePlayerUPViewModel(UAbilitySystemComponent* ASC);

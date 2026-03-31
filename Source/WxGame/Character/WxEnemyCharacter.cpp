@@ -8,7 +8,7 @@
 #include "MVVM/WxViewModel_Attribute.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
-#include "AbilitySystem/Effect/WxEffectComponent_UIData.h"
+#include "MVVM/WxViewModel_AbilitySystem.h"
 #include "MVVM/WxViewModel_Effect.h"
 #include "MVVM/WxViewModel_GameplayTag.h"
 
@@ -40,58 +40,21 @@ void AWxEnemyCharacter::BeginPlay()
 	{
 		if (UMVVMView* View = NameplateWidget->GetExtension<UMVVMView>())
 		{
-			UWxViewModel_Attribute* HealthViewModel = NewObject<UWxViewModel_Attribute>(NameplateWidget);
-			HealthViewModel->Initialize(GetAbilitySystemComponent(), UWxCombatAttributeSet::GetHPAttribute(), UWxCombatAttributeSet::GetMaxHPAttribute());
-			View->SetViewModel(TEXT("Health"), HealthViewModel);
+			UWxViewModel_Attribute* HealthViewModel = NewObject<UWxViewModel_Attribute>(AbilitySystemComponent);
+			HealthViewModel->Initialize(AbilitySystemComponent, UWxCombatAttributeSet::GetHPAttribute(), UWxCombatAttributeSet::GetMaxHPAttribute());
+			View->SetViewModel(TEXT("VM_Health"), HealthViewModel);
 
-			UWxViewModel_Attribute* DazeViewModel = NewObject<UWxViewModel_Attribute>(NameplateWidget);
-			DazeViewModel->Initialize(GetAbilitySystemComponent(), UWxCombatAttributeSet::GetDPAttribute(), UWxCombatAttributeSet::GetMaxDPAttribute());
-			View->SetViewModel(TEXT("Daze"), DazeViewModel);
+			UWxViewModel_Attribute* DazeViewModel = NewObject<UWxViewModel_Attribute>(AbilitySystemComponent);
+			DazeViewModel->Initialize(AbilitySystemComponent, UWxCombatAttributeSet::GetDPAttribute(), UWxCombatAttributeSet::GetMaxDPAttribute());
+			View->SetViewModel(TEXT("VM_Daze"), DazeViewModel);
 			
-			UWxViewModel_GameplayTag* GameplayTagViewModel = NewObject<UWxViewModel_GameplayTag>(NameplateWidget);
-			GameplayTagViewModel->Initialize(GetAbilitySystemComponent());
-			View->SetViewModel(TEXT("GameplayTag"), GameplayTagViewModel);
-		}
-	}
-	
-	AbilitySystemComponent->OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &AWxEnemyCharacter::HandleEffectApplied);
-	AbilitySystemComponent->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &AWxEnemyCharacter::HandleEffectRemoved);
-}
-
-void AWxEnemyCharacter::HandleEffectApplied(UAbilitySystemComponent* ASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle ActiveEffect)
-{
-	if (UUserWidget* NameplateWidget = NameplateComponent->GetWidget())
-	{
-		if (UMVVMView* View = NameplateWidget->GetExtension<UMVVMView>())
-		{
-			if (const UWxEffectComponent_UIData* UIData = Spec.Def->FindComponent<UWxEffectComponent_UIData>())
-			{
-				UWxViewModel_Effect* EffectViewModel = NewObject<UWxViewModel_Effect>(NameplateWidget);
-				FText EffectName = UIData->DisplayName;
-				UTexture2D* EffectIcon = UIData->Icon.IsNull() ? nullptr : UIData->Icon.LoadSynchronous();
-				EffectViewModel->Initialize(ASC, ActiveEffect, EffectName, EffectIcon);
-				View->SetViewModel(TEXT("Effect"), EffectViewModel);
-			}
-		}
-	}
-}
-
-void AWxEnemyCharacter::HandleEffectRemoved(const FActiveGameplayEffect& ActiveEffect)
-{
-	if (UUserWidget* NameplateWidget = NameplateComponent->GetWidget())
-	{
-		if (UMVVMView* View = NameplateWidget->GetExtension<UMVVMView>())
-		{
-			if (TScriptInterface<INotifyFieldValueChanged> ViewModelInterface = View->GetViewModel(TEXT("Effect")))
-			{
-				if (UWxViewModel_Effect* EffectViewModel = Cast<UWxViewModel_Effect>(ViewModelInterface.GetObject()))
-				{
-					if (EffectViewModel->GetBoundHandle() == ActiveEffect.Handle)
-					{
-						View->SetViewModel(TEXT("Effect"), nullptr);
-					}
-				}
-			}
+			UWxViewModel_GameplayTag* GameplayTagViewModel = NewObject<UWxViewModel_GameplayTag>(AbilitySystemComponent);
+			GameplayTagViewModel->Initialize(AbilitySystemComponent);
+			View->SetViewModel(TEXT("VM_GameplayTag"), GameplayTagViewModel);
+			
+			UWxViewModel_AbilitySystem* AbilitySystemViewModel = NewObject<UWxViewModel_AbilitySystem>(AbilitySystemComponent);
+			AbilitySystemViewModel->Initialize(AbilitySystemComponent);
+			View->SetViewModel(TEXT("VM_AbilitySystem"), AbilitySystemViewModel);
 		}
 	}
 }
