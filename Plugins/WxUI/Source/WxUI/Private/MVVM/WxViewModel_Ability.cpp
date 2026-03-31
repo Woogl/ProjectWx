@@ -10,19 +10,17 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 	{
 		return;
 	}
-
-	const FGameplayTagContainer* CooldownTags = InAbility->GetCooldownTags();
-	if (!CooldownTags || CooldownTags->IsEmpty())
-	{
-		return;
-	}
-
+	
 	Deinitialize();
 	CachedASC = InASC;
-	BoundCooldownTag = CooldownTags->First();
 
-	InASC->RegisterGameplayTagEvent(BoundCooldownTag, EGameplayTagEventType::NewOrRemoved)
-		.AddUObject(this, &UWxViewModel_Ability::HandleCooldownTagChanged);
+	const FGameplayTagContainer* CooldownTags = InAbility->GetCooldownTags();
+	if (CooldownTags->IsValid())
+	{
+		BoundCooldownTag = CooldownTags->First();
+		InASC->RegisterGameplayTagEvent(BoundCooldownTag, EGameplayTagEventType::NewOrRemoved)
+			.AddUObject(this, &UWxViewModel_Ability::HandleCooldownTagChanged);
+	}
 }
 
 void UWxViewModel_Ability::Deinitialize()

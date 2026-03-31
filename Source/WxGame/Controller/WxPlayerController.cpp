@@ -4,6 +4,7 @@
 #include "Character/WxCharacterBase.h"
 #include "MVVMGameSubsystem.h"
 #include "MVVM/WxViewModel_Attribute.h"
+#include "MVVM/WxViewModel_AbilitySystem.h"
 #include "MVVM/WxViewModel_Ability.h"
 #include "AbilitySystem/Ability/WxAbility.h"
 #include "Widget/WxActivatableWidget.h"
@@ -75,8 +76,6 @@ void AWxPlayerController::OnPossess(APawn* InPawn)
 
 	if (AWxPlayerCharacter* WxPlayerCharacter = Cast<AWxPlayerCharacter>(InPawn))
 	{
-		PushGameHUD(WxPlayerCharacter);
-
 		if (UAbilitySystemComponent* ASC = WxPlayerCharacter->GetAbilitySystemComponent())
 		{
 			InitializePlayerHPViewModel(ASC);
@@ -84,6 +83,8 @@ void AWxPlayerController::OnPossess(APawn* InPawn)
 			InitializePlayerUPViewModel(ASC);
 			InitializePlayerAbilityViewModels(ASC);
 		}
+		// Global View Model 초기화가 먼저 되어야함
+		PushGameHUD(WxPlayerCharacter);
 	}
 }
 
@@ -99,8 +100,6 @@ void AWxPlayerController::OnRep_Pawn()
 	// 원격 클라이언트: Pawn 복제 시 HUD Push 및 ViewModel 초기화
 	if (AWxPlayerCharacter* WxPlayerCharacter = Cast<AWxPlayerCharacter>(GetPawn()))
 	{
-		PushGameHUD(WxPlayerCharacter);
-
 		if (UAbilitySystemComponent* ASC = WxPlayerCharacter->GetAbilitySystemComponent())
 		{
 			InitializePlayerHPViewModel(ASC);
@@ -108,6 +107,8 @@ void AWxPlayerController::OnRep_Pawn()
 			InitializePlayerUPViewModel(ASC);
 			InitializePlayerAbilityViewModels(ASC);
 		}
+		// Global View Model 초기화가 먼저 되어야함
+		PushGameHUD(WxPlayerCharacter);
 	}
 }
 
@@ -146,7 +147,7 @@ void AWxPlayerController::PushGameHUD(AWxPlayerCharacter* PlayerCharacter)
 		return;
 	}
 
-	UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Game, HUDClass);
+	GameHUD = Cast<UWxActivatableWidget>(UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Game, HUDClass));
 }
 
 void AWxPlayerController::InitializePlayerHPViewModel(UAbilitySystemComponent* ASC)

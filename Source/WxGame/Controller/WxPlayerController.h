@@ -11,6 +11,7 @@ class AWxPlayerCharacter;
 class UInputMappingContext;
 class UInputAction;
 class UAbilitySystemComponent;
+class UWxActivatableWidget;
 
 /** Enhanced Input Action과 Gameplay Tag를 매핑하는 단일 항목 */
 USTRUCT(BlueprintType)
@@ -67,4 +68,7 @@ private:
 	void InitializePlayerMPViewModel(UAbilitySystemComponent* ASC);
 	void InitializePlayerUPViewModel(UAbilitySystemComponent* ASC);
 	void InitializePlayerAbilityViewModels(UAbilitySystemComponent* ASC);
+
+	UPROPERTY(Transient)
+	TObjectPtr<UWxActivatableWidget> GameHUD;
 };
