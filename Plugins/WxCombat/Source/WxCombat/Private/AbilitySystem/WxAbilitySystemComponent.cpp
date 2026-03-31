@@ -35,6 +35,11 @@ void UWxAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Input
 			if (Spec.IsActive())
 			{
 				AbilitySpecInputPressed(Spec);
+
+				for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
+				{
+					InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
+				}
 			}
 			else if (TryActivateAbility(Spec.Handle))
 			{
@@ -76,6 +81,11 @@ void UWxAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& Inpu
 			if (Spec.IsActive())
 			{
 				AbilitySpecInputReleased(Spec);
+				
+				for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
+				{
+					InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
+				}
 			}
 		}
 	}
