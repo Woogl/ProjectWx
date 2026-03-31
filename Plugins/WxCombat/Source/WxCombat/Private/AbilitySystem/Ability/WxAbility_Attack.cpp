@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/Ability/WxAbility_Attack.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
 #include "AbilitySystemComponent.h"
 #include "WxGameplayTags.h"
 
@@ -30,13 +31,24 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	PlayComboMontage();
 }
 
-void UWxAbility_Attack::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+void UWxAbility_Attack::WaitForComboInput()
 {
-	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
-	
+	if (CurrentComboIndex + 1 >= ComboMontages.Num())
+	{
+		return;
+	}
+
+	UAbilityTask_WaitInputPress* WaitInputTask = UAbilityTask_WaitInputPress::WaitInputPress(this);
+	WaitInputTask->OnPress.AddDynamic(this, &UWxAbility_Attack::HandleComboInputPressed);
+	WaitInputTask->ReadyForActivation();
+}
+
+void UWxAbility_Attack::HandleComboInputPressed(float TimeWaited)
+{
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	if (!ASC || !ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_ComboWindow))
 	{
+		WaitForComboInput();
 		return;
 	}
 
@@ -87,6 +99,8 @@ void UWxAbility_Attack::PlayComboMontage()
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Attack::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Attack::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
+
+	WaitForComboInput();
 }
 
 void UWxAbility_Attack::HandleMontageCompleted()

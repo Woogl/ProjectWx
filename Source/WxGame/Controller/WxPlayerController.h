@@ -7,6 +7,7 @@
 #include "GameplayTagContainer.h"
 #include "WxPlayerController.generated.h"
 
+class AWxPlayerCharacter;
 class UInputMappingContext;
 class UInputAction;
 class UAbilitySystemComponent;
@@ -60,6 +61,8 @@ protected:
 	TArray<FWxInputAbilityBinding> AbilityInputBindings;
 
 private:
+	void PushGameHUD(AWxPlayerCharacter* PlayerCharacter);
+
 	void InitializePlayerHPViewModel(UAbilitySystemComponent* ASC);
 	void InitializePlayerMPViewModel(UAbilitySystemComponent* ASC);
 	void InitializePlayerUPViewModel(UAbilitySystemComponent* ASC);

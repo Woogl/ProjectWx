@@ -62,38 +62,21 @@ const TArray<FWxInputAbilityBinding>& AWxPlayerController::GetAbilityInputBindin
 void AWxPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (!IsLocalController())
-	{
-		return;
-	}
-
-	if (AWxPlayerCharacter* WxPlayerCharacter = Cast<AWxPlayerCharacter>(GetPawn()))
-	{
-		if (TSubclassOf<UWxActivatableWidget> GameHUDClass = WxPlayerCharacter->GetGameHUDClass())
-		{
-			if (UGameInstance* GameInst = GetGameInstance())
-			{
-				if (UWxUIManagerSubsystem* UIManager = GameInst->GetSubsystem<UWxUIManagerSubsystem>())
-				{
-					UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Game, GameHUDClass);
-				}
-			}
-		}
-	}
 }
 
 void AWxPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-	
+
 	if (!IsLocalController())
 	{
 		return;
 	}
-	
+
 	if (AWxPlayerCharacter* WxPlayerCharacter = Cast<AWxPlayerCharacter>(InPawn))
 	{
+		PushGameHUD(WxPlayerCharacter);
+
 		if (UAbilitySystemComponent* ASC = WxPlayerCharacter->GetAbilitySystemComponent())
 		{
 			InitializePlayerHPViewModel(ASC);
@@ -112,11 +95,13 @@ void AWxPlayerController::OnRep_Pawn()
 	{
 		return;
 	}
-	
-	// 원격 클라이언트: Pawn 복제 시 ViewModel 초기화
-	if (AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(GetPawn()))
+
+	// 원격 클라이언트: Pawn 복제 시 HUD Push 및 ViewModel 초기화
+	if (AWxPlayerCharacter* WxPlayerCharacter = Cast<AWxPlayerCharacter>(GetPawn()))
 	{
-		if (UAbilitySystemComponent* ASC = WxCharacter->GetAbilitySystemComponent())
+		PushGameHUD(WxPlayerCharacter);
+
+		if (UAbilitySystemComponent* ASC = WxPlayerCharacter->GetAbilitySystemComponent())
 		{
 			InitializePlayerHPViewModel(ASC);
 			InitializePlayerMPViewModel(ASC);
@@ -139,6 +124,29 @@ void AWxPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 			MVVMGameSubsystem->GetViewModelCollection()->RemoveViewModel(WxGlobalViewModelContext::PlayerUP());
 		}
 	}
+}
+
+void AWxPlayerController::PushGameHUD(AWxPlayerCharacter* PlayerCharacter)
+{
+	TSubclassOf<UWxActivatableWidget> HUDClass = PlayerCharacter->GetGameHUDClass();
+	if (!HUDClass)
+	{
+		return;
+	}
+
+	UGameInstance* GameInst = GetGameInstance();
+	if (!GameInst)
+	{
+		return;
+	}
+
+	UWxUIManagerSubsystem* UIManager = GameInst->GetSubsystem<UWxUIManagerSubsystem>();
+	if (!UIManager)
+	{
+		return;
+	}
+
+	UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Game, HUDClass);
 }
 
 void AWxPlayerController::InitializePlayerHPViewModel(UAbilitySystemComponent* ASC)

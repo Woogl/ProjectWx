@@ -7,6 +7,7 @@
 #include "WxAbility_Attack.generated.h"
 
 class UAbilityTask_PlayMontageAndWait;
+class UAbilityTask_WaitInputPress;
 class UAnimMontage;
 
 /**
@@ -14,7 +15,7 @@ class UAnimMontage;
  *
  * 사용 흐름:
  *  1. 입력 → ActivateAbility → 첫 번째 콤보 몽타주 재생
- *  2. 콤보 윈도우 중 재입력 → InputPressed → 다음 콤보 몽타주로 전환
+ *  2. 콤보 윈도우 중 재입력 → WaitInputPress → 다음 콤보 몽타주로 전환
  *  3. 마지막 몽타주 완료 또는 콤보 미입력 → EndAbility
  *
  * 콤보 체인은 ComboMontages 배열 순서대로 진행.
@@ -30,7 +31,6 @@ public:
 	UWxAbility_Attack();
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 protected:
@@ -41,6 +41,9 @@ protected:
 private:
 	/** 현재 콤보 몽타주를 재생한다. 기존 몽타주 태스크가 있으면 정리 후 교체 */
 	void PlayComboMontage();
+
+	/** 다음 콤보 입력 대기 태스크를 시작한다 */
+	void WaitForComboInput();
 
 	UFUNCTION()
 	void HandleMontageCompleted();
@@ -53,6 +56,9 @@ private:
 
 	UFUNCTION()
 	void HandleMontageCancelled();
+
+	UFUNCTION()
+	void HandleComboInputPressed(float TimeWaited);
 
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;

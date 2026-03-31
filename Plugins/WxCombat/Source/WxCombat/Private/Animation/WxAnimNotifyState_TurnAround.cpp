@@ -103,7 +103,10 @@ void UWxAnimNotifyState_TurnAround::NotifyTick(USkeletalMeshComponent* MeshComp,
 		RotationRateYaw = Character->GetCharacterMovement()->RotationRate.Yaw;
 	}
 
-	const FRotator NewRotation = FMath::RInterpConstantTo(CurrentRotation, DesiredRotation, FrameDeltaTime, RotationRateYaw);
+	// 애니메이션 스레드의 FrameDeltaTime 대신 게임 스레드의 DeltaSeconds를 사용하여
+	// 스레드 간 타이밍 불일치로 인한 회전 떨림 방지
+	const float DeltaTime = Owner->GetWorld()->GetDeltaSeconds();
+	const FRotator NewRotation = FMath::RInterpConstantTo(CurrentRotation, DesiredRotation, DeltaTime, RotationRateYaw);
 	Owner->SetActorRotation(NewRotation);
 }
 
