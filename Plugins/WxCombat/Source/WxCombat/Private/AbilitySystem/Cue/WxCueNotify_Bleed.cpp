@@ -19,6 +19,11 @@ bool AWxCueNotify_Bleed::OnActive_Implementation(AActor* MyTarget, const FGamepl
 	{
 		return false;
 	}
+	
+	if (SpawnedNiagaraComponent)
+	{
+		SpawnedNiagaraComponent->Deactivate();
+	}
 
 	USceneComponent* AttachTarget = MyTarget->GetRootComponent();
 	if (USkeletalMeshComponent* MeshComp = MyTarget->FindComponentByClass<USkeletalMeshComponent>())

@@ -9,6 +9,7 @@
 #include "WxMVVMConversionLibrary.generated.h"
 
 class UWxViewModel_Ability;
+class UWxViewModel_Effect;
 
 /**
  * WxUI 전용 Blueprint Function Library.
@@ -31,4 +32,8 @@ public:
 	/** AbilityViewModel 배열에서 AbilityTag가 일치하는 ViewModel을 반환한다. */
 	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "Find Ability ViewModel By Tag"))
 	static UWxViewModel_Ability* Conv_FindAbilityViewModelByTag(const TArray<UWxViewModel_Ability*>& AbilityViewModels, FGameplayTag AbilityTag);
+	
+	/** EffectViewModel 배열에서 AbilityTag가 일치하는 ViewModel을 반환한다. */
+	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "Find Effect ViewModel By Tag"))
+	static UWxViewModel_Effect* Conv_FindActiveEffectViewModelByTag(const TArray<UWxViewModel_Effect*>& EffectViewModels, FGameplayTag EffectTag);
 };

@@ -24,6 +24,13 @@ void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGame
 	SetEffectName(InEffectName);
 	SetIcon(InIcon);
 	SetStackCount(ActiveEffect->Spec.GetStackCount());
+	
+	const UGameplayEffect* EffectCDO = InASC->GetGameplayEffectCDO(InHandle);
+	const FGameplayTagContainer& AssetTags = EffectCDO->GetAssetTags();
+	if (!AssetTags.IsEmpty())
+	{
+		EffectTag = AssetTags.First();
+	}
 
 	CachedDuration = ActiveEffect->GetDuration();
 	if (CachedDuration > 0.f)
@@ -160,4 +167,9 @@ UTexture2D* UWxViewModel_Effect::GetIcon() const
 void UWxViewModel_Effect::SetIcon(UTexture2D* NewValue)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(Icon, NewValue);
+}
+
+FGameplayTag UWxViewModel_Effect::GetEffectTag() const
+{
+	return EffectTag;
 }
