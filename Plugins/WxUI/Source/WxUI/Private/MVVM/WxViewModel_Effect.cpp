@@ -3,10 +3,11 @@
 #include "MVVM/WxViewModel_Effect.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
+#include "AbilitySystem/WxEffectComponent_UIData.h"
 
-void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const FText& InEffectName, UTexture2D* InIcon)
+void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const UWxEffectComponent_UIData* InUIData)
 {
-	if (!InASC || !InHandle.IsValid())
+	if (!InASC || !InHandle.IsValid() || !InUIData)
 	{
 		return;
 	}
@@ -21,8 +22,9 @@ void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGame
 	CachedASC = InASC;
 	BoundHandle = InHandle;
 
-	SetEffectName(InEffectName);
-	SetIcon(InIcon);
+	SetEffectName(InUIData->DisplayName);
+	UTexture2D* MyIcon = InUIData->Icon.IsNull() ? nullptr : InUIData->Icon.LoadSynchronous();
+	SetIcon(MyIcon);
 	SetStackCount(ActiveEffect->Spec.GetStackCount());
 	
 	const UGameplayEffect* EffectCDO = InASC->GetGameplayEffectCDO(InHandle);
@@ -96,9 +98,10 @@ bool UWxViewModel_Effect::UpdateEffectState(float DeltaTime)
 			return false;
 		}
 
-		const float Remaining = FMath::Max(EffectEndTime - World->GetTimeSeconds(), 0.f);
+		const float CurrentTime = World->GetTimeSeconds();
+		const float Remaining = FMath::Max(ActiveEffect->StartWorldTime + CachedDuration - CurrentTime, 0.f);
 		SetTimeRemaining(Remaining);
-		SetTimeRemainingPercent(Remaining / CachedDuration);
+		SetTimeRemainingPercent(FMath::Min(Remaining / CachedDuration, 1.f));
 	}
 
 	return true;
@@ -157,6 +160,17 @@ int32 UWxViewModel_Effect::GetStackCount() const
 void UWxViewModel_Effect::SetStackCount(int32 NewValue)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(StackCount, NewValue);
+	SetIsStackCountAboveOne(NewValue > 1);
+}
+
+bool UWxViewModel_Effect::GetIsStackCountAboveOne() const
+{
+	return IsStackCountAboveOne;
+}
+
+void UWxViewModel_Effect::SetIsStackCountAboveOne(bool bNewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(IsStackCountAboveOne, bNewValue);
 }
 
 UTexture2D* UWxViewModel_Effect::GetIcon() const

@@ -2,9 +2,11 @@
 
 #include "AbilitySystem/Ability/WxAbility_Skill.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "AbilitySystemComponent.h"
 #include "WxGameplayTags.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "AbilitySystem/Effect/WxEffect_CostMP.h"
+#include "AbilitySystem/Effect/WxEffect_Cooldown.h"
 
 UWxAbility_Skill::UWxAbility_Skill()
 {
@@ -73,12 +75,117 @@ void UWxAbility_Skill::ApplyCost(const FGameplayAbilitySpecHandle Handle, const 
 {
 	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
 
-	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_CostMP::StaticClass(), GetAbilityLevel());
-	if (SpecHandle.IsValid())
+	// TODO: 기존 코드는 MPCost <= 0이어도 GE를 적용했음 (magnitude 0). 동작 차이 없으나 의도 불명확 — 검토 후 확정 필요
+	if (MPCost > 0.f)
 	{
-		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Cost, -MPCost);
-		ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
+		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_CostMP::StaticClass(), GetAbilityLevel());
+		if (SpecHandle.IsValid())
+		{
+			SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Cost, -MPCost);
+			ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
+		}
 	}
+
+	if (MaxCharges > 1)
+	{
+		CurrentCharges = FMath::Max(CurrentCharges - 1, 0);
+	}
+}
+
+void UWxAbility_Skill::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
+{
+	Super::OnGiveAbility(ActorInfo, Spec);
+
+	if (MaxCharges <= 1 || !CooldownTag.IsValid())
+	{
+		return;
+	}
+
+	CurrentCharges = MaxCharges;
+
+	if (UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get())
+	{
+		CooldownTagDelegateHandle = ASC->RegisterGameplayTagEvent(CooldownTag, EGameplayTagEventType::NewOrRemoved)
+			.AddUObject(this, &UWxAbility_Skill::HandleCooldownTagChanged);
+	}
+}
+
+void UWxAbility_Skill::OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
+{
+	if (MaxCharges > 1 && CooldownTagDelegateHandle.IsValid())
+	{
+		if (UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get())
+		{
+			ASC->RegisterGameplayTagEvent(CooldownTag, EGameplayTagEventType::NewOrRemoved)
+				.Remove(CooldownTagDelegateHandle);
+			CooldownTagDelegateHandle.Reset();
+		}
+	}
+
+	Super::OnRemoveAbility(ActorInfo, Spec);
+}
+
+bool UWxAbility_Skill::CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	if (MaxCharges <= 1)
+	{
+		return Super::CheckCooldown(Handle, ActorInfo, OptionalRelevantTags);
+	}
+
+	return CurrentCharges > 0;
+}
+
+void UWxAbility_Skill::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
+{
+	if (MaxCharges <= 1)
+	{
+		Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
+		return;
+	}
+
+	// 충전 모드: 쿨다운(충전 타이머)이 이미 진행 중이면 중복 적용하지 않는다
+	const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+	if (ASC && !ASC->HasMatchingGameplayTag(CooldownTag))
+	{
+		Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
+	}
+}
+
+void UWxAbility_Skill::HandleCooldownTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	if (NewCount != 0)
+	{
+		return;
+	}
+
+	// 충전 타이머 만료: 충전 1 증가
+	CurrentCharges = FMath::Min(CurrentCharges + 1, MaxCharges);
+
+	// 아직 최대 충전에 도달하지 않았으면 다음 충전을 위해 타이머 재시작
+	if (CurrentCharges < MaxCharges)
+	{
+		RestartChargeCooldown();
+	}
+}
+
+void UWxAbility_Skill::RestartChargeCooldown()
+{
+	if (!CurrentActorInfo || CooldownDuration <= 0.f || !CooldownTag.IsValid())
+	{
+		return;
+	}
+
+	UAbilitySystemComponent* ASC = CurrentActorInfo->AbilitySystemComponent.Get();
+	if (!ASC)
+	{
+		return;
+	}
+
+	const UGameplayEffect* CooldownGE = UWxEffect_Cooldown::StaticClass()->GetDefaultObject<UGameplayEffect>();
+	FGameplayEffectSpec Spec(CooldownGE, ASC->MakeEffectContext(), GetAbilityLevel());
+	Spec.SetDuration(CooldownDuration, true);
+	Spec.DynamicGrantedTags.AddTag(CooldownTag);
+	ASC->ApplyGameplayEffectSpecToSelf(Spec);
 }
 
 void UWxAbility_Skill::HandleMontageCompleted()

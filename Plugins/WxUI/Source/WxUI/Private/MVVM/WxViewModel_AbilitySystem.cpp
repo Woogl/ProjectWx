@@ -77,10 +77,8 @@ void UWxViewModel_AbilitySystem::RebuildActiveEffectViewModels()
 		const UGameplayEffect* GE = Effect->Spec.Def;
 		if (const UWxEffectComponent_UIData* UIData = GE->FindComponent<UWxEffectComponent_UIData>())
 		{
-			UTexture2D* EffectIcon = UIData->Icon.LoadSynchronous();
-			FText EffectName = UIData->DisplayName;
 			UWxViewModel_Effect* EffectVM = NewObject<UWxViewModel_Effect>(ASC);
-			EffectVM->Initialize(ASC, Handle, EffectName, EffectIcon);
+			EffectVM->Initialize(ASC, Handle, UIData);
 			ActiveEffectViewModels.Add(EffectVM);
 		}
 	}
