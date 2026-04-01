@@ -90,7 +90,7 @@ public:
 	FGameplayAttributeData UP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, UP)
 
-	/** MaxDP (Max Ultimate Points) : 최대 궁극기 수치. DP의 상한값 */
+	/** MaxUP (Max Ultimate Points) : 최대 궁극기 수치. UP의 상한값 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Resource", ReplicatedUsing = OnRep_MaxUP)
 	FGameplayAttributeData MaxUP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, MaxUP)
@@ -135,7 +135,7 @@ protected:
 
 	UFUNCTION()
 	void OnRep_MaxHP(const FGameplayAttributeData& OldMaxHP);
-	
+
 	UFUNCTION()
 	void OnRep_DP(const FGameplayAttributeData& OldDP);
 
@@ -147,7 +147,7 @@ protected:
 
 	UFUNCTION()
 	void OnRep_MaxMP(const FGameplayAttributeData& OldMaxMP);
-	
+
 	UFUNCTION()
 	void OnRep_UP(const FGameplayAttributeData& OldUP);
 
@@ -165,7 +165,7 @@ protected:
 
 	UFUNCTION()
 	void OnRep_CritDMG(const FGameplayAttributeData& OldCritDMG);
-	
+
 	UFUNCTION()
 	void OnRep_SPD(const FGameplayAttributeData& OldSPD);
 };

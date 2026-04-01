@@ -38,7 +38,13 @@ void UWxAbility_Attack::WaitForComboInput()
 		return;
 	}
 
-	UAbilityTask_WaitInputPress* WaitInputTask = UAbilityTask_WaitInputPress::WaitInputPress(this);
+	if (WaitInputTask)
+	{
+		WaitInputTask->EndTask();
+		WaitInputTask = nullptr;
+	}
+
+	WaitInputTask = UAbilityTask_WaitInputPress::WaitInputPress(this);
 	WaitInputTask->OnPress.AddDynamic(this, &UWxAbility_Attack::HandleComboInputPressed);
 	WaitInputTask->ReadyForActivation();
 }
@@ -64,8 +70,14 @@ void UWxAbility_Attack::HandleComboInputPressed(float TimeWaited)
 
 void UWxAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	if (WaitInputTask)
+	{
+		WaitInputTask->EndTask();
+		WaitInputTask = nullptr;
+	}
+
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-	
+
 	CurrentComboIndex = 0;
 }
 

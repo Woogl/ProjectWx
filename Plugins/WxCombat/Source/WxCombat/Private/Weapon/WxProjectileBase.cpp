@@ -53,7 +53,10 @@ void AWxProjectileBase::BeginPlay()
 			const FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), LockOnTarget->GetActorLocation());
 			SetActorRotation(LookAtRotation);
 			ProjectileMovement->Velocity = LookAtRotation.Vector() * ProjectileMovement->InitialSpeed;
-			ProjectileMovement->HomingTargetComponent = LockOnTarget->GetRootComponent();
+			if (ProjectileMovement->bIsHomingProjectile)
+			{
+				ProjectileMovement->HomingTargetComponent = LockOnTarget->GetRootComponent();
+			}
 		}
 	}
 

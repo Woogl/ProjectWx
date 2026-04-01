@@ -55,6 +55,7 @@ void UWxAbility_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 void UWxAbility_Death::HandleMontageCompleted()
 {
 	EnableRagdoll();
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UWxAbility_Death::HandleMontageBlendOut()

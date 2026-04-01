@@ -63,5 +63,8 @@ private:
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
 
+	UPROPERTY()
+	TObjectPtr<UAbilityTask_WaitInputPress> WaitInputTask;
+
 	int32 CurrentComboIndex = 0;
 };
