@@ -75,7 +75,6 @@ void UWxAbility_Skill::ApplyCost(const FGameplayAbilitySpecHandle Handle, const 
 {
 	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
 
-	// TODO: 기존 코드는 MPCost <= 0이어도 GE를 적용했음 (magnitude 0). 동작 차이 없으나 의도 불명확 — 검토 후 확정 필요
 	if (MPCost > 0.f)
 	{
 		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_CostMP::StaticClass(), GetAbilityLevel());
