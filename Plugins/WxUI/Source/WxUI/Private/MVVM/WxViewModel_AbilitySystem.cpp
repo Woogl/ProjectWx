@@ -21,6 +21,7 @@ void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 	CachedASC->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectRemoved);
 
 	RebuildAbilityViewModels();
+	RebuildActiveEffectViewModels();
 }
 
 void UWxViewModel_AbilitySystem::RebuildAbilityViewModels()
