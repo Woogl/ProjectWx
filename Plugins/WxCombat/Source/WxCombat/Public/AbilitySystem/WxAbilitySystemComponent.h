@@ -30,7 +30,10 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastEnableRagdoll();
 
-	/** 클라이언트의 최근 입력 태그를 서버에 동기화 */
+private:
+	/** LastPressedInputTag를 설정하고, 클라이언트이면 서버에 동기화 */
+	void SetLastPressedInputTag(const FGameplayTag& InputTag);
+
 	UFUNCTION(Server, Reliable)
 	void ServerSetLastPressedInputTag(const FGameplayTag& InputTag);
 
