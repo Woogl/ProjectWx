@@ -5,31 +5,29 @@
 #include "AbilitySystemComponent.h"
 #include "WxGameplayTags.h"
 
-struct FWxBleedStatics
+struct FWxBurnStatics
 {
 	DECLARE_ATTRIBUTE_CAPTUREDEF(ATK);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(DEF);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(IncomingDamage);
-	DECLARE_ATTRIBUTE_CAPTUREDEF(DP);
 
-	FWxBleedStatics()
+	FWxBurnStatics()
 	{
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, ATK, Source, true);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, DEF, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, IncomingDamage, Target, false);
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, DP, Target, false);
 	}
 };
 
-static const FWxBleedStatics& GetBleedStatics()
+static const FWxBurnStatics& GetBurnStatics()
 {
-	static FWxBleedStatics BleedStatics;
-	return BleedStatics;
+	static FWxBurnStatics BurnStatics;
+	return BurnStatics;
 }
 
 UWxExecCalc_Burn::UWxExecCalc_Burn()
 {
-	const FWxBleedStatics& Statics = GetBleedStatics();
+	const FWxBurnStatics& Statics = GetBurnStatics();
 	RelevantAttributesToCapture.Add(Statics.ATKDef);
 	RelevantAttributesToCapture.Add(Statics.DEFDef);
 }
@@ -47,7 +45,7 @@ void UWxExecCalc_Burn::Execute_Implementation(const FGameplayEffectCustomExecuti
 		return;
 	}
 
-	const FWxBleedStatics& Statics = GetBleedStatics();
+	const FWxBurnStatics& Statics = GetBurnStatics();
 
 	FAggregatorEvaluateParameters EvalParams;
 	EvalParams.SourceTags = ExecutionParams.GetOwningSpec().CapturedSourceTags.GetAggregatedTags();
@@ -69,4 +67,11 @@ void UWxExecCalc_Burn::Execute_Implementation(const FGameplayEffectCustomExecuti
 	}
 
 	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, TickDamage));
+	
+	// 데미지 GameplayCue 실행
+	FGameplayCueParameters CueParams;
+	CueParams.RawMagnitude = TickDamage;
+	CueParams.Location = TargetASC->GetAvatarActor()->GetActorLocation();
+	CueParams.EffectContext = ExecutionParams.GetOwningSpec().GetEffectContext();
+	TargetASC->ExecuteGameplayCue(WxGameplayTags::GameplayCue_Damage, CueParams);
 }

@@ -8,13 +8,7 @@
 
 UWxAbility_Attack::UWxAbility_Attack()
 {
-	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(WxGameplayTags::Ability_Attack);
-	SetAssetTags(AssetTags);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
-
-	ActivationInputTag = WxGameplayTags::Input_Attack;
-	CooldownTag = WxGameplayTags::Cooldown_Attack;
 }
 
 void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

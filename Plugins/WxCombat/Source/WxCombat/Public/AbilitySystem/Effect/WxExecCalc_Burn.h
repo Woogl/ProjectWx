@@ -23,7 +23,7 @@ public:
 
 	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
 
-	static constexpr float BleedDuration = 5.f;
-	static constexpr float BleedPeriod = 0.5f;
-	static constexpr int32 NumTicks = static_cast<int32>(BleedDuration / BleedPeriod);
+	static constexpr float BurnDuration = 5.f;
+	static constexpr float BurnPeriod = 0.5f;
+	static constexpr int32 NumTicks = static_cast<int32>(BurnDuration / BurnPeriod);
 };

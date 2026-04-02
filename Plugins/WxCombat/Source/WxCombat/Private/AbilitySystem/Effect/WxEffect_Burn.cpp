@@ -7,9 +7,9 @@
 UWxEffect_Burn::UWxEffect_Burn()
 {
 	DurationPolicy = EGameplayEffectDurationType::HasDuration;
-	DurationMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(UWxExecCalc_Burn::BleedDuration));
+	DurationMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(UWxExecCalc_Burn::BurnDuration));
 
-	Period = FScalableFloat(UWxExecCalc_Burn::BleedPeriod);
+	Period = FScalableFloat(UWxExecCalc_Burn::BurnPeriod);
 	bExecutePeriodicEffectOnApplication = false;
 
 	FGameplayEffectExecutionDefinition ExecDef;
