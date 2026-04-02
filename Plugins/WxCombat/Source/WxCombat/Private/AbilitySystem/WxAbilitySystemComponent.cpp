@@ -4,6 +4,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "WxGameplayTags.h"
 
 UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 {
@@ -27,9 +28,32 @@ void UWxAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Input
 		return;
 	}
 
+	LastPressedInputTag = InputTag;
+
+	// 공격 콤보 중이면 입력을 게임플레이 이벤트로 전달
+	if (HasMatchingGameplayTag(WxGameplayTags::Ability_Attack))
+	{
+		FGameplayTag ComboEventTag;
+		if (InputTag == WxGameplayTags::Input_Attack_Light)
+		{
+			ComboEventTag = WxGameplayTags::Event_Combo_Light;
+		}
+		else if (InputTag == WxGameplayTags::Input_Attack_Heavy)
+		{
+			ComboEventTag = WxGameplayTags::Event_Combo_Heavy;
+		}
+
+		if (ComboEventTag.IsValid())
+		{
+			FGameplayEventData EventData;
+			HandleGameplayEvent(ComboEventTag, &EventData);
+			return;
+		}
+	}
+
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
-		if (Spec.Ability && Spec.GetDynamicSpecSourceTags().HasTagExact(InputTag))
+		if (Spec.Ability && InputTag.MatchesAny(Spec.GetDynamicSpecSourceTags()))
 		{
 			Spec.InputPressed = true;
 			if (Spec.IsActive())
@@ -75,13 +99,13 @@ void UWxAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& Inpu
 
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
-		if (Spec.Ability && Spec.GetDynamicSpecSourceTags().HasTagExact(InputTag))
+		if (Spec.Ability && InputTag.MatchesAny(Spec.GetDynamicSpecSourceTags()))
 		{
 			Spec.InputPressed = false;
 			if (Spec.IsActive())
 			{
 				AbilitySpecInputReleased(Spec);
-				
+
 				for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
 				{
 					InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
@@ -89,4 +113,9 @@ void UWxAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& Inpu
 			}
 		}
 	}
+}
+
+const FGameplayTag& UWxAbilitySystemComponent::GetLastPressedInputTag() const
+{
+	return LastPressedInputTag;
 }
