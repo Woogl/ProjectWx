@@ -30,25 +30,9 @@ void UWxAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Input
 
 	LastPressedInputTag = InputTag;
 
-	// 공격 콤보 중이면 입력을 게임플레이 이벤트로 전달
-	if (HasMatchingGameplayTag(WxGameplayTags::Ability_Attack))
+	if (!GetOwnerActor()->HasAuthority())
 	{
-		FGameplayTag ComboEventTag;
-		if (InputTag == WxGameplayTags::Input_Attack_Light)
-		{
-			ComboEventTag = WxGameplayTags::Event_Combo_Light;
-		}
-		else if (InputTag == WxGameplayTags::Input_Attack_Heavy)
-		{
-			ComboEventTag = WxGameplayTags::Event_Combo_Heavy;
-		}
-
-		if (ComboEventTag.IsValid())
-		{
-			FGameplayEventData EventData;
-			HandleGameplayEvent(ComboEventTag, &EventData);
-			return;
-		}
+		ServerSetLastPressedInputTag(InputTag);
 	}
 
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
@@ -118,4 +102,9 @@ void UWxAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& Inpu
 const FGameplayTag& UWxAbilitySystemComponent::GetLastPressedInputTag() const
 {
 	return LastPressedInputTag;
+}
+
+void UWxAbilitySystemComponent::ServerSetLastPressedInputTag_Implementation(const FGameplayTag& InputTag)
+{
+	LastPressedInputTag = InputTag;
 }

@@ -2,7 +2,7 @@
 
 #include "AbilitySystem/Ability/WxAbility_Attack.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "WxGameplayTags.h"
 
@@ -29,18 +29,6 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	// 런타임 룩업 맵 빌드
-	if (ComboMap.IsEmpty())
-	{
-		for (const FWxComboEntry& Entry : ComboEntries)
-		{
-			if (Entry.Montage)
-			{
-				ComboMap.Add(Entry.Path, Entry.Montage);
-			}
-		}
-	}
-
 	// 첫 입력 종류 판별
 	const UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
 	if (ASC && ASC->GetLastPressedInputTag() == WxGameplayTags::Input_Attack_Heavy)
@@ -52,7 +40,7 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		CurrentPath = TEXT("L");
 	}
 
-	if (!FindMontage(CurrentPath))
+	if (!ComboMap.Contains(FName(*CurrentPath)))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -63,7 +51,11 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UWxAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	CleanupComboInputTasks();
+	if (WaitInputTask)
+	{
+		WaitInputTask->EndTask();
+		WaitInputTask = nullptr;
+	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
@@ -81,7 +73,7 @@ void UWxAbility_Attack::PlayComboMontage()
 		MontageTask->EndTask();
 	}
 
-	UAnimMontage* Montage = FindMontage(CurrentPath);
+	UAnimMontage* Montage = ComboMap.FindRef(FName(*CurrentPath));
 	if (!Montage)
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
@@ -112,56 +104,41 @@ void UWxAbility_Attack::WaitForComboInput()
 		return;
 	}
 
-	CleanupComboInputTasks();
-
-	WaitLightInputTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-		this, WxGameplayTags::Event_Combo_Light);
-	WaitLightInputTask->EventReceived.AddDynamic(this, &UWxAbility_Attack::HandleComboLightInput);
-	WaitLightInputTask->ReadyForActivation();
-
-	WaitHeavyInputTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-		this, WxGameplayTags::Event_Combo_Heavy);
-	WaitHeavyInputTask->EventReceived.AddDynamic(this, &UWxAbility_Attack::HandleComboHeavyInput);
-	WaitHeavyInputTask->ReadyForActivation();
-}
-
-void UWxAbility_Attack::CleanupComboInputTasks()
-{
-	if (WaitLightInputTask)
+	if (WaitInputTask)
 	{
-		WaitLightInputTask->EndTask();
-		WaitLightInputTask = nullptr;
+		WaitInputTask->EndTask();
+		WaitInputTask = nullptr;
 	}
 
-	if (WaitHeavyInputTask)
-	{
-		WaitHeavyInputTask->EndTask();
-		WaitHeavyInputTask = nullptr;
-	}
+	WaitInputTask = UAbilityTask_WaitInputPress::WaitInputPress(this);
+	WaitInputTask->OnPress.AddDynamic(this, &UWxAbility_Attack::HandleComboInputPressed);
+	WaitInputTask->ReadyForActivation();
 }
 
 bool UWxAbility_Attack::HasNextCombo() const
 {
-	return FindMontage(CurrentPath + TEXT("L")) || FindMontage(CurrentPath + TEXT("H"));
+	return ComboMap.Contains(FName(*(CurrentPath + TEXT("L")))) || ComboMap.Contains(FName(*(CurrentPath + TEXT("H"))));
 }
 
-UAnimMontage* UWxAbility_Attack::FindMontage(const FString& InPath) const
+void UWxAbility_Attack::HandleComboInputPressed(float TimeWaited)
 {
-	const TObjectPtr<UAnimMontage>* Found = ComboMap.Find(InPath);
-	return Found ? Found->Get() : nullptr;
+	const UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
+	if (!ASC)
+	{
+		return;
+	}
+
+	const TCHAR* Suffix = (ASC->GetLastPressedInputTag() == WxGameplayTags::Input_Attack_Heavy)
+		? TEXT("H")
+		: TEXT("L");
+
+	if (!TryAdvanceCombo(Suffix))
+	{
+		WaitForComboInput();
+	}
 }
 
-void UWxAbility_Attack::HandleComboLightInput(FGameplayEventData Payload)
-{
-	TryAdvanceCombo(TEXT("L"));
-}
-
-void UWxAbility_Attack::HandleComboHeavyInput(FGameplayEventData Payload)
-{
-	TryAdvanceCombo(TEXT("H"));
-}
-
-bool UWxAbility_Attack::TryAdvanceCombo(const FString& Suffix)
+bool UWxAbility_Attack::TryAdvanceCombo(const TCHAR* Suffix)
 {
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	if (!ASC || !ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_ComboWindow))
@@ -170,7 +147,7 @@ bool UWxAbility_Attack::TryAdvanceCombo(const FString& Suffix)
 	}
 
 	const FString NextPath = CurrentPath + Suffix;
-	if (!FindMontage(NextPath))
+	if (!ComboMap.Contains(FName(*NextPath)))
 	{
 		return false;
 	}

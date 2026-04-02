@@ -30,6 +30,10 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastEnableRagdoll();
 
+	/** 클라이언트의 최근 입력 태그를 서버에 동기화 */
+	UFUNCTION(Server, Reliable)
+	void ServerSetLastPressedInputTag(const FGameplayTag& InputTag);
+
 protected:
 	/** Ability, Effect 초기 데이터 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|GAS")

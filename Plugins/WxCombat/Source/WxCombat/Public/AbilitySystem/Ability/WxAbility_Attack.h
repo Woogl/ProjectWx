@@ -7,28 +7,8 @@
 #include "WxAbility_Attack.generated.h"
 
 class UAbilityTask_PlayMontageAndWait;
-class UAbilityTask_WaitGameplayEvent;
+class UAbilityTask_WaitInputPress;
 class UAnimMontage;
-
-/**
- * 콤보 경로와 몽타주를 매핑하는 항목.
- */
-USTRUCT(BlueprintType)
-struct FWxComboEntry
-{
-	GENERATED_BODY()
-
-	/**
-	 * 콤보 경로 문자열. L = 약공격, H = 강공격.
-	 * 예: "L", "LL", "LH", "LLL", "LLH", "LHLH"
-	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	FString Path;
-
-	/** 이 콤보 경로에서 재생할 몽타주 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<UAnimMontage> Montage;
-};
 
 /**
  * 공격 어빌리티.
@@ -38,7 +18,7 @@ struct FWxComboEntry
  *  2. 콤보 윈도우 중 약/강공격 입력 → 경로에 L/H 추가 → 매칭되는 몽타주 재생
  *  3. 매칭되는 몽타주 없거나 콤보 미입력 → EndAbility
  *
- * ComboMap에 콤보 경로 문자열과 몽타주를 등록.
+ * ComboMap에 콤보 경로와 몽타주를 등록. (Key: L = 약공격, H = 강공격)
  * ANS_ComboWindow 구간에서 공격 입력 시 경로를 확장하여 다음 몽타주를 검색.
  * 타겟 방향 회전은 ANS_TurnAround이 담당.
  *
@@ -63,25 +43,23 @@ public:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 protected:
-	/** 콤보 경로-몽타주 매핑 목록 */
+	/**
+	 * 콤보 경로-몽타주 매핑.
+	 * Key: 콤보 경로 (L = 약공격, H = 강공격. 예: "L", "LL", "LH", "LHLH")
+	 * Value: 재생할 몽타주
+	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Combo")
-	TArray<FWxComboEntry> ComboEntries;
+	TMap<FName, TObjectPtr<UAnimMontage>> ComboMap;
 
 private:
 	/** 현재 경로의 몽타주를 재생한다 */
 	void PlayComboMontage();
 
-	/** 약공격/강공격 콤보 입력 대기 태스크를 시작한다 */
+	/** 콤보 입력 대기 태스크를 시작한다 */
 	void WaitForComboInput();
-
-	/** 콤보 입력 대기 태스크를 정리한다 */
-	void CleanupComboInputTasks();
 
 	/** 현재 경로에서 L 또는 H를 추가했을 때 유효한 분기가 있는지 반환 */
 	bool HasNextCombo() const;
-
-	/** 경로에 해당하는 몽타주를 찾는다. 없으면 nullptr */
-	UAnimMontage* FindMontage(const FString& InPath) const;
 
 	UFUNCTION()
 	void HandleMontageCompleted();
@@ -96,27 +74,17 @@ private:
 	void HandleMontageCancelled();
 
 	UFUNCTION()
-	void HandleComboLightInput(FGameplayEventData Payload);
-
-	UFUNCTION()
-	void HandleComboHeavyInput(FGameplayEventData Payload);
+	void HandleComboInputPressed(float TimeWaited);
 
 	/** 콤보 분기를 시도한다. 성공 시 true */
-	bool TryAdvanceCombo(const FString& Suffix);
+	bool TryAdvanceCombo(const TCHAR* Suffix);
 
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
 
 	UPROPERTY()
-	TObjectPtr<UAbilityTask_WaitGameplayEvent> WaitLightInputTask;
-
-	UPROPERTY()
-	TObjectPtr<UAbilityTask_WaitGameplayEvent> WaitHeavyInputTask;
+	TObjectPtr<UAbilityTask_WaitInputPress> WaitInputTask;
 
 	/** 현재 콤보 경로. 예: "L", "LL", "LLH" */
 	FString CurrentPath;
-
-	/** 런타임 룩업 맵. ComboEntries로부터 빌드 */
-	UPROPERTY()
-	TMap<FString, TObjectPtr<UAnimMontage>> ComboMap;
 };

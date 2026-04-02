@@ -32,11 +32,6 @@ namespace WxGameplayTags
 	/** 피격 시 발생하는 이벤트. HitReact 어빌리티의 트리거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact);
 
-	/** 콤보 중 약공격 입력 이벤트. ASC가 공격 활성 중 약공격 입력 시 발생 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Combo_Light);
-
-	/** 콤보 중 강공격 입력 이벤트. ASC가 공격 활성 중 강공격 입력 시 발생 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Combo_Heavy);
 
 	// ── ANS ───────────────────────────────────────────────────────────────
 
