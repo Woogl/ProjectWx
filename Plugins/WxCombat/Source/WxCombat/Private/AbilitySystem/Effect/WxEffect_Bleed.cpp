@@ -1,19 +1,19 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Effect/WxEffect_Bleed.h"
-#include "AbilitySystem/Effect/WxExecCalc_Bleed.h"
+#include "AbilitySystem/Effect/WxEffect_Burn.h"
+#include "AbilitySystem/Effect/WxExecCalc_Burn.h"
 #include "WxGameplayTags.h"
 
-UWxEffect_Bleed::UWxEffect_Bleed()
+UWxEffect_Burn::UWxEffect_Burn()
 {
 	DurationPolicy = EGameplayEffectDurationType::HasDuration;
-	DurationMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(UWxExecCalc_Bleed::BleedDuration));
+	DurationMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(UWxExecCalc_Burn::BleedDuration));
 
-	Period = FScalableFloat(UWxExecCalc_Bleed::BleedPeriod);
+	Period = FScalableFloat(UWxExecCalc_Burn::BleedPeriod);
 	bExecutePeriodicEffectOnApplication = false;
 
 	FGameplayEffectExecutionDefinition ExecDef;
-	ExecDef.CalculationClass = UWxExecCalc_Bleed::StaticClass();
+	ExecDef.CalculationClass = UWxExecCalc_Burn::StaticClass();
 	Executions.Add(ExecDef);
 
 	// TODO: StackingType 직접 대입은 UE 5.7에서 deprecated. SetStackingType()은 WITH_EDITOR 전용이라 런타임 빌드에서 링크 실패.
@@ -27,6 +27,6 @@ PRAGMA_ENABLE_DEPRECATION_WARNINGS
 	StackExpirationPolicy = EGameplayEffectStackingExpirationPolicy::RemoveSingleStackAndRefreshDuration;
 
 	FGameplayEffectCue Cue;
-	Cue.GameplayCueTags.AddTag(WxGameplayTags::GameplayCue_Bleed);
+	Cue.GameplayCueTags.AddTag(WxGameplayTags::GameplayCue_Burn);
 	GameplayCues.Add(Cue);
 }

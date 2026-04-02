@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Effect/WxExecCalc_Bleed.h"
+#include "AbilitySystem/Effect/WxExecCalc_Burn.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "WxGameplayTags.h"
@@ -27,14 +27,14 @@ static const FWxBleedStatics& GetBleedStatics()
 	return BleedStatics;
 }
 
-UWxExecCalc_Bleed::UWxExecCalc_Bleed()
+UWxExecCalc_Burn::UWxExecCalc_Burn()
 {
 	const FWxBleedStatics& Statics = GetBleedStatics();
 	RelevantAttributesToCapture.Add(Statics.ATKDef);
 	RelevantAttributesToCapture.Add(Statics.DEFDef);
 }
 
-void UWxExecCalc_Bleed::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
+void UWxExecCalc_Burn::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
 	UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent();
 	if (!TargetASC)
@@ -69,9 +69,4 @@ void UWxExecCalc_Bleed::Execute_Implementation(const FGameplayEffectCustomExecut
 	}
 
 	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, TickDamage));
-
-	if (!TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
-	{
-		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.DPProperty, EGameplayModOp::Additive, TickDamage));
-	}
 }
