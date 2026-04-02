@@ -111,6 +111,7 @@ void AWxPlayerController::OnRep_Pawn()
 	{
 		if (UAbilitySystemComponent* ASC = WxPlayerCharacter->GetAbilitySystemComponent())
 		{
+			InitializePlayerAbilitySystemViewModel(ASC);
 			InitializePlayerHPViewModel(ASC);
 			InitializePlayerMPViewModel(ASC);
 			InitializePlayerUPViewModel(ASC);

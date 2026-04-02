@@ -39,13 +39,13 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	TSoftObjectPtr<UTexture2D> AbilityIcon;
 
+	/** 쿨다운 중 ASC에 부여되는 태그. CheckCooldown에서 이 태그로 쿨다운 여부를 판단 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cooldown")
+	FGameplayTag CooldownTag;
+	
 	/** 쿨다운 지속 시간 (초). 0 이하이면 쿨다운 미적용 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cooldown")
 	float CooldownDuration = 0.f;
-
-	/** 쿨다운 중 ASC에 부여되는 태그. CheckCooldown에서 이 태그로 쿨다운 여부를 판단 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cooldown", meta = (EditCondition = "CooldownDuration > 0"))
-	FGameplayTag CooldownTag;
 
 protected:
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;

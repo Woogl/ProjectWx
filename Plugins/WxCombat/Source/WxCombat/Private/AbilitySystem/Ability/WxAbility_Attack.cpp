@@ -3,37 +3,103 @@
 #include "AbilitySystem/Ability/WxAbility_Attack.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
-#include "AbilitySystemComponent.h"
+#include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_Attack::UWxAbility_Attack()
 {
+	ActivationInputTag = WxGameplayTags::Input_Attack;
+
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Attack);
 	SetAssetTags(AssetTags);
-	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 
-	ActivationInputTag = WxGameplayTags::Input_Attack;
-	CooldownTag = WxGameplayTags::Cooldown_Attack;
+	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Attack);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Attack);
 }
 
 void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (ComboMontages.IsEmpty() || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
-	CurrentComboIndex = 0;
+	// 첫 입력 종류 판별
+	const UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
+	if (ASC && ASC->GetLastPressedInputTag() == WxGameplayTags::Input_Attack_Heavy)
+	{
+		CurrentPath = TEXT("H");
+	}
+	else
+	{
+		CurrentPath = TEXT("L");
+	}
+
+	if (!ComboMap.Contains(FName(*CurrentPath)))
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
 	PlayComboMontage();
+}
+
+void UWxAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	if (WaitInputTask)
+	{
+		WaitInputTask->EndTask();
+		WaitInputTask = nullptr;
+	}
+
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
+	CurrentPath.Empty();
+}
+
+void UWxAbility_Attack::PlayComboMontage()
+{
+	if (MontageTask)
+	{
+		MontageTask->OnCompleted.RemoveDynamic(this, &UWxAbility_Attack::HandleMontageCompleted);
+		MontageTask->OnBlendOut.RemoveDynamic(this, &UWxAbility_Attack::HandleMontageBlendOut);
+		MontageTask->OnInterrupted.RemoveDynamic(this, &UWxAbility_Attack::HandleMontageInterrupted);
+		MontageTask->OnCancelled.RemoveDynamic(this, &UWxAbility_Attack::HandleMontageCancelled);
+		MontageTask->EndTask();
+	}
+
+	UAnimMontage* Montage = ComboMap.FindRef(FName(*CurrentPath));
+	if (!Montage)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		return;
+	}
+
+	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		this, NAME_None, Montage, 1.f, NAME_None, true, 1.f, 0.f, true);
+	if (!MontageTask)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		return;
+	}
+
+	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Attack::HandleMontageCompleted);
+	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Attack::HandleMontageBlendOut);
+	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Attack::HandleMontageInterrupted);
+	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Attack::HandleMontageCancelled);
+	MontageTask->ReadyForActivation();
+
+	WaitForComboInput();
 }
 
 void UWxAbility_Attack::WaitForComboInput()
 {
-	if (CurrentComboIndex + 1 >= ComboMontages.Num())
+	if (!HasNextCombo())
 	{
 		return;
 	}
@@ -49,70 +115,46 @@ void UWxAbility_Attack::WaitForComboInput()
 	WaitInputTask->ReadyForActivation();
 }
 
+bool UWxAbility_Attack::HasNextCombo() const
+{
+	return ComboMap.Contains(FName(*(CurrentPath + TEXT("L")))) || ComboMap.Contains(FName(*(CurrentPath + TEXT("H"))));
+}
+
 void UWxAbility_Attack::HandleComboInputPressed(float TimeWaited)
+{
+	const UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
+	if (!ASC)
+	{
+		return;
+	}
+
+	const TCHAR* Suffix = (ASC->GetLastPressedInputTag() == WxGameplayTags::Input_Attack_Heavy)
+		? TEXT("H")
+		: TEXT("L");
+
+	if (!TryAdvanceCombo(Suffix))
+	{
+		WaitForComboInput();
+	}
+}
+
+bool UWxAbility_Attack::TryAdvanceCombo(const TCHAR* Suffix)
 {
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	if (!ASC || !ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_ComboWindow))
 	{
-		WaitForComboInput();
-		return;
+		return false;
 	}
 
-	int32 NextIndex = CurrentComboIndex + 1;
-	if (NextIndex >= ComboMontages.Num())
+	const FString NextPath = CurrentPath + Suffix;
+	if (!ComboMap.Contains(FName(*NextPath)))
 	{
-		return;
+		return false;
 	}
 
-	CurrentComboIndex = NextIndex;
+	CurrentPath = NextPath;
 	PlayComboMontage();
-}
-
-void UWxAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
-{
-	if (WaitInputTask)
-	{
-		WaitInputTask->EndTask();
-		WaitInputTask = nullptr;
-	}
-
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-
-	CurrentComboIndex = 0;
-}
-
-void UWxAbility_Attack::PlayComboMontage()
-{
-	if (MontageTask)
-	{
-		MontageTask->OnCompleted.RemoveDynamic(this, &UWxAbility_Attack::HandleMontageCompleted);
-		MontageTask->OnBlendOut.RemoveDynamic(this, &UWxAbility_Attack::HandleMontageBlendOut);
-		MontageTask->OnInterrupted.RemoveDynamic(this, &UWxAbility_Attack::HandleMontageInterrupted);
-		MontageTask->OnCancelled.RemoveDynamic(this, &UWxAbility_Attack::HandleMontageCancelled);
-		MontageTask->EndTask();
-	}
-
-	if (!ComboMontages.IsValidIndex(CurrentComboIndex) || !ComboMontages[CurrentComboIndex])
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-		return;
-	}
-
-	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, ComboMontages[CurrentComboIndex], 1.f, NAME_None, true, 1.f, 0.f, true);
-	if (!MontageTask)
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-		return;
-	}
-
-	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Attack::HandleMontageCompleted);
-	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Attack::HandleMontageBlendOut);
-	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Attack::HandleMontageInterrupted);
-	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Attack::HandleMontageCancelled);
-	MontageTask->ReadyForActivation();
-
-	WaitForComboInput();
+	return true;
 }
 
 void UWxAbility_Attack::HandleMontageCompleted()

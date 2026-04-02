@@ -8,6 +8,9 @@
 UWxAbility_HitReact::UWxAbility_HitReact()
 {
 	// AssetTag 의도적 미설정: 이벤트 트리거 전용 어빌리티이므로 입력/BT에서 태그 검색 대상이 아님
+	// HitReact는 항상 서버의 ExecCalc에서 GameplayEvent로 트리거되므로 ServerInitiated를 사용한다.
+	// LocalPredicted를 사용하면 클라이언트가 이벤트를 직접 수신하지 못해 활성화되지 않는다.
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);

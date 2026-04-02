@@ -23,9 +23,19 @@ public:
 	/** 입력 태그에 매칭되는 어빌리티에 입력 해제 전달 */
 	void AbilityInputTagReleased(const FGameplayTag& InputTag);
 
+	/** 가장 최근에 눌린 입력 태그 반환 */
+	const FGameplayTag& GetLastPressedInputTag() const;
+
 	/** 래그돌 활성화. 모든 클라이언트에서 실행 */
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastEnableRagdoll();
+
+private:
+	/** LastPressedInputTag를 설정하고, 클라이언트이면 서버에 동기화 */
+	void SetLastPressedInputTag(const FGameplayTag& InputTag);
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetLastPressedInputTag(const FGameplayTag& InputTag);
 
 protected:
 	/** Ability, Effect 초기 데이터 */
@@ -33,4 +43,6 @@ protected:
 	TObjectPtr<UWxAbilitySet> AbilitySet;
 
 	FWxAbilitySetGrantedHandles AbilitySetGrantedHandles;
+
+	FGameplayTag LastPressedInputTag;
 };

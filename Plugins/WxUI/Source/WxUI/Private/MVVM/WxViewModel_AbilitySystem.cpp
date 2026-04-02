@@ -4,7 +4,7 @@
 #include "MVVM/WxViewModel_Ability.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
-#include "AbilitySystem/WxEffectComponent_UIData.h"
+#include "Component/WxEffectComponent_UIData.h"
 #include "MVVM/WxViewModel_Effect.h"
 
 void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
@@ -21,6 +21,7 @@ void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 	CachedASC->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectRemoved);
 
 	RebuildAbilityViewModels();
+	RebuildActiveEffectViewModels();
 }
 
 void UWxViewModel_AbilitySystem::RebuildAbilityViewModels()
@@ -77,10 +78,8 @@ void UWxViewModel_AbilitySystem::RebuildActiveEffectViewModels()
 		const UGameplayEffect* GE = Effect->Spec.Def;
 		if (const UWxEffectComponent_UIData* UIData = GE->FindComponent<UWxEffectComponent_UIData>())
 		{
-			UTexture2D* EffectIcon = UIData->Icon.LoadSynchronous();
-			FText EffectName = UIData->DisplayName;
 			UWxViewModel_Effect* EffectVM = NewObject<UWxViewModel_Effect>(ASC);
-			EffectVM->Initialize(ASC, Handle, EffectName, EffectIcon);
+			EffectVM->Initialize(ASC, Handle, UIData);
 			ActiveEffectViewModels.Add(EffectVM);
 		}
 	}
