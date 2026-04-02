@@ -4,7 +4,7 @@
 #include "MVVM/WxViewModel_Ability.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
-#include "AbilitySystem/WxEffectComponent_UIData.h"
+#include "Component/WxEffectComponent_UIData.h"
 #include "MVVM/WxViewModel_Effect.h"
 
 void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)

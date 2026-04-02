@@ -3,7 +3,7 @@
 #include "MVVM/WxViewModel_Effect.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
-#include "AbilitySystem/WxEffectComponent_UIData.h"
+#include "Component/WxEffectComponent_UIData.h"
 
 void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const UWxEffectComponent_UIData* InUIData)
 {
