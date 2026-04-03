@@ -32,6 +32,7 @@ namespace WxGameplayTags
 	/** 피격 시 발생하는 이벤트. HitReact 어빌리티의 트리거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact);
 
+
 	// ── ANS ───────────────────────────────────────────────────────────────
 
 	/** 무기 콜리전 활성 구간. ANS_WeaponCollision이 부여/제거 */
@@ -57,8 +58,8 @@ namespace WxGameplayTags
 	/** ATK 버프 지속 Cue */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_BuffATK);
 
-	/** 출혈 지속 Cue */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Bleed);
+	/** 화상 지속 Cue */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Burn);
 
 	/** 역경직(히트 스톱) Cue. WxWeaponBase로 공격 적중 시 공격자·피격자의 애니메이션 일시 정지 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_HitStop);
@@ -85,7 +86,6 @@ namespace WxGameplayTags
 	// ── Cooldown ──────────────────────────────────────────────────────────
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Jump);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Attack);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Dodge);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Guard);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Skill);
@@ -106,6 +106,8 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Jump);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Attack);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Attack_Light);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Attack_Heavy);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Dodge);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Sprint);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Guard);

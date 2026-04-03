@@ -9,6 +9,7 @@
 #include "MVVM/WxViewModel.h"
 #include "WxViewModel_Effect.generated.h"
 
+class UWxEffectComponent_UIData;
 class UAbilitySystemComponent;
 
 /**
@@ -16,7 +17,7 @@ class UAbilitySystemComponent;
  * 활성 GameplayEffect의 남은 시간, 스택 수, 아이콘을 UI에 제공한다.
  *
  * 사용 흐름:
- *  1. Initialize(ASC, Handle, EffectName, Icon)로 초기화
+ *  1. Initialize(ASC, Handle, UIData)로 초기화
  *  2. 매 프레임 남은 시간, 스택 수를 갱신
  *  3. 이펙트 제거 시 타이머 중단, 프로퍼티 초기화
  */
@@ -26,7 +27,7 @@ class WXUI_API UWxViewModel_Effect : public UWxViewModel
 	GENERATED_BODY()
 
 public:
-	void Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const FText& InEffectName, UTexture2D* InIcon);
+	void Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const UWxEffectComponent_UIData* InUIData);
 
 	FActiveGameplayEffectHandle GetBoundHandle() const;
 
@@ -44,6 +45,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Effect")
 	int32 StackCount = 0;
+	
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Effect")
+	bool IsStackCountAboveOne = false;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Effect")
 	TObjectPtr<UTexture2D> Icon = nullptr;
@@ -65,6 +69,9 @@ public:
 
 	int32 GetStackCount() const;
 	void SetStackCount(int32 NewValue);
+	
+	bool GetIsStackCountAboveOne() const;
+	void SetIsStackCountAboveOne(bool bNewValue);
 
 	UTexture2D* GetIcon() const;
 	void SetIcon(UTexture2D* NewValue);

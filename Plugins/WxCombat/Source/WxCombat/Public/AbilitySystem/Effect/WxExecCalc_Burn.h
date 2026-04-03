@@ -4,26 +4,26 @@
 
 #include "CoreMinimal.h"
 #include "GameplayEffectExecutionCalculation.h"
-#include "WxExecCalc_Bleed.generated.h"
+#include "WxExecCalc_Burn.generated.h"
 
 /**
- * 출혈 데미지 ExecutionCalculation.
+ * 화상 데미지 ExecutionCalculation.
  *
  * 공식: TickDamage = (SourceATK × (100 / (100 + TargetDEF))) / NumTicks
  * 가드, 퍼펙트 가드, 치명타 판정 없이 순수 공식 대미지를 균등 분할하여 적용한다.
- * 결과를 대상의 IncomingDamage와 DP에 전달한다.
+ * 결과를 대상의 IncomingDamage에 전달한다.
  */
 UCLASS()
-class WXCOMBAT_API UWxExecCalc_Bleed : public UGameplayEffectExecutionCalculation
+class WXCOMBAT_API UWxExecCalc_Burn : public UGameplayEffectExecutionCalculation
 {
 	GENERATED_BODY()
 
 public:
-	UWxExecCalc_Bleed();
+	UWxExecCalc_Burn();
 
 	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
 
-	static constexpr float BleedDuration = 5.f;
-	static constexpr float BleedPeriod = 0.5f;
-	static constexpr int32 NumTicks = static_cast<int32>(BleedDuration / BleedPeriod);
+	static constexpr float BurnDuration = 5.f;
+	static constexpr float BurnPeriod = 0.5f;
+	static constexpr int32 NumTicks = static_cast<int32>(BurnDuration / BurnPeriod);
 };

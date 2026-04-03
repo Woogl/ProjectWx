@@ -1,21 +1,21 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Cue/WxCueNotify_Bleed.h"
+#include "AbilitySystem/Cue/WxCueNotify_Burn.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "WxGameplayTags.h"
 
-AWxCueNotify_Bleed::AWxCueNotify_Bleed()
+AWxCueNotify_Burn::AWxCueNotify_Burn()
 {
-	GameplayCueTag = WxGameplayTags::GameplayCue_Bleed;
+	GameplayCueTag = WxGameplayTags::GameplayCue_Burn;
 	bAutoDestroyOnRemove = true;
 }
 
-bool AWxCueNotify_Bleed::OnActive_Implementation(AActor* MyTarget, const FGameplayCueParameters& Parameters)
+bool AWxCueNotify_Burn::OnActive_Implementation(AActor* MyTarget, const FGameplayCueParameters& Parameters)
 {
 	Super::OnActive_Implementation(MyTarget, Parameters);
 
-	if (!MyTarget || !BleedNiagaraSystem)
+	if (!MyTarget || !NiagaraSystem)
 	{
 		return false;
 	}
@@ -32,7 +32,7 @@ bool AWxCueNotify_Bleed::OnActive_Implementation(AActor* MyTarget, const FGamepl
 	}
 
 	SpawnedNiagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
-		BleedNiagaraSystem,
+		NiagaraSystem,
 		AttachTarget,
 		AttachSocketName,
 		FVector::ZeroVector,
@@ -43,7 +43,7 @@ bool AWxCueNotify_Bleed::OnActive_Implementation(AActor* MyTarget, const FGamepl
 	return true;
 }
 
-bool AWxCueNotify_Bleed::OnRemove_Implementation(AActor* MyTarget, const FGameplayCueParameters& Parameters)
+bool AWxCueNotify_Burn::OnRemove_Implementation(AActor* MyTarget, const FGameplayCueParameters& Parameters)
 {
 	Super::OnRemove_Implementation(MyTarget, Parameters);
 

@@ -4,6 +4,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "WxGameplayTags.h"
 
 UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 {
@@ -27,9 +28,11 @@ void UWxAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Input
 		return;
 	}
 
+	SetLastPressedInputTag(InputTag);
+
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
-		if (Spec.Ability && Spec.GetDynamicSpecSourceTags().HasTagExact(InputTag))
+		if (Spec.Ability && InputTag.MatchesAny(Spec.GetDynamicSpecSourceTags()))
 		{
 			Spec.InputPressed = true;
 			if (Spec.IsActive())
@@ -75,13 +78,13 @@ void UWxAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& Inpu
 
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
-		if (Spec.Ability && Spec.GetDynamicSpecSourceTags().HasTagExact(InputTag))
+		if (Spec.Ability && InputTag.MatchesAny(Spec.GetDynamicSpecSourceTags()))
 		{
 			Spec.InputPressed = false;
 			if (Spec.IsActive())
 			{
 				AbilitySpecInputReleased(Spec);
-				
+
 				for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
 				{
 					InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
@@ -89,4 +92,24 @@ void UWxAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& Inpu
 			}
 		}
 	}
+}
+
+const FGameplayTag& UWxAbilitySystemComponent::GetLastPressedInputTag() const
+{
+	return LastPressedInputTag;
+}
+
+void UWxAbilitySystemComponent::SetLastPressedInputTag(const FGameplayTag& InputTag)
+{
+	LastPressedInputTag = InputTag;
+
+	if (!GetOwnerActor()->HasAuthority())
+	{
+		ServerSetLastPressedInputTag(InputTag);
+	}
+}
+
+void UWxAbilitySystemComponent::ServerSetLastPressedInputTag_Implementation(const FGameplayTag& InputTag)
+{
+	LastPressedInputTag = InputTag;
 }

@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/WxEffectComponent_UIData.h"
+#include "Component/WxEffectComponent_UIData.h"
 
 UWxEffectComponent_UIData::UWxEffectComponent_UIData()
 {
