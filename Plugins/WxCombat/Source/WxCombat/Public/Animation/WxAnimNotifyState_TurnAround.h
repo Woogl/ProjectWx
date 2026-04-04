@@ -14,9 +14,6 @@ class UTargetingPreset;
  * UAnimNotifyState_MotionWarping을 상속하여,
  * NotifyBegin에서 타겟을 탐색해 MotionWarpingComponent에 WarpTarget을 등록하고,
  * 엔진의 모션 워핑 시스템이 루트 모션을 보정하여 타겟 방향으로 회전한다.
- *
- * RootMotionModifier(SkewWarp 등)는 몽타주 에디터에서 설정하며,
- * WarpTargetName을 Modifier에 설정된 값과 일치시켜야 한다.
  */
 UCLASS(DisplayName = "Wx Turn Around")
 class WXCOMBAT_API UWxAnimNotifyState_TurnAround : public UAnimNotifyState_MotionWarping
