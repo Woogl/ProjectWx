@@ -17,6 +17,8 @@ void UWxCombatAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, HP,    COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, MaxHP, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, PP,     COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, MaxPP,  COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, DP,     COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, MaxDP,  COND_None, REPNOTIFY_Always);
 	
@@ -60,6 +62,18 @@ void UWxCombatAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribu
 			NewValue = FMath::Clamp(NewValue, 0.f, CurrentMaxMP);
 		}
 	}
+	else if (Attribute == GetMaxPPAttribute())
+	{
+		NewValue = FMath::Max(NewValue, 0.f);
+	}
+	else if (Attribute == GetPPAttribute())
+	{
+		const float CurrentMaxPP = GetMaxPP();
+		if (CurrentMaxPP > 0.f)
+		{
+			NewValue = FMath::Clamp(NewValue, 0.f, CurrentMaxPP);
+		}
+	}
 	else if (Attribute == GetMaxDPAttribute())
 	{
 		NewValue = FMath::Max(NewValue, 1.f);
@@ -82,6 +96,16 @@ void UWxCombatAttributeSet::PostAttributeChange(const FGameplayAttribute& Attrib
 	{
 		const float Ratio = GetHP() / OldValue;
 		SetHP(NewValue * Ratio);
+	}
+	else if (Attribute == GetMaxPPAttribute() && OldValue > 0.f && NewValue > 0.f)
+	{
+		const float Ratio = GetPP() / OldValue;
+		SetPP(NewValue * Ratio);
+	}
+	else if (Attribute == GetMaxMPAttribute() && OldValue > 0.f && NewValue > 0.f)
+	{
+		const float Ratio = GetMP() / OldValue;
+		SetMP(NewValue * Ratio);
 	}
 }
 
@@ -116,6 +140,10 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 	{
 		SetMP(FMath::Clamp(GetMP(), 0.f, GetMaxMP()));
 	}
+	else if (Data.EvaluatedData.Attribute == GetPPAttribute())
+	{
+		SetPP(FMath::Clamp(GetPP(), 0.f, GetMaxPP()));
+	}
 	else if (Data.EvaluatedData.Attribute == GetDPAttribute())
 	{
 		SetDP(FMath::Clamp(GetDP(), 0.f, GetMaxDP()));
@@ -143,6 +171,16 @@ void UWxCombatAttributeSet::OnRep_HP(const FGameplayAttributeData& OldHP)
 void UWxCombatAttributeSet::OnRep_MaxHP(const FGameplayAttributeData& OldMaxHP)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, MaxHP, OldMaxHP);
+}
+
+void UWxCombatAttributeSet::OnRep_PP(const FGameplayAttributeData& OldPP)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, PP, OldPP);
+}
+
+void UWxCombatAttributeSet::OnRep_MaxPP(const FGameplayAttributeData& OldMaxPP)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, MaxPP, OldMaxPP);
 }
 
 void UWxCombatAttributeSet::OnRep_DP(const FGameplayAttributeData& OldDP)

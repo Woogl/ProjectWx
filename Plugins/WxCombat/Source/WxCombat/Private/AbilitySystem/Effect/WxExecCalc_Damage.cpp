@@ -18,6 +18,7 @@ struct FWxDamageStatics
 	DECLARE_ATTRIBUTE_CAPTUREDEF(CritRate);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(CritDMG);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(IncomingDamage);
+	DECLARE_ATTRIBUTE_CAPTUREDEF(PP);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(DP);
 
 	FWxDamageStatics()
@@ -27,6 +28,7 @@ struct FWxDamageStatics
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, CritRate, Source, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, CritDMG, Source, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, IncomingDamage, Target, false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, PP, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, DP, Target, false);
 	}
 };
@@ -44,6 +46,7 @@ UWxExecCalc_Damage::UWxExecCalc_Damage()
 	RelevantAttributesToCapture.Add(Statics.DEFDef);
 	RelevantAttributesToCapture.Add(Statics.CritRateDef);
 	RelevantAttributesToCapture.Add(Statics.CritDMGDef);
+	RelevantAttributesToCapture.Add(Statics.PPDef);
 }
 
 void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
@@ -146,15 +149,29 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		}
 	}
 
-	// --- 5. 피격 통지 (HitReact + AI 감지) ---
+	// --- 5. PP 차감 및 피격 통지 (HitReact + AI 감지) ---
 	{
 		AActor* SourceActor = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
 		AActor* TargetActor = TargetASC->GetOwnerActor();
 
-		FGameplayEventData EventData;
-		EventData.Instigator = SourceActor;
-		EventData.Target = TargetActor;
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_HitReact, EventData);
+		// PP 차감: 퍼펙트 가드가 아닌 경우 데미지만큼 PP 감소
+		if (!bHasPerfectGuard && DamageResult.FinalDamage > 0.f)
+		{
+			OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.PPProperty, EGameplayModOp::Additive, -DamageResult.FinalDamage));
+		}
+
+		// HitReact 조건: PP가 0 이하일 때만 발동
+		float TargetPP = 0.f;
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.PPDef, EvalParams, TargetPP);
+		const float PPAfterDamage = bHasPerfectGuard ? TargetPP : TargetPP - DamageResult.FinalDamage;
+
+		if (PPAfterDamage <= 0.f)
+		{
+			FGameplayEventData EventData;
+			EventData.Instigator = SourceActor;
+			EventData.Target = TargetActor;
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_HitReact, EventData);
+		}
 
 		if (SourceActor)
 		{

@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_HitReact.h"
+#include "AbilitySystem/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "WxGameplayTags.h"
@@ -28,8 +29,19 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	bWasGuardHitReact = ActorInfo->AbilitySystemComponent.IsValid()
-		&& ActorInfo->AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::ANS_Guard);
+	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+
+	// 그로기 상태가 아니면 PP를 MaxPP만큼 회복
+	if (ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
+	{
+		if (const UWxCombatAttributeSet* AttributeSet = ASC->GetSet<UWxCombatAttributeSet>())
+		{
+			ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetPPAttribute(), AttributeSet->GetMaxPP());
+		}
+	}
+
+	bWasGuardHitReact = ASC
+		&& ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_Guard);
 	UAnimMontage* MontageToPlay = bWasGuardHitReact ? GuardHitReactMontage : HitReactMontage;
 
 	if (!MontageToPlay || !CommitAbility(Handle, ActorInfo, ActivationInfo))
