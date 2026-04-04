@@ -5,6 +5,9 @@
 > 연관 문서: Dungeon01_Concept.md
 
 ---
+##맵 그림
+
+<img width="2200" height="3000" alt="dungeon1_concept_map" src="https://github.com/user-attachments/assets/1659409f-8878-4e38-ad82-9289ff28578c" />
 
 ## 개요
 
