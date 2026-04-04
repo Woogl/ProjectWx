@@ -41,6 +41,12 @@ public:
 	bool IsOnCooldown = false;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	int32 CurrentCharges = 0;
+
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	int32 MaxCharges = 0;
+
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	TObjectPtr<UTexture2D> Icon = nullptr;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Ability")
@@ -58,6 +64,12 @@ public:
 	bool GetIsOnCooldown() const;
 	void SetIsOnCooldown(bool NewValue);
 
+	int32 GetCurrentCharges() const;
+	void SetCurrentCharges(int32 NewValue);
+
+	int32 GetMaxCharges() const;
+	void SetMaxCharges(int32 NewValue);
+
 	UTexture2D* GetIcon() const;
 	void SetIcon(UTexture2D* NewValue);
 
@@ -67,12 +79,13 @@ protected:
 	virtual void Deinitialize() override;
 
 private:
+	void BindChargeTag(UAbilitySystemComponent* InASC);
 	void HandleCooldownTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+	void HandleChargeTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 	bool UpdateCooldownState(float DeltaTime);
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	FGameplayTag BoundCooldownTag;
-	float CooldownEndTime = 0.f;
-	float CachedCooldownDuration = 0.f;
+	FGameplayTag BoundChargeTag;
 	FTSTicker::FDelegateHandle TickerHandle;
 };

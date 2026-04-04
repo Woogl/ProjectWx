@@ -27,6 +27,39 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 		InASC->RegisterGameplayTagEvent(BoundCooldownTag, EGameplayTagEventType::NewOrRemoved)
 			.AddUObject(this, &UWxViewModel_Ability::HandleCooldownTagChanged);
 	}
+
+	BindChargeTag(InASC);
+}
+
+void UWxViewModel_Ability::BindChargeTag(UAbilitySystemComponent* InASC)
+{
+	if (!BoundCooldownTag.IsValid())
+	{
+		return;
+	}
+
+	// 쿨다운 태그 이름 규칙으로 충전 태그를 유도한다 (Cooldown.X → Charge.X)
+	// 해당 태그가 네이티브 태그로 등록되어 있을 때만 충전 시스템이 활성화된다.
+	static const FString CooldownPrefix = TEXT("Cooldown.");
+	const FString CooldownName = BoundCooldownTag.GetTagName().ToString();
+	if (!CooldownName.StartsWith(CooldownPrefix))
+	{
+		return;
+	}
+
+	const FString Suffix = CooldownName.Mid(CooldownPrefix.Len());
+	BoundChargeTag = FGameplayTag::RequestGameplayTag(FName(*(TEXT("Charge.") + Suffix)), false);
+	if (!BoundChargeTag.IsValid())
+	{
+		return;
+	}
+
+	InASC->RegisterGameplayTagEvent(BoundChargeTag, EGameplayTagEventType::AnyCountChange)
+		.AddUObject(this, &UWxViewModel_Ability::HandleChargeTagChanged);
+
+	const int32 InitialCount = InASC->GetTagCount(BoundChargeTag);
+	SetCurrentCharges(InitialCount);
+	SetMaxCharges(InitialCount);
 }
 
 void UWxViewModel_Ability::Deinitialize()
@@ -36,6 +69,12 @@ void UWxViewModel_Ability::Deinitialize()
 		if (BoundCooldownTag.IsValid())
 		{
 			ASC->RegisterGameplayTagEvent(BoundCooldownTag, EGameplayTagEventType::NewOrRemoved)
+				.RemoveAll(this);
+		}
+
+		if (BoundChargeTag.IsValid())
+		{
+			ASC->RegisterGameplayTagEvent(BoundChargeTag, EGameplayTagEventType::AnyCountChange)
 				.RemoveAll(this);
 		}
 	}
@@ -48,6 +87,7 @@ void UWxViewModel_Ability::Deinitialize()
 
 	CachedASC.Reset();
 	BoundCooldownTag = FGameplayTag();
+	BoundChargeTag = FGameplayTag();
 
 	Super::Deinitialize();
 }
@@ -62,35 +102,13 @@ void UWxViewModel_Ability::HandleCooldownTagChanged(const FGameplayTag CallbackT
 
 	if (NewCount > 0)
 	{
-		// 쿨다운 시작: ASC의 Active Effect에서 남은 시간과 전체 시간 추출
-		FGameplayEffectQuery Query;
-		Query.OwningTagQuery = FGameplayTagQuery::MakeQuery_MatchAnyTags(FGameplayTagContainer(BoundCooldownTag));
+		SetIsOnCooldown(true);
 
-		TArray<float> RemainingTimes = ASC->GetActiveEffectsTimeRemaining(Query);
-		TArray<float> Durations = ASC->GetActiveEffectsDuration(Query);
-
-		if (RemainingTimes.Num() > 0)
+		if (!TickerHandle.IsValid())
 		{
-			const UWorld* World = ASC->GetWorld();
-			if (!World)
-			{
-				return;
-			}
-
-			CachedCooldownDuration = Durations[0];
-			CooldownEndTime = World->GetTimeSeconds() + RemainingTimes[0];
-
-			SetCooldownDuration(CachedCooldownDuration);
-			SetCooldownRemaining(RemainingTimes[0]);
-			SetCooldownPercent(CachedCooldownDuration > 0.f ? RemainingTimes[0] / CachedCooldownDuration : 0.f);
-			SetIsOnCooldown(true);
-
-			if (!TickerHandle.IsValid())
-			{
-				TickerHandle = FTSTicker::GetCoreTicker().AddTicker(
-					FTickerDelegate::CreateUObject(this, &UWxViewModel_Ability::UpdateCooldownState)
-				);
-			}
+			TickerHandle = FTSTicker::GetCoreTicker().AddTicker(
+				FTickerDelegate::CreateUObject(this, &UWxViewModel_Ability::UpdateCooldownState)
+			);
 		}
 	}
 	else
@@ -102,9 +120,26 @@ void UWxViewModel_Ability::HandleCooldownTagChanged(const FGameplayTag CallbackT
 			TickerHandle.Reset();
 		}
 
+		SetCooldownDuration(0.f);
 		SetCooldownRemaining(0.f);
 		SetCooldownPercent(0.f);
 		SetIsOnCooldown(false);
+	}
+
+	// 쿨다운 태그 변경 시점에 충전 카운트도 동기화 (쿨다운 시작 = 충전 소모, 쿨다운 종료 = 재충전)
+	if (BoundChargeTag.IsValid())
+	{
+		SetCurrentCharges(ASC->GetTagCount(BoundChargeTag));
+	}
+}
+
+void UWxViewModel_Ability::HandleChargeTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	SetCurrentCharges(NewCount);
+
+	if (NewCount > MaxCharges)
+	{
+		SetMaxCharges(NewCount);
 	}
 }
 
@@ -116,15 +151,34 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 		return false;
 	}
 
-	const UWorld* World = ASC->GetWorld();
-	if (!World)
+	// 매 프레임 ASC의 Active Effect에서 직접 남은 시간을 조회한다.
+	// CooldownEndTime 역산 방식은 Prediction Reconciliation으로 GE가 교체될 때 무효화될 수 있다.
+	FGameplayEffectQuery Query;
+	Query.OwningTagQuery = FGameplayTagQuery::MakeQuery_MatchAnyTags(FGameplayTagContainer(BoundCooldownTag));
+
+	TArray<float> RemainingTimes = ASC->GetActiveEffectsTimeRemaining(Query);
+	TArray<float> Durations = ASC->GetActiveEffectsDuration(Query);
+
+	if (RemainingTimes.Num() > 0)
 	{
-		return false;
+		int32 BestIdx = 0;
+		for (int32 Idx = 1; Idx < RemainingTimes.Num(); ++Idx)
+		{
+			if (RemainingTimes[Idx] > RemainingTimes[BestIdx])
+			{
+				BestIdx = Idx;
+			}
+		}
+
+		SetCooldownDuration(Durations[BestIdx]);
+		SetCooldownRemaining(RemainingTimes[BestIdx]);
+		SetCooldownPercent(Durations[BestIdx] > 0.f ? RemainingTimes[BestIdx] / Durations[BestIdx] : 0.f);
 	}
 
-	const float Remaining = FMath::Max(CooldownEndTime - World->GetTimeSeconds(), 0.f);
-	SetCooldownRemaining(Remaining);
-	SetCooldownPercent(CachedCooldownDuration > 0.f ? Remaining / CachedCooldownDuration : 0.f);
+	if (BoundChargeTag.IsValid())
+	{
+		SetCurrentCharges(ASC->GetTagCount(BoundChargeTag));
+	}
 
 	return true;
 }
@@ -167,6 +221,26 @@ bool UWxViewModel_Ability::GetIsOnCooldown() const
 void UWxViewModel_Ability::SetIsOnCooldown(bool NewValue)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(IsOnCooldown, NewValue);
+}
+
+int32 UWxViewModel_Ability::GetCurrentCharges() const
+{
+	return CurrentCharges;
+}
+
+void UWxViewModel_Ability::SetCurrentCharges(int32 NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(CurrentCharges, NewValue);
+}
+
+int32 UWxViewModel_Ability::GetMaxCharges() const
+{
+	return MaxCharges;
+}
+
+void UWxViewModel_Ability::SetMaxCharges(int32 NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(MaxCharges, NewValue);
 }
 
 UTexture2D* UWxViewModel_Ability::GetIcon() const

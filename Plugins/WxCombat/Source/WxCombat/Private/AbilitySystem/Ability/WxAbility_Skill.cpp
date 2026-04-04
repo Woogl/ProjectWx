@@ -15,6 +15,7 @@ UWxAbility_Skill::UWxAbility_Skill()
 
 	ActivationInputTag = WxGameplayTags::Input_Skill;
 	CooldownTag = WxGameplayTags::Cooldown_Skill;
+	ChargeTag = WxGameplayTags::Charge_Skill;
 }
 
 void UWxAbility_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

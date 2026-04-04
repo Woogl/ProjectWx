@@ -94,6 +94,14 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Skill);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Ultimate);
 
+	// ── Charge ───────────────────────────────────────────────────────────
+
+	/** 스킬 충전 횟수. ASC Loose Tag Count로 현재 남은 충전을 표현 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Charge_Skill);
+
+	/** 회피 충전 횟수 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Charge_Dodge);
+
 	// ── SetByCaller ──────────────────────────────────────────────────────
 
 	/** 어빌리티 코스트 SetByCaller 키. WxEffect_CostMP, WxEffect_CostUP에서 사용 */
