@@ -131,20 +131,18 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	{
 		// 공격 적중: 공격자 자원 회복 (평타 → MP, 스킬 → UP)
 		const UGameplayAbility* OwningAbility = ExecutionParams.GetOwningSpec().GetContext().GetAbility();
-		if (!OwningAbility)
+		if (OwningAbility)
 		{
-			return;
-		}
+			FGameplayTagContainer AbilityTags = OwningAbility->GetAssetTags();
 
-		FGameplayTagContainer AbilityTags = OwningAbility->GetAssetTags();
-
-		if (AbilityTags.HasTag(WxGameplayTags::Ability_Attack))
-		{
-			ApplyResourceRecovery(SourceASC, UWxEffect_RecoveryMP::StaticClass(), 5.f);
-		}
-		else if (AbilityTags.HasTag(WxGameplayTags::Ability_Skill))
-		{
-			ApplyResourceRecovery(SourceASC, UWxEffect_RecoveryUP::StaticClass(), 5.f);
+			if (AbilityTags.HasTag(WxGameplayTags::Ability_Attack))
+			{
+				ApplyResourceRecovery(SourceASC, UWxEffect_RecoveryMP::StaticClass(), 5.f);
+			}
+			else if (AbilityTags.HasTag(WxGameplayTags::Ability_Skill))
+			{
+				ApplyResourceRecovery(SourceASC, UWxEffect_RecoveryUP::StaticClass(), 5.f);
+			}
 		}
 	}
 
