@@ -7,7 +7,7 @@
 #include "WxEnemyCharacter.generated.h"
 
 class UBehaviorTree;
-class UWidgetComponent;
+class UWxNameplateComponent;
 
 /**
  * 에너미 캐릭터.
@@ -31,5 +31,5 @@ protected:
 	TObjectPtr<UBehaviorTree> BehaviorTreeAsset;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|UI")
-	TObjectPtr<UWidgetComponent> NameplateComponent;
+	TObjectPtr<UWxNameplateComponent> NameplateComponent;
 };
