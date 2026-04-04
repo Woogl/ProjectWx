@@ -4,123 +4,157 @@
 #include "Combat/WxLockOnComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "MotionWarpingComponent.h"
+#include "RootMotionModifier.h"
+#include "RootMotionModifier_SkewWarp.h"
 #include "TargetingSystem/TargetingSubsystem.h"
+
+const FName UWxAnimNotifyState_TurnAround::DefaultWarpTargetName = TEXT("TurnAround");
 
 void UWxAnimNotifyState_TurnAround::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
-	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
+    Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
-	if (!MeshComp || !TargetingPreset)
-	{
-		return;
-	}
+    if (!MeshComp || !TargetingPreset)
+    {
+        return;
+    }
 
-	AActor* Owner = MeshComp->GetOwner();
-	if (!Owner)
-	{
-		return;
-	}
+    AActor* Owner = MeshComp->GetOwner();
+    if (!Owner)
+    {
+        return;
+    }
 
-	// 락온 대상이 있으면 우선 사용
-	if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(Owner))
-	{
-		if (AActor* LockOnTarget = LockOnComp->GetLockOnTarget())
-		{
-			OwnerToTargetMap.Add(Owner, LockOnTarget);
-			return;
-		}
-	}
+    UMotionWarpingComponent* MotionWarpingComp = Owner->FindComponentByClass<UMotionWarpingComponent>();
+    if (!MotionWarpingComp)
+    {
+        return;
+    }
 
-	// 락온 대상이 없으면 TargetingSubsystem으로 탐색
-	UTargetingSubsystem* TargetingSubsystem = UTargetingSubsystem::Get(Owner->GetWorld());
-	if (!TargetingSubsystem)
-	{
-		return;
-	}
+    // 타겟 탐색: 락온 대상 우선
+    AActor* FoundTarget = nullptr;
 
-	FTargetingSourceContext SourceContext;
-	SourceContext.SourceActor = Owner;
-	SourceContext.InstigatorActor = Owner;
+    if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(Owner))
+    {
+        FoundTarget = LockOnComp->GetLockOnTarget();
+    }
 
-	FTargetingRequestHandle Handle = TargetingSubsystem->MakeTargetRequestHandle(TargetingPreset, SourceContext);
-	TargetingSubsystem->ExecuteTargetingRequestWithHandle(Handle);
+    // 락온 대상이 없으면 TargetingSubsystem으로 탐색
+    if (!FoundTarget)
+    {
+        UTargetingSubsystem* TargetingSubsystem = UTargetingSubsystem::Get(Owner->GetWorld());
+        if (!TargetingSubsystem)
+        {
+            return;
+        }
 
-	TArray<AActor*> Targets;
-	TargetingSubsystem->GetTargetingResultsActors(Handle, Targets);
-	TargetingSubsystem->ReleaseTargetRequestHandle(Handle);
+        FTargetingSourceContext SourceContext;
+        SourceContext.SourceActor = Owner;
+        SourceContext.InstigatorActor = Owner;
 
-	if (Targets.Num() > 0)
-	{
-		OwnerToTargetMap.Add(Owner, Targets[0]);
-	}
-	else
-	{
-		OwnerToTargetMap.Remove(Owner);
-	}
-}
+        FTargetingRequestHandle Handle = TargetingSubsystem->MakeTargetRequestHandle(TargetingPreset, SourceContext);
+        TargetingSubsystem->ExecuteTargetingRequestWithHandle(Handle);
 
-void UWxAnimNotifyState_TurnAround::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference)
-{
-	Super::NotifyTick(MeshComp, Animation, FrameDeltaTime, EventReference);
+        TArray<AActor*> Targets;
+        TargetingSubsystem->GetTargetingResultsActors(Handle, Targets);
+        TargetingSubsystem->ReleaseTargetRequestHandle(Handle);
 
-	if (!MeshComp)
-	{
-		return;
-	}
+        if (Targets.Num() > 0)
+        {
+            FoundTarget = Targets[0];
+        }
+    }
 
-	AActor* Owner = MeshComp->GetOwner();
-	if (!Owner)
-	{
-		return;
-	}
+    if (!FoundTarget)
+    {
+        return;
+    }
 
-	TWeakObjectPtr<AActor>* FoundTarget = OwnerToTargetMap.Find(Owner);
-	if (!FoundTarget || !FoundTarget->IsValid())
-	{
-		return;
-	}
+    // 타겟 방향 Rotation 계산 (Yaw만 사용)
+    FVector Direction = FoundTarget->GetActorLocation() - Owner->GetActorLocation();
+    Direction.Z = 0.0;
+    if (Direction.IsNearlyZero())
+    {
+        return;
+    }
 
-	AActor* Target = FoundTarget->Get();
+    MotionWarpingComp->AddOrUpdateWarpTargetFromLocationAndRotation(DefaultWarpTargetName, FoundTarget->GetActorLocation(), Direction.Rotation());
 
-	FVector Direction = Target->GetActorLocation() - Owner->GetActorLocation();
-	Direction.Z = 0.0;
-	if (Direction.IsNearlyZero())
-	{
-		return;
-	}
-
-	const FRotator DesiredRotation = Direction.Rotation();
-	const FRotator CurrentRotation = Owner->GetActorRotation();
-
-	if (FMath::Abs(FRotator::NormalizeAxis(CurrentRotation.Yaw - DesiredRotation.Yaw)) <= RotationTolerance)
-	{
-		return;
-	}
-
-	float RotationRateYaw = 360.f;
-	if (const ACharacter* Character = Cast<ACharacter>(Owner))
-	{
-		RotationRateYaw = Character->GetCharacterMovement()->RotationRate.Yaw;
-	}
-
-	// 애니메이션 스레드의 FrameDeltaTime 대신 게임 스레드의 DeltaSeconds를 사용하여
-	// 스레드 간 타이밍 불일치로 인한 회전 떨림 방지
-	const float DeltaTime = Owner->GetWorld()->GetDeltaSeconds();
-	const FRotator NewRotation = FMath::RInterpConstantTo(CurrentRotation, DesiredRotation, DeltaTime, RotationRateYaw);
-	Owner->SetActorRotation(NewRotation);
+    // CMC의 bOrientRotationToMovement가 모션 워핑 회전과 충돌하지 않도록 비활성화
+    if (ACharacter* Character = Cast<ACharacter>(Owner))
+    {
+        if (UCharacterMovementComponent* CMC = Character->GetCharacterMovement())
+        {
+            if (CMC->bOrientRotationToMovement)
+            {
+                bSavedOrientRotationToMovement = true;
+                CMC->bOrientRotationToMovement = false;
+            }
+        }
+    }
 }
 
 void UWxAnimNotifyState_TurnAround::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
-	Super::NotifyEnd(MeshComp, Animation, EventReference);
+    Super::NotifyEnd(MeshComp, Animation, EventReference);
 
-	if (MeshComp)
-	{
-		OwnerToTargetMap.Remove(MeshComp->GetOwner());
-	}
+    if (!MeshComp)
+    {
+        return;
+    }
+
+    AActor* Owner = MeshComp->GetOwner();
+    if (!Owner)
+    {
+        return;
+    }
+
+    if (UMotionWarpingComponent* MotionWarpingComp = Owner->FindComponentByClass<UMotionWarpingComponent>())
+    {
+        MotionWarpingComp->RemoveWarpTarget(DefaultWarpTargetName);
+    }
+
+    // bOrientRotationToMovement 복원
+    if (bSavedOrientRotationToMovement)
+    {
+        if (ACharacter* Character = Cast<ACharacter>(Owner))
+        {
+            if (UCharacterMovementComponent* CMC = Character->GetCharacterMovement())
+            {
+                CMC->bOrientRotationToMovement = true;
+            }
+        }
+        bSavedOrientRotationToMovement = false;
+    }
+}
+
+URootMotionModifier* UWxAnimNotifyState_TurnAround::AddRootMotionModifier_Implementation(UMotionWarpingComponent* MotionWarpingComp, const UAnimSequenceBase* Animation, float StartTime, float EndTime) const
+{
+    ApplyDefaultWarpSettings();
+    return Super::AddRootMotionModifier_Implementation(MotionWarpingComp, Animation, StartTime, EndTime);
 }
 
 FString UWxAnimNotifyState_TurnAround::GetNotifyName_Implementation() const
 {
-	return TEXT("Turn Around");
+    return TEXT("Turn Around");
+}
+
+#if WITH_EDITOR
+void UWxAnimNotifyState_TurnAround::ValidateAssociatedAssets()
+{
+    ApplyDefaultWarpSettings();
+    Super::ValidateAssociatedAssets();
+}
+#endif
+
+void UWxAnimNotifyState_TurnAround::ApplyDefaultWarpSettings() const
+{
+    if (URootMotionModifier_SkewWarp* SkewWarp = Cast<URootMotionModifier_SkewWarp>(RootMotionModifier))
+    {
+        SkewWarp->WarpTargetName = DefaultWarpTargetName;
+        SkewWarp->bWarpTranslation = false;
+        SkewWarp->bWarpRotation = true;
+        SkewWarp->RotationType = EMotionWarpRotationType::Facing;
+    }
 }

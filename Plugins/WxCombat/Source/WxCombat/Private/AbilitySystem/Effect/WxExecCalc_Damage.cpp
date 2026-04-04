@@ -63,6 +63,12 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 			if (Ability->GetAssetTags().HasTag(WxGameplayTags::Ability_Dodge))
 			{
 				ApplyResourceRecovery(TargetASC, UWxEffect_RecoveryMP::StaticClass(), 5.f);
+
+				// 회피 성공 이벤트 발송 → WxAbility_Dodge에서 수신하여 성공 몽타주 재생
+				FGameplayEventData EventData;
+				EventData.Instigator = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
+				EventData.Target = TargetASC->GetOwnerActor();
+				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetASC->GetOwnerActor(), WxGameplayTags::Event_DodgeSuccess, EventData);
 			}
 		}
 		return;

@@ -32,6 +32,9 @@ namespace WxGameplayTags
 	/** 피격 시 발생하는 이벤트. HitReact 어빌리티의 트리거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact);
 
+	/** 회피 성공 시 발생하는 이벤트. 무적 구간에서 대미지를 회피했을 때 발송 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_DodgeSuccess);
+
 
 	// ── ANS ───────────────────────────────────────────────────────────────
 

@@ -18,7 +18,8 @@ void UWxViewModel_Attribute::Initialize(UAbilitySystemComponent* InASC, FGamepla
 		BoundAttribute = InAttribute;
 		const float InitialValue = InASC->GetNumericAttribute(InAttribute);
 		SetCurrentAttribute(InitialValue);
-		SetIsAttributeAboveZero(InitialValue > 0.f);
+		SetIsAttributeEmpty(InitialValue <= 0.f);
+		SetIsAttributeFull(InMaxAttribute.IsValid() && InitialValue >= InASC->GetNumericAttribute(InMaxAttribute));
 		InASC->GetGameplayAttributeValueChangeDelegate(InAttribute)
 			.AddUObject(this, &UWxViewModel_Attribute::HandleAttributeChanged);
 	}
@@ -86,26 +87,38 @@ void UWxViewModel_Attribute::SetAttributePercent(float NewValue)
 	UE_MVVM_SET_PROPERTY_VALUE(AttributePercent, NewValue);
 }
 
-bool UWxViewModel_Attribute::GetIsAttributeAboveZero() const
+bool UWxViewModel_Attribute::GetIsAttributeEmpty() const
 {
-	return IsAttributeAboveZero;
+	return IsAttributeEmpty;
 }
 
-void UWxViewModel_Attribute::SetIsAttributeAboveZero(bool bNewValue)
+void UWxViewModel_Attribute::SetIsAttributeEmpty(bool bNewValue)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(IsAttributeAboveZero, bNewValue);
+	UE_MVVM_SET_PROPERTY_VALUE(IsAttributeEmpty, bNewValue);
+}
+
+bool UWxViewModel_Attribute::GetIsAttributeFull() const
+{
+	return IsAttributeFull;
+}
+
+void UWxViewModel_Attribute::SetIsAttributeFull(bool bNewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(IsAttributeFull, bNewValue);
 }
 
 void UWxViewModel_Attribute::HandleAttributeChanged(const FOnAttributeChangeData& Data)
 {
 	SetCurrentAttribute(Data.NewValue);
-	SetIsAttributeAboveZero(Data.NewValue > 0.f);
+	SetIsAttributeEmpty(Data.NewValue <= 0.f);
+	SetIsAttributeFull(Data.NewValue >= MaxAttribute);
 	RecalculateAttributePercent();
 }
 
 void UWxViewModel_Attribute::HandleMaxAttributeChanged(const FOnAttributeChangeData& Data)
 {
 	SetMaxAttribute(Data.NewValue);
+	SetIsAttributeFull(CurrentAttribute >= Data.NewValue);
 	RecalculateAttributePercent();
 }
 

@@ -4,6 +4,7 @@
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "Combat/WxLockOnComponent.h"
+#include "MotionWarpingComponent.h"
 #include "WxGameplayTags.h"
 #include "Components/CapsuleComponent.h"
 #include "WxCollisionChannels.h"
@@ -23,6 +24,8 @@ AWxCharacterBase::AWxCharacterBase()
 	CombatAttributeSet = CreateDefaultSubobject<UWxCombatAttributeSet>(TEXT("CombatAttributeSet"));
 
 	LockOnComponent = CreateDefaultSubobject<UWxLockOnComponent>(TEXT("LockOnComponent"));
+
+	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw   = false;
