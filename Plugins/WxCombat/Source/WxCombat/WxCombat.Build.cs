@@ -28,6 +28,7 @@ public class WxCombat : ModuleRules
 			"LevelSequence",
 			"MovieScene",
 			"Niagara",
+			"MotionWarping",
 			"TargetingSystem",
 			"UMG",
 		});

@@ -3,28 +3,37 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Animation/AnimNotifies/AnimNotifyState.h"
+#include "AnimNotifyState_MotionWarping.h"
 #include "WxAnimNotifyState_TurnAround.generated.h"
 
 class UTargetingPreset;
 
 /**
- * 타겟 방향 회전 AnimNotifyState.
+ * 모션 워핑 기반 타겟 방향 회전 AnimNotifyState.
  *
- * 공격 몽타주에 배치하면 NotifyBegin에서 TargetingPreset으로 가장 가까운 적을 탐색하고,
- * NotifyTick 구간 동안 해당 적 방향으로 부드럽게 회전한다.
+ * UAnimNotifyState_MotionWarping을 상속하여,
+ * NotifyBegin에서 타겟을 탐색해 MotionWarpingComponent에 WarpTarget을 등록하고,
+ * 엔진의 모션 워핑 시스템이 루트 모션을 보정하여 타겟 방향으로 회전한다.
+ *
+ * RootMotionModifier(SkewWarp 등)는 몽타주 에디터에서 설정하며,
+ * WarpTargetName을 Modifier에 설정된 값과 일치시켜야 한다.
  */
 UCLASS(DisplayName = "Wx Turn Around")
-class WXCOMBAT_API UWxAnimNotifyState_TurnAround : public UAnimNotifyState
+class WXCOMBAT_API UWxAnimNotifyState_TurnAround : public UAnimNotifyState_MotionWarping
 {
 	GENERATED_BODY()
 
 public:
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
-	virtual void NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference) override;
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 
+	virtual URootMotionModifier* AddRootMotionModifier_Implementation(UMotionWarpingComponent* MotionWarpingComp, const UAnimSequenceBase* Animation, float StartTime, float EndTime) const override;
+
 	virtual FString GetNotifyName_Implementation() const override;
+
+#if WITH_EDITOR
+	virtual void ValidateAssociatedAssets() override;
+#endif
 
 protected:
 	/** 가장 가까운 적을 탐색하기 위한 타겟팅 프리셋 */
@@ -32,8 +41,9 @@ protected:
 	TObjectPtr<UTargetingPreset> TargetingPreset;
 
 private:
-	/** Owner별 타겟 캐싱. ANS 인스턴스는 공유되므로 Owner를 키로 분리 저장 */
-	TMap<TWeakObjectPtr<AActor>, TWeakObjectPtr<AActor>> OwnerToTargetMap;
+	void ApplyDefaultWarpSettings() const;
 
-	static constexpr float RotationTolerance = 3.f;
+	bool bSavedOrientRotationToMovement = false;
+
+	static const FName DefaultWarpTargetName;
 };

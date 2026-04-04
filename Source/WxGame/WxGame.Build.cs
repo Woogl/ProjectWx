@@ -24,6 +24,7 @@ public class WxGame : ModuleRules
 			"NavigationSystem",
 			"UMG",
 			"ModelViewViewModel",
+			"MotionWarping",
 			"WxCore",
 			"WxCombat",
 			"WxUI",
