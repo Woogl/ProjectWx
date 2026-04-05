@@ -1,8 +1,8 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Effect/WxExecCalc_Damage.h"
-#include "AbilitySystem/Effect/WxEffect_GainMP.h"
-#include "AbilitySystem/Effect/WxEffect_GainUP.h"
+#include "AbilitySystem/Effect/WxEffect_RecoveryMP.h"
+#include "AbilitySystem/Effect/WxEffect_RecoveryUP.h"
 #include "AbilitySystem/Effect/WxEffect_Reflect.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"

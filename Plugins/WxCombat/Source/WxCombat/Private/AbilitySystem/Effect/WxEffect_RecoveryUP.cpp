@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 
-#include "AbilitySystem/Effect/WxEffect_GainUP.h"
+#include "AbilitySystem/Effect/WxEffect_RecoveryUP.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "WxGameplayTags.h"
 

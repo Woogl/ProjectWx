@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayEffect.h"
-#include "WxEffect_GainUP.generated.h"
+#include "WxEffect_RecoveryUP.generated.h"
 
 /**
  * Skill 피격 시 공격자 UP 회복 GameplayEffect.

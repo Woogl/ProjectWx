@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Effect/WxEffect_GainMP.h"
+#include "AbilitySystem/Effect/WxEffect_RecoveryMP.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "WxGameplayTags.h"
 

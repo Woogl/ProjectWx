@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayEffect.h"
-#include "WxEffect_GainMP.generated.h"
+#include "WxEffect_RecoveryMP.generated.h"
 
 /**
  * Attack 피격 시 공격자 MP 회복 GameplayEffect.
