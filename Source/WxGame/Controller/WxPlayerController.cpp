@@ -39,6 +39,14 @@ namespace WxGlobalViewModelContext
 		return Context;
 	}
 	
+	FMVVMViewModelContext PlayerSP()
+	{
+		FMVVMViewModelContext Context;
+		Context.ContextClass = UWxViewModel_Attribute::StaticClass();
+		Context.ContextName = FName(TEXT("PlayerSP"));
+		return Context;
+	}
+	
 	FMVVMViewModelContext PlayerAbilitySystem()
 	{
 		FMVVMViewModelContext Context;
@@ -90,6 +98,7 @@ void AWxPlayerController::OnPossess(APawn* InPawn)
 			InitializePlayerHPViewModel(ASC);
 			InitializePlayerMPViewModel(ASC);
 			InitializePlayerUPViewModel(ASC);
+			InitializePlayerSPViewModel(ASC);
 			InitializePlayerAbilityViewModels(ASC);
 		}
 		// Global View Model 초기화가 먼저 되어야함
@@ -115,6 +124,7 @@ void AWxPlayerController::OnRep_Pawn()
 			InitializePlayerHPViewModel(ASC);
 			InitializePlayerMPViewModel(ASC);
 			InitializePlayerUPViewModel(ASC);
+			InitializePlayerSPViewModel(ASC);
 			InitializePlayerAbilityViewModels(ASC);
 		}
 		// Global View Model 초기화가 먼저 되어야함
@@ -246,6 +256,28 @@ void AWxPlayerController::InitializePlayerUPViewModel(UAbilitySystemComponent* A
 	UWxViewModel_Attribute* ViewModel = NewObject<UWxViewModel_Attribute>(ASC);
 	GlobalCollection->AddViewModelInstance(Context, ViewModel);
 	ViewModel->Initialize(ASC, UWxCombatAttributeSet::GetUPAttribute(), UWxCombatAttributeSet::GetMaxUPAttribute());
+}
+
+void AWxPlayerController::InitializePlayerSPViewModel(UAbilitySystemComponent* ASC)
+{
+	UGameInstance* GameInst = GetGameInstance();
+	if (!GameInst)
+	{
+		return;
+	}
+
+	UMVVMGameSubsystem* MVVMGameSubsystem = GameInst->GetSubsystem<UMVVMGameSubsystem>();
+	if (!MVVMGameSubsystem)
+	{
+		return;
+	}
+
+	UMVVMViewModelCollectionObject* GlobalCollection = MVVMGameSubsystem->GetViewModelCollection();
+	const FMVVMViewModelContext Context = WxGlobalViewModelContext::PlayerSP();
+
+	UWxViewModel_Attribute* ViewModel = NewObject<UWxViewModel_Attribute>(ASC);
+	GlobalCollection->AddViewModelInstance(Context, ViewModel);
+	ViewModel->Initialize(ASC, UWxCombatAttributeSet::GetSPAttribute(), UWxCombatAttributeSet::GetMaxSPAttribute());
 }
 
 void AWxPlayerController::InitializePlayerAbilityViewModels(UAbilitySystemComponent* ASC)

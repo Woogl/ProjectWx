@@ -20,6 +20,7 @@ struct FWxDamageStatics
 	DECLARE_ATTRIBUTE_CAPTUREDEF(IncomingDamage);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(PP);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(DP);
+	DECLARE_ATTRIBUTE_CAPTUREDEF(SP);
 
 	FWxDamageStatics()
 	{
@@ -30,6 +31,7 @@ struct FWxDamageStatics
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, IncomingDamage, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, PP, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, DP, Target, false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, SP, Target, false);
 	}
 };
 
@@ -47,6 +49,7 @@ UWxExecCalc_Damage::UWxExecCalc_Damage()
 	RelevantAttributesToCapture.Add(Statics.CritRateDef);
 	RelevantAttributesToCapture.Add(Statics.CritDMGDef);
 	RelevantAttributesToCapture.Add(Statics.PPDef);
+	RelevantAttributesToCapture.Add(Statics.SPDef);
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -108,6 +111,12 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 			}
 		}
 		RecoverAttackerResource(SourceASC, OwningSpec);
+
+		// 가드 중이면 SP를 대미지만큼 차감
+		if (!bIsUnblockable && TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_Guard) && DamageResult.FinalDamage > 0.f)
+		{
+			OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.SPProperty, EGameplayModOp::Additive, -DamageResult.FinalDamage));
+		}
 	}
 
 	// --- 4. PP 차감 및 HitReact ---
