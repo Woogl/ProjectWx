@@ -2,6 +2,8 @@
 
 #include "AbilitySystem/Ability/WxAbility_Dodge.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
 #include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
 #include "AbilitySystem/Task/WxAbilityTask_TurnAround.h"
 #include "AbilitySystemComponent.h"
@@ -15,11 +17,12 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 	SetAssetTags(AssetTags);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 
 	ActivationInputTag = WxGameplayTags::Input_Dodge;
 	CooldownTag = WxGameplayTags::Cooldown_Dodge;
 	ChargeTag = WxGameplayTags::Charge_Dodge;
-	
+
 	CooldownDuration = 2.f;
 	MaxCharges = 2;
 }
@@ -79,7 +82,7 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		return;
 	}
 
-	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this, NAME_None, DodgeMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
 	if (!MontageTask)
 	{
@@ -92,7 +95,37 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Dodge::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Dodge::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
+
+	ListenForDodgeSuccess();
 }
+
+void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	if (WaitInputTask)
+	{
+		WaitInputTask->EndTask();
+		WaitInputTask = nullptr;
+	}
+
+	// 극한 회피 중 추가한 공격 입력 태그 제거
+	if (bPlayingPerfectDodge && DodgeCounterMontage && ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
+	{
+		FGameplayAbilitySpec* Spec = ActorInfo->AbilitySystemComponent->FindAbilitySpecFromHandle(Handle);
+		if (Spec)
+		{
+			Spec->GetDynamicSpecSourceTags().RemoveTag(WxGameplayTags::Input_Attack);
+			ActorInfo->AbilitySystemComponent->MarkAbilitySpecDirty(*Spec);
+		}
+	}
+
+	bPlayingPerfectDodge = false;
+
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+//  방향 처리
+// ────────────────────────────────────────────────────────────────────────────
 
 void UWxAbility_Dodge::ApplyDodgeDirection(const FVector& Direction)
 {
@@ -118,6 +151,143 @@ void UWxAbility_Dodge::HandleTargetDataReceived(const FGameplayAbilityTargetData
 		ASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
 	}
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+//  극한 회피 처리
+// ────────────────────────────────────────────────────────────────────────────
+
+void UWxAbility_Dodge::ListenForDodgeSuccess()
+{
+	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+		this, WxGameplayTags::Event_DodgeSuccess);
+	if (EventTask)
+	{
+		EventTask->EventReceived.AddDynamic(this, &UWxAbility_Dodge::HandleDodgeSuccess);
+		EventTask->ReadyForActivation();
+	}
+}
+
+void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
+{
+	if (!PerfectDodgeMontage)
+	{
+		return;
+	}
+
+	bPlayingPerfectDodge = true;
+	PlayPerfectDodgeMontage();
+
+	if (DodgeCounterMontage)
+	{
+		// 공격 입력 태그를 스펙에 동적 추가하여, ASC의 입력 라우팅이 이 어빌리티에 도달하도록 함
+		UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+		if (ASC)
+		{
+			FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromHandle(CurrentSpecHandle);
+			if (Spec)
+			{
+				Spec->GetDynamicSpecSourceTags().AddTag(WxGameplayTags::Input_Attack);
+				ASC->MarkAbilitySpecDirty(*Spec);
+			}
+		}
+
+		ListenForCounterInput();
+	}
+}
+
+void UWxAbility_Dodge::PlayPerfectDodgeMontage()
+{
+	if (MontageTask)
+	{
+		MontageTask->OnCompleted.RemoveDynamic(this, &UWxAbility_Dodge::HandleMontageCompleted);
+		MontageTask->OnBlendOut.RemoveDynamic(this, &UWxAbility_Dodge::HandleMontageBlendOut);
+		MontageTask->OnInterrupted.RemoveDynamic(this, &UWxAbility_Dodge::HandleMontageInterrupted);
+		MontageTask->OnCancelled.RemoveDynamic(this, &UWxAbility_Dodge::HandleMontageCancelled);
+		MontageTask->EndTask();
+	}
+
+	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		this, NAME_None, PerfectDodgeMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
+	if (!MontageTask)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		return;
+	}
+
+	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Dodge::HandleMontageCompleted);
+	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Dodge::HandleMontageBlendOut);
+	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Dodge::HandleMontageInterrupted);
+	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Dodge::HandleMontageCancelled);
+	MontageTask->ReadyForActivation();
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+//  반격 처리
+// ────────────────────────────────────────────────────────────────────────────
+
+void UWxAbility_Dodge::ListenForCounterInput()
+{
+	WaitInputTask = UAbilityTask_WaitInputPress::WaitInputPress(this);
+	if (WaitInputTask)
+	{
+		WaitInputTask->OnPress.AddDynamic(this, &UWxAbility_Dodge::HandleCounterInputPressed);
+		WaitInputTask->ReadyForActivation();
+	}
+}
+
+void UWxAbility_Dodge::HandleCounterInputPressed(float TimeWaited)
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (!ASC)
+	{
+		return;
+	}
+
+	// ANS_ComboWindow 구간 내에서만 반격 허용
+	if (!ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_ComboWindow))
+	{
+		ListenForCounterInput();
+		return;
+	}
+
+	PlayDodgeCounterMontage();
+}
+
+void UWxAbility_Dodge::PlayDodgeCounterMontage()
+{
+	if (MontageTask)
+	{
+		MontageTask->OnCompleted.RemoveDynamic(this, &UWxAbility_Dodge::HandleMontageCompleted);
+		MontageTask->OnBlendOut.RemoveDynamic(this, &UWxAbility_Dodge::HandleMontageBlendOut);
+		MontageTask->OnInterrupted.RemoveDynamic(this, &UWxAbility_Dodge::HandleMontageInterrupted);
+		MontageTask->OnCancelled.RemoveDynamic(this, &UWxAbility_Dodge::HandleMontageCancelled);
+		MontageTask->EndTask();
+	}
+
+	if (WaitInputTask)
+	{
+		WaitInputTask->EndTask();
+		WaitInputTask = nullptr;
+	}
+
+	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		this, NAME_None, DodgeCounterMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
+	if (!MontageTask)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		return;
+	}
+
+	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Dodge::HandleMontageCompleted);
+	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Dodge::HandleMontageBlendOut);
+	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Dodge::HandleMontageInterrupted);
+	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Dodge::HandleMontageCancelled);
+	MontageTask->ReadyForActivation();
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+//  몽타주 콜백
+// ────────────────────────────────────────────────────────────────────────────
 
 void UWxAbility_Dodge::HandleMontageCompleted()
 {
