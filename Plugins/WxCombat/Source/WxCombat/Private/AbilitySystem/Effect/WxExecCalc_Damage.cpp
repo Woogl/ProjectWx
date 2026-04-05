@@ -93,7 +93,8 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	const float DefenseMultiplier = 100.f / (100.f + TargetDEF);
 
 	// --- 3. 대미지 판정 ---
-	const bool bHasPerfectGuard = TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_PerfectGuard);
+	const bool bIsUnblockable = ExecutionParams.GetOwningSpec().GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable);
+	const bool bHasPerfectGuard = !bIsUnblockable && TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_PerfectGuard);
 	FWxDamageResult DamageResult;
 
 	if (bHasPerfectGuard)
@@ -112,7 +113,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	else
 	{
 		// 일반/가드 피격: 데미지 계산 및 어트리뷰트 전달
-		DamageResult = CalcDamage(ExecutionParams, EvalParams, SourceATK, DefenseMultiplier, TargetASC);
+		DamageResult = CalcDamage(ExecutionParams, EvalParams, SourceATK, DefenseMultiplier, TargetASC, bIsUnblockable);
 		if (DamageResult.FinalDamage > 0.f)
 		{
 			OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
@@ -183,7 +184,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	ExecuteGameplayCueDamage(TargetASC, DamageResult.FinalDamage, TargetASC->GetAvatarActor()->GetActorLocation(), ExecutionParams.GetOwningSpec(), DamageResult.bIsCritical, !bHasPerfectGuard);
 }
 
-FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, float SourceATK, float DefenseMultiplier, UAbilitySystemComponent* TargetASC) const
+FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, float SourceATK, float DefenseMultiplier, UAbilitySystemComponent* TargetASC, bool bIsUnblockable) const
 {
 	const FWxDamageStatics& Statics = GetDamageStatics();
 
@@ -205,8 +206,8 @@ FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecut
 		Result.FinalDamage *= (1.f + SourceCritDMG * 0.01f);
 	}
 
-	// 가드 중이면 데미지 50% 감소
-	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_Guard))
+	// 가드 중이면 데미지 50% 감소 (Unblockable 공격은 가드 무시)
+	if (!bIsUnblockable && TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_Guard))
 	{
 		constexpr float GuardDamageReductionRate = 0.5f;
 		Result.FinalDamage *= GuardDamageReductionRate;

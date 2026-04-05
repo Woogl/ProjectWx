@@ -27,7 +27,12 @@ void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAn
 	SpawnParams.Instigator = Cast<APawn>(Owner);
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	Owner->GetWorld()->SpawnActor<AWxProjectileBase>(ProjectileClass, SpawnTransform, SpawnParams);
+	AWxProjectileBase* Projectile = Owner->GetWorld()->SpawnActorDeferred<AWxProjectileBase>(ProjectileClass, SpawnTransform, Owner, Cast<APawn>(Owner), ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+	if (Projectile)
+	{
+		Projectile->AttackTags = AttackTags;
+		Projectile->FinishSpawning(SpawnTransform);
+	}
 }
 
 FString UWxAnimNotify_SpawnProjectile::GetNotifyName_Implementation() const

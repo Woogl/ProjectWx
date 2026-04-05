@@ -75,6 +75,9 @@ namespace WxGameplayTags
 	/** 데미지 플로터 출력 억제 태그 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_SuppressFloater);
 
+	/** 가드 불가 공격 태그. 가드·퍼펙트 가드를 무시하고 풀 대미지 적용 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Unblockable);
+
 	// ── Ability ───────────────────────────────────────────────────────────
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability);

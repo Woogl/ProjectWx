@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "GameFramework/Actor.h"
 #include "WxWeaponBase.generated.h"
 
@@ -33,6 +34,9 @@ class WXCOMBAT_API AWxWeaponBase : public AActor
 public:
 	AWxWeaponBase();
 
+	/** 소유자 액터에 부착된 AWxWeaponBase를 반환. 없으면 nullptr */
+	static AWxWeaponBase* FindWeapon(const AActor* Owner);
+
 	/** 캐릭터 메시의 SocketName에 부착하고 태그 감지 등록 */
 	void AttachToCharacter(ACharacter* Character, FName SocketName);
 
@@ -45,6 +49,13 @@ public:
 	/** 역경직 지속 시간 (초). 0 이하이면 역경직 미적용 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
 	float HitStopDuration = 0.125f;
+
+	/**
+	 * 현재 공격 속성 태그.
+	 * ANS_AttackTags가 몽타주 구간별로 설정/해제하며,
+	 * 히트 시 GE Spec의 DynamicAssetTags에 복사된다.
+	 */
+	FGameplayTagContainer AttackTags;
 
 protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

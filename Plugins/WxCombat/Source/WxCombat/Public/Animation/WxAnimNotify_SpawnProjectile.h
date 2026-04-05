@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
 #include "WxAnimNotify_SpawnProjectile.generated.h"
 
@@ -33,4 +34,8 @@ protected:
 	/** 투사체 스폰 위치 소켓 이름 */
 	UPROPERTY(EditAnywhere, Category = "Wx|Projectile")
 	FName SpawnSocketName = TEXT("hand_r");
+
+	/** 투사체에 부여할 공격 속성 태그 (선택 사항) */
+	UPROPERTY(EditAnywhere, Category = "Wx|AttackTags")
+	FGameplayTagContainer AttackTags;
 };

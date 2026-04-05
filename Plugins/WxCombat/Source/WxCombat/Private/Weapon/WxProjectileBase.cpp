@@ -75,6 +75,10 @@ void AWxProjectileBase::BeginPlay()
 			}
 
 			FGameplayEffectSpecHandle EffectSpec = SourceASC->MakeOutgoingSpec(EffectClass, 1.f, Context);
+			if (EffectSpec.IsValid())
+			{
+				EffectSpec.Data->AppendDynamicAssetTags(AttackTags);
+			}
 			EffectSpecHandles.Add(EffectSpec);
 		}
 	}

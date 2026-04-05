@@ -41,6 +41,26 @@ AWxWeaponBase::AWxWeaponBase()
 	HitCollision->OnComponentBeginOverlap.AddDynamic(this, &AWxWeaponBase::HandleHitCollisionOverlap);
 }
 
+AWxWeaponBase* AWxWeaponBase::FindWeapon(const AActor* Owner)
+{
+	if (!Owner)
+	{
+		return nullptr;
+	}
+
+	TArray<AActor*> AttachedActors;
+	Owner->GetAttachedActors(AttachedActors);
+	for (AActor* Attached : AttachedActors)
+	{
+		if (AWxWeaponBase* Weapon = Cast<AWxWeaponBase>(Attached))
+		{
+			return Weapon;
+		}
+	}
+
+	return nullptr;
+}
+
 void AWxWeaponBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	DetachFromCharacter();
@@ -137,6 +157,7 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 			const FGameplayEffectSpecHandle Spec = SourceASC->MakeOutgoingSpec(EffectClass, 1.f, Context);
 			if (Spec.IsValid())
 			{
+				Spec.Data->AppendDynamicAssetTags(AttackTags);
 				SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
 			}
 		}
