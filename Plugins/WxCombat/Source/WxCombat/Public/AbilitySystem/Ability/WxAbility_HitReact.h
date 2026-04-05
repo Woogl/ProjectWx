@@ -14,10 +14,10 @@ class UAnimMontage;
  * 사용 흐름:
  *  1. 데미지 수신 → Event.HitReact 이벤트 발송
  *  2. GameplayEvent 트리거 → ActivateAbility
- *  3. ANS.Guard 태그 유무에 따라 GuardHitReactMontage / HitReactMontage 분기 재생
- *  4. 몽타주 완료/중단 → EndAbility
+ *  3. HitReactMontage 재생 → 완료 시 EndAbility
  *
- * State.Dead, ANS.Invincible 시 활성화 차단.
+ * 가드 중 피격 반응은 WxAbility_Guard가 직접 처리하므로,
+ * ANS.Guard 활성 시 이 어빌리티는 활성화되지 않는다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAbility_HitReact : public UWxAbility
@@ -33,17 +33,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> HitReactMontage;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UAnimMontage> GuardHitReactMontage;
-
 private:
-	bool bWasGuardHitReact = false;
-
 	UFUNCTION()
 	void HandleMontageCompleted();
-
-	UFUNCTION()
-	void HandleMontageBlendOut();
 
 	UFUNCTION()
 	void HandleMontageInterrupted();

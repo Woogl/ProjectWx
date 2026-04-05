@@ -2,6 +2,7 @@
 
 #include "Animation/WxAnimNotify_SpawnProjectile.h"
 #include "Weapon/WxProjectileBase.h"
+#include "WxGameplayTags.h"
 
 void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
@@ -30,7 +31,10 @@ void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAn
 	AWxProjectileBase* Projectile = Owner->GetWorld()->SpawnActorDeferred<AWxProjectileBase>(ProjectileClass, SpawnTransform, Owner, Cast<APawn>(Owner), ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 	if (Projectile)
 	{
-		Projectile->AttackTags = AttackTags;
+		if (bUnblockable)
+		{
+			Projectile->AttackTags.AddTag(WxGameplayTags::Damage_Unblockable);
+		}
 		Projectile->FinishSpawning(SpawnTransform);
 	}
 }

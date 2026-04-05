@@ -21,11 +21,11 @@ void UWxAnimNotifyState_WeaponAttack::NotifyBegin(USkeletalMeshComponent* MeshCo
 		ASC->AddLooseGameplayTag(WxGameplayTags::ANS_WeaponCollision);
 	}
 
-	if (!AttackTags.IsEmpty())
+	if (bUnblockable)
 	{
 		if (AWxWeaponBase* Weapon = AWxWeaponBase::FindWeapon(Owner))
 		{
-			Weapon->AttackTags.AppendTags(AttackTags);
+			Weapon->AttackTags.AddTag(WxGameplayTags::Damage_Unblockable);
 		}
 	}
 }
@@ -45,11 +45,11 @@ void UWxAnimNotifyState_WeaponAttack::NotifyEnd(USkeletalMeshComponent* MeshComp
 		ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_WeaponCollision);
 	}
 
-	if (!AttackTags.IsEmpty())
+	if (bUnblockable)
 	{
 		if (AWxWeaponBase* Weapon = AWxWeaponBase::FindWeapon(Owner))
 		{
-			Weapon->AttackTags.RemoveTags(AttackTags);
+			Weapon->AttackTags.RemoveTag(WxGameplayTags::Damage_Unblockable);
 		}
 	}
 }

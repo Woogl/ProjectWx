@@ -8,14 +8,13 @@
 
 UWxAbility_HitReact::UWxAbility_HitReact()
 {
-	// AssetTag 의도적 미설정: 이벤트 트리거 전용 어빌리티이므로 입력/BT에서 태그 검색 대상이 아님
 	// HitReact는 항상 서버의 ExecCalc에서 GameplayEvent로 트리거되므로 ServerInitiated를 사용한다.
-	// LocalPredicted를 사용하면 클라이언트가 이벤트를 직접 수신하지 못해 활성화되지 않는다.
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	ActivationBlockedTags.AddTag(WxGameplayTags::ANS_Invincible);
+	ActivationBlockedTags.AddTag(WxGameplayTags::ANS_Guard);
 
 	bRetriggerInstancedAbility = true;
 
@@ -29,9 +28,8 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-
 	// 그로기 상태가 아니면 PP를 MaxPP만큼 회복
+	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 	if (ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
 	{
 		if (const UWxCombatAttributeSet* AttributeSet = ASC->GetSet<UWxCombatAttributeSet>())
@@ -40,18 +38,14 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		}
 	}
 
-	bWasGuardHitReact = ASC
-		&& ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_Guard);
-	UAnimMontage* MontageToPlay = bWasGuardHitReact ? GuardHitReactMontage : HitReactMontage;
-
-	if (!MontageToPlay || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	if (!HitReactMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, MontageToPlay, 1.f, NAME_None, true, 1.f, 0.f, true);
+		this, NAME_None, HitReactMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
 	if (!MontageTask)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
@@ -59,7 +53,6 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	}
 
 	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_HitReact::HandleMontageCompleted);
-	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_HitReact::HandleMontageBlendOut);
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_HitReact::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_HitReact::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
@@ -67,18 +60,7 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 void UWxAbility_HitReact::HandleMontageCompleted()
 {
-	if (!bWasGuardHitReact)
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-	}
-}
-
-void UWxAbility_HitReact::HandleMontageBlendOut()
-{
-	if (bWasGuardHitReact)
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-	}
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UWxAbility_HitReact::HandleMontageInterrupted()

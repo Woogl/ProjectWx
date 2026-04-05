@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
 #include "WxAnimNotify_SpawnProjectile.generated.h"
 
@@ -35,7 +34,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|Projectile")
 	FName SpawnSocketName = TEXT("hand_r");
 
-	/** 투사체에 부여할 공격 속성 태그 (선택 사항) */
-	UPROPERTY(EditAnywhere, Category = "Wx|AttackTags")
-	FGameplayTagContainer AttackTags;
+	/** true이면 투사체가 가드·퍼펙트 가드를 무시 */
+	UPROPERTY(EditAnywhere, Category = "Wx|Projectile")
+	bool bUnblockable = false;
 };
