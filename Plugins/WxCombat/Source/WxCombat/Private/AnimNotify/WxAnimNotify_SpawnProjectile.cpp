@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Animation/WxAnimNotify_SpawnProjectile.h"
+#include "AnimNotify/WxAnimNotify_SpawnProjectile.h"
 #include "Weapon/WxProjectileBase.h"
 #include "WxGameplayTags.h"
 

@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Animation/WxAnimNotifyState_PerfectGuard.h"
+#include "AnimNotify/WxAnimNotifyState_PerfectGuard.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "WxGameplayTags.h"

@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Animation/WxAnimNotifyState_Invincible.h"
+#include "AnimNotify/WxAnimNotifyState_Invincible.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "WxGameplayTags.h"

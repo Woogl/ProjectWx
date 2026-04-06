@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Animation/WxAnimNotifyState_WeaponAttack.h"
+#include "AnimNotify/WxAnimNotifyState_WeaponAttack.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Weapon/WxWeaponBase.h"

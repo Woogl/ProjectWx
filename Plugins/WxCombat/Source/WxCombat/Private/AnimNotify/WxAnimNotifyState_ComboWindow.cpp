@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Animation/WxAnimNotifyState_ComboWindow.h"
+#include "AnimNotify/WxAnimNotifyState_ComboWindow.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "WxGameplayTags.h"

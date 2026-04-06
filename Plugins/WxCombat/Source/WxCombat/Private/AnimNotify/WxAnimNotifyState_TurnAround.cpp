@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Animation/WxAnimNotifyState_TurnAround.h"
+#include "AnimNotify/WxAnimNotifyState_TurnAround.h"
 #include "Combat/WxLockOnComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
