@@ -62,10 +62,10 @@ void AWxProjectileBase::BeginPlay()
 
 	if (UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator()))
 	{
-		FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
-		Context.AddSourceObject(this);
-		Context.AddInstigator(GetOwner(), GetInstigator());
-		Context.SetAbility(SourceASC->GetAnimatingAbility());
+		CachedEffectContext = SourceASC->MakeEffectContext();
+		CachedEffectContext.AddSourceObject(this);
+		CachedEffectContext.AddInstigator(GetOwner(), GetInstigator());
+		CachedEffectContext.SetAbility(SourceASC->GetAnimatingAbility());
 
 		for (const TSubclassOf<UGameplayEffect>& EffectClass : EffectClasses)
 		{
@@ -74,7 +74,7 @@ void AWxProjectileBase::BeginPlay()
 				continue;
 			}
 
-			FGameplayEffectSpecHandle EffectSpec = SourceASC->MakeOutgoingSpec(EffectClass, 1.f, Context);
+			FGameplayEffectSpecHandle EffectSpec = SourceASC->MakeOutgoingSpec(EffectClass, 1.f, CachedEffectContext);
 			if (EffectSpec.IsValid())
 			{
 				EffectSpec.Data->AppendDynamicAssetTags(AttackTags);
@@ -99,6 +99,30 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 		{
 			return;
 		}
+	}
+
+	if (CachedEffectContext.IsValid())
+	{
+		FHitResult HitResult;
+		if (bFromSweep)
+		{
+			HitResult = SweepResult;
+		}
+		else
+		{
+			FVector ClosestPoint;
+			if (OtherComp->GetClosestPointOnCollision(HitCollision->GetComponentLocation(), ClosestPoint) >= 0.f)
+			{
+				HitResult.ImpactPoint = ClosestPoint;
+				HitResult.Location = ClosestPoint;
+			}
+			else
+			{
+				HitResult.ImpactPoint = OtherComp->GetComponentLocation();
+				HitResult.Location = OtherComp->GetComponentLocation();
+			}
+		}
+		CachedEffectContext.AddHitResult(HitResult, true);
 	}
 
 	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))

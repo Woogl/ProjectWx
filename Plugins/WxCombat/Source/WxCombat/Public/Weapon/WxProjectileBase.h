@@ -58,5 +58,6 @@ public:
 	FGameplayTagContainer AttackTags;
 
 private:
+	FGameplayEffectContextHandle CachedEffectContext;
 	TArray<FGameplayEffectSpecHandle> EffectSpecHandles;
 };

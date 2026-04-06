@@ -147,6 +147,27 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 		Context.AddInstigator(WeaponOwner, WeaponOwner);
 		Context.SetAbility(SourceASC->GetAnimatingAbility());
 
+		FHitResult HitResult;
+		if (bFromSweep)
+		{
+			HitResult = SweepResult;
+		}
+		else
+		{
+			FVector ClosestPoint;
+			if (OtherComp->GetClosestPointOnCollision(HitCollision->GetComponentLocation(), ClosestPoint) >= 0.f)
+			{
+				HitResult.ImpactPoint = ClosestPoint;
+				HitResult.Location = ClosestPoint;
+			}
+			else
+			{
+				HitResult.ImpactPoint = OtherComp->GetComponentLocation();
+				HitResult.Location = OtherComp->GetComponentLocation();
+			}
+		}
+		Context.AddHitResult(HitResult);
+
 		for (const TSubclassOf<UGameplayEffect>& EffectClass : EffectClasses)
 		{
 			if (!EffectClass)
