@@ -35,7 +35,7 @@ void UWxCueNotify_Damage::HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent:
 	{
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		AWxDamageFloaterActor* FloaterActor = World->SpawnActor<AWxDamageFloaterActor>(Parameters.Location, FRotator::ZeroRotator, SpawnParams);
+		AWxDamageFloaterActor* FloaterActor = World->SpawnActor<AWxDamageFloaterActor>(MyTarget->GetActorLocation(), FRotator::ZeroRotator, SpawnParams);
 		if (FloaterActor)
 		{
 			const float Damage = Parameters.RawMagnitude;
