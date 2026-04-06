@@ -146,7 +146,13 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	}
 
 	// --- 6. 대미지 GameplayCue ---
-	ExecuteGameplayCueDamage(TargetASC, DamageResult.FinalDamage, TargetASC->GetAvatarActor()->GetActorLocation(), OwningSpec, DamageResult.bIsCritical, !bHasPerfectGuard);
+	FVector HitLocation = FVector(TargetASC->GetAvatarActor()->GetActorLocation());
+	const FHitResult* HitResult = OwningSpec.GetEffectContext().GetHitResult();
+	if (HitResult)
+	{
+		HitLocation = FVector(HitResult->ImpactPoint);
+	}
+	ExecuteGameplayCueDamage(TargetASC, DamageResult.FinalDamage, HitLocation, OwningSpec, DamageResult.bIsCritical, !bHasPerfectGuard);
 }
 
 // ────────────────────────────────────────────────────────────────────────────

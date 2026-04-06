@@ -3,1005 +3,553 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>어빌리티 가이드 — ProjectWX</title>
+<title>어빌리티 가이드</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
     --bg: #0f1117;
-    --bg-card: #161921;
-    --bg-header: #1a1d27;
+    --card-bg: #181b24;
     --text: #e2e4ea;
-    --text-muted: #8b8fa8;
-    --border: #2a2d3a;
-
-    --combat: #ff6b6b;
-    --defense: #4ecdc4;
-    --move: #95e86e;
-    --react: #ffd93d;
-
-    --combat-dim: rgba(255, 107, 107, 0.12);
-    --defense-dim: rgba(78, 205, 196, 0.12);
-    --move-dim: rgba(149, 232, 110, 0.12);
-    --react-dim: rgba(255, 217, 61, 0.12);
+    --muted: #9298a6;
+    --border: #282c3a;
+    --red: #ff6b6b;
+    --teal: #4ecdc4;
+    --green: #95e86e;
+    --yellow: #ffd93d;
+    --header-bg: #1a1d27;
   }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Pretendard', 'Noto Sans KR', -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.65; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 2rem 1.2rem 4rem; }
+  h1 { font-size: 1.8rem; margin-bottom: .2rem; }
+  .date { color: var(--muted); font-size: .85rem; margin-bottom: 2.5rem; }
+  h2 { font-size: 1.35rem; margin: 2.5rem 0 1rem; padding-bottom: .4rem; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 1.1rem; margin-bottom: .5rem; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
-    font-size: 14px;
-    line-height: 1.7;
-    padding: 40px 16px 80px;
+  /* 테이블 */
+  table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: .88rem; }
+  th, td { padding: .55rem .7rem; text-align: left; border: 1px solid var(--border); }
+  th { background: var(--header-bg); font-weight: 600; white-space: nowrap; }
+  td { background: var(--card-bg); }
+
+  /* 카테고리 뱃지 */
+  .badge { display: inline-block; padding: .1rem .5rem; border-radius: 3px; font-size: .75rem; font-weight: 600; }
+  .badge-combat { background: rgba(255,107,107,.15); color: var(--red); }
+  .badge-defense { background: rgba(78,205,196,.15); color: var(--teal); }
+  .badge-move { background: rgba(149,232,110,.15); color: var(--green); }
+  .badge-reactive { background: rgba(255,217,61,.15); color: var(--yellow); }
+
+  /* 카드 */
+  .card { background: var(--card-bg); border-radius: 8px; padding: 1.3rem 1.5rem; margin-bottom: 1.2rem; border-left: 4px solid var(--border); }
+  .card-combat { border-left-color: var(--red); }
+  .card-defense { border-left-color: var(--teal); }
+  .card-move { border-left-color: var(--green); }
+  .card-reactive { border-left-color: var(--yellow); }
+  .card h3 { margin-top: 0; }
+  .card p { margin-bottom: .6rem; }
+  .card .flavor { color: var(--muted); font-style: italic; margin-bottom: .8rem; }
+
+  /* 수치 강조 */
+  .num { color: #7ec8e3; font-weight: 600; }
+  .key { color: #c9a0dc; font-weight: 600; }
+
+  /* 리스트 */
+  .card ul { padding-left: 1.2rem; margin-bottom: .6rem; }
+  .card li { margin-bottom: .3rem; }
+
+  /* 흐름도 */
+  .flow { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem; margin: .6rem 0; font-size: .85rem; }
+  .flow-step { background: #232736; padding: .3rem .7rem; border-radius: 4px; }
+  .flow-arrow { color: var(--muted); }
+
+  /* 상태 테이블 섹션 */
+  .state-table td:first-child { font-weight: 600; }
+
+  /* 반응형 */
+  @media (max-width: 640px) {
+    .wrap { padding: 1rem .7rem 3rem; }
+    table { font-size: .8rem; }
+    th, td { padding: .4rem .5rem; }
   }
-
-  .wrapper { max-width: 960px; margin: 0 auto; }
-
-  /* ── 헤더 ── */
-  .doc-header {
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 24px;
-    margin-bottom: 48px;
-  }
-  .doc-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
-  .doc-header .meta { color: var(--text-muted); font-size: 13px; margin-top: 8px; }
-  .doc-header .meta span { margin-right: 20px; }
-
-  /* ── 섹션 타이틀 ── */
-  .section { margin-bottom: 56px; }
-  .section-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border);
-  }
-  .section-title .badge {
-    display: inline-block;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 4px;
-    margin-left: 10px;
-    vertical-align: middle;
-  }
-
-  /* ── 카드 ── */
-  .cards { display: grid; gap: 16px; }
-  .cards.two-col { grid-template-columns: 1fr 1fr; }
-  @media (max-width: 640px) { .cards.two-col { grid-template-columns: 1fr; } }
-
-  .card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  .card.combat  { border-left: 4px solid var(--combat);  }
-  .card.defense { border-left: 4px solid var(--defense); }
-  .card.move    { border-left: 4px solid var(--move);    }
-  .card.react   { border-left: 4px solid var(--react);   }
-
-  .card-head {
-    padding: 14px 18px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .card-head h3 { font-size: 15px; font-weight: 700; }
-  .cat-badge {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 2px 7px;
-    border-radius: 4px;
-    flex-shrink: 0;
-  }
-  .combat  .cat-badge { background: var(--combat-dim);  color: var(--combat);  }
-  .defense .cat-badge { background: var(--defense-dim); color: var(--defense); }
-  .move    .cat-badge { background: var(--move-dim);    color: var(--move);    }
-  .react   .cat-badge { background: var(--react-dim);   color: var(--react);   }
-
-  .card-body { padding: 16px 18px; }
-  .card-body p { color: var(--text-muted); margin-bottom: 14px; font-size: 13.5px; }
-  .card-body p:last-child { margin-bottom: 0; }
-
-  /* ── 상세 항목 ── */
-  .props { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; margin-top: 14px; }
-  .props .prop { display: flex; flex-direction: column; gap: 2px; }
-  .props .prop .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  .props .prop .val { font-size: 13px; font-weight: 600; }
-  .val.combat  { color: var(--combat);  }
-  .val.defense { color: var(--defense); }
-  .val.move    { color: var(--move);    }
-  .val.react   { color: var(--react);   }
-  .val.neutral { color: #aab4d0; }
-
-  strong { font-weight: 600; }
-  .hl-combat  { color: var(--combat);  font-weight: 600; }
-  .hl-defense { color: var(--defense); font-weight: 600; }
-  .hl-move    { color: var(--move);    font-weight: 600; }
-  .hl-react   { color: var(--react);   font-weight: 600; }
-  .hl-num     { color: #a8c8ff; font-weight: 600; }
-
-  /* ── 총괄표 ── */
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  thead tr { background: var(--bg-header); }
-  thead th { padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
-  tbody tr { border-bottom: 1px solid var(--border); }
-  tbody tr:last-child { border-bottom: none; }
-  tbody td { padding: 10px 14px; vertical-align: middle; }
-  tbody tr:hover { background: var(--bg-header); }
-  .dot {
-    display: inline-block; width: 8px; height: 8px;
-    border-radius: 50%; margin-right: 6px; vertical-align: middle;
-  }
-  .dot.combat  { background: var(--combat);  }
-  .dot.defense { background: var(--defense); }
-  .dot.move    { background: var(--move);    }
-  .dot.react   { background: var(--react);   }
-
-  /* ── 다이어그램 ── */
-  .diagram {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 32px 24px;
-    position: relative;
-  }
-  .diagram svg { width: 100%; display: block; }
-
-  /* ── 상태 태그 정리 ── */
-  .tag-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  @media (max-width: 640px) { .tag-grid { grid-template-columns: 1fr; } }
-
-  .tag-item {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px 16px;
-  }
-  .tag-item .tag-name {
-    font-size: 13px;
-    font-weight: 700;
-    margin-bottom: 6px;
-  }
-  .tag-item .tag-desc { font-size: 13px; color: var(--text-muted); }
-
-  /* ── 플로우 스텝 ── */
-  .flow { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
-  .flow-step {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  .step-num {
-    flex-shrink: 0;
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    background: var(--bg-header);
-    border: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--text-muted);
-  }
-  .step-text { font-size: 13px; padding-top: 2px; }
-
-  /* ── note ── */
-  .note {
-    background: rgba(255, 217, 61, 0.06);
-    border-left: 3px solid var(--react);
-    border-radius: 0 6px 6px 0;
-    padding: 10px 14px;
-    font-size: 13px;
-    color: var(--text-muted);
-    margin-top: 14px;
-  }
-  .note strong { color: var(--react); }
-
-  .separator { height: 1px; background: var(--border); margin: 28px 0; }
 </style>
 </head>
 <body>
-<div class="wrapper">
+<div class="wrap">
 
-  <!-- ── 헤더 ── -->
-  <header class="doc-header">
-    <h1>어빌리티 가이드</h1>
-    <div class="meta">
-      <span>프로젝트: <strong>ProjectWX</strong></span>
-      <span>생성일: <strong>2026-03-28</strong></span>
-      <span>대상: 게임 기획자</span>
-    </div>
-  </header>
+<h1>어빌리티 가이드</h1>
+<p class="date">문서 생성일: 2026-04-06</p>
 
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<h2>1. 어빌리티 총괄표</h2>
 
-  <!-- ════════════════════════════════════════════
-       1. 어빌리티 총괄표
-  ════════════════════════════════════════════ -->
-  <section class="section">
-    <h2 class="section-title">어빌리티 총괄표 <span class="badge" style="background:var(--bg-header);color:var(--text-muted)">플레이어 조작</span></h2>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>어빌리티</th>
-            <th>카테고리</th>
-            <th>입력 방식</th>
-            <th>MP 비용</th>
-            <th>쿨다운</th>
-            <th>한 줄 설명</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>일반 공격</strong></td>
-            <td><span class="dot combat"></span>전투</td>
-            <td>누르기</td>
-            <td>없음</td>
-            <td>있음</td>
-            <td>콤보 애니메이션을 순서대로 이어서 공격한다</td>
-          </tr>
-          <tr>
-            <td><strong>스킬</strong></td>
-            <td><span class="dot combat"></span>전투</td>
-            <td>누르기</td>
-            <td>있음</td>
-            <td>있음</td>
-            <td>단일 스킬 애니메이션을 재생하고 종료된다</td>
-          </tr>
-          <tr>
-            <td><strong>궁극기</strong></td>
-            <td><span class="dot combat"></span>전투</td>
-            <td>누르기</td>
-            <td><span class="hl-num">100</span></td>
-            <td>있음</td>
-            <td>컷씬 재생 후 강력한 공격 애니메이션을 수행한다</td>
-          </tr>
-          <tr>
-            <td><strong>가드</strong></td>
-            <td><span class="dot defense"></span>방어</td>
-            <td>홀드</td>
-            <td>없음</td>
-            <td>있음</td>
-            <td>버튼을 누르는 동안 방어 판정 구간이 유지된다</td>
-          </tr>
-          <tr>
-            <td><strong>회피</strong></td>
-            <td><span class="dot defense"></span>방어</td>
-            <td>누르기</td>
-            <td>없음</td>
-            <td>있음</td>
-            <td>이동 방향으로 구르며 무적 구간이 적용된다</td>
-          </tr>
-          <tr>
-            <td><strong>질주</strong></td>
-            <td><span class="dot move"></span>이동</td>
-            <td>홀드</td>
-            <td>없음</td>
-            <td>없음</td>
-            <td>버튼을 누르는 동안 이동 속도가 빨라진다</td>
-          </tr>
-          <tr>
-            <td><strong>점프</strong></td>
-            <td><span class="dot move"></span>이동</td>
-            <td>누르기</td>
-            <td>없음</td>
-            <td>있음</td>
-            <td>캐릭터가 점프한다. 이미 공중이면 사용 불가</td>
-          </tr>
-          <tr>
-            <td><strong>락온</strong></td>
-            <td><span class="dot move"></span>이동</td>
-            <td>토글</td>
-            <td>없음</td>
-            <td>없음</td>
-            <td>적을 고정하고 카메라가 타겟을 추적한다</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+<h3>조작 어빌리티</h3>
+<table>
+<thead>
+<tr><th>이름</th><th>카테고리</th><th>입력 방식</th><th>MP / UP 비용</th><th>쿨다운</th><th>설명</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td>일반 공격</td>
+  <td><span class="badge badge-combat">전투</span></td>
+  <td>누르기 (약/강)</td>
+  <td>—</td>
+  <td>—</td>
+  <td>약·강공격 조합으로 다양한 콤보를 이어가는 기본 공격</td>
+</tr>
+<tr>
+  <td>스킬</td>
+  <td><span class="badge badge-combat">전투</span></td>
+  <td>누르기</td>
+  <td>MP (설정값)</td>
+  <td>설정값 (충전식)</td>
+  <td>MP를 소모하여 강력한 단일 기술을 발동한다</td>
+</tr>
+<tr>
+  <td>궁극기</td>
+  <td><span class="badge badge-combat">전투</span></td>
+  <td>누르기</td>
+  <td>UP <span class="num">100</span></td>
+  <td>설정값</td>
+  <td>UP를 전부 소모하여 컷씬과 함께 강력한 일격을 가한다</td>
+</tr>
+<tr>
+  <td>가드</td>
+  <td><span class="badge badge-defense">방어</span></td>
+  <td>홀드</td>
+  <td>—</td>
+  <td>설정값</td>
+  <td>버튼을 누르고 있는 동안 방어 자세를 유지한다</td>
+</tr>
+<tr>
+  <td>회피</td>
+  <td><span class="badge badge-defense">방어</span></td>
+  <td>누르기</td>
+  <td>—</td>
+  <td><span class="num">2</span>초 (최대 <span class="num">2</span>회 충전)</td>
+  <td>입력 방향으로 빠르게 구르며, 무적 구간이 존재한다</td>
+</tr>
+<tr>
+  <td>질주</td>
+  <td><span class="badge badge-move">이동</span></td>
+  <td>홀드</td>
+  <td>—</td>
+  <td>—</td>
+  <td>버튼을 누르고 있는 동안 이동 속도가 증가한다</td>
+</tr>
+<tr>
+  <td>점프</td>
+  <td><span class="badge badge-move">이동</span></td>
+  <td>누르기</td>
+  <td>—</td>
+  <td>설정값</td>
+  <td>캐릭터가 점프한다</td>
+</tr>
+<tr>
+  <td>락온</td>
+  <td><span class="badge badge-move">이동</span></td>
+  <td>토글</td>
+  <td>—</td>
+  <td>—</td>
+  <td>카메라가 가장 가까운 적을 추적한다</td>
+</tr>
+</tbody>
+</table>
 
-    <div style="margin-top: 28px;">
-      <h3 style="font-size:15px; font-weight:700; margin-bottom:14px; color:var(--text-muted)">자동 발동 어빌리티 (플레이어 직접 조작 없음)</h3>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>어빌리티</th>
-              <th>카테고리</th>
-              <th>발동 조건</th>
-              <th>한 줄 설명</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>피격 반응</strong></td>
-              <td><span class="dot react"></span>반응</td>
-              <td>피격 이벤트 수신 시</td>
-              <td>가드 여부에 따라 다른 피격 애니메이션을 재생한다</td>
-            </tr>
-            <tr>
-              <td><strong>그로기</strong></td>
-              <td><span class="dot react"></span>반응</td>
-              <td>DP가 최대치에 도달 시</td>
-              <td>기절 상태로 전환되어 일정 시간 행동 불능이 된다</td>
-            </tr>
-            <tr>
-              <td><strong>사망</strong></td>
-              <td><span class="dot react"></span>반응</td>
-              <td>HP가 0이 될 때</td>
-              <td>사망 애니메이션 재생 후 래그돌 상태로 전환된다</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
+<h3>반응형 어빌리티 (자동 발동)</h3>
+<table>
+<thead>
+<tr><th>이름</th><th>카테고리</th><th>발동 조건</th><th>설명</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td>피격 반응</td>
+  <td><span class="badge badge-reactive">반응형</span></td>
+  <td>경직 게이지(PP) 소진 후 피격</td>
+  <td>피격 애니메이션을 재생한다</td>
+</tr>
+<tr>
+  <td>그로기</td>
+  <td><span class="badge badge-reactive">반응형</span></td>
+  <td>DP가 최대치에 도달</td>
+  <td>일정 시간 기절 상태에 빠진다</td>
+</tr>
+<tr>
+  <td>사망</td>
+  <td><span class="badge badge-reactive">반응형</span></td>
+  <td>HP가 0에 도달</td>
+  <td>모든 행동을 중단하고 사망 연출을 진행한다</td>
+</tr>
+</tbody>
+</table>
 
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<h2>2. 전투 어빌리티</h2>
 
-  <!-- ════════════════════════════════════════════
-       2. 전투 어빌리티 상세
-  ════════════════════════════════════════════ -->
-  <section class="section">
-    <h2 class="section-title">전투 어빌리티 상세</h2>
-    <div class="cards">
+<!-- 일반 공격 -->
+<div class="card card-combat">
+<h3>일반 공격</h3>
+<p class="flavor">약공격과 강공격을 조합하여 다양한 콤보를 이어가는 기본 전투 수단이다. 콤보 경로에 따라 재생되는 애니메이션이 달라진다.</p>
 
-      <!-- 일반 공격 -->
-      <div class="card combat">
-        <div class="card-head">
-          <h3>일반 공격</h3>
-          <span class="cat-badge">전투</span>
-        </div>
-        <div class="card-body">
-          <p>
-            버튼을 누를 때마다 애니메이션을 하나씩 이어서 실행하는 콤보 공격이다.
-            최대 콤보 수는 에셋에서 설정한 콤보 애니메이션 배열 수에 따라 결정되며,
-            마지막 단계까지 이어지거나 콤보 타이밍을 놓치면 어빌리티가 종료된다.
-          </p>
-          <div class="flow">
-            <div class="flow-step">
-              <div class="step-num">1</div>
-              <div class="step-text">공격 버튼을 누르면 첫 번째 콤보 애니메이션이 재생된다.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">2</div>
-              <div class="step-text"><span class="hl-combat">콤보 입력 구간</span>이 열리는 타이밍에 공격 버튼을 다시 누르면 다음 콤보 애니메이션으로 전환된다.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">3</div>
-              <div class="step-text">콤보 입력 구간에 입력하지 않거나 마지막 콤보 애니메이션이 끝나면 공격 어빌리티가 종료된다.</div>
-            </div>
-          </div>
-          <div class="props">
-            <div class="prop"><span class="label">입력</span><span class="val combat">누르기</span></div>
-            <div class="prop"><span class="label">MP 비용</span><span class="val neutral">없음</span></div>
-            <div class="prop"><span class="label">콤보 연결 조건</span><span class="val neutral">콤보 입력 구간 내 재입력</span></div>
-            <div class="prop"><span class="label">사용 불가 상황</span><span class="val neutral">사망 상태</span></div>
-          </div>
-          <div class="note">
-            <strong>콤보 입력 구간</strong>: 각 콤보 애니메이션 내에 설정된 특정 타이밍 구간이다.
-            이 구간 안에서만 다음 콤보 입력이 수락된다. 구간을 벗어나면 입력이 무시된다.
-          </div>
-        </div>
-      </div>
+<p><strong>입력 방식</strong> — 약공격 또는 강공격 버튼을 눌러 발동한다.</p>
 
-      <!-- 스킬 -->
-      <div class="card combat">
-        <div class="card-head">
-          <h3>스킬</h3>
-          <span class="cat-badge">전투</span>
-        </div>
-        <div class="card-body">
-          <p>
-            단일 스킬 애니메이션을 한 번 재생하는 어빌리티다.
-            MP 비용과 쿨다운이 있으며, 에셋별로 다르게 설정된다.
-            애니메이션이 정상 완료되거나 외부 요인으로 중단되면 종료된다.
-          </p>
-          <div class="flow">
-            <div class="flow-step">
-              <div class="step-num">1</div>
-              <div class="step-text">스킬 버튼을 누르면 MP 비용과 쿨다운 조건을 확인한다.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">2</div>
-              <div class="step-text">조건이 충족되면 스킬 애니메이션이 재생된다.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">3</div>
-              <div class="step-text">애니메이션이 끝나거나 중단되면 스킬이 종료된다.</div>
-            </div>
-          </div>
-          <div class="props">
-            <div class="prop"><span class="label">입력</span><span class="val combat">누르기</span></div>
-            <div class="prop"><span class="label">MP 비용</span><span class="val neutral">에셋별 설정</span></div>
-            <div class="prop"><span class="label">쿨다운</span><span class="val neutral">에셋별 설정</span></div>
-            <div class="prop"><span class="label">사용 불가 상황</span><span class="val neutral">사망 상태</span></div>
-          </div>
-        </div>
-      </div>
+<p><strong>사용 흐름</strong></p>
+<div class="flow">
+  <span class="flow-step">약/강 입력</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">첫 번째 공격 애니메이션 재생</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">콤보 연결 구간 내 재입력</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">다음 콤보 애니메이션 재생</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">콤보 종료 또는 미입력 시 종료</span>
+</div>
 
-      <!-- 궁극기 -->
-      <div class="card combat">
-        <div class="card-head">
-          <h3>궁극기</h3>
-          <span class="cat-badge">전투</span>
-        </div>
-        <div class="card-body">
-          <p>
-            MP를 <span class="hl-num">100</span> 소모하여 발동하는 강력한 어빌리티다.
-            발동 즉시 컷씬이 재생되고, 컷씬이 끝나면 강력한 공격 애니메이션을 수행한다.
-            컷씬 재생 중에는 게임 월드가 거의 정지되며, 캐릭터는 무적 상태가 유지된다.
-          </p>
-          <div class="flow">
-            <div class="flow-step">
-              <div class="step-num">1</div>
-              <div class="step-text">궁극기 버튼을 누르면 MP <span class="hl-num">100</span>과 쿨다운 조건을 확인한다.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">2</div>
-              <div class="step-text">조건 충족 시 <span class="hl-combat">컷씬 연출</span>이 시작된다. 이 동안 게임 시간이 거의 멈추고 (<span class="hl-num">0.001배</span>) 캐릭터는 무적이다.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">3</div>
-              <div class="step-text">컷씬이 끝나면 궁극기 공격 애니메이션이 재생된다.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">4</div>
-              <div class="step-text">공격 애니메이션이 완료되면 어빌리티가 종료된다.</div>
-            </div>
-          </div>
-          <div class="props">
-            <div class="prop"><span class="label">입력</span><span class="val combat">누르기</span></div>
-            <div class="prop"><span class="label">MP 비용</span><span class="val combat">100</span></div>
-            <div class="prop"><span class="label">쿨다운</span><span class="val neutral">있음 (에셋 설정)</span></div>
-            <div class="prop"><span class="label">시간 왜곡</span><span class="val combat">배속 0.001× (컷씬 구간)</span></div>
-            <div class="prop"><span class="label">무적</span><span class="val combat">컷씬 전체 구간</span></div>
-            <div class="prop"><span class="label">사용 불가</span><span class="val neutral">사망, 그로기 상태</span></div>
-          </div>
-          <div class="note">
-            <strong>컷씬 없이 구성할 경우</strong>: 컷씬 에셋이 없으면 컷씬 단계를 건너뛰고 바로 공격 애니메이션으로 진행한다.
-          </div>
-        </div>
-      </div>
+<p><strong>콤보 시스템</strong></p>
+<ul>
+  <li>공격할 때마다 <span class="key">약(L)</span> 또는 <span class="key">강(H)</span>이 콤보 경로에 추가된다.</li>
+  <li>콤보 연결 구간 내에 입력해야 다음 콤보로 이어진다. 구간 밖이면 무시된다.</li>
+  <li>등록된 콤보 경로에 매칭되는 애니메이션이 없으면 콤보가 종료된다.</li>
+  <li>예시: L → LL → LLL, L → LH → LLH, H 등 다양한 분기 가능</li>
+</ul>
 
-    </div>
-  </section>
+<p><strong>자원 회복</strong> — 공격이 적에게 적중할 때마다 MP를 <span class="num">5</span> 회복한다.</p>
 
+<p><strong>사용 불가 조건</strong> — 사망 상태, 또는 이미 공격 중일 때 발동할 수 없다.</p>
+</div>
 
-  <!-- ════════════════════════════════════════════
-       3. 방어 어빌리티 상세
-  ════════════════════════════════════════════ -->
-  <section class="section">
-    <h2 class="section-title">방어 어빌리티 상세</h2>
-    <div class="cards">
+<!-- 스킬 -->
+<div class="card card-combat">
+<h3>스킬</h3>
+<p class="flavor">MP를 소모하여 강력한 기술을 발동한다. 충전 시스템을 지원하여, 충전이 남아 있으면 쿨다운 중에도 사용할 수 있다.</p>
 
-      <!-- 가드 -->
-      <div class="card defense">
-        <div class="card-head">
-          <h3>가드</h3>
-          <span class="cat-badge">방어</span>
-        </div>
-        <div class="card-body">
-          <p>
-            버튼을 누르고 있는 동안 방어 자세를 유지하는 어빌리티다.
-            가드 중에 공격을 받으면 피해가 크게 줄어들며,
-            타이밍에 맞춰 가드하면 <span class="hl-defense">퍼펙트 가드</span>로 피해를 완전히 막고
-            공격자에게 DP를 되돌려줄 수 있다.
-          </p>
-          <div class="flow">
-            <div class="flow-step">
-              <div class="step-num">1</div>
-              <div class="step-text">가드 버튼을 누르면 방어 애니메이션이 재생되고 <span class="hl-defense">방어 판정 구간</span>이 활성화된다.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">2</div>
-              <div class="step-text">방어 판정 구간에서 공격을 받으면 피해가 <span class="hl-num">50%</span> 감소한다.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">3</div>
-              <div class="step-text"><span class="hl-defense">퍼펙트 가드 판정 구간</span>에서 공격을 받으면 피해가 완전히 무효화되고, 공격자에게 DP를 반사한다.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">4</div>
-              <div class="step-text">버튼을 놓으면 가드가 즉시 해제된다.</div>
-            </div>
-          </div>
-          <div class="props">
-            <div class="prop"><span class="label">입력</span><span class="val defense">홀드 (놓으면 해제)</span></div>
-            <div class="prop"><span class="label">MP 비용</span><span class="val neutral">없음</span></div>
-            <div class="prop"><span class="label">쿨다운</span><span class="val neutral">있음 (에셋 설정)</span></div>
-            <div class="prop"><span class="label">가드 시 피해 감소</span><span class="val defense">50%</span></div>
-            <div class="prop"><span class="label">퍼펙트 가드 효과</span><span class="val defense">피해 완전 무효</span></div>
-            <div class="prop"><span class="label">퍼펙트 가드 DP 반사</span><span class="val defense">ATK × (100 ÷ (100 + DEF))</span></div>
-            <div class="prop"><span class="label">사용 불가 상황</span><span class="val neutral">사망 상태</span></div>
-            <div class="prop"><span class="label">발동 시 취소 대상</span><span class="val neutral">진행 중인 모든 어빌리티</span></div>
-          </div>
-          <div class="note">
-            <strong>방어 판정 구간 vs 퍼펙트 가드 판정 구간</strong>: 두 구간은 가드 애니메이션 내 특정 타이밍에 설정된다.
-            방어 판정 구간은 가드 유지 전체에 걸쳐 넓게 열리고,
-            퍼펙트 가드 판정 구간은 그 안에 더 좁은 타이밍으로 배치된다.
-            퍼펙트 가드 반사 DP 공식: ATK × (100 ÷ (100 + DEF)) — 공격자의 ATK가 높을수록 반사량이 크다.
-          </div>
-        </div>
-      </div>
+<p><strong>입력 방식</strong> — 스킬 버튼을 눌러 발동한다.</p>
 
-      <!-- 회피 -->
-      <div class="card defense">
-        <div class="card-head">
-          <h3>회피</h3>
-          <span class="cat-badge">방어</span>
-        </div>
-        <div class="card-body">
-          <p>
-            이동 방향으로 구르며 피해를 피하는 어빌리티다.
-            구르는 애니메이션의 특정 구간 동안 <span class="hl-defense">무적</span>이 적용되어
-            그 시간 안에 공격을 받아도 피해가 전혀 없다.
-          </p>
-          <div class="flow">
-            <div class="flow-step">
-              <div class="step-num">1</div>
-              <div class="step-text">회피 버튼을 누르면 이동 입력 방향으로 캐릭터가 회전한다.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">2</div>
-              <div class="step-text">회피 애니메이션이 재생되며, <span class="hl-defense">무적 구간</span> 동안은 모든 피격 판정이 무시된다.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">3</div>
-              <div class="step-text">애니메이션이 끝나거나 중단되면 회피가 종료된다.</div>
-            </div>
-          </div>
-          <div class="props">
-            <div class="prop"><span class="label">입력</span><span class="val defense">누르기</span></div>
-            <div class="prop"><span class="label">MP 비용</span><span class="val neutral">없음</span></div>
-            <div class="prop"><span class="label">쿨다운</span><span class="val neutral">있음 (에셋 설정)</span></div>
-            <div class="prop"><span class="label">무적 구간</span><span class="val defense">애니메이션 내 설정 구간</span></div>
-            <div class="prop"><span class="label">회전 방향</span><span class="val neutral">이동 입력 방향</span></div>
-            <div class="prop"><span class="label">사용 불가 상황</span><span class="val neutral">사망 상태</span></div>
-          </div>
-          <div class="note">
-            <strong>무적 구간</strong>: 회피 애니메이션 내부에 설정된 특정 프레임 범위다.
-            이 구간에서는 피격 이벤트 자체가 차단되어 피격 반응 애니메이션도 발동하지 않는다.
-          </div>
-        </div>
-      </div>
+<p><strong>사용 흐름</strong></p>
+<div class="flow">
+  <span class="flow-step">스킬 입력</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">MP 소모 + 충전 1회 소모</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">스킬 애니메이션 재생</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">애니메이션 완료 시 종료</span>
+</div>
 
-    </div>
-  </section>
+<p><strong>비용</strong> — MP 소모량은 스킬마다 다르게 설정된다.</p>
 
+<p><strong>충전 시스템</strong></p>
+<ul>
+  <li>최대 충전 횟수가 2회 이상인 스킬은 충전 방식으로 동작한다.</li>
+  <li>사용할 때마다 충전이 1 감소하고, 쿨다운이 만료될 때마다 충전이 1 회복된다.</li>
+  <li>충전이 남아 있으면 쿨다운 진행 중에도 사용 가능하다.</li>
+  <li>충전이 최대치 미만이면 쿨다운이 자동으로 반복 적용되어 순차적으로 재충전된다.</li>
+</ul>
 
-  <!-- ════════════════════════════════════════════
-       4. 이동 어빌리티 상세
-  ════════════════════════════════════════════ -->
-  <section class="section">
-    <h2 class="section-title">이동 어빌리티 상세</h2>
-    <div class="cards">
+<p><strong>자원 회복</strong> — 적에게 적중할 때마다 UP를 <span class="num">5</span> 회복한다.</p>
 
-      <!-- 질주 -->
-      <div class="card move">
-        <div class="card-head">
-          <h3>질주</h3>
-          <span class="cat-badge">이동</span>
-        </div>
-        <div class="card-body">
-          <p>
-            버튼을 누르는 동안 이동 속도를 높이는 어빌리티다.
-            버튼을 놓으면 속도 보너스가 즉시 제거된다.
-          </p>
-          <div class="props">
-            <div class="prop"><span class="label">입력</span><span class="val move">홀드 (놓으면 해제)</span></div>
-            <div class="prop"><span class="label">속도 보너스</span><span class="val move">+0.5</span></div>
-            <div class="prop"><span class="label">MP 비용</span><span class="val neutral">없음</span></div>
-            <div class="prop"><span class="label">쿨다운</span><span class="val neutral">없음</span></div>
-            <div class="prop"><span class="label">사용 불가 상황</span><span class="val neutral">사망 상태</span></div>
-          </div>
-        </div>
-      </div>
+<p><strong>사용 불가 조건</strong> — 사망 상태이거나 MP가 부족하면 발동할 수 없다.</p>
+</div>
 
-      <!-- 점프 -->
-      <div class="card move">
-        <div class="card-head">
-          <h3>점프</h3>
-          <span class="cat-badge">이동</span>
-        </div>
-        <div class="card-body">
-          <p>
-            캐릭터를 위로 도약시키는 어빌리티다.
-            지면에 있을 때만 사용할 수 있으며, 이미 공중에 있으면 발동되지 않는다.
-            버튼을 놓으면 점프가 조기 종료된다.
-          </p>
-          <div class="props">
-            <div class="prop"><span class="label">입력</span><span class="val move">누르기 (놓으면 하강)</span></div>
-            <div class="prop"><span class="label">MP 비용</span><span class="val neutral">없음</span></div>
-            <div class="prop"><span class="label">쿨다운</span><span class="val neutral">있음 (에셋 설정)</span></div>
-            <div class="prop"><span class="label">사용 불가 상황</span><span class="val neutral">사망 상태, 공중</span></div>
-          </div>
-          <div class="note">
-            <strong>점프 가능 조건</strong>: 엔진의 캐릭터 이동 컴포넌트가 "점프 가능" 상태일 때만 발동된다.
-            공중에서는 점프할 수 없다.
-          </div>
-        </div>
-      </div>
+<!-- 궁극기 -->
+<div class="card card-combat">
+<h3>궁극기</h3>
+<p class="flavor">UP를 전부 소모하여 컷씬 연출과 함께 강력한 일격을 가한다. 컷씬 동안 게임 월드의 시간이 거의 정지하며, 캐릭터는 무적 상태가 된다.</p>
 
-      <!-- 락온 -->
-      <div class="card move">
-        <div class="card-head">
-          <h3>락온</h3>
-          <span class="cat-badge">이동</span>
-        </div>
-        <div class="card-body">
-          <p>
-            적을 고정하고 카메라가 해당 적을 계속 추적하게 만드는 토글 어빌리티다.
-            락온 중에는 카메라가 타겟을 향하지만 캐릭터 몸통 방향은 이동 입력에 따라 자유롭게 움직인다.
-            타겟이 사망하거나 너무 멀어지면 자동으로 해제된다.
-          </p>
-          <div class="flow">
-            <div class="flow-step">
-              <div class="step-num">1</div>
-              <div class="step-text">락온 버튼을 누르면 주변 적을 탐색하여 가장 가까운 적을 타겟으로 설정한다.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">2</div>
-              <div class="step-text">타겟이 발견되면 카메라가 보간 속도 <span class="hl-num">8</span>로 타겟을 향하며, 조준점 UI가 표시된다. 카메라는 아래로 <span class="hl-num">15°</span> 기울어진 각도를 유지한다.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">3</div>
-              <div class="step-text">락온 버튼을 다시 누르거나 타겟이 소멸/이탈하면 락온이 해제된다.</div>
-            </div>
-          </div>
-          <div class="props">
-            <div class="prop"><span class="label">입력</span><span class="val move">토글 (재입력으로 해제)</span></div>
-            <div class="prop"><span class="label">최대 탐색 거리</span><span class="val move">2000</span></div>
-            <div class="prop"><span class="label">카메라 보간 속도</span><span class="val move">8</span></div>
-            <div class="prop"><span class="label">카메라 피치 오프셋</span><span class="val move">−15°</span></div>
-            <div class="prop"><span class="label">자동 해제 조건</span><span class="val neutral">타겟 소멸 또는 최대 거리 초과</span></div>
-            <div class="prop"><span class="label">사용 불가 상황</span><span class="val neutral">사망 상태</span></div>
-          </div>
-          <div class="note">
-            <strong>다른 어빌리티와의 공존</strong>: 락온은 공격, 가드, 회피 등 다른 어빌리티와 함께 유지된다.
-            전투 어빌리티가 발동되어도 락온이 해제되지 않는다.
-          </div>
-        </div>
-      </div>
+<p><strong>입력 방식</strong> — 궁극기 버튼을 눌러 발동한다.</p>
 
-    </div>
-  </section>
+<p><strong>사용 흐름</strong></p>
+<div class="flow">
+  <span class="flow-step">궁극기 입력</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">UP 소모</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">컷씬 재생 (시간 왜곡 <span class="num">0.001</span>배속)</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">공격 애니메이션 재생</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">종료</span>
+</div>
 
+<p><strong>비용</strong> — UP <span class="num">100</span>을 소모한다. (기본값, 서브클래스에서 변경 가능)</p>
 
-  <!-- ════════════════════════════════════════════
-       5. 반응형 어빌리티 상세
-  ════════════════════════════════════════════ -->
-  <section class="section">
-    <h2 class="section-title">반응형 어빌리티 상세 <span class="badge" style="background:var(--react-dim);color:var(--react)">자동 발동</span></h2>
-    <p style="color:var(--text-muted); font-size:13.5px; margin-bottom:20px;">
-      아래 어빌리티들은 플레이어가 직접 입력해서 사용하는 것이 아니라,
-      <strong>특정 게임 상황이 되면 시스템이 자동으로 발동</strong>시킨다.
-    </p>
-    <div class="cards">
+<p><strong>컷씬 연출</strong></p>
+<ul>
+  <li>컷씬이 설정된 경우, 레벨 시퀀스로 연출을 재생한다.</li>
+  <li>컷씬 동안 게임 월드의 시간이 <span class="num">0.001</span>배속으로 거의 정지한다.</li>
+  <li>컷씬이 없으면 바로 공격 애니메이션으로 진행한다.</li>
+</ul>
 
-      <!-- 피격 반응 -->
-      <div class="card react">
-        <div class="card-head">
-          <h3>피격 반응</h3>
-          <span class="cat-badge">반응</span>
-        </div>
-        <div class="card-body">
-          <p>
-            공격을 받았을 때 자동으로 발동되어 피격 애니메이션을 재생하는 어빌리티다.
-            가드 중에 피격되었는지 아닌지에 따라 서로 다른 애니메이션이 재생된다.
-          </p>
-          <div class="flow">
-            <div class="flow-step">
-              <div class="step-num">1</div>
-              <div class="step-text">피격 이벤트가 발생하면 자동으로 피격 반응이 발동된다.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">2</div>
-              <div class="step-text"><span class="hl-defense">방어 판정 구간</span>이 활성화된 상태로 피격되면 → <span class="hl-defense">가드 피격 애니메이션</span> 재생.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">3</div>
-              <div class="step-text">방어 판정 구간이 없는 일반 피격이면 → <span class="hl-react">일반 피격 애니메이션</span> 재생.</div>
-            </div>
-          </div>
-          <div class="props">
-            <div class="prop"><span class="label">발동 조건</span><span class="val react">피격 이벤트 수신</span></div>
-            <div class="prop"><span class="label">차단 조건</span><span class="val neutral">사망 상태, 무적 구간 활성</span></div>
-            <div class="prop"><span class="label">재발동</span><span class="val neutral">가능 (피격 중 추가 피격 처리)</span></div>
-          </div>
-          <div class="note">
-            <strong>퍼펙트 가드 시에도 발동</strong>: 퍼펙트 가드로 피해를 완전히 막아도 가드 피격 반응 애니메이션은 재생된다.
-          </div>
-        </div>
-      </div>
+<p><strong>사용 불가 조건</strong> — 사망, 그로기 상태이거나 UP가 부족하면 발동할 수 없다.</p>
+</div>
 
-      <!-- 그로기 -->
-      <div class="card react">
-        <div class="card-head">
-          <h3>그로기</h3>
-          <span class="cat-badge">반응</span>
-        </div>
-        <div class="card-body">
-          <p>
-            DP(기절 게이지)가 최대치에 도달하면 발동되는 기절 상태 어빌리티다.
-            그로기 상태 동안에는 거의 모든 행동이 불가능하며,
-            DP가 서서히 소진되어 <span class="hl-num">0</span>이 되면 자동으로 해제된다.
-          </p>
-          <div class="flow">
-            <div class="flow-step">
-              <div class="step-num">1</div>
-              <div class="step-text">DP가 최대치에 도달하면 그로기 상태가 자동으로 부여된다.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">2</div>
-              <div class="step-text">그로기 애니메이션이 재생되고 진행 중인 모든 어빌리티가 취소된다.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">3</div>
-              <div class="step-text">매 틱마다 DP가 소진된다. 소진 속도: <span class="hl-num">MaxDP ÷ 5초</span>.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">4</div>
-              <div class="step-text">DP가 <span class="hl-num">0</span>이 되면 그로기 상태가 해제되고 어빌리티가 종료된다.</div>
-            </div>
-          </div>
-          <div class="props">
-            <div class="prop"><span class="label">발동 조건</span><span class="val react">DP = MaxDP</span></div>
-            <div class="prop"><span class="label">지속 시간</span><span class="val react">5초 (DP 완전 소진까지)</span></div>
-            <div class="prop"><span class="label">DP 소진 속도</span><span class="val react">MaxDP ÷ 5초</span></div>
-            <div class="prop"><span class="label">행동 제한</span><span class="val neutral">모든 어빌리티 차단</span></div>
-            <div class="prop"><span class="label">차단 조건</span><span class="val neutral">사망 상태</span></div>
-            <div class="prop"><span class="label">그로기 중 DP 누적</span><span class="val neutral">불가 (DP 증가 없음)</span></div>
-          </div>
-          <div class="note">
-            <strong>그로기 중 피격 반응</strong>: 그로기 상태에서 공격을 받으면 피격 반응 애니메이션이 재생될 수 있다.
-            피격 반응 애니메이션이 끝나면 그로기 애니메이션이 다시 재생된다.
-          </div>
-        </div>
-      </div>
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<h2>3. 방어 어빌리티</h2>
 
-      <!-- 사망 -->
-      <div class="card react">
-        <div class="card-head">
-          <h3>사망</h3>
-          <span class="cat-badge">반응</span>
-        </div>
-        <div class="card-body">
-          <p>
-            HP가 0이 되면 자동으로 발동되는 어빌리티다.
-            사망 애니메이션을 재생한 후 캐릭터가 래그돌 상태로 전환된다.
-            사망 이후에는 모든 어빌리티가 차단된다.
-          </p>
-          <div class="flow">
-            <div class="flow-step">
-              <div class="step-num">1</div>
-              <div class="step-text">HP가 0이 되면 사망 상태가 부여되고 진행 중인 모든 어빌리티가 즉시 취소된다.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">2A</div>
-              <div class="step-text"><span class="hl-react">사망 애니메이션이 설정된 경우</span>: 애니메이션을 재생하고 완료 후 래그돌로 전환된다.</div>
-            </div>
-            <div class="flow-step">
-              <div class="step-num">2B</div>
-              <div class="step-text"><span class="hl-react">사망 애니메이션이 없는 경우</span>: 즉시 래그돌 상태로 전환된다.</div>
-            </div>
-          </div>
-          <div class="props">
-            <div class="prop"><span class="label">발동 조건</span><span class="val react">HP = 0</span></div>
-            <div class="prop"><span class="label">발동 시 취소 대상</span><span class="val neutral">모든 어빌리티 (HitReact 포함)</span></div>
-            <div class="prop"><span class="label">사망 이후</span><span class="val neutral">모든 어빌리티 차단 유지</span></div>
-            <div class="prop"><span class="label">최종 상태</span><span class="val react">래그돌 (물리 기반 시뮬레이션)</span></div>
-          </div>
-        </div>
-      </div>
+<!-- 가드 -->
+<div class="card card-defense">
+<h3>가드</h3>
+<p class="flavor">버튼을 누르고 있는 동안 방어 자세를 취한다. 가드 중 피격 시 대미지가 절반으로 감소하며, 가드 시작 직후에는 퍼펙트 가드가 발동하여 대미지를 완전히 무효화한다.</p>
 
-    </div>
-  </section>
+<p><strong>입력 방식</strong> — 가드 버튼을 <strong>홀드</strong>하여 유지한다. 버튼을 놓으면 즉시 해제된다.</p>
 
+<p><strong>사용 흐름</strong></p>
+<div class="flow">
+  <span class="flow-step">가드 홀드</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">방어 자세 유지</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">피격 시 가드 피격 연출</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">방어 자세로 자동 복귀</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">버튼 릴리즈 시 종료</span>
+</div>
 
-  <!-- ════════════════════════════════════════════
-       6. 어빌리티 상호작용 다이어그램
-  ════════════════════════════════════════════ -->
-  <section class="section">
-    <h2 class="section-title">어빌리티 상호작용 다이어그램</h2>
-    <div class="diagram">
-      <svg viewBox="0 0 880 500" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI','Apple SD Gothic Neo',sans-serif">
-        <defs>
-          <marker id="arr-gray"   markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#8b8fa8"/></marker>
-          <marker id="arr-red"    markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#ff6b6b"/></marker>
-          <marker id="arr-teal"   markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#4ecdc4"/></marker>
-          <marker id="arr-yellow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#ffd93d"/></marker>
-          <marker id="arr-purple" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#9090f0"/></marker>
-        </defs>
+<p><strong>가드 판정</strong></p>
+<ul>
+  <li><strong>일반 가드</strong> — 받는 대미지가 <span class="num">50%</span> 감소한다. 감소된 대미지만큼 SP도 함께 차감된다.</li>
+  <li><strong>퍼펙트 가드</strong> — 가드 시작 직후 짧은 구간에서 발동. 대미지를 <strong>완전 무효화</strong>하고, 공격자에게 DP를 반사한다. 반사량은 <code>공격력 × 방어 계수</code>이다. 방어자는 MP를 <span class="num">5</span> 회복한다.</li>
+  <li><strong>가드 불가 공격</strong> — 가드 불가 속성이 붙은 공격은 가드와 퍼펙트 가드를 모두 무시하고 전체 대미지를 적용한다.</li>
+</ul>
 
-        <!-- ── 왼쪽 열: 플레이어 조작 어빌리티 ── -->
+<p><strong>가드 피격 시 PP 회복</strong> — 가드 상태에서 피격되면 PP가 최대치로 즉시 회복된다(그로기 중은 제외).</p>
 
-        <!-- 공격 그룹 배경 -->
-        <rect x="10" y="10" width="150" height="170" rx="8" fill="rgba(255,107,107,0.04)" stroke="rgba(255,107,107,0.2)" stroke-width="1" stroke-dasharray="3 3"/>
-        <text x="85" y="25" text-anchor="middle" fill="rgba(255,107,107,0.5)" font-size="10">공격</text>
-        <rect x="20" y="35" width="130" height="38" rx="6" fill="#1e1212" stroke="#ff6b6b" stroke-width="1.5"/>
-        <text x="85" y="59" text-anchor="middle" fill="#ff6b6b" font-size="12" font-weight="700">일반 공격 / 스킬</text>
-        <rect x="20" y="85" width="130" height="38" rx="6" fill="#1e1212" stroke="#ff6b6b" stroke-width="1.5"/>
-        <text x="85" y="100" text-anchor="middle" fill="#ff6b6b" font-size="12" font-weight="700">궁극기</text>
-        <text x="85" y="115" text-anchor="middle" fill="#8b8fa8" font-size="10">MP 100 소모</text>
-        <rect x="20" y="135" width="130" height="35" rx="6" fill="#1e1212" stroke="#ff6b6b" stroke-width="1.5"/>
-        <text x="85" y="157" text-anchor="middle" fill="#ff6b6b" font-size="12" font-weight="700">회피</text>
+<p><strong>사용 불가 조건</strong> — 사망 상태일 때 발동할 수 없다. 발동 시 다른 모든 어빌리티를 취소한다.</p>
+</div>
 
-        <!-- 가드 -->
-        <rect x="20" y="200" width="130" height="38" rx="6" fill="#0f1f1e" stroke="#4ecdc4" stroke-width="1.5"/>
-        <text x="85" y="218" text-anchor="middle" fill="#4ecdc4" font-size="12" font-weight="700">가드</text>
-        <text x="85" y="232" text-anchor="middle" fill="#8b8fa8" font-size="10">홀드 입력</text>
+<!-- 회피 -->
+<div class="card card-defense">
+<h3>회피</h3>
+<p class="flavor">입력 방향으로 빠르게 구르며 적의 공격을 피한다. 무적 구간에서 적의 공격을 회피하면 극한 회피가 발동하여 반격 기회가 주어진다.</p>
 
-        <!-- ── 오른쪽: DP 게이지 ── -->
-        <rect x="590" y="140" width="170" height="65" rx="8" fill="#15141f" stroke="#7070d0" stroke-width="1.5"/>
-        <text x="675" y="163" text-anchor="middle" fill="#9090f0" font-size="13" font-weight="700">DP 게이지</text>
-        <text x="675" y="180" text-anchor="middle" fill="#8b8fa8" font-size="10">누적: 피격 시 피해량만큼 증가</text>
-        <text x="675" y="194" text-anchor="middle" fill="#8b8fa8" font-size="10">소진: 그로기 중 자동 감소</text>
+<p><strong>입력 방식</strong> — 회피 버튼을 눌러 발동한다. 이동 입력 방향으로 구른다.</p>
 
-        <!-- HP -->
-        <rect x="590" y="350" width="170" height="50" rx="8" fill="#1a0f0f" stroke="#ff4444" stroke-width="1.5"/>
-        <text x="675" y="371" text-anchor="middle" fill="#ff4444" font-size="13" font-weight="700">HP</text>
-        <text x="675" y="389" text-anchor="middle" fill="#8b8fa8" font-size="10">피격 피해 누적</text>
+<p><strong>사용 흐름</strong></p>
+<div class="flow">
+  <span class="flow-step">회피 입력</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">이동 방향으로 구르기</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">무적 구간 중 피격 시 극한 회피</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">극한 회피 중 공격 입력 시 반격</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">종료</span>
+</div>
 
-        <!-- ── 중앙: 반응형 어빌리티 ── -->
-        <rect x="335" y="60" width="140" height="42" rx="6" fill="#1f1c0f" stroke="#ffd93d" stroke-width="1.5"/>
-        <text x="405" y="79" text-anchor="middle" fill="#ffd93d" font-size="12" font-weight="700">피격 반응</text>
-        <text x="405" y="94" text-anchor="middle" fill="#8b8fa8" font-size="10">자동 발동</text>
+<p><strong>충전 시스템</strong> — 최대 <span class="num">2</span>회 충전, 쿨다운 <span class="num">2</span>초마다 1회 재충전된다.</p>
 
-        <rect x="335" y="210" width="140" height="42" rx="6" fill="#1f1c0f" stroke="#ffd93d" stroke-width="1.5"/>
-        <text x="405" y="229" text-anchor="middle" fill="#ffd93d" font-size="12" font-weight="700">그로기</text>
-        <text x="405" y="244" text-anchor="middle" fill="#8b8fa8" font-size="10">DP 최대 시 자동 발동</text>
+<p><strong>극한 회피</strong></p>
+<ul>
+  <li>무적 구간에서 적의 공격이 감지되면 극한 회피가 자동 발동한다.</li>
+  <li>극한 회피 시 전용 애니메이션으로 전환되고, MP를 <span class="num">5</span> 회복한다.</li>
+  <li>극한 회피 애니메이션의 콤보 연결 구간 내에 공격 버튼을 누르면 <strong>반격</strong> 애니메이션이 발동한다.</li>
+</ul>
 
-        <rect x="335" y="360" width="140" height="42" rx="6" fill="#1f1c0f" stroke="#ffd93d" stroke-width="1.5"/>
-        <text x="405" y="379" text-anchor="middle" fill="#ffd93d" font-size="12" font-weight="700">사망</text>
-        <text x="405" y="394" text-anchor="middle" fill="#8b8fa8" font-size="10">HP 0 시 자동 발동</text>
+<p><strong>사용 불가 조건</strong> — 사망 상태일 때 발동할 수 없다. 발동 시 다른 모든 어빌리티를 취소한다.</p>
+</div>
 
-        <!-- ── 화살표 ── -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<h2>4. 이동 어빌리티</h2>
 
-        <!-- 공격 → 피격 반응 (대미지 → 이벤트) -->
-        <line x1="150" y1="54" x2="333" y2="80" stroke="#ff6b6b" stroke-width="1.3" marker-end="url(#arr-red)" stroke-dasharray="5 3"/>
-        <text x="247" y="60" text-anchor="middle" fill="#ff6b6b" font-size="10">피격 발생</text>
+<!-- 질주 -->
+<div class="card card-move">
+<h3>질주</h3>
+<p class="flavor">버튼을 누르고 있는 동안 이동 속도가 증가한다.</p>
 
-        <!-- 궁극기 → 피격 반응 -->
-        <line x1="150" y1="104" x2="333" y2="88" stroke="#ff6b6b" stroke-width="1.3" marker-end="url(#arr-red)" stroke-dasharray="5 3"/>
+<p><strong>입력 방식</strong> — 질주 버튼을 <strong>홀드</strong>하여 유지한다. 버튼을 놓으면 즉시 해제된다.</p>
 
-        <!-- 회피(무적) → 피격 반응 차단 -->
-        <line x1="150" y1="152" x2="333" y2="95" stroke="#4ecdc4" stroke-width="1.2" marker-end="url(#arr-teal)" stroke-dasharray="3 4"/>
-        <text x="230" y="118" text-anchor="middle" fill="#4ecdc4" font-size="10">무적 구간: 피격 무시</text>
+<p><strong>속도 보너스</strong> — 이동 속도가 <span class="num">+0.5</span> (기본 이동 속도 대비 50% 증가) 만큼 상승한다.</p>
 
-        <!-- 가드 → 피격 반응 (가드 피격) -->
-        <line x1="150" y1="220" x2="333" y2="95" stroke="#4ecdc4" stroke-width="1.3" marker-end="url(#arr-teal)"/>
-        <text x="220" y="165" text-anchor="middle" fill="#4ecdc4" font-size="10">가드 피격 반응</text>
-        <text x="220" y="178" text-anchor="middle" fill="#4ecdc4" font-size="10">피해 50% 감소</text>
+<p><strong>사용 불가 조건</strong> — 사망 상태일 때 발동할 수 없다.</p>
+</div>
 
-        <!-- 피격 반응 → DP 누적 -->
-        <line x1="475" y1="81" x2="588" y2="163" stroke="#8b8fa8" stroke-width="1.2" marker-end="url(#arr-gray)"/>
-        <text x="548" y="115" text-anchor="middle" fill="#8b8fa8" font-size="10">일반 피격 시 DP 누적</text>
+<!-- 점프 -->
+<div class="card card-move">
+<h3>점프</h3>
+<p class="flavor">캐릭터가 점프한다. 캐릭터가 점프 가능한 상태일 때만 사용할 수 있다.</p>
 
-        <!-- 가드 → 퍼펙트 가드 → DP 반사 (공격자에게) -->
-        <path d="M 85 200 Q 200 130 588 167" fill="none" stroke="#4ecdc4" stroke-width="1.3" marker-end="url(#arr-teal)" stroke-dasharray="5 3"/>
-        <text x="350" y="130" text-anchor="middle" fill="#4ecdc4" font-size="10">퍼펙트 가드: 공격자 DP에 반사</text>
+<p><strong>입력 방식</strong> — 점프 버튼을 눌러 발동한다. 버튼을 놓으면 점프를 중단한다.</p>
 
-        <!-- DP 게이지 → 그로기 -->
-        <line x1="635" y1="206" x2="477" y2="222" stroke="#ffd93d" stroke-width="1.5" marker-end="url(#arr-yellow)"/>
-        <text x="570" y="211" text-anchor="middle" fill="#ffd93d" font-size="10">MaxDP 도달 → 그로기</text>
+<p><strong>발동 조건</strong> — 캐릭터가 점프 가능한 상태(지상)여야 하며, 사망 상태가 아니어야 한다.</p>
+</div>
 
-        <!-- 그로기 → DP 소진 루프 -->
-        <path d="M 405 252 Q 405 295 600 295 Q 760 295 760 207" fill="none" stroke="#9090f0" stroke-width="1.2" marker-end="url(#arr-purple)" stroke-dasharray="4 3"/>
-        <text x="618" y="290" text-anchor="middle" fill="#8b8fa8" font-size="10">DP 소진 (5초)</text>
+<!-- 락온 -->
+<div class="card card-move">
+<h3>락온</h3>
+<p class="flavor">가장 가까운 적을 카메라가 지속적으로 추적한다. 다시 눌러 해제하거나, 대상이 사라지면 자동 해제된다.</p>
 
-        <!-- HP → 사망 -->
-        <line x1="635" y1="375" x2="477" y2="381" stroke="#ff4444" stroke-width="1.5" marker-end="url(#arr-red)"/>
-        <text x="570" y="368" text-anchor="middle" fill="#ff4444" font-size="10">HP = 0 → 사망</text>
+<p><strong>입력 방식</strong> — 락온 버튼을 눌러 <strong>토글</strong>한다. 활성 중 다시 누르면 해제된다.</p>
 
-        <!-- 피격 반응 → HP 감소 (인과) -->
-        <line x1="475" y1="100" x2="608" y2="350" stroke="#8b8fa8" stroke-width="1" marker-end="url(#arr-gray)" stroke-dasharray="3 4"/>
-        <text x="564" y="230" text-anchor="middle" fill="#8b8fa8" font-size="10">HP 감소</text>
+<p><strong>사용 흐름</strong></p>
+<div class="flow">
+  <span class="flow-step">락온 입력</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">가장 가까운 적 탐색</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">카메라 추적 시작 + 조준점 표시</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">재입력 또는 대상 소실 시 해제</span>
+</div>
 
-        <!-- 사망 → 모든 어빌리티 취소 -->
-        <line x1="335" y1="381" x2="154" y2="205" stroke="#ffd93d" stroke-width="1.5" marker-end="url(#arr-yellow)"/>
-        <text x="218" y="310" text-anchor="middle" fill="#ffd93d" font-size="10">모든 어빌리티 취소</text>
+<p><strong>카메라 설정</strong></p>
+<ul>
+  <li>카메라 보간 속도: <span class="num">8.0</span></li>
+  <li>카메라 피치 오프셋: <span class="num">-15°</span></li>
+  <li>최대 추적 거리: <span class="num">2000</span></li>
+</ul>
 
-        <!-- ── 범례 ── -->
-        <rect x="10" y="455" width="860" height="36" rx="4" fill="#1a1d27"/>
-        <line x1="25" y1="473" x2="50" y2="473" stroke="#ff6b6b" stroke-width="1.5" stroke-dasharray="4 3"/>
-        <text x="55" y="477" fill="#8b8fa8" font-size="10">공격/피격 발생</text>
-        <line x1="155" y1="473" x2="180" y2="473" stroke="#4ecdc4" stroke-width="1.5"/>
-        <text x="185" y="477" fill="#8b8fa8" font-size="10">방어 효과</text>
-        <line x1="260" y1="473" x2="285" y2="473" stroke="#ffd93d" stroke-width="1.5"/>
-        <text x="290" y="477" fill="#8b8fa8" font-size="10">상태 전환 / 자동 발동</text>
-        <line x1="430" y1="473" x2="455" y2="473" stroke="#9090f0" stroke-width="1.2" stroke-dasharray="4 3"/>
-        <text x="460" y="477" fill="#8b8fa8" font-size="10">DP 소진 루프</text>
-        <line x1="555" y1="473" x2="580" y2="473" stroke="#8b8fa8" stroke-width="1.2" stroke-dasharray="3 4"/>
-        <text x="585" y="477" fill="#8b8fa8" font-size="10">HP 감소 / 기타</text>
-      </svg>
-    </div>
+<p><strong>자동 해제 조건</strong> — 대상이 사망하거나, 최대 거리를 벗어나거나, 소멸하면 자동 해제된다.</p>
 
-    <div style="margin-top:20px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
-      <div class="tag-item">
-        <div class="tag-name" style="color:var(--combat)">공격 → 피격 반응</div>
-        <div class="tag-desc">공격이 적중하면 피격 이벤트가 발생하고, 피격 반응 어빌리티가 자동으로 발동된다.</div>
-      </div>
-      <div class="tag-item">
-        <div class="tag-name" style="color:var(--text)">피격 → DP 누적</div>
-        <div class="tag-desc">일반 피격 시 받은 피해만큼 DP가 누적된다. 그로기 상태에서는 DP가 더 이상 누적되지 않는다.</div>
-      </div>
-      <div class="tag-item">
-        <div class="tag-name" style="color:var(--react)">DP 최대 → 그로기</div>
-        <div class="tag-desc">DP가 최대치에 도달하면 그로기가 발동된다. 5초에 걸쳐 DP가 소진되면 그로기가 해제된다.</div>
-      </div>
-      <div class="tag-item">
-        <div class="tag-name" style="color:var(--defense)">가드 → 피해 감소</div>
-        <div class="tag-desc">방어 판정 구간에서 피격 시 피해가 50% 감소한다. 피격 반응 애니메이션은 가드용으로 교체된다.</div>
-      </div>
-      <div class="tag-item">
-        <div class="tag-name" style="color:var(--defense)">퍼펙트 가드 → DP 반사</div>
-        <div class="tag-desc">퍼펙트 가드 판정 구간에서 피격 시 피해가 완전히 무효화되고, 공격자의 DP 게이지에 피해가 반사된다.</div>
-      </div>
-      <div class="tag-item">
-        <div class="tag-name" style="color:var(--defense)">무적 → 피격 무시</div>
-        <div class="tag-desc">회피 중 무적 구간에서는 피격 이벤트 자체가 차단되어 DP 누적도, 피격 반응도 발동하지 않는다.</div>
-      </div>
-    </div>
-  </section>
+<p><strong>특수 사항</strong> — 락온은 다른 어빌리티(공격, 가드 등)에 의해 취소되지 않으며 공존한다. 캐릭터의 몸 방향은 이동 방향을 유지하고, 카메라만 대상을 추적한다.</p>
 
+<p><strong>사용 불가 조건</strong> — 사망 상태일 때 발동할 수 없다.</p>
+</div>
 
-  <!-- ════════════════════════════════════════════
-       7. 상태 및 판정 구간 정리
-  ════════════════════════════════════════════ -->
-  <section class="section">
-    <h2 class="section-title">상태 및 판정 구간 정리</h2>
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<h2>5. 반응형 어빌리티</h2>
+<p style="color:var(--muted); margin-bottom:1rem;">이 어빌리티들은 플레이어가 직접 발동하지 않으며, 게임 상황에 의해 자동 발동된다.</p>
 
-    <h3 style="font-size:14px; font-weight:700; color:var(--text-muted); margin-bottom:12px; margin-top:0;">게임 상태</h3>
-    <div class="tag-grid" style="margin-bottom:28px;">
-      <div class="tag-item">
-        <div class="tag-name" style="color:var(--react)">사망 상태</div>
-        <div class="tag-desc">HP가 0이 되면 진입하는 상태다. 이 상태에서는 모든 어빌리티(공격, 방어, 이동 등)가 차단된다. 부활 처리가 없으면 영구 유지된다.</div>
-      </div>
-      <div class="tag-item">
-        <div class="tag-name" style="color:var(--move)">공중 상태</div>
-        <div class="tag-desc">점프 또는 낙하 중에 부여되는 상태다. 공중 상태에서는 점프를 다시 사용할 수 없다.</div>
-      </div>
-      <div class="tag-item">
-        <div class="tag-name" style="color:var(--react)">그로기 상태</div>
-        <div class="tag-desc">DP가 최대치에 도달하면 부여되는 기절 상태다. 모든 어빌리티가 차단되며, DP가 0이 되면 자동 해제된다. 그로기 중에는 DP가 더 이상 누적되지 않는다.</div>
-      </div>
-      <div class="tag-item">
-        <div class="tag-name" style="color:var(--move)">락온 상태</div>
-        <div class="tag-desc">락온 어빌리티가 활성화된 동안 유지되는 상태다. 이 상태에서는 시선 입력이 억제되고 카메라가 타겟을 자동으로 추적한다.</div>
-      </div>
-    </div>
+<!-- 피격 반응 -->
+<div class="card card-reactive">
+<h3>피격 반응</h3>
+<p class="flavor">대미지를 받아 경직 게이지(PP)가 소진되면 피격 경직 애니메이션이 재생된다. 연속으로 맞더라도 매 피격마다 PP가 즉시 최대치로 회복된다.</p>
 
-    <div class="separator"></div>
+<p><strong>발동 트리거</strong> — 피격 시 PP가 0 이하로 내려가면 자동 발동한다.</p>
 
-    <h3 style="font-size:14px; font-weight:700; color:var(--text-muted); margin-bottom:12px;">판정 구간</h3>
-    <div class="tag-grid">
-      <div class="tag-item">
-        <div class="tag-name" style="color:var(--combat)">무기 충돌 구간</div>
-        <div class="tag-desc">공격 애니메이션 중 실제로 무기 히트박스가 활성화되는 구간이다. 이 구간 안에서만 적에게 피해를 줄 수 있다.</div>
-      </div>
-      <div class="tag-item">
-        <div class="tag-name" style="color:var(--combat)">콤보 입력 구간</div>
-        <div class="tag-desc">콤보 애니메이션 중 다음 콤보 입력을 수락하는 타이밍 구간이다. 이 구간 안에서 공격 버튼을 누를 때만 다음 콤보로 이어진다.</div>
-      </div>
-      <div class="tag-item">
-        <div class="tag-name" style="color:var(--defense)">무적 구간</div>
-        <div class="tag-desc">회피 애니메이션 내 특정 프레임에 설정되는 판정 구간이다. 이 구간에서는 피격 이벤트 자체가 차단된다 — 피해도 없고 피격 반응도 없다.</div>
-      </div>
-      <div class="tag-item">
-        <div class="tag-name" style="color:var(--defense)">방어 판정 구간</div>
-        <div class="tag-desc">가드 애니메이션 중 방어 효과가 적용되는 구간이다. 이 구간에서 피격되면 피해가 50% 감소하고 가드 피격 반응이 재생된다.</div>
-      </div>
-      <div class="tag-item">
-        <div class="tag-name" style="color:var(--defense)">퍼펙트 가드 판정 구간</div>
-        <div class="tag-desc">방어 판정 구간 안에 더 짧게 설정된 타이밍 구간이다. 이 구간에서 피격되면 피해가 완전히 무효화되고 공격자의 DP에 피해가 반사된다.</div>
-      </div>
-    </div>
-  </section>
+<p><strong>진행 과정</strong></p>
+<div class="flow">
+  <span class="flow-step">PP 소진 후 피격</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">PP 최대치로 회복</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">다른 모든 어빌리티 취소</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">피격 애니메이션 재생</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">완료 시 종료</span>
+</div>
+
+<p><strong>면역 조건</strong> — 다음 상태에서는 피격 반응이 발동하지 않는다:</p>
+<ul>
+  <li>사망 상태</li>
+  <li>무적 구간 (회피 중)</li>
+  <li>가드 판정 구간 (가드 전용 피격 처리가 별도로 진행됨)</li>
+</ul>
+
+<p><strong>연속 피격</strong> — 피격 반응 중에 다시 피격 조건이 충족되면, 현재 피격 반응을 취소하고 새로운 피격 반응이 즉시 재발동한다.</p>
+</div>
+
+<!-- 그로기 -->
+<div class="card card-reactive">
+<h3>그로기</h3>
+<p class="flavor">DP가 최대치에 도달하면 일정 시간 기절 상태에 빠진다. 기절 동안 DP가 서서히 감소하며, DP가 0이 되면 기절에서 해제된다.</p>
+
+<p><strong>발동 트리거</strong> — DP가 최대치(MaxDP)에 도달하면 자동 발동한다.</p>
+
+<p><strong>진행 과정</strong></p>
+<div class="flow">
+  <span class="flow-step">DP 최대치 도달</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">PP를 0으로 초기화</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">다른 모든 어빌리티 취소</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">기절 애니메이션 재생</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">DP 자동 감소</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">DP 0 도달 시 해제, PP 최대치 회복</span>
+</div>
+
+<p><strong>기절 지속</strong></p>
+<ul>
+  <li>기본 기절 시간: <span class="num">5</span>초 (DP가 MaxDP에서 0까지 감소하는 데 걸리는 시간)</li>
+  <li>DP 감소 속도: <span class="num">1/30</span>초 간격으로 <span class="num">MaxDP / (5초 × 30틱)</span>씩 감소</li>
+  <li>기절 중 피격 시 DP가 누적되지 않으므로, 기절 시간이 연장되지 않는다.</li>
+</ul>
+
+<p><strong>기절 중 피격</strong> — 기절 중에도 피격 반응은 발동한다. 피격 반응 애니메이션이 끝나면 기절 애니메이션이 자동으로 다시 재생된다.</p>
+
+<p><strong>사용 불가 조건</strong> — 사망 상태에서는 발동하지 않는다.</p>
+</div>
+
+<!-- 사망 -->
+<div class="card card-reactive">
+<h3>사망</h3>
+<p class="flavor">HP가 0에 도달하면 모든 행동이 즉시 중단되고, 사망 연출이 진행된다.</p>
+
+<p><strong>발동 트리거</strong> — HP가 0이 되어 사망 상태가 부여되면 자동 발동한다.</p>
+
+<p><strong>진행 과정</strong></p>
+<div class="flow">
+  <span class="flow-step">HP 0 → 사망 상태 부여</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">모든 어빌리티 취소 + 차단</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">사망 애니메이션 재생 (없으면 생략)</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-step">래그돌 활성화</span>
+</div>
+
+<p><strong>특수 사항</strong></p>
+<ul>
+  <li>피격 반응을 포함한 모든 어빌리티가 즉시 취소되고 차단된다.</li>
+  <li>사망 애니메이션이 설정되지 않은 경우 즉시 래그돌이 활성화된다.</li>
+  <li>사망 상태가 유지되는 한 어떤 어빌리티도 발동할 수 없다.</li>
+</ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<h2>6. 대미지 공식</h2>
+
+<div class="card" style="border-left-color: var(--red);">
+<h3>기본 대미지</h3>
+<p>최종 대미지 = <span class="num">공격력(ATK) × 100 / (100 + 방어력(DEF))</span></p>
+<ul>
+  <li><strong>치명타</strong> — 치명타 확률(CritRate)에 따라 판정. 치명타 시 배율 = <span class="num">1 + (CritDMG × 0.01)</span></li>
+  <li><strong>일반 가드</strong> — 대미지 <span class="num">50%</span> 감소</li>
+  <li><strong>퍼펙트 가드</strong> — 대미지 완전 무효화, 공격자에게 DP 반사</li>
+  <li><strong>가드 불가 공격</strong> — 가드 감소 무시, 전체 대미지 적용</li>
+</ul>
+</div>
+
+<div class="card" style="border-left-color: var(--yellow);">
+<h3>화상 대미지</h3>
+<p><span class="num">5</span>초 동안 <span class="num">0.5</span>초 간격(총 <span class="num">10</span>틱)으로 HP 대미지를 입힌다. 기본 대미지 공식과 동일하되 가드, 퍼펙트 가드, 치명타가 적용되지 않는다. 총 대미지를 틱 수로 균등 분할한다.</p>
+</div>
+
+<div class="card" style="border-left-color: var(--teal);">
+<h3>버프 효과</h3>
+<p><strong>ATK 버프</strong> — <span class="num">5</span>초 동안 공격력(ATK)을 <span class="num">50%</span> 증가시킨다.</p>
+<p><strong>SP 자연 회복</strong> — 상시 적용. SP가 0인 상태에서 <span class="num">4</span>초 후 최대치에 도달한다. (<span class="num">1/30</span>초 간격, 틱당 <span class="num">MaxSP / 120</span> 회복)</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<h2>7. 상태 및 판정 구간 정리</h2>
+
+<h3>캐릭터 상태</h3>
+<table class="state-table">
+<thead><tr><th>상태</th><th>게임 플레이 영향</th></tr></thead>
+<tbody>
+<tr><td style="color:var(--red);">사망</td><td>HP가 0이 되면 부여된다. 모든 어빌리티가 차단된다.</td></tr>
+<tr><td style="color:var(--yellow);">그로기</td><td>DP가 최대치에 도달하면 부여된다. 피격 반응을 제외한 모든 어빌리티가 차단된다.</td></tr>
+<tr><td style="color:var(--green);">공중</td><td>낙하 또는 비행 중 부여된다. 착지 시 제거된다.</td></tr>
+<tr><td style="color:var(--teal);">락온</td><td>락온 어빌리티 활성 중 부여된다. 카메라 조작 입력이 억제된다.</td></tr>
+</tbody>
+</table>
+
+<h3>판정 구간</h3>
+<table class="state-table">
+<thead><tr><th>판정 구간</th><th>게임 플레이 영향</th></tr></thead>
+<tbody>
+<tr><td style="color:var(--red);">무기 충돌</td><td>공격 애니메이션 중 무기의 충돌 판정이 활성화되는 구간이다.</td></tr>
+<tr><td style="color:var(--red);">콤보 연결</td><td>이 구간 내에 공격 입력 시 다음 콤보로 이어진다. 회피 반격도 이 구간에서만 가능하다.</td></tr>
+<tr><td style="color:var(--teal);">무적</td><td>이 구간에서는 대미지를 받지 않는다. 회피 중 이 구간에서 적의 공격이 감지되면 극한 회피가 발동한다.</td></tr>
+<tr><td style="color:var(--teal);">가드</td><td>이 구간에서 피격 시 대미지가 50% 감소하며, SP도 대미지만큼 차감된다.</td></tr>
+<tr><td style="color:var(--teal);">퍼펙트 가드</td><td>가드 시작 직후 짧은 구간. 대미지를 완전 무효화하고 공격자에게 DP를 반사한다.</td></tr>
+</tbody>
+</table>
 
 </div>
 </body>
