@@ -15,7 +15,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(ANS_WeaponCollision, "ANS.WeaponCollision");
 	UE_DEFINE_GAMEPLAY_TAG(ANS_ComboWindow, "ANS.ComboWindow");
 	UE_DEFINE_GAMEPLAY_TAG(ANS_Invincible, "ANS.Invincible");
-	UE_DEFINE_GAMEPLAY_TAG(ANS_Guard, "ANS.Guard");
+	UE_DEFINE_GAMEPLAY_TAG(State_Guard, "State.Guard");
 	UE_DEFINE_GAMEPLAY_TAG(ANS_PerfectGuard, "ANS.PerfectGuard");
 
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Damage, "GameplayCue.Damage");

@@ -87,7 +87,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	// --- 3. 상태 판정 ---
 	const bool bIsUnblockable = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable);
 	const bool bHasPerfectGuard = TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_PerfectGuard);
-	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_Guard);
+	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard);
 	const APawn* TargetPawn = Cast<APawn>(TargetASC->GetAvatarActor());
 	const bool bIsPlayer = TargetPawn && TargetPawn->IsPlayerControlled();
 
@@ -222,7 +222,7 @@ FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecut
 	}
 
 	// 가드 감소: Unblockable이 아닌 경우에만 50% 감소
-	if (!bIsUnblockable && TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_Guard))
+	if (!bIsUnblockable && TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard))
 	{
 		constexpr float GuardDamageReductionRate = 0.5f;
 		Result.FinalDamage *= GuardDamageReductionRate;

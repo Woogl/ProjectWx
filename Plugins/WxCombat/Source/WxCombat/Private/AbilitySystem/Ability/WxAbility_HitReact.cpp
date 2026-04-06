@@ -14,7 +14,7 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	ActivationBlockedTags.AddTag(WxGameplayTags::ANS_Invincible);
-	ActivationBlockedTags.AddTag(WxGameplayTags::ANS_Guard);
+	ActivationBlockedTags.AddTag(WxGameplayTags::State_Guard);
 
 	bRetriggerInstancedAbility = true;
 
@@ -28,9 +28,9 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	// 그로기 상태가 아니면 PP를 MaxPP만큼 회복
+	// 플레이어가 아니고 그로기 상태가 아니면 PP를 MaxPP만큼 회복
 	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-	if (ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
+	if (ASC && !ActorInfo->PlayerController.IsValid() && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
 	{
 		if (const UWxCombatAttributeSet* AttributeSet = ASC->GetSet<UWxCombatAttributeSet>())
 		{

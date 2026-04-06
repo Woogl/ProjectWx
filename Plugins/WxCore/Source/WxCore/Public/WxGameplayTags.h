@@ -47,8 +47,8 @@ namespace WxGameplayTags
 	/** 무적 구간. ANS_Invincible이 부여/제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_Invincible);
 
-	/** 가드 판정 구간. ANS_Guard가 부여/제거 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_Guard);
+	/** 가드 판정 활성 상태 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Guard);
 
 	/** 퍼펙트 가드 판정 구간. ANS_PerfectGuard가 부여/제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_PerfectGuard);

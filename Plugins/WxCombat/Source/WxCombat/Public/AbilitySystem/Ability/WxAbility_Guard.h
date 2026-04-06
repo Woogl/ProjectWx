@@ -11,14 +11,12 @@ class UAnimMontage;
 /**
  * 가드 어빌리티.
  *
- * 사용 흐름:
- *  1. 입력 홀드 → ActivateAbility → GuardMontage 재생, ANS.Guard 태그 부여
- *  2. 몽타주의 ANS_Guard 구간 동안 가드 판정 활성
- *  3. 가드 중 피격 → Event.HitReact 수신 → GuardHitReactMontage 재생 → GuardMontage로 복귀
- *  4. 입력 릴리즈 → InputReleased → EndAbility → ANS.Guard 태그 제거
+ * 페이즈 (ActiveMontage로 판별):
+ *  GuardMontage         – State.Guard 태그 활성, 피격 시 HitReact 전환
+ *  GuardHitReactMontage – 재생 후 GuardMontage 복귀
+ *  GuardBreakMontage    – PP 고갈 시 State.Guard 해제 후 재생, 종료
  *
- * ANS.Guard 태그는 어빌리티 활성 동안 유지되므로
- * 몽타주 전환(가드→가드피격→가드) 중에도 가드 판정이 끊기지 않는다.
+ * 입력 릴리즈 시 GuardBreak 중이 아니면 즉시 EndAbility.
  */
 UCLASS()
 class WXCOMBAT_API UWxAbility_Guard : public UWxAbility
@@ -43,9 +41,7 @@ protected:
 	TObjectPtr<UAnimMontage> GuardBreakMontage;
 
 private:
-	bool IsPlayingGuardBreakMontage() const;
-	void PlayGuardMontage();
-	void PlayGuardBreakMontage();
+	bool PlayMontage(UAnimMontage* Montage);
 	void ListenForHitReact();
 
 	UFUNCTION()
@@ -57,17 +53,11 @@ private:
 	void HandleMontageCompleted();
 
 	UFUNCTION()
-	void HandleMontageBlendOut();
-
-	UFUNCTION()
 	void HandleMontageInterrupted();
 
 	UFUNCTION()
 	void HandleMontageCancelled();
 
-	/** GuardHitReactMontage 재생 중인지 여부 */
-	bool bPlayingHitReact = false;
-
-	/** 몽타주 전환(가드→가드피격)에 의한 인터럽트를 무시하기 위한 플래그 */
-	bool bMontageSwapInProgress = false;
+	UPROPERTY(Transient)
+	TObjectPtr<UAnimMontage> ActiveMontage;
 };

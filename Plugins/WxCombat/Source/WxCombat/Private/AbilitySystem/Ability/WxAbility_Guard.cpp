@@ -15,7 +15,7 @@ UWxAbility_Guard::UWxAbility_Guard()
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
-	
+
 	bRetriggerInstancedAbility = true;
 
 	ActivationInputTag = WxGameplayTags::Input_Guard;
@@ -26,22 +26,28 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (IsPlayingGuardBreakMontage() || !GuardMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	if (ActiveMontage == GuardBreakMontage || !GuardMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
-	// 어빌리티 활성 동안 ANS_Guard 유지 (몽타주 전환과 무관하게 가드 판정 보장)
 	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-	if (ASC)
+	if (!ASC)
 	{
-		ASC->AddLooseGameplayTag(WxGameplayTags::ANS_Guard);
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
 	}
 
+	ASC->AddLooseGameplayTag(WxGameplayTags::State_Guard);
 	ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetPPAttribute()).AddUObject(this, &UWxAbility_Guard::HandlePPChanged);
 
-	PlayGuardMontage();
+	if (!PlayMontage(GuardMontage))
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
 	ListenForHitReact();
 }
 
@@ -51,11 +57,13 @@ void UWxAbility_Guard::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 	if (ASC)
 	{
 		ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetPPAttribute()).RemoveAll(this);
-		ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_Guard);
+		if (ASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard))
+		{
+			ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Guard);
+		}
 	}
 
-	bPlayingHitReact = false;
-	bMontageSwapInProgress = false;
+	ActiveMontage = nullptr;
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
@@ -64,7 +72,7 @@ void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, co
 {
 	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
 
-	if (IsPlayingGuardBreakMontage())
+	if (ActiveMontage == GuardBreakMontage)
 	{
 		return;
 	}
@@ -72,65 +80,23 @@ void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, co
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-//  몽타주 관리
-// ────────────────────────────────────────────────────────────────────────────
-
-bool UWxAbility_Guard::IsPlayingGuardBreakMontage() const
-{
-	const UAnimInstance* AnimInstance = CurrentActorInfo ? CurrentActorInfo->GetAnimInstance() : nullptr;
-	return AnimInstance && GuardBreakMontage && AnimInstance->Montage_IsPlaying(GuardBreakMontage);
-}
-
-void UWxAbility_Guard::PlayGuardMontage()
+bool UWxAbility_Guard::PlayMontage(UAnimMontage* Montage)
 {
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, GuardMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
+		this, NAME_None, Montage, 1.f, NAME_None, true, 1.f, 0.f, true);
 	if (!MontageTask)
 	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-		return;
+		return false;
 	}
 
+	ActiveMontage = Montage;
+
 	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Guard::HandleMontageCompleted);
-	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Guard::HandleMontageBlendOut);
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Guard::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Guard::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
+	return true;
 }
-
-void UWxAbility_Guard::PlayGuardBreakMontage()
-{
-	// 가드 해제
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (ASC)
-	{
-		ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_Guard);
-	}
-
-	if (!GuardBreakMontage)
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-		return;
-	}
-
-	bMontageSwapInProgress = true;
-
-	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, GuardBreakMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
-	if (MontageTask)
-	{
-		MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Guard::HandleMontageCompleted);
-		MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Guard::HandleMontageBlendOut);
-		MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Guard::HandleMontageInterrupted);
-		MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Guard::HandleMontageCancelled);
-		MontageTask->ReadyForActivation();
-	}
-}
-
-// ────────────────────────────────────────────────────────────────────────────
-//  가드 중 피격 처리
-// ────────────────────────────────────────────────────────────────────────────
 
 void UWxAbility_Guard::ListenForHitReact()
 {
@@ -145,72 +111,55 @@ void UWxAbility_Guard::ListenForHitReact()
 
 void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 {
-	if (!GuardHitReactMontage)
+	if (ActiveMontage != GuardMontage || !GuardHitReactMontage)
 	{
 		return;
 	}
 
-	bMontageSwapInProgress = true;
-	bPlayingHitReact = true;
-
-	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, GuardHitReactMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
-	if (MontageTask)
-	{
-		MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Guard::HandleMontageCompleted);
-		MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Guard::HandleMontageBlendOut);
-		MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Guard::HandleMontageInterrupted);
-		MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Guard::HandleMontageCancelled);
-		MontageTask->ReadyForActivation();
-	}
-
-	// 다음 피격 이벤트 즉시 대기 (연속 피격 대응)
-	ListenForHitReact();
+	PlayMontage(GuardHitReactMontage);
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-//  몽타주 콜백
-// ────────────────────────────────────────────────────────────────────────────
+void UWxAbility_Guard::HandlePPChanged(const FOnAttributeChangeData& ChangeData)
+{
+	if (ChangeData.NewValue > 0.f || ActiveMontage == GuardBreakMontage)
+	{
+		return;
+	}
+
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Guard);
+	}
+
+	if (!PlayMontage(GuardBreakMontage))
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+	}
+}
 
 void UWxAbility_Guard::HandleMontageCompleted()
 {
-	if (bPlayingHitReact)
+	if (ActiveMontage == GuardHitReactMontage)
 	{
-		bPlayingHitReact = false;
-		PlayGuardMontage();
+		PlayMontage(GuardMontage);
 		return;
 	}
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-}
 
-void UWxAbility_Guard::HandleMontageBlendOut()
-{
-	if (bPlayingHitReact)
-	{
-		bPlayingHitReact = false;
-		PlayGuardMontage();
-	}
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UWxAbility_Guard::HandleMontageInterrupted()
 {
-	if (bMontageSwapInProgress)
+	const UAnimInstance* AnimInstance = CurrentActorInfo ? CurrentActorInfo->GetAnimInstance() : nullptr;
+	if (AnimInstance && AnimInstance->IsAnyMontagePlaying())
 	{
-		bMontageSwapInProgress = false;
 		return;
 	}
+
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
 
 void UWxAbility_Guard::HandleMontageCancelled()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-}
-
-void UWxAbility_Guard::HandlePPChanged(const FOnAttributeChangeData& ChangeData)
-{
-	if (ChangeData.NewValue <= 0.f)
-	{
-		PlayGuardBreakMontage();
-	}
 }
