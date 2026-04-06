@@ -50,6 +50,9 @@ private:
 	void HandlePPChanged(const FOnAttributeChangeData& ChangeData);
 
 	UFUNCTION()
+	void HandleMontageBlendingOut();
+
+	UFUNCTION()
 	void HandleMontageCompleted();
 
 	UFUNCTION()

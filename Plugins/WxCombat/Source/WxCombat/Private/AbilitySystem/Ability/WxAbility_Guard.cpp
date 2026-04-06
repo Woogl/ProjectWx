@@ -91,6 +91,7 @@ bool UWxAbility_Guard::PlayMontage(UAnimMontage* Montage)
 
 	ActiveMontage = Montage;
 
+	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Guard::HandleMontageBlendingOut);
 	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Guard::HandleMontageCompleted);
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Guard::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Guard::HandleMontageCancelled);
@@ -137,11 +138,18 @@ void UWxAbility_Guard::HandlePPChanged(const FOnAttributeChangeData& ChangeData)
 	}
 }
 
-void UWxAbility_Guard::HandleMontageCompleted()
+void UWxAbility_Guard::HandleMontageBlendingOut()
 {
 	if (ActiveMontage == GuardHitReactMontage)
 	{
 		PlayMontage(GuardMontage);
+	}
+}
+
+void UWxAbility_Guard::HandleMontageCompleted()
+{
+	if (ActiveMontage == GuardMontage)
+	{
 		return;
 	}
 
