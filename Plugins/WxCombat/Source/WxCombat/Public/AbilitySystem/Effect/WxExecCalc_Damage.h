@@ -18,12 +18,21 @@ struct FWxDamageResult
  * 데미지 계산 ExecutionCalculation.
  *
  * 판정 흐름:
- *  1. 무적 판정 (극한 회피) → 대미지 무효, 회피 성공 보상
- *  2. 퍼펙트 가드 판정 → 대미지 무효, DP 반사, 방어자 MP 회복
- *  3. 일반/가드 판정 → 대미지 계산, 가드 감소 (Unblockable이면 무시), 공격자 자원 회복
- *  4. PP 차감 → HitReact 발동, AI 감지, 대미지 Cue
+ *  1. 무적 판정 → 대미지 무효, 회피 성공 보상
+ *  2. 어트리뷰트 캡처 (ATK, DEF, CritRate, CritDMG)
+ *  3. 상태 판정 (퍼펙트 가드, 가드, 플레이어 여부)
+ *  4. 대미지 적용
+ *     - 퍼펙트 가드: 대미지 반사, MP 회복, GuardHitReact 이벤트
+ *     - 일반/가드: HP·DP·PP 적용, HitReact 판정
+ *  5. AI 대미지 감지
+ *  6. 대미지 GameplayCue
  *
  * 대미지 공식: FinalDamage = SourceATK * (100 / (100 + TargetDEF))
+ *
+ * PP 차감 규칙:
+ *  - 가드 피격 (플레이어·적 공통): PP 차감, PP 소진 시 GuardBreak
+ *  - 적 비가드 피격: PP 차감, PP 소진 시 HitReact
+ *  - 플레이어 비가드 피격: PP 차감 없음, 매 피격 HitReact
  */
 UCLASS()
 class WXCOMBAT_API UWxExecCalc_Damage : public UGameplayEffectExecutionCalculation
@@ -48,7 +57,12 @@ private:
 	/** 공격 적중 시 공격자 자원 회복. 평타 → MP, 스킬 → UP */
 	void RecoverAttackerResource(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& OwningSpec) const;
 
+	/** GE를 통한 자원 회복 적용 */
 	void ApplyResourceRecovery(UAbilitySystemComponent* ASC, TSubclassOf<UGameplayEffect> RecoveryEffect, float Amount) const;
 
+	/** Event_HitReact 이벤트 전송 */
+	void SendHitReactEvent(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC) const;
+
+	/** 대미지 GameplayCue 실행 */
 	void ExecuteGameplayCueDamage(UAbilitySystemComponent* TargetASC, float DamageAmount, FVector HitLocation, const FGameplayEffectSpec& OwningSpec, bool bIsCritical, bool bDisplayDamageFloater) const;
 };

@@ -65,7 +65,11 @@ public:
 	FGameplayAttributeData MaxHP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, MaxHP)
 	
-	/** PP (Poise Points) : 현재 강인도. 0이 되면 피격 경직(HitReact) 발동 */
+	/**
+	 * PP (Poise Points) : 리액션 없이 버틸 수 있는 한계치.
+	 * - 가드 피격 시 차감, 0이 되면 GuardBreak (플레이어·적 공통)
+	 * - 비가드 피격 시 차감, 0이 되면 HitReact (적 전용. 플레이어 비가드 시에는 PP를 소모하지 않고 즉시 HitReact)
+	 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Vital", ReplicatedUsing = OnRep_PP)
 	FGameplayAttributeData PP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, PP)
