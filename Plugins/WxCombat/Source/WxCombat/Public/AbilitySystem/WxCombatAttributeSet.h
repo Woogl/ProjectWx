@@ -28,8 +28,6 @@
  *   MaxMP    - Max Mana Points    : 최대 마나
  *   UP       - Ultimate Points    : 현재 궁극기 수치
  *   MaxUP    - Max Ultimate Points: 최대 궁극기 수치
- *   SP       - Stamina Points     : 현재 스태미나
- *   MaxSP    - Max Stamina Points : 최대 스태미나
  *   ATK      - Attack             : 공격력
  *   DEF      - Defense            : 방어력
  *   CritRate - Critical Rate      : 치명타 확률 (1당 1%)
@@ -39,7 +37,7 @@
  * IncomingDamage: GameplayEffect ExecutionCalculation에서 최종 데미지를 이 어트리뷰트로 전달하고
  *                 PostGameplayEffectExecute에서 HP를 차감하는 패턴으로 사용.
  *                 
- * 복제됨: HP, MaxHP, PP, MaxPP, DP, MaxDP, MP, MaxMP, UP, MaxUP, SP, MaxSP, ATK, DEF, CritRate, CritDMG, SPD
+ * 복제됨: HP, MaxHP, PP, MaxPP, DP, MaxDP, MP, MaxMP, UP, MaxUP, ATK, DEF, CritRate, CritDMG, SPD
  * 복제 안 함 (Meta): IncomingDamage
  */
 UCLASS()
@@ -109,16 +107,6 @@ public:
 	FGameplayAttributeData MaxUP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, MaxUP)
 
-	/** SP (Stamina Points) : 현재 스태미나. 가드 시 대미지만큼 소모 */
-	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Resource", ReplicatedUsing = OnRep_SP)
-	FGameplayAttributeData SP;
-	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, SP)
-
-	/** MaxSP (Max Stamina Points) : 최대 스태미나. SP의 상한값 */
-	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Resource", ReplicatedUsing = OnRep_MaxSP)
-	FGameplayAttributeData MaxSP;
-	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, MaxSP)
-
 	// ── Combat ─────────────────────────────────────────────────────────────
 
 	/** ATK (Attack) : 공격력. 데미지 계산의 기반 수치 */
@@ -183,12 +171,6 @@ protected:
 
 	UFUNCTION()
 	void OnRep_MaxUP(const FGameplayAttributeData& OldMaxUP);
-
-	UFUNCTION()
-	void OnRep_SP(const FGameplayAttributeData& OldSP);
-
-	UFUNCTION()
-	void OnRep_MaxSP(const FGameplayAttributeData& OldMaxSP);
 
 	UFUNCTION()
 	void OnRep_ATK(const FGameplayAttributeData& OldATK);

@@ -68,7 +68,7 @@ private:
 	void InitializePlayerHPViewModel(UAbilitySystemComponent* ASC);
 	void InitializePlayerMPViewModel(UAbilitySystemComponent* ASC);
 	void InitializePlayerUPViewModel(UAbilitySystemComponent* ASC);
-	void InitializePlayerSPViewModel(UAbilitySystemComponent* ASC);
+	void InitializePlayerPPViewModel(UAbilitySystemComponent* ASC);
 	void InitializePlayerAbilityViewModels(UAbilitySystemComponent* ASC);
 
 	UPROPERTY(Transient)
