@@ -26,7 +26,7 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (!GuardMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	if (IsPlayingGuardBreakMontage() || !GuardMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -39,6 +39,8 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		ASC->AddLooseGameplayTag(WxGameplayTags::ANS_Guard);
 	}
 
+	ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetPPAttribute()).AddUObject(this, &UWxAbility_Guard::HandlePPChanged);
+
 	PlayGuardMontage();
 	ListenForHitReact();
 }
@@ -48,6 +50,7 @@ void UWxAbility_Guard::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 	if (ASC)
 	{
+		ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetPPAttribute()).RemoveAll(this);
 		ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_Guard);
 	}
 
@@ -61,12 +64,23 @@ void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, co
 {
 	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
 
+	if (IsPlayingGuardBreakMontage())
+	{
+		return;
+	}
+
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
 // ────────────────────────────────────────────────────────────────────────────
 //  몽타주 관리
 // ────────────────────────────────────────────────────────────────────────────
+
+bool UWxAbility_Guard::IsPlayingGuardBreakMontage() const
+{
+	const UAnimInstance* AnimInstance = CurrentActorInfo ? CurrentActorInfo->GetAnimInstance() : nullptr;
+	return AnimInstance && GuardBreakMontage && AnimInstance->Montage_IsPlaying(GuardBreakMontage);
+}
 
 void UWxAbility_Guard::PlayGuardMontage()
 {
@@ -83,6 +97,35 @@ void UWxAbility_Guard::PlayGuardMontage()
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Guard::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Guard::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
+}
+
+void UWxAbility_Guard::PlayGuardBreakMontage()
+{
+	// 가드 해제
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (ASC)
+	{
+		ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_Guard);
+	}
+
+	if (!GuardBreakMontage)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		return;
+	}
+
+	bMontageSwapInProgress = true;
+
+	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		this, NAME_None, GuardBreakMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
+	if (MontageTask)
+	{
+		MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Guard::HandleMontageCompleted);
+		MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Guard::HandleMontageBlendOut);
+		MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Guard::HandleMontageInterrupted);
+		MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Guard::HandleMontageCancelled);
+		MontageTask->ReadyForActivation();
+	}
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -102,16 +145,6 @@ void UWxAbility_Guard::ListenForHitReact()
 
 void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 {
-	// PP 회복 (그로기 상태가 아닌 경우)
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
-	{
-		if (const UWxCombatAttributeSet* AttributeSet = ASC->GetSet<UWxCombatAttributeSet>())
-		{
-			ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetPPAttribute(), AttributeSet->GetMaxPP());
-		}
-	}
-
 	if (!GuardHitReactMontage)
 	{
 		return;
@@ -172,4 +205,12 @@ void UWxAbility_Guard::HandleMontageInterrupted()
 void UWxAbility_Guard::HandleMontageCancelled()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+}
+
+void UWxAbility_Guard::HandlePPChanged(const FOnAttributeChangeData& ChangeData)
+{
+	if (ChangeData.NewValue <= 0.f)
+	{
+		PlayGuardBreakMontage();
+	}
 }

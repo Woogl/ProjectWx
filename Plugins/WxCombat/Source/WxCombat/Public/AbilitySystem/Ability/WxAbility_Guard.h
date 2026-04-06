@@ -39,12 +39,19 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> GuardHitReactMontage;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TObjectPtr<UAnimMontage> GuardBreakMontage;
+
 private:
+	bool IsPlayingGuardBreakMontage() const;
 	void PlayGuardMontage();
+	void PlayGuardBreakMontage();
 	void ListenForHitReact();
 
 	UFUNCTION()
 	void HandleGuardHitReact(FGameplayEventData Payload);
+
+	void HandlePPChanged(const FOnAttributeChangeData& ChangeData);
 
 	UFUNCTION()
 	void HandleMontageCompleted();
