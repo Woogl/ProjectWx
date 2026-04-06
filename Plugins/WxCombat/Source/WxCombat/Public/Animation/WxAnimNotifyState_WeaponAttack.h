@@ -27,6 +27,6 @@ public:
 
 protected:
 	/** true이면 이 구간의 공격은 가드·퍼펙트 가드를 무시 */
-	UPROPERTY(EditAnywhere, Category = "Wx|Weapon")
+	UPROPERTY(EditAnywhere, Category = "Wx")
 	bool bUnblockable = false;
 };
