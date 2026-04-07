@@ -27,9 +27,6 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 	SetHasMultipleCharges(AbilityMaxCharges > 1);
 	SetCurrentCharges(AbilityMaxCharges);
 
-	// 쿨다운 GE 적용 시점을 직접 감지한다.
-	// GE 클래스가 아니라 스펙이 부여하는 태그로 필터링하므로,
-	// CooldownGameplayEffectClass 없이 ApplyCooldown에서 동적으로 GE를 만드는 방식도 지원된다.
 	const FGameplayTag CooldownTag = GetCooldownTag();
 	if (CooldownTag.IsValid())
 	{
@@ -83,11 +80,10 @@ int32 UWxViewModel_Ability::GetConsumedCharges() const
 		return 0;
 	}
 
-	// 쿨다운 GE의 GE 스택 1개 = 소모된 충전 1회.
-	// 쿨다운 태그로 필터링해 ASC에 적용된 모든 매칭 GE의 총 스택 수를 합산한다.
+	// 스태킹 없이 충전 소모마다 독립적인 GE 인스턴스가 생성된다.
+	// 각 인스턴스의 스택 수는 1이므로 GetAggregatedStackCount = 활성 GE 인스턴스 수 = 소모된 충전 수.
 	FGameplayTagContainer TagContainer;
 	TagContainer.AddTag(CooldownTag);
-
 	const FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(TagContainer);
 	return ASC->GetAggregatedStackCount(Query);
 }
@@ -100,8 +96,6 @@ void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* 
 		return;
 	}
 
-	// 이 스펙이 우리 어빌리티의 쿨다운 태그를 부여하는지로 필터링한다.
-	// (DynamicGrantedTags + GE Def의 GrantedTags 모두 포함)
 	FGameplayTagContainer GrantedTags;
 	SpecApplied.GetAllGrantedTags(GrantedTags);
 	if (!GrantedTags.HasTag(CooldownTag))
@@ -122,28 +116,38 @@ void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* 
 bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
-	const UGameplayAbility* Ability = CachedAbility.Get();
-	if (!ASC || !Ability)
+	if (!ASC)
 	{
 		return false;
 	}
 
-	// 어빌리티가 자신의 쿨다운 GE를 직접 조회하도록 위임한다.
-	// 내부적으로 ASC의 Active Effect를 쿨다운 태그로 쿼리하므로,
-	// CooldownEndTime 역산 없이도 Prediction Reconciliation에 안전하다.
-	const FGameplayAbilityActorInfo* ActorInfo = ASC->AbilityActorInfo.Get();
-	if (!ActorInfo)
+	const FGameplayTag CooldownTag = GetCooldownTag();
+	if (!CooldownTag.IsValid())
 	{
-		return true;
+		return false;
 	}
 
-	float TimeRemaining = 0.f;
-	float Duration = 0.f;
-	Ability->GetCooldownTimeRemainingAndDuration(FGameplayAbilitySpecHandle(), ActorInfo, TimeRemaining, Duration);
+	// 활성 쿨다운 GE 중 가장 빨리 만료되는 것의 남은 시간을 구한다.
+	// 충전 시스템에서 "다음 충전까지 남은 시간"에 해당한다.
+	FGameplayTagContainer TagContainer;
+	TagContainer.AddTag(CooldownTag);
+	const FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(TagContainer);
+	TArray<TPair<float, float>> TimesAndDurations = ASC->GetActiveEffectsTimeRemainingAndDuration(Query);
 
-	if (TimeRemaining <= 0.f)
+	float MinTimeRemaining = 0.f;
+	float CorrespondingDuration = 0.f;
+	for (const TPair<float, float>& Pair : TimesAndDurations)
 	{
-		// 쿨다운 종료: ticker 자가 종료 + 상태 초기화 + 모든 충전 회복
+		if (MinTimeRemaining <= 0.f || Pair.Key < MinTimeRemaining)
+		{
+			MinTimeRemaining = Pair.Key;
+			CorrespondingDuration = Pair.Value;
+		}
+	}
+
+	if (MinTimeRemaining <= 0.f)
+	{
+		// 모든 쿨다운 GE 만료: 모든 충전 복구 후 ticker 종료
 		SetCooldownDuration(0.f);
 		SetCooldownRemaining(0.f);
 		SetCooldownPercent(0.f);
@@ -153,11 +157,11 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 		return false;
 	}
 
-	SetCooldownDuration(Duration);
-	SetCooldownRemaining(TimeRemaining);
-	SetCooldownPercent(Duration > 0.f ? TimeRemaining / Duration : 0.f);
+	SetCooldownDuration(CorrespondingDuration);
+	SetCooldownRemaining(MinTimeRemaining);
+	SetCooldownPercent(CorrespondingDuration > 0.f ? MinTimeRemaining / CorrespondingDuration : 0.f);
 
-	// 충전 시스템 어빌리티는 GE 스택 수로부터 남은 충전을 계산
+	// 소모된 충전 수 = 활성 GE 인스턴스 수. 이를 뺀 값이 현재 남은 충전 수.
 	if (MaxCharges > 1)
 	{
 		const int32 Consumed = GetConsumedCharges();

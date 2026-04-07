@@ -20,6 +20,13 @@ void UWxAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const
 	}
 }
 
+UGameplayEffect* UWxAbility::GetCooldownGameplayEffect() const
+{
+	// ApplyCooldown에서 DynamicGrantedTags를 포함해 직접 GE를 적용하므로 nullptr을 반환해 Super::ApplyCooldown을 no-op으로 만든다.
+	// CooldownGameplayEffectClass가 설정되어 있어도 무시한다.
+	return nullptr;
+}
+
 const FGameplayTagContainer* UWxAbility::GetCooldownTags() const
 {
 	CooldownTagContainer.Reset();
@@ -48,7 +55,7 @@ bool UWxAbility::CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FG
 			return false;
 		}
 
-		// GE 스택 1개 = 소모된 충전 1회. 스택 수가 MaxCharges 미만이면 사용 가능.
+		// 스택 1개 = 소모된 충전 1회. 스택 수가 MaxCharges 미만이면 사용 가능.
 		const int32 ConsumedCharges = ASC->GetGameplayEffectCount(UWxEffect_Cooldown::StaticClass(), nullptr);
 		return ConsumedCharges < MaxCharges;
 	}
