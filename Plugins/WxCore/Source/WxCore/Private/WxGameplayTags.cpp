@@ -42,9 +42,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill, "Cooldown.Skill");
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Ultimate, "Cooldown.Ultimate");
 
-	UE_DEFINE_GAMEPLAY_TAG(Charge_Skill, "Charge.Skill");
-	UE_DEFINE_GAMEPLAY_TAG(Charge_Dodge, "Charge.Dodge");
-
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Cost, "SetByCaller.Cost");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Recovery, "SetByCaller.Recovery");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_ReflectDP, "SetByCaller.ReflectDP");

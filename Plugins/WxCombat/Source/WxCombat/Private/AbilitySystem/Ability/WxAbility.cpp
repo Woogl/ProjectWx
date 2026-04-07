@@ -14,39 +14,10 @@ void UWxAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
 
-	if (MaxCharges > 1 && ChargeTag.IsValid() && CooldownTag.IsValid())
-	{
-		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-		if (ASC && ASC->IsOwnerActorAuthoritative())
-		{
-			SetChargeCount(ASC, MaxCharges);
-
-			ASC->RegisterGameplayTagEvent(CooldownTag, EGameplayTagEventType::NewOrRemoved)
-				.AddUObject(this, &UWxAbility::HandleCooldownTagChanged);
-		}
-	}
-
 	if (ActivationPolicy == EWxAbilityActivationPolicy::OnGranted)
 	{
 		ActorInfo->AbilitySystemComponent->TryActivateAbility(Spec.Handle);
 	}
-}
-
-void UWxAbility::OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
-{
-	if (MaxCharges > 1 && ChargeTag.IsValid() && CooldownTag.IsValid())
-	{
-		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-		if (ASC && ASC->IsOwnerActorAuthoritative())
-		{
-			ASC->RegisterGameplayTagEvent(CooldownTag, EGameplayTagEventType::NewOrRemoved)
-				.RemoveAll(this);
-
-			SetChargeCount(ASC, 0);
-		}
-	}
-
-	Super::OnRemoveAbility(ActorInfo, Spec);
 }
 
 UGameplayEffect* UWxAbility::GetCooldownGameplayEffect() const
@@ -82,14 +53,17 @@ const FGameplayTagContainer* UWxAbility::GetCooldownTags() const
 
 bool UWxAbility::CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	if (MaxCharges > 1 && ChargeTag.IsValid())
+	if (MaxCharges > 1 && CooldownTag.IsValid())
 	{
 		const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-		if (ASC && ASC->GetTagCount(ChargeTag) > 0)
+		if (!ASC)
 		{
-			return true;
+			return false;
 		}
-		return false;
+
+		// GE 스택 1개 = 소모된 충전 1회. 스택 수가 MaxCharges 미만이면 사용 가능.
+		const int32 ConsumedCharges = ASC->GetGameplayEffectCount(UWxEffect_Cooldown::StaticClass(), nullptr);
+		return ConsumedCharges < MaxCharges;
 	}
 
 	return Super::CheckCooldown(Handle, ActorInfo, OptionalRelevantTags);
@@ -102,89 +76,11 @@ void UWxAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FG
 		return;
 	}
 
-	if (MaxCharges > 1 && ChargeTag.IsValid())
-	{
-		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-		if (!ASC)
-		{
-			return;
-		}
-
-		// 충전 소모
-		const int32 CurrentCount = ASC->GetTagCount(ChargeTag);
-		SetChargeCount(ASC, FMath::Max(CurrentCount - 1, 0));
-
-		// 쿨다운이 아직 진행 중이 아닐 때만 재충전 타이머 시작
-		if (!ASC->HasMatchingGameplayTag(CooldownTag))
-		{
-			const FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_Cooldown::StaticClass(), GetAbilityLevel());
-			if (SpecHandle.IsValid())
-			{
-				SpecHandle.Data->SetDuration(CooldownDuration, true);
-				SpecHandle.Data->DynamicGrantedTags.AddTag(CooldownTag);
-				ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
-			}
-		}
-		return;
-	}
-
-	// 기본 쿨다운
 	const FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_Cooldown::StaticClass(), GetAbilityLevel());
 	if (SpecHandle.IsValid())
 	{
 		SpecHandle.Data->SetDuration(CooldownDuration, true);
 		SpecHandle.Data->DynamicGrantedTags.AddTag(CooldownTag);
 		ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
-	}
-}
-
-void UWxAbility::HandleCooldownTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
-{
-	if (NewCount > 0)
-	{
-		return;
-	}
-
-	// 쿨다운 만료: 충전 1회 재충전
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (!ASC)
-	{
-		return;
-	}
-
-	const int32 CurrentCount = ASC->GetTagCount(ChargeTag);
-	const int32 NewChargeCount = FMath::Min(CurrentCount + 1, MaxCharges);
-	SetChargeCount(ASC, NewChargeCount);
-
-	// 아직 최대 충전이 아니면 다음 재충전을 위해 쿨다운 재적용
-	if (NewChargeCount < MaxCharges)
-	{
-		FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
-		EffectContext.AddSourceObject(this);
-		const FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(UWxEffect_Cooldown::StaticClass(), GetAbilityLevel(), EffectContext);
-		if (SpecHandle.IsValid())
-		{
-			SpecHandle.Data->SetDuration(CooldownDuration, true);
-			SpecHandle.Data->DynamicGrantedTags.AddTag(CooldownTag);
-			ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-		}
-	}
-}
-
-void UWxAbility::SetChargeCount(UAbilitySystemComponent* ASC, int32 NewCount) const
-{
-	if (!ASC || !ChargeTag.IsValid())
-	{
-		return;
-	}
-
-	const int32 CurrentCount = ASC->GetTagCount(ChargeTag);
-	if (CurrentCount > NewCount)
-	{
-		ASC->RemoveLooseGameplayTag(ChargeTag, CurrentCount - NewCount, EGameplayTagReplicationState::TagAndCountToAll);
-	}
-	else if (NewCount > CurrentCount)
-	{
-		ASC->AddLooseGameplayTag(ChargeTag, NewCount - CurrentCount, EGameplayTagReplicationState::TagAndCountToAll);
 	}
 }

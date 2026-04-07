@@ -320,7 +320,7 @@ void AWxPlayerController::InitializePlayerAbilityViewModels(UAbilitySystemCompon
 			UWxViewModel_Ability* ViewModel = ViewModel = NewObject<UWxViewModel_Ability>(ASC);
 			GlobalCollection->AddViewModelInstance(Context, ViewModel);
 			ViewModel->SetIcon(AbilityIcon);
-			ViewModel->Initialize(ASC, AbilityCDO);
+			ViewModel->Initialize(ASC, AbilityCDO, AbilityCDO->MaxCharges);
 		}
 	}
 }

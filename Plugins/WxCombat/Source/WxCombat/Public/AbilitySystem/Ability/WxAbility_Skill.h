@@ -16,9 +16,9 @@ class UAnimMontage;
  * 타겟 방향 회전은 ANS_TurnAround이 담당.
  *
  * 충전(Charge) 시스템:
- *   MaxCharges = 1이면 기존 쿨다운 방식과 동일.
- *   MaxCharges > 1이면 쿨다운이 만료될 때마다 충전이 1 증가하며,
- *   충전이 남아 있는 한 쿨다운 진행 중에도 스킬을 사용할 수 있다.
+ *   MaxCharges = 1이면 단일 쿨다운으로 동작.
+ *   MaxCharges > 1이면 충전이 남아 있는 한 쿨다운 진행 중에도 스킬을 사용할 수 있고,
+ *   쿨다운이 만료될 때마다 충전이 1 증가한다. (WxEffect_Cooldown의 GE 스택으로 표현)
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Skill : public UWxAbility

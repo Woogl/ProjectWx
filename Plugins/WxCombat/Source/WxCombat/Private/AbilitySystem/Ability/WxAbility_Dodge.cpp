@@ -21,7 +21,6 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 
 	ActivationInputTag = WxGameplayTags::Input_Dodge;
 	CooldownTag = WxGameplayTags::Cooldown_Dodge;
-	ChargeTag = WxGameplayTags::Charge_Dodge;
 
 	CooldownDuration = 2.f;
 	MaxCharges = 2;

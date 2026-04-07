@@ -44,30 +44,22 @@ public:
 	/** 쿨다운 중 ASC에 부여되는 태그. CheckCooldown에서 이 태그로 쿨다운 여부를 판단 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cooldown")
 	FGameplayTag CooldownTag;
-	
+
 	/** 쿨다운 지속 시간 (초). 0 이하이면 쿨다운 미적용 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cooldown")
 	float CooldownDuration = 0.f;
 
-	/** 최대 충전 횟수. 1이면 기존 단일 쿨다운 방식. 2 이상이면 쿨다운마다 1회씩 재충전 */
+	/** 최대 충전 횟수. 1이면 단일 쿨다운, 2 이상이면 GE 스택으로 충전 시스템 동작 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cooldown", meta = (ClampMin = "1"))
 	int32 MaxCharges = 1;
 
-	/** 충전 횟수를 ASC에 Loose Tag Count로 표현하기 위한 태그. MaxCharges > 1일 때 설정 필수 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cooldown", meta = (EditCondition = "MaxCharges > 1"))
-	FGameplayTag ChargeTag;
-
 protected:
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
-	virtual void OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual UGameplayEffect* GetCooldownGameplayEffect() const override;
 	virtual const FGameplayTagContainer* GetCooldownTags() const override;
 	virtual bool CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
 private:
-	void HandleCooldownTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
-	void SetChargeCount(UAbilitySystemComponent* ASC, int32 NewCount) const;
-
 	mutable FGameplayTagContainer CooldownTagContainer;
 };

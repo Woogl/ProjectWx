@@ -5,13 +5,13 @@
 #include "Abilities/GameplayAbility.h"
 #include "GameplayEffect.h"
 
-void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility)
+void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility, int32 InMaxCharges)
 {
 	if (!InASC || !InAbility)
 	{
 		return;
 	}
-	
+
 	Deinitialize();
 	CachedASC = InASC;
 	CachedAbility = InAbility;
@@ -22,6 +22,10 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 		AbilityTag = AssetTags.First();
 	}
 
+	const int32 AbilityMaxCharges = FMath::Max(1, InMaxCharges);
+	SetMaxCharges(AbilityMaxCharges);
+	SetCurrentCharges(AbilityMaxCharges);
+
 	// 쿨다운 GE 적용 시점을 직접 감지한다.
 	// GE 클래스가 아니라 스펙이 부여하는 태그로 필터링하므로,
 	// CooldownGameplayEffectClass 없이 ApplyCooldown에서 동적으로 GE를 만드는 방식도 지원된다.
@@ -31,39 +35,6 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 		InASC->OnActiveGameplayEffectAddedDelegateToSelf
 			.AddUObject(this, &UWxViewModel_Ability::HandleGameplayEffectApplied);
 	}
-
-	BindChargeTag(InASC, CooldownTag);
-}
-
-void UWxViewModel_Ability::BindChargeTag(UAbilitySystemComponent* InASC, const FGameplayTag& CooldownTag)
-{
-	if (!CooldownTag.IsValid())
-	{
-		return;
-	}
-
-	// 쿨다운 태그 이름 규칙으로 충전 태그를 유도한다 (Cooldown.X → Charge.X)
-	// 해당 태그가 네이티브 태그로 등록되어 있을 때만 충전 시스템이 활성화된다.
-	static const FString CooldownPrefix = TEXT("Cooldown.");
-	const FString CooldownName = CooldownTag.GetTagName().ToString();
-	if (!CooldownName.StartsWith(CooldownPrefix))
-	{
-		return;
-	}
-
-	const FString Suffix = CooldownName.Mid(CooldownPrefix.Len());
-	BoundChargeTag = FGameplayTag::RequestGameplayTag(FName(*(TEXT("Charge.") + Suffix)), false);
-	if (!BoundChargeTag.IsValid())
-	{
-		return;
-	}
-
-	InASC->RegisterGameplayTagEvent(BoundChargeTag, EGameplayTagEventType::AnyCountChange)
-		.AddUObject(this, &UWxViewModel_Ability::HandleChargeTagChanged);
-
-	const int32 InitialCount = InASC->GetTagCount(BoundChargeTag);
-	SetCurrentCharges(InitialCount);
-	SetMaxCharges(InitialCount);
 }
 
 void UWxViewModel_Ability::Deinitialize()
@@ -71,12 +42,6 @@ void UWxViewModel_Ability::Deinitialize()
 	if (UAbilitySystemComponent* ASC = CachedASC.Get())
 	{
 		ASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
-
-		if (BoundChargeTag.IsValid())
-		{
-			ASC->RegisterGameplayTagEvent(BoundChargeTag, EGameplayTagEventType::AnyCountChange)
-				.RemoveAll(this);
-		}
 	}
 
 	if (TickerHandle.IsValid())
@@ -87,7 +52,6 @@ void UWxViewModel_Ability::Deinitialize()
 
 	CachedASC.Reset();
 	CachedAbility.Reset();
-	BoundChargeTag = FGameplayTag();
 
 	Super::Deinitialize();
 }
@@ -107,6 +71,24 @@ FGameplayTag UWxViewModel_Ability::GetCooldownTag() const
 	}
 
 	return CooldownTags->First();
+}
+
+int32 UWxViewModel_Ability::GetConsumedChargesFromASC() const
+{
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	const FGameplayTag CooldownTag = GetCooldownTag();
+	if (!ASC || !CooldownTag.IsValid())
+	{
+		return 0;
+	}
+
+	// 쿨다운 GE의 GE 스택 1개 = 소모된 충전 1회.
+	// 쿨다운 태그로 필터링해 ASC에 적용된 모든 매칭 GE의 총 스택 수를 합산한다.
+	FGameplayTagContainer TagContainer;
+	TagContainer.AddTag(CooldownTag);
+
+	const FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(TagContainer);
+	return ASC->GetAggregatedStackCount(Query);
 }
 
 void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle)
@@ -136,16 +118,6 @@ void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* 
 	}
 }
 
-void UWxViewModel_Ability::HandleChargeTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
-{
-	SetCurrentCharges(NewCount);
-
-	if (NewCount > MaxCharges)
-	{
-		SetMaxCharges(NewCount);
-	}
-}
-
 bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
@@ -170,11 +142,12 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 
 	if (TimeRemaining <= 0.f)
 	{
-		// 쿨다운 종료: ticker 자가 종료 + 상태 초기화
+		// 쿨다운 종료: ticker 자가 종료 + 상태 초기화 + 모든 충전 회복
 		SetCooldownDuration(0.f);
 		SetCooldownRemaining(0.f);
 		SetCooldownPercent(0.f);
 		SetIsOnCooldown(false);
+		SetCurrentCharges(MaxCharges);
 		TickerHandle.Reset();
 		return false;
 	}
@@ -183,9 +156,11 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 	SetCooldownRemaining(TimeRemaining);
 	SetCooldownPercent(Duration > 0.f ? TimeRemaining / Duration : 0.f);
 
-	if (BoundChargeTag.IsValid())
+	// 충전 시스템 어빌리티는 GE 스택 수로부터 남은 충전을 계산
+	if (MaxCharges > 1)
 	{
-		SetCurrentCharges(ASC->GetTagCount(BoundChargeTag));
+		const int32 Consumed = GetConsumedChargesFromASC();
+		SetCurrentCharges(FMath::Max(0, MaxCharges - Consumed));
 	}
 
 	return true;
