@@ -80,12 +80,9 @@ int32 UWxViewModel_Ability::GetConsumedCharges() const
 		return 0;
 	}
 
-	// 스태킹 없이 충전 소모마다 독립적인 GE 인스턴스가 생성된다.
-	// 각 인스턴스의 스택 수는 1이므로 GetAggregatedStackCount = 활성 GE 인스턴스 수 = 소모된 충전 수.
-	FGameplayTagContainer TagContainer;
-	TagContainer.AddTag(CooldownTag);
-	const FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(TagContainer);
-	return ASC->GetAggregatedStackCount(Query);
+	// CooldownTag를 그랜트하는 활성 GE 수 = 소모된 충전 수.
+	// WxAbility::CheckCooldown과 동일한 방식으로 TagCount를 사용한다.
+	return ASC->GetTagCount(CooldownTag);
 }
 
 void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle)
@@ -101,6 +98,14 @@ void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* 
 	if (!GrantedTags.HasTag(CooldownTag))
 	{
 		return;
+	}
+
+	// 충전 1회당 쿨다운 주기 캡처: 첫 GE Duration = CooldownDuration, 이후 GE는 더 길다.
+	// 최솟값을 유지하면 CooldownDuration 프로퍼티에 항상 올바른 주기가 보존된다.
+	const float SpecDuration = SpecApplied.GetDuration();
+	if (SpecDuration > 0.f && (CooldownDuration <= 0.f || SpecDuration < CooldownDuration))
+	{
+		SetCooldownDuration(SpecDuration);
 	}
 
 	SetIsOnCooldown(true);
@@ -129,19 +134,18 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 
 	// 활성 쿨다운 GE 중 가장 빨리 만료되는 것의 남은 시간을 구한다.
 	// 충전 시스템에서 "다음 충전까지 남은 시간"에 해당한다.
+	// MakeQuery_MatchAnyEffectTags: GE의 DynamicAssetTags에 추가된 CooldownTag로 필터링한다.
 	FGameplayTagContainer TagContainer;
 	TagContainer.AddTag(CooldownTag);
-	const FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(TagContainer);
+	const FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyEffectTags(TagContainer);
 	TArray<TPair<float, float>> TimesAndDurations = ASC->GetActiveEffectsTimeRemainingAndDuration(Query);
 
 	float MinTimeRemaining = 0.f;
-	float CorrespondingDuration = 0.f;
 	for (const TPair<float, float>& Pair : TimesAndDurations)
 	{
 		if (MinTimeRemaining <= 0.f || Pair.Key < MinTimeRemaining)
 		{
 			MinTimeRemaining = Pair.Key;
-			CorrespondingDuration = Pair.Value;
 		}
 	}
 
@@ -157,9 +161,8 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 		return false;
 	}
 
-	SetCooldownDuration(CorrespondingDuration);
 	SetCooldownRemaining(MinTimeRemaining);
-	SetCooldownPercent(CorrespondingDuration > 0.f ? MinTimeRemaining / CorrespondingDuration : 0.f);
+	SetCooldownPercent(CooldownDuration > 0.f ? MinTimeRemaining / CooldownDuration : 0.f);
 
 	// 소모된 충전 수 = 활성 GE 인스턴스 수. 이를 뺀 값이 현재 남은 충전 수.
 	if (MaxCharges > 1)

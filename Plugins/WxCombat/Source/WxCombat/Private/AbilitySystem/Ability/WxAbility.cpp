@@ -20,12 +20,6 @@ void UWxAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const
 	}
 }
 
-UGameplayEffect* UWxAbility::GetCooldownGameplayEffect() const
-{
-	// ApplyCooldown에서 DynamicGrantedTags를 포함해 직접 GE를 적용하므로 nullptr을 반환해 Super::ApplyCooldown을 no-op으로 만든다.
-	// CooldownGameplayEffectClass가 설정되어 있어도 무시한다.
-	return nullptr;
-}
 
 const FGameplayTagContainer* UWxAbility::GetCooldownTags() const
 {
@@ -47,7 +41,7 @@ const FGameplayTagContainer* UWxAbility::GetCooldownTags() const
 
 bool UWxAbility::CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	if (MaxCharges > 1 && CooldownTag.IsValid())
+	if (CooldownTag.IsValid())
 	{
 		const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 		if (!ASC)
@@ -55,9 +49,8 @@ bool UWxAbility::CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FG
 			return false;
 		}
 
-		// 스택 1개 = 소모된 충전 1회. 스택 수가 MaxCharges 미만이면 사용 가능.
-		const int32 ConsumedCharges = ASC->GetGameplayEffectCount(UWxEffect_Cooldown::StaticClass(), nullptr);
-		return ConsumedCharges < MaxCharges;
+		// 활성 쿨다운 GE 수(= 소모된 충전 수)가 MaxCharges 미만이면 사용 가능.
+		return ASC->GetTagCount(CooldownTag) < MaxCharges;
 	}
 
 	return Super::CheckCooldown(Handle, ActorInfo, OptionalRelevantTags);
@@ -72,11 +65,31 @@ void UWxAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FG
 		return;
 	}
 
+	// 기존 활성 쿨다운 GE 중 가장 늦게 만료되는 잔여 시간을 구해 순차 복구를 구현한다.
+	// Duration = 기존 최대 잔여시간 + CooldownDuration
+	// → 충전이 CooldownDuration 간격으로 순차 복구된다.
+	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+	if (!ASC)
+	{
+		return;
+	}
+
+	FGameplayTagContainer TagContainer;
+	TagContainer.AddTag(CooldownTag);
+	const FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyEffectTags(TagContainer);
+
+	float MaxRemainingTime = 0.f;
+	for (const float Remaining : ASC->GetActiveEffectsTimeRemaining(Query))
+	{
+		MaxRemainingTime = FMath::Max(MaxRemainingTime, Remaining);
+	}
+
 	const FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_Cooldown::StaticClass(), GetAbilityLevel());
 	if (SpecHandle.IsValid() && SpecHandle.Data.IsValid())
 	{
-		SpecHandle.Data->SetDuration(CooldownDuration, true);
+		SpecHandle.Data->SetDuration(MaxRemainingTime + CooldownDuration, true);
 		SpecHandle.Data->DynamicGrantedTags.AddTag(CooldownTag);
+		SpecHandle.Data->DynamicAssetTags.AddTag(CooldownTag);
 		ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
 	}
 }
