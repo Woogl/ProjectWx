@@ -1,9 +1,9 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Targeting/WxTargetingFilterTask_TraceFilter.h"
+#include "Targeting/WxTargetingFilterTask_LineTrace.h"
 #include "Types/TargetingSystemTypes.h"
 
-bool UWxTargetingFilterTask_TraceFilter::ShouldFilterTarget(const FTargetingRequestHandle& TargetingHandle, const FTargetingDefaultResultData& TargetData) const
+bool UWxTargetingFilterTask_LineTrace::ShouldFilterTarget(const FTargetingRequestHandle& TargetingHandle, const FTargetingDefaultResultData& TargetData) const
 {
 	const FTargetingSourceContext* SourceContext = FTargetingSourceContext::Find(TargetingHandle);
 	if (!SourceContext)

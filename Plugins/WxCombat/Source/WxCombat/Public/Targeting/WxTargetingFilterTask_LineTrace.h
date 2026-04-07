@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Tasks/TargetingFilterTask_BasicFilterTemplate.h"
-#include "WxTargetingFilterTask_TraceFilter.generated.h"
+#include "WxTargetingFilterTask_LineTrace.generated.h"
 
 /**
  * 지정된 콜리전 채널로 라인 트레이스를 수행하여 타겟을 필터링하는 타겟팅 필터.
@@ -12,7 +12,7 @@
  * 예: ECC_Visibility 채널로 시야가 차단된 타겟을 제거.
  */
 UCLASS(Blueprintable)
-class WXCOMBAT_API UWxTargetingFilterTask_TraceFilter : public UTargetingFilterTask_BasicFilterTemplate
+class WXCOMBAT_API UWxTargetingFilterTask_LineTrace : public UTargetingFilterTask_BasicFilterTemplate
 {
 	GENERATED_BODY()
 
