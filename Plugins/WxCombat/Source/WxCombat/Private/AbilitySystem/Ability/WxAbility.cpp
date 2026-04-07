@@ -20,19 +20,6 @@ void UWxAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const
 	}
 }
 
-UGameplayEffect* UWxAbility::GetCooldownGameplayEffect() const
-{
-	// Super(UGameplayAbility)에 CooldownGameplayEffectClass가 설정된 경우 그대로 사용
-	if (UGameplayEffect* ParentCooldownGE = Super::GetCooldownGameplayEffect())
-	{
-		return ParentCooldownGE;
-	}
-
-	// ApplyCooldown에서 동적 Duration으로 직접 적용하므로 여기서는 nullptr 반환.
-	// CDO를 반환하면 Super::ApplyCooldown이 기본 Duration(1초)으로 이중 적용하게 된다.
-	return nullptr;
-}
-
 const FGameplayTagContainer* UWxAbility::GetCooldownTags() const
 {
 	CooldownTagContainer.Reset();
@@ -71,13 +58,15 @@ bool UWxAbility::CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FG
 
 void UWxAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
 {
+	Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
+
 	if (CooldownDuration <= 0.f || !CooldownTag.IsValid())
 	{
 		return;
 	}
 
 	const FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_Cooldown::StaticClass(), GetAbilityLevel());
-	if (SpecHandle.IsValid())
+	if (SpecHandle.IsValid() && SpecHandle.Data.IsValid())
 	{
 		SpecHandle.Data->SetDuration(CooldownDuration, true);
 		SpecHandle.Data->DynamicGrantedTags.AddTag(CooldownTag);

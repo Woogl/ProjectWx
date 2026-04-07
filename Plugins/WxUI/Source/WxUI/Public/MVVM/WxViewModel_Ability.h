@@ -55,6 +55,9 @@ public:
 	int32 MaxCharges = 0;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	bool HasMultipleCharges = false;
+
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	TObjectPtr<UTexture2D> Icon = nullptr;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Ability")
@@ -78,6 +81,9 @@ public:
 	int32 GetMaxCharges() const;
 	void SetMaxCharges(int32 NewValue);
 
+	bool GetHasMultipleCharges() const;
+	void SetHasMultipleCharges(bool NewValue);
+
 	UTexture2D* GetIcon() const;
 	void SetIcon(UTexture2D* NewValue);
 
@@ -91,7 +97,7 @@ private:
 	bool UpdateCooldownState(float DeltaTime);
 
 	FGameplayTag GetCooldownTag() const;
-	int32 GetConsumedChargesFromASC() const;
+	int32 GetConsumedCharges() const;
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	TWeakObjectPtr<const UGameplayAbility> CachedAbility;

@@ -24,6 +24,7 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 
 	const int32 AbilityMaxCharges = FMath::Max(1, InMaxCharges);
 	SetMaxCharges(AbilityMaxCharges);
+	SetHasMultipleCharges(AbilityMaxCharges > 1);
 	SetCurrentCharges(AbilityMaxCharges);
 
 	// 쿨다운 GE 적용 시점을 직접 감지한다.
@@ -73,7 +74,7 @@ FGameplayTag UWxViewModel_Ability::GetCooldownTag() const
 	return CooldownTags->First();
 }
 
-int32 UWxViewModel_Ability::GetConsumedChargesFromASC() const
+int32 UWxViewModel_Ability::GetConsumedCharges() const
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
 	const FGameplayTag CooldownTag = GetCooldownTag();
@@ -159,7 +160,7 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 	// 충전 시스템 어빌리티는 GE 스택 수로부터 남은 충전을 계산
 	if (MaxCharges > 1)
 	{
-		const int32 Consumed = GetConsumedChargesFromASC();
+		const int32 Consumed = GetConsumedCharges();
 		SetCurrentCharges(FMath::Max(0, MaxCharges - Consumed));
 	}
 
@@ -224,6 +225,16 @@ int32 UWxViewModel_Ability::GetMaxCharges() const
 void UWxViewModel_Ability::SetMaxCharges(int32 NewValue)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(MaxCharges, NewValue);
+}
+
+bool UWxViewModel_Ability::GetHasMultipleCharges() const
+{
+	return HasMultipleCharges;
+}
+
+void UWxViewModel_Ability::SetHasMultipleCharges(bool NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(HasMultipleCharges, NewValue);
 }
 
 UTexture2D* UWxViewModel_Ability::GetIcon() const
