@@ -43,6 +43,10 @@ public:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 protected:
+	/** 공격 적중 시 회복하는 MP량 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Recovery")
+	float HitMPRecovery = 5.f;
+
 	/**
 	 * 콤보 경로-몽타주 매핑.
 	 * Key: 콤보 경로 (L = 약공격, H = 강공격. 예: "L", "LL", "LH", "LHLH")
@@ -60,6 +64,11 @@ private:
 
 	/** 현재 경로에서 L 또는 H를 추가했을 때 유효한 분기가 있는지 반환 */
 	bool HasNextCombo() const;
+
+	void ListenForAttackHit();
+
+	UFUNCTION()
+	void HandleAttackHit(FGameplayEventData Payload);
 
 	UFUNCTION()
 	void HandleMontageCompleted();

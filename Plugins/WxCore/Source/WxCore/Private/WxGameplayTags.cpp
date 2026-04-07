@@ -10,7 +10,10 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_LockOn, "State.LockOn");
 
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact, "Event.HitReact");
+	UE_DEFINE_GAMEPLAY_TAG(Event_GuardHit, "Event.GuardHit");
 	UE_DEFINE_GAMEPLAY_TAG(Event_DodgeSuccess, "Event.DodgeSuccess");
+	UE_DEFINE_GAMEPLAY_TAG(Event_PerfectGuard, "Event.PerfectGuard");
+	UE_DEFINE_GAMEPLAY_TAG(Event_AttackHit, "Event.AttackHit");
 
 	UE_DEFINE_GAMEPLAY_TAG(ANS_WeaponCollision, "ANS.WeaponCollision");
 	UE_DEFINE_GAMEPLAY_TAG(ANS_ComboWindow, "ANS.ComboWindow");

@@ -2,9 +2,11 @@
 
 #include "AbilitySystem/Ability/WxAbility_Skill.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "WxGameplayTags.h"
-#include "AbilitySystem/WxCombatAttributeSet.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "AbilitySystem/Effect/WxEffect_CostMP.h"
+#include "AbilitySystem/Effect/WxEffect_RecoveryUP.h"
+#include "AbilitySystem/WxCombatAttributeSet.h"
+#include "WxGameplayTags.h"
 
 UWxAbility_Skill::UWxAbility_Skill()
 {
@@ -40,6 +42,8 @@ void UWxAbility_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Skill::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Skill::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
+
+	ListenForAttackHit();
 }
 
 bool UWxAbility_Skill::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
@@ -81,6 +85,27 @@ void UWxAbility_Skill::ApplyCost(const FGameplayAbilitySpecHandle Handle, const 
 			SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Cost, -MPCost);
 			ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
 		}
+	}
+}
+
+void UWxAbility_Skill::ListenForAttackHit()
+{
+	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+		this, WxGameplayTags::Event_AttackHit);
+	if (EventTask)
+	{
+		EventTask->EventReceived.AddDynamic(this, &UWxAbility_Skill::HandleAttackHit);
+		EventTask->ReadyForActivation();
+	}
+}
+
+void UWxAbility_Skill::HandleAttackHit(FGameplayEventData Payload)
+{
+	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_RecoveryUP::StaticClass(), GetAbilityLevel());
+	if (SpecHandle.IsValid())
+	{
+		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery, HitUPRecovery);
+		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle);
 	}
 }
 

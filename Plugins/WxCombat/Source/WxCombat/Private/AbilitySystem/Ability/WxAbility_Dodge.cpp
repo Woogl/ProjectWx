@@ -4,6 +4,7 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
+#include "AbilitySystem/Effect/WxEffect_RecoveryMP.h"
 #include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
 #include "AbilitySystem/Task/WxAbilityTask_TurnAround.h"
 #include "AbilitySystemComponent.h"
@@ -173,13 +174,22 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 		return;
 	}
 
+	// 극한 회피 성공 보상: MP 회복
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (ASC)
+	{
+		const UGameplayEffect* Effect = UWxEffect_RecoveryMP::StaticClass()->GetDefaultObject<UGameplayEffect>();
+		FGameplayEffectSpec Spec(Effect, ASC->MakeEffectContext(), 1.f);
+		Spec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery, 5.f);
+		ASC->ApplyGameplayEffectSpecToSelf(Spec);
+	}
+
 	bPlayingPerfectDodge = true;
 	PlayPerfectDodgeMontage();
 
 	if (DodgeCounterMontage)
 	{
 		// 공격 입력 태그를 스펙에 동적 추가하여, ASC의 입력 라우팅이 이 어빌리티에 도달하도록 함
-		UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 		if (ASC)
 		{
 			FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromHandle(CurrentSpecHandle);

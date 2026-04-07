@@ -1,7 +1,9 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Guard.h"
+#include "AbilitySystem/Effect/WxEffect_RecoveryMP.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
@@ -54,7 +56,8 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		return;
 	}
 
-	ListenForHitReact();
+	ListenForGuardHit();
+	ListenForPerfectGuard();
 }
 
 void UWxAbility_Guard::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -110,15 +113,47 @@ bool UWxAbility_Guard::PlayMontage(UAnimMontage* Montage)
 	return true;
 }
 
-void UWxAbility_Guard::ListenForHitReact()
+void UWxAbility_Guard::ListenForGuardHit()
 {
 	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-		this, WxGameplayTags::Event_HitReact);
+		this, WxGameplayTags::Event_GuardHit);
 	if (EventTask)
 	{
 		EventTask->EventReceived.AddDynamic(this, &UWxAbility_Guard::HandleGuardHitReact);
 		EventTask->ReadyForActivation();
 	}
+}
+
+void UWxAbility_Guard::ListenForPerfectGuard()
+{
+	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+		this, WxGameplayTags::Event_PerfectGuard);
+	if (EventTask)
+	{
+		EventTask->EventReceived.AddDynamic(this, &UWxAbility_Guard::HandlePerfectGuard);
+		EventTask->ReadyForActivation();
+	}
+}
+
+void UWxAbility_Guard::HandlePerfectGuard(FGameplayEventData Payload)
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (!ASC)
+	{
+		return;
+	}
+
+	// 퍼펙트 가드 성공 보상: MP 회복
+	const UGameplayEffect* Effect = UWxEffect_RecoveryMP::StaticClass()->GetDefaultObject<UGameplayEffect>();
+	FGameplayEffectSpec Spec(Effect, ASC->MakeEffectContext(), 1.f);
+	Spec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery, PerfectGuardMPRecovery);
+	ASC->ApplyGameplayEffectSpecToSelf(Spec);
+
+	// HitReact 이벤트 발송
+	FGameplayEventData EventData;
+	EventData.Instigator = Payload.Instigator;
+	EventData.Target = ASC->GetOwnerActor();
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(ASC->GetOwnerActor(), WxGameplayTags::Event_HitReact, EventData);
 }
 
 void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)

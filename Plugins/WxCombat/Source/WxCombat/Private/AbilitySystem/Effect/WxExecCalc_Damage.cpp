@@ -1,8 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Effect/WxExecCalc_Damage.h"
-#include "AbilitySystem/Effect/WxEffect_RecoveryMP.h"
-#include "AbilitySystem/Effect/WxEffect_RecoveryUP.h"
 #include "AbilitySystem/Effect/WxEffect_Reflect.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
@@ -83,6 +81,9 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	float TargetDEF = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.DEFDef, EvalParams, TargetDEF);
 
+	float TargetPP = 0.f;
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.PPDef, EvalParams, TargetPP);
+
 	const float DefenseMultiplier = 100.f / (100.f + TargetDEF);
 
 	// --- 3. 상태 판정 ---
@@ -97,43 +98,34 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	{
 		DamageResult.FinalDamage = FMath::Max(SourceATK * DefenseMultiplier, 0.f);
 		ReflectPerfectGuard(SourceASC, DamageResult.FinalDamage);
-		ApplyResourceRecovery(TargetASC, UWxEffect_RecoveryMP::StaticClass(), 5.f);
-		SendHitReactEvent(SourceASC, TargetASC);
+
+		FGameplayEventData EventData;
+		EventData.Instigator = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
+		EventData.Target = TargetASC->GetOwnerActor();
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetASC->GetOwnerActor(), WxGameplayTags::Event_PerfectGuard, EventData);
 	}
 	else
 	{
 		DamageResult = CalcDamage(ExecutionParams, EvalParams, SourceATK, DefenseMultiplier, TargetASC, bIsUnblockable);
 		if (DamageResult.FinalDamage > 0.f)
 		{
-			// HP 대미지
 			OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
 
-			// DP 누적 (그로기 상태가 아닌 경우)
 			if (!TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
 			{
 				OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.DPProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
 			}
 
-			if (bIsGuarding)
-			{
-				// 가드 피격: SP 차감 + HitReact 이벤트. Guard 어빌리티가 EventMagnitude로 GuardHitReact/GuardBreak 분기
-				OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.SPProperty, EGameplayModOp::Additive, -DamageResult.FinalDamage));
-				SendHitReactEvent(SourceASC, TargetASC, DamageResult.FinalDamage);
-			}
-			else
-			{
-				// 비가드 피격: PP 차감, PP 소진 시 HitReact
-				OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.PPProperty, EGameplayModOp::Additive, -DamageResult.FinalDamage));
+			ApplyHitReaction(SourceASC, TargetASC, DamageResult.FinalDamage, TargetPP, bIsGuarding, bIsUnblockable, OutExecutionOutput);
 
-				float TargetPP = 0.f;
-				ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.PPDef, EvalParams, TargetPP);
-				if ((TargetPP - DamageResult.FinalDamage) <= 0.f)
-				{
-					SendHitReactEvent(SourceASC, TargetASC);
-				}
+			if (SourceASC)
+			{
+				FGameplayEventData EventData;
+				EventData.Instigator = SourceASC->GetOwnerActor();
+				EventData.Target = TargetASC->GetOwnerActor();
+				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(SourceASC->GetOwnerActor(), WxGameplayTags::Event_AttackHit, EventData);
 			}
 		}
-		RecoverAttackerResource(SourceASC, OwningSpec);
 	}
 
 	// --- 5. AI 대미지 감지 ---
@@ -141,7 +133,9 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	AActor* TargetActor = TargetASC->GetOwnerActor();
 	if (SourceActor && TargetActor)
 	{
-		UAISense_Damage::ReportDamageEvent(TargetActor->GetWorld(), TargetActor, SourceActor, DamageResult.FinalDamage, SourceActor->GetActorLocation(), TargetActor->GetActorLocation());
+		// 퍼펙트 가드 시 Target에 실제 대미지가 없으므로 0으로 보고
+		const float ReportedDamage = bHasPerfectGuard ? 0.f : DamageResult.FinalDamage;
+		UAISense_Damage::ReportDamageEvent(TargetActor->GetWorld(), TargetActor, SourceActor, ReportedDamage, SourceActor->GetActorLocation(), TargetActor->GetActorLocation());
 	}
 
 	// --- 6. 대미지 GameplayCue ---
@@ -169,16 +163,10 @@ bool UWxExecCalc_Damage::HandleInvincible(UAbilitySystemComponent* SourceASC, UA
 		return false;
 	}
 
-	const UGameplayAbility* Ability = TargetASC->GetAnimatingAbility();
-	if (Ability && Ability->GetAssetTags().HasTag(WxGameplayTags::Ability_Dodge))
-	{
-		ApplyResourceRecovery(TargetASC, UWxEffect_RecoveryMP::StaticClass(), 5.f);
-
-		FGameplayEventData EventData;
-		EventData.Instigator = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
-		EventData.Target = TargetASC->GetOwnerActor();
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetASC->GetOwnerActor(), WxGameplayTags::Event_DodgeSuccess, EventData);
-	}
+	FGameplayEventData EventData;
+	EventData.Instigator = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
+	EventData.Target = TargetASC->GetOwnerActor();
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetASC->GetOwnerActor(), WxGameplayTags::Event_DodgeSuccess, EventData);
 
 	return true;
 }
@@ -234,57 +222,49 @@ FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecut
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-//  자원 회복
+//  피격 반응
 // ────────────────────────────────────────────────────────────────────────────
 
-void UWxExecCalc_Damage::RecoverAttackerResource(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& OwningSpec) const
+void UWxExecCalc_Damage::ApplyHitReaction(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, float FinalDamage, float TargetPP, bool bIsGuarding, bool bIsUnblockable, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
-	if (!SourceASC)
-	{
-		return;
-	}
+	const FWxDamageStatics& Statics = GetDamageStatics();
 
-	const UGameplayAbility* OwningAbility = OwningSpec.GetContext().GetAbility();
-	if (!OwningAbility)
-	{
-		return;
-	}
-
-	const FGameplayTagContainer AbilityTags = OwningAbility->GetAssetTags();
-
-	if (AbilityTags.HasTag(WxGameplayTags::Ability_Attack))
-	{
-		ApplyResourceRecovery(SourceASC, UWxEffect_RecoveryMP::StaticClass(), 5.f);
-	}
-	else if (AbilityTags.HasTag(WxGameplayTags::Ability_Skill))
-	{
-		ApplyResourceRecovery(SourceASC, UWxEffect_RecoveryUP::StaticClass(), 5.f);
-	}
-}
-
-void UWxExecCalc_Damage::ApplyResourceRecovery(UAbilitySystemComponent* ASC, TSubclassOf<UGameplayEffect> RecoveryEffect, float Amount) const
-{
-	if (ASC && RecoveryEffect && Amount > 0.f)
-	{
-		const UGameplayEffect* Effect = RecoveryEffect->GetDefaultObject<UGameplayEffect>();
-		FGameplayEffectSpec Spec(Effect, ASC->MakeEffectContext(), 1.f);
-		Spec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery, Amount);
-		ASC->ApplyGameplayEffectSpecToSelf(Spec);
-	}
-}
-
-// ────────────────────────────────────────────────────────────────────────────
-//  이벤트 / GameplayCue
-// ────────────────────────────────────────────────────────────────────────────
-
-void UWxExecCalc_Damage::SendHitReactEvent(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, float Magnitude) const
-{
+	AActor* TargetActor = TargetASC->GetOwnerActor();
 	FGameplayEventData EventData;
 	EventData.Instigator = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
-	EventData.Target = TargetASC->GetOwnerActor();
-	EventData.EventMagnitude = Magnitude;
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetASC->GetOwnerActor(), WxGameplayTags::Event_HitReact, EventData);
+	EventData.Target = TargetActor;
+
+	if (bIsGuarding && !bIsUnblockable)
+	{
+		// 일반 가드: SP 차감 → Guard 어빌리티가 GuardHitReact/GuardBreak 분기
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.SPProperty, EGameplayModOp::Additive, -FinalDamage));
+		EventData.EventMagnitude = FinalDamage;
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_GuardHit, EventData);
+	}
+	else
+	{
+		// Unblockable 가드 or 비가드: PP 차감
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.PPProperty, EGameplayModOp::Additive, -FinalDamage));
+
+		if (bIsGuarding) // Unblockable 가드: Guard Cancel 후 HitReact
+		{
+			const FGameplayTagContainer GuardAbilityTags(WxGameplayTags::Ability_Guard);
+			TargetASC->CancelAbilities(&GuardAbilityTags);
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_HitReact, EventData);
+		}
+		else // 비가드: PP 소진 시 HitReact
+		{
+			if ((TargetPP - FinalDamage) <= 0.f)
+			{
+				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_HitReact, EventData);
+			}
+		}
+	}
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+//  GameplayCue
+// ────────────────────────────────────────────────────────────────────────────
 
 void UWxExecCalc_Damage::ExecuteGameplayCueDamage(UAbilitySystemComponent* TargetASC, float DamageAmount, FVector HitLocation, const FGameplayEffectSpec& OwningSpec, bool bIsCritical, bool bDisplayDamageFloater) const
 {

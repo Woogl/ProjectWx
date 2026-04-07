@@ -37,11 +37,20 @@ protected:
 	/** MP 소모량. 0 이하이면 코스트 미적용 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cost")
 	float MPCost = 0.f;
+
+	/** 공격 적중 시 회복하는 UP량 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Recovery")
+	float HitUPRecovery = 5.f;
 	
 	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
 private:
+	void ListenForAttackHit();
+
+	UFUNCTION()
+	void HandleAttackHit(FGameplayEventData Payload);
+
 	UFUNCTION()
 	void HandleMontageCompleted();
 

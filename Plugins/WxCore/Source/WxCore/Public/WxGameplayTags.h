@@ -32,8 +32,17 @@ namespace WxGameplayTags
 	/** 피격 시 발생하는 이벤트. HitReact 어빌리티의 트리거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact);
 
+	/** 가드 피격 시 발생하는 이벤트. Guard 어빌리티의 트리거. EventMagnitude = SP 차감량 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_GuardHit);
+
 	/** 회피 성공 시 발생하는 이벤트. 무적 구간에서 대미지를 회피했을 때 발송 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_DodgeSuccess);
+
+	/** 퍼펙트 가드 성공 시 발생하는 이벤트. Guard 어빌리티가 MP 회복 및 HitReact를 처리 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_PerfectGuard);
+
+	/** 공격이 적중했을 때 공격자에게 발송하는 이벤트. 어빌리티가 MP/UP 회복 처리 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_AttackHit);
 
 
 	// ── ANS ───────────────────────────────────────────────────────────────
