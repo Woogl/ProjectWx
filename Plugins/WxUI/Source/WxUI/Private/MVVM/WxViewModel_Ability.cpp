@@ -3,6 +3,7 @@
 #include "MVVM/WxViewModel_Ability.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
+#include "GameplayEffect.h"
 
 void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility)
 {
@@ -13,6 +14,7 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 	
 	Deinitialize();
 	CachedASC = InASC;
+	CachedAbility = InAbility;
 
 	const FGameplayTagContainer& AssetTags = InAbility->GetAssetTags();
 	if (!AssetTags.IsEmpty())
@@ -20,20 +22,22 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 		AbilityTag = AssetTags.First();
 	}
 
-	const FGameplayTagContainer* CooldownTags = InAbility->GetCooldownTags();
-	if (CooldownTags && !CooldownTags->IsEmpty())
+	// 쿨다운 GE 적용 시점을 직접 감지한다.
+	// GE 클래스가 아니라 스펙이 부여하는 태그로 필터링하므로,
+	// CooldownGameplayEffectClass 없이 ApplyCooldown에서 동적으로 GE를 만드는 방식도 지원된다.
+	const FGameplayTag CooldownTag = GetCooldownTag();
+	if (CooldownTag.IsValid())
 	{
-		BoundCooldownTag = CooldownTags->First();
-		InASC->RegisterGameplayTagEvent(BoundCooldownTag, EGameplayTagEventType::NewOrRemoved)
-			.AddUObject(this, &UWxViewModel_Ability::HandleCooldownTagChanged);
+		InASC->OnActiveGameplayEffectAddedDelegateToSelf
+			.AddUObject(this, &UWxViewModel_Ability::HandleGameplayEffectApplied);
 	}
 
-	BindChargeTag(InASC);
+	BindChargeTag(InASC, CooldownTag);
 }
 
-void UWxViewModel_Ability::BindChargeTag(UAbilitySystemComponent* InASC)
+void UWxViewModel_Ability::BindChargeTag(UAbilitySystemComponent* InASC, const FGameplayTag& CooldownTag)
 {
-	if (!BoundCooldownTag.IsValid())
+	if (!CooldownTag.IsValid())
 	{
 		return;
 	}
@@ -41,7 +45,7 @@ void UWxViewModel_Ability::BindChargeTag(UAbilitySystemComponent* InASC)
 	// 쿨다운 태그 이름 규칙으로 충전 태그를 유도한다 (Cooldown.X → Charge.X)
 	// 해당 태그가 네이티브 태그로 등록되어 있을 때만 충전 시스템이 활성화된다.
 	static const FString CooldownPrefix = TEXT("Cooldown.");
-	const FString CooldownName = BoundCooldownTag.GetTagName().ToString();
+	const FString CooldownName = CooldownTag.GetTagName().ToString();
 	if (!CooldownName.StartsWith(CooldownPrefix))
 	{
 		return;
@@ -66,11 +70,7 @@ void UWxViewModel_Ability::Deinitialize()
 {
 	if (UAbilitySystemComponent* ASC = CachedASC.Get())
 	{
-		if (BoundCooldownTag.IsValid())
-		{
-			ASC->RegisterGameplayTagEvent(BoundCooldownTag, EGameplayTagEventType::NewOrRemoved)
-				.RemoveAll(this);
-		}
+		ASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
 
 		if (BoundChargeTag.IsValid())
 		{
@@ -86,50 +86,53 @@ void UWxViewModel_Ability::Deinitialize()
 	}
 
 	CachedASC.Reset();
-	BoundCooldownTag = FGameplayTag();
+	CachedAbility.Reset();
 	BoundChargeTag = FGameplayTag();
 
 	Super::Deinitialize();
 }
 
-void UWxViewModel_Ability::HandleCooldownTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+FGameplayTag UWxViewModel_Ability::GetCooldownTag() const
 {
-	UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (!ASC)
+	const UGameplayAbility* Ability = CachedAbility.Get();
+	if (!Ability)
+	{
+		return FGameplayTag();
+	}
+
+	const FGameplayTagContainer* CooldownTags = Ability->GetCooldownTags();
+	if (!CooldownTags || CooldownTags->IsEmpty())
+	{
+		return FGameplayTag();
+	}
+
+	return CooldownTags->First();
+}
+
+void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle)
+{
+	const FGameplayTag CooldownTag = GetCooldownTag();
+	if (!CooldownTag.IsValid())
 	{
 		return;
 	}
 
-	if (NewCount > 0)
+	// 이 스펙이 우리 어빌리티의 쿨다운 태그를 부여하는지로 필터링한다.
+	// (DynamicGrantedTags + GE Def의 GrantedTags 모두 포함)
+	FGameplayTagContainer GrantedTags;
+	SpecApplied.GetAllGrantedTags(GrantedTags);
+	if (!GrantedTags.HasTag(CooldownTag))
 	{
-		SetIsOnCooldown(true);
-
-		if (!TickerHandle.IsValid())
-		{
-			TickerHandle = FTSTicker::GetCoreTicker().AddTicker(
-				FTickerDelegate::CreateUObject(this, &UWxViewModel_Ability::UpdateCooldownState)
-			);
-		}
-	}
-	else
-	{
-		// 쿨다운 종료
-		if (TickerHandle.IsValid())
-		{
-			FTSTicker::GetCoreTicker().RemoveTicker(TickerHandle);
-			TickerHandle.Reset();
-		}
-
-		SetCooldownDuration(0.f);
-		SetCooldownRemaining(0.f);
-		SetCooldownPercent(0.f);
-		SetIsOnCooldown(false);
+		return;
 	}
 
-	// 쿨다운 태그 변경 시점에 충전 카운트도 동기화 (쿨다운 시작 = 충전 소모, 쿨다운 종료 = 재충전)
-	if (BoundChargeTag.IsValid())
+	SetIsOnCooldown(true);
+
+	if (!TickerHandle.IsValid())
 	{
-		SetCurrentCharges(ASC->GetTagCount(BoundChargeTag));
+		TickerHandle = FTSTicker::GetCoreTicker().AddTicker(
+			FTickerDelegate::CreateUObject(this, &UWxViewModel_Ability::UpdateCooldownState)
+		);
 	}
 }
 
@@ -146,34 +149,39 @@ void UWxViewModel_Ability::HandleChargeTagChanged(const FGameplayTag CallbackTag
 bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (!ASC)
+	const UGameplayAbility* Ability = CachedAbility.Get();
+	if (!ASC || !Ability)
 	{
 		return false;
 	}
 
-	// 매 프레임 ASC의 Active Effect에서 직접 남은 시간을 조회한다.
-	// CooldownEndTime 역산 방식은 Prediction Reconciliation으로 GE가 교체될 때 무효화될 수 있다.
-	FGameplayEffectQuery Query;
-	Query.OwningTagQuery = FGameplayTagQuery::MakeQuery_MatchAnyTags(FGameplayTagContainer(BoundCooldownTag));
-
-	TArray<float> RemainingTimes = ASC->GetActiveEffectsTimeRemaining(Query);
-	TArray<float> Durations = ASC->GetActiveEffectsDuration(Query);
-
-	if (RemainingTimes.Num() > 0)
+	// 어빌리티가 자신의 쿨다운 GE를 직접 조회하도록 위임한다.
+	// 내부적으로 ASC의 Active Effect를 쿨다운 태그로 쿼리하므로,
+	// CooldownEndTime 역산 없이도 Prediction Reconciliation에 안전하다.
+	const FGameplayAbilityActorInfo* ActorInfo = ASC->AbilityActorInfo.Get();
+	if (!ActorInfo)
 	{
-		int32 BestIdx = 0;
-		for (int32 Idx = 1; Idx < RemainingTimes.Num(); ++Idx)
-		{
-			if (RemainingTimes[Idx] > RemainingTimes[BestIdx])
-			{
-				BestIdx = Idx;
-			}
-		}
-
-		SetCooldownDuration(Durations[BestIdx]);
-		SetCooldownRemaining(RemainingTimes[BestIdx]);
-		SetCooldownPercent(Durations[BestIdx] > 0.f ? RemainingTimes[BestIdx] / Durations[BestIdx] : 0.f);
+		return true;
 	}
+
+	float TimeRemaining = 0.f;
+	float Duration = 0.f;
+	Ability->GetCooldownTimeRemainingAndDuration(FGameplayAbilitySpecHandle(), ActorInfo, TimeRemaining, Duration);
+
+	if (TimeRemaining <= 0.f)
+	{
+		// 쿨다운 종료: ticker 자가 종료 + 상태 초기화
+		SetCooldownDuration(0.f);
+		SetCooldownRemaining(0.f);
+		SetCooldownPercent(0.f);
+		SetIsOnCooldown(false);
+		TickerHandle.Reset();
+		return false;
+	}
+
+	SetCooldownDuration(Duration);
+	SetCooldownRemaining(TimeRemaining);
+	SetCooldownPercent(Duration > 0.f ? TimeRemaining / Duration : 0.f);
 
 	if (BoundChargeTag.IsValid())
 	{

@@ -5,11 +5,13 @@
 #include "CoreMinimal.h"
 #include "Containers/Ticker.h"
 #include "GameplayTagContainer.h"
+#include "GameplayEffectTypes.h"
 #include "MVVM/WxViewModel.h"
 #include "WxViewModel_Ability.generated.h"
 
 class UAbilitySystemComponent;
 class UGameplayAbility;
+struct FGameplayEffectSpec;
 
 /**
  * 어빌리티 쿨다운 뷰모델.
@@ -79,13 +81,15 @@ protected:
 	virtual void Deinitialize() override;
 
 private:
-	void BindChargeTag(UAbilitySystemComponent* InASC);
-	void HandleCooldownTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+	void BindChargeTag(UAbilitySystemComponent* InASC, const FGameplayTag& CooldownTag);
+	void HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle);
 	void HandleChargeTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 	bool UpdateCooldownState(float DeltaTime);
 
+	FGameplayTag GetCooldownTag() const;
+
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
-	FGameplayTag BoundCooldownTag;
+	TWeakObjectPtr<const UGameplayAbility> CachedAbility;
 	FGameplayTag BoundChargeTag;
 	FTSTicker::FDelegateHandle TickerHandle;
 };
