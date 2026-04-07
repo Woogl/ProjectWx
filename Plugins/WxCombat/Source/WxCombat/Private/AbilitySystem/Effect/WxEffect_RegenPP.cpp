@@ -2,8 +2,6 @@
 
 #include "AbilitySystem/Effect/WxEffect_RegenPP.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
-#include "GameplayEffectComponents/TargetTagRequirementsGameplayEffectComponent.h"
-#include "WxGameplayTags.h"
 
 UWxEffect_RegenPP::UWxEffect_RegenPP()
 {
@@ -11,11 +9,6 @@ UWxEffect_RegenPP::UWxEffect_RegenPP()
 
 	Period = FScalableFloat(RegenPeriod);
 	bExecutePeriodicEffectOnApplication = true;
-
-	// 가드 중에는 PP 회복 억제
-	UTargetTagRequirementsGameplayEffectComponent* TagReqComp = CreateDefaultSubobject<UTargetTagRequirementsGameplayEffectComponent>(TEXT("TargetTagReq"));
-	TagReqComp->OngoingTagRequirements.IgnoreTags.AddTag(WxGameplayTags::State_Guard);
-	GEComponents.Add(TagReqComp);
 
 	// 틱당 회복량 = MaxPP * (RegenPeriod / FullRegenDuration) = MaxPP / 120
 	FAttributeBasedFloat AttributeBased;

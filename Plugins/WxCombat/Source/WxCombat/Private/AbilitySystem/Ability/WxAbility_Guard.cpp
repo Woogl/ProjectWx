@@ -26,7 +26,14 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (ActiveMontage == GuardBreakMontage || !GuardMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	// GuardBreak 재생 중에는 bRetriggerInstancedAbility로 인한 재진입을 무시한다.
+	// EndAbility를 호출하면 진행 중인 GuardBreak 태스크가 함께 종료되므로 단순 early-return.
+	if (ActiveMontage == GuardBreakMontage)
+	{
+		return;
+	}
+
+	if (!GuardMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -40,7 +47,6 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	}
 
 	ASC->AddLooseGameplayTag(WxGameplayTags::State_Guard);
-	ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetPPAttribute()).AddUObject(this, &UWxAbility_Guard::HandlePPChanged);
 
 	if (!PlayMontage(GuardMontage))
 	{
@@ -54,16 +60,13 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 void UWxAbility_Guard::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-	if (ASC)
+	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard))
 	{
-		ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetPPAttribute()).RemoveAll(this);
-		if (ASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard))
-		{
-			ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Guard);
-		}
+		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Guard);
 	}
 
 	ActiveMontage = nullptr;
+	CurrentMontageTask = nullptr;
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
@@ -82,6 +85,13 @@ void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, co
 
 bool UWxAbility_Guard::PlayMontage(UAnimMontage* Montage)
 {
+	// 페이즈 전환 시 이전 몽타주 태스크를 명시적으로 정리해 콜백 잔여 발생을 차단한다.
+	if (CurrentMontageTask)
+	{
+		CurrentMontageTask->EndTask();
+		CurrentMontageTask = nullptr;
+	}
+
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this, NAME_None, Montage, 1.f, NAME_None, true, 1.f, 0.f, true);
 	if (!MontageTask)
@@ -89,6 +99,7 @@ bool UWxAbility_Guard::PlayMontage(UAnimMontage* Montage)
 		return false;
 	}
 
+	CurrentMontageTask = MontageTask;
 	ActiveMontage = Montage;
 
 	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Guard::HandleMontageBlendingOut);
@@ -112,29 +123,34 @@ void UWxAbility_Guard::ListenForHitReact()
 
 void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 {
-	if (ActiveMontage != GuardMontage || !GuardHitReactMontage)
+	if (ActiveMontage != GuardMontage)
 	{
 		return;
 	}
 
-	PlayMontage(GuardHitReactMontage);
-}
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	const UWxCombatAttributeSet* AttributeSet = ASC ? ASC->GetSet<UWxCombatAttributeSet>() : nullptr;
 
-void UWxAbility_Guard::HandlePPChanged(const FOnAttributeChangeData& ChangeData)
-{
-	if (ChangeData.NewValue > 0.f || ActiveMontage == GuardBreakMontage)
+	// Payload.EventMagnitude는 ExecCalc가 전달한 SP 차감량.
+	// ExecCalc는 SP OutputModifier를 큐잉한 직후 동기적으로 이벤트를 디스패치하므로
+	// 이 시점의 GetSP()는 차감 적용 전 값이며, (GetSP() - Magnitude)가 차감 후 예상 SP다.
+	const bool bWillBreak = AttributeSet && (AttributeSet->GetSP() - Payload.EventMagnitude) <= 0.f;
+
+	if (bWillBreak)
 	{
-		return;
+		if (ASC)
+		{
+			ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Guard);
+		}
+
+		if (!PlayMontage(GuardBreakMontage))
+		{
+			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		}
 	}
-
-	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	else if (GuardHitReactMontage)
 	{
-		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Guard);
-	}
-
-	if (!PlayMontage(GuardBreakMontage))
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		PlayMontage(GuardHitReactMontage);
 	}
 }
 

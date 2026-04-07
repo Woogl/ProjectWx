@@ -7,6 +7,7 @@
 #include "WxAbility_Guard.generated.h"
 
 class UAnimMontage;
+class UAbilityTask_PlayMontageAndWait;
 
 /**
  * 가드 어빌리티.
@@ -14,7 +15,7 @@ class UAnimMontage;
  * 페이즈 (ActiveMontage로 판별):
  *  GuardMontage         – State.Guard 태그 활성, 피격 시 HitReact 전환
  *  GuardHitReactMontage – 재생 후 GuardMontage 복귀
- *  GuardBreakMontage    – PP 고갈 시 State.Guard 해제 후 재생, 종료
+ *  GuardBreakMontage    – SP 고갈 시 State.Guard 해제 후 재생, 종료
  *
  * 입력 릴리즈 시 GuardBreak 중이 아니면 즉시 EndAbility.
  */
@@ -47,8 +48,6 @@ private:
 	UFUNCTION()
 	void HandleGuardHitReact(FGameplayEventData Payload);
 
-	void HandlePPChanged(const FOnAttributeChangeData& ChangeData);
-
 	UFUNCTION()
 	void HandleMontageBlendingOut();
 
@@ -63,4 +62,7 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UAnimMontage> ActiveMontage;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAbilityTask_PlayMontageAndWait> CurrentMontageTask;
 };
