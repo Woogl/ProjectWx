@@ -234,18 +234,18 @@ void UWxExecCalc_Damage::ApplyHitReaction(UAbilitySystemComponent* SourceASC, UA
 	EventData.Instigator = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
 	EventData.Target = TargetActor;
 
-	// 공격 GE에 부여된 Event.HitReact 또는 그 자식 태그(Event.HitReact.Knockback 등)로
-	// HitReact 디스패치 종류 결정. 자식 태그(Knock 종류)가 명시된 경우엔 PP 잔량과
-	// 무관하게 강제로 HitReact 발동. Event.HitReact 자체만 있으면 기존 PP 소진 조건을 따른다.
+	// 공격 GE의 Event.HitReact.* 자식 태그로 HitReact 디스패치 종류 결정.
+	// Knock 종류(Knockback/Knockdown/Knockup)는 PP 잔량과 무관하게 강제 발동.
+	// Event.HitReact.Normal은 PP 소진 시에만 발동.
 	const FGameplayTagContainer& DynamicTags = OwningSpec.GetDynamicAssetTags();
 	const FGameplayTagContainer HitReactTagMatches = DynamicTags.Filter(FGameplayTagContainer(WxGameplayTags::Event_HitReact));
 
-	FGameplayTag HitReactEventTag = WxGameplayTags::Event_HitReact;
+	FGameplayTag HitReactEventTag = WxGameplayTags::Event_HitReact_Normal;
 	bool bForceHitReact = false;
 	if (!HitReactTagMatches.IsEmpty())
 	{
 		HitReactEventTag = HitReactTagMatches.First();
-		bForceHitReact = HitReactEventTag != WxGameplayTags::Event_HitReact;
+		bForceHitReact = HitReactEventTag != WxGameplayTags::Event_HitReact_Normal;
 	}
 
 	if (bIsGuarding && !bIsUnblockable)

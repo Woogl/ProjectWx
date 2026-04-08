@@ -152,7 +152,7 @@ void UWxAbility_Guard::HandlePerfectGuard(FGameplayEventData Payload)
 	FGameplayEventData EventData;
 	EventData.Instigator = Payload.Instigator;
 	EventData.Target = ASC->GetOwnerActor();
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(ASC->GetOwnerActor(), WxGameplayTags::Event_HitReact, EventData);
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(ASC->GetOwnerActor(), WxGameplayTags::Event_HitReact_Normal, EventData);
 }
 
 void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)

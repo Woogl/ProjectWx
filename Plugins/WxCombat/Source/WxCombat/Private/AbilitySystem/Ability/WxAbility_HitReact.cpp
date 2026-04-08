@@ -19,19 +19,25 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	bRetriggerInstancedAbility = true;
 
 	// AbilityTriggers는 정확한 태그 매칭을 사용하므로 각 HitReact 종류를 개별 등록한다.
-	const FGameplayTag TriggerTags[] = {
-		WxGameplayTags::Event_HitReact,
-		WxGameplayTags::Event_HitReact_Knockback,
-		WxGameplayTags::Event_HitReact_Knockdown,
-		WxGameplayTags::Event_HitReact_Knockup,
-	};
-	for (const FGameplayTag& Tag : TriggerTags)
-	{
-		FAbilityTriggerData TriggerData;
-		TriggerData.TriggerTag = Tag;
-		TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
-		AbilityTriggers.Add(TriggerData);
-	}
+	FAbilityTriggerData NormalTrigger;
+	NormalTrigger.TriggerTag = WxGameplayTags::Event_HitReact_Normal;
+	NormalTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
+	AbilityTriggers.Add(NormalTrigger);
+
+	FAbilityTriggerData KnockbackTrigger;
+	KnockbackTrigger.TriggerTag = WxGameplayTags::Event_HitReact_Knockback;
+	KnockbackTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
+	AbilityTriggers.Add(KnockbackTrigger);
+
+	FAbilityTriggerData KnockdownTrigger;
+	KnockdownTrigger.TriggerTag = WxGameplayTags::Event_HitReact_Knockdown;
+	KnockdownTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
+	AbilityTriggers.Add(KnockdownTrigger);
+
+	FAbilityTriggerData KnockupTrigger;
+	KnockupTrigger.TriggerTag = WxGameplayTags::Event_HitReact_Knockup;
+	KnockupTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
+	AbilityTriggers.Add(KnockupTrigger);
 }
 
 void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

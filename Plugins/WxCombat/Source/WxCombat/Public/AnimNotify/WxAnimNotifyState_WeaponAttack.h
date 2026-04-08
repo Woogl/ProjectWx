@@ -22,6 +22,8 @@ class WXCOMBAT_API UWxAnimNotifyState_WeaponAttack : public UAnimNotifyState
 	GENERATED_BODY()
 
 public:
+	UWxAnimNotifyState_WeaponAttack();
+
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 
@@ -34,9 +36,8 @@ protected:
 
 	/**
 	 * 적중 시 무기 AttackTags에 부여할 HitReact 태그.
-	 * 비어있으면 기본 HitReact 동작(PP 소진 조건)을 유지하고,
-	 * Event.HitReact의 자식 태그(Knockback/Knockdown/Knockup 등)를 지정하면
-	 * PP 잔량과 무관하게 해당 종류의 HitReact가 강제 발동된다.
+	 * 기본값(Event.HitReact.Normal)은 PP 소진 조건일 때만 발동되고,
+	 * Knockback/Knockdown/Knockup 등을 지정하면 PP 잔량과 무관하게 해당 종류의 HitReact가 강제 발동된다.
 	 */
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (Categories = "Event.HitReact"))
 	FGameplayTag HitReactTag;

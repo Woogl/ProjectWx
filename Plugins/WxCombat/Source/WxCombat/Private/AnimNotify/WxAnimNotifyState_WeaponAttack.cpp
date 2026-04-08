@@ -6,6 +6,11 @@
 #include "Weapon/WxWeaponBase.h"
 #include "WxGameplayTags.h"
 
+UWxAnimNotifyState_WeaponAttack::UWxAnimNotifyState_WeaponAttack()
+{
+	HitReactTag = WxGameplayTags::Event_HitReact_Normal;
+}
+
 void UWxAnimNotifyState_WeaponAttack::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);

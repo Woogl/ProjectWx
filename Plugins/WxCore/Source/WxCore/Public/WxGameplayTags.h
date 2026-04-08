@@ -29,8 +29,11 @@ namespace WxGameplayTags
 
 	// ── Event ─────────────────────────────────────────────────────────────
 
-	/** 피격 시 발생하는 이벤트. HitReact 어빌리티의 트리거(기본 반응) */
+	/** 피격 이벤트 부모 카테고리. ExecCalc 필터링/디스패치 결정에만 사용 (직접 dispatch 금지) */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact);
+
+	/** 일반 피격 이벤트. HitReact 어빌리티가 기본 HitReactMontage 재생 (PP 소진 시) */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Normal);
 
 	/** 넉백 피격 이벤트. HitReact 어빌리티가 Knockback 몽타주 재생 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Knockback);
