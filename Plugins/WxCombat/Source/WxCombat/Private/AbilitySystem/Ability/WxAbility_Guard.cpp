@@ -3,7 +3,6 @@
 #include "AbilitySystem/Ability/WxAbility_Guard.h"
 #include "AbilitySystem/Effect/WxEffect_RecoveryMP.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
-#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
@@ -148,11 +147,11 @@ void UWxAbility_Guard::HandlePerfectGuard(FGameplayEventData Payload)
 	Spec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery, PerfectGuardMPRecovery);
 	ASC->ApplyGameplayEffectSpecToSelf(Spec);
 
-	// HitReact 이벤트 발송
-	FGameplayEventData EventData;
-	EventData.Instigator = Payload.Instigator;
-	EventData.Target = ASC->GetOwnerActor();
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(ASC->GetOwnerActor(), WxGameplayTags::Event_HitReact_Normal, EventData);
+	// 퍼펙트 가드 성공 시 GuardHitReact 몽타주를 재생한다.
+	if (ActiveMontage == GuardMontage && GuardHitReactMontage)
+	{
+		PlayMontage(GuardHitReactMontage);
+	}
 }
 
 void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
