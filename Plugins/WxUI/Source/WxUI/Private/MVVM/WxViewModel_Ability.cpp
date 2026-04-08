@@ -5,7 +5,7 @@
 #include "Abilities/GameplayAbility.h"
 #include "GameplayEffect.h"
 
-void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility, int32 InMaxCharges)
+void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility)
 {
 	if (!InASC || !InAbility)
 	{
@@ -22,13 +22,19 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 		AbilityTag = AssetTags.First();
 	}
 
-	const int32 AbilityMaxCharges = FMath::Max(1, InMaxCharges);
+	// CooldownGameplayEffectClass의 StackLimitCount = 최대 충전 수.
+	int32 AbilityMaxCharges = 1;
+	if (const TSubclassOf<UGameplayEffect> CooldownClass = GetCooldownEffectClass())
+	{
+		const UGameplayEffect* CooldownCDO = CooldownClass->GetDefaultObject<UGameplayEffect>();
+		AbilityMaxCharges = FMath::Max(1, CooldownCDO->StackLimitCount);
+	}
+
 	SetMaxCharges(AbilityMaxCharges);
 	SetHasMultipleCharges(AbilityMaxCharges > 1);
 	SetCurrentCharges(AbilityMaxCharges);
 
-	const FGameplayTag CooldownTag = GetCooldownTag();
-	if (CooldownTag.IsValid())
+	if (GetCooldownEffectClass())
 	{
 		InASC->OnActiveGameplayEffectAddedDelegateToSelf
 			.AddUObject(this, &UWxViewModel_Ability::HandleGameplayEffectApplied);
@@ -54,56 +60,52 @@ void UWxViewModel_Ability::Deinitialize()
 	Super::Deinitialize();
 }
 
-FGameplayTag UWxViewModel_Ability::GetCooldownTag() const
+TSubclassOf<UGameplayEffect> UWxViewModel_Ability::GetCooldownEffectClass() const
 {
 	const UGameplayAbility* Ability = CachedAbility.Get();
 	if (!Ability)
 	{
-		return FGameplayTag();
+		return nullptr;
 	}
 
-	const FGameplayTagContainer* CooldownTags = Ability->GetCooldownTags();
-	if (!CooldownTags || CooldownTags->IsEmpty())
-	{
-		return FGameplayTag();
-	}
-
-	return CooldownTags->First();
+	const UGameplayEffect* CooldownGE = Ability->GetCooldownGameplayEffect();
+	return CooldownGE ? CooldownGE->GetClass() : nullptr;
 }
 
 int32 UWxViewModel_Ability::GetConsumedCharges() const
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
-	const FGameplayTag CooldownTag = GetCooldownTag();
-	if (!ASC || !CooldownTag.IsValid())
+	const TSubclassOf<UGameplayEffect> CooldownClass = GetCooldownEffectClass();
+	if (!ASC || !CooldownClass)
 	{
 		return 0;
 	}
 
-	// CooldownTag를 그랜트하는 활성 GE 수 = 소모된 충전 수.
-	// WxAbility::CheckCooldown과 동일한 방식으로 TagCount를 사용한다.
-	return ASC->GetTagCount(CooldownTag);
+	FGameplayEffectQuery Query;
+	Query.EffectDefinition = CooldownClass;
+
+	int32 Consumed = 0;
+	const TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);
+	for (const FActiveGameplayEffectHandle& Handle : Handles)
+	{
+		if (const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(Handle))
+		{
+			Consumed += ActiveGE->Spec.GetStackCount();
+		}
+	}
+	return Consumed;
 }
 
 void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle)
 {
-	const FGameplayTag CooldownTag = GetCooldownTag();
-	if (!CooldownTag.IsValid())
+	const TSubclassOf<UGameplayEffect> CooldownClass = GetCooldownEffectClass();
+	if (!CooldownClass || SpecApplied.Def == nullptr || SpecApplied.Def->GetClass() != CooldownClass)
 	{
 		return;
 	}
 
-	FGameplayTagContainer GrantedTags;
-	SpecApplied.GetAllGrantedTags(GrantedTags);
-	if (!GrantedTags.HasTag(CooldownTag))
-	{
-		return;
-	}
-
-	// 충전 1회당 쿨다운 주기 캡처: 첫 GE Duration = CooldownDuration, 이후 GE는 더 길다.
-	// 최솟값을 유지하면 CooldownDuration 프로퍼티에 항상 올바른 주기가 보존된다.
 	const float SpecDuration = SpecApplied.GetDuration();
-	if (SpecDuration > 0.f && (CooldownDuration <= 0.f || SpecDuration < CooldownDuration))
+	if (SpecDuration > 0.f)
 	{
 		SetCooldownDuration(SpecDuration);
 	}
@@ -126,19 +128,16 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 		return false;
 	}
 
-	const FGameplayTag CooldownTag = GetCooldownTag();
-	if (!CooldownTag.IsValid())
+	const TSubclassOf<UGameplayEffect> CooldownClass = GetCooldownEffectClass();
+	if (!CooldownClass)
 	{
 		return false;
 	}
 
-	// 활성 쿨다운 GE 중 가장 빨리 만료되는 것의 남은 시간을 구한다.
-	// 충전 시스템에서 "다음 충전까지 남은 시간"에 해당한다.
-	// MakeQuery_MatchAnyEffectTags: GE의 DynamicAssetTags에 추가된 CooldownTag로 필터링한다.
-	FGameplayTagContainer TagContainer;
-	TagContainer.AddTag(CooldownTag);
-	const FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyEffectTags(TagContainer);
-	TArray<TPair<float, float>> TimesAndDurations = ASC->GetActiveEffectsTimeRemainingAndDuration(Query);
+	// 활성 쿨다운 GE의 남은 시간 = 다음 충전 복구까지 남은 시간.
+	FGameplayEffectQuery Query;
+	Query.EffectDefinition = CooldownClass;
+	const TArray<TPair<float, float>> TimesAndDurations = ASC->GetActiveEffectsTimeRemainingAndDuration(Query);
 
 	float MinTimeRemaining = 0.f;
 	for (const TPair<float, float>& Pair : TimesAndDurations)
@@ -164,7 +163,6 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 	SetCooldownRemaining(MinTimeRemaining);
 	SetCooldownPercent(CooldownDuration > 0.f ? MinTimeRemaining / CooldownDuration : 0.f);
 
-	// 소모된 충전 수 = 활성 GE 인스턴스 수. 이를 뺀 값이 현재 남은 충전 수.
 	if (MaxCharges > 1)
 	{
 		const int32 Consumed = GetConsumedCharges();

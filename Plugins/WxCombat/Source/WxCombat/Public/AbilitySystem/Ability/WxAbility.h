@@ -21,6 +21,10 @@ enum class EWxAbilityActivationPolicy : uint8
 /**
  * 프로젝트 전체 어빌리티 베이스 클래스.
  * 모든 어빌리티는 이 클래스를 상속받아 작성.
+ *
+ * 쿨다운은 GAS 표준 방식을 따른다 — 어빌리티 BP의 CooldownGameplayEffectClass 슬롯에
+ * UWxEffect_CooldownBase 기반 BP 에셋을 지정하면 자동으로 동작한다. 충전(Charge) 시스템은
+ * 해당 GE의 Stack Limit Count로 표현된다.
  */
 UCLASS(Abstract, BlueprintType, Blueprintable)
 class WXCOMBAT_API UWxAbility : public UGameplayAbility
@@ -41,24 +45,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	TSoftObjectPtr<UTexture2D> AbilityIcon;
 
-	/** 쿨다운 중 ASC에 부여되는 태그. CheckCooldown에서 이 태그로 쿨다운 여부를 판단 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cooldown")
-	FGameplayTag CooldownTag;
-
-	/** 쿨다운 지속 시간 (초). 0 이하이면 쿨다운 미적용 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cooldown")
-	float CooldownDuration = 0.f;
-
-	/** 최대 충전 횟수. 1이면 단일 쿨다운, 2 이상이면 GE 스택으로 충전 시스템 동작 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cooldown", meta = (ClampMin = "1"))
-	int32 MaxCharges = 1;
-
 protected:
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
-	virtual const FGameplayTagContainer* GetCooldownTags() const override;
 	virtual bool CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
-	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
-
-private:
-	mutable FGameplayTagContainer CooldownTagContainer;
 };

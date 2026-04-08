@@ -21,7 +21,6 @@ UWxAbility_Guard::UWxAbility_Guard()
 	bRetriggerInstancedAbility = true;
 
 	ActivationInputTag = WxGameplayTags::Input_Guard;
-	CooldownTag = WxGameplayTags::Cooldown_Guard;
 }
 
 void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

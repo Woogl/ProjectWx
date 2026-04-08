@@ -15,10 +15,8 @@ class UAnimMontage;
  * 입력 시 단일 몽타주를 재생하고, 완료 또는 중단 시 EndAbility.
  * 타겟 방향 회전은 ANS_TurnAround이 담당.
  *
- * 충전(Charge) 시스템:
- *   MaxCharges = 1이면 단일 쿨다운으로 동작.
- *   MaxCharges > 1이면 충전이 남아 있는 한 쿨다운 진행 중에도 스킬을 사용할 수 있고,
- *   쿨다운이 만료될 때마다 충전이 1 증가한다. (WxEffect_Cooldown의 GE 스택으로 표현)
+ * 쿨다운/충전 시스템은 어빌리티 BP의 CooldownGameplayEffectClass 슬롯에
+ * UWxEffect_CooldownBase 기반 BP 에셋을 지정해 설정한다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Skill : public UWxAbility

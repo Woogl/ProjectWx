@@ -29,8 +29,17 @@ namespace WxGameplayTags
 
 	// ── Event ─────────────────────────────────────────────────────────────
 
-	/** 피격 시 발생하는 이벤트. HitReact 어빌리티의 트리거 */
+	/** 피격 시 발생하는 이벤트. HitReact 어빌리티의 트리거(기본 반응) */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact);
+
+	/** 넉백 피격 이벤트. HitReact 어빌리티가 Knockback 몽타주 재생 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Knockback);
+
+	/** 넉다운 피격 이벤트. HitReact 어빌리티가 Knockdown 몽타주 재생 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Knockdown);
+
+	/** 넉업 피격 이벤트. HitReact 어빌리티가 Knockup 몽타주 재생 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Knockup);
 
 	/** 가드 피격 시 발생하는 이벤트. Guard 어빌리티의 트리거. EventMagnitude = SP 차감량 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_GuardHit);

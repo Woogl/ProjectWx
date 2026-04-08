@@ -15,7 +15,6 @@ UWxAbility_Ultimate::UWxAbility_Ultimate()
 	SetAssetTags(AssetTags);
 
 	ActivationInputTag = WxGameplayTags::Input_Ultimate;
-	CooldownTag = WxGameplayTags::Cooldown_Ultimate;
 
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);

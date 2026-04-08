@@ -116,7 +116,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 				OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.DPProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
 			}
 
-			ApplyHitReaction(SourceASC, TargetASC, DamageResult.FinalDamage, TargetPP, bIsGuarding, bIsUnblockable, OutExecutionOutput);
+			ApplyHitReaction(SourceASC, TargetASC, OwningSpec, DamageResult.FinalDamage, TargetPP, bIsGuarding, bIsUnblockable, OutExecutionOutput);
 
 			if (SourceASC)
 			{
@@ -225,7 +225,7 @@ FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecut
 //  피격 반응
 // ────────────────────────────────────────────────────────────────────────────
 
-void UWxExecCalc_Damage::ApplyHitReaction(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, float FinalDamage, float TargetPP, bool bIsGuarding, bool bIsUnblockable, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
+void UWxExecCalc_Damage::ApplyHitReaction(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, const FGameplayEffectSpec& OwningSpec, float FinalDamage, float TargetPP, bool bIsGuarding, bool bIsUnblockable, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
 	const FWxDamageStatics& Statics = GetDamageStatics();
 
@@ -233,6 +233,20 @@ void UWxExecCalc_Damage::ApplyHitReaction(UAbilitySystemComponent* SourceASC, UA
 	FGameplayEventData EventData;
 	EventData.Instigator = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
 	EventData.Target = TargetActor;
+
+	// 공격 GE에 부여된 Event.HitReact 또는 그 자식 태그(Event.HitReact.Knockback 등)로
+	// HitReact 디스패치 종류 결정. 자식 태그(Knock 종류)가 명시된 경우엔 PP 잔량과
+	// 무관하게 강제로 HitReact 발동. Event.HitReact 자체만 있으면 기존 PP 소진 조건을 따른다.
+	const FGameplayTagContainer& DynamicTags = OwningSpec.GetDynamicAssetTags();
+	const FGameplayTagContainer HitReactTagMatches = DynamicTags.Filter(FGameplayTagContainer(WxGameplayTags::Event_HitReact));
+
+	FGameplayTag HitReactEventTag = WxGameplayTags::Event_HitReact;
+	bool bForceHitReact = false;
+	if (!HitReactTagMatches.IsEmpty())
+	{
+		HitReactEventTag = HitReactTagMatches.First();
+		bForceHitReact = HitReactEventTag != WxGameplayTags::Event_HitReact;
+	}
 
 	if (bIsGuarding && !bIsUnblockable)
 	{
@@ -250,13 +264,13 @@ void UWxExecCalc_Damage::ApplyHitReaction(UAbilitySystemComponent* SourceASC, UA
 		{
 			const FGameplayTagContainer GuardAbilityTags(WxGameplayTags::Ability_Guard);
 			TargetASC->CancelAbilities(&GuardAbilityTags);
-			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_HitReact, EventData);
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, HitReactEventTag, EventData);
 		}
-		else // 비가드: PP 소진 시 HitReact
+		else // 비가드: Knock* 태그가 있거나 PP 소진 시 HitReact
 		{
-			if ((TargetPP - FinalDamage) <= 0.f)
+			if (bForceHitReact || (TargetPP - FinalDamage) <= 0.f)
 			{
-				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_HitReact, EventData);
+				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, HitReactEventTag, EventData);
 			}
 		}
 	}

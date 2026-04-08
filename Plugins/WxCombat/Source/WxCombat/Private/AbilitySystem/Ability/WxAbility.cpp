@@ -1,8 +1,9 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility.h"
-#include "AbilitySystem/Effect/WxEffect_Cooldown.h"
+#include "AbilitySystem/Effect/WxEffect_CooldownBase.h"
 #include "AbilitySystemComponent.h"
+#include "GameplayEffect.h"
 
 UWxAbility::UWxAbility()
 {
@@ -20,76 +21,47 @@ void UWxAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const
 	}
 }
 
-
-const FGameplayTagContainer* UWxAbility::GetCooldownTags() const
-{
-	CooldownTagContainer.Reset();
-
-	const FGameplayTagContainer* ParentTags = Super::GetCooldownTags();
-	if (ParentTags)
-	{
-		CooldownTagContainer.AppendTags(*ParentTags);
-	}
-
-	if (CooldownTag.IsValid())
-	{
-		CooldownTagContainer.AddTag(CooldownTag);
-	}
-
-	return &CooldownTagContainer;
-}
-
 bool UWxAbility::CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	if (CooldownTag.IsValid())
+	// 활성 쿨다운 GE의 스택 합계가 StackLimitCount 미만이면 사용 가능 (StackLimitCount=1이면 GAS 기본 동작과 동일).
+	const UGameplayEffect* CooldownGE = GetCooldownGameplayEffect();
+	if (!CooldownGE)
 	{
-		const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-		if (!ASC)
-		{
-			return false;
-		}
-
-		// 활성 쿨다운 GE 수(= 소모된 충전 수)가 MaxCharges 미만이면 사용 가능.
-		return ASC->GetTagCount(CooldownTag) < MaxCharges;
+		return Super::CheckCooldown(Handle, ActorInfo, OptionalRelevantTags);
 	}
 
-	return Super::CheckCooldown(Handle, ActorInfo, OptionalRelevantTags);
-}
-
-void UWxAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
-{
-	Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
-
-	if (CooldownDuration <= 0.f || !CooldownTag.IsValid())
-	{
-		return;
-	}
-
-	// 기존 활성 쿨다운 GE 중 가장 늦게 만료되는 잔여 시간을 구해 순차 복구를 구현한다.
-	// Duration = 기존 최대 잔여시간 + CooldownDuration
-	// → 충전이 CooldownDuration 간격으로 순차 복구된다.
-	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+	const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 	if (!ASC)
 	{
-		return;
+		return false;
 	}
 
-	FGameplayTagContainer TagContainer;
-	TagContainer.AddTag(CooldownTag);
-	const FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyEffectTags(TagContainer);
+	FGameplayEffectQuery Query;
+	Query.EffectDefinition = CooldownGE->GetClass();
 
-	float MaxRemainingTime = 0.f;
-	for (const float Remaining : ASC->GetActiveEffectsTimeRemaining(Query))
+	int32 ConsumedCharges = 0;
+	const TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);
+	for (const FActiveGameplayEffectHandle& ActiveHandle : Handles)
 	{
-		MaxRemainingTime = FMath::Max(MaxRemainingTime, Remaining);
+		if (const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(ActiveHandle))
+		{
+			ConsumedCharges += ActiveGE->Spec.GetStackCount();
+		}
 	}
 
-	const FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_Cooldown::StaticClass(), GetAbilityLevel());
-	if (SpecHandle.IsValid() && SpecHandle.Data.IsValid())
+	const int32 MaxCharges = FMath::Max(1, CooldownGE->StackLimitCount);
+	if (ConsumedCharges < MaxCharges)
 	{
-		SpecHandle.Data->SetDuration(MaxRemainingTime + CooldownDuration, true);
-		SpecHandle.Data->DynamicGrantedTags.AddTag(CooldownTag);
-		SpecHandle.Data->DynamicAssetTags.AddTag(CooldownTag);
-		ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
+		return true;
 	}
+
+	// 사용 불가: GAS 표준대로 OptionalRelevantTags에 쿨다운 태그를 채워준다.
+	if (OptionalRelevantTags)
+	{
+		if (const FGameplayTagContainer* CooldownTags = GetCooldownTags())
+		{
+			OptionalRelevantTags->AppendTags(*CooldownTags);
+		}
+	}
+	return false;
 }

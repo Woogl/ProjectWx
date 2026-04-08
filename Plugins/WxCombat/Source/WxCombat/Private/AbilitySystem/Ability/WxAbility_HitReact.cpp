@@ -18,10 +18,20 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 
 	bRetriggerInstancedAbility = true;
 
-	FAbilityTriggerData TriggerData;
-	TriggerData.TriggerTag = WxGameplayTags::Event_HitReact;
-	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
-	AbilityTriggers.Add(TriggerData);
+	// AbilityTriggers는 정확한 태그 매칭을 사용하므로 각 HitReact 종류를 개별 등록한다.
+	const FGameplayTag TriggerTags[] = {
+		WxGameplayTags::Event_HitReact,
+		WxGameplayTags::Event_HitReact_Knockback,
+		WxGameplayTags::Event_HitReact_Knockdown,
+		WxGameplayTags::Event_HitReact_Knockup,
+	};
+	for (const FGameplayTag& Tag : TriggerTags)
+	{
+		FAbilityTriggerData TriggerData;
+		TriggerData.TriggerTag = Tag;
+		TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
+		AbilityTriggers.Add(TriggerData);
+	}
 }
 
 void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -38,14 +48,33 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		}
 	}
 
-	if (!HitReactMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	// 트리거 태그에 따라 재생할 몽타주 선택. 매칭 몽타주가 없으면 기본 HitReactMontage로 폴백.
+	UAnimMontage* SelectedMontage = HitReactMontage;
+	if (TriggerEventData)
+	{
+		const FGameplayTag& EventTag = TriggerEventData->EventTag;
+		if (EventTag == WxGameplayTags::Event_HitReact_Knockback && KnockbackMontage)
+		{
+			SelectedMontage = KnockbackMontage;
+		}
+		else if (EventTag == WxGameplayTags::Event_HitReact_Knockdown && KnockdownMontage)
+		{
+			SelectedMontage = KnockdownMontage;
+		}
+		else if (EventTag == WxGameplayTags::Event_HitReact_Knockup && KnockupMontage)
+		{
+			SelectedMontage = KnockupMontage;
+		}
+	}
+
+	if (!SelectedMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, HitReactMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
+		this, NAME_None, SelectedMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
 	if (!MontageTask)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);

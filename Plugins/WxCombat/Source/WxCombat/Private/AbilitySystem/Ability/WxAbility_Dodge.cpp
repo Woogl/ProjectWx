@@ -21,10 +21,6 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 
 	ActivationInputTag = WxGameplayTags::Input_Dodge;
-	CooldownTag = WxGameplayTags::Cooldown_Dodge;
-
-	CooldownDuration = 2.f;
-	MaxCharges = 2;
 }
 
 void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

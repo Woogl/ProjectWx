@@ -21,12 +21,20 @@ void UWxAnimNotifyState_WeaponAttack::NotifyBegin(USkeletalMeshComponent* MeshCo
 		ASC->AddLooseGameplayTag(WxGameplayTags::ANS_WeaponCollision);
 	}
 
+	AWxWeaponBase* Weapon = AWxWeaponBase::FindWeapon(Owner);
+	if (!Weapon)
+	{
+		return;
+	}
+
 	if (bUnblockable)
 	{
-		if (AWxWeaponBase* Weapon = AWxWeaponBase::FindWeapon(Owner))
-		{
-			Weapon->AttackTags.AddTag(WxGameplayTags::Damage_Unblockable);
-		}
+		Weapon->AttackTags.AddTag(WxGameplayTags::Damage_Unblockable);
+	}
+
+	if (HitReactTag.IsValid())
+	{
+		Weapon->AttackTags.AddTag(HitReactTag);
 	}
 }
 
@@ -45,12 +53,20 @@ void UWxAnimNotifyState_WeaponAttack::NotifyEnd(USkeletalMeshComponent* MeshComp
 		ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_WeaponCollision);
 	}
 
+	AWxWeaponBase* Weapon = AWxWeaponBase::FindWeapon(Owner);
+	if (!Weapon)
+	{
+		return;
+	}
+
 	if (bUnblockable)
 	{
-		if (AWxWeaponBase* Weapon = AWxWeaponBase::FindWeapon(Owner))
-		{
-			Weapon->AttackTags.RemoveTag(WxGameplayTags::Damage_Unblockable);
-		}
+		Weapon->AttackTags.RemoveTag(WxGameplayTags::Damage_Unblockable);
+	}
+
+	if (HitReactTag.IsValid())
+	{
+		Weapon->AttackTags.RemoveTag(HitReactTag);
 	}
 }
 
