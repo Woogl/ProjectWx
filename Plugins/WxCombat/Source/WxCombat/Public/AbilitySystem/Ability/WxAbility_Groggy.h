@@ -52,12 +52,12 @@ private:
 	UFUNCTION()
 	void HandleMontageCancelled();
 
+	UFUNCTION()
+	void HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
 	void PlayGroggyMontage();
 	void StartDPDrain();
 	void HandleDPDrainTick();
-
-	UFUNCTION()
-	void HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 	FDelegateHandle GroggyTagDelegateHandle;
 	FTimerHandle DPDrainTimerHandle;

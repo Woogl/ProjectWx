@@ -60,8 +60,7 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 		}
 	}
 
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-
+	// OnMontageEnded 델리게이트 정리
 	if (ActorInfo)
 	{
 		if (UAnimInstance* AnimInstance = ActorInfo->GetAnimInstance())
@@ -69,6 +68,8 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 			AnimInstance->OnMontageEnded.RemoveDynamic(this, &UWxAbility_Groggy::HandleMontageEnded);
 		}
 	}
+
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
 	if (ActorInfo && ActorInfo->OwnerActor.IsValid())
 	{
@@ -103,7 +104,7 @@ void UWxAbility_Groggy::HandleMontageBlendOut()
 
 void UWxAbility_Groggy::HandleMontageInterrupted()
 {
-	// 다른 몽타주(HitReact 등)에 의해 중단된 경우, 해당 몽타주 종료 후 그로기 몽타주 재재생
+	// 다른 몽타주(HitReact 등)에 의해 중단된 경우, 해당 몽타주 종료 시 그로기 몽타주를 재재생한다.
 	if (CurrentActorInfo && CurrentActorInfo->AbilitySystemComponent.IsValid()
 		&& CurrentActorInfo->AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
 	{
@@ -121,19 +122,19 @@ void UWxAbility_Groggy::HandleMontageCancelled()
 
 void UWxAbility_Groggy::HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-	if (CurrentActorInfo)
+	// 그로기 자신의 몽타주 blend out 완료는 무시한다.
+	// HitReact 등 다른 몽타주가 종료되었을 때만 그로기 몽타주를 재재생한다.
+	if (Montage == GroggyMontage)
 	{
-		if (UAnimInstance* AnimInstance = CurrentActorInfo->GetAnimInstance())
-		{
-			AnimInstance->OnMontageEnded.RemoveDynamic(this, &UWxAbility_Groggy::HandleMontageEnded);
-		}
+		return;
 	}
 
-	if (CurrentActorInfo && CurrentActorInfo->AbilitySystemComponent.IsValid()
-		&& CurrentActorInfo->AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
+	if (UAnimInstance* AnimInstance = CurrentActorInfo->GetAnimInstance())
 	{
-		PlayGroggyMontage();
+		AnimInstance->OnMontageEnded.RemoveDynamic(this, &UWxAbility_Groggy::HandleMontageEnded);
 	}
+
+	PlayGroggyMontage();
 }
 
 void UWxAbility_Groggy::PlayGroggyMontage()
