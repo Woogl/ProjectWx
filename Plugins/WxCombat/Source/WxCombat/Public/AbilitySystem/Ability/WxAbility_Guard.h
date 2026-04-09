@@ -46,6 +46,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> GuardHitReactMontage;
 
+	/** Knockback/Knockup/Knockdown 공격을 가드했을 때 재생하는 몽타주 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TObjectPtr<UAnimMontage> GuardKnockbackMontage;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> GuardBreakMontage;
 

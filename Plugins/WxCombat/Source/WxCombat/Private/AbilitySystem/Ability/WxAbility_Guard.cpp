@@ -113,12 +113,21 @@ bool UWxAbility_Guard::PlayMontage(UAnimMontage* Montage)
 
 void UWxAbility_Guard::ListenForGuardHit()
 {
-	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-		this, WxGameplayTags::Event_GuardHit);
-	if (EventTask)
+	// GenericGameplayEventCallbacks는 정확한 태그 매칭을 사용하므로 각 이벤트를 개별 등록한다.
+	UAbilityTask_WaitGameplayEvent* NormalTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+		this, WxGameplayTags::Event_GuardHit_Normal);
+	if (NormalTask)
 	{
-		EventTask->EventReceived.AddDynamic(this, &UWxAbility_Guard::HandleGuardHitReact);
-		EventTask->ReadyForActivation();
+		NormalTask->EventReceived.AddDynamic(this, &UWxAbility_Guard::HandleGuardHitReact);
+		NormalTask->ReadyForActivation();
+	}
+
+	UAbilityTask_WaitGameplayEvent* KnockbackTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+		this, WxGameplayTags::Event_GuardHit_Knockback);
+	if (KnockbackTask)
+	{
+		KnockbackTask->EventReceived.AddDynamic(this, &UWxAbility_Guard::HandleGuardHitReact);
+		KnockbackTask->ReadyForActivation();
 	}
 }
 
@@ -181,15 +190,25 @@ void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 		}
 	}
-	else if (GuardHitReactMontage)
+	else
 	{
-		PlayMontage(GuardHitReactMontage);
+		// Event.GuardHit.Knockback 이벤트면 GuardKnockback 몽타주 우선 재생
+		const bool bIsKnockHit = Payload.EventTag == WxGameplayTags::Event_GuardHit_Knockback;
+
+		if (bIsKnockHit && GuardKnockbackMontage)
+		{
+			PlayMontage(GuardKnockbackMontage);
+		}
+		else if (GuardHitReactMontage)
+		{
+			PlayMontage(GuardHitReactMontage);
+		}
 	}
 }
 
 void UWxAbility_Guard::HandleMontageBlendingOut()
 {
-	if (ActiveMontage == GuardHitReactMontage)
+	if (ActiveMontage == GuardHitReactMontage || ActiveMontage == GuardKnockbackMontage)
 	{
 		PlayMontage(GuardMontage);
 	}

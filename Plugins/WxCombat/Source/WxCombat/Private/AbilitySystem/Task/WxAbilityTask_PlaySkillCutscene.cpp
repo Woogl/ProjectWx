@@ -130,7 +130,7 @@ void UWxAbilityTask_PlaySkillCutscene::AddInvincibleTag()
 	UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
 	if (ASC)
 	{
-		ASC->AddLooseGameplayTag(WxGameplayTags::ANS_Invincible);
+		ASC->AddLooseGameplayTag(WxGameplayTags::State_Invincible);
 	}
 }
 
@@ -139,7 +139,7 @@ void UWxAbilityTask_PlaySkillCutscene::RemoveInvincibleTag()
 	UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
 	if (ASC)
 	{
-		ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_Invincible);
+		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Invincible);
 	}
 }
 

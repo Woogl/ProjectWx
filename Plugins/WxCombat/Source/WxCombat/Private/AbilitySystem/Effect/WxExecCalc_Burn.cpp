@@ -40,7 +40,7 @@ void UWxExecCalc_Burn::Execute_Implementation(const FGameplayEffectCustomExecuti
 		return;
 	}
 
-	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_Invincible))
+	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Invincible))
 	{
 		return;
 	}

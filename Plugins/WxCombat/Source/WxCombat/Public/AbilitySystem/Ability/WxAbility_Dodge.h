@@ -16,7 +16,7 @@ struct FGameplayAbilityTargetDataHandle;
  *
  * 사용 흐름:
  *  1. 입력 → ActivateAbility → DodgeMontage 재생, Event.DodgeSuccess 대기
- *  2. 몽타주의 ANS_Invincible 구간 동안 무적
+ *  2. 몽타주의 State.Invincible 구간 동안 무적
  *  3. 무적 중 피격(극한 회피) → PerfectDodgeMontage 재생
  *  4. ANS_ComboWindow 구간 내 공격 입력 시 DodgeCounterMontage로 전환
  *  5. 몽타주 완료/중단 → EndAbility

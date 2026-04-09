@@ -14,7 +14,7 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
-	ActivationBlockedTags.AddTag(WxGameplayTags::ANS_Invincible);
+	ActivationBlockedTags.AddTag(WxGameplayTags::State_Invincible);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Guard);
 
 	bRetriggerInstancedAbility = true;
@@ -80,18 +80,44 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		return;
 	}
 
-	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, SelectedMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
-	if (!MontageTask)
+	if (!PlayHitReactMontage(SelectedMontage))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
+}
+
+void UWxAbility_HitReact::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	CurrentMontageTask = nullptr;
+
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+bool UWxAbility_HitReact::PlayHitReactMontage(UAnimMontage* Montage)
+{
+	// 재진입(Normal → Knockback 등) 시 이전 몽타주 태스크를 명시적으로 정리해
+	// 잔여 OnInterrupted/OnCancelled 콜백이 새로 시작된 재생을 즉시 종료시키는 레이스를 차단한다.
+	if (CurrentMontageTask)
+	{
+		CurrentMontageTask->EndTask();
+		CurrentMontageTask = nullptr;
+	}
+
+	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		this, NAME_None, Montage, 1.f, NAME_None, true, 1.f, 0.f, true);
+	if (!MontageTask)
+	{
+		return false;
+	}
+
+	CurrentMontageTask = MontageTask;
 
 	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_HitReact::HandleMontageCompleted);
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_HitReact::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_HitReact::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
+	return true;
 }
 
 void UWxAbility_HitReact::HandleMontageCompleted()

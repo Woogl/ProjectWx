@@ -4,6 +4,7 @@
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Ability/WxAbility.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
+#include "AbilitySystem/WxCombatAttributeInitTableRow.h"
 
 void FWxAbilitySetGrantedHandles::RemoveFromAbilitySystem(UWxAbilitySystemComponent* ASC)
 {
@@ -39,13 +40,26 @@ void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC, FWxAbili
 		return;
 	}
 	
-	// 초기 어트리뷰트 값 설정
-	for (const FWxAttributeInitializer& Entry : GrantedAttributes)
+	// 데이터테이블에서 어트리뷰트 초기값 설정
+	if (const FWxCombatAttributeInitTableRow* Row = AttributeInitRow.GetRow<FWxCombatAttributeInitTableRow>(TEXT("WxAbilitySet::GiveToAbilitySystem")))
 	{
-		if (Entry.Attribute.IsValid())
-		{
-			ASC->SetNumericAttributeBase(Entry.Attribute, Entry.Value);
-		}
+		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetHPAttribute(), Row->HP);
+		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetMaxHPAttribute(), Row->MaxHP);
+		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetPPAttribute(), Row->PP);
+		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetMaxPPAttribute(), Row->MaxPP);
+		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetSPAttribute(), Row->SP);
+		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetMaxSPAttribute(), Row->MaxSP);
+		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetDPAttribute(), Row->DP);
+		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetMaxDPAttribute(), Row->MaxDP);
+		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetMPAttribute(), Row->MP);
+		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetMaxMPAttribute(), Row->MaxMP);
+		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetUPAttribute(), Row->UP);
+		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetMaxUPAttribute(), Row->MaxUP);
+		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetATKAttribute(), Row->ATK);
+		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetDEFAttribute(), Row->DEF);
+		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetCritRateAttribute(), Row->CritRate);
+		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetCritDMGAttribute(), Row->CritDMG);
+		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetSPDAttribute(), Row->SPD);
 	}
 
 	// Effect 적용

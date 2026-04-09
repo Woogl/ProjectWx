@@ -27,6 +27,9 @@ namespace WxGameplayTags
 	/** 락온 상태. 락온 어빌리티 활성 중 부여, Look 입력 억제 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_LockOn);
 
+	/** 무적 상태. WxAnimNotifyState_Invincible이 부여/제거 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Invincible);
+
 	// ── Event ─────────────────────────────────────────────────────────────
 
 	/** 피격 이벤트 부모 카테고리. ExecCalc 필터링/디스패치 결정에만 사용 (직접 dispatch 금지) */
@@ -44,8 +47,14 @@ namespace WxGameplayTags
 	/** 넉업 피격 이벤트. HitReact 어빌리티가 Knockup 몽타주 재생 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Knockup);
 
-	/** 가드 피격 시 발생하는 이벤트. Guard 어빌리티의 트리거. EventMagnitude = SP 차감량 */
+	/** 가드 피격 이벤트 부모 카테고리. Guard 어빌리티가 부모로 리슨하여 자식 태그를 분기 처리. EventMagnitude = SP 차감량 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_GuardHit);
+
+	/** 일반 가드 피격 이벤트. Guard 어빌리티가 GuardHitReact 몽타주 재생 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_GuardHit_Normal);
+
+	/** 넉 계열(Knockback/Knockdown/Knockup) 가드 피격 이벤트. Guard 어빌리티가 GuardKnockback 몽타주 재생 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_GuardHit_Knockback);
 
 	/** 회피 성공 시 발생하는 이벤트. 무적 구간에서 대미지를 회피했을 때 발송 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_DodgeSuccess);
@@ -64,9 +73,6 @@ namespace WxGameplayTags
 
 	/** 콤보 입력 수용 구간. ANS_ComboWindow가 부여/제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_ComboWindow);
-
-	/** 무적 구간. ANS_Invincible이 부여/제거 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_Invincible);
 
 	/** 가드 판정 활성 상태 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Guard);
@@ -128,6 +134,9 @@ namespace WxGameplayTags
 
 	/** DP 반사량 SetByCaller 키. 퍼펙트 가드에서 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_ReflectDP);
+
+	/** 공격력 계수 SetByCaller 키. WxExecCalc_Damage가 ATK 어트리뷰트에 곱하는 배율 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Coeff_ATK);
 
 	// ── Input ──────────────────────────────────────────────────────────────
 

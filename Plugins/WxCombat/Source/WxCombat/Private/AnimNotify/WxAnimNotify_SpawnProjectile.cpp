@@ -35,6 +35,7 @@ void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAn
 		{
 			Projectile->AttackTags.AddTag(WxGameplayTags::Damage_Unblockable);
 		}
+		Projectile->ATKCoeff = ATKCoeff;
 		Projectile->FinishSpawning(SpawnTransform);
 	}
 }

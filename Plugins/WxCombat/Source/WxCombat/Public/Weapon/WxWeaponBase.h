@@ -57,6 +57,13 @@ public:
 	 */
 	FGameplayTagContainer AttackTags;
 
+	/**
+	 * 현재 공격력 계수.
+	 * ANS_WeaponAttack이 몽타주 구간별로 설정/해제하며,
+	 * 히트 시 GE Spec의 SetByCaller.Coeff.ATK 값으로 전달된다.
+	 */
+	float ATKCoeff = 1.f;
+
 protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 

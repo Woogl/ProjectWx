@@ -179,6 +179,7 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 			if (Spec.IsValid())
 			{
 				Spec.Data->AppendDynamicAssetTags(AttackTags);
+				Spec.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, ATKCoeff);
 				SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
 			}
 		}

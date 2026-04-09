@@ -13,7 +13,7 @@ void UWxAnimNotifyState_Invincible::NotifyBegin(USkeletalMeshComponent* MeshComp
 	{
 		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
 		{
-			ASC->AddLooseGameplayTag(WxGameplayTags::ANS_Invincible);
+			ASC->AddLooseGameplayTag(WxGameplayTags::State_Invincible);
 		}
 	}
 }
@@ -26,7 +26,7 @@ void UWxAnimNotifyState_Invincible::NotifyEnd(USkeletalMeshComponent* MeshComp, 
 	{
 		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
 		{
-			ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_Invincible);
+			ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Invincible);
 		}
 	}
 }

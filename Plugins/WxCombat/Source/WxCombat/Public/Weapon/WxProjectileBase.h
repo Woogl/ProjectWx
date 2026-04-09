@@ -57,6 +57,9 @@ public:
 	/** 공격 속성 태그. 스폰 전 외부에서 설정하면 BeginPlay에서 Spec에 반영 */
 	FGameplayTagContainer AttackTags;
 
+	/** 공격력 계수. 스폰 전 외부에서 설정하면 BeginPlay에서 Spec의 SetByCaller.Coeff.ATK로 전달 */
+	float ATKCoeff = 1.f;
+
 private:
 	FGameplayEffectContextHandle CachedEffectContext;
 	TArray<FGameplayEffectSpecHandle> EffectSpecHandles;

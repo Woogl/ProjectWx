@@ -78,6 +78,10 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	float SourceATK = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.ATKDef, EvalParams, SourceATK);
 
+	// 공격력 계수: 무기 ANS_WeaponAttack가 SetByCaller로 전달. 미설정 시 1.f.
+	const float ATKCoeff = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, false, 1.f);
+	SourceATK *= ATKCoeff;
+
 	float TargetDEF = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.DEFDef, EvalParams, TargetDEF);
 
@@ -158,7 +162,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 bool UWxExecCalc_Damage::HandleInvincible(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC) const
 {
-	if (!TargetASC->HasMatchingGameplayTag(WxGameplayTags::ANS_Invincible))
+	if (!TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Invincible))
 	{
 		return false;
 	}
@@ -235,25 +239,28 @@ void UWxExecCalc_Damage::ApplyHitReaction(UAbilitySystemComponent* SourceASC, UA
 	EventData.Target = TargetActor;
 
 	// 공격 GE의 Event.HitReact.* 자식 태그로 HitReact 디스패치 종류 결정.
+	// Spec에 명시된 태그만 사용하며, 없으면 HitReact 이벤트를 발송하지 않는다.
 	// Knock 종류(Knockback/Knockdown/Knockup)는 PP 잔량과 무관하게 강제 발동.
 	// Event.HitReact.Normal은 PP 소진 시에만 발동.
 	const FGameplayTagContainer& DynamicTags = OwningSpec.GetDynamicAssetTags();
 	const FGameplayTagContainer HitReactTagMatches = DynamicTags.Filter(FGameplayTagContainer(WxGameplayTags::Event_HitReact));
 
-	FGameplayTag HitReactEventTag = WxGameplayTags::Event_HitReact_Normal;
-	bool bForceHitReact = false;
-	if (!HitReactTagMatches.IsEmpty())
-	{
-		HitReactEventTag = HitReactTagMatches.First();
-		bForceHitReact = HitReactEventTag != WxGameplayTags::Event_HitReact_Normal;
-	}
+	const bool bHasHitReactTag = !HitReactTagMatches.IsEmpty();
+	const FGameplayTag HitReactEventTag = bHasHitReactTag ? HitReactTagMatches.First() : FGameplayTag();
+	const bool bForceHitReact = bHasHitReactTag && HitReactEventTag != WxGameplayTags::Event_HitReact_Normal;
 
 	if (bIsGuarding && !bIsUnblockable)
 	{
 		// 일반 가드: SP 차감 → Guard 어빌리티가 GuardHitReact/GuardBreak 분기
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.SPProperty, EGameplayModOp::Additive, -FinalDamage));
 		EventData.EventMagnitude = FinalDamage;
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_GuardHit, EventData);
+
+		// Knock 계열 공격을 가드했을 때는 GuardKnockback, 그 외에는 일반 GuardHit 이벤트를 디스패치한다.
+		const FGameplayTag GuardHitEventTag = bForceHitReact
+			? WxGameplayTags::Event_GuardHit_Knockback
+			: WxGameplayTags::Event_GuardHit_Normal;
+
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, GuardHitEventTag, EventData);
 	}
 	else
 	{
@@ -264,11 +271,14 @@ void UWxExecCalc_Damage::ApplyHitReaction(UAbilitySystemComponent* SourceASC, UA
 		{
 			const FGameplayTagContainer GuardAbilityTags(WxGameplayTags::Ability_Guard);
 			TargetASC->CancelAbilities(&GuardAbilityTags);
-			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, HitReactEventTag, EventData);
+			if (bHasHitReactTag)
+			{
+				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, HitReactEventTag, EventData);
+			}
 		}
 		else // 비가드: Knock* 태그가 있거나 PP 소진 시 HitReact
 		{
-			if (bForceHitReact || (TargetPP - FinalDamage) <= 0.f)
+			if (bHasHitReactTag && (bForceHitReact || (TargetPP - FinalDamage) <= 0.f))
 			{
 				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, HitReactEventTag, EventData);
 			}

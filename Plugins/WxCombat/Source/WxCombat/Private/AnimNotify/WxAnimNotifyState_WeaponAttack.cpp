@@ -41,6 +41,8 @@ void UWxAnimNotifyState_WeaponAttack::NotifyBegin(USkeletalMeshComponent* MeshCo
 	{
 		Weapon->AttackTags.AddTag(HitReactTag);
 	}
+
+	Weapon->ATKCoeff = ATKCoeff;
 }
 
 void UWxAnimNotifyState_WeaponAttack::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
@@ -73,6 +75,8 @@ void UWxAnimNotifyState_WeaponAttack::NotifyEnd(USkeletalMeshComponent* MeshComp
 	{
 		Weapon->AttackTags.RemoveTag(HitReactTag);
 	}
+
+	Weapon->ATKCoeff = 1.f;
 }
 
 FString UWxAnimNotifyState_WeaponAttack::GetNotifyName_Implementation() const

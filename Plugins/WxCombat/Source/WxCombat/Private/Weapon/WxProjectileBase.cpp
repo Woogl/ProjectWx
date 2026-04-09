@@ -11,6 +11,7 @@
 #include "Combat/WxLockOnComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "WxCollisionChannels.h"
+#include "WxGameplayTags.h"
 
 AWxProjectileBase::AWxProjectileBase()
 {
@@ -78,6 +79,7 @@ void AWxProjectileBase::BeginPlay()
 			if (EffectSpec.IsValid())
 			{
 				EffectSpec.Data->AppendDynamicAssetTags(AttackTags);
+				EffectSpec.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, ATKCoeff);
 			}
 			EffectSpecHandles.Add(EffectSpec);
 		}

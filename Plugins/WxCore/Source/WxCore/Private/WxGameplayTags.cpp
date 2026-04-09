@@ -8,6 +8,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_Aerial, "State.Aerial");
 	UE_DEFINE_GAMEPLAY_TAG(State_Groggy, "State.Groggy");
 	UE_DEFINE_GAMEPLAY_TAG(State_LockOn, "State.LockOn");
+	UE_DEFINE_GAMEPLAY_TAG(State_Invincible, "State.Invincible");
 
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact, "Event.HitReact");
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Normal, "Event.HitReact.Normal");
@@ -15,13 +16,14 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Knockdown, "Event.HitReact.Knockdown");
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Knockup, "Event.HitReact.Knockup");
 	UE_DEFINE_GAMEPLAY_TAG(Event_GuardHit, "Event.GuardHit");
+	UE_DEFINE_GAMEPLAY_TAG(Event_GuardHit_Normal, "Event.GuardHit.Normal");
+	UE_DEFINE_GAMEPLAY_TAG(Event_GuardHit_Knockback, "Event.GuardHit.Knockback");
 	UE_DEFINE_GAMEPLAY_TAG(Event_DodgeSuccess, "Event.DodgeSuccess");
 	UE_DEFINE_GAMEPLAY_TAG(Event_PerfectGuard, "Event.PerfectGuard");
 	UE_DEFINE_GAMEPLAY_TAG(Event_AttackHit, "Event.AttackHit");
 
 	UE_DEFINE_GAMEPLAY_TAG(ANS_WeaponCollision, "ANS.WeaponCollision");
 	UE_DEFINE_GAMEPLAY_TAG(ANS_ComboWindow, "ANS.ComboWindow");
-	UE_DEFINE_GAMEPLAY_TAG(ANS_Invincible, "ANS.Invincible");
 	UE_DEFINE_GAMEPLAY_TAG(State_Guard, "State.Guard");
 	UE_DEFINE_GAMEPLAY_TAG(ANS_PerfectGuard, "ANS.PerfectGuard");
 
@@ -52,6 +54,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Cost, "SetByCaller.Cost");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Recovery, "SetByCaller.Recovery");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_ReflectDP, "SetByCaller.ReflectDP");
+	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Coeff_ATK, "SetByCaller.Coeff.ATK");
 
 	UE_DEFINE_GAMEPLAY_TAG(Input_Jump, "Input.Jump");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Attack, "Input.Attack");
