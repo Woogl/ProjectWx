@@ -13,8 +13,9 @@ class UAbilityTask_PlayMontageAndWait;
  * 가드 어빌리티.
  *
  * 페이즈 (ActiveMontage로 판별):
- *  GuardMontage         – State.Guard 태그 활성, 피격 시 HitReact 전환
+ *  GuardMontage         – State.Guard 태그 활성, 피격 시 HitReact 전환 (루핑 몽타주)
  *  GuardHitReactMontage – 일반 가드 피격(SP 여유) 시 재생 후 GuardMontage 복귀
+ *  GuardKnockbackMontage – Knockback 계열 피격 가드 시 재생 후 GuardMontage 복귀
  *  GuardBreakMontage    – SP 고갈 시 State.Guard 해제 후 재생, 종료
  *
  * Unblockable 피격 처리:

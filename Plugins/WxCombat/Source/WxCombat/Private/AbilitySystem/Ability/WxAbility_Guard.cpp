@@ -26,9 +26,9 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	// GuardBreak 재생 중에는 bRetriggerInstancedAbility로 인한 재진입을 무시한다.
-	// EndAbility를 호출하면 진행 중인 GuardBreak 태스크가 함께 종료되므로 단순 early-return.
-	if (ActiveMontage == GuardBreakMontage)
+	// bRetriggerInstancedAbility로 인해 어빌리티가 진행 중에 재진입되면 현재 페이즈를 유지한다.
+	// 이벤트 리스너 중복 등록을 방지하고, GuardBreak 중 재진입 시 태스크를 보호한다.
+	if (ActiveMontage)
 	{
 		return;
 	}
@@ -87,6 +87,8 @@ void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, co
 bool UWxAbility_Guard::PlayMontage(UAnimMontage* Montage)
 {
 	// 페이즈 전환 시 이전 몽타주 태스크를 명시적으로 정리해 콜백 잔여 발생을 차단한다.
+	// HandleMontageBlendingOut 콜백 내에서 호출될 수 있으나, EndTask가 AnimInstance 바인딩을
+	// 해제하므로 구 태스크의 OnInterrupted 등 후속 이벤트는 발송되지 않는다.
 	if (CurrentMontageTask)
 	{
 		CurrentMontageTask->EndTask();
@@ -156,7 +158,8 @@ void UWxAbility_Guard::HandlePerfectGuard(FGameplayEventData Payload)
 	Spec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery, PerfectGuardMPRecovery);
 	ASC->ApplyGameplayEffectSpecToSelf(Spec);
 
-	// 퍼펙트 가드 성공 시 GuardHitReact 몽타주를 재생한다.
+	// GuardMontage 페이즈에서만 GuardHitReactMontage를 재생한다.
+	// HitReact/Knockback 재생 중 퍼펙트 가드 이벤트가 오면 MP 회복만 처리하고 몽타주는 전환하지 않는다.
 	if (ActiveMontage == GuardMontage && GuardHitReactMontage)
 	{
 		PlayMontage(GuardHitReactMontage);
@@ -216,6 +219,7 @@ void UWxAbility_Guard::HandleMontageBlendingOut()
 
 void UWxAbility_Guard::HandleMontageCompleted()
 {
+	// GuardMontage는 루핑 몽타주이므로 OnCompleted가 발생하지 않는다.
 	if (ActiveMontage == GuardMontage)
 	{
 		return;
@@ -226,12 +230,6 @@ void UWxAbility_Guard::HandleMontageCompleted()
 
 void UWxAbility_Guard::HandleMontageInterrupted()
 {
-	const UAnimInstance* AnimInstance = CurrentActorInfo ? CurrentActorInfo->GetAnimInstance() : nullptr;
-	if (AnimInstance && AnimInstance->IsAnyMontagePlaying())
-	{
-		return;
-	}
-
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
 
