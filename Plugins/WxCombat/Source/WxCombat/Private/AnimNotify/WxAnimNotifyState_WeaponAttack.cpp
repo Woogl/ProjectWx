@@ -21,17 +21,15 @@ void UWxAnimNotifyState_WeaponAttack::NotifyBegin(USkeletalMeshComponent* MeshCo
 		return;
 	}
 
-	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
-	{
-		ASC->AddLooseGameplayTag(WxGameplayTags::ANS_WeaponCollision);
-	}
-
 	AWxWeaponBase* Weapon = AWxWeaponBase::FindWeapon(Owner);
 	if (!Weapon)
 	{
 		return;
 	}
 
+	// AttackTags를 콜리전 활성화보다 먼저 설정한다.
+	// SetCollisionEnabled 시 이미 겹쳐있는 액터에 대해 Overlap이 즉시 발생할 수 있으므로,
+	// 그 전에 태그가 준비되어 있어야 한다.
 	if (bUnblockable)
 	{
 		Weapon->AttackTags.AddTag(WxGameplayTags::Damage_Unblockable);
@@ -43,6 +41,11 @@ void UWxAnimNotifyState_WeaponAttack::NotifyBegin(USkeletalMeshComponent* MeshCo
 	}
 
 	Weapon->ATKCoeff = ATKCoeff;
+
+	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
+	{
+		ASC->AddLooseGameplayTag(WxGameplayTags::ANS_WeaponCollision);
+	}
 }
 
 void UWxAnimNotifyState_WeaponAttack::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
