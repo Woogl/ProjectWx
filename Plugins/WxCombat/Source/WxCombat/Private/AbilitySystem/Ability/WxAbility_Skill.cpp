@@ -11,11 +11,13 @@
 UWxAbility_Skill::UWxAbility_Skill()
 {
 	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(WxGameplayTags::Ability_Skill);
+	// BP에서 WxGameplayTags::Ability_Skill_1~4로 설정한다.
+	//AssetTags.AddTag(WxGameplayTags::Ability_Skill);
 	SetAssetTags(AssetTags);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 
-	ActivationInputTag = WxGameplayTags::Input_Skill;
+	// BP에서 WxGameplayTags::Input_Skill_~4로 설정한다.
+	//ActivationInputTag = WxGameplayTags::Input_Skill;
 }
 
 void UWxAbility_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

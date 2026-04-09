@@ -42,13 +42,19 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Dodge, "Ability.Dodge");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Sprint, "Ability.Sprint");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Guard, "Ability.Guard");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill, "Ability.Skill");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_1, "Ability.Skill.1");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_2, "Ability.Skill.2");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_3, "Ability.Skill.3");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_4, "Ability.Skill.4");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Ultimate, "Ability.Ultimate");
 
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Jump, "Cooldown.Jump");
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Dodge, "Cooldown.Dodge");
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Guard, "Cooldown.Guard");
-	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill, "Cooldown.Skill");
+	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill_1, "Cooldown.Skill.1");
+	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill_2, "Cooldown.Skill.2");
+	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill_3, "Cooldown.Skill.3");
+	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill_4, "Cooldown.Skill.4");
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Ultimate, "Cooldown.Ultimate");
 
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Cost, "SetByCaller.Cost");
@@ -63,7 +69,10 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Input_Dodge, "Input.Dodge");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Sprint, "Input.Sprint");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Guard, "Input.Guard");
-	UE_DEFINE_GAMEPLAY_TAG(Input_Skill, "Input.Skill");
+	UE_DEFINE_GAMEPLAY_TAG(Input_Skill_1, "Input.Skill.1");
+	UE_DEFINE_GAMEPLAY_TAG(Input_Skill_2, "Input.Skill.2");
+	UE_DEFINE_GAMEPLAY_TAG(Input_Skill_3, "Input.Skill.3");
+	UE_DEFINE_GAMEPLAY_TAG(Input_Skill_4, "Input.Skill.4");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Ultimate, "Input.Ultimate");
 	UE_DEFINE_GAMEPLAY_TAG(Input_LockOn, "Input.LockOn");
 
