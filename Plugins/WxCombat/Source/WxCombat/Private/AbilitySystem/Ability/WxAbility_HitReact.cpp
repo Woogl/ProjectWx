@@ -63,6 +63,20 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		if (EventTag == WxGameplayTags::Event_HitReact_Knockback && KnockbackMontage)
 		{
 			SelectedMontage = KnockbackMontage;
+
+			// 넉백 시 공격자를 바라보도록 회전
+			if (AActor* AvatarActor = ActorInfo->AvatarActor.Get())
+			{
+				if (const AActor* Instigator = TriggerEventData->Instigator.Get())
+				{
+					FVector Direction = Instigator->GetActorLocation() - AvatarActor->GetActorLocation();
+					Direction.Z = 0.0;
+					if (!Direction.IsNearlyZero())
+					{
+						AvatarActor->SetActorRotation(Direction.ToOrientationRotator());
+					}
+				}
+			}
 		}
 		else if (EventTag == WxGameplayTags::Event_HitReact_Knockdown && KnockdownMontage)
 		{

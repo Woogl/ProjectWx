@@ -44,7 +44,23 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	GroggyTagDelegateHandle = ASC->RegisterGameplayTagEvent(WxGameplayTags::State_Groggy, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &UWxAbility_Groggy::HandleGroggyTagChanged);
 
-	PlayGroggyMontage();
+	// 다른 몽타주가 재생 중이면 그 몽타주가 끝날 때까지 대기한 뒤 그로기 몽타주를 재생한다.
+	if (UAnimInstance* AnimInstance = ActorInfo->GetAnimInstance())
+	{
+		if (AnimInstance->GetCurrentActiveMontage() != nullptr)
+		{
+			AnimInstance->OnMontageEnded.AddDynamic(this, &UWxAbility_Groggy::HandleMontageEnded);
+		}
+		else
+		{
+			PlayGroggyMontage();
+		}
+	}
+	else
+	{
+		PlayGroggyMontage();
+	}
+
 	StartDPDrain();
 }
 
@@ -123,10 +139,21 @@ void UWxAbility_Groggy::HandleMontageCancelled()
 void UWxAbility_Groggy::HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	// 그로기 자신의 몽타주 blend out 완료는 무시한다.
-	// HitReact 등 다른 몽타주가 종료되었을 때만 그로기 몽타주를 재재생한다.
 	if (Montage == GroggyMontage)
 	{
 		return;
+	}
+
+	// 다른 몽타주에 의해 interrupt된 경우, 새 몽타주가 끝날 때까지 계속 대기한다.
+	if (bInterrupted)
+	{
+		if (UAnimInstance* AnimInstance = CurrentActorInfo->GetAnimInstance())
+		{
+			if (AnimInstance->GetCurrentActiveMontage() != nullptr)
+			{
+				return;
+			}
+		}
 	}
 
 	if (UAnimInstance* AnimInstance = CurrentActorInfo->GetAnimInstance())

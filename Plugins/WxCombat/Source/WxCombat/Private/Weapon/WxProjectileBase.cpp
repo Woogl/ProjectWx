@@ -8,7 +8,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "GenericTeamAgentInterface.h"
-#include "Combat/WxLockOnComponent.h"
+#include "Targeting/WxLockOnComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"

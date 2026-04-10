@@ -63,23 +63,12 @@ void UWxAnimNotifyState_WeaponAttack::NotifyEnd(USkeletalMeshComponent* MeshComp
 		ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_WeaponCollision);
 	}
 
-	AWxWeaponBase* Weapon = AWxWeaponBase::FindWeapon(Owner);
-	if (!Weapon)
-	{
-		return;
-	}
-
-	if (bUnblockable)
-	{
-		Weapon->AttackTags.RemoveTag(WxGameplayTags::Damage_Unblockable);
-	}
-
-	if (HitReactTag.IsValid())
-	{
-		Weapon->AttackTags.RemoveTag(HitReactTag);
-	}
-
-	Weapon->ATKCoeff = 1.f;
+	// AttackTags 및 ATKCoeff의 개별 정리를 여기서 수행하지 않는다.
+	// FGameplayTagContainer는 참조 카운팅을 하지 않으므로, 연속 공격 콤보에서
+	// 다음 ANS의 NotifyBegin과 이전 ANS의 NotifyEnd가 경합할 때
+	// 아직 활성인 ANS의 태그까지 조기 제거되는 문제가 발생한다.
+	// 모든 ANS가 종료되면 ANS_WeaponCollision 태그 카운트가 0이 되어
+	// SetWeaponCollisionEnabled(false)에서 무기 상태가 일괄 초기화된다.
 }
 
 FString UWxAnimNotifyState_WeaponAttack::GetNotifyName_Implementation() const

@@ -3,7 +3,7 @@
 #include "AbilitySystem/Ability/WxAbility_LockOn.h"
 #include "AbilitySystem/Task/WxAbilityTask_LockOnTarget.h"
 #include "AbilitySystemComponent.h"
-#include "Combat/WxLockOnComponent.h"
+#include "Targeting/WxLockOnComponent.h"
 #include "TargetingSystem/TargetingSubsystem.h"
 #include "Types/TargetingSystemTypes.h"
 #include "WxGameplayTags.h"

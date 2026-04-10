@@ -106,6 +106,15 @@ void AWxWeaponBase::SetWeaponCollisionEnabled(bool bEnabled)
 {
 	HitActorsThisSwing.Empty();
 	HitCollision->SetCollisionEnabled(bEnabled ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+
+	// 모든 WeaponAttack ANS가 종료되어 콜리전이 비활성화되면 공격 상태를 일괄 초기화한다.
+	// 개별 ANS의 NotifyEnd에서 태그를 제거하면, FGameplayTagContainer의 참조 카운팅 부재로
+	// 다른 활성 ANS의 태그가 조기 제거되는 문제가 발생하므로 여기서 일괄 처리한다.
+	if (!bEnabled)
+	{
+		AttackTags.Reset();
+		ATKCoeff = 1.f;
+	}
 }
 
 void AWxWeaponBase::HandleWeaponCollisionTagChanged(const FGameplayTag CallbackTag, int32 NewCount)

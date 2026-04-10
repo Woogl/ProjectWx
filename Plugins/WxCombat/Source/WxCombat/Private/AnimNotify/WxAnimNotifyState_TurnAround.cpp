@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AnimNotify/WxAnimNotifyState_TurnAround.h"
-#include "Combat/WxLockOnComponent.h"
+#include "Targeting/WxLockOnComponent.h"
 #include "MotionWarpingComponent.h"
 #include "RootMotionModifier.h"
 #include "RootMotionModifier_SkewWarp.h"
