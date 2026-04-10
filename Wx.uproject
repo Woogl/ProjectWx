@@ -49,6 +49,10 @@
 		{
 			"Name": "MotionWarping",
 			"Enabled": true
+		},
+		{
+			"Name": "WxWorld",
+			"Enabled": true
 		}
 	]
 }

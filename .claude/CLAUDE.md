@@ -60,6 +60,7 @@
 | `WxCore`   | 공용 정의, 공용 유틸리티  |
 | `WxCombat` | 전투 시스템                            |
 | `WxUI`     | UI 시스템                            |
+| `WxWorld`  | 월드 오브젝트 및 상호작용              |
 
 ### 기본 게임 모듈 (`WxGame`)
 
@@ -80,3 +81,7 @@
 UI 시스템은 Unreal Engine 5 의 CommonUI 기반으로 멀티플랫폼을 고려하여 구현한다.
 
 Unreal Engine 5의 UMG View Model을 사용하여, 비즈니스 로직과 프레젠테이션 로직을 완전히 분리해야한다.
+
+### 월드 시스템 (`WxWorld`)
+
+월드에 배치되는 각종 오브젝트 및 관련 상호작용을 구현한다.
