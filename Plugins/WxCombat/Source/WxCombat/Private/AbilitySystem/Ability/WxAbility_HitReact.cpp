@@ -5,7 +5,6 @@
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_HitReact::UWxAbility_HitReact()
@@ -101,14 +100,13 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		else if (EventTag == WxGameplayTags::Event_HitReact_Knockup && KnockupMontage)
 		{
 			SelectedMontage = KnockupMontage;
-			bIsKnockup = true;
 
 			// 넉업 시 공중에 띄움
 			if (AActor* AvatarActor = ActorInfo->AvatarActor.Get())
 			{
 				if (ACharacter* Character = Cast<ACharacter>(AvatarActor))
 				{
-					Character->LaunchCharacter(FVector(0.0, 0.0, KnockupLaunchSpeed), false, true);
+					Character->Jump();
 				}
 			}
 		}
@@ -129,16 +127,12 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 void UWxAbility_HitReact::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	if (bIsKnockup)
+	if (ActorInfo)
 	{
-		if (ActorInfo)
+		if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
 		{
-			if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
-			{
-				Character->MovementModeChangedDelegate.RemoveAll(this);
-			}
+			Character->MovementModeChangedDelegate.RemoveAll(this);
 		}
-		bIsKnockup = false;
 	}
 
 	CurrentMontageTask = nullptr;
@@ -170,7 +164,7 @@ bool UWxAbility_HitReact::PlayHitReactMontage(UAnimMontage* Montage)
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_HitReact::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
 
-	if (bIsKnockup)
+	if (Montage == KnockupMontage)
 	{
 		if (ACharacter* Character = Cast<ACharacter>(CurrentActorInfo->AvatarActor.Get()))
 		{
@@ -198,13 +192,16 @@ void UWxAbility_HitReact::HandleMontageCancelled()
 
 void UWxAbility_HitReact::HandleMovementModeChanged(ACharacter* Character, EMovementMode PrevMovementMode, uint8 PreviousCustomMode)
 {
-	if (PrevMovementMode == MOVE_Falling && Character->GetCharacterMovement()->MovementMode == MOVE_Walking)
+	if (PrevMovementMode == MOVE_Falling)
 	{
 		Character->MovementModeChangedDelegate.RemoveAll(this);
 
 		if (UAnimInstance* AnimInstance = CurrentActorInfo->GetAnimInstance())
 		{
-			AnimInstance->Montage_JumpToSection(FName(TEXT("Grounded")), KnockupMontage);
+			if (AnimInstance->Montage_IsPlaying(KnockupMontage))
+			{
+				AnimInstance->Montage_JumpToSection(FName(TEXT("Grounded")), KnockupMontage);
+			}
 		}
 	}
 }
