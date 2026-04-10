@@ -8,6 +8,8 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "WxMVVMConversionLibrary.generated.h"
 
+struct FGameplayAttribute;
+class UWxViewModel_Attribute;
 class UWxViewModel_Ability;
 class UWxViewModel_Effect;
 
@@ -28,6 +30,10 @@ public:
 	/** 특정 태그 보유 여부에 따라 Visibility를 반환한다. */
 	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "To Visibility (GameplayTag)"))
 	static ESlateVisibility Conv_GameplayTagToSlateVisibility(const FGameplayTagContainer& TagContainer, FGameplayTag Tag, ESlateVisibility TrueVisibility = ESlateVisibility::SelfHitTestInvisible, ESlateVisibility FalseVisibility = ESlateVisibility::Collapsed);
+
+	/** AttributeViewModel 배열에서 Attribute가 일치하는 ViewModel을 반환한다. */
+	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "Find Attribute ViewModel"))
+	static UWxViewModel_Attribute* Conv_FindAttributeViewModel(const TArray<UWxViewModel_Attribute*>& AttributeViewModels, FGameplayAttribute Attribute);
 
 	/** AbilityViewModel 배열에서 AbilityTag가 일치하는 ViewModel을 반환한다. */
 	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "Find Ability ViewModel By Tag"))
