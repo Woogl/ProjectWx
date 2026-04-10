@@ -3,7 +3,6 @@
 #include "Controller/WxPlayerController.h"
 #include "Character/WxCharacterBase.h"
 #include "MVVMGameSubsystem.h"
-#include "MVVM/WxViewModel_Attribute.h"
 #include "MVVM/WxViewModel_AbilitySystem.h"
 #include "MVVM/WxViewModel_Ability.h"
 #include "AbilitySystem/Ability/WxAbility.h"
@@ -15,22 +14,6 @@
 
 namespace WxGlobalViewModelContext
 {
-	FMVVMViewModelContext PlayerHP()
-	{
-		FMVVMViewModelContext Context;
-		Context.ContextClass = UWxViewModel_Attribute::StaticClass();
-		Context.ContextName = FName(TEXT("PlayerHP"));
-		return Context;
-	}
-
-	FMVVMViewModelContext PlayerMP()
-	{
-		FMVVMViewModelContext Context;
-		Context.ContextClass = UWxViewModel_Attribute::StaticClass();
-		Context.ContextName = FName(TEXT("PlayerMP"));
-		return Context;
-	}
-
 	FMVVMViewModelContext PlayerAbilitySystem()
 	{
 		FMVVMViewModelContext Context;
@@ -79,8 +62,6 @@ void AWxPlayerController::OnPossess(APawn* InPawn)
 		if (UAbilitySystemComponent* ASC = WxPlayerCharacter->GetAbilitySystemComponent())
 		{
 			InitializePlayerAbilitySystemViewModel(ASC);
-			InitializePlayerHPViewModel(ASC);
-			InitializePlayerMPViewModel(ASC);
 		}
 		// Global View Model 초기화가 먼저 되어야함
 		PushGameHUD(WxPlayerCharacter);
@@ -102,8 +83,6 @@ void AWxPlayerController::OnRep_Pawn()
 		if (UAbilitySystemComponent* ASC = WxPlayerCharacter->GetAbilitySystemComponent())
 		{
 			InitializePlayerAbilitySystemViewModel(ASC);
-			InitializePlayerHPViewModel(ASC);
-			InitializePlayerMPViewModel(ASC);
 		}
 		// Global View Model 초기화가 먼저 되어야함
 		PushGameHUD(WxPlayerCharacter);
@@ -113,15 +92,6 @@ void AWxPlayerController::OnRep_Pawn()
 void AWxPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-	
-	if (UGameInstance* GameInst = GetGameInstance())
-	{
-		if (UMVVMGameSubsystem* MVVMGameSubsystem = GameInst->GetSubsystem<UMVVMGameSubsystem>())
-		{
-			MVVMGameSubsystem->GetViewModelCollection()->RemoveViewModel(WxGlobalViewModelContext::PlayerHP());
-			MVVMGameSubsystem->GetViewModelCollection()->RemoveViewModel(WxGlobalViewModelContext::PlayerMP());
-		}
-	}
 }
 
 void AWxPlayerController::PushGameHUD(AWxPlayerCharacter* PlayerCharacter)
@@ -195,48 +165,3 @@ void AWxPlayerController::InitializePlayerAbilitySystemViewModel(UAbilitySystemC
 		}
 	}
 }
-
-void AWxPlayerController::InitializePlayerHPViewModel(UAbilitySystemComponent* ASC)
-{
-	UGameInstance* GameInst = GetGameInstance();
-	if (!GameInst)
-	{
-		return;
-	}
-
-	UMVVMGameSubsystem* MVVMGameSubsystem = GameInst->GetSubsystem<UMVVMGameSubsystem>();
-	if (!MVVMGameSubsystem)
-	{
-		return;
-	}
-
-	UMVVMViewModelCollectionObject* GlobalCollection = MVVMGameSubsystem->GetViewModelCollection();
-	const FMVVMViewModelContext Context = WxGlobalViewModelContext::PlayerHP();
-
-	UWxViewModel_Attribute* ViewModel = ViewModel = NewObject<UWxViewModel_Attribute>(ASC);
-	GlobalCollection->AddViewModelInstance(Context, ViewModel);
-	ViewModel->Initialize(ASC, UWxCombatAttributeSet::GetHPAttribute(), UWxCombatAttributeSet::GetMaxHPAttribute());
-}
-
-void AWxPlayerController::InitializePlayerMPViewModel(UAbilitySystemComponent* ASC)
-{
-	UGameInstance* GameInst = GetGameInstance();
-	if (!GameInst)
-	{
-		return;
-	}
-
-	UMVVMGameSubsystem* MVVMGameSubsystem = GameInst->GetSubsystem<UMVVMGameSubsystem>();
-	if (!MVVMGameSubsystem)
-	{
-		return;
-	}
-
-	UMVVMViewModelCollectionObject* GlobalCollection = MVVMGameSubsystem->GetViewModelCollection();
-	const FMVVMViewModelContext Context = WxGlobalViewModelContext::PlayerMP();
-
-	UWxViewModel_Attribute* ViewModel = ViewModel = NewObject<UWxViewModel_Attribute>(ASC);
-	GlobalCollection->AddViewModelInstance(Context, ViewModel);
-	ViewModel->Initialize(ASC, UWxCombatAttributeSet::GetMPAttribute(), UWxCombatAttributeSet::GetMaxMPAttribute());
-}
-

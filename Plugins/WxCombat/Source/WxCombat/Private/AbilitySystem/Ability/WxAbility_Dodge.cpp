@@ -171,13 +171,11 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 	}
 
 	// 극한 회피 성공 보상: MP 회복
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (ASC)
+	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_RecoveryMP::StaticClass(), GetAbilityLevel());
+	if (SpecHandle.IsValid())
 	{
-		const UGameplayEffect* Effect = UWxEffect_RecoveryMP::StaticClass()->GetDefaultObject<UGameplayEffect>();
-		FGameplayEffectSpec Spec(Effect, ASC->MakeEffectContext(), 1.f);
-		Spec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery, 5.f);
-		ASC->ApplyGameplayEffectSpecToSelf(Spec);
+		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery, PerfectDodgeMPRecovery);
+		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle);
 	}
 
 	bPlayingPerfectDodge = true;
@@ -186,6 +184,7 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 	if (DodgeCounterMontage)
 	{
 		// 공격 입력 태그를 스펙에 동적 추가하여, ASC의 입력 라우팅이 이 어빌리티에 도달하도록 함
+		UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 		if (ASC)
 		{
 			FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromHandle(CurrentSpecHandle);

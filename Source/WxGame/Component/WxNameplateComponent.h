@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Components/WidgetComponent.h"
 #include "WxNameplateComponent.generated.h"
 
@@ -30,4 +31,7 @@ public:
 	 * Widget이 유효하고 UMVVMView Extension이 존재해야 동작한다.
 	 */
 	void InitializeViewModels(UAbilitySystemComponent* InASC);
+
+private:
+	void HandleDeadTagChanged(const FGameplayTag Tag, int32 NewCount);
 };

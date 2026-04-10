@@ -88,7 +88,7 @@ void UWxCombatAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribu
 	}
 	else if (Attribute == GetMaxDPAttribute())
 	{
-		NewValue = FMath::Max(NewValue, 1.f);
+		NewValue = FMath::Max(NewValue, 0.f);
 	}
 	else if (Attribute == GetDPAttribute())
 	{

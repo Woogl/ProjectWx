@@ -47,6 +47,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> DodgeCounterMontage;
 
+	/** 극한 회피 성공 시 회복하는 MP량 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	float PerfectDodgeMPRecovery = 5.f;
+
 private:
 	void ApplyDodgeDirection(const FVector& Direction);
 	void HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag);

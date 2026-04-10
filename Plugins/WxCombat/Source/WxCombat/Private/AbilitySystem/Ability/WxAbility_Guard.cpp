@@ -153,10 +153,12 @@ void UWxAbility_Guard::HandlePerfectGuard(FGameplayEventData Payload)
 	}
 
 	// 퍼펙트 가드 성공 보상: MP 회복
-	const UGameplayEffect* Effect = UWxEffect_RecoveryMP::StaticClass()->GetDefaultObject<UGameplayEffect>();
-	FGameplayEffectSpec Spec(Effect, ASC->MakeEffectContext(), 1.f);
-	Spec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery, PerfectGuardMPRecovery);
-	ASC->ApplyGameplayEffectSpecToSelf(Spec);
+	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_RecoveryMP::StaticClass(), GetAbilityLevel());
+	if (SpecHandle.IsValid())
+	{
+		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery, PerfectGuardMPRecovery);
+		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle);
+	}
 
 	// GuardMontage 페이즈에서만 GuardHitReactMontage를 재생한다.
 	// HitReact/Knockback 재생 중 퍼펙트 가드 이벤트가 오면 MP 회복만 처리하고 몽타주는 전환하지 않는다.

@@ -20,10 +20,12 @@ void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 	
 	CachedASC->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectAdded);
 	CachedASC->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectRemoved);
+	CachedASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_AbilitySystem::HandleTagChanged);
 
 	InitializeAttributeViewModels();
 	InitializeAbilityViewModels();
 	RefreshActiveEffectViewModels();
+	RefreshOwnedTags();
 }
 
 UWxViewModel_Attribute* UWxViewModel_AbilitySystem::FindAttributeViewModel(FGameplayAttribute InAttribute) const
@@ -171,12 +173,14 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 	{
 		CachedASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
 		CachedASC->OnAnyGameplayEffectRemovedDelegate().RemoveAll(this);
+		CachedASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
 		CachedASC.Reset();
 	}
-	
+
 	AttributeViewModels.Empty();
 	AbilityViewModels.Empty();
 	ActiveEffectViewModels.Empty();
+	OwnedTags.Reset();
 
 	Super::Deinitialize();
 }
@@ -189,4 +193,27 @@ void UWxViewModel_AbilitySystem::HandleActiveEffectAdded(UAbilitySystemComponent
 void UWxViewModel_AbilitySystem::HandleActiveEffectRemoved(const FActiveGameplayEffect& ActiveEffect)
 {
 	RefreshActiveEffectViewModels();
+}
+
+void UWxViewModel_AbilitySystem::RefreshOwnedTags()
+{
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	if (!ASC)
+	{
+		return;
+	}
+
+	FGameplayTagContainer NewTags;
+	ASC->GetOwnedGameplayTags(NewTags);
+
+	if (OwnedTags != NewTags)
+	{
+		OwnedTags = NewTags;
+		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(OwnedTags);
+	}
+}
+
+void UWxViewModel_AbilitySystem::HandleTagChanged(const FGameplayTag Tag, int32 NewCount)
+{
+	RefreshOwnedTags();
 }

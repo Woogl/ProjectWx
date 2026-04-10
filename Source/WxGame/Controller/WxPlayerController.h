@@ -65,8 +65,6 @@ private:
 	void PushGameHUD(AWxPlayerCharacter* PlayerCharacter);
 
 	void InitializePlayerAbilitySystemViewModel(UAbilitySystemComponent* ASC);
-	void InitializePlayerHPViewModel(UAbilitySystemComponent* ASC);
-	void InitializePlayerMPViewModel(UAbilitySystemComponent* ASC);
 
 	UPROPERTY(Transient)
 	TObjectPtr<UWxActivatableWidget> GameHUD;

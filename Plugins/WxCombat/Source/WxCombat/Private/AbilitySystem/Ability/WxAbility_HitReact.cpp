@@ -5,6 +5,7 @@
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_HitReact::UWxAbility_HitReact()
@@ -106,7 +107,8 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 			{
 				if (ACharacter* Character = Cast<ACharacter>(AvatarActor))
 				{
-					Character->Jump();
+					FVector LaunchVelocity = FVector(0.f, 0.f, Character->GetCharacterMovement()->JumpZVelocity);
+					Character->LaunchCharacter(LaunchVelocity, false, true);
 				}
 			}
 		}

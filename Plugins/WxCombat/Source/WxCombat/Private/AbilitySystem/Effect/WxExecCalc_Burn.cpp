@@ -39,7 +39,14 @@ void UWxExecCalc_Burn::Execute_Implementation(const FGameplayEffectCustomExecuti
 	{
 		return;
 	}
+	
+	// 사망 판정
+	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
+	{
+		return;
+	}
 
+	// 무적 판정
 	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Invincible))
 	{
 		return;
