@@ -20,7 +20,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_GuardHit_Knockback, "Event.GuardHit.Knockback");
 	UE_DEFINE_GAMEPLAY_TAG(Event_DodgeSuccess, "Event.DodgeSuccess");
 	UE_DEFINE_GAMEPLAY_TAG(Event_PerfectGuard, "Event.PerfectGuard");
-	UE_DEFINE_GAMEPLAY_TAG(Event_AttackHit, "Event.AttackHit");
 
 	UE_DEFINE_GAMEPLAY_TAG(ANS_WeaponCollision, "ANS.WeaponCollision");
 	UE_DEFINE_GAMEPLAY_TAG(ANS_ComboWindow, "ANS.ComboWindow");

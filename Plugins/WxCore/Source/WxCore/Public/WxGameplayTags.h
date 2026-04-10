@@ -62,9 +62,6 @@ namespace WxGameplayTags
 	/** 퍼펙트 가드 성공 시 발생하는 이벤트. Guard 어빌리티가 MP 회복 및 HitReact를 처리 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_PerfectGuard);
 
-	/** 공격이 적중했을 때 공격자에게 발송하는 이벤트. 어빌리티가 MP/UP 회복 처리 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_AttackHit);
-
 
 	// ── ANS ───────────────────────────────────────────────────────────────
 

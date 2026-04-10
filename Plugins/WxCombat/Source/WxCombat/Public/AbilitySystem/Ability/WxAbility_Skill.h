@@ -25,6 +25,7 @@ class WXCOMBAT_API UWxAbility_Skill : public UWxAbility
 
 public:
 	UWxAbility_Skill();
+	virtual FWxEffectContainer GetHitRecoveryInfo() const override;
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
@@ -44,11 +45,6 @@ protected:
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
 private:
-	void ListenForAttackHit();
-
-	UFUNCTION()
-	void HandleAttackHit(FGameplayEventData Payload);
-
 	UFUNCTION()
 	void HandleMontageCompleted();
 

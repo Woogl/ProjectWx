@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Effect/WxExecCalc_Damage.h"
+#include "AbilitySystem/Ability/WxAbility.h"
 #include "AbilitySystem/Effect/WxEffect_Reflect.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
@@ -122,12 +123,25 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 			ApplyHitReaction(SourceASC, TargetASC, OwningSpec, DamageResult.FinalDamage, TargetPP, bIsGuarding, bIsUnblockable, OutExecutionOutput);
 
+			// 공격자 리소스 회복: 소스 어빌리티의 회복 정보를 읽어 직접 적용
 			if (SourceASC)
 			{
-				FGameplayEventData EventData;
-				EventData.Instigator = SourceASC->GetOwnerActor();
-				EventData.Target = TargetASC->GetOwnerActor();
-				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(SourceASC->GetOwnerActor(), WxGameplayTags::Event_AttackHit, EventData);
+				const UWxAbility* SourceAbility = Cast<UWxAbility>(OwningSpec.GetEffectContext().GetAbilityInstance_NotReplicated());
+				if (SourceAbility)
+				{
+					const FWxEffectContainer RecoveryContainer = SourceAbility->GetHitRecoveryInfo();
+					if (RecoveryContainer.EffectClass)
+					{
+						const float AbilityLevel = OwningSpec.GetEffectContext().GetAbilityLevel();
+						const UGameplayEffect* RecoveryEffect = RecoveryContainer.EffectClass->GetDefaultObject<UGameplayEffect>();
+						FGameplayEffectSpec RecoverySpec(RecoveryEffect, SourceASC->MakeEffectContext(), AbilityLevel);
+						for (const auto& [Tag, Value] : RecoveryContainer.SetByCallers)
+						{
+							RecoverySpec.SetSetByCallerMagnitude(Tag, Value);
+						}
+						SourceASC->ApplyGameplayEffectSpecToSelf(RecoverySpec);
+					}
+				}
 			}
 		}
 	}

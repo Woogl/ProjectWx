@@ -2,7 +2,6 @@
 
 #include "AbilitySystem/Ability/WxAbility_Attack.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
 #include "AbilitySystem/Effect/WxEffect_RecoveryMP.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
@@ -49,7 +48,6 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 
 	PlayComboMontage();
-	ListenForAttackHit();
 }
 
 void UWxAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -160,25 +158,12 @@ bool UWxAbility_Attack::TryAdvanceCombo(const TCHAR* Suffix)
 	return true;
 }
 
-void UWxAbility_Attack::ListenForAttackHit()
+FWxEffectContainer UWxAbility_Attack::GetHitRecoveryInfo() const
 {
-	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-		this, WxGameplayTags::Event_AttackHit);
-	if (EventTask)
-	{
-		EventTask->EventReceived.AddDynamic(this, &UWxAbility_Attack::HandleAttackHit);
-		EventTask->ReadyForActivation();
-	}
-}
-
-void UWxAbility_Attack::HandleAttackHit(FGameplayEventData Payload)
-{
-	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_RecoveryMP::StaticClass(), GetAbilityLevel());
-	if (SpecHandle.IsValid())
-	{
-		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery, HitMPRecovery);
-		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle);
-	}
+	FWxEffectContainer Container;
+	Container.EffectClass = UWxEffect_RecoveryMP::StaticClass();
+	Container.SetByCallers.Add(WxGameplayTags::SetByCaller_Recovery, HitMPRecovery);
+	return Container;
 }
 
 void UWxAbility_Attack::HandleMontageCompleted()

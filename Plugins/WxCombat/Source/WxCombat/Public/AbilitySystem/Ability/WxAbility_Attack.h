@@ -38,6 +38,7 @@ class WXCOMBAT_API UWxAbility_Attack : public UWxAbility
 
 public:
 	UWxAbility_Attack();
+	virtual FWxEffectContainer GetHitRecoveryInfo() const override;
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
@@ -64,11 +65,6 @@ private:
 
 	/** 현재 경로에서 L 또는 H를 추가했을 때 유효한 분기가 있는지 반환 */
 	bool HasNextCombo() const;
-
-	void ListenForAttackHit();
-
-	UFUNCTION()
-	void HandleAttackHit(FGameplayEventData Payload);
 
 	UFUNCTION()
 	void HandleMontageCompleted();
