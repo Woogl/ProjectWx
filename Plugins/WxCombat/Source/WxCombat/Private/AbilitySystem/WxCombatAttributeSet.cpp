@@ -169,12 +169,16 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 	{
 		SetDP(FMath::Clamp(GetDP(), 0.f, GetMaxDP()));
 
-		if (GetMaxDP() > 0.f && GetDP() >= GetMaxDP())
+		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+		if (ASC && GetMaxDP() > 0.f)
 		{
-			UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
-			if (ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
+			if (GetDP() >= GetMaxDP() && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
 			{
 				ASC->AddLooseGameplayTag(WxGameplayTags::State_Groggy, 1, EGameplayTagReplicationState::TagOnly);
+			}
+			else if (GetDP() <= 0.f && ASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
+			{
+				ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Groggy, 1, EGameplayTagReplicationState::TagOnly);
 			}
 		}
 	}

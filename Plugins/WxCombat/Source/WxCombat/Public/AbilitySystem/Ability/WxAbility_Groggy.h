@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystem/Ability/WxAbility.h"
+#include "ActiveGameplayEffectHandle.h"
 #include "WxAbility_Groggy.generated.h"
 
 class UAnimMontage;
@@ -33,9 +34,6 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> GroggyMontage;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	float GroggyDuration = 5.f;
 
 private:
 	void HandleGroggyTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
@@ -56,9 +54,7 @@ private:
 	void HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 	void PlayGroggyMontage();
-	void StartDPDrain();
-	void HandleDPDrainTick();
 
 	FDelegateHandle GroggyTagDelegateHandle;
-	FTimerHandle DPDrainTimerHandle;
+	FActiveGameplayEffectHandle DrainDPEffectHandle;
 };

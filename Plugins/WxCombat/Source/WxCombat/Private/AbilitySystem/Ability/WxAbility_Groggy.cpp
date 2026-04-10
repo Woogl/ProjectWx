@@ -3,6 +3,7 @@
 #include "AbilitySystem/Ability/WxAbility_Groggy.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
+#include "AbilitySystem/Effect/WxEffect_DrainDP.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "WxGameplayTags.h"
 
@@ -61,7 +62,9 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		PlayGroggyMontage();
 	}
 
-	StartDPDrain();
+	// DP 드레인 이펙트 적용
+	DrainDPEffectHandle = ASC->ApplyGameplayEffectToSelf(
+		GetDefault<UWxEffect_DrainDP>(), 1.f, ASC->MakeEffectContext());
 }
 
 void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -74,6 +77,13 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 		{
 			ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetPPAttribute(), AttributeSet->GetMaxPP());
 		}
+
+		// DP 드레인 이펙트 제거
+		if (DrainDPEffectHandle.IsValid())
+		{
+			ASC->RemoveActiveGameplayEffect(DrainDPEffectHandle);
+			DrainDPEffectHandle.Invalidate();
+		}
 	}
 
 	// OnMontageEnded 델리게이트 정리
@@ -85,19 +95,14 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 		}
 	}
 
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-
-	if (ActorInfo && ActorInfo->OwnerActor.IsValid())
-	{
-		ActorInfo->OwnerActor->GetWorldTimerManager().ClearTimer(DPDrainTimerHandle);
-	}
-
 	if (GroggyTagDelegateHandle.IsValid() && ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
 	{
 		ActorInfo->AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::State_Groggy, EGameplayTagEventType::NewOrRemoved)
 			.Remove(GroggyTagDelegateHandle);
 		GroggyTagDelegateHandle.Reset();
 	}
+
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void UWxAbility_Groggy::HandleGroggyTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
@@ -179,45 +184,4 @@ void UWxAbility_Groggy::PlayGroggyMontage()
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Groggy::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Groggy::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
-}
-
-void UWxAbility_Groggy::StartDPDrain()
-{
-	if (!CurrentActorInfo || !CurrentActorInfo->OwnerActor.IsValid())
-	{
-		return;
-	}
-
-	constexpr float DrainTickRate = 1.f / 30.f;
-	CurrentActorInfo->OwnerActor->GetWorldTimerManager().SetTimer(
-		DPDrainTimerHandle, this, &UWxAbility_Groggy::HandleDPDrainTick, DrainTickRate, true);
-}
-
-void UWxAbility_Groggy::HandleDPDrainTick()
-{
-	UAbilitySystemComponent* ASC = CurrentActorInfo ? CurrentActorInfo->AbilitySystemComponent.Get() : nullptr;
-	if (!ASC)
-	{
-		return;
-	}
-
-	const UWxCombatAttributeSet* AttrSet = ASC->GetSet<UWxCombatAttributeSet>();
-	if (!AttrSet)
-	{
-		return;
-	}
-
-	const float MaxDP = AttrSet->GetMaxDP();
-	const float CurrentDP = AttrSet->GetDP();
-
-	constexpr float DrainTickRate = 1.f / 30.f;
-	const float DrainAmount = (MaxDP / GroggyDuration) * DrainTickRate;
-	const float NewDP = FMath::Max(CurrentDP - DrainAmount, 0.f);
-
-	ASC->ApplyModToAttribute(UWxCombatAttributeSet::GetDPAttribute(), EGameplayModOp::Additive, -DrainAmount);
-
-	if (NewDP <= 0.f)
-	{
-		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Groggy, 1, EGameplayTagReplicationState::TagOnly);
-	}
 }
