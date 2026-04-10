@@ -54,6 +54,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> KnockupMontage;
 
+	/** 넉업 시 캐릭터를 띄우는 수직 속도 (cm/s) */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	float KnockupLaunchSpeed = 400.f;
+
 private:
 	bool PlayHitReactMontage(UAnimMontage* Montage);
 
@@ -66,6 +70,11 @@ private:
 	UFUNCTION()
 	void HandleMontageCancelled();
 
+	UFUNCTION()
+	void HandleMovementModeChanged(ACharacter* Character, EMovementMode PrevMovementMode, uint8 PreviousCustomMode);
+
 	UPROPERTY(Transient)
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> CurrentMontageTask;
+
+	bool bIsKnockup = false;
 };

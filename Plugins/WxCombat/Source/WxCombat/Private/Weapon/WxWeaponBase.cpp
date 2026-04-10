@@ -113,7 +113,7 @@ void AWxWeaponBase::SetWeaponCollisionEnabled(bool bEnabled)
 	if (!bEnabled)
 	{
 		AttackTags.Reset();
-		ATKCoeff = 1.f;
+		SetByCallers.Reset();
 	}
 }
 
@@ -188,7 +188,10 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 			if (Spec.IsValid())
 			{
 				Spec.Data->AppendDynamicAssetTags(AttackTags);
-				Spec.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, ATKCoeff);
+				for (const auto& [Tag, Value] : SetByCallers)
+				{
+					Spec.Data->SetSetByCallerMagnitude(Tag, Value);
+				}
 				SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
 			}
 		}

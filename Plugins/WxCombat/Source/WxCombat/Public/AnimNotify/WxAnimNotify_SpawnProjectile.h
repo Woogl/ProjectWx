@@ -33,12 +33,4 @@ protected:
 	/** 투사체 스폰 위치 소켓 이름 */
 	UPROPERTY(EditAnywhere, Category = "Wx|Projectile")
 	FName SpawnSocketName = TEXT("hand_r");
-
-	/** true이면 투사체가 가드·퍼펙트 가드를 무시 */
-	UPROPERTY(EditAnywhere, Category = "Wx|Projectile")
-	bool bUnblockable = false;
-
-	/** 투사체의 공격력 계수. 히트 시 SetByCaller.Coeff.ATK로 전달 */
-	UPROPERTY(EditAnywhere, Category = "Wx|Projectile", meta = (ClampMin = "0.0"))
-	float ATKCoeff = 1.f;
 };

@@ -2,7 +2,6 @@
 
 #include "AnimNotify/WxAnimNotify_SpawnProjectile.h"
 #include "Weapon/WxProjectileBase.h"
-#include "WxGameplayTags.h"
 
 void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
@@ -28,16 +27,7 @@ void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAn
 	SpawnParams.Instigator = Cast<APawn>(Owner);
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	AWxProjectileBase* Projectile = Owner->GetWorld()->SpawnActorDeferred<AWxProjectileBase>(ProjectileClass, SpawnTransform, Owner, Cast<APawn>(Owner), ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-	if (Projectile)
-	{
-		if (bUnblockable)
-		{
-			Projectile->AttackTags.AddTag(WxGameplayTags::Damage_Unblockable);
-		}
-		Projectile->ATKCoeff = ATKCoeff;
-		Projectile->FinishSpawning(SpawnTransform);
-	}
+	AWxProjectileBase* Projectile = Owner->GetWorld()->SpawnActor<AWxProjectileBase>(ProjectileClass, SpawnTransform, SpawnParams);
 }
 
 FString UWxAnimNotify_SpawnProjectile::GetNotifyName_Implementation() const

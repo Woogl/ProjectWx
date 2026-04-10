@@ -42,7 +42,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (Categories = "Event.HitReact"))
 	FGameplayTag HitReactTag;
 
-	/** 이 구간 동안 ATK에 곱해지는 계수. 히트 시 SetByCaller.Coeff.ATK로 전달 */
-	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ClampMin = "0.0"))
-	float ATKCoeff = 1.f;
+	/** 이 구간의 SetByCaller 값. 히트 시 GE Spec에 반영 */
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (Categories = "SetByCaller"))
+	TMap<FGameplayTag, float> SetByCallers;
 };

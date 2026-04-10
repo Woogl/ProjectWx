@@ -4,6 +4,8 @@
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_HitReact::UWxAbility_HitReact()
@@ -81,10 +83,34 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		else if (EventTag == WxGameplayTags::Event_HitReact_Knockdown && KnockdownMontage)
 		{
 			SelectedMontage = KnockdownMontage;
+			
+			// 넉다운 시 공격자를 바라보도록 회전
+			if (AActor* AvatarActor = ActorInfo->AvatarActor.Get())
+			{
+				if (const AActor* Instigator = TriggerEventData->Instigator.Get())
+				{
+					FVector Direction = Instigator->GetActorLocation() - AvatarActor->GetActorLocation();
+					Direction.Z = 0.0;
+					if (!Direction.IsNearlyZero())
+					{
+						AvatarActor->SetActorRotation(Direction.ToOrientationRotator());
+					}
+				}
+			}
 		}
 		else if (EventTag == WxGameplayTags::Event_HitReact_Knockup && KnockupMontage)
 		{
 			SelectedMontage = KnockupMontage;
+			bIsKnockup = true;
+
+			// 넉업 시 공중에 띄움
+			if (AActor* AvatarActor = ActorInfo->AvatarActor.Get())
+			{
+				if (ACharacter* Character = Cast<ACharacter>(AvatarActor))
+				{
+					Character->LaunchCharacter(FVector(0.0, 0.0, KnockupLaunchSpeed), false, true);
+				}
+			}
 		}
 	}
 
@@ -103,6 +129,18 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 void UWxAbility_HitReact::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	if (bIsKnockup)
+	{
+		if (ActorInfo)
+		{
+			if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
+			{
+				Character->MovementModeChangedDelegate.RemoveAll(this);
+			}
+		}
+		bIsKnockup = false;
+	}
+
 	CurrentMontageTask = nullptr;
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
@@ -131,6 +169,15 @@ bool UWxAbility_HitReact::PlayHitReactMontage(UAnimMontage* Montage)
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_HitReact::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_HitReact::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
+
+	if (bIsKnockup)
+	{
+		if (ACharacter* Character = Cast<ACharacter>(CurrentActorInfo->AvatarActor.Get()))
+		{
+			Character->MovementModeChangedDelegate.AddDynamic(this, &UWxAbility_HitReact::HandleMovementModeChanged);
+		}
+	}
+
 	return true;
 }
 
@@ -147,4 +194,17 @@ void UWxAbility_HitReact::HandleMontageInterrupted()
 void UWxAbility_HitReact::HandleMontageCancelled()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+}
+
+void UWxAbility_HitReact::HandleMovementModeChanged(ACharacter* Character, EMovementMode PrevMovementMode, uint8 PreviousCustomMode)
+{
+	if (PrevMovementMode == MOVE_Falling && Character->GetCharacterMovement()->MovementMode == MOVE_Walking)
+	{
+		Character->MovementModeChangedDelegate.RemoveAll(this);
+
+		if (UAnimInstance* AnimInstance = CurrentActorInfo->GetAnimInstance())
+		{
+			AnimInstance->Montage_JumpToSection(FName(TEXT("Grounded")), KnockupMontage);
+		}
+	}
 }

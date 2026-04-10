@@ -9,6 +9,7 @@
 UWxAnimNotifyState_WeaponAttack::UWxAnimNotifyState_WeaponAttack()
 {
 	HitReactTag = WxGameplayTags::Event_HitReact_Normal;
+	SetByCallers.Add(WxGameplayTags::SetByCaller_Coeff_ATK, 1.f);
 }
 
 void UWxAnimNotifyState_WeaponAttack::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
@@ -40,7 +41,7 @@ void UWxAnimNotifyState_WeaponAttack::NotifyBegin(USkeletalMeshComponent* MeshCo
 		Weapon->AttackTags.AddTag(HitReactTag);
 	}
 
-	Weapon->ATKCoeff = ATKCoeff;
+	Weapon->SetByCallers = SetByCallers;
 
 	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
 	{

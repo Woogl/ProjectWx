@@ -54,11 +54,13 @@ protected:
 	virtual void HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 public:
-	/** 공격 속성 태그. 스폰 전 외부에서 설정하면 BeginPlay에서 Spec에 반영 */
+	/** 공격 속성 태그. BeginPlay에서 EffectSpec의 DynamicAssetTag로 반영 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Projectile")
 	FGameplayTagContainer AttackTags;
 
-	/** 공격력 계수. 스폰 전 외부에서 설정하면 BeginPlay에서 Spec의 SetByCaller.Coeff.ATK로 전달 */
-	float ATKCoeff = 1.f;
+	/** EffectClasses의 SetByCaller 값. BeginPlay에서 EffectSpec에 반영 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Projectile", meta = (Categories = "SetByCaller"))
+	TMap<FGameplayTag, float> SetByCallers;
 
 private:
 	FGameplayEffectContextHandle CachedEffectContext;
