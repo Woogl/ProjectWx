@@ -52,6 +52,8 @@ public:
 	bool GetIsAttributeFull() const;
 	void SetIsAttributeFull(bool bNewValue);
 
+	FGameplayAttribute GetBoundAttribute() const;
+
 protected:
 	virtual void Deinitialize() override;
 

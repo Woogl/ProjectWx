@@ -3,13 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "MVVM/WxViewModel.h"
 #include "WxViewModel_AbilitySystem.generated.h"
 
+struct FGameplayAttribute;
 struct FActiveGameplayEffectHandle;
 struct FGameplayEffectSpec;
 struct FActiveGameplayEffect;
 class UAbilitySystemComponent;
+class UWxViewModel_Attribute;
 class UWxViewModel_Ability;
 class UWxViewModel_Effect;
 
@@ -30,11 +33,12 @@ class WXUI_API UWxViewModel_AbilitySystem : public UWxViewModel
 public:
 	void Initialize(UAbilitySystemComponent* InASC);
 
-	/** 어빌리티 목록을 재구축한다. 런타임에 어빌리티가 변경되었을 때 호출 */
-	void RebuildAbilityViewModels();
-	
-	/** 이펙트 목록을 재구축한다. 런타임에 이펙트가 추가/제거되었을 때 호출 */
-	void RebuildActiveEffectViewModels();
+	UWxViewModel_Attribute* FindAttributeViewModel(FGameplayAttribute InAttribute) const;
+	UWxViewModel_Ability* FindAbilityViewModel(FGameplayTag InAbilityTag) const;
+	UWxViewModel_Effect* FindActiveEffectViewModel(FGameplayTag InEffectTag) const;
+
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|AbilitySystem")
+	TArray<TObjectPtr<UWxViewModel_Attribute>> AttributeViewModels;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|AbilitySystem")
 	TArray<TObjectPtr<UWxViewModel_Ability>> AbilityViewModels;
@@ -43,11 +47,16 @@ public:
 	TArray<TObjectPtr<UWxViewModel_Effect>> ActiveEffectViewModels;
 
 protected:
+	void InitializeAttributeViewModels();
+	void InitializeAbilityViewModels();
+	
+	/** 이펙트 목록을 재구축한다. 런타임에 이펙트가 추가/제거되었을 때 호출 */
+	void RefreshActiveEffectViewModels();
+	
 	virtual void Deinitialize() override;
 	
 	void HandleActiveEffectAdded(UAbilitySystemComponent* InASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
 	void HandleActiveEffectRemoved(const FActiveGameplayEffect& ActiveEffect);
-
-private:
+	
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 };

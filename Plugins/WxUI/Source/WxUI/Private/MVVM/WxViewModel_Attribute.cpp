@@ -107,6 +107,11 @@ void UWxViewModel_Attribute::SetIsAttributeFull(bool bNewValue)
 	UE_MVVM_SET_PROPERTY_VALUE(IsAttributeFull, bNewValue);
 }
 
+FGameplayAttribute UWxViewModel_Attribute::GetBoundAttribute() const
+{
+	return BoundAttribute;
+}
+
 void UWxViewModel_Attribute::HandleAttributeChanged(const FOnAttributeChangeData& Data)
 {
 	SetCurrentAttribute(Data.NewValue);
