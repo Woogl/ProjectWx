@@ -39,8 +39,11 @@ void UWxAbility_Sprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	UGameplayEffect* EffectCDO = SprintEffectClass->GetDefaultObject<UGameplayEffect>();
-	SpeedEffectHandle = ASC->ApplyGameplayEffectToSelf(EffectCDO, 1.f, ASC->MakeEffectContext());
+	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(SprintEffectClass, GetAbilityLevel());
+	if (SpecHandle.IsValid())
+	{
+		SpeedEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
+	}
 }
 
 void UWxAbility_Sprint::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)

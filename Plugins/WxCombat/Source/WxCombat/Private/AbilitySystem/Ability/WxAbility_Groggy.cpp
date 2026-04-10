@@ -63,8 +63,11 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 
 	// DP 드레인 이펙트 적용
-	DrainDPEffectHandle = ASC->ApplyGameplayEffectToSelf(
-		GetDefault<UWxEffect_DrainDP>(), 1.f, ASC->MakeEffectContext());
+	FGameplayEffectSpecHandle DrainSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_DrainDP::StaticClass(), GetAbilityLevel());
+	if (DrainSpecHandle.IsValid())
+	{
+		DrainDPEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, DrainSpecHandle);
+	}
 }
 
 void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)

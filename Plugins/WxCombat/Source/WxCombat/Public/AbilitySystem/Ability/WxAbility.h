@@ -7,6 +7,7 @@
 #include "WxAbility.generated.h"
 
 class UAbilitySystemComponent;
+class UGameplayEffect;
 
 /** 어빌리티 활성화 정책 */
 UENUM(BlueprintType)
@@ -46,6 +47,12 @@ public:
 	TSoftObjectPtr<UTexture2D> AbilityIcon;
 
 protected:
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
+	/** 어빌리티 발동 시 자신에게 적용할 GameplayEffect 목록 (버프, 상태 부여 등). 각 GE의 Duration 정책에 따라 자연 만료된다. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
+	TArray<TSubclassOf<UGameplayEffect>> OnActivateEffects;
+
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual bool CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 };
