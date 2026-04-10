@@ -111,7 +111,15 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	}
 	else
 	{
-		DamageResult = CalcDamage(ExecutionParams, EvalParams, SourceATK, DefenseMultiplier, TargetASC, bIsUnblockable);
+		DamageResult = CalcDamage(ExecutionParams, EvalParams, SourceATK, DefenseMultiplier);
+
+		// 가드 감소: Unblockable이 아닌 가드 상태에서 50% 감소
+		if (!bIsUnblockable && bIsGuarding)
+		{
+			constexpr float GuardDamageReductionRate = 0.5f;
+			DamageResult.FinalDamage *= GuardDamageReductionRate;
+		}
+
 		if (DamageResult.FinalDamage > 0.f)
 		{
 			OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
@@ -122,27 +130,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 			}
 
 			ApplyHitReaction(SourceASC, TargetASC, OwningSpec, DamageResult.FinalDamage, TargetPP, bIsGuarding, bIsUnblockable, OutExecutionOutput);
-
-			// 공격자 리소스 회복: 소스 어빌리티의 회복 정보를 읽어 직접 적용
-			if (SourceASC)
-			{
-				const UWxAbility* SourceAbility = Cast<UWxAbility>(OwningSpec.GetEffectContext().GetAbilityInstance_NotReplicated());
-				if (SourceAbility)
-				{
-					const FWxEffectContainer RecoveryContainer = SourceAbility->GetHitRecoveryInfo();
-					if (RecoveryContainer.EffectClass)
-					{
-						const float AbilityLevel = OwningSpec.GetEffectContext().GetAbilityLevel();
-						const UGameplayEffect* RecoveryEffect = RecoveryContainer.EffectClass->GetDefaultObject<UGameplayEffect>();
-						FGameplayEffectSpec RecoverySpec(RecoveryEffect, SourceASC->MakeEffectContext(), AbilityLevel);
-						for (const auto& [Tag, Value] : RecoveryContainer.SetByCallers)
-						{
-							RecoverySpec.SetSetByCallerMagnitude(Tag, Value);
-						}
-						SourceASC->ApplyGameplayEffectSpecToSelf(RecoverySpec);
-					}
-				}
-			}
+			ApplyHitRecovery(SourceASC, OwningSpec);
 		}
 	}
 
@@ -207,7 +195,7 @@ void UWxExecCalc_Damage::ReflectPerfectGuard(UAbilitySystemComponent* SourceASC,
 //  대미지 계산
 // ────────────────────────────────────────────────────────────────────────────
 
-FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, float SourceATK, float DefenseMultiplier, UAbilitySystemComponent* TargetASC, bool bIsUnblockable) const
+FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, float SourceATK, float DefenseMultiplier) const
 {
 	const FWxDamageStatics& Statics = GetDamageStatics();
 
@@ -227,13 +215,6 @@ FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecut
 	if (Result.bIsCritical)
 	{
 		Result.FinalDamage *= (1.f + SourceCritDMG * 0.01f);
-	}
-
-	// 가드 감소: Unblockable이 아닌 경우에만 50% 감소
-	if (!bIsUnblockable && TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard))
-	{
-		constexpr float GuardDamageReductionRate = 0.5f;
-		Result.FinalDamage *= GuardDamageReductionRate;
 	}
 
 	return Result;
@@ -298,6 +279,39 @@ void UWxExecCalc_Damage::ApplyHitReaction(UAbilitySystemComponent* SourceASC, UA
 			}
 		}
 	}
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+//  적중 회복
+// ────────────────────────────────────────────────────────────────────────────
+
+void UWxExecCalc_Damage::ApplyHitRecovery(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& OwningSpec) const
+{
+	if (!SourceASC)
+	{
+		return;
+	}
+
+	const UWxAbility* SourceAbility = Cast<UWxAbility>(OwningSpec.GetEffectContext().GetAbilityInstance_NotReplicated());
+	if (!SourceAbility)
+	{
+		return;
+	}
+
+	const FWxEffectContainer RecoveryContainer = SourceAbility->GetHitRecoveryInfo();
+	if (!RecoveryContainer.EffectClass)
+	{
+		return;
+	}
+
+	const float AbilityLevel = OwningSpec.GetEffectContext().GetAbilityLevel();
+	const UGameplayEffect* RecoveryEffect = RecoveryContainer.EffectClass->GetDefaultObject<UGameplayEffect>();
+	FGameplayEffectSpec RecoverySpec(RecoveryEffect, SourceASC->MakeEffectContext(), AbilityLevel);
+	for (const auto& [Tag, Value] : RecoveryContainer.SetByCallers)
+	{
+		RecoverySpec.SetSetByCallerMagnitude(Tag, Value);
+	}
+	SourceASC->ApplyGameplayEffectSpecToSelf(RecoverySpec);
 }
 
 // ────────────────────────────────────────────────────────────────────────────
