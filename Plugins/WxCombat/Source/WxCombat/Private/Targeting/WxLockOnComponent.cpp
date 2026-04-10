@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Combat/WxLockOnComponent.h"
+#include "Targeting/WxLockOnComponent.h"
 
 UWxLockOnComponent* UWxLockOnComponent::FindComponent(const AActor* Actor)
 {
