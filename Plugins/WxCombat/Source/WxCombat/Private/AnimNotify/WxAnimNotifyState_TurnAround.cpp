@@ -2,8 +2,6 @@
 
 #include "AnimNotify/WxAnimNotifyState_TurnAround.h"
 #include "Combat/WxLockOnComponent.h"
-#include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "MotionWarpingComponent.h"
 #include "RootMotionModifier.h"
 #include "RootMotionModifier_SkewWarp.h"
@@ -80,19 +78,6 @@ void UWxAnimNotifyState_TurnAround::NotifyBegin(USkeletalMeshComponent* MeshComp
     }
 
     MotionWarpingComp->AddOrUpdateWarpTargetFromLocationAndRotation(DefaultWarpTargetName, FoundTarget->GetActorLocation(), Direction.Rotation());
-
-    // CMC의 bOrientRotationToMovement가 모션 워핑 회전과 충돌하지 않도록 비활성화
-    if (ACharacter* Character = Cast<ACharacter>(Owner))
-    {
-        if (UCharacterMovementComponent* CMC = Character->GetCharacterMovement())
-        {
-            if (CMC->bOrientRotationToMovement)
-            {
-                bSavedOrientRotationToMovement = true;
-                CMC->bOrientRotationToMovement = false;
-            }
-        }
-    }
 }
 
 void UWxAnimNotifyState_TurnAround::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
@@ -113,19 +98,6 @@ void UWxAnimNotifyState_TurnAround::NotifyEnd(USkeletalMeshComponent* MeshComp, 
     if (UMotionWarpingComponent* MotionWarpingComp = Owner->FindComponentByClass<UMotionWarpingComponent>())
     {
         MotionWarpingComp->RemoveWarpTarget(DefaultWarpTargetName);
-    }
-
-    // bOrientRotationToMovement 복원
-    if (bSavedOrientRotationToMovement)
-    {
-        if (ACharacter* Character = Cast<ACharacter>(Owner))
-        {
-            if (UCharacterMovementComponent* CMC = Character->GetCharacterMovement())
-            {
-                CMC->bOrientRotationToMovement = true;
-            }
-        }
-        bSavedOrientRotationToMovement = false;
     }
 }
 
