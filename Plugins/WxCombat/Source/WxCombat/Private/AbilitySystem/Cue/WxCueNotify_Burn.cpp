@@ -4,6 +4,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "WxGameplayTags.h"
+#include "GameFramework/Character.h"
 
 AWxCueNotify_Burn::AWxCueNotify_Burn()
 {
@@ -23,18 +24,19 @@ bool AWxCueNotify_Burn::OnActive_Implementation(AActor* MyTarget, const FGamepla
 	if (SpawnedNiagaraComponent)
 	{
 		SpawnedNiagaraComponent->Deactivate();
+		SpawnedNiagaraComponent = nullptr;
 	}
-
+	
 	USceneComponent* AttachTarget = MyTarget->GetRootComponent();
-	if (USkeletalMeshComponent* MeshComp = MyTarget->FindComponentByClass<USkeletalMeshComponent>())
+	if (const ACharacter* TargetCharacter = Cast<ACharacter>(MyTarget))
 	{
-		AttachTarget = MeshComp;
+		AttachTarget = TargetCharacter->GetMesh();
 	}
 
 	SpawnedNiagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
 		NiagaraSystem,
 		AttachTarget,
-		AttachSocketName,
+		NAME_None,
 		FVector::ZeroVector,
 		FRotator::ZeroRotator,
 		EAttachLocation::SnapToTarget,

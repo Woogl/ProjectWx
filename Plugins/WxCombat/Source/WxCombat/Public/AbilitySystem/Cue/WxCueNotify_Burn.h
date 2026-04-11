@@ -31,10 +31,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Cue")
 	TObjectPtr<UNiagaraSystem> NiagaraSystem;
 
-	/** 이펙트 부착 소켓 이름 */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Cue")
-	FName AttachSocketName = NAME_None;
-
 private:
 	UPROPERTY()
 	TObjectPtr<UNiagaraComponent> SpawnedNiagaraComponent;
