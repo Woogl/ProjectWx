@@ -27,7 +27,7 @@ enum class EWxAbilityActivationPolicy : uint8
  * UWxEffect_CooldownBase 기반 BP 에셋을 지정하면 자동으로 동작한다. 충전(Charge) 시스템은
  * 해당 GE의 Stack Limit Count로 표현된다.
  */
-UCLASS(Abstract, BlueprintType, Blueprintable)
+UCLASS(Abstract, BlueprintType, Blueprintable, meta = (PrioritizeCategories = "Wx"))
 class WXCOMBAT_API UWxAbilityBase : public UGameplayAbility
 {
 	GENERATED_BODY()

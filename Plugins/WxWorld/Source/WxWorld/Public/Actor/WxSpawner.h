@@ -6,7 +6,11 @@
 #include "GameFramework/Actor.h"
 #include "WxSpawner.generated.h"
 
+class UArrowComponent;
 class UBillboardComponent;
+class USceneComponent;
+class USkeletalMeshComponent;
+class UStaticMeshComponent;
 
 UCLASS(meta = (PrioritizeCategories = "Wx"))
 class WXWORLD_API AWxSpawner : public AActor
@@ -20,22 +24,31 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	UPROPERTY(EditAnywhere, Category = "Wx")
+	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	TObjectPtr<USceneComponent> SceneRoot;
+
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (MustImplement = "/Script/WxWorld.WxSpawnableInterface"))
 	TSubclassOf<AActor> SpawnableActorClass;
 
 	TWeakObjectPtr<AActor> SpawnedActor;
 
 #if WITH_EDITOR
+	virtual void PostLoad() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	void UpdateEditorPreviewFromSpawnableClass();
 #endif
 
 #if WITH_EDITORONLY_DATA
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TObjectPtr<UBillboardComponent> SpriteComponent;
-#endif
 
-#if WITH_EDITOR
-private:
-	void UpdateSpriteFromSpawnableClass();
+	UPROPERTY()
+	TObjectPtr<UArrowComponent> ArrowComponent;
+
+	UPROPERTY(Transient)
+	TObjectPtr<USkeletalMeshComponent> PreviewSkeletalMeshComponent;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UStaticMeshComponent> PreviewStaticMeshComponent;
 #endif
 };

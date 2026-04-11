@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Actor/WxSpawnableInterface.h"
 #include "Character/WxCharacterBase.h"
 #include "WxEnemyCharacter.generated.h"
 
@@ -15,7 +16,7 @@ class UWxNameplateComponent;
  * - BehaviorTree를 BP에서 지정하여 적 종류별 행동 패턴 분리
  */
 UCLASS()
-class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase
+class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnableInterface
 {
 	GENERATED_BODY()
 
@@ -23,6 +24,11 @@ public:
 	AWxEnemyCharacter();
 
 	UBehaviorTree* GetBehaviorTree() const;
+
+	// IWxSpawnableInterface
+#if WITH_EDITOR
+	virtual UStreamableRenderAsset* GetEditorPreviewMesh() const override;
+#endif
 
 protected:
 	virtual void BeginPlay() override;

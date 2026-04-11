@@ -23,7 +23,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBas
  * 플레이어·에너미 공통 베이스 캐릭터.
  * ASC를 캐릭터에 직접 소유 (리스폰 시 스탯을 새로 초기화하므로 PlayerState 불필요).
  */
-UCLASS(Abstract)
+UCLASS(Abstract, meta = (PrioritizeCategories = "Wx"))
 class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
@@ -90,7 +90,7 @@ protected:
 	EWxTeam Team = EWxTeam::Player;
 
 	/** 기본 이동 속도 (cm/s). SPD Multiplier의 기준값 */
-	float BaseWalkSpeed = 600.f;
+	float BaseWalkSpeed;
 
 	// ── Weapon ─────────────────────────────────────────────────────────────
 

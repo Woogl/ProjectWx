@@ -40,3 +40,10 @@ UBehaviorTree* AWxEnemyCharacter::GetBehaviorTree() const
 	return BehaviorTreeAsset;
 }
 
+#if WITH_EDITOR
+UStreamableRenderAsset* AWxEnemyCharacter::GetEditorPreviewMesh() const
+{
+	return GetMesh() ? GetMesh()->GetSkeletalMeshAsset() : nullptr;
+}
+#endif
+

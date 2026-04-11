@@ -28,6 +28,7 @@ public class WxGame : ModuleRules
 			"WxCore",
 			"WxCombat",
 			"WxUI",
+			"WxWorld",
 		});
 
 		// Uncomment if you are using Slate UI
