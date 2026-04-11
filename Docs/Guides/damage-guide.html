@@ -378,7 +378,7 @@ td.note { font-size: 12.5px; color: var(--text-dim); }
 <nav class="toc">
   <h2>목차</h2>
   <ol>
-    <li><a href="#sec1">1. 데미지 계산식</a></li>
+    <li><a href="#sec1">1. 데미지 파이프라인</a></li>
     <li><a href="#sec2">2. 데미지 입력값</a></li>
     <li><a href="#sec3">3. 상태별 스탯 증감표</a></li>
   </ol>
@@ -386,7 +386,7 @@ td.note { font-size: 12.5px; color: var(--text-dim); }
 
 <!-- ───────────────────────── 1. 데미지 계산식 ───────────────────────── -->
 <section id="sec1">
-  <h2>1. 데미지 계산식</h2>
+  <h2>1. 데미지 파이프라인</h2>
   <p>공격이 적중한 순간 어떤 분기를 거쳐 최종 데미지가 결정되는지를 한눈에 보여줍니다. 트렁크(가운데 세로 흐름)는 항상 위에서 아래로 흐르며, 오른쪽으로 빠지는 분기는 두 가지입니다.
   <strong style="color: var(--dodge-fg);">보라/청록 분기</strong>는 그대로 계산이 끝나는 종료 분기,
   <strong style="color: var(--res-fg);">주황 분기</strong>는 배수만 곱한 뒤 흐름으로 돌아오는 분기입니다.</p>
@@ -573,7 +573,7 @@ td.note { font-size: 12.5px; color: var(--text-dim); }
         <td class="c-hp">▲ 데미지의 100%</td>
         <td class="c-none">0</td>
         <td class="c-res">▼ 데미지의 100%</td>
-        <td class="c-reflect">▲ 노티파이 입력값만큼</td>
+        <td class="c-reflect">▲ 노티파이 입력값</td>
         <td class="note">PP가 0이 되면 HitReact 발동(Knock 계열은 PP와 무관하게 강제 발동)</td>
       </tr>
       <tr>
@@ -582,7 +582,7 @@ td.note { font-size: 12.5px; color: var(--text-dim); }
         <td class="c-hp">▲ 데미지의 50%</td>
         <td class="c-res">▼ 데미지의 50%</td>
         <td class="c-none">0</td>
-        <td class="c-reflect">▲ 노티파이 입력값만큼</td>
+        <td class="c-reflect">▲ 노티파이 입력값</td>
         <td class="note">가드는 유지됨. SP가 0이 되면 가드 해제(GuardBreak)</td>
       </tr>
       <tr>
@@ -591,7 +591,7 @@ td.note { font-size: 12.5px; color: var(--text-dim); }
         <td class="c-hp">▲ 데미지의 100%</td>
         <td class="c-none">0</td>
         <td class="c-res">▼ 데미지의 100%</td>
-        <td class="c-reflect">▲ 노티파이 입력값만큼</td>
+        <td class="c-reflect">▲ 노티파이 입력값</td>
         <td class="note">가드 즉시 해제 후 HitReact 발동</td>
       </tr>
       <tr>
@@ -618,7 +618,7 @@ td.note { font-size: 12.5px; color: var(--text-dim); }
         <td class="c-none">0</td>
         <td class="c-none">0</td>
         <td class="c-res">▼ 데미지의 100%</td>
-        <td class="c-reflect">▲ 노티파이 입력값만큼</td>
+        <td class="c-reflect">▲ 노티파이 입력값</td>
         <td class="note">그로기 중에는 DP가 더 누적되지 않음</td>
       </tr>
     </tbody>

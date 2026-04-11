@@ -11,18 +11,14 @@ allowed-tools: Read, Grep, Glob, Write, Agent
 
 ## 분석 대상
 
-다음 파일들을 읽고 분석하라:
+반드시 Glob으로 찾아서 읽어라. 아래 네 파일만으로 충분하다:
 
-1. **어트리뷰트 정의**: `WxCombatAttributeSet.h` — 어트리뷰트 목록, 타입, 복제 여부
-2. **어트리뷰트 로직**: `WxCombatAttributeSet.cpp` — 클램프 규칙, 사망/그로기 판정, MaxHP 비율 유지
-3. **대미지 공식**: `WxExecCalc_Damage.cpp` — 대미지 계산 파이프라인 (방어 배율, 치명타, 가드 감소, DP 누적, MP 회복, 퍼펙트 가드 반사)
-4. **그로기 시스템**: `WxAbility_Groggy.cpp` — DP 드레인 속도, 그로기 해제 조건
-5. **어빌리티 비용**: `WxAbility.cpp` / `WxAbility.h` — MP 비용 검사 및 차감
-6. **MP 회복**: `WxEffect_MPRecovery.h` — 적중 시 MP 회복량
-7. **이동속도**: `WxCharacterBase.cpp` — SPD 어트리뷰트와 MaxWalkSpeed 관계
-8. **대시**: `WxAbility_Sprint.cpp` — 대시 중 SPD 보너스
+1. `**/WxCombatAttributeSet.h` — 어트리뷰트 목록과 각 스탯의 의미·범위
+2. `**/WxCombatAttributeSet.cpp` — 클램프 규칙, MaxHP 변동 시 HP 비율 유지 처리
+3. `**/WxExecCalc_Damage.cpp` — DEF 경감률 공식(`100 / (100 + DEF)`)
+4. `**/WxCharacterBase.cpp` — SPD 어트리뷰트가 `MaxWalkSpeed`에 곱해지는 배율로 동작한다는 사실 확인 (`BaseWalkSpeed * SPD`)
 
-파일 경로가 변경되었을 수 있으므로 Glob으로 찾아서 읽어라.
+그 외 파일(어빌리티, 이펙트, 노티파이 등)은 읽지 마라. MP 비용은 어빌리티 BP의 Cost GE 슬롯에서 데이터로 정의되고, 적중 시 MP 회복은 데미지 입력값으로 처리되므로 코드에서 읽을 수 있는 수치가 아니다.
 
 ## 문서에 포함할 내용
 
@@ -40,9 +36,20 @@ allowed-tools: Read, Grep, Glob, Write, Agent
 
 0. **문서 생성일**: 헤더 영역에 문서가 생성된 날짜를 `YYYY-MM-DD` 형식으로 표시하라
 1. **어트리뷰트 요약 테이블**: 모든 어트리뷰트의 이름, 범위, 한 줄 설명. "복제" 컬럼은 제외하고, IncomingDamage 같은 내부 전용 어트리뷰트도 제외한다
-2. **스탯 상세** (HP, MP, DP, ATK, DEF, SPD, CritRate, CritDMG): 각 스탯의 게임 내 역할과 계산 공식. DEF별 경감률 그래프
-3. **데미지 파이프라인** 실제 코드에서 읽은 데미지 공식, 플로우 차트, 치명타 계산 예시
-4. **특수 상태**: 사망과 그로기의 발동 조건, 진입 시 일어나는 일, 해제 조건을 게임 플레이 관점에서 설명
+2. **스탯 상세**: 각 스탯의 게임 내 역할(체감)을 먼저 적고, 그 아래에 수치·공식을 배치한다. 다음 11개 스탯을 모두 카드로 다룬다.
+   - **HP** — 0이 되면 사망. MaxHP 변동 시 현재 HP가 비율 유지되는 동작을 한 줄로 설명
+   - **PP (강인도)** — 0이 되면 피격 경직 발동. 비가드 피격 시 데미지만큼 차감
+   - **SP (스태미나)** — 가드 피격 시 데미지만큼 차감, 0이 되면 가드 해제
+   - **DP (그로기 수치)** — MaxDP에 도달하면 그로기 상태 진입
+   - **MP** — 어빌리티 비용으로 소모. 비용 수치는 어빌리티 BP의 Cost 슬롯에서 데이터로 정의된다는 한 줄만 적는다
+   - **UP (궁극기 수치)** — 궁극기 비용으로 소모
+   - **ATK** — 데미지 계산의 기반 수치
+   - **DEF** — 데미지 경감. `100 / (100 + DEF)` 공식과 **DEF별 경감률 그래프**(예: 0/50/100/200/500/1000 구간)를 함께 제공
+   - **CritRate** — 1포인트 = 1% 확률
+   - **CritDMG** — 1포인트 = 1% 추가 피해. 치명타 발동 시 `(1 + CritDMG × 0.01)` 배 적용
+   - **SPD** — `MaxWalkSpeed`에 곱해지는 **배율(가산 아님)**. 기본값 1.0. 코드에서 `BaseWalkSpeed * SPD`로 적용된다는 사실을 명시
+
+   DEF 그래프는 순수 HTML+CSS 막대(또는 표)로 그린다. 인라인 SVG·외부 이미지 금지.
 
 ### 수치 정확성
 
@@ -61,7 +68,7 @@ allowed-tools: Read, Grep, Glob, Write, Agent
 - 다크 테마 기반 (배경 #0f1117, 텍스트 #e2e4ea)
 - 카드형 레이아웃으로 각 스탯을 구분
 - 공식은 별도 스타일의 수식 블록으로 표시한다. 공식 블록도 일반 sans-serif 폰트를 사용한다
-- 스탯 색상 구분 (HP 계열: 빨강, MP 계열: 파랑, DP 계열: 노랑, 공격: 주황, 방어: 청록, 속도: 초록, 치명타: 보라)
+- 스탯 색상 구분 (HP: 빨강, PP: 자홍, SP: 연두, DP: 노랑, MP: 파랑, UP: 금색, ATK: 주황, DEF: 청록, SPD: 초록, CritRate/CritDMG: 보라)
 - 반응형 레이아웃 (max-width: 960px)
 - 외부 의존성 없이 순수 HTML+CSS로 작성
 - 중요 수치나 키워드는 `<strong>` 또는 컬러 `<span>`으로 강조한다
