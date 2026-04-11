@@ -24,7 +24,7 @@ class UAbilityTask_PlayMontageAndWait;
  *
  * 입력 릴리즈 시 GuardBreak 중이 아니면 즉시 EndAbility.
  */
-UCLASS()
+UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Guard : public UWxAbilityBase
 {
 	GENERATED_BODY()

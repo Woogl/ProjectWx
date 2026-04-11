@@ -11,7 +11,7 @@
  *
  * Duration 정책으로 동작하며, 5초 동안 ATK를 50% 증가시킨다.
  */
-UCLASS()
+UCLASS(Abstract)
 class WXCOMBAT_API UWxEffect_BuffATK : public UGameplayEffect
 {
 	GENERATED_BODY()

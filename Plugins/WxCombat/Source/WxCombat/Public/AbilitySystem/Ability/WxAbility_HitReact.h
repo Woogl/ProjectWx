@@ -25,7 +25,7 @@ class UAbilityTask_PlayMontageAndWait;
  * 가드 중 피격 반응은 WxAbility_Guard가 직접 처리하므로,
  * State.Guard 활성 시 이 어빌리티는 활성화되지 않는다.
  */
-UCLASS()
+UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_HitReact : public UWxAbilityBase
 {
 	GENERATED_BODY()

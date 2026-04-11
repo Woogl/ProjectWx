@@ -54,6 +54,6 @@ struct WXCOMBAT_API FWxDamageInfo
 	bool bUnblockable = false;
 
 	/** Damage GE와 함께 타겟에 적용할 추가 GameplayEffect 목록 (상태이상, 디버프 등) */
-	UPROPERTY(EditAnywhere, Category = "Wx|DamageInfo")
+	UPROPERTY(EditAnywhere, Category = "Wx|DamageInfo", meta = (AllowAbstract = "false"))
 	TArray<TSubclassOf<UGameplayEffect>> AdditionalEffects;
 };

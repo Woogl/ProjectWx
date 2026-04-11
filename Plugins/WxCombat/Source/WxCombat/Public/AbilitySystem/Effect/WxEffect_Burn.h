@@ -13,7 +13,7 @@
  * 대미지 공식은 WxExecCalc_Damage과 동일하되 가드/퍼펙트 가드/치명타를 적용하지 않는다.
  * 총 대미지를 틱 수로 균등 분할하여 적용한다.
  */
-UCLASS()
+UCLASS(Abstract)
 class WXCOMBAT_API UWxEffect_Burn : public UGameplayEffect
 {
 	GENERATED_BODY()
