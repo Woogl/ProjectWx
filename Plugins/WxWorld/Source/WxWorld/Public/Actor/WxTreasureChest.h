@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "WxTreasureChest.generated.h"
 
+class UNiagaraSystem;
 class UStaticMeshComponent;
 class UWidgetComponent;
 class UWxInteractionComponent;
@@ -40,6 +41,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UWidgetComponent> PromptWidget;
+	
+	/** 상호작용 시 보여줄 Niagara 이펙트 */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx")
+	TObjectPtr<UNiagaraSystem> NiagaraSystem;
 
 private:
 	UFUNCTION()

@@ -19,10 +19,11 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractedSignature, AActor*, I
  * 흐름:
  *  1) 폰이 본 컴포넌트와 오버랩 → 로컬 클라이언트에서 Owner의 WidgetComponent를 표시
  *  2) 플레이어가 상호작용 입력 → WxAbility_Interact(서버 권한 실행)가 TryInteract 호출
- *  3) 서버에서 OnInteracted 델리게이트 fire → 액터 로직이 처리
+ *  3) 서버가 내부 Multicast RPC로 서버+모든 클라이언트에서 OnInteracted 델리게이트를 fire
  *
- * 주의: 본 컴포넌트는 RPC를 보유하지 않는다. 서버 권한 진입은 호출자(WxAbility_Interact)가 보장해야 하며,
- * 부착 액터는 상호작용 결과를 복제하기 위해 Replicate 되어야 한다.
+ * 사용처(Owner 액터)는 OnInteracted에 바인딩만 하면 되며, 권한/복제는 컴포넌트가 처리한다.
+ * 서버 권위 로직이 필요하면 콜백 내부에서 HasAuthority()로 분기한다.
+ * 부착 액터는 반드시 Replicate 되어야 한다.
  */
 UCLASS(ClassGroup = "Wx", meta = (BlueprintSpawnableComponent, PrioritizeCategories = "Wx"))
 class WXWORLD_API UWxInteractionComponent : public USphereComponent
@@ -32,7 +33,7 @@ class WXWORLD_API UWxInteractionComponent : public USphereComponent
 public:
 	UWxInteractionComponent();
 
-	/** 서버 권한에서 호출. OnInteracted 델리게이트를 fire한다. */
+	/** 서버 권한에서 호출. 서버+모든 클라이언트에서 OnInteracted 델리게이트가 fire된다. */
 	void TryInteract(AActor* InstigatorActor);
 
 	UPROPERTY(BlueprintAssignable, Category = "Wx")
@@ -47,6 +48,9 @@ private:
 
 	UFUNCTION()
 	void HandleEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastInteracted(AActor* InstigatorActor);
 
 	void SetPromptVisible(bool bNewVisible);
 

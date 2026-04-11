@@ -20,6 +20,7 @@ public class WxWorld : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"DeveloperSettings",
+			"Niagara",
 			"UMG",
 		});
 	}

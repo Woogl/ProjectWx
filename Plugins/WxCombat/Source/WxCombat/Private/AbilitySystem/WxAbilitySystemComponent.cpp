@@ -62,6 +62,8 @@ void UWxAbilitySystemComponent::MulticastEnableRagdoll_Implementation()
 
 	USkeletalMeshComponent* Mesh = Character->GetMesh();
 	Mesh->SetCollisionProfileName(TEXT("Ragdoll"));
+	// Ragdoll 프로필이 Camera 응답을 Block으로 덮어쓰므로, 스프링암 카메라가 래그돌 본에 걸려 줌-인되는 현상을 방지한다.
+	Mesh->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	Mesh->SetAllBodiesSimulatePhysics(true);
 	Mesh->SetSimulatePhysics(true);
 

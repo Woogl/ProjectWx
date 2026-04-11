@@ -48,17 +48,32 @@ AWxSpawner::AWxSpawner()
 	PreviewSkeletalMeshComponent->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	PreviewSkeletalMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PreviewSkeletalMeshComponent->SetHiddenInGame(true);
+	PreviewSkeletalMeshComponent->bCastHiddenShadow = true;
 
 	PreviewStaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PreviewStaticMeshComponent"));
 	PreviewStaticMeshComponent->SetupAttachment(SceneRoot);
 	PreviewStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PreviewStaticMeshComponent->SetHiddenInGame(true);
+	PreviewStaticMeshComponent->bCastHiddenShadow = true;
 #endif
 }
 
 void AWxSpawner::BeginPlay()
 {
 	Super::BeginPlay();
+
+#if WITH_EDITORONLY_DATA
+	if (PreviewSkeletalMeshComponent)
+	{
+		PreviewSkeletalMeshComponent->DestroyComponent();
+		PreviewSkeletalMeshComponent = nullptr;
+	}
+	if (PreviewStaticMeshComponent)
+	{
+		PreviewStaticMeshComponent->DestroyComponent();
+		PreviewStaticMeshComponent = nullptr;
+	}
+#endif
 
 	if (!HasAuthority() || !SpawnableActorClass)
 	{

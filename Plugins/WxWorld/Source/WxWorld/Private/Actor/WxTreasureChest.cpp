@@ -5,6 +5,8 @@
 #include "Component/WxInteractionComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/WidgetComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 
 AWxTreasureChest::AWxTreasureChest()
 {
@@ -30,7 +32,7 @@ void AWxTreasureChest::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HasAuthority() && InteractionComponent)
+	if (InteractionComponent)
 	{
 		InteractionComponent->OnInteracted.AddDynamic(this, &AWxTreasureChest::HandleInteracted);
 	}
@@ -38,12 +40,19 @@ void AWxTreasureChest::BeginPlay()
 
 void AWxTreasureChest::HandleInteracted(AActor* InteractingActor)
 {
-	if (!HasAuthority() || !InteractingActor)
+	if (!NiagaraSystem || !MeshComponent)
 	{
 		return;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("HandleInteracted!!! %s"), *InteractingActor->GetName());
+	UNiagaraFunctionLibrary::SpawnSystemAttached(
+		NiagaraSystem,
+		MeshComponent,
+		NAME_None,
+		FVector::ZeroVector,
+		FRotator::ZeroRotator,
+		EAttachLocation::KeepRelativeOffset,
+		true);
 }
 
 #if WITH_EDITOR

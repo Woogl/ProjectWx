@@ -8,6 +8,8 @@ UWxInteractionComponent::UWxInteractionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
+	SetIsReplicatedByDefault(true);
+
 	InitSphereRadius(200.f);
 	SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	SetCollisionObjectType(ECC_WorldDynamic);
@@ -50,6 +52,11 @@ void UWxInteractionComponent::TryInteract(AActor* InstigatorActor)
 		return;
 	}
 
+	MulticastInteracted(InstigatorActor);
+}
+
+void UWxInteractionComponent::MulticastInteracted_Implementation(AActor* InstigatorActor)
+{
 	OnInteracted.Broadcast(InstigatorActor);
 }
 
