@@ -13,6 +13,7 @@ public class WxWorld : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
+			"GameplayTags",
 			"WxCore",
 		});
 

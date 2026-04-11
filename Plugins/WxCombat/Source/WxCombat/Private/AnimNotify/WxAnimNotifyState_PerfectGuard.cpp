@@ -13,7 +13,7 @@ void UWxAnimNotifyState_PerfectGuard::NotifyBegin(USkeletalMeshComponent* MeshCo
 	{
 		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
 		{
-			ASC->AddLooseGameplayTag(WxGameplayTags::ANS_PerfectGuard);
+			ASC->AddLooseGameplayTag(WxGameplayTags::State_PerfectGuard);
 		}
 	}
 }
@@ -26,7 +26,7 @@ void UWxAnimNotifyState_PerfectGuard::NotifyEnd(USkeletalMeshComponent* MeshComp
 	{
 		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
 		{
-			ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_PerfectGuard);
+			ASC->RemoveLooseGameplayTag(WxGameplayTags::State_PerfectGuard);
 		}
 	}
 }

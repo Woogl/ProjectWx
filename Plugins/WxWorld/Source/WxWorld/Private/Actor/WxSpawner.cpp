@@ -119,14 +119,54 @@ void AWxSpawner::UpdateEditorPreviewFromSpawnableClass()
 	USkeletalMesh* PreviewSkeletalMesh = Cast<USkeletalMesh>(PreviewMesh);
 	UStaticMesh* PreviewStaticMesh = Cast<UStaticMesh>(PreviewMesh);
 
+	const AActor* SourceCDO = SpawnableActorClass ? SpawnableActorClass->GetDefaultObject<AActor>() : nullptr;
+
 	if (PreviewSkeletalMeshComponent)
 	{
 		PreviewSkeletalMeshComponent->SetSkeletalMeshAsset(PreviewSkeletalMesh);
+		PreviewSkeletalMeshComponent->EmptyOverrideMaterials();
+
+		if (PreviewSkeletalMesh && SourceCDO)
+		{
+			TArray<USkeletalMeshComponent*> SourceComponents;
+			SourceCDO->GetComponents<USkeletalMeshComponent>(SourceComponents);
+			for (const USkeletalMeshComponent* SourceComponent : SourceComponents)
+			{
+				if (SourceComponent && SourceComponent->GetSkeletalMeshAsset() == PreviewSkeletalMesh)
+				{
+					const int32 NumMaterials = SourceComponent->GetNumMaterials();
+					for (int32 MaterialIndex = 0; MaterialIndex < NumMaterials; ++MaterialIndex)
+					{
+						PreviewSkeletalMeshComponent->SetMaterial(MaterialIndex, SourceComponent->GetMaterial(MaterialIndex));
+					}
+					break;
+				}
+			}
+		}
 	}
 
 	if (PreviewStaticMeshComponent)
 	{
 		PreviewStaticMeshComponent->SetStaticMesh(PreviewStaticMesh);
+		PreviewStaticMeshComponent->EmptyOverrideMaterials();
+
+		if (PreviewStaticMesh && SourceCDO)
+		{
+			TArray<UStaticMeshComponent*> SourceComponents;
+			SourceCDO->GetComponents<UStaticMeshComponent>(SourceComponents);
+			for (const UStaticMeshComponent* SourceComponent : SourceComponents)
+			{
+				if (SourceComponent && SourceComponent->GetStaticMesh() == PreviewStaticMesh)
+				{
+					const int32 NumMaterials = SourceComponent->GetNumMaterials();
+					for (int32 MaterialIndex = 0; MaterialIndex < NumMaterials; ++MaterialIndex)
+					{
+						PreviewStaticMeshComponent->SetMaterial(MaterialIndex, SourceComponent->GetMaterial(MaterialIndex));
+					}
+					break;
+				}
+			}
+		}
 	}
 
 	if (SpriteComponent)
@@ -150,6 +190,17 @@ void AWxSpawner::UpdateEditorPreviewFromSpawnableClass()
 			MeshTopZ = FMath::Max(MeshTopZ, Bounds.Origin.Z + Bounds.BoxExtent.Z);
 		}
 		SpriteComponent->SetRelativeLocation(FVector(0.f, 0.f, MeshTopZ + 50.f));
+	}
+
+	if (SpawnableActorClass)
+	{
+		FString NewLabel = SpawnableActorClass->GetName();
+		NewLabel.RemoveFromEnd(TEXT("_C"));
+		SetActorLabel(NewLabel);
+	}
+	else
+	{
+		SetActorLabel(GetClass()->GetName());
 	}
 }
 #endif

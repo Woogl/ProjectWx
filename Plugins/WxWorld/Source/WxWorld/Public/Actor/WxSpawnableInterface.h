@@ -20,7 +20,7 @@ class WXWORLD_API IWxSpawnableInterface
 
 public:
 #if WITH_EDITOR
-	/** 에디터 미리보기에 사용할 메시. USkeletalMesh 또는 UStaticMesh 반환 가능. 없으면 nullptr */
-	virtual UStreamableRenderAsset* GetEditorPreviewMesh() const { return nullptr; }
+	/** 에디터 미리보기에 사용할 메시. USkeletalMesh 또는 UStaticMesh 반환 */
+	virtual UStreamableRenderAsset* GetEditorPreviewMesh() const = 0;
 #endif
 };

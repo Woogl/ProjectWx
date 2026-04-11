@@ -29,6 +29,12 @@ namespace WxGameplayTags
 
 	/** 무적 상태. WxAnimNotifyState_Invincible이 부여/제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Invincible);
+	
+	/** 가드 판정 활성 상태 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Guard);
+
+	/** 퍼펙트 가드 판정 구간. ANS_PerfectGuard가 부여/제거 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_PerfectGuard);
 
 	// ── Event ─────────────────────────────────────────────────────────────
 
@@ -47,9 +53,6 @@ namespace WxGameplayTags
 	/** 넉업 피격 이벤트. HitReact 어빌리티가 Knockup 몽타주 재생 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Knockup);
 
-	/** 가드 피격 이벤트 부모 카테고리. Guard 어빌리티가 부모로 리슨하여 자식 태그를 분기 처리. EventMagnitude = SP 차감량 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_GuardHit);
-
 	/** 일반 가드 피격 이벤트. Guard 어빌리티가 GuardHitReact 몽타주 재생 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_GuardHit_Normal);
 
@@ -62,7 +65,6 @@ namespace WxGameplayTags
 	/** 퍼펙트 가드 성공 시 발생하는 이벤트. Guard 어빌리티가 MP 회복 및 HitReact를 처리 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_PerfectGuard);
 
-
 	// ── ANS ───────────────────────────────────────────────────────────────
 
 	/** 무기 콜리전 활성 구간. ANS_WeaponCollision이 부여/제거 */
@@ -70,12 +72,6 @@ namespace WxGameplayTags
 
 	/** 콤보 입력 수용 구간. ANS_ComboWindow가 부여/제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_ComboWindow);
-
-	/** 가드 판정 활성 상태 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Guard);
-
-	/** 퍼펙트 가드 판정 구간. ANS_PerfectGuard가 부여/제거 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_PerfectGuard);
 
 	// ── GameplayCue ──────────────────────────────────────────────────────
 
@@ -115,6 +111,7 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_3);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_4);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Ultimate);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Interact);
 
 	// ── Cooldown ──────────────────────────────────────────────────────────
 
@@ -159,6 +156,7 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Skill_4);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Ultimate);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_LockOn);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Interact);
 
 	// ── UI ────────────────────────────────────────────────────────────────
 
