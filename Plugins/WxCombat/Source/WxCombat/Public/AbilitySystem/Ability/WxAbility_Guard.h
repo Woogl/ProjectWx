@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Ability/WxAbility.h"
+#include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_Guard.generated.h"
 
 class UAnimMontage;
@@ -25,7 +25,7 @@ class UAbilityTask_PlayMontageAndWait;
  * 입력 릴리즈 시 GuardBreak 중이 아니면 즉시 EndAbility.
  */
 UCLASS()
-class WXCOMBAT_API UWxAbility_Guard : public UWxAbility
+class WXCOMBAT_API UWxAbility_Guard : public UWxAbilityBase
 {
 	GENERATED_BODY()
 

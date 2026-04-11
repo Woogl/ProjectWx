@@ -5,7 +5,7 @@
 #include "MVVMGameSubsystem.h"
 #include "MVVM/WxViewModel_AbilitySystem.h"
 #include "MVVM/WxViewModel_Ability.h"
-#include "AbilitySystem/Ability/WxAbility.h"
+#include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "Widget/WxActivatableWidget.h"
 #include "System/WxUIManagerSubsystem.h"
 #include "WxGameplayTags.h"
@@ -147,7 +147,7 @@ void AWxPlayerController::InitializePlayerAbilitySystemViewModel(UAbilitySystemC
 
 		for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
 		{
-			const UWxAbility* WxAbility = Cast<UWxAbility>(Spec.Ability);
+			const UWxAbilityBase* WxAbility = Cast<UWxAbilityBase>(Spec.Ability);
 			if (!WxAbility)
 			{
 				continue;

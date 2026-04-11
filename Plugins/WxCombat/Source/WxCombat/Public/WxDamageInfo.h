@@ -22,8 +22,12 @@ struct WXCOMBAT_API FWxDamageInfo
 
 	FWxDamageInfo();
 
-	/** 이 DamageInfo를 반영한 UWxEffect_Damage Spec을 생성한다. Context/SetByCaller/AttackTags를 세팅한 핸들을 반환 */
-	FGameplayEffectSpecHandle MakeDamageSpec(UAbilitySystemComponent* SourceASC, const FGameplayEffectContextHandle& Context) const;
+	/**
+	 * 이 DamageInfo를 반영한 Spec 배열을 생성한다.
+	 * 첫 항목은 UWxEffect_Damage Spec (Context/SetByCaller/AttackTags 세팅),
+	 * 이후 항목은 AdditionalEffectClasses 각각에 대한 Spec.
+	 */
+	TArray<FGameplayEffectSpecHandle> MakeSpecs(UAbilitySystemComponent* SourceASC, const FGameplayEffectContextHandle& Context) const;
 
 	/** 공격력 계수. Damage Spec의 SetByCaller.Coeff.ATK로 반영 */
 	UPROPERTY(EditAnywhere, Category = "Wx|DamageInfo")
@@ -48,4 +52,8 @@ struct WXCOMBAT_API FWxDamageInfo
 	/** true이면 이 공격은 가드·퍼펙트 가드를 무시 */
 	UPROPERTY(EditAnywhere, Category = "Wx|DamageInfo")
 	bool bUnblockable = false;
+
+	/** Damage GE와 함께 타겟에 적용할 추가 GameplayEffect 목록 (상태이상, 디버프 등) */
+	UPROPERTY(EditAnywhere, Category = "Wx|DamageInfo")
+	TArray<TSubclassOf<UGameplayEffect>> AdditionalEffects;
 };

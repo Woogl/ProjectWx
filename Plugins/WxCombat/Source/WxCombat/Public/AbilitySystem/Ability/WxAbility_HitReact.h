@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Ability/WxAbility.h"
+#include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_HitReact.generated.h"
 
 class UAnimMontage;
@@ -26,7 +26,7 @@ class UAbilityTask_PlayMontageAndWait;
  * State.Guard 활성 시 이 어빌리티는 활성화되지 않는다.
  */
 UCLASS()
-class WXCOMBAT_API UWxAbility_HitReact : public UWxAbility
+class WXCOMBAT_API UWxAbility_HitReact : public UWxAbilityBase
 {
 	GENERATED_BODY()
 

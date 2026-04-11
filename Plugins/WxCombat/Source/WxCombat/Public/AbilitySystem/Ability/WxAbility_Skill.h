@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Ability/WxAbility.h"
+#include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_Skill.generated.h"
 
 class UAbilityTask_PlayMontageAndWait;
@@ -19,7 +19,7 @@ class UAnimMontage;
  * UWxEffect_CooldownBase 기반 BP 에셋을 지정해 설정한다.
  */
 UCLASS(Abstract)
-class WXCOMBAT_API UWxAbility_Skill : public UWxAbility
+class WXCOMBAT_API UWxAbility_Skill : public UWxAbilityBase
 {
 	GENERATED_BODY()
 

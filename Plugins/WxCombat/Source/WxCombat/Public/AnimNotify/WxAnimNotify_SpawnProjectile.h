@@ -35,6 +35,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|Projectile")
 	FName SpawnSocketName = TEXT("hand_r");
 
-	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ShowOnlyInnerProperties))
+	UPROPERTY(EditAnywhere, meta = (ShowOnlyInnerProperties))
 	FWxDamageInfo DamageInfo;
 };

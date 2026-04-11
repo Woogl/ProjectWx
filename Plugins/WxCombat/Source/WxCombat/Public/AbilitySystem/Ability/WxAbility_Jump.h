@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Ability/WxAbility.h"
+#include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_Jump.generated.h"
 
 /**
@@ -15,7 +15,7 @@
  * State.Dead 태그가 있으면 활성화 차단.
  */
 UCLASS()
-class WXCOMBAT_API UWxAbility_Jump : public UWxAbility
+class WXCOMBAT_API UWxAbility_Jump : public UWxAbilityBase
 {
 	GENERATED_BODY()
 

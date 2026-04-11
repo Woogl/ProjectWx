@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Ability/WxAbility.h"
+#include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_LockOn.generated.h"
 
 class UTargetingPreset;
@@ -22,7 +22,7 @@ class UWxAbilityTask_LockOnTarget;
  * State.Dead 시 활성화 차단. 다른 어빌리티와 공존 가능.
  */
 UCLASS()
-class WXCOMBAT_API UWxAbility_LockOn : public UWxAbility
+class WXCOMBAT_API UWxAbility_LockOn : public UWxAbilityBase
 {
 	GENERATED_BODY()
 

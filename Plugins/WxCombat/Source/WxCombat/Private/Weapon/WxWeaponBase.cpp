@@ -176,10 +176,13 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 		}
 		Context.AddHitResult(HitResult);
 
-		const FGameplayEffectSpecHandle Spec = DamageInfo.MakeDamageSpec(SourceASC, Context);
-		if (Spec.IsValid())
+		const TArray<FGameplayEffectSpecHandle> Specs = DamageInfo.MakeSpecs(SourceASC, Context);
+		for (const FGameplayEffectSpecHandle& Spec : Specs)
 		{
-			SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
+			if (Spec.IsValid())
+			{
+				SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
+			}
 		}
 
 		// 역경직: 공격자의 몽타주를 잠시 일시 정지

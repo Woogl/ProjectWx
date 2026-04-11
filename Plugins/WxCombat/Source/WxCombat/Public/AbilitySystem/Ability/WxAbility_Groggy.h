@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Ability/WxAbility.h"
+#include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "ActiveGameplayEffectHandle.h"
 #include "WxAbility_Groggy.generated.h"
 
@@ -21,7 +21,7 @@ class UAnimMontage;
  * State.Dead 시 활성화 차단.
  */
 UCLASS()
-class WXCOMBAT_API UWxAbility_Groggy : public UWxAbility
+class WXCOMBAT_API UWxAbility_Groggy : public UWxAbilityBase
 {
 	GENERATED_BODY()
 

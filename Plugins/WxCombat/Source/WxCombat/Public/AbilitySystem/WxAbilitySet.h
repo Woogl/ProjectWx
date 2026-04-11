@@ -9,7 +9,7 @@
 #include "ActiveGameplayEffectHandle.h"
 #include "WxAbilitySet.generated.h"
 
-class UWxAbility;
+class UWxAbilityBase;
 class UGameplayEffect;
 class UWxAbilitySystemComponent;
 
@@ -49,7 +49,7 @@ protected:
 	FDataTableRowHandle AttributeInitRow;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
-	TArray<TSubclassOf<UWxAbility>> GrantedAbilities;
+	TArray<TSubclassOf<UWxAbilityBase>> GrantedAbilities;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Effects")
 	TArray<TSubclassOf<UGameplayEffect>> GrantedEffects;

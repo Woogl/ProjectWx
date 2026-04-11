@@ -74,7 +74,7 @@ void AWxProjectileBase::InitializeDamageSpec(const FWxDamageInfo& InDamageInfo)
 	CachedEffectContext.AddInstigator(GetOwner(), GetInstigator());
 	CachedEffectContext.SetAbility(SourceASC->GetAnimatingAbility());
 
-	DamageSpecHandle = InDamageInfo.MakeDamageSpec(SourceASC, CachedEffectContext);
+	CachedSpecHandles = InDamageInfo.MakeSpecs(SourceASC, CachedEffectContext);
 }
 
 void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -120,9 +120,12 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 
 	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
 	{
-		if (DamageSpecHandle.IsValid())
+		for (const FGameplayEffectSpecHandle& SpecHandle : CachedSpecHandles)
 		{
-			TargetASC->ApplyGameplayEffectSpecToTarget(*DamageSpecHandle.Data.Get(), TargetASC);
+			if (SpecHandle.IsValid())
+			{
+				TargetASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);
+			}
 		}
 	}
 

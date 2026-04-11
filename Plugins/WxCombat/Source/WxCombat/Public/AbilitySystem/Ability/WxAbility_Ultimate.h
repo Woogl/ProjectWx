@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Ability/WxAbility.h"
+#include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_Ultimate.generated.h"
 
 class UAnimMontage;
@@ -15,7 +15,7 @@ class ULevelSequence;
  * 컷신 동안 게임 월드는 시간 정지(Global Time Dilation)되며, 캐릭터는 무적 상태가 된다.
  */
 UCLASS()
-class WXCOMBAT_API UWxAbility_Ultimate : public UWxAbility
+class WXCOMBAT_API UWxAbility_Ultimate : public UWxAbilityBase
 {
 	GENERATED_BODY()
 

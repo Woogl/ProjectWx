@@ -30,7 +30,7 @@ class WXCOMBAT_API AWxProjectileBase : public AActor
 public:
 	AWxProjectileBase();
 
-	/** DamageInfo 기반 Damage Spec을 생성해 저장한다. SpawnActorDeferred 직후 FinishSpawning 이전에 호출한다. */
+	/** DamageInfo 기반 Spec 배열을 생성해 저장한다. SpawnActorDeferred 직후 FinishSpawning 이전에 호출한다. */
 	void InitializeDamageSpec(const FWxDamageInfo& InDamageInfo);
 
 protected:
@@ -53,5 +53,5 @@ protected:
 
 private:
 	FGameplayEffectContextHandle CachedEffectContext;
-	FGameplayEffectSpecHandle DamageSpecHandle;
+	TArray<FGameplayEffectSpecHandle> CachedSpecHandles;
 };

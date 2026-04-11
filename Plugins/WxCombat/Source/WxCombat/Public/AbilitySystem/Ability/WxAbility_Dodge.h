@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Ability/WxAbility.h"
+#include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_Dodge.generated.h"
 
 class UAnimMontage;
@@ -25,7 +25,7 @@ struct FGameplayAbilityTargetDataHandle;
  * 서버에서도 올바른 방향으로 회전.
  */
 UCLASS(Abstract)
-class WXCOMBAT_API UWxAbility_Dodge : public UWxAbility
+class WXCOMBAT_API UWxAbility_Dodge : public UWxAbilityBase
 {
 	GENERATED_BODY()
 

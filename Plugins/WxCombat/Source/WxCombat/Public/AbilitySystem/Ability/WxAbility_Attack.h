@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Ability/WxAbility.h"
+#include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_Attack.generated.h"
 
 class UAbilityTask_PlayMontageAndWait;
@@ -32,7 +32,7 @@ class UAnimMontage;
  *  "LHLH" → AM_Attack_LHLH
  */
 UCLASS(Abstract)
-class WXCOMBAT_API UWxAbility_Attack : public UWxAbility
+class WXCOMBAT_API UWxAbility_Attack : public UWxAbilityBase
 {
 	GENERATED_BODY()
 

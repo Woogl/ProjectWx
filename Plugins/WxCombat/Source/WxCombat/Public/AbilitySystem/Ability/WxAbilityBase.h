@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "WxAbility.generated.h"
+#include "WxAbilityBase.generated.h"
 
 class UAbilitySystemComponent;
 class UGameplayEffect;
@@ -28,12 +28,12 @@ enum class EWxAbilityActivationPolicy : uint8
  * 해당 GE의 Stack Limit Count로 표현된다.
  */
 UCLASS(Abstract, BlueprintType, Blueprintable)
-class WXCOMBAT_API UWxAbility : public UGameplayAbility
+class WXCOMBAT_API UWxAbilityBase : public UGameplayAbility
 {
 	GENERATED_BODY()
 
 public:
-	UWxAbility();
+	UWxAbilityBase();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	EWxAbilityActivationPolicy ActivationPolicy = EWxAbilityActivationPolicy::OnInputTriggered;

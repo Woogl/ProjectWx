@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Ability/WxAbility.h"
+#include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_Death.generated.h"
 
 class UAnimMontage;
@@ -20,7 +20,7 @@ class UAnimMontage;
  * 사망 발동 시 HitReact를 포함한 모든 어빌리티 캔슬 및 차단.
  */
 UCLASS()
-class WXCOMBAT_API UWxAbility_Death : public UWxAbility
+class WXCOMBAT_API UWxAbility_Death : public UWxAbilityBase
 {
 	GENERATED_BODY()
 

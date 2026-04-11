@@ -2,7 +2,7 @@
 
 #include "AbilitySystem/WxAbilitySet.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
-#include "AbilitySystem/Ability/WxAbility.h"
+#include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "AbilitySystem/WxCombatAttributeInitTableRow.h"
 
@@ -85,7 +85,7 @@ void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC, FWxAbili
 	}
 
 	// Ability 부여
-	for (const TSubclassOf<UWxAbility>& Ability : GrantedAbilities)
+	for (const TSubclassOf<UWxAbilityBase>& Ability : GrantedAbilities)
 	{
 		if (!Ability)
 		{
@@ -94,7 +94,7 @@ void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC, FWxAbili
 
 		FGameplayAbilitySpec Spec(Ability, 1);
 
-		if (const UWxAbility* DefaultAbility = Ability.GetDefaultObject())
+		if (const UWxAbilityBase* DefaultAbility = Ability.GetDefaultObject())
 		{
 			if (DefaultAbility->ActivationInputTag.IsValid())
 			{
