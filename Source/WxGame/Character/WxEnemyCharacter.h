@@ -15,7 +15,7 @@ class UWxNameplateComponent;
  * - AWxEnemyController에 의해 제어
  * - BehaviorTree를 BP에서 지정하여 적 종류별 행동 패턴 분리
  */
-UCLASS()
+UCLASS(Abstract)
 class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnableInterface
 {
 	GENERATED_BODY()

@@ -11,6 +11,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_Invincible, "State.Invincible");
 	UE_DEFINE_GAMEPLAY_TAG(State_Guard, "State.Guard");
 	UE_DEFINE_GAMEPLAY_TAG(State_PerfectGuard, "State.PerfectGuard");
+	UE_DEFINE_GAMEPLAY_TAG(State_HitReact, "State.HitReact");
 
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact, "Event.HitReact");
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Normal, "Event.HitReact.Normal");

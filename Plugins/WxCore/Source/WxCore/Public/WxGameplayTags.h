@@ -36,6 +36,9 @@ namespace WxGameplayTags
 	/** 퍼펙트 가드 판정 구간. ANS_PerfectGuard가 부여/제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_PerfectGuard);
 
+	/** 피격 반응 상태. WxAbility_HitReact가 ActivationOwnedTags로 활성 중에만 자동 부여 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_HitReact);
+
 	// ── Event ─────────────────────────────────────────────────────────────
 
 	/** 피격 이벤트 부모 카테고리. ExecCalc 필터링/디스패치 결정에만 사용 (직접 dispatch 금지) */

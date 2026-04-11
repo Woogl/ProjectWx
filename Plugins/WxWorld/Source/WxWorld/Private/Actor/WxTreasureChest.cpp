@@ -45,3 +45,10 @@ void AWxTreasureChest::HandleInteracted(AActor* InteractingActor)
 
 	UE_LOG(LogTemp, Warning, TEXT("HandleInteracted!!! %s"), *InteractingActor->GetName());
 }
+
+#if WITH_EDITOR
+UStreamableRenderAsset* AWxTreasureChest::GetEditorPreviewMesh() const
+{
+	return MeshComponent ? MeshComponent->GetStaticMesh() : nullptr;
+}
+#endif

@@ -3,13 +3,21 @@
 #include "AbilitySystem/Ability/WxAbility_Death.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Animation/AnimInstance.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/World.h"
+#include "TimerManager.h"
 #include "WxGameplayTags.h"
+
+namespace
+{
+	constexpr float MaxHitReactWaitSeconds = 0.15f;
+}
 
 UWxAbility_Death::UWxAbility_Death()
 {
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 
-	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 
 	FAbilityTriggerData TriggerData;
@@ -25,6 +33,23 @@ void UWxAbility_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	// HitReact 몽타주 재생 중이면 자연 종료까지 대기한 뒤 래그돌 (최대 MaxHitReactWaitSeconds 초)
+	UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::State_HitReact))
+	{
+		USkeletalMeshComponent* Mesh = ActorInfo->SkeletalMeshComponent.Get();
+		if (UAnimInstance* AnimInstance = Mesh ? Mesh->GetAnimInstance() : nullptr)
+		{
+			PendingWaitMontage = AnimInstance->GetCurrentActiveMontage();
+			AnimInstance->OnMontageEnded.AddDynamic(this, &UWxAbility_Death::HandleActiveMontageEnded);
+		}
+		if (UWorld* World = GetWorld())
+		{
+			World->GetTimerManager().SetTimer(WaitTimerHandle, this, &UWxAbility_Death::FinishWaitAndRagdoll, MaxHitReactWaitSeconds, false);
+		}
 		return;
 	}
 
@@ -71,6 +96,35 @@ void UWxAbility_Death::HandleMontageInterrupted()
 void UWxAbility_Death::HandleMontageCancelled()
 {
 	EnableRagdoll();
+}
+
+void UWxAbility_Death::HandleActiveMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (PendingWaitMontage && Montage != PendingWaitMontage)
+	{
+		return;
+	}
+
+	FinishWaitAndRagdoll();
+}
+
+void UWxAbility_Death::FinishWaitAndRagdoll()
+{
+	USkeletalMeshComponent* Mesh = CurrentActorInfo ? CurrentActorInfo->SkeletalMeshComponent.Get() : nullptr;
+	if (UAnimInstance* AnimInstance = Mesh ? Mesh->GetAnimInstance() : nullptr)
+	{
+		AnimInstance->OnMontageEnded.RemoveDynamic(this, &UWxAbility_Death::HandleActiveMontageEnded);
+	}
+
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(WaitTimerHandle);
+	}
+
+	PendingWaitMontage = nullptr;
+
+	EnableRagdoll();
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UWxAbility_Death::EnableRagdoll()

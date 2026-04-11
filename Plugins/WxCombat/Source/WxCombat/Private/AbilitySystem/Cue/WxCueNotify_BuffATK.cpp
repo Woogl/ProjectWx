@@ -4,6 +4,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "WxGameplayTags.h"
+#include "GameFramework/Character.h"
 
 AWxCueNotify_BuffATK::AWxCueNotify_BuffATK()
 {
@@ -15,21 +16,27 @@ bool AWxCueNotify_BuffATK::OnActive_Implementation(AActor* MyTarget, const FGame
 {
 	Super::OnActive_Implementation(MyTarget, Parameters);
 
-	if (!MyTarget || !BuffNiagaraSystem)
+	if (!MyTarget || !NiagaraSystem)
 	{
 		return false;
 	}
-
-	USceneComponent* AttachTarget = MyTarget->GetRootComponent();
-	if (USkeletalMeshComponent* MeshComp = MyTarget->FindComponentByClass<USkeletalMeshComponent>())
+	
+	if (SpawnedNiagaraComponent)
 	{
-		AttachTarget = MeshComp;
+		SpawnedNiagaraComponent->Deactivate();
+		SpawnedNiagaraComponent = nullptr;
+	}
+	
+	USceneComponent* AttachTarget = MyTarget->GetRootComponent();
+	if (const ACharacter* TargetCharacter = Cast<ACharacter>(MyTarget))
+	{
+		AttachTarget = TargetCharacter->GetMesh();
 	}
 
 	SpawnedNiagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
-		BuffNiagaraSystem,
+		NiagaraSystem,
 		AttachTarget,
-		AttachSocketName,
+		NAME_None,
 		FVector::ZeroVector,
 		FRotator::ZeroRotator,
 		EAttachLocation::SnapToTarget,
@@ -44,7 +51,7 @@ bool AWxCueNotify_BuffATK::OnRemove_Implementation(AActor* MyTarget, const FGame
 
 	if (SpawnedNiagaraComponent)
 	{
-		SpawnedNiagaraComponent->DeactivateImmediate();
+		SpawnedNiagaraComponent->Deactivate();
 		SpawnedNiagaraComponent = nullptr;
 	}
 

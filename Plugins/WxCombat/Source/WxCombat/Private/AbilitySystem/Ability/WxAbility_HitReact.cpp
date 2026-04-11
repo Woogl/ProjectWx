@@ -15,6 +15,7 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
+	ActivationOwnedTags.AddTag(WxGameplayTags::State_HitReact);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Invincible);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Guard);

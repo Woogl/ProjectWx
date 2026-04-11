@@ -29,13 +29,9 @@ public:
 protected:
 	/** 버프 지속 중 캐릭터에 부착할 Niagara 이펙트 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Cue")
-	TObjectPtr<UNiagaraSystem> BuffNiagaraSystem;
-
-	/** 이펙트 부착 소켓 이름 */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Cue")
-	FName AttachSocketName = NAME_None;
+	TObjectPtr<UNiagaraSystem> NiagaraSystem;
 
 private:
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TObjectPtr<UNiagaraComponent> SpawnedNiagaraComponent;
 };

@@ -44,16 +44,13 @@ AWxSpawner::AWxSpawner()
 	ArrowComponent->bTreatAsASprite = true;
 
 	PreviewSkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("PreviewSkeletalMeshComponent"));
-	PreviewSkeletalMeshComponent->bIsEditorOnly = true;
 	PreviewSkeletalMeshComponent->SetupAttachment(SceneRoot);
 	PreviewSkeletalMeshComponent->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	PreviewSkeletalMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PreviewSkeletalMeshComponent->SetHiddenInGame(true);
 
 	PreviewStaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PreviewStaticMeshComponent"));
-	PreviewStaticMeshComponent->bIsEditorOnly = true;
 	PreviewStaticMeshComponent->SetupAttachment(SceneRoot);
-	PreviewStaticMeshComponent->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	PreviewStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PreviewStaticMeshComponent->SetHiddenInGame(true);
 #endif

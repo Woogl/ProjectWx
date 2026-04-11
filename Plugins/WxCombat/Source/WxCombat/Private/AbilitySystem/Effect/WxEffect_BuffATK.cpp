@@ -7,12 +7,12 @@
 UWxEffect_BuffATK::UWxEffect_BuffATK()
 {
 	DurationPolicy = EGameplayEffectDurationType::HasDuration;
-	DurationMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(5.f));
+	DurationMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(10.f));
 
 	FGameplayModifierInfo Modifier;
 	Modifier.Attribute = UWxCombatAttributeSet::GetATKAttribute();
-	Modifier.ModifierOp = EGameplayModOp::Multiplicitive;
-	Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(0.5f));
+	Modifier.ModifierOp = EGameplayModOp::MultiplyAdditive;
+	Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(1.5f));
 	Modifiers.Add(Modifier);
 
 	FGameplayEffectCue Cue;
