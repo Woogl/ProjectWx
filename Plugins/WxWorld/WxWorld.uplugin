@@ -17,6 +17,10 @@
 		{
 			"Name": "WxCore",
 			"Enabled": true
+		},
+		{
+			"Name": "Niagara",
+			"Enabled": true
 		}
 	]
 }
