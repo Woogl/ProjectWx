@@ -15,7 +15,7 @@ class UNiagaraSystem;
  * WxEffect_Burn이 활성 상태인 동안 시각 효과(Niagara)를 표시한다.
  * 이펙트가 만료되거나 제거되면 자동으로 정리된다.
  */
-UCLASS(Blueprintable)
+UCLASS(Abstract, Blueprintable)
 class WXCOMBAT_API AWxCueNotify_Burn : public AGameplayCueNotify_Actor
 {
 	GENERATED_BODY()
@@ -32,6 +32,6 @@ protected:
 	TObjectPtr<UNiagaraSystem> NiagaraSystem;
 
 private:
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TObjectPtr<UNiagaraComponent> SpawnedNiagaraComponent;
 };
