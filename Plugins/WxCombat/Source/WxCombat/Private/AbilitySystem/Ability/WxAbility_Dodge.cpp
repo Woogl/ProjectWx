@@ -92,6 +92,18 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Dodge::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
 
+	// 극한 회피 여부와 무관하게, 회피 중 ANS_ComboWindow 구간 공격 입력으로 반격 전환
+	if (DodgeCounterMontage)
+	{
+		if (FGameplayAbilitySpec* Spec = ASC ? ASC->FindAbilitySpecFromHandle(Handle) : nullptr)
+		{
+			Spec->GetDynamicSpecSourceTags().AddTag(WxGameplayTags::Input_Attack);
+			ASC->MarkAbilitySpecDirty(*Spec);
+		}
+
+		ListenForCounterInput();
+	}
+
 	ListenForDodgeSuccess();
 }
 
@@ -103,8 +115,8 @@ void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 		WaitInputTask = nullptr;
 	}
 
-	// 극한 회피 중 추가한 공격 입력 태그 제거
-	if (bPlayingPerfectDodge && DodgeCounterMontage && ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
+	// ActivateAbility에서 추가한 공격 입력 태그 제거
+	if (DodgeCounterMontage && ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
 	{
 		FGameplayAbilitySpec* Spec = ActorInfo->AbilitySystemComponent->FindAbilitySpecFromHandle(Handle);
 		if (Spec)
@@ -113,8 +125,6 @@ void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 			ActorInfo->AbilitySystemComponent->MarkAbilitySpecDirty(*Spec);
 		}
 	}
-
-	bPlayingPerfectDodge = false;
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
@@ -174,30 +184,11 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_RecoverResource::StaticClass(), GetAbilityLevel());
 	if (SpecHandle.IsValid())
 	{
-		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_UP, 0.f);
 		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_MP, PerfectDodgeMPRecovery);
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle);
 	}
 
-	bPlayingPerfectDodge = true;
 	PlayPerfectDodgeMontage();
-
-	if (DodgeCounterMontage)
-	{
-		// 공격 입력 태그를 스펙에 동적 추가하여, ASC의 입력 라우팅이 이 어빌리티에 도달하도록 함
-		UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-		if (ASC)
-		{
-			FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromHandle(CurrentSpecHandle);
-			if (Spec)
-			{
-				Spec->GetDynamicSpecSourceTags().AddTag(WxGameplayTags::Input_Attack);
-				ASC->MarkAbilitySpecDirty(*Spec);
-			}
-		}
-
-		ListenForCounterInput();
-	}
 }
 
 void UWxAbility_Dodge::PlayPerfectDodgeMontage()

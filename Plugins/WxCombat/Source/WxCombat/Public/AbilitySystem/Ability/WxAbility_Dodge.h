@@ -82,7 +82,4 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_WaitInputPress> WaitInputTask;
-
-	/** 극한 회피 상태 (PerfectDodge/Counter 몽타주 재생 중) */
-	bool bPlayingPerfectDodge = false;
 };
