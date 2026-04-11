@@ -51,7 +51,7 @@ private:
 	/** 대미지 계산. ATK·DEF 공식, 치명타 적용 */
 	FWxDamageResult CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, float SourceATK, float DefenseMultiplier) const;
 
-	/** 공격자 적중 회복. 소스 어빌리티의 HitRecovery GE를 공격자에게 적용 */
+	/** 공격자 적중 회복. OwningSpec의 SetByCaller.Recovery.UP/MP 값을 단일 Recovery Spec에 실어 공격자에게 적용 */
 	void ApplyHitRecovery(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& OwningSpec) const;
 
 	/** 피격 반응 적용. 가드 상태와 Damage.Knock* 태그에 따라 SP/PP 차감 및 이벤트 발송 */

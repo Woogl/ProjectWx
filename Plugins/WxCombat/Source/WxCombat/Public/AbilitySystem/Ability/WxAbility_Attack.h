@@ -38,16 +38,11 @@ class WXCOMBAT_API UWxAbility_Attack : public UWxAbility
 
 public:
 	UWxAbility_Attack();
-	virtual FWxEffectContainer GetHitRecoveryInfo() const override;
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 protected:
-	/** 공격 적중 시 회복하는 MP량 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Recovery")
-	float HitMPRecovery = 5.f;
-
 	/**
 	 * 콤보 경로-몽타주 매핑.
 	 * Key: 콤보 경로 (L = 약공격, H = 강공격. 예: "L", "LL", "LH", "LHLH")

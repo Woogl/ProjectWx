@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Effect/WxExecCalc_Damage.h"
-#include "AbilitySystem/Ability/WxAbility.h"
+#include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/Effect/WxEffect_Reflect.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
@@ -79,8 +79,8 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	float SourceATK = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.ATKDef, EvalParams, SourceATK);
 
-	// 공격력 계수: 무기 ANS_WeaponAttack가 SetByCaller로 전달. 미설정 시 1.f.
-	const float ATKCoeff = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, false, 1.f);
+	// 공격력 계수. SetByCaller로 전달.
+	const float ATKCoeff = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, false, 0.f);
 	SourceATK *= ATKCoeff;
 
 	float TargetDEF = 0.f;
@@ -292,25 +292,17 @@ void UWxExecCalc_Damage::ApplyHitRecovery(UAbilitySystemComponent* SourceASC, co
 		return;
 	}
 
-	const UWxAbility* SourceAbility = Cast<UWxAbility>(OwningSpec.GetEffectContext().GetAbilityInstance_NotReplicated());
-	if (!SourceAbility)
+	const float RecoveryUP = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_UP, false, 0.f);
+	const float RecoveryMP = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_MP, false, 0.f);
+	if (RecoveryUP <= 0.f && RecoveryMP <= 0.f)
 	{
 		return;
 	}
 
-	const FWxEffectContainer RecoveryContainer = SourceAbility->GetHitRecoveryInfo();
-	if (!RecoveryContainer.EffectClass)
-	{
-		return;
-	}
-
-	const float AbilityLevel = OwningSpec.GetEffectContext().GetAbilityLevel();
-	const UGameplayEffect* RecoveryEffect = RecoveryContainer.EffectClass->GetDefaultObject<UGameplayEffect>();
-	FGameplayEffectSpec RecoverySpec(RecoveryEffect, SourceASC->MakeEffectContext(), AbilityLevel);
-	for (const auto& [Tag, Value] : RecoveryContainer.SetByCallers)
-	{
-		RecoverySpec.SetSetByCallerMagnitude(Tag, Value);
-	}
+	const UGameplayEffect* RecoveryEffect = UWxEffect_RecoverResource::StaticClass()->GetDefaultObject<UGameplayEffect>();
+	FGameplayEffectSpec RecoverySpec(RecoveryEffect, SourceASC->MakeEffectContext(), 1.f);
+	RecoverySpec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_UP, RecoveryUP);
+	RecoverySpec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_MP, RecoveryMP);
 	SourceASC->ApplyGameplayEffectSpecToSelf(RecoverySpec);
 }
 

@@ -22,12 +22,21 @@ void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAn
 	const FRotator SpawnRotation = Owner->GetActorRotation();
 	const FTransform SpawnTransform(SpawnRotation, SpawnLocation);
 
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = Owner;
-	SpawnParams.Instigator = Cast<APawn>(Owner);
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	// DamageSpec을 BeginPlay 이전에 준비해야 하므로 Deferred 스폰 후 InitializeDamageSpec 호출
+	AWxProjectileBase* Projectile = Owner->GetWorld()->SpawnActorDeferred<AWxProjectileBase>(
+		ProjectileClass,
+		SpawnTransform,
+		Owner,
+		Cast<APawn>(Owner),
+		ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 
-	AWxProjectileBase* Projectile = Owner->GetWorld()->SpawnActor<AWxProjectileBase>(ProjectileClass, SpawnTransform, SpawnParams);
+	if (!Projectile)
+	{
+		return;
+	}
+
+	Projectile->InitializeDamageSpec(DamageInfo);
+	Projectile->FinishSpawning(SpawnTransform);
 }
 
 FString UWxAnimNotify_SpawnProjectile::GetNotifyName_Implementation() const

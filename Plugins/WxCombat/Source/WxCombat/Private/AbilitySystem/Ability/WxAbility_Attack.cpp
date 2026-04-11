@@ -3,7 +3,6 @@
 #include "AbilitySystem/Ability/WxAbility_Attack.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
-#include "AbilitySystem/Effect/WxEffect_RecoveryMP.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "WxGameplayTags.h"
 
@@ -156,14 +155,6 @@ bool UWxAbility_Attack::TryAdvanceCombo(const TCHAR* Suffix)
 	CurrentPath = NextPath;
 	PlayComboMontage();
 	return true;
-}
-
-FWxEffectContainer UWxAbility_Attack::GetHitRecoveryInfo() const
-{
-	FWxEffectContainer Container;
-	Container.EffectClass = UWxEffect_RecoveryMP::StaticClass();
-	Container.SetByCallers.Add(WxGameplayTags::SetByCaller_Recovery, HitMPRecovery);
-	return Container;
 }
 
 void UWxAbility_Attack::HandleMontageCompleted()

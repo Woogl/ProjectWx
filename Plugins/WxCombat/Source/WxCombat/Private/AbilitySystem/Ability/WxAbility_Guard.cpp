@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Guard.h"
-#include "AbilitySystem/Effect/WxEffect_RecoveryMP.h"
+#include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
@@ -153,10 +153,11 @@ void UWxAbility_Guard::HandlePerfectGuard(FGameplayEventData Payload)
 	}
 
 	// 퍼펙트 가드 성공 보상: MP 회복
-	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_RecoveryMP::StaticClass(), GetAbilityLevel());
+	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_RecoverResource::StaticClass(), GetAbilityLevel());
 	if (SpecHandle.IsValid())
 	{
-		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery, PerfectGuardMPRecovery);
+		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_UP, 0.f);
+		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_MP, PerfectGuardMPRecovery);
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle);
 	}
 

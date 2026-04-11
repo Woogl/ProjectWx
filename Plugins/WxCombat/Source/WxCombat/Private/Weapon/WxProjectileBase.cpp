@@ -59,33 +59,22 @@ void AWxProjectileBase::BeginPlay()
 			}
 		}
 	}
+}
 
-	if (UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator()))
+void AWxProjectileBase::InitializeDamageSpec(const FWxDamageInfo& InDamageInfo)
+{
+	UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator());
+	if (!SourceASC)
 	{
-		CachedEffectContext = SourceASC->MakeEffectContext();
-		CachedEffectContext.AddSourceObject(this);
-		CachedEffectContext.AddInstigator(GetOwner(), GetInstigator());
-		CachedEffectContext.SetAbility(SourceASC->GetAnimatingAbility());
-
-		for (const TSubclassOf<UGameplayEffect>& EffectClass : EffectClasses)
-		{
-			if (!EffectClass)
-			{
-				continue;
-			}
-
-			FGameplayEffectSpecHandle EffectSpec = SourceASC->MakeOutgoingSpec(EffectClass, 1.f, CachedEffectContext);
-			if (EffectSpec.IsValid())
-			{
-				EffectSpec.Data->AppendDynamicAssetTags(AttackTags);
-				for (const auto& [Tag, Value] : SetByCallers)
-				{
-					EffectSpec.Data->SetSetByCallerMagnitude(Tag, Value);
-				}
-			}
-			EffectSpecHandles.Add(EffectSpec);
-		}
+		return;
 	}
+
+	CachedEffectContext = SourceASC->MakeEffectContext();
+	CachedEffectContext.AddSourceObject(this);
+	CachedEffectContext.AddInstigator(GetOwner(), GetInstigator());
+	CachedEffectContext.SetAbility(SourceASC->GetAnimatingAbility());
+
+	DamageSpecHandle = InDamageInfo.MakeDamageSpec(SourceASC, CachedEffectContext);
 }
 
 void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -131,12 +120,9 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 
 	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
 	{
-		for (const FGameplayEffectSpecHandle& SpecHandle : EffectSpecHandles)
+		if (DamageSpecHandle.IsValid())
 		{
-			if (SpecHandle.IsValid())
-			{
-				TargetASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);
-			}
+			TargetASC->ApplyGameplayEffectSpecToTarget(*DamageSpecHandle.Data.Get(), TargetASC);
 		}
 	}
 

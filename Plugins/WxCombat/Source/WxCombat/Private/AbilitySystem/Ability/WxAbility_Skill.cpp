@@ -3,7 +3,6 @@
 #include "AbilitySystem/Ability/WxAbility_Skill.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystem/Effect/WxEffect_CostMP.h"
-#include "AbilitySystem/Effect/WxEffect_RecoveryUP.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "WxGameplayTags.h"
 
@@ -84,14 +83,6 @@ void UWxAbility_Skill::ApplyCost(const FGameplayAbilitySpecHandle Handle, const 
 			ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
 		}
 	}
-}
-
-FWxEffectContainer UWxAbility_Skill::GetHitRecoveryInfo() const
-{
-	FWxEffectContainer Container;
-	Container.EffectClass = UWxEffect_RecoveryUP::StaticClass();
-	Container.SetByCallers.Add(WxGameplayTags::SetByCaller_Recovery, HitUPRecovery);
-	return Container;
 }
 
 void UWxAbility_Skill::HandleMontageCompleted()

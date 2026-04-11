@@ -1,0 +1,51 @@
+// Copyright Woogle. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameplayEffect.h"
+#include "GameplayTagContainer.h"
+#include "WxDamageInfo.generated.h"
+
+class UAbilitySystemComponent;
+
+/**
+ * 대미지 한 건의 설계 데이터.
+ *
+ * AnimNotify에서 편집되어 Weapon/Projectile로 전달되며,
+ * Damage GameplayEffect Spec 생성 시 SetByCaller 및 DynamicAssetTags로 변환된다.
+ */
+USTRUCT(BlueprintType)
+struct WXCOMBAT_API FWxDamageInfo
+{
+	GENERATED_BODY()
+
+	FWxDamageInfo();
+
+	/** 이 DamageInfo를 반영한 UWxEffect_Damage Spec을 생성한다. Context/SetByCaller/AttackTags를 세팅한 핸들을 반환 */
+	FGameplayEffectSpecHandle MakeDamageSpec(UAbilitySystemComponent* SourceASC, const FGameplayEffectContextHandle& Context) const;
+
+	/** 공격력 계수. Damage Spec의 SetByCaller.Coeff.ATK로 반영 */
+	UPROPERTY(EditAnywhere, Category = "Wx|DamageInfo")
+	float CoeffATK = 1.f;
+	
+	/** 적중 시 공격자 MP 회복량. Damage Spec의 SetByCaller.Recovery.MP로 반영 */
+	UPROPERTY(EditAnywhere, Category = "Wx|DamageInfo")
+	float RecoverMP = 0.f;
+
+	/** 적중 시 공격자 UP 회복량. Damage Spec의 SetByCaller.Recovery.UP로 반영 */
+	UPROPERTY(EditAnywhere, Category = "Wx|DamageInfo")
+	float RecoverUP = 0.f;
+
+	/**
+	 * 적중 시 부여할 HitReact 태그.
+	 * 기본값(Event.HitReact.Normal)은 PP 소진 조건일 때만 발동되고,
+	 * Knockback/Knockdown/Knockup 등을 지정하면 PP 잔량과 무관하게 해당 종류의 HitReact가 강제 발동된다.
+	 */
+	UPROPERTY(EditAnywhere, Category = "Wx|DamageInfo", meta = (Categories = "Event.HitReact"))
+	FGameplayTag HitReactTag;
+
+	/** true이면 이 공격은 가드·퍼펙트 가드를 무시 */
+	UPROPERTY(EditAnywhere, Category = "Wx|DamageInfo")
+	bool bUnblockable = false;
+};

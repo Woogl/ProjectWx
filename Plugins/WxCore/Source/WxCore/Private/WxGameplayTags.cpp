@@ -57,7 +57,8 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Ultimate, "Cooldown.Ultimate");
 
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Cost, "SetByCaller.Cost");
-	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Recovery, "SetByCaller.Recovery");
+	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Recovery_UP, "SetByCaller.Recovery.UP");
+	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Recovery_MP, "SetByCaller.Recovery.MP");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_ReflectDP, "SetByCaller.ReflectDP");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Coeff_ATK, "SetByCaller.Coeff.ATK");
 

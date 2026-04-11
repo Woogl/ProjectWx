@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
+#include "WxDamageInfo.h"
 #include "WxAnimNotify_SpawnProjectile.generated.h"
 
 class AWxProjectileBase;
@@ -33,4 +34,7 @@ protected:
 	/** 투사체 스폰 위치 소켓 이름 */
 	UPROPERTY(EditAnywhere, Category = "Wx|Projectile")
 	FName SpawnSocketName = TEXT("hand_r");
+
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ShowOnlyInnerProperties))
+	FWxDamageInfo DamageInfo;
 };

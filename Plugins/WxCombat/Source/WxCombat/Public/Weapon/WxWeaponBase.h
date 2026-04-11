@@ -3,15 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
 #include "GameFramework/Actor.h"
+#include "WxDamageInfo.h"
 #include "WxWeaponBase.generated.h"
 
 class UArrowComponent;
 class UCapsuleComponent;
 class USkeletalMeshComponent;
-class UGameplayEffect;
-struct FGameplayTag;
 
 /**
  * 무기 베이스 클래스.
@@ -42,27 +40,16 @@ public:
 
 	void DetachFromCharacter();
 
-	/** 피격 대상에게 적용할 GameplayEffect 목록 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
-	TArray<TSubclassOf<UGameplayEffect>> EffectClasses;
-
 	/** 역경직 지속 시간 (초). 0 이하이면 역경직 미적용 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
 	float HitStopDuration = 0.125f;
 
 	/**
-	 * 현재 공격 속성 태그.
-	 * ANS_AttackTags가 몽타주 구간별로 설정/해제하며,
-	 * 히트 시 GE Spec의 DynamicAssetTags에 복사된다.
-	 */
-	FGameplayTagContainer AttackTags;
-
-	/**
-	 * 현재 SetByCaller 값 맵.
+	 * 현재 활성 공격 DamageInfo.
 	 * ANS_WeaponAttack이 몽타주 구간별로 설정/해제하며,
-	 * 히트 시 GE Spec에 반영된다.
+	 * 히트 시 Damage Spec 생성에 사용된다.
 	 */
-	TMap<FGameplayTag, float> SetByCallers;
+	FWxDamageInfo DamageInfo;
 
 protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

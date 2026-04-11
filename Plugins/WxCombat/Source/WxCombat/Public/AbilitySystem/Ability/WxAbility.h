@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "AbilitySystem/WxEffectContainer.h"
 #include "WxAbility.generated.h"
 
 class UAbilitySystemComponent;
@@ -46,9 +45,6 @@ public:
 	/** 어빌리티 아이콘. UI에서 표시 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	TSoftObjectPtr<UTexture2D> AbilityIcon;
-
-	/** 공격 적중 시 공격자에게 적용할 회복 정보를 반환한다. ExecCalc_Damage에서 호출 */
-	virtual FWxEffectContainer GetHitRecoveryInfo() const;
 
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;

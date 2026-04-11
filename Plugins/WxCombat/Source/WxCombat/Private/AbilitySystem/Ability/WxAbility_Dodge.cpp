@@ -4,7 +4,7 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
-#include "AbilitySystem/Effect/WxEffect_RecoveryMP.h"
+#include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
 #include "AbilitySystem/Task/WxAbilityTask_TurnAround.h"
 #include "AbilitySystemComponent.h"
@@ -171,10 +171,11 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 	}
 
 	// 극한 회피 성공 보상: MP 회복
-	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_RecoveryMP::StaticClass(), GetAbilityLevel());
+	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_RecoverResource::StaticClass(), GetAbilityLevel());
 	if (SpecHandle.IsValid())
 	{
-		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery, PerfectDodgeMPRecovery);
+		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_UP, 0.f);
+		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_MP, PerfectDodgeMPRecovery);
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle);
 	}
 

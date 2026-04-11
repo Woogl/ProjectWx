@@ -108,12 +108,11 @@ void AWxWeaponBase::SetWeaponCollisionEnabled(bool bEnabled)
 	HitCollision->SetCollisionEnabled(bEnabled ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 
 	// 모든 WeaponAttack ANS가 종료되어 콜리전이 비활성화되면 공격 상태를 일괄 초기화한다.
-	// 개별 ANS의 NotifyEnd에서 태그를 제거하면, FGameplayTagContainer의 참조 카운팅 부재로
-	// 다른 활성 ANS의 태그가 조기 제거되는 문제가 발생하므로 여기서 일괄 처리한다.
+	// 개별 ANS의 NotifyEnd에서 상태를 제거하면, 연속 공격 콤보에서 다음 ANS의 NotifyBegin과
+	// 이전 ANS의 NotifyEnd가 경합하여 아직 활성인 ANS의 설정까지 조기 제거되는 문제가 발생한다.
 	if (!bEnabled)
 	{
-		AttackTags.Reset();
-		SetByCallers.Reset();
+		DamageInfo = FWxDamageInfo();
 	}
 }
 
@@ -177,23 +176,10 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 		}
 		Context.AddHitResult(HitResult);
 
-		for (const TSubclassOf<UGameplayEffect>& EffectClass : EffectClasses)
+		const FGameplayEffectSpecHandle Spec = DamageInfo.MakeDamageSpec(SourceASC, Context);
+		if (Spec.IsValid())
 		{
-			if (!EffectClass)
-			{
-				continue;
-			}
-
-			const FGameplayEffectSpecHandle Spec = SourceASC->MakeOutgoingSpec(EffectClass, 1.f, Context);
-			if (Spec.IsValid())
-			{
-				Spec.Data->AppendDynamicAssetTags(AttackTags);
-				for (const auto& [Tag, Value] : SetByCallers)
-				{
-					Spec.Data->SetSetByCallerMagnitude(Tag, Value);
-				}
-				SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
-			}
+			SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
 		}
 
 		// 역경직: 공격자의 몽타주를 잠시 일시 정지

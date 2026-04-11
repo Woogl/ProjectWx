@@ -83,7 +83,3 @@ bool UWxAbility::CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FG
 	return false;
 }
 
-FWxEffectContainer UWxAbility::GetHitRecoveryInfo() const
-{
-	return FWxEffectContainer();
-}

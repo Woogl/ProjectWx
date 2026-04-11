@@ -25,7 +25,6 @@ class WXCOMBAT_API UWxAbility_Skill : public UWxAbility
 
 public:
 	UWxAbility_Skill();
-	virtual FWxEffectContainer GetHitRecoveryInfo() const override;
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
@@ -37,10 +36,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cost")
 	float MPCost = 0.f;
 
-	/** 공격 적중 시 회복하는 UP량 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Recovery")
-	float HitUPRecovery = 5.f;
-	
 	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
