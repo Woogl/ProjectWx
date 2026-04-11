@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>데미지 가이드</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --bg-alt: #161923;
+  --bg-card: #1a1e2a;
+  --text: #e2e4ea;
+  --text-dim: #9ba1b0;
+  --border: #2a2f3e;
+  --accent: #ffd93d;
+  --bad:    #ff6b6b;
+  --warn:   #ff9f43;
+  --ok:     #4ecdc4;
+  --info:   #b794f6;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Pretendard, "Noto Sans KR", sans-serif;
+  line-height: 1.65;
+  margin: 0;
+  padding: 40px 16px 80px;
+}
+
+.container { max-width: 960px; margin: 0 auto; }
+
+header {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+}
+
+h1 { margin: 0 0 8px; font-size: 32px; letter-spacing: -0.5px; }
+
+header .meta { color: var(--text-dim); font-size: 13px; font-family: "SF Mono", Consolas, Menlo, monospace; }
+
+header .lede { color: var(--text-dim); margin-top: 12px; font-size: 15px; }
+
+nav.toc {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 22px;
+  margin-bottom: 48px;
+}
+
+nav.toc h2 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  border: none;
+  padding: 0;
+}
+
+nav.toc ol {
+  margin: 0;
+  padding-left: 22px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 24px;
+}
+
+nav.toc a { color: var(--text); text-decoration: none; font-size: 14px; }
+nav.toc a:hover { color: var(--accent); }
+
+section { margin-bottom: 64px; }
+
+h2 {
+  font-size: 22px;
+  margin: 0 0 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+h2 .num {
+  color: var(--text-dim);
+  font-weight: 400;
+  font-family: "SF Mono", Consolas, Menlo, monospace;
+  font-size: 16px;
+}
+
+h3.subsection {
+  margin: 28px 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.3px;
+}
+h3.subsection::before {
+  content: "▸ ";
+  color: var(--text-dim);
+}
+
+section > p.lede {
+  color: var(--text-dim);
+  margin: 0 0 16px;
+  font-size: 14px;
+}
+
+p { margin: 0 0 12px; }
+
+code {
+  background: rgba(255,255,255,0.06);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: "SF Mono", Consolas, Menlo, monospace;
+  font-size: 13px;
+  color: #f4e4a1;
+}
+
+/* ═══════ 표 ═══════ */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+th, td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+th {
+  background: var(--bg-alt);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+tbody tr:last-child td { border-bottom: none; }
+
+td.param { color: #ffe88a; font-weight: 600; }
+
+td.defval {
+  color: var(--text-dim);
+  font-family: "SF Mono", Consolas, Menlo, monospace;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* ═══════ 상태별 결과표 ═══════ */
+table.stat-matrix { font-size: 13px; table-layout: fixed; }
+
+table.stat-matrix th, table.stat-matrix td {
+  text-align: center;
+  border: 1px solid var(--border);
+  padding: 12px 8px;
+  vertical-align: middle;
+}
+
+table.stat-matrix thead th {
+  background: var(--bg-alt);
+  font-weight: 600;
+  color: var(--text-dim);
+  font-size: 12px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+table.stat-matrix thead tr:first-child th { border-bottom: 1px solid var(--border); }
+
+table.stat-matrix tbody th.situation {
+  background: var(--bg-alt);
+  text-align: left;
+  padding-left: 14px;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 13px;
+  width: 18%;
+}
+table.stat-matrix tbody th.situation .atk-type {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-dim);
+  margin-top: 3px;
+}
+
+table.stat-matrix td { font-weight: 600; font-size: 13px; }
+table.stat-matrix td.v-note {
+  font-weight: 400;
+  font-size: 11px;
+  color: var(--text-dim);
+  text-align: left;
+  padding-left: 12px;
+  line-height: 1.4;
+  width: 22%;
+}
+
+/* 셀 값 색상 — 결과 성격별 */
+.v-hit     { background: rgba(255,107,107,0.18); color: #ff9a9a; }
+.v-drain   { background: rgba(255,159,67,0.14); color: #ffc289; }
+.v-gain    { background: rgba(255,107,107,0.12); color: #ffb3b3; }
+.v-reflect { background: rgba(78,205,196,0.18); color: #85e8e0; }
+.v-recover { background: rgba(78,205,196,0.12); color: #7dd9d0; }
+.v-dodge   { background: rgba(183,148,246,0.16); color: #d5c0ff; }
+.v-zero    { background: rgba(155,161,176,0.08); color: var(--text-dim); }
+.v-na      { background: transparent; color: #55596a; font-weight: 400; }
+
+.legend-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.legend-row .lg-item { display: inline-flex; align-items: center; gap: 6px; }
+.legend-row .lg-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 20px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 12px;
+  border: 1px solid var(--border);
+}
+
+/* ═══════ HitReact 표 ═══════ */
+td.tag-name {
+  font-family: "SF Mono", Consolas, Menlo, monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: #d5c0ff;
+  white-space: nowrap;
+}
+
+/* ═══════ 계산 트리 ═══════ */
+.calc-tree {
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-row, .tree-connector {
+  display: grid;
+  grid-template-columns: 280px 60px 240px;
+  gap: 0 14px;
+  justify-content: center;
+  align-items: center;
+}
+
+.tree-row.single > .t-node { grid-column: 1; justify-self: stretch; }
+
+.tree-row.branch > .t-node  { grid-column: 1; justify-self: stretch; }
+.tree-row.branch > .t-arrow { grid-column: 2; justify-self: stretch; }
+.tree-row.branch > .t-side  { grid-column: 3; justify-self: stretch; }
+
+.t-node {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--warn);
+  border-radius: 8px;
+  padding: 14px 18px;
+  text-align: center;
+}
+
+.t-node.start, .t-node.final {
+  border-left-color: var(--ok);
+  background: rgba(78,205,196,0.07);
+}
+
+.t-node .t-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  font-family: "SF Mono", Consolas, Menlo, monospace;
+  margin-bottom: 6px;
+}
+
+.t-node .t-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffc289;
+}
+
+.t-node.start .t-title,
+.t-node.final .t-title { color: #85e8e0; }
+
+.t-node.decision {
+  border-left-color: var(--bad);
+  background: rgba(255,107,107,0.06);
+}
+
+.t-node.decision .t-title { color: #ff9a9a; font-size: 14px; }
+
+.t-node.decision .t-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 3px;
+  font-family: "SF Mono", Consolas, Menlo, monospace;
+}
+
+.t-node .t-formula {
+  font-family: "SF Mono", Consolas, Menlo, monospace;
+  font-size: 13px;
+  color: #ffc289;
+}
+
+/* 측면 가지 화살표 */
+.t-arrow {
+  position: relative;
+  height: 18px;
+  display: flex;
+  align-items: center;
+}
+
+.t-arrow::before {
+  content: "";
+  flex: 1;
+  height: 2px;
+}
+
+.t-arrow::after {
+  content: "";
+  width: 0; height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 10px solid currentColor;
+  margin-left: -1px;
+}
+
+.t-arrow.to-dodge   { color: var(--info); }
+.t-arrow.to-dodge::before   { background: var(--info); }
+
+.t-arrow.to-reflect { color: var(--ok); }
+.t-arrow.to-reflect::before { background: var(--ok); }
+
+.t-arrow.to-modifier { color: var(--warn); }
+.t-arrow.to-modifier::before { background: var(--warn); }
+
+.t-arrow-label {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg);
+  padding: 0 6px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  font-family: "SF Mono", Consolas, Menlo, monospace;
+  white-space: nowrap;
+}
+
+.t-arrow.to-dodge    .t-arrow-label { color: #d5c0ff; }
+.t-arrow.to-reflect  .t-arrow-label { color: #85e8e0; }
+.t-arrow.to-modifier .t-arrow-label { color: #ffc289; }
+
+/* 측면 카드 */
+.t-side {
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid;
+  text-align: center;
+}
+
+.t-side.terminal-dodge {
+  background: rgba(183,148,246,0.14);
+  border-color: rgba(183,148,246,0.55);
+}
+
+.t-side.terminal-reflect {
+  background: rgba(78,205,196,0.14);
+  border-color: rgba(78,205,196,0.55);
+}
+
+.t-side.modifier {
+  background: rgba(255,159,67,0.1);
+  border-color: rgba(255,159,67,0.55);
+}
+
+.t-side .t-s-main {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.t-side .t-s-sub {
+  display: block;
+  font-size: 11px;
+  margin-top: 4px;
+  opacity: 0.85;
+}
+
+.t-side.terminal-dodge   .t-s-main,
+.t-side.terminal-dodge   .t-s-sub { color: #d5c0ff; }
+
+.t-side.terminal-reflect .t-s-main,
+.t-side.terminal-reflect .t-s-sub { color: #85e8e0; }
+
+.t-side.modifier .t-s-main {
+  font-family: "SF Mono", Consolas, Menlo, monospace;
+  color: #ffc289;
+}
+
+.t-side.modifier .t-s-sub { color: var(--text-dim); }
+
+/* 세로 연결선 */
+.tree-connector > .t-line {
+  grid-column: 1;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.tree-connector > .t-line::before {
+  content: "";
+  width: 2px;
+  height: 100%;
+  background: var(--border);
+}
+
+.tree-connector > .t-line::after {
+  content: "▼";
+  position: absolute;
+  bottom: -3px;
+  color: var(--border);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.t-line-label {
+  position: absolute;
+  background: var(--bg);
+  padding: 1px 8px;
+  font-size: 10px;
+  color: var(--text-dim);
+  font-family: "SF Mono", Consolas, Menlo, monospace;
+  letter-spacing: 1px;
+  z-index: 1;
+}
+
+/* 스탯 리스트 */
+.stat-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.stat-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--warn);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+}
+
+.stat-item .stat-name {
+  color: #ffc289;
+  font-weight: 700;
+  font-family: "SF Mono", Consolas, Menlo, monospace;
+  margin-right: 8px;
+}
+
+.stat-item .stat-role { color: var(--text-dim); }
+
+.notes {
+  background: var(--bg-alt);
+  border-left: 3px solid var(--info);
+  border-radius: 4px;
+  padding: 12px 18px;
+  margin-top: 20px;
+  font-size: 13px;
+}
+
+.notes ul { margin: 0; padding-left: 18px; }
+.notes li { margin: 6px 0; color: var(--text-dim); }
+.notes li strong { color: #d5c0ff; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>데미지 가이드</h1>
+  <div class="meta">문서 생성일 2026-04-11</div>
+  <p class="lede">새 공격을 설계할 때 열어보는 실무 레퍼런스. 노티파이에서 만질 수 있는 값부터 방어 상태별 결과, 데미지 공식까지 한 장에 담았다.</p>
+</header>
+
+<nav class="toc">
+  <h2>목차</h2>
+  <ol>
+    <li><a href="#s1">데미지 계산식</a></li>
+    <li><a href="#s2">데미지 입력값</a></li>
+    <li><a href="#s3">상태별 데미지 결과표</a></li>
+  </ol>
+</nav>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!--  1. 데미지 계산식                                    -->
+<!-- ══════════════════════════════════════════════════ -->
+<section id="s1">
+  <h2><span class="num">01</span>데미지 계산식</h2>
+
+  <div class="calc-tree">
+
+    <div class="tree-row single">
+      <div class="t-node start">
+        <div class="t-title">공격 적중</div>
+      </div>
+    </div>
+
+    <div class="tree-connector"><div class="t-line"></div></div>
+
+    <div class="tree-row branch">
+      <div class="t-node decision">
+        <div class="t-title">무적 상태?</div>
+      </div>
+      <div class="t-arrow to-dodge"><span class="t-arrow-label">YES</span></div>
+      <div class="t-side terminal-dodge">
+        <span class="t-s-main">데미지 0</span>
+        <span class="t-s-sub">회피 이벤트 · 공격자 회복 없음 · END</span>
+      </div>
+    </div>
+
+    <div class="tree-connector"><div class="t-line"><span class="t-line-label">NO</span></div></div>
+
+    <div class="tree-row branch">
+      <div class="t-node decision">
+        <div class="t-title">퍼펙트 가드?</div>
+      </div>
+      <div class="t-arrow to-reflect"><span class="t-arrow-label">YES</span></div>
+      <div class="t-side terminal-reflect">
+        <span class="t-s-main">데미지 0</span>
+        <span class="t-s-sub">DP 반사 · 방어자 MP +5 · END</span>
+      </div>
+    </div>
+
+    <div class="tree-connector"><div class="t-line"><span class="t-line-label">NO</span></div></div>
+
+    <div class="tree-row single">
+      <div class="t-node calc">
+        <div class="t-label">STEP · 기본 데미지</div>
+        <div class="t-formula">ATK × 계수 × 100 / (100 + DEF)</div>
+      </div>
+    </div>
+
+    <div class="tree-connector"><div class="t-line"></div></div>
+
+    <div class="tree-row branch">
+      <div class="t-node decision">
+        <div class="t-title">치명타 발동?</div>
+        <div class="t-sub">확률 = CritRate × 1%</div>
+      </div>
+      <div class="t-arrow to-modifier"><span class="t-arrow-label">YES</span></div>
+      <div class="t-side modifier">
+        <span class="t-s-main">× (1 + CritDMG × 0.01)</span>
+        <span class="t-s-sub">배수 적용 후 계산 계속</span>
+      </div>
+    </div>
+
+    <div class="tree-connector"><div class="t-line"><span class="t-line-label">YES</span></div></div>
+
+    <div class="tree-row branch">
+      <div class="t-node decision">
+        <div class="t-title">가드 중?</div>
+        <div class="t-sub">가드 불가 아님</div>
+      </div>
+      <div class="t-arrow to-modifier"><span class="t-arrow-label">YES</span></div>
+      <div class="t-side modifier">
+        <span class="t-s-main">× 0.5</span>
+        <span class="t-s-sub">감소 적용 후 계산 계속</span>
+      </div>
+    </div>
+
+    <div class="tree-connector"><div class="t-line"><span class="t-line-label">YES</span></div></div>
+
+    <div class="tree-row single">
+      <div class="t-node final">
+        <div class="t-title">HP 차감 + 부수 효과 적용</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="stat-list">
+    <div class="stat-item"><span class="stat-name">ATK</span><span class="stat-role">공격자 공격력. 데미지 기반</span></div>
+    <div class="stat-item"><span class="stat-name">DEF</span><span class="stat-role">방어자 방어력. 피해 감소율 결정</span></div>
+    <div class="stat-item"><span class="stat-name">CritRate</span><span class="stat-role">공격자 치명 확률 (포인트 = %)</span></div>
+    <div class="stat-item"><span class="stat-name">CritDMG</span><span class="stat-role">공격자 치명 추가 피해 (포인트 = %)</span></div>
+  </div>
+
+  <div class="notes">
+    <ul>
+      <li>치명타 발동 시 <code>(1 + CritDMG × 0.01)</code>배가 추가로 곱해진다. <strong>CritRate·CritDMG는 포인트 값이며 1포인트 = 1%</strong></li>
+      <li>가드 중인 적에게는 최종값에 0.5를 곱한다. <strong>가드 불가 공격은 가드 중이어도 그대로 들어간다</strong></li>
+      <li>방어 배율 <code>100 / (100 + DEF)</code>는 DEF가 100일 때 50%, 200일 때 33%로 수렴한다. DEF를 3배 키워도 피해가 3분의 1로 줄지는 않는다</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!--  2. 데미지 입력값                                    -->
+<!-- ══════════════════════════════════════════════════ -->
+<section id="s2">
+  <h2><span class="num">02</span>데미지 입력값</h2>
+  <p class="lede">기획자가 공격 노티파이에서 직접 고르는 값들. 수치·토글 파라미터는 위 표, HitReact 태그는 아래 표로 나눠 정리했다.</p>
+
+  <h3 class="subsection">파라미터</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:18%">파라미터</th>
+        <th style="width:10%">기본값</th>
+        <th style="width:32%">의미</th>
+        <th>체감</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="param">공격력 계수</td>
+        <td class="defval">1.0</td>
+        <td>ATK에 곱해지는 배율. 데미지의 핵심 다이얼</td>
+        <td>약공격 0.7 · 기본 공격 1.0 · 강공격 1.5~2.0 · 스킬 2~4 · 궁극기 5+</td>
+      </tr>
+      <tr>
+        <td class="param">MP 회복</td>
+        <td class="defval">0</td>
+        <td>적중 시 공격자가 얻는 마나량</td>
+        <td>0이면 회복 없음. 기본 공격에 소량 주면 마나 순환이 생긴다</td>
+      </tr>
+      <tr>
+        <td class="param">UP 회복</td>
+        <td class="defval">0</td>
+        <td>적중 시 공격자가 얻는 궁극기 게이지량</td>
+        <td>0이면 회복 없음. 기본 공격에 소량 주면 궁극기 회전율이 올라간다</td>
+      </tr>
+      <tr>
+        <td class="param">HitReact 태그</td>
+        <td class="defval">Normal</td>
+        <td>피격자에게 강제할 리액션 종류</td>
+        <td>Normal은 강인도가 버텨주지만, Knock 계열은 무조건 경직시킨다</td>
+      </tr>
+      <tr>
+        <td class="param">가드 불가</td>
+        <td class="defval">false</td>
+        <td>일반 가드를 무시하고 그대로 들어가는 공격</td>
+        <td>가드 위주 상대를 흔드는 용도. 남발하면 가드 자체가 의미 없어진다</td>
+      </tr>
+      <tr>
+        <td class="param">추가 이펙트</td>
+        <td class="defval">—</td>
+        <td>데미지와 함께 부여할 상태이상/디버프 목록</td>
+        <td>출혈·화상·둔화 같은 지속 효과를 얹고 싶을 때 사용</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="subsection">HitReact 태그</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:18%">태그</th>
+        <th style="width:42%">플레이어 체감</th>
+        <th>언제 쓰나</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="tag-name">Normal</td>
+        <td>강인도로 버티다가 소진 시에만 짧은 경직. 평상시엔 흔들림만</td>
+        <td>기본 공격, 연타 중간 히트</td>
+      </tr>
+      <tr>
+        <td class="tag-name">Knockback</td>
+        <td>뒤로 크게 밀려난다. 콤보 연결이 끊긴다</td>
+        <td>강공격 마무리, 밀치기, 카운터 반격</td>
+      </tr>
+      <tr>
+        <td class="tag-name">Knockdown</td>
+        <td>넘어져서 바닥에 눕는다. 일어나는 시간 동안 무방비</td>
+        <td>스윕, 내려찍기, 강한 일격의 피니시</td>
+      </tr>
+      <tr>
+        <td class="tag-name">Knockup</td>
+        <td>공중으로 떠오른다. 공중 콤보로 이어가기 좋은 상태</td>
+        <td>어퍼컷, 공중 콤보 시동기</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!--  3. 상태별 데미지 결과표                               -->
+<!-- ══════════════════════════════════════════════════ -->
+<section id="s3">
+  <h2><span class="num">03</span>상태별 데미지 결과표</h2>
+
+  <p class="lede">한 행 = 한 상황. 방어자 HP·DP·SP·PP와 공격자 MP/UP이 어떻게 움직이는지 한눈에 본다.</p>
+
+  <table class="stat-matrix">
+    <thead>
+      <tr>
+        <th rowspan="2">상황</th>
+        <th colspan="4">방어자</th>
+        <th rowspan="2">공격자<br>MP/UP</th>
+        <th rowspan="2">특이사항</th>
+      </tr>
+      <tr>
+        <th>HP</th>
+        <th>DP</th>
+        <th>SP</th>
+        <th>PP</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th class="situation">맨몸</th>
+        <td class="v-hit">▼ 100%</td>
+        <td class="v-gain">▲ 누적</td>
+        <td class="v-na">—</td>
+        <td class="v-drain">▼ 차감</td>
+        <td class="v-recover">▲ 회복</td>
+        <td class="v-note">PP 고갈 시 Normal HitReact 발동. Knock 계열은 PP와 무관하게 발동</td>
+      </tr>
+      <tr>
+        <th class="situation">가드<span class="atk-type">일반 공격</span></th>
+        <td class="v-hit">▼ 50%</td>
+        <td class="v-gain">▲ 누적</td>
+        <td class="v-drain">▼ 데미지만큼</td>
+        <td class="v-zero">0</td>
+        <td class="v-recover">▲ 회복</td>
+        <td class="v-note">SP 고갈 시 가드 해제(Guard Break)</td>
+      </tr>
+      <tr>
+        <th class="situation">가드<span class="atk-type">가드 불가</span></th>
+        <td class="v-hit">▼ 100%</td>
+        <td class="v-gain">▲ 누적</td>
+        <td class="v-zero">0</td>
+        <td class="v-drain">▼ 차감</td>
+        <td class="v-recover">▲ 회복</td>
+        <td class="v-note">가드 즉시 해제 + 일반 피격 리액션</td>
+      </tr>
+      <tr>
+        <th class="situation">퍼펙트 가드</th>
+        <td class="v-zero">0</td>
+        <td class="v-reflect">↩ 공격자 반사</td>
+        <td class="v-zero">0</td>
+        <td class="v-zero">0</td>
+        <td class="v-zero">0</td>
+        <td class="v-note">방어자 MP +5 · 가드 불가 공격보다 우선 판정</td>
+      </tr>
+      <tr>
+        <th class="situation">무적</th>
+        <td class="v-dodge">0</td>
+        <td class="v-dodge">0</td>
+        <td class="v-dodge">0</td>
+        <td class="v-dodge">0</td>
+        <td class="v-dodge">0</td>
+        <td class="v-note">회피 성공 이벤트 발송 · 공격 자체가 없던 일이 됨</td>
+      </tr>
+      <tr>
+        <th class="situation">그로기</th>
+        <td class="v-hit">▼ 100%</td>
+        <td class="v-zero">0 · 누적 없음</td>
+        <td class="v-na">—</td>
+        <td class="v-drain">▼ 차감</td>
+        <td class="v-recover">▲ 회복</td>
+        <td class="v-note">DP가 더 이상 쌓이지 않는 처형 구간</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="legend-row">
+    <span class="lg-item"><span class="lg-chip v-hit">▼</span> HP 감소</span>
+    <span class="lg-item"><span class="lg-chip v-gain">▲</span> 누적</span>
+    <span class="lg-item"><span class="lg-chip v-drain">▼</span> 차감</span>
+    <span class="lg-item"><span class="lg-chip v-recover">▲</span> 회복</span>
+    <span class="lg-item"><span class="lg-chip v-reflect">↩</span> 반사</span>
+    <span class="lg-item"><span class="lg-chip v-dodge">0</span> 회피</span>
+    <span class="lg-item"><span class="lg-chip v-zero">0</span> 변화 없음</span>
+    <span class="lg-item"><span class="lg-chip v-na">—</span> 해당 없음</span>
+  </div>
+
+</section>
+
+</div>
+</body>
+</html>
