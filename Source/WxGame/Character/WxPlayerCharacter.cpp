@@ -3,8 +3,6 @@
 #include "Character/WxPlayerCharacter.h"
 #include "Controller/WxPlayerController.h"
 #include "Camera/CameraComponent.h"
-#include "Component/WxInteractionComponent.h"
-#include "Components/SphereComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -27,17 +25,6 @@ AWxPlayerCharacter::AWxPlayerCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
-
-	InteractionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("InteractionSphere"));
-	InteractionSphere->SetupAttachment(RootComponent);
-	InteractionSphere->InitSphereRadius(200.f);
-	InteractionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	InteractionSphere->SetCollisionObjectType(ECC_WorldDynamic);
-	InteractionSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
-	InteractionSphere->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
-	InteractionSphere->SetGenerateOverlapEvents(true);
-	InteractionSphere->OnComponentBeginOverlap.AddDynamic(this, &AWxPlayerCharacter::HandleInteractionSphereBeginOverlap);
-	InteractionSphere->OnComponentEndOverlap.AddDynamic(this, &AWxPlayerCharacter::HandleInteractionSphereEndOverlap);
 
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 }
@@ -133,39 +120,5 @@ void AWxPlayerCharacter::AbilityInputReleased(FGameplayTag InputTag)
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->AbilityInputTagReleased(InputTag);
-	}
-}
-
-void AWxPlayerCharacter::HandleInteractionSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (!IsLocallyControlled())
-	{
-		return;
-	}
-	UWxInteractionComponent* InteractionComp = Cast<UWxInteractionComponent>(OtherComp);
-	if (!InteractionComp)
-	{
-		return;
-	}
-	if (AWxPlayerController* WxPC = Cast<AWxPlayerController>(GetController()))
-	{
-		WxPC->RegisterInteractionCandidate(InteractionComp);
-	}
-}
-
-void AWxPlayerCharacter::HandleInteractionSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (!IsLocallyControlled())
-	{
-		return;
-	}
-	UWxInteractionComponent* InteractionComp = Cast<UWxInteractionComponent>(OtherComp);
-	if (!InteractionComp)
-	{
-		return;
-	}
-	if (AWxPlayerController* WxPC = Cast<AWxPlayerController>(GetController()))
-	{
-		WxPC->UnregisterInteractionCandidate(InteractionComp);
 	}
 }

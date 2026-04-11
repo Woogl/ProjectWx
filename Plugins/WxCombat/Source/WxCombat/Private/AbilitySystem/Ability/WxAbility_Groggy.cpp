@@ -111,17 +111,16 @@ void UWxAbility_Groggy::TickPlayMontage()
 		return;
 	}
 
-	const UAnimInstance* AnimInstance = CurrentActorInfo->GetAnimInstance();
-	if (!AnimInstance || AnimInstance->GetCurrentActiveMontage() != nullptr)
-	{
-		return;
-	}
-
 	UAbilitySystemComponent* ASC = CurrentActorInfo->AbilitySystemComponent.Get();
 	if (!ASC)
 	{
 		return;
 	}
 
-	ASC->PlayMontage(this, CurrentActivationInfo, GroggyMontage, 1.f, NAME_None, 0.f);
+	if (ASC->GetCurrentMontage() != nullptr)
+	{
+		return;
+	}
+
+	ASC->PlayMontage(this, CurrentActivationInfo, GroggyMontage, 1.f);
 }

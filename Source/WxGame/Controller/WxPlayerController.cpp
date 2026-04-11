@@ -2,7 +2,6 @@
 
 #include "Controller/WxPlayerController.h"
 #include "Character/WxCharacterBase.h"
-#include "Component/WxInteractionComponent.h"
 #include "MVVMGameSubsystem.h"
 #include "MVVM/WxViewModel_AbilitySystem.h"
 #include "MVVM/WxViewModel_Ability.h"
@@ -42,99 +41,6 @@ const UInputAction* AWxPlayerController::GetLookAction() const
 const TArray<FWxInputAbilityBinding>& AWxPlayerController::GetAbilityInputBindings() const
 {
 	return AbilityInputBindings;
-}
-
-UWxInteractionComponent* AWxPlayerController::GetCurrentInteractionTarget() const
-{
-	return CurrentInteractionTarget.Get();
-}
-
-void AWxPlayerController::RegisterInteractionCandidate(UWxInteractionComponent* Component)
-{
-	if (!Component)
-	{
-		return;
-	}
-	InteractionCandidates.AddUnique(Component);
-	UpdateCurrentInteractionTarget();
-}
-
-void AWxPlayerController::UnregisterInteractionCandidate(UWxInteractionComponent* Component)
-{
-	if (!Component)
-	{
-		return;
-	}
-	for (int32 Index = InteractionCandidates.Num() - 1; Index >= 0; --Index)
-	{
-		if (InteractionCandidates[Index].Get() == Component)
-		{
-			InteractionCandidates.RemoveAtSwap(Index);
-			break;
-		}
-	}
-	UpdateCurrentInteractionTarget();
-}
-
-void AWxPlayerController::UpdateCurrentInteractionTarget()
-{
-	const APawn* MyPawn = GetPawn();
-	UWxInteractionComponent* BestComponent = nullptr;
-
-	if (MyPawn)
-	{
-		const FVector PawnLocation = MyPawn->GetActorLocation();
-		float BestDistanceSq = TNumericLimits<float>::Max();
-
-		for (int32 Index = InteractionCandidates.Num() - 1; Index >= 0; --Index)
-		{
-			UWxInteractionComponent* Candidate = InteractionCandidates[Index].Get();
-			if (!Candidate)
-			{
-				InteractionCandidates.RemoveAtSwap(Index);
-				continue;
-			}
-			const float DistanceSq = FVector::DistSquared(PawnLocation, Candidate->GetComponentLocation());
-			if (DistanceSq < BestDistanceSq)
-			{
-				BestDistanceSq = DistanceSq;
-				BestComponent = Candidate;
-			}
-		}
-	}
-
-	if (CurrentInteractionTarget.Get() != BestComponent)
-	{
-		CurrentInteractionTarget = BestComponent;
-		OnInteractionTargetChanged.Broadcast(BestComponent);
-	}
-}
-
-void AWxPlayerController::TryInteractCurrent(FGameplayTag InputTag)
-{
-	UWxInteractionComponent* Target = CurrentInteractionTarget.Get();
-	if (!Target)
-	{
-		return;
-	}
-
-	if (HasAuthority())
-	{
-		Target->TryInteract(GetPawn(), InputTag);
-	}
-	else
-	{
-		Server_TryInteract(Target, InputTag);
-	}
-}
-
-void AWxPlayerController::Server_TryInteract_Implementation(UWxInteractionComponent* TargetComponent, FGameplayTag InputTag)
-{
-	if (!TargetComponent)
-	{
-		return;
-	}
-	TargetComponent->TryInteract(GetPawn(), InputTag);
 }
 
 void AWxPlayerController::BeginPlay()

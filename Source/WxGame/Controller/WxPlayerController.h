@@ -12,9 +12,6 @@ class UInputMappingContext;
 class UInputAction;
 class UAbilitySystemComponent;
 class UWxActivatableWidget;
-class UWxInteractionComponent;
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionTargetChangedSignature, UWxInteractionComponent*, NewTarget);
 
 /** Enhanced Input Action과 Gameplay Tag를 매핑하는 단일 항목 */
 USTRUCT(BlueprintType)
@@ -45,19 +42,6 @@ public:
 	const UInputAction* GetLookAction() const;
 	const TArray<FWxInputAbilityBinding>& GetAbilityInputBindings() const;
 
-	/** 플레이어 캐릭터의 InteractionSphere가 오버랩 시 호출 */
-	void RegisterInteractionCandidate(UWxInteractionComponent* Component);
-	void UnregisterInteractionCandidate(UWxInteractionComponent* Component);
-
-	UWxInteractionComponent* GetCurrentInteractionTarget() const;
-
-	/** 캐릭터 입력 핸들러가 호출. 현재 타깃에 대해 InputTag로 상호작용 시도 (필요 시 서버 RPC로 위임) */
-	void TryInteractCurrent(FGameplayTag InputTag);
-
-	/** 현재 상호작용 타깃이 변경될 때 fire. UI/ViewModel이 구독해 프롬프트를 갱신 */
-	UPROPERTY(BlueprintAssignable, Category = "Wx|Interaction")
-	FWxOnInteractionTargetChangedSignature OnInteractionTargetChanged;
-
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
@@ -82,15 +66,6 @@ private:
 
 	void InitializePlayerAbilitySystemViewModel(UAbilitySystemComponent* ASC);
 
-	void UpdateCurrentInteractionTarget();
-
-	UFUNCTION(Server, Reliable)
-	void Server_TryInteract(UWxInteractionComponent* TargetComponent, FGameplayTag InputTag);
-
 	UPROPERTY(Transient)
 	TObjectPtr<UWxActivatableWidget> GameHUD;
-
-	TArray<TWeakObjectPtr<UWxInteractionComponent>> InteractionCandidates;
-
-	TWeakObjectPtr<UWxInteractionComponent> CurrentInteractionTarget;
 };

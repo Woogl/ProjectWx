@@ -4,43 +4,25 @@
 
 #include "CoreMinimal.h"
 #include "Components/SphereComponent.h"
-#include "GameplayTagContainer.h"
 #include "WxInteractionComponent.generated.h"
 
-class UTexture2D;
+class UWidgetComponent;
 
-/**
- * 단일 상호작용 옵션. 하나의 InputTag에 대응하는 프롬프트 1개를 표현.
- * 같은 액터에 여러 옵션이 있을 경우 InputTag로 구분된다 (예: Primary=대화, Secondary=거래).
- */
-USTRUCT(BlueprintType)
-struct WXWORLD_API FWxInteractionOption
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Categories = "Input.Interact"))
-	FGameplayTag InputTag;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FText DisplayText;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSoftObjectPtr<UTexture2D> Icon;
-};
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWxOnInteractedSignature, AActor*, Instigator, FGameplayTag, InputTag);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractedSignature, AActor*, InstigatorActor);
 
 /**
  * 액터의 상호작용을 노출하는 컴포넌트.
- * 컴포넌트 자체는 위치/반경 마커 역할만 하고, 오버랩 감지는 플레이어 캐릭터 측에서 수행한다.
+ * USphereComponent를 상속해 폰의 접근을 자체적으로 감지하며,
+ * 오버랩 시 Owner 액터가 소유한 UWidgetComponent를 찾아 가시성을 토글한다.
+ * (UI 위젯의 생성/배치/WidgetClass 지정은 Owner 액터의 책임)
  *
  * 흐름:
- *  1) 플레이어의 InteractionSphere가 본 컴포넌트와 오버랩 → PlayerController에 자신을 등록
- *  2) PlayerController가 후보 중 가장 가까운 것을 선택해 UI 프롬프트로 노출
- *  3) 입력 발생 시 PlayerController가 서버 RPC로 TryInteract 호출
- *  4) 서버에서 옵션 검증 → OnInteracted 델리게이트 fire → 액터 로직이 처리
+ *  1) 폰이 본 컴포넌트와 오버랩 → 로컬 클라이언트에서 Owner의 WidgetComponent를 표시
+ *  2) 플레이어가 상호작용 입력 → WxAbility_Interact(서버 권한 실행)가 TryInteract 호출
+ *  3) 서버에서 OnInteracted 델리게이트 fire → 액터 로직이 처리
  *
- * 주의: 이 컴포넌트가 부착된 액터는 서버 RPC 경로를 위해 Replicate 되어야 한다.
+ * 주의: 본 컴포넌트는 RPC를 보유하지 않는다. 서버 권한 진입은 호출자(WxAbility_Interact)가 보장해야 하며,
+ * 부착 액터는 상호작용 결과를 복제하기 위해 Replicate 되어야 한다.
  */
 UCLASS(ClassGroup = "Wx", meta = (BlueprintSpawnableComponent, PrioritizeCategories = "Wx"))
 class WXWORLD_API UWxInteractionComponent : public USphereComponent
@@ -50,19 +32,23 @@ class WXWORLD_API UWxInteractionComponent : public USphereComponent
 public:
 	UWxInteractionComponent();
 
-	const TArray<FWxInteractionOption>& GetOptions() const;
-
-	/**
-	 * 서버에서 상호작용을 실행. PlayerController가 RPC를 통해 호출함을 가정.
-	 * Options 안에 InputTag와 일치하는 항목이 있어야 OnInteracted가 fire된다.
-	 */
-	void TryInteract(AActor* Instigator, FGameplayTag InputTag);
+	/** 서버 권한에서 호출. OnInteracted 델리게이트를 fire한다. */
+	void TryInteract(AActor* InstigatorActor);
 
 	UPROPERTY(BlueprintAssignable, Category = "Wx")
 	FWxOnInteractedSignature OnInteracted;
 
 protected:
-	/** 이 액터가 노출하는 상호작용 옵션 목록 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx")
-	TArray<FWxInteractionOption> Options;
+	virtual void BeginPlay() override;
+
+private:
+	UFUNCTION()
+	void HandleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void HandleEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	void SetPromptVisible(bool bNewVisible);
+
+	TWeakObjectPtr<UWidgetComponent> CachedPromptWidget;
 };
