@@ -15,5 +15,10 @@ public class WxWorld : ModuleRules
 			"Engine",
 			"WxCore",
 		});
+
+		PrivateDependencyModuleNames.AddRange(new string[]
+		{
+			"DeveloperSettings",
+		});
 	}
 }

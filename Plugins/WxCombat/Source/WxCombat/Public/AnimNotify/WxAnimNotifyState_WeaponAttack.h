@@ -26,6 +26,6 @@ public:
 	virtual FString GetNotifyName_Implementation() const override;
 
 protected:
-	UPROPERTY(EditAnywhere, meta = (ShowOnlyInnerProperties))
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ShowOnlyInnerProperties))
 	FWxDamageInfo DamageInfo;
 };

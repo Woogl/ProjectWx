@@ -5,6 +5,7 @@
 	"FriendlyName": "WxWorld",
 	"Description": "World objects and interactions plugin",
 	"Category": "Wx",
+	"CanContainContent": true,
 	"Modules": [
 		{
 			"Name": "WxWorld",

@@ -6,9 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "WxSpawner.generated.h"
 
-class UChildActorComponent;
+class UBillboardComponent;
 
-UCLASS()
+UCLASS(meta = (PrioritizeCategories = "Wx"))
 class WXWORLD_API AWxSpawner : public AActor
 {
 	GENERATED_BODY()
@@ -21,7 +21,7 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UPROPERTY(EditAnywhere, Category = "Wx")
-	TSubclassOf<AActor> ActorClass;
+	TSubclassOf<AActor> SpawnableActorClass;
 
 	TWeakObjectPtr<AActor> SpawnedActor;
 
@@ -30,7 +30,12 @@ protected:
 #endif
 
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	TObjectPtr<UChildActorComponent> PreviewChildActor;
+	UPROPERTY()
+	TObjectPtr<UBillboardComponent> SpriteComponent;
+#endif
+
+#if WITH_EDITOR
+private:
+	void UpdateSpriteFromSpawnableClass();
 #endif
 };
