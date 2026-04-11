@@ -185,6 +185,7 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 	if (SpecHandle.IsValid())
 	{
 		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_MP, PerfectDodgeMPRecovery);
+		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_UP, 0.f);
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle);
 	}
 
