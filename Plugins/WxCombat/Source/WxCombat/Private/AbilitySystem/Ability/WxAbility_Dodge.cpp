@@ -3,7 +3,7 @@
 #include "AbilitySystem/Ability/WxAbility_Dodge.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
-#include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
+#include "AbilitySystem/Task/WxAbilityTask_WaitInputTag.h"
 #include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
 #include "AbilitySystem/Task/WxAbilityTask_TurnAround.h"
@@ -222,15 +222,15 @@ void UWxAbility_Dodge::PlayPerfectDodgeMontage()
 
 void UWxAbility_Dodge::ListenForCounterInput()
 {
-	WaitInputTask = UAbilityTask_WaitInputPress::WaitInputPress(this);
+	WaitInputTask = UWxAbilityTask_WaitInputTag::CreateTask(this, WxGameplayTags::Input_Attack);
 	if (WaitInputTask)
 	{
-		WaitInputTask->OnPress.AddDynamic(this, &UWxAbility_Dodge::HandleCounterInputPressed);
+		WaitInputTask->OnPressed.AddDynamic(this, &UWxAbility_Dodge::HandleCounterInputPressed);
 		WaitInputTask->ReadyForActivation();
 	}
 }
 
-void UWxAbility_Dodge::HandleCounterInputPressed(float TimeWaited)
+void UWxAbility_Dodge::HandleCounterInputPressed()
 {
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	if (!ASC)

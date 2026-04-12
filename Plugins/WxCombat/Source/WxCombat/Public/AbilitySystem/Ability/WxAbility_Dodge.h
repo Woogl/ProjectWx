@@ -8,7 +8,7 @@
 
 class UAnimMontage;
 class UAbilityTask_PlayMontageAndWait;
-class UAbilityTask_WaitInputPress;
+class UWxAbilityTask_WaitInputTag;
 struct FGameplayAbilityTargetDataHandle;
 
 /**
@@ -63,7 +63,7 @@ private:
 	void HandleDodgeSuccess(FGameplayEventData Payload);
 
 	UFUNCTION()
-	void HandleCounterInputPressed(float TimeWaited);
+	void HandleCounterInputPressed();
 
 	UFUNCTION()
 	void HandleMontageCompleted();
@@ -81,5 +81,5 @@ private:
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
 
 	UPROPERTY()
-	TObjectPtr<UAbilityTask_WaitInputPress> WaitInputTask;
+	TObjectPtr<UWxAbilityTask_WaitInputTag> WaitInputTask;
 };
