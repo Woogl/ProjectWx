@@ -162,7 +162,7 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 {
 	// 클라이언트와 서버 모두 동일한 히트 판정과 GE 적용을 수행한다.
 	// 클라이언트의 GE 적용은 어빌리티의 ScopedPredictionKey로 예측 처리되며,
-	// 서버의 권�� 적용과 불일치하면 GAS가 자동으로 롤백한다.
+	// 서버의 권위 적용과 불일치하면 GAS가 자동으로 롤백한다.
 
 	AActor* WeaponOwner = GetOwner();
 	if (!OtherActor || OtherActor == WeaponOwner)
