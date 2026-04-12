@@ -48,15 +48,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Ultimate, "Ability.Ultimate");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Interact, "Ability.Interact");
 
-	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Jump, "Cooldown.Jump");
-	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Dodge, "Cooldown.Dodge");
-	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Guard, "Cooldown.Guard");
-	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill_1, "Cooldown.Skill.1");
-	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill_2, "Cooldown.Skill.2");
-	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill_3, "Cooldown.Skill.3");
-	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill_4, "Cooldown.Skill.4");
-	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Ultimate, "Cooldown.Ultimate");
-
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Cost, "SetByCaller.Cost");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Recovery_UP, "SetByCaller.Recovery.UP");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Recovery_MP, "SetByCaller.Recovery.MP");

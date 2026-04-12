@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbilityBase.h"
-#include "AbilitySystem/Effect/WxEffect_CooldownBase.h"
+#include "AbilitySystem/Effect/WxEffect_Cooldown.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
 
@@ -38,13 +38,27 @@ void UWxAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, c
 	}
 }
 
+UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
+{
+	if (CooldownTime <= 0.f)
+	{
+		return nullptr;
+	}
+
+	if (!CooldownEffect)
+	{
+		CooldownEffect = NewObject<UWxEffect_Cooldown>(const_cast<UWxAbilityBase*>(this), TEXT("CooldownEffect"));
+	}
+
+	CooldownEffect->StackLimitCount = MaxCharges;
+	return CooldownEffect;
+}
+
 bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	// 활성 쿨다운 GE의 스택 합계가 StackLimitCount 미만이면 사용 가능 (StackLimitCount=1이면 GAS 기본 동작과 동일).
-	const UGameplayEffect* CooldownGE = GetCooldownGameplayEffect();
-	if (!CooldownGE)
+	if (CooldownTime <= 0.f)
 	{
-		return Super::CheckCooldown(Handle, ActorInfo, OptionalRelevantTags);
+		return true;
 	}
 
 	const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
@@ -53,8 +67,10 @@ bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, cons
 		return false;
 	}
 
+	const UGameplayAbility* AbilityCDO = GetClass()->GetDefaultObject<UGameplayAbility>();
+
 	FGameplayEffectQuery Query;
-	Query.EffectDefinition = CooldownGE->GetClass();
+	Query.EffectDefinition = UWxEffect_Cooldown::StaticClass();
 
 	int32 ConsumedCharges = 0;
 	const TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);
@@ -62,24 +78,32 @@ bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, cons
 	{
 		if (const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(ActiveHandle))
 		{
-			ConsumedCharges += ActiveGE->Spec.GetStackCount();
+			if (ActiveGE->Spec.GetEffectContext().GetAbility() == AbilityCDO)
+			{
+				ConsumedCharges++;
+			}
 		}
 	}
 
-	const int32 MaxCharges = FMath::Max(1, CooldownGE->StackLimitCount);
 	if (ConsumedCharges < MaxCharges)
 	{
 		return true;
 	}
 
-	// 사용 불가: GAS 표준대로 OptionalRelevantTags에 쿨다운 태그를 채워준다.
-	if (OptionalRelevantTags)
-	{
-		if (const FGameplayTagContainer* CooldownTags = GetCooldownTags())
-		{
-			OptionalRelevantTags->AppendTags(*CooldownTags);
-		}
-	}
 	return false;
 }
 
+void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
+{
+	if (CooldownTime <= 0.f)
+	{
+		return;
+	}
+
+	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_Cooldown::StaticClass(), GetAbilityLevel());
+	if (SpecHandle.IsValid())
+	{
+		SpecHandle.Data->SetDuration(CooldownTime, true);
+		ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
+	}
+}

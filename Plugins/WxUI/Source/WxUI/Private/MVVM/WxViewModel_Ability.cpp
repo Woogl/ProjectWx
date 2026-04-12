@@ -22,19 +22,18 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 		AbilityTag = AssetTags.First();
 	}
 
-	// CooldownGameplayEffectClass의 StackLimitCount = 최대 충전 수.
 	int32 AbilityMaxCharges = 1;
-	if (const TSubclassOf<UGameplayEffect> CooldownClass = GetCooldownEffectClass())
+	if (const UGameplayEffect* CooldownGE = InAbility->GetCooldownGameplayEffect())
 	{
-		const UGameplayEffect* CooldownCDO = CooldownClass->GetDefaultObject<UGameplayEffect>();
-		AbilityMaxCharges = FMath::Max(1, CooldownCDO->StackLimitCount);
+		CachedCooldownClass = CooldownGE->GetClass();
+		AbilityMaxCharges = FMath::Max(1, CooldownGE->StackLimitCount);
 	}
 
 	SetMaxCharges(AbilityMaxCharges);
 	SetHasMultipleCharges(AbilityMaxCharges > 1);
 	SetCurrentCharges(AbilityMaxCharges);
 
-	if (GetCooldownEffectClass())
+	if (CachedCooldownClass)
 	{
 		InASC->OnActiveGameplayEffectAddedDelegateToSelf
 			.AddUObject(this, &UWxViewModel_Ability::HandleGameplayEffectApplied);
@@ -56,33 +55,23 @@ void UWxViewModel_Ability::Deinitialize()
 
 	CachedASC.Reset();
 	CachedAbility.Reset();
+	CachedCooldownClass = nullptr;
 
 	Super::Deinitialize();
-}
-
-TSubclassOf<UGameplayEffect> UWxViewModel_Ability::GetCooldownEffectClass() const
-{
-	const UGameplayAbility* Ability = CachedAbility.Get();
-	if (!Ability)
-	{
-		return nullptr;
-	}
-
-	const UGameplayEffect* CooldownGE = Ability->GetCooldownGameplayEffect();
-	return CooldownGE ? CooldownGE->GetClass() : nullptr;
 }
 
 int32 UWxViewModel_Ability::GetConsumedCharges() const
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
-	const TSubclassOf<UGameplayEffect> CooldownClass = GetCooldownEffectClass();
-	if (!ASC || !CooldownClass)
+	if (!ASC || !CachedCooldownClass)
 	{
 		return 0;
 	}
 
+	const UGameplayAbility* AbilityCDO = CachedAbility.Get();
+
 	FGameplayEffectQuery Query;
-	Query.EffectDefinition = CooldownClass;
+	Query.EffectDefinition = CachedCooldownClass;
 
 	int32 Consumed = 0;
 	const TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);
@@ -90,7 +79,10 @@ int32 UWxViewModel_Ability::GetConsumedCharges() const
 	{
 		if (const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(Handle))
 		{
-			Consumed += ActiveGE->Spec.GetStackCount();
+			if (ActiveGE->Spec.GetEffectContext().GetAbility() == AbilityCDO)
+			{
+				Consumed++;
+			}
 		}
 	}
 	return Consumed;
@@ -98,8 +90,12 @@ int32 UWxViewModel_Ability::GetConsumedCharges() const
 
 void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle)
 {
-	const TSubclassOf<UGameplayEffect> CooldownClass = GetCooldownEffectClass();
-	if (!CooldownClass || SpecApplied.Def == nullptr || SpecApplied.Def->GetClass() != CooldownClass)
+	if (!CachedCooldownClass || !SpecApplied.Def || SpecApplied.Def->GetClass() != CachedCooldownClass)
+	{
+		return;
+	}
+
+	if (SpecApplied.GetEffectContext().GetAbility() != CachedAbility.Get())
 	{
 		return;
 	}
@@ -123,34 +119,42 @@ void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* 
 bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (!ASC)
+	if (!ASC || !CachedCooldownClass)
 	{
 		return false;
 	}
 
-	const TSubclassOf<UGameplayEffect> CooldownClass = GetCooldownEffectClass();
-	if (!CooldownClass)
-	{
-		return false;
-	}
+	const UGameplayAbility* AbilityCDO = CachedAbility.Get();
+	const float WorldTime = ASC->GetWorld()->GetTimeSeconds();
 
-	// 활성 쿨다운 GE의 남은 시간 = 다음 충전 복구까지 남은 시간.
 	FGameplayEffectQuery Query;
-	Query.EffectDefinition = CooldownClass;
-	const TArray<TPair<float, float>> TimesAndDurations = ASC->GetActiveEffectsTimeRemainingAndDuration(Query);
+	Query.EffectDefinition = CachedCooldownClass;
 
 	float MinTimeRemaining = 0.f;
-	for (const TPair<float, float>& Pair : TimesAndDurations)
+	int32 ConsumedCharges = 0;
+	const TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);
+	for (const FActiveGameplayEffectHandle& ActiveHandle : Handles)
 	{
-		if (MinTimeRemaining <= 0.f || Pair.Key < MinTimeRemaining)
+		if (const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(ActiveHandle))
 		{
-			MinTimeRemaining = Pair.Key;
+			if (ActiveGE->Spec.GetEffectContext().GetAbility() != AbilityCDO)
+			{
+				continue;
+			}
+
+			ConsumedCharges++;
+
+			const float Duration = ActiveGE->Spec.GetDuration();
+			const float TimeRemaining = (ActiveGE->StartWorldTime + Duration) - WorldTime;
+			if (TimeRemaining > 0.f && (MinTimeRemaining <= 0.f || TimeRemaining < MinTimeRemaining))
+			{
+				MinTimeRemaining = TimeRemaining;
+			}
 		}
 	}
 
 	if (MinTimeRemaining <= 0.f)
 	{
-		// 모든 쿨다운 GE 만료: 모든 충전 복구 후 ticker 종료
 		SetCooldownDuration(0.f);
 		SetCooldownRemaining(0.f);
 		SetCooldownPercent(0.f);
@@ -162,12 +166,7 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 
 	SetCooldownRemaining(MinTimeRemaining);
 	SetCooldownPercent(CooldownDuration > 0.f ? MinTimeRemaining / CooldownDuration : 0.f);
-
-	if (MaxCharges > 1)
-	{
-		const int32 Consumed = GetConsumedCharges();
-		SetCurrentCharges(FMath::Max(0, MaxCharges - Consumed));
-	}
+	SetCurrentCharges(FMath::Max(0, MaxCharges - ConsumedCharges));
 
 	return true;
 }

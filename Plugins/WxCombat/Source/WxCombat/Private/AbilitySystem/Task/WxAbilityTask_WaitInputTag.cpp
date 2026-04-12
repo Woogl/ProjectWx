@@ -45,7 +45,12 @@ void UWxAbilityTask_WaitInputTag::OnDestroy(bool AbilityEnded)
 void UWxAbilityTask_WaitInputTag::HandleInputPressed()
 {
 	const UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(AbilitySystemComponent.Get());
-	if (!WxASC || WxASC->GetLastPressedInputTag() != InputTag)
+	if (!WxASC)
+	{
+		return;
+	}
+
+	if (!WxASC->GetLastPressedInputTag().MatchesTag(InputTag))
 	{
 		return;
 	}

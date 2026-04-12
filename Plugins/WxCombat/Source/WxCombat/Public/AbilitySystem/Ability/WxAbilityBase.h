@@ -8,6 +8,7 @@
 
 class UAbilitySystemComponent;
 class UGameplayEffect;
+class UWxEffect_Cooldown;
 
 /** 어빌리티 활성화 정책 */
 UENUM(BlueprintType)
@@ -23,9 +24,9 @@ enum class EWxAbilityActivationPolicy : uint8
  * 프로젝트 전체 어빌리티 베이스 클래스.
  * 모든 어빌리티는 이 클래스를 상속받아 작성.
  *
- * 쿨다운은 GAS 표준 방식을 따른다 — 어빌리티 BP의 CooldownGameplayEffectClass 슬롯에
- * UWxEffect_CooldownBase 기반 BP 에셋을 지정하면 자동으로 동작한다. 충전(Charge) 시스템은
- * 해당 GE의 Stack Limit Count로 표현된다.
+ * 쿨다운은 CooldownDuration, MaxCharges 프로퍼티로 설정한다.
+ * 내부적으로 공용 UWxEffect_Cooldown GE를 사용하며,
+ * 소스 어빌리티 CDO로 개별 어빌리티의 쿨다운을 구분한다.
  */
 UCLASS(Abstract, BlueprintType, Blueprintable, meta = (PrioritizeCategories = "Wx"))
 class WXCOMBAT_API UWxAbilityBase : public UGameplayAbility
@@ -46,6 +47,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	TSoftObjectPtr<UTexture2D> AbilityIcon;
 
+	/** 쿨다운 시간(초). 0 이하이면 쿨다운 미적용 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cooldown")
+	float CooldownTime = 0.f;
+
+	/** 최대 충전 수. 1이면 단일 쿨다운 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cooldown")
+	int32 MaxCharges = 1;
+
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
@@ -54,5 +63,15 @@ protected:
 	TArray<TSubclassOf<UGameplayEffect>> OnActivateEffects;
 
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+	virtual UGameplayEffect* GetCooldownGameplayEffect() const override;
 	virtual bool CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
+
+private:
+	/**
+	 * GetCooldownGameplayEffect()가 반환하는 GE 인스턴스.
+	 * ViewModel이 GetClass()로 쿨다운 GE 클래스를, StackLimitCount로 MaxCharges를 읽는다.
+	 */
+	UPROPERTY(Transient)
+	mutable TObjectPtr<UWxEffect_Cooldown> CooldownEffect;
 };
