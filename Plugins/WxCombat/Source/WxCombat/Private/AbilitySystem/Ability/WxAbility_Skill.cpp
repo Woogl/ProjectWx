@@ -2,8 +2,6 @@
 
 #include "AbilitySystem/Ability/WxAbility_Skill.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "AbilitySystem/Effect/WxEffect_CostMP.h"
-#include "AbilitySystem/WxCombatAttributeSet.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_Skill::UWxAbility_Skill()
@@ -41,48 +39,6 @@ void UWxAbility_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Skill::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Skill::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
-}
-
-bool UWxAbility_Skill::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
-{
-	if (!Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags))
-	{
-		return false;
-	}
-	
-	if (MPCost <= 0.f)
-	{
-		return true;
-	}
-
-	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-	if (!ASC)
-	{
-		return false;
-	}
-
-	const UWxCombatAttributeSet* AttrSet = ASC->GetSet<UWxCombatAttributeSet>();
-	if (!AttrSet || AttrSet->GetMP() < MPCost)
-	{
-		return false;
-	}
-
-	return true;
-}
-
-void UWxAbility_Skill::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
-{
-	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
-
-	if (MPCost > 0.f)
-	{
-		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_CostMP::StaticClass(), GetAbilityLevel());
-		if (SpecHandle.IsValid())
-		{
-			SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Cost, -MPCost);
-			ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
-		}
-	}
 }
 
 void UWxAbility_Skill::HandleMontageCompleted()

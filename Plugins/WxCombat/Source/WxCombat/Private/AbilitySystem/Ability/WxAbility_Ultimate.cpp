@@ -5,8 +5,6 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "LevelSequence.h"
 #include "WxGameplayTags.h"
-#include "AbilitySystem/WxCombatAttributeSet.h"
-#include "AbilitySystem/Effect/WxEffect_CostUP.h"
 
 UWxAbility_Ultimate::UWxAbility_Ultimate()
 {
@@ -48,45 +46,6 @@ void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	// 컷신 에셋이 없으면 바로 몽타주 단계로 진행
 	HandleCutsceneCompleted();
-}
-
-bool UWxAbility_Ultimate::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
-{
-	if (!Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags))
-	{
-		return false;
-	}
-	
-	if (UPCost <= 0.f)
-	{
-		return true;
-	}
-
-	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-	if (!ASC)
-	{
-		return false;
-	}
-
-	const UWxCombatAttributeSet* AttrSet = ASC->GetSet<UWxCombatAttributeSet>();
-	if (!AttrSet || AttrSet->GetUP() < UPCost)
-	{
-		return false;
-	}
-
-	return true;
-}
-
-void UWxAbility_Ultimate::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
-{
-	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
-
-	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_CostUP::StaticClass(), GetAbilityLevel());
-	if (SpecHandle.IsValid())
-	{
-		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Cost, -UPCost);
-		ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
-	}
 }
 
 void UWxAbility_Ultimate::HandleCutsceneCompleted()

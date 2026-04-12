@@ -2,8 +2,13 @@
 
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystem/Effect/WxEffect_Cooldown.h"
+#include "AbilitySystem/Effect/WxEffect_CostMP.h"
+#include "AbilitySystem/Effect/WxEffect_CostUP.h"
+#include "AbilitySystem/WxAbilityTableRow.h"
+#include "AbilitySystem/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
+#include "WxGameplayTags.h"
 
 UWxAbilityBase::UWxAbilityBase()
 {
@@ -32,10 +37,29 @@ void UWxAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, c
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
 
+	if (const FWxAbilityTableRow* Row = AbilityDataRow.GetRow<FWxAbilityTableRow>(TEXT("WxAbilityBase::OnGiveAbility")))
+	{
+		ApplyAbilityTableRow(*Row);
+
+		UWxAbilityBase* CDO = GetClass()->GetDefaultObject<UWxAbilityBase>();
+		if (CDO != this)
+		{
+			CDO->ApplyAbilityTableRow(*Row);
+		}
+	}
+
 	if (ActivationPolicy == EWxAbilityActivationPolicy::OnGranted)
 	{
 		ActorInfo->AbilitySystemComponent->TryActivateAbility(Spec.Handle);
 	}
+}
+
+void UWxAbilityBase::ApplyAbilityTableRow(const FWxAbilityTableRow& Row)
+{
+	CooldownTime = Row.CooldownTime;
+	MaxCharges = Row.MaxCharges;
+	MPCost = Row.MPCost;
+	UPCost = Row.UPCost;
 }
 
 UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
@@ -105,5 +129,67 @@ void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, cons
 	{
 		SpecHandle.Data->SetDuration(CooldownTime, true);
 		ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
+	}
+}
+
+bool UWxAbilityBase::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	if (!Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags))
+	{
+		return false;
+	}
+
+	if (MPCost <= 0.f && UPCost <= 0.f)
+	{
+		return true;
+	}
+
+	const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+	if (!ASC)
+	{
+		return false;
+	}
+
+	const UWxCombatAttributeSet* AttrSet = ASC->GetSet<UWxCombatAttributeSet>();
+	if (!AttrSet)
+	{
+		return false;
+	}
+
+	if (MPCost > 0.f && AttrSet->GetMP() < MPCost)
+	{
+		return false;
+	}
+
+	if (UPCost > 0.f && AttrSet->GetUP() < UPCost)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void UWxAbilityBase::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
+{
+	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
+
+	if (MPCost > 0.f)
+	{
+		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_CostMP::StaticClass(), GetAbilityLevel());
+		if (SpecHandle.IsValid())
+		{
+			SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Cost, -MPCost);
+			ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
+		}
+	}
+
+	if (UPCost > 0.f)
+	{
+		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_CostUP::StaticClass(), GetAbilityLevel());
+		if (SpecHandle.IsValid())
+		{
+			SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Cost, -UPCost);
+			ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
+		}
 	}
 }

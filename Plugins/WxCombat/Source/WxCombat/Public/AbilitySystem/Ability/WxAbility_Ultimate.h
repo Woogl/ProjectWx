@@ -30,13 +30,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> UltimateMontage;
-	
-	/** UP 소모량 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cost")
-	float UPCost = 100.f;
-	
-	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
-	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
 private:
 	UFUNCTION()

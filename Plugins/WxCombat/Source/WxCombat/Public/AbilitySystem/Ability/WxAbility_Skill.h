@@ -31,13 +31,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> SkillMontage;
 
-	/** MP 소모량. 0 이하이면 코스트 미적용 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cost")
-	float MPCost = 0.f;
-
-	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
-	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
-
 private:
 	UFUNCTION()
 	void HandleMontageCompleted();
