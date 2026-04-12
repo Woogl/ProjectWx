@@ -96,10 +96,13 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	const bool bHasPerfectGuard = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_PerfectGuard);
 	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard);
 
+	// Unblockable 공격은 퍼펙트 가드를 포함한 모든 가드를 무시한다.
+	const bool bPerfectGuardApplied = bHasPerfectGuard && !bIsUnblockable;
+
 	// --- 4. 대미지 적용 ---
 	FWxDamageResult DamageResult;
 
-	if (bHasPerfectGuard)
+	if (bPerfectGuardApplied)
 	{
 		DamageResult.FinalDamage = FMath::Max(SourceATK * DefenseMultiplier, 0.f);
 		ReflectPerfectGuard(SourceASC, DamageResult.FinalDamage);
@@ -139,8 +142,8 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	AActor* TargetActor = TargetASC->GetOwnerActor();
 	if (SourceActor && TargetActor)
 	{
-		// 퍼펙트 가드 시 Target에 실제 대미지가 없으므로 0으로 보고
-		const float ReportedDamage = bHasPerfectGuard ? 0.f : DamageResult.FinalDamage;
+		// 퍼펙트 가드 성공 시 Target에 실제 대미지가 없으므로 0으로 보고
+		const float ReportedDamage = bPerfectGuardApplied ? 0.f : DamageResult.FinalDamage;
 		UAISense_Damage::ReportDamageEvent(TargetActor->GetWorld(), TargetActor, SourceActor, ReportedDamage, SourceActor->GetActorLocation(), TargetActor->GetActorLocation());
 	}
 
@@ -155,7 +158,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	{
 		HitLocation = AvatarActor->GetActorLocation();
 	}
-	ExecuteGameplayCueDamage(TargetASC, DamageResult.FinalDamage, HitLocation, OwningSpec, DamageResult.bIsCritical, !bHasPerfectGuard);
+	ExecuteGameplayCueDamage(TargetASC, DamageResult.FinalDamage, HitLocation, OwningSpec, DamageResult.bIsCritical, !bPerfectGuardApplied);
 }
 
 // ────────────────────────────────────────────────────────────────────────────

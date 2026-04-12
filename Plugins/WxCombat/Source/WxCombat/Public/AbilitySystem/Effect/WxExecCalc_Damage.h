@@ -22,7 +22,7 @@ struct FWxDamageResult
  *  2. 어트리뷰트 캡처 (ATK, DEF, CritRate, CritDMG)
  *  3. 상태 판정 (퍼펙트 가드, 가드, Unblockable)
  *  4. 대미지 적용
- *     - 퍼펙트 가드: 대미지 반사, MP 회복, HitReact 이벤트 (Unblockable 포함 모든 공격 차단)
+ *     - 퍼펙트 가드: 대미지 반사, MP 회복, HitReact 이벤트 (Unblockable 공격은 퍼펙트 가드 불가)
  *     - 일반 가드 피격: HP·DP·SP 차감, GuardHit 이벤트 → Guard 어빌리티가 GuardHitReact/GuardBreak 처리
  *     - Unblockable 가드 피격: HP·DP·PP 차감, Guard 어빌리티 Cancel → HitReact 이벤트
  *     - 비가드 피격: HP·DP·PP 차감, PP 소진 시 HitReact 이벤트
