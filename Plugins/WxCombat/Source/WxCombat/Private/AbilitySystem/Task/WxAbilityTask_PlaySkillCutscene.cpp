@@ -41,6 +41,7 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 	// Time Dilation 설정
 	OriginalTimeDilation = UGameplayStatics::GetGlobalTimeDilation(World);
 	UGameplayStatics::SetGlobalTimeDilation(World, GlobalTimeDilation);
+	bTimeDilationActive = true;
 	
 	// 캐릭터가 재생 중이던 애님 몽타주 정지
 	AActor* AvatarActor = GetAvatarActor();
@@ -118,6 +119,12 @@ void UWxAbilityTask_PlaySkillCutscene::HandleSequenceFinished()
 
 void UWxAbilityTask_PlaySkillCutscene::RestoreTimeDilation()
 {
+	if (!bTimeDilationActive)
+	{
+		return;
+	}
+	bTimeDilationActive = false;
+
 	UWorld* World = GetWorld();
 	if (World)
 	{

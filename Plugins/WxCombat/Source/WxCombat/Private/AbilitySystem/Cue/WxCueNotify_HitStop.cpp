@@ -35,6 +35,15 @@ void UWxCueNotify_HitStop::HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent
 
 	AnimInstance->Montage_SetPlayRate(nullptr, 0.001f);
 
+	// 파괴된 캐릭터의 잔여 엔트리 정리
+	for (auto It = ActiveTimerMap.CreateIterator(); It; ++It)
+	{
+		if (!It.Key().IsValid())
+		{
+			It.RemoveCurrent();
+		}
+	}
+
 	TWeakObjectPtr<ACharacter> WeakCharacter(Character);
 	FTimerHandle& TimerHandle = ActiveTimerMap.FindOrAdd(Character);
 	Character->GetWorldTimerManager().SetTimer(TimerHandle,

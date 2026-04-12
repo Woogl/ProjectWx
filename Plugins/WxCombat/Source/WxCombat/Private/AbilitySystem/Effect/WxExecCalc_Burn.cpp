@@ -78,7 +78,10 @@ void UWxExecCalc_Burn::Execute_Implementation(const FGameplayEffectCustomExecuti
 	// 데미지 GameplayCue 실행
 	FGameplayCueParameters CueParams;
 	CueParams.RawMagnitude = TickDamage;
-	CueParams.Location = TargetASC->GetAvatarActor()->GetActorLocation();
+	if (const AActor* AvatarActor = TargetASC->GetAvatarActor())
+	{
+		CueParams.Location = AvatarActor->GetActorLocation();
+	}
 	CueParams.EffectContext = ExecutionParams.GetOwningSpec().GetEffectContext();
 	TargetASC->ExecuteGameplayCue(WxGameplayTags::GameplayCue_Damage, CueParams);
 }

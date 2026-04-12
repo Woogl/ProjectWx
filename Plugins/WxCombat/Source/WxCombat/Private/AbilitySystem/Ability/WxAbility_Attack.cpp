@@ -64,13 +64,11 @@ void UWxAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 void UWxAbility_Attack::PlayComboMontage()
 {
+	// EndTask가 AnimInstance 바인딩을 해제하므로 구 태스크의 후속 이벤트는 발송되지 않는다.
 	if (MontageTask)
 	{
-		MontageTask->OnCompleted.RemoveDynamic(this, &UWxAbility_Attack::HandleMontageCompleted);
-		MontageTask->OnBlendOut.RemoveDynamic(this, &UWxAbility_Attack::HandleMontageBlendOut);
-		MontageTask->OnInterrupted.RemoveDynamic(this, &UWxAbility_Attack::HandleMontageInterrupted);
-		MontageTask->OnCancelled.RemoveDynamic(this, &UWxAbility_Attack::HandleMontageCancelled);
 		MontageTask->EndTask();
+		MontageTask = nullptr;
 	}
 
 	UAnimMontage* Montage = ComboMap.FindRef(FName(*CurrentPath));

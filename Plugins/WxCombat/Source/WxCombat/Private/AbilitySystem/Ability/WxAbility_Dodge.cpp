@@ -194,13 +194,11 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 
 void UWxAbility_Dodge::PlayPerfectDodgeMontage()
 {
+	// EndTask가 AnimInstance 바인딩을 해제하므로 구 태스크의 후속 이벤트는 발송되지 않는다.
 	if (MontageTask)
 	{
-		MontageTask->OnCompleted.RemoveDynamic(this, &UWxAbility_Dodge::HandleMontageCompleted);
-		MontageTask->OnBlendOut.RemoveDynamic(this, &UWxAbility_Dodge::HandleMontageBlendOut);
-		MontageTask->OnInterrupted.RemoveDynamic(this, &UWxAbility_Dodge::HandleMontageInterrupted);
-		MontageTask->OnCancelled.RemoveDynamic(this, &UWxAbility_Dodge::HandleMontageCancelled);
 		MontageTask->EndTask();
+		MontageTask = nullptr;
 	}
 
 	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
@@ -252,13 +250,11 @@ void UWxAbility_Dodge::HandleCounterInputPressed(float TimeWaited)
 
 void UWxAbility_Dodge::PlayDodgeCounterMontage()
 {
+	// EndTask가 AnimInstance 바인딩을 해제하므로 구 태스크의 후속 이벤트는 발송되지 않는다.
 	if (MontageTask)
 	{
-		MontageTask->OnCompleted.RemoveDynamic(this, &UWxAbility_Dodge::HandleMontageCompleted);
-		MontageTask->OnBlendOut.RemoveDynamic(this, &UWxAbility_Dodge::HandleMontageBlendOut);
-		MontageTask->OnInterrupted.RemoveDynamic(this, &UWxAbility_Dodge::HandleMontageInterrupted);
-		MontageTask->OnCancelled.RemoveDynamic(this, &UWxAbility_Dodge::HandleMontageCancelled);
 		MontageTask->EndTask();
+		MontageTask = nullptr;
 	}
 
 	if (WaitInputTask)

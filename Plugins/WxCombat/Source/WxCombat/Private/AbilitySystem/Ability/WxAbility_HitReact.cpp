@@ -8,6 +8,24 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "WxGameplayTags.h"
 
+namespace
+{
+	void FaceInstigator(AActor* AvatarActor, const AActor* Instigator)
+	{
+		if (!AvatarActor || !Instigator)
+		{
+			return;
+		}
+
+		FVector Direction = Instigator->GetActorLocation() - AvatarActor->GetActorLocation();
+		Direction.Z = 0.0;
+		if (!Direction.IsNearlyZero())
+		{
+			AvatarActor->SetActorRotation(Direction.ToOrientationRotator());
+		}
+	}
+}
+
 UWxAbility_HitReact::UWxAbility_HitReact()
 {
 	// HitReact는 항상 서버의 ExecCalc에서 GameplayEvent로 트리거되므로 ServerInitiated를 사용한다.
@@ -66,38 +84,12 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		if (EventTag == WxGameplayTags::Event_HitReact_Knockback && KnockbackMontage)
 		{
 			SelectedMontage = KnockbackMontage;
-
-			// 넉백 시 공격자를 바라보도록 회전
-			if (AActor* AvatarActor = ActorInfo->AvatarActor.Get())
-			{
-				if (const AActor* Instigator = TriggerEventData->Instigator.Get())
-				{
-					FVector Direction = Instigator->GetActorLocation() - AvatarActor->GetActorLocation();
-					Direction.Z = 0.0;
-					if (!Direction.IsNearlyZero())
-					{
-						AvatarActor->SetActorRotation(Direction.ToOrientationRotator());
-					}
-				}
-			}
+			FaceInstigator(ActorInfo->AvatarActor.Get(), TriggerEventData->Instigator.Get());
 		}
 		else if (EventTag == WxGameplayTags::Event_HitReact_Knockdown && KnockdownMontage)
 		{
 			SelectedMontage = KnockdownMontage;
-			
-			// 넉다운 시 공격자를 바라보도록 회전
-			if (AActor* AvatarActor = ActorInfo->AvatarActor.Get())
-			{
-				if (const AActor* Instigator = TriggerEventData->Instigator.Get())
-				{
-					FVector Direction = Instigator->GetActorLocation() - AvatarActor->GetActorLocation();
-					Direction.Z = 0.0;
-					if (!Direction.IsNearlyZero())
-					{
-						AvatarActor->SetActorRotation(Direction.ToOrientationRotator());
-					}
-				}
-			}
+			FaceInstigator(ActorInfo->AvatarActor.Get(), TriggerEventData->Instigator.Get());
 		}
 		else if (EventTag == WxGameplayTags::Event_HitReact_Knockup && KnockupMontage)
 		{
