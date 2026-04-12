@@ -8,6 +8,8 @@ UWxInteractionComponent::UWxInteractionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
+	bInteractionEnabled = true;
+
 	SetIsReplicatedByDefault(true);
 
 	InitSphereRadius(200.f);
@@ -52,7 +54,33 @@ void UWxInteractionComponent::TryInteract(AActor* InstigatorActor)
 		return;
 	}
 
+	if (!bInteractionEnabled)
+	{
+		return;
+	}
+
 	MulticastInteracted(InstigatorActor);
+}
+
+void UWxInteractionComponent::SetInteractionEnabled(bool bEnabled)
+{
+	if (bInteractionEnabled == bEnabled)
+	{
+		return;
+	}
+
+	bInteractionEnabled = bEnabled;
+
+	if (bEnabled)
+	{
+		SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		UpdateOverlaps();
+	}
+	else
+	{
+		SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		SetPromptVisible(false);
+	}
 }
 
 void UWxInteractionComponent::MulticastInteracted_Implementation(AActor* InstigatorActor)

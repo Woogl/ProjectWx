@@ -36,6 +36,9 @@ public:
 	/** 서버 권한에서 호출. 서버+모든 클라이언트에서 OnInteracted 델리게이트가 fire된다. */
 	void TryInteract(AActor* InstigatorActor);
 
+	/** 상호작용 활성/비활성 전환. 비활성 시 오버랩 감지를 중단하고 프롬프트를 숨긴다. */
+	void SetInteractionEnabled(bool bEnabled);
+
 	UPROPERTY(BlueprintAssignable, Category = "Wx")
 	FWxOnInteractedSignature OnInteracted;
 
@@ -55,4 +58,6 @@ private:
 	void SetPromptVisible(bool bNewVisible);
 
 	TWeakObjectPtr<UWidgetComponent> CachedPromptWidget;
+
+	bool bInteractionEnabled;
 };

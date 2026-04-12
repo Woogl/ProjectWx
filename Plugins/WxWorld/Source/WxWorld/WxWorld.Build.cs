@@ -20,6 +20,9 @@ public class WxWorld : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"DeveloperSettings",
+			"GameplayAbilities",
+			"LevelSequence",
+			"MovieScene",
 			"Niagara",
 			"UMG",
 		});
