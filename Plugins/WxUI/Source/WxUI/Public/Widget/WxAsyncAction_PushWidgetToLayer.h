@@ -8,6 +8,7 @@
 #include "WxAsyncAction_PushWidgetToLayer.generated.h"
 
 class UCommonActivatableWidget;
+struct FStreamableHandle;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxPushWidgetToLayerDelegate, UCommonActivatableWidget*, Widget);
 
@@ -38,4 +39,6 @@ private:
 
 	UPROPERTY()
 	TSoftClassPtr<UCommonActivatableWidget> WidgetClass;
+
+	TSharedPtr<FStreamableHandle> StreamableHandle;
 };

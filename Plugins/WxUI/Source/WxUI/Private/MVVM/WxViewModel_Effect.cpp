@@ -27,11 +27,13 @@ void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGame
 	SetIcon(MyIcon);
 	SetStackCount(ActiveEffect->Spec.GetStackCount());
 	
-	const UGameplayEffect* EffectCDO = InASC->GetGameplayEffectCDO(InHandle);
-	const FGameplayTagContainer& AssetTags = EffectCDO->GetAssetTags();
-	if (!AssetTags.IsEmpty())
+	if (const UGameplayEffect* EffectCDO = InASC->GetGameplayEffectCDO(InHandle))
 	{
-		EffectTag = AssetTags.First();
+		const FGameplayTagContainer& AssetTags = EffectCDO->GetAssetTags();
+		if (!AssetTags.IsEmpty())
+		{
+			EffectTag = AssetTags.First();
+		}
 	}
 
 	CachedDuration = ActiveEffect->GetDuration();
@@ -50,11 +52,11 @@ void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGame
 		SetDuration(CachedDuration);
 		SetTimeRemaining(Remaining);
 		SetTimeRemainingPercent(Remaining / CachedDuration);
-	}
 
-	TickerHandle = FTSTicker::GetCoreTicker().AddTicker(
-		FTickerDelegate::CreateUObject(this, &UWxViewModel_Effect::UpdateEffectState)
-	);
+		TickerHandle = FTSTicker::GetCoreTicker().AddTicker(
+			FTickerDelegate::CreateUObject(this, &UWxViewModel_Effect::UpdateEffectState)
+		);
+	}
 }
 
 void UWxViewModel_Effect::Deinitialize()

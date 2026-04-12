@@ -34,7 +34,7 @@ void UWxAsyncAction_PushWidgetToLayer::Activate()
 	}
 
 	FStreamableManager& StreamableManager = UAssetManager::GetStreamableManager();
-	StreamableManager.RequestAsyncLoad(
+	StreamableHandle = StreamableManager.RequestAsyncLoad(
 		WidgetClass.ToSoftObjectPath(),
 		FStreamableDelegate::CreateUObject(this, &ThisClass::HandleWidgetClassLoaded)
 	);

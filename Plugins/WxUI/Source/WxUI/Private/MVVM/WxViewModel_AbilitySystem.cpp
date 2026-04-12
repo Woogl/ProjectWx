@@ -18,9 +18,9 @@ void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 	Deinitialize();
 	CachedASC = InASC;
 	
-	CachedASC->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectAdded);
-	CachedASC->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectRemoved);
-	CachedASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_AbilitySystem::HandleTagChanged);
+	InASC->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectAdded);
+	InASC->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectRemoved);
+	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_AbilitySystem::HandleTagChanged);
 
 	InitializeAttributeViewModels();
 	InitializeAbilityViewModels();
@@ -86,18 +86,18 @@ void UWxViewModel_AbilitySystem::InitializeAttributeViewModels()
 
 	// Max 대응 어트리뷰트를 탐색하여 뷰모델 생성
 	// Max 대응 어트리뷰트가 없으면 자기 자신을 Max로 뷰모델 생성
-	for (const auto& [Name, Attr] : AttributeMap)
+	for (const auto& Pair : AttributeMap)
 	{
-		if (Name.StartsWith(TEXT("Max")))
+		if (Pair.Key.StartsWith(TEXT("Max")))
 		{
 			continue;
 		}
 
-		FString MaxName = TEXT("Max") + Name;
+		FString MaxName = TEXT("Max") + Pair.Key;
 		const FGameplayAttribute* MaxAttr = AttributeMap.Find(MaxName);
 
 		UWxViewModel_Attribute* AttrVM = NewObject<UWxViewModel_Attribute>(ASC);
-		AttrVM->Initialize(ASC, Attr, MaxAttr ? *MaxAttr : Attr);
+		AttrVM->Initialize(ASC, Pair.Value, MaxAttr ? *MaxAttr : Pair.Value);
 		AttributeViewModels.Add(AttrVM);
 	}
 
@@ -169,13 +169,13 @@ void UWxViewModel_AbilitySystem::RefreshActiveEffectViewModels()
 
 void UWxViewModel_AbilitySystem::Deinitialize()
 {
-	if (CachedASC.IsValid())
+	if (UAbilitySystemComponent* ASC = CachedASC.Get())
 	{
-		CachedASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
-		CachedASC->OnAnyGameplayEffectRemovedDelegate().RemoveAll(this);
-		CachedASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
-		CachedASC.Reset();
+		ASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
+		ASC->OnAnyGameplayEffectRemovedDelegate().RemoveAll(this);
+		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
 	}
+	CachedASC.Reset();
 
 	AttributeViewModels.Empty();
 	AbilityViewModels.Empty();
@@ -187,12 +187,34 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 
 void UWxViewModel_AbilitySystem::HandleActiveEffectAdded(UAbilitySystemComponent* InASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle)
 {
-	RefreshActiveEffectViewModels();
+	if (!Spec.Def)
+	{
+		return;
+	}
+
+	const UWxEffectComponent_UIData* UIData = Spec.Def->FindComponent<UWxEffectComponent_UIData>();
+	if (!UIData)
+	{
+		return;
+	}
+
+	UWxViewModel_Effect* EffectVM = NewObject<UWxViewModel_Effect>(InASC);
+	EffectVM->Initialize(InASC, Handle, UIData);
+	ActiveEffectViewModels.Add(EffectVM);
+	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(ActiveEffectViewModels);
 }
 
 void UWxViewModel_AbilitySystem::HandleActiveEffectRemoved(const FActiveGameplayEffect& ActiveEffect)
 {
-	RefreshActiveEffectViewModels();
+	for (int32 i = 0; i < ActiveEffectViewModels.Num(); ++i)
+	{
+		if (ActiveEffectViewModels[i] && ActiveEffectViewModels[i]->GetBoundHandle() == ActiveEffect.Handle)
+		{
+			ActiveEffectViewModels.RemoveAt(i);
+			UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(ActiveEffectViewModels);
+			break;
+		}
+	}
 }
 
 void UWxViewModel_AbilitySystem::RefreshOwnedTags()
