@@ -73,11 +73,22 @@ void UWxInteractionComponent::HandleBeginOverlap(UPrimitiveComponent* Overlapped
 
 void UWxInteractionComponent::HandleEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	// 로컬 체크 없이 폰이 벗어나면 숨긴다. 컨트롤러 전환 등으로 End 시점에
-	// IsLocallyControlled가 false가 되어 프롬프트가 잔존하는 것을 방지한다.
 	if (!Cast<APawn>(OtherActor))
 	{
 		return;
+	}
+
+	// 로컬 폰이 아직 범위 안에 있으면 프롬프트를 유지한다.
+	// 컨트롤러 전환 시에도 전환된 폰은 IsLocallyControlled()가 false이므로 자연스럽게 처리된다.
+	TArray<AActor*> OverlappingActors;
+	GetOverlappingActors(OverlappingActors, APawn::StaticClass());
+	for (AActor* Actor : OverlappingActors)
+	{
+		const APawn* Pawn = Cast<APawn>(Actor);
+		if (Pawn && Pawn->IsLocallyControlled())
+		{
+			return;
+		}
 	}
 
 	SetPromptVisible(false);
