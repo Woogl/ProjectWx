@@ -64,7 +64,7 @@ AWxWeaponBase* AWxWeaponBase::FindWeapon(const AActor* Owner)
 void AWxWeaponBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	DetachFromCharacter();
-	
+
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -78,51 +78,92 @@ void AWxWeaponBase::AttachToCharacter(ACharacter* Character, FName SocketName)
 	AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
 	SetOwner(Character);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Character))
-	{
-		ASC->RegisterGameplayTagEvent(WxGameplayTags::ANS_WeaponCollision, EGameplayTagEventType::NewOrRemoved)
-			.AddUObject(this, &AWxWeaponBase::HandleWeaponCollisionTagChanged);
-	}
 }
 
 void AWxWeaponBase::DetachFromCharacter()
 {
-	if (AActor* OwnerActor = GetOwner())
+	// 활성 공격 구간이 남아있으면 강제 종료
+	if (ActiveAttackCount > 0)
 	{
-		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OwnerActor))
+		ActiveAttackCount = 0;
+		HitCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		HitActorsThisSwing.Empty();
+		DamageInfo = FWxDamageInfo();
+
+		if (AActor* OwnerActor = GetOwner())
 		{
-			ASC->RegisterGameplayTagEvent(WxGameplayTags::ANS_WeaponCollision, EGameplayTagEventType::NewOrRemoved)
-				.RemoveAll(this);
+			if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OwnerActor))
+			{
+				ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_WeaponCollision);
+			}
 		}
 	}
 
-	SetWeaponCollisionEnabled(false);
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	SetOwner(nullptr);
 }
 
-void AWxWeaponBase::SetWeaponCollisionEnabled(bool bEnabled)
+void AWxWeaponBase::BeginAttack(const FWxDamageInfo& InDamageInfo)
 {
-	HitActorsThisSwing.Empty();
-	HitCollision->SetCollisionEnabled(bEnabled ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
-
-	// 모든 WeaponAttack ANS가 종료되어 콜리전이 비활성화되면 공격 상태를 일괄 초기화한다.
-	// 개별 ANS의 NotifyEnd에서 상태를 제거하면, 연속 공격 콤보에서 다음 ANS의 NotifyBegin과
-	// 이전 ANS의 NotifyEnd가 경합하여 아직 활성인 ANS의 설정까지 조기 제거되는 문제가 발생한다.
-	if (!bEnabled)
+	AActor* OwnerActor = GetOwner();
+	if (!OwnerActor)
 	{
-		DamageInfo = FWxDamageInfo();
+		return;
 	}
+
+	// 새 공격 구간마다 히트 목록을 초기화한다.
+	// 콤보 전환 시 겹치는 ANS 사이에서도 이전 스윙의 피격 기록이 새 스윙을 막지 않는다.
+	HitActorsThisSwing.Empty();
+
+	// DamageInfo를 콜리전 활성화보다 먼저 설정한다.
+	// SetCollisionEnabled 시 이미 겹쳐있는 액터에 대해 Overlap이 즉시 발생할 수 있으므로,
+	// 그 전에 설정이 준비되어 있어야 한다.
+	DamageInfo = InDamageInfo;
+
+	if (ActiveAttackCount == 0)
+	{
+		HitCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OwnerActor))
+		{
+			ASC->AddLooseGameplayTag(WxGameplayTags::ANS_WeaponCollision);
+		}
+	}
+
+	++ActiveAttackCount;
 }
 
-void AWxWeaponBase::HandleWeaponCollisionTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+void AWxWeaponBase::EndAttack()
 {
-	SetWeaponCollisionEnabled(NewCount > 0);
+	if (ActiveAttackCount <= 0)
+	{
+		return;
+	}
+
+	--ActiveAttackCount;
+
+	if (ActiveAttackCount == 0)
+	{
+		HitCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		HitActorsThisSwing.Empty();
+		DamageInfo = FWxDamageInfo();
+
+		if (AActor* OwnerActor = GetOwner())
+		{
+			if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OwnerActor))
+			{
+				ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_WeaponCollision);
+			}
+		}
+	}
 }
 
 void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	// 클라이언트와 서버 모두 동일한 히트 판정과 GE 적용을 수행한다.
+	// 클라이언트의 GE 적용은 어빌리티의 ScopedPredictionKey로 예측 처리되며,
+	// 서버의 권�� 적용과 불일치하면 GAS가 자동으로 롤백한다.
+
 	AActor* WeaponOwner = GetOwner();
 	if (!OtherActor || OtherActor == WeaponOwner)
 	{
@@ -132,7 +173,7 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 	{
 		return;
 	}
-	
+
 	const IGenericTeamAgentInterface* OwnerTeam = Cast<IGenericTeamAgentInterface>(WeaponOwner);
 	if (OwnerTeam)
 	{
@@ -147,50 +188,50 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
 	UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(WeaponOwner);
-
-	if (TargetASC && SourceASC)
+	if (!TargetASC || !SourceASC)
 	{
-		FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
-		Context.AddSourceObject(this);
-		Context.AddInstigator(WeaponOwner, WeaponOwner);
-		Context.SetAbility(SourceASC->GetAnimatingAbility());
+		return;
+	}
 
-		FHitResult HitResult;
-		if (bFromSweep)
+	FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
+	Context.AddSourceObject(this);
+	Context.AddInstigator(WeaponOwner, WeaponOwner);
+	Context.SetAbility(SourceASC->GetAnimatingAbility());
+
+	FHitResult HitResult;
+	if (bFromSweep)
+	{
+		HitResult = SweepResult;
+	}
+	else
+	{
+		FVector ClosestPoint;
+		if (OtherComp->GetClosestPointOnCollision(HitCollision->GetComponentLocation(), ClosestPoint) >= 0.f)
 		{
-			HitResult = SweepResult;
+			HitResult.ImpactPoint = ClosestPoint;
+			HitResult.Location = ClosestPoint;
 		}
 		else
 		{
-			FVector ClosestPoint;
-			if (OtherComp->GetClosestPointOnCollision(HitCollision->GetComponentLocation(), ClosestPoint) >= 0.f)
-			{
-				HitResult.ImpactPoint = ClosestPoint;
-				HitResult.Location = ClosestPoint;
-			}
-			else
-			{
-				HitResult.ImpactPoint = OtherComp->GetComponentLocation();
-				HitResult.Location = OtherComp->GetComponentLocation();
-			}
+			HitResult.ImpactPoint = OtherComp->GetComponentLocation();
+			HitResult.Location = OtherComp->GetComponentLocation();
 		}
-		Context.AddHitResult(HitResult);
+	}
+	Context.AddHitResult(HitResult);
 
-		const TArray<FGameplayEffectSpecHandle> Specs = DamageInfo.MakeSpecs(SourceASC, Context);
-		for (const FGameplayEffectSpecHandle& Spec : Specs)
+	const TArray<FGameplayEffectSpecHandle> Specs = DamageInfo.MakeSpecs(SourceASC, Context);
+	for (const FGameplayEffectSpecHandle& Spec : Specs)
+	{
+		if (Spec.IsValid())
 		{
-			if (Spec.IsValid())
-			{
-				SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
-			}
+			SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
 		}
+	}
 
-		// 역경직: 공격자의 몽타주를 잠시 일시 정지
-		if (HitStopDuration > 0.f)
-		{
-			FGameplayCueParameters HitStopParams;
-			HitStopParams.RawMagnitude = HitStopDuration;
-			SourceASC->ExecuteGameplayCue(WxGameplayTags::GameplayCue_HitStop, HitStopParams);
-		}
+	if (HitStopDuration > 0.f)
+	{
+		FGameplayCueParameters HitStopParams;
+		HitStopParams.RawMagnitude = HitStopDuration;
+		SourceASC->ExecuteGameplayCue(WxGameplayTags::GameplayCue_HitStop, HitStopParams);
 	}
 }
