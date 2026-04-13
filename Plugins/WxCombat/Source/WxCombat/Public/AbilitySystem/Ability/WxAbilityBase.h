@@ -48,30 +48,34 @@ public:
 	FGameplayTag ActivationInputTag;
 
 	/** 어빌리티 아이콘. UI에서 표시 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|UI")
 	TSoftObjectPtr<UTexture2D> AbilityIcon;
 
 	/** 어빌리티 수치 데이터테이블 Row 참조. 설정 시 OnGiveAbility에서 테이블 값으로 덮어쓴다 */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxAbilityTableRow"))
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Data", meta = (RowType = "/Script/WxCombat.WxAbilityTableRow"))
 	FDataTableRowHandle AbilityDataRow;
 
 	/** 쿨다운 시간(초). 0 이하이면 쿨다운 미적용 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cooldown")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Data|Cooldown", meta = (ClampMin = "0"))
 	float CooldownTime = 0.f;
 
 	/** 최대 충전 수. 1이면 단일 쿨다운 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cooldown")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Data|Cooldown", meta = (ClampMin = "1"))
 	int32 MaxCharges = 1;
 
 	/** MP 소모량. 0 이하이면 미적용 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cost")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Data|Cost", meta = (ClampMin = "0"))
 	float MPCost = 0.f;
 
 	/** UP 소모량. 0 이하이면 미적용 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cost")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Data|Cost", meta = (ClampMin = "0"))
 	float UPCost = 0.f;
 
 protected:
+#if WITH_EDITOR
+	virtual bool CanEditChange(const FProperty* InProperty) const override;
+#endif
+
 	/** 테이블 Row 데이터를 내부 변수에 적용한다 */
 	virtual void ApplyAbilityTableRow(const FWxAbilityTableRow& Row);
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;

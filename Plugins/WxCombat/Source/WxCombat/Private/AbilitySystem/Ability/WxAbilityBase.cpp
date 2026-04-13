@@ -10,6 +10,41 @@
 #include "GameplayEffect.h"
 #include "WxGameplayTags.h"
 
+#if WITH_EDITOR
+bool UWxAbilityBase::CanEditChange(const FProperty* InProperty) const
+{
+	if (!Super::CanEditChange(InProperty))
+	{
+		return false;
+	}
+
+	if (InProperty)
+	{
+		const FName PropertyName = InProperty->GetFName();
+		static const FName CooldownGEName = TEXT("CooldownGameplayEffectClass");
+		static const FName CostGEName = TEXT("CostGameplayEffectClass");
+		if (PropertyName == CooldownGEName || PropertyName == CostGEName)
+		{
+			return false;
+		}
+
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, CooldownTime)
+			|| PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, MaxCharges)
+			|| PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, MPCost)
+			|| PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, UPCost))
+		{
+			if (!AbilityDataRow.IsNull())
+			{
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+#endif
+
 UWxAbilityBase::UWxAbilityBase()
 {
 	InstancingPolicy  = EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -57,7 +92,7 @@ void UWxAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, c
 void UWxAbilityBase::ApplyAbilityTableRow(const FWxAbilityTableRow& Row)
 {
 	CooldownTime = Row.CooldownTime;
-	MaxCharges = Row.MaxCharges;
+	MaxCharges = FMath::Max(1, Row.MaxCharges);
 	MPCost = Row.MPCost;
 	UPCost = Row.UPCost;
 }
