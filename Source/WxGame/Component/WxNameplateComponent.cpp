@@ -11,10 +11,6 @@ UWxNameplateComponent::UWxNameplateComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 	SetWidgetSpace(EWidgetSpace::Screen);
 	SetDrawAtDesiredSize(true);
-
-	ReferenceDistance = 1000.0f;
-	MinScale = 0.5f;
-	MaxScale = 1.5f;
 }
 
 void UWxNameplateComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

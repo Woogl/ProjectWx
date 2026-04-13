@@ -38,15 +38,15 @@ public:
 protected:
 	/** 이 거리에서 위젯 스케일이 1.0이 된다. */
 	UPROPERTY(EditAnywhere, Category = "Wx")
-	float ReferenceDistance;
+	float ReferenceDistance = 1000.f;
 
 	/** 위젯 스케일의 최솟값. */
 	UPROPERTY(EditAnywhere, Category = "Wx")
-	float MinScale;
+	float MinScale = 0.5f;
 
 	/** 위젯 스케일의 최댓값. */
 	UPROPERTY(EditAnywhere, Category = "Wx")
-	float MaxScale;
+	float MaxScale = 1.f;
 
 private:
 	void HandleDeadTagChanged(const FGameplayTag Tag, int32 NewCount);
