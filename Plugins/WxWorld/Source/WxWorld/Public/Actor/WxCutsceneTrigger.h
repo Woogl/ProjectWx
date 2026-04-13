@@ -10,8 +10,8 @@
 class ALevelSequenceActor;
 class ULevelSequence;
 class UStaticMeshComponent;
-class UWidgetComponent;
 class UWxInteractionComponent;
+class UWxPromptWidgetComponent;
 
 /**
  * 컷신 트리거.
@@ -41,7 +41,7 @@ protected:
 	TObjectPtr<UWxInteractionComponent> InteractionComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	TObjectPtr<UWidgetComponent> PromptWidget;
+	TObjectPtr<UWxPromptWidgetComponent> PromptWidget;
 
 	/** 재생할 Level Sequence 에셋 */
 	UPROPERTY(EditAnywhere, Category = "Wx")

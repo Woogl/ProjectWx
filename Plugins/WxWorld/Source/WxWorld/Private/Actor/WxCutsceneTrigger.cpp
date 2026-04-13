@@ -4,7 +4,7 @@
 
 #include "Component/WxInteractionComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Components/WidgetComponent.h"
+#include "Component/WxPromptWidgetComponent.h"
 #include "LevelSequenceActor.h"
 #include "LevelSequencePlayer.h"
 
@@ -22,12 +22,8 @@ AWxCutsceneTrigger::AWxCutsceneTrigger()
 	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
 	InteractionComponent->SetupAttachment(MeshComponent);
 
-	PromptWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PromptWidget"));
+	PromptWidget = CreateDefaultSubobject<UWxPromptWidgetComponent>(TEXT("PromptWidget"));
 	PromptWidget->SetupAttachment(MeshComponent);
-	PromptWidget->SetWidgetSpace(EWidgetSpace::Screen);
-	PromptWidget->SetDrawAtDesiredSize(true);
-	PromptWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	PromptWidget->SetVisibility(false);
 }
 
 void AWxCutsceneTrigger::BeginPlay()

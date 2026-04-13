@@ -35,7 +35,6 @@ AWxElevator::AWxElevator()
 
 	PromptWidget = CreateDefaultSubobject<UWxPromptWidgetComponent>(TEXT("PromptWidget"));
 	PromptWidget->SetupAttachment(PlatformRoot);
-	PromptWidget->SetRelativeLocation(FVector(0.f, 0.f, 90.f));
 }
 
 void AWxElevator::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

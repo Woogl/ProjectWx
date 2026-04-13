@@ -9,8 +9,8 @@
 
 class URotatingMovementComponent;
 class UStaticMeshComponent;
-class UWidgetComponent;
 class UWxInteractionComponent;
+class UWxPromptWidgetComponent;
 
 /**
  * 픽업 아이템 베이스 클래스.
@@ -34,9 +34,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	/** 서브클래스에서 수집 시 동작을 구현한다. 서버에서만 호출된다. */
-	virtual void OnPickedUp(AActor* PickupInstigator) PURE_VIRTUAL(AWxPickupBase::OnPickedUp, );
-
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 
@@ -44,7 +41,7 @@ protected:
 	TObjectPtr<UWxInteractionComponent> InteractionComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	TObjectPtr<UWidgetComponent> PromptWidget;
+	TObjectPtr<UWxPromptWidgetComponent> PromptWidget;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<URotatingMovementComponent> RotatingMovement;

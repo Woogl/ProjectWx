@@ -44,7 +44,9 @@
 
 13. 모든 코드는 UE 5.7 API에서 검증되어야하며, Deprecated 처리된 API는 사용하지 않는다.
 
-14. 코드 작성 후 빌드가 성공하는지 반드시 점검한다. 빌드 명령어: `"BatchFiles/BuildProjectFiles.bat"`
+14. 모든 소스 파일의 인코딩은 UTF-8 (No BOM) 을 사용한다.
+
+15. 코드 작성 후 빌드가 성공하는지 반드시 점검한다. 빌드 명령어: `"BatchFiles/BuildProjectFiles.bat"`
 
 ---
 

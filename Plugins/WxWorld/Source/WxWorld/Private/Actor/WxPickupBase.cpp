@@ -4,7 +4,7 @@
 
 #include "Component/WxInteractionComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Components/WidgetComponent.h"
+#include "Component/WxPromptWidgetComponent.h"
 #include "GameFramework/RotatingMovementComponent.h"
 
 AWxPickupBase::AWxPickupBase()
@@ -20,12 +20,8 @@ AWxPickupBase::AWxPickupBase()
 	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
 	InteractionComponent->SetupAttachment(MeshComponent);
 
-	PromptWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PromptWidget"));
+	PromptWidget = CreateDefaultSubobject<UWxPromptWidgetComponent>(TEXT("PromptWidget"));
 	PromptWidget->SetupAttachment(MeshComponent);
-	PromptWidget->SetWidgetSpace(EWidgetSpace::Screen);
-	PromptWidget->SetDrawAtDesiredSize(true);
-	PromptWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	PromptWidget->SetVisibility(false);
 
 	RotatingMovement = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("RotatingMovement"));
 	RotatingMovement->RotationRate = FRotator(0.0f, 90.0f, 0.0f);
@@ -48,7 +44,8 @@ void AWxPickupBase::HandleInteracted(AActor* InteractingActor)
 		return;
 	}
 
-	OnPickedUp(InteractingActor);
+	// TODO: 상호작용 시 아이템 획득 처리 구현 예정
+	
 	Destroy();
 }
 
