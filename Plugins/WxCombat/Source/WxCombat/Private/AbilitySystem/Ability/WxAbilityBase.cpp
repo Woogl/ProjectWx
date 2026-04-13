@@ -17,30 +17,56 @@ bool UWxAbilityBase::CanEditChange(const FProperty* InProperty) const
 	{
 		return false;
 	}
-
+	
 	if (InProperty)
 	{
 		const FName PropertyName = InProperty->GetFName();
+		const bool bHasDataRow = !AbilityDataRow.IsNull();
+
 		static const FName CooldownGEName = TEXT("CooldownGameplayEffectClass");
 		static const FName CostGEName = TEXT("CostGameplayEffectClass");
 		if (PropertyName == CooldownGEName || PropertyName == CostGEName)
 		{
-			return false;
+			if (bHasDataRow)
+			{
+				return false;
+			}
 		}
 
 		if (PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, CooldownTime)
-			|| PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, MaxCharges)
-			|| PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, MPCost)
+			|| PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, MaxCharges))
+		{
+			if (CooldownGameplayEffectClass || bHasDataRow)
+			{
+				return false;
+			}
+		}
+
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, MPCost)
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, UPCost))
 		{
-			if (!AbilityDataRow.IsNull())
+			if (bHasDataRow)
 			{
 				return false;
 			}
 		}
 	}
-
+	
 	return true;
+}
+
+void UWxAbilityBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	if (PropertyChangedEvent.GetMemberPropertyName() == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, AbilityDataRow))
+	{
+		if (!AbilityDataRow.IsNull())
+		{
+			CooldownGameplayEffectClass = nullptr;
+			CostGameplayEffectClass = nullptr;
+		}
+	}
 }
 
 #endif
@@ -99,6 +125,11 @@ void UWxAbilityBase::ApplyAbilityTableRow(const FWxAbilityTableRow& Row)
 
 UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
 {
+	if (CooldownGameplayEffectClass)
+	{
+		return Super::GetCooldownGameplayEffect();
+	}
+
 	if (CooldownTime <= 0.f)
 	{
 		return nullptr;
@@ -115,6 +146,11 @@ UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
 
 bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {
+	if (CooldownGameplayEffectClass)
+	{
+		return Super::CheckCooldown(Handle, ActorInfo, OptionalRelevantTags);
+	}
+
 	if (CooldownTime <= 0.f)
 	{
 		return true;
@@ -149,6 +185,12 @@ bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, cons
 
 void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
 {
+	if (CooldownGameplayEffectClass)
+	{
+		Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
+		return;
+	}
+
 	if (CooldownTime <= 0.f)
 	{
 		return;

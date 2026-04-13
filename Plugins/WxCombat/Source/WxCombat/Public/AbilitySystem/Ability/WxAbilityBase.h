@@ -74,6 +74,7 @@ public:
 protected:
 #if WITH_EDITOR
 	virtual bool CanEditChange(const FProperty* InProperty) const override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
 	/** 테이블 Row 데이터를 내부 변수에 적용한다 */
