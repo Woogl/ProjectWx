@@ -118,6 +118,9 @@ namespace WxGameplayTags
 
 	// ── SetByCaller ──────────────────────────────────────────────────────
 
+	/** 쿨다운 Duration SetByCaller 키. WxEffect_Cooldown에서 사용 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Duration);
+
 	/** 어빌리티 코스트 SetByCaller 키. WxEffect_CostMP, WxEffect_CostUP에서 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Cost);
 

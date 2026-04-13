@@ -63,29 +63,29 @@ void UWxViewModel_Ability::Deinitialize()
 int32 UWxViewModel_Ability::GetConsumedCharges() const
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (!ASC || !CachedCooldownClass)
+	if (!ASC || !CachedCooldownClass || CooldownDuration <= 0.f)
 	{
 		return 0;
 	}
 
 	const UGameplayAbility* AbilityCDO = CachedAbility.Get();
+	const float WorldTime = ASC->GetWorld()->GetTimeSeconds();
 
 	FGameplayEffectQuery Query;
 	Query.EffectDefinition = CachedCooldownClass;
 
-	int32 Consumed = 0;
-	const TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);
-	for (const FActiveGameplayEffectHandle& Handle : Handles)
+	for (const FActiveGameplayEffectHandle& Handle : ASC->GetActiveEffects(Query))
 	{
 		if (const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(Handle))
 		{
 			if (ActiveGE->Spec.GetEffectContext().GetAbility() == AbilityCDO)
 			{
-				Consumed++;
+				const float TimeRemaining = (ActiveGE->StartWorldTime + ActiveGE->Spec.GetDuration()) - WorldTime;
+				return FMath::CeilToInt32((TimeRemaining - KINDA_SMALL_NUMBER) / CooldownDuration);
 			}
 		}
 	}
-	return Consumed;
+	return 0;
 }
 
 void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle)
@@ -101,7 +101,7 @@ void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* 
 	}
 
 	const float SpecDuration = SpecApplied.GetDuration();
-	if (SpecDuration > 0.f)
+	if (SpecDuration > 0.f && CooldownDuration <= 0.f)
 	{
 		SetCooldownDuration(SpecDuration);
 	}
@@ -119,7 +119,7 @@ void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* 
 bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (!ASC || !CachedCooldownClass)
+	if (!ASC || !CachedCooldownClass || CooldownDuration <= 0.f)
 	{
 		return false;
 	}
@@ -130,30 +130,20 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 	FGameplayEffectQuery Query;
 	Query.EffectDefinition = CachedCooldownClass;
 
-	float MinTimeRemaining = 0.f;
-	int32 ConsumedCharges = 0;
-	const TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);
-	for (const FActiveGameplayEffectHandle& ActiveHandle : Handles)
+	float TotalRemaining = 0.f;
+	for (const FActiveGameplayEffectHandle& ActiveHandle : ASC->GetActiveEffects(Query))
 	{
 		if (const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(ActiveHandle))
 		{
-			if (ActiveGE->Spec.GetEffectContext().GetAbility() != AbilityCDO)
+			if (ActiveGE->Spec.GetEffectContext().GetAbility() == AbilityCDO)
 			{
-				continue;
-			}
-
-			ConsumedCharges++;
-
-			const float Duration = ActiveGE->Spec.GetDuration();
-			const float TimeRemaining = (ActiveGE->StartWorldTime + Duration) - WorldTime;
-			if (TimeRemaining > 0.f && (MinTimeRemaining <= 0.f || TimeRemaining < MinTimeRemaining))
-			{
-				MinTimeRemaining = TimeRemaining;
+				TotalRemaining = FMath::Max(0.f, (ActiveGE->StartWorldTime + ActiveGE->Spec.GetDuration()) - WorldTime);
+				break;
 			}
 		}
 	}
 
-	if (MinTimeRemaining <= 0.f)
+	if (TotalRemaining <= 0.f)
 	{
 		SetCooldownDuration(0.f);
 		SetCooldownRemaining(0.f);
@@ -164,8 +154,17 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 		return false;
 	}
 
-	SetCooldownRemaining(MinTimeRemaining);
-	SetCooldownPercent(CooldownDuration > 0.f ? MinTimeRemaining / CooldownDuration : 0.f);
+	// 다음 충전 회복까지 남은 시간
+	float NextChargeRemaining = FMath::Fmod(TotalRemaining, CooldownDuration);
+	if (NextChargeRemaining <= KINDA_SMALL_NUMBER)
+	{
+		NextChargeRemaining = CooldownDuration;
+	}
+
+	const int32 ConsumedCharges = FMath::CeilToInt32((TotalRemaining - KINDA_SMALL_NUMBER) / CooldownDuration);
+
+	SetCooldownRemaining(NextChargeRemaining);
+	SetCooldownPercent(NextChargeRemaining / CooldownDuration);
 	SetCurrentCharges(FMath::Max(0, MaxCharges - ConsumedCharges));
 
 	return true;

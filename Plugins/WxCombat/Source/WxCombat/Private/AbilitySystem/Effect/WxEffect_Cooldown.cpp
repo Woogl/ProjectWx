@@ -1,9 +1,13 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Effect/WxEffect_Cooldown.h"
+#include "WxGameplayTags.h"
 
 UWxEffect_Cooldown::UWxEffect_Cooldown()
 {
 	DurationPolicy = EGameplayEffectDurationType::HasDuration;
-	DurationMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(1.f));
+
+	FSetByCallerFloat SetByCaller;
+	SetByCaller.DataTag = WxGameplayTags::SetByCaller_Duration;
+	DurationMagnitude = FGameplayEffectModifierMagnitude(SetByCaller);
 }
