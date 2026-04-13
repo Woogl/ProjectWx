@@ -4,7 +4,7 @@
 
 #include "Component/WxInteractionComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Components/WidgetComponent.h"
+#include "Component/WxPromptWidgetComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 
@@ -20,12 +20,8 @@ AWxTreasureChest::AWxTreasureChest()
 	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
 	InteractionComponent->SetupAttachment(MeshComponent);
 
-	PromptWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PromptWidget"));
+	PromptWidget = CreateDefaultSubobject<UWxPromptWidgetComponent>(TEXT("PromptWidget"));
 	PromptWidget->SetupAttachment(MeshComponent);
-	PromptWidget->SetWidgetSpace(EWidgetSpace::Screen);
-	PromptWidget->SetDrawAtDesiredSize(true);
-	PromptWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	PromptWidget->SetVisibility(false);
 }
 
 void AWxTreasureChest::BeginPlay()

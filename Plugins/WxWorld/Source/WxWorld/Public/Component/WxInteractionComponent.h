@@ -6,7 +6,7 @@
 #include "Components/SphereComponent.h"
 #include "WxInteractionComponent.generated.h"
 
-class UWidgetComponent;
+class UWxPromptWidgetComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractedSignature, AActor*, InstigatorActor);
 
@@ -57,7 +57,7 @@ private:
 
 	void SetPromptVisible(bool bNewVisible);
 
-	TWeakObjectPtr<UWidgetComponent> CachedPromptWidget;
+	TWeakObjectPtr<UWxPromptWidgetComponent> CachedPromptWidget;
 
 	bool bInteractionEnabled;
 };

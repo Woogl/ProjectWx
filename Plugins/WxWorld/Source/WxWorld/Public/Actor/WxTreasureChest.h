@@ -9,8 +9,8 @@
 
 class UNiagaraSystem;
 class UStaticMeshComponent;
-class UWidgetComponent;
 class UWxInteractionComponent;
+class UWxPromptWidgetComponent;
 
 /**
  * 보물 상자 (테스트용).
@@ -40,7 +40,7 @@ protected:
 	TObjectPtr<UWxInteractionComponent> InteractionComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	TObjectPtr<UWidgetComponent> PromptWidget;
+	TObjectPtr<UWxPromptWidgetComponent> PromptWidget;
 	
 	/** 상호작용 시 보여줄 Niagara 이펙트 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")

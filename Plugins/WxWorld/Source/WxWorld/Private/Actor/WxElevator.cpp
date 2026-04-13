@@ -5,7 +5,7 @@
 #include "Component/WxInteractionComponent.h"
 #include "Components/SplineComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Components/WidgetComponent.h"
+#include "Component/WxPromptWidgetComponent.h"
 #include "Net/UnrealNetwork.h"
 
 AWxElevator::AWxElevator()
@@ -14,10 +14,7 @@ AWxElevator::AWxElevator()
 	PrimaryActorTick.bStartWithTickEnabled = false;
 
 	bReplicates = true;
-
-	MoveSpeed = 200.f;
-	bIsMoving = false;
-	bMovingForward = true;
+	
 	CurrentDistance = 0.f;
 	CachedSplineLength = 0.f;
 
@@ -36,12 +33,9 @@ AWxElevator::AWxElevator()
 	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
 	InteractionComponent->SetupAttachment(PlatformRoot);
 
-	PromptWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PromptWidget"));
+	PromptWidget = CreateDefaultSubobject<UWxPromptWidgetComponent>(TEXT("PromptWidget"));
 	PromptWidget->SetupAttachment(PlatformRoot);
-	PromptWidget->SetWidgetSpace(EWidgetSpace::Screen);
-	PromptWidget->SetDrawAtDesiredSize(true);
-	PromptWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	PromptWidget->SetVisibility(false);
+	PromptWidget->SetRelativeLocation(FVector(0.f, 0.f, 90.f));
 }
 
 void AWxElevator::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -121,14 +115,6 @@ void AWxElevator::OnRep_bIsMoving()
 void AWxElevator::UpdatePlatformPosition()
 {
 	const FVector NewLocation = SplineComponent->GetLocationAtDistanceAlongSpline(CurrentDistance, ESplineCoordinateSpace::Local);
-	const FRotator NewRotation = SplineComponent->GetRotationAtDistanceAlongSpline(CurrentDistance, ESplineCoordinateSpace::Local);
 
-	PlatformRoot->SetRelativeLocationAndRotation(NewLocation, NewRotation);
+	PlatformRoot->SetRelativeLocation(NewLocation);
 }
-
-#if WITH_EDITOR
-UStreamableRenderAsset* AWxElevator::GetEditorPreviewMesh() const
-{
-	return PlatformMesh ? PlatformMesh->GetStaticMesh() : nullptr;
-}
-#endif

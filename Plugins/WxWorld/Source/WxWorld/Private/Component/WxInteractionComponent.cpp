@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Component/WxInteractionComponent.h"
-#include "Components/WidgetComponent.h"
+#include "Component/WxPromptWidgetComponent.h"
 #include "GameFramework/Pawn.h"
 
 UWxInteractionComponent::UWxInteractionComponent()
@@ -29,7 +29,7 @@ void UWxInteractionComponent::BeginPlay()
 
 	if (const AActor* MyOwner = GetOwner())
 	{
-		CachedPromptWidget = MyOwner->FindComponentByClass<UWidgetComponent>();
+		CachedPromptWidget = MyOwner->FindComponentByClass<UWxPromptWidgetComponent>();
 	}
 
 	// BeginPlay 시점에 이미 오버랩 중인 로컬 폰이 있으면 프롬프트를 즉시 표시한다.
