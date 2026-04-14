@@ -78,6 +78,8 @@ void UWxAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& Inpu
 		return;
 	}
 
+	SetLastReleasedInputTag(InputTag);
+
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
 		if (Spec.Ability && InputTag.MatchesAny(Spec.GetDynamicSpecSourceTags()))
@@ -114,4 +116,24 @@ void UWxAbilitySystemComponent::SetLastPressedInputTag(const FGameplayTag& Input
 void UWxAbilitySystemComponent::ServerSetLastPressedInputTag_Implementation(const FGameplayTag& InputTag)
 {
 	LastPressedInputTag = InputTag;
+}
+
+const FGameplayTag& UWxAbilitySystemComponent::GetLastReleasedInputTag() const
+{
+	return LastReleasedInputTag;
+}
+
+void UWxAbilitySystemComponent::SetLastReleasedInputTag(const FGameplayTag& InputTag)
+{
+	LastReleasedInputTag = InputTag;
+
+	if (!GetOwnerActor()->HasAuthority())
+	{
+		ServerSetLastReleasedInputTag(InputTag);
+	}
+}
+
+void UWxAbilitySystemComponent::ServerSetLastReleasedInputTag_Implementation(const FGameplayTag& InputTag)
+{
+	LastReleasedInputTag = InputTag;
 }

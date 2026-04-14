@@ -1,17 +1,17 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Task/WxAbilityTask_WaitInputTag.h"
+#include "AbilitySystem/Task/WxAbilityTask_WaitInputTagPressed.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystemComponent.h"
 
-UWxAbilityTask_WaitInputTag* UWxAbilityTask_WaitInputTag::CreateTask(UGameplayAbility* OwningAbility, FGameplayTag InInputTag)
+UWxAbilityTask_WaitInputTagPressed* UWxAbilityTask_WaitInputTagPressed::CreateTask(UGameplayAbility* OwningAbility, FGameplayTag InInputTag)
 {
-	UWxAbilityTask_WaitInputTag* Task = NewAbilityTask<UWxAbilityTask_WaitInputTag>(OwningAbility);
+	UWxAbilityTask_WaitInputTagPressed* Task = NewAbilityTask<UWxAbilityTask_WaitInputTagPressed>(OwningAbility);
 	Task->InputTag = InInputTag;
 	return Task;
 }
 
-void UWxAbilityTask_WaitInputTag::Activate()
+void UWxAbilityTask_WaitInputTagPressed::Activate()
 {
 	UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
 	if (!ASC || !Ability || !IsLocallyControlled())
@@ -24,10 +24,10 @@ void UWxAbilityTask_WaitInputTag::Activate()
 		EAbilityGenericReplicatedEvent::InputPressed,
 		GetAbilitySpecHandle(),
 		GetActivationPredictionKey()
-	).AddUObject(this, &UWxAbilityTask_WaitInputTag::HandleInputPressed);
+	).AddUObject(this, &UWxAbilityTask_WaitInputTagPressed::HandleInputPressed);
 }
 
-void UWxAbilityTask_WaitInputTag::OnDestroy(bool AbilityEnded)
+void UWxAbilityTask_WaitInputTagPressed::OnDestroy(bool AbilityEnded)
 {
 	UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
 	if (ASC)
@@ -42,7 +42,7 @@ void UWxAbilityTask_WaitInputTag::OnDestroy(bool AbilityEnded)
 	Super::OnDestroy(AbilityEnded);
 }
 
-void UWxAbilityTask_WaitInputTag::HandleInputPressed()
+void UWxAbilityTask_WaitInputTagPressed::HandleInputPressed()
 {
 	const UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(AbilitySystemComponent.Get());
 	if (!WxASC)

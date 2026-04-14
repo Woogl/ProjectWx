@@ -8,7 +8,7 @@
 
 class UAnimMontage;
 class UAbilityTask_PlayMontageAndWait;
-class UWxAbilityTask_WaitInputTag;
+class UWxAbilityTask_WaitInputTagPressed;
 struct FGameplayAbilityTargetDataHandle;
 
 /**
@@ -81,5 +81,5 @@ private:
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
 
 	UPROPERTY()
-	TObjectPtr<UWxAbilityTask_WaitInputTag> WaitInputTask;
+	TObjectPtr<UWxAbilityTask_WaitInputTagPressed> WaitInputTask;
 };
