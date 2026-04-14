@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/DataTable.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
 #include "WxDamageInfo.h"
 #include "WxAnimNotify_SpawnProjectile.generated.h"
@@ -35,6 +36,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|Projectile")
 	FName SpawnSocketName = TEXT("hand_r");
 
-	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ShowOnlyInnerProperties))
+	/** 설정 시 DamageInfo를 테이블에서 읽어 사용한다. 미설정 시 아래 DamageInfo를 직접 사용 */
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxDamageTableRow"))
+	FDataTableRowHandle DamageDataRow;
+
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ShowOnlyInnerProperties, EditCondition = "DamageDataRow.DataTable == nullptr"))
 	FWxDamageInfo DamageInfo;
+
+private:
+	FWxDamageInfo ResolveDamageInfo() const;
 };

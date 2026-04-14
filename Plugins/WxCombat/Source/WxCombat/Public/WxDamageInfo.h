@@ -8,6 +8,7 @@
 #include "WxDamageInfo.generated.h"
 
 class UAbilitySystemComponent;
+struct FWxDamageTableRow;
 
 /**
  * 대미지 한 건의 설계 데이터.
@@ -21,6 +22,9 @@ struct WXCOMBAT_API FWxDamageInfo
 	GENERATED_BODY()
 
 	FWxDamageInfo();
+
+	/** 테이블 Row의 값으로 DamageInfo를 덮어쓴다 */
+	void ApplyTableRow(const FWxDamageTableRow& Row);
 
 	/**
 	 * 이 DamageInfo를 반영한 Spec 배열을 생성한다.

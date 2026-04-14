@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AnimNotify/WxAnimNotify_SpawnProjectile.h"
+#include "WxDamageTableRow.h"
 #include "Weapon/WxProjectileBase.h"
 
 void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
@@ -35,11 +36,23 @@ void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAn
 		return;
 	}
 
-	Projectile->InitializeDamageSpec(DamageInfo);
+	Projectile->InitializeDamageSpec(ResolveDamageInfo());
 	Projectile->FinishSpawning(SpawnTransform);
 }
 
 FString UWxAnimNotify_SpawnProjectile::GetNotifyName_Implementation() const
 {
 	return TEXT("Spawn Projectile");
+}
+
+FWxDamageInfo UWxAnimNotify_SpawnProjectile::ResolveDamageInfo() const
+{
+	if (const FWxDamageTableRow* Row = DamageDataRow.GetRow<FWxDamageTableRow>(TEXT("WxAnimNotify_SpawnProjectile")))
+	{
+		FWxDamageInfo Resolved;
+		Resolved.ApplyTableRow(*Row);
+		return Resolved;
+	}
+
+	return DamageInfo;
 }

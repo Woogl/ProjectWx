@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "WxDamageInfo.h"
+#include "WxDamageTableRow.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "WxGameplayTags.h"
@@ -8,6 +9,16 @@
 FWxDamageInfo::FWxDamageInfo()
 {
 	HitReactTag = WxGameplayTags::Event_HitReact_Normal;
+}
+
+void FWxDamageInfo::ApplyTableRow(const FWxDamageTableRow& Row)
+{
+	CoeffATK = Row.CoeffATK;
+	RecoverMP = Row.RecoverMP;
+	RecoverUP = Row.RecoverUP;
+	HitReactTag = Row.HitReactTag;
+	bUnblockable = Row.bUnblockable;
+	AdditionalEffects = Row.AdditionalEffects;
 }
 
 TArray<FGameplayEffectSpecHandle> FWxDamageInfo::MakeSpecs(UAbilitySystemComponent* SourceASC, const FGameplayEffectContextHandle& Context) const
