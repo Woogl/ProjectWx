@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
+#include "GameplayTagContainer.h"
 #include "Abilities/GameplayAbility.h"
 #include "WxAbilityBase.generated.h"
 
@@ -11,6 +12,19 @@ class UAbilitySystemComponent;
 class UGameplayEffect;
 class UWxEffect_Cooldown;
 struct FWxAbilityTableRow;
+
+/** 어빌리티 발동 시 적용할 GameplayEffect 항목 */
+USTRUCT(BlueprintType)
+struct FWxAbilityEffect
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<UGameplayEffect> EffectClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Categories = "SetByCaller"))
+	TMap<FGameplayTag, float> SetByCallers;
+};
 
 /** 어빌리티 활성화 정책 */
 UENUM(BlueprintType)
@@ -83,7 +97,7 @@ protected:
 
 	/** 어빌리티 발동 시 자신에게 적용할 GameplayEffect 목록 (버프, 상태 부여 등). 각 GE의 Duration 정책에 따라 자연 만료된다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
-	TArray<TSubclassOf<UGameplayEffect>> OnActivateEffects;
+	TArray<FWxAbilityEffect> OnActivateEffects;
 
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual UGameplayEffect* GetCooldownGameplayEffect() const override;

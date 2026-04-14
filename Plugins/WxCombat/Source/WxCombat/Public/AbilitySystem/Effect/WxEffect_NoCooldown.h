@@ -11,10 +11,9 @@ class UAbilitySystemComponent;
 /**
  * 지속시간 동안 쿨다운 적용을 차단하는 GameplayEffect.
  *
- * Immunity 컴포넌트를 사용하여 UWxEffect_Cooldown의 적용을 막는다.
+ * 적용 시 RemoveOtherGameplayEffectComponent로 기존 쿨다운을 모두 제거하고,
+ * Immunity 컴포넌트를 사용하여 이후 UWxEffect_Cooldown의 적용을 차단한다.
  * 지속시간은 SetByCaller.Duration 태그로 지정한다.
- *
- * ApplyToASC()를 사용하면 기존 쿨다운을 모두 제거한 뒤 적용한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxEffect_NoCooldown : public UGameplayEffect

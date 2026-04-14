@@ -27,6 +27,10 @@ public:
 
 	virtual FString GetNotifyName_Implementation() const override;
 
+#if WITH_EDITOR
+	virtual bool CanEditChange(const FProperty* InProperty) const override;
+#endif
+
 protected:
 	/** 스폰할 투사체 클래스 */
 	UPROPERTY(EditAnywhere, Category = "Wx|Projectile")
@@ -40,7 +44,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxDamageTableRow"))
 	FDataTableRowHandle DamageDataRow;
 
-	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ShowOnlyInnerProperties, EditCondition = "DamageDataRow.DataTable == nullptr"))
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ShowOnlyInnerProperties))
 	FWxDamageInfo DamageInfo;
 
 private:

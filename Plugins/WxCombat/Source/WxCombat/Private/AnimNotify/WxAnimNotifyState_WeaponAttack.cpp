@@ -48,6 +48,23 @@ FString UWxAnimNotifyState_WeaponAttack::GetNotifyName_Implementation() const
 	return TEXT("Weapon Attack");
 }
 
+#if WITH_EDITOR
+bool UWxAnimNotifyState_WeaponAttack::CanEditChange(const FProperty* InProperty) const
+{
+	if (!Super::CanEditChange(InProperty))
+	{
+		return false;
+	}
+
+	if (DamageDataRow.DataTable != nullptr && InProperty->GetOwnerStruct() == FWxDamageInfo::StaticStruct())
+	{
+		return false;
+	}
+
+	return true;
+}
+#endif
+
 FWxDamageInfo UWxAnimNotifyState_WeaponAttack::ResolveDamageInfo() const
 {
 	if (const FWxDamageTableRow* Row = DamageDataRow.GetRow<FWxDamageTableRow>(TEXT("WxAnimNotifyState_WeaponAttack")))

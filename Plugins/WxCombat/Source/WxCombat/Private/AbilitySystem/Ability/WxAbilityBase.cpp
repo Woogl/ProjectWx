@@ -81,13 +81,17 @@ void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	for (const TSubclassOf<UGameplayEffect>& EffectClass : OnActivateEffects)
+	for (const FWxAbilityEffect& Effect : OnActivateEffects)
 	{
-		if (EffectClass)
+		if (Effect.EffectClass)
 		{
-			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(EffectClass, GetAbilityLevel());
+			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(Effect.EffectClass, GetAbilityLevel());
 			if (SpecHandle.IsValid())
 			{
+				for (const auto& [Tag, Value] : Effect.SetByCallers)
+				{
+					SpecHandle.Data->SetSetByCallerMagnitude(Tag, Value);
+				}
 				ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
 			}
 		}
