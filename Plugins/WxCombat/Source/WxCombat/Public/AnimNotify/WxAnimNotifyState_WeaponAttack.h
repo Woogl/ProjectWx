@@ -28,12 +28,16 @@ public:
 
 	virtual FString GetNotifyName_Implementation() const override;
 
+#if WITH_EDITOR
+	virtual bool CanEditChange(const FProperty* InProperty) const override;
+#endif
+
 protected:
 	/** 설정 시 DamageInfo를 테이블에서 읽어 사용한다. 미설정 시 아래 DamageInfo를 직접 사용 */
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxDamageTableRow"))
 	FDataTableRowHandle DamageDataRow;
 
-	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ShowOnlyInnerProperties, EditCondition = "DamageDataRow.DataTable == nullptr"))
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ShowOnlyInnerProperties))
 	FWxDamageInfo DamageInfo;
 
 private:
