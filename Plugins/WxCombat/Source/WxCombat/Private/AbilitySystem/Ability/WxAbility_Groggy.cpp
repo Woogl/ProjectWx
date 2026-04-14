@@ -48,6 +48,7 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	FGameplayEffectSpecHandle DrainSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_DrainDP::StaticClass(), GetAbilityLevel());
 	if (DrainSpecHandle.IsValid())
 	{
+		DrainSpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, 5.0f);
 		DrainDPEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, DrainSpecHandle);
 	}
 
