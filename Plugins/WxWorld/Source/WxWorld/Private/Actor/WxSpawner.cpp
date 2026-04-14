@@ -88,6 +88,7 @@ void AWxSpawner::BeginPlay()
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	SpawnedActor = GetWorld()->SpawnActor<AActor>(SpawnableActorClass, GetActorLocation(), GetActorRotation(), SpawnParams);
 }
 
