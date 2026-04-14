@@ -22,16 +22,16 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 		AbilityTag = AssetTags.First();
 	}
 
-	int32 AbilityMaxCharges = 1;
+	int32 AbilityMaxRecharges = 1;
 	if (const UGameplayEffect* CooldownGE = InAbility->GetCooldownGameplayEffect())
 	{
 		CachedCooldownClass = CooldownGE->GetClass();
-		AbilityMaxCharges = FMath::Max(1, CooldownGE->StackLimitCount);
+		AbilityMaxRecharges = FMath::Max(1, CooldownGE->StackLimitCount);
 	}
 
-	SetMaxCharges(AbilityMaxCharges);
-	SetHasMultipleCharges(AbilityMaxCharges > 1);
-	SetCurrentCharges(AbilityMaxCharges);
+	SetMaxRecharges(AbilityMaxRecharges);
+	SetHasMultipleCharges(AbilityMaxRecharges > 1);
+	SetCurrentCharges(AbilityMaxRecharges);
 
 	if (CachedCooldownClass)
 	{
@@ -149,7 +149,7 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 		SetCooldownRemaining(0.f);
 		SetCooldownPercent(0.f);
 		SetIsOnCooldown(false);
-		SetCurrentCharges(MaxCharges);
+		SetCurrentCharges(MaxRecharges);
 		TickerHandle.Reset();
 		return false;
 	}
@@ -165,7 +165,7 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 
 	SetCooldownRemaining(NextChargeRemaining);
 	SetCooldownPercent(NextChargeRemaining / CooldownDuration);
-	SetCurrentCharges(FMath::Max(0, MaxCharges - ConsumedCharges));
+	SetCurrentCharges(FMath::Max(0, MaxRecharges - ConsumedCharges));
 
 	return true;
 }
@@ -220,14 +220,14 @@ void UWxViewModel_Ability::SetCurrentCharges(int32 NewValue)
 	UE_MVVM_SET_PROPERTY_VALUE(CurrentCharges, NewValue);
 }
 
-int32 UWxViewModel_Ability::GetMaxCharges() const
+int32 UWxViewModel_Ability::GetMaxRecharges() const
 {
-	return MaxCharges;
+	return MaxRecharges;
 }
 
-void UWxViewModel_Ability::SetMaxCharges(int32 NewValue)
+void UWxViewModel_Ability::SetMaxRecharges(int32 NewValue)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(MaxCharges, NewValue);
+	UE_MVVM_SET_PROPERTY_VALUE(MaxRecharges, NewValue);
 }
 
 bool UWxViewModel_Ability::GetHasMultipleCharges() const

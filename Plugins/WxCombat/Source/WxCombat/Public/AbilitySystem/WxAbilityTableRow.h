@@ -24,7 +24,7 @@ struct WXCOMBAT_API FWxAbilityTableRow : public FTableRowBase
 
 	/** 최대 충전 수. 1이면 단일 쿨다운 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cooldown")
-	int32 MaxCharges = 1;
+	int32 MaxRecharges = 1;
 
 	// ── Cost ───────────────────────────────────────────────────────────────
 

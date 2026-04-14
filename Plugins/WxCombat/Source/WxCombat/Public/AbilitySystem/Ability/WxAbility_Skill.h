@@ -15,7 +15,7 @@ class UAnimMontage;
  * 입력 시 단일 몽타주를 재생하고, 완료 또는 중단 시 EndAbility.
  * 타겟 방향 회전은 ANS_TurnAround이 담당.
  *
- * 쿨다운/충전 시스템은 WxAbilityBase의 CooldownTime, MaxCharges로 설정한다.
+ * 쿨다운/충전 시스템은 WxAbilityBase의 CooldownTime, MaxRecharges로 설정한다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Skill : public UWxAbilityBase

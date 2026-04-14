@@ -21,7 +21,7 @@ struct FGameplayEffectSpec;
  *
  * 사용 흐름:
  *  1. Initialize(ASC, Ability)로 초기화. 어빌리티 CDO에서 CooldownGE 클래스와
- *     StackLimitCount(=MaxCharges)를 자동으로 읽어온다.
+ *     StackLimitCount(=MaxRecharges)를 자동으로 읽어온다.
  *  2. 쿨다운 GE 적용 시 타이머로 매 프레임 남은 시간/남은 충전 수 갱신
  *  3. 쿨다운 만료 시 타이머 중단, 프로퍼티 초기화
  *
@@ -55,7 +55,7 @@ public:
 	int32 CurrentCharges = 0;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
-	int32 MaxCharges = 0;
+	int32 MaxRecharges = 0;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	bool HasMultipleCharges = false;
@@ -81,8 +81,8 @@ public:
 	int32 GetCurrentCharges() const;
 	void SetCurrentCharges(int32 NewValue);
 
-	int32 GetMaxCharges() const;
-	void SetMaxCharges(int32 NewValue);
+	int32 GetMaxRecharges() const;
+	void SetMaxRecharges(int32 NewValue);
 
 	bool GetHasMultipleCharges() const;
 	void SetHasMultipleCharges(bool NewValue);

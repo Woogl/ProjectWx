@@ -34,7 +34,7 @@ bool UWxAbilityBase::CanEditChange(const FProperty* InProperty) const
 		}
 
 		if (PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, CooldownTime)
-			|| PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, MaxCharges))
+			|| PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, MaxRecharges))
 		{
 			if (CooldownGameplayEffectClass || bHasDataRow)
 			{
@@ -118,7 +118,7 @@ void UWxAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, c
 void UWxAbilityBase::ApplyAbilityTableRow(const FWxAbilityTableRow& Row)
 {
 	CooldownTime = Row.CooldownTime;
-	MaxCharges = FMath::Max(1, Row.MaxCharges);
+	MaxRecharges = FMath::Max(1, Row.MaxRecharges);
 	MPCost = Row.MPCost;
 	UPCost = Row.UPCost;
 }
@@ -140,7 +140,7 @@ UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
 		CooldownEffect = NewObject<UWxEffect_Cooldown>(const_cast<UWxAbilityBase*>(this), TEXT("CooldownEffect"));
 	}
 
-	CooldownEffect->StackLimitCount = MaxCharges;
+	CooldownEffect->StackLimitCount = MaxRecharges;
 	return CooldownEffect;
 }
 
@@ -175,7 +175,7 @@ bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, cons
 			if (ActiveGE->Spec.GetEffectContext().GetAbility() == AbilityCDO)
 			{
 				const float TimeRemaining = (ActiveGE->StartWorldTime + ActiveGE->Spec.GetDuration()) - WorldTime;
-				return FMath::CeilToInt32((TimeRemaining - KINDA_SMALL_NUMBER) / CooldownTime) < MaxCharges;
+				return FMath::CeilToInt32((TimeRemaining - KINDA_SMALL_NUMBER) / CooldownTime) < MaxRecharges;
 			}
 		}
 	}

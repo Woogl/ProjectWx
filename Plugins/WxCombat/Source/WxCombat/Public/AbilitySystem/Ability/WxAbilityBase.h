@@ -26,7 +26,7 @@ enum class EWxAbilityActivationPolicy : uint8
  * 프로젝트 전체 어빌리티 베이스 클래스.
  * 모든 어빌리티는 이 클래스를 상속받아 작성.
  *
- * 쿨다운은 CooldownTime, MaxCharges 프로퍼티로 설정한다.
+ * 쿨다운은 CooldownTime, MaxRecharges 프로퍼티로 설정한다.
  * 내부적으로 공용 UWxEffect_Cooldown GE를 사용하며,
  * 소스 어빌리티 CDO로 개별 어빌리티의 쿨다운을 구분한다.
  *
@@ -61,7 +61,7 @@ public:
 
 	/** 최대 충전 수. 1이면 단일 쿨다운 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Data|Cooldown", meta = (ClampMin = "1"))
-	int32 MaxCharges = 1;
+	int32 MaxRecharges = 1;
 
 	/** MP 소모량. 0 이하이면 미적용 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Data|Cost", meta = (ClampMin = "0"))
@@ -95,7 +95,7 @@ protected:
 private:
 	/**
 	 * GetCooldownGameplayEffect()가 반환하는 GE 인스턴스.
-	 * ViewModel이 GetClass()로 쿨다운 GE 클래스를, StackLimitCount로 MaxCharges를 읽는다.
+	 * ViewModel이 GetClass()로 쿨다운 GE 클래스를, StackLimitCount로 MaxRecharges를 읽는다.
 	 */
 	UPROPERTY(Transient)
 	mutable TObjectPtr<UWxEffect_Cooldown> CooldownEffect;
