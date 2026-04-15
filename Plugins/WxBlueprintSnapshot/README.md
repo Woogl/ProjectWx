@@ -1,22 +1,147 @@
 # WxBlueprintSnapshot
 
-Blueprint 저장 시 CDO delta, SCS 트리, 변수 선언, 그래프 의사코드를 JSON으로 추출하는 UE5 에디터 플러그인. BP 히스토리 추적 및 AI 스캐폴딩 용도.
+블루프린트를 저장할 때마다 **그 안의 내용**(기본값, 컴포넌트, 변수, 그래프 로직)을 사람이 읽을 수 있는 JSON 파일로 자동 기록합니다.
 
-## 개요
+## 이 플러그인으로 할 수 있는 것
 
-- **Engine**: Unreal Engine 5.7
-- **Module type**: Editor (PostEngineInit)
-- **Dependencies**: ModelViewViewModel
-- **출력 경로**: `Plugins/WxBlueprintSnapshot/Snapshots/<PackagePath>.json`
-  (경로가 240자 초과 시 해시 폴더로 폴백)
+### 1. 블루프린트 변경점을 Git diff로 읽기
+`.uasset`은 바이너리라 Git에서 `Binary files differ`만 뜹니다. 이 플러그인이 생성하는 JSON은 **텍스트 + 키 정렬** 포맷이라, PR 리뷰에서 "이 커밋에서 캐릭터 BP의 MaxHP가 얼마로 바뀌었는지" 같은 변경점을 줄 단위로 볼 수 있습니다.
 
-## 동작 방식
+### 2. AI에게 블루프린트 구조 전달
+`WBP_Ability.json`을 통째로 AI에게 붙여 "이 위젯의 MVVM 바인딩을 리팩토링해줘" / "이 Ability BP의 이벤트 그래프를 C++로 옮겨줘" 같은 작업을 시킬 수 있습니다. BP 스크린샷을 찍어 보내는 것보다 정확합니다.
 
-1. `UPackage::PackageSavedWithContextEvent` 구독
-2. 저장된 패키지 내 Blueprint를 필터링 후 큐잉
-3. Ticker가 프레임당 1건씩 처리 (에디터 스파이크 방지)
-4. 이전 JSON과 동일하면 write skip
-5. ReadOnly 파일은 자동 해제 후 덮어쓰기
+### 3. 블루프린트 일별 변화 추적
+JSON 파일이 리포지토리에 커밋되므로 `git log`로 "누가 언제 이 BP의 컴포넌트를 추가/제거했는지"를 추적할 수 있습니다.
+
+### 4. 블루프린트 일괄 검수
+JSON이라 `rg`/`jq`로 **전체 프로젝트 BP를 스캔**할 수 있습니다. 예: "Tick이 켜진 Actor BP 찾기", "특정 인터페이스를 구현한 BP 전체 목록".
+
+---
+
+## Quick Start
+
+1. 플러그인 활성화 (기본값으로 이미 활성화 상태).
+2. `Project Settings > Plugins > Wx Blueprint Snapshot`에서 대상 폴더를 `IncludeDirectories`에 지정 (비워두면 전체 BP).
+3. 블루프린트를 저장 (Ctrl+S).
+4. `Plugins/WxBlueprintSnapshot/Snapshots/<BP 경로>.json` 파일이 생성/업데이트됨.
+5. 이 폴더를 Git에 커밋하면 이후 변경점이 PR에 텍스트로 찍힘.
+
+---
+
+## 내 블루프린트가 대상인가?
+
+| 블루프린트 종류 | 지원 | 비고 |
+|---|---|---|
+| Actor Blueprint | ✅ | Character, Pawn, Actor 상속 BP 포함 |
+| Object Blueprint | ✅ | 일반 UObject 상속 BP |
+| Widget Blueprint (UMG) | ✅ | 위젯 트리 + MVVM 바인딩까지 추출 |
+| Gameplay Ability Blueprint | ✅ | 기본값·변수·그래프까지 기록 (GAS 전용 분석은 없음) |
+| Data-only Blueprint | ✅ | 변수 기본값만 들어있는 BP도 동작 |
+| **Data Asset (인스턴스)** | ❌ | BP가 아니라 BP 클래스로 만든 데이터 파일. 기록되지 않음 |
+| Blueprint Interface | ❌ | 함수 시그니처만 있는 BP. 스킵 |
+| Blueprint Macro Library | ❌ | 스킵 |
+| Blueprint Function Library | ❌ | 스킵 |
+| Editor Utility Blueprint | ❌ | 스킵 |
+| Animation Blueprint | ⚠️ | 변수·기본값까지만. AnimGraph 스테이트머신은 노드 타이틀만 찍힘 |
+| Control Rig / Niagara / Metasound | ❌ | 전용 그래프 포맷, 미지원 |
+
+> **"내 BP는 뭐지?"** — Content Browser에서 에셋을 우클릭 → "Reference Viewer" 또는 더블클릭해서 열었을 때 상단 탭으로 판단할 수 있습니다.
+
+---
+
+## 내가 쓰는 기능은 잡히나?
+
+### 기본값 (Details 패널의 값)
+| 항목 | 기록됨 |
+|---|---|
+| 변수 기본값 변경 (숫자, 문자열, 불리언) | ✅ |
+| 에셋 참조 (StaticMesh, Material, 등) | ✅ 경로 문자열로 |
+| Struct 멤버 | ✅ 재귀 기록 |
+| TArray, TSet 원소 | ✅ 전체 덤프 |
+| TMap 엔트리 | ✅ |
+| 인스턴스드 서브오브젝트 (e.g. UObject 필드) | ✅ 재귀 기록 |
+| `EditAnywhere`/`BlueprintReadWrite` 속성 | ✅ |
+| 순수 C++ 내부 상태 (`VisibleAnywhere`만 아닌 것) | ❌ 기록 안 함 |
+| `Transient` / `Deprecated` 속성 | ❌ 의도적으로 제외 |
+| FText 로컬라이제이션 키/네임스페이스 | ❌ 보이는 문자열만 저장 |
+
+### 컴포넌트 (Components 탭에 추가한 것)
+| 항목 | 기록됨 |
+|---|---|
+| Add Component으로 붙인 컴포넌트 | ✅ |
+| 컴포넌트 간 어태치(부모 + 소켓) | ✅ |
+| 컴포넌트별 Details 값 | ✅ CDO 차이만 |
+| C++ 생성자에서 만든 네이티브 컴포넌트 | ❌ BP 소유가 아님 |
+| 상속된 컴포넌트의 Override 값 | ⚠️ 일부만 |
+
+### 위젯 블루프린트 (WBP)
+| 항목 | 기록됨 |
+|---|---|
+| Designer 탭의 위젯 계층 | ✅ |
+| 각 위젯의 Details 값 + Slot 값 | ✅ |
+| MVVM ViewModel 바인딩 | ✅ |
+| MVVM Conversion Function의 경로 | ✅ |
+| MVVM Conversion Function의 내부 로직 | ❌ 경로만 |
+| Widget Animation | ❌ |
+| UMG 구식 Property Binding | ❌ MVVM만 지원 |
+| Named Slot의 내용물 | ❌ 런타임 주입이라 BP엔 없음 |
+
+### 이벤트/함수 그래프 (의사코드)
+| 항목 | 기록됨 |
+|---|---|
+| Event, Custom Event, Function Entry | ✅ |
+| Branch (if/else) | ✅ |
+| Sequence | ✅ |
+| 변수 Set | ✅ |
+| 함수 호출 (CallFunction) | ✅ 인자 인라인 |
+| Cast | ✅ |
+| ForEach / ForLoop / While | ✅ |
+| Return | ✅ |
+| **Delay, Timeline, Gate** | ⚠️ 노드 이름만 |
+| **Async / Latent 액션** | ⚠️ 완료 분기 해석 없음 |
+| **Event Dispatcher 호출** | ⚠️ 일반 함수 호출처럼 보임 |
+| 매크로 내부 본문 | ❌ 호출 라인만 |
+| 로컬 변수 | ❌ |
+| 코멘트 박스 | ❌ |
+| 노드 위치/색상 | ❌ |
+
+### 그 외
+| 항목 | 기록됨 |
+|---|---|
+| 부모 클래스 | ✅ |
+| 변수 목록 + 타입 + 기본값 | ✅ |
+| 구현 인터페이스 목록 | ✅ |
+
+---
+
+## 무엇을 위한 도구가 **아닌가**
+
+- **블루프린트 백업/복원 도구가 아닙니다.** JSON에서 `.uasset`을 재생성하지 않습니다. 백업은 Source Control로 하세요.
+- **시각적 그래프 뷰어가 아닙니다.** 노드 위치·색상·코멘트를 기록하지 않습니다. BP를 눈으로 보고 싶으면 에디터를 여세요.
+- **런타임 도구가 아닙니다.** 에디터 전용입니다. 패키징된 게임에 포함되지 않습니다.
+- **실시간 분석기가 아닙니다.** BP를 **저장할 때만** 기록합니다.
+
+---
+
+## 트러블슈팅
+
+**스냅샷이 안 생겨요**
+- BP를 `Ctrl+S`로 실제 저장했는지 확인 (Autosave는 무시됨).
+- `Project Settings > Wx Blueprint Snapshot`에서 `bEnabled`가 켜져있는지.
+- `IncludeDirectories`에 값이 있다면 내 BP 경로가 포함되는지.
+- BP가 **Dirty / Error 상태**면 스킵됨. 컴파일 성공 후 저장 필요.
+- 대상이 Blueprint Interface / Macro Library / Function Library면 의도적으로 스킵됨.
+
+**PIE / 쿠킹 중엔 안 찍히나요**
+- 네, 의도적입니다. PIE, Cook, Procedural save, Autosave, Commandlet 실행 중엔 동작하지 않습니다.
+
+**여러 BP를 한번에 저장했는데 일부만 찍혔어요**
+- Ticker가 프레임당 1건씩 처리합니다. 큐가 소진될 때까지 잠시 기다리세요.
+
+**JSON이 깨져보여요 / 경로가 이상해요**
+- Windows 경로 260자 제한 회피를 위해 240자 초과 시 해시 폴더(`_long_path_hash/`)로 폴백합니다.
+
+---
 
 ## 설정
 
@@ -25,123 +150,28 @@ Blueprint 저장 시 CDO delta, SCS 트리, 변수 선언, 그래프 의사코�
 | 항목 | 기본값 | 설명 |
 |---|---|---|
 | `bEnabled` | true | 전체 기능 on/off |
-| `IncludeDirectories` | [] | 대상 BP 폴더 (비어있으면 전체). Content 브라우저에서 선택 |
+| `IncludeDirectories` | [] | 대상 BP 폴더 (비어있으면 전체). Content 브라우저 폴더 피커 |
 | `ExcludeDirectories` | [] | 제외 BP 폴더 |
-| `bIncludeComponents` | true | SCS 트리 포함 |
-| `bIncludeVariables` | true | NewVariables 포함 |
-| `bIncludeInterfaces` | true | ImplementedInterfaces 포함 |
-| `bIncludeWidgetTree` | true | WBP WidgetTree 포함 |
-| `bIncludeMvvm` | true | MVVM 바인딩 포함 |
-| `bIncludeGraphs` | true | 그래프 의사코드 포함 |
+| `bIncludeComponents` | true | Components 탭 추출 |
+| `bIncludeVariables` | true | 변수 목록 추출 |
+| `bIncludeInterfaces` | true | 구현 인터페이스 추출 |
+| `bIncludeWidgetTree` | true | WBP 위젯 트리 추출 |
+| `bIncludeMvvm` | true | WBP MVVM 바인딩 추출 |
+| `bIncludeGraphs` | true | 이벤트/함수 그래프 의사코드 추출 |
 
 ---
 
-## ✅ 지원됨
+## 출력
 
-### 대상 Blueprint
-- `BPTYPE_Normal` (Actor/Object BP)
-- `UWidgetBlueprint` (WBP — 위젯 트리 + MVVM 추가 추출)
-
-### CDO Delta (classDefaults)
-- `CPF_Edit | BlueprintVisible | BlueprintAssignable` 속성
-- Bool, Enum, Byte, 정수/실수, String/Name/Text, SoftObject
-- Object/Class 참조 (경로 문자열)
-- **Instanced subobject 재귀 delta** (`CPF_InstancedReference`, `CLASS_DefaultToInstanced`)
-- Struct (재귀, 빈 struct는 드롭)
-- Array, Set
-- Map (문자열 키는 object, 그 외는 `[{key, value}]` 배열)
-- `Identical()` 실패 시 `ExportText` 텍스트 비교 fallback
-
-### SCS (components)
-- `SimpleConstructionScript` 전체 노드 트리
-- `componentClass`, `attachParent`, `attachSocket`
-- 각 컴포넌트 템플릿의 CDO delta
-
-### 그래프 (의사코드)
-- Event, CustomEvent, FunctionEntry 진입점
-- `if/else`, `Sequence`, `VariableSet`, `CallFunction`, `DynamicCast`, `MacroInstance`(ForEach/ForLoop/While), `Return`
-- Knot 스킵, 사이클 감지 (`goto NodeName`)
-
-### Widget Blueprint
-- `WidgetTree` 전체 순회 (루트/부모/슬롯)
-- 위젯·슬롯 CDO delta
-- 이름 충돌 시 `#2`, `#3` 접미사 부여
-- MVVM View extension: ViewModel 컨텍스트, 바인딩(정렬됨), conversion function 경로
-
-### 메타
-- `parentClass`, `blueprintPath`
-- `NewVariables` (type + 기본값)
-- `ImplementedInterfaces`
-
-### 실행/파일 I/O
-- PostSaveContext 필터링 (procedural/cook/autosave 제외)
-- Ticker 기반 프레임당 1건 처리
-- JSON 키 정렬 (git diff 친화)
-- 변경 없으면 write skip
-- ReadOnly 파일 자동 해제
-- Windows `MAX_PATH` 폴백 (240자 초과 시 해시 폴더)
-- Include/Exclude 디렉터리 필터
+- **경로**: `Plugins/WxBlueprintSnapshot/Snapshots/<BP 패키지 경로>.json`
+- **포맷**: UTF-8, 키 정렬, 들여쓰기 2-space
+- **내용이 이전과 동일하면** 파일 덮어쓰기 스킵 (Git diff 노이즈 방지)
+- **ReadOnly 플래그**는 자동 해제 후 덮어쓰기 (Perforce 등에서 편의)
 
 ---
 
-## ❌ 지원되지 않음 / 제한
+## 요구사항
 
-### Blueprint 종류
-- **`BPTYPE_Interface`** — skip
-- **`BPTYPE_MacroLibrary`** — skip
-- **`BPTYPE_FunctionLibrary`** — skip
-- **`UEditorUtilityBlueprint`** — skip
-- **Animation Blueprint** — AnimGraph 스테이트머신/Pose 노드는 미지원 (K2Node가 아니므로 fallback title만)
-- **Control Rig, Metasound, Niagara** 등 커스텀 그래프 기반 에셋 — 미지원
-- **Data-only BP, Gameplay Ability Blueprint** — Normal BP로 취급되어 CDO delta까지는 동작. 고유 서브시스템 해석은 없음
-
-### 속성 직렬화
-- **Transient / EditorOnly / Deprecated** 속성 무시 (의도된 것)
-- **Non-Edit / Non-BP** 속성 무시 (C++ 내부 상태)
-- **Delegate, MulticastDelegate** 속성 — fallback `ExportText` 문자열만
-- **FieldPath, Optional** 속성 — fallback 문자열
-- **Array/Set** 요소 diff 없음 — 전체 덤프 (요소 재정렬 시 전체가 diff에 찍힘)
-- **Map** — 요소 diff 없음
-- **Text Property**는 `ToString()`만 저장 → 로컬라이제이션 키/네임스페이스 손실
-
-### 그래프 의사코드
-- **핀 위치/주석/색상** — 기록 안 함
-- **타이밍 노드** (Delay, Timeline, Gate, MultiGate) — fallback title만
-- **Event Dispatcher** 호출 — `CallFunction`으로 나오나 dispatcher 특성 구분 안 됨
-- **Latent action** (Async Task, BlueprintAsyncAction) — 진입/완료 핀 분기 해석 없음
-- **로컬 변수** — 함수 본문 로컬 변수 선언 기록 안 함
-- **수학 노드 체인** — K2Node_CallFunction으로 장황하게 전개
-- **Pure 함수 의존** — 실행 체인 기반이라 pure 노드는 데이터 입력 시점에 inline 전개 (중복 시 중복 렌더)
-- **매크로 내부 본문** — 호출 라인만, 내부 그래프는 펼치지 않음
-- **Comment Node** — 기록 안 함
-
-### WBP
-- **Named Slots** 내용 — 주입 시점이 런타임이라 CDO에서는 비어있음
-- **Widget Animation** — 미지원
-- **UMG Legacy Property Binding** — MVVM만 지원, 구식 바인딩은 무시
-
-### MVVM
-- **Conversion function 내부 로직** — path만
-- **MVVM View Event** — 바인딩만, 이벤트 연결 미지원
-- **Field Notify** 플래그 — 기록 안 함
-
-### SCS
-- **AddedActorComponents (Inherited Component Handler)** — 상속 컴포넌트 커스터마이즈 미지원
-
-### 실행/저장
-- **커맨드렛**에서 동작 안 함
-- **PIE / Cook / Procedural save**에서 동작 안 함
-- **Autosave**에서 동작 안 함
-- **런타임 빌드 포함 안 됨** — 에디터 전용
-- **대용량 BP**: 프레임당 1건 처리이므로 큐가 쌓이면 지연
-
-### 컴파일 상태
-- `BS_Dirty`, `BS_Error`, `BS_Unknown` BP는 skip (컴파일 먼저 필요)
-
----
-
-## 요약
-
-**타깃**: Actor BP, Object BP, Widget BP의 **구조/설정/로직 윤곽**을 git-friendly JSON으로 기록.
-
-**비타깃**: 그래프 비주얼 디버깅, AnimBP/ControlRig, 정확한 픽셀 수준의 BP 재현, 런타임.
+- Unreal Engine 5.7
+- 에디터 빌드 (`WxEditor.Target.cs`)
+- 의존 모듈: `ModelViewViewModel` (MVVM 추출용, 5.7 기본 포함)
