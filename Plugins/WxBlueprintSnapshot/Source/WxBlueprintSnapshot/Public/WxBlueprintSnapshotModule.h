@@ -33,9 +33,15 @@ private:
 	void EnqueueBlueprint(UBlueprint* Blueprint);
 	bool HandleTick(float DeltaTime);
 
+	struct FPendingEntry
+	{
+		TWeakObjectPtr<UBlueprint> Blueprint;
+		FString Path;
+	};
+
 	FDelegateHandle PackageSavedHandle;
 	FTSTicker::FDelegateHandle TickerHandle;
 
-	TQueue<TWeakObjectPtr<UBlueprint>, EQueueMode::Spsc> PendingQueue;
+	TQueue<FPendingEntry, EQueueMode::Spsc> PendingQueue;
 	TSet<FString> PendingPaths;
 };

@@ -12,6 +12,7 @@ class USCS_Node;
 class UWidgetBlueprint;
 class UWidget;
 class UWidgetTree;
+class UWxBlueprintSnapshotSettings;
 class FJsonObject;
 
 /**
@@ -24,10 +25,10 @@ public:
 	/** Blueprint를 스냅샷 JSON으로 추출해 설정된 경로에 기록한다. 변경 없으면 skip하고 false 반환 */
 	static bool ExportBlueprint(UBlueprint* Blueprint);
 
-private:
-	static TSharedRef<FJsonObject> BuildSnapshot(UBlueprint* Blueprint);
-
 	static TSharedPtr<FJsonObject> BuildClassDefaults(const UObject* Instance, const UObject* Defaults);
+
+private:
+	static TSharedRef<FJsonObject> BuildSnapshot(UBlueprint* Blueprint, const UWxBlueprintSnapshotSettings& Settings);
 
 	static TSharedPtr<FJsonObject> BuildComponentsJson(USimpleConstructionScript* SCS);
 	static TSharedPtr<FJsonObject> BuildScsNodeJson(USCS_Node* Node);
@@ -41,7 +42,7 @@ private:
 
 	static TSharedPtr<FJsonObject> BuildGraphsJson(UBlueprint* Blueprint);
 
-	static FString SerializeJson(TSharedRef<FJsonObject> RootObject, bool bSortKeys);
+	static FString SerializeJson(TSharedRef<FJsonObject> RootObject);
 
 	static FString ResolveLatestPath(UBlueprint* Blueprint);
 };

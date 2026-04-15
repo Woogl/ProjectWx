@@ -4,11 +4,6 @@
 
 UWxBlueprintSnapshotSettings::UWxBlueprintSnapshotSettings()
 {
-	CategoryName = TEXT("Plugins");
+	CategoryName = TEXT("Wx");
 	SectionName = TEXT("WxBlueprintSnapshot");
-}
-
-FName UWxBlueprintSnapshotSettings::GetCategoryName() const
-{
-	return TEXT("Plugins");
 }

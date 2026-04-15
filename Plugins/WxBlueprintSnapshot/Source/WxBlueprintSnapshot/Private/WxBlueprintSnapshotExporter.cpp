@@ -88,21 +88,26 @@ namespace WxBlueprintSnapshotPrivate
 		}
 	}
 
-	bool IsTransientOrEditorOnly(const FProperty* Property)
+	bool IsSkippableProperty(const FProperty* Property)
 	{
 		if (!Property)
 		{
 			return true;
 		}
-		if (Property->HasAnyPropertyFlags(CPF_Transient | CPF_DuplicateTransient | CPF_NonPIEDuplicateTransient))
+		return Property->HasAnyPropertyFlags(
+			CPF_Transient
+			| CPF_DuplicateTransient
+			| CPF_NonPIEDuplicateTransient
+			| CPF_Deprecated
+			| CPF_EditorOnly);
+	}
+
+	void SetObjectFieldIfNonEmpty(FJsonObject& Root, const FString& Key, const TSharedPtr<FJsonObject>& Value)
+	{
+		if (Value.IsValid() && Value->Values.Num() > 0)
 		{
-			return true;
+			Root.SetObjectField(Key, Value.ToSharedRef());
 		}
-		if (Property->HasAnyPropertyFlags(CPF_Deprecated))
-		{
-			return true;
-		}
-		return false;
 	}
 
 	FString ExportPropertyValue(const FProperty* Property, const void* ValuePtr, const UObject* Parent)
@@ -121,12 +126,21 @@ namespace WxBlueprintSnapshotPrivate
 
 	TSharedPtr<FJsonValue> PropertyValueToJson(const FProperty* Property, const void* ValuePtr, const void* DefaultPtr, const UObject* Owner);
 
+	TSharedPtr<FStructOnScope> MakeElementDefault(const FProperty* ElemProp)
+	{
+		if (const FStructProperty* ElemStruct = CastField<FStructProperty>(ElemProp))
+		{
+			return MakeShared<FStructOnScope>(ElemStruct->Struct);
+		}
+		return nullptr;
+	}
+
 	void StructToJsonObject(const UScriptStruct* Struct, const void* StructPtr, const void* DefaultStructPtr, const UObject* Owner, TSharedPtr<FJsonObject> Out)
 	{
 		for (TFieldIterator<FProperty> It(Struct); It; ++It)
 		{
 			FProperty* Inner = *It;
-			if (IsTransientOrEditorOnly(Inner))
+			if (IsSkippableProperty(Inner))
 			{
 				continue;
 			}
@@ -199,6 +213,29 @@ namespace WxBlueprintSnapshotPrivate
 		if (const FObjectPropertyBase* ObjProp = CastField<FObjectPropertyBase>(Property))
 		{
 			UObject* Obj = ObjProp->GetObjectPropertyValue(ValuePtr);
+			const bool bInstanced = Property->HasAnyPropertyFlags(CPF_InstancedReference | CPF_PersistentInstance)
+				|| (ObjProp->PropertyClass && ObjProp->PropertyClass->HasAnyClassFlags(CLASS_DefaultToInstanced | CLASS_EditInlineNew));
+			if (bInstanced && Obj)
+			{
+				TSharedPtr<FJsonObject> InnerJson = MakeShared<FJsonObject>();
+				InnerJson->SetStringField(TEXT("class"), Obj->GetClass()->GetPathName());
+
+				UObject* DefaultObj = nullptr;
+				if (DefaultPtr)
+				{
+					DefaultObj = ObjProp->GetObjectPropertyValue(DefaultPtr);
+				}
+				const UObject* DefaultsForDelta = (DefaultObj && DefaultObj->GetClass() == Obj->GetClass())
+					? DefaultObj
+					: Obj->GetClass()->GetDefaultObject(false);
+
+				TSharedPtr<FJsonObject> SubDelta = FWxBlueprintSnapshotExporter::BuildClassDefaults(Obj, DefaultsForDelta);
+				if (SubDelta.IsValid() && SubDelta->Values.Num() > 0)
+				{
+					InnerJson->SetObjectField(TEXT("delta"), SubDelta.ToSharedRef());
+				}
+				return MakeShared<FJsonValueObject>(InnerJson);
+			}
 			return MakeShared<FJsonValueString>(Obj ? Obj->GetPathName() : FString());
 		}
 		if (const FInterfaceProperty* IfaceProp = CastField<FInterfaceProperty>(Property))
@@ -213,19 +250,10 @@ namespace WxBlueprintSnapshotPrivate
 			StructToJsonObject(StructProp->Struct, ValuePtr, DefaultPtr, Owner, Obj);
 			return MakeShared<FJsonValueObject>(Obj);
 		}
-		auto ElementDefaultPtr = [Owner](const FProperty* ElemProp) -> TSharedPtr<FStructOnScope>
-		{
-			if (const FStructProperty* ElemStruct = CastField<FStructProperty>(ElemProp))
-			{
-				return MakeShared<FStructOnScope>(ElemStruct->Struct);
-			}
-			return nullptr;
-		};
-
 		if (const FArrayProperty* ArrProp = CastField<FArrayProperty>(Property))
 		{
 			FScriptArrayHelper Helper(ArrProp, ValuePtr);
-			TSharedPtr<FStructOnScope> ElemDefault = ElementDefaultPtr(ArrProp->Inner);
+			TSharedPtr<FStructOnScope> ElemDefault = MakeElementDefault(ArrProp->Inner);
 			const void* ElemDefaultMem = ElemDefault.IsValid() ? ElemDefault->GetStructMemory() : nullptr;
 			TArray<TSharedPtr<FJsonValue>> Arr;
 			for (int32 i = 0; i < Helper.Num(); ++i)
@@ -237,7 +265,7 @@ namespace WxBlueprintSnapshotPrivate
 		if (const FSetProperty* SetProp = CastField<FSetProperty>(Property))
 		{
 			FScriptSetHelper Helper(SetProp, ValuePtr);
-			TSharedPtr<FStructOnScope> ElemDefault = ElementDefaultPtr(SetProp->ElementProp);
+			TSharedPtr<FStructOnScope> ElemDefault = MakeElementDefault(SetProp->ElementProp);
 			const void* ElemDefaultMem = ElemDefault.IsValid() ? ElemDefault->GetStructMemory() : nullptr;
 			TArray<TSharedPtr<FJsonValue>> Arr;
 			for (int32 i = 0; i < Helper.GetMaxIndex(); ++i)
@@ -254,7 +282,7 @@ namespace WxBlueprintSnapshotPrivate
 		{
 			FScriptMapHelper Helper(MapProp, ValuePtr);
 			const FProperty* KeyProp = MapProp->KeyProp;
-			TSharedPtr<FStructOnScope> ValueDefault = ElementDefaultPtr(MapProp->ValueProp);
+			TSharedPtr<FStructOnScope> ValueDefault = MakeElementDefault(MapProp->ValueProp);
 			const void* ValueDefaultMem = ValueDefault.IsValid() ? ValueDefault->GetStructMemory() : nullptr;
 			const bool bStringKey = KeyProp->IsA<FStrProperty>() || KeyProp->IsA<FNameProperty>() || KeyProp->IsA<FTextProperty>();
 			if (bStringKey)
@@ -272,7 +300,7 @@ namespace WxBlueprintSnapshotPrivate
 				return MakeShared<FJsonValueObject>(Obj);
 			}
 
-			TSharedPtr<FStructOnScope> KeyDefault = ElementDefaultPtr(KeyProp);
+			TSharedPtr<FStructOnScope> KeyDefault = MakeElementDefault(KeyProp);
 			const void* KeyDefaultMem = KeyDefault.IsValid() ? KeyDefault->GetStructMemory() : nullptr;
 			TArray<TSharedPtr<FJsonValue>> Arr;
 			for (int32 i = 0; i < Helper.GetMaxIndex(); ++i)
@@ -296,15 +324,33 @@ namespace WxBlueprintSnapshotPrivate
 
 	// ===== Pseudo-code 그래프 렌더러 =====
 
+	struct FPseudoLine
+	{
+		int32 Indent = 0;
+		FString Text;
+	};
+
+	struct FPseudoEntry
+	{
+		FString Header;
+		TArray<FPseudoLine> Body;
+	};
+
+	struct FRenderCtx
+	{
+		TArray<FPseudoLine>& Body;
+		TSet<UEdGraphNode*>& Visited;
+	};
+
 	static UEdGraphPin* SkipKnots(UEdGraphPin* Pin);
 	static FString RenderExpression(UEdGraphPin* OutputPin);
 	static FString RenderDataInput(UEdGraphPin* InputPin);
-	static void RenderExecChain(UEdGraphPin* ExecOutPin, int32 Indent, FString& Out, TSet<UEdGraphNode*>& Visited);
-	static void RenderExecNode(UEdGraphNode* Node, int32 Indent, FString& Out, TSet<UEdGraphNode*>& Visited);
+	static void RenderExecChain(UEdGraphPin* ExecOutPin, int32 Indent, FRenderCtx& Ctx);
+	static void RenderExecNode(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx);
 
-	FString MakeIndent(int32 N)
+	void Emit(FRenderCtx& Ctx, int32 Indent, FString Text)
 	{
-		return FString::ChrN(N * 2, TEXT(' '));
+		Ctx.Body.Add({ Indent, MoveTemp(Text) });
 	}
 
 	bool IsExecPin(const UEdGraphPin* Pin)
@@ -500,7 +546,7 @@ namespace WxBlueprintSnapshotPrivate
 		return Title;
 	}
 
-	void RenderExecChain(UEdGraphPin* ExecOutPin, int32 Indent, FString& Out, TSet<UEdGraphNode*>& Visited)
+	void RenderExecChain(UEdGraphPin* ExecOutPin, int32 Indent, FRenderCtx& Ctx)
 	{
 		if (!ExecOutPin || ExecOutPin->LinkedTo.Num() == 0)
 		{
@@ -512,159 +558,198 @@ namespace WxBlueprintSnapshotPrivate
 			return;
 		}
 		UEdGraphNode* NextNode = NextPin->GetOwningNode();
-		if (!NextNode || Visited.Contains(NextNode))
+		if (!NextNode)
 		{
-			if (NextNode)
-			{
-				Out += MakeIndent(Indent) + FString::Printf(TEXT("goto %s\n"), *NextNode->GetName());
-			}
 			return;
 		}
-		Visited.Add(NextNode);
-		RenderExecNode(NextNode, Indent, Out, Visited);
+		if (Ctx.Visited.Contains(NextNode))
+		{
+			Emit(Ctx, Indent, FString::Printf(TEXT("goto %s"), *NextNode->GetName()));
+			return;
+		}
+		Ctx.Visited.Add(NextNode);
+		RenderExecNode(NextNode, Indent, Ctx);
 	}
 
-	void RenderExecNode(UEdGraphNode* Node, int32 Indent, FString& Out, TSet<UEdGraphNode*>& Visited)
+	bool TryRenderBranch(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx)
 	{
-		const FString Pad = MakeIndent(Indent);
-
-		if (UK2Node_IfThenElse* Branch = Cast<UK2Node_IfThenElse>(Node))
+		UK2Node_IfThenElse* Branch = Cast<UK2Node_IfThenElse>(Node);
+		if (!Branch)
 		{
-			UEdGraphPin* CondPin = Branch->GetConditionPin();
-			Out += Pad + FString::Printf(TEXT("if (%s):\n"), *RenderDataInput(CondPin));
-			RenderExecChain(Branch->GetThenPin(), Indent + 1, Out, Visited);
-			UEdGraphPin* ElsePin = Branch->GetElsePin();
-			if (ElsePin && ElsePin->LinkedTo.Num() > 0)
+			return false;
+		}
+		Emit(Ctx, Indent, FString::Printf(TEXT("if (%s):"), *RenderDataInput(Branch->GetConditionPin())));
+		RenderExecChain(Branch->GetThenPin(), Indent + 1, Ctx);
+		UEdGraphPin* ElsePin = Branch->GetElsePin();
+		if (ElsePin && ElsePin->LinkedTo.Num() > 0)
+		{
+			Emit(Ctx, Indent, TEXT("else:"));
+			RenderExecChain(ElsePin, Indent + 1, Ctx);
+		}
+		return true;
+	}
+
+	bool TryRenderSequence(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx)
+	{
+		UK2Node_ExecutionSequence* Seq = Cast<UK2Node_ExecutionSequence>(Node);
+		if (!Seq)
+		{
+			return false;
+		}
+		int32 Idx = 0;
+		for (UEdGraphPin* Pin : Seq->Pins)
+		{
+			if (Pin && Pin->Direction == EGPD_Output && IsExecPin(Pin))
 			{
-				Out += Pad + TEXT("else:\n");
-				RenderExecChain(ElsePin, Indent + 1, Out, Visited);
+				Emit(Ctx, Indent, FString::Printf(TEXT("# sequence[%d]"), Idx++));
+				RenderExecChain(Pin, Indent, Ctx);
 			}
-			return;
+		}
+		return true;
+	}
+
+	bool TryRenderVariableSet(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx)
+	{
+		UK2Node_VariableSet* VS = Cast<UK2Node_VariableSet>(Node);
+		if (!VS)
+		{
+			return false;
+		}
+		UEdGraphPin* ValPin = VS->FindPin(VS->GetVarName());
+		Emit(Ctx, Indent, FString::Printf(TEXT("%s = %s"), *VS->GetVarNameString(), *RenderDataInput(ValPin)));
+		RenderExecChain(FindThenPin(VS), Indent, Ctx);
+		return true;
+	}
+
+	bool TryRenderCallFunction(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx)
+	{
+		UK2Node_CallFunction* Call = Cast<UK2Node_CallFunction>(Node);
+		if (!Call)
+		{
+			return false;
+		}
+		Emit(Ctx, Indent, FString::Printf(TEXT("%s%s(%s)"),
+			*RenderCallTarget(Call), *Call->GetFunctionName().ToString(), *RenderCallArgs(Call)));
+		RenderExecChain(FindThenPin(Call), Indent, Ctx);
+		return true;
+	}
+
+	bool TryRenderDynamicCast(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx)
+	{
+		UK2Node_DynamicCast* DCast = Cast<UK2Node_DynamicCast>(Node);
+		if (!DCast)
+		{
+			return false;
+		}
+		const FString TypeName = DCast->TargetType ? DCast->TargetType->GetName() : TEXT("?");
+		Emit(Ctx, Indent, FString::Printf(TEXT("As%s = Cast<%s>(%s)"), *TypeName, *TypeName, *RenderDataInput(DCast->GetCastSourcePin())));
+		UEdGraphPin* Success = DCast->GetValidCastPin();
+		UEdGraphPin* Failed = DCast->GetInvalidCastPin();
+		if (Success && Success->LinkedTo.Num() > 0)
+		{
+			Emit(Ctx, Indent, FString::Printf(TEXT("if (As%s):"), *TypeName));
+			RenderExecChain(Success, Indent + 1, Ctx);
+		}
+		if (Failed && Failed->LinkedTo.Num() > 0)
+		{
+			Emit(Ctx, Indent, TEXT("else:"));
+			RenderExecChain(Failed, Indent + 1, Ctx);
+		}
+		return true;
+	}
+
+	bool TryRenderMacro(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx)
+	{
+		UK2Node_MacroInstance* Macro = Cast<UK2Node_MacroInstance>(Node);
+		if (!Macro)
+		{
+			return false;
+		}
+		UEdGraph* MacroGraph = Macro->GetMacroGraph();
+		const FString MacroName = MacroGraph ? MacroGraph->GetName() : TEXT("Macro");
+
+		TArray<FString> Args;
+		for (UEdGraphPin* Pin : Macro->Pins)
+		{
+			if (Pin && Pin->Direction == EGPD_Input && !IsExecPin(Pin))
+			{
+				Args.Add(FString::Printf(TEXT("%s=%s"), *Pin->PinName.ToString(), *RenderDataInput(Pin)));
+			}
 		}
 
-		if (UK2Node_ExecutionSequence* Seq = Cast<UK2Node_ExecutionSequence>(Node))
+		UEdGraphPin* LoopBody = Macro->FindPin(TEXT("LoopBody"));
+		UEdGraphPin* Completed = Macro->FindPin(TEXT("Completed"));
+		if (LoopBody || Completed)
 		{
-			int32 Idx = 0;
-			for (UEdGraphPin* Pin : Seq->Pins)
+			Emit(Ctx, Indent, FString::Printf(TEXT("%s(%s):"), *MacroName, *FString::Join(Args, TEXT(", "))));
+			if (LoopBody)
 			{
-				if (Pin && Pin->Direction == EGPD_Output && IsExecPin(Pin))
-				{
-					Out += Pad + FString::Printf(TEXT("# sequence[%d]\n"), Idx++);
-					RenderExecChain(Pin, Indent, Out, Visited);
-				}
+				RenderExecChain(LoopBody, Indent + 1, Ctx);
 			}
-			return;
+			if (Completed)
+			{
+				RenderExecChain(Completed, Indent, Ctx);
+			}
+			return true;
 		}
 
-		if (UK2Node_VariableSet* VS = Cast<UK2Node_VariableSet>(Node))
+		Emit(Ctx, Indent, FString::Printf(TEXT("%s(%s)"), *MacroName, *FString::Join(Args, TEXT(", "))));
+		RenderExecChain(FindThenPin(Macro), Indent, Ctx);
+		return true;
+	}
+
+	bool TryRenderReturn(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx)
+	{
+		UK2Node_FunctionResult* Ret = Cast<UK2Node_FunctionResult>(Node);
+		if (!Ret)
 		{
-			const FString VarName = VS->GetVarNameString();
-			UEdGraphPin* ValPin = VS->FindPin(VS->GetVarName());
-			Out += Pad + FString::Printf(TEXT("%s = %s\n"), *VarName, *RenderDataInput(ValPin));
-			RenderExecChain(FindThenPin(VS), Indent, Out, Visited);
-			return;
+			return false;
 		}
-
-		if (UK2Node_CallFunction* Call = Cast<UK2Node_CallFunction>(Node))
+		TArray<FString> Returns;
+		for (UEdGraphPin* Pin : Ret->Pins)
 		{
-			const FString Target = RenderCallTarget(Call);
-			const FString FnName = Call->GetFunctionName().ToString();
-			const FString Args = RenderCallArgs(Call);
-			Out += Pad + FString::Printf(TEXT("%s%s(%s)\n"), *Target, *FnName, *Args);
-			RenderExecChain(FindThenPin(Call), Indent, Out, Visited);
-			return;
+			if (Pin && Pin->Direction == EGPD_Input && !IsExecPin(Pin))
+			{
+				Returns.Add(FString::Printf(TEXT("%s=%s"), *Pin->PinName.ToString(), *RenderDataInput(Pin)));
+			}
 		}
+		Emit(Ctx, Indent, FString::Printf(TEXT("return %s"), *FString::Join(Returns, TEXT(", "))));
+		return true;
+	}
 
-		if (UK2Node_DynamicCast* DCast = Cast<UK2Node_DynamicCast>(Node))
-		{
-			UEdGraphPin* ObjIn = DCast->GetCastSourcePin();
-			const FString TypeName = DCast->TargetType ? DCast->TargetType->GetName() : TEXT("?");
-			Out += Pad + FString::Printf(TEXT("As%s = Cast<%s>(%s)\n"), *TypeName, *TypeName, *RenderDataInput(ObjIn));
-			UEdGraphPin* Success = DCast->GetValidCastPin();
-			UEdGraphPin* Failed = DCast->GetInvalidCastPin();
-			if (Success && Success->LinkedTo.Num() > 0)
-			{
-				Out += Pad + FString::Printf(TEXT("if (As%s):\n"), *TypeName);
-				RenderExecChain(Success, Indent + 1, Out, Visited);
-			}
-			if (Failed && Failed->LinkedTo.Num() > 0)
-			{
-				Out += Pad + TEXT("else:\n");
-				RenderExecChain(Failed, Indent + 1, Out, Visited);
-			}
-			return;
-		}
-
-		if (UK2Node_MacroInstance* Macro = Cast<UK2Node_MacroInstance>(Node))
-		{
-			UEdGraph* MacroGraph = Macro->GetMacroGraph();
-			const FString MacroName = MacroGraph ? MacroGraph->GetName() : TEXT("Macro");
-
-			// 인자 수집 (exec이 아닌 입력 핀)
-			TArray<FString> Args;
-			for (UEdGraphPin* Pin : Macro->Pins)
-			{
-				if (Pin && Pin->Direction == EGPD_Input && !IsExecPin(Pin))
-				{
-					Args.Add(FString::Printf(TEXT("%s=%s"), *Pin->PinName.ToString(), *RenderDataInput(Pin)));
-				}
-			}
-
-			// ForEach/ForLoop/WhileLoop 공통: LoopBody / Completed 탐색
-			UEdGraphPin* LoopBody = Macro->FindPin(TEXT("LoopBody"));
-			UEdGraphPin* Completed = Macro->FindPin(TEXT("Completed"));
-			if (LoopBody || Completed)
-			{
-				Out += Pad + FString::Printf(TEXT("%s(%s):\n"), *MacroName, *FString::Join(Args, TEXT(", ")));
-				if (LoopBody)
-				{
-					RenderExecChain(LoopBody, Indent + 1, Out, Visited);
-				}
-				if (Completed)
-				{
-					RenderExecChain(Completed, Indent, Out, Visited);
-				}
-				return;
-			}
-
-			Out += Pad + FString::Printf(TEXT("%s(%s)\n"), *MacroName, *FString::Join(Args, TEXT(", ")));
-			RenderExecChain(FindThenPin(Macro), Indent, Out, Visited);
-			return;
-		}
-
-		if (UK2Node_FunctionResult* Ret = Cast<UK2Node_FunctionResult>(Node))
-		{
-			TArray<FString> Returns;
-			for (UEdGraphPin* Pin : Ret->Pins)
-			{
-				if (Pin && Pin->Direction == EGPD_Input && !IsExecPin(Pin))
-				{
-					Returns.Add(FString::Printf(TEXT("%s=%s"), *Pin->PinName.ToString(), *RenderDataInput(Pin)));
-				}
-			}
-			Out += Pad + FString::Printf(TEXT("return %s\n"), *FString::Join(Returns, TEXT(", ")));
-			return;
-		}
-
-		// Fallback: NodeTitle 한 줄 + Then 체인
+	void RenderFallbackNode(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx)
+	{
 		FString Title = Node->GetNodeTitle(ENodeTitleType::ListView).ToString();
 		Title.ReplaceInline(TEXT("\n"), TEXT(" "));
-		Out += Pad + Title + TEXT("\n");
-		RenderExecChain(FindThenPin(Node), Indent, Out, Visited);
+		Emit(Ctx, Indent, Title);
+		RenderExecChain(FindThenPin(Node), Indent, Ctx);
 	}
 
-	FString RenderEntryNode(UEdGraphNode* Entry)
+	void RenderExecNode(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx)
 	{
-		FString Header;
+		if (TryRenderBranch(Node, Indent, Ctx)) return;
+		if (TryRenderSequence(Node, Indent, Ctx)) return;
+		if (TryRenderVariableSet(Node, Indent, Ctx)) return;
+		if (TryRenderCallFunction(Node, Indent, Ctx)) return;
+		if (TryRenderDynamicCast(Node, Indent, Ctx)) return;
+		if (TryRenderMacro(Node, Indent, Ctx)) return;
+		if (TryRenderReturn(Node, Indent, Ctx)) return;
+		RenderFallbackNode(Node, Indent, Ctx);
+	}
+
+	bool BuildEntryHeader(UEdGraphNode* Entry, FString& OutHeader)
+	{
 		if (UK2Node_CustomEvent* Ce = Cast<UK2Node_CustomEvent>(Entry))
 		{
-			Header = FString::Printf(TEXT("custom_event %s:\n"), *Ce->CustomFunctionName.ToString());
+			OutHeader = FString::Printf(TEXT("custom_event %s:"), *Ce->CustomFunctionName.ToString());
+			return true;
 		}
-		else if (UK2Node_Event* Ev = Cast<UK2Node_Event>(Entry))
+		if (UK2Node_Event* Ev = Cast<UK2Node_Event>(Entry))
 		{
-			Header = FString::Printf(TEXT("event %s:\n"), *Ev->EventReference.GetMemberName().ToString());
+			OutHeader = FString::Printf(TEXT("event %s:"), *Ev->EventReference.GetMemberName().ToString());
+			return true;
 		}
-		else if (UK2Node_FunctionEntry* Fe = Cast<UK2Node_FunctionEntry>(Entry))
+		if (UK2Node_FunctionEntry* Fe = Cast<UK2Node_FunctionEntry>(Entry))
 		{
 			TArray<FString> Params;
 			for (UEdGraphPin* Pin : Fe->Pins)
@@ -677,51 +762,77 @@ namespace WxBlueprintSnapshotPrivate
 			const FName FnName = Fe->CustomGeneratedFunctionName.IsNone()
 				? Fe->FunctionReference.GetMemberName()
 				: Fe->CustomGeneratedFunctionName;
-			Header = FString::Printf(TEXT("function %s(%s):\n"), *FnName.ToString(), *FString::Join(Params, TEXT(", ")));
+			OutHeader = FString::Printf(TEXT("function %s(%s):"), *FnName.ToString(), *FString::Join(Params, TEXT(", ")));
+			return true;
 		}
-		else
-		{
-			return FString();
-		}
-
-		FString Body;
-		TSet<UEdGraphNode*> Visited;
-		Visited.Add(Entry);
-		RenderExecChain(FindThenPin(Entry), 1, Body, Visited);
-		return Header + Body + TEXT("\n");
+		return false;
 	}
 
-	FString RenderGraphPseudoCode(UEdGraph* Graph)
+	bool RenderEntryNode(UEdGraphNode* Entry, FPseudoEntry& OutEntry)
 	{
+		if (!BuildEntryHeader(Entry, OutEntry.Header))
+		{
+			return false;
+		}
+		TSet<UEdGraphNode*> Visited;
+		Visited.Add(Entry);
+		FRenderCtx Ctx{ OutEntry.Body, Visited };
+		RenderExecChain(FindThenPin(Entry), 1, Ctx);
+		return true;
+	}
+
+	TArray<FPseudoEntry> RenderGraphPseudoCode(UEdGraph* Graph)
+	{
+		TArray<FPseudoEntry> Entries;
 		if (!Graph)
 		{
-			return FString();
+			return Entries;
 		}
 
-		TArray<UEdGraphNode*> Entries;
+		TArray<UEdGraphNode*> EntryNodes;
 		for (UEdGraphNode* Node : Graph->Nodes)
 		{
-			if (!Node)
+			if (Node && (Cast<UK2Node_Event>(Node) || Cast<UK2Node_CustomEvent>(Node) || Cast<UK2Node_FunctionEntry>(Node)))
 			{
-				continue;
-			}
-			if (Cast<UK2Node_Event>(Node) || Cast<UK2Node_CustomEvent>(Node) || Cast<UK2Node_FunctionEntry>(Node))
-			{
-				Entries.Add(Node);
+				EntryNodes.Add(Node);
 			}
 		}
 
-		Entries.Sort([](UEdGraphNode& A, UEdGraphNode& B)
+		EntryNodes.Sort([](UEdGraphNode& A, UEdGraphNode& B)
 		{
 			return A.GetNodeTitle(ENodeTitleType::ListView).ToString() < B.GetNodeTitle(ENodeTitleType::ListView).ToString();
 		});
 
-		FString Out;
-		for (UEdGraphNode* Entry : Entries)
+		for (UEdGraphNode* Node : EntryNodes)
 		{
-			Out += RenderEntryNode(Entry);
+			FPseudoEntry Entry;
+			if (RenderEntryNode(Node, Entry) && Entry.Body.Num() > 0)
+			{
+				Entries.Add(MoveTemp(Entry));
+			}
 		}
-		return Out;
+		return Entries;
+	}
+
+	void EmitGraphJson(UEdGraph* Graph, TSharedPtr<FJsonObject> Root)
+	{
+		TArray<FPseudoEntry> Entries = RenderGraphPseudoCode(Graph);
+		if (Entries.Num() == 0)
+		{
+			return;
+		}
+
+		TArray<TSharedPtr<FJsonValue>> LineValues;
+		for (const FPseudoEntry& Entry : Entries)
+		{
+			LineValues.Add(MakeShared<FJsonValueString>(Entry.Header));
+			for (const FPseudoLine& Line : Entry.Body)
+			{
+				const FString Pad = FString::ChrN(Line.Indent * 2, TEXT(' '));
+				LineValues.Add(MakeShared<FJsonValueString>(Pad + Line.Text));
+			}
+		}
+		Root->SetArrayField(Graph->GetName(), LineValues);
 	}
 
 	FString MakeHashedFallbackPath(UBlueprint* Blueprint)
@@ -752,7 +863,7 @@ bool FWxBlueprintSnapshotExporter::ExportBlueprint(UBlueprint* Blueprint)
 		return false;
 	}
 
-	TSharedRef<FJsonObject> Root = BuildSnapshot(Blueprint);
+	TSharedRef<FJsonObject> Root = BuildSnapshot(Blueprint, *Settings);
 
 	FString LatestPath = ResolveLatestPath(Blueprint);
 	if (LatestPath.IsEmpty())
@@ -770,7 +881,7 @@ bool FWxBlueprintSnapshotExporter::ExportBlueprint(UBlueprint* Blueprint)
 	IFileManager& FileManager = IFileManager::Get();
 	FileManager.MakeDirectory(*FPaths::GetPath(LatestPath), true);
 
-	const FString Json = SerializeJson(Root, Settings->bGitFriendly);
+	const FString Json = SerializeJson(Root);
 
 	FString PreviousJson;
 	if (FFileHelper::LoadFileToString(PreviousJson, *LatestPath))
@@ -797,9 +908,9 @@ bool FWxBlueprintSnapshotExporter::ExportBlueprint(UBlueprint* Blueprint)
 	return true;
 }
 
-TSharedRef<FJsonObject> FWxBlueprintSnapshotExporter::BuildSnapshot(UBlueprint* Blueprint)
+TSharedRef<FJsonObject> FWxBlueprintSnapshotExporter::BuildSnapshot(UBlueprint* Blueprint, const UWxBlueprintSnapshotSettings& Settings)
 {
-	const UWxBlueprintSnapshotSettings* Settings = GetDefault<UWxBlueprintSnapshotSettings>();
+	using WxBlueprintSnapshotPrivate::SetObjectFieldIfNonEmpty;
 
 	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
 	Root->SetStringField(TEXT("blueprintPath"), Blueprint->GetPathName());
@@ -812,73 +923,43 @@ TSharedRef<FJsonObject> FWxBlueprintSnapshotExporter::BuildSnapshot(UBlueprint* 
 		UObject* ParentCDO = Blueprint->ParentClass->GetDefaultObject(false);
 		if (InstanceCDO && ParentCDO)
 		{
-			TSharedPtr<FJsonObject> ClassDefaults = BuildClassDefaults(InstanceCDO, ParentCDO);
-			if (ClassDefaults.IsValid() && ClassDefaults->Values.Num() > 0)
-			{
-				Root->SetObjectField(TEXT("classDefaults"), ClassDefaults.ToSharedRef());
-			}
+			SetObjectFieldIfNonEmpty(*Root, TEXT("classDefaults"), BuildClassDefaults(InstanceCDO, ParentCDO));
 		}
 	}
-	
-	if (Settings && Settings->bIncludeComponents)
+
+	if (Settings.bIncludeComponents)
 	{
 		if (USimpleConstructionScript* SCS = Blueprint->SimpleConstructionScript)
 		{
-			TSharedPtr<FJsonObject> Components = BuildComponentsJson(SCS);
-			if (Components.IsValid() && Components->Values.Num() > 0)
-			{
-				Root->SetObjectField(TEXT("components"), Components.ToSharedRef());
-			}
+			SetObjectFieldIfNonEmpty(*Root, TEXT("components"), BuildComponentsJson(SCS));
 		}
 	}
-	
-	if (Settings && Settings->bIncludeVariables)
+
+	if (Settings.bIncludeVariables)
 	{
-		TSharedPtr<FJsonObject> Vars = BuildVariablesJson(Blueprint);
-		if (Vars.IsValid() && Vars->Values.Num() > 0)
-		{
-			Root->SetObjectField(TEXT("variables"), Vars.ToSharedRef());
-		}
+		SetObjectFieldIfNonEmpty(*Root, TEXT("variables"), BuildVariablesJson(Blueprint));
 	}
-	
-	if (Settings && Settings->bIncludeInterfaces)
+
+	if (Settings.bIncludeInterfaces)
 	{
-		TSharedPtr<FJsonObject> Interfaces = BuildInterfacesJson(Blueprint);
-		if (Interfaces.IsValid())
-		{
-			Root->SetObjectField(TEXT("interfaces"), Interfaces.ToSharedRef());
-		}
+		SetObjectFieldIfNonEmpty(*Root, TEXT("interfaces"), BuildInterfacesJson(Blueprint));
 	}
-	
-	if (Settings && Settings->bIncludeGraphs)
+
+	if (Settings.bIncludeGraphs)
 	{
-		TSharedPtr<FJsonObject> Graphs = BuildGraphsJson(Blueprint);
-		if (Graphs.IsValid() && Graphs->Values.Num() > 0)
-		{
-			Root->SetObjectField(TEXT("graphs"), Graphs.ToSharedRef());
-		}
+		SetObjectFieldIfNonEmpty(*Root, TEXT("graphs"), BuildGraphsJson(Blueprint));
 	}
-	
+
 	if (UWidgetBlueprint* WidgetBlueprint = Cast<UWidgetBlueprint>(Blueprint))
 	{
-		Root->SetStringField(TEXT("blueprintKind"), TEXT("Widget"));
-	
-		if (Settings && Settings->bIncludeWidgetTree)
+		if (Settings.bIncludeWidgetTree)
 		{
-			TSharedPtr<FJsonObject> TreeJson = BuildWidgetTreeJson(WidgetBlueprint->WidgetTree);
-			if (TreeJson.IsValid())
-			{
-				Root->SetObjectField(TEXT("widgetTree"), TreeJson.ToSharedRef());
-			}
+			SetObjectFieldIfNonEmpty(*Root, TEXT("widgetTree"), BuildWidgetTreeJson(WidgetBlueprint->WidgetTree));
 		}
-	
-		if (Settings && Settings->bIncludeMvvm)
+
+		if (Settings.bIncludeMVVM)
 		{
-			TSharedPtr<FJsonObject> MvvmJson = BuildMvvmJson(WidgetBlueprint);
-			if (MvvmJson.IsValid())
-			{
-				Root->SetObjectField(TEXT("mvvm"), MvvmJson.ToSharedRef());
-			}
+			SetObjectFieldIfNonEmpty(*Root, TEXT("mvvm"), BuildMvvmJson(WidgetBlueprint));
 		}
 	}
 
@@ -907,10 +988,23 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildWidgetTreeJson(UWidge
 			return;
 		}
 		TSharedPtr<FJsonObject> WidgetJson = FWxBlueprintSnapshotExporter::BuildWidgetJson(Widget);
-		if (WidgetJson.IsValid())
+		if (!WidgetJson.IsValid())
 		{
-			WidgetsMap->SetObjectField(Widget->GetName(), WidgetJson.ToSharedRef());
+			return;
 		}
+		FString Key = Widget->GetName();
+		if (WidgetsMap->HasField(Key))
+		{
+			int32 Suffix = 2;
+			FString Unique;
+			do
+			{
+				Unique = FString::Printf(TEXT("%s#%d"), *Key, Suffix++);
+			}
+			while (WidgetsMap->HasField(Unique));
+			Key = MoveTemp(Unique);
+		}
+		WidgetsMap->SetObjectField(Key, WidgetJson.ToSharedRef());
 	});
 	Root->SetObjectField(TEXT("widgets"), WidgetsMap.ToSharedRef());
 
@@ -1065,83 +1159,13 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildGraphsJson(UBlueprint
 
 	TSharedPtr<FJsonObject> Root = MakeShared<FJsonObject>();
 
-	auto EmitGraph = [&Root](UEdGraph* Graph)
-	{
-		if (!Graph)
-		{
-			return;
-		}
-		const FString Code = WxBlueprintSnapshotPrivate::RenderGraphPseudoCode(Graph);
-		if (Code.IsEmpty())
-		{
-			return;
-		}
-
-		TArray<FString> Lines;
-		Code.ParseIntoArray(Lines, TEXT("\n"), false);
-
-		// 빈 진입점(본문 없는 header) 드롭 + 줄 단위로 평탄화
-		TArray<FString> Elements;
-		for (int32 i = 0; i < Lines.Num(); )
-		{
-			const FString& Line = Lines[i];
-			const bool bIsHeader = Line.EndsWith(TEXT(":")) && !Line.StartsWith(TEXT(" "));
-			if (bIsHeader)
-			{
-				TArray<FString> BodyLines;
-				int32 j = i + 1;
-				while (j < Lines.Num())
-				{
-					const FString& BL = Lines[j];
-					const bool bNextHeader = BL.EndsWith(TEXT(":")) && !BL.StartsWith(TEXT(" "));
-					if (bNextHeader)
-					{
-						break;
-					}
-					BodyLines.Add(BL);
-					++j;
-				}
-				while (BodyLines.Num() > 0 && BodyLines.Last().IsEmpty())
-				{
-					BodyLines.Pop();
-				}
-				if (BodyLines.Num() > 0)
-				{
-					Elements.Add(Line);
-					for (const FString& BL : BodyLines)
-					{
-						Elements.Add(BL);
-					}
-				}
-				i = j;
-			}
-			else
-			{
-				++i;
-			}
-		}
-
-		if (Elements.Num() == 0)
-		{
-			return;
-		}
-
-		TArray<TSharedPtr<FJsonValue>> LineValues;
-		LineValues.Reserve(Elements.Num());
-		for (const FString& E : Elements)
-		{
-			LineValues.Add(MakeShared<FJsonValueString>(E));
-		}
-		Root->SetArrayField(Graph->GetName(), LineValues);
-	};
-
 	for (UEdGraph* Graph : Blueprint->UbergraphPages)
 	{
-		EmitGraph(Graph);
+		WxBlueprintSnapshotPrivate::EmitGraphJson(Graph, Root);
 	}
 	for (UEdGraph* Graph : Blueprint->FunctionGraphs)
 	{
-		EmitGraph(Graph);
+		WxBlueprintSnapshotPrivate::EmitGraphJson(Graph, Root);
 	}
 
 	return Root;
@@ -1160,7 +1184,7 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildClassDefaults(const U
 	for (TFieldIterator<FProperty> It(InstanceClass); It; ++It)
 	{
 		FProperty* Property = *It;
-		if (WxBlueprintSnapshotPrivate::IsTransientOrEditorOnly(Property))
+		if (WxBlueprintSnapshotPrivate::IsSkippableProperty(Property))
 		{
 			continue;
 		}
@@ -1170,7 +1194,8 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildClassDefaults(const U
 		}
 
 		const void* InstancePtr = Property->ContainerPtrToValuePtr<void>(Instance);
-		const void* DefaultPtr = Defaults->GetClass()->IsChildOf(Property->GetOwnerClass())
+		const UClass* OwnerClass = Property->GetOwnerClass();
+		const void* DefaultPtr = (OwnerClass && Defaults->GetClass()->IsChildOf(OwnerClass))
 			? Property->ContainerPtrToValuePtr<void>(Defaults)
 			: nullptr;
 
@@ -1315,12 +1340,9 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildInterfacesJson(UBluep
 	return Root;
 }
 
-FString FWxBlueprintSnapshotExporter::SerializeJson(TSharedRef<FJsonObject> RootObject, bool bSortKeys)
+FString FWxBlueprintSnapshotExporter::SerializeJson(TSharedRef<FJsonObject> RootObject)
 {
-	if (bSortKeys)
-	{
-		WxBlueprintSnapshotPrivate::SortJsonObjectRecursive(RootObject);
-	}
+	WxBlueprintSnapshotPrivate::SortJsonObjectRecursive(RootObject);
 
 	FString Out;
 	TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> Writer =

@@ -1,0 +1,18 @@
+{
+	"blueprintPath": "/Game/AbilitySystem/Ability/GA_Attack.GA_Attack",
+	"classDefaults":
+	{
+		"ComboMap":
+		{
+			"H": "/Game/AbilitySystem/Ability/AM_Attack_H.AM_Attack_H",
+			"HH": "/Game/AbilitySystem/Ability/AM_Attack_HH.AM_Attack_HH",
+			"HHH": "/Game/AbilitySystem/Ability/AM_Attack_HHH.AM_Attack_HHH",
+			"L": "/Game/AbilitySystem/Ability/AM_Attack_L.AM_Attack_L",
+			"LL": "/Game/AbilitySystem/Ability/AM_Attack_LL.AM_Attack_LL",
+			"LLL": "/Game/AbilitySystem/Ability/AM_Attack_LLL.AM_Attack_LLL",
+			"LLLH": "/Game/AbilitySystem/Ability/AM_Attack_LLLH.AM_Attack_LLLH",
+			"LLLL": "/Game/AbilitySystem/Ability/AM_Attack_LLLL.AM_Attack_LLLL"
+		}
+	},
+	"parentClass": "/Script/WxCombat.WxAbility_Attack"
+}

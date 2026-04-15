@@ -1,0 +1,17 @@
+{
+	"blueprintPath": "/Game/AbilitySystem/Effect/GE_Burn.GE_Burn",
+	"classDefaults":
+	{
+		"GEComponents": [
+			{
+				"class": "/Script/WxUI.WxEffectComponent_UIData",
+				"delta":
+				{
+					"DisplayName": "Burn",
+					"Icon": "/Engine/MobileResources/HUD/MobileHUDButtonFire.MobileHUDButtonFire"
+				}
+			}
+		]
+	},
+	"parentClass": "/Script/WxCombat.WxEffect_Burn"
+}
