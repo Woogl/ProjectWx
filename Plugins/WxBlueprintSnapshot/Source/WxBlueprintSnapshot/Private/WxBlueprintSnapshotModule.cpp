@@ -101,12 +101,26 @@ bool FWxBlueprintSnapshotModule::IsPackageNameIncluded(const FString& PackageNam
 		return false;
 	}
 
-	if (Settings->IncludePathPrefixes.Num() > 0)
+	auto NormalizeDir = [](const FString& In) -> FString
+	{
+		FString Out = In;
+		if (!Out.IsEmpty() && !Out.EndsWith(TEXT("/")))
+		{
+			Out += TEXT("/");
+		}
+		return Out;
+	};
+
+	if (Settings->IncludeDirectories.Num() > 0)
 	{
 		bool bIncluded = false;
-		for (const FString& Prefix : Settings->IncludePathPrefixes)
+		for (const FDirectoryPath& Dir : Settings->IncludeDirectories)
 		{
-			if (PackageName.StartsWith(Prefix))
+			if (Dir.Path.IsEmpty())
+			{
+				continue;
+			}
+			if ((PackageName + TEXT("/")).StartsWith(NormalizeDir(Dir.Path)))
 			{
 				bIncluded = true;
 				break;
@@ -118,9 +132,13 @@ bool FWxBlueprintSnapshotModule::IsPackageNameIncluded(const FString& PackageNam
 		}
 	}
 
-	for (const FString& Prefix : Settings->ExcludePathPrefixes)
+	for (const FDirectoryPath& Dir : Settings->ExcludeDirectories)
 	{
-		if (PackageName.StartsWith(Prefix))
+		if (Dir.Path.IsEmpty())
+		{
+			continue;
+		}
+		if ((PackageName + TEXT("/")).StartsWith(NormalizeDir(Dir.Path)))
 		{
 			return false;
 		}
@@ -172,35 +190,33 @@ void FWxBlueprintSnapshotModule::HandlePackageSaved(const FString& PackageFileNa
 
 void FWxBlueprintSnapshotModule::EnqueueBlueprint(UBlueprint* Blueprint)
 {
-	const FString Path = Blueprint->GetPathName();
+	FString Path = Blueprint->GetPathName();
 	bool bAlreadyQueued = false;
 	PendingPaths.Add(Path, &bAlreadyQueued);
 	if (bAlreadyQueued)
 	{
 		return;
 	}
-	PendingQueue.Enqueue(TWeakObjectPtr<UBlueprint>(Blueprint));
+	PendingQueue.Enqueue({ TWeakObjectPtr<UBlueprint>(Blueprint), MoveTemp(Path) });
 }
 
 bool FWxBlueprintSnapshotModule::HandleTick(float DeltaTime)
 {
-	TWeakObjectPtr<UBlueprint> WeakBP;
-	if (!PendingQueue.Dequeue(WeakBP))
+	FPendingEntry Entry;
+	if (!PendingQueue.Dequeue(Entry))
 	{
 		return true;
 	}
 
-	UBlueprint* Blueprint = WeakBP.Get();
-	if (Blueprint)
+	PendingPaths.Remove(Entry.Path);
+
+	UBlueprint* Blueprint = Entry.Blueprint.Get();
+	if (Blueprint && ShouldProcessBlueprint(Blueprint))
 	{
-		PendingPaths.Remove(Blueprint->GetPathName());
-		if (ShouldProcessBlueprint(Blueprint))
+		const bool bWritten = FWxBlueprintSnapshotExporter::ExportBlueprint(Blueprint);
+		if (bWritten)
 		{
-			const bool bWritten = FWxBlueprintSnapshotExporter::ExportBlueprint(Blueprint);
-			if (bWritten)
-			{
-				UE_LOG(LogWxBPSnapshot, Log, TEXT("Snapshot written for %s"), *Blueprint->GetPathName());
-			}
+			UE_LOG(LogWxBPSnapshot, Log, TEXT("Snapshot written for %s"), *Blueprint->GetPathName());
 		}
 	}
 
