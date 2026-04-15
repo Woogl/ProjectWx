@@ -33,7 +33,7 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 
 | 블루프린트 종류 | 지원 | 비고 |
 |---|---|---|
-| Actor, Object Blueprint | ✅ | Character, Pawn, Actor 등 UObject를 상속한 모든 BP |
+| UObject Blueprint | ✅ | Character, Actor, GameplayAbility 등 UObject를 상속한 모든 BP |
 | Widget Blueprint (UMG) | ✅ | 위젯 트리 + MVVM 바인딩까지 추출 |
 | Data-only Blueprint | ✅ | 변수 기본값만 들어있는 BP도 동작 |
 | Animation Blueprint | ⚠️ | 변수·기본값까지만. AnimGraph 스테이트머신은 노드 타이틀만 찍힘 |
@@ -49,7 +49,7 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 ## 내가 쓰는 기능은 잡히나?
 
 ### 기본값 (Details 패널의 값)
-| 항목 | 기록됨 |
+| 항목 | 지원 |
 |---|---|
 | 변수 기본값 변경 (숫자, 문자열, 불리언) | ✅ |
 | 에셋 참조 (StaticMesh, Material, 등) | ✅ 경로 문자열로 |
@@ -63,7 +63,7 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 | FText 로컬라이제이션 키/네임스페이스 | ❌ 보이는 문자열만 저장 |
 
 ### 컴포넌트 (Components 탭에 추가한 것)
-| 항목 | 기록됨 |
+| 항목 | 지원 |
 |---|---|
 | Add Component으로 붙인 컴포넌트 | ✅ |
 | 컴포넌트 간 어태치(부모 + 소켓) | ✅ |
@@ -72,7 +72,7 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 | 상속된 컴포넌트의 Override 값 | ⚠️ 일부만 |
 
 ### 위젯 블루프린트 (WBP)
-| 항목 | 기록됨 |
+| 항목 | 지원 |
 |---|---|
 | Designer 탭의 위젯 계층 | ✅ |
 | 각 위젯의 Details 값 + Slot 값 | ✅ |
@@ -84,13 +84,13 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 | Named Slot의 내용물 | ❌ 런타임 주입이라 BP엔 없음 |
 
 ### 이벤트/함수 그래프 (의사코드)
-| 항목 | 기록됨 |
+| 항목 | 지원 |
 |---|---|
 | Event, Custom Event, Function Entry | ✅ |
 | Branch (if/else) | ✅ |
 | Sequence | ✅ |
 | 변수 Set | ✅ |
-| 함수 호출 (CallFunction) | ✅ 인자 인라인 |
+| 함수 호출 (CallFunction) | ✅ 인자도 출력 |
 | Cast | ✅ |
 | ForEach / ForLoop / While | ✅ |
 | Return | ✅ |
@@ -103,7 +103,7 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 | 노드 위치/색상 | ❌ |
 
 ### 그 외
-| 항목 | 기록됨 |
+| 항목 | 지원 |
 |---|---|
 | 부모 클래스 | ✅ |
 | 변수 목록 + 타입 + 기본값 | ✅ |
@@ -144,7 +144,7 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 | 항목 | 기본값 | 설명 |
 |---|---|---|
 | `bEnabled` | true | 전체 기능 on/off |
-| `IncludeDirectories` | [] | 대상 BP 폴더 (비어있으면 전체). Content 브라우저 폴더 피커 |
+| `IncludeDirectories` | [] | 대상 BP 폴더 (비어있으면 전체) |
 | `ExcludeDirectories` | [] | 제외 BP 폴더 |
 | `bIncludeComponents` | true | Components 탭 추출 |
 | `bIncludeVariables` | true | 변수 목록 추출 |
