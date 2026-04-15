@@ -4,17 +4,18 @@
 
 ## 이 플러그인으로 할 수 있는 것
 
-### 1. 블루프린트 변경점을 Git diff로 읽기
-`.uasset`은 바이너리라 Git에서 `Binary files differ`만 뜹니다. 이 플러그인이 생성하는 JSON은 **텍스트 + 키 정렬** 포맷이라, PR 리뷰에서 "이 커밋에서 캐릭터 BP의 MaxHP가 얼마로 바뀌었는지" 같은 변경점을 줄 단위로 볼 수 있습니다.
+### 1. 블루프린트 변경점을 diff로 읽기
+`.uasset`은 바이너리라 source control에서 `Binary files differ`만 뜹니다. 이 플러그인이 생성하는 JSON은 **텍스트 + 키 정렬** 포맷이라, PR 리뷰에서 "이 커밋에서 캐릭터 BP의 MaxHP가 얼마로 바뀌었는지" 같은 변경점을 줄 단위로 볼 수 있습니다.
 
 ### 2. AI에게 블루프린트 구조 전달
-`WBP_Ability.json`을 통째로 AI에게 붙여 "이 위젯의 MVVM 바인딩을 리팩토링해줘" / "이 Ability BP의 이벤트 그래프를 C++로 옮겨줘" 같은 작업을 시킬 수 있습니다. BP 스크린샷을 찍어 보내는 것보다 정확합니다.
+생성된 JSON은 BP의 **구조·설정·대략적 로직 흐름**을 텍스트로 담기 때문에 AI 코드 어시스턴트에 붙여넣어 질문·리뷰 보조로 쓸 수 있습니다. 스크린샷보다 파싱 정확도가 높습니다.
 
 ### 3. 블루프린트 일별 변화 추적
-JSON 파일이 리포지토리에 커밋되므로 `git log`로 "누가 언제 이 BP의 컴포넌트를 추가/제거했는지"를 추적할 수 있습니다.
+JSON 파일이 리포지토리에 커밋되므로 "누가 언제 이 BP의 컴포넌트를 추가/제거했는지"를 추적할 수 있습니다.
 
 ### 4. 블루프린트 일괄 검수
-JSON이라 `rg`/`jq`로 **전체 프로젝트 BP를 스캔**할 수 있습니다. 예: "Tick이 켜진 Actor BP 찾기", "특정 인터페이스를 구현한 BP 전체 목록".
+JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.  
+예: "Tick이 켜진 Actor BP 찾기", "특정 인터페이스를 구현한 BP 전체 목록".
 
 ---
 
@@ -32,20 +33,16 @@ JSON이라 `rg`/`jq`로 **전체 프로젝트 BP를 스캔**할 수 있습니다
 
 | 블루프린트 종류 | 지원 | 비고 |
 |---|---|---|
-| Actor Blueprint | ✅ | Character, Pawn, Actor 상속 BP 포함 |
-| Object Blueprint | ✅ | 일반 UObject 상속 BP |
+| Actor, Object Blueprint | ✅ | Character, Pawn, Actor 등 UObject를 상속한 모든 BP |
 | Widget Blueprint (UMG) | ✅ | 위젯 트리 + MVVM 바인딩까지 추출 |
-| Gameplay Ability Blueprint | ✅ | 기본값·변수·그래프까지 기록 (GAS 전용 분석은 없음) |
 | Data-only Blueprint | ✅ | 변수 기본값만 들어있는 BP도 동작 |
-| **Data Asset (인스턴스)** | ❌ | BP가 아니라 BP 클래스로 만든 데이터 파일. 기록되지 않음 |
+| Animation Blueprint | ⚠️ | 변수·기본값까지만. AnimGraph 스테이트머신은 노드 타이틀만 찍힘 |
+| Data Asset | ❌ | 블루프린트가 아닌 UObject 에셋 |
+| Data Table / Curve Table | ❌ | CSV/JSON Export 기능을 사용하세요 |
 | Blueprint Interface | ❌ | 함수 시그니처만 있는 BP. 스킵 |
-| Blueprint Macro Library | ❌ | 스킵 |
 | Blueprint Function Library | ❌ | 스킵 |
 | Editor Utility Blueprint | ❌ | 스킵 |
-| Animation Blueprint | ⚠️ | 변수·기본값까지만. AnimGraph 스테이트머신은 노드 타이틀만 찍힘 |
 | Control Rig / Niagara / Metasound | ❌ | 전용 그래프 포맷, 미지원 |
-
-> **"내 BP는 뭐지?"** — Content Browser에서 에셋을 우클릭 → "Reference Viewer" 또는 더블클릭해서 열었을 때 상단 탭으로 판단할 수 있습니다.
 
 ---
 
@@ -132,11 +129,8 @@ JSON이라 `rg`/`jq`로 **전체 프로젝트 BP를 스캔**할 수 있습니다
 - BP가 **Dirty / Error 상태**면 스킵됨. 컴파일 성공 후 저장 필요.
 - 대상이 Blueprint Interface / Macro Library / Function Library면 의도적으로 스킵됨.
 
-**PIE / 쿠킹 중엔 안 찍히나요**
-- 네, 의도적입니다. PIE, Cook, Procedural save, Autosave, Commandlet 실행 중엔 동작하지 않습니다.
-
-**여러 BP를 한번에 저장했는데 일부만 찍혔어요**
-- Ticker가 프레임당 1건씩 처리합니다. 큐가 소진될 때까지 잠시 기다리세요.
+**PIE / 쿠킹 중엔 추출이 안되나요**
+- 네. PIE, Cook, Autosave, Commandlet 실행 중엔 동작하지 않도록 의도했습니다.
 
 **JSON이 깨져보여요 / 경로가 이상해요**
 - Windows 경로 260자 제한 회피를 위해 240자 초과 시 해시 폴더(`_long_path_hash/`)로 폴백합니다.
