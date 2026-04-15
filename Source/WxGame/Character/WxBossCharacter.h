@@ -7,13 +7,11 @@
 #include "BehaviorTree/Blackboard/BlackboardKeyType.h"
 #include "WxBossCharacter.generated.h"
 
-class UWxViewModel_AbilitySystem;
-
 /**
  * 보스 캐릭터.
  * Blackboard의 TargetActor 키를 관찰하여:
- *  - 타겟이 설정되면 자신의 어빌리티 시스템 뷰모델을 글로벌에 등록
- *  - 타겟이 해제되거나 EndPlay 시 글로벌 뷰모델을 등록 해제
+ *  - 타겟이 설정되면 글로벌 Shell 뷰모델에 자신의 ASC를 세팅
+ *  - 타겟이 해제되거나 EndPlay 시 Shell 뷰모델 내부 상태를 해제
  */
 UCLASS(Abstract)
 class WXGAME_API AWxBossCharacter : public AWxEnemyCharacter
@@ -27,9 +25,6 @@ protected:
 private:
 	EBlackboardNotificationResult HandleBlackboardValueChanged(const UBlackboardComponent& BlackboardComp, FBlackboard::FKey ChangedKeyID);
 
-	void RegisterBossAbilitySystemViewModel();
-	void UnregisterBossAbilitySystemViewModel();
-
-	UPROPERTY(Transient)
-	TObjectPtr<UWxViewModel_AbilitySystem> BossAbilitySystemViewModel;
+	void ActivateBossAbilitySystemViewModel();
+	void DeactivateBossAbilitySystemViewModel();
 };

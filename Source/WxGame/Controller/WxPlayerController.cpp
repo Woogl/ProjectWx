@@ -2,26 +2,16 @@
 
 #include "Controller/WxPlayerController.h"
 #include "Character/WxCharacterBase.h"
-#include "MVVMGameSubsystem.h"
+#include "MVVM/WxGlobalViewModelSubsystem.h"
 #include "MVVM/WxViewModel_AbilitySystem.h"
 #include "MVVM/WxViewModel_Ability.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
+#include "AbilitySystemComponent.h"
+#include "Engine/Texture2D.h"
 #include "Widget/WxActivatableWidget.h"
 #include "System/WxUIManagerSubsystem.h"
 #include "WxGameplayTags.h"
-#include "AbilitySystem/WxCombatAttributeSet.h"
 #include "Character/WxPlayerCharacter.h"
-
-namespace WxGlobalViewModelContext
-{
-	FMVVMViewModelContext PlayerAbilitySystem()
-	{
-		FMVVMViewModelContext Context;
-		Context.ContextClass = UWxViewModel_AbilitySystem::StaticClass();
-		Context.ContextName = FName(TEXT("PlayerAbilitySystem"));
-		return Context;
-	}
-}
 
 UInputMappingContext* AWxPlayerController::GetDefaultMappingContext() const
 {
@@ -66,6 +56,16 @@ void AWxPlayerController::OnPossess(APawn* InPawn)
 		// Global View Model 초기화가 먼저 되어야함
 		PushGameHUD(WxPlayerCharacter);
 	}
+}
+
+void AWxPlayerController::OnUnPossess()
+{
+	if (IsLocalController())
+	{
+		DeinitializePlayerAbilitySystemViewModel();
+	}
+
+	Super::OnUnPossess();
 }
 
 void AWxPlayerController::OnRep_Pawn()
@@ -119,49 +119,67 @@ void AWxPlayerController::PushGameHUD(AWxPlayerCharacter* PlayerCharacter)
 
 void AWxPlayerController::InitializePlayerAbilitySystemViewModel(UAbilitySystemComponent* ASC)
 {
-	UGameInstance* GameInst = GetGameInstance();
-	if (!GameInst)
+	ULocalPlayer* LocalPlayer = GetLocalPlayer();
+	if (!LocalPlayer)
 	{
 		return;
 	}
 
-	UMVVMGameSubsystem* MVVMGameSubsystem = GameInst->GetSubsystem<UMVVMGameSubsystem>();
-	if (!MVVMGameSubsystem)
+	UWxGlobalViewModelSubsystem* GlobalVMSubsystem = LocalPlayer->GetSubsystem<UWxGlobalViewModelSubsystem>();
+	if (!GlobalVMSubsystem)
 	{
 		return;
 	}
 
-	UMVVMViewModelCollectionObject* GlobalCollection = MVVMGameSubsystem->GetViewModelCollection();
-	const FMVVMViewModelContext Context = WxGlobalViewModelContext::PlayerAbilitySystem();
+	UWxViewModel_AbilitySystem* ViewModel = GlobalVMSubsystem->GetPlayerAbilitySystemViewModel();
+	if (!ViewModel)
+	{
+		return;
+	}
 
-	UWxViewModel_AbilitySystem* ViewModel = NewObject<UWxViewModel_AbilitySystem>(ASC);
-	GlobalCollection->AddViewModelInstance(Context, ViewModel);
 	ViewModel->Initialize(ASC);
 
-	for (UWxViewModel_Ability* AbilityVM : ViewModel->AbilityViewModels)
+	// WxUI는 WxCombat에 의존할 수 없으므로, WxCombat 측 리소스(AbilityIcon 등)는 WxGame에서 주입한다.
+	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
 	{
+		const UWxAbilityBase* WxAbility = Cast<UWxAbilityBase>(Spec.Ability);
+		if (!WxAbility)
+		{
+			continue;
+		}
+
+		const FGameplayTagContainer& AssetTags = WxAbility->GetAssetTags();
+		if (AssetTags.IsEmpty())
+		{
+			continue;
+		}
+
+		UWxViewModel_Ability* AbilityVM = ViewModel->FindAbilityViewModel(AssetTags.First());
 		if (!AbilityVM)
 		{
 			continue;
 		}
 
-		for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
-		{
-			const UWxAbilityBase* WxAbility = Cast<UWxAbilityBase>(Spec.Ability);
-			if (!WxAbility)
-			{
-				continue;
-			}
+		AbilityVM->SetIcon(WxAbility->AbilityIcon.LoadSynchronous());
+	}
+}
 
-			const FGameplayTagContainer& AssetTags = WxAbility->GetAssetTags();
-			if (!AssetTags.IsEmpty() && AssetTags.First() == AbilityVM->AbilityTag)
-			{
-				if (UTexture2D* Icon = WxAbility->AbilityIcon.LoadSynchronous())
-				{
-					AbilityVM->SetIcon(Icon);
-				}
-				break;
-			}
-		}
+void AWxPlayerController::DeinitializePlayerAbilitySystemViewModel()
+{
+	ULocalPlayer* LocalPlayer = GetLocalPlayer();
+	if (!LocalPlayer)
+	{
+		return;
+	}
+
+	UWxGlobalViewModelSubsystem* GlobalVMSubsystem = LocalPlayer->GetSubsystem<UWxGlobalViewModelSubsystem>();
+	if (!GlobalVMSubsystem)
+	{
+		return;
+	}
+
+	if (UWxViewModel_AbilitySystem* ViewModel = GlobalVMSubsystem->GetPlayerAbilitySystemViewModel())
+	{
+		ViewModel->Deinitialize();
 	}
 }

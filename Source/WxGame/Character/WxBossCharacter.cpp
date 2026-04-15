@@ -2,23 +2,33 @@
 
 #include "Character/WxBossCharacter.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "MVVM/WxGlobalViewModelSubsystem.h"
+#include "MVVM/WxViewModel_AbilitySystem.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "MVVMGameSubsystem.h"
-#include "MVVM/WxViewModel_AbilitySystem.h"
-
-namespace WxGlobalViewModelContext
-{
-	FMVVMViewModelContext BossAbilitySystem()
-	{
-		FMVVMViewModelContext Context;
-		Context.ContextClass = UWxViewModel_AbilitySystem::StaticClass();
-		Context.ContextName = FName(TEXT("BossAbilitySystem"));
-		return Context;
-	}
-}
+#include "Engine/LocalPlayer.h"
+#include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
+#include "Kismet/GameplayStatics.h"
 
 static const FName BBKey_TargetActor = TEXT("TargetActor");
+
+namespace
+{
+	UWxViewModel_AbilitySystem* GetBossAbilitySystemViewModel(const UObject* WorldContext)
+	{
+		const UWorld* World = GEngine ? GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::LogAndReturnNull) : nullptr;
+		APlayerController* PC = World ? UGameplayStatics::GetPlayerController(World, 0) : nullptr;
+		ULocalPlayer* LocalPlayer = PC ? PC->GetLocalPlayer() : nullptr;
+		if (!LocalPlayer)
+		{
+			return nullptr;
+		}
+
+		UWxGlobalViewModelSubsystem* Subsystem = LocalPlayer->GetSubsystem<UWxGlobalViewModelSubsystem>();
+		return Subsystem ? Subsystem->GetBossAbilitySystemViewModel() : nullptr;
+	}
+}
 
 void AWxBossCharacter::BeginPlay()
 {
@@ -39,7 +49,7 @@ void AWxBossCharacter::BeginPlay()
 
 void AWxBossCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	UnregisterBossAbilitySystemViewModel();
+	DeactivateBossAbilitySystemViewModel();
 
 	if (AAIController* AIC = Cast<AAIController>(GetController()))
 	{
@@ -58,65 +68,28 @@ EBlackboardNotificationResult AWxBossCharacter::HandleBlackboardValueChanged(con
 
 	if (TargetActor)
 	{
-		RegisterBossAbilitySystemViewModel();
+		ActivateBossAbilitySystemViewModel();
 	}
 	else
 	{
-		UnregisterBossAbilitySystemViewModel();
+		DeactivateBossAbilitySystemViewModel();
 	}
 
 	return EBlackboardNotificationResult::ContinueObserving;
 }
 
-void AWxBossCharacter::RegisterBossAbilitySystemViewModel()
+void AWxBossCharacter::ActivateBossAbilitySystemViewModel()
 {
-	if (BossAbilitySystemViewModel)
+	if (UWxViewModel_AbilitySystem* VM = GetBossAbilitySystemViewModel(this))
 	{
-		return;
+		VM->Initialize(AbilitySystemComponent);
 	}
-
-	UGameInstance* GameInst = GetGameInstance();
-	if (!GameInst)
-	{
-		return;
-	}
-
-	UMVVMGameSubsystem* MVVMGameSubsystem = GameInst->GetSubsystem<UMVVMGameSubsystem>();
-	if (!MVVMGameSubsystem)
-	{
-		return;
-	}
-
-	UMVVMViewModelCollectionObject* GlobalCollection = MVVMGameSubsystem->GetViewModelCollection();
-	const FMVVMViewModelContext Context = WxGlobalViewModelContext::BossAbilitySystem();
-
-	BossAbilitySystemViewModel = NewObject<UWxViewModel_AbilitySystem>(AbilitySystemComponent);
-	GlobalCollection->AddViewModelInstance(Context, BossAbilitySystemViewModel);
-	BossAbilitySystemViewModel->Initialize(AbilitySystemComponent);
 }
 
-void AWxBossCharacter::UnregisterBossAbilitySystemViewModel()
+void AWxBossCharacter::DeactivateBossAbilitySystemViewModel()
 {
-	if (!BossAbilitySystemViewModel)
+	if (UWxViewModel_AbilitySystem* VM = GetBossAbilitySystemViewModel(this))
 	{
-		return;
+		VM->Deinitialize();
 	}
-
-	UGameInstance* GameInst = GetGameInstance();
-	if (!GameInst)
-	{
-		return;
-	}
-
-	UMVVMGameSubsystem* MVVMGameSubsystem = GameInst->GetSubsystem<UMVVMGameSubsystem>();
-	if (!MVVMGameSubsystem)
-	{
-		return;
-	}
-
-	UMVVMViewModelCollectionObject* GlobalCollection = MVVMGameSubsystem->GetViewModelCollection();
-	const FMVVMViewModelContext Context = WxGlobalViewModelContext::BossAbilitySystem();
-
-	GlobalCollection->RemoveViewModel(Context);
-	BossAbilitySystemViewModel = nullptr;
 }

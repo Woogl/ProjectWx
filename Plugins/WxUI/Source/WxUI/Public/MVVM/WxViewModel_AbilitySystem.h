@@ -32,6 +32,7 @@ class WXUI_API UWxViewModel_AbilitySystem : public UWxViewModel
 
 public:
 	void Initialize(UAbilitySystemComponent* InASC);
+	virtual void Deinitialize() override;
 
 	UWxViewModel_Attribute* FindAttributeViewModel(FGameplayAttribute InAttribute) const;
 	UWxViewModel_Ability* FindAbilityViewModel(FGameplayTag InAbilityTag) const;
@@ -59,11 +60,9 @@ protected:
 	/** OwnedTags를 ASC에서 읽어 갱신한다. 태그 변경 시 호출 */
 	void RefreshOwnedTags();
 
-	virtual void Deinitialize() override;
-
 	void HandleActiveEffectAdded(UAbilitySystemComponent* InASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
 	void HandleActiveEffectRemoved(const FActiveGameplayEffect& ActiveEffect);
 	void HandleTagChanged(const FGameplayTag Tag, int32 NewCount);
-	
+
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 };

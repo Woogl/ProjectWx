@@ -26,6 +26,8 @@ void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 	InitializeAbilityViewModels();
 	RefreshActiveEffectViewModels();
 	RefreshOwnedTags();
+
+	SetInitialized(true);
 }
 
 UWxViewModel_Attribute* UWxViewModel_AbilitySystem::FindAttributeViewModel(FGameplayAttribute InAttribute) const
@@ -181,6 +183,8 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 	AbilityViewModels.Empty();
 	ActiveEffectViewModels.Empty();
 	OwnedTags.Reset();
+
+	SetInitialized(false);
 
 	Super::Deinitialize();
 }
