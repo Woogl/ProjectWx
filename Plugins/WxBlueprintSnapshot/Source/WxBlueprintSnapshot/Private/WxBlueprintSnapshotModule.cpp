@@ -14,7 +14,7 @@
 
 IMPLEMENT_MODULE(FWxBlueprintSnapshotModule, WxBlueprintSnapshot)
 
-DEFINE_LOG_CATEGORY_STATIC(LogWxBPSnapshot, Log, All);
+DEFINE_LOG_CATEGORY(LogWxBPSnapshot);
 
 void FWxBlueprintSnapshotModule::StartupModule()
 {
@@ -101,49 +101,32 @@ bool FWxBlueprintSnapshotModule::IsPackageNameIncluded(const FString& PackageNam
 		return false;
 	}
 
-	auto NormalizeDir = [](const FString& In) -> FString
+	const FString PackageWithSlash = PackageName + TEXT("/");
+	auto MatchesAnyDir = [&PackageWithSlash](const TArray<FDirectoryPath>& Dirs) -> bool
 	{
-		FString Out = In;
-		if (!Out.IsEmpty() && !Out.EndsWith(TEXT("/")))
-		{
-			Out += TEXT("/");
-		}
-		return Out;
-	};
-
-	if (Settings->IncludeDirectories.Num() > 0)
-	{
-		bool bIncluded = false;
-		for (const FDirectoryPath& Dir : Settings->IncludeDirectories)
+		for (const FDirectoryPath& Dir : Dirs)
 		{
 			if (Dir.Path.IsEmpty())
 			{
 				continue;
 			}
-			if ((PackageName + TEXT("/")).StartsWith(NormalizeDir(Dir.Path)))
+			const FString Prefix = Dir.Path.EndsWith(TEXT("/")) ? Dir.Path : Dir.Path + TEXT("/");
+			if (PackageWithSlash.StartsWith(Prefix))
 			{
-				bIncluded = true;
-				break;
+				return true;
 			}
 		}
-		if (!bIncluded)
-		{
-			return false;
-		}
-	}
+		return false;
+	};
 
-	for (const FDirectoryPath& Dir : Settings->ExcludeDirectories)
+	if (Settings->IncludeDirectories.Num() > 0 && !MatchesAnyDir(Settings->IncludeDirectories))
 	{
-		if (Dir.Path.IsEmpty())
-		{
-			continue;
-		}
-		if ((PackageName + TEXT("/")).StartsWith(NormalizeDir(Dir.Path)))
-		{
-			return false;
-		}
+		return false;
 	}
-
+	if (MatchesAnyDir(Settings->ExcludeDirectories))
+	{
+		return false;
+	}
 	return true;
 }
 

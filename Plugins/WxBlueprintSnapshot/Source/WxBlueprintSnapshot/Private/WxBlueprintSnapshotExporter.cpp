@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "WxBlueprintSnapshotExporter.h"
+#include "WxBlueprintSnapshotModule.h"
 #include "WxBlueprintSnapshotSettings.h"
 #include "Engine/Blueprint.h"
 #include "Engine/BlueprintGeneratedClass.h"
@@ -17,6 +18,8 @@
 #include "MVVMBlueprintViewModelContext.h"
 #include "MVVMBlueprintViewBinding.h"
 #include "MVVMBlueprintViewConversionFunction.h"
+#include "MVVMBlueprintFunctionReference.h"
+#include "MVVMBlueprintPin.h"
 #include "MVVMPropertyPath.h"
 #include "Types/MVVMBindingMode.h"
 #include "UObject/UnrealType.h"
@@ -55,9 +58,15 @@
 #include "K2Node_Self.h"
 #include "K2Node_Literal.h"
 #include "K2Node_DynamicCast.h"
+#include "Logging/LogMacros.h"
 
 namespace WxBlueprintSnapshotPrivate
 {
+	// 데이터 핀 사이클(드물지만 매크로/커스텀 노드에서 가능)에서의 무한 재귀 방지.
+	constexpr int32 MaxExpressionDepth = 32;
+
+	void SortJsonValueRecursive(const TSharedPtr<FJsonValue>& Value);
+
 	void SortJsonObjectRecursive(TSharedPtr<FJsonObject> Obj)
 	{
 		if (!Obj.IsValid())
@@ -67,23 +76,26 @@ namespace WxBlueprintSnapshotPrivate
 		Obj->Values.KeySort(TLess<FString>());
 		for (auto& Pair : Obj->Values)
 		{
-			if (Pair.Value.IsValid())
+			SortJsonValueRecursive(Pair.Value);
+		}
+	}
+
+	void SortJsonValueRecursive(const TSharedPtr<FJsonValue>& Value)
+	{
+		if (!Value.IsValid())
+		{
+			return;
+		}
+		if (Value->Type == EJson::Object)
+		{
+			SortJsonObjectRecursive(Value->AsObject());
+			return;
+		}
+		if (Value->Type == EJson::Array)
+		{
+			for (const TSharedPtr<FJsonValue>& Elem : Value->AsArray())
 			{
-				if (Pair.Value->Type == EJson::Object)
-				{
-					SortJsonObjectRecursive(Pair.Value->AsObject());
-				}
-				else if (Pair.Value->Type == EJson::Array)
-				{
-					const TArray<TSharedPtr<FJsonValue>>& Arr = Pair.Value->AsArray();
-					for (const TSharedPtr<FJsonValue>& Elem : Arr)
-					{
-						if (Elem.IsValid() && Elem->Type == EJson::Object)
-						{
-							SortJsonObjectRecursive(Elem->AsObject());
-						}
-					}
-				}
+				SortJsonValueRecursive(Elem);
 			}
 		}
 	}
@@ -117,14 +129,15 @@ namespace WxBlueprintSnapshotPrivate
 		return Out;
 	}
 
-	FString SanitizeForPath(const FString& In)
+	// CDO delta 추출 시 PPF용 Owner와 사이클 가드용 visited Set을 한 번에 들고 다닌다.
+	struct FExportCtx
 	{
-		FString Out = In;
-		Out.ReplaceInline(TEXT(":"), TEXT("_"));
-		return Out;
-	}
+		const UObject* Owner = nullptr;
+		TSet<const UObject*> InstanceVisited;
+	};
 
-	TSharedPtr<FJsonValue> PropertyValueToJson(const FProperty* Property, const void* ValuePtr, const void* DefaultPtr, const UObject* Owner);
+	TSharedPtr<FJsonValue> PropertyValueToJson(const FProperty* Property, const void* ValuePtr, const void* DefaultPtr, FExportCtx& Ctx);
+	TSharedPtr<FJsonObject> BuildClassDefaultsImpl(const UObject* Instance, const UObject* Defaults, FExportCtx& Ctx);
 
 	TSharedPtr<FStructOnScope> MakeElementDefault(const FProperty* ElemProp)
 	{
@@ -135,7 +148,7 @@ namespace WxBlueprintSnapshotPrivate
 		return nullptr;
 	}
 
-	void StructToJsonObject(const UScriptStruct* Struct, const void* StructPtr, const void* DefaultStructPtr, const UObject* Owner, TSharedPtr<FJsonObject> Out)
+	void StructToJsonObject(const UScriptStruct* Struct, const void* StructPtr, const void* DefaultStructPtr, TSharedPtr<FJsonObject> Out, FExportCtx& Ctx)
 	{
 		for (TFieldIterator<FProperty> It(Struct); It; ++It)
 		{
@@ -152,7 +165,7 @@ namespace WxBlueprintSnapshotPrivate
 				continue;
 			}
 
-			TSharedPtr<FJsonValue> Value = PropertyValueToJson(Inner, InnerPtr, InnerDefaultPtr, Owner);
+			TSharedPtr<FJsonValue> Value = PropertyValueToJson(Inner, InnerPtr, InnerDefaultPtr, Ctx);
 			// 모든 하위 필드가 기본값과 동일해 빈 오브젝트가 된 struct는 드롭한다.
 			if (Value.IsValid() && Value->Type == EJson::Object && Value->AsObject()->Values.Num() == 0)
 			{
@@ -162,7 +175,7 @@ namespace WxBlueprintSnapshotPrivate
 		}
 	}
 
-	TSharedPtr<FJsonValue> PropertyValueToJson(const FProperty* Property, const void* ValuePtr, const void* DefaultPtr, const UObject* Owner)
+	TSharedPtr<FJsonValue> PropertyValueToJson(const FProperty* Property, const void* ValuePtr, const void* DefaultPtr, FExportCtx& Ctx)
 	{
 		if (!Property || !ValuePtr)
 		{
@@ -213,9 +226,10 @@ namespace WxBlueprintSnapshotPrivate
 		if (const FObjectPropertyBase* ObjProp = CastField<FObjectPropertyBase>(Property))
 		{
 			UObject* Obj = ObjProp->GetObjectPropertyValue(ValuePtr);
-			const bool bInstanced = Property->HasAnyPropertyFlags(CPF_InstancedReference | CPF_PersistentInstance)
-				|| (ObjProp->PropertyClass && ObjProp->PropertyClass->HasAnyClassFlags(CLASS_DefaultToInstanced | CLASS_EditInlineNew));
-			if (bInstanced && Obj)
+			const bool bInstanced = Property->HasAnyPropertyFlags(CPF_InstancedReference | CPF_PersistentInstance);
+			// 첫 등장한 instanced subobject만 풀 dump. 동일 subobject가 다른 경로에서 재등장하거나
+			// non-instanced 참조는 path 문자열로만 남아 결과 필드 타입이 object ↔ string으로 갈릴 수 있음.
+			if (bInstanced && Obj && !Ctx.InstanceVisited.Contains(Obj))
 			{
 				TSharedPtr<FJsonObject> InnerJson = MakeShared<FJsonObject>();
 				InnerJson->SetStringField(TEXT("class"), Obj->GetClass()->GetPathName());
@@ -229,7 +243,7 @@ namespace WxBlueprintSnapshotPrivate
 					? DefaultObj
 					: Obj->GetClass()->GetDefaultObject(false);
 
-				TSharedPtr<FJsonObject> SubDelta = FWxBlueprintSnapshotExporter::BuildClassDefaults(Obj, DefaultsForDelta);
+				TSharedPtr<FJsonObject> SubDelta = BuildClassDefaultsImpl(Obj, DefaultsForDelta, Ctx);
 				if (SubDelta.IsValid() && SubDelta->Values.Num() > 0)
 				{
 					InnerJson->SetObjectField(TEXT("delta"), SubDelta.ToSharedRef());
@@ -247,7 +261,7 @@ namespace WxBlueprintSnapshotPrivate
 		if (const FStructProperty* StructProp = CastField<FStructProperty>(Property))
 		{
 			TSharedPtr<FJsonObject> Obj = MakeShared<FJsonObject>();
-			StructToJsonObject(StructProp->Struct, ValuePtr, DefaultPtr, Owner, Obj);
+			StructToJsonObject(StructProp->Struct, ValuePtr, DefaultPtr, Obj, Ctx);
 			return MakeShared<FJsonValueObject>(Obj);
 		}
 		if (const FArrayProperty* ArrProp = CastField<FArrayProperty>(Property))
@@ -258,7 +272,7 @@ namespace WxBlueprintSnapshotPrivate
 			TArray<TSharedPtr<FJsonValue>> Arr;
 			for (int32 i = 0; i < Helper.Num(); ++i)
 			{
-				Arr.Add(PropertyValueToJson(ArrProp->Inner, Helper.GetRawPtr(i), ElemDefaultMem, Owner));
+				Arr.Add(PropertyValueToJson(ArrProp->Inner, Helper.GetRawPtr(i), ElemDefaultMem, Ctx));
 			}
 			return MakeShared<FJsonValueArray>(Arr);
 		}
@@ -274,7 +288,7 @@ namespace WxBlueprintSnapshotPrivate
 				{
 					continue;
 				}
-				Arr.Add(PropertyValueToJson(SetProp->ElementProp, Helper.GetElementPtr(i), ElemDefaultMem, Owner));
+				Arr.Add(PropertyValueToJson(SetProp->ElementProp, Helper.GetElementPtr(i), ElemDefaultMem, Ctx));
 			}
 			return MakeShared<FJsonValueArray>(Arr);
 		}
@@ -294,8 +308,8 @@ namespace WxBlueprintSnapshotPrivate
 					{
 						continue;
 					}
-					const TSharedPtr<FJsonValue> KeyVal = PropertyValueToJson(KeyProp, Helper.GetKeyPtr(i), nullptr, Owner);
-					Obj->SetField(KeyVal->AsString(), PropertyValueToJson(MapProp->ValueProp, Helper.GetValuePtr(i), ValueDefaultMem, Owner));
+					const TSharedPtr<FJsonValue> KeyVal = PropertyValueToJson(KeyProp, Helper.GetKeyPtr(i), nullptr, Ctx);
+					Obj->SetField(KeyVal->AsString(), PropertyValueToJson(MapProp->ValueProp, Helper.GetValuePtr(i), ValueDefaultMem, Ctx));
 				}
 				return MakeShared<FJsonValueObject>(Obj);
 			}
@@ -310,15 +324,15 @@ namespace WxBlueprintSnapshotPrivate
 					continue;
 				}
 				TSharedPtr<FJsonObject> Entry = MakeShared<FJsonObject>();
-				Entry->SetField(TEXT("key"), PropertyValueToJson(KeyProp, Helper.GetKeyPtr(i), KeyDefaultMem, Owner));
-				Entry->SetField(TEXT("value"), PropertyValueToJson(MapProp->ValueProp, Helper.GetValuePtr(i), ValueDefaultMem, Owner));
+				Entry->SetField(TEXT("key"), PropertyValueToJson(KeyProp, Helper.GetKeyPtr(i), KeyDefaultMem, Ctx));
+				Entry->SetField(TEXT("value"), PropertyValueToJson(MapProp->ValueProp, Helper.GetValuePtr(i), ValueDefaultMem, Ctx));
 				Arr.Add(MakeShared<FJsonValueObject>(Entry));
 			}
 			return MakeShared<FJsonValueArray>(Arr);
 		}
 
 		FString Out;
-		Property->ExportText_Direct(Out, ValuePtr, ValuePtr, const_cast<UObject*>(Owner), PPF_SimpleObjectText);
+		Property->ExportText_Direct(Out, ValuePtr, ValuePtr, const_cast<UObject*>(Ctx.Owner), PPF_SimpleObjectText);
 		return MakeShared<FJsonValueString>(Out);
 	}
 
@@ -340,13 +354,14 @@ namespace WxBlueprintSnapshotPrivate
 	{
 		TArray<FPseudoLine>& Body;
 		TSet<UEdGraphNode*>& Visited;
+		int32 ExprDepth = 0; // 데이터 핀 표현식 재귀 깊이; TGuardValue로 자동 증감
 	};
 
-	static UEdGraphPin* SkipKnots(UEdGraphPin* Pin);
-	static FString RenderExpression(UEdGraphPin* OutputPin);
-	static FString RenderDataInput(UEdGraphPin* InputPin);
-	static void RenderExecChain(UEdGraphPin* ExecOutPin, int32 Indent, FRenderCtx& Ctx);
-	static void RenderExecNode(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx);
+	UEdGraphPin* SkipKnots(UEdGraphPin* Pin);
+	FString RenderExpression(UEdGraphPin* OutputPin, FRenderCtx& Ctx);
+	FString RenderDataInput(UEdGraphPin* InputPin, FRenderCtx& Ctx);
+	void RenderExecChain(UEdGraphPin* ExecOutPin, int32 Indent, FRenderCtx& Ctx);
+	void RenderExecNode(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx);
 
 	void Emit(FRenderCtx& Ctx, int32 Indent, FString Text)
 	{
@@ -425,7 +440,7 @@ namespace WxBlueprintSnapshotPrivate
 		return Val;
 	}
 
-	FString RenderDataInput(UEdGraphPin* InputPin)
+	FString RenderDataInput(UEdGraphPin* InputPin, FRenderCtx& Ctx)
 	{
 		if (!InputPin)
 		{
@@ -440,10 +455,10 @@ namespace WxBlueprintSnapshotPrivate
 		{
 			return FormatLiteralPin(InputPin);
 		}
-		return RenderExpression(Src);
+		return RenderExpression(Src, Ctx);
 	}
 
-	FString RenderCallArgs(UK2Node_CallFunction* Call)
+	FString RenderCallArgs(UK2Node_CallFunction* Call, FRenderCtx& Ctx)
 	{
 		TArray<FString> Args;
 		for (UEdGraphPin* Pin : Call->Pins)
@@ -466,17 +481,17 @@ namespace WxBlueprintSnapshotPrivate
 			{
 				continue;
 			}
-			Args.Add(FString::Printf(TEXT("%s=%s"), *Pin->PinName.ToString(), *RenderDataInput(Pin)));
+			Args.Add(FString::Printf(TEXT("%s=%s"), *Pin->PinName.ToString(), *RenderDataInput(Pin, Ctx)));
 		}
 		return FString::Join(Args, TEXT(", "));
 	}
 
-	FString RenderCallTarget(UK2Node_CallFunction* Call)
+	FString RenderCallTarget(UK2Node_CallFunction* Call, FRenderCtx& Ctx)
 	{
 		UEdGraphPin* SelfPin = Call->FindPin(UEdGraphSchema_K2::PN_Self);
 		if (SelfPin && SelfPin->LinkedTo.Num() > 0)
 		{
-			return RenderDataInput(SelfPin) + TEXT(".");
+			return RenderDataInput(SelfPin, Ctx) + TEXT(".");
 		}
 		if (Call->FunctionReference.IsSelfContext())
 		{
@@ -489,12 +504,18 @@ namespace WxBlueprintSnapshotPrivate
 		return FString();
 	}
 
-	FString RenderExpression(UEdGraphPin* OutputPin)
+	FString RenderExpression(UEdGraphPin* OutputPin, FRenderCtx& Ctx)
 	{
 		if (!OutputPin)
 		{
 			return TEXT("?");
 		}
+		if (Ctx.ExprDepth >= MaxExpressionDepth)
+		{
+			return TEXT("...");
+		}
+		TGuardValue<int32> DepthGuard(Ctx.ExprDepth, Ctx.ExprDepth + 1);
+
 		UEdGraphNode* Node = OutputPin->GetOwningNode();
 		if (!Node)
 		{
@@ -519,9 +540,9 @@ namespace WxBlueprintSnapshotPrivate
 		}
 		if (UK2Node_CallFunction* Call = Cast<UK2Node_CallFunction>(Node))
 		{
-			const FString Target = RenderCallTarget(Call);
+			const FString Target = RenderCallTarget(Call, Ctx);
 			const FString FnName = Call->GetFunctionName().ToString();
-			const FString Args = RenderCallArgs(Call);
+			const FString Args = RenderCallArgs(Call, Ctx);
 			FString Expr = FString::Printf(TEXT("%s%s(%s)"), *Target, *FnName, *Args);
 			if (OutputPin->PinName != UEdGraphSchema_K2::PN_ReturnValue && !OutputPin->PinName.IsNone())
 			{
@@ -533,7 +554,7 @@ namespace WxBlueprintSnapshotPrivate
 		{
 			UEdGraphPin* ObjIn = DCast->GetCastSourcePin();
 			const FString TypeName = DCast->TargetType ? DCast->TargetType->GetName() : TEXT("?");
-			return FString::Printf(TEXT("Cast<%s>(%s)"), *TypeName, *RenderDataInput(ObjIn));
+			return FString::Printf(TEXT("Cast<%s>(%s)"), *TypeName, *RenderDataInput(ObjIn, Ctx));
 		}
 
 		// 일반 K2Node fallback: NodeTitle + 필요시 출력 핀명
@@ -578,7 +599,7 @@ namespace WxBlueprintSnapshotPrivate
 		{
 			return false;
 		}
-		Emit(Ctx, Indent, FString::Printf(TEXT("if (%s):"), *RenderDataInput(Branch->GetConditionPin())));
+		Emit(Ctx, Indent, FString::Printf(TEXT("if (%s):"), *RenderDataInput(Branch->GetConditionPin(), Ctx)));
 		RenderExecChain(Branch->GetThenPin(), Indent + 1, Ctx);
 		UEdGraphPin* ElsePin = Branch->GetElsePin();
 		if (ElsePin && ElsePin->LinkedTo.Num() > 0)
@@ -616,7 +637,7 @@ namespace WxBlueprintSnapshotPrivate
 			return false;
 		}
 		UEdGraphPin* ValPin = VS->FindPin(VS->GetVarName());
-		Emit(Ctx, Indent, FString::Printf(TEXT("%s = %s"), *VS->GetVarNameString(), *RenderDataInput(ValPin)));
+		Emit(Ctx, Indent, FString::Printf(TEXT("%s = %s"), *VS->GetVarNameString(), *RenderDataInput(ValPin, Ctx)));
 		RenderExecChain(FindThenPin(VS), Indent, Ctx);
 		return true;
 	}
@@ -629,7 +650,7 @@ namespace WxBlueprintSnapshotPrivate
 			return false;
 		}
 		Emit(Ctx, Indent, FString::Printf(TEXT("%s%s(%s)"),
-			*RenderCallTarget(Call), *Call->GetFunctionName().ToString(), *RenderCallArgs(Call)));
+			*RenderCallTarget(Call, Ctx), *Call->GetFunctionName().ToString(), *RenderCallArgs(Call, Ctx)));
 		RenderExecChain(FindThenPin(Call), Indent, Ctx);
 		return true;
 	}
@@ -642,7 +663,7 @@ namespace WxBlueprintSnapshotPrivate
 			return false;
 		}
 		const FString TypeName = DCast->TargetType ? DCast->TargetType->GetName() : TEXT("?");
-		Emit(Ctx, Indent, FString::Printf(TEXT("As%s = Cast<%s>(%s)"), *TypeName, *TypeName, *RenderDataInput(DCast->GetCastSourcePin())));
+		Emit(Ctx, Indent, FString::Printf(TEXT("As%s = Cast<%s>(%s)"), *TypeName, *TypeName, *RenderDataInput(DCast->GetCastSourcePin(), Ctx)));
 		UEdGraphPin* Success = DCast->GetValidCastPin();
 		UEdGraphPin* Failed = DCast->GetInvalidCastPin();
 		if (Success && Success->LinkedTo.Num() > 0)
@@ -673,7 +694,7 @@ namespace WxBlueprintSnapshotPrivate
 		{
 			if (Pin && Pin->Direction == EGPD_Input && !IsExecPin(Pin))
 			{
-				Args.Add(FString::Printf(TEXT("%s=%s"), *Pin->PinName.ToString(), *RenderDataInput(Pin)));
+				Args.Add(FString::Printf(TEXT("%s=%s"), *Pin->PinName.ToString(), *RenderDataInput(Pin, Ctx)));
 			}
 		}
 
@@ -710,7 +731,7 @@ namespace WxBlueprintSnapshotPrivate
 		{
 			if (Pin && Pin->Direction == EGPD_Input && !IsExecPin(Pin))
 			{
-				Returns.Add(FString::Printf(TEXT("%s=%s"), *Pin->PinName.ToString(), *RenderDataInput(Pin)));
+				Returns.Add(FString::Printf(TEXT("%s=%s"), *Pin->PinName.ToString(), *RenderDataInput(Pin, Ctx)));
 			}
 		}
 		Emit(Ctx, Indent, FString::Printf(TEXT("return %s"), *FString::Join(Returns, TEXT(", "))));
@@ -727,13 +748,34 @@ namespace WxBlueprintSnapshotPrivate
 
 	void RenderExecNode(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx)
 	{
-		if (TryRenderBranch(Node, Indent, Ctx)) return;
-		if (TryRenderSequence(Node, Indent, Ctx)) return;
-		if (TryRenderVariableSet(Node, Indent, Ctx)) return;
-		if (TryRenderCallFunction(Node, Indent, Ctx)) return;
-		if (TryRenderDynamicCast(Node, Indent, Ctx)) return;
-		if (TryRenderMacro(Node, Indent, Ctx)) return;
-		if (TryRenderReturn(Node, Indent, Ctx)) return;
+		if (TryRenderBranch(Node, Indent, Ctx))
+		{
+			return;
+		}
+		if (TryRenderSequence(Node, Indent, Ctx))
+		{
+			return;
+		}
+		if (TryRenderVariableSet(Node, Indent, Ctx))
+		{
+			return;
+		}
+		if (TryRenderCallFunction(Node, Indent, Ctx))
+		{
+			return;
+		}
+		if (TryRenderDynamicCast(Node, Indent, Ctx))
+		{
+			return;
+		}
+		if (TryRenderMacro(Node, Indent, Ctx))
+		{
+			return;
+		}
+		if (TryRenderReturn(Node, Indent, Ctx))
+		{
+			return;
+		}
 		RenderFallbackNode(Node, Indent, Ctx);
 	}
 
@@ -835,6 +877,148 @@ namespace WxBlueprintSnapshotPrivate
 		Root->SetArrayField(Graph->GetName(), LineValues);
 	}
 
+	FString BuildPinBindingString(const FMVVMBlueprintPin& Pin, const UClass* SelfContext)
+	{
+		FString Value;
+		if (Pin.UsedPathAsValue())
+		{
+			Value = Pin.GetPath().GetPropertyPath(SelfContext);
+		}
+		else
+		{
+			Value = Pin.GetValueAsString(SelfContext);
+		}
+		if (Value.IsEmpty())
+		{
+			Value = TEXT("(default)");
+		}
+		if (Pin.GetStatus() == EMVVMBlueprintPinStatus::Orphaned)
+		{
+			Value += TEXT(" [orphaned]");
+		}
+		return Value;
+	}
+
+	FString BuildConversionFunctionName(const UMVVMBlueprintViewConversionFunction& Conversion, const UBlueprint* Blueprint)
+	{
+		const FMVVMBlueprintFunctionReference FuncRef = Conversion.GetConversionFunction();
+
+		FString FunctionName = FuncRef.GetName().ToString();
+		if (FunctionName.IsEmpty() && Blueprint)
+		{
+			if (const UFunction* Func = FuncRef.GetFunction(Blueprint))
+			{
+				FunctionName = Func->GetName();
+			}
+		}
+		if (FunctionName.IsEmpty())
+		{
+			FunctionName = FuncRef.ToString();
+		}
+		if (FunctionName.IsEmpty())
+		{
+			FunctionName = TEXT("(unknown)");
+		}
+		return FunctionName;
+	}
+
+	TSharedPtr<FJsonObject> BuildConversionJson(const UMVVMBlueprintViewConversionFunction* Conversion, const UBlueprint* Blueprint)
+	{
+		if (!Conversion || !Blueprint)
+		{
+			return nullptr;
+		}
+
+		TSharedPtr<FJsonObject> Json = MakeShared<FJsonObject>();
+		Json->SetStringField(TEXT("function"), BuildConversionFunctionName(*Conversion, Blueprint));
+
+		const UClass* SelfContext = Blueprint->GeneratedClass;
+
+		TSharedPtr<FJsonObject> ArgsJson = MakeShared<FJsonObject>();
+		for (const FMVVMBlueprintPin& Pin : Conversion->GetPins())
+		{
+			const TArrayView<const FName> Names = Pin.GetId().GetNames();
+			if (Names.Num() == 0)
+			{
+				continue;
+			}
+
+			TArray<FString> NameStrs;
+			NameStrs.Reserve(Names.Num());
+			for (const FName& N : Names)
+			{
+				NameStrs.Add(N.ToString());
+			}
+			const FString Key = FString::Join(NameStrs, TEXT("."));
+
+			ArgsJson->SetStringField(Key, BuildPinBindingString(Pin, SelfContext));
+		}
+
+		if (ArgsJson->Values.Num() > 0)
+		{
+			Json->SetObjectField(TEXT("arguments"), ArgsJson.ToSharedRef());
+		}
+
+		return Json;
+	}
+
+	TSharedPtr<FJsonObject> BuildClassDefaultsImpl(const UObject* Instance, const UObject* Defaults, FExportCtx& Ctx)
+	{
+		if (!Instance || !Defaults)
+		{
+			return nullptr;
+		}
+
+		// 사이클 가드: 동일 instanced 서브오브젝트가 다시 등장해도 한 번만 dump.
+		Ctx.InstanceVisited.Add(Instance);
+
+		// 진입한 인스턴스를 PPF용 Owner로 임시 사용. 스코프 종료 시 이전 값으로 복귀.
+		TGuardValue<const UObject*> OwnerGuard(Ctx.Owner, Instance);
+
+		TSharedPtr<FJsonObject> Delta = MakeShared<FJsonObject>();
+		const UClass* InstanceClass = Instance->GetClass();
+
+		for (TFieldIterator<FProperty> It(InstanceClass); It; ++It)
+		{
+			FProperty* Property = *It;
+			if (IsSkippableProperty(Property))
+			{
+				continue;
+			}
+			if (!Property->HasAnyPropertyFlags(CPF_Edit | CPF_BlueprintVisible | CPF_BlueprintAssignable))
+			{
+				continue;
+			}
+
+			const void* InstancePtr = Property->ContainerPtrToValuePtr<void>(Instance);
+			const UClass* OwnerClass = Property->GetOwnerClass();
+			const void* DefaultPtr = (OwnerClass && Defaults->GetClass()->IsChildOf(OwnerClass))
+				? Property->ContainerPtrToValuePtr<void>(Defaults)
+				: nullptr;
+
+			if (DefaultPtr && Property->Identical(InstancePtr, DefaultPtr, PPF_DeepComparison | PPF_DeepCompareInstances))
+			{
+				continue;
+			}
+
+			// Identical()은 instanced 서브오브젝트를 포인터 비교로 다르다고 판정할 수 있어
+			// ExportText 텍스트 비교를 한 번 더 해서 false-positive를 거른다.
+			if (DefaultPtr)
+			{
+				const FString InstanceText = ExportPropertyValue(Property, InstancePtr, Instance);
+				const FString DefaultText = ExportPropertyValue(Property, DefaultPtr, Defaults);
+				if (InstanceText.Equals(DefaultText, ESearchCase::CaseSensitive))
+				{
+					continue;
+				}
+			}
+
+			Delta->SetField(Property->GetName(), PropertyValueToJson(Property, InstancePtr, DefaultPtr, Ctx));
+		}
+
+		return Delta;
+	}
+
 	FString MakeHashedFallbackPath(UBlueprint* Blueprint)
 	{
 		FSHA1 DirHash;
@@ -892,16 +1076,22 @@ bool FWxBlueprintSnapshotExporter::ExportBlueprint(UBlueprint* Blueprint)
 		}
 	}
 
-	// Read-only (SCC 추적 등) 인 경우 해제 시도
+	// Read-only (SCC 추적 등) 인 경우 해제 시도. 저장 실패하면 원상 복구.
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+	bool bClearedReadOnly = false;
 	if (PlatformFile.FileExists(*LatestPath) && PlatformFile.IsReadOnly(*LatestPath))
 	{
 		PlatformFile.SetReadOnly(*LatestPath, false);
+		bClearedReadOnly = true;
 	}
 
 	if (!FFileHelper::SaveStringToFile(Json, *LatestPath, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[WxBlueprintSnapshot] Failed to write %s"), *LatestPath);
+		if (bClearedReadOnly)
+		{
+			PlatformFile.SetReadOnly(*LatestPath, true);
+		}
+		UE_LOG(LogWxBPSnapshot, Warning, TEXT("Failed to write %s"), *LatestPath);
 		return false;
 	}
 
@@ -1006,6 +1196,11 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildWidgetTreeJson(UWidge
 		}
 		WidgetsMap->SetObjectField(Key, WidgetJson.ToSharedRef());
 	});
+
+	if (WidgetsMap->Values.Num() == 0)
+	{
+		return nullptr;
+	}
 	Root->SetObjectField(TEXT("widgets"), WidgetsMap.ToSharedRef());
 
 	return Root;
@@ -1102,7 +1297,6 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildMvvmJson(UWidgetBluep
 
 		ViewModelsMap->SetObjectField(Ctx.GetViewModelName().ToString(), VmJson.ToSharedRef());
 	}
-	Root->SetObjectField(TEXT("viewModels"), ViewModelsMap.ToSharedRef());
 
 	const UClass* SelfContext = WidgetBlueprint->GeneratedClass;
 	struct FBindingEntry
@@ -1113,6 +1307,11 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildMvvmJson(UWidgetBluep
 	TArray<FBindingEntry> Entries;
 	for (const FMVVMBlueprintViewBinding& Binding : View->GetBindings())
 	{
+		if (!Binding.bEnabled || !Binding.bCompile)
+		{
+			continue;
+		}
+
 		const FString Source = Binding.SourcePath.GetPropertyPath(SelfContext);
 		const FString Destination = Binding.DestinationPath.GetPropertyPath(SelfContext);
 
@@ -1120,33 +1319,47 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildMvvmJson(UWidgetBluep
 		BJson->SetStringField(TEXT("source"), Source);
 		BJson->SetStringField(TEXT("destination"), Destination);
 		BJson->SetStringField(TEXT("bindingType"), StaticEnum<EMVVMBindingMode>()->GetNameStringByValue(static_cast<int64>(Binding.BindingType)));
-		BJson->SetBoolField(TEXT("enabled"), Binding.bEnabled);
 
 		if (UMVVMBlueprintViewConversionFunction* SrcToDst = Binding.Conversion.GetConversionFunction(true))
 		{
-			BJson->SetStringField(TEXT("conversionSourceToDestination"), SrcToDst->GetPathName());
+			if (TSharedPtr<FJsonObject> ConvJson = WxBlueprintSnapshotPrivate::BuildConversionJson(SrcToDst, WidgetBlueprint))
+			{
+				BJson->SetObjectField(TEXT("conversionSourceToDestination"), ConvJson.ToSharedRef());
+			}
 		}
 		if (UMVVMBlueprintViewConversionFunction* DstToSrc = Binding.Conversion.GetConversionFunction(false))
 		{
-			BJson->SetStringField(TEXT("conversionDestinationToSource"), DstToSrc->GetPathName());
+			if (TSharedPtr<FJsonObject> ConvJson = WxBlueprintSnapshotPrivate::BuildConversionJson(DstToSrc, WidgetBlueprint))
+			{
+				BJson->SetObjectField(TEXT("conversionDestinationToSource"), ConvJson.ToSharedRef());
+			}
 		}
 
 		Entries.Add({ FString::Printf(TEXT("%s|%s|%d"), *Source, *Destination, static_cast<int32>(Binding.BindingType)), BJson });
 	}
 	Entries.Sort([](const FBindingEntry& A, const FBindingEntry& B) { return A.SortKey < B.SortKey; });
 
-	TArray<TSharedPtr<FJsonValue>> BindingsArr;
-	BindingsArr.Reserve(Entries.Num());
-	for (const FBindingEntry& Entry : Entries)
-	{
-		BindingsArr.Add(MakeShared<FJsonValueObject>(Entry.Json));
-	}
-	Root->SetArrayField(TEXT("bindings"), BindingsArr);
-
-	if (ViewModelsMap->Values.Num() == 0 && BindingsArr.Num() == 0)
+	if (ViewModelsMap->Values.Num() == 0 && Entries.Num() == 0)
 	{
 		return nullptr;
 	}
+
+	if (ViewModelsMap->Values.Num() > 0)
+	{
+		Root->SetObjectField(TEXT("viewModels"), ViewModelsMap.ToSharedRef());
+	}
+
+	if (Entries.Num() > 0)
+	{
+		TArray<TSharedPtr<FJsonValue>> BindingsArr;
+		BindingsArr.Reserve(Entries.Num());
+		for (const FBindingEntry& Entry : Entries)
+		{
+			BindingsArr.Add(MakeShared<FJsonValueObject>(Entry.Json));
+		}
+		Root->SetArrayField(TEXT("bindings"), BindingsArr);
+	}
+
 	return Root;
 }
 
@@ -1173,59 +1386,8 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildGraphsJson(UBlueprint
 
 TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildClassDefaults(const UObject* Instance, const UObject* Defaults)
 {
-	if (!Instance || !Defaults)
-	{
-		return nullptr;
-	}
-
-	TSharedPtr<FJsonObject> Delta = MakeShared<FJsonObject>();
-	const UClass* InstanceClass = Instance->GetClass();
-
-	for (TFieldIterator<FProperty> It(InstanceClass); It; ++It)
-	{
-		FProperty* Property = *It;
-		if (WxBlueprintSnapshotPrivate::IsSkippableProperty(Property))
-		{
-			continue;
-		}
-		if (!Property->HasAnyPropertyFlags(CPF_Edit | CPF_BlueprintVisible | CPF_BlueprintAssignable))
-		{
-			continue;
-		}
-
-		const void* InstancePtr = Property->ContainerPtrToValuePtr<void>(Instance);
-		const UClass* OwnerClass = Property->GetOwnerClass();
-		const void* DefaultPtr = (OwnerClass && Defaults->GetClass()->IsChildOf(OwnerClass))
-			? Property->ContainerPtrToValuePtr<void>(Defaults)
-			: nullptr;
-
-		bool bIdentical = false;
-		if (DefaultPtr)
-		{
-			bIdentical = Property->Identical(InstancePtr, DefaultPtr, PPF_DeepComparison | PPF_DeepCompareInstances);
-		}
-
-		if (bIdentical)
-		{
-			continue;
-		}
-
-		// Text-level equality fallback: Identical() can flag Instanced subobjects as different
-		// even when their exported values match (pointer-level compare).
-		if (DefaultPtr)
-		{
-			const FString InstanceText = WxBlueprintSnapshotPrivate::ExportPropertyValue(Property, InstancePtr, Instance);
-			const FString DefaultText = WxBlueprintSnapshotPrivate::ExportPropertyValue(Property, DefaultPtr, Defaults);
-			if (InstanceText.Equals(DefaultText, ESearchCase::CaseSensitive))
-			{
-				continue;
-			}
-		}
-
-		Delta->SetField(Property->GetName(), WxBlueprintSnapshotPrivate::PropertyValueToJson(Property, InstancePtr, DefaultPtr, Instance));
-	}
-
-	return Delta;
+	WxBlueprintSnapshotPrivate::FExportCtx Ctx;
+	return WxBlueprintSnapshotPrivate::BuildClassDefaultsImpl(Instance, Defaults, Ctx);
 }
 
 TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildComponentsJson(USimpleConstructionScript* SCS)
@@ -1270,9 +1432,12 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildScsNodeJson(USCS_Node
 		}
 	}
 
-	if (USCS_Node* Parent = Node->GetSCS() ? Node->GetSCS()->FindParentNode(Node) : nullptr)
+	if (USimpleConstructionScript* SCS = Node->GetSCS())
 	{
-		NodeJson->SetStringField(TEXT("attachParent"), Parent->GetVariableName().ToString());
+		if (USCS_Node* Parent = SCS->FindParentNode(Node))
+		{
+			NodeJson->SetStringField(TEXT("attachParent"), Parent->GetVariableName().ToString());
+		}
 	}
 
 	if (!Node->AttachToName.IsNone())
@@ -1285,18 +1450,19 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildScsNodeJson(USCS_Node
 
 TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildVariablesJson(UBlueprint* Blueprint)
 {
+	auto FormatTerminal = [](const FName& Category, const TWeakObjectPtr<UObject>& SubCatObj) -> FString
+	{
+		if (UObject* Obj = SubCatObj.Get())
+		{
+			return Obj->GetName();
+		}
+		return Category.ToString();
+	};
+
 	TSharedPtr<FJsonObject> Root = MakeShared<FJsonObject>();
 	for (const FBPVariableDescription& Var : Blueprint->NewVariables)
 	{
-		FString TypeStr;
-		if (UObject* SubCatObj = Var.VarType.PinSubCategoryObject.Get())
-		{
-			TypeStr = SubCatObj->GetName();
-		}
-		else
-		{
-			TypeStr = Var.VarType.PinCategory.ToString();
-		}
+		FString TypeStr = FormatTerminal(Var.VarType.PinCategory, Var.VarType.PinSubCategoryObject);
 
 		if (Var.VarType.IsArray())
 		{
@@ -1308,7 +1474,8 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildVariablesJson(UBluepr
 		}
 		else if (Var.VarType.IsMap())
 		{
-			TypeStr = FString::Printf(TEXT("Map<%s>"), *TypeStr);
+			const FString ValueStr = FormatTerminal(Var.VarType.PinValueType.TerminalCategory, Var.VarType.PinValueType.TerminalSubCategoryObject);
+			TypeStr = FString::Printf(TEXT("Map<%s, %s>"), *TypeStr, *ValueStr);
 		}
 
 		TSharedPtr<FJsonObject> Entry = MakeShared<FJsonObject>();
@@ -1364,10 +1531,16 @@ FString FWxBlueprintSnapshotExporter::ResolveLatestPath(UBlueprint* Blueprint)
 		return FString();
 	}
 
-	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("WxBlueprintSnapshot"));
-	if (!Plugin.IsValid())
+	// Plugin BaseDir는 런타임 내내 불변 — 첫 호출 시 한 번만 조회해 캐시.
+	static FString CachedPluginBaseDir;
+	if (CachedPluginBaseDir.IsEmpty())
 	{
-		return FString();
+		TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("WxBlueprintSnapshot"));
+		if (!Plugin.IsValid())
+		{
+			return FString();
+		}
+		CachedPluginBaseDir = Plugin->GetBaseDir();
 	}
 
 	// /Game/UI/Widget/WBP_Ability -> Game/UI/Widget/WBP_Ability{Ext}
@@ -1377,5 +1550,5 @@ FString FWxBlueprintSnapshotExporter::ResolveLatestPath(UBlueprint* Blueprint)
 		PackagePath.RemoveAt(0);
 	}
 
-	return FPaths::Combine(Plugin->GetBaseDir(), TEXT("Snapshots"), PackagePath) + GetDefault<UWxBlueprintSnapshotSettings>()->FileExtension;
+	return FPaths::Combine(CachedPluginBaseDir, TEXT("Snapshots"), PackagePath) + GetDefault<UWxBlueprintSnapshotSettings>()->FileExtension;
 }

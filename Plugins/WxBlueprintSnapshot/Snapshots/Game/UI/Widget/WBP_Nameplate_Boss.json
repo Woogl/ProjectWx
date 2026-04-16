@@ -6,28 +6,49 @@
 			{
 				"bindingType": "OneWayToDestination",
 				"destination": "BP_SetListItems",
-				"enabled": true,
 				"source": "ActiveEffectViewModels"
 			},
 			{
 				"bindingType": "OneWayToDestination",
-				"conversionSourceToDestination": "/Game/UI/Widget/WBP_Nameplate_Boss.WBP_Nameplate_Boss:MVVMBlueprintViewConversionFunction_2",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"bIsVisible": "IsInitialized",
+						"FalseVisibility": "Collapsed",
+						"TrueVisibility": "SelfHitTestInvisible"
+					},
+					"function": "Conv_BoolToSlateVisibility"
+				},
 				"destination": "Visibility",
-				"enabled": true,
 				"source": ""
 			},
 			{
 				"bindingType": "OneWayToDestination",
-				"conversionSourceToDestination": "/Game/UI/Widget/WBP_Nameplate_Boss.WBP_Nameplate_Boss:MVVMBlueprintViewConversionFunction_1",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"Attribute": "(AttributeName=\"DP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:DP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
+						"AttributeViewModels": "AttributeViewModels"
+					},
+					"function": "Conv_FindAttributeViewModel"
+				},
 				"destination": "WxViewModel_Attribute",
-				"enabled": true,
 				"source": ""
 			},
 			{
 				"bindingType": "OneWayToDestination",
-				"conversionSourceToDestination": "/Game/UI/Widget/WBP_Nameplate_Boss.WBP_Nameplate_Boss:MVVMBlueprintViewConversionFunction_0",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"Attribute": "(AttributeName=\"HP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:HP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
+						"AttributeViewModels": "AttributeViewModels"
+					},
+					"function": "Conv_FindAttributeViewModel"
+				},
 				"destination": "WxViewModel_Attribute",
-				"enabled": true,
 				"source": ""
 			}
 		],

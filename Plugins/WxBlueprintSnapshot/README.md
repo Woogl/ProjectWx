@@ -22,7 +22,7 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 ## Quick Start
 
 1. 플러그인 활성화 (기본값으로 이미 활성화 상태).
-2. `Project Settings > Plugins > Wx Blueprint Snapshot`에서 대상 폴더를 `IncludeDirectories`에 지정 (비워두면 전체 BP).
+2. `Project Settings > Wx > WxBlueprintSnapshot`에서 대상 폴더를 `IncludeDirectories`에 지정 (비워두면 전체 BP).
 3. 블루프린트를 저장 (Ctrl+S).
 4. `Plugins/WxBlueprintSnapshot/Snapshots/<BP 경로>.json` 파일이 생성/업데이트됨.
 5. 이 폴더를 Git에 커밋하면 이후 변경점이 PR에 텍스트로 찍힘.
@@ -122,7 +122,7 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 
 **스냅샷이 안 생겨요**
 - BP를 `Ctrl+S`로 실제 저장했는지 확인 (Autosave는 무시됨).
-- `Project Settings > Wx Blueprint Snapshot`에서 `bEnabled`가 켜져있는지.
+- `Project Settings > Wx > WxBlueprintSnapshot`에서 `bEnabled`가 켜져있는지.
 - `IncludeDirectories`에 값이 있다면 내 BP 경로가 포함되는지.
 - BP가 **Dirty / Error 상태**면 스킵됨. 컴파일 성공 후 저장 필요.
 - 대상이 Blueprint Interface / Macro Library / Function Library면 의도적으로 스킵됨.
@@ -137,7 +137,7 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 
 ## 설정
 
-`Project Settings > Plugins > Wx Blueprint Snapshot`
+`Project Settings > Wx > WxBlueprintSnapshot`
 
 | 항목 | 기본값 | 설명 |
 |---|---|---|

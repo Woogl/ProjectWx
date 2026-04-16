@@ -8,6 +8,8 @@
 #include "Modules/ModuleInterface.h"
 #include "UObject/WeakObjectPtr.h"
 
+WXBLUEPRINTSNAPSHOT_API DECLARE_LOG_CATEGORY_EXTERN(LogWxBPSnapshot, Log, All);
+
 class UBlueprint;
 class UPackage;
 class FObjectPostSaveContext;
