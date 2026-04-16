@@ -35,10 +35,9 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 |---|---|---|
 | UObject Blueprint | ✅ | Character, Actor, GameplayAbility 등 UObject를 상속한 모든 BP |
 | Widget Blueprint (UMG) | ✅ | 위젯 트리 + MVVM 바인딩까지 추출 |
-| Data-only Blueprint | ✅ | 변수 기본값만 들어있는 BP도 동작 |
 | Animation Blueprint | ⚠️ | 변수·기본값까지만. AnimGraph 스테이트머신은 노드 타이틀만 찍힘 |
 | Data Asset | ❌ | 블루프린트가 아닌 UObject 에셋 |
-| Data Table / Curve Table | ❌ | CSV/JSON Export 기능을 사용하세요 |
+| Data Table / Curve Table | ❌ | CSV/JSON Export 사용 권장 |
 | Blueprint Interface | ❌ | 함수 시그니처만 있는 BP. 스킵 |
 | Blueprint Function Library | ❌ | 스킵 |
 | Editor Utility Blueprint | ❌ | 스킵 |
@@ -76,9 +75,8 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 |---|---|
 | Designer 탭의 위젯 계층 | ✅ |
 | 각 위젯의 Details 값 + Slot 값 | ✅ |
-| MVVM ViewModel 바인딩 | ✅ Binding Source, Destination, Function |
-| MVVM Conversion Function의 경로 | ✅ |
-| MVVM Conversion Function의 내부 로직 | ❌ 경로만 |
+| MVVM ViewModel 바인딩 | ✅ Binding Type, Source, Destination 모두 지원 |
+| MVVM Conversion Function | ✅ 함수 경로만 |
 | Widget Animation | ❌ |
 | UMG 구식 Property Binding | ❌ MVVM만 지원 |
 | Named Slot의 내용물 | ❌ 런타임 주입이라 BP엔 없음 |
@@ -86,7 +84,7 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 ### 이벤트/함수 그래프 (의사코드)
 | 항목 | 지원 |
 |---|---|
-| Event, Custom Event, Function Entry | ✅ |
+| Event, Custom Event | ✅ |
 | Branch (if/else) | ✅ |
 | Sequence | ✅ |
 | 변수 Set | ✅ |
@@ -94,9 +92,9 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 | Cast | ✅ |
 | ForEach / ForLoop / While | ✅ |
 | Return | ✅ |
-| **Delay, Timeline, Gate** | ⚠️ 노드 이름만 |
-| **Async / Latent 액션** | ⚠️ 완료 분기 해석 없음 |
-| **Event Dispatcher 호출** | ⚠️ 일반 함수 호출처럼 보임 |
+| Delay, Timeline, Gate | ⚠️ 노드 이름만 |
+| Async / Latent Action | ⚠️ 완료 분기 해석 없음 |
+| Event Dispatcher | ⚠️ 일반 함수 호출처럼 보임 |
 | 매크로 내부 본문 | ❌ 호출 라인만 |
 | 로컬 변수 | ❌ |
 | 코멘트 박스 | ❌ |

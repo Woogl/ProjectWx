@@ -1,8 +1,9 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Actor/WxSpawner.h"
+#include "Spawnable/WxSpawner.h"
 
-#include "Actor/WxSpawnableInterface.h"
+#include "Spawnable/WxSpawnableInterface.h"
+#include "System/WxSpawnerSubsystem.h"
 #include "Components/ArrowComponent.h"
 #include "Components/BillboardComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -75,6 +76,53 @@ void AWxSpawner::BeginPlay()
 	}
 #endif
 
+	if (HasAuthority())
+	{
+		if (UWxSpawnerSubsystem* Subsystem = GetWorld()->GetSubsystem<UWxSpawnerSubsystem>())
+		{
+			Subsystem->RegisterSpawner(this);
+		}
+	}
+
+	SpawnTarget();
+}
+
+void AWxSpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (HasAuthority())
+	{
+		if (UWorld* World = GetWorld())
+		{
+			if (UWxSpawnerSubsystem* Subsystem = World->GetSubsystem<UWxSpawnerSubsystem>())
+			{
+				Subsystem->UnregisterSpawner(this);
+			}
+		}
+	}
+
+	SpawnedActor.Reset();
+
+	Super::EndPlay(EndPlayReason);
+}
+
+void AWxSpawner::Respawn()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	if (AActor* Existing = SpawnedActor.Get())
+	{
+		Existing->Destroy();
+	}
+	SpawnedActor.Reset();
+
+	SpawnTarget();
+}
+
+void AWxSpawner::SpawnTarget()
+{
 	if (!HasAuthority() || !SpawnableActorClass)
 	{
 		return;
@@ -90,13 +138,6 @@ void AWxSpawner::BeginPlay()
 	SpawnParams.Owner = this;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	SpawnedActor = GetWorld()->SpawnActor<AActor>(SpawnableActorClass, GetActorLocation(), GetActorRotation(), SpawnParams);
-}
-
-void AWxSpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	SpawnedActor.Reset();
-
-	Super::EndPlay(EndPlayReason);
 }
 
 #if WITH_EDITOR

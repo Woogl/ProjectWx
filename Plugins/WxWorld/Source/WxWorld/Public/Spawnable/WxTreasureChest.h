@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Actor/WxSpawnableInterface.h"
+#include "Spawnable/WxSpawnableInterface.h"
 #include "GameFramework/Actor.h"
 #include "WxTreasureChest.generated.h"
 

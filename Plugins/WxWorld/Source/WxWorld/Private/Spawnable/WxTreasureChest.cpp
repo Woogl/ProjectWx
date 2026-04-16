@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Actor/WxTreasureChest.h"
+#include "Spawnable/WxTreasureChest.h"
 
 #include "Component/WxInteractionComponent.h"
 #include "Components/StaticMeshComponent.h"

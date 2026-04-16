@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Actor/WxPickupBase.h"
+#include "Spawnable/WxPickupBase.h"
 
 #include "Component/WxInteractionComponent.h"
 #include "Components/StaticMeshComponent.h"

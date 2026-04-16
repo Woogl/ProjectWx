@@ -2,7 +2,7 @@
 
 #include "Component/WxInteractionWidgetComponent.h"
 #include "Blueprint/UserWidget.h"
-#include "UI/WxInteractionWidgetInterface.h"
+#include "Component/WxInteractionWidgetInterface.h"
 
 UWxInteractionWidgetComponent::UWxInteractionWidgetComponent()
 {

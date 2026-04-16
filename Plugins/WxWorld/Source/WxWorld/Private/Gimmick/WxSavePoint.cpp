@@ -1,12 +1,13 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Actor/WxSavePoint.h"
+#include "Gimmick/WxSavePoint.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Component/WxInteractionComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Component/WxInteractionWidgetComponent.h"
+#include "System/WxSpawnerSubsystem.h"
 
 AWxSavePoint::AWxSavePoint()
 {
@@ -37,30 +38,28 @@ void AWxSavePoint::BeginPlay()
 
 void AWxSavePoint::HandleInteracted(AActor* InteractingActor)
 {
-	if (!HasAuthority() || !HealEffect)
+	if (!HasAuthority())
 	{
 		return;
 	}
 
-	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(InteractingActor);
-	if (!ASC)
+	if (HealEffect)
 	{
-		return;
+		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(InteractingActor))
+		{
+			FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
+			Context.AddSourceObject(this);
+
+			FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(HealEffect, 1.0f, Context);
+			if (SpecHandle.IsValid())
+			{
+				ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}
+		}
 	}
 
-	FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
-	Context.AddSourceObject(this);
-
-	FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(HealEffect, 1.0f, Context);
-	if (SpecHandle.IsValid())
+	if (UWxSpawnerSubsystem* Subsystem = GetWorld()->GetSubsystem<UWxSpawnerSubsystem>())
 	{
-		ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+		Subsystem->RespawnAll();
 	}
 }
-
-#if WITH_EDITOR
-UStreamableRenderAsset* AWxSavePoint::GetEditorPreviewMesh() const
-{
-	return MeshComponent ? MeshComponent->GetStaticMesh() : nullptr;
-}
-#endif

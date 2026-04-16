@@ -106,6 +106,17 @@ void AWxCharacterBase::BeginPlay()
 	SpawnDefaultWeapon();
 }
 
+void AWxCharacterBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (HasAuthority() && EquippedWeapon)
+	{
+		EquippedWeapon->Destroy();
+		EquippedWeapon = nullptr;
+	}
+
+	Super::EndPlay(EndPlayReason);
+}
+
 void AWxCharacterBase::SpawnDefaultWeapon()
 {
 	if (!DefaultWeaponClass || !HasAuthority())

@@ -20,9 +20,14 @@ class WXWORLD_API AWxSpawner : public AActor
 public:
 	AWxSpawner();
 
+	/** 현재 스폰된 액터를 파괴하고 SpawnableActorClass로 새로 스폰한다. 서버 권한 필요. */
+	void Respawn();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	void SpawnTarget();
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<USceneComponent> SceneRoot;
