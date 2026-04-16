@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Actor/WxCutsceneTrigger.h"
+#include "Gimmick/WxCutsceneTrigger.h"
 
 #include "Component/WxInteractionComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -77,9 +77,3 @@ void AWxCutsceneTrigger::CleanupSequenceActor()
 	}
 }
 
-#if WITH_EDITOR
-UStreamableRenderAsset* AWxCutsceneTrigger::GetEditorPreviewMesh() const
-{
-	return MeshComponent ? MeshComponent->GetStaticMesh() : nullptr;
-}
-#endif

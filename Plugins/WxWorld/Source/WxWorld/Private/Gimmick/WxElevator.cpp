@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Actor/WxElevator.h"
+#include "Gimmick/WxElevator.h"
 
 #include "Component/WxInteractionComponent.h"
 #include "Components/SplineComponent.h"
