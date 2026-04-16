@@ -5,7 +5,7 @@
 #include "Component/WxInteractionComponent.h"
 #include "Components/SplineComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Component/WxPromptWidgetComponent.h"
+#include "Component/WxInteractionWidgetComponent.h"
 #include "Net/UnrealNetwork.h"
 
 AWxElevator::AWxElevator()
@@ -30,11 +30,12 @@ AWxElevator::AWxElevator()
 	PlatformMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlatformMesh"));
 	PlatformMesh->SetupAttachment(PlatformRoot);
 
+	InteractionWidget = CreateDefaultSubobject<UWxInteractionWidgetComponent>(TEXT("InteractionWidget"));
+	InteractionWidget->SetupAttachment(PlatformRoot);
+
 	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
 	InteractionComponent->SetupAttachment(PlatformRoot);
-
-	PromptWidget = CreateDefaultSubobject<UWxPromptWidgetComponent>(TEXT("PromptWidget"));
-	PromptWidget->SetupAttachment(PlatformRoot);
+	InteractionComponent->InteractionWidget = InteractionWidget;
 }
 
 void AWxElevator::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

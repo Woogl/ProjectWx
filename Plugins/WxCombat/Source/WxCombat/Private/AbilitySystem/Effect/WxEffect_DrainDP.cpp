@@ -8,24 +8,19 @@ UWxEffect_DrainDP::UWxEffect_DrainDP()
 {
 	DurationPolicy = EGameplayEffectDurationType::HasDuration;
 
-	FSetByCallerFloat SetByCaller;
-	SetByCaller.DataTag = WxGameplayTags::SetByCaller_Duration;
-	DurationMagnitude = FGameplayEffectModifierMagnitude(SetByCaller);
+	FSetByCallerFloat DurationSetByCaller;
+	DurationSetByCaller.DataTag = WxGameplayTags::SetByCaller_Duration;
+	DurationMagnitude = FGameplayEffectModifierMagnitude(DurationSetByCaller);
 
 	Period = FScalableFloat(DrainPeriod);
 	bExecutePeriodicEffectOnApplication = true;
 
-	// 틱당 차감량 = MaxDP * -DrainPeriod
-	FAttributeBasedFloat AttributeBased;
-	AttributeBased.BackingAttribute = FGameplayEffectAttributeCaptureDefinition(
-		UWxCombatAttributeSet::GetMaxDPAttribute(),
-		EGameplayEffectAttributeCaptureSource::Target,
-		false);
-	AttributeBased.Coefficient = FScalableFloat(-DrainPeriod);
+	FSetByCallerFloat DrainSetByCaller;
+	DrainSetByCaller.DataTag = WxGameplayTags::SetByCaller_DrainDP;
 
 	FGameplayModifierInfo Modifier;
 	Modifier.Attribute = UWxCombatAttributeSet::GetDPAttribute();
 	Modifier.ModifierOp = EGameplayModOp::Additive;
-	Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(AttributeBased);
+	Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(DrainSetByCaller);
 	Modifiers.Add(Modifier);
 }

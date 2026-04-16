@@ -10,7 +10,7 @@
 class UGameplayEffect;
 class UStaticMeshComponent;
 class UWxInteractionComponent;
-class UWxPromptWidgetComponent;
+class UWxInteractionWidgetComponent;
 
 /**
  * 세이브 포인트.
@@ -40,7 +40,7 @@ protected:
 	TObjectPtr<UWxInteractionComponent> InteractionComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	TObjectPtr<UWxPromptWidgetComponent> PromptWidget;
+	TObjectPtr<UWxInteractionWidgetComponent> InteractionWidget;
 
 	/** 상호작용 시 적용할 회복 GameplayEffect. HP를 MaxHP로 설정하는 GE를 지정한다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")

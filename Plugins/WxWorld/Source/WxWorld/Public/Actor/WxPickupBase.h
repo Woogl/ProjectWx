@@ -10,7 +10,7 @@
 class URotatingMovementComponent;
 class UStaticMeshComponent;
 class UWxInteractionComponent;
-class UWxPromptWidgetComponent;
+class UWxInteractionWidgetComponent;
 
 /**
  * 픽업 아이템 베이스 클래스.
@@ -41,7 +41,7 @@ protected:
 	TObjectPtr<UWxInteractionComponent> InteractionComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	TObjectPtr<UWxPromptWidgetComponent> PromptWidget;
+	TObjectPtr<UWxInteractionWidgetComponent> InteractionWidget;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<URotatingMovementComponent> RotatingMovement;

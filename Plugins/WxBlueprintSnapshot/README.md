@@ -150,7 +150,7 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 | `bIncludeVariables` | true | 변수 목록 추출 |
 | `bIncludeInterfaces` | true | 구현 인터페이스 추출 |
 | `bIncludeWidgetTree` | true | WBP 위젯 트리 추출 |
-| `bIncludeMvvm` | true | WBP MVVM 바인딩 추출 |
+| `bIncludeMVVM` | true | WBP MVVM 바인딩 추출 |
 | `bIncludeGraphs` | true | 이벤트/함수 그래프 의사코드 추출 |
 
 ---

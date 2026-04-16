@@ -9,7 +9,7 @@
 class USplineComponent;
 class UStaticMeshComponent;
 class UWxInteractionComponent;
-class UWxPromptWidgetComponent;
+class UWxInteractionWidgetComponent;
 
 /**
  * 엘리베이터.
@@ -48,7 +48,7 @@ protected:
 	TObjectPtr<UWxInteractionComponent> InteractionComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	TObjectPtr<UWxPromptWidgetComponent> PromptWidget;
+	TObjectPtr<UWxInteractionWidgetComponent> InteractionWidget;
 
 	/** 이동 속도 (cm/s) */
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ClampMin = "0"))

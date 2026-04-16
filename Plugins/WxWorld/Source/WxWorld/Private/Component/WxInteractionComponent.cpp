@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Component/WxInteractionComponent.h"
-#include "Component/WxPromptWidgetComponent.h"
+#include "Component/WxInteractionWidgetComponent.h"
 #include "GameFramework/Pawn.h"
 
 UWxInteractionComponent::UWxInteractionComponent()
@@ -27,12 +27,12 @@ void UWxInteractionComponent::BeginPlay()
 	OnComponentBeginOverlap.AddDynamic(this, &UWxInteractionComponent::HandleBeginOverlap);
 	OnComponentEndOverlap.AddDynamic(this, &UWxInteractionComponent::HandleEndOverlap);
 
-	if (const AActor* MyOwner = GetOwner())
+	// BeginPlay 시점에 이미 오버랩 중인 로컬 폰이 있으면 프롬프트를 즉시 표시한다.
+	if (!bInteractionEnabled)
 	{
-		CachedPromptWidget = MyOwner->FindComponentByClass<UWxPromptWidgetComponent>();
+		return;
 	}
 
-	// BeginPlay 시점에 이미 오버랩 중인 로컬 폰이 있으면 프롬프트를 즉시 표시한다.
 	TArray<AActor*> OverlappingActors;
 	GetOverlappingActors(OverlappingActors, APawn::StaticClass());
 	for (AActor* OverlappingActor : OverlappingActors)
@@ -40,7 +40,7 @@ void UWxInteractionComponent::BeginPlay()
 		const APawn* Pawn = Cast<APawn>(OverlappingActor);
 		if (Pawn && Pawn->IsLocallyControlled())
 		{
-			SetPromptVisible(true);
+			SetInteractionWidgetVisible(true);
 			break;
 		}
 	}
@@ -79,7 +79,7 @@ void UWxInteractionComponent::SetInteractionEnabled(bool bEnabled)
 	else
 	{
 		SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		SetPromptVisible(false);
+		SetInteractionWidgetVisible(false);
 	}
 }
 
@@ -96,7 +96,7 @@ void UWxInteractionComponent::HandleBeginOverlap(UPrimitiveComponent* Overlapped
 		return;
 	}
 
-	SetPromptVisible(true);
+	SetInteractionWidgetVisible(true);
 }
 
 void UWxInteractionComponent::HandleEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -119,13 +119,13 @@ void UWxInteractionComponent::HandleEndOverlap(UPrimitiveComponent* OverlappedCo
 		}
 	}
 
-	SetPromptVisible(false);
+	SetInteractionWidgetVisible(false);
 }
 
-void UWxInteractionComponent::SetPromptVisible(bool bNewVisible)
+void UWxInteractionComponent::SetInteractionWidgetVisible(bool bNewVisible)
 {
-	if (UWidgetComponent* Widget = CachedPromptWidget.Get())
+	if (InteractionWidget)
 	{
-		Widget->SetVisibility(bNewVisible);
+		InteractionWidget->SetVisibility(bNewVisible);
 	}
 }

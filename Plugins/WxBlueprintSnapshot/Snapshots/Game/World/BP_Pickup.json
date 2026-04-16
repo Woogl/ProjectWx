@@ -1,0 +1,42 @@
+{
+	"blueprintPath": "/Game/World/BP_Pickup.BP_Pickup",
+	"classDefaults":
+	{
+		"InteractionComponent":
+		{
+			"class": "/Script/WxWorld.WxInteractionComponent"
+		},
+		"InteractionWidget":
+		{
+			"class": "/Script/WxWorld.WxInteractionWidgetComponent",
+			"delta":
+			{
+				"WidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
+			}
+		},
+		"MeshComponent":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"StaticMesh": "/Game/NiagaraExamples/Gallery/StaticMesh/EditorHelpCPUReadable.EditorHelpCPUReadable"
+			}
+		},
+		"RootComponent":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"StaticMesh": "/Game/NiagaraExamples/Gallery/StaticMesh/EditorHelpCPUReadable.EditorHelpCPUReadable"
+			}
+		}
+	},
+	"graphs":
+	{
+		"EventGraph": [
+			"event WxOnInteractedSignature__DelegateSignature:",
+			"  KismetSystemLibrary::PrintString(InString=\"상호작용 성공!\")"
+		]
+	},
+	"parentClass": "/Script/WxWorld.WxPickupBase"
+}

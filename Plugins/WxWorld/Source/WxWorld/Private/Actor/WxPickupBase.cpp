@@ -4,7 +4,7 @@
 
 #include "Component/WxInteractionComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Component/WxPromptWidgetComponent.h"
+#include "Component/WxInteractionWidgetComponent.h"
 #include "GameFramework/RotatingMovementComponent.h"
 
 AWxPickupBase::AWxPickupBase()
@@ -17,11 +17,12 @@ AWxPickupBase::AWxPickupBase()
 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SetRootComponent(MeshComponent);
 
+	InteractionWidget = CreateDefaultSubobject<UWxInteractionWidgetComponent>(TEXT("InteractionWidget"));
+	InteractionWidget->SetupAttachment(MeshComponent);
+
 	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
 	InteractionComponent->SetupAttachment(MeshComponent);
-
-	PromptWidget = CreateDefaultSubobject<UWxPromptWidgetComponent>(TEXT("PromptWidget"));
-	PromptWidget->SetupAttachment(MeshComponent);
+	InteractionComponent->InteractionWidget = InteractionWidget;
 
 	RotatingMovement = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("RotatingMovement"));
 	RotatingMovement->RotationRate = FRotator(0.0f, 90.0f, 0.0f);

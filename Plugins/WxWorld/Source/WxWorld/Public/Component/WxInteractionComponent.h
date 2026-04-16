@@ -6,7 +6,7 @@
 #include "Components/SphereComponent.h"
 #include "WxInteractionComponent.generated.h"
 
-class UWxPromptWidgetComponent;
+class UWxInteractionWidgetComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractedSignature, AActor*, InstigatorActor);
 
@@ -42,6 +42,10 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Wx")
 	FWxOnInteractedSignature OnInteracted;
 
+	/** 프롬프트로 사용할 위젯 컴포넌트. Owner 액터가 생성자에서 명시적으로 바인딩한다. */
+	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Wx")
+	TObjectPtr<UWxInteractionWidgetComponent> InteractionWidget;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -55,9 +59,7 @@ private:
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastInteracted(AActor* InstigatorActor);
 
-	void SetPromptVisible(bool bNewVisible);
-
-	TWeakObjectPtr<UWxPromptWidgetComponent> CachedPromptWidget;
+	void SetInteractionWidgetVisible(bool bNewVisible);
 
 	bool bInteractionEnabled;
 };
