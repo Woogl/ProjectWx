@@ -114,15 +114,6 @@ bool FWxBlueprintSnapshotExporter::ExportBlueprint(UBlueprint* Blueprint)
 
 	const FString Json = SerializeJson(Root);
 
-	FString PreviousJson;
-	if (FFileHelper::LoadFileToString(PreviousJson, *LatestPath))
-	{
-		if (PreviousJson.Equals(Json, ESearchCase::CaseSensitive))
-		{
-			return false;
-		}
-	}
-
 	// Read-only (SCC 추적 등) 인 경우 해제 시도. 저장 실패하면 원상 복구.
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 	bool bClearedReadOnly = false;
