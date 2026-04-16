@@ -23,6 +23,10 @@ public:
 	UPROPERTY(EditAnywhere, Config, Category = "General")
 	bool bEnabled = true;
 
+	/** 스냅샷 파일 확장자. 점을 포함해 입력 (예: ".json", ".bpj") */
+	UPROPERTY(EditAnywhere, Config, Category = "General")
+	FString FileExtension = TEXT(".json");
+
 	/** 대상 BP 폴더. 비어있으면 모든 BP가 대상 */
 	UPROPERTY(EditAnywhere, Config, Category = "Filter", Meta = (ContentDir, LongPackageName))
 	TArray<FDirectoryPath> IncludeDirectories;

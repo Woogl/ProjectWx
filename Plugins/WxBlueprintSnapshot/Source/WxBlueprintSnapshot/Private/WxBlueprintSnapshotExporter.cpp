@@ -846,7 +846,7 @@ namespace WxBlueprintSnapshotPrivate
 		const FString ShortDirHash = BytesToHex(Hash, 6);
 
 		const FString FallbackDir = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("BlueprintSnapshots_Hashed"), ShortDirHash);
-		return FallbackDir / (Blueprint->GetName() + TEXT(".json"));
+		return FallbackDir / (Blueprint->GetName() + GetDefault<UWxBlueprintSnapshotSettings>()->FileExtension);
 	}
 }
 
@@ -1370,12 +1370,12 @@ FString FWxBlueprintSnapshotExporter::ResolveLatestPath(UBlueprint* Blueprint)
 		return FString();
 	}
 
-	// /Game/UI/Widget/WBP_Ability -> Game/UI/Widget/WBP_Ability.json
+	// /Game/UI/Widget/WBP_Ability -> Game/UI/Widget/WBP_Ability{Ext}
 	FString PackagePath = Package->GetName();
 	if (PackagePath.StartsWith(TEXT("/")))
 	{
 		PackagePath.RemoveAt(0);
 	}
 
-	return FPaths::Combine(Plugin->GetBaseDir(), TEXT("Snapshots"), PackagePath) + TEXT(".json");
+	return FPaths::Combine(Plugin->GetBaseDir(), TEXT("Snapshots"), PackagePath) + GetDefault<UWxBlueprintSnapshotSettings>()->FileExtension;
 }
