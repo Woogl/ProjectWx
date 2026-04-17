@@ -1,0 +1,39 @@
+{
+	"blueprintPath": "/Game/Character/Boss/BP_Boss.BP_Boss",
+	"classDefaults":
+	{
+		"AbilitySystemComponent":
+		{
+			"class": "/Script/WxCombat.WxAbilitySystemComponent",
+			"delta":
+			{
+				"AbilitySet": "/Game/Character/Boss/ABS_Boss.ABS_Boss"
+			}
+		},
+		"BehaviorTreeAsset": "/Game/AI/BT_Boss.BT_Boss",
+		"DefaultWeaponClass": "/Game/Weapon/BP_Katana.BP_Katana_C",
+		"Mesh":
+		{
+			"class": "/Script/Engine.SkeletalMeshComponent",
+			"delta":
+			{
+				"AnimClass": "/Game/Mannequins/Animations/ABP_Manny.ABP_Manny_C",
+				"OverrideMaterials": [
+					"/Game/Mannequins/Materials/Instances/Manny/MI_Manny_04.MI_Manny_04",
+					"/Game/Mannequins/Materials/Instances/Manny/MI_Manny_03.MI_Manny_03"
+				],
+				"RelativeLocation":
+				{
+					"Z": -90
+				},
+				"RelativeRotation":
+				{
+					"Yaw": -90
+				},
+				"SkeletalMesh": "/Game/Mannequins/Meshes/SKM_Manny.SKM_Manny",
+				"SkinnedAsset": "/Game/Mannequins/Meshes/SKM_Manny.SKM_Manny"
+			}
+		}
+	},
+	"parentClass": "/Script/WxGame.WxBossCharacter"
+}
