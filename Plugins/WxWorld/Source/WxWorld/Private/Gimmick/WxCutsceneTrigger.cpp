@@ -37,6 +37,13 @@ void AWxCutsceneTrigger::BeginPlay()
 	}
 }
 
+void AWxCutsceneTrigger::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	CleanupSequenceActor();
+
+	Super::EndPlay(EndPlayReason);
+}
+
 void AWxCutsceneTrigger::HandleInteracted(AActor* InteractingActor)
 {
 	if (bIsPlaying || !LevelSequence)
@@ -58,6 +65,11 @@ void AWxCutsceneTrigger::HandleInteracted(AActor* InteractingActor)
 		return;
 	}
 
+	if (InteractionComponent)
+	{
+		InteractionComponent->SetInteractionEnabled(false);
+	}
+
 	SequencePlayer->OnFinished.AddDynamic(this, &AWxCutsceneTrigger::HandleSequenceFinished);
 	SequencePlayer->Play();
 }
@@ -66,6 +78,11 @@ void AWxCutsceneTrigger::HandleSequenceFinished()
 {
 	CleanupSequenceActor();
 	bIsPlaying = false;
+
+	if (InteractionComponent)
+	{
+		InteractionComponent->SetInteractionEnabled(true);
+	}
 }
 
 void AWxCutsceneTrigger::CleanupSequenceActor()

@@ -44,7 +44,7 @@ void AWxElevator::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 	DOREPLIFETIME(AWxElevator, bIsMoving);
 	DOREPLIFETIME(AWxElevator, bMovingForward);
-	DOREPLIFETIME(AWxElevator, CurrentDistance);
+	DOREPLIFETIME_CONDITION(AWxElevator, CurrentDistance, COND_InitialOnly);
 }
 
 void AWxElevator::BeginPlay()
@@ -79,19 +79,22 @@ void AWxElevator::Tick(float DeltaTime)
 	const float Direction = bMovingForward ? 1.f : -1.f;
 	CurrentDistance = FMath::Clamp(CurrentDistance + MoveSpeed * DeltaTime * Direction, 0.f, CachedSplineLength);
 
-	UpdatePlatformPosition();
-
-	const bool bReachedEnd = bMovingForward
-		? (CurrentDistance >= CachedSplineLength)
-		: (CurrentDistance <= 0.f);
-
-	if (bReachedEnd)
+	if (HasAuthority())
 	{
-		bIsMoving = false;
-		bMovingForward = !bMovingForward;
-		SetActorTickEnabled(false);
-		InteractionComponent->SetInteractionEnabled(true);
+		const bool bReachedEnd = bMovingForward
+			? (CurrentDistance >= CachedSplineLength)
+			: (CurrentDistance <= 0.f);
+
+		if (bReachedEnd)
+		{
+			bIsMoving = false;
+			bMovingForward = !bMovingForward;
+			SetActorTickEnabled(false);
+			InteractionComponent->SetInteractionEnabled(true);
+		}
 	}
+
+	UpdatePlatformPosition();
 }
 
 void AWxElevator::HandleInteracted(AActor* InteractingActor)
@@ -110,6 +113,14 @@ void AWxElevator::OnRep_bIsMoving()
 {
 	SetActorTickEnabled(bIsMoving);
 	InteractionComponent->SetInteractionEnabled(!bIsMoving);
+
+	// 정지 복제 수신 시 누적 드리프트를 끝점으로 스냅 (BeginPlay 이후에만).
+	// bMovingForward는 서버에서 정지와 동시에 이미 반전됐으므로 다음 진행 방향 기준으로 역의 끝점이 현재 위치.
+	if (!bIsMoving && CachedSplineLength > 0.f)
+	{
+		CurrentDistance = bMovingForward ? 0.f : CachedSplineLength;
+		UpdatePlatformPosition();
+	}
 }
 
 void AWxElevator::UpdatePlatformPosition()

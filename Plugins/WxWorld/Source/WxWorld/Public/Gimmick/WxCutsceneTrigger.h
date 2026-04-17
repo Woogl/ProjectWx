@@ -27,6 +27,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
@@ -38,7 +39,7 @@ protected:
 	TObjectPtr<UWxInteractionWidgetComponent> InteractionWidget;
 
 	/** 재생할 Level Sequence 에셋 */
-	UPROPERTY(EditAnywhere, Category = "Wx")
+	UPROPERTY(EditInstanceOnly, Category = "Wx")
 	TObjectPtr<ULevelSequence> LevelSequence;
 
 private:

@@ -81,6 +81,11 @@ void AWxSpawner::BeginPlay()
 		if (UWxSpawnerSubsystem* Subsystem = GetWorld()->GetSubsystem<UWxSpawnerSubsystem>())
 		{
 			Subsystem->RegisterSpawner(this);
+
+			if (Subsystem->IsSpawnerKilled(this))
+			{
+				return;
+			}
 		}
 	}
 
@@ -98,6 +103,12 @@ void AWxSpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
 				Subsystem->UnregisterSpawner(this);
 			}
 		}
+
+		if (AActor* Existing = SpawnedActor.Get())
+		{
+			Existing->OnDestroyed.RemoveDynamic(this, &AWxSpawner::HandleSpawnedActorDestroyed);
+			Existing->Destroy();
+		}
 	}
 
 	SpawnedActor.Reset();
@@ -114,11 +125,33 @@ void AWxSpawner::Respawn()
 
 	if (AActor* Existing = SpawnedActor.Get())
 	{
+		Existing->OnDestroyed.RemoveDynamic(this, &AWxSpawner::HandleSpawnedActorDestroyed);
 		Existing->Destroy();
 	}
 	SpawnedActor.Reset();
 
 	SpawnTarget();
+}
+
+void AWxSpawner::HandleSpawnedActorDestroyed(AActor* DestroyedActor)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	if (UWxSpawnerSubsystem* Subsystem = World->GetSubsystem<UWxSpawnerSubsystem>())
+	{
+		Subsystem->MarkSpawnerKilled(this);
+	}
+
+	SpawnedActor.Reset();
 }
 
 void AWxSpawner::SpawnTarget()
@@ -138,6 +171,11 @@ void AWxSpawner::SpawnTarget()
 	SpawnParams.Owner = this;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	SpawnedActor = GetWorld()->SpawnActor<AActor>(SpawnableActorClass, GetActorLocation(), GetActorRotation(), SpawnParams);
+
+	if (AActor* Spawned = SpawnedActor.Get())
+	{
+		Spawned->OnDestroyed.AddDynamic(this, &AWxSpawner::HandleSpawnedActorDestroyed);
+	}
 }
 
 #if WITH_EDITOR

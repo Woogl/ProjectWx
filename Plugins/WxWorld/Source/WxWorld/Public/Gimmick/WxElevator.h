@@ -64,7 +64,7 @@ private:
 	void UpdatePlatformPosition();
 
 	UPROPERTY(ReplicatedUsing = OnRep_bIsMoving)
-	bool bIsMoving;
+	bool bIsMoving = false;
 
 	UPROPERTY(Replicated)
 	bool bMovingForward = true;

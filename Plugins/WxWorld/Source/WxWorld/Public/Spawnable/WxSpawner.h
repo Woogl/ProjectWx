@@ -37,6 +37,11 @@ protected:
 
 	TWeakObjectPtr<AActor> SpawnedActor;
 
+private:
+	UFUNCTION()
+	void HandleSpawnedActorDestroyed(AActor* DestroyedActor);
+
+protected:
 #if WITH_EDITOR
 	virtual void PostLoad() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
