@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Effect/WxEffect_DrainDP.h"
+#include "AbilitySystem/Effect/WxMMC_LinearDrain.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "WxGameplayTags.h"
 
@@ -15,12 +16,13 @@ UWxEffect_DrainDP::UWxEffect_DrainDP()
 	Period = FScalableFloat(DrainPeriod);
 	bExecutePeriodicEffectOnApplication = true;
 
-	FSetByCallerFloat DrainSetByCaller;
-	DrainSetByCaller.DataTag = WxGameplayTags::SetByCaller_DrainDP;
+	FCustomCalculationBasedFloat CustomMagnitude;
+	CustomMagnitude.CalculationClassMagnitude = UWxMMC_LinearDrain::StaticClass();
+	CustomMagnitude.Coefficient = FScalableFloat(1.0f);
 
 	FGameplayModifierInfo Modifier;
 	Modifier.Attribute = UWxCombatAttributeSet::GetDPAttribute();
 	Modifier.ModifierOp = EGameplayModOp::Additive;
-	Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(DrainSetByCaller);
+	Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(CustomMagnitude);
 	Modifiers.Add(Modifier);
 }
