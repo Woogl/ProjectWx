@@ -1,10 +1,10 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Targeting/WxTargetingFilterTask_TeamAttitude.h"
+#include "Targeting/WxTargetingFilterTask_Team.h"
 #include "GenericTeamAgentInterface.h"
 #include "Types/TargetingSystemTypes.h"
 
-bool UWxTargetingFilterTask_TeamAttitude::ShouldFilterTarget(const FTargetingRequestHandle& TargetingHandle, const FTargetingDefaultResultData& TargetData) const
+bool UWxTargetingFilterTask_Team::ShouldFilterTarget(const FTargetingRequestHandle& TargetingHandle, const FTargetingDefaultResultData& TargetData) const
 {
 	if (const FTargetingSourceContext* SourceContext = FTargetingSourceContext::Find(TargetingHandle))
 	{
