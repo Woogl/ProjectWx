@@ -36,13 +36,11 @@ void AWxEnemyController::PostInitProperties()
 		SightConfig->SightRadius = SightRadius;
 		SightConfig->LoseSightRadius = LoseSightRadius;
 		SightConfig->PeripheralVisionAngleDegrees = SightAngle;
-		SightConfig->SetMaxAge(MemoryLength);
 		AIPerceptionComponent->ConfigureSense(*SightConfig);
 	}
 
 	if (DamageConfig)
 	{
-		DamageConfig->SetMaxAge(MemoryLength);
 		AIPerceptionComponent->ConfigureSense(*DamageConfig);
 	}
 }

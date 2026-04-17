@@ -43,9 +43,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|AI")
 	float SightAngle = 90.f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|AI")
-	float MemoryLength = 5.f;
-
 private:
 	UFUNCTION()
 	void HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);

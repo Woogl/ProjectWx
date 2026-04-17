@@ -6,7 +6,7 @@
 #include "UObject/Interface.h"
 #include "WxSpawnableInterface.generated.h"
 
-class UStreamableRenderAsset;
+class UMeshComponent;
 
 UINTERFACE(MinimalAPI)
 class UWxSpawnableInterface : public UInterface
@@ -20,7 +20,7 @@ class WXWORLD_API IWxSpawnableInterface
 
 public:
 #if WITH_EDITOR
-	/** 에디터 미리보기에 사용할 메시. USkeletalMesh 또는 UStaticMesh 반환 */
-	virtual UStreamableRenderAsset* GetEditorPreviewMesh() const = 0;
+	/** 에디터 미리보기의 기준이 될 메시 컴포넌트. 스포너가 메시/트랜스폼/머티리얼을 추출한다. */
+	virtual const UMeshComponent* GetEditorPreviewMeshComponent() const = 0;
 #endif
 };

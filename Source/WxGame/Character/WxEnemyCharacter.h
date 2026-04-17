@@ -27,7 +27,7 @@ public:
 
 	// IWxSpawnableInterface
 #if WITH_EDITOR
-	virtual UStreamableRenderAsset* GetEditorPreviewMesh() const override;
+	virtual const UMeshComponent* GetEditorPreviewMeshComponent() const override;
 #endif
 
 protected:

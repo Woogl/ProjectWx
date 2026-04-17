@@ -7,7 +7,6 @@
 #include "GameFramework/Actor.h"
 #include "WxTreasureChest.generated.h"
 
-class UNiagaraSystem;
 class UStaticMeshComponent;
 class UWxInteractionComponent;
 class UWxInteractionWidgetComponent;
@@ -25,9 +24,11 @@ class WXWORLD_API AWxTreasureChest : public AActor, public IWxSpawnableInterface
 public:
 	AWxTreasureChest();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	// IWxSpawnableInterface
 #if WITH_EDITOR
-	virtual UStreamableRenderAsset* GetEditorPreviewMesh() const override;
+	virtual const UMeshComponent* GetEditorPreviewMeshComponent() const override;
 #endif
 
 protected:
@@ -41,12 +42,30 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UWxInteractionWidgetComponent> InteractionWidget;
-	
-	/** 상호작용 시 보여줄 Niagara 이펙트 */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx")
-	TObjectPtr<UNiagaraSystem> NiagaraSystem;
+
+	/** 상호작용 시 스폰할 액터 클래스 */
+	UPROPERTY(EditAnywhere, Category = "Wx")
+	TSubclassOf<AActor> ItemActorClass;
+
+	/** 스폰 위치 오프셋 (상자 기준 로컬 좌표) */
+	UPROPERTY(EditAnywhere, Category = "Wx")
+	FVector SpawnOffset = FVector(0.f, 0.f, 50.f);
+
+	/** 스폰 시 발사 속도 (cm/s) */
+	UPROPERTY(EditAnywhere, Category = "Wx|Launch", meta = (ClampMin = "0"))
+	float LaunchSpeed = 500.f;
+
+	/** 수직에서 벌어지는 랜덤 각도 범위 (도). 0이면 정확히 위로 */
+	UPROPERTY(EditAnywhere, Category = "Wx|Launch", meta = (ClampMin = "0", ClampMax = "90"))
+	float LaunchConeHalfAngle = 20.f;
 
 private:
 	UFUNCTION()
 	void HandleInteracted(AActor* InteractingActor);
+
+	UFUNCTION()
+	void OnRep_bIsOpened();
+
+	UPROPERTY(ReplicatedUsing = OnRep_bIsOpened)
+	bool bIsOpened = false;
 };

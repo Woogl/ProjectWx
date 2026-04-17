@@ -28,11 +28,14 @@ public:
 
 	// IWxSpawnableInterface
 #if WITH_EDITOR
-	virtual UStreamableRenderAsset* GetEditorPreviewMesh() const override;
+	virtual const UMeshComponent* GetEditorPreviewMeshComponent() const override;
 #endif
 
 protected:
 	virtual void BeginPlay() override;
+
+	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	TObjectPtr<USceneComponent> SceneRoot;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;

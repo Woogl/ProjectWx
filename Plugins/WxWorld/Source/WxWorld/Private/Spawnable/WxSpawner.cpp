@@ -46,7 +46,6 @@ AWxSpawner::AWxSpawner()
 
 	PreviewSkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("PreviewSkeletalMeshComponent"));
 	PreviewSkeletalMeshComponent->SetupAttachment(SceneRoot);
-	PreviewSkeletalMeshComponent->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	PreviewSkeletalMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PreviewSkeletalMeshComponent->SetHiddenInGame(true);
 	PreviewSkeletalMeshComponent->bCastHiddenShadow = true;
@@ -199,40 +198,48 @@ void AWxSpawner::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 
 void AWxSpawner::UpdateEditorPreviewFromSpawnableClass()
 {
-	UStreamableRenderAsset* PreviewMesh = nullptr;
+	const UMeshComponent* SourceMeshComponent = nullptr;
 	if (SpawnableActorClass)
 	{
 		if (const IWxSpawnableInterface* Spawnable = Cast<IWxSpawnableInterface>(SpawnableActorClass->GetDefaultObject()))
 		{
-			PreviewMesh = Spawnable->GetEditorPreviewMesh();
+			SourceMeshComponent = Spawnable->GetEditorPreviewMeshComponent();
 		}
 	}
 
-	USkeletalMesh* PreviewSkeletalMesh = Cast<USkeletalMesh>(PreviewMesh);
-	UStaticMesh* PreviewStaticMesh = Cast<UStaticMesh>(PreviewMesh);
+	const USkeletalMeshComponent* SourceSkeletal = Cast<USkeletalMeshComponent>(SourceMeshComponent);
+	const UStaticMeshComponent* SourceStatic = Cast<UStaticMeshComponent>(SourceMeshComponent);
 
-	const AActor* SourceCDO = SpawnableActorClass ? SpawnableActorClass->GetDefaultObject<AActor>() : nullptr;
+	USkeletalMesh* PreviewSkeletalMesh = SourceSkeletal ? SourceSkeletal->GetSkeletalMeshAsset() : nullptr;
+	UStaticMesh* PreviewStaticMesh = SourceStatic ? SourceStatic->GetStaticMesh() : nullptr;
+
+	// 루트 프리미티브의 로컬 바운드 하단만큼 올려 발이 스포너 원점에 맞도록 보정
+	// (캡슐 → HalfHeight, 박스 → ExtentZ, 스피어 → Radius, 메시 → 메시 바운드 하단)
+	FVector GroundOffset = FVector::ZeroVector;
+	if (const AActor* SourceCDO = SpawnableActorClass ? SpawnableActorClass->GetDefaultObject<AActor>() : nullptr)
+	{
+		if (const UPrimitiveComponent* RootPrim = Cast<UPrimitiveComponent>(SourceCDO->GetRootComponent()))
+		{
+			const FBoxSphereBounds LocalBounds = RootPrim->CalcBounds(FTransform::Identity);
+			GroundOffset.Z = FMath::Max(0.f, -LocalBounds.GetBox().Min.Z);
+		}
+	}
 
 	if (PreviewSkeletalMeshComponent)
 	{
 		PreviewSkeletalMeshComponent->SetSkeletalMeshAsset(PreviewSkeletalMesh);
 		PreviewSkeletalMeshComponent->EmptyOverrideMaterials();
 
-		if (PreviewSkeletalMesh && SourceCDO)
+		FTransform SkeletalTransform = SourceSkeletal ? SourceSkeletal->GetRelativeTransform() : FTransform::Identity;
+		SkeletalTransform.AddToTranslation(GroundOffset);
+		PreviewSkeletalMeshComponent->SetRelativeTransform(SkeletalTransform);
+
+		if (SourceSkeletal)
 		{
-			TArray<USkeletalMeshComponent*> SourceComponents;
-			SourceCDO->GetComponents<USkeletalMeshComponent>(SourceComponents);
-			for (const USkeletalMeshComponent* SourceComponent : SourceComponents)
+			const int32 NumMaterials = SourceSkeletal->GetNumMaterials();
+			for (int32 MaterialIndex = 0; MaterialIndex < NumMaterials; ++MaterialIndex)
 			{
-				if (SourceComponent && SourceComponent->GetSkeletalMeshAsset() == PreviewSkeletalMesh)
-				{
-					const int32 NumMaterials = SourceComponent->GetNumMaterials();
-					for (int32 MaterialIndex = 0; MaterialIndex < NumMaterials; ++MaterialIndex)
-					{
-						PreviewSkeletalMeshComponent->SetMaterial(MaterialIndex, SourceComponent->GetMaterial(MaterialIndex));
-					}
-					break;
-				}
+				PreviewSkeletalMeshComponent->SetMaterial(MaterialIndex, SourceSkeletal->GetMaterial(MaterialIndex));
 			}
 		}
 	}
@@ -242,21 +249,16 @@ void AWxSpawner::UpdateEditorPreviewFromSpawnableClass()
 		PreviewStaticMeshComponent->SetStaticMesh(PreviewStaticMesh);
 		PreviewStaticMeshComponent->EmptyOverrideMaterials();
 
-		if (PreviewStaticMesh && SourceCDO)
+		FTransform StaticTransform = SourceStatic ? SourceStatic->GetRelativeTransform() : FTransform::Identity;
+		StaticTransform.AddToTranslation(GroundOffset);
+		PreviewStaticMeshComponent->SetRelativeTransform(StaticTransform);
+
+		if (SourceStatic)
 		{
-			TArray<UStaticMeshComponent*> SourceComponents;
-			SourceCDO->GetComponents<UStaticMeshComponent>(SourceComponents);
-			for (const UStaticMeshComponent* SourceComponent : SourceComponents)
+			const int32 NumMaterials = SourceStatic->GetNumMaterials();
+			for (int32 MaterialIndex = 0; MaterialIndex < NumMaterials; ++MaterialIndex)
 			{
-				if (SourceComponent && SourceComponent->GetStaticMesh() == PreviewStaticMesh)
-				{
-					const int32 NumMaterials = SourceComponent->GetNumMaterials();
-					for (int32 MaterialIndex = 0; MaterialIndex < NumMaterials; ++MaterialIndex)
-					{
-						PreviewStaticMeshComponent->SetMaterial(MaterialIndex, SourceComponent->GetMaterial(MaterialIndex));
-					}
-					break;
-				}
+				PreviewStaticMeshComponent->SetMaterial(MaterialIndex, SourceStatic->GetMaterial(MaterialIndex));
 			}
 		}
 	}
@@ -269,7 +271,7 @@ void AWxSpawner::UpdateEditorPreviewFromSpawnableClass()
 			NewSprite = LoadObject<UTexture2D>(nullptr, DefaultSpawnerSpritePath);
 		}
 		SpriteComponent->SetSprite(NewSprite);
-		
+
 		float MeshTopZ = 0.f;
 		if (PreviewSkeletalMesh)
 		{

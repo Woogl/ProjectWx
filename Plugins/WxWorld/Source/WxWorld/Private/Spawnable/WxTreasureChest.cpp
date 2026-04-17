@@ -3,10 +3,10 @@
 #include "Spawnable/WxTreasureChest.h"
 
 #include "Component/WxInteractionComponent.h"
+#include "Components/PrimitiveComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Component/WxInteractionWidgetComponent.h"
-#include "NiagaraFunctionLibrary.h"
-#include "NiagaraSystem.h"
+#include "Net/UnrealNetwork.h"
 
 AWxTreasureChest::AWxTreasureChest()
 {
@@ -25,6 +25,13 @@ AWxTreasureChest::AWxTreasureChest()
 	InteractionComponent->InteractionWidget = InteractionWidget;
 }
 
+void AWxTreasureChest::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AWxTreasureChest, bIsOpened);
+}
+
 void AWxTreasureChest::BeginPlay()
 {
 	Super::BeginPlay();
@@ -37,24 +44,61 @@ void AWxTreasureChest::BeginPlay()
 
 void AWxTreasureChest::HandleInteracted(AActor* InteractingActor)
 {
-	if (!NiagaraSystem || !MeshComponent)
+	if (!HasAuthority() || bIsOpened)
 	{
 		return;
 	}
 
-	UNiagaraFunctionLibrary::SpawnSystemAttached(
-		NiagaraSystem,
-		MeshComponent,
-		NAME_None,
-		FVector::ZeroVector,
-		FRotator::ZeroRotator,
-		EAttachLocation::KeepRelativeOffset,
-		true);
+	bIsOpened = true;
+
+	if (InteractionComponent)
+	{
+		InteractionComponent->SetInteractionEnabled(false);
+	}
+
+	if (ItemActorClass)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+		const FVector SpawnLocation = GetActorTransform().TransformPosition(SpawnOffset);
+		AActor* Spawned = GetWorld()->SpawnActor<AActor>(ItemActorClass, SpawnLocation, GetActorRotation(), SpawnParams);
+
+		if (Spawned)
+		{
+			UPrimitiveComponent* PrimitiveRoot = Cast<UPrimitiveComponent>(Spawned->GetRootComponent());
+			if (PrimitiveRoot)
+			{
+				// 위쪽을 중심으로 원뿔 범위 내에서 랜덤 방향 샘플링
+				const float ConeRad = FMath::DegreesToRadians(LaunchConeHalfAngle);
+				FVector LaunchDir = FMath::VRandCone(FVector::UpVector, ConeRad);
+
+				// 상자 뒤쪽 성분이 있으면 forward 축에 대해 반사해 앞/옆/위 반구로 제한
+				const FVector ActorForward = GetActorForwardVector();
+				const float ForwardDot = FVector::DotProduct(LaunchDir, ActorForward);
+				if (ForwardDot < 0.f)
+				{
+					LaunchDir = (LaunchDir - 2.f * ForwardDot * ActorForward).GetSafeNormal();
+				}
+
+				PrimitiveRoot->SetPhysicsLinearVelocity(LaunchDir * LaunchSpeed);
+			}
+		}
+	}
+}
+
+void AWxTreasureChest::OnRep_bIsOpened()
+{
+	if (bIsOpened && InteractionComponent)
+	{
+		InteractionComponent->SetInteractionEnabled(false);
+	}
 }
 
 #if WITH_EDITOR
-UStreamableRenderAsset* AWxTreasureChest::GetEditorPreviewMesh() const
+const UMeshComponent* AWxTreasureChest::GetEditorPreviewMeshComponent() const
 {
-	return MeshComponent ? MeshComponent->GetStaticMesh() : nullptr;
+	return MeshComponent;
 }
 #endif

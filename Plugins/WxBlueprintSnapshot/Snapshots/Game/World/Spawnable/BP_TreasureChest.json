@@ -14,6 +14,7 @@
 				"WidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
 			}
 		},
+		"ItemActorClass": "/Game/World/Spawnable/BP_Pickup.BP_Pickup_C",
 		"MeshComponent":
 		{
 			"class": "/Script/Engine.StaticMeshComponent",

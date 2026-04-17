@@ -13,15 +13,18 @@ AWxPickupBase::AWxPickupBase()
 
 	bReplicates = true;
 
+	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
+	SetRootComponent(SceneRoot);
+
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	SetRootComponent(MeshComponent);
+	MeshComponent->SetupAttachment(SceneRoot);
 
 	InteractionWidget = CreateDefaultSubobject<UWxInteractionWidgetComponent>(TEXT("InteractionWidget"));
-	InteractionWidget->SetupAttachment(MeshComponent);
+	InteractionWidget->SetupAttachment(SceneRoot);
 
 	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
-	InteractionComponent->SetupAttachment(MeshComponent);
+	InteractionComponent->SetupAttachment(SceneRoot);
 	InteractionComponent->InteractionWidget = InteractionWidget;
 
 	RotatingMovement = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("RotatingMovement"));
@@ -51,8 +54,8 @@ void AWxPickupBase::HandleInteracted(AActor* InteractingActor)
 }
 
 #if WITH_EDITOR
-UStreamableRenderAsset* AWxPickupBase::GetEditorPreviewMesh() const
+const UMeshComponent* AWxPickupBase::GetEditorPreviewMeshComponent() const
 {
-	return MeshComponent ? MeshComponent->GetStaticMesh() : nullptr;
+	return MeshComponent;
 }
 #endif

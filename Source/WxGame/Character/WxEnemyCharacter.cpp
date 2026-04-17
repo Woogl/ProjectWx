@@ -41,9 +41,9 @@ UBehaviorTree* AWxEnemyCharacter::GetBehaviorTree() const
 }
 
 #if WITH_EDITOR
-UStreamableRenderAsset* AWxEnemyCharacter::GetEditorPreviewMesh() const
+const UMeshComponent* AWxEnemyCharacter::GetEditorPreviewMeshComponent() const
 {
-	return GetMesh() ? GetMesh()->GetSkeletalMeshAsset() : nullptr;
+	return GetMesh();
 }
 #endif
 

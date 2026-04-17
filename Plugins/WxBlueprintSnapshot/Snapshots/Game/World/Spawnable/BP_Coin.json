@@ -1,16 +1,27 @@
 {
-	"blueprintPath": "/Game/World/Spawnable/BP_Pickup.BP_Pickup",
+	"blueprintPath": "/Game/World/Spawnable/BP_Coin.BP_Coin",
 	"classDefaults":
 	{
 		"InteractionComponent":
 		{
-			"class": "/Script/WxWorld.WxInteractionComponent"
+			"class": "/Script/WxWorld.WxInteractionComponent",
+			"delta":
+			{
+				"RelativeLocation":
+				{
+					"Z": 50
+				}
+			}
 		},
 		"InteractionWidget":
 		{
 			"class": "/Script/WxWorld.WxInteractionWidgetComponent",
 			"delta":
 			{
+				"RelativeLocation":
+				{
+					"Z": 50
+				},
 				"WidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
 			}
 		},
@@ -19,10 +30,19 @@
 			"class": "/Script/Engine.StaticMeshComponent",
 			"delta":
 			{
+				"RelativeLocation":
+				{
+					"Z": 50
+				},
+				"RelativeScale3D":
+				{
+					"X": 0.5,
+					"Y": 0.5,
+					"Z": 0.5
+				},
 				"StaticMesh": "/Game/NiagaraExamples/Gallery/StaticMesh/SM_MannequinTarget.SM_MannequinTarget"
 			}
-		},
-		"RootComponent": "/Game/World/Spawnable/BP_Pickup.Default__BP_Pickup_C:MeshComponent"
+		}
 	},
 	"graphs":
 	{
