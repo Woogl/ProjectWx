@@ -39,6 +39,9 @@ namespace WxGameplayTags
 	/** 피격 반응 상태. WxAbility_HitReact가 ActivationOwnedTags로 활성 중에만 자동 부여 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_HitReact);
 
+	/** 슈퍼 아머 상태. 소유 중인 어빌리티는 HitReact로 캔슬되지 않음 (HitReact의 ActivationBlockedTags) */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_SuperArmor);
+
 	// ── Event ─────────────────────────────────────────────────────────────
 
 	/** 피격 이벤트 부모 카테고리. ExecCalc 필터링/디스패치 결정에만 사용 (직접 dispatch 금지) */

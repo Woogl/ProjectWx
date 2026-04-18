@@ -16,6 +16,7 @@ UWxAbility_Ultimate::UWxAbility_Ultimate()
 
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
+	ActivationOwnedTags.AddTag(WxGameplayTags::State_SuperArmor);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Groggy);
 }

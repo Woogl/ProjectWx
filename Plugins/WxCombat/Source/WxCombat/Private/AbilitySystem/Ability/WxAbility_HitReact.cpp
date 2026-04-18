@@ -37,6 +37,7 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Invincible);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Guard);
+	ActivationBlockedTags.AddTag(WxGameplayTags::State_SuperArmor);
 
 	bRetriggerInstancedAbility = true;
 
