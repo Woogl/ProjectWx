@@ -14,6 +14,7 @@ public class WxInventory : ModuleRules
 			"CoreUObject",
 			"Engine",
 			"GameplayTags",
+			"NetCore",
 			"WxCore",
 		});
 

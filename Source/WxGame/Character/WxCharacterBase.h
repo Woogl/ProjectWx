@@ -14,6 +14,7 @@
 class UMotionWarpingComponent;
 class UWxAbilitySystemComponent;
 class UWxCombatAttributeSet;
+class UWxItemDefinition;
 class UWxLockOnComponent;
 class AWxWeaponBase;
 
@@ -95,11 +96,9 @@ protected:
 
 	// ── Weapon ─────────────────────────────────────────────────────────────
 
+	/** 시작 시 장착할 아이템. FWxItemFragment_Equipment 에서 무기 액터 클래스/소켓을 추출. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
-	TSubclassOf<AWxWeaponBase> DefaultWeaponClass;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
-	FName WeaponSocketName = TEXT("hand_r");
+	TObjectPtr<UWxItemDefinition> DefaultWeaponItem;
 
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Wx|Weapon")
 	TObjectPtr<AWxWeaponBase> EquippedWeapon;

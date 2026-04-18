@@ -11,7 +11,7 @@
 			}
 		},
 		"BehaviorTreeAsset": "/Game/AI/BT_Boss.BT_Boss",
-		"DefaultWeaponClass": "/Game/Weapon/BP_Katana.BP_Katana_C",
+		"DefaultWeaponItem": "/Game/Item/DA_Katana.DA_Katana",
 		"Mesh":
 		{
 			"class": "/Script/Engine.SkeletalMeshComponent",

@@ -27,6 +27,7 @@ public class WxGame : ModuleRules
 			"MotionWarping",
 			"WxCore",
 			"WxCombat",
+			"WxInventory",
 			"WxUI",
 			"WxWorld",
 		});

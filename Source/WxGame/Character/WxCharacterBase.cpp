@@ -9,6 +9,8 @@
 #include "Components/CapsuleComponent.h"
 #include "WxCollisionChannels.h"
 #include "Weapon/WxWeaponBase.h"
+#include "Items/WxItemDefinition.h"
+#include "Items/WxItemFragment.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -119,7 +121,13 @@ void AWxCharacterBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AWxCharacterBase::SpawnDefaultWeapon()
 {
-	if (!DefaultWeaponClass || !HasAuthority())
+	if (!DefaultWeaponItem || !HasAuthority())
+	{
+		return;
+	}
+
+	const FWxItemFragment_Equipment* EquipmentFragment = DefaultWeaponItem->FindFragment<FWxItemFragment_Equipment>();
+	if (!EquipmentFragment || !EquipmentFragment->EquipmentActorClass)
 	{
 		return;
 	}
@@ -128,10 +136,11 @@ void AWxCharacterBase::SpawnDefaultWeapon()
 	SpawnParams.Owner = this;
 	SpawnParams.Instigator = this;
 
-	EquippedWeapon = GetWorld()->SpawnActor<AWxWeaponBase>(DefaultWeaponClass, SpawnParams);
+	AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(EquipmentFragment->EquipmentActorClass, SpawnParams);
+	EquippedWeapon = Cast<AWxWeaponBase>(SpawnedActor);
 	if (EquippedWeapon)
 	{
-		EquippedWeapon->AttachToCharacter(this, WeaponSocketName);
+		EquippedWeapon->AttachToCharacter(this, EquipmentFragment->AttachSocket);
 	}
 }
 
