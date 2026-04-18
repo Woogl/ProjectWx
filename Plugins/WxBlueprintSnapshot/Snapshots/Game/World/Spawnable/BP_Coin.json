@@ -38,9 +38,9 @@
 				},
 				"RelativeScale3D":
 				{
-					"X": 0.5,
-					"Y": 0.5,
-					"Z": 0.5
+					"X": 0.25,
+					"Y": 0.25,
+					"Z": 0.25
 				},
 				"StaticMesh": "/Game/NiagaraExamples/Gallery/StaticMesh/SM_MannequinTarget.SM_MannequinTarget"
 			}
