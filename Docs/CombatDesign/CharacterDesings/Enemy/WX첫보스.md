@@ -16,6 +16,7 @@
 - BT 기획서 (별도 문서)
 
 ---
+<img width="1433" height="1032" alt="image" src="https://github.com/user-attachments/assets/a558ab1a-3c59-4297-8b18-8c8cd85912db" />
 
 ## 2. 보스 전투 컨셉
 
