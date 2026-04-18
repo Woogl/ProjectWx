@@ -2,6 +2,7 @@
 	"blueprintPath": "/Game/World/Spawnable/BP_Coin.BP_Coin",
 	"classDefaults":
 	{
+		"Count": 500,
 		"InteractionComponent":
 		{
 			"class": "/Script/WxWorld.WxInteractionComponent",
@@ -25,6 +26,7 @@
 				"WidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
 			}
 		},
+		"ItemDef": "/Game/Item/DA_Gold.DA_Gold",
 		"MeshComponent":
 		{
 			"class": "/Script/Engine.StaticMeshComponent",
@@ -43,13 +45,6 @@
 				"StaticMesh": "/Game/NiagaraExamples/Gallery/StaticMesh/SM_MannequinTarget.SM_MannequinTarget"
 			}
 		}
-	},
-	"graphs":
-	{
-		"EventGraph": [
-			"event WxOnInteractedSignature__DelegateSignature:",
-			"  KismetSystemLibrary::PrintString(InString=\"상호작용 성공!\")"
-		]
 	},
 	"parentClass": "/Script/WxWorld.WxPickupBase"
 }

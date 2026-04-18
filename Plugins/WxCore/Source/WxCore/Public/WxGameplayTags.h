@@ -159,6 +159,11 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_LockOn);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Interact);
 
+	// ── Item ──────────────────────────────────────────────────────────────
+	
+	/** 골드 재화 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Item_Currency_Gold);
+
 	// ── UI ────────────────────────────────────────────────────────────────
 
 	/** HUD 레이어 (플레이어 체력 바 등) */

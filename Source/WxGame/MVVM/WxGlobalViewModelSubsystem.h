@@ -9,6 +9,7 @@
 #include "WxGlobalViewModelSubsystem.generated.h"
 
 class UWxViewModel_AbilitySystem;
+class UWxViewModel_Inventory;
 class UMVVMViewModelBase;
 class UMVVMViewModelCollectionObject;
 
@@ -25,12 +26,14 @@ class WXGAME_API UWxGlobalViewModelSubsystem : public ULocalPlayerSubsystem
 public:
 	static FMVVMViewModelContext GetPlayerAbilitySystemContext();
 	static FMVVMViewModelContext GetBossAbilitySystemContext();
+	static FMVVMViewModelContext GetInventoryContext();
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
 	UWxViewModel_AbilitySystem* GetPlayerAbilitySystemViewModel() const;
 	UWxViewModel_AbilitySystem* GetBossAbilitySystemViewModel() const;
+	UWxViewModel_Inventory* GetInventoryViewModel() const;
 
 private:
 	UMVVMViewModelCollectionObject* GetGlobalCollection() const;
@@ -46,6 +49,9 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UWxViewModel_AbilitySystem> BossAbilitySystemViewModel;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UWxViewModel_Inventory> InventoryViewModel;
 };
 
 template <typename T>

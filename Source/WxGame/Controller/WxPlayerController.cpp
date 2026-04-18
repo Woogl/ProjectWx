@@ -5,6 +5,9 @@
 #include "MVVM/WxGlobalViewModelSubsystem.h"
 #include "MVVM/WxViewModel_AbilitySystem.h"
 #include "MVVM/WxViewModel_Ability.h"
+#include "Inventory/WxInventoryManagerComponent.h"
+#include "MVVM/WxViewModel_Inventory.h"
+#include "Player/WxPlayerState.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystemComponent.h"
 #include "Engine/Texture2D.h"
@@ -68,6 +71,26 @@ void AWxPlayerController::OnUnPossess()
 	Super::OnUnPossess();
 }
 
+void AWxPlayerController::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	if (IsLocalController())
+	{
+		InitializeInventoryViewModel();
+	}
+}
+
+void AWxPlayerController::InitPlayerState()
+{
+	Super::InitPlayerState();
+
+	if (IsLocalController())
+	{
+		InitializeInventoryViewModel();
+	}
+}
+
 void AWxPlayerController::OnRep_Pawn()
 {
 	Super::OnRep_Pawn();
@@ -91,6 +114,11 @@ void AWxPlayerController::OnRep_Pawn()
 
 void AWxPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (IsLocalController())
+	{
+		DeinitializeInventoryViewModel();
+	}
+
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -179,6 +207,58 @@ void AWxPlayerController::DeinitializePlayerAbilitySystemViewModel()
 	}
 
 	if (UWxViewModel_AbilitySystem* ViewModel = GlobalVMSubsystem->GetPlayerAbilitySystemViewModel())
+	{
+		ViewModel->Deinitialize();
+	}
+}
+
+void AWxPlayerController::InitializeInventoryViewModel()
+{
+	AWxPlayerState* WxPlayerState = GetPlayerState<AWxPlayerState>();
+	if (!WxPlayerState)
+	{
+		return;
+	}
+
+	UWxInventoryManagerComponent* Inventory = WxPlayerState->GetInventoryManager();
+	if (!Inventory)
+	{
+		return;
+	}
+
+	ULocalPlayer* LocalPlayer = GetLocalPlayer();
+	if (!LocalPlayer)
+	{
+		return;
+	}
+
+	UWxGlobalViewModelSubsystem* GlobalVMSubsystem = LocalPlayer->GetSubsystem<UWxGlobalViewModelSubsystem>();
+	if (!GlobalVMSubsystem)
+	{
+		return;
+	}
+
+	if (UWxViewModel_Inventory* ViewModel = GlobalVMSubsystem->GetInventoryViewModel())
+	{
+		ViewModel->Initialize(Inventory);
+	}
+}
+
+void AWxPlayerController::DeinitializeInventoryViewModel()
+{
+	ULocalPlayer* LocalPlayer = GetLocalPlayer();
+	if (!LocalPlayer)
+	{
+		return;
+	}
+
+	UWxGlobalViewModelSubsystem* GlobalVMSubsystem = LocalPlayer->GetSubsystem<UWxGlobalViewModelSubsystem>();
+	if (!GlobalVMSubsystem)
+	{
+		return;
+	}
+
+	if (UWxViewModel_Inventory* ViewModel = GlobalVMSubsystem->GetInventoryViewModel())
 	{
 		ViewModel->Deinitialize();
 	}

@@ -47,6 +47,8 @@ protected:
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnUnPossess() override;
 	virtual void OnRep_Pawn() override;
+	virtual void OnRep_PlayerState() override;
+	virtual void InitPlayerState() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
@@ -67,6 +69,9 @@ private:
 
 	void InitializePlayerAbilitySystemViewModel(UAbilitySystemComponent* ASC);
 	void DeinitializePlayerAbilitySystemViewModel();
+
+	void InitializeInventoryViewModel();
+	void DeinitializeInventoryViewModel();
 
 	UPROPERTY(Transient)
 	TObjectPtr<UWxActivatableWidget> GameHUD;

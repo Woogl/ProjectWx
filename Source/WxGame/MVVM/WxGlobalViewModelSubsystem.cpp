@@ -2,6 +2,7 @@
 
 #include "MVVM/WxGlobalViewModelSubsystem.h"
 #include "MVVM/WxViewModel_AbilitySystem.h"
+#include "MVVM/WxViewModel_Inventory.h"
 #include "MVVMGameSubsystem.h"
 #include "Engine/GameInstance.h"
 #include "Engine/LocalPlayer.h"
@@ -22,18 +23,28 @@ FMVVMViewModelContext UWxGlobalViewModelSubsystem::GetBossAbilitySystemContext()
 	return Context;
 }
 
+FMVVMViewModelContext UWxGlobalViewModelSubsystem::GetInventoryContext()
+{
+	FMVVMViewModelContext Context;
+	Context.ContextClass = UWxViewModel_Inventory::StaticClass();
+	Context.ContextName = FName(TEXT("VM_Inventory"));
+	return Context;
+}
+
 void UWxGlobalViewModelSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
 	PlayerAbilitySystemViewModel = RegisterGlobalViewModel<UWxViewModel_AbilitySystem>(GetPlayerAbilitySystemContext());
 	BossAbilitySystemViewModel = RegisterGlobalViewModel<UWxViewModel_AbilitySystem>(GetBossAbilitySystemContext());
+	InventoryViewModel = RegisterGlobalViewModel<UWxViewModel_Inventory>(GetInventoryContext());
 }
 
 void UWxGlobalViewModelSubsystem::Deinitialize()
 {
 	UnregisterGlobalViewModel(GetPlayerAbilitySystemContext(), PlayerAbilitySystemViewModel);
 	UnregisterGlobalViewModel(GetBossAbilitySystemContext(), BossAbilitySystemViewModel);
+	UnregisterGlobalViewModel(GetInventoryContext(), InventoryViewModel);
 
 	Super::Deinitialize();
 }
@@ -46,6 +57,11 @@ UWxViewModel_AbilitySystem* UWxGlobalViewModelSubsystem::GetPlayerAbilitySystemV
 UWxViewModel_AbilitySystem* UWxGlobalViewModelSubsystem::GetBossAbilitySystemViewModel() const
 {
 	return BossAbilitySystemViewModel;
+}
+
+UWxViewModel_Inventory* UWxGlobalViewModelSubsystem::GetInventoryViewModel() const
+{
+	return InventoryViewModel;
 }
 
 UMVVMViewModelCollectionObject* UWxGlobalViewModelSubsystem::GetGlobalCollection() const

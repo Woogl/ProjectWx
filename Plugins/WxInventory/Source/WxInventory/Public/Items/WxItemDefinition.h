@@ -61,8 +61,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Item")
 	EWxItemGrade Grade;
 
-	/** 한 슬롯에 쌓을 수 있는 최대 스택 수. 1이면 비스택 아이템. */
-	UPROPERTY(EditDefaultsOnly, Category = "Item", meta = (ClampMin = "1"))
+	/**
+	 * 한 슬롯에 쌓을 수 있는 최대 스택 수. 1이면 비스택 아이템.
+	 * 상한은 10억(1e9)으로 제한한다 — int32 합산 오버플로우 방지 및 HUD 9자리 표기 관행.
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Item", meta = (ClampMin = "1", ClampMax = "1000000000"))
 	int32 MaxCounts;
 
 	/**
