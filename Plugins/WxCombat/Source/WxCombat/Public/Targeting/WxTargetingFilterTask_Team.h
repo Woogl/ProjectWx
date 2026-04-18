@@ -4,14 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Tasks/TargetingFilterTask_BasicFilterTemplate.h"
-#include "WxTargetingFilterTask_TeamAttitude.generated.h"
+#include "WxTargetingFilterTask_Team.generated.h"
 
 /**
  * 팀(아군)을 기준으로 타겟 목록에서 제외하는 타겟팅 필터.
  * IGenericTeamAgentInterface를 구현한 액터에 대해 팀 태도를 비교하여 필터링한다.
  */
 UCLASS(Blueprintable)
-class WXCOMBAT_API UWxTargetingFilterTask_TeamAttitude : public UTargetingFilterTask_BasicFilterTemplate
+class WXCOMBAT_API UWxTargetingFilterTask_Team : public UTargetingFilterTask_BasicFilterTemplate
 {
 	GENERATED_BODY()
 

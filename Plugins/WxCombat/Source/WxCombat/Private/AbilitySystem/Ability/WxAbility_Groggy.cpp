@@ -49,12 +49,7 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	if (DrainSpecHandle.IsValid())
 	{
 		constexpr float GroggyDuration = 5.0f;
-		const UWxCombatAttributeSet* AttributeSet = ASC->GetSet<UWxCombatAttributeSet>();
-		const float MaxDP = AttributeSet ? AttributeSet->GetMaxDP() : 0.f;
-		const float PerTickDrain = -MaxDP * UWxEffect_DrainDP::DrainPeriod / GroggyDuration;
-
 		DrainSpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, GroggyDuration);
-		DrainSpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_DrainDP, PerTickDrain);
 		DrainDPEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, DrainSpecHandle);
 	}
 
