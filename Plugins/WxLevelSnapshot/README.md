@@ -96,7 +96,7 @@ JSON이라 **전체 프로젝트 레벨을 스캔**할 수 있습니다.
 | `bEnabled` | true | 전체 기능 on/off |
 | `FileExtension` | `.json` | 스냅샷 파일 확장자. 점을 포함해 입력 |
 | `OutputDirectory` | `Plugins/WxLevelSnapshot/Snapshots` | 스냅샷 저장 루트 폴더 |
-| `bCombineAllLevels` | true | true면 모든 레벨을 단일 `AllLevels.json` 파일로 합쳐 저장. false면 레벨별 별도 파일 |
+| `bSaveFilePerLevel` | false | false면 모든 레벨을 단일 `AllLevels.json` 파일로 합쳐 저장. true면 레벨별 별도 파일 |
 | `IncludeDirectories` | [] | 대상 레벨 폴더 (비어있으면 전체) |
 | `ExcludeDirectories` | [] | 제외 레벨 폴더 |
 | `bIncludeAllProperties` | false | 액터 내부 프로퍼티를 모두 재귀적으로 추출해 `properties` 필드에 기록 (컴포넌트·서브오브젝트·구조체·배열 포함). false면 class/fname/label/transform/attach만 기록 |
@@ -107,8 +107,8 @@ JSON이라 **전체 프로젝트 레벨을 스캔**할 수 있습니다.
 ## 출력
 
 - **경로**:
-  - `bCombineAllLevels=true` (기본): `<OutputDirectory>/AllLevels<FileExtension>` (모든 레벨이 단일 파일)
-  - `bCombineAllLevels=false`: `<OutputDirectory>/<레벨 패키지 경로><FileExtension>`
+  - `bSaveFilePerLevel=false` (기본): `<OutputDirectory>/AllLevels<FileExtension>` (모든 레벨이 단일 파일)
+  - `bSaveFilePerLevel=true`: `<OutputDirectory>/<레벨 패키지 경로><FileExtension>`
 - **포맷**: UTF-8 (no BOM), 키 알파벳 정렬, 들여쓰기 2-space pretty print
 - **ReadOnly 플래그**는 자동 해제 후 덮어쓰기 (Perforce 등에서 편의)
 - **삭제 동기화**:

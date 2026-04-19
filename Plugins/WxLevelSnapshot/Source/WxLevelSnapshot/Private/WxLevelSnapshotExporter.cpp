@@ -282,7 +282,7 @@ bool FWxLevelSnapshotExporter::ExportLevel(ULevel* Level)
 	const FString LevelPackageName = LevelPackage->GetName();
 	const UWxLevelSnapshotSettings* Settings = GetDefault<UWxLevelSnapshotSettings>();
 
-	if (Settings && Settings->bCombineAllLevels)
+	if (Settings && !Settings->bSaveFilePerLevel)
 	{
 		// 합쳐진 파일 로드 후 이 레벨의 기존 엔트리만 제거하고 최신 엔트리로 덮어쓴다.
 		TSharedPtr<FJsonObject> Root = LoadLevelJson(LevelPackageName);
@@ -372,7 +372,7 @@ bool FWxLevelSnapshotExporter::RemoveActorFromLevel(const FString& LevelPackageN
 	}
 
 	const UWxLevelSnapshotSettings* Settings = GetDefault<UWxLevelSnapshotSettings>();
-	const bool bCombined = Settings && Settings->bCombineAllLevels;
+	const bool bCombined = Settings && !Settings->bSaveFilePerLevel;
 
 	auto EntryBelongsToLevel = [&](const TSharedPtr<FJsonObject>& Entry) -> bool
 	{
@@ -456,7 +456,7 @@ bool FWxLevelSnapshotExporter::DeleteLevelSnapshot(const FString& LevelPackageNa
 	const UWxLevelSnapshotSettings* Settings = GetDefault<UWxLevelSnapshotSettings>();
 
 	// 합쳐진 모드: 파일에서 해당 레벨의 엔트리만 제거. 파일이 비면 삭제.
-	if (Settings && Settings->bCombineAllLevels)
+	if (Settings && !Settings->bSaveFilePerLevel)
 	{
 		TSharedPtr<FJsonObject> Root = LoadLevelJson(LevelPackageName);
 		if (!Root.IsValid())
@@ -613,7 +613,7 @@ FString FWxLevelSnapshotExporter::ResolveSnapshotPath(const FString& LevelPackag
 	}
 
 	// 합쳐진 모드: LevelPackageName과 무관하게 단일 파일 경로.
-	if (Settings->bCombineAllLevels)
+	if (!Settings->bSaveFilePerLevel)
 	{
 		return FPaths::Combine(RootDir, TEXT("AllLevels")) + Settings->FileExtension;
 	}
