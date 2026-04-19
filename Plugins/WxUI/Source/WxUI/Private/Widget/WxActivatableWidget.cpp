@@ -11,7 +11,7 @@ void UWxActivatableWidget::NativeOnActivated()
 	Super::NativeOnActivated();
 
 	const float EffectiveDilation = FMath::Max(TimeDilation, MinTimeDilation);
-	if (EffectiveDilation != 1.0f)
+	if (!FMath::IsNearlyEqual(EffectiveDilation, 1.0f))
 	{
 		UWorld* World = GetWorld();
 		if (World && World->IsNetMode(NM_Standalone))
@@ -25,7 +25,7 @@ void UWxActivatableWidget::NativeOnActivated()
 void UWxActivatableWidget::NativeOnDeactivated()
 {
 	const float EffectiveDilation = FMath::Max(TimeDilation, MinTimeDilation);
-	if (EffectiveDilation != 1.0f)
+	if (!FMath::IsNearlyEqual(EffectiveDilation, 1.0f))
 	{
 		UWorld* World = GetWorld();
 		if (World && World->IsNetMode(NM_Standalone))

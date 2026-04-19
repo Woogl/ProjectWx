@@ -12,6 +12,7 @@
 		},
 		"DefaultWeaponItem": "/Game/Item/DA_Katana.DA_Katana",
 		"GameHUDClass": "/Game/UI/Widget/WBP_GameHUD.WBP_GameHUD_C",
+		"InputConfig": "/Game/Input/DA_ChracterInputConfig.DA_ChracterInputConfig",
 		"Mesh":
 		{
 			"class": "/Script/Engine.SkeletalMeshComponent",

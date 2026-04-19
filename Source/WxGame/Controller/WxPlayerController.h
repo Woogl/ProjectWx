@@ -8,42 +8,23 @@
 #include "WxPlayerController.generated.h"
 
 class AWxPlayerCharacter;
-class UInputMappingContext;
-class UInputAction;
 class UAbilitySystemComponent;
 class UWxActivatableWidget;
-
-/** Enhanced Input Action과 Gameplay Tag를 매핑하는 단일 항목 */
-USTRUCT(BlueprintType)
-struct FWxInputAbilityBinding
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<const UInputAction> InputAction = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (Categories = "Input"))
-	FGameplayTag InputTag;
-};
+class UWxControllerInputConfig;
 
 /**
  * 플레이어 컨트롤러.
- * 입력 관련 데이터(MappingContext, InputAction, InputConfig)를 소유.
- * 현재 빙의 중인 캐릭터의 Health ViewModel을 Global Collection에 등록/관리.
+ * 플레이어 단위 입력(UI 토글)을 소유. 입력 구성은 UWxControllerInputConfig DA에서 주입.
+ * 게임플레이 입력(이동/시선/어빌리티)은 AWxPlayerCharacter가 소유.
  */
 UCLASS()
 class WXGAME_API AWxPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 
-public:
-	UInputMappingContext* GetDefaultMappingContext() const;
-	const UInputAction* GetMoveAction() const;
-	const UInputAction* GetLookAction() const;
-	const TArray<FWxInputAbilityBinding>& GetAbilityInputBindings() const;
-
 protected:
 	virtual void BeginPlay() override;
+	virtual void SetupInputComponent() override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnUnPossess() override;
 	virtual void OnRep_Pawn() override;
@@ -51,18 +32,9 @@ protected:
 	virtual void InitPlayerState() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+	/** 컨트롤러 입력 설정 (IMC + 메뉴 바인딩) */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
-	TObjectPtr<UInputMappingContext> DefaultMappingContext;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
-	TObjectPtr<UInputAction> MoveAction;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
-	TObjectPtr<UInputAction> LookAction;
-
-	/** 어빌리티 입력 바인딩 설정. InputAction → InputTag 매핑 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
-	TArray<FWxInputAbilityBinding> AbilityInputBindings;
+	TObjectPtr<UWxControllerInputConfig> InputConfig;
 
 private:
 	void PushGameHUD(AWxPlayerCharacter* PlayerCharacter);
@@ -72,6 +44,8 @@ private:
 
 	void InitializeInventoryViewModel();
 	void DeinitializeInventoryViewModel();
+
+	void HandleMenuInputTriggered(FGameplayTag LayerTag, TSoftClassPtr<UWxActivatableWidget> WidgetClass);
 
 	UPROPERTY(Transient)
 	TObjectPtr<UWxActivatableWidget> GameHUD;

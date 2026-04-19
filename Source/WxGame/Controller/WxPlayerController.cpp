@@ -10,35 +10,62 @@
 #include "Player/WxPlayerState.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystemComponent.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "Engine/LocalPlayer.h"
 #include "Engine/Texture2D.h"
+#include "Input/WxControllerInputConfig.h"
 #include "Widget/WxActivatableWidget.h"
 #include "System/WxUIManagerSubsystem.h"
 #include "WxGameplayTags.h"
 #include "Character/WxPlayerCharacter.h"
 
-UInputMappingContext* AWxPlayerController::GetDefaultMappingContext() const
-{
-	return DefaultMappingContext;
-}
-
-const UInputAction* AWxPlayerController::GetMoveAction() const
-{
-	return MoveAction;
-}
-
-const UInputAction* AWxPlayerController::GetLookAction() const
-{
-	return LookAction;
-}
-
-const TArray<FWxInputAbilityBinding>& AWxPlayerController::GetAbilityInputBindings() const
-{
-	return AbilityInputBindings;
-}
-
 void AWxPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (!IsLocalController() || !InputConfig || !InputConfig->MappingContext)
+	{
+		return;
+	}
+
+	ULocalPlayer* LocalPlayer = GetLocalPlayer();
+	if (!LocalPlayer)
+	{
+		return;
+	}
+
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer))
+	{
+		Subsystem->AddMappingContext(InputConfig->MappingContext, 0);
+	}
+}
+
+void AWxPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	if (!InputConfig)
+	{
+		return;
+	}
+
+	UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(InputComponent);
+	if (!EIC)
+	{
+		return;
+	}
+
+	for (const FWxMenuInputBinding& Binding : InputConfig->MenuInputBindings)
+	{
+		if (!Binding.InputAction || Binding.WidgetClass.IsNull() || !Binding.LayerTag.IsValid())
+		{
+			continue;
+		}
+
+		EIC->BindAction(Binding.InputAction, ETriggerEvent::Triggered, this,
+			&ThisClass::HandleMenuInputTriggered, Binding.LayerTag, Binding.WidgetClass);
+	}
 }
 
 void AWxPlayerController::OnPossess(APawn* InPawn)
@@ -262,4 +289,27 @@ void AWxPlayerController::DeinitializeInventoryViewModel()
 	{
 		ViewModel->Deinitialize();
 	}
+}
+
+void AWxPlayerController::HandleMenuInputTriggered(FGameplayTag LayerTag, TSoftClassPtr<UWxActivatableWidget> WidgetClass)
+{
+	UGameInstance* GameInst = GetGameInstance();
+	if (!GameInst)
+	{
+		return;
+	}
+
+	UWxUIManagerSubsystem* UIManager = GameInst->GetSubsystem<UWxUIManagerSubsystem>();
+	if (!UIManager)
+	{
+		return;
+	}
+
+	TSubclassOf<UWxActivatableWidget> ResolvedClass = WidgetClass.LoadSynchronous();
+	if (!ResolvedClass)
+	{
+		return;
+	}
+
+	UIManager->PushContentToLayer(LayerTag, ResolvedClass);
 }

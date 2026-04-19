@@ -1,0 +1,17 @@
+{
+	"blueprintPath": "/Game/UI/BP_WxUIInputData.BP_WxUIInputData",
+	"classDefaults":
+	{
+		"DefaultBackAction":
+		{
+			"DataTable": "/Game/UI/DT_CommonInputActions.DT_CommonInputActions",
+			"RowName": "DefaultBack"
+		},
+		"DefaultClickAction":
+		{
+			"DataTable": "/Game/UI/DT_CommonInputActions.DT_CommonInputActions",
+			"RowName": "DefaultClick"
+		}
+	},
+	"parentClass": "/Script/CommonInput.CommonUIInputData"
+}

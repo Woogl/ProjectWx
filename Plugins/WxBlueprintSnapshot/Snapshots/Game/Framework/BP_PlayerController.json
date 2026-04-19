@@ -1,0 +1,8 @@
+{
+	"blueprintPath": "/Game/Framework/BP_PlayerController.BP_PlayerController",
+	"classDefaults":
+	{
+		"InputConfig": "/Game/Input/DA_ControllerInputConfig.DA_ControllerInputConfig"
+	},
+	"parentClass": "/Script/WxGame.WxPlayerController"
+}

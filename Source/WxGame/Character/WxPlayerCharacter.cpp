@@ -1,13 +1,13 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Character/WxPlayerCharacter.h"
-#include "Controller/WxPlayerController.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "Input/WxCharacterInputConfig.h"
 #include "WxGameplayTags.h"
 
 AWxPlayerCharacter::AWxPlayerCharacter()
@@ -40,33 +40,38 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	const AWxPlayerController* WxPC = Cast<AWxPlayerController>(GetController());
-	if (!WxPC)
+	if (!InputConfig)
 	{
 		return;
 	}
 
-	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(WxPC->GetLocalPlayer()))
+	APlayerController* PC = GetController<APlayerController>();
+	if (!PC)
 	{
-		if (UInputMappingContext* MappingContext = WxPC->GetDefaultMappingContext())
+		return;
+	}
+
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+	{
+		if (InputConfig->MappingContext)
 		{
-			Subsystem->AddMappingContext(MappingContext, 0);
+			Subsystem->AddMappingContext(InputConfig->MappingContext, 1);
 		}
 	}
 
 	UEnhancedInputComponent* EIC = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 
-	if (const UInputAction* MoveAction = WxPC->GetMoveAction())
+	if (InputConfig->MoveAction)
 	{
-		EIC->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AWxPlayerCharacter::Move);
+		EIC->BindAction(InputConfig->MoveAction, ETriggerEvent::Triggered, this, &AWxPlayerCharacter::Move);
 	}
-	if (const UInputAction* LookAction = WxPC->GetLookAction())
+	if (InputConfig->LookAction)
 	{
-		EIC->BindAction(LookAction, ETriggerEvent::Triggered, this, &AWxPlayerCharacter::Look);
+		EIC->BindAction(InputConfig->LookAction, ETriggerEvent::Triggered, this, &AWxPlayerCharacter::Look);
 	}
 
 	// 어빌리티 입력 바인딩: 각 매핑에 대해 Press/Release 바인딩
-	for (const FWxInputAbilityBinding& Binding : WxPC->GetAbilityInputBindings())
+	for (const FWxInputAbilityBinding& Binding : InputConfig->AbilityInputBindings)
 	{
 		if (Binding.InputAction && Binding.InputTag.IsValid())
 		{

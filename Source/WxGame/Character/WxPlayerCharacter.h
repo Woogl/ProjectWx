@@ -9,13 +9,14 @@
 class UWxActivatableWidget;
 class USpringArmComponent;
 class UCameraComponent;
+class UWxCharacterInputConfig;
 struct FInputActionValue;
 
 /**
  * 플레이어 캐릭터.
  * - SpringArm + Camera (3인칭 뷰)
  * - PossessedBy에서 ASC InitAbilityActorInfo 호출
- * - 입력 데이터는 WxPlayerController에서 관리
+ * - 게임플레이 입력(이동/시선/어빌리티) 소유. 입력 구성은 UWxCharacterInputConfig DA에서 주입.
  */
 UCLASS()
 class WXGAME_API AWxPlayerCharacter : public AWxCharacterBase
@@ -26,7 +27,7 @@ public:
 	AWxPlayerCharacter();
 
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-	
+
 	TSubclassOf<UWxActivatableWidget> GetGameHUDClass() const;
 
 protected:
@@ -46,4 +47,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|UI")
 	TSubclassOf<UWxActivatableWidget> GameHUDClass;
+
+	/** 캐릭터 입력 설정 (IMC + Move/Look + 어빌리티 바인딩) */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
+	TObjectPtr<UWxCharacterInputConfig> InputConfig;
 };
