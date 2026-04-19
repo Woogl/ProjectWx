@@ -149,7 +149,14 @@ TSharedRef<FJsonObject> FWxBlueprintSnapshotExporter::BuildSnapshot(UBlueprint* 
 		UObject* ParentCDO = Blueprint->ParentClass->GetDefaultObject(false);
 		if (InstanceCDO && ParentCDO)
 		{
-			SetObjectFieldIfNonEmpty(*Root, TEXT("classDefaults"), BuildClassDefaults(InstanceCDO, ParentCDO));
+			// NewVariables는 별도 `variables` 필드에 기록되므로 classDefaults 델타에서 중복 제외.
+			TSet<FName> NewVariableNames;
+			NewVariableNames.Reserve(Blueprint->NewVariables.Num());
+			for (const FBPVariableDescription& Var : Blueprint->NewVariables)
+			{
+				NewVariableNames.Add(Var.VarName);
+			}
+			SetObjectFieldIfNonEmpty(*Root, TEXT("classDefaults"), BuildClassDefaults(InstanceCDO, ParentCDO, NewVariableNames));
 		}
 	}
 
@@ -333,16 +340,10 @@ FString FWxBlueprintSnapshotExporter::ResolveLatestPath(UBlueprint* Blueprint)
 		return FString();
 	}
 
-	// Plugin BaseDir는 런타임 내내 불변 — 첫 호출 시 한 번만 조회해 캐시.
-	static FString CachedPluginBaseDir;
-	if (CachedPluginBaseDir.IsEmpty())
+	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("WxBlueprintSnapshot"));
+	if (!Plugin.IsValid())
 	{
-		TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("WxBlueprintSnapshot"));
-		if (!Plugin.IsValid())
-		{
-			return FString();
-		}
-		CachedPluginBaseDir = Plugin->GetBaseDir();
+		return FString();
 	}
 
 	// /Game/UI/Widget/WBP_Ability -> Game/UI/Widget/WBP_Ability{Ext}
@@ -352,5 +353,5 @@ FString FWxBlueprintSnapshotExporter::ResolveLatestPath(UBlueprint* Blueprint)
 		PackagePath.RemoveAt(0);
 	}
 
-	return FPaths::Combine(CachedPluginBaseDir, TEXT("Snapshots"), PackagePath) + GetDefault<UWxBlueprintSnapshotSettings>()->FileExtension;
+	return FPaths::Combine(Plugin->GetBaseDir(), TEXT("Snapshots"), PackagePath) + GetDefault<UWxBlueprintSnapshotSettings>()->FileExtension;
 }

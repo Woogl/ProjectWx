@@ -22,10 +22,11 @@ class FJsonObject;
 class FWxBlueprintSnapshotExporter
 {
 public:
-	/** Blueprint를 스냅샷 JSON으로 추출해 설정된 경로에 기록한다. 변경 없으면 skip하고 false 반환 */
+	/** Blueprint를 스냅샷 JSON으로 추출해 설정된 경로에 기록한다. 실패 시 false 반환 */
 	static bool ExportBlueprint(UBlueprint* Blueprint);
 
-	static TSharedPtr<FJsonObject> BuildClassDefaults(const UObject* Instance, const UObject* Defaults);
+	/** ExcludedPropertyNames에 포함된 top-level 프로퍼티는 건너뛴다 (BP NewVariables 중복 제거용). 재귀 subobject에는 적용되지 않는다. */
+	static TSharedPtr<FJsonObject> BuildClassDefaults(const UObject* Instance, const UObject* Defaults, const TSet<FName>& ExcludedPropertyNames = TSet<FName>());
 
 private:
 	static TSharedRef<FJsonObject> BuildSnapshot(UBlueprint* Blueprint, const UWxBlueprintSnapshotSettings& Settings);

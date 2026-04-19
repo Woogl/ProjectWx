@@ -36,6 +36,10 @@ namespace
 	{
 		const UObject* Owner = nullptr;
 		TSet<const UObject*> InstanceVisited;
+		// BP NewVariables 같이 다른 필드에 기록되는 프로퍼티를 top-level에서만 제외.
+		// 재귀 subobject에서는 무관한 이름 충돌을 막기 위해 ClassDepth==1 일 때만 적용한다.
+		TSet<FName> ExcludedPropertyNames;
+		int32 ClassDepth = 0;
 	};
 
 	TSharedPtr<FJsonValue> PropertyValueToJson(const FProperty* Property, const void* ValuePtr, const void* DefaultPtr, FExportCtx& Ctx);
@@ -250,6 +254,7 @@ namespace
 
 		// 진입한 인스턴스를 PPF용 Owner로 임시 사용. 스코프 종료 시 이전 값으로 복귀.
 		TGuardValue<const UObject*> OwnerGuard(Ctx.Owner, Instance);
+		TGuardValue<int32> DepthGuard(Ctx.ClassDepth, Ctx.ClassDepth + 1);
 
 		TSharedPtr<FJsonObject> Delta = MakeShared<FJsonObject>();
 		const UClass* InstanceClass = Instance->GetClass();
@@ -262,6 +267,10 @@ namespace
 				continue;
 			}
 			if (!Property->HasAnyPropertyFlags(CPF_Edit | CPF_BlueprintVisible | CPF_BlueprintAssignable))
+			{
+				continue;
+			}
+			if (Ctx.ClassDepth == 1 && Ctx.ExcludedPropertyNames.Contains(Property->GetFName()))
 			{
 				continue;
 			}
@@ -296,8 +305,9 @@ namespace
 	}
 }
 
-TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildClassDefaults(const UObject* Instance, const UObject* Defaults)
+TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildClassDefaults(const UObject* Instance, const UObject* Defaults, const TSet<FName>& ExcludedPropertyNames)
 {
 	FExportCtx Ctx;
+	Ctx.ExcludedPropertyNames = ExcludedPropertyNames;
 	return BuildClassDefaultsImpl(Instance, Defaults, Ctx);
 }
