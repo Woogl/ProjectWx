@@ -186,7 +186,10 @@ namespace
 				return MakeShared<FJsonValueObject>(Obj);
 			}
 
-			TArray<TSharedPtr<FJsonValue>> Arr;
+			// FScriptMapHelper 순회 순서는 sparse array 내부 상태에 따라 실행마다 달라질 수 있어
+			// diff 노이즈가 발생한다. key의 ExportText 문자열로 안정 정렬.
+			TArray<TPair<FString, TSharedPtr<FJsonValue>>> Pairs;
+			Pairs.Reserve(Helper.Num());
 			for (int32 i = 0; i < Helper.GetMaxIndex(); ++i)
 			{
 				if (!Helper.IsValidIndex(i))
@@ -196,7 +199,21 @@ namespace
 				TSharedPtr<FJsonObject> Entry = MakeShared<FJsonObject>();
 				Entry->SetField(TEXT("key"), PropertyValueToJson(KeyProp, Helper.GetKeyPtr(i), Ctx));
 				Entry->SetField(TEXT("value"), PropertyValueToJson(MapProp->ValueProp, Helper.GetValuePtr(i), Ctx));
-				Arr.Add(MakeShared<FJsonValueObject>(Entry));
+
+				FString SortKey;
+				KeyProp->ExportText_Direct(SortKey, Helper.GetKeyPtr(i), nullptr, const_cast<UObject*>(Ctx.Owner), PPF_SimpleObjectText);
+				Pairs.Emplace(MoveTemp(SortKey), MakeShared<FJsonValueObject>(Entry));
+			}
+			Pairs.Sort([](const TPair<FString, TSharedPtr<FJsonValue>>& A, const TPair<FString, TSharedPtr<FJsonValue>>& B)
+			{
+				return A.Key < B.Key;
+			});
+
+			TArray<TSharedPtr<FJsonValue>> Arr;
+			Arr.Reserve(Pairs.Num());
+			for (TPair<FString, TSharedPtr<FJsonValue>>& Pair : Pairs)
+			{
+				Arr.Add(MoveTemp(Pair.Value));
 			}
 			return MakeShared<FJsonValueArray>(Arr);
 		}
