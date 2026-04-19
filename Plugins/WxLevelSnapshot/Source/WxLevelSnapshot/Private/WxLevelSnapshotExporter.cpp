@@ -171,6 +171,9 @@ TSharedPtr<FJsonObject> FWxLevelSnapshotExporter::BuildActorJson(AActor* Actor)
 		Root->SetStringField(TEXT("guid"), ActorGuid.ToString(EGuidFormats::DigitsWithHyphens));
 	}
 
+	// DataTable의 TSoftObjectPtr<AActor>에 바로 import 가능한 soft path.
+	Root->SetStringField(TEXT("actorReference"), Actor->GetPathName());
+
 	// Transform: 루트 컴포넌트 기준. 없으면 스킵.
 	if (USceneComponent* RootComp = Actor->GetRootComponent())
 	{

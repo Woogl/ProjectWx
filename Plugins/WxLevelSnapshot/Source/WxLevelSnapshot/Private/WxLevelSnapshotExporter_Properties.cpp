@@ -1,7 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "WxLevelSnapshotExporter.h"
-#include "WxLevelSnapshotSettings.h"
 #include "UObject/UnrealType.h"
 #include "UObject/Class.h"
 #include "UObject/TextProperty.h"

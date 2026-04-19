@@ -50,6 +50,7 @@ JSON이라 **전체 프로젝트 레벨을 스캔**할 수 있습니다.
 | 레벨 패키지 경로 (`level`) | ✅ 액터가 속한 레벨 |
 | 액터 라벨 (`label`) | ✅ FName과 다를 때만 |
 | 액터 GUID (`guid`) | ✅ 있을 때 (WP 삭제 매칭에 사용) |
+| 액터 Soft Path (`actorReference`) | ✅ DataTable의 `TSoftObjectPtr<AActor>`에 바로 import 가능 |
 | Transform (`location`/`rotation`/`scale`) | ✅ 루트 컴포넌트가 있을 때 |
 | 전체 프로퍼티 (`properties`) | ✅ `bIncludeAllProperties=true` 시 멤버 변수·컴포넌트·struct/배열/맵까지 재귀 |
 
@@ -134,6 +135,7 @@ JSON이라 **전체 프로젝트 레벨을 스캔**할 수 있습니다.
 | `level` | string | 액터가 속한 레벨 패키지 경로 |
 | `label` | string | FName과 다를 때만 |
 | `guid` | string | `AActor::GetActorGuid()`가 valid일 때 (WP 삭제 이벤트 매칭용) |
+| `actorReference` | string | 항상. `Actor->GetPathName()` — DataTable의 `TSoftObjectPtr<AActor>` 컬럼에 import 가능 |
 | `transform.location` | object `{x,y,z}` | 루트 컴포넌트가 있을 때 |
 | `transform.rotation` | object `{pitch,yaw,roll}` | 루트 컴포넌트가 있을 때 |
 | `transform.scale` | object `{x,y,z}` | 루트 컴포넌트가 있을 때 |
