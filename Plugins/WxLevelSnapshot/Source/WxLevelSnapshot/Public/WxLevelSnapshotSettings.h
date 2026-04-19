@@ -48,16 +48,16 @@ public:
 
 	/**
 	 * 액터 내부 프로퍼티를 모두 재귀적으로 추출해 `properties` 필드에 기록할지 여부.
-	 * false면 class/fname/label/transform/attach만 기록. true면 컴포넌트·서브오브젝트·구조체·배열까지 전부 덤프.
+	 * false면 식별·위치 정보(class/level/guid/actorReference/transform)만 기록.
+	 * true면 컴포넌트·서브오브젝트·구조체·배열·맵까지 전부 덤프.
 	 */
 	UPROPERTY(EditAnywhere, Config, Category = "Scope")
 	bool bIncludeAllProperties = false;
 
 	/**
-	 * 클래스별 키 프로퍼티.
-	 * 지정된 액터 클래스의 인스턴스는 FName 대신 해당 프로퍼티 값을 JSON 키로 사용한다.
-	 * 프로퍼티를 찾지 못하거나 값이 비어있으면 FName으로 폴백.
+	 * 클래스별 키 프로퍼티. 매칭된 클래스의 프로퍼티 값이 JSON 키가 된다.
 	 * 클래스 체인을 따라 가장 구체적인 매칭이 우선.
+	 * 매칭 규칙이 없거나, 값이 None/빈 문자열이거나, 프로퍼티 추출 실패 시 해당 액터는 스냅샷에서 제외된다.
 	 */
 	UPROPERTY(EditAnywhere, Config, Category = "Key")
 	TMap<TSoftClassPtr<AActor>, FName> KeyProperties;

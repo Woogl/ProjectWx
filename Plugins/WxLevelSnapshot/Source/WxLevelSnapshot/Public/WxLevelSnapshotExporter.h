@@ -35,7 +35,7 @@ public:
 	/** UObject의 edit/visible 프로퍼티를 재귀적으로 JSON 오브젝트로 추출한다. 인스턴스드 서브오브젝트는 `{class, properties}` 블록으로 중첩. */
 	static TSharedPtr<FJsonObject> BuildProperties(const UObject* Instance);
 
-	/** 단일 AActor를 JSON 오브젝트로 변환 (class, actorLabel, transform, attach, delta 등). */
+	/** 단일 AActor를 JSON 오브젝트로 변환 (class, level, guid, actorReference, transform, properties). */
 	static TSharedPtr<FJsonObject> BuildActorJson(AActor* Actor);
 
 	/**

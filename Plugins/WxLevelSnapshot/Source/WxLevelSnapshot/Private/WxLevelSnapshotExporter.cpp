@@ -158,13 +158,6 @@ TSharedPtr<FJsonObject> FWxLevelSnapshotExporter::BuildActorJson(AActor* Actor)
 		}
 	}
 
-	const FString FNameStr = Actor->GetFName().ToString();
-	const FString Label = Actor->GetActorLabel();
-	if (!Label.IsEmpty() && Label != FNameStr)
-	{
-		Root->SetStringField(TEXT("label"), Label);
-	}
-
 	const FGuid ActorGuid = Actor->GetActorGuid();
 	if (ActorGuid.IsValid())
 	{

@@ -48,7 +48,6 @@ JSON이라 **전체 프로젝트 레벨을 스캔**할 수 있습니다.
 |---|---|
 | 클래스 경로 (`class`) | ✅ |
 | 레벨 패키지 경로 (`level`) | ✅ 액터가 속한 레벨 |
-| 액터 라벨 (`label`) | ✅ FName과 다를 때만 |
 | 액터 GUID (`guid`) | ✅ 있을 때 (WP 삭제 매칭에 사용) |
 | 액터 Soft Path (`actorReference`) | ✅ DataTable의 `TSoftObjectPtr<AActor>`에 바로 import 가능 |
 | Transform (`location`/`rotation`/`scale`) | ✅ 루트 컴포넌트가 있을 때 |
@@ -101,7 +100,7 @@ JSON이라 **전체 프로젝트 레벨을 스캔**할 수 있습니다.
 | `IncludeDirectories` | [] | 대상 레벨 폴더 (비어있으면 전체) |
 | `ExcludeDirectories` | [] | 제외 레벨 폴더 |
 | `bIncludeAllProperties` | false | 액터 내부 프로퍼티를 모두 재귀적으로 추출해 `properties` 필드에 기록 (컴포넌트·서브오브젝트·구조체·배열 포함). false면 class/fname/label/transform/attach만 기록 |
-| `KeyProperties` | `{ AActor: ActorGuid }` | 클래스별 키 프로퍼티 매핑. 등록된 클래스(및 하위)만 스냅샷되며 해당 프로퍼티 값이 JSON 키가 됨. 기본 엔트리로 `AActor → ActorGuid`가 있어 모든 액터가 GUID 키로 덤프됨. 특정 하위 클래스에 다른 프로퍼티를 지정하면 그 클래스의 인스턴스는 해당 값을 키로 사용. 매칭 규칙이 없거나 프로퍼티 추출에 실패한 액터는 스냅샷에서 제외 |
+| `KeyProperties` | `{ AActor: ActorGuid }` | 클래스별 키 프로퍼티 매핑. 등록된 클래스(및 하위)만 스냅샷되며 해당 프로퍼티 값이 JSON 키가 됨. 특정 하위 클래스에 다른 프로퍼티를 지정하면 그 클래스의 인스턴스는 해당 값을 키로 사용. 매칭 규칙이 없거나 프로퍼티 추출에 실패한 액터는 스냅샷에서 제외 |
 
 ---
 
@@ -133,7 +132,6 @@ JSON이라 **전체 프로젝트 레벨을 스캔**할 수 있습니다.
 |---|---|---|
 | `class` | string | 항상 |
 | `level` | string | 액터가 속한 레벨 패키지 경로 |
-| `label` | string | FName과 다를 때만 |
 | `guid` | string | `AActor::GetActorGuid()`가 valid일 때 (WP 삭제 이벤트 매칭용) |
 | `actorReference` | string | 항상. `Actor->GetPathName()` — DataTable의 `TSoftObjectPtr<AActor>` 컬럼에 import 가능 |
 | `transform.location` | object `{x,y,z}` | 루트 컴포넌트가 있을 때 |
