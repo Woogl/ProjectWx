@@ -104,7 +104,7 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 | 항목 | 지원 |
 |---|---|
 | 부모 클래스 | ✅ |
-| 변수 목록 + 타입 + 기본값 | ✅ `variables` 필드에만 기록 (중복 방지 위해 `classDefaults` 델타에서는 제외) |
+| 변수 목록 + 타입 + 기본값 | ✅ `newVariables` 필드에만 기록 (중복 방지 위해 `classDefaults` 델타에서는 제외) |
 | 구현 인터페이스 목록 | ✅ |
 
 ---
@@ -144,6 +144,7 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 | `bEnabled` | true | 전체 기능 on/off |
 | `IncludeDirectories` | [] | 대상 BP 폴더 (비어있으면 전체) |
 | `ExcludeDirectories` | [] | 제외 BP 폴더 |
+| `bIncludeUnchangedDefaults` | false | 기본값과 동일한 프로퍼티도 classDefaults/컴포넌트/위젯 delta에 기록 |
 | `bIncludeComponents` | true | Components 탭 추출 |
 | `bIncludeVariables` | true | 변수 목록 추출 |
 | `bIncludeInterfaces` | true | 구현 인터페이스 추출 |

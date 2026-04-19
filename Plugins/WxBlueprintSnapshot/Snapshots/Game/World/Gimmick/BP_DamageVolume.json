@@ -70,13 +70,13 @@
 			"  AbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor=On Component Begin Overlap (BoxCollision).OtherActor).BP_ApplyGameplayEffectSpecToTarget(SpecHandle=AbilitySystemBlueprintLibrary::AddAssetTag(SpecHandle=AbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle=AbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor=On Component Begin Overlap (BoxCollision).OtherActor).MakeOutgoingSpec(GameplayEffectClass=DamageEffect), DataTag=(TagName=\"SetByCaller.Coeff.ATK\"), Magnitude=1.000000), NewGameplayTag=(TagName=\"Event.HitReact.Normal\")), Target=AbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor=On Component Begin Overlap (BoxCollision).OtherActor))"
 		]
 	},
-	"parentClass": "/Script/Engine.Actor",
-	"variables":
+	"newVariables":
 	{
 		"DamageEffect":
 		{
 			"type": "GameplayEffect",
 			"value": ""
 		}
-	}
+	},
+	"parentClass": "/Script/Engine.Actor"
 }

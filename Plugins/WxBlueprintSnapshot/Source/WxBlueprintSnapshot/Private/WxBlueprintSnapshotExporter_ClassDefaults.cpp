@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "WxBlueprintSnapshotExporter.h"
+#include "WxBlueprintSnapshotSettings.h"
 #include "UObject/UnrealType.h"
 #include "UObject/Class.h"
 #include "UObject/TextProperty.h"
@@ -40,6 +41,8 @@ namespace
 		// 재귀 subobject에서는 무관한 이름 충돌을 막기 위해 ClassDepth==1 일 때만 적용한다.
 		TSet<FName> ExcludedPropertyNames;
 		int32 ClassDepth = 0;
+		// true면 기본값과 동일한 프로퍼티도 기록한다 (설정에서 지정).
+		bool bIncludeUnchangedDefaults = false;
 	};
 
 	TSharedPtr<FJsonValue> PropertyValueToJson(const FProperty* Property, const void* ValuePtr, const void* DefaultPtr, FExportCtx& Ctx);
@@ -66,7 +69,7 @@ namespace
 			const void* InnerPtr = Inner->ContainerPtrToValuePtr<void>(StructPtr);
 			const void* InnerDefaultPtr = DefaultStructPtr ? Inner->ContainerPtrToValuePtr<void>(DefaultStructPtr) : nullptr;
 
-			if (InnerDefaultPtr && Inner->Identical(InnerPtr, InnerDefaultPtr, PPF_DeepComparison | PPF_DeepCompareInstances))
+			if (!Ctx.bIncludeUnchangedDefaults && InnerDefaultPtr && Inner->Identical(InnerPtr, InnerDefaultPtr, PPF_DeepComparison | PPF_DeepCompareInstances))
 			{
 				continue;
 			}
@@ -281,14 +284,14 @@ namespace
 				? Property->ContainerPtrToValuePtr<void>(Defaults)
 				: nullptr;
 
-			if (DefaultPtr && Property->Identical(InstancePtr, DefaultPtr, PPF_DeepComparison | PPF_DeepCompareInstances))
+			if (!Ctx.bIncludeUnchangedDefaults && DefaultPtr && Property->Identical(InstancePtr, DefaultPtr, PPF_DeepComparison | PPF_DeepCompareInstances))
 			{
 				continue;
 			}
 
 			// Identical()은 instanced 서브오브젝트를 포인터 비교로 다르다고 판정할 수 있어
 			// ExportText 텍스트 비교를 한 번 더 해서 false-positive를 거른다.
-			if (DefaultPtr)
+			if (!Ctx.bIncludeUnchangedDefaults && DefaultPtr)
 			{
 				const FString InstanceText = ExportPropertyValue(Property, InstancePtr, Instance);
 				const FString DefaultText = ExportPropertyValue(Property, DefaultPtr, Defaults);
@@ -309,5 +312,9 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildClassDefaults(const U
 {
 	FExportCtx Ctx;
 	Ctx.ExcludedPropertyNames = ExcludedPropertyNames;
+	if (const UWxBlueprintSnapshotSettings* Settings = GetDefault<UWxBlueprintSnapshotSettings>())
+	{
+		Ctx.bIncludeUnchangedDefaults = Settings->bIncludeUnchangedDefaults;
+	}
 	return BuildClassDefaultsImpl(Instance, Defaults, Ctx);
 }

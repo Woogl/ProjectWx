@@ -170,7 +170,7 @@ TSharedRef<FJsonObject> FWxBlueprintSnapshotExporter::BuildSnapshot(UBlueprint* 
 
 	if (Settings.bIncludeVariables)
 	{
-		SetObjectFieldIfNonEmpty(*Root, TEXT("variables"), BuildVariablesJson(Blueprint));
+		SetObjectFieldIfNonEmpty(*Root, TEXT("newVariables"), BuildVariablesJson(Blueprint));
 	}
 
 	if (Settings.bIncludeInterfaces)
