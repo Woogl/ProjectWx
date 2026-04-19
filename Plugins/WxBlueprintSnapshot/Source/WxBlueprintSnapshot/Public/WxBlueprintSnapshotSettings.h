@@ -24,11 +24,11 @@ public:
 	bool bEnabled = true;
 
 	/** 스냅샷 파일 확장자. 점을 포함해 입력 (예: .json, .bpj) */
-	UPROPERTY(EditAnywhere, Config, Category = "General")
+	UPROPERTY(EditAnywhere, Config, Category = "Output")
 	FString FileExtension = TEXT(".json");
 
 	/** 스냅샷을 저장할 폴더 */
-	UPROPERTY(EditAnywhere, Config, Category = "General")
+	UPROPERTY(EditAnywhere, Config, Category = "Output")
 	FDirectoryPath OutputDirectory;
 
 	/** 대상 BP 폴더. 비어있으면 모든 BP가 대상 */
