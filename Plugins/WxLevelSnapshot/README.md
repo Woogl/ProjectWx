@@ -97,7 +97,7 @@ JSON이라 전체 프로젝트 레벨을 스캔할 수 있습니다.
 | `bEnabled` | true | 전체 기능 on/off |
 | `FileExtension` | `.json` | 스냅샷 파일 확장자. 점을 포함해 입력 |
 | `OutputDirectory` | `Plugins/WxLevelSnapshot/Snapshots` | 스냅샷 저장 루트 폴더 |
-| `bSaveFilePerLevel` | false | false면 모든 레벨을 단일 `AllLevels.json` 파일로 합쳐 저장. true면 레벨별 별도 파일로 저장 |
+| `bSaveFilePerLevel` | false | false면 모든 레벨을 단일 `AllLevels.json` 파일로 합쳐 저장. true면 레벨별 별도 파일로 저장. ⚠️ 결합 모드는 단일 key-space라서 커스텀 `KeyProperties` 사용 시 서로 다른 레벨의 액터가 같은 키 값(예: 동일 이름)을 가지면 조용히 덮어써질 수 있음. 기본 `ActorGuid` 키는 전역 유일하므로 안전 |
 | `IncludeDirectories` | [] | 대상 레벨 폴더 (비어있으면 전체) |
 | `ExcludeDirectories` | [] | 제외 레벨 폴더 |
 | `bIncludeAllProperties` | false | true면 액터 내부 프로퍼티를 모두 재귀적으로 추출해 `properties` 필드에 기록 (컴포넌트·서브오브젝트·구조체·배열 포함). false면 식별·위치 정보(`class`/`level`/`actorReference`/`guid`/`transform`)만 기록 |

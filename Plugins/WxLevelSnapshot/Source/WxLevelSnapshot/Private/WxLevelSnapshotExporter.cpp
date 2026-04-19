@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "Engine/Level.h"
 #include "UObject/Package.h"
+#include "UObject/Class.h"
+#include "UObject/UnrealType.h"
 #include "Dom/JsonObject.h"
 #include "Dom/JsonValue.h"
 #include "Serialization/JsonSerializer.h"
@@ -73,6 +75,43 @@ namespace
 	}
 }
 
+bool FWxLevelSnapshotExporter::IsLevelPackageIncluded(const FString& LevelPackageName)
+{
+	const UWxLevelSnapshotSettings* Settings = GetDefault<UWxLevelSnapshotSettings>();
+	if (!Settings)
+	{
+		return false;
+	}
+
+	const FString PackageWithSlash = LevelPackageName + TEXT("/");
+	auto MatchesAnyDir = [&PackageWithSlash](const TArray<FDirectoryPath>& Dirs) -> bool
+	{
+		for (const FDirectoryPath& Dir : Dirs)
+		{
+			if (Dir.Path.IsEmpty())
+			{
+				continue;
+			}
+			const FString Prefix = Dir.Path.EndsWith(TEXT("/")) ? Dir.Path : Dir.Path + TEXT("/");
+			if (PackageWithSlash.StartsWith(Prefix))
+			{
+				return true;
+			}
+		}
+		return false;
+	};
+
+	if (Settings->IncludeDirectories.Num() > 0 && !MatchesAnyDir(Settings->IncludeDirectories))
+	{
+		return false;
+	}
+	if (MatchesAnyDir(Settings->ExcludeDirectories))
+	{
+		return false;
+	}
+	return true;
+}
+
 FString FWxLevelSnapshotExporter::GetActorKey(AActor* Actor)
 {
 	if (!Actor)
@@ -88,31 +127,17 @@ FString FWxLevelSnapshotExporter::GetActorKey(AActor* Actor)
 
 	// 액터 클래스 체인을 따라 가장 구체적인 매칭을 찾는다.
 	FName PropertyName = NAME_None;
-	bool bMatched = false;
 	for (UClass* Cls = Actor->GetClass(); Cls && Cls->IsChildOf(AActor::StaticClass()); Cls = Cls->GetSuperClass())
 	{
 		if (const FName* Found = Settings->KeyProperties.Find(TSoftClassPtr<AActor>(Cls)))
 		{
 			PropertyName = *Found;
-			bMatched = true;
 			break;
 		}
 	}
 
-	if (!bMatched || PropertyName.IsNone())
+	if (PropertyName.IsNone())
 	{
-		return FString();
-	}
-
-	// FGuid 프로퍼티(특히 AActor::ActorGuid)는 struct export 형식 대신 하이픈 GUID로 직접 변환.
-	static const FName NAME_ActorGuid(TEXT("ActorGuid"));
-	if (PropertyName == NAME_ActorGuid)
-	{
-		const FGuid Guid = Actor->GetActorGuid();
-		if (Guid.IsValid())
-		{
-			return Guid.ToString(EGuidFormats::DigitsWithHyphens);
-		}
 		return FString();
 	}
 
@@ -198,13 +223,6 @@ bool FWxLevelSnapshotExporter::ExportActorIntoLevel(AActor* Actor)
 		return false;
 	}
 
-	// KeyProperties 규칙에서 키를 얻지 못하면 스냅샷 대상 아님.
-	const FString ActorKey = GetActorKey(Actor);
-	if (ActorKey.IsEmpty())
-	{
-		return false;
-	}
-
 	ULevel* Level = Actor->GetLevel();
 	if (!Level)
 	{
@@ -218,6 +236,13 @@ bool FWxLevelSnapshotExporter::ExportActorIntoLevel(AActor* Actor)
 	}
 
 	const FString LevelPackageName = LevelPackage->GetName();
+
+	// KeyProperties 규칙에서 키를 얻지 못하면 스냅샷 대상 아님.
+	const FString ActorKey = GetActorKey(Actor);
+	if (ActorKey.IsEmpty())
+	{
+		return false;
+	}
 
 	// 기존 레벨 JSON 로드. 없으면 빈 루트로 시작.
 	TSharedPtr<FJsonObject> Root = LoadLevelJson(LevelPackageName);
@@ -233,6 +258,7 @@ bool FWxLevelSnapshotExporter::ExportActorIntoLevel(AActor* Actor)
 	}
 
 	// 커스텀 KeyProperty 값이 변경된 경우 구-키 엔트리가 남지 않도록 같은 GUID의 기존 엔트리를 제거한다.
+	// 결합 모드(AllLevels.json)에서는 다른 레벨의 엔트리까지 건드리지 않도록 level 필드로 경계를 제한.
 	const FGuid ActorGuid = Actor->GetActorGuid();
 	if (ActorGuid.IsValid())
 	{
@@ -246,6 +272,11 @@ bool FWxLevelSnapshotExporter::ExportActorIntoLevel(AActor* Actor)
 			}
 			const TSharedPtr<FJsonObject>* EntryObj = nullptr;
 			if (!Pair.Value.IsValid() || !Pair.Value->TryGetObject(EntryObj) || !EntryObj)
+			{
+				continue;
+			}
+			FString LevelField;
+			if (!(*EntryObj)->TryGetStringField(TEXT("level"), LevelField) || LevelField != LevelPackageName)
 			{
 				continue;
 			}
@@ -280,6 +311,7 @@ bool FWxLevelSnapshotExporter::ExportLevel(ULevel* Level)
 	}
 
 	const FString LevelPackageName = LevelPackage->GetName();
+
 	const UWxLevelSnapshotSettings* Settings = GetDefault<UWxLevelSnapshotSettings>();
 	const bool bCombined = Settings && !Settings->bSaveFilePerLevel;
 
@@ -368,43 +400,29 @@ bool FWxLevelSnapshotExporter::RemoveActorFromLevel(const FString& LevelPackageN
 		return Entry->TryGetStringField(TEXT("level"), LevelField) && LevelField == LevelPackageName;
 	};
 
+	// KeyProperty 값은 임의 포맷이라 키 자체로 역인덱싱 불가 — 엔트리의 guid 필드로 매칭.
 	FString MatchedKey;
-
-	// 1차: KeyProperty=ActorGuid (기본)이면 JSON 키가 곧 GUID이므로 직접 조회.
-	if (const TSharedPtr<FJsonValue>* DirectVal = Root->Values.Find(ActorGuidString))
+	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : Root->Values)
 	{
 		const TSharedPtr<FJsonObject>* EntryObj = nullptr;
-		if (DirectVal->IsValid() && (*DirectVal)->TryGetObject(EntryObj) && EntryObj && EntryBelongsToLevel(*EntryObj))
+		if (!Pair.Value.IsValid() || !Pair.Value->TryGetObject(EntryObj) || !EntryObj)
 		{
-			MatchedKey = ActorGuidString;
+			continue;
 		}
+		FString GuidField;
+		if (!(*EntryObj)->TryGetStringField(TEXT("guid"), GuidField) || GuidField != ActorGuidString)
+		{
+			continue;
+		}
+		if (!EntryBelongsToLevel(*EntryObj))
+		{
+			continue;
+		}
+		MatchedKey = Pair.Key;
+		break;
 	}
 
-	if (MatchedKey.IsEmpty())
-	{
-		// 2차: 커스텀 키 모드 — 각 엔트리의 guid 필드로 매칭.
-		for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : Root->Values)
-		{
-			const TSharedPtr<FJsonObject>* EntryObj = nullptr;
-			if (!Pair.Value.IsValid() || !Pair.Value->TryGetObject(EntryObj) || !EntryObj)
-			{
-				continue;
-			}
-			FString GuidField;
-			if (!(*EntryObj)->TryGetStringField(TEXT("guid"), GuidField) || GuidField != ActorGuidString)
-			{
-				continue;
-			}
-			if (!EntryBelongsToLevel(*EntryObj))
-			{
-				continue;
-			}
-			MatchedKey = Pair.Key;
-			break;
-		}
-	}
-
-	if (MatchedKey.IsEmpty() || !Root->Values.Remove(MatchedKey))
+	if (MatchedKey.IsEmpty() || Root->Values.Remove(MatchedKey) == 0)
 	{
 		return false;
 	}
@@ -412,17 +430,7 @@ bool FWxLevelSnapshotExporter::RemoveActorFromLevel(const FString& LevelPackageN
 	// 남은 엔트리가 없으면 파일 자체를 삭제.
 	if (Root->Values.Num() == 0)
 	{
-		const FString Path = ResolveSnapshotPath(LevelPackageName);
-		IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-		if (!Path.IsEmpty() && PlatformFile.FileExists(*Path))
-		{
-			if (PlatformFile.IsReadOnly(*Path))
-			{
-				PlatformFile.SetReadOnly(*Path, false);
-			}
-			return PlatformFile.DeleteFile(*Path);
-		}
-		return true;
+		return DeleteSnapshotFile(LevelPackageName);
 	}
 
 	return WriteLevelJson(LevelPackageName, Root.ToSharedRef());
@@ -430,13 +438,6 @@ bool FWxLevelSnapshotExporter::RemoveActorFromLevel(const FString& LevelPackageN
 
 bool FWxLevelSnapshotExporter::DeleteLevelSnapshot(const FString& LevelPackageName)
 {
-	const FString Path = ResolveSnapshotPath(LevelPackageName);
-	if (Path.IsEmpty())
-	{
-		return false;
-	}
-
-	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 	const UWxLevelSnapshotSettings* Settings = GetDefault<UWxLevelSnapshotSettings>();
 
 	// 합쳐진 모드: 파일에서 해당 레벨의 엔트리만 제거. 파일이 비면 삭제.
@@ -469,21 +470,25 @@ bool FWxLevelSnapshotExporter::DeleteLevelSnapshot(const FString& LevelPackageNa
 
 		if (Root->Values.Num() == 0)
 		{
-			if (!PlatformFile.FileExists(*Path))
-			{
-				return true;
-			}
-			if (PlatformFile.IsReadOnly(*Path))
-			{
-				PlatformFile.SetReadOnly(*Path, false);
-			}
-			return PlatformFile.DeleteFile(*Path);
+			return DeleteSnapshotFile(LevelPackageName);
 		}
 
 		return WriteLevelJson(LevelPackageName, Root.ToSharedRef());
 	}
 
 	// 레벨별 모드: 파일 자체를 삭제.
+	return DeleteSnapshotFile(LevelPackageName);
+}
+
+bool FWxLevelSnapshotExporter::DeleteSnapshotFile(const FString& LevelPackageName)
+{
+	const FString Path = ResolveSnapshotPath(LevelPackageName);
+	if (Path.IsEmpty())
+	{
+		return false;
+	}
+
+	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 	if (!PlatformFile.FileExists(*Path))
 	{
 		return true;
@@ -527,6 +532,8 @@ bool FWxLevelSnapshotExporter::WriteLevelJson(const FString& LevelPackageName, T
 		return false;
 	}
 
+	// Windows MAX_PATH(260) 대비 파일명 여유분 20자를 남긴 근사치.
+	// 이 한계를 넘는 레벨 패키지는 OutputDirectory를 더 짧은 절대경로로 옮기거나 결합 모드로 전환해야 한다.
 	const int32 MaxPathLen = 240;
 	if (Path.Len() > MaxPathLen)
 	{

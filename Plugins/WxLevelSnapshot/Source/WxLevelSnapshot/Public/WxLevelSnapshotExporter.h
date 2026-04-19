@@ -13,6 +13,8 @@ class FJsonObject;
 /**
  * Level → JSON 스냅샷 생성기.
  * 레벨별 JSON 파일을 유지하고, 액터 단위 업데이트 또는 레벨 전체 재생성을 지원한다.
+ *
+ * 필터(IncludeDirectories/ExcludeDirectories) 검사는 호출자(모듈)가 수행한다.
  */
 class FWxLevelSnapshotExporter
 {
@@ -44,8 +46,12 @@ public:
 	 */
 	static FString GetActorKey(AActor* Actor);
 
+	/** 레벨 패키지 경로가 IncludeDirectories/ExcludeDirectories 필터를 통과하는지 검사. */
+	static bool IsLevelPackageIncluded(const FString& LevelPackageName);
+
 private:
 	static FString SerializeJson(TSharedRef<FJsonObject> RootObject);
 	static bool WriteLevelJson(const FString& LevelPackageName, TSharedRef<FJsonObject> Root);
 	static TSharedPtr<FJsonObject> LoadLevelJson(const FString& LevelPackageName);
+	static bool DeleteSnapshotFile(const FString& LevelPackageName);
 };

@@ -15,6 +15,11 @@ namespace
 		{
 			return true;
 		}
+		// Delegate/멀티캐스트 델리게이트는 ExportText로 사람이 읽을 수 없는 형태가 되므로 스냅샷에서 제외.
+		if (Property->IsA<FDelegateProperty>() || Property->IsA<FMulticastDelegateProperty>())
+		{
+			return true;
+		}
 		return Property->HasAnyPropertyFlags(
 			CPF_Transient
 			| CPF_DuplicateTransient
@@ -32,6 +37,8 @@ namespace
 	TSharedPtr<FJsonValue> PropertyValueToJson(const FProperty* Property, const void* ValuePtr, FExportCtx& Ctx);
 	TSharedPtr<FJsonObject> BuildPropertiesImpl(const UObject* Instance, FExportCtx& Ctx);
 
+	// 빈 오브젝트(모든 필드가 프루닝되어 Values.Num()==0)는 struct/object 직접 필드 레벨에서만 생략한다.
+	// 배열/Set/Map 내부에서는 인덱스·키 순서 의미가 있으므로 빈 엔트리도 보존한다.
 	void StructToJsonObject(const UScriptStruct* Struct, const void* StructPtr, TSharedPtr<FJsonObject> Out, FExportCtx& Ctx)
 	{
 		for (TFieldIterator<FProperty> It(Struct); It; ++It)

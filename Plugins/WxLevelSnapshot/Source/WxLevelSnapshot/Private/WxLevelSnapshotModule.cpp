@@ -95,43 +95,6 @@ namespace
 		}
 		return true;
 	}
-
-	bool IsPackageNameIncluded(const FString& PackageName)
-	{
-		const UWxLevelSnapshotSettings* Settings = GetDefault<UWxLevelSnapshotSettings>();
-		if (!Settings)
-		{
-			return false;
-		}
-
-		const FString PackageWithSlash = PackageName + TEXT("/");
-		auto MatchesAnyDir = [&PackageWithSlash](const TArray<FDirectoryPath>& Dirs) -> bool
-		{
-			for (const FDirectoryPath& Dir : Dirs)
-			{
-				if (Dir.Path.IsEmpty())
-				{
-					continue;
-				}
-				const FString Prefix = Dir.Path.EndsWith(TEXT("/")) ? Dir.Path : Dir.Path + TEXT("/");
-				if (PackageWithSlash.StartsWith(Prefix))
-				{
-					return true;
-				}
-			}
-			return false;
-		};
-
-		if (Settings->IncludeDirectories.Num() > 0 && !MatchesAnyDir(Settings->IncludeDirectories))
-		{
-			return false;
-		}
-		if (MatchesAnyDir(Settings->ExcludeDirectories))
-		{
-			return false;
-		}
-		return true;
-	}
 }
 
 void FWxLevelSnapshotModule::StartupModule()
@@ -188,7 +151,7 @@ void FWxLevelSnapshotModule::HandlePackageSaved(const FString& PackageFileName, 
 	if (IsExternalActorPackage(PackageName))
 	{
 		const FString LevelPackageName = DeriveLevelPackageFromExternalActor(PackageName);
-		if (LevelPackageName.IsEmpty() || !IsPackageNameIncluded(LevelPackageName))
+		if (LevelPackageName.IsEmpty() || !FWxLevelSnapshotExporter::IsLevelPackageIncluded(LevelPackageName))
 		{
 			return;
 		}
@@ -211,7 +174,7 @@ void FWxLevelSnapshotModule::HandlePackageSaved(const FString& PackageFileName, 
 	}
 
 	// .umap 패키지: UWorld를 찾아 레벨 덤프. WP 레벨은 액터가 외부 파일로 따로 저장되므로 umap 이벤트에서는 스킵.
-	if (!IsPackageNameIncluded(PackageName))
+	if (!FWxLevelSnapshotExporter::IsLevelPackageIncluded(PackageName))
 	{
 		return;
 	}
@@ -226,7 +189,7 @@ void FWxLevelSnapshotModule::HandlePackageSaved(const FString& PackageFileName, 
 			continue;
 		}
 		ULevel* Level = World->PersistentLevel;
-		if (Level->bUseExternalActors)
+		if (Level->IsUsingExternalActors())
 		{
 			// WP 레벨: 외부 액터 save 이벤트가 JSON 업데이트를 담당. umap에서는 트리거하지 않음.
 			UE_LOG(LogWxLevelSnapshot, Verbose, TEXT("Skipping umap save for WP level %s"), *PackageName);
@@ -257,7 +220,7 @@ void FWxLevelSnapshotModule::HandleAssetRemoved(const FAssetData& AssetData)
 	// 레벨 삭제: 대응 JSON 전체 제거.
 	if (AssetData.IsInstanceOf<UWorld>())
 	{
-		if (!IsPackageNameIncluded(PackageName))
+		if (!FWxLevelSnapshotExporter::IsLevelPackageIncluded(PackageName))
 		{
 			return;
 		}
@@ -272,7 +235,7 @@ void FWxLevelSnapshotModule::HandleAssetRemoved(const FAssetData& AssetData)
 	if (AssetData.IsInstanceOf<AActor>() && IsExternalActorPackage(PackageName))
 	{
 		const FString LevelPackageName = DeriveLevelPackageFromExternalActor(PackageName);
-		if (LevelPackageName.IsEmpty() || !IsPackageNameIncluded(LevelPackageName))
+		if (LevelPackageName.IsEmpty() || !FWxLevelSnapshotExporter::IsLevelPackageIncluded(LevelPackageName))
 		{
 			return;
 		}
