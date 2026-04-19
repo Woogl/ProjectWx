@@ -41,7 +41,8 @@ private:
 	static TSharedPtr<FJsonObject> BuildWidgetJson(UWidget* Widget);
 	static TSharedPtr<FJsonObject> BuildMvvmJson(UWidgetBlueprint* WidgetBlueprint);
 
-	static TSharedPtr<FJsonObject> BuildGraphsJson(UBlueprint* Blueprint);
+	static TSharedPtr<FJsonValue> BuildEventGraphJson(UBlueprint* Blueprint);
+	static TSharedPtr<FJsonObject> BuildFunctionsJson(UBlueprint* Blueprint);
 
 	static FString SerializeJson(TSharedRef<FJsonObject> RootObject);
 

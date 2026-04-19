@@ -180,7 +180,11 @@ TSharedRef<FJsonObject> FWxBlueprintSnapshotExporter::BuildSnapshot(UBlueprint* 
 
 	if (Settings.bIncludeGraphs)
 	{
-		SetObjectFieldIfNonEmpty(*Root, TEXT("graphs"), BuildGraphsJson(Blueprint));
+		if (TSharedPtr<FJsonValue> EventGraph = BuildEventGraphJson(Blueprint))
+		{
+			Root->SetField(TEXT("eventGraph"), EventGraph);
+		}
+		SetObjectFieldIfNonEmpty(*Root, TEXT("newFunctions"), BuildFunctionsJson(Blueprint));
 	}
 
 	if (UWidgetBlueprint* WidgetBlueprint = Cast<UWidgetBlueprint>(Blueprint))

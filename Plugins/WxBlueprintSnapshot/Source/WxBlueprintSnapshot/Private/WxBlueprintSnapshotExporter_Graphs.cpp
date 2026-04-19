@@ -559,14 +559,8 @@ namespace
 		return Entries;
 	}
 
-	void EmitGraphJson(UEdGraph* Graph, TSharedPtr<FJsonObject> Root)
+	TArray<TSharedPtr<FJsonValue>> SerializeEntriesToLines(const TArray<FPseudoEntry>& Entries)
 	{
-		TArray<FPseudoEntry> Entries = RenderGraphPseudoCode(Graph);
-		if (Entries.Num() == 0)
-		{
-			return;
-		}
-
 		TArray<TSharedPtr<FJsonValue>> LineValues;
 		for (const FPseudoEntry& Entry : Entries)
 		{
@@ -577,11 +571,36 @@ namespace
 				LineValues.Add(MakeShared<FJsonValueString>(Pad + Line.Text));
 			}
 		}
-		Root->SetArrayField(Graph->GetName(), LineValues);
+		return LineValues;
 	}
 }
 
-TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildGraphsJson(UBlueprint* Blueprint)
+TSharedPtr<FJsonValue> FWxBlueprintSnapshotExporter::BuildEventGraphJson(UBlueprint* Blueprint)
+{
+	if (!Blueprint)
+	{
+		return nullptr;
+	}
+
+	// 복수 uber page를 한 배열로 평탄화. entry 헤더("event X:", "custom_event Y:")가 구분을 담당.
+	TArray<TSharedPtr<FJsonValue>> AllLines;
+	for (UEdGraph* Graph : Blueprint->UbergraphPages)
+	{
+		TArray<FPseudoEntry> Entries = RenderGraphPseudoCode(Graph);
+		if (Entries.Num() == 0)
+		{
+			continue;
+		}
+		AllLines.Append(SerializeEntriesToLines(Entries));
+	}
+	if (AllLines.Num() == 0)
+	{
+		return nullptr;
+	}
+	return MakeShared<FJsonValueArray>(AllLines);
+}
+
+TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildFunctionsJson(UBlueprint* Blueprint)
 {
 	if (!Blueprint)
 	{
@@ -589,15 +608,14 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildGraphsJson(UBlueprint
 	}
 
 	TSharedPtr<FJsonObject> Root = MakeShared<FJsonObject>();
-
-	for (UEdGraph* Graph : Blueprint->UbergraphPages)
-	{
-		EmitGraphJson(Graph, Root);
-	}
 	for (UEdGraph* Graph : Blueprint->FunctionGraphs)
 	{
-		EmitGraphJson(Graph, Root);
+		TArray<FPseudoEntry> Entries = RenderGraphPseudoCode(Graph);
+		if (Entries.Num() == 0)
+		{
+			continue;
+		}
+		Root->SetArrayField(Graph->GetName(), SerializeEntriesToLines(Entries));
 	}
-
 	return Root;
 }
