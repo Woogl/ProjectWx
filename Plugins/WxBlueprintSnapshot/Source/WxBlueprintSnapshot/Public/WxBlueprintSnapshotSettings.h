@@ -23,11 +23,11 @@ public:
 	UPROPERTY(EditAnywhere, Config, Category = "General")
 	bool bEnabled = true;
 
-	/** 스냅샷 파일 확장자. 점을 포함해 입력 (예: ".json", ".bpj") */
+	/** 스냅샷 파일 확장자. 점을 포함해 입력 (예: .json, .bpj) */
 	UPROPERTY(EditAnywhere, Config, Category = "General")
 	FString FileExtension = TEXT(".json");
 
-	/** 스냅샷을 저장할 루트 폴더. 비워두면 플러그인의 Snapshots/ 폴더가 사용된다. 절대 경로 혹은 프로젝트 디렉터리 기준 상대 경로. */
+	/** 스냅샷을 저장할 폴더 */
 	UPROPERTY(EditAnywhere, Config, Category = "General")
 	FDirectoryPath OutputDirectory;
 
@@ -39,7 +39,7 @@ public:
 	UPROPERTY(EditAnywhere, Config, Category = "Filter", Meta = (ContentDir, LongPackageName))
 	TArray<FDirectoryPath> ExcludeDirectories;
 
-	/** 기본값과 동일한 프로퍼티는 추출에서 제외한다. */
+	/** 기본값과 동일한 프로퍼티는 건너뜀 */
 	UPROPERTY(EditAnywhere, Config, Category = "Scope")
 	bool bSkipUnchangedDefaults = true;
 
@@ -59,7 +59,7 @@ public:
 	UPROPERTY(EditAnywhere, Config, Category = "Scope")
 	bool bIncludeInterfaces = true;
 
-	/** WBP의 WidgetTree(위젯 계층 + 각 위젯의 CDO delta) 포함 */
+	/** WBP의 WidgetTree(위젯 계층 + 각 위젯의 CDO) 포함 */
 	UPROPERTY(EditAnywhere, Config, Category = "Scope")
 	bool bIncludeWidgetTree = true;
 

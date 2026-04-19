@@ -98,15 +98,18 @@ namespace
 		{
 			return nullptr;
 		}
+		// knot은 input/output 핀이 하나씩. 현재 Pin의 반대쪽 핀의 LinkedTo[0] 을 따라가야 knot을 건너뛴다.
+		// - Pin 이 knot 의 output 핀(=상류 데이터 추적 중) → input 핀의 LinkedTo[0] 이 실제 source output 핀
+		// - Pin 이 knot 의 input 핀(=하류 exec 추적 중) → output 핀의 LinkedTo[0] 이 실제 destination input 핀
 		while (Pin && Cast<UK2Node_Knot>(Pin->GetOwningNode()))
 		{
 			UK2Node_Knot* Knot = Cast<UK2Node_Knot>(Pin->GetOwningNode());
-			UEdGraphPin* Upstream = Pin->Direction == EGPD_Input ? Knot->GetInputPin() : Knot->GetOutputPin();
-			if (!Upstream || Upstream->LinkedTo.Num() == 0)
+			UEdGraphPin* Other = Pin->Direction == EGPD_Output ? Knot->GetInputPin() : Knot->GetOutputPin();
+			if (!Other || Other->LinkedTo.Num() == 0)
 			{
 				return nullptr;
 			}
-			Pin = Upstream->LinkedTo[0];
+			Pin = Other->LinkedTo[0];
 		}
 		return Pin;
 	}
@@ -277,7 +280,19 @@ namespace
 		}
 		if (UK2Node_VariableGet* VG = Cast<UK2Node_VariableGet>(Node))
 		{
-			return VG->GetVarNameString();
+			const FString VarName = VG->GetVarNameString();
+			// target 컨텍스트(Self 핀)가 연결돼 있으면 `target.Var` 로 표기해야 의미가 분명해진다.
+			UEdGraphPin* SelfPin = VG->FindPin(UEdGraphSchema_K2::PN_Self);
+			if (SelfPin && SelfPin->LinkedTo.Num() > 0)
+			{
+				return FString::Printf(TEXT("%s.%s"), *RenderDataInput(SelfPin, Ctx), *VarName);
+			}
+			return VarName;
+		}
+		// VariableSet의 Output_Get pass-through 핀 — 방금 세팅한 값과 동치이므로 변수명만 반환.
+		if (UK2Node_VariableSet* VS = Cast<UK2Node_VariableSet>(Node))
+		{
+			return VS->GetVarNameString();
 		}
 		if (UK2Node_Literal* Lit = Cast<UK2Node_Literal>(Node))
 		{
@@ -321,6 +336,17 @@ namespace
 			UEdGraphPin* ObjIn = DCast->GetCastSourcePin();
 			const FString TypeName = DCast->TargetType ? DCast->TargetType->GetName() : TEXT("?");
 			return FString::Printf(TEXT("Cast<%s>(%s)"), *TypeName, *RenderDataInput(ObjIn, Ctx));
+		}
+		// 매크로 인스턴스 데이터 핀 참조. exec 체인의 TryRenderMacro 와 이름 표기를 통일(MacroGraph->GetName()).
+		if (UK2Node_MacroInstance* MacroInst = Cast<UK2Node_MacroInstance>(Node))
+		{
+			UEdGraph* MacroGraph = MacroInst->GetMacroGraph();
+			const FString MacroName = MacroGraph ? MacroGraph->GetName() : TEXT("Macro");
+			if (!OutputPin->PinName.IsNone())
+			{
+				return FString::Printf(TEXT("%s.%s"), *MacroName, *OutputPin->PinName.ToString());
+			}
+			return MacroName;
 		}
 
 		// 일반 K2Node fallback: NodeTitle + 필요시 출력 핀명
@@ -389,7 +415,7 @@ namespace
 			if (Pin && Pin->Direction == EGPD_Output && IsExecPin(Pin))
 			{
 				Emit(Ctx, Indent, FString::Printf(TEXT("# sequence[%d]"), Idx++));
-				RenderExecChain(Pin, Indent, Ctx);
+				RenderExecChain(Pin, Indent + 1, Ctx);
 			}
 		}
 		return true;

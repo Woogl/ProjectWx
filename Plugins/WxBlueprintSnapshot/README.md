@@ -1,6 +1,6 @@
 # WxBlueprintSnapshot
 
-블루프린트를 저장할 때마다 그 안의 내용(기본값, 컴포넌트, 변수, 그래프 로직)을 **사람과 AI가 읽을 수 있는 JSON 파일**로 자동 기록합니다.
+블루프린트 에셋을 저장할 때마다 그 안의 내용(기본값, 컴포넌트, 변수, 함수, 그래프 로직)을 JSON 파일로 자동 기록합니다.
 
 ## 이 플러그인으로 할 수 있는 것
 
@@ -8,7 +8,7 @@
 `.uasset`은 바이너리라 source control에서 `Binary files differ`만 뜹니다.  
 이 플러그인을 사용하면 JSON 파일을 리포지토리에 커밋할 수 있으므로, 에디터를 열지 않아도 "누가 언제 BP의 컴포넌트나 변수 값을 수정했는지"를 추적할 수 있습니다.
 
-### 2. AI에게 블루프린트 구조 전달
+### 2. AI에게 블루프린트 내용 전달
 생성된 JSON은 BP의 **구조·설정·대략적 로직 흐름**을 텍스트로 담기 때문에 AI 코드 어시스턴트에 붙여넣어 질문·리뷰 보조로 쓸 수 있습니다.  
 스크린샷보다 파싱 정확도가 높고, 토큰을 절약할 수 있습니다.
 
@@ -18,14 +18,17 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 
 ### 4. UMG MVVM 플러그인 지원
 UMG MVVM의 뷰모델과 뷰바인딩 상태도 JSON으로 추출합니다.  
-WBP의 뷰바인딩 현황 파악, WBP 에셋 히스토리 관리, UI 코드 리뷰에 도움이 됩니다.  
+WBP의 뷰바인딩 현황 파악, WBP 에셋 히스토리 관리, UI 코드 리뷰에 도움이 됩니다.
+
+### 5. BP 삭제 시 스냅샷 자동 정리
+콘텐츠 브라우저에서 BP 에셋을 삭제하면 대응되는 JSON 파일도 자동으로 삭제됩니다.  
 
 ---
 
 ## Quick Start
 
-1. 이 플러그인 전체를 프로젝트의 Plugin 폴더에 추가.
-2. `Project Settings > Wx > WxBlueprintSnapshot`에서 BP에서 추출하고 싶은 데이터 선택.
+1. 이 플러그인 전체를 프로젝트의 Plugins 폴더에 추가.
+2. `Project Settings > Wx > WxBlueprintSnapshot`에서 BP에서 추출할 데이터 선택.
 3. 블루프린트를 저장 (Ctrl+S).  
 4. `Plugins/WxBlueprintSnapshot/Snapshots/<BP 패키지 경로>.json` 파일이 생성/업데이트됨.
 
@@ -37,10 +40,11 @@ WBP의 뷰바인딩 현황 파악, WBP 에셋 히스토리 관리, UI 코드 리
 |---|---|---|
 | UObject Blueprint | ✅ | Character, Actor, GameplayAbility 등 UObject를 상속한 모든 BP |
 | Widget Blueprint (UMG) | ✅ | 위젯 트리 + MVVM 바인딩까지 추출 |
-| Animation Blueprint | ⚠️ | 변수·기본값까지만. AnimGraph 스테이트머신은 노드 타이틀만 찍힘 |
+| Animation Blueprint | ⚠️ | AnimGraph 스테이트머신은 지원 안됨 |
 | Data Asset | ❌ | 블루프린트가 아닌 UObject 에셋 |
 | Data Table / Curve Table | ❌ | CSV/JSON Export 사용 권장 |
 | Blueprint Interface | ❌ | 함수 시그니처만 있는 BP. 스킵 |
+| Blueprint Macro Library | ❌ | 스킵 |
 | Blueprint Function Library | ❌ | 스킵 |
 | Editor Utility Blueprint | ❌ | 스킵 |
 | Control Rig / Niagara / Metasound | ❌ | 전용 그래프 포맷, 미지원 |
@@ -51,41 +55,37 @@ WBP의 뷰바인딩 현황 파악, WBP 에셋 히스토리 관리, UI 코드 리
 
 ### Details 패널의 데이터
 
-`bSkipUnchangedDefaults=false` 시 부모 클래스 CDO 대비 변경점만 기록(기본 세팅).  
+`bSkipUnchangedDefaults=true` 시 부모 클래스 CDO 대비 변경점만 기록(기본 세팅).  
 `bSkipUnchangedDefaults=false` 시 전체 기록.
 
 | 항목 | 지원 |
 |---|---|
-| 변수 기본값 변경 (숫자, 문자열, 불리언) | ✅ |
-| 에셋 참조 (StaticMesh, Material, 등) | ✅ 경로 문자열 |
+| 멤버 변수 | ✅ |
+| 에셋 참조 (StaticMesh, Material 등) | ✅ 경로 문자열 |
 | TArray, TMap, TSet 원소 | ✅ |
 | Struct 멤버 | ✅ 재귀 기록 |
 | Instanced Subobject | ✅ 재귀 기록 |
-| `EditAnywhere`/`BlueprintReadWrite`/`BlueprintAssignable` 속성 | ✅ |
-| 순수 C++ 내부 상태 (`VisibleAnywhere`만 아닌 것) | ❌ 기록 안 함 |
-| `Transient` / `DuplicateTransient` / `Deprecated` / `EditorOnly` 속성 | ❌ 의도적으로 제외 |
-| FText 로컬라이제이션 키/네임스페이스 | ❌ 보이는 문자열만 저장 |
+| `EditAnywhere`/`VisibleAnywhere`/`BlueprintReadWrite`/`BlueprintReadOnly`/`BlueprintAssignable` 속성 | ✅ |
+| `Transient` / `DuplicateTransient` / `NonPIEDuplicateTransient` / `Deprecated` / `EditorOnly` 속성 | ❌ 의도적으로 제외 |
 
 ### 컴포넌트 (Components 탭에 추가한 것)
 | 항목 | 지원 |
 |---|---|
-| Add Component으로 붙인 컴포넌트 | ✅ |
-| 컴포넌트 간 어태치(부모 + 소켓) | ✅ |
-| 컴포넌트별 Details 값 | ✅ CDO 차이만 |
-| C++ 생성자에서 만든 네이티브 컴포넌트 | ❌ BP 소유가 아님 |
-| 상속된 컴포넌트의 Override 값 | ⚠️ 일부만 |
+| BP의 Components 탭에서 직접 추가한 컴포넌트 | ✅ `components` 필드 (class/attachParent/attachSocket + CDO delta) |
+| 컴포넌트 간 어태치 (부모 + 소켓) | ✅ |
+| 부모 BP/C++에서 상속된 컴포넌트의 Override 값 | ✅ `classDefaults` 델타에 instanced subobject로 기록 |
 
 ### 위젯 블루프린트 (WBP)
 
-MVVM 추출은 프로젝트 세팅에서 비활성화 가능합니다.
+MVVM 추출은 프로젝트 세팅에서 비활성화 가능.
 
 | 항목 | 지원 |
 |---|---|
 | Widget Tree | ✅ 각 위젯에 class/parent/slot 기록 |
-| 각 위젯의 Details 값 (CDO delta) | ✅ |
-| PanelSlot 값 (부모 컨테이너의 Slot 속성) | ✅ class + delta |
-| MVVM ViewModel 컨텍스트 (`mvvm.viewModels`) | ✅ class, creationType, optional, setter/getter 등 |
-| MVVM 바인딩 (`mvvm.bindings`) | ✅ source/destination/bindingType + 양방향 conversion 함수 |
+| 각 위젯의 Details 값 | ✅ |
+| 각 위젯의 PanelSlot 값 | ✅ |
+| MVVM ViewModel 컨텍스트 | ✅ class, creationType, optional, setter/getter 등 |
+| MVVM 바인딩 | ✅ source/destination/bindingType + conversion 함수 |
 | MVVM Conversion Function 인자 핀 | ✅ property path / literal value / orphaned 상태까지 |
 | 비활성/비컴파일 바인딩 | ❌ 스킵 |
 | Widget Animation | ❌ |
@@ -94,7 +94,9 @@ MVVM 추출은 프로젝트 세팅에서 비활성화 가능합니다.
 
 ### 이벤트/함수 그래프 (의사코드)
 
-이벤트 그래프는 `eventGraph` 필드에 하나의 문자열 배열로 평탄화되고(복수 Ubergraph page를 모두 이어붙임), 함수 그래프는 `newFunctions` 필드에 함수 이름을 키로 한 object(각 함수는 라인 배열)로 기록된다. Entry 헤더는 `event X:`, `custom_event Y:`, `function Z(params):` 형태.
+이벤트 그래프는 `eventGraph` 필드에 하나의 문자열 배열로 평탄화된다.  
+함수 그래프는 `newFunctions` 필드에 함수 이름을 키로 한 object(각 함수는 라인 배열)로 기록된다.  
+Construction Script도 함수 그래프의 하나로 취급되어 `newFunctions.UserConstructionScript`에 동일한 의사 코드 포맷으로 기록된다.
 
 | 항목 | 지원 |
 |---|---|
@@ -103,15 +105,17 @@ MVVM 추출은 프로젝트 세팅에서 비활성화 가능합니다.
 | Sequence | ✅ `# sequence[N]` 코멘트와 함께 |
 | 변수 Set | ✅ |
 | 함수 호출 (CallFunction) | ✅ 인자는 non-default/연결된 핀만 |
-| Cast | ✅ `if (AsX):` / `else:` 분기 렌더링 |
+| 자동 형 변환 (`Conv_*`) | ✅ `Cast<Type>(expr)` 형태로 렌더링 |
+| Cast | ✅ `if (Cast<Type>(expr)):` / `else:` 분기 렌더링 |
 | 데이터 핀 역추적 (Variable Get, Self, Literal) | ✅ 최대 32 depth 재귀 |
-| Knot(리라우팅 노드) | ✅ 투명하게 통과 |
 | Exec cycle(goto) | ✅ `goto NodeName`으로 표시 |
 | Return | ✅ |
 | ForEach / ForLoop / While (Macro) | ✅ LoopBody/Completed 분기 렌더링 |
-| Delay, Timeline, Gate, Async / Latent Action | ⚠️ 노드 타이틀 한 줄 fallback |
-| Event Dispatcher | ⚠️ 일반 함수 호출처럼 보임 |
+| Delay, PrintString 등 Latent/유틸 함수 호출 | ✅ 일반 함수 호출로 렌더 (`KismetSystemLibrary::Delay(Duration=...)`) |
+| Timeline, Gate, Async Action, 기타 전용 K2Node | ⚠️ 노드 타이틀 한 줄 fallback |
+| Event Dispatcher (Call / Bind / Assign) | ⚠️ 노드 타이틀 한 줄 fallback |
 | 매크로 내부 본문 | ❌ 호출 라인만 |
+| Knot(리라우팅 노드) | ❌ 와이어 경로만 따라가고 노드 자체는 출력에 표시 안 함 |
 | 로컬 변수 | ❌ |
 | 코멘트 박스 | ❌ |
 | 노드 위치/색상 | ❌ |
@@ -120,8 +124,8 @@ MVVM 추출은 프로젝트 세팅에서 비활성화 가능합니다.
 | 항목 | 지원 |
 |---|---|
 | 부모 클래스 | ✅ |
-| 변수 목록 + 타입 + 기본값 | ✅ `newVariables` 필드에만 기록 (중복 방지 위해 `classDefaults` 델타에서는 제외) |
-| 구현 인터페이스 목록 | ✅ |
+| 변수 목록 | ✅ `newVariables` 필드에 {type, value} 기록
+| 구현 인터페이스 목록 | ✅ `interfaces` 필드에 기록 |
 
 ---
 
@@ -156,7 +160,7 @@ MVVM 추출은 프로젝트 세팅에서 비활성화 가능합니다.
 **특정 BP만 스냅샷이 안 생겨요**
 - Output Log에서 `LogWxBPSnapshot: Error` 로그를 확인하세요.
 - 예상 경로가 240자를 넘으면(`Plugins/WxBlueprintSnapshot/Snapshots/...` 기준) Windows MAX_PATH(260) 제한으로 저장이 실패하므로 해당 BP는 스킵됩니다.
-- 해결: BP 이름/폴더 경로를 단축하거나, 프로젝트를 더 짧은 드라이브 경로에 두세요.
+- 해결: 프로젝트를 더 짧은 드라이브 경로에 두거나, `Project Settings > Wx > WxBlueprintSnapshot`에서 `OutputDirectory`의 경로를 변경하세요. 
 
 ---
 
@@ -168,6 +172,7 @@ MVVM 추출은 프로젝트 세팅에서 비활성화 가능합니다.
 |---|---|---|
 | `bEnabled` | true | 전체 기능 on/off |
 | `FileExtension` | `.json` | 스냅샷 파일 확장자. 점을 포함해 입력 (예: `.json`, `.bpj`) |
+| `OutputDirectory` | `Plugins/WxBlueprintSnapshot/Snapshots` | 스냅샷 저장 루트 폴더. |
 | `IncludeDirectories` | [] | 대상 BP 폴더 (비어있으면 전체) |
 | `ExcludeDirectories` | [] | 제외 BP 폴더 |
 | `bSkipUnchangedDefaults` | true | 기본값과 동일한 프로퍼티를 classDefaults/컴포넌트/위젯 delta에서 제외 (false로 두면 전체 덤프) |
@@ -182,9 +187,10 @@ MVVM 추출은 프로젝트 세팅에서 비활성화 가능합니다.
 
 ## 출력
 
-- **경로**: `Plugins/WxBlueprintSnapshot/Snapshots/<BP 패키지 경로><FileExtension>`
+- **경로**: `<OutputDirectory>/<BP 패키지 경로><FileExtension>` (기본값: `Plugins/WxBlueprintSnapshot/Snapshots/...`)
 - **포맷**: UTF-8 (no BOM), 키 알파벳 정렬, 들여쓰기 2-space pretty print
 - **ReadOnly 플래그**는 자동 해제 후 덮어쓰기 (Perforce 등에서 편의)
+- **삭제 동기화**: BP 에셋을 삭제하면 대응되는 JSON 파일도 함께 제거됨
 
 ### 최상위 JSON 필드
 
@@ -193,7 +199,7 @@ MVVM 추출은 프로젝트 세팅에서 비활성화 가능합니다.
 | `blueprintPath` | string | 항상 |
 | `parentClass` | string | 항상 |
 | `classDefaults` | object | CDO 델타가 비어있지 않을 때 (NewVariables는 중복 제외) |
-| `components` | object | `bIncludeComponents` + SCS 존재 |
+| `components` | object | `bIncludeComponents` + Components 탭에 컴포넌트 1개 이상 |
 | `newVariables` | object | `bIncludeVariables` + 변수 1개 이상 (`{type, value}` 맵) |
 | `interfaces` | object | `bIncludeInterfaces` + 구현 1개 이상 (`{implemented: [...]}`) |
 | `eventGraph` | array&lt;string&gt; | `bIncludeGraphs` + Ubergraph에 entry 1개 이상 |
