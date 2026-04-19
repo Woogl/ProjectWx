@@ -81,7 +81,8 @@ bool FWxBlueprintSnapshotExporter::ExportBlueprint(UBlueprint* Blueprint)
 
 	TSharedRef<FJsonObject> Root = BuildSnapshot(Blueprint, *Settings);
 
-	FString LatestPath = ResolveLatestPath(Blueprint);
+	UPackage* Package = Blueprint->GetOutermost();
+	FString LatestPath = Package ? ResolveSnapshotPath(Package->GetName()) : FString();
 	if (LatestPath.IsEmpty())
 	{
 		return false;
@@ -319,15 +320,9 @@ FString FWxBlueprintSnapshotExporter::SerializeJson(TSharedRef<FJsonObject> Root
 	return Out;
 }
 
-FString FWxBlueprintSnapshotExporter::ResolveLatestPath(UBlueprint* Blueprint)
+FString FWxBlueprintSnapshotExporter::ResolveSnapshotPath(const FString& PackageName)
 {
-	if (!Blueprint)
-	{
-		return FString();
-	}
-
-	UPackage* Package = Blueprint->GetOutermost();
-	if (!Package)
+	if (PackageName.IsEmpty())
 	{
 		return FString();
 	}
@@ -339,7 +334,7 @@ FString FWxBlueprintSnapshotExporter::ResolveLatestPath(UBlueprint* Blueprint)
 	}
 
 	// /Game/UI/Widget/WBP_Ability -> Game/UI/Widget/WBP_Ability{Ext}
-	FString PackagePath = Package->GetName();
+	FString PackagePath = PackageName;
 	if (PackagePath.StartsWith(TEXT("/")))
 	{
 		PackagePath.RemoveAt(0);

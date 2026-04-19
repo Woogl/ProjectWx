@@ -11,6 +11,10 @@
 #include "UObject/ObjectSaveContext.h"
 #include "Modules/ModuleManager.h"
 #include "Misc/CommandLine.h"
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "AssetRegistry/IAssetRegistry.h"
+#include "AssetRegistry/AssetData.h"
+#include "HAL/PlatformFileManager.h"
 
 IMPLEMENT_MODULE(FWxBlueprintSnapshotModule, WxBlueprintSnapshot)
 
@@ -20,6 +24,9 @@ void FWxBlueprintSnapshotModule::StartupModule()
 {
 	PackageSavedHandle = UPackage::PackageSavedWithContextEvent.AddRaw(this, &FWxBlueprintSnapshotModule::HandlePackageSaved);
 	TickerHandle = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateRaw(this, &FWxBlueprintSnapshotModule::HandleTick), 0.0f);
+
+	IAssetRegistry& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get();
+	AssetRemovedHandle = AssetRegistry.OnAssetRemoved().AddRaw(this, &FWxBlueprintSnapshotModule::HandleAssetRemoved);
 }
 
 void FWxBlueprintSnapshotModule::ShutdownModule()
@@ -28,6 +35,14 @@ void FWxBlueprintSnapshotModule::ShutdownModule()
 	{
 		UPackage::PackageSavedWithContextEvent.Remove(PackageSavedHandle);
 		PackageSavedHandle.Reset();
+	}
+	if (AssetRemovedHandle.IsValid())
+	{
+		if (FAssetRegistryModule* Module = FModuleManager::GetModulePtr<FAssetRegistryModule>(TEXT("AssetRegistry")))
+		{
+			Module->Get().OnAssetRemoved().Remove(AssetRemovedHandle);
+		}
+		AssetRemovedHandle.Reset();
 	}
 	if (TickerHandle.IsValid())
 	{
@@ -169,6 +184,61 @@ void FWxBlueprintSnapshotModule::HandlePackageSaved(const FString& PackageFileNa
 		}
 		EnqueueBlueprint(Blueprint);
 	}
+}
+
+void FWxBlueprintSnapshotModule::HandleAssetRemoved(const FAssetData& AssetData)
+{
+	const UWxBlueprintSnapshotSettings* Settings = GetDefault<UWxBlueprintSnapshotSettings>();
+	if (!Settings || !Settings->bEnabled)
+	{
+		return;
+	}
+
+	if (IsRunningCommandlet())
+	{
+		return;
+	}
+
+	// Blueprint 계열 자산만 대상. UWidgetBlueprint 등 파생 클래스도 포함.
+	if (!AssetData.IsInstanceOf<UBlueprint>())
+	{
+		return;
+	}
+
+	const FString PackageName = AssetData.PackageName.ToString();
+	if (!IsPackageNameIncluded(PackageName))
+	{
+		return;
+	}
+
+	const FString SnapshotPath = FWxBlueprintSnapshotExporter::ResolveSnapshotPath(PackageName);
+	if (SnapshotPath.IsEmpty())
+	{
+		return;
+	}
+
+	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+	if (!PlatformFile.FileExists(*SnapshotPath))
+	{
+		return;
+	}
+
+	if (PlatformFile.IsReadOnly(*SnapshotPath))
+	{
+		PlatformFile.SetReadOnly(*SnapshotPath, false);
+	}
+
+	if (PlatformFile.DeleteFile(*SnapshotPath))
+	{
+		UE_LOG(LogWxBPSnapshot, Log, TEXT("Snapshot deleted for %s"), *PackageName);
+	}
+	else
+	{
+		UE_LOG(LogWxBPSnapshot, Warning, TEXT("Failed to delete snapshot %s"), *SnapshotPath);
+	}
+
+	// 삭제된 BP가 큐에 대기 중이면 제거하여 뒤늦은 재기록을 방지.
+	PendingPaths.Remove(AssetData.GetObjectPathString());
 }
 
 void FWxBlueprintSnapshotModule::EnqueueBlueprint(UBlueprint* Blueprint)

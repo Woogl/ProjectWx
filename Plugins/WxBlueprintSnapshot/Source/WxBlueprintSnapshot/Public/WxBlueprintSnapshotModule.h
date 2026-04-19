@@ -13,6 +13,7 @@ WXBLUEPRINTSNAPSHOT_API DECLARE_LOG_CATEGORY_EXTERN(LogWxBPSnapshot, Log, All);
 class UBlueprint;
 class UPackage;
 class FObjectPostSaveContext;
+struct FAssetData;
 
 /**
  * BP 저장 시 스냅샷을 JSON으로 추출하는 에디터 모듈.
@@ -27,6 +28,7 @@ public:
 
 private:
 	void HandlePackageSaved(const FString& PackageFileName, UPackage* Package, FObjectPostSaveContext Context);
+	void HandleAssetRemoved(const FAssetData& AssetData);
 
 	bool ShouldProcessContext(const FObjectPostSaveContext& Context) const;
 	bool ShouldProcessBlueprint(UBlueprint* Blueprint) const;
@@ -42,6 +44,7 @@ private:
 	};
 
 	FDelegateHandle PackageSavedHandle;
+	FDelegateHandle AssetRemovedHandle;
 	FTSTicker::FDelegateHandle TickerHandle;
 
 	TQueue<FPendingEntry, EQueueMode::Spsc> PendingQueue;

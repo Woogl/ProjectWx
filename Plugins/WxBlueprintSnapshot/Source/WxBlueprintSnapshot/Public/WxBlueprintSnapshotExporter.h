@@ -25,6 +25,9 @@ public:
 	/** Blueprint를 스냅샷 JSON으로 추출해 설정된 경로에 기록한다. 실패 시 false 반환 */
 	static bool ExportBlueprint(UBlueprint* Blueprint);
 
+	/** PackageName(예: "/Game/UI/Widget/WBP_Ability") 에 대응되는 스냅샷 파일 절대경로. 해결 불가 시 빈 문자열 반환 */
+	static FString ResolveSnapshotPath(const FString& PackageName);
+
 	/** ExcludedPropertyNames에 포함된 top-level 프로퍼티는 건너뛴다 (BP NewVariables 중복 제거용). 재귀 subobject에는 적용되지 않는다. */
 	static TSharedPtr<FJsonObject> BuildClassDefaults(const UObject* Instance, const UObject* Defaults, const TSet<FName>& ExcludedPropertyNames = TSet<FName>());
 
@@ -45,6 +48,4 @@ private:
 	static TSharedPtr<FJsonObject> BuildFunctionsJson(UBlueprint* Blueprint);
 
 	static FString SerializeJson(TSharedRef<FJsonObject> RootObject);
-
-	static FString ResolveLatestPath(UBlueprint* Blueprint);
 };
