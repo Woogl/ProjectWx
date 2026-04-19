@@ -1,0 +1,50 @@
+{
+	"blueprintPath": "/Game/BP_Character.BP_Character",
+	"classDefaults":
+	{
+		"Mesh":
+		{
+			"class": "/Script/Engine.SkeletalMeshComponent",
+			"delta":
+			{
+				"AnimClass": "/Game/Mannequins/Animations/ABP_Quinn.ABP_Quinn_C",
+				"RelativeLocation":
+				{
+					"Z": -90
+				},
+				"RelativeRotation":
+				{
+					"Yaw": -90
+				},
+				"SkeletalMesh": "/Game/Mannequins/Meshes/SKM_Quinn.SKM_Quinn",
+				"SkinnedAsset": "/Game/Mannequins/Meshes/SKM_Quinn.SKM_Quinn"
+			}
+		},
+		"RootComponent": "CollisionCylinder"
+	},
+	"eventGraph": [
+		"event ReceiveBeginPlay:",
+		"  if (CustomVariable):",
+		"    KismetSystemLibrary::PrintString(InString=\"This is true\")",
+		"  else:",
+		"    KismetSystemLibrary::PrintString(InString=\"This is false\")"
+	],
+	"newFunctions":
+	{
+		"CustomFunction": [
+			"function CustomFunction():",
+			"  ForLoopWithBreak(FirstIndex=0, LastIndex=9):",
+			"    KismetSystemLibrary::PrintString(InString=Cast<string>(For Loop with Break.Index))",
+			"  return NewParam=false"
+		]
+	},
+	"newVariables":
+	{
+		"CustomVariable":
+		{
+			"type": "bool",
+			"value": "False"
+		}
+	},
+	"parentClass": "/Script/Engine.Character"
+}

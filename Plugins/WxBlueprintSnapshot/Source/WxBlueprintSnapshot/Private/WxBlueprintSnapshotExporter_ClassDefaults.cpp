@@ -140,24 +140,31 @@ namespace
 			// non-instanced 참조는 path 문자열로만 남아 결과 필드 타입이 object ↔ string으로 갈릴 수 있음.
 			if (bInstanced && Obj && !Ctx.InstanceVisited.Contains(Obj))
 			{
-				TSharedPtr<FJsonObject> InnerJson = MakeShared<FJsonObject>();
-				InnerJson->SetStringField(TEXT("class"), Obj->GetClass()->GetPathName());
-
-				UObject* DefaultObj = nullptr;
-				if (DefaultPtr)
-				{
-					DefaultObj = ObjProp->GetObjectPropertyValue(DefaultPtr);
-				}
-				const UObject* DefaultsForDelta = (DefaultObj && DefaultObj->GetClass() == Obj->GetClass())
-					? DefaultObj
-					: Obj->GetClass()->GetDefaultObject(false);
+				UObject* DefaultObj = DefaultPtr ? ObjProp->GetObjectPropertyValue(DefaultPtr) : nullptr;
+				const bool bSameClass = DefaultObj && DefaultObj->GetClass() == Obj->GetClass();
+				const UObject* DefaultsForDelta = bSameClass ? DefaultObj : Obj->GetClass()->GetDefaultObject(false);
 
 				TSharedPtr<FJsonObject> SubDelta = BuildClassDefaultsImpl(Obj, DefaultsForDelta, Ctx);
-				if (SubDelta.IsValid() && SubDelta->Values.Num() > 0)
+				const bool bHasDelta = SubDelta.IsValid() && SubDelta->Values.Num() > 0;
+
+				// 클래스도 같고 델타도 없으면 parent와 실질적으로 동일한 instanced subobject → 상위에서 드롭하도록 빈 오브젝트 반환.
+				if (bSameClass && !bHasDelta)
+				{
+					return MakeShared<FJsonValueObject>(MakeShared<FJsonObject>());
+				}
+
+				TSharedPtr<FJsonObject> InnerJson = MakeShared<FJsonObject>();
+				InnerJson->SetStringField(TEXT("class"), Obj->GetClass()->GetPathName());
+				if (bHasDelta)
 				{
 					InnerJson->SetObjectField(TEXT("delta"), SubDelta.ToSharedRef());
 				}
 				return MakeShared<FJsonValueObject>(InnerJson);
+			}
+			// CDO 내부 subobject는 절대 경로 대신 이름으로 기록(BP 이름 변경/외부 참조 노이즈 제거).
+			if (Obj && Obj->GetOuter() == Ctx.Owner)
+			{
+				return MakeShared<FJsonValueString>(Obj->GetName());
 			}
 			return MakeShared<FJsonValueString>(Obj ? Obj->GetPathName() : FString());
 		}
@@ -301,7 +308,33 @@ namespace
 				}
 			}
 
-			Delta->SetField(Property->GetName(), PropertyValueToJson(Property, InstancePtr, DefaultPtr, Ctx));
+			// Non-instanced Object property가 각 CDO 내부의 동일 이름/클래스 서브오브젝트를 가리키면 실질적으로 같은 레퍼런스 → 스킵.
+			// (RootComponent 처럼 ExportText 상에선 full path로 달라 보이지만 의미적으로 같은 케이스를 걸러낸다.)
+			// Instanced subobject (Mesh, CapsuleComponent 등) 는 내용 비교가 필요하므로 여기서 스킵하지 않고 PropertyValueToJson에서 판정한다.
+			if (Ctx.bSkipUnchangedDefaults && DefaultPtr
+				&& !Property->HasAnyPropertyFlags(CPF_InstancedReference | CPF_PersistentInstance))
+			{
+				if (const FObjectPropertyBase* ObjProp = CastField<FObjectPropertyBase>(Property))
+				{
+					UObject* InstObj = ObjProp->GetObjectPropertyValue(InstancePtr);
+					UObject* DefObj = ObjProp->GetObjectPropertyValue(DefaultPtr);
+					if (InstObj && DefObj
+						&& InstObj->GetOuter() == Instance && DefObj->GetOuter() == Defaults
+						&& InstObj->GetFName() == DefObj->GetFName()
+						&& InstObj->GetClass() == DefObj->GetClass())
+					{
+						continue;
+					}
+				}
+			}
+
+			TSharedPtr<FJsonValue> FieldValue = PropertyValueToJson(Property, InstancePtr, DefaultPtr, Ctx);
+			// instanced subobject가 parent와 동일해 빈 오브젝트로 돌아온 경우 드롭.
+			if (FieldValue.IsValid() && FieldValue->Type == EJson::Object && FieldValue->AsObject()->Values.Num() == 0)
+			{
+				continue;
+			}
+			Delta->SetField(Property->GetName(), FieldValue);
 		}
 
 		return Delta;

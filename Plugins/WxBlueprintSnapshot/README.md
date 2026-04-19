@@ -1,31 +1,33 @@
 # WxBlueprintSnapshot
 
-블루프린트를 저장할 때마다 **그 안의 내용**(기본값, 컴포넌트, 변수, 그래프 로직)을 사람과 AI가 읽을 수 있는 JSON 파일로 자동 기록합니다.
+블루프린트를 저장할 때마다 그 안의 내용(기본값, 컴포넌트, 변수, 그래프 로직)을 **사람과 AI가 읽을 수 있는 JSON 파일**로 자동 기록합니다.
 
 ## 이 플러그인으로 할 수 있는 것
 
 ### 1. 블루프린트 변경점을 diff로 읽기
-`.uasset`은 바이너리라 source control에서 `Binary files differ`만 뜹니다. 이 플러그인이 생성하는 JSON은 **텍스트 + 키 정렬** 포맷이라, PR 리뷰에서 "이 커밋에서 캐릭터 BP의 MaxHP가 얼마로 바뀌었는지" 같은 변경점을 줄 단위로 볼 수 있습니다.
+`.uasset`은 바이너리라 source control에서 `Binary files differ`만 뜹니다.  
+이 플러그인을 사용하면 JSON 파일을 리포지토리에 커밋할 수 있으므로, 에디터를 열지 않아도 "누가 언제 BP의 컴포넌트나 변수 값을 수정했는지"를 추적할 수 있습니다.
 
 ### 2. AI에게 블루프린트 구조 전달
-생성된 JSON은 BP의 **구조·설정·대략적 로직 흐름**을 텍스트로 담기 때문에 AI 코드 어시스턴트에 붙여넣어 질문·리뷰 보조로 쓸 수 있습니다. 스크린샷보다 파싱 정확도가 높습니다.
+생성된 JSON은 BP의 **구조·설정·대략적 로직 흐름**을 텍스트로 담기 때문에 AI 코드 어시스턴트에 붙여넣어 질문·리뷰 보조로 쓸 수 있습니다.  
+스크린샷보다 파싱 정확도가 높고, 토큰을 절약할 수 있습니다.
 
-### 3. 블루프린트 일별 변화 추적
-JSON 파일이 리포지토리에 커밋되므로 "누가 언제 이 BP의 컴포넌트를 추가/제거했는지"를 추적할 수 있습니다.
-
-### 4. 블루프린트 일괄 검수
+### 3. 블루프린트 일괄 검수
 JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.  
 예: "Tick이 켜진 Actor BP 찾기", "특정 인터페이스를 구현한 BP 전체 목록".
+
+### 4. UMG MVVM 플러그인 지원
+UMG MVVM의 뷰모델과 뷰바인딩 상태도 JSON으로 추출합니다.  
+WBP의 뷰바인딩 현황 파악, WBP 에셋 히스토리 관리, UI 코드 리뷰에 도움이 됩니다.  
 
 ---
 
 ## Quick Start
 
-1. 플러그인 활성화 (기본값으로 이미 활성화 상태).
-2. `Project Settings > Wx > WxBlueprintSnapshot`에서 대상 폴더를 `IncludeDirectories`에 지정 (비워두면 전체 BP).
-3. 블루프린트를 저장 (Ctrl+S). Autosave, PIE, Cook, Commandlet 중엔 기록하지 않음.
+1. 이 플러그인 전체를 프로젝트의 Plugin 폴더에 추가.
+2. `Project Settings > Wx > WxBlueprintSnapshot`에서 BP에서 추출하고 싶은 데이터 선택.
+3. 블루프린트를 저장 (Ctrl+S).  
 4. `Plugins/WxBlueprintSnapshot/Snapshots/<BP 패키지 경로>.json` 파일이 생성/업데이트됨.
-5. 이 폴더를 Git에 커밋하면 이후 변경점이 PR에 텍스트로 찍힘.
 
 ---
 
@@ -47,18 +49,18 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 
 ## 블루프린트의 어떤 데이터가 추출되는가?
 
-### 기본값 (Details 패널의 값)
+### Details 패널의 데이터
 
-부모 클래스 CDO 대비 **델타만** 기록 (`bSkipUnchangedDefaults=false` 시 전체 덤프).
+`bSkipUnchangedDefaults=false` 시 부모 클래스 CDO 대비 변경점만 기록(기본 세팅).  
+`bSkipUnchangedDefaults=false` 시 전체 기록.
 
 | 항목 | 지원 |
 |---|---|
 | 변수 기본값 변경 (숫자, 문자열, 불리언) | ✅ |
-| 에셋 참조 (StaticMesh, Material, 등) | ✅ 경로 문자열로 |
+| 에셋 참조 (StaticMesh, Material, 등) | ✅ 경로 문자열 |
+| TArray, TMap, TSet 원소 | ✅ |
 | Struct 멤버 | ✅ 재귀 기록 |
-| TArray, TSet 원소 | ✅ 전체 덤프 |
-| TMap 엔트리 | ✅ 문자열 키면 object, 아니면 `{key, value}` 배열 |
-| 인스턴스드 서브오브젝트 (e.g. UObject 필드) | ✅ 재귀 기록 (동일 객체 재등장 시 경로만) |
+| Instanced Subobject | ✅ 재귀 기록 |
 | `EditAnywhere`/`BlueprintReadWrite`/`BlueprintAssignable` 속성 | ✅ |
 | 순수 C++ 내부 상태 (`VisibleAnywhere`만 아닌 것) | ❌ 기록 안 함 |
 | `Transient` / `DuplicateTransient` / `Deprecated` / `EditorOnly` 속성 | ❌ 의도적으로 제외 |
@@ -74,9 +76,12 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 | 상속된 컴포넌트의 Override 값 | ⚠️ 일부만 |
 
 ### 위젯 블루프린트 (WBP)
+
+MVVM 추출은 프로젝트 세팅에서 비활성화 가능합니다.
+
 | 항목 | 지원 |
 |---|---|
-| Designer 탭의 위젯 계층 (`widgetTree.root`, `widgetTree.widgets`) | ✅ 각 위젯에 class/parent/slot 기록 |
+| Widget Tree | ✅ 각 위젯에 class/parent/slot 기록 |
 | 각 위젯의 Details 값 (CDO delta) | ✅ |
 | PanelSlot 값 (부모 컨테이너의 Slot 속성) | ✅ class + delta |
 | MVVM ViewModel 컨텍스트 (`mvvm.viewModels`) | ✅ class, creationType, optional, setter/getter 등 |
@@ -122,10 +127,17 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 
 ## 무엇을 위한 도구로 쓰면 안되는가?
 
-- **블루프린트 백업/복원 도구가 아닙니다.** JSON에서 `.uasset`을 재생성하지 않습니다. 백업은 Source Control로 하세요.
-- **시각적 그래프 뷰어가 아닙니다.** 노드 위치·색상·코멘트를 기록하지 않습니다. BP를 눈으로 보고 싶으면 에디터를 여세요.
-- **런타임 도구가 아닙니다.** 에디터 전용입니다. 패키징된 게임에 포함되지 않습니다.
-- **실시간 분석기가 아닙니다.** BP를 저장할 때만 기록합니다.
+- **블루프린트 백업/복원 도구가 아닙니다.**
+  - JSON에서 `.uasset`을 재생성하지 않습니다.
+  - 백업은 Source Control로 하세요.
+- **시각적 그래프 뷰어가 아닙니다.**
+  - 노드 위치·색상·코멘트를 기록하지 않습니다.
+  - BP를 눈으로 보고 싶으면 에디터를 여세요.
+- **런타임 도구가 아닙니다.**
+  - 에디터 전용입니다.
+  - 패키징된 게임에 포함되지 않습니다.
+- **실시간 분석기가 아닙니다.**
+  - BP를 저장할 때만 기록합니다.
 
 ---
 
@@ -143,7 +155,7 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 
 **특정 BP만 스냅샷이 안 생겨요**
 - Output Log에서 `LogWxBPSnapshot: Error` 로그를 확인하세요.
-- 예상 경로가 240자를 넘으면(`Plugins/WxBlueprintSnapshot/Snapshots/...` 기준) Windows MAX_PATH(260) 제한으로 저장이 실패하므로 해당 BP는 **명시적으로 스킵**됩니다. 조용한 폴백은 하지 않습니다.
+- 예상 경로가 240자를 넘으면(`Plugins/WxBlueprintSnapshot/Snapshots/...` 기준) Windows MAX_PATH(260) 제한으로 저장이 실패하므로 해당 BP는 스킵됩니다.
 - 해결: BP 이름/폴더 경로를 단축하거나, 프로젝트를 더 짧은 드라이브 경로에 두세요.
 
 ---

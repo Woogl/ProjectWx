@@ -138,14 +138,24 @@ TSharedRef<FJsonObject> FWxBlueprintSnapshotExporter::BuildSnapshot(UBlueprint* 
 		UObject* ParentCDO = Blueprint->ParentClass->GetDefaultObject(false);
 		if (InstanceCDO && ParentCDO)
 		{
-			// NewVariables는 별도 `variables` 필드에 기록되므로 classDefaults 델타에서 중복 제외.
-			TSet<FName> NewVariableNames;
-			NewVariableNames.Reserve(Blueprint->NewVariables.Num());
+			// NewVariables / SCS 컴포넌트는 각각 `newVariables` / `components` 필드에 기록되므로 classDefaults 델타에서 중복 제외.
+			TSet<FName> ExcludedNames;
+			ExcludedNames.Reserve(Blueprint->NewVariables.Num());
 			for (const FBPVariableDescription& Var : Blueprint->NewVariables)
 			{
-				NewVariableNames.Add(Var.VarName);
+				ExcludedNames.Add(Var.VarName);
 			}
-			SetObjectFieldIfNonEmpty(*Root, TEXT("classDefaults"), BuildClassDefaults(InstanceCDO, ParentCDO, NewVariableNames));
+			if (USimpleConstructionScript* SCS = Blueprint->SimpleConstructionScript)
+			{
+				for (USCS_Node* Node : SCS->GetAllNodes())
+				{
+					if (Node)
+					{
+						ExcludedNames.Add(Node->GetVariableName());
+					}
+				}
+			}
+			SetObjectFieldIfNonEmpty(*Root, TEXT("classDefaults"), BuildClassDefaults(InstanceCDO, ParentCDO, ExcludedNames));
 		}
 	}
 
@@ -261,6 +271,9 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildVariablesJson(UBluepr
 		return Category.ToString();
 	};
 
+	UBlueprintGeneratedClass* GeneratedClass = Cast<UBlueprintGeneratedClass>(Blueprint->GeneratedClass);
+	UObject* CDO = GeneratedClass ? GeneratedClass->GetDefaultObject(false) : nullptr;
+
 	TSharedPtr<FJsonObject> Root = MakeShared<FJsonObject>();
 	for (const FBPVariableDescription& Var : Blueprint->NewVariables)
 	{
@@ -280,9 +293,23 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildVariablesJson(UBluepr
 			TypeStr = FString::Printf(TEXT("Map<%s, %s>"), *TypeStr, *ValueStr);
 		}
 
+		// CDO에서 직접 기본값 읽기. FBPVariableDescription::DefaultValue는 유저가 명시적으로 바꾼 경우만 채워진다.
+		FString ValueStr;
+		if (CDO)
+		{
+			if (FProperty* Prop = GeneratedClass->FindPropertyByName(Var.VarName))
+			{
+				Prop->ExportTextItem_InContainer(ValueStr, CDO, nullptr, CDO, PPF_None);
+			}
+		}
+		if (ValueStr.IsEmpty())
+		{
+			ValueStr = Var.DefaultValue;
+		}
+
 		TSharedPtr<FJsonObject> Entry = MakeShared<FJsonObject>();
 		Entry->SetStringField(TEXT("type"), TypeStr);
-		Entry->SetStringField(TEXT("value"), Var.DefaultValue);
+		Entry->SetStringField(TEXT("value"), ValueStr);
 		Root->SetObjectField(Var.VarName.ToString(), Entry.ToSharedRef());
 	}
 	return Root;
@@ -327,10 +354,25 @@ FString FWxBlueprintSnapshotExporter::ResolveSnapshotPath(const FString& Package
 		return FString();
 	}
 
-	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("WxBlueprintSnapshot"));
-	if (!Plugin.IsValid())
+	const UWxBlueprintSnapshotSettings* Settings = GetDefault<UWxBlueprintSnapshotSettings>();
+	if (!Settings)
 	{
 		return FString();
+	}
+
+	FString RootDir = Settings->OutputDirectory.Path;
+	if (RootDir.IsEmpty())
+	{
+		TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("WxBlueprintSnapshot"));
+		if (!Plugin.IsValid())
+		{
+			return FString();
+		}
+		RootDir = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Snapshots"));
+	}
+	else if (FPaths::IsRelative(RootDir))
+	{
+		RootDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), RootDir);
 	}
 
 	// /Game/UI/Widget/WBP_Ability -> Game/UI/Widget/WBP_Ability{Ext}
@@ -340,5 +382,5 @@ FString FWxBlueprintSnapshotExporter::ResolveSnapshotPath(const FString& Package
 		PackagePath.RemoveAt(0);
 	}
 
-	return FPaths::Combine(Plugin->GetBaseDir(), TEXT("Snapshots"), PackagePath) + GetDefault<UWxBlueprintSnapshotSettings>()->FileExtension;
+	return FPaths::Combine(RootDir, PackagePath) + Settings->FileExtension;
 }

@@ -8,7 +8,7 @@
 #include "WxBlueprintSnapshotSettings.generated.h"
 
 /**
- * 블루프린트를 저장할 때마다 내용(기본값, 컴포넌트, 변수, 이벤트 그래프 등)을 JSON 파일로 기록하는 플러그인의 설정.
+ * 블루프린트를 저장할 때마다 내용을 JSON 파일로 기록하는 플러그인의 설정.
  * 저장된 JSON은 diff로 변경점을 읽거나 AI에게 블루프린트 구조를 전달할 때 사용 가능.
  */
 UCLASS(Config = Editor, Meta = (DisplayName = "Wx Blueprint Snapshot"))
@@ -27,6 +27,10 @@ public:
 	UPROPERTY(EditAnywhere, Config, Category = "General")
 	FString FileExtension = TEXT(".json");
 
+	/** 스냅샷을 저장할 루트 폴더. 비워두면 플러그인의 Snapshots/ 폴더가 사용된다. 절대 경로 혹은 프로젝트 디렉터리 기준 상대 경로. */
+	UPROPERTY(EditAnywhere, Config, Category = "General")
+	FDirectoryPath OutputDirectory;
+
 	/** 대상 BP 폴더. 비어있으면 모든 BP가 대상 */
 	UPROPERTY(EditAnywhere, Config, Category = "Filter", Meta = (ContentDir, LongPackageName))
 	TArray<FDirectoryPath> IncludeDirectories;
@@ -35,7 +39,7 @@ public:
 	UPROPERTY(EditAnywhere, Config, Category = "Filter", Meta = (ContentDir, LongPackageName))
 	TArray<FDirectoryPath> ExcludeDirectories;
 
-	/** 기본값과 동일한 프로퍼티를 classDefaults 및 컴포넌트/위젯 delta에서 제외한다. 기본 true로 델타만 기록 */
+	/** 기본값과 동일한 프로퍼티는 추출에서 제외한다. */
 	UPROPERTY(EditAnywhere, Config, Category = "Scope")
 	bool bSkipUnchangedDefaults = true;
 
