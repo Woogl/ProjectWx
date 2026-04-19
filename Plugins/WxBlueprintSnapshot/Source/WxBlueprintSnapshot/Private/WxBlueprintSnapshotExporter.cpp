@@ -16,7 +16,6 @@
 #include "Serialization/JsonWriter.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
-#include "Misc/SecureHash.h"
 #include "HAL/PlatformFileManager.h"
 #include "HAL/FileManager.h"
 #include "Interfaces/IPluginManager.h"
@@ -65,20 +64,6 @@ namespace
 			Root.SetObjectField(Key, Value.ToSharedRef());
 		}
 	}
-
-	FString MakeHashedFallbackPath(UBlueprint* Blueprint)
-	{
-		FSHA1 DirHash;
-		const FString FullPath = Blueprint->GetPathName();
-		DirHash.UpdateWithString(*FullPath, FullPath.Len());
-		DirHash.Final();
-		uint8 Hash[FSHA1::DigestSize];
-		DirHash.GetHash(Hash);
-		const FString ShortDirHash = BytesToHex(Hash, 6);
-
-		const FString FallbackDir = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("BlueprintSnapshots_Hashed"), ShortDirHash);
-		return FallbackDir / (Blueprint->GetName() + GetDefault<UWxBlueprintSnapshotSettings>()->FileExtension);
-	}
 }
 
 bool FWxBlueprintSnapshotExporter::ExportBlueprint(UBlueprint* Blueprint)
@@ -102,11 +87,14 @@ bool FWxBlueprintSnapshotExporter::ExportBlueprint(UBlueprint* Blueprint)
 		return false;
 	}
 
-	// Windows MAX_PATH 가드: 경로가 과도하게 길면 BP 경로 해시로 폴더를 단축한다.
+	// Windows MAX_PATH 가드: 경로가 과도하게 길면 SaveStringToFile이 실패하므로, 조용히 폴백하지 않고 명시적으로 스킵한다.
 	const int32 MaxPathLen = 240;
 	if (LatestPath.Len() > MaxPathLen)
 	{
-		LatestPath = MakeHashedFallbackPath(Blueprint);
+		UE_LOG(LogWxBPSnapshot, Error,
+			TEXT("Snapshot path exceeds %d chars (len=%d), skipping. BP=%s  Path=%s"),
+			MaxPathLen, LatestPath.Len(), *Blueprint->GetPathName(), *LatestPath);
+		return false;
 	}
 
 	IFileManager& FileManager = IFileManager::Get();

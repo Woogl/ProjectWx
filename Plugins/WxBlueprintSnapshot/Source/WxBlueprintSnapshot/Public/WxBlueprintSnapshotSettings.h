@@ -35,9 +35,9 @@ public:
 	UPROPERTY(EditAnywhere, Config, Category = "Filter", Meta = (ContentDir, LongPackageName))
 	TArray<FDirectoryPath> ExcludeDirectories;
 
-	/** 기본값과 동일한 프로퍼티도 classDefaults 및 컴포넌트/위젯 delta에 기록. 기본 false로 델타만 기록 */
+	/** 기본값과 동일한 프로퍼티를 classDefaults 및 컴포넌트/위젯 delta에서 제외한다. 기본 true로 델타만 기록 */
 	UPROPERTY(EditAnywhere, Config, Category = "Scope")
-	bool bIncludeUnchangedDefaults = false;
+	bool bSkipUnchangedDefaults = true;
 
 	/** SimpleConstructionScript 컴포넌트 트리 포함 */
 	UPROPERTY(EditAnywhere, Config, Category = "Scope")

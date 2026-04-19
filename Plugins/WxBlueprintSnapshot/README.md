@@ -23,8 +23,8 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 
 1. 플러그인 활성화 (기본값으로 이미 활성화 상태).
 2. `Project Settings > Wx > WxBlueprintSnapshot`에서 대상 폴더를 `IncludeDirectories`에 지정 (비워두면 전체 BP).
-3. 블루프린트를 저장 (Ctrl+S).
-4. `Plugins/WxBlueprintSnapshot/Snapshots/<BP 경로>.json` 파일이 생성/업데이트됨.
+3. 블루프린트를 저장 (Ctrl+S). Autosave, PIE, Cook, Commandlet 중엔 기록하지 않음.
+4. `Plugins/WxBlueprintSnapshot/Snapshots/<BP 패키지 경로>.json` 파일이 생성/업데이트됨.
 5. 이 폴더를 Git에 커밋하면 이후 변경점이 PR에 텍스트로 찍힘.
 
 ---
@@ -48,17 +48,20 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 ## 블루프린트의 어떤 데이터가 추출되는가?
 
 ### 기본값 (Details 패널의 값)
+
+부모 클래스 CDO 대비 **델타만** 기록 (`bSkipUnchangedDefaults=false` 시 전체 덤프).
+
 | 항목 | 지원 |
 |---|---|
 | 변수 기본값 변경 (숫자, 문자열, 불리언) | ✅ |
 | 에셋 참조 (StaticMesh, Material, 등) | ✅ 경로 문자열로 |
 | Struct 멤버 | ✅ 재귀 기록 |
 | TArray, TSet 원소 | ✅ 전체 덤프 |
-| TMap 엔트리 | ✅ |
-| 인스턴스드 서브오브젝트 (e.g. UObject 필드) | ✅ 재귀 기록 |
-| `EditAnywhere`/`BlueprintReadWrite` 속성 | ✅ |
+| TMap 엔트리 | ✅ 문자열 키면 object, 아니면 `{key, value}` 배열 |
+| 인스턴스드 서브오브젝트 (e.g. UObject 필드) | ✅ 재귀 기록 (동일 객체 재등장 시 경로만) |
+| `EditAnywhere`/`BlueprintReadWrite`/`BlueprintAssignable` 속성 | ✅ |
 | 순수 C++ 내부 상태 (`VisibleAnywhere`만 아닌 것) | ❌ 기록 안 함 |
-| `Transient` / `Deprecated` 속성 | ❌ 의도적으로 제외 |
+| `Transient` / `DuplicateTransient` / `Deprecated` / `EditorOnly` 속성 | ❌ 의도적으로 제외 |
 | FText 로컬라이제이션 키/네임스페이스 | ❌ 보이는 문자열만 저장 |
 
 ### 컴포넌트 (Components 탭에 추가한 것)
@@ -73,30 +76,35 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 ### 위젯 블루프린트 (WBP)
 | 항목 | 지원 |
 |---|---|
-| Designer 탭의 위젯 계층 | ✅ |
-| 각 위젯의 Details 값 + Slot 값 | ✅ |
-| MVVM ViewModel 바인딩 | ✅ Binding Type, Source, Destination 모두 지원 |
-| MVVM Conversion Function | ✅ 함수 경로만 |
+| Designer 탭의 위젯 계층 (`widgetTree.root`, `widgetTree.widgets`) | ✅ 각 위젯에 class/parent/slot 기록 |
+| 각 위젯의 Details 값 (CDO delta) | ✅ |
+| PanelSlot 값 (부모 컨테이너의 Slot 속성) | ✅ class + delta |
+| MVVM ViewModel 컨텍스트 (`mvvm.viewModels`) | ✅ class, creationType, optional, setter/getter 등 |
+| MVVM 바인딩 (`mvvm.bindings`) | ✅ source/destination/bindingType + 양방향 conversion 함수 |
+| MVVM Conversion Function 인자 핀 | ✅ property path / literal value / orphaned 상태까지 |
+| 비활성/비컴파일 바인딩 | ❌ 스킵 |
 | Widget Animation | ❌ |
 | UMG 구식 Property Binding | ❌ MVVM만 지원 |
 | Named Slot의 내용물 | ❌ 런타임 주입이라 BP엔 없음 |
 
 ### 이벤트/함수 그래프 (의사코드)
 
-이벤트 그래프는 `eventGraph` 필드에 하나의 배열로 평탄화되고, 함수 그래프는 `newFunctions` 필드에 함수 이름을 키로 한 오브젝트로 기록된다.
+이벤트 그래프는 `eventGraph` 필드에 하나의 문자열 배열로 평탄화되고(복수 Ubergraph page를 모두 이어붙임), 함수 그래프는 `newFunctions` 필드에 함수 이름을 키로 한 object(각 함수는 라인 배열)로 기록된다. Entry 헤더는 `event X:`, `custom_event Y:`, `function Z(params):` 형태.
 
 | 항목 | 지원 |
 |---|---|
 | Event, Custom Event | ✅ |
 | Branch (if/else) | ✅ |
-| Sequence | ✅ |
+| Sequence | ✅ `# sequence[N]` 코멘트와 함께 |
 | 변수 Set | ✅ |
-| 함수 호출 (CallFunction) | ✅ |
-| Cast | ✅ |
-| ForEach / ForLoop / While | ✅ |
+| 함수 호출 (CallFunction) | ✅ 인자는 non-default/연결된 핀만 |
+| Cast | ✅ `if (AsX):` / `else:` 분기 렌더링 |
+| 데이터 핀 역추적 (Variable Get, Self, Literal) | ✅ 최대 32 depth 재귀 |
+| Knot(리라우팅 노드) | ✅ 투명하게 통과 |
+| Exec cycle(goto) | ✅ `goto NodeName`으로 표시 |
 | Return | ✅ |
-| Delay, Timeline, Gate | ⚠️ 노드 이름만 |
-| Async / Latent Action | ⚠️ 완료 분기 해석 없음 |
+| ForEach / ForLoop / While (Macro) | ✅ LoopBody/Completed 분기 렌더링 |
+| Delay, Timeline, Gate, Async / Latent Action | ⚠️ 노드 타이틀 한 줄 fallback |
 | Event Dispatcher | ⚠️ 일반 함수 호출처럼 보임 |
 | 매크로 내부 본문 | ❌ 호출 라인만 |
 | 로컬 변수 | ❌ |
@@ -133,8 +141,10 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 **PIE / 쿠킹 중엔 추출이 안되나요**
 - 네. PIE, Cook, Autosave, Commandlet 실행 중엔 동작하지 않도록 의도했습니다.
 
-**JSON이 깨져보여요 / 경로가 이상해요**
-- Windows 경로 260자 제한 회피를 위해 240자 초과 시 해시 폴더(`_long_path_hash/`)로 폴백합니다.
+**특정 BP만 스냅샷이 안 생겨요**
+- Output Log에서 `LogWxBPSnapshot: Error` 로그를 확인하세요.
+- 예상 경로가 240자를 넘으면(`Plugins/WxBlueprintSnapshot/Snapshots/...` 기준) Windows MAX_PATH(260) 제한으로 저장이 실패하므로 해당 BP는 **명시적으로 스킵**됩니다. 조용한 폴백은 하지 않습니다.
+- 해결: BP 이름/폴더 경로를 단축하거나, 프로젝트를 더 짧은 드라이브 경로에 두세요.
 
 ---
 
@@ -145,9 +155,10 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 | 항목 | 기본값 | 설명 |
 |---|---|---|
 | `bEnabled` | true | 전체 기능 on/off |
+| `FileExtension` | `.json` | 스냅샷 파일 확장자. 점을 포함해 입력 (예: `.json`, `.bpj`) |
 | `IncludeDirectories` | [] | 대상 BP 폴더 (비어있으면 전체) |
 | `ExcludeDirectories` | [] | 제외 BP 폴더 |
-| `bIncludeUnchangedDefaults` | false | 기본값과 동일한 프로퍼티도 classDefaults/컴포넌트/위젯 delta에 기록 |
+| `bSkipUnchangedDefaults` | true | 기본값과 동일한 프로퍼티를 classDefaults/컴포넌트/위젯 delta에서 제외 (false로 두면 전체 덤프) |
 | `bIncludeComponents` | true | Components 탭 추출 |
 | `bIncludeVariables` | true | 변수 목록 추출 |
 | `bIncludeInterfaces` | true | 구현 인터페이스 추출 |
@@ -159,9 +170,24 @@ JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.
 
 ## 출력
 
-- **경로**: `Plugins/WxBlueprintSnapshot/Snapshots/<BP 패키지 경로>.json`
-- **포맷**: UTF-8, 키 정렬, 들여쓰기 2-space
+- **경로**: `Plugins/WxBlueprintSnapshot/Snapshots/<BP 패키지 경로><FileExtension>`
+- **포맷**: UTF-8 (no BOM), 키 알파벳 정렬, 들여쓰기 2-space pretty print
 - **ReadOnly 플래그**는 자동 해제 후 덮어쓰기 (Perforce 등에서 편의)
+
+### 최상위 JSON 필드
+
+| 필드 | 타입 | 조건 |
+|---|---|---|
+| `blueprintPath` | string | 항상 |
+| `parentClass` | string | 항상 |
+| `classDefaults` | object | CDO 델타가 비어있지 않을 때 (NewVariables는 중복 제외) |
+| `components` | object | `bIncludeComponents` + SCS 존재 |
+| `newVariables` | object | `bIncludeVariables` + 변수 1개 이상 (`{type, value}` 맵) |
+| `interfaces` | object | `bIncludeInterfaces` + 구현 1개 이상 (`{implemented: [...]}`) |
+| `eventGraph` | array&lt;string&gt; | `bIncludeGraphs` + Ubergraph에 entry 1개 이상 |
+| `newFunctions` | object | `bIncludeGraphs` + 함수 그래프 1개 이상 |
+| `widgetTree` | object | WBP + `bIncludeWidgetTree` |
+| `mvvm` | object | WBP + `bIncludeMVVM` + MVVM 확장 존재 |
 
 ---
 
