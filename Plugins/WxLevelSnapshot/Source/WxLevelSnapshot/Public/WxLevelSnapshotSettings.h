@@ -27,7 +27,7 @@ public:
 	UPROPERTY(EditAnywhere, Config, Category = "General")
 	FString FileExtension = TEXT(".json");
 
-	/** 스냅샷을 저장할 폴더 */
+	/** 스냅샷을 저장할 폴더. 비워두면 `<Plugin>/Snapshots`를 사용 */
 	UPROPERTY(EditAnywhere, Config, Category = "General")
 	FDirectoryPath OutputDirectory;
 

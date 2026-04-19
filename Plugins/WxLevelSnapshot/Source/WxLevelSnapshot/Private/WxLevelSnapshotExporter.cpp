@@ -81,76 +81,62 @@ FString FWxLevelSnapshotExporter::GetActorKey(AActor* Actor)
 	}
 
 	const UWxLevelSnapshotSettings* Settings = GetDefault<UWxLevelSnapshotSettings>();
-	if (Settings && Settings->KeyProperties.Num() > 0)
+	if (!Settings || Settings->KeyProperties.Num() == 0)
 	{
-		// 액터 클래스 체인을 따라 가장 구체적인 매칭을 찾는다.
-		for (UClass* Cls = Actor->GetClass(); Cls; Cls = Cls->GetSuperClass())
+		return FString();
+	}
+
+	// 액터 클래스 체인을 따라 가장 구체적인 매칭을 찾는다.
+	FName PropertyName = NAME_None;
+	bool bMatched = false;
+	for (UClass* Cls = Actor->GetClass(); Cls && Cls->IsChildOf(AActor::StaticClass()); Cls = Cls->GetSuperClass())
+	{
+		if (const FName* Found = Settings->KeyProperties.Find(TSoftClassPtr<AActor>(Cls)))
 		{
-			FName PropertyName = NAME_None;
-			bool bMatched = false;
-			for (const TPair<TSoftClassPtr<AActor>, FName>& Pair : Settings->KeyProperties)
-			{
-				UClass* RuleClass = Pair.Key.Get();
-				if (!RuleClass)
-				{
-					RuleClass = Pair.Key.LoadSynchronous();
-				}
-				if (RuleClass == Cls)
-				{
-					PropertyName = Pair.Value;
-					bMatched = true;
-					break;
-				}
-			}
-
-			if (!bMatched)
-			{
-				continue;
-			}
-
-			if (!PropertyName.IsNone())
-			{
-				// FGuid 프로퍼티(특히 AActor::ActorGuid)는 struct export 형식 대신 하이픈 GUID로 직접 변환.
-				static const FName NAME_ActorGuid(TEXT("ActorGuid"));
-				if (PropertyName == NAME_ActorGuid)
-				{
-					const FGuid Guid = Actor->GetActorGuid();
-					if (Guid.IsValid())
-					{
-						return Guid.ToString(EGuidFormats::DigitsWithHyphens);
-					}
-				}
-				else
-				{
-					FProperty* Prop = FindFProperty<FProperty>(Actor->GetClass(), PropertyName);
-					if (Prop)
-					{
-						FString OutStr;
-						Prop->ExportText_Direct(OutStr, Prop->ContainerPtrToValuePtr<void>(Actor), nullptr, Actor, PPF_None);
-						OutStr.TrimStartAndEndInline();
-						// 따옴표 감싸진 문자열/이름 타입은 래퍼 제거.
-						if (OutStr.Len() >= 2 && OutStr.StartsWith(TEXT("\"")) && OutStr.EndsWith(TEXT("\"")))
-						{
-							OutStr = OutStr.Mid(1, OutStr.Len() - 2);
-						}
-						if (!OutStr.IsEmpty() && OutStr != TEXT("None"))
-						{
-							return OutStr;
-						}
-					}
-					else
-					{
-						UE_LOG(LogWxLevelSnapshot, Error, TEXT("KeyProperty '%s' not found on %s"),
-							*PropertyName.ToString(), *Actor->GetClass()->GetName());
-					}
-				}
-			}
-			// 매칭된 규칙이 있지만 추출 실패 → 빈 문자열 반환 (호출자가 스킵).
+			PropertyName = *Found;
+			bMatched = true;
 			break;
 		}
 	}
 
-	return FString();
+	if (!bMatched || PropertyName.IsNone())
+	{
+		return FString();
+	}
+
+	// FGuid 프로퍼티(특히 AActor::ActorGuid)는 struct export 형식 대신 하이픈 GUID로 직접 변환.
+	static const FName NAME_ActorGuid(TEXT("ActorGuid"));
+	if (PropertyName == NAME_ActorGuid)
+	{
+		const FGuid Guid = Actor->GetActorGuid();
+		if (Guid.IsValid())
+		{
+			return Guid.ToString(EGuidFormats::DigitsWithHyphens);
+		}
+		return FString();
+	}
+
+	FProperty* Prop = FindFProperty<FProperty>(Actor->GetClass(), PropertyName);
+	if (!Prop)
+	{
+		UE_LOG(LogWxLevelSnapshot, Error, TEXT("KeyProperty '%s' not found on %s"),
+			*PropertyName.ToString(), *Actor->GetClass()->GetName());
+		return FString();
+	}
+
+	FString OutStr;
+	Prop->ExportText_Direct(OutStr, Prop->ContainerPtrToValuePtr<void>(Actor), nullptr, Actor, PPF_None);
+	OutStr.TrimStartAndEndInline();
+	// 따옴표 감싸진 문자열/이름 타입은 래퍼 제거.
+	if (OutStr.Len() >= 2 && OutStr.StartsWith(TEXT("\"")) && OutStr.EndsWith(TEXT("\"")))
+	{
+		OutStr = OutStr.Mid(1, OutStr.Len() - 2);
+	}
+	if (OutStr.IsEmpty() || OutStr == TEXT("None"))
+	{
+		return FString();
+	}
+	return OutStr;
 }
 
 TSharedPtr<FJsonObject> FWxLevelSnapshotExporter::BuildActorJson(AActor* Actor)
@@ -199,14 +185,10 @@ TSharedPtr<FJsonObject> FWxLevelSnapshotExporter::BuildActorJson(AActor* Actor)
 	const UWxLevelSnapshotSettings* Settings = GetDefault<UWxLevelSnapshotSettings>();
 	if (Settings && Settings->bIncludeAllProperties)
 	{
-		UObject* ClassDefaults = Actor->GetClass()->GetDefaultObject(false);
-		if (ClassDefaults)
+		TSharedPtr<FJsonObject> Properties = BuildProperties(Actor);
+		if (Properties.IsValid() && Properties->Values.Num() > 0)
 		{
-			TSharedPtr<FJsonObject> Properties = BuildProperties(Actor, ClassDefaults);
-			if (Properties.IsValid() && Properties->Values.Num() > 0)
-			{
-				Root->SetObjectField(TEXT("properties"), Properties.ToSharedRef());
-			}
+			Root->SetObjectField(TEXT("properties"), Properties.ToSharedRef());
 		}
 	}
 
@@ -253,6 +235,36 @@ bool FWxLevelSnapshotExporter::ExportActorIntoLevel(AActor* Actor)
 	{
 		return false;
 	}
+
+	// 커스텀 KeyProperty 값이 변경된 경우 구-키 엔트리가 남지 않도록 같은 GUID의 기존 엔트리를 제거한다.
+	const FGuid ActorGuid = Actor->GetActorGuid();
+	if (ActorGuid.IsValid())
+	{
+		const FString ActorGuidString = ActorGuid.ToString(EGuidFormats::DigitsWithHyphens);
+		TArray<FString> KeysToRemove;
+		for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : Root->Values)
+		{
+			if (Pair.Key == ActorKey)
+			{
+				continue;
+			}
+			const TSharedPtr<FJsonObject>* EntryObj = nullptr;
+			if (!Pair.Value.IsValid() || !Pair.Value->TryGetObject(EntryObj) || !EntryObj)
+			{
+				continue;
+			}
+			FString GuidField;
+			if ((*EntryObj)->TryGetStringField(TEXT("guid"), GuidField) && GuidField == ActorGuidString)
+			{
+				KeysToRemove.Add(Pair.Key);
+			}
+		}
+		for (const FString& Key : KeysToRemove)
+		{
+			Root->Values.Remove(Key);
+		}
+	}
+
 	Root->SetObjectField(ActorKey, ActorJson.ToSharedRef());
 
 	return WriteLevelJson(LevelPackageName, Root.ToSharedRef());

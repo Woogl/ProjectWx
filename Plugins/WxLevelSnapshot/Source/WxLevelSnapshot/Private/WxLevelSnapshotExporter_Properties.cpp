@@ -5,7 +5,6 @@
 #include "UObject/UnrealType.h"
 #include "UObject/Class.h"
 #include "UObject/TextProperty.h"
-#include "UObject/StructOnScope.h"
 #include "Dom/JsonObject.h"
 #include "Dom/JsonValue.h"
 
@@ -29,22 +28,12 @@ namespace
 	{
 		const UObject* Owner = nullptr;
 		TSet<const UObject*> InstanceVisited;
-		int32 ClassDepth = 0;
 	};
 
-	TSharedPtr<FJsonValue> PropertyValueToJson(const FProperty* Property, const void* ValuePtr, const void* DefaultPtr, FExportCtx& Ctx);
-	TSharedPtr<FJsonObject> BuildPropertiesImpl(const UObject* Instance, const UObject* Defaults, FExportCtx& Ctx);
+	TSharedPtr<FJsonValue> PropertyValueToJson(const FProperty* Property, const void* ValuePtr, FExportCtx& Ctx);
+	TSharedPtr<FJsonObject> BuildPropertiesImpl(const UObject* Instance, FExportCtx& Ctx);
 
-	TSharedPtr<FStructOnScope> MakeElementDefault(const FProperty* ElemProp)
-	{
-		if (const FStructProperty* ElemStruct = CastField<FStructProperty>(ElemProp))
-		{
-			return MakeShared<FStructOnScope>(ElemStruct->Struct);
-		}
-		return nullptr;
-	}
-
-	void StructToJsonObject(const UScriptStruct* Struct, const void* StructPtr, const void* DefaultStructPtr, TSharedPtr<FJsonObject> Out, FExportCtx& Ctx)
+	void StructToJsonObject(const UScriptStruct* Struct, const void* StructPtr, TSharedPtr<FJsonObject> Out, FExportCtx& Ctx)
 	{
 		for (TFieldIterator<FProperty> It(Struct); It; ++It)
 		{
@@ -54,9 +43,8 @@ namespace
 				continue;
 			}
 			const void* InnerPtr = Inner->ContainerPtrToValuePtr<void>(StructPtr);
-			const void* InnerDefaultPtr = DefaultStructPtr ? Inner->ContainerPtrToValuePtr<void>(DefaultStructPtr) : nullptr;
 
-			TSharedPtr<FJsonValue> Value = PropertyValueToJson(Inner, InnerPtr, InnerDefaultPtr, Ctx);
+			TSharedPtr<FJsonValue> Value = PropertyValueToJson(Inner, InnerPtr, Ctx);
 			if (Value.IsValid() && Value->Type == EJson::Object && Value->AsObject()->Values.Num() == 0)
 			{
 				continue;
@@ -65,7 +53,7 @@ namespace
 		}
 	}
 
-	TSharedPtr<FJsonValue> PropertyValueToJson(const FProperty* Property, const void* ValuePtr, const void* DefaultPtr, FExportCtx& Ctx)
+	TSharedPtr<FJsonValue> PropertyValueToJson(const FProperty* Property, const void* ValuePtr, FExportCtx& Ctx)
 	{
 		if (!Property || !ValuePtr)
 		{
@@ -119,11 +107,7 @@ namespace
 			const bool bInstanced = Property->HasAnyPropertyFlags(CPF_InstancedReference | CPF_PersistentInstance);
 			if (bInstanced && Obj && !Ctx.InstanceVisited.Contains(Obj))
 			{
-				UObject* DefaultObj = DefaultPtr ? ObjProp->GetObjectPropertyValue(DefaultPtr) : nullptr;
-				const bool bSameClass = DefaultObj && DefaultObj->GetClass() == Obj->GetClass();
-				const UObject* DefaultsForSub = bSameClass ? DefaultObj : Obj->GetClass()->GetDefaultObject(false);
-
-				TSharedPtr<FJsonObject> SubProperties = BuildPropertiesImpl(Obj, DefaultsForSub, Ctx);
+				TSharedPtr<FJsonObject> SubProperties = BuildPropertiesImpl(Obj, Ctx);
 				const bool bHasProperties = SubProperties.IsValid() && SubProperties->Values.Num() > 0;
 
 				TSharedPtr<FJsonObject> InnerJson = MakeShared<FJsonObject>();
@@ -149,26 +133,22 @@ namespace
 		if (const FStructProperty* StructProp = CastField<FStructProperty>(Property))
 		{
 			TSharedPtr<FJsonObject> Obj = MakeShared<FJsonObject>();
-			StructToJsonObject(StructProp->Struct, ValuePtr, DefaultPtr, Obj, Ctx);
+			StructToJsonObject(StructProp->Struct, ValuePtr, Obj, Ctx);
 			return MakeShared<FJsonValueObject>(Obj);
 		}
 		if (const FArrayProperty* ArrProp = CastField<FArrayProperty>(Property))
 		{
 			FScriptArrayHelper Helper(ArrProp, ValuePtr);
-			TSharedPtr<FStructOnScope> ElemDefault = MakeElementDefault(ArrProp->Inner);
-			const void* ElemDefaultMem = ElemDefault.IsValid() ? ElemDefault->GetStructMemory() : nullptr;
 			TArray<TSharedPtr<FJsonValue>> Arr;
 			for (int32 i = 0; i < Helper.Num(); ++i)
 			{
-				Arr.Add(PropertyValueToJson(ArrProp->Inner, Helper.GetRawPtr(i), ElemDefaultMem, Ctx));
+				Arr.Add(PropertyValueToJson(ArrProp->Inner, Helper.GetRawPtr(i), Ctx));
 			}
 			return MakeShared<FJsonValueArray>(Arr);
 		}
 		if (const FSetProperty* SetProp = CastField<FSetProperty>(Property))
 		{
 			FScriptSetHelper Helper(SetProp, ValuePtr);
-			TSharedPtr<FStructOnScope> ElemDefault = MakeElementDefault(SetProp->ElementProp);
-			const void* ElemDefaultMem = ElemDefault.IsValid() ? ElemDefault->GetStructMemory() : nullptr;
 			TArray<TSharedPtr<FJsonValue>> Arr;
 			for (int32 i = 0; i < Helper.GetMaxIndex(); ++i)
 			{
@@ -176,7 +156,7 @@ namespace
 				{
 					continue;
 				}
-				Arr.Add(PropertyValueToJson(SetProp->ElementProp, Helper.GetElementPtr(i), ElemDefaultMem, Ctx));
+				Arr.Add(PropertyValueToJson(SetProp->ElementProp, Helper.GetElementPtr(i), Ctx));
 			}
 			return MakeShared<FJsonValueArray>(Arr);
 		}
@@ -184,8 +164,6 @@ namespace
 		{
 			FScriptMapHelper Helper(MapProp, ValuePtr);
 			const FProperty* KeyProp = MapProp->KeyProp;
-			TSharedPtr<FStructOnScope> ValueDefault = MakeElementDefault(MapProp->ValueProp);
-			const void* ValueDefaultMem = ValueDefault.IsValid() ? ValueDefault->GetStructMemory() : nullptr;
 			const bool bStringKey = KeyProp->IsA<FStrProperty>() || KeyProp->IsA<FNameProperty>() || KeyProp->IsA<FTextProperty>();
 			if (bStringKey)
 			{
@@ -196,14 +174,12 @@ namespace
 					{
 						continue;
 					}
-					const TSharedPtr<FJsonValue> KeyVal = PropertyValueToJson(KeyProp, Helper.GetKeyPtr(i), nullptr, Ctx);
-					Obj->SetField(KeyVal->AsString(), PropertyValueToJson(MapProp->ValueProp, Helper.GetValuePtr(i), ValueDefaultMem, Ctx));
+					const TSharedPtr<FJsonValue> KeyVal = PropertyValueToJson(KeyProp, Helper.GetKeyPtr(i), Ctx);
+					Obj->SetField(KeyVal->AsString(), PropertyValueToJson(MapProp->ValueProp, Helper.GetValuePtr(i), Ctx));
 				}
 				return MakeShared<FJsonValueObject>(Obj);
 			}
 
-			TSharedPtr<FStructOnScope> KeyDefault = MakeElementDefault(KeyProp);
-			const void* KeyDefaultMem = KeyDefault.IsValid() ? KeyDefault->GetStructMemory() : nullptr;
 			TArray<TSharedPtr<FJsonValue>> Arr;
 			for (int32 i = 0; i < Helper.GetMaxIndex(); ++i)
 			{
@@ -212,21 +188,21 @@ namespace
 					continue;
 				}
 				TSharedPtr<FJsonObject> Entry = MakeShared<FJsonObject>();
-				Entry->SetField(TEXT("key"), PropertyValueToJson(KeyProp, Helper.GetKeyPtr(i), KeyDefaultMem, Ctx));
-				Entry->SetField(TEXT("value"), PropertyValueToJson(MapProp->ValueProp, Helper.GetValuePtr(i), ValueDefaultMem, Ctx));
+				Entry->SetField(TEXT("key"), PropertyValueToJson(KeyProp, Helper.GetKeyPtr(i), Ctx));
+				Entry->SetField(TEXT("value"), PropertyValueToJson(MapProp->ValueProp, Helper.GetValuePtr(i), Ctx));
 				Arr.Add(MakeShared<FJsonValueObject>(Entry));
 			}
 			return MakeShared<FJsonValueArray>(Arr);
 		}
 
 		FString Out;
-		Property->ExportText_Direct(Out, ValuePtr, ValuePtr, const_cast<UObject*>(Ctx.Owner), PPF_SimpleObjectText);
+		Property->ExportText_Direct(Out, ValuePtr, nullptr, const_cast<UObject*>(Ctx.Owner), PPF_SimpleObjectText);
 		return MakeShared<FJsonValueString>(Out);
 	}
 
-	TSharedPtr<FJsonObject> BuildPropertiesImpl(const UObject* Instance, const UObject* Defaults, FExportCtx& Ctx)
+	TSharedPtr<FJsonObject> BuildPropertiesImpl(const UObject* Instance, FExportCtx& Ctx)
 	{
-		if (!Instance || !Defaults)
+		if (!Instance)
 		{
 			return nullptr;
 		}
@@ -234,7 +210,6 @@ namespace
 		Ctx.InstanceVisited.Add(Instance);
 
 		TGuardValue<const UObject*> OwnerGuard(Ctx.Owner, Instance);
-		TGuardValue<int32> DepthGuard(Ctx.ClassDepth, Ctx.ClassDepth + 1);
 
 		TSharedPtr<FJsonObject> Properties = MakeShared<FJsonObject>();
 		const UClass* InstanceClass = Instance->GetClass();
@@ -252,12 +227,8 @@ namespace
 			}
 
 			const void* InstancePtr = Property->ContainerPtrToValuePtr<void>(Instance);
-			const UClass* OwnerClass = Property->GetOwnerClass();
-			const void* DefaultPtr = (OwnerClass && Defaults->GetClass()->IsChildOf(OwnerClass))
-				? Property->ContainerPtrToValuePtr<void>(Defaults)
-				: nullptr;
 
-			TSharedPtr<FJsonValue> FieldValue = PropertyValueToJson(Property, InstancePtr, DefaultPtr, Ctx);
+			TSharedPtr<FJsonValue> FieldValue = PropertyValueToJson(Property, InstancePtr, Ctx);
 			if (FieldValue.IsValid() && FieldValue->Type == EJson::Object && FieldValue->AsObject()->Values.Num() == 0)
 			{
 				continue;
@@ -269,8 +240,8 @@ namespace
 	}
 }
 
-TSharedPtr<FJsonObject> FWxLevelSnapshotExporter::BuildProperties(const UObject* Instance, const UObject* SubobjectArchetype)
+TSharedPtr<FJsonObject> FWxLevelSnapshotExporter::BuildProperties(const UObject* Instance)
 {
 	FExportCtx Ctx;
-	return BuildPropertiesImpl(Instance, SubobjectArchetype, Ctx);
+	return BuildPropertiesImpl(Instance, Ctx);
 }
