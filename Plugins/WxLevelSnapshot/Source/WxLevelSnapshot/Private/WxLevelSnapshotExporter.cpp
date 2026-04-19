@@ -281,16 +281,26 @@ bool FWxLevelSnapshotExporter::ExportLevel(ULevel* Level)
 
 	const FString LevelPackageName = LevelPackage->GetName();
 	const UWxLevelSnapshotSettings* Settings = GetDefault<UWxLevelSnapshotSettings>();
+	const bool bCombined = Settings && !Settings->bSaveFilePerLevel;
 
-	if (Settings && !Settings->bSaveFilePerLevel)
+	// OFPA(WP) 레벨에서는 현재 로드된 액터만 Level->Actors에 들어있으므로,
+	// 기존 엔트리를 지우면 언로드 영역의 다른 작업자가 추가한 액터가 JSON에서 날아간다.
+	// 따라서 OFPA 레벨은 upsert-only로 처리하고, 실제 삭제는 per-actor 삭제 이벤트(RemoveActorFromLevel)에 맡긴다.
+	// 비-OFPA(Monolithic) 레벨은 Level->Actors가 레벨 전체를 담으므로 authoritative rewrite가 안전.
+	const bool bAuthoritativeRewrite = !Level->IsUsingExternalActors();
+
+	TSharedPtr<FJsonObject> Root;
+	if (bCombined || !bAuthoritativeRewrite)
 	{
-		// 합쳐진 파일 로드 후 이 레벨의 기존 엔트리만 제거하고 최신 엔트리로 덮어쓴다.
-		TSharedPtr<FJsonObject> Root = LoadLevelJson(LevelPackageName);
-		if (!Root.IsValid())
-		{
-			Root = MakeShared<FJsonObject>();
-		}
+		Root = LoadLevelJson(LevelPackageName);
+	}
+	if (!Root.IsValid())
+	{
+		Root = MakeShared<FJsonObject>();
+	}
 
+	if (bAuthoritativeRewrite)
+	{
 		TArray<FString> KeysToRemove;
 		for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : Root->Values)
 		{
@@ -309,35 +319,8 @@ bool FWxLevelSnapshotExporter::ExportLevel(ULevel* Level)
 		{
 			Root->Values.Remove(Key);
 		}
-
-		for (AActor* Actor : Level->Actors)
-		{
-			if (!Actor || Actor->HasAnyFlags(RF_Transient))
-			{
-				continue;
-			}
-			const FString ActorKey = GetActorKey(Actor);
-			if (ActorKey.IsEmpty())
-			{
-				continue;
-			}
-			TSharedPtr<FJsonObject> ActorJson = BuildActorJson(Actor);
-			if (ActorJson.IsValid())
-			{
-				Root->SetObjectField(ActorKey, ActorJson.ToSharedRef());
-			}
-		}
-
-		return WriteLevelJson(LevelPackageName, Root.ToSharedRef());
 	}
 
-	TSharedRef<FJsonObject> Root = BuildLevelRoot(Level);
-	return WriteLevelJson(LevelPackageName, Root);
-}
-
-TSharedRef<FJsonObject> FWxLevelSnapshotExporter::BuildLevelRoot(ULevel* Level)
-{
-	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
 	for (AActor* Actor : Level->Actors)
 	{
 		if (!Actor || Actor->HasAnyFlags(RF_Transient))
@@ -355,7 +338,8 @@ TSharedRef<FJsonObject> FWxLevelSnapshotExporter::BuildLevelRoot(ULevel* Level)
 			Root->SetObjectField(ActorKey, ActorJson.ToSharedRef());
 		}
 	}
-	return Root;
+
+	return WriteLevelJson(LevelPackageName, Root.ToSharedRef());
 }
 
 bool FWxLevelSnapshotExporter::RemoveActorFromLevel(const FString& LevelPackageName, const FString& ActorGuidString)

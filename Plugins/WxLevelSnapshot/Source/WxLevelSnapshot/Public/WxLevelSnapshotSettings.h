@@ -24,19 +24,19 @@ public:
 	bool bEnabled = true;
 
 	/** 스냅샷 파일 확장자. 점을 포함해 입력 (예: .json) */
-	UPROPERTY(EditAnywhere, Config, Category = "General")
+	UPROPERTY(EditAnywhere, Config, Category = "Output")
 	FString FileExtension = TEXT(".json");
 
 	/** 스냅샷을 저장할 폴더. 비워두면 `<Plugin>/Snapshots`를 사용 */
-	UPROPERTY(EditAnywhere, Config, Category = "General")
+	UPROPERTY(EditAnywhere, Config, Category = "Output")
 	FDirectoryPath OutputDirectory;
 
 	/**
 	 * 레벨별로 파일을 나눠 저장할지 여부.
-	 * false(기본)면 모든 레벨을 `<OutputDirectory>/AllLevels<FileExtension>` 단일 파일에 합침.
+	 * false면 모든 레벨을 `<OutputDirectory>/AllLevels<FileExtension>` 단일 파일에 합침.
 	 * true면 `<OutputDirectory>/<레벨 패키지 경로><FileExtension>` 형태로 레벨마다 별도 파일.
 	 */
-	UPROPERTY(EditAnywhere, Config, Category = "General")
+	UPROPERTY(EditAnywhere, Config, Category = "Output")
 	bool bSaveFilePerLevel = false;
 
 	/** 대상 레벨 폴더. 비어있으면 모든 레벨이 대상 */

@@ -48,5 +48,4 @@ private:
 	static FString SerializeJson(TSharedRef<FJsonObject> RootObject);
 	static bool WriteLevelJson(const FString& LevelPackageName, TSharedRef<FJsonObject> Root);
 	static TSharedPtr<FJsonObject> LoadLevelJson(const FString& LevelPackageName);
-	static TSharedRef<FJsonObject> BuildLevelRoot(ULevel* Level);
 };
