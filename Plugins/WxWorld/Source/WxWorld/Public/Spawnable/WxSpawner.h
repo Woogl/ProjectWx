@@ -35,6 +35,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (MustImplement = "/Script/WxWorld.WxSpawnableInterface", AllowAbstract = "false"))
 	TSubclassOf<AActor> SpawnableActorClass;
 
+	UPROPERTY(EditAnywhere, Category = "Wx")
+	bool bEnableRespawn = true;
+
 	TWeakObjectPtr<AActor> SpawnedActor;
 
 private:
