@@ -191,6 +191,7 @@ Construction Script도 함수 그래프의 하나로 취급되어 `newFunctions.
 - **포맷**: UTF-8 (no BOM), 키 알파벳 정렬, 들여쓰기 2-space pretty print
 - **ReadOnly 플래그**는 자동 해제 후 덮어쓰기 (Perforce 등에서 편의)
 - **삭제 동기화**: BP 에셋을 삭제하면 대응되는 JSON 파일도 함께 제거됨
+- **예시 파일**: 플러그인 Content 폴더의 `BP_SampleCharacter.uasset`에 대응되는 `Snapshots/WxBlueprintSnapshot/BP_SampleCharacter.json` 참조
 
 ### 최상위 JSON 필드
 
