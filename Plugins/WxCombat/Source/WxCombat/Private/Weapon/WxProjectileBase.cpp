@@ -12,29 +12,24 @@
 #include "NiagaraFunctionLibrary.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "WxCollisionChannels.h"
 
 AWxProjectileBase::AWxProjectileBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
 
+	HitCollision = CreateDefaultSubobject<USphereComponent>(TEXT("HitCollision"));
+	SetRootComponent(HitCollision);
+	HitCollision->SetCollisionProfileName(TEXT("WxProjectile"));
+	HitCollision->OnComponentBeginOverlap.AddDynamic(this, &AWxProjectileBase::HandleHitCollisionOverlap);
+	HitCollision->OnComponentHit.AddDynamic(this, &AWxProjectileBase::HandleHitCollisionHit);
+
 	Arrow = CreateDefaultSubobject<UArrowComponent>(TEXT("Arrow"));
-	SetRootComponent(Arrow);
+	Arrow->SetupAttachment(HitCollision);
 
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
-	Mesh->SetupAttachment(Arrow);
+	Mesh->SetupAttachment(HitCollision);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-	HitCollision = CreateDefaultSubobject<USphereComponent>(TEXT("HitCollision"));
-	HitCollision->SetupAttachment(Arrow);
-	HitCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	HitCollision->SetCollisionObjectType(WxCollision::Attack);
-	HitCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitCollision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
-	HitCollision->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
-	HitCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	HitCollision->OnComponentBeginOverlap.AddDynamic(this, &AWxProjectileBase::HandleHitCollisionOverlap);
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovement->ProjectileGravityScale = 0.f;
@@ -42,7 +37,7 @@ AWxProjectileBase::AWxProjectileBase()
 	ProjectileMovement->MaxSpeed = 500;
 
 	TrailFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailFX"));
-	TrailFX->SetupAttachment(Arrow);
+	TrailFX->SetupAttachment(HitCollision);
 	TrailFX->bAutoActivate = true;
 
 	InitialLifeSpan = 10.f;
@@ -133,6 +128,16 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 				TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 			}
 		}
+	}
+
+	Destroy();
+}
+
+void AWxProjectileBase::HandleHitCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (OtherActor == GetOwner() || OtherActor == GetInstigator())
+	{
+		return;
 	}
 
 	Destroy();

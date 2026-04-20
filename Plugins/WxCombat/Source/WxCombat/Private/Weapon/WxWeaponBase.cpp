@@ -35,7 +35,7 @@ AWxWeaponBase::AWxWeaponBase()
 	HitCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("HitCollision"));
 	HitCollision->SetupAttachment(GripPoint);
 	HitCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	HitCollision->SetCollisionObjectType(WxCollision::Attack);
+	HitCollision->SetCollisionObjectType(WxCollision::WxAttack);
 	HitCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
 	HitCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	HitCollision->OnComponentBeginOverlap.AddDynamic(this, &AWxWeaponBase::HandleHitCollisionOverlap);

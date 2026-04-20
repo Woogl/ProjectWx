@@ -17,8 +17,10 @@
 AWxCharacterBase::AWxCharacterBase()
 {
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(WxCollision::WxAttack, ECR_Overlap);
+	GetMesh()->SetGenerateOverlapEvents(true);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
-	GetCapsuleComponent()->SetCollisionResponseToChannel(WxCollision::Attack, ECR_Overlap);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(WxCollision::WxAttack, ECR_Ignore);
 	
 	AbilitySystemComponent = CreateDefaultSubobject<UWxAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
