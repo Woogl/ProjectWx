@@ -1,0 +1,42 @@
+{
+	"blueprintPath": "/Game/Item/BP_Katana.BP_Katana",
+	"classDefaults":
+	{
+		"HitCollision":
+		{
+			"class": "/Script/Engine.CapsuleComponent",
+			"delta":
+			{
+				"CapsuleHalfHeight": 60,
+				"CapsuleRadius": 8,
+				"OnComponentBeginOverlap": "()",
+				"RelativeLocation":
+				{
+					"X": -10,
+					"Y": 3,
+					"Z": 40
+				}
+			}
+		},
+		"Mesh":
+		{
+			"class": "/Script/Engine.SkeletalMeshComponent",
+			"delta":
+			{
+				"RelativeLocation":
+				{
+					"X": -10,
+					"Y": 3,
+					"Z": 55
+				},
+				"RelativeRotation":
+				{
+					"Roll": 90
+				},
+				"SkeletalMesh": "/Game/ARPG_Pack/ARPG_Samurai/Demo/Weapon/Mesh/SKM_katana.SKM_katana",
+				"SkinnedAsset": "/Game/ARPG_Pack/ARPG_Samurai/Demo/Weapon/Mesh/SKM_katana.SKM_katana"
+			}
+		}
+	},
+	"parentClass": "/Script/WxCombat.WxWeaponBase"
+}

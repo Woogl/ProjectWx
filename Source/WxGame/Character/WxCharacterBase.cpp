@@ -19,6 +19,7 @@ AWxCharacterBase::AWxCharacterBase()
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(WxCollision::WxAttack, ECR_Overlap);
 	GetMesh()->SetGenerateOverlapEvents(true);
+	
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(WxCollision::WxAttack, ECR_Ignore);
 	
