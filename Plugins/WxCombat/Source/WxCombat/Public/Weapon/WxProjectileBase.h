@@ -12,6 +12,8 @@ class UArrowComponent;
 class USphereComponent;
 class USkeletalMeshComponent;
 class UProjectileMovementComponent;
+class UNiagaraComponent;
+class UNiagaraSystem;
 
 /**
  * 투사체 베이스 클래스.
@@ -46,7 +48,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Projectile")
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Projectile|FX")
+	TObjectPtr<UNiagaraComponent> TrailFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|Projectile|FX")
+	TObjectPtr<UNiagaraSystem> ImpactFX;
+
 	virtual void BeginPlay() override;
+	virtual void Destroyed() override;
 
 	UFUNCTION()
 	virtual void HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

@@ -8,6 +8,8 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "GenericTeamAgentInterface.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "WxCollisionChannels.h"
@@ -38,6 +40,10 @@ AWxProjectileBase::AWxProjectileBase()
 	ProjectileMovement->ProjectileGravityScale = 0.f;
 	ProjectileMovement->InitialSpeed = 500.f;
 	ProjectileMovement->MaxSpeed = 500;
+
+	TrailFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailFX"));
+	TrailFX->SetupAttachment(Arrow);
+	TrailFX->bAutoActivate = true;
 
 	InitialLifeSpan = 10.f;
 }
@@ -130,4 +136,14 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 	}
 
 	Destroy();
+}
+
+void AWxProjectileBase::Destroyed()
+{
+	if (ImpactFX)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ImpactFX, GetActorLocation(), GetActorRotation());
+	}
+
+	Super::Destroyed();
 }
