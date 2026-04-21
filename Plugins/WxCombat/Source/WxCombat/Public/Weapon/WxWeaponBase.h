@@ -57,6 +57,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
 	float HitStopDuration = 0.15f;
 
+	virtual void Tick(float DeltaSeconds) override;
+
 protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
@@ -79,6 +81,9 @@ protected:
 	virtual void HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 private:
+	/** 히트 검증/팀 체크/GE 적용/HitStop을 수행. Overlap 이벤트와 Tick Sweep이 공통으로 호출 */
+	void ProcessHit(AActor* OtherActor, const FHitResult& HitResult);
+
 	/** 현재 활성 공격 구간 수. 0이면 콜리전 비활성 상태 */
 	int32 ActiveAttackCount = 0;
 
@@ -87,4 +92,8 @@ private:
 
 	/** 한 스윙 내 이미 피격된 액터 목록 */
 	TSet<TObjectPtr<AActor>> HitActorsThisSwing;
+
+	/** 직전 프레임 HitCollision 위치/회전. Tick에서 현재 위치까지 Sweep할 때 시작점으로 사용 */
+	FVector PrevCapsuleLocation = FVector::ZeroVector;
+	FQuat PrevCapsuleRotation = FQuat::Identity;
 };

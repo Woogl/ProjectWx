@@ -13,7 +13,8 @@
 
 AWxWeaponBase::AWxWeaponBase()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
 	bReplicates = true;
 
 	GripPoint = CreateDefaultSubobject<USceneComponent>(TEXT("GripPoint"));
@@ -87,6 +88,7 @@ void AWxWeaponBase::DetachFromCharacter()
 	{
 		ActiveAttackCount = 0;
 		HitCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		SetActorTickEnabled(false);
 		HitActorsThisSwing.Empty();
 		DamageInfo = FWxDamageInfo();
 
@@ -122,7 +124,13 @@ void AWxWeaponBase::BeginAttack(const FWxDamageInfo& InDamageInfo)
 
 	if (ActiveAttackCount == 0)
 	{
+		// 첫 프레임 Sweep이 0 거리가 되도록 현재 트랜스폼으로 초기화. 직전 위치를 모르는 상태에서
+		// 임의 값이 들어가면 무관한 액터까지 Sweep으로 잡힐 수 있다.
+		PrevCapsuleLocation = HitCollision->GetComponentLocation();
+		PrevCapsuleRotation = HitCollision->GetComponentQuat();
+
 		HitCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		SetActorTickEnabled(true);
 
 		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OwnerActor))
 		{
@@ -145,6 +153,7 @@ void AWxWeaponBase::EndAttack()
 	if (ActiveAttackCount == 0)
 	{
 		HitCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		SetActorTickEnabled(false);
 		HitActorsThisSwing.Empty();
 		DamageInfo = FWxDamageInfo();
 
@@ -158,7 +167,83 @@ void AWxWeaponBase::EndAttack()
 	}
 }
 
+void AWxWeaponBase::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (ActiveAttackCount <= 0)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	const FVector CurrLocation = HitCollision->GetComponentLocation();
+	const FQuat CurrRotation = HitCollision->GetComponentQuat();
+
+	// 직전 프레임 위치 → 현재 위치 사이를 캡슐 모양으로 Sweep해서, Overlap 이벤트가
+	// 한 틱에 캡슐을 지나친 액터를 놓치는 터널링을 보완한다.
+	const FCollisionShape Shape = FCollisionShape::MakeCapsule(HitCollision->GetScaledCapsuleRadius(), HitCollision->GetScaledCapsuleHalfHeight());
+
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(WxWeaponSweep), false);
+	Params.AddIgnoredActor(this);
+	if (AActor* OwnerActor = GetOwner())
+	{
+		Params.AddIgnoredActor(OwnerActor);
+	}
+	for (const TObjectPtr<AActor>& AlreadyHit : HitActorsThisSwing)
+	{
+		if (AlreadyHit)
+		{
+			Params.AddIgnoredActor(AlreadyHit.Get());
+		}
+	}
+
+	FCollisionObjectQueryParams ObjectParams;
+	ObjectParams.AddObjectTypesToQuery(ECC_Pawn);
+
+	TArray<FHitResult> Hits;
+	World->SweepMultiByObjectType(Hits, PrevCapsuleLocation, CurrLocation, CurrRotation, ObjectParams, Shape, Params);
+
+	for (const FHitResult& Hit : Hits)
+	{
+		ProcessHit(Hit.GetActor(), Hit);
+	}
+
+	PrevCapsuleLocation = CurrLocation;
+	PrevCapsuleRotation = CurrRotation;
+}
+
 void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	FHitResult HitResult;
+	if (bFromSweep)
+	{
+		HitResult = SweepResult;
+	}
+	else if (OtherComp)
+	{
+		FVector ClosestPoint;
+		if (OtherComp->GetClosestPointOnCollision(HitCollision->GetComponentLocation(), ClosestPoint) >= 0.f)
+		{
+			HitResult.ImpactPoint = ClosestPoint;
+			HitResult.Location = ClosestPoint;
+		}
+		else
+		{
+			HitResult.ImpactPoint = OtherComp->GetComponentLocation();
+			HitResult.Location = OtherComp->GetComponentLocation();
+		}
+	}
+
+	ProcessHit(OtherActor, HitResult);
+}
+
+void AWxWeaponBase::ProcessHit(AActor* OtherActor, const FHitResult& HitResult)
 {
 	// 클라이언트와 서버 모두 동일한 히트 판정과 GE 적용을 수행한다.
 	// 클라이언트의 GE 적용은 어빌리티의 ScopedPredictionKey로 예측 처리되며,
@@ -197,26 +282,6 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 	Context.AddSourceObject(this);
 	Context.AddInstigator(WeaponOwner, WeaponOwner);
 	Context.SetAbility(SourceASC->GetAnimatingAbility());
-
-	FHitResult HitResult;
-	if (bFromSweep)
-	{
-		HitResult = SweepResult;
-	}
-	else
-	{
-		FVector ClosestPoint;
-		if (OtherComp->GetClosestPointOnCollision(HitCollision->GetComponentLocation(), ClosestPoint) >= 0.f)
-		{
-			HitResult.ImpactPoint = ClosestPoint;
-			HitResult.Location = ClosestPoint;
-		}
-		else
-		{
-			HitResult.ImpactPoint = OtherComp->GetComponentLocation();
-			HitResult.Location = OtherComp->GetComponentLocation();
-		}
-	}
 	Context.AddHitResult(HitResult);
 
 	const TArray<FGameplayEffectSpecHandle> Specs = DamageInfo.MakeSpecs(SourceASC, Context);
