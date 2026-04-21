@@ -137,8 +137,7 @@ void AWxCharacterBase::SpawnDefaultWeapon()
 	EquippedWeapon = GetWorld()->SpawnActor<AWxWeaponBase>(WeaponActor, SpawnParams);
 	if (EquippedWeapon)
 	{
-		EquippedWeapon->AttachToCharacter(this, DefaultWeaponSocket);
-		// 서버 BeginPlay 이후 이미 EquippedItemDef가 설정돼 있을 수 있으므로, 스폰 직후 시각 재적용.
+		// 서버 BeginPlay 이후 이미 EquippedItemDef가 설정돼 있을 수도 있으므로, 스폰 직후 장착 적용.
 		ApplyEquipmentVisuals();
 	}
 }
@@ -177,30 +176,30 @@ void AWxCharacterBase::ApplyEquipmentVisuals()
 		return;
 	}
 
-	// 장착 해제: 무기 액터는 유지하되 메시와 부착 소켓을 CDO 기본값으로 복원.
-	if (!EquippedItemDef)
+	// EquippedItemDef가 없으면 CDO 기본 메시 + 기본 소켓으로 장착 (장착 해제 상태).
+	FName Socket = DefaultWeaponSocket;
+	USkeletalMesh* MeshAsset = nullptr;
+
+	if (EquippedItemDef)
 	{
-		EquippedWeapon->ResetWeaponMeshToDefault();
-		EquippedWeapon->AttachToCharacter(this, DefaultWeaponSocket);
-		return;
+		if (const FWxItemFragment_Equipment* Fragment = EquippedItemDef->FindFragment<FWxItemFragment_Equipment>())
+		{
+			Socket = Fragment->AttachSocket;
+			MeshAsset = Fragment->SkeletalMesh;
+		}
 	}
 
-	const FWxItemFragment_Equipment* Fragment = EquippedItemDef->FindFragment<FWxItemFragment_Equipment>();
-	if (!Fragment)
+	// BP에서 추가한 외형 SkeletalMesh가 있으면 그 메시에 장착, 없으면 GetMesh()에 직접 장착.
+	USkeletalMeshComponent* Visual = GetMesh();
+	for (USceneComponent* Child : Visual->GetAttachChildren())
 	{
-		return;
+		if (USkeletalMeshComponent* SkelChild = Cast<USkeletalMeshComponent>(Child))
+		{
+			Visual = SkelChild;
+			break;
+		}
 	}
-
-	if (Fragment->SkeletalMesh)
-	{
-		EquippedWeapon->SetWeaponMesh(Fragment->SkeletalMesh);
-	}
-	else
-	{
-		EquippedWeapon->ResetWeaponMeshToDefault();
-	}
-
-	EquippedWeapon->AttachToCharacter(this, Fragment->AttachSocket);
+	EquippedWeapon->Equip(Visual, Socket, MeshAsset);
 }
 
 void AWxCharacterBase::InitAbilitySystem()

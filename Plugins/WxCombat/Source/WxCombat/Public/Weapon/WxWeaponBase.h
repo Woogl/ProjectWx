@@ -16,7 +16,7 @@ class USkeletalMeshComponent;
  * 무기 베이스 클래스.
  *
  * 사용 흐름:
- *  1. SpawnActor → AttachToCharacter(Character, SocketName)
+ *  1. SpawnActor → Equip(TargetMesh, Socket, MeshAsset)
  *  2. ANS_WeaponAttack이 BeginAttack / EndAttack을 호출
  *  3. 무기가 내부 레퍼런스 카운팅으로 히트 콜리전 활성/비활성 자동 전환
  *
@@ -49,16 +49,15 @@ public:
 	 */
 	void EndAttack();
 
-	/** 캐릭터 메시의 SocketName에 부착 */
-	void AttachToCharacter(ACharacter* Character, FName SocketName);
+	/**
+	 * 무기를 대상 메시의 소켓에 장착한다.
+	 * MeshAsset이 지정되면 무기 외형을 해당 메시로 교체, nullptr이면 CDO 기본 메시로 복원한다.
+	 * TargetMesh의 Owner가 무기의 Owner로 설정된다.
+	 */
+	void Equip(USkeletalMeshComponent* TargetMesh, FName SocketName, USkeletalMesh* MeshAsset = nullptr);
 
-	void DetachFromCharacter();
-
-	/** 무기의 스켈레탈 메시 에셋을 교체 */
-	void SetWeaponMesh(USkeletalMesh* NewMesh);
-
-	/** 무기 메시를 CDO의 기본 스켈레탈 메시로 복원 */
-	void ResetWeaponMeshToDefault();
+	/** 장착 해제. 활성 공격 구간이 있으면 강제 종료 후 메시에서 분리한다. */
+	void Unequip();
 
 	/** 역경직 지속 시간 (초). 0 이하이면 역경직 미적용 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")

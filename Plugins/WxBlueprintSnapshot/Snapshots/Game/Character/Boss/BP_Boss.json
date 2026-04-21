@@ -11,6 +11,19 @@
 			}
 		},
 		"BehaviorTreeAsset": "/Game/AI/BT_Boss.BT_Boss",
+		"CapsuleComponent":
+		{
+			"class": "/Script/Engine.CapsuleComponent",
+			"delta":
+			{
+				"RelativeScale3D":
+				{
+					"X": 1.3,
+					"Y": 1.3,
+					"Z": 1.3
+				}
+			}
+		},
 		"Mesh":
 		{
 			"class": "/Script/Engine.SkeletalMeshComponent",
@@ -33,6 +46,7 @@
 				"SkinnedAsset": "/Game/Mannequins/Meshes/SKM_Manny.SKM_Manny"
 			}
 		},
+		"RootComponent": "CollisionCylinder",
 		"WeaponActor": "/Game/Item/BP_Katana.BP_Katana_C"
 	},
 	"parentClass": "/Script/WxGame.WxBossCharacter"

@@ -53,21 +53,17 @@
 				"VisibilityBasedAnimTickOption": "AlwaysTickPoseAndRefreshBones"
 			}
 		},
-		"WeaponActor": "/Game/Item/BP_Katana.BP_Katana_C"
-	},
-	"components":
-	{
-		"VisualOverrides":
+		"VisualOverride":
 		{
-			"componentClass": "/Script/Engine.SkeletalMeshComponent",
+			"class": "/Script/Engine.SkeletalMeshComponent",
 			"delta":
 			{
 				"AnimClass": "/Game/Character/Player/ABP_Shinbi.ABP_Shinbi_C",
 				"SkeletalMesh": "/Game/ParagonShinbi/Characters/Heroes/Shinbi/Meshes/Shinbi.Shinbi",
 				"SkinnedAsset": "/Game/ParagonShinbi/Characters/Heroes/Shinbi/Meshes/Shinbi.Shinbi"
-			},
-			"variableName": "VisualOverrides"
-		}
+			}
+		},
+		"WeaponActor": "/Game/Item/BP_Katana.BP_Katana_C"
 	},
 	"parentClass": "/Script/WxGame.WxPlayerCharacter"
 }

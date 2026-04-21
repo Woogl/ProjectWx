@@ -64,46 +64,33 @@ AWxWeaponBase* AWxWeaponBase::FindWeapon(const AActor* Owner)
 
 void AWxWeaponBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	DetachFromCharacter();
+	Unequip();
 
 	Super::EndPlay(EndPlayReason);
 }
 
-void AWxWeaponBase::AttachToCharacter(ACharacter* Character, FName SocketName)
+void AWxWeaponBase::Equip(USkeletalMeshComponent* TargetMesh, FName SocketName, USkeletalMesh* MeshAsset)
 {
-	if (!Character)
+	if (!TargetMesh || !Mesh)
 	{
 		return;
 	}
 
-	AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
-	SetOwner(Character);
+	if (MeshAsset)
+	{
+		Mesh->SetSkeletalMeshAsset(MeshAsset);
+	}
+	else if (const AWxWeaponBase* CDO = GetClass()->GetDefaultObject<AWxWeaponBase>())
+	{
+		Mesh->SetSkeletalMeshAsset(CDO->Mesh ? CDO->Mesh->GetSkeletalMeshAsset() : nullptr);
+	}
+
+	AttachToComponent(TargetMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
+	SetOwner(TargetMesh->GetOwner());
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
-void AWxWeaponBase::SetWeaponMesh(USkeletalMesh* NewMesh)
-{
-	if (Mesh && NewMesh)
-	{
-		Mesh->SetSkeletalMeshAsset(NewMesh);
-	}
-}
-
-void AWxWeaponBase::ResetWeaponMeshToDefault()
-{
-	if (!Mesh)
-	{
-		return;
-	}
-
-	const AWxWeaponBase* CDO = GetClass()->GetDefaultObject<AWxWeaponBase>();
-	if (CDO && CDO->Mesh)
-	{
-		Mesh->SetSkeletalMeshAsset(CDO->Mesh->GetSkeletalMeshAsset());
-	}
-}
-
-void AWxWeaponBase::DetachFromCharacter()
+void AWxWeaponBase::Unequip()
 {
 	// 활성 공격 구간이 남아있으면 강제 종료
 	if (ActiveAttackCount > 0)
