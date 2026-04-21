@@ -8,7 +8,8 @@
 
 #include "WxItemFragment.generated.h"
 
-class AActor;
+class UGameplayEffect;
+class USkeletalMesh;
 
 /**
  * 아이템 Fragment의 베이스 USTRUCT.
@@ -23,22 +24,38 @@ struct WXINVENTORY_API FWxItemFragment
 };
 
 /**
- * 장착 시 소유자에 스폰/부착할 액터를 지정하는 Fragment.
+ * 장착 시 소유자가 항상 들고 있는 무기 액터의 스켈레탈 메시를 교체하는 Fragment.
  *
- * 액터 클래스 자체가 메시·소켓·콜리전·GAS 부여 로직 등 장비 행동을 캡슐화한다.
- * 매니저는 장착 시점에 본 클래스를 스폰하여 소유 캐릭터에 attach 하고, 해제 시점에 destroy 한다.
+ * 무기 액터 자체는 캐릭터가 항상 소유하므로(WxCharacterBase::DefaultWeapon),
+ * 장비 변경은 액터 스폰/디스트로이가 아닌 메시 스왑과 부착 소켓 변경으로만 수행한다.
  */
 USTRUCT(BlueprintType, DisplayName = "Equipment")
 struct WXINVENTORY_API FWxItemFragment_Equipment : public FWxItemFragment
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditDefaultsOnly, Category = "Equipment", meta = (AllowedClasses = "/Script/WxCombat.WxWeaponBase"))
-	TSubclassOf<AActor> EquipmentActorClass;
+	/** 무기 메시 컴포넌트에 적용할 스켈레탈 메시 */
+	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
+	TObjectPtr<USkeletalMesh> SkeletalMesh;
 
 	/** 장착 시 소유자 메시에서 이 장비를 부착할 소켓. 비어 있으면 메시 루트에 부착. */
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
 	FName AttachSocket = TEXT("hand_r");
+};
+
+/**
+ * 소비 시 사용자에게 GameplayEffect를 적용하는 Fragment.
+ *
+ * 인벤토리 매니저의 UseItemByDef 가 Effect 적용과 스택 1 차감을 함께 수행한다.
+ */
+USTRUCT(BlueprintType, DisplayName = "Consumable")
+struct WXINVENTORY_API FWxItemFragment_Consumable : public FWxItemFragment
+{
+	GENERATED_BODY()
+
+	/** 사용 시 사용자(소유 폰)의 ASC에 적용할 GameplayEffect */
+	UPROPERTY(EditDefaultsOnly, Category = "Consumable")
+	TSubclassOf<UGameplayEffect> Effect;
 };
 
 /**

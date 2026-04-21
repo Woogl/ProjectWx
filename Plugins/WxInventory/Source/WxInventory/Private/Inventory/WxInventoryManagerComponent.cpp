@@ -2,11 +2,15 @@
 
 #include "Inventory/WxInventoryManagerComponent.h"
 
+#include "Inventory/WxEquipmentInterface.h"
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemFragment.h"
 #include "Items/WxItemInstance.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "Engine/ActorChannel.h"
+#include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -303,6 +307,89 @@ bool UWxInventoryManagerComponent::ConsumeItemByDef(const UWxItemDefinition* Ite
 	}
 
 	BroadcastStackChanged(ItemDef, -Count);
+	return true;
+}
+
+bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef)
+{
+	if (!ItemDef)
+	{
+		return false;
+	}
+
+	AActor* OwnerActor = GetOwner();
+	check(OwnerActor && OwnerActor->HasAuthority());
+
+	const FWxItemFragment_Consumable* Consumable = ItemDef->FindFragment<FWxItemFragment_Consumable>();
+	if (!Consumable)
+	{
+		return false;
+	}
+
+	// 재고 부족이면 적용도 차감도 발생하지 않아야 하므로, 차감을 먼저 시도한다.
+	if (!ConsumeItemByDef(ItemDef, 1))
+	{
+		return false;
+	}
+
+	if (!Consumable->Effect)
+	{
+		return true;
+	}
+
+	// PlayerState에 부착된 경우 실제 ASC는 소유 폰이 가진다. 범용 액터 소유도 지원하기 위해 PlayerState → Pawn → Owner 순으로 조회.
+	UAbilitySystemComponent* TargetASC = nullptr;
+	if (const APlayerState* PS = Cast<APlayerState>(OwnerActor))
+	{
+		TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(PS->GetPawn());
+	}
+	if (!TargetASC)
+	{
+		TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OwnerActor);
+	}
+
+	if (!TargetASC)
+	{
+		return true;
+	}
+
+	FGameplayEffectContextHandle Context = TargetASC->MakeEffectContext();
+	Context.AddSourceObject(ItemDef);
+
+	const FGameplayEffectSpecHandle Spec = TargetASC->MakeOutgoingSpec(Consumable->Effect, 1.f, Context);
+	if (Spec.IsValid())
+	{
+		TargetASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
+	}
+
+	return true;
+}
+
+bool UWxInventoryManagerComponent::EquipItemByDef(const UWxItemDefinition* ItemDef)
+{
+	AActor* OwnerActor = GetOwner();
+	check(OwnerActor && OwnerActor->HasAuthority());
+
+	// 장착 해제(nullptr)는 그대로 전달한다. 장착일 경우에만 Fragment 유효성 검증.
+	if (ItemDef && !ItemDef->FindFragment<FWxItemFragment_Equipment>())
+	{
+		return false;
+	}
+
+	// PlayerState에 부착된 경우 실제 장착 대상은 소유 폰.
+	AActor* TargetActor = OwnerActor;
+	if (const APlayerState* PS = Cast<APlayerState>(OwnerActor))
+	{
+		TargetActor = PS->GetPawn();
+	}
+
+	IWxEquipmentInterface* Handler = Cast<IWxEquipmentInterface>(TargetActor);
+	if (!Handler)
+	{
+		return false;
+	}
+
+	Handler->EquipItem(ItemDef);
 	return true;
 }
 

@@ -81,6 +81,28 @@ void AWxWeaponBase::AttachToCharacter(ACharacter* Character, FName SocketName)
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
+void AWxWeaponBase::SetWeaponMesh(USkeletalMesh* NewMesh)
+{
+	if (Mesh && NewMesh)
+	{
+		Mesh->SetSkeletalMeshAsset(NewMesh);
+	}
+}
+
+void AWxWeaponBase::ResetWeaponMeshToDefault()
+{
+	if (!Mesh)
+	{
+		return;
+	}
+
+	const AWxWeaponBase* CDO = GetClass()->GetDefaultObject<AWxWeaponBase>();
+	if (CDO && CDO->Mesh)
+	{
+		Mesh->SetSkeletalMeshAsset(CDO->Mesh->GetSkeletalMeshAsset());
+	}
+}
+
 void AWxWeaponBase::DetachFromCharacter()
 {
 	// 활성 공격 구간이 남아있으면 강제 종료

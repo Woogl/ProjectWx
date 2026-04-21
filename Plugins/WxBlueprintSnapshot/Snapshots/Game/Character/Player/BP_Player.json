@@ -10,7 +10,6 @@
 				"AbilitySet": "/Game/Character/Player/ABS_Player.ABS_Player"
 			}
 		},
-		"DefaultWeaponItem": "/Game/Item/DA_Katana.DA_Katana",
 		"GameHUDClass": "/Game/UI/Widget/WBP_GameHUD.WBP_GameHUD_C",
 		"InputConfig": "/Game/Input/DA_ChracterInputConfig.DA_ChracterInputConfig",
 		"Mesh":
@@ -53,7 +52,8 @@
 				"SkinnedAsset": "/Game/Mannequins/Meshes/SKM_Quinn.SKM_Quinn",
 				"VisibilityBasedAnimTickOption": "AlwaysTickPoseAndRefreshBones"
 			}
-		}
+		},
+		"WeaponActor": "/Game/Item/BP_Katana.BP_Katana_C"
 	},
 	"components":
 	{
@@ -63,10 +63,6 @@
 			"delta":
 			{
 				"AnimClass": "/Game/Character/Player/ABP_Shinbi.ABP_Shinbi_C",
-				"BodyInstance":
-				{
-					"SolverAsyncDeltaTime": 0.016666999086737633
-				},
 				"SkeletalMesh": "/Game/ParagonShinbi/Characters/Heroes/Shinbi/Meshes/Shinbi.Shinbi",
 				"SkinnedAsset": "/Game/ParagonShinbi/Characters/Heroes/Shinbi/Meshes/Shinbi.Shinbi"
 			},

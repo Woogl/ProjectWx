@@ -1,0 +1,63 @@
+{
+	"blueprintPath": "/Game/Character/Enemy/BP_Enemy.BP_Enemy",
+	"classDefaults":
+	{
+		"AbilitySystemComponent":
+		{
+			"class": "/Script/WxCombat.WxAbilitySystemComponent",
+			"delta":
+			{
+				"AbilitySet": "/Game/Character/Enemy/ABS_Enemy.ABS_Enemy"
+			}
+		},
+		"BehaviorTreeAsset": "/Game/AI/BT_Enemy.BT_Enemy",
+		"Mesh":
+		{
+			"class": "/Script/Engine.SkeletalMeshComponent",
+			"delta":
+			{
+				"AnimClass": "/Game/Mannequins/Animations/ABP_Manny.ABP_Manny_C",
+				"BodyInstance":
+				{
+					"CollisionResponses":
+					{
+						"ResponseArray": [
+							{
+								"Channel": "Pawn",
+								"Response": "ECR_Ignore"
+							},
+							{
+								"Channel": "Vehicle",
+								"Response": "ECR_Ignore"
+							},
+							{
+								"Channel": "Camera",
+								"Response": "ECR_Ignore"
+							}
+						]
+					}
+				},
+				"RelativeLocation":
+				{
+					"Z": -90
+				},
+				"RelativeRotation":
+				{
+					"Yaw": -90
+				},
+				"SkeletalMesh": "/Game/Mannequins/Meshes/SKM_Manny.SKM_Manny",
+				"SkinnedAsset": "/Game/Mannequins/Meshes/SKM_Manny.SKM_Manny"
+			}
+		},
+		"NameplateComponent":
+		{
+			"class": "/Script/WxGame.WxNameplateComponent",
+			"delta":
+			{
+				"WidgetClass": "/Game/UI/Widget/WBP_Nameplate_Enemy.WBP_Nameplate_Enemy_C"
+			}
+		},
+		"WeaponActor": "/Game/Item/BP_Katana.BP_Katana_C"
+	},
+	"parentClass": "/Script/WxGame.WxEnemyCharacter"
+}

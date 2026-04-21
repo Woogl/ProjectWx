@@ -45,6 +45,7 @@ void AWxCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWxCharacterBase, EquippedWeapon);
+	DOREPLIFETIME(AWxCharacterBase, EquippedItemDef);
 }
 
 UAbilitySystemComponent* AWxCharacterBase::GetAbilitySystemComponent() const
@@ -124,13 +125,7 @@ void AWxCharacterBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AWxCharacterBase::SpawnDefaultWeapon()
 {
-	if (!DefaultWeaponItem || !HasAuthority())
-	{
-		return;
-	}
-
-	const FWxItemFragment_Equipment* EquipmentFragment = DefaultWeaponItem->FindFragment<FWxItemFragment_Equipment>();
-	if (!EquipmentFragment || !EquipmentFragment->EquipmentActorClass)
+	if (!WeaponActor || !HasAuthority())
 	{
 		return;
 	}
@@ -139,12 +134,73 @@ void AWxCharacterBase::SpawnDefaultWeapon()
 	SpawnParams.Owner = this;
 	SpawnParams.Instigator = this;
 
-	AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(EquipmentFragment->EquipmentActorClass, SpawnParams);
-	EquippedWeapon = Cast<AWxWeaponBase>(SpawnedActor);
+	EquippedWeapon = GetWorld()->SpawnActor<AWxWeaponBase>(WeaponActor, SpawnParams);
 	if (EquippedWeapon)
 	{
-		EquippedWeapon->AttachToCharacter(this, EquipmentFragment->AttachSocket);
+		EquippedWeapon->AttachToCharacter(this, DefaultWeaponSocket);
+		// 서버 BeginPlay 이후 이미 EquippedItemDef가 설정돼 있을 수 있으므로, 스폰 직후 시각 재적용.
+		ApplyEquipmentVisuals();
 	}
+}
+
+void AWxCharacterBase::EquipItem(const UWxItemDefinition* ItemDef)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	if (ItemDef && !ItemDef->FindFragment<FWxItemFragment_Equipment>())
+	{
+		return;
+	}
+
+	EquippedItemDef = ItemDef;
+	ApplyEquipmentVisuals();
+}
+
+void AWxCharacterBase::OnRep_EquippedWeapon()
+{
+	// 늦게 도착한 EquippedWeapon이 기존 EquippedItemDef를 따라 시각에 반영되도록 재적용.
+	ApplyEquipmentVisuals();
+}
+
+void AWxCharacterBase::OnRep_EquippedItemDef()
+{
+	ApplyEquipmentVisuals();
+}
+
+void AWxCharacterBase::ApplyEquipmentVisuals()
+{
+	if (!EquippedWeapon)
+	{
+		return;
+	}
+
+	// 장착 해제: 무기 액터는 유지하되 메시와 부착 소켓을 CDO 기본값으로 복원.
+	if (!EquippedItemDef)
+	{
+		EquippedWeapon->ResetWeaponMeshToDefault();
+		EquippedWeapon->AttachToCharacter(this, DefaultWeaponSocket);
+		return;
+	}
+
+	const FWxItemFragment_Equipment* Fragment = EquippedItemDef->FindFragment<FWxItemFragment_Equipment>();
+	if (!Fragment)
+	{
+		return;
+	}
+
+	if (Fragment->SkeletalMesh)
+	{
+		EquippedWeapon->SetWeaponMesh(Fragment->SkeletalMesh);
+	}
+	else
+	{
+		EquippedWeapon->ResetWeaponMeshToDefault();
+	}
+
+	EquippedWeapon->AttachToCharacter(this, Fragment->AttachSocket);
 }
 
 void AWxCharacterBase::InitAbilitySystem()

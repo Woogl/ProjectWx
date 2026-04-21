@@ -9,6 +9,7 @@
 
 class UArrowComponent;
 class UCapsuleComponent;
+class USkeletalMesh;
 class USkeletalMeshComponent;
 
 /**
@@ -52,6 +53,12 @@ public:
 	void AttachToCharacter(ACharacter* Character, FName SocketName);
 
 	void DetachFromCharacter();
+
+	/** 무기의 스켈레탈 메시 에셋을 교체 */
+	void SetWeaponMesh(USkeletalMesh* NewMesh);
+
+	/** 무기 메시를 CDO의 기본 스켈레탈 메시로 복원 */
+	void ResetWeaponMeshToDefault();
 
 	/** 역경직 지속 시간 (초). 0 이하이면 역경직 미적용 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")

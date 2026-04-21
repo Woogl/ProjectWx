@@ -8,6 +8,7 @@
 #include "GameplayTagAssetInterface.h"
 #include "GenericTeamAgentInterface.h"
 #include "GameplayEffectTypes.h"
+#include "Inventory/WxEquipmentInterface.h"
 #include "WxTeamTypes.h"
 #include "WxCharacterBase.generated.h"
 
@@ -25,7 +26,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBas
  * ASC를 캐릭터에 직접 소유 (리스폰 시 스탯을 새로 초기화하므로 PlayerState 불필요).
  */
 UCLASS(Abstract, meta = (PrioritizeCategories = "Wx"))
-class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface, public IGenericTeamAgentInterface
+class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface, public IGenericTeamAgentInterface, public IWxEquipmentInterface
 {
 	GENERATED_BODY()
 
@@ -42,6 +43,9 @@ public:
 	virtual void SetGenericTeamId(const FGenericTeamId& InTeamId) override;
 	virtual FGenericTeamId GetGenericTeamId() const override;
 	virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
+
+	// IWxEquipmentInterface
+	virtual void EquipItem(const UWxItemDefinition* ItemDef) override;
 
 	bool IsAlive() const;
 	AWxWeaponBase* GetEquippedWeapon() const;
@@ -96,12 +100,29 @@ protected:
 
 	// ── Weapon ─────────────────────────────────────────────────────────────
 
-	/** 시작 시 장착할 아이템. FWxItemFragment_Equipment 에서 무기 액터 클래스/소켓을 추출. */
+	/** 캐릭터가 항상 소유하는 무기 액터의 클래스. BeginPlay에서 스폰되어 DefaultWeaponSocket에 부착된다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
-	TObjectPtr<UWxItemDefinition> DefaultWeaponItem;
+	TSubclassOf<AWxWeaponBase> WeaponActor;
 
-	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Wx|Weapon")
+	/** DefaultWeapon을 부착할 캐릭터 메시의 소켓 이름 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
+	FName DefaultWeaponSocket = TEXT("hand_r");
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_EquippedWeapon, Category = "Wx|Weapon")
 	TObjectPtr<AWxWeaponBase> EquippedWeapon;
 
+	/** 현재 장착 중인 아이템. 변경 시 EquippedWeapon의 메시/부착 소켓이 fragment 기준으로 갱신된다. */
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_EquippedItemDef, Category = "Wx|Weapon")
+	TObjectPtr<const UWxItemDefinition> EquippedItemDef;
+
 	void SpawnDefaultWeapon();
+
+	UFUNCTION()
+	void OnRep_EquippedWeapon();
+
+	UFUNCTION()
+	void OnRep_EquippedItemDef();
+
+	/** EquippedItemDef에 따라 EquippedWeapon의 메시/소켓을 적용. 서버/클라이언트 공통 진입. */
+	void ApplyEquipmentVisuals();
 };

@@ -135,6 +135,12 @@ public:
 	/** 권한: ItemDef 의 소유 수량을 Count 만큼 차감한다. 부족하면 false 반환하고 아무것도 차감하지 않는다(원자적). 0 이 된 슬롯은 제거한다. */
 	bool ConsumeItemByDef(const UWxItemDefinition* ItemDef, int32 Count);
 
+	/** 권한: Consumable Fragment를 가진 아이템을 1개 사용한다. 재고 부족/비 소비 아이템이면 false. 1개 차감 성공 후에만 GE를 소유 폰에 적용한다. */
+	bool UseItemByDef(const UWxItemDefinition* ItemDef);
+
+	/** 권한: Equipment Fragment를 가진 아이템을 소유 폰(IWxEquipmentInterface)에 장착 요청. 스택은 차감하지 않는다. ItemDef가 nullptr이면 장착 해제. */
+	bool EquipItemByDef(const UWxItemDefinition* ItemDef);
+
 	/** 권한: CurrencyTag 소유 총합에서 Count 만큼 차감한다. 원자적. */
 	bool ConsumeItemByTag(FGameplayTag CurrencyTag, int32 Count);
 
