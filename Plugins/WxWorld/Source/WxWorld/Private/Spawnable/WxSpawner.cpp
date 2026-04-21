@@ -210,55 +210,47 @@ void AWxSpawner::UpdateEditorPreviewFromSpawnableClass()
 	const USkeletalMeshComponent* SourceSkeletal = Cast<USkeletalMeshComponent>(SourceMeshComponent);
 	const UStaticMeshComponent* SourceStatic = Cast<UStaticMeshComponent>(SourceMeshComponent);
 
-	USkeletalMesh* PreviewSkeletalMesh = SourceSkeletal ? SourceSkeletal->GetSkeletalMeshAsset() : nullptr;
-	UStaticMesh* PreviewStaticMesh = SourceStatic ? SourceStatic->GetStaticMesh() : nullptr;
-
-	// 루트 프리미티브의 로컬 바운드 하단만큼 올려 발이 스포너 원점에 맞도록 보정
-	// (캡슐 → HalfHeight, 박스 → ExtentZ, 스피어 → Radius, 메시 → 메시 바운드 하단)
-	FVector GroundOffset = FVector::ZeroVector;
-	if (const AActor* SourceCDO = SpawnableActorClass ? SpawnableActorClass->GetDefaultObject<AActor>() : nullptr)
+	// 소스 메시의 액터 기준 누적 Transform (상위 체인의 Location/Rotation/Scale 반영)
+	FTransform PreviewTransform = FTransform::Identity;
+	for (const USceneComponent* C = SourceMeshComponent; C; C = C->GetAttachParent())
 	{
-		if (const UPrimitiveComponent* RootPrim = Cast<UPrimitiveComponent>(SourceCDO->GetRootComponent()))
+		PreviewTransform = PreviewTransform * C->GetRelativeTransform();
+	}
+
+	// 루트 바운드(Scale 반영) 하단만큼 올려 발을 스포너 원점에 정렬
+	if (const AActor* CDO = SpawnableActorClass ? SpawnableActorClass->GetDefaultObject<AActor>() : nullptr)
+	{
+		if (const UPrimitiveComponent* Root = Cast<UPrimitiveComponent>(CDO->GetRootComponent()))
 		{
-			const FBoxSphereBounds LocalBounds = RootPrim->CalcBounds(FTransform::Identity);
-			GroundOffset.Z = FMath::Max(0.f, -LocalBounds.GetBox().Min.Z);
+			const FTransform ScaleOnly(FQuat::Identity, FVector::ZeroVector, Root->GetRelativeScale3D());
+			PreviewTransform.AddToTranslation(FVector(0.f, 0.f, FMath::Max(0.f, -Root->CalcBounds(ScaleOnly).GetBox().Min.Z)));
 		}
 	}
 
 	if (PreviewSkeletalMeshComponent)
 	{
-		PreviewSkeletalMeshComponent->SetSkeletalMeshAsset(PreviewSkeletalMesh);
+		PreviewSkeletalMeshComponent->SetSkeletalMeshAsset(SourceSkeletal ? SourceSkeletal->GetSkeletalMeshAsset() : nullptr);
 		PreviewSkeletalMeshComponent->EmptyOverrideMaterials();
-
-		FTransform SkeletalTransform = SourceSkeletal ? SourceSkeletal->GetRelativeTransform() : FTransform::Identity;
-		SkeletalTransform.AddToTranslation(GroundOffset);
-		PreviewSkeletalMeshComponent->SetRelativeTransform(SkeletalTransform);
-
+		PreviewSkeletalMeshComponent->SetRelativeTransform(PreviewTransform);
 		if (SourceSkeletal)
 		{
-			const int32 NumMaterials = SourceSkeletal->GetNumMaterials();
-			for (int32 MaterialIndex = 0; MaterialIndex < NumMaterials; ++MaterialIndex)
+			for (int32 i = 0; i < SourceSkeletal->GetNumMaterials(); ++i)
 			{
-				PreviewSkeletalMeshComponent->SetMaterial(MaterialIndex, SourceSkeletal->GetMaterial(MaterialIndex));
+				PreviewSkeletalMeshComponent->SetMaterial(i, SourceSkeletal->GetMaterial(i));
 			}
 		}
 	}
 
 	if (PreviewStaticMeshComponent)
 	{
-		PreviewStaticMeshComponent->SetStaticMesh(PreviewStaticMesh);
+		PreviewStaticMeshComponent->SetStaticMesh(SourceStatic ? SourceStatic->GetStaticMesh() : nullptr);
 		PreviewStaticMeshComponent->EmptyOverrideMaterials();
-
-		FTransform StaticTransform = SourceStatic ? SourceStatic->GetRelativeTransform() : FTransform::Identity;
-		StaticTransform.AddToTranslation(GroundOffset);
-		PreviewStaticMeshComponent->SetRelativeTransform(StaticTransform);
-
+		PreviewStaticMeshComponent->SetRelativeTransform(PreviewTransform);
 		if (SourceStatic)
 		{
-			const int32 NumMaterials = SourceStatic->GetNumMaterials();
-			for (int32 MaterialIndex = 0; MaterialIndex < NumMaterials; ++MaterialIndex)
+			for (int32 i = 0; i < SourceStatic->GetNumMaterials(); ++i)
 			{
-				PreviewStaticMeshComponent->SetMaterial(MaterialIndex, SourceStatic->GetMaterial(MaterialIndex));
+				PreviewStaticMeshComponent->SetMaterial(i, SourceStatic->GetMaterial(i));
 			}
 		}
 	}
@@ -272,18 +264,10 @@ void AWxSpawner::UpdateEditorPreviewFromSpawnableClass()
 		}
 		SpriteComponent->SetSprite(NewSprite);
 
-		float MeshTopZ = 0.f;
-		if (PreviewSkeletalMesh)
-		{
-			const FBoxSphereBounds Bounds = PreviewSkeletalMesh->GetBounds();
-			MeshTopZ = FMath::Max(MeshTopZ, Bounds.Origin.Z + Bounds.BoxExtent.Z);
-		}
-		if (PreviewStaticMesh)
-		{
-			const FBoxSphereBounds Bounds = PreviewStaticMesh->GetBounds();
-			MeshTopZ = FMath::Max(MeshTopZ, Bounds.Origin.Z + Bounds.BoxExtent.Z);
-		}
-		SpriteComponent->SetRelativeLocation(FVector(0.f, 0.f, MeshTopZ + 50.f));
+		const UPrimitiveComponent* ActivePreview = SourceSkeletal ? static_cast<UPrimitiveComponent*>(PreviewSkeletalMeshComponent)
+			: SourceStatic ? static_cast<UPrimitiveComponent*>(PreviewStaticMeshComponent) : nullptr;
+		const float TopZ = ActivePreview ? ActivePreview->CalcBounds(PreviewTransform).GetBox().Max.Z : 0.f;
+		SpriteComponent->SetRelativeLocation(FVector(0.f, 0.f, TopZ + 50.f));
 	}
 
 	if (SpawnableActorClass)
