@@ -104,6 +104,13 @@ struct FWxAddItemResult
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventoryStackChanged, const UWxItemDefinition* /*ItemDef*/, int32 /*NewCount*/, int32 /*Delta*/);
 
 /**
+ * 슬롯 단위 변경 브로드캐스트.
+ * NewStackCount 는 해당 슬롯의 갱신 후 잔여 수량(제거 시 0), Delta 는 이번 변경분.
+ * 동일 ItemDef 가 분할된 복수 슬롯에서 각자 갱신돼야 할 때 사용한다.
+ */
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventorySlotChanged, const UWxItemInstance* /*Instance*/, int32 /*NewStackCount*/, int32 /*Delta*/);
+
+/**
  * 액터에 부착되어 아이템 인스턴스의 생성·소멸·레플리케이션을 관장하는 컴포넌트.
  *
  * 권한(서버)에서만 Add/Consume 이 호출되어야 하며, FastArray 로 클라이언트에 동기화된다.
@@ -150,9 +157,14 @@ public:
 	/** CurrencyTag 와 일치하는 Currency Fragment 를 가진 아이템의 합계. */
 	int32 GetItemCountByTag(FGameplayTag CurrencyTag) const;
 
+	/** 특정 인스턴스가 속한 슬롯의 현재 StackCount. 인스턴스가 엔트리에 없으면 0. */
+	int32 GetStackCountByInstance(const UWxItemInstance* Instance) const;
+
 	TArray<UWxItemInstance*> GetAllItems() const;
 
 	FWxOnInventoryStackChanged OnInventoryStackChanged;
+
+	FWxOnInventorySlotChanged OnInventorySlotChanged;
 
 private:
 	/** 권한: Entries 를 돌며 머지/분할 처리. */
@@ -161,8 +173,11 @@ private:
 	/** 권한: 단일 신규 엔트리 생성. */
 	UWxItemInstance* CreateEntry(const UWxItemDefinition* ItemDef, int32 StackCount);
 
-	/** 변경 브로드캐스트. 서버/클라이언트 공통 진입. */
+	/** ItemDef 합계 변경 브로드캐스트. 서버/클라이언트 공통 진입. */
 	void BroadcastStackChanged(const UWxItemDefinition* ItemDef, int32 Delta);
+
+	/** 슬롯 단위 변경 브로드캐스트. 서버/클라이언트 공통 진입. */
+	void BroadcastSlotChanged(const UWxItemInstance* Instance, int32 NewStackCount, int32 Delta);
 
 	UPROPERTY(Replicated)
 	FWxInventoryList InventoryList;

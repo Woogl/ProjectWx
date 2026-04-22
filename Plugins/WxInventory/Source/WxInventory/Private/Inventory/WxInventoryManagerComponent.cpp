@@ -56,6 +56,7 @@ void FWxInventoryList::PreReplicatedRemove(const TArrayView<int32> RemovedIndice
 
 		const UWxItemDefinition* ItemDef = Entry.Instance->GetItemDef();
 		const int32 Delta = -Entry.LastObservedCount;
+		Manager->BroadcastSlotChanged(Entry.Instance, 0, Delta);
 		Manager->BroadcastStackChanged(ItemDef, Delta);
 	}
 }
@@ -71,6 +72,7 @@ void FWxInventoryList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, i
 
 		if (Manager && Entry.Instance)
 		{
+			Manager->BroadcastSlotChanged(Entry.Instance, Entry.StackCount, Entry.StackCount);
 			Manager->BroadcastStackChanged(Entry.Instance->GetItemDef(), Entry.StackCount);
 		}
 	}
@@ -88,6 +90,7 @@ void FWxInventoryList::PostReplicatedChange(const TArrayView<int32> ChangedIndic
 
 		if (Manager && Entry.Instance && Delta != 0)
 		{
+			Manager->BroadcastSlotChanged(Entry.Instance, Entry.StackCount, Delta);
 			Manager->BroadcastStackChanged(Entry.Instance->GetItemDef(), Delta);
 		}
 	}
@@ -189,6 +192,7 @@ void UWxInventoryManagerComponent::AddItemInternal(const UWxItemDefinition* Item
 			InventoryList.MarkItemDirty(Entry);
 			OutResult.TouchedInstances.AddUnique(Entry.Instance);
 			OutResult.AmountAdded += ToAdd;
+			BroadcastSlotChanged(Entry.Instance, Entry.StackCount, ToAdd);
 			BroadcastStackChanged(ItemDef, ToAdd);
 		}
 	}
@@ -205,6 +209,7 @@ void UWxInventoryManagerComponent::AddItemInternal(const UWxItemDefinition* Item
 		Remaining -= ToAdd;
 		OutResult.TouchedInstances.Add(NewInstance);
 		OutResult.AmountAdded += ToAdd;
+		BroadcastSlotChanged(NewInstance, ToAdd, ToAdd);
 		BroadcastStackChanged(ItemDef, ToAdd);
 	}
 
@@ -259,6 +264,7 @@ void UWxInventoryManagerComponent::RemoveItem(UWxItemInstance* Instance)
 
 		It.RemoveCurrent();
 		InventoryList.MarkArrayDirty();
+		BroadcastSlotChanged(Instance, 0, Delta);
 		BroadcastStackChanged(ItemDef, Delta);
 		break;
 	}
@@ -290,11 +296,14 @@ bool UWxInventoryManagerComponent::ConsumeItemByDef(const UWxItemDefinition* Ite
 		It->StackCount -= ToTake;
 		Remaining -= ToTake;
 
+		UWxItemInstance* SlotInstance = It->Instance;
+		const int32 NewSlotCount = It->StackCount;
+
 		if (It->StackCount <= 0)
 		{
 			if (IsUsingRegisteredSubObjectList())
 			{
-				RemoveReplicatedSubObject(It->Instance);
+				RemoveReplicatedSubObject(SlotInstance);
 			}
 
 			It.RemoveCurrent();
@@ -304,6 +313,8 @@ bool UWxInventoryManagerComponent::ConsumeItemByDef(const UWxItemDefinition* Ite
 		{
 			InventoryList.MarkItemDirty(*It);
 		}
+
+		BroadcastSlotChanged(SlotInstance, NewSlotCount, -ToTake);
 	}
 
 	BroadcastStackChanged(ItemDef, -Count);
@@ -425,13 +436,15 @@ bool UWxInventoryManagerComponent::ConsumeItemByTag(FGameplayTag CurrencyTag, in
 		const int32 ToTake = FMath::Min(It->StackCount, Remaining);
 		It->StackCount -= ToTake;
 		Remaining -= ToTake;
-		BroadcastStackChanged(ItemDef, -ToTake);
+
+		UWxItemInstance* SlotInstance = It->Instance;
+		const int32 NewSlotCount = It->StackCount;
 
 		if (It->StackCount <= 0)
 		{
 			if (IsUsingRegisteredSubObjectList())
 			{
-				RemoveReplicatedSubObject(It->Instance);
+				RemoveReplicatedSubObject(SlotInstance);
 			}
 
 			It.RemoveCurrent();
@@ -441,6 +454,9 @@ bool UWxInventoryManagerComponent::ConsumeItemByTag(FGameplayTag CurrencyTag, in
 		{
 			InventoryList.MarkItemDirty(*It);
 		}
+
+		BroadcastSlotChanged(SlotInstance, NewSlotCount, -ToTake);
+		BroadcastStackChanged(ItemDef, -ToTake);
 	}
 
 	return true;
@@ -488,6 +504,23 @@ int32 UWxInventoryManagerComponent::GetItemCountByTag(FGameplayTag CurrencyTag) 
 	return Total;
 }
 
+int32 UWxInventoryManagerComponent::GetStackCountByInstance(const UWxItemInstance* Instance) const
+{
+	if (!Instance)
+	{
+		return 0;
+	}
+
+	for (const FWxInventoryEntry& Entry : InventoryList.Entries)
+	{
+		if (Entry.Instance == Instance)
+		{
+			return Entry.StackCount;
+		}
+	}
+	return 0;
+}
+
 TArray<UWxItemInstance*> UWxInventoryManagerComponent::GetAllItems() const
 {
 	TArray<UWxItemInstance*> Result;
@@ -511,4 +544,14 @@ void UWxInventoryManagerComponent::BroadcastStackChanged(const UWxItemDefinition
 
 	const int32 NewCount = GetItemCountByDef(ItemDef);
 	OnInventoryStackChanged.Broadcast(ItemDef, NewCount, Delta);
+}
+
+void UWxInventoryManagerComponent::BroadcastSlotChanged(const UWxItemInstance* Instance, int32 NewStackCount, int32 Delta)
+{
+	if (!Instance || Delta == 0)
+	{
+		return;
+	}
+
+	OnInventorySlotChanged.Broadcast(Instance, NewStackCount, Delta);
 }

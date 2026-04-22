@@ -5,6 +5,8 @@
 #include "Inventory/WxInventoryManagerComponent.h"
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemFragment.h"
+#include "Items/WxItemInstance.h"
+#include "MVVM/WxViewModel_Item.h"
 
 void UWxViewModel_Inventory::Initialize(UWxInventoryManagerComponent* InInventory)
 {
@@ -17,6 +19,8 @@ void UWxViewModel_Inventory::Initialize(UWxInventoryManagerComponent* InInventor
 
 	CachedInventory = InInventory;
 	StackChangedHandle = InInventory->OnInventoryStackChanged.AddUObject(this, &UWxViewModel_Inventory::HandleStackChanged);
+
+	RefreshAllItems();
 
 	SetInitialized(true);
 }
@@ -33,6 +37,15 @@ void UWxViewModel_Inventory::Deinitialize()
 	LastChangedCurrency = FGameplayTag();
 	LastChangedAmount = 0;
 	LastChangedDelta = 0;
+
+	for (UWxViewModel_Item* ChildVM : AllItems)
+	{
+		if (ChildVM)
+		{
+			ChildVM->Deinitialize();
+		}
+	}
+	AllItems.Reset();
 
 	SetInitialized(false);
 
@@ -59,4 +72,55 @@ void UWxViewModel_Inventory::HandleStackChanged(const UWxItemDefinition* ItemDef
 	UE_MVVM_SET_PROPERTY_VALUE(LastChangedCurrency, ChangedTag);
 	UE_MVVM_SET_PROPERTY_VALUE(LastChangedAmount, NewCount);
 	UE_MVVM_SET_PROPERTY_VALUE(LastChangedDelta, Delta);
+
+	RefreshAllItems();
+}
+
+void UWxViewModel_Inventory::RefreshAllItems()
+{
+	UWxInventoryManagerComponent* Inventory = CachedInventory.Get();
+	TArray<TObjectPtr<UWxViewModel_Item>> NewItems;
+	TArray<TObjectPtr<UWxViewModel_Item>> Retained;
+
+	if (Inventory)
+	{
+		for (UWxItemInstance* Instance : Inventory->GetAllItems())
+		{
+			if (!Instance)
+			{
+				continue;
+			}
+
+			UWxViewModel_Item* ChildVM = nullptr;
+			for (UWxViewModel_Item* Existing : AllItems)
+			{
+				if (Existing && Existing->GetTargetInstance() == Instance)
+				{
+					ChildVM = Existing;
+					break;
+				}
+			}
+
+			if (!ChildVM)
+			{
+				ChildVM = NewObject<UWxViewModel_Item>(this);
+				ChildVM->Initialize(Inventory, Instance);
+			}
+
+			NewItems.Add(ChildVM);
+			Retained.Add(ChildVM);
+		}
+	}
+
+	for (UWxViewModel_Item* OldVM : AllItems)
+	{
+		if (OldVM && !Retained.Contains(OldVM))
+		{
+			OldVM->Deinitialize();
+		}
+	}
+
+	AllItems = MoveTemp(NewItems);
+	// 슬롯 구성이 그대로여도 ListView 엔트리 UMG 에서 VM 재연결이 가능하도록 항상 브로드캐스트한다.
+	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(AllItems);
 }

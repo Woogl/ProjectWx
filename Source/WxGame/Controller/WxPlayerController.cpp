@@ -108,10 +108,12 @@ void AWxPlayerController::OnRep_PlayerState()
 	}
 }
 
-void AWxPlayerController::InitPlayerState()
+void AWxPlayerController::ReceivedPlayer()
 {
-	Super::InitPlayerState();
+	Super::ReceivedPlayer();
 
+	// listen server 호스트 PC는 InitPlayerState 시점에 LocalPlayer 가 아직 지정되지 않아 GetLocalPlayer() 가 nullptr 이다.
+	// ReceivedPlayer 는 SetPlayer 로 LocalPlayer 가 지정된 직후 호출되므로 호스트/standalone 모두에서 안전하다.
 	if (IsLocalController())
 	{
 		InitializeInventoryViewModel();

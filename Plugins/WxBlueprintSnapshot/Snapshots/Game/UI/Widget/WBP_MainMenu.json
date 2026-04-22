@@ -1,0 +1,105 @@
+{
+	"blueprintPath": "/Game/UI/Widget/WBP_MainMenu.WBP_MainMenu",
+	"classDefaults":
+	{
+		"bIsBackHandler": true,
+		"InputMode": "Menu",
+		"MouseCaptureMode": "NoCapture",
+		"TimeDilation": 0
+	},
+	"parentClass": "/Script/WxUI.WxActivatableWidget",
+	"widgetTree":
+	{
+		"root": "CanvasPanel_29",
+		"widgets":
+		{
+			"BG":
+			{
+				"class": "/Script/UMG.Image",
+				"delta":
+				{
+					"ColorAndOpacity":
+					{
+						"A": 0.5,
+						"B": 0,
+						"G": 0,
+						"R": 0
+					}
+				},
+				"parent": "CanvasPanel_29",
+				"slot":
+				{
+					"class": "/Script/UMG.CanvasPanelSlot",
+					"delta":
+					{
+						"LayoutData":
+						{
+							"Anchors":
+							{
+								"Maximum":
+								{
+									"X": 1,
+									"Y": 1
+								}
+							},
+							"Offsets":
+							{
+								"Bottom": 0,
+								"Right": 0
+							}
+						}
+					}
+				}
+			},
+			"CanvasPanel_29":
+			{
+				"class": "/Script/UMG.CanvasPanel"
+			},
+			"CommonTextBlock_26":
+			{
+				"class": "/Script/CommonUI.CommonTextBlock",
+				"delta":
+				{
+					"Font":
+					{
+						"OutlineSettings":
+						{
+							"OutlineSize": 1
+						}
+					},
+					"Text": "Main Menu (WIP)"
+				},
+				"parent": "CanvasPanel_29",
+				"slot":
+				{
+					"class": "/Script/UMG.CanvasPanelSlot",
+					"delta":
+					{
+						"bAutoSize": true,
+						"LayoutData":
+						{
+							"Alignment":
+							{
+								"X": 0.5,
+								"Y": 0.5
+							},
+							"Anchors":
+							{
+								"Maximum":
+								{
+									"X": 0.5,
+									"Y": 0.5
+								},
+								"Minimum":
+								{
+									"X": 0.5,
+									"Y": 0.5
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

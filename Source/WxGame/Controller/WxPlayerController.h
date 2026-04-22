@@ -29,7 +29,7 @@ protected:
 	virtual void OnUnPossess() override;
 	virtual void OnRep_Pawn() override;
 	virtual void OnRep_PlayerState() override;
-	virtual void InitPlayerState() override;
+	virtual void ReceivedPlayer() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	/** 컨트롤러 입력 설정 (IMC + 메뉴 바인딩) */

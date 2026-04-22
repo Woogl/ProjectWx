@@ -1,0 +1,121 @@
+{
+	"blueprintPath": "/Game/UI/Widget/WBP_ItemSlot.WBP_ItemSlot",
+	"eventGraph": [
+		"event OnListItemObjectSet:",
+		"  AsWxViewModel_Item = Cast<WxViewModel_Item>(Event On List Item Object Set.ListItemObject)",
+		"  if (AsWxViewModel_Item):",
+		"    SetWxViewModel_Item(Viewmodel=Cast<WxViewModel_Item>(Event On List Item Object Set.ListItemObject))"
+	],
+	"interfaces":
+	{
+		"implemented": [
+			"/Script/UMG.UserObjectListEntry"
+		]
+	},
+	"mvvm":
+	{
+		"bindings": [
+			{
+				"bindingType": "OneWayToDestination",
+				"destination": "SetBrushResourceObject",
+				"source": "Icon"
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"bAlwaysSign": "false",
+						"bUseGrouping": "true",
+						"MaximumIntegralDigits": "324",
+						"MinimumIntegralDigits": "1",
+						"Value": "ItemCount"
+					},
+					"function": "Conv_IntToText"
+				},
+				"destination": "Text",
+				"source": ""
+			}
+		],
+		"viewModels":
+		{
+			"WxViewModel_Item":
+			{
+				"class": "/Script/WxGame.WxViewModel_Item",
+				"contextId": "71E1DC6E-4758-23A9-A92B-2BBC18045B25",
+				"createGetter": true,
+				"createSetter": true,
+				"creationType": "Manual",
+				"optional": true
+			}
+		}
+	},
+	"parentClass": "/Script/UMG.UserWidget",
+	"widgetTree":
+	{
+		"root": "SizeBox_18",
+		"widgets":
+		{
+			"Count":
+			{
+				"class": "/Script/CommonUI.CommonTextBlock",
+				"delta":
+				{
+					"Font":
+					{
+						"OutlineSettings":
+						{
+							"OutlineSize": 1
+						}
+					},
+					"Text": "1"
+				},
+				"parent": "Overlay_25",
+				"slot":
+				{
+					"class": "/Script/UMG.OverlaySlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Right",
+						"VerticalAlignment": "VAlign_Bottom"
+					}
+				}
+			},
+			"Image_27":
+			{
+				"class": "/Script/UMG.Image",
+				"parent": "Overlay_25",
+				"slot":
+				{
+					"class": "/Script/UMG.OverlaySlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Fill",
+						"VerticalAlignment": "VAlign_Fill"
+					}
+				}
+			},
+			"Overlay_25":
+			{
+				"class": "/Script/UMG.Overlay",
+				"parent": "SizeBox_18",
+				"slot":
+				{
+					"class": "/Script/UMG.SizeBoxSlot"
+				}
+			},
+			"SizeBox_18":
+			{
+				"class": "/Script/UMG.SizeBox",
+				"delta":
+				{
+					"bOverride_HeightOverride": true,
+					"bOverride_WidthOverride": true,
+					"HeightOverride": 100,
+					"WidthOverride": 100
+				}
+			}
+		}
+	}
+}
