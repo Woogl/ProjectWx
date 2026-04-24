@@ -107,10 +107,8 @@
 #### 레퍼런스
 
 이미지 레퍼런스:
-*(첨부 예정)*
+<img width="194" height="306" alt="image" src="https://github.com/user-attachments/assets/735ebdd6-f1ac-4339-92e7-0824e9624f15" />
 
-영상 레퍼런스:
-*(첨부 예정)*
 
 ---
 
