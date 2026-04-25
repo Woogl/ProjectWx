@@ -24,7 +24,8 @@ QUEST 오브젝트는 다음 세 가지를 처리한다.
 
 | 웨이브 | 적 수 | 시작 조건 |
 |---|---|---|
-| 1웨이브 | X명 (추후 확정) | QuestWave 레버 작동 직후 즉시 소환 |
+|<img width="55" height="60" alt="image" src="https://github.com/user-attachments/assets/79082b08-4c86-434f-bf6f-60141ab50155" />
+ 1웨이브 | X명 (추후 확정) | QuestWave 레버 작동 직후 즉시 소환 |
 | 2웨이브 | X명 (추후 확정) | 1웨이브 전부 처치 후 2초 경과 |
 | 3웨이브 | X명 (추후 확정) | 2웨이브 전부 처치 후 2초 경과 |
 
