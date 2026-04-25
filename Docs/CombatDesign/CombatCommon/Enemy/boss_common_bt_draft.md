@@ -314,7 +314,8 @@
 <table>
   <tr>
     <td rowspan="2" align="center" width="50%">
-      <img src="./images/reference.png" alt="레퍼런스 이미지" width="100%">
+      <<img width="70" height="67" alt="image" src="https://github.com/user-attachments/assets/795f8ee4-458c-499c-b001-2d42c8b5a3c2" />
+>
       <br>
       레퍼런스 이미지
     </td>
