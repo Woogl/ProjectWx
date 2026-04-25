@@ -310,3 +310,28 @@
 ## 12. 한 줄 요약
 
 **보스 BT는 페이즈 전환을 최우선으로 하고, 이후 거리 조정 → 강공격 패턴군 → 일반공격 패턴군 순으로 행동을 선택하는 Selector 기반 구조를 기본으로 한다.**
+
+<table>
+  <tr>
+    <td rowspan="2" align="center" width="50%">
+      <img src="./images/reference.png" alt="레퍼런스 이미지" width="100%">
+      <br>
+      레퍼런스 이미지
+    </td>
+    <td align="center" width="50%">
+      <strong>패턴 분류 / 패턴명</strong>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <strong>타수, 판정</strong>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      <strong>상세설명:</strong><br>
+      여기에 패턴 설명을 적는다.<br>
+      전조, 동작 흐름, 대응법 등을 자유롭게 적는다.
+    </td>
+  </tr>
+</table>
