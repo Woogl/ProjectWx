@@ -1,0 +1,48 @@
+{
+	"blueprintPath": "/Game/UI/Widget/WBP_Close.WBP_Close",
+	"classDefaults":
+	{
+		"Style": "/Game/UI/Style/ButtonStyle_Empty.ButtonStyle_Empty_C"
+	},
+	"eventGraph": [
+		"event BP_OnClicked:",
+		"  WxUILibrary::DeactivateOwningActivatable(StartingWidget=Self)"
+	],
+	"parentClass": "/Script/CommonUI.CommonButtonBase",
+	"widgetTree":
+	{
+		"root": "SizeBox_62",
+		"widgets":
+		{
+			"CommonTextBlock_33":
+			{
+				"class": "/Script/CommonUI.CommonTextBlock",
+				"delta":
+				{
+					"Text": "[X]"
+				},
+				"parent": "SizeBox_62",
+				"slot":
+				{
+					"class": "/Script/UMG.SizeBoxSlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Center",
+						"VerticalAlignment": "VAlign_Center"
+					}
+				}
+			},
+			"SizeBox_62":
+			{
+				"class": "/Script/UMG.SizeBox",
+				"delta":
+				{
+					"bOverride_HeightOverride": true,
+					"bOverride_WidthOverride": true,
+					"HeightOverride": 50,
+					"WidthOverride": 50
+				}
+			}
+		}
+	}
+}
