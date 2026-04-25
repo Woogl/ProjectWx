@@ -107,7 +107,8 @@
 #### 레퍼런스
 
 이미지 레퍼런스:
-<img width="194" height="306" alt="image" src="https://github.com/user-attachments/assets/735ebdd6-f1ac-4339-92e7-0824e9624f15" />
+<img width="1200" height="675" alt="image" src="https://github.com/user-attachments/assets/fe6c8856-f781-4a91-ac18-27e996ac668c" />
+
 
 
 ---
@@ -159,10 +160,7 @@
 #### 레퍼런스
 
 이미지 레퍼런스:
-*(첨부 예정)*
-
-영상 레퍼런스:
-*(첨부 예정)*
+<img width="472" height="633" alt="image" src="https://github.com/user-attachments/assets/5a154496-1394-4b06-89cb-05e9fb9c80c5" />
 
 ---
 
@@ -203,10 +201,8 @@
 #### 레퍼런스
 
 이미지 레퍼런스:
-*(첨부 예정)*
+<img width="720" height="713" alt="image" src="https://github.com/user-attachments/assets/b01d1a29-9bc0-49be-b0c2-e45306128090" />
 
-영상 레퍼런스:
-*(첨부 예정)*
 
 ---
 
@@ -255,10 +251,8 @@
 #### 레퍼런스
 
 이미지 레퍼런스:
-*(첨부 예정)*
-
-영상 레퍼런스:
-*(첨부 예정)*
+<img width="736" height="1104" alt="image" src="https://github.com/user-attachments/assets/fb4fd77d-ca50-4a44-88c6-f36017887ae1" />
+(키오스크)
 
 ---
 
@@ -300,10 +294,10 @@
 #### 레퍼런스
 
 이미지 레퍼런스:
-*(첨부 예정)*
+<img width="1200" height="673" alt="image" src="https://github.com/user-attachments/assets/4dd8fec1-5f2e-41b3-ae59-7b62464a3ced" />
+<img width="564" height="564" alt="image" src="https://github.com/user-attachments/assets/c1109dfe-4a5a-4c1b-987f-776aadb67c09" />
 
-영상 레퍼런스:
-*(첨부 예정)*
+
 
 ---
 
@@ -343,10 +337,8 @@
 #### 레퍼런스
 
 이미지 레퍼런스:
-*(첨부 예정)*
+<img width="800" height="533" alt="image" src="https://github.com/user-attachments/assets/ffe8eb7f-9f65-492f-be46-497d7a6fd1fa" />
 
-영상 레퍼런스:
-*(첨부 예정)*
 
 ---
 
@@ -393,7 +385,6 @@
 #### 레퍼런스
 
 이미지 레퍼런스:
-*(첨부 예정)*
+<img width="1280" height="720" alt="image" src="https://github.com/user-attachments/assets/ac1dbcac-5579-4ef2-a28f-a3e677152049" />
+<img width="241" height="200" alt="image" src="https://github.com/user-attachments/assets/b6e0a252-81be-4ab4-b77c-443df5f96b07" />
 
-영상 레퍼런스:
-*(첨부 예정)*
