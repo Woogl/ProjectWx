@@ -1,0 +1,52 @@
+{
+	"blueprintPath": "/Game/UI/Widget/WBP_Button.WBP_Button",
+	"classDefaults":
+	{
+		"CommonTextBlock_22": "",
+		"Style": "/Game/UI/Style/ButtonStyle_Empty.ButtonStyle_Empty_C"
+	},
+	"eventGraph": [
+		"event PreConstruct:",
+		"  CommonTextBlock_22.SetText(InText=ButtonText)"
+	],
+	"newVariables":
+	{
+		"ButtonText":
+		{
+			"type": "text",
+			"value": "NSLOCTEXT(\"[DE590BE07DAE2E459D689469EBF4ABC2]\", \"8490DC824F2F9DE37A5E2AB1344127D6\", \"Button\")"
+		}
+	},
+	"parentClass": "/Script/CommonUI.CommonButtonBase",
+	"widgetTree":
+	{
+		"root": "CommonTextBlock_22",
+		"widgets":
+		{
+			"CommonTextBlock_22":
+			{
+				"class": "/Script/CommonUI.CommonTextBlock",
+				"delta":
+				{
+					"Text": "Button Text"
+				},
+				"isVariable": true,
+				"parent": "InternalRootButtonBase",
+				"slot":
+				{
+					"class": "/Script/UMG.ButtonSlot",
+					"delta":
+					{
+						"Padding":
+						{
+							"Bottom": 0,
+							"Left": 0,
+							"Right": 0,
+							"Top": 0
+						}
+					}
+				}
+			}
+		}
+	}
+}

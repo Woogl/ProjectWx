@@ -133,13 +133,8 @@ void AWxCharacterBase::SpawnDefaultWeapon()
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
 	SpawnParams.Instigator = this;
-
 	EquippedWeapon = GetWorld()->SpawnActor<AWxWeaponBase>(WeaponActor, SpawnParams);
-	if (EquippedWeapon)
-	{
-		// 서버 BeginPlay 이후 이미 EquippedItemDef가 설정돼 있을 수도 있으므로, 스폰 직후 장착 적용.
-		ApplyEquipmentVisuals();
-	}
+	ApplyEquipmentVisuals();
 }
 
 void AWxCharacterBase::EquipItem(const UWxItemDefinition* ItemDef)
@@ -245,9 +240,9 @@ void AWxCharacterBase::OnMovementModeChanged(EMovementMode PrevMovementMode, uin
 	}
 
 	const EMovementMode CurrentMode = GetCharacterMovement()->MovementMode;
-	const bool bIsAirborne = (CurrentMode == MOVE_Falling || CurrentMode == MOVE_Flying);
+	const bool bIsFalling = (CurrentMode == MOVE_Falling || CurrentMode == MOVE_Flying);
 
-	if (bIsAirborne)
+	if (bIsFalling)
 	{
 		AbilitySystemComponent->AddLooseGameplayTag(WxGameplayTags::State_Aerial);
 	}

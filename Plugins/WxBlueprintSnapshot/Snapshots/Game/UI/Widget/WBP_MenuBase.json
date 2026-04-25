@@ -1,5 +1,11 @@
 {
 	"blueprintPath": "/Game/UI/Widget/WBP_MenuBase.WBP_MenuBase",
+	"classDefaults":
+	{
+		"InputMode": "Menu",
+		"MouseCaptureMode": "NoCapture",
+		"TimeDilation": 0
+	},
 	"parentClass": "/Script/WxUI.WxActivatableWidget",
 	"widgetTree":
 	{

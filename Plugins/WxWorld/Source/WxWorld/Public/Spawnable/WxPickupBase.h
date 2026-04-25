@@ -11,17 +11,15 @@ class URotatingMovementComponent;
 class UStaticMeshComponent;
 class UWxInteractionComponent;
 class UWxInteractionWidgetComponent;
-class UWxItemDefinition;
 
 /**
- * 픽업 아이템 베이스 클래스.
+ * 픽업 액터 베이스 클래스.
  *
  * 플레이어가 오버랩 범위에 들어오면 상호작용 프롬프트를 표시하고,
- * 상호작용 어빌리티를 통해 수집(획득)한다. 수집 시 Interactor 의
- * PlayerState(또는 본체) 에서 UWxInventoryManagerComponent 를 찾아
- * ItemDef 를 Count 만큼 지급한 뒤 파괴된다.
+ * 상호작용이 발생하면 서버 권한에서 OnPickedUp 가상 훅을 호출한다.
+ * 구체적인 지급/소멸 로직은 파생 클래스에서 OnPickedUp 을 오버라이드하여 구현한다.
  */
-UCLASS(Abstract, meta = (PrioritizeCategories = "Wx"))
+UCLASS(Abstract)
 class WXWORLD_API AWxPickupBase : public AActor, public IWxSpawnableInterface
 {
 	GENERATED_BODY()
@@ -37,6 +35,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	/** 서버 권한에서 상호작용이 확정된 뒤 호출되는 가상 훅. 파생 클래스에서 지급/소멸 로직을 구현한다. */
+	virtual void OnPickedUp(AActor* InteractingActor);
+
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<USceneComponent> SceneRoot;
 
@@ -51,14 +52,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<URotatingMovementComponent> RotatingMovement;
-
-	/** 지급할 아이템 정의. Currency Fragment 가 붙은 재화도 동일하게 사용. */
-	UPROPERTY(EditAnywhere, Category = "Wx|Pickup")
-	TObjectPtr<UWxItemDefinition> ItemDef;
-
-	/** 지급 수량. */
-	UPROPERTY(EditAnywhere, Category = "Wx|Pickup", meta = (ClampMin = "1"))
-	int32 Count = 1;
 
 private:
 	UFUNCTION()

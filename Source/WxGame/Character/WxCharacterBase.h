@@ -25,7 +25,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBas
  * 플레이어·에너미 공통 베이스 캐릭터.
  * ASC를 캐릭터에 직접 소유 (리스폰 시 스탯을 새로 초기화하므로 PlayerState 불필요).
  */
-UCLASS(Abstract, meta = (PrioritizeCategories = "Wx"))
+UCLASS(Abstract)
 class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface, public IGenericTeamAgentInterface, public IWxEquipmentInterface
 {
 	GENERATED_BODY()

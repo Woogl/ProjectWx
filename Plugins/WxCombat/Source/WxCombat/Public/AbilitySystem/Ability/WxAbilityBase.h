@@ -46,7 +46,7 @@ enum class EWxAbilityActivationPolicy : uint8
  *
  * AbilityDataRow가 설정되어 있으면 어빌리티 부여 시 테이블 Row에서 수치를 읽어온다.
  */
-UCLASS(Abstract, BlueprintType, Blueprintable, meta = (PrioritizeCategories = "Wx"))
+UCLASS(Abstract, BlueprintType, Blueprintable)
 class WXCOMBAT_API UWxAbilityBase : public UGameplayAbility
 {
 	GENERATED_BODY()

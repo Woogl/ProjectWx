@@ -25,7 +25,6 @@ public class WxWorld : ModuleRules
 			"MovieScene",
 			"Niagara",
 			"UMG",
-			"WxInventory",
 		});
 	}
 }

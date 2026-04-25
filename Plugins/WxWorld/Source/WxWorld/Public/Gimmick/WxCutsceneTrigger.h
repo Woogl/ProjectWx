@@ -17,7 +17,7 @@ class UWxInteractionWidgetComponent;
  * 플레이어가 상호작용하면 지정된 Level Sequence를 재생한다.
  * 재생 중에는 추가 상호작용이 무시된다.
  */
-UCLASS(Abstract, meta = (PrioritizeCategories = "Wx"))
+UCLASS(Abstract)
 class WXWORLD_API AWxCutsceneTrigger : public AActor
 {
 	GENERATED_BODY()

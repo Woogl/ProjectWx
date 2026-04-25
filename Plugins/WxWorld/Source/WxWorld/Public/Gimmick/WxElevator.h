@@ -17,7 +17,7 @@ class UWxInteractionWidgetComponent;
  * 플레이어가 플랫폼 위에서 상호작용하면 이동을 시작하며,
  * 끝에 도달하면 정지하고, 다시 상호작용하면 반대 방향으로 이동한다.
  */
-UCLASS(Abstract, meta = (PrioritizeCategories = "Wx"))
+UCLASS(Abstract)
 class WXWORLD_API AWxElevator : public AActor
 {
 	GENERATED_BODY()

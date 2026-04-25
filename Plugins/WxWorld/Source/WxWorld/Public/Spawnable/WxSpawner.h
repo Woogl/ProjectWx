@@ -12,7 +12,7 @@ class USceneComponent;
 class USkeletalMeshComponent;
 class UStaticMeshComponent;
 
-UCLASS(meta = (PrioritizeCategories = "Wx"))
+UCLASS()
 class WXWORLD_API AWxSpawner : public AActor
 {
 	GENERATED_BODY()

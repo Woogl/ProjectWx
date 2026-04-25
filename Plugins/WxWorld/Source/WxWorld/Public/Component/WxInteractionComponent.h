@@ -25,7 +25,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractedSignature, AActor*, I
  * 서버 권위 로직이 필요하면 콜백 내부에서 HasAuthority()로 분기한다.
  * 부착 액터는 반드시 Replicate 되어야 한다.
  */
-UCLASS(ClassGroup = "Wx", meta = (BlueprintSpawnableComponent, PrioritizeCategories = "Wx"))
+UCLASS(ClassGroup = "Wx", meta = (BlueprintSpawnableComponent))
 class WXWORLD_API UWxInteractionComponent : public USphereComponent
 {
 	GENERATED_BODY()
