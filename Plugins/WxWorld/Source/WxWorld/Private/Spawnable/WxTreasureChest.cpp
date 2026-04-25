@@ -2,27 +2,19 @@
 
 #include "Spawnable/WxTreasureChest.h"
 
-#include "Component/WxInteractionComponent.h"
 #include "Components/PrimitiveComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Component/WxInteractionWidgetComponent.h"
 #include "Net/UnrealNetwork.h"
 
 AWxTreasureChest::AWxTreasureChest()
 {
-	PrimaryActorTick.bCanEverTick = false;
-
-	bReplicates = true;
-
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	SetRootComponent(MeshComponent);
 
-	InteractionWidget = CreateDefaultSubobject<UWxInteractionWidgetComponent>(TEXT("InteractionWidget"));
 	InteractionWidget->SetupAttachment(MeshComponent);
-
-	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
 	InteractionComponent->SetupAttachment(MeshComponent);
-	InteractionComponent->InteractionWidget = InteractionWidget;
 }
 
 void AWxTreasureChest::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -36,10 +28,7 @@ void AWxTreasureChest::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (InteractionComponent)
-	{
-		InteractionComponent->OnInteracted.AddDynamic(this, &AWxTreasureChest::HandleInteracted);
-	}
+	OnInteracted.AddDynamic(this, &AWxTreasureChest::HandleInteracted);
 }
 
 void AWxTreasureChest::HandleInteracted(AActor* InteractingActor)
@@ -51,10 +40,7 @@ void AWxTreasureChest::HandleInteracted(AActor* InteractingActor)
 
 	bIsOpened = true;
 
-	if (InteractionComponent)
-	{
-		InteractionComponent->SetInteractionEnabled(false);
-	}
+	SetInteractionEnabled(false);
 
 	if (ItemActorClass)
 	{
@@ -90,9 +76,9 @@ void AWxTreasureChest::HandleInteracted(AActor* InteractingActor)
 
 void AWxTreasureChest::OnRep_bIsOpened()
 {
-	if (bIsOpened && InteractionComponent)
+	if (bIsOpened)
 	{
-		InteractionComponent->SetInteractionEnabled(false);
+		SetInteractionEnabled(false);
 	}
 }
 

@@ -4,36 +4,25 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "Component/WxInteractionComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Component/WxInteractionWidgetComponent.h"
 #include "System/WxSpawnerSubsystem.h"
 
 AWxSavePoint::AWxSavePoint()
 {
-	PrimaryActorTick.bCanEverTick = false;
-
-	bReplicates = true;
-
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	SetRootComponent(MeshComponent);
 
-	InteractionWidget = CreateDefaultSubobject<UWxInteractionWidgetComponent>(TEXT("InteractionWidget"));
 	InteractionWidget->SetupAttachment(MeshComponent);
-
-	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
 	InteractionComponent->SetupAttachment(MeshComponent);
-	InteractionComponent->InteractionWidget = InteractionWidget;
 }
 
 void AWxSavePoint::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (InteractionComponent)
-	{
-		InteractionComponent->OnInteracted.AddDynamic(this, &AWxSavePoint::HandleInteracted);
-	}
+	OnInteracted.AddDynamic(this, &AWxSavePoint::HandleInteracted);
 }
 
 void AWxSavePoint::HandleInteracted(AActor* InteractingActor)

@@ -3,14 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Actor/WxInteractableActor.h"
 #include "Spawnable/WxSpawnableInterface.h"
-#include "GameFramework/Actor.h"
 #include "WxPickupBase.generated.h"
 
 class URotatingMovementComponent;
 class UStaticMeshComponent;
-class UWxInteractionComponent;
-class UWxInteractionWidgetComponent;
 
 /**
  * 픽업 액터 베이스 클래스.
@@ -20,7 +18,7 @@ class UWxInteractionWidgetComponent;
  * 구체적인 지급/소멸 로직은 파생 클래스에서 OnPickedUp 을 오버라이드하여 구현한다.
  */
 UCLASS(Abstract)
-class WXWORLD_API AWxPickupBase : public AActor, public IWxSpawnableInterface
+class WXWORLD_API AWxPickupBase : public AWxInteractableActor, public IWxSpawnableInterface
 {
 	GENERATED_BODY()
 
@@ -43,12 +41,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
-
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	TObjectPtr<UWxInteractionComponent> InteractionComponent;
-
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	TObjectPtr<UWxInteractionWidgetComponent> InteractionWidget;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<URotatingMovementComponent> RotatingMovement;

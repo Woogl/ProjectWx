@@ -2,17 +2,13 @@
 
 #include "Spawnable/WxPickupBase.h"
 
-#include "Component/WxInteractionComponent.h"
-#include "Component/WxInteractionWidgetComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Component/WxInteractionWidgetComponent.h"
 #include "GameFramework/RotatingMovementComponent.h"
 
 AWxPickupBase::AWxPickupBase()
 {
-	PrimaryActorTick.bCanEverTick = false;
-
-	bReplicates = true;
-
 	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
 	SetRootComponent(SceneRoot);
 
@@ -20,12 +16,8 @@ AWxPickupBase::AWxPickupBase()
 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	MeshComponent->SetupAttachment(SceneRoot);
 
-	InteractionWidget = CreateDefaultSubobject<UWxInteractionWidgetComponent>(TEXT("InteractionWidget"));
 	InteractionWidget->SetupAttachment(SceneRoot);
-
-	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
 	InteractionComponent->SetupAttachment(SceneRoot);
-	InteractionComponent->InteractionWidget = InteractionWidget;
 
 	RotatingMovement = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("RotatingMovement"));
 	RotatingMovement->RotationRate = FRotator(0.0f, 90.0f, 0.0f);
@@ -35,10 +27,7 @@ void AWxPickupBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (InteractionComponent)
-	{
-		InteractionComponent->OnInteracted.AddDynamic(this, &AWxPickupBase::HandleInteracted);
-	}
+	OnInteracted.AddDynamic(this, &AWxPickupBase::HandleInteracted);
 }
 
 void AWxPickupBase::OnPickedUp(AActor* /*InteractingActor*/)

@@ -5,7 +5,7 @@
 		"Count": 500,
 		"InteractionComponent":
 		{
-			"class": "/Script/WxWorld.WxInteractionComponent",
+			"class": "/Script/Engine.SphereComponent",
 			"delta":
 			{
 				"RelativeLocation":

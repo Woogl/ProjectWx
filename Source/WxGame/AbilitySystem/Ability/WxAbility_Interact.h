@@ -11,7 +11,7 @@
  *
  * 사용 흐름:
  *  1. 플레이어가 Input.Interact 입력 → ServerInitiated로 서버에서 활성화
- *  2. Avatar 캡슐의 오버랩 컴포넌트에서 UWxInteractionComponent 후보를 수집
+ *  2. Avatar 캡슐의 오버랩 액터에서 IWxInteractable 구현체를 수집
  *  3. 가장 가까운 1개를 선택해 TryInteract 호출
  *  4. EndAbility (단발성)
  */

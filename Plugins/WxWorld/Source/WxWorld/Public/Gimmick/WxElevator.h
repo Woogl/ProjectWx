@@ -3,13 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Actor/WxInteractableActor.h"
 #include "WxElevator.generated.h"
 
 class USplineComponent;
 class UStaticMeshComponent;
-class UWxInteractionComponent;
-class UWxInteractionWidgetComponent;
 
 /**
  * 엘리베이터.
@@ -18,7 +16,7 @@ class UWxInteractionWidgetComponent;
  * 끝에 도달하면 정지하고, 다시 상호작용하면 반대 방향으로 이동한다.
  */
 UCLASS(Abstract)
-class WXWORLD_API AWxElevator : public AActor
+class WXWORLD_API AWxElevator : public AWxInteractableActor
 {
 	GENERATED_BODY()
 
@@ -43,12 +41,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> PlatformMesh;
-
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	TObjectPtr<UWxInteractionComponent> InteractionComponent;
-
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	TObjectPtr<UWxInteractionWidgetComponent> InteractionWidget;
 
 	/** 이동 속도 (cm/s) */
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ClampMin = "0"))

@@ -2,7 +2,7 @@
 
 #include "Gimmick/WxElevator.h"
 
-#include "Component/WxInteractionComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/SplineComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Component/WxInteractionWidgetComponent.h"
@@ -13,8 +13,6 @@ AWxElevator::AWxElevator()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
 
-	bReplicates = true;
-	
 	CurrentDistance = 0.f;
 	CachedSplineLength = 0.f;
 
@@ -30,12 +28,8 @@ AWxElevator::AWxElevator()
 	PlatformMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlatformMesh"));
 	PlatformMesh->SetupAttachment(PlatformRoot);
 
-	InteractionWidget = CreateDefaultSubobject<UWxInteractionWidgetComponent>(TEXT("InteractionWidget"));
 	InteractionWidget->SetupAttachment(PlatformRoot);
-
-	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
 	InteractionComponent->SetupAttachment(PlatformRoot);
-	InteractionComponent->InteractionWidget = InteractionWidget;
 }
 
 void AWxElevator::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -55,15 +49,12 @@ void AWxElevator::BeginPlay()
 
 	UpdatePlatformPosition();
 
-	if (InteractionComponent)
-	{
-		InteractionComponent->OnInteracted.AddDynamic(this, &AWxElevator::HandleInteracted);
-	}
+	OnInteracted.AddDynamic(this, &AWxElevator::HandleInteracted);
 
 	if (bIsMoving)
 	{
 		SetActorTickEnabled(true);
-		InteractionComponent->SetInteractionEnabled(false);
+		SetInteractionEnabled(false);
 	}
 }
 
@@ -90,7 +81,7 @@ void AWxElevator::Tick(float DeltaTime)
 			bIsMoving = false;
 			bMovingForward = !bMovingForward;
 			SetActorTickEnabled(false);
-			InteractionComponent->SetInteractionEnabled(true);
+			SetInteractionEnabled(true);
 		}
 	}
 
@@ -106,13 +97,13 @@ void AWxElevator::HandleInteracted(AActor* InteractingActor)
 
 	bIsMoving = true;
 	SetActorTickEnabled(true);
-	InteractionComponent->SetInteractionEnabled(false);
+	SetInteractionEnabled(false);
 }
 
 void AWxElevator::OnRep_bIsMoving()
 {
 	SetActorTickEnabled(bIsMoving);
-	InteractionComponent->SetInteractionEnabled(!bIsMoving);
+	SetInteractionEnabled(!bIsMoving);
 
 	// 정지 복제 수신 시 누적 드리프트를 끝점으로 스냅 (BeginPlay 이후에만).
 	// bMovingForward는 서버에서 정지와 동시에 이미 반전됐으므로 다음 진행 방향 기준으로 역의 끝점이 현재 위치.

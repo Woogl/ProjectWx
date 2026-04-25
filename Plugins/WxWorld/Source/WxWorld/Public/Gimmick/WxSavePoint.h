@@ -3,13 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Actor/WxInteractableActor.h"
 #include "WxSavePoint.generated.h"
 
 class UGameplayEffect;
 class UStaticMeshComponent;
-class UWxInteractionComponent;
-class UWxInteractionWidgetComponent;
 
 /**
  * 세이브 포인트.
@@ -17,7 +15,7 @@ class UWxInteractionWidgetComponent;
  * HealEffect 프로퍼티에 HP를 MaxHP로 설정하는 GameplayEffect를 지정해야 한다.
  */
 UCLASS(Abstract)
-class WXWORLD_API AWxSavePoint : public AActor
+class WXWORLD_API AWxSavePoint : public AWxInteractableActor
 {
 	GENERATED_BODY()
 
@@ -29,12 +27,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
-
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	TObjectPtr<UWxInteractionComponent> InteractionComponent;
-
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	TObjectPtr<UWxInteractionWidgetComponent> InteractionWidget;
 
 	/** 상호작용 시 적용할 회복 GameplayEffect. HP를 MaxHP로 설정하는 GE를 지정한다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")

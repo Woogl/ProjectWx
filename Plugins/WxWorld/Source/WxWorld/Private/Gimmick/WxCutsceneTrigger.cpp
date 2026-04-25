@@ -2,7 +2,7 @@
 
 #include "Gimmick/WxCutsceneTrigger.h"
 
-#include "Component/WxInteractionComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Component/WxInteractionWidgetComponent.h"
 #include "LevelSequenceActor.h"
@@ -10,31 +10,20 @@
 
 AWxCutsceneTrigger::AWxCutsceneTrigger()
 {
-	PrimaryActorTick.bCanEverTick = false;
-
-	bReplicates = true;
-
 	bIsPlaying = false;
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	SetRootComponent(MeshComponent);
 
-	InteractionWidget = CreateDefaultSubobject<UWxInteractionWidgetComponent>(TEXT("InteractionWidget"));
 	InteractionWidget->SetupAttachment(MeshComponent);
-
-	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
 	InteractionComponent->SetupAttachment(MeshComponent);
-	InteractionComponent->InteractionWidget = InteractionWidget;
 }
 
 void AWxCutsceneTrigger::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (InteractionComponent)
-	{
-		InteractionComponent->OnInteracted.AddDynamic(this, &AWxCutsceneTrigger::HandleInteracted);
-	}
+	OnInteracted.AddDynamic(this, &AWxCutsceneTrigger::HandleInteracted);
 }
 
 void AWxCutsceneTrigger::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -65,10 +54,7 @@ void AWxCutsceneTrigger::HandleInteracted(AActor* InteractingActor)
 		return;
 	}
 
-	if (InteractionComponent)
-	{
-		InteractionComponent->SetInteractionEnabled(false);
-	}
+	SetInteractionEnabled(false);
 
 	SequencePlayer->OnFinished.AddDynamic(this, &AWxCutsceneTrigger::HandleSequenceFinished);
 	SequencePlayer->Play();
@@ -79,10 +65,7 @@ void AWxCutsceneTrigger::HandleSequenceFinished()
 	CleanupSequenceActor();
 	bIsPlaying = false;
 
-	if (InteractionComponent)
-	{
-		InteractionComponent->SetInteractionEnabled(true);
-	}
+	SetInteractionEnabled(true);
 }
 
 void AWxCutsceneTrigger::CleanupSequenceActor()
@@ -93,4 +76,3 @@ void AWxCutsceneTrigger::CleanupSequenceActor()
 		SequenceActor = nullptr;
 	}
 }
-
