@@ -68,10 +68,6 @@
 					"Text": "Move : WASD\r\nJump : Space bar\r\nAttack: L Click\r\nDodge : R Click, L Shift\r\nSkill : E  /  Ultimate : R\r\nGuard : Q\r\nLock-on : M Click"
 				}
 			},
-			"WBP_CurrencySlot":
-			{
-				"class": "/Game/UI/Widget/WBP_CurrencySlot.WBP_CurrencySlot_C"
-			},
 			"WBP_Nameplate_Boss_109":
 			{
 				"class": "/Game/UI/Widget/WBP_Nameplate_Boss.WBP_Nameplate_Boss_C"

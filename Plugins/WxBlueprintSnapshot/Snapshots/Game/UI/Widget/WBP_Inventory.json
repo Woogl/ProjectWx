@@ -2,10 +2,7 @@
 	"blueprintPath": "/Game/UI/Widget/WBP_Inventory.WBP_Inventory",
 	"classDefaults":
 	{
-		"bIsBackHandler": true,
-		"InputMode": "Menu",
-		"MouseCaptureMode": "NoCapture",
-		"TimeDilation": 0
+		"bIsBackHandler": true
 	},
 	"mvvm":
 	{
@@ -77,6 +74,10 @@
 			"WBP_Close_48":
 			{
 				"class": "/Game/UI/Widget/WBP_Close.WBP_Close_C"
+			},
+			"WBP_CurrencySlot":
+			{
+				"class": "/Game/UI/Widget/WBP_CurrencySlot.WBP_CurrencySlot_C"
 			}
 		}
 	}

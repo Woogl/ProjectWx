@@ -3,9 +3,6 @@
 	"classDefaults":
 	{
 		"bIsBackHandler": true,
-		"InputMode": "Menu",
-		"MouseCaptureMode": "NoCapture",
-		"TimeDilation": 0,
 		"WBP_Button_161": ""
 	},
 	"eventGraph": [
@@ -37,7 +34,7 @@
 				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
 				"delta":
 				{
-					"ButtonText": "Enter Inventory"
+					"ButtonText": "[ Enter Inventory ]"
 				},
 				"isVariable": true
 			},
