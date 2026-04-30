@@ -27,6 +27,20 @@ enum class EWxItemGrade : uint8
 };
 
 /**
+ * 아이템의 UI 분류. 인벤토리 탭이나 상점 카테고리 같은 표시 단위 분류 키로 사용한다.
+ *
+ * 데이터 자산이 직접 선언하지 않으며 Fragment 구성과 1:1 로 대응된다(None 제외). 새 Fragment 가 추가되면 본 enum 도 함께 확장한다. UWxItemDefinition::GetItemCategory() 가 Fragment 우선순위(선언 순서)에 따라 도출하며, 어느 Fragment 도 없으면 None 을 반환한다.
+ */
+UENUM(BlueprintType)
+enum class EWxItemCategory : uint8
+{
+	None,
+	Equipment,
+	Consumable,
+	Currency
+};
+
+/**
  * 아이템의 정적 정의.
  *
  * Fragment 컴포지션으로 아이템의 속성/행동을 선언한다. 동일한 Definition 을
@@ -77,6 +91,12 @@ public:
 
 	/** PrimaryAssetId. AssetManager 등록 시 사용. */
 	virtual FPrimaryAssetId GetPrimaryAssetId() const override;
+
+	/**
+	 * Fragment 구성으로부터 UI 분류를 도출한다. 인벤토리 탭/상점 카테고리 등 표시 단위 분류에 사용.
+	 * EWxItemCategory 선언 순서에 대응하는 Fragment(Equipment/Consumable/Currency) 를 우선순위대로 검사한다. 어느 Fragment 도 없으면 None.
+	 */
+	EWxItemCategory GetItemCategory() const;
 
 	/**
 	 * 첫 번째로 일치하는 Fragment 포인터 반환. 없으면 nullptr.

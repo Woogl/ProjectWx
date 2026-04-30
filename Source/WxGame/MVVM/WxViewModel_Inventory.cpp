@@ -46,6 +46,7 @@ void UWxViewModel_Inventory::Deinitialize()
 		}
 	}
 	AllItems.Reset();
+	CategorizedItems.Reset();
 
 	SetInitialized(false);
 
@@ -123,4 +124,42 @@ void UWxViewModel_Inventory::RefreshAllItems()
 	AllItems = MoveTemp(NewItems);
 	// 슬롯 구성이 그대로여도 ListView 엔트리 UMG 에서 VM 재연결이 가능하도록 항상 브로드캐스트한다.
 	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(AllItems);
+
+	RefreshCategorizedItems();
+}
+
+void UWxViewModel_Inventory::SetCurrentCategory(EWxItemCategory NewCategory)
+{
+	if (CurrentCategory == NewCategory)
+	{
+		return;
+	}
+
+	UE_MVVM_SET_PROPERTY_VALUE(CurrentCategory, NewCategory);
+
+	RefreshCategorizedItems();
+}
+
+void UWxViewModel_Inventory::RefreshCategorizedItems()
+{
+	TArray<TObjectPtr<UWxViewModel_Item>> NewCategorized;
+	NewCategorized.Reserve(AllItems.Num());
+
+	for (UWxViewModel_Item* ItemVM : AllItems)
+	{
+		if (!ItemVM)
+		{
+			continue;
+		}
+
+		const UWxItemInstance* Instance = ItemVM->GetTargetInstance();
+		const UWxItemDefinition* Def = Instance ? Instance->GetItemDef() : nullptr;
+		if (Def && Def->GetItemCategory() == CurrentCategory)
+		{
+			NewCategorized.Add(ItemVM);
+		}
+	}
+
+	CategorizedItems = MoveTemp(NewCategorized);
+	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(CategorizedItems);
 }

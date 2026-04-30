@@ -4,12 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "Items/WxItemDefinition.h"
 #include "MVVM/WxViewModel.h"
 
 #include "WxViewModel_Inventory.generated.h"
 
 class UWxInventoryManagerComponent;
-class UWxItemDefinition;
 class UWxItemInstance;
 class UWxViewModel_Item;
 
@@ -17,10 +17,11 @@ class UWxViewModel_Item;
  * 플레이어 인벤토리의 전역 집계/알림 ViewModel.
  *
  * 단일 싱글톤 Shell 로 GlobalCollection 에 등록되며, PlayerState 가 도착한 시점에 Initialize(InventoryManager) 로 데이터 소스를 연결한다. 역할은
- * 세 가지로 한정한다:
+ * 네 가지로 한정한다:
  *   1) 재화 Tag 기준 총 보유량 집계 (GetCurrencyAmount)
  *   2) 가장 최근 스택 변경 알림 (LastChangedCurrency/Amount/Delta) — 획득 Toast, 팝업 이펙트 등 "방금 무엇이 얼마나 변했는지" 채널
  *   3) 보유 중인 아이템 인스턴스 전체 목록 (AllItems) — 인벤토리 ListView 등 "전체 슬롯을 나열"하는 화면의 ItemSource 로 사용
+ *   4) 카테고리 탭 표시용 필터링된 목록 (FilteredItems) — CurrentCategory 변경 또는 AllItems 갱신 시 자동 재계산
  *
  * 특정 ItemDef 의 수량/아이콘/이름 등 슬롯 단위 표시 데이터는 본 VM을 쓰지 말고 UWxViewModel_Item 을 위젯 인스턴스별로 생성해 사용한다.
  */
@@ -58,10 +59,29 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	TArray<TObjectPtr<UWxViewModel_Item>> AllItems;
 
+	/**
+	 * 현재 화면이 표시 중인 카테고리. 탭 위젯이 BlueprintSetter 를 통해 갱신한다.
+	 * Setter 가 CategorizedItems 재계산을 함께 트리거하므로, 직접 멤버를 쓰지 말고 SetCurrentCategory 로만 변경한다.
+	 */
+	UPROPERTY(BlueprintReadWrite, FieldNotify, BlueprintSetter = SetCurrentCategory, Category = "Wx|Inventory")
+	EWxItemCategory CurrentCategory = EWxItemCategory::Equipment;
+
+	/**
+	 * CurrentCategory 기준으로 AllItems 를 필터링한 결과. TileView/ListView 의 ItemSource 는 AllItems 가 아닌 본 프로퍼티에 바인딩한다.
+	 * AllItems 변경 또는 CurrentCategory 변경 시 자동 갱신된다.
+	 */
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
+	TArray<TObjectPtr<UWxViewModel_Item>> CategorizedItems;
+
+	UFUNCTION(BlueprintCallable, Category = "Wx|Inventory")
+	void SetCurrentCategory(EWxItemCategory NewCategory);
+
 protected:
 	void HandleStackChanged(const UWxItemDefinition* ItemDef, int32 NewCount, int32 Delta);
 
 	void RefreshAllItems();
+
+	void RefreshCategorizedItems();
 
 	TWeakObjectPtr<UWxInventoryManagerComponent> CachedInventory;
 

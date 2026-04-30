@@ -2,15 +2,26 @@
 	"blueprintPath": "/Game/UI/Widget/WBP_Inventory.WBP_Inventory",
 	"classDefaults":
 	{
-		"bIsBackHandler": true
+		"bIsBackHandler": true,
+		"WBP_Button": "",
+		"WBP_Button_1": "",
+		"WBP_Button_184": ""
 	},
+	"eventGraph": [
+		"event CommonButtonBaseClicked__DelegateSignature:",
+		"  WxViewModel_Inventory.SetCurrentCategory(NewCategory=Consumable)",
+		"event CommonButtonBaseClicked__DelegateSignature:",
+		"  WxViewModel_Inventory.SetCurrentCategory(NewCategory=Currency)",
+		"event CommonButtonBaseClicked__DelegateSignature:",
+		"  WxViewModel_Inventory.SetCurrentCategory(NewCategory=Equipment)"
+	],
 	"mvvm":
 	{
 		"bindings": [
 			{
 				"bindingType": "OneWayToDestination",
 				"destination": "BP_SetListItems",
-				"source": "AllItems"
+				"source": "CategorizedItems"
 			}
 		],
 		"viewModels":
@@ -47,6 +58,15 @@
 					"Text": "Inventory (WIP)"
 				}
 			},
+			"HorizontalBox_77":
+			{
+				"class": "/Script/UMG.HorizontalBox",
+				"parent": "VerticalBox_0",
+				"slot":
+				{
+					"class": "/Script/UMG.VerticalBoxSlot"
+				}
+			},
 			"SizeBox_0":
 			{
 				"class": "/Script/UMG.SizeBox",
@@ -56,6 +76,11 @@
 					"bOverride_WidthOverride": true,
 					"HeightOverride": 500,
 					"WidthOverride": 1000
+				},
+				"parent": "VerticalBox_0",
+				"slot":
+				{
+					"class": "/Script/UMG.VerticalBoxSlot"
 				}
 			},
 			"TileView_105":
@@ -69,6 +94,86 @@
 				"slot":
 				{
 					"class": "/Script/UMG.SizeBoxSlot"
+				}
+			},
+			"VerticalBox_0":
+			{
+				"class": "/Script/UMG.VerticalBox",
+				"delta":
+				{
+					"bOverride_Cursor": true
+				}
+			},
+			"WBP_Button":
+			{
+				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
+				"delta":
+				{
+					"ButtonText": "Consumable"
+				},
+				"isVariable": true,
+				"parent": "HorizontalBox_77",
+				"slot":
+				{
+					"class": "/Script/UMG.HorizontalBoxSlot",
+					"delta":
+					{
+						"Padding":
+						{
+							"Bottom": 20,
+							"Left": 20,
+							"Right": 20,
+							"Top": 20
+						}
+					}
+				}
+			},
+			"WBP_Button_1":
+			{
+				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
+				"delta":
+				{
+					"ButtonText": "Currency"
+				},
+				"isVariable": true,
+				"parent": "HorizontalBox_77",
+				"slot":
+				{
+					"class": "/Script/UMG.HorizontalBoxSlot",
+					"delta":
+					{
+						"Padding":
+						{
+							"Bottom": 20,
+							"Left": 20,
+							"Right": 20,
+							"Top": 20
+						}
+					}
+				}
+			},
+			"WBP_Button_184":
+			{
+				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
+				"delta":
+				{
+					"ButtonText": "Equipment"
+				},
+				"isVariable": true,
+				"parent": "HorizontalBox_77",
+				"slot":
+				{
+					"class": "/Script/UMG.HorizontalBoxSlot",
+					"delta":
+					{
+						"Padding":
+						{
+							"Bottom": 20,
+							"Left": 20,
+							"Right": 20,
+							"Top": 20
+						}
+					}
 				}
 			},
 			"WBP_Close_48":
