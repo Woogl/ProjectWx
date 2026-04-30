@@ -74,7 +74,8 @@
   </tr>
   <tr>
     <td align="center">
-      <img src="./assets/ref_boss_brute.jpg" width="240"><br>
+      <<img width="314" height="177" alt="image" src="https://github.com/user-attachments/assets/bfa5afd4-adb3-44dc-ada0-7e8e86aeb5f4" />
+><br>
       <sub>보스 전투 레퍼런스 2</sub>
     </td>
     <td>
