@@ -1,0 +1,164 @@
+{
+	"blueprintPath": "/Game/World/Gimmick/BP_Elevator.BP_Elevator",
+	"classDefaults":
+	{
+		"InteractionWidget":
+		{
+			"class": "/Script/WxWorld.WxInteractionWidgetComponent",
+			"delta":
+			{
+				"WidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
+			}
+		},
+		"PlatformMesh":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"RelativeScale3D":
+				{
+					"X": 8,
+					"Y": 8,
+					"Z": 8
+				},
+				"StaticMesh": "/Game/NiagaraExamples/StaticMesh/SM_Disk.SM_Disk"
+			}
+		},
+		"SplineComponent":
+		{
+			"class": "/Script/Engine.SplineComponent",
+			"delta":
+			{
+				"SplineCurves":
+				{
+					"Position":
+					{
+						"Points": [
+							{
+								"ArriveTangent":
+								{
+									"X": 4.9303806576313238e-29,
+									"Z": 400
+								},
+								"InterpMode": "CIM_CurveUser",
+								"LeaveTangent":
+								{
+									"X": 4.9303806576313238e-29,
+									"Z": 400
+								}
+							},
+							{
+								"ArriveTangent":
+								{
+									"X": 4.9303806576313238e-29,
+									"Z": 400
+								},
+								"InterpMode": "CIM_CurveUser",
+								"InVal": 1,
+								"LeaveTangent":
+								{
+									"X": 4.9303806576313238e-29,
+									"Z": 400
+								},
+								"OutVal":
+								{
+									"Z": 200
+								}
+							}
+						]
+					},
+					"ReparamTable":
+					{
+						"Points": [
+							{
+							},
+							{
+								"InVal": 34.400001525878906,
+								"OutVal": 0.10000000149011612
+							},
+							{
+								"InVal": 59.200000762939453,
+								"OutVal": 0.20000000298023224
+							},
+							{
+								"InVal": 76.799995422363281,
+								"OutVal": 0.30000001192092896
+							},
+							{
+								"InVal": 89.599998474121094,
+								"OutVal": 0.40000000596046448
+							},
+							{
+								"InVal": 100,
+								"OutVal": 0.5
+							},
+							{
+								"InVal": 110.40000152587891,
+								"OutVal": 0.60000002384185791
+							},
+							{
+								"InVal": 123.19999694824219,
+								"OutVal": 0.69999998807907104
+							},
+							{
+								"InVal": 140.80000305175781,
+								"OutVal": 0.80000001192092896
+							},
+							{
+								"InVal": 165.60002136230469,
+								"OutVal": 0.90000003576278687
+							},
+							{
+								"InVal": 200,
+								"OutVal": 1
+							}
+						]
+					},
+					"Rotation":
+					{
+						"Points": [
+							{
+								"ArriveTangent":
+								{
+									"W": 0.70710678118654746,
+									"Y": -0.70710678118654757
+								},
+								"InterpMode": "CIM_CurveAuto",
+								"LeaveTangent":
+								{
+									"W": 0.70710678118654746,
+									"Y": -0.70710678118654757
+								},
+								"OutVal":
+								{
+									"W": 0.70710678118654746,
+									"Y": -0.70710678118654757
+								}
+							},
+							{
+								"ArriveTangent":
+								{
+									"W": 0.70710678118654746,
+									"Y": -0.70710678118654757
+								},
+								"InterpMode": "CIM_CurveAuto",
+								"InVal": 1,
+								"LeaveTangent":
+								{
+									"W": 0.70710678118654746,
+									"Y": -0.70710678118654757
+								},
+								"OutVal":
+								{
+									"W": 0.70710678118654746,
+									"Y": -0.70710678118654757
+								}
+							}
+						]
+					}
+				}
+			}
+		}
+	},
+	"parentClass": "/Script/WxWorld.WxElevator"
+}
