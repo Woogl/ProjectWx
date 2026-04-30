@@ -49,7 +49,8 @@
 
 <table>
   <tr>
-    <th width="260">레퍼런스 이미지</th>
+    <<img width="323" height="181" alt="image" src="https://github.com/user-attachments/assets/5430e9ac-8a31-43be-b46d-3771b3a14028" />
+>레퍼런스 이미지</th>
     <th>기획 포인트</th>
   </tr>
   <tr>
