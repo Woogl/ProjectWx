@@ -56,8 +56,8 @@
   </tr>
   <tr>
     <td align="center">
-      <<img width="323" height="181" alt="image" src="https://github.com/user-attachments/assets/b4d2c53a-2c5b-46e1-b3d4-a4e029e8538f" />
-" width="240"><br>
+      <img width="323" height="181" alt="image" src="https://github.com/user-attachments/assets/b4d2c53a-2c5b-46e1-b3d4-a4e029e8538f" />
+><br>
       <sub>보스 전투 레퍼런스 1</sub>
     </td>
     <td>
