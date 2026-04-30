@@ -232,7 +232,8 @@
   </tr>
   <tr>
     <td align="center">
-      <img src="./assets/pattern_chase_slam_thumb.jpg" width="240"><br>
+      <<img width="422" height="223" alt="image" src="https://github.com/user-attachments/assets/394f0d7e-6a36-4f7e-bf70-6abcdb0e4729" />
+><br>
       <sub>원본 GIF 대신 정지 썸네일 사용</sub>
     </td>
     <td>
