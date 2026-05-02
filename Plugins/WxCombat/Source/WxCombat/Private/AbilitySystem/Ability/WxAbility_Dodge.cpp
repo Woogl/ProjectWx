@@ -164,8 +164,10 @@ void UWxAbility_Dodge::HandleTargetDataReceived(const FGameplayAbilityTargetData
 
 void UWxAbility_Dodge::ListenForDodgeSuccess()
 {
+	// 무적 구간에 다수의 공격이 들어오면 데미지 파이프라인이 매 피격마다 Event.DodgeSuccess를 발송한다.
+	// 회피 1회당 극한 회피 보상은 한 번만 적용되어야 하므로 OnlyTriggerOnce로 바인딩한다.
 	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-		this, WxGameplayTags::Event_DodgeSuccess);
+		this, WxGameplayTags::Event_DodgeSuccess, nullptr, true);
 	if (EventTask)
 	{
 		EventTask->EventReceived.AddDynamic(this, &UWxAbility_Dodge::HandleDodgeSuccess);
