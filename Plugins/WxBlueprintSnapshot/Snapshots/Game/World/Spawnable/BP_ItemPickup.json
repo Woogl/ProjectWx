@@ -7,10 +7,7 @@
 			"class": "/Script/Engine.SphereComponent",
 			"delta":
 			{
-				"RelativeLocation":
-				{
-					"Z": 50
-				}
+				"SphereRadius": 350
 			}
 		},
 		"InteractionWidget":
@@ -18,10 +15,6 @@
 			"class": "/Script/WxWorld.WxInteractionWidgetComponent",
 			"delta":
 			{
-				"RelativeLocation":
-				{
-					"Z": 50
-				},
 				"WidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
 			}
 		},
@@ -41,6 +34,14 @@
 					"Z": 0.25
 				},
 				"StaticMesh": "/Game/NiagaraExamples/Gallery/StaticMesh/SM_MannequinTarget.SM_MannequinTarget"
+			}
+		},
+		"NiagaraComponent":
+		{
+			"class": "/Script/Niagara.NiagaraComponent",
+			"delta":
+			{
+				"Asset": "/Game/Imortal_Loot_Drop_VFX/Niagara/NS_Loot_Drop_3.NS_Loot_Drop_3"
 			}
 		},
 		"RootComponent": "MeshComponent"

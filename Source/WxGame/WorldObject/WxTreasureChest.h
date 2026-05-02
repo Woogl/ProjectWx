@@ -28,7 +28,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 
 	/** 드랍되는 아이템의 외형. ItemDefinition 의 지급 데이터는 스폰 후 주입된다. */
