@@ -1,8 +1,8 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Component/WxInteractionWidgetComponent.h"
+#include "Interaction/WxInteractionWidgetComponent.h"
 #include "Blueprint/UserWidget.h"
-#include "Component/WxInteractionWidgetInterface.h"
+#include "Interaction/WxInteractionWidgetInterface.h"
 
 UWxInteractionWidgetComponent::UWxInteractionWidgetComponent()
 {

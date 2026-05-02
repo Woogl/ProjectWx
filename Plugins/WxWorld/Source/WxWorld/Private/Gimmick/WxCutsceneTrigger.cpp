@@ -4,7 +4,7 @@
 
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Component/WxInteractionWidgetComponent.h"
+#include "Interaction/WxInteractionWidgetComponent.h"
 #include "LevelSequenceActor.h"
 #include "LevelSequencePlayer.h"
 

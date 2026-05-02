@@ -1,8 +1,8 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Actor/WxInteractableActor.h"
+#include "Interaction/WxInteractableActor.h"
 
-#include "Component/WxInteractionWidgetComponent.h"
+#include "Interaction/WxInteractionWidgetComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Pawn.h"
 

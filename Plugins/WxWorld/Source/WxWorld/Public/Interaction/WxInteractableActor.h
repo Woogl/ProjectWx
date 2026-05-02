@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Component/WxInteractable.h"
+#include "Interaction/WxInteractable.h"
 #include "WxInteractableActor.generated.h"
 
 class USphereComponent;

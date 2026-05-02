@@ -71,4 +71,8 @@ struct WXINVENTORY_API FWxItemFragment_Currency : public FWxItemFragment
 	/** 월렛/HUD 조회 키. 예: Item.Currency.Gold */
 	UPROPERTY(EditDefaultsOnly, Category = "Currency", meta = (Categories = "Item.Currency"))
 	FGameplayTag CurrencyTag;
+
+	/** 픽업 1개 획득 시 wallet 에 가산되는 액면가. 예: 100골드 코인은 100, 500골드 코인은 500. */
+	UPROPERTY(EditDefaultsOnly, Category = "Currency", meta = (ClampMin = "1"))
+	int32 Quantity = 1;
 };

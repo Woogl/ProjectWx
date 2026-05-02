@@ -5,7 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/SplineComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Component/WxInteractionWidgetComponent.h"
+#include "Interaction/WxInteractionWidgetComponent.h"
 #include "Net/UnrealNetwork.h"
 
 AWxElevator::AWxElevator()

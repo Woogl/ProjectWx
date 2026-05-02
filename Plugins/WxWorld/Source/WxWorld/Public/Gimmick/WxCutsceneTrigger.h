@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Actor/WxInteractableActor.h"
+#include "Interaction/WxInteractableActor.h"
 #include "WxCutsceneTrigger.generated.h"
 
 class ALevelSequenceActor;

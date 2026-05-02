@@ -1,0 +1,49 @@
+{
+	"blueprintPath": "/Game/World/Spawnable/BP_ItemPickup.BP_ItemPickup",
+	"classDefaults":
+	{
+		"InteractionComponent":
+		{
+			"class": "/Script/Engine.SphereComponent",
+			"delta":
+			{
+				"RelativeLocation":
+				{
+					"Z": 50
+				}
+			}
+		},
+		"InteractionWidget":
+		{
+			"class": "/Script/WxWorld.WxInteractionWidgetComponent",
+			"delta":
+			{
+				"RelativeLocation":
+				{
+					"Z": 50
+				},
+				"WidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
+			}
+		},
+		"MeshComponent":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"RelativeLocation":
+				{
+					"Z": 50
+				},
+				"RelativeScale3D":
+				{
+					"X": 0.25,
+					"Y": 0.25,
+					"Z": 0.25
+				},
+				"StaticMesh": "/Game/NiagaraExamples/Gallery/StaticMesh/SM_MannequinTarget.SM_MannequinTarget"
+			}
+		},
+		"RootComponent": "MeshComponent"
+	},
+	"parentClass": "/Script/WxGame.WxItemPickup"
+}

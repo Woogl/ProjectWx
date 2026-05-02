@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Interact.h"
-#include "Component/WxInteractable.h"
+#include "Interaction/WxInteractable.h"
 #include "Components/PrimitiveComponent.h"
 #include "GameFramework/Pawn.h"
 #include "WxGameplayTags.h"

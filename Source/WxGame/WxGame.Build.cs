@@ -12,24 +12,26 @@ public class WxGame : ModuleRules
 
 		PublicDependencyModuleNames.AddRange(new string[]
 		{
+			"AIModule",
 			"Core",
 			"CoreUObject",
 			"Engine",
-			"InputCore",
-			"EnhancedInput",
 			"GameplayAbilities",
 			"GameplayTags",
-			"GameplayTasks",
-			"AIModule",
-			"NavigationSystem",
-			"UMG",
 			"ModelViewViewModel",
-			"MotionWarping",
-			"WxCore",
+			"UMG",
 			"WxCombat",
+			"WxCore",
 			"WxInventory",
 			"WxUI",
 			"WxWorld",
+		});
+
+		PrivateDependencyModuleNames.AddRange(new string[]
+		{
+			"EnhancedInput",
+			"MotionWarping",
+			"Niagara",
 		});
 
 		// Uncomment if you are using Slate UI
