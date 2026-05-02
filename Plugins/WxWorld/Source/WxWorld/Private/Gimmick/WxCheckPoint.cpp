@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Gimmick/WxSavePoint.h"
+#include "Gimmick/WxCheckPoint.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
@@ -9,7 +9,7 @@
 #include "Interaction/WxInteractionWidgetComponent.h"
 #include "System/WxSpawnerSubsystem.h"
 
-AWxSavePoint::AWxSavePoint()
+AWxCheckPoint::AWxCheckPoint()
 {
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	SetRootComponent(MeshComponent);
@@ -18,14 +18,14 @@ AWxSavePoint::AWxSavePoint()
 	InteractionComponent->SetupAttachment(MeshComponent);
 }
 
-void AWxSavePoint::BeginPlay()
+void AWxCheckPoint::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OnInteracted.AddDynamic(this, &AWxSavePoint::HandleInteracted);
+	OnInteracted.AddDynamic(this, &AWxCheckPoint::HandleInteracted);
 }
 
-void AWxSavePoint::HandleInteracted(AActor* InteractingActor)
+void AWxCheckPoint::HandleInteracted(AActor* InteractingActor)
 {
 	if (!HasAuthority())
 	{

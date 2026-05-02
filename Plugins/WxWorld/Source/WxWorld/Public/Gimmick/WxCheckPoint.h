@@ -4,23 +4,23 @@
 
 #include "CoreMinimal.h"
 #include "Interaction/WxInteractableActor.h"
-#include "WxSavePoint.generated.h"
+#include "WxCheckPoint.generated.h"
 
 class UGameplayEffect;
 class UStaticMeshComponent;
 
 /**
- * 세이브 포인트.
+ * 체크 포인트.
  * 플레이어가 상호작용하면 HP를 최대치로 회복시킨다.
  * HealEffect 프로퍼티에 HP를 MaxHP로 설정하는 GameplayEffect를 지정해야 한다.
  */
 UCLASS(Abstract)
-class WXWORLD_API AWxSavePoint : public AWxInteractableActor
+class WXWORLD_API AWxCheckPoint : public AWxInteractableActor
 {
 	GENERATED_BODY()
 
 public:
-	AWxSavePoint();
+	AWxCheckPoint();
 
 protected:
 	virtual void BeginPlay() override;
