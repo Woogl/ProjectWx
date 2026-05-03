@@ -19,22 +19,6 @@ void UWxAbilitySystemComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME(UWxAbilitySystemComponent, bRagdollActive);
 }
 
-void UWxAbilitySystemComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	// 래그돌이 켜진 채로 컴포넌트가 unregister되면 UActorComponent의 ensure가 트립한다.
-	// ASC가 ragdoll 상태의 단일 진입점이므로 여기서 메시 시뮬레이션을 끈다.
-	if (ACharacter* Character = Cast<ACharacter>(GetOwnerActor()))
-	{
-		USkeletalMeshComponent* Mesh = Character->GetMesh();
-		if (Mesh && Mesh->IsSimulatingPhysics())
-		{
-			Mesh->SetSimulatePhysics(false);
-		}
-	}
-
-	Super::EndPlay(EndPlayReason);
-}
-
 void UWxAbilitySystemComponent::GiveAbilitySet()
 {
 	if (!AbilitySet)

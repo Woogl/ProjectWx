@@ -16,7 +16,6 @@ public:
 	UWxAbilitySystemComponent();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	void GiveAbilitySet();
 

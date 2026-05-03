@@ -2,11 +2,9 @@
 	"blueprintPath": "/Game/AbilitySystem/Ability/GA_Dodge.GA_Dodge",
 	"classDefaults":
 	{
-		"DodgeCounterMontage": "/Game/AbilitySystem/Ability/AM_Attack_LLLL.AM_Attack_LLLL",
+		"DodgeCounterMontage": "/Game/AbilitySystem/Ability/AM_DodgeCounter.AM_DodgeCounter",
 		"DodgeMontage": "/Game/AbilitySystem/Ability/AM_Dodge.AM_Dodge",
-		"PerfectDodgeMontage": "/Game/AbilitySystem/Ability/AM_DodgeSuccess.AM_DodgeSuccess",
-		"PerfectDodgeSlowTimeDilation": 0.40000000596046448,
-		"PerfectDodgeSlowTimeDuration": 0.40000000596046448
+		"PerfectDodgeMontage": "/Game/AbilitySystem/Ability/AM_DodgeSuccess.AM_DodgeSuccess"
 	},
 	"parentClass": "/Script/WxCombat.WxAbility_Dodge"
 }
