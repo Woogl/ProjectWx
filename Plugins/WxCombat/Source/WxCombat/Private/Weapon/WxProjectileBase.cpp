@@ -7,11 +7,11 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "GenericTeamAgentInterface.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "WxCombatLibrary.h"
 
 AWxProjectileBase::AWxProjectileBase()
 {
@@ -84,15 +84,10 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 	{
 		return;
 	}
-	
-	const IGenericTeamAgentInterface* OwnerTeam = Cast<IGenericTeamAgentInterface>(GetInstigator());
-	if (OwnerTeam)
+
+	if (!UWxCombatLibrary::IsHostile(GetInstigator(), OtherActor))
 	{
-		const ETeamAttitude::Type Attitude = OwnerTeam->GetTeamAttitudeTowards(*OtherActor);
-		if (Attitude != ETeamAttitude::Hostile)
-		{
-			return;
-		}
+		return;
 	}
 
 	if (CachedEffectContext.IsValid())

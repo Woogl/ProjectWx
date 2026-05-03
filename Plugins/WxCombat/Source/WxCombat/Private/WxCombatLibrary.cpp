@@ -1,0 +1,65 @@
+// Copyright Woogle. All Rights Reserved.
+
+#include "WxCombatLibrary.h"
+#include "WxDamageInfo.h"
+#include "WxGameplayTags.h"
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
+#include "GenericTeamAgentInterface.h"
+
+bool UWxCombatLibrary::ApplyDamage(AActor* Instigator, AActor* Target, const FWxDamageInfo& DamageInfo, const FHitResult& HitResult, UObject* SourceObject, float HitStopDuration)
+{
+	if (!Instigator || !Target || Instigator == Target)
+	{
+		return false;
+	}
+
+	UAbilitySystemComponent* SourceASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Instigator);
+	UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
+	if (!SourceASC || !TargetASC)
+	{
+		return false;
+	}
+
+	FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
+	Context.AddSourceObject(SourceObject ? SourceObject : Instigator);
+	Context.AddInstigator(Instigator, Instigator);
+	Context.SetAbility(SourceASC->GetAnimatingAbility());
+	Context.AddHitResult(HitResult);
+
+	bool bAppliedAny = false;
+	const TArray<FGameplayEffectSpecHandle> Specs = DamageInfo.MakeSpecs(SourceASC, Context);
+	for (const FGameplayEffectSpecHandle& Spec : Specs)
+	{
+		if (Spec.IsValid())
+		{
+			SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
+			bAppliedAny = true;
+		}
+	}
+
+	if (bAppliedAny && HitStopDuration > 0.f)
+	{
+		FGameplayCueParameters HitStopParams;
+		HitStopParams.RawMagnitude = HitStopDuration;
+		SourceASC->ExecuteGameplayCue(WxGameplayTags::GameplayCue_HitStop, HitStopParams);
+	}
+
+	return bAppliedAny;
+}
+
+bool UWxCombatLibrary::IsHostile(const AActor* Source, const AActor* Target)
+{
+	if (!Source || !Target)
+	{
+		return false;
+	}
+
+	const IGenericTeamAgentInterface* SourceTeam = Cast<IGenericTeamAgentInterface>(Source);
+	if (!SourceTeam)
+	{
+		return true;
+	}
+
+	return SourceTeam->GetTeamAttitudeTowards(*Target) == ETeamAttitude::Hostile;
+}

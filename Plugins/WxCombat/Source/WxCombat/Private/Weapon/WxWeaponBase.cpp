@@ -7,8 +7,8 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "GenericTeamAgentInterface.h"
 #include "WxCollisionChannels.h"
+#include "WxCombatLibrary.h"
 #include "WxGameplayTags.h"
 
 AWxWeaponBase::AWxWeaponBase()
@@ -259,53 +259,16 @@ void AWxWeaponBase::ProcessHit(AActor* OtherActor, const FHitResult& HitResult)
 	// 서버의 권위 적용과 불일치하면 GAS가 자동으로 롤백한다.
 
 	AActor* WeaponOwner = GetOwner();
-	if (!OtherActor || OtherActor == WeaponOwner)
-	{
-		return;
-	}
-	if (HitActorsThisSwing.Contains(OtherActor))
+	if (!OtherActor || OtherActor == WeaponOwner || HitActorsThisSwing.Contains(OtherActor))
 	{
 		return;
 	}
 
-	const IGenericTeamAgentInterface* OwnerTeam = Cast<IGenericTeamAgentInterface>(WeaponOwner);
-	if (OwnerTeam)
+	if (!UWxCombatLibrary::IsHostile(WeaponOwner, OtherActor))
 	{
-		const ETeamAttitude::Type Attitude = OwnerTeam->GetTeamAttitudeTowards(*OtherActor);
-		if (Attitude != ETeamAttitude::Hostile)
-		{
-			return;
-		}
+		return;
 	}
 
 	HitActorsThisSwing.Add(OtherActor);
-
-	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
-	UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(WeaponOwner);
-	if (!TargetASC || !SourceASC)
-	{
-		return;
-	}
-
-	FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
-	Context.AddSourceObject(this);
-	Context.AddInstigator(WeaponOwner, WeaponOwner);
-	Context.SetAbility(SourceASC->GetAnimatingAbility());
-	Context.AddHitResult(HitResult);
-
-	const TArray<FGameplayEffectSpecHandle> Specs = DamageInfo.MakeSpecs(SourceASC, Context);
-	for (const FGameplayEffectSpecHandle& Spec : Specs)
-	{
-		if (Spec.IsValid())
-		{
-			SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
-		}
-	}
-
-	if (HitStopDuration > 0.f)
-	{
-		FGameplayCueParameters HitStopParams;
-		HitStopParams.RawMagnitude = HitStopDuration;
-		SourceASC->ExecuteGameplayCue(WxGameplayTags::GameplayCue_HitStop, HitStopParams);
-	}
+	UWxCombatLibrary::ApplyDamage(WeaponOwner, OtherActor, DamageInfo, HitResult, this, HitStopDuration);
 }
