@@ -153,6 +153,9 @@ namespace WxGameplayTags
 	/** 공격력 계수 SetByCaller 키. WxExecCalc_Damage가 ATK 어트리뷰트에 곱하는 배율 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Coeff_ATK);
 
+	/** 고정 대미지 SetByCaller 키. WxEffect_FixedDamage가 IncomingDamage에 직접 더하는 값 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_FixedDamage);
+
 	// ── Input ──────────────────────────────────────────────────────────────
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Jump);

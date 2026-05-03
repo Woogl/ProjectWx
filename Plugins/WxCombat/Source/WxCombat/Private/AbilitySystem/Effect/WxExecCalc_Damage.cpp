@@ -62,7 +62,11 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		return;
 	}
 
-	// --- 1. 무적 판정 ---
+	// --- 1. 사망/무적 판정 ---
+	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
+	{
+		return;
+	}
 	if (HandleInvincible(SourceASC, TargetASC))
 	{
 		return;
