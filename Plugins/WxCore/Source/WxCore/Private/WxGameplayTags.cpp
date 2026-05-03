@@ -49,6 +49,17 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_4, "Ability.Skill.4");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Ultimate, "Ability.Ultimate");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Interact, "Ability.Interact");
+	
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_1, "Ability.Pattern.1");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_2, "Ability.Pattern.2");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_3, "Ability.Pattern.3");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_4, "Ability.Pattern.4");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_5, "Ability.Pattern.5");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_6, "Ability.Pattern.6");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_7, "Ability.Pattern.7");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_8, "Ability.Pattern.8");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_9, "Ability.Pattern.9");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_10, "Ability.Pattern.10");
 
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Duration, "SetByCaller.Duration");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Cost, "SetByCaller.Cost");
