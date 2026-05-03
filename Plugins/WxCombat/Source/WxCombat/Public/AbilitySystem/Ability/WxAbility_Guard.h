@@ -40,10 +40,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> GuardMontage;
 
-	/** 퍼펙트 가드 성공 시 회복하는 MP량 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Recovery")
-	float PerfectGuardMPRecovery = 5.f;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> GuardHitReactMontage;
 
@@ -53,6 +49,18 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> GuardBreakMontage;
+	
+	/** 퍼펙트 가드 성공 시 회복하는 MP량 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Recovery")
+	float PerfectGuardMPRecovery = 5.f;
+	
+	/** 퍼펙트 가드 성공 시 적용할 GlobalTimeDilation 값 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|SlowTime", meta = (ClampMin = "0.01"))
+	float PerfectGuardSlowTimeDilation = 0.4f;
+
+	/** 퍼펙트 가드 성공 시 슬로우 타임 지속 시간 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|SlowTime", meta = (ClampMin = "0.0"))
+	float PerfectGuardSlowTimeDuration = 0.4f;
 
 private:
 	bool PlayMontage(UAnimMontage* Montage);

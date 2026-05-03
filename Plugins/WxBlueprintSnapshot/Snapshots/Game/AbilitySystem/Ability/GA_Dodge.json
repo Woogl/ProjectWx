@@ -4,7 +4,9 @@
 	{
 		"DodgeCounterMontage": "/Game/AbilitySystem/Ability/AM_Attack_LLLL.AM_Attack_LLLL",
 		"DodgeMontage": "/Game/AbilitySystem/Ability/AM_Dodge.AM_Dodge",
-		"PerfectDodgeMontage": "/Game/AbilitySystem/Ability/AM_DodgeSuccess.AM_DodgeSuccess"
+		"PerfectDodgeMontage": "/Game/AbilitySystem/Ability/AM_DodgeSuccess.AM_DodgeSuccess",
+		"PerfectDodgeSlowTimeDilation": 0.40000000596046448,
+		"PerfectDodgeSlowTimeDuration": 0.40000000596046448
 	},
 	"parentClass": "/Script/WxCombat.WxAbility_Dodge"
 }

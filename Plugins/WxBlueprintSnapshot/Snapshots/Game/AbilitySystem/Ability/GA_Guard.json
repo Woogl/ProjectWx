@@ -1,0 +1,13 @@
+{
+	"blueprintPath": "/Game/AbilitySystem/Ability/GA_Guard.GA_Guard",
+	"classDefaults":
+	{
+		"GuardBreakMontage": "/Game/AbilitySystem/Ability/AM_GuardBreak.AM_GuardBreak",
+		"GuardHitReactMontage": "/Game/AbilitySystem/Ability/AM_GuardHit.AM_GuardHit",
+		"GuardKnockbackMontage": "/Game/AbilitySystem/Ability/AM_GuardKnockback.AM_GuardKnockback",
+		"GuardMontage": "/Game/AbilitySystem/Ability/AM_Guard.AM_Guard",
+		"PerfectGuardSlowTimeDilation": 0.40000000596046448,
+		"PerfectGuardSlowTimeDuration": 0.40000000596046448
+	},
+	"parentClass": "/Script/WxCombat.WxAbility_Guard"
+}

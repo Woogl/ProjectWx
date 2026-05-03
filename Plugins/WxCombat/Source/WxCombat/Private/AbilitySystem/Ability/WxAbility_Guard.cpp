@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/Ability/WxAbility_Guard.h"
 #include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
+#include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
@@ -159,6 +160,12 @@ void UWxAbility_Guard::HandlePerfectGuard(FGameplayEventData Payload)
 		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_UP, 0.f);
 		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_MP, PerfectGuardMPRecovery);
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle);
+	}
+
+	// 퍼펙트 가드 성공 시 짧은 슬로우 타임 연출
+	if (UWxAbilityTask_SlowTime* SlowTimeTask = UWxAbilityTask_SlowTime::CreateTask(this, PerfectGuardSlowTimeDilation, PerfectGuardSlowTimeDuration))
+	{
+		SlowTimeTask->ReadyForActivation();
 	}
 
 	// GuardMontage 페이즈에서만 GuardHitReactMontage를 재생한다.

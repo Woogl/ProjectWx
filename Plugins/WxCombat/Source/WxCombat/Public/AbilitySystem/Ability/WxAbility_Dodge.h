@@ -51,6 +51,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	float PerfectDodgeMPRecovery = 5.f;
 
+	/** 극한 회피 성공 시 적용할 GlobalTimeDilation 값 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|SlowTime", meta = (ClampMin = "0.01"))
+	float PerfectDodgeSlowTimeDilation = 0.4f;
+
+	/** 극한 회피 성공 시 슬로우 타임 지속 시간 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|SlowTime", meta = (ClampMin = "0.0"))
+	float PerfectDodgeSlowTimeDuration = 0.4f;
+
 private:
 	void ApplyDodgeDirection(const FVector& Direction);
 	void HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag);
