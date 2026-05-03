@@ -19,6 +19,7 @@ public class WxCombat : ModuleRules
 			"EnhancedInput",
 			"AIModule",
 			"NavigationSystem",
+			"NetCore",
 			"WxCore",
 		});
 

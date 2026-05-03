@@ -10,8 +10,8 @@
  * 전역 슬로우모션 AnimNotifyState.
  *
  * NotifyBegin~NotifyEnd 구간 동안 World의 Global TimeDilation을 TargetDilation으로 설정.
- * 서버 권위로 AWxGameState에 적용되며, 모든 클라이언트에 복제된다.
- * 서버가 아닌 머신에서는 no-op이므로 안전.
+ * GameState의 UWxTimeDilationComponent를 통해 서버 권위로 적용되며, 모든 클라이언트에 복제된다.
+ * 서버가 아닌 머신에서 호출되면 컴포넌트 내부에서 무시되므로 안전.
  */
 UCLASS(DisplayName = "Wx Slow Motion")
 class WXGAME_API UWxAnimNotifyState_SlowMotion : public UAnimNotifyState
