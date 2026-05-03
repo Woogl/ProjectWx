@@ -2,27 +2,15 @@
 	"blueprintPath": "/Game/AbilitySystem/Ability/GA_Pattern_2.GA_Pattern_2",
 	"classDefaults":
 	{
-		"AbilityDataRow":
-		{
-			"DataTable": "/Game/AbilitySystem/DT_Ability.DT_Ability",
-			"RowName": "GA_Skill_1"
-		},
-		"AbilityIcon": "/Game/UIMaterialLab/Textures/T_UI_Sword.T_UI_Sword",
 		"AbilityTags":
 		{
 			"GameplayTags": [
 				{
-					"TagName": "Ability.Skill.1"
+					"TagName": "Ability.Pattern.2"
 				}
 			]
 		},
-		"ActivationInputTag":
-		{
-			"TagName": "Input.Skill.1"
-		},
-		"CooldownTime": 5,
-		"MPCost": 5,
-		"SkillMontage": "/Game/AbilitySystem/Ability/AM_Skill_1.AM_Skill_1"
+		"Montage": "/Game/AbilitySystem/Ability/AM_Pattern_2.AM_Pattern_2"
 	},
-	"parentClass": "/Script/WxCombat.WxAbility_Skill"
+	"parentClass": "/Script/WxCombat.WxAbility_Pattern"
 }
