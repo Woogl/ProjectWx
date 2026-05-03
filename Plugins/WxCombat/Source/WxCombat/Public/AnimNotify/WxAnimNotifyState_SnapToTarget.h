@@ -35,7 +35,7 @@ protected:
 	TObjectPtr<UTargetingPreset> TargetingPreset;
 
 	UPROPERTY(EditAnywhere, Category = "Wx|Snap")
-	bool bSnapLocation = true;
+	bool bSnapLocation = false;
 
 	UPROPERTY(EditAnywhere, Category = "Wx|Snap")
 	bool bSnapRotation = true;
