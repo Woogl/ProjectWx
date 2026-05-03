@@ -14,11 +14,11 @@ class UAnimMontage;
  * 사용 흐름:
  *  1. HP == 0 → PostGameplayEffectExecute에서 State.Dead 태그 부여
  *  2. OwnedTagPresent 트리거 → ActivateAbility
- *  3-A. HitReact 어빌리티 활성 중 → 해당 몽타주 자연 종료 대기 (최대 0.15초) → 래그돌 활성화 → EndAbility
- *  3-B. DeathMontage 유효 → DeathMontage 재생 → 완료 시 래그돌 활성화 → EndAbility
- *  3-C. DeathMontage 무효 → 즉시 래그돌 활성화 → EndAbility
+ *  3. DeathMontage 유효 → DeathMontage 재생 → EndAbility (의도한 사망 포즈 유지, 래그돌 X)
+ *     DeathMontage 무효 → 짧은 지연 후 래그돌 활성화 → EndAbility (활성 HitReact 몽타주가 잘리지 않게 인계)
  *
- * 사망 발동 시 신규 어빌리티 차단. HitReact 재생 중이면 자연 종료 후 래그돌 (타임아웃 시 강제 래그돌).
+ * DeathMontage가 외부 시스템에 의해 중단되면 안전 폴백으로 래그돌 활성화.
+ * 사망 발동 시 신규 어빌리티 차단.
  */
 UCLASS()
 class WXCOMBAT_API UWxAbility_Death : public UWxAbilityBase
@@ -39,23 +39,18 @@ private:
 	void HandleMontageCompleted();
 
 	UFUNCTION()
-	void HandleMontageBlendOut();
-
-	UFUNCTION()
 	void HandleMontageInterrupted();
 
 	UFUNCTION()
 	void HandleMontageCancelled();
+	
+	void PlayDeathMontageOrRagdoll();
 
-	UFUNCTION()
-	void HandleActiveMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	void HandleRagdollDelayElapsed();
 
-	void FinishWaitAndRagdoll();
+	void RagdollAndEnd(bool bWasCancelled);
 
 	void EnableRagdoll();
 
-	UPROPERTY()
-	TObjectPtr<UAnimMontage> PendingWaitMontage;
-
-	FTimerHandle WaitTimerHandle;
+	FTimerHandle RagdollDelayTimerHandle;
 };

@@ -4,11 +4,35 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "WxGameplayTags.h"
 
 UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 {
 	SetIsReplicatedByDefault(true);
+}
+
+void UWxAbilitySystemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UWxAbilitySystemComponent, bRagdollActive);
+}
+
+void UWxAbilitySystemComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// 래그돌이 켜진 채로 컴포넌트가 unregister되면 UActorComponent의 ensure가 트립한다.
+	// ASC가 ragdoll 상태의 단일 진입점이므로 여기서 메시 시뮬레이션을 끈다.
+	if (ACharacter* Character = Cast<ACharacter>(GetOwnerActor()))
+	{
+		USkeletalMeshComponent* Mesh = Character->GetMesh();
+		if (Mesh && Mesh->IsSimulatingPhysics())
+		{
+			Mesh->SetSimulatePhysics(false);
+		}
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void UWxAbilitySystemComponent::GiveAbilitySet()
@@ -52,8 +76,31 @@ void UWxAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Input
 	}
 }
 
-void UWxAbilitySystemComponent::MulticastEnableRagdoll_Implementation()
+void UWxAbilitySystemComponent::SetRagdollActive(bool bNewActive)
 {
+	const AActor* Owner = GetOwnerActor();
+	if (!Owner || !Owner->HasAuthority())
+	{
+		return;
+	}
+
+	if (bRagdollActive == bNewActive)
+	{
+		return;
+	}
+
+	bRagdollActive = bNewActive;
+	// 서버에서는 ReplicatedUsing 콜백이 자동 호출되지 않으므로 직접 발화한다.
+	OnRep_RagdollActive();
+}
+
+void UWxAbilitySystemComponent::OnRep_RagdollActive()
+{
+	if (!bRagdollActive)
+	{
+		return;
+	}
+
 	ACharacter* Character = Cast<ACharacter>(GetOwnerActor());
 	if (!Character)
 	{

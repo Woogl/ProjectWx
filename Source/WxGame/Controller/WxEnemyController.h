@@ -47,9 +47,6 @@ private:
 	UFUNCTION()
 	void HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
-	UFUNCTION()
-	void HandleDeath(AWxCharacterBase* DeadCharacter);
-
 	void SetAlerted(bool bNewAlerted);
 
 	UPROPERTY()

@@ -3,16 +3,12 @@
 #include "AbilitySystem/Ability/WxAbility_Death.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "Animation/AnimInstance.h"
-#include "Components/SkeletalMeshComponent.h"
+#include "AIController.h"
+#include "BrainComponent.h"
 #include "Engine/World.h"
+#include "GameFramework/Pawn.h"
 #include "TimerManager.h"
 #include "WxGameplayTags.h"
-
-namespace
-{
-	constexpr float MaxHitReactWaitSeconds = 0.15f;
-}
 
 UWxAbility_Death::UWxAbility_Death()
 {
@@ -35,96 +31,74 @@ void UWxAbility_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-
-	// HitReact 몽타주 재생 중이면 자연 종료까지 대기한 뒤 래그돌 (최대 MaxHitReactWaitSeconds 초)
-	UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::State_HitReact))
+	
+	APawn* Avatar = Cast<APawn>(GetAvatarActorFromActorInfo());
+	AAIController* AIController = Avatar ? Cast<AAIController>(Avatar->GetController()) : nullptr;
+	if (UBrainComponent* Brain = AIController ? AIController->GetBrainComponent() : nullptr)
 	{
-		USkeletalMeshComponent* Mesh = ActorInfo->SkeletalMeshComponent.Get();
-		if (UAnimInstance* AnimInstance = Mesh ? Mesh->GetAnimInstance() : nullptr)
-		{
-			PendingWaitMontage = AnimInstance->GetCurrentActiveMontage();
-			AnimInstance->OnMontageEnded.AddDynamic(this, &UWxAbility_Death::HandleActiveMontageEnded);
-		}
-		if (UWorld* World = GetWorld())
-		{
-			World->GetTimerManager().SetTimer(WaitTimerHandle, this, &UWxAbility_Death::FinishWaitAndRagdoll, MaxHitReactWaitSeconds, false);
-		}
-		return;
+		Brain->StopLogic(TEXT("Death"));
 	}
 
-	// 사망 몽타주가 없으면 즉시 래그돌 활성화
+	PlayDeathMontageOrRagdoll();
+}
+
+void UWxAbility_Death::PlayDeathMontageOrRagdoll()
+{
 	if (!DeathMontage)
 	{
-		EnableRagdoll();
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		// 활성 HitReact 몽타주가 BlendOut될 시간을 주고 래그돌로 인계
+		UWorld* World = GetWorld();
+		if (!World)
+		{
+			RagdollAndEnd(false);
+			return;
+		}
+		constexpr float DelayTime = 0.15f;
+		World->GetTimerManager().SetTimer(RagdollDelayTimerHandle, this, &UWxAbility_Death::HandleRagdollDelayElapsed, DelayTime, false);
 		return;
 	}
 
+	// HitReact 등 활성 몽타주는 PlayMontageAndWait가 BlendOut으로 인계받는다.
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this, NAME_None, DeathMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
 	if (!MontageTask)
 	{
-		EnableRagdoll();
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		RagdollAndEnd(true);
 		return;
 	}
 
 	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Death::HandleMontageCompleted);
-	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Death::HandleMontageBlendOut);
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Death::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Death::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
 }
 
-void UWxAbility_Death::HandleMontageCompleted()
+void UWxAbility_Death::HandleRagdollDelayElapsed()
 {
-	EnableRagdoll();
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	RagdollAndEnd(false);
 }
 
-void UWxAbility_Death::HandleMontageBlendOut()
+void UWxAbility_Death::HandleMontageCompleted()
 {
-	// OnCompleted가 후속 발동하므로 여기서는 처리하지 않음
+	// 사망 몽타주가 의도한 포즈로 자연 종료 — 래그돌 없이 종료
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UWxAbility_Death::HandleMontageInterrupted()
 {
-	EnableRagdoll();
+	// 외부 시스템이 사망 몽타주를 끊은 비정상 경로 — 래그돌로 안전 폴백
+	RagdollAndEnd(true);
 }
 
 void UWxAbility_Death::HandleMontageCancelled()
 {
-	EnableRagdoll();
+	RagdollAndEnd(true);
 }
 
-void UWxAbility_Death::HandleActiveMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+void UWxAbility_Death::RagdollAndEnd(bool bWasCancelled)
 {
-	if (PendingWaitMontage && Montage != PendingWaitMontage)
-	{
-		return;
-	}
-
-	FinishWaitAndRagdoll();
-}
-
-void UWxAbility_Death::FinishWaitAndRagdoll()
-{
-	USkeletalMeshComponent* Mesh = CurrentActorInfo ? CurrentActorInfo->SkeletalMeshComponent.Get() : nullptr;
-	if (UAnimInstance* AnimInstance = Mesh ? Mesh->GetAnimInstance() : nullptr)
-	{
-		AnimInstance->OnMontageEnded.RemoveDynamic(this, &UWxAbility_Death::HandleActiveMontageEnded);
-	}
-
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().ClearTimer(WaitTimerHandle);
-	}
-
-	PendingWaitMontage = nullptr;
-
 	EnableRagdoll();
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, bWasCancelled);
 }
 
 void UWxAbility_Death::EnableRagdoll()
@@ -132,6 +106,6 @@ void UWxAbility_Death::EnableRagdoll()
 	UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
 	if (WxASC)
 	{
-		WxASC->MulticastEnableRagdoll();
+		WxASC->SetRagdollActive(true);
 	}
 }

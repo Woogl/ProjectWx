@@ -4,8 +4,11 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
 #include "AbilitySystem/Effect/WxEffect_DrainDP.h"
+#include "AIController.h"
 #include "Animation/AnimInstance.h"
+#include "BrainComponent.h"
 #include "Engine/World.h"
+#include "GameFramework/Pawn.h"
 #include "TimerManager.h"
 #include "WxGameplayTags.h"
 
@@ -58,6 +61,17 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		World->GetTimerManager().SetTimer(MontagePollingTimerHandle, this, &UWxAbility_Groggy::TickPlayMontage, 0.1f, true);
 	}
 
+	if (APawn* AvatarPawn = Cast<APawn>(ActorInfo->AvatarActor.Get()))
+	{
+		if (AAIController* AIController = Cast<AAIController>(AvatarPawn->GetController()))
+		{
+			if (UBrainComponent* Brain = AIController->GetBrainComponent())
+			{
+				Brain->PauseLogic(TEXT("Groggy"));
+			}
+		}
+	}
+
 	TickPlayMontage();
 }
 
@@ -68,6 +82,17 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 		if (UWorld* World = ActorInfo->AvatarActor.IsValid() ? ActorInfo->AvatarActor->GetWorld() : nullptr)
 		{
 			World->GetTimerManager().ClearTimer(MontagePollingTimerHandle);
+		}
+
+		if (APawn* AvatarPawn = Cast<APawn>(ActorInfo->AvatarActor.Get()))
+		{
+			if (AAIController* AIController = Cast<AAIController>(AvatarPawn->GetController()))
+			{
+				if (UBrainComponent* Brain = AIController->GetBrainComponent())
+				{
+					Brain->ResumeLogic(TEXT("Groggy"));
+				}
+			}
 		}
 
 		if (ActorInfo->AbilitySystemComponent.IsValid())
