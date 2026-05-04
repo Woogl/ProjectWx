@@ -3,7 +3,6 @@
 #include "WxCombatLibrary.h"
 #include "WxDamageInfo.h"
 #include "WxGameplayTags.h"
-#include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "GenericTeamAgentInterface.h"
@@ -47,35 +46,6 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Instigator, AActor* Target, const FWx
 	}
 
 	return bAppliedAny;
-}
-
-bool UWxCombatLibrary::ApplyFixedDamage(AActor* Target, float Damage, AActor* Instigator, UObject* SourceObject)
-{
-	if (!Target || Damage <= 0.f)
-	{
-		return false;
-	}
-
-	UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
-	if (!TargetASC)
-	{
-		return false;
-	}
-
-	AActor* EffectiveInstigator = Instigator ? Instigator : Target;
-	FGameplayEffectContextHandle Context = TargetASC->MakeEffectContext();
-	Context.AddSourceObject(SourceObject ? SourceObject : EffectiveInstigator);
-	Context.AddInstigator(EffectiveInstigator, EffectiveInstigator);
-
-	const FGameplayEffectSpecHandle SpecHandle = TargetASC->MakeOutgoingSpec(UWxEffect_Damage::StaticClass(), 1.f, Context);
-	if (!SpecHandle.IsValid())
-	{
-		return false;
-	}
-
-	SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_FixedDamage, Damage);
-	TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-	return true;
 }
 
 bool UWxCombatLibrary::IsHostile(const AActor* Source, const AActor* Target)

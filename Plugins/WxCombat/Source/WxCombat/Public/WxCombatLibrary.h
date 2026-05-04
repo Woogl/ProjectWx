@@ -40,22 +40,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx|Combat", meta = (AdvancedDisplay = "SourceObject,HitStopDuration"))
 	static bool ApplyDamage(AActor* Instigator, AActor* Target, const FWxDamageInfo& DamageInfo, const FHitResult& HitResult, UObject* SourceObject = nullptr, float HitStopDuration = 0.f);
 
-	/**
-	 * 고정 대미지를 단일 타겟의 HP에 적용한다.
-	 *
-	 * 전투 파이프라인(ATK/DEF/Crit/가드/PG/HitReact/GameplayCue)을 모두 우회하고
-	 * IncomingDamage 메타 어트리뷰트에 직접 더한다. 사망 처리는 정상 동작.
-	 *
-	 * 낙사·장판·가시·스크립트 디버프 등 환경 대미지 용도. 무기 타격에는 ApplyDamage 사용.
-	 *
-	 * @param Target            피격 대상.
-	 * @param Damage            적용할 대미지 양(양수). 0 이하이면 false.
-	 * @param Instigator        공격을 일으킨 액터. nullptr이면 Target 자신을 Instigator로 기록.
-	 * @param SourceObject      Spec의 SourceObject로 기록될 객체(볼륨/트리거 등). nullptr이면 Instigator.
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Wx|Combat", meta = (AdvancedDisplay = "Instigator,SourceObject"))
-	static bool ApplyFixedDamage(AActor* Target, float Damage, AActor* Instigator = nullptr, UObject* SourceObject = nullptr);
-
 	/** Source가 Target을 적대 관계로 보는지 검사 (IGenericTeamAgentInterface 기반). 인터페이스가 없으면 true 반환. */
 	UFUNCTION(BlueprintPure, Category = "Wx|Combat")
 	static bool IsHostile(const AActor* Source, const AActor* Target);

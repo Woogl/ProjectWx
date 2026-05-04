@@ -28,7 +28,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx")
 	TSubclassOf<UGameplayEffect> EffectClass;
 
-	/** Spec에 세팅할 SetByCaller 값. 예: SetByCaller.FixedDamage → 환경 대미지 */
+	/** Spec에 세팅할 SetByCaller 값 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Categories = "SetByCaller"))
 	TMap<FGameplayTag, float> SetByCallers;
 

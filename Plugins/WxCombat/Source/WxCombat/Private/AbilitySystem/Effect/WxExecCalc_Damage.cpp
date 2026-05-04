@@ -61,24 +61,15 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	{
 		return;
 	}
-	
+
 	// --- 1. 무적 판정 ---
 	if (HandleInvincible(SourceASC, TargetASC))
 	{
 		return;
 	}
-	
-	// --- 2. 고정 대미지 모드 (환경 대미지) ---
-	const FGameplayEffectSpec& OwningSpec = ExecutionParams.GetOwningSpec();
-	const float FixedDamage = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_FixedDamage, false, 0.f);
-	if (FixedDamage > 0.f)
-	{
-		ExecuteFixedDamage(SourceASC, TargetASC, OwningSpec, FixedDamage, OutExecutionOutput);
-		ApplyHitReaction(SourceASC, TargetASC, OwningSpec, FixedDamage, 0.f, false, true, OutExecutionOutput);
-		return;
-	}
 
-	// --- 3. 어트리뷰트 캡처 ---
+	// --- 2. 어트리뷰트 캡처 ---
+	const FGameplayEffectSpec& OwningSpec = ExecutionParams.GetOwningSpec();
 	const FWxDamageStatics& Statics = GetDamageStatics();
 
 	FAggregatorEvaluateParameters EvalParams;
@@ -100,7 +91,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	const float DefenseMultiplier = 100.f / (100.f + TargetDEF);
 
-	// --- 4. 상태 판정 ---
+	// --- 3. 상태 판정 ---
 	const bool bIsUnblockable = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable);
 	const bool bHasPerfectGuard = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_PerfectGuard);
 	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard);
@@ -108,7 +99,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	// Unblockable 공격은 퍼펙트 가드를 포함한 모든 가드를 무시한다.
 	const bool bPerfectGuardApplied = bHasPerfectGuard && !bIsUnblockable;
 
-	// --- 5. 대미지 적용 ---
+	// --- 4. 대미지 적용 ---
 	FWxDamageResult DamageResult;
 
 	if (bPerfectGuardApplied)
@@ -146,7 +137,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		}
 	}
 
-	// --- 6. AI 대미지 감지 ---
+	// --- 5. AI 대미지 감지 ---
 	AActor* SourceActor = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
 	AActor* TargetActor = TargetASC->GetOwnerActor();
 	if (SourceActor && TargetActor)
@@ -156,7 +147,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		UAISense_Damage::ReportDamageEvent(TargetActor->GetWorld(), TargetActor, SourceActor, ReportedDamage, SourceActor->GetActorLocation(), TargetActor->GetActorLocation());
 	}
 
-	// --- 7. 대미지 GameplayCue ---
+	// --- 6. 대미지 GameplayCue ---
 	FVector HitLocation = FVector::ZeroVector;
 	const FHitResult* HitResult = OwningSpec.GetEffectContext().GetHitResult();
 	if (HitResult)
@@ -168,26 +159,6 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		HitLocation = AvatarActor->GetActorLocation();
 	}
 	ExecuteGameplayCueDamage(TargetASC, DamageResult.FinalDamage, HitLocation, OwningSpec, DamageResult.bIsCritical, !bPerfectGuardApplied);
-}
-
-// ────────────────────────────────────────────────────────────────────────────
-//  고정 대미지
-// ────────────────────────────────────────────────────────────────────────────
-
-void UWxExecCalc_Damage::ExecuteFixedDamage(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, const FGameplayEffectSpec& OwningSpec, float FixedDamage, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
-{
-	const FWxDamageStatics& Statics = GetDamageStatics();
-	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, FixedDamage));
-
-	AActor* TargetActor = TargetASC->GetOwnerActor();
-	AActor* SourceActor = OwningSpec.GetEffectContext().GetInstigator();
-	if (TargetActor && SourceActor)
-	{
-		UAISense_Damage::ReportDamageEvent(TargetActor->GetWorld(), TargetActor, SourceActor, FixedDamage, SourceActor->GetActorLocation(), TargetActor->GetActorLocation());
-	}
-
-	const FVector HitLocation = TargetActor ? TargetActor->GetActorLocation() : FVector::ZeroVector;
-	ExecuteGameplayCueDamage(TargetASC, FixedDamage, HitLocation, OwningSpec, /*bIsCritical*/ false, /*bDisplayDamageFloater*/ true);
 }
 
 // ────────────────────────────────────────────────────────────────────────────
