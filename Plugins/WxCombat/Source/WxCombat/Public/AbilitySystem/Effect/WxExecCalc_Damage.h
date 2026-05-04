@@ -19,17 +19,18 @@ struct FWxDamageResult
  *
  * 판정 흐름:
  *  1. 무적 판정 → 대미지 무효, 회피 성공 보상
- *  2. 어트리뷰트 캡처 (ATK, DEF, CritRate, CritDMG)
+ *  2. 베이스 대미지 계산
+ *     - SetByCaller.RawDamage 양수: ATK/DEF/Coeff 우회, RawDamage 값을 그대로 사용 (환경 대미지)
+ *     - 그 외: SourceATK * Coeff.ATK * (100 / (100 + TargetDEF))
  *  3. 상태 판정 (퍼펙트 가드, 가드, Unblockable)
  *  4. 대미지 적용
  *     - 퍼펙트 가드: 대미지 반사, MP 회복, HitReact 이벤트 (Unblockable 공격은 퍼펙트 가드 불가)
  *     - 일반 가드 피격: HP·DP·SP 차감, GuardHit 이벤트 → Guard 어빌리티가 GuardHitReact/GuardBreak 처리
  *     - Unblockable 가드 피격: HP·DP·PP 차감, Guard 어빌리티 Cancel → HitReact 이벤트
  *     - 비가드 피격: HP·DP·PP 차감, PP 소진 시 HitReact 이벤트
+ *     - 크리는 Raw 모드에서 적용되지 않음
  *  5. AI 대미지 감지
  *  6. 대미지 GameplayCue
- *
- * 대미지 공식: FinalDamage = SourceATK * (100 / (100 + TargetDEF))
  */
 UCLASS()
 class WXCOMBAT_API UWxExecCalc_Damage : public UGameplayEffectExecutionCalculation
@@ -48,8 +49,8 @@ private:
 	/** 퍼펙트 가드 시 공격자에게 DP 반사 */
 	void ReflectPerfectGuard(UAbilitySystemComponent* SourceASC, float ReflectAmount) const;
 
-	/** 대미지 계산. ATK·DEF 공식, 치명타 적용 */
-	FWxDamageResult CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, float SourceATK, float DefenseMultiplier) const;
+	/** 베이스 대미지에 치명타 적용 */
+	FWxDamageResult CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, float BaseDamage) const;
 
 	/** 공격자 적중 회복. OwningSpec의 SetByCaller.Recovery.UP/MP 값을 단일 Recovery Spec에 실어 공격자에게 적용 */
 	void ApplyHitRecovery(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& OwningSpec) const;

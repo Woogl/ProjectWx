@@ -15,7 +15,7 @@
 			{
 				"key":
 				{
-					"TagName": "SetByCaller.Coeff.ATK"
+					"TagName": "SetByCaller.RawDamage"
 				},
 				"value": 10
 			}

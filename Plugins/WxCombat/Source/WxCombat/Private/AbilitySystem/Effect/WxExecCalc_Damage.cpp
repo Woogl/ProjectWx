@@ -68,7 +68,8 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		return;
 	}
 
-	// --- 2. 어트리뷰트 캡처 ---
+	// --- 2. 베이스 대미지 계산 ---
+	// SetByCaller.RawDamage 양수면 ATK/DEF/Coeff 우회 환경 대미지 모드. 그 외에는 ATK·DEF 공식 적용.
 	const FGameplayEffectSpec& OwningSpec = ExecutionParams.GetOwningSpec();
 	const FWxDamageStatics& Statics = GetDamageStatics();
 
@@ -76,17 +77,27 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	EvalParams.SourceTags = OwningSpec.CapturedSourceTags.GetAggregatedTags();
 	EvalParams.TargetTags = OwningSpec.CapturedTargetTags.GetAggregatedTags();
 
-	float SourceATK = 0.f;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.ATKDef, EvalParams, SourceATK);
+	const float RawDamage = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_RawDamage, false, 0.f);
+	const bool bRawMode = RawDamage > 0.f;
 
-	// 공격력 계수. SetByCaller로 전달.
-	const float ATKCoeff = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, false, 0.f);
-	SourceATK *= ATKCoeff;
+	float BaseDamage;
+	if (bRawMode)
+	{
+		BaseDamage = RawDamage;
+	}
+	else
+	{
+		float SourceATK = 0.f;
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.ATKDef, EvalParams, SourceATK);
+		const float ATKCoeff = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, false, 0.f);
+		SourceATK *= ATKCoeff;
 
-	float TargetDEF = 0.f;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.DEFDef, EvalParams, TargetDEF);
+		float TargetDEF = 0.f;
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.DEFDef, EvalParams, TargetDEF);
+		const float DefenseMultiplier = 100.f / (100.f + TargetDEF);
 
-	const float DefenseMultiplier = 100.f / (100.f + TargetDEF);
+		BaseDamage = SourceATK * DefenseMultiplier;
+	}
 
 	// --- 3. 상태 판정 ---
 	const bool bIsUnblockable = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable);
@@ -101,7 +112,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	if (bPerfectGuardApplied)
 	{
-		DamageResult.FinalDamage = FMath::Max(SourceATK * DefenseMultiplier, 0.f);
+		DamageResult.FinalDamage = FMath::Max(BaseDamage, 0.f);
 		ReflectPerfectGuard(SourceASC, DamageResult.FinalDamage);
 
 		FGameplayEventData EventData;
@@ -111,7 +122,15 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	}
 	else
 	{
-		DamageResult = CalcDamage(ExecutionParams, EvalParams, SourceATK, DefenseMultiplier);
+		// Raw 모드는 크리 무시
+		if (bRawMode)
+		{
+			DamageResult.FinalDamage = FMath::Max(BaseDamage, 0.f);
+		}
+		else
+		{
+			DamageResult = CalcDamage(ExecutionParams, EvalParams, BaseDamage);
+		}
 
 		// 가드 감소: Unblockable이 아닌 가드 상태에서 50% 감소
 		if (!bIsUnblockable && bIsGuarding)
@@ -195,7 +214,7 @@ void UWxExecCalc_Damage::ReflectPerfectGuard(UAbilitySystemComponent* SourceASC,
 //  대미지 계산
 // ────────────────────────────────────────────────────────────────────────────
 
-FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, float SourceATK, float DefenseMultiplier) const
+FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, float BaseDamage) const
 {
 	const FWxDamageStatics& Statics = GetDamageStatics();
 
@@ -205,9 +224,8 @@ FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecut
 	float SourceCritDMG = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.CritDMGDef, EvalParams, SourceCritDMG);
 
-	// 기본 대미지: ATK * (100 / (100 + DEF))
 	FWxDamageResult Result;
-	Result.FinalDamage = FMath::Max(SourceATK * DefenseMultiplier, 0.f);
+	Result.FinalDamage = FMath::Max(BaseDamage, 0.f);
 
 	// 치명타: CritRate 1당 1%, 치명타 시 (1 + CritDMG * 0.01) 배율
 	const float CritChance = FMath::Clamp(SourceCritRate * 0.01f, 0.f, 1.f);
