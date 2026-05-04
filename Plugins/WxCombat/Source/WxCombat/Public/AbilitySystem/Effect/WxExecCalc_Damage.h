@@ -55,7 +55,7 @@ private:
 	void ApplyHitRecovery(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& OwningSpec) const;
 
 	/** 피격 반응 적용. 가드 상태와 Damage.Knock* 태그에 따라 SP/PP 차감 및 이벤트 발송 */
-	void ApplyHitReaction(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, const FGameplayEffectSpec& OwningSpec, float FinalDamage, float TargetPP, bool bIsGuarding, bool bIsUnblockable, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const;
+	void ApplyHitReaction(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput, float FinalDamage) const;
 
 	/** 대미지 GameplayCue 실행 */
 	void ExecuteGameplayCueDamage(UAbilitySystemComponent* TargetASC, float DamageAmount, FVector HitLocation, const FGameplayEffectSpec& OwningSpec, bool bIsCritical, bool bDisplayDamageFloater) const;

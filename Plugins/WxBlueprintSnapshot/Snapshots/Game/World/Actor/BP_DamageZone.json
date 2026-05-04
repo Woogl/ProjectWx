@@ -15,7 +15,7 @@
 			{
 				"key":
 				{
-					"TagName": "SetByCaller.FixedDamage"
+					"TagName": "SetByCaller.Coeff.ATK"
 				},
 				"value": 10
 			}
@@ -60,6 +60,14 @@
 				}
 			},
 			"variableName": "TextRender"
+		}
+	},
+	"newVariables":
+	{
+		"Damage Info":
+		{
+			"type": "WxDamageInfo",
+			"value": "(CoeffATK=1.000000,HitReactTag=(TagName=\"Event.HitReact.Knockback\"))"
 		}
 	},
 	"parentClass": "/Script/WxCombat.WxEffectZone"
