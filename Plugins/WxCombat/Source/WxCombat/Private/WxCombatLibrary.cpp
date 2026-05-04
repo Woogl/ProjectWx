@@ -3,7 +3,7 @@
 #include "WxCombatLibrary.h"
 #include "WxDamageInfo.h"
 #include "WxGameplayTags.h"
-#include "AbilitySystem/Effect/WxEffect_FixedDamage.h"
+#include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "GenericTeamAgentInterface.h"
@@ -62,17 +62,12 @@ bool UWxCombatLibrary::ApplyFixedDamage(AActor* Target, float Damage, AActor* In
 		return false;
 	}
 
-	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
-	{
-		return false;
-	}
-
 	AActor* EffectiveInstigator = Instigator ? Instigator : Target;
 	FGameplayEffectContextHandle Context = TargetASC->MakeEffectContext();
 	Context.AddSourceObject(SourceObject ? SourceObject : EffectiveInstigator);
 	Context.AddInstigator(EffectiveInstigator, EffectiveInstigator);
 
-	const FGameplayEffectSpecHandle SpecHandle = TargetASC->MakeOutgoingSpec(UWxEffect_FixedDamage::StaticClass(), 1.f, Context);
+	const FGameplayEffectSpecHandle SpecHandle = TargetASC->MakeOutgoingSpec(UWxEffect_Damage::StaticClass(), 1.f, Context);
 	if (!SpecHandle.IsValid())
 	{
 		return false;

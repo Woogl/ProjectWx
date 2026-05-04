@@ -1,0 +1,66 @@
+{
+	"blueprintPath": "/Game/World/Actor/BP_DamageZone.BP_DamageZone",
+	"classDefaults":
+	{
+		"DynamicAssetTags":
+		{
+			"GameplayTags": [
+				{
+					"TagName": "Event.HitReact.Knockback"
+				}
+			]
+		},
+		"EffectClass": "/Script/WxCombat.WxEffect_Damage",
+		"SetByCallers": [
+			{
+				"key":
+				{
+					"TagName": "SetByCaller.FixedDamage"
+				},
+				"value": 10
+			}
+		]
+	},
+	"components":
+	{
+		"Box":
+		{
+			"componentClass": "/Script/Engine.BoxComponent",
+			"delta":
+			{
+				"bHiddenInGame": false,
+				"BoxExtent":
+				{
+					"X": 64,
+					"Y": 64,
+					"Z": 64
+				},
+				"RelativeLocation":
+				{
+					"Z": 64
+				}
+			},
+			"variableName": "Box"
+		},
+		"TextRender":
+		{
+			"componentClass": "/Script/Engine.TextRenderComponent",
+			"delta":
+			{
+				"HorizontalAlignment": "EHTA_Center",
+				"RelativeLocation":
+				{
+					"Z": 64
+				},
+				"Text": "Damage Zone",
+				"TextRenderColor":
+				{
+					"B": 0,
+					"G": 0
+				}
+			},
+			"variableName": "TextRender"
+		}
+	},
+	"parentClass": "/Script/WxCombat.WxEffectZone"
+}

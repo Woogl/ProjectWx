@@ -117,7 +117,7 @@ void AWxSpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AWxSpawner::Respawn()
 {
-	if (!HasAuthority() || !bEnableRegen)
+	if (!HasAuthority() || !bEnableRespawn)
 	{
 		return;
 	}

@@ -36,7 +36,7 @@ protected:
 	TSubclassOf<AActor> SpawnableActorClass;
 
 	UPROPERTY(EditAnywhere, Category = "Wx")
-	bool bEnableRegen = true;
+	bool bEnableRespawn = true;
 
 	TWeakObjectPtr<AActor> SpawnedActor;
 
