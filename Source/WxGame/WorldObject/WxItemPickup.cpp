@@ -4,6 +4,7 @@
 
 #include "Components/StaticMeshComponent.h"
 #include "Interaction/WxInteractionComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "NiagaraComponent.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerState.h"
@@ -33,16 +34,37 @@ AWxItemPickup::AWxItemPickup()
 	NiagaraComponent->SetupAttachment(MeshComponent);
 }
 
+void AWxItemPickup::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// ItemDef 는 스폰 직후 설정되고 이후 변하지 않으므로 초기 1회만 복제.
+	DOREPLIFETIME_CONDITION(AWxItemPickup, ItemDef, COND_InitialOnly);
+}
+
 void AWxItemPickup::BeginPlay()
 {
 	Super::BeginPlay();
 
 	InteractionComponent->OnInteracted.AddDynamic(this, &AWxItemPickup::HandleInteracted);
+
+	UpdateInteractionText();
 }
 
-void AWxItemPickup::Initialize(UWxItemDefinition* InItemDef)
+void AWxItemPickup::SetItemDef(UWxItemDefinition* InItemDef)
 {
 	ItemDef = InItemDef;
+}
+
+void AWxItemPickup::UpdateInteractionText()
+{
+	if (!ItemDef)
+	{
+		return;
+	}
+
+	const FText FormattedText = FText::Format(NSLOCTEXT("WxItemPickup", "InteractionFormat", "[F] {0}"), ItemDef->DisplayName);
+	InteractionComponent->SetInteractionText(FormattedText);
 }
 
 void AWxItemPickup::LaunchInDirection(const FVector& Direction, float Speed)

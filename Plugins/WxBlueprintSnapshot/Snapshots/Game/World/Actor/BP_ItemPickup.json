@@ -7,7 +7,6 @@
 			"class": "/Script/WxWorld.WxInteractionComponent",
 			"delta":
 			{
-				"InteractionText": "[F] Get Item",
 				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C",
 				"SphereRadius": 350
 			}

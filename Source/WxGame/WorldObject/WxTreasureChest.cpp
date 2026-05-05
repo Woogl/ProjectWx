@@ -42,28 +42,26 @@ void AWxTreasureChest::HandleInteracted(AActor* InteractingActor)
 	bIsOpened = true;
 
 	InteractionComponent->SetInteractionEnabled(false);
-
-	ReceiveOpened();
-
+	
 	if (!ItemActorClass || !ItemDefinition)
 	{
 		return;
 	}
 
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = this;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
 	// 상자 메시의 바운딩 박스 상단 중앙에서 스폰 — 메시 크기에 무관하게 자연스러운 위치 보장.
 	const FBoxSphereBounds Bounds = MeshComponent->Bounds;
 	const FVector SpawnLocation(Bounds.Origin.X, Bounds.Origin.Y, Bounds.Origin.Z + Bounds.BoxExtent.Z);
-	AWxItemPickup* SpawnedPickup = GetWorld()->SpawnActor<AWxItemPickup>(ItemActorClass, SpawnLocation, GetActorRotation(), SpawnParams);
+	const FTransform SpawnTransform(GetActorRotation(), SpawnLocation);
+
+	// Deferred 스폰: BeginPlay 전에 ItemDef 를 주입해야 픽업의 인터랙션 텍스트가 BeginPlay 단독으로 갱신된다.
+	AWxItemPickup* SpawnedPickup = GetWorld()->SpawnActorDeferred<AWxItemPickup>(ItemActorClass, SpawnTransform);
 	if (!SpawnedPickup)
 	{
 		return;
 	}
 
-	SpawnedPickup->Initialize(ItemDefinition);
+	SpawnedPickup->SetItemDef(ItemDefinition);
+	SpawnedPickup->FinishSpawning(SpawnTransform);
 
 	// 위쪽을 중심으로 원뿔 범위 내에서 랜덤 방향 샘플링
 	const float ConeRad = FMath::DegreesToRadians(LaunchConeHalfAngle);
@@ -85,6 +83,5 @@ void AWxTreasureChest::OnRep_bIsOpened()
 	if (bIsOpened)
 	{
 		InteractionComponent->SetInteractionEnabled(false);
-		ReceiveOpened();
 	}
 }

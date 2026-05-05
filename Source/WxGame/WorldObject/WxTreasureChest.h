@@ -51,10 +51,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Launch", meta = (ClampMin = "0", ClampMax = "90"))
 	float LaunchConeHalfAngle = 20.f;
 
-	/** 상호작용 후 BP 측 비주얼 피드백 훅 (예: 머티리얼 변경). 서버+모든 클라이언트에서 호출된다. */
-	UFUNCTION(BlueprintImplementableEvent, Category = "Wx")
-	void ReceiveOpened();
-
 private:
 	UFUNCTION()
 	void HandleInteracted(AActor* InteractingActor);

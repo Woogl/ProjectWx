@@ -27,8 +27,10 @@ class AWxItemPickup : public AActor
 public:
 	AWxItemPickup();
 
-	/** 외부 스포너(예: 보물 상자) 가 스폰 직후 지급할 아이템을 주입할 때 사용. 서버 권한에서만 호출. */
-	void Initialize(UWxItemDefinition* InItemDef);
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	/** 외부 스포너(예: 보물 상자) 가 SpawnActorDeferred → FinishSpawning 사이에 지급할 아이템을 주입할 때 사용. 서버 권한에서만 호출. */
+	void SetItemDef(UWxItemDefinition* InItemDef);
 
 	/** 서버 권한에서 픽업을 물리 발사한다. MeshComponent 의 물리 시뮬레이션을 활성화하고 선속도를 부여한다. */
 	void LaunchInDirection(const FVector& Direction, float Speed);
@@ -47,10 +49,13 @@ protected:
 	TObjectPtr<UNiagaraComponent> NiagaraComponent;
 
 	/** 지급할 아이템 정의 */
-	UPROPERTY(EditAnywhere, Category = "Wx|Pickup")
+	UPROPERTY(EditAnywhere, Replicated, Category = "Wx|Pickup")
 	TObjectPtr<UWxItemDefinition> ItemDef;
 
 private:
 	UFUNCTION()
 	void HandleInteracted(AActor* InteractingActor);
+
+	/** ItemDef->DisplayName 을 사용해 인터랙션 프롬프트 텍스트를 "[F] {DisplayName}" 으로 갱신한다. */
+	void UpdateInteractionText();
 };
