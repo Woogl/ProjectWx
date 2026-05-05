@@ -84,7 +84,7 @@ protected:
 
 	/** 한 끝점에서 다른 끝점까지 이동하는 데 걸리는 시간(초). */
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ClampMin = "0"))
-	float MoveDuration = 5.f;
+	float MoveDuration = 3.f;
 
 	/** 문 열림/닫힘 애니메이션 길이(초). */
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ClampMin = "0"))
