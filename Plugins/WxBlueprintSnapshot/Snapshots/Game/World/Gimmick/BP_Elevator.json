@@ -9,7 +9,12 @@
 			{
 				"RelativeLocation":
 				{
-					"X": 300
+					"X": 350,
+					"Y": -250
+				},
+				"RelativeRotation":
+				{
+					"Yaw": 90
 				},
 				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/Display_Button.Display_Button"
 			}
@@ -34,8 +39,13 @@
 			{
 				"RelativeLocation":
 				{
-					"X": 300,
-					"Z": 200
+					"X": 350,
+					"Y": -250,
+					"Z": 400
+				},
+				"RelativeRotation":
+				{
+					"Yaw": 90
 				},
 				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/Display_Button.Display_Button"
 			}
@@ -51,6 +61,39 @@
 				{
 					"Z": 100
 				}
+			}
+		},
+		"DoorLeft":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"RelativeLocation":
+				{
+					"X": 250
+				},
+				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/SM_Door.SM_Door"
+			}
+		},
+		"DoorOpenOffset":
+		{
+			"X": 0,
+			"Y": -250
+		},
+		"DoorRight":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"RelativeLocation":
+				{
+					"X": 250
+				},
+				"RelativeRotation":
+				{
+					"Yaw": 180
+				},
+				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/SM_Door.SM_Door"
 			}
 		},
 		"PlatformInteraction":
@@ -69,11 +112,11 @@
 			{
 				"RelativeScale3D":
 				{
-					"X": 8,
-					"Y": 8,
-					"Z": 8
+					"X": 5,
+					"Y": 5,
+					"Z": 0.10000000000000001
 				},
-				"StaticMesh": "/Game/NiagaraExamples/StaticMesh/SM_Disk.SM_Disk"
+				"StaticMesh": "/Engine/BasicShapes/Cube.Cube"
 			}
 		},
 		"SplineComponent":
@@ -114,7 +157,7 @@
 								},
 								"OutVal":
 								{
-									"Z": 200
+									"Z": 400
 								}
 							}
 						]
@@ -125,43 +168,43 @@
 							{
 							},
 							{
-								"InVal": 34.400001525878906,
+								"InVal": 40,
 								"OutVal": 0.10000000149011612
 							},
 							{
-								"InVal": 59.200000762939453,
+								"InVal": 80,
 								"OutVal": 0.20000000298023224
 							},
 							{
-								"InVal": 76.799995422363281,
+								"InVal": 120.00000762939453,
 								"OutVal": 0.30000001192092896
 							},
 							{
-								"InVal": 89.599998474121094,
+								"InVal": 160,
 								"OutVal": 0.40000000596046448
 							},
 							{
-								"InVal": 100,
+								"InVal": 200,
 								"OutVal": 0.5
 							},
 							{
-								"InVal": 110.40000152587891,
+								"InVal": 240.00001525878906,
 								"OutVal": 0.60000002384185791
 							},
 							{
-								"InVal": 123.19999694824219,
+								"InVal": 280,
 								"OutVal": 0.69999998807907104
 							},
 							{
-								"InVal": 140.80000305175781,
+								"InVal": 320,
 								"OutVal": 0.80000001192092896
 							},
 							{
-								"InVal": 165.60002136230469,
+								"InVal": 360,
 								"OutVal": 0.90000003576278687
 							},
 							{
-								"InVal": 200,
+								"InVal": 400,
 								"OutVal": 1
 							}
 						]

@@ -26,7 +26,7 @@
 		"RootComponent": "MeshComponent"
 	},
 	"eventGraph": [
-		"event ReceiveInteracted:",
+		"event WxOnInteractedSignature__DelegateSignature:",
 		"  MeshComponent.SetMaterial()"
 	],
 	"parentClass": "/Script/WxGame.WxTreasureChest"

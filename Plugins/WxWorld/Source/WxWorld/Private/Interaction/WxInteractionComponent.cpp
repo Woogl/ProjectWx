@@ -15,7 +15,7 @@ UWxInteractionComponent::UWxInteractionComponent()
 
 	bInteractionEnabled = true;
 
-	InitSphereRadius(200.f);
+	InitSphereRadius(150.f);
 	SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	SetCollisionObjectType(ECC_WorldDynamic);
 	SetCollisionResponseToAllChannels(ECR_Ignore);
