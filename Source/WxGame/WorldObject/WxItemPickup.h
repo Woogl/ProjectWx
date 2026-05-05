@@ -3,11 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Interaction/WxInteractableActor.h"
+#include "GameFramework/Actor.h"
 #include "WxItemPickup.generated.h"
 
 class UNiagaraComponent;
 class UStaticMeshComponent;
+class UWxInteractionComponent;
 class UWxItemDefinition;
 
 /**
@@ -19,7 +20,7 @@ class UWxItemDefinition;
  * 외부 스포너(예: 보물 상자) 가 LaunchInDirection() 으로 픽업을 물리 발사할 수 있다.
  */
 UCLASS(Abstract)
-class AWxItemPickup : public AWxInteractableActor
+class AWxItemPickup : public AActor
 {
 	GENERATED_BODY()
 
@@ -37,6 +38,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	TObjectPtr<UWxInteractionComponent> InteractionComponent;
 
 	/** 픽업 외관용 나이아가라 이펙트. 시스템 에셋은 BP에서 지정. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx")

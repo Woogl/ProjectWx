@@ -2,15 +2,16 @@
 	"blueprintPath": "/Game/World/Gimmick/BP_TreasureChest.BP_TreasureChest",
 	"classDefaults":
 	{
-		"InteractionWidget":
+		"InteractionComponent":
 		{
-			"class": "/Script/WxWorld.WxInteractionWidgetComponent",
+			"class": "/Script/WxWorld.WxInteractionComponent",
 			"delta":
 			{
-				"WidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
+				"InteractionText": "[F] Open",
+				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
 			}
 		},
-		"ItemActorClass": "/Game/World/Spawnable/BP_ItemPickup.BP_ItemPickup_C",
+		"ItemActorClass": "/Game/World/Actor/BP_ItemPickup.BP_ItemPickup_C",
 		"MeshComponent":
 		{
 			"class": "/Script/Engine.StaticMeshComponent",

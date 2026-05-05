@@ -1,9 +1,9 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Interact.h"
-#include "Interaction/WxInteractable.h"
 #include "Components/PrimitiveComponent.h"
 #include "GameFramework/Pawn.h"
+#include "Interaction/WxInteractionComponent.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_Interact::UWxAbility_Interact()
@@ -43,26 +43,26 @@ void UWxAbility_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		return;
 	}
 
-	TArray<AActor*> OverlappingActors;
-	AvatarRoot->GetOverlappingActors(OverlappingActors);
+	TArray<UPrimitiveComponent*> OverlappingComponents;
+	AvatarRoot->GetOverlappingComponents(OverlappingComponents);
 
-	IWxInteractable* Closest = nullptr;
+	UWxInteractionComponent* Closest = nullptr;
 	float ClosestDistanceSq = TNumericLimits<float>::Max();
 	const FVector AvatarLocation = Avatar->GetActorLocation();
 
-	for (AActor* OverlappingActor : OverlappingActors)
+	for (UPrimitiveComponent* Component : OverlappingComponents)
 	{
-		IWxInteractable* Interactable = Cast<IWxInteractable>(OverlappingActor);
-		if (!Interactable)
+		UWxInteractionComponent* InteractionComp = Cast<UWxInteractionComponent>(Component);
+		if (!InteractionComp)
 		{
 			continue;
 		}
 
-		const float DistanceSq = FVector::DistSquared(AvatarLocation, OverlappingActor->GetActorLocation());
+		const float DistanceSq = FVector::DistSquared(AvatarLocation, InteractionComp->GetComponentLocation());
 		if (DistanceSq < ClosestDistanceSq)
 		{
 			ClosestDistanceSq = DistanceSq;
-			Closest = Interactable;
+			Closest = InteractionComp;
 		}
 	}
 

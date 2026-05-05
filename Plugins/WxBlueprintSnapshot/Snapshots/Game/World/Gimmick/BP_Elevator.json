@@ -2,12 +2,56 @@
 	"blueprintPath": "/Game/World/Gimmick/BP_Elevator.BP_Elevator",
 	"classDefaults":
 	{
-		"InteractionWidget":
+		"CallConsoleA":
 		{
-			"class": "/Script/WxWorld.WxInteractionWidgetComponent",
+			"class": "/Script/Engine.StaticMeshComponent",
 			"delta":
 			{
-				"WidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
+				"RelativeLocation":
+				{
+					"X": 300
+				},
+				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/Display_Button.Display_Button"
+			}
+		},
+		"CallConsoleAInteraction":
+		{
+			"class": "/Script/WxWorld.WxInteractionComponent",
+			"delta":
+			{
+				"InteractionText": "[F] Call",
+				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
+			}
+		},
+		"CallConsoleB":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"RelativeLocation":
+				{
+					"X": 300,
+					"Z": 200
+				},
+				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/Display_Button.Display_Button"
+			}
+		},
+		"CallConsoleBInteraction":
+		{
+			"class": "/Script/WxWorld.WxInteractionComponent",
+			"delta":
+			{
+				"InteractionText": "[F] Call",
+				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
+			}
+		},
+		"PlatformInteraction":
+		{
+			"class": "/Script/WxWorld.WxInteractionComponent",
+			"delta":
+			{
+				"InteractionText": "[F] Move",
+				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
 			}
 		},
 		"PlatformMesh":

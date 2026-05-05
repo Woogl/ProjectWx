@@ -3,12 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Interaction/WxInteractableActor.h"
+#include "GameFramework/Actor.h"
 #include "WxCutsceneTrigger.generated.h"
 
 class ALevelSequenceActor;
 class ULevelSequence;
 class UStaticMeshComponent;
+class UWxInteractionComponent;
 
 /**
  * 컷신 트리거.
@@ -16,7 +17,7 @@ class UStaticMeshComponent;
  * 재생 중에는 추가 상호작용이 무시된다.
  */
 UCLASS(Abstract)
-class WXWORLD_API AWxCutsceneTrigger : public AWxInteractableActor
+class WXWORLD_API AWxCutsceneTrigger : public AActor
 {
 	GENERATED_BODY()
 
@@ -29,6 +30,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	TObjectPtr<UWxInteractionComponent> InteractionComponent;
 
 	/** 재생할 Level Sequence 에셋 */
 	UPROPERTY(EditInstanceOnly, Category = "Wx")

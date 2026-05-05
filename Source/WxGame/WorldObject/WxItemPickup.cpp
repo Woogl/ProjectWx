@@ -2,9 +2,8 @@
 
 #include "WorldObject/WxItemPickup.h"
 
-#include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Interaction/WxInteractionWidgetComponent.h"
+#include "Interaction/WxInteractionComponent.h"
 #include "NiagaraComponent.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerState.h"
@@ -16,6 +15,8 @@ DEFINE_LOG_CATEGORY_STATIC(LogWxItemPickup, Log, All);
 
 AWxItemPickup::AWxItemPickup()
 {
+	bReplicates = true;
+
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	SetRootComponent(MeshComponent);
 
@@ -25,7 +26,7 @@ AWxItemPickup::AWxItemPickup()
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
 	MeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 
-	InteractionWidget->SetupAttachment(MeshComponent);
+	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
 	InteractionComponent->SetupAttachment(MeshComponent);
 
 	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
@@ -36,7 +37,7 @@ void AWxItemPickup::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OnInteracted.AddDynamic(this, &AWxItemPickup::HandleInteracted);
+	InteractionComponent->OnInteracted.AddDynamic(this, &AWxItemPickup::HandleInteracted);
 }
 
 void AWxItemPickup::Initialize(UWxItemDefinition* InItemDef)

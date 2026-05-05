@@ -13,7 +13,7 @@ class UWxInteractionWidgetInterface : public UInterface
 };
 
 /**
- * UWxInteractionWidgetComponent가 사용하는 프롬프트 위젯 계약.
+ * UWxInteractionComponent 가 사용하는 프롬프트 위젯 계약.
  * 위젯 BP가 본 인터페이스를 구현하면, 컴포넌트가 InteractionText를 위젯에 전달한다.
  */
 class WXWORLD_API IWxInteractionWidgetInterface

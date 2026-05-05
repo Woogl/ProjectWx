@@ -2,18 +2,19 @@
 
 #include "WorldObject/WxTreasureChest.h"
 
-#include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Interaction/WxInteractionWidgetComponent.h"
+#include "Interaction/WxInteractionComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "WorldObject/WxItemPickup.h"
 
 AWxTreasureChest::AWxTreasureChest()
 {
+	bReplicates = true;
+
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	SetRootComponent(MeshComponent);
 
-	InteractionWidget->SetupAttachment(MeshComponent);
+	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
 	InteractionComponent->SetupAttachment(MeshComponent);
 }
 
@@ -28,7 +29,7 @@ void AWxTreasureChest::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OnInteracted.AddDynamic(this, &AWxTreasureChest::HandleInteracted);
+	InteractionComponent->OnInteracted.AddDynamic(this, &AWxTreasureChest::HandleInteracted);
 }
 
 void AWxTreasureChest::HandleInteracted(AActor* InteractingActor)
@@ -40,7 +41,9 @@ void AWxTreasureChest::HandleInteracted(AActor* InteractingActor)
 
 	bIsOpened = true;
 
-	SetInteractionEnabled(false);
+	InteractionComponent->SetInteractionEnabled(false);
+
+	ReceiveOpened();
 
 	if (!ItemActorClass || !ItemDefinition)
 	{
@@ -81,6 +84,7 @@ void AWxTreasureChest::OnRep_bIsOpened()
 {
 	if (bIsOpened)
 	{
-		SetInteractionEnabled(false);
+		InteractionComponent->SetInteractionEnabled(false);
+		ReceiveOpened();
 	}
 }

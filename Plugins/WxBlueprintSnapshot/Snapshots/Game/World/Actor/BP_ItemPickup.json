@@ -4,18 +4,12 @@
 	{
 		"InteractionComponent":
 		{
-			"class": "/Script/Engine.SphereComponent",
+			"class": "/Script/WxWorld.WxInteractionComponent",
 			"delta":
 			{
+				"InteractionText": "[F] Get Item",
+				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C",
 				"SphereRadius": 350
-			}
-		},
-		"InteractionWidget":
-		{
-			"class": "/Script/WxWorld.WxInteractionWidgetComponent",
-			"delta":
-			{
-				"WidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
 			}
 		},
 		"MeshComponent":

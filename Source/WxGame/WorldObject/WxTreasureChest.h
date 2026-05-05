@@ -3,11 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Interaction/WxInteractableActor.h"
+#include "GameFramework/Actor.h"
 #include "WxTreasureChest.generated.h"
 
 class AWxItemPickup;
 class UStaticMeshComponent;
+class UWxInteractionComponent;
 class UWxItemDefinition;
 
 /**
@@ -16,7 +17,7 @@ class UWxItemDefinition;
  * 상호작용 입력 시 서버에서 ItemActorClass(외형) 를 스폰하고 ItemDefinition 을 주입한다.
  */
 UCLASS(Abstract)
-class AWxTreasureChest : public AWxInteractableActor
+class AWxTreasureChest : public AActor
 {
 	GENERATED_BODY()
 
@@ -30,6 +31,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx")
+	TObjectPtr<UWxInteractionComponent> InteractionComponent;
 
 	/** 드랍되는 아이템의 외형. ItemDefinition 의 지급 데이터는 스폰 후 주입된다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
@@ -46,6 +50,10 @@ protected:
 	/** 수직에서 벌어지는 랜덤 각도 범위 (도). 0이면 정확히 위로 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Launch", meta = (ClampMin = "0", ClampMax = "90"))
 	float LaunchConeHalfAngle = 20.f;
+
+	/** 상호작용 후 BP 측 비주얼 피드백 훅 (예: 머티리얼 변경). 서버+모든 클라이언트에서 호출된다. */
+	UFUNCTION(BlueprintImplementableEvent, Category = "Wx")
+	void ReceiveOpened();
 
 private:
 	UFUNCTION()
