@@ -15,8 +15,8 @@ class UWxInteractionComponent;
  * SplineComponent가 정의하는 경로를 따라 플랫폼이 이동한다.
  * 인터랙션 영역은 셋:
  *  - PlatformInteraction: 플랫폼 위에서 상호작용하면 진행/방향 토글로 이동 시작
- *  - CallConsoleAInteraction / CallConsoleBInteraction: 해당 콘솔이 위치한 층(스플라인 끝점)으로 엘리베이터를 호출
- * 콘솔 끝점 매핑은 BeginPlay에서 콘솔 월드 위치와 스플라인 양 끝점 거리를 비교해 자동 결정한다.
+ *  - CallConsoleAInteraction: 플랫폼을 스플라인 시작점(거리 0)으로 호출
+ *  - CallConsoleBInteraction: 플랫폼을 스플라인 끝점(SplineLength)으로 호출
  */
 UCLASS(Abstract)
 class WXWORLD_API AWxElevator : public AActor
@@ -92,8 +92,4 @@ private:
 	float CurrentDistance = 0.f;
 
 	float CachedSplineLength;
-
-	float CallConsoleATargetDistance;
-
-	float CallConsoleBTargetDistance;
 };

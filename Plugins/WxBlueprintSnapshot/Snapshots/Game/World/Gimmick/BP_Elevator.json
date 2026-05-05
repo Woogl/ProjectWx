@@ -20,7 +20,11 @@
 			"delta":
 			{
 				"InteractionText": "[F] Call",
-				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
+				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C",
+				"RelativeLocation":
+				{
+					"Z": 100
+				}
 			}
 		},
 		"CallConsoleB":
@@ -42,7 +46,11 @@
 			"delta":
 			{
 				"InteractionText": "[F] Call",
-				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
+				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C",
+				"RelativeLocation":
+				{
+					"Z": 100
+				}
 			}
 		},
 		"PlatformInteraction":

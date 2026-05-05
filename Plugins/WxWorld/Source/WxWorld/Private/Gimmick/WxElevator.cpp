@@ -16,8 +16,6 @@ AWxElevator::AWxElevator()
 
 	CurrentDistance = 0.f;
 	CachedSplineLength = 0.f;
-	CallConsoleATargetDistance = 0.f;
-	CallConsoleBTargetDistance = 0.f;
 
 	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
 	SetRootComponent(SceneRoot);
@@ -63,20 +61,6 @@ void AWxElevator::BeginPlay()
 	CachedSplineLength = SplineComponent->GetSplineLength();
 
 	UpdatePlatformPosition();
-
-	// 콘솔 끝점 매핑: 콘솔 월드 위치를 스플라인 양 끝점과 비교해 가까운 쪽 거리값을 목적지로 캐싱.
-	const FVector StartWorld = SplineComponent->GetLocationAtDistanceAlongSpline(0.f, ESplineCoordinateSpace::World);
-	const FVector EndWorld = SplineComponent->GetLocationAtDistanceAlongSpline(CachedSplineLength, ESplineCoordinateSpace::World);
-
-	const FVector ConsoleAWorld = CallConsoleA->GetComponentLocation();
-	CallConsoleATargetDistance = (FVector::DistSquared(ConsoleAWorld, StartWorld) <= FVector::DistSquared(ConsoleAWorld, EndWorld))
-		? 0.f
-		: CachedSplineLength;
-
-	const FVector ConsoleBWorld = CallConsoleB->GetComponentLocation();
-	CallConsoleBTargetDistance = (FVector::DistSquared(ConsoleBWorld, StartWorld) <= FVector::DistSquared(ConsoleBWorld, EndWorld))
-		? 0.f
-		: CachedSplineLength;
 
 	PlatformInteraction->OnInteracted.AddDynamic(this, &AWxElevator::HandlePlatformInteracted);
 	CallConsoleAInteraction->OnInteracted.AddDynamic(this, &AWxElevator::HandleCallConsoleAInteracted);
@@ -138,7 +122,7 @@ void AWxElevator::HandleCallConsoleAInteracted(AActor* InteractingActor)
 		return;
 	}
 
-	StartMovementToDistance(CallConsoleATargetDistance);
+	StartMovementToDistance(0.f);
 }
 
 void AWxElevator::HandleCallConsoleBInteracted(AActor* InteractingActor)
@@ -148,7 +132,7 @@ void AWxElevator::HandleCallConsoleBInteracted(AActor* InteractingActor)
 		return;
 	}
 
-	StartMovementToDistance(CallConsoleBTargetDistance);
+	StartMovementToDistance(CachedSplineLength);
 }
 
 void AWxElevator::StartMovementToDistance(float TargetDistance)

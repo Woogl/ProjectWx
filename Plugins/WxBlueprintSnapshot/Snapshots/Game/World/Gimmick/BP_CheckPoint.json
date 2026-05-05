@@ -3,12 +3,16 @@
 	"classDefaults":
 	{
 		"HealEffect": "/Script/WxCombat.WxEffect_FullHP",
-		"InteractionWidget":
+		"InteractionComponent":
 		{
-			"class": "/Script/WxWorld.WxInteractionWidgetComponent",
+			"class": "/Script/WxWorld.WxInteractionComponent",
 			"delta":
 			{
-				"WidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
+				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C",
+				"RelativeLocation":
+				{
+					"Z": 50
+				}
 			}
 		},
 		"MeshComponent":
