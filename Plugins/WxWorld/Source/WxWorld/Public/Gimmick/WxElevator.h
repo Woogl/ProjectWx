@@ -82,9 +82,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UWxInteractionComponent> CallConsoleBInteraction;
 
-	/** 이동 속도 (cm/s) */
+	/** 한 끝점에서 다른 끝점까지 이동하는 데 걸리는 시간(초). */
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ClampMin = "0"))
-	float MoveSpeed = 200.f;
+	float MoveDuration = 5.f;
 
 	/** 문 열림/닫힘 애니메이션 길이(초). */
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ClampMin = "0"))

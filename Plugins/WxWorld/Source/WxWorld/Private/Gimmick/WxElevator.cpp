@@ -94,7 +94,8 @@ void AWxElevator::Tick(float DeltaTime)
 	case EWxElevatorState::Moving:
 	{
 		const float Direction = bMovingForward ? 1.f : -1.f;
-		CurrentDistance = FMath::Clamp(CurrentDistance + MoveSpeed * DeltaTime * Direction, 0.f, CachedSplineLength);
+		const float Speed = MoveDuration > 0.f ? CachedSplineLength / MoveDuration : CachedSplineLength;
+		CurrentDistance = FMath::Clamp(CurrentDistance + Speed * DeltaTime * Direction, 0.f, CachedSplineLength);
 		UpdatePlatformPosition();
 
 		if (HasAuthority())
