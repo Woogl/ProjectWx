@@ -176,6 +176,9 @@ public:
 	FWxOnInventorySlotChanged OnInventorySlotChanged;
 
 private:
+	/** 장착/사용 대상 액터를 반환. PlayerState에 부착된 경우 소유 폰, 그 외엔 자기 자신. */
+	AActor* ResolveTargetActor() const;
+
 	/** 권한: Entries 를 돌며 머지/분할 처리. */
 	void AddItemInternal(const UWxItemDefinition* ItemDef, int32 Count, FWxAddItemResult& OutResult);
 

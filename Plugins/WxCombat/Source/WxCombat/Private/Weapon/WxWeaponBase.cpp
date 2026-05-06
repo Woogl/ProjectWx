@@ -72,19 +72,12 @@ void AWxWeaponBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AWxWeaponBase::SetVisualMesh(USkeletalMesh* MeshAsset)
 {
-	if (!Mesh)
+	if (!Mesh || !MeshAsset)
 	{
 		return;
 	}
 
-	if (MeshAsset)
-	{
-		Mesh->SetSkeletalMeshAsset(MeshAsset);
-	}
-	else if (const AWxWeaponBase* CDO = GetClass()->GetDefaultObject<AWxWeaponBase>())
-	{
-		Mesh->SetSkeletalMeshAsset(CDO->Mesh ? CDO->Mesh->GetSkeletalMeshAsset() : nullptr);
-	}
+	Mesh->SetSkeletalMeshAsset(MeshAsset);
 }
 
 void AWxWeaponBase::AttachToCharacter(ACharacter* OwnerCharacter, FName SocketName)

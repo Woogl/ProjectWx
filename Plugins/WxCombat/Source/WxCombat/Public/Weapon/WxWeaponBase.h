@@ -50,10 +50,7 @@ public:
 	 */
 	void EndAttack();
 
-	/**
-	 * 무기 외형 메시를 교체한다.
-	 * MeshAsset이 지정되면 해당 메시로, nullptr이면 CDO 기본 메시로 복원한다.
-	 */
+	/** 무기 외형 메시를 교체한다. MeshAsset이 nullptr이면 무시한다. */
 	void SetVisualMesh(USkeletalMesh* MeshAsset);
 
 	/**

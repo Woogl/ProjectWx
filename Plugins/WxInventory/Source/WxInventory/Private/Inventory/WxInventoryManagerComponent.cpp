@@ -155,11 +155,16 @@ bool UWxInventoryManagerComponent::ReplicateSubobjects(UActorChannel* Channel, F
 {
 	bool bWroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
 
-	for (const FWxInventoryEntry& Entry : InventoryList.GetEntries())
+	// RegisteredSubObjectList를 사용 중이면 ReadyForReplication에서 등록된 인스턴스가 자동 복제되므로,
+	// 여기서 중복 복제를 막기 위해 레거시 경로(직접 ReplicateSubobject 호출)는 비활성 환경에서만 실행한다.
+	if (!IsUsingRegisteredSubObjectList())
 	{
-		if (UWxItemInstance* Instance = Entry.GetInstance())
+		for (const FWxInventoryEntry& Entry : InventoryList.GetEntries())
 		{
-			bWroteSomething |= Channel->ReplicateSubobject(Instance, *Bunch, *RepFlags);
+			if (UWxItemInstance* Instance = Entry.GetInstance())
+			{
+				bWroteSomething |= Channel->ReplicateSubobject(Instance, *Bunch, *RepFlags);
+			}
 		}
 	}
 
@@ -226,7 +231,6 @@ void UWxInventoryManagerComponent::AddItemInternal(const UWxItemDefinition* Item
 			OutResult.TouchedInstances.AddUnique(SlotInstance);
 			OutResult.AmountAdded += ToAdd;
 			BroadcastSlotChanged(SlotInstance, Entry.GetStackCount(), ToAdd);
-			BroadcastStackChanged(ItemDef, ToAdd);
 		}
 	}
 
@@ -243,10 +247,12 @@ void UWxInventoryManagerComponent::AddItemInternal(const UWxItemDefinition* Item
 		OutResult.TouchedInstances.Add(NewInstance);
 		OutResult.AmountAdded += ToAdd;
 		BroadcastSlotChanged(NewInstance, ToAdd, ToAdd);
-		BroadcastStackChanged(ItemDef, ToAdd);
 	}
 
 	OutResult.Remainder = Remaining;
+
+	// 슬롯별 변경은 위에서 개별 broadcast했지만 ItemDef 합계 변경은 한 번만 발행한다.
+	BroadcastStackChanged(ItemDef, OutResult.AmountAdded);
 }
 
 UWxItemInstance* UWxInventoryManagerComponent::CreateEntry(const UWxItemDefinition* ItemDef, int32 StackCount)
@@ -361,8 +367,7 @@ bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef
 		return false;
 	}
 
-	AActor* OwnerActor = GetOwner();
-	check(OwnerActor && OwnerActor->HasAuthority());
+	check(GetOwner() && GetOwner()->HasAuthority());
 
 	const FWxItemFragment_Consumable* Consumable = ItemDef->FindFragment<FWxItemFragment_Consumable>();
 	if (!Consumable)
@@ -381,17 +386,7 @@ bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef
 		return true;
 	}
 
-	// PlayerState에 부착된 경우 실제 ASC는 소유 폰이 가진다. 범용 액터 소유도 지원하기 위해 PlayerState → Pawn → Owner 순으로 조회.
-	UAbilitySystemComponent* TargetASC = nullptr;
-	if (const APlayerState* PS = Cast<APlayerState>(OwnerActor))
-	{
-		TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(PS->GetPawn());
-	}
-	if (!TargetASC)
-	{
-		TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OwnerActor);
-	}
-
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(ResolveTargetActor());
 	if (!TargetASC)
 	{
 		return true;
@@ -411,8 +406,7 @@ bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef
 
 bool UWxInventoryManagerComponent::EquipItemByDef(const UWxItemDefinition* ItemDef)
 {
-	AActor* OwnerActor = GetOwner();
-	check(OwnerActor && OwnerActor->HasAuthority());
+	check(GetOwner() && GetOwner()->HasAuthority());
 
 	// 장착 해제(nullptr)는 그대로 전달한다. 장착일 경우에만 Fragment 유효성 검증.
 	if (ItemDef && !ItemDef->FindFragment<FWxItemFragment_Equipment>())
@@ -420,14 +414,7 @@ bool UWxInventoryManagerComponent::EquipItemByDef(const UWxItemDefinition* ItemD
 		return false;
 	}
 
-	// PlayerState에 부착된 경우 실제 장착 대상은 소유 폰.
-	AActor* TargetActor = OwnerActor;
-	if (const APlayerState* PS = Cast<APlayerState>(OwnerActor))
-	{
-		TargetActor = PS->GetPawn();
-	}
-
-	IWxEquipmentInterface* Interface = Cast<IWxEquipmentInterface>(TargetActor);
+	IWxEquipmentInterface* Interface = Cast<IWxEquipmentInterface>(ResolveTargetActor());
 	if (!Interface)
 	{
 		return false;
@@ -569,6 +556,19 @@ TArray<UWxItemInstance*> UWxInventoryManagerComponent::GetAllItems() const
 		}
 	}
 	return Result;
+}
+
+AActor* UWxInventoryManagerComponent::ResolveTargetActor() const
+{
+	AActor* OwnerActor = GetOwner();
+	if (const APlayerState* PS = Cast<APlayerState>(OwnerActor))
+	{
+		if (AActor* Pawn = PS->GetPawn())
+		{
+			return Pawn;
+		}
+	}
+	return OwnerActor;
 }
 
 void UWxInventoryManagerComponent::BroadcastStackChanged(const UWxItemDefinition* ItemDef, int32 Delta)
