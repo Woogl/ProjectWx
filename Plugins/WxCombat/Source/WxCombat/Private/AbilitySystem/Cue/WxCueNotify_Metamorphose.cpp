@@ -32,14 +32,17 @@ bool AWxCueNotify_Metamorphose::OnActive_Implementation(AActor* MyTarget, const 
 		return false;
 	}
 
-	// BP에서 추가한 외형 SkeletalMeshComponent가 있으면 그 컴포넌트의 메시를 교체한다.
-	// (AWxCharacterBase::ApplyEquipmentVisuals 와 동일 규칙)
+	// BP에서 추가한 외형 SkeletalMeshComponent("VisualOverride" 태그)가 있으면 그 컴포넌트의 메시를 교체한다.
+	// (AWxWeaponBase::AttachToCharacter 와 동일 규칙)
 	for (USceneComponent* Child : MeshComp->GetAttachChildren())
 	{
 		if (USkeletalMeshComponent* SkelChild = Cast<USkeletalMeshComponent>(Child))
 		{
-			MeshComp = SkelChild;
-			break;
+			if (SkelChild->ComponentHasTag(TEXT("VisualOverride")))
+			{
+				MeshComp = SkelChild;
+				break;
+			}
 		}
 	}
 

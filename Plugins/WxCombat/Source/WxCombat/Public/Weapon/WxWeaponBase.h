@@ -7,6 +7,7 @@
 #include "WxDamageInfo.h"
 #include "WxWeaponBase.generated.h"
 
+class ACharacter;
 class UArrowComponent;
 class UCapsuleComponent;
 class USkeletalMesh;
@@ -16,7 +17,7 @@ class USkeletalMeshComponent;
  * 무기 베이스 클래스.
  *
  * 사용 흐름:
- *  1. SpawnActor → Equip(TargetMesh, Socket, MeshAsset)
+ *  1. SpawnActor → SetVisualMesh(MeshAsset) → AttachToCharacter(OwnerCharacter, Socket)
  *  2. ANS_WeaponAttack이 BeginAttack / EndAttack을 호출
  *  3. 무기가 내부 레퍼런스 카운팅으로 히트 콜리전 활성/비활성 자동 전환
  *
@@ -50,14 +51,20 @@ public:
 	void EndAttack();
 
 	/**
-	 * 무기를 대상 메시의 소켓에 장착한다.
-	 * MeshAsset이 지정되면 무기 외형을 해당 메시로 교체, nullptr이면 CDO 기본 메시로 복원한다.
-	 * TargetMesh의 Owner가 무기의 Owner로 설정된다.
+	 * 무기 외형 메시를 교체한다.
+	 * MeshAsset이 지정되면 해당 메시로, nullptr이면 CDO 기본 메시로 복원한다.
 	 */
-	void Equip(USkeletalMeshComponent* TargetMesh, FName SocketName, USkeletalMesh* MeshAsset = nullptr);
+	void SetVisualMesh(USkeletalMesh* MeshAsset);
 
-	/** 장착 해제. 활성 공격 구간이 있으면 강제 종료 후 메시에서 분리한다. */
-	void Unequip();
+	/**
+	 * 무기를 대상 캐릭터의 소켓에 부착한다.
+	 * 부착 대상은 캐릭터의 GetMesh() 또는 BP에서 추가한 외형용 자식 SkeletalMeshComponent("VisualOverride" 태그)가 있으면 그쪽이 우선된다.
+	 * 무기의 Owner는 캐릭터로 설정된다.
+	 */
+	void AttachToCharacter(ACharacter* OwnerCharacter, FName SocketName);
+
+	/** 캐릭터에서 분리한다. 활성 공격 구간이 있으면 강제 종료 후 메시에서 분리한다. */
+	void DetachFromCharacter();
 
 	/** 역경직 지속 시간 (초). 0 이하이면 역경직 미적용 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")

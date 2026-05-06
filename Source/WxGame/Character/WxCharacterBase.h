@@ -15,6 +15,7 @@
 class UMotionWarpingComponent;
 class UWxAbilitySystemComponent;
 class UWxCombatAttributeSet;
+class UWxEquipmentComponent;
 class UWxItemDefinition;
 class UWxLockOnComponent;
 class AWxWeaponBase;
@@ -69,10 +70,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")
 	TObjectPtr<UMotionWarpingComponent> MotionWarpingComponent;
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Equipment")
+	TObjectPtr<UWxEquipmentComponent> EquipmentComponent;
+
 	virtual void PossessedBy(AController* NewController) override;
-	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	/**
 	 * ASC ActorInfo 설정, 어트리뷰트 콜백 등록, AbilitySet 부여를 수행.
@@ -97,32 +98,4 @@ protected:
 
 	/** 기본 이동 속도 (cm/s). SPD Multiplier의 기준값 */
 	float BaseWalkSpeed;
-
-	// ── Weapon ─────────────────────────────────────────────────────────────
-
-	/** 캐릭터가 항상 소유하는 무기 액터의 클래스. BeginPlay에서 스폰되어 DefaultWeaponSocket에 부착된다. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
-	TSubclassOf<AWxWeaponBase> WeaponActor;
-
-	/** DefaultWeapon을 부착할 캐릭터 메시의 소켓 이름 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
-	FName DefaultWeaponSocket = TEXT("hand_r");
-
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_EquippedWeapon, Category = "Wx|Weapon")
-	TObjectPtr<AWxWeaponBase> EquippedWeapon;
-
-	/** 현재 장착 중인 아이템. 변경 시 EquippedWeapon의 메시/부착 소켓이 fragment 기준으로 갱신된다. */
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_EquippedItemDef, Category = "Wx|Weapon")
-	TObjectPtr<const UWxItemDefinition> EquippedItemDef;
-
-	void SpawnDefaultWeapon();
-
-	UFUNCTION()
-	void OnRep_EquippedWeapon();
-
-	UFUNCTION()
-	void OnRep_EquippedItemDef();
-
-	/** EquippedItemDef에 따라 EquippedWeapon의 메시/소켓을 적용. 서버/클라이언트 공통 진입. */
-	void ApplyEquipmentVisuals();
 };

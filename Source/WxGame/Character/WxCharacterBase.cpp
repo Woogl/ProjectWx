@@ -3,16 +3,13 @@
 #include "Character/WxCharacterBase.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
+#include "Component/WxEquipmentComponent.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "MotionWarpingComponent.h"
 #include "WxGameplayTags.h"
 #include "Components/CapsuleComponent.h"
 #include "WxCollisionChannels.h"
-#include "Weapon/WxWeaponBase.h"
-#include "Items/WxItemDefinition.h"
-#include "Items/WxItemFragment.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Net/UnrealNetwork.h"
 
 AWxCharacterBase::AWxCharacterBase()
 {
@@ -32,20 +29,14 @@ AWxCharacterBase::AWxCharacterBase()
 
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
 
+	EquipmentComponent = CreateDefaultSubobject<UWxEquipmentComponent>(TEXT("EquipmentComponent"));
+
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw   = false;
 	bUseControllerRotationRoll  = false;
 	
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f);
-}
-
-void AWxCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AWxCharacterBase, EquippedWeapon);
-	DOREPLIFETIME(AWxCharacterBase, EquippedItemDef);
 }
 
 UAbilitySystemComponent* AWxCharacterBase::GetAbilitySystemComponent() const
@@ -63,7 +54,15 @@ void AWxCharacterBase::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer)
 
 AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const
 {
-	return EquippedWeapon;
+	return EquipmentComponent ? EquipmentComponent->GetEquippedWeapon() : nullptr;
+}
+
+void AWxCharacterBase::EquipItem(const UWxItemDefinition* ItemDef)
+{
+	if (EquipmentComponent)
+	{
+		EquipmentComponent->EquipItem(ItemDef);
+	}
 }
 
 void AWxCharacterBase::SetGenericTeamId(const FGenericTeamId& InTeamId)
@@ -103,98 +102,6 @@ void AWxCharacterBase::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 	
 	InitAbilitySystem();
-}
-
-void AWxCharacterBase::BeginPlay()
-{
-	Super::BeginPlay();
-
-	SpawnDefaultWeapon();
-}
-
-void AWxCharacterBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	if (HasAuthority() && EquippedWeapon)
-	{
-		EquippedWeapon->Destroy();
-		EquippedWeapon = nullptr;
-	}
-
-	Super::EndPlay(EndPlayReason);
-}
-
-void AWxCharacterBase::SpawnDefaultWeapon()
-{
-	if (!WeaponActor || !HasAuthority())
-	{
-		return;
-	}
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = this;
-	SpawnParams.Instigator = this;
-	EquippedWeapon = GetWorld()->SpawnActor<AWxWeaponBase>(WeaponActor, SpawnParams);
-	ApplyEquipmentVisuals();
-}
-
-void AWxCharacterBase::EquipItem(const UWxItemDefinition* ItemDef)
-{
-	if (!HasAuthority())
-	{
-		return;
-	}
-
-	if (ItemDef && !ItemDef->FindFragment<FWxItemFragment_Equipment>())
-	{
-		return;
-	}
-
-	EquippedItemDef = ItemDef;
-	ApplyEquipmentVisuals();
-}
-
-void AWxCharacterBase::OnRep_EquippedWeapon()
-{
-	// 늦게 도착한 EquippedWeapon이 기존 EquippedItemDef를 따라 시각에 반영되도록 재적용.
-	ApplyEquipmentVisuals();
-}
-
-void AWxCharacterBase::OnRep_EquippedItemDef()
-{
-	ApplyEquipmentVisuals();
-}
-
-void AWxCharacterBase::ApplyEquipmentVisuals()
-{
-	if (!EquippedWeapon)
-	{
-		return;
-	}
-
-	// EquippedItemDef가 없으면 CDO 기본 메시 + 기본 소켓으로 장착 (장착 해제 상태).
-	FName Socket = DefaultWeaponSocket;
-	USkeletalMesh* MeshAsset = nullptr;
-
-	if (EquippedItemDef)
-	{
-		if (const FWxItemFragment_Equipment* Fragment = EquippedItemDef->FindFragment<FWxItemFragment_Equipment>())
-		{
-			Socket = Fragment->AttachSocket;
-			MeshAsset = Fragment->SkeletalMesh;
-		}
-	}
-
-	// BP에서 추가한 외형 SkeletalMesh가 있으면 그 메시에 장착, 없으면 GetMesh()에 직접 장착.
-	USkeletalMeshComponent* Visual = GetMesh();
-	for (USceneComponent* Child : Visual->GetAttachChildren())
-	{
-		if (USkeletalMeshComponent* SkelChild = Cast<USkeletalMeshComponent>(Child))
-		{
-			Visual = SkelChild;
-			break;
-		}
-	}
-	EquippedWeapon->Equip(Visual, Socket, MeshAsset);
 }
 
 void AWxCharacterBase::InitAbilitySystem()

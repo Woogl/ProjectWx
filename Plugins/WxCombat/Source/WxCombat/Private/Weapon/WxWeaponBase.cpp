@@ -31,6 +31,7 @@ AWxWeaponBase::AWxWeaponBase()
 
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
 	Mesh->SetupAttachment(GripPoint);
+	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Mesh->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
 	HitCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("HitCollision"));
@@ -64,14 +65,14 @@ AWxWeaponBase* AWxWeaponBase::FindWeapon(const AActor* Owner)
 
 void AWxWeaponBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	Unequip();
+	DetachFromCharacter();
 
 	Super::EndPlay(EndPlayReason);
 }
 
-void AWxWeaponBase::Equip(USkeletalMeshComponent* TargetMesh, FName SocketName, USkeletalMesh* MeshAsset)
+void AWxWeaponBase::SetVisualMesh(USkeletalMesh* MeshAsset)
 {
-	if (!TargetMesh || !Mesh)
+	if (!Mesh)
 	{
 		return;
 	}
@@ -84,13 +85,39 @@ void AWxWeaponBase::Equip(USkeletalMeshComponent* TargetMesh, FName SocketName, 
 	{
 		Mesh->SetSkeletalMeshAsset(CDO->Mesh ? CDO->Mesh->GetSkeletalMeshAsset() : nullptr);
 	}
-
-	AttachToComponent(TargetMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
-	SetOwner(TargetMesh->GetOwner());
-	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
-void AWxWeaponBase::Unequip()
+void AWxWeaponBase::AttachToCharacter(ACharacter* OwnerCharacter, FName SocketName)
+{
+	if (!OwnerCharacter || !Mesh)
+	{
+		return;
+	}
+
+	USkeletalMeshComponent* TargetMesh = OwnerCharacter->GetMesh();
+	if (!TargetMesh)
+	{
+		return;
+	}
+
+	// BP에서 추가한 외형 SkeletalMeshComponent("VisualOverride" 태그)가 있으면 그 컴포넌트에 부착한다.
+	for (USceneComponent* Child : TargetMesh->GetAttachChildren())
+	{
+		if (USkeletalMeshComponent* SkelChild = Cast<USkeletalMeshComponent>(Child))
+		{
+			if (SkelChild->ComponentHasTag(TEXT("VisualOverride")))
+			{
+				TargetMesh = SkelChild;
+				break;
+			}
+		}
+	}
+
+	AttachToComponent(TargetMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
+	SetOwner(OwnerCharacter);
+}
+
+void AWxWeaponBase::DetachFromCharacter()
 {
 	// 활성 공격 구간이 남아있으면 강제 종료
 	if (ActiveAttackCount > 0)

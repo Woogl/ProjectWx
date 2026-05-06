@@ -25,9 +25,17 @@ struct FWxInventoryEntry : public FFastArraySerializerItem
 
 	FWxInventoryEntry();
 
+	UWxItemInstance* GetInstance() const;
+	int32 GetStackCount() const;
+
+	/** StackCount에 Delta를 더한다. 음수면 차감. */
+	void AddStack(int32 Delta);
+
+	/** 신규 엔트리 초기화 — Instance/StackCount/LastObservedCount를 일관되게 설정한다. */
+	void Initialize(UWxItemInstance* InInstance, int32 InStackCount);
+
 private:
 	friend FWxInventoryList;
-	friend UWxInventoryManagerComponent;
 
 	UPROPERTY()
 	TObjectPtr<UWxItemInstance> Instance;
@@ -60,9 +68,10 @@ struct FWxInventoryList : public FFastArraySerializer
 
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParms);
 
-private:
-	friend UWxInventoryManagerComponent;
+	const TArray<FWxInventoryEntry>& GetEntries() const;
+	TArray<FWxInventoryEntry>& GetEntriesMutable();
 
+private:
 	UPROPERTY()
 	TArray<FWxInventoryEntry> Entries;
 

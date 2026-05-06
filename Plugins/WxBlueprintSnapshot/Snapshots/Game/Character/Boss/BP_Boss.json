@@ -24,6 +24,14 @@
 				}
 			}
 		},
+		"EquipmentComponent":
+		{
+			"class": "/Script/WxGame.WxEquipmentComponent",
+			"delta":
+			{
+				"WeaponActor": "/Game/Item/BP_Katana.BP_Katana_C"
+			}
+		},
 		"Mesh":
 		{
 			"class": "/Script/Engine.SkeletalMeshComponent",
@@ -46,8 +54,7 @@
 				"SkinnedAsset": "/Game/Mannequins/Meshes/SKM_Manny.SKM_Manny"
 			}
 		},
-		"RootComponent": "CollisionCylinder",
-		"WeaponActor": "/Game/Item/BP_Katana.BP_Katana_C"
+		"RootComponent": "CollisionCylinder"
 	},
 	"parentClass": "/Script/WxGame.WxBossCharacter"
 }
