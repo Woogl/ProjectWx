@@ -3,6 +3,9 @@
 #include "Gimmick/WxCutsceneTrigger.h"
 
 #include "Components/StaticMeshComponent.h"
+#include "Engine/World.h"
+#include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
 #include "Interaction/WxInteractionComponent.h"
 #include "LevelSequenceActor.h"
 #include "LevelSequencePlayer.h"
@@ -29,6 +32,12 @@ void AWxCutsceneTrigger::BeginPlay()
 
 void AWxCutsceneTrigger::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	// 컷신 도중 트리거가 파괴되면 입력 락을 풀어줘야 한다.
+	if (bIsPlaying)
+	{
+		SetLocalPlayersInputEnabled(true);
+	}
+
 	CleanupSequenceActor();
 
 	Super::EndPlay(EndPlayReason);
@@ -56,6 +65,7 @@ void AWxCutsceneTrigger::HandleInteracted(AActor* InteractingActor)
 	}
 
 	InteractionComponent->SetInteractionEnabled(false);
+	SetLocalPlayersInputEnabled(false);
 
 	SequencePlayer->OnFinished.AddDynamic(this, &AWxCutsceneTrigger::HandleSequenceFinished);
 	SequencePlayer->Play();
@@ -67,6 +77,7 @@ void AWxCutsceneTrigger::HandleSequenceFinished()
 	bIsPlaying = false;
 
 	InteractionComponent->SetInteractionEnabled(true);
+	SetLocalPlayersInputEnabled(true);
 }
 
 void AWxCutsceneTrigger::CleanupSequenceActor()
@@ -75,5 +86,38 @@ void AWxCutsceneTrigger::CleanupSequenceActor()
 	{
 		SequenceActor->Destroy();
 		SequenceActor = nullptr;
+	}
+}
+
+void AWxCutsceneTrigger::SetLocalPlayersInputEnabled(bool bEnabled)
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* PC = It->Get();
+		if (!PC || !PC->IsLocalController())
+		{
+			continue;
+		}
+
+		APawn* Pawn = PC->GetPawn();
+		if (!Pawn)
+		{
+			continue;
+		}
+
+		if (bEnabled)
+		{
+			Pawn->EnableInput(PC);
+		}
+		else
+		{
+			Pawn->DisableInput(PC);
+		}
 	}
 }
