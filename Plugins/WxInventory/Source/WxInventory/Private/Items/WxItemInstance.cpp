@@ -21,28 +21,7 @@ void UWxItemInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ThisClass, StatTags);
 	DOREPLIFETIME(ThisClass, ItemDef);
-}
-
-void UWxItemInstance::AddStatTagStack(FGameplayTag Tag, int32 StackCount)
-{
-	StatTags.AddStack(Tag, StackCount);
-}
-
-void UWxItemInstance::RemoveStatTagStack(FGameplayTag Tag, int32 StackCount)
-{
-	StatTags.RemoveStack(Tag, StackCount);
-}
-
-int32 UWxItemInstance::GetStatTagStackCount(FGameplayTag Tag) const
-{
-	return StatTags.GetStackCount(Tag);
-}
-
-bool UWxItemInstance::HasStatTag(FGameplayTag Tag) const
-{
-	return StatTags.ContainsTag(Tag);
 }
 
 const UWxItemDefinition* UWxItemInstance::GetItemDef() const

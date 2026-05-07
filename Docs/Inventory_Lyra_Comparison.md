@@ -2,7 +2,7 @@
 
 본 문서는 Lyra Sample Project 의 인벤토리 시스템과 본 프로젝트(Wx) 의 인벤토리 시스템을 비교 분석한다. "우리 시스템이 Lyra 의 어떤 부분을 그대로 따랐고, 어디서 의도적으로 갈라졌는가" 를 명확히 한다.
 
-최종 갱신: 2026-05-07 — 카테고리 enum 분리, Fragment 기능 축 리네임(Equippable/Usable), Currency Fragment 삭제, Stackable Fragment + 머지 정책 도입, **인벤토리 컴포넌트 PlayerState → PlayerController 이동** 반영
+최종 갱신: 2026-05-07 — 카테고리 enum 분리, Fragment 기능 축 리네임(Equippable/Usable), Currency Fragment 삭제, Stackable Fragment + 머지 정책 도입, 인벤토리 컴포넌트 PlayerState → PlayerController 이동, **GameplayTagStackContainer 미사용으로 제거** 반영
 
 ---
 
@@ -13,12 +13,12 @@
 | **ItemDefinition 타입** | `UCLASS(Blueprintable, Const, Abstract)` UObject CDO | `UPrimaryDataAsset` 데이터 자산 인스턴스 | ★★☆☆☆ |
 | **Definition 참조 방식** | `TSubclassOf<ULyraInventoryItemDefinition>` | `TObjectPtr<UWxItemDefinition>` | ★★☆☆☆ |
 | **Fragment 모델** | `UCLASS(DefaultToInstanced, EditInlineNew, Abstract)` UObject + virtual `OnInstanceCreated` | 동일 | ★★★★★ |
-| **ItemInstance** | `UObject` + `FGameplayTagStackContainer StatTags` | 동일 (단, `ItemDef` 타입은 `TObjectPtr<const UWxItemDefinition>`) | ★★★★☆ |
+| **ItemInstance** | `UObject` + `FGameplayTagStackContainer StatTags` | `UObject` + `TObjectPtr<const UWxItemDefinition>` (StatTags 미보유 — 인스턴스별 가변 상태가 필요해질 때 도입) | ★★★☆☆ |
 | **InventoryEntry** | `FFastArraySerializerItem` + `LastObservedCount` 패턴 | 동일 | ★★★★★ |
 | **InventoryList** | `FFastArraySerializer` + Pre/Post Replicated 콜백 | 동일 | ★★★★★ |
 | **NetDeltaSerializer** | `FFastArrayDeltaSerialize` 표준 | 동일 | ★★★★★ |
 | **SubObject 복제** | Push-model(`AddReplicatedSubObject`) + 레거시(`ReplicateSubobjects`) 듀얼 | 동일 | ★★★★★ |
-| **GameplayTagStackContainer** | `FGameplayTagStack` + `FGameplayTagStackContainer` (FastArray) | `FWxGameplayTagStack` + `FWxGameplayTagStackContainer` (포팅) | ★★★★★ |
+| **GameplayTagStackContainer** | `FGameplayTagStack` + `FGameplayTagStackContainer` (FastArray) | 미사용 (호출자 부재로 제거 — Charges/내구도 도입 시 재추가) | ★☆☆☆☆ |
 | **머지 정책** | 머지 없음, `AddItemDefinition` 1회 = 신규 엔트리 | `UWxItemFragment_Stackable(MaxStack)` 기반 — 부착 시 한도까지 머지, 부재 시 1슬롯=1개 | ★★★☆☆ |
 | **Fragment 디스패치** | `OnInstanceCreated(Instance)` 가상 호출 | 동일 | ★★★★★ |
 | **변경 알림 채널** | `UGameplayMessageSubsystem` 태그 브로드캐스트 | C++ 멀티캐스트 델리게이트 | ★★☆☆☆ |
@@ -58,7 +58,7 @@ public:
 
 **완전히 동일.** Fragment 의 인스턴스가 Definition 안에 EditInline 으로 살아있고, `AddItemDefinition` 직후 Fragment 의 가상 함수가 새 Instance 의 초기 상태를 주입하는 진입점 역할.
 
-### 2.2 ItemInstance: StatTags 기반 가변 상태
+### 2.2 ItemInstance: ItemDef 참조 + 슬롯 식별
 
 #### Lyra
 ```cpp
@@ -83,18 +83,15 @@ UCLASS(BlueprintType)
 class WXINVENTORY_API UWxItemInstance : public UObject
 {
 public:
-    void AddStatTagStack(FGameplayTag Tag, int32 StackCount);
-    int32 GetStatTagStackCount(FGameplayTag Tag) const;
     const UWxItemDefinition* GetItemDef() const;
     template <typename T> const T* FindFragmentByClass() const;
 
 private:
-    UPROPERTY(Replicated) FWxGameplayTagStackContainer StatTags;
     UPROPERTY(Replicated) TObjectPtr<const UWxItemDefinition> ItemDef;
 };
 ```
 
-**개념적으로 동일.** Instance 는 정의 데이터를 직접 가지지 않고 ItemDef 참조만 보유. 가변 상태(스택수, 탄약, 강화수치, 내구도 등)는 모두 `StatTags` 한 군데에서 GameplayTag → int32 매핑으로 표현. 차이는 ItemDef 참조 타입(`TSubclassOf` vs `TObjectPtr`) 한 가지.
+**개념적으로 동일하나, 인스턴스별 가변 상태(StatTags)는 일단 미보유.** 현재 게임 디자인에 인스턴스별 카운터(탄약/강화/내구도/Charges) 가 등장하지 않아 dead infrastructure 제거. 그런 상태가 등장하는 순간 `FWxGameplayTagStackContainer` 를 다시 도입하거나 구체적인 UPROPERTY 필드를 추가하면 된다.
 
 ### 2.3 InventoryList: FFastArraySerializer + LastObservedCount
 
@@ -366,10 +363,9 @@ DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventorySlotChanged,
 ```
 WxInventory (Plugin)
 ├── Items/
-│   ├── WxGameplayTagStack          (Lyra FGameplayTagStack(Container) 포팅)
 │   ├── WxItemFragment              (UObject base + Equippable/Usable/Stackable)
 │   ├── WxItemDefinition            (UPrimaryDataAsset, Category enum + Fragment 배열)
-│   └── WxItemInstance              (UObject, StatTags + TObjectPtr<const UWxItemDefinition>)
+│   └── WxItemInstance              (UObject, TObjectPtr<const UWxItemDefinition> 만 보유)
 └── Inventory/
     ├── WxEquipmentInterface        (IWxEquipmentInterface — const UWxItemDefinition* API)
     └── WxInventoryManagerComponent (FastArray + 듀얼 SubObject 복제 + Stackable 머지)
@@ -421,7 +417,7 @@ WxGame (Module)
 
 ## 7. 향후 확장 시 검토 포인트
 
-1. **`UWxItemFragment_Charges`** — 다크소울 에스트형(인스턴스 단위 충전, 사용 시 인벤 차감 X, 체크포인트에서 Max 리셋). `OnInstanceCreated` 에서 인스턴스 StatTag(`Item.Charges`) 에 InitialCharges 주입, `UseItemByDef` 가 Stackable 차감 대신 charge 차감 분기 추가 필요
+1. **`UWxItemFragment_Charges`** — 다크소울 에스트형(인스턴스 단위 충전, 사용 시 인벤 차감 X, 체크포인트에서 Max 리셋). 도입 시 `FWxGameplayTagStackContainer` 인프라를 ItemInstance 에 다시 추가하고 `OnInstanceCreated` 에서 InitialCharges 를 주입, `UseItemByDef` 가 Stackable 차감 대신 charge 차감 분기 추가 필요
 2. **`UWxItemFragment_StatModifier`** — 장비/버프 소비템 공용 어트리뷰트 모디파이어. GAS Modifier 적용 시점(장착 시/사용 시) 분기 필요
 3. **`UWxItemFragment_AbilityGrant`** — 장착·소지 시 부여 어빌리티(무기 스킬, 세트 효과). `IWxEquipmentInterface::EquipItem` 후 ASC 에 GiveAbility, 해제 시 Clear
 4. **GameplayMessageSubsystem 도입** — listener 다양화(Toast/Sound/Achievement) 시

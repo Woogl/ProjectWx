@@ -29,7 +29,7 @@ class WXINVENTORY_API UWxItemFragment : public UObject
 public:
 	/**
 	 * 권한: AddItemDefinition 으로 새 인스턴스가 생성된 직후 호출.
-	 * Fragment 가 인스턴스의 초기 StatTag 등을 주입할 때 사용한다. 기본 구현은 비어있음.
+	 * Fragment 가 인스턴스 초기 상태를 주입할 때 사용한다. 기본 구현은 비어있음.
 	 */
 	virtual void OnInstanceCreated(UWxItemInstance* Instance) const;
 };
