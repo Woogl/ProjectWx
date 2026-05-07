@@ -12,6 +12,7 @@
 #include "WxTeamTypes.h"
 #include "WxCharacterBase.generated.h"
 
+class UChildActorComponent;
 class UMotionWarpingComponent;
 class UWxAbilitySystemComponent;
 class UWxCombatAttributeSet;
@@ -73,6 +74,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Equipment")
 	TObjectPtr<UWxEquipmentComponent> EquipmentComponent;
 
+	/**
+	 * 캐릭터가 항상 소유하는 무기 액터를 호스팅하는 ChildActor 컴포넌트.
+	 * BP 의 ChildActorClass 에 구체 무기 BP 를 지정한다. 장착 변경 시 메시 스왑/소켓 재부착의 대상이 된다.
+	 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Equipment")
+	TObjectPtr<UChildActorComponent> WeaponActor;
+
+	virtual void PostInitializeComponents() override;
 	virtual void PossessedBy(AController* NewController) override;
 
 	/**

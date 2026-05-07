@@ -3,14 +3,14 @@
 #include "WorldObject/WxItemPickup.h"
 
 #include "Components/StaticMeshComponent.h"
-#include "Interaction/WxInteractionComponent.h"
-#include "Net/UnrealNetwork.h"
-#include "NiagaraComponent.h"
+#include "Controller/WxPlayerController.h"
 #include "GameFramework/Pawn.h"
-#include "GameFramework/PlayerState.h"
+#include "Interaction/WxInteractionComponent.h"
 #include "Inventory/WxInventoryManagerComponent.h"
 #include "Items/WxItemDefinition.h"
-#include "Items/WxItemFragment.h"
+#include "Items/WxItemInstance.h"
+#include "Net/UnrealNetwork.h"
+#include "NiagaraComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogWxItemPickup, Log, All);
 
@@ -95,9 +95,9 @@ void AWxItemPickup::HandleInteracted(AActor* InteractingActor)
 	UWxInventoryManagerComponent* Inventory = nullptr;
 	if (const APawn* InteractorPawn = Cast<APawn>(InteractingActor))
 	{
-		if (APlayerState* PlayerState = InteractorPawn->GetPlayerState())
+		if (AWxPlayerController* PC = Cast<AWxPlayerController>(InteractorPawn->GetController()))
 		{
-			Inventory = PlayerState->FindComponentByClass<UWxInventoryManagerComponent>();
+			Inventory = PC->GetInventoryManager();
 		}
 	}
 
@@ -113,15 +113,10 @@ void AWxItemPickup::HandleInteracted(AActor* InteractingActor)
 		return;
 	}
 
-	int32 GrantCount = 1;
-	if (const FWxItemFragment_Currency* Currency = ItemDef->FindFragment<FWxItemFragment_Currency>())
-	{
-		GrantCount = Currency->Quantity;
-	}
-
-	const FWxAddItemResult Result = Inventory->AddItem(ItemDef, GrantCount);
-	const int32 TotalOwned = Inventory->GetItemCountByDef(ItemDef);
-	UE_LOG(LogWxItemPickup, Log, TEXT("Picked up %s x%d (added=%d, total=%d)"), *ItemDef->GetName(), GrantCount, Result.AmountAdded, TotalOwned);
+	UWxItemInstance* AddedInstance = Inventory->AddItemDefinition(ItemDef, GrantCount);
+	const int32 TotalOwned = Inventory->GetTotalItemCountByDefinition(ItemDef);
+	UE_LOG(LogWxItemPickup, Log, TEXT("Picked up %s x%d (instance=%s, total=%d)"),
+		*ItemDef->GetName(), GrantCount, *GetNameSafe(AddedInstance), TotalOwned);
 
 	Destroy();
 }

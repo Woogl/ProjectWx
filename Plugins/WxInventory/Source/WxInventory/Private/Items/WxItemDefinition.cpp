@@ -6,7 +6,7 @@
 
 UWxItemDefinition::UWxItemDefinition()
 	: Grade(EWxItemGrade::Common)
-	, MaxCounts(1)
+	, Category(EWxItemCategory::None)
 {
 }
 
@@ -17,20 +17,22 @@ FPrimaryAssetId UWxItemDefinition::GetPrimaryAssetId() const
 
 EWxItemCategory UWxItemDefinition::GetItemCategory() const
 {
-	if (FindFragment<FWxItemFragment_Equipment>())
+	return Category;
+}
+
+const UWxItemFragment* UWxItemDefinition::FindFragmentByClass(TSubclassOf<UWxItemFragment> FragmentClass) const
+{
+	if (!FragmentClass)
 	{
-		return EWxItemCategory::Equipment;
+		return nullptr;
 	}
 
-	if (FindFragment<FWxItemFragment_Consumable>())
+	for (UWxItemFragment* Fragment : Fragments)
 	{
-		return EWxItemCategory::Consumable;
+		if (Fragment && Fragment->IsA(FragmentClass))
+		{
+			return Fragment;
+		}
 	}
-
-	if (FindFragment<FWxItemFragment_Currency>())
-	{
-		return EWxItemCategory::Currency;
-	}
-
-	return EWxItemCategory::None;
+	return nullptr;
 }

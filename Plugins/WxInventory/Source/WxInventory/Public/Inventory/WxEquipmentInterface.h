@@ -24,6 +24,6 @@ class WXINVENTORY_API IWxEquipmentInterface
 	GENERATED_BODY()
 
 public:
-	/** 권한: ItemDef의 Equipment Fragment에 따라 시각/부착을 반영 */
+	/** 권한: ItemDef의 Equipment Fragment에 따라 시각/부착을 반영. nullptr 이면 장착 해제. */
 	virtual void EquipItem(const UWxItemDefinition* ItemDef) = 0;
 };

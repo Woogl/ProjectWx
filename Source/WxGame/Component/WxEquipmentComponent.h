@@ -3,26 +3,24 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ActiveGameplayEffectHandle.h"
 #include "Components/ActorComponent.h"
 #include "Inventory/WxEquipmentInterface.h"
+#include "Templates/SubclassOf.h"
 #include "WxEquipmentComponent.generated.h"
 
-class AWxWeaponBase;
+class UAbilitySystemComponent;
+class UGameplayEffect;
 class UWxItemDefinition;
 
 /**
  * 장비 컴포넌트.
- * 캐릭터(또는 다른 액터)가 항상 소유하는 무기 액터의 스폰/유지와, 현재 장착된 ItemDef에 따른
- * 무기 외형/소켓 갱신을 캡슐화한다.
+ * 현재 장착된 ItemDef 의 보관/복제, 외형(메시/소켓) 갱신, EquipEffect GE 라이프사이클을 캡슐화한다.
  *
- * 사용 흐름:
- *  1. 오너 액터의 생성자에서 서브오브젝트로 생성
- *  2. BP에서 WeaponActor / DefaultWeaponSocket 지정
- *  3. BeginPlay(Authority)에서 무기 스폰 → 캐릭터 소켓에 부착
- *  4. EquipItem(ItemDef) 호출 시 fragment에 따라 메시/소켓 갱신
+ * 무기 액터의 스폰/유지는 본 컴포넌트가 아니라 캐릭터의 ChildActorComponent(WeaponChildActor)가 담당한다.
+ * 본 컴포넌트는 ApplyEquipmentVisuals 에서 캐릭터의 GetEquippedWeapon() 을 통해 무기 액터에 접근한다.
  *
  * IWxEquipmentInterface를 구현하여 WxInventory에서 ItemDef 기반 장착 요청을 받는다.
- * 외형 갱신은 오너가 ACharacter일 때만 동작한다 (AWxWeaponBase::AttachToCharacter 시그니처 제약).
  */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))
 class WXGAME_API UWxEquipmentComponent : public UActorComponent, public IWxEquipmentInterface
@@ -35,37 +33,29 @@ public:
 	// IWxEquipmentInterface
 	virtual void EquipItem(const UWxItemDefinition* ItemDef) override;
 
-	AWxWeaponBase* GetEquippedWeapon() const;
-
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	/** 캐릭터가 항상 소유하는 무기 액터의 클래스. BeginPlay에서 스폰되어 DefaultWeaponSocket에 부착된다. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Equipment")
-	TSubclassOf<AWxWeaponBase> WeaponActor;
-
-	/** DefaultWeapon을 부착할 캐릭터 메시의 소켓 이름 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Equipment")
-	FName DefaultWeaponSocket = TEXT("hand_r");
-
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_EquippedWeapon, Category = "Wx|Equipment")
-	TObjectPtr<AWxWeaponBase> EquippedWeapon;
-
-	/** 현재 장착 중인 아이템. 변경 시 EquippedWeapon의 메시/부착 소켓이 fragment 기준으로 갱신된다. */
+	/** 현재 장착 중인 아이템. 변경 시 무기 액터의 메시/부착 소켓이 fragment 기준으로 갱신된다. */
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_EquippedItemDef, Category = "Wx|Equipment")
 	TObjectPtr<const UWxItemDefinition> EquippedItemDef;
 
 private:
-	void SpawnDefaultWeapon();
-
-	UFUNCTION()
-	void OnRep_EquippedWeapon();
-
 	UFUNCTION()
 	void OnRep_EquippedItemDef();
 
-	/** EquippedItemDef에 따라 EquippedWeapon의 메시/소켓을 적용. 서버/클라이언트 공통 진입. */
+	/** EquippedItemDef에 따라 캐릭터의 무기 액터의 메시/소켓을 적용. 서버/클라이언트 공통 진입. */
 	void ApplyEquipmentVisuals();
+
+	/** 권한: 새 장비의 EquipEffects 를 소유자 ASC 에 적용하고 핸들을 보관. */
+	void ApplyEquipEffects(const UWxItemDefinition* SourceDef, const TArray<TSubclassOf<UGameplayEffect>>& Effects);
+
+	/** 권한: 현재 보관 중인 모든 EquipEffect 핸들을 제거하고 비운다. */
+	void RemoveActiveEquipEffects();
+
+	UAbilitySystemComponent* ResolveOwnerASC() const;
+
+	/** 권한 측에서만 채워진다. 클라는 ASC 가 ActiveGameplayEffects 를 자동 복제 받음. */
+	TArray<FActiveGameplayEffectHandle> ActiveEquipEffectHandles;
 };

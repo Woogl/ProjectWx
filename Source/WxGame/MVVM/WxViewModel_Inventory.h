@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
 #include "Items/WxItemDefinition.h"
 #include "MVVM/WxViewModel.h"
 
@@ -16,10 +15,10 @@ class UWxViewModel_Item;
 /**
  * 플레이어 인벤토리의 전역 집계/알림 ViewModel.
  *
- * 단일 싱글톤 Shell 로 GlobalCollection 에 등록되며, PlayerState 가 도착한 시점에 Initialize(InventoryManager) 로 데이터 소스를 연결한다. 역할은
+ * 단일 싱글톤 Shell 로 GlobalCollection 에 등록되며, PC 가 도착한 시점(ReceivedPlayer)에 Initialize(InventoryManager) 로 데이터 소스를 연결한다. 역할은
  * 네 가지로 한정한다:
- *   1) 재화 Tag 기준 총 보유량 집계 (GetCurrencyAmount)
- *   2) 가장 최근 스택 변경 알림 (LastChangedCurrency/Amount/Delta) — 획득 Toast, 팝업 이펙트 등 "방금 무엇이 얼마나 변했는지" 채널
+ *   1) ItemDef 기준 총 보유량 집계 (GetCurrencyAmount)
+ *   2) 가장 최근 스택 변경 알림 (LastChangedItemDef/Amount/Delta) — 획득 Toast, 팝업 이펙트 등 "방금 무엇이 얼마나 변했는지" 채널
  *   3) 보유 중인 아이템 인스턴스 전체 목록 (AllItems) — 인벤토리 ListView 등 "전체 슬롯을 나열"하는 화면의 ItemSource 로 사용
  *   4) 카테고리 탭 표시용 필터링된 목록 (FilteredItems) — CurrentCategory 변경 또는 AllItems 갱신 시 자동 재계산
  *
@@ -35,14 +34,14 @@ public:
 	virtual void Deinitialize() override;
 
 	/**
-	 * CurrencyTag 기준 총 보유량. UMG 는 LastChangedCurrency/LastChangedAmount를 바인딩 Source 로 두고 ConversionFunction 에서 본 getter 를 호출해 표시한다.
+	 * ItemDef 기준 총 보유량. UMG 는 LastChangedItemDef/LastChangedAmount를 바인딩 Source 로 두고 ConversionFunction 에서 본 getter 를 호출해 표시한다.
 	 */
 	UFUNCTION(BlueprintPure, Category = "Wx|Inventory")
-	int32 GetCurrencyAmount(FGameplayTag CurrencyTag) const;
+	int32 GetCurrencyAmount(const UWxItemDefinition* ItemDef) const;
 
-	/** 가장 최근에 변경된 재화 태그. 유효하지 않으면 비-재화 아이템 변경. */
+	/** 가장 최근에 변경된 ItemDef. nullptr 이면 변경 이력 없음. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
-	FGameplayTag LastChangedCurrency;
+	TObjectPtr<const UWxItemDefinition> LastChangedItemDef;
 
 	/** 가장 최근 변경 후의 총 보유량. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")

@@ -10,14 +10,6 @@
 				"AbilitySet": "/Game/Character/Player/ABS_Player.ABS_Player"
 			}
 		},
-		"EquipmentComponent":
-		{
-			"class": "/Script/WxGame.WxEquipmentComponent",
-			"delta":
-			{
-				"WeaponActor": "/Game/Item/BP_Katana.BP_Katana_C"
-			}
-		},
 		"GameHUDClass": "/Game/UI/Widget/WBP_GameHUD.WBP_GameHUD_C",
 		"InputConfig": "/Game/Input/DA_ChracterInputConfig.DA_ChracterInputConfig",
 		"Mesh":
@@ -63,6 +55,14 @@
 				"SkeletalMesh": "/Game/Mannequins/Meshes/SKM_Quinn.SKM_Quinn",
 				"SkinnedAsset": "/Game/Mannequins/Meshes/SKM_Quinn.SKM_Quinn",
 				"VisibilityBasedAnimTickOption": "AlwaysTickPoseAndRefreshBones"
+			}
+		},
+		"WeaponActor":
+		{
+			"class": "/Script/Engine.ChildActorComponent",
+			"delta":
+			{
+				"ChildActorClass": "/Game/Item/BP_Katana.BP_Katana_C"
 			}
 		}
 	},

@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "GameplayTagContainer.h"
 #include "Net/Serialization/FastArraySerializer.h"
 
 #include "WxInventoryManagerComponent.generated.h"
@@ -16,7 +15,10 @@ class UWxInventoryManagerComponent;
 struct FWxInventoryList;
 
 /**
- * 인벤토리 한 슬롯의 엔트리. 같은 ItemDef 는 매니저의 머지 정책에 따라 MaxCounts 한도 내에서 동일 엔트리에 누적되며, 초과분은 새 엔트리로 분할된다.
+ * 인벤토리 한 슬롯의 엔트리.
+ *
+ * AddItemDefinition 은 ItemDef 의 Stackable Fragment(MaxStack) 를 기준으로 기존 엔트리에 머지하고,
+ * 한도를 넘는 잔여분은 새 엔트리로 분할한다. Stackable Fragment 가 없으면 항상 1슬롯 = 1개로 강제된다.
  */
 USTRUCT(BlueprintType)
 struct FWxInventoryEntry : public FFastArraySerializerItem
@@ -28,14 +30,9 @@ struct FWxInventoryEntry : public FFastArraySerializerItem
 	UWxItemInstance* GetInstance() const;
 	int32 GetStackCount() const;
 
-	/** StackCount에 Delta를 더한다. 음수면 차감. */
-	void AddStack(int32 Delta);
-
-	/** 신규 엔트리 초기화 — Instance/StackCount/LastObservedCount를 일관되게 설정한다. */
-	void Initialize(UWxItemInstance* InInstance, int32 InStackCount);
-
 private:
 	friend FWxInventoryList;
+	friend UWxInventoryManagerComponent;
 
 	UPROPERTY()
 	TObjectPtr<UWxItemInstance> Instance;
@@ -68,10 +65,20 @@ struct FWxInventoryList : public FFastArraySerializer
 
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParms);
 
+	/** 권한: 새 인스턴스를 생성해 신규 엔트리로 추가. Fragment 의 OnInstanceCreated 가 호출된다. */
+	UWxItemInstance* AddEntry(const UWxItemDefinition* ItemDef, int32 StackCount);
+
+	/** 권한: 외부에서 만들어둔 인스턴스를 신규 엔트리로 추가. */
+	void AddEntry(UWxItemInstance* Instance, int32 StackCount);
+
+	/** 권한: 인스턴스에 해당하는 엔트리를 통째로 제거. */
+	void RemoveEntry(UWxItemInstance* Instance);
+
 	const TArray<FWxInventoryEntry>& GetEntries() const;
-	TArray<FWxInventoryEntry>& GetEntriesMutable();
 
 private:
+	friend UWxInventoryManagerComponent;
+
 	UPROPERTY()
 	TArray<FWxInventoryEntry> Entries;
 
@@ -86,45 +93,25 @@ struct TStructOpsTypeTraits<FWxInventoryList> : public TStructOpsTypeTraitsBase2
 };
 
 /**
- * 아이템 추가 결과. 단일 요청이 머지/분할로 복수 슬롯을 만질 수 있어 리스트로 반환한다.
- */
-USTRUCT(BlueprintType)
-struct FWxAddItemResult
-{
-	GENERATED_BODY()
-
-	/** 머지·신규 생성으로 갱신된 인스턴스들. */
-	UPROPERTY(BlueprintReadOnly, Category = "Inventory")
-	TArray<TObjectPtr<UWxItemInstance>> TouchedInstances;
-
-	/** 실제 추가된 수량. */
-	UPROPERTY(BlueprintReadOnly, Category = "Inventory")
-	int32 AmountAdded = 0;
-
-	/** 슬롯 한도 초과 등으로 추가하지 못한 잔여 수량. 현재 구조상 항상 0. */
-	UPROPERTY(BlueprintReadOnly, Category = "Inventory")
-	int32 Remainder = 0;
-};
-
-/**
- * 인벤토리 스택 변경 브로드캐스트.
+ * 인벤토리 정의 단위 합계 변경 브로드캐스트.
  * NewCount 는 해당 ItemDef 의 소유 총합, Delta 는 이번 변경분(양수/음수).
  */
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventoryStackChanged, const UWxItemDefinition* /*ItemDef*/, int32 /*NewCount*/, int32 /*Delta*/);
 
 /**
- * 슬롯 단위 변경 브로드캐스트.
+ * 슬롯(인스턴스) 단위 변경 브로드캐스트.
  * NewStackCount 는 해당 슬롯의 갱신 후 잔여 수량(제거 시 0), Delta 는 이번 변경분.
- * 동일 ItemDef 가 분할된 복수 슬롯에서 각자 갱신돼야 할 때 사용한다.
  */
-DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventorySlotChanged, const UWxItemInstance* /*Instance*/, int32 /*NewStackCount*/, int32 /*Delta*/);
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventorySlotChanged, UWxItemInstance* /*Instance*/, int32 /*NewStackCount*/, int32 /*Delta*/);
 
 /**
  * 액터에 부착되어 아이템 인스턴스의 생성·소멸·레플리케이션을 관장하는 컴포넌트.
  *
+ * AddItemDefinition 은 ItemDef 의 Stackable Fragment 한도(MaxStack) 까지 기존 엔트리에 머지하고,
+ * 초과분은 새 엔트리들로 분할한다. Stackable Fragment 가 없는 ItemDef 는 항상 1슬롯 = 1개로 추가된다.
+ * 정의 합계는 GetTotalItemCountByDefinition 로 조회하고, 차감은 ConsumeItemsByDefinition 로 수행한다.
+ *
  * 권한(서버)에서만 Add/Consume 이 호출되어야 하며, FastArray 로 클라이언트에 동기화된다.
- * 동일 ItemDef 요청은 MaxCounts 한도 내에서 기존 슬롯에 머지되고, 초과분은 새 슬롯으로 분할된다.
- * 재화(FWxItemFragment_Currency)는 MaxCounts 를 크게 잡아 단일 슬롯 누적으로 동작한다.
  */
 UCLASS(meta = (BlueprintSpawnableComponent))
 class WXINVENTORY_API UWxInventoryManagerComponent : public UActorComponent
@@ -142,54 +129,59 @@ public:
 	virtual void ReadyForReplication() override;
 	//~ End UActorComponent interface
 
-	/** 권한: ItemDef 를 머지 정책에 따라 추가한다. */
-	FWxAddItemResult AddItem(const UWxItemDefinition* ItemDef, int32 Count = 1);
+	/**
+	 * 권한: ItemDef 를 StackCount 만큼 추가한다.
+	 * Stackable Fragment 가 있으면 기존 엔트리에 MaxStack 한도까지 머지하고, 초과분은 새 엔트리들로 분할한다.
+	 * Stackable Fragment 가 없으면 StackCount 만큼의 신규 엔트리(각 1개) 가 생성된다.
+	 * 반환값은 첫 영향받은 인스턴스(머지된 기존 엔트리 또는 새로 만든 첫 엔트리). 실패 시 nullptr.
+	 */
+	UWxItemInstance* AddItemDefinition(const UWxItemDefinition* ItemDef, int32 StackCount = 1);
 
-	/** 권한: 특정 인스턴스 슬롯을 통째로 제거한다. 재화 차감이 아닌 슬롯 파괴 용도. */
-	void RemoveItem(UWxItemInstance* Instance);
+	/** 권한: 외부에서 만들어둔 인스턴스를 신규 엔트리로 추가한다. */
+	void AddItemInstance(UWxItemInstance* ItemInstance, int32 StackCount = 1);
 
-	/** 권한: ItemDef 의 소유 수량을 Count 만큼 차감한다. 부족하면 false 반환하고 아무것도 차감하지 않는다(원자적). 0 이 된 슬롯은 제거한다. */
-	bool ConsumeItemByDef(const UWxItemDefinition* ItemDef, int32 Count);
+	/** 권한: 특정 인스턴스 슬롯을 통째로 제거한다. */
+	void RemoveItemInstance(UWxItemInstance* ItemInstance);
 
-	/** 권한: Consumable Fragment를 가진 아이템을 1개 사용한다. 재고 부족/비 소비 아이템이면 false. 1개 차감 성공 후에만 GE를 소유 폰에 적용한다. */
-	bool UseItemByDef(const UWxItemDefinition* ItemDef);
+	/**
+	 * 권한: ItemDef 의 소유 수량을 NumToConsume 만큼 차감한다. 부족하면 false 반환하고 아무것도 차감하지 않는다(원자적).
+	 * 0 이 된 슬롯은 제거한다. 같은 ItemDef 가 복수 엔트리로 분산돼 있어도 합산 차감이 가능하다.
+	 */
+	bool ConsumeItemsByDefinition(const UWxItemDefinition* ItemDef, int32 NumToConsume);
 
-	/** 권한: Equipment Fragment를 가진 아이템을 소유 폰(IWxEquipmentInterface)에 장착 요청. 스택은 차감하지 않는다. ItemDef가 nullptr이면 장착 해제. */
-	bool EquipItemByDef(const UWxItemDefinition* ItemDef);
+	/** ItemDef 의 첫 번째 인스턴스 반환. 없으면 nullptr. */
+	UWxItemInstance* FindFirstItemStackByDefinition(const UWxItemDefinition* ItemDef) const;
 
-	/** 권한: CurrencyTag 소유 총합에서 Count 만큼 차감한다. 원자적. */
-	bool ConsumeItemByTag(FGameplayTag CurrencyTag, int32 Count);
-
-	/** ItemDef 의 슬롯 합계. */
-	int32 GetItemCountByDef(const UWxItemDefinition* ItemDef) const;
-
-	/** CurrencyTag 와 일치하는 Currency Fragment 를 가진 아이템의 합계. */
-	int32 GetItemCountByTag(FGameplayTag CurrencyTag) const;
+	/** ItemDef 의 모든 엔트리 StackCount 합계. */
+	int32 GetTotalItemCountByDefinition(const UWxItemDefinition* ItemDef) const;
 
 	/** 특정 인스턴스가 속한 슬롯의 현재 StackCount. 인스턴스가 엔트리에 없으면 0. */
 	int32 GetStackCountByInstance(const UWxItemInstance* Instance) const;
 
 	TArray<UWxItemInstance*> GetAllItems() const;
 
+	/** 권한: Consumable Fragment 를 가진 아이템을 1개 사용한다. 재고 부족/비 소비 아이템이면 false. 1개 차감 성공 후에만 GE를 소유 폰에 적용한다. */
+	bool UseItemByDef(const UWxItemDefinition* ItemDef);
+
+	/** 권한: Equipment Fragment 를 가진 아이템을 소유 폰(IWxEquipmentInterface)에 장착 요청. 스택은 차감하지 않는다. ItemDef 가 nullptr 이면 장착 해제. */
+	bool EquipItemByDef(const UWxItemDefinition* ItemDef);
+
 	FWxOnInventoryStackChanged OnInventoryStackChanged;
 
 	FWxOnInventorySlotChanged OnInventorySlotChanged;
 
 private:
-	/** 장착/사용 대상 액터를 반환. PlayerState에 부착된 경우 소유 폰, 그 외엔 자기 자신. */
+	/** 장착/사용 대상 액터를 반환. PlayerState 에 부착된 경우 소유 폰, 그 외엔 자기 자신. */
 	AActor* ResolveTargetActor() const;
 
-	/** 권한: Entries 를 돌며 머지/분할 처리. */
-	void AddItemInternal(const UWxItemDefinition* ItemDef, int32 Count, FWxAddItemResult& OutResult);
-
-	/** 권한: 단일 신규 엔트리 생성. */
-	UWxItemInstance* CreateEntry(const UWxItemDefinition* ItemDef, int32 StackCount);
+	/** 신규 인스턴스를 SubObject 시스템에 등록한다. */
+	void RegisterReplicatedInstance(UWxItemInstance* Instance);
 
 	/** ItemDef 합계 변경 브로드캐스트. 서버/클라이언트 공통 진입. */
 	void BroadcastStackChanged(const UWxItemDefinition* ItemDef, int32 Delta);
 
 	/** 슬롯 단위 변경 브로드캐스트. 서버/클라이언트 공통 진입. */
-	void BroadcastSlotChanged(const UWxItemInstance* Instance, int32 NewStackCount, int32 Delta);
+	void BroadcastSlotChanged(UWxItemInstance* Instance, int32 NewStackCount, int32 Delta);
 
 	UPROPERTY(Replicated)
 	FWxInventoryList InventoryList;

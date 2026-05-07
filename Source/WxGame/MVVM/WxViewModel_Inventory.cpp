@@ -4,7 +4,6 @@
 
 #include "Inventory/WxInventoryManagerComponent.h"
 #include "Items/WxItemDefinition.h"
-#include "Items/WxItemFragment.h"
 #include "Items/WxItemInstance.h"
 #include "MVVM/WxViewModel_Item.h"
 
@@ -34,7 +33,7 @@ void UWxViewModel_Inventory::Deinitialize()
 	StackChangedHandle.Reset();
 	CachedInventory.Reset();
 
-	LastChangedCurrency = FGameplayTag();
+	LastChangedItemDef = nullptr;
 	LastChangedAmount = 0;
 	LastChangedDelta = 0;
 
@@ -53,24 +52,15 @@ void UWxViewModel_Inventory::Deinitialize()
 	Super::Deinitialize();
 }
 
-int32 UWxViewModel_Inventory::GetCurrencyAmount(FGameplayTag CurrencyTag) const
+int32 UWxViewModel_Inventory::GetCurrencyAmount(const UWxItemDefinition* ItemDef) const
 {
 	const UWxInventoryManagerComponent* Inventory = CachedInventory.Get();
-	return Inventory ? Inventory->GetItemCountByTag(CurrencyTag) : 0;
+	return Inventory ? Inventory->GetTotalItemCountByDefinition(ItemDef) : 0;
 }
 
 void UWxViewModel_Inventory::HandleStackChanged(const UWxItemDefinition* ItemDef, int32 NewCount, int32 Delta)
 {
-	FGameplayTag ChangedTag;
-	if (ItemDef)
-	{
-		if (const FWxItemFragment_Currency* Currency = ItemDef->FindFragment<FWxItemFragment_Currency>())
-		{
-			ChangedTag = Currency->CurrencyTag;
-		}
-	}
-
-	UE_MVVM_SET_PROPERTY_VALUE(LastChangedCurrency, ChangedTag);
+	UE_MVVM_SET_PROPERTY_VALUE(LastChangedItemDef, ItemDef);
 	UE_MVVM_SET_PROPERTY_VALUE(LastChangedAmount, NewCount);
 	UE_MVVM_SET_PROPERTY_VALUE(LastChangedDelta, Delta);
 

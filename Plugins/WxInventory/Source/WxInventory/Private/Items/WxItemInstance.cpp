@@ -2,6 +2,9 @@
 
 #include "Items/WxItemInstance.h"
 
+#include "Items/WxItemDefinition.h"
+#include "Items/WxItemFragment.h"
+
 #include "Net/UnrealNetwork.h"
 
 UWxItemInstance::UWxItemInstance()
@@ -18,15 +21,41 @@ void UWxItemInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME(ThisClass, StatTags);
 	DOREPLIFETIME(ThisClass, ItemDef);
 }
 
-void UWxItemInstance::SetItemDef(const UWxItemDefinition* InItemDef)
+void UWxItemInstance::AddStatTagStack(FGameplayTag Tag, int32 StackCount)
 {
-	ItemDef = InItemDef;
+	StatTags.AddStack(Tag, StackCount);
+}
+
+void UWxItemInstance::RemoveStatTagStack(FGameplayTag Tag, int32 StackCount)
+{
+	StatTags.RemoveStack(Tag, StackCount);
+}
+
+int32 UWxItemInstance::GetStatTagStackCount(FGameplayTag Tag) const
+{
+	return StatTags.GetStackCount(Tag);
+}
+
+bool UWxItemInstance::HasStatTag(FGameplayTag Tag) const
+{
+	return StatTags.ContainsTag(Tag);
 }
 
 const UWxItemDefinition* UWxItemInstance::GetItemDef() const
 {
 	return ItemDef;
+}
+
+const UWxItemFragment* UWxItemInstance::FindFragmentByClass(TSubclassOf<UWxItemFragment> FragmentClass) const
+{
+	return ItemDef ? ItemDef->FindFragmentByClass(FragmentClass) : nullptr;
+}
+
+void UWxItemInstance::SetItemDef(const UWxItemDefinition* InItemDef)
+{
+	ItemDef = InItemDef;
 }

@@ -1,11 +1,17 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Component/WxEquipmentComponent.h"
-#include "Weapon/WxWeaponBase.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
+#include "Character/WxCharacterBase.h"
+#include "Components/ChildActorComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "GameFramework/Character.h"
+#include "GameplayEffect.h"
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemFragment.h"
-#include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
+#include "Weapon/WxWeaponBase.h"
 
 UWxEquipmentComponent::UWxEquipmentComponent()
 {
@@ -17,55 +23,17 @@ void UWxEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UWxEquipmentComponent, EquippedWeapon);
 	DOREPLIFETIME(UWxEquipmentComponent, EquippedItemDef);
-}
-
-void UWxEquipmentComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	SpawnDefaultWeapon();
 }
 
 void UWxEquipmentComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if (GetOwner() && GetOwner()->HasAuthority() && EquippedWeapon)
+	if (GetOwner() && GetOwner()->HasAuthority())
 	{
-		EquippedWeapon->Destroy();
-		EquippedWeapon = nullptr;
+		RemoveActiveEquipEffects();
 	}
 
 	Super::EndPlay(EndPlayReason);
-}
-
-AWxWeaponBase* UWxEquipmentComponent::GetEquippedWeapon() const
-{
-	return EquippedWeapon;
-}
-
-void UWxEquipmentComponent::SpawnDefaultWeapon()
-{
-	AActor* OwnerActor = GetOwner();
-	if (!WeaponActor || !OwnerActor || !OwnerActor->HasAuthority())
-	{
-		return;
-	}
-
-	ACharacter* OwnerCharacter = Cast<ACharacter>(OwnerActor);
-	if (!OwnerCharacter)
-	{
-		return;
-	}
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = OwnerCharacter;
-	SpawnParams.Instigator = OwnerCharacter;
-	EquippedWeapon = GetWorld()->SpawnActor<AWxWeaponBase>(WeaponActor, SpawnParams);
-	if (EquippedWeapon)
-	{
-		EquippedWeapon->AttachToCharacter(OwnerCharacter, DefaultWeaponSocket);
-	}
 }
 
 void UWxEquipmentComponent::EquipItem(const UWxItemDefinition* ItemDef)
@@ -76,19 +44,22 @@ void UWxEquipmentComponent::EquipItem(const UWxItemDefinition* ItemDef)
 		return;
 	}
 
-	if (ItemDef && !ItemDef->FindFragment<FWxItemFragment_Equipment>())
+	const UWxItemFragment_Equippable* NewFragment = ItemDef ? ItemDef->FindFragmentByClass<UWxItemFragment_Equippable>() : nullptr;
+	if (ItemDef && !NewFragment)
 	{
 		return;
 	}
 
+	// 이전 장비의 GE 를 먼저 제거한 뒤 신규 장비를 적용한다 — 스왑 시 효과 누적/공백을 모두 방지.
+	RemoveActiveEquipEffects();
+
 	EquippedItemDef = ItemDef;
 	ApplyEquipmentVisuals();
-}
 
-void UWxEquipmentComponent::OnRep_EquippedWeapon()
-{
-	// 늦게 도착한 EquippedWeapon이 기존 EquippedItemDef를 따라 시각에 반영되도록 재적용.
-	ApplyEquipmentVisuals();
+	if (NewFragment)
+	{
+		ApplyEquipEffects(ItemDef, NewFragment->EquipEffects);
+	}
 }
 
 void UWxEquipmentComponent::OnRep_EquippedItemDef()
@@ -98,30 +69,105 @@ void UWxEquipmentComponent::OnRep_EquippedItemDef()
 
 void UWxEquipmentComponent::ApplyEquipmentVisuals()
 {
-	if (!EquippedWeapon)
-	{
-		return;
-	}
-
-	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	AWxCharacterBase* OwnerCharacter = Cast<AWxCharacterBase>(GetOwner());
 	if (!OwnerCharacter)
 	{
 		return;
 	}
 
-	// EquippedItemDef가 없으면 CDO 기본 메시 + 기본 소켓으로 장착 (장착 해제 상태).
-	FName Socket = DefaultWeaponSocket;
+	AWxWeaponBase* Weapon = OwnerCharacter->GetEquippedWeapon();
+	if (!Weapon)
+	{
+		// ChildActor 가 아직 스폰되지 않았을 수 있다(초기 복제 타이밍). 다음 OnRep 사이클에 재시도된다.
+		return;
+	}
+
+	UChildActorComponent* WeaponChildActor = Weapon->GetParentComponent() ? Cast<UChildActorComponent>(Weapon->GetParentComponent()) : nullptr;
+
+	// EquippedItemDef 가 없으면 무기 BP 의 기본 메시 + 기본 소켓으로 복귀(장착 해제 상태).
 	USkeletalMesh* MeshAsset = nullptr;
+	FName Socket = NAME_None;
 
 	if (EquippedItemDef)
 	{
-		if (const FWxItemFragment_Equipment* Fragment = EquippedItemDef->FindFragment<FWxItemFragment_Equipment>())
+		if (const UWxItemFragment_Equippable* Fragment = EquippedItemDef->FindFragmentByClass<UWxItemFragment_Equippable>())
 		{
-			Socket = Fragment->AttachSocket;
 			MeshAsset = Fragment->SkeletalMesh;
+			Socket = Fragment->AttachSocket;
 		}
 	}
 
-	EquippedWeapon->SetVisualMesh(MeshAsset);
-	EquippedWeapon->AttachToCharacter(OwnerCharacter, Socket);
+	Weapon->SetVisualMesh(MeshAsset);
+
+	// 소켓 변경은 ChildActorComponent 자체를 현재 부모 컴포넌트의 새 소켓으로 재부착한다.
+	if (WeaponChildActor && Socket != NAME_None)
+	{
+		if (USceneComponent* CurrentParent = WeaponChildActor->GetAttachParent())
+		{
+			WeaponChildActor->AttachToComponent(CurrentParent, FAttachmentTransformRules::SnapToTargetIncludingScale, Socket);
+		}
+	}
+}
+
+void UWxEquipmentComponent::ApplyEquipEffects(const UWxItemDefinition* SourceDef, const TArray<TSubclassOf<UGameplayEffect>>& Effects)
+{
+	if (Effects.IsEmpty())
+	{
+		return;
+	}
+
+	UAbilitySystemComponent* ASC = ResolveOwnerASC();
+	if (!ASC)
+	{
+		return;
+	}
+
+	for (const TSubclassOf<UGameplayEffect>& EffectClass : Effects)
+	{
+		if (!EffectClass)
+		{
+			continue;
+		}
+
+		FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
+		Context.AddSourceObject(SourceDef);
+
+		const FGameplayEffectSpecHandle Spec = ASC->MakeOutgoingSpec(EffectClass, 1.f, Context);
+		if (!Spec.IsValid())
+		{
+			continue;
+		}
+
+		const FActiveGameplayEffectHandle Handle = ASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
+		if (Handle.IsValid())
+		{
+			ActiveEquipEffectHandles.Add(Handle);
+		}
+	}
+}
+
+void UWxEquipmentComponent::RemoveActiveEquipEffects()
+{
+	if (ActiveEquipEffectHandles.IsEmpty())
+	{
+		return;
+	}
+
+	if (UAbilitySystemComponent* ASC = ResolveOwnerASC())
+	{
+		for (const FActiveGameplayEffectHandle& Handle : ActiveEquipEffectHandles)
+		{
+			if (Handle.IsValid())
+			{
+				ASC->RemoveActiveGameplayEffect(Handle);
+			}
+		}
+	}
+
+	ActiveEquipEffectHandles.Reset();
+}
+
+UAbilitySystemComponent* UWxEquipmentComponent::ResolveOwnerASC() const
+{
+	return UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner());
 }

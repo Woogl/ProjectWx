@@ -66,7 +66,7 @@ protected:
 	void HandleStackChanged(const UWxItemDefinition* ItemDef, int32 NewCount, int32 Delta);
 
 	/** 슬롯 모드 핸들러. */
-	void HandleSlotChanged(const UWxItemInstance* Instance, int32 NewStackCount, int32 Delta);
+	void HandleSlotChanged(UWxItemInstance* Instance, int32 NewStackCount, int32 Delta);
 
 	/** Icon/Name/Grade 세팅 및 초기 ItemCount 갱신 공통 루틴. */
 	void ApplyStaticDataFromDef(const UWxItemDefinition* InItemDef);
@@ -88,11 +88,11 @@ protected:
  * WBP 의 View Bindings 에서 Creation Type = Resolver 로 선택하면 인스펙터에서 ItemToDisplay 를 직접 지정할 수 있다. 이후 WBP 는 Event Graph/베이스 클래스 없이도 슬롯이 자동 구성된다.
  *
  * 동작:
- *   1) UserWidget->GetOwningPlayer()->PlayerState 로 AWxPlayerState 해석
+ *   1) UserWidget->GetOwningPlayer() 로 AWxPlayerController 해석
  *   2) GetInventoryManager() 로 UWxInventoryManagerComponent 획득
  *   3) UWxViewModel_Item 을 NewObject 로 생성하고 Initialize 호출
  *
- * PlayerState 가 아직 복제되지 않았다면 Initialize 없이 Shell 상태로 반환된다 (InventoryManager 확보 후 외부에서 재초기화 필요).
+ * PC 가 아직 복제되지 않았다면 Initialize 없이 Shell 상태로 반환된다 (InventoryManager 확보 후 외부에서 재초기화 필요).
  */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXGAME_API UWxViewModelResolver_Item : public UMVVMViewModelContextResolver

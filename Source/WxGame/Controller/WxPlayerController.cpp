@@ -1,24 +1,34 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Controller/WxPlayerController.h"
-#include "Character/WxCharacterBase.h"
-#include "MVVM/WxGlobalViewModelSubsystem.h"
-#include "MVVM/WxViewModel_AbilitySystem.h"
-#include "MVVM/WxViewModel_Ability.h"
-#include "Inventory/WxInventoryManagerComponent.h"
-#include "MVVM/WxViewModel_Inventory.h"
-#include "Player/WxPlayerState.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystemComponent.h"
+#include "Character/WxCharacterBase.h"
+#include "Character/WxPlayerCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/Texture2D.h"
 #include "Input/WxControllerInputConfig.h"
-#include "Widget/WxActivatableWidget.h"
+#include "Inventory/WxInventoryManagerComponent.h"
+#include "MVVM/WxGlobalViewModelSubsystem.h"
+#include "MVVM/WxViewModel_Ability.h"
+#include "MVVM/WxViewModel_AbilitySystem.h"
+#include "MVVM/WxViewModel_Inventory.h"
 #include "System/WxUIManagerSubsystem.h"
+#include "Widget/WxActivatableWidget.h"
 #include "WxGameplayTags.h"
-#include "Character/WxPlayerCharacter.h"
+
+AWxPlayerController::AWxPlayerController(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	InventoryManager = CreateDefaultSubobject<UWxInventoryManagerComponent>(TEXT("InventoryManager"));
+}
+
+UWxInventoryManagerComponent* AWxPlayerController::GetInventoryManager() const
+{
+	return InventoryManager;
+}
 
 void AWxPlayerController::BeginPlay()
 {
@@ -98,22 +108,13 @@ void AWxPlayerController::OnUnPossess()
 	Super::OnUnPossess();
 }
 
-void AWxPlayerController::OnRep_PlayerState()
-{
-	Super::OnRep_PlayerState();
-
-	if (IsLocalController())
-	{
-		InitializeInventoryViewModel();
-	}
-}
-
 void AWxPlayerController::ReceivedPlayer()
 {
 	Super::ReceivedPlayer();
 
-	// listen server 호스트 PC는 InitPlayerState 시점에 LocalPlayer 가 아직 지정되지 않아 GetLocalPlayer() 가 nullptr 이다.
-	// ReceivedPlayer 는 SetPlayer 로 LocalPlayer 가 지정된 직후 호출되므로 호스트/standalone 모두에서 안전하다.
+	// 인벤토리는 본 PC 의 서브오브젝트라 PC 가 도착한 시점에 즉시 사용 가능하다.
+	// listen server 호스트는 InitPlayerState 시점엔 LocalPlayer 가 아직 지정 전이라 GetLocalPlayer() 가 nullptr —
+	// ReceivedPlayer 는 SetPlayer 직후 호출되므로 호스트/standalone/원격 클라 모두에서 안전하다.
 	if (IsLocalController())
 	{
 		InitializeInventoryViewModel();
@@ -243,14 +244,7 @@ void AWxPlayerController::DeinitializePlayerAbilitySystemViewModel()
 
 void AWxPlayerController::InitializeInventoryViewModel()
 {
-	AWxPlayerState* WxPlayerState = GetPlayerState<AWxPlayerState>();
-	if (!WxPlayerState)
-	{
-		return;
-	}
-
-	UWxInventoryManagerComponent* Inventory = WxPlayerState->GetInventoryManager();
-	if (!Inventory)
+	if (!InventoryManager)
 	{
 		return;
 	}
@@ -269,7 +263,7 @@ void AWxPlayerController::InitializeInventoryViewModel()
 
 	if (UWxViewModel_Inventory* ViewModel = GlobalVMSubsystem->GetInventoryViewModel())
 	{
-		ViewModel->Initialize(Inventory);
+		ViewModel->Initialize(InventoryManager);
 	}
 }
 

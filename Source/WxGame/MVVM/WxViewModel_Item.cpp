@@ -3,12 +3,12 @@
 #include "MVVM/WxViewModel_Item.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Controller/WxPlayerController.h"
 #include "Engine/Texture2D.h"
 #include "GameFramework/PlayerController.h"
 #include "Inventory/WxInventoryManagerComponent.h"
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemInstance.h"
-#include "Player/WxPlayerState.h"
 
 void UWxViewModel_Item::Initialize(UWxInventoryManagerComponent* InInventory, UWxItemInstance* InInstance)
 {
@@ -45,7 +45,7 @@ void UWxViewModel_Item::Initialize(UWxInventoryManagerComponent* InInventory, co
 	StackChangedHandle = InInventory->OnInventoryStackChanged.AddUObject(this, &UWxViewModel_Item::HandleStackChanged);
 
 	ApplyStaticDataFromDef(InItemDef);
-	UE_MVVM_SET_PROPERTY_VALUE(ItemCount, InInventory->GetItemCountByDef(InItemDef));
+	UE_MVVM_SET_PROPERTY_VALUE(ItemCount, InInventory->GetTotalItemCountByDefinition(InItemDef));
 	UE_MVVM_SET_PROPERTY_VALUE(LastDelta, 0);
 
 	SetInitialized(true);
@@ -91,7 +91,7 @@ UWxItemInstance* UWxViewModel_Item::GetTargetInstance() const
 	return TargetInstance.Get();
 }
 
-void UWxViewModel_Item::HandleSlotChanged(const UWxItemInstance* Instance, int32 NewStackCount, int32 Delta)
+void UWxViewModel_Item::HandleSlotChanged(UWxItemInstance* Instance, int32 NewStackCount, int32 Delta)
 {
 	if (Instance != TargetInstance.Get())
 	{
@@ -128,9 +128,8 @@ UObject* UWxViewModelResolver_Item::CreateInstance(const UClass* ExpectedType, c
 		return ViewModel;
 	}
 
-	const APlayerController* PC = UserWidget->GetOwningPlayer();
-	const AWxPlayerState* PS = PC ? PC->GetPlayerState<AWxPlayerState>() : nullptr;
-	UWxInventoryManagerComponent* Inventory = PS ? PS->GetInventoryManager() : nullptr;
+	const AWxPlayerController* PC = Cast<AWxPlayerController>(UserWidget->GetOwningPlayer());
+	UWxInventoryManagerComponent* Inventory = PC ? PC->GetInventoryManager() : nullptr;
 	if (Inventory)
 	{
 		ViewModel->Initialize(Inventory, ItemToDisplay);

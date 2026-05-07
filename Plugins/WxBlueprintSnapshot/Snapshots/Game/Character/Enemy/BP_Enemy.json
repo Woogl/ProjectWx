@@ -11,14 +11,6 @@
 			}
 		},
 		"BehaviorTreeAsset": "/Game/AI/BT_Enemy.BT_Enemy",
-		"EquipmentComponent":
-		{
-			"class": "/Script/WxGame.WxEquipmentComponent",
-			"delta":
-			{
-				"WeaponActor": "/Game/Item/BP_Katana.BP_Katana_C"
-			}
-		},
 		"Mesh":
 		{
 			"class": "/Script/Engine.SkeletalMeshComponent",
@@ -63,6 +55,14 @@
 			"delta":
 			{
 				"WidgetClass": "/Game/UI/Widget/WBP_Nameplate_Enemy.WBP_Nameplate_Enemy_C"
+			}
+		},
+		"WeaponActor":
+		{
+			"class": "/Script/Engine.ChildActorComponent",
+			"delta":
+			{
+				"ChildActorClass": "/Game/Item/BP_Katana.BP_Katana_C"
 			}
 		}
 	},

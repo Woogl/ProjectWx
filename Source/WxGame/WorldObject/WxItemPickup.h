@@ -52,6 +52,10 @@ protected:
 	UPROPERTY(EditAnywhere, Replicated, Category = "Wx|Pickup")
 	TObjectPtr<UWxItemDefinition> ItemDef;
 
+	/** 픽업 1회당 지급 수량. 재화 코인의 액면가, 회복 포션의 묶음 단위 등으로 활용. */
+	UPROPERTY(EditAnywhere, Category = "Wx|Pickup", meta = (ClampMin = "1"))
+	int32 GrantCount = 1;
+
 private:
 	UFUNCTION()
 	void HandleInteracted(AActor* InteractingActor);
