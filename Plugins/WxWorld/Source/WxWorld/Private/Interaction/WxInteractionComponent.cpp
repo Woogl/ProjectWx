@@ -60,13 +60,12 @@ void UWxInteractionComponent::BeginPlay()
 		return;
 	}
 
-	// BeginPlay 시점에 이미 오버랩 중인 로컬 폰이 있으면 프롬프트를 즉시 표시한다.
+	// BeginPlay 시점에 이미 오버랩 중인 로컬 플레이어 폰이 있으면 프롬프트를 즉시 표시한다.
 	TArray<AActor*> OverlappingActors;
 	GetOverlappingActors(OverlappingActors, APawn::StaticClass());
 	for (AActor* OverlappingActor : OverlappingActors)
 	{
-		const APawn* Pawn = Cast<APawn>(OverlappingActor);
-		if (Pawn && Pawn->IsLocallyControlled())
+		if (IsLocalPlayerPawn(OverlappingActor))
 		{
 			SetInteractionWidgetVisible(true);
 			break;
@@ -134,8 +133,7 @@ void UWxInteractionComponent::MulticastInteracted_Implementation(AActor* Instiga
 
 void UWxInteractionComponent::HandleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	const APawn* Pawn = Cast<APawn>(OtherActor);
-	if (!Pawn || !Pawn->IsLocallyControlled())
+	if (!IsLocalPlayerPawn(OtherActor))
 	{
 		return;
 	}
@@ -145,24 +143,18 @@ void UWxInteractionComponent::HandleBeginOverlap(UPrimitiveComponent* Overlapped
 
 void UWxInteractionComponent::HandleEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (!Cast<APawn>(OtherActor))
+	if (!IsLocalPlayerPawn(OtherActor))
 	{
 		return;
 	}
 
-	// 로컬 폰이 아직 범위 안에 있으면 프롬프트를 유지한다.
-	TArray<AActor*> OverlappingActors;
-	GetOverlappingActors(OverlappingActors, APawn::StaticClass());
-	for (AActor* Actor : OverlappingActors)
-	{
-		const APawn* Pawn = Cast<APawn>(Actor);
-		if (Pawn && Pawn->IsLocallyControlled())
-		{
-			return;
-		}
-	}
-
 	SetInteractionWidgetVisible(false);
+}
+
+bool UWxInteractionComponent::IsLocalPlayerPawn(const AActor* OtherActor) const
+{
+	const APawn* Pawn = Cast<APawn>(OtherActor);
+	return Pawn != nullptr && Pawn->IsPlayerControlled() && Pawn->IsLocallyControlled();
 }
 
 void UWxInteractionComponent::SetInteractionWidgetVisible(bool bNewVisible)

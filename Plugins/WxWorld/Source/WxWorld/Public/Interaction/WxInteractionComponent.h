@@ -73,6 +73,8 @@ private:
 
 	void SetInteractionWidgetVisible(bool bNewVisible);
 
+	bool IsLocalPlayerPawn(const AActor* OtherActor) const;
+
 	UPROPERTY(Transient)
 	TObjectPtr<UWidgetComponent> InteractionWidget;
 
