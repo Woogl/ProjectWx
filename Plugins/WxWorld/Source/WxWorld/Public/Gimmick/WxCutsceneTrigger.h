@@ -47,8 +47,8 @@ private:
 
 	void CleanupSequenceActor();
 
-	/** 머신 내 모든 로컬 PC 의 소유 폰에 대해 입력을 토글한다. 컷신 시작/종료 시 호출. */
-	void SetLocalPlayersInputEnabled(bool bEnabled);
+	/** 로컬 PC 의 소유 폰에 대해 입력을 토글한다. 컷신 시작/종료 시 호출. */
+	void SetLocalPlayerInputEnabled(bool bEnabled);
 
 	UPROPERTY()
 	TObjectPtr<ALevelSequenceActor> SequenceActor;
