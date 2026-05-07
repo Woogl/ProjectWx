@@ -1,39 +1,33 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "WxCombatLibrary.h"
+#include "AbilitySystem/Effect/WxEffect_Damage.h"
+#include "AbilitySystemComponent.h"
+#include "GenericTeamAgentInterface.h"
 #include "WxDamageInfo.h"
 #include "WxGameplayTags.h"
-#include "AbilitySystemComponent.h"
-#include "AbilitySystemGlobals.h"
-#include "GenericTeamAgentInterface.h"
 
-bool UWxCombatLibrary::ApplyDamage(AActor* Instigator, AActor* Target, const FWxDamageInfo& DamageInfo, const FHitResult& HitResult, UObject* SourceObject, float HitStopDuration)
+bool UWxCombatLibrary::ApplyDamage(UAbilitySystemComponent* Source, UAbilitySystemComponent* Target, const FWxDamageInfo& DamageInfo, const FHitResult& HitResult, float HitStopDuration)
 {
-	if (!Instigator || !Target || Instigator == Target)
+	if (!Source || !Target)
 	{
 		return false;
 	}
 
-	UAbilitySystemComponent* SourceASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Instigator);
-	UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
-	if (!SourceASC || !TargetASC)
-	{
-		return false;
-	}
+	AActor* SourceActor = Source->GetOwnerActor();
 
-	FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
-	Context.AddSourceObject(SourceObject ? SourceObject : Instigator);
-	Context.AddInstigator(Instigator, Instigator);
-	Context.SetAbility(SourceASC->GetAnimatingAbility());
+	FGameplayEffectContextHandle Context = Source->MakeEffectContext();
+	Context.AddInstigator(SourceActor, SourceActor);
+	Context.SetAbility(Source->GetAnimatingAbility());
 	Context.AddHitResult(HitResult);
 
 	bool bAppliedAny = false;
-	const TArray<FGameplayEffectSpecHandle> Specs = DamageInfo.MakeSpecs(SourceASC, Context);
+	const TArray<FGameplayEffectSpecHandle> Specs = DamageInfo.MakeSpecs(Source, Context);
 	for (const FGameplayEffectSpecHandle& Spec : Specs)
 	{
 		if (Spec.IsValid())
 		{
-			SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
+			Source->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), Target);
 			bAppliedAny = true;
 		}
 	}
@@ -42,10 +36,41 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Instigator, AActor* Target, const FWx
 	{
 		FGameplayCueParameters HitStopParams;
 		HitStopParams.RawMagnitude = HitStopDuration;
-		SourceASC->ExecuteGameplayCue(WxGameplayTags::GameplayCue_HitStop, HitStopParams);
+		Source->ExecuteGameplayCue(WxGameplayTags::GameplayCue_HitStop, HitStopParams);
 	}
 
 	return bAppliedAny;
+}
+
+bool UWxCombatLibrary::ApplyRawDamage(UAbilitySystemComponent* Target, float DamageAmount, FGameplayTag HitReaction)
+{
+	if (!Target || DamageAmount <= 0.f)
+	{
+		return false;
+	}
+
+	FGameplayEffectContextHandle Context = Target->MakeEffectContext();
+	const FGameplayEffectSpecHandle SpecHandle = Target->MakeOutgoingSpec(UWxEffect_Damage::StaticClass(), 1.f, Context);
+	if (!SpecHandle.IsValid())
+	{
+		return false;
+	}
+
+	FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
+
+	// SetByCaller.RawDamage 가 양수이면 ExecCalc 가 ATK·DEF 우회 모드로 동작한다.
+	Spec->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_RawDamage, DamageAmount);
+
+	// HitReact 태그는 DynamicAssetTags 로 실어야 ExecCalc 의 HitReact 분기가 인식한다.
+	if (HitReaction.IsValid())
+	{
+		const FGameplayTagContainer AssetTag = HitReaction.GetSingleTagContainer();
+		Spec->AppendDynamicAssetTags(AssetTag);
+	}
+
+	Target->ApplyGameplayEffectSpecToSelf(*Spec);
+
+	return true;
 }
 
 bool UWxCombatLibrary::IsHostile(const AActor* Source, const AActor* Target)

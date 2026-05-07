@@ -34,15 +34,15 @@ struct WXCOMBAT_API FWxDamageInfo
 	TArray<FGameplayEffectSpecHandle> MakeSpecs(UAbilitySystemComponent* SourceASC, const FGameplayEffectContextHandle& Context) const;
 
 	/** 공격력 계수. Damage Spec의 SetByCaller.Coeff.ATK로 반영 */
-	UPROPERTY(EditAnywhere, Category = "Wx|DamageInfo")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo")
 	float CoeffATK = 1.f;
-	
+
 	/** 적중 시 공격자 MP 회복량. Damage Spec의 SetByCaller.Recovery.MP로 반영 */
-	UPROPERTY(EditAnywhere, Category = "Wx|DamageInfo")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo")
 	float RecoverMP = 0.f;
 
 	/** 적중 시 공격자 UP 회복량. Damage Spec의 SetByCaller.Recovery.UP로 반영 */
-	UPROPERTY(EditAnywhere, Category = "Wx|DamageInfo")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo")
 	float RecoverUP = 0.f;
 
 	/**
@@ -50,14 +50,14 @@ struct WXCOMBAT_API FWxDamageInfo
 	 * 기본값(Event.HitReact.Normal)은 PP 소진 조건일 때만 발동되고,
 	 * Knockback/Knockdown/Knockup 등을 지정하면 PP 잔량과 무관하게 해당 종류의 HitReact가 강제 발동된다.
 	 */
-	UPROPERTY(EditAnywhere, Category = "Wx|DamageInfo", meta = (Categories = "Event.HitReact"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo", meta = (Categories = "Event.HitReact"))
 	FGameplayTag HitReactTag;
 
 	/** true이면 이 공격은 가드·퍼펙트 가드를 무시 */
-	UPROPERTY(EditAnywhere, Category = "Wx|DamageInfo")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo")
 	bool bUnblockable = false;
 
 	/** Damage GE와 함께 타겟에 적용할 추가 GameplayEffect 목록 (상태이상, 디버프 등) */
-	UPROPERTY(EditAnywhere, Category = "Wx|DamageInfo", meta = (AllowAbstract = "false"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo", meta = (AllowAbstract = "false"))
 	TArray<TSubclassOf<UGameplayEffect>> AdditionalEffects;
 };

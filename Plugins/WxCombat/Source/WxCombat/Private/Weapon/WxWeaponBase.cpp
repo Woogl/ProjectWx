@@ -5,8 +5,8 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Character.h"
-#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
 #include "WxCollisionChannels.h"
 #include "WxCombatLibrary.h"
 #include "WxGameplayTags.h"
@@ -123,7 +123,7 @@ void AWxWeaponBase::DetachFromCharacter()
 
 		if (AActor* OwnerActor = GetOwner())
 		{
-			if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OwnerActor))
+			if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OwnerActor))
 			{
 				ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_WeaponCollision);
 			}
@@ -161,7 +161,7 @@ void AWxWeaponBase::BeginAttack(const FWxDamageInfo& InDamageInfo)
 		HitCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		SetActorTickEnabled(true);
 
-		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OwnerActor))
+		if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OwnerActor))
 		{
 			ASC->AddLooseGameplayTag(WxGameplayTags::ANS_WeaponCollision);
 		}
@@ -188,7 +188,7 @@ void AWxWeaponBase::EndAttack()
 
 		if (AActor* OwnerActor = GetOwner())
 		{
-			if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OwnerActor))
+			if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OwnerActor))
 			{
 				ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_WeaponCollision);
 			}
@@ -290,5 +290,7 @@ void AWxWeaponBase::ProcessHit(AActor* OtherActor, const FHitResult& HitResult)
 	}
 
 	HitActorsThisSwing.Add(OtherActor);
-	UWxCombatLibrary::ApplyDamage(WeaponOwner, OtherActor, DamageInfo, HitResult, this, HitStopDuration);
+	UAbilitySystemComponent* OwnerASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(WeaponOwner);
+	UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
+	UWxCombatLibrary::ApplyDamage(OwnerASC, TargetASC, DamageInfo, HitResult, HitStopDuration);
 }
