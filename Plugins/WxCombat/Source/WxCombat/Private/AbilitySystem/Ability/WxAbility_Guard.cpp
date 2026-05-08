@@ -152,13 +152,7 @@ void UWxAbility_Guard::HandlePerfectGuard(FGameplayEventData Payload)
 	}
 
 	// 퍼펙트 가드 성공 보상: MP 회복
-	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_RecoverResource::StaticClass(), GetAbilityLevel());
-	if (SpecHandle.IsValid())
-	{
-		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_UP, 0.f);
-		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_MP, PerfectGuardMPRecovery);
-		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle);
-	}
+	UWxEffect_RecoverResource::ApplyTo(ASC, 0.f, PerfectGuardMPRecovery);
 
 	// 퍼펙트 가드 성공 시 짧은 슬로우 타임 연출
 	if (UWxAbilityTask_SlowTime* SlowTimeTask = UWxAbilityTask_SlowTime::CreateTask(this, PerfectGuardSlowTimeDilation, PerfectGuardSlowTimeDuration))

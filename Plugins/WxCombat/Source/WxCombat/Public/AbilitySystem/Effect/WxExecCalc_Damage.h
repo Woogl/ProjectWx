@@ -52,9 +52,6 @@ private:
 	/** 베이스 대미지(Raw 또는 ATK·DEF 공식) 계산 후 크리 적용. bSkipCrit 또는 Raw 모드면 크리 스킵 */
 	FWxDamageResult CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, bool bSkipCrit) const;
 
-	/** 공격자 적중 회복. OwningSpec의 SetByCaller.Recovery.UP/MP 값을 단일 Recovery Spec에 실어 공격자에게 적용 */
-	void ApplyHitRecovery(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& OwningSpec) const;
-
 	/** 피격 반응 적용. 가드 상태와 Damage.Knock* 태그에 따라 SP/PP 차감 및 이벤트 발송 */
 	void ApplyHitReaction(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput, float FinalDamage) const;
 

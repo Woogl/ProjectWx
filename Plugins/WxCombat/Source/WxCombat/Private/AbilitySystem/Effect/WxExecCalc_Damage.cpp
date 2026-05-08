@@ -123,7 +123,10 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 			}
 
 			ApplyHitReaction(ExecutionParams, OutExecutionOutput, DamageResult.FinalDamage);
-			ApplyHitRecovery(SourceASC, OwningSpec);
+
+			const float RecoveryUP = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_UP, false, 0.f);
+			const float RecoveryMP = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_MP, false, 0.f);
+			UWxEffect_RecoverResource::ApplyTo(SourceASC, RecoveryUP, RecoveryMP);
 		}
 	}
 
@@ -318,31 +321,6 @@ void UWxExecCalc_Damage::ApplyHitReaction(const FGameplayEffectCustomExecutionPa
 	EventData.Target = TargetActor;
 	EventData.EventMagnitude = FinalDamage;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, EventTag, EventData);
-}
-
-// ────────────────────────────────────────────────────────────────────────────
-//  적중 회복
-// ────────────────────────────────────────────────────────────────────────────
-
-void UWxExecCalc_Damage::ApplyHitRecovery(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& OwningSpec) const
-{
-	if (!SourceASC)
-	{
-		return;
-	}
-
-	const float RecoveryUP = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_UP, false, 0.f);
-	const float RecoveryMP = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_MP, false, 0.f);
-	if (RecoveryUP <= 0.f && RecoveryMP <= 0.f)
-	{
-		return;
-	}
-
-	const UGameplayEffect* RecoveryEffect = UWxEffect_RecoverResource::StaticClass()->GetDefaultObject<UGameplayEffect>();
-	FGameplayEffectSpec RecoverySpec(RecoveryEffect, SourceASC->MakeEffectContext(), 1.f);
-	RecoverySpec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_UP, RecoveryUP);
-	RecoverySpec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_MP, RecoveryMP);
-	SourceASC->ApplyGameplayEffectSpecToSelf(RecoverySpec);
 }
 
 // ────────────────────────────────────────────────────────────────────────────

@@ -6,13 +6,13 @@
 #include "GameplayEffect.h"
 #include "WxEffect_RecoverResource.generated.h"
 
+class UAbilitySystemComponent;
+
 /**
  * 공격자 자원 회복 GameplayEffect.
  *
  * Instant 정책으로 UP/MP를 한 번에 회복한다.
- * 호출 측(WxExecCalc_Damage, Dodge/Guard 등)은 Spec에
- * SetByCaller.Recovery.UP / SetByCaller.Recovery.MP 값을 모두 세팅해야 한다.
- * (미설정 시 FSetByCallerFloat 경고가 발생하며, 해당 모디파이어는 0으로 평가된다.)
+ * 일반적으로 ApplyTo 정적 진입점을 통해 적용한다. (ExecCalc/어빌리티 공용)
  */
 UCLASS()
 class WXCOMBAT_API UWxEffect_RecoverResource : public UGameplayEffect
@@ -21,4 +21,7 @@ class WXCOMBAT_API UWxEffect_RecoverResource : public UGameplayEffect
 
 public:
 	UWxEffect_RecoverResource();
+
+	/** UP/MP 회복 GE를 ASC 자신에게 즉시 적용. 두 값 모두 0 이하면 no-op. */
+	static void ApplyTo(UAbilitySystemComponent* TargetASC, float UP, float MP);
 };

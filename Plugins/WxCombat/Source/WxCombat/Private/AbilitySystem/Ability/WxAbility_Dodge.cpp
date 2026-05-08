@@ -184,13 +184,7 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 	}
 
 	// 극한 회피 성공 보상: MP 회복
-	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_RecoverResource::StaticClass(), GetAbilityLevel());
-	if (SpecHandle.IsValid())
-	{
-		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_MP, PerfectDodgeMPRecovery);
-		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_UP, 0.f);
-		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SpecHandle);
-	}
+	UWxEffect_RecoverResource::ApplyTo(GetAbilitySystemComponentFromActorInfo(), 0.f, PerfectDodgeMPRecovery);
 
 	// 극한 회피 성공 시 짧은 슬로우 타임 연출
 	if (UWxAbilityTask_SlowTime* SlowTimeTask = UWxAbilityTask_SlowTime::CreateTask(this, PerfectDodgeSlowTimeDilation, PerfectDodgeSlowTimeDuration))
