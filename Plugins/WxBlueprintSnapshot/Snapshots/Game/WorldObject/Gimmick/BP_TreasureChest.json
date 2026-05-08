@@ -1,0 +1,33 @@
+{
+	"blueprintPath": "/Game/WorldObject/Gimmick/BP_TreasureChest.BP_TreasureChest",
+	"classDefaults":
+	{
+		"InteractionComponent":
+		{
+			"class": "/Script/WxWorld.WxInteractionComponent",
+			"delta":
+			{
+				"InteractionText": "[F] Open",
+				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
+			}
+		},
+		"ItemActorClass": "/Game/WorldObject/Actor/BP_ItemPickup.BP_ItemPickup_C",
+		"MeshComponent":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"OverrideMaterials": [
+					"/Game/NiagaraExamples/Gallery/StaticMesh/BeachBall/M_BeachBallYellow.M_BeachBallYellow"
+				],
+				"StaticMesh": "/Engine/BasicShapes/Cube.Cube"
+			}
+		},
+		"RootComponent": "MeshComponent"
+	},
+	"eventGraph": [
+		"event WxOnInteractedSignature__DelegateSignature:",
+		"  MeshComponent.SetMaterial()"
+	],
+	"parentClass": "/Script/WxGame.WxTreasureChest"
+}

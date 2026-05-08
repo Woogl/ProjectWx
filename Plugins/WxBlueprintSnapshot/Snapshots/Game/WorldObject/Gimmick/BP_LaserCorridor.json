@@ -1,0 +1,8 @@
+{
+	"blueprintPath": "/Game/WorldObject/Gimmick/BP_LaserCorridor.BP_LaserCorridor",
+	"classDefaults":
+	{
+		"LaserZoneClass": "/Game/WorldObject/Gimmick/BP_LaserWall.BP_LaserWall_C"
+	},
+	"parentClass": "/Script/WxGame.WxLaserCorridor"
+}

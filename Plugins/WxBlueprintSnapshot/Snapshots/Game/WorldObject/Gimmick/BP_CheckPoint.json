@@ -1,0 +1,45 @@
+{
+	"blueprintPath": "/Game/WorldObject/Gimmick/BP_CheckPoint.BP_CheckPoint",
+	"classDefaults":
+	{
+		"HealEffect": "/Script/WxCombat.WxEffect_FullHP",
+		"InteractionComponent":
+		{
+			"class": "/Script/WxWorld.WxInteractionComponent",
+			"delta":
+			{
+				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C",
+				"RelativeLocation":
+				{
+					"Z": 50
+				}
+			}
+		},
+		"MeshComponent":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"StaticMesh": "/Game/NiagaraExamples/Gallery/StaticMesh/SM_TorchBase.SM_TorchBase"
+			}
+		},
+		"RootComponent": "MeshComponent"
+	},
+	"components":
+	{
+		"Niagara":
+		{
+			"componentClass": "/Script/Niagara.NiagaraComponent",
+			"delta":
+			{
+				"Asset": "/Game/NiagaraExamples/FX_Smoke/NS_Chimney_Smoke.NS_Chimney_Smoke",
+				"RelativeLocation":
+				{
+					"Z": 90
+				}
+			},
+			"variableName": "Niagara"
+		}
+	},
+	"parentClass": "/Script/WxWorld.WxCheckPoint"
+}

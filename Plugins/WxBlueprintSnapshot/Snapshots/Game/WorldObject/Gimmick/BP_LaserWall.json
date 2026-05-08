@@ -1,0 +1,52 @@
+{
+	"blueprintPath": "/Game/WorldObject/Gimmick/BP_LaserWall.BP_LaserWall",
+	"classDefaults":
+	{
+		"bApplyOncePerTarget": true,
+		"EffectAssetTags":
+		{
+			"GameplayTags": [
+				{
+					"TagName": "Event.HitReact.Knockback"
+				}
+			]
+		},
+		"EffectClass": "/Script/WxCombat.WxEffect_Damage",
+		"SetByCallers": [
+			{
+				"key":
+				{
+					"TagName": "SetByCaller.RawDamage"
+				},
+				"value": 10
+			}
+		]
+	},
+	"components":
+	{
+		"Box":
+		{
+			"componentClass": "/Script/Engine.BoxComponent",
+			"delta":
+			{
+				"BoxExtent":
+				{
+					"X": 25,
+					"Y": 250,
+					"Z": 250
+				}
+			},
+			"variableName": "Box"
+		},
+		"Niagara":
+		{
+			"componentClass": "/Script/Niagara.NiagaraComponent",
+			"delta":
+			{
+				"Asset": "/Game/NiagaraExamples/FX_Misc/NS_Boundary_Box.NS_Boundary_Box"
+			},
+			"variableName": "Niagara"
+		}
+	},
+	"parentClass": "/Script/WxCombat.WxEffectZone"
+}

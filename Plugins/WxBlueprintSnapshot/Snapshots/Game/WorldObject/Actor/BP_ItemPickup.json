@@ -1,0 +1,43 @@
+{
+	"blueprintPath": "/Game/WorldObject/Actor/BP_ItemPickup.BP_ItemPickup",
+	"classDefaults":
+	{
+		"InteractionComponent":
+		{
+			"class": "/Script/WxWorld.WxInteractionComponent",
+			"delta":
+			{
+				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C",
+				"SphereRadius": 350
+			}
+		},
+		"MeshComponent":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"RelativeLocation":
+				{
+					"Z": 50
+				},
+				"RelativeScale3D":
+				{
+					"X": 0.25,
+					"Y": 0.25,
+					"Z": 0.25
+				},
+				"StaticMesh": "/Game/NiagaraExamples/Gallery/StaticMesh/SM_MannequinTarget.SM_MannequinTarget"
+			}
+		},
+		"NiagaraComponent":
+		{
+			"class": "/Script/Niagara.NiagaraComponent",
+			"delta":
+			{
+				"Asset": "/Game/Imortal_Loot_Drop_VFX/Niagara/NS_Loot_Drop_3.NS_Loot_Drop_3"
+			}
+		},
+		"RootComponent": "MeshComponent"
+	},
+	"parentClass": "/Script/WxGame.WxItemPickup"
+}

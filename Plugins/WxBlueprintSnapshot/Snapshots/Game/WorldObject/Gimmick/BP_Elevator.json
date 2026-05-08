@@ -1,0 +1,259 @@
+{
+	"blueprintPath": "/Game/WorldObject/Gimmick/BP_Elevator.BP_Elevator",
+	"classDefaults":
+	{
+		"CallConsoleA":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"RelativeLocation":
+				{
+					"X": 350,
+					"Y": -250
+				},
+				"RelativeRotation":
+				{
+					"Yaw": 90
+				},
+				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/Display_Button.Display_Button"
+			}
+		},
+		"CallConsoleAInteraction":
+		{
+			"class": "/Script/WxWorld.WxInteractionComponent",
+			"delta":
+			{
+				"InteractionText": "[F] Call",
+				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C",
+				"RelativeLocation":
+				{
+					"Z": 100
+				}
+			}
+		},
+		"CallConsoleB":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"RelativeLocation":
+				{
+					"X": 350,
+					"Y": -250,
+					"Z": 400
+				},
+				"RelativeRotation":
+				{
+					"Yaw": 90
+				},
+				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/Display_Button.Display_Button"
+			}
+		},
+		"CallConsoleBInteraction":
+		{
+			"class": "/Script/WxWorld.WxInteractionComponent",
+			"delta":
+			{
+				"InteractionText": "[F] Call",
+				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C",
+				"RelativeLocation":
+				{
+					"Z": 100
+				}
+			}
+		},
+		"DoorLeft":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"RelativeLocation":
+				{
+					"X": 250
+				},
+				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/SM_Door.SM_Door"
+			}
+		},
+		"DoorOpenOffset":
+		{
+			"X": 0,
+			"Y": -250
+		},
+		"DoorRight":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"RelativeLocation":
+				{
+					"X": 250
+				},
+				"RelativeRotation":
+				{
+					"Yaw": 180
+				},
+				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/SM_Door.SM_Door"
+			}
+		},
+		"PlatformInteraction":
+		{
+			"class": "/Script/WxWorld.WxInteractionComponent",
+			"delta":
+			{
+				"InteractionText": "[F] Move",
+				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
+			}
+		},
+		"PlatformMesh":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"RelativeScale3D":
+				{
+					"X": 5,
+					"Y": 5,
+					"Z": 0.10000000000000001
+				},
+				"StaticMesh": "/Engine/BasicShapes/Cube.Cube"
+			}
+		},
+		"SplineComponent":
+		{
+			"class": "/Script/Engine.SplineComponent",
+			"delta":
+			{
+				"SplineCurves":
+				{
+					"Position":
+					{
+						"Points": [
+							{
+								"ArriveTangent":
+								{
+									"X": 4.9303806576313238e-29,
+									"Z": 400
+								},
+								"InterpMode": "CIM_CurveUser",
+								"LeaveTangent":
+								{
+									"X": 4.9303806576313238e-29,
+									"Z": 400
+								}
+							},
+							{
+								"ArriveTangent":
+								{
+									"X": 4.9303806576313238e-29,
+									"Z": 400
+								},
+								"InterpMode": "CIM_CurveUser",
+								"InVal": 1,
+								"LeaveTangent":
+								{
+									"X": 4.9303806576313238e-29,
+									"Z": 400
+								},
+								"OutVal":
+								{
+									"Z": 400
+								}
+							}
+						]
+					},
+					"ReparamTable":
+					{
+						"Points": [
+							{
+							},
+							{
+								"InVal": 40,
+								"OutVal": 0.10000000149011612
+							},
+							{
+								"InVal": 80,
+								"OutVal": 0.20000000298023224
+							},
+							{
+								"InVal": 120.00000762939453,
+								"OutVal": 0.30000001192092896
+							},
+							{
+								"InVal": 160,
+								"OutVal": 0.40000000596046448
+							},
+							{
+								"InVal": 200,
+								"OutVal": 0.5
+							},
+							{
+								"InVal": 240.00001525878906,
+								"OutVal": 0.60000002384185791
+							},
+							{
+								"InVal": 280,
+								"OutVal": 0.69999998807907104
+							},
+							{
+								"InVal": 320,
+								"OutVal": 0.80000001192092896
+							},
+							{
+								"InVal": 360,
+								"OutVal": 0.90000003576278687
+							},
+							{
+								"InVal": 400,
+								"OutVal": 1
+							}
+						]
+					},
+					"Rotation":
+					{
+						"Points": [
+							{
+								"ArriveTangent":
+								{
+									"W": 0.70710678118654746,
+									"Y": -0.70710678118654757
+								},
+								"InterpMode": "CIM_CurveAuto",
+								"LeaveTangent":
+								{
+									"W": 0.70710678118654746,
+									"Y": -0.70710678118654757
+								},
+								"OutVal":
+								{
+									"W": 0.70710678118654746,
+									"Y": -0.70710678118654757
+								}
+							},
+							{
+								"ArriveTangent":
+								{
+									"W": 0.70710678118654746,
+									"Y": -0.70710678118654757
+								},
+								"InterpMode": "CIM_CurveAuto",
+								"InVal": 1,
+								"LeaveTangent":
+								{
+									"W": 0.70710678118654746,
+									"Y": -0.70710678118654757
+								},
+								"OutVal":
+								{
+									"W": 0.70710678118654746,
+									"Y": -0.70710678118654757
+								}
+							}
+						]
+					}
+				}
+			}
+		}
+	},
+	"parentClass": "/Script/WxWorld.WxElevator"
+}
