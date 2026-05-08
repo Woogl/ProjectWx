@@ -3,8 +3,11 @@
 	"eventGraph": [
 		"event Construct:",
 		"  WBP_GameHUDBase_C::Construct()",
+		"  Assign On Item Acquired",
 		"event PreConstruct:",
-		"  WBP_GameHUDBase_C::PreConstruct(IsDesignTime=Event Pre Construct.IsDesignTime)"
+		"  WBP_GameHUDBase_C::PreConstruct(IsDesignTime=Event Pre Construct.IsDesignTime)",
+		"custom_event OnItemAcquired_Event:",
+		"  KismetSystemLibrary::PrintString(InString=KismetStringLibrary::Concat_StrStr(A=KismetSystemLibrary::GetDisplayName(Object=OnItemAcquired_Event.ItemDef), B=\" : \", C=Cast<string>(OnItemAcquired_Event.Delta)))"
 	],
 	"mvvm":
 	{
@@ -26,6 +29,16 @@
 		],
 		"viewModels":
 		{
+			"VM_Inventory":
+			{
+				"class": "/Script/WxGame.WxViewModel_Inventory",
+				"contextId": "7D013434-4693-63B8-1710-4DB971C39886",
+				"createGetter": true,
+				"createSetter": false,
+				"creationType": "GlobalViewModelCollection",
+				"globalIdentifier": "VM_Inventory",
+				"optional": false
+			},
 			"VM_PlayerAbilitySystem":
 			{
 				"class": "/Script/WxUI.WxViewModel_AbilitySystem",
@@ -34,16 +47,6 @@
 				"createSetter": false,
 				"creationType": "GlobalViewModelCollection",
 				"globalIdentifier": "VM_PlayerAbilitySystem",
-				"optional": false
-			},
-			"WxViewModel_Inventory":
-			{
-				"class": "/Script/WxGame.WxViewModel_Inventory",
-				"contextId": "7D013434-4693-63B8-1710-4DB971C39886",
-				"createGetter": true,
-				"createSetter": false,
-				"creationType": "GlobalViewModelCollection",
-				"globalIdentifier": "VM_Inventory",
 				"optional": false
 			}
 		}

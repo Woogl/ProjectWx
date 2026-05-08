@@ -64,6 +64,11 @@ void UWxViewModel_Inventory::HandleStackChanged(const UWxItemDefinition* ItemDef
 	UE_MVVM_SET_PROPERTY_VALUE(LastChangedAmount, NewCount);
 	UE_MVVM_SET_PROPERTY_VALUE(LastChangedDelta, Delta);
 
+	if (Delta > 0 && ItemDef)
+	{
+		OnItemAcquired.Broadcast(ItemDef, Delta);
+	}
+
 	RefreshAllItems();
 }
 
