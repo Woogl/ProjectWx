@@ -78,6 +78,9 @@ namespace WxGameplayTags
 	/** 데미지 플로터 출력 Cue */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Damage);
 
+	/** 퍼펙트 가드 성공 Cue. 임팩트 위치에 스파크/사운드 재생 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_PerfectGuard);
+
 	/** ATK 버프 지속 Cue */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_BuffATK);
 

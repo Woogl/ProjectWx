@@ -1,0 +1,8 @@
+{
+	"blueprintPath": "/Game/AbilitySystem/Cue/GC_PerfectGuard.GC_PerfectGuard",
+	"classDefaults":
+	{
+		"HitNiagaraSystem": "/Game/NiagaraExamples/FX_Sparks/NS_Spark_Burst.NS_Spark_Burst"
+	},
+	"parentClass": "/Script/WxCombat.WxCueNotify_PerfectGuard"
+}

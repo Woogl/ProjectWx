@@ -60,4 +60,7 @@ private:
 
 	/** 대미지 GameplayCue 실행 */
 	void ExecuteGameplayCueDamage(UAbilitySystemComponent* TargetASC, float DamageAmount, FVector HitLocation, const FGameplayEffectSpec& OwningSpec, bool bIsCritical) const;
+
+	/** 퍼펙트 가드 GameplayCue 실행 */
+	void ExecuteGameplayCuePerfectGuard(UAbilitySystemComponent* TargetASC, FVector HitLocation, const FGameplayEffectSpec& OwningSpec) const;
 };

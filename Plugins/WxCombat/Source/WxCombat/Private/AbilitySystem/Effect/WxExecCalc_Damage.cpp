@@ -163,20 +163,25 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		UAISense_Damage::ReportDamageEvent(TargetActor->GetWorld(), TargetActor, SourceActor, ReportedDamage, SourceActor->GetActorLocation(), TargetActor->GetActorLocation());
 	}
 
-	// --- 6. 대미지 GameplayCue ---
-	// 퍼펙트 가드는 자체 연출(슬로우 타임)로 대체하므로 데미지 큐를 발행하지 않는다.
-	if (!bPerfectGuardApplied && DamageResult.FinalDamage > 0.f)
+	// --- 6. GameplayCue ---
+	// 퍼펙트 가드 시 PerfectGuard 큐, 그 외 대미지 발생 시 Damage 큐 발행.
+	FVector HitLocation = FVector::ZeroVector;
+	const FHitResult* HitResult = OwningSpec.GetEffectContext().GetHitResult();
+	if (HitResult)
 	{
-		FVector HitLocation = FVector::ZeroVector;
-		const FHitResult* HitResult = OwningSpec.GetEffectContext().GetHitResult();
-		if (HitResult)
-		{
-			HitLocation = FVector(HitResult->ImpactPoint);
-		}
-		else if (const AActor* AvatarActor = TargetASC->GetAvatarActor())
-		{
-			HitLocation = AvatarActor->GetActorLocation();
-		}
+		HitLocation = FVector(HitResult->ImpactPoint);
+	}
+	else if (const AActor* AvatarActor = TargetASC->GetAvatarActor())
+	{
+		HitLocation = AvatarActor->GetActorLocation();
+	}
+
+	if (bPerfectGuardApplied)
+	{
+		ExecuteGameplayCuePerfectGuard(TargetASC, HitLocation, OwningSpec);
+	}
+	else if (DamageResult.FinalDamage > 0.f)
+	{
 		ExecuteGameplayCueDamage(TargetASC, DamageResult.FinalDamage, HitLocation, OwningSpec, DamageResult.bIsCritical);
 	}
 }
@@ -358,4 +363,18 @@ void UWxExecCalc_Damage::ExecuteGameplayCueDamage(UAbilitySystemComponent* Targe
 	}
 
 	TargetASC->ExecuteGameplayCue(WxGameplayTags::GameplayCue_Damage, CueParams);
+}
+
+void UWxExecCalc_Damage::ExecuteGameplayCuePerfectGuard(UAbilitySystemComponent* TargetASC, FVector HitLocation, const FGameplayEffectSpec& OwningSpec) const
+{
+	if (!TargetASC)
+	{
+		return;
+	}
+
+	FGameplayCueParameters CueParams;
+	CueParams.Location = HitLocation;
+	CueParams.EffectContext = OwningSpec.GetEffectContext();
+
+	TargetASC->ExecuteGameplayCue(WxGameplayTags::GameplayCue_PerfectGuard, CueParams);
 }
