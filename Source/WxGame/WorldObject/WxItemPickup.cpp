@@ -4,13 +4,17 @@
 
 #include "Components/StaticMeshComponent.h"
 #include "Controller/WxPlayerController.h"
+#include "Engine/StaticMesh.h"
 #include "GameFramework/Pawn.h"
 #include "Interaction/WxInteractionComponent.h"
 #include "Inventory/WxInventoryManagerComponent.h"
 #include "Items/WxItemDefinition.h"
+#include "Items/WxItemFragment.h"
 #include "Items/WxItemInstance.h"
 #include "Net/UnrealNetwork.h"
 #include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
+#include "WxCollisionChannels.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogWxItemPickup, Log, All);
 
@@ -20,12 +24,14 @@ AWxItemPickup::AWxItemPickup()
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	SetRootComponent(MeshComponent);
-
-	// 기본 상태(idle): 충돌 비활성. 폰은 InteractionComponent(Sphere) 로 감지하므로 메시 충돌은 발사 시점에만 활성화한다.
-	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	MeshComponent->SetCollisionObjectType(ECC_PhysicsBody);
+	
+	MeshComponent->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	MeshComponent->SetCollisionObjectType(ECC_WorldDynamic);
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
 	MeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	MeshComponent->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	MeshComponent->SetCollisionResponseToChannel(WxCollision::WxAttack, ECR_Ignore);
+	MeshComponent->SetGenerateOverlapEvents(false);
 
 	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
 	InteractionComponent->SetupAttachment(MeshComponent);
@@ -47,13 +53,19 @@ void AWxItemPickup::BeginPlay()
 	Super::BeginPlay();
 
 	InteractionComponent->OnInteracted.AddDynamic(this, &AWxItemPickup::HandleInteracted);
-
-	UpdateInteractionText();
 }
 
 void AWxItemPickup::SetItemDef(UWxItemDefinition* InItemDef)
 {
 	ItemDef = InItemDef;
+	UpdateInteractionText();
+	ApplyPickupVisual();
+}
+
+void AWxItemPickup::OnRep_ItemDef()
+{
+	UpdateInteractionText();
+	ApplyPickupVisual();
 }
 
 void AWxItemPickup::UpdateInteractionText()
@@ -65,6 +77,35 @@ void AWxItemPickup::UpdateInteractionText()
 
 	const FText FormattedText = FText::Format(NSLOCTEXT("WxItemPickup", "InteractionFormat", "[F] {0}"), ItemDef->DisplayName);
 	InteractionComponent->SetInteractionText(FormattedText);
+}
+
+void AWxItemPickup::ApplyPickupVisual()
+{
+	if (!ItemDef)
+	{
+		return;
+	}
+
+	const UWxItemFragment_PickupVisual* Visual = ItemDef->FindFragmentByClass<UWxItemFragment_PickupVisual>();
+	if (!Visual)
+	{
+		return;
+	}
+
+	if (UStaticMesh* MeshAsset = Visual->Mesh.LoadSynchronous())
+	{
+		MeshComponent->SetStaticMesh(MeshAsset);
+	}
+
+	if (UNiagaraSystem* NiagaraAsset = Visual->NiagaraSystem.LoadSynchronous())
+	{
+		NiagaraComponent->SetAsset(NiagaraAsset);
+		NiagaraComponent->Activate(true);
+	}
+	else
+	{
+		NiagaraComponent->Deactivate();
+	}
 }
 
 void AWxItemPickup::LaunchInDirection(const FVector& Direction, float Speed)
@@ -109,14 +150,13 @@ void AWxItemPickup::HandleInteracted(AActor* InteractingActor)
 	if (!Inventory)
 	{
 		UE_LOG(LogWxItemPickup, Warning, TEXT("Interactor %s has no UWxInventoryManagerComponent"), *InteractingActor->GetName());
-		Destroy();
 		return;
 	}
 
-	UWxItemInstance* AddedInstance = Inventory->AddItemDefinition(ItemDef, GrantCount);
+	UWxItemInstance* AddedInstance = Inventory->AddItemDefinition(ItemDef);
 	const int32 TotalOwned = Inventory->GetTotalItemCountByDefinition(ItemDef);
-	UE_LOG(LogWxItemPickup, Log, TEXT("Picked up %s x%d (instance=%s, total=%d)"),
-		*ItemDef->GetName(), GrantCount, *GetNameSafe(AddedInstance), TotalOwned);
+	UE_LOG(LogWxItemPickup, Log, TEXT("Picked up %s (instance=%s, total=%d)"),
+		*ItemDef->GetName(), *GetNameSafe(AddedInstance), TotalOwned);
 
 	Destroy();
 }

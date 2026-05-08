@@ -9,7 +9,9 @@
 #include "WxItemFragment.generated.h"
 
 class UGameplayEffect;
+class UNiagaraSystem;
 class USkeletalMesh;
+class UStaticMesh;
 class UWxItemInstance;
 
 /**
@@ -93,4 +95,27 @@ public:
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Stackable", meta = (ClampMin = "1", ClampMax = "1000000000"))
 	int32 MaxStack = 99;
+};
+
+/**
+ * 픽업 액터(AWxItemPickup) 의 외형을 정의하는 Fragment.
+ *
+ * 다양한 스포너(보물 상자, 적 드랍 등) 가 동일한 픽업 BP 를 재사용하면서도
+ * 아이템별로 다른 메시/이펙트를 출력하도록 한다.
+ *
+ * 본 Fragment 는 데이터만 기술한다 — 실제 컴포넌트 세팅은 픽업 액터 측에서 수행한다.
+ */
+UCLASS(DisplayName = "PickupVisual")
+class WXINVENTORY_API UWxItemFragment_PickupVisual : public UWxItemFragment
+{
+	GENERATED_BODY()
+
+public:
+	/** 픽업 액터의 메시 컴포넌트에 적용할 스태틱 메시. */
+	UPROPERTY(EditDefaultsOnly, Category = "PickupVisual")
+	TSoftObjectPtr<UStaticMesh> Mesh;
+
+	/** 픽업 액터의 나이아가라 컴포넌트에 적용할 시스템. 비어있으면 이펙트 비활성. */
+	UPROPERTY(EditDefaultsOnly, Category = "PickupVisual")
+	TSoftObjectPtr<UNiagaraSystem> NiagaraSystem;
 };

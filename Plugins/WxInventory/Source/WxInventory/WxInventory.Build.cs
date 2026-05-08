@@ -22,6 +22,7 @@ public class WxInventory : ModuleRules
 		{
 			"DeveloperSettings",
 			"GameplayAbilities",
+			"Niagara",
 		});
 	}
 }

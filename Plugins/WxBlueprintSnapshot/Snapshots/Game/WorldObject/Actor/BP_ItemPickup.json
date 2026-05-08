@@ -20,13 +20,7 @@
 				{
 					"Z": 50
 				},
-				"RelativeScale3D":
-				{
-					"X": 0.25,
-					"Y": 0.25,
-					"Z": 0.25
-				},
-				"StaticMesh": "/Game/NiagaraExamples/Gallery/StaticMesh/SM_MannequinTarget.SM_MannequinTarget"
+				"StaticMesh": "/Game/NiagaraExamples/StaticMesh/S_ItemPickup_Base.S_ItemPickup_Base"
 			}
 		},
 		"NiagaraComponent":

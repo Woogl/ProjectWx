@@ -14,8 +14,8 @@ class UWxItemDefinition;
 /**
  * 아이템(또는 재화) 지급용 픽업.
  *
- * 상호작용 시 Interactor 의 PlayerState(또는 본체) 에서
- * UWxInventoryManagerComponent 를 찾아 ItemDef 를 Count 만큼 지급한 뒤 파괴된다.
+ * 상호작용 시 Interactor 의 PlayerController(또는 Interactor 본체) 에서
+ * UWxInventoryManagerComponent 를 찾아 ItemDef 를 지급한 뒤 파괴된다.
  *
  * 외부 스포너(예: 보물 상자) 가 LaunchInDirection() 으로 픽업을 물리 발사할 수 있다.
  */
@@ -48,18 +48,20 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UNiagaraComponent> NiagaraComponent;
 
-	/** 지급할 아이템 정의 */
-	UPROPERTY(EditAnywhere, Replicated, Category = "Wx|Pickup")
+	/** 지급할 아이템 정의. 외부 스포너가 SetItemDef 로 주입한다. */
+	UPROPERTY(ReplicatedUsing = OnRep_ItemDef)
 	TObjectPtr<UWxItemDefinition> ItemDef;
-
-	/** 픽업 1회당 지급 수량. 재화 코인의 액면가, 회복 포션의 묶음 단위 등으로 활용. */
-	UPROPERTY(EditAnywhere, Category = "Wx|Pickup", meta = (ClampMin = "1"))
-	int32 GrantCount = 1;
 
 private:
 	UFUNCTION()
 	void HandleInteracted(AActor* InteractingActor);
 
+	UFUNCTION()
+	void OnRep_ItemDef();
+
 	/** ItemDef->DisplayName 을 사용해 인터랙션 프롬프트 텍스트를 "[F] {DisplayName}" 으로 갱신한다. */
 	void UpdateInteractionText();
+
+	/** ItemDef 의 PickupVisual Fragment 데이터를 메시/나이아가라 컴포넌트에 동기 로드 후 적용한다. */
+	void ApplyPickupVisual();
 };
