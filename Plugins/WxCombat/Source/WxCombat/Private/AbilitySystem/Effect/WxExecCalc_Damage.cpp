@@ -11,29 +11,6 @@
 #include "Perception/AISense_Damage.h"
 #include "WxGameplayTags.h"
 
-namespace
-{
-	// Target ASC 에 부여된 Guard 어빌리티 인스턴스를 찾아 DamageReductionRate 를 반환.
-	// 인스턴스 미발견 시 폴백으로 1.f(감소 없음) 반환 — 호출자는 bIsGuarding=true 컨텍스트에서만 호출.
-	float GetActiveGuardDamageReductionRate(const UAbilitySystemComponent* TargetASC)
-	{
-		if (!TargetASC)
-		{
-			return 1.f;
-		}
-
-		for (const FGameplayAbilitySpec& Spec : TargetASC->GetActivatableAbilities())
-		{
-			if (const UWxAbility_Guard* Guard = Cast<UWxAbility_Guard>(Spec.GetPrimaryInstance()))
-			{
-				return Guard->GetDamageReductionRate();
-			}
-		}
-
-		return 1.f;
-	}
-}
-
 struct FWxDamageStatics
 {
 	DECLARE_ATTRIBUTE_CAPTUREDEF(ATK);
@@ -124,7 +101,15 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		// 가드 감소: Unblockable이 아닌 가드 상태에서 Guard 어빌리티의 DamageReductionRate 만큼 감소
 		if (!bIsUnblockable && bIsGuarding)
 		{
-			DamageResult.FinalDamage *= GetActiveGuardDamageReductionRate(TargetASC);
+			TArray<FGameplayAbilitySpec*> GuardSpecs;
+			TargetASC->GetActivatableGameplayAbilitySpecsByAllMatchingTags(FGameplayTagContainer(WxGameplayTags::Ability_Guard), GuardSpecs);
+			if (GuardSpecs.Num() > 0)
+			{
+				if (const UWxAbility_Guard* Guard = Cast<UWxAbility_Guard>(GuardSpecs[0]->GetPrimaryInstance()))
+				{
+					DamageResult.FinalDamage *= Guard->GetDamageReductionRate();
+				}
+			}
 		}
 
 		if (DamageResult.FinalDamage > 0.f)
