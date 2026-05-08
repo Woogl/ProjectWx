@@ -34,8 +34,12 @@ public:
 
 	/** Spec에 추가할 DynamicAssetTags. 예: Event.HitReact.Knockback, Damage.Unblockable */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FGameplayTagContainer DynamicAssetTags;
-	
+	FGameplayTagContainer EffectAssetTags;
+
+	/** true 면 같은 액터에게는 한 번만 GE 를 적용한다. 일격 트랩, 통과형 위해(레이저 벽 등) 에서 사용. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx")
+	bool bApplyOncePerTarget = false;
+
 	void ApplyEffect(AActor* Target);
 
 protected:
@@ -43,4 +47,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx")
 	TObjectPtr<USceneComponent> SceneRoot;
+
+private:
+	/** bApplyOncePerTarget 일 때 이미 GE 가 적용된 대상 추적용. */
+	TSet<TWeakObjectPtr<AActor>> AppliedTargets;
 };

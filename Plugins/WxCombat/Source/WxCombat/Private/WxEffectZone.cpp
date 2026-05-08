@@ -29,6 +29,11 @@ void AWxEffectZone::ApplyEffect(AActor* Target)
 		return;
 	}
 
+	if (bApplyOncePerTarget && AppliedTargets.Contains(Target))
+	{
+		return;
+	}
+
 	UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
 	if (!TargetASC)
 	{
@@ -58,10 +63,15 @@ void AWxEffectZone::ApplyEffect(AActor* Target)
 		SpecHandle.Data->SetSetByCallerMagnitude(Pair.Key, Pair.Value);
 	}
 
-	if (!DynamicAssetTags.IsEmpty())
+	if (!EffectAssetTags.IsEmpty())
 	{
-		SpecHandle.Data->AppendDynamicAssetTags(DynamicAssetTags);
+		SpecHandle.Data->AppendDynamicAssetTags(EffectAssetTags);
 	}
 
 	SourceASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);
+
+	if (bApplyOncePerTarget)
+	{
+		AppliedTargets.Add(Target);
+	}
 }
