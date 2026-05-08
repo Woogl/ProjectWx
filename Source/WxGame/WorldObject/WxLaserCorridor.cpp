@@ -84,5 +84,14 @@ void AWxLaserCorridor::HandleSpawnTimer()
 	Zone->SetLifeSpan(Lifetime);
 	Zone->FinishSpawning(SpawnTransform);
 
+	// 벽의 박스 콜리전 단면(Y/Z) 을 통로 단면에 맞춘다. 두께(X) 는 BP 디폴트를 유지.
+	if (UBoxComponent* WallBox = Zone->FindComponentByClass<UBoxComponent>())
+	{
+		FVector WallExtent = WallBox->GetUnscaledBoxExtent();
+		WallExtent.Y = Extent.Y;
+		WallExtent.Z = Extent.Z;
+		WallBox->SetBoxExtent(WallExtent);
+	}
+
 	ActiveLasers.Add(Zone);
 }
