@@ -91,9 +91,9 @@ class WXINVENTORY_API UWxItemFragment_Stackable : public UWxItemFragment
 public:
 	/**
 	 * 한 슬롯에 누적 가능한 최대 개수.
-	 * 상한은 10억(1e9)으로 제한한다 — int32 합산 오버플로우 방지 및 HUD 표기 관행.
+	 * 상한은 천만(1e7)으로 제한한다 — 동일 ItemDef 가 다수 슬롯에 분산되어도 합산 시 int32 안에서 안전.
 	 */
-	UPROPERTY(EditDefaultsOnly, Category = "Stackable", meta = (ClampMin = "1", ClampMax = "1000000000"))
+	UPROPERTY(EditDefaultsOnly, Category = "Stackable", meta = (ClampMin = "1", ClampMax = "10000000"))
 	int32 MaxStack = 99;
 };
 

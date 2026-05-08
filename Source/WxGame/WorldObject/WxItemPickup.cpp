@@ -155,8 +155,7 @@ void AWxItemPickup::HandleInteracted(AActor* InteractingActor)
 
 	UWxItemInstance* AddedInstance = Inventory->AddItemDefinition(ItemDef);
 	const int32 TotalOwned = Inventory->GetTotalItemCountByDefinition(ItemDef);
-	UE_LOG(LogWxItemPickup, Log, TEXT("Picked up %s (instance=%s, total=%d)"),
-		*ItemDef->GetName(), *GetNameSafe(AddedInstance), TotalOwned);
+	UE_LOG(LogWxItemPickup, Log, TEXT("Picked up %s (instance=%s, total=%d)"), *ItemDef->GetName(), *GetNameSafe(AddedInstance), TotalOwned);
 
 	Destroy();
 }

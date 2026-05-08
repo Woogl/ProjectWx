@@ -369,8 +369,7 @@ int32 UWxInventoryManagerComponent::GetTotalItemCountByDefinition(const UWxItemD
 		return 0;
 	}
 
-	// MaxStack 상한이 1e9 라 다수 슬롯이 풀로 차면 int32 가 넘칠 수 있다 — int64 로 누적 후 클램프.
-	int64 Total = 0;
+	int32 Total = 0;
 	for (const FWxInventoryEntry& Entry : InventoryList.GetEntries())
 	{
 		const UWxItemInstance* SlotInstance = Entry.Instance;
@@ -379,7 +378,7 @@ int32 UWxInventoryManagerComponent::GetTotalItemCountByDefinition(const UWxItemD
 			Total += Entry.StackCount;
 		}
 	}
-	return static_cast<int32>(FMath::Min<int64>(Total, MAX_int32));
+	return Total;
 }
 
 int32 UWxInventoryManagerComponent::GetStackCountByInstance(const UWxItemInstance* Instance) const
