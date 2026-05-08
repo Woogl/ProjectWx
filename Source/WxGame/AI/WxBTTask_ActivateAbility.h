@@ -16,6 +16,8 @@ class UAbilitySystemComponent;
  *
  * AbilityTag에 매칭되는 어빌리티를 ASC에서 발동한다.
  * 어빌리티가 정상 종료되면 Succeeded, 발동 실패 또는 캔슬 시 Failed를 반환한다.
+ *
+ * 동일 어빌리티 연속 발동 회피는 부모 노드 (예: WxBTComposite_RandomSelector 의 bAvoidRepeat) 에서 처리.
  */
 UCLASS()
 class WXGAME_API UWxBTTask_ActivateAbility : public UBTTaskNode

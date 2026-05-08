@@ -1,16 +1,13 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "WxEnemyController.h"
+#include "AI/WxEnemyBlackboardKeys.h"
 #include "Character/WxEnemyCharacter.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Damage.h"
-
-const FName AWxEnemyController::BBKey_SelfActor = TEXT("SelfActor");
-const FName AWxEnemyController::BBKey_TargetActor = TEXT("TargetActor");
-const FName AWxEnemyController::BBKey_Alerted = TEXT("Alerted");
 
 AWxEnemyController::AWxEnemyController()
 {
@@ -51,7 +48,11 @@ void AWxEnemyController::OnPossess(APawn* InPawn)
 
 	if (UBlackboardComponent* BB = GetBlackboardComponent())
 	{
-		BB->SetValueAsObject(BBKey_SelfActor, InPawn);
+		BB->SetValueAsObject(WxEnemyBlackboardKeys::SelfActor, InPawn);
+		if (InPawn)
+		{
+			BB->SetValueAsVector(WxEnemyBlackboardKeys::HomeLocation, InPawn->GetActorLocation());
+		}
 	}
 
 	if (AWxEnemyCharacter* Enemy = Cast<AWxEnemyCharacter>(InPawn))
@@ -67,7 +68,7 @@ void AWxEnemyController::OnUnPossess()
 {
 	if (UBlackboardComponent* BB = GetBlackboardComponent())
 	{
-		BB->SetValueAsObject(BBKey_SelfActor, nullptr);
+		BB->SetValueAsObject(WxEnemyBlackboardKeys::SelfActor, nullptr);
 	}
 
 	Super::OnUnPossess();
@@ -83,14 +84,16 @@ void AWxEnemyController::HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulu
 
 	if (Stimulus.WasSuccessfullySensed())
 	{
-		BB->SetValueAsObject(BBKey_TargetActor, Actor);
+		BB->SetValueAsObject(WxEnemyBlackboardKeys::TargetActor, Actor);
+		BB->SetValueAsVector(WxEnemyBlackboardKeys::TargetLastKnownLocation, Stimulus.StimulusLocation);
 		SetAlerted(true);
 	}
 	else
 	{
-		if (BB->GetValueAsObject(BBKey_TargetActor) == Actor)
+		if (BB->GetValueAsObject(WxEnemyBlackboardKeys::TargetActor) == Actor)
 		{
-			BB->ClearValue(BBKey_TargetActor);
+			BB->SetValueAsVector(WxEnemyBlackboardKeys::TargetLastKnownLocation, Stimulus.StimulusLocation);
+			BB->ClearValue(WxEnemyBlackboardKeys::TargetActor);
 			SetAlerted(false);
 		}
 	}
@@ -98,18 +101,6 @@ void AWxEnemyController::HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulu
 
 void AWxEnemyController::SetAlerted(bool bNewAlerted)
 {
-	UBlackboardComponent* BB = GetBlackboardComponent();
-	if (!BB)
-	{
-		return;
-	}
-
-	if (BB->GetValueAsBool(BBKey_Alerted) == bNewAlerted)
-	{
-		return;
-	}
-
-	BB->SetValueAsBool(BBKey_Alerted, bNewAlerted);
 	SightConfig->PeripheralVisionAngleDegrees = bNewAlerted ? 180.f : SightAngle;
 	AIPerceptionComponent->RequestStimuliListenerUpdate();
 }
