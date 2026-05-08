@@ -8,7 +8,6 @@
 
 #include "WxInventoryManagerComponent.generated.h"
 
-class UActorChannel;
 class UWxItemDefinition;
 class UWxItemInstance;
 class UWxInventoryManagerComponent;
@@ -68,9 +67,6 @@ struct FWxInventoryList : public FFastArraySerializer
 	/** 권한: 새 인스턴스를 생성해 신규 엔트리로 추가. Fragment 의 OnInstanceCreated 가 호출된다. */
 	UWxItemInstance* AddEntry(const UWxItemDefinition* ItemDef, int32 StackCount);
 
-	/** 권한: 외부에서 만들어둔 인스턴스를 신규 엔트리로 추가. */
-	void AddEntry(UWxItemInstance* Instance, int32 StackCount);
-
 	/** 권한: 인스턴스에 해당하는 엔트리를 통째로 제거. */
 	void RemoveEntry(UWxItemInstance* Instance);
 
@@ -125,7 +121,6 @@ public:
 
 	//~ Begin UActorComponent interface
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 	virtual void ReadyForReplication() override;
 	//~ End UActorComponent interface
 
@@ -136,9 +131,6 @@ public:
 	 * 반환값은 첫 영향받은 인스턴스(머지된 기존 엔트리 또는 새로 만든 첫 엔트리). 실패 시 nullptr.
 	 */
 	UWxItemInstance* AddItemDefinition(const UWxItemDefinition* ItemDef, int32 StackCount = 1);
-
-	/** 권한: 외부에서 만들어둔 인스턴스를 신규 엔트리로 추가한다. */
-	void AddItemInstance(UWxItemInstance* ItemInstance, int32 StackCount = 1);
 
 	/** 권한: 특정 인스턴스 슬롯을 통째로 제거한다. */
 	void RemoveItemInstance(UWxItemInstance* ItemInstance);
@@ -171,11 +163,14 @@ public:
 	FWxOnInventorySlotChanged OnInventorySlotChanged;
 
 private:
-	/** 장착/사용 대상 액터를 반환. PlayerState 에 부착된 경우 소유 폰, 그 외엔 자기 자신. */
+	/** 장착/사용 대상 액터를 반환. PlayerController 에 부착된 경우 소유 폰(폰 없으면 nullptr), 그 외엔 자기 자신. */
 	AActor* ResolveTargetActor() const;
 
 	/** 신규 인스턴스를 SubObject 시스템에 등록한다. */
 	void RegisterReplicatedInstance(UWxItemInstance* Instance);
+
+	/** 인스턴스를 SubObject 시스템에서 해제한다. */
+	void UnregisterReplicatedInstance(UWxItemInstance* Instance);
 
 	/** ItemDef 합계 변경 브로드캐스트. 서버/클라이언트 공통 진입. */
 	void BroadcastStackChanged(const UWxItemDefinition* ItemDef, int32 Delta);

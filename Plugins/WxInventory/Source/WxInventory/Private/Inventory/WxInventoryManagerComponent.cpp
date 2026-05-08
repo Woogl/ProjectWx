@@ -9,7 +9,6 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "Engine/ActorChannel.h"
 #include "GameFramework/PlayerController.h"
 #include "Net/UnrealNetwork.h"
 
@@ -74,13 +73,17 @@ void FWxInventoryList::PreReplicatedRemove(const TArrayView<int32> RemovedIndice
 void FWxInventoryList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize)
 {
 	UWxInventoryManagerComponent* Manager = Cast<UWxInventoryManagerComponent>(OwnerComponent);
+	if (!Manager)
+	{
+		return;
+	}
 
 	for (int32 Index : AddedIndices)
 	{
 		FWxInventoryEntry& Entry = Entries[Index];
 		Entry.LastObservedCount = Entry.StackCount;
 
-		if (Manager && Entry.Instance)
+		if (Entry.Instance)
 		{
 			Manager->BroadcastSlotChanged(Entry.Instance, Entry.StackCount, Entry.StackCount);
 			Manager->BroadcastStackChanged(Entry.Instance->GetItemDef(), Entry.StackCount);
@@ -91,6 +94,10 @@ void FWxInventoryList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, i
 void FWxInventoryList::PostReplicatedChange(const TArrayView<int32> ChangedIndices, int32 FinalSize)
 {
 	UWxInventoryManagerComponent* Manager = Cast<UWxInventoryManagerComponent>(OwnerComponent);
+	if (!Manager)
+	{
+		return;
+	}
 
 	for (int32 Index : ChangedIndices)
 	{
@@ -98,7 +105,7 @@ void FWxInventoryList::PostReplicatedChange(const TArrayView<int32> ChangedIndic
 		const int32 Delta = Entry.StackCount - Entry.LastObservedCount;
 		Entry.LastObservedCount = Entry.StackCount;
 
-		if (Manager && Entry.Instance && Delta != 0)
+		if (Entry.Instance && Delta != 0)
 		{
 			Manager->BroadcastSlotChanged(Entry.Instance, Entry.StackCount, Delta);
 			Manager->BroadcastStackChanged(Entry.Instance->GetItemDef(), Delta);
@@ -136,21 +143,6 @@ UWxItemInstance* FWxInventoryList::AddEntry(const UWxItemDefinition* ItemDef, in
 	return NewEntry.Instance;
 }
 
-void FWxInventoryList::AddEntry(UWxItemInstance* Instance, int32 StackCount)
-{
-	check(Instance);
-	check(OwnerComponent);
-	AActor* OwningActor = OwnerComponent->GetOwner();
-	check(OwningActor && OwningActor->HasAuthority());
-
-	FWxInventoryEntry& NewEntry = Entries.AddDefaulted_GetRef();
-	NewEntry.Instance = Instance;
-	NewEntry.StackCount = StackCount;
-	NewEntry.LastObservedCount = StackCount;
-
-	MarkItemDirty(NewEntry);
-}
-
 void FWxInventoryList::RemoveEntry(UWxItemInstance* Instance)
 {
 	for (auto It = Entries.CreateIterator(); It; ++It)
@@ -178,6 +170,7 @@ UWxInventoryManagerComponent::UWxInventoryManagerComponent(const FObjectInitiali
 	, InventoryList(this)
 {
 	SetIsReplicatedByDefault(true);
+	bReplicateUsingRegisteredSubObjectList = true;
 }
 
 void UWxInventoryManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -187,38 +180,15 @@ void UWxInventoryManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimePr
 	DOREPLIFETIME(ThisClass, InventoryList);
 }
 
-bool UWxInventoryManagerComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
-{
-	bool bWroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
-
-	// RegisteredSubObjectList 를 사용 중이면 ReadyForReplication 에서 등록된 인스턴스가 자동 복제되므로,
-	// 여기서 중복 복제를 막기 위해 레거시 경로(직접 ReplicateSubobject 호출)는 비활성 환경에서만 실행한다.
-	if (!IsUsingRegisteredSubObjectList())
-	{
-		for (const FWxInventoryEntry& Entry : InventoryList.GetEntries())
-		{
-			if (UWxItemInstance* Instance = Entry.GetInstance())
-			{
-				bWroteSomething |= Channel->ReplicateSubobject(Instance, *Bunch, *RepFlags);
-			}
-		}
-	}
-
-	return bWroteSomething;
-}
-
 void UWxInventoryManagerComponent::ReadyForReplication()
 {
 	Super::ReadyForReplication();
 
-	if (IsUsingRegisteredSubObjectList())
+	for (const FWxInventoryEntry& Entry : InventoryList.GetEntries())
 	{
-		for (const FWxInventoryEntry& Entry : InventoryList.GetEntries())
+		if (UWxItemInstance* Instance = Entry.GetInstance())
 		{
-			if (UWxItemInstance* Instance = Entry.GetInstance())
-			{
-				AddReplicatedSubObject(Instance);
-			}
+			AddReplicatedSubObject(Instance);
 		}
 	}
 }
@@ -292,22 +262,6 @@ UWxItemInstance* UWxInventoryManagerComponent::AddItemDefinition(const UWxItemDe
 	return FirstAffected;
 }
 
-void UWxInventoryManagerComponent::AddItemInstance(UWxItemInstance* ItemInstance, int32 StackCount)
-{
-	if (!ItemInstance || StackCount <= 0)
-	{
-		return;
-	}
-
-	check(GetOwner() && GetOwner()->HasAuthority());
-
-	InventoryList.AddEntry(ItemInstance, StackCount);
-	RegisterReplicatedInstance(ItemInstance);
-
-	BroadcastSlotChanged(ItemInstance, StackCount, StackCount);
-	BroadcastStackChanged(ItemInstance->GetItemDef(), StackCount);
-}
-
 void UWxInventoryManagerComponent::RemoveItemInstance(UWxItemInstance* ItemInstance)
 {
 	if (!ItemInstance)
@@ -334,10 +288,7 @@ void UWxInventoryManagerComponent::RemoveItemInstance(UWxItemInstance* ItemInsta
 
 	const UWxItemDefinition* RemovedDef = ItemInstance->GetItemDef();
 
-	if (IsUsingRegisteredSubObjectList())
-	{
-		RemoveReplicatedSubObject(ItemInstance);
-	}
+	UnregisterReplicatedInstance(ItemInstance);
 
 	InventoryList.RemoveEntry(ItemInstance);
 
@@ -376,10 +327,7 @@ bool UWxInventoryManagerComponent::ConsumeItemsByDefinition(const UWxItemDefinit
 
 		if (NewSlotCount <= 0)
 		{
-			if (IsUsingRegisteredSubObjectList())
-			{
-				RemoveReplicatedSubObject(SlotInstance);
-			}
+			UnregisterReplicatedInstance(SlotInstance);
 
 			It.RemoveCurrent();
 			InventoryList.MarkArrayDirty();
@@ -421,7 +369,8 @@ int32 UWxInventoryManagerComponent::GetTotalItemCountByDefinition(const UWxItemD
 		return 0;
 	}
 
-	int32 Total = 0;
+	// MaxStack 상한이 1e9 라 다수 슬롯이 풀로 차면 int32 가 넘칠 수 있다 — int64 로 누적 후 클램프.
+	int64 Total = 0;
 	for (const FWxInventoryEntry& Entry : InventoryList.GetEntries())
 	{
 		const UWxItemInstance* SlotInstance = Entry.Instance;
@@ -430,7 +379,7 @@ int32 UWxInventoryManagerComponent::GetTotalItemCountByDefinition(const UWxItemD
 			Total += Entry.StackCount;
 		}
 	}
-	return Total;
+	return static_cast<int32>(FMath::Min<int64>(Total, MAX_int32));
 }
 
 int32 UWxInventoryManagerComponent::GetStackCountByInstance(const UWxItemInstance* Instance) const
@@ -480,28 +429,41 @@ bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef
 		return false;
 	}
 
-	// 재고 부족이면 적용도 차감도 발생하지 않아야 하므로, 차감을 먼저 시도한다.
+	// 재고 사전 검증 — 차감하지 않고 가용 여부만 확인.
+	if (GetTotalItemCountByDefinition(ItemDef) <= 0)
+	{
+		return false;
+	}
+
+	// GE가 지정된 경우, ASC와 Spec 유효성을 차감 전에 검증한다. 검증 실패 시 차감하지 않고 false 반환.
+	UAbilitySystemComponent* TargetASC = nullptr;
+	FGameplayEffectSpecHandle Spec;
+	if (Usable->Effect)
+	{
+		TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(ResolveTargetActor());
+		if (!TargetASC)
+		{
+			return false;
+		}
+
+		// SourceObject 는 인스턴스 단위 데이터 추적이 가능하도록 ItemInstance 를 사용한다.
+		UWxItemInstance* SourceInstance = FindFirstItemStackByDefinition(ItemDef);
+		FGameplayEffectContextHandle Context = TargetASC->MakeEffectContext();
+		Context.AddSourceObject(SourceInstance);
+
+		Spec = TargetASC->MakeOutgoingSpec(Usable->Effect, 1.f, Context);
+		if (!Spec.IsValid())
+		{
+			return false;
+		}
+	}
+
 	if (!ConsumeItemsByDefinition(ItemDef, 1))
 	{
 		return false;
 	}
 
-	if (!Usable->Effect)
-	{
-		return true;
-	}
-
-	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(ResolveTargetActor());
-	if (!TargetASC)
-	{
-		return true;
-	}
-
-	FGameplayEffectContextHandle Context = TargetASC->MakeEffectContext();
-	Context.AddSourceObject(ItemDef);
-
-	const FGameplayEffectSpecHandle Spec = TargetASC->MakeOutgoingSpec(Usable->Effect, 1.f, Context);
-	if (Spec.IsValid())
+	if (TargetASC && Spec.IsValid())
 	{
 		TargetASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
 	}
@@ -534,19 +496,25 @@ AActor* UWxInventoryManagerComponent::ResolveTargetActor() const
 	AActor* OwnerActor = GetOwner();
 	if (const APlayerController* PC = Cast<APlayerController>(OwnerActor))
 	{
-		if (AActor* Pawn = PC->GetPawn())
-		{
-			return Pawn;
-		}
+		// PC 부착 시 폰이 정답. 폰이 없으면 ASC 도 없으므로 nullptr 로 명시 — 호출자가 가드.
+		return PC->GetPawn();
 	}
 	return OwnerActor;
 }
 
 void UWxInventoryManagerComponent::RegisterReplicatedInstance(UWxItemInstance* Instance)
 {
-	if (Instance && IsUsingRegisteredSubObjectList() && IsReadyForReplication())
+	if (Instance && IsReadyForReplication())
 	{
 		AddReplicatedSubObject(Instance);
+	}
+}
+
+void UWxInventoryManagerComponent::UnregisterReplicatedInstance(UWxItemInstance* Instance)
+{
+	if (Instance && IsReadyForReplication())
+	{
+		RemoveReplicatedSubObject(Instance);
 	}
 }
 
