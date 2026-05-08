@@ -30,18 +30,14 @@ void UWxCueNotify_Damage::HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent:
 		return;
 	}
 
-	// 데미지 플로터 출력 여부 확인
-	if (!Parameters.AggregatedSourceTags.HasTag(WxGameplayTags::Damage_SuppressFloater))
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	AWxDamageFloaterActor* FloaterActor = World->SpawnActor<AWxDamageFloaterActor>(MyTarget->GetActorLocation(), FRotator::ZeroRotator, SpawnParams);
+	if (FloaterActor)
 	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		AWxDamageFloaterActor* FloaterActor = World->SpawnActor<AWxDamageFloaterActor>(MyTarget->GetActorLocation(), FRotator::ZeroRotator, SpawnParams);
-		if (FloaterActor)
-		{
-			const float Damage = Parameters.RawMagnitude;
-			const bool bIsCritical = Parameters.AggregatedSourceTags.HasTag(WxGameplayTags::Damage_Critical);
-			FloaterActor->InitDamageInfo(FloaterWidgetClass, Damage, bIsCritical);
-		}
+		const float Damage = Parameters.RawMagnitude;
+		const bool bIsCritical = Parameters.AggregatedSourceTags.HasTag(WxGameplayTags::Damage_Critical);
+		FloaterActor->InitDamageInfo(FloaterWidgetClass, Damage, bIsCritical);
 	}
 
 	if (HitNiagaraSystem)

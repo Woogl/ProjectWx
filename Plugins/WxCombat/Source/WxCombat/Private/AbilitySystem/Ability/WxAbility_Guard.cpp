@@ -116,21 +116,14 @@ bool UWxAbility_Guard::PlayMontage(UAnimMontage* Montage)
 
 void UWxAbility_Guard::ListenForGuardHit()
 {
-	// GenericGameplayEventCallbacks는 정확한 태그 매칭을 사용하므로 각 이벤트를 개별 등록한다.
-	UAbilityTask_WaitGameplayEvent* NormalTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-		this, WxGameplayTags::Event_GuardHit_Normal);
-	if (NormalTask)
+	// Event.HitReact 부모 태그로 등록하여 자식 태그(.Normal/.Knockback/.Knockdown/.Knockup)를 모두 수신한다.
+	// HitReact 어빌리티는 ActivationBlockedTags=State.Guard 로 가드 중에는 활성화되지 않으므로 라우팅 충돌 없음.
+	UAbilityTask_WaitGameplayEvent* HitReactTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+		this, WxGameplayTags::Event_HitReact, nullptr, false, false);
+	if (HitReactTask)
 	{
-		NormalTask->EventReceived.AddDynamic(this, &UWxAbility_Guard::HandleGuardHitReact);
-		NormalTask->ReadyForActivation();
-	}
-
-	UAbilityTask_WaitGameplayEvent* KnockbackTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-		this, WxGameplayTags::Event_GuardHit_Knockback);
-	if (KnockbackTask)
-	{
-		KnockbackTask->EventReceived.AddDynamic(this, &UWxAbility_Guard::HandleGuardHitReact);
-		KnockbackTask->ReadyForActivation();
+		HitReactTask->EventReceived.AddDynamic(this, &UWxAbility_Guard::HandleGuardHitReact);
+		HitReactTask->ReadyForActivation();
 	}
 }
 
@@ -205,8 +198,8 @@ void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 	}
 	else
 	{
-		// Event.GuardHit.Knockback 이벤트면 GuardKnockback 몽타주 우선 재생
-		const bool bIsKnockHit = Payload.EventTag == WxGameplayTags::Event_GuardHit_Knockback;
+		// Knock 계열(Knockback/Knockdown/Knockup)이면 GuardKnockback, 그 외엔 GuardHitReact 재생.
+		const bool bIsKnockHit = Payload.EventTag.IsValid() && Payload.EventTag != WxGameplayTags::Event_HitReact_Normal;
 
 		if (bIsKnockHit && GuardKnockbackMontage)
 		{

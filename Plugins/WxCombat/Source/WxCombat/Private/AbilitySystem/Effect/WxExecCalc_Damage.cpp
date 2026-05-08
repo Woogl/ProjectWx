@@ -164,17 +164,21 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	}
 
 	// --- 6. 대미지 GameplayCue ---
-	FVector HitLocation = FVector::ZeroVector;
-	const FHitResult* HitResult = OwningSpec.GetEffectContext().GetHitResult();
-	if (HitResult)
+	// 퍼펙트 가드는 자체 연출(슬로우 타임)로 대체하므로 데미지 큐를 발행하지 않는다.
+	if (!bPerfectGuardApplied && DamageResult.FinalDamage > 0.f)
 	{
-		HitLocation = FVector(HitResult->ImpactPoint);
+		FVector HitLocation = FVector::ZeroVector;
+		const FHitResult* HitResult = OwningSpec.GetEffectContext().GetHitResult();
+		if (HitResult)
+		{
+			HitLocation = FVector(HitResult->ImpactPoint);
+		}
+		else if (const AActor* AvatarActor = TargetASC->GetAvatarActor())
+		{
+			HitLocation = AvatarActor->GetActorLocation();
+		}
+		ExecuteGameplayCueDamage(TargetASC, DamageResult.FinalDamage, HitLocation, OwningSpec, DamageResult.bIsCritical);
 	}
-	else if (const AActor* AvatarActor = TargetASC->GetAvatarActor())
-	{
-		HitLocation = AvatarActor->GetActorLocation();
-	}
-	ExecuteGameplayCueDamage(TargetASC, DamageResult.FinalDamage, HitLocation, OwningSpec, DamageResult.bIsCritical, !bPerfectGuardApplied);
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -265,9 +269,9 @@ void UWxExecCalc_Damage::ApplyHitReaction(const FGameplayEffectCustomExecutionPa
 	FGameplayTag EventTag;
 	if (bGuardHit)
 	{
-		// 일반 가드: Knock 계열이면 GuardHit_Knockback, 그 외엔 GuardHit_Normal → Guard 어빌리티가 분기 처리
-		const bool bIsKnockHitReact = HitReactTag.IsValid() && HitReactTag != WxGameplayTags::Event_HitReact_Normal;
-		EventTag = bIsKnockHitReact ? WxGameplayTags::Event_GuardHit_Knockback : WxGameplayTags::Event_GuardHit_Normal;
+		// 일반 가드: HitReact 태그를 그대로 송출. Guard 어빌리티가 Knock 계열 vs Normal 분기 처리.
+		// 명시 태그가 없으면 가드 흡수 애니메이션을 위해 Normal 로 폴백.
+		EventTag = HitReactTag.IsValid() ? HitReactTag : WxGameplayTags::Event_HitReact_Normal;
 	}
 	else if (bIsGuarding)
 	{
@@ -336,7 +340,7 @@ void UWxExecCalc_Damage::ApplyHitRecovery(UAbilitySystemComponent* SourceASC, co
 //  GameplayCue
 // ────────────────────────────────────────────────────────────────────────────
 
-void UWxExecCalc_Damage::ExecuteGameplayCueDamage(UAbilitySystemComponent* TargetASC, float DamageAmount, FVector HitLocation, const FGameplayEffectSpec& OwningSpec, bool bIsCritical, bool bDisplayDamageFloater) const
+void UWxExecCalc_Damage::ExecuteGameplayCueDamage(UAbilitySystemComponent* TargetASC, float DamageAmount, FVector HitLocation, const FGameplayEffectSpec& OwningSpec, bool bIsCritical) const
 {
 	if (!TargetASC)
 	{
@@ -351,11 +355,6 @@ void UWxExecCalc_Damage::ExecuteGameplayCueDamage(UAbilitySystemComponent* Targe
 	if (bIsCritical)
 	{
 		CueParams.AggregatedSourceTags.AddTag(WxGameplayTags::Damage_Critical);
-	}
-
-	if (!bDisplayDamageFloater)
-	{
-		CueParams.AggregatedSourceTags.AddTag(WxGameplayTags::Damage_SuppressFloater);
 	}
 
 	TargetASC->ExecuteGameplayCue(WxGameplayTags::GameplayCue_Damage, CueParams);

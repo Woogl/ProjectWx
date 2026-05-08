@@ -44,7 +44,7 @@ namespace WxGameplayTags
 
 	// ── Event ─────────────────────────────────────────────────────────────
 
-	/** 피격 이벤트 부모 카테고리. ExecCalc 필터링/디스패치 결정에만 사용 (직접 dispatch 금지) */
+	/** 피격 이벤트 부모 카테고리. ExecCalc 필터링용. Guard 어빌리티가 자식 태그를 모두 수신하기 위해 부모로도 구독 (직접 dispatch 금지) */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact);
 
 	/** 일반 피격 이벤트. HitReact 어빌리티가 기본 HitReactMontage 재생 (PP 소진 시) */
@@ -58,12 +58,6 @@ namespace WxGameplayTags
 
 	/** 넉업 피격 이벤트. HitReact 어빌리티가 Knockup 몽타주 재생 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Knockup);
-
-	/** 일반 가드 피격 이벤트. Guard 어빌리티가 GuardHitReact 몽타주 재생 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_GuardHit_Normal);
-
-	/** 넉 계열(Knockback/Knockdown/Knockup) 가드 피격 이벤트. Guard 어빌리티가 GuardKnockback 몽타주 재생 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_GuardHit_Knockback);
 
 	/** 회피 성공 시 발생하는 이벤트. 무적 구간에서 대미지를 회피했을 때 발송 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_DodgeSuccess);
@@ -100,9 +94,6 @@ namespace WxGameplayTags
 
 	/** 치명타 판정 결과 태그 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Critical);
-	
-	/** 데미지 플로터 출력 억제 태그 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_SuppressFloater);
 
 	/** 가드 불가 공격 태그. 가드·퍼펙트 가드를 무시하고 풀 대미지 적용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Unblockable);
