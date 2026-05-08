@@ -125,6 +125,13 @@ public:
 	//~ End UActorComponent interface
 
 	/**
+	 * 임의 액터에서 인벤토리 매니저를 찾아 반환한다.
+	 * 인벤토리는 PlayerController 에 부착되므로, 액터가 Pawn 이면 소유 컨트롤러를 거쳐 조회한다.
+	 * PlayerController 가 아닌 액터(또는 컨트롤러 미할당 폰) 는 nullptr.
+	 */
+	static UWxInventoryManagerComponent* FindInventory(const AActor* Actor);
+
+	/**
 	 * 권한: ItemDef 를 StackCount 만큼 추가한다.
 	 * Stackable Fragment 가 있으면 기존 엔트리에 MaxStack 한도까지 머지하고, 초과분은 새 엔트리들로 분할한다.
 	 * Stackable Fragment 가 없으면 StackCount 만큼의 신규 엔트리(각 1개) 가 생성된다.
@@ -163,9 +170,6 @@ public:
 	FWxOnInventorySlotChanged OnInventorySlotChanged;
 
 private:
-	/** 장착/사용 대상 액터를 반환. PlayerController 에 부착된 경우 소유 폰(폰 없으면 nullptr), 그 외엔 자기 자신. */
-	AActor* ResolveTargetActor() const;
-
 	/** 신규 인스턴스를 SubObject 시스템에 등록한다. */
 	void RegisterReplicatedInstance(UWxItemInstance* Instance);
 

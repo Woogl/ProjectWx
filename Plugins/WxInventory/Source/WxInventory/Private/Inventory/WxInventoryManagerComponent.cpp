@@ -193,6 +193,25 @@ void UWxInventoryManagerComponent::ReadyForReplication()
 	}
 }
 
+UWxInventoryManagerComponent* UWxInventoryManagerComponent::FindInventory(const AActor* Actor)
+{
+	if (!Actor)
+	{
+		return nullptr;
+	}
+
+	const APlayerController* PC = Cast<APlayerController>(Actor);
+	if (!PC)
+	{
+		if (const APawn* Pawn = Cast<APawn>(Actor))
+		{
+			PC = Cast<APlayerController>(Pawn->GetController());
+		}
+	}
+
+	return PC ? PC->FindComponentByClass<UWxInventoryManagerComponent>() : nullptr;
+}
+
 UWxItemInstance* UWxInventoryManagerComponent::AddItemDefinition(const UWxItemDefinition* ItemDef, int32 StackCount)
 {
 	if (!ItemDef || StackCount <= 0)
@@ -439,7 +458,8 @@ bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef
 	FGameplayEffectSpecHandle Spec;
 	if (Usable->Effect)
 	{
-		TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(ResolveTargetActor());
+		const APlayerController* PC = GetOwner<APlayerController>();
+		TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(PC ? PC->GetPawn() : nullptr);
 		if (!TargetASC)
 		{
 			return false;
@@ -480,7 +500,8 @@ bool UWxInventoryManagerComponent::EquipItemByDef(const UWxItemDefinition* ItemD
 		return false;
 	}
 
-	IWxEquipmentInterface* Interface = Cast<IWxEquipmentInterface>(ResolveTargetActor());
+	const APlayerController* PC = GetOwner<APlayerController>();
+	IWxEquipmentInterface* Interface = Cast<IWxEquipmentInterface>(PC ? PC->GetPawn() : nullptr);
 	if (!Interface)
 	{
 		return false;
@@ -488,17 +509,6 @@ bool UWxInventoryManagerComponent::EquipItemByDef(const UWxItemDefinition* ItemD
 
 	Interface->EquipItem(ItemDef);
 	return true;
-}
-
-AActor* UWxInventoryManagerComponent::ResolveTargetActor() const
-{
-	AActor* OwnerActor = GetOwner();
-	if (const APlayerController* PC = Cast<APlayerController>(OwnerActor))
-	{
-		// PC 부착 시 폰이 정답. 폰이 없으면 ASC 도 없으므로 nullptr 로 명시 — 호출자가 가드.
-		return PC->GetPawn();
-	}
-	return OwnerActor;
 }
 
 void UWxInventoryManagerComponent::RegisterReplicatedInstance(UWxItemInstance* Instance)
