@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Effect/WxExecCalc_Damage.h"
+#include "AbilitySystem/Ability/WxAbility_Guard.h"
 #include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/Effect/WxEffect_Reflect.h"
 #include "AbilitySystem/WxCombatAttributeSet.h"
@@ -9,6 +10,29 @@
 #include "GameplayEffect.h"
 #include "Perception/AISense_Damage.h"
 #include "WxGameplayTags.h"
+
+namespace
+{
+	// Target ASC 에 부여된 Guard 어빌리티 인스턴스를 찾아 DamageReductionRate 를 반환.
+	// 인스턴스 미발견 시 폴백으로 1.f(감소 없음) 반환 — 호출자는 bIsGuarding=true 컨텍스트에서만 호출.
+	float GetActiveGuardDamageReductionRate(const UAbilitySystemComponent* TargetASC)
+	{
+		if (!TargetASC)
+		{
+			return 1.f;
+		}
+
+		for (const FGameplayAbilitySpec& Spec : TargetASC->GetActivatableAbilities())
+		{
+			if (const UWxAbility_Guard* Guard = Cast<UWxAbility_Guard>(Spec.GetPrimaryInstance()))
+			{
+				return Guard->GetDamageReductionRate();
+			}
+		}
+
+		return 1.f;
+	}
+}
 
 struct FWxDamageStatics
 {
@@ -68,38 +92,8 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		return;
 	}
 
-	// --- 2. 베이스 대미지 계산 ---
-	// SetByCaller.RawDamage 양수면 ATK/DEF/Coeff 우회 환경 대미지 모드. 그 외에는 ATK·DEF 공식 적용.
+	// --- 2. 상태 판정 ---
 	const FGameplayEffectSpec& OwningSpec = ExecutionParams.GetOwningSpec();
-	const FWxDamageStatics& Statics = GetDamageStatics();
-
-	FAggregatorEvaluateParameters EvalParams;
-	EvalParams.SourceTags = OwningSpec.CapturedSourceTags.GetAggregatedTags();
-	EvalParams.TargetTags = OwningSpec.CapturedTargetTags.GetAggregatedTags();
-
-	const float RawDamage = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_RawDamage, false, 0.f);
-	const bool bRawMode = RawDamage > 0.f;
-
-	float BaseDamage;
-	if (bRawMode)
-	{
-		BaseDamage = RawDamage;
-	}
-	else
-	{
-		float SourceATK = 0.f;
-		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.ATKDef, EvalParams, SourceATK);
-		const float ATKCoeff = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, false, 0.f);
-		SourceATK *= ATKCoeff;
-
-		float TargetDEF = 0.f;
-		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.DEFDef, EvalParams, TargetDEF);
-		const float DefenseMultiplier = 100.f / (100.f + TargetDEF);
-
-		BaseDamage = SourceATK * DefenseMultiplier;
-	}
-
-	// --- 3. 상태 판정 ---
 	const bool bIsUnblockable = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable);
 	const bool bHasPerfectGuard = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_PerfectGuard);
 	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard);
@@ -107,12 +101,17 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	// Unblockable 공격은 퍼펙트 가드를 포함한 모든 가드를 무시한다.
 	const bool bPerfectGuardApplied = bHasPerfectGuard && !bIsUnblockable;
 
-	// --- 4. 대미지 적용 ---
-	FWxDamageResult DamageResult;
+	// --- 3. 대미지 계산 ---
+	// 퍼펙트 가드 시 반사량 산출을 위해 크리 스킵. CalcDamage 내부에서 Raw 모드도 자동으로 크리 스킵.
+	FAggregatorEvaluateParameters EvalParams;
+	EvalParams.SourceTags = OwningSpec.CapturedSourceTags.GetAggregatedTags();
+	EvalParams.TargetTags = OwningSpec.CapturedTargetTags.GetAggregatedTags();
 
+	FWxDamageResult DamageResult = CalcDamage(ExecutionParams, EvalParams, bPerfectGuardApplied);
+
+	// --- 4. 대미지 적용 ---
 	if (bPerfectGuardApplied)
 	{
-		DamageResult.FinalDamage = FMath::Max(BaseDamage, 0.f);
 		ReflectPerfectGuard(SourceASC, DamageResult.FinalDamage);
 
 		FGameplayEventData EventData;
@@ -122,25 +121,15 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	}
 	else
 	{
-		// Raw 모드는 크리 무시
-		if (bRawMode)
-		{
-			DamageResult.FinalDamage = FMath::Max(BaseDamage, 0.f);
-		}
-		else
-		{
-			DamageResult = CalcDamage(ExecutionParams, EvalParams, BaseDamage);
-		}
-
-		// 가드 감소: Unblockable이 아닌 가드 상태에서 50% 감소
+		// 가드 감소: Unblockable이 아닌 가드 상태에서 Guard 어빌리티의 DamageReductionRate 만큼 감소
 		if (!bIsUnblockable && bIsGuarding)
 		{
-			constexpr float GuardDamageReductionRate = 0.5f;
-			DamageResult.FinalDamage *= GuardDamageReductionRate;
+			DamageResult.FinalDamage *= GetActiveGuardDamageReductionRate(TargetASC);
 		}
 
 		if (DamageResult.FinalDamage > 0.f)
 		{
+			const FWxDamageStatics& Statics = GetDamageStatics();
 			OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
 
 			if (!TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
@@ -223,18 +212,48 @@ void UWxExecCalc_Damage::ReflectPerfectGuard(UAbilitySystemComponent* SourceASC,
 //  대미지 계산
 // ────────────────────────────────────────────────────────────────────────────
 
-FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, float BaseDamage) const
+FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, bool bSkipCrit) const
 {
+	const FGameplayEffectSpec& OwningSpec = ExecutionParams.GetOwningSpec();
 	const FWxDamageStatics& Statics = GetDamageStatics();
+
+	// SetByCaller.RawDamage 양수면 ATK/DEF/Coeff 우회 환경 대미지 모드. 그 외에는 ATK·DEF 공식 적용.
+	const float RawDamage = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_RawDamage, false, 0.f);
+	const bool bRawMode = RawDamage > 0.f;
+
+	float BaseDamage;
+	if (bRawMode)
+	{
+		BaseDamage = RawDamage;
+	}
+	else
+	{
+		float SourceATK = 0.f;
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.ATKDef, EvalParams, SourceATK);
+		const float ATKCoeff = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, false, 0.f);
+		SourceATK *= ATKCoeff;
+
+		float TargetDEF = 0.f;
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.DEFDef, EvalParams, TargetDEF);
+		const float DefenseMultiplier = 100.f / (100.f + TargetDEF);
+
+		BaseDamage = SourceATK * DefenseMultiplier;
+	}
+
+	FWxDamageResult Result;
+	Result.FinalDamage = FMath::Max(BaseDamage, 0.f);
+
+	// Raw 모드와 외부 요청(퍼펙트 가드 등)에서 크리 스킵
+	if (bRawMode || bSkipCrit)
+	{
+		return Result;
+	}
 
 	float SourceCritRate = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.CritRateDef, EvalParams, SourceCritRate);
 
 	float SourceCritDMG = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.CritDMGDef, EvalParams, SourceCritDMG);
-
-	FWxDamageResult Result;
-	Result.FinalDamage = FMath::Max(BaseDamage, 0.f);
 
 	// 치명타: CritRate 1당 1%, 치명타 시 (1 + CritDMG * 0.01) 배율
 	const float CritChance = FMath::Clamp(SourceCritRate * 0.01f, 0.f, 1.f);

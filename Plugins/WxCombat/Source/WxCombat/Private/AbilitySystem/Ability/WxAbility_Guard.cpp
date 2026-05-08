@@ -85,6 +85,11 @@ void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, co
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
+float UWxAbility_Guard::GetDamageReductionRate() const
+{
+	return DamageReductionRate;
+}
+
 bool UWxAbility_Guard::PlayMontage(UAnimMontage* Montage)
 {
 	// 페이즈 전환 시 이전 몽타주 태스크를 명시적으로 정리해 콜백 잔여 발생을 차단한다.

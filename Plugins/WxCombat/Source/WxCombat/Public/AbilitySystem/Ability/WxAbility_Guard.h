@@ -36,6 +36,9 @@ public:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
+	/** 가드 중 받는 대미지 배율(0~1). ExecCalc 가 가드 피격 시 이 값을 곱한다. */
+	float GetDamageReductionRate() const;
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> GuardMontage;
@@ -49,7 +52,11 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> GuardBreakMontage;
-	
+
+	/** 가드 중 받는 대미지 배율(0~1). 0.5 면 50% 감소. ExecCalc_Damage 가 가드 피격 분기에서 참조. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability", meta = (ClampMin = "0", ClampMax = "1"))
+	float DamageReductionRate = 0.5f;
+
 	/** 퍼펙트 가드 성공 시 회복하는 MP량 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Recovery")
 	float PerfectGuardMPRecovery = 5.f;
