@@ -1,0 +1,16 @@
+{
+	"blueprintPath": "/Game/AbilitySystem/Cue/GC_Exceed.GC_Exceed",
+	"classDefaults":
+	{
+		"NiagaraSystem": "/Game/NiagaraExamples/FX_Player/NS_Player_Electricity_Looping.NS_Player_Electricity_Looping"
+	},
+	"components":
+	{
+		"DefaultSceneRoot":
+		{
+			"componentClass": "/Script/Engine.SceneComponent",
+			"variableName": "DefaultSceneRoot"
+		}
+	},
+	"parentClass": "/Script/WxCombat.WxCueNotify_Exceed"
+}

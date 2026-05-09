@@ -1,0 +1,4 @@
+{
+	"blueprintPath": "/Game/AbilitySystem/Effect/GE_Exceed.GE_Exceed",
+	"parentClass": "/Script/WxCombat.WxEffect_Exceed"
+}

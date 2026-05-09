@@ -63,6 +63,11 @@ AWxWeaponBase* AWxWeaponBase::FindWeapon(const AActor* Owner)
 	return nullptr;
 }
 
+USkeletalMeshComponent* AWxWeaponBase::GetMesh() const
+{
+	return Mesh;
+}
+
 void AWxWeaponBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	DetachFromCharacter();

@@ -63,6 +63,9 @@ public:
 	/** 캐릭터에서 분리한다. 활성 공격 구간이 있으면 강제 종료 후 메시에서 분리한다. */
 	void DetachFromCharacter();
 
+	/** 무기 외형 메시 컴포넌트를 반환. C++ 서브오브젝트로 항상 존재 (BP가 추가한 별도 메시는 포함하지 않음) */
+	USkeletalMeshComponent* GetMesh() const;
+
 	/** 역경직 지속 시간 (초). 0 이하이면 역경직 미적용 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
 	float HitStopDuration = 0.15f;
