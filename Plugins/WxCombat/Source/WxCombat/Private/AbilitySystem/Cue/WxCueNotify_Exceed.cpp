@@ -39,17 +39,9 @@ bool AWxCueNotify_Exceed::OnActive_Implementation(AActor* MyTarget, const FGamep
 	{
 		return false;
 	}
-
-	// SpawnSystemAttached는 Outer = AttachToComponent->GetOwner() 로 NewObject하므로
-	// 결과적으로 Niagara 컴포넌트가 무기 액터의 자식으로 생성된다.
-	SpawnedNiagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
-		NiagaraSystem,
-		WeaponMesh,
-		WeaponAttachSocket,
-		FVector::ZeroVector,
-		FRotator::ZeroRotator,
-		EAttachLocation::SnapToTarget,
-		true);
+	
+	SpawnedNiagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(NiagaraSystem, WeaponMesh, WeaponAttachSocket, 
+		FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
 
 	return true;
 }
