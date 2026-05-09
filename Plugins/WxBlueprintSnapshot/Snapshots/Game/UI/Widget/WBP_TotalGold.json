@@ -1,0 +1,91 @@
+{
+	"blueprintPath": "/Game/UI/Widget/WBP_TotalGold.WBP_TotalGold",
+	"mvvm":
+	{
+		"bindings": [
+			{
+				"bindingType": "OneWayToDestination",
+				"destination": "SetLazyTexture",
+				"source": "IconAsset"
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"bAlwaysSign": "false",
+						"bUseGrouping": "true",
+						"MaximumIntegralDigits": "324",
+						"MinimumIntegralDigits": "1",
+						"Value": "ItemCount"
+					},
+					"function": "Conv_IntToText"
+				},
+				"destination": "Text",
+				"source": ""
+			}
+		],
+		"viewModels":
+		{
+			"WxViewModel_Item":
+			{
+				"class": "/Script/WxGame.WxViewModel_Item",
+				"contextId": "C1506BA4-4788-6255-675C-10B7A65AF892",
+				"createGetter": true,
+				"createSetter": false,
+				"creationType": "Resolver",
+				"optional": false
+			}
+		}
+	},
+	"parentClass": "/Script/UMG.UserWidget",
+	"widgetTree":
+	{
+		"root": "HorizontalBox_19",
+		"widgets":
+		{
+			"Amount":
+			{
+				"class": "/Script/CommonUI.CommonTextBlock",
+				"delta":
+				{
+					"Font":
+					{
+						"OutlineSettings":
+						{
+							"OutlineSize": 1
+						},
+						"Size": 19.5
+					},
+					"Text": "9999"
+				},
+				"parent": "HorizontalBox_19",
+				"slot":
+				{
+					"class": "/Script/UMG.HorizontalBoxSlot",
+					"delta":
+					{
+						"Padding":
+						{
+							"Left": 15
+						}
+					}
+				}
+			},
+			"HorizontalBox_19":
+			{
+				"class": "/Script/UMG.HorizontalBox"
+			},
+			"WxLazyImage_68":
+			{
+				"class": "/Script/WxUI.WxLazyImage",
+				"parent": "HorizontalBox_19",
+				"slot":
+				{
+					"class": "/Script/UMG.HorizontalBoxSlot"
+				}
+			}
+		}
+	}
+}

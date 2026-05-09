@@ -26,7 +26,6 @@ void UWxViewModel_Item::Initialize(UWxInventoryManagerComponent* InInventory, UW
 
 	ApplyStaticDataFromDef(InInstance->GetItemDef());
 	UE_MVVM_SET_PROPERTY_VALUE(ItemCount, InInventory->GetStackCountByInstance(InInstance));
-	UE_MVVM_SET_PROPERTY_VALUE(LastDelta, 0);
 
 	SetInitialized(true);
 }
@@ -46,7 +45,6 @@ void UWxViewModel_Item::Initialize(UWxInventoryManagerComponent* InInventory, co
 
 	ApplyStaticDataFromDef(InItemDef);
 	UE_MVVM_SET_PROPERTY_VALUE(ItemCount, InInventory->GetTotalItemCountByDefinition(InItemDef));
-	UE_MVVM_SET_PROPERTY_VALUE(LastDelta, 0);
 
 	SetInitialized(true);
 }
@@ -65,8 +63,7 @@ void UWxViewModel_Item::Deinitialize()
 	TargetInstance.Reset();
 
 	ItemCount = 0;
-	LastDelta = 0;
-	Icon = nullptr;
+	IconAsset.Reset();
 	DisplayName = FText::GetEmpty();
 	Grade = EWxItemGrade::Common;
 
@@ -83,7 +80,6 @@ void UWxViewModel_Item::HandleStackChanged(const UWxItemDefinition* ItemDef, int
 	}
 
 	UE_MVVM_SET_PROPERTY_VALUE(ItemCount, NewCount);
-	UE_MVVM_SET_PROPERTY_VALUE(LastDelta, Delta);
 }
 
 UWxItemInstance* UWxViewModel_Item::GetTargetInstance() const
@@ -99,7 +95,6 @@ void UWxViewModel_Item::HandleSlotChanged(UWxItemInstance* Instance, int32 NewSt
 	}
 
 	UE_MVVM_SET_PROPERTY_VALUE(ItemCount, NewStackCount);
-	UE_MVVM_SET_PROPERTY_VALUE(LastDelta, Delta);
 }
 
 void UWxViewModel_Item::ApplyStaticDataFromDef(const UWxItemDefinition* InItemDef)
@@ -109,7 +104,7 @@ void UWxViewModel_Item::ApplyStaticDataFromDef(const UWxItemDefinition* InItemDe
 		return;
 	}
 
-	UE_MVVM_SET_PROPERTY_VALUE(Icon, InItemDef->Icon.LoadSynchronous());
+	UE_MVVM_SET_PROPERTY_VALUE(IconAsset, InItemDef->Icon);
 	UE_MVVM_SET_PROPERTY_VALUE(DisplayName, InItemDef->DisplayName);
 	UE_MVVM_SET_PROPERTY_VALUE(Grade, InItemDef->Grade);
 }

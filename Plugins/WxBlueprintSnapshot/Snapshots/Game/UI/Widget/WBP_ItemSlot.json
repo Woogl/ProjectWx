@@ -17,8 +17,8 @@
 		"bindings": [
 			{
 				"bindingType": "OneWayToDestination",
-				"destination": "SetBrushResourceObject",
-				"source": "Icon"
+				"destination": "SetLazyTexture",
+				"source": "IconAsset"
 			},
 			{
 				"bindingType": "OneWayToDestination",
@@ -82,20 +82,6 @@
 					}
 				}
 			},
-			"Image_27":
-			{
-				"class": "/Script/UMG.Image",
-				"parent": "Overlay_25",
-				"slot":
-				{
-					"class": "/Script/UMG.OverlaySlot",
-					"delta":
-					{
-						"HorizontalAlignment": "HAlign_Fill",
-						"VerticalAlignment": "VAlign_Fill"
-					}
-				}
-			},
 			"Overlay_25":
 			{
 				"class": "/Script/UMG.Overlay",
@@ -114,6 +100,33 @@
 					"bOverride_WidthOverride": true,
 					"HeightOverride": 100,
 					"WidthOverride": 100
+				}
+			},
+			"WxLazyImage_88":
+			{
+				"class": "/Script/WxUI.WxLazyImage",
+				"delta":
+				{
+					"Brush":
+					{
+						"ImageSize":
+						{
+							"X": 256,
+							"Y": 256
+						},
+						"ImageType": "FullColor",
+						"ResourceObject": "/Game/UIMaterialLab/Textures/T_UI_Potion.T_UI_Potion"
+					}
+				},
+				"parent": "Overlay_25",
+				"slot":
+				{
+					"class": "/Script/UMG.OverlaySlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Fill",
+						"VerticalAlignment": "VAlign_Fill"
+					}
 				}
 			}
 		}

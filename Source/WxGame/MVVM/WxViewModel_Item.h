@@ -22,7 +22,7 @@ class UMVVMView;
  *   - Initialize(Inventory, ItemInstance) : 특정 슬롯에 바인딩. ListView 엔트리처럼 동일 ItemDef 가 분할된 슬롯을 각자 표현해야 할 때 사용. 슬롯 단위 델리게이트에 구독한다.
  *   - Initialize(Inventory, ItemDef)      : ItemDef 합계에 바인딩. HUD 재화 등 "해당 아이템 총 보유량" 을 표시할 때 사용(Resolver 경로). 합계 델리게이트에 구독한다.
  *
- * UMG 는 ItemCount/Icon/DisplayName/Grade 에 직접 바인딩을 걸고, LastDelta 로 획득/소모 애니메이션을 트리거한다. 정적 표시 데이터(Icon/DisplayName/Grade)는 Initialize 시점 1회 세팅되며 이후 변하지 않는다.
+ * UMG 는 ItemCount/IconAsset/DisplayName/Grade 에 직접 바인딩을 건다. 정적 표시 데이터(IconAsset/DisplayName/Grade)는 Initialize 시점 1회 세팅되며 이후 변하지 않는다. IconAsset 은 Soft 참조 그대로 전달되므로, View 측은 UCommonLazyImage 의 SetBrushFromLazyDisplayAsset 으로 비동기 로드한다.
  */
 UCLASS()
 class WXGAME_API UWxViewModel_Item : public UWxViewModel
@@ -45,13 +45,12 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	int32 ItemCount = 0;
 
-	/** 가장 최근 변화량(양수: 획득, 음수: 소모). 애니메이션 트리거용. */
+	/**
+	 * 슬롯 아이콘의 Soft 참조. View 측 UCommonLazyImage 가 비동기 로드/수명 관리한다.
+	 * VM 은 Definition 의 Soft 참조를 그대로 노출만 하며, LoadSynchronous 를 호출하지 않는다.
+	 */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
-	int32 LastDelta = 0;
-
-	/** 슬롯 아이콘. Initialize 시점에 Soft 참조를 동기 로드해 세팅. */
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
-	TObjectPtr<UTexture2D> Icon;
+	TSoftObjectPtr<UTexture2D> IconAsset;
 
 	/** 슬롯 표시 이름. 로컬라이즈 대상. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")

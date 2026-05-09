@@ -180,9 +180,9 @@
 			{
 				"class": "/Game/UI/Widget/WBP_Close.WBP_Close_C"
 			},
-			"WBP_CurrencySlot":
+			"WBP_TotalGold":
 			{
-				"class": "/Game/UI/Widget/WBP_CurrencySlot.WBP_CurrencySlot_C"
+				"class": "/Game/UI/Widget/WBP_TotalGold.WBP_TotalGold_C"
 			}
 		}
 	}
