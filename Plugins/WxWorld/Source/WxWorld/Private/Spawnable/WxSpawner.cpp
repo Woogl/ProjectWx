@@ -88,7 +88,10 @@ void AWxSpawner::BeginPlay()
 		}
 	}
 
-	SpawnTarget();
+	if (bSpawnOnBeginPlay)
+	{
+		SpawnTarget();
+	}
 }
 
 void AWxSpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)

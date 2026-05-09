@@ -1,13 +1,12 @@
 {
-	"blueprintPath": "/Game/WorldObject/Gimmick/BP_CutsceneTrigger.BP_CutsceneTrigger",
+	"blueprintPath": "/Game/WorldObject/Gimmick/BP_SpawnConsole.BP_SpawnConsole",
 	"classDefaults":
 	{
-		"InteractionComponent":
+		"ConsoleInteraction":
 		{
 			"class": "/Script/WxWorld.WxInteractionComponent",
 			"delta":
 			{
-				"InteractionText": "[F] Play CCTV",
 				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C",
 				"RelativeLocation":
 				{
@@ -15,15 +14,18 @@
 				}
 			}
 		},
-		"MeshComponent":
+		"ConsoleMesh":
 		{
 			"class": "/Script/Engine.StaticMeshComponent",
 			"delta":
 			{
+				"RelativeRotation":
+				{
+					"Yaw": -90
+				},
 				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/Display_Button.Display_Button"
 			}
-		},
-		"RootComponent": "MeshComponent"
+		}
 	},
-	"parentClass": "/Script/WxWorld.WxCutsceneTrigger"
+	"parentClass": "/Script/WxWorld.WxSpawnConsole"
 }

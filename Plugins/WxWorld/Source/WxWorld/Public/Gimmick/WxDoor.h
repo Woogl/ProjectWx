@@ -56,7 +56,7 @@ protected:
 
 	/** 문이 완전히 열렸을 때 닫힘 위치 기준 오프셋. 닫힘 위치 + Offset 으로 슬라이드. */
 	UPROPERTY(EditAnywhere, Category = "Wx")
-	FVector DoorOpenOffset = FVector(0.f, 0.f, 200.f);
+	FVector DoorOpenOffset = FVector(0.f, 250.f, 0.f);
 
 private:
 	UFUNCTION()
