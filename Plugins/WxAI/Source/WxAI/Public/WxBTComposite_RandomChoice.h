@@ -42,11 +42,3 @@ protected:
 
 	virtual int32 GetNextChildHandler(struct FBehaviorTreeSearchData& SearchData, int32 PrevChild, EBTNodeResult::Type LastResult) const override;
 };
-
-/**
- * LastChosenChild: 직전 진입에서 선택된 자식 인덱스. 회피 비교 기준. INDEX_NONE = 미설정.
- */
-struct FWxBTRandomChoiceMemory
-{
-	int32 LastChosenChild;
-};

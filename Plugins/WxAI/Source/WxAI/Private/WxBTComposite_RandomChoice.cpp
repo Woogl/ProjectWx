@@ -12,7 +12,7 @@ UWxBTComposite_RandomChoice::UWxBTComposite_RandomChoice(const FObjectInitialize
 
 uint16 UWxBTComposite_RandomChoice::GetInstanceMemorySize() const
 {
-	return sizeof(FWxBTRandomChoiceMemory);
+	return sizeof(int32);
 }
 
 void UWxBTComposite_RandomChoice::InitializeMemory(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTMemoryInit::Type InitType) const
@@ -21,8 +21,8 @@ void UWxBTComposite_RandomChoice::InitializeMemory(UBehaviorTreeComponent& Owner
 
 	if (InitType == EBTMemoryInit::Initialize)
 	{
-		FWxBTRandomChoiceMemory* Memory = reinterpret_cast<FWxBTRandomChoiceMemory*>(NodeMemory);
-		Memory->LastChosenChild = INDEX_NONE;
+		// 직전 진입에서 선택된 자식 인덱스. 회피 비교 기준. INDEX_NONE = 미설정.
+		*reinterpret_cast<int32*>(NodeMemory) = INDEX_NONE;
 	}
 }
 
@@ -40,15 +40,15 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 		return BTSpecialChild::ReturnToParent;
 	}
 
-	FWxBTRandomChoiceMemory* Memory = reinterpret_cast<FWxBTRandomChoiceMemory*>(GetNodeMemory<uint8>(SearchData));
+	int32& LastChosenChild = *reinterpret_cast<int32*>(GetNodeMemory<uint8>(SearchData));
 
-	const bool bShouldAvoid = bAvoidRepeat && Memory->LastChosenChild != INDEX_NONE && ChildrenNum > 1;
+	const bool bShouldAvoid = bAvoidRepeat && LastChosenChild != INDEX_NONE && ChildrenNum > 1;
 
 	TArray<int32, TInlineAllocator<8>> Candidates;
 	Candidates.Reserve(ChildrenNum);
 	for (int32 Index = 0; Index < ChildrenNum; ++Index)
 	{
-		if (bShouldAvoid && Index == Memory->LastChosenChild)
+		if (bShouldAvoid && Index == LastChosenChild)
 		{
 			continue;
 		}
@@ -61,7 +61,7 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 	}
 
 	const int32 Chosen = Candidates[FMath::RandRange(0, Candidates.Num() - 1)];
-	Memory->LastChosenChild = Chosen;
+	LastChosenChild = Chosen;
 	return Chosen;
 }
 
