@@ -93,11 +93,7 @@
 			},
 			"HorizontalBox_19":
 			{
-				"class": "/Script/UMG.HorizontalBox",
-				"delta":
-				{
-					"RenderOpacity": 0
-				}
+				"class": "/Script/UMG.HorizontalBox"
 			},
 			"ItemName":
 			{
@@ -130,6 +126,10 @@
 			"WxLazyImage_68":
 			{
 				"class": "/Script/WxUI.WxLazyImage",
+				"delta":
+				{
+					"Visibility": "SelfHitTestInvisible"
+				},
 				"parent": "HorizontalBox_19",
 				"slot":
 				{
