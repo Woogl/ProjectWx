@@ -1,0 +1,28 @@
+{
+	"blueprintPath": "/Game/Character/Player/HR/Skill/Skill1/HR_GA_Skill_1.HR_GA_Skill_1",
+	"classDefaults":
+	{
+		"AbilityDataRow":
+		{
+			"DataTable": "/Game/AbilitySystem/DT_Ability.DT_Ability",
+			"RowName": "GA_Skill_1"
+		},
+		"AbilityIcon": "/Game/UIMaterialLab/Textures/T_UI_Sword.T_UI_Sword",
+		"AbilityTags":
+		{
+			"GameplayTags": [
+				{
+					"TagName": "Ability.Skill.1"
+				}
+			]
+		},
+		"ActivationInputTag":
+		{
+			"TagName": "Input.Skill.1"
+		},
+		"CooldownTime": 5,
+		"MPCost": 5,
+		"SkillMontage": "/Game/Character/Player/HR/Skill/Skill1/HR_AM_Skill_1.HR_AM_Skill_1"
+	},
+	"parentClass": "/Script/WxCombat.WxAbility_Skill"
+}

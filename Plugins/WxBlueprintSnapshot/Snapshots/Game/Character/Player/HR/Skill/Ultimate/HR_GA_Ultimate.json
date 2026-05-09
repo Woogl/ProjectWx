@@ -1,0 +1,55 @@
+{
+	"blueprintPath": "/Game/Character/Player/HR/Skill/Ultimate/HR_GA_Ultimate.HR_GA_Ultimate",
+	"classDefaults":
+	{
+		"AbilityDataRow":
+		{
+			"DataTable": "/Game/AbilitySystem/DT_Ability.DT_Ability",
+			"RowName": "GA_Ultimate"
+		},
+		"AbilityIcon": "/Game/UIMaterialLab/Textures/T_UI_Oxo.T_UI_Oxo",
+		"CooldownTime": 5,
+		"CutsceneSequence": "/Game/Character/Player/HR/Skill/Ultimate/HR_LS_Ultimate.HR_LS_Ultimate",
+		"OnActivateEffects": [
+			{
+				"EffectClass": "/Game/AbilitySystem/Effect/GE_Metamorphose.GE_Metamorphose_C",
+				"SetByCallers": [
+					{
+						"key":
+						{
+							"TagName": "SetByCaller.Duration"
+						},
+						"value": 10
+					}
+				]
+			},
+			{
+				"EffectClass": "/Script/WxCombat.WxEffect_NoCooldown",
+				"SetByCallers": [
+					{
+						"key":
+						{
+							"TagName": "SetByCaller.Duration"
+						},
+						"value": 10
+					}
+				]
+			},
+			{
+				"EffectClass": "/Script/WxCombat.WxEffect_InfiniteMP",
+				"SetByCallers": [
+					{
+						"key":
+						{
+							"TagName": "SetByCaller.Duration"
+						},
+						"value": 10
+					}
+				]
+			}
+		],
+		"UltimateMontage": "/Game/Character/Player/HR/Skill/Ultimate/HR_AM_Ultimate.HR_AM_Ultimate",
+		"UPCost": 100
+	},
+	"parentClass": "/Script/WxCombat.WxAbility_Ultimate"
+}
