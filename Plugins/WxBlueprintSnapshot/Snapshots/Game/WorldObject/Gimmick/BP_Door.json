@@ -1,0 +1,50 @@
+{
+	"blueprintPath": "/Game/WorldObject/Gimmick/BP_Door.BP_Door",
+	"classDefaults":
+	{
+		"Console":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"RelativeLocation":
+				{
+					"X": 90,
+					"Y": -1.2167963969744733e-07
+				},
+				"RelativeRotation":
+				{
+					"Yaw": 90
+				},
+				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/Display_Button.Display_Button"
+			}
+		},
+		"ConsoleInteraction":
+		{
+			"class": "/Script/WxWorld.WxInteractionComponent",
+			"delta":
+			{
+				"InteractionText": "[F] Open",
+				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C",
+				"RelativeLocation":
+				{
+					"Z": 100
+				}
+			}
+		},
+		"Door":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/SM_Door.SM_Door"
+			}
+		},
+		"DoorOpenOffset":
+		{
+			"Y": 250,
+			"Z": 0
+		}
+	},
+	"parentClass": "/Script/WxWorld.WxDoor"
+}

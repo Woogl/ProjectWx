@@ -67,17 +67,16 @@ void AWxElevator::BeginPlay()
 	CachedSplineLength = SplineComponent->GetSplineLength();
 
 	// 문 닫힘 위치 캐시: BP/레벨에서 배치된 상대 위치를 닫힘 기준으로 사용.
+	// 레이트조인 시 OnRep_State 가 BeginPlay 이후 발화하므로 그 시점에 캐시가 유효해야 한다.
 	DoorLeftClosedLocation = DoorLeft->GetRelativeLocation();
 	DoorRightClosedLocation = DoorRight->GetRelativeLocation();
 
+	// CurrentDistance 는 COND_InitialOnly 로 복제되므로, 레이트조인 시 현재 위치로 플랫폼을 스냅.
 	UpdatePlatformPosition();
 
 	PlatformInteraction->OnInteracted.AddDynamic(this, &AWxElevator::HandlePlatformInteracted);
 	CallConsoleAInteraction->OnInteracted.AddDynamic(this, &AWxElevator::HandleCallConsoleAInteracted);
 	CallConsoleBInteraction->OnInteracted.AddDynamic(this, &AWxElevator::HandleCallConsoleBInteracted);
-
-	// 레이트조인: 진행 중인 시퀀스 상태에 맞춰 시각 효과/틱/인터랙션 정리. (DoorsClosed/DoorsOpen 이면 no-op 에 가까움)
-	ApplyStateSideEffects();
 }
 
 void AWxElevator::Tick(float DeltaTime)
@@ -107,7 +106,7 @@ void AWxElevator::Tick(float DeltaTime)
 				// bMovingForward 는 다음 이동 방향(=직전에 도착한 끝점의 반대)을 의미하도록 토글. OnRep 측 끝점 스냅 판정에 사용됨.
 				bMovingForward = !bMovingForward;
 				State = EWxElevatorState::DoorsOpening;
-				ApplyStateSideEffects();
+				ApplyState();
 			}
 		}
 		break;
@@ -122,7 +121,7 @@ void AWxElevator::Tick(float DeltaTime)
 		if (HasAuthority() && DoorAnimProgress >= 1.f)
 		{
 			State = EWxElevatorState::DoorsOpen;
-			ApplyStateSideEffects();
+			ApplyState();
 		}
 		break;
 	}
@@ -136,7 +135,7 @@ void AWxElevator::Tick(float DeltaTime)
 		if (HasAuthority() && DoorAnimProgress <= 0.f)
 		{
 			State = EWxElevatorState::Moving;
-			ApplyStateSideEffects();
+			ApplyState();
 		}
 		break;
 	}
@@ -208,7 +207,7 @@ void AWxElevator::BeginMoveSequence(float TargetDistance)
 		if (State == EWxElevatorState::DoorsClosed)
 		{
 			State = EWxElevatorState::DoorsOpening;
-			ApplyStateSideEffects();
+			ApplyState();
 		}
 		return;
 	}
@@ -218,22 +217,22 @@ void AWxElevator::BeginMoveSequence(float TargetDistance)
 	if (State == EWxElevatorState::DoorsOpen)
 	{
 		State = EWxElevatorState::DoorsClosing;
-		ApplyStateSideEffects();
+		ApplyState();
 	}
 	else
 	{
 		// 문이 이미 닫혀 있으므로 DoorsClosing 단계 건너뛰고 즉시 이동 시작.
 		State = EWxElevatorState::Moving;
-		ApplyStateSideEffects();
+		ApplyState();
 	}
 }
 
 void AWxElevator::OnRep_State()
 {
-	ApplyStateSideEffects();
+	ApplyState();
 }
 
-void AWxElevator::ApplyStateSideEffects()
+void AWxElevator::ApplyState()
 {
 	switch (State)
 	{

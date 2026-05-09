@@ -1,0 +1,81 @@
+// Copyright Woogle. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "WxDoor.generated.h"
+
+class UStaticMeshComponent;
+class UWxInteractionComponent;
+
+UENUM()
+enum class EWxDoorState : uint8
+{
+	Closed,
+	Opening,
+	Open
+};
+
+/**
+ * 1회성 개폐 문.
+ * 콘솔과 상호작용하면 문이 열린다. 한 번 열린 뒤에는 닫을 수 없으며 콘솔 상호작용도 비활성화된다.
+ *
+ * 상태 머신:
+ *   Closed (초기) → 콘솔 상호작용 → Opening → Open (영구 고정)
+ */
+UCLASS(Abstract)
+class WXWORLD_API AWxDoor : public AActor
+{
+	GENERATED_BODY()
+
+public:
+	AWxDoor();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+protected:
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
+
+	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	TObjectPtr<USceneComponent> SceneRoot;
+
+	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	TObjectPtr<UStaticMeshComponent> Door;
+
+	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	TObjectPtr<UStaticMeshComponent> Console;
+
+	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	TObjectPtr<UWxInteractionComponent> ConsoleInteraction;
+
+	/** 문 열림 애니메이션 길이(초). */
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ClampMin = "0"))
+	float DoorAnimDuration = 1.f;
+
+	/** 문이 완전히 열렸을 때 닫힘 위치 기준 오프셋. 닫힘 위치 + Offset 으로 슬라이드. */
+	UPROPERTY(EditAnywhere, Category = "Wx")
+	FVector DoorOpenOffset = FVector(0.f, 0.f, 200.f);
+
+private:
+	UFUNCTION()
+	void HandleConsoleInteracted(AActor* InteractingActor);
+
+	UFUNCTION()
+	void OnRep_State();
+
+	/** 현재 State 값을 런타임(틱/인터랙션/문 위치) 에 적용. 서버 상태 변경과 OnRep 양쪽에서 호출. */
+	void ApplyState();
+
+	/** DoorAnimProgress 에 따라 문 위치를 lerp. */
+	void UpdateDoorPosition();
+
+	UPROPERTY(ReplicatedUsing = OnRep_State)
+	EWxDoorState State = EWxDoorState::Closed;
+
+	/** 문 애니 진행도. 0=닫힘, 1=열림. 각 머신에서 Tick 으로 로컬 누적 (복제 없음). */
+	float DoorAnimProgress = 0.f;
+
+	FVector DoorClosedLocation;
+};

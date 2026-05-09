@@ -117,8 +117,8 @@ private:
 
 	void BeginMoveSequence(float TargetDistance);
 
-	/** 현재 State 에 따른 시각 효과(틱/인터랙션/위치 스냅) 적용. 서버 상태 변경 시점과 클라이언트 OnRep 양쪽에서 호출. */
-	void ApplyStateSideEffects();
+	/** 현재 State 값을 런타임(틱/인터랙션/위치 스냅) 에 적용. 서버 상태 변경 시점과 클라이언트 OnRep 양쪽에서 호출. */
+	void ApplyState();
 
 	void UpdatePlatformPosition();
 
