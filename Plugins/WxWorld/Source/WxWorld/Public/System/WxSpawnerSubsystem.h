@@ -24,6 +24,9 @@ public:
 	/** 해당 Spawner를 처치 상태로 기록한다. 이후 재스트리밍 시 해당 Spawner는 스폰을 스킵한다. */
 	void MarkSpawnerKilled(const AWxSpawner* Spawner);
 
+	/** Spawner 가 보유한 액터를 통해 역조회 후 처치 기록을 남긴다. 캐릭터 사망 시 호출. */
+	void MarkSpawnableKilled(const AActor* SpawnedActor);
+
 	/** 해당 Spawner가 처치 상태인지 조회한다. */
 	bool IsSpawnerKilled(const AWxSpawner* Spawner) const;
 
@@ -32,5 +35,10 @@ public:
 
 private:
 	TSet<TWeakObjectPtr<AWxSpawner>> RegisteredSpawners;
+
+	/** 부활 대상 처치 기록. RespawnAll 시 일괄 초기화된다. */
 	TSet<FGuid> KilledSpawnerIds;
+
+	/** 영구 사망(bEnableRespawn=false) Spawner의 처치 기록. RespawnAll에서도 보존된다. */
+	TSet<FGuid> PermanentlyKilledSpawnerIds;
 };

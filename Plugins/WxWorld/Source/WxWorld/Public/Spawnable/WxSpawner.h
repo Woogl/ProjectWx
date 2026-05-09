@@ -23,6 +23,12 @@ public:
 	/** 현재 스폰된 액터를 파괴하고 SpawnableActorClass로 새로 스폰한다. 서버 권한 필요. */
 	void Respawn();
 
+	/** 체크포인트 상호작용 등 일괄 리스폰의 대상인지 여부. false면 처치 시 영구 사망 처리(보스 등). */
+	bool IsRespawnEnabled() const;
+
+	/** 현재 이 Spawner가 보유한 spawned 액터. Subsystem 의 spawnable→spawner 역조회 등에 사용. */
+	AActor* GetSpawnedActor() const;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

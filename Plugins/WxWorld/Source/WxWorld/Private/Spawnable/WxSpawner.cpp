@@ -115,19 +115,38 @@ void AWxSpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
+bool AWxSpawner::IsRespawnEnabled() const
+{
+	return bEnableRespawn;
+}
+
+AActor* AWxSpawner::GetSpawnedActor() const
+{
+	return SpawnedActor.Get();
+}
+
 void AWxSpawner::Respawn()
 {
-	if (!HasAuthority() || !bEnableRespawn)
+	if (!HasAuthority())
 	{
 		return;
 	}
 
+	// 기존 액터 정리. 시체면 청소, 살아있으면 위치/상태 원복을 위한 destroy.
 	if (AActor* Existing = SpawnedActor.Get())
 	{
 		Existing->OnDestroyed.RemoveDynamic(this, &AWxSpawner::HandleSpawnedActorDestroyed);
 		Existing->Destroy();
 	}
 	SpawnedActor.Reset();
+
+	// 영구 사망 처치된 Spawner (보스 등) 는 새 인스턴스를 spawn 하지 않는다.
+	const UWxSpawnerSubsystem* Subsystem = GetWorld()->GetSubsystem<UWxSpawnerSubsystem>();
+	const bool bIsPermanentlyKilled = !bEnableRespawn && Subsystem && Subsystem->IsSpawnerKilled(this);
+	if (bIsPermanentlyKilled)
+	{
+		return;
+	}
 
 	SpawnTarget();
 }
@@ -173,6 +192,7 @@ void AWxSpawner::SpawnTarget()
 
 	if (AActor* Spawned = SpawnedActor.Get())
 	{
+		Spawned->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
 		Spawned->OnDestroyed.AddDynamic(this, &AWxSpawner::HandleSpawnedActorDestroyed);
 	}
 }

@@ -5,6 +5,7 @@
 #include "Component/WxNameplateComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "System/WxSpawnerSubsystem.h"
 
 AWxEnemyCharacter::AWxEnemyCharacter()
 {
@@ -33,6 +34,21 @@ void AWxEnemyCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	NameplateComponent->InitializeViewModels(AbilitySystemComponent);
+}
+
+void AWxEnemyCharacter::HandleDeath()
+{
+	Super::HandleDeath();
+
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	if (UWxSpawnerSubsystem* Subsystem = GetWorld()->GetSubsystem<UWxSpawnerSubsystem>())
+	{
+		Subsystem->MarkSpawnableKilled(this);
+	}
 }
 
 UBehaviorTree* AWxEnemyCharacter::GetBehaviorTree() const

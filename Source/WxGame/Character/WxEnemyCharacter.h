@@ -33,6 +33,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	/** 사망 시 자신을 스폰한 Spawner 에 처치 기록을 남긴다. */
+	virtual void HandleDeath() override;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
 	TObjectPtr<UBehaviorTree> BehaviorTreeAsset;
 
