@@ -29,10 +29,6 @@ public:
 	/** 현재 이 Spawner가 보유한 spawned 액터. Subsystem 의 spawnable→spawner 역조회 등에 사용. */
 	AActor* GetSpawnedActor() const;
 
-	/** false 면 BeginPlay 자동 스폰을 건너뛴다. 외부 트리거(Respawn) 로만 스폰하고 싶을 때 사용. (예: SpawnConsole 의 타겟 Spawner) */
-	UPROPERTY(EditAnywhere, Category = "Wx")
-	bool bSpawnOnBeginPlay = true;
-
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -45,6 +41,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (MustImplement = "/Script/WxWorld.WxSpawnableInterface", AllowAbstract = "false"))
 	TSubclassOf<AActor> SpawnableActorClass;
 
+	/** false 면 BeginPlay 자동 스폰을 건너뛴다. 외부 트리거(Respawn) 로만 스폰하고 싶을 때는 false로 사용. (예: SpawnConsole 의 타겟 Spawner) */
+	UPROPERTY(EditAnywhere, Category = "Wx")
+	bool bSpawnOnBeginPlay = true;
+	
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	bool bEnableRespawn = true;
 
