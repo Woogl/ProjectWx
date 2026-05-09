@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AI/WxBTComposite_RandomSelector.h"
+#include "WxBTComposite_RandomSelector.h"
 
 #include "BehaviorTree/BTCompositeNode.h"
 

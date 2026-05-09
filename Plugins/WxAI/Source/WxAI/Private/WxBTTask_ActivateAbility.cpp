@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AI/WxBTTask_ActivateAbility.h"
+#include "WxBTTask_ActivateAbility.h"
 #include "AIController.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
@@ -48,8 +48,7 @@ EBTNodeResult::Type UWxBTTask_ActivateAbility::ExecuteTask(UBehaviorTreeComponen
 	}
 
 	// TryActivateAbility 내부에서 어빌리티가 동기적으로 종료될 수 있다 (CommitAbility 실패 등).
-	// 이 경우 OnAbilityEnded가 이미 브로드캐스트된 후이므로, 델리게이트를 등록해도 콜백이 발생하지 않아
-	// BT가 InProgress 상태로 영구 정지한다.
+	// 이 경우 OnAbilityEnded가 이미 브로드캐스트된 후이므로, 델리게이트를 등록해도 콜백이 발생하지 않아 BT가 InProgress 상태로 영구 정지한다.
 	if (!Spec->IsActive())
 	{
 		return EBTNodeResult::Failed;
@@ -67,8 +66,7 @@ EBTNodeResult::Type UWxBTTask_ActivateAbility::ExecuteTask(UBehaviorTreeComponen
 
 EBTNodeResult::Type UWxBTTask_ActivateAbility::AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	// 델리게이트를 먼저 해제하여, CancelAbilities가 트리거하는 OnAbilityEnded 콜백이
-	// FinishLatentTask를 호출하지 않도록 한다.
+	// 델리게이트를 먼저 해제하여, CancelAbilities가 트리거하는 OnAbilityEnded 콜백이 FinishLatentTask를 호출하지 않도록 한다.
 	CleanUp();
 
 	if (UAbilitySystemComponent* ASC = CachedASC.Get())

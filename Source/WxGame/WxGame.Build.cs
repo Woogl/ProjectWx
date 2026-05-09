@@ -20,6 +20,7 @@ public class WxGame : ModuleRules
 			"GameplayTags",
 			"ModelViewViewModel",
 			"UMG",
+			"WxAI",
 			"WxCombat",
 			"WxCore",
 			"WxInventory",

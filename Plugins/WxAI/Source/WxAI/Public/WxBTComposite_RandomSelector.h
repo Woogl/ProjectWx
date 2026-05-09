@@ -19,7 +19,7 @@
  * 자식 수 상한은 32 (비트마스크 폭). 그 이상은 동작은 하지만 33번째 이후 자식이 절대 선택되지 않는다.
  */
 UCLASS()
-class WXGAME_API UWxBTComposite_RandomSelector : public UBTComposite_Selector
+class WXAI_API UWxBTComposite_RandomSelector : public UBTComposite_Selector
 {
 	GENERATED_BODY()
 

@@ -20,7 +20,7 @@ class UAbilitySystemComponent;
  * 동일 어빌리티 연속 발동 회피는 부모 노드 (예: WxBTComposite_RandomSelector 의 bAvoidRepeat) 에서 처리.
  */
 UCLASS()
-class WXGAME_API UWxBTTask_ActivateAbility : public UBTTaskNode
+class WXAI_API UWxBTTask_ActivateAbility : public UBTTaskNode
 {
 	GENERATED_BODY()
 

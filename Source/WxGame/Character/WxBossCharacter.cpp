@@ -2,7 +2,7 @@
 
 #include "Character/WxBossCharacter.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
-#include "AI/WxEnemyBlackboardKeys.h"
+#include "WxAIBlackboardKeys.h"
 #include "MVVM/WxGlobalViewModelSubsystem.h"
 #include "MVVM/WxViewModel_AbilitySystem.h"
 #include "AIController.h"
@@ -37,7 +37,7 @@ void AWxBossCharacter::BeginPlay()
 	{
 		if (UBlackboardComponent* BB = AIC->GetBlackboardComponent())
 		{
-			const FBlackboard::FKey KeyID = BB->GetKeyID(WxEnemyBlackboardKeys::TargetActor);
+			const FBlackboard::FKey KeyID = BB->GetKeyID(WxAIBlackboardKeys::TargetActor);
 			if (KeyID != FBlackboard::InvalidKey)
 			{
 				BB->RegisterObserver(KeyID, this, FOnBlackboardChangeNotification::CreateUObject(this, &AWxBossCharacter::HandleBlackboardValueChanged));
@@ -63,7 +63,7 @@ void AWxBossCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 EBlackboardNotificationResult AWxBossCharacter::HandleBlackboardValueChanged(const UBlackboardComponent& BlackboardComp, FBlackboard::FKey ChangedKeyID)
 {
-	const UObject* TargetActor = BlackboardComp.GetValueAsObject(WxEnemyBlackboardKeys::TargetActor);
+	const UObject* TargetActor = BlackboardComp.GetValueAsObject(WxAIBlackboardKeys::TargetActor);
 
 	if (TargetActor)
 	{

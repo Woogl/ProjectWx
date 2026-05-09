@@ -1,8 +1,8 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AI/WxEnemyBlackboardKeys.h"
+#include "WxAIBlackboardKeys.h"
 
-namespace WxEnemyBlackboardKeys
+namespace WxAIBlackboardKeys
 {
 	const FName SelfActor = TEXT("SelfActor");
 
