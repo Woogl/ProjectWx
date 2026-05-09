@@ -1,0 +1,37 @@
+{
+	"blueprintPath": "/Game/UI/CommonUI/ButtonStyle_Empty.ButtonStyle_Empty",
+	"classDefaults":
+	{
+		"NormalBase":
+		{
+			"TintColor":
+			{
+				"SpecifiedColor":
+				{
+					"A": 0
+				}
+			}
+		},
+		"NormalHovered":
+		{
+			"TintColor":
+			{
+				"SpecifiedColor":
+				{
+					"A": 0
+				}
+			}
+		},
+		"NormalPressed":
+		{
+			"TintColor":
+			{
+				"SpecifiedColor":
+				{
+					"A": 0
+				}
+			}
+		}
+	},
+	"parentClass": "/Script/CommonUI.CommonButtonStyle"
+}

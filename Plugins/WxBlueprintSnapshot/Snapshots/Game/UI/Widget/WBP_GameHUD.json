@@ -1,5 +1,9 @@
 {
 	"blueprintPath": "/Game/UI/Widget/WBP_GameHUD.WBP_GameHUD",
+	"classDefaults":
+	{
+		"AcquiredItemList": ""
+	},
 	"eventGraph": [
 		"event Construct:",
 		"  WBP_GameHUDBase_C::Construct()",
@@ -7,7 +11,7 @@
 		"event PreConstruct:",
 		"  WBP_GameHUDBase_C::PreConstruct(IsDesignTime=Event Pre Construct.IsDesignTime)",
 		"custom_event OnItemAcquired_Event:",
-		"  KismetSystemLibrary::PrintString(InString=KismetStringLibrary::Concat_StrStr(A=KismetSystemLibrary::GetDisplayName(Object=OnItemAcquired_Event.ItemDef), B=\" : \", C=Cast<string>(OnItemAcquired_Event.Delta)))"
+		"  AcquiredItemList.AddItem(Item=OnItemAcquired_Event.ItemVM)"
 	],
 	"mvvm":
 	{
@@ -56,6 +60,15 @@
 	{
 		"widgets":
 		{
+			"AcquiredItemList":
+			{
+				"class": "/Script/UMG.ListView",
+				"delta":
+				{
+					"EntryWidgetClass": "/Game/UI/Widget/WBP_AcquiredItem.WBP_AcquiredItem_C"
+				},
+				"isVariable": true
+			},
 			"TextBlock_37":
 			{
 				"class": "/Script/UMG.TextBlock",

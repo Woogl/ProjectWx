@@ -67,6 +67,5 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 
 FString UWxBTComposite_RandomChoice::GetStaticDescription() const
 {
-	const FString Suffix = bAvoidRepeat ? TEXT(" [Avoid Repeat]") : TEXT("");
-	return FString::Printf(TEXT("Random Choice: 자식 중 무작위 1개를 골라 실행, 그 결과를 그대로 반환%s"), *Suffix);
+	return FString::Printf(TEXT("자식 중 무작위 1개를 골라 실행"));
 }
