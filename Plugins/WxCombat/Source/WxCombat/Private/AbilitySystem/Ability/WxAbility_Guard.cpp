@@ -3,7 +3,7 @@
 #include "AbilitySystem/Ability/WxAbility_Guard.h"
 #include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
-#include "AbilitySystem/WxCombatAttributeSet.h"
+#include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"

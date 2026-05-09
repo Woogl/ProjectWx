@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Effect/WxEffect_Reflect.h"
-#include "AbilitySystem/WxCombatAttributeSet.h"
+#include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "WxGameplayTags.h"
 
 UWxEffect_Reflect::UWxEffect_Reflect()

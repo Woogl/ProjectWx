@@ -4,7 +4,7 @@
 #include "AbilitySystem/Ability/WxAbility_Guard.h"
 #include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/Effect/WxEffect_Reflect.h"
-#include "AbilitySystem/WxCombatAttributeSet.h"
+#include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayEffect.h"

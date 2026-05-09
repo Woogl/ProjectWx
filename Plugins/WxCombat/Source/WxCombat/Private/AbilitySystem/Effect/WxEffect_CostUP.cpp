@@ -4,7 +4,7 @@
 #include "AbilitySystem/Effect/WxEffect_CostUP.h"
 
 #include "WxGameplayTags.h"
-#include "AbilitySystem/WxCombatAttributeSet.h"
+#include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 
 UWxEffect_CostUP::UWxEffect_CostUP()
 {

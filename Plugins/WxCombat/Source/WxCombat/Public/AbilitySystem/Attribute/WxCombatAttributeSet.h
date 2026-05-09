@@ -35,11 +35,12 @@
  *   CritRate - Critical Rate      : 치명타 확률 (1당 1%)
  *   CritDMG  - Critical Damage    : 치명타 피해 (1당 1% 추가 데미지)
  *   SPD      - Speed              : 이동 속도
+ *   ASPD     - Attack Speed       : 공격 속도(애니메이션 몽타주 재생 속도)
  *
  * IncomingDamage: GameplayEffect ExecutionCalculation에서 최종 데미지를 이 어트리뷰트로 전달하고
  *                 PostGameplayEffectExecute에서 HP를 차감하는 패턴으로 사용.
- *                 
- * 복제됨: HP, MaxHP, PP, MaxPP, SP, MaxSP, DP, MaxDP, MP, MaxMP, UP, MaxUP, ATK, DEF, CritRate, CritDMG, SPD
+ *
+ * 복제됨: HP, MaxHP, PP, MaxPP, SP, MaxSP, DP, MaxDP, MP, MaxMP, UP, MaxUP, ATK, DEF, CritRate, CritDMG, SPD, ASPD
  * 복제 안 함 (Meta): IncomingDamage
  */
 UCLASS()
@@ -146,6 +147,11 @@ public:
 	FGameplayAttributeData SPD;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, SPD)
 
+	/** ASPD (Attack Speed) : 공격 속도 배율. 어빌리티 몽타주의 PlayRate에 곱해지는 Multiplier (기본값 1.0) */
+	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Combat", ReplicatedUsing = OnRep_ASPD)
+	FGameplayAttributeData ASPD;
+	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, ASPD)
+
 	// ── Meta (복제 안 함) ──────────────────────────────────────────────────
 
 	/** IncomingDamage : 데미지 계산 전달용 메타 어트리뷰트. 직접 수정 금지 */
@@ -204,4 +210,7 @@ protected:
 
 	UFUNCTION()
 	void OnRep_SPD(const FGameplayAttributeData& OldSPD);
+
+	UFUNCTION()
+	void OnRep_ASPD(const FGameplayAttributeData& OldASPD);
 };

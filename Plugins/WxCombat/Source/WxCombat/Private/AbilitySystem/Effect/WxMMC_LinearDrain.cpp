@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Effect/WxMMC_LinearDrain.h"
-#include "AbilitySystem/WxCombatAttributeSet.h"
+#include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 
 UWxMMC_LinearDrain::UWxMMC_LinearDrain()
 {

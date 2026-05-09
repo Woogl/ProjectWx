@@ -58,7 +58,7 @@ void UWxAbility_Ultimate::HandleCutsceneCompleted()
 	}
 
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, UltimateMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
+		this, NAME_None, UltimateMontage, GetMontagePlayRate(), NAME_None, true, 1.f, 0.f, true);
 	if (!MontageTask)
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);

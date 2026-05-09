@@ -79,7 +79,7 @@ void UWxAbility_Attack::PlayComboMontage()
 	}
 
 	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, Montage, 1.f, NAME_None, true, 1.f, 0.f, true);
+		this, NAME_None, Montage, GetMontagePlayRate(), NAME_None, true, 1.f, 0.f, true);
 	if (!MontageTask)
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);

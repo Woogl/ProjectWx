@@ -4,8 +4,8 @@
 #include "AbilitySystem/Effect/WxEffect_Cooldown.h"
 #include "AbilitySystem/Effect/WxEffect_CostMP.h"
 #include "AbilitySystem/Effect/WxEffect_CostUP.h"
-#include "AbilitySystem/WxAbilityTableRow.h"
-#include "AbilitySystem/WxCombatAttributeSet.h"
+#include "AbilitySystem/Ability/WxAbilityTableRow.h"
+#include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
 #include "WxGameplayTags.h"
@@ -75,6 +75,23 @@ UWxAbilityBase::UWxAbilityBase()
 {
 	InstancingPolicy  = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+}
+
+float UWxAbilityBase::GetMontagePlayRate() const
+{
+	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (!ASC)
+	{
+		return 1.f;
+	}
+
+	const UWxCombatAttributeSet* AttrSet = ASC->GetSet<UWxCombatAttributeSet>();
+	if (!AttrSet)
+	{
+		return 1.f;
+	}
+
+	return FMath::Max(AttrSet->GetASPD(), 0.01f);
 }
 
 void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

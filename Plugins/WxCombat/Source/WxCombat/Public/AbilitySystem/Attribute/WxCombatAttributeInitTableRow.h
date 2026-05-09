@@ -68,7 +68,4 @@ struct WXCOMBAT_API FWxCombatAttributeInitTableRow : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	float CritDMG = 0.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
-	float SPD = 1.f;
 };

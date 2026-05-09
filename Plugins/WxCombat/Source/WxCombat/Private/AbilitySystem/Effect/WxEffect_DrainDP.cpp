@@ -2,7 +2,7 @@
 
 #include "AbilitySystem/Effect/WxEffect_DrainDP.h"
 #include "AbilitySystem/Effect/WxMMC_LinearDrain.h"
-#include "AbilitySystem/WxCombatAttributeSet.h"
+#include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "WxGameplayTags.h"
 
 UWxEffect_DrainDP::UWxEffect_DrainDP()

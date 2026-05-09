@@ -2,7 +2,7 @@
 
 #include "AbilitySystem/Ability/WxAbility_Groggy.h"
 #include "AbilitySystemComponent.h"
-#include "AbilitySystem/WxCombatAttributeSet.h"
+#include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystem/Effect/WxEffect_DrainDP.h"
 #include "AIController.h"
 #include "Animation/AnimInstance.h"

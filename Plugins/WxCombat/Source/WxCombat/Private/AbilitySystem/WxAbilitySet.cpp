@@ -3,8 +3,8 @@
 #include "AbilitySystem/WxAbilitySet.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
-#include "AbilitySystem/WxCombatAttributeSet.h"
-#include "AbilitySystem/WxCombatAttributeInitTableRow.h"
+#include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
+#include "AbilitySystem/Attribute/WxCombatAttributeInitTableRow.h"
 
 void FWxAbilitySetGrantedHandles::RemoveFromAbilitySystem(UWxAbilitySystemComponent* ASC)
 {
@@ -59,7 +59,6 @@ void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC, FWxAbili
 		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetDEFAttribute(), Row->DEF);
 		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetCritRateAttribute(), Row->CritRate);
 		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetCritDMGAttribute(), Row->CritDMG);
-		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetSPDAttribute(), Row->SPD);
 	}
 
 	// Effect 적용

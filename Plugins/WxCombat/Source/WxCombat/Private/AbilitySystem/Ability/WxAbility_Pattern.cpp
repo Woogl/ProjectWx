@@ -42,7 +42,7 @@ void UWxAbility_Pattern::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 	}
 
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, Montage, 1.f, NAME_None, true, 1.f, 0.f, true);
+		this, NAME_None, Montage, GetMontagePlayRate(), NAME_None, true, 1.f, 0.f, true);
 	if (!MontageTask)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);

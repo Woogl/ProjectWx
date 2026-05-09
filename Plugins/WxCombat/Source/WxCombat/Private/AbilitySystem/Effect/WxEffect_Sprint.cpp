@@ -3,7 +3,7 @@
 
 #include "AbilitySystem/Effect/WxEffect_Sprint.h"
 
-#include "AbilitySystem/WxCombatAttributeSet.h"
+#include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 
 UWxEffect_Sprint::UWxEffect_Sprint()
 {

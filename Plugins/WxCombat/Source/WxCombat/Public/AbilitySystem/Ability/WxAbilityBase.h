@@ -85,6 +85,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Data|Cost", meta = (ClampMin = "0"))
 	float UPCost = 0.f;
 
+	/**
+	 * 현재 아바타의 ASPD가 반영된 몽타주 재생 속도. ASC/AttributeSet 미가용 시 1.0
+	 * 각 어빌리티는 PlayMontage 호출 시 PlayRate 인자로 이 값을 사용한다.
+	 */
+	float GetMontagePlayRate() const;
+
 protected:
 #if WITH_EDITOR
 	virtual bool CanEditChange(const FProperty* InProperty) const override;
