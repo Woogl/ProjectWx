@@ -12,8 +12,6 @@ AWxElevator::AWxElevator()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
 
-	bReplicates = true;
-
 	CurrentDistance = 0.f;
 	CachedSplineLength = 0.f;
 
@@ -56,7 +54,7 @@ void AWxElevator::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWxElevator, State);
-	DOREPLIFETIME(AWxElevator, bMovingForward);
+	DOREPLIFETIME(AWxElevator, TargetDistance);
 	DOREPLIFETIME_CONDITION(AWxElevator, CurrentDistance, COND_InitialOnly);
 }
 
@@ -71,12 +69,18 @@ void AWxElevator::BeginPlay()
 	DoorLeftClosedLocation = DoorLeft->GetRelativeLocation();
 	DoorRightClosedLocation = DoorRight->GetRelativeLocation();
 
-	// CurrentDistance 는 COND_InitialOnly 로 복제되므로, 레이트조인 시 현재 위치로 플랫폼을 스냅.
+	// CurrentDistance 는 영구화 대상이 아니므로 영구화된 TargetDistance 로 강제 동기화.
+	// 정지 상태에선 둘이 동일하고, Moving 도중 언로드된 케이스는 리로드 후 Tick 에서 즉시 도착 처리된다.
+	CurrentDistance = TargetDistance;
 	UpdatePlatformPosition();
 
 	PlatformInteraction->OnInteracted.AddDynamic(this, &AWxElevator::HandlePlatformInteracted);
 	CallConsoleAInteraction->OnInteracted.AddDynamic(this, &AWxElevator::HandleCallConsoleAInteracted);
 	CallConsoleBInteraction->OnInteracted.AddDynamic(this, &AWxElevator::HandleCallConsoleBInteracted);
+
+	// Level Streaming Persistence 로 State/TargetDistance 가 BeginPlay 직전에 직접 set 되므로
+	// OnRep 이 발화하지 않는다. 영구화된 State 를 시각/인터랙션에 반영하기 위해 ApplyState 를 명시 호출.
+	ApplyState();
 }
 
 void AWxElevator::Tick(float DeltaTime)
@@ -92,19 +96,17 @@ void AWxElevator::Tick(float DeltaTime)
 	{
 	case EWxElevatorState::Moving:
 	{
-		const float Direction = bMovingForward ? 1.f : -1.f;
+		const float Direction = TargetDistance > CurrentDistance ? 1.f : -1.f;
 		const float Speed = MoveDuration > 0.f ? CachedSplineLength / MoveDuration : CachedSplineLength;
 		CurrentDistance = FMath::Clamp(CurrentDistance + Speed * DeltaTime * Direction, 0.f, CachedSplineLength);
 		UpdatePlatformPosition();
 
 		if (HasAuthority())
 		{
-			const bool bReachedEnd = bMovingForward ? (CurrentDistance >= CachedSplineLength) : (CurrentDistance <= 0.f);
+			const bool bReachedEnd = (Direction > 0.f) ? (CurrentDistance >= TargetDistance) : (CurrentDistance <= TargetDistance);
 
 			if (bReachedEnd)
 			{
-				// bMovingForward 는 다음 이동 방향(=직전에 도착한 끝점의 반대)을 의미하도록 토글. OnRep 측 끝점 스냅 판정에 사용됨.
-				bMovingForward = !bMovingForward;
 				State = EWxElevatorState::DoorsOpening;
 				ApplyState();
 			}
@@ -153,10 +155,9 @@ void AWxElevator::HandlePlatformInteracted(AActor* InteractingActor)
 		return;
 	}
 
-	// DoorsOpen 상태에서는 항상 끝점에 정지해 있으며, bMovingForward 는 그 끝점에서의 다음 진행 방향을 의미한다.
-	// 시작점(0)에 있으면 bMovingForward=true → 끝점으로, 끝점(SplineLength)에 있으면 false → 시작점으로.
-	const float TargetDistance = bMovingForward ? CachedSplineLength : 0.f;
-	BeginMoveSequence(TargetDistance);
+	// DoorsOpen 상태에서는 항상 끝점에 정지해 있다. 시작점(0)이면 끝점으로, 끝점이면 시작점으로 호출.
+	const float NewTarget = FMath::IsNearlyZero(CurrentDistance) ? CachedSplineLength : 0.f;
+	BeginMoveSequence(NewTarget);
 }
 
 void AWxElevator::HandleCallConsoleAInteracted(AActor* InteractingActor)
@@ -199,10 +200,10 @@ void AWxElevator::MovePlatformToEnd()
 	BeginMoveSequence(CachedSplineLength);
 }
 
-void AWxElevator::BeginMoveSequence(float TargetDistance)
+void AWxElevator::BeginMoveSequence(float NewTargetDistance)
 {
 	// 이미 목표 끝점에 정지해 있는 케이스: 문이 닫혀 있다면 열기만 수행, 열려 있다면 호출은 의미 없으므로 무시.
-	if (FMath::IsNearlyEqual(CurrentDistance, TargetDistance))
+	if (FMath::IsNearlyEqual(CurrentDistance, NewTargetDistance))
 	{
 		if (State == EWxElevatorState::DoorsClosed)
 		{
@@ -212,7 +213,7 @@ void AWxElevator::BeginMoveSequence(float TargetDistance)
 		return;
 	}
 
-	bMovingForward = TargetDistance > CurrentDistance;
+	TargetDistance = NewTargetDistance;
 
 	if (State == EWxElevatorState::DoorsOpen)
 	{
@@ -246,12 +247,9 @@ void AWxElevator::ApplyState()
 	case EWxElevatorState::DoorsOpening:
 		SetActorTickEnabled(true);
 		SetAllInteractionsEnabled(false);
-		// 클라이언트의 누적 드리프트를 끝점으로 스냅. bMovingForward 는 도착 시점에 다음 진행 방향으로 토글되어 있다.
-		if (CachedSplineLength > 0.f)
-		{
-			CurrentDistance = bMovingForward ? 0.f : CachedSplineLength;
-			UpdatePlatformPosition();
-		}
+		// 클라이언트의 누적 드리프트를 목표 끝점으로 스냅.
+		CurrentDistance = TargetDistance;
+		UpdatePlatformPosition();
 		// DoorAnimProgress 는 진입 직전 값(Moving/DoorsClosed 에서 0)을 그대로 사용; Tick 이 1까지 증가시킴.
 		break;
 

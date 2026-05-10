@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Gimmick/WxGimmick.h"
 #include "WxAlarmConsole.generated.h"
 
 class UNiagaraSystem;
@@ -13,20 +13,19 @@ class UWxInteractionComponent;
 
 /**
  * 1회성 경보 콘솔.
- * 상호작용 시 Niagara/사운드를 재생한다. 한 번 발동된 뒤에는 재상호작용 불가.
+ * 상호작용 시 Niagara/사운드를 재생한다. 발동 후 재상호작용 불가.
  */
 UCLASS(Abstract)
-class WXWORLD_API AWxAlarmConsole : public AActor
+class WXWORLD_API AWxAlarmConsole : public AWxGimmick
 {
 	GENERATED_BODY()
 
 public:
 	AWxAlarmConsole();
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 protected:
 	virtual void BeginPlay() override;
+	virtual void ApplyState() override;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<USceneComponent> SceneRoot;
@@ -47,14 +46,7 @@ protected:
 
 private:
 	UFUNCTION()
-	void HandleConsoleInteracted(AActor* InteractingActor);
-
-	UFUNCTION()
-	void OnRep_bTriggered();
+	void HandleInteracted(AActor* InstigatorActor);
 
 	void PlayAlarmFx();
-
-	/** 발동 여부. 서버 권위로만 set, 발동 후엔 영구적으로 true. */
-	UPROPERTY(ReplicatedUsing = OnRep_bTriggered)
-	bool bTriggered = false;
 };

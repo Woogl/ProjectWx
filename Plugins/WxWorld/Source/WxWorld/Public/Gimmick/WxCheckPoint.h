@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Gimmick/WxGimmick.h"
 #include "WxCheckPoint.generated.h"
 
 class UGameplayEffect;
@@ -16,7 +16,7 @@ class UWxInteractionComponent;
  * HealEffect 프로퍼티에 HP를 MaxHP로 설정하는 GameplayEffect를 지정해야 한다.
  */
 UCLASS(Abstract)
-class WXWORLD_API AWxCheckPoint : public AActor
+class WXWORLD_API AWxCheckPoint : public AWxGimmick
 {
 	GENERATED_BODY()
 
@@ -38,5 +38,5 @@ protected:
 
 private:
 	UFUNCTION()
-	void HandleInteracted(AActor* InteractingActor);
+	void HandleInteracted(AActor* InstigatorActor);
 };

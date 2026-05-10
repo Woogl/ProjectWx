@@ -11,8 +11,6 @@ AWxDoor::AWxDoor()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
 
-	bReplicates = true;
-
 	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
 	SetRootComponent(SceneRoot);
 
@@ -38,10 +36,13 @@ void AWxDoor::BeginPlay()
 	Super::BeginPlay();
 
 	// 문 닫힘 위치 캐시: BP/레벨에서 배치된 상대 위치를 닫힘 기준으로 사용.
-	// 레이트조인 시 OnRep_State 가 BeginPlay 이후 발화하므로 그 시점에 캐시가 유효해야 한다.
 	DoorClosedLocation = Door->GetRelativeLocation();
 
 	ConsoleInteraction->OnInteracted.AddDynamic(this, &AWxDoor::HandleConsoleInteracted);
+
+	// Level Streaming Persistence 로 State 가 BeginPlay 직전에 직접 set 되므로 OnRep 이 발화하지 않는다.
+	// 영구화된 State 를 시각/인터랙션에 반영하기 위해 ApplyState 를 명시 호출.
+	ApplyState();
 }
 
 void AWxDoor::Tick(float DeltaTime)
@@ -64,7 +65,7 @@ void AWxDoor::Tick(float DeltaTime)
 	}
 }
 
-void AWxDoor::HandleConsoleInteracted(AActor* InteractingActor)
+void AWxDoor::HandleConsoleInteracted(AActor* InstigatorActor)
 {
 	if (!HasAuthority() || State != EWxDoorState::Closed)
 	{

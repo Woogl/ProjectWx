@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Gimmick/WxGimmick.h"
 #include "WxCutsceneTrigger.generated.h"
 
 class ALevelSequenceActor;
@@ -17,7 +17,7 @@ class UWxInteractionComponent;
  * 재생 중에는 추가 상호작용이 무시되고, 로컬 플레이어 폰의 입력(Move/Look/Ability)이 비활성화된다.
  */
 UCLASS(Abstract)
-class WXWORLD_API AWxCutsceneTrigger : public AActor
+class WXWORLD_API AWxCutsceneTrigger : public AWxGimmick
 {
 	GENERATED_BODY()
 
@@ -40,7 +40,7 @@ protected:
 
 private:
 	UFUNCTION()
-	void HandleInteracted(AActor* InteractingActor);
+	void HandleInteracted(AActor* InstigatorActor);
 
 	UFUNCTION()
 	void HandleSequenceFinished();

@@ -5,15 +5,10 @@
 #include "Components/StaticMeshComponent.h"
 #include "Interaction/WxInteractionComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Net/UnrealNetwork.h"
 #include "NiagaraFunctionLibrary.h"
 
 AWxAlarmConsole::AWxAlarmConsole()
 {
-	PrimaryActorTick.bCanEverTick = false;
-
-	bReplicates = true;
-
 	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
 	SetRootComponent(SceneRoot);
 
@@ -24,44 +19,35 @@ AWxAlarmConsole::AWxAlarmConsole()
 	ConsoleInteraction->SetupAttachment(Console);
 }
 
-void AWxAlarmConsole::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AWxAlarmConsole, bTriggered);
-}
-
 void AWxAlarmConsole::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ConsoleInteraction->OnInteracted.AddDynamic(this, &AWxAlarmConsole::HandleConsoleInteracted);
+	ConsoleInteraction->OnInteracted.AddDynamic(this, &AWxAlarmConsole::HandleInteracted);
+
+	// Level Streaming Persistence 가 BeginPlay 직전에 bTriggered 를 직접 set 했을 수 있으므로 동기화.
+	ApplyState();
 }
 
-void AWxAlarmConsole::HandleConsoleInteracted(AActor* InteractingActor)
+void AWxAlarmConsole::ApplyState()
 {
-	// OnInteracted 는 서버+모든 클라이언트에서 fire. 권위 측에서 상태 전이/비활성을 수행하고,
-	// FX/사운드는 모든 피어가 로컬 재생한다. 클라이언트 측 비활성은 OnRep_bTriggered 에서 처리.
-	if (HasAuthority())
-	{
-		if (bTriggered)
-		{
-			return;
-		}
-		bTriggered = true;
-		ConsoleInteraction->SetInteractionEnabled(false);
-	}
-
-	PlayAlarmFx();
-}
-
-void AWxAlarmConsole::OnRep_bTriggered()
-{
-	// 라이브 발동 시 클라이언트 프롬프트 즉시 숨김 + 레이트조인 시 콘솔 비활성 동기화.
 	if (bTriggered)
 	{
 		ConsoleInteraction->SetInteractionEnabled(false);
 	}
+}
+
+void AWxAlarmConsole::HandleInteracted(AActor* InstigatorActor)
+{
+	// 권위 측은 1회성 발동 처리 (MarkTriggered 가 ApplyState 를 디스패치 → 인터랙션 비활성).
+	// FX 는 모든 피어가 로컬 재생. 발동 후엔 인터랙션이 비활성화되어 추가 OnInteracted 가 발화하지 않으므로
+	// 레이트조인 클라는 OnRep 으로 비활성만 동기화하고 FX 는 재생하지 않는다.
+	if (HasAuthority() && !bTriggered)
+	{
+		MarkTriggered();
+	}
+
+	PlayAlarmFx();
 }
 
 void AWxAlarmConsole::PlayAlarmFx()

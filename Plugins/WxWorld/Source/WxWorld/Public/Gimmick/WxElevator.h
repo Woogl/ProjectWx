@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Gimmick/WxGimmick.h"
 #include "WxElevator.generated.h"
 
 class USplineComponent;
@@ -36,7 +36,7 @@ enum class EWxElevatorState : uint8
  *  - CallConsoleBInteraction: 플랫폼을 스플라인 끝점(SplineLength)으로 호출
  */
 UCLASS(Abstract)
-class WXWORLD_API AWxElevator : public AActor
+class WXWORLD_API AWxElevator : public AWxGimmick
 {
 	GENERATED_BODY()
 
@@ -48,6 +48,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void ApplyState() override;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<USceneComponent> SceneRoot;
@@ -115,10 +116,7 @@ private:
 	UFUNCTION(BlueprintCallable, Category = "Wx")
 	void MovePlatformToEnd();
 
-	void BeginMoveSequence(float TargetDistance);
-
-	/** 현재 State 값을 런타임(틱/인터랙션/위치 스냅) 에 적용. 서버 상태 변경 시점과 클라이언트 OnRep 양쪽에서 호출. */
-	void ApplyState();
+	void BeginMoveSequence(float NewTargetDistance);
 
 	void UpdatePlatformPosition();
 
@@ -130,8 +128,9 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_State)
 	EWxElevatorState State = EWxElevatorState::DoorsClosed;
 
+	/** 현재 이동 시퀀스의 목표 스플라인 거리. DoorsOpen/DoorsClosed 정지 시엔 현재 위치와 동일. */
 	UPROPERTY(Replicated)
-	bool bMovingForward = true;
+	float TargetDistance = 0.f;
 
 	UPROPERTY(Replicated)
 	float CurrentDistance = 0.f;

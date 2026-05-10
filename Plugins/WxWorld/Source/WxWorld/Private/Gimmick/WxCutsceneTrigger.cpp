@@ -12,8 +12,6 @@
 
 AWxCutsceneTrigger::AWxCutsceneTrigger()
 {
-	bReplicates = true;
-
 	bIsPlaying = false;
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
@@ -43,7 +41,7 @@ void AWxCutsceneTrigger::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void AWxCutsceneTrigger::HandleInteracted(AActor* InteractingActor)
+void AWxCutsceneTrigger::HandleInteracted(AActor* InstigatorActor)
 {
 	if (bIsPlaying || !LevelSequence)
 	{

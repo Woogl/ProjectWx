@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Gimmick/WxGimmick.h"
 #include "WxTreasureChest.generated.h"
 
 class AWxItemPickup;
@@ -17,17 +17,16 @@ class UWxItemDefinition;
  * 상호작용 입력 시 서버에서 ItemActorClass(외형) 를 스폰하고 ItemDefinition 을 주입한다.
  */
 UCLASS(Abstract)
-class AWxTreasureChest : public AActor
+class AWxTreasureChest : public AWxGimmick
 {
 	GENERATED_BODY()
 
 public:
 	AWxTreasureChest();
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 protected:
 	virtual void BeginPlay() override;
+	virtual void ApplyState() override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
@@ -53,11 +52,5 @@ protected:
 
 private:
 	UFUNCTION()
-	void HandleInteracted(AActor* InteractingActor);
-
-	UFUNCTION()
-	void OnRep_bIsOpened();
-
-	UPROPERTY(ReplicatedUsing = OnRep_bIsOpened)
-	bool bIsOpened = false;
+	void HandleInteracted(AActor* InstigatorActor);
 };

@@ -39,11 +39,6 @@
 			{
 				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/SM_Door.SM_Door"
 			}
-		},
-		"DoorOpenOffset":
-		{
-			"Y": 250,
-			"Z": 0
 		}
 	},
 	"parentClass": "/Script/WxWorld.WxDoor"

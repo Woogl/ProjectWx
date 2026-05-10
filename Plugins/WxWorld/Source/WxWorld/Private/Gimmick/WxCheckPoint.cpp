@@ -10,8 +10,6 @@
 
 AWxCheckPoint::AWxCheckPoint()
 {
-	bReplicates = true;
-
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	SetRootComponent(MeshComponent);
 
@@ -26,7 +24,7 @@ void AWxCheckPoint::BeginPlay()
 	InteractionComponent->OnInteracted.AddDynamic(this, &AWxCheckPoint::HandleInteracted);
 }
 
-void AWxCheckPoint::HandleInteracted(AActor* InteractingActor)
+void AWxCheckPoint::HandleInteracted(AActor* InstigatorActor)
 {
 	if (!HasAuthority())
 	{
@@ -35,7 +33,7 @@ void AWxCheckPoint::HandleInteracted(AActor* InteractingActor)
 
 	if (HealEffect)
 	{
-		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(InteractingActor))
+		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(InstigatorActor))
 		{
 			FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
 			Context.AddSourceObject(this);

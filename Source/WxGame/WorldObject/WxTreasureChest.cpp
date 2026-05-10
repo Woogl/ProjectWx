@@ -4,13 +4,10 @@
 
 #include "Components/StaticMeshComponent.h"
 #include "Interaction/WxInteractionComponent.h"
-#include "Net/UnrealNetwork.h"
 #include "WorldObject/WxItemPickup.h"
 
 AWxTreasureChest::AWxTreasureChest()
 {
-	bReplicates = true;
-
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	SetRootComponent(MeshComponent);
 
@@ -18,31 +15,32 @@ AWxTreasureChest::AWxTreasureChest()
 	InteractionComponent->SetupAttachment(MeshComponent);
 }
 
-void AWxTreasureChest::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AWxTreasureChest, bIsOpened);
-}
-
 void AWxTreasureChest::BeginPlay()
 {
 	Super::BeginPlay();
 
 	InteractionComponent->OnInteracted.AddDynamic(this, &AWxTreasureChest::HandleInteracted);
+
+	ApplyState();
 }
 
-void AWxTreasureChest::HandleInteracted(AActor* InteractingActor)
+void AWxTreasureChest::ApplyState()
 {
-	if (!HasAuthority() || bIsOpened)
+	if (bTriggered)
+	{
+		InteractionComponent->SetInteractionEnabled(false);
+	}
+}
+
+void AWxTreasureChest::HandleInteracted(AActor* InstigatorActor)
+{
+	if (!HasAuthority() || bTriggered)
 	{
 		return;
 	}
 
-	bIsOpened = true;
+	MarkTriggered();
 
-	InteractionComponent->SetInteractionEnabled(false);
-	
 	if (!ItemActorClass || !ItemDefinition)
 	{
 		return;
@@ -76,12 +74,4 @@ void AWxTreasureChest::HandleInteracted(AActor* InteractingActor)
 	}
 
 	SpawnedPickup->LaunchInDirection(LaunchDir, LaunchSpeed);
-}
-
-void AWxTreasureChest::OnRep_bIsOpened()
-{
-	if (bIsOpened)
-	{
-		InteractionComponent->SetInteractionEnabled(false);
-	}
 }

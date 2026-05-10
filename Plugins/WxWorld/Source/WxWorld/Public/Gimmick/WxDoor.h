@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Gimmick/WxGimmick.h"
 #include "WxDoor.generated.h"
 
 class UStaticMeshComponent;
@@ -25,7 +25,7 @@ enum class EWxDoorState : uint8
  *   Closed (초기) → 콘솔 상호작용 → Opening → Open (영구 고정)
  */
 UCLASS(Abstract)
-class WXWORLD_API AWxDoor : public AActor
+class WXWORLD_API AWxDoor : public AWxGimmick
 {
 	GENERATED_BODY()
 
@@ -37,6 +37,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void ApplyState() override;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<USceneComponent> SceneRoot;
@@ -60,13 +61,10 @@ protected:
 
 private:
 	UFUNCTION()
-	void HandleConsoleInteracted(AActor* InteractingActor);
+	void HandleConsoleInteracted(AActor* InstigatorActor);
 
 	UFUNCTION()
 	void OnRep_State();
-
-	/** 현재 State 값을 런타임(틱/인터랙션/문 위치) 에 적용. 서버 상태 변경과 OnRep 양쪽에서 호출. */
-	void ApplyState();
 
 	/** DoorAnimProgress 에 따라 문 위치를 lerp. */
 	void UpdateDoorPosition();
