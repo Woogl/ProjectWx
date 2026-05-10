@@ -34,6 +34,7 @@
 #include "K2Node_Literal.h"
 #include "K2Node_DynamicCast.h"
 #include "K2Node_CallParentFunction.h"
+#include "K2Node_BaseAsyncTask.h"
 #include "Dom/JsonObject.h"
 #include "Dom/JsonValue.h"
 
@@ -323,7 +324,7 @@ namespace
 		return TEXT(".");
 	}
 
-	// 함수 호출 인자. BP 의미를 보존하기 위해 인자명은 /* Name */ 주석으로 표기.
+	// 함수 호출 인자 (positional). C++ 스타일 일관성 우선 — 인자명은 정의 쪽 시그니처에서 확인.
 	FString RenderCallArgs(UK2Node_CallFunction* Call, FRenderCtx& Ctx)
 	{
 		TArray<FString> Args;
@@ -347,7 +348,7 @@ namespace
 			{
 				continue;
 			}
-			Args.Add(FString::Printf(TEXT("/* %s */ %s"), *Pin->PinName.ToString(), *RenderDataInput(Pin, Ctx)));
+			Args.Add(RenderDataInput(Pin, Ctx));
 		}
 		return FString::Join(Args, TEXT(", "));
 	}
@@ -374,6 +375,116 @@ namespace
 			return FormatStructCPP(MemberClass) + TEXT("::");
 		}
 		return FString();
+	}
+
+	// UKismetMathLibrary 의 연산자성 함수(BooleanAND, EqualEqual_*, Add_* 등)를 C++ 연산자로 환원.
+	// 매칭 실패 시 false 반환 → 호출자가 일반 함수 호출로 폴백.
+	bool TryRenderAsOperator(UK2Node_CallFunction* Call, FRenderCtx& Ctx, FString& OutExpr)
+	{
+		UClass* Parent = Call->FunctionReference.GetMemberParentClass();
+		if (!Parent || Parent->GetName() != TEXT("KismetMathLibrary"))
+		{
+			return false;
+		}
+		const FString FnName = Call->GetFunctionName().ToString();
+
+		auto CollectOperands = [&](int32 Expected) -> TArray<FString>
+		{
+			TArray<FString> Operands;
+			for (UEdGraphPin* Pin : Call->Pins)
+			{
+				if (!Pin || Pin->Direction != EGPD_Input || IsExecPin(Pin))
+				{
+					continue;
+				}
+				if (Pin->PinName == UEdGraphSchema_K2::PN_Self)
+				{
+					continue;
+				}
+				Operands.Add(RenderDataInput(Pin, Ctx));
+				if (Operands.Num() >= Expected)
+				{
+					break;
+				}
+			}
+			return Operands;
+		};
+
+		auto EmitBinary = [&](const TCHAR* Op) -> bool
+		{
+			TArray<FString> Operands = CollectOperands(2);
+			if (Operands.Num() != 2)
+			{
+				return false;
+			}
+			OutExpr = FString::Printf(TEXT("(%s) %s (%s)"), *Operands[0], Op, *Operands[1]);
+			return true;
+		};
+
+		// 단항 부정
+		if (FnName == TEXT("Not_PreBool"))
+		{
+			TArray<FString> Operands = CollectOperands(1);
+			if (Operands.Num() == 1)
+			{
+				OutExpr = FString::Printf(TEXT("!(%s)"), *Operands[0]);
+				return true;
+			}
+			return false;
+		}
+
+		// 정확 일치 (boolean)
+		if (FnName == TEXT("BooleanAND"))
+		{
+			return EmitBinary(TEXT("&&"));
+		}
+		if (FnName == TEXT("BooleanOR"))
+		{
+			return EmitBinary(TEXT("||"));
+		}
+
+		// 접두사 매칭 — LessEqual/GreaterEqual 을 Less/Greater 보다 먼저 체크해야 함.
+		if (FnName.StartsWith(TEXT("LessEqual_")))
+		{
+			return EmitBinary(TEXT("<="));
+		}
+		if (FnName.StartsWith(TEXT("GreaterEqual_")))
+		{
+			return EmitBinary(TEXT(">="));
+		}
+		if (FnName.StartsWith(TEXT("EqualEqual_")))
+		{
+			return EmitBinary(TEXT("=="));
+		}
+		if (FnName.StartsWith(TEXT("NotEqual_")))
+		{
+			return EmitBinary(TEXT("!="));
+		}
+		if (FnName.StartsWith(TEXT("Less_")))
+		{
+			return EmitBinary(TEXT("<"));
+		}
+		if (FnName.StartsWith(TEXT("Greater_")))
+		{
+			return EmitBinary(TEXT(">"));
+		}
+		if (FnName.StartsWith(TEXT("Add_")))
+		{
+			return EmitBinary(TEXT("+"));
+		}
+		if (FnName.StartsWith(TEXT("Subtract_")))
+		{
+			return EmitBinary(TEXT("-"));
+		}
+		if (FnName.StartsWith(TEXT("Multiply_")))
+		{
+			return EmitBinary(TEXT("*"));
+		}
+		if (FnName.StartsWith(TEXT("Divide_")))
+		{
+			return EmitBinary(TEXT("/"));
+		}
+		return false;
 	}
 
 	FString RenderExpression(UEdGraphPin* OutputPin, FRenderCtx& Ctx)
@@ -453,6 +564,22 @@ namespace
 						*FormatPinTypeCPP(OutputPin->PinType), *RenderDataInput(Pin, Ctx));
 				}
 			}
+			// KismetMathLibrary 연산자성 함수(BooleanAND/EqualEqual_*/Add_* 등)는 연산자로 환원.
+			{
+				FString OperatorExpr;
+				if (TryRenderAsOperator(Call, Ctx, OperatorExpr))
+				{
+					return OperatorExpr;
+				}
+			}
+			// UKismetSystemLibrary::IsValid 는 UE 의 글로벌 IsValid() 와 동치 — 네임스페이스 생략.
+			if (UClass* P = Call->FunctionReference.GetMemberParentClass())
+			{
+				if (P->GetName() == TEXT("KismetSystemLibrary") && FnName == TEXT("IsValid"))
+				{
+					return FString::Printf(TEXT("IsValid(%s)"), *RenderCallArgs(Call, Ctx));
+				}
+			}
 			const FString Target = RenderCallTargetWithAccessor(Call, Ctx);
 			const FString Args = RenderCallArgs(Call, Ctx);
 			FString Expr = FString::Printf(TEXT("%s%s(%s)"), *Target, *FnName, *Args);
@@ -465,6 +592,12 @@ namespace
 		}
 		if (UK2Node_DynamicCast* DCast = Cast<UK2Node_DynamicCast>(Node))
 		{
+			const FString RawName = DCast->TargetType ? DCast->TargetType->GetName() : TEXT("Object");
+			// exec 체인에서 이미 렌더돼 As<RawName> 지역변수가 선언된 경우, 데이터 참조는 그 변수로.
+			if (Ctx.Visited.Contains(DCast))
+			{
+				return FString::Printf(TEXT("As%s"), *RawName);
+			}
 			UEdGraphPin* ObjIn = DCast->GetCastSourcePin();
 			const FString TypeName = DCast->TargetType ? FormatStructCPP(DCast->TargetType) : TEXT("UObject");
 			return FString::Printf(TEXT("Cast<%s>(%s)"), *TypeName, *RenderDataInput(ObjIn, Ctx));
@@ -632,6 +765,86 @@ namespace
 		return true;
 	}
 
+	// Latent async task 노드 (PlayAnimationWithFinishedEvent 등). 출력 exec 핀 별로 콜백 블록을 만든다.
+	bool TryRenderAsyncTask(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx)
+	{
+		UK2Node_BaseAsyncTask* Async = Cast<UK2Node_BaseAsyncTask>(Node);
+		if (!Async)
+		{
+			return false;
+		}
+
+		// 입력 데이터 핀들을 인자로 모은다 (CallFunction 과 동일한 필터링).
+		TArray<FString> Args;
+		for (UEdGraphPin* Pin : Async->Pins)
+		{
+			if (!Pin || Pin->Direction != EGPD_Input || IsExecPin(Pin))
+			{
+				continue;
+			}
+			if (Pin->PinName == UEdGraphSchema_K2::PN_Self)
+			{
+				continue;
+			}
+			if (Pin->bHidden && Pin->LinkedTo.Num() == 0)
+			{
+				continue;
+			}
+			if (Pin->LinkedTo.Num() == 0 && Pin->DefaultValue == Pin->AutogeneratedDefaultValue)
+			{
+				continue;
+			}
+			Args.Add(RenderDataInput(Pin, Ctx));
+		}
+
+		// Owner::FactoryFunction 형태로 표기. 실패 시 NodeTitle 폴백.
+		FString FuncName;
+		if (UFunction* FactoryFn = Async->GetFactoryFunction())
+		{
+			if (UClass* OwnerClass = FactoryFn->GetOuterUClass())
+			{
+				FuncName = FString::Printf(TEXT("%s::%s"),
+					*FormatStructCPP(OwnerClass), *FactoryFn->GetName());
+			}
+			else
+			{
+				FuncName = FactoryFn->GetName();
+			}
+		}
+		else
+		{
+			FuncName = Async->GetNodeTitle(ENodeTitleType::ListView).ToString();
+			FuncName.ReplaceInline(TEXT("\n"), TEXT(" "));
+		}
+
+		Emit(Ctx, Indent, FString::Printf(TEXT("%s(%s);"), *FuncName, *FString::Join(Args, TEXT(", "))));
+
+		// 출력 exec 핀들: `then` 은 즉시 연속 흐름, 그 외는 (Finished/Cancelled 등) 비동기 콜백 — 람다로 표기.
+		UEdGraphPin* ThenPin = nullptr;
+		for (UEdGraphPin* Pin : Async->Pins)
+		{
+			if (!Pin || Pin->Direction != EGPD_Output || !IsExecPin(Pin))
+			{
+				continue;
+			}
+			if (Pin->PinName == UEdGraphSchema_K2::PN_Then)
+			{
+				ThenPin = Pin;
+				continue;
+			}
+			Emit(Ctx, Indent, FString::Printf(TEXT("auto %s = [this]()"), *Pin->PinName.ToString()));
+			Emit(Ctx, Indent, TEXT("{"));
+			RenderExecChain(Pin, Indent + 1, Ctx);
+			Emit(Ctx, Indent, TEXT("};"));
+		}
+
+		if (ThenPin)
+		{
+			RenderExecChain(ThenPin, Indent, Ctx);
+		}
+		return true;
+	}
+
 	bool TryRenderMacro(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx)
 	{
 		UK2Node_MacroInstance* Macro = Cast<UK2Node_MacroInstance>(Node);
@@ -653,7 +866,7 @@ namespace
 			{
 				continue;
 			}
-			Args.Add(FString::Printf(TEXT("/* %s */ %s"), *Pin->PinName.ToString(), *RenderDataInput(Pin, Ctx)));
+			Args.Add(RenderDataInput(Pin, Ctx));
 		}
 
 		// LoopBody/Completed 가 있는 매크로(ForEachLoop 등)는 본문 블록을 가진다.
@@ -705,11 +918,11 @@ namespace
 		}
 		else
 		{
-			// 다중 반환은 C++ 에 직접 대응 없음 — 복수 out 파라미터 형태로 해석되도록 주석 라벨 + 묶음 표기.
+			// 다중 반환은 C++ 에 직접 대응 없음 — braced-init-list 형태로 묶어 표기.
 			TArray<FString> Parts;
 			for (UEdGraphPin* Pin : ReturnPins)
 			{
-				Parts.Add(FString::Printf(TEXT("/* %s */ %s"), *Pin->PinName.ToString(), *RenderDataInput(Pin, Ctx)));
+				Parts.Add(RenderDataInput(Pin, Ctx));
 			}
 			Emit(Ctx, Indent, FString::Printf(TEXT("return { %s };"), *FString::Join(Parts, TEXT(", "))));
 		}
@@ -743,6 +956,10 @@ namespace
 			return;
 		}
 		if (TryRenderDynamicCast(Node, Indent, Ctx))
+		{
+			return;
+		}
+		if (TryRenderAsyncTask(Node, Indent, Ctx))
 		{
 			return;
 		}
@@ -788,6 +1005,25 @@ namespace
 		return TEXT("void");
 	}
 
+	// 이벤트/함수 시그니처에 노출되지 않는 핀: exec, hidden, delegate 출력핀(BP 내부 OutputDelegate 등).
+	bool IsEntryParamPin(const UEdGraphPin* Pin)
+	{
+		if (!Pin || Pin->Direction != EGPD_Output || IsExecPin(Pin))
+		{
+			return false;
+		}
+		if (Pin->bHidden)
+		{
+			return false;
+		}
+		const FName Cat = Pin->PinType.PinCategory;
+		if (Cat == UEdGraphSchema_K2::PC_Delegate || Cat == UEdGraphSchema_K2::PC_MCDelegate)
+		{
+			return false;
+		}
+		return true;
+	}
+
 	bool BuildEntryHeader(UEdGraphNode* Entry, FString& OutSignature)
 	{
 		if (UK2Node_CustomEvent* Ce = Cast<UK2Node_CustomEvent>(Entry))
@@ -795,7 +1031,7 @@ namespace
 			TArray<FString> Params;
 			for (UEdGraphPin* Pin : Ce->Pins)
 			{
-				if (Pin && Pin->Direction == EGPD_Output && !IsExecPin(Pin))
+				if (IsEntryParamPin(Pin))
 				{
 					Params.Add(FString::Printf(TEXT("%s %s"),
 						*FormatPinTypeCPP(Pin->PinType), *Pin->PinName.ToString()));
@@ -810,7 +1046,7 @@ namespace
 			TArray<FString> Params;
 			for (UEdGraphPin* Pin : Ev->Pins)
 			{
-				if (Pin && Pin->Direction == EGPD_Output && !IsExecPin(Pin) && !Pin->bHidden)
+				if (IsEntryParamPin(Pin))
 				{
 					Params.Add(FString::Printf(TEXT("%s %s"),
 						*FormatPinTypeCPP(Pin->PinType), *Pin->PinName.ToString()));
@@ -825,7 +1061,7 @@ namespace
 			TArray<FString> Params;
 			for (UEdGraphPin* Pin : Fe->Pins)
 			{
-				if (Pin && Pin->Direction == EGPD_Output && !IsExecPin(Pin))
+				if (IsEntryParamPin(Pin))
 				{
 					Params.Add(FString::Printf(TEXT("%s %s"),
 						*FormatPinTypeCPP(Pin->PinType), *Pin->PinName.ToString()));

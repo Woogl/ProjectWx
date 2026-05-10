@@ -1,13 +1,21 @@
 {
 	"blueprintPath": "/Game/UI/Widget/WBP_AcquiredItem.WBP_AcquiredItem",
 	"eventGraph": [
-		"void OnListItemObjectSet(delegate OutputDelegate, UObject* ListItemObject)",
+		"void OnListItemObjectSet(UObject* ListItemObject)",
 		"{",
 		"    UWxViewModel_Item* AsWxViewModel_Item = Cast<UWxViewModel_Item>(ListItemObject);",
 		"    if (AsWxViewModel_Item)",
 		"    {",
-		"        SetWxViewModel_Item(/* Viewmodel */ Cast<UWxViewModel_Item>(ListItemObject));",
-		"        PlayAnimation(/* InAnimation */ Appear);",
+		"        SetWxViewModel_Item(AsWxViewModel_Item);",
+		"        UWidgetAnimationPlayCallbackProxy::NewPlayAnimationProxyObject(this, Appear);",
+		"        auto Finished = [this]()",
+		"        {",
+		"            UCommonUILibrary::FindParentWidgetOfType(this);",
+		"            if ((IsValid(UCommonUILibrary::FindParentWidgetOfType(this))) && (IsValid(WxViewModel_Item)))",
+		"            {",
+		"                UCommonUILibrary::FindParentWidgetOfType(this)->RemoveItem(WxViewModel_Item);",
+		"            }",
+		"        };",
 		"    }",
 		"}"
 	],
@@ -31,7 +39,7 @@
 				"source": "Icon"
 			},
 			{
-				"bindingType": "OneWayToDestination",
+				"bindingType": "OneTimeToDestination",
 				"conversionSourceToDestination":
 				{
 					"arguments":
@@ -40,7 +48,7 @@
 						"bUseGrouping": "true",
 						"MaximumIntegralDigits": "324",
 						"MinimumIntegralDigits": "1",
-						"Value": "TotalCount"
+						"Value": "AcquiredCount"
 					},
 					"function": "Conv_IntToText"
 				},
