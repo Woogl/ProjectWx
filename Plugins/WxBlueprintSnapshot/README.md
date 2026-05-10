@@ -94,9 +94,9 @@ MVVM 추출은 프로젝트 세팅에서 비활성화 가능.
 
 ### 이벤트/함수 그래프 (의사코드)
 
-이벤트 그래프는 `eventGraph` 필드에 하나의 문자열 배열로 평탄화된다.  
-함수 그래프는 `newFunctions` 필드에 함수 이름을 키로 한 object(각 함수는 라인 배열)로 기록된다.  
-Construction Script도 함수 그래프의 하나로 취급되어 `newFunctions.UserConstructionScript`에 동일한 의사 코드 포맷으로 기록된다.
+이벤트 그래프는 `eventGraph` 필드에 이벤트 이름을 키로 한 object(각 이벤트는 라인 배열)로 기록된다.  
+함수 그래프는 `functions` 필드에 함수 이름을 키로 한 object(각 함수는 라인 배열)로 기록된다.  
+Construction Script도 함수 그래프의 하나로 취급되어 `functions.UserConstructionScript`에 동일한 의사 코드 포맷으로 기록된다.
 
 | 항목 | 지원 |
 |---|---|
@@ -124,7 +124,7 @@ Construction Script도 함수 그래프의 하나로 취급되어 `newFunctions.
 | 항목 | 지원 |
 |---|---|
 | 부모 클래스 | ✅ |
-| 변수 목록 | ✅ `newVariables` 필드에 {type, value} 기록
+| 변수 목록 | ✅ `variables` 필드에 UE C++ 함수 캐스트 형태(`Type(value)`)로 기록 |
 | 구현 인터페이스 목록 | ✅ `interfaces` 필드에 기록 |
 
 ---
@@ -201,10 +201,10 @@ Construction Script도 함수 그래프의 하나로 취급되어 `newFunctions.
 | `parentClass` | string | 항상 |
 | `classDefaults` | object | CDO 델타가 비어있지 않을 때 (NewVariables는 중복 제외) |
 | `components` | object | `bIncludeComponents` + Components 탭에 컴포넌트 1개 이상 |
-| `newVariables` | object | `bIncludeVariables` + 변수 1개 이상 (`{type, value}` 맵) |
+| `variables` | object | `bIncludeVariables` + 변수 1개 이상 (변수명 → UE C++ 함수 캐스트 표기) |
 | `interfaces` | object | `bIncludeInterfaces` + 구현 1개 이상 (`{implemented: [...]}`) |
-| `eventGraph` | array&lt;string&gt; | `bIncludeGraphs` + Ubergraph에 entry 1개 이상 |
-| `newFunctions` | object | `bIncludeGraphs` + 함수 그래프 1개 이상 |
+| `eventGraph` | object | `bIncludeGraphs` + Ubergraph에 entry 1개 이상 (이벤트명 → 라인 배열) |
+| `functions` | object | `bIncludeGraphs` + 함수 그래프 1개 이상 |
 | `widgetTree` | object | WBP + `bIncludeWidgetTree` |
 | `mvvm` | object | WBP + `bIncludeMVVM` + MVVM 확장 존재 |
 

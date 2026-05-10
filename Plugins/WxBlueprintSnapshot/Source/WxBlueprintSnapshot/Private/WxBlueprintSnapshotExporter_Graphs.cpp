@@ -54,8 +54,10 @@ namespace
 
 	struct FPseudoEntry
 	{
-		FString Signature;          // "void HandleBeginPlay()"
-		TArray<FPseudoLine> Body;   // 함수 본문 — 시리얼라이즈 단계에서 { } 로 감싼다.
+		FString Name;                         // 이벤트/함수 이름. eventGraph object 키로 사용.
+		FString Signature;                    // "void HandleBeginPlay()"
+		TArray<FString> UFunctionSpecifiers;  // UFUNCTION(...) 매크로 인자. 비어있으면 매크로 라인 생략.
+		TArray<FPseudoLine> Body;             // 함수 본문 — 시리얼라이즈 단계에서 { } 로 감싼다.
 	};
 
 	struct FRenderCtx
@@ -1024,7 +1026,30 @@ namespace
 		return true;
 	}
 
-	bool BuildEntryHeader(UEdGraphNode* Entry, FString& OutSignature)
+	// 네트워킹 specifier (NetMulticast/Server/Client + Reliable/Unreliable). 멀티플레이어 거동에 영향.
+	void CollectNetworkingSpecifiers(int32 FuncFlags, TArray<FString>& OutSpecifiers)
+	{
+		const bool bHasNet = (FuncFlags & (FUNC_NetMulticast | FUNC_NetServer | FUNC_NetClient)) != 0;
+		if (FuncFlags & FUNC_NetMulticast)
+		{
+			OutSpecifiers.Add(TEXT("NetMulticast"));
+		}
+		if (FuncFlags & FUNC_NetServer)
+		{
+			OutSpecifiers.Add(TEXT("Server"));
+		}
+		if (FuncFlags & FUNC_NetClient)
+		{
+			OutSpecifiers.Add(TEXT("Client"));
+		}
+		// Net specifier 가 있으면 Reliable/Unreliable 명시 (UE C++ 컨벤션상 둘 중 하나 필수).
+		if (bHasNet)
+		{
+			OutSpecifiers.Add((FuncFlags & FUNC_NetReliable) ? TEXT("Reliable") : TEXT("Unreliable"));
+		}
+	}
+
+	bool BuildEntryHeader(UEdGraphNode* Entry, FPseudoEntry& OutEntry)
 	{
 		if (UK2Node_CustomEvent* Ce = Cast<UK2Node_CustomEvent>(Entry))
 		{
@@ -1037,12 +1062,15 @@ namespace
 						*FormatPinTypeCPP(Pin->PinType), *Pin->PinName.ToString()));
 				}
 			}
-			OutSignature = FString::Printf(TEXT("void %s(%s)"),
-				*Ce->CustomFunctionName.ToString(), *FString::Join(Params, TEXT(", ")));
+			CollectNetworkingSpecifiers(static_cast<int32>(Ce->GetNetFlags()), OutEntry.UFunctionSpecifiers);
+			OutEntry.Name = Ce->CustomFunctionName.ToString();
+			OutEntry.Signature = FString::Printf(TEXT("void %s(%s)"),
+				*OutEntry.Name, *FString::Join(Params, TEXT(", ")));
 			return true;
 		}
 		if (UK2Node_Event* Ev = Cast<UK2Node_Event>(Entry))
 		{
+			// 부모 함수 오버라이드 — specifier 는 부모 선언이 정하므로 여기선 추가하지 않음.
 			TArray<FString> Params;
 			for (UEdGraphPin* Pin : Ev->Pins)
 			{
@@ -1052,8 +1080,9 @@ namespace
 						*FormatPinTypeCPP(Pin->PinType), *Pin->PinName.ToString()));
 				}
 			}
-			OutSignature = FString::Printf(TEXT("void %s(%s)"),
-				*Ev->EventReference.GetMemberName().ToString(), *FString::Join(Params, TEXT(", ")));
+			OutEntry.Name = Ev->EventReference.GetMemberName().ToString();
+			OutEntry.Signature = FString::Printf(TEXT("void %s(%s)"),
+				*OutEntry.Name, *FString::Join(Params, TEXT(", ")));
 			return true;
 		}
 		if (UK2Node_FunctionEntry* Fe = Cast<UK2Node_FunctionEntry>(Entry))
@@ -1071,8 +1100,21 @@ namespace
 				? Fe->FunctionReference.GetMemberName()
 				: Fe->CustomGeneratedFunctionName;
 			const FString ReturnType = InferReturnTypeCPP(Fe->GetGraph());
-			OutSignature = FString::Printf(TEXT("%s %s(%s)"),
-				*ReturnType, *FnName.ToString(), *FString::Join(Params, TEXT(", ")));
+			// FUNC_Const → C++ 한정자로 시그니처에 직접. FUNC_BlueprintPure / 네트워킹 / CallInEditor 는 UFUNCTION 매크로.
+			const int32 FuncFlags = Fe->GetFunctionFlags();
+			if (FuncFlags & FUNC_BlueprintPure)
+			{
+				OutEntry.UFunctionSpecifiers.Add(TEXT("BlueprintPure"));
+			}
+			CollectNetworkingSpecifiers(FuncFlags, OutEntry.UFunctionSpecifiers);
+			if (Fe->MetaData.bCallInEditor)
+			{
+				OutEntry.UFunctionSpecifiers.Add(TEXT("CallInEditor"));
+			}
+			const TCHAR* ConstSuffix = (FuncFlags & FUNC_Const) ? TEXT(" const") : TEXT("");
+			OutEntry.Name = FnName.ToString();
+			OutEntry.Signature = FString::Printf(TEXT("%s %s(%s)%s"),
+				*ReturnType, *OutEntry.Name, *FString::Join(Params, TEXT(", ")), ConstSuffix);
 			return true;
 		}
 		return false;
@@ -1080,7 +1122,7 @@ namespace
 
 	bool RenderEntryNode(UEdGraphNode* Entry, FPseudoEntry& OutEntry)
 	{
-		if (!BuildEntryHeader(Entry, OutEntry.Signature))
+		if (!BuildEntryHeader(Entry, OutEntry))
 		{
 			return false;
 		}
@@ -1133,6 +1175,11 @@ namespace
 			{
 				OutLines.Add(MakeShared<FJsonValueString>(FString()));
 			}
+			if (Entry.UFunctionSpecifiers.Num() > 0)
+			{
+				OutLines.Add(MakeShared<FJsonValueString>(FString::Printf(TEXT("UFUNCTION(%s)"),
+					*FString::Join(Entry.UFunctionSpecifiers, TEXT(", ")))));
+			}
 			OutLines.Add(MakeShared<FJsonValueString>(Entry.Signature));
 			OutLines.Add(MakeShared<FJsonValueString>(TEXT("{")));
 			for (const FPseudoLine& Line : Entry.Body)
@@ -1145,29 +1192,30 @@ namespace
 	}
 }
 
-TSharedPtr<FJsonValue> FWxBlueprintSnapshotExporter::BuildEventGraphJson(UBlueprint* Blueprint)
+TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildEventGraphJson(UBlueprint* Blueprint)
 {
 	if (!Blueprint)
 	{
 		return nullptr;
 	}
 
-	// 복수 uber page 를 한 배열로 평탄화. 함수 시그니처가 entry 구분을 담당.
-	TArray<TSharedPtr<FJsonValue>> AllLines;
+	// 모든 ubergraph page 의 entry 를 entry 이름 키로 한 object 로 통합 — functions 와 동일 구조.
+	TSharedPtr<FJsonObject> Root = MakeShared<FJsonObject>();
 	for (UEdGraph* Graph : Blueprint->UbergraphPages)
 	{
 		TArray<FPseudoEntry> Entries = RenderGraphPseudoCode(Graph);
-		if (Entries.Num() == 0)
+		for (const FPseudoEntry& Entry : Entries)
 		{
-			continue;
+			if (Entry.Name.IsEmpty())
+			{
+				continue;
+			}
+			TArray<TSharedPtr<FJsonValue>> Lines;
+			AppendEntriesToLines(Lines, { Entry });
+			Root->SetArrayField(Entry.Name, Lines);
 		}
-		AppendEntriesToLines(AllLines, Entries);
 	}
-	if (AllLines.Num() == 0)
-	{
-		return nullptr;
-	}
-	return MakeShared<FJsonValueArray>(AllLines);
+	return Root;
 }
 
 TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildFunctionsJson(UBlueprint* Blueprint)

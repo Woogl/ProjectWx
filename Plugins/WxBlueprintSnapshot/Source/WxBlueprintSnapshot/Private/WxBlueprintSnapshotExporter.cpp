@@ -5,6 +5,7 @@
 #include "WxBlueprintSnapshotSettings.h"
 #include "Engine/Blueprint.h"
 #include "Engine/BlueprintGeneratedClass.h"
+#include "EdGraphSchema_K2.h"
 #include "Engine/SimpleConstructionScript.h"
 #include "Engine/SCS_Node.h"
 #include "Components/ActorComponent.h"
@@ -138,7 +139,7 @@ TSharedRef<FJsonObject> FWxBlueprintSnapshotExporter::BuildSnapshot(UBlueprint* 
 		UObject* ParentCDO = Blueprint->ParentClass->GetDefaultObject(false);
 		if (InstanceCDO && ParentCDO)
 		{
-			// NewVariables / SCS 컴포넌트는 각각 `newVariables` / `components` 필드에 기록되므로 classDefaults 델타에서 중복 제외.
+			// NewVariables / SCS 컴포넌트는 각각 `variables` / `components` 필드에 기록되므로 classDefaults 델타에서 중복 제외.
 			TSet<FName> ExcludedNames;
 			ExcludedNames.Reserve(Blueprint->NewVariables.Num());
 			for (const FBPVariableDescription& Var : Blueprint->NewVariables)
@@ -169,7 +170,7 @@ TSharedRef<FJsonObject> FWxBlueprintSnapshotExporter::BuildSnapshot(UBlueprint* 
 
 	if (Settings.bIncludeVariables)
 	{
-		SetObjectFieldIfNonEmpty(*Root, TEXT("newVariables"), BuildVariablesJson(Blueprint));
+		SetObjectFieldIfNonEmpty(*Root, TEXT("variables"), BuildVariablesJson(Blueprint));
 	}
 
 	if (Settings.bIncludeInterfaces)
@@ -179,11 +180,8 @@ TSharedRef<FJsonObject> FWxBlueprintSnapshotExporter::BuildSnapshot(UBlueprint* 
 
 	if (Settings.bIncludeGraphs)
 	{
-		if (TSharedPtr<FJsonValue> EventGraph = BuildEventGraphJson(Blueprint))
-		{
-			Root->SetField(TEXT("eventGraph"), EventGraph);
-		}
-		SetObjectFieldIfNonEmpty(*Root, TEXT("newFunctions"), BuildFunctionsJson(Blueprint));
+		SetObjectFieldIfNonEmpty(*Root, TEXT("eventGraph"), BuildEventGraphJson(Blueprint));
+		SetObjectFieldIfNonEmpty(*Root, TEXT("functions"), BuildFunctionsJson(Blueprint));
 	}
 
 	if (UWidgetBlueprint* WidgetBlueprint = Cast<UWidgetBlueprint>(Blueprint))
@@ -260,16 +258,277 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildScsNodeJson(USCS_Node
 	return NodeJson;
 }
 
+namespace
+{
+	bool IsObjectLikeCat(const FName& Cat)
+	{
+		return Cat == UEdGraphSchema_K2::PC_Object
+			|| Cat == UEdGraphSchema_K2::PC_Class
+			|| Cat == UEdGraphSchema_K2::PC_Interface
+			|| Cat == UEdGraphSchema_K2::PC_SoftObject
+			|| Cat == UEdGraphSchema_K2::PC_SoftClass;
+	}
+
+	FString FormatVarTerminalCPP(const FName& Cat, UObject* SubObj)
+	{
+		if (UClass* AsClass = Cast<UClass>(SubObj))
+		{
+			const FString ClassName = FString::Printf(TEXT("%s%s"), AsClass->GetPrefixCPP(), *AsClass->GetName());
+			if (Cat == UEdGraphSchema_K2::PC_Class)       { return FString::Printf(TEXT("TSubclassOf<%s>"), *ClassName); }
+			if (Cat == UEdGraphSchema_K2::PC_SoftObject)  { return FString::Printf(TEXT("TSoftObjectPtr<%s>"), *ClassName); }
+			if (Cat == UEdGraphSchema_K2::PC_SoftClass)   { return FString::Printf(TEXT("TSoftClassPtr<%s>"), *ClassName); }
+			if (Cat == UEdGraphSchema_K2::PC_Interface)   { return FString::Printf(TEXT("TScriptInterface<%s>"), *ClassName); }
+			// PC_Object: raw pointer
+			return FString::Printf(TEXT("%s*"), *ClassName);
+		}
+		if (UScriptStruct* AsStruct = Cast<UScriptStruct>(SubObj))
+		{
+			return FString::Printf(TEXT("F%s"), *AsStruct->GetName());
+		}
+		if (UEnum* AsEnum = Cast<UEnum>(SubObj))
+		{
+			return AsEnum->GetName();
+		}
+
+		if (Cat == UEdGraphSchema_K2::PC_Boolean) { return TEXT("bool"); }
+		if (Cat == UEdGraphSchema_K2::PC_Int)     { return TEXT("int32"); }
+		if (Cat == UEdGraphSchema_K2::PC_Int64)   { return TEXT("int64"); }
+		if (Cat == UEdGraphSchema_K2::PC_Byte)    { return TEXT("uint8"); }
+		if (Cat == UEdGraphSchema_K2::PC_Float)   { return TEXT("float"); }
+		if (Cat == UEdGraphSchema_K2::PC_Double || Cat == UEdGraphSchema_K2::PC_Real)
+		{
+			return TEXT("double");
+		}
+		if (Cat == UEdGraphSchema_K2::PC_String)  { return TEXT("FString"); }
+		if (Cat == UEdGraphSchema_K2::PC_Name)    { return TEXT("FName"); }
+		if (Cat == UEdGraphSchema_K2::PC_Text)    { return TEXT("FText"); }
+		if (IsObjectLikeCat(Cat))                 { return TEXT("UObject*"); }
+		return Cat.ToString();
+	}
+
+	FString FormatVarTypeCPP(const FEdGraphPinType& PinType)
+	{
+		const FString Terminal = FormatVarTerminalCPP(PinType.PinCategory, PinType.PinSubCategoryObject.Get());
+		if (PinType.IsArray())
+		{
+			return FString::Printf(TEXT("TArray<%s>"), *Terminal);
+		}
+		if (PinType.IsSet())
+		{
+			return FString::Printf(TEXT("TSet<%s>"), *Terminal);
+		}
+		if (PinType.IsMap())
+		{
+			const FString Value = FormatVarTerminalCPP(PinType.PinValueType.TerminalCategory, PinType.PinValueType.TerminalSubCategoryObject.Get());
+			return FString::Printf(TEXT("TMap<%s, %s>"), *Terminal, *Value);
+		}
+		return Terminal;
+	}
+
+	// "0.000000" → "0", "1.500000" → "1.5". 정수형 표기는 그대로 둔다.
+	FString TrimFloat(const FString& Value)
+	{
+		if (!Value.Contains(TEXT(".")))
+		{
+			return Value;
+		}
+		FString Out = Value;
+		while (Out.Len() > 1 && Out.EndsWith(TEXT("0")))
+		{
+			Out.LeftChopInline(1, EAllowShrinking::No);
+		}
+		if (Out.EndsWith(TEXT(".")))
+		{
+			Out.LeftChopInline(1, EAllowShrinking::No);
+		}
+		return Out.IsEmpty() ? TEXT("0") : Out;
+	}
+
+	bool ParseStructField(const FString& StructText, const TCHAR* FieldName, FString& OutValue)
+	{
+		const FString Key = FString::Printf(TEXT("%s="), FieldName);
+		const int32 Found = StructText.Find(Key);
+		if (Found == INDEX_NONE)
+		{
+			return false;
+		}
+		const int32 Start = Found + Key.Len();
+		const int32 EndComma = StructText.Find(TEXT(","), ESearchCase::CaseSensitive, ESearchDir::FromStart, Start);
+		const int32 EndParen = StructText.Find(TEXT(")"), ESearchCase::CaseSensitive, ESearchDir::FromStart, Start);
+		int32 End = StructText.Len();
+		if (EndComma != INDEX_NONE && (EndParen == INDEX_NONE || EndComma < EndParen))
+		{
+			End = EndComma;
+		}
+		else if (EndParen != INDEX_NONE)
+		{
+			End = EndParen;
+		}
+		OutValue = StructText.Mid(Start, End - Start);
+		return true;
+	}
+
+	FString FormatStructValueCPP(const FString& Value, UScriptStruct* Struct)
+	{
+		const FString StructName = Struct ? FString::Printf(TEXT("F%s"), *Struct->GetName()) : TEXT("FStruct");
+
+		if (Value.IsEmpty() || Value == TEXT("()"))
+		{
+			return FString::Printf(TEXT("%s()"), *StructName);
+		}
+
+		if (Struct)
+		{
+			const FString Name = Struct->GetName();
+			if (Name == TEXT("Vector") || Name == TEXT("Vector3f"))
+			{
+				FString X, Y, Z;
+				if (ParseStructField(Value, TEXT("X"), X) && ParseStructField(Value, TEXT("Y"), Y) && ParseStructField(Value, TEXT("Z"), Z))
+				{
+					return FString::Printf(TEXT("%s(%s, %s, %s)"), *StructName, *TrimFloat(X), *TrimFloat(Y), *TrimFloat(Z));
+				}
+			}
+			else if (Name == TEXT("Vector2D") || Name == TEXT("Vector2f"))
+			{
+				FString X, Y;
+				if (ParseStructField(Value, TEXT("X"), X) && ParseStructField(Value, TEXT("Y"), Y))
+				{
+					return FString::Printf(TEXT("%s(%s, %s)"), *StructName, *TrimFloat(X), *TrimFloat(Y));
+				}
+			}
+			else if (Name == TEXT("Vector4"))
+			{
+				FString X, Y, Z, W;
+				if (ParseStructField(Value, TEXT("X"), X) && ParseStructField(Value, TEXT("Y"), Y) && ParseStructField(Value, TEXT("Z"), Z) && ParseStructField(Value, TEXT("W"), W))
+				{
+					return FString::Printf(TEXT("%s(%s, %s, %s, %s)"), *StructName, *TrimFloat(X), *TrimFloat(Y), *TrimFloat(Z), *TrimFloat(W));
+				}
+			}
+			else if (Name == TEXT("Rotator"))
+			{
+				FString P, Y, R;
+				if (ParseStructField(Value, TEXT("Pitch"), P) && ParseStructField(Value, TEXT("Yaw"), Y) && ParseStructField(Value, TEXT("Roll"), R))
+				{
+					return FString::Printf(TEXT("%s(%s, %s, %s)"), *StructName, *TrimFloat(P), *TrimFloat(Y), *TrimFloat(R));
+				}
+			}
+			else if (Name == TEXT("LinearColor"))
+			{
+				FString R, G, B, A;
+				if (ParseStructField(Value, TEXT("R"), R) && ParseStructField(Value, TEXT("G"), G) && ParseStructField(Value, TEXT("B"), B) && ParseStructField(Value, TEXT("A"), A))
+				{
+					return FString::Printf(TEXT("%s(%s, %s, %s, %s)"), *StructName, *TrimFloat(R), *TrimFloat(G), *TrimFloat(B), *TrimFloat(A));
+				}
+			}
+		}
+
+		// 알려지지 않은 구조체는 BP 표기를 그대로 붙여 폴백. ex) FCustom(X=1,Y=2)
+		return FString::Printf(TEXT("%s%s"), *StructName, *Value);
+	}
+
+	// 모든 값은 가능한 한 함수 캐스트 / ctor 형태로 — 값 자체가 타입을 self-explain.
+	// 단 nullptr / NSLOCTEXT(...) / EEnum::Value 처럼 이미 타입이 자명하거나 캐스트가 어색한 경우는 그대로.
+	FString FormatVarValueCPP(const FString& Value, const FEdGraphPinType& PinType)
+	{
+		if (PinType.IsContainer())
+		{
+			const FString FullType = FormatVarTypeCPP(PinType);
+			if (Value.IsEmpty() || Value == TEXT("()"))
+			{
+				return FString::Printf(TEXT("%s{}"), *FullType);
+			}
+			// 비어있지 않은 컨테이너 BP 표기는 "(elem,elem)" — 그대로 type prefix 만 붙임.
+			return FString::Printf(TEXT("%s%s"), *FullType, *Value);
+		}
+
+		const FName Cat = PinType.PinCategory;
+
+		if (Cat == UEdGraphSchema_K2::PC_Boolean)
+		{
+			const bool bTrue = Value == TEXT("True") || Value == TEXT("true");
+			return bTrue ? TEXT("bool(true)") : TEXT("bool(false)");
+		}
+		if (Cat == UEdGraphSchema_K2::PC_Int || Cat == UEdGraphSchema_K2::PC_Int64)
+		{
+			return Value.IsEmpty() ? TEXT("0") : Value;
+		}
+		if (Cat == UEdGraphSchema_K2::PC_Byte)
+		{
+			if (UEnum* AsEnum = Cast<UEnum>(PinType.PinSubCategoryObject.Get()))
+			{
+				if (Value.IsEmpty() || Value == TEXT("0"))
+				{
+					return FString::Printf(TEXT("%s(0)"), *AsEnum->GetName());
+				}
+				return Value.Contains(TEXT("::")) ? Value : FString::Printf(TEXT("%s::%s"), *AsEnum->GetName(), *Value);
+			}
+			return Value.IsEmpty() ? TEXT("0") : Value;
+		}
+		if (Cat == UEdGraphSchema_K2::PC_Float)
+		{
+			FString Trimmed = Value.IsEmpty() ? TEXT("0") : TrimFloat(Value);
+			if (!Trimmed.Contains(TEXT(".")))
+			{
+				Trimmed.Append(TEXT("."));
+			}
+			Trimmed.Append(TEXT("f"));
+			return Trimmed;
+		}
+		if (Cat == UEdGraphSchema_K2::PC_Double || Cat == UEdGraphSchema_K2::PC_Real)
+		{
+			FString Trimmed = Value.IsEmpty() ? TEXT("0") : TrimFloat(Value);
+			if (!Trimmed.Contains(TEXT(".")))
+			{
+				Trimmed.Append(TEXT(".0"));
+			}
+			return Trimmed;
+		}
+		if (Cat == UEdGraphSchema_K2::PC_String)
+		{
+			FString Escaped = Value.ReplaceCharWithEscapedChar();
+			return FString::Printf(TEXT("FString(\"%s\")"), *Escaped);
+		}
+		if (Cat == UEdGraphSchema_K2::PC_Name)
+		{
+			return (Value.IsEmpty() || Value == TEXT("None")) ? TEXT("NAME_None") : FString::Printf(TEXT("FName(\"%s\")"), *Value);
+		}
+		if (Cat == UEdGraphSchema_K2::PC_Text)
+		{
+			// FText 는 NSLOCTEXT/INVTEXT 가 이미 타입을 표현 — 그대로.
+			return Value.IsEmpty() ? TEXT("FText::GetEmpty()") : Value;
+		}
+		if (IsObjectLikeCat(Cat))
+		{
+			const bool bIsNull = Value.IsEmpty() || Value == TEXT("None");
+			if (Cat == UEdGraphSchema_K2::PC_Object)
+			{
+				// raw pointer: T*(nullptr) 은 invalid C++ — type 손실 감수.
+				return bIsNull ? TEXT("nullptr") : Value;
+			}
+			// wrapper 타입 (TSubclassOf / TSoftObjectPtr / TSoftClassPtr / TScriptInterface) 은 함수 캐스트 가능.
+			const FString FullType = FormatVarTypeCPP(PinType);
+			return bIsNull
+				? FString::Printf(TEXT("%s(nullptr)"), *FullType)
+				: FString::Printf(TEXT("%s(%s)"), *FullType, *Value);
+		}
+		if (Cat == UEdGraphSchema_K2::PC_Struct)
+		{
+			return FormatStructValueCPP(Value, Cast<UScriptStruct>(PinType.PinSubCategoryObject.Get()));
+		}
+		if (UEnum* AsEnum = Cast<UEnum>(PinType.PinSubCategoryObject.Get()))
+		{
+			return Value.Contains(TEXT("::")) ? Value : FString::Printf(TEXT("%s::%s"), *AsEnum->GetName(), *Value);
+		}
+		return Value;
+	}
+}
+
 TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildVariablesJson(UBlueprint* Blueprint)
 {
-	auto FormatTerminal = [](const FName& Category, const TWeakObjectPtr<UObject>& SubCatObj) -> FString
+	if (!Blueprint)
 	{
-		if (UObject* Obj = SubCatObj.Get())
-		{
-			return Obj->GetName();
-		}
-		return Category.ToString();
-	};
+		return nullptr;
+	}
 
 	UBlueprintGeneratedClass* GeneratedClass = Cast<UBlueprintGeneratedClass>(Blueprint->GeneratedClass);
 	UObject* CDO = GeneratedClass ? GeneratedClass->GetDefaultObject(false) : nullptr;
@@ -277,40 +536,22 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildVariablesJson(UBluepr
 	TSharedPtr<FJsonObject> Root = MakeShared<FJsonObject>();
 	for (const FBPVariableDescription& Var : Blueprint->NewVariables)
 	{
-		FString TypeStr = FormatTerminal(Var.VarType.PinCategory, Var.VarType.PinSubCategoryObject);
-
-		if (Var.VarType.IsArray())
-		{
-			TypeStr = FString::Printf(TEXT("%s[]"), *TypeStr);
-		}
-		else if (Var.VarType.IsSet())
-		{
-			TypeStr = FString::Printf(TEXT("Set<%s>"), *TypeStr);
-		}
-		else if (Var.VarType.IsMap())
-		{
-			const FString ValueStr = FormatTerminal(Var.VarType.PinValueType.TerminalCategory, Var.VarType.PinValueType.TerminalSubCategoryObject);
-			TypeStr = FString::Printf(TEXT("Map<%s, %s>"), *TypeStr, *ValueStr);
-		}
-
 		// CDO에서 직접 기본값 읽기. FBPVariableDescription::DefaultValue는 유저가 명시적으로 바꾼 경우만 채워진다.
-		FString ValueStr;
-		if (CDO)
+		FString RawValue;
+		if (CDO && GeneratedClass)
 		{
 			if (FProperty* Prop = GeneratedClass->FindPropertyByName(Var.VarName))
 			{
-				Prop->ExportTextItem_InContainer(ValueStr, CDO, nullptr, CDO, PPF_None);
+				Prop->ExportTextItem_InContainer(RawValue, CDO, nullptr, CDO, PPF_None);
 			}
 		}
-		if (ValueStr.IsEmpty())
+		if (RawValue.IsEmpty())
 		{
-			ValueStr = Var.DefaultValue;
+			RawValue = Var.DefaultValue;
 		}
 
-		TSharedPtr<FJsonObject> Entry = MakeShared<FJsonObject>();
-		Entry->SetStringField(TEXT("type"), TypeStr);
-		Entry->SetStringField(TEXT("value"), ValueStr);
-		Root->SetObjectField(Var.VarName.ToString(), Entry.ToSharedRef());
+		const FString ValueCPP = FormatVarValueCPP(RawValue, Var.VarType);
+		Root->SetStringField(Var.VarName.ToString(), ValueCPP);
 	}
 	return Root;
 }
