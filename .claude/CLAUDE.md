@@ -89,3 +89,13 @@ Unreal Engine 5의 UMG View Model을 사용하여, 비즈니스 로직과 프레
 ### 월드 시스템 (`WxWorld`)
 
 월드에 배치되는 각종 오브젝트 및 관련 상호작용을 구현한다.
+
+---
+
+## Blueprint 분석
+
+`.uasset`(BP/WBP) 의 내부 구조를 알아야 하는 작업(예: BP 클래스의 디폴트값 확인, 컴포넌트 트리, 이벤트 그래프 로직, WBP의 위젯 계층/MVVM 바인딩)에서는 `Plugins/WxBlueprintSnapshot/Snapshots/` 아래의 동명 JSON을 우선 참조한다.
+
+* 스냅샷은 `Content/` 폴더 구조를 미러링한다. 예: `Content/Game/Character/Player/BP_Player.uasset` → `Plugins/WxBlueprintSnapshot/Snapshots/Game/Character/Player/BP_Player.json`
+* 스냅샷은 BP 저장 시 자동 갱신되므로 최신 상태에 가깝지만, 마지막 저장 이후 수정사항은 반영되지 않을 수 있다.
+* 스냅샷이 없는 BP는 IncludeDirectories/ExcludeDirectories 필터로 제외된 경우이거나 아직 저장된 적이 없는 경우다.
