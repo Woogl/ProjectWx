@@ -6,7 +6,7 @@
 			{
 				"bindingType": "OneWayToDestination",
 				"destination": "SetLazyTexture",
-				"source": "IconAsset"
+				"source": "Icon"
 			},
 			{
 				"bindingType": "OneWayToDestination",
@@ -18,7 +18,7 @@
 						"bUseGrouping": "true",
 						"MaximumIntegralDigits": "324",
 						"MinimumIntegralDigits": "1",
-						"Value": "ItemCount"
+						"Value": "TotalCount"
 					},
 					"function": "Conv_IntToText"
 				},

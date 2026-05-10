@@ -1,0 +1,206 @@
+{
+	"blueprintPath": "/Game/UI/Widget/WBP_PlayerSkills.WBP_PlayerSkills",
+	"mvvm":
+	{
+		"bindings": [
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"AbilityTag": "(TagName=\"Ability.Skill.1\")",
+						"AbilityViewModels": "AbilityViewModels"
+					},
+					"function": "Conv_FindAbilityViewModelByTag"
+				},
+				"destination": "WxViewModel_Ability",
+				"source": ""
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"AbilityTag": "(TagName=\"Ability.Skill.2\")",
+						"AbilityViewModels": "AbilityViewModels"
+					},
+					"function": "Conv_FindAbilityViewModelByTag"
+				},
+				"destination": "WxViewModel_Ability",
+				"source": ""
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"AbilityTag": "(TagName=\"Ability.Skill.3\")",
+						"AbilityViewModels": "AbilityViewModels"
+					},
+					"function": "Conv_FindAbilityViewModelByTag"
+				},
+				"destination": "WxViewModel_Ability",
+				"source": ""
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"AbilityTag": "(TagName=\"Ability.Skill.4\")",
+						"AbilityViewModels": "AbilityViewModels"
+					},
+					"function": "Conv_FindAbilityViewModelByTag"
+				},
+				"destination": "WxViewModel_Ability",
+				"source": ""
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"AbilityTag": "(TagName=\"Ability.Ultimate\")",
+						"AbilityViewModels": "AbilityViewModels"
+					},
+					"function": "Conv_FindAbilityViewModelByTag"
+				},
+				"destination": "WxViewModel_Ability",
+				"source": ""
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"Attribute": "(AttributeName=\"UP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:UP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
+						"AttributeViewModels": "AttributeViewModels"
+					},
+					"function": "Conv_FindAttributeViewModel"
+				},
+				"destination": "WxViewModel_Attribute",
+				"source": ""
+			}
+		],
+		"viewModels":
+		{
+			"VM_PlayerAbilitySystem":
+			{
+				"class": "/Script/WxUI.WxViewModel_AbilitySystem",
+				"contextId": "8C92CB19-42D4-03B9-50FC-F596D702709D",
+				"createGetter": true,
+				"createSetter": false,
+				"creationType": "GlobalViewModelCollection",
+				"globalIdentifier": "VM_PlayerAbilitySystem",
+				"optional": false
+			}
+		}
+	},
+	"parentClass": "/Script/UMG.UserWidget",
+	"widgetTree":
+	{
+		"root": "VerticalBox_0",
+		"widgets":
+		{
+			"Ability_Ultimate":
+			{
+				"class": "/Game/UI/Widget/WBP_Ability.WBP_Ability_C",
+				"parent": "Overlay_0",
+				"slot":
+				{
+					"class": "/Script/UMG.OverlaySlot"
+				}
+			},
+			"HorizontalBox_0":
+			{
+				"class": "/Script/UMG.HorizontalBox",
+				"parent": "VerticalBox_0",
+				"slot":
+				{
+					"class": "/Script/UMG.VerticalBoxSlot"
+				}
+			},
+			"Overlay_0":
+			{
+				"class": "/Script/UMG.Overlay",
+				"parent": "VerticalBox_0",
+				"slot":
+				{
+					"class": "/Script/UMG.VerticalBoxSlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Right"
+					}
+				}
+			},
+			"PlayerUP_Radial":
+			{
+				"class": "/Game/UI/Widget/WBP_RadialBar.WBP_RadialBar_C",
+				"delta":
+				{
+					"ColorAndOpacity":
+					{
+						"B": 0,
+						"G": 0.5
+					}
+				},
+				"parent": "Overlay_0",
+				"slot":
+				{
+					"class": "/Script/UMG.OverlaySlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Fill",
+						"VerticalAlignment": "VAlign_Fill"
+					}
+				}
+			},
+			"Skill_1":
+			{
+				"class": "/Game/UI/Widget/WBP_Ability.WBP_Ability_C",
+				"parent": "HorizontalBox_0",
+				"slot":
+				{
+					"class": "/Script/UMG.HorizontalBoxSlot"
+				}
+			},
+			"Skill_2":
+			{
+				"class": "/Game/UI/Widget/WBP_Ability.WBP_Ability_C",
+				"parent": "HorizontalBox_0",
+				"slot":
+				{
+					"class": "/Script/UMG.HorizontalBoxSlot"
+				}
+			},
+			"Skill_3":
+			{
+				"class": "/Game/UI/Widget/WBP_Ability.WBP_Ability_C",
+				"parent": "HorizontalBox_0",
+				"slot":
+				{
+					"class": "/Script/UMG.HorizontalBoxSlot"
+				}
+			},
+			"Skill_4":
+			{
+				"class": "/Game/UI/Widget/WBP_Ability.WBP_Ability_C",
+				"parent": "HorizontalBox_0",
+				"slot":
+				{
+					"class": "/Script/UMG.HorizontalBoxSlot"
+				}
+			},
+			"VerticalBox_0":
+			{
+				"class": "/Script/UMG.VerticalBox"
+			}
+		}
+	}
+}

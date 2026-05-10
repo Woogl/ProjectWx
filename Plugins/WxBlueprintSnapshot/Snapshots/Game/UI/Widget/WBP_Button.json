@@ -3,11 +3,13 @@
 	"classDefaults":
 	{
 		"CommonTextBlock_22": "",
-		"Style": "/Game/UI/Style/ButtonStyle_Empty.ButtonStyle_Empty_C"
+		"Style": "/Game/UI/CommonUI/ButtonStyle_Empty.ButtonStyle_Empty_C"
 	},
 	"eventGraph": [
-		"event PreConstruct:",
-		"  CommonTextBlock_22.SetText(InText=ButtonText)"
+		"void PreConstruct(delegate OutputDelegate, bool IsDesignTime)",
+		"{",
+		"    CommonTextBlock_22->SetText(/* InText */ ButtonText);",
+		"}"
 	],
 	"newVariables":
 	{
@@ -30,22 +32,7 @@
 				{
 					"Text": "Button Text"
 				},
-				"isVariable": true,
-				"parent": "InternalRootButtonBase",
-				"slot":
-				{
-					"class": "/Script/UMG.ButtonSlot",
-					"delta":
-					{
-						"Padding":
-						{
-							"Bottom": 0,
-							"Left": 0,
-							"Right": 0,
-							"Top": 0
-						}
-					}
-				}
+				"isVariable": true
 			}
 		}
 	}

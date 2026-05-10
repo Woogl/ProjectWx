@@ -6,8 +6,10 @@
 		"WBP_Button_161": ""
 	},
 	"eventGraph": [
-		"event CommonButtonBaseClicked__DelegateSignature:",
-		"  PushWidgetToLayer"
+		"void CommonButtonBaseClicked__DelegateSignature(delegate OutputDelegate, UCommonButtonBase* Button)",
+		"{",
+		"    // PushWidgetToLayer",
+		"}"
 	],
 	"parentClass": "/Game/UI/Widget/WBP_MenuBase.WBP_MenuBase_C",
 	"widgetTree":

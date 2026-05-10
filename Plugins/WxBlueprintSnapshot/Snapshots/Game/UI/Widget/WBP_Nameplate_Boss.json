@@ -1,0 +1,227 @@
+{
+	"blueprintPath": "/Game/UI/Widget/WBP_Nameplate_Boss.WBP_Nameplate_Boss",
+	"mvvm":
+	{
+		"bindings": [
+			{
+				"bindingType": "OneWayToDestination",
+				"destination": "BP_SetListItems",
+				"source": "ActiveEffectViewModels"
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"bIsVisible": "IsInitialized",
+						"FalseVisibility": "Collapsed",
+						"TrueVisibility": "SelfHitTestInvisible"
+					},
+					"function": "Conv_BoolToSlateVisibility"
+				},
+				"destination": "Visibility",
+				"source": ""
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"Attribute": "(AttributeName=\"DP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:DP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
+						"AttributeViewModels": "AttributeViewModels"
+					},
+					"function": "Conv_FindAttributeViewModel"
+				},
+				"destination": "WxViewModel_Attribute",
+				"source": ""
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"Attribute": "(AttributeName=\"HP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:HP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
+						"AttributeViewModels": "AttributeViewModels"
+					},
+					"function": "Conv_FindAttributeViewModel"
+				},
+				"destination": "WxViewModel_Attribute",
+				"source": ""
+			}
+		],
+		"viewModels":
+		{
+			"WxViewModel_AbilitySystem":
+			{
+				"class": "/Script/WxUI.WxViewModel_AbilitySystem",
+				"contextId": "2C09386E-4078-50DA-15BF-B9B6CE24BC1A",
+				"createGetter": true,
+				"createSetter": false,
+				"creationType": "GlobalViewModelCollection",
+				"globalIdentifier": "VM_BossAbilitySystem",
+				"optional": false
+			}
+		}
+	},
+	"parentClass": "/Script/UMG.UserWidget",
+	"widgetTree":
+	{
+		"root": "VerticalBox_0",
+		"widgets":
+		{
+			"ActiveEffects":
+			{
+				"class": "/Script/UMG.ListView",
+				"delta":
+				{
+					"EntryWidgetClass": "/Game/UI/Widget/WBP_Effect.WBP_Effect_C",
+					"Orientation": "Orient_Horizontal"
+				},
+				"parent": "SizeBox_1",
+				"slot":
+				{
+					"class": "/Script/UMG.SizeBoxSlot"
+				}
+			},
+			"DPBar":
+			{
+				"class": "/Game/UI/Widget/WBP_AttributeBar.WBP_AttributeBar_C",
+				"delta":
+				{
+					"ColorAndOpacity":
+					{
+						"B": 0
+					},
+					"NumTextVisible": true
+				},
+				"parent": "Overlay_2",
+				"slot":
+				{
+					"class": "/Script/UMG.OverlaySlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Fill",
+						"VerticalAlignment": "VAlign_Fill"
+					}
+				}
+			},
+			"GroggyDim":
+			{
+				"class": "/Script/UMG.Image",
+				"delta":
+				{
+					"ColorAndOpacity":
+					{
+						"A": 0,
+						"B": 0,
+						"G": 0,
+						"R": 0
+					},
+					"Visibility": "Collapsed"
+				},
+				"parent": "Overlay_2",
+				"slot":
+				{
+					"class": "/Script/UMG.OverlaySlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Fill",
+						"VerticalAlignment": "VAlign_Fill"
+					}
+				}
+			},
+			"HPBar":
+			{
+				"class": "/Game/UI/Widget/WBP_AttributeBar.WBP_AttributeBar_C",
+				"delta":
+				{
+					"NumTextVisible": true
+				},
+				"parent": "VerticalBox_1",
+				"slot":
+				{
+					"class": "/Script/UMG.VerticalBoxSlot",
+					"delta":
+					{
+						"Size":
+						{
+							"SizeRule": "Fill",
+							"Value": 0.69999998807907104
+						}
+					}
+				}
+			},
+			"Overlay_2":
+			{
+				"class": "/Script/UMG.Overlay",
+				"parent": "VerticalBox_1",
+				"slot":
+				{
+					"class": "/Script/UMG.VerticalBoxSlot",
+					"delta":
+					{
+						"Size":
+						{
+							"SizeRule": "Fill",
+							"Value": 0.30000001192092896
+						}
+					}
+				}
+			},
+			"SizeBox_1":
+			{
+				"class": "/Script/UMG.SizeBox",
+				"delta":
+				{
+					"bOverride_HeightOverride": true,
+					"bOverride_WidthOverride": true,
+					"HeightOverride": 50,
+					"WidthOverride": 600
+				},
+				"parent": "VerticalBox_0",
+				"slot":
+				{
+					"class": "/Script/UMG.VerticalBoxSlot"
+				}
+			},
+			"SizeBox_4":
+			{
+				"class": "/Script/UMG.SizeBox",
+				"delta":
+				{
+					"bOverride_HeightOverride": true,
+					"HeightOverride": 40
+				},
+				"parent": "VerticalBox_0",
+				"slot":
+				{
+					"class": "/Script/UMG.VerticalBoxSlot",
+					"delta":
+					{
+						"Size":
+						{
+							"SizeRule": "Fill",
+							"Value": 0.5
+						}
+					}
+				}
+			},
+			"VerticalBox_0":
+			{
+				"class": "/Script/UMG.VerticalBox"
+			},
+			"VerticalBox_1":
+			{
+				"class": "/Script/UMG.VerticalBox",
+				"parent": "SizeBox_4",
+				"slot":
+				{
+					"class": "/Script/UMG.SizeBoxSlot"
+				}
+			}
+		}
+	}
+}

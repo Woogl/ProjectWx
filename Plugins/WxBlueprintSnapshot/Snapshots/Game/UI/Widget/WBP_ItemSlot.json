@@ -1,10 +1,14 @@
 {
 	"blueprintPath": "/Game/UI/Widget/WBP_ItemSlot.WBP_ItemSlot",
 	"eventGraph": [
-		"event OnListItemObjectSet:",
-		"  AsWxViewModel_Item = Cast<WxViewModel_Item>(Event On List Item Object Set.ListItemObject)",
-		"  if (AsWxViewModel_Item):",
-		"    SetWxViewModel_Item(Viewmodel=Cast<WxViewModel_Item>(Event On List Item Object Set.ListItemObject))"
+		"void OnListItemObjectSet(delegate OutputDelegate, UObject* ListItemObject)",
+		"{",
+		"    UWxViewModel_Item* AsWxViewModel_Item = Cast<UWxViewModel_Item>(ListItemObject);",
+		"    if (AsWxViewModel_Item)",
+		"    {",
+		"        SetWxViewModel_Item(/* Viewmodel */ Cast<UWxViewModel_Item>(ListItemObject));",
+		"    }",
+		"}"
 	],
 	"interfaces":
 	{
@@ -18,7 +22,7 @@
 			{
 				"bindingType": "OneWayToDestination",
 				"destination": "SetLazyTexture",
-				"source": "IconAsset"
+				"source": "Icon"
 			},
 			{
 				"bindingType": "OneWayToDestination",
@@ -30,7 +34,7 @@
 						"bUseGrouping": "true",
 						"MaximumIntegralDigits": "324",
 						"MinimumIntegralDigits": "1",
-						"Value": "ItemCount"
+						"Value": "TotalCount"
 					},
 					"function": "Conv_IntToText"
 				},

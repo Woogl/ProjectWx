@@ -1,15 +1,15 @@
 // Copyright Woogle. All Rights Reserved.
 
 //
-// BP 그래프 → 의사 코드 렌더러.
+// BP 그래프 → UE C++ 의사 코드 렌더러.
 //
 // 접근 방식:
-//   - Entry 노드(Event / CustomEvent / FunctionEntry)에서 시작해 exec 체인을 따라간다.
-//   - 각 exec 노드는 RenderExecNode 안의 TryRender* 디스패처가 노드 타입에 맞는 라인을 찍는다.
+//   - Entry 노드(Event / CustomEvent / FunctionEntry)에서 시작해 함수 시그니처와 본문 블록을 출력.
+//   - 각 exec 노드는 RenderExecNode 안의 TryRender* 디스패처가 노드 타입에 맞는 C++ 문장을 찍는다.
 //   - 데이터 입력 핀은 RenderDataInput → RenderExpression 재귀로 역방향 평가.
 //   - UK2Node_Knot은 데이터/실행 양쪽 모두 SkipKnots로 pass-through.
 //   - exec cycle은 Visited set으로 감지해 goto 라인으로 처리. 데이터 핀 재귀는 깊이 제한(MaxExpressionDepth)으로 차단.
-//   - 알려지지 않은 노드 타입은 RenderFallbackNode가 NodeTitle 한 줄로 기록 — 회귀는 조용히 발생할 수 있음.
+//   - 알려지지 않은 노드 타입은 RenderFallbackNode가 NodeTitle 한 줄을 주석으로 기록 — 회귀는 조용히 발생할 수 있음.
 //
 
 #include "WxBlueprintSnapshotExporter.h"
@@ -33,6 +33,7 @@
 #include "K2Node_Self.h"
 #include "K2Node_Literal.h"
 #include "K2Node_DynamicCast.h"
+#include "K2Node_CallParentFunction.h"
 #include "Dom/JsonObject.h"
 #include "Dom/JsonValue.h"
 
@@ -40,6 +41,9 @@ namespace
 {
 	// 데이터 핀 사이클(드물지만 매크로/커스텀 노드에서 가능)에서의 무한 재귀 방지.
 	constexpr int32 MaxExpressionDepth = 32;
+
+	// 본문 라인 한 줄당 들여쓰기 칸 수. UE 코드 스타일 4-space.
+	constexpr int32 IndentSpaces = 4;
 
 	struct FPseudoLine
 	{
@@ -49,8 +53,8 @@ namespace
 
 	struct FPseudoEntry
 	{
-		FString Header;
-		TArray<FPseudoLine> Body;
+		FString Signature;          // "void HandleBeginPlay()"
+		TArray<FPseudoLine> Body;   // 함수 본문 — 시리얼라이즈 단계에서 { } 로 감싼다.
 	};
 
 	struct FRenderCtx
@@ -74,6 +78,15 @@ namespace
 	bool IsExecPin(const UEdGraphPin* Pin)
 	{
 		return Pin && Pin->PinType.PinCategory == UEdGraphSchema_K2::PC_Exec;
+	}
+
+	bool IsObjectLikePinCategory(const FName& Cat)
+	{
+		return Cat == UEdGraphSchema_K2::PC_Object
+			|| Cat == UEdGraphSchema_K2::PC_Class
+			|| Cat == UEdGraphSchema_K2::PC_Interface
+			|| Cat == UEdGraphSchema_K2::PC_SoftObject
+			|| Cat == UEdGraphSchema_K2::PC_SoftClass;
 	}
 
 	UEdGraphPin* FindThenPin(UEdGraphNode* Node)
@@ -114,13 +127,94 @@ namespace
 		return Pin;
 	}
 
-	FString FormatPinTypeName(const FEdGraphPinType& PinType)
+	// UStruct 의 C++ 식별자 ("ACharacter", "FVector"). UClass::GetPrefixCPP 는 "A"/"U", UScriptStruct 는 기본 "F".
+	FString FormatStructCPP(const UStruct* S)
 	{
-		if (UObject* SubObj = PinType.PinSubCategoryObject.Get())
+		if (!S)
 		{
-			return SubObj->GetName();
+			return TEXT("UObject");
 		}
-		return PinType.PinCategory.ToString();
+		return FString::Printf(TEXT("%s%s"), S->GetPrefixCPP(), *S->GetName());
+	}
+
+	// 단일 (Category, SubObj) 조합을 UE C++ 식별자로 변환. 컨테이너 래핑은 호출자 책임.
+	FString FormatTerminalCPP(const FName& Cat, UObject* SubObj)
+	{
+		if (UClass* AsClass = Cast<UClass>(SubObj))
+		{
+			return FString::Printf(TEXT("%s%s*"), AsClass->GetPrefixCPP(), *AsClass->GetName());
+		}
+		if (UScriptStruct* AsStruct = Cast<UScriptStruct>(SubObj))
+		{
+			return FString::Printf(TEXT("F%s"), *AsStruct->GetName());
+		}
+		if (UEnum* AsEnum = Cast<UEnum>(SubObj))
+		{
+			return AsEnum->GetName(); // 소스 이름이 이미 'E' 접두사 포함
+		}
+
+		if (Cat == UEdGraphSchema_K2::PC_Boolean)
+		{
+			return TEXT("bool");
+		}
+		if (Cat == UEdGraphSchema_K2::PC_Int)
+		{
+			return TEXT("int32");
+		}
+		if (Cat == UEdGraphSchema_K2::PC_Int64)
+		{
+			return TEXT("int64");
+		}
+		if (Cat == UEdGraphSchema_K2::PC_Byte)
+		{
+			return TEXT("uint8");
+		}
+		if (Cat == UEdGraphSchema_K2::PC_Float)
+		{
+			return TEXT("float");
+		}
+		if (Cat == UEdGraphSchema_K2::PC_Double || Cat == UEdGraphSchema_K2::PC_Real)
+		{
+			return TEXT("double");
+		}
+		if (Cat == UEdGraphSchema_K2::PC_String)
+		{
+			return TEXT("FString");
+		}
+		if (Cat == UEdGraphSchema_K2::PC_Name)
+		{
+			return TEXT("FName");
+		}
+		if (Cat == UEdGraphSchema_K2::PC_Text)
+		{
+			return TEXT("FText");
+		}
+		// SubObj 가 비어 있는 객체-카테고리는 UObject* 로 폴백.
+		if (IsObjectLikePinCategory(Cat))
+		{
+			return TEXT("UObject*");
+		}
+		return Cat.ToString();
+	}
+
+	// 컨테이너(TArray/TSet/TMap) 까지 포함한 핀 타입 → C++ 표기.
+	FString FormatPinTypeCPP(const FEdGraphPinType& PinType)
+	{
+		const FString Terminal = FormatTerminalCPP(PinType.PinCategory, PinType.PinSubCategoryObject.Get());
+		if (PinType.IsArray())
+		{
+			return FString::Printf(TEXT("TArray<%s>"), *Terminal);
+		}
+		if (PinType.IsSet())
+		{
+			return FString::Printf(TEXT("TSet<%s>"), *Terminal);
+		}
+		if (PinType.IsMap())
+		{
+			const FString Value = FormatTerminalCPP(PinType.PinValueType.TerminalCategory, PinType.PinValueType.TerminalSubCategoryObject.Get());
+			return FString::Printf(TEXT("TMap<%s, %s>"), *Terminal, *Value);
+		}
+		return Terminal;
 	}
 
 	FString TypeDefaultLiteral(const FEdGraphPinType& PinType)
@@ -142,25 +236,27 @@ namespace
 		{
 			return TEXT("0.0");
 		}
-		if (Cat == UEdGraphSchema_K2::PC_String
-			|| Cat == UEdGraphSchema_K2::PC_Text
-			|| Cat == UEdGraphSchema_K2::PC_Name)
+		if (Cat == UEdGraphSchema_K2::PC_String)
 		{
-			return TEXT("\"\"");
+			return TEXT("TEXT(\"\")");
 		}
-		if (Cat == UEdGraphSchema_K2::PC_Object
-			|| Cat == UEdGraphSchema_K2::PC_Class
-			|| Cat == UEdGraphSchema_K2::PC_Interface
-			|| Cat == UEdGraphSchema_K2::PC_SoftObject
-			|| Cat == UEdGraphSchema_K2::PC_SoftClass)
+		if (Cat == UEdGraphSchema_K2::PC_Name)
 		{
-			return TEXT("None");
+			return TEXT("NAME_None");
+		}
+		if (Cat == UEdGraphSchema_K2::PC_Text)
+		{
+			return TEXT("FText::GetEmpty()");
+		}
+		if (IsObjectLikePinCategory(Cat))
+		{
+			return TEXT("nullptr");
 		}
 		if (Cat == UEdGraphSchema_K2::PC_Struct)
 		{
-			if (UObject* SubObj = PinType.PinSubCategoryObject.Get())
+			if (UScriptStruct* AsStruct = Cast<UScriptStruct>(PinType.PinSubCategoryObject.Get()))
 			{
-				return FString::Printf(TEXT("%s()"), *SubObj->GetName());
+				return FString::Printf(TEXT("F%s()"), *AsStruct->GetName());
 			}
 			return TEXT("{}");
 		}
@@ -182,11 +278,19 @@ namespace
 		{
 			return TypeDefaultLiteral(Pin->PinType);
 		}
-		if (Pin->PinType.PinCategory == UEdGraphSchema_K2::PC_String
-			|| Pin->PinType.PinCategory == UEdGraphSchema_K2::PC_Text
-			|| Pin->PinType.PinCategory == UEdGraphSchema_K2::PC_Name)
+		const FName Cat = Pin->PinType.PinCategory;
+		if (Cat == UEdGraphSchema_K2::PC_String || Cat == UEdGraphSchema_K2::PC_Text)
 		{
-			return FString::Printf(TEXT("\"%s\""), *Val);
+			return FString::Printf(TEXT("TEXT(\"%s\")"), *Val);
+		}
+		if (Cat == UEdGraphSchema_K2::PC_Name)
+		{
+			return FString::Printf(TEXT("FName(TEXT(\"%s\"))"), *Val);
+		}
+		// Enum 리터럴은 BP 가 값 이름만 저장 — C++ 식별자로 만들려면 EnumType:: 접두사 필요.
+		if (UEnum* AsEnum = Cast<UEnum>(Pin->PinType.PinSubCategoryObject.Get()))
+		{
+			return FString::Printf(TEXT("%s::%s"), *AsEnum->GetName(), *Val);
 		}
 		return Val;
 	}
@@ -209,6 +313,17 @@ namespace
 		return RenderExpression(Src, Ctx);
 	}
 
+	// 멤버 접근 연산자: 객체 포인터는 ->, 구조체/원시는 .
+	const TCHAR* MemberAccessor(const UEdGraphPin* Pin)
+	{
+		if (Pin && IsObjectLikePinCategory(Pin->PinType.PinCategory))
+		{
+			return TEXT("->");
+		}
+		return TEXT(".");
+	}
+
+	// 함수 호출 인자. BP 의미를 보존하기 위해 인자명은 /* Name */ 주석으로 표기.
 	FString RenderCallArgs(UK2Node_CallFunction* Call, FRenderCtx& Ctx)
 	{
 		TArray<FString> Args;
@@ -227,23 +342,28 @@ namespace
 			{
 				continue;
 			}
-			// 함수 호출은 파라미터 수가 많아 기본값을 전부 찍으면 노이즈가 크다.
-			// 연결 없이 autogenerated default 그대로인 핀은 스킵한다 (Duration, Key, bPrintToScreen 등).
+			// 연결 없이 autogenerated default 그대로인 핀은 스킵 (Duration, Key, bPrintToScreen 등 노이즈 제거).
 			if (Pin->LinkedTo.Num() == 0 && Pin->DefaultValue == Pin->AutogeneratedDefaultValue)
 			{
 				continue;
 			}
-			Args.Add(FString::Printf(TEXT("%s=%s"), *Pin->PinName.ToString(), *RenderDataInput(Pin, Ctx)));
+			Args.Add(FString::Printf(TEXT("/* %s */ %s"), *Pin->PinName.ToString(), *RenderDataInput(Pin, Ctx)));
 		}
 		return FString::Join(Args, TEXT(", "));
 	}
 
-	FString RenderCallTarget(UK2Node_CallFunction* Call, FRenderCtx& Ctx)
+	// "Super::" / "Target->" / "Class::" / "" 중 하나를 반환.
+	FString RenderCallTargetWithAccessor(UK2Node_CallFunction* Call, FRenderCtx& Ctx)
 	{
+		// 부모 함수 호출 노드는 UK2Node_CallFunction 의 서브클래스로, FunctionReference 가 부모 클래스를 가리킨다.
+		if (Cast<UK2Node_CallParentFunction>(Call))
+		{
+			return TEXT("Super::");
+		}
 		UEdGraphPin* SelfPin = Call->FindPin(UEdGraphSchema_K2::PN_Self);
 		if (SelfPin && SelfPin->LinkedTo.Num() > 0)
 		{
-			return RenderDataInput(SelfPin, Ctx) + TEXT(".");
+			return RenderDataInput(SelfPin, Ctx) + TEXT("->");
 		}
 		if (Call->FunctionReference.IsSelfContext())
 		{
@@ -251,7 +371,7 @@ namespace
 		}
 		if (UClass* MemberClass = Call->FunctionReference.GetMemberParentClass())
 		{
-			return MemberClass->GetName() + TEXT("::");
+			return FormatStructCPP(MemberClass) + TEXT("::");
 		}
 		return FString();
 	}
@@ -276,16 +396,25 @@ namespace
 
 		if (Cast<UK2Node_Self>(Node))
 		{
-			return TEXT("Self");
+			return TEXT("this");
+		}
+		// Event / CustomEvent / FunctionEntry 의 출력 데이터 핀은 함수 파라미터에 해당 — 핀 이름으로 직접 참조.
+		if (Cast<UK2Node_Event>(Node) || Cast<UK2Node_CustomEvent>(Node) || Cast<UK2Node_FunctionEntry>(Node))
+		{
+			if (!OutputPin->PinName.IsNone())
+			{
+				return OutputPin->PinName.ToString();
+			}
 		}
 		if (UK2Node_VariableGet* VG = Cast<UK2Node_VariableGet>(Node))
 		{
 			const FString VarName = VG->GetVarNameString();
-			// target 컨텍스트(Self 핀)가 연결돼 있으면 `target.Var` 로 표기해야 의미가 분명해진다.
+			// target 컨텍스트(Self 핀)가 연결돼 있으면 `Target->Var` 또는 `Target.Var` 로 표기.
 			UEdGraphPin* SelfPin = VG->FindPin(UEdGraphSchema_K2::PN_Self);
 			if (SelfPin && SelfPin->LinkedTo.Num() > 0)
 			{
-				return FString::Printf(TEXT("%s.%s"), *RenderDataInput(SelfPin, Ctx), *VarName);
+				return FString::Printf(TEXT("%s%s%s"),
+					*RenderDataInput(SelfPin, Ctx), MemberAccessor(SelfPin), *VarName);
 			}
 			return VarName;
 		}
@@ -300,12 +429,14 @@ namespace
 			{
 				return Obj->GetName();
 			}
-			return Lit->GetNodeTitle(ENodeTitleType::ListView).ToString();
+			FString Title = Lit->GetNodeTitle(ENodeTitleType::ListView).ToString();
+			Title.ReplaceInline(TEXT("\n"), TEXT(" "));
+			return Title;
 		}
 		if (UK2Node_CallFunction* Call = Cast<UK2Node_CallFunction>(Node))
 		{
 			const FString FnName = Call->GetFunctionName().ToString();
-			// 자동 변환 노드(Conv_IntToString 등)는 Cast<Type>(expr) 형태로 렌더한다.
+			// BP 자동 변환(Conv_IntToString 등)은 C 스타일 캐스트로 압축. 단일 비-self 입력 핀 가정.
 			if (FnName.StartsWith(TEXT("Conv_")))
 			{
 				for (UEdGraphPin* Pin : Call->Pins)
@@ -318,13 +449,14 @@ namespace
 					{
 						continue;
 					}
-					const FString TypeName = FormatPinTypeName(OutputPin->PinType);
-					return FString::Printf(TEXT("Cast<%s>(%s)"), *TypeName, *RenderDataInput(Pin, Ctx));
+					return FString::Printf(TEXT("(%s)(%s)"),
+						*FormatPinTypeCPP(OutputPin->PinType), *RenderDataInput(Pin, Ctx));
 				}
 			}
-			const FString Target = RenderCallTarget(Call, Ctx);
+			const FString Target = RenderCallTargetWithAccessor(Call, Ctx);
 			const FString Args = RenderCallArgs(Call, Ctx);
 			FString Expr = FString::Printf(TEXT("%s%s(%s)"), *Target, *FnName, *Args);
+			// 다중 출력 함수(예: 구조체 분해)에서 ReturnValue 외 출력 핀을 참조한 경우 핀 이름으로 멤버 접근.
 			if (OutputPin->PinName != UEdGraphSchema_K2::PN_ReturnValue && !OutputPin->PinName.IsNone())
 			{
 				Expr += FString::Printf(TEXT(".%s"), *OutputPin->PinName.ToString());
@@ -334,10 +466,10 @@ namespace
 		if (UK2Node_DynamicCast* DCast = Cast<UK2Node_DynamicCast>(Node))
 		{
 			UEdGraphPin* ObjIn = DCast->GetCastSourcePin();
-			const FString TypeName = DCast->TargetType ? DCast->TargetType->GetName() : TEXT("?");
+			const FString TypeName = DCast->TargetType ? FormatStructCPP(DCast->TargetType) : TEXT("UObject");
 			return FString::Printf(TEXT("Cast<%s>(%s)"), *TypeName, *RenderDataInput(ObjIn, Ctx));
 		}
-		// 매크로 인스턴스 데이터 핀 참조. exec 체인의 TryRenderMacro 와 이름 표기를 통일(MacroGraph->GetName()).
+		// 매크로 인스턴스 데이터 핀 참조. exec 체인의 TryRenderMacro 와 이름 표기 통일(MacroGraph->GetName()).
 		if (UK2Node_MacroInstance* MacroInst = Cast<UK2Node_MacroInstance>(Node))
 		{
 			UEdGraph* MacroGraph = MacroInst->GetMacroGraph();
@@ -375,9 +507,14 @@ namespace
 		{
 			return;
 		}
+		// 분기 합류/사이클: 같은 노드를 다시 만나면 합류 지점을 주석으로 남긴다.
+		// 정확한 표현은 post-dominator 분석으로 합류점을 if-else 뒤로 빼내야 하지만, 본 도구 범위 초과.
+		// 조용히 스킵하면 "이 분기는 합류 호출이 사라진 것처럼" 오해를 줘서 주석이 차라리 명확.
 		if (Ctx.Visited.Contains(NextNode))
 		{
-			Emit(Ctx, Indent, FString::Printf(TEXT("goto %s"), *NextNode->GetName()));
+			FString Title = NextNode->GetNodeTitle(ENodeTitleType::ListView).ToString();
+			Title.ReplaceInline(TEXT("\n"), TEXT(" "));
+			Emit(Ctx, Indent, FString::Printf(TEXT("// merges into: %s"), *Title));
 			return;
 		}
 		Ctx.Visited.Add(NextNode);
@@ -391,13 +528,17 @@ namespace
 		{
 			return false;
 		}
-		Emit(Ctx, Indent, FString::Printf(TEXT("if (%s):"), *RenderDataInput(Branch->GetConditionPin(), Ctx)));
+		Emit(Ctx, Indent, FString::Printf(TEXT("if (%s)"), *RenderDataInput(Branch->GetConditionPin(), Ctx)));
+		Emit(Ctx, Indent, TEXT("{"));
 		RenderExecChain(Branch->GetThenPin(), Indent + 1, Ctx);
+		Emit(Ctx, Indent, TEXT("}"));
 		UEdGraphPin* ElsePin = Branch->GetElsePin();
 		if (ElsePin && ElsePin->LinkedTo.Num() > 0)
 		{
-			Emit(Ctx, Indent, TEXT("else:"));
+			Emit(Ctx, Indent, TEXT("else"));
+			Emit(Ctx, Indent, TEXT("{"));
 			RenderExecChain(ElsePin, Indent + 1, Ctx);
+			Emit(Ctx, Indent, TEXT("}"));
 		}
 		return true;
 	}
@@ -414,8 +555,10 @@ namespace
 		{
 			if (Pin && Pin->Direction == EGPD_Output && IsExecPin(Pin))
 			{
-				Emit(Ctx, Indent, FString::Printf(TEXT("# sequence[%d]"), Idx++));
+				Emit(Ctx, Indent, FString::Printf(TEXT("// sequence[%d]"), Idx++));
+				Emit(Ctx, Indent, TEXT("{"));
 				RenderExecChain(Pin, Indent + 1, Ctx);
+				Emit(Ctx, Indent, TEXT("}"));
 			}
 		}
 		return true;
@@ -429,7 +572,19 @@ namespace
 			return false;
 		}
 		UEdGraphPin* ValPin = VS->FindPin(VS->GetVarName());
-		Emit(Ctx, Indent, FString::Printf(TEXT("%s = %s"), *VS->GetVarNameString(), *RenderDataInput(ValPin, Ctx)));
+		// target.Var 가 아닌 인스턴스 멤버 세트는 좌변에 Self 표기 생략.
+		UEdGraphPin* SelfPin = VS->FindPin(UEdGraphSchema_K2::PN_Self);
+		FString Lhs;
+		if (SelfPin && SelfPin->LinkedTo.Num() > 0)
+		{
+			Lhs = FString::Printf(TEXT("%s%s%s"),
+				*RenderDataInput(SelfPin, Ctx), MemberAccessor(SelfPin), *VS->GetVarNameString());
+		}
+		else
+		{
+			Lhs = VS->GetVarNameString();
+		}
+		Emit(Ctx, Indent, FString::Printf(TEXT("%s = %s;"), *Lhs, *RenderDataInput(ValPin, Ctx)));
 		RenderExecChain(FindThenPin(VS), Indent, Ctx);
 		return true;
 	}
@@ -441,8 +596,8 @@ namespace
 		{
 			return false;
 		}
-		Emit(Ctx, Indent, FString::Printf(TEXT("%s%s(%s)"),
-			*RenderCallTarget(Call, Ctx), *Call->GetFunctionName().ToString(), *RenderCallArgs(Call, Ctx)));
+		Emit(Ctx, Indent, FString::Printf(TEXT("%s%s(%s);"),
+			*RenderCallTargetWithAccessor(Call, Ctx), *Call->GetFunctionName().ToString(), *RenderCallArgs(Call, Ctx)));
 		RenderExecChain(FindThenPin(Call), Indent, Ctx);
 		return true;
 	}
@@ -454,19 +609,25 @@ namespace
 		{
 			return false;
 		}
-		const FString TypeName = DCast->TargetType ? DCast->TargetType->GetName() : TEXT("?");
-		Emit(Ctx, Indent, FString::Printf(TEXT("As%s = Cast<%s>(%s)"), *TypeName, *TypeName, *RenderDataInput(DCast->GetCastSourcePin(), Ctx)));
+		const FString TypeName = DCast->TargetType ? FormatStructCPP(DCast->TargetType) : TEXT("UObject");
+		const FString RawName = DCast->TargetType ? DCast->TargetType->GetName() : TEXT("Object");
+		Emit(Ctx, Indent, FString::Printf(TEXT("%s* As%s = Cast<%s>(%s);"),
+			*TypeName, *RawName, *TypeName, *RenderDataInput(DCast->GetCastSourcePin(), Ctx)));
 		UEdGraphPin* Success = DCast->GetValidCastPin();
 		UEdGraphPin* Failed = DCast->GetInvalidCastPin();
 		if (Success && Success->LinkedTo.Num() > 0)
 		{
-			Emit(Ctx, Indent, FString::Printf(TEXT("if (As%s):"), *TypeName));
+			Emit(Ctx, Indent, FString::Printf(TEXT("if (As%s)"), *RawName));
+			Emit(Ctx, Indent, TEXT("{"));
 			RenderExecChain(Success, Indent + 1, Ctx);
+			Emit(Ctx, Indent, TEXT("}"));
 		}
 		if (Failed && Failed->LinkedTo.Num() > 0)
 		{
-			Emit(Ctx, Indent, TEXT("else:"));
+			Emit(Ctx, Indent, TEXT("else"));
+			Emit(Ctx, Indent, TEXT("{"));
 			RenderExecChain(Failed, Indent + 1, Ctx);
+			Emit(Ctx, Indent, TEXT("}"));
 		}
 		return true;
 	}
@@ -492,18 +653,21 @@ namespace
 			{
 				continue;
 			}
-			Args.Add(FString::Printf(TEXT("%s=%s"), *Pin->PinName.ToString(), *RenderDataInput(Pin, Ctx)));
+			Args.Add(FString::Printf(TEXT("/* %s */ %s"), *Pin->PinName.ToString(), *RenderDataInput(Pin, Ctx)));
 		}
 
+		// LoopBody/Completed 가 있는 매크로(ForEachLoop 등)는 본문 블록을 가진다.
 		UEdGraphPin* LoopBody = Macro->FindPin(TEXT("LoopBody"));
 		UEdGraphPin* Completed = Macro->FindPin(TEXT("Completed"));
 		if (LoopBody || Completed)
 		{
-			Emit(Ctx, Indent, FString::Printf(TEXT("%s(%s):"), *MacroName, *FString::Join(Args, TEXT(", "))));
+			Emit(Ctx, Indent, FString::Printf(TEXT("%s(%s)"), *MacroName, *FString::Join(Args, TEXT(", "))));
+			Emit(Ctx, Indent, TEXT("{"));
 			if (LoopBody)
 			{
 				RenderExecChain(LoopBody, Indent + 1, Ctx);
 			}
+			Emit(Ctx, Indent, TEXT("}"));
 			if (Completed)
 			{
 				RenderExecChain(Completed, Indent, Ctx);
@@ -511,7 +675,7 @@ namespace
 			return true;
 		}
 
-		Emit(Ctx, Indent, FString::Printf(TEXT("%s(%s)"), *MacroName, *FString::Join(Args, TEXT(", "))));
+		Emit(Ctx, Indent, FString::Printf(TEXT("%s(%s);"), *MacroName, *FString::Join(Args, TEXT(", "))));
 		RenderExecChain(FindThenPin(Macro), Indent, Ctx);
 		return true;
 	}
@@ -523,15 +687,32 @@ namespace
 		{
 			return false;
 		}
-		TArray<FString> Returns;
+		TArray<UEdGraphPin*> ReturnPins;
 		for (UEdGraphPin* Pin : Ret->Pins)
 		{
 			if (Pin && Pin->Direction == EGPD_Input && !IsExecPin(Pin))
 			{
-				Returns.Add(FString::Printf(TEXT("%s=%s"), *Pin->PinName.ToString(), *RenderDataInput(Pin, Ctx)));
+				ReturnPins.Add(Pin);
 			}
 		}
-		Emit(Ctx, Indent, FString::Printf(TEXT("return %s"), *FString::Join(Returns, TEXT(", "))));
+		if (ReturnPins.Num() == 0)
+		{
+			Emit(Ctx, Indent, TEXT("return;"));
+		}
+		else if (ReturnPins.Num() == 1)
+		{
+			Emit(Ctx, Indent, FString::Printf(TEXT("return %s;"), *RenderDataInput(ReturnPins[0], Ctx)));
+		}
+		else
+		{
+			// 다중 반환은 C++ 에 직접 대응 없음 — 복수 out 파라미터 형태로 해석되도록 주석 라벨 + 묶음 표기.
+			TArray<FString> Parts;
+			for (UEdGraphPin* Pin : ReturnPins)
+			{
+				Parts.Add(FString::Printf(TEXT("/* %s */ %s"), *Pin->PinName.ToString(), *RenderDataInput(Pin, Ctx)));
+			}
+			Emit(Ctx, Indent, FString::Printf(TEXT("return { %s };"), *FString::Join(Parts, TEXT(", "))));
+		}
 		return true;
 	}
 
@@ -539,7 +720,7 @@ namespace
 	{
 		FString Title = Node->GetNodeTitle(ENodeTitleType::ListView).ToString();
 		Title.ReplaceInline(TEXT("\n"), TEXT(" "));
-		Emit(Ctx, Indent, Title);
+		Emit(Ctx, Indent, FString::Printf(TEXT("// %s"), *Title));
 		RenderExecChain(FindThenPin(Node), Indent, Ctx);
 	}
 
@@ -576,16 +757,67 @@ namespace
 		RenderFallbackNode(Node, Indent, Ctx);
 	}
 
-	bool BuildEntryHeader(UEdGraphNode* Entry, FString& OutHeader)
+	// 함수 본문 그래프에서 결과 노드를 찾아 단일 반환 타입을 추론. 없으면 void.
+	FString InferReturnTypeCPP(UEdGraph* Graph)
+	{
+		if (!Graph)
+		{
+			return TEXT("void");
+		}
+		for (UEdGraphNode* Node : Graph->Nodes)
+		{
+			UK2Node_FunctionResult* Result = Cast<UK2Node_FunctionResult>(Node);
+			if (!Result)
+			{
+				continue;
+			}
+			TArray<UEdGraphPin*> ReturnPins;
+			for (UEdGraphPin* Pin : Result->Pins)
+			{
+				if (Pin && Pin->Direction == EGPD_Input && !IsExecPin(Pin))
+				{
+					ReturnPins.Add(Pin);
+				}
+			}
+			if (ReturnPins.Num() == 1)
+			{
+				return FormatPinTypeCPP(ReturnPins[0]->PinType);
+			}
+			return TEXT("void"); // 0 또는 다중 반환 → void 로 표기 (다중은 본문에서 묶음 반환으로 표시).
+		}
+		return TEXT("void");
+	}
+
+	bool BuildEntryHeader(UEdGraphNode* Entry, FString& OutSignature)
 	{
 		if (UK2Node_CustomEvent* Ce = Cast<UK2Node_CustomEvent>(Entry))
 		{
-			OutHeader = FString::Printf(TEXT("custom_event %s:"), *Ce->CustomFunctionName.ToString());
+			TArray<FString> Params;
+			for (UEdGraphPin* Pin : Ce->Pins)
+			{
+				if (Pin && Pin->Direction == EGPD_Output && !IsExecPin(Pin))
+				{
+					Params.Add(FString::Printf(TEXT("%s %s"),
+						*FormatPinTypeCPP(Pin->PinType), *Pin->PinName.ToString()));
+				}
+			}
+			OutSignature = FString::Printf(TEXT("void %s(%s)"),
+				*Ce->CustomFunctionName.ToString(), *FString::Join(Params, TEXT(", ")));
 			return true;
 		}
 		if (UK2Node_Event* Ev = Cast<UK2Node_Event>(Entry))
 		{
-			OutHeader = FString::Printf(TEXT("event %s:"), *Ev->EventReference.GetMemberName().ToString());
+			TArray<FString> Params;
+			for (UEdGraphPin* Pin : Ev->Pins)
+			{
+				if (Pin && Pin->Direction == EGPD_Output && !IsExecPin(Pin) && !Pin->bHidden)
+				{
+					Params.Add(FString::Printf(TEXT("%s %s"),
+						*FormatPinTypeCPP(Pin->PinType), *Pin->PinName.ToString()));
+				}
+			}
+			OutSignature = FString::Printf(TEXT("void %s(%s)"),
+				*Ev->EventReference.GetMemberName().ToString(), *FString::Join(Params, TEXT(", ")));
 			return true;
 		}
 		if (UK2Node_FunctionEntry* Fe = Cast<UK2Node_FunctionEntry>(Entry))
@@ -595,13 +827,16 @@ namespace
 			{
 				if (Pin && Pin->Direction == EGPD_Output && !IsExecPin(Pin))
 				{
-					Params.Add(Pin->PinName.ToString());
+					Params.Add(FString::Printf(TEXT("%s %s"),
+						*FormatPinTypeCPP(Pin->PinType), *Pin->PinName.ToString()));
 				}
 			}
 			const FName FnName = Fe->CustomGeneratedFunctionName.IsNone()
 				? Fe->FunctionReference.GetMemberName()
 				: Fe->CustomGeneratedFunctionName;
-			OutHeader = FString::Printf(TEXT("function %s(%s):"), *FnName.ToString(), *FString::Join(Params, TEXT(", ")));
+			const FString ReturnType = InferReturnTypeCPP(Fe->GetGraph());
+			OutSignature = FString::Printf(TEXT("%s %s(%s)"),
+				*ReturnType, *FnName.ToString(), *FString::Join(Params, TEXT(", ")));
 			return true;
 		}
 		return false;
@@ -609,7 +844,7 @@ namespace
 
 	bool RenderEntryNode(UEdGraphNode* Entry, FPseudoEntry& OutEntry)
 	{
-		if (!BuildEntryHeader(Entry, OutEntry.Header))
+		if (!BuildEntryHeader(Entry, OutEntry.Signature))
 		{
 			return false;
 		}
@@ -653,19 +888,24 @@ namespace
 		return Entries;
 	}
 
-	TArray<TSharedPtr<FJsonValue>> SerializeEntriesToLines(const TArray<FPseudoEntry>& Entries)
+	// 엔트리들을 라인 배열로 직렬화. 각 함수는 시그니처/{ 본문 }/공백 라인으로 구분.
+	void AppendEntriesToLines(TArray<TSharedPtr<FJsonValue>>& OutLines, const TArray<FPseudoEntry>& Entries)
 	{
-		TArray<TSharedPtr<FJsonValue>> LineValues;
 		for (const FPseudoEntry& Entry : Entries)
 		{
-			LineValues.Add(MakeShared<FJsonValueString>(Entry.Header));
+			if (OutLines.Num() > 0)
+			{
+				OutLines.Add(MakeShared<FJsonValueString>(FString()));
+			}
+			OutLines.Add(MakeShared<FJsonValueString>(Entry.Signature));
+			OutLines.Add(MakeShared<FJsonValueString>(TEXT("{")));
 			for (const FPseudoLine& Line : Entry.Body)
 			{
-				const FString Pad = FString::ChrN(Line.Indent * 2, TEXT(' '));
-				LineValues.Add(MakeShared<FJsonValueString>(Pad + Line.Text));
+				const FString Pad = FString::ChrN(Line.Indent * IndentSpaces, TEXT(' '));
+				OutLines.Add(MakeShared<FJsonValueString>(Pad + Line.Text));
 			}
+			OutLines.Add(MakeShared<FJsonValueString>(TEXT("}")));
 		}
-		return LineValues;
 	}
 }
 
@@ -676,7 +916,7 @@ TSharedPtr<FJsonValue> FWxBlueprintSnapshotExporter::BuildEventGraphJson(UBluepr
 		return nullptr;
 	}
 
-	// 복수 uber page를 한 배열로 평탄화. entry 헤더("event X:", "custom_event Y:")가 구분을 담당.
+	// 복수 uber page 를 한 배열로 평탄화. 함수 시그니처가 entry 구분을 담당.
 	TArray<TSharedPtr<FJsonValue>> AllLines;
 	for (UEdGraph* Graph : Blueprint->UbergraphPages)
 	{
@@ -685,7 +925,7 @@ TSharedPtr<FJsonValue> FWxBlueprintSnapshotExporter::BuildEventGraphJson(UBluepr
 		{
 			continue;
 		}
-		AllLines.Append(SerializeEntriesToLines(Entries));
+		AppendEntriesToLines(AllLines, Entries);
 	}
 	if (AllLines.Num() == 0)
 	{
@@ -709,7 +949,9 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildFunctionsJson(UBluepr
 		{
 			continue;
 		}
-		Root->SetArrayField(Graph->GetName(), SerializeEntriesToLines(Entries));
+		TArray<TSharedPtr<FJsonValue>> Lines;
+		AppendEntriesToLines(Lines, Entries);
+		Root->SetArrayField(Graph->GetName(), Lines);
 	}
 	return Root;
 }

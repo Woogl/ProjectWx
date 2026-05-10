@@ -5,13 +5,21 @@
 		"AcquiredItemList": ""
 	},
 	"eventGraph": [
-		"event Construct:",
-		"  WBP_GameHUDBase_C::Construct()",
-		"  Assign On Item Acquired",
-		"event PreConstruct:",
-		"  WBP_GameHUDBase_C::PreConstruct(IsDesignTime=Event Pre Construct.IsDesignTime)",
-		"custom_event OnItemAcquired_Event:",
-		"  AcquiredItemList.AddItem(Item=OnItemAcquired_Event.ItemVM)"
+		"void Construct(delegate OutputDelegate)",
+		"{",
+		"    Super::Construct();",
+		"    // Assign On Item Acquired",
+		"}",
+		"",
+		"void PreConstruct(delegate OutputDelegate, bool IsDesignTime)",
+		"{",
+		"    Super::PreConstruct(/* IsDesignTime */ IsDesignTime);",
+		"}",
+		"",
+		"void OnItemAcquired_Event(delegate OutputDelegate, UWxViewModel_Item* ItemVM, int32 Delta)",
+		"{",
+		"    AcquiredItemList->AddItem(/* Item */ ItemVM);",
+		"}"
 	],
 	"mvvm":
 	{

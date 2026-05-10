@@ -47,15 +47,6 @@ void UWxViewModel_Inventory::Deinitialize()
 	AllItems.Reset();
 	CategorizedItems.Reset();
 
-	for (TPair<TObjectPtr<const UWxItemDefinition>, TObjectPtr<UWxViewModel_Item>>& Pair : AcquisitionVMs)
-	{
-		if (Pair.Value)
-		{
-			Pair.Value->Deinitialize();
-		}
-	}
-	AcquisitionVMs.Empty();
-
 	SetInitialized(false);
 
 	Super::Deinitialize();
@@ -75,16 +66,11 @@ void UWxViewModel_Inventory::HandleStackChanged(const UWxItemDefinition* ItemDef
 
 	if (Delta > 0 && ItemDef)
 	{
-		UWxInventoryManagerComponent* Inventory = CachedInventory.Get();
-		TObjectPtr<UWxViewModel_Item>& AcquisitionVM = AcquisitionVMs.FindOrAdd(ItemDef);
-		if (!AcquisitionVM && Inventory)
+		if (UWxInventoryManagerComponent* Inventory = CachedInventory.Get())
 		{
-			AcquisitionVM = NewObject<UWxViewModel_Item>(this);
+			UWxViewModel_Item* AcquisitionVM = NewObject<UWxViewModel_Item>(this);
 			AcquisitionVM->Initialize(Inventory, ItemDef);
-		}
-
-		if (AcquisitionVM)
-		{
+			AcquisitionVM->AcquiredCount = Delta;
 			OnItemAcquired.Broadcast(AcquisitionVM, Delta);
 		}
 	}

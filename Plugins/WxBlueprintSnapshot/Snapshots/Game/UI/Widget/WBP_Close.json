@@ -2,11 +2,13 @@
 	"blueprintPath": "/Game/UI/Widget/WBP_Close.WBP_Close",
 	"classDefaults":
 	{
-		"Style": "/Game/UI/Style/ButtonStyle_Empty.ButtonStyle_Empty_C"
+		"Style": "/Game/UI/CommonUI/ButtonStyle_Empty.ButtonStyle_Empty_C"
 	},
 	"eventGraph": [
-		"event BP_OnClicked:",
-		"  WxUILibrary::DeactivateOwningActivatable(StartingWidget=Self)"
+		"void BP_OnClicked(delegate OutputDelegate)",
+		"{",
+		"    UWxUILibrary::DeactivateOwningActivatable(/* StartingWidget */ this);",
+		"}"
 	],
 	"parentClass": "/Script/CommonUI.CommonButtonBase",
 	"widgetTree":

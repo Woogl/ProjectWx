@@ -25,7 +25,7 @@ void UWxViewModel_Item::Initialize(UWxInventoryManagerComponent* InInventory, UW
 	SlotChangedHandle = InInventory->OnInventorySlotChanged.AddUObject(this, &UWxViewModel_Item::HandleSlotChanged);
 
 	ApplyStaticDataFromDef(InInstance->GetItemDef());
-	UE_MVVM_SET_PROPERTY_VALUE(ItemCount, InInventory->GetStackCountByInstance(InInstance));
+	UE_MVVM_SET_PROPERTY_VALUE(TotalCount, InInventory->GetStackCountByInstance(InInstance));
 
 	SetInitialized(true);
 }
@@ -44,7 +44,7 @@ void UWxViewModel_Item::Initialize(UWxInventoryManagerComponent* InInventory, co
 	StackChangedHandle = InInventory->OnInventoryStackChanged.AddUObject(this, &UWxViewModel_Item::HandleStackChanged);
 
 	ApplyStaticDataFromDef(InItemDef);
-	UE_MVVM_SET_PROPERTY_VALUE(ItemCount, InInventory->GetTotalItemCountByDefinition(InItemDef));
+	UE_MVVM_SET_PROPERTY_VALUE(TotalCount, InInventory->GetTotalItemCountByDefinition(InItemDef));
 
 	SetInitialized(true);
 }
@@ -62,8 +62,9 @@ void UWxViewModel_Item::Deinitialize()
 	TargetItemDef.Reset();
 	TargetInstance.Reset();
 
-	ItemCount = 0;
-	IconAsset.Reset();
+	TotalCount = 0;
+	AcquiredCount = 0;
+	Icon.Reset();
 	DisplayName = FText::GetEmpty();
 	Grade = EWxItemGrade::Common;
 
@@ -79,7 +80,7 @@ void UWxViewModel_Item::HandleStackChanged(const UWxItemDefinition* ItemDef, int
 		return;
 	}
 
-	UE_MVVM_SET_PROPERTY_VALUE(ItemCount, NewCount);
+	UE_MVVM_SET_PROPERTY_VALUE(TotalCount, NewCount);
 }
 
 UWxItemInstance* UWxViewModel_Item::GetTargetInstance() const
@@ -94,7 +95,7 @@ void UWxViewModel_Item::HandleSlotChanged(UWxItemInstance* Instance, int32 NewSt
 		return;
 	}
 
-	UE_MVVM_SET_PROPERTY_VALUE(ItemCount, NewStackCount);
+	UE_MVVM_SET_PROPERTY_VALUE(TotalCount, NewStackCount);
 }
 
 void UWxViewModel_Item::ApplyStaticDataFromDef(const UWxItemDefinition* InItemDef)
@@ -104,7 +105,7 @@ void UWxViewModel_Item::ApplyStaticDataFromDef(const UWxItemDefinition* InItemDe
 		return;
 	}
 
-	UE_MVVM_SET_PROPERTY_VALUE(IconAsset, InItemDef->Icon);
+	UE_MVVM_SET_PROPERTY_VALUE(Icon, InItemDef->Icon);
 	UE_MVVM_SET_PROPERTY_VALUE(DisplayName, InItemDef->DisplayName);
 	UE_MVVM_SET_PROPERTY_VALUE(Grade, InItemDef->Grade);
 }

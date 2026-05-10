@@ -3,7 +3,6 @@
 	"classDefaults":
 	{
 		"InputMode": "Menu",
-		"MouseCaptureMode": "NoCapture",
 		"TimeDilation": 0
 	},
 	"parentClass": "/Script/WxUI.WxActivatableWidget",

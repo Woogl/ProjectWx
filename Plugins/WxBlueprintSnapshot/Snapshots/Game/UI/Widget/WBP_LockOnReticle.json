@@ -1,0 +1,23 @@
+{
+	"blueprintPath": "/Game/UI/Widget/WBP_LockOnReticle.WBP_LockOnReticle",
+	"parentClass": "/Script/UMG.UserWidget",
+	"widgetTree":
+	{
+		"root": "Image_22",
+		"widgets":
+		{
+			"Image_22":
+			{
+				"class": "/Script/UMG.Image",
+				"delta":
+				{
+					"Brush":
+					{
+						"ImageType": "FullColor",
+						"ResourceObject": "/Game/UIMaterialLab/Widgets/ComponentMaterials/MaterialInstances/MI_TabBackground.MI_TabBackground"
+					}
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,255 @@
+{
+	"blueprintPath": "/Game/UI/Widget/WBP_Ability.WBP_Ability",
+	"mvvm":
+	{
+		"bindings": [
+			{
+				"bindingType": "OneWayToDestination",
+				"destination": "SetBrushResourceObject",
+				"source": "Icon"
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"Brush": "Brush",
+						"ParameterName": "Percent",
+						"Value": "CooldownPercent"
+					},
+					"function": "Conv_SetScalarParameter"
+				},
+				"destination": "Brush",
+				"source": ""
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"bAlwaysSign": "false",
+						"bUseGrouping": "false",
+						"MaximumIntegralDigits": "324",
+						"MinimumIntegralDigits": "1",
+						"Value": "CurrentCharges"
+					},
+					"function": "Conv_IntToText"
+				},
+				"destination": "Text",
+				"source": ""
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"bAlwaysSign": "false",
+						"bUseGrouping": "false",
+						"MaximumFractionalDigits": "1",
+						"MaximumIntegralDigits": "324",
+						"MinimumFractionalDigits": "1",
+						"MinimumIntegralDigits": "1",
+						"RoundingMode": "HalfToEven",
+						"Value": "CooldownRemaining"
+					},
+					"function": "Conv_DoubleToText"
+				},
+				"destination": "Text",
+				"source": ""
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"bIsVisible": "HasMultipleCharges",
+						"FalseVisibility": "Collapsed",
+						"TrueVisibility": "SelfHitTestInvisible"
+					},
+					"function": "Conv_BoolToSlateVisibility"
+				},
+				"destination": "Visibility",
+				"source": ""
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"bIsVisible": "IsOnCooldown",
+						"FalseVisibility": "Collapsed",
+						"TrueVisibility": "SelfHitTestInvisible"
+					},
+					"function": "Conv_BoolToSlateVisibility"
+				},
+				"destination": "Visibility",
+				"source": ""
+			}
+		],
+		"viewModels":
+		{
+			"WxViewModel_Ability":
+			{
+				"class": "/Script/WxUI.WxViewModel_Ability",
+				"contextId": "41E8C2AD-42AD-A9AF-B3FE-B6A9DE538247",
+				"createGetter": true,
+				"createSetter": true,
+				"creationType": "Manual",
+				"optional": true
+			}
+		}
+	},
+	"parentClass": "/Script/UMG.UserWidget",
+	"widgetTree":
+	{
+		"root": "SizeBox_0",
+		"widgets":
+		{
+			"CommonTextBlock_127":
+			{
+				"class": "/Script/CommonUI.CommonTextBlock",
+				"delta":
+				{
+					"Font":
+					{
+						"OutlineSettings":
+						{
+							"OutlineSize": 1
+						}
+					},
+					"Text": "0.0"
+				},
+				"parent": "Overlay_0",
+				"slot":
+				{
+					"class": "/Script/UMG.OverlaySlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Center",
+						"VerticalAlignment": "VAlign_Center"
+					}
+				}
+			},
+			"Image_52":
+			{
+				"class": "/Script/UMG.Image",
+				"delta":
+				{
+					"Brush":
+					{
+						"ImageSize":
+						{
+							"X": 256,
+							"Y": 256
+						},
+						"ImageType": "FullColor",
+						"ResourceObject": "/Game/UIMaterialLab/Textures/T_UI_Sword.T_UI_Sword"
+					}
+				},
+				"parent": "Overlay_16",
+				"slot":
+				{
+					"class": "/Script/UMG.OverlaySlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Fill",
+						"VerticalAlignment": "VAlign_Fill"
+					}
+				}
+			},
+			"Mask_Cooldown":
+			{
+				"class": "/Script/UMG.Image",
+				"delta":
+				{
+					"Brush":
+					{
+						"ImageType": "FullColor",
+						"ResourceObject": "/Game/UIMaterialLab/Materials/2_Gradients/3_AngleGradient/MI_UI_Ability_Cooldown.MI_UI_Ability_Cooldown"
+					},
+					"ColorAndOpacity":
+					{
+						"A": 0.40000000596046448,
+						"B": 0,
+						"G": 0,
+						"R": 0
+					}
+				},
+				"parent": "Overlay_0",
+				"slot":
+				{
+					"class": "/Script/UMG.OverlaySlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Fill",
+						"VerticalAlignment": "VAlign_Fill"
+					}
+				}
+			},
+			"Overlay_0":
+			{
+				"class": "/Script/UMG.Overlay",
+				"parent": "Overlay_16",
+				"slot":
+				{
+					"class": "/Script/UMG.OverlaySlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Fill",
+						"VerticalAlignment": "VAlign_Fill"
+					}
+				}
+			},
+			"Overlay_16":
+			{
+				"class": "/Script/UMG.Overlay",
+				"parent": "SizeBox_0",
+				"slot":
+				{
+					"class": "/Script/UMG.SizeBoxSlot"
+				}
+			},
+			"SizeBox_0":
+			{
+				"class": "/Script/UMG.SizeBox",
+				"delta":
+				{
+					"bOverride_HeightOverride": true,
+					"bOverride_WidthOverride": true,
+					"HeightOverride": 100,
+					"WidthOverride": 100
+				}
+			},
+			"Stacks":
+			{
+				"class": "/Script/CommonUI.CommonTextBlock",
+				"delta":
+				{
+					"Font":
+					{
+						"OutlineSettings":
+						{
+							"OutlineSize": 1
+						}
+					},
+					"Text": "3"
+				},
+				"parent": "Overlay_16",
+				"slot":
+				{
+					"class": "/Script/UMG.OverlaySlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Right",
+						"VerticalAlignment": "VAlign_Bottom"
+					}
+				}
+			}
+		}
+	}
+}

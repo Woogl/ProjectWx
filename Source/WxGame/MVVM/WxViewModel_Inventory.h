@@ -15,7 +15,7 @@ class UWxViewModel_Item;
 /**
  * 아이템 획득 이벤트 델리게이트.
  * Delta 는 양수만 브로드캐스트되며 (소비/감소는 알리지 않음), HUD 토스트 spawn 등 일회성 표시 트리거용이다.
- * ItemVM 은 VM_Inventory 가 Def 단위로 캐시한 Def 모드 UWxViewModel_Item 으로, 같은 ItemDef 재획득 시 동일 인스턴스가 재사용된다. 수신측은 ListView ItemSource 에 그대로 넣어 Icon/DisplayName/Grade/ItemCount 를 MVVM 바인딩으로 표시할 수 있다.
+ * ItemVM 은 broadcast 직전에 새로 생성된 Def 모드 UWxViewModel_Item 이며, AcquiredCount 에 Delta 가 기록된 상태로 전달된다. 수신측은 ListView ItemSource 에 그대로 넣어 Icon/DisplayName/Grade/AcquiredCount 를 MVVM 바인딩으로 표시한다.
  */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWxOnItemAcquired, UWxViewModel_Item*, ItemVM, int32, Delta);
 
@@ -28,7 +28,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWxOnItemAcquired, UWxViewModel_Ite
  *   2) 가장 최근 스택 변경 알림 (LastChangedItemDef/Amount/Delta) — 단발성 Toast/팝업 이펙트 등 "방금 무엇이 얼마나 변했는지" 단일 채널
  *   3) 보유 중인 아이템 인스턴스 전체 목록 (AllItems) — 인벤토리 ListView 등 "전체 슬롯을 나열"하는 화면의 ItemSource 로 사용
  *   4) 카테고리 탭 표시용 필터링된 목록 (FilteredItems) — CurrentCategory 변경 또는 AllItems 갱신 시 자동 재계산
- *   5) 아이템 획득 이벤트 (OnItemAcquired) — Delta>0 마다 BP-assignable 델리게이트 Broadcast. HUD 토스트 등 즉시성 이벤트 수신용. Def 단위로 캐시된 UWxViewModel_Item 을 함께 전달하므로 수신측이 ListView/MVVM 으로 표시 데이터를 그대로 바인딩한다.
+ *   5) 아이템 획득 이벤트 (OnItemAcquired) — Delta>0 마다 BP-assignable 델리게이트 Broadcast. HUD 토스트 등 즉시성 이벤트 수신용. 매 broadcast 마다 새로 생성된 Def 모드 UWxViewModel_Item(AcquiredCount=Delta) 을 함께 전달하므로 수신측이 ListView/MVVM 으로 표시 데이터를 그대로 바인딩한다.
  *
  * 특정 ItemDef 의 수량/아이콘/이름 등 슬롯 단위 표시 데이터는 본 VM을 쓰지 말고 UWxViewModel_Item 을 위젯 인스턴스별로 생성해 사용한다.
  */
@@ -83,7 +83,7 @@ public:
 	/**
 	 * 아이템 획득 이벤트. HandleStackChanged 에서 Delta>0 일 때 Broadcast 한다.
 	 * HUD 위젯이 BindEvent 로 콜백을 잡아 토스트 위젯 spawn / 자체 timer / 페이드 등 표시 정책을 자유롭게 결정한다.
-	 * 전달되는 ItemVM 은 AcquisitionVMs 에 Def 단위로 캐시된 Def 모드 UWxViewModel_Item 이며, 동일 ItemDef 재획득 시 같은 인스턴스가 재사용된다.
+	 * 전달되는 ItemVM 은 매 broadcast 마다 새로 생성된 Def 모드 UWxViewModel_Item 으로, AcquiredCount 에 Delta 가 기록되어 있다. 캐시 없이 1회용으로 발급되므로, 토스트가 같은 ItemDef 를 연속 획득해도 각 토스트 위젯의 표시 데이터가 서로 영향을 주지 않는다.
 	 */
 	UPROPERTY(BlueprintAssignable, Category = "Wx|Inventory")
 	FWxOnItemAcquired OnItemAcquired;
@@ -101,11 +101,4 @@ protected:
 	TWeakObjectPtr<UWxInventoryManagerComponent> CachedInventory;
 
 	FDelegateHandle StackChangedHandle;
-
-	/**
-	 * OnItemAcquired Broadcast 용 Def-keyed VM_Item 캐시.
-	 * 첫 Delta>0 발생 시 Def 모드로 NewObject 하고, 이후 같은 ItemDef 재획득 시 동일 인스턴스를 재사용한다. ItemCount 는 인벤 총량으로 자동 갱신되며 Deinitialize 에서 일괄 정리한다.
-	 */
-	UPROPERTY(Transient)
-	TMap<TObjectPtr<const UWxItemDefinition>, TObjectPtr<UWxViewModel_Item>> AcquisitionVMs;
 };

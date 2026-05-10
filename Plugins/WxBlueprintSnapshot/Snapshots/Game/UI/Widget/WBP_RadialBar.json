@@ -1,0 +1,95 @@
+{
+	"blueprintPath": "/Game/UI/Widget/WBP_RadialBar.WBP_RadialBar",
+	"mvvm":
+	{
+		"bindings": [
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"Brush": "Brush",
+						"ParameterName": "Percent",
+						"Value": "AttributePercent"
+					},
+					"function": "Conv_SetScalarParameter"
+				},
+				"destination": "Brush",
+				"source": ""
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"bIsVisible": "IsAttributeFull",
+						"FalseVisibility": "SelfHitTestInvisible",
+						"TrueVisibility": "Collapsed"
+					},
+					"function": "Conv_BoolToSlateVisibility"
+				},
+				"destination": "Visibility",
+				"source": ""
+			}
+		],
+		"viewModels":
+		{
+			"WxViewModel_Attribute":
+			{
+				"class": "/Script/WxUI.WxViewModel_Attribute",
+				"contextId": "27F6F2FC-49AF-B457-104E-0E8399FC5710",
+				"createGetter": true,
+				"createSetter": true,
+				"creationType": "Manual",
+				"optional": true
+			}
+		}
+	},
+	"parentClass": "/Script/UMG.UserWidget",
+	"widgetTree":
+	{
+		"root": "HorizontalBox_1",
+		"widgets":
+		{
+			"HorizontalBox_1":
+			{
+				"class": "/Script/UMG.HorizontalBox",
+				"delta":
+				{
+					"bOverride_Cursor": true
+				}
+			},
+			"Image":
+			{
+				"class": "/Script/UMG.Image",
+				"delta":
+				{
+					"Brush":
+					{
+						"ImageSize":
+						{
+							"X": 100,
+							"Y": 100
+						},
+						"ImageType": "FullColor",
+						"ResourceObject": "/Game/UIMaterialLab/Materials/5_Masks/4_RadialSegments/MI_UI_Radial_SP.MI_UI_Radial_SP"
+					}
+				},
+				"parent": "HorizontalBox_1",
+				"slot":
+				{
+					"class": "/Script/UMG.HorizontalBoxSlot",
+					"delta":
+					{
+						"Size":
+						{
+							"SizeRule": "Fill"
+						}
+					}
+				}
+			}
+		}
+	}
+}
