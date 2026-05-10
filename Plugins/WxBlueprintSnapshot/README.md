@@ -4,24 +4,36 @@
 
 ## 이 플러그인으로 할 수 있는 것
 
-### 1. 블루프린트 변경점을 diff로 읽기
-`.uasset`은 바이너리라 source control에서 `Binary files differ`만 뜹니다.  
-이 플러그인을 사용하면 JSON 파일을 리포지토리에 커밋할 수 있으므로, 에디터를 열지 않아도 "누가 언제 BP의 컴포넌트나 변수 값을 수정했는지"를 추적할 수 있습니다.
+> **💡 핵심 가치**  
+> BP 를 텍스트 자산처럼 다룰 수 있게 만들어 git / grep / blame / diff / AI 같은 텍스트 기반 도구를 BP 에도 적용할 수 있게 합니다.
 
-### 2. AI에게 블루프린트 내용 전달
-생성된 JSON은 BP의 **구조·설정·대략적 로직 흐름**을 텍스트로 담기 때문에 AI 코드 어시스턴트에 붙여넣어 질문·리뷰 보조로 쓸 수 있습니다.  
-스크린샷보다 파싱 정확도가 높고, 토큰을 절약할 수 있습니다.
+### 1. 블루프린트 변경 추적
+`.uasset` 은 바이너리라 source control 에서 diff 가 제한됩니다.  
+이 플러그인을 사용하면 BP 의 작업 내용을 JSON 파일로도 함께 커밋할 수 있습니다.
+- **히스토리 추적** — "누가 언제 변수 값을 바꿨는지", "이 컴포넌트 추가한 사람" 같은 추적이 즉시 가능
+- **에디터 없이 PR 리뷰** — 코드 리뷰어가 UE 컴파일 환경 없이도 line-level 코멘트로 BP 변경 토론
 
-### 3. 블루프린트 일괄 검수
-JSON이라 **전체 프로젝트 BP를 스캔**할 수 있습니다.  
-예: "Tick이 켜진 Actor BP 찾기", "특정 인터페이스를 구현한 BP 전체 목록".
+### 2. AI 협업
+AI 코드 어시스턴트와 결합 효율이 높습니다.
+- **토큰 효율** — 스크린샷 대비 1/10 이하 토큰
+- **단일 컨텍스트** — 의사 코드 + 변수 + MVVM 바인딩 + 컴포넌트 트리가 한 파일에
+- **분석 정확도** — OCR 오인 없이 노드 이름/연결을 정확히 전달
 
-### 4. UMG MVVM 플러그인 지원
-UMG MVVM의 뷰모델과 뷰바인딩 상태도 JSON으로 추출합니다.  
-WBP의 뷰바인딩 현황 파악, WBP 에셋 히스토리 관리, UI 코드 리뷰에 도움이 됩니다.
+### 3. 블루프린트 일괄 스캔
+언리얼 에디터를 켜지 않고도 전체 프로젝트 BP 를 텍스트 도구로 스캔할 수 있습니다.
+- **Deprecated API 스캔** — BP Function Library 함수 제거 전에 BP 내 사용처 스캔
+- **Tick 이 켜진 Actor BP 찾기** — `bCanEverTick` 검색
+- **특정 함수 호출하는 BP** — `eventGraph` / `functions` 의사 코드 grep
+
+### 4. UMG 특화
+WBP 는 디자이너 / 기획자 / 프로그래머가 동시에 건드리는 영역이라 변경 영향과 리뷰 부담이 큽니다.  
+이 플러그인은 WBP 의 위젯 트리와 MVVM 바인딩까지 JSON 으로 추출합니다.
+- **변경 영향 가시성** — 디자이너의 위젯 변경이 프로그래머 코드(MVVM 바인딩 / 위젯 참조)에 미치는 영향, 또는 그 반대 방향을 즉시 검토 가능
+- **ViewModel 변경 영향 분석** — 프로퍼티 삭제/리네임 시 영향받는 WBP 를 grep 으로 검출
+- **MVVM 바인딩 추적** — "어느 ViewModel 의 어느 프로퍼티를 누가 어디에 바인딩했는가" 를 즉시 파악
 
 ### 5. BP 삭제 시 스냅샷 자동 정리
-콘텐츠 브라우저에서 BP 에셋을 삭제하면 대응되는 JSON 파일도 자동으로 삭제됩니다.  
+콘텐츠 브라우저에서 BP 에셋을 삭제하면 대응되는 JSON 파일도 자동으로 삭제됩니다.
 
 ---
 
@@ -92,39 +104,66 @@ MVVM 추출은 프로젝트 세팅에서 비활성화 가능.
 | UMG 구식 Property Binding | ❌ MVVM만 지원 |
 | Named Slot의 내용물 | ❌ 런타임 주입이라 BP엔 없음 |
 
-### 이벤트/함수 그래프 (의사코드)
+### 이벤트/함수 그래프
 
-이벤트 그래프는 `eventGraph` 필드에 이벤트 이름을 키로 한 object(각 이벤트는 라인 배열)로 기록된다.  
-함수 그래프는 `functions` 필드에 함수 이름을 키로 한 object(각 함수는 라인 배열)로 기록된다.  
-Construction Script도 함수 그래프의 하나로 취급되어 `functions.UserConstructionScript`에 동일한 의사 코드 포맷으로 기록된다.
+스크립트를 UE C++ 스타일의 의사 코드로 출력한다.
+* 이벤트 그래프 : `eventGraph` 필드에 이벤트 이름을 키로 한 object로 기록된다.  
+* 함수 그래프 : `functions` 필드에 함수 이름을 키로 한 object로 기록된다. Construction Script도 함수로 취급한다.  
 
-| 항목 | 지원 |
-|---|---|
-| Event, Custom Event | ✅ |
-| Branch (if/else) | ✅ |
-| Sequence | ✅ `# sequence[N]` 코멘트와 함께 |
-| 변수 Set | ✅ |
-| 함수 호출 (CallFunction) | ✅ 인자는 non-default/연결된 핀만 |
-| 자동 형 변환 (`Conv_*`) | ✅ `Cast<Type>(expr)` 형태로 렌더링 |
-| Cast | ✅ `if (Cast<Type>(expr)):` / `else:` 분기 렌더링 |
-| 데이터 핀 역추적 (Variable Get, Self, Literal) | ✅ 최대 32 depth 재귀 |
-| Exec cycle(goto) | ✅ `goto NodeName`으로 표시 |
-| Return | ✅ |
-| ForEach / ForLoop / While (Macro) | ✅ LoopBody/Completed 분기 렌더링 |
-| Delay, PrintString 등 Latent/유틸 함수 호출 | ✅ 일반 함수 호출로 렌더 (`KismetSystemLibrary::Delay(Duration=...)`) |
-| Timeline, Gate, Async Action, 기타 전용 K2Node | ⚠️ 노드 타이틀 한 줄 fallback |
-| Event Dispatcher (Call / Bind / Assign) | ⚠️ 노드 타이틀 한 줄 fallback |
-| 매크로 내부 본문 | ❌ 호출 라인만 |
-| Knot(리라우팅 노드) | ❌ 와이어 경로만 따라가고 노드 자체는 출력에 표시 안 함 |
-| 로컬 변수 | ❌ |
-| 코멘트 박스 | ❌ |
-| 노드 위치/색상 | ❌ |
+| 항목 | 지원 | 예시 |
+|---|---|---|
+| Event, Custom Event | ✅ | `void BeginPlay() { ... }` |
+| Branch (if/else) | ✅ | `if (Condition) { ... } else { ... }` |
+| Sequence | ✅ | `// sequence[0]` |
+| Switch (Enum / Integer / String / Name) | ✅ | `switch (S) { case EState::Idle: ... break; default: break; }` |
+| 변수 Set | ✅ | `MyVar = Value;` |
+| BreakStruct (구조체 분해) | ✅ | `MyVector.X` |
+| MakeStruct (구조체 생성) | ✅ | `FVector(1, 2, 3)` |
+| StructMemberGet (struct 변수 일부 멤버 get) | ✅ | `MyStruct.MemberName` |
+| StructMemberSet (struct 변수 일부 멤버 set) | ✅ | `MyStruct.X = NewX;` |
+| 함수 호출 (CallFunction) | ✅ | `MyFunc(Arg1, Arg2);` |
+| `KismetMathLibrary` 연산자성 함수 | ✅ | `(A) + (B)`, `(X) == (Y)`, `!(B)` |
+| Cast | ✅ | `AActor* AsActor = Cast<AActor>(Obj); if (AsActor) { ... }` |
+| Return | ✅ | `return Value;` / `return { a, b };` (다중) |
+| ForEach / ForEachLoopWithBreak | ✅ | `for (auto& ArrayElement : Array) { ... }`, `break;` |
+| ReverseForEachLoop | ✅ | `for (int32 ArrayIndex = Array.Num() - 1; ArrayIndex >= 0; --ArrayIndex) { ... }` |
+| WhileLoop | ✅ | `while (Condition) { ... }` |
+| Async Action (Latent BP Async Task) | ✅ | `MyAsyncCall(Args); auto Finished = [this]() { ... };` |
+| Delay, PrintString 등 Latent/유틸 함수 호출 | ✅ | `KismetSystemLibrary::Delay(Duration=1.0f);` |
+| 함수 시그니처 한정자 | ✅ | `UFUNCTION(BlueprintPure, NetMulticast, Reliable)` |
+| 일반 매크로 호출 (사용자 정의 등) | ✅ | `MyMacro(arg1, arg2);  // [macro]` (주석으로 호출 라인에 매크로 명시) |
+| 매크로 데이터 출력 핀 참조 | ✅ | `MyMacro.OutputPinName` |
+| Exec cycle / 분기 합류 | ⚠️ | `// merges into: NodeName` 주석으로 표시 (정확한 흐름 변환 X) |
+| Timeline, Gate, 기타 전용 K2Node | ⚠️ | `// Timeline_0` (노드 타이틀 한 줄) |
+| Event Dispatcher (Call / Bind / Assign) | ⚠️ | `// On Damaged` (노드 타이틀 한 줄) |
+| 매크로 내부 본문 | ❌ | — |
+| Knot(리라우팅 노드) | ❌ | — |
+| 로컬 변수 | ❌ | — |
+| 코멘트 박스 | ❌ | — |
+| 노드 위치/색상 | ❌ | — |
+
+### 변수 (Variables 패널)
+
+`variables` 필드는 BP의 변수 목록을 변수명 키 + 값으로 기록한다.  
+
+| 타입 | 지원 | 예시 |
+|---|---|---|
+| bool | ✅ | `true` / `false` |
+| int | ✅ | `42` |
+| float | ✅ | `0.f`, `1.5f` |
+| double | ✅ | `0.0`, `1.5` |
+| FString | ✅ | `FString(\"Foo\")` |
+| FName | ✅ | `FName(\"Foo\")` |
+| FText | ✅ | `NSLOCTEXT(\"[...]\", \"...\", \"Foo\")` |
+| Enum | ✅ | `EEnumName::Value` |
+| Struct | ✅ | `FVector(0, 0, 0)` |
+| TSubclassOf / TSoftObjectPtr / TSoftClassPtr | ✅ | `TSoftObjectPtr<UTexture2D>(\"/Game/...\")` |
+| TArray / TSet / TMap | ✅ | `TArray<int32>{}` |
 
 ### 그 외
 | 항목 | 지원 |
 |---|---|
 | 부모 클래스 | ✅ |
-| 변수 목록 | ✅ `variables` 필드에 UE C++ 함수 캐스트 형태(`Type(value)`)로 기록 |
 | 구현 인터페이스 목록 | ✅ `interfaces` 필드에 기록 |
 
 ---
@@ -160,7 +199,7 @@ Construction Script도 함수 그래프의 하나로 취급되어 `functions.Use
 **특정 BP만 스냅샷이 안 생겨요**
 - Output Log에서 `LogWxBPSnapshot: Error` 로그를 확인하세요.
 - 예상 경로가 240자를 넘으면(`Plugins/WxBlueprintSnapshot/Snapshots/...` 기준) Windows MAX_PATH(260) 제한으로 저장이 실패하므로 해당 BP는 스킵됩니다.
-- 해결: 프로젝트를 더 짧은 드라이브 경로에 두거나, `Project Settings > Wx > WxBlueprintSnapshot`에서 `OutputDirectory`의 경로를 변경하세요. 
+- 해결: 프로젝트를 더 짧은 드라이브 경로에 두거나, `Project Settings > Wx > WxBlueprintSnapshot`에서 `OutputDirectory`의 경로를 변경하세요.
 
 ---
 
@@ -187,11 +226,13 @@ Construction Script도 함수 그래프의 하나로 취급되어 `functions.Use
 
 ## 출력
 
-- **경로**: `<OutputDirectory>/<BP 패키지 경로><FileExtension>` (기본값: `Plugins/WxBlueprintSnapshot/Snapshots/...`)
-- **포맷**: UTF-8 (no BOM), 키 알파벳 정렬, 들여쓰기 2-space pretty print
+- **경로**: `<OutputDirectory>/<BP 패키지 경로><FileExtension>`
+- **포맷**: UTF-8 (no BOM), 키 알파벳 정렬 (단 `variables`/`functions`/`components` 는 BP 선언/SCS 순서 유지), 탭 들여쓰기 pretty print (UE `TPrettyJsonPrintPolicy`)
 - **ReadOnly 플래그**는 자동 해제 후 덮어쓰기 (Perforce 등에서 편의)
 - **삭제 동기화**: BP 에셋을 삭제하면 대응되는 JSON 파일도 함께 제거됨
 - **예시 파일**: 플러그인 Content 폴더의 `BP_SampleCharacter.uasset`에 대응되는 `Snapshots/WxBlueprintSnapshot/BP_SampleCharacter.json` 참조
+
+---
 
 ### 최상위 JSON 필드
 
@@ -199,14 +240,14 @@ Construction Script도 함수 그래프의 하나로 취급되어 `functions.Use
 |---|---|---|
 | `blueprintPath` | string | 항상 |
 | `parentClass` | string | 항상 |
-| `classDefaults` | object | CDO 델타가 비어있지 않을 때 (NewVariables는 중복 제외) |
-| `components` | object | `bIncludeComponents` + Components 탭에 컴포넌트 1개 이상 |
-| `variables` | object | `bIncludeVariables` + 변수 1개 이상 (변수명 → UE C++ 함수 캐스트 표기) |
-| `interfaces` | object | `bIncludeInterfaces` + 구현 1개 이상 (`{implemented: [...]}`) |
-| `eventGraph` | object | `bIncludeGraphs` + Ubergraph에 entry 1개 이상 (이벤트명 → 라인 배열) |
-| `functions` | object | `bIncludeGraphs` + 함수 그래프 1개 이상 |
-| `widgetTree` | object | WBP + `bIncludeWidgetTree` |
-| `mvvm` | object | WBP + `bIncludeMVVM` + MVVM 확장 존재 |
+| `classDefaults` | object | CDO와 차이점 존재 |
+| `components` | object | Components 탭에 컴포넌트 1개 이상 |
+| `variables` | object | 변수 1개 이상 |
+| `interfaces` | object | 구현 1개 이상 |
+| `eventGraph` | object | 이벤트 1개 이상 |
+| `functions` | object | 함수 1개 이상 |
+| `widgetTree` | object | WBP |
+| `mvvm` | object | WBP + MVVM 확장 존재 |
 
 ---
 

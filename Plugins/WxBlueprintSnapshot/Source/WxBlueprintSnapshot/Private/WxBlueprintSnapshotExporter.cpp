@@ -58,6 +58,39 @@ namespace
 		}
 	}
 
+	// Top-level 정렬: BP 선언/SCS 순서가 의미 있는 키는 알파벳 정렬을 건너뛰고 입력 순서를 유지한다.
+	// 단, 그 자식의 속성(예: 각 component 의 class/delta 멤버) 은 재귀적으로 알파벳 정렬해 diff 안정성을 살린다.
+	void SortJsonRootObject(TSharedPtr<FJsonObject> Root)
+	{
+		if (!Root.IsValid())
+		{
+			return;
+		}
+		static const TSet<FString> KeepInsertOrder = {
+			TEXT("variables"),    // BP Variables 패널 선언 순서
+			TEXT("functions"),    // BP My Blueprint 함수 순서
+			TEXT("components")    // SCS 트리 순회 순서 (parent → child)
+		};
+		Root->Values.KeySort(TLess<FString>());
+		for (auto& Pair : Root->Values)
+		{
+			if (KeepInsertOrder.Contains(Pair.Key) && Pair.Value.IsValid() && Pair.Value->Type == EJson::Object)
+			{
+				// 이 키의 직속 자식 object 는 키 정렬을 건너뛴다. 손자(grandchild) 들은 재귀 정렬.
+				TSharedPtr<FJsonObject> ChildObj = Pair.Value->AsObject();
+				if (ChildObj.IsValid())
+				{
+					for (auto& ChildPair : ChildObj->Values)
+					{
+						SortJsonValueRecursive(ChildPair.Value);
+					}
+				}
+				continue;
+			}
+			SortJsonValueRecursive(Pair.Value);
+		}
+	}
+
 	void SetObjectFieldIfNonEmpty(FJsonObject& Root, const FString& Key, const TSharedPtr<FJsonObject>& Value)
 	{
 		if (Value.IsValid() && Value->Values.Num() > 0)
@@ -445,8 +478,9 @@ namespace
 
 		if (Cat == UEdGraphSchema_K2::PC_Boolean)
 		{
+			// bool 리터럴(true/false) 자체가 자명한 타입이라 함수 캐스트 생략.
 			const bool bTrue = Value == TEXT("True") || Value == TEXT("true");
-			return bTrue ? TEXT("bool(true)") : TEXT("bool(false)");
+			return bTrue ? TEXT("true") : TEXT("false");
 		}
 		if (Cat == UEdGraphSchema_K2::PC_Int || Cat == UEdGraphSchema_K2::PC_Int64)
 		{
@@ -579,7 +613,7 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildInterfacesJson(UBluep
 
 FString FWxBlueprintSnapshotExporter::SerializeJson(TSharedRef<FJsonObject> RootObject)
 {
-	SortJsonObjectRecursive(RootObject);
+	SortJsonRootObject(RootObject);
 
 	FString Out;
 	TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> Writer =

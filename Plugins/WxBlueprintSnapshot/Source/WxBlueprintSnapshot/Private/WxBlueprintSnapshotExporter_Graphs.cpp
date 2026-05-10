@@ -35,6 +35,12 @@
 #include "K2Node_DynamicCast.h"
 #include "K2Node_CallParentFunction.h"
 #include "K2Node_BaseAsyncTask.h"
+#include "K2Node_Switch.h"
+#include "K2Node_SwitchEnum.h"
+#include "K2Node_BreakStruct.h"
+#include "K2Node_MakeStruct.h"
+#include "K2Node_StructMemberGet.h"
+#include "K2Node_StructMemberSet.h"
 #include "Dom/JsonObject.h"
 #include "Dom/JsonValue.h"
 
@@ -90,6 +96,24 @@ namespace
 			|| Cat == UEdGraphSchema_K2::PC_Interface
 			|| Cat == UEdGraphSchema_K2::PC_SoftObject
 			|| Cat == UEdGraphSchema_K2::PC_SoftClass;
+	}
+
+	// 알려진 루프 매크로 — 본문에서 출력 데이터 핀을 로컬 변수처럼 참조하도록 RenderExpression 분기 키.
+	bool IsKnownLoopMacro(const FString& MacroName)
+	{
+		return MacroName == TEXT("ForEachLoop")
+			|| MacroName == TEXT("ForEachLoopWithBreak")
+			|| MacroName == TEXT("ReverseForEachLoop")
+			|| MacroName == TEXT("ForLoop")
+			|| MacroName == TEXT("ForLoopWithBreak");
+	}
+
+	// 매크로 출력 데이터 핀명을 C++ 식별자로 (예: "Array Element" → "ArrayElement").
+	FString MacroPinToLocalVar(const FName& PinName)
+	{
+		FString Result = PinName.ToString();
+		Result.ReplaceInline(TEXT(" "), TEXT(""));
+		return Result;
 	}
 
 	UEdGraphPin* FindThenPin(UEdGraphNode* Node)
@@ -501,6 +525,20 @@ namespace
 		}
 		TGuardValue<int32> DepthGuard(Ctx.ExprDepth, Ctx.ExprDepth + 1);
 
+		// SplitStructPin: sub-pin 을 만나면 부모 핀까지 거슬러 올라가 ".Member" 경로 누적 후 root pin 으로 정규화한다.
+		// UE 5 split 핀명 규칙: `ParentPinName + "_" + MemberName` (EdGraphSchema_K2::SplitPin 참조).
+		FString MemberSuffix;
+		while (OutputPin->ParentPin)
+		{
+			FString Member = OutputPin->PinName.ToString();
+			const FString ParentPrefix = OutputPin->ParentPin->PinName.ToString() + TEXT("_");
+			Member.RemoveFromStart(ParentPrefix);
+			MemberSuffix = TEXT(".") + Member + MemberSuffix;
+			OutputPin = OutputPin->ParentPin;
+		}
+
+		auto ComputeBase = [&]() -> FString
+		{
 		UEdGraphNode* Node = OutputPin->GetOwningNode();
 		if (!Node)
 		{
@@ -549,23 +587,8 @@ namespace
 		if (UK2Node_CallFunction* Call = Cast<UK2Node_CallFunction>(Node))
 		{
 			const FString FnName = Call->GetFunctionName().ToString();
-			// BP 자동 변환(Conv_IntToString 등)은 C 스타일 캐스트로 압축. 단일 비-self 입력 핀 가정.
-			if (FnName.StartsWith(TEXT("Conv_")))
-			{
-				for (UEdGraphPin* Pin : Call->Pins)
-				{
-					if (!Pin || Pin->Direction != EGPD_Input || IsExecPin(Pin))
-					{
-						continue;
-					}
-					if (Pin->PinName == UEdGraphSchema_K2::PN_Self)
-					{
-						continue;
-					}
-					return FString::Printf(TEXT("(%s)(%s)"),
-						*FormatPinTypeCPP(OutputPin->PinType), *RenderDataInput(Pin, Ctx));
-				}
-			}
+			// 참고: BP 자동 변환(Conv_*) 은 일반 함수 호출로 그대로 흘려보낸다. C-style 캐스트로 압축하면 Conv_VectorToString 같은
+			// 비-numeric 변환에서 컴파일 불가 표현(`(FString)(Vector)`) 이 나오기 때문. numeric ↔ numeric 도 함수 호출 표기로 충분.
 			// KismetMathLibrary 연산자성 함수(BooleanAND/EqualEqual_*/Add_* 등)는 연산자로 환원.
 			{
 				FString OperatorExpr;
@@ -604,6 +627,49 @@ namespace
 			const FString TypeName = DCast->TargetType ? FormatStructCPP(DCast->TargetType) : TEXT("UObject");
 			return FString::Printf(TEXT("Cast<%s>(%s)"), *TypeName, *RenderDataInput(ObjIn, Ctx));
 		}
+		// BreakStruct: 입력 struct 식 + ".MemberName" 으로 멤버 접근.
+		if (UK2Node_BreakStruct* BS = Cast<UK2Node_BreakStruct>(Node))
+		{
+			UEdGraphPin* StructIn = nullptr;
+			for (UEdGraphPin* P : BS->Pins)
+			{
+				if (P && P->Direction == EGPD_Input && !IsExecPin(P) && P->PinName != UEdGraphSchema_K2::PN_Self)
+				{
+					StructIn = P;
+					break;
+				}
+			}
+			return FString::Printf(TEXT("%s.%s"), *RenderDataInput(StructIn, Ctx), *OutputPin->PinName.ToString());
+		}
+		// MakeStruct: 출력 struct 핀 → positional 함수 캐스트 `FStruct(value1, value2, ...)`.
+		// `variables` 필드의 struct 표기와 통일. BP 의 MakeStruct 핀 순서 = struct 멤버 선언 순서.
+		if (UK2Node_MakeStruct* MS = Cast<UK2Node_MakeStruct>(Node))
+		{
+			TArray<FString> Args;
+			for (UEdGraphPin* P : MS->Pins)
+			{
+				if (!P || P->Direction != EGPD_Input || IsExecPin(P) || P->bHidden)
+				{
+					continue;
+				}
+				Args.Add(RenderDataInput(P, Ctx));
+			}
+			const FString StructName = MS->StructType ? FormatStructCPP(MS->StructType) : TEXT("FStruct");
+			return FString::Printf(TEXT("%s(%s)"), *StructName, *FString::Join(Args, TEXT(", ")));
+		}
+		// StructMemberGet: self 의 struct 변수에서 일부 멤버만 추출. self 컨텍스트 표기 + ".VarName.MemberName".
+		if (UK2Node_StructMemberGet* SMG = Cast<UK2Node_StructMemberGet>(Node))
+		{
+			const FString VarName = SMG->GetVarNameString();
+			UEdGraphPin* SelfPin = SMG->FindPin(UEdGraphSchema_K2::PN_Self);
+			if (SelfPin && SelfPin->LinkedTo.Num() > 0)
+			{
+				return FString::Printf(TEXT("%s%s%s.%s"),
+					*RenderDataInput(SelfPin, Ctx), MemberAccessor(SelfPin),
+					*VarName, *OutputPin->PinName.ToString());
+			}
+			return FString::Printf(TEXT("%s.%s"), *VarName, *OutputPin->PinName.ToString());
+		}
 		// 매크로 인스턴스 데이터 핀 참조. exec 체인의 TryRenderMacro 와 이름 표기 통일(MacroGraph->GetName()).
 		if (UK2Node_MacroInstance* MacroInst = Cast<UK2Node_MacroInstance>(Node))
 		{
@@ -611,6 +677,11 @@ namespace
 			const FString MacroName = MacroGraph ? MacroGraph->GetName() : TEXT("Macro");
 			if (!OutputPin->PinName.IsNone())
 			{
+				// 알려진 루프 매크로의 출력 데이터 핀(Array Element/Array Index/Index)은 본문에서 로컬 변수처럼 참조.
+				if (IsKnownLoopMacro(MacroName))
+				{
+					return MacroPinToLocalVar(OutputPin->PinName);
+				}
 				return FString::Printf(TEXT("%s.%s"), *MacroName, *OutputPin->PinName.ToString());
 			}
 			return MacroName;
@@ -624,6 +695,8 @@ namespace
 			return FString::Printf(TEXT("%s.%s"), *Title, *OutputPin->PinName.ToString());
 		}
 		return Title;
+		};
+		return ComputeBase() + MemberSuffix;
 	}
 
 	void RenderExecChain(UEdGraphPin* ExecOutPin, int32 Indent, FRenderCtx& Ctx)
@@ -640,6 +713,12 @@ namespace
 		UEdGraphNode* NextNode = NextPin->GetOwningNode();
 		if (!NextNode)
 		{
+			return;
+		}
+		// ForEachLoopWithBreak / ForLoopWithBreak 의 "Break" input exec 핀으로 흐름이 들어오면 C++ break 로 종결.
+		if (Cast<UK2Node_MacroInstance>(NextNode) && NextPin->Direction == EGPD_Input && NextPin->PinName == TEXT("Break"))
+		{
+			Emit(Ctx, Indent, TEXT("break;"));
 			return;
 		}
 		// 분기 합류/사이클: 같은 노드를 다시 만나면 합류 지점을 주석으로 남긴다.
@@ -724,6 +803,43 @@ namespace
 		return true;
 	}
 
+	// StructMemberSet: 변수 struct 의 일부 멤버만 대입. 멤버 별로 한 줄씩 `Var.Member = Value;`.
+	bool TryRenderStructMemberSet(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx)
+	{
+		UK2Node_StructMemberSet* SMS = Cast<UK2Node_StructMemberSet>(Node);
+		if (!SMS)
+		{
+			return false;
+		}
+		UEdGraphPin* SelfPin = SMS->FindPin(UEdGraphSchema_K2::PN_Self);
+		const FString VarName = SMS->GetVarNameString();
+		FString Lhs;
+		if (SelfPin && SelfPin->LinkedTo.Num() > 0)
+		{
+			Lhs = FString::Printf(TEXT("%s%s%s"),
+				*RenderDataInput(SelfPin, Ctx), MemberAccessor(SelfPin), *VarName);
+		}
+		else
+		{
+			Lhs = VarName;
+		}
+		for (UEdGraphPin* Pin : SMS->Pins)
+		{
+			if (!Pin || Pin->Direction != EGPD_Input || IsExecPin(Pin))
+			{
+				continue;
+			}
+			if (Pin->PinName == UEdGraphSchema_K2::PN_Self || Pin->bHidden)
+			{
+				continue;
+			}
+			Emit(Ctx, Indent, FString::Printf(TEXT("%s.%s = %s;"),
+				*Lhs, *Pin->PinName.ToString(), *RenderDataInput(Pin, Ctx)));
+		}
+		RenderExecChain(FindThenPin(SMS), Indent, Ctx);
+		return true;
+	}
+
 	bool TryRenderCallFunction(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx)
 	{
 		UK2Node_CallFunction* Call = Cast<UK2Node_CallFunction>(Node);
@@ -764,6 +880,77 @@ namespace
 			RenderExecChain(Failed, Indent + 1, Ctx);
 			Emit(Ctx, Indent, TEXT("}"));
 		}
+		return true;
+	}
+
+	// 케이스 핀의 PinName 을 C++ switch 케이스 라벨로 변환. SwitchEnum 은 EnumName:: 접두사, String/Name 은 따옴표.
+	FString FormatSwitchCaseLabel(UK2Node_Switch* Switch, const UEdGraphPin* Pin)
+	{
+		if (!Switch || !Pin)
+		{
+			return TEXT("?");
+		}
+		const FString PinNameStr = Pin->PinName.ToString();
+		if (UK2Node_SwitchEnum* SwitchEnum = Cast<UK2Node_SwitchEnum>(Switch))
+		{
+			if (UEnum* E = SwitchEnum->Enum)
+			{
+				return FString::Printf(TEXT("%s::%s"), *E->GetName(), *PinNameStr);
+			}
+			return PinNameStr;
+		}
+		const UEdGraphPin* SelectionPin = Switch->GetSelectionPin();
+		const FName Cat = SelectionPin ? SelectionPin->PinType.PinCategory : NAME_None;
+		if (Cat == UEdGraphSchema_K2::PC_String)
+		{
+			return FString::Printf(TEXT("TEXT(\"%s\")"), *PinNameStr);
+		}
+		if (Cat == UEdGraphSchema_K2::PC_Name)
+		{
+			return FString::Printf(TEXT("FName(TEXT(\"%s\"))"), *PinNameStr);
+		}
+		return PinNameStr;
+	}
+
+	bool TryRenderSwitch(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx)
+	{
+		UK2Node_Switch* Switch = Cast<UK2Node_Switch>(Node);
+		if (!Switch)
+		{
+			return false;
+		}
+		UEdGraphPin* SelectionPin = Switch->GetSelectionPin();
+		UEdGraphPin* DefaultPin = Switch->bHasDefaultPin ? Switch->GetDefaultPin() : nullptr;
+
+		Emit(Ctx, Indent, FString::Printf(TEXT("switch (%s)"), *RenderDataInput(SelectionPin, Ctx)));
+		Emit(Ctx, Indent, TEXT("{"));
+		for (UEdGraphPin* Pin : Switch->Pins)
+		{
+			if (!Pin || Pin->Direction != EGPD_Output || !IsExecPin(Pin))
+			{
+				continue;
+			}
+			if (Pin == DefaultPin)
+			{
+				continue;
+			}
+			Emit(Ctx, Indent, FString::Printf(TEXT("case %s:"), *FormatSwitchCaseLabel(Switch, Pin)));
+			if (Pin->LinkedTo.Num() > 0)
+			{
+				RenderExecChain(Pin, Indent + 1, Ctx);
+			}
+			Emit(Ctx, Indent + 1, TEXT("break;"));
+		}
+		if (DefaultPin)
+		{
+			Emit(Ctx, Indent, TEXT("default:"));
+			if (DefaultPin->LinkedTo.Num() > 0)
+			{
+				RenderExecChain(DefaultPin, Indent + 1, Ctx);
+			}
+			Emit(Ctx, Indent + 1, TEXT("break;"));
+		}
+		Emit(Ctx, Indent, TEXT("}"));
 		return true;
 	}
 
@@ -847,6 +1034,101 @@ namespace
 		return true;
 	}
 
+	// ForEachLoop / ForEachLoopWithBreak / ReverseForEachLoop → C++ for 루프.
+	bool RenderForEachMacro(UK2Node_MacroInstance* Macro, const FString& MacroName, int32 Indent, FRenderCtx& Ctx)
+	{
+		const bool bIsForEach = MacroName == TEXT("ForEachLoop") || MacroName == TEXT("ForEachLoopWithBreak");
+		const bool bIsReverse = MacroName == TEXT("ReverseForEachLoop");
+		if (!bIsForEach && !bIsReverse)
+		{
+			return false;
+		}
+		UEdGraphPin* ArrayPin = Macro->FindPin(TEXT("Array"));
+		UEdGraphPin* LoopBody = Macro->FindPin(TEXT("LoopBody"));
+		UEdGraphPin* Completed = Macro->FindPin(TEXT("Completed"));
+		const FString ArrayExpr = ArrayPin ? RenderDataInput(ArrayPin, Ctx) : TEXT("?");
+
+		if (bIsReverse)
+		{
+			// 역순 순회는 인덱스 기반 — ArrayElement / ArrayIndex 둘 다 본문에서 사용 가능.
+			Emit(Ctx, Indent, FString::Printf(TEXT("for (int32 ArrayIndex = %s.Num() - 1; ArrayIndex >= 0; --ArrayIndex)"), *ArrayExpr));
+			Emit(Ctx, Indent, TEXT("{"));
+			Emit(Ctx, Indent + 1, FString::Printf(TEXT("auto& ArrayElement = %s[ArrayIndex];"), *ArrayExpr));
+			if (LoopBody)
+			{
+				RenderExecChain(LoopBody, Indent + 1, Ctx);
+			}
+			Emit(Ctx, Indent, TEXT("}"));
+		}
+		else
+		{
+			Emit(Ctx, Indent, FString::Printf(TEXT("for (auto& ArrayElement : %s)"), *ArrayExpr));
+			Emit(Ctx, Indent, TEXT("{"));
+			if (LoopBody)
+			{
+				RenderExecChain(LoopBody, Indent + 1, Ctx);
+			}
+			Emit(Ctx, Indent, TEXT("}"));
+		}
+		if (Completed)
+		{
+			RenderExecChain(Completed, Indent, Ctx);
+		}
+		return true;
+	}
+
+	// ForLoop / ForLoopWithBreak → for (int32 Index = First; Index <= Last; ++Index).
+	bool RenderForLoopMacro(UK2Node_MacroInstance* Macro, const FString& MacroName, int32 Indent, FRenderCtx& Ctx)
+	{
+		if (MacroName != TEXT("ForLoop") && MacroName != TEXT("ForLoopWithBreak"))
+		{
+			return false;
+		}
+		UEdGraphPin* FirstPin = Macro->FindPin(TEXT("First Index"));
+		UEdGraphPin* LastPin = Macro->FindPin(TEXT("Last Index"));
+		UEdGraphPin* LoopBody = Macro->FindPin(TEXT("LoopBody"));
+		UEdGraphPin* Completed = Macro->FindPin(TEXT("Completed"));
+		const FString FirstExpr = FirstPin ? RenderDataInput(FirstPin, Ctx) : TEXT("0");
+		const FString LastExpr = LastPin ? RenderDataInput(LastPin, Ctx) : TEXT("0");
+		Emit(Ctx, Indent, FString::Printf(TEXT("for (int32 Index = %s; Index <= %s; ++Index)"), *FirstExpr, *LastExpr));
+		Emit(Ctx, Indent, TEXT("{"));
+		if (LoopBody)
+		{
+			RenderExecChain(LoopBody, Indent + 1, Ctx);
+		}
+		Emit(Ctx, Indent, TEXT("}"));
+		if (Completed)
+		{
+			RenderExecChain(Completed, Indent, Ctx);
+		}
+		return true;
+	}
+
+	// WhileLoop → while (Condition).
+	bool RenderWhileLoopMacro(UK2Node_MacroInstance* Macro, const FString& MacroName, int32 Indent, FRenderCtx& Ctx)
+	{
+		if (MacroName != TEXT("WhileLoop"))
+		{
+			return false;
+		}
+		UEdGraphPin* CondPin = Macro->FindPin(TEXT("Condition"));
+		UEdGraphPin* LoopBody = Macro->FindPin(TEXT("LoopBody"));
+		UEdGraphPin* Completed = Macro->FindPin(TEXT("Completed"));
+		const FString CondExpr = CondPin ? RenderDataInput(CondPin, Ctx) : TEXT("true");
+		Emit(Ctx, Indent, FString::Printf(TEXT("while (%s)"), *CondExpr));
+		Emit(Ctx, Indent, TEXT("{"));
+		if (LoopBody)
+		{
+			RenderExecChain(LoopBody, Indent + 1, Ctx);
+		}
+		Emit(Ctx, Indent, TEXT("}"));
+		if (Completed)
+		{
+			RenderExecChain(Completed, Indent, Ctx);
+		}
+		return true;
+	}
+
 	bool TryRenderMacro(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx)
 	{
 		UK2Node_MacroInstance* Macro = Cast<UK2Node_MacroInstance>(Node);
@@ -857,6 +1139,21 @@ namespace
 		UEdGraph* MacroGraph = Macro->GetMacroGraph();
 		const FString MacroName = MacroGraph ? MacroGraph->GetName() : TEXT("Macro");
 
+		// 알려진 루프 매크로는 C++ 루프 키워드(for / while)로 변환.
+		if (RenderForEachMacro(Macro, MacroName, Indent, Ctx))
+		{
+			return true;
+		}
+		if (RenderForLoopMacro(Macro, MacroName, Indent, Ctx))
+		{
+			return true;
+		}
+		if (RenderWhileLoopMacro(Macro, MacroName, Indent, Ctx))
+		{
+			return true;
+		}
+
+		// 그 외 매크로: LoopBody/Completed 가 있으면 호출-블록 형태, 없으면 단순 호출.
 		TArray<FString> Args;
 		for (UEdGraphPin* Pin : Macro->Pins)
 		{
@@ -871,12 +1168,12 @@ namespace
 			Args.Add(RenderDataInput(Pin, Ctx));
 		}
 
-		// LoopBody/Completed 가 있는 매크로(ForEachLoop 등)는 본문 블록을 가진다.
+		// `// [macro]` 마커: BP 매크로는 C++ 함수와 의미가 다르므로(인라인 확장, latent 노드 가능) 호출 라인에 명시.
 		UEdGraphPin* LoopBody = Macro->FindPin(TEXT("LoopBody"));
 		UEdGraphPin* Completed = Macro->FindPin(TEXT("Completed"));
 		if (LoopBody || Completed)
 		{
-			Emit(Ctx, Indent, FString::Printf(TEXT("%s(%s)"), *MacroName, *FString::Join(Args, TEXT(", "))));
+			Emit(Ctx, Indent, FString::Printf(TEXT("%s(%s)  // [macro]"), *MacroName, *FString::Join(Args, TEXT(", "))));
 			Emit(Ctx, Indent, TEXT("{"));
 			if (LoopBody)
 			{
@@ -890,7 +1187,7 @@ namespace
 			return true;
 		}
 
-		Emit(Ctx, Indent, FString::Printf(TEXT("%s(%s);"), *MacroName, *FString::Join(Args, TEXT(", "))));
+		Emit(Ctx, Indent, FString::Printf(TEXT("%s(%s);  // [macro]"), *MacroName, *FString::Join(Args, TEXT(", "))));
 		RenderExecChain(FindThenPin(Macro), Indent, Ctx);
 		return true;
 	}
@@ -949,7 +1246,15 @@ namespace
 		{
 			return;
 		}
+		if (TryRenderSwitch(Node, Indent, Ctx))
+		{
+			return;
+		}
 		if (TryRenderVariableSet(Node, Indent, Ctx))
+		{
+			return;
+		}
+		if (TryRenderStructMemberSet(Node, Indent, Ctx))
 		{
 			return;
 		}
