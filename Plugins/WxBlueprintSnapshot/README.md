@@ -5,7 +5,7 @@
 ## 이 플러그인으로 할 수 있는 것
 
 > **💡 핵심 가치**  
-> BP 를 텍스트 자산처럼 다룰 수 있게 만들어 git / grep / blame / diff / AI 같은 텍스트 기반 도구를 BP 에도 적용할 수 있게 합니다.
+> BP 를 텍스트 자산처럼 다룰 수 있게 만들어 git / grep / blame / diff 같은 텍스트 기반 도구를 BP 에도 적용할 수 있게 합니다.
 
 ### 1. 블루프린트 변경 추적
 `.uasset` 은 바이너리라 source control 에서 diff 가 제한됩니다.  
@@ -13,26 +13,20 @@
 - **히스토리 추적** — "누가 언제 변수 값을 바꿨는지", "이 컴포넌트 추가한 사람" 같은 추적이 즉시 가능
 - **에디터 없이 PR 리뷰** — 코드 리뷰어가 UE 컴파일 환경 없이도 line-level 코멘트로 BP 변경 토론
 
-### 2. AI 협업
-AI 코드 어시스턴트와 결합 효율이 높습니다.
-- **토큰 효율** — 스크린샷 대비 1/10 이하 토큰
-- **단일 컨텍스트** — 의사 코드 + 변수 + MVVM 바인딩 + 컴포넌트 트리가 한 파일에
-- **분석 정확도** — OCR 오인 없이 노드 이름/연결을 정확히 전달
-
-### 3. 블루프린트 일괄 스캔
+### 2. 블루프린트 일괄 스캔
 언리얼 에디터를 켜지 않고도 전체 프로젝트 BP 를 텍스트 도구로 스캔할 수 있습니다.
 - **Deprecated API 스캔** — BP Function Library 함수 제거 전에 BP 내 사용처 스캔
 - **Tick 이 켜진 Actor BP 찾기** — `bCanEverTick` 검색
 - **특정 함수 호출하는 BP** — `eventGraph` / `functions` 의사 코드 grep
 
-### 4. UMG 특화
+### 3. UMG 특화
 WBP 는 디자이너 / 기획자 / 프로그래머가 동시에 건드리는 영역이라 변경 영향과 리뷰 부담이 큽니다.  
 이 플러그인은 WBP 의 위젯 트리와 MVVM 바인딩까지 JSON 으로 추출합니다.
 - **변경 영향 가시성** — 디자이너의 위젯 변경이 프로그래머 코드(MVVM 바인딩 / 위젯 참조)에 미치는 영향, 또는 그 반대 방향을 즉시 검토 가능
 - **ViewModel 변경 영향 분석** — 프로퍼티 삭제/리네임 시 영향받는 WBP 를 grep 으로 검출
 - **MVVM 바인딩 추적** — "어느 ViewModel 의 어느 프로퍼티를 누가 어디에 바인딩했는가" 를 즉시 파악
 
-### 5. BP 삭제 시 스냅샷 자동 정리
+### 4. BP 삭제 시 스냅샷 자동 정리
 콘텐츠 브라우저에서 BP 에셋을 삭제하면 대응되는 JSON 파일도 자동으로 삭제됩니다.
 
 ---
@@ -43,6 +37,23 @@ WBP 는 디자이너 / 기획자 / 프로그래머가 동시에 건드리는 영
 2. `Project Settings > Wx > WxBlueprintSnapshot`에서 BP에서 추출할 데이터 선택.
 3. 블루프린트를 저장 (Ctrl+S).  
 4. `Plugins/WxBlueprintSnapshot/Snapshots/<BP 패키지 경로>.json` 파일이 생성/업데이트됨.
+
+---
+
+## AI 가 스냅샷을 활용하도록 안내하기
+
+플러그인이 JSON 을 만들어줘도 AI 가 "BP 분석 시엔 스냅샷을 본다"는 규칙을 모르면 활용되지 않습니다.  
+`AGENTS.md` (또는 사용자 메모리에 `reference_blueprint_snapshots.md`로 추가) 에 아래 지침을 추가해두면 AI 어시스턴트가 BP 관련 작업 시 자동으로 스냅샷 JSON 을 우선 조회합니다.
+
+````markdown
+## Blueprint 분석
+
+`.uasset`(BP/WBP) 의 내부 구조를 알아야 하는 작업(예: BP 클래스의 디폴트값 확인, 컴포넌트 트리, 이벤트 그래프 로직, WBP의 위젯 계층/MVVM 바인딩)에서는 `Plugins/WxBlueprintSnapshot/Snapshots/` 아래의 동명 JSON을 우선 참조한다.
+
+* 스냅샷은 `Content/` 폴더 구조를 미러링한다. 예: `Content/Game/Character/Player/BP_Player.uasset` → `Plugins/WxBlueprintSnapshot/Snapshots/Game/Character/Player/BP_Player.json`
+* 스냅샷은 BP 저장 시 자동 갱신되므로 최신 상태에 가깝지만, 마지막 저장 이후 수정사항은 반영되지 않을 수 있다.
+* 스냅샷이 없는 BP는 IncludeDirectories/ExcludeDirectories 필터로 제외된 경우이거나 아직 저장된 적이 없는 경우다.
+````
 
 ---
 
@@ -129,7 +140,7 @@ MVVM 추출은 프로젝트 세팅에서 비활성화 가능.
 | ReverseForEachLoop | ✅ | `for (int32 ArrayIndex = Array.Num() - 1; ArrayIndex >= 0; --ArrayIndex) { ... }` |
 | WhileLoop | ✅ | `while (Condition) { ... }` |
 | Async Action (Latent BP Async Task) | ✅ | `MyAsyncCall(Args); auto Finished = [this]() { ... };` |
-| Delay, PrintString 등 Latent/유틸 함수 호출 | ✅ | `KismetSystemLibrary::Delay(Duration=1.0f);` |
+| Delay, PrintString 등 Latent/유틸 함수 호출 | ✅ | `KismetSystemLibrary::Delay(1.0f);` |
 | 함수 시그니처 한정자 | ✅ | `UFUNCTION(BlueprintPure, NetMulticast, Reliable)` |
 | 일반 매크로 호출 (사용자 정의 등) | ✅ | `MyMacro(arg1, arg2);  // [macro]` (주석으로 호출 라인에 매크로 명시) |
 | 매크로 데이터 출력 핀 참조 | ✅ | `MyMacro.OutputPinName` |
@@ -214,7 +225,7 @@ MVVM 추출은 프로젝트 세팅에서 비활성화 가능.
 | `OutputDirectory` | `Plugins/WxBlueprintSnapshot/Snapshots` | 스냅샷 저장 루트 폴더. |
 | `IncludeDirectories` | [] | 대상 BP 폴더 (비어있으면 전체) |
 | `ExcludeDirectories` | [] | 제외 BP 폴더 |
-| `bSkipUnchangedDefaults` | true | 기본값과 동일한 프로퍼티를 classDefaults/컴포넌트/위젯 delta에서 제외 (false로 두면 전체 덤프) |
+| `bSkipUnchangedDefaults` | true | 기본값과 동일한 프로퍼티를 classDefaults/components/widgetTree에서 제외 (false로 두면 전체 덤프) |
 | `bIncludeComponents` | true | Components 탭 추출 |
 | `bIncludeVariables` | true | 변수 목록 추출 |
 | `bIncludeInterfaces` | true | 구현 인터페이스 추출 |
@@ -227,7 +238,7 @@ MVVM 추출은 프로젝트 세팅에서 비활성화 가능.
 ## 출력
 
 - **경로**: `<OutputDirectory>/<BP 패키지 경로><FileExtension>`
-- **포맷**: UTF-8 (no BOM), 키 알파벳 정렬 (단 `variables`/`functions`/`components` 는 BP 선언/SCS 순서 유지), 탭 들여쓰기 pretty print (UE `TPrettyJsonPrintPolicy`)
+- **포맷**: UTF-8 (no BOM), 탭 들여쓰기, pretty print (UE `TPrettyJsonPrintPolicy`)
 - **ReadOnly 플래그**는 자동 해제 후 덮어쓰기 (Perforce 등에서 편의)
 - **삭제 동기화**: BP 에셋을 삭제하면 대응되는 JSON 파일도 함께 제거됨
 - **예시 파일**: 플러그인 Content 폴더의 `BP_SampleCharacter.uasset`에 대응되는 `Snapshots/WxBlueprintSnapshot/BP_SampleCharacter.json` 참조
