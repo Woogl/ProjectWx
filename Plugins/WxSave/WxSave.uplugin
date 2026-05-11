@@ -3,19 +3,13 @@
 	"Version": 1,
 	"VersionName": "1.0",
 	"FriendlyName": "WxSave",
-	"Description": "Game state persistence: slot management, async save/load, preset-driven serialization.",
+	"Description": "Reusable save plugin: slot management, async save/load. Project-specific save logic is added by subclassing UWxSaveSubsystem.",
 	"Category": "Wx",
 	"Modules": [
 		{
 			"Name": "WxSave",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
-		}
-	],
-	"Plugins": [
-		{
-			"Name": "WxCore",
-			"Enabled": true
 		}
 	]
 }

@@ -12,8 +12,8 @@ public class WxSave : ModuleRules
 		{
 			"Core",
 			"CoreUObject",
+			"DeveloperSettings",
 			"Engine",
-			"WxCore",
 		});
 	}
 }
