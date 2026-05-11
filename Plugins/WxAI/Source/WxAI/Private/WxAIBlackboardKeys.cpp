@@ -11,4 +11,6 @@ namespace WxAIBlackboardKeys
 	const FName HomeLocation = TEXT("HomeLocation");
 
 	const FName TargetLastKnownLocation = TEXT("TargetLastKnownLocation");
+
+	const FName Phase = TEXT("Phase");
 }

@@ -19,4 +19,6 @@ namespace WxAIBlackboardKeys
 	WXAI_API extern const FName HomeLocation;
 
 	WXAI_API extern const FName TargetLastKnownLocation;
+
+	WXAI_API extern const FName Phase;
 }
