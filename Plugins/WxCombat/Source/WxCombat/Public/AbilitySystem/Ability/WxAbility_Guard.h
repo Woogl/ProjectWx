@@ -52,13 +52,16 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> GuardBreakMontage;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TObjectPtr<UAnimMontage> PerfectGuardMontage;
 
 	/** 가드 중 받는 대미지 배율(0~1). 0.5 면 50% 감소. ExecCalc_Damage 가 가드 피격 분기에서 참조. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability", meta = (ClampMin = "0", ClampMax = "1"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|PerfectGuard", meta = (ClampMin = "0", ClampMax = "1"))
 	float DamageReductionRate = 0.5f;
 
 	/** 퍼펙트 가드 성공 시 회복하는 MP량 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Recovery")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|PerfectGuard")
 	float PerfectGuardMPRecovery = 5.f;
 	
 	/** 퍼펙트 가드 성공 시 적용할 GlobalTimeDilation 값 */

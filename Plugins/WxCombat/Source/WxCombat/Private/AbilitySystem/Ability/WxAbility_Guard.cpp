@@ -162,9 +162,9 @@ void UWxAbility_Guard::HandlePerfectGuard(FGameplayEventData Payload)
 
 	// GuardMontage 페이즈에서만 GuardHitReactMontage를 재생한다.
 	// HitReact/Knockback 재생 중 퍼펙트 가드 이벤트가 오면 MP 회복만 처리하고 몽타주는 전환하지 않는다.
-	if (ActiveMontage == GuardMontage && GuardHitReactMontage)
+	if (ActiveMontage == GuardMontage && PerfectGuardMontage)
 	{
-		PlayMontage(GuardHitReactMontage);
+		PlayMontage(PerfectGuardMontage);
 	}
 }
 
