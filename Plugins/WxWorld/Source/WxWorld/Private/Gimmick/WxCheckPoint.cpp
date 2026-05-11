@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Interaction/WxInteractionComponent.h"
+#include "System/WxCheckpointSubsystem.h"
 #include "System/WxSpawnerSubsystem.h"
 
 AWxCheckPoint::AWxCheckPoint()
@@ -49,5 +50,10 @@ void AWxCheckPoint::HandleInteracted(AActor* InstigatorActor)
 	if (UWxSpawnerSubsystem* Subsystem = GetWorld()->GetSubsystem<UWxSpawnerSubsystem>())
 	{
 		Subsystem->RespawnAll();
+	}
+
+	if (UWxCheckpointSubsystem* CheckpointSubsystem = GetWorld()->GetSubsystem<UWxCheckpointSubsystem>())
+	{
+		CheckpointSubsystem->SetLastCheckpoint(GetActorTransform());
 	}
 }

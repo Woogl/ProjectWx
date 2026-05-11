@@ -31,6 +31,9 @@ public:
 
 	UWxInventoryManagerComponent* GetInventoryManager() const;
 
+	/** WxCheckpointSubsystem 에 캐시된 마지막 체크포인트 위치로 부활. 권위 측에서만 동작. */
+	void Respawn();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;

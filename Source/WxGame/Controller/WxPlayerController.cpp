@@ -9,12 +9,14 @@
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/Texture2D.h"
+#include "GameFramework/GameModeBase.h"
 #include "Input/WxControllerInputConfig.h"
 #include "Inventory/WxInventoryManagerComponent.h"
 #include "MVVM/WxGlobalViewModelSubsystem.h"
 #include "MVVM/WxViewModel_Ability.h"
 #include "MVVM/WxViewModel_AbilitySystem.h"
 #include "MVVM/WxViewModel_Inventory.h"
+#include "System/WxCheckpointSubsystem.h"
 #include "System/WxUIManagerSubsystem.h"
 #include "Widget/WxActivatableWidget.h"
 #include "WxGameplayTags.h"
@@ -28,6 +30,41 @@ AWxPlayerController::AWxPlayerController(const FObjectInitializer& ObjectInitial
 UWxInventoryManagerComponent* AWxPlayerController::GetInventoryManager() const
 {
 	return InventoryManager;
+}
+
+void AWxPlayerController::Respawn()
+{
+	// 부활은 권위 측에서만 처리한다. 클라이언트는 서버에서 RestartPlayerAtTransform → Possess 가 일어나면 OnRep_Pawn 으로 반영된다.
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	UWxCheckpointSubsystem* CheckpointSubsystem = World->GetSubsystem<UWxCheckpointSubsystem>();
+	if (!CheckpointSubsystem || !CheckpointSubsystem->HasValidCheckpoint())
+	{
+		return;
+	}
+
+	AGameModeBase* GameMode = World->GetAuthGameMode();
+	if (!GameMode)
+	{
+		return;
+	}
+
+	if (APawn* CurrentPawn = GetPawn())
+	{
+		UnPossess();
+		CurrentPawn->Destroy();
+	}
+
+	GameMode->RestartPlayerAtTransform(this, CheckpointSubsystem->GetLastCheckpoint());
 }
 
 void AWxPlayerController::BeginPlay()
