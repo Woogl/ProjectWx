@@ -1,0 +1,9 @@
+{
+	"blueprintPath": "/Game/Framework/BP_PlayerController.BP_PlayerController",
+	"classDefaults":
+	{
+		"DeathScreenWidgetClass": "/Game/UI/Widget/WBP_DeathScreen.WBP_DeathScreen_C",
+		"InputConfig": "/Game/Input/DA_ControllerInputConfig.DA_ControllerInputConfig"
+	},
+	"parentClass": "/Script/WxGame.WxPlayerController"
+}
