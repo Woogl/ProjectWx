@@ -13,6 +13,7 @@ public class WxGame : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[]
 		{
 			"AIModule",
+			"CommonUI",
 			"Core",
 			"CoreUObject",
 			"Engine",

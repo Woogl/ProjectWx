@@ -7,6 +7,7 @@
 #include "GameplayTagContainer.h"
 #include "WxPlayerController.generated.h"
 
+class AWxCharacterBase;
 class AWxPlayerCharacter;
 class UAbilitySystemComponent;
 class UWxActivatableWidget;
@@ -48,6 +49,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Inventory")
 	TObjectPtr<UWxInventoryManagerComponent> InventoryManager;
 
+	/** 빙의된 캐릭터 사망 시 Menu 레이어에 띄울 위젯. 미지정이면 동작 없음. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|UI")
+	TSoftClassPtr<UWxActivatableWidget> DeathScreenWidgetClass;
+
 private:
 	void PushGameHUD(AWxPlayerCharacter* PlayerCharacter);
 
@@ -59,6 +64,18 @@ private:
 
 	void HandleMenuInputTriggered(FGameplayTag LayerTag, TSoftClassPtr<UWxActivatableWidget> WidgetClass);
 
+	void BindCharacterDeath(APawn* InPawn);
+	void UnbindCharacterDeath();
+	void DismissDeathScreen();
+
+	UFUNCTION()
+	void HandleCharacterDeath(AWxCharacterBase* DeadCharacter);
+
 	UPROPERTY(Transient)
 	TObjectPtr<UWxActivatableWidget> GameHUD;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UWxActivatableWidget> DeathScreen;
+
+	TWeakObjectPtr<AWxCharacterBase> BoundCharacter;
 };

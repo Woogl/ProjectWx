@@ -87,6 +87,8 @@ void AWxPlayerController::OnPossess(APawn* InPawn)
 		return;
 	}
 
+	BindCharacterDeath(InPawn);
+
 	if (AWxPlayerCharacter* WxPlayerCharacter = Cast<AWxPlayerCharacter>(InPawn))
 	{
 		if (UAbilitySystemComponent* ASC = WxPlayerCharacter->GetAbilitySystemComponent())
@@ -102,6 +104,7 @@ void AWxPlayerController::OnUnPossess()
 {
 	if (IsLocalController())
 	{
+		UnbindCharacterDeath();
 		DeinitializePlayerAbilitySystemViewModel();
 	}
 
@@ -130,6 +133,8 @@ void AWxPlayerController::OnRep_Pawn()
 		return;
 	}
 
+	BindCharacterDeath(GetPawn());
+
 	// 원격 클라이언트: Pawn 복제 시 HUD Push 및 ViewModel 초기화
 	if (AWxPlayerCharacter* WxPlayerCharacter = Cast<AWxPlayerCharacter>(GetPawn()))
 	{
@@ -146,6 +151,8 @@ void AWxPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (IsLocalController())
 	{
+		UnbindCharacterDeath();
+		DismissDeathScreen();
 		DeinitializeInventoryViewModel();
 	}
 
@@ -308,4 +315,66 @@ void AWxPlayerController::HandleMenuInputTriggered(FGameplayTag LayerTag, TSoftC
 	}
 
 	UIManager->PushContentToLayer(LayerTag, ResolvedClass);
+}
+
+void AWxPlayerController::BindCharacterDeath(APawn* InPawn)
+{
+	// 이전 캐릭터 정리 및 이전 사망 화면 제거 (부활/Pawn 교체 시 자동 정리)
+	UnbindCharacterDeath();
+	DismissDeathScreen();
+
+	AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(InPawn);
+	if (!WxCharacter)
+	{
+		return;
+	}
+
+	WxCharacter->OnDeath.AddDynamic(this, &ThisClass::HandleCharacterDeath);
+	BoundCharacter = WxCharacter;
+}
+
+void AWxPlayerController::UnbindCharacterDeath()
+{
+	if (AWxCharacterBase* WxCharacter = BoundCharacter.Get())
+	{
+		WxCharacter->OnDeath.RemoveDynamic(this, &ThisClass::HandleCharacterDeath);
+	}
+	BoundCharacter.Reset();
+}
+
+void AWxPlayerController::DismissDeathScreen()
+{
+	if (DeathScreen)
+	{
+		DeathScreen->DeactivateWidget();
+		DeathScreen = nullptr;
+	}
+}
+
+void AWxPlayerController::HandleCharacterDeath(AWxCharacterBase* DeadCharacter)
+{
+	if (!IsLocalController() || DeathScreenWidgetClass.IsNull())
+	{
+		return;
+	}
+
+	UGameInstance* GameInst = GetGameInstance();
+	if (!GameInst)
+	{
+		return;
+	}
+
+	UWxUIManagerSubsystem* UIManager = GameInst->GetSubsystem<UWxUIManagerSubsystem>();
+	if (!UIManager)
+	{
+		return;
+	}
+
+	TSubclassOf<UWxActivatableWidget> ResolvedClass = DeathScreenWidgetClass.LoadSynchronous();
+	if (!ResolvedClass)
+	{
+		return;
+	}
+
+	DeathScreen = Cast<UWxActivatableWidget>(UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Menu, ResolvedClass));
 }
