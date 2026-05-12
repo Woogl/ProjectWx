@@ -22,8 +22,7 @@
 			{
 				"StaticMesh": "/Game/NiagaraExamples/Gallery/StaticMesh/SM_TorchBase.SM_TorchBase"
 			}
-		},
-		"RootComponent": "MeshComponent"
+		}
 	},
 	"components":
 	{

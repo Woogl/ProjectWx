@@ -14,7 +14,7 @@
  *
  * 패치 호환성을 위해 SaveVersion 멤버를 가지며, 서브클래스가 마이그레이션 분기를 추가할 수 있다.
  */
-UCLASS()
+UCLASS(Abstract)
 class WXSAVE_API UWxSlotData : public USaveGame
 {
 	GENERATED_BODY()

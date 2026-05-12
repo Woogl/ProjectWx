@@ -20,10 +20,13 @@
 			"class": "/Script/Engine.StaticMeshComponent",
 			"delta":
 			{
+				"RelativeRotation":
+				{
+					"Yaw": 90
+				},
 				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/Display_Button.Display_Button"
 			}
-		},
-		"RootComponent": "MeshComponent"
+		}
 	},
 	"parentClass": "/Script/WxWorld.WxCutsceneTrigger"
 }

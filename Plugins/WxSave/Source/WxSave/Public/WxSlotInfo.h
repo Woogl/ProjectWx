@@ -12,7 +12,7 @@
  *
  * 보통 보유 항목: 슬롯 이름, 마지막 플레이 시각, 플레이타임, 레벨 명, 스크린샷 등.
  */
-UCLASS()
+UCLASS(Abstract)
 class WXSAVE_API UWxSlotInfo : public USaveGame
 {
 	GENERATED_BODY()

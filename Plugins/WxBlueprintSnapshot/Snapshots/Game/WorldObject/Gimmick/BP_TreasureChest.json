@@ -20,14 +20,22 @@
 				"OverrideMaterials": [
 					"/Game/NiagaraExamples/Gallery/StaticMesh/BeachBall/M_BeachBallYellow.M_BeachBallYellow"
 				],
+				"RelativeLocation":
+				{
+					"Z": 50
+				},
 				"StaticMesh": "/Engine/BasicShapes/Cube.Cube"
 			}
-		},
-		"RootComponent": "MeshComponent"
+		}
 	},
-	"eventGraph": [
-		"event WxOnInteractedSignature__DelegateSignature:",
-		"  MeshComponent.SetMaterial()"
-	],
+	"eventGraph":
+	{
+		"WxOnInteractedSignature__DelegateSignature": [
+			"void WxOnInteractedSignature__DelegateSignature(AActor* InstigatorActor)",
+			"{",
+			"    MeshComponent->SetMaterial();",
+			"}"
+		]
+	},
 	"parentClass": "/Script/WxGame.WxTreasureChest"
 }

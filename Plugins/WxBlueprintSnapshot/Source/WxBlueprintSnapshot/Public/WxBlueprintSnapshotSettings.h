@@ -11,7 +11,7 @@
  * 블루프린트를 저장할 때마다 내용을 JSON 파일로 기록하는 플러그인의 설정.
  * 저장된 JSON은 diff로 변경점을 읽거나 AI에게 블루프린트 구조를 전달할 때 사용 가능.
  */
-UCLASS(Config = Editor, Meta = (DisplayName = "Wx Blueprint Snapshot"))
+UCLASS(Config = Editor)
 class WXBLUEPRINTSNAPSHOT_API UWxBlueprintSnapshotSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()

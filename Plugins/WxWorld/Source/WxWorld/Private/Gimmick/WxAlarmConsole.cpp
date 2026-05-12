@@ -9,9 +9,6 @@
 
 AWxAlarmConsole::AWxAlarmConsole()
 {
-	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
-	SetRootComponent(SceneRoot);
-
 	Console = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Console"));
 	Console->SetupAttachment(SceneRoot);
 

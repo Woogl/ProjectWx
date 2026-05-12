@@ -51,9 +51,6 @@ protected:
 	virtual void ApplyState() override;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	TObjectPtr<USceneComponent> SceneRoot;
-
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<USplineComponent> SplineComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")

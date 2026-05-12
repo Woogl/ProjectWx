@@ -8,7 +8,7 @@
 
 class UWxPrimaryGameLayout;
 
-UCLASS(Config = Game, DefaultConfig, meta = (DisplayName = "Wx UI Settings"))
+UCLASS(Config = Game, DefaultConfig)
 class WXUI_API UWxUIDeveloperSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()

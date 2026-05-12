@@ -8,9 +8,6 @@
 
 AWxSpawnConsole::AWxSpawnConsole()
 {
-	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
-	SetRootComponent(SceneRoot);
-
 	ConsoleMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ConsoleMesh"));
 	ConsoleMesh->SetupAttachment(SceneRoot);
 

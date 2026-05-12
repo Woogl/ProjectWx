@@ -21,7 +21,7 @@
 			{
 				"RelativeRotation":
 				{
-					"Yaw": -90
+					"Yaw": 90
 				},
 				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/Display_Button.Display_Button"
 			}

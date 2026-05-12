@@ -13,11 +13,6 @@
 #include "UObject/ConstructorHelpers.h"
 #include "System/WxWorldDeveloperSettings.h"
 
-namespace
-{
-	constexpr const TCHAR* DefaultSpawnerSpritePath = TEXT("/Engine/EditorResources/Spawn_Point.Spawn_Point");
-}
-
 AWxSpawner::AWxSpawner()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -26,35 +21,44 @@ AWxSpawner::AWxSpawner()
 	SetRootComponent(SceneRoot);
 
 #if WITH_EDITORONLY_DATA
-	SpriteComponent = CreateDefaultSubobject<UBillboardComponent>(TEXT("SpriteComponent"));
-	SpriteComponent->bIsEditorOnly = true;
-	SpriteComponent->SetupAttachment(SceneRoot);
-	SpriteComponent->SetRelativeRotation(FRotator(0.f, 0.f, 50.f));
-
-	static ConstructorHelpers::FObjectFinder<UTexture2D> SpriteTexture(DefaultSpawnerSpritePath);
-	if (SpriteTexture.Succeeded())
+	SpriteComponent = CreateEditorOnlyDefaultSubobject<UBillboardComponent>(TEXT("SpriteComponent"));
+	if (SpriteComponent)
 	{
-		SpriteComponent->Sprite = SpriteTexture.Object;
+		SpriteComponent->SetupAttachment(SceneRoot);
+		SpriteComponent->SetRelativeRotation(FRotator(0.f, 0.f, 50.f));
+
+		static ConstructorHelpers::FObjectFinder<UTexture2D> SpriteTexture(TEXT("/Engine/EditorResources/Spawn_Point.Spawn_Point"));
+		if (SpriteTexture.Succeeded())
+		{
+			SpriteComponent->Sprite = SpriteTexture.Object;
+		}
 	}
 
-	ArrowComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("ArrowComponent"));
-	ArrowComponent->bIsEditorOnly = true;
-	ArrowComponent->SetupAttachment(SceneRoot);
-	ArrowComponent->ArrowColor = FColor(150, 200, 255);
-	ArrowComponent->ArrowSize = 1.0f;
-	ArrowComponent->bTreatAsASprite = true;
+	ArrowComponent = CreateEditorOnlyDefaultSubobject<UArrowComponent>(TEXT("ArrowComponent"));
+	if (ArrowComponent)
+	{
+		ArrowComponent->SetupAttachment(SceneRoot);
+		ArrowComponent->ArrowColor = FColor(150, 200, 255);
+		ArrowComponent->bTreatAsASprite = true;
+	}
 
-	PreviewSkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("PreviewSkeletalMeshComponent"));
-	PreviewSkeletalMeshComponent->SetupAttachment(SceneRoot);
-	PreviewSkeletalMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	PreviewSkeletalMeshComponent->SetHiddenInGame(true);
-	PreviewSkeletalMeshComponent->bCastHiddenShadow = true;
+	PreviewSkeletalMeshComponent = CreateEditorOnlyDefaultSubobject<USkeletalMeshComponent>(TEXT("PreviewSkeletalMeshComponent"));
+	if (PreviewSkeletalMeshComponent)
+	{
+		PreviewSkeletalMeshComponent->SetupAttachment(SceneRoot);
+		PreviewSkeletalMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		PreviewSkeletalMeshComponent->SetHiddenInGame(true);
+		PreviewSkeletalMeshComponent->bCastHiddenShadow = true;
+	}
 
-	PreviewStaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PreviewStaticMeshComponent"));
-	PreviewStaticMeshComponent->SetupAttachment(SceneRoot);
-	PreviewStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	PreviewStaticMeshComponent->SetHiddenInGame(true);
-	PreviewStaticMeshComponent->bCastHiddenShadow = true;
+	PreviewStaticMeshComponent = CreateEditorOnlyDefaultSubobject<UStaticMeshComponent>(TEXT("PreviewStaticMeshComponent"));
+	if (PreviewStaticMeshComponent)
+	{
+		PreviewStaticMeshComponent->SetupAttachment(SceneRoot);
+		PreviewStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		PreviewStaticMeshComponent->SetHiddenInGame(true);
+		PreviewStaticMeshComponent->bCastHiddenShadow = true;
+	}
 #endif
 }
 
@@ -259,7 +263,7 @@ void AWxSpawner::UpdateEditorPreviewFromSpawnableClass()
 		UTexture2D* NewSprite = GetDefault<UWxWorldDeveloperSettings>()->FindSpawnerIconForClass(SpawnableActorClass);
 		if (!NewSprite)
 		{
-			NewSprite = LoadObject<UTexture2D>(nullptr, DefaultSpawnerSpritePath);
+			NewSprite = LoadObject<UTexture2D>(nullptr, TEXT("/Engine/EditorResources/Spawn_Point.Spawn_Point"));
 		}
 		SpriteComponent->SetSprite(NewSprite);
 

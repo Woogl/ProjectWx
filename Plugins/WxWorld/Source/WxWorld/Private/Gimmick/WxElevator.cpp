@@ -15,9 +15,6 @@ AWxElevator::AWxElevator()
 	CurrentDistance = 0.f;
 	CachedSplineLength = 0.f;
 
-	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
-	SetRootComponent(SceneRoot);
-
 	SplineComponent = CreateDefaultSubobject<USplineComponent>(TEXT("SplineComponent"));
 	SplineComponent->SetupAttachment(SceneRoot);
 

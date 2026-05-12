@@ -31,9 +31,6 @@ protected:
 	virtual void ApplyState() override;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	TObjectPtr<USceneComponent> SceneRoot;
-
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> ConsoleMesh;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")

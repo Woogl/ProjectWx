@@ -6,6 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "WxGimmick.generated.h"
 
+class UArrowComponent;
+class USceneComponent;
+
 /**
  * 상호작용 가능한 월드 오브젝트의 공통 부모.
  *
@@ -37,8 +40,18 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
+	/** 모든 자식 컴포넌트의 부착 베이스. 자식 클래스는 SetRootComponent 호출 없이 SceneRoot 에 SetupAttachment 한다. */
+	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	TObjectPtr<USceneComponent> SceneRoot;
+
 	UPROPERTY(ReplicatedUsing = OnRep_bTriggered)
 	bool bTriggered = false;
+
+#if WITH_EDITORONLY_DATA
+	/** 에디터 정면 표시용 화살표. 베이스에서 SceneRoot 에 부착 완료. */
+	UPROPERTY()
+	TObjectPtr<UArrowComponent> ArrowComponent;
+#endif
 
 	/** 권한 측에서 bTriggered 를 true 로 전환하고 ApplyState 를 즉시 호출. 이미 true 면 노옵.
 	 *  서버에서는 OnRep 이 자동 발화하지 않으므로 ApplyState 를 명시 호출하여 후처리를 한 경로로 통일한다. */
