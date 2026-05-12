@@ -3,14 +3,22 @@
 	"classDefaults":
 	{
 		"bIsBackHandler": true,
-		"WBP_Button_161": ""
+		"DeleteSaveData": "",
+		"EnterInventory": "",
+		"LoadSaveData": ""
 	},
-	"eventGraph": [
-		"void CommonButtonBaseClicked__DelegateSignature(delegate OutputDelegate, UCommonButtonBase* Button)",
-		"{",
-		"    // PushWidgetToLayer",
-		"}"
-	],
+	"eventGraph":
+	{
+		"CommonButtonBaseClicked__DelegateSignature": [
+			"void CommonButtonBaseClicked__DelegateSignature(UCommonButtonBase* Button)",
+			"{",
+			"    UGameplayStatics::LoadGameFromSlot(TEXT(\"WxSaveSlot\"));",
+			"    IsValid(UGameplayStatics::LoadGameFromSlot(TEXT(\"WxSaveSlot\")));  // [macro]",
+			"    UWxSaveGameLibrary::RestartPlayerAtLastCheckpoint();",
+			"    DeactivateWidget();",
+			"}"
+		]
+	},
 	"parentClass": "/Game/UI/Widget/WBP_MenuBase.WBP_MenuBase_C",
 	"widgetTree":
 	{
@@ -31,14 +39,84 @@
 					"Text": "Main Menu (WIP)"
 				}
 			},
-			"WBP_Button_161":
+			"DeleteSaveData":
+			{
+				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
+				"delta":
+				{
+					"ButtonText": "[ Delete Save Data ]"
+				},
+				"isVariable": true,
+				"parent": "VerticalBox_0",
+				"slot":
+				{
+					"class": "/Script/UMG.VerticalBoxSlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Center",
+						"Padding":
+						{
+							"Bottom": 10,
+							"Left": 10,
+							"Right": 10,
+							"Top": 10
+						}
+					}
+				}
+			},
+			"EnterInventory":
 			{
 				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
 				"delta":
 				{
 					"ButtonText": "[ Enter Inventory ]"
 				},
-				"isVariable": true
+				"isVariable": true,
+				"parent": "VerticalBox_0",
+				"slot":
+				{
+					"class": "/Script/UMG.VerticalBoxSlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Center",
+						"Padding":
+						{
+							"Bottom": 10,
+							"Left": 10,
+							"Right": 10,
+							"Top": 10
+						}
+					}
+				}
+			},
+			"LoadSaveData":
+			{
+				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
+				"delta":
+				{
+					"ButtonText": "[ Load Save Data ]"
+				},
+				"isVariable": true,
+				"parent": "VerticalBox_0",
+				"slot":
+				{
+					"class": "/Script/UMG.VerticalBoxSlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Center",
+						"Padding":
+						{
+							"Bottom": 10,
+							"Left": 10,
+							"Right": 10,
+							"Top": 10
+						}
+					}
+				}
+			},
+			"VerticalBox_0":
+			{
+				"class": "/Script/UMG.VerticalBox"
 			},
 			"WBP_Close_48":
 			{

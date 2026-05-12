@@ -17,7 +17,7 @@
 				{
 					"TagName": "SetByCaller.RawDamage"
 				},
-				"value": 10
+				"value": 25
 			}
 		]
 	},
@@ -62,13 +62,9 @@
 			"variableName": "TextRender"
 		}
 	},
-	"newVariables":
+	"parentClass": "/Script/WxCombat.WxEffectZone",
+	"variables":
 	{
-		"Damage Info":
-		{
-			"type": "WxDamageInfo",
-			"value": "(CoeffATK=1.000000,HitReactTag=(TagName=\"Event.HitReact.Knockback\"))"
-		}
-	},
-	"parentClass": "/Script/WxCombat.WxEffectZone"
+		"Damage Info": "FWxDamageInfo(CoeffATK=1.000000,HitReactTag=(TagName=\"Event.HitReact.Knockback\"))"
+	}
 }

@@ -5,6 +5,15 @@
 		"InputMode": "Menu",
 		"WBP_Button": ""
 	},
+	"eventGraph":
+	{
+		"CommonButtonBaseClicked__DelegateSignature": [
+			"void CommonButtonBaseClicked__DelegateSignature(UCommonButtonBase* Button)",
+			"{",
+			"    UWxSaveGameLibrary::RestartPlayerAtLastCheckpoint();",
+			"}"
+		]
+	},
 	"parentClass": "/Script/WxUI.WxActivatableWidget",
 	"widgetTree":
 	{
@@ -101,7 +110,7 @@
 				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
 				"delta":
 				{
-					"ButtonText": "Restart from Check Point"
+					"ButtonText": "[ Restart from Check Point ]"
 				},
 				"isVariable": true,
 				"parent": "CanvasPanel_80",
