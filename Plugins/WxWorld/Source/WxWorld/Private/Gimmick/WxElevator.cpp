@@ -4,6 +4,7 @@
 
 #include "Components/SplineComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "Interaction/WxInteractionComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -65,6 +66,10 @@ void AWxElevator::BeginPlay()
 	// 레이트조인 시 OnRep_State 가 BeginPlay 이후 발화하므로 그 시점에 캐시가 유효해야 한다.
 	DoorLeftClosedLocation = DoorLeft->GetRelativeLocation();
 	DoorRightClosedLocation = DoorRight->GetRelativeLocation();
+
+	// 각 문은 자기 메시 너비만큼 바깥쪽(좌: -Y, 우: +Y)으로 슬라이드.
+	DoorLeftOpenOffset = FVector(0.f, -ComputeDoorWidth(DoorLeft), 0.f);
+	DoorRightOpenOffset = FVector(0.f, ComputeDoorWidth(DoorRight), 0.f);
 
 	// CurrentDistance 는 영구화 대상이 아니므로 영구화된 TargetDistance 로 강제 동기화.
 	// 정지 상태에선 둘이 동일하고, Moving 도중 언로드된 케이스는 리로드 후 Tick 에서 즉시 도착 처리된다.
@@ -281,10 +286,8 @@ void AWxElevator::UpdatePlatformPosition()
 
 void AWxElevator::UpdateDoorPositions()
 {
-	const FVector Offset = DoorOpenOffset * DoorAnimProgress;
-
-	DoorLeft->SetRelativeLocation(DoorLeftClosedLocation - Offset);
-	DoorRight->SetRelativeLocation(DoorRightClosedLocation + Offset);
+	DoorLeft->SetRelativeLocation(DoorLeftClosedLocation + DoorLeftOpenOffset * DoorAnimProgress);
+	DoorRight->SetRelativeLocation(DoorRightClosedLocation + DoorRightOpenOffset * DoorAnimProgress);
 }
 
 void AWxElevator::SetAllInteractionsEnabled(bool bEnabled)
@@ -292,4 +295,15 @@ void AWxElevator::SetAllInteractionsEnabled(bool bEnabled)
 	PlatformInteraction->SetInteractionEnabled(bEnabled);
 	CallConsoleAInteraction->SetInteractionEnabled(bEnabled);
 	CallConsoleBInteraction->SetInteractionEnabled(bEnabled);
+}
+
+float AWxElevator::ComputeDoorWidth(const UStaticMeshComponent* DoorMesh) const
+{
+	const UStaticMesh* Mesh = DoorMesh ? DoorMesh->GetStaticMesh() : nullptr;
+	if (!Mesh)
+	{
+		return 0.f;
+	}
+
+	return Mesh->GetBounds().BoxExtent.Y * 2.f * DoorMesh->GetRelativeScale3D().Y;
 }

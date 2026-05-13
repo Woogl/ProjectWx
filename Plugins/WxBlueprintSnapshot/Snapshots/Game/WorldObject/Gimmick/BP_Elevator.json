@@ -72,13 +72,12 @@
 				{
 					"X": 250
 				},
+				"RelativeRotation":
+				{
+					"Yaw": 180
+				},
 				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/SM_Door.SM_Door"
 			}
-		},
-		"DoorOpenOffset":
-		{
-			"X": 0,
-			"Y": -250
 		},
 		"DoorRight":
 		{
@@ -88,10 +87,6 @@
 				"RelativeLocation":
 				{
 					"X": 250
-				},
-				"RelativeRotation":
-				{
-					"Yaw": 180
 				},
 				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/SM_Door.SM_Door"
 			}

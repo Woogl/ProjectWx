@@ -46,6 +46,7 @@ private:
 
 	static TSharedPtr<FJsonObject> BuildEventGraphJson(UBlueprint* Blueprint);
 	static TSharedPtr<FJsonObject> BuildFunctionsJson(UBlueprint* Blueprint);
+	static TSharedPtr<FJsonObject> BuildMacrosJson(UBlueprint* Blueprint);
 
 	static FString SerializeJson(TSharedRef<FJsonObject> RootObject);
 };

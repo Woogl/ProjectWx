@@ -10,7 +10,7 @@
 				"RelativeLocation":
 				{
 					"X": 90,
-					"Y": -1.2167963969744733e-07
+					"Y": -250
 				},
 				"RelativeRotation":
 				{
@@ -32,7 +32,19 @@
 				}
 			}
 		},
-		"Door":
+		"DoorLeft":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"RelativeRotation":
+				{
+					"Yaw": 180
+				},
+				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/SM_Door.SM_Door"
+			}
+		},
+		"DoorRight":
 		{
 			"class": "/Script/Engine.StaticMeshComponent",
 			"delta":

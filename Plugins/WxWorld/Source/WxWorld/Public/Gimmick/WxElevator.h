@@ -88,10 +88,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ClampMin = "0"))
 	float DoorAnimDuration = 1.f;
 
-	/** 문이 완전히 열렸을 때 DoorRight 의 닫힘 위치 기준 오프셋. DoorLeft 는 반대 방향으로 동일한 거리만큼 슬라이드. */
-	UPROPERTY(EditAnywhere, Category = "Wx")
-	FVector DoorOpenOffset = FVector(100.f, 0.f, 0.f);
-
 private:
 	UFUNCTION()
 	void HandlePlatformInteracted(AActor* InteractingActor);
@@ -117,10 +113,13 @@ private:
 
 	void UpdatePlatformPosition();
 
-	/** DoorAnimProgress 에 따라 양쪽 문 위치를 lerp. DoorRight 는 +DoorOpenOffset, DoorLeft 는 -DoorOpenOffset 방향. */
+	/** DoorAnimProgress 에 따라 양쪽 문 위치를 lerp. 각 문은 자신의 너비만큼 바깥쪽으로 슬라이드. */
 	void UpdateDoorPositions();
 
 	void SetAllInteractionsEnabled(bool bEnabled);
+
+	/** 문 메시의 로컬 Y 축 너비(스케일 반영). 표준 UE 도어 메시는 Y 가 너비 축. */
+	float ComputeDoorWidth(const UStaticMeshComponent* DoorMesh) const;
 
 	UPROPERTY(ReplicatedUsing = OnRep_State)
 	EWxElevatorState State = EWxElevatorState::DoorsClosed;
@@ -139,4 +138,8 @@ private:
 
 	FVector DoorLeftClosedLocation;
 	FVector DoorRightClosedLocation;
+
+	/** 각 문 메시의 Y 너비만큼 자기 바깥쪽 방향(좌: -Y, 우: +Y)으로의 슬라이드 오프셋. */
+	FVector DoorLeftOpenOffset;
+	FVector DoorRightOpenOffset;
 };

@@ -81,7 +81,6 @@ bool FWxBlueprintSnapshotModule::ShouldProcessBlueprint(UBlueprint* Blueprint) c
 
 	switch (Blueprint->BlueprintType)
 	{
-	case BPTYPE_MacroLibrary:
 	case BPTYPE_Interface:
 	case BPTYPE_FunctionLibrary:
 		return false;
@@ -94,9 +93,13 @@ bool FWxBlueprintSnapshotModule::ShouldProcessBlueprint(UBlueprint* Blueprint) c
 		return false;
 	}
 
-	if (!Blueprint->GeneratedClass || !Blueprint->GeneratedClass->GetDefaultObject(false))
+	// MacroLibrary 는 CDO/SCS/Variables 가 없고 MacroGraphs 만 의미가 있다. CDO 게이트는 우회.
+	if (Blueprint->BlueprintType != BPTYPE_MacroLibrary)
 	{
-		return false;
+		if (!Blueprint->GeneratedClass || !Blueprint->GeneratedClass->GetDefaultObject(false))
+		{
+			return false;
+		}
 	}
 
 	if (Blueprint->Status == BS_Dirty || Blueprint->Status == BS_Error || Blueprint->Status == BS_Unknown)

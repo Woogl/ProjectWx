@@ -41,6 +41,7 @@
 #include "K2Node_MakeStruct.h"
 #include "K2Node_StructMemberGet.h"
 #include "K2Node_StructMemberSet.h"
+#include "K2Node_Tunnel.h"
 #include "Dom/JsonObject.h"
 #include "Dom/JsonValue.h"
 
@@ -71,6 +72,7 @@ namespace
 		TArray<FPseudoLine>& Body;
 		TSet<UEdGraphNode*>& Visited;
 		int32 ExprDepth = 0; // 데이터 핀 표현식 재귀 깊이; TGuardValue로 자동 증감
+		UEdGraphPin* ArrivedExecPin = nullptr; // RenderExecNode 가 호출된 입력 exec 핀 — 매크로 exit 분기에서 어느 출구로 나가는지 식별
 	};
 
 	UEdGraphPin* SkipKnots(UEdGraphPin* Pin);
@@ -78,6 +80,32 @@ namespace
 	FString RenderDataInput(UEdGraphPin* InputPin, FRenderCtx& Ctx);
 	void RenderExecChain(UEdGraphPin* ExecOutPin, int32 Indent, FRenderCtx& Ctx);
 	void RenderExecNode(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx);
+	FString DeriveAsyncTaskVarName(UK2Node_BaseAsyncTask* Async);
+
+	// UE 5.7에서 UK2Node_BaseAsyncTask의 ProxyClass/ProxyFactoryClass/ProxyActivateFunctionName 가
+	// protected 로 좁혀져 외부 코드에서 직접 접근 불가. 의사코드 렌더링에 read-only 로만 필요하므로
+	// using 선언으로 derived 접근자 타입에 노출하고 static_cast 로 접근한다.
+	struct FAsyncTaskAccessor : public UK2Node_BaseAsyncTask
+	{
+		using UK2Node_BaseAsyncTask::ProxyClass;
+		using UK2Node_BaseAsyncTask::ProxyFactoryClass;
+		using UK2Node_BaseAsyncTask::ProxyActivateFunctionName;
+	};
+
+	UClass* GetAsyncProxyClass(UK2Node_BaseAsyncTask* Async)
+	{
+		return Async ? static_cast<FAsyncTaskAccessor*>(Async)->ProxyClass.Get() : nullptr;
+	}
+
+	UClass* GetAsyncProxyFactoryClass(UK2Node_BaseAsyncTask* Async)
+	{
+		return Async ? static_cast<FAsyncTaskAccessor*>(Async)->ProxyFactoryClass.Get() : nullptr;
+	}
+
+	FName GetAsyncProxyActivateFunctionName(UK2Node_BaseAsyncTask* Async)
+	{
+		return Async ? static_cast<FAsyncTaskAccessor*>(Async)->ProxyActivateFunctionName : NAME_None;
+	}
 
 	void Emit(FRenderCtx& Ctx, int32 Indent, FString Text)
 	{
@@ -670,6 +698,18 @@ namespace
 			}
 			return FString::Printf(TEXT("%s.%s"), *VarName, *OutputPin->PinName.ToString());
 		}
+		// 비동기 task 출력 데이터 핀: exec 체인의 TryRenderAsyncTask 와 같은 변수명으로 `Task->Pin` 참조.
+		// 콜백 본문에서 OutputPin 을 자연스럽게 가리키게 한다.
+		if (UK2Node_BaseAsyncTask* Async = Cast<UK2Node_BaseAsyncTask>(Node))
+		{
+			const FString VarName = DeriveAsyncTaskVarName(Async);
+			if (OutputPin->PinName.IsNone() || OutputPin->PinName == UEdGraphSchema_K2::PN_ReturnValue)
+			{
+				return VarName;
+			}
+			return FString::Printf(TEXT("%s->%s"), *VarName, *OutputPin->PinName.ToString());
+		}
+
 		// 매크로 인스턴스 데이터 핀 참조. exec 체인의 TryRenderMacro 와 이름 표기 통일(MacroGraph->GetName()).
 		if (UK2Node_MacroInstance* MacroInst = Cast<UK2Node_MacroInstance>(Node))
 		{
@@ -732,6 +772,7 @@ namespace
 			return;
 		}
 		Ctx.Visited.Add(NextNode);
+		TGuardValue<UEdGraphPin*> ArrivedGuard(Ctx.ArrivedExecPin, NextPin);
 		RenderExecNode(NextNode, Indent, Ctx);
 	}
 
@@ -954,7 +995,28 @@ namespace
 		return true;
 	}
 
-	// Latent async task 노드 (PlayAnimationWithFinishedEvent 등). 출력 exec 핀 별로 콜백 블록을 만든다.
+	// Async task 의 proxy 객체 변수명. 두 호출자(TryRenderAsyncTask, RenderExpression) 에서 동일하게 도출되어야
+	// 콜백 본문에서 `ProxyVar->OutputPin` 형태로 일관되게 참조 가능.
+	FString DeriveAsyncTaskVarName(UK2Node_BaseAsyncTask* Async)
+	{
+		UClass* ProxyClass = GetAsyncProxyClass(Async);
+		if (!ProxyClass)
+		{
+			return TEXT("AsyncTask");
+		}
+		// `AbilityTask_PlayMontageAndWait` → `PlayMontageAndWait`. 언더스코어가 없으면 클래스명 그대로.
+		FString Name = ProxyClass->GetName();
+		int32 LastUnder = INDEX_NONE;
+		if (Name.FindLastChar(TEXT('_'), LastUnder))
+		{
+			return Name.Mid(LastUnder + 1);
+		}
+		return Name;
+	}
+
+	// Latent async task 노드 (PlayMontageAndWait, NewPlayAnimationProxyObject 등). UE 의 표준 패턴은
+	// `auto* Task = Class::Factory(...); Task->Delegate.AddDynamic(this, ...); Task->Activate();` 이므로
+	// 그 형태를 따라 의사코드를 만든다.
 	bool TryRenderAsyncTask(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx)
 	{
 		UK2Node_BaseAsyncTask* Async = Cast<UK2Node_BaseAsyncTask>(Node);
@@ -986,29 +1048,37 @@ namespace
 			Args.Add(RenderDataInput(Pin, Ctx));
 		}
 
-		// Owner::FactoryFunction 형태로 표기. 실패 시 NodeTitle 폴백.
-		FString FuncName;
+		// `Class::FactoryFunc(args)` 호출식. ProxyFactory 메타가 비어있으면 NodeTitle 폴백.
+		FString FactoryCall;
 		if (UFunction* FactoryFn = Async->GetFactoryFunction())
 		{
-			if (UClass* OwnerClass = FactoryFn->GetOuterUClass())
+			UClass* ProxyFactoryClass = GetAsyncProxyFactoryClass(Async);
+			UClass* OwnerClass = ProxyFactoryClass ? ProxyFactoryClass : FactoryFn->GetOuterUClass();
+			if (OwnerClass)
 			{
-				FuncName = FString::Printf(TEXT("%s::%s"),
-					*FormatStructCPP(OwnerClass), *FactoryFn->GetName());
+				FactoryCall = FString::Printf(TEXT("%s::%s(%s)"),
+					*FormatStructCPP(OwnerClass), *FactoryFn->GetName(), *FString::Join(Args, TEXT(", ")));
 			}
 			else
 			{
-				FuncName = FactoryFn->GetName();
+				FactoryCall = FString::Printf(TEXT("%s(%s)"), *FactoryFn->GetName(), *FString::Join(Args, TEXT(", ")));
 			}
 		}
 		else
 		{
-			FuncName = Async->GetNodeTitle(ENodeTitleType::ListView).ToString();
-			FuncName.ReplaceInline(TEXT("\n"), TEXT(" "));
+			FString Title = Async->GetNodeTitle(ENodeTitleType::ListView).ToString();
+			Title.ReplaceInline(TEXT("\n"), TEXT(" "));
+			FactoryCall = FString::Printf(TEXT("%s(%s)"), *Title, *FString::Join(Args, TEXT(", ")));
 		}
 
-		Emit(Ctx, Indent, FString::Printf(TEXT("%s(%s);"), *FuncName, *FString::Join(Args, TEXT(", "))));
+		const FString VarName = DeriveAsyncTaskVarName(Async);
+		UClass* ProxyClass = GetAsyncProxyClass(Async);
+		const FString ProxyTypeCpp = ProxyClass ? FormatStructCPP(ProxyClass) : TEXT("auto*");
+		Emit(Ctx, Indent, FString::Printf(TEXT("%s* %s = %s;  // [latent]"), *ProxyTypeCpp, *VarName, *FactoryCall));
 
-		// 출력 exec 핀들: `then` 은 즉시 연속 흐름, 그 외는 (Finished/Cancelled 등) 비동기 콜백 — 람다로 표기.
+		// 출력 exec 핀들: `then` 은 즉시 연속 흐름, 그 외는 multicast delegate 바인딩.
+		// `Task->DelegateName.AddDynamic(this, [this]() { body });` — 실제 UE 의 AddDynamic 은 람다를 받지 않지만
+		// 동적 멤버 함수를 별도 선언하는 것보다 의도가 명확해 의사코드로 통용.
 		UEdGraphPin* ThenPin = nullptr;
 		for (UEdGraphPin* Pin : Async->Pins)
 		{
@@ -1021,10 +1091,18 @@ namespace
 				ThenPin = Pin;
 				continue;
 			}
-			Emit(Ctx, Indent, FString::Printf(TEXT("auto %s = [this]()"), *Pin->PinName.ToString()));
+			Emit(Ctx, Indent, FString::Printf(TEXT("%s->%s.AddDynamic(this, [this]()"),
+				*VarName, *Pin->PinName.ToString()));
 			Emit(Ctx, Indent, TEXT("{"));
 			RenderExecChain(Pin, Indent + 1, Ctx);
-			Emit(Ctx, Indent, TEXT("};"));
+			Emit(Ctx, Indent, TEXT("});"));
+		}
+
+		// Activate() — ProxyActivateFunctionName 이 설정된 task 만 호출이 필요.
+		const FName ProxyActivateFunctionName = GetAsyncProxyActivateFunctionName(Async);
+		if (!ProxyActivateFunctionName.IsNone())
+		{
+			Emit(Ctx, Indent, FString::Printf(TEXT("%s->%s();"), *VarName, *ProxyActivateFunctionName.ToString()));
 		}
 
 		if (ThenPin)
@@ -1192,6 +1270,57 @@ namespace
 		return true;
 	}
 
+	// 매크로 그래프의 exit 터널: 입력 exec 핀 하나에 도달했을 때 macro 의 해당 output exec 로 흐름이 빠져나간다.
+	// `// exit -> PinName(OutData = Expr, ...)` 형태로 표기. ArrivedExecPin 으로 어느 출구인지 식별.
+	bool TryRenderTunnelExit(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx)
+	{
+		UK2Node_Tunnel* Tunnel = Cast<UK2Node_Tunnel>(Node);
+		if (!Tunnel)
+		{
+			return false;
+		}
+		// exit 터널은 output 을 가질 수 없음 (bCanHaveOutputs == false). entry 터널은 여기서 처리하지 않는다.
+		if (Tunnel->bCanHaveOutputs)
+		{
+			return false;
+		}
+
+		FString ExitLabel;
+		if (Ctx.ArrivedExecPin && Ctx.ArrivedExecPin->GetOwningNode() == Tunnel)
+		{
+			ExitLabel = Ctx.ArrivedExecPin->PinName.ToString();
+		}
+
+		TArray<FString> Assigns;
+		for (UEdGraphPin* Pin : Tunnel->Pins)
+		{
+			if (!Pin || Pin->Direction != EGPD_Input || IsExecPin(Pin) || Pin->bHidden)
+			{
+				continue;
+			}
+			Assigns.Add(FString::Printf(TEXT("%s = %s"), *Pin->PinName.ToString(), *RenderDataInput(Pin, Ctx)));
+		}
+
+		const FString JoinedAssigns = FString::Join(Assigns, TEXT(", "));
+		if (!ExitLabel.IsEmpty() && !JoinedAssigns.IsEmpty())
+		{
+			Emit(Ctx, Indent, FString::Printf(TEXT("// exit -> %s(%s)"), *ExitLabel, *JoinedAssigns));
+		}
+		else if (!ExitLabel.IsEmpty())
+		{
+			Emit(Ctx, Indent, FString::Printf(TEXT("// exit -> %s"), *ExitLabel));
+		}
+		else if (!JoinedAssigns.IsEmpty())
+		{
+			Emit(Ctx, Indent, FString::Printf(TEXT("// exit(%s)"), *JoinedAssigns));
+		}
+		else
+		{
+			Emit(Ctx, Indent, TEXT("// exit"));
+		}
+		return true;
+	}
+
 	bool TryRenderReturn(UEdGraphNode* Node, int32 Indent, FRenderCtx& Ctx)
 	{
 		UK2Node_FunctionResult* Ret = Cast<UK2Node_FunctionResult>(Node);
@@ -1275,6 +1404,10 @@ namespace
 			return;
 		}
 		if (TryRenderReturn(Node, Indent, Ctx))
+		{
+			return;
+		}
+		if (TryRenderTunnelExit(Node, Indent, Ctx))
 		{
 			return;
 		}
@@ -1390,6 +1523,30 @@ namespace
 				*OutEntry.Name, *FString::Join(Params, TEXT(", ")));
 			return true;
 		}
+		// 매크로/composite entry 터널: 출력 데이터 핀 = 매크로 입력 파라미터.
+		// UK2Node_FunctionEntry 는 Tunnel 의 서브클래스가 아니므로 (둘 다 UK2Node_EditablePinBase 형제) 캐스트가 섞이지 않는다.
+		if (UK2Node_Tunnel* Tunnel = Cast<UK2Node_Tunnel>(Entry))
+		{
+			// 안전 차원: bCanHaveInputs == true 인 터널은 exit 터널이므로 entry 로 다루지 않는다.
+			if (Tunnel->bCanHaveInputs)
+			{
+				return false;
+			}
+			TArray<FString> Params;
+			for (UEdGraphPin* Pin : Tunnel->Pins)
+			{
+				if (IsEntryParamPin(Pin))
+				{
+					Params.Add(FString::Printf(TEXT("%s %s"),
+						*FormatPinTypeCPP(Pin->PinType), *Pin->PinName.ToString()));
+				}
+			}
+			const FString GraphName = Tunnel->GetGraph() ? Tunnel->GetGraph()->GetName() : TEXT("Macro");
+			OutEntry.Name = GraphName;
+			OutEntry.Signature = FString::Printf(TEXT("void %s(%s)  // [macro]"),
+				*OutEntry.Name, *FString::Join(Params, TEXT(", ")));
+			return true;
+		}
 		if (UK2Node_FunctionEntry* Fe = Cast<UK2Node_FunctionEntry>(Entry))
 		{
 			TArray<FString> Params;
@@ -1434,6 +1591,37 @@ namespace
 		TSet<UEdGraphNode*> Visited;
 		Visited.Add(Entry);
 		FRenderCtx Ctx{ OutEntry.Body, Visited };
+
+		// 매크로 entry 터널은 출력 exec 핀 여러 개를 가질 수 있다 (매크로 인스턴스의 입력 exec 핀 개수와 매칭).
+		// 각각 별개의 시작점이므로 라벨 + 본문으로 렌더한다. 단일 exec 면 함수와 동일하게 표기.
+		if (UK2Node_Tunnel* Tunnel = Cast<UK2Node_Tunnel>(Entry))
+		{
+			TArray<UEdGraphPin*> ExecOuts;
+			for (UEdGraphPin* Pin : Tunnel->Pins)
+			{
+				if (Pin && Pin->Direction == EGPD_Output && IsExecPin(Pin))
+				{
+					ExecOuts.Add(Pin);
+				}
+			}
+			if (ExecOuts.Num() <= 1)
+			{
+				if (ExecOuts.Num() == 1)
+				{
+					RenderExecChain(ExecOuts[0], 1, Ctx);
+				}
+			}
+			else
+			{
+				for (UEdGraphPin* Pin : ExecOuts)
+				{
+					Emit(Ctx, 1, FString::Printf(TEXT("// entry: %s"), *Pin->PinName.ToString()));
+					RenderExecChain(Pin, 1, Ctx);
+				}
+			}
+			return true;
+		}
+
 		RenderExecChain(FindThenPin(Entry), 1, Ctx);
 		return true;
 	}
@@ -1449,9 +1637,22 @@ namespace
 		TArray<UEdGraphNode*> EntryNodes;
 		for (UEdGraphNode* Node : Graph->Nodes)
 		{
-			if (Node && (Cast<UK2Node_Event>(Node) || Cast<UK2Node_CustomEvent>(Node) || Cast<UK2Node_FunctionEntry>(Node)))
+			if (!Node)
+			{
+				continue;
+			}
+			if (Cast<UK2Node_Event>(Node) || Cast<UK2Node_CustomEvent>(Node) || Cast<UK2Node_FunctionEntry>(Node))
 			{
 				EntryNodes.Add(Node);
+				continue;
+			}
+			// 매크로/composite 그래프 entry 터널 (출력 전용 터널) 도 entry 로 취급.
+			if (UK2Node_Tunnel* Tunnel = Cast<UK2Node_Tunnel>(Node))
+			{
+				if (!Tunnel->bCanHaveInputs)
+				{
+					EntryNodes.Add(Node);
+				}
 			}
 		}
 
@@ -1532,6 +1733,29 @@ TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildFunctionsJson(UBluepr
 
 	TSharedPtr<FJsonObject> Root = MakeShared<FJsonObject>();
 	for (UEdGraph* Graph : Blueprint->FunctionGraphs)
+	{
+		TArray<FPseudoEntry> Entries = RenderGraphPseudoCode(Graph);
+		if (Entries.Num() == 0)
+		{
+			continue;
+		}
+		TArray<TSharedPtr<FJsonValue>> Lines;
+		AppendEntriesToLines(Lines, Entries);
+		Root->SetArrayField(Graph->GetName(), Lines);
+	}
+	return Root;
+}
+
+TSharedPtr<FJsonObject> FWxBlueprintSnapshotExporter::BuildMacrosJson(UBlueprint* Blueprint)
+{
+	if (!Blueprint)
+	{
+		return nullptr;
+	}
+
+	// 사용자 정의 매크로 — 일반 BP 의 로컬 매크로와 BPTYPE_MacroLibrary 의 매크로 모두 MacroGraphs 에 들어간다.
+	TSharedPtr<FJsonObject> Root = MakeShared<FJsonObject>();
+	for (UEdGraph* Graph : Blueprint->MacroGraphs)
 	{
 		TArray<FPseudoEntry> Entries = RenderGraphPseudoCode(Graph);
 		if (Entries.Num() == 0)

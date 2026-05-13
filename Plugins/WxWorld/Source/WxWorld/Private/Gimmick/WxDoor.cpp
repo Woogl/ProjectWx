@@ -3,6 +3,7 @@
 #include "Gimmick/WxDoor.h"
 
 #include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "Interaction/WxInteractionComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -11,8 +12,11 @@ AWxDoor::AWxDoor()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
 
-	Door = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Door"));
-	Door->SetupAttachment(SceneRoot);
+	DoorLeft = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DoorLeft"));
+	DoorLeft->SetupAttachment(SceneRoot);
+
+	DoorRight = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DoorRight"));
+	DoorRight->SetupAttachment(SceneRoot);
 
 	Console = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Console"));
 	Console->SetupAttachment(SceneRoot);
@@ -33,7 +37,12 @@ void AWxDoor::BeginPlay()
 	Super::BeginPlay();
 
 	// 문 닫힘 위치 캐시: BP/레벨에서 배치된 상대 위치를 닫힘 기준으로 사용.
-	DoorClosedLocation = Door->GetRelativeLocation();
+	DoorLeftClosedLocation = DoorLeft->GetRelativeLocation();
+	DoorRightClosedLocation = DoorRight->GetRelativeLocation();
+
+	// 각 문은 자기 메시 너비만큼 바깥쪽(좌: -Y, 우: +Y)으로 슬라이드.
+	DoorLeftOpenOffset = FVector(0.f, -ComputeDoorWidth(DoorLeft), 0.f);
+	DoorRightOpenOffset = FVector(0.f, ComputeDoorWidth(DoorRight), 0.f);
 
 	ConsoleInteraction->OnInteracted.AddDynamic(this, &AWxDoor::HandleConsoleInteracted);
 
@@ -53,7 +62,7 @@ void AWxDoor::Tick(float DeltaTime)
 
 	const float Step = DoorAnimDuration > 0.f ? DeltaTime / DoorAnimDuration : 1.f;
 	DoorAnimProgress = FMath::Clamp(DoorAnimProgress + Step, 0.f, 1.f);
-	UpdateDoorPosition();
+	UpdateDoorPositions();
 
 	if (HasAuthority() && DoorAnimProgress >= 1.f)
 	{
@@ -86,7 +95,7 @@ void AWxDoor::ApplyState()
 		SetActorTickEnabled(false);
 		ConsoleInteraction->SetInteractionEnabled(true);
 		DoorAnimProgress = 0.f;
-		UpdateDoorPosition();
+		UpdateDoorPositions();
 		break;
 
 	case EWxDoorState::Opening:
@@ -100,14 +109,24 @@ void AWxDoor::ApplyState()
 		// 한 번 열린 문은 영구적으로 상호작용 비활성.
 		ConsoleInteraction->SetInteractionEnabled(false);
 		DoorAnimProgress = 1.f;
-		UpdateDoorPosition();
+		UpdateDoorPositions();
 		break;
 	}
 }
 
-void AWxDoor::UpdateDoorPosition()
+void AWxDoor::UpdateDoorPositions()
 {
-	const FVector Offset = DoorOpenOffset * DoorAnimProgress;
+	DoorLeft->SetRelativeLocation(DoorLeftClosedLocation + DoorLeftOpenOffset * DoorAnimProgress);
+	DoorRight->SetRelativeLocation(DoorRightClosedLocation + DoorRightOpenOffset * DoorAnimProgress);
+}
 
-	Door->SetRelativeLocation(DoorClosedLocation + Offset);
+float AWxDoor::ComputeDoorWidth(const UStaticMeshComponent* DoorMesh) const
+{
+	const UStaticMesh* Mesh = DoorMesh ? DoorMesh->GetStaticMesh() : nullptr;
+	if (!Mesh)
+	{
+		return 0.f;
+	}
+
+	return Mesh->GetBounds().BoxExtent.Y * 2.f * DoorMesh->GetRelativeScale3D().Y;
 }

@@ -69,6 +69,7 @@ namespace
 		static const TSet<FString> KeepInsertOrder = {
 			TEXT("variables"),    // BP Variables 패널 선언 순서
 			TEXT("functions"),    // BP My Blueprint 함수 순서
+			TEXT("macros"),       // BP My Blueprint 매크로 순서
 			TEXT("components")    // SCS 트리 순회 순서 (parent → child)
 		};
 		Root->Values.KeySort(TLess<FString>());
@@ -215,6 +216,7 @@ TSharedRef<FJsonObject> FWxBlueprintSnapshotExporter::BuildSnapshot(UBlueprint* 
 	{
 		SetObjectFieldIfNonEmpty(*Root, TEXT("eventGraph"), BuildEventGraphJson(Blueprint));
 		SetObjectFieldIfNonEmpty(*Root, TEXT("functions"), BuildFunctionsJson(Blueprint));
+		SetObjectFieldIfNonEmpty(*Root, TEXT("macros"), BuildMacrosJson(Blueprint));
 	}
 
 	if (UWidgetBlueprint* WidgetBlueprint = Cast<UWidgetBlueprint>(Blueprint))
