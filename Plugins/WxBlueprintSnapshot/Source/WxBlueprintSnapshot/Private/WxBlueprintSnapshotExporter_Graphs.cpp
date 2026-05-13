@@ -35,6 +35,7 @@
 #include "K2Node_DynamicCast.h"
 #include "K2Node_CallParentFunction.h"
 #include "K2Node_BaseAsyncTask.h"
+#include "Kismet/BlueprintAsyncActionBase.h"
 #include "K2Node_Switch.h"
 #include "K2Node_SwitchEnum.h"
 #include "K2Node_BreakStruct.h"
@@ -1002,14 +1003,27 @@ namespace
 		UClass* ProxyClass = GetAsyncProxyClass(Async);
 		if (!ProxyClass)
 		{
-			return TEXT("AsyncTask");
+			return TEXT("Task");
 		}
-		// `AbilityTask_PlayMontageAndWait` → `PlayMontageAndWait`. 언더스코어가 없으면 클래스명 그대로.
+		// `AbilityTask_PlayMontageAndWait` → `PlayMontageAndWait`. AbilityTask/AsyncAction 접두사도 추가로 트리밍.
 		FString Name = ProxyClass->GetName();
 		int32 LastUnder = INDEX_NONE;
 		if (Name.FindLastChar(TEXT('_'), LastUnder))
 		{
-			return Name.Mid(LastUnder + 1);
+			Name = Name.Mid(LastUnder + 1);
+		}
+		else if (Name.StartsWith(TEXT("AsyncAction"), ESearchCase::CaseSensitive))
+		{
+			Name = Name.RightChop(11); // strlen("AsyncAction")
+		}
+		else if (Name.StartsWith(TEXT("AbilityTask"), ESearchCase::CaseSensitive))
+		{
+			Name = Name.RightChop(11); // strlen("AbilityTask")
+		}
+		// 트리밍 후 빈 문자열이거나 타입명과 동일한 경우 폴백.
+		if (Name.IsEmpty() || Name == ProxyClass->GetName())
+		{
+			return TEXT("Task");
 		}
 		return Name;
 	}
@@ -1077,8 +1091,7 @@ namespace
 		Emit(Ctx, Indent, FString::Printf(TEXT("%s* %s = %s;  // [latent]"), *ProxyTypeCpp, *VarName, *FactoryCall));
 
 		// 출력 exec 핀들: `then` 은 즉시 연속 흐름, 그 외는 multicast delegate 바인딩.
-		// `Task->DelegateName.AddDynamic(this, [this]() { body });` — 실제 UE 의 AddDynamic 은 람다를 받지 않지만
-		// 동적 멤버 함수를 별도 선언하는 것보다 의도가 명확해 의사코드로 통용.
+		// BP 의 multicast delegate 는 dynamic 이지만, 의사코드에선 람다 가독성을 위해 AddLambda 표기.
 		UEdGraphPin* ThenPin = nullptr;
 		for (UEdGraphPin* Pin : Async->Pins)
 		{
@@ -1091,16 +1104,18 @@ namespace
 				ThenPin = Pin;
 				continue;
 			}
-			Emit(Ctx, Indent, FString::Printf(TEXT("%s->%s.AddDynamic(this, [this]()"),
+			Emit(Ctx, Indent, FString::Printf(TEXT("%s->%s.AddLambda([this]()"),
 				*VarName, *Pin->PinName.ToString()));
 			Emit(Ctx, Indent, TEXT("{"));
 			RenderExecChain(Pin, Indent + 1, Ctx);
 			Emit(Ctx, Indent, TEXT("});"));
 		}
 
-		// Activate() — ProxyActivateFunctionName 이 설정된 task 만 호출이 필요.
+		// Activate() — UBlueprintAsyncActionBase 파생은 BP 컴파일러가 자동 호출하므로 emit 생략.
+		// GameplayTask(예: AbilityTask) 등은 명시적 호출이 정석 패턴.
 		const FName ProxyActivateFunctionName = GetAsyncProxyActivateFunctionName(Async);
-		if (!ProxyActivateFunctionName.IsNone())
+		const bool bIsBlueprintAsyncAction = ProxyClass && ProxyClass->IsChildOf(UBlueprintAsyncActionBase::StaticClass());
+		if (!ProxyActivateFunctionName.IsNone() && !bIsBlueprintAsyncAction)
 		{
 			Emit(Ctx, Indent, FString::Printf(TEXT("%s->%s();"), *VarName, *ProxyActivateFunctionName.ToString()));
 		}
