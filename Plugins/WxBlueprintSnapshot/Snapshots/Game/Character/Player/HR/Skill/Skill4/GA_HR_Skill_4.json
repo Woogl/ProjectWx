@@ -1,5 +1,5 @@
 {
-	"blueprintPath": "/Game/AbilitySystem/Ability/GA_Skill_4.GA_Skill_4",
+	"blueprintPath": "/Game/Character/Player/HR/Skill/Skill4/GA_HR_Skill_4.GA_HR_Skill_4",
 	"classDefaults":
 	{
 		"AbilityDataRow":
@@ -24,11 +24,20 @@
 		"MPCost": 10,
 		"OnActivateEffects": [
 			{
-				"EffectClass": "/Game/AbilitySystem/Effect/GE_Exceed.GE_Exceed_C"
+				"EffectClass": "/Game/AbilitySystem/Effect/GE_BuffATK.GE_BuffATK_C",
+				"SetByCallers": [
+					{
+						"key":
+						{
+							"TagName": "SetByCaller.Duration"
+						},
+						"value": 10
+					}
+				]
 			}
 		],
 		"SkillMontages": [
-			"/Game/AbilitySystem/Ability/AM_Skill_4.AM_Skill_4"
+			"/Game/Character/Player/HR/Skill/Skill4/AM_HR_Skill_4.AM_HR_Skill_4"
 		]
 	},
 	"parentClass": "/Script/WxCombat.WxAbility_Skill"
