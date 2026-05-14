@@ -45,7 +45,7 @@
 		"WxOnInteractedSignature__DelegateSignature": [
 			"void WxOnInteractedSignature__DelegateSignature(AActor* InstigatorActor)",
 			"{",
-			"    UWxSaveGameLibrary::SaveLastCheckpoint(UKismetMathLibrary::MakeTransform((GetTransform().Location) + ((GetActorForwardVector()) * (100.000000)), GetTransform().Rotation, GetTransform().Scale));",
+			"    UWxSaveLibrary::SavePlayerLocation(UGameplayStatics::GetPlayerController());",
 			"}"
 		]
 	},

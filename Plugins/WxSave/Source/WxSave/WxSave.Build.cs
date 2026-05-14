@@ -1,0 +1,24 @@
+// Copyright Woogle. All Rights Reserved.
+
+using UnrealBuildTool;
+
+public class WxSave : ModuleRules
+{
+	public WxSave(ReadOnlyTargetRules Target) : base(Target)
+	{
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+
+		PublicDependencyModuleNames.AddRange(new string[]
+		{
+			"Core",
+			"CoreUObject",
+			"Engine",
+			"WxCore",
+		});
+
+		PrivateDependencyModuleNames.AddRange(new string[]
+		{
+			"DeveloperSettings",
+		});
+	}
+}

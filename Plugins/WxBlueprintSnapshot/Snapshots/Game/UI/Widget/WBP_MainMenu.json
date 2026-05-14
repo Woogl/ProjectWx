@@ -3,18 +3,16 @@
 	"classDefaults":
 	{
 		"bIsBackHandler": true,
-		"DeleteSaveData": "",
+		"DeleteSave": "",
 		"EnterInventory": "",
-		"LoadSaveData": ""
+		"RestartfromSave": ""
 	},
 	"eventGraph":
 	{
 		"CommonButtonBaseClicked__DelegateSignature": [
 			"void CommonButtonBaseClicked__DelegateSignature(UCommonButtonBase* Button)",
 			"{",
-			"    UGameplayStatics::LoadGameFromSlot(TEXT(\"WxSaveSlot\"));",
-			"    IsValid(UGameplayStatics::LoadGameFromSlot(TEXT(\"WxSaveSlot\")));  // [macro]",
-			"    UWxSaveGameLibrary::RestartPlayerAtLastCheckpoint();",
+			"    UWxSaveLibrary::RestartPlayer(UGameplayStatics::GetPlayerController());",
 			"    DeactivateWidget();",
 			"}"
 		]
@@ -39,7 +37,7 @@
 					"Text": "Main Menu (WIP)"
 				}
 			},
-			"DeleteSaveData":
+			"DeleteSave":
 			{
 				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
 				"delta":
@@ -89,7 +87,7 @@
 					}
 				}
 			},
-			"LoadSaveData":
+			"RestartfromSave":
 			{
 				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
 				"delta":

@@ -10,7 +10,8 @@
 		"CommonButtonBaseClicked__DelegateSignature": [
 			"void CommonButtonBaseClicked__DelegateSignature(UCommonButtonBase* Button)",
 			"{",
-			"    UWxSaveGameLibrary::RestartPlayerAtLastCheckpoint();",
+			"    UWxSaveLibrary::RestartPlayer(UGameplayStatics::GetPlayerController());",
+			"    DeactivateWidget();",
 			"}"
 		]
 	},
