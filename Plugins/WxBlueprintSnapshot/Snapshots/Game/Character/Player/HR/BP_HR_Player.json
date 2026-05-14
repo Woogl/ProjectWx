@@ -1,5 +1,5 @@
 {
-	"blueprintPath": "/Game/Character/Player/HR/HR_BP_Player.HR_BP_Player",
+	"blueprintPath": "/Game/Character/Player/HR/BP_HR_Player.BP_HR_Player",
 	"classDefaults":
 	{
 		"AbilitySystemComponent":
