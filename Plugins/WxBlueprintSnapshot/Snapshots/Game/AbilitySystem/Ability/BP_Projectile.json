@@ -26,6 +26,15 @@
 				"SkinnedAsset": "/Game/ARPG_Pack/ARPG_Samurai/Demo/Weapon/Mesh/SKM_katana.SKM_katana"
 			}
 		},
+		"ProjectileMovement":
+		{
+			"class": "/Script/Engine.ProjectileMovementComponent",
+			"delta":
+			{
+				"InitialSpeed": 1000,
+				"MaxSpeed": 1000
+			}
+		},
 		"RootComponent": "HitCollision",
 		"TrailFX":
 		{
