@@ -122,26 +122,35 @@ void UWxAnimNotifyState_SnapToTarget::NotifyBegin(USkeletalMeshComponent* MeshCo
 		1.0f,
 		0.0f
 	);
-}
 
-void UWxAnimNotifyState_SnapToTarget::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
-{
-	Super::NotifyEnd(MeshComp, Animation, EventReference);
-
-	if (!MeshComp)
+	// Notify 윈도우 종료 이후의 잔여 forward 루트 모션이 캐릭터를 타겟 너머로 밀지 않도록,
+	// 종료 시점부터 애니메이션 끝까지 같은 WarpLocation을 hold 지점으로 둔다. 메인 워프가
+	// 도달시킨 위치에 다시 SkewWarp를 걸므로 잔여 트랜슬레이션이 0으로 스케일링된다.
+	// 회전은 그대로 흐르도록 둔다.
+	if (bShouldWarpTranslation)
 	{
-		return;
-	}
-
-	AActor* Owner = MeshComp->GetOwner();
-	if (!Owner)
-	{
-		return;
-	}
-
-	if (UMotionWarpingComponent* MotionWarpingComp = Owner->FindComponentByClass<UMotionWarpingComponent>())
-	{
-		MotionWarpingComp->RemoveWarpTarget(DefaultWarpTargetName);
+		const float TailStart = NotifyEvent->GetEndTriggerTime();
+		const float TailEnd = Animation->GetPlayLength();
+		if (TailEnd > TailStart)
+		{
+			URootMotionModifier_SkewWarp::AddRootMotionModifierSkewWarp(
+				MotionWarpingComp,
+				Animation,
+				TailStart,
+				TailEnd,
+				DefaultWarpTargetName,
+				EWarpPointAnimProvider::None,
+				FTransform::Identity,
+				NAME_None,
+				true,
+				true,
+				false,
+				EMotionWarpRotationType::Default,
+				EMotionWarpRotationMethod::Slerp,
+				1.0f,
+				0.0f
+			);
+		}
 	}
 }
 
