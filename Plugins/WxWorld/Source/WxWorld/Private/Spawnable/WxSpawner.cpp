@@ -84,17 +84,33 @@ void AWxSpawner::BeginPlay()
 		if (UWxSpawnerSubsystem* Subsystem = GetWorld()->GetSubsystem<UWxSpawnerSubsystem>())
 		{
 			Subsystem->RegisterSpawner(this);
+		}
 
-			if (Subsystem->IsSpawnerKilled(this))
-			{
-				return;
-			}
+		// 정상 흐름에선 BeginPlay 시점에 bIsKilled=false. 슬롯 적용은 RestartFromSave 가 트리거하며
+		// 그 시점은 BeginPlay 이후이므로 OnWxSaveRestored 에서 SpawnedActor 를 정리한다.
+		// 본 가드는 에디터 디폴트 등으로 true 가 들어오는 경우의 안전망.
+		if (bIsKilled)
+		{
+			return;
 		}
 	}
 
 	if (bSpawnOnBeginPlay)
 	{
 		SpawnTarget();
+	}
+}
+
+void AWxSpawner::OnWxSaveRestored()
+{
+	// 슬롯 복원으로 bIsKilled=true 가 적용되었지만 BeginPlay 가 먼저 spawn 한 인스턴스가 남아있다면 정리.
+	if (bIsKilled)
+	{
+		if (AActor* Existing = SpawnedActor.Get())
+		{
+			Existing->Destroy();
+		}
+		SpawnedActor.Reset();
 	}
 }
 
@@ -131,6 +147,21 @@ AActor* AWxSpawner::GetSpawnedActor() const
 	return SpawnedActor.Get();
 }
 
+bool AWxSpawner::IsKilled() const
+{
+	return bIsKilled;
+}
+
+void AWxSpawner::MarkKilled()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	bIsKilled = true;
+}
+
 void AWxSpawner::Respawn()
 {
 	if (!HasAuthority())
@@ -146,13 +177,13 @@ void AWxSpawner::Respawn()
 	SpawnedActor.Reset();
 
 	// 영구 사망 처치된 Spawner (보스 등) 는 새 인스턴스를 spawn 하지 않는다.
-	const UWxSpawnerSubsystem* Subsystem = GetWorld()->GetSubsystem<UWxSpawnerSubsystem>();
-	const bool bIsPermanentlyKilled = !bEnableRespawn && Subsystem && Subsystem->IsSpawnerKilled(this);
-	if (bIsPermanentlyKilled)
+	if (bIsKilled && !bEnableRespawn)
 	{
 		return;
 	}
 
+	// 부활 가능 Spawner 는 처치 기록 리셋 후 새 인스턴스 생성.
+	bIsKilled = false;
 	SpawnTarget();
 }
 

@@ -23,29 +23,6 @@ void UWxSpawnerSubsystem::UnregisterSpawner(AWxSpawner* Spawner)
 	RegisteredSpawners.Remove(Spawner);
 }
 
-void UWxSpawnerSubsystem::MarkSpawnerKilled(const AWxSpawner* Spawner)
-{
-	if (!Spawner)
-	{
-		return;
-	}
-
-	const FGuid SpawnerId = Spawner->GetActorGuid();
-	if (!SpawnerId.IsValid())
-	{
-		return;
-	}
-
-	if (Spawner->IsRespawnEnabled())
-	{
-		KilledSpawnerIds.Add(SpawnerId);
-	}
-	else
-	{
-		PermanentlyKilledSpawnerIds.Add(SpawnerId);
-	}
-}
-
 void UWxSpawnerSubsystem::MarkSpawnableKilled(const AActor* SpawnedActor)
 {
 	if (!SpawnedActor)
@@ -59,28 +36,15 @@ void UWxSpawnerSubsystem::MarkSpawnableKilled(const AActor* SpawnedActor)
 		{
 			if (Spawner->GetSpawnedActor() == SpawnedActor)
 			{
-				MarkSpawnerKilled(Spawner);
+				Spawner->MarkKilled();
 				return;
 			}
 		}
 	}
 }
 
-bool UWxSpawnerSubsystem::IsSpawnerKilled(const AWxSpawner* Spawner) const
-{
-	if (!Spawner)
-	{
-		return false;
-	}
-
-	const FGuid SpawnerId = Spawner->GetActorGuid();
-	return KilledSpawnerIds.Contains(SpawnerId) || PermanentlyKilledSpawnerIds.Contains(SpawnerId);
-}
-
 void UWxSpawnerSubsystem::RespawnAll()
 {
-	KilledSpawnerIds.Empty();
-
 	for (const TWeakObjectPtr<AWxSpawner>& Weak : RegisteredSpawners)
 	{
 		if (AWxSpawner* Spawner = Weak.Get())

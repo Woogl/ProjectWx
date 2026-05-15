@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "WxSavableInterface.h"
 #include "WxGimmick.generated.h"
 
 class UArrowComponent;
@@ -20,17 +21,23 @@ class USceneComponent;
  *  - 호출 경로:
  *      a) 권한 측 MarkTriggered() → ApplyState (서버 즉시 적용)
  *      b) bTriggered 리플리케이션 OnRep → ApplyState (클라 적용)
- *      c) 자식의 BeginPlay 끝부분 → ApplyState (Level Streaming Persistence 복원 동기화)
+ *      c) 자식의 BeginPlay 끝부분 → ApplyState (Level Streaming Persistence + WxSave 복원 동기화)
  *      d) 자식 자체 State 변경 시 (Door/Elevator 등의 OnRep_State, 서버 전이 등)
+ *      e) BeginPlay 이후 WxSave 복원 (스트리밍 인-스트림) → OnWxSaveRestored → ApplyState
  *  - 부모 기본 구현은 비어있다. 자식이 필요 시 오버라이드.
  *
  * bTriggered:
  *  - 1회성 발동 상호작용(보물상자/경보 콘솔 등)을 위한 공용 플래그.
  *  - Level Streaming Persistence 로 셀 언로드/리로드 사이에 보존된다.
+ *  - WxSave 슬롯에도 보존되어 세션 간 발동 상태가 유지된다.
  *  - 다단계 상태/반복 가능한 액터는 사용하지 않을 수 있다.
+ *
+ * WxSave 통합:
+ *  - IWxSavableInterface 구현. UPROPERTY(SaveGame) 필드(bTriggered 등) 가 슬롯에 기록된다.
+ *  - 보존 필드는 UPROPERTY(SaveGame) 로 표시한다.
  */
 UCLASS(Abstract)
-class WXWORLD_API AWxGimmick : public AActor
+class WXWORLD_API AWxGimmick : public AActor, public IWxSavableInterface
 {
 	GENERATED_BODY()
 
@@ -39,12 +46,16 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	//~ Begin IWxSavableInterface
+	virtual void OnWxSaveRestored() override;
+	//~ End IWxSavableInterface
+
 protected:
 	/** 모든 자식 컴포넌트의 부착 베이스. 자식 클래스는 SetRootComponent 호출 없이 SceneRoot 에 SetupAttachment 한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<USceneComponent> SceneRoot;
 
-	UPROPERTY(ReplicatedUsing = OnRep_bTriggered)
+	UPROPERTY(ReplicatedUsing = OnRep_bTriggered, SaveGame)
 	bool bTriggered = false;
 
 #if WITH_EDITORONLY_DATA

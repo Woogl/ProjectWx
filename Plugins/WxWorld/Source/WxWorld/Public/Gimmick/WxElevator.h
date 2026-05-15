@@ -121,14 +121,14 @@ private:
 	/** 문 메시의 로컬 Y 축 너비(스케일 반영). 표준 UE 도어 메시는 Y 가 너비 축. */
 	float ComputeDoorWidth(const UStaticMeshComponent* DoorMesh) const;
 
-	UPROPERTY(ReplicatedUsing = OnRep_State)
+	UPROPERTY(ReplicatedUsing = OnRep_State, SaveGame)
 	EWxElevatorState State = EWxElevatorState::DoorsClosed;
 
 	/** 현재 이동 시퀀스의 목표 스플라인 거리. DoorsOpen/DoorsClosed 정지 시엔 현재 위치와 동일. */
-	UPROPERTY(Replicated)
+	UPROPERTY(Replicated, SaveGame)
 	float TargetDistance = 0.f;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(Replicated, SaveGame)
 	float CurrentDistance = 0.f;
 
 	float CachedSplineLength;

@@ -45,9 +45,9 @@
 		"WxOnInteractedSignature__DelegateSignature": [
 			"void WxOnInteractedSignature__DelegateSignature(AActor* InstigatorActor)",
 			"{",
-			"    UWxSaveLibrary::SavePlayerLocation(UGameplayStatics::GetPlayerController());",
+			"    UWxSaveLibrary::SaveGame(UGameplayStatics::GetPlayerController());",
 			"}"
 		]
 	},
-	"parentClass": "/Script/WxWorld.WxCheckPoint"
+	"parentClass": "/Script/WxGame.WxCheckPoint"
 }

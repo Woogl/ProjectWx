@@ -43,6 +43,16 @@ void AWxGimmick::MarkTriggered()
 	ApplyState();
 }
 
+void AWxGimmick::OnWxSaveRestored()
+{
+	// BeginPlay 이전 복원이면 곧 호출될 BeginPlay 가 ApplyState 를 호출하므로 생략.
+	// BeginPlay 이후 복원(스트리밍 인-스트림 등) 이면 즉시 시각/인터랙션 동기화.
+	if (HasActorBegunPlay())
+	{
+		ApplyState();
+	}
+}
+
 void AWxGimmick::OnRep_bTriggered()
 {
 	ApplyState();

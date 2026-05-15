@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Gimmick/WxCheckPoint.h"
+#include "WorldObject/WxCheckPoint.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"

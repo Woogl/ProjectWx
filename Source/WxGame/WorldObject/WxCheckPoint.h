@@ -16,7 +16,7 @@ class UWxInteractionComponent;
  * HealEffect 프로퍼티에 HP를 MaxHP로 설정하는 GameplayEffect를 지정해야 한다.
  */
 UCLASS(Abstract)
-class WXWORLD_API AWxCheckPoint : public AWxGimmick
+class AWxCheckPoint : public AWxGimmick
 {
 	GENERATED_BODY()
 

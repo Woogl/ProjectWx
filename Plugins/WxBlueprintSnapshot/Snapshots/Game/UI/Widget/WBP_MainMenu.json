@@ -12,8 +12,15 @@
 		"CommonButtonBaseClicked__DelegateSignature": [
 			"void CommonButtonBaseClicked__DelegateSignature(UCommonButtonBase* Button)",
 			"{",
-			"    UWxSaveLibrary::RestartPlayer(UGameplayStatics::GetPlayerController());",
-			"    DeactivateWidget();",
+			"    UWxSaveLibrary::RestartFromSave(UGameplayStatics::GetPlayerController());",
+			"    if (UWxSaveLibrary::RestartFromSave(UGameplayStatics::GetPlayerController()))",
+			"    {",
+			"        UKismetSystemLibrary::PrintString(TEXT(\"세이브 파일 적용 성공\"));",
+			"    }",
+			"    else",
+			"    {",
+			"        UKismetSystemLibrary::PrintString(TEXT(\"세이브 파일 적용 실패\"));",
+			"    }",
 			"}"
 		]
 	},
@@ -92,7 +99,7 @@
 				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
 				"delta":
 				{
-					"ButtonText": "[ Load Save Data ]"
+					"ButtonText": "[ Restart from Save ]"
 				},
 				"isVariable": true,
 				"parent": "VerticalBox_0",

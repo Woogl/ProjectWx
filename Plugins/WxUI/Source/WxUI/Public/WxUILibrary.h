@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "WxUILibrary.generated.h"
 
@@ -29,4 +30,8 @@ public:
 	/** 위젯의 가장 가까운 부모 ActivatableWidget을 비활성화한다. 패널 닫기 버튼 등에 사용. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|UI")
 	static void DeactivateOwningActivatable(UWidget* StartingWidget);
+
+	/** 지정한 레이어 스택의 모든 위젯을 비활성화/제거한다. */
+	UFUNCTION(BlueprintCallable, Category = "Wx|UI", meta = (WorldContext = "WorldContextObject"))
+	static void DeactivateWidgetsInLayer(const UObject* WorldContextObject, UPARAM(meta = (Categories = "UI.Layer"))FGameplayTag LayerTag);
 };

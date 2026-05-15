@@ -71,11 +71,6 @@ void AWxElevator::BeginPlay()
 	DoorLeftOpenOffset = FVector(0.f, -ComputeDoorWidth(DoorLeft), 0.f);
 	DoorRightOpenOffset = FVector(0.f, ComputeDoorWidth(DoorRight), 0.f);
 
-	// CurrentDistance 는 영구화 대상이 아니므로 영구화된 TargetDistance 로 강제 동기화.
-	// 정지 상태에선 둘이 동일하고, Moving 도중 언로드된 케이스는 리로드 후 Tick 에서 즉시 도착 처리된다.
-	CurrentDistance = TargetDistance;
-	UpdatePlatformPosition();
-
 	PlatformInteraction->OnInteracted.AddDynamic(this, &AWxElevator::HandlePlatformInteracted);
 	CallConsoleAInteraction->OnInteracted.AddDynamic(this, &AWxElevator::HandleCallConsoleAInteracted);
 	CallConsoleBInteraction->OnInteracted.AddDynamic(this, &AWxElevator::HandleCallConsoleBInteracted);
@@ -251,7 +246,6 @@ void AWxElevator::ApplyState()
 		SetAllInteractionsEnabled(false);
 		// 클라이언트의 누적 드리프트를 목표 끝점으로 스냅.
 		CurrentDistance = TargetDistance;
-		UpdatePlatformPosition();
 		// DoorAnimProgress 는 진입 직전 값(Moving/DoorsClosed 에서 0)을 그대로 사용; Tick 이 1까지 증가시킴.
 		break;
 
@@ -275,6 +269,9 @@ void AWxElevator::ApplyState()
 		UpdateDoorPositions();
 		break;
 	}
+
+	// 모든 상태 적용 후 플랫폼을 CurrentDistance 에 동기화. 슬롯 복원 / OnRep / 상태 전이 모두 한 경로로 처리.
+	UpdatePlatformPosition();
 }
 
 void AWxElevator::UpdatePlatformPosition()

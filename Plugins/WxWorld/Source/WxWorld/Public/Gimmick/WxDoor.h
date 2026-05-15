@@ -68,7 +68,7 @@ private:
 	/** 문 메시의 로컬 Y 축 너비(스케일 반영). 표준 UE 도어 메시는 Y 가 너비 축. */
 	float ComputeDoorWidth(const UStaticMeshComponent* DoorMesh) const;
 
-	UPROPERTY(ReplicatedUsing = OnRep_State)
+	UPROPERTY(ReplicatedUsing = OnRep_State, SaveGame)
 	EWxDoorState State = EWxDoorState::Closed;
 
 	/** 문 애니 진행도. 0=닫힘, 1=열림. 각 머신에서 Tick 으로 로컬 누적 (복제 없음). */

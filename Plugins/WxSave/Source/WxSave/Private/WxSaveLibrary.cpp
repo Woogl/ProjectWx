@@ -2,112 +2,48 @@
 
 #include "WxSaveLibrary.h"
 
-#include "Engine/World.h"
-#include "GameFramework/GameModeBase.h"
-#include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
-#include "Kismet/GameplayStatics.h"
-#include "WxPlayerSave.h"
-#include "WxSaveDeveloperSettings.h"
+#include "WxSaveSubsystem.h"
 
-void UWxSaveLibrary::SavePlayerLocation(APlayerController* PlayerController)
+void UWxSaveLibrary::SaveGame(APlayerController* PlayerController)
 {
-	if (!PlayerController)
+	if (UWxSaveSubsystem* Subsystem = UWxSaveSubsystem::Get(PlayerController))
 	{
-		return;
-	}
-
-	const UWorld* World = PlayerController->GetWorld();
-	if (!World || World->GetNetMode() == NM_Client)
-	{
-		return;
-	}
-
-	const APawn* Pawn = PlayerController->GetPawn();
-	if (!Pawn)
-	{
-		return;
-	}
-
-	const FString SlotName = GetSlotName();
-	UWxPlayerSave* Slot = LoadOrCreateSlot(SlotName);
-	if (!Slot)
-	{
-		return;
-	}
-
-	Slot->PlayerTransform = Pawn->GetActorTransform();
-	Slot->bHasSavedLocation = true;
-
-	UGameplayStatics::AsyncSaveGameToSlot(Slot, SlotName, 0);
-}
-
-void UWxSaveLibrary::RestartPlayer(APlayerController* PlayerController)
-{
-	if (!PlayerController)
-	{
-		return;
-	}
-
-	UWorld* World = PlayerController->GetWorld();
-	if (!World || World->GetNetMode() == NM_Client)
-	{
-		return;
-	}
-
-	AGameModeBase* GameMode = World->GetAuthGameMode();
-	if (!GameMode)
-	{
-		return;
-	}
-
-	// 기존 Pawn 폐기. APawn::Destroyed 가 PC 의 UnPossess 를 자동 호출한다.
-	if (APawn* OldPawn = PlayerController->GetPawn())
-	{
-		OldPawn->Destroy();
-	}
-
-	const UWxPlayerSave* Slot = LoadOrCreateSlot(GetSlotName());
-	if (Slot && Slot->bHasSavedLocation)
-	{
-		GameMode->RestartPlayerAtTransform(PlayerController, Slot->PlayerTransform);
-	}
-	else
-	{
-		GameMode->RestartPlayer(PlayerController);
+		Subsystem->SaveGame(PlayerController);
 	}
 }
 
-bool UWxSaveLibrary::HasSavedPlayerLocation()
+bool UWxSaveLibrary::RestartFromSave(APlayerController* PlayerController)
 {
-	const UWxPlayerSave* Slot = LoadOrCreateSlot(GetSlotName());
-	return Slot && Slot->bHasSavedLocation;
-}
-
-bool UWxSaveLibrary::DeletePlayerSave()
-{
-	const FString SlotName = GetSlotName();
-	if (!UGameplayStatics::DoesSaveGameExist(SlotName, 0))
+	if (UWxSaveSubsystem* Subsystem = UWxSaveSubsystem::Get(PlayerController))
 	{
-		return false;
+		return Subsystem->RestartFromSave(PlayerController);
 	}
-
-	return UGameplayStatics::DeleteGameInSlot(SlotName, 0);
+	return false;
 }
 
-FString UWxSaveLibrary::GetSlotName()
+bool UWxSaveLibrary::HasSavedGame(const UObject* WorldContextObject)
 {
-	return GetDefault<UWxSaveDeveloperSettings>()->PlayerSlotName;
-}
-
-UWxPlayerSave* UWxSaveLibrary::LoadOrCreateSlot(const FString& SlotName)
-{
-	if (UGameplayStatics::DoesSaveGameExist(SlotName, 0))
+	if (const UWxSaveSubsystem* Subsystem = UWxSaveSubsystem::Get(WorldContextObject))
 	{
-		if (UWxPlayerSave* Existing = Cast<UWxPlayerSave>(UGameplayStatics::LoadGameFromSlot(SlotName, 0)))
-		{
-			return Existing;
-		}
+		return Subsystem->HasSavedGame();
 	}
-	return Cast<UWxPlayerSave>(UGameplayStatics::CreateSaveGameObject(UWxPlayerSave::StaticClass()));
+	return false;
+}
+
+bool UWxSaveLibrary::DeleteSavedGame(const UObject* WorldContextObject)
+{
+	if (UWxSaveSubsystem* Subsystem = UWxSaveSubsystem::Get(WorldContextObject))
+	{
+		return Subsystem->DeleteSavedGame();
+	}
+	return false;
+}
+
+void UWxSaveLibrary::BeginNewGame(const UObject* WorldContextObject)
+{
+	if (UWxSaveSubsystem* Subsystem = UWxSaveSubsystem::Get(WorldContextObject))
+	{
+		Subsystem->BeginNewGame();
+	}
 }
