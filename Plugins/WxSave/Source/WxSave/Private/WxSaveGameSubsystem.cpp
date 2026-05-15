@@ -52,7 +52,7 @@ void UWxSaveGameSubsystem::SaveSlot(const FString& SlotName)
 		}
 
 		// 플레이어 Pawn 은 IWxSavable 이 아니므로(런타임 스폰이라 ActorGuid 불안정) Transform 만 별도 캡처.
-		// LoadSlot 시 부활 진입점으로 사용된다.
+		// LoadSlot 시 ChoosePlayerStart 에서 부활 진입점으로 사용된다.
 		if (const APlayerController* PC = World->GetFirstPlayerController())
 		{
 			if (const APawn* PlayerPawn = PC->GetPawn())
@@ -86,32 +86,14 @@ bool UWxSaveGameSubsystem::LoadSlot(const FString& SlotName)
 		CurrentSave = Cast<UWxSaveGame>(UGameplayStatics::CreateSaveGameObject(UWxSaveGame::StaticClass()));
 	}
 
-	// 현재 월드의 IWxSavable 액터에 즉시 복원. 빈 슬롯이면 ActorRecords 조회가 모두 miss 라 noop.
-	// 플레이어 Pawn 은 IWxSavable 이 아니므로(런타임 스폰이라 ActorGuid 불안정) 부활 Transform 만 별도 적용.
-	if (const UWorld* World = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr)
+	// 월드 리로드로 부활: ServerTravel 후
+	//  - 새 월드의 OnWorldInitializedActors 핸들러가 IWxSavable 액터에 ActorRecords 자동 복원
+	//  - 새 GameMode 의 ChoosePlayerStart → WxGameMode 가 PlayerRespawnTransform 으로 임시 PlayerStart 생성
+	//  - 새 Pawn 이 그 위치에 fresh 상태(HP 풀, 죽음 태그 0)로 스폰
+	// GameInstanceSubsystem 이라 CurrentSave 가 트래블을 가로질러 유지된다.
+	if (UWorld* World = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr)
 	{
-		for (TActorIterator<AActor> It(const_cast<UWorld*>(World)); It; ++It)
-		{
-			AActor* Actor = *It;
-			if (Actor && Actor->Implements<UWxSavableInterface>())
-			{
-				RestoreActor(Actor);
-			}
-		}
-
-		// 같은 월드에서 LoadSlot 한 경우 GameMode::ChoosePlayerStart 가 호출되지 않으므로,
-		// 현재 빙의 중인 Pawn 을 슬롯의 부활 Transform 으로 직접 이동시킨다.
-		// ServerTravel 후 LoadSlot 인 경우 Pawn 이 아직 없거나 GameMode 가 이미 PlayerStart 로 배치한 상태라 본 분기 영향 없음.
-		if (CurrentSave)
-		{
-			if (APlayerController* PC = World->GetFirstPlayerController())
-			{
-				if (APawn* PlayerPawn = PC->GetPawn())
-				{
-					PlayerPawn->SetActorTransform(CurrentSave->PlayerRespawnTransform, false, nullptr, ETeleportType::TeleportPhysics);
-				}
-			}
-		}
+		World->ServerTravel(World->GetMapName(), true);
 	}
 
 	return bFileExists;
