@@ -24,12 +24,6 @@ struct WXCOMBAT_API FWxCombatAttributeInitTableRow : public FTableRowBase
 	float MaxHP = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vital")
-	float PP = 0.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vital")
-	float MaxPP = 0.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vital")
 	float SP = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vital")

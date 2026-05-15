@@ -25,9 +25,9 @@ struct FWxDamageResult
  *  3. 상태 판정 (퍼펙트 가드, 가드, Unblockable)
  *  4. 대미지 적용
  *     - 퍼펙트 가드: 대미지 반사, MP 회복, HitReact 이벤트 (Unblockable 공격은 퍼펙트 가드 불가)
- *     - 일반 가드 피격: HP·DP·SP 차감, GuardHit 이벤트 → Guard 어빌리티가 GuardHitReact/GuardBreak 처리
- *     - Unblockable 가드 피격: HP·DP·PP 차감, Guard 어빌리티 Cancel → HitReact 이벤트
- *     - 비가드 피격: HP·DP·PP 차감, PP 소진 시 HitReact 이벤트
+ * *     - 일반 가드 피격: HP·DP·SP 차감, GuardHit 이벤트 → Guard 어빌리티가 GuardHitReact/GuardBreak 처리
+ *     - Unblockable 가드 피격: HP·DP 차감, Guard 어빌리티 Cancel → HitReact 이벤트
+ *     - 비가드 피격: HP·DP 차감, HitReactTag 명시 시 HitReact 이벤트
  *     - 크리는 Raw 모드에서 적용되지 않음
  *  5. AI 대미지 감지
  *  6. 대미지 GameplayCue
@@ -52,7 +52,7 @@ private:
 	/** 베이스 대미지(Raw 또는 ATK·DEF 공식) 계산 후 크리 적용. bSkipCrit 또는 Raw 모드면 크리 스킵 */
 	FWxDamageResult CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, bool bSkipCrit) const;
 
-	/** 피격 반응 적용. 가드 상태와 Damage.Knock* 태그에 따라 SP/PP 차감 및 이벤트 발송 */
+	/** 피격 반응 적용. 일반 가드는 SP 차감, HitReactTag 명시 시 이벤트 발송 */
 	void ApplyHitReaction(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput, float FinalDamage) const;
 
 	/** 대미지 GameplayCue 실행 */

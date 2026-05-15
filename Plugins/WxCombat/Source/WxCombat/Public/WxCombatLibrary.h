@@ -49,7 +49,7 @@ public:
 	 * @param Target            피격 대상의 ASC.
 	 * @param DamageAmount      원본 그대로 들어갈 대미지.
 	 * @param HitReactionTag    적중 시 부여할 HitReact 태그. None 이면 HitReact 이벤트 미발송.
-	 *                          Knockback/Knockdown/Knockup 등을 지정하면 PP 잔량과 무관하게 강제 발동된다.
+	 *                          Normal/Knockback/Knockdown/Knockup 등을 지정하면 해당 종류의 HitReact가 발동된다.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Combat")
 	static bool ApplyRawDamage(UAbilitySystemComponent* Target, float DamageAmount, UPARAM(meta = (Categories = "Event.HitReact")) FGameplayTag HitReaction);

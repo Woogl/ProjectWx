@@ -20,8 +20,6 @@
  * 약어 정의
  *   HP       - Health Points      : 현재 체력
  *   MaxHP    - Max Health Points  : 최대 체력
- *   PP       - Poise Points       : 현재 강인도. 0이 되면 피격 경직(HitReact) 발동
- *   MaxPP    - Max Poise Points   : 최대 강인도
  *   SP       - Stamina Points     : 현재 스태미나. 가드 피격 시 소모. 0이 되면 GuardBreak 발동
  *   MaxSP    - Max Stamina Points : 최대 스태미나
  *   DP       - Daze Points        : 현재 그로기 수치
@@ -40,7 +38,7 @@
  * IncomingDamage: GameplayEffect ExecutionCalculation에서 최종 데미지를 이 어트리뷰트로 전달하고
  *                 PostGameplayEffectExecute에서 HP를 차감하는 패턴으로 사용.
  *
- * 복제됨: HP, MaxHP, PP, MaxPP, SP, MaxSP, DP, MaxDP, MP, MaxMP, UP, MaxUP, ATK, DEF, CritRate, CritDMG, SPD, ASPD
+ * 복제됨: HP, MaxHP, SP, MaxSP, DP, MaxDP, MP, MaxMP, UP, MaxUP, ATK, DEF, CritRate, CritDMG, SPD, ASPD
  * 복제 안 함 (Meta): IncomingDamage
  */
 UCLASS()
@@ -67,16 +65,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Vital", ReplicatedUsing = OnRep_MaxHP)
 	FGameplayAttributeData MaxHP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, MaxHP)
-	
-	/** PP (Poise Points) : 리액션 없이 버틸 수 있는 한계치 */
-	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Vital", ReplicatedUsing = OnRep_PP)
-	FGameplayAttributeData PP;
-	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, PP)
-
-	/** MaxPP (Max Poise Points) : 최대 강인도. PP의 상한값 */
-	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Vital", ReplicatedUsing = OnRep_MaxPP)
-	FGameplayAttributeData MaxPP;
-	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, MaxPP)
 
 	/** SP (Stamina Points) : 가드 피격 시 소모되는 스태미나. 0이 되면 GuardBreak */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Vital", ReplicatedUsing = OnRep_SP)
@@ -165,12 +153,6 @@ protected:
 
 	UFUNCTION()
 	void OnRep_MaxHP(const FGameplayAttributeData& OldMaxHP);
-
-	UFUNCTION()
-	void OnRep_PP(const FGameplayAttributeData& OldPP);
-
-	UFUNCTION()
-	void OnRep_MaxPP(const FGameplayAttributeData& OldMaxPP);
 
 	UFUNCTION()
 	void OnRep_SP(const FGameplayAttributeData& OldSP);

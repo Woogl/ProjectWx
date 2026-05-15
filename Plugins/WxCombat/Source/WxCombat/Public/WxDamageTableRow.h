@@ -32,8 +32,8 @@ struct WXCOMBAT_API FWxDamageTableRow : public FTableRowBase
 
 	/**
 	 * 적중 시 부여할 HitReact 태그.
-	 * 기본값(Event.HitReact.Normal)은 PP 소진 조건일 때만 발동되고,
-	 * Knockback/Knockdown/Knockup 등을 지정하면 PP 잔량과 무관하게 해당 종류의 HitReact가 강제 발동된다.
+	 * 비어있으면 HitReact 이벤트가 송출되지 않는다.
+	 * Event.HitReact.Normal/Knockback/Knockdown/Knockup 등을 지정하면 해당 종류의 HitReact가 발동된다.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DamageInfo", meta = (Categories = "Event.HitReact"))
 	FGameplayTag HitReactTag;

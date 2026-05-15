@@ -18,7 +18,6 @@ struct FWxDamageStatics
 	DECLARE_ATTRIBUTE_CAPTUREDEF(CritRate);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(CritDMG);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(IncomingDamage);
-	DECLARE_ATTRIBUTE_CAPTUREDEF(PP);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(SP);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(DP);
 	FWxDamageStatics()
@@ -28,7 +27,6 @@ struct FWxDamageStatics
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, CritRate, Source, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, CritDMG, Source, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, IncomingDamage, Target, false);
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, PP, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, SP, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, DP, Target, false);
 	}
@@ -47,7 +45,6 @@ UWxExecCalc_Damage::UWxExecCalc_Damage()
 	RelevantAttributesToCapture.Add(Statics.DEFDef);
 	RelevantAttributesToCapture.Add(Statics.CritRateDef);
 	RelevantAttributesToCapture.Add(Statics.CritDMGDef);
-	RelevantAttributesToCapture.Add(Statics.PPDef);
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -276,15 +273,16 @@ void UWxExecCalc_Damage::ApplyHitReaction(const FGameplayEffectCustomExecutionPa
 	const bool bIsUnblockable = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable);
 	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard);
 	const bool bGuardHit = bIsGuarding && !bIsUnblockable;
-	const FGameplayTagContainer SourceAbilityTags = OwningSpec.GetContext().GetAbility()->AbilityTags;
 
 	// --- 자원 차감 ---
-	// 일반 가드는 SP, 그 외(Unblockable 가드/비가드)는 PP를 차감한다.
-	const FGameplayAttribute& CostAttribute = bGuardHit ? Statics.SPProperty : Statics.PPProperty;
-	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(CostAttribute, EGameplayModOp::Additive, -FinalDamage));
+	// 일반 가드는 SP 를 차감한다. 그 외(Unblockable 가드/비가드)는 자원 차감 없음.
+	if (bGuardHit)
+	{
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.SPProperty, EGameplayModOp::Additive, -FinalDamage));
+	}
 
 	// --- 이벤트 태그 결정 ---
-	// 공격 GE의 Event.HitReact.* 자식 태그를 추출. 비가드/Unblockable 가드에서 태그가 없으면 이벤트 미발송.
+	// 공격 GE의 Event.HitReact.* 자식 태그를 추출. 태그가 비어있으면 이벤트 미발송.
 	const FGameplayTagContainer HitReactMatches = OwningSpec.GetDynamicAssetTags().Filter(FGameplayTagContainer(WxGameplayTags::Event_HitReact));
 	const FGameplayTag HitReactTag = HitReactMatches.IsEmpty() ? FGameplayTag() : HitReactMatches.First();
 
@@ -304,18 +302,8 @@ void UWxExecCalc_Damage::ApplyHitReaction(const FGameplayEffectCustomExecutionPa
 	}
 	else
 	{
-		// 비가드: PP 소진 시에만 명시된 HitReact 송출
-		FAggregatorEvaluateParameters EvalParams;
-		EvalParams.SourceTags = OwningSpec.CapturedSourceTags.GetAggregatedTags();
-		EvalParams.TargetTags = OwningSpec.CapturedTargetTags.GetAggregatedTags();
-
-		float TargetPP = 0.f;
-		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.PPDef, EvalParams, TargetPP);
-
-		if ((TargetPP - FinalDamage) <= 0.f)
-		{
-			EventTag = HitReactTag;
-		}
+		// 비가드: 명시된 HitReact 송출 (태그가 없으면 이벤트 미발송)
+		EventTag = HitReactTag;
 	}
 
 	if (!EventTag.IsValid())
@@ -324,8 +312,9 @@ void UWxExecCalc_Damage::ApplyHitReaction(const FGameplayEffectCustomExecutionPa
 	}
 
 	// 타겟이 Ability.Pattern 발동 중이면 Ability.Attack(일반 공격)으로는 경직 무효
+	const FGameplayTagContainer SourceAbilityTags = OwningSpec.GetContext().GetAbility()->GetAssetTags();
 	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Pattern)
-		&& OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Ability_Attack))
+		&& SourceAbilityTags.HasTag(WxGameplayTags::Ability_Attack))
 	{
 		return;
 	}
