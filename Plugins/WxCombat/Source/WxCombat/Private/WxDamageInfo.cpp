@@ -18,6 +18,7 @@ void FWxDamageInfo::ApplyTableRow(const FWxDamageTableRow& Row)
 	RecoverUP = Row.RecoverUP;
 	HitReactTag = Row.HitReactTag;
 	bUnblockable = Row.bUnblockable;
+	bParryHitReact = Row.bParryHitReact;
 	AdditionalEffects = Row.AdditionalEffects;
 }
 
@@ -45,6 +46,10 @@ TArray<FGameplayEffectSpecHandle> FWxDamageInfo::MakeSpecs(UAbilitySystemCompone
 		if (bUnblockable)
 		{
 			AttackTags.AddTag(WxGameplayTags::Damage_Unblockable);
+		}
+		if (bParryHitReact)
+		{
+			AttackTags.AddTag(WxGameplayTags::Damage_ParryHitReact);
 		}
 		if (!AttackTags.IsEmpty())
 		{

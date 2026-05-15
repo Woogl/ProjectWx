@@ -95,6 +95,15 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		EventData.Instigator = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
 		EventData.Target = TargetASC->GetOwnerActor();
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetASC->GetOwnerActor(), WxGameplayTags::Event_PerfectGuard, EventData);
+
+		// 패리 피격: 공격자에게 HitReact 송출
+		if (SourceASC && OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_ParryHitReact))
+		{
+			FGameplayEventData ParryEventData;
+			ParryEventData.Instigator = TargetASC->GetOwnerActor();
+			ParryEventData.Target = SourceASC->GetOwnerActor();
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(SourceASC->GetOwnerActor(), WxGameplayTags::Event_HitReact_Parry, ParryEventData);
+		}
 	}
 	else
 	{
@@ -267,6 +276,7 @@ void UWxExecCalc_Damage::ApplyHitReaction(const FGameplayEffectCustomExecutionPa
 	const bool bIsUnblockable = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable);
 	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard);
 	const bool bGuardHit = bIsGuarding && !bIsUnblockable;
+	const FGameplayTagContainer SourceAbilityTags = OwningSpec.GetContext().GetAbility()->AbilityTags;
 
 	// --- 자원 차감 ---
 	// 일반 가드는 SP, 그 외(Unblockable 가드/비가드)는 PP를 차감한다.
@@ -309,6 +319,13 @@ void UWxExecCalc_Damage::ApplyHitReaction(const FGameplayEffectCustomExecutionPa
 	}
 
 	if (!EventTag.IsValid())
+	{
+		return;
+	}
+
+	// 타겟이 Ability.Pattern 발동 중이면 Ability.Attack(일반 공격)으로는 경직 무효
+	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Pattern)
+		&& OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Ability_Attack))
 	{
 		return;
 	}

@@ -57,6 +57,10 @@ struct WXCOMBAT_API FWxDamageInfo
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo")
 	bool bUnblockable = false;
 
+	/** true이면 퍼펙트 가드 성공 시 공격자에게 HitReact를 발동시킨다 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo")
+	bool bParryHitReact = true;
+
 	/** Damage GE와 함께 타겟에 적용할 추가 GameplayEffect 목록 (상태이상, 디버프 등) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo", meta = (AllowAbstract = "false"))
 	TArray<TSubclassOf<UGameplayEffect>> AdditionalEffects;

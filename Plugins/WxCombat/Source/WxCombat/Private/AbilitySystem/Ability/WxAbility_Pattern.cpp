@@ -7,6 +7,7 @@
 UWxAbility_Pattern::UWxAbility_Pattern()
 {
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Pattern);
 }
 
 #if WITH_EDITOR

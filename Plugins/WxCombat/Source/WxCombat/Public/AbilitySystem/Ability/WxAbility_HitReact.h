@@ -54,6 +54,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> KnockupMontage;
 
+	/** 패리 피격 몽타주. 공격이 퍼펙트 가드로 막혀 공격자가 경직될 때 재생 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TObjectPtr<UAnimMontage> ParryReactMontage;
+
 private:
 	bool PlayHitReactMontage(UAnimMontage* Montage);
 

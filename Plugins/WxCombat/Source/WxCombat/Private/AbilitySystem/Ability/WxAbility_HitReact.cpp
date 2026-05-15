@@ -61,6 +61,11 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	KnockupTrigger.TriggerTag = WxGameplayTags::Event_HitReact_Knockup;
 	KnockupTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	AbilityTriggers.Add(KnockupTrigger);
+
+	FAbilityTriggerData ParryTrigger;
+	ParryTrigger.TriggerTag = WxGameplayTags::Event_HitReact_Parry;
+	ParryTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
+	AbilityTriggers.Add(ParryTrigger);
 }
 
 void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -105,6 +110,11 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 					Character->LaunchCharacter(LaunchVelocity, false, true);
 				}
 			}
+		}
+		else if (EventTag == WxGameplayTags::Event_HitReact_Parry && ParryReactMontage)
+		{
+			SelectedMontage = ParryReactMontage;
+			FaceInstigator(ActorInfo->AvatarActor.Get(), TriggerEventData->Instigator.Get());
 		}
 	}
 

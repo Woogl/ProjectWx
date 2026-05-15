@@ -19,6 +19,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Knockback, "Event.HitReact.Knockback");
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Knockdown, "Event.HitReact.Knockdown");
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Knockup, "Event.HitReact.Knockup");
+	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Parry, "Event.HitReact.Parry");
 	UE_DEFINE_GAMEPLAY_TAG(Event_DodgeSuccess, "Event.DodgeSuccess");
 	UE_DEFINE_GAMEPLAY_TAG(Event_PerfectGuard, "Event.PerfectGuard");
 
@@ -35,6 +36,7 @@ namespace WxGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(Damage_Critical, "Damage.Critical");
 	UE_DEFINE_GAMEPLAY_TAG(Damage_Unblockable, "Damage.Unblockable");
+	UE_DEFINE_GAMEPLAY_TAG(Damage_ParryHitReact, "Damage.ParryHitReact");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability, "Ability");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Jump, "Ability.Jump");
@@ -48,7 +50,8 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_4, "Ability.Skill.4");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Ultimate, "Ability.Ultimate");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Interact, "Ability.Interact");
-	
+
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern, "Ability.Pattern");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_1, "Ability.Pattern.1");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_2, "Ability.Pattern.2");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_3, "Ability.Pattern.3");
