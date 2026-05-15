@@ -51,6 +51,7 @@ public:
 	//~ End IWxSavableInterface
 
 protected:
+
 	/** 모든 자식 컴포넌트의 부착 베이스. 자식 클래스는 SetRootComponent 호출 없이 SceneRoot 에 SetupAttachment 한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<USceneComponent> SceneRoot;

@@ -2,17 +2,36 @@
 
 #include "Framework/WxGameMode.h"
 
-#include "WxSaveSubsystem.h"
+#include "Engine/GameInstance.h"
+#include "Engine/World.h"
+#include "GameFramework/PlayerStart.h"
+#include "WxSaveGameSubsystem.h"
 
-APawn* AWxGameMode::SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform)
+AActor* AWxGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
-	FTransform UseTransform = SpawnTransform;
-
-	const UWxSaveSubsystem* Save = UWxSaveSubsystem::Get(this);
-	if (Save && Save->IsSaveApplied() && Save->HasSavedLocation())
+	UWxSaveGameSubsystem* SaveSubsystem = nullptr;
+	if (UGameInstance* GameInstance = GetGameInstance())
 	{
-		UseTransform = Save->GetSavedPlayerTransform();
+		SaveSubsystem = GameInstance->GetSubsystem<UWxSaveGameSubsystem>();
 	}
 
-	return Super::SpawnDefaultPawnAtTransform_Implementation(NewPlayer, UseTransform);
+	FTransform RespawnTransform;
+	if (SaveSubsystem && SaveSubsystem->TryGetPlayerRespawnTransform(RespawnTransform))
+	{
+		if (RespawnPlayerStart)
+		{
+			RespawnPlayerStart->Destroy();
+			RespawnPlayerStart = nullptr;
+		}
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		RespawnPlayerStart = GetWorld()->SpawnActor<APlayerStart>(APlayerStart::StaticClass(), RespawnTransform, SpawnParams);
+		if (RespawnPlayerStart)
+		{
+			return RespawnPlayerStart;
+		}
+	}
+
+	return Super::ChoosePlayerStart_Implementation(Player);
 }

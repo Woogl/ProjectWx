@@ -5,22 +5,15 @@
 		"bIsBackHandler": true,
 		"DeleteSave": "",
 		"EnterInventory": "",
-		"RestartfromSave": ""
+		"LoadGame": "",
+		"SaveGame": ""
 	},
 	"eventGraph":
 	{
 		"CommonButtonBaseClicked__DelegateSignature": [
 			"void CommonButtonBaseClicked__DelegateSignature(UCommonButtonBase* Button)",
 			"{",
-			"    UWxSaveLibrary::RestartFromSave(UGameplayStatics::GetPlayerController());",
-			"    if (UWxSaveLibrary::RestartFromSave(UGameplayStatics::GetPlayerController()))",
-			"    {",
-			"        UKismetSystemLibrary::PrintString(TEXT(\"세이브 파일 적용 성공\"));",
-			"    }",
-			"    else",
-			"    {",
-			"        UKismetSystemLibrary::PrintString(TEXT(\"세이브 파일 적용 실패\"));",
-			"    }",
+			"    UWxSaveGameLibrary::SaveSlot(TEXT(\"Test\"));",
 			"}"
 		]
 	},
@@ -49,7 +42,7 @@
 				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
 				"delta":
 				{
-					"ButtonText": "[ Delete Save Data ]"
+					"ButtonText": "[ Delete Saved Data ]"
 				},
 				"isVariable": true,
 				"parent": "VerticalBox_0",
@@ -94,12 +87,37 @@
 					}
 				}
 			},
-			"RestartfromSave":
+			"LoadGame":
 			{
 				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
 				"delta":
 				{
-					"ButtonText": "[ Restart from Save ]"
+					"ButtonText": "[ Load Game ]"
+				},
+				"isVariable": true,
+				"parent": "VerticalBox_0",
+				"slot":
+				{
+					"class": "/Script/UMG.VerticalBoxSlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Center",
+						"Padding":
+						{
+							"Bottom": 10,
+							"Left": 10,
+							"Right": 10,
+							"Top": 10
+						}
+					}
+				}
+			},
+			"SaveGame":
+			{
+				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
+				"delta":
+				{
+					"ButtonText": "[ Save Game ]"
 				},
 				"isVariable": true,
 				"parent": "VerticalBox_0",

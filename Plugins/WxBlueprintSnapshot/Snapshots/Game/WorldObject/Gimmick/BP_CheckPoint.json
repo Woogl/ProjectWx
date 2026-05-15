@@ -45,7 +45,7 @@
 		"WxOnInteractedSignature__DelegateSignature": [
 			"void WxOnInteractedSignature__DelegateSignature(AActor* InstigatorActor)",
 			"{",
-			"    UWxSaveLibrary::SaveGame(UGameplayStatics::GetPlayerController());",
+			"    UWxSaveGameLibrary::SaveSlot(TEXT(\"Test\"));",
 			"}"
 		]
 	},

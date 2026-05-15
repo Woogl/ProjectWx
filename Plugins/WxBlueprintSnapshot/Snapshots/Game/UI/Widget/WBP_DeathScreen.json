@@ -10,11 +10,7 @@
 		"CommonButtonBaseClicked__DelegateSignature": [
 			"void CommonButtonBaseClicked__DelegateSignature(UCommonButtonBase* Button)",
 			"{",
-			"    UWxSaveLibrary::RestartFromSave(UGameplayStatics::GetPlayerController());",
-			"    if (UWxSaveLibrary::RestartFromSave(UGameplayStatics::GetPlayerController()))",
-			"    {",
-			"        UWxUILibrary::DeactivateWidgetsInLayer((TagName=\"UI.Layer.Menu\"));",
-			"    }",
+			"    UWxSaveGameLibrary::RestoreWorldState();",
 			"}"
 		]
 	},

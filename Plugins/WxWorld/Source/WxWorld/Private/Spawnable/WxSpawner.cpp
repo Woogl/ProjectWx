@@ -86,9 +86,8 @@ void AWxSpawner::BeginPlay()
 			Subsystem->RegisterSpawner(this);
 		}
 
-		// 정상 흐름에선 BeginPlay 시점에 bIsKilled=false. 슬롯 적용은 RestartFromSave 가 트리거하며
-		// 그 시점은 BeginPlay 이후이므로 OnWxSaveRestored 에서 SpawnedActor 를 정리한다.
-		// 본 가드는 에디터 디폴트 등으로 true 가 들어오는 경우의 안전망.
+		// 정상 흐름에선 BeginPlay 시점에 bIsKilled=false. 슬롯 복원으로 true 가 들어왔다면
+		// OnWxSaveRestored 가 SpawnedActor 정리를 담당. 본 가드는 에디터 디폴트 등으로 true 가 들어오는 경우의 안전망.
 		if (bIsKilled)
 		{
 			return;

@@ -15,10 +15,5 @@ public class WxSave : ModuleRules
 			"Engine",
 			"WxCore",
 		});
-
-		PrivateDependencyModuleNames.AddRange(new string[]
-		{
-			"DeveloperSettings",
-		});
 	}
 }

@@ -52,6 +52,7 @@ void AWxElevator::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWxElevator, State);
+	DOREPLIFETIME(AWxElevator, TargetEndpoint);
 	DOREPLIFETIME(AWxElevator, TargetDistance);
 	DOREPLIFETIME_CONDITION(AWxElevator, CurrentDistance, COND_InitialOnly);
 }
@@ -152,9 +153,8 @@ void AWxElevator::HandlePlatformInteracted(AActor* InteractingActor)
 		return;
 	}
 
-	// DoorsOpen 상태에서는 항상 끝점에 정지해 있다. 시작점(0)이면 끝점으로, 끝점이면 시작점으로 호출.
-	const float NewTarget = FMath::IsNearlyZero(CurrentDistance) ? CachedSplineLength : 0.f;
-	BeginMoveSequence(NewTarget);
+	// 현재 endpoint 반대로 토글.
+	BeginMoveSequence(TargetEndpoint == EWxElevatorEndpoint::Start ? EWxElevatorEndpoint::End : EWxElevatorEndpoint::Start);
 }
 
 void AWxElevator::HandleCallConsoleAInteracted(AActor* InteractingActor)
@@ -164,7 +164,7 @@ void AWxElevator::HandleCallConsoleAInteracted(AActor* InteractingActor)
 		return;
 	}
 
-	BeginMoveSequence(0.f);
+	BeginMoveSequence(EWxElevatorEndpoint::Start);
 }
 
 void AWxElevator::HandleCallConsoleBInteracted(AActor* InteractingActor)
@@ -174,7 +174,7 @@ void AWxElevator::HandleCallConsoleBInteracted(AActor* InteractingActor)
 		return;
 	}
 
-	BeginMoveSequence(CachedSplineLength);
+	BeginMoveSequence(EWxElevatorEndpoint::End);
 }
 
 void AWxElevator::MovePlatformToStart()
@@ -184,7 +184,7 @@ void AWxElevator::MovePlatformToStart()
 		return;
 	}
 
-	BeginMoveSequence(0.f);
+	BeginMoveSequence(EWxElevatorEndpoint::Start);
 }
 
 void AWxElevator::MovePlatformToEnd()
@@ -194,13 +194,15 @@ void AWxElevator::MovePlatformToEnd()
 		return;
 	}
 
-	BeginMoveSequence(CachedSplineLength);
+	BeginMoveSequence(EWxElevatorEndpoint::End);
 }
 
-void AWxElevator::BeginMoveSequence(float NewTargetDistance)
+void AWxElevator::BeginMoveSequence(EWxElevatorEndpoint NewEndpoint)
 {
+	const float NewTargetDistance = NewEndpoint == EWxElevatorEndpoint::End ? CachedSplineLength : 0.f;
+
 	// 이미 목표 끝점에 정지해 있는 케이스: 문이 닫혀 있다면 열기만 수행, 열려 있다면 호출은 의미 없으므로 무시.
-	if (FMath::IsNearlyEqual(CurrentDistance, NewTargetDistance))
+	if (NewEndpoint == TargetEndpoint && FMath::IsNearlyEqual(CurrentDistance, NewTargetDistance))
 	{
 		if (State == EWxElevatorState::DoorsClosed)
 		{
@@ -210,6 +212,7 @@ void AWxElevator::BeginMoveSequence(float NewTargetDistance)
 		return;
 	}
 
+	TargetEndpoint = NewEndpoint;
 	TargetDistance = NewTargetDistance;
 
 	if (State == EWxElevatorState::DoorsOpen)
@@ -230,13 +233,25 @@ void AWxElevator::OnRep_State()
 	ApplyState();
 }
 
+void AWxElevator::OnRep_TargetEndpoint()
+{
+	ApplyState();
+}
+
 void AWxElevator::ApplyState()
 {
+	// TargetEndpoint = 이 시퀀스의 최종 목적지. 정지 상태(Closed/Open) 와 도착 직후(DoorsOpening) 에선 현재 위치 = TargetEndpoint.
+	// 반면 DoorsClosing (출발 직전 정지) 과 Moving (이동 중) 에선 출발 끝점 = TargetEndpoint 의 반대.
+	const float TargetEndpointDistance = TargetEndpoint == EWxElevatorEndpoint::End ? CachedSplineLength : 0.f;
+	const float OppositeEndpointDistance = TargetEndpoint == EWxElevatorEndpoint::End ? 0.f : CachedSplineLength;
+
 	switch (State)
 	{
 	case EWxElevatorState::DoorsClosed:
 		SetActorTickEnabled(false);
 		SetAllInteractionsEnabled(true);
+		CurrentDistance = TargetEndpointDistance;
+		TargetDistance = TargetEndpointDistance;
 		DoorAnimProgress = 0.f;
 		UpdateDoorPositions();
 		break;
@@ -244,14 +259,17 @@ void AWxElevator::ApplyState()
 	case EWxElevatorState::DoorsOpening:
 		SetActorTickEnabled(true);
 		SetAllInteractionsEnabled(false);
-		// 클라이언트의 누적 드리프트를 목표 끝점으로 스냅.
-		CurrentDistance = TargetDistance;
+		// 도착 직후이거나 슬롯 복원 — 둘 다 목적지 끝점으로 스냅.
+		CurrentDistance = TargetEndpointDistance;
+		TargetDistance = TargetEndpointDistance;
 		// DoorAnimProgress 는 진입 직전 값(Moving/DoorsClosed 에서 0)을 그대로 사용; Tick 이 1까지 증가시킴.
 		break;
 
 	case EWxElevatorState::DoorsOpen:
 		SetActorTickEnabled(false);
 		SetAllInteractionsEnabled(true);
+		CurrentDistance = TargetEndpointDistance;
+		TargetDistance = TargetEndpointDistance;
 		DoorAnimProgress = 1.f;
 		UpdateDoorPositions();
 		break;
@@ -259,12 +277,25 @@ void AWxElevator::ApplyState()
 	case EWxElevatorState::DoorsClosing:
 		SetActorTickEnabled(true);
 		SetAllInteractionsEnabled(false);
-		// DoorAnimProgress 는 진입 직전 값(DoorsOpen 에서 1)을 그대로 사용; Tick 이 0까지 감소시킴.
+		// 출발 끝점(목적지의 반대) 에 정지한 채 문 닫는 중.
+		CurrentDistance = OppositeEndpointDistance;
+		TargetDistance = TargetEndpointDistance;
+		// DoorsClosing 은 항상 DoorsOpen(progress=1) 또는 슬롯 복원(default=0) 에서 진입.
+		// 두 경우 모두 닫힘 애니가 1→0 으로 진행되어야 하므로 진입 시점에 1 로 스냅. Tick 이 0까지 감소시킴.
+		DoorAnimProgress = 1.f;
+		UpdateDoorPositions();
 		break;
 
 	case EWxElevatorState::Moving:
 		SetActorTickEnabled(true);
 		SetAllInteractionsEnabled(false);
+		TargetDistance = TargetEndpointDistance;
+		// 슬롯 복원 보정: CurrentDistance 가 디폴트(0)라 출발/목적이 같으면 반대 끝점에서 출발하도록 강제.
+		// 정상 흐름의 BeginMoveSequence 는 CurrentDistance 가 현재 위치를 유지하므로 이 분기에 들어가지 않는다.
+		if (FMath::IsNearlyEqual(CurrentDistance, TargetDistance))
+		{
+			CurrentDistance = OppositeEndpointDistance;
+		}
 		DoorAnimProgress = 0.f;
 		UpdateDoorPositions();
 		break;
