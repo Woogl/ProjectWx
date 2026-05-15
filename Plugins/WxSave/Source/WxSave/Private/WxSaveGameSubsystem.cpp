@@ -99,7 +99,7 @@ bool UWxSaveGameSubsystem::LoadSlot(const FString& SlotName)
 	return bFileExists;
 }
 
-bool UWxSaveGameSubsystem::TryGetPlayerRespawnTransform(FTransform& OutTransform) const
+bool UWxSaveGameSubsystem::GetPlayerRespawnTransform(FTransform& OutTransform) const
 {
 	if (!CurrentSave || CurrentSave->PlayerRespawnTransform.Equals(FTransform::Identity))
 	{

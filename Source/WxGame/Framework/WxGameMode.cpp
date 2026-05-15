@@ -16,7 +16,7 @@ AActor* AWxGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	}
 
 	FTransform RespawnTransform;
-	if (SaveSubsystem && SaveSubsystem->TryGetPlayerRespawnTransform(RespawnTransform))
+	if (SaveSubsystem && SaveSubsystem->GetPlayerRespawnTransform(RespawnTransform))
 	{
 		if (RespawnPlayerStart)
 		{

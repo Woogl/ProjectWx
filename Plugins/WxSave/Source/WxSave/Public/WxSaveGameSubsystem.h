@@ -39,7 +39,7 @@ public:
 	bool LoadSlot(const FString& SlotName);
 
 	/** GameMode 가 ChoosePlayerStart 에서 호출. 슬롯에 한 번도 SaveSlot 된 적 없으면 false. */
-	bool TryGetPlayerRespawnTransform(FTransform& OutTransform) const;
+	bool GetPlayerRespawnTransform(FTransform& OutTransform) const;
 
 	//~ Begin UGameInstanceSubsystem
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
