@@ -312,11 +312,15 @@ void UWxExecCalc_Damage::ApplyHitReaction(const FGameplayEffectCustomExecutionPa
 	}
 
 	// 타겟이 Ability.Pattern 발동 중이면 Ability.Attack(일반 공격)으로는 경직 무효
-	const FGameplayTagContainer SourceAbilityTags = OwningSpec.GetContext().GetAbility()->GetAssetTags();
-	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Pattern)
-		&& SourceAbilityTags.HasTag(WxGameplayTags::Ability_Attack))
+	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Pattern))
 	{
-		return;
+		if (const UGameplayAbility* SourceAbility = OwningSpec.GetContext().GetAbility())
+		{
+			if (SourceAbility->GetAssetTags().HasTag(WxGameplayTags::Ability_Attack))
+			{
+				return;
+			}
+		}
 	}
 
 	// --- 이벤트 송출 ---
