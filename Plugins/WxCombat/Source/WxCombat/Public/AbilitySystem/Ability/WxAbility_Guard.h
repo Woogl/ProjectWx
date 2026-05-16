@@ -8,6 +8,7 @@
 
 class UAnimMontage;
 class UAbilityTask_PlayMontageAndWait;
+class UWxAbilityTask_WaitInputTagPressed;
 
 /**
  * 가드 어빌리티.
@@ -17,12 +18,13 @@ class UAbilityTask_PlayMontageAndWait;
  *  GuardHitReactMontage – 일반 가드 피격(SP 여유) 시 재생 후 GuardMontage 복귀
  *  GuardKnockbackMontage – Knockback 계열 피격 가드 시 재생 후 GuardMontage 복귀
  *  GuardBreakMontage    – SP 고갈 시 State.Guard 해제 후 재생, 종료
+ *  GuardCounterMontage  – ANS_ComboWindow 구간 내 공격 입력 시 전환, 종료
  *
  * Unblockable 피격 처리:
  *  PerfectGuard 윈도우 중이면 ExecCalc가 PerfectGuard로 처리한다.
  *  일반 Guard 중 Unblockable 피격 시 ExecCalc가 Guard 어빌리티를 직접 Cancel하고 HitReact 이벤트를 발송한다.
  *
- * 입력 릴리즈 시 GuardBreak 중이 아니면 즉시 EndAbility.
+ * 입력 릴리즈 시 GuardBreak/PerfectGuard/GuardCounter 페이즈가 아니면 즉시 EndAbility.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Guard : public UWxAbilityBase
@@ -52,9 +54,13 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> GuardBreakMontage;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> PerfectGuardMontage;
+
+	/** ANS_ComboWindow 구간 내 공격 입력 시 재생할 반격 몽타주 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TObjectPtr<UAnimMontage> GuardCounterMontage;
 
 	/** 가드 중 받는 대미지 배율(0~1). 0.5 면 50% 감소. ExecCalc_Damage 가 가드 피격 분기에서 참조. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|PerfectGuard", meta = (ClampMin = "0", ClampMax = "1"))
@@ -76,12 +82,17 @@ private:
 	bool PlayMontage(UAnimMontage* Montage);
 	void ListenForGuardHit();
 	void ListenForPerfectGuard();
+	void ListenForCounterInput();
+	void PlayGuardCounterMontage();
 
 	UFUNCTION()
 	void HandleGuardHitReact(FGameplayEventData Payload);
 
 	UFUNCTION()
 	void HandlePerfectGuard(FGameplayEventData Payload);
+
+	UFUNCTION()
+	void HandleCounterInputPressed();
 
 	UFUNCTION()
 	void HandleMontageBlendingOut();
@@ -100,4 +111,7 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> CurrentMontageTask;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UWxAbilityTask_WaitInputTagPressed> WaitInputTask;
 };
