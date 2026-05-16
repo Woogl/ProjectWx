@@ -1,5 +1,8 @@
 # 히트리액션(피격 경직) 관련 피드백
 
+* 관련 문서  
+https://github.com/Woogl/ProjectWx/blob/main/Docs/CombatDesign/CombatCommon/%EC%BA%90%EB%A6%AD%ED%84%B0%20%EA%B2%BD%EC%A7%81.md
+
 ## 1. 작업 완료된 부분
 
 | 번호 | 규칙 | 완료 여부 |
