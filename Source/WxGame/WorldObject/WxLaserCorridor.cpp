@@ -3,31 +3,36 @@
 #include "WorldObject/WxLaserCorridor.h"
 
 #include "Components/BoxComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "Engine/World.h"
+#include "Interaction/WxInteractionComponent.h"
 #include "TimerManager.h"
 #include "WxEffectZone.h"
 
 AWxLaserCorridor::AWxLaserCorridor()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	bReplicates = true;
 
-	CorridorVolume = CreateDefaultSubobject<UBoxComponent>(TEXT("CorridorVolume"));
-	SetRootComponent(CorridorVolume);
-	CorridorVolume->SetBoxExtent(FVector(1000.f, 250.f, 250.f));
-	CorridorVolume->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CorridorBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CorridorVolume"));
+	CorridorBox->SetupAttachment(SceneRoot);
+	CorridorBox->SetBoxExtent(FVector(1000.f, 250.f, 250.f));
+	CorridorBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Console = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Console"));
+	Console->SetupAttachment(SceneRoot);
+
+	ConsoleInteraction = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("ConsoleInteraction"));
+	ConsoleInteraction->SetupAttachment(Console);
 }
 
 void AWxLaserCorridor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (!HasAuthority() || !LaserZoneClass)
-	{
-		return;
-	}
+	ConsoleInteraction->OnInteracted.AddDynamic(this, &AWxLaserCorridor::HandleConsoleInteracted);
 
-	GetWorldTimerManager().SetTimer(SpawnTimerHandle, this, &AWxLaserCorridor::HandleSpawnTimer, SpawnInterval, true, 0.f);
+	// Level Streaming Persistence + WxSave 복원: bTriggered 가 BeginPlay 직전에 직접 set 되었을 수 있으므로 명시 동기화.
+	ApplyState();
 }
 
 void AWxLaserCorridor::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -46,7 +51,7 @@ void AWxLaserCorridor::Tick(float DeltaSeconds)
 		return;
 	}
 
-	const FVector Step = GetActorForwardVector() * MoveSpeed * DeltaSeconds;
+	const FVector Step = CorridorBox->GetForwardVector() * MoveSpeed * DeltaSeconds;
 
 	for (int32 Index = ActiveLasers.Num() - 1; Index >= 0; --Index)
 	{
@@ -61,6 +66,42 @@ void AWxLaserCorridor::Tick(float DeltaSeconds)
 	}
 }
 
+void AWxLaserCorridor::ApplyState()
+{
+	if (bTriggered)
+	{
+		ConsoleInteraction->SetInteractionEnabled(false);
+
+		if (HasAuthority())
+		{
+			GetWorldTimerManager().ClearTimer(SpawnTimerHandle);
+
+			for (TWeakObjectPtr<AWxEffectZone>& WeakZone : ActiveLasers)
+			{
+				if (AWxEffectZone* Zone = WeakZone.Get())
+				{
+					Zone->Destroy();
+				}
+			}
+			ActiveLasers.Reset();
+		}
+	}
+	else
+	{
+		ConsoleInteraction->SetInteractionEnabled(true);
+
+		if (HasAuthority() && LaserZoneClass && !GetWorldTimerManager().IsTimerActive(SpawnTimerHandle))
+		{
+			GetWorldTimerManager().SetTimer(SpawnTimerHandle, this, &AWxLaserCorridor::HandleSpawnTimer, SpawnInterval, true, 0.f);
+		}
+	}
+}
+
+void AWxLaserCorridor::HandleConsoleInteracted(AActor* InstigatorActor)
+{
+	MarkTriggered();
+}
+
 void AWxLaserCorridor::HandleSpawnTimer()
 {
 	UWorld* World = GetWorld();
@@ -69,13 +110,29 @@ void AWxLaserCorridor::HandleSpawnTimer()
 		return;
 	}
 
-	const FVector Forward = GetActorForwardVector();
-	const FVector Extent = CorridorVolume->GetScaledBoxExtent();
-	const FVector StartLocation = GetActorLocation() - Forward * Extent.X;
+	const FVector Forward = CorridorBox->GetForwardVector();
+	const FVector Extent = CorridorBox->GetScaledBoxExtent();
+	const FVector CorridorCenter = CorridorBox->GetComponentLocation();
+	const FVector StartLocation = CorridorCenter - Forward * Extent.X;
 
 	const float Lifetime = (Extent.X * 2.f) / MoveSpeed;
 
-	const FTransform SpawnTransform(GetActorRotation(), StartLocation);
+	// 벽의 BP 디폴트 YZ extent 를 기준으로, 통로의 scaled YZ extent 에 맞는 스케일을 계산해 SpawnTransform 에 반영.
+	FVector SpawnScale(1.f, 1.f, 1.f);
+	if (const AWxEffectZone* ZoneCDO = LaserZoneClass->GetDefaultObject<AWxEffectZone>())
+	{
+		if (const UBoxComponent* WallBoxCDO = ZoneCDO->FindComponentByClass<UBoxComponent>())
+		{
+			const FVector WallDefaultExtent = WallBoxCDO->GetUnscaledBoxExtent();
+			if (WallDefaultExtent.Y > KINDA_SMALL_NUMBER && WallDefaultExtent.Z > KINDA_SMALL_NUMBER)
+			{
+				SpawnScale.Y = Extent.Y / WallDefaultExtent.Y;
+				SpawnScale.Z = Extent.Z / WallDefaultExtent.Z;
+			}
+		}
+	}
+
+	const FTransform SpawnTransform(CorridorBox->GetComponentRotation(), StartLocation, SpawnScale);
 	AWxEffectZone* Zone = World->SpawnActorDeferred<AWxEffectZone>(LaserZoneClass, SpawnTransform, this, GetInstigator(), ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 	if (!Zone)
 	{
@@ -83,15 +140,6 @@ void AWxLaserCorridor::HandleSpawnTimer()
 	}
 	Zone->SetLifeSpan(Lifetime);
 	Zone->FinishSpawning(SpawnTransform);
-
-	// 벽의 박스 콜리전 단면(Y/Z) 을 통로 단면에 맞춘다. 두께(X) 는 BP 디폴트를 유지.
-	if (UBoxComponent* WallBox = Zone->FindComponentByClass<UBoxComponent>())
-	{
-		FVector WallExtent = WallBox->GetUnscaledBoxExtent();
-		WallExtent.Y = Extent.Y;
-		WallExtent.Z = Extent.Z;
-		WallBox->SetBoxExtent(WallExtent);
-	}
 
 	ActiveLasers.Add(Zone);
 }
