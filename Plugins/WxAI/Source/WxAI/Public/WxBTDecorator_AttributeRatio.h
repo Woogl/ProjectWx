@@ -11,11 +11,11 @@
 UENUM()
 enum class EWxAttributeRatioComparison : uint8
 {
-	Less			UMETA(DisplayName = "<"),
-	LessOrEqual		UMETA(DisplayName = "<="),
-	Equal			UMETA(DisplayName = "=="),
-	GreaterOrEqual	UMETA(DisplayName = ">="),
-	Greater			UMETA(DisplayName = ">"),
+	Less,
+	LessOrEqual,
+	Equal,
+	GreaterOrEqual,
+	Greater,
 };
 
 /**
@@ -42,18 +42,18 @@ public:
 
 protected:
 	/** 분자 어트리뷰트 (예: HP) */
-	UPROPERTY(EditAnywhere, Category = "Wx|AI")
+	UPROPERTY(EditAnywhere, Category = "Wx")
 	FGameplayAttribute Attribute;
 
 	/** 분모 어트리뷰트 (예: MaxHP) */
-	UPROPERTY(EditAnywhere, Category = "Wx|AI")
+	UPROPERTY(EditAnywhere, Category = "Wx")
 	FGameplayAttribute MaxAttribute;
 
 	/** 비교 연산자 */
-	UPROPERTY(EditAnywhere, Category = "Wx|AI")
+	UPROPERTY(EditAnywhere, Category = "Wx")
 	EWxAttributeRatioComparison Comparison;
 
 	/** 비교 기준 비율 (0.0 ~ 1.0) */
-	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
 	float Ratio;
 };
