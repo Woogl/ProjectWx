@@ -1,0 +1,20 @@
+{
+	"blueprintPath": "/Game/Framework/GM_ChangYoung.GM_ChangYoung",
+	"classDefaults":
+	{
+		"DefaultPawnClass": "/Game/Character/Player/HR/BP_HR_Player.BP_HR_Player_C",
+		"GameStateClass": "/Script/WxGame.WxGameState",
+		"PlayerControllerClass": "/Game/Framework/BP_PlayerController.BP_PlayerController_C",
+		"PlayerStateClass": "/Script/WxGame.WxPlayerState",
+		"ReplaySpectatorPlayerControllerClass": "/Game/Framework/BP_PlayerController.BP_PlayerController_C"
+	},
+	"components":
+	{
+		"DefaultSceneRoot":
+		{
+			"componentClass": "/Script/Engine.SceneComponent",
+			"variableName": "DefaultSceneRoot"
+		}
+	},
+	"parentClass": "/Script/WxGame.WxGameMode"
+}

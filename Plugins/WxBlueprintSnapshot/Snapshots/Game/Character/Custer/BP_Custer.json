@@ -10,7 +10,7 @@
 				"AbilitySet": "/Game/Character/Custer/ABS_Custer.ABS_Custer"
 			}
 		},
-		"BehaviorTreeAsset": "/Game/AI/BT_Boss.BT_Boss",
+		"BehaviorTreeAsset": "/Game/AI/BT_Custer.BT_Custer",
 		"CapsuleComponent":
 		{
 			"class": "/Script/Engine.CapsuleComponent",

@@ -5,7 +5,7 @@
 		"AbilityDataRow":
 		{
 			"DataTable": "/Game/AbilitySystem/DT_Ability.DT_Ability",
-			"RowName": "GA_Skill_1"
+			"RowName": "GA_Skill_3"
 		},
 		"AbilityIcon": "/Game/UIMaterialLab/Textures/T_UI_Sword.T_UI_Sword",
 		"AbilityTags":
@@ -20,10 +20,13 @@
 		{
 			"TagName": "Input.Skill.1"
 		},
-		"CooldownTime": 5,
+		"CooldownTime": 3,
+		"MaxRecharges": 3,
 		"MPCost": 5,
 		"SkillMontages": [
-			"/Game/Character/Player/HR/Skill/Skill1/AM_HR_Skill_1.AM_HR_Skill_1"
+			"/Game/Character/Player/HR/Skill/Skill1/AM_HR_Skill_1.AM_HR_Skill_1",
+			"/Game/Character/Player/HR/Skill/Skill1/AM_HR_Skill_1_2.AM_HR_Skill_1_2",
+			""
 		]
 	},
 	"parentClass": "/Script/WxCombat.WxAbility_Skill"

@@ -1,0 +1,13 @@
+{
+	"blueprintPath": "/Game/Character/Player/HR/Skill/Guard/GA_HR_Guard.GA_HR_Guard",
+	"classDefaults":
+	{
+		"GuardBreakMontage": "/Game/Character/Player/HR/Skill/Guard/AM_HR_GuardBreak.AM_HR_GuardBreak",
+		"GuardCounterMontage": "/Game/Character/Player/HR/Skill/Guard/AM_HR_GuardCounter.AM_HR_GuardCounter",
+		"GuardHitReactMontage": "/Game/Character/Player/HR/Skill/Guard/AM_HR_GuardHit.AM_HR_GuardHit",
+		"GuardKnockbackMontage": "/Game/Character/Player/HR/Skill/Guard/AM_HR_GuardKnockback.AM_HR_GuardKnockback",
+		"GuardMontage": "/Game/Character/Player/HR/Skill/Guard/AM_HR_Guard.AM_HR_Guard",
+		"PerfectGuardMontage": "/Game/Character/Player/HR/Skill/Guard/AM_HR_Parry.AM_HR_Parry"
+	},
+	"parentClass": "/Script/WxCombat.WxAbility_Guard"
+}
