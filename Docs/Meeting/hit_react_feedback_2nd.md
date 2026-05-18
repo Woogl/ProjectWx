@@ -123,7 +123,7 @@
 flowchart TD
   subgraph PARRY
     direction TD
-    E2([퍼펙트 패링 발생]):::entry --> Q4{공격자가 슈퍼아머<br/>적용 중인가?}:::branch
+    E2([퍼펙트 가드 발생]):::entry --> Q4{공격자가 슈퍼아머<br/>적용 중인가?}:::branch
     Q4 -- Yes --> RD2[공격자에게 DP 대미지만 적용]:::damageOnly
     Q4 -- No --> Q5{타격에 패링 리액션<br/>있는가?}:::branch
     Q5 -- No --> RD2
