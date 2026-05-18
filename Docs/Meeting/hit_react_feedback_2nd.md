@@ -124,22 +124,24 @@
 예시 다이어그램 공유드립니다.
 ```mermaid
 flowchart TD
-  E1([대미지 발생]):::entry --> Q1{피격자가 슈퍼아머<br/>적용 중인가?}:::branch
+  subgraph PARRY[퍼펙트 패링 처리]
+    direction TD
+    E2([퍼펙트 패링 발생]):::entry --> Q4{공격자가 슈퍼아머<br/>적용 중인가?}:::branch
+    Q4 -- Yes --> RD2[공격자에게 DP 대미지만 적용]:::damageOnly
+    Q4 -- No --> Q5{타격에 패링 리액션<br/>있는가?}:::branch
+    Q5 -- No --> RD2
+    Q5 -- Yes --> RP[공격자에게 DP 대미지 적용<br/>패링 리액션 발동<br/>어빌리티 캔슬]:::result
+  end
 
-  Q1 -- Yes --> R1[피격자에게 대미지만 적용]:::result
-  Q1 -- No --> Q2{타격이 일반 공격<br/>평타인가?}:::branch
 
-  Q2 -- Yes --> Q3{피격자가 패턴<br/>발동 중인가?}:::branch
-  Q2 -- No --> R2[피격자에게 대미지 적용<br/>히트 리액션 발동<br/>어빌리티 캔슬]:::result
-
-  Q3 -- Yes --> R3[피격자에게 대미지만 적용]:::result
-  Q3 -- No --> R4[피격자에게 대미지 적용<br/>히트 리액션 발동<br/>어빌리티 캔슬]:::result
-
-  E2([퍼펙트 패링 발생]):::entry --> Q4{공격자가 슈퍼아머<br/>적용 중인가?}:::branch
-
-  Q4 -- Yes --> R5[공격자에게 DP 대미지만 적용]:::result
-  Q4 -- No --> Q5{타격에 패링 리액션<br/>있는가?}:::branch
-
-  Q5 -- Yes --> R6[공격자에게 DP 대미지 적용<br/>패링 리액션 발동<br/>어빌리티 캔슬]:::result
-  Q5 -- No --> R7[공격자에게 DP 대미지만 적용]:::result
+  subgraph DMG[대미지 발생 처리]
+    direction TD
+    E1([대미지 발생]):::entry --> Q1{피격자가 슈퍼아머<br/>적용 중인가?}:::branch
+    Q1 -- Yes --> RD1[피격자에게 대미지만 적용]:::damageOnly
+    Q1 -- No --> Q2{타격이 일반 공격<br/>평타인가?}:::branch
+    Q2 -- Yes --> Q3{피격자가 패턴 어빌리티<br/>발동 중인가?}:::branch
+    Q2 -- No --> RH1[피격자에게 대미지 적용<br/>히트 리액션 발동<br/>어빌리티 캔슬]:::result
+    Q3 -- Yes --> RD1
+    Q3 -- No --> RH1
+  end
 ```
