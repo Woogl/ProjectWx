@@ -4,7 +4,7 @@
   * https://github.com/Woogl/ProjectWx/blob/main/Docs/CombatDesign/CombatCommon/%EC%BA%90%EB%A6%AD%ED%84%B0_%EA%B2%BD%EC%A7%81.md
 
 > **📝 종합 의견**  
-> 독자에게 고통을 주는 문서입니다.  
+> 가독성이 떨어지는 문서입니다.  
 > 지나치게 많은 항목으로 쪼개어져 있으며, 앞에서 이미 설명했던 것을 반복 재정의하며, 다이어그램을 파편화해서 그리고, 틀린 개념도 포함되어 있습니다.
 
 # 🕵️ 문제점 지적
