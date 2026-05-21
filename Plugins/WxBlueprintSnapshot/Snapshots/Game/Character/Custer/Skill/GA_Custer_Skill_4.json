@@ -1,0 +1,26 @@
+{
+	"blueprintPath": "/Game/Character/Custer/Skill/GA_Custer_Skill_4.GA_Custer_Skill_4",
+	"classDefaults":
+	{
+		"AbilityDataRow":
+		{
+			"DataTable": "/Game/AbilitySystem/DT_Ability.DT_Ability",
+			"RowName": "GA_Skill_1"
+		},
+		"AbilityIcon": "/Game/UIMaterialLab/Textures/T_UI_Sword.T_UI_Sword",
+		"AbilityTags":
+		{
+			"GameplayTags": [
+				{
+					"TagName": "Ability.Pattern.4"
+				}
+			]
+		},
+		"CooldownTime": 5,
+		"MPCost": 5,
+		"SkillMontages": [
+			"/Game/Character/Custer/Skill/AM_Custer_Skill_4.AM_Custer_Skill_4"
+		]
+	},
+	"parentClass": "/Script/WxCombat.WxAbility_Skill"
+}
