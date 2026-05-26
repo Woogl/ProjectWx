@@ -10,20 +10,20 @@ class UAnimMontage;
 class UAbilityTask_PlayMontageAndWait;
 
 /**
- * 피격 반응 어빌리티.
+ * 피격 반응 어빌리티. (일반 / 넉백 / 넉다운 / 넉업 / 패리)
  *
  * 사용 흐름:
- *  1. 데미지 수신 → Event.HitReact[.Knockback|.Knockdown|.Knockup] 이벤트 발송
+ *  1. 데미지 수신 → Event.HitReact.[Normal|Knockback|Knockdown|Knockup|Parry] 이벤트 발송
  *  2. GameplayEvent 트리거 → ActivateAbility
  *  3. 트리거 태그에 매칭되는 몽타주 재생 → 완료 시 EndAbility
  *
- * 재생 중 다른 종류의 HitReact 이벤트가 도착하면(예: Normal 재생 중 Knockback),
- * bRetriggerInstancedAbility로 EndAbility 후 ActivateAbility가 재진입하며,
- * CurrentMontageTask를 명시적으로 정리해 이전 태스크의 잔여 콜백이 새 재생을
- * 즉시 종료시키는 레이스를 방지한다.
+ * 모든 피격은 CancelAbilitiesWithTag로 진행 중인 공격(Ability.Attack)·스킬(Ability.Skill)을 캔슬한다.
+ * 적의 패턴(Ability.Pattern)은 캔슬 대상이 아님.
  *
- * 가드 중 피격 반응은 WxAbility_Guard가 직접 처리하므로,
- * State.Guard 활성 시 이 어빌리티는 활성화되지 않는다.
+ * 재생 중 다른 종류의 HitReact 이벤트가 도착하면(예: Normal 재생 중 Knockback), bRetriggerInstancedAbility로 EndAbility 후 ActivateAbility가 재진입하며,
+ * CurrentMontageTask를 명시적으로 정리해 이전 태스크의 잔여 콜백이 새 재생을 즉시 종료시키는 레이스를 방지한다.
+ *
+ * 가드 중 피격 반응은 WxAbility_Guard가 직접 처리하므로, State.Guard 활성 시 이 어빌리티는 활성화되지 않는다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_HitReact : public UWxAbilityBase

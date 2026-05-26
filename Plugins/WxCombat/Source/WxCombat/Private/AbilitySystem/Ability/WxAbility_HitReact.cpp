@@ -29,8 +29,13 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 {
 	// HitReact는 항상 서버의 ExecCalc에서 GameplayEvent로 트리거되므로 ServerInitiated를 사용한다.
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
-	
-	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
+
+	// 피격 시 플레이어가 진행 중인 공격·스킬만 캔슬한다.
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Attack);
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Skill);
+	// 피격 시 적의 패턴은 캔슬하지 않으므로 주석 처리
+	// CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Pattern);
+
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	ActivationOwnedTags.AddTag(WxGameplayTags::State_HitReact);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);

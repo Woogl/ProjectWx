@@ -7,7 +7,6 @@
 UWxAbility_Pattern::UWxAbility_Pattern()
 {
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
-	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Pattern);
 }
 
 #if WITH_EDITOR
@@ -22,7 +21,7 @@ bool UWxAbility_Pattern::CanEditChange(const FProperty* InProperty) const
 	{
 		const FName PropertyName = InProperty->GetFName();
 
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, ActivationInputTag) || PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, AbilityIcon))
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, ActivationInputTag))
 		{
 			return false;
 		}

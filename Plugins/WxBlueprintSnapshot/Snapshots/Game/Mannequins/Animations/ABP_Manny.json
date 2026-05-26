@@ -1,53 +1,46 @@
 {
 	"blueprintPath": "/Game/Mannequins/Animations/ABP_Manny.ABP_Manny",
-	"eventGraph": [
-		"event BlueprintInitializeAnimation:",
-		"  AsCharacter = Cast<Character>(GetOwningActor())",
-		"  if (AsCharacter):",
-		"    Character = Cast<Character>(GetOwningActor())",
-		"    MovementComponent = Character.CharacterMovement",
-		"event BlueprintUpdateAnimation:",
-		"  Get",
-		"  # sequence[0]",
-		"    Velocity = MovementComponent.Velocity",
-		"    GroundSpeed = KismetMathLibrary::VSizeXY(A=Velocity)",
-		"  # sequence[1]",
-		"    ShouldMove = KismetMathLibrary::Greater_DoubleDouble(A=GroundSpeed, B=3.000000)",
-		"  # sequence[2]",
-		"    IsFalling = MovementComponent.IsFalling()"
-	],
-	"newVariables":
+	"eventGraph":
 	{
-		"Character":
-		{
-			"type": "Character",
-			"value": "None"
-		},
-		"GroundSpeed":
-		{
-			"type": "real",
-			"value": "0.000000"
-		},
-		"IsFalling":
-		{
-			"type": "bool",
-			"value": "False"
-		},
-		"MovementComponent":
-		{
-			"type": "CharacterMovementComponent",
-			"value": "None"
-		},
-		"ShouldMove":
-		{
-			"type": "bool",
-			"value": "False"
-		},
-		"Velocity":
-		{
-			"type": "Vector",
-			"value": "(X=0.000000,Y=0.000000,Z=0.000000)"
-		}
+		"BlueprintInitializeAnimation": [
+			"void BlueprintInitializeAnimation()",
+			"{",
+			"    ACharacter* AsCharacter = Cast<ACharacter>(GetOwningActor());",
+			"    if (AsCharacter)",
+			"    {",
+			"        Character = AsCharacter;",
+			"        MovementComponent = Character->CharacterMovement;",
+			"    }",
+			"}"
+		],
+		"BlueprintUpdateAnimation": [
+			"void BlueprintUpdateAnimation(double DeltaTimeX)",
+			"{",
+			"    // Get",
+			"    // sequence[0]",
+			"    {",
+			"        Velocity = MovementComponent->Velocity;",
+			"        GroundSpeed = UKismetMathLibrary::VSizeXY(Velocity);",
+			"    }",
+			"    // sequence[1]",
+			"    {",
+			"        ShouldMove = (GroundSpeed) > (3.000000);",
+			"    }",
+			"    // sequence[2]",
+			"    {",
+			"        IsFalling = MovementComponent->IsFalling();",
+			"    }",
+			"}"
+		]
 	},
-	"parentClass": "/Script/Engine.AnimInstance"
+	"parentClass": "/Script/Engine.AnimInstance",
+	"variables":
+	{
+		"Character": "nullptr",
+		"MovementComponent": "nullptr",
+		"Velocity": "FVector(0, 0, 0)",
+		"GroundSpeed": "0.0",
+		"ShouldMove": "false",
+		"IsFalling": "false"
+	}
 }

@@ -269,10 +269,16 @@ void UWxExecCalc_Damage::ApplyHitReaction(const FGameplayEffectCustomExecutionPa
 	UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent();
 	const FGameplayEffectSpec& OwningSpec = ExecutionParams.GetOwningSpec();
 
+	if (!TargetASC)
+	{
+		return;
+	}
+
 	const FWxDamageStatics& Statics = GetDamageStatics();
 	const bool bIsUnblockable = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable);
 	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard);
 	const bool bGuardHit = bIsGuarding && !bIsUnblockable;
+	const bool bIsGroggy = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy);
 
 	// --- 자원 차감 ---
 	// 일반 가드는 SP 를 차감한다. 그 외(Unblockable 가드/비가드)는 자원 차감 없음.
@@ -287,7 +293,23 @@ void UWxExecCalc_Damage::ApplyHitReaction(const FGameplayEffectCustomExecutionPa
 	const FGameplayTag HitReactTag = HitReactMatches.IsEmpty() ? FGameplayTag() : HitReactMatches.First();
 
 	FGameplayTag EventTag;
-	if (bGuardHit)
+	if (bIsGroggy)
+	{
+		FGameplayTagContainer KnockTags;
+		KnockTags.AddTagFast(WxGameplayTags::Event_HitReact_Knockback);
+		KnockTags.AddTagFast(WxGameplayTags::Event_HitReact_Knockdown);
+		KnockTags.AddTagFast(WxGameplayTags::Event_HitReact_Knockup);
+		if (HitReactTag.MatchesAny(KnockTags))
+		{
+			// 그로기 중에는 Knock 계열 HitReaction 사용하지 않고 Normal로 치환
+			EventTag = WxGameplayTags::Event_HitReact_Normal;
+		}
+		else
+		{
+			EventTag = HitReactTag;
+		}
+	}
+	else if (bGuardHit)
 	{
 		// 일반 가드: HitReact 태그를 그대로 송출. Guard 어빌리티가 Knock 계열 vs Normal 분기 처리.
 		// 명시 태그가 없으면 가드 흡수 애니메이션을 위해 Normal 로 폴백.
@@ -309,18 +331,6 @@ void UWxExecCalc_Damage::ApplyHitReaction(const FGameplayEffectCustomExecutionPa
 	if (!EventTag.IsValid())
 	{
 		return;
-	}
-
-	// 타겟이 Ability.Pattern 발동 중이면 Ability.Attack(일반 공격)으로는 경직 무효
-	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Pattern))
-	{
-		if (const UGameplayAbility* SourceAbility = OwningSpec.GetContext().GetAbility())
-		{
-			if (SourceAbility->GetAssetTags().HasTag(WxGameplayTags::Ability_Attack))
-			{
-				return;
-			}
-		}
 	}
 
 	// --- 이벤트 송출 ---
