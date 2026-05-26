@@ -2,8 +2,6 @@
 
 #include "WxBTComposite_RandomChoice.h"
 
-#include "BehaviorTree/BTCompositeNode.h"
-
 UWxBTComposite_RandomChoice::UWxBTComposite_RandomChoice(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -12,7 +10,7 @@ UWxBTComposite_RandomChoice::UWxBTComposite_RandomChoice(const FObjectInitialize
 
 uint16 UWxBTComposite_RandomChoice::GetInstanceMemorySize() const
 {
-	return sizeof(int32);
+	return sizeof(FWxBTRandomChoiceMemory);
 }
 
 void UWxBTComposite_RandomChoice::InitializeMemory(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTMemoryInit::Type InitType) const
@@ -21,8 +19,8 @@ void UWxBTComposite_RandomChoice::InitializeMemory(UBehaviorTreeComponent& Owner
 
 	if (InitType == EBTMemoryInit::Initialize)
 	{
-		// 직전 진입에서 선택된 자식 인덱스. 회피 비교 기준. INDEX_NONE = 미설정.
-		*reinterpret_cast<int32*>(NodeMemory) = INDEX_NONE;
+		FWxBTRandomChoiceMemory* Memory = reinterpret_cast<FWxBTRandomChoiceMemory*>(NodeMemory);
+		Memory->LastChosenChild = INDEX_NONE;
 	}
 }
 
@@ -40,7 +38,8 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 		return BTSpecialChild::ReturnToParent;
 	}
 
-	int32& LastChosenChild = *reinterpret_cast<int32*>(GetNodeMemory<uint8>(SearchData));
+	FWxBTRandomChoiceMemory* Memory = reinterpret_cast<FWxBTRandomChoiceMemory*>(GetNodeMemory<uint8>(SearchData));
+	int32& LastChosenChild = Memory->LastChosenChild;
 
 	const bool bShouldAvoid = bAvoidRepeat && LastChosenChild != INDEX_NONE && ChildrenNum > 1;
 

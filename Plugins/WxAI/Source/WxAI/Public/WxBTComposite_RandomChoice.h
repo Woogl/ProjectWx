@@ -3,8 +3,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BehaviorTree/BTCompositeNode.h"
 #include "BehaviorTree/Composites/BTComposite_Selector.h"
 #include "WxBTComposite_RandomChoice.generated.h"
+
+/**
+ * 베이스(UBTCompositeNode)가 노드 메모리 앞쪽을 FBTCompositeMemory(CurrentChild/OverrideChild)로
+ * 사용하므로, 자체 상태는 반드시 그 뒤에 배치해 겹치지 않게 한다. (엔진의 FBTParallelMemory 와 동일 패턴)
+ */
+struct FWxBTRandomChoiceMemory : public FBTCompositeMemory
+{
+	// 직전 진입에서 선택된 자식 인덱스. 회피 비교 기준. INDEX_NONE = 미설정.
+	int32 LastChosenChild;
+};
 
 /**
  * 자식 중 무작위 1개를 골라 실행하고, 그 결과를 그대로 부모에 반환하는 Composite.
