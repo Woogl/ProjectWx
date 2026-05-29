@@ -34,6 +34,9 @@ class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInte
 
 public:
 	AWxCharacterBase();
+	virtual void PostInitializeComponents() override;
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) override;
 
 	// IAbilitySystemInterface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
@@ -81,9 +84,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Equipment")
 	TObjectPtr<UChildActorComponent> WeaponActor;
 
-	virtual void PostInitializeComponents() override;
-	virtual void PossessedBy(AController* NewController) override;
-
 	/**
 	 * ASC ActorInfo 설정, 어트리뷰트 콜백 등록, AbilitySet 부여를 수행.
 	 * 서버: PossessedBy에서 호출. 클라이언트: 파생 클래스에서 OnRep을 통해 호출.
@@ -98,8 +98,6 @@ protected:
 
 	/** State.Dead 태그 변경 콜백. 태그 부여 시 HandleDeath 호출 */
 	void HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
-
-	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) override;
 
 	/** 캐릭터의 팀. 같은 팀끼리는 아군, 다른 팀끼리는 적군 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Team")

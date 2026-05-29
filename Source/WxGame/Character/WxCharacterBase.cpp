@@ -45,24 +45,6 @@ AWxCharacterBase::AWxCharacterBase()
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f);
 }
 
-UAbilitySystemComponent* AWxCharacterBase::GetAbilitySystemComponent() const
-{
-	return AbilitySystemComponent;
-}
-
-void AWxCharacterBase::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
-{
-	if (AbilitySystemComponent)
-	{
-		AbilitySystemComponent->GetOwnedGameplayTags(TagContainer);
-	}
-}
-
-AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const
-{
-	return WeaponActor ? Cast<AWxWeaponBase>(WeaponActor->GetChildActor()) : nullptr;
-}
-
 void AWxCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -94,6 +76,53 @@ void AWxCharacterBase::PostInitializeComponents()
 			break;
 		}
 	}
+}
+
+void AWxCharacterBase::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	
+	InitAbilitySystem();
+}
+
+void AWxCharacterBase::OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode)
+{
+	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
+
+	if (!AbilitySystemComponent)
+	{
+		return;
+	}
+
+	const EMovementMode CurrentMode = GetCharacterMovement()->MovementMode;
+	const bool bIsFalling = (CurrentMode == MOVE_Falling || CurrentMode == MOVE_Flying);
+
+	if (bIsFalling)
+	{
+		AbilitySystemComponent->AddLooseGameplayTag(WxGameplayTags::State_Aerial);
+	}
+	else if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Aerial))
+	{
+		AbilitySystemComponent->RemoveLooseGameplayTag(WxGameplayTags::State_Aerial);
+	}
+}
+
+UAbilitySystemComponent* AWxCharacterBase::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
+}
+
+void AWxCharacterBase::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->GetOwnedGameplayTags(TagContainer);
+	}
+}
+
+AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const
+{
+	return WeaponActor ? Cast<AWxWeaponBase>(WeaponActor->GetChildActor()) : nullptr;
 }
 
 void AWxCharacterBase::EquipItem(const UWxItemDefinition* ItemDef)
@@ -136,13 +165,6 @@ bool AWxCharacterBase::IsAlive() const
 	return false;
 }
 
-void AWxCharacterBase::PossessedBy(AController* NewController)
-{
-	Super::PossessedBy(NewController);
-	
-	InitAbilitySystem();
-}
-
 void AWxCharacterBase::InitAbilitySystem()
 {
 	BaseWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
@@ -173,28 +195,6 @@ void AWxCharacterBase::HandleDeathTagChanged(const FGameplayTag CallbackTag, int
 	if (NewCount > 0)
 	{
 		HandleDeath();
-	}
-}
-
-void AWxCharacterBase::OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode)
-{
-	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
-
-	if (!AbilitySystemComponent)
-	{
-		return;
-	}
-
-	const EMovementMode CurrentMode = GetCharacterMovement()->MovementMode;
-	const bool bIsFalling = (CurrentMode == MOVE_Falling || CurrentMode == MOVE_Flying);
-
-	if (bIsFalling)
-	{
-		AbilitySystemComponent->AddLooseGameplayTag(WxGameplayTags::State_Aerial);
-	}
-	else if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Aerial))
-	{
-		AbilitySystemComponent->RemoveLooseGameplayTag(WxGameplayTags::State_Aerial);
 	}
 }
 
