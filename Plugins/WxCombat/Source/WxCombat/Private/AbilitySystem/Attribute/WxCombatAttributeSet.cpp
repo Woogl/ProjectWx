@@ -3,6 +3,7 @@
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
+#include "Perception/AISense_Damage.h"
 #include "WxGameplayTags.h"
 
 UWxCombatAttributeSet::UWxCombatAttributeSet()
@@ -129,6 +130,17 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 				{
 					ASC->AddLooseGameplayTag(WxGameplayTags::State_Dead, 1, EGameplayTagReplicationState::TagOnly);
 				}
+			}
+
+			// 피해를 AI Perception(촉각)에 보고해 가해자를 즉시 TargetActor 로 인지하게 한다.
+			// EventLocation 으로 가해자 위치를 넘기면 그대로 Stimulus 위치(TargetLastKnownLocation)가 된다.
+			const FGameplayEffectContextHandle Context = Data.EffectSpec.GetContext();
+			AActor* DamageInstigator = Context.GetInstigator();
+			AActor* DamagedActor = GetOwningActor();
+			if (DamageInstigator && DamagedActor)
+			{
+				const FVector HitLocation = Context.GetHitResult() ? FVector(Context.GetHitResult()->ImpactPoint) : DamagedActor->GetActorLocation();
+				UAISense_Damage::ReportDamageEvent(DamagedActor, DamagedActor, DamageInstigator, Damage, DamageInstigator->GetActorLocation(), HitLocation);
 			}
 		}
 	}
