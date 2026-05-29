@@ -1,15 +1,18 @@
 {
 	"blueprintPath": "/Game/UI/Widget/WBP_Effect.WBP_Effect",
-	"eventGraph": [
-		"void OnListItemObjectSet(delegate OutputDelegate, UObject* ListItemObject)",
-		"{",
-		"    UWxViewModel_Effect* AsWxViewModel_Effect = Cast<UWxViewModel_Effect>(ListItemObject);",
-		"    if (AsWxViewModel_Effect)",
-		"    {",
-		"        SetWxViewModel_Effect(/* Viewmodel */ Cast<UWxViewModel_Effect>(ListItemObject));",
-		"    }",
-		"}"
-	],
+	"eventGraph":
+	{
+		"OnListItemObjectSet": [
+			"void OnListItemObjectSet(UObject* ListItemObject)",
+			"{",
+			"    UWxViewModel_Effect* AsWxViewModel_Effect = Cast<UWxViewModel_Effect>(ListItemObject);",
+			"    if (AsWxViewModel_Effect)",
+			"    {",
+			"        SetWxViewModel_Effect(AsWxViewModel_Effect);",
+			"    }",
+			"}"
+		]
+	},
 	"interfaces":
 	{
 		"implemented": [
@@ -163,8 +166,8 @@
 				{
 					"bOverride_HeightOverride": true,
 					"bOverride_WidthOverride": true,
-					"HeightOverride": 50,
-					"WidthOverride": 50
+					"HeightOverride": 40,
+					"WidthOverride": 40
 				}
 			},
 			"Stacks":

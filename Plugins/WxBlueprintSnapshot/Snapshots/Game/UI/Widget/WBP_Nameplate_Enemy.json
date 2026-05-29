@@ -1,11 +1,14 @@
 {
 	"blueprintPath": "/Game/UI/Widget/WBP_Nameplate_Enemy.WBP_Nameplate_Enemy",
-	"eventGraph": [
-		"void Construct(delegate OutputDelegate)",
-		"{",
-		"    PlayAnimation(/* InAnimation */ Groggy, /* NumLoopsToPlay */ 0);",
-		"}"
-	],
+	"eventGraph":
+	{
+		"Construct": [
+			"void Construct()",
+			"{",
+			"    PlayAnimation(Groggy, 0);",
+			"}"
+		]
+	},
 	"mvvm":
 	{
 		"bindings": [
@@ -184,7 +187,7 @@
 				{
 					"bOverride_HeightOverride": true,
 					"bOverride_WidthOverride": true,
-					"HeightOverride": 50,
+					"HeightOverride": 40,
 					"WidthOverride": 200
 				},
 				"parent": "VerticalBox_0",

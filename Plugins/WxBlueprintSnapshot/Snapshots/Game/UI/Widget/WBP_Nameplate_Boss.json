@@ -149,7 +149,7 @@
 						"Size":
 						{
 							"SizeRule": "Fill",
-							"Value": 0.69999998807907104
+							"Value": 0.60000002384185791
 						}
 					}
 				}
@@ -166,7 +166,7 @@
 						"Size":
 						{
 							"SizeRule": "Fill",
-							"Value": 0.30000001192092896
+							"Value": 0.40000000596046448
 						}
 					}
 				}
@@ -178,7 +178,7 @@
 				{
 					"bOverride_HeightOverride": true,
 					"bOverride_WidthOverride": true,
-					"HeightOverride": 50,
+					"HeightOverride": 40,
 					"WidthOverride": 600
 				},
 				"parent": "VerticalBox_0",
@@ -193,20 +193,12 @@
 				"delta":
 				{
 					"bOverride_HeightOverride": true,
-					"HeightOverride": 40
+					"HeightOverride": 30
 				},
 				"parent": "VerticalBox_0",
 				"slot":
 				{
-					"class": "/Script/UMG.VerticalBoxSlot",
-					"delta":
-					{
-						"Size":
-						{
-							"SizeRule": "Fill",
-							"Value": 0.5
-						}
-					}
+					"class": "/Script/UMG.VerticalBoxSlot"
 				}
 			},
 			"VerticalBox_0":
