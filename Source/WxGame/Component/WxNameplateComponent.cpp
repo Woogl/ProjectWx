@@ -4,18 +4,25 @@
 #include "AbilitySystemComponent.h"
 #include "View/MVVMView.h"
 #include "MVVM/WxViewModel_AbilitySystem.h"
+#include "Targeting/WxLockOnComponent.h"
 #include "WxGameplayTags.h"
+#include "GameFramework/PlayerController.h"
 
 UWxNameplateComponent::UWxNameplateComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	SetWidgetSpace(EWidgetSpace::Screen);
 	SetDrawAtDesiredSize(true);
+
+	// 기본 숨김: 적의 존재를 미리 노출하지 않는다. 인식/락온 시 RefreshVisibility 가 노출한다.
+	SetVisibility(false);
 }
 
 void UWxNameplateComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	RefreshVisibility();
 
 	UUserWidget* NameplateWidget = GetWidget();
 	if (!NameplateWidget)
@@ -62,11 +69,38 @@ void UWxNameplateComponent::InitializeViewModels(UAbilitySystemComponent* InASC)
 	AbilitySystemViewModel->Initialize(InASC);
 	View->SetViewModelByClass(AbilitySystemViewModel);
 
-	InASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
-		.AddUObject(this, &UWxNameplateComponent::HandleDeadTagChanged);
+	CachedASC = InASC;
 }
 
-void UWxNameplateComponent::HandleDeadTagChanged(const FGameplayTag Tag, int32 NewCount)
+void UWxNameplateComponent::RefreshVisibility()
 {
-	SetVisibility(NewCount == 0);
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	if (!ASC)
+	{
+		return;
+	}
+
+	const bool bDead = ASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead);
+	const bool bRecognized = ASC->HasMatchingGameplayTag(WxGameplayTags::State_Recognized);
+
+	// SetVisibility 는 값이 동일하면 내부에서 no-op 처리되므로 매 틱 호출해도 부담이 없다.
+	SetVisibility(!bDead && (bRecognized || IsLockedOnByLocalPlayer()));
+}
+
+bool UWxNameplateComponent::IsLockedOnByLocalPlayer() const
+{
+	const UWorld* World = GetWorld();
+	if (!World)
+	{
+		return false;
+	}
+
+	const APlayerController* PC = World->GetFirstPlayerController();
+	if (!PC)
+	{
+		return false;
+	}
+
+	const UWxLockOnComponent* LockOnComponent = UWxLockOnComponent::FindComponent(PC->GetPawn());
+	return LockOnComponent && LockOnComponent->GetLockOnTarget() == GetOwner();
 }

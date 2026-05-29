@@ -49,5 +49,15 @@ protected:
 	float MaxScale = 1.f;
 
 private:
-	void HandleDeadTagChanged(const FGameplayTag Tag, int32 NewCount);
+	/**
+	 * 표시 조건을 매 틱 진실로부터 재계산한다.
+	 * 표시 = 사망 아님 && (적이 플레이어를 인식 || 로컬 플레이어가 이 적을 락온).
+	 * 인식은 복제된 State.Recognized 태그, 락온은 로컬 플레이어의 LockOn 컴포넌트에서 파생한다.
+	 */
+	void RefreshVisibility();
+
+	/** 로컬 플레이어가 오너(이 적)를 락온 중인지 반환. 락온 표시는 시각적·개인 UI라 로컬에서만 판정한다. */
+	bool IsLockedOnByLocalPlayer() const;
+
+	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 };
