@@ -89,17 +89,14 @@ void UWxAIPerceptionComponent::HandleTargetPerceptionUpdated(AActor* Actor, FAIS
 	{
 		BB->SetValueAsObject(WxAIBlackboardKeys::TargetActor, Actor);
 	}
-	else
+	else if (BB->GetValueAsObject(WxAIBlackboardKeys::TargetActor) == Actor)
 	{
-		if (BB->GetValueAsObject(WxAIBlackboardKeys::TargetActor) == Actor)
-		{
-			// 시야를 잃으면 TargetActor 만 비워 BT 를 조사/귀환으로 전환시킨다.
-			BB->SetValueAsVector(WxAIBlackboardKeys::TargetLastKnownLocation, Stimulus.StimulusLocation);
-			BB->ClearValue(WxAIBlackboardKeys::TargetActor);
-		}
+		// 시야를 잃어도 TargetActor 는 유지한다(보스 등 뒤로 이동 등 일시적 상실). 마지막 인지 위치만 갱신하고,
+		// 실제 해제는 UpdateRecognition 의 리시 이탈 판정에 맡긴다.
+		BB->SetValueAsVector(WxAIBlackboardKeys::TargetLastKnownLocation, Stimulus.StimulusLocation);
 	}
 
-	// 인식 판정은 UpdateRecognition 한 곳에서만 한다. 여기서는 BB(TargetActor)만 갱신하고 판정을 위임한다.
+	// 인식/추적 판정은 UpdateRecognition 한 곳에서만 한다. 여기서는 BB(TargetActor/LastKnown)만 갱신하고 판정을 위임한다.
 	UpdateRecognition();
 }
 
@@ -110,6 +107,12 @@ void UWxAIPerceptionComponent::SetRecognized(bool bNewRecognized)
 	const AAIController* AIC = Cast<AAIController>(GetOwner());
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(AIC ? AIC->GetPawn() : nullptr);
 	if (!ASC)
+	{
+		return;
+	}
+	
+	const bool bCurrentlyRecognized = ASC->HasMatchingGameplayTag(WxGameplayTags::State_Recognized);
+	if (bNewRecognized == bCurrentlyRecognized)
 	{
 		return;
 	}
@@ -131,26 +134,28 @@ void UWxAIPerceptionComponent::UpdateRecognition()
 	UBlackboardComponent* BB = GetBlackboard();
 	if (!Pawn || !BB)
 	{
+		return;
+	}
+
+	const AActor* Target = Cast<AActor>(BB->GetValueAsObject(WxAIBlackboardKeys::TargetActor));
+	if (!Target)
+	{
+		// 추적 대상이 없으면 인식도 없다. 조사(LastKnown)/복귀(Home)는 BT 가 처리한다.
 		SetRecognized(false);
 		return;
 	}
 
-	// 타겟을 직접 확인 중이면 인식한다(최초 감지 시 즉시 ON, 교전 중 유지).
-	if (BB->GetValueAsObject(WxAIBlackboardKeys::TargetActor) != nullptr)
+	// 리시 이탈 판정: 추적 대상(TargetActor)이 배치 지점(HomeLocation)에서 LeashRadius 이상 벗어나면 추적을 끝내고 TargetActor/LastKnown 을 모두 비워 BT 가 복귀(MoveTo HomeLocation)로 떨어지게 한다.
+	const float TargetHomeDistSquared = FVector::DistSquared(Target->GetActorLocation(), BB->GetValueAsVector(WxAIBlackboardKeys::HomeLocation));
+	if (TargetHomeDistSquared > LeashRadius * LeashRadius)
 	{
-		SetRecognized(true);
+		BB->ClearValue(WxAIBlackboardKeys::TargetActor);
+		BB->ClearValue(WxAIBlackboardKeys::TargetLastKnownLocation);
+		SetRecognized(false);
 		return;
 	}
 
-	// 타겟을 놓친 상태에서만 추적 종료를 판정한다. 그 전까지는 인식을 유지한다(벽 뒤 등 일시적 시야 상실). 기획서 4.3:
-	//  - 배치 지점에서 LeashRadius 이상 멀어짐(리시 이탈), 또는
-	//  - 배치 지점 HomeArrivalRadius 안으로 귀환 완료.
-	const FVector HomeLocation = BB->GetValueAsVector(WxAIBlackboardKeys::HomeLocation);
-	const float DistSquared = FVector::DistSquared(Pawn->GetActorLocation(), HomeLocation);
-	if (DistSquared > LeashRadius * LeashRadius || DistSquared <= HomeArrivalRadius * HomeArrivalRadius)
-	{
-		SetRecognized(false);
-	}
+	SetRecognized(true);
 }
 
 void UWxAIPerceptionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)

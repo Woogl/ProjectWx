@@ -2,11 +2,9 @@
 
 #include "Character/WxBossCharacter.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
-#include "WxAIBlackboardKeys.h"
+#include "WxGameplayTags.h"
 #include "MVVM/WxGlobalViewModelSubsystem.h"
 #include "MVVM/WxViewModel_AbilitySystem.h"
-#include "AIController.h"
-#include "BehaviorTree/BlackboardComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
@@ -33,16 +31,11 @@ void AWxBossCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (AAIController* AIC = Cast<AAIController>(GetController()))
+	// 보스 체력바는 인식 지속 신호(State.Recognized)를 따른다. TargetActor 는 시야 상실 즉시 비워지므로(보스 등 뒤로 이동 등 일시적 시야 상실 포함) 표시 기준으로 쓰지 않는다. 인식이 유지되는 한 체력바도 유지된다.
+	if (AbilitySystemComponent)
 	{
-		if (UBlackboardComponent* BB = AIC->GetBlackboardComponent())
-		{
-			const FBlackboard::FKey KeyID = BB->GetKeyID(WxAIBlackboardKeys::TargetActor);
-			if (KeyID != FBlackboard::InvalidKey)
-			{
-				BB->RegisterObserver(KeyID, this, FOnBlackboardChangeNotification::CreateUObject(this, &AWxBossCharacter::HandleBlackboardValueChanged));
-			}
-		}
+		AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::State_Recognized, EGameplayTagEventType::NewOrRemoved)
+			.AddUObject(this, &AWxBossCharacter::HandleRecognizedTagChanged);
 	}
 }
 
@@ -50,22 +43,12 @@ void AWxBossCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	DeactivateBossAbilitySystemViewModel();
 
-	if (AAIController* AIC = Cast<AAIController>(GetController()))
-	{
-		if (UBlackboardComponent* BB = AIC->GetBlackboardComponent())
-		{
-			BB->UnregisterObserversFrom(this);
-		}
-	}
-
 	Super::EndPlay(EndPlayReason);
 }
 
-EBlackboardNotificationResult AWxBossCharacter::HandleBlackboardValueChanged(const UBlackboardComponent& BlackboardComp, FBlackboard::FKey ChangedKeyID)
+void AWxBossCharacter::HandleRecognizedTagChanged(const FGameplayTag Tag, int32 NewCount)
 {
-	const UObject* TargetActor = BlackboardComp.GetValueAsObject(WxAIBlackboardKeys::TargetActor);
-
-	if (TargetActor)
+	if (NewCount > 0)
 	{
 		ActivateBossAbilitySystemViewModel();
 	}
@@ -73,8 +56,6 @@ EBlackboardNotificationResult AWxBossCharacter::HandleBlackboardValueChanged(con
 	{
 		DeactivateBossAbilitySystemViewModel();
 	}
-
-	return EBlackboardNotificationResult::ContinueObserving;
 }
 
 void AWxBossCharacter::ActivateBossAbilitySystemViewModel()

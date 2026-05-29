@@ -13,14 +13,13 @@ class WXUI_API UWxViewModel : public UMVVMViewModelBase
 
 public:
 	virtual void BeginDestroy() override;
+	virtual void Deinitialize();
 
 	/** Shell 상태가 아닌 실제 데이터로 채워진 상태인지 여부. UI 바인딩용 FieldNotify */
 	UFUNCTION(BlueprintPure, FieldNotify, Category = "Wx|ViewModel")
 	bool IsInitialized() const;
 
 protected:
-	virtual void Deinitialize();
-
 	/**
 	 * 초기화 상태를 갱신하고 IsInitialized FieldNotify를 브로드캐스트한다.
 	 * 호출 규약: 파생 VM은 자신의 Initialize 말미에 SetInitialized(true),

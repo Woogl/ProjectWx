@@ -22,21 +22,20 @@ void AWxEnemyController::OnPossess(APawn* InPawn)
 		SetGenericTeamId(PawnTeam->GetGenericTeamId());
 	}
 
-	if (UBlackboardComponent* BB = GetBlackboardComponent())
-	{
-		BB->SetValueAsObject(WxAIBlackboardKeys::SelfActor, InPawn);
-		if (InPawn)
-		{
-			BB->SetValueAsVector(WxAIBlackboardKeys::HomeLocation, InPawn->GetActorLocation());
-		}
-	}
-
+	// Blackboard 컴포넌트는 RunBehaviorTree 안에서 생성되므로, BT 를 먼저 실행한 뒤에 컨텍스트 키를 세팅한다.
+	// (순서를 반대로 하면 GetBlackboardComponent() 가 null 이라 SelfActor/HomeLocation 세팅이 통째로 누락된다.)
 	if (AWxEnemyCharacter* Enemy = Cast<AWxEnemyCharacter>(InPawn))
 	{
 		if (UBehaviorTree* BT = Enemy->GetBehaviorTree())
 		{
 			RunBehaviorTree(BT);
 		}
+	}
+
+	if (UBlackboardComponent* BB = GetBlackboardComponent())
+	{
+		BB->SetValueAsObject(WxAIBlackboardKeys::SelfActor, InPawn);
+		BB->SetValueAsVector(WxAIBlackboardKeys::HomeLocation, InPawn->GetActorLocation());
 	}
 }
 
