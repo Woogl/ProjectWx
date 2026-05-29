@@ -136,11 +136,6 @@ void AWxSpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-bool AWxSpawner::IsRespawnEnabled() const
-{
-	return bEnableRespawn;
-}
-
 EWxSpawnerMode AWxSpawner::GetSpawnMode() const
 {
 	return SpawnMode;
@@ -180,8 +175,8 @@ void AWxSpawner::Respawn()
 	}
 	SpawnedActor.Reset();
 
-	// 영구 사망 처치된 Spawner (보스 등) 는 새 인스턴스를 spawn 하지 않는다.
-	if (bIsKilled && !bEnableRespawn)
+	// 부활 금지 Spawner (보스 등) 는 죽은 뒤 새 인스턴스를 spawn 하지 않는다.
+	if (bIsKilled && bNeverRevive)
 	{
 		return;
 	}

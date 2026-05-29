@@ -20,7 +20,7 @@ enum class EWxSpawnerMode : uint8
 	/** BeginPlay 에서 자동으로 스폰한다. */
 	Auto,
 
-	/** BeginPlay 자동 스폰을 건너뛰고 외부 트리거(Respawn) 로만 스폰한다. (예: SpawnConsole 의 타겟 Spawner) */
+	/** BeginPlay 자동 스폰을 건너뛰고 외부 트리거로만 스폰한다. */
 	Manual
 };
 
@@ -29,8 +29,8 @@ enum class EWxSpawnerMode : uint8
  *
  * 처치 상태(bIsKilled) 를 자체적으로 보유한다:
  *  - 처치 시 MarkKilled() → bIsKilled=true. 셀 언로드/리로드 사이엔 GUID 키로 보존 (WxSave 슬롯).
- *  - bEnableRespawn=true (일반): Respawn 호출 시 bIsKilled=false 로 리셋 후 새 인스턴스 생성.
- *  - bEnableRespawn=false (보스 등 영구 사망): Respawn 에서도 bIsKilled 그대로 유지, 새 인스턴스 생성 스킵.
+ *  - bNeverRevive=false (일반): Respawn 호출 시 bIsKilled=false 로 리셋 후 새 인스턴스 생성.
+ *  - bNeverRevive=true (보스 등): 죽은 뒤 Respawn 이 호출돼도 부활하지 않음(bIsKilled 유지, 생성 스킵). 살아있을 땐 일반 대상처럼 리셋됨.
  */
 UCLASS()
 class WXWORLD_API AWxSpawner : public AActor, public IWxSavableInterface
@@ -42,9 +42,6 @@ public:
 
 	/** 현재 스폰된 액터를 파괴하고 SpawnableActorClass로 새로 스폰한다. 서버 권한 필요. 영구 처치는 스킵. */
 	void Respawn();
-
-	/** 체크포인트 상호작용 등 일괄 리스폰의 대상인지 여부. false면 처치 시 영구 사망 처리(보스 등). */
-	bool IsRespawnEnabled() const;
 
 	/** 스폰 트리거 방식. Manual 은 일괄 리스폰(RespawnAutoSpawners) 대상에서 제외되고 개별 트리거로만 스폰된다. */
 	EWxSpawnerMode GetSpawnMode() const;
@@ -78,8 +75,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	EWxSpawnerMode SpawnMode = EWxSpawnerMode::Auto;
 	
+	/** true 면 처치 후 부활 금지(보스 등): 죽은 뒤 Respawn 이 호출돼도 새 인스턴스를 생성하지 않는다. 살아있을 땐 일반 대상처럼 리셋됨. */
 	UPROPERTY(EditAnywhere, Category = "Wx")
-	bool bEnableRespawn = true;
+	bool bNeverRevive = false;
 
 	/** 본 Spawner 가 처치 상태인지. WxSave 슬롯에 보존되어 셀 리로드/세션 간에 유지된다. */
 	UPROPERTY(SaveGame)
@@ -88,12 +86,14 @@ protected:
 	TWeakObjectPtr<AActor> SpawnedActor;
 
 #if WITH_EDITOR
+public:
 	virtual void PostLoad() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	void UpdateEditorPreviewFromSpawnableClass();
 #endif
 
 #if WITH_EDITORONLY_DATA
+private:
 	UPROPERTY(Transient)
 	TObjectPtr<UBillboardComponent> SpriteComponent;
 
