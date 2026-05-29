@@ -43,12 +43,18 @@ void UWxSpawnerSubsystem::MarkSpawnableKilled(const AActor* SpawnedActor)
 	}
 }
 
-void UWxSpawnerSubsystem::RespawnAll()
+void UWxSpawnerSubsystem::RespawnAutoSpawners()
 {
 	for (const TWeakObjectPtr<AWxSpawner>& Weak : RegisteredSpawners)
 	{
 		if (AWxSpawner* Spawner = Weak.Get())
 		{
+			// Manual 스포너는 외부 개별 트리거(SpawnConsole 등) 로만 스폰되며 일괄 리스폰 대상에서 제외.
+			if (Spawner->GetSpawnMode() == EWxSpawnerMode::Manual)
+			{
+				continue;
+			}
+
 			Spawner->Respawn();
 		}
 	}

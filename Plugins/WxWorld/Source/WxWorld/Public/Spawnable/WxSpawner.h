@@ -13,13 +13,24 @@ class USceneComponent;
 class USkeletalMeshComponent;
 class UStaticMeshComponent;
 
+/** Spawner 의 스폰 트리거 방식. */
+UENUM(BlueprintType)
+enum class EWxSpawnerMode : uint8
+{
+	/** BeginPlay 에서 자동으로 스폰한다. */
+	Auto,
+
+	/** BeginPlay 자동 스폰을 건너뛰고 외부 트리거(Respawn) 로만 스폰한다. (예: SpawnConsole 의 타겟 Spawner) */
+	Manual
+};
+
 /**
  * SpawnableActorClass 인스턴스를 스폰하는 레벨 배치 액터.
  *
  * 처치 상태(bIsKilled) 를 자체적으로 보유한다:
  *  - 처치 시 MarkKilled() → bIsKilled=true. 셀 언로드/리로드 사이엔 GUID 키로 보존 (WxSave 슬롯).
- *  - bEnableRespawn=true (일반): RespawnAll 호출 시 bIsKilled=false 로 리셋 후 새 인스턴스 생성.
- *  - bEnableRespawn=false (보스 등 영구 사망): RespawnAll 에서도 bIsKilled 그대로 유지, 새 인스턴스 생성 스킵.
+ *  - bEnableRespawn=true (일반): Respawn 호출 시 bIsKilled=false 로 리셋 후 새 인스턴스 생성.
+ *  - bEnableRespawn=false (보스 등 영구 사망): Respawn 에서도 bIsKilled 그대로 유지, 새 인스턴스 생성 스킵.
  */
 UCLASS()
 class WXWORLD_API AWxSpawner : public AActor, public IWxSavableInterface
@@ -34,6 +45,9 @@ public:
 
 	/** 체크포인트 상호작용 등 일괄 리스폰의 대상인지 여부. false면 처치 시 영구 사망 처리(보스 등). */
 	bool IsRespawnEnabled() const;
+
+	/** 스폰 트리거 방식. Manual 은 일괄 리스폰(RespawnAutoSpawners) 대상에서 제외되고 개별 트리거로만 스폰된다. */
+	EWxSpawnerMode GetSpawnMode() const;
 
 	/** 현재 이 Spawner가 보유한 spawned 액터. Subsystem 의 spawnable→spawner 역조회 등에 사용. */
 	AActor* GetSpawnedActor() const;
@@ -60,9 +74,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (MustImplement = "/Script/WxWorld.WxSpawnableInterface", AllowAbstract = "false"))
 	TSubclassOf<AActor> SpawnableActorClass;
 
-	/** false 면 BeginPlay 자동 스폰을 건너뛴다. 외부 트리거(Respawn) 로만 스폰하고 싶을 때는 false로 사용. (예: SpawnConsole 의 타겟 Spawner) */
+	/** 스폰 트리거 방식. Auto 면 BeginPlay 에서 자동 스폰, Manual 이면 외부 트리거(Respawn) 로만 스폰. */
 	UPROPERTY(EditAnywhere, Category = "Wx")
-	bool bSpawnOnBeginPlay = true;
+	EWxSpawnerMode SpawnMode = EWxSpawnerMode::Auto;
 	
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	bool bEnableRespawn = true;

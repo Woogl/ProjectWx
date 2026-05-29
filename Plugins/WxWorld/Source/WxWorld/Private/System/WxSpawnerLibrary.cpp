@@ -5,7 +5,7 @@
 #include "Engine/World.h"
 #include "System/WxSpawnerSubsystem.h"
 
-void UWxSpawnerLibrary::RespawnAllSpawners(const UObject* WorldContextObject)
+void UWxSpawnerLibrary::RespawnAutoSpawners(const UObject* WorldContextObject)
 {
 	if (!WorldContextObject)
 	{
@@ -20,6 +20,6 @@ void UWxSpawnerLibrary::RespawnAllSpawners(const UObject* WorldContextObject)
 
 	if (UWxSpawnerSubsystem* Subsystem = World->GetSubsystem<UWxSpawnerSubsystem>())
 	{
-		Subsystem->RespawnAll();
+		Subsystem->RespawnAutoSpawners();
 	}
 }

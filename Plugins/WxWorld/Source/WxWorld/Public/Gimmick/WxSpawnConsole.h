@@ -16,7 +16,7 @@ class UWxInteractionComponent;
  * 발동 후 재상호작용 불가.
  *
  * 타겟 Spawner 들은 콘솔 상호작용 전엔 자동 스폰을 막아야 하므로, 디자이너가 각 Spawner 의
- * bSpawnOnBeginPlay 를 false 로 설정해야 한다.
+ * SpawnMode 를 Manual 로 설정해야 한다.
  */
 UCLASS(Abstract)
 class WXWORLD_API AWxSpawnConsole : public AWxGimmick

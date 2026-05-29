@@ -48,6 +48,6 @@ void AWxCheckPoint::HandleInteracted(AActor* InstigatorActor)
 
 	if (UWxSpawnerSubsystem* Subsystem = GetWorld()->GetSubsystem<UWxSpawnerSubsystem>())
 	{
-		Subsystem->RespawnAll();
+		Subsystem->RespawnAutoSpawners();
 	}
 }

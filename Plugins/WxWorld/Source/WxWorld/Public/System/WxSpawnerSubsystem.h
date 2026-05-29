@@ -27,8 +27,8 @@ public:
 	/** Spawner 가 보유한 액터를 통해 역조회 후 해당 Spawner 를 처치 마킹. 캐릭터 사망 시 호출. */
 	void MarkSpawnableKilled(const AActor* SpawnedActor);
 
-	/** 등록된 모든 Spawner 에 대해 Respawn 호출. 부활 가능 Spawner 는 새 인스턴스 생성, 영구 사망 (보스) 은 스킵. */
-	void RespawnAll();
+	/** Auto 모드 Spawner 에 대해 Respawn 호출. Manual 모드는 개별 트리거 전용이라 제외. 영구 사망 (보스) 은 스킵. */
+	void RespawnAutoSpawners();
 
 private:
 	TSet<TWeakObjectPtr<AWxSpawner>> RegisteredSpawners;

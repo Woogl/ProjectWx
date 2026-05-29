@@ -94,7 +94,7 @@ void AWxSpawner::BeginPlay()
 		}
 	}
 
-	if (bSpawnOnBeginPlay)
+	if (SpawnMode == EWxSpawnerMode::Auto)
 	{
 		SpawnTarget();
 	}
@@ -139,6 +139,11 @@ void AWxSpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
 bool AWxSpawner::IsRespawnEnabled() const
 {
 	return bEnableRespawn;
+}
+
+EWxSpawnerMode AWxSpawner::GetSpawnMode() const
+{
+	return SpawnMode;
 }
 
 AActor* AWxSpawner::GetSpawnedActor() const
