@@ -48,7 +48,9 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	FGameplayEffectSpecHandle DrainSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_DrainDP::StaticClass(), GetAbilityLevel());
 	if (DrainSpecHandle.IsValid())
 	{
-		constexpr float GroggyDuration = 5.0f;
+		// 그로기 지속시간은 그로기 몽타주의 재생 길이를 따른다. (몽타주는 rate 1.0 으로 재생)
+		// DP는 이 시간 동안 0까지 드레인되며, 0에 도달해 State.Groggy 태그가 제거되면 그로기가 끝난다.
+		const float GroggyDuration = GroggyMontage->GetPlayLength();
 		DrainSpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, GroggyDuration);
 		DrainDPEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, DrainSpecHandle);
 	}
