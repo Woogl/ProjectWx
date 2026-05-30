@@ -14,8 +14,8 @@ AWxEnemyCharacter::AWxEnemyCharacter()
 	AIControllerClass = AWxEnemyController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
-	bUseControllerRotationYaw = true;
-
+	// 회전은 베이스(AWxCharacterBase)의 설정을 그대로 사용한다.
+	// bOrientRotationToMovement = true, RotationRate = 500°/s 로 이동 방향을 향해 부드럽게 회전한다.
 	GetCharacterMovement()->MaxWalkSpeed = 400.f;
 
 	// Full 모드: 모든 GE를 모든 클라이언트에 복제한다. 네임플레이트 UI(아이콘, 남은 시간 비율)에 필요.
