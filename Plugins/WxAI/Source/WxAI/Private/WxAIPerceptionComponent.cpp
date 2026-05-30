@@ -104,8 +104,7 @@ void UWxAIPerceptionComponent::SetRecognized(bool bNewRecognized)
 {
 	// 인식 상태를 폰의 ASC 태그로 발행한다. MinimalReplication 태그는 GE 없이 서버→클라이언트로
 	// 복제(COND_SkipOwner)되어, 각 클라이언트의 네임플레이트가 이 태그를 읽어 표시를 결정한다.
-	const AAIController* AIC = Cast<AAIController>(GetOwner());
-	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(AIC ? AIC->GetPawn() : nullptr);
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwnerPawn());
 	if (!ASC)
 	{
 		return;
@@ -129,8 +128,7 @@ void UWxAIPerceptionComponent::SetRecognized(bool bNewRecognized)
 
 void UWxAIPerceptionComponent::UpdateRecognition()
 {
-	const AAIController* AIC = Cast<AAIController>(GetOwner());
-	const APawn* Pawn = AIC ? AIC->GetPawn() : nullptr;
+	const APawn* Pawn = GetOwnerPawn();
 	UBlackboardComponent* BB = GetBlackboard();
 	if (!Pawn || !BB)
 	{
@@ -145,9 +143,10 @@ void UWxAIPerceptionComponent::UpdateRecognition()
 		return;
 	}
 
-	// 리시 이탈 판정: 추적 대상(TargetActor)이 배치 지점(HomeLocation)에서 LeashRadius 이상 벗어나면 추적을 끝내고 TargetActor/LastKnown 을 모두 비워 BT 가 복귀(MoveTo HomeLocation)로 떨어지게 한다.
-	const float TargetHomeDistSquared = FVector::DistSquared(Target->GetActorLocation(), BB->GetValueAsVector(WxAIBlackboardKeys::HomeLocation));
-	if (TargetHomeDistSquared > LeashRadius * LeashRadius)
+	// 리시 이탈 판정: 자신(폰)이 배치 지점(HomeLocation)에서 LeashRadius 이상 벗어나면 추적을 끝내고 TargetActor/LastKnown 을 모두 비워 BT 가 복귀(MoveTo HomeLocation)로 떨어지게 한다.
+	const float PawnHomeDistSquared = FVector::DistSquared(Pawn->GetActorLocation(), BB->GetValueAsVector(WxAIBlackboardKeys::HomeLocation));
+	const bool bExceededLeash = PawnHomeDistSquared > LeashRadius * LeashRadius;
+	if (bExceededLeash)
 	{
 		BB->ClearValue(WxAIBlackboardKeys::TargetActor);
 		BB->ClearValue(WxAIBlackboardKeys::TargetLastKnownLocation);
@@ -166,6 +165,12 @@ void UWxAIPerceptionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 
 	Super::EndPlay(EndPlayReason);
+}
+
+APawn* UWxAIPerceptionComponent::GetOwnerPawn() const
+{
+	const AAIController* AIC = Cast<AAIController>(GetOwner());
+	return AIC ? AIC->GetPawn() : nullptr;
 }
 
 UBlackboardComponent* UWxAIPerceptionComponent::GetBlackboard() const
