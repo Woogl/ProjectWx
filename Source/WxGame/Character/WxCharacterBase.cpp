@@ -125,6 +125,11 @@ AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const
 	return WeaponActor ? Cast<AWxWeaponBase>(WeaponActor->GetChildActor()) : nullptr;
 }
 
+FText AWxCharacterBase::GetCharacterName() const
+{
+	return CharacterName;
+}
+
 void AWxCharacterBase::EquipItem(const UWxItemDefinition* ItemDef)
 {
 	if (EquipmentComponent)
