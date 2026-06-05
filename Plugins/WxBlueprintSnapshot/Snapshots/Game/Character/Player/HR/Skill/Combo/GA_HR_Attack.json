@@ -1,0 +1,24 @@
+{
+	"blueprintPath": "/Game/Character/Player/HR/Skill/Combo/GA_HR_Attack.GA_HR_Attack",
+	"classDefaults":
+	{
+		"ComboMap":
+		{
+			"H": "/Game/Character/Player/HR/Skill/Combo/Combo3/AM_HR_Attack_LLH.AM_HR_Attack_LLH",
+			"L": "/Game/Character/Player/HR/Skill/Combo/Combo1/AM_HR_Attack_L.AM_HR_Attack_L",
+			"LH": "/Game/Character/Player/HR/Skill/Combo/Combo2/AM_HR_Attack_LH.AM_HR_Attack_LH",
+			"LHH": "/Game/Character/Player/HR/Skill/Combo/Combo2/AM_HR_Attack_LHH.AM_HR_Attack_LHH",
+			"LHHH": "/Game/Character/Player/HR/Skill/Combo/Combo2/AM_HR_Attack_LHHH.AM_HR_Attack_LHHH",
+			"LHHHH": "/Game/Character/Player/HR/Skill/Combo/Combo2/AM_HR_Attack_LHHHH.AM_HR_Attack_LHHHH",
+			"LHHHHH": "/Game/Character/Player/HR/Skill/Combo/Combo2/AM_HR_Attack_LHHHHH.AM_HR_Attack_LHHHHH",
+			"LL": "/Game/Character/Player/HR/Skill/Combo/Combo1/AM_HR_Attack_LL.AM_HR_Attack_LL",
+			"LLH": "/Game/Character/Player/HR/Skill/Combo/Combo3/AM_HR_Attack_LLH.AM_HR_Attack_LLH",
+			"LLHH": "/Game/Character/Player/HR/Skill/Combo/Combo3/AM_HR_Attack_LLHH.AM_HR_Attack_LLHH",
+			"LLHHH": "/Game/Character/Player/HR/Skill/Combo/Combo3/AM_HR_Attack_LLHHH.AM_HR_Attack_LLHHH",
+			"LLL": "/Game/Character/Player/HR/Skill/Combo/Combo1/AM_HR_Attack_LLL.AM_HR_Attack_LLL",
+			"LLLH": "/Game/Character/Player/HR/Skill/Combo/Combo4/AM_HR_Attack_LLLH.AM_HR_Attack_LLLH",
+			"LLLL": "/Game/Character/Player/HR/Skill/Combo/Combo1/AM_HR_Attack_LLLL.AM_HR_Attack_LLLL"
+		}
+	},
+	"parentClass": "/Script/WxCombat.WxAbility_Attack"
+}
