@@ -80,13 +80,3 @@ DerivedDataCache/*
 # IDE
 *.DotSettings.user
 .idea/
-
-# GASP 데모/쇼케이스 아트 (레포에서 제외, 로컬 디스크에는 유지)
-/Content/Characters/Echo/
-/Content/Characters/Paragon/
-/Content/Characters/UE4_Mannequin/
-/Content/MetaHumans/
-/Content/Locomotor/Mech/
-/Content/Blueprints/RetargetedCharacters/BP_Echo.uasset
-/Content/Blueprints/RetargetedCharacters/BP_Twinblast.uasset
-/Content/Blueprints/RetargetedCharacters/BP_UE4_Mannequin.uasset
