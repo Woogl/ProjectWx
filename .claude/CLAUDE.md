@@ -25,40 +25,30 @@
 2. Unreal 기본 Prefix에 `Wx`를 추가한다. (예시: `AWxCharacter`, `FWxPayload`, `EWxCategory`)
    
 3. 모든 소스 파일의 첫 줄은 `// Copyright Woogle. All Rights Reserved.`로 시작한다.
-
-4. 함수 선언 시 줄바꿈을 하지 않는다.
    
-5. `.h` 파일에서 inline 함수 정의를 금지한다. `FORCEINLINE`도 금지한다. (단, 템플릿 함수와 `constexpr` 상수는 예외)
-   
-6. 람다식은 delegate one-shot 바인딩 등 명시적 named function 작성이 과한 경우에만 사용한다. 알고리즘 술어 등은 named function을 선호한다.
+4. 람다식은 delegate one-shot 바인딩 등 명시적 named function 작성이 과한 경우에만 사용한다. 알고리즘 술어 등은 named function을 선호한다.
 
-7. if-else 문의 실행 블록은 반드시 중괄호`{}`를 사용한다.
+5. if-else 문의 실행 블록은 반드시 중괄호`{}`를 사용한다.
   
-8. 함수 override 시, `Super::`로 부모 클래스의 함수를 호출한다.
+6. 함수 override 시, `Super::`로 부모 클래스의 함수를 호출한다.
    
-9. 모든 Gameplay Tag는 C++ Native Tag로 선언한다.
+7. 모든 Gameplay Tag는 C++ Native Tag로 선언한다.
 
-10. Delegate에 바인딩되는 Callback 함수는 `Handle`을 Prefix로 사용한다. (예시: `HandleMontageEnded`, `HandleDeath`)
+8. Delegate에 바인딩되는 Callback 함수는 `Handle`을 Prefix로 사용한다. (예시: `HandleMontageEnded`, `HandleDeath`)
 
-11. `BlueprintCallable` 지정자는 Blueprint Function Library, Blueprint Async Action의 팩토리 함수에서만 사용한다.
+9. `BlueprintCallable` 지정자는 Blueprint Function Library, Blueprint Async Action의 팩토리 함수에서만 사용한다.
 
-12. 연속된 `UFUNCTION()` 또는 `UPROPERTY()` 선언 사이에는 빈 줄을 삽입한다.
+10. 모든 코드는 UE 5.7 API에서 검증되어야하며, Deprecated 처리된 API는 사용하지 않는다.
 
-13. 모든 코드는 UE 5.7 API에서 검증되어야하며, Deprecated 처리된 API는 사용하지 않는다.
-
-14. 모든 소스 파일의 인코딩은 UTF-8 (No BOM) 을 사용한다.
-
-15. 코드 작성 후 빌드가 성공하는지 점검한다. 빌드 명령어: `"BatchFiles/BuildProjectFiles.bat"`
+11. 모든 소스 파일의 인코딩은 UTF-8 (No BOM) 을 사용한다.
 
 ---
 
 ## 모듈 및 플러그인 규칙
 
 * 게임의 주요 시스템은 Unreal Engine Plugin 단위로 분리하여 개발한다.
-* 모든 플러그인은 다음 두 분류 중 하나다.
-  * **도메인 플러그인** — 특정 시스템을 제공. `WxCore` 외 다른 플러그인에 의존하지 않는다.
-  * **통합 플러그인** — 여러 도메인 플러그인을 소비하여 cross-cutting 기능을 제공. 모든 플러그인에 의존할 수 있으나, 어떤 플러그인도 통합 플러그인에 의존해서는 안 된다(단방향 leaf).
-* 플러그인 분류는 아래 표에 명시한다.
+* 모든 플러그인은 `WxCore`를 제외한 다른 플러그인을 참조하면 안된다.
+  플러그인 분류는 아래 표에 명시한다.
 
 | Module       | 분류              | Description                       |
 | ------------ | ----------------- | --------------------------------- |
