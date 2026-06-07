@@ -12,13 +12,6 @@ UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 	SetIsReplicatedByDefault(true);
 }
 
-void UWxAbilitySystemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(UWxAbilitySystemComponent, bRagdollActive);
-}
-
 void UWxAbilitySystemComponent::GiveAbilitySet()
 {
 	if (!AbilitySet)
@@ -58,6 +51,72 @@ void UWxAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Input
 			}
 		}
 	}
+}
+
+void UWxAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& InputTag)
+{
+	if (!InputTag.IsValid())
+	{
+		return;
+	}
+
+	SetLastReleasedInputTag(InputTag);
+
+	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
+	{
+		if (Spec.Ability && InputTag.MatchesAny(Spec.GetDynamicSpecSourceTags()))
+		{
+			Spec.InputPressed = false;
+			if (Spec.IsActive())
+			{
+				AbilitySpecInputReleased(Spec);
+
+				for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
+				{
+					InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
+				}
+			}
+		}
+	}
+}
+
+const FGameplayTag& UWxAbilitySystemComponent::GetLastPressedInputTag() const
+{
+	return LastPressedInputTag;
+}
+
+const FGameplayTag& UWxAbilitySystemComponent::GetLastReleasedInputTag() const
+{
+	return LastReleasedInputTag;
+}
+
+void UWxAbilitySystemComponent::OpenCancelWindow(const FGameplayTagContainer& AllowedAbilityTags)
+{
+	CancelWindowAllowedTags = AllowedAbilityTags;
+	AddLooseGameplayTag(WxGameplayTags::ANS_CancelWindow);
+}
+
+void UWxAbilitySystemComponent::CloseCancelWindow()
+{
+	RemoveLooseGameplayTag(WxGameplayTags::ANS_CancelWindow);
+
+	// 중첩 구간이 모두 닫혔을 때만 허용 목록을 비운다.
+	if (!HasMatchingGameplayTag(WxGameplayTags::ANS_CancelWindow))
+	{
+		CancelWindowAllowedTags.Reset();
+	}
+}
+
+bool UWxAbilitySystemComponent::AreAbilityTagsBlocked(const FGameplayTagContainer& Tags) const
+{
+	// 후딜 캔슬 윈도우가 열려 있고 Tags가 화이트리스트에 부합하면 하드 차단(BlockAbilitiesWithTag)을 무시한다.
+	// 비용/쿨다운/상태 등 나머지 발동 조건은 CanActivateAbility가 그대로 검사한다.
+	if (HasMatchingGameplayTag(WxGameplayTags::ANS_CancelWindow) && Tags.HasAny(CancelWindowAllowedTags))
+	{
+		return false;
+	}
+
+	return Super::AreAbilityTagsBlocked(Tags);
 }
 
 void UWxAbilitySystemComponent::SetRagdollActive(bool bNewActive)
@@ -101,38 +160,6 @@ void UWxAbilitySystemComponent::OnRep_RagdollActive()
 	Character->GetCharacterMovement()->DisableMovement();
 }
 
-void UWxAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& InputTag)
-{
-	if (!InputTag.IsValid())
-	{
-		return;
-	}
-
-	SetLastReleasedInputTag(InputTag);
-
-	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
-	{
-		if (Spec.Ability && InputTag.MatchesAny(Spec.GetDynamicSpecSourceTags()))
-		{
-			Spec.InputPressed = false;
-			if (Spec.IsActive())
-			{
-				AbilitySpecInputReleased(Spec);
-
-				for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
-				{
-					InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
-				}
-			}
-		}
-	}
-}
-
-const FGameplayTag& UWxAbilitySystemComponent::GetLastPressedInputTag() const
-{
-	return LastPressedInputTag;
-}
-
 void UWxAbilitySystemComponent::SetLastPressedInputTag(const FGameplayTag& InputTag)
 {
 	LastPressedInputTag = InputTag;
@@ -141,16 +168,6 @@ void UWxAbilitySystemComponent::SetLastPressedInputTag(const FGameplayTag& Input
 	{
 		ServerSetLastPressedInputTag(InputTag);
 	}
-}
-
-void UWxAbilitySystemComponent::ServerSetLastPressedInputTag_Implementation(const FGameplayTag& InputTag)
-{
-	LastPressedInputTag = InputTag;
-}
-
-const FGameplayTag& UWxAbilitySystemComponent::GetLastReleasedInputTag() const
-{
-	return LastReleasedInputTag;
 }
 
 void UWxAbilitySystemComponent::SetLastReleasedInputTag(const FGameplayTag& InputTag)
@@ -163,36 +180,19 @@ void UWxAbilitySystemComponent::SetLastReleasedInputTag(const FGameplayTag& Inpu
 	}
 }
 
+void UWxAbilitySystemComponent::ServerSetLastPressedInputTag_Implementation(const FGameplayTag& InputTag)
+{
+	LastPressedInputTag = InputTag;
+}
+
 void UWxAbilitySystemComponent::ServerSetLastReleasedInputTag_Implementation(const FGameplayTag& InputTag)
 {
 	LastReleasedInputTag = InputTag;
 }
 
-void UWxAbilitySystemComponent::OpenCancelWindow(const FGameplayTagContainer& AllowedAbilityTags)
+void UWxAbilitySystemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	CancelWindowAllowedTags = AllowedAbilityTags;
-	AddLooseGameplayTag(WxGameplayTags::ANS_CancelWindow);
-}
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-void UWxAbilitySystemComponent::CloseCancelWindow()
-{
-	RemoveLooseGameplayTag(WxGameplayTags::ANS_CancelWindow);
-
-	// 중첩 구간이 모두 닫혔을 때만 허용 목록을 비운다.
-	if (!HasMatchingGameplayTag(WxGameplayTags::ANS_CancelWindow))
-	{
-		CancelWindowAllowedTags.Reset();
-	}
-}
-
-bool UWxAbilitySystemComponent::AreAbilityTagsBlocked(const FGameplayTagContainer& Tags) const
-{
-	// 후딜 캔슬 윈도우가 열려 있고 Tags가 화이트리스트에 부합하면 하드 차단(BlockAbilitiesWithTag)을 무시한다.
-	// 비용/쿨다운/상태 등 나머지 발동 조건은 CanActivateAbility가 그대로 검사한다.
-	if (HasMatchingGameplayTag(WxGameplayTags::ANS_CancelWindow) && Tags.HasAny(CancelWindowAllowedTags))
-	{
-		return false;
-	}
-
-	return Super::AreAbilityTagsBlocked(Tags);
+	DOREPLIFETIME(UWxAbilitySystemComponent, bRagdollActive);
 }

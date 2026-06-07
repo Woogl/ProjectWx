@@ -163,7 +163,7 @@ void UWxAbility_Dodge::HandleTargetDataReceived(const FGameplayAbilityTargetData
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-//  극한 회피 처리
+//  극한 회피 / 반격 처리
 // ────────────────────────────────────────────────────────────────────────────
 
 void UWxAbility_Dodge::ListenForDodgeSuccess()
@@ -177,25 +177,6 @@ void UWxAbility_Dodge::ListenForDodgeSuccess()
 		EventTask->EventReceived.AddDynamic(this, &UWxAbility_Dodge::HandleDodgeSuccess);
 		EventTask->ReadyForActivation();
 	}
-}
-
-void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
-{
-	if (!PerfectDodgeMontage)
-	{
-		return;
-	}
-
-	// 극한 회피 성공 보상: MP 회복
-	UWxEffect_RecoverResource::ApplyTo(GetAbilitySystemComponentFromActorInfo(), 0.f, PerfectDodgeMPRecovery);
-
-	// 극한 회피 성공 시 짧은 슬로우 타임 연출
-	if (UWxAbilityTask_SlowTime* SlowTimeTask = UWxAbilityTask_SlowTime::CreateTask(this, PerfectDodgeSlowTimeDilation, PerfectDodgeSlowTimeDuration))
-	{
-		SlowTimeTask->ReadyForActivation();
-	}
-
-	PlayPerfectDodgeMontage();
 }
 
 void UWxAbility_Dodge::PlayPerfectDodgeMontage()
@@ -220,38 +201,6 @@ void UWxAbility_Dodge::PlayPerfectDodgeMontage()
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Dodge::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Dodge::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
-}
-
-// ────────────────────────────────────────────────────────────────────────────
-//  반격 처리
-// ────────────────────────────────────────────────────────────────────────────
-
-void UWxAbility_Dodge::ListenForCounterInput()
-{
-	WaitInputTask = UWxAbilityTask_WaitInputTagPressed::CreateTask(this, WxGameplayTags::Input_Attack);
-	if (WaitInputTask)
-	{
-		WaitInputTask->OnPressed.AddDynamic(this, &UWxAbility_Dodge::HandleCounterInputPressed);
-		WaitInputTask->ReadyForActivation();
-	}
-}
-
-void UWxAbility_Dodge::HandleCounterInputPressed()
-{
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (!ASC)
-	{
-		return;
-	}
-
-	// ANS_ComboWindow 구간 내에서만 반격 허용
-	if (!ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_ComboWindow))
-	{
-		ListenForCounterInput();
-		return;
-	}
-
-	PlayDodgeCounterMontage();
 }
 
 void UWxAbility_Dodge::PlayDodgeCounterMontage()
@@ -282,6 +231,53 @@ void UWxAbility_Dodge::PlayDodgeCounterMontage()
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Dodge::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Dodge::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
+}
+
+void UWxAbility_Dodge::ListenForCounterInput()
+{
+	WaitInputTask = UWxAbilityTask_WaitInputTagPressed::CreateTask(this, WxGameplayTags::Input_Attack);
+	if (WaitInputTask)
+	{
+		WaitInputTask->OnPressed.AddDynamic(this, &UWxAbility_Dodge::HandleCounterInputPressed);
+		WaitInputTask->ReadyForActivation();
+	}
+}
+
+void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
+{
+	if (!PerfectDodgeMontage)
+	{
+		return;
+	}
+
+	// 극한 회피 성공 보상: MP 회복
+	UWxEffect_RecoverResource::ApplyTo(GetAbilitySystemComponentFromActorInfo(), 0.f, PerfectDodgeMPRecovery);
+
+	// 극한 회피 성공 시 짧은 슬로우 타임 연출
+	if (UWxAbilityTask_SlowTime* SlowTimeTask = UWxAbilityTask_SlowTime::CreateTask(this, PerfectDodgeSlowTimeDilation, PerfectDodgeSlowTimeDuration))
+	{
+		SlowTimeTask->ReadyForActivation();
+	}
+
+	PlayPerfectDodgeMontage();
+}
+
+void UWxAbility_Dodge::HandleCounterInputPressed()
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (!ASC)
+	{
+		return;
+	}
+
+	// ANS_ComboWindow 구간 내에서만 반격 허용
+	if (!ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_ComboWindow))
+	{
+		ListenForCounterInput();
+		return;
+	}
+
+	PlayDodgeCounterMontage();
 }
 
 // ────────────────────────────────────────────────────────────────────────────

@@ -23,10 +23,11 @@ public:
 	UPROPERTY()
 	FWxOnSlowTimeFinished OnFinished;
 
-protected:
-	virtual void Activate() override;
 	virtual void TickTask(float DeltaTime) override;
 	virtual void OnDestroy(bool bInOwnerFinished) override;
+
+protected:
+	virtual void Activate() override;
 
 private:
 	float TimeDilation = 0.2f;

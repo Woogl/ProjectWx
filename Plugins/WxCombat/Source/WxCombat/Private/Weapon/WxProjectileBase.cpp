@@ -43,6 +43,32 @@ AWxProjectileBase::AWxProjectileBase()
 	InitialLifeSpan = 10.f;
 }
 
+void AWxProjectileBase::InitializeDamageSpec(const FWxDamageInfo& InDamageInfo)
+{
+	UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator());
+	if (!SourceASC)
+	{
+		return;
+	}
+
+	CachedEffectContext = SourceASC->MakeEffectContext();
+	CachedEffectContext.AddSourceObject(this);
+	CachedEffectContext.AddInstigator(GetOwner(), GetInstigator());
+	CachedEffectContext.SetAbility(SourceASC->GetAnimatingAbility());
+
+	CachedSpecHandles = InDamageInfo.MakeSpecs(SourceASC, CachedEffectContext);
+}
+
+void AWxProjectileBase::Destroyed()
+{
+	if (ImpactFX)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ImpactFX, GetActorLocation(), GetActorRotation());
+	}
+
+	Super::Destroyed();
+}
+
 void AWxProjectileBase::BeginPlay()
 {
 	Super::BeginPlay();
@@ -60,22 +86,6 @@ void AWxProjectileBase::BeginPlay()
 			}
 		}
 	}
-}
-
-void AWxProjectileBase::InitializeDamageSpec(const FWxDamageInfo& InDamageInfo)
-{
-	UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator());
-	if (!SourceASC)
-	{
-		return;
-	}
-
-	CachedEffectContext = SourceASC->MakeEffectContext();
-	CachedEffectContext.AddSourceObject(this);
-	CachedEffectContext.AddInstigator(GetOwner(), GetInstigator());
-	CachedEffectContext.SetAbility(SourceASC->GetAnimatingAbility());
-
-	CachedSpecHandles = InDamageInfo.MakeSpecs(SourceASC, CachedEffectContext);
 }
 
 void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -136,14 +146,4 @@ void AWxProjectileBase::HandleHitCollisionHit(UPrimitiveComponent* HitComponent,
 	}
 
 	Destroy();
-}
-
-void AWxProjectileBase::Destroyed()
-{
-	if (ImpactFX)
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ImpactFX, GetActorLocation(), GetActorRotation());
-	}
-
-	Super::Destroyed();
 }

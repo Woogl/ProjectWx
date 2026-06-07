@@ -20,24 +20,6 @@ UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAb
 	return Task;
 }
 
-void UWxAbilityTask_LockOnTarget::Activate()
-{
-	Super::Activate();
-
-	if (AActor* TargetActor = Target.Get())
-	{
-		TargetActor->OnDestroyed.AddDynamic(this, &UWxAbilityTask_LockOnTarget::HandleTargetDestroyed);
-
-		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
-		{
-			TargetASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
-				.AddUObject(this, &UWxAbilityTask_LockOnTarget::HandleTargetDeathTagChanged);
-		}
-
-		CreateReticleWidget();
-	}
-}
-
 void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 {
 	Super::TickTask(DeltaTime);
@@ -109,6 +91,24 @@ void UWxAbilityTask_LockOnTarget::OnDestroy(bool bInOwnerFinished)
 	}
 
 	Super::OnDestroy(bInOwnerFinished);
+}
+
+void UWxAbilityTask_LockOnTarget::Activate()
+{
+	Super::Activate();
+
+	if (AActor* TargetActor = Target.Get())
+	{
+		TargetActor->OnDestroyed.AddDynamic(this, &UWxAbilityTask_LockOnTarget::HandleTargetDestroyed);
+
+		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
+		{
+			TargetASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
+				.AddUObject(this, &UWxAbilityTask_LockOnTarget::HandleTargetDeathTagChanged);
+		}
+
+		CreateReticleWidget();
+	}
 }
 
 void UWxAbilityTask_LockOnTarget::HandleTargetDestroyed(AActor* DestroyedActor)

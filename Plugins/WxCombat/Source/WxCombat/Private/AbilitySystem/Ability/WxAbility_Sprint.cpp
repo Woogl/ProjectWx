@@ -17,6 +17,13 @@ UWxAbility_Sprint::UWxAbility_Sprint()
 	SprintEffectClass = UWxEffect_Sprint::StaticClass();
 }
 
+void UWxAbility_Sprint::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
+
+	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+}
+
 void UWxAbility_Sprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
@@ -55,11 +62,4 @@ void UWxAbility_Sprint::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 		ActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffect(SpeedEffectHandle);
 		SpeedEffectHandle.Invalidate();
 	}
-}
-
-void UWxAbility_Sprint::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
-{
-	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
-
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }

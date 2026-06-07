@@ -23,7 +23,6 @@ public:
 	UPROPERTY()
 	FWxOnTurnAroundCompleted OnCompleted;
 
-protected:
 	virtual void TickTask(float DeltaTime) override;
 
 private:

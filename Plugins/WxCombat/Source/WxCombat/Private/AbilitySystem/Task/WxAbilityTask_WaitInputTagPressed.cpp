@@ -11,6 +11,21 @@ UWxAbilityTask_WaitInputTagPressed* UWxAbilityTask_WaitInputTagPressed::CreateTa
 	return Task;
 }
 
+void UWxAbilityTask_WaitInputTagPressed::OnDestroy(bool AbilityEnded)
+{
+	UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
+	if (ASC)
+	{
+		ASC->AbilityReplicatedEventDelegate(
+			EAbilityGenericReplicatedEvent::InputPressed,
+			GetAbilitySpecHandle(),
+			GetActivationPredictionKey()
+		).Remove(DelegateHandle);
+	}
+
+	Super::OnDestroy(AbilityEnded);
+}
+
 void UWxAbilityTask_WaitInputTagPressed::Activate()
 {
 	UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
@@ -25,21 +40,6 @@ void UWxAbilityTask_WaitInputTagPressed::Activate()
 		GetAbilitySpecHandle(),
 		GetActivationPredictionKey()
 	).AddUObject(this, &UWxAbilityTask_WaitInputTagPressed::HandleInputPressed);
-}
-
-void UWxAbilityTask_WaitInputTagPressed::OnDestroy(bool AbilityEnded)
-{
-	UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
-	if (ASC)
-	{
-		ASC->AbilityReplicatedEventDelegate(
-			EAbilityGenericReplicatedEvent::InputPressed,
-			GetAbilitySpecHandle(),
-			GetActivationPredictionKey()
-		).Remove(DelegateHandle);
-	}
-
-	Super::OnDestroy(AbilityEnded);
 }
 
 void UWxAbilityTask_WaitInputTagPressed::HandleInputPressed()

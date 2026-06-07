@@ -32,10 +32,9 @@ class WXCOMBAT_API UWxAbility_Skill : public UWxAbilityBase
 public:
 	UWxAbility_Skill();
 
+protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-
-protected:
 	/** 순차 재생할 스킬 몽타주 목록. 인덱스 0부터 재생하고, ANS_ComboWindow 구간 입력 시 다음 인덱스로 전환 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TArray<TObjectPtr<UAnimMontage>> SkillMontages;

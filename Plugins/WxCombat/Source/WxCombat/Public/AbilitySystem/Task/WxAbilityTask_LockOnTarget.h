@@ -27,10 +27,11 @@ public:
 	UPROPERTY()
 	FWxOnTargetLost OnTargetLost;
 
-protected:
-	virtual void Activate() override;
 	virtual void TickTask(float DeltaTime) override;
 	virtual void OnDestroy(bool bInOwnerFinished) override;
+
+protected:
+	virtual void Activate() override;
 
 private:
 	UFUNCTION()

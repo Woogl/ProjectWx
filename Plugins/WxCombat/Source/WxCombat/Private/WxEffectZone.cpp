@@ -15,13 +15,6 @@ AWxEffectZone::AWxEffectZone()
 	SetRootComponent(SceneRoot);
 }
 
-void AWxEffectZone::NotifyActorBeginOverlap(AActor* OtherActor)
-{
-	Super::NotifyActorBeginOverlap(OtherActor);
-
-	ApplyEffect(OtherActor);
-}
-
 void AWxEffectZone::ApplyEffect(AActor* Target)
 {
 	if (!Target || !EffectClass)
@@ -74,4 +67,11 @@ void AWxEffectZone::ApplyEffect(AActor* Target)
 	{
 		AppliedTargets.Add(Target);
 	}
+}
+
+void AWxEffectZone::NotifyActorBeginOverlap(AActor* OtherActor)
+{
+	Super::NotifyActorBeginOverlap(OtherActor);
+
+	ApplyEffect(OtherActor);
 }

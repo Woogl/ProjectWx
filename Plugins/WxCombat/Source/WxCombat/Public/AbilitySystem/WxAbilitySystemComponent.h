@@ -15,8 +15,6 @@ class WXCOMBAT_API UWxAbilitySystemComponent : public UAbilitySystemComponent
 public:
 	UWxAbilitySystemComponent();
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 	void GiveAbilitySet();
 
 	/** 입력 태그에 매칭되는 어빌리티 활성화 (입력 눌림) */
@@ -67,6 +65,8 @@ private:
 	void ServerSetLastReleasedInputTag(const FGameplayTag& InputTag);
 
 protected:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	/** Ability, Effect 초기 데이터 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|GAS")
 	TObjectPtr<UWxAbilitySet> AbilitySet;

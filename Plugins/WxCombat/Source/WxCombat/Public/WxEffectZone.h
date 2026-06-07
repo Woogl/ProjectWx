@@ -42,9 +42,9 @@ public:
 
 	void ApplyEffect(AActor* Target);
 
-protected:
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
 
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx")
 	TObjectPtr<USceneComponent> SceneRoot;
 

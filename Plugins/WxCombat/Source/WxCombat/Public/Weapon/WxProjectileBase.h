@@ -37,6 +37,8 @@ public:
 	/** DamageInfo 기반 Spec 배열을 생성해 저장한다. SpawnActorDeferred 직후 FinishSpawning 이전에 호출한다. */
 	void InitializeDamageSpec(const FWxDamageInfo& InDamageInfo);
 
+	virtual void Destroyed() override;
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Projectile")
 	TObjectPtr<UArrowComponent> Arrow;
@@ -57,7 +59,6 @@ protected:
 	TObjectPtr<UNiagaraSystem> ImpactFX;
 
 	virtual void BeginPlay() override;
-	virtual void Destroyed() override;
 
 	UFUNCTION()
 	virtual void HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

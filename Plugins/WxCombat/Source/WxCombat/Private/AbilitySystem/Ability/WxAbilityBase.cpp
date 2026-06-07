@@ -10,6 +10,29 @@
 #include "GameplayEffect.h"
 #include "WxGameplayTags.h"
 
+UWxAbilityBase::UWxAbilityBase()
+{
+	InstancingPolicy  = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+}
+
+float UWxAbilityBase::GetMontagePlayRate() const
+{
+	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (!ASC)
+	{
+		return 1.f;
+	}
+
+	const UWxCombatAttributeSet* AttrSet = ASC->GetSet<UWxCombatAttributeSet>();
+	if (!AttrSet)
+	{
+		return 1.f;
+	}
+
+	return FMath::Max(AttrSet->GetASPD(), 0.01f);
+}
+
 #if WITH_EDITOR
 bool UWxAbilityBase::CanEditChange(const FProperty* InProperty) const
 {
@@ -71,50 +94,6 @@ void UWxAbilityBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChang
 
 #endif
 
-UWxAbilityBase::UWxAbilityBase()
-{
-	InstancingPolicy  = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
-}
-
-float UWxAbilityBase::GetMontagePlayRate() const
-{
-	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (!ASC)
-	{
-		return 1.f;
-	}
-
-	const UWxCombatAttributeSet* AttrSet = ASC->GetSet<UWxCombatAttributeSet>();
-	if (!AttrSet)
-	{
-		return 1.f;
-	}
-
-	return FMath::Max(AttrSet->GetASPD(), 0.01f);
-}
-
-void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
-{
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-	for (const FWxAbilityEffect& Effect : OnActivateEffects)
-	{
-		if (Effect.EffectClass)
-		{
-			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(Effect.EffectClass, GetAbilityLevel());
-			if (SpecHandle.IsValid())
-			{
-				for (const auto& [Tag, Value] : Effect.SetByCallers)
-				{
-					SpecHandle.Data->SetSetByCallerMagnitude(Tag, Value);
-				}
-				ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
-			}
-		}
-	}
-}
-
 void UWxAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
@@ -134,14 +113,6 @@ void UWxAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, c
 	{
 		ActorInfo->AbilitySystemComponent->TryActivateAbility(Spec.Handle);
 	}
-}
-
-void UWxAbilityBase::ApplyAbilityTableRow(const FWxAbilityTableRow& Row)
-{
-	CooldownTime = Row.CooldownTime;
-	MaxRecharges = FMath::Max(1, Row.MaxRecharges);
-	MPCost = Row.MPCost;
-	UPCost = Row.UPCost;
 }
 
 UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
@@ -311,6 +282,35 @@ void UWxAbilityBase::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FG
 		{
 			SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Cost, -UPCost);
 			ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
+		}
+	}
+}
+
+void UWxAbilityBase::ApplyAbilityTableRow(const FWxAbilityTableRow& Row)
+{
+	CooldownTime = Row.CooldownTime;
+	MaxRecharges = FMath::Max(1, Row.MaxRecharges);
+	MPCost = Row.MPCost;
+	UPCost = Row.UPCost;
+}
+
+void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+{
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	for (const FWxAbilityEffect& Effect : OnActivateEffects)
+	{
+		if (Effect.EffectClass)
+		{
+			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(Effect.EffectClass, GetAbilityLevel());
+			if (SpecHandle.IsValid())
+			{
+				for (const auto& [Tag, Value] : Effect.SetByCallers)
+				{
+					SpecHandle.Data->SetSetByCallerMagnitude(Tag, Value);
+				}
+				ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
+			}
 		}
 	}
 }

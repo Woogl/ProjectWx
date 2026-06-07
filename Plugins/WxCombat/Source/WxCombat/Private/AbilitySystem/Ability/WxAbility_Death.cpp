@@ -42,6 +42,23 @@ void UWxAbility_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	PlayDeathMontageOrRagdoll();
 }
 
+void UWxAbility_Death::HandleMontageCompleted()
+{
+	// 사망 몽타주가 의도한 포즈로 자연 종료 — 래그돌 없이 종료
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+}
+
+void UWxAbility_Death::HandleMontageInterrupted()
+{
+	// 외부 시스템이 사망 몽타주를 끊은 비정상 경로 — 래그돌로 안전 폴백
+	RagdollAndEnd(true);
+}
+
+void UWxAbility_Death::HandleMontageCancelled()
+{
+	RagdollAndEnd(true);
+}
+
 void UWxAbility_Death::PlayDeathMontageOrRagdoll()
 {
 	if (!DeathMontage)
@@ -76,23 +93,6 @@ void UWxAbility_Death::PlayDeathMontageOrRagdoll()
 void UWxAbility_Death::HandleRagdollDelayElapsed()
 {
 	RagdollAndEnd(false);
-}
-
-void UWxAbility_Death::HandleMontageCompleted()
-{
-	// 사망 몽타주가 의도한 포즈로 자연 종료 — 래그돌 없이 종료
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-}
-
-void UWxAbility_Death::HandleMontageInterrupted()
-{
-	// 외부 시스템이 사망 몽타주를 끊은 비정상 경로 — 래그돌로 안전 폴백
-	RagdollAndEnd(true);
-}
-
-void UWxAbility_Death::HandleMontageCancelled()
-{
-	RagdollAndEnd(true);
 }
 
 void UWxAbility_Death::RagdollAndEnd(bool bWasCancelled)

@@ -26,7 +26,6 @@ class WXCOMBAT_API UWxAbility_Pattern : public UWxAbilityBase
 public:
 	UWxAbility_Pattern();
 	
-protected:
 #if WITH_EDITOR
 	virtual bool CanEditChange(const FProperty* InProperty) const override;
 #endif

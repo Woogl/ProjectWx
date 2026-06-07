@@ -111,6 +111,26 @@ void UWxAbility_Skill::WaitForComboInput()
 	WaitInputTask->ReadyForActivation();
 }
 
+void UWxAbility_Skill::HandleMontageCompleted()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+}
+
+void UWxAbility_Skill::HandleMontageBlendOut()
+{
+	// OnCompleted가 후속 발동하므로 여기서는 처리하지 않음
+}
+
+void UWxAbility_Skill::HandleMontageInterrupted()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+}
+
+void UWxAbility_Skill::HandleMontageCancelled()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+}
+
 void UWxAbility_Skill::HandleComboInputPressed(float TimeWaited)
 {
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
@@ -138,24 +158,4 @@ void UWxAbility_Skill::HandleComboInputPressed(float TimeWaited)
 		// 재발동 실패 (쿨다운, 비용 부족, 차단 등) — 다음 신규 발동이 NextComboIndex를 잘못 쓰지 않도록 클리어
 		NextComboIndex = INDEX_NONE;
 	}
-}
-
-void UWxAbility_Skill::HandleMontageCompleted()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-}
-
-void UWxAbility_Skill::HandleMontageBlendOut()
-{
-	// OnCompleted가 후속 발동하므로 여기서는 처리하지 않음
-}
-
-void UWxAbility_Skill::HandleMontageInterrupted()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-}
-
-void UWxAbility_Skill::HandleMontageCancelled()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }

@@ -14,15 +14,6 @@ UWxAbilityTask_SlowTime* UWxAbilityTask_SlowTime::CreateTask(UGameplayAbility* O
 	return Task;
 }
 
-void UWxAbilityTask_SlowTime::Activate()
-{
-	Super::Activate();
-
-	UWxTimeDilationComponent::SetGlobalTimeDilationAuthoritative(this, TimeDilation);
-
-	StartRealTimeSeconds = GetWorld()->GetRealTimeSeconds();
-}
-
 void UWxAbilityTask_SlowTime::TickTask(float DeltaTime)
 {
 	Super::TickTask(DeltaTime);
@@ -39,4 +30,13 @@ void UWxAbilityTask_SlowTime::OnDestroy(bool bInOwnerFinished)
 	UWxTimeDilationComponent::SetGlobalTimeDilationAuthoritative(this, 1.f);
 
 	Super::OnDestroy(bInOwnerFinished);
+}
+
+void UWxAbilityTask_SlowTime::Activate()
+{
+	Super::Activate();
+
+	UWxTimeDilationComponent::SetGlobalTimeDilationAuthoritative(this, TimeDilation);
+
+	StartRealTimeSeconds = GetWorld()->GetRealTimeSeconds();
 }

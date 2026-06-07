@@ -17,6 +17,15 @@ UWxAbilityTask_PlaySkillCutscene* UWxAbilityTask_PlaySkillCutscene::CreateTask(U
 	return Task;
 }
 
+void UWxAbilityTask_PlaySkillCutscene::OnDestroy(bool bInOwnerFinished)
+{
+	RemoveInvincibleTag();
+	RestoreTimeDilation();
+	CleanupSequenceActor();
+
+	Super::OnDestroy(bInOwnerFinished);
+}
+
 void UWxAbilityTask_PlaySkillCutscene::Activate()
 {
 	Super::Activate();
@@ -95,15 +104,6 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 	SequencePlayer->Play();
 }
 
-void UWxAbilityTask_PlaySkillCutscene::OnDestroy(bool bInOwnerFinished)
-{
-	RemoveInvincibleTag();
-	RestoreTimeDilation();
-	CleanupSequenceActor();
-
-	Super::OnDestroy(bInOwnerFinished);
-}
-
 void UWxAbilityTask_PlaySkillCutscene::HandleSequenceFinished()
 {
 	RestoreTimeDilation();
@@ -115,21 +115,6 @@ void UWxAbilityTask_PlaySkillCutscene::HandleSequenceFinished()
 	}
 
 	EndTask();
-}
-
-void UWxAbilityTask_PlaySkillCutscene::RestoreTimeDilation()
-{
-	if (!bTimeDilationActive)
-	{
-		return;
-	}
-	bTimeDilationActive = false;
-
-	UWorld* World = GetWorld();
-	if (World)
-	{
-		UGameplayStatics::SetGlobalTimeDilation(World, OriginalTimeDilation);
-	}
 }
 
 void UWxAbilityTask_PlaySkillCutscene::AddInvincibleTag()
@@ -147,6 +132,21 @@ void UWxAbilityTask_PlaySkillCutscene::RemoveInvincibleTag()
 	if (ASC)
 	{
 		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Invincible);
+	}
+}
+
+void UWxAbilityTask_PlaySkillCutscene::RestoreTimeDilation()
+{
+	if (!bTimeDilationActive)
+	{
+		return;
+	}
+	bTimeDilationActive = false;
+
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		UGameplayStatics::SetGlobalTimeDilation(World, OriginalTimeDilation);
 	}
 }
 

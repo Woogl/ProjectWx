@@ -38,9 +38,10 @@ public:
 	UPROPERTY()
 	FWxOnCutsceneCancelled OnCancelled;
 
+	virtual void OnDestroy(bool bInOwnerFinished) override;
+
 protected:
 	virtual void Activate() override;
-	virtual void OnDestroy(bool bInOwnerFinished) override;
 
 private:
 	UFUNCTION()

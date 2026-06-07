@@ -27,8 +27,10 @@ public:
 
 	static UWxAbilityTask_WaitInputTagPressed* CreateTask(UGameplayAbility* OwningAbility, FGameplayTag InInputTag);
 
-	virtual void Activate() override;
 	virtual void OnDestroy(bool AbilityEnded) override;
+
+protected:
+	virtual void Activate() override;
 
 private:
 	FGameplayTag InputTag;

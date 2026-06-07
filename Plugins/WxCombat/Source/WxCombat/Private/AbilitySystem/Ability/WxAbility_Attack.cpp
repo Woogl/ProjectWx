@@ -118,6 +118,26 @@ bool UWxAbility_Attack::HasNextCombo() const
 	return ComboMap.Contains(FName(*(CurrentPath + TEXT("L")))) || ComboMap.Contains(FName(*(CurrentPath + TEXT("H"))));
 }
 
+void UWxAbility_Attack::HandleMontageCompleted()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+}
+
+void UWxAbility_Attack::HandleMontageBlendOut()
+{
+	// OnCompleted가 후속 발동하므로 여기서는 처리하지 않음
+}
+
+void UWxAbility_Attack::HandleMontageInterrupted()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+}
+
+void UWxAbility_Attack::HandleMontageCancelled()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+}
+
 void UWxAbility_Attack::HandleComboInputPressed(float TimeWaited)
 {
 	const UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
@@ -153,24 +173,4 @@ bool UWxAbility_Attack::TryAdvanceCombo(const TCHAR* Suffix)
 	CurrentPath = NextPath;
 	PlayComboMontage();
 	return true;
-}
-
-void UWxAbility_Attack::HandleMontageCompleted()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-}
-
-void UWxAbility_Attack::HandleMontageBlendOut()
-{
-	// OnCompleted가 후속 발동하므로 여기서는 처리하지 않음
-}
-
-void UWxAbility_Attack::HandleMontageInterrupted()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-}
-
-void UWxAbility_Attack::HandleMontageCancelled()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }

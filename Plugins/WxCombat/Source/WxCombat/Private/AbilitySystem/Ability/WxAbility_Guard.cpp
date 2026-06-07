@@ -24,6 +24,39 @@ UWxAbility_Guard::UWxAbility_Guard()
 	ActivationInputTag = WxGameplayTags::Input_Guard;
 }
 
+void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
+
+	// 시퀀스가 자체적으로 종료되어야 하는 페이즈는 입력 릴리즈로 끊지 않는다.
+	// - GuardBreak: 가드 깨짐 연출 완주 보장
+	// - PerfectGuard: 반격 윈도우 보존 (가드 키를 떼도 ComboWindow 내 공격 입력으로 카운터 가능)
+	// - GuardCounter: 반격 연출 완주 보장
+	if (ActiveMontage == GuardBreakMontage || ActiveMontage == PerfectGuardMontage || ActiveMontage == GuardCounterMontage)
+	{
+		return;
+	}
+
+	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+}
+
+void UWxAbility_Guard::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
+
+	// 패링(PerfectGuard) 모션 중 가드를 재입력하면 후속 연출을 끊고 즉시 가드 자세로 복귀한다.
+	// State.Guard는 패링 중에도 유지되므로 GuardMontage만 다시 재생하면 가드가 이어진다.
+	if (ActiveMontage == PerfectGuardMontage && GuardMontage)
+	{
+		PlayMontage(GuardMontage);
+	}
+}
+
+float UWxAbility_Guard::GetDamageReductionRate() const
+{
+	return DamageReductionRate;
+}
+
 void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
@@ -102,39 +135,6 @@ void UWxAbility_Guard::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
-{
-	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
-
-	// 시퀀스가 자체적으로 종료되어야 하는 페이즈는 입력 릴리즈로 끊지 않는다.
-	// - GuardBreak: 가드 깨짐 연출 완주 보장
-	// - PerfectGuard: 반격 윈도우 보존 (가드 키를 떼도 ComboWindow 내 공격 입력으로 카운터 가능)
-	// - GuardCounter: 반격 연출 완주 보장
-	if (ActiveMontage == GuardBreakMontage || ActiveMontage == PerfectGuardMontage || ActiveMontage == GuardCounterMontage)
-	{
-		return;
-	}
-
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-}
-
-void UWxAbility_Guard::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
-{
-	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
-
-	// 패링(PerfectGuard) 모션 중 가드를 재입력하면 후속 연출을 끊고 즉시 가드 자세로 복귀한다.
-	// State.Guard는 패링 중에도 유지되므로 GuardMontage만 다시 재생하면 가드가 이어진다.
-	if (ActiveMontage == PerfectGuardMontage && GuardMontage)
-	{
-		PlayMontage(GuardMontage);
-	}
-}
-
-float UWxAbility_Guard::GetDamageReductionRate() const
-{
-	return DamageReductionRate;
-}
-
 bool UWxAbility_Guard::PlayMontage(UAnimMontage* Montage)
 {
 	// 페이즈 전환 시 이전 몽타주 태스크를 명시적으로 정리해 콜백 잔여 발생을 차단한다.
@@ -188,28 +188,36 @@ void UWxAbility_Guard::ListenForPerfectGuard()
 	}
 }
 
-void UWxAbility_Guard::HandlePerfectGuard(FGameplayEventData Payload)
+void UWxAbility_Guard::ListenForCounterInput()
 {
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (!ASC)
+	WaitInputTask = UWxAbilityTask_WaitInputTagPressed::CreateTask(this, WxGameplayTags::Input_Attack);
+	if (WaitInputTask)
 	{
-		return;
+		WaitInputTask->OnPressed.AddDynamic(this, &UWxAbility_Guard::HandleCounterInputPressed);
+		WaitInputTask->ReadyForActivation();
+	}
+}
+
+void UWxAbility_Guard::PlayGuardCounterMontage()
+{
+	if (WaitInputTask)
+	{
+		WaitInputTask->EndTask();
+		WaitInputTask = nullptr;
 	}
 
-	// 퍼펙트 가드 성공 보상: MP 회복
-	UWxEffect_RecoverResource::ApplyTo(ASC, 0.f, PerfectGuardMPRecovery);
-
-	// 퍼펙트 가드 성공 시 짧은 슬로우 타임 연출
-	if (UWxAbilityTask_SlowTime* SlowTimeTask = UWxAbilityTask_SlowTime::CreateTask(this, PerfectGuardSlowTimeDilation, PerfectGuardSlowTimeDuration))
+	// 반격은 가드 상태가 아니므로 State.Guard 해제
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 	{
-		SlowTimeTask->ReadyForActivation();
+		if (ASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard))
+		{
+			ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Guard);
+		}
 	}
 
-	// GuardMontage 페이즈에서만 GuardHitReactMontage를 재생한다.
-	// HitReact/Knockback 재생 중 퍼펙트 가드 이벤트가 오면 MP 회복만 처리하고 몽타주는 전환하지 않는다.
-	if (ActiveMontage == GuardMontage && PerfectGuardMontage)
+	if (!PlayMontage(GuardCounterMontage))
 	{
-		PlayMontage(PerfectGuardMontage);
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 	}
 }
 
@@ -256,13 +264,28 @@ void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 	}
 }
 
-void UWxAbility_Guard::ListenForCounterInput()
+void UWxAbility_Guard::HandlePerfectGuard(FGameplayEventData Payload)
 {
-	WaitInputTask = UWxAbilityTask_WaitInputTagPressed::CreateTask(this, WxGameplayTags::Input_Attack);
-	if (WaitInputTask)
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (!ASC)
 	{
-		WaitInputTask->OnPressed.AddDynamic(this, &UWxAbility_Guard::HandleCounterInputPressed);
-		WaitInputTask->ReadyForActivation();
+		return;
+	}
+
+	// 퍼펙트 가드 성공 보상: MP 회복
+	UWxEffect_RecoverResource::ApplyTo(ASC, 0.f, PerfectGuardMPRecovery);
+
+	// 퍼펙트 가드 성공 시 짧은 슬로우 타임 연출
+	if (UWxAbilityTask_SlowTime* SlowTimeTask = UWxAbilityTask_SlowTime::CreateTask(this, PerfectGuardSlowTimeDilation, PerfectGuardSlowTimeDuration))
+	{
+		SlowTimeTask->ReadyForActivation();
+	}
+
+	// GuardMontage 페이즈에서만 GuardHitReactMontage를 재생한다.
+	// HitReact/Knockback 재생 중 퍼펙트 가드 이벤트가 오면 MP 회복만 처리하고 몽타주는 전환하지 않는다.
+	if (ActiveMontage == GuardMontage && PerfectGuardMontage)
+	{
+		PlayMontage(PerfectGuardMontage);
 	}
 }
 
@@ -282,29 +305,6 @@ void UWxAbility_Guard::HandleCounterInputPressed()
 	}
 
 	PlayGuardCounterMontage();
-}
-
-void UWxAbility_Guard::PlayGuardCounterMontage()
-{
-	if (WaitInputTask)
-	{
-		WaitInputTask->EndTask();
-		WaitInputTask = nullptr;
-	}
-
-	// 반격은 가드 상태가 아니므로 State.Guard 해제
-	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
-	{
-		if (ASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard))
-		{
-			ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Guard);
-		}
-	}
-
-	if (!PlayMontage(GuardCounterMontage))
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-	}
 }
 
 void UWxAbility_Guard::HandleMontageBlendingOut()

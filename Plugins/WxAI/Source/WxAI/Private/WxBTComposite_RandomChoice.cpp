@@ -24,6 +24,11 @@ void UWxBTComposite_RandomChoice::InitializeMemory(UBehaviorTreeComponent& Owner
 	}
 }
 
+FString UWxBTComposite_RandomChoice::GetStaticDescription() const
+{
+	return FString::Printf(TEXT("AvoidRepeat = %s"), bAvoidRepeat ? TEXT("true") : TEXT("false"));
+}
+
 int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& SearchData, int32 PrevChild, EBTNodeResult::Type LastResult) const
 {
 	// 첫 진입이 아니면 (= 선택된 자식이 결과를 반환한 시점) 결과를 그대로 부모에 전파한다. 폴백 없음.
@@ -62,9 +67,4 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 	const int32 Chosen = Candidates[FMath::RandRange(0, Candidates.Num() - 1)];
 	LastChosenChild = Chosen;
 	return Chosen;
-}
-
-FString UWxBTComposite_RandomChoice::GetStaticDescription() const
-{
-	return FString::Printf(TEXT("AvoidRepeat = %s"), bAvoidRepeat ? TEXT("true") : TEXT("false"));
 }

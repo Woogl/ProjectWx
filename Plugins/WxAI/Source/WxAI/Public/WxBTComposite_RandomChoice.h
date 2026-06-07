@@ -43,6 +43,8 @@ public:
 
 	virtual FString GetStaticDescription() const override;
 
+	virtual int32 GetNextChildHandler(struct FBehaviorTreeSearchData& SearchData, int32 PrevChild, EBTNodeResult::Type LastResult) const override;
+
 protected:
 	/**
 	 * true 이면 직전 진입에서 선택된 자식을 본 진입의 후보에서 제외한다.
@@ -50,6 +52,4 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category = "Wx|AI")
 	bool bAvoidRepeat = true;
-
-	virtual int32 GetNextChildHandler(struct FBehaviorTreeSearchData& SearchData, int32 PrevChild, EBTNodeResult::Type LastResult) const override;
 };
