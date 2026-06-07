@@ -18,14 +18,14 @@
 		},
 		"ActivationInputTag":
 		{
-			"TagName": "Input.Skill.1"
+			"TagName": "Input.Skill.2"
 		},
 		"CooldownTime": 3,
 		"MaxRecharges": 3,
 		"MPCost": 5,
 		"SkillMontages": [
-			"/Game/Character/Player/HR/Skill/Skill1/AM_HR_Skill_1.AM_HR_Skill_1",
-			"/Game/Character/Player/HR/Skill/Skill1/AM_HR_Skill_1_2.AM_HR_Skill_1_2",
+			"/Game/Character/Player/HR/Skill/Skill2/AM_HR_Skill_2.AM_HR_Skill_2",
+			"/Game/Character/Player/HR/Skill/Skill2/AM_HR_Skill_2_1.AM_HR_Skill_2_1",
 			""
 		]
 	},

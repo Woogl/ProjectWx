@@ -24,16 +24,6 @@
 		"MPCost": 10,
 		"OnActivateEffects": [
 			{
-				"EffectClass": "/Game/AbilitySystem/Effect/GE_BuffATK.GE_BuffATK_C",
-				"SetByCallers": [
-					{
-						"key":
-						{
-							"TagName": "SetByCaller.Duration"
-						},
-						"value": 10
-					}
-				]
 			}
 		],
 		"SkillMontages": [
