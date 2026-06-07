@@ -3,6 +3,8 @@
 #include "WxAIModule.h"
 #include "Modules/ModuleManager.h"
 
+DEFINE_LOG_CATEGORY(LogWxAI);
+
 void FWxAIModule::StartupModule() {}
 void FWxAIModule::ShutdownModule() {}
 
