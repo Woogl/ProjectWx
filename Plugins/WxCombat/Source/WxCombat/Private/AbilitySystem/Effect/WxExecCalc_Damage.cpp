@@ -71,6 +71,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	const bool bIsUnblockable = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable);
 	const bool bHasPerfectGuard = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_PerfectGuard);
 	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard);
+	const bool bIsGroggy = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy);
 
 	// Unblockable 공격은 퍼펙트 가드를 포함한 모든 가드를 무시한다.
 	const bool bPerfectGuardApplied = bHasPerfectGuard && !bIsUnblockable;
@@ -118,12 +119,18 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 			}
 		}
 
+		// 그로기 상태의 타겟은 받는 최종 피해량이 30% 증가한다.
+		if (bIsGroggy)
+		{
+			DamageResult.FinalDamage *= 1.3f;
+		}
+
 		if (DamageResult.FinalDamage > 0.f)
 		{
 			const FWxDamageStatics& Statics = GetDamageStatics();
 			OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
 
-			if (!TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
+			if (!bIsGroggy)
 			{
 				OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.DPProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
 			}
