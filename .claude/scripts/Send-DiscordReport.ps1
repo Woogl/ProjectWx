@@ -39,7 +39,7 @@ if ([string]::IsNullOrWhiteSpace($webhookUrl)) {
 }
 if ([string]::IsNullOrWhiteSpace($Username)) {
     if ([string]::IsNullOrWhiteSpace($config.username)) {
-        $Username = 'Claude'
+        $Username = 'Claude Code'
     }
     else {
         $Username = $config.username
