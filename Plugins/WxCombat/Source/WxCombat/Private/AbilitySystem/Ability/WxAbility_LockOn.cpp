@@ -3,6 +3,8 @@
 #include "AbilitySystem/Ability/WxAbility_LockOn.h"
 #include "AbilitySystem/Task/WxAbilityTask_LockOnTarget.h"
 #include "AbilitySystemComponent.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "TargetingSystem/TargetingSubsystem.h"
 #include "Types/TargetingSystemTypes.h"
@@ -65,6 +67,14 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		LockOnComp->SetLockOnTarget(FoundTarget);
 	}
 
+	// 락온 중에는 이동 방향이 아닌 타겟 기준으로 회전한다.
+	// OrientToMovement를 끄고, 태스크가 타겟을 향해 보간하는 컨트롤러 yaw를 따르게 한다. EndAbility에서 복구.
+	if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
+	{
+		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Character->bUseControllerRotationYaw = true;
+	}
+
 	// 락온 태스크 생성
 	LockOnTask = UWxAbilityTask_LockOnTarget::CreateTask(this, FoundTarget, CameraInterpSpeed, CameraPitchOffset, MaxDistance, ReticleWidgetClass);
 	LockOnTask->OnTargetLost.AddDynamic(this, &UWxAbility_LockOn::HandleTargetLost);
@@ -87,6 +97,13 @@ void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 		if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(GetOwningActorFromActorInfo()))
 		{
 			LockOnComp->SetLockOnTarget(nullptr);
+		}
+
+		// 락온 해제 시 회전 설정을 기본값으로 복구.
+		if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
+		{
+			Character->GetCharacterMovement()->bOrientRotationToMovement = true;
+			Character->bUseControllerRotationYaw = false;
 		}
 	}
 
