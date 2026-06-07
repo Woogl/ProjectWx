@@ -53,10 +53,9 @@ AWxCharacterBase::AWxCharacterBase()
 	GetCharacterMovement()->BrakingFrictionFactor = 1.f;
 
 	// 점프·낙하 디폴트
-	GetCharacterMovement()->JumpZVelocity = 600.f;
+	GetCharacterMovement()->JumpZVelocity = 420.f;
 	GetCharacterMovement()->AirControl = 0.35f;
-	GetCharacterMovement()->GravityScale = 2.f;
-	GetCharacterMovement()->BrakingDecelerationFalling = 1500.f;
+	GetCharacterMovement()->GravityScale = 1.5f;
 }
 
 void AWxCharacterBase::PostInitializeComponents()
