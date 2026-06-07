@@ -22,10 +22,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Input")
 	ECommonInputMode InputMode = ECommonInputMode::Game;
 
-	/** 이 위젯이 활성화된 동안 시간 흐름 속도. 멀티플레이 환경에서는 적용되지 않는다. */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Time", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
-	float TimeDilation = 1.0f;
+	/** 이 위젯이 활성화된 동안 게임을 일시정지한다. 멀티플레이 환경에서는 적용되지 않는다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Time")
+	bool bPauseGame = false;
 
 private:
-	void ApplyGlobalTimeDilation(float Dilation);
+	void ApplyGamePause(bool bPaused);
 };

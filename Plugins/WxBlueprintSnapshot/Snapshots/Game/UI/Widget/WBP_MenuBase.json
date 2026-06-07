@@ -2,8 +2,8 @@
 	"blueprintPath": "/Game/UI/Widget/WBP_MenuBase.WBP_MenuBase",
 	"classDefaults":
 	{
-		"InputMode": "Menu",
-		"TimeDilation": 0
+		"bPauseGame": true,
+		"InputMode": "Menu"
 	},
 	"parentClass": "/Script/WxUI.WxActivatableWidget",
 	"widgetTree":

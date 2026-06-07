@@ -7,22 +7,15 @@
 		"WBP_Button_1": "",
 		"WBP_Button_184": ""
 	},
-	"eventGraph": [
-		"void CommonButtonBaseClicked__DelegateSignature(delegate OutputDelegate, UCommonButtonBase* Button)",
-		"{",
-		"    WxViewModel_Inventory->SetCurrentCategory(/* NewCategory */ EWxItemCategory::Consumable);",
-		"}",
-		"",
-		"void CommonButtonBaseClicked__DelegateSignature(delegate OutputDelegate, UCommonButtonBase* Button)",
-		"{",
-		"    WxViewModel_Inventory->SetCurrentCategory(/* NewCategory */ EWxItemCategory::Currency);",
-		"}",
-		"",
-		"void CommonButtonBaseClicked__DelegateSignature(delegate OutputDelegate, UCommonButtonBase* Button)",
-		"{",
-		"    WxViewModel_Inventory->SetCurrentCategory(/* NewCategory */ EWxItemCategory::Equipment);",
-		"}"
-	],
+	"eventGraph":
+	{
+		"CommonButtonBaseClicked__DelegateSignature": [
+			"void CommonButtonBaseClicked__DelegateSignature(UCommonButtonBase* Button)",
+			"{",
+			"    WxViewModel_Inventory->SetCurrentCategory(EWxItemCategory::Equipment);",
+			"}"
+		]
+	},
 	"mvvm":
 	{
 		"bindings": [
