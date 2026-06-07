@@ -1,30 +1,28 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Ability/WxAbility_PhaseTransition.h"
-#include "AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.h"
+#include "AbilitySystem/Ability/WxAbility_Pattern_Phase.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Pawn.h"
-#include "LevelSequence.h"
 #include "WxGameplayTags.h"
 
-UWxAbility_PhaseTransition::UWxAbility_PhaseTransition()
+UWxAbility_Pattern_Phase::UWxAbility_Pattern_Phase()
 {
 	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(WxGameplayTags::Ability_Pattern_PhaseTransition);
+	AssetTags.AddTag(WxGameplayTags::Ability_Pattern_Phase);
 	SetAssetTags(AssetTags);
 
 	// 전환 중에는 다른 모든 어빌리티를 취소/차단하고, 패턴 발동 중임을 알려 일반 피격 반응을 억제한다.
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
-	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Pattern);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Pattern_Phase);
 	ActivationOwnedTags.AddTag(WxGameplayTags::State_SuperArmor);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 }
 
 #if WITH_EDITOR
-bool UWxAbility_PhaseTransition::CanEditChange(const FProperty* InProperty) const
+bool UWxAbility_Pattern_Phase::CanEditChange(const FProperty* InProperty) const
 {
 	if (!Super::CanEditChange(InProperty))
 	{
@@ -46,7 +44,7 @@ bool UWxAbility_PhaseTransition::CanEditChange(const FProperty* InProperty) cons
 }
 #endif
 
-void UWxAbility_PhaseTransition::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+void UWxAbility_Pattern_Phase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
@@ -59,25 +57,11 @@ void UWxAbility_PhaseTransition::ActivateAbility(const FGameplayAbilitySpecHandl
 	// 발동 시작 시 페이즈를 올린다.
 	AdvancePhase();
 
-	// 컷신 재생
-	ULevelSequence* Sequence = CutsceneSequence.LoadSynchronous();
-	if (Sequence)
-	{
-		UWxAbilityTask_PlaySkillCutscene* CutsceneTask = UWxAbilityTask_PlaySkillCutscene::CreateTask(this, Sequence, 0.001f);
-		if (CutsceneTask)
-		{
-			CutsceneTask->OnCompleted.AddDynamic(this, &UWxAbility_PhaseTransition::HandleCutsceneCompleted);
-			CutsceneTask->OnCancelled.AddDynamic(this, &UWxAbility_PhaseTransition::HandleCutsceneCancelled);
-			CutsceneTask->ReadyForActivation();
-			return;
-		}
-	}
-
 	// 컷신 에셋이 없으면 바로 몽타주 단계로 진행
 	HandleCutsceneCompleted();
 }
 
-void UWxAbility_PhaseTransition::AdvancePhase()
+void UWxAbility_Pattern_Phase::AdvancePhase()
 {
 	// WxCombat은 WxAI를 참조할 수 없어 Blackboard "Phase" 키 이름을 직접 사용한다.
 	// (WxAI/WxAIBlackboardKeys::Phase 와 동일한 이름이어야 한다.)
@@ -91,11 +75,10 @@ void UWxAbility_PhaseTransition::AdvancePhase()
 		return;
 	}
 
-	const int32 CurrentPhase = Blackboard->GetValueAsInt(PhaseBlackboardKeyName);
-	Blackboard->SetValueAsInt(PhaseBlackboardKeyName, CurrentPhase + 1);
+	Blackboard->SetValueAsInt(PhaseBlackboardKeyName, NextPhase);
 }
 
-void UWxAbility_PhaseTransition::HandleCutsceneCompleted()
+void UWxAbility_Pattern_Phase::HandleCutsceneCompleted()
 {
 	// 몽타주가 없으면 전환 완료: 종료한다.
 	if (!TransitionMontage)
@@ -112,34 +95,34 @@ void UWxAbility_PhaseTransition::HandleCutsceneCompleted()
 		return;
 	}
 
-	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_PhaseTransition::HandleMontageCompleted);
-	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_PhaseTransition::HandleMontageBlendOut);
-	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_PhaseTransition::HandleMontageInterrupted);
-	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_PhaseTransition::HandleMontageCancelled);
+	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Pattern_Phase::HandleMontageCompleted);
+	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Pattern_Phase::HandleMontageBlendOut);
+	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Pattern_Phase::HandleMontageInterrupted);
+	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Pattern_Phase::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
 }
 
-void UWxAbility_PhaseTransition::HandleCutsceneCancelled()
+void UWxAbility_Pattern_Phase::HandleCutsceneCancelled()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
 
-void UWxAbility_PhaseTransition::HandleMontageCompleted()
+void UWxAbility_Pattern_Phase::HandleMontageCompleted()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
-void UWxAbility_PhaseTransition::HandleMontageBlendOut()
+void UWxAbility_Pattern_Phase::HandleMontageBlendOut()
 {
 	// OnCompleted가 후속 발동하므로 여기서는 처리하지 않음
 }
 
-void UWxAbility_PhaseTransition::HandleMontageInterrupted()
+void UWxAbility_Pattern_Phase::HandleMontageInterrupted()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
 
-void UWxAbility_PhaseTransition::HandleMontageCancelled()
+void UWxAbility_Pattern_Phase::HandleMontageCancelled()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
