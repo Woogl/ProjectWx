@@ -29,23 +29,28 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	// 첫 입력 종류 판별
-	const UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
-	if (ASC && ASC->GetLastPressedInputTag() == WxGameplayTags::Input_Attack_Heavy)
+	// 콤보 재발동이면 저장된 경로, 아니면 입력 종류로 첫 경로 결정
+	FString ActivationPath;
+	if (!NextComboPath.IsEmpty() && ComboMap.Contains(FName(*NextComboPath)))
 	{
-		CurrentPath = TEXT("H");
+		ActivationPath = NextComboPath;
 	}
 	else
 	{
-		CurrentPath = TEXT("L");
+		const UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
+		ActivationPath = (ASC && ASC->GetLastPressedInputTag() == WxGameplayTags::Input_Attack_Heavy)
+			? TEXT("H")
+			: TEXT("L");
 	}
+	NextComboPath.Empty();
 
-	if (!ComboMap.Contains(FName(*CurrentPath)))
+	if (!ComboMap.Contains(FName(*ActivationPath)))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
+	CurrentPath = ActivationPath;
 	PlayComboMontage();
 }
 
@@ -97,11 +102,7 @@ void UWxAbility_Attack::PlayComboMontage()
 
 void UWxAbility_Attack::WaitForComboInput()
 {
-	if (!HasNextCombo())
-	{
-		return;
-	}
-
+	// 터미널 노드에서도 첫타 재시작 입력을 받아야 하므로 항상 입력을 대기한다.
 	if (WaitInputTask)
 	{
 		WaitInputTask->EndTask();
@@ -111,11 +112,6 @@ void UWxAbility_Attack::WaitForComboInput()
 	WaitInputTask = UAbilityTask_WaitInputPress::WaitInputPress(this);
 	WaitInputTask->OnPress.AddDynamic(this, &UWxAbility_Attack::HandleComboInputPressed);
 	WaitInputTask->ReadyForActivation();
-}
-
-bool UWxAbility_Attack::HasNextCombo() const
-{
-	return ComboMap.Contains(FName(*(CurrentPath + TEXT("L")))) || ComboMap.Contains(FName(*(CurrentPath + TEXT("H"))));
 }
 
 void UWxAbility_Attack::HandleMontageCompleted()
@@ -140,7 +136,7 @@ void UWxAbility_Attack::HandleMontageCancelled()
 
 void UWxAbility_Attack::HandleComboInputPressed(float TimeWaited)
 {
-	const UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
+	UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
 	if (!ASC)
 	{
 		return;
@@ -150,27 +146,41 @@ void UWxAbility_Attack::HandleComboInputPressed(float TimeWaited)
 		? TEXT("H")
 		: TEXT("L");
 
-	if (!TryAdvanceCombo(Suffix))
+	// ANS_ComboWindow 구간이면 다음 경로로 콤보를 진행한다.
+	if (ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_ComboWindow) && ComboMap.Contains(FName(*(CurrentPath + Suffix))))
 	{
-		WaitForComboInput();
+		Reactivate(CurrentPath + Suffix);
+		return;
 	}
+
+	// ANS_CancelWindow 구간이면 후딜을 끊고 첫타로 재시작한다.
+	if (ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_CancelWindow) && ComboMap.Contains(FName(Suffix)))
+	{
+		Reactivate(Suffix);
+		return;
+	}
+
+	// 어느 윈도우에도 해당하지 않으면 다음 입력을 다시 대기한다.
+	WaitForComboInput();
 }
 
-bool UWxAbility_Attack::TryAdvanceCombo(const TCHAR* Suffix)
+void UWxAbility_Attack::Reactivate(const FString& Path)
 {
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (!ASC || !ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_ComboWindow))
+	if (!ASC)
 	{
-		return false;
+		return;
 	}
 
-	const FString NextPath = CurrentPath + Suffix;
-	if (!ComboMap.Contains(FName(*NextPath)))
-	{
-		return false;
-	}
+	// SpecHandle을 EndAbility 전에 캡처. NextComboPath는 재발동 시 ActivateAbility가 소비한다.
+	const FGameplayAbilitySpecHandle SpecHandle = CurrentSpecHandle;
+	NextComboPath = Path;
 
-	CurrentPath = NextPath;
-	PlayComboMontage();
-	return true;
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+
+	if (!ASC->TryActivateAbility(SpecHandle))
+	{
+		// 재발동 실패(쿨다운, 비용 부족, 차단 등) — 다음 신규 발동이 NextComboPath를 잘못 쓰지 않도록 클리어
+		NextComboPath.Empty();
+	}
 }
