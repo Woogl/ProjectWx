@@ -18,14 +18,15 @@ allowed-tools: Bash
 
 ### 2단계: 로컬 변경 사항 임시 저장
 
-커밋되지 않은 변경 사항이 있으면 `git stash -u`로 자동 임시 저장하라.
-사용자에게 묻지 말고 바로 진행하라.
+커밋되지 않은 변경 사항이 있으면 `git stash -u`로 자동 임시 저장하라. 사용자에게 묻지 말고 바로 진행하라.
+`git stash -u`가 "No local changes to save"를 출력하면 실제로 저장된 것이 없으므로 4단계 복원은 건너뛴다. (저장 여부는 stash 출력이나 `git stash list`로 확인한다.)
 
 ### 3단계: Pull 실행
 
-`git pull`로 원격 저장소의 최신 내용을 가져오라.
+`git pull --no-rebase --no-edit`로 원격 저장소의 최신 내용을 가져오라. (머지를 강제해 아래 ours/theirs 기준을 고정하고, 머지 커밋 메시지 에디터가 떠서 멈추는 것을 막는다.)
+- 추적 대상(upstream)이 없어 실패하면 `git pull --no-rebase --no-edit origin <브랜치명>`으로 원격·브랜치를 명시해 가져오라.
 - 자동 병합이 가능하면 그대로 진행한다.
-- 자동 병합이 불가능한 충돌 파일이 있으면, 파일별로 사용자에게 원격 버전(theirs)과 로컬 버전(ours) 중 어느 쪽을 적용할지 선택하게 하라. 선택에 따라 `git checkout --theirs` 또는 `git checkout --ours`를 적용한 뒤 `git add`로 충돌을 해결하고 `git commit`으로 병합을 완료하라.
+- 자동 병합이 불가능한 충돌 파일이 있으면, 파일별로 사용자에게 원격 버전(theirs)과 로컬 버전(ours) 중 어느 쪽을 적용할지 선택하게 하라. 선택에 따라 `git checkout --theirs` 또는 `git checkout --ours`를 적용한 뒤 `git add`로 충돌을 해결하고 `git commit --no-edit`으로 병합을 완료하라.
 
 ### 4단계: Stash 복원
 
