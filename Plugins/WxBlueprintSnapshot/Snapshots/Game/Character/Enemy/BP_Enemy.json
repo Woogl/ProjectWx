@@ -11,12 +11,23 @@
 			}
 		},
 		"BehaviorTreeAsset": "/Game/AI/BT_Enemy.BT_Enemy",
+		"CharacterMovement":
+		{
+			"class": "/Script/Engine.CharacterMovementComponent",
+			"delta":
+			{
+				"NavMovementProperties":
+				{
+					"bUseAccelerationForPaths": true
+				}
+			}
+		},
 		"Mesh":
 		{
 			"class": "/Script/Engine.SkeletalMeshComponent",
 			"delta":
 			{
-				"AnimClass": "/Game/Mannequins/Animations/ABP_Manny.ABP_Manny_C",
+				"AnimClass": "/Game/Mannequins/Animations/Unarmed/ABP_Unarmed.ABP_Unarmed_C",
 				"BodyInstance":
 				{
 					"CollisionResponses":

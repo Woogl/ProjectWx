@@ -29,7 +29,7 @@
 			"class": "/Script/Engine.SkeletalMeshComponent",
 			"delta":
 			{
-				"AnimClass": "/Game/Mannequins/Animations/ABP_Manny.ABP_Manny_C",
+				"AnimClass": "/Game/Mannequins/Animations/Unarmed/ABP_Unarmed.ABP_Unarmed_C",
 				"OverrideMaterials": [
 					"/Game/Mannequins/Materials/Instances/Manny/MI_Manny_04.MI_Manny_04",
 					"/Game/Mannequins/Materials/Instances/Manny/MI_Manny_03.MI_Manny_03"
