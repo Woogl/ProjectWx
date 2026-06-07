@@ -7,17 +7,56 @@ Build UE5 C++ projects and explain failures in Korean.
 
 ## Workflow
 
-1. Build with `BuildProjectFiles.bat`.
-2. Save the full build output to a log file when possible.
+1. Build the editor target with the command in **Build command** below.
+2. Save the full build output to a timestamped log under `\.claude\skills\build-doctor\logs\` (e.g. `build_2026-06-07_231200.log`).
 3. If the build fails, inspect the log directly and identify the earliest high-signal failure first.
 4. Produce a short Korean report with:
    - 1-3 line cause summary
    - quoted log lines
    - immediate fixes to try now
 
-## Build command rules
+## Build command
 
-Use the build command defined in CLAUDE.md. Preserve the raw command in the response so the user can rerun it.
+Build target is **`<프로젝트명>Editor` / Win64 / Development** (C++ 이터레이션 기준). Run the PowerShell below from the project root. It resolves the engine from the `.uproject`'s `EngineAssociation`, builds, tees the full output to a log file, and prints the exit code (0 = 성공). Preserve the resolved `Build.bat ...` command in the response so the user can rerun it.
+
+```powershell
+$ErrorActionPreference = 'Stop'
+
+# --- 프로젝트 / 엔진 해석 ---
+$uproject = Get-ChildItem -Path . -Filter *.uproject -File | Select-Object -First 1
+if (-not $uproject) { throw '.uproject 파일을 찾을 수 없습니다. 프로젝트 루트에서 실행하세요.' }
+$projPath = $uproject.FullName
+$projName = [System.IO.Path]::GetFileNameWithoutExtension($projPath)   # 예: Wx
+$editorTarget = "${projName}Editor"                                    # 예: WxEditor
+
+$assoc = (Get-Content $projPath -Raw | ConvertFrom-Json).EngineAssociation
+$engine = $null
+$rk = "Registry::HKEY_LOCAL_MACHINE\SOFTWARE\EpicGames\Unreal Engine\$assoc"
+if (Test-Path $rk) { $engine = (Get-ItemProperty $rk).InstalledDirectory }
+if (-not $engine) {
+  $rkb = 'Registry::HKEY_CURRENT_USER\Software\Epic Games\Unreal Engine\Builds'
+  if (Test-Path $rkb) { $v = (Get-ItemProperty $rkb).$assoc; if ($v) { $engine = $v } }   # 소스 빌드(GUID)
+}
+if (-not $engine -and $assoc -match '^[\d.]+$') { $engine = "C:\Program Files\Epic Games\UE_$assoc" }
+if (-not $engine -or -not (Test-Path $engine)) { throw "엔진 경로를 찾을 수 없습니다 (EngineAssociation=$assoc)." }
+
+$buildBat = Join-Path $engine 'Engine\Build\BatchFiles\Build.bat'
+if (-not (Test-Path $buildBat)) { throw "Build.bat 없음: $buildBat" }
+
+# --- 빌드 (전체 출력 로그 저장: 날짜·시간별) ---
+$logDir = 'C:\Wx\.claude\skills\build-doctor\logs'
+if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | Out-Null }
+$log = Join-Path $logDir ("build_{0}.log" -f (Get-Date -Format 'yyyy-MM-dd_HHmmss'))
+"빌드 타겟: $editorTarget Win64 Development"
+"로그: $log"
+& $buildBat $editorTarget Win64 Development "-Project=$projPath" -WaitMutex 2>&1 | Tee-Object -FilePath $log
+"=== EXIT CODE: $LASTEXITCODE ==="
+```
+
+Notes:
+- 에디터가 켜져 있으면 `UnrealEditor-*.dll` 잠금으로 **링크 단계(LNK)에서 실패**한다. 링크 에러가 보이면 에디터를 닫고 재빌드하거나 `run-editor` 스킬(종료→빌드→실행)을 안내한다.
+- `BuildProjectFiles.bat`은 **프로젝트 파일 재생성**용이지 빌드 명령이 아니다. 빌드에는 위 `Build.bat`을 쓴다.
+- 다른 구성이 필요하면 `Development`를 `DebugGame` 등으로 바꾼다.
 
 ## Diagnosis rules
 
