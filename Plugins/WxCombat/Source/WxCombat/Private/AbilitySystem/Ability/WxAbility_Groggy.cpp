@@ -15,6 +15,10 @@ UWxAbility_Groggy::UWxAbility_Groggy()
 {
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 
+	FGameplayTagContainer AssetTags;
+	AssetTags.AddTag(WxGameplayTags::Ability_Groggy);
+	SetAssetTags(AssetTags);
+
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
@@ -23,6 +27,11 @@ UWxAbility_Groggy::UWxAbility_Groggy()
 	TriggerData.TriggerTag = WxGameplayTags::State_Groggy;
 	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::OwnedTagPresent;
 	AbilityTriggers.Add(TriggerData);
+}
+
+float UWxAbility_Groggy::GetDamageTakenMultiplier() const
+{
+	return DamageTakenMultiplier;
 }
 
 void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

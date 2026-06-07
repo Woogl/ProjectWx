@@ -30,12 +30,18 @@ class WXCOMBAT_API UWxAbility_Groggy : public UWxAbilityBase
 public:
 	UWxAbility_Groggy();
 
-	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	/** 그로기 중 받는 대미지 배율(>=1). ExecCalc 가 그로기 피격 시 이 값을 곱한다. */
+	float GetDamageTakenMultiplier() const;
 
 protected:
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> GroggyMontage;
+
+	/** 그로기 중 받는 대미지 배율(>=1). 1.3 이면 30% 증가. ExecCalc_Damage 가 그로기 피격 분기에서 참조. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability", meta = (ClampMin = "1"))
+	float DamageTakenMultiplier = 1.3f;
 
 private:
 	void HandleGroggyTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
