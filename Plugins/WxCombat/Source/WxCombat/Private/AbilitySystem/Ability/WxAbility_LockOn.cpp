@@ -67,16 +67,14 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		LockOnComp->SetLockOnTarget(FoundTarget);
 	}
 
-	// 락온 중에는 이동 방향이 아닌 타겟 기준으로 회전한다.
-	// OrientToMovement를 끄고, 태스크가 타겟을 향해 보간하는 컨트롤러 yaw를 따르게 한다. EndAbility에서 복구.
+	// 락온 중에는 이동 방향 회전을 끈다. 캐릭터를 타겟으로 향하게 하는 회전은 태스크가 부드럽게 보간한다. EndAbility에서 복구.
 	if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
 	{
 		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
-		Character->bUseControllerRotationYaw = true;
 	}
 
 	// 락온 태스크 생성
-	LockOnTask = UWxAbilityTask_LockOnTarget::CreateTask(this, FoundTarget, CameraInterpSpeed, CameraPitchOffset, MaxDistance, ReticleWidgetClass);
+	LockOnTask = UWxAbilityTask_LockOnTarget::CreateTask(this, FoundTarget, CameraInterpSpeed, CameraPitchOffset, MaxDistance, CharacterInterpSpeed, ReticleWidgetClass);
 	LockOnTask->OnTargetLost.AddDynamic(this, &UWxAbility_LockOn::HandleTargetLost);
 	LockOnTask->ReadyForActivation();
 }
@@ -99,11 +97,10 @@ void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 			LockOnComp->SetLockOnTarget(nullptr);
 		}
 
-		// 락온 해제 시 회전 설정을 기본값으로 복구.
+		// 락온 해제 시 OrientToMovement 복구. 이동 시 RotationRate로 부드럽게 이동 방향으로 돌아온다.
 		if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
 		{
 			Character->GetCharacterMovement()->bOrientRotationToMovement = true;
-			Character->bUseControllerRotationYaw = false;
 		}
 	}
 
