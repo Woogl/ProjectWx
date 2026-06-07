@@ -1,0 +1,56 @@
+---
+name: discord-report
+description: 최근 24시간 동안 내가 작업한(현재 git 사용자) 커밋을 요약해 디스코드 ai-room 채널에 작업 보고를 전송한다.
+user-invocable: true
+allowed-tools: Bash, PowerShell, Write
+---
+
+# 디스코드 작업 보고
+
+최근 24시간 동안 내가 작업한(현재 git 사용자) 커밋을 기반으로 작업 내용을 요약해 디스코드 채널로 전송한다.
+
+## 절차
+
+### 1단계: 최근 24시간 커밋 수집 (기본: 내 커밋만)
+
+```
+git log --since="24 hours ago" --author="$(git config user.name)" --pretty=format:"%h | %ad | %an | %s" --date=format:"%Y-%m-%d %H:%M"
+```
+
+- `--author="$(git config user.name)"`로 **현재 git 사용자(=나)의 커밋만** 남긴다. 기본 동작이며, 보고는 항상 내 작업만 올린다.
+- 커밋이 하나도 없으면 "지난 24시간 내 커밋 없음"을 사용자에게 알리고 전송하지 않는다.
+- 변경 맥락이 더 필요한 커밋은 `git show <hash> --stat` 또는 `git show <hash>`로 보강한다.
+- 팀 전체를 보고하라는 명시적 요청이 있을 때만 `--author`를 제거하고, 다른 특정 인물만 보려면 `--author=<name>`으로 바꾼다.
+
+### 2단계: 보고문 작성 (핵심 요약)
+
+원시 로그를 그대로 붙여넣지 말 것. 커밋을 읽고 한국어 작업 보고로 정리하되, **핵심 위주로 짧게** 쓴다:
+
+- 모든 커밋을 나열하지 말 것. 의미 있는 변경만 골라 핵심만 전달한다.
+- 관련 커밋을 **주제별로 묶는다** (예: 전투/AI/UI/리팩터링/툴링). 주제별 1~2줄로 압축한다.
+- 사소한 수정·튜닝·노이즈(revert·임시파일·머지)는 생략하거나 묶어서 한 줄로.
+- 전체 분량은 한눈에 들어오는 정도로. 길어지면 덜 중요한 항목부터 쳐낸다.
+- 맨 위에 날짜·기간·커밋 수 헤더를 둔다. (예: `📋 작업 보고 (2026-06-07, 최근 24h · 커밋 N건)`)
+- 기본은 내 커밋만이므로 작성자 구분은 불필요하다. (`--author`를 풀어 여러 작성자를 포함한 경우에만 사람별로 묶거나 명시한다.)
+
+### 3단계: UTF-8 파일로 저장
+
+요약을 `%TEMP%\claude-discord-report.txt`에 Write 도구로 UTF-8 저장한다.
+
+- 한글을 명령줄 인자로 직접 넘기지 말 것 (콘솔 인코딩 깨짐). 반드시 파일 경유.
+
+### 4단계: 전송
+
+```
+& "C:\Wx\.claude\scripts\Send-DiscordReport.ps1" -Path "$env:TEMP\claude-discord-report.txt"
+```
+
+- 디스코드 2000자 제한은 스크립트가 1900자 단위로 자동 분할한다.
+- 전송 결과("Sent to Discord ...")를 확인하고 사용자에게 알린다.
+
+## 설정 / 주의
+
+- 웹훅 URL(비밀): `C:\Wx\.claude\discord-webhook.local.json` — git 미추적, 커밋 금지.
+- `Send-DiscordReport.ps1` 본문은 ASCII(영문) 전용 유지 — Windows PowerShell 5.1이 UTF-8 `.ps1`의 한글을 CP949로 잘못 읽어 파스 에러를 낸다. 한글 추가 금지.
+- 전송은 외부로 발행되는 행위다. 같은 내용을 직전에 이미 보냈다면 중복 전송 전 사용자에게 확인한다.
+- 관련 메모리: `discord-report-webhook`.
