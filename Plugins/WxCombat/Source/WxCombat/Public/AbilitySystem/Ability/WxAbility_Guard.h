@@ -25,6 +25,7 @@ class UWxAbilityTask_WaitInputTagPressed;
  *  일반 Guard 중 Unblockable 피격 시 ExecCalc가 Guard 어빌리티를 직접 Cancel하고 HitReact 이벤트를 발송한다.
  *
  * 입력 릴리즈 시 GuardBreak/PerfectGuard/GuardCounter 페이즈가 아니면 즉시 EndAbility.
+ * PerfectGuard 페이즈 중 가드 재입력 시 후속 연출을 끊고 즉시 GuardMontage로 복귀한다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Guard : public UWxAbilityBase
@@ -37,6 +38,7 @@ public:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
+	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
 	/** 가드 중 받는 대미지 배율(0~1). ExecCalc 가 가드 피격 시 이 값을 곱한다. */
 	float GetDamageReductionRate() const;

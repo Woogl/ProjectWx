@@ -118,6 +118,18 @@ void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, co
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
+void UWxAbility_Guard::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
+
+	// 패링(PerfectGuard) 모션 중 가드를 재입력하면 후속 연출을 끊고 즉시 가드 자세로 복귀한다.
+	// State.Guard는 패링 중에도 유지되므로 GuardMontage만 다시 재생하면 가드가 이어진다.
+	if (ActiveMontage == PerfectGuardMontage && GuardMontage)
+	{
+		PlayMontage(GuardMontage);
+	}
+}
+
 float UWxAbility_Guard::GetDamageReductionRate() const
 {
 	return DamageReductionRate;

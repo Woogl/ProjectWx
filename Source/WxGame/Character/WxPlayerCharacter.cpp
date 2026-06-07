@@ -78,7 +78,7 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	{
 		if (Binding.InputAction && Binding.InputTag.IsValid())
 		{
-			EIC->BindAction(Binding.InputAction, ETriggerEvent::Triggered, this, &AWxPlayerCharacter::AbilityInputPressed,  Binding.InputTag);
+			EIC->BindAction(Binding.InputAction, ETriggerEvent::Started,   this, &AWxPlayerCharacter::AbilityInputPressed,  Binding.InputTag);
 			EIC->BindAction(Binding.InputAction, ETriggerEvent::Completed, this, &AWxPlayerCharacter::AbilityInputReleased, Binding.InputTag);
 		}
 	}
