@@ -10,23 +10,6 @@
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
-namespace
-{
-	UWxViewModel_AbilitySystem* GetBossAbilitySystemViewModel(const UObject* WorldContext)
-	{
-		const UWorld* World = GEngine ? GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::LogAndReturnNull) : nullptr;
-		APlayerController* PC = World ? UGameplayStatics::GetPlayerController(World, 0) : nullptr;
-		ULocalPlayer* LocalPlayer = PC ? PC->GetLocalPlayer() : nullptr;
-		if (!LocalPlayer)
-		{
-			return nullptr;
-		}
-
-		UWxGlobalViewModelSubsystem* Subsystem = LocalPlayer->GetSubsystem<UWxGlobalViewModelSubsystem>();
-		return Subsystem ? Subsystem->GetBossAbilitySystemViewModel() : nullptr;
-	}
-}
-
 void AWxBossCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -60,7 +43,7 @@ void AWxBossCharacter::HandleRecognizedTagChanged(const FGameplayTag Tag, int32 
 
 void AWxBossCharacter::ActivateBossAbilitySystemViewModel()
 {
-	if (UWxViewModel_AbilitySystem* VM = GetBossAbilitySystemViewModel(this))
+	if (UWxViewModel_AbilitySystem* VM = GetBossAbilitySystemViewModel())
 	{
 		VM->Initialize(AbilitySystemComponent);
 	}
@@ -68,8 +51,22 @@ void AWxBossCharacter::ActivateBossAbilitySystemViewModel()
 
 void AWxBossCharacter::DeactivateBossAbilitySystemViewModel()
 {
-	if (UWxViewModel_AbilitySystem* VM = GetBossAbilitySystemViewModel(this))
+	if (UWxViewModel_AbilitySystem* VM = GetBossAbilitySystemViewModel())
 	{
 		VM->Deinitialize();
 	}
+}
+
+UWxViewModel_AbilitySystem* AWxBossCharacter::GetBossAbilitySystemViewModel() const
+{
+	const UWorld* World = GetWorld();
+	APlayerController* PC = World ? UGameplayStatics::GetPlayerController(World, 0) : nullptr;
+	ULocalPlayer* LocalPlayer = PC ? PC->GetLocalPlayer() : nullptr;
+	if (!LocalPlayer)
+	{
+		return nullptr;
+	}
+
+	UWxGlobalViewModelSubsystem* Subsystem = LocalPlayer->GetSubsystem<UWxGlobalViewModelSubsystem>();
+	return Subsystem ? Subsystem->GetBossAbilitySystemViewModel() : nullptr;
 }

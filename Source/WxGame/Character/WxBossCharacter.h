@@ -7,6 +7,8 @@
 #include "GameplayTagContainer.h"
 #include "WxBossCharacter.generated.h"
 
+class UWxViewModel_AbilitySystem;
+
 /**
  * 보스 캐릭터.
  * 인식 상태(State.Recognized)를 관찰하여:
@@ -29,4 +31,6 @@ private:
 
 	void ActivateBossAbilitySystemViewModel();
 	void DeactivateBossAbilitySystemViewModel();
+
+	UWxViewModel_AbilitySystem* GetBossAbilitySystemViewModel() const;
 };
