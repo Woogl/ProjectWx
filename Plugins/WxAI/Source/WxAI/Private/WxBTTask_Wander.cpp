@@ -7,7 +7,6 @@
 
 UWxBTTask_Wander::UWxBTTask_Wander()
 {
-	NodeName = TEXT("Wander");
 	bCreateNodeInstance = true;
 	bNotifyTick = true;
 }
@@ -20,12 +19,31 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 		return EBTNodeResult::Failed;
 	}
 
-	const float Yaw = FMath::FRandRange(0.f, 360.f);
+	// 선택된 방향들을 모아 그중 하나를 무작위로 고른다. 8 = EWxWanderDirection 의 방향 개수.
+	TArray<int32> AllowedIndices;
+	for (int32 Index = 0; Index < 8; ++Index)
+	{
+		if (Directions & (1 << Index))
+		{
+			AllowedIndices.Add(Index);
+		}
+	}
+
+	float Yaw;
+	if (AllowedIndices.Num() > 0)
+	{
+		// 폰 정면(ControlRotation) 기준 시계 방향 45도 간격. 45 = 360 / 8방향.
+		const int32 ChosenIndex = AllowedIndices[FMath::RandRange(0, AllowedIndices.Num() - 1)];
+		Yaw = AIController->GetControlRotation().Yaw + ChosenIndex * 45.f;
+	}
+	else
+	{
+		// 아무 방향도 선택되지 않았으면 완전 무작위 방향으로 폴백한다.
+		Yaw = FMath::FRandRange(0.f, 360.f);
+	}
 	MoveDirection = FRotator(0.f, Yaw, 0.f).Vector();
 
-	const float MinTime = FMath::Min(MinDuration, MaxDuration);
-	const float MaxTime = FMath::Max(MinDuration, MaxDuration);
-	TotalTime = FMath::FRandRange(MinTime, MaxTime);
+	TotalTime = Duration;
 	ElapsedTime = 0.f;
 
 	return EBTNodeResult::InProgress;
@@ -51,5 +69,32 @@ void UWxBTTask_Wander::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMe
 
 FString UWxBTTask_Wander::GetStaticDescription() const
 {
-	return FString::Printf(TEXT("Wander: Duration=%.1f~%.1fs, Speed x%.2f"), MinDuration, MaxDuration, MoveSpeedMultiplier);
+	// 전부 선택(기본값)이면 이름을 다 늘어놓는 대신 All 로 접어 노드를 간결하게 유지한다. 8 = EWxWanderDirection 의 방향 개수.
+	const int32 DirectionMask = Directions & 0xFF;
+	FString DirectionText;
+	if (DirectionMask == 0xFF)
+	{
+		DirectionText = TEXT("All");
+	}
+	else if (DirectionMask == 0)
+	{
+		DirectionText = TEXT("None");
+	}
+	else
+	{
+		const UEnum* DirectionEnum = StaticEnum<EWxWanderDirection>();
+		for (int32 Index = 0; Index < 8; ++Index)
+		{
+			if (DirectionMask & (1 << Index))
+			{
+				if (!DirectionText.IsEmpty())
+				{
+					DirectionText += TEXT(", ");
+				}
+				DirectionText += DirectionEnum->GetDisplayNameTextByValue(Index).ToString();
+			}
+		}
+	}
+
+	return FString::Printf(TEXT("Duration: %.1f s\nSpeed: x%.2f\nDirections: %s"), Duration, MoveSpeedMultiplier, *DirectionText);
 }
