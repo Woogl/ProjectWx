@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
-#include "WxAnimNotifyState_CancelWindow.generated.h"
+#include "WxAnimNotifyState_ClearAbilityBlock.generated.h"
 
 /**
  * 후딜 캔슬 수용 구간 AnimNotifyState.
@@ -21,7 +21,7 @@
  * 차단을 걸지 않는 어빌리티(예: Attack)의 후딜에 배치하면 해제할 차단이 없어 무효과다.
  */
 UCLASS()
-class WXCOMBAT_API UWxAnimNotifyState_CancelWindow : public UAnimNotifyState
+class WXCOMBAT_API UWxAnimNotifyState_ClearAbilityBlock : public UAnimNotifyState
 {
 	GENERATED_BODY()
 

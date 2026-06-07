@@ -13,7 +13,7 @@ UWxAbility_Skill::UWxAbility_Skill()
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 
 	// 스킬은 재생 중 다른 GA로 캔슬되지 않는다. (PC규격서 §5.6)
-	// 콤보는 EndAbility 후 재발동 방식이라 자기 차단이 다음 단계를 막지 않으며, 후딜 캔슬은 몽타주 ANS_CancelWindow로 허용한다.
+	// 콤보는 EndAbility 후 재발동 방식이라 자기 차단이 다음 단계를 막지 않으며, 후딜 캔슬은 몽타주 ClearAbilityBlock 노티파이로 허용한다.
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 
 	// BP에서 WxGameplayTags::Input_Skill_~4로 설정한다.

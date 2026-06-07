@@ -1,11 +1,11 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AnimNotify/WxAnimNotifyState_CancelWindow.h"
+#include "AnimNotify/WxAnimNotifyState_ClearAbilityBlock.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "WxGameplayTags.h"
 
-void UWxAnimNotifyState_CancelWindow::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
+void UWxAnimNotifyState_ClearAbilityBlock::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
@@ -23,7 +23,7 @@ void UWxAnimNotifyState_CancelWindow::NotifyBegin(USkeletalMeshComponent* MeshCo
 	}
 }
 
-void UWxAnimNotifyState_CancelWindow::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
+void UWxAnimNotifyState_ClearAbilityBlock::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
 
