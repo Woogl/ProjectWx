@@ -1,0 +1,53 @@
+{
+	"blueprintPath": "/Game/Mannequins/Animations/Unarmed/ABP_Unarmed.ABP_Unarmed",
+	"eventGraph":
+	{
+		"BlueprintInitializeAnimation": [
+			"void BlueprintInitializeAnimation()",
+			"{",
+			"    ACharacter* AsCharacter = Cast<ACharacter>(GetOwningActor());",
+			"    if (AsCharacter)",
+			"    {",
+			"        Character = AsCharacter;",
+			"        MovementComponent = Character->CharacterMovement;",
+			"    }",
+			"}"
+		],
+		"BlueprintUpdateAnimation": [
+			"void BlueprintUpdateAnimation(double DeltaTimeX)",
+			"{",
+			"    // Get",
+			"    // sequence[0]",
+			"    {",
+			"        Velocity = MovementComponent->Velocity;",
+			"        GroundSpeed = UKismetMathLibrary::VSizeXY(Velocity);",
+			"        Direction = Select;",
+			"    }",
+			"    // sequence[1]",
+			"    {",
+			"        ShouldMove = ((GroundSpeed) > (0.010000)) && ((MovementComponent->GetCurrentAcceleration()) != (FVector()));",
+			"    }",
+			"    // sequence[2]",
+			"    {",
+			"        IsFalling = MovementComponent->IsFalling();",
+			"    }",
+			"    // sequence[3]",
+			"    {",
+			"        isCrouching = MovementComponent->IsCrouching();",
+			"    }",
+			"}"
+		]
+	},
+	"parentClass": "/Script/Engine.AnimInstance",
+	"variables":
+	{
+		"Character": "nullptr",
+		"MovementComponent": "nullptr",
+		"Velocity": "FVector(0, 0, 0)",
+		"GroundSpeed": "0.0",
+		"Direction": "0.0",
+		"ShouldMove": "false",
+		"IsFalling": "false",
+		"isCrouching": "false"
+	}
+}
