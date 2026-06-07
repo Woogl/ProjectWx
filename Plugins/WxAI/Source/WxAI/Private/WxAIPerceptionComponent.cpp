@@ -150,10 +150,9 @@ void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)
 		BB->ClearValue(WxAIBlackboardKeys::TargetActor);
 	}
 
-	// 타겟 유무에 따라 회전 모드를 발행한다(상태는 원천이 발행). 타겟이 있으면 그 액터를 포커스로 두고
-	// bUseControllerDesiredRotation 으로 전환해, 컨트롤러가 매 틱 포커스 방향으로 갱신하는 ControlRotation 으로
-	// CharacterMovement 가 RotationRate 만큼 회전한다 → 타겟을 바라본 채 이동(strafe). 없으면 이동 방향으로 회전하는 평상시 로코모션으로 되돌린다.
-	// 포커스는 Gameplay(2) 우선순위라 경로 추종(MoveTo)의 Move(1) 포커스보다 우선하므로, 추격 중에도 타겟을 바라본다.
+	// 타겟 유무에 따라 회전 모드를 발행한다(상태는 원천이 발행). 
+	// 타겟이 있으면 그 액터를 포커스로 두고 bUseControllerDesiredRotation 으로 전환해 타겟을 바라본 채 이동(strafe).
+	// 타겟이 없으면 이동 방향으로 회전하는 평상시 로코모션으로 되돌린다.
 	AAIController* AIC = Cast<AAIController>(GetOwner());
 	ACharacter* Character = AIC ? Cast<ACharacter>(AIC->GetPawn()) : nullptr;
 	if (!Character)
