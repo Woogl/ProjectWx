@@ -80,3 +80,6 @@ DerivedDataCache/*
 # IDE
 *.DotSettings.user
 .idea/
+
+# Temporary files
+~*
