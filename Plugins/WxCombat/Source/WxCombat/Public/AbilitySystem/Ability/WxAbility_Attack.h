@@ -16,8 +16,8 @@ class UAnimMontage;
  * 사용 흐름:
  *  1. 약/강공격 입력 → ActivateAbility → 첫 콤보 몽타주 재생
  *  2. ANS_ComboWindow 구간 입력 → 경로에 L/H 추가 → EndAbility 후 동일 spec 재발동, 다음 몽타주 재생
- *  3. ANS_CancelWindow 구간 입력 → 첫타로 재시작 (EndAbility 후 재발동)
- *  4. 어느 윈도우도 아니거나 콤보 미입력 → 몽타주 완료/중단 시 EndAbility
+ *  3. 터미널 노드(다음 경로 없음)의 ANS_ComboWindow 구간 입력 → 첫타로 재시작 (EndAbility 후 재발동)
+ *  4. 콤보 미입력 → 몽타주 완료/중단 시 EndAbility
  *
  * 콤보 단계마다 재발동되므로 비용/쿨다운(CommitAbility)과 OnActivateEffects가 단계마다 새로 적용된다.
  * 콤보가 끊김 없이 이어지려면 BP에서 단계 사이 간격보다 쿨다운을 짧게 잡거나 MaxRecharges를 단계 수 이상으로 둔다.
@@ -59,6 +59,9 @@ private:
 
 	/** 콤보 입력 대기 태스크를 시작한다 */
 	void WaitForComboInput();
+
+	/** 현재 경로에서 L 또는 H를 추가했을 때 유효한 분기가 있는지 반환 */
+	bool HasNextCombo() const;
 
 	UFUNCTION()
 	void HandleMontageCompleted();

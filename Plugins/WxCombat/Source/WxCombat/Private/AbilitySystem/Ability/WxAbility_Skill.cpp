@@ -94,12 +94,7 @@ void UWxAbility_Skill::PlayCurrentMontage()
 
 void UWxAbility_Skill::WaitForComboInput()
 {
-	// 다음 인덱스가 없으면 콤보 입력을 받지 않는다
-	if (!SkillMontages.IsValidIndex(CurrentIndex + 1))
-	{
-		return;
-	}
-
+	// 터미널 인덱스에서도 첫 인덱스 재시작 입력을 받아야 하므로 항상 입력을 대기한다.
 	if (WaitInputTask)
 	{
 		WaitInputTask->EndTask();
@@ -141,11 +136,8 @@ void UWxAbility_Skill::HandleComboInputPressed(float TimeWaited)
 		return;
 	}
 
-	const int32 NextIndex = CurrentIndex + 1;
-	if (!SkillMontages.IsValidIndex(NextIndex))
-	{
-		return;
-	}
+	// 다음 인덱스가 있으면 콤보를 진행하고, 없으면(터미널) 첫 인덱스로 재시작한다.
+	const int32 NextIndex = SkillMontages.IsValidIndex(CurrentIndex + 1) ? (CurrentIndex + 1) : 0;
 
 	// 현재 활성화를 종료하고 동일 spec을 즉시 재발동. NextComboIndex는 다음 ActivateAbility가 소비.
 	const FGameplayAbilitySpecHandle SpecHandle = CurrentSpecHandle;

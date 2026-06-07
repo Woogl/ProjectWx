@@ -15,13 +15,14 @@ class UAnimMontage;
  *
  * 사용 흐름:
  *  1. 입력 → ActivateAbility → SkillMontages[0] 재생
- *  2. ANS_ComboWindow 구간 내 동일 입력 시 EndAbility → 동일 spec을 TryActivateAbility로 재발동, 다음 인덱스 몽타주 재생
- *  3. 다음 몽타주가 없거나 콤보 미입력 → 몽타주 완료/중단 시 EndAbility
+ *  2. ANS_ComboWindow 구간 입력 → EndAbility 후 동일 spec 재발동, 다음 인덱스 몽타주 재생
+ *  3. 터미널 인덱스(다음 없음)의 ANS_ComboWindow 구간 입력 → 첫 인덱스로 재시작 (EndAbility 후 재발동)
+ *  4. 콤보 미입력 → 몽타주 완료/중단 시 EndAbility
  *
  * 콤보 단계마다 재발동되므로 비용/쿨다운(CommitAbility)과 OnActivateEffects가 단계마다 새로 적용된다.
  * 콤보가 끊김 없이 이어지려면 BP에서 단계 사이 간격보다 쿨다운을 짧게 잡거나 MaxRecharges를 단계 수 이상으로 둔다.
  *
- * SkillMontages가 1개뿐이면 콤보 입력 대기 없이 단일 몽타주만 재생한다.
+ * SkillMontages가 1개뿐이면 진행할 다음 단계가 없어, ComboWindow를 배치하지 않는 한 단일 몽타주만 재생하고 종료한다.
  * 타겟 방향 회전은 ANS_TurnAround이 담당.
  */
 UCLASS(Abstract)

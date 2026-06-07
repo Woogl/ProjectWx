@@ -114,6 +114,11 @@ void UWxAbility_Attack::WaitForComboInput()
 	WaitInputTask->ReadyForActivation();
 }
 
+bool UWxAbility_Attack::HasNextCombo() const
+{
+	return ComboMap.Contains(FName(*(CurrentPath + TEXT("L")))) || ComboMap.Contains(FName(*(CurrentPath + TEXT("H"))));
+}
+
 void UWxAbility_Attack::HandleMontageCompleted()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
@@ -142,25 +147,32 @@ void UWxAbility_Attack::HandleComboInputPressed(float TimeWaited)
 		return;
 	}
 
+	// ComboWindow 구간이 아니면 콤보 입력을 받지 않는다.
+	if (!ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_ComboWindow))
+	{
+		WaitForComboInput();
+		return;
+	}
+
 	const TCHAR* Suffix = (ASC->GetLastPressedInputTag() == WxGameplayTags::Input_Attack_Heavy)
 		? TEXT("H")
 		: TEXT("L");
 
-	// ANS_ComboWindow 구간이면 다음 경로로 콤보를 진행한다.
-	if (ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_ComboWindow) && ComboMap.Contains(FName(*(CurrentPath + Suffix))))
+	// 다음 경로가 있으면 콤보를 진행한다.
+	if (ComboMap.Contains(FName(*(CurrentPath + Suffix))))
 	{
 		Reactivate(CurrentPath + Suffix);
 		return;
 	}
 
-	// ANS_CancelWindow 구간이면 후딜을 끊고 첫타로 재시작한다.
-	if (ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_CancelWindow) && ComboMap.Contains(FName(Suffix)))
+	// 현재 노드에 이어갈 경로가 없으면(터미널) 첫타로 재시작한다.
+	if (!HasNextCombo() && ComboMap.Contains(FName(Suffix)))
 	{
 		Reactivate(Suffix);
 		return;
 	}
 
-	// 어느 윈도우에도 해당하지 않으면 다음 입력을 다시 대기한다.
+	// 해당 입력으로 진행/재시작할 수 없으면 다음 입력을 다시 대기한다.
 	WaitForComboInput();
 }
 
