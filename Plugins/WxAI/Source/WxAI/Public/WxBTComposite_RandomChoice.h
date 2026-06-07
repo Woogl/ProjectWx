@@ -35,8 +35,6 @@ class WXAI_API UWxBTComposite_RandomChoice : public UBTComposite_Selector
 	GENERATED_BODY()
 
 public:
-	UWxBTComposite_RandomChoice(const FObjectInitializer& ObjectInitializer);
-
 	virtual uint16 GetInstanceMemorySize() const override;
 
 	virtual void InitializeMemory(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTMemoryInit::Type InitType) const override;

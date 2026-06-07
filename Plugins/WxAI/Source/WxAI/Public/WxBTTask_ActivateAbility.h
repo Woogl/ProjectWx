@@ -26,13 +26,13 @@ class WXAI_API UWxBTTask_ActivateAbility : public UBTTaskNode
 
 public:
 	UWxBTTask_ActivateAbility();
-
+	
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-	virtual EBTNodeResult::Type AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-
 	virtual FString GetStaticDescription() const override;
 
 protected:
+	virtual EBTNodeResult::Type AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+	
 	/** 발동할 어빌리티의 태그 */
 	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (Categories = "Ability"))
 	FGameplayTag AbilityTag;

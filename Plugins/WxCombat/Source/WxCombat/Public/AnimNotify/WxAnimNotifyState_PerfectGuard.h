@@ -13,7 +13,7 @@
  * 캐릭터 ASC에 ANS.PerfectGuard 태그를 부여.
  * ANS_PerfectGuard와 겹치는 구간에서 피격 시 대미지를 무효화하고 공격자에게 DP를 반사한다.
  */
-UCLASS(DisplayName = "Wx Perfect Guard")
+UCLASS()
 class WXCOMBAT_API UWxAnimNotifyState_PerfectGuard : public UAnimNotifyState
 {
 	GENERATED_BODY()
@@ -21,6 +21,4 @@ class WXCOMBAT_API UWxAnimNotifyState_PerfectGuard : public UAnimNotifyState
 public:
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
-
-	virtual FString GetNotifyName_Implementation() const override;
 };

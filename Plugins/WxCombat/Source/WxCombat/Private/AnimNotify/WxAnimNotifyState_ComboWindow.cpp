@@ -30,8 +30,3 @@ void UWxAnimNotifyState_ComboWindow::NotifyEnd(USkeletalMeshComponent* MeshComp,
 		}
 	}
 }
-
-FString UWxAnimNotifyState_ComboWindow::GetNotifyName_Implementation() const
-{
-	return TEXT("Combo Window");
-}

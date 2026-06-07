@@ -19,15 +19,13 @@ class UTargetingPreset;
  *                타겟팅 범위 밖이면 회전만 적용하고 이동은 생략한다.
  * bSnapRotation: 타겟 방향으로 회전할지 여부. 거리와 무관하게 적용된다.
  */
-UCLASS(DisplayName = "Wx Snap To Target")
+UCLASS()
 class WXCOMBAT_API UWxAnimNotifyState_SnapToTarget : public UAnimNotifyState
 {
 	GENERATED_BODY()
 
 public:
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
-
-	virtual FString GetNotifyName_Implementation() const override;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|Targeting")

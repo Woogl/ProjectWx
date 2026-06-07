@@ -15,7 +15,7 @@
  * NotifyBegin에서 캐릭터 ASC에 ANS.WeaponCollision 태그를 부여해
  * 무기 히트 콜리전을 활성화하고, 무기에 DamageInfo를 전달한다.
  */
-UCLASS(DisplayName = "Wx Weapon Attack")
+UCLASS()
 class WXCOMBAT_API UWxAnimNotifyState_WeaponAttack : public UAnimNotifyState
 {
 	GENERATED_BODY()
@@ -25,8 +25,6 @@ public:
 
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
-
-	virtual FString GetNotifyName_Implementation() const override;
 
 #if WITH_EDITOR
 	virtual bool CanEditChange(const FProperty* InProperty) const override;

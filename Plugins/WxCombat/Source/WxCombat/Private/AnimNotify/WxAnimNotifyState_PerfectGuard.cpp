@@ -30,8 +30,3 @@ void UWxAnimNotifyState_PerfectGuard::NotifyEnd(USkeletalMeshComponent* MeshComp
 		}
 	}
 }
-
-FString UWxAnimNotifyState_PerfectGuard::GetNotifyName_Implementation() const
-{
-	return TEXT("Perfect Guard");
-}

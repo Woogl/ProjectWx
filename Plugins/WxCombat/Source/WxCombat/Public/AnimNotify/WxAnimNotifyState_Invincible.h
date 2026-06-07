@@ -13,7 +13,7 @@
  * 캐릭터 ASC에 State.Invincible 태그를 부여.
  * 이 태그가 있는 동안 대미지 계산(ExecCalc)에서 대미지를 무시한다.
  */
-UCLASS(DisplayName = "Wx Invincible")
+UCLASS()
 class WXCOMBAT_API UWxAnimNotifyState_Invincible : public UAnimNotifyState
 {
 	GENERATED_BODY()
@@ -21,6 +21,4 @@ class WXCOMBAT_API UWxAnimNotifyState_Invincible : public UAnimNotifyState
 public:
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
-
-	virtual FString GetNotifyName_Implementation() const override;
 };

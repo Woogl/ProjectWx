@@ -8,7 +8,6 @@
 
 UWxBTTask_ActivateAbility::UWxBTTask_ActivateAbility()
 {
-	NodeName = TEXT("Activate Ability");
 	bCreateNodeInstance = true;
 }
 
@@ -64,6 +63,11 @@ EBTNodeResult::Type UWxBTTask_ActivateAbility::ExecuteTask(UBehaviorTreeComponen
 	return EBTNodeResult::InProgress;
 }
 
+FString UWxBTTask_ActivateAbility::GetStaticDescription() const
+{
+	return FString::Printf(TEXT("Activate Ability: %s"), *AbilityTag.ToString());
+}
+
 EBTNodeResult::Type UWxBTTask_ActivateAbility::AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	// 델리게이트를 먼저 해제하여, CancelAbilities가 트리거하는 OnAbilityEnded 콜백이 FinishLatentTask를 호출하지 않도록 한다.
@@ -75,8 +79,8 @@ EBTNodeResult::Type UWxBTTask_ActivateAbility::AbortTask(UBehaviorTreeComponent&
 		Tags.AddTag(AbilityTag);
 		ASC->CancelAbilities(&Tags);
 	}
-
-	return EBTNodeResult::Aborted;
+	
+	return Super::AbortTask(OwnerComp, NodeMemory);
 }
 
 void UWxBTTask_ActivateAbility::HandleAbilityEnded(const FAbilityEndedData& AbilityEndedData)
@@ -108,9 +112,4 @@ void UWxBTTask_ActivateAbility::CleanUp()
 	}
 	AbilityEndedDelegateHandle.Reset();
 	ActivatedHandle = FGameplayAbilitySpecHandle();
-}
-
-FString UWxBTTask_ActivateAbility::GetStaticDescription() const
-{
-	return FString::Printf(TEXT("Activate Ability: %s"), *AbilityTag.ToString());
 }

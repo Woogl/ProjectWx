@@ -8,8 +8,6 @@
 
 UWxBTDecorator_AttributeRatio::UWxBTDecorator_AttributeRatio()
 {
-	NodeName = TEXT("Compare Attribute Ratio");
-
 	Comparison = EWxAttributeRatioComparison::LessOrEqual;
 	Ratio = 0.5f;
 }

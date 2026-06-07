@@ -2,12 +2,6 @@
 
 #include "WxBTComposite_RandomChoice.h"
 
-UWxBTComposite_RandomChoice::UWxBTComposite_RandomChoice(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-	NodeName = TEXT("Random Choice");
-}
-
 uint16 UWxBTComposite_RandomChoice::GetInstanceMemorySize() const
 {
 	return sizeof(FWxBTRandomChoiceMemory);

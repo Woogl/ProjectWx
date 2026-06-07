@@ -17,7 +17,7 @@
  * 발동 가능 여부(비용/쿨다운/상태)는 그대로 검사되므로, 정작 못 쓰는 입력(쿨다운 중 등)은 후딜을 끊지 않는다.
  * 후딜 어빌리티가 BlockAbilitiesWithTag로 하드 차단하더라도, 화이트리스트에 있으면 차단을 무시하고 진입한다.
  */
-UCLASS(DisplayName = "Wx Cancel Window")
+UCLASS()
 class WXCOMBAT_API UWxAnimNotifyState_CancelWindow : public UAnimNotifyState
 {
 	GENERATED_BODY()

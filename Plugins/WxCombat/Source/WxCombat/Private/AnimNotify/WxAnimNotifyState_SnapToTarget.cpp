@@ -153,8 +153,3 @@ void UWxAnimNotifyState_SnapToTarget::NotifyBegin(USkeletalMeshComponent* MeshCo
 		}
 	}
 }
-
-FString UWxAnimNotifyState_SnapToTarget::GetNotifyName_Implementation() const
-{
-	return TEXT("Snap To Target");
-}

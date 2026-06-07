@@ -94,11 +94,6 @@ void UWxAnimNotify_AreaAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 	}
 }
 
-FString UWxAnimNotify_AreaAttack::GetNotifyName_Implementation() const
-{
-	return TEXT("Area Attack");
-}
-
 #if WITH_EDITOR
 bool UWxAnimNotify_AreaAttack::CanEditChange(const FProperty* InProperty) const
 {

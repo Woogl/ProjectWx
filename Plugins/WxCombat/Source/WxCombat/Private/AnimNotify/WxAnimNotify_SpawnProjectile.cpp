@@ -40,11 +40,6 @@ void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAn
 	Projectile->FinishSpawning(SpawnTransform);
 }
 
-FString UWxAnimNotify_SpawnProjectile::GetNotifyName_Implementation() const
-{
-	return TEXT("Spawn Projectile");
-}
-
 #if WITH_EDITOR
 bool UWxAnimNotify_SpawnProjectile::CanEditChange(const FProperty* InProperty) const
 {

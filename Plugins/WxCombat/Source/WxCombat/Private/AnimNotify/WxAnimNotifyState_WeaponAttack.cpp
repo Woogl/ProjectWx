@@ -43,11 +43,6 @@ void UWxAnimNotifyState_WeaponAttack::NotifyEnd(USkeletalMeshComponent* MeshComp
 	}
 }
 
-FString UWxAnimNotifyState_WeaponAttack::GetNotifyName_Implementation() const
-{
-	return TEXT("Weapon Attack");
-}
-
 #if WITH_EDITOR
 bool UWxAnimNotifyState_WeaponAttack::CanEditChange(const FProperty* InProperty) const
 {

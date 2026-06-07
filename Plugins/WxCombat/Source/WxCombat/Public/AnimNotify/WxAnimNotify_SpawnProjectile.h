@@ -17,15 +17,13 @@ class AWxProjectileBase;
  * SpawnSocketName 소켓 위치에 투사체를 스폰한다.
  * 서버에서만 스폰한다.
  */
-UCLASS(DisplayName = "Wx Spawn Projectile")
+UCLASS()
 class WXCOMBAT_API UWxAnimNotify_SpawnProjectile : public UAnimNotify
 {
 	GENERATED_BODY()
 
 public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
-
-	virtual FString GetNotifyName_Implementation() const override;
 
 #if WITH_EDITOR
 	virtual bool CanEditChange(const FProperty* InProperty) const override;

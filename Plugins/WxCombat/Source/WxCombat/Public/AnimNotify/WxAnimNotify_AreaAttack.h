@@ -21,15 +21,13 @@ class UTargetingPreset;
  * SourceLocation으로 사용한다. NAME_None이면 Preset이 SourceActor의
  * 액터 위치를 기준으로 동작한다.
  */
-UCLASS(DisplayName = "Wx Area Attack")
+UCLASS()
 class WXCOMBAT_API UWxAnimNotify_AreaAttack : public UAnimNotify
 {
 	GENERATED_BODY()
 
 public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
-
-	virtual FString GetNotifyName_Implementation() const override;
 
 #if WITH_EDITOR
 	virtual bool CanEditChange(const FProperty* InProperty) const override;

@@ -30,8 +30,3 @@ void UWxAnimNotifyState_Invincible::NotifyEnd(USkeletalMeshComponent* MeshComp, 
 		}
 	}
 }
-
-FString UWxAnimNotifyState_Invincible::GetNotifyName_Implementation() const
-{
-	return TEXT("Invincible");
-}

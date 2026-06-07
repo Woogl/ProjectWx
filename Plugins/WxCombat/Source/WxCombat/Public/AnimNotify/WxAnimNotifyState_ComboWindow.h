@@ -13,7 +13,7 @@
  * 캐릭터 ASC에 ANS.ComboWindow 태그를 부여.
  * 이 구간 내 공격 입력 시 다음 콤보 어빌리티 발동.
  */
-UCLASS(DisplayName = "Wx Combo Window")
+UCLASS()
 class WXCOMBAT_API UWxAnimNotifyState_ComboWindow : public UAnimNotifyState
 {
 	GENERATED_BODY()
@@ -21,6 +21,4 @@ class WXCOMBAT_API UWxAnimNotifyState_ComboWindow : public UAnimNotifyState
 public:
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
-
-	virtual FString GetNotifyName_Implementation() const override;
 };
