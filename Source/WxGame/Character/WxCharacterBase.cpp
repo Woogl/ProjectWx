@@ -44,6 +44,19 @@ AWxCharacterBase::AWxCharacterBase()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f);
 	GetCharacterMovement()->GetNavMovementProperties()->bUseAccelerationForPaths = true;
+
+	// 이동 속도·가감속 디폴트
+	GetCharacterMovement()->MaxAcceleration = 1500.f;
+	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
+	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
+	GetCharacterMovement()->bUseSeparateBrakingFriction = true;
+	GetCharacterMovement()->BrakingFrictionFactor = 1.f;
+
+	// 점프·낙하 디폴트
+	GetCharacterMovement()->JumpZVelocity = 600.f;
+	GetCharacterMovement()->AirControl = 0.35f;
+	GetCharacterMovement()->GravityScale = 2.f;
+	GetCharacterMovement()->BrakingDecelerationFalling = 1500.f;
 }
 
 void AWxCharacterBase::PostInitializeComponents()

@@ -9,6 +9,7 @@
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "Input/WxCharacterInputConfig.h"
 #include "WxGameplayTags.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AWxPlayerCharacter::AWxPlayerCharacter()
 {
@@ -21,6 +22,8 @@ AWxPlayerCharacter::AWxPlayerCharacter()
 	CameraBoom->bUsePawnControlRotation = true;
 	CameraBoom->bEnableCameraLag     = true;
 	CameraBoom->CameraLagSpeed       = 8.f;
+	
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);

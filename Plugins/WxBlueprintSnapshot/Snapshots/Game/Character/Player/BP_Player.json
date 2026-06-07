@@ -10,27 +10,6 @@
 				"AbilitySet": "/Game/Character/Player/ABS_Player.ABS_Player"
 			}
 		},
-		"CharacterMovement":
-		{
-			"class": "/Script/Engine.CharacterMovementComponent",
-			"delta":
-			{
-				"AirControl": 0.34999999403953552,
-				"bCanWalkOffLedgesWhenCrouching": true,
-				"BrakingDecelerationFalling": 1500,
-				"BrakingDecelerationWalking": 2000,
-				"BrakingFrictionFactor": 1,
-				"bUseSeparateBrakingFriction": true,
-				"CrouchedHalfHeight": 62,
-				"JumpZVelocity": 500,
-				"MaxAcceleration": 1500,
-				"MinAnalogWalkSpeed": 20,
-				"NavAgentProps":
-				{
-					"bCanCrouch": true
-				}
-			}
-		},
 		"FollowCamera":
 		{
 			"class": "/Script/Engine.CameraComponent",
