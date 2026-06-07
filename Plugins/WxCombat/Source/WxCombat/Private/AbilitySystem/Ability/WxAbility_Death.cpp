@@ -13,7 +13,8 @@
 UWxAbility_Death::UWxAbility_Death()
 {
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
-
+	
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 
 	FAbilityTriggerData TriggerData;
