@@ -76,11 +76,24 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+	const FGameplayTag EventTag = TriggerEventData ? TriggerEventData->EventTag : WxGameplayTags::Event_HitReact_Normal;
+
+	// 적 패턴(Ability.Pattern) 발동 중에는 일반(Normal) 피격 반응을 발생시키지 않는다.
+	// 강한 피격(넉백·넉다운·넉업·패리)은 패턴 중에도 그대로 반응한다.
+	if (EventTag == WxGameplayTags::Event_HitReact_Normal)
+	{
+		const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+		if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Pattern))
+		{
+			EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+			return;
+		}
+	}
+
 	// 트리거 태그에 따라 재생할 몽타주 선택. 매칭 몽타주가 없으면 기본 HitReactMontage로 폴백.
 	UAnimMontage* SelectedMontage = HitReactMontage;
 	if (TriggerEventData)
 	{
-		const FGameplayTag& EventTag = TriggerEventData->EventTag;
 		if (EventTag == WxGameplayTags::Event_HitReact_Knockback && KnockbackMontage)
 		{
 			SelectedMontage = KnockbackMontage;

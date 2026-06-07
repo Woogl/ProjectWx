@@ -20,6 +20,9 @@ class UAbilityTask_PlayMontageAndWait;
  * 모든 피격은 CancelAbilitiesWithTag로 진행 중인 공격(Ability.Attack)·스킬(Ability.Skill)을 캔슬한다.
  * 적의 패턴(Ability.Pattern)은 캔슬 대상이 아님.
  *
+ * 적 패턴(Ability.Pattern) 발동 중에는 일반(Normal) 피격 반응을 발생시키지 않는다(평타 경직 무시).
+ * 넉백·넉다운·넉업·패리는 패턴 중에도 그대로 반응한다.
+ *
  * 재생 중 다른 종류의 HitReact 이벤트가 도착하면(예: Normal 재생 중 Knockback), bRetriggerInstancedAbility로 EndAbility 후 ActivateAbility가 재진입하며,
  * CurrentMontageTask를 명시적으로 정리해 이전 태스크의 잔여 콜백이 새 재생을 즉시 종료시키는 레이스를 방지한다.
  *
