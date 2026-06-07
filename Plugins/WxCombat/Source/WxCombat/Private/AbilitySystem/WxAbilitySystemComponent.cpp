@@ -5,7 +5,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Net/UnrealNetwork.h"
-#include "WxGameplayTags.h"
 
 UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 {
@@ -88,35 +87,6 @@ const FGameplayTag& UWxAbilitySystemComponent::GetLastPressedInputTag() const
 const FGameplayTag& UWxAbilitySystemComponent::GetLastReleasedInputTag() const
 {
 	return LastReleasedInputTag;
-}
-
-void UWxAbilitySystemComponent::OpenCancelWindow(const FGameplayTagContainer& AllowedAbilityTags)
-{
-	CancelWindowAllowedTags = AllowedAbilityTags;
-	AddLooseGameplayTag(WxGameplayTags::ANS_CancelWindow);
-}
-
-void UWxAbilitySystemComponent::CloseCancelWindow()
-{
-	RemoveLooseGameplayTag(WxGameplayTags::ANS_CancelWindow);
-
-	// 중첩 구간이 모두 닫혔을 때만 허용 목록을 비운다.
-	if (!HasMatchingGameplayTag(WxGameplayTags::ANS_CancelWindow))
-	{
-		CancelWindowAllowedTags.Reset();
-	}
-}
-
-bool UWxAbilitySystemComponent::AreAbilityTagsBlocked(const FGameplayTagContainer& Tags) const
-{
-	// 후딜 캔슬 윈도우가 열려 있고 Tags가 화이트리스트에 부합하면 하드 차단(BlockAbilitiesWithTag)을 무시한다.
-	// 비용/쿨다운/상태 등 나머지 발동 조건은 CanActivateAbility가 그대로 검사한다.
-	if (HasMatchingGameplayTag(WxGameplayTags::ANS_CancelWindow) && Tags.HasAny(CancelWindowAllowedTags))
-	{
-		return false;
-	}
-
-	return Super::AreAbilityTagsBlocked(Tags);
 }
 
 void UWxAbilitySystemComponent::SetRagdollActive(bool bNewActive)

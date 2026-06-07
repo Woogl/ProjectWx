@@ -3,19 +3,22 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "WxAnimNotifyState_CancelWindow.generated.h"
 
 /**
  * 후딜 캔슬 수용 구간 AnimNotifyState.
  *
- * 어빌리티 몽타주의 후딜레이 구간에 배치하면 NotifyBegin~NotifyEnd 동안 캐릭터 ASC에 ANS.CancelWindow 태그를 부여하고 진입 허용 목록을 등록한다.
- * 이 구간에서 AllowedAbilities에 해당하는 다른 어빌리티가 실제로 발동에 성공하면, 후딜 중인 현재 어빌리티를 캔슬한다.
+ * 어빌리티 몽타주의 후딜레이 구간에 배치하면, NotifyBegin 시점에 오너 ASC가 현재 걸고 있는 어빌리티 차단(BlockedAbilityTags)을 해제한다.
+ * 그 결과 후딜 동안 다른 어빌리티가 발동 가능해지고, 진입한 어빌리티가 CancelAbilitiesWithTag로 후딜 중인 어빌리티를 캔슬한다.
  *
- * AllowedAbilities를 비워두면 어떤 어빌리티도 진입할 수 없다.
- * 발동 가능 여부(비용/쿨다운/상태)는 그대로 검사되므로, 정작 못 쓰는 입력(쿨다운 중 등)은 후딜을 끊지 않는다.
- * 후딜 어빌리티가 BlockAbilitiesWithTag로 하드 차단하더라도, 화이트리스트에 있으면 차단을 무시하고 진입한다.
+ * 비용/쿨다운/ActivationBlockedTags 등 나머지 발동 조건은 그대로 검사되므로, 정작 못 쓰는 입력(쿨다운 중 등)은 후딜을 끊지 않는다.
+ *
+ * 차단 해제는 의도적으로 NotifyEnd에서 복구하지 않는다.
+ * 후딜은 몽타주의 마지막 구간이므로 한 번 열리면 어빌리티 종료까지 캔슬 가능한 상태로 두고, 차단은 어빌리티가 끝날 때 엔진이 자연히 되돌린다(EndAbility의 BlockAbilitiesWithTag 해제).
+ *
+ * NotifyBegin~NotifyEnd 동안 ANS.CancelWindow 태그를 부여한다(게이팅이 아닌 관찰/디버그용 신호).
+ * 차단을 걸지 않는 어빌리티(예: Attack)의 후딜에 배치하면 해제할 차단이 없어 무효과다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAnimNotifyState_CancelWindow : public UAnimNotifyState
@@ -25,9 +28,4 @@ class WXCOMBAT_API UWxAnimNotifyState_CancelWindow : public UAnimNotifyState
 public:
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
-
-protected:
-	/** 이 구간에서 현재 어빌리티를 캔슬하고 진입할 수 있는 어빌리티 카테고리. 비우면 어떤 어빌리티도 진입 불가 */
-	UPROPERTY(EditAnywhere, Category = "Wx", meta = (Categories = "Ability"))
-	FGameplayTagContainer AllowedAbilities;
 };
