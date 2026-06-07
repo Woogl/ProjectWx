@@ -2,6 +2,12 @@
 
 #include "WxBTComposite_RandomChoice.h"
 
+UWxBTComposite_RandomChoice::UWxBTComposite_RandomChoice(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	NodeName = TEXT("Random Choice");
+}
+
 uint16 UWxBTComposite_RandomChoice::GetInstanceMemorySize() const
 {
 	return sizeof(FWxBTRandomChoiceMemory);
@@ -60,5 +66,5 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 
 FString UWxBTComposite_RandomChoice::GetStaticDescription() const
 {
-	return FString::Printf(TEXT("자식 중 무작위 1개를 골라 실행"));
+	return FString::Printf(TEXT("AvoidRepeat = %s"), bAvoidRepeat ? TEXT("true") : TEXT("false"));
 }

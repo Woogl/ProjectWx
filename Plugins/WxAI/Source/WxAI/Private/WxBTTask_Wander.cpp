@@ -69,32 +69,5 @@ void UWxBTTask_Wander::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMe
 
 FString UWxBTTask_Wander::GetStaticDescription() const
 {
-	// 전부 선택(기본값)이면 이름을 다 늘어놓는 대신 All 로 접어 노드를 간결하게 유지한다. 8 = EWxWanderDirection 의 방향 개수.
-	const int32 DirectionMask = Directions & 0xFF;
-	FString DirectionText;
-	if (DirectionMask == 0xFF)
-	{
-		DirectionText = TEXT("All");
-	}
-	else if (DirectionMask == 0)
-	{
-		DirectionText = TEXT("None");
-	}
-	else
-	{
-		const UEnum* DirectionEnum = StaticEnum<EWxWanderDirection>();
-		for (int32 Index = 0; Index < 8; ++Index)
-		{
-			if (DirectionMask & (1 << Index))
-			{
-				if (!DirectionText.IsEmpty())
-				{
-					DirectionText += TEXT(", ");
-				}
-				DirectionText += DirectionEnum->GetDisplayNameTextByValue(Index).ToString();
-			}
-		}
-	}
-
-	return FString::Printf(TEXT("Duration: %.1f s\nSpeed: x%.2f\nDirections: %s"), Duration, MoveSpeedMultiplier, *DirectionText);
+	return FString::Printf(TEXT("Duration: %.1f s\nSpeed: x%.2f"), Duration, MoveSpeedMultiplier);
 }

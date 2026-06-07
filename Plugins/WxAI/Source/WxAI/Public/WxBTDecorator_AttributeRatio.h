@@ -36,11 +36,11 @@ class WXAI_API UWxBTDecorator_AttributeRatio : public UBTDecorator
 public:
 	UWxBTDecorator_AttributeRatio();
 
-	virtual bool CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
-
 	virtual FString GetStaticDescription() const override;
 
 protected:
+	virtual bool CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
+	
 	/** 분자 어트리뷰트 (예: HP) */
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	FGameplayAttribute Attribute;
