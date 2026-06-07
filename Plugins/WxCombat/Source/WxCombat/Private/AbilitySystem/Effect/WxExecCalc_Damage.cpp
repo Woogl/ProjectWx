@@ -106,30 +106,36 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	}
 	else
 	{
-		// 가드 감소: Unblockable이 아닌 가드 상태에서 Guard 어빌리티의 DamageReductionRate 만큼 감소
+		// 가드 감소: Unblockable이 아닌 가드 상태에서 발동 중인 Guard 어빌리티의 DamageReductionRate 만큼 감소
 		if (!bIsUnblockable && bIsGuarding)
 		{
-			TArray<FGameplayAbilitySpec*> GuardSpecs;
-			TargetASC->GetActivatableGameplayAbilitySpecsByAllMatchingTags(FGameplayTagContainer(WxGameplayTags::Ability_Guard), GuardSpecs);
-			if (GuardSpecs.Num() > 0)
+			for (const FGameplayAbilitySpec& Spec : TargetASC->GetActivatableAbilities())
 			{
-				if (const UWxAbility_Guard* Guard = Cast<UWxAbility_Guard>(GuardSpecs[0]->GetPrimaryInstance()))
+				if (!Spec.IsActive())
+				{
+					continue;
+				}
+				if (const UWxAbility_Guard* Guard = Cast<UWxAbility_Guard>(Spec.GetPrimaryInstance()))
 				{
 					DamageResult.FinalDamage *= Guard->GetDamageReductionRate();
+					break;
 				}
 			}
 		}
 
-		// 그로기 상태의 타겟은 Groggy 어빌리티의 DamageTakenMultiplier 만큼 받는 최종 피해량이 증가한다.
+		// 그로기 상태의 타겟은 발동 중인 Groggy 어빌리티의 DamageTakenMultiplier 만큼 받는 최종 피해량이 증가한다.
 		if (bIsGroggy)
 		{
-			TArray<FGameplayAbilitySpec*> GroggySpecs;
-			TargetASC->GetActivatableGameplayAbilitySpecsByAllMatchingTags(FGameplayTagContainer(WxGameplayTags::Ability_Groggy), GroggySpecs);
-			if (GroggySpecs.Num() > 0)
+			for (const FGameplayAbilitySpec& Spec : TargetASC->GetActivatableAbilities())
 			{
-				if (const UWxAbility_Groggy* Groggy = Cast<UWxAbility_Groggy>(GroggySpecs[0]->GetPrimaryInstance()))
+				if (!Spec.IsActive())
+				{
+					continue;
+				}
+				if (const UWxAbility_Groggy* Groggy = Cast<UWxAbility_Groggy>(Spec.GetPrimaryInstance()))
 				{
 					DamageResult.FinalDamage *= Groggy->GetDamageTakenMultiplier();
+					break;
 				}
 			}
 		}
