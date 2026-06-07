@@ -43,6 +43,7 @@ AWxCharacterBase::AWxCharacterBase()
 	
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f);
+	GetCharacterMovement()->GetNavMovementProperties()->bUseAccelerationForPaths = true;
 }
 
 void AWxCharacterBase::PostInitializeComponents()

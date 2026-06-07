@@ -19,6 +19,8 @@ class UBlackboardComponent;
  * Sight/Hearing/Damage 감지를 셋업하고 결과를 Blackboard 의 TargetActor / TargetLastKnownLocation 에 동기화한다.
  * 시각/피해는 TargetActor 를 확정하고, 청각은 TargetLastKnownLocation 만 기록한다(조사형).
  *
+ * TargetActor 의 유무에 따라 폰의 회전 모드도 함께 발행한다 — 타겟이 있으면 그 액터를 바라본 채 이동(strafe), 없으면 이동 방향으로 회전(평상시).
+ *
  * 한 번 확보한 TargetActor 는 시야를 잠시 잃어도(보스 등 뒤로 이동, 벽 뒤 등) 유지되며,
  * 폰이 배치 지점(HomeLocation)에서 LeashRadius 이상 벗어났을 때(리시 이탈)에만 비워진다(이때 BT 는 복귀).
  * 인식(State.Recognized)도 같은 수명을 따른다 — 추적 중이면 on, 리시 이탈로 추적이 끝나면 off 이며,
@@ -67,6 +69,13 @@ private:
 
 	/** UpdateRecognition 의 결정을 적용하는 순수 setter. State.Recognized 태그를 폰의 ASC 에 부여/해제하며, 전환에서만 동작한다. 네임플레이트가 복제된 태그를 소비한다. */
 	void SetRecognized(bool bNewRecognized);
+
+	/**
+	 * TargetActor 를 설정/해제하는 단일 지점. BB 키 쓰기와 함께 회전 모드(전투 시 strafe)를 발행한다.
+	 * 타겟이 있으면 AIController 포커스를 그 액터로 두고 bUseControllerDesiredRotation 으로 전환해 타겟을 바라본 채 이동(strafe)하게 하고,
+	 * 없으면 포커스를 해제하고 bOrientRotationToMovement(이동 방향으로 회전)로 되돌린다. 값이 바뀔 때만 동작한다.
+	 */
+	void SetTargetActor(AActor* NewTarget);
 
 	APawn* GetOwnerPawn() const;
 
