@@ -1,0 +1,8 @@
+{
+	"blueprintPath": "/Game/AbilitySystem/Ability/GA_Pattern_Phase2.GA_Pattern_Phase2",
+	"classDefaults":
+	{
+		"TransitionMontage": "/Game/AbilitySystem/Ability/GA_Phase2.GA_Phase2"
+	},
+	"parentClass": "/Script/WxCombat.WxAbility_Pattern_Phase"
+}
