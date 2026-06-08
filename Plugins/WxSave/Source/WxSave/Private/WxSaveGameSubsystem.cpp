@@ -35,26 +35,6 @@ static FAutoConsoleCommandWithWorld GWxSaveDumpCommand(
 		}
 	}));
 
-void UWxSaveGameSubsystem::Initialize(FSubsystemCollectionBase& Collection)
-{
-	Super::Initialize(Collection);
-
-	EnsureSaveObject();
-
-	WorldInitializedActorsHandle = FWorldDelegates::OnWorldInitializedActors.AddUObject(this, &UWxSaveGameSubsystem::HandleWorldInitializedActors);
-	LevelAddedHandle = FWorldDelegates::LevelAddedToWorld.AddUObject(this, &UWxSaveGameSubsystem::HandleLevelAddedToWorld);
-	LevelRemovedHandle = FWorldDelegates::LevelRemovedFromWorld.AddUObject(this, &UWxSaveGameSubsystem::HandleLevelRemovedFromWorld);
-}
-
-void UWxSaveGameSubsystem::Deinitialize()
-{
-	FWorldDelegates::OnWorldInitializedActors.Remove(WorldInitializedActorsHandle);
-	FWorldDelegates::LevelAddedToWorld.Remove(LevelAddedHandle);
-	FWorldDelegates::LevelRemovedFromWorld.Remove(LevelRemovedHandle);
-
-	Super::Deinitialize();
-}
-
 void UWxSaveGameSubsystem::SaveSlot(const FString& SlotName)
 {
 	EnsureSaveObject();
@@ -172,75 +152,24 @@ void UWxSaveGameSubsystem::LogSaveState() const
 	}
 }
 
-bool UWxSaveGameSubsystem::IsOwnedGameWorld(const UWorld* World) const
+void UWxSaveGameSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	return World && World->IsGameWorld() && World->GetGameInstance() == GetGameInstance();
-}
+	Super::Initialize(Collection);
 
-void UWxSaveGameSubsystem::HandleWorldInitializedActors(const UWorld::FActorsInitializedParams& Params)
-{
-	if (!IsOwnedGameWorld(Params.World))
-	{
-		return;
-	}
-
-	// 영구 레벨 + 초기 WP 셀 액터에 메모리 ActorRecords 자동 복원. 신규 세션이면 메모리가 비어있어 noop.
-	int32 SavableCount = 0;
-	int32 RestoredCount = 0;
-	for (TActorIterator<AActor> It(Params.World); It; ++It)
-	{
-		AActor* Actor = *It;
-		if (Actor && Actor->Implements<UWxSavableInterface>())
-		{
-			++SavableCount;
-			RestoredCount += RestoreActor(Actor) ? 1 : 0;
-		}
-	}
-
-	UE_LOG(LogWxSave, Log, TEXT("월드 초기화 복원: IWxSavable %d개 중 %d개에 슬롯 적용 (슬롯 레코드 %d개)"),
-		SavableCount, RestoredCount, CurrentSave ? CurrentSave->ActorRecords.Num() : 0);
-}
-
-void UWxSaveGameSubsystem::HandleLevelAddedToWorld(ULevel* Level, UWorld* World)
-{
-	if (!Level || !IsOwnedGameWorld(World))
-	{
-		return;
-	}
-
-	// 스트리밍-인 셀(World Partition cell 포함) 액터에 메모리 ActorRecords 자동 복원.
-	int32 RestoredCount = 0;
-	for (AActor* Actor : Level->Actors)
-	{
-		if (Actor && Actor->Implements<UWxSavableInterface>())
-		{
-			RestoredCount += RestoreActor(Actor) ? 1 : 0;
-		}
-	}
-
-	UE_LOG(LogWxSave, Verbose, TEXT("스트리밍-인 복원: 레벨 '%s' — %d개 복원"), *Level->GetOutermost()->GetName(), RestoredCount);
-}
-
-void UWxSaveGameSubsystem::HandleLevelRemovedFromWorld(ULevel* Level, UWorld* World)
-{
-	if (!Level || !IsOwnedGameWorld(World))
-	{
-		return;
-	}
-
-	// 스트리밍-아웃 직전 자동 캡처: 셀 왕복으로 인한 상태 손실 방지.
 	EnsureSaveObject();
-	int32 CapturedCount = 0;
-	for (AActor* Actor : Level->Actors)
-	{
-		if (Actor && Actor->Implements<UWxSavableInterface>())
-		{
-			CaptureActor(Actor);
-			++CapturedCount;
-		}
-	}
 
-	UE_LOG(LogWxSave, Verbose, TEXT("스트리밍-아웃 캡처: 레벨 '%s' — IWxSavable %d개"), *Level->GetOutermost()->GetName(), CapturedCount);
+	WorldInitializedActorsHandle = FWorldDelegates::OnWorldInitializedActors.AddUObject(this, &UWxSaveGameSubsystem::HandleWorldInitializedActors);
+	LevelAddedHandle = FWorldDelegates::LevelAddedToWorld.AddUObject(this, &UWxSaveGameSubsystem::HandleLevelAddedToWorld);
+	LevelRemovedHandle = FWorldDelegates::LevelRemovedFromWorld.AddUObject(this, &UWxSaveGameSubsystem::HandleLevelRemovedFromWorld);
+}
+
+void UWxSaveGameSubsystem::Deinitialize()
+{
+	FWorldDelegates::OnWorldInitializedActors.Remove(WorldInitializedActorsHandle);
+	FWorldDelegates::LevelAddedToWorld.Remove(LevelAddedHandle);
+	FWorldDelegates::LevelRemovedFromWorld.Remove(LevelRemovedHandle);
+
+	Super::Deinitialize();
 }
 
 void UWxSaveGameSubsystem::EnsureSaveObject()
@@ -350,4 +279,75 @@ bool UWxSaveGameSubsystem::RestoreActor(AActor* Actor)
 
 	UE_LOG(LogWxSave, Verbose, TEXT("RestoreActor: '%s' (%s) 복원"), *GetNameSafe(Actor), *ActorId.ToString());
 	return true;
+}
+
+bool UWxSaveGameSubsystem::IsOwnedGameWorld(const UWorld* World) const
+{
+	return World && World->IsGameWorld() && World->GetGameInstance() == GetGameInstance();
+}
+
+void UWxSaveGameSubsystem::HandleWorldInitializedActors(const UWorld::FActorsInitializedParams& Params)
+{
+	if (!IsOwnedGameWorld(Params.World))
+	{
+		return;
+	}
+
+	// 영구 레벨 + 초기 WP 셀 액터에 메모리 ActorRecords 자동 복원. 신규 세션이면 메모리가 비어있어 noop.
+	int32 SavableCount = 0;
+	int32 RestoredCount = 0;
+	for (TActorIterator<AActor> It(Params.World); It; ++It)
+	{
+		AActor* Actor = *It;
+		if (Actor && Actor->Implements<UWxSavableInterface>())
+		{
+			++SavableCount;
+			RestoredCount += RestoreActor(Actor) ? 1 : 0;
+		}
+	}
+
+	UE_LOG(LogWxSave, Log, TEXT("월드 초기화 복원: IWxSavable %d개 중 %d개에 슬롯 적용 (슬롯 레코드 %d개)"),
+		SavableCount, RestoredCount, CurrentSave ? CurrentSave->ActorRecords.Num() : 0);
+}
+
+void UWxSaveGameSubsystem::HandleLevelAddedToWorld(ULevel* Level, UWorld* World)
+{
+	if (!Level || !IsOwnedGameWorld(World))
+	{
+		return;
+	}
+
+	// 스트리밍-인 셀(World Partition cell 포함) 액터에 메모리 ActorRecords 자동 복원.
+	int32 RestoredCount = 0;
+	for (AActor* Actor : Level->Actors)
+	{
+		if (Actor && Actor->Implements<UWxSavableInterface>())
+		{
+			RestoredCount += RestoreActor(Actor) ? 1 : 0;
+		}
+	}
+
+	UE_LOG(LogWxSave, Verbose, TEXT("스트리밍-인 복원: 레벨 '%s' — %d개 복원"), *Level->GetOutermost()->GetName(), RestoredCount);
+}
+
+void UWxSaveGameSubsystem::HandleLevelRemovedFromWorld(ULevel* Level, UWorld* World)
+{
+	if (!Level || !IsOwnedGameWorld(World))
+	{
+		return;
+	}
+
+	// 스트리밍-아웃 직전 자동 캡처: 셀 왕복으로 인한 상태 손실 방지.
+	EnsureSaveObject();
+	int32 CapturedCount = 0;
+	for (AActor* Actor : Level->Actors)
+	{
+		if (Actor && Actor->Implements<UWxSavableInterface>())
+		{
+			CaptureActor(Actor);
+			++CapturedCount;
+		}
+	}
+
+	UE_LOG(LogWxSave, Verbose, TEXT("스트리밍-아웃 캡처: 레벨 '%s' — IWxSavable %d개"), *Level->GetOutermost()->GetName(), CapturedCount);
 }

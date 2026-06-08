@@ -11,8 +11,8 @@
  * 액터가 WxSave 의 슬롯 저장/로드 라이프사이클에 참여한다는 마커 + 후크.
  *
  * 본 인터페이스를 구현한 액터는:
- *  - 체크포인트 저장 시: UPROPERTY(SaveGame) 필드가 액터 GUID 키로 슬롯에 기록된다.
- *  - 슬롯 로드 시: 동일 GUID 의 기록을 찾으면 SaveGame 필드가 복원된 뒤 OnWxSaveRestored() 가 호출된다.
+ *  - 체크포인트 저장 시: UPROPERTY(SaveGame) 필드가 GetWxSaveId() 의 WxSaveId 키로 슬롯에 기록된다.
+ *  - 슬롯 로드 시: 동일 WxSaveId 의 기록을 찾으면 SaveGame 필드가 복원된 뒤 OnWxSaveRestored() 가 호출된다.
  *
  * 필드 단위 직렬화는 UPROPERTY(SaveGame) 플래그가 처리하므로, 액터는 보존 필드에 해당 플래그만 표시하면 된다.
  * 인터페이스 정의는 WxCore 에 위치하여, WxSave 와 WxSave 소비 도메인 (예: WxWorld) 이 서로 직접 의존하지 않게 한다.
