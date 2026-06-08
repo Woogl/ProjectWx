@@ -30,6 +30,8 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	// HitReact는 항상 서버의 ExecCalc에서 GameplayEvent로 트리거되므로 ServerInitiated를 사용한다.
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 
+	// 피격 반응은 Attack/Skill이 건 BlockAbilitiesWithTag(Ability)에 절대 막히면 안 되는 반응 어빌리티다.
+	// 차단은 상대 AssetTag가 Ability.*에 매칭될 때만 걸리므로, 매칭될 태그가 없도록 AssetTag를 비워 둔다.
 	// 피격 시 플레이어가 진행 중인 공격·스킬만 캔슬한다.
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Attack);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Skill);

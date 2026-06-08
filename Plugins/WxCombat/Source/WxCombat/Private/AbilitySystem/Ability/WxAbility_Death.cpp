@@ -14,6 +14,8 @@ UWxAbility_Death::UWxAbility_Death()
 {
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 	
+	// 사망은 Attack/Skill이 건 BlockAbilitiesWithTag(Ability)에 절대 막히면 안 되는 반응 어빌리티다.
+	// 차단은 상대 AssetTag가 Ability.*에 매칭될 때만 걸리므로, 매칭될 태그가 없도록 AssetTag를 비워 둔다.
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 
