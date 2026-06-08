@@ -95,7 +95,7 @@ allowed-tools: Read, Grep, Glob, Bash, Write, Agent
 - 선언: `<WxXxxGameplayTags.h 등 경로>`
 - 주요 네임스페이스: `<예: State.*, Event.*, Input.* — 각 묶음이 무엇을 뜻하는지>`
 
-## 내부 구조
+## 폴더 구성
 <Public/ 하위 폴더별 1줄 요약. 폴더가 평평하거나 파일이 적은 작은 모듈이면 절 전체 생략.>
 - `<폴더>` — <무엇이 있는지>
 

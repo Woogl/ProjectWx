@@ -32,7 +32,7 @@
 | `IWxEquipmentInterface` | 장착 요청을 게임 측에 위임하는 인터페이스 | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxEquipmentInterface.h` |
 | `FWxRewardTableRow` | 보상 지급용 DataTable Row((아이템,수량) 최대 5쌍) | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxRewardTableRow.h` |
 
-## 내부 구조
+## 폴더 구성
 - `Public/Inventory` — 인벤토리 매니저 컴포넌트·FastArray 리스트·엔트리, 장착 위임 인터페이스
 - `Public/Items` — 아이템 정의/인스턴스/Fragment 계층, 보상 테이블 Row
 
