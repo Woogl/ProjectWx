@@ -1,0 +1,16 @@
+{
+	"blueprintPath": "/Game/Character/Custer/Skill/Archive/GA_Pattern_2.GA_Pattern_2",
+	"classDefaults":
+	{
+		"AbilityTags":
+		{
+			"GameplayTags": [
+				{
+					"TagName": "Ability.Pattern.2"
+				}
+			]
+		},
+		"Montage": "/Game/Character/Custer/Skill/Archive/AM_Custer_Skill_2.AM_Custer_Skill_2"
+	},
+	"parentClass": "/Script/WxCombat.WxAbility_Pattern"
+}

@@ -7,7 +7,7 @@
 			"class": "/Script/WxCombat.WxAbilitySystemComponent",
 			"delta":
 			{
-				"AbilitySet": "/Game/Character/Player/HR/HR_ABS_Player.HR_ABS_Player"
+				"AbilitySet": "/Game/Character/Player/HR/ABS_HR_Player.ABS_HR_Player"
 			}
 		},
 		"GameHUDClass": "/Game/UI/Widget/WBP_GameHUD.WBP_GameHUD_C",
@@ -17,7 +17,7 @@
 			"class": "/Script/Engine.SkeletalMeshComponent",
 			"delta":
 			{
-				"AnimClass": "/Game/Mannequins/Animations/ABP_Quinn.ABP_Quinn_C",
+				"AnimClass": "/Game/Mannequins/Animations/Unarmed/ABP_Unarmed.ABP_Unarmed_C",
 				"BodyInstance":
 				{
 					"CollisionResponses":
