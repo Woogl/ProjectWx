@@ -10,7 +10,6 @@
 
 class UWxItemDefinition;
 class UWxItemFragment;
-struct FWxInventoryList;
 
 /**
  * 아이템 한 자루의 런타임 인스턴스.
@@ -46,12 +45,33 @@ public:
 		return Cast<T>(FindFragmentByClass(T::StaticClass()));
 	}
 
-private:
-	friend FWxInventoryList;
+	/** 현재 충전 횟수. Charges Fragment 가 없는 아이템은 항상 0(미사용). */
+	int32 GetCurrentCharges() const;
 
-	/** 정의를 1회 바인딩한다. 인스턴스 라이프사이클 시작 시점에만 호출. */
+	/** Charges Fragment 의 MaxCharges. Fragment 가 없으면 0. */
+	int32 GetMaxCharges() const;
+
+	/**
+	 * 권한: 충전 횟수를 설정한다. [0, MaxCharges] 로 클램프된다.
+	 * 변경 브로드캐스트(OnInventoryChargeChanged)는 호출자(인벤토리 매니저) 책임이다.
+	 */
+	void SetCurrentCharges(int32 InCharges);
+
+	/**
+	 * 권한: 정의를 1회 바인딩한다. 인스턴스 생성 직후 FWxInventoryList::AddEntry 가 호출한다.
+	 * 재바인딩은 금지되며 check(ItemDef == nullptr) 로 가드된다.
+	 */
 	void SetItemDef(const UWxItemDefinition* InItemDef);
 
+protected:
+	UFUNCTION()
+	void OnRep_CurrentCharges(int32 OldCharges);
+
+private:
 	UPROPERTY(Replicated)
 	TObjectPtr<const UWxItemDefinition> ItemDef;
+
+	/** 인스턴스 단위 충전 횟수(에스트병 방식). Charges Fragment 가 부착된 아이템에서만 의미를 가진다. */
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentCharges)
+	int32 CurrentCharges = 0;
 };

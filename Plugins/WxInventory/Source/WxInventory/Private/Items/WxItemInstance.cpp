@@ -2,13 +2,16 @@
 
 #include "Items/WxItemInstance.h"
 
+#include "Inventory/WxInventoryManagerComponent.h"
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemFragment.h"
 
+#include "GameFramework/Actor.h"
 #include "Net/UnrealNetwork.h"
 
 UWxItemInstance::UWxItemInstance()
 	: ItemDef(nullptr)
+	, CurrentCharges(0)
 {
 }
 
@@ -22,6 +25,7 @@ void UWxItemInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ThisClass, ItemDef);
+	DOREPLIFETIME(ThisClass, CurrentCharges);
 }
 
 const UWxItemDefinition* UWxItemInstance::GetItemDef() const
@@ -34,7 +38,33 @@ const UWxItemFragment* UWxItemInstance::FindFragmentByClass(TSubclassOf<UWxItemF
 	return ItemDef ? ItemDef->FindFragmentByClass(FragmentClass) : nullptr;
 }
 
+int32 UWxItemInstance::GetCurrentCharges() const
+{
+	return CurrentCharges;
+}
+
+int32 UWxItemInstance::GetMaxCharges() const
+{
+	const UWxItemFragment_Charges* Charges = FindFragmentByClass<UWxItemFragment_Charges>();
+	return Charges ? Charges->MaxCharges : 0;
+}
+
+void UWxItemInstance::SetCurrentCharges(int32 InCharges)
+{
+	CurrentCharges = FMath::Clamp(InCharges, 0, GetMaxCharges());
+}
+
 void UWxItemInstance::SetItemDef(const UWxItemDefinition* InItemDef)
 {
+	check(ItemDef == nullptr);
 	ItemDef = InItemDef;
+}
+
+void UWxItemInstance::OnRep_CurrentCharges(int32 OldCharges)
+{
+	// 소유 클라이언트에서 충전량 변경을 UI 등 구독자에게 전달한다(서버는 사용 처리 시점에 직접 통지).
+	if (UWxInventoryManagerComponent* Manager = UWxInventoryManagerComponent::FindInventory(GetTypedOuter<AActor>()))
+	{
+		Manager->NotifyChargeChangedFromSource(this, CurrentCharges, CurrentCharges - OldCharges);
+	}
 }

@@ -64,8 +64,8 @@ void FWxInventoryList::PreReplicatedRemove(const TArrayView<int32> RemovedIndice
 		}
 
 		const int32 Delta = -Entry.LastObservedCount;
-		Manager->BroadcastSlotChanged(Entry.Instance, 0, Delta);
-		Manager->BroadcastStackChanged(Entry.Instance->GetItemDef(), Delta);
+		Manager->NotifySlotChangedFromList(Entry.Instance, 0, Delta);
+		Manager->NotifyStackChangedFromList(Entry.Instance->GetItemDef(), Delta);
 		Entry.LastObservedCount = 0;
 	}
 }
@@ -85,8 +85,8 @@ void FWxInventoryList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, i
 
 		if (Entry.Instance)
 		{
-			Manager->BroadcastSlotChanged(Entry.Instance, Entry.StackCount, Entry.StackCount);
-			Manager->BroadcastStackChanged(Entry.Instance->GetItemDef(), Entry.StackCount);
+			Manager->NotifySlotChangedFromList(Entry.Instance, Entry.StackCount, Entry.StackCount);
+			Manager->NotifyStackChangedFromList(Entry.Instance->GetItemDef(), Entry.StackCount);
 		}
 	}
 }
@@ -107,8 +107,8 @@ void FWxInventoryList::PostReplicatedChange(const TArrayView<int32> ChangedIndic
 
 		if (Entry.Instance && Delta != 0)
 		{
-			Manager->BroadcastSlotChanged(Entry.Instance, Entry.StackCount, Delta);
-			Manager->BroadcastStackChanged(Entry.Instance->GetItemDef(), Delta);
+			Manager->NotifySlotChangedFromList(Entry.Instance, Entry.StackCount, Delta);
+			Manager->NotifyStackChangedFromList(Entry.Instance->GetItemDef(), Delta);
 		}
 	}
 }
@@ -154,6 +154,48 @@ void FWxInventoryList::RemoveEntry(UWxItemInstance* Instance)
 			return;
 		}
 	}
+}
+
+int32 FWxInventoryList::AddToEntryStack(int32 EntryIndex, int32 Amount)
+{
+	FWxInventoryEntry& Entry = Entries[EntryIndex];
+	Entry.StackCount += Amount;
+	MarkItemDirty(Entry);
+	return Entry.StackCount;
+}
+
+TArray<FWxInventoryChangeResult> FWxInventoryList::ConsumeByDefinition(const UWxItemDefinition* ItemDef, int32 NumToConsume)
+{
+	TArray<FWxInventoryChangeResult> Changes;
+
+	int32 Remaining = NumToConsume;
+	for (auto It = Entries.CreateIterator(); It && Remaining > 0; ++It)
+	{
+		UWxItemInstance* SlotInstance = It->Instance;
+		if (!SlotInstance || SlotInstance->GetItemDef() != ItemDef)
+		{
+			continue;
+		}
+
+		const int32 ToTake = FMath::Min(It->StackCount, Remaining);
+		It->StackCount -= ToTake;
+		Remaining -= ToTake;
+
+		const int32 NewSlotCount = It->StackCount;
+		if (NewSlotCount <= 0)
+		{
+			It.RemoveCurrent();
+			MarkArrayDirty();
+		}
+		else
+		{
+			MarkItemDirty(*It);
+		}
+
+		Changes.Add({ SlotInstance, NewSlotCount, -ToTake });
+	}
+
+	return Changes;
 }
 
 const TArray<FWxInventoryEntry>& FWxInventoryList::GetEntries() const
@@ -230,33 +272,29 @@ UWxItemInstance* UWxInventoryManagerComponent::AddItemDefinition(const UWxItemDe
 	// 1) 기존 엔트리에 머지 (MaxStack > 1 인 스택 가능 아이템에만 해당).
 	if (MaxStack > 1)
 	{
-		for (FWxInventoryEntry& Entry : InventoryList.Entries)
+		const TArray<FWxInventoryEntry>& Entries = InventoryList.GetEntries();
+		for (int32 EntryIndex = 0; EntryIndex < Entries.Num() && Remaining > 0; ++EntryIndex)
 		{
-			if (Remaining <= 0)
-			{
-				break;
-			}
-			if (!Entry.Instance || Entry.Instance->GetItemDef() != ItemDef)
+			UWxItemInstance* SlotInstance = Entries[EntryIndex].GetInstance();
+			if (!SlotInstance || SlotInstance->GetItemDef() != ItemDef)
 			{
 				continue;
 			}
-			if (Entry.StackCount >= MaxStack)
+			if (Entries[EntryIndex].GetStackCount() >= MaxStack)
 			{
 				continue;
 			}
 
-			const int32 Capacity = MaxStack - Entry.StackCount;
-			const int32 ToAdd = FMath::Min(Capacity, Remaining);
-			Entry.StackCount += ToAdd;
+			const int32 ToAdd = FMath::Min(MaxStack - Entries[EntryIndex].GetStackCount(), Remaining);
+			const int32 NewStackCount = InventoryList.AddToEntryStack(EntryIndex, ToAdd);
 			Remaining -= ToAdd;
 
-			InventoryList.MarkItemDirty(Entry);
-			BroadcastSlotChanged(Entry.Instance, Entry.StackCount, ToAdd);
-			BroadcastStackChanged(ItemDef, ToAdd);
+			NotifySlotChangedFromList(SlotInstance, NewStackCount, ToAdd);
+			NotifyStackChangedFromList(ItemDef, ToAdd);
 
 			if (!FirstAffected)
 			{
-				FirstAffected = Entry.Instance;
+				FirstAffected = SlotInstance;
 			}
 		}
 	}
@@ -268,8 +306,8 @@ UWxItemInstance* UWxInventoryManagerComponent::AddItemDefinition(const UWxItemDe
 		UWxItemInstance* NewInstance = InventoryList.AddEntry(ItemDef, ChunkCount);
 		RegisterReplicatedInstance(NewInstance);
 
-		BroadcastSlotChanged(NewInstance, ChunkCount, ChunkCount);
-		BroadcastStackChanged(ItemDef, ChunkCount);
+		NotifySlotChangedFromList(NewInstance, ChunkCount, ChunkCount);
+		NotifyStackChangedFromList(ItemDef, ChunkCount);
 
 		Remaining -= ChunkCount;
 		if (!FirstAffected)
@@ -311,8 +349,8 @@ void UWxInventoryManagerComponent::RemoveItemInstance(UWxItemInstance* ItemInsta
 
 	InventoryList.RemoveEntry(ItemInstance);
 
-	BroadcastSlotChanged(ItemInstance, 0, -RemovedStackCount);
-	BroadcastStackChanged(RemovedDef, -RemovedStackCount);
+	NotifySlotChangedFromList(ItemInstance, 0, -RemovedStackCount);
+	NotifyStackChangedFromList(RemovedDef, -RemovedStackCount);
 }
 
 bool UWxInventoryManagerComponent::ConsumeItemsByDefinition(const UWxItemDefinition* ItemDef, int32 NumToConsume)
@@ -329,37 +367,19 @@ bool UWxInventoryManagerComponent::ConsumeItemsByDefinition(const UWxItemDefinit
 		return false;
 	}
 
-	int32 Remaining = NumToConsume;
-	for (auto It = InventoryList.Entries.CreateIterator(); It && Remaining > 0; ++It)
+	const TArray<FWxInventoryChangeResult> Changes = InventoryList.ConsumeByDefinition(ItemDef, NumToConsume);
+	for (const FWxInventoryChangeResult& Change : Changes)
 	{
-		UWxItemInstance* SlotInstance = It->Instance;
-		if (!SlotInstance || SlotInstance->GetItemDef() != ItemDef)
+		// NewStackCount 가 0 이면 슬롯이 비어 제거된 것이므로 SubObject 등록을 해제한다(해제는 등록 리스트에만 영향이라 제거 순서와 무관).
+		if (Change.NewStackCount <= 0)
 		{
-			continue;
+			UnregisterReplicatedInstance(Change.Instance);
 		}
 
-		const int32 ToTake = FMath::Min(It->StackCount, Remaining);
-		It->StackCount -= ToTake;
-		Remaining -= ToTake;
-
-		const int32 NewSlotCount = It->StackCount;
-
-		if (NewSlotCount <= 0)
-		{
-			UnregisterReplicatedInstance(SlotInstance);
-
-			It.RemoveCurrent();
-			InventoryList.MarkArrayDirty();
-		}
-		else
-		{
-			InventoryList.MarkItemDirty(*It);
-		}
-
-		BroadcastSlotChanged(SlotInstance, NewSlotCount, -ToTake);
+		NotifySlotChangedFromList(Change.Instance, Change.NewStackCount, Change.Delta);
 	}
 
-	BroadcastStackChanged(ItemDef, -NumToConsume);
+	NotifyStackChangedFromList(ItemDef, -NumToConsume);
 	return true;
 }
 
@@ -447,8 +467,24 @@ bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef
 		return false;
 	}
 
-	// 재고 사전 검증 — 차감하지 않고 가용 여부만 확인.
-	if (GetTotalItemCountByDefinition(ItemDef) <= 0)
+	// 사용 대상 인스턴스. GE SourceObject 이자 충전형 아이템의 충전량 보유 주체다.
+	UWxItemInstance* SourceInstance = FindFirstItemStackByDefinition(ItemDef);
+	if (!SourceInstance)
+	{
+		return false;
+	}
+
+	// 가용성 사전 검증 — 차감하지 않고 가용 여부만 확인.
+	// 충전형(Charges Fragment)은 인벤토리 스택이 아니라 인스턴스 충전량으로 판단한다.
+	const UWxItemFragment_Charges* Charges = ItemDef->FindFragmentByClass<UWxItemFragment_Charges>();
+	if (Charges)
+	{
+		if (SourceInstance->GetCurrentCharges() <= 0)
+		{
+			return false;
+		}
+	}
+	else if (GetTotalItemCountByDefinition(ItemDef) <= 0)
 	{
 		return false;
 	}
@@ -466,7 +502,6 @@ bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef
 		}
 
 		// SourceObject 는 인스턴스 단위 데이터 추적이 가능하도록 ItemInstance 를 사용한다.
-		UWxItemInstance* SourceInstance = FindFirstItemStackByDefinition(ItemDef);
 		FGameplayEffectContextHandle Context = TargetASC->MakeEffectContext();
 		Context.AddSourceObject(SourceInstance);
 
@@ -477,7 +512,15 @@ bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef
 		}
 	}
 
-	if (!ConsumeItemsByDefinition(ItemDef, 1))
+	// 차감 — 충전형은 인스턴스 충전량 1 감소(인벤토리 스택/슬롯 유지), 그 외는 스택 1 차감.
+	if (Charges)
+	{
+		const int32 OldCharges = SourceInstance->GetCurrentCharges();
+		SourceInstance->SetCurrentCharges(OldCharges - 1);
+		const int32 NewCharges = SourceInstance->GetCurrentCharges();
+		NotifyChargeChangedFromSource(SourceInstance, NewCharges, NewCharges - OldCharges);
+	}
+	else if (!ConsumeItemsByDefinition(ItemDef, 1))
 	{
 		return false;
 	}
@@ -487,6 +530,29 @@ bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef
 		TargetASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
 	}
 
+	return true;
+}
+
+bool UWxInventoryManagerComponent::RefillItemCharges(UWxItemInstance* Instance)
+{
+	if (!Instance)
+	{
+		return false;
+	}
+
+	check(GetOwner() && GetOwner()->HasAuthority());
+
+	// 충전형 아이템이 아니면(MaxCharges 0) 리필 대상이 아니다.
+	const int32 MaxCharges = Instance->GetMaxCharges();
+	if (MaxCharges <= 0)
+	{
+		return false;
+	}
+
+	const int32 OldCharges = Instance->GetCurrentCharges();
+	Instance->SetCurrentCharges(MaxCharges);
+	const int32 NewCharges = Instance->GetCurrentCharges();
+	NotifyChargeChangedFromSource(Instance, NewCharges, NewCharges - OldCharges);
 	return true;
 }
 
@@ -511,6 +577,37 @@ bool UWxInventoryManagerComponent::EquipItemByDef(const UWxItemDefinition* ItemD
 	return true;
 }
 
+void UWxInventoryManagerComponent::NotifyStackChangedFromList(const UWxItemDefinition* ItemDef, int32 Delta)
+{
+	if (!ItemDef || Delta == 0)
+	{
+		return;
+	}
+
+	const int32 NewCount = GetTotalItemCountByDefinition(ItemDef);
+	OnInventoryStackChanged.Broadcast(ItemDef, NewCount, Delta);
+}
+
+void UWxInventoryManagerComponent::NotifySlotChangedFromList(UWxItemInstance* Instance, int32 NewStackCount, int32 Delta)
+{
+	if (!Instance || Delta == 0)
+	{
+		return;
+	}
+
+	OnInventorySlotChanged.Broadcast(Instance, NewStackCount, Delta);
+}
+
+void UWxInventoryManagerComponent::NotifyChargeChangedFromSource(UWxItemInstance* Instance, int32 NewCharges, int32 Delta)
+{
+	if (!Instance || Delta == 0)
+	{
+		return;
+	}
+
+	OnInventoryChargeChanged.Broadcast(Instance, NewCharges, Delta);
+}
+
 void UWxInventoryManagerComponent::RegisterReplicatedInstance(UWxItemInstance* Instance)
 {
 	if (Instance && IsReadyForReplication())
@@ -525,25 +622,4 @@ void UWxInventoryManagerComponent::UnregisterReplicatedInstance(UWxItemInstance*
 	{
 		RemoveReplicatedSubObject(Instance);
 	}
-}
-
-void UWxInventoryManagerComponent::BroadcastStackChanged(const UWxItemDefinition* ItemDef, int32 Delta)
-{
-	if (!ItemDef || Delta == 0)
-	{
-		return;
-	}
-
-	const int32 NewCount = GetTotalItemCountByDefinition(ItemDef);
-	OnInventoryStackChanged.Broadcast(ItemDef, NewCount, Delta);
-}
-
-void UWxInventoryManagerComponent::BroadcastSlotChanged(UWxItemInstance* Instance, int32 NewStackCount, int32 Delta)
-{
-	if (!Instance || Delta == 0)
-	{
-		return;
-	}
-
-	OnInventorySlotChanged.Broadcast(Instance, NewStackCount, Delta);
 }

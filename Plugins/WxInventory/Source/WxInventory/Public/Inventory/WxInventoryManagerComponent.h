@@ -31,7 +31,6 @@ struct FWxInventoryEntry : public FFastArraySerializerItem
 
 private:
 	friend FWxInventoryList;
-	friend UWxInventoryManagerComponent;
 
 	UPROPERTY()
 	TObjectPtr<UWxItemInstance> Instance;
@@ -42,6 +41,17 @@ private:
 	/** 클라이언트 델타 계산용. 레플리케이션 대상 아님. */
 	UPROPERTY(NotReplicated)
 	int32 LastObservedCount;
+};
+
+/**
+ * FWxInventoryList 의 변경 메서드가 슬롯별 변경 결과를 호출자에게 돌려주는 값 객체.
+ * 함수 결과 전용이며 복제 대상이 아니다(USTRUCT 아님). GC 추적이 필요 없는 transient 포인터를 담는다.
+ */
+struct FWxInventoryChangeResult
+{
+	UWxItemInstance* Instance = nullptr;
+	int32 NewStackCount = 0;
+	int32 Delta = 0;
 };
 
 /**
@@ -70,11 +80,19 @@ struct FWxInventoryList : public FFastArraySerializer
 	/** 권한: 인스턴스에 해당하는 엔트리를 통째로 제거. */
 	void RemoveEntry(UWxItemInstance* Instance);
 
+	/** 권한: EntryIndex 슬롯의 StackCount 를 Amount 만큼 늘리고 갱신 후 수량을 반환한다(MarkItemDirty 포함). */
+	int32 AddToEntryStack(int32 EntryIndex, int32 Amount);
+
+	/**
+	 * 권한: ItemDef 를 NumToConsume 만큼 슬롯 순서대로 차감하고 0 이 된 슬롯은 제거한다(MarkItemDirty/MarkArrayDirty 포함).
+	 * 원자성(총량 >= NumToConsume)은 호출자가 사전 검증해야 한다 — 부족분만큼만 부분 차감될 수 있다.
+	 * 차감된 슬롯의 변경을 차감 순서대로 반환한다. NewStackCount 가 0 인 항목은 제거된 슬롯이다. 통지는 하지 않는다.
+	 */
+	TArray<FWxInventoryChangeResult> ConsumeByDefinition(const UWxItemDefinition* ItemDef, int32 NumToConsume);
+
 	const TArray<FWxInventoryEntry>& GetEntries() const;
 
 private:
-	friend UWxInventoryManagerComponent;
-
 	UPROPERTY()
 	TArray<FWxInventoryEntry> Entries;
 
@@ -101,6 +119,12 @@ DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventoryStackChanged, const UWxItem
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventorySlotChanged, UWxItemInstance* /*Instance*/, int32 /*NewStackCount*/, int32 /*Delta*/);
 
 /**
+ * 충전형(Charges Fragment) 아이템의 인스턴스 충전량 변경 브로드캐스트.
+ * NewCharges 는 갱신 후 충전 횟수, Delta 는 이번 변경분(사용 시 음수, 리필 시 양수).
+ */
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventoryChargeChanged, UWxItemInstance* /*Instance*/, int32 /*NewCharges*/, int32 /*Delta*/);
+
+/**
  * 액터에 부착되어 아이템 인스턴스의 생성·소멸·레플리케이션을 관장하는 컴포넌트.
  *
  * AddItemDefinition 은 ItemDef 의 Stackable Fragment 한도(MaxStack) 까지 기존 엔트리에 머지하고,
@@ -113,8 +137,6 @@ UCLASS(meta = (BlueprintSpawnableComponent))
 class WXINVENTORY_API UWxInventoryManagerComponent : public UActorComponent
 {
 	GENERATED_BODY()
-
-	friend FWxInventoryList;
 
 public:
 	UWxInventoryManagerComponent(const FObjectInitializer& ObjectInitializer);
@@ -159,8 +181,18 @@ public:
 
 	TArray<UWxItemInstance*> GetAllItems() const;
 
-	/** 권한: Consumable Fragment 를 가진 아이템을 1개 사용한다. 재고 부족/비 소비 아이템이면 false. 1개 차감 성공 후에만 GE를 소유 폰에 적용한다. */
+	/**
+	 * 권한: Usable Fragment 를 가진 아이템을 1회 사용한다. 비 사용 아이템이면 false.
+	 * 충전형(Charges Fragment)은 인스턴스 충전량을 1 감소시키고(인벤토리 스택 유지), 그 외는 스택을 1 차감한다.
+	 * 가용성·GE Spec 검증을 모두 통과한 뒤에만 차감하고, 차감 성공 후 GE를 소유 폰에 적용한다.
+	 */
 	bool UseItemByDef(const UWxItemDefinition* ItemDef);
+
+	/**
+	 * 권한: 충전형(Charges Fragment) 아이템 인스턴스의 충전량을 MaxCharges 로 회복한다(에스트병 체크포인트 리필).
+	 * 충전형이 아니거나 인스턴스가 유효하지 않으면 false.
+	 */
+	bool RefillItemCharges(UWxItemInstance* Instance);
 
 	/** 권한: Equipment Fragment 를 가진 아이템을 소유 폰(IWxEquipmentInterface)에 장착 요청. 스택은 차감하지 않는다. ItemDef 가 nullptr 이면 장착 해제. */
 	bool EquipItemByDef(const UWxItemDefinition* ItemDef);
@@ -169,18 +201,26 @@ public:
 
 	FWxOnInventorySlotChanged OnInventorySlotChanged;
 
+	FWxOnInventoryChargeChanged OnInventoryChargeChanged;
+
+	//~ 아래 3종은 List 복제 콜백/Instance OnRep/내부 변경 경로 전용 통지 진입점이다(외부 소비자 호출 금지, 비-BlueprintCallable).
+	//~ 서버 변경 경로와 클라이언트 복제 콜백 경로가 모두 이 진입점으로 수렴해 델리게이트를 발행한다.
+
+	/** ItemDef 합계 변경 통지. NewCount 는 내부에서 합계를 재계산한다. */
+	void NotifyStackChangedFromList(const UWxItemDefinition* ItemDef, int32 Delta);
+
+	/** 슬롯 단위 변경 통지. */
+	void NotifySlotChangedFromList(UWxItemInstance* Instance, int32 NewStackCount, int32 Delta);
+
+	/** 충전량 변경 통지. 서버(사용/리필)와 클라이언트(OnRep_CurrentCharges) 공통 진입. */
+	void NotifyChargeChangedFromSource(UWxItemInstance* Instance, int32 NewCharges, int32 Delta);
+
 private:
 	/** 신규 인스턴스를 SubObject 시스템에 등록한다. */
 	void RegisterReplicatedInstance(UWxItemInstance* Instance);
 
 	/** 인스턴스를 SubObject 시스템에서 해제한다. */
 	void UnregisterReplicatedInstance(UWxItemInstance* Instance);
-
-	/** ItemDef 합계 변경 브로드캐스트. 서버/클라이언트 공통 진입. */
-	void BroadcastStackChanged(const UWxItemDefinition* ItemDef, int32 Delta);
-
-	/** 슬롯 단위 변경 브로드캐스트. 서버/클라이언트 공통 진입. */
-	void BroadcastSlotChanged(UWxItemInstance* Instance, int32 NewStackCount, int32 Delta);
 
 	UPROPERTY(Replicated)
 	FWxInventoryList InventoryList;
