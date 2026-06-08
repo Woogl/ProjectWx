@@ -19,7 +19,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
 	static void SaveSlot(const UObject* WorldContextObject, const FString& SlotName);
 
-	/** SlotName 파일을 메모리로 로드하고 현재 월드 액터에 복원한다. 파일 부재 시 빈 슬롯으로 초기화. */
+	/** SlotName 파일을 메모리로 로드한 뒤 현재 맵을 리로드(ServerTravel)하여 액터를 복원한다(authority 전제). 반환값은 슬롯 파일 존재 여부. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
 	static bool LoadSlot(const UObject* WorldContextObject, const FString& SlotName);
 };

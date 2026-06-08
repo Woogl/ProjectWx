@@ -47,8 +47,17 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	//~ Begin IWxSavableInterface
+	virtual FGuid GetWxSaveId() const override;
 	virtual void OnWxSaveRestored() override;
 	//~ End IWxSavableInterface
+
+#if WITH_EDITOR
+	//~ Begin AActor/UObject — WxSaveId 를 에디터에서 1회 부여(런타임/세션 간 불변 키).
+	virtual void PostActorCreated() override;
+	virtual void PostDuplicate(EDuplicateMode::Type DuplicateMode) override;
+	virtual void PostLoad() override;
+	//~ End AActor/UObject
+#endif
 
 protected:
 
@@ -75,4 +84,8 @@ protected:
 private:
 	UFUNCTION()
 	void OnRep_bTriggered();
+
+	/** WxSave 슬롯 레코드의 안정적 키. 에디터에서 부여되어 에셋에 직렬화되고, 런타임/세션 간 불변이다. */
+	UPROPERTY()
+	FGuid WxSaveId;
 };

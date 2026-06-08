@@ -56,6 +56,7 @@ public:
 	void MarkKilled();
 
 	//~ Begin IWxSavableInterface
+	virtual FGuid GetWxSaveId() const override;
 	virtual void OnWxSaveRestored() override;
 	//~ End IWxSavableInterface
 
@@ -83,10 +84,16 @@ protected:
 	UPROPERTY(SaveGame)
 	bool bIsKilled = false;
 
+	/** WxSave 슬롯 레코드의 안정적 키. 에디터에서 부여되어 에셋에 직렬화되고, 런타임/세션 간 불변이다. */
+	UPROPERTY()
+	FGuid WxSaveId;
+
 	TWeakObjectPtr<AActor> SpawnedActor;
 
 #if WITH_EDITOR
 public:
+	virtual void PostActorCreated() override;
+	virtual void PostDuplicate(EDuplicateMode::Type DuplicateMode) override;
 	virtual void PostLoad() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	void UpdateEditorPreviewFromSpawnableClass();

@@ -15,8 +15,10 @@ class UWxSaveGame;
  *
  * 공개 API:
  *  - SaveSlot: 현재 월드의 IWxSavable 액터 + 첫 플레이어 Pawn Transform 을 슬롯 파일에 비동기 저장.
- *  - LoadSlot: 슬롯 파일을 메모리로 로드하고 현재 월드 액터에 즉시 복원 + 첫 플레이어 Pawn 을 부활 Transform 으로 이동.
- *  - TryGetPlayerRespawnTransform: GameMode 가 ChoosePlayerStart 에서 부활 진입점을 조회 (ServerTravel 후 흐름).
+ *  - LoadSlot: 슬롯 파일을 메모리로 로드한 뒤 현재 맵을 ServerTravel 로 리로드한다(authority 전제). 액터 복원은
+ *    리로드된 새 월드의 스트리밍 핸들러가, 플레이어 부활 위치는 새 GameMode 의 ChoosePlayerStart 가 담당한다.
+ *    파일이 없으면 메모리를 빈 슬롯으로 리셋한 뒤에도 동일하게 리로드한다(체크포인트 미존재 시 기본 PlayerStart 부활).
+ *  - GetPlayerRespawnTransform: GameMode 가 ChoosePlayerStart 에서 부활 진입점을 조회 (ServerTravel 후 흐름).
  *
  * GameInstanceSubsystem 이라 ServerTravel 을 가로질러 메모리가 유지된다.
  *
@@ -35,7 +37,11 @@ public:
 	/** 현재 월드의 IWxSavable 액터 상태 + 첫 플레이어 Pawn Transform 을 캡처하고 SlotName 파일에 비동기 기록한다. */
 	void SaveSlot(const FString& SlotName);
 
-	/** SlotName 파일을 메모리로 로드하고 현재 월드의 IWxSavable 액터에 복원한다. 파일 부재 시 빈 슬롯으로 초기화. */
+	/**
+	 * SlotName 파일을 메모리로 로드한 뒤 현재 맵을 ServerTravel 로 리로드한다(authority 전제). 액터 복원은 리로드된
+	 * 월드의 스트리밍 핸들러가 자동 수행한다. 파일 부재 시 메모리를 빈 슬롯으로 리셋한 뒤에도 동일하게 리로드한다.
+	 * @return 슬롯 파일이 존재했는지 여부(리로드는 어느 경우든 수행되므로 사후 통보용).
+	 */
 	bool LoadSlot(const FString& SlotName);
 
 	/** GameMode 가 ChoosePlayerStart 에서 호출. 슬롯에 한 번도 SaveSlot 된 적 없으면 false. */

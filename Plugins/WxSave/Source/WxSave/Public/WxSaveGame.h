@@ -39,7 +39,7 @@ class WXSAVE_API UWxSaveGame : public USaveGame
 	GENERATED_BODY()
 
 public:
-	/** 액터 GUID -> 스냅샷. 레벨 배치 액터의 ActorGuid 만 안정적 키로 사용된다. */
+	/** WxSaveId -> 스냅샷. IWxSavableInterface::GetWxSaveId() 의 에디터-부여 영속 GUID 를 안정적 키로 사용한다(쿠킹 빌드 안전). */
 	UPROPERTY()
 	TMap<FGuid, FWxActorRecord> ActorRecords;
 

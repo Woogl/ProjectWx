@@ -178,7 +178,13 @@ void UWxSaveGameSubsystem::EnsureSaveObject()
 
 void UWxSaveGameSubsystem::CaptureActor(AActor* Actor)
 {
-	const FGuid ActorId = Actor->GetActorGuid();
+	const IWxSavableInterface* Savable = Cast<IWxSavableInterface>(Actor);
+	if (!Savable)
+	{
+		return;
+	}
+
+	const FGuid ActorId = Savable->GetWxSaveId();
 	if (!ActorId.IsValid())
 	{
 		return;
@@ -216,7 +222,13 @@ void UWxSaveGameSubsystem::CaptureActor(AActor* Actor)
 
 void UWxSaveGameSubsystem::RestoreActor(AActor* Actor)
 {
-	const FGuid ActorId = Actor->GetActorGuid();
+	IWxSavableInterface* Savable = Cast<IWxSavableInterface>(Actor);
+	if (!Savable)
+	{
+		return;
+	}
+
+	const FGuid ActorId = Savable->GetWxSaveId();
 	if (!ActorId.IsValid())
 	{
 		return;
@@ -256,8 +268,5 @@ void UWxSaveGameSubsystem::RestoreActor(AActor* Actor)
 		Component->Serialize(Ar);
 	}
 
-	if (IWxSavableInterface* Savable = Cast<IWxSavableInterface>(Actor))
-	{
-		Savable->OnWxSaveRestored();
-	}
+	Savable->OnWxSaveRestored();
 }

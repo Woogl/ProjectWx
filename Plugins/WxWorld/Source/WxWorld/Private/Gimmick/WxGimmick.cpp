@@ -43,6 +43,11 @@ void AWxGimmick::MarkTriggered()
 	ApplyState();
 }
 
+FGuid AWxGimmick::GetWxSaveId() const
+{
+	return WxSaveId;
+}
+
 void AWxGimmick::OnWxSaveRestored()
 {
 	// BeginPlay 이전 복원이면 곧 호출될 BeginPlay 가 ApplyState 를 호출하므로 생략.
@@ -52,6 +57,32 @@ void AWxGimmick::OnWxSaveRestored()
 		ApplyState();
 	}
 }
+
+#if WITH_EDITOR
+// 에디터 전용 GetActorGuid() 를 런타임 가용 UPROPERTY 로 복사한다. ActorGuid 는 에디터에서 액터별로 안정·고유하고,
+// 쿠킹 시 쿠커가 PostLoad 를 거쳐 WxSaveId 에 이 값을 구워넣으므로 레벨 재저장 없이도 런타임 키가 보장된다.
+void AWxGimmick::PostActorCreated()
+{
+	Super::PostActorCreated();
+
+	WxSaveId = GetActorGuid();
+}
+
+void AWxGimmick::PostDuplicate(EDuplicateMode::Type DuplicateMode)
+{
+	Super::PostDuplicate(DuplicateMode);
+
+	// 복제 시 엔진이 새 ActorGuid 를 부여하므로 그대로 따라가면 원본과 충돌하지 않는다.
+	WxSaveId = GetActorGuid();
+}
+
+void AWxGimmick::PostLoad()
+{
+	Super::PostLoad();
+
+	WxSaveId = GetActorGuid();
+}
+#endif
 
 void AWxGimmick::OnRep_bTriggered()
 {
