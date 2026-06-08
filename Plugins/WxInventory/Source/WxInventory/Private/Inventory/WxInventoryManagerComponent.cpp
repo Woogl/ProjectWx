@@ -331,9 +331,9 @@ void UWxInventoryManagerComponent::RemoveItemInstance(UWxItemInstance* ItemInsta
 	int32 RemovedStackCount = 0;
 	for (const FWxInventoryEntry& Entry : InventoryList.GetEntries())
 	{
-		if (Entry.Instance == ItemInstance)
+		if (Entry.GetInstance() == ItemInstance)
 		{
-			RemovedStackCount = Entry.StackCount;
+			RemovedStackCount = Entry.GetStackCount();
 			break;
 		}
 	}
@@ -392,7 +392,7 @@ UWxItemInstance* UWxInventoryManagerComponent::FindFirstItemStackByDefinition(co
 
 	for (const FWxInventoryEntry& Entry : InventoryList.GetEntries())
 	{
-		UWxItemInstance* SlotInstance = Entry.Instance;
+		UWxItemInstance* SlotInstance = Entry.GetInstance();
 		if (SlotInstance && SlotInstance->GetItemDef() == ItemDef)
 		{
 			return SlotInstance;
@@ -411,10 +411,10 @@ int32 UWxInventoryManagerComponent::GetTotalItemCountByDefinition(const UWxItemD
 	int32 Total = 0;
 	for (const FWxInventoryEntry& Entry : InventoryList.GetEntries())
 	{
-		const UWxItemInstance* SlotInstance = Entry.Instance;
+		const UWxItemInstance* SlotInstance = Entry.GetInstance();
 		if (SlotInstance && SlotInstance->GetItemDef() == ItemDef)
 		{
-			Total += Entry.StackCount;
+			Total += Entry.GetStackCount();
 		}
 	}
 	return Total;
@@ -429,9 +429,9 @@ int32 UWxInventoryManagerComponent::GetStackCountByInstance(const UWxItemInstanc
 
 	for (const FWxInventoryEntry& Entry : InventoryList.GetEntries())
 	{
-		if (Entry.Instance == Instance)
+		if (Entry.GetInstance() == Instance)
 		{
-			return Entry.StackCount;
+			return Entry.GetStackCount();
 		}
 	}
 	return 0;
@@ -444,7 +444,7 @@ TArray<UWxItemInstance*> UWxInventoryManagerComponent::GetAllItems() const
 	Result.Reserve(Entries.Num());
 	for (const FWxInventoryEntry& Entry : Entries)
 	{
-		if (UWxItemInstance* SlotInstance = Entry.Instance)
+		if (UWxItemInstance* SlotInstance = Entry.GetInstance())
 		{
 			Result.Add(SlotInstance);
 		}
