@@ -30,8 +30,8 @@ allowed-tools: Read, Grep, Glob, Bash, Write, Agent
 인자에 따라 대상 집합을 정한다.
 
 - **인자 없음** (기본): `git rev-parse --short HEAD`로 현재 SHA를 구한 뒤, 각 모듈의 README 상태를 판정해 **missing 또는 stale인 모듈만** 대상으로 삼는다. fresh면 건너뛴다. 대상이 0개면 "모두 최신"이라고 보고한다.
-- **모듈명 1개 이상** (예: `WxCombat`, `WxCombat WxInventory`): 그 모듈만 강제 재생성. 발견된 모듈 목록에 없는 이름이면 생성하지 말고, 유효한 모듈 목록을 한국어로 안내한다.
-- **`all`**: 발견된 모든 모듈을 재생성.
+- **모듈명 1개 이상** (예: `WxCombat`, `WxCombat WxInventory`): 그 모듈만 재생성한다(stale 여부와 무관하게 다시 씀). 발견된 모듈 목록에 없는 이름이면 생성하지 말고, 유효한 모듈 목록을 한국어로 안내한다.
+- **`all`**: 발견된 모든 모듈을 (stale 여부와 무관하게) 재생성.
 
 ### Stale 판정
 
