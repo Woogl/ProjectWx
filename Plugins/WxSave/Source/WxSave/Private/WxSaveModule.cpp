@@ -3,6 +3,8 @@
 #include "WxSaveModule.h"
 #include "Modules/ModuleManager.h"
 
+DEFINE_LOG_CATEGORY(LogWxSave);
+
 void FWxSaveModule::StartupModule() {}
 void FWxSaveModule::ShutdownModule() {}
 

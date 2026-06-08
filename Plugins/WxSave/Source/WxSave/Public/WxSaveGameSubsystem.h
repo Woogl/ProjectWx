@@ -47,6 +47,9 @@ public:
 	/** GameMode 가 ChoosePlayerStart 에서 호출. 슬롯에 한 번도 SaveSlot 된 적 없으면 false. */
 	bool GetPlayerRespawnTransform(FTransform& OutTransform) const;
 
+	/** 현재 메모리 슬롯 상태(레코드 키 목록 + 부활 Transform)를 LogWxSave 로 덤프한다. 콘솔 명령 Wx.Save.Dump 의 구현. */
+	void LogSaveState() const;
+
 	//~ Begin UGameInstanceSubsystem
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
@@ -57,7 +60,8 @@ private:
 
 	void CaptureActor(AActor* Actor);
 
-	void RestoreActor(AActor* Actor);
+	/** @return 슬롯에서 일치 레코드를 찾아 복원했으면 true (신규 세션 등 레코드 없음/미설정 키는 false). */
+	bool RestoreActor(AActor* Actor);
 
 	/** 본 GameInstance 의 게임 월드인지 확인 (PIE 다중 인스턴스 격리용). */
 	bool IsOwnedGameWorld(const UWorld* World) const;
