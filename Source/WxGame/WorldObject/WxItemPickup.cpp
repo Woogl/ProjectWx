@@ -42,8 +42,9 @@ void AWxItemPickup::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	// ItemDef 는 스폰 직후 설정되고 이후 변하지 않으므로 초기 1회만 복제.
+	// ItemDef/Quantity 는 스폰 직후 설정되고 이후 변하지 않으므로 초기 1회만 복제.
 	DOREPLIFETIME_CONDITION(AWxItemPickup, ItemDef, COND_InitialOnly);
+	DOREPLIFETIME_CONDITION(AWxItemPickup, Quantity, COND_InitialOnly);
 }
 
 void AWxItemPickup::BeginPlay()
@@ -53,9 +54,10 @@ void AWxItemPickup::BeginPlay()
 	InteractionComponent->OnInteracted.AddDynamic(this, &AWxItemPickup::HandleInteracted);
 }
 
-void AWxItemPickup::SetItemDef(UWxItemDefinition* InItemDef)
+void AWxItemPickup::SetItemDef(UWxItemDefinition* InItemDef, int32 InQuantity)
 {
 	ItemDef = InItemDef;
+	Quantity = FMath::Max(1, InQuantity);
 	UpdateInteractionText();
 	ApplyPickupVisual();
 }
@@ -73,7 +75,9 @@ void AWxItemPickup::UpdateInteractionText()
 		return;
 	}
 
-	const FText FormattedText = FText::Format(NSLOCTEXT("WxItemPickup", "InteractionFormat", "[F] {0}"), ItemDef->DisplayName);
+	const FText FormattedText = (Quantity > 1)
+		? FText::Format(NSLOCTEXT("WxItemPickup", "InteractionFormatQuantity", "[F] {0} x{1}"), ItemDef->DisplayName, Quantity)
+		: FText::Format(NSLOCTEXT("WxItemPickup", "InteractionFormat", "[F] {0}"), ItemDef->DisplayName);
 	InteractionComponent->SetInteractionText(FormattedText);
 }
 
@@ -138,9 +142,9 @@ void AWxItemPickup::HandleInteracted(AActor* InteractingActor)
 		return;
 	}
 
-	UWxItemInstance* AddedInstance = Inventory->AddItemDefinition(ItemDef);
+	UWxItemInstance* AddedInstance = Inventory->AddItemDefinition(ItemDef, Quantity);
 	const int32 TotalOwned = Inventory->GetTotalItemCountByDefinition(ItemDef);
-	UE_LOG(LogWxItemPickup, Log, TEXT("Picked up %s (instance=%s, total=%d)"), *ItemDef->GetName(), *GetNameSafe(AddedInstance), TotalOwned);
+	UE_LOG(LogWxItemPickup, Log, TEXT("Picked up %s x%d (instance=%s, total=%d)"), *ItemDef->GetName(), Quantity, *GetNameSafe(AddedInstance), TotalOwned);
 
 	Destroy();
 }

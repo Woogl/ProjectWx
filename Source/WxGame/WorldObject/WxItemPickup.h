@@ -29,8 +29,8 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	/** 외부 스포너(예: 보물 상자) 가 SpawnActorDeferred → FinishSpawning 사이에 지급할 아이템을 주입할 때 사용. 서버 권한에서만 호출. */
-	void SetItemDef(UWxItemDefinition* InItemDef);
+	/** 외부 스포너(예: 보물 상자) 가 SpawnActorDeferred → FinishSpawning 사이에 지급할 아이템과 수량을 주입할 때 사용. 서버 권한에서만 호출. */
+	void SetItemDef(UWxItemDefinition* InItemDef, int32 InQuantity = 1);
 
 	/** 서버 권한에서 픽업을 물리 발사한다. MeshComponent 의 물리 시뮬레이션을 활성화하고 선속도를 부여한다. */
 	void LaunchInDirection(const FVector& Direction, float Speed);
@@ -51,6 +51,10 @@ protected:
 	/** 지급할 아이템 정의. 외부 스포너가 SetItemDef 로 주입한다. */
 	UPROPERTY(ReplicatedUsing = OnRep_ItemDef)
 	TObjectPtr<UWxItemDefinition> ItemDef;
+
+	/** 지급 수량. 외부 스포너가 SetItemDef 로 주입한다. 최소 1. */
+	UPROPERTY(Replicated)
+	int32 Quantity = 1;
 
 private:
 	UFUNCTION()
