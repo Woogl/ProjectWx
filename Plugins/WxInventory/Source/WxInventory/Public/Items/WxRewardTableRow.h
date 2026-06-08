@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 
-#include "WxItemRewardTableRow.generated.h"
+#include "WxRewardTableRow.generated.h"
 
 class UWxItemDefinition;
 
@@ -42,7 +42,7 @@ struct WXINVENTORY_API FWxItemRewardEntry
  * RowName 예시: Reward_Quest_01, Reward_Chest_Rare
  */
 USTRUCT(BlueprintType)
-struct WXINVENTORY_API FWxItemRewardTableRow : public FTableRowBase
+struct WXINVENTORY_API FWxRewardTableRow : public FTableRowBase
 {
 	GENERATED_BODY()
 
