@@ -3,11 +3,14 @@
 > 아이템의 정적 정의(데이터 자산)와 런타임 인스턴스를 관리하고, 액터에 부착되는 인벤토리 매니저 컴포넌트로 추가·차감·사용·장착을 권한(서버) 주도로 처리해 FastArray 로 클라이언트에 동기화한다.
 
 ## 책임
+**담당**
 - 아이템 정의(`UWxItemDefinition`) + Fragment 컴포지션으로 아이템의 속성/행동 선언, 런타임 인스턴스(`UWxItemInstance`) 수명 관리
 - 인벤토리 컬렉션의 추가/머지/분할·차감·소비·충전(에스트병)·장착 요청 및 변경 브로드캐스트(`UWxInventoryManagerComponent`)
 - 보상 지급용 DataTable Row 구조체(`FWxRewardTableRow`) 제공
-- 장착의 실제 시각/부착 반영은 담당하지 않는다 — `IWxEquipmentInterface` 로 게임 측(Character)에 위임한다(플러그인 역참조 회피)
-- UI 출력·입력 처리(WxUI), 픽업 액터 스폰/배치(WxWorld) 자체는 담당하지 않는다 — 데이터(Fragment)만 제공한다
+
+**경계 (비담당)**
+- 장착의 실제 시각/부착 반영은 담당하지 않고 `IWxEquipmentInterface` 로 게임 측(Character)에 위임한다(플러그인 역참조 회피).
+- UI 출력·입력 처리([[WxUI]]), 픽업 액터 스폰/배치([[WxWorld]]) 자체는 담당하지 않고 데이터(Fragment)만 제공한다.
 
 ## 의존성
 - **주요 의존**: `WxCore`(공용 정의), `GameplayAbilities`(사용/장착 시 GameplayEffect 적용), `Niagara`(픽업 비주얼 Fragment 데이터), `GameplayTags`, `NetCore`(FastArray 리플리케이션), `DeveloperSettings`
