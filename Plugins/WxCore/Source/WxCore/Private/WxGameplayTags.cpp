@@ -26,7 +26,6 @@ namespace WxGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(ANS_WeaponCollision, "ANS.WeaponCollision");
 	UE_DEFINE_GAMEPLAY_TAG(ANS_ComboWindow, "ANS.ComboWindow");
-	UE_DEFINE_GAMEPLAY_TAG(ANS_CancelWindow, "ANS.CancelWindow");
 
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Damage, "GameplayCue.Damage");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_PerfectGuard, "GameplayCue.PerfectGuard");

@@ -33,6 +33,15 @@ float UWxAbilityBase::GetMontagePlayRate() const
 	return FMath::Max(AttrSet->GetASPD(), 0.01f);
 }
 
+void UWxAbilityBase::StartRecovery()
+{
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		// 자기 자신이 건 차단만 정확히 해제한다(전역 스냅샷 아님). ref-count는 0에서 클램프되므로 EndAbility의 중복 해제도 무해.
+		ASC->UnBlockAbilitiesWithTags(BlockAbilitiesWithTag);
+	}
+}
+
 #if WITH_EDITOR
 bool UWxAbilityBase::CanEditChange(const FProperty* InProperty) const
 {

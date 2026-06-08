@@ -79,9 +79,6 @@ namespace WxGameplayTags
 	/** 콤보 입력 수용 구간. ANS_ComboWindow가 부여/제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_ComboWindow);
 
-	/** 후딜 캔슬 수용 구간. ANS_CancelWindow가 부여/제거. 이 구간에서 허용 어빌리티 발동 시 현재 어빌리티를 캔슬하고 진입 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_CancelWindow);
-
 	// ── GameplayCue ──────────────────────────────────────────────────────
 
 	/** 데미지 Cue. 임팩트 위치에 스파크/사운드 재생, 데미지 플로터 출력 */

@@ -91,6 +91,16 @@ public:
 	 */
 	float GetMontagePlayRate() const;
 
+	/**
+	 * 후딜레이 구간 진입. 이 프로젝트에서 후딜레이 구간 = 캔슬 가능 구간이다.
+	 * 이 어빌리티가 건 하드 차단(BlockAbilitiesWithTag)을 해제해, 후딜 동안 평소 막히던 어빌리티로 캔슬 진입할 수 있게 한다.
+	 * 진입한 어빌리티는 자신의 CancelAbilitiesWithTag(또는 동일 슬롯 몽타주 인터럽트)로 이 어빌리티를 끊는다.
+	 *
+	 * 복원하지 않는다 — 후딜은 몽타주의 마지막 구간이므로 한 번 진입하면 어빌리티 종료까지 캔슬 가능 상태로 두고, 차단은 어빌리티 종료 시 엔진이 자연히 되돌린다.
+	 * 비용/쿨다운/ActivationBlockedTags는 그대로 검사되므로 못 쓰는 입력은 후딜을 끊지 못한다. BlockAbilitiesWithTag가 비어 있으면(예: Attack) 무효과.
+	 */
+	void StartRecovery();
+
 #if WITH_EDITOR
 	virtual bool CanEditChange(const FProperty* InProperty) const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
