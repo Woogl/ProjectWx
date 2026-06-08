@@ -17,6 +17,11 @@ UWxAbility_Attack::UWxAbility_Attack()
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Attack);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Attack);
+
+	// 공격은 시동·타격 중 다른 GA로 캔슬되지 않는다(커밋).
+	// 즉시 회피·가드로 빠져나가는 것을 막아 공격에 리스크를 부여하려는 의도다.
+	// 콤보는 EndAbility 후 재발동 방식이라 자기 차단이 다음 단계를 막지 않으며, 후딜 캔슬은 몽타주 StartRecovery 노티파이로 허용한다.
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 }
 
 void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
