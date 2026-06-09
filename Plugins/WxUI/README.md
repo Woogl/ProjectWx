@@ -14,7 +14,7 @@
 - 전투/어빌리티 로직 자체는 [[WxCombat]] — WxUI는 ASC가 발행하는 어트리뷰트/이펙트 변경만 관찰해 표시
 - 인벤토리 데이터/아이템 정의는 [[WxInventory]] — WxUI는 슬롯 WBP 표현만 담당
 - 공용 Gameplay Tag(`UI.Layer.*` 등) 선언은 [[WxCore]] (`WxGameplayTags`)
-- 실제 HUD/메뉴 위젯의 레이아웃·비주얼·바인딩 그래프는 게임 콘텐츠 WBP(아래 스냅샷 참조)
+- 실제 HUD/메뉴 위젯의 레이아웃·비주얼·바인딩 그래프는 게임 콘텐츠 WBP([[WxGame]])
 
 ## 의존성
 - **주요 의존**: [[WxCore]] · CommonUI · CommonInput · ModelViewViewModel(UMG ViewModel) · GameplayAbilities · GameplayTags · DeveloperSettings · UMG/Slate
@@ -50,14 +50,6 @@
 - **데이터 주도 설정**: GameplayEffect에 `UWxEffectComponent_UIData`를 붙여 이름/아이콘/설명을 에디터에서 지정하면 `UWxViewModel_Effect`가 읽어 표시. 어빌리티 쿨다운/충전 수는 어빌리티 CDO의 CooldownGE에서 자동 추출.
 - **WBP 바인딩 패턴**: ViewModel은 모두 `FieldNotify` 프로퍼티로 노출되어 MVVM View Binding 대상. `UWxMVVMConversionLibrary`로 태그→bool/Visibility, VM 배열에서 태그/어트리뷰트로 자식 VM 찾기 등의 컨버전 제공.
 - **멀티(최대 4인)**: `UWxActivatableWidget::bPauseGame`는 싱글플레이 한정(코드 주석 명시). 레이아웃은 PlayerController 단위로 생성된다.
-
-## 핵심 WBP / MVVM (스냅샷)
-C++만으로는 위젯 계층·바인딩 그래프가 안 보인다. 아래 스냅샷을 참조한다.
-- `Plugins/WxBlueprintSnapshot/Snapshots/Game/UI/WBP_PrimaryGameLayout.json` — `UWxPrimaryGameLayout` 구현체. GameLayer/GameMenuLayer/MenuLayer/ModalLayer 스택 배치 확인
-- `Plugins/WxBlueprintSnapshot/Snapshots/Game/UI/Widget/WBP_GameHUDBase.json`, `.../WBP_GameHUD.json` — HUD 본체
-- `Plugins/WxBlueprintSnapshot/Snapshots/Game/UI/Widget/WBP_AttributeBar.json`, `.../WBP_Ability.json`, `.../WBP_Effect.json` — 각각 Attribute/Ability/Effect ViewModel 바인딩 예시
-- `Plugins/WxBlueprintSnapshot/Snapshots/Game/UI/Widget/WBP_MenuBase.json`, `.../WBP_MainMenu.json`, `.../WBP_DeathScreen.json` — Activatable 화면 예시
-- `Plugins/WxBlueprintSnapshot/Snapshots/Game/UI/CommonUI/WxUIInputData.json` — CommonUI 입력 데이터
 
 ## 여기서부터 읽어라
 1. `Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp` — UI가 어떻게 띄워지는지(PC당 레이아웃 생성/재생성, 레이어 푸시)의 시작점

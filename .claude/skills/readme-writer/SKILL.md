@@ -131,7 +131,7 @@ allowed-tools: Read, Grep, Glob, Bash, Write, Agent
 - 끝의 provenance 라인은 숨기지 말 것. SHA·생성일은 받은 값 그대로 쓰고(재계산 금지) `<N>` 자리만 채운다. 본문은 한국어. 타입명·경로·태그명 등 식별자는 원문(영문) 유지.
 - provenance의 `<N>`(소스 파일 수)은 `<모듈경로>/Source/` 아래 `*.h`/`*.cpp` 개수만 센다 — `Intermediate/`·`*.gen.cpp`·`*.generated.h`(빌드 산출물)는 제외한다.
 - 모든 파일 경로는 저장소 루트(`C:\Wx`) 기준 상대경로로 적어 클릭 가능하게 한다.
-- BP/WBP가 본체인 모듈(특히 WxUI)은 핵심 BP/WBP·MVVM ViewModel과 스냅샷 경로(`Plugins/WxBlueprintSnapshot/Snapshots/...`)를 가리켜, C++만으로는 안 보이는 부분을 보완한다.
+- BP/WBP 내부 구조(위젯 계층·MVVM 바인딩 그래프·스냅샷)는 README 범위 밖이다. 프로젝트 `CLAUDE.md`의 `Blueprint 분석` 절이 스냅샷 위치·용법을 이미 안내하므로, 중복을 피해 README에는 특정 WBP 파일이나 `Plugins/WxBlueprintSnapshot/Snapshots/...` JSON 경로를 나열하지 않는다. BP/WBP가 본체인 모듈(특히 WxUI)도 README는 C++ 타입·모듈 구조에 집중한다.
 - 프로젝트 `CLAUDE.md`의 코딩/모듈 규칙(특히 "WxCore 외 상호참조 금지")을 의존성 절에서 실제로 검증해 표기한다.
 
 ---
