@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Misc/Guid.h"
 #include "UObject/Interface.h"
-#include "WxSavableInterface.generated.h"
+#include "WxSavable.generated.h"
 
 /**
  * 액터가 WxSave 의 슬롯 저장/로드 라이프사이클에 참여한다는 마커 + 후크.
@@ -18,12 +18,12 @@
  * 인터페이스 정의는 WxCore 에 위치하여, WxSave 와 WxSave 소비 도메인 (예: WxWorld) 이 서로 직접 의존하지 않게 한다.
  */
 UINTERFACE(MinimalAPI, NotBlueprintable, meta = (CannotImplementInterfaceInBlueprint))
-class UWxSavableInterface : public UInterface
+class UWxSavable : public UInterface
 {
 	GENERATED_BODY()
 };
 
-class WXCORE_API IWxSavableInterface
+class WXCORE_API IWxSavable
 {
 	GENERATED_BODY()
 

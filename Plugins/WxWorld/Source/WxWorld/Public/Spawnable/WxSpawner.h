@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "WxSavableInterface.h"
+#include "WxSavable.h"
 #include "WxSpawner.generated.h"
 
 class UArrowComponent;
@@ -33,7 +33,7 @@ enum class EWxSpawnerMode : uint8
  *  - bNeverRevive=true (보스 등): 죽은 뒤 Respawn 이 호출돼도 부활하지 않음(bIsKilled 유지, 생성 스킵). 살아있을 땐 일반 대상처럼 리셋됨.
  */
 UCLASS()
-class WXWORLD_API AWxSpawner : public AActor, public IWxSavableInterface
+class WXWORLD_API AWxSpawner : public AActor, public IWxSavable
 {
 	GENERATED_BODY()
 
@@ -55,10 +55,10 @@ public:
 	/** 서버 권위 호출. 처치 상태로 마킹. 인스턴스 destroy 는 호출자(또는 spawnable 자체) 가 별도 처리. */
 	void MarkKilled();
 
-	//~ Begin IWxSavableInterface
+	//~ Begin IWxSavable
 	virtual FGuid GetWxSaveId() const override;
 	virtual void OnWxSaveRestored() override;
-	//~ End IWxSavableInterface
+	//~ End IWxSavable
 
 protected:
 	virtual void BeginPlay() override;

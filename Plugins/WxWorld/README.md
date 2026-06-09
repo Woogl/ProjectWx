@@ -11,17 +11,17 @@
 
 **경계 (비담당)**
 - 상호작용 입력→`TryInteract` 발동(WxAbility_Interact)은 GAS 어빌리티 쪽 책임 — [[WxCombat]]
-- 저장/복원 슬롯 직렬화 메커니즘 자체는 [[WxSave]] (본 모듈은 `IWxSavableInterface` 구현체만 제공)
+- 저장/복원 슬롯 직렬화 메커니즘 자체는 [[WxSave]] (본 모듈은 `IWxSavable` 구현체만 제공)
 - 프롬프트 위젯의 비주얼/MVVM은 [[WxUI]] (본 모듈은 `IWxInteractionWidgetInterface` 계약만 정의)
 
 ## 의존성
-- **주요 의존**: [[WxCore]] (`WxSavableInterface`), GameplayTags, GameplayAbilities, Niagara, LevelSequence/MovieScene, UMG, DeveloperSettings
+- **주요 의존**: [[WxCore]] (`WxSavable`), GameplayTags, GameplayAbilities, Niagara, LevelSequence/MovieScene, UMG, DeveloperSettings
 - 규칙: WxCore 외 Wx 플러그인 참조 없음 ✅
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `AWxGimmick` | 상호작용 월드 오브젝트 공통 부모(Abstract). `bTriggered`+`ApplyState()` 후크, `IWxSavableInterface` | `Plugins/WxWorld/Source/WxWorld/Public/Gimmick/WxGimmick.h` |
+| `AWxGimmick` | 상호작용 월드 오브젝트 공통 부모(Abstract). `bTriggered`+`ApplyState()` 후크, `IWxSavable` | `Plugins/WxWorld/Source/WxWorld/Public/Gimmick/WxGimmick.h` |
 | `UWxInteractionComponent` | 오버랩 감지·프롬프트·Multicast 상호작용 알림(`SphereComponent` 파생) | `Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxInteractionComponent.h` |
 | `IWxInteractionWidgetInterface` | 프롬프트 위젯 계약(텍스트 전달) | `Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxInteractionWidgetInterface.h` |
 | `AWxDoor` | 1회성 개폐 문(상태머신 Closed→Opening→Open) | `Plugins/WxWorld/Source/WxWorld/Public/Gimmick/WxDoor.h` |

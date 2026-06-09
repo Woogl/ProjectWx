@@ -14,7 +14,7 @@
 #include "Serialization/MemoryReader.h"
 #include "Serialization/MemoryWriter.h"
 #include "Serialization/ObjectAndNameAsStringProxyArchive.h"
-#include "WxSavableInterface.h"
+#include "WxSavable.h"
 #include "WxSaveGame.h"
 #include "WxSaveModule.h"
 
@@ -47,7 +47,7 @@ void UWxSaveGameSubsystem::SaveSlot(const FString& SlotName)
 		for (TActorIterator<AActor> It(const_cast<UWorld*>(World)); It; ++It)
 		{
 			AActor* Actor = *It;
-			if (Actor && Actor->Implements<UWxSavableInterface>())
+			if (Actor && Actor->Implements<UWxSavable>())
 			{
 				CaptureActor(Actor);
 				++SavableCount;
@@ -182,7 +182,7 @@ void UWxSaveGameSubsystem::EnsureSaveObject()
 
 void UWxSaveGameSubsystem::CaptureActor(AActor* Actor)
 {
-	const IWxSavableInterface* Savable = Cast<IWxSavableInterface>(Actor);
+	const IWxSavable* Savable = Cast<IWxSavable>(Actor);
 	if (!Savable)
 	{
 		return;
@@ -227,7 +227,7 @@ void UWxSaveGameSubsystem::CaptureActor(AActor* Actor)
 
 bool UWxSaveGameSubsystem::RestoreActor(AActor* Actor)
 {
-	IWxSavableInterface* Savable = Cast<IWxSavableInterface>(Actor);
+	IWxSavable* Savable = Cast<IWxSavable>(Actor);
 	if (!Savable)
 	{
 		return false;
@@ -299,7 +299,7 @@ void UWxSaveGameSubsystem::HandleWorldInitializedActors(const UWorld::FActorsIni
 	for (TActorIterator<AActor> It(Params.World); It; ++It)
 	{
 		AActor* Actor = *It;
-		if (Actor && Actor->Implements<UWxSavableInterface>())
+		if (Actor && Actor->Implements<UWxSavable>())
 		{
 			++SavableCount;
 			RestoredCount += RestoreActor(Actor) ? 1 : 0;
@@ -321,7 +321,7 @@ void UWxSaveGameSubsystem::HandleLevelAddedToWorld(ULevel* Level, UWorld* World)
 	int32 RestoredCount = 0;
 	for (AActor* Actor : Level->Actors)
 	{
-		if (Actor && Actor->Implements<UWxSavableInterface>())
+		if (Actor && Actor->Implements<UWxSavable>())
 		{
 			RestoredCount += RestoreActor(Actor) ? 1 : 0;
 		}
@@ -342,7 +342,7 @@ void UWxSaveGameSubsystem::HandleLevelRemovedFromWorld(ULevel* Level, UWorld* Wo
 	int32 CapturedCount = 0;
 	for (AActor* Actor : Level->Actors)
 	{
-		if (Actor && Actor->Implements<UWxSavableInterface>())
+		if (Actor && Actor->Implements<UWxSavable>())
 		{
 			CaptureActor(Actor);
 			++CapturedCount;

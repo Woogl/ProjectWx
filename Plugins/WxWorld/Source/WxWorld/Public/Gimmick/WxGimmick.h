@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "WxSavableInterface.h"
+#include "WxSavable.h"
 #include "WxGimmick.generated.h"
 
 class UArrowComponent;
@@ -33,11 +33,11 @@ class USceneComponent;
  *  - 다단계 상태/반복 가능한 액터는 사용하지 않을 수 있다.
  *
  * WxSave 통합:
- *  - IWxSavableInterface 구현. UPROPERTY(SaveGame) 필드(bTriggered 등) 가 슬롯에 기록된다.
+ *  - IWxSavable 구현. UPROPERTY(SaveGame) 필드(bTriggered 등) 가 슬롯에 기록된다.
  *  - 보존 필드는 UPROPERTY(SaveGame) 로 표시한다.
  */
 UCLASS(Abstract)
-class WXWORLD_API AWxGimmick : public AActor, public IWxSavableInterface
+class WXWORLD_API AWxGimmick : public AActor, public IWxSavable
 {
 	GENERATED_BODY()
 
@@ -46,10 +46,10 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	//~ Begin IWxSavableInterface
+	//~ Begin IWxSavable
 	virtual FGuid GetWxSaveId() const override;
 	virtual void OnWxSaveRestored() override;
-	//~ End IWxSavableInterface
+	//~ End IWxSavable
 
 #if WITH_EDITOR
 	//~ Begin AActor/UObject — WxSaveId 를 에디터에서 1회 부여(런타임/세션 간 불변 키).
