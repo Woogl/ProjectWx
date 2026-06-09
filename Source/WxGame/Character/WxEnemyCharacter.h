@@ -7,8 +7,10 @@
 #include "Character/WxCharacterBase.h"
 #include "WxEnemyCharacter.generated.h"
 
+class AWxSpawner;
 class UBehaviorTree;
 class UWxNameplateComponent;
+class UWxPatrolComponent;
 
 /**
  * 에너미 캐릭터.
@@ -29,7 +31,11 @@ public:
 	float GetSightAngle() const;
 	float GetMaxHearingRange() const;
 
+	/** 스폰 시 스포너에서 찾은 정찰 컴포넌트(없으면 null). 빙의한 컨트롤러가 읽는다. */
+	UWxPatrolComponent* GetPatrolComponent() const;
+
 	// IWxSpawnableInterface
+	virtual void OnSpawnedBy(AWxSpawner* Spawner) override;
 #if WITH_EDITOR
 	virtual const UMeshComponent* GetEditorPreviewMeshComponent() const override;
 #endif
@@ -57,4 +63,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx|UI")
 	TObjectPtr<UWxNameplateComponent> NameplateComponent;
+
+	/** 스폰 시 스포너에서 찾은 정찰 컴포넌트. */
+	UPROPERTY(Transient)
+	TObjectPtr<UWxPatrolComponent> PatrolComponent;
 };

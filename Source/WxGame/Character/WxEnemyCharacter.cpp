@@ -5,6 +5,8 @@
 #include "Component/WxNameplateComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "Spawnable/WxPatrolComponent.h"
+#include "Spawnable/WxSpawner.h"
 #include "System/WxSpawnerSubsystem.h"
 
 AWxEnemyCharacter::AWxEnemyCharacter()
@@ -49,9 +51,22 @@ void AWxEnemyCharacter::HandleDeath()
 	}
 }
 
+void AWxEnemyCharacter::OnSpawnedBy(AWxSpawner* Spawner)
+{
+	if (Spawner)
+	{
+		PatrolComponent = Spawner->FindComponentByClass<UWxPatrolComponent>();
+	}
+}
+
 UBehaviorTree* AWxEnemyCharacter::GetBehaviorTree() const
 {
 	return BehaviorTreeAsset;
+}
+
+UWxPatrolComponent* AWxEnemyCharacter::GetPatrolComponent() const
+{
+	return PatrolComponent;
 }
 
 float AWxEnemyCharacter::GetSightRadius() const

@@ -204,15 +204,30 @@ void AWxSpawner::SpawnTarget()
 		return;
 	}
 
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = this;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-	SpawnedActor = GetWorld()->SpawnActor<AActor>(SpawnableActorClass, GetActorLocation(), GetActorRotation(), SpawnParams);
+	// Deferred Spawn 으로 빙의(AutoPossessAI) 전에 OnSpawnedBy 컨텍스트를 주입한다.
+	// 일반 SpawnActor 는 빙의가 호출 내부에서 끝나므로, 그 뒤엔 컨트롤러 OnPossess 가 컨텍스트를 보지 못한다.
+	const FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
+	AActor* Spawned = GetWorld()->SpawnActorDeferred<AActor>(
+		SpawnableActorClass,
+		SpawnTransform,
+		this,
+		nullptr,
+		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
 
-	if (AActor* Spawned = SpawnedActor.Get())
+	if (!Spawned)
 	{
-		Spawned->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
+		return;
 	}
+
+	if (IWxSpawnableInterface* Spawnable = Cast<IWxSpawnableInterface>(Spawned))
+	{
+		Spawnable->OnSpawnedBy(this);
+	}
+
+	Spawned->FinishSpawning(SpawnTransform);
+
+	SpawnedActor = Spawned;
+	Spawned->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
 }
 
 #if WITH_EDITOR
