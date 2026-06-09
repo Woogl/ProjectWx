@@ -10,11 +10,11 @@
 UENUM(BlueprintType)
 enum class EWxPatrolMoveMode : uint8
 {
-	/** 마지막 지점에 도달하면 첫 지점으로 돌아가 순환한다. */
-	Loop,
-
 	/** 끝에 도달하면 진행 방향을 뒤집어 되짚어 온다(왕복). */
 	PingPong,
+	
+	/** 마지막 지점에 도달하면 첫 지점으로 돌아가 순환한다. */
+	Loop,
 
 	/** 마지막 지점에 도달하면 정찰을 종료한다. */
 	Once
@@ -40,5 +40,5 @@ public:
 protected:
 	/** 정찰 지점 순회 방식. */
 	UPROPERTY(EditAnywhere, Category = "Wx")
-	EWxPatrolMoveMode MoveMode = EWxPatrolMoveMode::Loop;
+	EWxPatrolMoveMode MoveMode = EWxPatrolMoveMode::PingPong;
 };
