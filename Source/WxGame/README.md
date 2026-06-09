@@ -70,4 +70,4 @@
 - 하위(사용): [[WxCore]], [[WxCombat]], [[WxInventory]], [[WxUI]], [[WxWorld]], [[WxAI]], [[WxSave]]
 
 ---
-*문서 기준 커밋 `59bfe3f` · 생성일 2026-06-08 · 소스 40파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `80cc348` · 생성일 2026-06-09 · 소스 46파일 — `/readme-writer`로 갱신*
