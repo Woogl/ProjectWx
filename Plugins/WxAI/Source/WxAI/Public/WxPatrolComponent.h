@@ -6,7 +6,7 @@
 #include "Components/SplineComponent.h"
 #include "WxPatrolComponent.generated.h"
 
-class APawn;
+class AActor;
 
 /** 정찰 경로의 순회 방식. */
 UENUM(BlueprintType)
@@ -27,7 +27,7 @@ enum class EWxPatrolMoveMode : uint8
  *
  * 순수 경로 데이터( + MoveMode 순회 규칙)만 제공하고 상태를 갖지 않는다. 진행 커서는 BT 태스크(UWxBTTask_Patrol)가 폰별로 소유하므로,
  * 같은 경로를 여러 폰이 재사용하거나 적이 리스폰돼도 안전하다.
- * AWxSpawner 인스턴스에 추가하면, 스폰된 적이 FindFor(폰) 로 본 컴포넌트를 찾아 이 경로를 따라 정찰한다.
+ * AWxSpawner 인스턴스에 추가하면, 스폰된 적이 FindPatrolComponent(액터) 로 본 컴포넌트를 찾아 이 경로를 따라 정찰한다.
  */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))
 class WXAI_API UWxPatrolComponent : public USplineComponent
@@ -35,8 +35,8 @@ class WXAI_API UWxPatrolComponent : public USplineComponent
 	GENERATED_BODY()
 
 public:
-	/** 폰의 Owner(또는 부착 부모)에 붙은 정찰 컴포넌트를 찾는다. 없으면 null. 스포너가 스폰 시 Owner 로 자신을 지정한다. */
-	static UWxPatrolComponent* FindFor(const APawn* Pawn);
+	/** 액터의 Owner(또는 부착 부모)에 붙은 정찰 컴포넌트를 찾는다. 없으면 null. 스포너가 스폰 시 Owner 로 자신을 지정한다. */
+	static UWxPatrolComponent* FindPatrolComponent(const AActor* Actor);
 
 	/** 정찰 지점 개수. */
 	int32 GetNumPoints() const;
