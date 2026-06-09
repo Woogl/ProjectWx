@@ -10,6 +10,7 @@
 				"AbilitySet": "/Game/Character/Sandbag/ABS_Sandbag.ABS_Sandbag"
 			}
 		},
+		"BehaviorTreeAsset": "/Game/AI/BT_Sandbag.BT_Sandbag",
 		"Mesh":
 		{
 			"class": "/Script/Engine.SkeletalMeshComponent",

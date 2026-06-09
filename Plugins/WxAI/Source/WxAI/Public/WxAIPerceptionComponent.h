@@ -44,14 +44,6 @@ public:
 	void ApplySenseSettings(float InSightRadius, float InSightAngle, float InMaxHearingRange);
 
 protected:
-	// 시야/청각 감지 파라미터는 빙의한 폰(AWxEnemyCharacter)이 ApplySenseSettings 로 주입한다. 아래 값은 폰이 주입하지 않았을 때의 기본값(fallback)이다.
-	float SightRadius = 1500.f;
-
-	// 정면 기준 편측 시야각(half-angle). 전체 시야각 120° → 좌우 각 60°.
-	float SightAngle = 60.f;
-
-	float MaxHearingRange = 1000.f;
-
 	// 폰이 배치 지점(HomeLocation)에서 이 거리 이상 벗어나면 추적을 끝내고 복귀하며 인식을 해제한다.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|AI")
 	float LeashRadius = 3000.f;
