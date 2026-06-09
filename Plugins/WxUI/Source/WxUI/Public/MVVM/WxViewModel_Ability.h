@@ -38,6 +38,7 @@ public:
 	 * @param InAbility  어빌리티 CDO. GetCooldownGameplayEffect()에서 충전 정보 추출.
 	 */
 	void Initialize(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility);
+	virtual void Deinitialize() override;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	float CooldownRemaining = 0.f;
@@ -91,9 +92,6 @@ public:
 	void SetIcon(UTexture2D* NewValue);
 
 	FGameplayTag GetAbilityTag() const;
-
-protected:
-	virtual void Deinitialize() override;
 
 private:
 	void HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle);

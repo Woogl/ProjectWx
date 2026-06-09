@@ -28,6 +28,7 @@ class WXUI_API UWxViewModel_Effect : public UWxViewModel
 
 public:
 	void Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const UWxEffectComponent_UIData* InUIData);
+	virtual void Deinitialize() override;
 
 	FActiveGameplayEffectHandle GetBoundHandle() const;
 
@@ -77,9 +78,6 @@ public:
 	void SetIcon(UTexture2D* NewValue);
 	
 	FGameplayTag GetEffectTag() const;
-
-protected:
-	virtual void Deinitialize() override;
 
 private:
 	bool UpdateEffectState(float DeltaTime);

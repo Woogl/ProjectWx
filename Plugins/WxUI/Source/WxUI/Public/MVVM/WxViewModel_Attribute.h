@@ -21,6 +21,7 @@ class WXUI_API UWxViewModel_Attribute : public UWxViewModel
 
 public:
 	void Initialize(UAbilitySystemComponent* InASC, FGameplayAttribute InAttribute, FGameplayAttribute InMaxAttribute);
+	virtual void Deinitialize() override;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Attribute")
 	float CurrentAttribute = 0.f;
@@ -53,9 +54,6 @@ public:
 	void SetIsAttributeFull(bool bNewValue);
 
 	FGameplayAttribute GetBoundAttribute() const;
-
-protected:
-	virtual void Deinitialize() override;
 
 private:
 	void HandleAttributeChanged(const FOnAttributeChangeData& Data);
