@@ -73,42 +73,6 @@ void UWxViewModel_Effect::Deinitialize()
 	Super::Deinitialize();
 }
 
-bool UWxViewModel_Effect::UpdateEffectState(float DeltaTime)
-{
-	UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (!ASC)
-	{
-		return false;
-	}
-
-	const FActiveGameplayEffect* ActiveEffect = ASC->GetActiveGameplayEffect(BoundHandle);
-	if (!ActiveEffect)
-	{
-		SetTimeRemaining(0.f);
-		SetTimeRemainingPercent(0.f);
-		SetStackCount(0);
-		return false;
-	}
-
-	SetStackCount(ActiveEffect->Spec.GetStackCount());
-
-	if (CachedDuration > 0.f)
-	{
-		const UWorld* World = ASC->GetWorld();
-		if (!World)
-		{
-			return false;
-		}
-
-		const float CurrentTime = World->GetTimeSeconds();
-		const float Remaining = FMath::Max(ActiveEffect->StartWorldTime + CachedDuration - CurrentTime, 0.f);
-		SetTimeRemaining(Remaining);
-		SetTimeRemainingPercent(FMath::Min(Remaining / CachedDuration, 1.f));
-	}
-
-	return true;
-}
-
 FActiveGameplayEffectHandle UWxViewModel_Effect::GetBoundHandle() const
 {
 	return BoundHandle;
@@ -188,4 +152,40 @@ void UWxViewModel_Effect::SetIcon(UTexture2D* NewValue)
 FGameplayTag UWxViewModel_Effect::GetEffectTag() const
 {
 	return EffectTag;
+}
+
+bool UWxViewModel_Effect::UpdateEffectState(float DeltaTime)
+{
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	if (!ASC)
+	{
+		return false;
+	}
+
+	const FActiveGameplayEffect* ActiveEffect = ASC->GetActiveGameplayEffect(BoundHandle);
+	if (!ActiveEffect)
+	{
+		SetTimeRemaining(0.f);
+		SetTimeRemainingPercent(0.f);
+		SetStackCount(0);
+		return false;
+	}
+
+	SetStackCount(ActiveEffect->Spec.GetStackCount());
+
+	if (CachedDuration > 0.f)
+	{
+		const UWorld* World = ASC->GetWorld();
+		if (!World)
+		{
+			return false;
+		}
+
+		const float CurrentTime = World->GetTimeSeconds();
+		const float Remaining = FMath::Max(ActiveEffect->StartWorldTime + CachedDuration - CurrentTime, 0.f);
+		SetTimeRemaining(Remaining);
+		SetTimeRemainingPercent(FMath::Min(Remaining / CachedDuration, 1.f));
+	}
+
+	return true;
 }

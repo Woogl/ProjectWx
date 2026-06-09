@@ -73,6 +73,11 @@ void UWxViewModel_Item::Deinitialize()
 	Super::Deinitialize();
 }
 
+UWxItemInstance* UWxViewModel_Item::GetTargetInstance() const
+{
+	return TargetInstance.Get();
+}
+
 void UWxViewModel_Item::HandleStackChanged(const UWxItemDefinition* ItemDef, int32 NewCount, int32 Delta)
 {
 	if (ItemDef != TargetItemDef.Get())
@@ -81,11 +86,6 @@ void UWxViewModel_Item::HandleStackChanged(const UWxItemDefinition* ItemDef, int
 	}
 
 	UE_MVVM_SET_PROPERTY_VALUE(TotalCount, NewCount);
-}
-
-UWxItemInstance* UWxViewModel_Item::GetTargetInstance() const
-{
-	return TargetInstance.Get();
 }
 
 void UWxViewModel_Item::HandleSlotChanged(UWxItemInstance* Instance, int32 NewStackCount, int32 Delta)

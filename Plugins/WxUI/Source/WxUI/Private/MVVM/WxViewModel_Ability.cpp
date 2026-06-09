@@ -60,32 +60,89 @@ void UWxViewModel_Ability::Deinitialize()
 	Super::Deinitialize();
 }
 
-int32 UWxViewModel_Ability::GetConsumedCharges() const
+float UWxViewModel_Ability::GetCooldownRemaining() const
 {
-	UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (!ASC || !CachedCooldownClass || CooldownDuration <= 0.f)
-	{
-		return 0;
-	}
+	return CooldownRemaining;
+}
 
-	const UGameplayAbility* AbilityCDO = CachedAbility.Get();
-	const float WorldTime = ASC->GetWorld()->GetTimeSeconds();
+void UWxViewModel_Ability::SetCooldownRemaining(float NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(CooldownRemaining, NewValue);
+}
 
-	FGameplayEffectQuery Query;
-	Query.EffectDefinition = CachedCooldownClass;
+float UWxViewModel_Ability::GetCooldownDuration() const
+{
+	return CooldownDuration;
+}
 
-	for (const FActiveGameplayEffectHandle& Handle : ASC->GetActiveEffects(Query))
-	{
-		if (const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(Handle))
-		{
-			if (ActiveGE->Spec.GetEffectContext().GetAbility() == AbilityCDO)
-			{
-				const float TimeRemaining = (ActiveGE->StartWorldTime + ActiveGE->Spec.GetDuration()) - WorldTime;
-				return FMath::CeilToInt32((TimeRemaining - KINDA_SMALL_NUMBER) / CooldownDuration);
-			}
-		}
-	}
-	return 0;
+void UWxViewModel_Ability::SetCooldownDuration(float NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(CooldownDuration, NewValue);
+}
+
+float UWxViewModel_Ability::GetCooldownPercent() const
+{
+	return CooldownPercent;
+}
+
+void UWxViewModel_Ability::SetCooldownPercent(float NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(CooldownPercent, NewValue);
+}
+
+bool UWxViewModel_Ability::GetIsOnCooldown() const
+{
+	return IsOnCooldown;
+}
+
+void UWxViewModel_Ability::SetIsOnCooldown(bool NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(IsOnCooldown, NewValue);
+}
+
+int32 UWxViewModel_Ability::GetCurrentCharges() const
+{
+	return CurrentCharges;
+}
+
+void UWxViewModel_Ability::SetCurrentCharges(int32 NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(CurrentCharges, NewValue);
+}
+
+int32 UWxViewModel_Ability::GetMaxRecharges() const
+{
+	return MaxRecharges;
+}
+
+void UWxViewModel_Ability::SetMaxRecharges(int32 NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(MaxRecharges, NewValue);
+}
+
+bool UWxViewModel_Ability::GetHasMultipleCharges() const
+{
+	return HasMultipleCharges;
+}
+
+void UWxViewModel_Ability::SetHasMultipleCharges(bool NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(HasMultipleCharges, NewValue);
+}
+
+UTexture2D* UWxViewModel_Ability::GetIcon() const
+{
+	return Icon;
+}
+
+void UWxViewModel_Ability::SetIcon(UTexture2D* NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(Icon, NewValue);
+}
+
+FGameplayTag UWxViewModel_Ability::GetAbilityTag() const
+{
+	return AbilityTag;
 }
 
 void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle)
@@ -170,87 +227,30 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 	return true;
 }
 
-float UWxViewModel_Ability::GetCooldownRemaining() const
+int32 UWxViewModel_Ability::GetConsumedCharges() const
 {
-	return CooldownRemaining;
-}
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	if (!ASC || !CachedCooldownClass || CooldownDuration <= 0.f)
+	{
+		return 0;
+	}
 
-void UWxViewModel_Ability::SetCooldownRemaining(float NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(CooldownRemaining, NewValue);
-}
+	const UGameplayAbility* AbilityCDO = CachedAbility.Get();
+	const float WorldTime = ASC->GetWorld()->GetTimeSeconds();
 
-float UWxViewModel_Ability::GetCooldownDuration() const
-{
-	return CooldownDuration;
-}
+	FGameplayEffectQuery Query;
+	Query.EffectDefinition = CachedCooldownClass;
 
-void UWxViewModel_Ability::SetCooldownDuration(float NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(CooldownDuration, NewValue);
-}
-
-float UWxViewModel_Ability::GetCooldownPercent() const
-{
-	return CooldownPercent;
-}
-
-void UWxViewModel_Ability::SetCooldownPercent(float NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(CooldownPercent, NewValue);
-}
-
-bool UWxViewModel_Ability::GetIsOnCooldown() const
-{
-	return IsOnCooldown;
-}
-
-void UWxViewModel_Ability::SetIsOnCooldown(bool NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(IsOnCooldown, NewValue);
-}
-
-int32 UWxViewModel_Ability::GetCurrentCharges() const
-{
-	return CurrentCharges;
-}
-
-void UWxViewModel_Ability::SetCurrentCharges(int32 NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(CurrentCharges, NewValue);
-}
-
-int32 UWxViewModel_Ability::GetMaxRecharges() const
-{
-	return MaxRecharges;
-}
-
-void UWxViewModel_Ability::SetMaxRecharges(int32 NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(MaxRecharges, NewValue);
-}
-
-bool UWxViewModel_Ability::GetHasMultipleCharges() const
-{
-	return HasMultipleCharges;
-}
-
-void UWxViewModel_Ability::SetHasMultipleCharges(bool NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(HasMultipleCharges, NewValue);
-}
-
-UTexture2D* UWxViewModel_Ability::GetIcon() const
-{
-	return Icon;
-}
-
-void UWxViewModel_Ability::SetIcon(UTexture2D* NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(Icon, NewValue);
-}
-
-FGameplayTag UWxViewModel_Ability::GetAbilityTag() const
-{
-	return AbilityTag;
+	for (const FActiveGameplayEffectHandle& Handle : ASC->GetActiveEffects(Query))
+	{
+		if (const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(Handle))
+		{
+			if (ActiveGE->Spec.GetEffectContext().GetAbility() == AbilityCDO)
+			{
+				const float TimeRemaining = (ActiveGE->StartWorldTime + ActiveGE->Spec.GetDuration()) - WorldTime;
+				return FMath::CeilToInt32((TimeRemaining - KINDA_SMALL_NUMBER) / CooldownDuration);
+			}
+		}
+	}
+	return 0;
 }

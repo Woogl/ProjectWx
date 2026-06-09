@@ -58,6 +58,18 @@ int32 UWxViewModel_Inventory::GetCurrencyAmount(const UWxItemDefinition* ItemDef
 	return Inventory ? Inventory->GetTotalItemCountByDefinition(ItemDef) : 0;
 }
 
+void UWxViewModel_Inventory::SetCurrentCategory(EWxItemCategory NewCategory)
+{
+	if (CurrentCategory == NewCategory)
+	{
+		return;
+	}
+
+	UE_MVVM_SET_PROPERTY_VALUE(CurrentCategory, NewCategory);
+
+	RefreshCategorizedItems();
+}
+
 void UWxViewModel_Inventory::HandleStackChanged(const UWxItemDefinition* ItemDef, int32 NewCount, int32 Delta)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(LastChangedItemDef, ItemDef);
@@ -125,18 +137,6 @@ void UWxViewModel_Inventory::RefreshAllItems()
 	AllItems = MoveTemp(NewItems);
 	// 슬롯 구성이 그대로여도 ListView 엔트리 UMG 에서 VM 재연결이 가능하도록 항상 브로드캐스트한다.
 	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(AllItems);
-
-	RefreshCategorizedItems();
-}
-
-void UWxViewModel_Inventory::SetCurrentCategory(EWxItemCategory NewCategory)
-{
-	if (CurrentCategory == NewCategory)
-	{
-		return;
-	}
-
-	UE_MVVM_SET_PROPERTY_VALUE(CurrentCategory, NewCategory);
 
 	RefreshCategorizedItems();
 }
