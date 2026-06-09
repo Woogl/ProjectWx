@@ -9,10 +9,10 @@
 				{
 					"arguments":
 					{
-						"AbilityTag": "(TagName=\"Ability.Skill.1\")",
-						"AbilityViewModels": "AbilitySystem.AbilityViewModels"
+						"AbilitySystem": "AbilitySystem",
+						"AbilityTag": "(TagName=\"Ability.Skill.1\")"
 					},
-					"function": "Conv_FindAbilityViewModelByTag"
+					"function": "FindAbilityViewModelByTag"
 				},
 				"destination": "WxViewModel_Ability",
 				"source": ""
@@ -23,10 +23,10 @@
 				{
 					"arguments":
 					{
-						"AbilityTag": "(TagName=\"Ability.Skill.2\")",
-						"AbilityViewModels": "AbilitySystem.AbilityViewModels"
+						"AbilitySystem": "AbilitySystem",
+						"AbilityTag": "(TagName=\"Ability.Skill.2\")"
 					},
-					"function": "Conv_FindAbilityViewModelByTag"
+					"function": "FindAbilityViewModelByTag"
 				},
 				"destination": "WxViewModel_Ability",
 				"source": ""
@@ -37,10 +37,10 @@
 				{
 					"arguments":
 					{
-						"AbilityTag": "(TagName=\"Ability.Skill.3\")",
-						"AbilityViewModels": "AbilitySystem.AbilityViewModels"
+						"AbilitySystem": "AbilitySystem",
+						"AbilityTag": "(TagName=\"Ability.Skill.3\")"
 					},
-					"function": "Conv_FindAbilityViewModelByTag"
+					"function": "FindAbilityViewModelByTag"
 				},
 				"destination": "WxViewModel_Ability",
 				"source": ""
@@ -51,10 +51,10 @@
 				{
 					"arguments":
 					{
-						"AbilityTag": "(TagName=\"Ability.Skill.4\")",
-						"AbilityViewModels": "AbilitySystem.AbilityViewModels"
+						"AbilitySystem": "AbilitySystem",
+						"AbilityTag": "(TagName=\"Ability.Skill.4\")"
 					},
-					"function": "Conv_FindAbilityViewModelByTag"
+					"function": "FindAbilityViewModelByTag"
 				},
 				"destination": "WxViewModel_Ability",
 				"source": ""
@@ -65,10 +65,10 @@
 				{
 					"arguments":
 					{
-						"AbilityTag": "(TagName=\"Ability.Ultimate\")",
-						"AbilityViewModels": "AbilitySystem.AbilityViewModels"
+						"AbilitySystem": "AbilitySystem",
+						"AbilityTag": "(TagName=\"Ability.Ultimate\")"
 					},
-					"function": "Conv_FindAbilityViewModelByTag"
+					"function": "FindAbilityViewModelByTag"
 				},
 				"destination": "WxViewModel_Ability",
 				"source": ""
@@ -79,10 +79,11 @@
 				{
 					"arguments":
 					{
-						"Attribute": "(AttributeName=\"UP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:UP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
-						"AttributeViewModels": "AbilitySystem.AttributeViewModels"
+						"AbilitySystem": "AbilitySystem",
+						"CurrentAttribute": "(AttributeName=\"UP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:UP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
+						"MaxAttribute": "(AttributeName=\"MaxUP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:MaxUP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")"
 					},
-					"function": "Conv_FindAttributeViewModel"
+					"function": "GetAttributeViewModel"
 				},
 				"destination": "WxViewModel_Attribute",
 				"source": ""

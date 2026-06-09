@@ -35,10 +35,11 @@
 				{
 					"arguments":
 					{
-						"Attribute": "(AttributeName=\"SP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:SP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
-						"AttributeViewModels": "AbilitySystem.AttributeViewModels"
+						"AbilitySystem": "AbilitySystem",
+						"CurrentAttribute": "(AttributeName=\"SP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:SP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
+						"MaxAttribute": "(AttributeName=\"MaxSP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:MaxSP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")"
 					},
-					"function": "Conv_FindAttributeViewModel"
+					"function": "GetAttributeViewModel"
 				},
 				"destination": "WxViewModel_Attribute",
 				"source": ""

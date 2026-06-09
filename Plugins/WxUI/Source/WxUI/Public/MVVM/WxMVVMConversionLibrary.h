@@ -9,6 +9,7 @@
 #include "WxMVVMConversionLibrary.generated.h"
 
 struct FGameplayAttribute;
+class UWxViewModel_AbilitySystem;
 class UWxViewModel_Attribute;
 class UWxViewModel_Ability;
 class UWxViewModel_Effect;
@@ -23,23 +24,22 @@ class WXUI_API UWxMVVMConversionLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 	
 public:
-	/** FGameplayTagContainer에 특정 태그가 포함되어 있는지 판정한다. */
-	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "To Bool (GameplayTag)"))
-	static bool Conv_GameplayTagToBool(const FGameplayTagContainer& TagContainer, FGameplayTag Tag);
-
 	/** 특정 태그 보유 여부에 따라 Visibility를 반환한다. */
 	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "To Visibility (GameplayTag)"))
 	static ESlateVisibility Conv_GameplayTagToSlateVisibility(const FGameplayTagContainer& TagContainer, FGameplayTag Tag, ESlateVisibility TrueVisibility = ESlateVisibility::SelfHitTestInvisible, ESlateVisibility FalseVisibility = ESlateVisibility::Collapsed);
 
-	/** AttributeViewModel 배열에서 Attribute가 일치하는 ViewModel을 반환한다. */
-	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "Find Attribute ViewModel"))
-	static UWxViewModel_Attribute* Conv_FindAttributeViewModel(const TArray<UWxViewModel_Attribute*>& AttributeViewModels, FGameplayAttribute Attribute);
+	/**
+	 * AbilitySystem VM 에서 (현재값, 최대값) 어트리뷰트 쌍에 대응하는 어트리뷰트 VM 을 가져온다. 없으면 생성한다.
+	 * 바인딩이 요청한 어트리뷰트에 대해서만 VM 이 지연 생성된다. MaxAttribute 미지정 시 CurrentAttribute 를 최대값으로 사용한다.
+	 */
+	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "Get Attribute ViewModel"))
+	static UWxViewModel_Attribute* GetAttributeViewModel(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayAttribute CurrentAttribute, FGameplayAttribute MaxAttribute);
 
-	/** AbilityViewModel 배열에서 AbilityTag가 일치하는 ViewModel을 반환한다. */
+	/** AbilitySystem VM 에서 AbilityTag 가 일치하는 어빌리티 VM 을 반환한다. */
 	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "Find Ability ViewModel By Tag"))
-	static UWxViewModel_Ability* Conv_FindAbilityViewModelByTag(const TArray<UWxViewModel_Ability*>& AbilityViewModels, FGameplayTag AbilityTag);
-	
-	/** EffectViewModel 배열에서 AbilityTag가 일치하는 ViewModel을 반환한다. */
+	static UWxViewModel_Ability* FindAbilityViewModelByTag(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayTag AbilityTag);
+
+	/** AbilitySystem VM 에서 EffectTag 가 일치하는 이펙트 VM 을 반환한다. */
 	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "Find Effect ViewModel By Tag"))
-	static UWxViewModel_Effect* Conv_FindActiveEffectViewModelByTag(const TArray<UWxViewModel_Effect*>& EffectViewModels, FGameplayTag EffectTag);
+	static UWxViewModel_Effect* FindActiveEffectViewModelByTag(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayTag EffectTag);
 };

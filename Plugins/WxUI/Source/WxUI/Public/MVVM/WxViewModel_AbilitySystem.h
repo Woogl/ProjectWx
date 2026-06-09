@@ -38,8 +38,12 @@ public:
 	UWxViewModel_Ability* FindAbilityViewModel(FGameplayTag InAbilityTag) const;
 	UWxViewModel_Effect* FindActiveEffectViewModel(FGameplayTag InEffectTag) const;
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|AbilitySystem")
-	TArray<TObjectPtr<UWxViewModel_Attribute>> AttributeViewModels;
+	/**
+	 * (현재값, 최대값) 어트리뷰트 쌍에 대응하는 어트리뷰트 VM 을 반환한다. 없으면 생성하여 캐시한다.
+	 * UI 바인딩이 실제로 요청한 어트리뷰트에 대해서만 VM 이 지연 생성된다.
+	 * Max 가 유효하지 않으면 Current 자신을 최대값으로 사용한다.
+	 */
+	UWxViewModel_Attribute* GetOrCreateAttributeViewModel(FGameplayAttribute Current, FGameplayAttribute Max);
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|AbilitySystem")
 	TArray<TObjectPtr<UWxViewModel_Ability>> AbilityViewModels;
@@ -51,7 +55,6 @@ public:
 	FGameplayTagContainer OwnedTags;
 
 protected:
-	void InitializeAttributeViewModels();
 	void InitializeAbilityViewModels();
 
 	/** 이펙트 목록을 재구축한다. 런타임에 이펙트가 추가/제거되었을 때 호출 */
@@ -63,6 +66,10 @@ protected:
 	void HandleActiveEffectAdded(UAbilitySystemComponent* InASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
 	void HandleActiveEffectRemoved(const FActiveGameplayEffect& ActiveEffect);
 	void HandleTagChanged(const FGameplayTag Tag, int32 NewCount);
+
+	/** 지연 생성된 어트리뷰트 VM 캐시. 바인딩이 요청한 어트리뷰트에 대해서만 채워진다. GetOrCreateAttributeViewModel 참조. */
+	UPROPERTY()
+	TArray<TObjectPtr<UWxViewModel_Attribute>> AttributeViewModels;
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 };

@@ -39,10 +39,11 @@
 				{
 					"arguments":
 					{
-						"Attribute": "(AttributeName=\"DP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:DP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
-						"AttributeViewModels": "AbilitySystem.AttributeViewModels"
+						"AbilitySystem": "AbilitySystem",
+						"CurrentAttribute": "(AttributeName=\"DP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:DP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
+						"MaxAttribute": "(AttributeName=\"MaxDP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:MaxDP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")"
 					},
-					"function": "Conv_FindAttributeViewModel"
+					"function": "GetAttributeViewModel"
 				},
 				"destination": "WxViewModel_Attribute",
 				"source": ""
@@ -53,10 +54,11 @@
 				{
 					"arguments":
 					{
-						"Attribute": "(AttributeName=\"HP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:HP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
-						"AttributeViewModels": "AbilitySystem.AttributeViewModels"
+						"AbilitySystem": "AbilitySystem",
+						"CurrentAttribute": "(AttributeName=\"HP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:HP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
+						"MaxAttribute": "(AttributeName=\"MaxHP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:MaxHP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")"
 					},
-					"function": "Conv_FindAttributeViewModel"
+					"function": "GetAttributeViewModel"
 				},
 				"destination": "WxViewModel_Attribute",
 				"source": ""

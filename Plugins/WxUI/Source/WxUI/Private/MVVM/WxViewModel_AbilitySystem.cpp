@@ -22,12 +22,31 @@ void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 	InASC->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectRemoved);
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_AbilitySystem::HandleTagChanged);
 
-	InitializeAttributeViewModels();
 	InitializeAbilityViewModels();
 	RefreshActiveEffectViewModels();
 	RefreshOwnedTags();
 
 	SetInitialized(true);
+}
+
+void UWxViewModel_AbilitySystem::Deinitialize()
+{
+	if (UAbilitySystemComponent* ASC = CachedASC.Get())
+	{
+		ASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
+		ASC->OnAnyGameplayEffectRemovedDelegate().RemoveAll(this);
+		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
+	}
+	CachedASC.Reset();
+
+	AttributeViewModels.Empty();
+	AbilityViewModels.Empty();
+	ActiveEffectViewModels.Empty();
+	OwnedTags.Reset();
+
+	SetInitialized(false);
+
+	Super::Deinitialize();
 }
 
 UWxViewModel_Attribute* UWxViewModel_AbilitySystem::FindAttributeViewModel(FGameplayAttribute InAttribute) const
@@ -66,44 +85,25 @@ UWxViewModel_Effect* UWxViewModel_AbilitySystem::FindActiveEffectViewModel(FGame
 	return nullptr;
 }
 
-void UWxViewModel_AbilitySystem::InitializeAttributeViewModels()
+UWxViewModel_Attribute* UWxViewModel_AbilitySystem::GetOrCreateAttributeViewModel(FGameplayAttribute Current, FGameplayAttribute Max)
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (!ASC)
+	if (!ASC || !Current.IsValid())
 	{
-		return;
+		return nullptr;
 	}
 
-	AttributeViewModels.Empty();
-
-	TArray<FGameplayAttribute> AllAttributes;
-	ASC->GetAllAttributes(AllAttributes);
-
-	// 어트리뷰트 이름으로 맵 구축
-	TMap<FString, FGameplayAttribute> AttributeMap;
-	for (const FGameplayAttribute& Attr : AllAttributes)
+	// 컨버전 함수는 소스 갱신마다 재실행될 수 있으므로, 이미 만든 VM 이 있으면 재사용한다.
+	if (UWxViewModel_Attribute* Existing = FindAttributeViewModel(Current))
 	{
-		AttributeMap.Add(Attr.GetName(), Attr);
+		return Existing;
 	}
 
-	// Max 대응 어트리뷰트를 탐색하여 뷰모델 생성
-	// Max 대응 어트리뷰트가 없으면 자기 자신을 Max로 뷰모델 생성
-	for (const auto& Pair : AttributeMap)
-	{
-		if (Pair.Key.StartsWith(TEXT("Max")))
-		{
-			continue;
-		}
-
-		FString MaxName = TEXT("Max") + Pair.Key;
-		const FGameplayAttribute* MaxAttr = AttributeMap.Find(MaxName);
-
-		UWxViewModel_Attribute* AttrVM = NewObject<UWxViewModel_Attribute>(ASC);
-		AttrVM->Initialize(ASC, Pair.Value, MaxAttr ? *MaxAttr : Pair.Value);
-		AttributeViewModels.Add(AttrVM);
-	}
-
-	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(AttributeViewModels);
+	// 최대값 어트리뷰트가 유효하지 않으면 현재값 자신을 최대값으로 사용한다.
+	UWxViewModel_Attribute* AttrVM = NewObject<UWxViewModel_Attribute>(ASC);
+	AttrVM->Initialize(ASC, Current, Max.IsValid() ? Max : Current);
+	AttributeViewModels.Add(AttrVM);
+	return AttrVM;
 }
 
 void UWxViewModel_AbilitySystem::InitializeAbilityViewModels()
@@ -169,24 +169,22 @@ void UWxViewModel_AbilitySystem::RefreshActiveEffectViewModels()
 	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(ActiveEffectViewModels);
 }
 
-void UWxViewModel_AbilitySystem::Deinitialize()
+void UWxViewModel_AbilitySystem::RefreshOwnedTags()
 {
-	if (UAbilitySystemComponent* ASC = CachedASC.Get())
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	if (!ASC)
 	{
-		ASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
-		ASC->OnAnyGameplayEffectRemovedDelegate().RemoveAll(this);
-		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
+		return;
 	}
-	CachedASC.Reset();
 
-	AttributeViewModels.Empty();
-	AbilityViewModels.Empty();
-	ActiveEffectViewModels.Empty();
-	OwnedTags.Reset();
+	FGameplayTagContainer NewTags;
+	ASC->GetOwnedGameplayTags(NewTags);
 
-	SetInitialized(false);
-
-	Super::Deinitialize();
+	if (OwnedTags != NewTags)
+	{
+		OwnedTags = NewTags;
+		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(OwnedTags);
+	}
 }
 
 void UWxViewModel_AbilitySystem::HandleActiveEffectAdded(UAbilitySystemComponent* InASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle)
@@ -218,24 +216,6 @@ void UWxViewModel_AbilitySystem::HandleActiveEffectRemoved(const FActiveGameplay
 			UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(ActiveEffectViewModels);
 			break;
 		}
-	}
-}
-
-void UWxViewModel_AbilitySystem::RefreshOwnedTags()
-{
-	UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (!ASC)
-	{
-		return;
-	}
-
-	FGameplayTagContainer NewTags;
-	ASC->GetOwnedGameplayTags(NewTags);
-
-	if (OwnedTags != NewTags)
-	{
-		OwnedTags = NewTags;
-		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(OwnedTags);
 	}
 }
 
