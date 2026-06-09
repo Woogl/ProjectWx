@@ -10,7 +10,7 @@
 					"arguments":
 					{
 						"AbilityTag": "(TagName=\"Ability.Skill.1\")",
-						"AbilityViewModels": "AbilityViewModels"
+						"AbilityViewModels": "AbilitySystem.AbilityViewModels"
 					},
 					"function": "Conv_FindAbilityViewModelByTag"
 				},
@@ -24,7 +24,7 @@
 					"arguments":
 					{
 						"AbilityTag": "(TagName=\"Ability.Skill.2\")",
-						"AbilityViewModels": "AbilityViewModels"
+						"AbilityViewModels": "AbilitySystem.AbilityViewModels"
 					},
 					"function": "Conv_FindAbilityViewModelByTag"
 				},
@@ -38,7 +38,7 @@
 					"arguments":
 					{
 						"AbilityTag": "(TagName=\"Ability.Skill.3\")",
-						"AbilityViewModels": "AbilityViewModels"
+						"AbilityViewModels": "AbilitySystem.AbilityViewModels"
 					},
 					"function": "Conv_FindAbilityViewModelByTag"
 				},
@@ -52,7 +52,7 @@
 					"arguments":
 					{
 						"AbilityTag": "(TagName=\"Ability.Skill.4\")",
-						"AbilityViewModels": "AbilityViewModels"
+						"AbilityViewModels": "AbilitySystem.AbilityViewModels"
 					},
 					"function": "Conv_FindAbilityViewModelByTag"
 				},
@@ -66,7 +66,7 @@
 					"arguments":
 					{
 						"AbilityTag": "(TagName=\"Ability.Ultimate\")",
-						"AbilityViewModels": "AbilityViewModels"
+						"AbilityViewModels": "AbilitySystem.AbilityViewModels"
 					},
 					"function": "Conv_FindAbilityViewModelByTag"
 				},
@@ -80,7 +80,7 @@
 					"arguments":
 					{
 						"Attribute": "(AttributeName=\"UP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:UP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
-						"AttributeViewModels": "AttributeViewModels"
+						"AttributeViewModels": "AbilitySystem.AttributeViewModels"
 					},
 					"function": "Conv_FindAttributeViewModel"
 				},
@@ -90,14 +90,14 @@
 		],
 		"viewModels":
 		{
-			"VM_PlayerAbilitySystem":
+			"VM_PlayerCharacter":
 			{
-				"class": "/Script/WxUI.WxViewModel_AbilitySystem",
-				"contextId": "8C92CB19-42D4-03B9-50FC-F596D702709D",
+				"class": "/Script/WxUI.WxViewModel_Character",
+				"contextId": "7E0ABD5D-4143-F2E8-B888-C5BD7E85D437",
 				"createGetter": true,
 				"createSetter": false,
 				"creationType": "GlobalViewModelCollection",
-				"globalIdentifier": "VM_PlayerAbilitySystem",
+				"globalIdentifier": "VM_PlayerCharacter",
 				"optional": false
 			}
 		}

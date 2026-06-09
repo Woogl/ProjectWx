@@ -138,11 +138,6 @@ AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const
 	return WeaponActor ? Cast<AWxWeaponBase>(WeaponActor->GetChildActor()) : nullptr;
 }
 
-FText AWxCharacterBase::GetCharacterName() const
-{
-	return UIData.DisplayName;
-}
-
 const FWxCharacterUIData& AWxCharacterBase::GetCharacterUIData() const
 {
 	return UIData;

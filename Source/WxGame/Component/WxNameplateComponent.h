@@ -30,8 +30,9 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	/**
-	 * ASC의 전투 어트리뷰트를 기반으로 네임플레이트에 필요한 ViewModel을 생성하고 MVVM View에 바인딩한다.
-	 * Widget이 유효하고 UMVVMView Extension이 존재해야 동작한다.
+	 * 오너 캐릭터의 표시 데이터와 ASC 를 묶은 UWxViewModel_Character 를 생성해 MVVM View 에 바인딩한다.
+	 * (자식 AbilitySystem VM 이 어트리뷰트/이펙트를, 본체가 이름/초상화/설명을 노출한다.)
+	 * Widget 이 유효하고 UMVVMView Extension 이 존재해야 동작한다.
 	 */
 	void InitializeViewModels(UAbilitySystemComponent* InASC);
 

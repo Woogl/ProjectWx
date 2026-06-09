@@ -4,8 +4,7 @@
 #include "AbilitySystemComponent.h"
 #include "View/MVVMView.h"
 #include "Character/WxCharacterBase.h"
-#include "MVVM/WxViewModel_AbilitySystem.h"
-#include "MVVM/WxViewModel_Actor.h"
+#include "MVVM/WxViewModel_Character.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "WxGameplayTags.h"
 #include "GameFramework/PlayerController.h"
@@ -67,17 +66,12 @@ void UWxNameplateComponent::InitializeViewModels(UAbilitySystemComponent* InASC)
 		return;
 	}
 
-	UWxViewModel_AbilitySystem* AbilitySystemViewModel = NewObject<UWxViewModel_AbilitySystem>(InASC);
-	AbilitySystemViewModel->Initialize(InASC);
-	View->SetViewModelByClass(AbilitySystemViewModel);
-
-	// 표시 이름은 범용 Actor VM 으로 노출한다.
-	// WxUI(도메인) 는 구체 캐릭터 타입을 모르므로, 게임 모듈인 여기서 대상 캐릭터의 이름을 찾아 주입한다.
+	// 캐릭터 Composite VM 하나로 어트리뷰트/이펙트(자식 AbilitySystem VM)와 표시 데이터(이름/초상화/설명)를 함께 노출한다.
 	if (const AWxCharacterBase* OwnerCharacter = Cast<AWxCharacterBase>(GetOwner()))
 	{
-		UWxViewModel_Actor* ActorViewModel = NewObject<UWxViewModel_Actor>(this);
-		ActorViewModel->Initialize(OwnerCharacter->GetCharacterName());
-		View->SetViewModelByClass(ActorViewModel);
+		UWxViewModel_Character* CharacterViewModel = NewObject<UWxViewModel_Character>(this);
+		CharacterViewModel->Initialize(InASC, OwnerCharacter->GetCharacterUIData());
+		View->SetViewModelByClass(CharacterViewModel);
 	}
 
 	CachedASC = InASC;

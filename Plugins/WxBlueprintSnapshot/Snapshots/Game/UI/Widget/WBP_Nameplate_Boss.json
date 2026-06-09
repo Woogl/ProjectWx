@@ -6,7 +6,7 @@
 			{
 				"bindingType": "OneWayToDestination",
 				"destination": "BP_SetListItems",
-				"source": "ActiveEffectViewModels"
+				"source": "AbilitySystem.ActiveEffectViewModels"
 			},
 			{
 				"bindingType": "OneWayToDestination",
@@ -30,7 +30,7 @@
 					"arguments":
 					{
 						"Attribute": "(AttributeName=\"DP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:DP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
-						"AttributeViewModels": "AttributeViewModels"
+						"AttributeViewModels": "AbilitySystem.AttributeViewModels"
 					},
 					"function": "Conv_FindAttributeViewModel"
 				},
@@ -44,7 +44,7 @@
 					"arguments":
 					{
 						"Attribute": "(AttributeName=\"HP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:HP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
-						"AttributeViewModels": "AttributeViewModels"
+						"AttributeViewModels": "AbilitySystem.AttributeViewModels"
 					},
 					"function": "Conv_FindAttributeViewModel"
 				},
@@ -54,14 +54,14 @@
 		],
 		"viewModels":
 		{
-			"WxViewModel_AbilitySystem":
+			"VM_BossCharacter":
 			{
-				"class": "/Script/WxUI.WxViewModel_AbilitySystem",
-				"contextId": "2C09386E-4078-50DA-15BF-B9B6CE24BC1A",
+				"class": "/Script/WxUI.WxViewModel_Character",
+				"contextId": "5A9B2619-4FD4-C4B1-D0EB-A4A9D955E907",
 				"createGetter": true,
 				"createSetter": false,
 				"creationType": "GlobalViewModelCollection",
-				"globalIdentifier": "VM_BossAbilitySystem",
+				"globalIdentifier": "VM_BossCharacter",
 				"optional": false
 			}
 		}

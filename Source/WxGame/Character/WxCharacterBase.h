@@ -56,9 +56,6 @@ public:
 	bool IsAlive() const;
 	AWxWeaponBase* GetEquippedWeapon() const;
 
-	/** 네임플레이트 등 UI 출력에 사용하는 캐릭터 표시 이름. */
-	FText GetCharacterName() const;
-
 	/** VM_Character 주입용 UI 표시 데이터(이름/초상화/설명). */
 	const FWxCharacterUIData& GetCharacterUIData() const;
 

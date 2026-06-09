@@ -15,7 +15,7 @@
 			{
 				"bindingType": "OneWayToDestination",
 				"destination": "BP_SetListItems",
-				"source": "ActiveEffectViewModels"
+				"source": "AbilitySystem.ActiveEffectViewModels"
 			},
 			{
 				"bindingType": "OneWayToDestination",
@@ -25,7 +25,7 @@
 					{
 						"FalseVisibility": "Collapsed",
 						"Tag": "(TagName=\"State.Groggy\")",
-						"TagContainer": "OwnedTags",
+						"TagContainer": "AbilitySystem.OwnedTags",
 						"TrueVisibility": "SelfHitTestInvisible"
 					},
 					"function": "Conv_GameplayTagToSlateVisibility"
@@ -40,7 +40,7 @@
 					"arguments":
 					{
 						"Attribute": "(AttributeName=\"DP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:DP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
-						"AttributeViewModels": "AttributeViewModels"
+						"AttributeViewModels": "AbilitySystem.AttributeViewModels"
 					},
 					"function": "Conv_FindAttributeViewModel"
 				},
@@ -54,7 +54,7 @@
 					"arguments":
 					{
 						"Attribute": "(AttributeName=\"HP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:HP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
-						"AttributeViewModels": "AttributeViewModels"
+						"AttributeViewModels": "AbilitySystem.AttributeViewModels"
 					},
 					"function": "Conv_FindAttributeViewModel"
 				},
@@ -64,10 +64,10 @@
 		],
 		"viewModels":
 		{
-			"WxViewModel_AbilitySystem":
+			"WxViewModel_Character":
 			{
-				"class": "/Script/WxUI.WxViewModel_AbilitySystem",
-				"contextId": "2C09386E-4078-50DA-15BF-B9B6CE24BC1A",
+				"class": "/Script/WxUI.WxViewModel_Character",
+				"contextId": "CBB1836B-4BE8-B612-DFF4-3BB23BCD866F",
 				"createGetter": true,
 				"createSetter": true,
 				"creationType": "Manual",

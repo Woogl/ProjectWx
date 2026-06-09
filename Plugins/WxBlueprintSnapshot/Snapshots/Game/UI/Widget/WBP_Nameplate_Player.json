@@ -6,22 +6,7 @@
 			{
 				"bindingType": "OneWayToDestination",
 				"destination": "BP_SetListItems",
-				"source": "ActiveEffectViewModels"
-			},
-			{
-				"bindingType": "OneWayToDestination",
-				"conversionSourceToDestination":
-				{
-					"arguments":
-					{
-						"bIsVisible": "IsInitialized",
-						"FalseVisibility": "Collapsed",
-						"TrueVisibility": "SelfHitTestInvisible"
-					},
-					"function": "Conv_BoolToSlateVisibility"
-				},
-				"destination": "Visibility",
-				"source": ""
+				"source": "AbilitySystem.ActiveEffectViewModels"
 			},
 			{
 				"bindingType": "OneWayToDestination",
@@ -30,7 +15,7 @@
 					"arguments":
 					{
 						"Attribute": "(AttributeName=\"MP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:MP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
-						"AttributeViewModels": "AttributeViewModels"
+						"AttributeViewModels": "AbilitySystem.AttributeViewModels"
 					},
 					"function": "Conv_FindAttributeViewModel"
 				},
@@ -44,7 +29,7 @@
 					"arguments":
 					{
 						"Attribute": "(AttributeName=\"HP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:HP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
-						"AttributeViewModels": "AttributeViewModels"
+						"AttributeViewModels": "AbilitySystem.AttributeViewModels"
 					},
 					"function": "Conv_FindAttributeViewModel"
 				},
@@ -54,14 +39,14 @@
 		],
 		"viewModels":
 		{
-			"VM_PlayerAbilitySystem":
+			"VM_PlayerCharacter":
 			{
-				"class": "/Script/WxUI.WxViewModel_AbilitySystem",
-				"contextId": "2C09386E-4078-50DA-15BF-B9B6CE24BC1A",
+				"class": "/Script/WxUI.WxViewModel_Character",
+				"contextId": "A5761DE7-4040-1188-E4E9-4DA3136F3436",
 				"createGetter": true,
 				"createSetter": false,
 				"creationType": "GlobalViewModelCollection",
-				"globalIdentifier": "VM_PlayerAbilitySystem",
+				"globalIdentifier": "VM_PlayerCharacter",
 				"optional": false
 			}
 		}
