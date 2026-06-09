@@ -15,6 +15,7 @@ class UBlackboardComponent;
  *
  * 키별 accessor 는 키 이름과 값 타입을 한 곳에 묶어 GetValueAs / SetValueAs 계열의 타입 오용을 막는다.
  * accessor 는 Blackboard 가 유효(non-null)하다는 전제로 호출한다(호출부가 이미 가드함).
+ * 키가 에셋에 없거나 타입이 어긋나면 엔진이 조용히 기본값을 돌려주므로, accessor 는 그런 접근을 경고 로그로 드러낸다(Shipping 빌드 제외).
  */
 namespace WxBlackboardKeys
 {
@@ -27,7 +28,7 @@ namespace WxBlackboardKeys
 
 	// 타입드 accessor (키 이름 ↔ 값 타입을 묶는다)
 	// Object 키: null = 미설정이라 setter 에 nullptr 을 넘기면 Clear 와 동일하게 동작 → 별도 Clear 불필요.
-	// Vector 키: 모든 FVector 가 유효값이라 "값 없음"을 Set 으로 표현할 수 없어 Clear 를 별도로 둔다(정찰 게이트가 이 unset 에 의존).
+	// Vector 키: 모든 FVector 가 유효값이라 "값 없음"을 Set 으로 표현할 수 없어, 필요 시 Clear 를 별도로 둔다(예: TargetLastKnownLocation 의 탐색 종료).
 
 	WXAI_API AActor* GetTargetActor(const UBlackboardComponent* Blackboard);
 	WXAI_API void SetTargetActor(UBlackboardComponent* Blackboard, AActor* Value);
@@ -41,5 +42,4 @@ namespace WxBlackboardKeys
 	WXAI_API void ClearTargetLastKnownLocation(UBlackboardComponent* Blackboard);
 
 	WXAI_API void SetPatrolTargetLocation(UBlackboardComponent* Blackboard, const FVector& Value);
-	WXAI_API void ClearPatrolTargetLocation(UBlackboardComponent* Blackboard);
 }
