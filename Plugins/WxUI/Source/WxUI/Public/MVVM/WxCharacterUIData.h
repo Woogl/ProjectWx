@@ -20,7 +20,7 @@ struct FWxCharacterUIData
 
 	/** 네임플레이트/HUD 등에 출력되는 표시 이름. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
-	FText DisplayName;
+	FText CharacterName;
 
 	/** 초상화. UI 측에서 Soft 참조로 비동기 로드한다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
