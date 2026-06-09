@@ -32,17 +32,6 @@ void AWxGimmick::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	DOREPLIFETIME(AWxGimmick, bTriggered);
 }
 
-void AWxGimmick::MarkTriggered()
-{
-	if (!HasAuthority() || bTriggered)
-	{
-		return;
-	}
-
-	bTriggered = true;
-	ApplyState();
-}
-
 FGuid AWxGimmick::GetWxSaveId() const
 {
 	return WxSaveId;
@@ -83,6 +72,17 @@ void AWxGimmick::PostLoad()
 	WxSaveId = GetActorGuid();
 }
 #endif
+
+void AWxGimmick::MarkTriggered()
+{
+	if (!HasAuthority() || bTriggered)
+	{
+		return;
+	}
+
+	bTriggered = true;
+	ApplyState();
+}
 
 void AWxGimmick::OnRep_bTriggered()
 {

@@ -62,6 +62,74 @@ AWxSpawner::AWxSpawner()
 #endif
 }
 
+void AWxSpawner::Respawn()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	// 기존 액터 정리. 시체면 청소, 살아있으면 위치/상태 원복을 위한 destroy.
+	if (AActor* Existing = SpawnedActor.Get())
+	{
+		Existing->Destroy();
+	}
+	SpawnedActor.Reset();
+
+	// 부활 금지 Spawner (보스 등) 는 죽은 뒤 새 인스턴스를 spawn 하지 않는다.
+	if (bIsKilled && bNeverRevive)
+	{
+		return;
+	}
+
+	// 부활 가능 Spawner 는 처치 기록 리셋 후 새 인스턴스 생성.
+	bIsKilled = false;
+	SpawnTarget();
+}
+
+EWxSpawnerMode AWxSpawner::GetSpawnMode() const
+{
+	return SpawnMode;
+}
+
+AActor* AWxSpawner::GetSpawnedActor() const
+{
+	return SpawnedActor.Get();
+}
+
+bool AWxSpawner::IsKilled() const
+{
+	return bIsKilled;
+}
+
+void AWxSpawner::MarkKilled()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	bIsKilled = true;
+}
+
+FGuid AWxSpawner::GetWxSaveId() const
+{
+	return WxSaveId;
+}
+
+void AWxSpawner::OnWxSaveRestored()
+{
+	// 슬롯 복원으로 bIsKilled=true 가 적용되었지만 BeginPlay 가 먼저 spawn 한 인스턴스가 남아있다면 정리.
+	if (bIsKilled)
+	{
+		if (AActor* Existing = SpawnedActor.Get())
+		{
+			Existing->Destroy();
+		}
+		SpawnedActor.Reset();
+	}
+}
+
 void AWxSpawner::BeginPlay()
 {
 	Super::BeginPlay();
@@ -100,24 +168,6 @@ void AWxSpawner::BeginPlay()
 	}
 }
 
-FGuid AWxSpawner::GetWxSaveId() const
-{
-	return WxSaveId;
-}
-
-void AWxSpawner::OnWxSaveRestored()
-{
-	// 슬롯 복원으로 bIsKilled=true 가 적용되었지만 BeginPlay 가 먼저 spawn 한 인스턴스가 남아있다면 정리.
-	if (bIsKilled)
-	{
-		if (AActor* Existing = SpawnedActor.Get())
-		{
-			Existing->Destroy();
-		}
-		SpawnedActor.Reset();
-	}
-}
-
 void AWxSpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (HasAuthority())
@@ -139,56 +189,6 @@ void AWxSpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	SpawnedActor.Reset();
 
 	Super::EndPlay(EndPlayReason);
-}
-
-EWxSpawnerMode AWxSpawner::GetSpawnMode() const
-{
-	return SpawnMode;
-}
-
-AActor* AWxSpawner::GetSpawnedActor() const
-{
-	return SpawnedActor.Get();
-}
-
-bool AWxSpawner::IsKilled() const
-{
-	return bIsKilled;
-}
-
-void AWxSpawner::MarkKilled()
-{
-	if (!HasAuthority())
-	{
-		return;
-	}
-
-	bIsKilled = true;
-}
-
-void AWxSpawner::Respawn()
-{
-	if (!HasAuthority())
-	{
-		return;
-	}
-
-	// 기존 액터 정리. 시체면 청소, 살아있으면 위치/상태 원복을 위한 destroy.
-	if (AActor* Existing = SpawnedActor.Get())
-	{
-		Existing->Destroy();
-	}
-	SpawnedActor.Reset();
-
-	// 부활 금지 Spawner (보스 등) 는 죽은 뒤 새 인스턴스를 spawn 하지 않는다.
-	if (bIsKilled && bNeverRevive)
-	{
-		return;
-	}
-
-	// 부활 가능 Spawner 는 처치 기록 리셋 후 새 인스턴스 생성.
-	bIsKilled = false;
-	SpawnTarget();
 }
 
 void AWxSpawner::SpawnTarget()

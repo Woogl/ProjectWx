@@ -160,6 +160,44 @@ bool FWxBlueprintSnapshotExporter::ExportBlueprint(UBlueprint* Blueprint)
 	return true;
 }
 
+FString FWxBlueprintSnapshotExporter::ResolveSnapshotPath(const FString& PackageName)
+{
+	if (PackageName.IsEmpty())
+	{
+		return FString();
+	}
+
+	const UWxBlueprintSnapshotSettings* Settings = GetDefault<UWxBlueprintSnapshotSettings>();
+	if (!Settings)
+	{
+		return FString();
+	}
+
+	FString RootDir = Settings->OutputDirectory.Path;
+	if (RootDir.IsEmpty())
+	{
+		TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("WxBlueprintSnapshot"));
+		if (!Plugin.IsValid())
+		{
+			return FString();
+		}
+		RootDir = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Snapshots"));
+	}
+	else if (FPaths::IsRelative(RootDir))
+	{
+		RootDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), RootDir);
+	}
+
+	// /Game/UI/Widget/WBP_Ability -> Game/UI/Widget/WBP_Ability{Ext}
+	FString PackagePath = PackageName;
+	if (PackagePath.StartsWith(TEXT("/")))
+	{
+		PackagePath.RemoveAt(0);
+	}
+
+	return FPaths::Combine(RootDir, PackagePath) + Settings->FileExtension;
+}
+
 TSharedRef<FJsonObject> FWxBlueprintSnapshotExporter::BuildSnapshot(UBlueprint* Blueprint, const UWxBlueprintSnapshotSettings& Settings)
 {
 	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
@@ -622,42 +660,4 @@ FString FWxBlueprintSnapshotExporter::SerializeJson(TSharedRef<FJsonObject> Root
 		TJsonWriterFactory<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>::Create(&Out);
 	FJsonSerializer::Serialize(RootObject, Writer);
 	return Out;
-}
-
-FString FWxBlueprintSnapshotExporter::ResolveSnapshotPath(const FString& PackageName)
-{
-	if (PackageName.IsEmpty())
-	{
-		return FString();
-	}
-
-	const UWxBlueprintSnapshotSettings* Settings = GetDefault<UWxBlueprintSnapshotSettings>();
-	if (!Settings)
-	{
-		return FString();
-	}
-
-	FString RootDir = Settings->OutputDirectory.Path;
-	if (RootDir.IsEmpty())
-	{
-		TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("WxBlueprintSnapshot"));
-		if (!Plugin.IsValid())
-		{
-			return FString();
-		}
-		RootDir = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Snapshots"));
-	}
-	else if (FPaths::IsRelative(RootDir))
-	{
-		RootDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), RootDir);
-	}
-
-	// /Game/UI/Widget/WBP_Ability -> Game/UI/Widget/WBP_Ability{Ext}
-	FString PackagePath = PackageName;
-	if (PackagePath.StartsWith(TEXT("/")))
-	{
-		PackagePath.RemoveAt(0);
-	}
-
-	return FPaths::Combine(RootDir, PackagePath) + Settings->FileExtension;
 }

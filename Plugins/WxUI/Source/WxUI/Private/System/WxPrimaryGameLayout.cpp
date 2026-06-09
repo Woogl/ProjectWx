@@ -5,16 +5,6 @@
 #include "CommonActivatableWidget.h"
 #include "WxGameplayTags.h"
 
-void UWxPrimaryGameLayout::NativeOnInitialized()
-{
-	Super::NativeOnInitialized();
-
-	LayerMap.Add(WxGameplayTags::UI_Layer_Game, GameLayer);
-	LayerMap.Add(WxGameplayTags::UI_Layer_GameMenu, GameMenuLayer);
-	LayerMap.Add(WxGameplayTags::UI_Layer_Menu, MenuLayer);
-	LayerMap.Add(WxGameplayTags::UI_Layer_Modal, ModalLayer);
-}
-
 UCommonActivatableWidgetStack* UWxPrimaryGameLayout::GetLayerWidgetStack(FGameplayTag LayerTag) const
 {
 	const TObjectPtr<UCommonActivatableWidgetStack>* Found = LayerMap.Find(LayerTag);
@@ -50,4 +40,14 @@ UCommonActivatableWidget* UWxPrimaryGameLayout::PushWidgetInstanceToLayerStack(F
 
 	Stack->AddWidgetInstance(*WidgetInstance);
 	return WidgetInstance;
+}
+
+void UWxPrimaryGameLayout::NativeOnInitialized()
+{
+	Super::NativeOnInitialized();
+
+	LayerMap.Add(WxGameplayTags::UI_Layer_Game, GameLayer);
+	LayerMap.Add(WxGameplayTags::UI_Layer_GameMenu, GameMenuLayer);
+	LayerMap.Add(WxGameplayTags::UI_Layer_Menu, MenuLayer);
+	LayerMap.Add(WxGameplayTags::UI_Layer_Modal, ModalLayer);
 }

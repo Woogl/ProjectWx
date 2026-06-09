@@ -145,99 +145,6 @@ void AWxElevator::Tick(float DeltaTime)
 	}
 }
 
-void AWxElevator::HandlePlatformInteracted(AActor* InteractingActor)
-{
-	// 플랫폼 위 인터랙션은 문이 열려 있을 때만 의미가 있다 (닫혀 있다면 플레이어가 탑승해 있을 수 없음).
-	if (!HasAuthority() || State != EWxElevatorState::DoorsOpen)
-	{
-		return;
-	}
-
-	// 현재 endpoint 반대로 토글.
-	BeginMoveSequence(TargetEndpoint == EWxElevatorEndpoint::Start ? EWxElevatorEndpoint::End : EWxElevatorEndpoint::Start);
-}
-
-void AWxElevator::HandleCallConsoleAInteracted(AActor* InteractingActor)
-{
-	if (!HasAuthority() || (State != EWxElevatorState::DoorsClosed && State != EWxElevatorState::DoorsOpen))
-	{
-		return;
-	}
-
-	BeginMoveSequence(EWxElevatorEndpoint::Start);
-}
-
-void AWxElevator::HandleCallConsoleBInteracted(AActor* InteractingActor)
-{
-	if (!HasAuthority() || (State != EWxElevatorState::DoorsClosed && State != EWxElevatorState::DoorsOpen))
-	{
-		return;
-	}
-
-	BeginMoveSequence(EWxElevatorEndpoint::End);
-}
-
-void AWxElevator::MovePlatformToStart()
-{
-	if (!HasAuthority() || (State != EWxElevatorState::DoorsClosed && State != EWxElevatorState::DoorsOpen))
-	{
-		return;
-	}
-
-	BeginMoveSequence(EWxElevatorEndpoint::Start);
-}
-
-void AWxElevator::MovePlatformToEnd()
-{
-	if (!HasAuthority() || (State != EWxElevatorState::DoorsClosed && State != EWxElevatorState::DoorsOpen))
-	{
-		return;
-	}
-
-	BeginMoveSequence(EWxElevatorEndpoint::End);
-}
-
-void AWxElevator::BeginMoveSequence(EWxElevatorEndpoint NewEndpoint)
-{
-	const float NewTargetDistance = NewEndpoint == EWxElevatorEndpoint::End ? CachedSplineLength : 0.f;
-
-	// 이미 목표 끝점에 정지해 있는 케이스: 문이 닫혀 있다면 열기만 수행, 열려 있다면 호출은 의미 없으므로 무시.
-	if (NewEndpoint == TargetEndpoint && FMath::IsNearlyEqual(CurrentDistance, NewTargetDistance))
-	{
-		if (State == EWxElevatorState::DoorsClosed)
-		{
-			State = EWxElevatorState::DoorsOpening;
-			ApplyState();
-		}
-		return;
-	}
-
-	TargetEndpoint = NewEndpoint;
-	TargetDistance = NewTargetDistance;
-
-	if (State == EWxElevatorState::DoorsOpen)
-	{
-		State = EWxElevatorState::DoorsClosing;
-		ApplyState();
-	}
-	else
-	{
-		// 문이 이미 닫혀 있으므로 DoorsClosing 단계 건너뛰고 즉시 이동 시작.
-		State = EWxElevatorState::Moving;
-		ApplyState();
-	}
-}
-
-void AWxElevator::OnRep_State()
-{
-	ApplyState();
-}
-
-void AWxElevator::OnRep_TargetEndpoint()
-{
-	ApplyState();
-}
-
 void AWxElevator::ApplyState()
 {
 	// TargetEndpoint = 이 시퀀스의 최종 목적지. 정지 상태(Closed/Open) 와 도착 직후(DoorsOpening) 에선 현재 위치 = TargetEndpoint.
@@ -303,6 +210,99 @@ void AWxElevator::ApplyState()
 
 	// 모든 상태 적용 후 플랫폼을 CurrentDistance 에 동기화. 슬롯 복원 / OnRep / 상태 전이 모두 한 경로로 처리.
 	UpdatePlatformPosition();
+}
+
+void AWxElevator::HandlePlatformInteracted(AActor* InteractingActor)
+{
+	// 플랫폼 위 인터랙션은 문이 열려 있을 때만 의미가 있다 (닫혀 있다면 플레이어가 탑승해 있을 수 없음).
+	if (!HasAuthority() || State != EWxElevatorState::DoorsOpen)
+	{
+		return;
+	}
+
+	// 현재 endpoint 반대로 토글.
+	BeginMoveSequence(TargetEndpoint == EWxElevatorEndpoint::Start ? EWxElevatorEndpoint::End : EWxElevatorEndpoint::Start);
+}
+
+void AWxElevator::HandleCallConsoleAInteracted(AActor* InteractingActor)
+{
+	if (!HasAuthority() || (State != EWxElevatorState::DoorsClosed && State != EWxElevatorState::DoorsOpen))
+	{
+		return;
+	}
+
+	BeginMoveSequence(EWxElevatorEndpoint::Start);
+}
+
+void AWxElevator::HandleCallConsoleBInteracted(AActor* InteractingActor)
+{
+	if (!HasAuthority() || (State != EWxElevatorState::DoorsClosed && State != EWxElevatorState::DoorsOpen))
+	{
+		return;
+	}
+
+	BeginMoveSequence(EWxElevatorEndpoint::End);
+}
+
+void AWxElevator::OnRep_State()
+{
+	ApplyState();
+}
+
+void AWxElevator::OnRep_TargetEndpoint()
+{
+	ApplyState();
+}
+
+void AWxElevator::MovePlatformToStart()
+{
+	if (!HasAuthority() || (State != EWxElevatorState::DoorsClosed && State != EWxElevatorState::DoorsOpen))
+	{
+		return;
+	}
+
+	BeginMoveSequence(EWxElevatorEndpoint::Start);
+}
+
+void AWxElevator::MovePlatformToEnd()
+{
+	if (!HasAuthority() || (State != EWxElevatorState::DoorsClosed && State != EWxElevatorState::DoorsOpen))
+	{
+		return;
+	}
+
+	BeginMoveSequence(EWxElevatorEndpoint::End);
+}
+
+void AWxElevator::BeginMoveSequence(EWxElevatorEndpoint NewEndpoint)
+{
+	const float NewTargetDistance = NewEndpoint == EWxElevatorEndpoint::End ? CachedSplineLength : 0.f;
+
+	// 이미 목표 끝점에 정지해 있는 케이스: 문이 닫혀 있다면 열기만 수행, 열려 있다면 호출은 의미 없으므로 무시.
+	if (NewEndpoint == TargetEndpoint && FMath::IsNearlyEqual(CurrentDistance, NewTargetDistance))
+	{
+		if (State == EWxElevatorState::DoorsClosed)
+		{
+			State = EWxElevatorState::DoorsOpening;
+			ApplyState();
+		}
+		return;
+	}
+
+	TargetEndpoint = NewEndpoint;
+	TargetDistance = NewTargetDistance;
+
+	if (State == EWxElevatorState::DoorsOpen)
+	{
+		State = EWxElevatorState::DoorsClosing;
+		ApplyState();
+	}
+	else
+	{
+		// 문이 이미 닫혀 있으므로 DoorsClosing 단계 건너뛰고 즉시 이동 시작.
+		State = EWxElevatorState::Moving;
+		ApplyState();
+	}
 }
 
 void AWxElevator::UpdatePlatformPosition()

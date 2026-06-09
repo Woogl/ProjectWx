@@ -25,54 +25,6 @@ UWxInteractionComponent::UWxInteractionComponent()
 	InteractionText = FText::FromString(TEXT("[F] Interact"));
 }
 
-void UWxInteractionComponent::OnRegister()
-{
-	Super::OnRegister();
-
-	if (!InteractionWidget)
-	{
-		InteractionWidget = NewObject<UWidgetComponent>(this, UWidgetComponent::StaticClass(), TEXT("InteractionWidget"), RF_Transactional);
-		InteractionWidget->SetWidgetSpace(EWidgetSpace::Screen);
-		InteractionWidget->SetDrawAtDesiredSize(true);
-		InteractionWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		InteractionWidget->SetVisibility(false);
-		InteractionWidget->SetupAttachment(this);
-		InteractionWidget->RegisterComponent();
-	}
-
-	if (InteractionWidget->GetWidgetClass() != PromptWidgetClass)
-	{
-		InteractionWidget->SetWidgetClass(PromptWidgetClass);
-	}
-}
-
-void UWxInteractionComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	OnComponentBeginOverlap.AddDynamic(this, &UWxInteractionComponent::HandleBeginOverlap);
-	OnComponentEndOverlap.AddDynamic(this, &UWxInteractionComponent::HandleEndOverlap);
-
-	SetInteractionText(InteractionText);
-
-	if (!bInteractionEnabled)
-	{
-		return;
-	}
-
-	// BeginPlay 시점에 이미 오버랩 중인 로컬 플레이어 폰이 있으면 프롬프트를 즉시 표시한다.
-	TArray<AActor*> OverlappingActors;
-	GetOverlappingActors(OverlappingActors, APawn::StaticClass());
-	for (AActor* OverlappingActor : OverlappingActors)
-	{
-		if (IsLocalPlayerPawn(OverlappingActor))
-		{
-			SetInteractionWidgetVisible(true);
-			break;
-		}
-	}
-}
-
 void UWxInteractionComponent::TryInteract(AActor* InstigatorActor)
 {
 	const AActor* Owner = GetOwner();
@@ -126,9 +78,52 @@ void UWxInteractionComponent::SetInteractionText(const FText& InText)
 	}
 }
 
-void UWxInteractionComponent::MulticastInteracted_Implementation(AActor* InstigatorActor)
+void UWxInteractionComponent::BeginPlay()
 {
-	OnInteracted.Broadcast(InstigatorActor);
+	Super::BeginPlay();
+
+	OnComponentBeginOverlap.AddDynamic(this, &UWxInteractionComponent::HandleBeginOverlap);
+	OnComponentEndOverlap.AddDynamic(this, &UWxInteractionComponent::HandleEndOverlap);
+
+	SetInteractionText(InteractionText);
+
+	if (!bInteractionEnabled)
+	{
+		return;
+	}
+
+	// BeginPlay 시점에 이미 오버랩 중인 로컬 플레이어 폰이 있으면 프롬프트를 즉시 표시한다.
+	TArray<AActor*> OverlappingActors;
+	GetOverlappingActors(OverlappingActors, APawn::StaticClass());
+	for (AActor* OverlappingActor : OverlappingActors)
+	{
+		if (IsLocalPlayerPawn(OverlappingActor))
+		{
+			SetInteractionWidgetVisible(true);
+			break;
+		}
+	}
+}
+
+void UWxInteractionComponent::OnRegister()
+{
+	Super::OnRegister();
+
+	if (!InteractionWidget)
+	{
+		InteractionWidget = NewObject<UWidgetComponent>(this, UWidgetComponent::StaticClass(), TEXT("InteractionWidget"), RF_Transactional);
+		InteractionWidget->SetWidgetSpace(EWidgetSpace::Screen);
+		InteractionWidget->SetDrawAtDesiredSize(true);
+		InteractionWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		InteractionWidget->SetVisibility(false);
+		InteractionWidget->SetupAttachment(this);
+		InteractionWidget->RegisterComponent();
+	}
+
+	if (InteractionWidget->GetWidgetClass() != PromptWidgetClass)
+	{
+		InteractionWidget->SetWidgetClass(PromptWidgetClass);
+	}
 }
 
 void UWxInteractionComponent::HandleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -151,10 +146,9 @@ void UWxInteractionComponent::HandleEndOverlap(UPrimitiveComponent* OverlappedCo
 	SetInteractionWidgetVisible(false);
 }
 
-bool UWxInteractionComponent::IsLocalPlayerPawn(const AActor* OtherActor) const
+void UWxInteractionComponent::MulticastInteracted_Implementation(AActor* InstigatorActor)
 {
-	const APawn* Pawn = Cast<APawn>(OtherActor);
-	return Pawn != nullptr && Pawn->IsPlayerControlled() && Pawn->IsLocallyControlled();
+	OnInteracted.Broadcast(InstigatorActor);
 }
 
 void UWxInteractionComponent::SetInteractionWidgetVisible(bool bNewVisible)
@@ -172,4 +166,10 @@ void UWxInteractionComponent::SetInteractionWidgetVisible(bool bNewVisible)
 	{
 		SetInteractionText(InteractionText);
 	}
+}
+
+bool UWxInteractionComponent::IsLocalPlayerPawn(const AActor* OtherActor) const
+{
+	const APawn* Pawn = Cast<APawn>(OtherActor);
+	return Pawn != nullptr && Pawn->IsPlayerControlled() && Pawn->IsLocallyControlled();
 }

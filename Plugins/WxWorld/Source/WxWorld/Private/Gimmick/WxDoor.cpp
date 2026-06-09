@@ -71,22 +71,6 @@ void AWxDoor::Tick(float DeltaTime)
 	}
 }
 
-void AWxDoor::HandleConsoleInteracted(AActor* InstigatorActor)
-{
-	if (!HasAuthority() || State != EWxDoorState::Closed)
-	{
-		return;
-	}
-
-	State = EWxDoorState::Opening;
-	ApplyState();
-}
-
-void AWxDoor::OnRep_State()
-{
-	ApplyState();
-}
-
 void AWxDoor::ApplyState()
 {
 	switch (State)
@@ -112,6 +96,22 @@ void AWxDoor::ApplyState()
 		UpdateDoorPositions();
 		break;
 	}
+}
+
+void AWxDoor::HandleConsoleInteracted(AActor* InstigatorActor)
+{
+	if (!HasAuthority() || State != EWxDoorState::Closed)
+	{
+		return;
+	}
+
+	State = EWxDoorState::Opening;
+	ApplyState();
+}
+
+void AWxDoor::OnRep_State()
+{
+	ApplyState();
 }
 
 void AWxDoor::UpdateDoorPositions()

@@ -5,6 +5,19 @@
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 
+TOptional<FUIInputConfig> UWxActivatableWidget::GetDesiredInputConfig() const
+{
+	switch (InputMode)
+	{
+	case ECommonInputMode::Menu:
+		return FUIInputConfig(ECommonInputMode::Menu, EMouseCaptureMode::NoCapture);
+	case ECommonInputMode::Game:
+		return FUIInputConfig(ECommonInputMode::Game, EMouseCaptureMode::CapturePermanently);
+	default:
+		return TOptional<FUIInputConfig>();
+	}
+}
+
 void UWxActivatableWidget::NativeOnActivated()
 {
 	Super::NativeOnActivated();
@@ -45,17 +58,4 @@ void UWxActivatableWidget::ApplyGamePause(bool bPaused)
 	}
 
 	UGameplayStatics::SetGamePaused(World, bPaused);
-}
-
-TOptional<FUIInputConfig> UWxActivatableWidget::GetDesiredInputConfig() const
-{
-	switch (InputMode)
-	{
-	case ECommonInputMode::Menu:
-		return FUIInputConfig(ECommonInputMode::Menu, EMouseCaptureMode::NoCapture);
-	case ECommonInputMode::Game:
-		return FUIInputConfig(ECommonInputMode::Game, EMouseCaptureMode::CapturePermanently);
-	default:
-		return TOptional<FUIInputConfig>();
-	}
 }

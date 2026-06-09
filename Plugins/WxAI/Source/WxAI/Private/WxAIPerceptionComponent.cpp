@@ -47,6 +47,27 @@ void UWxAIPerceptionComponent::PostInitProperties()
 	}
 }
 
+void UWxAIPerceptionComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// 인식 판정은 감지 이벤트뿐 아니라 폰의 이동(귀환/리시 이탈)에도 좌우되므로, 항상 일정 주기로 재판정한다.
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().SetTimer(LeashTimerHandle, this, &UWxAIPerceptionComponent::UpdateRecognition, 1.f, true);
+	}
+}
+
+void UWxAIPerceptionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(LeashTimerHandle);
+	}
+
+	Super::EndPlay(EndPlayReason);
+}
+
 void UWxAIPerceptionComponent::ApplySenseSettings(float InSightRadius, float InSightAngle, float InMaxHearingRange)
 {
 	SightRadius = InSightRadius;
@@ -69,17 +90,6 @@ void UWxAIPerceptionComponent::ApplySenseSettings(float InSightRadius, float InS
 
 	// 이미 퍼셉션 시스템에 등록된 뒤(런타임 주입)라면 변경된 센스 설정을 반영한다. 등록 전(초기 구성)이면 no-op.
 	RequestStimuliListenerUpdate();
-}
-
-void UWxAIPerceptionComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// 인식 판정은 감지 이벤트뿐 아니라 폰의 이동(귀환/리시 이탈)에도 좌우되므로, 항상 일정 주기로 재판정한다.
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().SetTimer(LeashTimerHandle, this, &UWxAIPerceptionComponent::UpdateRecognition, 1.f, true);
-	}
 }
 
 void UWxAIPerceptionComponent::HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
@@ -113,6 +123,37 @@ void UWxAIPerceptionComponent::HandleTargetPerceptionUpdated(AActor* Actor, FAIS
 
 	// 인식/추적 판정은 UpdateRecognition 한 곳에서만 한다. 여기서는 BB(TargetActor/LastKnown)만 갱신하고 판정을 위임한다.
 	UpdateRecognition();
+}
+
+void UWxAIPerceptionComponent::UpdateRecognition()
+{
+	const APawn* Pawn = GetOwnerPawn();
+	UBlackboardComponent* BB = GetBlackboard();
+	if (!Pawn || !BB)
+	{
+		return;
+	}
+
+	const AActor* Target = WxBlackboardKeys::GetTargetActor(BB);
+	if (!Target)
+	{
+		// 추적 대상이 없으면 인식도 없다. 조사(LastKnown)/복귀(Home)는 BT 가 처리한다.
+		SetRecognized(false);
+		return;
+	}
+
+	// 리시 이탈 판정: 자신(폰)이 배치 지점(HomeLocation)에서 LeashRadius 이상 벗어나면 추적을 끝내고 TargetActor/LastKnown 을 모두 비워 BT 가 복귀(MoveTo HomeLocation)로 떨어지게 한다.
+	const float PawnHomeDistSquared = FVector::DistSquared(Pawn->GetActorLocation(), WxBlackboardKeys::GetHomeLocation(BB));
+	const bool bExceededLeash = PawnHomeDistSquared > LeashRadius * LeashRadius;
+	if (bExceededLeash)
+	{
+		SetTargetActor(nullptr);
+		WxBlackboardKeys::ClearTargetLastKnownLocation(BB);
+		SetRecognized(false);
+		return;
+	}
+
+	SetRecognized(true);
 }
 
 void UWxAIPerceptionComponent::SetRecognized(bool bNewRecognized)
@@ -179,47 +220,6 @@ void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)
 		Movement->bUseControllerDesiredRotation = false;
 		Movement->bOrientRotationToMovement = true;
 	}
-}
-
-void UWxAIPerceptionComponent::UpdateRecognition()
-{
-	const APawn* Pawn = GetOwnerPawn();
-	UBlackboardComponent* BB = GetBlackboard();
-	if (!Pawn || !BB)
-	{
-		return;
-	}
-
-	const AActor* Target = WxBlackboardKeys::GetTargetActor(BB);
-	if (!Target)
-	{
-		// 추적 대상이 없으면 인식도 없다. 조사(LastKnown)/복귀(Home)는 BT 가 처리한다.
-		SetRecognized(false);
-		return;
-	}
-
-	// 리시 이탈 판정: 자신(폰)이 배치 지점(HomeLocation)에서 LeashRadius 이상 벗어나면 추적을 끝내고 TargetActor/LastKnown 을 모두 비워 BT 가 복귀(MoveTo HomeLocation)로 떨어지게 한다.
-	const float PawnHomeDistSquared = FVector::DistSquared(Pawn->GetActorLocation(), WxBlackboardKeys::GetHomeLocation(BB));
-	const bool bExceededLeash = PawnHomeDistSquared > LeashRadius * LeashRadius;
-	if (bExceededLeash)
-	{
-		SetTargetActor(nullptr);
-		WxBlackboardKeys::ClearTargetLastKnownLocation(BB);
-		SetRecognized(false);
-		return;
-	}
-
-	SetRecognized(true);
-}
-
-void UWxAIPerceptionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().ClearTimer(LeashTimerHandle);
-	}
-
-	Super::EndPlay(EndPlayReason);
 }
 
 APawn* UWxAIPerceptionComponent::GetOwnerPawn() const

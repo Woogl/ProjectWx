@@ -49,6 +49,11 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	return EBTNodeResult::InProgress;
 }
 
+FString UWxBTTask_Wander::GetStaticDescription() const
+{
+	return FString::Printf(TEXT("Duration: %.1f s\nSpeed: x%.2f"), Duration, MoveSpeedMultiplier);
+}
+
 void UWxBTTask_Wander::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
@@ -65,9 +70,4 @@ void UWxBTTask_Wander::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMe
 	{
 		Pawn->AddMovementInput(MoveDirection, MoveSpeedMultiplier);
 	}
-}
-
-FString UWxBTTask_Wander::GetStaticDescription() const
-{
-	return FString::Printf(TEXT("Duration: %.1f s\nSpeed: x%.2f"), Duration, MoveSpeedMultiplier);
 }

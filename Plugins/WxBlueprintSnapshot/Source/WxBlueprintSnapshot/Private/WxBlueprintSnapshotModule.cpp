@@ -53,101 +53,6 @@ void FWxBlueprintSnapshotModule::ShutdownModule()
 	PendingPaths.Empty();
 }
 
-bool FWxBlueprintSnapshotModule::ShouldProcessContext(const FObjectPostSaveContext& Context) const
-{
-	if (Context.IsProceduralSave() || Context.IsCooking() || Context.IsFromAutoSave())
-	{
-		return false;
-	}
-	if (IsRunningCommandlet())
-	{
-		return false;
-	}
-	return true;
-}
-
-bool FWxBlueprintSnapshotModule::ShouldProcessBlueprint(UBlueprint* Blueprint) const
-{
-	if (!Blueprint)
-	{
-		return false;
-	}
-
-	UPackage* Package = Blueprint->GetOutermost();
-	if (Package && Package->HasAnyPackageFlags(PKG_PlayInEditor | PKG_ForDiffing | PKG_Cooked))
-	{
-		return false;
-	}
-
-	switch (Blueprint->BlueprintType)
-	{
-	case BPTYPE_Interface:
-	case BPTYPE_FunctionLibrary:
-		return false;
-	default:
-		break;
-	}
-
-	if (Blueprint->IsA<UEditorUtilityBlueprint>())
-	{
-		return false;
-	}
-
-	// MacroLibrary 는 CDO/SCS/Variables 가 없고 MacroGraphs 만 의미가 있다. CDO 게이트는 우회.
-	if (Blueprint->BlueprintType != BPTYPE_MacroLibrary)
-	{
-		if (!Blueprint->GeneratedClass || !Blueprint->GeneratedClass->GetDefaultObject(false))
-		{
-			return false;
-		}
-	}
-
-	if (Blueprint->Status == BS_Dirty || Blueprint->Status == BS_Error || Blueprint->Status == BS_Unknown)
-	{
-		UE_LOG(LogWxBPSnapshot, Verbose, TEXT("Skip %s: compile required (status=%d)"), *Blueprint->GetPathName(), static_cast<int32>(Blueprint->Status));
-		return false;
-	}
-
-	return true;
-}
-
-bool FWxBlueprintSnapshotModule::IsPackageNameIncluded(const FString& PackageName) const
-{
-	const UWxBlueprintSnapshotSettings* Settings = GetDefault<UWxBlueprintSnapshotSettings>();
-	if (!Settings)
-	{
-		return false;
-	}
-
-	const FString PackageWithSlash = PackageName + TEXT("/");
-	auto MatchesAnyDir = [&PackageWithSlash](const TArray<FDirectoryPath>& Dirs) -> bool
-	{
-		for (const FDirectoryPath& Dir : Dirs)
-		{
-			if (Dir.Path.IsEmpty())
-			{
-				continue;
-			}
-			const FString Prefix = Dir.Path.EndsWith(TEXT("/")) ? Dir.Path : Dir.Path + TEXT("/");
-			if (PackageWithSlash.StartsWith(Prefix))
-			{
-				return true;
-			}
-		}
-		return false;
-	};
-
-	if (Settings->IncludeDirectories.Num() > 0 && !MatchesAnyDir(Settings->IncludeDirectories))
-	{
-		return false;
-	}
-	if (MatchesAnyDir(Settings->ExcludeDirectories))
-	{
-		return false;
-	}
-	return true;
-}
-
 void FWxBlueprintSnapshotModule::HandlePackageSaved(const FString& PackageFileName, UPackage* Package, FObjectPostSaveContext Context)
 {
 	if (!Package)
@@ -242,6 +147,101 @@ void FWxBlueprintSnapshotModule::HandleAssetRemoved(const FAssetData& AssetData)
 
 	// 삭제된 BP가 큐에 대기 중이면 제거하여 뒤늦은 재기록을 방지.
 	PendingPaths.Remove(AssetData.GetObjectPathString());
+}
+
+bool FWxBlueprintSnapshotModule::ShouldProcessContext(const FObjectPostSaveContext& Context) const
+{
+	if (Context.IsProceduralSave() || Context.IsCooking() || Context.IsFromAutoSave())
+	{
+		return false;
+	}
+	if (IsRunningCommandlet())
+	{
+		return false;
+	}
+	return true;
+}
+
+bool FWxBlueprintSnapshotModule::ShouldProcessBlueprint(UBlueprint* Blueprint) const
+{
+	if (!Blueprint)
+	{
+		return false;
+	}
+
+	UPackage* Package = Blueprint->GetOutermost();
+	if (Package && Package->HasAnyPackageFlags(PKG_PlayInEditor | PKG_ForDiffing | PKG_Cooked))
+	{
+		return false;
+	}
+
+	switch (Blueprint->BlueprintType)
+	{
+	case BPTYPE_Interface:
+	case BPTYPE_FunctionLibrary:
+		return false;
+	default:
+		break;
+	}
+
+	if (Blueprint->IsA<UEditorUtilityBlueprint>())
+	{
+		return false;
+	}
+
+	// MacroLibrary 는 CDO/SCS/Variables 가 없고 MacroGraphs 만 의미가 있다. CDO 게이트는 우회.
+	if (Blueprint->BlueprintType != BPTYPE_MacroLibrary)
+	{
+		if (!Blueprint->GeneratedClass || !Blueprint->GeneratedClass->GetDefaultObject(false))
+		{
+			return false;
+		}
+	}
+
+	if (Blueprint->Status == BS_Dirty || Blueprint->Status == BS_Error || Blueprint->Status == BS_Unknown)
+	{
+		UE_LOG(LogWxBPSnapshot, Verbose, TEXT("Skip %s: compile required (status=%d)"), *Blueprint->GetPathName(), static_cast<int32>(Blueprint->Status));
+		return false;
+	}
+
+	return true;
+}
+
+bool FWxBlueprintSnapshotModule::IsPackageNameIncluded(const FString& PackageName) const
+{
+	const UWxBlueprintSnapshotSettings* Settings = GetDefault<UWxBlueprintSnapshotSettings>();
+	if (!Settings)
+	{
+		return false;
+	}
+
+	const FString PackageWithSlash = PackageName + TEXT("/");
+	auto MatchesAnyDir = [&PackageWithSlash](const TArray<FDirectoryPath>& Dirs) -> bool
+	{
+		for (const FDirectoryPath& Dir : Dirs)
+		{
+			if (Dir.Path.IsEmpty())
+			{
+				continue;
+			}
+			const FString Prefix = Dir.Path.EndsWith(TEXT("/")) ? Dir.Path : Dir.Path + TEXT("/");
+			if (PackageWithSlash.StartsWith(Prefix))
+			{
+				return true;
+			}
+		}
+		return false;
+	};
+
+	if (Settings->IncludeDirectories.Num() > 0 && !MatchesAnyDir(Settings->IncludeDirectories))
+	{
+		return false;
+	}
+	if (MatchesAnyDir(Settings->ExcludeDirectories))
+	{
+		return false;
+	}
+	return true;
 }
 
 void FWxBlueprintSnapshotModule::EnqueueBlueprint(UBlueprint* Blueprint)
