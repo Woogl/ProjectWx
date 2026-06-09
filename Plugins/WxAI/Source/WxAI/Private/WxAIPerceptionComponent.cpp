@@ -38,6 +38,21 @@ void UWxAIPerceptionComponent::PostInitProperties()
 {
 	Super::PostInitProperties();
 
+	// 시야/청각은 폰 빙의 시 ApplySenseSettings 로 덮어쓰이지만, 그 전에도 동작하도록 기본값으로 초기 구성한다.
+	ApplySenseSettings(SightRadius, SightAngle, MaxHearingRange);
+
+	if (DamageConfig)
+	{
+		ConfigureSense(*DamageConfig);
+	}
+}
+
+void UWxAIPerceptionComponent::ApplySenseSettings(float InSightRadius, float InSightAngle, float InMaxHearingRange)
+{
+	SightRadius = InSightRadius;
+	SightAngle = InSightAngle;
+	MaxHearingRange = InMaxHearingRange;
+
 	if (SightConfig)
 	{
 		SightConfig->SightRadius = SightRadius;
@@ -52,10 +67,8 @@ void UWxAIPerceptionComponent::PostInitProperties()
 		ConfigureSense(*HearingConfig);
 	}
 
-	if (DamageConfig)
-	{
-		ConfigureSense(*DamageConfig);
-	}
+	// 이미 퍼셉션 시스템에 등록된 뒤(런타임 주입)라면 변경된 센스 설정을 반영한다. 등록 전(초기 구성)이면 no-op.
+	RequestStimuliListenerUpdate();
 }
 
 void UWxAIPerceptionComponent::BeginPlay()

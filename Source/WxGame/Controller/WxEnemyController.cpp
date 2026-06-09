@@ -26,6 +26,8 @@ void AWxEnemyController::OnPossess(APawn* InPawn)
 	// (순서를 반대로 하면 GetBlackboardComponent() 가 null 이라 SelfActor/HomeLocation 세팅이 통째로 누락된다.)
 	if (AWxEnemyCharacter* Enemy = Cast<AWxEnemyCharacter>(InPawn))
 	{
+		WxAIPerceptionComponent->ApplySenseSettings(Enemy->GetSightRadius(), Enemy->GetSightAngle(), Enemy->GetMaxHearingRange());
+
 		if (UBehaviorTree* BT = Enemy->GetBehaviorTree())
 		{
 			RunBehaviorTree(BT);

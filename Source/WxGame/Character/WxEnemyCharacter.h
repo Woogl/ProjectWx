@@ -25,6 +25,10 @@ public:
 
 	UBehaviorTree* GetBehaviorTree() const;
 
+	float GetSightRadius() const;
+	float GetSightAngle() const;
+	float GetMaxHearingRange() const;
+
 	// IWxSpawnableInterface
 #if WITH_EDITOR
 	virtual const UMeshComponent* GetEditorPreviewMeshComponent() const override;
@@ -38,6 +42,18 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
 	TObjectPtr<UBehaviorTree> BehaviorTreeAsset;
+
+	// AI 시야 감지 반경(cm). 빙의 시 컨트롤러가 Perception 컴포넌트에 주입한다.
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
+	float SightRadius = 1500.f;
+
+	// 정면 기준 편측 시야각(half-angle, 도). 전체 시야각은 이 값의 2배(예: 60 → 120°).
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
+	float SightAngle = 60.f;
+
+	// AI 청각 감지 최대 거리(cm).
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
+	float MaxHearingRange = 1000.f;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx|UI")
 	TObjectPtr<UWxNameplateComponent> NameplateComponent;

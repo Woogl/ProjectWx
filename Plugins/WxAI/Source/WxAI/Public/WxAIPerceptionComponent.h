@@ -40,15 +40,16 @@ public:
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+	/** 빙의한 폰이 가진 시야/청각 파라미터를 주입해 센스를 재구성한다. 컨트롤러가 OnPossess 에서 호출한다. */
+	void ApplySenseSettings(float InSightRadius, float InSightAngle, float InMaxHearingRange);
+
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|AI")
+	// 시야/청각 감지 파라미터는 빙의한 폰(AWxEnemyCharacter)이 ApplySenseSettings 로 주입한다. 아래 값은 폰이 주입하지 않았을 때의 기본값(fallback)이다.
 	float SightRadius = 1500.f;
 
 	// 정면 기준 편측 시야각(half-angle). 전체 시야각 120° → 좌우 각 60°.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|AI")
 	float SightAngle = 60.f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|AI")
 	float MaxHearingRange = 1000.f;
 
 	// 폰이 배치 지점(HomeLocation)에서 이 거리 이상 벗어나면 추적을 끝내고 복귀하며 인식을 해제한다.
