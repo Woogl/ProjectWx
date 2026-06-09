@@ -43,6 +43,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TObjectPtr<UInputAction> LookAction;
 
+	/** 점프 입력. Started → Jump(), Completed → StopJumping() */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
+	TObjectPtr<UInputAction> JumpAction;
+
 	/** 어빌리티 입력 바인딩 설정. InputAction → InputTag 매핑 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TArray<FWxInputAbilityBinding> AbilityInputBindings;

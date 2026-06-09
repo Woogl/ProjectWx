@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Character/WxCharacterBase.h"
+#include "Character/WxCharacterMovementComponent.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "Component/WxEquipmentComponent.h"
@@ -14,7 +15,8 @@
 #include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 
-AWxCharacterBase::AWxCharacterBase()
+AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UWxCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(WxCollision::WxAttack, ECR_Overlap);
@@ -98,26 +100,25 @@ void AWxCharacterBase::PossessedBy(AController* NewController)
 	InitAbilitySystem();
 }
 
-void AWxCharacterBase::OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode)
+bool AWxCharacterBase::CanJumpInternal_Implementation() const
 {
-	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
-
-	if (!AbilitySystemComponent)
+	if (AbilitySystemComponent)
 	{
-		return;
+		// 사망 상태에서는 점프 불가
+		if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
+		{
+			return false;
+		}
+
+		// 액션 어빌리티(Attack/Dodge/Skill/Ultimate/Guard 등)는 활성 동안 Ability 태그를 차단하므로, 그 차단 여부로 어빌리티 발동 중인지 판별해 점프를 막는다.
+		// 후딜 캔슬 구간에서 차단이 풀리면 다른 캔슬 액션과 동일하게 점프도 허용된다.
+		if (AbilitySystemComponent->AreAbilityTagsBlocked(FGameplayTagContainer(WxGameplayTags::Ability)))
+		{
+			return false;
+		}
 	}
 
-	const EMovementMode CurrentMode = GetCharacterMovement()->MovementMode;
-	const bool bIsFalling = (CurrentMode == MOVE_Falling || CurrentMode == MOVE_Flying);
-
-	if (bIsFalling)
-	{
-		AbilitySystemComponent->AddLooseGameplayTag(WxGameplayTags::State_Aerial);
-	}
-	else if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Aerial))
-	{
-		AbilitySystemComponent->RemoveLooseGameplayTag(WxGameplayTags::State_Aerial);
-	}
+	return Super::CanJumpInternal_Implementation();
 }
 
 UAbilitySystemComponent* AWxCharacterBase::GetAbilitySystemComponent() const

@@ -18,9 +18,6 @@ namespace WxGameplayTags
 	/** 사망 상태. HandleDeath 시 ASC에 부여되며, 부활 시 제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dead);
 
-	/** 공중 상태. Falling/Flying 시 부여, 착지 시 제거 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Aerial);
-
 	/** 그로기 상태. DP가 MaxDP에 도달 시 부여 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Groggy);
 
@@ -116,7 +113,6 @@ namespace WxGameplayTags
 	// ── Ability ───────────────────────────────────────────────────────────
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Jump);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Dodge);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Sprint);
@@ -167,7 +163,6 @@ namespace WxGameplayTags
 
 	// ── Input ──────────────────────────────────────────────────────────────
 
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Jump);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Attack);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Attack_Light);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Attack_Heavy);
@@ -181,11 +176,6 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Ultimate);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_LockOn);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Interact);
-
-	// ── Item ──────────────────────────────────────────────────────────────
-	
-	/** 골드 재화 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Item_Currency_Gold);
 
 	// ── UI ────────────────────────────────────────────────────────────────
 

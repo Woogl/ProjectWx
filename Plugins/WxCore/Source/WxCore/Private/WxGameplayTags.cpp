@@ -5,7 +5,6 @@
 namespace WxGameplayTags
 {
 	UE_DEFINE_GAMEPLAY_TAG(State_Dead, "State.Dead");
-	UE_DEFINE_GAMEPLAY_TAG(State_Aerial, "State.Aerial");
 	UE_DEFINE_GAMEPLAY_TAG(State_Groggy, "State.Groggy");
 	UE_DEFINE_GAMEPLAY_TAG(State_LockOn, "State.LockOn");
 	UE_DEFINE_GAMEPLAY_TAG(State_Recognized, "State.Recognized");
@@ -40,7 +39,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Damage_ParryHitReact, "Damage.ParryHitReact");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability, "Ability");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Jump, "Ability.Jump");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack, "Ability.Attack");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Dodge, "Ability.Dodge");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Sprint, "Ability.Sprint");
@@ -74,7 +72,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Coeff_ATK, "SetByCaller.Coeff.ATK");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_RawDamage, "SetByCaller.RawDamage");
 
-	UE_DEFINE_GAMEPLAY_TAG(Input_Jump, "Input.Jump");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Attack, "Input.Attack");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Attack_Light, "Input.Attack.Light");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Attack_Heavy, "Input.Attack.Heavy");
@@ -88,9 +85,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Input_Ultimate, "Input.Ultimate");
 	UE_DEFINE_GAMEPLAY_TAG(Input_LockOn, "Input.LockOn");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Interact, "Input.Interact");
-
-	UE_DEFINE_GAMEPLAY_TAG(Item_Currency_Gold, "Item.Currency.Gold");
-
+	
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Game, "UI.Layer.Game");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_GameMenu, "UI.Layer.GameMenu");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Menu, "UI.Layer.Menu");

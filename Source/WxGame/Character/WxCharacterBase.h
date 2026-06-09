@@ -34,10 +34,10 @@ class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInte
 	GENERATED_BODY()
 
 public:
-	AWxCharacterBase();
+	AWxCharacterBase(const FObjectInitializer& ObjectInitializer);
 	virtual void PostInitializeComponents() override;
 	virtual void PossessedBy(AController* NewController) override;
-	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) override;
+	virtual bool CanJumpInternal_Implementation() const override;
 
 	// IAbilitySystemInterface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;

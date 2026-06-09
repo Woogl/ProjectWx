@@ -11,7 +11,8 @@
 #include "WxGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-AWxPlayerCharacter::AWxPlayerCharacter()
+AWxPlayerCharacter::AWxPlayerCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	Team = EWxTeam::Player;
 
@@ -71,6 +72,11 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	if (InputConfig->LookAction)
 	{
 		EIC->BindAction(InputConfig->LookAction, ETriggerEvent::Triggered, this, &AWxPlayerCharacter::Look);
+	}
+	if (InputConfig->JumpAction)
+	{
+		EIC->BindAction(InputConfig->JumpAction, ETriggerEvent::Started,   this, &ACharacter::Jump);
+		EIC->BindAction(InputConfig->JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	}
 
 	// 어빌리티 입력 바인딩: 각 매핑에 대해 Press/Release 바인딩
