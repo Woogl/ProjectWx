@@ -1,7 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Character/WxCharacterBase.h"
-#include "Character/WxCharacterMovementComponent.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "Component/WxEquipmentComponent.h"
@@ -15,8 +14,7 @@
 #include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 
-AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer.SetDefaultSubobjectClass<UWxCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
+AWxCharacterBase::AWxCharacterBase()
 {
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(WxCollision::WxAttack, ECR_Overlap);

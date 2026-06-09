@@ -11,8 +11,7 @@
 #include "WxGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-AWxPlayerCharacter::AWxPlayerCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+AWxPlayerCharacter::AWxPlayerCharacter()
 {
 	Team = EWxTeam::Player;
 

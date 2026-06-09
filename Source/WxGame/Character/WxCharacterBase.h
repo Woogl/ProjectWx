@@ -34,7 +34,7 @@ class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInte
 	GENERATED_BODY()
 
 public:
-	AWxCharacterBase(const FObjectInitializer& ObjectInitializer);
+	AWxCharacterBase();
 	virtual void PostInitializeComponents() override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual bool CanJumpInternal_Implementation() const override;
