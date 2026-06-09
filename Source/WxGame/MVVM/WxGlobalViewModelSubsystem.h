@@ -8,7 +8,7 @@
 #include "MVVMGameSubsystem.h"
 #include "WxGlobalViewModelSubsystem.generated.h"
 
-class UWxViewModel_AbilitySystem;
+class UWxViewModel_Character;
 class UWxViewModel_Inventory;
 class UMVVMViewModelBase;
 class UMVVMViewModelCollectionObject;
@@ -24,15 +24,15 @@ class WXGAME_API UWxGlobalViewModelSubsystem : public ULocalPlayerSubsystem
 	GENERATED_BODY()
 
 public:
-	static FMVVMViewModelContext GetPlayerAbilitySystemContext();
-	static FMVVMViewModelContext GetBossAbilitySystemContext();
+	static FMVVMViewModelContext GetPlayerCharacterContext();
+	static FMVVMViewModelContext GetBossCharacterContext();
 	static FMVVMViewModelContext GetInventoryContext();
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
-	UWxViewModel_AbilitySystem* GetPlayerAbilitySystemViewModel() const;
-	UWxViewModel_AbilitySystem* GetBossAbilitySystemViewModel() const;
+	UWxViewModel_Character* GetPlayerCharacterViewModel() const;
+	UWxViewModel_Character* GetBossCharacterViewModel() const;
 	UWxViewModel_Inventory* GetInventoryViewModel() const;
 
 private:
@@ -45,10 +45,10 @@ private:
 	void UnregisterGlobalViewModel(const FMVVMViewModelContext& Context, TObjectPtr<T>& ViewModel);
 
 	UPROPERTY(Transient)
-	TObjectPtr<UWxViewModel_AbilitySystem> PlayerAbilitySystemViewModel;
+	TObjectPtr<UWxViewModel_Character> PlayerCharacterViewModel;
 
 	UPROPERTY(Transient)
-	TObjectPtr<UWxViewModel_AbilitySystem> BossAbilitySystemViewModel;
+	TObjectPtr<UWxViewModel_Character> BossCharacterViewModel;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UWxViewModel_Inventory> InventoryViewModel;

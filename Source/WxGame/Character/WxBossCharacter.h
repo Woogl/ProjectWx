@@ -7,7 +7,7 @@
 #include "GameplayTagContainer.h"
 #include "WxBossCharacter.generated.h"
 
-class UWxViewModel_AbilitySystem;
+class UWxViewModel_Character;
 
 /**
  * 보스 캐릭터.
@@ -29,8 +29,8 @@ protected:
 private:
 	void HandleRecognizedTagChanged(const FGameplayTag Tag, int32 NewCount);
 
-	void ActivateBossAbilitySystemViewModel();
-	void DeactivateBossAbilitySystemViewModel();
+	void ActivateBossCharacterViewModel();
+	void DeactivateBossCharacterViewModel();
 
-	UWxViewModel_AbilitySystem* GetBossAbilitySystemViewModel() const;
+	UWxViewModel_Character* GetBossCharacterViewModel() const;
 };

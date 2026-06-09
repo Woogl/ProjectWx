@@ -140,7 +140,12 @@ AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const
 
 FText AWxCharacterBase::GetCharacterName() const
 {
-	return CharacterName;
+	return UIData.DisplayName;
+}
+
+const FWxCharacterUIData& AWxCharacterBase::GetCharacterUIData() const
+{
+	return UIData;
 }
 
 void AWxCharacterBase::EquipItem(const UWxItemDefinition* ItemDef)

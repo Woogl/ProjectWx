@@ -4,7 +4,7 @@
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "WxGameplayTags.h"
 #include "MVVM/WxGlobalViewModelSubsystem.h"
-#include "MVVM/WxViewModel_AbilitySystem.h"
+#include "MVVM/WxViewModel_Character.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
@@ -24,7 +24,7 @@ void AWxBossCharacter::BeginPlay()
 
 void AWxBossCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	DeactivateBossAbilitySystemViewModel();
+	DeactivateBossCharacterViewModel();
 
 	Super::EndPlay(EndPlayReason);
 }
@@ -33,31 +33,31 @@ void AWxBossCharacter::HandleRecognizedTagChanged(const FGameplayTag Tag, int32 
 {
 	if (NewCount > 0)
 	{
-		ActivateBossAbilitySystemViewModel();
+		ActivateBossCharacterViewModel();
 	}
 	else
 	{
-		DeactivateBossAbilitySystemViewModel();
+		DeactivateBossCharacterViewModel();
 	}
 }
 
-void AWxBossCharacter::ActivateBossAbilitySystemViewModel()
+void AWxBossCharacter::ActivateBossCharacterViewModel()
 {
-	if (UWxViewModel_AbilitySystem* VM = GetBossAbilitySystemViewModel())
+	if (UWxViewModel_Character* VM = GetBossCharacterViewModel())
 	{
-		VM->Initialize(AbilitySystemComponent);
+		VM->Initialize(AbilitySystemComponent, GetCharacterUIData());
 	}
 }
 
-void AWxBossCharacter::DeactivateBossAbilitySystemViewModel()
+void AWxBossCharacter::DeactivateBossCharacterViewModel()
 {
-	if (UWxViewModel_AbilitySystem* VM = GetBossAbilitySystemViewModel())
+	if (UWxViewModel_Character* VM = GetBossCharacterViewModel())
 	{
 		VM->Deinitialize();
 	}
 }
 
-UWxViewModel_AbilitySystem* AWxBossCharacter::GetBossAbilitySystemViewModel() const
+UWxViewModel_Character* AWxBossCharacter::GetBossCharacterViewModel() const
 {
 	const UWorld* World = GetWorld();
 	APlayerController* PC = World ? UGameplayStatics::GetPlayerController(World, 0) : nullptr;
@@ -68,5 +68,5 @@ UWxViewModel_AbilitySystem* AWxBossCharacter::GetBossAbilitySystemViewModel() co
 	}
 
 	UWxGlobalViewModelSubsystem* Subsystem = LocalPlayer->GetSubsystem<UWxGlobalViewModelSubsystem>();
-	return Subsystem ? Subsystem->GetBossAbilitySystemViewModel() : nullptr;
+	return Subsystem ? Subsystem->GetBossCharacterViewModel() : nullptr;
 }

@@ -1,25 +1,25 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "MVVM/WxGlobalViewModelSubsystem.h"
-#include "MVVM/WxViewModel_AbilitySystem.h"
+#include "MVVM/WxViewModel_Character.h"
 #include "MVVM/WxViewModel_Inventory.h"
 #include "MVVMGameSubsystem.h"
 #include "Engine/GameInstance.h"
 #include "Engine/LocalPlayer.h"
 
-FMVVMViewModelContext UWxGlobalViewModelSubsystem::GetPlayerAbilitySystemContext()
+FMVVMViewModelContext UWxGlobalViewModelSubsystem::GetPlayerCharacterContext()
 {
 	FMVVMViewModelContext Context;
-	Context.ContextClass = UWxViewModel_AbilitySystem::StaticClass();
-	Context.ContextName = FName(TEXT("VM_PlayerAbilitySystem"));
+	Context.ContextClass = UWxViewModel_Character::StaticClass();
+	Context.ContextName = FName(TEXT("VM_PlayerCharacter"));
 	return Context;
 }
 
-FMVVMViewModelContext UWxGlobalViewModelSubsystem::GetBossAbilitySystemContext()
+FMVVMViewModelContext UWxGlobalViewModelSubsystem::GetBossCharacterContext()
 {
 	FMVVMViewModelContext Context;
-	Context.ContextClass = UWxViewModel_AbilitySystem::StaticClass();
-	Context.ContextName = FName(TEXT("VM_BossAbilitySystem"));
+	Context.ContextClass = UWxViewModel_Character::StaticClass();
+	Context.ContextName = FName(TEXT("VM_BossCharacter"));
 	return Context;
 }
 
@@ -35,28 +35,28 @@ void UWxGlobalViewModelSubsystem::Initialize(FSubsystemCollectionBase& Collectio
 {
 	Super::Initialize(Collection);
 
-	PlayerAbilitySystemViewModel = RegisterGlobalViewModel<UWxViewModel_AbilitySystem>(GetPlayerAbilitySystemContext());
-	BossAbilitySystemViewModel = RegisterGlobalViewModel<UWxViewModel_AbilitySystem>(GetBossAbilitySystemContext());
+	PlayerCharacterViewModel = RegisterGlobalViewModel<UWxViewModel_Character>(GetPlayerCharacterContext());
+	BossCharacterViewModel = RegisterGlobalViewModel<UWxViewModel_Character>(GetBossCharacterContext());
 	InventoryViewModel = RegisterGlobalViewModel<UWxViewModel_Inventory>(GetInventoryContext());
 }
 
 void UWxGlobalViewModelSubsystem::Deinitialize()
 {
-	UnregisterGlobalViewModel(GetPlayerAbilitySystemContext(), PlayerAbilitySystemViewModel);
-	UnregisterGlobalViewModel(GetBossAbilitySystemContext(), BossAbilitySystemViewModel);
+	UnregisterGlobalViewModel(GetPlayerCharacterContext(), PlayerCharacterViewModel);
+	UnregisterGlobalViewModel(GetBossCharacterContext(), BossCharacterViewModel);
 	UnregisterGlobalViewModel(GetInventoryContext(), InventoryViewModel);
 
 	Super::Deinitialize();
 }
 
-UWxViewModel_AbilitySystem* UWxGlobalViewModelSubsystem::GetPlayerAbilitySystemViewModel() const
+UWxViewModel_Character* UWxGlobalViewModelSubsystem::GetPlayerCharacterViewModel() const
 {
-	return PlayerAbilitySystemViewModel;
+	return PlayerCharacterViewModel;
 }
 
-UWxViewModel_AbilitySystem* UWxGlobalViewModelSubsystem::GetBossAbilitySystemViewModel() const
+UWxViewModel_Character* UWxGlobalViewModelSubsystem::GetBossCharacterViewModel() const
 {
-	return BossAbilitySystemViewModel;
+	return BossCharacterViewModel;
 }
 
 UWxViewModel_Inventory* UWxGlobalViewModelSubsystem::GetInventoryViewModel() const

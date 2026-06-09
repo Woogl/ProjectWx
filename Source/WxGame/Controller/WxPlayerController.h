@@ -7,6 +7,8 @@
 #include "GameplayTagContainer.h"
 #include "WxPlayerController.generated.h"
 
+struct FWxCharacterUIData;
+
 class AWxCharacterBase;
 class AWxPlayerCharacter;
 class UAbilitySystemComponent;
@@ -56,8 +58,8 @@ protected:
 private:
 	void PushGameHUD(AWxPlayerCharacter* PlayerCharacter);
 
-	void InitializePlayerAbilitySystemViewModel(UAbilitySystemComponent* ASC);
-	void DeinitializePlayerAbilitySystemViewModel();
+	void InitializePlayerCharacterViewModel(UAbilitySystemComponent* ASC, const FWxCharacterUIData& UIData);
+	void DeinitializePlayerCharacterViewModel();
 
 	void InitializeInventoryViewModel();
 	void DeinitializeInventoryViewModel();

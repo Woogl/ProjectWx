@@ -9,6 +9,7 @@
 #include "GenericTeamAgentInterface.h"
 #include "GameplayEffectTypes.h"
 #include "Inventory/WxEquipmentInterface.h"
+#include "MVVM/WxCharacterUIData.h"
 #include "WxTeamTypes.h"
 #include "WxCharacterBase.generated.h"
 
@@ -58,6 +59,9 @@ public:
 	/** 네임플레이트 등 UI 출력에 사용하는 캐릭터 표시 이름. */
 	FText GetCharacterName() const;
 
+	/** VM_Character 주입용 UI 표시 데이터(이름/초상화/설명). */
+	const FWxCharacterUIData& GetCharacterUIData() const;
+
 	/** HP == 0 시 호출. 파생 클래스에서 override하여 사망 연출 추가 */
 	virtual void HandleDeath();
 
@@ -102,9 +106,9 @@ protected:
 	/** State.Dead 태그 변경 콜백. 태그 부여 시 HandleDeath 호출 */
 	void HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
-	/** 네임플레이트 등 UI 에 출력되는 캐릭터 표시 이름. BP 디폴트에서 지정한다. */
+	/** 네임플레이트/HUD 등 UI 표시 데이터. BP 디폴트에서 지정한다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Character")
-	FText CharacterName;
+	FWxCharacterUIData UIData;
 
 	/** 캐릭터의 팀. 같은 팀끼리는 아군, 다른 팀끼리는 적군 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Team")
