@@ -23,9 +23,9 @@ class WXAI_API IWxPatrolRouteProvider
 	GENERATED_BODY()
 
 public:
-	/** 정찰 경로 보유 여부. */
-	virtual bool HasPatrolRoute() const = 0;
-
-	/** 커서를 다음 지점으로 진행하고 Blackboard 의 PatrolTargetLocation 을 갱신한다. */
-	virtual void AdvanceToNextPatrolPoint() = 0;
+	/**
+	 * 커서를 다음 지점으로 진행하고 Blackboard 의 PatrolTargetLocation 을 갱신한다.
+	 * 반환: 진행 후에도 향할 정찰 지점이 있으면 true, 경로가 없거나 Once 로 종료됐으면 false (IEnumerator.MoveNext 패턴).
+	 */
+	virtual bool AdvanceToNextPatrolPoint() = 0;
 };

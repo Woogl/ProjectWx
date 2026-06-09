@@ -29,8 +29,7 @@ public:
 	AWxEnemyController();
 
 	//~ Begin IWxPatrolRouteProvider
-	virtual bool HasPatrolRoute() const override;
-	virtual void AdvanceToNextPatrolPoint() override;
+	virtual bool AdvanceToNextPatrolPoint() override;
 	//~ End IWxPatrolRouteProvider
 
 protected:

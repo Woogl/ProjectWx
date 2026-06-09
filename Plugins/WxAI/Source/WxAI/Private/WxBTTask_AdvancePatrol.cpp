@@ -14,12 +14,11 @@ UWxBTTask_AdvancePatrol::UWxBTTask_AdvancePatrol()
 EBTNodeResult::Type UWxBTTask_AdvancePatrol::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	IWxPatrolRouteProvider* Provider = Cast<IWxPatrolRouteProvider>(OwnerComp.GetAIOwner());
-	if (!Provider || !Provider->HasPatrolRoute())
+	if (!Provider || !Provider->AdvanceToNextPatrolPoint())
 	{
 		return EBTNodeResult::Failed;
 	}
 
-	Provider->AdvanceToNextPatrolPoint();
 	return EBTNodeResult::Succeeded;
 }
 

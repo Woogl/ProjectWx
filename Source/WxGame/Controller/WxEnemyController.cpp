@@ -104,17 +104,18 @@ void AWxEnemyController::PublishPatrolTarget()
 	}
 }
 
-bool AWxEnemyController::HasPatrolRoute() const
+bool AWxEnemyController::AdvanceToNextPatrolPoint()
 {
-	return PatrolPoints.Num() > 0;
-}
-
-void AWxEnemyController::AdvanceToNextPatrolPoint()
-{
-	// 0개: 경로 없음. 1개: 진행할 다음 지점이 없음.
-	if (PatrolPoints.Num() <= 1)
+	// 경로 없음: 향할 정찰 지점이 없다.
+	if (PatrolPoints.Num() == 0)
 	{
-		return;
+		return false;
+	}
+
+	// 단일 지점: 그 자리에 머문다(진행은 없지만 정찰은 계속 유효).
+	if (PatrolPoints.Num() == 1)
+	{
+		return true;
 	}
 
 	switch (PatrolMoveMode)
@@ -139,11 +140,12 @@ void AWxEnemyController::AdvanceToNextPatrolPoint()
 			{
 				WxAIBlackboardKeys::ClearPatrolTargetLocation(BB);
 			}
-			return;
+			return false;
 		}
 		PatrolCursor += 1;
 		break;
 	}
 
 	PublishPatrolTarget();
+	return true;
 }
