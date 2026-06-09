@@ -12,6 +12,7 @@ public class WxWorld : ModuleRules
 		{
 			"Core",
 			"CoreUObject",
+			"DeveloperSettings",
 			"Engine",
 			"GameplayTags",
 			"WxCore",
@@ -19,7 +20,6 @@ public class WxWorld : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
-			"DeveloperSettings",
 			"GameplayAbilities",
 			"LevelSequence",
 			"MovieScene",

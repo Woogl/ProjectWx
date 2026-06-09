@@ -11,25 +11,25 @@ public class WxUI : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core",
-				"WxCore",
-				"CommonUI",
 				"CommonInput",
+				"CommonUI",
+				"Core",
+				"CoreUObject",
+				"DeveloperSettings",
+				"Engine",
+				"GameplayAbilities",
+				"GameplayTags",
 				"ModelViewViewModel",
+				"UMG",
+				"WxCore",
 			}
 		);
 
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"CoreUObject",
-				"Engine",
 				"Slate",
 				"SlateCore",
-				"UMG",
-				"GameplayAbilities",
-				"GameplayTags",
-				"DeveloperSettings",
 			}
 		);
 	}

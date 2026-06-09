@@ -20,6 +20,8 @@ public class WxGame : ModuleRules
 			"GameplayAbilities",
 			"GameplayTags",
 			"ModelViewViewModel",
+			"MotionWarping",
+			"Niagara",
 			"PhysicsCore",
 			"UMG",
 			"WxAI",
@@ -34,8 +36,6 @@ public class WxGame : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"EnhancedInput",
-			"MotionWarping",
-			"Niagara",
 		});
 
 		// Uncomment if you are using Slate UI

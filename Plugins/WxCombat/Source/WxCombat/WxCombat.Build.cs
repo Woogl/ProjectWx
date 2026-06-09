@@ -10,16 +10,18 @@ public class WxCombat : ModuleRules
 
 		PublicDependencyModuleNames.AddRange(new string[]
 		{
+			"AIModule",
 			"Core",
 			"CoreUObject",
+			"EnhancedInput",
 			"Engine",
 			"GameplayAbilities",
 			"GameplayTags",
 			"GameplayTasks",
-			"EnhancedInput",
-			"AIModule",
 			"NavigationSystem",
 			"NetCore",
+			"TargetingSystem",
+			"UMG",
 			"WxCore",
 		});
 
@@ -27,11 +29,9 @@ public class WxCombat : ModuleRules
 		{
 			"InputCore",
 			"LevelSequence",
+			"MotionWarping",
 			"MovieScene",
 			"Niagara",
-			"MotionWarping",
-			"TargetingSystem",
-			"UMG",
 		});
 	}
 }
