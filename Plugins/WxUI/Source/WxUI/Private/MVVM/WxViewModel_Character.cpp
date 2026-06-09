@@ -16,9 +16,8 @@ void UWxViewModel_Character::Initialize(UAbilitySystemComponent* InASC, const FW
 	AbilitySystemViewModel->Initialize(InASC);
 	UE_MVVM_SET_PROPERTY_VALUE(AbilitySystem, AbilitySystemViewModel);
 
-	UE_MVVM_SET_PROPERTY_VALUE(DisplayName, InUIData.CharacterName);
+	UE_MVVM_SET_PROPERTY_VALUE(CharacterName, InUIData.CharacterName);
 	UE_MVVM_SET_PROPERTY_VALUE(Portrait, InUIData.Portrait);
-	UE_MVVM_SET_PROPERTY_VALUE(Description, InUIData.Description);
 
 	SetInitialized(true);
 }
@@ -31,9 +30,8 @@ void UWxViewModel_Character::Deinitialize()
 		AbilitySystem = nullptr;
 	}
 
-	DisplayName = FText::GetEmpty();
+	CharacterName = FText::GetEmpty();
 	Portrait = nullptr;
-	Description = FText::GetEmpty();
 
 	SetInitialized(false);
 

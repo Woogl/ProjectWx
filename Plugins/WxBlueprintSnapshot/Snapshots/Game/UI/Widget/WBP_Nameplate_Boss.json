@@ -10,6 +10,11 @@
 			},
 			{
 				"bindingType": "OneWayToDestination",
+				"destination": "Text",
+				"source": "CharacterName"
+			},
+			{
+				"bindingType": "OneWayToDestination",
 				"conversionSourceToDestination":
 				{
 					"arguments":
@@ -86,6 +91,30 @@
 				"slot":
 				{
 					"class": "/Script/UMG.SizeBoxSlot"
+				}
+			},
+			"CharacterName":
+			{
+				"class": "/Script/CommonUI.CommonTextBlock",
+				"delta":
+				{
+					"Font":
+					{
+						"OutlineSettings":
+						{
+							"OutlineSize": 2
+						}
+					},
+					"Text": "Empty Name"
+				},
+				"parent": "VerticalBox_0",
+				"slot":
+				{
+					"class": "/Script/UMG.VerticalBoxSlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Center"
+					}
 				}
 			},
 			"DPBar":

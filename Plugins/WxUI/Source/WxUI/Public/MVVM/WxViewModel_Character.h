@@ -33,15 +33,11 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Character")
 	TObjectPtr<UWxViewModel_AbilitySystem> AbilitySystem;
 
-	/** 캐릭터 표시 이름. 주입 시점 1회 세팅되며 런타임에 변하지 않는다. */
+	/** 캐릭터 표시 이름. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Character")
-	FText DisplayName;
+	FText CharacterName;
 
 	/** 캐릭터 초상화. View 측 UCommonLazyImage 등이 Soft 참조를 비동기 로드한다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Character")
 	TSoftObjectPtr<UTexture2D> Portrait;
-
-	/** 캐릭터 설명 문구. */
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Character")
-	FText Description;
 };

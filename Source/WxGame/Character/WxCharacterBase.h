@@ -104,7 +104,7 @@ protected:
 	void HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
 	/** 네임플레이트/HUD 등 UI 표시 데이터. BP 디폴트에서 지정한다. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Character")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	FWxCharacterUIData UIData;
 
 	/** 캐릭터의 팀. 같은 팀끼리는 아군, 다른 팀끼리는 적군 */

@@ -47,6 +47,10 @@
 			}
 		},
 		"RootComponent": "CollisionCylinder",
+		"UIData":
+		{
+			"CharacterName": "BossNameTest"
+		},
 		"WeaponActor":
 		{
 			"class": "/Script/Engine.ChildActorComponent",

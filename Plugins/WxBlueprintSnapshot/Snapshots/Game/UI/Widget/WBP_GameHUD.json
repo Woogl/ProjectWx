@@ -110,9 +110,9 @@
 			{
 				"class": "/Game/UI/Widget/WBP_PlayerSkills.WBP_PlayerSkills_C"
 			},
-			"WBP_Stamina":
+			"WBP_StaminaBar_90":
 			{
-				"class": "/Game/UI/Widget/WBP_RadialBar.WBP_RadialBar_C",
+				"class": "/Game/UI/Widget/WBP_StaminaBar.WBP_StaminaBar_C",
 				"delta":
 				{
 					"Padding":

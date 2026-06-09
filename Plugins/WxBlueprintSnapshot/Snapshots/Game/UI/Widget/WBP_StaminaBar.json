@@ -1,5 +1,5 @@
 {
-	"blueprintPath": "/Game/UI/Widget/WBP_RadialBar.WBP_RadialBar",
+	"blueprintPath": "/Game/UI/Widget/WBP_StaminaBar.WBP_StaminaBar",
 	"mvvm":
 	{
 		"bindings": [
@@ -16,6 +16,21 @@
 					"function": "Conv_SetScalarParameter"
 				},
 				"destination": "Brush",
+				"source": ""
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"bIsVisible": "IsAttributeFull",
+						"FalseVisibility": "SelfHitTestInvisible",
+						"TrueVisibility": "Collapsed"
+					},
+					"function": "Conv_BoolToSlateVisibility"
+				},
+				"destination": "Visibility",
 				"source": ""
 			}
 		],
