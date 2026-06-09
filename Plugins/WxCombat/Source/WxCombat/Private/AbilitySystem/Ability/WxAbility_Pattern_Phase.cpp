@@ -64,7 +64,7 @@ void UWxAbility_Pattern_Phase::ActivateAbility(const FGameplayAbilitySpecHandle 
 void UWxAbility_Pattern_Phase::AdvancePhase()
 {
 	// WxCombat은 WxAI를 참조할 수 없어 Blackboard "Phase" 키 이름을 직접 사용한다.
-	// (WxAI/WxAIBlackboardKeys::Phase 와 동일한 이름이어야 한다.)
+	// (WxAI/WxBlackboardKeys::Phase 와 동일한 이름이어야 한다.)
 	static const FName PhaseBlackboardKeyName = TEXT("Phase");
 
 	APawn* AvatarPawn = Cast<APawn>(GetAvatarActorFromActorInfo());

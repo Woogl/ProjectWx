@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "WxEnemyController.h"
-#include "WxAIBlackboardKeys.h"
+#include "WxBlackboardKeys.h"
 #include "WxAIPerceptionComponent.h"
 #include "Character/WxEnemyCharacter.h"
 #include "Spawnable/WxPatrolComponent.h"
@@ -39,8 +39,8 @@ void AWxEnemyController::OnPossess(APawn* InPawn)
 
 	if (UBlackboardComponent* BB = GetBlackboardComponent())
 	{
-		WxAIBlackboardKeys::SetSelfActor(BB, InPawn);
-		WxAIBlackboardKeys::SetHomeLocation(BB, InPawn->GetActorLocation());
+		WxBlackboardKeys::SetSelfActor(BB, InPawn);
+		WxBlackboardKeys::SetHomeLocation(BB, InPawn->GetActorLocation());
 	}
 
 	if (const AWxEnemyCharacter* Enemy = Cast<AWxEnemyCharacter>(InPawn))
@@ -53,7 +53,7 @@ void AWxEnemyController::OnUnPossess()
 {
 	if (UBlackboardComponent* BB = GetBlackboardComponent())
 	{
-		WxAIBlackboardKeys::SetSelfActor(BB, nullptr);
+		WxBlackboardKeys::SetSelfActor(BB, nullptr);
 	}
 
 	PatrolPoints.Reset();
@@ -87,7 +87,7 @@ void AWxEnemyController::InitializePatrol(const AWxEnemyCharacter* Enemy)
 	else
 	{
 		// 경로 없음: 목표를 비워 둔다. BT 정찰 서브트리는 PatrolTargetLocation 의 Set 여부로 게이트한다.
-		WxAIBlackboardKeys::ClearPatrolTargetLocation(BB);
+		WxBlackboardKeys::ClearPatrolTargetLocation(BB);
 	}
 }
 
@@ -100,7 +100,7 @@ void AWxEnemyController::PublishPatrolTarget()
 
 	if (UBlackboardComponent* BB = GetBlackboardComponent())
 	{
-		WxAIBlackboardKeys::SetPatrolTargetLocation(BB, PatrolPoints[PatrolCursor]);
+		WxBlackboardKeys::SetPatrolTargetLocation(BB, PatrolPoints[PatrolCursor]);
 	}
 }
 
@@ -138,7 +138,7 @@ bool AWxEnemyController::AdvanceToNextPatrolPoint()
 			// 마지막 지점 도달: 정찰 종료. 목표를 비우면 게이트(PatrolTargetLocation Is Set)가 닫혀 정찰 서브트리가 멈춘다.
 			if (UBlackboardComponent* BB = GetBlackboardComponent())
 			{
-				WxAIBlackboardKeys::ClearPatrolTargetLocation(BB);
+				WxBlackboardKeys::ClearPatrolTargetLocation(BB);
 			}
 			return false;
 		}

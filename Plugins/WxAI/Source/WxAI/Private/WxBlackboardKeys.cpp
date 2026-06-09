@@ -1,11 +1,11 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "WxAIBlackboardKeys.h"
+#include "WxBlackboardKeys.h"
 
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Actor.h"
 
-namespace WxAIBlackboardKeys
+namespace WxBlackboardKeys
 {
 	const FName SelfActor = TEXT("SelfActor");
 
