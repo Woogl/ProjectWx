@@ -88,7 +88,7 @@ void AWxItemPickup::ApplyPickupVisual()
 		return;
 	}
 
-	const UWxItemFragment_PickupVisual* Visual = ItemDef->FindFragmentByClass<UWxItemFragment_PickupVisual>();
+	const UWxItemFragment_Pickup* Visual = ItemDef->FindFragmentByClass<UWxItemFragment_Pickup>();
 	if (!Visual)
 	{
 		return;

@@ -66,6 +66,6 @@ private:
 	/** ItemDef->DisplayName 을 사용해 인터랙션 프롬프트 텍스트를 "[F] {DisplayName}" 으로 갱신한다. */
 	void UpdateInteractionText();
 
-	/** ItemDef 의 PickupVisual Fragment 데이터를 메시/나이아가라 컴포넌트에 동기 로드 후 적용한다. */
+	/** ItemDef 의 Pickup Fragment 데이터를 메시/나이아가라 컴포넌트에 동기 로드 후 적용한다. */
 	void ApplyPickupVisual();
 };

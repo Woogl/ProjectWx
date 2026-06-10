@@ -15,10 +15,10 @@
 - 실제 장착 시각/부착 처리는 게임 측(`IWxEquipmentInterface` 구현체, [[WxCombat]]/`WxGame` Character)에 위임
 - 인벤토리 UI 표현/바인딩은 [[WxUI]]에 위임 (본 모듈은 델리게이트만 제공)
 - GameplayEffect 정의·적용 결과(스탯 변화)는 GAS([[WxCombat]])에 위임
-- 픽업 액터 스폰·드롭 배치는 [[WxWorld]]에 위임 (본 모듈은 `PickupVisual` 데이터만 기술)
+- 픽업 액터 스폰·드롭 배치는 [[WxWorld]]에 위임 (본 모듈은 `Pickup` 데이터만 기술)
 
 ## 의존성
-- **주요 의존**: `WxCore`, GAS(`GameplayAbilities` — `UseItemByDef`의 GE 적용), `GameplayTags`, `NetCore`/FastArraySerializer(레플리케이션), `Niagara`(PickupVisual 데이터), `DeveloperSettings`
+- **주요 의존**: `WxCore`, GAS(`GameplayAbilities` — `UseItemByDef`의 GE 적용), `GameplayTags`, `NetCore`/FastArraySerializer(레플리케이션), `Niagara`(Pickup 데이터), `DeveloperSettings`
 - 규칙: WxCore 외 Wx 플러그인 참조 없음 ✅
 
 ## 핵심 타입 (진입점)

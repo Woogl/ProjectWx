@@ -132,17 +132,17 @@ public:
  *
  * 본 Fragment 는 데이터만 기술한다 — 실제 컴포넌트 세팅은 픽업 액터 측에서 수행한다.
  */
-UCLASS(DisplayName = "PickupVisual")
-class WXINVENTORY_API UWxItemFragment_PickupVisual : public UWxItemFragment
+UCLASS(DisplayName = "Pickup")
+class WXINVENTORY_API UWxItemFragment_Pickup : public UWxItemFragment
 {
 	GENERATED_BODY()
 
 public:
 	/** 픽업 액터의 메시 컴포넌트에 적용할 스태틱 메시. */
-	UPROPERTY(EditDefaultsOnly, Category = "PickupVisual")
+	UPROPERTY(EditDefaultsOnly, Category = "Pickup")
 	TSoftObjectPtr<UStaticMesh> Mesh;
 
 	/** 픽업 액터의 나이아가라 컴포넌트에 적용할 시스템. 비어있으면 이펙트 비활성. */
-	UPROPERTY(EditDefaultsOnly, Category = "PickupVisual")
+	UPROPERTY(EditDefaultsOnly, Category = "Pickup")
 	TSoftObjectPtr<UNiagaraSystem> NiagaraSystem;
 };
