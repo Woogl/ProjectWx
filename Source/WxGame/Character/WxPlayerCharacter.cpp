@@ -7,7 +7,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
-#include "Input/WxCharacterInputConfig.h"
+#include "Input/WxInputConfig.h"
 #include "WxGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
 

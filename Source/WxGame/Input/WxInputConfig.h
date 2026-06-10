@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "GameplayTagContainer.h"
-#include "WxCharacterInputConfig.generated.h"
+#include "WxInputConfig.generated.h"
 
 class UInputMappingContext;
 class UInputAction;
@@ -24,11 +24,12 @@ struct FWxInputAbilityBinding
 };
 
 /**
- * 플레이어 캐릭터용 입력 설정.
- * 이동/시선/어빌리티 입력 등 게임플레이 레벨 입력 포함.
+ * 플레이어 입력 설정.
+ * 이동/시선/점프 등 직접 바인딩 입력과 어빌리티 입력 매핑을 포함한다.
+ * 메뉴/UI 입력은 CommonUI 액션(WxHUDLayout)으로 처리하므로 여기 포함하지 않는다.
  */
 UCLASS()
-class WXGAME_API UWxCharacterInputConfig : public UDataAsset
+class WXGAME_API UWxInputConfig : public UDataAsset
 {
 	GENERATED_BODY()
 

@@ -1,6 +1,11 @@
 {
 	"blueprintPath": "/Game/UI/Widget/WBP_GameHUDBase.WBP_GameHUDBase",
-	"parentClass": "/Script/WxUI.WxActivatableWidget",
+	"classDefaults":
+	{
+		"InventoryWidgetClass": "/Game/UI/Widget/WBP_Inventory.WBP_Inventory_C",
+		"PauseMenuWidgetClass": "/Game/UI/Widget/WBP_MainMenu.WBP_MainMenu_C"
+	},
+	"parentClass": "/Script/WxUI.WxHUDLayout",
 	"widgetTree":
 	{
 		"root": "CanvasPanel_22",
