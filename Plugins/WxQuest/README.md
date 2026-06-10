@@ -21,10 +21,6 @@
 | `FWxQuestModule` | 모듈 라이프사이클(StartupModule/ShutdownModule) | `Plugins/WxQuest/Source/WxQuest/Public/WxQuestModule.h` |
 | `LogWxQuest` | 모듈 전용 로그 카테고리 | `Plugins/WxQuest/Source/WxQuest/Public/WxQuestModule.h` |
 
-## 폴더 구성
-- `Public/` — 모듈 인터페이스 헤더 (`WxQuestModule.h`)
-- `Private/` — 모듈 구현 (`WxQuestModule.cpp`)
-
 ## 확장 포인트 / 규약
 - 현재 퀘스트 도메인 타입(퀘스트/목표 클래스, DataTable Row, StateTree 스키마 등)은 아직 정의되지 않았다. 신규 구현은 `Public/`에 헤더를 추가하고 `Private/`에 구현을 두는 표준 모듈 구조를 따른다.
 - 진행 로직은 `.uplugin`·`Build.cs`에 명시된 `StateTree`(StateTreeModule)를 기반으로 설계할 것.
@@ -39,4 +35,4 @@
 - 상위: 구체 컨텐츠를 조립하는 [[WxGame]] 게임 모듈에서 사용. 공용 정의는 [[WxCore]] 참조.
 
 ---
-*문서 기준 커밋 `59bfe3f` · 생성일 2026-06-08 · 소스 2파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `2983a08e` · 생성일 2026-06-11 · 소스 2파일 — `/readme-writer`로 갱신*

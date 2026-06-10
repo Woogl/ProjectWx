@@ -52,4 +52,4 @@
 - [[WxCore]] — `State.Recognized` 등 공용 Gameplay Tag 선언처.
 
 ---
-*문서 기준 커밋 `80cc348` · 생성일 2026-06-09 · 소스 20파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `2983a08e` · 생성일 2026-06-11 · 소스 21파일 — `/readme-writer`로 갱신*
