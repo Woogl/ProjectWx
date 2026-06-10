@@ -76,8 +76,6 @@ public:
 
 	UTexture2D* GetIcon() const;
 	void SetIcon(UTexture2D* NewValue);
-	
-	FGameplayTag GetEffectTag() const;
 
 private:
 	bool UpdateEffectState(float DeltaTime);

@@ -23,7 +23,4 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	FText DisplayName;
-
-	UPROPERTY(EditDefaultsOnly, Category = "UI", meta = (MultiLine = "true"))
-	FText Description;
 };

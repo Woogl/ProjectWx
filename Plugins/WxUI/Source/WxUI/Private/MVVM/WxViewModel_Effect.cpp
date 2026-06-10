@@ -149,11 +149,6 @@ void UWxViewModel_Effect::SetIcon(UTexture2D* NewValue)
 	UE_MVVM_SET_PROPERTY_VALUE(Icon, NewValue);
 }
 
-FGameplayTag UWxViewModel_Effect::GetEffectTag() const
-{
-	return EffectTag;
-}
-
 bool UWxViewModel_Effect::UpdateEffectState(float DeltaTime)
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();

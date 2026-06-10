@@ -25,8 +25,4 @@ struct FWxCharacterUIData
 	/** 초상화. UI 측에서 Soft 참조로 비동기 로드한다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TSoftObjectPtr<UTexture2D> Portrait;
-
-	/** 설명 문구. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI", meta = (MultiLine = "true"))
-	FText Description;
 };
