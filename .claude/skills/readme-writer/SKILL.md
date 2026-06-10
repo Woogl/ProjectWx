@@ -1,6 +1,7 @@
 ---
 name: readme-writer
 description: 각 플러그인/모듈 폴더에 README 오리엔테이션 맵을 작성·갱신한다. 모듈 단위로 분석하고 변경된 모듈만 골라 다시 쓰므로 큰 코드베이스에서도 점진적으로 README를 쌓아나갈 수 있다.
+argument-hint: "[모듈명...|all]"
 user-invocable: true
 allowed-tools: Read, Grep, Glob, Bash, Write, Agent
 ---
@@ -52,6 +53,7 @@ allowed-tools: Read, Grep, Glob, Bash, Write, Agent
    - `git diff --name-only <sha> HEAD -- <모듈경로> ":(exclude)<모듈경로>/README.md"`
    - `git status --porcelain -- <모듈경로> ":(exclude)<모듈경로>/README.md"`
    둘 중 하나라도 변경이 있으면 → **stale**, 둘 다 비어 있으면 → **fresh**.
+   - 단, `git diff`가 기록된 SHA를 못 찾아 실패하면(`fatal: bad object` 등 — 히스토리 재작성·squash·shallow clone) 변경 여부를 판정할 수 없으므로 **stale로 간주**해 재생성한다(에러로 중단하지 않는다).
 
 > README.md는 모듈 폴더 *안*에 있으므로 `-- <모듈경로>` 한정만으로는 제외되지 않는다 — diff·status 모두 README 자신의 커밋/수정(생성 직후엔 untracked, 커밋 후엔 provenance SHA 이후의 변경)을 잡아 모든 모듈이 영구히 stale이 된다. 위 `:(exclude)` pathspec으로 README를 명시적으로 빼야 "변경된 모듈만 재생성"이 실제로 작동한다.
 
@@ -102,10 +104,6 @@ allowed-tools: Read, Grep, Glob, Bash, Write, Agent
 <이 모듈이 C++ Native Tag를 선언할 때만 둔다(선언이 없으면 절 전체 생략). 선언 파일과 주요 태그 네임스페이스의 의미를 가리킨다.>
 - 선언: `<WxXxxGameplayTags.h 등 경로>`
 - 주요 네임스페이스: `<예: State.*, Event.*, Input.* — 각 묶음이 무엇을 뜻하는지>`
-
-## 폴더 구성
-<폴더가 4개 이상인 큰 모듈에서만 둔다(작거나 평평한 모듈은 절 전체 생략). 폴더명에서 내용이 자명한 폴더(예: `Weapon/`, `Time/`)는 적지 않고, 이름만으로 안 보이는 폴더만 1줄로 가리킨다.>
-- `<폴더>` — <무엇이 있는지>
 
 ## 확장 포인트 / 규약
 - <새 X(어빌리티/이펙트/아이템/위젯 등)를 추가하는 법, 구현해야 할 베이스 클래스/인터페이스>
