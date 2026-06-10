@@ -81,15 +81,14 @@ public:
  * 인스턴스 단위 충전(charge) 횟수를 부여하는 Fragment.
  *
  * 다크소울 에스트병 방식: 부착된 아이템은 인벤토리 스택이 아니라 인스턴스별 충전량으로 사용 가능 여부가 결정된다.
- * 사용 시 인벤토리 스택은 차감되지 않고(소진돼도 아이템은 인벤토리에 남는다) 충전량만 1 감소하며,
- * 리필(UWxInventoryManagerComponent::RefillItemCharges)로 MaxCharges 까지 회복한다.
+ * 사용 시 인벤토리 스택은 차감되지 않고(소진돼도 아이템은 인벤토리에 남는다) 충전량만 1 감소하며, 리필(UWxInventoryManagerComponent::RefillItemCharges)로 MaxCharges 까지 회복한다.
  *
  * 인스턴스 생성 시 MaxCharges 만큼 가득 채워진다(OnInstanceCreated).
  * 사용 처리(충전 검증·차감)와 회복 GE 적용은 UWxInventoryManagerComponent::UseItemByDef 가 담당한다.
  *
- * Usable Fragment 와 함께 부착해야 회복 등 사용 효과가 발생한다. 단독 부착 시 충전만 소모된다.
+ * 기능 축은 Usable 과 직교한다. 회복 등 사용 효과는 Usable Fragment 가 담당하므로, 충전형 소비 아이템은 Usable 과 함께 부착한다. 단독 부착 시 충전만 소모된다.
  */
-UCLASS(DisplayName = "Charges")
+UCLASS(DisplayName = "Refill")
 class WXINVENTORY_API UWxItemFragment_Charges : public UWxItemFragment
 {
 	GENERATED_BODY()
