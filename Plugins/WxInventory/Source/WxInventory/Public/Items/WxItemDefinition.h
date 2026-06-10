@@ -18,7 +18,6 @@ UENUM(BlueprintType)
 enum class EWxItemGrade : uint8
 {
 	Common,
-	Uncommon,
 	Rare,
 	Epic,
 	Legendary
