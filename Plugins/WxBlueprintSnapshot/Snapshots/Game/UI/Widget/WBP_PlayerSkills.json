@@ -10,9 +10,9 @@
 					"arguments":
 					{
 						"AbilitySystem": "AbilitySystem",
-						"AbilityTag": "(TagName=\"Ability.Skill.1\")"
+						"AbilityTags": "(GameplayTags=((TagName=\"Ability.Skill.1\")))"
 					},
-					"function": "FindAbilityViewModelByTag"
+					"function": "GetAbilityViewModel"
 				},
 				"destination": "WxViewModel_Ability",
 				"source": ""
@@ -24,9 +24,9 @@
 					"arguments":
 					{
 						"AbilitySystem": "AbilitySystem",
-						"AbilityTag": "(TagName=\"Ability.Skill.2\")"
+						"AbilityTags": "(GameplayTags=((TagName=\"Ability.Skill.2\")))"
 					},
-					"function": "FindAbilityViewModelByTag"
+					"function": "GetAbilityViewModel"
 				},
 				"destination": "WxViewModel_Ability",
 				"source": ""
@@ -38,9 +38,9 @@
 					"arguments":
 					{
 						"AbilitySystem": "AbilitySystem",
-						"AbilityTag": "(TagName=\"Ability.Skill.3\")"
+						"AbilityTags": "(GameplayTags=((TagName=\"Ability.Skill.3\")))"
 					},
-					"function": "FindAbilityViewModelByTag"
+					"function": "GetAbilityViewModel"
 				},
 				"destination": "WxViewModel_Ability",
 				"source": ""
@@ -52,9 +52,9 @@
 					"arguments":
 					{
 						"AbilitySystem": "AbilitySystem",
-						"AbilityTag": "(TagName=\"Ability.Skill.4\")"
+						"AbilityTags": "(GameplayTags=((TagName=\"Ability.Skill.4\")))"
 					},
-					"function": "FindAbilityViewModelByTag"
+					"function": "GetAbilityViewModel"
 				},
 				"destination": "WxViewModel_Ability",
 				"source": ""
@@ -66,9 +66,9 @@
 					"arguments":
 					{
 						"AbilitySystem": "AbilitySystem",
-						"AbilityTag": "(TagName=\"Ability.Ultimate\")"
+						"AbilityTags": "(GameplayTags=((TagName=\"Ability.Ultimate\")))"
 					},
-					"function": "FindAbilityViewModelByTag"
+					"function": "GetAbilityViewModel"
 				},
 				"destination": "WxViewModel_Ability",
 				"source": ""

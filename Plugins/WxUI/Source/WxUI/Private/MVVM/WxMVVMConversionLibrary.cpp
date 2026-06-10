@@ -19,13 +19,13 @@ UWxViewModel_Attribute* UWxMVVMConversionLibrary::GetAttributeViewModel(UWxViewM
 	return AbilitySystem->GetOrCreateAttributeViewModel(CurrentAttribute, MaxAttribute);
 }
 
-UWxViewModel_Ability* UWxMVVMConversionLibrary::FindAbilityViewModelByTag(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayTag AbilityTag)
+UWxViewModel_Ability* UWxMVVMConversionLibrary::GetAbilityViewModel(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayTagContainer AbilityTags)
 {
 	if (!AbilitySystem)
 	{
 		return nullptr;
 	}
-	return AbilitySystem->FindAbilityViewModel(AbilityTag);
+	return AbilitySystem->GetOrCreateAbilityViewModel(AbilityTags);
 }
 
 UWxViewModel_Effect* UWxMVVMConversionLibrary::FindActiveEffectViewModelByTag(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayTag EffectTag)

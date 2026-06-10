@@ -35,9 +35,12 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "Get Attribute ViewModel"))
 	static UWxViewModel_Attribute* GetAttributeViewModel(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayAttribute CurrentAttribute, FGameplayAttribute MaxAttribute);
 
-	/** AbilitySystem VM 에서 AbilityTag 가 일치하는 어빌리티 VM 을 반환한다. */
-	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "Find Ability ViewModel By Tag"))
-	static UWxViewModel_Ability* FindAbilityViewModelByTag(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayTag AbilityTag);
+	/**
+	 * AbilitySystem VM 에서 Asset Tags 가 AbilityTags 를 모두 포함하는(HasAll) 어빌리티 VM 을 가져온다. 없으면 생성한다.
+	 * 바인딩이 요청한 어빌리티에 대해서만 VM 이 지연 생성된다. 매칭되는 어빌리티가 부여되지 않았으면 nullptr 를 반환한다.
+	 */
+	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "Get Ability ViewModel"))
+	static UWxViewModel_Ability* GetAbilityViewModel(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayTagContainer AbilityTags);
 
 	/** AbilitySystem VM 에서 EffectTag 가 일치하는 이펙트 VM 을 반환한다. */
 	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "Find Effect ViewModel By Tag"))

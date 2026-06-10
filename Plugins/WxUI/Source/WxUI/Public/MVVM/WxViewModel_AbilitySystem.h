@@ -18,12 +18,11 @@ class UWxViewModel_Effect;
 
 /**
  * 어빌리티 시스템 뷰모델 (Composite).
- * ASC의 모든 어빌리티를 자식 UWxViewModel_Ability 배열로 관리한다.
+ * ASC의 어트리뷰트/어빌리티/이펙트/OwnedTags를 자식 ViewModel로 노출한다.
  *
  * 사용 흐름:
- *  1. Initialize(ASC)로 초기화 → 보유 어빌리티마다 자식 ViewModel 생성
- *  2. UI에서 AbilityViewModels 배열을 ListView 등에 바인딩
- *  3. 런타임에 어빌리티가 추가/제거되면 RebuildAbilityViewModels() 호출
+ *  1. Initialize(ASC)로 초기화
+ *  2. 어트리뷰트/어빌리티 VM 은 바인딩이 요청할 때 GetOrCreate... 로 지연 생성, 이펙트 VM 은 활성 GE 추가/제거 이벤트로 관리
  */
 UCLASS()
 class WXUI_API UWxViewModel_AbilitySystem : public UWxViewModel
@@ -35,7 +34,7 @@ public:
 	virtual void Deinitialize() override;
 
 	UWxViewModel_Attribute* FindAttributeViewModel(FGameplayAttribute InAttribute) const;
-	UWxViewModel_Ability* FindAbilityViewModel(FGameplayTag InAbilityTag) const;
+	UWxViewModel_Ability* FindAbilityViewModel(const FGameplayTagContainer& InAbilityTags) const;
 	UWxViewModel_Effect* FindActiveEffectViewModel(FGameplayTag InEffectTag) const;
 
 	/**
@@ -45,8 +44,12 @@ public:
 	 */
 	UWxViewModel_Attribute* GetOrCreateAttributeViewModel(FGameplayAttribute Current, FGameplayAttribute Max);
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|AbilitySystem")
-	TArray<TObjectPtr<UWxViewModel_Ability>> AbilityViewModels;
+	/**
+	 * Asset Tags 가 InAbilityTags 를 모두 포함하는(HasAll) 어빌리티의 VM 을 반환한다. 없으면 부여된 스펙에서 찾아 생성하여 캐시한다.
+	 * 매칭 시멘틱은 엔진의 GetActivatableGameplayAbilitySpecsByAllMatchingTags 와 동일하며, 여러 어빌리티가 매칭되면 첫 번째 것을 사용한다.
+	 * UI 바인딩이 실제로 요청한 어빌리티에 대해서만 VM 이 지연 생성되며, 매칭되는 어빌리티가 부여되지 않았으면 nullptr 를 반환한다.
+	 */
+	UWxViewModel_Ability* GetOrCreateAbilityViewModel(const FGameplayTagContainer& InAbilityTags);
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|AbilitySystem")
 	TArray<TObjectPtr<UWxViewModel_Effect>> ActiveEffectViewModels;
@@ -55,8 +58,6 @@ public:
 	FGameplayTagContainer OwnedTags;
 
 protected:
-	void InitializeAbilityViewModels();
-
 	/** 이펙트 목록을 재구축한다. 런타임에 이펙트가 추가/제거되었을 때 호출 */
 	void RefreshActiveEffectViewModels();
 
@@ -70,6 +71,10 @@ protected:
 	/** 지연 생성된 어트리뷰트 VM 캐시. 바인딩이 요청한 어트리뷰트에 대해서만 채워진다. GetOrCreateAttributeViewModel 참조. */
 	UPROPERTY()
 	TArray<TObjectPtr<UWxViewModel_Attribute>> AttributeViewModels;
+
+	/** 지연 생성된 어빌리티 VM 캐시. 바인딩이 요청한 어빌리티에 대해서만 채워진다. GetOrCreateAbilityViewModel 참조. */
+	UPROPERTY()
+	TArray<TObjectPtr<UWxViewModel_Ability>> AbilityViewModels;
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 };

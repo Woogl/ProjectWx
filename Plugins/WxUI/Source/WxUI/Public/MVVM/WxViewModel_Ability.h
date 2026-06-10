@@ -64,8 +64,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	TObjectPtr<UTexture2D> Icon = nullptr;
 
+	/** 바인딩된 어빌리티의 Asset Tags. 어빌리티 식별/매칭에 사용 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Ability")
-	FGameplayTag AbilityTag;
+	FGameplayTagContainer AbilityTags;
 
 	float GetCooldownRemaining() const;
 	void SetCooldownRemaining(float NewValue);
@@ -91,13 +92,9 @@ public:
 	UTexture2D* GetIcon() const;
 	void SetIcon(UTexture2D* NewValue);
 
-	FGameplayTag GetAbilityTag() const;
-
 private:
 	void HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle);
 	bool UpdateCooldownState(float DeltaTime);
-
-	int32 GetConsumedCharges() const;
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	TWeakObjectPtr<const UGameplayAbility> CachedAbility;

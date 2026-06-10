@@ -22,7 +22,6 @@ void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 	InASC->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectRemoved);
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_AbilitySystem::HandleTagChanged);
 
-	InitializeAbilityViewModels();
 	RefreshActiveEffectViewModels();
 	RefreshOwnedTags();
 
@@ -61,11 +60,11 @@ UWxViewModel_Attribute* UWxViewModel_AbilitySystem::FindAttributeViewModel(FGame
 	return nullptr;
 }
 
-UWxViewModel_Ability* UWxViewModel_AbilitySystem::FindAbilityViewModel(FGameplayTag InAbilityTag) const
+UWxViewModel_Ability* UWxViewModel_AbilitySystem::FindAbilityViewModel(const FGameplayTagContainer& InAbilityTags) const
 {
 	for (UWxViewModel_Ability* VM : AbilityViewModels)
 	{
-		if (VM && VM->AbilityTag == InAbilityTag)
+		if (VM && VM->AbilityTags.HasAll(InAbilityTags))
 		{
 			return VM;
 		}
@@ -106,25 +105,27 @@ UWxViewModel_Attribute* UWxViewModel_AbilitySystem::GetOrCreateAttributeViewMode
 	return AttrVM;
 }
 
-void UWxViewModel_AbilitySystem::InitializeAbilityViewModels()
+UWxViewModel_Ability* UWxViewModel_AbilitySystem::GetOrCreateAbilityViewModel(const FGameplayTagContainer& InAbilityTags)
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (!ASC)
+
+	// 빈 컨테이너는 HasAll 이 항상 true 라 아무 어빌리티나 매칭되므로 거부한다.
+	if (!ASC || InAbilityTags.IsEmpty())
 	{
-		return;
+		return nullptr;
 	}
 
-	AbilityViewModels.Empty();
+	// 컨버전 함수는 소스 갱신마다 재실행될 수 있으므로, 이미 만든 VM 이 있으면 재사용한다.
+	if (UWxViewModel_Ability* Existing = FindAbilityViewModel(InAbilityTags))
+	{
+		return Existing;
+	}
 
+	// FindAbilityViewModel 과 동일한 HasAll 술어로 매칭해야 재평가 시 중복 생성되지 않는다.
 	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
 	{
 		const UGameplayAbility* AbilityCDO = Spec.Ability;
-		if (!AbilityCDO)
-		{
-			continue;
-		}
-
-		if (AbilityCDO->GetAssetTags().IsEmpty())
+		if (!AbilityCDO || !AbilityCDO->GetAssetTags().HasAll(InAbilityTags))
 		{
 			continue;
 		}
@@ -132,9 +133,9 @@ void UWxViewModel_AbilitySystem::InitializeAbilityViewModels()
 		UWxViewModel_Ability* AbilityVM = NewObject<UWxViewModel_Ability>(ASC);
 		AbilityVM->Initialize(ASC, AbilityCDO);
 		AbilityViewModels.Add(AbilityVM);
+		return AbilityVM;
 	}
-
-	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(AbilityViewModels);
+	return nullptr;
 }
 
 void UWxViewModel_AbilitySystem::RefreshActiveEffectViewModels()

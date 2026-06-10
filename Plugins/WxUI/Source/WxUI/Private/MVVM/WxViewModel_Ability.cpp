@@ -16,11 +16,7 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 	CachedASC = InASC;
 	CachedAbility = InAbility;
 
-	const FGameplayTagContainer& AssetTags = InAbility->GetAssetTags();
-	if (!AssetTags.IsEmpty())
-	{
-		AbilityTag = AssetTags.First();
-	}
+	AbilityTags = InAbility->GetAssetTags();
 
 	int32 AbilityMaxRecharges = 1;
 	if (const UGameplayEffect* CooldownGE = InAbility->GetCooldownGameplayEffect())
@@ -140,11 +136,6 @@ void UWxViewModel_Ability::SetIcon(UTexture2D* NewValue)
 	UE_MVVM_SET_PROPERTY_VALUE(Icon, NewValue);
 }
 
-FGameplayTag UWxViewModel_Ability::GetAbilityTag() const
-{
-	return AbilityTag;
-}
-
 void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle)
 {
 	if (!CachedCooldownClass || !SpecApplied.Def || SpecApplied.Def->GetClass() != CachedCooldownClass)
@@ -225,32 +216,4 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 	SetCurrentCharges(FMath::Max(0, MaxRecharges - ConsumedCharges));
 
 	return true;
-}
-
-int32 UWxViewModel_Ability::GetConsumedCharges() const
-{
-	UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (!ASC || !CachedCooldownClass || CooldownDuration <= 0.f)
-	{
-		return 0;
-	}
-
-	const UGameplayAbility* AbilityCDO = CachedAbility.Get();
-	const float WorldTime = ASC->GetWorld()->GetTimeSeconds();
-
-	FGameplayEffectQuery Query;
-	Query.EffectDefinition = CachedCooldownClass;
-
-	for (const FActiveGameplayEffectHandle& Handle : ASC->GetActiveEffects(Query))
-	{
-		if (const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(Handle))
-		{
-			if (ActiveGE->Spec.GetEffectContext().GetAbility() == AbilityCDO)
-			{
-				const float TimeRemaining = (ActiveGE->StartWorldTime + ActiveGE->Spec.GetDuration()) - WorldTime;
-				return FMath::CeilToInt32((TimeRemaining - KINDA_SMALL_NUMBER) / CooldownDuration);
-			}
-		}
-	}
-	return 0;
 }

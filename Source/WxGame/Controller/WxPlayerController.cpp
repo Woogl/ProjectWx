@@ -161,10 +161,11 @@ void AWxPlayerController::InitializePlayerCharacterViewModel(UAbilitySystemCompo
 	}
 
 	// WxUI는 WxCombat에 의존할 수 없으므로, WxCombat 측 리소스(AbilityIcon 등)는 WxGame에서 주입한다.
+	// 어빌리티 VM 은 지연 생성되므로, 아이콘이 있는 어빌리티는 여기서 GetOrCreate 로 만들어 주입한다. 바인딩이 먼저 만들었다면 그 VM 을 재사용한다.
 	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
 	{
 		const UWxAbilityBase* WxAbility = Cast<UWxAbilityBase>(Spec.Ability);
-		if (!WxAbility)
+		if (!WxAbility || WxAbility->AbilityIcon.IsNull())
 		{
 			continue;
 		}
@@ -175,7 +176,7 @@ void AWxPlayerController::InitializePlayerCharacterViewModel(UAbilitySystemCompo
 			continue;
 		}
 
-		UWxViewModel_Ability* AbilityVM = AbilitySystemViewModel->FindAbilityViewModel(AssetTags.First());
+		UWxViewModel_Ability* AbilityVM = AbilitySystemViewModel->GetOrCreateAbilityViewModel(AssetTags);
 		if (!AbilityVM)
 		{
 			continue;
