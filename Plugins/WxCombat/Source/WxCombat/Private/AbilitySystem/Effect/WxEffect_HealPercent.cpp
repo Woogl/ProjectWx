@@ -1,9 +1,9 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Effect/WxEffect_HealByMaxHPPercent.h"
+#include "AbilitySystem/Effect/WxEffect_HealPercent.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 
-UWxEffect_HealByMaxHPPercent::UWxEffect_HealByMaxHPPercent()
+UWxEffect_HealPercent::UWxEffect_HealPercent()
 {
 	DurationPolicy = EGameplayEffectDurationType::Instant;
 
