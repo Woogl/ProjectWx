@@ -452,6 +452,13 @@ TArray<UWxItemInstance*> UWxInventoryManagerComponent::GetAllItems() const
 	return Result;
 }
 
+bool UWxInventoryManagerComponent::CanUseItemByDef(const UWxItemDefinition* ItemDef) const
+{
+	return ItemDef
+		&& ItemDef->FindFragmentByClass<UWxItemFragment_Usable>()
+		&& FindUsableInstance(ItemDef) != nullptr;
+}
+
 bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef)
 {
 	if (!ItemDef)
@@ -468,23 +475,8 @@ bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef
 	}
 
 	// 사용 대상 인스턴스. GE SourceObject 이자 충전형 아이템의 충전량 보유 주체다.
-	UWxItemInstance* SourceInstance = FindFirstItemStackByDefinition(ItemDef);
+	UWxItemInstance* SourceInstance = FindUsableInstance(ItemDef);
 	if (!SourceInstance)
-	{
-		return false;
-	}
-
-	// 가용성 사전 검증 — 차감하지 않고 가용 여부만 확인.
-	// 충전형(Charges Fragment)은 인벤토리 스택이 아니라 인스턴스 충전량으로 판단한다.
-	const UWxItemFragment_Charges* Charges = ItemDef->FindFragmentByClass<UWxItemFragment_Charges>();
-	if (Charges)
-	{
-		if (SourceInstance->GetCurrentCharges() <= 0)
-		{
-			return false;
-		}
-	}
-	else if (GetTotalItemCountByDefinition(ItemDef) <= 0)
 	{
 		return false;
 	}
@@ -512,7 +504,8 @@ bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef
 		}
 	}
 
-	// 차감 — 충전형은 인스턴스 충전량 1 감소(인벤토리 스택/슬롯 유지), 그 외는 스택 1 차감.
+	// 차감 — 충전형(Charges Fragment)은 인스턴스 충전량 1 감소(인벤토리 스택/슬롯 유지), 그 외는 스택 1 차감.
+	const UWxItemFragment_Charges* Charges = ItemDef->FindFragmentByClass<UWxItemFragment_Charges>();
 	if (Charges)
 	{
 		const int32 OldCharges = SourceInstance->GetCurrentCharges();
@@ -560,10 +553,17 @@ bool UWxInventoryManagerComponent::EquipItemByDef(const UWxItemDefinition* ItemD
 {
 	check(GetOwner() && GetOwner()->HasAuthority());
 
-	// 장착 해제(nullptr)는 그대로 전달한다. 장착일 경우에만 Fragment 유효성 검증.
-	if (ItemDef && !ItemDef->FindFragmentByClass<UWxItemFragment_Equippable>())
+	// 장착 해제(nullptr)는 그대로 전달한다. 장착일 경우에만 Fragment 유효성과 실제 소유 여부를 검증한다.
+	if (ItemDef)
 	{
-		return false;
+		if (!ItemDef->FindFragmentByClass<UWxItemFragment_Equippable>())
+		{
+			return false;
+		}
+		if (!FindFirstItemStackByDefinition(ItemDef))
+		{
+			return false;
+		}
 	}
 
 	const APlayerController* PC = GetOwner<APlayerController>();
@@ -606,6 +606,35 @@ void UWxInventoryManagerComponent::NotifyChargeChangedFromSource(UWxItemInstance
 	}
 
 	OnInventoryChargeChanged.Broadcast(Instance, NewCharges, Delta);
+}
+
+UWxItemInstance* UWxInventoryManagerComponent::FindUsableInstance(const UWxItemDefinition* ItemDef) const
+{
+	if (!ItemDef)
+	{
+		return nullptr;
+	}
+
+	// 충전형(Charges Fragment)은 인벤토리 스택이 아니라 인스턴스 충전량으로 가용 여부를 판단한다.
+	const UWxItemFragment_Charges* Charges = ItemDef->FindFragmentByClass<UWxItemFragment_Charges>();
+
+	// 충전형은 충전이 남은 첫 인스턴스를 선택한다 — 빈 인스턴스가 앞 슬롯에 있어도 뒤의 충전 보유 인스턴스를 사용할 수 있다.
+	for (const FWxInventoryEntry& Entry : InventoryList.GetEntries())
+	{
+		UWxItemInstance* SlotInstance = Entry.GetInstance();
+		if (!SlotInstance || SlotInstance->GetItemDef() != ItemDef)
+		{
+			continue;
+		}
+		if (Charges && SlotInstance->GetCurrentCharges() <= 0)
+		{
+			continue;
+		}
+
+		return SlotInstance;
+	}
+
+	return nullptr;
 }
 
 void UWxInventoryManagerComponent::RegisterReplicatedInstance(UWxItemInstance* Instance)

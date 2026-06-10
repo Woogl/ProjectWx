@@ -22,6 +22,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Parry, "Event.HitReact.Parry");
 	UE_DEFINE_GAMEPLAY_TAG(Event_DodgeSuccess, "Event.DodgeSuccess");
 	UE_DEFINE_GAMEPLAY_TAG(Event_PerfectGuard, "Event.PerfectGuard");
+	UE_DEFINE_GAMEPLAY_TAG(Event_UseItem, "Event.UseItem");
 
 	UE_DEFINE_GAMEPLAY_TAG(ANS_WeaponCollision, "ANS.WeaponCollision");
 	UE_DEFINE_GAMEPLAY_TAG(ANS_ComboWindow, "ANS.ComboWindow");
@@ -50,6 +51,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_4, "Ability.Skill.4");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Ultimate, "Ability.Ultimate");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Interact, "Ability.Interact");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_UseItem, "Ability.UseItem");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern, "Ability.Pattern");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_1, "Ability.Pattern.1");
@@ -85,6 +87,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Input_Ultimate, "Input.Ultimate");
 	UE_DEFINE_GAMEPLAY_TAG(Input_LockOn, "Input.LockOn");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Interact, "Input.Interact");
+	UE_DEFINE_GAMEPLAY_TAG(Input_UseItem, "Input.UseItem");
 	
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Game, "UI.Layer.Game");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_GameMenu, "UI.Layer.GameMenu");

@@ -68,6 +68,9 @@ namespace WxGameplayTags
 	/** 퍼펙트 가드 성공 시 발생하는 이벤트. Guard 어빌리티가 MP 회복 및 HitReact를 처리 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_PerfectGuard);
 
+	/** 소비 아이템 사용 이벤트. 마시기 몽타주의 노티파이가 송출, UseItem 어빌리티가 수신해 아이템을 실제 사용 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_UseItem);
+
 	// ── ANS ───────────────────────────────────────────────────────────────
 
 	/** 무기 콜리전 활성 구간. ANS_WeaponCollision이 부여/제거 */
@@ -124,6 +127,7 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_4);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Ultimate);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Interact);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_UseItem);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_1);
@@ -176,6 +180,7 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Ultimate);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_LockOn);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Interact);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_UseItem);
 
 	// ── UI ────────────────────────────────────────────────────────────────
 

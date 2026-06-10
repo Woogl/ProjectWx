@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Interaction/WxInteractionComponent.h"
+#include "Inventory/WxInventoryManagerComponent.h"
 #include "System/WxSpawnerSubsystem.h"
 
 AWxCheckPoint::AWxCheckPoint()
@@ -43,6 +44,15 @@ void AWxCheckPoint::HandleInteracted(AActor* InstigatorActor)
 			{
 				ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 			}
+		}
+	}
+
+	// 에스트병 등 충전형 소비 아이템의 충전을 가득 채운다(다크소울 모닥불 방식). 충전형이 아닌 아이템은 내부에서 무시된다.
+	if (UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(InstigatorActor))
+	{
+		for (UWxItemInstance* Item : Inventory->GetAllItems())
+		{
+			Inventory->RefillItemCharges(Item);
 		}
 	}
 
