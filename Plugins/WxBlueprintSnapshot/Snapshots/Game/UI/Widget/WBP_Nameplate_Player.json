@@ -142,7 +142,7 @@
 				"delta":
 				{
 					"bOverride_HeightOverride": true,
-					"HeightOverride": 30
+					"HeightOverride": 35
 				},
 				"parent": "VerticalBox_0",
 				"slot":
