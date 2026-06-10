@@ -2,7 +2,24 @@
 
 #include "WxPatrolComponent.h"
 
+#include "Components/ArrowComponent.h"
 #include "GameFramework/Actor.h"
+
+UWxPatrolComponent::UWxPatrolComponent()
+{
+#if WITH_EDITORONLY_DATA
+	// 최초 진행 방향을 보여주는 에디터 전용 화살표. 게임/쿡 빌드에는 포함되지 않는다.
+	DirectionArrow = CreateEditorOnlyDefaultSubobject<UArrowComponent>(TEXT("DirectionArrow"));
+	if (DirectionArrow)
+	{
+		DirectionArrow->SetupAttachment(this);
+		DirectionArrow->SetIsVisualizationComponent(true);
+		DirectionArrow->SetArrowColor(FLinearColor(1.0f, 0.85f, 0.1f));
+		DirectionArrow->bIsScreenSizeScaled = true;
+		DirectionArrow->SetHiddenInGame(true);
+	}
+#endif
+}
 
 UWxPatrolComponent* UWxPatrolComponent::FindPatrolComponent(const AActor* Actor)
 {
@@ -83,8 +100,8 @@ void UWxPatrolComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyC
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	// 에디터에서 MoveMode 를 바꾸면 스플라인 닫힘 상태도 즉시 따라가게 한다.
-	SetClosedLoop(MoveMode == EWxPatrolMoveMode::Loop);
+	// 에디터에서 포인트를 추가/수정하거나 MoveMode 를 바꿔도 닫힘 상태와 직선 보간을 다시 맞춘다.
+	ConfigureSpline();
 }
 #endif
 
@@ -92,6 +109,30 @@ void UWxPatrolComponent::OnRegister()
 {
 	Super::OnRegister();
 
+	ConfigureSpline();
+}
+
+void UWxPatrolComponent::ConfigureSpline()
+{
 	// Loop 모드면 마지막 포인트가 첫 포인트로 이어지도록 스플라인을 닫는다.
-	SetClosedLoop(MoveMode == EWxPatrolMoveMode::Loop);
+	SetClosedLoop(MoveMode == EWxPatrolMoveMode::Loop, /*bUpdateSpline*/ false);
+
+	// 정찰은 지점 사이를 내비게이션으로 직선 이동하므로, 곡선 보간을 끄고 포인트를 직선으로 잇는다(에디터 표시도 실제 경로와 일치).
+	const int32 NumPoints = GetNumberOfSplinePoints();
+	for (int32 Index = 0; Index < NumPoints; ++Index)
+	{
+		SetSplinePointType(Index, ESplinePointType::Linear, /*bUpdateSpline*/ false);
+	}
+
+	UpdateSpline();
+
+#if WITH_EDITORONLY_DATA
+	// 모드와 무관하게 정찰은 0번 → 1번 지점으로 시작하므로, 그 방향을 화살표로 표시한다.
+	if (DirectionArrow && NumPoints >= 2)
+	{
+		const FVector Start = GetLocationAtSplinePoint(0, ESplineCoordinateSpace::World);
+		const FVector Next = GetLocationAtSplinePoint(1, ESplineCoordinateSpace::World);
+		DirectionArrow->SetWorldLocationAndRotation(Start, (Next - Start).Rotation());
+	}
+#endif
 }
