@@ -14,7 +14,7 @@
  * ServerInitiated 어빌리티(서버 인스턴스)에서만 일어나므로 안전하다.
  */
 UCLASS()
-class WXCOMBAT_API UWxAnimNotify_UseItem : public UAnimNotify
+class WXGAME_API UWxAnimNotify_UseItem : public UAnimNotify
 {
 	GENERATED_BODY()
 
