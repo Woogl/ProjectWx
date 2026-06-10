@@ -16,8 +16,7 @@ UWxAbility_Skill::UWxAbility_Skill()
 	// 콤보는 EndAbility 후 재발동 방식이라 자기 차단이 다음 단계를 막지 않으며, 후딜 캔슬은 몽타주 StartRecovery 노티파이로 허용한다.
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 
-	// BP에서 WxGameplayTags::Input_Skill_~4로 설정한다.
-	//ActivationInputTag = WxGameplayTags::Input_Skill_@;
+	// 입력 태그(Input.Skill.1~4)는 AbilitySet 항목의 InputTag로 지정한다.
 }
 
 void UWxAbility_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

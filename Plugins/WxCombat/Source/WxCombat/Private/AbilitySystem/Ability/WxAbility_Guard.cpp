@@ -20,8 +20,6 @@ UWxAbility_Guard::UWxAbility_Guard()
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 
 	bRetriggerInstancedAbility = true;
-
-	ActivationInputTag = WxGameplayTags::Input_Guard;
 }
 
 void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)

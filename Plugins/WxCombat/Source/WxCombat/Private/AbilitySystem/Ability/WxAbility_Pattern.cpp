@@ -12,28 +12,6 @@ UWxAbility_Pattern::UWxAbility_Pattern()
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Pattern);
 }
 
-#if WITH_EDITOR
-bool UWxAbility_Pattern::CanEditChange(const FProperty* InProperty) const
-{
-	if (!Super::CanEditChange(InProperty))
-	{
-		return false;
-	}
-
-	if (InProperty)
-	{
-		const FName PropertyName = InProperty->GetFName();
-
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, ActivationInputTag))
-		{
-			return false;
-		}
-	}
-
-	return true;
-}
-#endif
-
 void UWxAbility_Pattern::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);

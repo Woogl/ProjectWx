@@ -57,10 +57,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	EWxAbilityActivationPolicy ActivationPolicy = EWxAbilityActivationPolicy::OnInputTriggered;
 
-	/** 이 어빌리티를 활성화할 입력 태그. GiveAbility 시 DynamicAbilityTags에 추가됨 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx", meta = (Categories = "Input"))
-	FGameplayTag ActivationInputTag;
-
 	/** 어빌리티 아이콘. UI에서 표시 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|UI")
 	TSoftObjectPtr<UTexture2D> AbilityIcon;

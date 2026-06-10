@@ -15,8 +15,6 @@ UWxAbility_Interact::UWxAbility_Interact()
 	SetAssetTags(AssetTags);
 
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
-
-	ActivationInputTag = WxGameplayTags::Input_Interact;
 }
 
 void UWxAbility_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

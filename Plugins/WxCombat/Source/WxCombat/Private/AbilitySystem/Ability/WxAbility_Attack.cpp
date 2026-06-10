@@ -8,8 +8,6 @@
 
 UWxAbility_Attack::UWxAbility_Attack()
 {
-	ActivationInputTag = WxGameplayTags::Input_Attack;
-
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Attack);
 	SetAssetTags(AssetTags);

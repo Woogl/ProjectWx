@@ -49,8 +49,8 @@
 - `Time` — 글로벌 타임딜레이션 컴포넌트
 
 ## 확장 포인트 / 규약
-- 새 어빌리티: `UWxAbilityBase` 상속. `ActivationPolicy`(입력/부여) + `ActivationInputTag` 지정, 쿨다운/코스트는 `CooldownTime`/`MaxRecharges`/`MPCost`/`UPCost` 프로퍼티로 데이터 주도. 후딜 캔슬 구간은 `StartRecovery()`로 진입.
-- 데이터 주도: 캐릭터별 시작 능력은 `UWxAbilitySet` DataAsset(어빌리티/이펙트/어트리뷰트 초기 Row). 어빌리티 수치는 `WxAbilityTableRow`, 데미지는 `WxDamageTableRow` DataTable Row로 오버라이드.
+- 새 어빌리티: `UWxAbilityBase` 상속. `ActivationPolicy`(입력/부여) 지정, 쿨다운/코스트는 `CooldownTime`/`MaxRecharges`/`MPCost`/`UPCost` 프로퍼티로 데이터 주도. 후딜 캔슬 구간은 `StartRecovery()`로 진입. 입력으로 발동하는 어빌리티는 어빌리티가 아니라 AbilitySet 항목의 `InputTag`로 입력을 연결한다(Lyra 방식).
+- 데이터 주도: 캐릭터별 시작 능력은 `UWxAbilitySet` DataAsset. 어빌리티는 `FWxAbilitySet_GameplayAbility{Ability, InputTag}` 항목으로 부여하며, `InputTag`가 부여 Spec의 소스 태그가 되어 ASC 입력 매칭의 키가 된다. 어트리뷰트 초기값은 Row, 어빌리티 수치는 `WxAbilityTableRow`, 데미지는 `WxDamageTableRow` DataTable Row로 오버라이드.
 - 데미지 경로: 무기/투사체는 `FWxDamageInfo`→`MakeSpecs`→Damage GE, 그 외 광역/환경 단발은 `UWxCombatLibrary::ApplyDamage`/`ApplyRawDamage`. 최종값은 `IncomingDamage` 메타 어트리뷰트로 모아 `PostGameplayEffectExecute`에서 HP 차감.
 - 리플리케이션(최대 4인): 어트리뷰트는 `ReplicatedUsing` OnRep, 입력 태그/래그돌은 ASC에서 서버 RPC·복제, 타임딜레이션은 GameState 컴포넌트가 서버 권위로 전 머신 동기화.
 

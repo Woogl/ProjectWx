@@ -21,29 +21,6 @@ UWxAbility_Pattern_Phase::UWxAbility_Pattern_Phase()
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 }
 
-#if WITH_EDITOR
-bool UWxAbility_Pattern_Phase::CanEditChange(const FProperty* InProperty) const
-{
-	if (!Super::CanEditChange(InProperty))
-	{
-		return false;
-	}
-
-	if (InProperty)
-	{
-		const FName PropertyName = InProperty->GetFName();
-
-		// AI가 직접 발동하므로 입력 태그는 사용하지 않는다.
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, ActivationInputTag))
-		{
-			return false;
-		}
-	}
-
-	return true;
-}
-#endif
-
 void UWxAbility_Pattern_Phase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "Engine/DataTable.h"
+#include "GameplayTagContainer.h"
 #include "GameplayAbilitySpecHandle.h"
 #include "ActiveGameplayEffectHandle.h"
 #include "WxAbilitySet.generated.h"
@@ -12,6 +13,23 @@
 class UWxAbilityBase;
 class UGameplayEffect;
 class UWxAbilitySystemComponent;
+
+/**
+ * AbilitySet이 부여할 단일 어빌리티 항목.
+ * InputTag는 부여 시 Spec의 DynamicSpecSourceTags에 추가되어 입력 라우팅의 키가 된다.
+ * 입력으로 발동하지 않는 어빌리티(AI 패턴 등)는 InputTag를 비워둔다.
+ */
+USTRUCT(BlueprintType)
+struct FWxAbilitySet_GameplayAbility
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UWxAbilityBase> Ability = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Input"))
+	FGameplayTag InputTag;
+};
 
 /**
  * AbilitySet 부여 결과를 저장하는 핸들 구조체.
@@ -49,7 +67,7 @@ protected:
 	FDataTableRowHandle AttributeInitRow;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
-	TArray<TSubclassOf<UWxAbilityBase>> GrantedAbilities;
+	TArray<FWxAbilitySet_GameplayAbility> GrantedAbilities;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Effects")
 	TArray<TSubclassOf<UGameplayEffect>> GrantedEffects;

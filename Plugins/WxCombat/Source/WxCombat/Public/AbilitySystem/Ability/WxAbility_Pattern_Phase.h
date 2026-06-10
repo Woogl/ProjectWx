@@ -24,10 +24,6 @@ class WXCOMBAT_API UWxAbility_Pattern_Phase : public UWxAbilityBase
 public:
 	UWxAbility_Pattern_Phase();
 
-#if WITH_EDITOR
-	virtual bool CanEditChange(const FProperty* InProperty) const override;
-#endif
-
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 

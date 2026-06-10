@@ -12,8 +12,6 @@ UWxAbility_Ultimate::UWxAbility_Ultimate()
 	AssetTags.AddTag(WxGameplayTags::Ability_Ultimate);
 	SetAssetTags(AssetTags);
 
-	ActivationInputTag = WxGameplayTags::Input_Ultimate;
-
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	ActivationOwnedTags.AddTag(WxGameplayTags::State_SuperArmor);

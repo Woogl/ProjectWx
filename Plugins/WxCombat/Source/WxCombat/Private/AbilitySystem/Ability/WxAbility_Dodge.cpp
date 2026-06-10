@@ -23,8 +23,6 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 
 	// 회피 중에는 락온 태스크가 몸체 회전을 양보하도록 상태를 발행한다(회전 점유 충돌 방지).
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Dodge);
-
-	ActivationInputTag = WxGameplayTags::Input_Dodge;
 }
 
 void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

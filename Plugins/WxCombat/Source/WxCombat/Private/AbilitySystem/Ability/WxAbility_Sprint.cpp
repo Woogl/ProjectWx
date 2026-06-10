@@ -12,8 +12,6 @@ UWxAbility_Sprint::UWxAbility_Sprint()
 	SetAssetTags(AssetTags);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 
-	ActivationInputTag = WxGameplayTags::Input_Sprint;
-	
 	SprintEffectClass = UWxEffect_Sprint::StaticClass();
 }
 
