@@ -2,7 +2,8 @@
 	"blueprintPath": "/Game/UI/Widget/WBP_GameHUD.WBP_GameHUD",
 	"classDefaults":
 	{
-		"AcquiredItemList": ""
+		"AcquiredItemList": "",
+		"MainMenuWidgetClass": "/Game/UI/Widget/WBP_MainMenu.WBP_MainMenu_C"
 	},
 	"eventGraph":
 	{
