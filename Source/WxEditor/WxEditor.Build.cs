@@ -23,7 +23,10 @@ public class WxEditor : ModuleRules
 			"SlateCore",
 			"PropertyEditor",
 			"UnrealEd",
+			"WxCombat",
+			"WxCore",
 			"WxInventory",
+			"WxUI",
 		});
 	}
 }

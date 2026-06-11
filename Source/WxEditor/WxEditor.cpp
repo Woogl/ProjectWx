@@ -2,12 +2,15 @@
 
 #include "WxEditor.h"
 
+#include "Engine/Blueprint.h"
 #include "Items/WxItemDefinition.h"
 #include "Modules/ModuleManager.h"
 #include "PropertyEditorModule.h"
+#include "ThumbnailRendering/BlueprintThumbnailRenderer.h"
 #include "ThumbnailRendering/ThumbnailManager.h"
 #include "UObject/Object.h"
 #include "UObject/UObjectGlobals.h"
+#include "WxAbilityThumbnailRenderer.h"
 #include "WxCategoryDetailCustomization.h"
 #include "WxItemDefinitionThumbnailRenderer.h"
 
@@ -32,6 +35,13 @@ void FWxEditorModule::StartupModule()
 	UThumbnailManager::Get().RegisterCustomRenderer(
 		UWxItemDefinition::StaticClass(),
 		UWxItemDefinitionThumbnailRenderer::StaticClass());
+
+	// 어빌리티 BP 썸네일을 UIData 아이콘으로 렌더링하기 위해, 엔진이 ini 로 등록한 기본 Blueprint 렌더러를 파생 렌더러로 교체한다.
+	// RegisterCustomRenderer 는 동일 클래스 중복 등록을 거부하므로 기존 등록을 먼저 해제해야 한다.
+	UThumbnailManager::Get().UnregisterCustomRenderer(UBlueprint::StaticClass());
+	UThumbnailManager::Get().RegisterCustomRenderer(
+		UBlueprint::StaticClass(),
+		UWxAbilityThumbnailRenderer::StaticClass());
 }
 
 void FWxEditorModule::ShutdownModule()
@@ -47,5 +57,11 @@ void FWxEditorModule::ShutdownModule()
 	if (UObjectInitialized())
 	{
 		UThumbnailManager::Get().UnregisterCustomRenderer(UWxItemDefinition::StaticClass());
+
+		// 가로챘던 Blueprint 렌더러를 엔진 기본 렌더러로 복원한다.
+		UThumbnailManager::Get().UnregisterCustomRenderer(UBlueprint::StaticClass());
+		UThumbnailManager::Get().RegisterCustomRenderer(
+			UBlueprint::StaticClass(),
+			UBlueprintThumbnailRenderer::StaticClass());
 	}
 }
