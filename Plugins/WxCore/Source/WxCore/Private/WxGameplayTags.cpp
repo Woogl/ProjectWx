@@ -93,4 +93,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_GameMenu, "UI.Layer.GameMenu");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Menu, "UI.Layer.Menu");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Modal, "UI.Layer.Modal");
+
+	UE_DEFINE_GAMEPLAY_TAG(UI_Action_Inventory, "UI.Action.Inventory");
+	UE_DEFINE_GAMEPLAY_TAG(UI_Action_MainMenu, "UI.Action.MainMenu");
 }

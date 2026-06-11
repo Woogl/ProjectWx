@@ -4,8 +4,8 @@
 
 #include "CommonInputModeTypes.h"
 #include "Input/CommonUIInputTypes.h"
-#include "Input/WxUITags.h"
 #include "System/WxUIManagerSubsystem.h"
+#include "UITag.h"
 #include "WxGameplayTags.h"
 
 void UWxHUDLayout::NativeOnInitialized()
@@ -18,13 +18,13 @@ void UWxHUDLayout::NativeOnInitialized()
 	// HUD는 GetDesiredInputConfig로 Game 모드를 적용하므로(게임 입력 유지), 바인딩도 Game이어야 게임 플레이 중 매칭된다.
 	// (InputMode=All은 'ActiveMode가 정확히 All일 때만' 매칭되어 Game 모드에선 무시된다.)
 	// Menu 모드(메뉴 열림)에선 자동으로 매칭되지 않으므로 중첩 열기도 방지된다.
-	FBindUIActionArgs InventoryArgs(FWxUITags::Get().UIAction_Inventory, FSimpleDelegate::CreateUObject(this, &UWxHUDLayout::HandleInventoryAction));
+	FBindUIActionArgs InventoryArgs(FUIActionTag::ConvertChecked(WxGameplayTags::UI_Action_Inventory), FSimpleDelegate::CreateUObject(this, &UWxHUDLayout::HandleInventoryAction));
 	InventoryArgs.InputMode = ECommonInputMode::Game;
 	RegisterUIActionBinding(InventoryArgs);
 
-	FBindUIActionArgs PauseArgs(FWxUITags::Get().UIAction_PauseMenu, FSimpleDelegate::CreateUObject(this, &UWxHUDLayout::HandlePauseMenuAction));
-	PauseArgs.InputMode = ECommonInputMode::Game;
-	RegisterUIActionBinding(PauseArgs);
+	FBindUIActionArgs MainMenuArgs(FUIActionTag::ConvertChecked(WxGameplayTags::UI_Action_MainMenu), FSimpleDelegate::CreateUObject(this, &UWxHUDLayout::HandleMainMenuAction));
+	MainMenuArgs.InputMode = ECommonInputMode::Game;
+	RegisterUIActionBinding(MainMenuArgs);
 }
 
 void UWxHUDLayout::HandleInventoryAction()
@@ -32,9 +32,9 @@ void UWxHUDLayout::HandleInventoryAction()
 	PushMenuWidget(InventoryWidgetClass);
 }
 
-void UWxHUDLayout::HandlePauseMenuAction()
+void UWxHUDLayout::HandleMainMenuAction()
 {
-	PushMenuWidget(PauseMenuWidgetClass);
+	PushMenuWidget(MainMenuWidgetClass);
 }
 
 void UWxHUDLayout::PushMenuWidget(TSoftClassPtr<UWxActivatableWidget> WidgetClass)

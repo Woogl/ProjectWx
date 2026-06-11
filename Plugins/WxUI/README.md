@@ -35,9 +35,8 @@
 | `UWxUILibrary` | BP용 UI 유틸(매니저/레이아웃 조회, 레이어·Activatable 제어) | `Plugins/WxUI/Source/WxUI/Public/WxUILibrary.h` |
 
 ## Gameplay Tags
-- 선언: `Plugins/WxUI/Source/WxUI/Public/Input/WxUITags.h` (`FWxUITags`)
-- 주요 네임스페이스: `UI.Action.*` — CommonUI 액션 태그(`FUIActionTag`, 인벤토리/일시정지 메뉴 토글). 일반 게임플레이 태그와 등록 방식이 달라 별도 `FGameplayTagNativeAdder`로 선언하며 키 매핑은 CommonUI Input Settings에서 지정.
-- 참고: 레이어 태그 `UI.Layer.*`는 본 모듈이 아니라 `WxGameplayTags`(WxCore)에 선언되어 있고 WxUI가 소비한다.
+- 선언: `UI.Action.*`/`UI.Layer.*` 모두 `WxGameplayTags`(WxCore)에 네이티브 태그로 선언되어 있고 WxUI가 소비한다.
+- 주요 네임스페이스: `UI.Action.*` — CommonUI 액션 태그(인벤토리/메인 메뉴 토글). HUD에서 `FUIActionTag::ConvertChecked`로 변환해 `RegisterUIActionBinding`에 바인딩하며, 키 매핑은 CommonUI Input Settings에서 지정.
 
 ## 확장 포인트 / 규약
 - **새 화면 추가**: `UWxActivatableWidget`를 부모로 WBP를 만들고, `UWxUILibrary::GetUIManagerSubsystem` → `PushContentToLayer(LayerTag, …)` 또는 `UWxAsyncAction_PushWidgetToLayer`로 푸시. `LayerTag`는 `UI.Layer.*`(WxCore 선언) 중 하나.

@@ -20,15 +20,15 @@ protected:
 	virtual void NativeOnInitialized() override;
 
 	void HandleInventoryAction();
-	void HandlePauseMenuAction();
+	void HandleMainMenuAction();
 
 	/** UI.Action.Inventory 입력 시 Menu 레이어에 푸시할 위젯 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|UI")
 	TSoftClassPtr<UWxActivatableWidget> InventoryWidgetClass;
 
-	/** UI.Action.PauseMenu 입력 시 Menu 레이어에 푸시할 위젯 */
+	/** UI.Action.MainMenu 입력 시 Menu 레이어에 푸시할 위젯 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|UI")
-	TSoftClassPtr<UWxActivatableWidget> PauseMenuWidgetClass;
+	TSoftClassPtr<UWxActivatableWidget> MainMenuWidgetClass;
 
 private:
 	void PushMenuWidget(TSoftClassPtr<UWxActivatableWidget> WidgetClass);
