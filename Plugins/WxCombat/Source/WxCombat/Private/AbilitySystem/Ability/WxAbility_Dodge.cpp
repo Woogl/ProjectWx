@@ -30,7 +30,7 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 
-	if (DirectionalDodgeMontages.Num() == 0 || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	if (!DodgeMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -38,7 +38,7 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 	if (IsLocallyControlled())
 	{
-		// 로컬 클라이언트(또는 리슨 서버 호스트): 입력 방향을 캐릭터 로컬 공간으로 변환해 8방향 몽타주 선택.
+		// 로컬 클라이언트(또는 리슨 서버 호스트): 입력 방향을 캐릭터 로컬 공간으로 변환해 8방향 섹션 선택.
 		// 로컬 공간(정면 기준)으로 변환해 두면 서버는 자신의 facing과 무관하게 동일한 방향을 계산한다(몽타주 정합성 보장).
 		FVector LocalDodgeDirection = FVector::ZeroVector;
 		if (const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
@@ -47,7 +47,7 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 			LocalDodgeDirection = Character->GetActorTransform().InverseTransformVectorNoScale(WorldInput);
 		}
 
-		// 리모트 클라이언트인 경우 서버에 방향 전송 (서버가 동일 방향 몽타주를 선택)
+		// 리모트 클라이언트인 경우 서버에 방향 전송 (서버가 동일 방향 섹션을 선택)
 		if (ASC && !HasAuthority(&ActivationInfo))
 		{
 			FGameplayAbilityTargetDataHandle DataHandle;
@@ -128,10 +128,11 @@ void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 EWxDodgeDirection UWxAbility_Dodge::ResolveDodgeDirection(const FVector& LocalDirection) const
 {
 	// 입력은 캐릭터 로컬 공간(정면 +X, 오른쪽 +Y). facing을 참조하지 않으므로 클라이언트/서버가 동일 결과를 낸다.
+	// 이동 입력이 없으면 후방 회피(백스텝)로 처리한다.
 	const FVector Local = LocalDirection.GetSafeNormal2D();
 	if (Local.IsNearlyZero())
 	{
-		return EWxDodgeDirection::Forward;
+		return EWxDodgeDirection::Back;
 	}
 
 	// 정면 기준 부호 있는 각도(+Y=오른쪽=시계 방향 +)를 45° 단위로 양자화해 8분면 인덱스(0=Forward)로 매핑.
@@ -140,29 +141,34 @@ EWxDodgeDirection UWxAbility_Dodge::ResolveDodgeDirection(const FVector& LocalDi
 	return static_cast<EWxDodgeDirection>(Octant);
 }
 
-UAnimMontage* UWxAbility_Dodge::SelectDodgeMontage(const FVector& LocalDirection) const
+FName UWxAbility_Dodge::SelectDodgeSection(const FVector& LocalDirection) const
 {
+	if (!DodgeMontage)
+	{
+		return NAME_None;
+	}
+
+	// 섹션 이름은 EWxDodgeDirection 항목명과 동일한 규약을 사용한다.
 	const EWxDodgeDirection DodgeDirection = ResolveDodgeDirection(LocalDirection);
-	if (const TObjectPtr<UAnimMontage>* Found = DirectionalDodgeMontages.Find(DodgeDirection))
+	const FName SectionName(StaticEnum<EWxDodgeDirection>()->GetNameStringByValue(static_cast<int64>(DodgeDirection)));
+	if (DodgeMontage->IsValidSectionName(SectionName))
 	{
-		if (*Found)
-		{
-			return *Found;
-		}
+		return SectionName;
 	}
 
-	// 미매핑(또는 비어 있는) 방향은 전방 회피로 폴백
-	if (const TObjectPtr<UAnimMontage>* Forward = DirectionalDodgeMontages.Find(EWxDodgeDirection::Forward))
+	// 구성되지 않은 방향 섹션은 전방 회피로 폴백
+	const FName ForwardSection(StaticEnum<EWxDodgeDirection>()->GetNameStringByValue(static_cast<int64>(EWxDodgeDirection::Forward)));
+	if (DodgeMontage->IsValidSectionName(ForwardSection))
 	{
-		return *Forward;
+		return ForwardSection;
 	}
 
-	return nullptr;
+	return NAME_None;
 }
 
 bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 {
-	if (!PlayMontage(SelectDodgeMontage(LocalDirection)))
+	if (!PlayMontage(DodgeMontage, SelectDodgeSection(LocalDirection)))
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 		return false;
@@ -173,7 +179,7 @@ bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 
 void UWxAbility_Dodge::HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag)
 {
-	// 클라이언트가 캐릭터 로컬 공간으로 변환해 보낸 방향. 서버는 그대로 사용해 동일한 8방향 몽타주를 선택한다.
+	// 클라이언트가 캐릭터 로컬 공간으로 변환해 보낸 방향. 서버는 그대로 사용해 동일한 8방향 섹션을 선택한다.
 	FVector LocalDirection = FVector::ZeroVector;
 	if (const FWxAbilityTargetData_Direction* DirectionData = static_cast<const FWxAbilityTargetData_Direction*>(DataHandle.Get(0)))
 	{
@@ -227,7 +233,7 @@ void UWxAbility_Dodge::PlayDodgeCounterMontage()
 	}
 }
 
-bool UWxAbility_Dodge::PlayMontage(UAnimMontage* Montage)
+bool UWxAbility_Dodge::PlayMontage(UAnimMontage* Montage, FName StartSection)
 {
 	// EndTask가 AnimInstance 바인딩을 해제하므로 구 태스크의 후속 이벤트는 발송되지 않는다.
 	if (MontageTask)
@@ -242,7 +248,7 @@ bool UWxAbility_Dodge::PlayMontage(UAnimMontage* Montage)
 	}
 
 	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, Montage, 1.f, NAME_None, true, 1.f, 0.f, true);
+		this, NAME_None, Montage, 1.f, StartSection, true, 1.f, 0.f, true);
 	if (!MontageTask)
 	{
 		return false;

@@ -32,7 +32,7 @@ enum class EWxDodgeDirection : uint8
  * 회피 어빌리티.
  *
  * 사용 흐름:
- *  1. 입력 → ActivateAbility → 입력 방향에 해당하는 8방향 회피 몽타주 재생, Event.DodgeSuccess 대기
+ *  1. 입력 → ActivateAbility → 회피 몽타주를 입력 방향에 해당하는 8방향 섹션부터 재생, Event.DodgeSuccess 대기
  *  2. 몽타주의 State.Invincible 구간 동안 무적
  *  3. 무적 중 피격(극한 회피) → PerfectDodgeMontage 재생
  *  4. ANS_ComboWindow 구간 내 공격 입력 시 DodgeCounterMontage로 전환
@@ -55,11 +55,12 @@ protected:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 	/**
-	 * 8방향별 회피 몽타주. 입력 방향을 캐릭터 정면 기준 8분면으로 양자화해 선택한다.
-	 * 매핑되지 않은 방향은 Forward 몽타주로 폴백하므로, 일부 방향만 채워 점진적으로 구성할 수 있다.
+	 * 8방향 회피 섹션을 담은 몽타주. 입력 방향을 캐릭터 정면 기준 8분면으로 양자화해 섹션을 선택한다.
+	 * 섹션 이름은 EWxDodgeDirection 항목명(Forward, ForwardRight, ...)과 동일해야 하며, 각 섹션은 다음 섹션과의 링크를 끊어 한 방향만 재생되도록 구성한다.
+	 * 구성되지 않은 방향 섹션은 Forward 섹션으로 폴백하므로, 일부 섹션만 채워 점진적으로 구성할 수 있다.
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TMap<EWxDodgeDirection, TObjectPtr<UAnimMontage>> DirectionalDodgeMontages;
+	TObjectPtr<UAnimMontage> DodgeMontage;
 
 	/** 극한 회피 성공 시 재생할 몽타주 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
@@ -82,17 +83,17 @@ protected:
 	float PerfectDodgeSlowTimeDuration = 0.4f;
 
 private:
-	/** 캐릭터 로컬 공간 입력 방향(정면 +X, 오른쪽 +Y)을 8분면으로 양자화한다. 방향이 0이면 Forward. facing 무관(클라/서버 동일 결과). */
+	/** 캐릭터 로컬 공간 입력 방향(정면 +X, 오른쪽 +Y)을 8분면으로 양자화한다. 방향이 0이면 Back(백스텝). facing 무관(클라/서버 동일 결과). */
 	EWxDodgeDirection ResolveDodgeDirection(const FVector& LocalDirection) const;
 
-	/** 로컬 공간 입력 방향에 해당하는 회피 몽타주를 반환한다. 미매핑 방향은 Forward 몽타주로 폴백. */
-	UAnimMontage* SelectDodgeMontage(const FVector& LocalDirection) const;
+	/** 로컬 공간 입력 방향에 해당하는 회피 몽타주 섹션 이름을 반환한다. 미구성 섹션은 Forward로 폴백, Forward 섹션도 없으면 NAME_None(몽타주 처음부터 재생). */
+	FName SelectDodgeSection(const FVector& LocalDirection) const;
 
-	/** 로컬 공간 입력 방향에 맞는 회피 몽타주를 선택해 재생한다. 실패 시 EndAbility 후 false 반환. */
+	/** 로컬 공간 입력 방향에 맞는 회피 몽타주 섹션을 선택해 재생한다. 실패 시 EndAbility 후 false 반환. */
 	bool StartDodge(const FVector& LocalDirection);
 
-	/** 진행 중인 몽타주 태스크를 정리하고 새 몽타주를 재생한다. 재생 실패 시 false 반환. */
-	bool PlayMontage(UAnimMontage* Montage);
+	/** 진행 중인 몽타주 태스크를 정리하고 새 몽타주를 StartSection부터 재생한다. 재생 실패 시 false 반환. */
+	bool PlayMontage(UAnimMontage* Montage, FName StartSection = NAME_None);
 
 	void HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag);
 	void ListenForDodgeSuccess();
