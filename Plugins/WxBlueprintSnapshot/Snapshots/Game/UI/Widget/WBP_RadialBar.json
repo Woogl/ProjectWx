@@ -59,7 +59,7 @@
 							"Y": 100
 						},
 						"ImageType": "FullColor",
-						"ResourceObject": "/Game/UIMaterialLab/Materials/5_Masks/4_RadialSegments/MI_UI_Radial_SP.MI_UI_Radial_SP"
+						"ResourceObject": "/Game/UIMaterialLab/Materials/5_Masks/4_RadialSegments/M_UI_Radial_Attribute.M_UI_Radial_Attribute"
 					}
 				},
 				"parent": "HorizontalBox_1",
