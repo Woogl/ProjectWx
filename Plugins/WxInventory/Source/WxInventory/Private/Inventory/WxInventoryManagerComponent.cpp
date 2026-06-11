@@ -320,6 +320,10 @@ UWxItemInstance* UWxInventoryManagerComponent::AddItemDefinition(const UWxItemDe
 		NotifySlotChangedFromList(NewInstance, ChunkCount, ChunkCount);
 		NotifyStackChangedFromList(ItemDef, ChunkCount);
 
+		// 충전형은 OnInstanceCreated 에서 초기 충전량이 set 만 되므로, 추가 시점에 원천이 직접 발행해야 먼저 초기화된 VM 에도 반영된다.
+		const int32 InitialCharges = NewInstance->GetCurrentCharges();
+		NotifyChargeChangedFromSource(NewInstance, InitialCharges, InitialCharges);
+
 		Remaining -= ChunkCount;
 		if (!FirstAffected)
 		{

@@ -22,7 +22,7 @@ class UMVVMView;
  *   - Initialize(Inventory, ItemInstance) : 특정 슬롯에 바인딩. ListView 엔트리처럼 동일 ItemDef 가 분할된 슬롯을 각자 표현해야 할 때 사용. 슬롯 단위 델리게이트에 구독한다.
  *   - Initialize(Inventory, ItemDef)      : ItemDef 합계에 바인딩. HUD 재화 등 "해당 아이템 총 보유량" 을 표시할 때 사용(Resolver 경로). 합계 델리게이트에 구독한다.
  *
- * UMG 는 TotalCount/CurrentCharges/MaxCharges/Icon/DisplayName/Grade 에 직접 바인딩을 건다. 정적 표시 데이터(Icon/DisplayName/Grade/MaxCharges)는 Initialize 시점 1회 세팅되며 이후 변하지 않는다. Icon 은 Soft 참조 그대로 전달되므로, View 측은 UCommonLazyImage 의 SetBrushFromLazyDisplayAsset 으로 비동기 로드한다. CurrentCharges 는 충전형(Charges Fragment) 아이템 전용으로, OnInventoryChargeChanged 구독으로 갱신된다(비충전형은 0 고정).
+ * UMG 는 TotalCount/CurrentCharges/MaxCharges/Icon/DisplayName/Grade 에 직접 바인딩을 건다. 정적 표시 데이터(DisplayName/Grade/MaxCharges)는 Initialize 시점 1회 세팅되며 이후 변하지 않는다. Icon 은 Soft 참조 그대로 전달되므로, View 측은 UCommonLazyImage 의 SetBrushFromLazyDisplayAsset 으로 비동기 로드한다. CurrentCharges 는 충전형(Charges Fragment) 아이템 전용으로, OnInventoryChargeChanged 구독으로 갱신된다(비충전형은 0 고정). 충전형의 Icon 은 충전량 변경 시 ChargeIcons[CurrentCharges] 로 함께 갱신된다.
  *
  * AcquiredCount 는 토스트 등 1회용 표시를 위한 채널이다. 본 VM 자체는 갱신하지 않으며, 외부(VM_Inventory) 가 broadcast 직전에 Delta 를 써넣어 OneTime 바인딩으로 소비된다. FieldNotify 가 아니므로 OneWay 바인딩에는 사용하지 않는다.
  */
@@ -90,7 +90,7 @@ protected:
 	/** Icon/Name/Grade 세팅 및 초기 TotalCount 갱신 공통 루틴. */
 	void ApplyStaticDataFromDef(const UWxItemDefinition* InItemDef);
 
-	/** 대상 인스턴스의 현재 충전수 기준 표시 아이콘으로 Icon 을 갱신한다. 슬롯 모드 전용. */
+	/** 추적 인스턴스(슬롯 모드는 바인딩 인스턴스, Def 모드는 첫 인스턴스)의 현재 충전수 기준 표시 아이콘으로 Icon 을 갱신한다. */
 	void RefreshChargeIcon();
 
 	TWeakObjectPtr<UWxInventoryManagerComponent> CachedInventory;

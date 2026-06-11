@@ -54,6 +54,7 @@ void UWxViewModel_Item::Initialize(UWxInventoryManagerComponent* InInventory, co
 	{
 		UE_MVVM_SET_PROPERTY_VALUE(CurrentCharges, FirstInstance->GetCurrentCharges());
 	}
+	RefreshChargeIcon();
 
 	SetInitialized(true);
 }
@@ -132,7 +133,15 @@ void UWxViewModel_Item::HandleChargeChanged(UWxItemInstance* Instance, int32 New
 
 void UWxViewModel_Item::RefreshChargeIcon()
 {
-	if (const UWxItemInstance* Instance = TargetInstance.Get())
+	// 슬롯 모드는 바인딩 인스턴스, Def 모드는 첫 인스턴스를 기준으로 한다(CurrentCharges 와 동일 기준).
+	const UWxItemInstance* Instance = TargetInstance.Get();
+	if (!Instance)
+	{
+		const UWxInventoryManagerComponent* Inventory = CachedInventory.Get();
+		Instance = Inventory ? Inventory->FindFirstItemStackByDefinition(TargetItemDef.Get()) : nullptr;
+	}
+
+	if (Instance)
 	{
 		UE_MVVM_SET_PROPERTY_VALUE(Icon, Instance->GetDisplayIcon());
 	}
