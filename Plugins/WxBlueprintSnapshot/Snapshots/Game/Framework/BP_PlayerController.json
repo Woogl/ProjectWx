@@ -10,11 +10,7 @@
 			{
 				"DefaultItems": [
 					{
-						"Item": "/Game/Item/DA_Estus.DA_Estus"
-					},
-					{
-						"Item": "/Game/Item/DA_Gold.DA_Gold",
-						"Quantity": 100
+						"Item": "/Game/Item/DA_Potion.DA_Potion"
 					}
 				]
 			}
