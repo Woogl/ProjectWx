@@ -27,6 +27,7 @@ void UWxViewModel_Item::Initialize(UWxInventoryManagerComponent* InInventory, UW
 	ChargeChangedHandle = InInventory->OnInventoryChargeChanged.AddUObject(this, &UWxViewModel_Item::HandleChargeChanged);
 
 	ApplyStaticDataFromDef(InInstance->GetItemDef());
+	RefreshChargeIcon();
 	UE_MVVM_SET_PROPERTY_VALUE(TotalCount, InInventory->GetStackCountByInstance(InInstance));
 	UE_MVVM_SET_PROPERTY_VALUE(CurrentCharges, InInstance->GetCurrentCharges());
 
@@ -126,6 +127,15 @@ void UWxViewModel_Item::HandleChargeChanged(UWxItemInstance* Instance, int32 New
 	}
 
 	UE_MVVM_SET_PROPERTY_VALUE(CurrentCharges, NewCharges);
+	RefreshChargeIcon();
+}
+
+void UWxViewModel_Item::RefreshChargeIcon()
+{
+	if (const UWxItemInstance* Instance = TargetInstance.Get())
+	{
+		UE_MVVM_SET_PROPERTY_VALUE(Icon, Instance->GetDisplayIcon());
+	}
 }
 
 void UWxViewModel_Item::ApplyStaticDataFromDef(const UWxItemDefinition* InItemDef)

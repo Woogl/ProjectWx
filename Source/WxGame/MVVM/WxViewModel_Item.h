@@ -84,11 +84,14 @@ protected:
 	/** 슬롯 모드 핸들러. */
 	void HandleSlotChanged(UWxItemInstance* Instance, int32 NewStackCount, int32 Delta);
 
-	/** 충전량 변경 핸들러(슬롯/Def 모드 공통). 추적 대상 인스턴스의 변경만 반영한다. */
+	/** 충전량 변경 핸들러(슬롯/Def 모드 공통). 추적 대상 인스턴스의 변경을 CurrentCharges 와 표시 Icon 에 반영한다. */
 	void HandleChargeChanged(UWxItemInstance* Instance, int32 NewCharges, int32 Delta);
 
 	/** Icon/Name/Grade 세팅 및 초기 TotalCount 갱신 공통 루틴. */
 	void ApplyStaticDataFromDef(const UWxItemDefinition* InItemDef);
+
+	/** 대상 인스턴스의 현재 충전수 기준 표시 아이콘으로 Icon 을 갱신한다. 슬롯 모드 전용. */
+	void RefreshChargeIcon();
 
 	TWeakObjectPtr<UWxInventoryManagerComponent> CachedInventory;
 

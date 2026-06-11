@@ -8,6 +8,7 @@
 
 #include "WxItemInstance.generated.h"
 
+class UTexture2D;
 class UWxItemDefinition;
 class UWxItemFragment;
 
@@ -50,6 +51,9 @@ public:
 
 	/** Charges Fragment 의 MaxCharges. Fragment 가 없으면 0. */
 	int32 GetMaxCharges() const;
+
+	/** 현재 상태 표시 아이콘. 충전형이면 Charges Fragment 의 ChargeIcons[CurrentCharges] 를, 없으면 Definition 의 기본 Icon 을 반환한다. */
+	TSoftObjectPtr<UTexture2D> GetDisplayIcon() const;
 
 	/**
 	 * 권한: 충전 횟수를 설정한다. [0, MaxCharges] 로 클램프된다.

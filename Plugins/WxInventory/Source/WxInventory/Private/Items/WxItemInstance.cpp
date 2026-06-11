@@ -49,6 +49,24 @@ int32 UWxItemInstance::GetMaxCharges() const
 	return Charges ? Charges->MaxCharges : 0;
 }
 
+TSoftObjectPtr<UTexture2D> UWxItemInstance::GetDisplayIcon() const
+{
+	if (!ItemDef)
+	{
+		return nullptr;
+	}
+
+	if (const UWxItemFragment_Charges* Charges = FindFragmentByClass<UWxItemFragment_Charges>())
+	{
+		if (Charges->ChargeIcons.IsValidIndex(CurrentCharges) && !Charges->ChargeIcons[CurrentCharges].IsNull())
+		{
+			return Charges->ChargeIcons[CurrentCharges];
+		}
+	}
+
+	return ItemDef->Icon;
+}
+
 void UWxItemInstance::SetCurrentCharges(int32 InCharges)
 {
 	CurrentCharges = FMath::Clamp(InCharges, 0, GetMaxCharges());
