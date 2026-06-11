@@ -53,4 +53,4 @@
 - 경계: [[WxUI]](표현), [[WxWorld]](픽업 액터/드롭), [[WxCombat]](장착 구현·GE), [[WxQuest]](보상 지급), `WxGame` Character(`IWxEquipmentInterface` 구현)
 
 ---
-*문서 기준 커밋 `2983a08e` · 생성일 2026-06-11 · 소스 11파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `5ae4876` · 생성일 2026-06-11 · 소스 12파일 — `/readme-writer`로 갱신*

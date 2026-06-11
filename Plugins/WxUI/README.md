@@ -59,4 +59,4 @@
 - 공용 정의: [[WxCore]] (`UI.Layer.*` Native Tag)
 
 ---
-*문서 기준 커밋 `eb4b2a2b` · 생성일 2026-06-11 · 소스 37파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `5ae4876` · 생성일 2026-06-11 · 소스 36파일 — `/readme-writer`로 갱신*
