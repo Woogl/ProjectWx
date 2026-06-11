@@ -12,7 +12,7 @@
 				"class": "/Script/WxUI.WxAbilityComponent_UIData",
 				"delta":
 				{
-					"Icon": "/Game/Splash/EdSplash.EdSplash"
+					"Icon": "/Game/Splash/Wx_192.Wx_192"
 				}
 			}
 		],
