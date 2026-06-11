@@ -9,6 +9,7 @@
 #include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
 #include "AbilitySystemComponent.h"
 #include "GameFramework/Character.h"
+#include "WxCombatModule.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_Dodge::UWxAbility_Dodge()
@@ -20,7 +21,7 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 
-	// 회피 중에는 락온 태스크가 몸체 회전을 양보하도록 상태를 발행한다(회전 점유 충돌 방지).
+	// 회피 중임을 태그로 발행한다(외부 시스템 분기용).
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Dodge);
 }
 
@@ -168,7 +169,46 @@ FName UWxAbility_Dodge::SelectDodgeSection(const FVector& LocalDirection) const
 
 bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 {
-	if (!PlayMontage(DodgeMontage, SelectDodgeSection(LocalDirection)))
+	const FName SectionName = SelectDodgeSection(LocalDirection);
+
+	const FVector Local = LocalDirection.GetSafeNormal2D();
+	if (!Local.IsNearlyZero())
+	{
+		// NAME_None(섹션 없는 몽타주)은 전방 이동 몽타주로 간주한다.
+		float SectionAngleDeg = 0.f;
+		if (!SectionName.IsNone())
+		{
+			SectionAngleDeg = StaticEnum<EWxDodgeDirection>()->GetValueByName(SectionName) * 45.f;
+		}
+
+		const float InputAngleDeg = FMath::RadiansToDegrees(FMath::Atan2(Local.Y, Local.X));
+		const float ResidualDeg = FRotator::NormalizeAxis(InputAngleDeg - SectionAngleDeg);
+
+		// 락온 중에는 락온 태스크가 회피 내내 몸을 타겟으로 추적해 호 궤적을 만들므로 잔차 보정을 하지 않는다.
+		// 비락온은 섹션 루트모션이 몸 기준 고정 방향이라, 양자화 잔차(±22.5°, 폴백 시 그 이상)만큼 시작 시 몸을 돌려 이동을 입력 방향과 일치시킨다.
+		// 클라이언트/서버가 동일한 LocalDirection과 락온 태그로 같은 분기를 타므로 결과 facing도 일치한다.
+		const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+		const bool bLockedOn = ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::State_LockOn);
+		if (bLockedOn)
+		{
+			UE_LOG(LogWxCombat, Log, TEXT("회피 섹션 '%s' 선택 — 입력 각도 %.1f°, 락온 타겟 추적(호 궤적)"), *SectionName.ToString(), InputAngleDeg);
+		}
+		else
+		{
+			if (AActor* Avatar = GetAvatarActorFromActorInfo())
+			{
+				Avatar->AddActorWorldRotation(FRotator(0.f, ResidualDeg, 0.f));
+			}
+
+			UE_LOG(LogWxCombat, Log, TEXT("회피 섹션 '%s' 선택 — 입력 각도 %.1f°, 몸 보정 %.1f°"), *SectionName.ToString(), InputAngleDeg, ResidualDeg);
+		}
+	}
+	else
+	{
+		UE_LOG(LogWxCombat, Log, TEXT("회피 섹션 '%s' 선택 — 무입력 백스텝"), *SectionName.ToString());
+	}
+
+	if (!PlayMontage(DodgeMontage, SectionName))
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 		return false;

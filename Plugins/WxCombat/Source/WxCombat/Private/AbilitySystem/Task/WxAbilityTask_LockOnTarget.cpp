@@ -61,15 +61,8 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 	const FRotator NewControlRotation = FMath::RInterpTo(PC->GetControlRotation(), DesiredControlRotation, DeltaTime, InterpSpeed);
 	PC->SetControlRotation(NewControlRotation);
 
-	// 회피가 몸체 회전을 점유하는 동안에는(Ability.Dodge 발행) 몸체 회전을 양보한다.
-	// 양쪽이 매 틱 SetActorRotation 으로 다른 목표를 잡아당기면 회피 방향이 엉키므로, 충돌을 피한다. 회피 종료(태그 해제) 후 다시 타겟을 향해 보간한다.
-	const UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(AvatarPawn);
-	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Dodge))
-	{
-		return;
-	}
-
 	// 캐릭터 몸체를 타겟 방향으로 yaw만 부드럽게 보간. 현재 방향에서 출발하므로 활성화 시 튀지 않는다.
+	// 회피 중에도 추적을 유지한다. 루트모션은 몸 기준이므로 추적 회전이 사이드 회피를 타겟 중심 호 궤적으로 만든다.
 	const FRotator DesiredActorRotation(0.f, LookAtRotation.Yaw, 0.f);
 	const FRotator NewActorRotation = FMath::RInterpTo(AvatarPawn->GetActorRotation(), DesiredActorRotation, DeltaTime, CharacterInterpSpeed);
 	AvatarPawn->SetActorRotation(FRotator(0.f, NewActorRotation.Yaw, 0.f));

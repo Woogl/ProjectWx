@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleInterface.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogWxCombat, Log, All);
+
 class FWxCombatModule : public IModuleInterface
 {
 public:

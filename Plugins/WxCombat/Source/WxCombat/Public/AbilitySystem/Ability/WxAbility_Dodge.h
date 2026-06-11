@@ -38,7 +38,9 @@ enum class EWxDodgeDirection : uint8
  *  4. ANS_ComboWindow 구간 내 공격 입력 시 DodgeCounterMontage로 전환
  *  5. 몽타주 완료/중단 → EndAbility
  *
- * 회피 방향은 캐릭터 정면 기준으로 계산하며 캐릭터는 회전하지 않는다(몽타주 루트모션이 방향 이동을 담당).
+ * 회피 방향은 캐릭터 정면 기준으로 계산한다.
+ * 비락온은 섹션 양자화 잔차만큼 시작 시 몸을 회전시켜 루트모션 이동을 입력 방향과 일치시킨다.
+ * 락온 중에는 락온 태스크가 회피 내내 몸을 타겟으로 추적하므로 사이드 회피가 타겟 중심 호 궤적이 된다.
  * 8분면 결정은 소유 클라이언트에서 한 번만 수행하고, 입력을 캐릭터 로컬 공간으로 변환해 TargetData로 전송한다.
  * 서버는 자신의 facing과 무관하게 동일한 8분면을 계산하므로 클라이언트/서버 몽타주가 항상 일치한다.
  */
@@ -89,7 +91,7 @@ private:
 	/** 로컬 공간 입력 방향에 해당하는 회피 몽타주 섹션 이름을 반환한다. 미구성 섹션은 Forward로 폴백, Forward 섹션도 없으면 NAME_None(몽타주 처음부터 재생). */
 	FName SelectDodgeSection(const FVector& LocalDirection) const;
 
-	/** 로컬 공간 입력 방향에 맞는 회피 몽타주 섹션을 선택해 재생한다. 실패 시 EndAbility 후 false 반환. */
+	/** 로컬 공간 입력 방향에 맞는 회피 몽타주 섹션을 선택해 재생한다(비락온은 잔차만큼 몸 보정, 락온은 태스크 추적에 위임). 실패 시 EndAbility 후 false 반환. */
 	bool StartDodge(const FVector& LocalDirection);
 
 	/** 진행 중인 몽타주 태스크를 정리하고 새 몽타주를 StartSection부터 재생한다. 재생 실패 시 false 반환. */
