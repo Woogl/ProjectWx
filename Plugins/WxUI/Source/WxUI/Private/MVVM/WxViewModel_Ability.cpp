@@ -237,20 +237,32 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 	FGameplayEffectQuery Query;
 	Query.EffectDefinition = CachedCooldownClass;
 
-	float TotalRemaining = 0.f;
+	// 활성 쿨다운 GE 1개 = 회복 대기 중인 충전 1개. 가장 먼저 만료될 GE가 다음 충전 회복 시점이다.
+	int32 ConsumedCharges = 0;
+	float NextChargeRemaining = 0.f;
 	for (const FActiveGameplayEffectHandle& ActiveHandle : ASC->GetActiveEffects(Query))
 	{
 		if (const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(ActiveHandle))
 		{
 			if (ActiveGE->Spec.GetEffectContext().GetAbility() == AbilityCDO)
 			{
-				TotalRemaining = FMath::Max(0.f, (ActiveGE->StartWorldTime + ActiveGE->Spec.GetDuration()) - WorldTime);
-				break;
+				// 만료됐지만 아직 제거되지 않은 GE(클라이언트는 제거가 리플리케이션으로 도착할 때까지 지연됨)는 회복된 충전으로 취급한다
+				const float Remaining = (ActiveGE->StartWorldTime + ActiveGE->Spec.GetDuration()) - WorldTime;
+				if (Remaining <= 0.f)
+				{
+					continue;
+				}
+
+				if (ConsumedCharges == 0 || Remaining < NextChargeRemaining)
+				{
+					NextChargeRemaining = Remaining;
+				}
+				++ConsumedCharges;
 			}
 		}
 	}
 
-	if (TotalRemaining <= 0.f)
+	if (ConsumedCharges == 0)
 	{
 		SetCooldownDuration(0.f);
 		SetCooldownRemaining(0.f);
@@ -261,15 +273,6 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 		RefreshActivationState();
 		return false;
 	}
-
-	// 다음 충전 회복까지 남은 시간
-	float NextChargeRemaining = FMath::Fmod(TotalRemaining, CooldownDuration);
-	if (NextChargeRemaining <= KINDA_SMALL_NUMBER)
-	{
-		NextChargeRemaining = CooldownDuration;
-	}
-
-	const int32 ConsumedCharges = FMath::CeilToInt32((TotalRemaining - KINDA_SMALL_NUMBER) / CooldownDuration);
 
 	SetCooldownRemaining(NextChargeRemaining);
 	SetCooldownPercent(NextChargeRemaining / CooldownDuration);

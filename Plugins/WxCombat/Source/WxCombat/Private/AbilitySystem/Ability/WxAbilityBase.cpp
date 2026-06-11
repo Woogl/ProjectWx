@@ -6,6 +6,7 @@
 #include "AbilitySystem/Ability/WxAbilityTableRow.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
 #include "GameplayEffect.h"
 #include "WxAbilityComponent.h"
 #include "WxGameplayTags.h"
@@ -180,22 +181,20 @@ bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, cons
 		return true;
 	}
 
-	const UGameplayAbility* AbilityCDO = GetClass()->GetDefaultObject<UGameplayAbility>();
-	const float WorldTime = ASC->GetWorld()->GetTimeSeconds();
-
-	FGameplayEffectQuery Query;
-	Query.EffectDefinition = UWxEffect_Cooldown::StaticClass();
-
-	for (const FActiveGameplayEffectHandle& ActiveHandle : ASC->GetActiveEffects(Query))
+	float LongestRemaining = 0.f;
+	float LongestDuration = 0.f;
+	if (QueryActiveCooldowns(*ASC, LongestRemaining, LongestDuration) >= MaxRecharges)
 	{
-		if (const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(ActiveHandle))
+		// 엔진 순정 CheckCooldown과 동일하게 실패 사유 태그를 채워 OnAbilityFailed 파이프라인(실패 피드백 UI 등)에 전달한다
+		if (OptionalRelevantTags)
 		{
-			if (ActiveGE->Spec.GetEffectContext().GetAbility() == AbilityCDO)
+			const FGameplayTag& FailCooldownTag = UAbilitySystemGlobals::Get().ActivateFailCooldownTag;
+			if (FailCooldownTag.IsValid())
 			{
-				const float TimeRemaining = (ActiveGE->StartWorldTime + ActiveGE->Spec.GetDuration()) - WorldTime;
-				return FMath::CeilToInt32((TimeRemaining - KINDA_SMALL_NUMBER) / CooldownTime) < MaxRecharges;
+				OptionalRelevantTags->AddTag(FailCooldownTag);
 			}
 		}
+		return false;
 	}
 
 	return true;
@@ -220,33 +219,50 @@ void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, cons
 		return;
 	}
 
-	// 기존 쿨다운 GE의 잔여시간을 구한 뒤 제거한다
-	float Remaining = 0.f;
-	const UGameplayAbility* AbilityCDO = GetClass()->GetDefaultObject<UGameplayAbility>();
-	const float WorldTime = ASC->GetWorld()->GetTimeSeconds();
+	// 소모한 충전 1개당 GE 1개를 새로 적용하고, 기존 GE는 제거하지 않고 자연 만료에 맡긴다.
+	// (UE 5.7부터 비-authority의 RemoveActiveGameplayEffect가 거부되므로, 예측 커밋 중 기존 GE를 제거 후 재적용하는 방식은 쓸 수 없다)
+	// 새 GE의 Duration = 가장 늦은 기존 만료까지 잔여시간 + CooldownTime 으로 직렬 충전 회복이 된다.
+	float LongestRemaining = 0.f;
+	float LongestDuration = 0.f;
+	QueryActiveCooldowns(*ASC, LongestRemaining, LongestDuration);
 
-	FGameplayEffectQuery Query;
-	Query.EffectDefinition = UWxEffect_Cooldown::StaticClass();
-
-	for (const FActiveGameplayEffectHandle& ActiveHandle : ASC->GetActiveEffects(Query))
-	{
-		if (const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(ActiveHandle))
-		{
-			if (ActiveGE->Spec.GetEffectContext().GetAbility() == AbilityCDO)
-			{
-				Remaining = FMath::Max(0.f, (ActiveGE->StartWorldTime + ActiveGE->Spec.GetDuration()) - WorldTime);
-				ASC->RemoveActiveGameplayEffect(ActiveHandle);
-				break;
-			}
-		}
-	}
-
-	// 새 쿨다운 GE 적용. Duration = 잔여시간 + CooldownTime (직렬 충전 회복)
 	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_Cooldown::StaticClass(), GetAbilityLevel());
 	if (SpecHandle.IsValid())
 	{
-		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, Remaining + CooldownTime);
+		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, LongestRemaining + CooldownTime);
 		ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
+	}
+}
+
+float UWxAbilityBase::GetCooldownTimeRemaining(const FGameplayAbilityActorInfo* ActorInfo) const
+{
+	if (CooldownGameplayEffectClass)
+	{
+		return Super::GetCooldownTimeRemaining(ActorInfo);
+	}
+
+	float TimeRemaining = 0.f;
+	float Duration = 0.f;
+	if (const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr)
+	{
+		QueryActiveCooldowns(*ASC, TimeRemaining, Duration);
+	}
+	return TimeRemaining;
+}
+
+void UWxAbilityBase::GetCooldownTimeRemainingAndDuration(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, float& TimeRemaining, float& CooldownDuration) const
+{
+	if (CooldownGameplayEffectClass)
+	{
+		Super::GetCooldownTimeRemainingAndDuration(Handle, ActorInfo, TimeRemaining, CooldownDuration);
+		return;
+	}
+
+	TimeRemaining = 0.f;
+	CooldownDuration = 0.f;
+	if (const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr)
+	{
+		QueryActiveCooldowns(*ASC, TimeRemaining, CooldownDuration);
 	}
 }
 
@@ -338,4 +354,42 @@ void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 			}
 		}
 	}
+}
+
+int32 UWxAbilityBase::QueryActiveCooldowns(const UAbilitySystemComponent& ASC, float& OutLongestRemaining, float& OutLongestDuration) const
+{
+	OutLongestRemaining = 0.f;
+	OutLongestDuration = 0.f;
+
+	const UGameplayAbility* AbilityCDO = GetClass()->GetDefaultObject<UGameplayAbility>();
+	const float WorldTime = ASC.GetWorld()->GetTimeSeconds();
+
+	FGameplayEffectQuery Query;
+	Query.EffectDefinition = UWxEffect_Cooldown::StaticClass();
+
+	int32 ActiveCount = 0;
+	for (const FActiveGameplayEffectHandle& ActiveHandle : ASC.GetActiveEffects(Query))
+	{
+		const FActiveGameplayEffect* ActiveGE = ASC.GetActiveGameplayEffect(ActiveHandle);
+		if (!ActiveGE || ActiveGE->Spec.GetEffectContext().GetAbility() != AbilityCDO)
+		{
+			continue;
+		}
+
+		// 만료됐지만 아직 제거되지 않은 GE(클라이언트는 제거가 리플리케이션으로 도착할 때까지 지연됨)는 회복된 충전으로 취급한다
+		const float Remaining = (ActiveGE->StartWorldTime + ActiveGE->Spec.GetDuration()) - WorldTime;
+		if (Remaining <= 0.f)
+		{
+			continue;
+		}
+
+		++ActiveCount;
+		if (Remaining > OutLongestRemaining)
+		{
+			OutLongestRemaining = Remaining;
+			OutLongestDuration = ActiveGE->Spec.GetDuration();
+		}
+	}
+
+	return ActiveCount;
 }
