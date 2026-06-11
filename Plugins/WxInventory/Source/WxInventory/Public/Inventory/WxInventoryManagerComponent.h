@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Items/WxRewardTableRow.h"
 #include "Net/Serialization/FastArraySerializer.h"
 
 #include "WxInventoryManagerComponent.generated.h"
@@ -142,6 +143,7 @@ public:
 	UWxInventoryManagerComponent(const FObjectInitializer& ObjectInitializer);
 
 	//~ Begin UActorComponent interface
+	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void ReadyForReplication() override;
 	//~ End UActorComponent interface
@@ -228,11 +230,21 @@ private:
 	 */
 	UWxItemInstance* FindUsableInstance(const UWxItemDefinition* ItemDef) const;
 
+	/** 권한: DefaultItems 를 순서대로 인벤토리에 지급한다. BeginPlay 에서 1회 호출된다. */
+	void GrantDefaultItems();
+
 	/** 신규 인스턴스를 SubObject 시스템에 등록한다. */
 	void RegisterReplicatedInstance(UWxItemInstance* Instance);
 
 	/** 인스턴스를 SubObject 시스템에서 해제한다. */
 	void UnregisterReplicatedInstance(UWxItemInstance* Instance);
+
+	/**
+	 * 권한(서버) BeginPlay 시 소유자에게 1회 자동 지급할 기본 아이템 목록.
+	 * 빈(아이템 미지정) 항목은 무시되며, Item 은 지급 시점에 동기 로드된다.
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
+	TArray<FWxItemRewardEntry> DefaultItems;
 
 	UPROPERTY(Replicated)
 	FWxInventoryList InventoryList;
