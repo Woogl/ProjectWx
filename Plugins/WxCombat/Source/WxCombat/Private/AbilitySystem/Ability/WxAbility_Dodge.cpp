@@ -7,7 +7,6 @@
 #include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
 #include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
-#include "AbilitySystem/Task/WxAbilityTask_TurnAround.h"
 #include "AbilitySystemComponent.h"
 #include "GameFramework/Character.h"
 #include "WxGameplayTags.h"
@@ -31,23 +30,29 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 
+	if (DirectionalDodgeMontages.Num() == 0 || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
 	if (IsLocallyControlled())
 	{
-		// 로컬 클라이언트(또는 리슨 서버 호스트): 입력 방향을 직접 읽어 회전 적용
-		FVector DodgeDirection = FVector::ZeroVector;
+		// 로컬 클라이언트(또는 리슨 서버 호스트): 입력 방향을 캐릭터 로컬 공간으로 변환해 8방향 몽타주 선택.
+		// 로컬 공간(정면 기준)으로 변환해 두면 서버는 자신의 facing과 무관하게 동일한 방향을 계산한다(몽타주 정합성 보장).
+		FVector LocalDodgeDirection = FVector::ZeroVector;
 		if (const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
 		{
-			DodgeDirection = Character->GetLastMovementInputVector();
+			const FVector WorldInput = Character->GetLastMovementInputVector();
+			LocalDodgeDirection = Character->GetActorTransform().InverseTransformVectorNoScale(WorldInput);
 		}
 
-		ApplyDodgeDirection(DodgeDirection);
-
-		// 리모트 클라이언트인 경우 서버에 방향 전송
+		// 리모트 클라이언트인 경우 서버에 방향 전송 (서버가 동일 방향 몽타주를 선택)
 		if (ASC && !HasAuthority(&ActivationInfo))
 		{
 			FGameplayAbilityTargetDataHandle DataHandle;
 			FWxAbilityTargetData_Direction* DirectionData = new FWxAbilityTargetData_Direction();
-			DirectionData->Direction = DodgeDirection;
+			DirectionData->Direction = LocalDodgeDirection;
 			DataHandle.Add(DirectionData);
 
 			ASC->CallServerSetReplicatedTargetData(
@@ -57,10 +62,15 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 				FGameplayTag(),
 				ASC->ScopedPredictionKey);
 		}
+
+		if (!StartDodge(LocalDodgeDirection))
+		{
+			return;
+		}
 	}
 	else if (HasAuthority(&ActivationInfo))
 	{
-		// 서버(리모트 플레이어 처리): 클라이언트로부터 방향 데이터 수신 대기
+		// 서버(리모트 플레이어 처리): 클라이언트로부터 방향 데이터 수신 후 몽타주 재생(HandleTargetDataReceived)
 		if (ASC)
 		{
 			FAbilityTargetDataSetDelegate& Delegate = ASC->AbilityTargetDataSetDelegate(
@@ -73,26 +83,6 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 				ActivationInfo.GetActivationPredictionKey());
 		}
 	}
-
-	if (!DodgeMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
-	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, DodgeMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
-	if (!MontageTask)
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
-	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Dodge::HandleMontageCompleted);
-	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Dodge::HandleMontageBlendOut);
-	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Dodge::HandleMontageInterrupted);
-	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Dodge::HandleMontageCancelled);
-	MontageTask->ReadyForActivation();
 
 	// 극한 회피 여부와 무관하게, 회피 중 ANS_ComboWindow 구간 공격 입력으로 반격 전환
 	if (DodgeCounterMontage)
@@ -135,29 +125,67 @@ void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 //  방향 처리
 // ────────────────────────────────────────────────────────────────────────────
 
-void UWxAbility_Dodge::ApplyDodgeDirection(const FVector& Direction)
+EWxDodgeDirection UWxAbility_Dodge::ResolveDodgeDirection(const FVector& LocalDirection) const
 {
-	if (!Direction.IsNearlyZero())
+	// 입력은 캐릭터 로컬 공간(정면 +X, 오른쪽 +Y). facing을 참조하지 않으므로 클라이언트/서버가 동일 결과를 낸다.
+	const FVector Local = LocalDirection.GetSafeNormal2D();
+	if (Local.IsNearlyZero())
 	{
-		UWxAbilityTask_TurnAround* TurnAroundTask = UWxAbilityTask_TurnAround::CreateTask(this, Direction);
-		TurnAroundTask->ReadyForActivation();
+		return EWxDodgeDirection::Forward;
 	}
+
+	// 정면 기준 부호 있는 각도(+Y=오른쪽=시계 방향 +)를 45° 단위로 양자화해 8분면 인덱스(0=Forward)로 매핑.
+	const float AngleDeg = FMath::RadiansToDegrees(FMath::Atan2(Local.Y, Local.X));
+	const int32 Octant = ((FMath::RoundToInt(AngleDeg / 45.f) % 8) + 8) % 8;
+	return static_cast<EWxDodgeDirection>(Octant);
+}
+
+UAnimMontage* UWxAbility_Dodge::SelectDodgeMontage(const FVector& LocalDirection) const
+{
+	const EWxDodgeDirection DodgeDirection = ResolveDodgeDirection(LocalDirection);
+	if (const TObjectPtr<UAnimMontage>* Found = DirectionalDodgeMontages.Find(DodgeDirection))
+	{
+		if (*Found)
+		{
+			return *Found;
+		}
+	}
+
+	// 미매핑(또는 비어 있는) 방향은 전방 회피로 폴백
+	if (const TObjectPtr<UAnimMontage>* Forward = DirectionalDodgeMontages.Find(EWxDodgeDirection::Forward))
+	{
+		return *Forward;
+	}
+
+	return nullptr;
+}
+
+bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
+{
+	if (!PlayMontage(SelectDodgeMontage(LocalDirection)))
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		return false;
+	}
+
+	return true;
 }
 
 void UWxAbility_Dodge::HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag)
 {
-	const FWxAbilityTargetData_Direction* DirectionData =
-		static_cast<const FWxAbilityTargetData_Direction*>(DataHandle.Get(0));
-	if (DirectionData)
+	// 클라이언트가 캐릭터 로컬 공간으로 변환해 보낸 방향. 서버는 그대로 사용해 동일한 8방향 몽타주를 선택한다.
+	FVector LocalDirection = FVector::ZeroVector;
+	if (const FWxAbilityTargetData_Direction* DirectionData = static_cast<const FWxAbilityTargetData_Direction*>(DataHandle.Get(0)))
 	{
-		ApplyDodgeDirection(DirectionData->Direction);
+		LocalDirection = DirectionData->Direction;
 	}
 
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (ASC)
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 	{
 		ASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
 	}
+
+	StartDodge(LocalDirection);
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -179,29 +207,27 @@ void UWxAbility_Dodge::ListenForDodgeSuccess()
 
 void UWxAbility_Dodge::PlayPerfectDodgeMontage()
 {
-	// EndTask가 AnimInstance 바인딩을 해제하므로 구 태스크의 후속 이벤트는 발송되지 않는다.
-	if (MontageTask)
-	{
-		MontageTask->EndTask();
-		MontageTask = nullptr;
-	}
-
-	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, PerfectDodgeMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
-	if (!MontageTask)
+	if (!PlayMontage(PerfectDodgeMontage))
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-		return;
 	}
-
-	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Dodge::HandleMontageCompleted);
-	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Dodge::HandleMontageBlendOut);
-	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Dodge::HandleMontageInterrupted);
-	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Dodge::HandleMontageCancelled);
-	MontageTask->ReadyForActivation();
 }
 
 void UWxAbility_Dodge::PlayDodgeCounterMontage()
+{
+	if (WaitInputTask)
+	{
+		WaitInputTask->EndTask();
+		WaitInputTask = nullptr;
+	}
+
+	if (!PlayMontage(DodgeCounterMontage))
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+	}
+}
+
+bool UWxAbility_Dodge::PlayMontage(UAnimMontage* Montage)
 {
 	// EndTask가 AnimInstance 바인딩을 해제하므로 구 태스크의 후속 이벤트는 발송되지 않는다.
 	if (MontageTask)
@@ -210,18 +236,16 @@ void UWxAbility_Dodge::PlayDodgeCounterMontage()
 		MontageTask = nullptr;
 	}
 
-	if (WaitInputTask)
+	if (!Montage)
 	{
-		WaitInputTask->EndTask();
-		WaitInputTask = nullptr;
+		return false;
 	}
 
 	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, DodgeCounterMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
+		this, NAME_None, Montage, 1.f, NAME_None, true, 1.f, 0.f, true);
 	if (!MontageTask)
 	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-		return;
+		return false;
 	}
 
 	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Dodge::HandleMontageCompleted);
@@ -229,6 +253,7 @@ void UWxAbility_Dodge::PlayDodgeCounterMontage()
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Dodge::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Dodge::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
+	return true;
 }
 
 void UWxAbility_Dodge::ListenForCounterInput()
