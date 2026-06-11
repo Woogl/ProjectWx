@@ -2,8 +2,7 @@
 
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystem/Effect/WxEffect_Cooldown.h"
-#include "AbilitySystem/Effect/WxEffect_CostMP.h"
-#include "AbilitySystem/Effect/WxEffect_CostUP.h"
+#include "AbilitySystem/Effect/WxEffect_Cost.h"
 #include "AbilitySystem/Ability/WxAbilityTableRow.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
@@ -95,7 +94,7 @@ bool UWxAbilityBase::CanEditChange(const FProperty* InProperty) const
 		if (PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, MPCost)
 			|| PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, UPCost))
 		{
-			if (bHasDataRow)
+			if (CostGameplayEffectClass || bHasDataRow)
 			{
 				return false;
 			}
@@ -251,66 +250,65 @@ void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, cons
 	}
 }
 
-bool UWxAbilityBase::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
+UGameplayEffect* UWxAbilityBase::GetCostGameplayEffect() const
 {
-	if (!Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags))
+	if (CostGameplayEffectClass)
 	{
-		return false;
+		return Super::GetCostGameplayEffect();
 	}
 
 	if (MPCost <= 0.f && UPCost <= 0.f)
 	{
-		return true;
+		return nullptr;
 	}
 
-	const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-	if (!ASC)
+	if (!CostEffect)
 	{
-		return false;
+		CostEffect = NewObject<UWxEffect_Cost>(const_cast<UWxAbilityBase*>(this), TEXT("CostEffect"));
 	}
 
-	const UWxCombatAttributeSet* AttrSet = ASC->GetSet<UWxCombatAttributeSet>();
-	if (!AttrSet)
-	{
-		return false;
-	}
-
-	if (MPCost > 0.f && AttrSet->GetMP() < MPCost)
-	{
-		return false;
-	}
-
-	if (UPCost > 0.f && AttrSet->GetUP() < UPCost)
-	{
-		return false;
-	}
-
-	return true;
-}
-
-void UWxAbilityBase::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
-{
-	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
+	CostEffect->Modifiers.Reset();
 
 	if (MPCost > 0.f)
 	{
-		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_CostMP::StaticClass(), GetAbilityLevel());
-		if (SpecHandle.IsValid())
-		{
-			SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Cost, -MPCost);
-			ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
-		}
+		FGameplayModifierInfo Modifier;
+		Modifier.Attribute = UWxCombatAttributeSet::GetMPAttribute();
+		Modifier.ModifierOp = EGameplayModOp::AddBase;
+		Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(-MPCost));
+		CostEffect->Modifiers.Add(Modifier);
 	}
 
 	if (UPCost > 0.f)
 	{
-		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_CostUP::StaticClass(), GetAbilityLevel());
-		if (SpecHandle.IsValid())
-		{
-			SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Cost, -UPCost);
-			ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
-		}
+		FGameplayModifierInfo Modifier;
+		Modifier.Attribute = UWxCombatAttributeSet::GetUPAttribute();
+		Modifier.ModifierOp = EGameplayModOp::AddBase;
+		Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(-UPCost));
+		CostEffect->Modifiers.Add(Modifier);
 	}
+
+	return CostEffect;
+}
+
+void UWxAbilityBase::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
+{
+	if (CostGameplayEffectClass)
+	{
+		Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
+		return;
+	}
+
+	const UGameplayEffect* CostGE = GetCostGameplayEffect();
+	if (!CostGE)
+	{
+		return;
+	}
+
+	// 엔진 ApplyCost(ApplyGameplayEffectToOwner)는 전달받은 GE의 GetClass() CDO로 스펙을 만들어,
+	// 런타임에 모디파이어를 채운 CostEffect 인스턴스가 무시된다(UWxEffect_Cost CDO는 모디파이어가 비어 있다).
+	// 인스턴스 Def로 직접 스펙을 만들어 적용한다. 권한/예측 처리는 ApplyGameplayEffectSpecToOwner가 담당한다.
+	FGameplayEffectSpecHandle SpecHandle(new FGameplayEffectSpec(CostGE, MakeEffectContext(Handle, ActorInfo), GetAbilityLevel(Handle, ActorInfo)));
+	ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
 }
 
 void UWxAbilityBase::ApplyAbilityTableRow(const FWxAbilityTableRow& Row)

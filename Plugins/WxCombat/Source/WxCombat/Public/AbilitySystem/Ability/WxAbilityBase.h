@@ -11,6 +11,7 @@
 class UAbilitySystemComponent;
 class UGameplayEffect;
 class UWxEffect_Cooldown;
+class UWxEffect_Cost;
 class UWxAbilityComponent;
 struct FWxAbilityTableRow;
 
@@ -44,6 +45,10 @@ enum class EWxAbilityActivationPolicy : uint8
  * 쿨다운은 CooldownTime, MaxRecharges 프로퍼티로 설정한다.
  * 내부적으로 공용 UWxEffect_Cooldown GE를 사용하며,
  * 소스 어빌리티 CDO로 개별 어빌리티의 쿨다운을 구분한다.
+ *
+ * 코스트는 MPCost, UPCost 프로퍼티로 설정한다.
+ * GetCostGameplayEffect()가 공용 UWxEffect_Cost GE에 모디파이어를 채워 반환하므로 검사는 엔진 순정 CheckCost를 그대로 사용한다.
+ * ApplyCost는 엔진이 GE의 GetClass() CDO로 스펙을 다시 만드는 탓에 런타임 구성 인스턴스가 무시되어, 인스턴스 Def로 스펙을 만드는 얇은 오버라이드만 둔다.
  *
  * AbilityDataRow가 설정되어 있으면 어빌리티 부여 시 테이블 Row에서 수치를 읽어온다.
  */
@@ -121,7 +126,7 @@ public:
 	virtual UGameplayEffect* GetCooldownGameplayEffect() const override;
 	virtual bool CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
-	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+	virtual UGameplayEffect* GetCostGameplayEffect() const override;
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
 protected:
@@ -140,4 +145,11 @@ private:
 	 */
 	UPROPERTY(Transient)
 	mutable TObjectPtr<UWxEffect_Cooldown> CooldownEffect;
+
+	/**
+	 * GetCostGameplayEffect()가 반환하는 GE 인스턴스.
+	 * Modifiers는 호출 시점의 MPCost/UPCost로 갱신된다. ViewModel이 Modifiers에서 코스트 어트리뷰트를 읽는다.
+	 */
+	UPROPERTY(Transient)
+	mutable TObjectPtr<UWxEffect_Cost> CostEffect;
 };
