@@ -34,6 +34,26 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 		InASC->OnActiveGameplayEffectAddedDelegateToSelf
 			.AddUObject(this, &UWxViewModel_Ability::HandleGameplayEffectApplied);
 	}
+
+	// 발동 가능 여부 재평가 트리거 등록.
+	// 태그 요건은 ASC 태그 변경으로, 비용은 비용 GE가 수정하는 어트리뷰트 값 변경으로 감지한다.
+	// 쿨다운 진행(충전 회복/만료)은 이벤트가 없어 UpdateCooldownState 티커에서 재평가한다.
+	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_Ability::HandleTagChanged);
+
+	if (const UGameplayEffect* CostGE = InAbility->GetCostGameplayEffect())
+	{
+		for (const FGameplayModifierInfo& Modifier : CostGE->Modifiers)
+		{
+			if (Modifier.Attribute.IsValid() && !CostAttributes.Contains(Modifier.Attribute))
+			{
+				CostAttributes.Add(Modifier.Attribute);
+				InASC->GetGameplayAttributeValueChangeDelegate(Modifier.Attribute)
+					.AddUObject(this, &UWxViewModel_Ability::HandleCostAttributeChanged);
+			}
+		}
+	}
+
+	RefreshActivationState();
 }
 
 void UWxViewModel_Ability::Deinitialize()
@@ -41,6 +61,11 @@ void UWxViewModel_Ability::Deinitialize()
 	if (UAbilitySystemComponent* ASC = CachedASC.Get())
 	{
 		ASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
+		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
+		for (const FGameplayAttribute& CostAttribute : CostAttributes)
+		{
+			ASC->GetGameplayAttributeValueChangeDelegate(CostAttribute).RemoveAll(this);
+		}
 	}
 
 	if (TickerHandle.IsValid())
@@ -52,6 +77,7 @@ void UWxViewModel_Ability::Deinitialize()
 	CachedASC.Reset();
 	CachedAbility.Reset();
 	CachedCooldownClass = nullptr;
+	CostAttributes.Reset();
 
 	Super::Deinitialize();
 }
@@ -126,6 +152,26 @@ void UWxViewModel_Ability::SetHasMultipleCharges(bool NewValue)
 	UE_MVVM_SET_PROPERTY_VALUE(HasMultipleCharges, NewValue);
 }
 
+bool UWxViewModel_Ability::GetCanActivate() const
+{
+	return CanActivate;
+}
+
+void UWxViewModel_Ability::SetCanActivate(bool NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(CanActivate, NewValue);
+}
+
+bool UWxViewModel_Ability::GetCheckCost() const
+{
+	return CheckCost;
+}
+
+void UWxViewModel_Ability::SetCheckCost(bool NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(CheckCost, NewValue);
+}
+
 UTexture2D* UWxViewModel_Ability::GetIcon() const
 {
 	return Icon;
@@ -162,6 +208,19 @@ void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* 
 			FTickerDelegate::CreateUObject(this, &UWxViewModel_Ability::UpdateCooldownState)
 		);
 	}
+
+	// 쿨다운 GE는 태그를 부여하지 않아 태그 이벤트로 감지되지 않으므로 여기서 재평가한다
+	RefreshActivationState();
+}
+
+void UWxViewModel_Ability::HandleTagChanged(const FGameplayTag Tag, int32 NewCount)
+{
+	RefreshActivationState();
+}
+
+void UWxViewModel_Ability::HandleCostAttributeChanged(const FOnAttributeChangeData& Data)
+{
+	RefreshActivationState();
 }
 
 bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
@@ -199,6 +258,7 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 		SetIsOnCooldown(false);
 		SetCurrentCharges(MaxRecharges);
 		TickerHandle.Reset();
+		RefreshActivationState();
 		return false;
 	}
 
@@ -215,5 +275,38 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 	SetCooldownPercent(NextChargeRemaining / CooldownDuration);
 	SetCurrentCharges(FMath::Max(0, MaxRecharges - ConsumedCharges));
 
+	// 충전 회복은 별도 이벤트가 없으므로 쿨다운 진행 중에는 매 틱 재평가한다
+	RefreshActivationState();
+
 	return true;
+}
+
+void UWxViewModel_Ability::RefreshActivationState()
+{
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	const UGameplayAbility* AbilityCDO = CachedAbility.Get();
+	if (!ASC || !AbilityCDO)
+	{
+		SetCanActivate(false);
+		SetCheckCost(false);
+		return;
+	}
+
+	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+	{
+		if (Spec.Ability.Get() != AbilityCDO)
+		{
+			continue;
+		}
+
+		// 엔진 InternalTryActivateAbility와 동일하게, 인스턴스가 있으면 인스턴스 기준으로 판정한다
+		const UGameplayAbility* PrimaryInstance = Spec.GetPrimaryInstance();
+		const UGameplayAbility* CanActivateSource = PrimaryInstance ? PrimaryInstance : AbilityCDO;
+		SetCanActivate(CanActivateSource->CanActivateAbility(Spec.Handle, ASC->AbilityActorInfo.Get()));
+		SetCheckCost(CanActivateSource->CheckCost(Spec.Handle, ASC->AbilityActorInfo.Get()));
+		return;
+	}
+
+	SetCanActivate(false);
+	SetCheckCost(false);
 }

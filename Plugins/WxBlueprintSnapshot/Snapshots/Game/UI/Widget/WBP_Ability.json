@@ -29,6 +29,21 @@
 				{
 					"arguments":
 					{
+						"A": "(R=1.000000,G=1.000000,B=1.000000,A=1.000000)",
+						"B": "(R=0.500000,G=0.500000,B=0.500000,A=1.000000)",
+						"bPickA": "CheckCost"
+					},
+					"function": "SelectColor"
+				},
+				"destination": "ColorAndOpacity",
+				"source": ""
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
 						"bAlwaysSign": "false",
 						"bUseGrouping": "false",
 						"MaximumIntegralDigits": "324",

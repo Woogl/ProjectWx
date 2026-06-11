@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AttributeSet.h"
 #include "Containers/Ticker.h"
 #include "GameplayTagContainer.h"
 #include "GameplayEffectTypes.h"
@@ -16,7 +17,7 @@ class UGameplayEffect;
 struct FGameplayEffectSpec;
 
 /**
- * 어빌리티 쿨다운 뷰모델.
+ * 어빌리티 쿨다운/발동 가능 여부 뷰모델.
  * 어빌리티의 GetCooldownGameplayEffect()를 기준으로 쿨다운/충전 상태를 UI에 제공한다.
  *
  * 사용 흐름:
@@ -26,6 +27,9 @@ struct FGameplayEffectSpec;
  *  3. 쿨다운 만료 시 타이머 중단, 프로퍼티 초기화
  *
  * 동일 GE 클래스를 여러 어빌리티가 공유하는 경우, 소스 어빌리티 CDO로 구분한다.
+ *
+ * CanActivate는 엔진 CanActivateAbility(비용/쿨다운/태그 요건 종합)로 판정하며, ASC 태그 변경/비용 어트리뷰트 변경/쿨다운 진행 시점에 재평가된다.
+ * CheckCost는 같은 시점에 동명의 엔진 함수(비용 검사)만으로 판정한다.
  */
 UCLASS()
 class WXUI_API UWxViewModel_Ability : public UWxViewModel
@@ -61,6 +65,14 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	bool HasMultipleCharges = false;
 
+	/** 발동 가능 여부. 비용/쿨다운/태그 요건을 엔진 CanActivateAbility로 종합 판정한다 */
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	bool CanActivate = false;
+
+	/** 비용 지불 가능 여부. 쿨다운/태그와 무관하게 엔진 CheckCost만으로 판정한다 */
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	bool CheckCost = false;
+
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	TObjectPtr<UTexture2D> Icon = nullptr;
 
@@ -89,15 +101,30 @@ public:
 	bool GetHasMultipleCharges() const;
 	void SetHasMultipleCharges(bool NewValue);
 
+	bool GetCanActivate() const;
+	void SetCanActivate(bool NewValue);
+
+	bool GetCheckCost() const;
+	void SetCheckCost(bool NewValue);
+
 	UTexture2D* GetIcon() const;
 	void SetIcon(UTexture2D* NewValue);
 
 private:
 	void HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle);
+	void HandleTagChanged(const FGameplayTag Tag, int32 NewCount);
+	void HandleCostAttributeChanged(const FOnAttributeChangeData& Data);
 	bool UpdateCooldownState(float DeltaTime);
+
+	/** 부여된 스펙을 찾아 발동 가능 여부(CanActivateAbility)와 비용 지불 가능 여부(CheckCost)를 재평가한다 */
+	void RefreshActivationState();
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	TWeakObjectPtr<const UGameplayAbility> CachedAbility;
 	TSubclassOf<UGameplayEffect> CachedCooldownClass;
+
+	/** 비용 GE가 수정하는 어트리뷰트. 값 변경 델리게이트 등록/해제용 */
+	TArray<FGameplayAttribute> CostAttributes;
+
 	FTSTicker::FDelegateHandle TickerHandle;
 };
