@@ -11,6 +11,7 @@
 class UAbilitySystemComponent;
 class UGameplayEffect;
 class UWxEffect_Cooldown;
+class UWxAbilityComponent;
 struct FWxAbilityTableRow;
 
 /** 어빌리티 발동 시 적용할 GameplayEffect 항목 */
@@ -57,9 +58,23 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	EWxAbilityActivationPolicy ActivationPolicy = EWxAbilityActivationPolicy::OnInputTriggered;
 
-	/** 어빌리티 아이콘. UI에서 표시 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|UI")
-	TSoftObjectPtr<UTexture2D> AbilityIcon;
+	/**
+	 * 어빌리티에 부착된 컴포넌트 모음. 필요한 어빌리티에서만 BP 디테일 패널(Wx)에서 EditInline 으로 추가한다.
+	 * 표시 데이터 등은 도메인별 UWxAbilityComponent 파생 클래스로 부착한다.
+	 * (예: UI 아이콘은 WxUI 의 UWxAbilityComponent_UIData)
+	 */
+	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Wx")
+	TArray<TObjectPtr<UWxAbilityComponent>> Components;
+
+	/** 첫 번째로 일치하는 컴포넌트 포인터 반환. 없으면 nullptr. */
+	const UWxAbilityComponent* FindComponent(TSubclassOf<UWxAbilityComponent> ComponentClass) const;
+
+	template <typename T>
+	const T* FindComponent() const
+	{
+		static_assert(TIsDerivedFrom<T, UWxAbilityComponent>::IsDerived, "T must derive from UWxAbilityComponent");
+		return Cast<T>(FindComponent(T::StaticClass()));
+	}
 
 	/** 어빌리티 수치 데이터테이블 Row 참조. 설정 시 OnGiveAbility에서 테이블 값으로 덮어쓴다 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxAbilityTableRow"))

@@ -3,6 +3,7 @@
 #include "Controller/WxPlayerController.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystemComponent.h"
+#include "Component/WxAbilityComponent_UIData.h"
 #include "Character/WxCharacterBase.h"
 #include "Character/WxPlayerCharacter.h"
 #include "Engine/LocalPlayer.h"
@@ -160,12 +161,14 @@ void AWxPlayerController::InitializePlayerCharacterViewModel(UAbilitySystemCompo
 		return;
 	}
 
-	// WxUI는 WxCombat에 의존할 수 없으므로, WxCombat 측 리소스(AbilityIcon 등)는 WxGame에서 주입한다.
+	// WxUI는 WxCombat(어빌리티)에 의존할 수 없어 어빌리티를 직접 순회할 수 없으므로,
+	// 어빌리티에 부착된 UIData 컴포넌트(WxUI) 의 아이콘은 양쪽에 의존하는 WxGame 에서 주입한다.
 	// 어빌리티 VM 은 지연 생성되므로, 아이콘이 있는 어빌리티는 여기서 GetOrCreate 로 만들어 주입한다. 바인딩이 먼저 만들었다면 그 VM 을 재사용한다.
 	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
 	{
 		const UWxAbilityBase* WxAbility = Cast<UWxAbilityBase>(Spec.Ability);
-		if (!WxAbility || WxAbility->AbilityIcon.IsNull())
+		const UWxAbilityComponent_UIData* AbilityUIData = WxAbility ? WxAbility->FindComponent<UWxAbilityComponent_UIData>() : nullptr;
+		if (!AbilityUIData || AbilityUIData->Icon.IsNull())
 		{
 			continue;
 		}
@@ -182,7 +185,7 @@ void AWxPlayerController::InitializePlayerCharacterViewModel(UAbilitySystemCompo
 			continue;
 		}
 
-		AbilityVM->SetIcon(WxAbility->AbilityIcon.LoadSynchronous());
+		AbilityVM->SetIcon(AbilityUIData->Icon.LoadSynchronous());
 	}
 }
 

@@ -8,12 +8,30 @@
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
+#include "WxAbilityComponent.h"
 #include "WxGameplayTags.h"
 
 UWxAbilityBase::UWxAbilityBase()
 {
 	InstancingPolicy  = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+}
+
+const UWxAbilityComponent* UWxAbilityBase::FindComponent(TSubclassOf<UWxAbilityComponent> ComponentClass) const
+{
+	if (!ComponentClass)
+	{
+		return nullptr;
+	}
+
+	for (const UWxAbilityComponent* Component : Components)
+	{
+		if (Component && Component->IsA(ComponentClass))
+		{
+			return Component;
+		}
+	}
+	return nullptr;
 }
 
 float UWxAbilityBase::GetMontagePlayRate() const
