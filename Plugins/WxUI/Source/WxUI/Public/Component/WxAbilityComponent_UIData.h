@@ -19,6 +19,6 @@ class WXUI_API UWxAbilityComponent_UIData : public UWxAbilityComponent
 
 public:
 	/** 어빌리티 아이콘. UI에서 표시. 비동기 로드 권장. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSoftObjectPtr<UTexture2D> Icon;
 };

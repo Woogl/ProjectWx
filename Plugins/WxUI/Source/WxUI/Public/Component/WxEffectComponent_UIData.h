@@ -18,9 +18,9 @@ class WXUI_API UWxEffectComponent_UIData : public UGameplayEffectUIData
 public:
 	UWxEffectComponent_UIData();
 
-	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	UPROPERTY(EditDefaultsOnly)
 	TSoftObjectPtr<UTexture2D> Icon;
 
-	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	UPROPERTY(EditDefaultsOnly)
 	FText DisplayName;
 };

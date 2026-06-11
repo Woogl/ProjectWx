@@ -7,7 +7,6 @@
 			"DataTable": "/Game/AbilitySystem/DT_Ability.DT_Ability",
 			"RowName": "GA_Skill_1"
 		},
-		"AbilityIcon": "/Game/UIMaterialLab/Textures/T_UI_Sword.T_UI_Sword",
 		"AbilityTags":
 		{
 			"GameplayTags": [
@@ -16,10 +15,15 @@
 				}
 			]
 		},
-		"ActivationInputTag":
-		{
-			"TagName": "Input.Skill.1"
-		},
+		"Components": [
+			{
+				"class": "/Script/WxUI.WxAbilityComponent_UIData",
+				"delta":
+				{
+					"Icon": "/Game/UIMaterialLab/Textures/T_UI_Sword.T_UI_Sword"
+				}
+			}
+		],
 		"CooldownTime": 5,
 		"MPCost": 5,
 		"SkillMontages": [

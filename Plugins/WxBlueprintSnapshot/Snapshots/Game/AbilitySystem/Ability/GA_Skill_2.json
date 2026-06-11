@@ -7,7 +7,6 @@
 			"DataTable": "/Game/AbilitySystem/DT_Ability.DT_Ability",
 			"RowName": "GA_Skill_2"
 		},
-		"AbilityIcon": "/Game/UIMaterialLab/Textures/T_UI_Axe.T_UI_Axe",
 		"AbilityTags":
 		{
 			"GameplayTags": [
@@ -16,10 +15,15 @@
 				}
 			]
 		},
-		"ActivationInputTag":
-		{
-			"TagName": "Input.Skill.2"
-		},
+		"Components": [
+			{
+				"class": "/Script/WxUI.WxAbilityComponent_UIData",
+				"delta":
+				{
+					"Icon": "/Game/UIMaterialLab/Textures/T_UI_Axe.T_UI_Axe"
+				}
+			}
+		],
 		"CooldownTime": 5,
 		"MPCost": 5,
 		"SkillMontages": [

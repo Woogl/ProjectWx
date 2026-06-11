@@ -7,7 +7,6 @@
 			"DataTable": "/Game/AbilitySystem/DT_Ability.DT_Ability",
 			"RowName": "GA_Skill_4"
 		},
-		"AbilityIcon": "/Game/UIMaterialLab/Textures/T_UI_Potion.T_UI_Potion",
 		"AbilityTags":
 		{
 			"GameplayTags": [
@@ -16,10 +15,15 @@
 				}
 			]
 		},
-		"ActivationInputTag":
-		{
-			"TagName": "Input.Skill.4"
-		},
+		"Components": [
+			{
+				"class": "/Script/WxUI.WxAbilityComponent_UIData",
+				"delta":
+				{
+					"Icon": "/Game/UIMaterialLab/Textures/T_UI_Oxo.T_UI_Oxo"
+				}
+			}
+		],
 		"CooldownTime": 10,
 		"MPCost": 10,
 		"OnActivateEffects": [
