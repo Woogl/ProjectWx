@@ -23,6 +23,11 @@
 	{
 		"bindings": [
 			{
+				"bindingType": "OneTimeToDestination",
+				"destination": "ColorAndOpacity",
+				"source": "GradeColor"
+			},
+			{
 				"bindingType": "OneWayToDestination",
 				"destination": "SetLazyTexture",
 				"source": "Icon"
@@ -86,6 +91,34 @@
 					{
 						"HorizontalAlignment": "HAlign_Right",
 						"VerticalAlignment": "VAlign_Bottom"
+					}
+				}
+			},
+			"GradeBG":
+			{
+				"class": "/Script/UMG.Image",
+				"delta":
+				{
+					"Brush":
+					{
+						"ImageType": "FullColor",
+						"ResourceObject": "/Game/UIMaterialLab/Materials/5_Masks/2_Wedges/MI_UI_Wedges_ItemGrade.MI_UI_Wedges_ItemGrade"
+					},
+					"ColorAndOpacity":
+					{
+						"B": 0.69999998807907104,
+						"G": 0.69999998807907104,
+						"R": 0.69999998807907104
+					}
+				},
+				"parent": "Overlay_25",
+				"slot":
+				{
+					"class": "/Script/UMG.OverlaySlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Fill",
+						"VerticalAlignment": "VAlign_Fill"
 					}
 				}
 			},
