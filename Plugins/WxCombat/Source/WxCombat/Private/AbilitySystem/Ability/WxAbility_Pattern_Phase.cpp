@@ -13,10 +13,9 @@ UWxAbility_Pattern_Phase::UWxAbility_Pattern_Phase()
 	AssetTags.AddTag(WxGameplayTags::Ability_Pattern_Phase);
 	SetAssetTags(AssetTags);
 
-	// 전환 중에는 다른 모든 어빌리티를 취소/차단하고, 패턴 발동 중임을 알려 일반 피격 반응을 억제한다.
+	// 전환 중에는 다른 모든 어빌리티를 취소/차단하고, 슈퍼 아머로 피격 반응을 억제한다.
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
-	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Pattern_Phase);
 	ActivationOwnedTags.AddTag(WxGameplayTags::State_SuperArmor);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 }

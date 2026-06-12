@@ -20,9 +20,6 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
-
-	// 회피 중임을 태그로 발행한다(외부 시스템 분기용).
-	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Dodge);
 }
 
 void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

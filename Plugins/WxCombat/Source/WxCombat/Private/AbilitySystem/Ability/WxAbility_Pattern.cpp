@@ -7,9 +7,6 @@
 UWxAbility_Pattern::UWxAbility_Pattern()
 {
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
-
-	// 패턴 발동 중임을 알리는 상태 태그. HitReact가 이 태그를 보고 평타로 인한 일반 피격 반응을 억제한다.
-	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Pattern);
 }
 
 void UWxAbility_Pattern::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

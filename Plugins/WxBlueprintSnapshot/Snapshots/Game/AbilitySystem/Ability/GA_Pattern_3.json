@@ -10,14 +10,6 @@
 				}
 			]
 		},
-		"ActivationOwnedTags":
-		{
-			"GameplayTags": [
-				{
-					"TagName": "Ability.Pattern.3"
-				}
-			]
-		},
 		"Montage": "/Game/AbilitySystem/Ability/AM_Pattern_3.AM_Pattern_3"
 	},
 	"parentClass": "/Script/WxCombat.WxAbility_Pattern"
