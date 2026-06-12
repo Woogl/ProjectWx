@@ -2,15 +2,6 @@
 	"blueprintPath": "/Game/WorldObject/Actor/BP_ItemPickup.BP_ItemPickup",
 	"classDefaults":
 	{
-		"InteractionComponent":
-		{
-			"class": "/Script/WxWorld.WxInteractionComponent",
-			"delta":
-			{
-				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C",
-				"SphereRadius": 350
-			}
-		},
 		"MeshComponent":
 		{
 			"class": "/Script/Engine.StaticMeshComponent",
@@ -33,5 +24,17 @@
 		},
 		"RootComponent": "MeshComponent"
 	},
-	"parentClass": "/Script/WxGame.WxItemPickup"
+	"components":
+	{
+		"WxInteraction":
+		{
+			"componentClass": "/Script/WxWorld.WxInteractionComponent",
+			"delta":
+			{
+				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
+			},
+			"variableName": "WxInteraction"
+		}
+	},
+	"parentClass": "/Script/WxInventory.WxItemPickup"
 }

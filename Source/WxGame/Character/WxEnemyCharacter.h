@@ -10,11 +10,13 @@
 class UBehaviorTree;
 class UWxLockOnPointComponent;
 class UWxNameplateComponent;
+class UWxRewardComponent;
 
 /**
  * 에너미 캐릭터.
  * - AWxEnemyController에 의해 제어
  * - BehaviorTree를 BP에서 지정하여 적 종류별 행동 패턴 분리
+ * - 처치 시 RewardComponent 가 보상 픽업을 스폰해 사망 위치에 흩뿌린다
  */
 UCLASS(Abstract)
 class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnableInterface
@@ -62,4 +64,8 @@ protected:
 	/** 락온 대상이 되는 지점. 메시의 pelvis 본에 부착되어 카메라·캐릭터 시선과 레티클·호밍이 이 위치를 향한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|LockOn")
 	TObjectPtr<UWxLockOnPointComponent> LockOnPoint;
+
+	/** 처치 시 지급되는 보상. 보상 로우/픽업 외형/발사 파라미터를 보유한다. */
+	UPROPERTY(VisibleAnywhere, Category = "Wx|Reward")
+	TObjectPtr<UWxRewardComponent> RewardComponent;
 };

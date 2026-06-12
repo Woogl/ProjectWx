@@ -4,12 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Components/SphereComponent.h"
+#include "WxInteractionSource.h"
 #include "WxInteractionComponent.generated.h"
 
 class UUserWidget;
 class UWidgetComponent;
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractedSignature, AActor*, InstigatorActor);
 
 /**
  * 상호작용 컴포넌트.
@@ -27,7 +26,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractedSignature, AActor*, I
  * 프롬프트 위젯 컴포넌트는 OnRegister 시점에 동적으로 생성·부착한다.
  */
 UCLASS(ClassGroup = "Wx", meta = (BlueprintSpawnableComponent))
-class WXWORLD_API UWxInteractionComponent : public USphereComponent
+class WXWORLD_API UWxInteractionComponent : public USphereComponent, public IWxInteractionSource
 {
 	GENERATED_BODY()
 
@@ -41,9 +40,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx")
 	void SetInteractionEnabled(bool bEnabled);
 
+	// IWxInteractionSource
+	virtual FWxOnInteractedSignature& GetOnInteractedDelegate() override;
+
 	/** 프롬프트 위젯 텍스트 갱신. 위젯이 이미 생성되어 있으면 즉시 반영한다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx")
-	void SetInteractionText(const FText& InText);
+	virtual void SetInteractionText(const FText& InText) override;
 
 	/** 외부 리스너/소유 액터에서 바인딩. 서버+모든 클라이언트에서 fire 된다. */
 	UPROPERTY(BlueprintAssignable, Category = "Wx")

@@ -8,6 +8,7 @@
 
 #include "WxItemFragment.generated.h"
 
+class AWxItemPickup;
 class UGameplayEffect;
 class UNiagaraSystem;
 class USkeletalMesh;
@@ -132,12 +133,12 @@ public:
 };
 
 /**
- * 픽업 액터(AWxItemPickup) 의 외형을 정의하는 Fragment.
+ * 픽업 액터(AWxItemPickup) 의 클래스와 외형을 정의하는 Fragment.
  *
- * 다양한 스포너(보물 상자, 적 드랍 등) 가 동일한 픽업 BP 를 재사용하면서도
- * 아이템별로 다른 메시/이펙트를 출력하도록 한다.
+ * 다양한 스포너(보물 상자, 적 드랍 등) 가 아이템별로 지정된 픽업 액터를 스폰하면서도
+ * 동일한 픽업 BP 를 재사용해 아이템별로 다른 메시/이펙트를 출력하도록 한다.
  *
- * 본 Fragment 는 데이터만 기술한다 — 실제 컴포넌트 세팅은 픽업 액터 측에서 수행한다.
+ * 본 Fragment 는 데이터만 기술한다 — 실제 스폰은 스포너(WxRewardComponent), 컴포넌트 세팅은 픽업 액터 측에서 수행한다.
  */
 UCLASS(DisplayName = "Pickup")
 class WXINVENTORY_API UWxItemFragment_Pickup : public UWxItemFragment
@@ -145,6 +146,10 @@ class WXINVENTORY_API UWxItemFragment_Pickup : public UWxItemFragment
 	GENERATED_BODY()
 
 public:
+	/** 월드에 드랍될 때 스폰할 픽업 액터 클래스. 지급 데이터(아이템/수량)는 스포너가 스폰 후 주입한다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Pickup")
+	TSoftClassPtr<AWxItemPickup> ItemActorClass;
+
 	/** 픽업 액터의 메시 컴포넌트에 적용할 스태틱 메시. */
 	UPROPERTY(EditDefaultsOnly, Category = "Pickup")
 	TSoftObjectPtr<UStaticMesh> Mesh;

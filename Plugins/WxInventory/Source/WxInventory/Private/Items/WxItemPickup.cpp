@@ -1,10 +1,9 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "WorldObject/WxItemPickup.h"
+#include "Items/WxItemPickup.h"
 
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
-#include "Interaction/WxInteractionComponent.h"
 #include "Inventory/WxInventoryManagerComponent.h"
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemFragment.h"
@@ -13,6 +12,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
 #include "WxCollisionChannels.h"
+#include "WxInteractionSource.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogWxItemPickup, Log, All);
 
@@ -22,7 +22,7 @@ AWxItemPickup::AWxItemPickup()
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	SetRootComponent(MeshComponent);
-	
+
 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 	MeshComponent->SetCollisionObjectType(ECC_WorldDynamic);
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
@@ -30,9 +30,6 @@ AWxItemPickup::AWxItemPickup()
 	MeshComponent->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	MeshComponent->SetCollisionResponseToChannel(WxCollision::WxAttack, ECR_Ignore);
 	MeshComponent->SetGenerateOverlapEvents(false);
-
-	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
-	InteractionComponent->SetupAttachment(MeshComponent);
 
 	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
 	NiagaraComponent->SetupAttachment(MeshComponent);
@@ -47,24 +44,68 @@ void AWxItemPickup::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME_CONDITION(AWxItemPickup, Quantity, COND_InitialOnly);
 }
 
-void AWxItemPickup::BeginPlay()
-{
-	Super::BeginPlay();
-
-	InteractionComponent->OnInteracted.AddDynamic(this, &AWxItemPickup::HandleInteracted);
-}
-
 void AWxItemPickup::SetItemDef(UWxItemDefinition* InItemDef, int32 InQuantity)
 {
 	ItemDef = InItemDef;
 	Quantity = FMath::Max(1, InQuantity);
-	UpdateInteractionText();
 	ApplyPickupVisual();
+}
+
+void AWxItemPickup::LaunchInDirection(const FVector& Direction, float Speed)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	MeshComponent->SetSimulatePhysics(true);
+	MeshComponent->SetPhysicsLinearVelocity(Direction.GetSafeNormal() * Speed);
+}
+
+void AWxItemPickup::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// BP 에서 추가한 상호작용 소스를 자동으로 찾아 바인딩한다. 서버는 Deferred 스폰 주입, 클라는 InitialOnly 복제가
+	// 모두 BeginPlay 전에 끝나므로 텍스트 갱신도 여기 한 곳이면 충분하다.
+	for (UActorComponent* Source : GetComponentsByInterface(UWxInteractionSource::StaticClass()))
+	{
+		Cast<IWxInteractionSource>(Source)->GetOnInteractedDelegate().AddDynamic(this, &AWxItemPickup::HandleInteracted);
+	}
+
+	UpdateInteractionText();
+}
+
+void AWxItemPickup::HandleInteracted(AActor* InteractingActor)
+{
+	if (!HasAuthority() || !InteractingActor)
+	{
+		return;
+	}
+
+	if (!ItemDef)
+	{
+		Destroy();
+		return;
+	}
+
+	UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(InteractingActor);
+	if (!Inventory)
+	{
+		UE_LOG(LogWxItemPickup, Warning, TEXT("Interactor %s has no UWxInventoryManagerComponent"), *InteractingActor->GetName());
+		return;
+	}
+
+	UWxItemInstance* AddedInstance = Inventory->AddItemDefinition(ItemDef, Quantity);
+	const int32 TotalOwned = Inventory->GetTotalItemCountByDefinition(ItemDef);
+	UE_LOG(LogWxItemPickup, Log, TEXT("Picked up %s x%d (instance=%s, total=%d)"), *ItemDef->GetName(), Quantity, *GetNameSafe(AddedInstance), TotalOwned);
+
+	Destroy();
 }
 
 void AWxItemPickup::OnRep_ItemDef()
 {
-	UpdateInteractionText();
 	ApplyPickupVisual();
 }
 
@@ -78,7 +119,11 @@ void AWxItemPickup::UpdateInteractionText()
 	const FText FormattedText = (Quantity > 1)
 		? FText::Format(NSLOCTEXT("WxItemPickup", "InteractionFormatQuantity", "[F] {0} x{1}"), ItemDef->DisplayName, Quantity)
 		: FText::Format(NSLOCTEXT("WxItemPickup", "InteractionFormat", "[F] {0}"), ItemDef->DisplayName);
-	InteractionComponent->SetInteractionText(FormattedText);
+
+	for (UActorComponent* Source : GetComponentsByInterface(UWxInteractionSource::StaticClass()))
+	{
+		Cast<IWxInteractionSource>(Source)->SetInteractionText(FormattedText);
+	}
 }
 
 void AWxItemPickup::ApplyPickupVisual()
@@ -108,43 +153,4 @@ void AWxItemPickup::ApplyPickupVisual()
 	{
 		NiagaraComponent->Deactivate();
 	}
-}
-
-void AWxItemPickup::LaunchInDirection(const FVector& Direction, float Speed)
-{
-	if (!HasAuthority())
-	{
-		return;
-	}
-
-	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	MeshComponent->SetSimulatePhysics(true);
-	MeshComponent->SetPhysicsLinearVelocity(Direction.GetSafeNormal() * Speed);
-}
-
-void AWxItemPickup::HandleInteracted(AActor* InteractingActor)
-{
-	if (!HasAuthority() || !InteractingActor)
-	{
-		return;
-	}
-
-	if (!ItemDef)
-	{
-		Destroy();
-		return;
-	}
-
-	UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(InteractingActor);
-	if (!Inventory)
-	{
-		UE_LOG(LogWxItemPickup, Warning, TEXT("Interactor %s has no UWxInventoryManagerComponent"), *InteractingActor->GetName());
-		return;
-	}
-
-	UWxItemInstance* AddedInstance = Inventory->AddItemDefinition(ItemDef, Quantity);
-	const int32 TotalOwned = Inventory->GetTotalItemCountByDefinition(ItemDef);
-	UE_LOG(LogWxItemPickup, Log, TEXT("Picked up %s x%d (instance=%s, total=%d)"), *ItemDef->GetName(), Quantity, *GetNameSafe(AddedInstance), TotalOwned);
-
-	Destroy();
 }

@@ -11,17 +11,6 @@
 			}
 		},
 		"BehaviorTreeAsset": "/Game/AI/BT_Enemy.BT_Enemy",
-		"CharacterMovement":
-		{
-			"class": "/Script/Engine.CharacterMovementComponent",
-			"delta":
-			{
-				"NavMovementProperties":
-				{
-					"bUseAccelerationForPaths": true
-				}
-			}
-		},
 		"Mesh":
 		{
 			"class": "/Script/Engine.SkeletalMeshComponent",
@@ -66,6 +55,19 @@
 			"delta":
 			{
 				"WidgetClass": "/Game/UI/Widget/WBP_Nameplate_Enemy.WBP_Nameplate_Enemy_C"
+			}
+		},
+		"RewardComponent":
+		{
+			"class": "/Script/WxInventory.WxRewardComponent",
+			"delta":
+			{
+				"ItemActorClass": "/Game/WorldObject/Actor/BP_ItemPickup.BP_ItemPickup_C",
+				"RewardRow":
+				{
+					"DataTable": "/Game/Item/DT_Reward.DT_Reward",
+					"RowName": "Gold100"
+				}
 			}
 		},
 		"WeaponActor":

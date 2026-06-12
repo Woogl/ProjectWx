@@ -12,6 +12,7 @@ public class WxCore : ModuleRules
 		{
 			"Core",
 			"CoreUObject",
+			"Engine",
 			"GameplayTags",
 		});
 	}

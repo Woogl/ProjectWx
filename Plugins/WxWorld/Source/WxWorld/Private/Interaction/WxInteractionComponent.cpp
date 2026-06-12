@@ -57,6 +57,11 @@ void UWxInteractionComponent::SetInteractionEnabled(bool bEnabled)
 	}
 }
 
+FWxOnInteractedSignature& UWxInteractionComponent::GetOnInteractedDelegate()
+{
+	return OnInteracted;
+}
+
 void UWxInteractionComponent::SetInteractionText(const FText& InText)
 {
 	InteractionText = InText;

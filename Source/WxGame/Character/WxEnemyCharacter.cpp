@@ -4,6 +4,7 @@
 #include "Controller/WxEnemyController.h"
 #include "Component/WxNameplateComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Inventory/WxRewardComponent.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "System/WxSpawnerSubsystem.h"
 #include "Targeting/WxLockOnPointComponent.h"
@@ -30,6 +31,10 @@ AWxEnemyCharacter::AWxEnemyCharacter()
 	// 락온 지점을 메시에 부착한다.
 	LockOnPoint = CreateDefaultSubobject<UWxLockOnPointComponent>(TEXT("LockOnPoint"));
 	LockOnPoint->SetupAttachment(GetMesh(), TEXT("pelvis"));
+
+	// 캡슐 중심에 부착해 드랍이 바닥에 끼지 않게 한다. 위치/각도는 BP 에서 조절할 수 있다.
+	RewardComponent = CreateDefaultSubobject<UWxRewardComponent>(TEXT("RewardComponent"));
+	RewardComponent->SetupAttachment(GetRootComponent());
 }
 
 void AWxEnemyCharacter::BeginPlay()
@@ -52,6 +57,8 @@ void AWxEnemyCharacter::HandleDeath()
 	{
 		Subsystem->MarkSpawnableKilled(this);
 	}
+
+	RewardComponent->DropRewards();
 }
 
 UBehaviorTree* AWxEnemyCharacter::GetBehaviorTree() const
