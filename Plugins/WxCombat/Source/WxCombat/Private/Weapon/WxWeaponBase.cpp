@@ -1,7 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Weapon/WxWeaponBase.h"
-#include "Components/ArrowComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Character.h"
@@ -19,15 +18,6 @@ AWxWeaponBase::AWxWeaponBase()
 
 	GripPoint = CreateDefaultSubobject<USceneComponent>(TEXT("GripPoint"));
 	SetRootComponent(GripPoint);
-
-#if WITH_EDITORONLY_DATA
-	GripArrow = CreateEditorOnlyDefaultSubobject<UArrowComponent>(TEXT("GripArrow"));
-	if (GripArrow)
-	{
-		GripArrow->SetupAttachment(GripPoint);
-		GripArrow->SetArrowColor(FLinearColor::Red);
-	}
-#endif
 
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
 	Mesh->SetupAttachment(GripPoint);

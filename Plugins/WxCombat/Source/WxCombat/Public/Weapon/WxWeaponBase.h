@@ -8,7 +8,6 @@
 #include "WxWeaponBase.generated.h"
 
 class ACharacter;
-class UArrowComponent;
 class UCapsuleComponent;
 class USkeletalMesh;
 class USkeletalMeshComponent;
@@ -78,11 +77,6 @@ protected:
 	/** 손잡이 위치. 캐릭터 소켓에 부착되는 기준점 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Weapon")
 	TObjectPtr<USceneComponent> GripPoint;
-
-#if WITH_EDITORONLY_DATA
-	UPROPERTY(VisibleAnywhere, Category = "Wx|Weapon")
-	TObjectPtr<UArrowComponent> GripArrow;
-#endif
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Weapon")
 	TObjectPtr<USkeletalMeshComponent> Mesh;
