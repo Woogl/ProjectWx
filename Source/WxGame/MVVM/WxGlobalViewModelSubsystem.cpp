@@ -3,50 +3,16 @@
 #include "MVVM/WxGlobalViewModelSubsystem.h"
 #include "MVVM/WxViewModel_Character.h"
 #include "MVVM/WxViewModel_Inventory.h"
-#include "MVVMGameSubsystem.h"
-#include "Engine/GameInstance.h"
+#include "Blueprint/UserWidget.h"
 #include "Engine/LocalPlayer.h"
-
-FMVVMViewModelContext UWxGlobalViewModelSubsystem::GetPlayerCharacterContext()
-{
-	FMVVMViewModelContext Context;
-	Context.ContextClass = UWxViewModel_Character::StaticClass();
-	Context.ContextName = FName(TEXT("VM_PlayerCharacter"));
-	return Context;
-}
-
-FMVVMViewModelContext UWxGlobalViewModelSubsystem::GetBossCharacterContext()
-{
-	FMVVMViewModelContext Context;
-	Context.ContextClass = UWxViewModel_Character::StaticClass();
-	Context.ContextName = FName(TEXT("VM_BossCharacter"));
-	return Context;
-}
-
-FMVVMViewModelContext UWxGlobalViewModelSubsystem::GetInventoryContext()
-{
-	FMVVMViewModelContext Context;
-	Context.ContextClass = UWxViewModel_Inventory::StaticClass();
-	Context.ContextName = FName(TEXT("VM_Inventory"));
-	return Context;
-}
 
 void UWxGlobalViewModelSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
-	PlayerCharacterViewModel = RegisterGlobalViewModel<UWxViewModel_Character>(GetPlayerCharacterContext());
-	BossCharacterViewModel = RegisterGlobalViewModel<UWxViewModel_Character>(GetBossCharacterContext());
-	InventoryViewModel = RegisterGlobalViewModel<UWxViewModel_Inventory>(GetInventoryContext());
-}
-
-void UWxGlobalViewModelSubsystem::Deinitialize()
-{
-	UnregisterGlobalViewModel(GetPlayerCharacterContext(), PlayerCharacterViewModel);
-	UnregisterGlobalViewModel(GetBossCharacterContext(), BossCharacterViewModel);
-	UnregisterGlobalViewModel(GetInventoryContext(), InventoryViewModel);
-
-	Super::Deinitialize();
+	PlayerCharacterViewModel = NewObject<UWxViewModel_Character>(this);
+	BossCharacterViewModel = NewObject<UWxViewModel_Character>(this);
+	InventoryViewModel = NewObject<UWxViewModel_Inventory>(this);
 }
 
 UWxViewModel_Character* UWxGlobalViewModelSubsystem::GetPlayerCharacterViewModel() const
@@ -64,20 +30,17 @@ UWxViewModel_Inventory* UWxGlobalViewModelSubsystem::GetInventoryViewModel() con
 	return InventoryViewModel;
 }
 
-UMVVMViewModelCollectionObject* UWxGlobalViewModelSubsystem::GetGlobalCollection() const
+UObject* UWxViewModelResolver_PlayerCharacter::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
 {
-	UGameInstance* GameInst = GetLocalPlayer() ? GetLocalPlayer()->GetGameInstance() : nullptr;
-	if (!GameInst)
-	{
-		return nullptr;
-	}
+	const ULocalPlayer* LocalPlayer = UserWidget ? UserWidget->GetOwningLocalPlayer() : nullptr;
+	UWxGlobalViewModelSubsystem* Subsystem = LocalPlayer ? LocalPlayer->GetSubsystem<UWxGlobalViewModelSubsystem>() : nullptr;
+	return Subsystem ? Subsystem->GetPlayerCharacterViewModel() : nullptr;
+}
 
-	UMVVMGameSubsystem* MVVMGameSubsystem = GameInst->GetSubsystem<UMVVMGameSubsystem>();
-	if (!MVVMGameSubsystem)
-	{
-		return nullptr;
-	}
-
-	return MVVMGameSubsystem->GetViewModelCollection();
+UObject* UWxViewModelResolver_BossCharacter::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
+{
+	const ULocalPlayer* LocalPlayer = UserWidget ? UserWidget->GetOwningLocalPlayer() : nullptr;
+	UWxGlobalViewModelSubsystem* Subsystem = LocalPlayer ? LocalPlayer->GetSubsystem<UWxGlobalViewModelSubsystem>() : nullptr;
+	return Subsystem ? Subsystem->GetBossCharacterViewModel() : nullptr;
 }
 

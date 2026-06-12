@@ -33,7 +33,7 @@
 				"contextId": "631E2188-477F-E329-4D7E-8289B59FA186",
 				"createGetter": true,
 				"createSetter": false,
-				"creationType": "GlobalViewModelCollection",
+				"creationType": "Resolver",
 				"globalIdentifier": "VM_Inventory",
 				"optional": false
 			}

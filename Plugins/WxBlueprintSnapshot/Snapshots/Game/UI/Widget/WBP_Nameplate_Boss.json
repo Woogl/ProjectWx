@@ -67,7 +67,7 @@
 				"contextId": "5A9B2619-4FD4-C4B1-D0EB-A4A9D955E907",
 				"createGetter": true,
 				"createSetter": false,
-				"creationType": "GlobalViewModelCollection",
+				"creationType": "Resolver",
 				"globalIdentifier": "VM_BossCharacter",
 				"optional": false
 			}

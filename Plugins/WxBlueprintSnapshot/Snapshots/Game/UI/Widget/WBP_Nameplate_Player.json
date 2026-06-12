@@ -47,7 +47,7 @@
 				"contextId": "A5761DE7-4040-1188-E4E9-4DA3136F3436",
 				"createGetter": true,
 				"createSetter": false,
-				"creationType": "GlobalViewModelCollection",
+				"creationType": "Resolver",
 				"globalIdentifier": "VM_PlayerCharacter",
 				"optional": false
 			}
