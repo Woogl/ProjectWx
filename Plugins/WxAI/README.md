@@ -33,13 +33,13 @@
 | `EWxTeam` | 캐릭터 팀 구분 enum(Player/Enemy/Neutral) | `Plugins/WxAI/Source/WxAI/Public/WxTeamTypes.h` |
 
 ## Gameplay Tags
-이 모듈은 C++ Native Tag를 **선언하지 않는다.** Perception이 인식 상태를 발행할 때 WxCore가 선언한 `WxGameplayTags::State_Recognized`를 폰 ASC에 MinimalReplication으로 부여/해제한다(네임플레이트·보스 체력바 표시에 소비). 선언처는 WxCore 참조.
+이 모듈은 C++ Native Tag를 **선언하지 않는다.** Perception이 인식 상태를 발행할 때 WxCore가 선언한 `WxGameplayTags::State_InCombat`을 폰 ASC에 MinimalReplication으로 부여/해제한다(네임플레이트 등 표시에 소비). 선언처는 WxCore 참조.
 
 ## 확장 포인트 / 규약
 - 새 BT 노드 추가 — Task는 `UBTTaskNode`(또는 엔진 파생, 예: `UBTTask_MoveTo`), Decorator는 `UBTDecorator`, Composite는 적절한 베이스(`UBTComposite_*`)를 상속하고 접두사 `WxBT...`를 따른다. Composite에서 자체 노드 메모리가 필요하면 `FWxBTRandomChoiceMemory`처럼 `FBTCompositeMemory` 뒤에 상태를 배치한다(엔진 메모리 레이아웃 보존). 폰별 독립 상태가 필요하면 `bCreateNodeInstance`(Patrol 참고).
 - 데이터 주도 — 적 행동은 이 모듈의 노드를 조합한 BehaviorTree·Blackboard 에셋(게임 콘텐츠 쪽)이 구동한다. Blackboard 에셋에는 `WxBlackboardKeys`와 같은 이름의 키가 등록돼 있어야 한다. 어빌리티 발동·어트리뷰트 비교·정찰 MoveMode/속도 배율은 디자이너가 BT 에디터/컴포넌트 디테일에서 태그·`FGameplayAttribute`·`UPROPERTY`로 직접 지정한다(WxAI는 WxCombat에 의존하지 않으므로 어트리뷰트 식별자를 하드코딩하지 않는다).
 - 새 Blackboard 키 추가 — `WxBlackboardKeys`에 `extern const FName`과 타입드 accessor를 함께 선언/정의해 타입 오용을 막는다.
-- 리플리케이션/권한 — `UWxAIPerceptionComponent`의 인식·추적 판정은 서버 권한에서 수행되며, `State.Recognized`만 MinimalReplication으로 클라에 복제된다(최대 4인 멀티). TargetActor/회전 모드 발행은 서버 측에서 BB·MovementComponent에 직접 반영된다.
+- 리플리케이션/권한 — `UWxAIPerceptionComponent`의 인식·추적 판정은 서버 권한에서 수행되며, `State.InCombat`만 MinimalReplication으로 클라에 복제된다(최대 4인 멀티). TargetActor/회전 모드 발행은 서버 측에서 BB·MovementComponent에 직접 반영된다.
 
 ## 여기서부터 읽어라
 1. `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h` — 타겟 확정/리시 해제/회전 모드/인식 태그가 한 클래스에 모여 있어 AI 흐름의 중심. 주석이 상태 수명을 상세히 설명한다.
@@ -49,7 +49,7 @@
 ## 관련
 - 상위: 적/보스 BehaviorTree·AIController·폰 정의(게임 콘텐츠/`WxGame`)가 이 모듈의 노드와 컴포넌트를 소비한다.
 - [[WxCombat]] — 어빌리티(GAS)·어트리뷰트의 실제 구현처. WxAI는 태그/어트리뷰트 핸들로만 참조하며 직접 의존하지 않는다.
-- [[WxCore]] — `State.Recognized` 등 공용 Gameplay Tag 선언처.
+- [[WxCore]] — `State.InCombat` 등 공용 Gameplay Tag 선언처.
 
 ---
-*문서 기준 커밋 `5ae4876` · 생성일 2026-06-11 · 소스 21파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `7a5764b` · 생성일 2026-06-12 · 소스 21파일 — `/readme-writer`로 갱신*
