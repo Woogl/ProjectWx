@@ -3,11 +3,10 @@
 #include "MVVM/WxViewModel_Inventory.h"
 
 #include "Blueprint/UserWidget.h"
-#include "Engine/LocalPlayer.h"
+#include "Controller/WxPlayerController.h"
 #include "Inventory/WxInventoryManagerComponent.h"
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemInstance.h"
-#include "MVVM/WxGlobalViewModelSubsystem.h"
 #include "MVVM/WxViewModel_Item.h"
 
 void UWxViewModel_Inventory::Initialize(UWxInventoryManagerComponent* InInventory)
@@ -171,7 +170,15 @@ void UWxViewModel_Inventory::RefreshCategorizedItems()
 
 UObject* UWxViewModelResolver_Inventory::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
 {
-	const ULocalPlayer* LocalPlayer = UserWidget ? UserWidget->GetOwningLocalPlayer() : nullptr;
-	UWxGlobalViewModelSubsystem* Subsystem = LocalPlayer ? LocalPlayer->GetSubsystem<UWxGlobalViewModelSubsystem>() : nullptr;
-	return Subsystem ? Subsystem->GetInventoryViewModel() : nullptr;
+	const AWxPlayerController* PC = UserWidget ? Cast<AWxPlayerController>(UserWidget->GetOwningPlayer()) : nullptr;
+	UWxInventoryManagerComponent* InventoryManager = PC ? PC->GetInventoryManager() : nullptr;
+	if (!InventoryManager)
+	{
+		return nullptr;
+	}
+
+	// 위젯이 아닌 데이터 소스(인벤토리 매니저)를 Outer 로 생성한다. 수명은 뷰의 강참조와 BeginDestroy 의 Deinitialize 가 관리한다.
+	UWxViewModel_Inventory* ViewModel = NewObject<UWxViewModel_Inventory>(InventoryManager);
+	ViewModel->Initialize(InventoryManager);
+	return ViewModel;
 }

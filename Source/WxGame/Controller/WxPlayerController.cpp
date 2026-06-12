@@ -1,19 +1,9 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Controller/WxPlayerController.h"
-#include "AbilitySystem/Ability/WxAbilityBase.h"
-#include "AbilitySystemComponent.h"
-#include "Component/WxAbilityComponent_UIData.h"
 #include "Character/WxCharacterBase.h"
 #include "Character/WxPlayerCharacter.h"
-#include "Engine/LocalPlayer.h"
-#include "Engine/Texture2D.h"
 #include "Inventory/WxInventoryManagerComponent.h"
-#include "MVVM/WxGlobalViewModelSubsystem.h"
-#include "MVVM/WxViewModel_Ability.h"
-#include "MVVM/WxViewModel_AbilitySystem.h"
-#include "MVVM/WxViewModel_Character.h"
-#include "MVVM/WxViewModel_Inventory.h"
 #include "System/WxUIManagerSubsystem.h"
 #include "Widget/WxActivatableWidget.h"
 #include "WxGameplayTags.h"
@@ -40,13 +30,9 @@ void AWxPlayerController::OnPossess(APawn* InPawn)
 
 	BindCharacterDeath(InPawn);
 
+	// HUD 위젯의 리졸버가 생성 시점에 빙의 Pawn 의 ASC/인벤토리를 읽으므로 빙의 완료 후에 푸시해야 한다.
 	if (AWxPlayerCharacter* WxPlayerCharacter = Cast<AWxPlayerCharacter>(InPawn))
 	{
-		if (UAbilitySystemComponent* ASC = WxPlayerCharacter->GetAbilitySystemComponent())
-		{
-			InitializePlayerCharacterViewModel(ASC, WxPlayerCharacter->GetCharacterUIData());
-		}
-		// Global View Model 초기화가 먼저 되어야함
 		PushGameHUD(WxPlayerCharacter);
 	}
 }
@@ -56,23 +42,9 @@ void AWxPlayerController::OnUnPossess()
 	if (IsLocalController())
 	{
 		UnbindCharacterDeath();
-		DeinitializePlayerCharacterViewModel();
 	}
 
 	Super::OnUnPossess();
-}
-
-void AWxPlayerController::ReceivedPlayer()
-{
-	Super::ReceivedPlayer();
-
-	// 인벤토리는 본 PC 의 서브오브젝트라 PC 가 도착한 시점에 즉시 사용 가능하다.
-	// listen server 호스트는 InitPlayerState 시점엔 LocalPlayer 가 아직 지정 전이라 GetLocalPlayer() 가 nullptr —
-	// ReceivedPlayer 는 SetPlayer 직후 호출되므로 호스트/standalone/원격 클라 모두에서 안전하다.
-	if (IsLocalController())
-	{
-		InitializeInventoryViewModel();
-	}
 }
 
 void AWxPlayerController::OnRep_Pawn()
@@ -86,14 +58,9 @@ void AWxPlayerController::OnRep_Pawn()
 
 	BindCharacterDeath(GetPawn());
 
-	// 원격 클라이언트: Pawn 복제 시 HUD Push 및 ViewModel 초기화
+	// 원격 클라이언트: Pawn 복제 시 HUD Push. 리졸버가 생성 시점에 Pawn 의 ASC/인벤토리를 읽으므로 이 시점이어야 한다.
 	if (AWxPlayerCharacter* WxPlayerCharacter = Cast<AWxPlayerCharacter>(GetPawn()))
 	{
-		if (UAbilitySystemComponent* ASC = WxPlayerCharacter->GetAbilitySystemComponent())
-		{
-			InitializePlayerCharacterViewModel(ASC, WxPlayerCharacter->GetCharacterUIData());
-		}
-		// Global View Model 초기화가 먼저 되어야함
 		PushGameHUD(WxPlayerCharacter);
 	}
 }
@@ -104,7 +71,6 @@ void AWxPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		UnbindCharacterDeath();
 		DismissDeathScreen();
-		DeinitializeInventoryViewModel();
 	}
 
 	Super::EndPlay(EndPlayReason);
@@ -131,127 +97,6 @@ void AWxPlayerController::PushGameHUD(AWxPlayerCharacter* PlayerCharacter)
 	}
 
 	GameHUD = Cast<UWxActivatableWidget>(UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Game, HUDClass));
-}
-
-void AWxPlayerController::InitializePlayerCharacterViewModel(UAbilitySystemComponent* ASC, const FWxCharacterUIData& UIData)
-{
-	ULocalPlayer* LocalPlayer = GetLocalPlayer();
-	if (!LocalPlayer)
-	{
-		return;
-	}
-
-	UWxGlobalViewModelSubsystem* GlobalVMSubsystem = LocalPlayer->GetSubsystem<UWxGlobalViewModelSubsystem>();
-	if (!GlobalVMSubsystem)
-	{
-		return;
-	}
-
-	UWxViewModel_Character* ViewModel = GlobalVMSubsystem->GetPlayerCharacterViewModel();
-	if (!ViewModel)
-	{
-		return;
-	}
-
-	ViewModel->Initialize(ASC, UIData);
-
-	UWxViewModel_AbilitySystem* AbilitySystemViewModel = ViewModel->AbilitySystem;
-	if (!AbilitySystemViewModel)
-	{
-		return;
-	}
-
-	// WxUI는 WxCombat(어빌리티)에 의존할 수 없어 어빌리티를 직접 순회할 수 없으므로,
-	// 어빌리티에 부착된 UIData 컴포넌트(WxUI) 의 아이콘은 양쪽에 의존하는 WxGame 에서 주입한다.
-	// 어빌리티 VM 은 지연 생성되므로, 아이콘이 있는 어빌리티는 여기서 GetOrCreate 로 만들어 주입한다. 바인딩이 먼저 만들었다면 그 VM 을 재사용한다.
-	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
-	{
-		const UWxAbilityBase* WxAbility = Cast<UWxAbilityBase>(Spec.Ability);
-		const UWxAbilityComponent_UIData* AbilityUIData = WxAbility ? WxAbility->FindComponent<UWxAbilityComponent_UIData>() : nullptr;
-		if (!AbilityUIData || AbilityUIData->Icon.IsNull())
-		{
-			continue;
-		}
-
-		const FGameplayTagContainer& AssetTags = WxAbility->GetAssetTags();
-		if (AssetTags.IsEmpty())
-		{
-			continue;
-		}
-
-		UWxViewModel_Ability* AbilityVM = AbilitySystemViewModel->GetOrCreateAbilityViewModel(AssetTags);
-		if (!AbilityVM)
-		{
-			continue;
-		}
-
-		AbilityVM->SetIcon(AbilityUIData->Icon.LoadSynchronous());
-	}
-}
-
-void AWxPlayerController::DeinitializePlayerCharacterViewModel()
-{
-	ULocalPlayer* LocalPlayer = GetLocalPlayer();
-	if (!LocalPlayer)
-	{
-		return;
-	}
-
-	UWxGlobalViewModelSubsystem* GlobalVMSubsystem = LocalPlayer->GetSubsystem<UWxGlobalViewModelSubsystem>();
-	if (!GlobalVMSubsystem)
-	{
-		return;
-	}
-
-	if (UWxViewModel_Character* ViewModel = GlobalVMSubsystem->GetPlayerCharacterViewModel())
-	{
-		ViewModel->Deinitialize();
-	}
-}
-
-void AWxPlayerController::InitializeInventoryViewModel()
-{
-	if (!InventoryManager)
-	{
-		return;
-	}
-
-	ULocalPlayer* LocalPlayer = GetLocalPlayer();
-	if (!LocalPlayer)
-	{
-		return;
-	}
-
-	UWxGlobalViewModelSubsystem* GlobalVMSubsystem = LocalPlayer->GetSubsystem<UWxGlobalViewModelSubsystem>();
-	if (!GlobalVMSubsystem)
-	{
-		return;
-	}
-
-	if (UWxViewModel_Inventory* ViewModel = GlobalVMSubsystem->GetInventoryViewModel())
-	{
-		ViewModel->Initialize(InventoryManager);
-	}
-}
-
-void AWxPlayerController::DeinitializeInventoryViewModel()
-{
-	ULocalPlayer* LocalPlayer = GetLocalPlayer();
-	if (!LocalPlayer)
-	{
-		return;
-	}
-
-	UWxGlobalViewModelSubsystem* GlobalVMSubsystem = LocalPlayer->GetSubsystem<UWxGlobalViewModelSubsystem>();
-	if (!GlobalVMSubsystem)
-	{
-		return;
-	}
-
-	if (UWxViewModel_Inventory* ViewModel = GlobalVMSubsystem->GetInventoryViewModel())
-	{
-		ViewModel->Deinitialize();
-	}
 }
 
 void AWxPlayerController::BindCharacterDeath(APawn* InPawn)

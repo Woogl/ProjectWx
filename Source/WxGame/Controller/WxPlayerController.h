@@ -6,11 +6,8 @@
 #include "GameFramework/PlayerController.h"
 #include "WxPlayerController.generated.h"
 
-struct FWxCharacterUIData;
-
 class AWxCharacterBase;
 class AWxPlayerCharacter;
-class UAbilitySystemComponent;
 class UWxActivatableWidget;
 class UWxInventoryManagerComponent;
 
@@ -35,7 +32,6 @@ protected:
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnUnPossess() override;
 	virtual void OnRep_Pawn() override;
-	virtual void ReceivedPlayer() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	/** 소유 클라이언트의 인벤토리. 서버 권한, 소유 연결로만 복제된다. */
@@ -48,12 +44,6 @@ protected:
 
 private:
 	void PushGameHUD(AWxPlayerCharacter* PlayerCharacter);
-
-	void InitializePlayerCharacterViewModel(UAbilitySystemComponent* ASC, const FWxCharacterUIData& UIData);
-	void DeinitializePlayerCharacterViewModel();
-
-	void InitializeInventoryViewModel();
-	void DeinitializeInventoryViewModel();
 
 	void BindCharacterDeath(APawn* InPawn);
 	void UnbindCharacterDeath();

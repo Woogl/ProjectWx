@@ -16,9 +16,9 @@ class UUserWidget;
 class UMVVMView;
 
 /**
- * 플레이어 인벤토리의 전역 집계/알림 ViewModel.
+ * 플레이어 인벤토리의 집계/알림 ViewModel.
  *
- * 단일 싱글톤 Shell 로 UWxGlobalViewModelSubsystem 이 생성/소유하며(위젯은 UWxViewModelResolver_Inventory 로 가져감), PC 가 도착한 시점(ReceivedPlayer)에 Initialize(InventoryManager) 로 데이터 소스를 연결한다. 역할은
+ * UWxViewModelResolver_Inventory 가 위젯별로 생성하며, 생성 시점에 소유 PC 의 InventoryManager 를 Initialize 로 연결한다. 역할은
  * 다섯 가지로 한정한다:
  *   1) ItemDef 기준 총 보유량 집계 (GetCurrencyAmount)
  *   2) 가장 최근 스택 변경 알림 (LastChangedItemDef/Amount/Delta) — 단발성 Toast/팝업 이펙트 등 "방금 무엇이 얼마나 변했는지" 단일 채널
@@ -100,9 +100,10 @@ protected:
 };
 
 /**
- * 글로벌 VM_Inventory 용 View Bindings Resolver.
+ * VM_Inventory 용 View Bindings Resolver.
  *
- * 위젯을 소유한 LocalPlayer 의 UWxGlobalViewModelSubsystem 이 소유한 인벤토리 뷰모델을 그대로 반환한다 (새로 생성하지 않음).
+ * 위젯을 소유한 AWxPlayerController 의 InventoryManager 를 끌어와 위젯별 UWxViewModel_Inventory 를 생성/초기화한다.
+ * InventoryManager 는 PC 의 생성자 서브오브젝트라 위젯이 존재하는 시점엔 항상 사용 가능하다.
  * WBP 의 View Bindings 에서 Creation Type = Resolver 로 본 클래스를 선택한다.
  */
 UCLASS(EditInlineNew, CollapseCategories)
