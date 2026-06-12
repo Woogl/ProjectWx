@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "GameplayTagContainer.h"
 #include "WxPlayerController.generated.h"
 
 struct FWxCharacterUIData;
