@@ -2,9 +2,12 @@
 
 #include "AbilitySystem/Ability/WxAbility_LockOn.h"
 #include "AbilitySystem/Task/WxAbilityTask_LockOnTarget.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/PlayerController.h"
+#include "InputAction.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "TargetingSystem/TargetingSubsystem.h"
 #include "Types/TargetingSystemTypes.h"
@@ -35,60 +38,48 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	// TargetingSubsystem으로 동기 타겟 탐색
-	UTargetingSubsystem* TargetingSubsystem = UTargetingSubsystem::Get(GetWorld());
-	if (!TargetingSubsystem)
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
-	FTargetingSourceContext SourceContext;
-	SourceContext.SourceActor = GetOwningActorFromActorInfo();
-	FTargetingRequestHandle RequestHandle = UTargetingSubsystem::MakeTargetRequestHandle(TargetingPreset, SourceContext);
-	TargetingSubsystem->ExecuteTargetingRequestWithHandle(RequestHandle, FTargetingRequestDelegate());
-
-	// 결과에서 가장 가까운 타겟 추출
-	FTargetingDefaultResultsSet& ResultsSet = FTargetingDefaultResultsSet::FindOrAdd(RequestHandle);
-	TArray<FTargetingDefaultResultData>& Results = ResultsSet.TargetResults;
-	if (Results.IsEmpty())
-	{
-		UTargetingSubsystem::ReleaseTargetRequestHandle(RequestHandle);
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
-	AActor* FoundTarget = Results[0].HitResult.GetActor();
-	UTargetingSubsystem::ReleaseTargetRequestHandle(RequestHandle);
-
-	if (!FoundTarget)
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
-	// 락온 대상 등록
-	if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(GetOwningActorFromActorInfo()))
-	{
-		LockOnComp->SetLockOnTarget(FoundTarget);
-	}
-
 	// 락온 중에는 이동 방향 회전을 끈다. 캐릭터를 타겟으로 향하게 하는 회전은 태스크가 부드럽게 보간한다. EndAbility에서 복구.
+	// autonomous proxy 의 회전 정합을 위해 서버에서도 꺼야 하므로 IsLocallyControlled 게이트 앞에서 처리한다.
 	if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
 	{
 		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 	}
 
+	// 타겟 결정과 추적 태스크는 소유 클라(또는 리슨 서버 호스트)에서만 처리한다. 태스크는 카메라/몸체 추적·재탐색 입력 폴링·레티클의 로컬 어포던스다.
+	// 서버(리모트 플레이어)는 소유 클라의 SetLockOnTarget RPC 로 복제된 LockOnTarget 만 보유하며, 발사체/스냅 등 소비처가 그 값을 읽는다.
+	if (!IsLocallyControlled())
+	{
+		return;
+	}
+
+	// TargetingSubsystem으로 동기 타겟 탐색. 결과는 프리셋이 거리순으로 정렬하므로 첫 번째가 가장 가까운 타겟.
+	TArray<AActor*> Candidates;
+	GatherCandidates(Candidates);
+	if (Candidates.IsEmpty())
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	AActor* FoundTarget = Candidates[0];
+
+	// 락온 대상 등록. 소유 클라는 로컬 즉시 반영 + 서버 RPC, 리슨 호스트는 권위 직접 반영(컴포넌트가 복제 처리).
+	if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(GetOwningActorFromActorInfo()))
+	{
+		LockOnComp->SetLockOnTarget(FoundTarget);
+	}
+
 	// 락온 태스크 생성
-	LockOnTask = UWxAbilityTask_LockOnTarget::CreateTask(this, FoundTarget, CameraInterpSpeed, CameraPitchOffset, MaxDistance, CharacterInterpSpeed, ReticleWidgetClass);
+	LockOnTask = UWxAbilityTask_LockOnTarget::CreateTask(this, FoundTarget, CameraInterpSpeed, CameraPitchOffset, MaxDistance, CharacterInterpSpeed, ReticleWidgetClass, LookAction, RetargetLookThreshold);
 	LockOnTask->OnTargetLost.AddDynamic(this, &UWxAbility_LockOn::HandleTargetLost);
+	LockOnTask->OnRetargetRequested.AddDynamic(this, &UWxAbility_LockOn::HandleRetargetRequested);
 	LockOnTask->ReadyForActivation();
 }
 
 void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-	
+	// Super::EndAbility 가 태스크를 해제하기 전에 타겟을 먼저 비운다. 그래야 아직 살아있는 태스크가
+	// 컴포넌트의 null 변경 브로드캐스트를 받아 레티클을 즉시 정리한다.
 	if (ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
 	{
 		if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(GetOwningActorFromActorInfo()))
@@ -103,10 +94,138 @@ void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 		}
 	}
 
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
 	LockOnTask = nullptr;
 }
 
 void UWxAbility_LockOn::HandleTargetLost()
 {
+	// 재탐색이 켜져 있으면 잃은 대상을 제외하고 살아있는 가장 가까운 적으로 갈아탄다. 후보가 없을 때만 락온을 해제한다.
+	// 타겟 결정은 활성화와 동일하게 소유 클라(또는 리슨 호스트)에서만 한다. 서버는 SetLockOnTarget RPC 로 복제된다.
+	AActor* Avatar = GetOwningActorFromActorInfo();
+	UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(Avatar);
+	if (bRetargetOnTargetLost && IsLocallyControlled() && Avatar && LockOnComp)
+	{
+		AActor* LostTarget = LockOnComp->GetLockOnTarget();
+		const FVector AvatarLocation = Avatar->GetActorLocation();
+		const float MaxDistanceSquared = MaxDistance * MaxDistance;
+
+		// 후보는 프리셋이 거리순 정렬하므로 첫 유효 후보가 가장 가까운 다른 적이다.
+		TArray<AActor*> Candidates;
+		GatherCandidates(Candidates);
+		for (AActor* Candidate : Candidates)
+		{
+			if (!Candidate || Candidate == LostTarget)
+			{
+				continue;
+			}
+
+			// 락온 유지 범위(MaxDistance)를 벗어난 후보로 갈아타면 다음 틱에 즉시 다시 잃으므로 제외한다.
+			if (FVector::DistSquared(AvatarLocation, Candidate->GetActorLocation()) > MaxDistanceSquared)
+			{
+				continue;
+			}
+
+			// 사망 직후 프리셋이 시체를 아직 거르지 못할 수 있으므로 죽은 후보는 건너뛴다.
+			const UAbilitySystemComponent* CandidateASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Candidate);
+			if (CandidateASC && CandidateASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
+			{
+				continue;
+			}
+
+			// 컴포넌트에만 설정하면 태스크가 OnLockOnTargetChanged 로 즉시 추적을 이어간다(서버 RPC 로 권위 반영).
+			LockOnComp->SetLockOnTarget(Candidate);
+			return;
+		}
+	}
+
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+}
+
+void UWxAbility_LockOn::HandleRetargetRequested(FVector2D ScreenDirection)
+{
+	if (!LockOnTask)
+	{
+		return;
+	}
+
+	APlayerController* PC = CurrentActorInfo ? Cast<APlayerController>(CurrentActorInfo->PlayerController.Get()) : nullptr;
+	AActor* Avatar = GetOwningActorFromActorInfo();
+	if (!PC || !Avatar)
+	{
+		return;
+	}
+
+	UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(Avatar);
+	AActor* CurrentTarget = LockOnComp ? LockOnComp->GetLockOnTarget() : nullptr;
+
+	// 시선 입력 방향(화면 기준 2D)을 카메라 평면 위의 월드 방향으로 변환한다.
+	const FRotationMatrix ControlRotMatrix(PC->GetControlRotation());
+	const FVector CamForward = ControlRotMatrix.GetUnitAxis(EAxis::X);
+	const FVector CamRight = ControlRotMatrix.GetUnitAxis(EAxis::Y);
+	const FVector CamUp = ControlRotMatrix.GetUnitAxis(EAxis::Z);
+	const FVector DesiredDir = (CamRight * ScreenDirection.X + CamUp * ScreenDirection.Y).GetSafeNormal();
+	if (DesiredDir.IsNearlyZero())
+	{
+		return;
+	}
+
+	// 후보들 중 현재 타겟을 제외하고, 시선이 가리키는 방향에 가장 잘 정렬된 적을 고른다.
+	TArray<AActor*> Candidates;
+	GatherCandidates(Candidates);
+
+	const FVector AvatarLocation = Avatar->GetActorLocation();
+	AActor* BestTarget = nullptr;
+	float BestAlignment = RetargetMinAlignment;
+	for (AActor* Candidate : Candidates)
+	{
+		if (!Candidate || Candidate == CurrentTarget)
+		{
+			continue;
+		}
+
+		// 후보 방향에서 카메라 정면 성분을 제거해 화면 평면에 투영한 뒤 시선 방향과의 정렬도를 비교한다.
+		const FVector ToTarget = Candidate->GetActorLocation() - AvatarLocation;
+		const FVector ProjectedDir = (ToTarget - FVector::DotProduct(ToTarget, CamForward) * CamForward).GetSafeNormal();
+		const float Alignment = FVector::DotProduct(ProjectedDir, DesiredDir);
+		if (Alignment > BestAlignment)
+		{
+			BestAlignment = Alignment;
+			BestTarget = Candidate;
+		}
+	}
+
+	if (BestTarget && LockOnComp)
+	{
+		// 컴포넌트에만 설정한다. 로컬 예측 브로드캐스트가 태스크를 즉시 갱신하고(응답성), 서버 RPC 로 권위 반영 후 전 머신에 복제된다.
+		LockOnComp->SetLockOnTarget(BestTarget);
+	}
+}
+
+void UWxAbility_LockOn::GatherCandidates(TArray<AActor*>& OutCandidates) const
+{
+	OutCandidates.Reset();
+
+	UTargetingSubsystem* TargetingSubsystem = UTargetingSubsystem::Get(GetWorld());
+	if (!TargetingPreset || !TargetingSubsystem)
+	{
+		return;
+	}
+
+	FTargetingSourceContext SourceContext;
+	SourceContext.SourceActor = GetOwningActorFromActorInfo();
+	FTargetingRequestHandle RequestHandle = UTargetingSubsystem::MakeTargetRequestHandle(TargetingPreset, SourceContext);
+	TargetingSubsystem->ExecuteTargetingRequestWithHandle(RequestHandle, FTargetingRequestDelegate());
+
+	FTargetingDefaultResultsSet& ResultsSet = FTargetingDefaultResultsSet::FindOrAdd(RequestHandle);
+	for (const FTargetingDefaultResultData& Result : ResultsSet.TargetResults)
+	{
+		if (AActor* Actor = Result.HitResult.GetActor())
+		{
+			OutCandidates.Add(Actor);
+		}
+	}
+
+	UTargetingSubsystem::ReleaseTargetRequestHandle(RequestHandle);
 }
