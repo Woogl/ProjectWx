@@ -2,6 +2,7 @@
 
 #include "Component/WxNameplateComponent.h"
 #include "AbilitySystemComponent.h"
+#include "Components/SceneComponent.h"
 #include "View/MVVMView.h"
 #include "Character/WxCharacterBase.h"
 #include "MVVM/WxViewModel_Character.h"
@@ -107,5 +108,12 @@ bool UWxNameplateComponent::IsLockedOnByLocalPlayer() const
 	}
 
 	const UWxLockOnComponent* LockOnComponent = UWxLockOnComponent::FindComponent(PC->GetPawn());
-	return LockOnComponent && LockOnComponent->GetLockOnTarget() == GetOwner();
+	if (!LockOnComponent)
+	{
+		return false;
+	}
+
+	// 락온 대상은 컴포넌트(부위) 단위이므로, 소유 액터가 이 네임플레이트의 액터인지로 판정한다.
+	const USceneComponent* LockOnTarget = LockOnComponent->GetLockOnTarget();
+	return LockOnTarget && LockOnTarget->GetOwner() == GetOwner();
 }

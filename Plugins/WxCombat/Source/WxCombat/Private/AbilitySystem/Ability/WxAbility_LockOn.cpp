@@ -4,11 +4,13 @@
 #include "AbilitySystem/Task/WxAbilityTask_LockOnTarget.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "Components/SceneComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "InputAction.h"
 #include "Targeting/WxLockOnComponent.h"
+#include "Targeting/WxLockOnPointComponent.h"
 #include "TargetingSystem/TargetingSubsystem.h"
 #include "Types/TargetingSystemTypes.h"
 #include "WxGameplayTags.h"
@@ -55,22 +57,32 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	// TargetingSubsystem으로 동기 타겟 탐색. 결과는 프리셋이 거리순으로 정렬하므로 첫 번째가 가장 가까운 타겟.
 	TArray<AActor*> Candidates;
 	GatherCandidates(Candidates);
-	if (Candidates.IsEmpty())
+
+	// 락온 지점(UWxLockOnPointComponent)이 있는 액터만 락온 대상이 된다. 후보는 거리순이므로 지점을 가진 가장 가까운 액터를 택한다.
+	// 대상·카메라/캐릭터 시선·레티클·호밍이 모두 이 컴포넌트 위치를 따라가므로, 조준 부위를 바꾸려면 지점 배치만 옮기면 된다.
+	USceneComponent* TargetComponent = nullptr;
+	for (AActor* Candidate : Candidates)
+	{
+		TargetComponent = UWxLockOnPointComponent::ResolveLockOnTarget(Candidate);
+		if (TargetComponent)
+		{
+			break;
+		}
+	}
+	if (!TargetComponent)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
-	AActor* FoundTarget = Candidates[0];
-
 	// 락온 대상 등록. 소유 클라는 로컬 즉시 반영 + 서버 RPC, 리슨 호스트는 권위 직접 반영(컴포넌트가 복제 처리).
 	if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(GetOwningActorFromActorInfo()))
 	{
-		LockOnComp->SetLockOnTarget(FoundTarget);
+		LockOnComp->SetLockOnTarget(TargetComponent);
 	}
 
 	// 락온 태스크 생성
-	LockOnTask = UWxAbilityTask_LockOnTarget::CreateTask(this, FoundTarget, CameraInterpSpeed, CameraPitchOffset, MaxDistance, CharacterInterpSpeed, ReticleWidgetClass, LookAction, RetargetLookThreshold);
+	LockOnTask = UWxAbilityTask_LockOnTarget::CreateTask(this, TargetComponent, CameraInterpSpeed, CameraPitchOffset, MaxDistance, CharacterInterpSpeed, ReticleWidgetClass, LookAction, RetargetLookThreshold);
 	LockOnTask->OnTargetLost.AddDynamic(this, &UWxAbility_LockOn::HandleTargetLost);
 	LockOnTask->OnRetargetRequested.AddDynamic(this, &UWxAbility_LockOn::HandleRetargetRequested);
 	LockOnTask->ReadyForActivation();
@@ -107,7 +119,9 @@ void UWxAbility_LockOn::HandleTargetLost()
 	UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(Avatar);
 	if (bRetargetOnTargetLost && IsLocallyControlled() && Avatar && LockOnComp)
 	{
-		AActor* LostTarget = LockOnComp->GetLockOnTarget();
+		// 락온 대상은 컴포넌트지만 후보 비교/제외는 액터 단위이므로 소유 액터로 환원한다.
+		const USceneComponent* LostComponent = LockOnComp->GetLockOnTarget();
+		const AActor* LostTarget = LostComponent ? LostComponent->GetOwner() : nullptr;
 		const FVector AvatarLocation = Avatar->GetActorLocation();
 		const float MaxDistanceSquared = MaxDistance * MaxDistance;
 
@@ -134,8 +148,15 @@ void UWxAbility_LockOn::HandleTargetLost()
 				continue;
 			}
 
+			// 락온 지점이 없는 후보는 락온 대상이 될 수 없으므로 건너뛴다.
+			USceneComponent* TargetComponent = UWxLockOnPointComponent::ResolveLockOnTarget(Candidate);
+			if (!TargetComponent)
+			{
+				continue;
+			}
+
 			// 컴포넌트에만 설정하면 태스크가 OnLockOnTargetChanged 로 즉시 추적을 이어간다(서버 RPC 로 권위 반영).
-			LockOnComp->SetLockOnTarget(Candidate);
+			LockOnComp->SetLockOnTarget(TargetComponent);
 			return;
 		}
 	}
@@ -158,7 +179,8 @@ void UWxAbility_LockOn::HandleRetargetRequested(FVector2D ScreenDirection)
 	}
 
 	UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(Avatar);
-	AActor* CurrentTarget = LockOnComp ? LockOnComp->GetLockOnTarget() : nullptr;
+	const USceneComponent* CurrentComponent = LockOnComp ? LockOnComp->GetLockOnTarget() : nullptr;
+	const AActor* CurrentTarget = CurrentComponent ? CurrentComponent->GetOwner() : nullptr;
 
 	// 시선 입력 방향(화면 기준 2D)을 카메라 평면 위의 월드 방향으로 변환한다.
 	const FRotationMatrix ControlRotMatrix(PC->GetControlRotation());
@@ -176,11 +198,18 @@ void UWxAbility_LockOn::HandleRetargetRequested(FVector2D ScreenDirection)
 	GatherCandidates(Candidates);
 
 	const FVector AvatarLocation = Avatar->GetActorLocation();
-	AActor* BestTarget = nullptr;
+	USceneComponent* BestTargetComponent = nullptr;
 	float BestAlignment = RetargetMinAlignment;
 	for (AActor* Candidate : Candidates)
 	{
 		if (!Candidate || Candidate == CurrentTarget)
+		{
+			continue;
+		}
+
+		// 락온 지점이 없는 후보는 대상이 될 수 없으므로 제외한다(없는데 선택되면 대상이 nullptr로 비워진다).
+		USceneComponent* CandidateComponent = UWxLockOnPointComponent::ResolveLockOnTarget(Candidate);
+		if (!CandidateComponent)
 		{
 			continue;
 		}
@@ -192,14 +221,14 @@ void UWxAbility_LockOn::HandleRetargetRequested(FVector2D ScreenDirection)
 		if (Alignment > BestAlignment)
 		{
 			BestAlignment = Alignment;
-			BestTarget = Candidate;
+			BestTargetComponent = CandidateComponent;
 		}
 	}
 
-	if (BestTarget && LockOnComp)
+	if (BestTargetComponent && LockOnComp)
 	{
 		// 컴포넌트에만 설정한다. 로컬 예측 브로드캐스트가 태스크를 즉시 갱신하고(응답성), 서버 RPC 로 권위 반영 후 전 머신에 복제된다.
-		LockOnComp->SetLockOnTarget(BestTarget);
+		LockOnComp->SetLockOnTarget(BestTargetComponent);
 	}
 }
 

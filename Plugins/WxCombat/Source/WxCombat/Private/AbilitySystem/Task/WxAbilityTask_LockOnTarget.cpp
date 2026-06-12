@@ -3,6 +3,7 @@
 #include "AbilitySystem/Task/WxAbilityTask_LockOnTarget.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "Components/SceneComponent.h"
 #include "Components/WidgetComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedPlayerInput.h"
@@ -13,7 +14,7 @@
 #include "Targeting/WxLockOnComponent.h"
 #include "WxGameplayTags.h"
 
-UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAbility* OwningAbility, AActor* InTarget, float InInterpSpeed, float InPitchOffset, float InMaxDistance, float InCharacterInterpSpeed, TSubclassOf<UUserWidget> InReticleWidgetClass, UInputAction* InLookAction, float InRetargetLookThreshold)
+UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed, float InPitchOffset, float InMaxDistance, float InCharacterInterpSpeed, TSubclassOf<UUserWidget> InReticleWidgetClass, UInputAction* InLookAction, float InRetargetLookThreshold)
 {
 	UWxAbilityTask_LockOnTarget* Task = NewAbilityTask<UWxAbilityTask_LockOnTarget>(OwningAbility);
 	Task->Target = InTarget;
@@ -32,9 +33,10 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 {
 	Super::TickTask(DeltaTime);
 
-	AActor* TargetActor = Target.Get();
-	if (!TargetActor)
+	USceneComponent* TargetComponent = Target.Get();
+	if (!TargetComponent)
 	{
+		// 대상 액터 또는 추적 중인 부위 컴포넌트가 파괴되면 약참조가 풀려 여기서 락온이 해제된다.
 		OnTargetLost.Broadcast();
 		return;
 	}
@@ -45,7 +47,7 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 		return;
 	}
 
-	const FVector TargetLocation = TargetActor->GetActorLocation();
+	const FVector TargetLocation = TargetComponent->GetComponentLocation();
 
 	// 거리 초과 시 락온 해제
 	const float DistanceSquared = FVector::DistSquared(AvatarPawn->GetActorLocation(), TargetLocation);
@@ -137,7 +139,7 @@ void UWxAbilityTask_LockOnTarget::Activate()
 	BindTarget();
 }
 
-void UWxAbilityTask_LockOnTarget::HandleLockOnTargetChanged(AActor* NewTarget)
+void UWxAbilityTask_LockOnTarget::HandleLockOnTargetChanged(USceneComponent* NewTarget)
 {
 	if (NewTarget == Target.Get())
 	{
@@ -155,18 +157,25 @@ void UWxAbilityTask_LockOnTarget::HandleLockOnTargetChanged(AActor* NewTarget)
 
 void UWxAbilityTask_LockOnTarget::BindTarget()
 {
-	AActor* TargetActor = Target.Get();
-	if (!TargetActor)
+	USceneComponent* TargetComponent = Target.Get();
+	if (!TargetComponent)
 	{
 		return;
 	}
 
-	TargetActor->OnDestroyed.AddDynamic(this, &UWxAbilityTask_LockOnTarget::HandleTargetDestroyed);
-
-	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
+	// 파괴/사망 이벤트는 소유 액터 단위다. 부위 컴포넌트만 파괴되고 액터는 살아있는 경우에도
+	// 정확히 해제할 수 있도록 바인딩한 소유 액터를 캐시한다.
+	AActor* TargetActor = TargetComponent->GetOwner();
+	BoundTargetActor = TargetActor;
+	if (TargetActor)
 	{
-		TargetASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
-			.AddUObject(this, &UWxAbilityTask_LockOnTarget::HandleTargetDeathTagChanged);
+		TargetActor->OnDestroyed.AddDynamic(this, &UWxAbilityTask_LockOnTarget::HandleTargetDestroyed);
+
+		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
+		{
+			TargetASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
+				.AddUObject(this, &UWxAbilityTask_LockOnTarget::HandleTargetDeathTagChanged);
+		}
 	}
 
 	CreateReticleWidget();
@@ -176,7 +185,8 @@ void UWxAbilityTask_LockOnTarget::UnbindTarget()
 {
 	DestroyReticleWidget();
 
-	if (AActor* TargetActor = Target.Get())
+	// Target(컴포넌트)이 이미 파괴되어 약참조가 풀렸어도 캐시한 소유 액터로 바인딩을 해제한다.
+	if (AActor* TargetActor = BoundTargetActor.Get())
 	{
 		TargetActor->OnDestroyed.RemoveDynamic(this, &UWxAbilityTask_LockOnTarget::HandleTargetDestroyed);
 
@@ -186,6 +196,7 @@ void UWxAbilityTask_LockOnTarget::UnbindTarget()
 				.RemoveAll(this);
 		}
 	}
+	BoundTargetActor = nullptr;
 }
 
 void UWxAbilityTask_LockOnTarget::HandleTargetDestroyed(AActor* DestroyedActor)
@@ -203,19 +214,20 @@ void UWxAbilityTask_LockOnTarget::HandleTargetDeathTagChanged(const FGameplayTag
 
 void UWxAbilityTask_LockOnTarget::CreateReticleWidget()
 {
-	AActor* TargetActor = Target.Get();
-	if (!TargetActor || !ReticleWidgetClass)
+	USceneComponent* TargetComponent = Target.Get();
+	if (!TargetComponent || !ReticleWidgetClass)
 	{
 		return;
 	}
 
-	ReticleWidgetComponent = NewObject<UWidgetComponent>(TargetActor);
+	// 레티클은 추적 대상 컴포넌트에 직접 부착해 부위를 그대로 따라가게 한다(루트 컴포넌트면 액터 중심).
+	ReticleWidgetComponent = NewObject<UWidgetComponent>(TargetComponent->GetOwner());
 	ReticleWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	ReticleWidgetComponent->SetWidgetClass(ReticleWidgetClass);
 	ReticleWidgetComponent->SetDrawAtDesiredSize(true);
 	ReticleWidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	ReticleWidgetComponent->RegisterComponent();
-	ReticleWidgetComponent->AttachToComponent(TargetActor->GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	ReticleWidgetComponent->AttachToComponent(TargetComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 }
 
 void UWxAbilityTask_LockOnTarget::DestroyReticleWidget()

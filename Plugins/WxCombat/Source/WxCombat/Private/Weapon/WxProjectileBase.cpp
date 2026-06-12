@@ -3,6 +3,7 @@
 #include "Weapon/WxProjectileBase.h"
 #include "Components/SphereComponent.h"
 #include "Components/ArrowComponent.h"
+#include "Components/SceneComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -75,14 +76,15 @@ void AWxProjectileBase::BeginPlay()
 
 	if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(GetInstigator()))
 	{
-		if (AActor* LockOnTarget = LockOnComp->GetLockOnTarget())
+		if (USceneComponent* LockOnTarget = LockOnComp->GetLockOnTarget())
 		{
-			const FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), LockOnTarget->GetActorLocation());
+			// 대상이 컴포넌트 단위이므로 부위 위치를 직접 조준하고, 호밍도 그 컴포넌트를 그대로 따라간다.
+			const FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), LockOnTarget->GetComponentLocation());
 			SetActorRotation(LookAtRotation);
 			ProjectileMovement->Velocity = LookAtRotation.Vector() * ProjectileMovement->InitialSpeed;
 			if (ProjectileMovement->bIsHomingProjectile)
 			{
-				ProjectileMovement->HomingTargetComponent = LockOnTarget->GetRootComponent();
+				ProjectileMovement->HomingTargetComponent = LockOnTarget;
 			}
 		}
 	}

@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AnimNotify/WxAnimNotifyState_SnapToTarget.h"
+#include "Components/SceneComponent.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "MotionWarpingComponent.h"
 #include "RootMotionModifier.h"
@@ -35,10 +36,14 @@ void UWxAnimNotifyState_SnapToTarget::NotifyBegin(USkeletalMeshComponent* MeshCo
 		return;
 	}
 
+	// 스냅 판정/워프는 액터 단위 로직이므로, 컴포넌트 대상에서 소유 액터를 환원해 그대로 쓴다.
 	AActor* LockOnTarget = nullptr;
 	if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(Owner))
 	{
-		LockOnTarget = LockOnComp->GetLockOnTarget();
+		if (USceneComponent* LockOnTargetComponent = LockOnComp->GetLockOnTarget())
+		{
+			LockOnTarget = LockOnTargetComponent->GetOwner();
+		}
 	}
 
 	// TargetingPreset 쿼리 결과로 "스냅 가능한 타겟팅 범위"를 판정한다.

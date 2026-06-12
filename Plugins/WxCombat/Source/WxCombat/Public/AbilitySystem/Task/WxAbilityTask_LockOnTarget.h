@@ -8,6 +8,7 @@
 #include "WxAbilityTask_LockOnTarget.generated.h"
 
 class UInputAction;
+class USceneComponent;
 class UWidgetComponent;
 class UWxLockOnComponent;
 
@@ -25,7 +26,7 @@ class WXCOMBAT_API UWxAbilityTask_LockOnTarget : public UAbilityTask
 	GENERATED_BODY()
 
 public:
-	static UWxAbilityTask_LockOnTarget* CreateTask(UGameplayAbility* OwningAbility, AActor* InTarget, float InInterpSpeed = 10.f, float InPitchOffset = -15.f, float InMaxDistance = 2000.f, float InCharacterInterpSpeed = 10.f, TSubclassOf<UUserWidget> InReticleWidgetClass = nullptr, UInputAction* InLookAction = nullptr, float InRetargetLookThreshold = 40.f);
+	static UWxAbilityTask_LockOnTarget* CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed = 10.f, float InPitchOffset = -15.f, float InMaxDistance = 2000.f, float InCharacterInterpSpeed = 10.f, TSubclassOf<UUserWidget> InReticleWidgetClass = nullptr, UInputAction* InLookAction = nullptr, float InRetargetLookThreshold = 40.f);
 
 	UPROPERTY()
 	FWxOnTargetLost OnTargetLost;
@@ -43,7 +44,7 @@ protected:
 private:
 	/** 락온 컴포넌트의 대상 변경(로컬 예측 + 서버 복제 정합)을 받아 추적 대상을 교체한다. */
 	UFUNCTION()
-	void HandleLockOnTargetChanged(AActor* NewTarget);
+	void HandleLockOnTargetChanged(USceneComponent* NewTarget);
 
 	UFUNCTION()
 	void HandleTargetDestroyed(AActor* DestroyedActor);
@@ -56,7 +57,10 @@ private:
 	void CreateReticleWidget();
 	void DestroyReticleWidget();
 
-	TWeakObjectPtr<AActor> Target;
+	/** 추적 대상 컴포넌트(부위). 위치는 GetComponentLocation(), 소유 액터는 GetOwner()로 얻는다. */
+	TWeakObjectPtr<USceneComponent> Target;
+	/** BindTarget 시점의 소유 액터. 부위 컴포넌트만 파괴되고 액터는 살아있는 경우에도 OnDestroyed/사망 태그 바인딩을 정확히 해제하기 위해 캐시한다. */
+	TWeakObjectPtr<AActor> BoundTargetActor;
 	TWeakObjectPtr<UWxLockOnComponent> LockOnComponent;
 	float InterpSpeed = 8.f;
 	float CharacterInterpSpeed = 10.f;

@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Targeting/WxLockOnComponent.h"
+#include "Components/SceneComponent.h"
 #include "Net/UnrealNetwork.h"
 
 UWxLockOnComponent::UWxLockOnComponent()
@@ -27,7 +28,7 @@ void UWxLockOnComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(UWxLockOnComponent, LockOnTarget);
 }
 
-void UWxLockOnComponent::SetLockOnTarget(AActor* InTarget)
+void UWxLockOnComponent::SetLockOnTarget(USceneComponent* InTarget)
 {
 	if (GetOwner() && GetOwner()->HasAuthority())
 	{
@@ -43,7 +44,7 @@ void UWxLockOnComponent::SetLockOnTarget(AActor* InTarget)
 	}
 }
 
-void UWxLockOnComponent::ServerSetLockOnTarget_Implementation(AActor* InTarget)
+void UWxLockOnComponent::ServerSetLockOnTarget_Implementation(USceneComponent* InTarget)
 {
 	ApplyLockOnTarget(InTarget);
 }
@@ -54,7 +55,7 @@ void UWxLockOnComponent::OnRep_LockOnTarget()
 	OnLockOnTargetChanged.Broadcast(LockOnTarget);
 }
 
-void UWxLockOnComponent::ApplyLockOnTarget(AActor* InTarget)
+void UWxLockOnComponent::ApplyLockOnTarget(USceneComponent* InTarget)
 {
 	if (LockOnTarget == InTarget)
 	{
@@ -67,7 +68,7 @@ void UWxLockOnComponent::ApplyLockOnTarget(AActor* InTarget)
 	OnLockOnTargetChanged.Broadcast(LockOnTarget);
 }
 
-AActor* UWxLockOnComponent::GetLockOnTarget() const
+USceneComponent* UWxLockOnComponent::GetLockOnTarget() const
 {
 	return LockOnTarget;
 }
