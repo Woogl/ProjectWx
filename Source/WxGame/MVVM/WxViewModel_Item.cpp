@@ -10,6 +10,7 @@
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemFragment.h"
 #include "Items/WxItemInstance.h"
+#include "System/WxInventoryDeveloperSettings.h"
 
 void UWxViewModel_Item::Initialize(UWxInventoryManagerComponent* InInventory, UWxItemInstance* InInstance)
 {
@@ -81,6 +82,7 @@ void UWxViewModel_Item::Deinitialize()
 	Icon.Reset();
 	DisplayName = FText::GetEmpty();
 	Grade = EWxItemGrade::Common;
+	GradeColor = FLinearColor::White;
 
 	SetInitialized(false);
 
@@ -157,6 +159,7 @@ void UWxViewModel_Item::ApplyStaticDataFromDef(const UWxItemDefinition* InItemDe
 	UE_MVVM_SET_PROPERTY_VALUE(Icon, InItemDef->Icon);
 	UE_MVVM_SET_PROPERTY_VALUE(DisplayName, InItemDef->DisplayName);
 	UE_MVVM_SET_PROPERTY_VALUE(Grade, InItemDef->Grade);
+	UE_MVVM_SET_PROPERTY_VALUE(GradeColor, GetDefault<UWxInventoryDeveloperSettings>()->GetItemGradeColor(InItemDef->Grade));
 
 	const UWxItemFragment_Charges* Charges = InItemDef->FindFragmentByClass<UWxItemFragment_Charges>();
 	UE_MVVM_SET_PROPERTY_VALUE(MaxCharges, Charges ? Charges->MaxCharges : 0);
