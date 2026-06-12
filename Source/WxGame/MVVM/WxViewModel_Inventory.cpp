@@ -2,9 +2,12 @@
 
 #include "MVVM/WxViewModel_Inventory.h"
 
+#include "Blueprint/UserWidget.h"
+#include "Engine/LocalPlayer.h"
 #include "Inventory/WxInventoryManagerComponent.h"
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemInstance.h"
+#include "MVVM/WxGlobalViewModelSubsystem.h"
 #include "MVVM/WxViewModel_Item.h"
 
 void UWxViewModel_Inventory::Initialize(UWxInventoryManagerComponent* InInventory)
@@ -36,6 +39,7 @@ void UWxViewModel_Inventory::Deinitialize()
 	LastChangedItemDef = nullptr;
 	LastChangedAmount = 0;
 	LastChangedDelta = 0;
+	LastAcquiredItem = nullptr;
 
 	for (UWxViewModel_Item* ChildVM : AllItems)
 	{
@@ -83,7 +87,7 @@ void UWxViewModel_Inventory::HandleStackChanged(const UWxItemDefinition* ItemDef
 			UWxViewModel_Item* AcquisitionVM = NewObject<UWxViewModel_Item>(this);
 			AcquisitionVM->Initialize(Inventory, ItemDef);
 			AcquisitionVM->AcquiredCount = Delta;
-			OnItemAcquired.Broadcast(AcquisitionVM, Delta);
+			UE_MVVM_SET_PROPERTY_VALUE(LastAcquiredItem, AcquisitionVM);
 		}
 	}
 
@@ -163,4 +167,11 @@ void UWxViewModel_Inventory::RefreshCategorizedItems()
 
 	CategorizedItems = MoveTemp(NewCategorized);
 	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(CategorizedItems);
+}
+
+UObject* UWxViewModelResolver_Inventory::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
+{
+	const ULocalPlayer* LocalPlayer = UserWidget ? UserWidget->GetOwningLocalPlayer() : nullptr;
+	UWxGlobalViewModelSubsystem* Subsystem = LocalPlayer ? LocalPlayer->GetSubsystem<UWxGlobalViewModelSubsystem>() : nullptr;
+	return Subsystem ? Subsystem->GetInventoryViewModel() : nullptr;
 }

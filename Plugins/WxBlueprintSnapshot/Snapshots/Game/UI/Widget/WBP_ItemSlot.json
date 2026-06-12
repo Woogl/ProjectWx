@@ -1,15 +1,18 @@
 {
 	"blueprintPath": "/Game/UI/Widget/WBP_ItemSlot.WBP_ItemSlot",
-	"eventGraph": [
-		"void OnListItemObjectSet(delegate OutputDelegate, UObject* ListItemObject)",
-		"{",
-		"    UWxViewModel_Item* AsWxViewModel_Item = Cast<UWxViewModel_Item>(ListItemObject);",
-		"    if (AsWxViewModel_Item)",
-		"    {",
-		"        SetWxViewModel_Item(/* Viewmodel */ Cast<UWxViewModel_Item>(ListItemObject));",
-		"    }",
-		"}"
-	],
+	"eventGraph":
+	{
+		"OnListItemObjectSet": [
+			"void OnListItemObjectSet(UObject* ListItemObject)",
+			"{",
+			"    UWxViewModel_Item* AsWxViewModel_Item = Cast<UWxViewModel_Item>(ListItemObject);",
+			"    if (AsWxViewModel_Item)",
+			"    {",
+			"        SetWxViewModel_Item(AsWxViewModel_Item);",
+			"    }",
+			"}"
+		]
+	},
 	"interfaces":
 	{
 		"implemented": [

@@ -5,30 +5,26 @@
 #include "CoreMinimal.h"
 #include "Items/WxItemDefinition.h"
 #include "MVVM/WxViewModel.h"
+#include "View/MVVMViewModelContextResolver.h"
 
 #include "WxViewModel_Inventory.generated.h"
 
 class UWxInventoryManagerComponent;
 class UWxItemInstance;
 class UWxViewModel_Item;
-
-/**
- * 아이템 획득 이벤트 델리게이트.
- * Delta 는 양수만 브로드캐스트되며 (소비/감소는 알리지 않음), HUD 토스트 spawn 등 일회성 표시 트리거용이다.
- * ItemVM 은 broadcast 직전에 새로 생성된 Def 모드 UWxViewModel_Item 이며, AcquiredCount 에 Delta 가 기록된 상태로 전달된다. 수신측은 ListView ItemSource 에 그대로 넣어 Icon/DisplayName/Grade/AcquiredCount 를 MVVM 바인딩으로 표시한다.
- */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWxOnItemAcquired, UWxViewModel_Item*, ItemVM, int32, Delta);
+class UUserWidget;
+class UMVVMView;
 
 /**
  * 플레이어 인벤토리의 전역 집계/알림 ViewModel.
  *
- * 단일 싱글톤 Shell 로 GlobalCollection 에 등록되며, PC 가 도착한 시점(ReceivedPlayer)에 Initialize(InventoryManager) 로 데이터 소스를 연결한다. 역할은
+ * 단일 싱글톤 Shell 로 UWxGlobalViewModelSubsystem 이 생성/소유하며(위젯은 UWxViewModelResolver_Inventory 로 가져감), PC 가 도착한 시점(ReceivedPlayer)에 Initialize(InventoryManager) 로 데이터 소스를 연결한다. 역할은
  * 다섯 가지로 한정한다:
  *   1) ItemDef 기준 총 보유량 집계 (GetCurrencyAmount)
  *   2) 가장 최근 스택 변경 알림 (LastChangedItemDef/Amount/Delta) — 단발성 Toast/팝업 이펙트 등 "방금 무엇이 얼마나 변했는지" 단일 채널
  *   3) 보유 중인 아이템 인스턴스 전체 목록 (AllItems) — 인벤토리 ListView 등 "전체 슬롯을 나열"하는 화면의 ItemSource 로 사용
  *   4) 카테고리 탭 표시용 필터링된 목록 (FilteredItems) — CurrentCategory 변경 또는 AllItems 갱신 시 자동 재계산
- *   5) 아이템 획득 이벤트 (OnItemAcquired) — Delta>0 마다 BP-assignable 델리게이트 Broadcast. HUD 토스트 등 즉시성 이벤트 수신용. 매 broadcast 마다 새로 생성된 Def 모드 UWxViewModel_Item(AcquiredCount=Delta) 을 함께 전달하므로 수신측이 ListView/MVVM 으로 표시 데이터를 그대로 바인딩한다.
+ *   5) 가장 최근 획득 알림 (LastAcquiredItem) — Delta>0 마다 새로 생성된 Def 모드 UWxViewModel_Item(AcquiredCount=Delta) 으로 교체. HUD 토스트 등 즉시성 표시는 본 프로퍼티를 View Binding 으로 수신해 ListView ItemSource 에 그대로 넣는다.
  *
  * 특정 ItemDef 의 수량/아이콘/이름 등 슬롯 단위 표시 데이터는 본 VM을 쓰지 말고 UWxViewModel_Item 을 위젯 인스턴스별로 생성해 사용한다.
  */
@@ -81,12 +77,12 @@ public:
 	TArray<TObjectPtr<UWxViewModel_Item>> CategorizedItems;
 
 	/**
-	 * 아이템 획득 이벤트. HandleStackChanged 에서 Delta>0 일 때 Broadcast 한다.
-	 * HUD 위젯이 BindEvent 로 콜백을 잡아 토스트 위젯 spawn / 자체 timer / 페이드 등 표시 정책을 자유롭게 결정한다.
-	 * 전달되는 ItemVM 은 매 broadcast 마다 새로 생성된 Def 모드 UWxViewModel_Item 으로, AcquiredCount 에 Delta 가 기록되어 있다. 캐시 없이 1회용으로 발급되므로, 토스트가 같은 ItemDef 를 연속 획득해도 각 토스트 위젯의 표시 데이터가 서로 영향을 주지 않는다.
+	 * 가장 최근 획득 알림용 ViewModel. HandleStackChanged 에서 Delta>0 일 때 교체된다.
+	 * 매번 새로 생성된 Def 모드 UWxViewModel_Item(AcquiredCount=Delta) 이므로 같은 ItemDef 를 연속 획득해도 FieldNotify 가 항상 발생하고, 토스트 위젯 간 표시 데이터가 서로 영향을 주지 않는다.
+	 * View 는 본 프로퍼티를 토스트 추가 함수에 OneWay 바인딩한다. 뷰 초기화 시점의 첫 실행에서는 nullptr 가 전달되므로 수신측이 유효성을 검사해야 한다.
 	 */
-	UPROPERTY(BlueprintAssignable, Category = "Wx|Inventory")
-	FWxOnItemAcquired OnItemAcquired;
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
+	TObjectPtr<UWxViewModel_Item> LastAcquiredItem;
 
 	UFUNCTION(BlueprintCallable, Category = "Wx|Inventory")
 	void SetCurrentCategory(EWxItemCategory NewCategory);
@@ -101,4 +97,19 @@ protected:
 	TWeakObjectPtr<UWxInventoryManagerComponent> CachedInventory;
 
 	FDelegateHandle StackChangedHandle;
+};
+
+/**
+ * 글로벌 VM_Inventory 용 View Bindings Resolver.
+ *
+ * 위젯을 소유한 LocalPlayer 의 UWxGlobalViewModelSubsystem 이 소유한 인벤토리 뷰모델을 그대로 반환한다 (새로 생성하지 않음).
+ * WBP 의 View Bindings 에서 Creation Type = Resolver 로 본 클래스를 선택한다.
+ */
+UCLASS(EditInlineNew, CollapseCategories)
+class WXGAME_API UWxViewModelResolver_Inventory : public UMVVMViewModelContextResolver
+{
+	GENERATED_BODY()
+
+public:
+	virtual UObject* CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const override;
 };

@@ -1,0 +1,47 @@
+{
+	"blueprintPath": "/Game/UI/Widget/WBP_AcquiredItemList.WBP_AcquiredItemList",
+	"classDefaults":
+	{
+		"AcquiredItemList": ""
+	},
+	"mvvm":
+	{
+		"bindings": [
+			{
+				"bindingType": "OneWayToDestination",
+				"destination": "AddItem",
+				"source": "LastAcquiredItem"
+			}
+		],
+		"viewModels":
+		{
+			"VM_Inventory":
+			{
+				"class": "/Script/WxGame.WxViewModel_Inventory",
+				"contextId": "55C90398-4A42-9A66-ED01-BC87409C1D5B",
+				"createGetter": true,
+				"createSetter": false,
+				"creationType": "GlobalViewModelCollection",
+				"globalIdentifier": "VM_Inventory",
+				"optional": false
+			}
+		}
+	},
+	"parentClass": "/Script/UMG.UserWidget",
+	"widgetTree":
+	{
+		"root": "AcquiredItemList",
+		"widgets":
+		{
+			"AcquiredItemList":
+			{
+				"class": "/Script/UMG.ListView",
+				"delta":
+				{
+					"EntryWidgetClass": "/Game/UI/Widget/WBP_AcquiredItemEntry.WBP_AcquiredItemEntry_C"
+				},
+				"isVariable": true
+			}
+		}
+	}
+}

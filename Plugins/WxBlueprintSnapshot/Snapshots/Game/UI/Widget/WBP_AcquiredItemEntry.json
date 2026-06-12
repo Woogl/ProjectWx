@@ -1,0 +1,184 @@
+{
+	"blueprintPath": "/Game/UI/Widget/WBP_AcquiredItemEntry.WBP_AcquiredItemEntry",
+	"eventGraph":
+	{
+		"OnListItemObjectSet": [
+			"void OnListItemObjectSet(UObject* ListItemObject)",
+			"{",
+			"    UWxViewModel_Item* AsWxViewModel_Item = Cast<UWxViewModel_Item>(ListItemObject);",
+			"    if (AsWxViewModel_Item)",
+			"    {",
+			"        SetWxViewModel_Item(AsWxViewModel_Item);",
+			"        UWidgetAnimationPlayCallbackProxy* Task = UWidgetAnimationPlayCallbackProxy::NewPlayAnimationProxyObject(this, Appear);  // [latent]",
+			"        Task->Finished.AddLambda([this]()",
+			"        {",
+			"            UCommonUILibrary::FindParentWidgetOfType(this);",
+			"            if ((IsValid(UCommonUILibrary::FindParentWidgetOfType(this))) && (IsValid(WxViewModel_Item)))",
+			"            {",
+			"                UCommonUILibrary::FindParentWidgetOfType(this)->RemoveItem(WxViewModel_Item);",
+			"            }",
+			"        });",
+			"    }",
+			"}"
+		]
+	},
+	"interfaces":
+	{
+		"implemented": [
+			"/Script/UMG.UserObjectListEntry"
+		]
+	},
+	"mvvm":
+	{
+		"bindings": [
+			{
+				"bindingType": "OneWayToDestination",
+				"destination": "Text",
+				"source": "DisplayName"
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"destination": "SetLazyTexture",
+				"source": "Icon"
+			},
+			{
+				"bindingType": "OneTimeToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"bAlwaysSign": "false",
+						"bUseGrouping": "true",
+						"MaximumIntegralDigits": "324",
+						"MinimumIntegralDigits": "1",
+						"Value": "AcquiredCount"
+					},
+					"function": "Conv_IntToText"
+				},
+				"destination": "Text",
+				"source": ""
+			}
+		],
+		"viewModels":
+		{
+			"WxViewModel_Item":
+			{
+				"class": "/Script/WxGame.WxViewModel_Item",
+				"contextId": "C1506BA4-4788-6255-675C-10B7A65AF892",
+				"createGetter": true,
+				"createSetter": true,
+				"creationType": "Manual",
+				"optional": true
+			}
+		}
+	},
+	"parentClass": "/Script/UMG.UserWidget",
+	"widgetTree":
+	{
+		"root": "HorizontalBox_19",
+		"widgets":
+		{
+			"Amount":
+			{
+				"class": "/Script/CommonUI.CommonTextBlock",
+				"delta":
+				{
+					"Font":
+					{
+						"OutlineSettings":
+						{
+							"OutlineSize": 1
+						},
+						"Size": 19.5
+					},
+					"Text": "9999"
+				},
+				"parent": "HorizontalBox_19",
+				"slot":
+				{
+					"class": "/Script/UMG.HorizontalBoxSlot",
+					"delta":
+					{
+						"Padding":
+						{
+							"Left": 15
+						}
+					}
+				}
+			},
+			"HorizontalBox_19":
+			{
+				"class": "/Script/UMG.HorizontalBox"
+			},
+			"ItemName":
+			{
+				"class": "/Script/CommonUI.CommonTextBlock",
+				"delta":
+				{
+					"Font":
+					{
+						"OutlineSettings":
+						{
+							"OutlineSize": 1
+						},
+						"Size": 19.5
+					},
+					"Text": "ItemName"
+				},
+				"parent": "HorizontalBox_19",
+				"slot":
+				{
+					"class": "/Script/UMG.HorizontalBoxSlot",
+					"delta":
+					{
+						"Padding":
+						{
+							"Left": 15
+						}
+					}
+				}
+			},
+			"WxLazyImage_68":
+			{
+				"class": "/Script/WxUI.WxLazyImage",
+				"delta":
+				{
+					"Visibility": "SelfHitTestInvisible"
+				},
+				"parent": "HorizontalBox_19",
+				"slot":
+				{
+					"class": "/Script/UMG.HorizontalBoxSlot"
+				}
+			},
+			"x":
+			{
+				"class": "/Script/CommonUI.CommonTextBlock",
+				"delta":
+				{
+					"Font":
+					{
+						"OutlineSettings":
+						{
+							"OutlineSize": 1
+						},
+						"Size": 19.5
+					},
+					"Text": "×"
+				},
+				"parent": "HorizontalBox_19",
+				"slot":
+				{
+					"class": "/Script/UMG.HorizontalBoxSlot",
+					"delta":
+					{
+						"Padding":
+						{
+							"Left": 15
+						}
+					}
+				}
+			}
+		}
+	}
+}
