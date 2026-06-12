@@ -182,22 +182,24 @@ void UWxAbility_LockOn::HandleRetargetRequested(FVector2D ScreenDirection)
 	const USceneComponent* CurrentComponent = LockOnComp ? LockOnComp->GetLockOnTarget() : nullptr;
 	const AActor* CurrentTarget = CurrentComponent ? CurrentComponent->GetOwner() : nullptr;
 
-	// 시선 입력 방향(화면 기준 2D)을 카메라 평면 위의 월드 방향으로 변환한다.
-	const FRotationMatrix ControlRotMatrix(PC->GetControlRotation());
-	const FVector CamForward = ControlRotMatrix.GetUnitAxis(EAxis::X);
-	const FVector CamRight = ControlRotMatrix.GetUnitAxis(EAxis::Y);
-	const FVector CamUp = ControlRotMatrix.GetUnitAxis(EAxis::Z);
-	const FVector DesiredDir = (CamRight * ScreenDirection.X + CamUp * ScreenDirection.Y).GetSafeNormal();
-	if (DesiredDir.IsNearlyZero())
+	// 비교 원점은 현재 락온 지점의 화면 좌표(유저가 보고 있는 레티클 위치). 투영 실패 시 화면 중앙으로 대체한다.
+	int32 ViewportX = 0;
+	int32 ViewportY = 0;
+	PC->GetViewportSize(ViewportX, ViewportY);
+	FVector2D OriginScreen(ViewportX * 0.5f, ViewportY * 0.5f);
+	if (CurrentComponent)
 	{
-		return;
+		FVector2D CurrentScreen;
+		if (PC->ProjectWorldLocationToScreen(CurrentComponent->GetComponentLocation(), CurrentScreen))
+		{
+			OriginScreen = CurrentScreen;
+		}
 	}
 
-	// 후보들 중 현재 타겟을 제외하고, 시선이 가리키는 방향에 가장 잘 정렬된 적을 고른다.
+	// 후보들 중 현재 타겟을 제외하고, 화면상 위치가 시선 입력 방향에 가장 잘 정렬된 적을 고른다.
 	TArray<AActor*> Candidates;
 	GatherCandidates(Candidates);
 
-	const FVector AvatarLocation = Avatar->GetActorLocation();
 	USceneComponent* BestTargetComponent = nullptr;
 	float BestAlignment = RetargetMinAlignment;
 	for (AActor* Candidate : Candidates)
@@ -214,10 +216,21 @@ void UWxAbility_LockOn::HandleRetargetRequested(FVector2D ScreenDirection)
 			continue;
 		}
 
-		// 후보 방향에서 카메라 정면 성분을 제거해 화면 평면에 투영한 뒤 시선 방향과의 정렬도를 비교한다.
-		const FVector ToTarget = Candidate->GetActorLocation() - AvatarLocation;
-		const FVector ProjectedDir = (ToTarget - FVector::DotProduct(ToTarget, CamForward) * CamForward).GetSafeNormal();
-		const float Alignment = FVector::DotProduct(ProjectedDir, DesiredDir);
+		// 락온 지점을 화면에 투영해 실제 보이는 위치로 비교한다. 카메라 뒤의 후보는 화면 좌표가 없으므로 제외한다.
+		FVector2D CandidateScreen;
+		if (!PC->ProjectWorldLocationToScreen(CandidateComponent->GetComponentLocation(), CandidateScreen))
+		{
+			continue;
+		}
+
+		// 화면 좌표는 Y가 아래로 증가하므로 입력 공간(+Y=위)에 맞춰 Y를 뒤집어 정렬도를 비교한다.
+		const FVector2D ToCandidate = FVector2D(CandidateScreen.X - OriginScreen.X, OriginScreen.Y - CandidateScreen.Y).GetSafeNormal();
+		if (ToCandidate.IsNearlyZero())
+		{
+			continue;
+		}
+
+		const float Alignment = FVector2D::DotProduct(ToCandidate, ScreenDirection);
 		if (Alignment > BestAlignment)
 		{
 			BestAlignment = Alignment;

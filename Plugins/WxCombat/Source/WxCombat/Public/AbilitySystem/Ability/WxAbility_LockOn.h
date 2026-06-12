@@ -75,7 +75,7 @@ private:
 	UFUNCTION()
 	void HandleTargetLost();
 
-	/** 락온 태스크의 재탐색 요청을 받아 시선 방향에 가장 정렬된 적으로 타겟을 교체한다. */
+	/** 락온 태스크의 재탐색 요청을 받아 화면상 위치가 시선 방향에 가장 정렬된 적으로 타겟을 교체한다. */
 	UFUNCTION()
 	void HandleRetargetRequested(FVector2D ScreenDirection);
 
