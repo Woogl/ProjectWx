@@ -1,34 +1,34 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Targeting/WxLockOnComponent.h"
+#include "Targeting/WxLockOnManagerComponent.h"
 #include "Components/SceneComponent.h"
 #include "Net/UnrealNetwork.h"
 
-UWxLockOnComponent::UWxLockOnComponent()
+UWxLockOnManagerComponent::UWxLockOnManagerComponent()
 {
 	// Server RPC 라우팅과 LockOnTarget 복제를 위해 컴포넌트 복제를 켠다.
 	SetIsReplicatedByDefault(true);
 }
 
-UWxLockOnComponent* UWxLockOnComponent::FindComponent(const AActor* Actor)
+UWxLockOnManagerComponent* UWxLockOnManagerComponent::FindComponent(const AActor* Actor)
 {
 	if (!Actor)
 	{
 		return nullptr;
 	}
 
-	return Actor->FindComponentByClass<UWxLockOnComponent>();
+	return Actor->FindComponentByClass<UWxLockOnManagerComponent>();
 }
 
-void UWxLockOnComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UWxLockOnManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	// 서버 권위 소비처(발사체 방향/호밍)와 시뮬프록시 소비처(몽타주 스냅)가 모두 읽으므로 전 대상에 복제한다.
-	DOREPLIFETIME(UWxLockOnComponent, LockOnTarget);
+	DOREPLIFETIME(UWxLockOnManagerComponent, LockOnTarget);
 }
 
-void UWxLockOnComponent::SetLockOnTarget(USceneComponent* InTarget)
+void UWxLockOnManagerComponent::SetLockOnTarget(USceneComponent* InTarget)
 {
 	if (GetOwner() && GetOwner()->HasAuthority())
 	{
@@ -44,18 +44,18 @@ void UWxLockOnComponent::SetLockOnTarget(USceneComponent* InTarget)
 	}
 }
 
-void UWxLockOnComponent::ServerSetLockOnTarget_Implementation(USceneComponent* InTarget)
+void UWxLockOnManagerComponent::ServerSetLockOnTarget_Implementation(USceneComponent* InTarget)
 {
 	ApplyLockOnTarget(InTarget);
 }
 
-void UWxLockOnComponent::OnRep_LockOnTarget()
+void UWxLockOnManagerComponent::OnRep_LockOnTarget()
 {
 	// 복제가 LockOnTarget 값을 이미 대입한 뒤 호출된다. 구독자(락온 태스크)는 변경 없을 시 무시하도록 idempotent 하게 처리한다.
 	OnLockOnTargetChanged.Broadcast(LockOnTarget);
 }
 
-void UWxLockOnComponent::ApplyLockOnTarget(USceneComponent* InTarget)
+void UWxLockOnManagerComponent::ApplyLockOnTarget(USceneComponent* InTarget)
 {
 	if (LockOnTarget == InTarget)
 	{
@@ -68,7 +68,7 @@ void UWxLockOnComponent::ApplyLockOnTarget(USceneComponent* InTarget)
 	OnLockOnTargetChanged.Broadcast(LockOnTarget);
 }
 
-USceneComponent* UWxLockOnComponent::GetLockOnTarget() const
+USceneComponent* UWxLockOnManagerComponent::GetLockOnTarget() const
 {
 	return LockOnTarget;
 }

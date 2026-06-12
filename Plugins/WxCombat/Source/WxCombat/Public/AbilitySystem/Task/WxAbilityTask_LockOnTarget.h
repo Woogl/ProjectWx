@@ -10,7 +10,7 @@
 class UInputAction;
 class USceneComponent;
 class UWidgetComponent;
-class UWxLockOnComponent;
+class UWxLockOnManagerComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnTargetLost);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnRetargetRequested, FVector2D, ScreenDirection);
@@ -61,7 +61,7 @@ private:
 	TWeakObjectPtr<USceneComponent> Target;
 	/** BindTarget 시점의 소유 액터. 부위 컴포넌트만 파괴되고 액터는 살아있는 경우에도 OnDestroyed/사망 태그 바인딩을 정확히 해제하기 위해 캐시한다. */
 	TWeakObjectPtr<AActor> BoundTargetActor;
-	TWeakObjectPtr<UWxLockOnComponent> LockOnComponent;
+	TWeakObjectPtr<UWxLockOnManagerComponent> LockOnManagerComponent;
 	float InterpSpeed = 8.f;
 	float CharacterInterpSpeed = 10.f;
 	float PitchOffset = -15.f;

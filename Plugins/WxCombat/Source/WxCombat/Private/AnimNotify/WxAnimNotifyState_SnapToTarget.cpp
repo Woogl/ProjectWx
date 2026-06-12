@@ -2,7 +2,7 @@
 
 #include "AnimNotify/WxAnimNotifyState_SnapToTarget.h"
 #include "Components/SceneComponent.h"
-#include "Targeting/WxLockOnComponent.h"
+#include "Targeting/WxLockOnManagerComponent.h"
 #include "MotionWarpingComponent.h"
 #include "RootMotionModifier.h"
 #include "RootMotionModifier_SkewWarp.h"
@@ -38,7 +38,7 @@ void UWxAnimNotifyState_SnapToTarget::NotifyBegin(USkeletalMeshComponent* MeshCo
 
 	// 스냅 판정/워프는 액터 단위 로직이므로, 컴포넌트 대상에서 소유 액터를 환원해 그대로 쓴다.
 	AActor* LockOnTarget = nullptr;
-	if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(Owner))
+	if (UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(Owner))
 	{
 		if (USceneComponent* LockOnTargetComponent = LockOnComp->GetLockOnTarget())
 		{

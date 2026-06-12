@@ -9,7 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "InputAction.h"
-#include "Targeting/WxLockOnComponent.h"
+#include "Targeting/WxLockOnManagerComponent.h"
 #include "Targeting/WxLockOnPointComponent.h"
 #include "TargetingSystem/TargetingSubsystem.h"
 #include "Types/TargetingSystemTypes.h"
@@ -76,7 +76,7 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 
 	// 락온 대상 등록. 소유 클라는 로컬 즉시 반영 + 서버 RPC, 리슨 호스트는 권위 직접 반영(컴포넌트가 복제 처리).
-	if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(GetOwningActorFromActorInfo()))
+	if (UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(GetOwningActorFromActorInfo()))
 	{
 		LockOnComp->SetLockOnTarget(TargetComponent);
 	}
@@ -94,7 +94,7 @@ void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 	// 컴포넌트의 null 변경 브로드캐스트를 받아 레티클을 즉시 정리한다.
 	if (ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
 	{
-		if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(GetOwningActorFromActorInfo()))
+		if (UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(GetOwningActorFromActorInfo()))
 		{
 			LockOnComp->SetLockOnTarget(nullptr);
 		}
@@ -116,7 +116,7 @@ void UWxAbility_LockOn::HandleTargetLost()
 	// 재탐색이 켜져 있으면 잃은 대상을 제외하고 살아있는 가장 가까운 적으로 갈아탄다. 후보가 없을 때만 락온을 해제한다.
 	// 타겟 결정은 활성화와 동일하게 소유 클라(또는 리슨 호스트)에서만 한다. 서버는 SetLockOnTarget RPC 로 복제된다.
 	AActor* Avatar = GetOwningActorFromActorInfo();
-	UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(Avatar);
+	UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(Avatar);
 	if (bRetargetOnTargetLost && IsLocallyControlled() && Avatar && LockOnComp)
 	{
 		// 락온 대상은 컴포넌트지만 후보 비교/제외는 액터 단위이므로 소유 액터로 환원한다.
@@ -178,7 +178,7 @@ void UWxAbility_LockOn::HandleRetargetRequested(FVector2D ScreenDirection)
 		return;
 	}
 
-	UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(Avatar);
+	UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(Avatar);
 	const USceneComponent* CurrentComponent = LockOnComp ? LockOnComp->GetLockOnTarget() : nullptr;
 	const AActor* CurrentTarget = CurrentComponent ? CurrentComponent->GetOwner() : nullptr;
 

@@ -10,6 +10,7 @@ class UWxActivatableWidget;
 class USpringArmComponent;
 class UCameraComponent;
 class UWxInputConfig;
+class UWxLockOnManagerComponent;
 struct FInputActionValue;
 
 /**
@@ -36,6 +37,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Camera")
 	TObjectPtr<UCameraComponent> FollowCamera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")
+	TObjectPtr<UWxLockOnManagerComponent> LockOnManagerComponent;
 
 	virtual void OnRep_PlayerState() override;
 

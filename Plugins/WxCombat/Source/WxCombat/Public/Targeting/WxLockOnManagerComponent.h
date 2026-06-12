@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "WxLockOnComponent.generated.h"
+#include "WxLockOnManagerComponent.generated.h"
 
 class USceneComponent;
 
@@ -23,15 +23,15 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnLockOnTargetChanged, USceneComp
  * 대상 변경 시 OnLockOnTargetChanged 를 브로드캐스트하므로, 락온 태스크가 이를 구독해 클라/서버 양쪽에서 추적 대상을 동기화한다.
  */
 UCLASS()
-class WXCOMBAT_API UWxLockOnComponent : public UActorComponent
+class WXCOMBAT_API UWxLockOnManagerComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
-	UWxLockOnComponent();
+	UWxLockOnManagerComponent();
 
-	/** 액터에서 UWxLockOnComponent를 찾아 반환. 없으면 nullptr */
-	static UWxLockOnComponent* FindComponent(const AActor* Actor);
+	/** 액터에서 UWxLockOnManagerComponent를 찾아 반환. 없으면 nullptr */
+	static UWxLockOnManagerComponent* FindComponent(const AActor* Actor);
 
 	/**
 	 * 락온 대상 설정/해제. nullptr로 해제.

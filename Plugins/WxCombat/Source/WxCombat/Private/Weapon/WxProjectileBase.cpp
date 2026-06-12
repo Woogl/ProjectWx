@@ -10,7 +10,7 @@
 #include "AbilitySystemComponent.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
-#include "Targeting/WxLockOnComponent.h"
+#include "Targeting/WxLockOnManagerComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "WxCombatLibrary.h"
 
@@ -74,7 +74,7 @@ void AWxProjectileBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(GetInstigator()))
+	if (UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(GetInstigator()))
 	{
 		if (USceneComponent* LockOnTarget = LockOnComp->GetLockOnTarget())
 		{

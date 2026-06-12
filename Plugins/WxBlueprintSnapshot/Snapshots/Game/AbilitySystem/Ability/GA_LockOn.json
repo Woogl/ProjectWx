@@ -1,0 +1,10 @@
+{
+	"blueprintPath": "/Game/AbilitySystem/Ability/GA_LockOn.GA_LockOn",
+	"classDefaults":
+	{
+		"LookAction": "/Game/Input/Actions/IA_Look.IA_Look",
+		"ReticleWidgetClass": "/Game/UI/Widget/WBP_LockOnReticle.WBP_LockOnReticle_C",
+		"TargetingPreset": "/Game/Targeting/TP_LockOn.TP_LockOn"
+	},
+	"parentClass": "/Script/WxCombat.WxAbility_LockOn"
+}

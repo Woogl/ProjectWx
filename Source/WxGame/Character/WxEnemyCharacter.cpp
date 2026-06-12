@@ -27,8 +27,7 @@ AWxEnemyCharacter::AWxEnemyCharacter()
 	NameplateComponent->SetupAttachment(GetRootComponent());
 	NameplateComponent->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
 
-	// 락온 지점을 메시의 pelvis 본에 부착한다. 디폴트 서브오브젝트라 네트워크 주소가 안정적이라
-	// 락온 대상 레퍼런스가 원격에서도 정상 해소된다. 본을 따라가도록 부착하므로 위치가 매 프레임 갱신된다.
+	// 락온 지점을 메시에 부착한다.
 	LockOnPoint = CreateDefaultSubobject<UWxLockOnPointComponent>(TEXT("LockOnPoint"));
 	LockOnPoint->SetupAttachment(GetMesh(), TEXT("pelvis"));
 }

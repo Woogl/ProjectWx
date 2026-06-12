@@ -13,7 +13,7 @@
  * 한 액터에 붙여 부위별 락온을 구성한다. 이 컴포넌트가 없는 액터는 락온 대상이 될 수 없다.
  *
  * 배치: C++ 디폴트 서브오브젝트 또는 BP 컴포넌트 트리(SCS)로 추가한다.
- * 두 경우 모두 네트워크 주소가 안정적이라 UWxLockOnComponent가 복제하는 대상 레퍼런스가 원격에서 정상 해소된다.
+ * 두 경우 모두 네트워크 주소가 안정적이라 UWxLockOnManagerComponent가 복제하는 대상 레퍼런스가 원격에서 정상 해소된다.
  * 런타임에 NewObject로 동적 생성한 지점은 복제 등록을 하지 않는 한 원격(서버 권위 소비처/시뮬프록시)에서 null로 도착하니 주의한다.
  */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent, DisplayName = "Wx Lock-On Point"))

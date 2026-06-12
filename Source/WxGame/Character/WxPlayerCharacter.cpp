@@ -8,6 +8,7 @@
 #include "InputActionValue.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "Input/WxInputConfig.h"
+#include "Targeting/WxLockOnManagerComponent.h"
 #include "WxGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -28,6 +29,8 @@ AWxPlayerCharacter::AWxPlayerCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
+
+	LockOnManagerComponent = CreateDefaultSubobject<UWxLockOnManagerComponent>(TEXT("LockOnManagerComponent"));
 
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 }

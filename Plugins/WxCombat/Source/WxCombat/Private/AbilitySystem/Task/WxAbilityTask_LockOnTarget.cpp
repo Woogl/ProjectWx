@@ -11,7 +11,7 @@
 #include "GameFramework/PlayerController.h"
 #include "InputAction.h"
 #include "InputActionValue.h"
-#include "Targeting/WxLockOnComponent.h"
+#include "Targeting/WxLockOnManagerComponent.h"
 #include "WxGameplayTags.h"
 
 UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed, float InPitchOffset, float InMaxDistance, float InCharacterInterpSpeed, TSubclassOf<UUserWidget> InReticleWidgetClass, UInputAction* InLookAction, float InRetargetLookThreshold)
@@ -113,7 +113,7 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 
 void UWxAbilityTask_LockOnTarget::OnDestroy(bool bInOwnerFinished)
 {
-	if (UWxLockOnComponent* Comp = LockOnComponent.Get())
+	if (UWxLockOnManagerComponent* Comp = LockOnManagerComponent.Get())
 	{
 		Comp->OnLockOnTargetChanged.RemoveDynamic(this, &UWxAbilityTask_LockOnTarget::HandleLockOnTargetChanged);
 	}
@@ -128,8 +128,8 @@ void UWxAbilityTask_LockOnTarget::Activate()
 	Super::Activate();
 
 	// 락온 대상은 컴포넌트가 권위·복제 소스다. 변경을 구독하고 현재 값을 초기 대상으로 채택한다(이후 재탐색/복제 정합은 델리게이트가 처리).
-	LockOnComponent = UWxLockOnComponent::FindComponent(GetAvatarActor());
-	if (UWxLockOnComponent* Comp = LockOnComponent.Get())
+	LockOnManagerComponent = UWxLockOnManagerComponent::FindComponent(GetAvatarActor());
+	if (UWxLockOnManagerComponent* Comp = LockOnManagerComponent.Get())
 	{
 		Comp->OnLockOnTargetChanged.AddDynamic(this, &UWxAbilityTask_LockOnTarget::HandleLockOnTargetChanged);
 		Target = Comp->GetLockOnTarget();

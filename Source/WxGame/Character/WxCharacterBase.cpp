@@ -9,7 +9,6 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "MotionWarpingComponent.h"
-#include "Targeting/WxLockOnComponent.h"
 #include "Weapon/WxWeaponBase.h"
 #include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
@@ -27,8 +26,6 @@ AWxCharacterBase::AWxCharacterBase()
 	AbilitySystemComponent->SetIsReplicated(true);
 
 	CombatAttributeSet = CreateDefaultSubobject<UWxCombatAttributeSet>(TEXT("CombatAttributeSet"));
-
-	LockOnComponent = CreateDefaultSubobject<UWxLockOnComponent>(TEXT("LockOnComponent"));
 
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
 

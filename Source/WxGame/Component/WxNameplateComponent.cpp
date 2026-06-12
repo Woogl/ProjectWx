@@ -6,7 +6,7 @@
 #include "View/MVVMView.h"
 #include "Character/WxCharacterBase.h"
 #include "MVVM/WxViewModel_Character.h"
-#include "Targeting/WxLockOnComponent.h"
+#include "Targeting/WxLockOnManagerComponent.h"
 #include "WxGameplayTags.h"
 #include "GameFramework/PlayerController.h"
 
@@ -107,13 +107,13 @@ bool UWxNameplateComponent::IsLockedOnByLocalPlayer() const
 		return false;
 	}
 
-	const UWxLockOnComponent* LockOnComponent = UWxLockOnComponent::FindComponent(PC->GetPawn());
-	if (!LockOnComponent)
+	const UWxLockOnManagerComponent* LockOnManagerComponent = UWxLockOnManagerComponent::FindComponent(PC->GetPawn());
+	if (!LockOnManagerComponent)
 	{
 		return false;
 	}
 
 	// 락온 대상은 컴포넌트(부위) 단위이므로, 소유 액터가 이 네임플레이트의 액터인지로 판정한다.
-	const USceneComponent* LockOnTarget = LockOnComponent->GetLockOnTarget();
+	const USceneComponent* LockOnTarget = LockOnManagerComponent->GetLockOnTarget();
 	return LockOnTarget && LockOnTarget->GetOwner() == GetOwner();
 }

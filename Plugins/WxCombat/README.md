@@ -8,7 +8,7 @@
 - 어빌리티 베이스 및 구현 — 공격·회피·가드·스킬·궁극기·히트리액트·그로기·사망·AI 패턴.
 - 데미지 한 건의 설계→적용 파이프라인: `FWxDamageInfo` → `UWxExecCalc_Damage` → `IncomingDamage` 메타 어트리뷰트 → HP 차감.
 - 무기/투사체 히트 판정(`AWxWeaponBase`, `AWxProjectileBase`), AnimNotify로 공격 구간·콤보 윈도우·무적·퍼펙트가드 제어.
-- 락온/타게팅(`UWxLockOnComponent`, TargetingSystem 필터 태스크), 히트스톱·슬로모 타임 딜레이션.
+- 락온/타게팅(`UWxLockOnManagerComponent`, TargetingSystem 필터 태스크), 히트스톱·슬로모 타임 딜레이션.
 
 **경계 (비담당)**
 - Gameplay Tag 정의 — [[WxCore]]의 `WxGameplayTags`를 참조만 한다(이 모듈은 태그를 선언하지 않음).
