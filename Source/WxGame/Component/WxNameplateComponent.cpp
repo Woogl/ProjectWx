@@ -87,7 +87,7 @@ void UWxNameplateComponent::RefreshVisibility()
 	}
 
 	const bool bDead = ASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead);
-	const bool bRecognized = ASC->HasMatchingGameplayTag(WxGameplayTags::State_Recognized);
+	const bool bRecognized = ASC->HasMatchingGameplayTag(WxGameplayTags::State_InCombat);
 
 	// SetVisibility 는 값이 동일하면 내부에서 no-op 처리되므로 매 틱 호출해도 부담이 없다.
 	SetVisibility(!bDead && (bRecognized || IsLockedOnByLocalPlayer()));

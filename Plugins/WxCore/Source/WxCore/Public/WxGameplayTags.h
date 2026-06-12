@@ -24,8 +24,8 @@ namespace WxGameplayTags
 	/** 락온 상태. 락온 어빌리티 활성 중 부여, Look 입력 억제 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_LockOn);
 
-	/** 인식 상태. 적 AI가 플레이어를 인식하면 서버에서 부여, 추적 종료 시 제거. 네임플레이트 표시 조건으로 사용 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Recognized);
+	/** 전투 상태. 적 AI가 플레이어를 인식하면 서버에서 부여, 추적 종료 시 제거. 네임플레이트 표시 조건으로 사용 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_InCombat);
 
 	/** 무적 상태. WxAnimNotifyState_Invincible이 부여/제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Invincible);

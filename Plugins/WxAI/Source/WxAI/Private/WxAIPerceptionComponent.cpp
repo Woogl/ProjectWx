@@ -159,7 +159,7 @@ void UWxAIPerceptionComponent::SetRecognized(bool bNewRecognized)
 		return;
 	}
 	
-	const bool bCurrentlyRecognized = ASC->HasMatchingGameplayTag(WxGameplayTags::State_Recognized);
+	const bool bCurrentlyRecognized = ASC->HasMatchingGameplayTag(WxGameplayTags::State_InCombat);
 	if (bNewRecognized == bCurrentlyRecognized)
 	{
 		return;
@@ -167,11 +167,11 @@ void UWxAIPerceptionComponent::SetRecognized(bool bNewRecognized)
 
 	if (bNewRecognized)
 	{
-		ASC->AddMinimalReplicationGameplayTag(WxGameplayTags::State_Recognized);
+		ASC->AddMinimalReplicationGameplayTag(WxGameplayTags::State_InCombat);
 	}
 	else
 	{
-		ASC->RemoveMinimalReplicationGameplayTag(WxGameplayTags::State_Recognized);
+		ASC->RemoveMinimalReplicationGameplayTag(WxGameplayTags::State_InCombat);
 	}
 }
 

@@ -53,7 +53,7 @@ private:
 	/**
 	 * 표시 조건을 매 틱 진실로부터 재계산한다.
 	 * 표시 = 사망 아님 && (적이 플레이어를 인식 || 로컬 플레이어가 이 적을 락온).
-	 * 인식은 복제된 State.Recognized 태그, 락온은 로컬 플레이어의 LockOn 컴포넌트에서 파생한다.
+	 * 인식은 복제된 State.InCombat 태그, 락온은 로컬 플레이어의 LockOn 컴포넌트에서 파생한다.
 	 */
 	void RefreshVisibility();
 

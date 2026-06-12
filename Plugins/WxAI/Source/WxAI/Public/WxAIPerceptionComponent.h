@@ -23,8 +23,8 @@ class UBlackboardComponent;
  *
  * 한 번 확보한 TargetActor 는 시야를 잠시 잃어도(보스 등 뒤로 이동, 벽 뒤 등) 유지되며,
  * 폰이 배치 지점(HomeLocation)에서 LeashRadius 이상 벗어났을 때(리시 이탈)에만 비워진다(이때 BT 는 복귀).
- * 인식(State.Recognized)도 같은 수명을 따른다 — 추적 중이면 on, 리시 이탈로 추적이 끝나면 off 이며,
- * 서버에서 폰 ASC 에 MinimalReplication 태그로 발행되어 네임플레이트/보스 체력바 표시에 소비된다.
+ * 인식(State.InCombat)도 같은 수명을 따른다 — 추적 중이면 on, 리시 이탈로 추적이 끝나면 off 이며,
+ * 서버에서 폰 ASC 에 MinimalReplication 태그로 발행되어 네임플레이트 표시에 소비된다.
  */
 UCLASS(ClassGroup=(AI), meta=(BlueprintSpawnableComponent))
 class WXAI_API UWxAIPerceptionComponent : public UAIPerceptionComponent
@@ -60,7 +60,7 @@ private:
 	 */
 	void UpdateRecognition();
 
-	/** UpdateRecognition 의 결정을 적용하는 순수 setter. State.Recognized 태그를 폰의 ASC 에 부여/해제하며, 전환에서만 동작한다. 네임플레이트가 복제된 태그를 소비한다. */
+	/** UpdateRecognition 의 결정을 적용하는 순수 setter. State.InCombat 태그를 폰의 ASC 에 부여/해제하며, 전환에서만 동작한다. 네임플레이트가 복제된 태그를 소비한다. */
 	void SetRecognized(bool bNewRecognized);
 
 	/**
