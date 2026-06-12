@@ -21,7 +21,7 @@
 				"contextId": "55C90398-4A42-9A66-ED01-BC87409C1D5B",
 				"createGetter": true,
 				"createSetter": false,
-				"creationType": "GlobalViewModelCollection",
+				"creationType": "Resolver",
 				"globalIdentifier": "VM_Inventory",
 				"optional": false
 			}
