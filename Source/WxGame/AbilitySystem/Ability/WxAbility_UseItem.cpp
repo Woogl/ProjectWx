@@ -20,6 +20,9 @@ UWxAbility_UseItem::UWxAbility_UseItem()
 
 	// 마시는 중에는 다른 어빌리티로 캔슬되지 않는다. 후딜 캔슬은 몽타주의 StartRecovery 노티파이로 허용한다.
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
+
+	// 사용 시작 시 진행 중이던 스프린트를 끊는다(마시면서 스프린트 속도로 이동 방지).
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Sprint);
 }
 
 void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
