@@ -41,7 +41,7 @@ void AWxEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	NameplateComponent->InitializeViewModels(AbilitySystemComponent);
+	NameplateComponent->InitializeViewModels(AbilitySystemComponent, GetCharacterUIData());
 }
 
 void AWxEnemyCharacter::HandleDeath()

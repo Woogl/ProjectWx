@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "Components/WidgetComponent.h"
+#include "MVVM/WxCharacterUIData.h"
 #include "WxNameplateComponent.generated.h"
 
 class UAbilitySystemComponent;
@@ -20,7 +21,7 @@ class UAbilitySystemComponent;
  *  3. BeginPlay 이후 InitializeViewModels()로 ViewModel 바인딩
  */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))
-class WXGAME_API UWxNameplateComponent : public UWidgetComponent
+class WXUI_API UWxNameplateComponent : public UWidgetComponent
 {
 	GENERATED_BODY()
 
@@ -30,13 +31,22 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	/**
-	 * 오너 캐릭터의 표시 데이터와 ASC 를 묶은 UWxViewModel_Character 를 생성해 MVVM View 에 바인딩한다.
+	 * 주입받은 표시 데이터(InUIData)와 ASC 를 묶은 UWxViewModel_Character 를 생성해 MVVM View 에 바인딩한다.
 	 * (자식 AbilitySystem VM 이 어트리뷰트/이펙트를, 본체가 이름/초상화/설명을 노출한다.)
+	 * WxUI 는 구체 캐릭터 타입을 알지 못하므로 표시 데이터는 소비 측이 주입한다.
 	 * Widget 이 유효하고 UMVVMView Extension 이 존재해야 동작한다.
 	 */
-	void InitializeViewModels(UAbilitySystemComponent* InASC);
+	void InitializeViewModels(UAbilitySystemComponent* InASC, const FWxCharacterUIData& InUIData);
 
 protected:
+	/** 이 중 하나라도 ASC 에 있으면 표시한다. 기본값은 생성자에서 저작하며, 엔티티별로 BP 에서 오버라이드한다. */
+	UPROPERTY(EditAnywhere, Category = "Wx")
+	FGameplayTagContainer ShowIfAny;
+
+	/** 이 중 하나라도 ASC 에 있으면 숨긴다(표시 조건보다 우선). */
+	UPROPERTY(EditAnywhere, Category = "Wx")
+	FGameplayTagContainer HideIfAny;
+
 	/** 이 거리에서 위젯 스케일이 1.0이 된다. */
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	float ReferenceDistance = 1000.f;
@@ -52,13 +62,10 @@ protected:
 private:
 	/**
 	 * 표시 조건을 매 틱 진실로부터 재계산한다.
-	 * 표시 = 사망 아님 && (적이 플레이어를 인식 || 로컬 플레이어가 이 적을 락온).
-	 * 인식은 복제된 State.InCombat 태그, 락온은 로컬 플레이어의 LockOn 컴포넌트에서 파생한다.
+	 * 표시 = ShowIfAny 중 하나라도 보유 && HideIfAny 중 어느 것도 미보유.
+	 * 어떤 게임플레이 상태가 조건인지는 ShowIfAny/HideIfAny 가 정하며, 본 함수는 구체 태그를 알지 않는다.
 	 */
 	void RefreshVisibility();
-
-	/** 로컬 플레이어가 오너(이 적)를 락온 중인지 반환. 락온 표시는 시각적·개인 UI라 로컬에서만 판정한다. */
-	bool IsLockedOnByLocalPlayer() const;
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 };
