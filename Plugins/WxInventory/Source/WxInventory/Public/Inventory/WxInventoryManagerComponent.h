@@ -202,7 +202,7 @@ public:
 	 */
 	bool RefillItemCharges(UWxItemInstance* Instance);
 
-	/** 권한: 소유 중인 Equipment Fragment 아이템을 소유 폰(IWxEquipmentInterface)에 장착 요청. 미소유 ItemDef 는 거부한다. 스택은 차감하지 않는다. ItemDef 가 nullptr 이면 장착 해제. */
+	/** 권한: 소유 중인 Equipment Fragment 아이템을 소유 폰의 UWxEquipmentComponent 에 장착 요청. 미소유 ItemDef 는 거부한다. 스택은 차감하지 않는다. ItemDef 가 nullptr 이면 장착 해제. */
 	bool EquipItemByDef(const UWxItemDefinition* ItemDef);
 
 	FWxOnInventoryStackChanged OnInventoryStackChanged;

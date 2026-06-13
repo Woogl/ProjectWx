@@ -3,7 +3,7 @@
 #include "Character/WxCharacterBase.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
-#include "Component/WxEquipmentComponent.h"
+#include "Inventory/WxEquipmentComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/ChildActorComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -58,6 +58,11 @@ AWxCharacterBase::AWxCharacterBase()
 void AWxCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+
+	if (EquipmentComponent)
+	{
+		EquipmentComponent->OnEquipVisualChanged.AddUObject(this, &AWxCharacterBase::HandleEquipVisualChanged);
+	}
 
 	if (!WeaponActor)
 	{
@@ -139,14 +144,6 @@ const FWxCharacterUIData& AWxCharacterBase::GetCharacterUIData() const
 	return UIData;
 }
 
-void AWxCharacterBase::EquipItem(const UWxItemDefinition* ItemDef)
-{
-	if (EquipmentComponent)
-	{
-		EquipmentComponent->EquipItem(ItemDef);
-	}
-}
-
 void AWxCharacterBase::SetGenericTeamId(const FGenericTeamId& InTeamId)
 {
 	Team = static_cast<EWxTeam>(InTeamId.GetId());
@@ -209,6 +206,27 @@ void AWxCharacterBase::HandleDeathTagChanged(const FGameplayTag CallbackTag, int
 	if (NewCount > 0)
 	{
 		HandleDeath();
+	}
+}
+
+void AWxCharacterBase::HandleEquipVisualChanged(USkeletalMesh* MeshAsset, FName Socket)
+{
+	AWxWeaponBase* Weapon = GetEquippedWeapon();
+	if (!Weapon)
+	{
+		// ChildActor 가 아직 스폰되지 않았을 수 있다(초기 복제 타이밍). 다음 방송 사이클에 재시도된다.
+		return;
+	}
+
+	Weapon->SetVisualMesh(MeshAsset);
+
+	// 소켓 변경은 WeaponActor(ChildActorComponent) 를 현재 부모 컴포넌트의 새 소켓으로 재부착한다.
+	if (WeaponActor && Socket != NAME_None)
+	{
+		if (USceneComponent* CurrentParent = WeaponActor->GetAttachParent())
+		{
+			WeaponActor->AttachToComponent(CurrentParent, FAttachmentTransformRules::SnapToTargetIncludingScale, Socket);
+		}
 	}
 }
 

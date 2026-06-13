@@ -2,13 +2,14 @@
 
 #include "Inventory/WxInventoryManagerComponent.h"
 
-#include "Inventory/WxEquipmentInterface.h"
+#include "Inventory/WxEquipmentComponent.h"
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemFragment.h"
 #include "Items/WxItemInstance.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Net/UnrealNetwork.h"
 
@@ -582,13 +583,14 @@ bool UWxInventoryManagerComponent::EquipItemByDef(const UWxItemDefinition* ItemD
 	}
 
 	const APlayerController* PC = GetOwner<APlayerController>();
-	IWxEquipmentInterface* Interface = Cast<IWxEquipmentInterface>(PC ? PC->GetPawn() : nullptr);
-	if (!Interface)
+	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+	UWxEquipmentComponent* Equipment = Pawn ? Pawn->FindComponentByClass<UWxEquipmentComponent>() : nullptr;
+	if (!Equipment)
 	{
 		return false;
 	}
 
-	Interface->EquipItem(ItemDef);
+	Equipment->EquipItem(ItemDef);
 	return true;
 }
 

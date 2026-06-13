@@ -12,14 +12,14 @@
 - 보상 지급(`UWxRewardComponent`)과 월드 픽업 액터(`AWxItemPickup`) 스폰/직접 지급
 
 **경계 (비담당)**
-- 장착의 실제 시각/부착 반영 → 게임 측 `IWxEquipmentInterface` 구현체(`WxGame` Character 등)에 위임
+- 장착의 실제 시각/부착 반영 → `UWxEquipmentComponent` 가 `OnEquipVisualChanged`(USkeletalMesh*, FName) 로 방송, 게임 측(`WxGame` Character)이 무기 메시 스왑/소켓 재부착 수행
 - 상호작용 게이팅/프롬프트 → [[WxWorld]] 의 IWxInteractionSource (BP 상속으로 픽업·보상 컴포넌트에 부착)
 - GameplayEffect 정의·적용 결과(스탯 변화) → GAS / [[WxCombat]] 에 위임. 본 모듈은 Spec 적용만 트리거
 - 인벤토리 UI 표현/바인딩 → [[WxUI]] (델리게이트만 제공)
 
 ## 의존성
 - **주요 의존**: `WxCore`(공용 정의), `GameplayAbilities`(사용/장착 효과 GE), `GameplayTags`, `NetCore`/FastArraySerializer(레플리케이션), `DeveloperSettings`(등급 색상), `Niagara`(픽업 이펙트)
-- 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅ (장착·상호작용은 인터페이스로 역참조 회피)
+- 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅ (장착은 엔진 타입 델리게이트 방송, 상호작용은 WxCore 인터페이스로 역참조 회피)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
@@ -29,12 +29,12 @@
 | `UWxItemDefinition` | 아이템 정적 정의(PrimaryDataAsset). Category + Fragment 컴포지션 | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemDefinition.h` |
 | `UWxItemFragment` | Fragment 베이스(EditInline). 하위: `_Equippable`/`_Usable`/`_Charges`(Refill)/`_Stackable`/`_Pickup` | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemFragment.h` |
 | `UWxItemInstance` | 아이템 한 자루의 런타임 인스턴스. 정의 바인딩 + 충전량 보유, GA SourceObject | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemInstance.h` |
-| `IWxEquipmentInterface` | 장착 요청을 게임 측으로 플러그인 의존 없이 전달 | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxEquipmentInterface.h` |
+| `UWxEquipmentComponent` | 장착 상태(`EquippedItemDef` 복제)·EquipEffect GE 수명 관리. 외형은 `OnEquipVisualChanged` 로 게임 측에 방송(역참조 회피) | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxEquipmentComponent.h` |
 | `UWxRewardComponent` | DataTable(`FWxRewardTableRow`) 기반 보상 드랍/직접 지급 스포너 | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxRewardComponent.h` |
 | `AWxItemPickup` | 월드 픽업 액터. 상호작용 시 인벤토리에 지급 후 파괴 | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemPickup.h` |
 
 ## 폴더 구성
-- `Public/Inventory` — 인벤토리 매니저·보상 컴포넌트, 장착 인터페이스
+- `Public/Inventory` — 인벤토리 매니저·보상 컴포넌트, 장착 컴포넌트
 - `Public/Items` — 아이템 정의/인스턴스/Fragment, 픽업 액터, 보상 테이블 Row
 - `Public/System` — `UWxInventoryDeveloperSettings`(등급 색상 Config)
 
@@ -52,7 +52,7 @@
 3. `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemFragment.h` — Fragment 5종으로 아이템 행동을 어떻게 선언하는지
 
 ## 관련
-- 상위: PlayerController/`WxGame` Character(`IWxEquipmentInterface` 구현), [[WxUI]](표현), [[WxWorld]](상호작용 픽업/보물 상자), [[WxQuest]](보상 지급)
+- 상위: PlayerController/`WxGame` Character(`OnEquipVisualChanged` 바인딩해 외형 반영), [[WxUI]](표현), [[WxWorld]](상호작용 픽업/보물 상자), [[WxQuest]](보상 지급)
 
 ---
 *문서 기준 커밋 `7a5764b` · 생성일 2026-06-12 · 소스 18파일 — `/readme-writer`로 갱신*

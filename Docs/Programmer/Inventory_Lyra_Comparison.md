@@ -325,7 +325,7 @@ DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventorySlotChanged,
 - 게임 디자인상 단일 무기 슬롯, 인스턴스별 가변 어빌리티/이펙트 부여 필요 없음
 - AbilitySet 통합·다중 슬롯·장비별 액터 스폰 같은 Lyra 풀 스택의 가치가 단일 무기 게임에 비해 과도
 
-**연결 방식**: `UWxItemFragment_Equippable`(SkeletalMesh, AttachSocket) 이 인벤→장비 브리지 역할. `UWxInventoryManagerComponent::EquipItemByDef(const UWxItemDefinition*)` 가 `IWxEquipmentInterface::EquipItem` 으로 위임. Lyra 의 `InventoryFragment_EquippableItem` 패턴과 컨셉은 같지만, 위임처가 EquipmentDefinition CDO 가 아니라 Wx Fragment 자체.
+**연결 방식**: `UWxItemFragment_Equippable`(SkeletalMesh, AttachSocket) 이 인벤→장비 브리지 역할. `UWxInventoryManagerComponent::EquipItemByDef(const UWxItemDefinition*)` 가 소유 폰의 `UWxEquipmentComponent`(WxInventory)를 찾아 `EquipItem` 호출. 외형은 `OnEquipVisualChanged`(USkeletalMesh*, FName) 델리게이트로 게임 측에 방송. Lyra 의 `InventoryFragment_EquippableItem` 패턴과 컨셉은 같지만, 위임처가 EquipmentDefinition CDO 가 아니라 Wx Fragment 자체.
 
 ### 3.6 Pickup 모델: 단순화 유지
 
@@ -367,11 +367,11 @@ WxInventory (Plugin)
 │   ├── WxItemDefinition            (UPrimaryDataAsset, Category enum + Fragment 배열)
 │   └── WxItemInstance              (UObject, TObjectPtr<const UWxItemDefinition> 만 보유)
 └── Inventory/
-    ├── WxEquipmentInterface        (IWxEquipmentInterface — const UWxItemDefinition* API)
+    ├── WxEquipmentComponent        (단일 무기 슬롯: EquippedItemDef 복제 + EquipEffect GE 수명, OnEquipVisualChanged 방송)
     └── WxInventoryManagerComponent (FastArray + 듀얼 SubObject 복제 + Stackable 머지)
 
 WxGame (Module)
-├── Component/WxEquipmentComponent  (단일 무기 슬롯, IWxEquipmentInterface 구현)
+├── Character/WxCharacterBase       (OnEquipVisualChanged 바인딩 → 무기 메시 스왑/소켓 재부착)
 ├── WorldObject/
 │   ├── WxItemPickup                (TObjectPtr<UWxItemDefinition> + GrantCount)
 │   └── WxTreasureChest             (TObjectPtr<UWxItemDefinition> 스폰)
@@ -395,7 +395,7 @@ WxGame (Module)
 | `GetAllItems()` | `GetAllItems()` | ★★★★★ |
 | (없음) | `GetStackCountByInstance(const Instance*)` | Wx 전용 (ViewModel 슬롯 모드 초기화용) |
 | (Lyra Equipment 컴포넌트) | `UseItemByDef(const UWxItemDefinition*)` | Wx 전용 (Consumable + GE 적용) |
-| (Lyra Equipment 컴포넌트) | `EquipItemByDef(const UWxItemDefinition*)` | Wx 전용 (IWxEquipmentInterface 위임) |
+| (Lyra Equipment 컴포넌트) | `EquipItemByDef(const UWxItemDefinition*)` | Wx 전용 (소유 폰의 UWxEquipmentComponent 에 위임) |
 
 ---
 
@@ -419,7 +419,7 @@ WxGame (Module)
 
 1. **`UWxItemFragment_Charges`** — 다크소울 에스트형(인스턴스 단위 충전, 사용 시 인벤 차감 X, 체크포인트에서 Max 리셋). 도입 시 `FWxGameplayTagStackContainer` 인프라를 ItemInstance 에 다시 추가하고 `OnInstanceCreated` 에서 InitialCharges 를 주입, `UseItemByDef` 가 Stackable 차감 대신 charge 차감 분기 추가 필요
 2. **`UWxItemFragment_StatModifier`** — 장비/버프 소비템 공용 어트리뷰트 모디파이어. GAS Modifier 적용 시점(장착 시/사용 시) 분기 필요
-3. **`UWxItemFragment_AbilityGrant`** — 장착·소지 시 부여 어빌리티(무기 스킬, 세트 효과). `IWxEquipmentInterface::EquipItem` 후 ASC 에 GiveAbility, 해제 시 Clear
+3. **`UWxItemFragment_AbilityGrant`** — 장착·소지 시 부여 어빌리티(무기 스킬, 세트 효과). `UWxEquipmentComponent::EquipItem` 후 ASC 에 GiveAbility, 해제 시 Clear
 4. **GameplayMessageSubsystem 도입** — listener 다양화(Toast/Sound/Achievement) 시
 5. **Equipment 풀 스택** — 다중 슬롯, 장비별 AbilitySet 부여 시 `UWxItemFragment_AbilityGrant` 와 함께 검토
 6. **IPickupable 인터페이스** — 던진 무기 회수, 다중 아이템 드랍 시

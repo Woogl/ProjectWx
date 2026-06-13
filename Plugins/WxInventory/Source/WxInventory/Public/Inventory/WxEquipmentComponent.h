@@ -1,0 +1,69 @@
+// Copyright Woogle. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "ActiveGameplayEffectHandle.h"
+#include "Components/ActorComponent.h"
+#include "Templates/SubclassOf.h"
+#include "WxEquipmentComponent.generated.h"
+
+class UAbilitySystemComponent;
+class UGameplayEffect;
+class USkeletalMesh;
+class UWxItemDefinition;
+
+/**
+ * 장착 외형 변경 알림. (적용할 무기 메시, 부착 소켓).
+ * 메시가 nullptr 이면 외형 유지(베이스), 소켓이 NAME_None 이면 재부착을 생략한다 — 실제 반영 정책은 바인딩한 게임 측이 결정한다.
+ */
+DECLARE_MULTICAST_DELEGATE_TwoParams(FWxOnEquipVisualChanged, USkeletalMesh* /*Mesh*/, FName /*Socket*/);
+
+/**
+ * 장비 컴포넌트.
+ * 현재 장착된 ItemDef 의 보관/복제와 EquipEffect GE 라이프사이클을 캡슐화한다.
+ *
+ * 무기 외형 반영(메시 스왑/소켓 재부착)은 본 컴포넌트가 직접 수행하지 않는다.
+ * 무기 액터·캐릭터의 ChildActorComponent 는 게임 모듈 소유라 인벤토리 도메인에서 접근할 수 없으므로,
+ * Equippable 프래그먼트에서 뽑은 메시/소켓을 OnEquipVisualChanged 로 방송하고 게임 측이 반영한다.
+ */
+UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))
+class WXINVENTORY_API UWxEquipmentComponent : public UActorComponent
+{
+	GENERATED_BODY()
+
+public:
+	UWxEquipmentComponent();
+
+	/** 권한: ItemDef 의 Equippable Fragment 에 따라 장착 효과/외형을 반영. nullptr 이면 장착 해제. */
+	void EquipItem(const UWxItemDefinition* ItemDef);
+
+	/** 장착 외형 변경 방송. 게임 측(캐릭터)이 바인딩해 무기 메시/소켓을 반영한다. 서버 EquipItem·클라 OnRep 양쪽에서 fire 된다. */
+	FWxOnEquipVisualChanged OnEquipVisualChanged;
+
+protected:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	/** 현재 장착 중인 아이템. 변경 시 OnEquipVisualChanged 로 외형 갱신이 방송된다. */
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_EquippedItemDef, Category = "Wx|Equipment")
+	TObjectPtr<const UWxItemDefinition> EquippedItemDef;
+
+private:
+	UFUNCTION()
+	void OnRep_EquippedItemDef();
+
+	/** EquippedItemDef 의 Equippable 프래그먼트에서 메시/소켓을 뽑아 OnEquipVisualChanged 로 방송. 서버/클라이언트 공통. */
+	void BroadcastEquipVisual();
+
+	/** 권한: 새 장비의 EquipEffects 를 소유자 ASC 에 적용하고 핸들을 보관. */
+	void ApplyEquipEffects(const UWxItemDefinition* SourceDef, const TArray<TSubclassOf<UGameplayEffect>>& Effects);
+
+	/** 권한: 현재 보관 중인 모든 EquipEffect 핸들을 제거하고 비운다. */
+	void RemoveActiveEquipEffects();
+
+	UAbilitySystemComponent* ResolveOwnerASC() const;
+
+	/** 권한 측에서만 채워진다. 클라는 ASC 가 ActiveGameplayEffects 를 자동 복제 받음. */
+	TArray<FActiveGameplayEffectHandle> ActiveEquipEffectHandles;
+};

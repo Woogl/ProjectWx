@@ -1,17 +1,12 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Component/WxEquipmentComponent.h"
+#include "Inventory/WxEquipmentComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "Character/WxCharacterBase.h"
-#include "Components/ChildActorComponent.h"
-#include "Components/SkeletalMeshComponent.h"
-#include "GameFramework/Character.h"
 #include "GameplayEffect.h"
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemFragment.h"
 #include "Net/UnrealNetwork.h"
-#include "Weapon/WxWeaponBase.h"
 
 UWxEquipmentComponent::UWxEquipmentComponent()
 {
@@ -54,7 +49,7 @@ void UWxEquipmentComponent::EquipItem(const UWxItemDefinition* ItemDef)
 	RemoveActiveEquipEffects();
 
 	EquippedItemDef = ItemDef;
-	ApplyEquipmentVisuals();
+	BroadcastEquipVisual();
 
 	if (NewFragment)
 	{
@@ -64,26 +59,11 @@ void UWxEquipmentComponent::EquipItem(const UWxItemDefinition* ItemDef)
 
 void UWxEquipmentComponent::OnRep_EquippedItemDef()
 {
-	ApplyEquipmentVisuals();
+	BroadcastEquipVisual();
 }
 
-void UWxEquipmentComponent::ApplyEquipmentVisuals()
+void UWxEquipmentComponent::BroadcastEquipVisual()
 {
-	AWxCharacterBase* OwnerCharacter = Cast<AWxCharacterBase>(GetOwner());
-	if (!OwnerCharacter)
-	{
-		return;
-	}
-
-	AWxWeaponBase* Weapon = OwnerCharacter->GetEquippedWeapon();
-	if (!Weapon)
-	{
-		// ChildActor 가 아직 스폰되지 않았을 수 있다(초기 복제 타이밍). 다음 OnRep 사이클에 재시도된다.
-		return;
-	}
-
-	UChildActorComponent* WeaponChildActor = Weapon->GetParentComponent() ? Cast<UChildActorComponent>(Weapon->GetParentComponent()) : nullptr;
-
 	// EquippedItemDef 가 없으면 무기 BP 의 기본 메시 + 기본 소켓으로 복귀(장착 해제 상태).
 	USkeletalMesh* MeshAsset = nullptr;
 	FName Socket = NAME_None;
@@ -97,16 +77,7 @@ void UWxEquipmentComponent::ApplyEquipmentVisuals()
 		}
 	}
 
-	Weapon->SetVisualMesh(MeshAsset);
-
-	// 소켓 변경은 ChildActorComponent 자체를 현재 부모 컴포넌트의 새 소켓으로 재부착한다.
-	if (WeaponChildActor && Socket != NAME_None)
-	{
-		if (USceneComponent* CurrentParent = WeaponChildActor->GetAttachParent())
-		{
-			WeaponChildActor->AttachToComponent(CurrentParent, FAttachmentTransformRules::SnapToTargetIncludingScale, Socket);
-		}
-	}
+	OnEquipVisualChanged.Broadcast(MeshAsset, Socket);
 }
 
 void UWxEquipmentComponent::ApplyEquipEffects(const UWxItemDefinition* SourceDef, const TArray<TSubclassOf<UGameplayEffect>>& Effects)

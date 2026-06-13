@@ -13,6 +13,7 @@ public class WxInventory : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
+			"GameplayAbilities",
 			"GameplayTags",
 			"NetCore",
 			"WxCore",
@@ -21,7 +22,6 @@ public class WxInventory : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"DeveloperSettings",
-			"GameplayAbilities",
 			"Niagara",
 		});
 	}

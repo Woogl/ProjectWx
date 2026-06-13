@@ -8,7 +8,6 @@
 #include "GameplayTagAssetInterface.h"
 #include "GenericTeamAgentInterface.h"
 #include "GameplayEffectTypes.h"
-#include "Inventory/WxEquipmentInterface.h"
 #include "MVVM/WxCharacterUIData.h"
 #include "WxTeamTypes.h"
 #include "WxCharacterBase.generated.h"
@@ -18,8 +17,8 @@ class UMotionWarpingComponent;
 class UWxAbilitySystemComponent;
 class UWxCombatAttributeSet;
 class UWxEquipmentComponent;
-class UWxItemDefinition;
 class AWxWeaponBase;
+class USkeletalMesh;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBase*, DeadCharacter);
 
@@ -28,7 +27,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBas
  * ASC를 캐릭터에 직접 소유 (리스폰 시 스탯을 새로 초기화하므로 PlayerState 불필요).
  */
 UCLASS(Abstract)
-class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface, public IGenericTeamAgentInterface, public IWxEquipmentInterface
+class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -48,9 +47,6 @@ public:
 	virtual void SetGenericTeamId(const FGenericTeamId& InTeamId) override;
 	virtual FGenericTeamId GetGenericTeamId() const override;
 	virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
-
-	// IWxEquipmentInterface
-	virtual void EquipItem(const UWxItemDefinition* ItemDef) override;
 
 	bool IsAlive() const;
 	AWxWeaponBase* GetEquippedWeapon() const;
@@ -98,6 +94,9 @@ protected:
 
 	/** State.Dead 태그 변경 콜백. 태그 부여 시 HandleDeath 호출 */
 	void HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
+	/** 장비 컴포넌트의 외형 변경 방송 콜백. 무기 메시 스왑 + WeaponActor 소켓 재부착을 반영한다. */
+	void HandleEquipVisualChanged(USkeletalMesh* MeshAsset, FName Socket);
 
 	/** 네임플레이트/HUD 등 UI 표시 데이터. BP 디폴트에서 지정한다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
