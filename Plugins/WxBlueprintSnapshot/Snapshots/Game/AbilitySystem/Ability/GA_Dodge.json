@@ -2,6 +2,7 @@
 	"blueprintPath": "/Game/AbilitySystem/Ability/GA_Dodge.GA_Dodge",
 	"classDefaults":
 	{
+		"BackstepMontage": "/Game/AbilitySystem/Ability/AM_Backstep.AM_Backstep",
 		"DodgeCounterMontage": "/Game/AbilitySystem/Ability/AM_DodgeCounter.AM_DodgeCounter",
 		"DodgeMontage": "/Game/AbilitySystem/Ability/AM_Dodge.AM_Dodge",
 		"PerfectDodgeMontage": "/Game/AbilitySystem/Ability/AM_DodgeSuccess.AM_DodgeSuccess"

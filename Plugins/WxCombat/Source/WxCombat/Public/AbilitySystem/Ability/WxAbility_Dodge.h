@@ -32,7 +32,7 @@ enum class EWxDodgeDirection : uint8
  * 회피 어빌리티.
  *
  * 사용 흐름:
- *  1. 입력 → ActivateAbility → 회피 몽타주를 입력 방향에 해당하는 8방향 섹션부터 재생, Event.DodgeSuccess 대기
+ *  1. 입력 → ActivateAbility → 회피 몽타주를 입력 방향에 해당하는 8방향 섹션부터 재생(이동 입력이 없으면 BackstepMontage 재생), Event.DodgeSuccess 대기
  *  2. 몽타주의 State.Invincible 구간 동안 무적
  *  3. 무적 중 피격(극한 회피) → PerfectDodgeMontage 재생
  *  4. ANS_ComboWindow 구간 내 공격 입력 시 DodgeCounterMontage로 전환
@@ -63,6 +63,10 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> DodgeMontage;
+
+	/** 이동 입력 없이 회피할 때 재생할 백스텝 몽타주. 미설정 시 DodgeMontage의 Back 섹션으로 폴백한다. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TObjectPtr<UAnimMontage> BackstepMontage;
 
 	/** 극한 회피 성공 시 재생할 몽타주 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
