@@ -24,6 +24,7 @@
 				}
 			}
 		},
+		"EquipmentComponent": "",
 		"Mesh":
 		{
 			"class": "/Script/Engine.SkeletalMeshComponent",

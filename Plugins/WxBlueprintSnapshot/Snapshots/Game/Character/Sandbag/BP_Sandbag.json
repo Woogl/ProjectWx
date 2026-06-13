@@ -11,6 +11,7 @@
 			}
 		},
 		"BehaviorTreeAsset": "/Game/AI/BT_Sandbag.BT_Sandbag",
+		"EquipmentComponent": "",
 		"Mesh":
 		{
 			"class": "/Script/Engine.SkeletalMeshComponent",
@@ -55,7 +56,7 @@
 		},
 		"NameplateComponent":
 		{
-			"class": "/Script/WxGame.WxNameplateComponent",
+			"class": "/Script/WxUI.WxNameplateComponent",
 			"delta":
 			{
 				"WidgetClass": "/Game/UI/Widget/WBP_Nameplate_Enemy.WBP_Nameplate_Enemy_C"

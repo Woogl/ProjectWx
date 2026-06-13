@@ -10,6 +10,7 @@
 				"AbilitySet": "/Game/Character/Player/ABS_Player.ABS_Player"
 			}
 		},
+		"EquipmentComponent": "",
 		"FollowCamera":
 		{
 			"class": "/Script/Engine.CameraComponent",

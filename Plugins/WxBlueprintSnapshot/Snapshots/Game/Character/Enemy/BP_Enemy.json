@@ -11,6 +11,7 @@
 			}
 		},
 		"BehaviorTreeAsset": "/Game/AI/BT_Enemy.BT_Enemy",
+		"EquipmentComponent": "",
 		"Mesh":
 		{
 			"class": "/Script/Engine.SkeletalMeshComponent",
@@ -51,7 +52,7 @@
 		},
 		"NameplateComponent":
 		{
-			"class": "/Script/WxGame.WxNameplateComponent",
+			"class": "/Script/WxUI.WxNameplateComponent",
 			"delta":
 			{
 				"WidgetClass": "/Game/UI/Widget/WBP_Nameplate_Enemy.WBP_Nameplate_Enemy_C"
@@ -62,7 +63,6 @@
 			"class": "/Script/WxInventory.WxRewardComponent",
 			"delta":
 			{
-				"ItemActorClass": "/Game/WorldObject/Actor/BP_ItemPickup.BP_ItemPickup_C",
 				"RewardRow":
 				{
 					"DataTable": "/Game/Item/DT_Reward.DT_Reward",
