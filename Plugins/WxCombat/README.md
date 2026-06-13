@@ -22,14 +22,14 @@
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxAbilitySystemComponent` | 프로젝트 ASC. InputTag 입력 라우팅·래그돌 복제 | `Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h` |
-| `UWxAbilityBase` | 모든 어빌리티의 베이스. 공용 쿨다운/코스트 GE·테이블 Row·컴포넌트 부착 규약 | `Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` |
-| `UWxAbilitySet` | ASC에 부여할 Ability/Effect/Attribute 초기 데이터 묶음 (DataAsset) | `Source/WxCombat/Public/AbilitySystem/WxAbilitySet.h` |
-| `UWxCombatAttributeSet` | 캐릭터 스탯 전부(HP/SP/DP/MP/UP/ATK/DEF/Crit/SPD/ASPD + IncomingDamage meta) | `Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h` |
-| `FWxDamageInfo` | 데미지 한 건의 설계 데이터 → GE Spec 변환 진입점 | `Source/WxCombat/Public/WxDamageInfo.h` |
-| `UWxExecCalc_Damage` | 데미지 최종 계산(가드/퍼펙트가드/그로기/치명타/반사) | `Source/WxCombat/Public/AbilitySystem/Effect/WxExecCalc_Damage.h` |
-| `UWxCombatLibrary` | 무기/투사체 외 경로의 데미지 적용·적대 판정 BP 라이브러리 | `Source/WxCombat/Public/WxCombatLibrary.h` |
-| `AWxWeaponBase` / `AWxProjectileBase` | 무기 스윙·투사체 히트 판정 액터 | `Source/WxCombat/Public/Weapon/` |
+| `UWxAbilitySystemComponent` | 프로젝트 ASC. InputTag 입력 라우팅·래그돌 복제 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h` |
+| `UWxAbilityBase` | 모든 어빌리티의 베이스. 공용 쿨다운/코스트 GE·테이블 Row·컴포넌트 부착 규약 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` |
+| `UWxAbilitySet` | ASC에 부여할 Ability/Effect/Attribute 초기 데이터 묶음 (DataAsset) | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySet.h` |
+| `UWxCombatAttributeSet` | 캐릭터 스탯 전부(HP/SP/DP/MP/UP/ATK/DEF/Crit/SPD/ASPD + IncomingDamage meta) | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h` |
+| `FWxDamageInfo` | 데미지 한 건의 설계 데이터 → GE Spec 변환 진입점 | `Plugins/WxCombat/Source/WxCombat/Public/WxDamageInfo.h` |
+| `UWxExecCalc_Damage` | 데미지 최종 계산(가드/퍼펙트가드/그로기/치명타/반사) | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxExecCalc_Damage.h` |
+| `UWxCombatLibrary` | 무기/투사체 외 경로의 데미지 적용·적대 판정 BP 라이브러리 | `Plugins/WxCombat/Source/WxCombat/Public/WxCombatLibrary.h` |
+| `AWxWeaponBase` / `AWxProjectileBase` | 무기 스윙·투사체 히트 판정 액터 | `Plugins/WxCombat/Source/WxCombat/Public/Weapon/` |
 
 ## Gameplay Tags
 - 이 모듈은 C++ Native Tag를 직접 **선언하지 않는다**. 모든 태그는 [[WxCore]]의 `WxGameplayTags`를 include해 소비한다.
@@ -42,12 +42,12 @@
 - 리플리케이션/권한(최대 4인): 어트리뷰트·락온 대상·래그돌·글로벌 TimeDilation은 서버 권위 복제. 소유 클라는 락온 등에서 로컬 예측 후 서버 권위로 정합한다.
 
 ## 여기서부터 읽어라
-1. `Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` — 모든 어빌리티의 공통 규약(쿨다운/코스트/테이블/후딜). 어빌리티 작업의 출발점.
-2. `Source/WxCombat/Private/AbilitySystem/Effect/WxExecCalc_Damage.cpp` — 데미지가 가드/그로기/치명타/반사를 거쳐 HP에 도달하는 전체 흐름.
-3. `Source/WxCombat/Public/WxDamageInfo.h` + `Source/WxCombat/Public/Weapon/WxWeaponBase.h` — AnimNotify→무기→GE Spec로 이어지는 히트 적용 경로.
+1. `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` — 모든 어빌리티의 공통 규약(쿨다운/코스트/테이블/후딜). 어빌리티 작업의 출발점.
+2. `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxExecCalc_Damage.cpp` — 데미지가 가드/그로기/치명타/반사를 거쳐 HP에 도달하는 전체 흐름.
+3. `Plugins/WxCombat/Source/WxCombat/Public/WxDamageInfo.h` + `Plugins/WxCombat/Source/WxCombat/Public/Weapon/WxWeaponBase.h` — AnimNotify→무기→GE Spec로 이어지는 히트 적용 경로.
 
 ## 관련
 - 상위: 캐릭터/게임모드가 `UWxAbilitySet`으로 이 모듈을 장착. 태그·팀·공용 정의는 [[WxCore]], 표시는 [[WxUI]], AI 구동은 [[WxAI]]와 함께 본다.
 
 ---
-*문서 기준 커밋 `7a5764b` · 생성일 2026-06-12 · 소스 137파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `157ccd5` · 생성일 2026-06-13 · 소스 137파일 — `/readme-writer`로 갱신*

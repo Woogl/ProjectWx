@@ -13,12 +13,12 @@
 
 **경계 (비담당)**
 - 장착의 실제 시각/부착 반영 → `UWxEquipmentComponent` 가 `OnEquipVisualChanged`(USkeletalMesh*, FName) 로 방송, 게임 측(`WxGame` Character)이 무기 메시 스왑/소켓 재부착 수행
-- 상호작용 게이팅/프롬프트 → [[WxWorld]] 의 IWxInteractionSource (BP 상속으로 픽업·보상 컴포넌트에 부착)
+- 상호작용 게이팅/프롬프트 → [[WxCore]] 의 IWxInteractionSource (BP 상속으로 픽업·보상 컴포넌트에 부착)
 - GameplayEffect 정의·적용 결과(스탯 변화) → GAS / [[WxCombat]] 에 위임. 본 모듈은 Spec 적용만 트리거
 - 인벤토리 UI 표현/바인딩 → [[WxUI]] (델리게이트만 제공)
 
 ## 의존성
-- **주요 의존**: `WxCore`(공용 정의), `GameplayAbilities`(사용/장착 효과 GE), `GameplayTags`, `NetCore`/FastArraySerializer(레플리케이션), `DeveloperSettings`(등급 색상), `Niagara`(픽업 이펙트)
+- **주요 의존**: `WxCore`(공용 정의, IWxInteractionSource), `GameplayAbilities`(사용/장착 효과 GE), `GameplayTags`, `NetCore`/FastArraySerializer(레플리케이션), `DeveloperSettings`(등급 색상), `Niagara`(픽업 이펙트)
 - 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅ (장착은 엔진 타입 델리게이트 방송, 상호작용은 WxCore 인터페이스로 역참조 회피)
 
 ## 핵심 타입 (진입점)
@@ -55,4 +55,4 @@
 - 상위: PlayerController/`WxGame` Character(`OnEquipVisualChanged` 바인딩해 외형 반영), [[WxUI]](표현), [[WxWorld]](상호작용 픽업/보물 상자), [[WxQuest]](보상 지급)
 
 ---
-*문서 기준 커밋 `7a5764b` · 생성일 2026-06-12 · 소스 18파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `157ccd5` · 생성일 2026-06-13 · 소스 19파일 — `/readme-writer`로 갱신*
