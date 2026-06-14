@@ -8,24 +8,47 @@
 			"delta":
 			{
 				"InteractionText": "[F] Open",
-				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
+				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C",
+				"SphereRadius": 250
 			}
 		},
 		"MeshComponent":
 		{
-			"class": "/Script/Engine.StaticMeshComponent",
+			"class": "/Script/Engine.SkeletalMeshComponent",
 			"delta":
 			{
+				"BodyInstance":
+				{
+					"CollisionEnabled": "QueryAndPhysics",
+					"CollisionProfileName": "BlockAllDynamic",
+					"CollisionResponses":
+					{
+						"ResponseArray": []
+					},
+					"ObjectType": "ECC_WorldDynamic"
+				},
 				"OverrideMaterials": [
-					"/Game/NiagaraExamples/Gallery/StaticMesh/BeachBall/M_BeachBallYellow.M_BeachBallYellow"
+					"/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/Materials/M_Transparent.M_Transparent"
 				],
 				"RelativeLocation":
 				{
-					"Z": 50
+					"Z": 40
 				},
-				"StaticMesh": "/Engine/BasicShapes/Cube.Cube"
+				"RelativeRotation":
+				{
+					"Yaw": -89.999999302826765
+				},
+				"RelativeScale3D":
+				{
+					"X": 0.5,
+					"Y": 0.5,
+					"Z": 0.5
+				},
+				"SkeletalMesh": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/SkeletalMeshes/scene.scene",
+				"SkinnedAsset": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/SkeletalMeshes/scene.scene"
 			}
-		}
+		},
+		"OpenAnimation": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/SkeletalMeshes/scene_Anim.scene_Anim"
 	},
 	"components":
 	{
@@ -34,23 +57,17 @@
 			"componentClass": "/Script/WxInventory.WxRewardComponent",
 			"delta":
 			{
-				"ItemActorClass": "/Game/WorldObject/Actor/BP_ItemPickup.BP_ItemPickup_C",
 				"RelativeLocation":
 				{
-					"Z": 100
+					"Z": 90
+				},
+				"RewardRow":
+				{
+					"DataTable": "/Game/Item/DT_Reward.DT_Reward"
 				}
 			},
 			"variableName": "WxReward"
 		}
-	},
-	"eventGraph":
-	{
-		"WxOnInteractedSignature__DelegateSignature": [
-			"void WxOnInteractedSignature__DelegateSignature(AActor* InstigatorActor)",
-			"{",
-			"    MeshComponent->SetMaterial();",
-			"}"
-		]
 	},
 	"parentClass": "/Script/WxWorld.WxTreasureChest"
 }

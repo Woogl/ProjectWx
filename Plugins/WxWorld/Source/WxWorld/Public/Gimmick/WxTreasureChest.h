@@ -6,7 +6,8 @@
 #include "Gimmick/WxGimmick.h"
 #include "WxTreasureChest.generated.h"
 
-class UStaticMeshComponent;
+class UAnimSequenceBase;
+class USkeletalMeshComponent;
 class UWxInteractionComponent;
 
 /**
@@ -31,10 +32,14 @@ protected:
 	virtual void ApplyState() override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx")
-	TObjectPtr<UStaticMeshComponent> MeshComponent;
+	TObjectPtr<USkeletalMeshComponent> MeshComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx")
 	TObjectPtr<UWxInteractionComponent> InteractionComponent;
+
+	/** 상호작용 시 재생하고, 이미 발동된 채 로드되면 끝 프레임으로 스냅할 열기 애니메이션. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx")
+	TObjectPtr<UAnimSequenceBase> OpenAnimation;
 
 private:
 	UFUNCTION()
