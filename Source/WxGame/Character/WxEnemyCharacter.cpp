@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Inventory/WxRewardComponent.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "System/WxSpawnerSubsystem.h"
 #include "Targeting/WxLockOnPointComponent.h"
 
@@ -58,7 +59,9 @@ void AWxEnemyCharacter::HandleDeath()
 		Subsystem->MarkSpawnableKilled(this);
 	}
 
-	RewardComponent->DropRewards();
+	// 외형 없는 재화(골드 등)는 로컬 플레이어 인벤토리에 즉시 지급한다.
+	// 외형 있는 보상은 대상과 무관하게 픽업으로 흩뿌려진다.
+	RewardComponent->DropRewards(UGameplayStatics::GetPlayerController(this, 0));
 }
 
 UBehaviorTree* AWxEnemyCharacter::GetBehaviorTree() const
