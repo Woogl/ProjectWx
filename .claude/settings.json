@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/scripts/check-worklog.py",
+            "shell": "bash",
+            "statusMessage": "worklog 게이트 점검"
+          }
+        ]
+      }
+    ]
+  }
+}
