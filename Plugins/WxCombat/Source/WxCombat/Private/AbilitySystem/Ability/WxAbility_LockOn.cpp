@@ -2,7 +2,6 @@
 
 #include "AbilitySystem/Ability/WxAbility_LockOn.h"
 #include "AbilitySystem/Task/WxAbilityTask_LockOnTarget.h"
-#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Components/SceneComponent.h"
 #include "GameFramework/Character.h"
@@ -141,14 +140,7 @@ void UWxAbility_LockOn::HandleTargetLost()
 				continue;
 			}
 
-			// 사망 직후 프리셋이 시체를 아직 거르지 못할 수 있으므로 죽은 후보는 건너뛴다.
-			const UAbilitySystemComponent* CandidateASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Candidate);
-			if (CandidateASC && CandidateASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
-			{
-				continue;
-			}
-
-			// 락온 지점이 없는 후보는 락온 대상이 될 수 없으므로 건너뛴다.
+			// 락온 가능한 지점이 없는 후보는 건너뛴다(ResolveLockOnTarget 이 죽은 대상 등 불가 지점을 이미 거른다).
 			USceneComponent* TargetComponent = UWxLockOnPointComponent::ResolveLockOnTarget(Candidate);
 			if (!TargetComponent)
 			{
@@ -180,7 +172,6 @@ void UWxAbility_LockOn::HandleRetargetRequested(FVector2D ScreenDirection)
 
 	UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(Avatar);
 	const USceneComponent* CurrentComponent = LockOnComp ? LockOnComp->GetLockOnTarget() : nullptr;
-	const AActor* CurrentTarget = CurrentComponent ? CurrentComponent->GetOwner() : nullptr;
 
 	// 비교 원점은 현재 락온 지점의 화면 좌표(유저가 보고 있는 레티클 위치). 투영 실패 시 화면 중앙으로 대체한다.
 	int32 ViewportX = 0;
@@ -196,45 +187,51 @@ void UWxAbility_LockOn::HandleRetargetRequested(FVector2D ScreenDirection)
 		}
 	}
 
-	// 후보들 중 현재 타겟을 제외하고, 화면상 위치가 시선 입력 방향에 가장 잘 정렬된 적을 고른다.
+	// 후보 지점들 중 현재 지점을 제외하고, 화면상 위치가 시선 입력 방향에 가장 잘 정렬된 부위를 고른다.
+	// 후보 액터에는 현재 타겟 액터도 포함한다 — 같은 적의 다른 부위로도 전환할 수 있도록 비교 단위를 지점으로 둔다.
 	TArray<AActor*> Candidates;
 	GatherCandidates(Candidates);
 
 	USceneComponent* BestTargetComponent = nullptr;
 	float BestAlignment = RetargetMinAlignment;
+	TArray<USceneComponent*> CandidatePoints;
 	for (AActor* Candidate : Candidates)
 	{
-		if (!Candidate || Candidate == CurrentTarget)
+		if (!Candidate)
 		{
 			continue;
 		}
 
-		// 락온 지점이 없는 후보는 대상이 될 수 없으므로 제외한다(없는데 선택되면 대상이 nullptr로 비워진다).
-		USceneComponent* CandidateComponent = UWxLockOnPointComponent::ResolveLockOnTarget(Candidate);
-		if (!CandidateComponent)
+		// 한 액터의 모든 락온 지점(부위)을 후보로 펼친다. 지점이 없는 후보는 빈 배열이라 자연히 건너뛴다.
+		UWxLockOnPointComponent::GatherLockOnPoints(Candidate, CandidatePoints);
+		for (USceneComponent* CandidateComponent : CandidatePoints)
 		{
-			continue;
-		}
+			// 현재 추적 중인 지점은 제외한다(같은 액터라도 다른 부위는 후보로 남는다).
+			if (!CandidateComponent || CandidateComponent == CurrentComponent)
+			{
+				continue;
+			}
 
-		// 락온 지점을 화면에 투영해 실제 보이는 위치로 비교한다. 카메라 뒤의 후보는 화면 좌표가 없으므로 제외한다.
-		FVector2D CandidateScreen;
-		if (!PC->ProjectWorldLocationToScreen(CandidateComponent->GetComponentLocation(), CandidateScreen))
-		{
-			continue;
-		}
+			// 락온 지점을 화면에 투영해 실제 보이는 위치로 비교한다. 카메라 뒤의 후보는 화면 좌표가 없으므로 제외한다.
+			FVector2D CandidateScreen;
+			if (!PC->ProjectWorldLocationToScreen(CandidateComponent->GetComponentLocation(), CandidateScreen))
+			{
+				continue;
+			}
 
-		// 화면 좌표는 Y가 아래로 증가하므로 입력 공간(+Y=위)에 맞춰 Y를 뒤집어 정렬도를 비교한다.
-		const FVector2D ToCandidate = FVector2D(CandidateScreen.X - OriginScreen.X, OriginScreen.Y - CandidateScreen.Y).GetSafeNormal();
-		if (ToCandidate.IsNearlyZero())
-		{
-			continue;
-		}
+			// 화면 좌표는 Y가 아래로 증가하므로 입력 공간(+Y=위)에 맞춰 Y를 뒤집어 정렬도를 비교한다.
+			const FVector2D ToCandidate = FVector2D(CandidateScreen.X - OriginScreen.X, OriginScreen.Y - CandidateScreen.Y).GetSafeNormal();
+			if (ToCandidate.IsNearlyZero())
+			{
+				continue;
+			}
 
-		const float Alignment = FVector2D::DotProduct(ToCandidate, ScreenDirection);
-		if (Alignment > BestAlignment)
-		{
-			BestAlignment = Alignment;
-			BestTargetComponent = CandidateComponent;
+			const float Alignment = FVector2D::DotProduct(ToCandidate, ScreenDirection);
+			if (Alignment > BestAlignment)
+			{
+				BestAlignment = Alignment;
+				BestTargetComponent = CandidateComponent;
+			}
 		}
 	}
 

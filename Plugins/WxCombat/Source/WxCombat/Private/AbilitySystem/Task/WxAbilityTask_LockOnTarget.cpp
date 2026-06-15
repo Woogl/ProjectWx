@@ -1,8 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Task/WxAbilityTask_LockOnTarget.h"
-#include "AbilitySystemBlueprintLibrary.h"
-#include "AbilitySystemComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/WidgetComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -12,7 +10,7 @@
 #include "InputAction.h"
 #include "InputActionValue.h"
 #include "Targeting/WxLockOnManagerComponent.h"
-#include "WxGameplayTags.h"
+#include "Targeting/WxLockOnPointComponent.h"
 
 UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed, float InPitchOffset, float InMaxDistance, float InCharacterInterpSpeed, TSubclassOf<UUserWidget> InReticleWidgetClass, UInputAction* InLookAction, float InRetargetLookThreshold)
 {
@@ -37,6 +35,14 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 	if (!TargetComponent)
 	{
 		// 대상 액터 또는 추적 중인 부위 컴포넌트가 파괴되면 약참조가 풀려 여기서 락온이 해제된다.
+		OnTargetLost.Broadcast();
+		return;
+	}
+
+	// 대상이 더 이상 락온 가능 조건(LockOnRequirements)을 만족하지 않으면(사망 등) 해제한다. 거리/널 상실 감지와 같은 폴링 방식.
+	const UWxLockOnPointComponent* TargetPoint = Cast<UWxLockOnPointComponent>(TargetComponent);
+	if (TargetPoint && !TargetPoint->CanBeLockedOn())
+	{
 		OnTargetLost.Broadcast();
 		return;
 	}
@@ -163,19 +169,13 @@ void UWxAbilityTask_LockOnTarget::BindTarget()
 		return;
 	}
 
-	// 파괴/사망 이벤트는 소유 액터 단위다. 부위 컴포넌트만 파괴되고 액터는 살아있는 경우에도
-	// 정확히 해제할 수 있도록 바인딩한 소유 액터를 캐시한다.
+	// 파괴 이벤트는 소유 액터 단위다. 부위 컴포넌트만 파괴되고 액터는 살아있는 경우에도
+	// 정확히 해제할 수 있도록 바인딩한 소유 액터를 캐시한다. 사망 등 태그 기반 해제는 TickTask 의 CanBeLockedOn 폴링이 담당한다.
 	AActor* TargetActor = TargetComponent->GetOwner();
 	BoundTargetActor = TargetActor;
 	if (TargetActor)
 	{
 		TargetActor->OnDestroyed.AddDynamic(this, &UWxAbilityTask_LockOnTarget::HandleTargetDestroyed);
-
-		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
-		{
-			TargetASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
-				.AddUObject(this, &UWxAbilityTask_LockOnTarget::HandleTargetDeathTagChanged);
-		}
 	}
 
 	CreateReticleWidget();
@@ -189,12 +189,6 @@ void UWxAbilityTask_LockOnTarget::UnbindTarget()
 	if (AActor* TargetActor = BoundTargetActor.Get())
 	{
 		TargetActor->OnDestroyed.RemoveDynamic(this, &UWxAbilityTask_LockOnTarget::HandleTargetDestroyed);
-
-		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
-		{
-			TargetASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
-				.RemoveAll(this);
-		}
 	}
 	BoundTargetActor = nullptr;
 }
@@ -202,14 +196,6 @@ void UWxAbilityTask_LockOnTarget::UnbindTarget()
 void UWxAbilityTask_LockOnTarget::HandleTargetDestroyed(AActor* DestroyedActor)
 {
 	OnTargetLost.Broadcast();
-}
-
-void UWxAbilityTask_LockOnTarget::HandleTargetDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
-{
-	if (NewCount > 0)
-	{
-		OnTargetLost.Broadcast();
-	}
 }
 
 void UWxAbilityTask_LockOnTarget::CreateReticleWidget()

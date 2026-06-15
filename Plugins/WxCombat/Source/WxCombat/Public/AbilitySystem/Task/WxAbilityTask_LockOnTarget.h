@@ -49,8 +49,6 @@ private:
 	UFUNCTION()
 	void HandleTargetDestroyed(AActor* DestroyedActor);
 
-	void HandleTargetDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
-
 	void BindTarget();
 	void UnbindTarget();
 
