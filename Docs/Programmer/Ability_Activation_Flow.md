@@ -1,0 +1,169 @@
+# Ability System — 어빌리티 발동(Activation) 흐름
+
+어빌리티가 어떻게 부여(grant)되고, 어떤 트리거로 활성화(activate)되며, 활성화 시 어떤 공통 파이프라인(코스트/쿨다운/태그/네트워크)을 거쳐 EndAbility까지 가는지의 전체 경로를 다룬다.
+
+---
+
+## 한 문장 요약
+
+> 모든 어빌리티는 `UWxAbilityBase`(GAS `UGameplayAbility` 파생)이며, `UWxAbilitySet`을 통해 **서버 권위**로 ASC에 일괄 부여된 뒤, 세 종류의 트리거 중 하나로 `TryActivateAbility`되어 `UWxAbilityBase`가 강제하는 공통 코스트/쿨다운/태그 파이프라인 위에서 실행된다.
+
+이 시스템을 가르는 두 축:
+
+- **활성화 트리거** — ① 플레이어 입력(InputTag 라우팅) / ② AI BehaviorTree(AssetTag 매칭) / ③ 게임플레이 이벤트·태그 반응(`AbilityTriggers`)
+- **부여 시점 정책 (`EWxAbilityActivationPolicy`)** — `OnInputTriggered`(트리거 대기) / `OnGranted`(부여 즉시 자동 활성화, 패시브용)
+
+---
+
+## 전체 그림
+
+부여는 한 경로(AbilitySet → ASC), 활성화는 세 트리거가 모두 ASC의 `TryActivateAbility`로 수렴한 뒤 `UWxAbilityBase`의 공통 파이프라인을 탄다.
+
+```mermaid
+flowchart TD
+    Grant["AbilitySet → ASC.GiveAbility<br/>(서버 권위, InputTag를 Spec 소스태그로)"] --> Spec["FGameplayAbilitySpec<br/>(Activatable)"]
+    Spec -. "OnGranted 정책" .-> TAA
+    Input["플레이어 입력<br/>InputAction→InputTag"] --> ASCIn["ASC.AbilityInputTagPressed<br/>(소스태그 매칭)"] --> TAA["ASC.TryActivateAbility(Handle)"]
+    AI["WxBTTask_ActivateAbility<br/>(AssetTag 매칭)"] --> TAA
+    Event["GameplayEvent / OwnedTag<br/>(AbilityTriggers)"] --> TAA
+    TAA --> Gate{"CanActivate<br/>태그·코스트·쿨다운"}
+    Gate -- 실패 --> Fail["OnAbilityFailed"]
+    Gate -- 통과 --> Act["ActivateAbility<br/>(Base: OnActivateEffects 적용)"]
+    Act --> End["EndAbility / CancelAbility"]
+```
+
+---
+
+## 부여(Grant) — 모듈과 권위
+
+- ASC(`UWxAbilitySystemComponent`)와 AttributeSet은 **`AWxCharacterBase`가 직접 소유**(`CreateDefaultSubobject`). PlayerState를 쓰지 않는다(리스폰 시 스탯 재초기화 전제).
+- 부여는 `AWxCharacterBase::InitAbilitySystem()`에서 일어난다. 서버는 `PossessedBy`에서, 클라이언트는 `OnRep_PlayerState`(플레이어) 경로로 호출한다. 실제 `GiveAbility`는 `if (HasAuthority())` 안에서만 실행되고 클라이언트에는 복제된다 — **부여는 서버 권위**.
+- `UWxAbilitySet`(EditDefaultsOnly로 BP에 지정한 `UPrimaryDataAsset`)이 단일 출처다. `GiveToAbilitySystem()`이 ① AttributeInitRow로 어트리뷰트 초기값 세팅, ② `GrantedEffects` 적용, ③ `GrantedAbilities` 부여를 한다.
+- **InputTag 라우팅의 키 등록**: `FWxAbilitySet_GameplayAbility.InputTag`가 유효하면 부여 시 `Spec.GetDynamicSpecSourceTags().AddTag(InputTag)`로 Spec의 소스 태그에 박힌다. 입력으로 발동하지 않는 어빌리티(AI 패턴, 반응형)는 InputTag를 비워둔다.
+- `OnGiveAbility`(Base 오버라이드)에서 `AbilityDataRow`가 설정돼 있으면 테이블 값으로 쿨다운/코스트 수치를 덮어쓰고(인스턴스 + CDO 둘 다), `ActivationPolicy == OnGranted`이면 그 자리에서 `TryActivateAbility`를 호출한다.
+
+---
+
+## 트리거 3종 — 활성화 진입점
+
+세 경로 모두 최종적으로 엔진 `UAbilitySystemComponent::TryActivateAbility(Handle)`로 수렴한다. 차이는 "어떤 Spec을 고르느냐"의 매칭 키다.
+
+| 트리거 | 진입 함수 | Spec 매칭 키 | 모듈 |
+| --- | --- | --- | --- |
+| **플레이어 입력** | `UWxAbilitySystemComponent::AbilityInputTagPressed` | `Spec.GetDynamicSpecSourceTags()` 에 InputTag 매칭 | WxGame→WxCombat |
+| **AI BehaviorTree** | `UWxBTTask_ActivateAbility::ExecuteTask` | `Spec.Ability->GetAssetTags().HasTag(AbilityTag)` | WxAI(엔진 경유) |
+| **이벤트·태그 반응** | 엔진 내부(`AbilityTriggers`) | `GameplayEvent` 태그 / `OwnedTagPresent` | WxCombat |
+
+### ① 플레이어 입력 (InputTag 라우팅)
+
+체인: `UWxInputConfig.AbilityInputBindings`(InputAction→InputTag) → `AWxPlayerCharacter::SetupPlayerInputComponent`에서 Enhanced Input의 `Started`/`Completed`를 `AbilityInputPressed/Released(FGameplayTag)`에 바인딩 → `UWxAbilitySystemComponent::AbilityInputTagPressed(InputTag)`.
+
+`AbilityInputTagPressed`의 핵심 로직:
+1. `SetLastPressedInputTag(InputTag)` — 자기완결 입력 태스크가 폴링할 "마지막 눌린 태그"를 저장(클라면 Server RPC로 동기화).
+2. `GetActivatableAbilities()` 순회 → `InputTag.MatchesAny(Spec.GetDynamicSpecSourceTags())` 매칭.
+3. 이미 활성(`Spec.IsActive()`)이면 → `AbilitySpecInputPressed` + `InvokeReplicatedEvent(InputPressed)` (활성 어빌리티에 추가 입력 전달).
+4. 비활성이면 → `TryActivateAbility(Spec.Handle)` 성공 시 `break`.
+
+> 활성 어빌리티에 입력을 "다시" 전달하는 경로(3번)가 콤보·차지의 기반이다. `UWxAbilityTask_WaitInputTagPressed/Released`는 이 `InputPressed/Released` 리플리케이티드 이벤트를 구독하고 `GetLastPressedInputTag()`로 InputTag를 필터링한다(`IsLocallyControlled()` 게이트). 어빌리티가 캐릭터 코드 수정 없이 자기 입력을 폴링하는 메커니즘.
+
+### ② AI BehaviorTree
+
+`UWxBTTask_ActivateAbility`는 **WxCombat에 의존하지 않는다**(WxAI.Build.cs는 `GameplayAbilities` + `WxCore`만 참조). Pawn에서 `UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent`로 엔진 ASC를 얻고, `GetActivatableAbilities()`에서 `Ability->GetAssetTags().HasTag(AbilityTag)`로 매칭해 `TryActivateAbility`한다. AI 패턴 어빌리티는 InputTag를 안 쓰므로 **AssetTag**가 매칭 키다.
+
+엣지 케이스 두 가지가 코드에 명시돼 있다: (a) `TryActivateAbility`가 동기적으로 끝나버리면(예: CommitAbility 실패) `Spec->IsActive()`가 false → 즉시 `Failed` 반환해 BT 영구 정지를 회피. (b) 종료 콜백은 `ASC->OnAbilityEnded`를 구독해 `bWasCancelled`로 `Succeeded`/`Failed`를 결정. `AbortTask`는 델리게이트를 먼저 떼고 `CancelAbilities(&Tags)`.
+
+### ③ 게임플레이 이벤트·태그 반응
+
+반응형 어빌리티는 생성자에서 `AbilityTriggers`를 등록해 입력 없이 활성화된다.
+
+- **`GameplayEvent`** (`WxAbility_HitReact`): 데미지 계산(`WxExecCalc_Damage`)이 `Event.HitReact.*` 이벤트를 대상에게 보내면, 매칭 트리거가 `TryActivateAbility`를 발화하고 `TriggerEventData`로 페이로드를 전달. HitReact는 종류별(Normal/Knockback/...) 트리거를 개별 등록한다(정확 매칭).
+- **`OwnedTagPresent`** (`WxAbility_Death`, `WxAbility_Groggy`): 캐릭터에 `State.Dead`/`State.Groggy` 태그가 붙는 순간 자동 활성화. 사망은 `PostGameplayEffectExecute`에서 HP==0 시 `State.Dead`를 부여하는 경로로 들어온다.
+
+---
+
+## 공통 파이프라인 — `UWxAbilityBase`가 강제하는 것
+
+활성화 게이트와 커밋은 엔진 GAS가 돌리되, Base가 코스트/쿨다운 구현을 갈아끼운다.
+
+**1. 활성화 게이트 (`CanActivateAbility`, 엔진)** — Spec/태그/`CanActivate` 조건을 본다. Base는 다음 태그 컨테이너로 거른다(각 구체 어빌리티 생성자에서 설정):
+- `ActivationBlockedTags` — 이 태그가 소유돼 있으면 활성화 거부. 거의 모든 어빌리티가 `State.Dead`를 넣는다.
+- `ActivationOwnedTags` — 활성 동안 부여되는 상태 태그(예: HitReact의 `State.HitReact`).
+- `BlockAbilitiesWithTag` / `CancelAbilitiesWithTag` — 활성 동안 다른 어빌리티를 하드 차단/캔슬. 액션류는 `Ability` 태그 전체를 차단(`BlockAbilitiesWithTag.AddTag(Ability)`)해 도중 캔슬을 막는다.
+
+**2. 커밋 (`CommitAbility` → CheckCost/CheckCooldown → ApplyCost/ApplyCooldown)** — Base가 4개 함수를 모두 오버라이드한다. 핵심은 **공용 GE를 CDO 단위로 구분**하는 설계:
+- 코스트: `MPCost`/`UPCost`로 공용 `UWxEffect_Cost`에 모디파이어를 채워 반환. `CheckCost`는 엔진 순정 사용. `ApplyCost`는 엔진이 GE의 `GetClass()` CDO로 스펙을 다시 만드는 탓에 인스턴스가 무시되므로, 인스턴스 Def로 직접 스펙을 만드는 얇은 오버라이드.
+- 쿨다운: `CooldownTime`/`MaxRecharges`로 공용 `UWxEffect_Cooldown` 사용. 소스 어빌리티 CDO로 개별 쿨다운을 구분하고, 소모 충전 1개당 GE 1개를 적용해 자연 만료로 충전 회복(`QueryActiveCooldowns`). `Get...TimeRemaining`도 CDO 쿼리 기반으로 재구현(순정은 GrantedTags 기반이라 무태그 GE에서 0 반환).
+- BP에서 `CooldownGameplayEffectClass`/`CostGameplayEffectClass`를 직접 지정하면 모든 오버라이드가 `Super::`로 폴백(`if (...Class) return Super::...`).
+
+> 커밋은 각 구체 어빌리티의 `ActivateAbility`에서 명시 호출하는 패턴이다(예: `WxAbility_Attack`은 `if (!CommitAbility(...)) { EndAbility(...); return; }`). 실패 시 즉시 종료. 콤보는 단계마다 재발동되므로 단계마다 커밋이 새로 걸린다.
+
+**3. 활성화 본체 (`UWxAbilityBase::ActivateAbility`)** — `Super::ActivateAbility` 후 `OnActivateEffects`의 GE들을 SetByCaller 채워 자신에게 적용. 구체 어빌리티는 이 위에서 몽타주 재생/입력 대기/이벤트 구독을 얹는다.
+
+**4. 네트워크** — Base 생성자: `InstancingPolicy = InstancedPerActor`, `NetExecutionPolicy = LocalPredicted`(입력형). 반응형(`WxAbility_HitReact/Death/Groggy`)은 생성자에서 `ServerInitiated`로 덮어쓴다(서버가 권위적으로 발화). 플레이어 ASC는 `Mixed` 리플리케이션 모드.
+
+**5. 종료 (`EndAbility` / `CancelAbility`)** — 엔진이 `ActivationOwnedTags` 제거, `BlockAbilitiesWithTag` 차단 해제를 자연 복원. 구체 어빌리티는 `EndAbility` 오버라이드에서 자기 태스크 정리. `StartRecovery()`(후딜=캔슬 가능 구간)는 자기가 건 `BlockAbilitiesWithTag`만 풀어 다른 어빌리티로 캔슬 진입을 허용하되, 비용/쿨다운/`ActivationBlockedTags`는 여전히 검사된다.
+
+---
+
+## 구체 어빌리티가 공통 위에서 더하는 것 (대표 예시)
+
+| 어빌리티 | 트리거 | 공통 위에 더하는 핵심 |
+| --- | --- | --- |
+| `WxAbility_Attack` | 입력(AssetTag `Ability.Attack`) | `ANS_ComboWindow` 입력 → 경로 누적 → EndAbility 후 **동일 Spec 재발동**(`Reactivate`). 단계마다 재커밋. |
+| `WxAbility_Guard` | 입력(AssetTag `Ability.Guard`) | `ActiveMontage`로 페이즈 전환(가드/피격/브레이크/카운터). `InputReleased`/`InputPressed` 오버라이드, PerfectGuard 이벤트 구독. |
+| `WxAbility_HitReact` | GameplayEvent `Event.HitReact.*` | 종류별 트리거 개별 등록, `bRetriggerInstancedAbility`로 재진입. Attack/Skill을 캔슬하되 Pattern은 안 함. |
+| `WxAbility_Death` | OwnedTag `State.Dead` | 몽타주 유효 시 사망 포즈, 무효 시 지연 후 래그돌(`ASC->SetRagdollActive`). `Ability` 전체 차단. |
+| `WxAbility_Pattern` | AI BT(AssetTag) | 단일 몽타주 재생→종료. 입력/UI 미사용. 쿨다운/충전은 Base 프로퍼티로만. |
+
+> WxGame 측 `UWxAbility_UseItem`/`UWxAbility_Interact`도 `UWxAbilityBase`를 상속해 동일 파이프라인을 탄다(WxGame→WxCombat 의존 방향 예시).
+
+---
+
+## 모듈 경계
+
+플러그인 규칙: WxCore를 제외한 플러그인 간 참조 금지. 어빌리티 발동의 의존 방향은 단방향이다.
+
+- **WxCombat (도메인)** — `UWxAbilityBase`, `UWxAbilitySystemComponent`, `UWxAbilitySet`, `FWxAbilitySet_GameplayAbility`(InputTag 보유), 입력 폴링 태스크, 모든 전투 어빌리티가 여기 산다. ASC·AbilitySet·InputTag 라우팅의 본거지.
+- **WxGame (게임 모듈)** — `AWxCharacterBase`(ASC 소유), `AWxPlayerCharacter`(입력 바인딩), `UWxInputConfig`, WxGame 전용 어빌리티. WxCombat을 참조한다(게임 모듈 → 도메인, 허용 방향).
+- **WxAI (도메인)** — WxCombat을 **참조하지 않는다**. 어빌리티 활성화를 엔진 GAS API(`UAbilitySystemBlueprintLibrary`, `UAbilitySystemComponent`)와 GameplayTag만으로 수행 — 도메인 간 직접 의존 회피.
+
+---
+
+## 데이터 / 설정
+
+| 설정 | 위치 | 의미 |
+| --- | --- | --- |
+| `UWxAbilitySet` | 캐릭터 BP의 ASC `AbilitySet` 프로퍼티 | 부여할 어빌리티/이펙트/어트리뷰트 초기값 묶음 |
+| `FWxAbilitySet_GameplayAbility.InputTag` | AbilitySet의 `GrantedAbilities` | 입력 라우팅 키(빈 값=비입력형) |
+| `UWxInputConfig.AbilityInputBindings` | `AWxPlayerCharacter.InputConfig` DA | InputAction → InputTag 매핑 |
+| `ActivationPolicy` | 어빌리티 BP(`Wx`) | `OnInputTriggered`/`OnGranted` |
+| `CooldownTime`/`MaxRecharges`/`MPCost`/`UPCost` | 어빌리티 BP(`Wx|Cooldown`,`Wx|Cost`) 또는 `AbilityDataRow` | 커밋 수치. DataRow 지정 시 BP 값 비활성·테이블이 덮어씀 |
+| `AbilityTag` | `WxBTTask_ActivateAbility` 노드 | AI가 매칭할 AssetTag |
+
+---
+
+## 주의할 점
+
+- **부여는 서버에서만.** `GiveAbility`는 `HasAuthority()` 게이트 안에 있다. 클라이언트는 복제 수신. 클라이언트 어빌리티 부재는 보통 ActorInfo/복제 타이밍 문제다.
+- **AI는 AssetTag, 플레이어는 InputTag로 매칭.** 같은 어빌리티라도 AI가 발동하려면 `SetAssetTags`로 AssetTag가, 플레이어가 발동하려면 AbilitySet의 InputTag가 있어야 한다. 둘은 별개 키다.
+- **`TryActivateAbility`가 동기 종료할 수 있다.** 커밋 실패 등으로 활성화 직후 EndAbility가 호출되면, 종료 델리게이트를 나중에 붙여도 콜백이 안 온다(`WxBTTask_ActivateAbility`의 `IsActive()` 가드 참고).
+- **반응형은 `ServerInitiated`, 입력형은 `LocalPredicted`.** NetExecutionPolicy를 Base 기본값(LocalPredicted)으로 두면 반응형이 클라 예측으로 잘못 발화될 수 있다 — 반응형 생성자에서 반드시 덮어쓴다.
+- **쿨다운/코스트는 공용 GE를 CDO로 구분.** `GetCooldownTimeRemaining` 등 순정 BP 노드를 그냥 쓰면 0이 나온다(무태그 GE라서). Base가 이미 CDO 쿼리로 재구현했으니 순정 API를 그대로 호출하면 된다.
+
+---
+
+### 참조 코드
+
+| 타입 | 모듈 | 역할 |
+| --- | --- | --- |
+| `AWxCharacterBase` (`Source\WxGame\Character\WxCharacterBase.h/.cpp`) | WxGame | ASC 소유, `InitAbilitySystem`에서 서버 권위 부여 |
+| `AWxPlayerCharacter` (`Source\WxGame\Character\WxPlayerCharacter.h/.cpp`) | WxGame | Enhanced Input → InputTag → ASC 라우팅 |
+| `UWxInputConfig` (`Source\WxGame\Input\WxInputConfig.h`) | WxGame | InputAction↔InputTag 매핑 DA |
+| `UWxAbilitySystemComponent` (`Plugins\WxCombat\Source\WxCombat\...\WxAbilitySystemComponent.h/.cpp`) | WxCombat | `GiveAbilitySet`, `AbilityInputTagPressed/Released`, LastPressedInputTag |
+| `UWxAbilitySet` / `FWxAbilitySet_GameplayAbility` (`Plugins\WxCombat\Source\WxCombat\...\WxAbilitySet.h/.cpp`) | WxCombat | 부여 묶음, InputTag를 Spec 소스태그로 등록 |
+| `UWxAbilityBase` (`Plugins\WxCombat\Source\WxCombat\...\Ability\WxAbilityBase.h/.cpp`) | WxCombat | 공통 베이스: 코스트/쿨다운/태그/OnActivateEffects/ActivationPolicy |
+| `FWxAbilityTableRow` (`Plugins\WxCombat\Source\WxCombat\...\Ability\WxAbilityTableRow.h`) | WxCombat | 쿨다운/코스트 밸런스 수치 DataTable Row |
+| `UWxAbilityTask_WaitInputTagPressed/Released` (`Plugins\WxCombat\Source\WxCombat\...\Task\`) | WxCombat | 어빌리티 자기완결 입력 폴링(InputTag 필터) |
+| `UWxAbility_Attack` / `_Guard` / `_HitReact` / `_Death` / `_Pattern` (`Plugins\WxCombat\Source\WxCombat\...\Ability\`) | WxCombat | 트리거 3종·공통 위 변주의 대표 예시 |
+| `UWxBTTask_ActivateAbility` (`Plugins\WxAI\Source\WxAI\...\WxBTTask_ActivateAbility.h/.cpp`) | WxAI | AI 트리거: AssetTag 매칭 + 엔진 ASC 경유(WxCombat 무의존) |
+| `UWxAbility_UseItem` / `_Interact` (`Source\WxGame\AbilitySystem\Ability\`) | WxGame | WxGame→WxCombat 의존 예시(Base 상속) |
