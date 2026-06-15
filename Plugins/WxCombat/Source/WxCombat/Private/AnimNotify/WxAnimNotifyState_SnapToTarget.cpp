@@ -2,6 +2,7 @@
 
 #include "AnimNotify/WxAnimNotifyState_SnapToTarget.h"
 #include "Components/SceneComponent.h"
+#include "GameFramework/Pawn.h"
 #include "Targeting/WxLockOnManagerComponent.h"
 #include "MotionWarpingComponent.h"
 #include "RootMotionModifier.h"
@@ -36,11 +37,11 @@ void UWxAnimNotifyState_SnapToTarget::NotifyBegin(USkeletalMeshComponent* MeshCo
 		return;
 	}
 
-	// 스냅 판정/워프는 액터 단위 로직이므로, 컴포넌트 대상에서 소유 액터를 환원해 그대로 쓴다.
+	// 락온 대상(우선). 부위(SceneComponent)에서 소유 액터를 환원해 쓴다.
 	AActor* LockOnTarget = nullptr;
 	if (UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(Owner))
 	{
-		if (USceneComponent* LockOnTargetComponent = LockOnComp->GetLockOnTarget())
+		if (const USceneComponent* LockOnTargetComponent = LockOnComp->GetLockOnTarget())
 		{
 			LockOnTarget = LockOnTargetComponent->GetOwner();
 		}
@@ -76,11 +77,18 @@ void UWxAnimNotifyState_SnapToTarget::NotifyBegin(USkeletalMeshComponent* MeshCo
 		return;
 	}
 
-	// TargetingPreset이 설정되어 있을 때만 범위 체크. Preset이 없으면 판정 근거가
-	// 없으므로 스냅을 허용한다(기본 동작).
-	const bool bTargetInSnapRange = !TargetingPreset || TargetingResults.Contains(FacingTarget);
-	const bool bShouldWarpTranslation = bSnapLocation && bTargetInSnapRange;
+	const bool bFacingTargetIsLockOn = (FacingTarget == LockOnTarget);
 
+	// TargetingPreset이 설정되어 있을 때만 범위 체크. Preset이 없으면 판정 근거가 없으므로 허용(기본 동작).
+	const bool bTargetInSnapRange = !TargetingPreset || TargetingResults.Contains(FacingTarget);
+
+	// 위치 워프 디싱크는 클라가 예측하는 플레이어 폰에서만 문제다. 그 경우에만 복제되는 락온 대상으로 제한하고,
+	// 서버 권위로만 도는 AI 등은 폴백 위치 스냅을 유지한다. IsPlayerControlled 는 소유 클라/서버 양쪽에서 일관된다.
+	const APawn* OwnerPawn = Cast<APawn>(Owner);
+	const bool bRequireLockOnForTranslation = OwnerPawn && OwnerPawn->IsPlayerControlled();
+	const bool bShouldWarpTranslation = bSnapLocation && bTargetInSnapRange && (!bRequireLockOnForTranslation || bFacingTargetIsLockOn);
+
+	// 접근/회전 모두 수평(yaw) 전용. ground 전투의 안전한 표준이며, 작은 높이차는 캡슐 step-up/CMC 가 흡수한다.
 	const FVector OwnerLocation = Owner->GetActorLocation();
 	const FVector TargetLocation = FacingTarget->GetActorLocation();
 	FVector Direction = TargetLocation - OwnerLocation;
@@ -127,34 +135,76 @@ void UWxAnimNotifyState_SnapToTarget::NotifyBegin(USkeletalMeshComponent* MeshCo
 		1.0f,
 		0.0f
 	);
+}
 
-	// Notify 윈도우 종료 이후의 잔여 forward 루트 모션이 캐릭터를 타겟 너머로 밀지 않도록,
-	// 종료 시점부터 애니메이션 끝까지 같은 WarpLocation을 hold 지점으로 둔다. 메인 워프가
-	// 도달시킨 위치에 다시 SkewWarp를 걸므로 잔여 트랜슬레이션이 0으로 스케일링된다.
-	// 회전은 그대로 흐르도록 둔다.
-	if (bShouldWarpTranslation)
+void UWxAnimNotifyState_SnapToTarget::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
+{
+	Super::NotifyEnd(MeshComp, Animation, EventReference);
+
+	// Notify 종료 이후의 잔여 forward 루트 모션이 캐릭터를 타겟 너머로 밀지 않도록, "지금 있는 자리"를 hold 지점으로 둔다.
+	// NotifyBegin 시점이 아니라 종료 시점의 실제 위치를 쓰므로, 메인 워프가 도달했든 콜리전으로 막혔든 2차 돌진이 없다.
+	// 위치 스냅을 쓰는 경우에만 적용한다(bSnapLocation 은 인스턴스 공유에 안전한 CDO 프로퍼티).
+	if (!bSnapLocation || !MeshComp || !Animation)
 	{
-		const float TailStart = NotifyEvent->GetEndTriggerTime();
-		const float TailEnd = Animation->GetPlayLength();
-		if (TailEnd > TailStart)
+		return;
+	}
+
+	AActor* Owner = MeshComp->GetOwner();
+	if (!Owner)
+	{
+		return;
+	}
+
+	// 위치 스냅이 실제로 걸렸을 조건에 맞춰 hold 도 게이팅한다(범위 체크 제외).
+	// 플레이어 폰은 락온 대상이 있어야 위치 스냅이 적용되므로(NotifyBegin 과 동일 규칙), 락온이 없으면 hold(전진 억제)도 걸지 않는다.
+	const APawn* OwnerPawn = Cast<APawn>(Owner);
+	if (OwnerPawn && OwnerPawn->IsPlayerControlled())
+	{
+		const UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(Owner);
+		if (!LockOnComp || !LockOnComp->GetLockOnTarget())
 		{
-			URootMotionModifier_SkewWarp::AddRootMotionModifierSkewWarp(
-				MotionWarpingComp,
-				Animation,
-				TailStart,
-				TailEnd,
-				DefaultWarpTargetName,
-				EWarpPointAnimProvider::None,
-				FTransform::Identity,
-				NAME_None,
-				true,
-				true,
-				false,
-				EMotionWarpRotationType::Default,
-				EMotionWarpRotationMethod::Slerp,
-				1.0f,
-				0.0f
-			);
+			return;
 		}
 	}
+
+	UMotionWarpingComponent* MotionWarpingComp = Owner->FindComponentByClass<UMotionWarpingComponent>();
+	if (!MotionWarpingComp)
+	{
+		return;
+	}
+
+	const FAnimNotifyEvent* NotifyEvent = EventReference.GetNotify();
+	if (!NotifyEvent)
+	{
+		return;
+	}
+
+	const float TailStart = NotifyEvent->GetEndTriggerTime();
+	const float TailEnd = Animation->GetPlayLength();
+	if (TailEnd <= TailStart)
+	{
+		return;
+	}
+
+	const FVector HoldLocation = Owner->GetActorLocation();
+	MotionWarpingComp->AddOrUpdateWarpTargetFromLocationAndRotation(DefaultWarpTargetName, HoldLocation, Owner->GetActorRotation());
+
+	URootMotionModifier_SkewWarp::AddRootMotionModifierSkewWarp(
+		MotionWarpingComp,
+		Animation,
+		TailStart,
+		TailEnd,
+		DefaultWarpTargetName,
+		EWarpPointAnimProvider::None,
+		FTransform::Identity,
+		NAME_None,
+		true,
+		// 수평(XY)만 hold 한다. 수직(중력/착지)은 자연스럽게 흐르도록 Z 는 무시.
+		true,
+		false,
+		EMotionWarpRotationType::Default,
+		EMotionWarpRotationMethod::Slerp,
+		1.0f,
+		0.0f
+	);
 }

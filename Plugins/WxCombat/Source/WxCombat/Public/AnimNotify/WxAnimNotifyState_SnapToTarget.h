@@ -26,6 +26,7 @@ class WXCOMBAT_API UWxAnimNotifyState_SnapToTarget : public UAnimNotifyState
 
 public:
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
+	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|Targeting")
