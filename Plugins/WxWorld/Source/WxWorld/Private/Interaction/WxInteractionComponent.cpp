@@ -3,6 +3,7 @@
 #include "Interaction/WxInteractionComponent.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Components/MeshComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/Pawn.h"
 #include "Interaction/WxInteractionWidgetInterface.h"
@@ -54,6 +55,7 @@ void UWxInteractionComponent::SetInteractionEnabled(bool bEnabled)
 	{
 		SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		SetInteractionWidgetVisible(false);
+		SetHighlightEnabled(false);
 	}
 }
 
@@ -105,6 +107,7 @@ void UWxInteractionComponent::BeginPlay()
 		if (IsLocalPlayerPawn(OverlappingActor))
 		{
 			SetInteractionWidgetVisible(true);
+			SetHighlightEnabled(true);
 			break;
 		}
 	}
@@ -139,6 +142,7 @@ void UWxInteractionComponent::HandleBeginOverlap(UPrimitiveComponent* Overlapped
 	}
 
 	SetInteractionWidgetVisible(true);
+	SetHighlightEnabled(true);
 }
 
 void UWxInteractionComponent::HandleEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -149,6 +153,7 @@ void UWxInteractionComponent::HandleEndOverlap(UPrimitiveComponent* OverlappedCo
 	}
 
 	SetInteractionWidgetVisible(false);
+	SetHighlightEnabled(false);
 }
 
 void UWxInteractionComponent::MulticastInteracted_Implementation(AActor* InstigatorActor)
@@ -170,6 +175,37 @@ void UWxInteractionComponent::SetInteractionWidgetVisible(bool bNewVisible)
 	if (bNewVisible)
 	{
 		SetInteractionText(InteractionText);
+	}
+}
+
+void UWxInteractionComponent::SetHighlightEnabled(bool bNewEnabled)
+{
+	if (!bEnableHighlight)
+	{
+		return;
+	}
+
+	const AActor* Owner = GetOwner();
+	if (!Owner)
+	{
+		return;
+	}
+
+	TArray<UMeshComponent*> MeshComponents;
+	Owner->GetComponents<UMeshComponent>(MeshComponents);
+	for (UMeshComponent* MeshComponent : MeshComponents)
+	{
+		// 프롬프트 위젯도 UMeshComponent 파생이므로 외곽선 대상에서 제외한다.
+		if (MeshComponent->IsA<UWidgetComponent>())
+		{
+			continue;
+		}
+
+		MeshComponent->SetRenderCustomDepth(bNewEnabled);
+		if (bNewEnabled)
+		{
+			MeshComponent->SetCustomDepthStencilValue(HighlightStencilValue);
+		}
 	}
 }
 

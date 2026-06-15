@@ -63,6 +63,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (MultiLine = true))
 	FText InteractionText;
 
+	/** 범위 진입 시 소유 액터 메시에 외곽선 강조(Custom Depth/Stencil)를 적용할지 여부. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx")
+	bool bEnableHighlight = true;
+
+	/** 외곽선 강조용 Custom Depth Stencil 값. 포스트프로세스 아웃라인 머티리얼이 비교하는 값과 일치시킨다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (ClampMin = 0, ClampMax = 255, EditCondition = "bEnableHighlight"))
+	int32 HighlightStencilValue = 1;
+
 private:
 	UFUNCTION()
 	void HandleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -74,6 +82,9 @@ private:
 	void MulticastInteracted(AActor* InstigatorActor);
 
 	void SetInteractionWidgetVisible(bool bNewVisible);
+
+	/** 소유 액터의 메시 컴포넌트(프롬프트 위젯 제외)에 외곽선 강조를 켜고 끈다. */
+	void SetHighlightEnabled(bool bNewEnabled);
 
 	bool IsLocalPlayerPawn(const AActor* OtherActor) const;
 
