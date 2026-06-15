@@ -9,6 +9,7 @@
 
 class UUserWidget;
 class UWidgetComponent;
+class UWxInteractionRegistrySubsystem;
 
 /**
  * 상호작용 컴포넌트.
@@ -46,6 +47,9 @@ public:
 	/** 프롬프트 위젯 텍스트 갱신. 위젯이 이미 생성되어 있으면 즉시 반영한다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx")
 	virtual void SetInteractionText(const FText& InText) override;
+
+	/** 현재 프롬프트 텍스트. 목록 컴포넌트가 HUD 리스트 구성을 위해 읽는다. */
+	FText GetInteractionText() const { return InteractionText; }
 
 	/** 외부 리스너/소유 액터에서 바인딩. 서버+모든 클라이언트에서 fire 된다. */
 	UPROPERTY(BlueprintAssignable, Category = "Wx")
@@ -86,10 +90,19 @@ private:
 	/** 소유 액터의 메시 컴포넌트(프롬프트 위젯 제외)에 외곽선 강조를 켜고 끈다. */
 	void SetHighlightEnabled(bool bNewEnabled);
 
+	/** 플레이어의 레지스트리 서브시스템에 자신을 등록하고 그 서브시스템을 캐시한다. */
+	void RegisterWithRegistry(AActor* PlayerActor);
+
+	/** 캐시한 레지스트리 서브시스템에서 자신을 해제한다. */
+	void UnregisterFromRegistry();
+
 	bool IsLocalPlayerPawn(const AActor* OtherActor) const;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UWidgetComponent> InteractionWidget;
+
+	/** 현재 등록되어 있는 플레이어 레지스트리 서브시스템. 비활성/이탈 시 해제 대상. */
+	TWeakObjectPtr<UWxInteractionRegistrySubsystem> RegisteredRegistry;
 
 	bool bInteractionEnabled;
 };

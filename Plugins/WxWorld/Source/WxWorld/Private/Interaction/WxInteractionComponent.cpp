@@ -5,7 +5,10 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/MeshComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Engine/LocalPlayer.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
+#include "Interaction/WxInteractionRegistrySubsystem.h"
 #include "Interaction/WxInteractionWidgetInterface.h"
 
 UWxInteractionComponent::UWxInteractionComponent()
@@ -56,6 +59,7 @@ void UWxInteractionComponent::SetInteractionEnabled(bool bEnabled)
 		SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		SetInteractionWidgetVisible(false);
 		SetHighlightEnabled(false);
+		UnregisterFromRegistry();
 	}
 }
 
@@ -108,6 +112,7 @@ void UWxInteractionComponent::BeginPlay()
 		{
 			SetInteractionWidgetVisible(true);
 			SetHighlightEnabled(true);
+			RegisterWithRegistry(OverlappingActor);
 			break;
 		}
 	}
@@ -143,6 +148,7 @@ void UWxInteractionComponent::HandleBeginOverlap(UPrimitiveComponent* Overlapped
 
 	SetInteractionWidgetVisible(true);
 	SetHighlightEnabled(true);
+	RegisterWithRegistry(OtherActor);
 }
 
 void UWxInteractionComponent::HandleEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -154,6 +160,7 @@ void UWxInteractionComponent::HandleEndOverlap(UPrimitiveComponent* OverlappedCo
 
 	SetInteractionWidgetVisible(false);
 	SetHighlightEnabled(false);
+	UnregisterFromRegistry();
 }
 
 void UWxInteractionComponent::MulticastInteracted_Implementation(AActor* InstigatorActor)
@@ -207,6 +214,27 @@ void UWxInteractionComponent::SetHighlightEnabled(bool bNewEnabled)
 			MeshComponent->SetCustomDepthStencilValue(HighlightStencilValue);
 		}
 	}
+}
+
+void UWxInteractionComponent::RegisterWithRegistry(AActor* PlayerActor)
+{
+	const APawn* Pawn = Cast<APawn>(PlayerActor);
+	const APlayerController* PC = Pawn ? Cast<APlayerController>(Pawn->GetController()) : nullptr;
+	const ULocalPlayer* LocalPlayer = PC ? PC->GetLocalPlayer() : nullptr;
+	if (UWxInteractionRegistrySubsystem* Registry = LocalPlayer ? LocalPlayer->GetSubsystem<UWxInteractionRegistrySubsystem>() : nullptr)
+	{
+		Registry->RegisterInRange(this);
+		RegisteredRegistry = Registry;
+	}
+}
+
+void UWxInteractionComponent::UnregisterFromRegistry()
+{
+	if (UWxInteractionRegistrySubsystem* Registry = RegisteredRegistry.Get())
+	{
+		Registry->UnregisterInRange(this);
+	}
+	RegisteredRegistry = nullptr;
 }
 
 bool UWxInteractionComponent::IsLocalPlayerPawn(const AActor* OtherActor) const
