@@ -17,9 +17,13 @@ UWxNameplateComponent::UWxNameplateComponent()
 	SetVisibility(false);
 
 	// 기본 표시 정책: 죽지 않았고 (인식되거나 락온됨). 보스·샌드백 등 특수 엔티티는 BP 에서 오버라이드한다.
-	ShowIfAny.AddTag(WxGameplayTags::State_InCombat);
-	ShowIfAny.AddTag(WxGameplayTags::State_LockedOn);
-	HideIfAny.AddTag(WxGameplayTags::State_Dead);
+	// 표시(둘 중 하나)는 OR 이라 TagQuery(MatchAny)로, 숨김은 IgnoreTags(HasAny면 숨김)로 둔다.
+	VisibilityRequirements.IgnoreTags.AddTag(WxGameplayTags::State_Dead);
+
+	FGameplayTagContainer ShowAnyTags;
+	ShowAnyTags.AddTag(WxGameplayTags::State_InCombat);
+	ShowAnyTags.AddTag(WxGameplayTags::State_LockedOn);
+	VisibilityRequirements.TagQuery = FGameplayTagQuery::MakeQuery_MatchAnyTags(ShowAnyTags);
 }
 
 void UWxNameplateComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -86,5 +90,7 @@ void UWxNameplateComponent::RefreshVisibility()
 	}
 
 	// SetVisibility 는 값이 동일하면 내부에서 no-op 처리되므로 매 틱 호출해도 부담이 없다.
-	SetVisibility(ASC->HasAnyMatchingGameplayTags(ShowIfAny) && !ASC->HasAnyMatchingGameplayTags(HideIfAny));
+	FGameplayTagContainer OwnedTags;
+	ASC->GetOwnedGameplayTags(OwnedTags);
+	SetVisibility(VisibilityRequirements.RequirementsMet(OwnedTags));
 }

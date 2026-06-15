@@ -32,7 +32,7 @@
 | `UWxViewModel_Character` | 캐릭터 Composite VM. 자식 AbilitySystem VM 소유 + 이름/초상화 표시 데이터 | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Character.h` |
 | `UWxViewModel_AbilitySystem` | Composite VM. ASC의 어트리뷰트/어빌리티/이펙트/OwnedTags를 자식 VM으로 노출(지연 생성) | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h` |
 | `UWxMVVMConversionLibrary` | UMG 바인딩용 MVVM 컨버전(태그→Visibility, VM에서 어트리뷰트/어빌리티/이펙트 자식 VM 조회) | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxMVVMConversionLibrary.h` |
-| `UWxNameplateComponent` | ASC 기반 네임플레이트 WidgetComponent. 거리 스케일·표시 조건(ShowIfAny/HideIfAny) | `Plugins/WxUI/Source/WxUI/Public/Component/WxNameplateComponent.h` |
+| `UWxNameplateComponent` | ASC 기반 네임플레이트 WidgetComponent. 거리 스케일·표시 조건(VisibilityRequirements) | `Plugins/WxUI/Source/WxUI/Public/Component/WxNameplateComponent.h` |
 | `UWxEffectComponent_UIData` | GameplayEffect에 붙이는 UI 데이터(이름/아이콘). VM이 읽어감 | `Plugins/WxUI/Source/WxUI/Public/Component/WxEffectComponent_UIData.h` |
 | `UWxUILibrary` | BP용 UI 유틸(매니저/레이아웃 조회, 레이어·Activatable 제어) | `Plugins/WxUI/Source/WxUI/Public/WxUILibrary.h` |
 

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
+#include "GameplayEffectTypes.h"
 #include "Components/WidgetComponent.h"
 #include "MVVM/WxCharacterUIData.h"
 #include "WxNameplateComponent.generated.h"
@@ -39,13 +39,12 @@ public:
 	void InitializeViewModels(UAbilitySystemComponent* InASC, const FWxCharacterUIData& InUIData);
 
 protected:
-	/** 이 중 하나라도 ASC 에 있으면 표시한다. 기본값은 생성자에서 저작하며, 엔티티별로 BP 에서 오버라이드한다. */
+	/**
+	 * 네임플레이트 표시 조건. ASC 보유 태그로 평가한다: Must Have(HasAll)·Must Not Have(HasAny면 숨김)·Query Must Match(복합).
+	 * 기본값은 생성자에서 저작한다(Dead 면 숨김, InCombat 또는 LockedOn 이면 표시). 엔티티별로 BP 에서 오버라이드한다.
+	 */
 	UPROPERTY(EditAnywhere, Category = "Wx")
-	FGameplayTagContainer ShowIfAny;
-
-	/** 이 중 하나라도 ASC 에 있으면 숨긴다(표시 조건보다 우선). */
-	UPROPERTY(EditAnywhere, Category = "Wx")
-	FGameplayTagContainer HideIfAny;
+	FGameplayTagRequirements VisibilityRequirements;
 
 	/** 이 거리에서 위젯 스케일이 1.0이 된다. */
 	UPROPERTY(EditAnywhere, Category = "Wx")
@@ -62,8 +61,8 @@ protected:
 private:
 	/**
 	 * 표시 조건을 매 틱 진실로부터 재계산한다.
-	 * 표시 = ShowIfAny 중 하나라도 보유 && HideIfAny 중 어느 것도 미보유.
-	 * 어떤 게임플레이 상태가 조건인지는 ShowIfAny/HideIfAny 가 정하며, 본 함수는 구체 태그를 알지 않는다.
+	 * 표시 = VisibilityRequirements.RequirementsMet(ASC 보유 태그).
+	 * 어떤 게임플레이 상태가 조건인지는 VisibilityRequirements 가 정하며, 본 함수는 구체 태그를 알지 않는다.
 	 */
 	void RefreshVisibility();
 
