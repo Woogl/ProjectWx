@@ -1,9 +1,10 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Interact.h"
-#include "Components/PrimitiveComponent.h"
-#include "GameFramework/Pawn.h"
+#include "Engine/LocalPlayer.h"
+#include "GameFramework/PlayerController.h"
 #include "Interaction/WxInteractionComponent.h"
+#include "Interaction/WxInteractionRegistrySubsystem.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_Interact::UWxAbility_Interact()
@@ -27,46 +28,17 @@ void UWxAbility_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		return;
 	}
 
-	APawn* Avatar = Cast<APawn>(ActorInfo->AvatarActor.Get());
-	if (!Avatar)
+	AActor* Avatar = ActorInfo->AvatarActor.Get();
+	const APlayerController* PlayerController = ActorInfo->PlayerController.Get();
+	const ULocalPlayer* LocalPlayer = PlayerController ? PlayerController->GetLocalPlayer() : nullptr;
+	UWxInteractionRegistrySubsystem* Registry = LocalPlayer ? LocalPlayer->GetSubsystem<UWxInteractionRegistrySubsystem>() : nullptr;
+
+	if (Avatar && Registry)
 	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
-	UPrimitiveComponent* AvatarRoot = Cast<UPrimitiveComponent>(Avatar->GetRootComponent());
-	if (!AvatarRoot)
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
-	TArray<UPrimitiveComponent*> OverlappingComponents;
-	AvatarRoot->GetOverlappingComponents(OverlappingComponents);
-
-	UWxInteractionComponent* Closest = nullptr;
-	float ClosestDistanceSq = TNumericLimits<float>::Max();
-	const FVector AvatarLocation = Avatar->GetActorLocation();
-
-	for (UPrimitiveComponent* Component : OverlappingComponents)
-	{
-		UWxInteractionComponent* InteractionComp = Cast<UWxInteractionComponent>(Component);
-		if (!InteractionComp)
+		if (UWxInteractionComponent* Selected = Registry->GetSelectedComponent())
 		{
-			continue;
+			Selected->TryInteract(Avatar);
 		}
-
-		const float DistanceSq = FVector::DistSquared(AvatarLocation, InteractionComp->GetComponentLocation());
-		if (DistanceSq < ClosestDistanceSq)
-		{
-			ClosestDistanceSq = DistanceSq;
-			Closest = InteractionComp;
-		}
-	}
-
-	if (Closest)
-	{
-		Closest->TryInteract(Avatar);
 	}
 
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
