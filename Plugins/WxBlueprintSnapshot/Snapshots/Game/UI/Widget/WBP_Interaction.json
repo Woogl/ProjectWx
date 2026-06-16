@@ -50,9 +50,9 @@
 				"class": "/Script/WxUI.WxViewModel_Interaction",
 				"contextId": "CA40CF29-4C7C-C573-5F6A-C58E1D47DA79",
 				"createGetter": true,
-				"createSetter": false,
+				"createSetter": true,
 				"creationType": "Manual",
-				"optional": false
+				"optional": true
 			}
 		}
 	},
@@ -108,6 +108,10 @@
 					{
 						"ImageType": "FullColor",
 						"ResourceObject": "/Game/UIMaterialLab/Materials/5_Masks/2_Wedges/MI_UI_Wedges_2.MI_UI_Wedges_2"
+					},
+					"ColorAndOpacity":
+					{
+						"B": 0
 					},
 					"Visibility": "Collapsed"
 				},

@@ -25,11 +25,11 @@ void UWxViewModel_InteractionList::HandleListChanged(const TArray<FText>& InProm
 {
 	RebuildEntries(InPrompts);
 
-	// 목록이 새 항목으로 교체되었으므로 현재 선택을 다시 적용해 bSelected 를 반영한다.
+	// 목록이 새 항목으로 교체되었으므로 현재 선택을 다시 적용해 bSelected 를 반영한다(정확한 값은 곧 HandleSelectionChanged 가 덮는다).
 	ApplySelection(SelectedIndex);
 }
 
-void UWxViewModel_InteractionList::SetSelectedIndex(int32 InSelectedIndex)
+void UWxViewModel_InteractionList::HandleSelectionChanged(int32 InSelectedIndex)
 {
 	ApplySelection(InSelectedIndex);
 }

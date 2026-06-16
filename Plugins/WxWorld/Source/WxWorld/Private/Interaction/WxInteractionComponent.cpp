@@ -54,7 +54,6 @@ void UWxInteractionComponent::SetInteractionEnabled(bool bEnabled)
 	else
 	{
 		SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		SetHighlightEnabled(false);
 		UnregisterFromRegistry();
 	}
 }
@@ -67,59 +66,6 @@ FWxOnInteractedSignature& UWxInteractionComponent::GetOnInteractedDelegate()
 void UWxInteractionComponent::SetInteractionText(const FText& InText)
 {
 	InteractionText = InText;
-}
-
-void UWxInteractionComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	OnComponentBeginOverlap.AddDynamic(this, &UWxInteractionComponent::HandleBeginOverlap);
-	OnComponentEndOverlap.AddDynamic(this, &UWxInteractionComponent::HandleEndOverlap);
-
-	if (!bInteractionEnabled)
-	{
-		return;
-	}
-
-	// BeginPlay 시점에 이미 오버랩 중인 로컬 플레이어 폰이 있으면 강조/등록을 즉시 적용한다.
-	TArray<AActor*> OverlappingActors;
-	GetOverlappingActors(OverlappingActors, APawn::StaticClass());
-	for (AActor* OverlappingActor : OverlappingActors)
-	{
-		if (IsLocalPlayerPawn(OverlappingActor))
-		{
-			SetHighlightEnabled(true);
-			RegisterWithRegistry(OverlappingActor);
-			break;
-		}
-	}
-}
-
-void UWxInteractionComponent::HandleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (!IsLocalPlayerPawn(OtherActor))
-	{
-		return;
-	}
-
-	SetHighlightEnabled(true);
-	RegisterWithRegistry(OtherActor);
-}
-
-void UWxInteractionComponent::HandleEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (!IsLocalPlayerPawn(OtherActor))
-	{
-		return;
-	}
-
-	SetHighlightEnabled(false);
-	UnregisterFromRegistry();
-}
-
-void UWxInteractionComponent::MulticastInteracted_Implementation(AActor* InstigatorActor)
-{
-	OnInteracted.Broadcast(InstigatorActor);
 }
 
 void UWxInteractionComponent::SetHighlightEnabled(bool bNewEnabled)
@@ -145,6 +91,56 @@ void UWxInteractionComponent::SetHighlightEnabled(bool bNewEnabled)
 			MeshComponent->SetCustomDepthStencilValue(HighlightStencilValue);
 		}
 	}
+}
+
+void UWxInteractionComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	OnComponentBeginOverlap.AddDynamic(this, &UWxInteractionComponent::HandleBeginOverlap);
+	OnComponentEndOverlap.AddDynamic(this, &UWxInteractionComponent::HandleEndOverlap);
+
+	if (!bInteractionEnabled)
+	{
+		return;
+	}
+
+	// BeginPlay 시점에 이미 오버랩 중인 로컬 플레이어 폰이 있으면 레지스트리에 즉시 등록한다(강조는 레지스트리가 조율).
+	TArray<AActor*> OverlappingActors;
+	GetOverlappingActors(OverlappingActors, APawn::StaticClass());
+	for (AActor* OverlappingActor : OverlappingActors)
+	{
+		if (IsLocalPlayerPawn(OverlappingActor))
+		{
+			RegisterWithRegistry(OverlappingActor);
+			break;
+		}
+	}
+}
+
+void UWxInteractionComponent::HandleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!IsLocalPlayerPawn(OtherActor))
+	{
+		return;
+	}
+
+	RegisterWithRegistry(OtherActor);
+}
+
+void UWxInteractionComponent::HandleEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (!IsLocalPlayerPawn(OtherActor))
+	{
+		return;
+	}
+
+	UnregisterFromRegistry();
+}
+
+void UWxInteractionComponent::MulticastInteracted_Implementation(AActor* InstigatorActor)
+{
+	OnInteracted.Broadcast(InstigatorActor);
 }
 
 void UWxInteractionComponent::RegisterWithRegistry(AActor* PlayerActor)

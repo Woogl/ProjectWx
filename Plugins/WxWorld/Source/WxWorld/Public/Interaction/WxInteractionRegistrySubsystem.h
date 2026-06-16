@@ -9,6 +9,7 @@
 class UWxInteractionComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionListChanged, const TArray<FText>&, Prompts);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionSelectionChanged, int32, SelectedIndex);
 
 /**
  * 상호작용 레지스트리 서브시스템.
@@ -16,7 +17,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionListChanged, const T
  * HUD 리스트 뷰모델(UWxViewModel_InteractionList)이 이 목록을 표시한다.
  *
  * 범위 진입/이탈한 UWxInteractionComponent가 자신을 register/unregister 한다(플레이어에 컴포넌트를 붙이지 않는다).
- * 선택(SelectedIndex)은 UI 소유이므로 본 서브시스템은 다루지 않는다. 목록만 제공하며 로컬 표시 전용이다.
+ * 선택(SelectedIndex)을 본 서브시스템이 소유하고, 선택된 컴포넌트만 외곽선 강조하도록 조율한다.
+ * 입력(휠/방향키)은 WBP가 CycleSelection을 호출해 흘려준다. VM은 목록/선택을 받아 표시만 한다. 로컬 표시 전용이다.
  */
 UCLASS()
 class WXWORLD_API UWxInteractionRegistrySubsystem : public ULocalPlayerSubsystem
@@ -33,13 +35,35 @@ public:
 	/** 현재 인-레인지 컴포넌트들의 프롬프트 텍스트를 등록 순서로 반환한다. */
 	TArray<FText> GetPrompts() const;
 
+	/** 현재 선택 인덱스(없으면 INDEX_NONE). 리졸버가 초기 시드로 읽는다. */
+	int32 GetSelectedIndex() const { return SelectedIndex; }
+
+	/** 현재 선택된 인-레인지 컴포넌트(없으면 nullptr). 상호작용 어빌리티가 실행 대상으로 읽는다. */
+	UWxInteractionComponent* GetSelectedComponent() const;
+
+	/** 선택을 Delta 만큼 순환 이동한다(휠/방향키). 목록이 비면 무시. WBP 입력이 호출한다. */
+	UFUNCTION(BlueprintCallable, Category = "Wx")
+	void CycleSelection(int32 Delta);
+
 	/** 인-레인지 목록 변경 시 발사. */
 	UPROPERTY(BlueprintAssignable, Category = "Wx")
 	FWxOnInteractionListChanged OnListChanged;
 
+	/** 선택 인덱스 변경 시 발사. */
+	UPROPERTY(BlueprintAssignable, Category = "Wx")
+	FWxOnInteractionSelectionChanged OnSelectionChanged;
+
 private:
-	/** 무효 참조 정리 후 목록 변경을 델리게이트로 알린다. */
+	/** 무효 참조 정리 + 선택 클램프 보정 후 강조를 갱신하고 목록/선택을 델리게이트로 알린다. */
 	void RebuildAndNotify();
 
+	/** 선택 인덱스를 갱신하고(변경 시) 강조 갱신 + 선택 변경을 알린다. */
+	void UpdateSelection(int32 NewIndex);
+
+	/** 선택된 컴포넌트만 외곽선 강조 ON, 나머지는 OFF. */
+	void ApplyHighlight();
+
 	TArray<TWeakObjectPtr<UWxInteractionComponent>> InRangeComponents;
+
+	int32 SelectedIndex = INDEX_NONE;
 };
