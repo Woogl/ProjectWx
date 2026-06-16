@@ -9,6 +9,7 @@
 class UWxActivatableWidget;
 class USpringArmComponent;
 class UCameraComponent;
+class UWidgetComponent;
 class UWxInputConfig;
 class UWxLockOnManagerComponent;
 struct FInputActionValue;
@@ -26,7 +27,8 @@ class WXGAME_API AWxPlayerCharacter : public AWxCharacterBase
 
 public:
 	AWxPlayerCharacter();
-
+	virtual void BeginPlay() override;
+	virtual void OnRep_PlayerState() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	TSubclassOf<UWxActivatableWidget> GetGameHUDClass() const;
@@ -41,7 +43,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")
 	TObjectPtr<UWxLockOnManagerComponent> LockOnManagerComponent;
 
-	virtual void OnRep_PlayerState() override;
+	/** 상호작용 목록(WBP_InteractionList) 표시용 Screen-space 위젯 컴포넌트. Widget Class는 BP_Player에서 지정한다. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|UI")
+	TObjectPtr<UWidgetComponent> InteractionListWidget;
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
