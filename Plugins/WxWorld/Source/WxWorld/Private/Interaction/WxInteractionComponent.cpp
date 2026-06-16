@@ -75,21 +75,17 @@ void UWxInteractionComponent::SetHighlightEnabled(bool bNewEnabled)
 		return;
 	}
 
-	const AActor* Owner = GetOwner();
-	if (!Owner)
+	// 이 컴포넌트가 부착된 메시만 강조한다. 부착 부모가 메시가 아니면 강조 대상이 없다.
+	UMeshComponent* MeshComponent = Cast<UMeshComponent>(GetAttachParent());
+	if (!MeshComponent)
 	{
 		return;
 	}
 
-	TArray<UMeshComponent*> MeshComponents;
-	Owner->GetComponents<UMeshComponent>(MeshComponents);
-	for (UMeshComponent* MeshComponent : MeshComponents)
+	MeshComponent->SetRenderCustomDepth(bNewEnabled);
+	if (bNewEnabled)
 	{
-		MeshComponent->SetRenderCustomDepth(bNewEnabled);
-		if (bNewEnabled)
-		{
-			MeshComponent->SetCustomDepthStencilValue(HighlightStencilValue);
-		}
+		MeshComponent->SetCustomDepthStencilValue(HighlightStencilValue);
 	}
 }
 

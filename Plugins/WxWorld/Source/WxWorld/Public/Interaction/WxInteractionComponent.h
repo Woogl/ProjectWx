@@ -49,7 +49,7 @@ public:
 	/** 현재 상호작용 텍스트. 레지스트리가 HUD 리스트 구성을 위해 읽는다. */
 	FText GetInteractionText() const { return InteractionText; }
 
-	/** 소유 액터의 메시 컴포넌트에 외곽선 강조를 켜고 끈다. 레지스트리가 선택 대상만 호출한다. */
+	/** 이 컴포넌트가 부착된 메시에 외곽선 강조를 켜고 끈다. 레지스트리가 선택 대상만 호출한다. */
 	void SetHighlightEnabled(bool bNewEnabled);
 
 	/** 외부 리스너/소유 액터에서 바인딩. 서버+모든 클라이언트에서 fire 된다. */
@@ -63,7 +63,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (MultiLine = true))
 	FText InteractionText;
 
-	/** 범위 진입 시 소유 액터 메시에 외곽선 강조(Custom Depth/Stencil)를 적용할지 여부. */
+	/** 범위 진입 시 이 컴포넌트가 부착된 메시에 외곽선 강조(Custom Depth/Stencil)를 적용할지 여부. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	bool bEnableHighlight = true;
 
