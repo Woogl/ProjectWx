@@ -3,23 +3,22 @@
 	"classDefaults":
 	{
 		"CommonTextBlock_22": "",
-		"Style": "/Game/UI/CommonUI/ButtonStyle_Empty.ButtonStyle_Empty_C"
+		"Style": "/Game/UI/Style/ButtonStyle_Empty.ButtonStyle_Empty_C"
 	},
-	"eventGraph": [
-		"void PreConstruct(delegate OutputDelegate, bool IsDesignTime)",
-		"{",
-		"    CommonTextBlock_22->SetText(/* InText */ ButtonText);",
-		"}"
-	],
-	"newVariables":
+	"eventGraph":
 	{
-		"ButtonText":
-		{
-			"type": "text",
-			"value": "NSLOCTEXT(\"[DE590BE07DAE2E459D689469EBF4ABC2]\", \"8490DC824F2F9DE37A5E2AB1344127D6\", \"Button\")"
-		}
+		"PreConstruct": [
+			"void PreConstruct(bool IsDesignTime)",
+			"{",
+			"    CommonTextBlock_22->SetText(ButtonText);",
+			"}"
+		]
 	},
 	"parentClass": "/Script/CommonUI.CommonButtonBase",
+	"variables":
+	{
+		"ButtonText": "NSLOCTEXT(\"[DE590BE07DAE2E459D689469EBF4ABC2]\", \"8490DC824F2F9DE37A5E2AB1344127D6\", \"Button\")"
+	},
 	"widgetTree":
 	{
 		"root": "CommonTextBlock_22",
@@ -30,6 +29,7 @@
 				"class": "/Script/CommonUI.CommonTextBlock",
 				"delta":
 				{
+					"Style": "/Game/UI/Style/TextStyle_Small.TextStyle_Small_C",
 					"Text": "Button Text"
 				},
 				"isVariable": true
