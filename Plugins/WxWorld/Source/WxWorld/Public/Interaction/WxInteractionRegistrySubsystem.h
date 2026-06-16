@@ -13,7 +13,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionListChanged, const T
 /**
  * 상호작용 레지스트리 서브시스템.
  * 로컬 플레이어마다 자동 생성되어, 현재 범위 안에 있는 UWxInteractionComponent들을 등록 순서로 모은다.
- * HUD 리스트 뷰모델(UWxViewModel_Interaction)이 이 목록을 표시한다.
+ * HUD 리스트 뷰모델(UWxViewModel_InteractionList)이 이 목록을 표시한다.
  *
  * 범위 진입/이탈한 UWxInteractionComponent가 자신을 register/unregister 한다(플레이어에 컴포넌트를 붙이지 않는다).
  * 선택(SelectedIndex)은 UI 소유이므로 본 서브시스템은 다루지 않는다. 목록만 제공하며 로컬 표시 전용이다.

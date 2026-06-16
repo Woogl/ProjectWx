@@ -12,7 +12,7 @@
 **경계 (비담당)**
 - 전투/어빌리티 로직 자체는 [[WxCombat]] — WxUI는 ASC가 발행하는 어트리뷰트/이펙트 변경만 관찰해 표시. 구체 캐릭터 타입을 모르므로 표시 데이터(`FWxCharacterUIData`)는 소비 측이 주입
 - 인벤토리 데이터/아이템 정의는 [[WxInventory]] — WxUI(`UWxHUDLayout`)는 인벤토리 메뉴 WBP를 레이어에 푸시하는 진입점만 제공
-- 상호작용 대상 선택 로직은 [[WxWorld]] — `UWxViewModel_Interaction`은 [[WxGame]] 리졸버가 연결한 델리게이트로 목록/선택을 받기만 함
+- 상호작용 대상 선택 로직은 [[WxWorld]] — `UWxViewModel_InteractionList`은 [[WxGame]] 리졸버가 연결한 델리게이트로 목록/선택을 받기만 함
 - WBP 위젯 계층·MVVM 바인딩 그래프·레이아웃 콘텐츠 저작은 [[WxGame]] (BP 측)
 
 ## 의존성
