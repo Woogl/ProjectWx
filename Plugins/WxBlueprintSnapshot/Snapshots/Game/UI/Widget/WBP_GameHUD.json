@@ -70,6 +70,10 @@
 			{
 				"class": "/Game/UI/Widget/WBP_AcquiredItemList.WBP_AcquiredItemList_C"
 			},
+			"WBP_InteractionList_158":
+			{
+				"class": "/Game/UI/Widget/WBP_InteractionList.WBP_InteractionList_C"
+			},
 			"WBP_Nameplate_Boss_109":
 			{
 				"class": "/Game/UI/Widget/WBP_Nameplate_Boss.WBP_Nameplate_Boss_C"

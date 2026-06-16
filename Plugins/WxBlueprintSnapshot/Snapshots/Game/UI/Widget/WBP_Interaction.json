@@ -1,0 +1,170 @@
+{
+	"blueprintPath": "/Game/UI/Widget/WBP_Interaction.WBP_Interaction",
+	"eventGraph":
+	{
+		"OnListItemObjectSet": [
+			"void OnListItemObjectSet(UObject* ListItemObject)",
+			"{",
+			"    UWxViewModel_Interaction* AsWxViewModel_Interaction = Cast<UWxViewModel_Interaction>(ListItemObject);",
+			"    if (AsWxViewModel_Interaction)",
+			"    {",
+			"        SetWxViewModel_Interaction(AsWxViewModel_Interaction);",
+			"    }",
+			"}"
+		]
+	},
+	"interfaces":
+	{
+		"implemented": [
+			"/Script/UMG.UserObjectListEntry"
+		]
+	},
+	"mvvm":
+	{
+		"bindings": [
+			{
+				"bindingType": "OneTimeToDestination",
+				"destination": "Text",
+				"source": "Prompt"
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"bIsVisible": "bSelected",
+						"FalseVisibility": "Collapsed",
+						"TrueVisibility": "SelfHitTestInvisible"
+					},
+					"function": "Conv_BoolToSlateVisibility"
+				},
+				"destination": "Visibility",
+				"source": ""
+			}
+		],
+		"viewModels":
+		{
+			"WxViewModel_Interaction":
+			{
+				"class": "/Script/WxUI.WxViewModel_Interaction",
+				"contextId": "CA40CF29-4C7C-C573-5F6A-C58E1D47DA79",
+				"createGetter": true,
+				"createSetter": false,
+				"creationType": "Manual",
+				"optional": false
+			}
+		}
+	},
+	"parentClass": "/Script/UMG.UserWidget",
+	"widgetTree":
+	{
+		"root": "Overlay_0",
+		"widgets":
+		{
+			"CommonActionWidget_192":
+			{
+				"class": "/Script/CommonUI.CommonActionWidget",
+				"delta":
+				{
+					"InputActions": [
+						{
+							"DataTable": "/Game/UI/CommonUI/DT_WxInputActions.DT_WxInputActions",
+							"RowName": "Interact"
+						}
+					]
+				},
+				"parent": "HorizontalBox_47",
+				"slot":
+				{
+					"class": "/Script/UMG.HorizontalBoxSlot",
+					"delta":
+					{
+						"Padding":
+						{
+							"Bottom": 10,
+							"Left": 10,
+							"Right": 10,
+							"Top": 10
+						}
+					}
+				}
+			},
+			"HorizontalBox_47":
+			{
+				"class": "/Script/UMG.HorizontalBox",
+				"parent": "Overlay_0",
+				"slot":
+				{
+					"class": "/Script/UMG.OverlaySlot"
+				}
+			},
+			"Image_89":
+			{
+				"class": "/Script/UMG.Image",
+				"delta":
+				{
+					"Brush":
+					{
+						"ImageType": "FullColor",
+						"ResourceObject": "/Game/UIMaterialLab/Materials/5_Masks/2_Wedges/MI_UI_Wedges_2.MI_UI_Wedges_2"
+					},
+					"Visibility": "Collapsed"
+				},
+				"parent": "Overlay_0",
+				"slot":
+				{
+					"class": "/Script/UMG.OverlaySlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Fill",
+						"VerticalAlignment": "VAlign_Fill"
+					}
+				}
+			},
+			"Overlay_0":
+			{
+				"class": "/Script/UMG.Overlay"
+			},
+			"PromptText":
+			{
+				"class": "/Script/CommonUI.CommonTextBlock",
+				"delta":
+				{
+					"Font":
+					{
+						"FontObject": "/Game/UIMaterialLab/Fonts/Roboto.Roboto",
+						"OutlineSettings":
+						{
+							"OutlineSize": 1
+						},
+						"Size": 20,
+						"TypefaceFontName": "Medium"
+					},
+					"ShadowOffset":
+					{
+						"X": 0,
+						"Y": 0
+					},
+					"Style": "/Game/UI/Style/TextStyle_Small.TextStyle_Small_C",
+					"Text": "Interact"
+				},
+				"parent": "HorizontalBox_47",
+				"slot":
+				{
+					"class": "/Script/UMG.HorizontalBoxSlot",
+					"delta":
+					{
+						"Padding":
+						{
+							"Bottom": 10,
+							"Left": 10,
+							"Right": 10,
+							"Top": 10
+						}
+					}
+				}
+			}
+		}
+	}
+}

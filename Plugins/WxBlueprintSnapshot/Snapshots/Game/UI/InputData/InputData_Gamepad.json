@@ -1,0 +1,8 @@
+{
+	"blueprintPath": "/Game/UI/InputData/InputData_Gamepad.InputData_Gamepad",
+	"classDefaults":
+	{
+		"InputType": "Gamepad"
+	},
+	"parentClass": "/Script/CommonInput.CommonInputBaseControllerData"
+}
