@@ -2,14 +2,11 @@
 
 #include "Interaction/WxInteractionComponent.h"
 
-#include "Blueprint/UserWidget.h"
 #include "Components/MeshComponent.h"
-#include "Components/WidgetComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Interaction/WxInteractionRegistrySubsystem.h"
-#include "Interaction/WxInteractionWidgetInterface.h"
 
 UWxInteractionComponent::UWxInteractionComponent()
 {
@@ -57,7 +54,6 @@ void UWxInteractionComponent::SetInteractionEnabled(bool bEnabled)
 	else
 	{
 		SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		SetInteractionWidgetVisible(false);
 		SetHighlightEnabled(false);
 		UnregisterFromRegistry();
 	}
@@ -71,22 +67,6 @@ FWxOnInteractedSignature& UWxInteractionComponent::GetOnInteractedDelegate()
 void UWxInteractionComponent::SetInteractionText(const FText& InText)
 {
 	InteractionText = InText;
-
-	if (!InteractionWidget)
-	{
-		return;
-	}
-
-	UUserWidget* UserWidget = InteractionWidget->GetUserWidgetObject();
-	if (!UserWidget)
-	{
-		return;
-	}
-
-	if (UserWidget->Implements<UWxInteractionWidgetInterface>())
-	{
-		IWxInteractionWidgetInterface::Execute_SetInteractionText(UserWidget, InteractionText);
-	}
 }
 
 void UWxInteractionComponent::BeginPlay()
@@ -96,46 +76,22 @@ void UWxInteractionComponent::BeginPlay()
 	OnComponentBeginOverlap.AddDynamic(this, &UWxInteractionComponent::HandleBeginOverlap);
 	OnComponentEndOverlap.AddDynamic(this, &UWxInteractionComponent::HandleEndOverlap);
 
-	SetInteractionText(InteractionText);
-
 	if (!bInteractionEnabled)
 	{
 		return;
 	}
 
-	// BeginPlay 시점에 이미 오버랩 중인 로컬 플레이어 폰이 있으면 프롬프트를 즉시 표시한다.
+	// BeginPlay 시점에 이미 오버랩 중인 로컬 플레이어 폰이 있으면 강조/등록을 즉시 적용한다.
 	TArray<AActor*> OverlappingActors;
 	GetOverlappingActors(OverlappingActors, APawn::StaticClass());
 	for (AActor* OverlappingActor : OverlappingActors)
 	{
 		if (IsLocalPlayerPawn(OverlappingActor))
 		{
-			SetInteractionWidgetVisible(true);
 			SetHighlightEnabled(true);
 			RegisterWithRegistry(OverlappingActor);
 			break;
 		}
-	}
-}
-
-void UWxInteractionComponent::OnRegister()
-{
-	Super::OnRegister();
-
-	if (!InteractionWidget)
-	{
-		InteractionWidget = NewObject<UWidgetComponent>(this, UWidgetComponent::StaticClass(), TEXT("InteractionWidget"), RF_Transactional);
-		InteractionWidget->SetWidgetSpace(EWidgetSpace::Screen);
-		InteractionWidget->SetDrawAtDesiredSize(true);
-		InteractionWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		InteractionWidget->SetVisibility(false);
-		InteractionWidget->SetupAttachment(this);
-		InteractionWidget->RegisterComponent();
-	}
-
-	if (InteractionWidget->GetWidgetClass() != PromptWidgetClass)
-	{
-		InteractionWidget->SetWidgetClass(PromptWidgetClass);
 	}
 }
 
@@ -146,7 +102,6 @@ void UWxInteractionComponent::HandleBeginOverlap(UPrimitiveComponent* Overlapped
 		return;
 	}
 
-	SetInteractionWidgetVisible(true);
 	SetHighlightEnabled(true);
 	RegisterWithRegistry(OtherActor);
 }
@@ -158,7 +113,6 @@ void UWxInteractionComponent::HandleEndOverlap(UPrimitiveComponent* OverlappedCo
 		return;
 	}
 
-	SetInteractionWidgetVisible(false);
 	SetHighlightEnabled(false);
 	UnregisterFromRegistry();
 }
@@ -166,23 +120,6 @@ void UWxInteractionComponent::HandleEndOverlap(UPrimitiveComponent* OverlappedCo
 void UWxInteractionComponent::MulticastInteracted_Implementation(AActor* InstigatorActor)
 {
 	OnInteracted.Broadcast(InstigatorActor);
-}
-
-void UWxInteractionComponent::SetInteractionWidgetVisible(bool bNewVisible)
-{
-	if (!InteractionWidget)
-	{
-		return;
-	}
-
-	InteractionWidget->SetVisibility(bNewVisible);
-
-	// visible 전환 시 텍스트를 재적용한다 — UWidgetComponent 가 visibility 토글 시점에
-	// 위젯 인스턴스를 lazy 하게 만드는 케이스에서도 BP 오버라이드 텍스트가 누락되지 않도록 보장.
-	if (bNewVisible)
-	{
-		SetInteractionText(InteractionText);
-	}
 }
 
 void UWxInteractionComponent::SetHighlightEnabled(bool bNewEnabled)
@@ -202,12 +139,6 @@ void UWxInteractionComponent::SetHighlightEnabled(bool bNewEnabled)
 	Owner->GetComponents<UMeshComponent>(MeshComponents);
 	for (UMeshComponent* MeshComponent : MeshComponents)
 	{
-		// 프롬프트 위젯도 UMeshComponent 파생이므로 외곽선 대상에서 제외한다.
-		if (MeshComponent->IsA<UWidgetComponent>())
-		{
-			continue;
-		}
-
 		MeshComponent->SetRenderCustomDepth(bNewEnabled);
 		if (bNewEnabled)
 		{

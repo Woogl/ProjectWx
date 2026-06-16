@@ -24,7 +24,6 @@ public class WxWorld : ModuleRules
 			"LevelSequence",
 			"MovieScene",
 			"Niagara",
-			"UMG",
 		});
 	}
 }
