@@ -1,0 +1,33 @@
+{
+	"blueprintPath": "/Game/WorldObject/BP_PostProcess.BP_PostProcess",
+	"components":
+	{
+		"DefaultSceneRoot":
+		{
+			"componentClass": "/Script/Engine.SceneComponent",
+			"variableName": "DefaultSceneRoot"
+		},
+		"PostProcess":
+		{
+			"attachParent": "DefaultSceneRoot",
+			"componentClass": "/Script/Engine.PostProcessComponent",
+			"delta":
+			{
+				"Settings":
+				{
+					"WeightedBlendables":
+					{
+						"Array": [
+							{
+								"Object": "/Game/WorldObject/M_Outline.M_Outline",
+								"Weight": 1
+							}
+						]
+					}
+				}
+			},
+			"variableName": "PostProcess"
+		}
+	},
+	"parentClass": "/Script/Engine.Actor"
+}
