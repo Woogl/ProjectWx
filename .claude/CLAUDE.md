@@ -30,19 +30,17 @@
 
 1. Unreal Engine 5의 공식 코딩 컨벤션을 따른다.
 
-2. Unreal 기본 Prefix에 `Wx`를 추가한다. (예시: `AWxCharacter`, `FWxPayload`, `EWxCategory`)
+2. Unreal Engine 5의 기본 Prefix에 `Wx`를 추가한다. (예시: `AWxCharacter`, `FWxPayload`, `EWxCategory`)
    
 3. 모든 소스 파일의 첫 줄은 `// Copyright Woogle. All Rights Reserved.`로 시작한다.
    
-4. 람다식은 delegate one-shot 바인딩 등 명시적 named function 작성이 과한 경우에만 사용한다. 알고리즘 술어 등은 named function을 선호한다.
+4. 람다식은 반드시 필요한 경우에만 사용한다.
   
 5. 함수 override 시, `Super::`로 부모 클래스의 함수를 호출한다.
    
-6. 모든 Gameplay Tag는 C++ Native Tag로 선언한다.
+6. Delegate에 바인딩되는 Callback 함수는 `Handle`을 Prefix로 사용한다. (예시: `HandleMontageEnded`, `HandleDeath`)
 
-7. Delegate에 바인딩되는 Callback 함수는 `Handle`을 Prefix로 사용한다. (예시: `HandleMontageEnded`, `HandleDeath`)
-
-8. `BlueprintCallable` 지정자는 Blueprint Function Library, Blueprint Async Action의 팩토리 함수에서만 사용한다.
+7. `BlueprintCallable` 지정자는 Blueprint Function Library, Blueprint Async Action의 팩토리 함수에서만 사용한다.
 
 ---
 
