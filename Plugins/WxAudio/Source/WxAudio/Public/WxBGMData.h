@@ -30,12 +30,4 @@ public:
 	// 이 곡에서 다른 곡으로 벗어날 때 페이드 아웃 시간(초).
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|BGM", meta = (ClampMin = "0.0"))
 	float FadeOutTime = 2.f;
-
-	// 루프 의도 표기. 실제 루프는 Sound 에셋 설정을 따른다.
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|BGM")
-	bool bLoop = true;
-
-	// 경합/레이어 처리를 위한 우선순위 메모. v1 재생 로직에는 영향 없음.
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|BGM")
-	int32 Priority = 0;
 };
