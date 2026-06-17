@@ -44,7 +44,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TObjectPtr<UInputAction> LookAction;
 
-	/** 점프 입력. Started → Jump(), Completed → StopJumping() */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TObjectPtr<UInputAction> JumpAction;
 
