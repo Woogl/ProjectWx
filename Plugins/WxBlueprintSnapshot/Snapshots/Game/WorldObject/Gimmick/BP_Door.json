@@ -24,8 +24,7 @@
 			"class": "/Script/WxWorld.WxInteractionComponent",
 			"delta":
 			{
-				"InteractionText": "[F] Open",
-				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C",
+				"InteractionText": "Open",
 				"RelativeLocation":
 				{
 					"Z": 100
@@ -50,6 +49,17 @@
 			"delta":
 			{
 				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/SM_Door.SM_Door"
+			}
+		},
+		"DoorStateTree":
+		{
+			"class": "/Script/GameplayStateTreeModule.StateTreeComponent",
+			"delta":
+			{
+				"StateTreeRef":
+				{
+					"StateTree": "/Game/WorldObject/Gimmick/ST_Door.ST_Door"
+				}
 			}
 		}
 	},

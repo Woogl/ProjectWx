@@ -74,8 +74,8 @@ namespace WxGameplayTags
 	/** 소비 아이템 사용 이벤트. 마시기 몽타주의 노티파이가 송출, UseItem 어빌리티가 수신해 아이템을 실제 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_UseItem);
 
-	/** 기믹 1회성 발동(bTriggered=true) 이벤트. StateTree 구동 기믹이 자기 StateTree에 송출. AWxDoor가 Closed→Opening 전이에 사용 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Gimmick_Triggered);
+	/** 기믹 상태 변경 이벤트. State enum 구동 기믹이 자기 StateTree에 송출해 현재 State에 맞는 상태로 Root 재선택을 유발. AWxDoor가 사용 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Gimmick_StateChanged);
 
 	// ── ANS ───────────────────────────────────────────────────────────────
 

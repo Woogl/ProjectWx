@@ -31,6 +31,9 @@ class USceneComponent;
  *  - Level Streaming Persistence 로 셀 언로드/리로드 사이에 보존된다.
  *  - WxSave 슬롯에도 보존되어 세션 간 발동 상태가 유지된다.
  *  - 다단계 상태/반복 가능한 액터는 사용하지 않을 수 있다.
+ *  - [점진적 폐기 예정] 각 기믹이 자체 State enum 을 소유하는 방향으로 이전 중이다.
+ *  - Door/Elevator 는 이미 자체 State 를 쓰며 bTriggered 를 사용하지 않는다.
+ *  - 잔여 콘솔/상자가 모두 이전되면 제거할 예정이다.
  *
  * WxSave 통합:
  *  - IWxSavable 구현. UPROPERTY(SaveGame) 필드(bTriggered 등) 가 슬롯에 기록된다.
@@ -65,6 +68,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<USceneComponent> SceneRoot;
 
+	// [점진적 폐기 예정]
 	UPROPERTY(ReplicatedUsing = OnRep_bTriggered, SaveGame)
 	bool bTriggered = false;
 

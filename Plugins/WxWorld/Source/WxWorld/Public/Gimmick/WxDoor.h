@@ -10,18 +10,34 @@ class UStateTreeComponent;
 class UStaticMeshComponent;
 class UWxInteractionComponent;
 
+UENUM()
+enum class EWxDoorState : uint8
+{
+	/** 닫힘 — 초기/기본. 콘솔 인터랙션 활성, 문 닫힘. */
+	Closed,
+	/** 개방 중 — 문이 0→1 로 슬라이드. 인터랙션 비활성. 애니 완료 시 서버가 Open 으로 승급. */
+	Opening,
+	/** 열림 — 문 완전 개방. Open 의 인터랙션을 켜면 닫기(Closing) 진입 가능. 현재는 에셋에서 비활성이라 단방향. */
+	Open,
+	/** 닫기 중 — 문이 1→0 로 슬라이드. 인터랙션 비활성. 애니 완료 시 서버가 Closed 로 승급. */
+	Closing
+};
+
 /**
- * 1회성 개폐 문.
- * 콘솔과 상호작용하면 양쪽 문이 반대 방향으로 슬라이드하며 열린다. 한 번 열린 뒤에는 닫을 수 없으며 콘솔 상호작용도 비활성화된다.
+ * 개폐 문.
+ * 콘솔과 상호작용하면 양쪽 문이 반대 방향으로 슬라이드하며 열린다.
+ * 구조상 다시 닫을 수도 있으나(Open ──상호작용──> Closing ──> Closed), 현재는 Open 상태의 인터랙션을 에셋에서 비활성화해 단방향(열기 전용)으로 동작한다.
+ * Open 의 DoorPose interaction 을 켜면 반복 개폐가 즉시 활성화된다(C++ 구조·핸들러는 이미 준비됨).
  *
- * 상태 머신은 StateTree(DoorStateTree)가 구동한다. C++ 는 StateTree 노드가 호출할 얇은 프리미티브
- * (인터랙션 토글/문 포즈/발동 여부) 만 제공하고, 상태·전이는 ST_Door 에셋에서 author 한다.
+ * 상태는 자체 EWxDoorState(State) 가 권위 원천이며, 복제·SaveGame 으로 보존된다.
+ * base bTriggered 는 사용하지 않는다.
+ * StateTree(DoorStateTree)는 State 를 읽어 비주얼을 렌더하고 전이를 구동하는 상태머신이며, 상태·전이는 ST_Door 에셋에서 author 한다.
  *
- *   Closed (초기) ──Event.Gimmick.Triggered──> Opening ──애니 완료──> Open (영구 고정)
- *   시작 시 이미 발동(bTriggered)된 문은 조건 초기 선택으로 Opening 없이 Open 으로 스냅한다.
+ *   Closed (초기) ──상호작용──> Opening ──애니 완료(서버)──> Open ──상호작용(현재 게이트 off)──> Closing ──애니 완료(서버)──> Closed
  *
- * 트리거는 복제된 bTriggered(베이스) 가 true 로 전환되는 신뢰 경로(서버 MarkTriggered / 클라 OnRep) 에서
- * ApplyState 가 StateTree 이벤트를 송출하여 발생시킨다. 언릴라이어블 멀티캐스트가 아닌 복제 프로퍼티 기반이다.
+ * 전이는 "State 변경 → Event.Gimmick.StateChanged 송출 → StateTree Root 재선택" 한 메커니즘으로 통일된다(서버/클라 동일).
+ * State 는 서버 권위·복제이며 클라는 SetDoorState 권위 게이트로 쓰지 않는다.
+ * 시작/복원 시엔 DoorStateIs 조건이 현재 State 로 초기 선택(복원 시 Open 스냅 등)한다.
  */
 UCLASS(Abstract)
 class WXWORLD_API AWxDoor : public AWxGimmick
@@ -31,6 +47,8 @@ class WXWORLD_API AWxDoor : public AWxGimmick
 public:
 	AWxDoor();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	//~ Begin StateTree 노드가 호출하는 프리미티브
 	/** 콘솔 인터랙션 활성/비활성. */
 	void SetConsoleInteractionEnabled(bool bEnabled);
@@ -38,11 +56,14 @@ public:
 	/** 문 개방 알파(0=닫힘, 1=열림)로 양쪽 문 위치를 갱신. */
 	void SetDoorOpenAlpha(float Alpha);
 
-	/** 문 열림 애니메이션 길이(초). */
+	/** 문 슬라이드 애니메이션 길이(초). */
 	float GetDoorAnimDuration() const { return DoorAnimDuration; }
 
-	/** 문이 1회성 개방 발동되었는지. (베이스 bTriggered) */
-	bool IsDoorTriggered() const { return bTriggered; }
+	/** 현재 문 상태. StateTree 의 DoorStateIs 조건이 상태 선택에 사용. */
+	EWxDoorState GetDoorState() const { return State; }
+
+	/** 권위 측에서 State 를 전환하고 ApplyState 로 StateTree 를 재선택. 동일값/비권위면 노옵. DoorSlide 태스크의 애니 완료 승급에도 사용. */
+	void SetDoorState(EWxDoorState NewState);
 	//~ End StateTree 노드가 호출하는 프리미티브
 
 protected:
@@ -66,7 +87,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStateTreeComponent> DoorStateTree;
 
-	/** 문 열림 애니메이션 길이(초). */
+	/** 문 슬라이드 애니메이션 길이(초). */
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ClampMin = "0"))
 	float DoorAnimDuration = 1.f;
 
@@ -74,11 +95,18 @@ private:
 	UFUNCTION()
 	void HandleConsoleInteracted(AActor* InstigatorActor);
 
+	UFUNCTION()
+	void OnRep_State();
+
 	/** 문 닫힘 위치와 개방 오프셋을 캐시. PostInitializeComponents 에서 1회 호출. */
 	void CacheDoorPoseAnchors();
 
 	/** 문 메시의 로컬 Y 축 너비(스케일 반영). 표준 UE 도어 메시는 Y 가 너비 축. */
 	float ComputeDoorWidth(const UStaticMeshComponent* DoorMesh) const;
+
+	/** 도어 권위/영속 상태. base bTriggered 대신 사용. */
+	UPROPERTY(ReplicatedUsing = OnRep_State, SaveGame)
+	EWxDoorState State = EWxDoorState::Closed;
 
 	FVector DoorLeftClosedLocation;
 	FVector DoorRightClosedLocation;

@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Interaction/WxInteractionComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "WxGameplayTags.h"
 
 AWxDoor::AWxDoor()
@@ -27,6 +28,13 @@ AWxDoor::AWxDoor()
 	DoorStateTree->SetStartLogicAutomatically(false);
 }
 
+void AWxDoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AWxDoor, State);
+}
+
 void AWxDoor::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -43,30 +51,56 @@ void AWxDoor::BeginPlay()
 	ConsoleInteraction->OnInteracted.AddDynamic(this, &AWxDoor::HandleConsoleInteracted);
 
 	// 모든 컴포넌트의 BeginPlay 가 끝난 뒤 StateTree 를 시작한다.
-	// 시작 시 DoorTriggered 조건이 bTriggered 를 읽어 Open(스냅) 또는 Closed 로 초기 선택한다.
+	// 시작 시 DoorStateIs 조건이 현재 State 를 읽어 맞는 상태(복원 시 Open 스냅 등)로 초기 선택한다.
 	DoorStateTree->StartLogic();
 }
 
 void AWxDoor::ApplyState()
 {
-	// bTriggered 가 true 로 전환되는 신뢰 경로(서버 MarkTriggered / 클라 OnRep_bTriggered) 에서
-	// StateTree 에 발동 이벤트를 송출하여 Closed→Opening 전이를 발생시킨다.
-	// 시작 시 이미 발동된 문은 StateTree 초기 선택(DoorTriggered 조건) 이 Open 으로 보내며,
-	// 그 경우 여기서 보낸 이벤트는 Open 에 해당 전이가 없어 무시된다.
-	if (bTriggered && DoorStateTree && DoorStateTree->IsRunning())
+	// State 변경을 StateTree 에 알려 현재 State 에 맞는 상태로 Root 재선택을 유발한다.
+	// 서버(SetDoorState)·클라(OnRep_State)·복원(OnWxSaveRestored) 모두 이 한 경로로 StateTree 를 동기화한다.
+	if (DoorStateTree && DoorStateTree->IsRunning())
 	{
-		DoorStateTree->SendStateTreeEvent(WxGameplayTags::Event_Gimmick_Triggered);
+		DoorStateTree->SendStateTreeEvent(WxGameplayTags::Event_Gimmick_StateChanged);
 	}
+}
+
+void AWxDoor::SetDoorState(EWxDoorState NewState)
+{
+	// State 쓰기는 권위 전용. 클라는 OnRep_State 로 동기화된다.
+	if (!HasAuthority() || State == NewState)
+	{
+		return;
+	}
+
+	State = NewState;
+	ApplyState();
 }
 
 void AWxDoor::HandleConsoleInteracted(AActor* InstigatorActor)
 {
-	// 권위 측만 1회성 발동 처리. bTriggered 가 true 로 바뀌며 MarkTriggered 가 ApplyState 를 호출해 이벤트를 송출한다.
-	// 클라이언트는 OnRep_bTriggered → ApplyState 로 동일 처리되므로 비권위 분기는 노옵.
-	if (HasAuthority())
+	// 권위 측만 처리하며, 현재 상태에 따라 개방/닫기를 시작한다.
+	// 닫기(Open→Closing)는 준비돼 있으나, Open 의 DoorPose interaction 이 에셋에서 비활성이라 Open 에선 이 콜백이 호출되지 않아 현재 단방향으로 동작한다.
+	// Open interaction 을 켜면 반복 개폐가 활성화된다.
+	// 클라이언트는 OnRep_State → ApplyState 로 동일 처리되므로 비권위 분기는 노옵.
+	if (!HasAuthority())
 	{
-		MarkTriggered();
+		return;
 	}
+
+	if (State == EWxDoorState::Closed)
+	{
+		SetDoorState(EWxDoorState::Opening);
+	}
+	else if (State == EWxDoorState::Open)
+	{
+		SetDoorState(EWxDoorState::Closing);
+	}
+}
+
+void AWxDoor::OnRep_State()
+{
+	ApplyState();
 }
 
 void AWxDoor::SetConsoleInteractionEnabled(bool bEnabled)
