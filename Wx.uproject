@@ -70,6 +70,14 @@
 		{
 			"Name": "WxSave",
 			"Enabled": true
+		},
+		{
+			"Name": "Chooser",
+			"Enabled": true
+		},
+		{
+			"Name": "WxAudio",
+			"Enabled": true
 		}
 	]
 }
