@@ -15,12 +15,14 @@ public class WxWorld : ModuleRules
 			"DeveloperSettings",
 			"Engine",
 			"GameplayTags",
+			"StateTreeModule",
 			"WxCore",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"GameplayAbilities",
+			"GameplayStateTreeModule",
 			"LevelSequence",
 			"MovieScene",
 			"Niagara",
