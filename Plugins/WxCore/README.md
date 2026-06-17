@@ -59,4 +59,4 @@
 - 상위: 모든 Wx 도메인 플러그인([[WxCombat]], [[WxInventory]], [[WxUI]], [[WxWorld]], [[WxAI]], [[WxQuest]], [[WxSave]])과 게임 모듈 [[WxGame]]이 WxCore를 참조
 
 ---
-*문서 기준 커밋 `157ccd5` · 생성일 2026-06-13 · 소스 8파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `a2ba2b5` · 생성일 2026-06-17 · 소스 8파일 — `/readme-writer`로 갱신*

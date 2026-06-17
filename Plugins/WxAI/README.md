@@ -52,4 +52,4 @@
 - [[WxCore]] — `State.InCombat` 등 공용 Gameplay Tag 선언처.
 
 ---
-*문서 기준 커밋 `7a5764b` · 생성일 2026-06-12 · 소스 21파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `a2ba2b5` · 생성일 2026-06-17 · 소스 21파일 — `/readme-writer`로 갱신*
