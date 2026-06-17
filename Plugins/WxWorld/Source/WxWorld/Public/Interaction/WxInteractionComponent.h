@@ -16,7 +16,7 @@ class UWxInteractionRegistrySubsystem;
  *
  * 흐름:
  *  1) 폰이 본 컴포넌트와 오버랩 → 로컬 클라이언트에서 레지스트리(HUD 리스트 소스) 등록. 외곽선 강조는 레지스트리가 선택 대상만 켠다
- *  2) 플레이어가 상호작용 입력 → WxAbility_Interact가 레지스트리의 선택된 컴포넌트의 TryInteract 호출(서버 권한)
+ *  2) 플레이어가 상호작용 입력 → WxAbility_Interact가 (원격 클라는) 레지스트리의 선택 컴포넌트를 TargetData로 서버에 전달, 서버 권한에서 TryInteract 호출
  *  3) 서버가 Multicast RPC로 OnInteracted 델리게이트를 서버+모든 클라이언트에서 fire
  *
  * 소유 액터는 OnInteracted 델리게이트에 핸들러를 바인딩해 동작을 구현한다.
