@@ -59,6 +59,9 @@ public:
 	/** 문 슬라이드 애니메이션 길이(초). */
 	float GetDoorAnimDuration() const { return DoorAnimDuration; }
 
+	/** 현재 문 개방 알파(0=닫힘, 1=열림). DoorPose 가 현재→목표 보간의 시작점으로 읽는다. */
+	float GetDoorOpenAlpha() const { return CurrentOpenAlpha; }
+
 	/** 현재 문 상태. StateTree 의 DoorStateIs 조건이 상태 선택에 사용. */
 	EWxDoorState GetDoorState() const { return State; }
 
@@ -114,4 +117,7 @@ private:
 	/** 각 문 메시의 Y 너비만큼 자기 바깥쪽 방향(좌: -Y, 우: +Y)으로의 슬라이드 오프셋. */
 	FVector DoorLeftOpenOffset;
 	FVector DoorRightOpenOffset;
+
+	/** 현재 적용된 개방 알파(0~1). SetDoorOpenAlpha 가 갱신하며, DoorPose 의 보간 시작점이 된다. */
+	float CurrentOpenAlpha = 0.f;
 };

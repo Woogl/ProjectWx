@@ -5,123 +5,99 @@
 #include "Gimmick/WxDoor.h"
 #include "StateTreeExecutionContext.h"
 
-FWxStateTreeTask_DoorPose::FWxStateTreeTask_DoorPose()
+EStateTreeRunStatus FWxStateTreeTask_DoorPose::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// 정적 포즈 유지 태스크는 틱이 불필요하다(전이는 재선택으로 발생).
+	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
+
+	AWxDoor* Door = Cast<AWxDoor>(Context.GetOwner());
+	if (!Door)
+	{
+		return EStateTreeRunStatus::Failed;
+	}
+
+	const float TargetAlpha = Instance.bOpen ? 1.f : 0.f;
+
+	// 이미 목표 포즈거나(복원/레이트조인/정지 hold) 길이가 0이면 즉시 스냅하고 서버는 State 를 승급한다.
+	// 라이브 전이는 현재≠목표이므로 아래를 건너뛰고 Tick 이 보간한다.
+	if (Door->GetDoorAnimDuration() <= 0.f || FMath::IsNearlyEqual(Door->GetDoorOpenAlpha(), TargetAlpha))
+	{
+		Door->SetDoorOpenAlpha(TargetAlpha);
+		Door->SetDoorState(Instance.bOpen ? EWxDoorState::Open : EWxDoorState::Closed);
+	}
+
+	return EStateTreeRunStatus::Running;
+}
+
+EStateTreeRunStatus FWxStateTreeTask_DoorPose::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
+{
+	AWxDoor* Door = Cast<AWxDoor>(Context.GetOwner());
+	if (!Door)
+	{
+		return EStateTreeRunStatus::Failed;
+	}
+
+	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
+	const float TargetAlpha = Instance.bOpen ? 1.f : 0.f;
+	const float CurrentAlpha = Door->GetDoorOpenAlpha();
+
+	// 이미 목표면 더 보간할 것이 없다(EnterState 가 스냅·승급을 끝냈거나, 도달 후 재선택 대기).
+	if (FMath::IsNearlyEqual(CurrentAlpha, TargetAlpha))
+	{
+		return EStateTreeRunStatus::Running;
+	}
+
+	const float Duration = Door->GetDoorAnimDuration();
+	const float Speed = Duration > 0.f ? 1.f / Duration : 1.f;
+	const float NewAlpha = FMath::FInterpConstantTo(CurrentAlpha, TargetAlpha, DeltaTime, Speed);
+	Door->SetDoorOpenAlpha(NewAlpha);
+
+	// 목표 도달 시 서버가 State 를 승급한다. State 변경 → 재선택으로 이 태스크를 벗어난다.
+	// 클라에서는 SetDoorState 가 노옵이며 OnRep_State 로 다음 상태에 진입한다.
+	if (FMath::IsNearlyEqual(NewAlpha, TargetAlpha))
+	{
+		Door->SetDoorState(Instance.bOpen ? EWxDoorState::Open : EWxDoorState::Closed);
+	}
+
+	return EStateTreeRunStatus::Running;
+}
+
+#if WITH_EDITOR
+FText FWxStateTreeTask_DoorPose::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
+{
+	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
+	check(InstanceData);
+
+	return FText::Format(INVTEXT("Wx Door Pose ({0})"), InstanceData->bOpen ? INVTEXT("Open") : INVTEXT("Closed"));
+}
+#endif
+
+FWxStateTreeTask_DoorInteraction::FWxStateTreeTask_DoorInteraction()
+{
+	// 인터랙션을 진입 시 1회 토글만 하므로 틱이 불필요하다.
 	bShouldCallTick = false;
 }
 
-EStateTreeRunStatus FWxStateTreeTask_DoorPose::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+EStateTreeRunStatus FWxStateTreeTask_DoorInteraction::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 	if (AWxDoor* Door = Cast<AWxDoor>(Context.GetOwner()))
 	{
 		Door->SetConsoleInteractionEnabled(Instance.bEnableInteraction);
-		Door->SetDoorOpenAlpha(Instance.bOpen ? 1.f : 0.f);
 	}
 
 	return EStateTreeRunStatus::Running;
 }
 
-EStateTreeRunStatus FWxStateTreeTask_DoorOpening::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+#if WITH_EDITOR
+FText FWxStateTreeTask_DoorInteraction::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
 {
-	FInstanceDataType& Instance = Context.GetInstanceData(*this);
-	Instance.Elapsed = 0.f;
+	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
+	check(InstanceData);
 
-	AWxDoor* Door = Cast<AWxDoor>(Context.GetOwner());
-	if (!Door)
-	{
-		return EStateTreeRunStatus::Failed;
-	}
-
-	Door->SetConsoleInteractionEnabled(false);
-
-	// 길이가 0 이하이면 즉시 완전 개방하고 서버는 Open 으로 승급. State 변경이 재선택을 일으켜 이 태스크를 벗어난다.
-	if (Door->GetDoorAnimDuration() <= 0.f)
-	{
-		Door->SetDoorOpenAlpha(1.f);
-		Door->SetDoorState(EWxDoorState::Open);
-		return EStateTreeRunStatus::Running;
-	}
-
-	Door->SetDoorOpenAlpha(0.f);
-	return EStateTreeRunStatus::Running;
+	return FText::Format(INVTEXT("Wx Door Interaction ({0})"),
+		InstanceData->bEnableInteraction ? INVTEXT("enabled") : INVTEXT("disabled"));
 }
-
-EStateTreeRunStatus FWxStateTreeTask_DoorOpening::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
-{
-	AWxDoor* Door = Cast<AWxDoor>(Context.GetOwner());
-	if (!Door)
-	{
-		return EStateTreeRunStatus::Failed;
-	}
-
-	FInstanceDataType& Instance = Context.GetInstanceData(*this);
-	Instance.Elapsed += DeltaTime;
-
-	const float Duration = Door->GetDoorAnimDuration();
-	const float Alpha = Duration > 0.f ? FMath::Clamp(Instance.Elapsed / Duration, 0.f, 1.f) : 1.f;
-	Door->SetDoorOpenAlpha(Alpha);
-
-	// 개방 완료 시 서버가 Open 으로 승급한다. State 변경 → 재선택으로 이 태스크를 벗어난다.
-	// 클라에서는 SetDoorState 가 노옵이며 OnRep_State 로 Open 에 진입한다. 그때까지 완전 개방 포즈로 머문다.
-	if (Alpha >= 1.f)
-	{
-		Door->SetDoorState(EWxDoorState::Open);
-	}
-
-	return EStateTreeRunStatus::Running;
-}
-
-EStateTreeRunStatus FWxStateTreeTask_DoorClosing::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
-{
-	FInstanceDataType& Instance = Context.GetInstanceData(*this);
-	Instance.Elapsed = 0.f;
-
-	AWxDoor* Door = Cast<AWxDoor>(Context.GetOwner());
-	if (!Door)
-	{
-		return EStateTreeRunStatus::Failed;
-	}
-
-	Door->SetConsoleInteractionEnabled(false);
-
-	// 길이가 0 이하이면 즉시 완전 폐쇄하고 서버는 Closed 로 승급. State 변경이 재선택을 일으켜 이 태스크를 벗어난다.
-	if (Door->GetDoorAnimDuration() <= 0.f)
-	{
-		Door->SetDoorOpenAlpha(0.f);
-		Door->SetDoorState(EWxDoorState::Closed);
-		return EStateTreeRunStatus::Running;
-	}
-
-	Door->SetDoorOpenAlpha(1.f);
-	return EStateTreeRunStatus::Running;
-}
-
-EStateTreeRunStatus FWxStateTreeTask_DoorClosing::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
-{
-	AWxDoor* Door = Cast<AWxDoor>(Context.GetOwner());
-	if (!Door)
-	{
-		return EStateTreeRunStatus::Failed;
-	}
-
-	FInstanceDataType& Instance = Context.GetInstanceData(*this);
-	Instance.Elapsed += DeltaTime;
-
-	const float Duration = Door->GetDoorAnimDuration();
-	const float Alpha = Duration > 0.f ? FMath::Clamp(1.f - Instance.Elapsed / Duration, 0.f, 1.f) : 0.f;
-	Door->SetDoorOpenAlpha(Alpha);
-
-	// 폐쇄 완료 시 서버가 Closed 로 승급한다. State 변경 → 재선택으로 이 태스크를 벗어난다.
-	// 클라에서는 SetDoorState 가 노옵이며 OnRep_State 로 Closed 에 진입한다. 그때까지 완전 폐쇄 포즈로 머문다.
-	if (Alpha <= 0.f)
-	{
-		Door->SetDoorState(EWxDoorState::Closed);
-	}
-
-	return EStateTreeRunStatus::Running;
-}
+#endif
 
 bool FWxStateTreeCondition_DoorStateIs::TestCondition(FStateTreeExecutionContext& Context) const
 {
@@ -129,3 +105,18 @@ bool FWxStateTreeCondition_DoorStateIs::TestCondition(FStateTreeExecutionContext
 	const AWxDoor* Door = Cast<AWxDoor>(Context.GetOwner());
 	return Door != nullptr && Door->GetDoorState() == Instance.State;
 }
+
+#if WITH_EDITOR
+FText FWxStateTreeCondition_DoorStateIs::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
+{
+	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
+	check(InstanceData);
+
+	const UEnum* StateEnum = StaticEnum<EWxDoorState>();
+	const FText StateText = StateEnum
+		? StateEnum->GetDisplayNameTextByValue(static_cast<int64>(InstanceData->State))
+		: FText::GetEmpty();
+
+	return FText::Format(INVTEXT("Wx Door State Is {0}"), StateText);
+}
+#endif

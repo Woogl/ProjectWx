@@ -50,8 +50,13 @@ void AWxDoor::BeginPlay()
 
 	ConsoleInteraction->OnInteracted.AddDynamic(this, &AWxDoor::HandleConsoleInteracted);
 
+	// StartLogic 전에 현재 State 에 맞는 포즈로 미리 스냅한다. 이후 DoorPose 가 현재→목표로 보간하므로,
+	// 복원/레이트조인으로 이미 열린(Open)·닫는중(Closing) 문은 현재=목표가 되어 애니 없이 스냅된다.
+	const bool bStartOpen = (State == EWxDoorState::Open || State == EWxDoorState::Closing);
+	SetDoorOpenAlpha(bStartOpen ? 1.f : 0.f);
+
 	// 모든 컴포넌트의 BeginPlay 가 끝난 뒤 StateTree 를 시작한다.
-	// 시작 시 DoorStateIs 조건이 현재 State 를 읽어 맞는 상태(복원 시 Open 스냅 등)로 초기 선택한다.
+	// 시작 시 DoorStateIs 조건이 현재 State 를 읽어 맞는 상태로 초기 선택한다.
 	DoorStateTree->StartLogic();
 }
 
@@ -113,6 +118,7 @@ void AWxDoor::SetDoorOpenAlpha(float Alpha)
 	const float Clamped = FMath::Clamp(Alpha, 0.f, 1.f);
 	DoorLeft->SetRelativeLocation(DoorLeftClosedLocation + DoorLeftOpenOffset * Clamped);
 	DoorRight->SetRelativeLocation(DoorRightClosedLocation + DoorRightOpenOffset * Clamped);
+	CurrentOpenAlpha = Clamped;
 }
 
 void AWxDoor::CacheDoorPoseAnchors()
