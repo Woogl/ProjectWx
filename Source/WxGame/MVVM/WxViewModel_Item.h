@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Items/WxItemDefinition.h"
+#include "Items/WxItemFragment.h"
 #include "MVVM/WxViewModel.h"
 #include "View/MVVMViewModelContextResolver.h"
 
@@ -96,7 +97,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	EWxItemGrade Grade = EWxItemGrade::Common;
 
-	/** 슬롯 아이템 등급의 표시 색상. UWxInventoryDeveloperSettings 의 등급별 매핑에서 가져온다. */
+	/** 슬롯 아이템 등급의 표시 색상. Grade Fragment 의 Color 에서 가져온다(Fragment 부재 시 Common 기본색). */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	FLinearColor GradeColor = FLinearColor::White;
 

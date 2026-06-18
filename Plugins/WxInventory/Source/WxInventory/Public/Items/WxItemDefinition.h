@@ -12,18 +12,6 @@ class UTexture2D;
 class UWxItemFragment;
 
 /**
- * 아이템 등급. 색상/이펙트/드롭 가중치 등의 분기 키로 사용.
- */
-UENUM(BlueprintType)
-enum class EWxItemGrade : uint8
-{
-	Common,
-	Rare,
-	Epic,
-	Legendary
-};
-
-/**
  * 아이템의 분류. 기능과 UI 출력 형태의 1차 분기 축으로 사용된다(인벤토리 탭, 상점 카테고리, 사용/장착 가능 여부 등).
  *
  * 데이터 자산이 UWxItemDefinition::Category 필드로 직접 선언한다. Fragment 구성과 독립적이므로,
@@ -66,10 +54,6 @@ public:
 	/** UI 표시용 아이콘. 비동기 로드 권장. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Display")
 	TSoftObjectPtr<UTexture2D> Icon;
-
-	/** 아이템 등급. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
-	EWxItemGrade Grade;
 
 	/** 아이템 카테고리. UI 분류와 기능 분기의 1차 축. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")

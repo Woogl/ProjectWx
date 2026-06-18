@@ -10,7 +10,6 @@
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemFragment.h"
 #include "Items/WxItemInstance.h"
-#include "System/WxInventoryDeveloperSettings.h"
 
 void UWxViewModel_Item::Initialize(UWxInventoryManagerComponent* InInventory, UWxItemInstance* InInstance)
 {
@@ -158,8 +157,12 @@ void UWxViewModel_Item::ApplyStaticDataFromDef(const UWxItemDefinition* InItemDe
 
 	UE_MVVM_SET_PROPERTY_VALUE(Icon, InItemDef->Icon);
 	UE_MVVM_SET_PROPERTY_VALUE(DisplayName, InItemDef->DisplayName);
-	UE_MVVM_SET_PROPERTY_VALUE(Grade, InItemDef->Grade);
-	UE_MVVM_SET_PROPERTY_VALUE(GradeColor, GetDefault<UWxInventoryDeveloperSettings>()->GetItemGradeColor(InItemDef->Grade));
+
+	// 등급/색상은 Grade Fragment 에서 가져온다. 부재 시 Common 등급/Common 기본색으로 폴백.
+	const UWxItemFragment_Grade* GradeFragment = InItemDef->FindFragmentByClass<UWxItemFragment_Grade>();
+	const EWxItemGrade ItemGrade = GradeFragment ? GradeFragment->Grade : EWxItemGrade::Common;
+	UE_MVVM_SET_PROPERTY_VALUE(Grade, ItemGrade);
+	UE_MVVM_SET_PROPERTY_VALUE(GradeColor, GradeFragment ? GradeFragment->Color : UWxItemFragment_Grade::GetDefaultColorForGrade(EWxItemGrade::Common));
 
 	const UWxItemFragment_Charges* Charges = InItemDef->FindFragmentByClass<UWxItemFragment_Charges>();
 	UE_MVVM_SET_PROPERTY_VALUE(MaxCharges, Charges ? Charges->MaxCharges : 0);

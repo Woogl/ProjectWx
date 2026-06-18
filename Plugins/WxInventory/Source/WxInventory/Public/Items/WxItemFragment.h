@@ -17,6 +17,18 @@ class UTexture2D;
 class UWxItemInstance;
 
 /**
+ * 아이템 등급. 색상/이펙트/드롭 가중치 등의 분기 키로 사용.
+ */
+UENUM(BlueprintType)
+enum class EWxItemGrade : uint8
+{
+	Common,
+	Rare,
+	Epic,
+	Legendary
+};
+
+/**
  * 아이템 Fragment 의 베이스 UObject.
  *
  * UWxItemDefinition 의 Fragments 컬렉션에 EditInline 인스턴스로 부착되어, 아이템에 데이터·행동을 컴포지션한다.
@@ -157,4 +169,40 @@ public:
 	/** 픽업 액터의 나이아가라 컴포넌트에 적용할 시스템. 비어있으면 이펙트 비활성. */
 	UPROPERTY(EditDefaultsOnly, Category = "Pickup")
 	TSoftObjectPtr<UNiagaraSystem> NiagaraSystem;
+};
+
+/**
+ * 아이템 등급과 그 표시 색상을 선언하는 Fragment.
+ *
+ * Grade 는 색상/이펙트/드롭 가중치 등의 분기 키이며, Color 는 표시 색상이다.
+ * 등급별 기본 색 팔레트는 프로그래머가 C++(GetDefaultColorForGrade)에만 정의하며 에디터에 노출하지 않는다.
+ * 생성자가 그 팔레트로 Color 를 시드하고, 에디터에서 Grade 를 바꾸면 Color 가 해당 등급 기본값으로 자동 재시드된다(PostEditChangeProperty).
+ * Color 는 EditDefaultsOnly 라 기획자가 아이템별로 오버라이드할 수 있다.
+ *
+ * Fragment 부재 아이템은 소비처에서 Common 등급/Common 색으로 폴백한다.
+ */
+UCLASS(DisplayName = "Grade")
+class WXINVENTORY_API UWxItemFragment_Grade : public UWxItemFragment
+{
+	GENERATED_BODY()
+
+public:
+	UWxItemFragment_Grade();
+
+	/** 등급별 기본 표시 색상(프로그래머 정의 팔레트). 매핑 없는 등급은 White. Color 시드·폴백에 사용. */
+	static FLinearColor GetDefaultColorForGrade(EWxItemGrade Grade);
+
+	/** 아이템 등급. 색상/이펙트/드롭 가중치 등의 분기 키. */
+	UPROPERTY(EditDefaultsOnly, Category = "Grade")
+	EWxItemGrade Grade = EWxItemGrade::Common;
+
+	/** 표시 색상. Grade 의 기본 팔레트로 시드되며 아이템별로 오버라이드 가능. */
+	UPROPERTY(EditDefaultsOnly, Category = "Grade")
+	FLinearColor Color = FLinearColor::White;
+
+#if WITH_EDITOR
+	//~ Begin UObject interface — Grade 변경 시 Color 를 등급 기본값으로 재시드.
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	//~ End UObject interface
+#endif
 };

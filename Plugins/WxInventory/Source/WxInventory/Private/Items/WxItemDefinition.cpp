@@ -5,8 +5,7 @@
 #include "Items/WxItemFragment.h"
 
 UWxItemDefinition::UWxItemDefinition()
-	: Grade(EWxItemGrade::Common)
-	, Category(EWxItemCategory::None)
+	: Category(EWxItemCategory::None)
 {
 }
 

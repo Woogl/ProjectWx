@@ -35,15 +35,14 @@
 
 ## 폴더 구성
 - `Public/Inventory` — 인벤토리 매니저·보상 컴포넌트, 장착 컴포넌트
-- `Public/Items` — 아이템 정의/인스턴스/Fragment, 픽업 액터, 보상 테이블 Row
-- `Public/System` — `UWxInventoryDeveloperSettings`(등급 색상 Config)
+- `Public/Items` — 아이템 정의/인스턴스/Fragment(등급·색상은 `UWxItemFragment_Grade`), 픽업 액터, 보상 테이블 Row
 
 ## 확장 포인트 / 규약
 - **새 아이템 추가**: `UWxItemDefinition` 데이터 자산을 만들고 `Category`(EWxItemCategory) 지정 후 필요한 Fragment 를 `Fragments`(Instanced/EditInline)에 조합한다. 카테고리는 UI/기능 1차 분기 축, Fragment 는 기능 축으로 독립(직교)이다.
 - **새 행동 추가 / Fragment 조합 규약**: `UWxItemFragment` 를 **직접** 상속한다. Fragment 서브클래스끼리는 상속 금지 — 평면 직교 조합만 허용한다(`FindFragmentByClass` 가 `IsA` 기반이라 Fragment 간 상속이 있으면 오매칭). 그래서 사용 효과(`_Usable`)와 충전 횟수(`_Charges`)는 별개 Fragment 이며, 충전형 소비 아이템은 둘을 **함께** 부착한다. 인스턴스 초기 상태는 `OnInstanceCreated` override 로 주입한다(예: Charges 가 MaxCharges 로 채움).
 - **스택 규칙**: `_Stackable` 의 `MaxStack` 까지 기존 엔트리에 머지하고 초과분은 새 엔트리로 분할. Fragment 부재 시 항상 1슬롯=1개. 같은 정의가 여러 슬롯에 분산돼도 `GetTotalItemCountByDefinition`/`ConsumeItemsByDefinition` 로 합산 조회·차감(원자적).
 - **충전형 vs 소모형**: `_Charges` 가 있으면 사용 시 인벤토리 스택은 유지하고 인스턴스 충전량만 1 감소(소진돼도 인벤토리에 남음), 없으면 스택 1 차감. 회복은 `RefillItemCharges`(체크포인트 리필).
-- **데이터 주도**: 보상은 `FWxRewardTableRow`(DataTable, 아이템·수량 Pair 최대 5개, `TSoftObjectPtr` 지연 로드), 등급 색상은 `UWxInventoryDeveloperSettings`(Config=Game).
+- **데이터 주도**: 보상은 `FWxRewardTableRow`(DataTable, 아이템·수량 Pair 최대 5개, `TSoftObjectPtr` 지연 로드). 등급/색상은 `UWxItemFragment_Grade`(Grade + Color, 등급별 기본색은 C++ 생성자에서 시드, 기획자 오버라이드 가능).
 - **권한/리플리케이션(최대 4인 멀티)**: 인벤토리는 PlayerController 부착, `FindInventory` 가 폰→컨트롤러를 거쳐 조회한다. Add/Consume/Use/Equip/Refill 은 모두 서버(권한) 전용. `FWxInventoryList`(FastArray) + `UWxItemInstance`(등록 SubObject)로 동기화하고, 서버 변경 경로와 클라 복제 콜백(`PostReplicatedAdd/Change`, `PreReplicatedRemove`, `OnRep_CurrentCharges`)이 동일한 `Notify*` 진입점으로 수렴해 델리게이트를 발행한다.
 
 ## 여기서부터 읽어라
