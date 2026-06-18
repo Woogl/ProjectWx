@@ -6,7 +6,7 @@
 **담당**
 - 상호작용 파이프라인: `UWxInteractionComponent`(오버랩 감지·서버 권위 `TryInteract`·Multicast 알림)와 로컬 플레이어별 `UWxInteractionRegistrySubsystem`(인-레인지 목록·선택·외곽선 강조 조율)
 - 기믹 액터: `AWxGimmick` 베이스와 그 자식들(Door/Elevator/TreasureChest/AlarmConsole/SpawnConsole/CutsceneTrigger). 상태 복제·Level Streaming Persistence·WxSave 슬롯 보존 포함
-- 문 상태머신을 StateTree로 구동하는 노드(`WxDoorStateTreeNodes`)
+- 문/엘리베이터 상태머신을 StateTree로 구동하는 노드(`WxDoorStateTreeNodes`·`WxElevatorStateTreeNodes`)
 - 스포너: `AWxSpawner`(처치/부활 상태 보유), `UWxSpawnerSubsystem`(레지스트리·일괄 리스폰), `IWxSpawnableInterface`(스폰 대상 훅), `UWxSpawnerLibrary`(BP 진입점)
 
 **경계 (비담당)**
@@ -25,14 +25,14 @@
 | `UWxInteractionRegistrySubsystem` | 로컬 플레이어별 인-레인지 목록·선택 인덱스 소유. HUD 리스트와 어빌리티가 읽는 단일 소스 | `Source/WxWorld/Public/Interaction/WxInteractionRegistrySubsystem.h` |
 | `AWxGimmick` | 모든 상호작용 월드 오브젝트의 추상 베이스. `ApplyState` 후크 + 1회성 `bTriggered` + WxSave 통합 | `Source/WxWorld/Public/Gimmick/WxGimmick.h` |
 | `AWxDoor` | 자체 `EWxDoorState` 권위 상태 + StateTree 구동 개폐 문 | `Source/WxWorld/Public/Gimmick/WxDoor.h` |
-| `AWxElevator` | 스플라인 경로 5상태 머신(정지 2 + 전이 3) 엘리베이터 | `Source/WxWorld/Public/Gimmick/WxElevator.h` |
+| `AWxElevator` | 자체 `EWxElevatorState` 권위 상태(정지 2 + 전이 3) + StateTree 구동 스플라인 경로 엘리베이터 | `Source/WxWorld/Public/Gimmick/WxElevator.h` |
 | `AWxSpawner` | 스폰 대상 인스턴스를 들고 처치/부활(`bIsKilled`·`bNeverRevive`)을 자체 보유하는 레벨 배치 액터 | `Source/WxWorld/Public/Spawnable/WxSpawner.h` |
 | `UWxSpawnerSubsystem` | 월드 내 스포너 레지스트리. 역조회 처치 마킹·Auto 일괄 리스폰 위임 | `Source/WxWorld/Public/System/WxSpawnerSubsystem.h` |
 | `IWxSpawnableInterface` | 스폰 대상이 구현. `OnSpawnedBy`(빙의 전 컨텍스트 주입) + 에디터 미리보기 메시 추출 | `Source/WxWorld/Public/Spawnable/WxSpawnableInterface.h` |
 
 ## 확장 포인트 / 규약
 - **새 기믹 추가**: `AWxGimmick`(Abstract) 상속 → 메시/`UWxInteractionComponent`를 직접 들고 핸들러를 `OnInteracted`에 바인딩. 다단계 상태가 필요하면 `bTriggered` 대신 자체 State enum + `ReplicatedUsing`/`SaveGame`을 두고 `ApplyState()` 오버라이드로 시각/인터랙션을 동기화한다(서버 즉시·OnRep·BeginPlay·WxSave 복원이 모두 `ApplyState` 한 경로로 수렴). 보존 필드는 `UPROPERTY(SaveGame)`, 안정 키 `WxSaveId`는 베이스가 에디터에서 부여
-- **문 상태/전이 author**: C++는 얇은 프리미티브(포즈 보간·인터랙션 토글·State 조회)만 제공하고 상태·전이는 `ST_Door` StateTree 에셋에서 편집(`WxDoorStateTreeNodes`의 DoorPose/DoorInteraction/DoorStateIs)
+- **문/엘리베이터 상태·전이 author**: C++는 얇은 프리미티브(포즈/이동 보간·인터랙션 토글·State 조회·승급)만 제공하고 상태·전이는 StateTree 에셋(`ST_Door`/`ST_Elevator`)에서 편집(`WxDoorStateTreeNodes`·`WxElevatorStateTreeNodes`). 전이는 "권위 `State` 변경 → 태스크가 `EnteredState`에서 벗어났음을 감지해 `Succeeded` 반환 → `On State Succeeded → Root` 재선택"으로 구동(이벤트 태그 없이 서버가 클라 전이를 게이팅)
 - **새 스폰 대상**: 액터가 `IWxSpawnableInterface` 구현 → `AWxSpawner.SpawnableActorClass`에 지정. 트리거는 `EWxSpawnerMode`(Auto/Manual), 보스류는 `bNeverRevive`
 - **상호작용 활성/텍스트/강조**는 `UWxInteractionComponent`의 `SetInteractionEnabled`/`SetInteractionText`/`SetHighlightEnabled`로 런타임 제어
 

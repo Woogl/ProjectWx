@@ -7,7 +7,6 @@
 #include "Engine/StaticMesh.h"
 #include "Interaction/WxInteractionComponent.h"
 #include "Net/UnrealNetwork.h"
-#include "WxGameplayTags.h"
 
 AWxDoor::AWxDoor()
 {
@@ -51,61 +50,45 @@ void AWxDoor::BeginPlay()
 	ConsoleInteraction->OnInteracted.AddDynamic(this, &AWxDoor::HandleConsoleInteracted);
 
 	// StartLogic 전에 현재 State 에 맞는 포즈로 미리 스냅한다. 이후 DoorPose 가 현재→목표로 보간하므로,
-	// 복원/레이트조인으로 이미 열린(Open)·닫는중(Closing) 문은 현재=목표가 되어 애니 없이 스냅된다.
-	const bool bStartOpen = (State == EWxDoorState::Open || State == EWxDoorState::Closing);
-	SetDoorOpenAlpha(bStartOpen ? 1.f : 0.f);
+	// 복원/레이트조인으로 이미 열린(Open) 문은 현재=목표가 되어 애니 없이 스냅된다.
+	SetDoorOpenAlpha(State == EWxDoorState::Open ? 1.f : 0.f);
 
 	// 모든 컴포넌트의 BeginPlay 가 끝난 뒤 StateTree 를 시작한다.
 	// 시작 시 DoorStateIs 조건이 현재 State 를 읽어 맞는 상태로 초기 선택한다.
 	DoorStateTree->StartLogic();
 }
 
-void AWxDoor::ApplyState()
-{
-	// State 변경을 StateTree 에 알려 현재 State 에 맞는 상태로 Root 재선택을 유발한다.
-	// 서버(SetDoorState)·클라(OnRep_State)·복원(OnWxSaveRestored) 모두 이 한 경로로 StateTree 를 동기화한다.
-	if (DoorStateTree && DoorStateTree->IsRunning())
-	{
-		DoorStateTree->SendStateTreeEvent(WxGameplayTags::Event_Gimmick_StateChanged);
-	}
-}
-
 void AWxDoor::SetDoorState(EWxDoorState NewState)
 {
-	// State 쓰기는 권위 전용. 클라는 OnRep_State 로 동기화된다.
+	// State 쓰기는 권위 전용. 클라는 복제로 동기화된다.
+	// 전이는 별도 통지 없이 DoorPose 가 State 변화를 감지해 Succeeded 를 반환하며 구동한다(서버/클라 동일).
 	if (!HasAuthority() || State == NewState)
 	{
 		return;
 	}
 
 	State = NewState;
-	ApplyState();
 }
 
 void AWxDoor::HandleConsoleInteracted(AActor* InstigatorActor)
 {
-	// 권위 측만 처리하며, 현재 상태에 따라 개방/닫기를 시작한다.
-	// 닫기(Open→Closing)는 준비돼 있으나, Open 의 DoorPose interaction 이 에셋에서 비활성이라 Open 에선 이 콜백이 호출되지 않아 현재 단방향으로 동작한다.
+	// 권위 측만 처리하며, 현재 상태의 반대 목표로 확정한다(슬라이드는 StateTree DoorPose 가 비주얼로 처리).
+	// 닫기(Open→Close)는 준비돼 있으나, Open 의 DoorInteraction 이 에셋에서 비활성이라 Open 에선 이 콜백이 호출되지 않아 현재 단방향으로 동작한다.
 	// Open interaction 을 켜면 반복 개폐가 활성화된다.
-	// 클라이언트는 OnRep_State → ApplyState 로 동일 처리되므로 비권위 분기는 노옵.
+	// 클라이언트는 복제된 State 를 DoorPose 가 감지해 동일 전이하므로 비권위 분기는 노옵.
 	if (!HasAuthority())
 	{
 		return;
 	}
 
-	if (State == EWxDoorState::Closed)
+	if (State == EWxDoorState::Close)
 	{
-		SetDoorState(EWxDoorState::Opening);
+		SetDoorState(EWxDoorState::Open);
 	}
 	else if (State == EWxDoorState::Open)
 	{
-		SetDoorState(EWxDoorState::Closing);
+		SetDoorState(EWxDoorState::Close);
 	}
-}
-
-void AWxDoor::OnRep_State()
-{
-	ApplyState();
 }
 
 void AWxDoor::SetConsoleInteractionEnabled(bool bEnabled)

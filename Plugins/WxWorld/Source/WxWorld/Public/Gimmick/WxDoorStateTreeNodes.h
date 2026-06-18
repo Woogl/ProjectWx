@@ -18,7 +18,7 @@ struct FStateTreeTransitionResult;
  * 제공하는 소유 액터(= AWxDoor) 이며, 각 노드는 Context.GetOwner() 를 캐스트해 얻는다.
  *
  * 노드는 셋이다(직교 단일 책임):
- *  - DoorPose 는 (bOpen) 으로 현재 포즈에서 목표 포즈로 일정 속도 보간하고, 도달 시 서버가 State 를 승급한다.
+ *  - DoorPose 는 (bOpen) 으로 현재 포즈에서 목표 포즈로 일정 속도 보간하고, 도달하면 그대로 hold 한다(권위 쓰기 없는 순수 비주얼).
  *    시작 시 이미 목표 포즈면(복원/레이트조인) 움직임 없이 스냅, 라이브 전이면 슬라이드. 정지·전이를 한 태스크로 처리.
  *  - DoorInteraction 은 (bEnableInteraction) 으로 콘솔 인터랙션을 토글.
  *  - DoorStateIs 는 (state) 로 각 비주얼 상태의 enter condition 에 재사용.
@@ -31,15 +31,20 @@ struct FWxStateTreeTask_DoorPoseInstanceData
 {
 	GENERATED_BODY()
 
-	/** 목표 포즈가 열림인지(true=열림 1, false=닫힘 0). 도달 시 승급할 State(Open/Closed)도 이 값이 결정. */
+	/** 목표 포즈가 열림인지(true=열림 1, false=닫힘 0)만 결정. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	bool bOpen = false;
+
+	/** EnterState 시점의 권위 State(런타임 전용). 권위 State 가 이 값에서 벗어나면 Succeeded 를 반환해 재선택을 유발. */
+	UPROPERTY()
+	EWxDoorState EnteredState = EWxDoorState::Close;
 };
 
 /**
- * Tick 으로 문 개방 알파를 현재값에서 목표(bOpen?1:0)로 DoorAnimDuration 에 맞춘 일정 속도로 보간하고,
- * 목표 도달 시 서버가 State 를 bOpen?Open:Closed 로 승급한다.
- * 시작 시 이미 목표 포즈면(문이 BeginPlay 에서 State 에 맞게 pre-snap) 움직임 없이 즉시 스냅·승급된다.
+ * Tick 으로 문 개방 알파를 현재값에서 목표(bOpen?1:0)로 DoorAnimDuration 에 맞춘 일정 속도로 보간하고, 도달하면 그대로 hold 한다(순수 비주얼).
+ * 전이는 "권위 State 가 진입 시점(EnteredState)에서 벗어나면 Succeeded 반환 → On Succeeded → Root 재선택"으로 구동한다.
+ * 서버는 상호작용으로 SetDoorState 즉시, 클라는 복제로 State 가 바뀐 뒤 완료(서버가 전이의 클럭, 이벤트 태그 없음).
+ * 시작 시 이미 목표 포즈면(문이 BeginPlay 에서 State 에 맞게 pre-snap) 움직임 없이 즉시 스냅된다.
  */
 USTRUCT(meta = (DisplayName = "Wx Door Pose"))
 struct FWxStateTreeTask_DoorPose : public FStateTreeTaskCommonBase
@@ -99,12 +104,12 @@ struct FWxStateTreeCondition_DoorStateIsInstanceData
 
 	/** 비교할 문 상태. 이 조건을 단 상태의 enter condition 으로 사용. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
-	EWxDoorState State = EWxDoorState::Closed;
+	EWxDoorState State = EWxDoorState::Close;
 };
 
 /**
  * 소유 문의 현재 State 가 지정 State 와 같은지 검사한다.
- * 각 비주얼 상태(Closed/Opening/Open/Closing)의 enter condition 으로 사용하여, 시작/복원/재선택 시 현재 State 에 맞는 상태를 선택한다.
+ * 각 비주얼 상태(Close/Open)의 enter condition 으로 사용하여, 시작/복원/재선택 시 현재 State 에 맞는 상태를 선택한다.
  */
 USTRUCT(meta = (DisplayName = "Wx Door State Is"))
 struct FWxStateTreeCondition_DoorStateIs : public FStateTreeConditionCommonBase

@@ -7,7 +7,7 @@
 
 EStateTreeRunStatus FWxStateTreeTask_DoorPose::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
+	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
 	AWxDoor* Door = Cast<AWxDoor>(Context.GetOwner());
 	if (!Door)
@@ -15,14 +15,16 @@ EStateTreeRunStatus FWxStateTreeTask_DoorPose::EnterState(FStateTreeExecutionCon
 		return EStateTreeRunStatus::Failed;
 	}
 
+	// 선택 시점의 권위 State 를 기록한다. 이후 State 가 이 값에서 벗어나면(상호작용) Tick 이 Succeeded 로 완료한다.
+	Instance.EnteredState = Door->GetDoorState();
+
 	const float TargetAlpha = Instance.bOpen ? 1.f : 0.f;
 
-	// 이미 목표 포즈거나(복원/레이트조인/정지 hold) 길이가 0이면 즉시 스냅하고 서버는 State 를 승급한다.
+	// 이미 목표 포즈거나(복원/레이트조인/정지 hold) 길이가 0이면 즉시 스냅한다.
 	// 라이브 전이는 현재≠목표이므로 아래를 건너뛰고 Tick 이 보간한다.
 	if (Door->GetDoorAnimDuration() <= 0.f || FMath::IsNearlyEqual(Door->GetDoorOpenAlpha(), TargetAlpha))
 	{
 		Door->SetDoorOpenAlpha(TargetAlpha);
-		Door->SetDoorState(Instance.bOpen ? EWxDoorState::Open : EWxDoorState::Closed);
 	}
 
 	return EStateTreeRunStatus::Running;
@@ -37,10 +39,17 @@ EStateTreeRunStatus FWxStateTreeTask_DoorPose::Tick(FStateTreeExecutionContext& 
 	}
 
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
+
+	// 권위 State 가 진입 시점에서 벗어나면(상호작용으로 반대 목표 확정) 완료해 재선택을 유발한다.
+	// 서버는 SetDoorState 즉시, 클라는 복제로 State 가 바뀐 뒤 완료(서버가 전이를 게이팅).
+	if (Door->GetDoorState() != Instance.EnteredState)
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	// 목표 포즈로 보간하고, 도달하면 그대로 hold(이 상태가 안정 상태).
 	const float TargetAlpha = Instance.bOpen ? 1.f : 0.f;
 	const float CurrentAlpha = Door->GetDoorOpenAlpha();
-
-	// 이미 목표면 더 보간할 것이 없다(EnterState 가 스냅·승급을 끝냈거나, 도달 후 재선택 대기).
 	if (FMath::IsNearlyEqual(CurrentAlpha, TargetAlpha))
 	{
 		return EStateTreeRunStatus::Running;
@@ -50,13 +59,6 @@ EStateTreeRunStatus FWxStateTreeTask_DoorPose::Tick(FStateTreeExecutionContext& 
 	const float Speed = Duration > 0.f ? 1.f / Duration : 1.f;
 	const float NewAlpha = FMath::FInterpConstantTo(CurrentAlpha, TargetAlpha, DeltaTime, Speed);
 	Door->SetDoorOpenAlpha(NewAlpha);
-
-	// 목표 도달 시 서버가 State 를 승급한다. State 변경 → 재선택으로 이 태스크를 벗어난다.
-	// 클라에서는 SetDoorState 가 노옵이며 OnRep_State 로 다음 상태에 진입한다.
-	if (FMath::IsNearlyEqual(NewAlpha, TargetAlpha))
-	{
-		Door->SetDoorState(Instance.bOpen ? EWxDoorState::Open : EWxDoorState::Closed);
-	}
 
 	return EStateTreeRunStatus::Running;
 }
