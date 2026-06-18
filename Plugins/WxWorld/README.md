@@ -1,49 +1,51 @@
-# WxWorld — 월드 오브젝트 및 상호작용
+# WxWorld — 월드 오브젝트 & 상호작용
 
-> 레벨에 배치되는 상호작용 가능한 월드 오브젝트(문/엘리베이터/보물상자/콘솔/컷신 트리거)와, 플레이어가 그것들과 상호작용하는 공통 메커니즘(오버랩 감지·HUD 리스트·서버 권위 발동), 그리고 적/대상 액터를 스폰·리스폰하는 스포너 시스템을 담당한다.
+> 레벨에 배치되는 상호작용 가능한 월드 오브젝트(문/엘리베이터/보물상자/콘솔/컷신)와, 플레이어 상호작용 감지·선택·발동 파이프라인, 그리고 적/액터 스폰 시스템을 담당한다.
 
 ## 책임
 **담당**
-- 상호작용 파이프라인: `UWxInteractionComponent`(오버랩 감지·서버 권위 `TryInteract`·Multicast 알림)와 로컬 플레이어별 `UWxInteractionRegistrySubsystem`(인-레인지 목록·선택·외곽선 강조 조율)
-- 기믹 액터: `AWxGimmick` 베이스와 그 자식들(Door/Elevator/TreasureChest/AlarmConsole/SpawnConsole/CutsceneTrigger). 상태 복제·Level Streaming Persistence·WxSave 슬롯 보존 포함
-- 문/엘리베이터 상태머신을 StateTree로 구동하는 노드(`WxDoorStateTreeNodes`·`WxElevatorStateTreeNodes`)
-- 스포너: `AWxSpawner`(처치/부활 상태 보유), `UWxSpawnerSubsystem`(레지스트리·일괄 리스폰), `IWxSpawnableInterface`(스폰 대상 훅), `UWxSpawnerLibrary`(BP 진입점)
+- 상호작용 감지·등록·발동: 오버랩 기반 인-레인지 수집, HUD 리스트용 레지스트리, 서버 권위 발동(Multicast)
+- 기믹 액터: `AWxGimmick` 계열의 문/엘리베이터/보물상자/경보·스폰 콘솔/컷신 트리거 (StateTree 구동 포함)
+- 스폰 시스템: 레벨 배치 `AWxSpawner`, 월드 레지스트리 서브시스템, 일괄/개별 리스폰과 처치(영구사망) 상태
+- 월드 오브젝트의 WxSave/Level Streaming 영속(GUID 키 기반 상태 보존)
 
 **경계 (비담당)**
-- 상호작용 *입력*과 어빌리티(`WxAbility_Interact`)·외곽선 포스트프로세스 머티리얼·HUD 리스트 뷰모델/WBP는 [[WxCombat]]·[[WxUI]] 등 외부 담당. 본 모듈은 등록/선택/발동 데이터만 노출
-- 보상 지급은 위임: 보물상자는 보상 컴포넌트(`WxRewardComponent`)를 C++로 들지 않고 [[WxInventory]]가 상속 BP에서 추가·자가 바인딩
-- 상호작용 인터페이스(`IWxInteractionSource`)·세이브 인터페이스(`IWxSavable`) 정의는 [[WxCore]]
+- 상호작용 입력 어빌리티(`WxAbility_Interact`)·캐릭터 측 ASC — [[WxCombat]] 영역
+- 상호작용 프롬프트 HUD/뷰모델 표시(`WBP_InteractionList`, `UWxViewModel_InteractionList`) — [[WxUI]] 영역
+- 보물상자 보상 지급(`WxRewardComponent`) — [[WxInventory]] (플러그인 참조 금지로 상속 BP에서 부착)
+- 스폰된 액터의 AI 빙의/행동 — [[WxAI]]
+- `IWxSavable`/`IWxInteractionSource` 인터페이스 정의 자체 — [[WxCore]] (여기선 구현만)
 
 ## 의존성
-- **주요 의존**: [[WxCore]](`IWxInteractionSource`·`IWxSavable`), StateTree / GameplayStateTree(문 상태머신), GameplayAbilities·Niagara·LevelSequence/MovieScene(컷신), DeveloperSettings(스포너 아이콘 설정)
-- 규칙: 플러그인 의존은 WxCore·엔진 플러그인뿐 — WxCore 외 Wx 플러그인 참조 없음 ✅
+- **주요 의존**: [[WxCore]] · GameplayTags · StateTreeModule / GameplayStateTreeModule(기믹 상태머신) · GameplayAbilities · LevelSequence/MovieScene(컷신) · Niagara · DeveloperSettings
+- 규칙: 플러그인 의존은 WxCore뿐 — WxCore 외 Wx 참조 없음 ✅ (`IWxInteractionSource`/`IWxSavable`는 WxCore 정의 인터페이스이며, 보상·HUD 연동은 BP/델리게이트로 우회)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxInteractionComponent` | 상호작용 영역. 폰 오버랩 감지 → 레지스트리 등록 → 서버 `TryInteract` → `OnInteracted` Multicast. 기믹들이 이 컴포넌트에 핸들러를 바인딩 | `Source/WxWorld/Public/Interaction/WxInteractionComponent.h` |
-| `UWxInteractionRegistrySubsystem` | 로컬 플레이어별 인-레인지 목록·선택 인덱스 소유. HUD 리스트와 어빌리티가 읽는 단일 소스 | `Source/WxWorld/Public/Interaction/WxInteractionRegistrySubsystem.h` |
-| `AWxGimmick` | 모든 상호작용 월드 오브젝트의 추상 베이스. `ApplyState` 후크 + 1회성 `bTriggered` + WxSave 통합 | `Source/WxWorld/Public/Gimmick/WxGimmick.h` |
-| `AWxDoor` | 자체 `EWxDoorState` 권위 상태 + StateTree 구동 개폐 문 | `Source/WxWorld/Public/Gimmick/WxDoor.h` |
-| `AWxElevator` | 자체 `EWxElevatorState` 권위 상태(정지 2 + 전이 3) + StateTree 구동 스플라인 경로 엘리베이터 | `Source/WxWorld/Public/Gimmick/WxElevator.h` |
-| `AWxSpawner` | 스폰 대상 인스턴스를 들고 처치/부활(`bIsKilled`·`bNeverRevive`)을 자체 보유하는 레벨 배치 액터 | `Source/WxWorld/Public/Spawnable/WxSpawner.h` |
-| `UWxSpawnerSubsystem` | 월드 내 스포너 레지스트리. 역조회 처치 마킹·Auto 일괄 리스폰 위임 | `Source/WxWorld/Public/System/WxSpawnerSubsystem.h` |
-| `IWxSpawnableInterface` | 스폰 대상이 구현. `OnSpawnedBy`(빙의 전 컨텍스트 주입) + 에디터 미리보기 메시 추출 | `Source/WxWorld/Public/Spawnable/WxSpawnableInterface.h` |
+| `UWxInteractionComponent` | 상호작용 영역 단위. 오버랩 감지→레지스트리 등록, 서버 `TryInteract`→Multicast 발동 | `Source/WxWorld/Public/Interaction/WxInteractionComponent.h` |
+| `UWxInteractionRegistrySubsystem` | LocalPlayer별 인-레인지 목록·선택 소유. HUD 뷰모델이 구독 | `Source/WxWorld/Public/Interaction/WxInteractionRegistrySubsystem.h` |
+| `AWxGimmick` | 상호작용 월드 오브젝트 공통 베이스. `IWxSavable`, `ApplyState` 후크, GUID 영속 | `Source/WxWorld/Public/Gimmick/WxGimmick.h` |
+| `AWxDoor` / `AWxElevator` | StateTree로 상태·전이를 구동하는 기믹 (자체 State enum 권위) | `Source/WxWorld/Public/Gimmick/WxDoor.h`, `WxElevator.h` |
+| `AWxSpawner` | 레벨 배치 스폰 액터. `bIsKilled`/`bNeverRevive` 처치 상태 보유 | `Source/WxWorld/Public/Spawnable/WxSpawner.h` |
+| `IWxSpawnableInterface` | 스폰 대상 액터 계약(`OnSpawnedBy` 훅, 에디터 미리보기 메시) | `Source/WxWorld/Public/Spawnable/WxSpawnableInterface.h` |
+| `UWxSpawnerSubsystem` | 월드 내 Spawner 레지스트리. 일괄 리스폰·역조회 처치 마킹 | `Source/WxWorld/Public/System/WxSpawnerSubsystem.h` |
+| `UWxSpawnerLibrary` | BP 진입점(thin wrapper) — `RespawnAutoSpawners` | `Source/WxWorld/Public/System/WxSpawnerLibrary.h` |
 
 ## 확장 포인트 / 규약
-- **새 기믹 추가**: `AWxGimmick`(Abstract) 상속 → 메시/`UWxInteractionComponent`를 직접 들고 핸들러를 `OnInteracted`에 바인딩. 다단계 상태가 필요하면 `bTriggered` 대신 자체 State enum + `ReplicatedUsing`/`SaveGame`을 두고 `ApplyState()` 오버라이드로 시각/인터랙션을 동기화한다(서버 즉시·OnRep·BeginPlay·WxSave 복원이 모두 `ApplyState` 한 경로로 수렴). 보존 필드는 `UPROPERTY(SaveGame)`, 안정 키 `WxSaveId`는 베이스가 에디터에서 부여
-- **문/엘리베이터 상태·전이 author**: C++는 얇은 프리미티브(포즈/이동 보간·인터랙션 토글·State 조회·승급)만 제공하고 상태·전이는 StateTree 에셋(`ST_Door`/`ST_Elevator`)에서 편집(`WxDoorStateTreeNodes`·`WxElevatorStateTreeNodes`). 전이는 "권위 `State` 변경 → 태스크가 `EnteredState`에서 벗어났음을 감지해 `Succeeded` 반환 → `On State Succeeded → Root` 재선택"으로 구동(이벤트 태그 없이 서버가 클라 전이를 게이팅)
-- **새 스폰 대상**: 액터가 `IWxSpawnableInterface` 구현 → `AWxSpawner.SpawnableActorClass`에 지정. 트리거는 `EWxSpawnerMode`(Auto/Manual), 보스류는 `bNeverRevive`
-- **상호작용 활성/텍스트/강조**는 `UWxInteractionComponent`의 `SetInteractionEnabled`/`SetInteractionText`/`SetHighlightEnabled`로 런타임 제어
+- **새 기믹 추가**: `AWxGimmick` 상속, 컴포넌트는 자식이 직접 보유해 `SceneRoot`에 부착. `ApplyState()` 오버라이드로 로컬 효과 적용. 1회성은 `MarkTriggered()`(점진 폐기 예정), 다단계는 자체 State enum 권위(Door/Elevator 패턴) 채택.
+- **StateTree 기믹**: 상태/전이는 `ST_*` 에셋에서 author, C++는 노드용 프리미티브만 노출(`WxDoorStateTreeNodes`/`WxElevatorStateTreeNodes`).
+- **새 스폰 대상**: `IWxSpawnableInterface` 구현 후 Spawner의 `SpawnableActorClass`에 지정(`MustImplement`로 강제). `OnSpawnedBy`에서 per-instance 컨텍스트 주입(FinishSpawning 이전).
+- **영속**: 보존 필드는 `UPROPERTY(SaveGame)`. 안정 키 `WxSaveId`(GUID)는 에디터에서 1회 부여되어 세션/스트리밍 간 불변.
+- **리플리케이션 권한**: 발동·상태 전이는 서버 권위. 클라는 복제된 State/`bTriggered` OnRep으로 따라간다. 상호작용 발동은 `TryInteract`(서버)→`MulticastInteracted`.
 
 ## 여기서부터 읽어라
-1. `Source/WxWorld/Public/Interaction/WxInteractionComponent.h` — 상호작용 전체 흐름(오버랩→등록→서버 발동→Multicast)이 헤더 주석에 정리되어 있어 모듈 진입에 최적
-2. `Source/WxWorld/Public/Gimmick/WxGimmick.h` — `ApplyState`/`bTriggered`/WxSave 규약. 모든 기믹의 상태 동기화 패턴이 여기서 출발
-3. `Source/WxWorld/Public/Gimmick/WxDoor.h` + `WxDoorStateTreeNodes.h` — C++ 프리미티브와 StateTree 분담을 보여주는 대표 사례
-4. `Source/WxWorld/Public/Spawnable/WxSpawner.h` — 스폰/처치/부활 상태 모델
+1. `Source/WxWorld/Public/Interaction/WxInteractionComponent.h` — 상호작용 파이프라인 전체 흐름(감지→레지스트리→어빌리티→Multicast)이 헤더 주석에 정리됨
+2. `Source/WxWorld/Public/Gimmick/WxGimmick.h` — 모든 기믹의 공통 영속/`ApplyState` 규약. 기믹을 읽기 전 먼저 본다
+3. `Source/WxWorld/Public/Spawnable/WxSpawner.h` + `Source/WxWorld/Public/System/WxSpawnerSubsystem.h` — 스폰/처치/리스폰 상태 모델
 
 ## 관련
-- 상위: [[WxCombat]](`WxAbility_Interact`가 레지스트리 선택 대상을 TargetData로 서버에 전달), [[WxUI]](HUD 인터랙션 리스트가 레지스트리 목록 표시), [[WxInventory]](보물상자 보상 컴포넌트 BP 상속), [[WxCore]](인터페이스 정의)
+- 상위: [[WxCombat]](상호작용 어빌리티·캐릭터 사망 처치 연동), [[WxUI]](프롬프트 HUD), [[WxInventory]](보물상자 보상), [[WxAI]](스폰 대상), [[WxSave]](슬롯 영속), [[WxCore]](`IWxInteractionSource`/`IWxSavable` 정의)
 
 ---
-*문서 기준 커밋 `a2ba2b5` · 생성일 2026-06-17 · 소스 30파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `6e6d0ae` · 생성일 2026-06-18 · 소스 33파일 — `/readme-writer`로 갱신*

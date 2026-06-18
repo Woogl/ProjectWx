@@ -9,7 +9,7 @@
 - 에너미 AI 컨트롤러(`AWxEnemyController`)와 BehaviorTree 실행 연결
 - 게임플레이 입력 설정(Enhanced Input + InputTag 매핑 DataAsset)과 캐릭터 입력 바인딩. 메뉴/UI 토글 입력은 CommonUI 액션([[WxUI]])이 소유
 - 구체 월드 오브젝트(체크포인트·레이저 트랩) — [[WxWorld]]의 기믹/상호작용 베이스를 활용해 구현
-- 캐릭터 부착 컴포넌트(장비 외형/EquipEffect GE, 네임플레이트)와 게임 특화 어빌리티(`UWxAbility_Interact`, `UWxAbility_UseItem`) 및 짝 AnimNotify(발소리, Event.UseItem 송출)
+- 게임 특화 어빌리티(`UWxAbility_Interact`, `UWxAbility_UseItem`)와 짝 AnimNotify(발소리, Event.UseItem 송출)·TargetData
 - MVVM 글루: 뷰모델 리졸버(Player/Inventory/Boss — 위젯별 생성·데이터 소스 주입), 보스 스폰/소멸 관찰형 뷰모델, Inventory/Item 뷰모델
 
 **경계 (비담당)**
@@ -42,16 +42,17 @@
 - 플레이어 입력 추가는 `UWxInputConfig` DataAsset에 InputAction→InputTag 항목을 더하는 식으로 데이터 주도. 메뉴/UI 입력은 CommonUI 액션([[WxUI]])으로 처리하고 여기 두지 않는다.
 - 새 어빌리티는 [[WxCombat]]의 어빌리티 베이스(`UWxAbilityBase`)를 상속한다. 몽타주 시점 동기화가 필요하면 짝 AnimNotify를 `Source/WxGame/AnimNotify/`에 두고 GameplayEvent로 연결한다(예: `UWxAbility_UseItem` ↔ `UWxAnimNotify_UseItem`의 Event.UseItem).
 - 새 월드 오브젝트는 [[WxWorld]]의 `AWxGimmick`을 상속하고 `UWxInteractionComponent`로 상호작용을 노출한다. `Source/WxGame/WorldObject/`의 기존 구현(CheckPoint/LaserCorridor)을 본보기로.
-- 뷰모델 연동은 전부 리졸버가 위젯별 생성으로 통일: 위젯 생성 시점에 소스가 보장되는 뷰모델(Player/Inventory)은 생성 시 1회 주입하고, 소스가 늦게 나타날 수 있는 보스 체력바는 관찰형 `UWxViewModel_BossCharacter`가 월드의 보스 스폰/EndPlay를 구독해 내부 상태만 갈아끼운다(`AWxBossCharacter`에는 UI 연동 코드 없음).
-- 리플리케이션(최대 4인): 서버 권한 모델. ASC는 캐릭터 소유(리스폰 시 재초기화), 인벤토리는 `AWxPlayerController`에서 소유 클라이언트로만 복제, 장비는 `EquippedItemDef` OnRep으로 외형 동기화하고 EquipEffect GE 적용은 서버 권한 측에서 수행.
+- 뷰모델 연동은 전부 리졸버가 위젯별 생성으로 통일: 위젯 생성 시점에 소스가 보장되는 뷰모델(Player/Inventory)은 생성 시 1회 주입하고, 소스가 늦게 나타날 수 있는 보스 체력바는 관찰형 `UWxViewModel_BossCharacter`가 월드의 보스 스폰/EndPlay를 구독해 내부 상태만 갈아끼운다(`AWxBossCharacter`에는 UI 연동 코드 없음). WxUI 뷰모델이 도메인 플러그인을 참조하지 못하므로, 양쪽에 의존하는 게임 모듈 측 리졸버가 데이터 주입을 담당한다.
+- 리플리케이션: 서버 권한 모델. ASC는 캐릭터 소유(리스폰 시 재초기화), 인벤토리는 `AWxPlayerController`에서 소유 클라이언트로만 복제, 상호작용은 클라 로컬 선택 → 서버 권한 실행(`UWxAbility_Interact`).
 
 ## 여기서부터 읽어라
 1. `Source/WxGame/Character/WxCharacterBase.h` — 캐릭터 공통 골격과 GAS 초기화 흐름의 출발점
 2. `Source/WxGame/Controller/WxPlayerController.h` — 인벤토리·HUD·뷰모델·사망 화면이 어디서 묶이는지 전체 그림
-3. `Source/WxGame/WxGame.Build.cs` — 이 모듈이 조립하는 플러그인 의존 목록
+3. `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.h` — 로컬 선택/서버 권한 분리 등 멀티플레이 권한 패턴의 대표 예
+4. `Source/WxGame/WxGame.Build.cs` — 이 모듈이 조립하는 플러그인 의존 목록
 
 ## 관련
 - 하위(사용): [[WxCore]], [[WxCombat]], [[WxInventory]], [[WxUI]], [[WxWorld]], [[WxAI]], [[WxSave]]
 
 ---
-*문서 기준 커밋 `a2ba2b5` · 생성일 2026-06-17 · 소스 30파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `6e6d0ae` · 생성일 2026-06-18 · 소스 46파일 — `/readme-writer`로 갱신*
