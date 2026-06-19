@@ -5,7 +5,7 @@
 		"AbilityDataRow":
 		{
 			"DataTable": "/Game/AbilitySystem/DT_Ability.DT_Ability",
-			"RowName": "GA_Skill_3"
+			"RowName": "GA_HR_Skill_1"
 		},
 		"AbilityTags":
 		{
@@ -15,13 +15,11 @@
 				}
 			]
 		},
-		"CooldownTime": 3,
-		"MaxRecharges": 3,
-		"MPCost": 5,
 		"SkillMontages": [
 			"/Game/Character/Player/HR/Skill/Skill1/AM_HR_Skill_1.AM_HR_Skill_1",
-			"/Game/Character/Player/HR/Skill/Skill1/AM_HR_Skill_1_2.AM_HR_Skill_1_2",
-			""
+			"/Game/Character/Player/HR/Skill/Skill1/AM_HR_Skill_3.AM_HR_Skill_3",
+			"/Game/Character/Player/HR/Skill/Skill1/AM_HR_Skill_2.AM_HR_Skill_2",
+			"/Game/Character/Player/HR/Skill/Skill1/AM_HR_Skill_4.AM_HR_Skill_4"
 		]
 	},
 	"parentClass": "/Script/WxCombat.WxAbility_Skill"
