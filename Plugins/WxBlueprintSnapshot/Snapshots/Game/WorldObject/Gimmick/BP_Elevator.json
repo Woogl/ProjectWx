@@ -24,8 +24,7 @@
 			"class": "/Script/WxWorld.WxInteractionComponent",
 			"delta":
 			{
-				"InteractionText": "[F] Call",
-				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C",
+				"InteractionText": "Call",
 				"RelativeLocation":
 				{
 					"Z": 100
@@ -55,8 +54,7 @@
 			"class": "/Script/WxWorld.WxInteractionComponent",
 			"delta":
 			{
-				"InteractionText": "[F] Call",
-				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C",
+				"InteractionText": "Call",
 				"RelativeLocation":
 				{
 					"Z": 100
@@ -96,8 +94,7 @@
 			"class": "/Script/WxWorld.WxInteractionComponent",
 			"delta":
 			{
-				"InteractionText": "[F] Move",
-				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
+				"InteractionText": "Move"
 			}
 		},
 		"PlatformMesh":
@@ -246,6 +243,17 @@
 							}
 						]
 					}
+				}
+			}
+		},
+		"StateTree":
+		{
+			"class": "/Script/GameplayStateTreeModule.StateTreeComponent",
+			"delta":
+			{
+				"StateTreeRef":
+				{
+					"StateTree": "/Game/WorldObject/Gimmick/ST_Elevator.ST_Elevator"
 				}
 			}
 		}

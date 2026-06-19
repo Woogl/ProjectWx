@@ -3,7 +3,8 @@
 #include "Gimmick/WxGimmick.h"
 
 #include "Components/ArrowComponent.h"
-#include "Net/UnrealNetwork.h"
+#include "Components/StateTreeComponent.h"
+#include "Interaction/WxInteractionComponent.h"
 
 AWxGimmick::AWxGimmick()
 {
@@ -13,6 +14,10 @@ AWxGimmick::AWxGimmick()
 
 	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
 	SetRootComponent(SceneRoot);
+
+	StateTree = CreateDefaultSubobject<UStateTreeComponent>(TEXT("StateTree"));
+	// 컴포넌트 의존 순서(인터랙션 바인딩·초기 위치 스냅 등) 보장을 위해 자동 시작을 끄고, 각 자식 BeginPlay 끝에서 StartLogic 을 호출한다.
+	StateTree->SetStartLogicAutomatically(false);
 
 #if WITH_EDITORONLY_DATA
 	ArrowComponent = CreateEditorOnlyDefaultSubobject<UArrowComponent>(TEXT("ArrowComponent"));
@@ -25,31 +30,14 @@ AWxGimmick::AWxGimmick()
 #endif
 }
 
-void AWxGimmick::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AWxGimmick, bTriggered);
-}
-
 FGuid AWxGimmick::GetWxSaveId() const
 {
 	return WxSaveId;
 }
 
-void AWxGimmick::OnWxSaveRestored()
-{
-	// BeginPlay 이전 복원이면 곧 호출될 BeginPlay 가 ApplyState 를 호출하므로 생략.
-	// BeginPlay 이후 복원(스트리밍 인-스트림 등) 이면 즉시 시각/인터랙션 동기화.
-	if (HasActorBegunPlay())
-	{
-		ApplyState();
-	}
-}
-
 #if WITH_EDITOR
 // 에디터 전용 GetActorGuid() 를 런타임 가용 UPROPERTY 로 복사한다. ActorGuid 는 에디터에서 액터별로 안정·고유하고,
-// 쿠킹 시 쿠커가 PostLoad 를 거쳐 WxSaveId 에 이 값을 구워넣으므로 레벨 재저장 없이도 런타임 키가 보장된다.
+// 부여된 WxSaveId 는 에셋 저장 시 직렬화되어 쿠커가 그대로 읽으므로 런타임 키가 보장된다.
 void AWxGimmick::PostActorCreated()
 {
 	Super::PostActorCreated();
@@ -64,27 +52,13 @@ void AWxGimmick::PostDuplicate(EDuplicateMode::Type DuplicateMode)
 	// 복제 시 엔진이 새 ActorGuid 를 부여하므로 그대로 따라가면 원본과 충돌하지 않는다.
 	WxSaveId = GetActorGuid();
 }
-
-void AWxGimmick::PostLoad()
-{
-	Super::PostLoad();
-
-	WxSaveId = GetActorGuid();
-}
 #endif
 
-void AWxGimmick::MarkTriggered()
+void AWxGimmick::SetInteractionEnabled(bool bEnabled)
 {
-	if (!HasAuthority() || bTriggered)
+	TInlineComponentArray<UWxInteractionComponent*> Interactions(this);
+	for (UWxInteractionComponent* Interaction : Interactions)
 	{
-		return;
+		Interaction->SetInteractionEnabled(bEnabled);
 	}
-
-	bTriggered = true;
-	ApplyState();
-}
-
-void AWxGimmick::OnRep_bTriggered()
-{
-	ApplyState();
 }

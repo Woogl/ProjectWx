@@ -51,7 +51,7 @@
 				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/SM_Door.SM_Door"
 			}
 		},
-		"DoorStateTree":
+		"StateTree":
 		{
 			"class": "/Script/GameplayStateTreeModule.StateTreeComponent",
 			"delta":

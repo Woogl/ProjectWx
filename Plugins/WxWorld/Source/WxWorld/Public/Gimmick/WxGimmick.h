@@ -9,35 +9,24 @@
 
 class UArrowComponent;
 class USceneComponent;
+class UStateTreeComponent;
 
 /**
  * 상호작용 가능한 월드 오브젝트의 공통 부모.
  *
  * 컴포넌트(메시/InteractionComponent 등)는 자식 클래스가 직접 들고 바인딩한다.
- * 부모는 1회성 발동 플래그(bTriggered) 와 상태 적용 후크(ApplyState) 만 공통으로 제공한다.
+ * 부모는 상태머신을 구동하는 GimmickStateTree 와 인터랙션 일괄 토글(SetInteractionEnabled) 을 공통으로 제공한다.
+ * 발동/영속 상태는 각 자식이 자체 State enum(복제 + SaveGame) 으로 소유한다(Door/Elevator/콘솔/상자 등).
  *
- * ApplyState:
- *  - 현재 상태(bTriggered, 자식 자체 State enum 등) 를 시각/인터랙션 등 로컬 효과에 적용하는 후크.
- *  - 호출 경로:
- *      a) 권한 측 MarkTriggered() → ApplyState (서버 즉시 적용)
- *      b) bTriggered 리플리케이션 OnRep → ApplyState (클라 적용)
- *      c) 자식의 BeginPlay 끝부분 → ApplyState (Level Streaming Persistence + WxSave 복원 동기화)
- *      d) 자식 자체 State 변경 시 (Door/Elevator 등의 OnRep_State, 서버 전이 등)
- *      e) BeginPlay 이후 WxSave 복원 (스트리밍 인-스트림) → OnWxSaveRestored → ApplyState
- *  - 부모 기본 구현은 비어있다. 자식이 필요 시 오버라이드.
- *
- * bTriggered:
- *  - 1회성 발동 상호작용(보물상자/경보 콘솔 등)을 위한 공용 플래그.
- *  - Level Streaming Persistence 로 셀 언로드/리로드 사이에 보존된다.
- *  - WxSave 슬롯에도 보존되어 세션 간 발동 상태가 유지된다.
- *  - 다단계 상태/반복 가능한 액터는 사용하지 않을 수 있다.
- *  - [점진적 폐기 예정] 각 기믹이 자체 State enum 을 소유하는 방향으로 이전 중이다.
- *  - Door/Elevator 는 이미 자체 State 를 쓰며 bTriggered 를 사용하지 않는다.
- *  - 잔여 콘솔/상자가 모두 이전되면 제거할 예정이다.
+ * 상태 구동 패턴(전 기믹 공통):
+ *  - C++ 는 권위 State enum 만 소유한다. 인터랙션 시 권위 측이 최종 State 를 확정하고 복제한다.
+ *  - GimmickStateTree(실행할 ST 에셋은 자식 BP 에서 할당) 가 복제 State 를 Enum Compare 전이로 추종하며,
+ *    비주얼(이동/애니)·인터랙션 토글·사이드이펙트(FX/스폰 등) 를 전부 적용한다(서버/클라 동일, 이벤트 태그 없음).
+ *  - StartLogic 은 컴포넌트 의존 순서(인터랙션 바인딩·초기 위치 스냅 등) 보장을 위해 각 자식 BeginPlay 끝에서 호출한다.
  *
  * WxSave 통합:
- *  - IWxSavable 구현. UPROPERTY(SaveGame) 필드(bTriggered 등) 가 슬롯에 기록된다.
- *  - 보존 필드는 UPROPERTY(SaveGame) 로 표시한다.
+ *  - IWxSavable 구현. 자식의 UPROPERTY(SaveGame) State 필드가 슬롯에 기록된다.
+ *  - BeginPlay 이후 복원(스트리밍 인-스트림) 도 StateTree 전이가 복원된 State 를 폴링해 자동 추종하므로 별도 후크가 없다.
  */
 UCLASS(Abstract)
 class WXWORLD_API AWxGimmick : public AActor, public IWxSavable
@@ -47,19 +36,18 @@ class WXWORLD_API AWxGimmick : public AActor, public IWxSavable
 public:
 	AWxGimmick();
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 	//~ Begin IWxSavable
 	virtual FGuid GetWxSaveId() const override;
-	virtual void OnWxSaveRestored() override;
 	//~ End IWxSavable
 
+	/** 이 기믹의 모든 인터랙션 영역(UWxInteractionComponent)을 일괄 활성/비활성. 공통 StateTree 노드(Wx Gimmick Interaction)가 호출. */
+	void SetInteractionEnabled(bool bEnabled);
+
 #if WITH_EDITOR
-	//~ Begin AActor/UObject — WxSaveId 를 에디터에서 1회 부여(런타임/세션 간 불변 키).
+	//~ Begin AActor — WxSaveId 를 에디터에서 1회 부여(런타임/세션 간 불변 키).
 	virtual void PostActorCreated() override;
 	virtual void PostDuplicate(EDuplicateMode::Type DuplicateMode) override;
-	virtual void PostLoad() override;
-	//~ End AActor/UObject
+	//~ End AActor
 #endif
 
 protected:
@@ -68,9 +56,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<USceneComponent> SceneRoot;
 
-	// [점진적 폐기 예정]
-	UPROPERTY(ReplicatedUsing = OnRep_bTriggered, SaveGame)
-	bool bTriggered = false;
+	/**
+	 * 기믹 상태머신을 구동하는 StateTree. 실행할 ST 에셋은 자식 BP 에서 할당한다.
+	 * 복제 State 를 Enum Compare 전이로 추종한다. 컴포넌트 의존 순서를 위해 자동 시작을 끄고, 자식 BeginPlay 끝에서 StartLogic 을 호출한다.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	TObjectPtr<UStateTreeComponent> StateTree;
 
 #if WITH_EDITORONLY_DATA
 	/** 에디터 정면 표시용 화살표. 베이스에서 SceneRoot 에 부착 완료. */
@@ -78,17 +69,7 @@ protected:
 	TObjectPtr<UArrowComponent> ArrowComponent;
 #endif
 
-	/** 권한 측에서 bTriggered 를 true 로 전환하고 ApplyState 를 즉시 호출. 이미 true 면 노옵.
-	 *  서버에서는 OnRep 이 자동 발화하지 않으므로 ApplyState 를 명시 호출하여 후처리를 한 경로로 통일한다. */
-	void MarkTriggered();
-
-	/** 현재 상태를 로컬 효과에 적용. 자식이 오버라이드하여 인터랙션 비활성/메시 위치/틱 토글 등을 구현. */
-	virtual void ApplyState() {}
-
 private:
-	UFUNCTION()
-	void OnRep_bTriggered();
-
 	/** WxSave 슬롯 레코드의 안정적 키. 에디터에서 부여되어 에셋에 직렬화되고, 런타임/세션 간 불변이다. */
 	UPROPERTY()
 	FGuid WxSaveId;

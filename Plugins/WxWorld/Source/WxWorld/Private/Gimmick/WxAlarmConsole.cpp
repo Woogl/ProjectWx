@@ -2,10 +2,10 @@
 
 #include "Gimmick/WxAlarmConsole.h"
 
+#include "Components/StateTreeComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Interaction/WxInteractionComponent.h"
-#include "Kismet/GameplayStatics.h"
-#include "NiagaraFunctionLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 AWxAlarmConsole::AWxAlarmConsole()
 {
@@ -16,46 +16,39 @@ AWxAlarmConsole::AWxAlarmConsole()
 	ConsoleInteraction->SetupAttachment(Console);
 }
 
+void AWxAlarmConsole::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AWxAlarmConsole, State);
+}
+
 void AWxAlarmConsole::BeginPlay()
 {
 	Super::BeginPlay();
 
 	ConsoleInteraction->OnInteracted.AddDynamic(this, &AWxAlarmConsole::HandleInteracted);
 
-	// Level Streaming Persistence 가 BeginPlay 직전에 bTriggered 를 직접 set 했을 수 있으므로 동기화.
-	ApplyState();
-}
-
-void AWxAlarmConsole::ApplyState()
-{
-	if (bTriggered)
-	{
-		ConsoleInteraction->SetInteractionEnabled(false);
-	}
+	// 모든 컴포넌트의 BeginPlay 가 끝난 뒤 StateTree 를 시작한다(인터랙션 바인딩 후).
+	StateTree->StartLogic();
 }
 
 void AWxAlarmConsole::HandleInteracted(AActor* InstigatorActor)
 {
-	// 권위 측은 1회성 발동 처리 (MarkTriggered 가 ApplyState 를 디스패치 → 인터랙션 비활성).
-	// FX 는 모든 피어가 로컬 재생. 발동 후엔 인터랙션이 비활성화되어 추가 OnInteracted 가 발화하지 않으므로
-	// 레이트조인 클라는 OnRep 으로 비활성만 동기화하고 FX 는 재생하지 않는다.
-	if (HasAuthority() && !bTriggered)
+	// 권위 측만 State 를 Alarmed 로 확정한다. FX·인터랙션 비활성은 ST 의 Alarmed 상태(Wx Play Fx / Wx Gimmick Interaction)가 복제 State 를 추종해 적용한다.
+	if (HasAuthority())
 	{
-		MarkTriggered();
+		SetAlarmConsoleState(EWxAlarmConsoleState::Alarmed);
 	}
-
-	PlayAlarmFx();
 }
 
-void AWxAlarmConsole::PlayAlarmFx()
+void AWxAlarmConsole::SetAlarmConsoleState(EWxAlarmConsoleState NewState)
 {
-	if (AlarmNiagaraSystem)
+	// State 쓰기는 권위 전용. 클라는 복제 State 를 ST 의 Enum Compare 전이가 추종한다.
+	if (!HasAuthority() || State == NewState)
 	{
-		UNiagaraFunctionLibrary::SpawnSystemAttached(AlarmNiagaraSystem, Console, NAME_None, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
+		return;
 	}
 
-	if (AlarmSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, AlarmSound, GetActorLocation());
-	}
+	State = NewState;
 }

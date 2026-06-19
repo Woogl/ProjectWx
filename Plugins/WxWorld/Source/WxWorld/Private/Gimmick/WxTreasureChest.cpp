@@ -2,9 +2,10 @@
 
 #include "Gimmick/WxTreasureChest.h"
 
-#include "Animation/AnimSequenceBase.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/StateTreeComponent.h"
 #include "Interaction/WxInteractionComponent.h"
+#include "Net/UnrealNetwork.h"
 
 AWxTreasureChest::AWxTreasureChest()
 {
@@ -15,44 +16,39 @@ AWxTreasureChest::AWxTreasureChest()
 	InteractionComponent->SetupAttachment(MeshComponent);
 }
 
+void AWxTreasureChest::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AWxTreasureChest, State);
+}
+
 void AWxTreasureChest::BeginPlay()
 {
 	Super::BeginPlay();
 
 	InteractionComponent->OnInteracted.AddDynamic(this, &AWxTreasureChest::HandleInteracted);
 
-	ApplyState();
-}
-
-void AWxTreasureChest::ApplyState()
-{
-	if (!bTriggered)
-	{
-		return;
-	}
-
-	InteractionComponent->SetInteractionEnabled(false);
-
-	// 이미 발동된 채 로드/복원/늦참가된 경우: 열린 최종 포즈로 스냅한다.
-	// 라이브 발동(HandleInteracted)이 동시에 재생 중이면 그쪽에 맡기고 스냅을 건너뛴다.
-	if (OpenAnimation && !MeshComponent->IsPlaying())
-	{
-		MeshComponent->SetAnimation(OpenAnimation);
-		MeshComponent->SetPosition(OpenAnimation->GetPlayLength(), false);
-	}
+	// 모든 컴포넌트의 BeginPlay 가 끝난 뒤 StateTree 를 시작한다(인터랙션 바인딩 후).
+	StateTree->StartLogic();
 }
 
 void AWxTreasureChest::HandleInteracted(AActor* InstigatorActor)
 {
-	// OnInteracted 는 Multicast 라 라이브 발동 순간 서버+모든 클라에서 실행된다.
-	// 전 머신에서 열기 애니메이션을 재생하고, 복원/리로드 경로는 ApplyState 가 끝 포즈로 스냅한다.
-	if (OpenAnimation)
-	{
-		MeshComponent->PlayAnimation(OpenAnimation, false);
-	}
-
+	// 권위 측만 State 를 Open 으로 확정한다. 열기 애니·인터랙션 비활성은 ST 의 Open 상태(Wx Play Skeletal Anim / Wx Gimmick Interaction)가 복제 State 를 추종해 적용한다.
 	if (HasAuthority())
 	{
-		MarkTriggered();
+		SetChestState(EWxChestState::Open);
 	}
+}
+
+void AWxTreasureChest::SetChestState(EWxChestState NewState)
+{
+	// State 쓰기는 권위 전용. 클라는 복제 State 를 ST 의 Enum Compare 전이가 추종한다.
+	if (!HasAuthority() || State == NewState)
+	{
+		return;
+	}
+
+	State = NewState;
 }

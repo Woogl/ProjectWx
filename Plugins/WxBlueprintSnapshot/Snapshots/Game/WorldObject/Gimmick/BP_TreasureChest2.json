@@ -1,5 +1,5 @@
 {
-	"blueprintPath": "/Game/WorldObject/Gimmick/BP_TreasureChest.BP_TreasureChest",
+	"blueprintPath": "/Game/WorldObject/Gimmick/BP_TreasureChest2.BP_TreasureChest2",
 	"classDefaults":
 	{
 		"InteractionComponent":
@@ -8,8 +8,7 @@
 			"delta":
 			{
 				"InteractionText": "Open",
-				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C",
-				"SphereRadius": 250
+				"SphereRadius": 300
 			}
 		},
 		"MeshComponent":
@@ -20,12 +19,11 @@
 				"BodyInstance":
 				{
 					"CollisionEnabled": "QueryAndPhysics",
-					"CollisionProfileName": "BlockAllDynamic",
+					"CollisionProfileName": "BlockAll",
 					"CollisionResponses":
 					{
 						"ResponseArray": []
-					},
-					"ObjectType": "ECC_WorldDynamic"
+					}
 				},
 				"OverrideMaterials": [
 					"/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/Materials/M_Transparent.M_Transparent"
@@ -36,7 +34,7 @@
 				},
 				"RelativeRotation":
 				{
-					"Yaw": -89.999999302826765
+					"Yaw": -90
 				},
 				"RelativeScale3D":
 				{
@@ -48,7 +46,17 @@
 				"SkinnedAsset": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/SkeletalMeshes/scene.scene"
 			}
 		},
-		"OpenAnimation": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/SkeletalMeshes/scene_Anim.scene_Anim"
+		"StateTree":
+		{
+			"class": "/Script/GameplayStateTreeModule.StateTreeComponent",
+			"delta":
+			{
+				"StateTreeRef":
+				{
+					"StateTree": "/Game/WorldObject/Gimmick/ST_TreasureChest.ST_TreasureChest"
+				}
+			}
+		}
 	},
 	"components":
 	{
@@ -60,10 +68,6 @@
 				"RelativeLocation":
 				{
 					"Z": 90
-				},
-				"RewardRow":
-				{
-					"DataTable": "/Game/Item/DT_Reward.DT_Reward"
 				}
 			},
 			"variableName": "WxReward"

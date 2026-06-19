@@ -232,7 +232,7 @@ void AWxSpawner::SpawnTarget()
 
 #if WITH_EDITOR
 // 에디터 전용 GetActorGuid() 를 런타임 가용 UPROPERTY 로 복사한다. ActorGuid 는 에디터에서 액터별로 안정·고유하고,
-// 쿠킹 시 쿠커가 PostLoad 를 거쳐 WxSaveId 에 이 값을 구워넣으므로 레벨 재저장 없이도 런타임 키가 보장된다.
+// 부여된 WxSaveId 는 에셋 저장 시 직렬화되어 쿠커가 그대로 읽으므로 런타임 키가 보장된다.
 void AWxSpawner::PostActorCreated()
 {
 	Super::PostActorCreated();
@@ -248,11 +248,10 @@ void AWxSpawner::PostDuplicate(EDuplicateMode::Type DuplicateMode)
 	WxSaveId = GetActorGuid();
 }
 
+// 키 부여는 PostActorCreated/PostDuplicate 가 담당한다. 여기서는 Transient 프리뷰 컴포넌트만 로드 시 복원한다.
 void AWxSpawner::PostLoad()
 {
 	Super::PostLoad();
-
-	WxSaveId = GetActorGuid();
 
 	UpdateEditorPreviewFromSpawnableClass();
 }

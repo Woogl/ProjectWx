@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/World.h"
 #include "Interaction/WxInteractionComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "TimerManager.h"
 #include "WxEffectZone.h"
 
@@ -25,14 +26,31 @@ AWxLaserCorridor::AWxLaserCorridor()
 	ConsoleInteraction->SetupAttachment(Console);
 }
 
+void AWxLaserCorridor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AWxLaserCorridor, State);
+}
+
+void AWxLaserCorridor::OnWxSaveRestored()
+{
+	// BeginPlay 이전 복원이면 곧 호출될 BeginPlay 가 RefreshLaserState 를 호출하므로 생략.
+	// BeginPlay 이후 복원(스트리밍 인-스트림)이면 즉시 시각/인터랙션/타이머를 동기화한다.
+	if (HasActorBegunPlay())
+	{
+		RefreshLaserState();
+	}
+}
+
 void AWxLaserCorridor::BeginPlay()
 {
 	Super::BeginPlay();
 
 	ConsoleInteraction->OnInteracted.AddDynamic(this, &AWxLaserCorridor::HandleConsoleInteracted);
 
-	// Level Streaming Persistence + WxSave 복원: bTriggered 가 BeginPlay 직전에 직접 set 되었을 수 있으므로 명시 동기화.
-	ApplyState();
+	// Level Streaming Persistence + WxSave 복원: State 가 BeginPlay 직전에 직접 set 되었을 수 있으므로 명시 동기화.
+	RefreshLaserState();
 }
 
 void AWxLaserCorridor::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -66,9 +84,31 @@ void AWxLaserCorridor::Tick(float DeltaSeconds)
 	}
 }
 
-void AWxLaserCorridor::ApplyState()
+void AWxLaserCorridor::HandleConsoleInteracted(AActor* InstigatorActor)
 {
-	if (bTriggered)
+	SetLaserCorridorState(EWxLaserCorridorState::Disabled);
+}
+
+void AWxLaserCorridor::OnRep_State()
+{
+	RefreshLaserState();
+}
+
+void AWxLaserCorridor::SetLaserCorridorState(EWxLaserCorridorState NewState)
+{
+	// State 쓰기는 권위 전용. 클라는 OnRep_State 로 동기화된다.
+	if (!HasAuthority() || State == NewState)
+	{
+		return;
+	}
+
+	State = NewState;
+	RefreshLaserState();
+}
+
+void AWxLaserCorridor::RefreshLaserState()
+{
+	if (State == EWxLaserCorridorState::Disabled)
 	{
 		ConsoleInteraction->SetInteractionEnabled(false);
 
@@ -95,11 +135,6 @@ void AWxLaserCorridor::ApplyState()
 			GetWorldTimerManager().SetTimer(SpawnTimerHandle, this, &AWxLaserCorridor::HandleSpawnTimer, SpawnInterval, true, 0.f);
 		}
 	}
-}
-
-void AWxLaserCorridor::HandleConsoleInteracted(AActor* InstigatorActor)
-{
-	MarkTriggered();
 }
 
 void AWxLaserCorridor::HandleSpawnTimer()
