@@ -40,8 +40,8 @@ enum class EWxElevatorState : uint8
  *   - CallConsoleA → AtStart, CallConsoleB → AtEnd (동일값이면 노옵). Platform → 반대 끝점 토글(문 열린 정지 상태에서만).
  *
  * 위치 정보:
- *   라이브 이동 위치는 Spline Move 가 전담한다(C++ 스냅 없음). 다만 Spline Move 는 초기 진입에서 현재 포인트에 hold 하므로(State 의 끝점을 모름),
- *   초기 로드(BeginPlay)에서만 C++ 가 State 의 끝점으로 1회 스냅한다. BeginPlay 이후의 스트리밍 복원은 StateTree 가 복제/복원된 State 로 전이해 mover 가 라이브로 끝점까지 옮긴다.
+ *   플랫폼 위치는 초기/복원/라이브 전부 Spline Move 가 전담한다(C++ 스냅 없음). 각 끝점 부모 상태의 Spline Move 가 TargetPointIndex 로 자기 끝점을 직접 가리키므로,
+ *   StateTree 시작·스트리밍 복원 시에도 mover 가 복제/복원된 State 의 끝점으로 스냅한다(과거의 BeginPlay 1회 C++ 스냅이 불필요해짐).
  *
  * 인터랙션 영역은 셋:
  *  - PlatformInteraction: 플랫폼 위에서 상호작용하면 반대 끝점으로 이동
@@ -64,10 +64,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USplineComponent> SplineComponent;
 
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USceneComponent> PlatformRoot;
 
-	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> PlatformMesh;
 
 	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Component Move 가 Context 액터의 컴포넌트로 바인딩하기 위한 노출(State 의 Enum Compare 바인딩과 동일 패턴).
@@ -105,9 +105,6 @@ private:
 	/** 권위 측에서 State 를 전환한다. 동일값/비권위면 노옵. 라이브 이동은 StateTree 가 추종하므로 ApplyState 를 부르지 않는다(위치는 Spline Move 가 전담). */
 	void SetElevatorState(EWxElevatorState NewState);
 
-	/** 플랫폼을 스플라인 거리(Distance)로 스냅한다. BeginPlay 가 초기 로드 시 State 의 끝점 위치로 1회 호출. */
-	void SetPlatformDistance(float Distance);
-
 	/**
 	 * 엘리베이터 권위/영속 상태(끝점 + 문). 인터랙션 시 즉시 최종값으로 확정된다. 초기값은 Closed(Start, 문 닫힘).
 	 * 클라는 복제된 State 를 ST_Elevator 의 Enum Compare 전이가 폴링해 추종하므로 RepNotify 불필요.
@@ -115,6 +112,4 @@ private:
 	 */
 	UPROPERTY(VisibleAnywhere, Category = "Wx", Replicated, SaveGame, meta = (AllowPrivateAccess = "true"))
 	EWxElevatorState State = EWxElevatorState::Closed;
-
-	float CachedSplineLength = 0.f;
 };

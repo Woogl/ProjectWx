@@ -3,7 +3,6 @@
 #include "Gimmick/WxTreasureChest.h"
 
 #include "Components/SkeletalMeshComponent.h"
-#include "Components/StateTreeComponent.h"
 #include "Interaction/WxInteractionComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -28,14 +27,11 @@ void AWxTreasureChest::BeginPlay()
 	Super::BeginPlay();
 
 	InteractionComponent->OnInteracted.AddDynamic(this, &AWxTreasureChest::HandleInteracted);
-
-	// 모든 컴포넌트의 BeginPlay 가 끝난 뒤 StateTree 를 시작한다(인터랙션 바인딩 후).
-	StateTree->StartLogic();
 }
 
 void AWxTreasureChest::HandleInteracted(AActor* InstigatorActor)
 {
-	// 권위 측만 State 를 Open 으로 확정한다. 열기 애니·인터랙션 비활성은 ST 의 Open 상태(Wx Play Skeletal Anim / Wx Gimmick Interaction)가 복제 State 를 추종해 적용한다.
+	// 권위 측만 State 를 Open 으로 확정한다. 열기 애니·인터랙션 비활성은 ST 의 Open 상태(Wx Play Animation / Wx Gimmick Interaction)가 복제 State 를 추종해 적용한다.
 	if (HasAuthority())
 	{
 		SetChestState(EWxChestState::Open);

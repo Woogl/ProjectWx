@@ -16,8 +16,9 @@ AWxGimmick::AWxGimmick()
 	SetRootComponent(SceneRoot);
 
 	StateTree = CreateDefaultSubobject<UStateTreeComponent>(TEXT("StateTree"));
-	// 컴포넌트 의존 순서(인터랙션 바인딩·초기 위치 스냅 등) 보장을 위해 자동 시작을 끄고, 각 자식 BeginPlay 끝에서 StartLogic 을 호출한다.
-	StateTree->SetStartLogicAutomatically(false);
+	// 초기 진입 스냅(위치·포즈·애니)은 각 태스크가 자체 수행한다.
+	// 따라서 자동 시작에 맡기고 자식은 명시 StartLogic 을 호출하지 않는다.
+	StateTree->SetStartLogicAutomatically(true);
 
 #if WITH_EDITORONLY_DATA
 	ArrowComponent = CreateEditorOnlyDefaultSubobject<UArrowComponent>(TEXT("ArrowComponent"));

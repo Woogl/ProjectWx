@@ -2,7 +2,6 @@
 
 #include "Gimmick/WxDoor.h"
 
-#include "Components/StateTreeComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Interaction/WxInteractionComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -34,11 +33,6 @@ void AWxDoor::BeginPlay()
 	Super::BeginPlay();
 
 	ConsoleInteraction->OnInteracted.AddDynamic(this, &AWxDoor::HandleConsoleInteracted);
-
-	// 모든 컴포넌트의 BeginPlay 가 끝난 뒤 StateTree 를 시작한다.
-	// 시작 시 각 상태의 enter condition(State 에 바인딩한 Enum Compare)이 현재 State 를 읽어 맞는 상태로 초기 선택하고,
-	// 그 상태의 Wx Component Move 가 초기 진입 스냅으로 문을 현재 State 포즈에 맞춘다(복원/레이트조인 무애니).
-	StateTree->StartLogic();
 }
 
 void AWxDoor::SetDoorState(EWxDoorState NewState)

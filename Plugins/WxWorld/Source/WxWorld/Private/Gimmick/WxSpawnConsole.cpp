@@ -2,7 +2,6 @@
 
 #include "Gimmick/WxSpawnConsole.h"
 
-#include "Components/StateTreeComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Interaction/WxInteractionComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -28,9 +27,6 @@ void AWxSpawnConsole::BeginPlay()
 	Super::BeginPlay();
 
 	ConsoleInteraction->OnInteracted.AddDynamic(this, &AWxSpawnConsole::HandleInteracted);
-
-	// 모든 컴포넌트의 BeginPlay 가 끝난 뒤 StateTree 를 시작한다(인터랙션 바인딩 후).
-	StateTree->StartLogic();
 }
 
 void AWxSpawnConsole::HandleInteracted(AActor* InstigatorActor)

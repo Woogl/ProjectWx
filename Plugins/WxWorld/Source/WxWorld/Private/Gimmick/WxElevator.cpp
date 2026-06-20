@@ -3,7 +3,6 @@
 #include "Gimmick/WxElevator.h"
 
 #include "Components/SplineComponent.h"
-#include "Components/StateTreeComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Interaction/WxInteractionComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -12,7 +11,7 @@ AWxElevator::AWxElevator()
 {
 	SplineComponent = CreateDefaultSubobject<USplineComponent>(TEXT("SplineComponent"));
 	SplineComponent->SetupAttachment(SceneRoot);
-	// 닫힌 루프: 두 끝점(Start/End) 왕복이 모두 "다음 포인트로 정방향 한 세그먼트"가 되도록(Spline Move 가 End→Start 도 폐합 구간으로 처리).
+	// 두 끝점(Start/End)을 잇는 경로. Spline Move 는 각 상태가 가리키는 끝점 포인트 거리만 목표하므로 닫힘/열림 형상과 무관하나, 기존 에셋 스플라인 형상을 보존하기 위해 닫힌 루프를 유지한다.
 	SplineComponent->SetClosedLoop(true);
 
 	PlatformRoot = CreateDefaultSubobject<USceneComponent>(TEXT("PlatformRoot"));
@@ -54,18 +53,9 @@ void AWxElevator::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CachedSplineLength = SplineComponent->GetSplineLength();
-
 	PlatformInteraction->OnInteracted.AddDynamic(this, &AWxElevator::HandlePlatformInteracted);
 	CallConsoleAInteraction->OnInteracted.AddDynamic(this, &AWxElevator::HandleCallConsoleAInteracted);
 	CallConsoleBInteraction->OnInteracted.AddDynamic(this, &AWxElevator::HandleCallConsoleBInteracted);
-
-	// 초기 로드: 현재 State 의 끝점으로 플랫폼을 1회 스냅한다(Spline Move 는 초기 진입에서 현재 포인트에 hold 하므로 State 끝점을 모른다).
-	// StartLogic 이후엔 라이브 전이를 Spline Move 가 전담하므로 여기서만 스냅한다.
-	SetPlatformDistance(State == EWxElevatorState::AtEnd ? CachedSplineLength : 0.f);
-
-	// 모든 컴포넌트의 BeginPlay 가 끝난 뒤 StateTree 를 시작한다.
-	StateTree->StartLogic();
 }
 
 void AWxElevator::HandlePlatformInteracted(AActor* InteractingActor)
@@ -118,11 +108,4 @@ void AWxElevator::SetElevatorState(EWxElevatorState NewState)
 	}
 
 	State = NewState;
-}
-
-void AWxElevator::SetPlatformDistance(float Distance)
-{
-	const float Clamped = FMath::Clamp(Distance, 0.f, CachedSplineLength);
-	const FVector NewLocation = SplineComponent->GetLocationAtDistanceAlongSpline(Clamped, ESplineCoordinateSpace::Local);
-	PlatformRoot->SetRelativeLocation(NewLocation);
 }

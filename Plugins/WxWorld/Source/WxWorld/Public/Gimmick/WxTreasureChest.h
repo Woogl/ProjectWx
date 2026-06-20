@@ -41,7 +41,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Play Skeletal Anim 이 Context 액터의 컴포넌트로 바인딩하기 위한 노출.
+	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Play Animation 이 Context 액터의 컴포넌트로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USkeletalMeshComponent> MeshComponent;
 
