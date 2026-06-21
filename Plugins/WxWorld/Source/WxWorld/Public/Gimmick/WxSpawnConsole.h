@@ -44,7 +44,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> ConsoleMesh;
 
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
+	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UWxInteractionComponent> ConsoleInteraction;
 
 	// EditInstanceOnly + AllowPrivateAccess: 디자이너가 인스턴스마다 지정하고, StateTree 의 Wx Trigger Spawners 가 Context 액터 프로퍼티로 바인딩하기 위한 노출.

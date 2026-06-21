@@ -4,7 +4,6 @@
 
 #include "Components/ArrowComponent.h"
 #include "Components/StateTreeComponent.h"
-#include "Interaction/WxInteractionComponent.h"
 
 AWxGimmick::AWxGimmick()
 {
@@ -54,12 +53,3 @@ void AWxGimmick::PostDuplicate(EDuplicateMode::Type DuplicateMode)
 	WxSaveId = GetActorGuid();
 }
 #endif
-
-void AWxGimmick::SetInteractionEnabled(bool bEnabled)
-{
-	TInlineComponentArray<UWxInteractionComponent*> Interactions(this);
-	for (UWxInteractionComponent* Interaction : Interactions)
-	{
-		Interaction->SetInteractionEnabled(bEnabled);
-	}
-}

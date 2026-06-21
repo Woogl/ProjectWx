@@ -31,7 +31,7 @@ void AWxSpawnConsole::BeginPlay()
 
 void AWxSpawnConsole::HandleInteracted(AActor* InstigatorActor)
 {
-	// 권위 측만 State 를 Spawned 로 확정한다. 스포너 Respawn·인터랙션 비활성은 ST 의 Spawned 상태(Wx Trigger Spawners / Wx Gimmick Interaction)가 복제 State 를 추종해 적용한다.
+	// 권위 측만 State 를 Spawned 로 확정한다. 스포너 Respawn·인터랙션 비활성은 ST 의 Spawned 상태(Wx Trigger Spawners / Wx Enable Interaction)가 복제 State 를 추종해 적용한다.
 	if (HasAuthority())
 	{
 		SetSpawnConsoleState(EWxSpawnConsoleState::Spawned);

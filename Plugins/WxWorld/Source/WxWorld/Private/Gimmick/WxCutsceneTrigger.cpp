@@ -2,18 +2,12 @@
 
 #include "Gimmick/WxCutsceneTrigger.h"
 
+#include "Components/StateTreeComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Engine/Engine.h"
-#include "GameFramework/Pawn.h"
-#include "GameFramework/PlayerController.h"
 #include "Interaction/WxInteractionComponent.h"
-#include "LevelSequenceActor.h"
-#include "LevelSequencePlayer.h"
 
 AWxCutsceneTrigger::AWxCutsceneTrigger()
 {
-	bIsPlaying = false;
-
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	MeshComponent->SetupAttachment(SceneRoot);
 
@@ -28,85 +22,12 @@ void AWxCutsceneTrigger::BeginPlay()
 	InteractionComponent->OnInteracted.AddDynamic(this, &AWxCutsceneTrigger::HandleInteracted);
 }
 
-void AWxCutsceneTrigger::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	// 컷신 도중 트리거가 파괴되면 입력 락을 풀어줘야 한다.
-	if (bIsPlaying)
-	{
-		SetLocalPlayerInputEnabled(true);
-	}
-
-	CleanupSequenceActor();
-
-	Super::EndPlay(EndPlayReason);
-}
-
 void AWxCutsceneTrigger::HandleInteracted(AActor* InstigatorActor)
 {
-	if (bIsPlaying || !LevelSequence)
+	// 상호작용은 MulticastInteracted 로 모든 피어에서 발화한다. 각 피어가 로컬 StateTree 에 이벤트를 보내 Playing 으로 전이시킨다(복제 State 불필요).
+	// 재생 종료 복귀는 Wx Play Level Sequence 의 Succeeded → OnComplete 전이가 맡는다. 재생 중엔 ST 가 인터랙션을 비활성화해 재진입을 막는다.
+	if (PlayEventTag.IsValid())
 	{
-		return;
-	}
-
-	bIsPlaying = true;
-
-	FMovieSceneSequencePlaybackSettings PlaybackSettings;
-	ALevelSequenceActor* NewSequenceActor = nullptr;
-	ULevelSequencePlayer* SequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(GetWorld(), LevelSequence, PlaybackSettings, NewSequenceActor);
-	SequenceActor = NewSequenceActor;
-
-	if (!SequencePlayer)
-	{
-		CleanupSequenceActor();
-		bIsPlaying = false;
-		return;
-	}
-
-	InteractionComponent->SetInteractionEnabled(false);
-	SetLocalPlayerInputEnabled(false);
-
-	SequencePlayer->OnFinished.AddDynamic(this, &AWxCutsceneTrigger::HandleSequenceFinished);
-	SequencePlayer->Play();
-}
-
-void AWxCutsceneTrigger::HandleSequenceFinished()
-{
-	CleanupSequenceActor();
-	bIsPlaying = false;
-
-	InteractionComponent->SetInteractionEnabled(true);
-	SetLocalPlayerInputEnabled(true);
-}
-
-void AWxCutsceneTrigger::CleanupSequenceActor()
-{
-	if (SequenceActor)
-	{
-		SequenceActor->Destroy();
-		SequenceActor = nullptr;
-	}
-}
-
-void AWxCutsceneTrigger::SetLocalPlayerInputEnabled(bool bEnabled)
-{
-	APlayerController* PC = GEngine ? GEngine->GetFirstLocalPlayerController(GetWorld()) : nullptr;
-	if (!PC)
-	{
-		return;
-	}
-
-	APawn* Pawn = PC->GetPawn();
-	if (!Pawn)
-	{
-		return;
-	}
-
-	if (bEnabled)
-	{
-		Pawn->EnableInput(PC);
-	}
-	else
-	{
-		Pawn->DisableInput(PC);
+		StateTree->SendStateTreeEvent(PlayEventTag);
 	}
 }

@@ -31,7 +31,7 @@ void AWxAlarmConsole::BeginPlay()
 
 void AWxAlarmConsole::HandleInteracted(AActor* InstigatorActor)
 {
-	// 권위 측만 State 를 Alarmed 로 확정한다. FX·인터랙션 비활성은 ST 의 Alarmed 상태(Wx Play Fx / Wx Gimmick Interaction)가 복제 State 를 추종해 적용한다.
+	// 권위 측만 State 를 Alarmed 로 확정한다. FX·인터랙션 비활성은 ST 의 Alarmed 상태(Wx Spawn Niagara / Wx Play Sound / Wx Enable Interaction)가 복제 State 를 추종해 적용한다.
 	if (HasAuthority())
 	{
 		SetAlarmConsoleState(EWxAlarmConsoleState::Alarmed);

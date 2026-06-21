@@ -29,7 +29,7 @@ enum class EWxElevatorState : uint8
  * 도어와 동일한 결: 권위 State(Closed/AtStart/AtEnd)는 인터랙션 시 즉시 최종값으로 확정한다.
  * 이동/문 개폐는 권위와 무관한 순수 비주얼이라 "도착"이라는 권위 사건이 없다.
  *   - 플랫폼 이동: StateTree 의 Wx Component Spline Move 가 닫힌 루프 위를 라이브 전이마다 한 세그먼트 전진(Start↔End). 닫힌 루프라 양방향이 모두 정방향 한 세그먼트다.
- *   - 문 개폐·인터랙션 토글: 각 상태의 Wx Component Move / Wx Gimmick Interaction(이동할 메시·오프셋·시퀀스는 ST_Elevator 에셋에서 author).
+ *   - 문 개폐·인터랙션 토글: 각 상태의 Wx Component Move / Wx Enable Interaction(이동할 메시·오프셋·시퀀스는 ST_Elevator 에셋에서 author).
  *
  * Closed 와 AtStart 는 같은 위치(Start)다. Closed→AtStart 는 "같은 층, 이동 없이 문만 열기"이므로,
  * ST_Elevator 는 Start/End 끝점별 부모 상태가 Spline Move 를 들고 그 아래 문 상태(Closed/AtStart, AtEnd)를 자식으로 두어,
@@ -77,19 +77,22 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> DoorRight;
 
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
+	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UWxInteractionComponent> PlatformInteraction;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> CallConsoleA;
 
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
+	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UWxInteractionComponent> CallConsoleAInteraction;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> CallConsoleB;
 
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
+	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UWxInteractionComponent> CallConsoleBInteraction;
 
 private:

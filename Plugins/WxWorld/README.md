@@ -24,8 +24,8 @@
 | --- | --- | --- |
 | `UWxInteractionComponent` | 오버랩 감지 + 레지스트리 등록 + 상호작용 Multicast를 담는 SphereComponent. 기믹이 영역마다 단다 | `Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxInteractionComponent.h` |
 | `UWxInteractionRegistrySubsystem` | LocalPlayer별 인-레인지 후보 수집·선택 순환·강조 조율. HUD가 읽는 목록 소스 | `Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxInteractionRegistrySubsystem.h` |
-| `AWxGimmick` | 모든 상호작용 월드 오브젝트의 추상 부모. SceneRoot + GimmickStateTree + 인터랙션 일괄 토글 + IWxSavable 제공 | `Plugins/WxWorld/Source/WxWorld/Public/Gimmick/WxGimmick.h` |
-| `FWxStateTreeTask_*` | 기믹 StateTree 공통 태스크(ComponentMove/SplineMove/PlayAnimation/PlayFx/TriggerSpawners/GimmickInteraction) | `Plugins/WxWorld/Source/WxWorld/Public/Gimmick/WxGimmickStateTreeNodes.h` |
+| `AWxGimmick` | 모든 상호작용 월드 오브젝트의 추상 부모. SceneRoot + GimmickStateTree + IWxSavable 제공 | `Plugins/WxWorld/Source/WxWorld/Public/Gimmick/WxGimmick.h` |
+| `FWxStateTreeTask_*` | 기믹 StateTree 공통 태스크(ComponentMove/SplineMove/PlayAnimation/PlayLevelSequence/PlaySound/SpawnNiagara/TriggerSpawners/EnableInteraction/EnablePlayerInput/LaserSpawn/LaserAdvance) | `Plugins/WxWorld/Source/WxWorld/Public/Gimmick/WxGimmickStateTreeNodes.h` |
 | `AWxSpawner` | SpawnableActorClass를 스폰하는 배치 액터. 처치 상태(SaveGame)·리스폰·영구사망 보유 | `Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawner.h` |
 | `IWxSpawnableInterface` | 스폰 대상이 구현하는 훅(`OnSpawnedBy`, 에디터 미리보기 메시) | `Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawnableInterface.h` |
 | `UWxSpawnerSubsystem` | 월드 내 스포너 레지스트리. 역조회 처치 마킹·Auto 일괄 리스폰 | `Plugins/WxWorld/Source/WxWorld/Public/System/WxSpawnerSubsystem.h` |
