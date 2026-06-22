@@ -16,6 +16,7 @@ public class WxInventory : ModuleRules
 			"GameplayAbilities",
 			"GameplayTags",
 			"NetCore",
+			"StateTreeModule",
 			"WxCore",
 		});
 
