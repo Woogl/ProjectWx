@@ -32,7 +32,7 @@ struct WXSAVE_API FWxActorRecord
 	TMap<FName, FWxComponentRecord> ComponentData;
 };
 
-/** WxSave 슬롯 데이터. 등록된 savable 액터들의 상태 맵 + 플레이어 부활 위치를 보관한다. */
+/** WxSave 슬롯 데이터. 등록된 savable 액터들의 상태 맵 + 활성 체크포인트 식별자를 보관한다. */
 UCLASS()
 class WXSAVE_API UWxSaveGame : public USaveGame
 {
@@ -44,9 +44,10 @@ public:
 	TMap<FGuid, FWxActorRecord> ActorRecords;
 
 	/**
-	 * 마지막 체크포인트 상호작용 시점의 플레이어 캐릭터 Transform. 사망 후 새 Pawn 스폰 위치로 사용된다.
-	 * Identity 는 "미설정" sentinel — 신규 세션 + 체크포인트 미터치 상태와 같다 (월드 원점에 회전·스케일 디폴트인 체크포인트를 두지 않는다는 컨벤션).
+	 * 마지막으로 상호작용한 체크포인트(AWxCheckPoint=APlayerStart)의 PlayerStartTag. 사망 후 새 Pawn 스폰 지점으로 사용된다.
+	 * NAME_None 은 "미설정" sentinel — 신규 세션 + 체크포인트 미터치 상태와 같다(이때 기본 PlayerStart 로 폴백).
+	 * 좌표가 아니라 식별자만 저장하므로 ChoosePlayerStart 가 엔진 FindPlayerStart(Tag) 로 실제 배치된 체크포인트 액터를 찾아 부활시킨다.
 	 */
 	UPROPERTY()
-	FTransform PlayerRespawnTransform = FTransform::Identity;
+	FName ActiveCheckpointTag = NAME_None;
 };

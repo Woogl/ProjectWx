@@ -3,33 +3,24 @@
 #include "Framework/WxGameMode.h"
 
 #include "Engine/GameInstance.h"
-#include "Engine/World.h"
-#include "GameFramework/PlayerStart.h"
 #include "WxSaveGameSubsystem.h"
 
 AActor* AWxGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
-	UWxSaveGameSubsystem* SaveSubsystem = nullptr;
+	// 활성 체크포인트가 있으면 그 PlayerStartTag 로 배치된 체크포인트(APlayerStart)를 찾아 부활 지점으로 쓴다.
+	// 체크포인트 액터 자체가 부활 지점이라 임시 PlayerStart 스폰이 필요 없다.
 	if (UGameInstance* GameInstance = GetGameInstance())
 	{
-		SaveSubsystem = GameInstance->GetSubsystem<UWxSaveGameSubsystem>();
-	}
-
-	FTransform RespawnTransform;
-	if (SaveSubsystem && SaveSubsystem->GetPlayerRespawnTransform(RespawnTransform))
-	{
-		if (RespawnPlayerStart)
+		if (UWxSaveGameSubsystem* SaveSubsystem = GameInstance->GetSubsystem<UWxSaveGameSubsystem>())
 		{
-			RespawnPlayerStart->Destroy();
-			RespawnPlayerStart = nullptr;
-		}
-
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		RespawnPlayerStart = GetWorld()->SpawnActor<APlayerStart>(APlayerStart::StaticClass(), RespawnTransform, SpawnParams);
-		if (RespawnPlayerStart)
-		{
-			return RespawnPlayerStart;
+			const FName CheckpointTag = SaveSubsystem->GetActiveCheckpointTag();
+			if (!CheckpointTag.IsNone())
+			{
+				if (AActor* CheckpointStart = FindPlayerStart(Player, CheckpointTag.ToString()))
+				{
+					return CheckpointStart;
+				}
+			}
 		}
 	}
 
