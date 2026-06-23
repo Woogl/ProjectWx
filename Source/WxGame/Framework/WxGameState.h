@@ -7,12 +7,11 @@
 
 #include "WxGameState.generated.h"
 
-class UWxTimeDilationComponent;
-
 /**
  * 프로젝트 공용 GameState.
  *
- * 서버 권위 Global TimeDilation 관리를 위한 UWxTimeDilationComponent를 부착한다.
+ * ModularGameplay 컴포넌트 receiver 다. 생성자에서 컴포넌트를 직접 만들지 않고, GameMode 가 요청 등록한 프레임워크
+ * 컴포넌트(TimeDilation·PlayerSpawning 등)를 자동 주입받는다. 따라서 GameState 는 어떤 컴포넌트가 붙는지 알지 않는다.
  */
 UCLASS()
 class WXGAME_API AWxGameState : public AGameStateBase
@@ -20,9 +19,8 @@ class WXGAME_API AWxGameState : public AGameStateBase
 	GENERATED_BODY()
 
 public:
-	AWxGameState();
-
-private:
-	UPROPERTY(VisibleAnywhere, Category = "Wx|Time")
-	TObjectPtr<UWxTimeDilationComponent> TimeDilationComponent;
+	//~ Begin AActor
+	virtual void PreInitializeComponents() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	//~ End AActor
 };

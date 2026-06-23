@@ -3,4 +3,6 @@
 #include "WxGame.h"
 #include "Modules/ModuleManager.h"
 
+DEFINE_LOG_CATEGORY(LogWxGame);
+
 IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, WxGame, "WxGame" );

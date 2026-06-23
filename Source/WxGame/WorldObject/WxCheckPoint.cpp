@@ -39,14 +39,17 @@ void AWxCheckPoint::HandleInteracted(AActor* InstigatorActor)
 		return;
 	}
 
-	// 자신을 활성 부활 지점으로 등록한다. 이후 SaveSlot 이 이 태그를 디스크에 영속하고, ChoosePlayerStart 가 FindPlayerStart 로 이 액터를 찾는다.
-	// PlayerStartTag 는 APlayerStart 가 노출하는 식별자로, 디자이너가 인스턴스마다 고유 부여한다.
+	UWxSaveGameSubsystem* SaveSubsystem = nullptr;
 	if (UGameInstance* GameInstance = GetGameInstance())
 	{
-		if (UWxSaveGameSubsystem* SaveSubsystem = GameInstance->GetSubsystem<UWxSaveGameSubsystem>())
-		{
-			SaveSubsystem->SetActiveCheckpoint(PlayerStartTag);
-		}
+		SaveSubsystem = GameInstance->GetSubsystem<UWxSaveGameSubsystem>();
+	}
+
+	// 자신을 부활/시작 지점으로 등록한다(메모리). 디스크 영속은 아래 SaveSlot 이 수행하고, ChoosePlayerStart 가 FindPlayerStart 로 이 액터를 찾는다.
+	// PlayerStartTag 는 APlayerStart 가 노출하는 식별자로, 디자이너가 인스턴스마다 고유 부여한다.
+	if (SaveSubsystem)
+	{
+		SaveSubsystem->SetPlayerStartTag(PlayerStartTag);
 	}
 
 	if (HealEffect)
@@ -76,5 +79,12 @@ void AWxCheckPoint::HandleInteracted(AActor* InstigatorActor)
 	if (UWxSpawnerSubsystem* Subsystem = GetWorld()->GetSubsystem<UWxSpawnerSubsystem>())
 	{
 		Subsystem->RespawnAutoSpawners();
+	}
+
+	// 갱신된 PlayerStartTag + 리셋된 월드 상태를 디스크에 저장한다. 과거 BP OnInteracted 의 SaveSlot 호출을 C++ 로 이관 —
+	// SetPlayerStartTag 이후 실행돼 순서가 보장되고, HasAuthority 게이트 안이라 서버 전용으로 저장된다("Test" 는 현재 단일 개발 슬롯).
+	if (SaveSubsystem)
+	{
+		SaveSubsystem->SaveSlot(TEXT("Test"));
 	}
 }

@@ -18,6 +18,7 @@ public class WxCombat : ModuleRules
 			"GameplayAbilities",
 			"GameplayTags",
 			"GameplayTasks",
+			"ModularGameplay",
 			"NavigationSystem",
 			"NetCore",
 			"TargetingSystem",

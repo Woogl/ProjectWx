@@ -18,7 +18,7 @@ class UWxSaveGame;
  *  - LoadSlot: 슬롯 파일을 메모리로 로드한 뒤 현재 맵을 ServerTravel 로 리로드한다(authority 전제). 액터 복원은
  *    리로드된 새 월드의 스트리밍 핸들러가, 플레이어 부활 위치는 새 GameMode 의 ChoosePlayerStart 가 담당한다.
  *    파일이 없으면 메모리를 빈 슬롯으로 리셋한 뒤에도 동일하게 리로드한다(체크포인트 미존재 시 기본 PlayerStart 부활).
- *  - GetActiveCheckpointTag: GameMode 가 ChoosePlayerStart 에서 부활 진입점(체크포인트 PlayerStartTag)을 조회 (ServerTravel 후 흐름).
+ *  - GetPlayerStartTag: GameMode 가 ChoosePlayerStart 에서 부활/시작 진입점(PlayerStartTag)을 조회 (ServerTravel 후 흐름).
  *
  * GameInstanceSubsystem 이라 ServerTravel 을 가로질러 메모리가 유지된다.
  *
@@ -44,13 +44,13 @@ public:
 	 */
 	bool LoadSlot(const FString& SlotName);
 
-	/** 체크포인트 상호작용 시 호출. 활성 체크포인트의 PlayerStartTag 를 메모리 슬롯에 기록한다(다음 SaveSlot 이 디스크 영속). */
-	void SetActiveCheckpoint(FName CheckpointTag);
+	/** 부활/시작 진입점 PlayerStartTag 를 메모리 슬롯에 기록한다(다음 SaveSlot 이 디스크 영속). 레벨 시작·체크포인트 상호작용 시 호출된다. */
+	void SetPlayerStartTag(FName InPlayerStartTag);
 
-	/** GameMode 가 ChoosePlayerStart 에서 호출. 활성 체크포인트의 PlayerStartTag 를 반환한다(미설정이면 NAME_None). */
-	FName GetActiveCheckpointTag() const;
+	/** GameMode 가 ChoosePlayerStart 에서 호출. 저장된 부활/시작 PlayerStartTag 를 반환한다(미설정이면 NAME_None). */
+	FName GetPlayerStartTag() const;
 
-	/** 현재 메모리 슬롯 상태(레코드 키 목록 + 부활 Transform)를 LogWxSave 로 덤프한다. 콘솔 명령 Wx.Save.Dump 의 구현. */
+	/** 현재 메모리 슬롯 상태(레코드 키 목록 + PlayerStart 태그)를 LogWxSave 로 덤프한다. 콘솔 명령 Wx.Save.Dump 의 구현. */
 	void LogSaveState() const;
 
 	//~ Begin UGameInstanceSubsystem

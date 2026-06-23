@@ -8,7 +8,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
-UWxTimeDilationComponent::UWxTimeDilationComponent()
+UWxTimeDilationComponent::UWxTimeDilationComponent(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	SetIsReplicatedByDefault(true);
 	PrimaryComponentTick.bCanEverTick = false;

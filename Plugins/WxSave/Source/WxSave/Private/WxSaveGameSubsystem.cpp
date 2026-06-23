@@ -19,7 +19,7 @@
 // 현재 GameInstance 의 WxSaveGameSubsystem 슬롯 상태를 로그로 덤프하는 디버그 콘솔 명령.
 static FAutoConsoleCommandWithWorld GWxSaveDumpCommand(
 	TEXT("Wx.Save.Dump"),
-	TEXT("현재 WxSave 메모리 슬롯 상태(레코드 키 + 활성 체크포인트 태그)를 로그로 덤프한다."),
+	TEXT("현재 WxSave 메모리 슬롯 상태(레코드 키 + PlayerStart 태그)를 로그로 덤프한다."),
 	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World)
 	{
 		UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
@@ -53,8 +53,8 @@ void UWxSaveGameSubsystem::SaveSlot(const FString& SlotName)
 		}
 	}
 
-	// 부활 지점은 좌표가 아니라 활성 체크포인트의 PlayerStartTag(CurrentSave->ActiveCheckpointTag)로 보관한다.
-	// 태그는 체크포인트 상호작용 시 SetActiveCheckpoint 가 미리 기록하므로 SaveSlot 은 별도 캡처 없이 그대로 직렬화한다.
+	// 부활/시작 지점은 좌표가 아니라 PlayerStartTag(CurrentSave->PlayerStartTag)로 보관한다.
+	// 태그는 레벨 시작·체크포인트 상호작용 시 SetPlayerStartTag 가 미리 기록하므로 SaveSlot 은 별도 캡처 없이 그대로 직렬화한다.
 
 	UE_LOG(LogWxSave, Log, TEXT("SaveSlot 시작: 슬롯 '%s' — IWxSavable %d개 캡처, 누적 레코드 %d개"),
 		*SlotName, SavableCount, CurrentSave->ActorRecords.Num());
@@ -100,7 +100,7 @@ bool UWxSaveGameSubsystem::LoadSlot(const FString& SlotName)
 
 	// 월드 리로드로 부활: ServerTravel 후
 	//  - 새 월드의 OnWorldInitializedActors 핸들러가 IWxSavable 액터에 ActorRecords 자동 복원
-	//  - 새 GameMode 의 ChoosePlayerStart → WxGameMode 가 ActiveCheckpointTag 로 체크포인트 PlayerStart 를 FindPlayerStart
+	//  - 새 GameMode 의 ChoosePlayerStart → WxGameMode 가 PlayerStartTag 로 부활/시작 PlayerStart 를 FindPlayerStart
 	//  - 새 Pawn 이 그 위치에 fresh 상태(HP 풀, 죽음 태그 0)로 스폰
 	// GameInstanceSubsystem 이라 CurrentSave 가 트래블을 가로질러 유지된다.
 	if (UWorld* World = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr)
@@ -112,15 +112,15 @@ bool UWxSaveGameSubsystem::LoadSlot(const FString& SlotName)
 	return bFileExists;
 }
 
-void UWxSaveGameSubsystem::SetActiveCheckpoint(FName CheckpointTag)
+void UWxSaveGameSubsystem::SetPlayerStartTag(FName InPlayerStartTag)
 {
 	EnsureSaveObject();
-	CurrentSave->ActiveCheckpointTag = CheckpointTag;
+	CurrentSave->PlayerStartTag = InPlayerStartTag;
 }
 
-FName UWxSaveGameSubsystem::GetActiveCheckpointTag() const
+FName UWxSaveGameSubsystem::GetPlayerStartTag() const
 {
-	return CurrentSave ? CurrentSave->ActiveCheckpointTag : NAME_None;
+	return CurrentSave ? CurrentSave->PlayerStartTag : NAME_None;
 }
 
 void UWxSaveGameSubsystem::LogSaveState() const
@@ -131,10 +131,10 @@ void UWxSaveGameSubsystem::LogSaveState() const
 		return;
 	}
 
-	const bool bHasCheckpoint = !CurrentSave->ActiveCheckpointTag.IsNone();
-	UE_LOG(LogWxSave, Display, TEXT("[Wx.Save.Dump] 레코드 %d개 · 활성 체크포인트 %s"),
+	const bool bHasPlayerStartTag = !CurrentSave->PlayerStartTag.IsNone();
+	UE_LOG(LogWxSave, Display, TEXT("[Wx.Save.Dump] 레코드 %d개 · PlayerStart 태그 %s"),
 		CurrentSave->ActorRecords.Num(),
-		bHasCheckpoint ? *CurrentSave->ActiveCheckpointTag.ToString() : TEXT("(미설정)"));
+		bHasPlayerStartTag ? *CurrentSave->PlayerStartTag.ToString() : TEXT("(미설정)"));
 
 	for (const TPair<FGuid, FWxActorRecord>& Pair : CurrentSave->ActorRecords)
 	{

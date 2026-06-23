@@ -21,6 +21,7 @@ public class WxGame : ModuleRules
 			"GameplayTags",
 			"GameplayTasks",
 			"ModelViewViewModel",
+			"ModularGameplay",
 			"MotionWarping",
 			"Niagara",
 			"PhysicsCore",

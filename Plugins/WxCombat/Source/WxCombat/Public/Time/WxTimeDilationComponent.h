@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "Components/GameStateComponent.h"
 
 #include "WxTimeDilationComponent.generated.h"
 
@@ -14,15 +14,15 @@
  * 모든 머신이 동일한 값을 가지지 않으면 CharacterMovementComponent의
  * 서버/클라 시뮬레이션이 어긋난다.
  *
- * AWxGameState 생성자에서 CreateDefaultSubobject로 부착된다.
+ * Lyra 패턴에 맞춰 ModularGameplay의 UGameStateComponent를 상속한다. AWxGameState 생성자에서 CreateDefaultSubobject로 부착된다.
  */
 UCLASS()
-class WXCOMBAT_API UWxTimeDilationComponent : public UActorComponent
+class WXCOMBAT_API UWxTimeDilationComponent : public UGameStateComponent
 {
 	GENERATED_BODY()
 
 public:
-	UWxTimeDilationComponent();
+	UWxTimeDilationComponent(const FObjectInitializer& ObjectInitializer);
 
 	/**
 	 * WorldContextObject가 속한 World의 GameState에 부착된 컴포넌트를 찾아 위임한다.
