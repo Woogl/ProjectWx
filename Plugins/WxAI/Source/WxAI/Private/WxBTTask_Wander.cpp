@@ -51,7 +51,7 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 
 FString UWxBTTask_Wander::GetStaticDescription() const
 {
-	return FString::Printf(TEXT("Duration: %.1f s\nSpeed: x%.2f"), Duration, MoveSpeedMultiplier);
+	return FString::Printf(TEXT("Duration: %.1f s\nSpeed: x %.1f"), Duration, MoveSpeedMultiplier);
 }
 
 void UWxBTTask_Wander::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
