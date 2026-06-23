@@ -3,9 +3,10 @@
 #include "Inventory/WxRewardStateTreeNodes.h"
 
 #include "GameFramework/Actor.h"
+#include "GameFramework/PlayerController.h"
 #include "Inventory/WxRewardComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "StateTreeExecutionContext.h"
-#include "StateTreePropertyBindings.h"
 
 FWxStateTreeTask_GrantReward::FWxStateTreeTask_GrantReward()
 {
@@ -29,13 +30,15 @@ EStateTreeRunStatus FWxStateTreeTask_GrantReward::EnterState(FStateTreeExecution
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
-	if (!Instance.RewardComponent)
+	// 오너의 보상 컴포넌트를 자동 탐색한다(상자엔 하나뿐). 없으면 잘못 배치된 것이므로 Failed.
+	UWxRewardComponent* RewardComponent = Owner->FindComponentByClass<UWxRewardComponent>();
+	if (!RewardComponent)
 	{
 		return EStateTreeRunStatus::Failed;
 	}
 
-	Instance.RewardComponent->DropRewards(Instance.DirectGrantTarget);
+	// 비-픽업 보상(재화 등)은 로컬 플레이어(0번 컨트롤러)에게 직접 지급한다. 픽업 보상은 대상과 무관하게 월드에 스폰된다.
+	RewardComponent->DropRewards(UGameplayStatics::GetPlayerController(Owner, 0));
 
 	// 지급은 즉시 끝나므로 곧바로 완료한다.
 	return EStateTreeRunStatus::Succeeded;

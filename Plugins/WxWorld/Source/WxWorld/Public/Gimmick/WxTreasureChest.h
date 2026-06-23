@@ -25,8 +25,8 @@ enum class EWxChestState : uint8
  * 열기 애니메이션과 인터랙션 비활성은 GimmickStateTree(ST_TreasureChest)가 복제 State 를 추종해 적용한다(라이브 발동=처음부터 재생, 복원=끝 프레임 스냅).
  *
  * 보상 컴포넌트(WxInventory 의 WxRewardComponent)는 플러그인 간 참조 금지 규칙 때문에 C++ 가 아니라 상속 BP 에서 추가한다.
- * 보상 컴포넌트가 InteractionComponent 에 자가 바인딩해 상호작용 시 보상 픽업을 흩뿌리므로 BP 그래프 배선은 필요 없다.
- * 보상 컴포넌트의 배치/회전이 드랍 위치와 발사 방향을 결정한다.
+ * 보상 지급은 GimmickStateTree(ST_TreasureChest)의 Open 상태에서 Wx Grant Reward 태스크가 WxReward 컴포넌트로 수행한다.
+ * 비-픽업(재화 등) 보상은 그 태스크가 로컬 플레이어 인벤토리에 직접 지급한다.
  */
 UCLASS(Abstract)
 class WXWORLD_API AWxTreasureChest : public AWxGimmick

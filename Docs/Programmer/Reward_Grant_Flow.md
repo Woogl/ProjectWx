@@ -12,7 +12,7 @@
 두 개의 축만 알면 전부 설명된다.
 
 - **무엇을 하느냐** — 아이템에 `Pickup` Fragment 가 있으면 **픽업 스폰**, 없으면 **직접 지급**
-- **언제 하느냐** — **적 사망**(코드가 직접 호출) 또는 **상호작용**(상자 등, 자동 바인딩)
+- **언제 하느냐** — **적 사망**(코드가 직접 호출) 또는 **상호작용**(상자 등, StateTree 의 Wx Grant Reward 태스크)
 
 ---
 
@@ -22,7 +22,7 @@
 flowchart TD
     subgraph 트리거
         Death["적 사망<br/>DropRewards(로컬 PC)"]
-        Interact["상호작용<br/>DropRewards(Instigator)"]
+        Interact["상호작용 기믹<br/>State→Open · ST: Wx Grant Reward"]
     end
 
     Death --> Drop
@@ -97,10 +97,7 @@ sequenceDiagram
 
 외형 없는 아이템(재화 등)은 띄울 모습이 없으니 **대상 인벤토리에 바로 넣는다.** 대상이 없으면 경고 후 스킵.
 
-`DirectGrantTarget` 은 트리거가 정한다.
-
-- **상호작용** → 상호작용한 폰이 대상 → 그 폰의 인벤토리에 직접 지급
-- **적 사망** → 로컬 플레이어 컨트롤러(`GetPlayerController(0)`)가 대상 → 그 플레이어 인벤토리에 직접 지급
+직접 지급 대상은 **로컬 플레이어 컨트롤러(`GetPlayerController(0)`)** 다. 적 사망(코드가 직접 호출)·상호작용(Wx Grant Reward 태스크) 양쪽 모두 0번 컨트롤러를 넘긴다.
 
 > 💡 재화처럼 외형 없는 아이템은 `Pickup` Fragment 없이 두면 적 사망·상호작용 양쪽에서 **처치/획득 즉시** 대상 인벤토리에 지급된다. 픽업으로 월드에 흩뿌리고 싶을 때만 `Pickup` Fragment 를 준다.
 
@@ -122,16 +119,17 @@ void AWxEnemyCharacter::HandleDeath()
 }
 ```
 
-**상호작용** — RewardComponent 가 `BeginPlay` 에서 오너의 `IWxInteractionSource` 를 찾아 자가 바인딩한다. BP 그래프 배선이 필요 없다. 보물 상자라면 같은 `OnInteracted` 에 **상자(1회성 게이팅)** 와 **보상 컴포넌트(지급)** 가 각각 구독자로 붙는 구조다.
+**상호작용** — RewardComponent 는 트리거에 직접 바인딩하지 않는다. 상호작용 기믹(보물 상자)은 상호작용 시 자신의 `State` 를 `Open` 으로 확정하고, 이를 추종하는 GimmickStateTree 의 Open 상태에서 `Wx Grant Reward` 태스크가 `DropRewards` 를 호출한다. 비-픽업(재화) 직접 지급은 태스크가 로컬 플레이어(0번 컨트롤러)에게 한다. 1회성 게이팅은 상자의 `State` 가 담당한다.
 
 ```mermaid
 flowchart LR
-    Player["플레이어"] -->|상호작용| IC["InteractionComponent<br/>OnInteracted"]
-    IC --> Chest["상자: 1회성 게이팅<br/>(bTriggered)"]
-    IC --> RC["RewardComponent: 지급<br/>(DropRewards)"]
+    Player["플레이어"] -->|상호작용| Chest["상자: State→Open"]
+    Chest -->|복제 State 추종| ST["GimmickStateTree<br/>Open 상태 진입"]
+    ST --> Task["Wx Grant Reward 태스크<br/>DropRewards(로컬 플레이어)"]
+    Task --> RC["RewardComponent"]
 ```
 
-> 플러그인 간 참조 금지 규칙 때문에 보상/상호작용 컴포넌트는 C++ 가 아니라 **BP 상속에서 추가** 하고, 연결은 `WxCore` 의 `IWxInteractionSource` 인터페이스로 푼다.
+> 플러그인 간 참조 금지 규칙 때문에 보상 컴포넌트는 C++ 가 아니라 **BP 상속에서 추가** 한다. 태스크는 오너의 `UWxRewardComponent` 를 자동 탐색하고 직접 지급은 로컬 플레이어에게 하므로 ST 에셋에서 바인딩할 것이 없다 — Open 상태에 태스크를 두기만 하면 된다. 태스크는 권위·라이브 진입에서만 지급하므로 복원/조인 시 재지급하지 않는다.
 
 ---
 
@@ -166,7 +164,7 @@ flowchart LR
 - **외형 없는 아이템 + 적 드랍 = 로컬 플레이어 인벤토리에 즉시 지급** (적 사망이 `GetPlayerController(0)` 를 대상으로 넘김). 대상이 없을 때만 스킵.
 - **`Pickup` 있는데 `ItemActorClass` 미설정** → 경고 후 스킵 (이 경우엔 직접 지급 폴백 없음).
 - **줍는 주체에 인벤토리 없음** → 경고만, 픽업은 파괴되지 않고 남음.
-- **반복 지급 방지는 보상 컴포넌트의 책임이 아니다** — 게이팅은 오너(상자의 `bTriggered`)가 한다.
+- **반복 지급 방지는 보상 컴포넌트의 책임이 아니다** — 게이팅은 오너(상자의 `State`)가 하고, ST 태스크의 초기진입 가드가 복원/조인 재지급을 막는다.
 - `AWxItemPickup`·`AWxTreasureChest` 는 `Abstract` — 실제 사용은 BP 서브클래스.
 
 ---
@@ -181,5 +179,6 @@ flowchart LR
 | `AWxItemPickup` | WxInventory | 월드 픽업 액터. 발사·줍기·인벤토리 지급 |
 | `UWxInventoryManagerComponent` | WxInventory | 최종 적재(`AddItemDefinition`)·인벤토리 조회(`FindInventory`) |
 | `AWxEnemyCharacter` | WxGame | 적 사망 드랍 호출처(`HandleDeath`) |
-| `AWxTreasureChest` | WxWorld | 상호작용 트리거 예시(1회성 게이팅) |
+| `FWxStateTreeTask_GrantReward` | WxInventory | ST 상태 진입 시 `DropRewards` 호출(권위·라이브 진입 가드). "Wx Grant Reward" |
+| `AWxTreasureChest` | WxWorld | 상호작용 트리거 예시(`State` 게이팅) |
 | `IWxInteractionSource` | WxCore | 상호작용 연동용 공용 인터페이스 |

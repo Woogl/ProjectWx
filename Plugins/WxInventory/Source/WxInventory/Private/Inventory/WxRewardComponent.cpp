@@ -8,7 +8,6 @@
 #include "Items/WxItemFragment.h"
 #include "Items/WxItemPickup.h"
 #include "Items/WxRewardTableRow.h"
-#include "WxInteractionSource.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogWxRewardComponent, Log, All);
 
@@ -105,20 +104,4 @@ void UWxRewardComponent::DropRewards(AActor* DirectGrantTarget)
 		const FVector LaunchDir = FMath::VRandCone(GetUpVector(), ConeRad);
 		SpawnedPickup->LaunchInDirection(LaunchDir, LaunchSpeed);
 	}
-}
-
-void UWxRewardComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// 오너의 상호작용 소스를 자동으로 찾아 바인딩한다. 상호작용 소스가 없는 오너(예: 적 사망 드랍)는 노옵.
-	for (UActorComponent* Source : GetOwner()->GetComponentsByInterface(UWxInteractionSource::StaticClass()))
-	{
-		Cast<IWxInteractionSource>(Source)->GetOnInteractedDelegate().AddDynamic(this, &UWxRewardComponent::HandleInteracted);
-	}
-}
-
-void UWxRewardComponent::HandleInteracted(AActor* InstigatorActor)
-{
-	DropRewards(InstigatorActor);
 }
