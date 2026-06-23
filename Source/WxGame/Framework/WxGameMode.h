@@ -32,9 +32,9 @@ public:
 	//~ End AGameModeBase
 
 protected:
-	/** receiver 액터에 자동 주입할 프레임워크 컴포넌트 목록. 부착 대상은 컴포넌트 베이스로 자동 추론된다. 디자이너가 GameMode 에셋에서 설정(ModularGameplay). */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Framework Components")
-	TArray<TSubclassOf<UGameFrameworkComponent>> InjectedFrameworkComponents;
+	/** ModularGameplay 프레임워크 컴포넌트 목록. 부착 대상은 컴포넌트 베이스로 자동 추론된다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx")
+	TArray<TSubclassOf<UGameFrameworkComponent>> FrameworkComponents;
 
 private:
 	/** 주입 요청 핸들. 살아있는 동안 컴포넌트가 유지되므로 GameMode 수명 동안 보유한다. */

@@ -28,7 +28,7 @@ void AWxGameMode::InitGame(const FString& MapName, const FString& Options, FStri
 		return;
 	}
 
-	for (const TSubclassOf<UGameFrameworkComponent>& ComponentClass : InjectedFrameworkComponents)
+	for (const TSubclassOf<UGameFrameworkComponent>& ComponentClass : FrameworkComponents)
 	{
 		if (!ComponentClass)
 		{

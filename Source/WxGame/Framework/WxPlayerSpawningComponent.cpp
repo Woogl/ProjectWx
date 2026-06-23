@@ -38,7 +38,7 @@ AActor* UWxPlayerSpawningComponent::ChoosePlayerStart(AController* Player)
 	}
 
 	// 3. "Default" PlayerStart 가 없으면 설정 오류 — 에러 로그 후 nullptr(GameMode 가 엔진 기본 선택으로 폴백).
-	UE_LOG(LogWxGame, Error, TEXT("PlayerSpawning: 최초 접속용 PlayerStartTag 'Default' 를 가진 PlayerStart 가 없음. 레벨 입구 PlayerStart 에 'Default' 태그를 부여하라. 엔진 기본 선택으로 폴백."));
+	UE_LOG(LogWxGame, Error, TEXT("PlayerStartTag 'Default' 를 가진 PlayerStart 가 없음."));
 	return nullptr;
 }
 
