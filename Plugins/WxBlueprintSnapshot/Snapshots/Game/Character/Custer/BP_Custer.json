@@ -48,6 +48,7 @@
 			}
 		},
 		"RootComponent": "CollisionCylinder",
+		"SightRadius": 2000,
 		"WeaponActor":
 		{
 			"class": "/Script/Engine.ChildActorComponent",
