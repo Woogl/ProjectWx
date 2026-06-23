@@ -1,0 +1,20 @@
+{
+	"blueprintPath": "/Game/WorldObject/Gimmick/BP_CheckPoint2.BP_CheckPoint2",
+	"classDefaults":
+	{
+		"MeshComponent":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"RelativeLocation":
+				{
+					"X": -100,
+					"Z": -90
+				},
+				"StaticMesh": "/Game/NiagaraExamples/Gallery/StaticMesh/SM_TorchBase.SM_TorchBase"
+			}
+		}
+	},
+	"parentClass": "/Script/WxGame.WxCheckPoint"
+}

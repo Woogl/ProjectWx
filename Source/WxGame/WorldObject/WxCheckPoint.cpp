@@ -32,6 +32,35 @@ void AWxCheckPoint::BeginPlay()
 	InteractionComponent->OnInteracted.AddDynamic(this, &AWxCheckPoint::HandleInteracted);
 }
 
+#if WITH_EDITOR
+// 에디터 전용 GetActorGuid() 를 PlayerStartTag 로 1회 베이킹한다.
+// ActorGuid 는 에디터에서 액터별 안정·고유하고, 부여된 태그는 레벨에 직렬화돼 런타임/세션 간 불변이다.
+void AWxCheckPoint::PostActorCreated()
+{
+	Super::PostActorCreated();
+
+	// 신규 배치 시 태그가 비어 있으면 GUID 부여. 디자이너가 지정한 태그는 보존.
+	if (PlayerStartTag.IsNone())
+	{
+		PlayerStartTag = FName(GetActorGuid().ToString());
+	}
+}
+
+void AWxCheckPoint::PostDuplicate(EDuplicateMode::Type DuplicateMode)
+{
+	Super::PostDuplicate(DuplicateMode);
+
+	// 복제 시 엔진이 새 ActorGuid 를 부여하지만 PlayerStartTag 문자열은 원본값이 복사된다.
+	// 미설정이거나 '자동 부여된 GUID 태그(복제로 복사됨)'면 새 ActorGuid 로 재부여해 원본과의 태그 충돌을 막는다.
+	// 디자이너가 지정한 친화적 태그(비GUID)는 그대로 보존한다.
+	FGuid CopiedGuid;
+	if (PlayerStartTag.IsNone() || FGuid::Parse(PlayerStartTag.ToString(), CopiedGuid))
+	{
+		PlayerStartTag = FName(GetActorGuid().ToString());
+	}
+}
+#endif
+
 void AWxCheckPoint::HandleInteracted(AActor* InstigatorActor)
 {
 	if (!HasAuthority())
