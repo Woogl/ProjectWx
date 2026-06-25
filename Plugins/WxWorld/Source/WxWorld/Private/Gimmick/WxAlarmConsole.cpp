@@ -29,22 +29,17 @@ void AWxAlarmConsole::BeginPlay()
 	ConsoleInteraction->OnInteracted.AddDynamic(this, &AWxAlarmConsole::HandleInteracted);
 }
 
-void AWxAlarmConsole::HandleInteracted(AActor* InstigatorActor)
+void AWxAlarmConsole::SetGimmickState(uint8 NewStateValue)
 {
-	// 권위 측만 State 를 Alarmed 로 확정한다. FX·인터랙션 비활성은 ST 의 Alarmed 상태(Wx Spawn Niagara / Wx Play Sound / Wx Enable Interaction)가 복제 State 를 추종해 적용한다.
-	if (HasAuthority())
-	{
-		SetAlarmConsoleState(EWxAlarmConsoleState::Alarmed);
-	}
+	// 베이스 CommitGimmickState(권위)가 호출하는 State 쓰기 훅. FX·인터랙션 비활성은 ST 가 State 변화를 Enum Compare 로 추종해 적용한다.
+	State = static_cast<EWxAlarmConsoleState>(NewStateValue);
 }
 
-void AWxAlarmConsole::SetAlarmConsoleState(EWxAlarmConsoleState NewState)
+void AWxAlarmConsole::HandleInteracted(AActor* InstigatorActor)
 {
-	// State 쓰기는 권위 전용. 클라는 복제 State 를 ST 의 Enum Compare 전이가 추종한다.
-	if (!HasAuthority() || State == NewState)
+	// 권위 측만 State 를 Alarmed 로 확정한다. 클라는 복제 State 를 ST 의 Enum Compare 전이가 추종하므로 비권위는 노옵.
+	if (HasAuthority())
 	{
-		return;
+		CommitGimmickState(static_cast<uint8>(EWxAlarmConsoleState::Alarmed));
 	}
-
-	State = NewState;
 }

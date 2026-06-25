@@ -37,6 +37,10 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	//~ Begin AWxGimmick — State(EWxAlarmConsoleState) ↔ uint8 쓰기 매핑.
+	virtual void SetGimmickState(uint8 NewStateValue) override;
+	//~ End AWxGimmick
+
 	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Spawn Niagara 가 attach 대상으로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> Console;
@@ -49,10 +53,7 @@ private:
 	UFUNCTION()
 	void HandleInteracted(AActor* InstigatorActor);
 
-	/** 권위 측에서 State 를 Alarmed 로 확정한다. 동일값/비권위면 노옵. FX·인터랙션 토글은 StateTree 가 복제 State 를 추종해 적용한다. */
-	void SetAlarmConsoleState(EWxAlarmConsoleState NewState);
-
-	/** 콘솔 권위/영속 상태. 클라는 복제 State 를 ST 의 Enum Compare 전이가 추종한다. */
+	/** 콘솔 권위/영속 상태(복제 + SaveGame). State 쓰기는 권위 전용(CommitGimmickState)이며, 클라는 복제 State 를 ST 의 Enum Compare 전이가 추종한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx", Replicated, SaveGame, meta = (AllowPrivateAccess = "true"))
 	EWxAlarmConsoleState State = EWxAlarmConsoleState::Idle;
 };

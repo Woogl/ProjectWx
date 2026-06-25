@@ -36,7 +36,7 @@ class UWxInteractionComponent;
  *  - PlaySound 는 (Sound) 로 라이브 전이 진입 시에만 사운드를 1회 재생한다(복원 시 침묵).
  *  - SpawnNiagara 는 (AttachComponent, Niagara) 로 라이브 전이 진입 시에만 Niagara 를 1회 재생한다(복원 시 침묵).
  *  - TriggerSpawners 는 (Spawners) 로 라이브 전이 진입 시 권위 측에서만 각 스포너의 Respawn 을 호출한다(복원 시 재실행 안 함).
- *  - SetState 는 (NewState) 로 라이브 전이 진입 시 권위 측에서만 소유 기믹(AWxGimmick)의 SetGimmickState 를 호출해 권위 State 를 NewState(원시 enum 값)로 확정한다(초기 진입/복원 시엔 저장된 State 보존을 위해 침묵). ST 가 State 전이를 스스로 구동하는 용도(예: 시퀀스/타이머 종료 후 복귀).
+ *  - SetState 는 (NewState) 로 라이브 전이 진입 시 권위 측에서만 소유 기믹(AWxGimmick)의 CommitGimmickState 를 호출해 권위 State 를 NewState(원시 enum 값)로 확정한다(초기 진입/복원 시엔 저장된 State 보존을 위해 침묵). ST 가 State 전이를 스스로 구동하는 용도(예: 시퀀스/타이머 종료 후 복귀).
  *  - LaserSpawn 은 (ActorClass, SpawnVolume, Interval, MoveSpeed) 로 매 틱 권위 측에서 박스 통로의 -X 끝에 일정 간격으로 액터를 스폰하고 살아있는 목록을 유지한다(완료 없는 머무는 태스크, 상태 이탈 시 전부 파괴).
  *  - LaserAdvance 는 (Actors, Velocity) 로 매 틱 권위 측에서 바인딩된 액터들을 Velocity·DeltaTime 만큼 월드 이동시킨다(완료 없는 머무는 태스크).
  *
@@ -417,10 +417,10 @@ struct FWxStateTreeTask_SetStateInstanceData
 };
 
 /**
- * 라이브 전이로 진입할 때 권위 측에서만 소유 기믹(AWxGimmick)의 SetGimmickState(NewState) 를 호출해 권위 State 를 확정하고 Succeeded 로 완료한다.
+ * 라이브 전이로 진입할 때 권위 측에서만 소유 기믹(AWxGimmick)의 CommitGimmickState(NewState) 를 호출해 권위 State 를 확정하고 Succeeded 로 완료한다.
  * 지금까지 State 는 C++ Handle 콜백만 썼지만, 이 노드로 ST 가 상호작용 트리거 없이 스스로 State 전이를 구동할 수 있다(예: Wx Play Level Sequence 완료 후 Idle 로 복귀).
  * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 쓰지 않는다 — 저장/복제된 State 를 덮어쓰지 않도록 침묵한다(Wx Trigger Spawners 와 동일 가드).
- * StateTree 바인딩은 단방향 복사라 태스크가 Context 액터 멤버에 직접 쓸 수 없으므로, 소유 액터의 베이스 훅을 호출해 쓴다. 클라는 State 를 쓰지 않고 복제 State 를 추종하므로 비권위 진입은 노옵. 틱하지 않으므로 비용이 없다.
+ * StateTree 바인딩은 단방향 복사라 태스크가 Context 액터 멤버에 직접 쓸 수 없으므로, 소유 액터의 베이스 훅을 호출해 쓴다. 클라는 State 를 쓰지 않고 복제 State 를 Enum Compare 전이로 추종하므로 비권위 진입은 노옵. 틱하지 않으므로 비용이 없다.
  */
 USTRUCT(meta = (DisplayName = "Wx Set State"))
 struct FWxStateTreeTask_SetState : public FStateTreeTaskCommonBase

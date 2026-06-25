@@ -58,6 +58,12 @@ void AWxElevator::BeginPlay()
 	CallConsoleBInteraction->OnInteracted.AddDynamic(this, &AWxElevator::HandleCallConsoleBInteracted);
 }
 
+void AWxElevator::SetGimmickState(uint8 NewStateValue)
+{
+	// 베이스 CommitGimmickState(권위)가 호출하는 State 쓰기 훅. 라이브 이동/문 개폐는 ST_Elevator 가 State 변화를 Enum Compare 로 추종해 적용한다(위치는 Spline Move 가 전담).
+	State = static_cast<EWxElevatorState>(NewStateValue);
+}
+
 void AWxElevator::HandlePlatformInteracted(AActor* InteractingActor)
 {
 	if (!HasAuthority())
@@ -68,11 +74,11 @@ void AWxElevator::HandlePlatformInteracted(AActor* InteractingActor)
 	// 플랫폼 위 상호작용은 반대 끝점으로 토글한다(문이 열린 정지 상태에서만 — Closed 는 문 닫힘이라 플랫폼에 탈 수 없다).
 	if (State == EWxElevatorState::AtStart)
 	{
-		SetElevatorState(EWxElevatorState::AtEnd);
+		CommitGimmickState(static_cast<uint8>(EWxElevatorState::AtEnd));
 	}
 	else if (State == EWxElevatorState::AtEnd)
 	{
-		SetElevatorState(EWxElevatorState::AtStart);
+		CommitGimmickState(static_cast<uint8>(EWxElevatorState::AtStart));
 	}
 }
 
@@ -83,8 +89,8 @@ void AWxElevator::HandleCallConsoleAInteracted(AActor* InteractingActor)
 		return;
 	}
 
-	// Start 호출. 이미 AtStart 면 SetElevatorState 가 노옵 처리.
-	SetElevatorState(EWxElevatorState::AtStart);
+	// Start 호출. 이미 AtStart 면 동일값이라 복제 변화 없음(사실상 노옵).
+	CommitGimmickState(static_cast<uint8>(EWxElevatorState::AtStart));
 }
 
 void AWxElevator::HandleCallConsoleBInteracted(AActor* InteractingActor)
@@ -94,18 +100,6 @@ void AWxElevator::HandleCallConsoleBInteracted(AActor* InteractingActor)
 		return;
 	}
 
-	// End 호출. 이미 AtEnd 면 SetElevatorState 가 노옵 처리.
-	SetElevatorState(EWxElevatorState::AtEnd);
-}
-
-void AWxElevator::SetElevatorState(EWxElevatorState NewState)
-{
-	// State 쓰기는 권위 전용. 클라는 복제 State 를 ST_Elevator 의 Enum Compare 전이가 추종한다.
-	// 라이브 이동은 StateTree(Spline Move)가 구동하므로 여기서 위치 스냅을 하지 않는다(하면 도착지로 순간이동).
-	if (!HasAuthority() || State == NewState)
-	{
-		return;
-	}
-
-	State = NewState;
+	// End 호출. 이미 AtEnd 면 동일값이라 복제 변화 없음(사실상 노옵).
+	CommitGimmickState(static_cast<uint8>(EWxElevatorState::AtEnd));
 }

@@ -61,6 +61,10 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	//~ Begin AWxGimmick — State(EWxElevatorState) ↔ uint8 쓰기 매핑.
+	virtual void SetGimmickState(uint8 NewStateValue) override;
+	//~ End AWxGimmick
+
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USplineComponent> SplineComponent;
 
@@ -105,11 +109,8 @@ private:
 	UFUNCTION()
 	void HandleCallConsoleBInteracted(AActor* InteractingActor);
 
-	/** 권위 측에서 State 를 전환한다. 동일값/비권위면 노옵. 라이브 이동은 StateTree 가 추종하므로 ApplyState 를 부르지 않는다(위치는 Spline Move 가 전담). */
-	void SetElevatorState(EWxElevatorState NewState);
-
 	/**
-	 * 엘리베이터 권위/영속 상태(끝점 + 문). 인터랙션 시 즉시 최종값으로 확정된다. 초기값은 Closed(Start, 문 닫힘).
+	 * 엘리베이터 권위/영속 상태(끝점 + 문, 복제 + SaveGame). 인터랙션 시 즉시 최종값으로 확정된다(CommitGimmickState, 권위 전용). 초기값은 Closed(Start, 문 닫힘).
 	 * 클라는 복제된 State 를 ST_Elevator 의 Enum Compare 전이가 폴링해 추종하므로 RepNotify 불필요.
 	 * VisibleAnywhere + AllowPrivateAccess 는 StateTree 의 Enum Compare 조건(enter/전이)이 바인딩하기 위한 노출이다.
 	 */

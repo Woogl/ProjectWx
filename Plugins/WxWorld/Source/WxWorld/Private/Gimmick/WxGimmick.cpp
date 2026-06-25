@@ -30,6 +30,17 @@ AWxGimmick::AWxGimmick()
 #endif
 }
 
+void AWxGimmick::CommitGimmickState(uint8 NewStateValue)
+{
+	// State 쓰기는 무조건 서버 권위. 클라는 복제된 State 를 GimmickStateTree 의 Enum Compare 전이로 추종한다(서버 권위 우선 = 사후 롤백).
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	SetGimmickState(NewStateValue);
+}
+
 FGuid AWxGimmick::GetWxSaveId() const
 {
 	return WxSaveId;

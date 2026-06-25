@@ -44,6 +44,10 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	//~ Begin AWxGimmick — State(EWxDoorState) ↔ uint8 쓰기 매핑.
+	virtual void SetGimmickState(uint8 NewStateValue) override;
+	//~ End AWxGimmick
+
 	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Component Move 가 Context 액터의 컴포넌트로 바인딩하기 위한 노출(State 의 Enum Compare 바인딩과 동일 패턴).
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> DoorLeft;
@@ -62,11 +66,8 @@ private:
 	UFUNCTION()
 	void HandleConsoleInteracted(AActor* InstigatorActor);
 
-	/** 권한 측에서 현재 상태의 반대 목표로 State 를 확정한다. 동일값/비권위면 노옵. 슬라이드는 ST_Door 의 Wx Component Move 가 처리. */
-	void SetDoorState(EWxDoorState NewState);
-
 	/**
-	 * 도어 권위/영속 상태. 클라는 Enum Compare 전이가 복제 State 를 폴링하므로 RepNotify 불필요.
+	 * 도어 권위/영속 상태(복제 + SaveGame, GimmickStateTree 의 Enum Compare 바인딩 대상). State 쓰기는 권위 전용(CommitGimmickState)이며, 클라는 복제 State 를 Enum Compare 전이가 추종하므로 RepNotify 불필요.
 	 * VisibleAnywhere + AllowPrivateAccess 는 StateTree 의 Enum Compare 조건(enter/전이)이 바인딩하기 위한 노출이다.
 	 */
 	UPROPERTY(VisibleAnywhere, Category = "Wx", Replicated, SaveGame, meta = (AllowPrivateAccess = "true"))

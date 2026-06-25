@@ -41,6 +41,10 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	//~ Begin AWxGimmick — State(EWxSpawnConsoleState) ↔ uint8 쓰기 매핑.
+	virtual void SetGimmickState(uint8 NewStateValue) override;
+	//~ End AWxGimmick
+
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> ConsoleMesh;
 
@@ -57,10 +61,7 @@ private:
 	UFUNCTION()
 	void HandleInteracted(AActor* InstigatorActor);
 
-	/** 권위 측에서 State 를 Spawned 로 확정한다. 동일값/비권위면 노옵. 스포너 트리거·인터랙션 토글은 StateTree 가 복제 State 를 추종해 적용한다. */
-	void SetSpawnConsoleState(EWxSpawnConsoleState NewState);
-
-	/** 콘솔 권위/영속 상태. 클라는 복제 State 를 ST 의 Enum Compare 전이가 추종한다. */
+	/** 콘솔 권위/영속 상태(복제 + SaveGame). State 쓰기는 권위 전용(CommitGimmickState)이며, 클라는 복제 State 를 ST 의 Enum Compare 전이가 추종한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx", Replicated, SaveGame, meta = (AllowPrivateAccess = "true"))
 	EWxSpawnConsoleState State = EWxSpawnConsoleState::Idle;
 };

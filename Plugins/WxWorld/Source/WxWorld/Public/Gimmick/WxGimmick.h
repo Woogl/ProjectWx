@@ -15,13 +15,12 @@ class UStateTreeComponent;
  * 상호작용 가능한 월드 오브젝트의 공통 부모.
  *
  * 컴포넌트(메시/InteractionComponent 등)는 자식 클래스가 직접 들고 바인딩한다.
- * 부모는 상태머신을 구동하는 GimmickStateTree 를 공통으로 제공한다.
- * 발동/영속 상태는 각 자식이 자체 State enum(복제 + SaveGame) 으로 소유한다(Door/Elevator/콘솔/상자 등).
+ * 부모는 상태머신을 구동하는 GimmickStateTree 와, State 의 서버 권위 쓰기 진입점(CommitGimmickState)을 공통으로 제공한다.
+ * 발동/영속 상태는 각 자식이 자체 State enum(복제 + SaveGame) 으로 소유한다(Door/Elevator/콘솔/상자 등). 자식은 uint8→enum 쓰기 매핑(SetGimmickState)만 제공한다.
  *
  * 상태 구동 패턴(전 기믹 공통):
- *  - C++ 는 권위 State enum 만 소유한다. 인터랙션 시 권위 측이 최종 State 를 확정하고 복제한다.
- *  - GimmickStateTree(실행할 ST 에셋은 자식 BP 에서 할당) 가 복제 State 를 Enum Compare 전이로 추종하며,
- *    비주얼(이동/애니)·인터랙션 토글·사이드이펙트(FX/스폰 등) 를 전부 적용한다(서버/클라 동일, 이벤트 태그 없음).
+ *  - State 쓰기는 무조건 서버 권위다. 인터랙션 핸들러·Wx Set State 태스크는 CommitGimmickState 로만 State 를 확정하며, 이 단일 진입점이 권위 가드를 적용한다(클라는 State 를 쓰지 않는다).
+ *  - 자식의 State enum 은 복제되며, GimmickStateTree(실행할 ST 에셋은 자식 BP 에서 할당) 가 복제 State 를 Enum Compare 전이로 추종해 비주얼(이동/애니)·인터랙션 토글·사이드이펙트(FX/스폰 등) 를 전부 적용한다(서버/클라 동일, 이벤트 태그 없음). 클라가 비주얼을 로컬로 선반영하더라도 복제된 권위 State 로 수렴한다(서버 권위 우선 = 사후 롤백).
  *  - GimmickStateTree 는 자동 시작한다. 초기 진입 스냅(위치·포즈·애니)은 각 태스크가 자체 수행하므로 자식은 명시 StartLogic 을 호출하지 않는다.
  *
  * WxSave 통합:
@@ -36,8 +35,11 @@ class WXWORLD_API AWxGimmick : public AActor, public IWxSavable
 public:
 	AWxGimmick();
 
-	/** Wx Set State 태스크가 권위 측에서 ST 로부터 기믹 State 를 확정하도록 호출하는 베이스 훅. 기본은 노옵이며, 채택 기믹이 오버라이드해 원시 값을 자기 State enum 으로 캐스트해 SetXxxState 로 위임한다. */
-	virtual void SetGimmickState(uint8 NewStateValue) {}
+	/**
+	 * 권위 측에서 State 를 NewStateValue(원시 enum 값)로 확정한다. 비권위면 노옵.
+	 * SetGimmickState 로 자식의 복제 State 에 위임하며, 인터랙션 핸들러·Wx Set State 태스크가 호출하는 단일 서버 권위 쓰기 진입점이다. 클라는 복제된 State 를 추종한다.
+	 */
+	void CommitGimmickState(uint8 NewStateValue);
 
 	//~ Begin IWxSavable
 	virtual FGuid GetWxSaveId() const override;
@@ -51,6 +53,9 @@ public:
 #endif
 
 protected:
+
+	/** CommitGimmickState 가 권위 측에서 호출하는 State 쓰기 훅. 기본 노옵이며, 자식이 uint8→enum 캐스트해 자기 복제 State 에 대입한다. */
+	virtual void SetGimmickState(uint8 NewStateValue) {}
 
 	/** 모든 자식 컴포넌트의 부착 베이스. 자식 클래스는 SetRootComponent 호출 없이 SceneRoot 에 SetupAttachment 한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx")

@@ -602,7 +602,7 @@ EStateTreeRunStatus FWxStateTreeTask_SetState::EnterState(FStateTreeExecutionCon
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	// State 쓰기는 서버 권위 사건이라 클라 진입은 노옵(클라는 복제 State 를 추종).
+	// State 쓰기는 서버 권위 사건이라 클라 진입은 노옵(클라는 복제 State 를 Enum Compare 전이로 추종). CommitGimmickState 가 권위 가드를 다시 적용한다.
 	AWxGimmick* Owner = Cast<AWxGimmick>(Context.GetOwner());
 	if (!Owner || !Owner->HasAuthority())
 	{
@@ -610,7 +610,7 @@ EStateTreeRunStatus FWxStateTreeTask_SetState::EnterState(FStateTreeExecutionCon
 	}
 
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
-	Owner->SetGimmickState(Instance.NewState);
+	Owner->CommitGimmickState(Instance.NewState);
 
 	// 쓰기는 즉시 끝나므로 곧바로 완료한다.
 	return EStateTreeRunStatus::Succeeded;

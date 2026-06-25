@@ -35,22 +35,17 @@ void AWxLaserCorridor::BeginPlay()
 	ConsoleInteraction->OnInteracted.AddDynamic(this, &AWxLaserCorridor::HandleConsoleInteracted);
 }
 
-void AWxLaserCorridor::HandleConsoleInteracted(AActor* InstigatorActor)
+void AWxLaserCorridor::SetGimmickState(uint8 NewStateValue)
 {
-	// 권위 측만 State 를 Disabled 로 확정한다. 스폰 중단·활성 레이저 제거·인터랙션 비활성은 ST 가 복제 State 를 추종해 적용한다.
-	if (HasAuthority())
-	{
-		SetLaserCorridorState(EWxLaserCorridorState::Disabled);
-	}
+	// 베이스 CommitGimmickState(권위)가 호출하는 State 쓰기 훅. 스폰 중단·레이저 철거·인터랙션 비활성은 ST 가 State 변화를 Enum Compare 로 추종해 적용한다.
+	State = static_cast<EWxLaserCorridorState>(NewStateValue);
 }
 
-void AWxLaserCorridor::SetLaserCorridorState(EWxLaserCorridorState NewState)
+void AWxLaserCorridor::HandleConsoleInteracted(AActor* InstigatorActor)
 {
-	// State 쓰기는 권위 전용. 클라는 복제 State 를 ST 의 Enum Compare 전이가 추종한다.
-	if (!HasAuthority() || State == NewState)
+	// 권위 측만 State 를 Disabled 로 확정한다. 클라는 복제 State 를 ST 의 Enum Compare 전이가 추종하므로 비권위는 노옵.
+	if (HasAuthority())
 	{
-		return;
+		CommitGimmickState(static_cast<uint8>(EWxLaserCorridorState::Disabled));
 	}
-
-	State = NewState;
 }
