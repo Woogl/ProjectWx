@@ -2,6 +2,8 @@
 
 #include "WxBTComposite_RandomChoice.h"
 
+#include "WxBTDecorator_RandomChoiceWeight.h"
+
 UWxBTComposite_RandomChoice::UWxBTComposite_RandomChoice(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -26,7 +28,7 @@ void UWxBTComposite_RandomChoice::InitializeMemory(UBehaviorTreeComponent& Owner
 
 FString UWxBTComposite_RandomChoice::GetStaticDescription() const
 {
-	return FString::Printf(TEXT("AvoidRepeat = %s"), bAvoidRepeat ? TEXT("true") : TEXT("false"));
+	return FString::Printf(TEXT("AvoidRepeat = %s\n자식 Weight Decorator 지원"), bAvoidRepeat ? TEXT("true") : TEXT("false"));
 }
 
 int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& SearchData, int32 PrevChild, EBTNodeResult::Type LastResult) const
@@ -49,22 +51,55 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 	const bool bShouldAvoid = bAvoidRepeat && LastChosenChild != INDEX_NONE && ChildrenNum > 1;
 
 	TArray<int32, TInlineAllocator<8>> Candidates;
+	TArray<float, TInlineAllocator<8>> Weights;
 	Candidates.Reserve(ChildrenNum);
+	Weights.Reserve(ChildrenNum);
+	float TotalWeight = 0.0f;
+
 	for (int32 Index = 0; Index < ChildrenNum; ++Index)
 	{
 		if (bShouldAvoid && Index == LastChosenChild)
 		{
 			continue;
 		}
+
+		// 자식에 붙은 Weight Decorator 중 첫 번째 것의 가중치를 사용한다. 없으면 기본 1.0.
+		float Weight = 1.0f;
+		for (const UBTDecorator* Decorator : Children[Index].Decorators)
+		{
+			const UWxBTDecorator_RandomChoiceWeight* WeightDecorator = Cast<UWxBTDecorator_RandomChoiceWeight>(Decorator);
+			if (WeightDecorator)
+			{
+				Weight = WeightDecorator->GetWeight();
+				break;
+			}
+		}
+
 		Candidates.Add(Index);
+		Weights.Add(Weight);
+		TotalWeight += Weight;
 	}
 
-	if (Candidates.Num() == 0)
+	// 후보가 없거나(전부 회피됨) 모든 후보 가중치가 0 이면 실행할 자식이 없으므로 부모에 실패를 반환한다.
+	if (Candidates.Num() == 0 || TotalWeight <= 0.0f)
 	{
 		return BTSpecialChild::ReturnToParent;
 	}
 
-	const int32 Chosen = Candidates[FMath::RandRange(0, Candidates.Num() - 1)];
+	// 누적 가중치 룰렛: [0, TotalWeight) 난수를 뽑아 누적합이 처음으로 이를 넘는 후보를 고른다.
+	const float Roll = FMath::FRandRange(0.0f, TotalWeight);
+	float Accumulated = 0.0f;
+	int32 Chosen = Candidates.Last(); // 부동소수 경계로 루프가 못 고를 때의 폴백
+	for (int32 CandidateIndex = 0; CandidateIndex < Candidates.Num(); ++CandidateIndex)
+	{
+		Accumulated += Weights[CandidateIndex];
+		if (Roll < Accumulated)
+		{
+			Chosen = Candidates[CandidateIndex];
+			break;
+		}
+	}
+
 	LastChosenChild = Chosen;
 	return Chosen;
 }
