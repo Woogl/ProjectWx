@@ -39,7 +39,7 @@
 ## 확장 포인트 / 규약
 - **프레임워크 컴포넌트 주입**: `AWxGameMode::FrameworkComponents`(EditDefaults)에 `UGameFrameworkComponent`를 등록하면 ModularGameplay가 receiver(GameState 등)에 자동 주입한다. GameState는 어떤 컴포넌트가 붙는지 알지 않는다.
 - **스폰 지점**: 선택 로직은 GameMode가 아니라 `UWxPlayerSpawningComponent`가 소유(저장 PlayerStartTag → "Default" 태그 → 엔진 폴백). `AWxCheckPoint`(APlayerStart 파생)가 부활 후보가 된다.
-- **새 적 종류**: `AWxEnemyCharacter` 파생 BP에서 `BehaviorTreeAsset`/시야·청각/`RewardComponent`를 지정. 사망 처리는 `HandleDeath` override로 확장.
+- **새 적 종류**: `AWxEnemyCharacter` 파생 BP에서 `BehaviorTreeAsset`/시야·청각/`RewardRow`(+`LaunchSpeed`)를 지정. 사망 처리는 `HandleDeath` override로 확장.
 - **새 플레이어 입력/어빌리티**: `UWxInputConfig` DataAsset에 `AbilityInputBindings`(InputAction→InputTag) 추가 — C++ 수정 없이 데이터 주도. 메뉴/UI 입력은 CommonUI(`WxHUDLayout`)가 별도 소유.
 - **MVVM 가교**: WxUI ViewModel은 게임/World 모듈을 참조할 수 없으므로, 양쪽에 의존하는 `WxViewModelResolver_*`가 데이터를 시드한다. WBP에서 Creation Type = Resolver로 선택.
 - **리플리케이션/권한**: ASC는 캐릭터가 직접 소유(PlayerState 아님). 인벤토리는 PlayerController가 소유 연결로만 복제(다른 클라 미복제). 기믹 State는 C++가 권위 소유, 클라는 복제 State를 StateTree가 추종(`AWxLaserCorridor` 참고).
@@ -54,4 +54,4 @@
 - 상위: 게임의 최상위 조립 모듈. 모든 Wx 도메인 플러그인([[WxCombat]] · [[WxAI]] · [[WxInventory]] · [[WxUI]] · [[WxWorld]] · [[WxSave]] · [[WxCore]])을 소비한다.
 
 ---
-*문서 기준 커밋 `c451acb` · 생성일 2026-06-23 · 소스 50파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `1735fc7` · 생성일 2026-06-25 · 소스 50파일 — `/readme-writer`로 갱신*
