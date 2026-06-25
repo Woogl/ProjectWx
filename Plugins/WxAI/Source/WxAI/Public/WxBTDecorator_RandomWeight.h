@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTDecorator.h"
-#include "WxBTDecorator_RandomChoiceWeight.generated.h"
+#include "WxBTDecorator_RandomWeight.generated.h"
 
 /**
  * BT Decorator: UWxBTComposite_RandomChoice 의 자식 추첨 가중치를 운반한다.
@@ -16,12 +16,12 @@
  * 이 Decorator 가 없는 자식은 가중치 1.0 으로 취급되며, Weight 가 0 이면 그 자식은 사실상 추첨에서 제외된다.
  */
 UCLASS()
-class WXAI_API UWxBTDecorator_RandomChoiceWeight : public UBTDecorator
+class WXAI_API UWxBTDecorator_RandomWeight : public UBTDecorator
 {
 	GENERATED_BODY()
 
 public:
-	UWxBTDecorator_RandomChoiceWeight();
+	UWxBTDecorator_RandomWeight();
 
 	virtual FString GetStaticDescription() const override;
 

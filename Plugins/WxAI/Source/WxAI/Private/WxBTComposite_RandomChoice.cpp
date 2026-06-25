@@ -2,7 +2,7 @@
 
 #include "WxBTComposite_RandomChoice.h"
 
-#include "WxBTDecorator_RandomChoiceWeight.h"
+#include "WxBTDecorator_RandomWeight.h"
 
 UWxBTComposite_RandomChoice::UWxBTComposite_RandomChoice(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -67,7 +67,7 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 		float Weight = 1.0f;
 		for (const UBTDecorator* Decorator : Children[Index].Decorators)
 		{
-			const UWxBTDecorator_RandomChoiceWeight* WeightDecorator = Cast<UWxBTDecorator_RandomChoiceWeight>(Decorator);
+			const UWxBTDecorator_RandomWeight* WeightDecorator = Cast<UWxBTDecorator_RandomWeight>(Decorator);
 			if (WeightDecorator)
 			{
 				Weight = WeightDecorator->GetWeight();
