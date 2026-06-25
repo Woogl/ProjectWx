@@ -7,7 +7,7 @@
 - 아이템 정의(`UWxItemDefinition`) + Fragment 컴포지션으로 데이터·행동을 선언하고, 런타임 인스턴스(`UWxItemInstance`)의 생성·소멸·복제를 관장한다.
 - 인벤토리 보관: FastArray 기반 슬롯 스택 머지/분할(`UWxInventoryManagerComponent`), 정의 합계 조회·차감, 충전형(에스트병) 사용/리필.
 - 장비: 장착 ItemDef 보관·복제와 EquipEffect GE 라이프사이클(`UWxEquipmentComponent`).
-- 보상 드랍: 픽업 액터 스폰·발사(`UWxRewardComponent`, `AWxItemPickup`), DataTable 기반 보상 정의(`FWxRewardTableRow`), StateTree 트리거(`FWxStateTreeTask_GrantReward`).
+- 보상 드랍: 서버 권위 BFL 보상 지급(`UWxRewardLibrary::GrantReward`)과 픽업 액터 스폰·수직 발사(`AWxItemPickup`), DataTable 기반 보상 정의(`FWxRewardTableRow`), StateTree 트리거(`FWxStateTreeTask_GrantReward`).
 
 **경계 (비담당)**
 - 무기 메시 스왑/소켓 재부착 등 실제 외형 반영 — `UWxEquipmentComponent`가 `OnEquipVisualChanged`로 방송만 하고, 게임 모듈(캐릭터)이 반영한다.
@@ -26,7 +26,7 @@
 | `UWxItemInstance` | 아이템 한 자루의 런타임 인스턴스. 충전량 보유, GA SourceObject | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemInstance.h` |
 | `UWxInventoryManagerComponent` | 인벤토리 본체. Add/Consume/Use/Equip + FastArray 복제 | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryManagerComponent.h` |
 | `UWxEquipmentComponent` | 장착 ItemDef 복제 + EquipEffect GE 라이프사이클, 외형 방송 | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxEquipmentComponent.h` |
-| `UWxRewardComponent` | 보상 드랍 스포너(픽업 스폰/발사, 비-픽업 직접 지급) | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxRewardComponent.h` |
+| `UWxRewardLibrary` | 보상 지급 BFL(서버 권위, 픽업 스폰/수직 발사, 비-픽업 직접 지급) | `Plugins/WxInventory/Source/WxInventory/Public/WxRewardLibrary.h` |
 | `AWxItemPickup` | 월드 픽업 액터(상호작용 시 인벤토리 지급 후 파괴) | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemPickup.h` |
 | `FWxRewardTableRow` | 보상 DataTable Row(아이템×수량 최대 5쌍) | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxRewardTableRow.h` |
 

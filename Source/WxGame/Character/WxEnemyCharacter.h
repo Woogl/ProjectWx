@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/DataTable.h"
 #include "Spawnable/WxSpawnableInterface.h"
 #include "Character/WxCharacterBase.h"
 #include "WxEnemyCharacter.generated.h"
@@ -11,13 +12,12 @@ class AWxSpawner;
 class UBehaviorTree;
 class UWxLockOnPointComponent;
 class UWxNameplateComponent;
-class UWxRewardComponent;
 
 /**
  * 에너미 캐릭터.
  * - AWxEnemyController에 의해 제어
  * - BehaviorTree를 BP에서 지정하여 적 종류별 행동 패턴 분리
- * - 처치 시 RewardComponent 가 보상 픽업을 스폰해 사망 위치에 흩뿌린다
+ * - 처치 시 UWxRewardLibrary::GrantReward 로 RewardRow 의 보상을 지급한다(픽업은 사망 위치에서 수직 발사, 재화는 직접 지급)
  */
 UCLASS(Abstract)
 class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnableInterface
@@ -68,9 +68,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx|LockOn")
 	TObjectPtr<UWxLockOnPointComponent> LockOnPoint;
 
-	/** 처치 시 지급되는 보상. 보상 로우/픽업 외형/발사 파라미터를 보유한다. */
-	UPROPERTY(VisibleAnywhere, Category = "Wx|Reward")
-	TObjectPtr<UWxRewardComponent> RewardComponent;
+	/** 처치 시 지급할 보상. FWxRewardTableRow 로우. 비우면 보상 없음. */
+	UPROPERTY(EditAnywhere, Category = "Wx|Reward", meta = (RowType = "/Script/WxInventory.WxRewardTableRow"))
+	FDataTableRowHandle RewardRow;
+
+	/** 처치 시 스폰되는 픽업 보상의 발사 속도(cm/s). 발사 방향은 항상 월드 Z 업(수직)이다. 비-픽업(재화) 보상엔 영향 없다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Reward", meta = (ClampMin = "0"))
+	float LaunchSpeed = 300.f;
 
 	/** 자신을 스폰한 Spawner. OnSpawnedBy 에서 세팅되며, 사망 시 처치 기록 대상. 직접 배치된 적은 비어 있다. */
 	TWeakObjectPtr<AWxSpawner> OwningSpawner;

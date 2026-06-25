@@ -150,7 +150,7 @@ public:
  * 다양한 스포너(보물 상자, 적 드랍 등) 가 아이템별로 지정된 픽업 액터를 스폰하면서도
  * 동일한 픽업 BP 를 재사용해 아이템별로 다른 메시/이펙트를 출력하도록 한다.
  *
- * 본 Fragment 는 데이터만 기술한다 — 실제 스폰은 스포너(WxRewardComponent), 컴포넌트 세팅은 픽업 액터 측에서 수행한다.
+ * 본 Fragment 는 데이터만 기술한다 — 실제 스폰은 스포너(UWxRewardLibrary::GrantReward), 컴포넌트 세팅은 픽업 액터 측에서 수행한다.
  */
 UCLASS(DisplayName = "Pickup")
 class WXINVENTORY_API UWxItemFragment_Pickup : public UWxItemFragment

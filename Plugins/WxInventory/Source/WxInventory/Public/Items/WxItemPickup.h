@@ -17,7 +17,7 @@ class UWxItemDefinition;
  * BeginPlay 에서 IWxInteractionSource 구현 컴포넌트를 자동으로 찾아 바인딩하므로 BP 그래프 배선은 필요 없다.
  * 상호작용 시 Interactor 의 인벤토리에 ItemDef 를 지급한 뒤 파괴된다.
  *
- * 외부 스포너(예: WxRewardComponent) 가 SetItemDef 로 지급 데이터를 주입하고 LaunchInDirection 으로 물리 발사한다.
+ * 외부 스포너(예: UWxRewardLibrary::GrantReward) 가 SetItemDef 로 지급 데이터를 주입하고 LaunchInDirection 으로 물리 발사한다.
  */
 UCLASS(Abstract)
 class WXINVENTORY_API AWxItemPickup : public AActor

@@ -4,7 +4,7 @@
 #include "Controller/WxEnemyController.h"
 #include "Component/WxNameplateComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Inventory/WxRewardComponent.h"
+#include "WxRewardLibrary.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Spawnable/WxSpawner.h"
@@ -32,10 +32,6 @@ AWxEnemyCharacter::AWxEnemyCharacter()
 	// 락온 지점을 메시에 부착한다.
 	LockOnPoint = CreateDefaultSubobject<UWxLockOnPointComponent>(TEXT("LockOnPoint"));
 	LockOnPoint->SetupAttachment(GetMesh(), TEXT("pelvis"));
-
-	// 캡슐 중심에 부착해 드랍이 바닥에 끼지 않게 한다. 위치/각도는 BP 에서 조절할 수 있다.
-	RewardComponent = CreateDefaultSubobject<UWxRewardComponent>(TEXT("RewardComponent"));
-	RewardComponent->SetupAttachment(GetRootComponent());
 }
 
 void AWxEnemyCharacter::BeginPlay()
@@ -60,8 +56,8 @@ void AWxEnemyCharacter::HandleDeath()
 	}
 
 	// 외형 없는 재화(골드 등)는 로컬 플레이어 인벤토리에 즉시 지급한다.
-	// 외형 있는 보상은 대상과 무관하게 픽업으로 흩뿌려진다.
-	RewardComponent->DropRewards(UGameplayStatics::GetPlayerController(this, 0));
+	// 외형 있는 보상은 사망 위치에서 월드 Z 업으로 수직 발사된다.
+	UWxRewardLibrary::GrantReward(this, RewardRow, UGameplayStatics::GetPlayerController(this, 0), GetActorTransform(), LaunchSpeed);
 }
 
 void AWxEnemyCharacter::OnSpawnedBy(AWxSpawner* Spawner)

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/DataTable.h"
 #include "Gimmick/WxGimmick.h"
 #include "WxTreasureChest.generated.h"
 
@@ -24,9 +25,9 @@ enum class EWxChestState : uint8
  * 상태는 자체 EWxChestState(State) 가 권위 원천이며, 복제·SaveGame 으로 보존된다.
  * 열기 애니메이션과 인터랙션 비활성은 GimmickStateTree(ST_TreasureChest)가 복제 State 를 추종해 적용한다(라이브 발동=처음부터 재생, 복원=끝 프레임 스냅).
  *
- * 보상 컴포넌트(WxInventory 의 WxRewardComponent)는 플러그인 간 참조 금지 규칙 때문에 C++ 가 아니라 상속 BP 에서 추가한다.
- * 보상 지급은 GimmickStateTree(ST_TreasureChest)의 Open 상태에서 Wx Grant Reward 태스크가 WxReward 컴포넌트로 수행한다.
- * 비-픽업(재화 등) 보상은 그 태스크가 로컬 플레이어 인벤토리에 직접 지급한다.
+ * 보상 지급은 GimmickStateTree(ST_TreasureChest)의 Open 상태에서 Wx Grant Reward 태스크가 수행한다(UWxRewardLibrary::GrantReward 호출).
+ * 지급할 보상(RewardRow)·발사 속도(LaunchSpeed)는 이 액터의 프로퍼티로 두고, ST 태스크가 Context 액터 바인딩으로 읽는다. 스폰 오프셋(SpawnOffset)은 태스크 인스턴스 데이터로 ST 에셋에서 설정한다(별도 컴포넌트 부착 불필요).
+ * 픽업 보상은 상자 위(SpawnOffset)에서 월드 Z 업으로 수직 발사되고, 비-픽업(재화 등) 보상은 로컬 플레이어 인벤토리에 직접 지급된다.
  */
 UCLASS(Abstract)
 class WXWORLD_API AWxTreasureChest : public AWxGimmick
@@ -48,6 +49,15 @@ protected:
 	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UWxInteractionComponent> InteractionComponent;
+
+	// EditAnywhere + AllowPrivateAccess: 디자이너가 값을 설정하고, StateTree 의 Wx Grant Reward 태스크가 Context 액터의 프로퍼티로 바인딩해 읽는다.
+	/** 상호작용 시 지급할 보상. FWxRewardTableRow 로우. 비우면 보상 없음. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|Reward", meta = (RowType = "/Script/WxInventory.WxRewardTableRow", AllowPrivateAccess = "true"))
+	FDataTableRowHandle RewardRow;
+
+	/** 픽업 보상의 발사 속도(cm/s). 발사 방향은 항상 월드 Z 업(수직)이다. 비-픽업(재화) 보상엔 영향 없다. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|Reward", meta = (ClampMin = "0", AllowPrivateAccess = "true"))
+	float LaunchSpeed = 300.f;
 
 private:
 	UFUNCTION()
