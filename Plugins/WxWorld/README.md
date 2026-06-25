@@ -6,7 +6,7 @@
 **담당**
 - 기믹(`AWxGimmick` 파생) 베이스와 StateTree 구동 패턴: C++ 가 권위 State enum만 소유하고, 공용 ST 노드가 복제 State를 추종해 비주얼·FX·인터랙션 토글을 적용
 - 상호작용 컴포넌트/레지스트리: 폰 오버랩 감지 → 로컬 레지스트리 등록 → 선택/외곽선 강조 → 서버 권위 `TryInteract` → Multicast 알림
-- 스포너: 레벨 배치 `AWxSpawner` 의 스폰/처치 상태(`bIsKilled`) 보유, 월드 서브시스템 레지스트리, 일괄 리스폰
+- 스포너: 레벨 배치 `AWxSpawner` 의 스폰/처치 상태(`bIsKilled`) 보유, `UWxSpawnerLibrary` 일괄 리스폰
 
 **경계 (비담당)**
 - 상호작용 입력→서버 전달 어빌리티(`WxAbility_Interact`), 상호작용 텍스트를 그리는 HUD 리스트(WBP/뷰모델) — [[WxCombat]] / [[WxUI]]
@@ -25,8 +25,8 @@
 | `UWxInteractionComponent` | `USphereComponent`+`IWxInteractionSource`. 오버랩 감지·레지스트리 등록·`TryInteract`·Multicast | `Source/WxWorld/Public/Interaction/WxInteractionComponent.h` |
 | `UWxInteractionRegistrySubsystem` | LocalPlayer 서브시스템. 범위 내 컴포넌트 목록·선택 소유, HUD 리스트에 공급 | `Source/WxWorld/Public/Interaction/WxInteractionRegistrySubsystem.h` |
 | `AWxSpawner` | 레벨 배치 스폰 액터. `bIsKilled`(SaveGame) 처치 상태, `bNeverRevive`, Auto/Manual 모드 | `Source/WxWorld/Public/Spawnable/WxSpawner.h` |
-| `IWxSpawnableInterface` | 스폰 대상이 구현하는 인터페이스. `OnSpawnedBy` per-instance 훅 | `Source/WxWorld/Public/Spawnable/WxSpawnableInterface.h` |
-| `UWxSpawnerSubsystem` | 월드 서브시스템. 스포너 레지스트리·역조회 처치 마킹·일괄 리스폰 | `Source/WxWorld/Public/System/WxSpawnerSubsystem.h` |
+| `IWxSpawnableInterface` | 스폰 대상이 구현하는 인터페이스. `OnSpawnedBy` per-instance 훅(스포너 백레퍼런스 주입 등) | `Source/WxWorld/Public/Spawnable/WxSpawnableInterface.h` |
+| `UWxSpawnerLibrary` | BP 진입점. `TryRespawnAll` 이 월드의 Auto 스포너를 TActorIterator 로 일괄 리스폰(collect-first) | `Source/WxWorld/Public/System/WxSpawnerLibrary.h` |
 
 ## 확장 포인트 / 규약
 - **새 기믹 추가**: `AWxGimmick` 상속 → 자식이 메시/InteractionComponent와 State enum(`UPROPERTY` Replicated+SaveGame)을 직접 보유 → `SetGimmickState` 오버라이드로 원시 uint8을 자기 enum으로 캐스트. 비주얼·FX·인터랙션 토글은 모두 자식 BP에 할당한 ST 에셋의 공용 노드가 처리한다(C++ 비주얼 코드 없음).

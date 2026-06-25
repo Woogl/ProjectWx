@@ -3,7 +3,6 @@
 #include "Spawnable/WxSpawner.h"
 
 #include "Spawnable/WxSpawnableInterface.h"
-#include "System/WxSpawnerSubsystem.h"
 #include "Components/ArrowComponent.h"
 #include "Components/BillboardComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -92,11 +91,6 @@ EWxSpawnerMode AWxSpawner::GetSpawnMode() const
 	return SpawnMode;
 }
 
-AActor* AWxSpawner::GetSpawnedActor() const
-{
-	return SpawnedActor.Get();
-}
-
 bool AWxSpawner::IsKilled() const
 {
 	return bIsKilled;
@@ -149,11 +143,6 @@ void AWxSpawner::BeginPlay()
 
 	if (HasAuthority())
 	{
-		if (UWxSpawnerSubsystem* Subsystem = GetWorld()->GetSubsystem<UWxSpawnerSubsystem>())
-		{
-			Subsystem->RegisterSpawner(this);
-		}
-
 		// 정상 흐름에선 BeginPlay 시점에 bIsKilled=false. 슬롯 복원으로 true 가 들어왔다면
 		// OnWxSaveRestored 가 SpawnedActor 정리를 담당. 본 가드는 에디터 디폴트 등으로 true 가 들어오는 경우의 안전망.
 		if (bIsKilled)
@@ -172,14 +161,6 @@ void AWxSpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (HasAuthority())
 	{
-		if (UWorld* World = GetWorld())
-		{
-			if (UWxSpawnerSubsystem* Subsystem = World->GetSubsystem<UWxSpawnerSubsystem>())
-			{
-				Subsystem->UnregisterSpawner(this);
-			}
-		}
-
 		if (AActor* Existing = SpawnedActor.Get())
 		{
 			Existing->Destroy();

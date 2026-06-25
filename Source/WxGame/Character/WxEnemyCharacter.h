@@ -7,6 +7,7 @@
 #include "Character/WxCharacterBase.h"
 #include "WxEnemyCharacter.generated.h"
 
+class AWxSpawner;
 class UBehaviorTree;
 class UWxLockOnPointComponent;
 class UWxNameplateComponent;
@@ -33,6 +34,8 @@ public:
 	float GetMaxHearingRange() const;
 
 	// IWxSpawnableInterface
+	/** 스폰 직후 자신을 스폰한 Spawner 를 기억한다. 사망 시 순회 없이 해당 Spawner 에 처치 기록을 남기기 위함. */
+	virtual void OnSpawnedBy(AWxSpawner* Spawner) override;
 #if WITH_EDITOR
 	virtual const UMeshComponent* GetEditorPreviewMeshComponent() const override;
 #endif
@@ -68,4 +71,7 @@ protected:
 	/** 처치 시 지급되는 보상. 보상 로우/픽업 외형/발사 파라미터를 보유한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Reward")
 	TObjectPtr<UWxRewardComponent> RewardComponent;
+
+	/** 자신을 스폰한 Spawner. OnSpawnedBy 에서 세팅되며, 사망 시 처치 기록 대상. 직접 배치된 적은 비어 있다. */
+	TWeakObjectPtr<AWxSpawner> OwningSpawner;
 };

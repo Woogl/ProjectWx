@@ -8,7 +8,7 @@
 #include "Engine/GameInstance.h"
 #include "Interaction/WxInteractionComponent.h"
 #include "Inventory/WxInventoryManagerComponent.h"
-#include "System/WxSpawnerSubsystem.h"
+#include "System/WxSpawnerLibrary.h"
 #include "WxSaveGameSubsystem.h"
 
 AWxCheckPoint::AWxCheckPoint(const FObjectInitializer& ObjectInitializer)
@@ -105,10 +105,7 @@ void AWxCheckPoint::HandleInteracted(AActor* InstigatorActor)
 		}
 	}
 
-	if (UWxSpawnerSubsystem* Subsystem = GetWorld()->GetSubsystem<UWxSpawnerSubsystem>())
-	{
-		Subsystem->RespawnAutoSpawners();
-	}
+	UWxSpawnerLibrary::TryRespawnAll(this);
 
 	// 갱신된 PlayerStartTag + 리셋된 월드 상태를 디스크에 저장한다. 과거 BP OnInteracted 의 SaveSlot 호출을 C++ 로 이관 —
 	// SetPlayerStartTag 이후 실행돼 순서가 보장되고, HasAuthority 게이트 안이라 서버 전용으로 저장된다("Test" 는 현재 단일 개발 슬롯).

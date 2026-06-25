@@ -7,7 +7,7 @@
 #include "WxSpawnerLibrary.generated.h"
 
 /**
- * Blueprint 진입점. UWxSpawnerSubsystem 으로 위임하는 thin wrapper.
+ * Blueprint 진입점. 월드의 Spawner 를 TActorIterator 로 순회해 일괄 리스폰한다.
  *
  * 서버 권위 호출만 의미가 있다. 클라에서 호출되면 Spawner 가 내부에서 무시한다.
  */

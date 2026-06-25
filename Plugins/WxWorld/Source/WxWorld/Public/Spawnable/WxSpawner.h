@@ -43,11 +43,8 @@ public:
 	/** 현재 스폰된 액터를 파괴하고 SpawnableActorClass로 새로 스폰한다. 서버 권한 필요. 영구 처치는 스킵. */
 	void Respawn();
 
-	/** 스폰 트리거 방식. Manual 은 일괄 리스폰(RespawnAutoSpawners) 대상에서 제외되고 개별 트리거로만 스폰된다. */
+	/** 스폰 트리거 방식. Manual 은 일괄 리스폰(TryRespawnAll) 대상에서 제외되고 개별 트리거로만 스폰된다. */
 	EWxSpawnerMode GetSpawnMode() const;
-
-	/** 현재 이 Spawner가 보유한 spawned 액터. Subsystem 의 spawnable→spawner 역조회 등에 사용. */
-	AActor* GetSpawnedActor() const;
 
 	/** 본 Spawner 가 처치 상태인지. */
 	bool IsKilled() const;
