@@ -30,7 +30,7 @@ class UWxInteractionComponent;
  *
  *  - EnableInteraction 은 (InteractionComponent, bEnable) 으로 지정 상호작용 컴포넌트 하나의 활성/비활성을 토글한다.
  *  - EnablePlayerInput 은 (bEnable) 으로 로컬 플레이어 폰의 입력 전체를 진입 시 1회 토글한다(컷신 등 연출 중 조작 차단).
- *  - ComponentMove 는 (TargetComponent, LocalOffset, Duration) 으로 지정 컴포넌트를 아키타입(기준) 포즈에서 기준+offset 으로 일정 속도 슬라이드한다(범용 메시 이동).
+ *  - ComponentMove 는 (TargetComponent, LocalOffset, Duration) 으로 지정 컴포넌트를 현재 위치에서 기준(아키타입)+offset 으로 일정 속도 슬라이드한다(범용 메시 이동, 목표=아키타입인 닫기 방향도 지원).
  *  - ComponentSplineMove 는 (TargetComponent, Spline, TargetPointIndex, Duration) 으로 지정 컴포넌트를 목표 스플라인 포인트로 옮긴다. 초기 진입이면 목표 포인트로 즉시 스냅, 라이브 전이면 현재(가장 가까운) 포인트에서 목표까지 곡선을 따라 일정 속도 이동한다(State 가 목표 끝점을 직접 선언하므로 복원도 정확).
  *  - AtSplinePoint(조건) 는 (TargetComponent, Spline, PointIndex, bInvert) 로 대상 컴포넌트의 현재 위치에서 가장 가까운 스플라인 포인트가 PointIndex 와 같은지 검사한다(기하 판정, 멤버 저장 없음). ComponentSplineMove 와 nearest 로직을 공유한다.
  *  - PlayAnimation 은 (TargetMesh, Animation) 으로 초기 진입이면 끝 프레임 스냅, 라이브 전이면 처음부터 재생한다. 범용 애니 재생.
@@ -68,6 +68,7 @@ struct FWxStateTreeTask_EnableInteractionInstanceData
  * 진입 시 지정 상호작용 컴포넌트(UWxInteractionComponent) 하나의 활성/비활성을 bEnable 로 토글한 뒤 Succeeded 로 완료한다.
  * 포즈/이동 등과 직교하는 단일 책임 태스크. 인터랙션이 여러 개인 기믹은 영역마다 노드를 둔다. 틱하지 않으므로 비용이 없다.
  * 각 상태가 자기 인터랙션 가용 여부를 명시하도록 상태마다 둔다(직접 복원 시에도 일관). 컴포넌트가 비면 Failed.
+ * 순간 side-effect 라 기본적으로 상태 완료를 구동하지 않는다(bConsideredForCompletion=false; 토글만 든 정지 leaf 가 즉시 완료→재선택 루프에 빠지지 않도록). 인스턴스별로 다시 켤 수 있다.
  */
 USTRUCT(meta = (DisplayName = "Wx Enable Interaction"))
 struct FWxStateTreeTask_EnableInteraction : public FStateTreeTaskCommonBase
@@ -102,6 +103,7 @@ struct FWxStateTreeTask_EnablePlayerInputInstanceData
  * 진입 시 로컬 플레이어 폰의 입력 전체를 bEnable 로 토글한 뒤 Succeeded 로 완료한다(EnableInteraction 과 동형의 토글 태스크).
  * 각 상태가 자기 입력 가용 여부를 선언하도록 상태마다 둔다(예: 컷신 Playing 은 false, Idle 은 true). 직접 복원/레이트조인 시에도 일관되게 적용된다.
  * 로컬 플레이어 컨트롤러/폰이 없으면(예: 데디 서버) 노옵. 틱하지 않으므로 비용이 없다.
+ * 순간 side-effect 라 기본적으로 상태 완료를 구동하지 않는다(bConsideredForCompletion=false; 컷신은 PlayLevelSequence 가 완료를 구동). 인스턴스별로 다시 켤 수 있다.
  */
 USTRUCT(meta = (DisplayName = "Wx Enable Player Input"))
 struct FWxStateTreeTask_EnablePlayerInput : public FStateTreeTaskCommonBase
@@ -135,14 +137,19 @@ struct FWxStateTreeTask_ComponentMoveInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	FVector LocalOffset = FVector::ZeroVector;
 
-	/** 목표까지 슬라이드 시간(초). 0 이하면 즉시 스냅. 속도는 LocalOffset/Duration 고정값이라 재진입과 무관하게 일정하다. */
+	/** 목표까지 슬라이드 시간(초). 0 이하면 즉시 스냅. 속도는 시작→목표 실제 거리/Duration 으로 EnterState 에서 1회 산출한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
 	float Duration = 1.f;
+
+	/** (런타임) 시작→목표 구간의 일정 속도(초당 로컬 거리). EnterState 에서 1회 산출한다(LocalOffset 크기가 아니라 실제 시작 위치 기준 거리라, 목표가 아키타입인 닫기도 0 이 아니다). */
+	UPROPERTY()
+	float MoveSpeed = 0.f;
 };
 
 /**
- * 지정 컴포넌트를 기준(아키타입) 상대 위치에서 기준+LocalOffset 으로 일정 속도 슬라이드하고, 도달하면 Succeeded 를 반환해 상태를 완료시킨다.
+ * 지정 컴포넌트를 현재 상대 위치에서 기준(아키타입)+LocalOffset 으로 일정 속도 슬라이드하고, 도달하면 Succeeded 를 반환해 상태를 완료시킨다.
  * State 를 읽지 않는 순수 비주얼 태스크라 어떤 기믹이든 메시 이동에 재사용한다.
+ * 속도는 시작→목표 실제 거리/Duration 으로 EnterState 에서 1회 산출하므로, 목표가 아키타입(offset 0)인 '닫기' 방향도 일정 속도로 슬라이드한다.
  * 시작 시 이미 목표거나(복원/레이트조인) 초기 진입이거나 길이가 0이면 움직임 없이 즉시 스냅해 곧바로 완료, 라이브 전이면 슬라이드 후 도달 시 완료한다.
  */
 USTRUCT(meta = (DisplayName = "Wx Component Move"))

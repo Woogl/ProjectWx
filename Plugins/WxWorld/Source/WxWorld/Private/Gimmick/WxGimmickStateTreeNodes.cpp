@@ -89,6 +89,10 @@ FWxStateTreeTask_EnableInteraction::FWxStateTreeTask_EnableInteraction()
 {
 	// 인터랙션을 진입 시 1회 토글만 하므로 틱이 불필요하다.
 	bShouldCallTick = false;
+#if WITH_EDITORONLY_DATA
+	// 순간 side-effect 토글이라 상태 완료를 구동하지 않는다(정지 leaf 가 즉시 완료→재선택 루프에 빠지지 않게). 단독 완료 구동이 필요한 드문 상태는 인스턴스별로 다시 켠다.
+	bConsideredForCompletion = false;
+#endif
 }
 
 EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
@@ -113,7 +117,14 @@ FText FWxStateTreeTask_EnableInteraction::GetDescription(const FGuid& ID, FState
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Wx Enable Interaction ({0})"), InstanceData->bEnable ? INVTEXT("true") : INVTEXT("false"));
+	// 상호작용 컴포넌트는 보통 바인딩이라 런타임 포인터가 비어 있다. 바인딩 소스명을 우선 보이고, 직접 지정 시 그 이름으로 폴백.
+	FText InteractionText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, InteractionComponent)), Formatting);
+	if (InteractionText.IsEmpty())
+	{
+		InteractionText = InstanceData->InteractionComponent ? FText::FromString(InstanceData->InteractionComponent->GetName()) : INVTEXT("(none)");
+	}
+
+	return FText::Format(INVTEXT("Enable Interaction ({0}: {1})"), InteractionText, InstanceData->bEnable ? INVTEXT("true") : INVTEXT("false"));
 }
 #endif
 
@@ -123,6 +134,10 @@ FWxStateTreeTask_EnablePlayerInput::FWxStateTreeTask_EnablePlayerInput()
 {
 	// 입력을 진입 시 1회 토글만 하므로 틱이 불필요하다.
 	bShouldCallTick = false;
+#if WITH_EDITORONLY_DATA
+	// 순간 side-effect 토글이라 상태 완료를 구동하지 않는다(컷신 등에선 PlayLevelSequence 가 완료를 구동). 단독 완료 구동이 필요한 드문 상태는 인스턴스별로 다시 켠다.
+	bConsideredForCompletion = false;
+#endif
 }
 
 EStateTreeRunStatus FWxStateTreeTask_EnablePlayerInput::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
@@ -141,7 +156,7 @@ FText FWxStateTreeTask_EnablePlayerInput::GetDescription(const FGuid& ID, FState
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Wx Enable Player Input ({0})"), InstanceData->bEnable);
+	return FText::Format(INVTEXT("Enable Player Input ({0})"), InstanceData->bEnable);
 }
 #endif
 
@@ -149,7 +164,7 @@ FText FWxStateTreeTask_EnablePlayerInput::GetDescription(const FGuid& ID, FState
 
 EStateTreeRunStatus FWxStateTreeTask_ComponentMove::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
+	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
 	USceneComponent* Component = Instance.TargetComponent;
 	if (!Component)
@@ -160,7 +175,6 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentMove::EnterState(FStateTreeExecuti
 	const FVector Target = GetMoveAnchor(Component) + Instance.LocalOffset;
 
 	// 초기 진입(StateTree 시작/복원: SourceStateID 무효)·길이 0·이미 목표면 애니 없이 즉시 스냅하고 곧바로 완료한다.
-	// 라이브 전이면 Tick 이 슬라이드하다 도달 시 완료한다. 속도 계산은 Tick 이 고정값으로 하므로 여기선 따로 잡지 않는다.
 	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
 	const bool bReachNow = bInitialEntry || Instance.Duration <= 0.f || Component->GetRelativeLocation().Equals(Target);
 	if (bReachNow)
@@ -169,6 +183,10 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentMove::EnterState(FStateTreeExecuti
 		return EStateTreeRunStatus::Succeeded;
 	}
 
+	// 라이브 전이: 속도를 시작(현재)→목표 실제 거리/Duration 으로 1회 산출한다(LocalOffset 크기가 아니라 실제 거리라, 목표가 아키타입인 닫기도 0 이 아니다).
+	Instance.MoveSpeed = (Target - Component->GetRelativeLocation()).Size() / Instance.Duration;
+
+	// 라이브 전이면 Tick 이 고정 속도로 슬라이드하다 도달 시 완료한다.
 	return EStateTreeRunStatus::Running;
 }
 
@@ -185,12 +203,10 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentMove::Tick(FStateTreeExecutionCont
 	const FVector Target = GetMoveAnchor(Component) + Instance.LocalOffset;
 	FVector NewLocation = Component->GetRelativeLocation();
 
-	// 도달 전까지 일정 속도로 슬라이드한다. 속도는 LocalOffset/Duration 고정값이라
-	// 재진입해도 줄어든 거리로 재계산하지 않아 감속 없이 일정하다.
+	// 도달 전까지 EnterState 에서 산출한 고정 속도로 슬라이드한다.
 	if (!NewLocation.Equals(Target))
 	{
-		const float Speed = Instance.Duration > 0.f ? Instance.LocalOffset.Size() / Instance.Duration : Instance.LocalOffset.Size();
-		NewLocation = FMath::VInterpConstantTo(NewLocation, Target, DeltaTime, Speed);
+		NewLocation = FMath::VInterpConstantTo(NewLocation, Target, DeltaTime, Instance.MoveSpeed);
 		Component->SetRelativeLocation(NewLocation);
 	}
 
@@ -211,7 +227,7 @@ FText FWxStateTreeTask_ComponentMove::GetDescription(const FGuid& ID, FStateTree
 		ComponentText = InstanceData->TargetComponent ? FText::FromString(InstanceData->TargetComponent->GetName()) : INVTEXT("(none)");
 	}
 
-	return FText::Format(INVTEXT("Wx Component Move ({0})"), ComponentText);
+	return FText::Format(INVTEXT("Component Move ({0})"), ComponentText);
 }
 #endif
 
@@ -309,7 +325,7 @@ FText FWxStateTreeTask_ComponentSplineMove::GetDescription(const FGuid& ID, FSta
 		SplineText = InstanceData->Spline ? FText::FromString(InstanceData->Spline->GetName()) : INVTEXT("(none)");
 	}
 
-	return FText::Format(INVTEXT("Wx Component Spline Move ({0} → point {1})"), SplineText, FText::AsNumber(InstanceData->TargetPointIndex));
+	return FText::Format(INVTEXT("Component Spline Move ({0} → point {1})"), SplineText, FText::AsNumber(InstanceData->TargetPointIndex));
 }
 #endif
 
@@ -351,7 +367,7 @@ FText FWxStateTreeCondition_AtSplinePoint::GetDescription(const FGuid& ID, FStat
 		SplineText = InstanceData->Spline ? FText::FromString(InstanceData->Spline->GetName()) : INVTEXT("(none)");
 	}
 
-	return FText::Format(INVTEXT("Wx At Spline Point ({0} {1} point {2})"),
+	return FText::Format(INVTEXT("At Spline Point ({0} {1} point {2})"),
 		SplineText,
 		InstanceData->bInvert ? INVTEXT("!=") : INVTEXT("=="),
 		FText::AsNumber(InstanceData->PointIndex));
@@ -407,7 +423,7 @@ FText FWxStateTreeTask_PlayAnimation::GetDescription(const FGuid& ID, FStateTree
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Wx Play Animation ({0})"),
+	return FText::Format(INVTEXT("Play Animation ({0})"),
 		InstanceData->Animation ? FText::FromString(InstanceData->Animation->GetName()) : INVTEXT("(none)"));
 }
 #endif
@@ -494,7 +510,7 @@ FText FWxStateTreeTask_PlayLevelSequence::GetDescription(const FGuid& ID, FState
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Wx Play Level Sequence ({0})"),
+	return FText::Format(INVTEXT("Play Level Sequence ({0})"),
 		InstanceData->LevelSequence ? FText::FromString(InstanceData->LevelSequence->GetName()) : INVTEXT("(none)"));
 }
 #endif
@@ -537,7 +553,7 @@ FText FWxStateTreeTask_PlaySound::GetDescription(const FGuid& ID, FStateTreeData
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Wx Play Sound ({0})"),
+	return FText::Format(INVTEXT("Play Sound ({0})"),
 		InstanceData->Sound ? FText::FromString(InstanceData->Sound->GetName()) : INVTEXT("(none)"));
 }
 #endif
@@ -588,7 +604,7 @@ FText FWxStateTreeTask_SpawnNiagara::GetDescription(const FGuid& ID, FStateTreeD
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Wx Spawn Niagara ({0})"),
+	return FText::Format(INVTEXT("Spawn Niagara ({0})"),
 		InstanceData->Niagara ? FText::FromString(InstanceData->Niagara->GetName()) : INVTEXT("(none)"));
 }
 #endif
@@ -640,7 +656,7 @@ FText FWxStateTreeTask_TriggerSpawners::GetDescription(const FGuid& ID, FStateTr
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Wx Trigger Spawners ({0})"), FText::AsNumber(InstanceData->Spawners.Num()));
+	return FText::Format(INVTEXT("Trigger Spawners ({0})"), FText::AsNumber(InstanceData->Spawners.Num()));
 }
 #endif
 
@@ -681,7 +697,7 @@ FText FWxStateTreeTask_SetState::GetDescription(const FGuid& ID, FStateTreeDataV
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Wx Set State ({0})"), FText::AsNumber(InstanceData->NewState));
+	return FText::Format(INVTEXT("Set State ({0})"), FText::AsNumber(InstanceData->NewState));
 }
 #endif
 
@@ -794,7 +810,7 @@ FText FWxStateTreeTask_LaserSpawn::GetDescription(const FGuid& ID, FStateTreeDat
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Wx Laser Spawn ({0})"),
+	return FText::Format(INVTEXT("Laser Spawn ({0})"),
 		InstanceData->ActorClass ? FText::FromString(InstanceData->ActorClass->GetName()) : INVTEXT("(none)"));
 }
 #endif
@@ -833,6 +849,6 @@ EStateTreeRunStatus FWxStateTreeTask_LaserAdvance::Tick(FStateTreeExecutionConte
 #if WITH_EDITOR
 FText FWxStateTreeTask_LaserAdvance::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
 {
-	return INVTEXT("Wx Laser Advance");
+	return INVTEXT("Laser Advance");
 }
 #endif
