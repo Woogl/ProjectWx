@@ -4,6 +4,7 @@
 
 #include "WxAIModule.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "BehaviorTree/Blackboard/BlackboardKeyType_Float.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Object.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
 #include "GameFramework/Actor.h"
@@ -48,6 +49,8 @@ namespace WxBlackboardKeys
 
 	const FName PatrolTargetLocation = TEXT("PatrolTargetLocation");
 
+	const FName TargetDistance = TEXT("TargetDistance");
+
 	AActor* GetTargetActor(const UBlackboardComponent* Blackboard)
 	{
 		VerifyBlackboardKey(Blackboard, TargetActor, UBlackboardKeyType_Object::StaticClass());
@@ -84,6 +87,12 @@ namespace WxBlackboardKeys
 		Blackboard->SetValueAsVector(HomeLocation, Value);
 	}
 
+	AActor* GetSelfActor(const UBlackboardComponent* Blackboard)
+	{
+		VerifyBlackboardKey(Blackboard, SelfActor, UBlackboardKeyType_Object::StaticClass());
+		return Cast<AActor>(Blackboard->GetValueAsObject(SelfActor));
+	}
+
 	void SetSelfActor(UBlackboardComponent* Blackboard, AActor* Value)
 	{
 		VerifyBlackboardKey(Blackboard, SelfActor, UBlackboardKeyType_Object::StaticClass());
@@ -94,5 +103,17 @@ namespace WxBlackboardKeys
 	{
 		VerifyBlackboardKey(Blackboard, PatrolTargetLocation, UBlackboardKeyType_Vector::StaticClass());
 		Blackboard->SetValueAsVector(PatrolTargetLocation, Value);
+	}
+
+	void SetTargetDistance(UBlackboardComponent* Blackboard, float Value)
+	{
+		VerifyBlackboardKey(Blackboard, TargetDistance, UBlackboardKeyType_Float::StaticClass());
+		Blackboard->SetValueAsFloat(TargetDistance, Value);
+	}
+
+	void ClearTargetDistance(UBlackboardComponent* Blackboard)
+	{
+		VerifyBlackboardKey(Blackboard, TargetDistance, UBlackboardKeyType_Float::StaticClass());
+		Blackboard->ClearValue(TargetDistance);
 	}
 }
