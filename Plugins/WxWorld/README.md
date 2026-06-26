@@ -34,7 +34,7 @@
 
 ## 확장 포인트 / 규약
 - **새 기믹 추가**: `AWxGimmick`를 상속하고 자체 복제+`SaveGame` State enum 소유, `SetGimmickState(uint8)`로 enum 매핑 구현. 비주얼/사이드이펙트는 자식 BP에서 ST 에셋을 `StateTree` 컴포넌트에 할당해 author한다. State 쓰기는 항상 `CommitGimmickState`(서버 권위)로만.
-- **State 구동 패턴**: 권위 State enum 복제 → 자식의 GimmickStateTree가 Enum Compare 전이로 추종(서버/클라 동일, 이벤트 태그 없음). 초기 진입/복원과 라이브 전이는 노드가 `Transition.SourceStateID` 유효성으로 구분(복원 시 트리거성 효과는 침묵). 예외: `AWxCutsceneTrigger`는 복제 enum 없이 ST 이벤트 태그(`PlayEventTag`)로 구동.
+- **State 구동 패턴**: 권위 State enum 복제 → 자식의 GimmickStateTree가 Enum Compare 전이로 추종(서버/클라 동일, 이벤트 태그 없음). 초기 진입/복원과 라이브 전이는 노드가 `Transition.SourceStateID` 유효성으로 구분(복원 시 트리거성 효과는 침묵).
 - **새 ST 태스크 추가**: `WxGimmickStateTreeNodes.h`의 `FStateTreeTaskCommonBase` 파생 패턴(Instance Data + `EnterState`/`Tick`/`ExitState`)을 따른다. 컨텍스트 액터는 `Context.GetOwner()`를 `AWxGimmick`로 캐스트해 얻는다.
 - **새 스폰 대상**: `IWxSpawnableInterface` 구현. `AWxSpawner.SpawnableActorClass`가 `MustImplement`로 강제한다.
 

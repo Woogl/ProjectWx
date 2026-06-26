@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
 #include "Gimmick/WxGimmick.h"
 #include "WxCutsceneTrigger.generated.h"
 
@@ -11,17 +10,26 @@ class ULevelSequence;
 class UStaticMeshComponent;
 class UWxInteractionComponent;
 
+UENUM()
+enum class EWxCutsceneTriggerState : uint8
+{
+	/** 대기 — 초기/기본. 인터랙션 활성, 시퀀스 미재생. */
+	Idle,
+	/** 재생 중 — Level Sequence 재생. 인터랙션·입력은 ST 가 막는다. */
+	Playing
+};
+
 /**
  * 컷신 트리거.
  * 플레이어가 상호작용하면 지정된 Level Sequence 를 재생하고, 재생 동안 플레이어 입력이 막힌다. 재생이 끝나면 다시 상호작용할 수 있다(반복 재생).
  *
- * 다른 기믹과 달리 복제 State enum 을 쓰지 않고 StateTree 이벤트 + OnComplete 전이로 구동한다(기믹 공통 "이벤트 태그 없음" 원칙의 의도적 예외).
- * 상호작용(UWxInteractionComponent::OnInteracted)은 MulticastInteracted 로 모든 피어에서 발화하므로, 각 피어가 자기 GimmickStateTree 에 PlayEventTag 이벤트를 보내 Playing 으로 전이시킨다(복제 불필요).
- * 재생이 끝나면 Wx Play Level Sequence 태스크가 Succeeded 를 반환하고, ST_CutsceneTrigger 의 OnComplete 전이가 Idle 로 되돌린다(별도 통지·타이머 없음). 재생 중엔 ST 가 인터랙션을 비활성화해 재진입을 막는다.
+ * 상태는 자체 EWxCutsceneTriggerState(State) 가 권위 원천이며, 복제된다(다른 기믹과 동일한 「권위 State enum → StateTree 추종」 패턴).
+ * 상호작용(권위)이 State 를 Playing 으로 확정한다. 재생은 GimmickStateTree(ST_CutsceneTrigger)의 Wx Play Level Sequence 가 맡고, 재생이 끝나면 그 태스크가 권위 측에서 HandleLevelSequenceFinished 로 통지해 State 를 Idle 로 되돌린다. State 쓰기는 여전히 이 액터(C++)만 하므로 ST 는 추종만 한다.
  *
- *   Idle (초기) ──상호작용 이벤트──> Playing ──재생 종료(OnComplete)──> Idle
+ *   Idle (초기) ──상호작용(권위)──> Playing ──재생 종료 통지(권위)──> Idle
  *
- * 재생·입력차단·인터랙션 토글은 GimmickStateTree(ST_CutsceneTrigger)가 적용한다(재생은 Wx Play Level Sequence, 입력은 Wx Enable Player Input, 인터랙션은 Wx Enable Interaction). 일시 상태라 SaveGame 보존 없음.
+ * 재생·입력차단·인터랙션 토글은 GimmickStateTree 가 State 를 추종해 적용한다(재생은 Wx Play Level Sequence, 입력은 Wx Enable Player Input, 인터랙션은 Wx Enable Interaction).
+ * Playing 은 일시 상태라 SaveGame 보존 없음(복원 시 재생 재트리거 방지). Replicated 만 둬 멀티 동기화하며 항상 Idle 로 시작한다.
  */
 UCLASS(Abstract)
 class WXWORLD_API AWxCutsceneTrigger : public AWxGimmick
@@ -31,8 +39,18 @@ class WXWORLD_API AWxCutsceneTrigger : public AWxGimmick
 public:
 	AWxCutsceneTrigger();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	//~ Begin AWxGimmick — 재생 종료 시(Wx Play Level Sequence 통지) Idle 복귀.
+	virtual void HandleLevelSequenceFinished() override;
+	//~ End AWxGimmick
+
 protected:
 	virtual void BeginPlay() override;
+
+	//~ Begin AWxGimmick — State(EWxCutsceneTriggerState) ↔ uint8 쓰기 매핑.
+	virtual void SetGimmickState(uint8 NewStateValue) override;
+	//~ End AWxGimmick
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
@@ -46,11 +64,15 @@ protected:
 	UPROPERTY(EditInstanceOnly, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<ULevelSequence> LevelSequence;
 
-	/** 상호작용 시 GimmickStateTree 로 보낼 이벤트 태그. ST_CutsceneTrigger 의 Idle→Playing 전이가 이 태그를 매칭한다. */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx")
-	FGameplayTag PlayEventTag;
-
 private:
 	UFUNCTION()
 	void HandleInteracted(AActor* InstigatorActor);
+
+	/**
+	 * 컷신 권위 상태(복제). State 쓰기는 권위 전용(CommitGimmickState)이며, 클라는 OnRep_GimmickState 가 발행하는 이벤트로 ST 재선택을 구동한다.
+	 * 일시 상태라 SaveGame 미지정(다른 기믹과 다른 점) — 복원 시 항상 Idle 로 시작한다.
+	 * VisibleAnywhere + AllowPrivateAccess 는 StateTree 의 상태 선택 조건(State 비교)이 바인딩하기 위한 노출이다.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "Wx", ReplicatedUsing = OnRep_GimmickState, meta = (AllowPrivateAccess = "true"))
+	EWxCutsceneTriggerState State = EWxCutsceneTriggerState::Idle;
 };

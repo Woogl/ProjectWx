@@ -34,11 +34,10 @@ class UWxInteractionComponent;
  *  - ComponentSplineMove 는 (TargetComponent, Spline, TargetPointIndex, Duration) 으로 지정 컴포넌트를 목표 스플라인 포인트로 옮긴다. 초기 진입이면 목표 포인트로 즉시 스냅, 라이브 전이면 현재(가장 가까운) 포인트에서 목표까지 곡선을 따라 일정 속도 이동한다(State 가 목표 끝점을 직접 선언하므로 복원도 정확).
  *  - AtSplinePoint(조건) 는 (TargetComponent, Spline, PointIndex, bInvert) 로 대상 컴포넌트의 현재 위치에서 가장 가까운 스플라인 포인트가 PointIndex 와 같은지 검사한다(기하 판정, 멤버 저장 없음). ComponentSplineMove 와 nearest 로직을 공유한다.
  *  - PlayAnimation 은 (TargetMesh, Animation) 으로 초기 진입이면 끝 프레임 스냅, 라이브 전이면 처음부터 재생한다. 범용 애니 재생.
- *  - PlayLevelSequence 는 (LevelSequence) 로 라이브 전이 진입 시 시퀀스를 재생하고 Tick 으로 종료를 폴링하다 종료 시 Succeeded 를 반환한다(상태의 OnComplete 전이가 진행을 구동). 입력 차단은 별도 EnablePlayerInput 이 맡는다. 중도 이탈 시 ExitState 가 시퀀스 정지·정리(복원 시 침묵).
+ *  - PlayLevelSequence 는 (LevelSequence) 로 라이브 전이 진입 시 시퀀스를 재생하고 Tick 으로 종료를 폴링하다, 종료 시 시퀀스를 정리하고 권위 측이면 소유 기믹의 HandleLevelSequenceFinished 로 통지한 뒤 Succeeded 를 반환한다(호스트가 State 복귀를 구동; OnComplete 전이를 쓰는 기믹도 그대로 가능). 입력 차단은 별도 EnablePlayerInput 이 맡는다. 중도 이탈 시 ExitState 가 시퀀스 정지·정리(복원 시 침묵·통지 없음).
  *  - PlaySound 는 (Sound) 로 라이브 전이 진입 시에만 사운드를 1회 재생한다(복원 시 침묵).
  *  - SpawnNiagara 는 (AttachComponent, Niagara) 로 라이브 전이 진입 시에만 Niagara 를 1회 재생한다(복원 시 침묵).
  *  - TriggerSpawners 는 (Spawners) 로 라이브 전이 진입 시 권위 측에서만 각 스포너의 Respawn 을 호출한다(복원 시 재실행 안 함).
- *  - SetState 는 (NewState) 로 라이브 전이 진입 시 권위 측에서만 소유 기믹(AWxGimmick)의 CommitGimmickState 를 호출해 권위 State 를 NewState(원시 enum 값)로 확정한다(초기 진입/복원 시엔 저장된 State 보존을 위해 침묵). ST 가 State 전이를 스스로 구동하는 용도(예: 시퀀스/타이머 종료 후 복귀).
  *  - LaserSpawn 은 (ActorClass, SpawnVolume, Interval, MoveSpeed) 로 매 틱 권위 측에서 박스 통로의 -X 끝에 일정 간격으로 액터를 스폰하고 살아있는 목록을 유지한다(완료 없는 머무는 태스크, 상태 이탈 시 전부 파괴).
  *  - LaserAdvance 는 (Actors, Velocity) 로 매 틱 권위 측에서 바인딩된 액터들을 Velocity·DeltaTime 만큼 월드 이동시킨다(완료 없는 머무는 태스크).
  *
@@ -327,11 +326,11 @@ struct FWxStateTreeTask_PlayLevelSequenceInstanceData
 };
 
 /**
- * 라이브 전이로 진입할 때 Level Sequence 를 재생하고, 재생이 끝나면 Succeeded 를 반환해 상태를 완료시킨다. State 를 읽지 않아 어떤 기믹이든 재사용한다.
- * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)·LevelSequence 미지정이면 재생하지 않고 곧바로 완료한다 — 컷신은 발동 순간에만 재생하고 복원 시엔 침묵한다.
+ * 라이브 전이로 진입할 때 Level Sequence 를 재생하고, 재생이 끝나면 소유 기믹에 통지한 뒤 Succeeded 를 반환한다. State 를 읽지 않아 어떤 기믹이든 재사용한다.
+ * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 재생·통지 없이 곧바로 완료한다 — 컷신은 발동 순간에만 재생하고 복원 시엔 침묵한다. 라이브 진입인데 재생할 게 없으면(시퀀스/월드 부재·플레이어 생성 실패) 호스트가 갇히지 않게 곧장 통지하고 완료한다.
  * 입력 차단은 직교 태스크(EnablePlayerInput)가 맡고, 이 노드는 재생만 다룬다.
- * Tick 이 ULevelSequencePlayer::IsPlaying 로 종료를 폴링하다, 종료되면 시퀀스를 정리하고 Succeeded 를 반환한다 — 소유 상태의 OnComplete 전이가 다음 상태로의 진행을 구동한다.
- * 중도 이탈·액터 파괴 시엔 ExitState 가 시퀀스를 정지·정리한다(멱등). 모든 피어가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다.
+ * Tick 이 ULevelSequencePlayer::IsPlaying 로 종료를 폴링하다, 종료되면 시퀀스를 정리하고 권위 측이면 소유 기믹의 HandleLevelSequenceFinished 로 통지한다 — 호스트가 그 통지로 권위 State 전이(예: Idle 복귀)를 구동한다(OnComplete 전이를 쓰는 기믹도 그대로 가능). OnFinished 콜백 중 시퀀스 액터 파괴를 피하려고 폴링→다음 틱 정리를 쓴다.
+ * 중도 이탈·액터 파괴 시엔 ExitState 가 시퀀스를 정지·정리한다(멱등, 통지 없음). 모든 피어가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다.
  */
 USTRUCT(meta = (DisplayName = "Wx Play Level Sequence"))
 struct FWxStateTreeTask_PlayLevelSequence : public FStateTreeTaskCommonBase
@@ -448,41 +447,6 @@ struct FWxStateTreeTask_TriggerSpawners : public FStateTreeTaskCommonBase
 	using FInstanceDataType = FWxStateTreeTask_TriggerSpawnersInstanceData;
 
 	FWxStateTreeTask_TriggerSpawners();
-
-	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
-	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
-
-#if WITH_EDITOR
-	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
-#endif
-};
-
-// ── SetState: 라이브 진입 시 권위 측에서 기믹 State 확정 ───────────────────────
-
-USTRUCT()
-struct FWxStateTreeTask_SetStateInstanceData
-{
-	GENERATED_BODY()
-
-	/** 확정할 권위 State 의 원시 enum 값. 기믹마다 State enum 타입이 달라 공용 노드는 uint8 로 다루며, ST 에셋에서 대상 기믹 enum 의 순서에 맞춰 지정한다. */
-	UPROPERTY(EditAnywhere, Category = "Parameter")
-	uint8 NewState = 0;
-};
-
-/**
- * 라이브 전이로 진입할 때 권위 측에서만 소유 기믹(AWxGimmick)의 CommitGimmickState(NewState) 를 호출해 권위 State 를 확정하고 Succeeded 로 완료한다.
- * 지금까지 State 는 C++ Handle 콜백만 썼지만, 이 노드로 ST 가 상호작용 트리거 없이 스스로 State 전이를 구동할 수 있다(예: Wx Play Level Sequence 완료 후 Idle 로 복귀).
- * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 쓰지 않는다 — 저장/복제된 State 를 덮어쓰지 않도록 침묵한다(Wx Trigger Spawners 와 동일 가드).
- * StateTree 바인딩은 단방향 복사라 태스크가 Context 액터 멤버에 직접 쓸 수 없으므로, 소유 액터의 베이스 훅을 호출해 쓴다. 클라는 State 를 쓰지 않고 복제 State 를 Enum Compare 전이로 추종하므로 비권위 진입은 노옵. 틱하지 않으므로 비용이 없다.
- */
-USTRUCT(meta = (DisplayName = "Wx Set State"))
-struct FWxStateTreeTask_SetState : public FStateTreeTaskCommonBase
-{
-	GENERATED_BODY()
-
-	using FInstanceDataType = FWxStateTreeTask_SetStateInstanceData;
-
-	FWxStateTreeTask_SetState();
 
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;

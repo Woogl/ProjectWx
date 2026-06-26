@@ -7,8 +7,7 @@
 			"class": "/Script/WxWorld.WxInteractionComponent",
 			"delta":
 			{
-				"InteractionText": "[F] Play CCTV",
-				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C",
+				"InteractionText": "Play CCTV",
 				"RelativeLocation":
 				{
 					"Z": 100
@@ -25,6 +24,17 @@
 					"Yaw": 90
 				},
 				"StaticMesh": "/Game/NiagaraExamples/Gallery/DemoPlatform/Meshes/Display_Button.Display_Button"
+			}
+		},
+		"StateTree":
+		{
+			"class": "/Script/GameplayStateTreeModule.StateTreeComponent",
+			"delta":
+			{
+				"StateTreeRef":
+				{
+					"StateTree": "/Game/WorldObject/Gimmick/ST_CutsceneTrigger.ST_CutsceneTrigger"
+				}
 			}
 		}
 	},

@@ -2,9 +2,9 @@
 
 #include "Gimmick/WxCutsceneTrigger.h"
 
-#include "Components/StateTreeComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Interaction/WxInteractionComponent.h"
+#include "Net/UnrealNetwork.h"
 
 AWxCutsceneTrigger::AWxCutsceneTrigger()
 {
@@ -15,6 +15,13 @@ AWxCutsceneTrigger::AWxCutsceneTrigger()
 	InteractionComponent->SetupAttachment(MeshComponent);
 }
 
+void AWxCutsceneTrigger::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AWxCutsceneTrigger, State);
+}
+
 void AWxCutsceneTrigger::BeginPlay()
 {
 	Super::BeginPlay();
@@ -22,12 +29,24 @@ void AWxCutsceneTrigger::BeginPlay()
 	InteractionComponent->OnInteracted.AddDynamic(this, &AWxCutsceneTrigger::HandleInteracted);
 }
 
+void AWxCutsceneTrigger::SetGimmickState(uint8 NewStateValue)
+{
+	// 베이스 CommitGimmickState(권위)가 호출하는 State 쓰기 훅. 재생·입력차단·인터랙션 토글은 ST 가 State 변화를 추종해 적용한다.
+	State = static_cast<EWxCutsceneTriggerState>(NewStateValue);
+}
+
 void AWxCutsceneTrigger::HandleInteracted(AActor* InstigatorActor)
 {
-	// 상호작용은 MulticastInteracted 로 모든 피어에서 발화한다. 각 피어가 로컬 StateTree 에 이벤트를 보내 Playing 으로 전이시킨다(복제 State 불필요).
-	// 재생 종료 복귀는 Wx Play Level Sequence 의 Succeeded → OnComplete 전이가 맡는다. 재생 중엔 ST 가 인터랙션을 비활성화해 재진입을 막는다.
-	if (PlayEventTag.IsValid())
+	// 권위 측만 State 를 Playing 으로 확정한다. 클라는 복제 State 의 OnRep 이벤트가 ST 재선택을 구동하므로 비권위는 노옵.
+	// 재생 종료 후 Idle 복귀는 Wx Play Level Sequence 태스크의 HandleLevelSequenceFinished 통지가 맡는다. 재생 중엔 ST 가 인터랙션을 비활성화해 재진입을 막는다.
+	if (HasAuthority())
 	{
-		StateTree->SendStateTreeEvent(PlayEventTag);
+		CommitGimmickState(static_cast<uint8>(EWxCutsceneTriggerState::Playing));
 	}
+}
+
+void AWxCutsceneTrigger::HandleLevelSequenceFinished()
+{
+	// Wx Play Level Sequence 태스크가 재생 종료 시 권위 측에서 호출한다(권위 가드는 태스크·CommitGimmickState 양쪽에 있음). State 를 Idle 로 되돌리면 클라는 복제로 추종한다.
+	CommitGimmickState(static_cast<uint8>(EWxCutsceneTriggerState::Idle));
 }

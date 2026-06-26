@@ -449,18 +449,36 @@ namespace
 		Instance.SequenceActor = nullptr;
 		Instance.Player = nullptr;
 	}
+
+	// 재생 종료를 소유 기믹에 통지한다(권위 측만). 종료를 아는 주체가 재생 소유자(이 태스크)뿐이므로 직접 발행한다.
+	// HandleLevelSequenceFinished 를 구현하지 않는 기믹은 기본 노옵이라 무해하다(예: OnComplete 전이로 진행하는 기믹).
+	void NotifyHostSequenceFinished(FStateTreeExecutionContext& Context)
+	{
+		AWxGimmick* OwnerGimmick = Cast<AWxGimmick>(Context.GetOwner());
+		if (OwnerGimmick && OwnerGimmick->HasAuthority())
+		{
+			OwnerGimmick->HandleLevelSequenceFinished();
+		}
+	}
 }
 
 EStateTreeRunStatus FWxStateTreeTask_PlayLevelSequence::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이거나 시퀀스가 없으면 재생하지 않고 곧바로 완료한다(복원 시 침묵).
+	// 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 재생하지 않고 침묵 완료한다 — 복원 시 호스트에 통지하지 않는다(라이브 복귀 오발화 방지).
 	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
+	if (bInitialEntry)
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	// 라이브 진입이지만 재생할 게 없으면, 호스트가 Playing 에 갇히지 않게 곧장 종료를 통지하고 완료한다.
 	AActor* Owner = Cast<AActor>(Context.GetOwner());
 	UWorld* World = Owner ? Owner->GetWorld() : nullptr;
-	if (bInitialEntry || !Instance.LevelSequence || !World)
+	if (!Instance.LevelSequence || !World)
 	{
+		NotifyHostSequenceFinished(Context);
 		return EStateTreeRunStatus::Succeeded;
 	}
 
@@ -469,10 +487,11 @@ EStateTreeRunStatus FWxStateTreeTask_PlayLevelSequence::EnterState(FStateTreeExe
 	Instance.Player = ULevelSequencePlayer::CreateLevelSequencePlayer(World, Instance.LevelSequence, PlaybackSettings, NewSequenceActor);
 	Instance.SequenceActor = NewSequenceActor;
 
-	// 플레이어 생성 실패면 할 일이 없으니 정리하고 완료한다.
+	// 플레이어 생성 실패면 정리하고, 라이브 진입이므로 호스트에 종료를 통지한 뒤 완료한다.
 	if (!Instance.Player)
 	{
 		FinishSequencePlayback(Instance);
+		NotifyHostSequenceFinished(Context);
 		return EStateTreeRunStatus::Succeeded;
 	}
 
@@ -492,8 +511,9 @@ EStateTreeRunStatus FWxStateTreeTask_PlayLevelSequence::Tick(FStateTreeExecution
 		return EStateTreeRunStatus::Running;
 	}
 
-	// 재생이 끝났다(또는 플레이어 미생성). 시퀀스를 정리하고 완료해, 소유 상태의 OnComplete 전이가 상태를 진행시키게 한다.
+	// 재생이 끝났다. 시퀀스를 정리하고 권위 측이면 소유 기믹에 종료를 통지해 State 복귀(예: Idle)를 구동하게 한 뒤 완료한다.
 	FinishSequencePlayback(Instance);
+	NotifyHostSequenceFinished(Context);
 	return EStateTreeRunStatus::Succeeded;
 }
 
@@ -657,47 +677,6 @@ FText FWxStateTreeTask_TriggerSpawners::GetDescription(const FGuid& ID, FStateTr
 	check(InstanceData);
 
 	return FText::Format(INVTEXT("Trigger Spawners ({0})"), FText::AsNumber(InstanceData->Spawners.Num()));
-}
-#endif
-
-// ── SetState ──────────────────────────────────────────────────────────────────
-
-FWxStateTreeTask_SetState::FWxStateTreeTask_SetState()
-{
-	// 진입 시 1회 쓰기만 하므로 틱이 불필요하다.
-	bShouldCallTick = false;
-}
-
-EStateTreeRunStatus FWxStateTreeTask_SetState::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
-{
-	// 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 쓰지 않고 곧바로 완료한다 — 저장/복제된 State 를 덮어쓰지 않도록 침묵.
-	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
-	if (bInitialEntry)
-	{
-		return EStateTreeRunStatus::Succeeded;
-	}
-
-	// State 쓰기는 서버 권위 사건이라 클라 진입은 노옵(클라는 복제 State 를 Enum Compare 전이로 추종). CommitGimmickState 가 권위 가드를 다시 적용한다.
-	AWxGimmick* Owner = Cast<AWxGimmick>(Context.GetOwner());
-	if (!Owner || !Owner->HasAuthority())
-	{
-		return EStateTreeRunStatus::Succeeded;
-	}
-
-	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
-	Owner->CommitGimmickState(Instance.NewState);
-
-	// 쓰기는 즉시 끝나므로 곧바로 완료한다.
-	return EStateTreeRunStatus::Succeeded;
-}
-
-#if WITH_EDITOR
-FText FWxStateTreeTask_SetState::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
-{
-	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
-	check(InstanceData);
-
-	return FText::Format(INVTEXT("Set State ({0})"), FText::AsNumber(InstanceData->NewState));
 }
 #endif
 
