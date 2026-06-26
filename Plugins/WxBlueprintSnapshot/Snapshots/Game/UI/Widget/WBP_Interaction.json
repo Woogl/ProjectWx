@@ -82,10 +82,7 @@
 					{
 						"Padding":
 						{
-							"Bottom": 10,
-							"Left": 10,
-							"Right": 10,
-							"Top": 10
+							"Left": 10
 						}
 					}
 				}

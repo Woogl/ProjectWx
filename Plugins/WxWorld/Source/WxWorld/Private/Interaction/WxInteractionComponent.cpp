@@ -3,10 +3,7 @@
 #include "Interaction/WxInteractionComponent.h"
 
 #include "Components/MeshComponent.h"
-#include "Engine/LocalPlayer.h"
-#include "GameFramework/Pawn.h"
-#include "GameFramework/PlayerController.h"
-#include "Interaction/WxInteractionRegistrySubsystem.h"
+#include "WxCollisionChannels.h"
 
 UWxInteractionComponent::UWxInteractionComponent()
 {
@@ -15,15 +12,15 @@ UWxInteractionComponent::UWxInteractionComponent()
 	SetIsReplicatedByDefault(true);
 
 	bInteractionEnabled = true;
-
-	InitSphereRadius(150.f);
+	
+	// 플레이어 측 스캐너가 OverlapMultiByObjectType 으로 수집하는 수동 쿼리 볼륨이다. 오버랩 이벤트는 쓰지 않는다.
+	InitSphereRadius(10.f);
 	SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	SetCollisionObjectType(ECC_WorldDynamic);
+	SetCollisionObjectType(WxCollision::WxInteractable);
 	SetCollisionResponseToAllChannels(ECR_Ignore);
-	SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	SetGenerateOverlapEvents(true);
+	SetGenerateOverlapEvents(false);
 
-	InteractionText = FText::FromString(TEXT("[F] Interact"));
+	InteractionText = FText::FromString(TEXT("Interact"));
 }
 
 void UWxInteractionComponent::TryInteract(AActor* InstigatorActor)
@@ -46,16 +43,8 @@ void UWxInteractionComponent::SetInteractionEnabled(bool bEnabled)
 
 	bInteractionEnabled = bEnabled;
 
-	if (bEnabled)
-	{
-		SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		UpdateOverlaps();
-	}
-	else
-	{
-		SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		UnregisterFromRegistry();
-	}
+	// 쿼리 가능 여부만 토글한다. 비활성 컴포넌트는 ObjectType 쿼리에 잡히지 않아 스캔에서 자연 탈락한다.
+	SetCollisionEnabled(bEnabled ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 }
 
 FWxOnInteractedSignature& UWxInteractionComponent::GetOnInteractedDelegate()
@@ -89,79 +78,7 @@ void UWxInteractionComponent::SetHighlightEnabled(bool bNewEnabled)
 	}
 }
 
-void UWxInteractionComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	OnComponentBeginOverlap.AddDynamic(this, &UWxInteractionComponent::HandleBeginOverlap);
-	OnComponentEndOverlap.AddDynamic(this, &UWxInteractionComponent::HandleEndOverlap);
-
-	if (!bInteractionEnabled)
-	{
-		return;
-	}
-
-	// BeginPlay 시점에 이미 오버랩 중인 로컬 플레이어 폰이 있으면 레지스트리에 즉시 등록한다(강조는 레지스트리가 조율).
-	TArray<AActor*> OverlappingActors;
-	GetOverlappingActors(OverlappingActors, APawn::StaticClass());
-	for (AActor* OverlappingActor : OverlappingActors)
-	{
-		if (IsLocalPlayerPawn(OverlappingActor))
-		{
-			RegisterWithRegistry(OverlappingActor);
-			break;
-		}
-	}
-}
-
-void UWxInteractionComponent::HandleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (!IsLocalPlayerPawn(OtherActor))
-	{
-		return;
-	}
-
-	RegisterWithRegistry(OtherActor);
-}
-
-void UWxInteractionComponent::HandleEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (!IsLocalPlayerPawn(OtherActor))
-	{
-		return;
-	}
-
-	UnregisterFromRegistry();
-}
-
 void UWxInteractionComponent::MulticastInteracted_Implementation(AActor* InstigatorActor)
 {
 	OnInteracted.Broadcast(InstigatorActor);
-}
-
-void UWxInteractionComponent::RegisterWithRegistry(AActor* PlayerActor)
-{
-	const APawn* Pawn = Cast<APawn>(PlayerActor);
-	const APlayerController* PC = Pawn ? Cast<APlayerController>(Pawn->GetController()) : nullptr;
-	const ULocalPlayer* LocalPlayer = PC ? PC->GetLocalPlayer() : nullptr;
-	if (UWxInteractionRegistrySubsystem* Registry = LocalPlayer ? LocalPlayer->GetSubsystem<UWxInteractionRegistrySubsystem>() : nullptr)
-	{
-		Registry->RegisterInRange(this);
-		RegisteredRegistry = Registry;
-	}
-}
-
-void UWxInteractionComponent::UnregisterFromRegistry()
-{
-	if (UWxInteractionRegistrySubsystem* Registry = RegisteredRegistry.Get())
-	{
-		Registry->UnregisterInRange(this);
-	}
-	RegisteredRegistry = nullptr;
-}
-
-bool UWxInteractionComponent::IsLocalPlayerPawn(const AActor* OtherActor) const
-{
-	const APawn* Pawn = Cast<APawn>(OtherActor);
-	return Pawn != nullptr && Pawn->IsPlayerControlled() && Pawn->IsLocallyControlled();
 }

@@ -3,23 +3,29 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/TimerHandle.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_Interact.generated.h"
 
 class UWxInteractionComponent;
+class UWxInteractionRegistrySubsystem;
 
 /**
- * 상호작용 어빌리티.
+ * 상호작용 어빌리티(감지 + 입력 트리거 실행).
  *
- * 선택은 클라이언트의 UWxInteractionRegistrySubsystem(LocalPlayerSubsystem, 로컬 전용)이 소유하므로,
- * 클라가 선택을 읽어 서버로 전달하고 실행(TryInteract)은 서버 권한에서만 한다. 클라 선처리(예측)는 없다.
+ * 입력(Input.Interact) 시 활성화되어, 로컬 레지스트리의 현재 선택 컴포넌트를 대상으로 TryInteract를 실행하고 즉시 종료한다.
+ * 감지(주변 스캔)는 어빌리티 활성화와 무관히 부여 동안 상주한다. OnGiveAbility에서 월드 타이머를 걸어 주기 스캔하고,
+ * OnRemoveAbility에서 해제한다. 어빌리티 인스턴스(InstancedPerActor)는 부여 동안 살아 있으므로 타이머가 활성화와 독립적으로 틱한다.
+ * 스캔은 아바타 주변을 OverlapMultiByObjectType(WxInteractable)으로 수집해 거리순으로 로컬 레지스트리에 push 한다(감지는 로컬 어포던스).
+ * 단 어빌리티가 활성화 불가(CanActivateAbility 실패, 예: 사망)인 동안에는 스캔을 건너뛰고 후보를 비워 선택/프롬프트/하이라이트를 정리한다.
  *
- * 사용 흐름(LocalPredicted):
- *  1. 플레이어가 Input.Interact 입력 → 클라/서버에서 어빌리티 활성화
- *  2. 원격 클라: 로컬 레지스트리의 선택 컴포넌트를 TargetData로 서버에 전송 후 즉시 종료
- *  3. 서버(원격 클라 처리): TargetData 수신 → 선택 컴포넌트의 TryInteract 호출(권한)
- *  4. 리슨서버 호스트(권한+로컬): 로컬 선택을 직접 읽어 TryInteract 즉시 호출(RPC 왕복 없음)
- *  5. 선택이 없으면 아무 동작 없이 종료
+ * 선택은 클라의 레지스트리(로컬 전용)가 소유하므로, 입력 시 클라가 선택을 읽어 서버로 전달하고 실행은 서버 권한에서만 한다.
+ *
+ * 입력 흐름(ActivateAbility):
+ *  - 리슨 호스트/단일 PIE(권한+로컬): 로컬 선택을 직접 읽어 TryInteract 즉시 호출 후 EndAbility
+ *  - 원격 클라: 로컬 선택 컴포넌트를 TargetData로 서버에 전송 후 EndAbility
+ *  - 서버(원격 클라 처리): 구독한 TargetData를 받아 선택 컴포넌트의 TryInteract 호출(권한) 후 EndAbility
+ *  - 선택이 없으면 무동작. 사망(State.Dead) 중에는 ActivationBlockedTags로 활성화 자체가 막힌다.
  */
 UCLASS()
 class WXGAME_API UWxAbility_Interact : public UWxAbilityBase
@@ -29,15 +35,43 @@ class WXGAME_API UWxAbility_Interact : public UWxAbilityBase
 public:
 	UWxAbility_Interact();
 
+	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+	virtual void OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+
+protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
+	/** 주변 상호작용 볼륨을 수집할 반경(cm). */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Interact")
+	float ScanRadius = 150.f;
+
+	/** 스캔 주기(초). */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Interact")
+	float ScanInterval = 0.1f;
+
 private:
-	/** 서버가 클라이언트로부터 선택 컴포넌트 TargetData를 수신했을 때 호출. 권한에서 TryInteract 실행. */
+	/**
+	 * 월드 타이머매니저에 주기 스캔(ScanAndPush)을 걸고 진입 즉시 1회 스캔한다. 로컬에서만 설정(데디 서버는 미설정).
+	 * OnGiveAbility와 EndAbility 양쪽에서 호출한다 — 엔진 EndAbility가 어빌리티의 모든 타이머를 비우므로 활성화 종료 후 재설정이 필요하다.
+	 */
+	void StartScanTimer(const FGameplayAbilityActorInfo* ActorInfo);
+
+	/** 아바타 중심 SphereOverlap으로 후보 컴포넌트를 모아 거리순 정렬 후 레지스트리에 push 한다. 타이머가 주기 호출한다. */
+	void ScanAndPush();
+
+	/** 서버가 클라이언트로부터 선택 컴포넌트 TargetData를 수신했을 때 호출. 권한에서 TryInteract 실행 후 EndAbility. */
 	void HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag);
 
-	/** ActorInfo의 로컬 플레이어 레지스트리에서 현재 선택 컴포넌트를 읽는다(로컬에서만 유효). */
+	/** ActorInfo의 로컬 플레이어 상호작용 레지스트리(로컬에서만 유효, 데디 서버는 nullptr). */
+	UWxInteractionRegistrySubsystem* GetLocalRegistry(const FGameplayAbilityActorInfo* ActorInfo) const;
+
+	/** 레지스트리에서 현재 선택 컴포넌트를 읽는다(로컬에서만 유효). */
 	UWxInteractionComponent* GetLocalSelectedComponent(const FGameplayAbilityActorInfo* ActorInfo) const;
 
 	/** 선택 컴포넌트가 유효하면 아바타를 instigator로 TryInteract 호출. 권한 분기에서만 호출한다. */
 	void ExecuteInteract(UWxInteractionComponent* Selected, const FGameplayAbilityActorInfo* ActorInfo);
+
+	/** 주기 스캔 타이머 핸들. OnGiveAbility에서 설정, OnRemoveAbility에서 해제. */
+	FTimerHandle ScanTimerHandle;
 };
