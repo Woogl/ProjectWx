@@ -65,7 +65,7 @@ EBTNodeResult::Type UWxBTTask_ActivateAbility::ExecuteTask(UBehaviorTreeComponen
 
 FString UWxBTTask_ActivateAbility::GetStaticDescription() const
 {
-	return FString::Printf(TEXT("Activate Ability: %s"), *AbilityTag.ToString());
+	return FString::Printf(TEXT("AbilityTag: %s"), *AbilityTag.ToString());
 }
 
 EBTNodeResult::Type UWxBTTask_ActivateAbility::AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
