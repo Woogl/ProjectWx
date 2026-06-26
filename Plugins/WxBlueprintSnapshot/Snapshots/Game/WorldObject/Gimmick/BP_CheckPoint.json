@@ -7,28 +7,20 @@
 			"class": "/Script/WxWorld.WxInteractionComponent",
 			"delta":
 			{
-				"RelativeLocation":
-				{
-					"X": -90
-				}
+				"InteractionText": "Rest"
 			}
-		}
-	},
-	"components":
-	{
-		"StaticMesh":
+		},
+		"MeshComponent":
 		{
-			"componentClass": "/Script/Engine.StaticMeshComponent",
+			"class": "/Script/Engine.StaticMeshComponent",
 			"delta":
 			{
 				"RelativeLocation":
 				{
-					"X": -90,
 					"Z": -90
 				},
 				"StaticMesh": "/Game/NiagaraExamples/Gallery/StaticMesh/SM_TorchBase.SM_TorchBase"
-			},
-			"variableName": "StaticMesh"
+			}
 		}
 	},
 	"parentClass": "/Script/WxGame.WxCheckPoint"

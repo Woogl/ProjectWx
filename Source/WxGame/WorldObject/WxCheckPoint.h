@@ -25,16 +25,19 @@ class AWxCheckPoint : public APlayerStart
 
 public:
 	AWxCheckPoint(const FObjectInitializer& ObjectInitializer);
-
-protected:
-	virtual void BeginPlay() override;
-
+	
 #if WITH_EDITOR
 	//~ Begin AActor — PlayerStartTag 미설정 시 안정적 GUID 를 에디터에서 1회 부여(런타임/세션 간 불변).
 	virtual void PostActorCreated() override;
 	virtual void PostDuplicate(EDuplicateMode::Type DuplicateMode) override;
 	//~ End AActor
 #endif
+
+protected:
+	virtual void BeginPlay() override;
+
+	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	TObjectPtr<UStaticMeshComponent> MeshComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UWxInteractionComponent> InteractionComponent;

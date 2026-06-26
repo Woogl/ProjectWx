@@ -14,15 +14,16 @@
 AWxCheckPoint::AWxCheckPoint(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	// OnInteracted 는 서버 Multicast RPC 로 모든 피어에서 fire 되므로 액터 복제가 필요하다(과거 AWxGimmick 가 켜주던 설정을 직접 유지).
+	bReplicates = true;
+
+	// 루트는 APlayerStart(ANavigationObjectBase)의 CapsuleComponent 다. NoCollision 프로파일이라 플레이어를 막지 않는다.
+	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
+	MeshComponent->SetupAttachment(RootComponent);
+	MeshComponent->SetRelativeLocation(FVector(-90.f, 0.f, 0.f));
+
 	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
-	InteractionComponent->SetupAttachment(RootComponent);
-}
-
-void AWxCheckPoint::BeginPlay()
-{
-	Super::BeginPlay();
-
-	InteractionComponent->OnInteracted.AddDynamic(this, &AWxCheckPoint::HandleInteracted);
+	InteractionComponent->SetupAttachment(MeshComponent);
 }
 
 #if WITH_EDITOR
@@ -44,15 +45,17 @@ void AWxCheckPoint::PostDuplicate(EDuplicateMode::Type DuplicateMode)
 	Super::PostDuplicate(DuplicateMode);
 
 	// 복제 시 엔진이 새 ActorGuid 를 부여하지만 PlayerStartTag 문자열은 원본값이 복사된다.
-	// 미설정이거나 '자동 부여된 GUID 태그(복제로 복사됨)'면 새 ActorGuid 로 재부여해 원본과의 태그 충돌을 막는다.
-	// 디자이너가 지정한 친화적 태그(비GUID)는 그대로 보존한다.
-	FGuid CopiedGuid;
-	if (PlayerStartTag.IsNone() || FGuid::Parse(PlayerStartTag.ToString(), CopiedGuid))
-	{
-		PlayerStartTag = FName(GetActorGuid().ToString());
-	}
+	// 새 ActorGuid 로 재부여해 원본과의 태그 충돌을 막는다.
+	PlayerStartTag = FName(GetActorGuid().ToString());
 }
 #endif
+
+void AWxCheckPoint::BeginPlay()
+{
+	Super::BeginPlay();
+
+	InteractionComponent->OnInteracted.AddDynamic(this, &AWxCheckPoint::HandleInteracted);
+}
 
 void AWxCheckPoint::HandleInteracted(AActor* InstigatorActor)
 {
