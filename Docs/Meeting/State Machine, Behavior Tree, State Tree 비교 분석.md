@@ -62,7 +62,7 @@ stateDiagram-v2
     Chase --> Idle : 적을 시야에서 놓침
 
     state Attack {
-        Attack_DoAttack : Attack 실행
+        Attack_DoAttack : Attack 시작
         Attack_End : Attack 종료
 
         Attack_DoAttack --> Attack_End : 애니메이션 종료
@@ -87,12 +87,14 @@ stateDiagram-v2
 #### 개념
 | 용어        | 설명                                                          |
 | ---------- | ------------------------------------------------------------- |
-| Root       | Behavior Tree의 시작점으로, DFS* 탐색으로 자식 노드를 평가합니다.  |
-| Composite  | 노드의 분기점(branch) 역할로, 어떤 자식 노드가 실행될지 결정합니다. Sequence와 Selector가 있습니다. |
-| Task       | 노드의 끝점(leaf) 역할로, 대상이 수행할 동작입니다. 완료(Success/Failure) 시점까지 점유됩니다. |
-| Decorator  | Composite나 Task에 붙일 수 있는 조건입니다. 실행 가능한지 판단(Condition)하거나, 실행 중인 브랜치를 중단(Abort)합니다. |
-| Service    | Composite나 Task에 붙어서 해당 노드가 활성화된 동안 주기적으로 실행합니다. 주로 시야 확인, 거리 계산, Blackboard 값 갱신에 사용합니다. |
-| BlackBoard | 공용 데이터 저장소입니다. BT가 판단할 때 필요한 데이터를 넣어두었다가 필요할 때마다 꺼내서 씁니다. |
+| Root       | Behavior Tree의 시작점. DFS* 탐색으로 자식 노드를 탐색합니다.  |
+| Composite  | 노드의 분기점(branch). 어떤 자식 노드가 실행될지 흐름을 결정합니다. Sequence와 Selector가 있습니다. |
+| Sequence   | 성공하면 다음 자식으로 가고, 실패하면 부모로 되돌아갑니다. 모든 자식이 성공해야 Sequence가 성공합니다. (AND 논리) |
+| Selector   | 성공하면 부모로 되돌아가고, 실패하면 다음 자식으로 갑니다. 자식 중 하나라도 성공하면 Selector가 성공합니다. (OR 논리) |
+| Task       | 노드의 끝점(leaf). 대상이 수행할 동작입니다. 지연(InProgress)될 수 있으며 끝날 시 성공(Success) 또는 실패(Failed)를 반환합니다. |
+| Decorator  | 노드에 붙일 수 있는 조건. 진입 가능한지 판단(Condition)하거나, 실행 중인 브랜치를 중단(Abort)할 수 있습니다. |
+| Service    | 해당 노드가 활성화된 동안 주기적으로 실행되어 데이터를 갱신합니다. |
+| BlackBoard | BT가 판단하기 위해 필요한 데이터를 기록하는 공용 데이터 저장소입니다. |
 
 *DFS: 깊이 우선 탐색(Depth-First Search). 갈림길에서 한 방향으로 가장 깊게 들어간 후, 막히면 이전 갈림길로 돌아와 다음 경로를 들어간다.
 
@@ -105,22 +107,23 @@ flowchart TD
 
     Root --> MainSelector
 
-    MainSelector --> AttackSequence[❶ Sequence: 공격]
-    AttackSequence --> Condition_AttackRange{Deco:<br>적이 공격 범위 안에 있는가}
-    Condition_AttackRange --> Task_Attack[Task: Attack 실행]
+    MainSelector --> Deco_Attack{Deco:<br>적이 공격 범위 안에 있는가?}
+    Deco_Attack --> AttackSequence[Sequence]
+    AttackSequence --> Task_Attack[Task_Attack:<br>공격 실행]
 
-    MainSelector --> ChaseSequence[❷ Sequence: 추적]
-    ChaseSequence --> Condition_TargetVisible{Deco:<br>시야에 적 발견}
-    Condition_TargetVisible --> Task_Chase[Task: 적을 향해 Walk 실행]
+    MainSelector --> Deco_Chase{Deco:<br>적이 시야에 있는가?}
+    Deco_Chase --> ChaseSequence[Sequence]
+    ChaseSequence --> Task_Walk[Task_Walk:<br>대상을 향해 이동]
 
-    MainSelector --> IdleTask[❸ Task: 아무것도 안함]
+    MainSelector --> IdleSequence[Sequence]
+    IdleSequence --> Task_Idle[Task_Idle:<br>아무것도 안함]
 ```
 
 #### 장단점
 
 | 구분 |설명 |
 | -- | -- |
-| 장점 | 복잡한 AI 의사결정 구조를 계층적으로 정리할 수 있습니다.<br>조건과 동작을 노드 단위로 분리할 수 있어 재사용성이 좋습니다.<br>(UE) 에디터 디버거를 제공해줍니다. |
+| 장점 | 복잡한 AI 의사결정 구조를 계층적으로 정리할 수 있습니다.<br>조건과 동작을 노드 단위로 분리할 수 있어 재사용성이 좋습니다.<br>(UE) 게임 개발 레퍼런스가 풍부하며, 에디터 디버거를 제공해줍니다. |
 | 단점 | 초기 학습 진입 장벽이 있습니다.<br>현재 상태 단위의 동작을 명확하게 표현하는 데는 State Machine보다 직관성이 떨어집니다.<br>(UE) 캐릭터 AI 이외의 게임 로직에서 범용적으로 사용되지는 않는 편입니다. |
 
 ## 2-3. State Tree

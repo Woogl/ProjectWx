@@ -1,0 +1,8 @@
+{
+	"blueprintPath": "/Game/AI/DFS/BP_DFS.BP_DFS",
+	"classDefaults":
+	{
+		"BehaviorTreeAsset": "/Game/AI/DFS/BT_DFS.BT_DFS"
+	},
+	"parentClass": "/Script/WxGame.WxEnemyCharacter"
+}
