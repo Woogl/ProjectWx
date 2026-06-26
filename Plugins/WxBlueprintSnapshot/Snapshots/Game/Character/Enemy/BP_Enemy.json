@@ -58,17 +58,10 @@
 				"WidgetClass": "/Game/UI/Widget/WBP_Nameplate_Enemy.WBP_Nameplate_Enemy_C"
 			}
 		},
-		"RewardComponent":
+		"RewardRow":
 		{
-			"class": "/Script/WxInventory.WxRewardComponent",
-			"delta":
-			{
-				"RewardRow":
-				{
-					"DataTable": "/Game/Item/DT_Reward.DT_Reward",
-					"RowName": "Gold100"
-				}
-			}
+			"DataTable": "/Game/Item/DT_Reward.DT_Reward",
+			"RowName": "Gold100"
 		},
 		"WeaponActor":
 		{

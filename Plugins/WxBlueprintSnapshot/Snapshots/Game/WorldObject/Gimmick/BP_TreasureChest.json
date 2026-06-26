@@ -7,8 +7,7 @@
 			"class": "/Script/WxWorld.WxInteractionComponent",
 			"delta":
 			{
-				"InteractionText": "Open",
-				"SphereRadius": 300
+				"InteractionText": "Open"
 			}
 		},
 		"MeshComponent":
@@ -56,21 +55,6 @@
 					"StateTree": "/Game/WorldObject/Gimmick/ST_TreasureChest.ST_TreasureChest"
 				}
 			}
-		}
-	},
-	"components":
-	{
-		"WxReward":
-		{
-			"componentClass": "/Script/WxInventory.WxRewardComponent",
-			"delta":
-			{
-				"RelativeLocation":
-				{
-					"Z": 90
-				}
-			},
-			"variableName": "WxReward"
 		}
 	},
 	"parentClass": "/Script/WxWorld.WxTreasureChest"
