@@ -24,11 +24,11 @@ enum class EWxElevatorState : uint8
 
 /**
  * 엘리베이터.
- * SplineComponent(닫힌 루프)가 정의하는 경로의 두 끝점(Start/End) 사이를 플랫폼이 왕복한다.
+ * SplineComponent(열린 경로)가 정의하는 두 끝점(Start/End) 사이를 플랫폼이 왕복한다.
  *
  * 도어와 동일한 결: 권위 State(Closed/AtStart/AtEnd)는 인터랙션 시 즉시 최종값으로 확정한다.
  * 이동/문 개폐는 권위와 무관한 순수 비주얼이라 "도착"이라는 권위 사건이 없다.
- *   - 플랫폼 이동: StateTree 의 Wx Component Spline Move 가 닫힌 루프 위를 라이브 전이마다 한 세그먼트 전진(Start↔End). 닫힌 루프라 양방향이 모두 정방향 한 세그먼트다.
+ *   - 플랫폼 이동: StateTree 의 Wx Component Spline Move 가 두 끝점 사이 단일 세그먼트를 라이브 전이마다 주파(Start↔End). 가장 가까운 포인트에서 목표 끝점으로 정/역방향 슬라이드한다.
  *   - 문 개폐·인터랙션 토글: 각 상태의 Wx Component Move / Wx Enable Interaction(이동할 메시·오프셋·시퀀스는 ST_Elevator 에셋에서 author).
  *
  * Closed 와 AtStart 는 같은 위치(Start)다. Closed→AtStart 는 "같은 층, 이동 없이 문만 열기"이므로,

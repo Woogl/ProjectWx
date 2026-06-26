@@ -11,8 +11,8 @@ AWxElevator::AWxElevator()
 {
 	SplineComponent = CreateDefaultSubobject<USplineComponent>(TEXT("SplineComponent"));
 	SplineComponent->SetupAttachment(SceneRoot);
-	// 두 끝점(Start/End)을 잇는 경로. Spline Move 는 각 상태가 가리키는 끝점 포인트 거리만 목표하므로 닫힘/열림 형상과 무관하나, 기존 에셋 스플라인 형상을 보존하기 위해 닫힌 루프를 유지한다.
-	SplineComponent->SetClosedLoop(true);
+	// 두 끝점(Start/End)을 잇는 열린 경로. Spline Move 는 각 상태가 가리키는 끝점 포인트 거리만 목표하므로 폐합 구간은 쓰지 않는다.
+	SplineComponent->SetClosedLoop(false);
 
 	PlatformRoot = CreateDefaultSubobject<USceneComponent>(TEXT("PlatformRoot"));
 	PlatformRoot->SetupAttachment(SceneRoot);
