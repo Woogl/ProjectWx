@@ -57,6 +57,32 @@ namespace
 		const USceneComponent* Archetype = Cast<USceneComponent>(Component->GetArchetype());
 		return Archetype ? Archetype->GetRelativeLocation() : Component->GetRelativeLocation();
 	}
+
+	// 컴포넌트의 현재 월드 위치에서 가장 가까운 스플라인 포인트(vertex) 인덱스. 포인트가 없으면 INDEX_NONE.
+	// 거리 비교는 World 공간(부모 관계 무가정). 정지 시 컴포넌트는 항상 포인트에 주차되는 사용을 전제한다.
+	int32 FindNearestSplinePointIndex(const USceneComponent* Component, const USplineComponent* Spline)
+	{
+		const int32 NumPoints = Spline->GetNumberOfSplinePoints();
+		if (NumPoints == 0)
+		{
+			return INDEX_NONE;
+		}
+
+		const FVector CurrentLocation = Component->GetComponentLocation();
+		int32 NearestIndex = 0;
+		float NearestDistSq = TNumericLimits<float>::Max();
+		for (int32 Index = 0; Index < NumPoints; ++Index)
+		{
+			const float DistSq = FVector::DistSquared(CurrentLocation, Spline->GetLocationAtSplinePoint(Index, ESplineCoordinateSpace::World));
+			if (DistSq < NearestDistSq)
+			{
+				NearestDistSq = DistSq;
+				NearestIndex = Index;
+			}
+		}
+
+		return NearestIndex;
+	}
 }
 
 FWxStateTreeTask_EnableInteraction::FWxStateTreeTask_EnableInteraction()
@@ -87,7 +113,7 @@ FText FWxStateTreeTask_EnableInteraction::GetDescription(const FGuid& ID, FState
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Wx Enable Interaction ({0})"), InstanceData->bEnable);
+	return FText::Format(INVTEXT("Wx Enable Interaction ({0})"), InstanceData->bEnable ? INVTEXT("true") : INVTEXT("false"));
 }
 #endif
 
@@ -225,20 +251,8 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentSplineMove::EnterState(FStateTreeE
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	// 라이브 전이: 현재 위치에서 가장 가까운 스플라인 포인트(vertex)를 시작점으로 잡는다(정지 시 항상 끝점에 주차됨). 거리 비교는 World 공간(부모 관계 무가정).
-	const FVector CurrentLocation = Component->GetComponentLocation();
-	int32 NearestIndex = 0;
-	float NearestDistSq = TNumericLimits<float>::Max();
-	for (int32 Index = 0; Index < NumPoints; ++Index)
-	{
-		const float DistSq = FVector::DistSquared(CurrentLocation, Spline->GetLocationAtSplinePoint(Index, ESplineCoordinateSpace::World));
-		if (DistSq < NearestDistSq)
-		{
-			NearestDistSq = DistSq;
-			NearestIndex = Index;
-		}
-	}
-
+	// 라이브 전이: 현재 위치에서 가장 가까운 스플라인 포인트(vertex)를 시작점으로 잡는다(정지 시 항상 끝점에 주차됨).
+	const int32 NearestIndex = FindNearestSplinePointIndex(Component, Spline);
 	const float StartDistance = Spline->GetDistanceAlongSplineAtSplinePoint(NearestIndex);
 
 	// 속도는 시작→목표 호 길이/Duration 고정값이라 재진입해도 일정하다(Duration 0 이하면 아래에서 즉시 스냅).
@@ -296,6 +310,51 @@ FText FWxStateTreeTask_ComponentSplineMove::GetDescription(const FGuid& ID, FSta
 	}
 
 	return FText::Format(INVTEXT("Wx Component Spline Move ({0} → point {1})"), SplineText, FText::AsNumber(InstanceData->TargetPointIndex));
+}
+#endif
+
+// ── AtSplinePoint ────────────────────────────────────────────────────────────
+
+bool FWxStateTreeCondition_AtSplinePoint::TestCondition(FStateTreeExecutionContext& Context) const
+{
+	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
+
+	const USceneComponent* Component = Instance.TargetComponent;
+	const USplineComponent* Spline = Instance.Spline;
+	if (!Component || !Spline)
+	{
+		return false;
+	}
+
+	const int32 NearestIndex = FindNearestSplinePointIndex(Component, Spline);
+	if (NearestIndex == INDEX_NONE)
+	{
+		// 포인트가 없으면 비교할 대상이 없어 거짓(반전 시 참).
+		return Instance.bInvert;
+	}
+
+	const int32 TargetIndex = FMath::Clamp(Instance.PointIndex, 0, Spline->GetNumberOfSplinePoints() - 1);
+	const bool bAtPoint = NearestIndex == TargetIndex;
+	return bAtPoint != Instance.bInvert;
+}
+
+#if WITH_EDITOR
+FText FWxStateTreeCondition_AtSplinePoint::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
+{
+	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
+	check(InstanceData);
+
+	// 스플라인은 보통 바인딩이라 런타임 포인터가 비어 있다. 바인딩 소스명을 우선 보이고, 직접 지정 시 그 이름으로 폴백.
+	FText SplineText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, Spline)), Formatting);
+	if (SplineText.IsEmpty())
+	{
+		SplineText = InstanceData->Spline ? FText::FromString(InstanceData->Spline->GetName()) : INVTEXT("(none)");
+	}
+
+	return FText::Format(INVTEXT("Wx At Spline Point ({0} {1} point {2})"),
+		SplineText,
+		InstanceData->bInvert ? INVTEXT("!=") : INVTEXT("=="),
+		FText::AsNumber(InstanceData->PointIndex));
 }
 #endif
 

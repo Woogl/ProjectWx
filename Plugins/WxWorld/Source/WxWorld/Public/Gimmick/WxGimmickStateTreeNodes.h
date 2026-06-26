@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "StateTreeConditionBase.h"
 #include "StateTreeTaskBase.h"
 #include "WxGimmickStateTreeNodes.generated.h"
 
@@ -31,6 +32,7 @@ class UWxInteractionComponent;
  *  - EnablePlayerInput 은 (bEnable) 으로 로컬 플레이어 폰의 입력 전체를 진입 시 1회 토글한다(컷신 등 연출 중 조작 차단).
  *  - ComponentMove 는 (TargetComponent, LocalOffset, Duration) 으로 지정 컴포넌트를 아키타입(기준) 포즈에서 기준+offset 으로 일정 속도 슬라이드한다(범용 메시 이동).
  *  - ComponentSplineMove 는 (TargetComponent, Spline, TargetPointIndex, Duration) 으로 지정 컴포넌트를 목표 스플라인 포인트로 옮긴다. 초기 진입이면 목표 포인트로 즉시 스냅, 라이브 전이면 현재(가장 가까운) 포인트에서 목표까지 곡선을 따라 일정 속도 이동한다(State 가 목표 끝점을 직접 선언하므로 복원도 정확).
+ *  - AtSplinePoint(조건) 는 (TargetComponent, Spline, PointIndex, bInvert) 로 대상 컴포넌트의 현재 위치에서 가장 가까운 스플라인 포인트가 PointIndex 와 같은지 검사한다(기하 판정, 멤버 저장 없음). ComponentSplineMove 와 nearest 로직을 공유한다.
  *  - PlayAnimation 은 (TargetMesh, Animation) 으로 초기 진입이면 끝 프레임 스냅, 라이브 전이면 처음부터 재생한다. 범용 애니 재생.
  *  - PlayLevelSequence 는 (LevelSequence) 로 라이브 전이 진입 시 시퀀스를 재생하고 Tick 으로 종료를 폴링하다 종료 시 Succeeded 를 반환한다(상태의 OnComplete 전이가 진행을 구동). 입력 차단은 별도 EnablePlayerInput 이 맡는다. 중도 이탈 시 ExitState 가 시퀀스 정지·정리(복원 시 침묵).
  *  - PlaySound 는 (Sound) 로 라이브 전이 진입 시에만 사운드를 1회 재생한다(복원 시 침묵).
@@ -210,6 +212,50 @@ struct FWxStateTreeTask_ComponentSplineMove : public FStateTreeTaskCommonBase
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
+
+#if WITH_EDITOR
+	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
+#endif
+};
+
+// ── AtSplinePoint: 대상 컴포넌트가 지정 스플라인 포인트에 있는지 검사(조건) ─────────
+
+USTRUCT()
+struct FWxStateTreeCondition_AtSplinePointInstanceData
+{
+	GENERATED_BODY()
+
+	/** 스플라인 위를 타는 씬 컴포넌트. ST 에셋에서 Context 액터의 컴포넌트로 바인딩한다(엘리베이터=PlatformRoot). */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	TObjectPtr<USceneComponent> TargetComponent;
+
+	/** 경로를 정의하는 스플라인. ST 에셋에서 Context 액터의 스플라인으로 바인딩한다(엘리베이터=SplineComponent). */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	TObjectPtr<USplineComponent> Spline;
+
+	/** 검사할 스플라인 포인트 인덱스. 범위를 벗어나면 클램프. */
+	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
+	int32 PointIndex = 0;
+
+	/** 결과를 반전(대상이 PointIndex 가 "아닐" 때 참). 엔진 Compare 조건과 동일 관용구. */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	bool bInvert = false;
+};
+
+/**
+ * 대상 컴포넌트의 현재 월드 위치에서 가장 가까운 스플라인 포인트가 PointIndex 와 같으면 참을 반환한다(bInvert 면 반전).
+ * 권위 State 가 아니라 실제 위치(기하)를 본다 — 정지 시 컴포넌트는 항상 포인트에 주차되므로 그 끝점을 가리킨다. 이동 중에는 가장 가까운 포인트가 중점에서 전환된다.
+ * 멤버 저장 없는 순수 파생이며 nearest 탐색은 ComponentSplineMove 와 동일 로직(파일 로컬 헬퍼)을 공유한다. State 를 읽지 않아 스플라인 위를 타는 어떤 기믹이든 재사용한다.
+ */
+USTRUCT(meta = (DisplayName = "Wx At Spline Point"))
+struct FWxStateTreeCondition_AtSplinePoint : public FStateTreeConditionCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType = FWxStateTreeCondition_AtSplinePointInstanceData;
+
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+	virtual bool TestCondition(FStateTreeExecutionContext& Context) const override;
 
 #if WITH_EDITOR
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
