@@ -61,7 +61,7 @@ private:
 	UFUNCTION()
 	void HandleInteracted(AActor* InstigatorActor);
 
-	/** 콘솔 권위/영속 상태(복제 + SaveGame). State 쓰기는 권위 전용(CommitGimmickState)이며, 클라는 복제 State 를 ST 의 Enum Compare 전이가 추종한다. */
-	UPROPERTY(VisibleAnywhere, Category = "Wx", Replicated, SaveGame, meta = (AllowPrivateAccess = "true"))
+	/** 콘솔 권위/영속 상태(복제 + SaveGame). State 쓰기는 권위 전용(CommitGimmickState)이며, 클라는 OnRep_GimmickState 가 발행하는 이벤트로 ST 재선택을 구동한다. */
+	UPROPERTY(VisibleAnywhere, Category = "Wx", ReplicatedUsing = OnRep_GimmickState, SaveGame, meta = (AllowPrivateAccess = "true"))
 	EWxSpawnConsoleState State = EWxSpawnConsoleState::Idle;
 };

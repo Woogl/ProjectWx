@@ -74,6 +74,9 @@ namespace WxGameplayTags
 	/** 소비 아이템 사용 이벤트. 마시기 몽타주의 노티파이가 송출, UseItem 어빌리티가 수신해 아이템을 실제 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_UseItem);
 
+	/** 기믹 상태 변경 신호. AWxGimmick 이 권위/클라 양쪽에서 발행, GimmickStateTree 가 OnEvent 로 자식 상태를 재선택 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_GimmickStateChanged);
+
 	// ── ANS ───────────────────────────────────────────────────────────────
 
 	/** 무기 콜리전 활성 구간. ANS_WeaponCollision이 부여/제거 */
