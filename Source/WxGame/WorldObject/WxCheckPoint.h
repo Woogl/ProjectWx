@@ -37,9 +37,6 @@ protected:
 #endif
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	TObjectPtr<UStaticMeshComponent> MeshComponent;
-
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UWxInteractionComponent> InteractionComponent;
 
 	/** 상호작용 시 적용할 회복 GameplayEffect. HP를 MaxHP로 설정하는 GE를 지정한다. */
