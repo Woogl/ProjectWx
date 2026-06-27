@@ -26,8 +26,10 @@ AWxGimmick::AWxGimmick()
 	if (ArrowComponent)
 	{
 		ArrowComponent->SetupAttachment(SceneRoot);
-		ArrowComponent->ArrowColor = FColor(255, 200, 0);
+		ArrowComponent->ArrowColor = FColor(150, 200, 255);
+		ArrowComponent->ArrowSize = 1.0f;
 		ArrowComponent->bTreatAsASprite = true;
+		ArrowComponent->bIsScreenSizeScaled = true;
 	}
 #endif
 }
