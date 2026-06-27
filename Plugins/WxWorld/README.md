@@ -7,7 +7,7 @@
 - 상호작용 기믹의 공통 베이스(`AWxGimmick`)와 서버 권위 State 확정 단일 진입점(`CommitGimmickState`)
 - 구체 기믹 구현: 문/엘리베이터/보물상자/경보·스폰 콘솔/컷신 트리거 (각자 복제 State enum 소유)
 - 플레이어 상호작용 감지·등록·선택: `UWxInteractionComponent`(오버랩+Multicast) + `UWxInteractionRegistrySubsystem`(로컬 인-레인지 목록/선택/외곽선)
-- 모든 기믹이 공유하는 StateTree 태스크 노드 모음(이동/애니/시퀀스/사운드/Niagara/스포너 트리거/State 확정/레이저)
+- 모든 기믹이 공유하는 StateTree 태스크 노드 모음(이동/애니/시퀀스/사운드/Niagara/스포너 트리거/State 확정)
 - 레벨 배치 스포너(`AWxSpawner`)와 일괄 리스폰(`UWxSpawnerLibrary::TryRespawnAll`), 처치 상태 영속
 
 **경계 (비담당)**
@@ -24,7 +24,7 @@
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
 | `AWxGimmick` | 모든 상호작용 기믹의 abstract 베이스. State 쓰기 권위 게이트 + GimmickStateTree 구동 | `Source/WxWorld/Public/Gimmick/WxGimmick.h` |
-| `WxGimmickStateTreeNodes.h` | 전 기믹이 공유하는 ST 태스크 노드 집합(이동/애니/시퀀스/FX/State 확정/레이저) | `Source/WxWorld/Public/Gimmick/WxGimmickStateTreeNodes.h` |
+| `WxGimmickStateTreeNodes.h` | 전 기믹이 공유하는 ST 태스크 노드 집합(이동/애니/시퀀스/FX/State 확정) | `Source/WxWorld/Public/Gimmick/WxGimmickStateTreeNodes.h` |
 | `UWxInteractionComponent` | 폰 오버랩 감지·레지스트리 등록·Multicast 알림. 소유 액터가 `OnInteracted`에 바인딩 | `Source/WxWorld/Public/Interaction/WxInteractionComponent.h` |
 | `UWxInteractionRegistrySubsystem` | 로컬 플레이어별 인-레인지 목록/선택/외곽선 조율. HUD 뷰모델이 표시 | `Source/WxWorld/Public/Interaction/WxInteractionRegistrySubsystem.h` |
 | `AWxSpawner` | SpawnableActorClass 인스턴스를 스폰하는 레벨 액터. 처치 상태 영속(GUID 키) | `Source/WxWorld/Public/Spawnable/WxSpawner.h` |

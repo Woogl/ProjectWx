@@ -45,6 +45,10 @@
 				"SkinnedAsset": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/SkeletalMeshes/scene.scene"
 			}
 		},
+		"RewardRow":
+		{
+			"DataTable": "/Game/Item/DT_Reward.DT_Reward"
+		},
 		"StateTree":
 		{
 			"class": "/Script/GameplayStateTreeModule.StateTreeComponent",

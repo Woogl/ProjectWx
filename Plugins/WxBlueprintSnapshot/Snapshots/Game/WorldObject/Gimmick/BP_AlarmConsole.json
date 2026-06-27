@@ -2,8 +2,6 @@
 	"blueprintPath": "/Game/WorldObject/Gimmick/BP_AlarmConsole.BP_AlarmConsole",
 	"classDefaults":
 	{
-		"AlarmNiagaraSystem": "/Game/NiagaraExamples/FX_Misc/NS_FireworkBurst.NS_FireworkBurst",
-		"AlarmSound": "/Game/NiagaraExamples/Gallery/Weapons/Rifle/Sounds/Rifle_Load01.Rifle_Load01",
 		"Console":
 		{
 			"class": "/Script/Engine.StaticMeshComponent",
@@ -21,10 +19,20 @@
 			"class": "/Script/WxWorld.WxInteractionComponent",
 			"delta":
 			{
-				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C",
 				"RelativeLocation":
 				{
 					"Z": 100
+				}
+			}
+		},
+		"StateTree":
+		{
+			"class": "/Script/GameplayStateTreeModule.StateTreeComponent",
+			"delta":
+			{
+				"StateTreeRef":
+				{
+					"StateTree": "/Game/WorldObject/Gimmick/ST_AlarmConsole.ST_AlarmConsole"
 				}
 			}
 		}

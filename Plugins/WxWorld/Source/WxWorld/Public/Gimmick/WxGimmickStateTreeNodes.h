@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/EngineTypes.h"
+#include "GameplayTagContainer.h"
 #include "StateTreeConditionBase.h"
 #include "StateTreeTaskBase.h"
 #include "WxGimmickStateTreeNodes.generated.h"
@@ -13,7 +15,6 @@ class AActor;
 class ALevelSequenceActor;
 class AWxSpawner;
 class UAnimSequenceBase;
-class UBoxComponent;
 class ULevelSequence;
 class ULevelSequencePlayer;
 class UNiagaraSystem;
@@ -38,8 +39,7 @@ class UWxInteractionComponent;
  *  - PlaySound 는 (Sound) 로 라이브 전이 진입 시에만 사운드를 1회 재생한다(복원 시 침묵).
  *  - SpawnNiagara 는 (AttachComponent, Niagara) 로 라이브 전이 진입 시에만 Niagara 를 1회 재생한다(복원 시 침묵).
  *  - TriggerSpawners 는 (Spawners) 로 라이브 전이 진입 시 권위 측에서만 각 스포너의 Respawn 을 호출한다(복원 시 재실행 안 함).
- *  - LaserSpawn 은 (ActorClass, SpawnVolume, Interval, MoveSpeed) 로 매 틱 권위 측에서 박스 통로의 -X 끝에 일정 간격으로 액터를 스폰하고 살아있는 목록을 유지한다(완료 없는 머무는 태스크, 상태 이탈 시 전부 파괴).
- *  - LaserAdvance 는 (Actors, Velocity) 로 매 틱 권위 측에서 바인딩된 액터들을 Velocity·DeltaTime 만큼 월드 이동시킨다(완료 없는 머무는 태스크).
+ *  - SpawnActor 는 (ActorClass, SpawnPoint, Interval, Lifetime, SpawnCollisionHandlingOverride) 로 매 틱 권위 측에서 SpawnPoint(없으면 오너) 트랜스폼에 일정 간격으로 액터를 스폰하고 살아있는 목록을 유지한다(Lifetime 양수면 자동 파괴, 완료 없는 머무는 태스크, 상태 이탈 시 전부 파괴).
  *
  * 초기 진입(StateTree 시작/복원/레이트조인) 과 라이브 전이는 모든 노드가 Transition.SourceStateID 유효성으로 구분한다.
  *
@@ -224,41 +224,33 @@ struct FWxStateTreeTask_ComponentSplineMove : public FStateTreeTaskCommonBase
 #endif
 };
 
-// ── AtSplinePoint: 대상 컴포넌트가 지정 스플라인 포인트에 있는지 검사(조건) ─────────
+// ── GimmickStateIs: 기믹의 현재 State 태그가 지정 태그와 같은지 검사(조건) ─────────
 
 USTRUCT()
-struct FWxStateTreeCondition_AtSplinePointInstanceData
+struct FWxStateTreeCondition_GimmickStateIsInstanceData
 {
 	GENERATED_BODY()
 
-	/** 스플라인 위를 타는 씬 컴포넌트. ST 에셋에서 Context 액터의 컴포넌트로 바인딩한다(엘리베이터=PlatformRoot). */
-	UPROPERTY(EditAnywhere, Category = "Parameter")
-	TObjectPtr<USceneComponent> TargetComponent;
+	/** 비교할 State 태그. 이 상태가 어느 Gimmick.* State 일 때 진입할지 author 한다. */
+	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (Categories = "Gimmick"))
+	FGameplayTag State;
 
-	/** 경로를 정의하는 스플라인. ST 에셋에서 Context 액터의 스플라인으로 바인딩한다(엘리베이터=SplineComponent). */
-	UPROPERTY(EditAnywhere, Category = "Parameter")
-	TObjectPtr<USplineComponent> Spline;
-
-	/** 검사할 스플라인 포인트 인덱스. 범위를 벗어나면 클램프. */
-	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
-	int32 PointIndex = 0;
-
-	/** 결과를 반전(대상이 PointIndex 가 "아닐" 때 참). 엔진 Compare 조건과 동일 관용구. */
+	/** 결과를 반전(현재 State 가 위 태그가 "아닐" 때 참). */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	bool bInvert = false;
 };
 
 /**
- * 대상 컴포넌트의 현재 월드 위치에서 가장 가까운 스플라인 포인트가 PointIndex 와 같으면 참을 반환한다(bInvert 면 반전).
- * 권위 State 가 아니라 실제 위치(기하)를 본다 — 정지 시 컴포넌트는 항상 포인트에 주차되므로 그 끝점을 가리킨다. 이동 중에는 가장 가까운 포인트가 중점에서 전환된다.
- * 멤버 저장 없는 순수 파생이며 nearest 탐색은 ComponentSplineMove 와 동일 로직(파일 로컬 헬퍼)을 공유한다. State 를 읽지 않아 스플라인 위를 타는 어떤 기믹이든 재사용한다.
+ * 소유 기믹(AWxGimmick)의 현재 권위 State 태그가 지정 State 와 정확히 같으면 참을 반환한다(bInvert 면 반전).
+ * 전 상태를 동일한 enter 조건으로 게이트하는 용도 — 완료 후 Root 재선택이 현재 State 와 일치하는 상태(=자기 자신)로 돌아오게 해 정지 상태가 무해하게 머문다.
+ * State 를 읽기만 하며 액터 프로퍼티 바인딩이 불필요하다(Context.GetOwner() 캐스트로 직접 조회).
  */
-USTRUCT(meta = (DisplayName = "Wx At Spline Point"))
-struct FWxStateTreeCondition_AtSplinePoint : public FStateTreeConditionCommonBase
+USTRUCT(meta = (DisplayName = "Wx Gimmick State Is"))
+struct FWxStateTreeCondition_GimmickStateIs : public FStateTreeConditionCommonBase
 {
 	GENERATED_BODY()
 
-	using FInstanceDataType = FWxStateTreeCondition_AtSplinePointInstanceData;
+	using FInstanceDataType = FWxStateTreeCondition_GimmickStateIsInstanceData;
 
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual bool TestCondition(FStateTreeExecutionContext& Context) const override;
@@ -456,10 +448,10 @@ struct FWxStateTreeTask_TriggerSpawners : public FStateTreeTaskCommonBase
 #endif
 };
 
-// ── LaserSpawn: 박스 통로에 일정 간격으로 액터 스폰 ────────────────────────────
+// ── SpawnActor: SpawnPoint 트랜스폼에 일정 간격으로 액터 스폰 ───────────────────
 
 USTRUCT()
-struct FWxStateTreeTask_LaserSpawnInstanceData
+struct FWxStateTreeTask_SpawnActorInstanceData
 {
 	GENERATED_BODY()
 
@@ -467,19 +459,23 @@ struct FWxStateTreeTask_LaserSpawnInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TSubclassOf<AActor> ActorClass;
 
-	/** 스폰 통로를 정의하는 박스. ST 에셋에서 Context 액터의 컴포넌트(예: CorridorBox)로 바인딩한다. -X 끝에서 스폰하고 +X 가 전진 방향이며, YZ extent 로 스폰 스케일을 맞춘다. */
+	/** 스폰 기준이 되는 씬 컴포넌트. 그 월드 트랜스폼(위치·회전·스케일)에 스폰한다. ST 에셋에서 Context 액터의 컴포넌트(예: SpawnPoint)로 바인딩한다. 비우면 오너 액터 트랜스폼에 스폰. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
-	TObjectPtr<UBoxComponent> SpawnVolume;
+	TObjectPtr<USceneComponent> SpawnPoint;
 
 	/** 스폰 간격(초). */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0.05"))
 	float Interval = 2.f;
 
-	/** 스폰체의 전진 속도(cm/s). 수명(박스 길이 / 속도) 산출에만 쓴다. 실제 이동은 Wx Laser Advance 가 담당하므로 둘을 일치시켜야 한다. */
+	/** 스폰체 수명(초). 0 이하면 무한(직접 파괴/이탈 정리에 맡김). 양수면 스폰 시 SetLifeSpan 으로 자동 파괴된다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
-	float MoveSpeed = 500.f;
+	float Lifetime = 0.f;
 
-	/** (런타임) 살아있는 스폰체 목록. Wx Laser Advance 의 Actors 가 이 프로퍼티를 바인딩 소스로 읽어 이동시킨다. */
+	/** 스폰 시 충돌 처리 방식(FActorSpawnParameters 의 SpawnCollisionHandlingOverride 로 전달). 기본은 위치 보정 없이 항상 스폰. 겹침을 피하거나 보정하려면 디자이너가 바꾼다. */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	ESpawnActorCollisionHandlingMethod SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	/** (런타임) 살아있는 스폰체 목록. 후속 이동 노드가 이 프로퍼티를 바인딩 소스로 읽어 이동시킬 수 있다. */
 	UPROPERTY()
 	TArray<TObjectPtr<AActor>> SpawnedActors;
 
@@ -489,59 +485,22 @@ struct FWxStateTreeTask_LaserSpawnInstanceData
 };
 
 /**
- * 매 틱 권위 측에서 SpawnVolume 박스의 -X 끝에 ActorClass 를 Interval 마다 1회 스폰하고 살아있는 목록(SpawnedActors)을 유지한다. State 를 읽지 않아 어떤 기믹이든 주기 스폰에 재사용한다(예: LaserCorridor 의 레이저 벽).
- * 스폰체는 박스 YZ extent 에 맞춘 스케일과 (박스 길이 / MoveSpeed) 수명으로 스폰돼 +X 끝에 닿을 즈음 자동 파괴된다. 실제 전진은 Wx Laser Advance 가 SpawnedActors 를 바인딩해 구동하므로, 에셋에서 LaserSpawn 을 LaserAdvance 보다 앞에 둔다.
+ * 매 틱 권위 측에서 SpawnPoint(없으면 오너) 의 월드 트랜스폼에 ActorClass 를 Interval 마다 1회 스폰하고 살아있는 목록(SpawnedActors)을 유지한다. State 를 읽지 않아 어떤 기믹이든 주기 스폰에 재사용한다(예: LaserCorridor 의 레이저 벽).
+ * 스폰 위치·회전·크기는 SpawnPoint 트랜스폼이 그대로 정하고(스폰체 크기는 SpawnPoint 스케일), 수명은 Lifetime 으로 받아 양수면 SetLifeSpan 으로 자동 파괴한다. 스폰 충돌 처리는 SpawnCollisionHandlingOverride 로 디자이너가 정한다. 후속 이동이 필요하면 이동 노드가 SpawnedActors 를 바인딩해 구동하므로, 에셋에서 이 노드를 그 앞에 둔다.
  * 스폰은 서버 권위 사건이라 권위 측에서만 일어나고(클라는 복제 추종), 스폰체는 Transient 라 복원할 포즈가 없어 초기 진입·라이브 구분 없이 진입 즉시 스폰을 재개한다.
  * 완료 전이가 없는 머무는 태스크라 항상 Running 을 유지하며(이 태스크는 상태 완료 판정에서 빼야 한다), 상태를 떠날 때 ExitState 가 남은 스폰체를 전부 파괴한다.
  */
-USTRUCT(meta = (DisplayName = "Wx Laser Spawn"))
-struct FWxStateTreeTask_LaserSpawn : public FStateTreeTaskCommonBase
+USTRUCT(meta = (DisplayName = "Wx Spawn Actor"))
+struct FWxStateTreeTask_SpawnActor : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
 
-	using FInstanceDataType = FWxStateTreeTask_LaserSpawnInstanceData;
+	using FInstanceDataType = FWxStateTreeTask_SpawnActorInstanceData;
 
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
 	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
-
-#if WITH_EDITOR
-	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
-#endif
-};
-
-// ── LaserAdvance: 바인딩된 액터들을 매 틱 일정 속도로 이동 ──────────────────────
-
-USTRUCT()
-struct FWxStateTreeTask_LaserAdvanceInstanceData
-{
-	GENERATED_BODY()
-
-	/** 이동시킬 액터들. ST 에셋에서 Context 액터의 프로퍼티(예: ActiveLasers)로 바인딩한다. */
-	UPROPERTY(EditAnywhere, Category = "Parameter")
-	TArray<TObjectPtr<AActor>> Actors;
-
-	/** 초당 월드 이동 속도(cm/s) 벡터. 방향·속력을 함께 지정한다. */
-	UPROPERTY(EditAnywhere, Category = "Parameter")
-	FVector Velocity = FVector::ZeroVector;
-};
-
-/**
- * 매 틱 바인딩된 액터들을 Velocity·DeltaTime 만큼 월드 공간에서 이동시킨다. State 를 읽지 않아 어떤 기믹이든 재사용한다(예: LaserCorridor 의 활성 레이저 전진).
- * 이동은 서버 권위 사건이라 권위 측에서만 옮기고, 클라는 복제로 추종한다. 동적 스폰 액터를 가정해 복원할 포즈가 없으므로 진입 즉시 Running 에 들어간다.
- * 완료 전이가 없는 머무는 태스크라 항상 Running 을 유지한다(이 태스크는 상태 완료 판정에서 빼야 한다).
- */
-USTRUCT(meta = (DisplayName = "Wx Laser Advance"))
-struct FWxStateTreeTask_LaserAdvance : public FStateTreeTaskCommonBase
-{
-	GENERATED_BODY()
-
-	using FInstanceDataType = FWxStateTreeTask_LaserAdvanceInstanceData;
-
-	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
-	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
-	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
 
 #if WITH_EDITOR
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;

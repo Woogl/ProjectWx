@@ -4,7 +4,6 @@
 
 #include "Animation/AnimSequenceBase.h"
 #include "Animation/AnimSingleNodeInstance.h"
-#include "Components/BoxComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/SplineComponent.h"
@@ -23,6 +22,7 @@
 #include "Spawnable/WxSpawner.h"
 #include "StateTreeExecutionContext.h"
 #include "StateTreePropertyBindings.h"
+#include "WxGameplayTags.h"
 
 namespace
 {
@@ -82,6 +82,14 @@ namespace
 		}
 
 		return NearestIndex;
+	}
+
+	// 이 진입을 스냅·스킵으로 처리해야 하는가 — StateTree 시작/복원/레이트조인(SourceStateID 무효)이거나,
+	// 세이브 복원(호스트 AWxGimmick 가 상태 태그와 함께 보내는 Gimmick.Restore 마커)이면 참.
+	// Required Event 전이로 저장 상태에 진입할 때 라이브 발동처럼 보여도 일회성 효과를 발동하지 않고 스냅하도록.
+	bool IsInitialOrRestoreEntry(const FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition)
+	{
+		return !Transition.SourceStateID.IsValid() || Context.HasEventToProcess(WxGameplayTags::Gimmick_Restore);
 	}
 }
 
@@ -174,8 +182,8 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentMove::EnterState(FStateTreeExecuti
 
 	const FVector Target = GetMoveAnchor(Component) + Instance.LocalOffset;
 
-	// 초기 진입(StateTree 시작/복원: SourceStateID 무효)·길이 0·이미 목표면 애니 없이 즉시 스냅하고 곧바로 완료한다.
-	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
+	// 초기 진입(StateTree 시작/복원)·길이 0·이미 목표면 애니 없이 즉시 스냅하고 곧바로 완료한다.
+	const bool bInitialEntry = IsInitialOrRestoreEntry(Context, Transition);
 	const bool bReachNow = bInitialEntry || Instance.Duration <= 0.f || Component->GetRelativeLocation().Equals(Target);
 	if (bReachNow)
 	{
@@ -256,8 +264,8 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentSplineMove::EnterState(FStateTreeE
 	const float TargetDistance = Spline->GetDistanceAlongSplineAtSplinePoint(TargetIndex);
 	Instance.TargetDistance = TargetDistance;
 
-	// 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 목표 포인트로 즉시 스냅한다(복제/복원된 State 의 끝점을 정확히 복원).
-	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
+	// 초기 진입(StateTree 시작/복원/레이트조인)이면 목표 포인트로 즉시 스냅한다(복제/복원된 State 의 끝점을 정확히 복원).
+	const bool bInitialEntry = IsInitialOrRestoreEntry(Context, Transition);
 	if (bInitialEntry)
 	{
 		Instance.CurrentDistance = TargetDistance;
@@ -329,48 +337,32 @@ FText FWxStateTreeTask_ComponentSplineMove::GetDescription(const FGuid& ID, FSta
 }
 #endif
 
-// ── AtSplinePoint ────────────────────────────────────────────────────────────
+// ── GimmickStateIs ────────────────────────────────────────────────────────────
 
-bool FWxStateTreeCondition_AtSplinePoint::TestCondition(FStateTreeExecutionContext& Context) const
+bool FWxStateTreeCondition_GimmickStateIs::TestCondition(FStateTreeExecutionContext& Context) const
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	const USceneComponent* Component = Instance.TargetComponent;
-	const USplineComponent* Spline = Instance.Spline;
-	if (!Component || !Spline)
+	const AWxGimmick* Gimmick = Cast<AWxGimmick>(Context.GetOwner());
+	if (!Gimmick)
 	{
 		return false;
 	}
 
-	const int32 NearestIndex = FindNearestSplinePointIndex(Component, Spline);
-	if (NearestIndex == INDEX_NONE)
-	{
-		// 포인트가 없으면 비교할 대상이 없어 거짓(반전 시 참).
-		return Instance.bInvert;
-	}
-
-	const int32 TargetIndex = FMath::Clamp(Instance.PointIndex, 0, Spline->GetNumberOfSplinePoints() - 1);
-	const bool bAtPoint = NearestIndex == TargetIndex;
-	return bAtPoint != Instance.bInvert;
+	// 정확 일치 비교(State 태그는 단말 값이라 계층 매칭 불필요).
+	const bool bMatch = Gimmick->GetGimmickState() == Instance.State;
+	return bMatch != Instance.bInvert;
 }
 
 #if WITH_EDITOR
-FText FWxStateTreeCondition_AtSplinePoint::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
+FText FWxStateTreeCondition_GimmickStateIs::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
 {
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	// 스플라인은 보통 바인딩이라 런타임 포인터가 비어 있다. 바인딩 소스명을 우선 보이고, 직접 지정 시 그 이름으로 폴백.
-	FText SplineText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, Spline)), Formatting);
-	if (SplineText.IsEmpty())
-	{
-		SplineText = InstanceData->Spline ? FText::FromString(InstanceData->Spline->GetName()) : INVTEXT("(none)");
-	}
-
-	return FText::Format(INVTEXT("At Spline Point ({0} {1} point {2})"),
-		SplineText,
+	return FText::Format(INVTEXT("Gimmick State {0} {1}"),
 		InstanceData->bInvert ? INVTEXT("!=") : INVTEXT("=="),
-		FText::AsNumber(InstanceData->PointIndex));
+		FText::FromString(InstanceData->State.ToString()));
 }
 #endif
 
@@ -386,8 +378,8 @@ EStateTreeRunStatus FWxStateTreeTask_PlayAnimation::EnterState(FStateTreeExecuti
 		return EStateTreeRunStatus::Failed;
 	}
 
-	// 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 끝 프레임으로 스냅해 발동 완료 포즈를 복원하고 곧바로 완료한다.
-	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
+	// 초기 진입(StateTree 시작/복원/레이트조인)이면 끝 프레임으로 스냅해 발동 완료 포즈를 복원하고 곧바로 완료한다.
+	const bool bInitialEntry = IsInitialOrRestoreEntry(Context, Transition);
 	if (bInitialEntry)
 	{
 		Mesh->SetAnimation(Instance.Animation);
@@ -466,8 +458,8 @@ EStateTreeRunStatus FWxStateTreeTask_PlayLevelSequence::EnterState(FStateTreeExe
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 재생하지 않고 침묵 완료한다 — 복원 시 호스트에 통지하지 않는다(라이브 복귀 오발화 방지).
-	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
+	// 초기 진입(StateTree 시작/복원/레이트조인)이면 재생하지 않고 침묵 완료한다 — 복원 시 호스트에 통지하지 않는다(라이브 복귀 오발화 방지).
+	const bool bInitialEntry = IsInitialOrRestoreEntry(Context, Transition);
 	if (bInitialEntry)
 	{
 		return EStateTreeRunStatus::Succeeded;
@@ -545,8 +537,8 @@ FWxStateTreeTask_PlaySound::FWxStateTreeTask_PlaySound()
 
 EStateTreeRunStatus FWxStateTreeTask_PlaySound::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 사운드를 재생하지 않고 곧바로 완료한다(발동 순간에만 울림).
-	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
+	// 초기 진입(StateTree 시작/복원/레이트조인)이면 사운드를 재생하지 않고 곧바로 완료한다(발동 순간에만 울림).
+	const bool bInitialEntry = IsInitialOrRestoreEntry(Context, Transition);
 	if (bInitialEntry)
 	{
 		return EStateTreeRunStatus::Succeeded;
@@ -588,8 +580,8 @@ FWxStateTreeTask_SpawnNiagara::FWxStateTreeTask_SpawnNiagara()
 
 EStateTreeRunStatus FWxStateTreeTask_SpawnNiagara::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 트리거 FX 를 재생하지 않고 곧바로 완료한다(발동 순간에만 울림).
-	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
+	// 초기 진입(StateTree 시작/복원/레이트조인)이면 트리거 FX 를 재생하지 않고 곧바로 완료한다(발동 순간에만 울림).
+	const bool bInitialEntry = IsInitialOrRestoreEntry(Context, Transition);
 	if (bInitialEntry)
 	{
 		return EStateTreeRunStatus::Succeeded;
@@ -639,8 +631,8 @@ FWxStateTreeTask_TriggerSpawners::FWxStateTreeTask_TriggerSpawners()
 
 EStateTreeRunStatus FWxStateTreeTask_TriggerSpawners::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 스폰을 재실행하지 않고 곧바로 완료한다(발동 순간에만 스폰).
-	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
+	// 초기 진입(StateTree 시작/복원/레이트조인)이면 스폰을 재실행하지 않고 곧바로 완료한다(발동 순간에만 스폰).
+	const bool bInitialEntry = IsInitialOrRestoreEntry(Context, Transition);
 	if (bInitialEntry)
 	{
 		return EStateTreeRunStatus::Succeeded;
@@ -680,9 +672,9 @@ FText FWxStateTreeTask_TriggerSpawners::GetDescription(const FGuid& ID, FStateTr
 }
 #endif
 
-// ── LaserSpawn ────────────────────────────────────────────────────────────────
+// ── SpawnActor ────────────────────────────────────────────────────────────────
 
-EStateTreeRunStatus FWxStateTreeTask_LaserSpawn::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+EStateTreeRunStatus FWxStateTreeTask_SpawnActor::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
@@ -692,7 +684,7 @@ EStateTreeRunStatus FWxStateTreeTask_LaserSpawn::EnterState(FStateTreeExecutionC
 	return EStateTreeRunStatus::Running;
 }
 
-EStateTreeRunStatus FWxStateTreeTask_LaserSpawn::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
+EStateTreeRunStatus FWxStateTreeTask_SpawnActor::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
 {
 	// 스폰은 서버 권위 사건이다. 클라는 복제로 스폰체를 추종하므로 진행시키지 않는다.
 	AActor* Owner = Cast<AActor>(Context.GetOwner());
@@ -712,41 +704,24 @@ EStateTreeRunStatus FWxStateTreeTask_LaserSpawn::Tick(FStateTreeExecutionContext
 	Instance.TimeSinceLastSpawn -= Instance.Interval;
 
 	UWorld* World = Owner->GetWorld();
-	const UBoxComponent* Volume = Instance.SpawnVolume;
-	if (!World || !Volume || !Instance.ActorClass || Instance.MoveSpeed <= 0.f)
+	if (!World || !Instance.ActorClass)
 	{
 		return EStateTreeRunStatus::Running;
 	}
 
-	// 박스 -X 끝에서 스폰하고 +X 가 전진 방향. 수명은 박스를 한 번 주파할 시간이라 +X 끝에 닿을 즈음 자동 파괴된다.
-	const FVector Forward = Volume->GetForwardVector();
-	const FVector Extent = Volume->GetScaledBoxExtent();
-	const FVector Center = Volume->GetComponentLocation();
-	const FVector StartLocation = Center - Forward * Extent.X;
-	const float Lifetime = (Extent.X * 2.f) / Instance.MoveSpeed;
-
-	// 스폰체 BP 디폴트 YZ extent 를 기준으로, 통로의 scaled YZ extent 에 맞는 스케일을 계산해 SpawnTransform 에 반영.
-	FVector SpawnScale(1.f, 1.f, 1.f);
-	if (const AActor* ClassCDO = Instance.ActorClass->GetDefaultObject<AActor>())
-	{
-		if (const UBoxComponent* DefaultBox = ClassCDO->FindComponentByClass<UBoxComponent>())
-		{
-			const FVector DefaultExtent = DefaultBox->GetUnscaledBoxExtent();
-			if (DefaultExtent.Y > KINDA_SMALL_NUMBER && DefaultExtent.Z > KINDA_SMALL_NUMBER)
-			{
-				SpawnScale.Y = Extent.Y / DefaultExtent.Y;
-				SpawnScale.Z = Extent.Z / DefaultExtent.Z;
-			}
-		}
-	}
-
-	const FTransform SpawnTransform(Volume->GetComponentRotation(), StartLocation, SpawnScale);
-	AActor* Spawned = World->SpawnActorDeferred<AActor>(Instance.ActorClass, SpawnTransform, Owner, Owner->GetInstigator(), ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+	// 스폰 위치·회전·크기는 SpawnPoint 트랜스폼이 그대로 정한다. 미설정이면 오너 액터 트랜스폼에 스폰한다.
+	const FTransform SpawnTransform = Instance.SpawnPoint ? Instance.SpawnPoint->GetComponentTransform() : Owner->GetActorTransform();
+	AActor* Spawned = World->SpawnActorDeferred<AActor>(Instance.ActorClass, SpawnTransform, Owner, Owner->GetInstigator(), Instance.SpawnCollisionHandlingOverride);
 	if (!Spawned)
 	{
 		return EStateTreeRunStatus::Running;
 	}
-	Spawned->SetLifeSpan(Lifetime);
+
+	// Lifetime 양수면 그만큼 살다 자동 파괴된다(0 이하면 직접 파괴/이탈 정리에 맡김).
+	if (Instance.Lifetime > 0.f)
+	{
+		Spawned->SetLifeSpan(Instance.Lifetime);
+	}
 	Spawned->FinishSpawning(SpawnTransform);
 
 	// 자동 파괴(수명 만료)된 항목은 pending-kill 이라 IsValid=false 로 걸러 목록을 유계로 유지한다.
@@ -763,7 +738,7 @@ EStateTreeRunStatus FWxStateTreeTask_LaserSpawn::Tick(FStateTreeExecutionContext
 	return EStateTreeRunStatus::Running;
 }
 
-void FWxStateTreeTask_LaserSpawn::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+void FWxStateTreeTask_SpawnActor::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	// 상태를 떠나면(Active→Disabled 등) 살아있는 스폰체를 전부 제거한다. 스폰체는 서버 권위 액터라 권위 측에서만 파괴하고, 클라는 복제로 따라온다.
 	const AActor* Owner = Cast<AActor>(Context.GetOwner());
@@ -784,50 +759,12 @@ void FWxStateTreeTask_LaserSpawn::ExitState(FStateTreeExecutionContext& Context,
 }
 
 #if WITH_EDITOR
-FText FWxStateTreeTask_LaserSpawn::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
+FText FWxStateTreeTask_SpawnActor::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
 {
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Laser Spawn ({0})"),
+	return FText::Format(INVTEXT("Spawn Actor ({0})"),
 		InstanceData->ActorClass ? FText::FromString(InstanceData->ActorClass->GetName()) : INVTEXT("(none)"));
-}
-#endif
-
-// ── LaserAdvance ──────────────────────────────────────────────────────────────
-
-EStateTreeRunStatus FWxStateTreeTask_LaserAdvance::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
-{
-	// 동적 스폰 액터라 복원할 포즈가 없다. 곧장 Running 으로 들어가 Tick 이 이동을 구동하게 한다.
-	return EStateTreeRunStatus::Running;
-}
-
-EStateTreeRunStatus FWxStateTreeTask_LaserAdvance::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
-{
-	// 이동은 서버 권위 사건이다. 클라는 복제로 위치를 추종하므로 진행시키지 않는다.
-	const AActor* Owner = Cast<AActor>(Context.GetOwner());
-	if (!Owner || !Owner->HasAuthority())
-	{
-		return EStateTreeRunStatus::Running;
-	}
-
-	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
-	const FVector Step = Instance.Velocity * DeltaTime;
-	for (AActor* Actor : Instance.Actors)
-	{
-		if (IsValid(Actor))
-		{
-			Actor->AddActorWorldOffset(Step, false);
-		}
-	}
-
-	// 완료 전이 없는 머무는 상태다. 항상 Running 을 유지한다.
-	return EStateTreeRunStatus::Running;
-}
-
-#if WITH_EDITOR
-FText FWxStateTreeTask_LaserAdvance::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
-{
-	return INVTEXT("Laser Advance");
 }
 #endif

@@ -5,7 +5,7 @@
 #include "Components/SplineComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Interaction/WxInteractionComponent.h"
-#include "Net/UnrealNetwork.h"
+#include "WxGameplayTags.h"
 
 AWxElevator::AWxElevator()
 {
@@ -40,13 +40,8 @@ AWxElevator::AWxElevator()
 
 	CallConsoleBInteraction = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("CallConsoleBInteraction"));
 	CallConsoleBInteraction->SetupAttachment(CallConsoleB);
-}
 
-void AWxElevator::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AWxElevator, State);
+	State = WxGameplayTags::Gimmick_Elevator_Closed;
 }
 
 void AWxElevator::BeginPlay()
@@ -58,12 +53,6 @@ void AWxElevator::BeginPlay()
 	CallConsoleBInteraction->OnInteracted.AddDynamic(this, &AWxElevator::HandleCallConsoleBInteracted);
 }
 
-void AWxElevator::SetGimmickState(uint8 NewStateValue)
-{
-	// 베이스 CommitGimmickState(권위)가 호출하는 State 쓰기 훅. 라이브 이동/문 개폐는 ST_Elevator 가 State 변화를 Enum Compare 로 추종해 적용한다(위치는 Spline Move 가 전담).
-	State = static_cast<EWxElevatorState>(NewStateValue);
-}
-
 void AWxElevator::HandlePlatformInteracted(AActor* InteractingActor)
 {
 	if (!HasAuthority())
@@ -72,13 +61,13 @@ void AWxElevator::HandlePlatformInteracted(AActor* InteractingActor)
 	}
 
 	// 플랫폼 위 상호작용은 반대 끝점으로 토글한다(문이 열린 정지 상태에서만 — Closed 는 문 닫힘이라 플랫폼에 탈 수 없다).
-	if (State == EWxElevatorState::AtStart)
+	if (State == WxGameplayTags::Gimmick_Elevator_AtStart)
 	{
-		CommitGimmickState(static_cast<uint8>(EWxElevatorState::AtEnd));
+		CommitGimmickState(WxGameplayTags::Gimmick_Elevator_AtEnd);
 	}
-	else if (State == EWxElevatorState::AtEnd)
+	else if (State == WxGameplayTags::Gimmick_Elevator_AtEnd)
 	{
-		CommitGimmickState(static_cast<uint8>(EWxElevatorState::AtStart));
+		CommitGimmickState(WxGameplayTags::Gimmick_Elevator_AtStart);
 	}
 }
 
@@ -90,7 +79,7 @@ void AWxElevator::HandleCallConsoleAInteracted(AActor* InteractingActor)
 	}
 
 	// Start 호출. 이미 AtStart 면 동일값이라 복제 변화 없음(사실상 노옵).
-	CommitGimmickState(static_cast<uint8>(EWxElevatorState::AtStart));
+	CommitGimmickState(WxGameplayTags::Gimmick_Elevator_AtStart);
 }
 
 void AWxElevator::HandleCallConsoleBInteracted(AActor* InteractingActor)
@@ -101,5 +90,5 @@ void AWxElevator::HandleCallConsoleBInteracted(AActor* InteractingActor)
 	}
 
 	// End 호출. 이미 AtEnd 면 동일값이라 복제 변화 없음(사실상 노옵).
-	CommitGimmickState(static_cast<uint8>(EWxElevatorState::AtEnd));
+	CommitGimmickState(WxGameplayTags::Gimmick_Elevator_AtEnd);
 }

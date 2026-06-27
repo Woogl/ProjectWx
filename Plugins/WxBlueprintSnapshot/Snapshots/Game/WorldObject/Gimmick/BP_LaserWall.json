@@ -12,6 +12,10 @@
 			]
 		},
 		"EffectClass": "/Script/WxCombat.WxEffect_Damage",
+		"PrimaryActorTick":
+		{
+			"bCanEverTick": true
+		},
 		"SetByCallers": [
 			{
 				"key":
@@ -31,8 +35,12 @@
 			{
 				"BoxExtent":
 				{
-					"X": 25,
+					"X": 10,
 					"Y": 250,
+					"Z": 250
+				},
+				"RelativeLocation":
+				{
 					"Z": 250
 				}
 			},
@@ -43,10 +51,27 @@
 			"componentClass": "/Script/Niagara.NiagaraComponent",
 			"delta":
 			{
-				"Asset": "/Game/NiagaraExamples/FX_Misc/NS_Boundary_Box.NS_Boundary_Box"
+				"Asset": "/Game/NiagaraExamples/FX_Misc/NS_Boundary_Box.NS_Boundary_Box",
+				"RelativeLocation":
+				{
+					"Z": 250
+				}
 			},
 			"variableName": "Niagara"
 		}
 	},
-	"parentClass": "/Script/WxCombat.WxEffectZone"
+	"eventGraph":
+	{
+		"ReceiveTick": [
+			"void ReceiveTick(double DeltaSeconds)",
+			"{",
+			"    K2_AddActorLocalOffset((GetActorForwardVector()) * ((DeltaSeconds) * (AdvanceSpeed)));",
+			"}"
+		]
+	},
+	"parentClass": "/Script/WxCombat.WxEffectZone",
+	"variables":
+	{
+		"AdvanceSpeed": "250.0"
+	}
 }

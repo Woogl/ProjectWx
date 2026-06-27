@@ -63,7 +63,6 @@ State 가 서버에서만 바뀌고 부수효과가 한 번만 일어나는 보�
 | 사운드 1회 | `Wx Play Sound` | X | 없음(피어별 로컬 재생) |
 | Niagara 1회 | `Wx Spawn Niagara` | X | 없음(피어별 로컬 재생) |
 | 스포너 트리거 | `Wx Trigger Spawners` | X | **`HasAuthority`** |
-| 레이저 전진 | `Wx Laser Advance` | X | **`HasAuthority`** |
 
 > 태스크는 State enum 을 직접 읽지 않는다. "어느 State 에서 무엇을 할지"는 ST 에셋이 상태별로 author 하고, 태스크는 바인딩된 컴포넌트/파라미터에 대한 순수 동작만 수행한다. 그래서 노드가 기믹 종류와 무관하게 재사용된다.
 

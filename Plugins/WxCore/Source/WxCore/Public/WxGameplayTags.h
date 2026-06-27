@@ -74,8 +74,34 @@ namespace WxGameplayTags
 	/** 소비 아이템 사용 이벤트. 마시기 몽타주의 노티파이가 송출, UseItem 어빌리티가 수신해 아이템을 실제 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_UseItem);
 
-	/** 기믹 상태 변경 신호. AWxGimmick 이 권위/클라 양쪽에서 발행, GimmickStateTree 가 OnEvent 로 자식 상태를 재선택 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_GimmickStateChanged);
+	// ── Gimmick ───────────────────────────────────────────────────────────
+	// 각 태그는 해당 기믹의 권위 상태 값(복제·SaveGame)이자, GimmickStateTree 로 보내는
+	// 진입 이벤트(상태의 Required Event to Enter 와 매칭)를 겸한다.
+
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_Door_Close);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_Door_Open);
+
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_Elevator_Closed);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_Elevator_AtStart);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_Elevator_AtEnd);
+
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_SpawnConsole_Idle);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_SpawnConsole_Spawned);
+
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_AlarmConsole_Idle);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_AlarmConsole_Alarmed);
+
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_CutsceneTrigger_Idle);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_CutsceneTrigger_Playing);
+
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_TreasureChest_Closed);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_TreasureChest_Open);
+
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_LaserCorridor_Active);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_LaserCorridor_Deactivated);
+
+	/** 복원 진입 마커. 세이브 복원 시 호스트가 상태 태그 이벤트와 함께 발행해, 일회성 효과(보상·스폰·FX)를 발동하지 않고 스냅으로 처리하게 한다. */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_Restore);
 
 	// ── ANS ───────────────────────────────────────────────────────────────
 

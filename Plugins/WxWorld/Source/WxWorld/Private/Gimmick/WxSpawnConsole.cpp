@@ -4,7 +4,7 @@
 
 #include "Components/StaticMeshComponent.h"
 #include "Interaction/WxInteractionComponent.h"
-#include "Net/UnrealNetwork.h"
+#include "WxGameplayTags.h"
 
 AWxSpawnConsole::AWxSpawnConsole()
 {
@@ -13,13 +13,8 @@ AWxSpawnConsole::AWxSpawnConsole()
 
 	ConsoleInteraction = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("ConsoleInteraction"));
 	ConsoleInteraction->SetupAttachment(ConsoleMesh);
-}
 
-void AWxSpawnConsole::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AWxSpawnConsole, State);
+	State = WxGameplayTags::Gimmick_SpawnConsole_Idle;
 }
 
 void AWxSpawnConsole::BeginPlay()
@@ -29,17 +24,11 @@ void AWxSpawnConsole::BeginPlay()
 	ConsoleInteraction->OnInteracted.AddDynamic(this, &AWxSpawnConsole::HandleInteracted);
 }
 
-void AWxSpawnConsole::SetGimmickState(uint8 NewStateValue)
-{
-	// 베이스 CommitGimmickState(권위)가 호출하는 State 쓰기 훅. 스포너 Respawn·인터랙션 비활성은 ST 가 State 변화를 Enum Compare 로 추종해 적용한다.
-	State = static_cast<EWxSpawnConsoleState>(NewStateValue);
-}
-
 void AWxSpawnConsole::HandleInteracted(AActor* InstigatorActor)
 {
-	// 권위 측만 State 를 Spawned 로 확정한다. 클라는 복제 State 의 OnRep 이벤트가 ST 재선택을 구동하므로 비권위는 노옵.
+	// 권위 측만 State 를 Spawned 로 확정한다. 클라는 복제 State 의 OnRep 이벤트가 ST 진입을 구동하므로 비권위는 노옵.
 	if (HasAuthority())
 	{
-		CommitGimmickState(static_cast<uint8>(EWxSpawnConsoleState::Spawned));
+		CommitGimmickState(WxGameplayTags::Gimmick_SpawnConsole_Spawned);
 	}
 }

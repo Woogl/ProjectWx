@@ -24,7 +24,30 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_DodgeSuccess, "Event.DodgeSuccess");
 	UE_DEFINE_GAMEPLAY_TAG(Event_PerfectGuard, "Event.PerfectGuard");
 	UE_DEFINE_GAMEPLAY_TAG(Event_UseItem, "Event.UseItem");
-	UE_DEFINE_GAMEPLAY_TAG(Event_GimmickStateChanged, "Event.GimmickStateChanged");
+
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Door_Close, "Gimmick.Door.Close");
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Door_Open, "Gimmick.Door.Open");
+
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Elevator_Closed, "Gimmick.Elevator.Closed");
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Elevator_AtStart, "Gimmick.Elevator.AtStart");
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Elevator_AtEnd, "Gimmick.Elevator.AtEnd");
+
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_SpawnConsole_Idle, "Gimmick.SpawnConsole.Idle");
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_SpawnConsole_Spawned, "Gimmick.SpawnConsole.Spawned");
+
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_AlarmConsole_Idle, "Gimmick.AlarmConsole.Idle");
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_AlarmConsole_Alarmed, "Gimmick.AlarmConsole.Alarmed");
+
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_CutsceneTrigger_Idle, "Gimmick.CutsceneTrigger.Idle");
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_CutsceneTrigger_Playing, "Gimmick.CutsceneTrigger.Playing");
+
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_TreasureChest_Closed, "Gimmick.TreasureChest.Closed");
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_TreasureChest_Open, "Gimmick.TreasureChest.Open");
+
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_LaserCorridor_Active, "Gimmick.LaserCorridor.Active");
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_LaserCorridor_Deactivated, "Gimmick.LaserCorridor.Deactivated");
+
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Restore, "Gimmick.Restore");
 
 	UE_DEFINE_GAMEPLAY_TAG(ANS_WeaponCollision, "ANS.WeaponCollision");
 	UE_DEFINE_GAMEPLAY_TAG(ANS_ComboWindow, "ANS.ComboWindow");

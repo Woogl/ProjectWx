@@ -4,6 +4,7 @@
 
 #include "Components/ArrowComponent.h"
 #include "Components/StateTreeComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "WxGameplayTags.h"
 
 AWxGimmick::AWxGimmick()
@@ -31,7 +32,14 @@ AWxGimmick::AWxGimmick()
 #endif
 }
 
-void AWxGimmick::CommitGimmickState(uint8 NewStateValue)
+void AWxGimmick::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AWxGimmick, State);
+}
+
+void AWxGimmick::CommitGimmickState(FGameplayTag NewState)
 {
 	// State 쓰기는 무조건 서버 권위. 클라는 복제된 State 의 OnRep 이 동일 이벤트를 발행해 추종한다(서버 권위 우선).
 	if (!HasAuthority())
@@ -39,7 +47,7 @@ void AWxGimmick::CommitGimmickState(uint8 NewStateValue)
 		return;
 	}
 
-	SetGimmickState(NewStateValue);
+	State = NewState;
 
 	// 권위 측에선 OnRep 이 자동 발화하지 않으므로 직접 호출해 서버·클라가 같은 통지를 공유한다(RepNotify 관용구).
 	OnRep_GimmickState();
@@ -52,11 +60,12 @@ FGuid AWxGimmick::GetWxSaveId() const
 
 void AWxGimmick::OnWxSaveRestored()
 {
-	// 스트리밍 인 복원은 State 가 ST 시작 이후 직접 직렬화로 들어온다. 실행 중이면 재시작해 복원값으로 다시 초기 선택(=스냅)한다.
-	// 미실행(월드 초기화 복원)이면 곧 BeginPlay 자동 시작이 복원값을 선택하므로 건드리지 않는다(이중 시작 방지).
+	// 스트리밍 인 복원은 State 가 ST 시작 이후 직접 직렬화로 들어온다. 실행 중이면 재시작 후 저장된 상태 태그를 복원 진입으로 재송출해 그 상태로 스냅 진입한다.
+	// 미실행(월드 초기화 복원)이면 곧 BeginPlay 가 자동 시작 후 동일 송출을 하므로 건드리지 않는다(이중 처리 방지).
 	if (StateTree && StateTree->IsRunning())
 	{
 		StateTree->RestartLogic();
+		SendGimmickStateEvent(/*bRestoreEntry*/ true);
 	}
 }
 
@@ -79,11 +88,35 @@ void AWxGimmick::PostDuplicate(EDuplicateMode::Type DuplicateMode)
 }
 #endif
 
+void AWxGimmick::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// 자동 시작 직후, 현재(복원되었으면 저장된) State 태그를 복원 진입으로 발행한다.
+	// 기본 상태면 매칭 전이가 없어 노옵이고, 비기본 상태(복원)면 그 상태로 스냅 진입한다.
+	SendGimmickStateEvent(/*bRestoreEntry*/ true);
+}
+
 void AWxGimmick::OnRep_GimmickState()
 {
-	// 실행 중일 때만 라이브 이벤트를 보낸다. 미실행이면 초기 진입 enter 조건 선택이, 복원이면 OnWxSaveRestored 의 RestartLogic 이 처리한다.
-	if (StateTree && StateTree->IsRunning())
+	// 라이브 변경: 현재 상태 태그를 ST 이벤트로 보내 그 상태의 Required Event 전이를 구동한다.
+	SendGimmickStateEvent(/*bRestoreEntry*/ false);
+}
+
+void AWxGimmick::SendGimmickStateEvent(bool bRestoreEntry)
+{
+	// 트리 미실행 중엔 보낼 수 없다 — 초기 시작은 BeginPlay 가, 스트리밍 복원은 OnWxSaveRestored 가 실행 보장 후 호출한다.
+	if (!StateTree || !StateTree->IsRunning())
 	{
-		StateTree->SendStateTreeEvent(WxGameplayTags::Event_GimmickStateChanged);
+		return;
+	}
+
+	// 현재 상태 태그가 곧 그 상태의 Required Event to Enter 다.
+	StateTree->SendStateTreeEvent(State);
+
+	// 복원 진입이면 마커를 함께 보내, 일회성 노드가 라이브 발동이 아닌 복원(스냅·스킵)으로 처리하게 한다.
+	if (bRestoreEntry)
+	{
+		StateTree->SendStateTreeEvent(WxGameplayTags::Gimmick_Restore);
 	}
 }

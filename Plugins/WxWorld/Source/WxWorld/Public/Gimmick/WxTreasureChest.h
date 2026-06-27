@@ -10,20 +10,11 @@
 class USkeletalMeshComponent;
 class UWxInteractionComponent;
 
-UENUM()
-enum class EWxChestState : uint8
-{
-	/** 닫힘 — 초기/기본. 인터랙션 활성. */
-	Closed,
-	/** 열림 — 1회성 발동 완료. 인터랙션 비활성, 열린 포즈로 스냅. */
-	Open
-};
-
 /**
  * 보물 상자.
  * 플레이어가 InteractionComponent 범위에 진입하면 프롬프트 위젯이 표시되고, 상호작용 입력 시 권위 측이 State 를 Open 으로 확정한다.
- * 상태는 자체 EWxChestState(State) 가 권위 원천이며, 복제·SaveGame 으로 보존된다.
- * 열기 애니메이션과 인터랙션 비활성은 GimmickStateTree(ST_TreasureChest)가 복제 State 를 추종해 적용한다(라이브 발동=처음부터 재생, 복원=끝 프레임 스냅).
+ * 상태는 자체 State 태그(Gimmick.TreasureChest.*)가 권위 원천이며, 복제·SaveGame 으로 보존된다.
+ * 열기 애니메이션과 인터랙션 비활성은 GimmickStateTree(ST_TreasureChest)가 State 태그 이벤트로 진입한 상태에서 적용한다(라이브 발동=처음부터 재생, 복원=Gimmick.Restore 마커로 끝 프레임 스냅).
  *
  * 보상 지급은 GimmickStateTree(ST_TreasureChest)의 Open 상태에서 Wx Grant Reward 태스크가 수행한다(UWxRewardLibrary::GrantReward 호출).
  * 지급할 보상(RewardRow)은 이 액터의 프로퍼티로 두고 ST 태스크가 Context 액터 바인딩으로 읽는다.
@@ -38,14 +29,8 @@ class WXWORLD_API AWxTreasureChest : public AWxGimmick
 public:
 	AWxTreasureChest();
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 protected:
 	virtual void BeginPlay() override;
-
-	//~ Begin AWxGimmick — State(EWxChestState) ↔ uint8 쓰기 매핑.
-	virtual void SetGimmickState(uint8 NewStateValue) override;
-	//~ End AWxGimmick
 
 	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Play Animation 이 Context 액터의 컴포넌트로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx", meta = (AllowPrivateAccess = "true"))
@@ -63,8 +48,4 @@ protected:
 private:
 	UFUNCTION()
 	void HandleInteracted(AActor* InstigatorActor);
-
-	/** 상자 권위/영속 상태(복제 + SaveGame). State 쓰기는 권위 전용(CommitGimmickState)이며, 클라는 복제 State 를 ST 의 Enum Compare 전이가 추종한다. */
-	UPROPERTY(VisibleAnywhere, Category = "Wx", Replicated, SaveGame, meta = (AllowPrivateAccess = "true"))
-	EWxChestState State = EWxChestState::Closed;
 };

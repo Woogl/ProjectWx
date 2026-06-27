@@ -9,8 +9,8 @@
 			{
 				"RelativeLocation":
 				{
-					"X": -1100,
-					"Y": 250
+					"X": -90,
+					"Y": 300
 				},
 				"RelativeRotation":
 				{
@@ -24,22 +24,35 @@
 			"class": "/Script/WxWorld.WxInteractionComponent",
 			"delta":
 			{
-				"InteractionText": "[F] Power Off",
-				"PromptWidgetClass": "/Game/UI/Widget/WBP_Interact.WBP_Interact_C"
+				"InteractionText": "Power Off"
 			}
 		},
-		"CorridorBox":
+		"StateTree":
 		{
-			"class": "/Script/Engine.BoxComponent",
+			"class": "/Script/GameplayStateTreeModule.StateTreeComponent",
 			"delta":
 			{
-				"RelativeLocation":
+				"StateTreeRef":
 				{
-					"Z": 250
+					"StateTree": "/Game/WorldObject/Gimmick/ST_LaserCorridor.ST_LaserCorridor"
 				}
 			}
-		},
-		"LaserZoneClass": "/Game/WorldObject/Gimmick/BP_LaserWall.BP_LaserWall_C"
+		}
+	},
+	"components":
+	{
+		"ChildActor":
+		{
+			"componentClass": "/Script/Engine.ChildActorComponent",
+			"delta":
+			{
+				"bChildActorIsTransient": true,
+				"bHiddenInGame": true,
+				"bIsEditorOnly": true,
+				"ChildActorClass": "/Game/WorldObject/Gimmick/BP_LaserWall.BP_LaserWall_C"
+			},
+			"variableName": "ChildActor"
+		}
 	},
 	"parentClass": "/Script/WxGame.WxLaserCorridor"
 }
