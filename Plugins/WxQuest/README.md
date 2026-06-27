@@ -27,6 +27,7 @@
 - 현재 퀘스트 도메인 타입은 미정의 상태다. 신규 구현은 `Public/`에 헤더를, `Private/`에 구현을 두는 표준 모듈 구조를 따른다.
 - 퀘스트 흐름은 `.uplugin`·`Build.cs`에 명시된 `StateTree`(StateTreeModule) 기반으로 설계할 것. 새 목표/조건은 StateTree 노드(Task/Condition/Evaluator)로 추가한다.
 - 데이터 주도 설정은 Private 의존 `DeveloperSettings`(`UDeveloperSettings` 파생)로 구성 예정.
+- `uplugin`의 `"CanContainContent": true` — 플러그인이 자체 Content(StateTree 에셋, Data Asset 등)를 담을 수 있다.
 - 공용 타입이 필요하면 [[WxCore]]에 두고 참조한다 (플러그인 간 직접 참조 금지 규칙).
 
 ## 여기서부터 읽어라
@@ -39,4 +40,4 @@
 - 상위: 구체 컨텐츠를 조립하는 [[WxGame]] 게임 모듈에서 사용
 
 ---
-*문서 기준 커밋 `a2ba2b5` · 생성일 2026-06-17 · 소스 2파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `9e49a09` · 생성일 2026-06-27 · 소스 2파일 — `/readme-writer`로 갱신*

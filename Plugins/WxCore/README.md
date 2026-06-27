@@ -35,6 +35,7 @@
 - 주요 네임스페이스:
   - `State.*` — 캐릭터 상태 (Dead, Groggy, LockOn, InCombat, Invincible, Guard, PerfectGuard, HitReact, SuperArmor), 주로 ASC에 부여
   - `Event.*` — GameplayEvent dispatch 태그 (HitReact 계열, DodgeSuccess, PerfectGuard, UseItem)
+  - `Gimmick.*` — 월드 기믹의 권위 상태값이자 GimmickStateTree 진입 이벤트 겸용 (Door/Elevator/SpawnConsole/AlarmConsole/CutsceneTrigger/TreasureChest/LaserCorridor) + `Gimmick.Restore` 세이브 복원 마커
   - `ANS.*` — AnimNotifyState 구간 (WeaponCollision, ComboWindow)
   - `GameplayCue.*` — Cue 트리거 (Damage, PerfectGuard, BuffATK, Exceed, Burn, HitStop, Metamorphose)
   - `Damage.*` — 대미지 판정 결과/속성 (Critical, Unblockable, ParryHitReact)
@@ -56,7 +57,7 @@
 3. `Plugins/WxCore/Source/WxCore/Public/WxAbilityComponent.h` — 같은 분리 패턴의 또 다른 형태 (추상 베이스 앵커)
 
 ## 관련
-- 상위: 모든 Wx 도메인 플러그인([[WxCombat]], [[WxInventory]], [[WxUI]], [[WxWorld]], [[WxAI]], [[WxQuest]], [[WxSave]])과 게임 모듈 [[WxGame]]이 WxCore를 참조
+- 상위: 모든 Wx 도메인 플러그인([[WxCombat]], [[WxInventory]], [[WxUI]], [[WxWorld]], [[WxAudio]], [[WxAI]], [[WxQuest]], [[WxSave]])과 게임 모듈 [[WxGame]]이 WxCore를 참조
 
 ---
-*문서 기준 커밋 `6e6d0ae` · 생성일 2026-06-18 · 소스 8파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `9e49a09` · 생성일 2026-06-27 · 소스 8파일 — `/readme-writer`로 갱신*

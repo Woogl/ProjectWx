@@ -21,11 +21,11 @@
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxMusicLibrary` | Blueprint 진입점. StartBGM/StopBGM 을 서브시스템으로 위임하는 thin wrapper | `Source/WxAudio/Public/WxMusicLibrary.h` |
-| `UWxMusicSubsystem` | 핵심 엔진. 재평가→선택→크로스페이드의 전 과정을 담당하는 월드 서브시스템 | `Source/WxAudio/Public/System/WxMusicSubsystem.h` |
-| `FWxBGMChooserContext` | Chooser 에 넘기는 Struct Parameter. 평가 입력(PlayerStateTags/BGMTag) | `Source/WxAudio/Public/WxBGMChooserContext.h` |
-| `UWxBGMData` | 한 BGM 트랙 정의이자 Chooser 의 결과 타입(Sound + 페이드 시간) | `Source/WxAudio/Public/WxBGMData.h` |
-| `UWxMusicSettings` | 프로젝트 설정. 사용할 Chooser 테이블과 재평가 주기 | `Source/WxAudio/Public/System/WxMusicSettings.h` |
+| `UWxMusicLibrary` | Blueprint 진입점. StartBGM/StopBGM 을 서브시스템으로 위임하는 thin wrapper | `Plugins/WxAudio/Source/WxAudio/Public/WxMusicLibrary.h` |
+| `UWxMusicSubsystem` | 핵심 엔진. 재평가→선택→크로스페이드의 전 과정을 담당하는 월드 서브시스템 | `Plugins/WxAudio/Source/WxAudio/Public/System/WxMusicSubsystem.h` |
+| `FWxBGMChooserContext` | Chooser 에 넘기는 Struct Parameter. 평가 입력(PlayerStateTags/BGMTag) | `Plugins/WxAudio/Source/WxAudio/Public/WxBGMChooserContext.h` |
+| `UWxBGMData` | 한 BGM 트랙 정의이자 Chooser 의 결과 타입(Sound + 페이드 시간) | `Plugins/WxAudio/Source/WxAudio/Public/WxBGMData.h` |
+| `UWxMusicSettings` | 프로젝트 설정. 사용할 Chooser 테이블과 재평가 주기 | `Plugins/WxAudio/Source/WxAudio/Public/System/WxMusicSettings.h` |
 
 ## 확장 포인트 / 규약
 - 새 곡 추가: `UWxBGMData` 데이터 에셋을 만들고 Sound/페이드 시간을 채운 뒤, Chooser 테이블의 행 결과로 연결한다.
@@ -34,12 +34,12 @@
 - 상태 반영: 별도 감지 코드 없이 플레이어 ASC 에 태그를 부여하면 `PlayerStateTags` 로 흘러든다.
 
 ## 여기서부터 읽어라
-1. `Source/WxAudio/Public/System/WxMusicSubsystem.h` — 전체 흐름(재평가/선택/크로스페이드/보류)의 골격이 여기 다 있음
-2. `Source/WxAudio/Private/System/WxMusicSubsystem.cpp` — `EvaluateBGM`/`ApplyBGM` 의 실제 Chooser 호출·페이드 처리
-3. `Source/WxAudio/Public/WxBGMChooserContext.h` — 데이터 계약(테이블 컬럼이 무엇에 바인딩되는지)
+1. `Plugins/WxAudio/Source/WxAudio/Public/System/WxMusicSubsystem.h` — 전체 흐름(재평가/선택/크로스페이드/보류)의 골격이 여기 다 있음
+2. `Plugins/WxAudio/Source/WxAudio/Private/System/WxMusicSubsystem.cpp` — `EvaluateBGM`/`ApplyBGM` 의 실제 Chooser 호출·페이드 처리
+3. `Plugins/WxAudio/Source/WxAudio/Public/WxBGMChooserContext.h` — 데이터 계약(테이블 컬럼이 무엇에 바인딩되는지)
 
 ## 관련
 - 상위: 호출 측(게임플레이/레벨/[[WxCombat]] 등)이 [[WxCore]] 의 태그로 `UWxMusicLibrary::StartBGM` 을 호출해 BGM 분류를 전환한다.
 
 ---
-*문서 기준 커밋 `a2ba2b5` · 생성일 2026-06-17 · 소스 12파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `9e49a09` · 생성일 2026-06-27 · 소스 11파일 — `/readme-writer`로 갱신*

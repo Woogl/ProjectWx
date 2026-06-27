@@ -45,4 +45,4 @@
 - 상위: [[WxUI]](인벤토리 표시), [[WxQuest]]/[[WxWorld]](보상·픽업 스폰 트리거), 소유 폰의 ASC(GameplayAbilities)
 
 ---
-*문서 기준 커밋 `1735fc7` · 생성일 2026-06-25 · 소스 19파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `9e49a09` · 생성일 2026-06-27 · 소스 19파일 — `/readme-writer`로 갱신*
