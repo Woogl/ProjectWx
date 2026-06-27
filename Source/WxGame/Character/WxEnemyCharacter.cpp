@@ -56,8 +56,8 @@ void AWxEnemyCharacter::HandleDeath()
 	}
 
 	// 외형 없는 재화(골드 등)는 로컬 플레이어 인벤토리에 즉시 지급한다.
-	// 외형 있는 보상은 사망 위치에서 월드 Z 업으로 수직 발사된다.
-	UWxRewardLibrary::GrantReward(this, RewardRow, UGameplayStatics::GetPlayerController(this, 0), GetActorTransform(), LaunchSpeed);
+	// 외형 있는 보상은 사망 위치에서 월드 Z 업으로 수직 발사된다(스칼라 LaunchSpeed 를 업 벡터로 올려 전달).
+	UWxRewardLibrary::GrantReward(this, RewardRow, UGameplayStatics::GetPlayerController(this, 0), GetActorTransform(), FVector::UpVector * LaunchSpeed);
 }
 
 void AWxEnemyCharacter::OnSpawnedBy(AWxSpawner* Spawner)

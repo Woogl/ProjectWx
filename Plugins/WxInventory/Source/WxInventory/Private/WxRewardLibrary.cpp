@@ -11,7 +11,7 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogWxRewardLibrary, Log, All);
 
-void UWxRewardLibrary::GrantReward(AActor* SourceActor, const FDataTableRowHandle& RewardRow, AActor* DirectGrantTarget, const FTransform& SpawnTransform, float LaunchSpeed)
+void UWxRewardLibrary::GrantReward(AActor* SourceActor, const FDataTableRowHandle& RewardRow, AActor* DirectGrantTarget, const FTransform& SpawnTransform, FVector LaunchVelocity)
 {
 	if (!SourceActor || !SourceActor->HasAuthority())
 	{
@@ -38,7 +38,7 @@ void UWxRewardLibrary::GrantReward(AActor* SourceActor, const FDataTableRowHandl
 
 	UWorld* World = SourceActor->GetWorld();
 
-	// 유효한 보상 항목마다 처리: Pickup Fragment 가 있으면 픽업을 스폰해 월드 Z 업으로 수직 발사하고, 없으면 인벤토리에 직접 지급한다.
+	// 유효한 보상 항목마다 처리: Pickup Fragment 가 있으면 픽업을 스폰해 LaunchVelocity 방향·크기로 발사하고, 없으면 인벤토리에 직접 지급한다.
 	for (const FWxItemRewardEntry& Reward : ValidRewards)
 	{
 		// 보상 아이템 정의는 SoftObjectPtr 로 지연 로드된다. 실제 지급 시점인 지금 동기 로드한다.
@@ -80,7 +80,7 @@ void UWxRewardLibrary::GrantReward(AActor* SourceActor, const FDataTableRowHandl
 		SpawnedPickup->SetItemDef(ItemDef, Reward.Quantity);
 		SpawnedPickup->FinishSpawning(SpawnTransform);
 
-		// 트랜스폼과 무관하게 월드 Z 업(수직)으로 발사한다.
-		SpawnedPickup->LaunchInDirection(FVector::UpVector, LaunchSpeed);
+		// 트랜스폼과 무관하게 LaunchVelocity 가 가리키는 방향·크기로 발사한다(LaunchInDirection 이 내부에서 정규화 후 곱하므로 결과 선속도 = LaunchVelocity).
+		SpawnedPickup->LaunchInDirection(LaunchVelocity, LaunchVelocity.Size());
 	}
 }

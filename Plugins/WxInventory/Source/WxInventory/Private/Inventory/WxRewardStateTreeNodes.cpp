@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "StateTreeExecutionContext.h"
+#include "WxGameplayTags.h"
 #include "WxRewardLibrary.h"
 
 FWxStateTreeTask_GrantReward::FWxStateTreeTask_GrantReward()
@@ -16,8 +17,8 @@ FWxStateTreeTask_GrantReward::FWxStateTreeTask_GrantReward()
 
 EStateTreeRunStatus FWxStateTreeTask_GrantReward::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 지급을 재실행하지 않고 곧바로 완료한다(발동 순간에만 지급).
-	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
+	// 초기 진입(StateTree 시작/복원/레이트조인) 또는 세이브 복원(호스트가 상태 태그와 함께 보내는 Gimmick.Restore 마커)이면 지급을 재실행하지 않고 곧바로 완료한다(발동 순간에만 지급).
+	const bool bInitialEntry = !Transition.SourceStateID.IsValid() || Context.HasEventToProcess(WxGameplayTags::Gimmick_Restore);
 	if (bInitialEntry)
 	{
 		return EStateTreeRunStatus::Succeeded;
@@ -37,7 +38,7 @@ EStateTreeRunStatus FWxStateTreeTask_GrantReward::EnterState(FStateTreeExecution
 	const FTransform SpawnTransform(OwnerTransform.GetRotation(), OwnerTransform.TransformPosition(Instance.SpawnOffset));
 
 	// 비-픽업 보상(재화 등)은 로컬 플레이어(0번 컨트롤러)에게 직접 지급한다. 픽업 보상은 대상과 무관하게 월드에 스폰된다.
-	UWxRewardLibrary::GrantReward(Owner, Instance.RewardRow, UGameplayStatics::GetPlayerController(Owner, 0), SpawnTransform, Instance.LaunchSpeed);
+	UWxRewardLibrary::GrantReward(Owner, Instance.RewardRow, UGameplayStatics::GetPlayerController(Owner, 0), SpawnTransform, Instance.LaunchVelocity);
 
 	// 지급은 즉시 끝나므로 곧바로 완료한다.
 	return EStateTreeRunStatus::Succeeded;
@@ -46,6 +47,12 @@ EStateTreeRunStatus FWxStateTreeTask_GrantReward::EnterState(FStateTreeExecution
 #if WITH_EDITOR
 FText FWxStateTreeTask_GrantReward::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
 {
-	return INVTEXT("Wx Grant Reward");
+	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
+	check(InstanceData);
+
+	// 지급할 보상은 RewardRow 의 로우 이름으로 식별한다. 비어 있으면 아무것도 지급하지 않으므로 (none) 으로 표시.
+	const FName RewardName = InstanceData->RewardRow.RowName;
+	return FText::Format(INVTEXT("Grant Reward ({0})"),
+		RewardName.IsNone() ? INVTEXT("(none)") : FText::FromName(RewardName));
 }
 #endif

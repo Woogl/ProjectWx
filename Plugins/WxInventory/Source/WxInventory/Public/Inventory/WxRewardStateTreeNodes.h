@@ -25,15 +25,15 @@ struct FWxStateTreeTask_GrantRewardInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	FVector SpawnOffset = FVector(0.f, 0.f, 90.f);
 
-	/** 픽업 발사 속도(cm/s). 발사 방향은 항상 월드 Z 업(수직)이다. */
-	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
-	float LaunchSpeed = 300.f;
+	/** 픽업 발사 속도 벡터(cm/s). 방향과 크기를 모두 담는다. 예: (0,0,300)이면 월드 Z 업으로 300, (200,0,300)이면 비스듬히. */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	FVector LaunchVelocity = FVector(0.f, 0.f, 300.f);
 };
 
 /**
  * 라이브 전이로 진입할 때 권위 측에서만 UWxRewardLibrary::GrantReward 로 인스턴스 데이터(RewardRow)의 보상을 지급하고 Succeeded 로 완료한다(1회성 보상 지급).
  * 아이템 타입별 분기(Pickup Fragment 있으면 월드 드랍, 없으면 로컬 플레이어(0번 컨트롤러) 인벤토리 직접 지급)는 GrantReward 가 처리하므로 여기선 트리거만 한다.
- * 픽업 스폰 위치는 오너 트랜스폼에 SpawnOffset 을 더한 지점이며, 발사는 월드 Z 업으로 수직이다.
+ * 픽업 스폰 위치는 오너 트랜스폼에 SpawnOffset 을 더한 지점이며, 발사는 LaunchVelocity 가 가리키는 방향·크기로 한다.
  * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 호출하지 않는다 — 보상은 발동 순간에만 지급하고 복원/조인 시 중복 지급하지 않는다.
  * 보상 스폰/지급은 서버 권위 사건이라 클라 진입은 노옵(클라는 복제로 픽업/인벤토리를 추종). 틱하지 않으므로 비용이 없다.
  */
