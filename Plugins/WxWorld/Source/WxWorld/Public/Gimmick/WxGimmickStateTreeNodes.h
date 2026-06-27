@@ -39,7 +39,7 @@ class UWxInteractionComponent;
  *  - PlaySound 는 (Sound) 로 라이브 전이 진입 시에만 사운드를 1회 재생한다(복원 시 침묵).
  *  - SpawnNiagara 는 (AttachComponent, Niagara) 로 라이브 전이 진입 시에만 Niagara 를 1회 재생한다(복원 시 침묵).
  *  - TriggerSpawners 는 (Spawners) 로 라이브 전이 진입 시 권위 측에서만 각 스포너의 Respawn 을 호출한다(복원 시 재실행 안 함).
- *  - SpawnActor 는 (ActorClass, SpawnPoint, Interval, Lifetime, SpawnCollisionHandlingOverride) 로 매 틱 권위 측에서 SpawnPoint(없으면 오너) 트랜스폼에 일정 간격으로 액터를 스폰하고 살아있는 목록을 유지한다(Lifetime 양수면 자동 파괴, 완료 없는 머무는 태스크, 상태 이탈 시 전부 파괴).
+ *  - SpawnActor 는 (ActorClass, LocalSpawnTransform, Interval, Lifetime, bDestroyOnExit, SpawnCollisionHandlingOverride) 로 매 틱 권위 측에서 LocalSpawnTransform 을 오너 트랜스폼에 합성한 자리에 Interval 마다 액터를 스폰하고 살아있는 목록을 유지한다(Interval 0 이면 1회만 스폰, Lifetime 양수면 자동 파괴, 완료 없는 머무는 태스크, 상태 이탈 시 bDestroyOnExit 면 전부 파괴).
  *
  * 초기 진입(StateTree 시작/복원/레이트조인) 과 라이브 전이는 모든 노드가 Transition.SourceStateID 유효성으로 구분한다.
  *
@@ -448,7 +448,7 @@ struct FWxStateTreeTask_TriggerSpawners : public FStateTreeTaskCommonBase
 #endif
 };
 
-// ── SpawnActor: SpawnPoint 트랜스폼에 일정 간격으로 액터 스폰 ───────────────────
+// ── SpawnActor: 오너 로컬 트랜스폼에 일정 간격으로 액터 스폰 ───────────────────
 
 USTRUCT()
 struct FWxStateTreeTask_SpawnActorInstanceData
@@ -459,17 +459,21 @@ struct FWxStateTreeTask_SpawnActorInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TSubclassOf<AActor> ActorClass;
 
-	/** 스폰 기준이 되는 씬 컴포넌트. 그 월드 트랜스폼(위치·회전·스케일)에 스폰한다. ST 에셋에서 Context 액터의 컴포넌트(예: SpawnPoint)로 바인딩한다. 비우면 오너 액터 트랜스폼에 스폰. */
+	/** 오너 액터 로컬 공간 기준의 스폰 트랜스폼. 오너 월드 트랜스폼에 합성해(위치·회전·스케일) 그 자리에 스폰한다. 기본 Identity 면 오너 트랜스폼 그대로에 스폰한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
-	TObjectPtr<USceneComponent> SpawnPoint;
+	FTransform LocalSpawnTransform;
 
-	/** 스폰 간격(초). */
-	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0.05"))
+	/** 스폰 간격(초). 양수면 그 간격마다 반복 스폰한다. 0 이면 진입 직후 1회만 스폰하고 반복하지 않는다(일회성). */
+	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
 	float Interval = 2.f;
 
 	/** 스폰체 수명(초). 0 이하면 무한(직접 파괴/이탈 정리에 맡김). 양수면 스폰 시 SetLifeSpan 으로 자동 파괴된다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
 	float Lifetime = 0.f;
+
+	/** 상태를 떠날 때 추적 중인 스폰체를 전부 파괴할지. true(기본)면 이탈 시 즉시 청소, false 면 남겨 각자 Lifetime 으로 끝까지 살다 자동 파괴된다(예: 트랩을 꺼도 떠 있던 벽은 마저 지나가게). */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	bool bDestroyOnExit = true;
 
 	/** 스폰 시 충돌 처리 방식(FActorSpawnParameters 의 SpawnCollisionHandlingOverride 로 전달). 기본은 위치 보정 없이 항상 스폰. 겹침을 피하거나 보정하려면 디자이너가 바꾼다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
@@ -485,10 +489,10 @@ struct FWxStateTreeTask_SpawnActorInstanceData
 };
 
 /**
- * 매 틱 권위 측에서 SpawnPoint(없으면 오너) 의 월드 트랜스폼에 ActorClass 를 Interval 마다 1회 스폰하고 살아있는 목록(SpawnedActors)을 유지한다. State 를 읽지 않아 어떤 기믹이든 주기 스폰에 재사용한다(예: LaserCorridor 의 레이저 벽).
- * 스폰 위치·회전·크기는 SpawnPoint 트랜스폼이 그대로 정하고(스폰체 크기는 SpawnPoint 스케일), 수명은 Lifetime 으로 받아 양수면 SetLifeSpan 으로 자동 파괴한다. 스폰 충돌 처리는 SpawnCollisionHandlingOverride 로 디자이너가 정한다. 후속 이동이 필요하면 이동 노드가 SpawnedActors 를 바인딩해 구동하므로, 에셋에서 이 노드를 그 앞에 둔다.
+ * 매 틱 권위 측에서 LocalSpawnTransform 을 오너 월드 트랜스폼에 합성한 자리에 ActorClass 를 Interval 마다 1회 스폰하고 살아있는 목록(SpawnedActors)을 유지한다(Interval 0 이면 진입 직후 1회만 스폰하는 일회성). State 를 읽지 않아 어떤 기믹이든 주기 스폰에 재사용한다(예: LaserCorridor 의 레이저 벽).
+ * 스폰 위치·회전·크기는 LocalSpawnTransform×오너 트랜스폼이 그대로 정하고(스폰체 크기는 로컬 스케일×오너 스케일), 수명은 Lifetime 으로 받아 양수면 SetLifeSpan 으로 자동 파괴한다. 스폰 충돌 처리는 SpawnCollisionHandlingOverride 로 디자이너가 정한다. 후속 이동이 필요하면 이동 노드가 SpawnedActors 를 바인딩해 구동하므로, 에셋에서 이 노드를 그 앞에 둔다.
  * 스폰은 서버 권위 사건이라 권위 측에서만 일어나고(클라는 복제 추종), 스폰체는 Transient 라 복원할 포즈가 없어 초기 진입·라이브 구분 없이 진입 즉시 스폰을 재개한다.
- * 완료 전이가 없는 머무는 태스크라 항상 Running 을 유지하며(이 태스크는 상태 완료 판정에서 빼야 한다), 상태를 떠날 때 ExitState 가 남은 스폰체를 전부 파괴한다.
+ * 완료 전이가 없는 머무는 태스크라 항상 Running 을 유지하며(이 태스크는 상태 완료 판정에서 빼야 한다), 상태를 떠날 때 ExitState 가 bDestroyOnExit 면 남은 스폰체를 전부 파괴한다(끄면 각자 Lifetime 으로 자동 파괴되게 남긴다).
  */
 USTRUCT(meta = (DisplayName = "Wx Spawn Actor"))
 struct FWxStateTreeTask_SpawnActor : public FStateTreeTaskCommonBase

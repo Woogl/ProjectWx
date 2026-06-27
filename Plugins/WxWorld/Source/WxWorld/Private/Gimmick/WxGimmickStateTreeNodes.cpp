@@ -678,7 +678,7 @@ EStateTreeRunStatus FWxStateTreeTask_SpawnActor::EnterState(FStateTreeExecutionC
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 스폰체는 Transient 라 복원할 포즈가 없다. 누적기를 간격으로 채워 진입 첫 틱에 즉시 1회 스폰하고, 이후 간격마다 스폰한다.
+	// 스폰체는 Transient 라 복원할 포즈가 없다. 누적기를 Interval 로 채워 진입 첫 틱에 즉시 1회 스폰한다(이후 반복 여부는 Tick 의 주기 처리가 정한다).
 	Instance.TimeSinceLastSpawn = Instance.Interval;
 
 	return EStateTreeRunStatus::Running;
@@ -701,7 +701,8 @@ EStateTreeRunStatus FWxStateTreeTask_SpawnActor::Tick(FStateTreeExecutionContext
 		// 아직 간격에 못 미쳤다. 머무는 태스크라 완료하지 않는다.
 		return EStateTreeRunStatus::Running;
 	}
-	Instance.TimeSinceLastSpawn -= Instance.Interval;
+	// Interval 양수면 한 주기 차감해 반복 스폰하고, 0(일회성)이면 누적기를 음의 극값으로 묶어 다시 임계에 도달하지 못하게 해 1회만 스폰한다.
+	Instance.TimeSinceLastSpawn = Instance.Interval > 0.f ? Instance.TimeSinceLastSpawn - Instance.Interval : -TNumericLimits<float>::Max();
 
 	UWorld* World = Owner->GetWorld();
 	if (!World || !Instance.ActorClass)
@@ -709,8 +710,8 @@ EStateTreeRunStatus FWxStateTreeTask_SpawnActor::Tick(FStateTreeExecutionContext
 		return EStateTreeRunStatus::Running;
 	}
 
-	// 스폰 위치·회전·크기는 SpawnPoint 트랜스폼이 그대로 정한다. 미설정이면 오너 액터 트랜스폼에 스폰한다.
-	const FTransform SpawnTransform = Instance.SpawnPoint ? Instance.SpawnPoint->GetComponentTransform() : Owner->GetActorTransform();
+	// 스폰 위치·회전·크기는 LocalSpawnTransform 을 오너 월드 트랜스폼에 합성해 정한다(Identity 면 오너 트랜스폼 그대로).
+	const FTransform SpawnTransform = Instance.LocalSpawnTransform * Owner->GetActorTransform();
 	AActor* Spawned = World->SpawnActorDeferred<AActor>(Instance.ActorClass, SpawnTransform, Owner, Owner->GetInstigator(), Instance.SpawnCollisionHandlingOverride);
 	if (!Spawned)
 	{
@@ -740,7 +741,7 @@ EStateTreeRunStatus FWxStateTreeTask_SpawnActor::Tick(FStateTreeExecutionContext
 
 void FWxStateTreeTask_SpawnActor::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// 상태를 떠나면(Active→Disabled 등) 살아있는 스폰체를 전부 제거한다. 스폰체는 서버 권위 액터라 권위 측에서만 파괴하고, 클라는 복제로 따라온다.
+	// 스폰·파괴는 서버 권위 사건이라 권위 측만 처리한다(클라는 SpawnedActors 가 비어 있고 복제로 추종).
 	const AActor* Owner = Cast<AActor>(Context.GetOwner());
 	if (!Owner || !Owner->HasAuthority())
 	{
@@ -748,11 +749,16 @@ void FWxStateTreeTask_SpawnActor::ExitState(FStateTreeExecutionContext& Context,
 	}
 
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
-	for (const TObjectPtr<AActor>& Spawned : Instance.SpawnedActors)
+
+	// bDestroyOnExit 면 상태를 떠날 때(Active→Disabled 등) 추적 중인 스폰체를 전부 제거한다. 끄면 남겨 각자 Lifetime 으로 끝까지 살다 자동 파괴되게 둔다.
+	if (Instance.bDestroyOnExit)
 	{
-		if (IsValid(Spawned))
+		for (const TObjectPtr<AActor>& Spawned : Instance.SpawnedActors)
 		{
-			Spawned->Destroy();
+			if (IsValid(Spawned))
+			{
+				Spawned->Destroy();
+			}
 		}
 	}
 	Instance.SpawnedActors.Reset();
