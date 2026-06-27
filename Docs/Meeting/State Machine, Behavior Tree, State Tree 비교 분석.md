@@ -150,28 +150,28 @@ State Machine처럼 대상의 현재 상태(State)를 중심으로 동작을 제
 
 ```text
 Root
-├─ Alive
-│  ├─ Transition: 체력이 0 이하 → Dead
-│  │
-│  ├─ Idle
-│  │  ├─ Task: 아무것도 안함
-│  │  └─ Transition: 시야에 적 발견 → Combat
-│  │
-│  └─ Combat
-│     ├─ Condition: 시야에 적 발견
-│     ├─ Transition: 적을 시야에서 놓침 → Idle
-│     │
-│     ├─ Chase
-│     │  ├─ Task: 적을 향해 Walk 실행
-│     │  └─ Transition: 적이 공격 범위 안에 있음 → Attack
-│     │
-│     └─ Attack
-│        ├─ Condition: 적이 공격 범위 안에 있음
-│        ├─ Task: Attack 실행
-│        └─ Transition: 적이 공격 범위 밖에 있음 → Chase
-│
-└─ Dead
-   └─ Task: Dead 처리
+└─ [State: Alive]
+   ├─ Transition: 체력이 0 이하 → Dead
+   │
+   ├─ [State: Idle]
+   │  ├─ Task: 아무것도 안함
+   │  └─ Transition: 시야에 적 발견 → Combat
+   │
+   ├─ [State: Combat]
+   │  ├─ Condition: 시야에 적 발견
+   │  ├─ Transition: 적을 시야에서 놓침 → Idle
+   │  │
+   │  ├─ [State: Chase]
+   │  │  ├─ Task: 적을 향해 Walk 실행
+   │  │  └─ Transition: 적이 공격 범위 안에 있음 → Attack
+   │  │
+   │  └─ [State: Attack]
+   │     ├─ Condition: 적이 공격 범위 안에 있음
+   │     ├─ Task: Attack 실행
+   │     └─ Transition: 적이 공격 범위 밖에 있음 → Chase
+   │
+   └─ [State: Dead]
+      └─ Task: Dead 처리
 ```
 
 #### 장단점
