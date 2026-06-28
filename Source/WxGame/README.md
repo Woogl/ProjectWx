@@ -38,18 +38,19 @@
 ## 확장 포인트 / 규약
 - **새 캐릭터**: `AWxCharacterBase`(Abstract) 또는 `AWxEnemyCharacter`/`AWxBossCharacter`를 BP로 상속. ASC는 캐릭터가 직접 소유하며 리스폰 시 재초기화(PlayerState 불필요). 무기는 `WeaponActor`(ChildActor)에 구체 무기 BP를 지정, 적의 BT/보상/시야는 BP 디폴트로 설정.
 - **새 어빌리티**: [[WxCombat]]의 `UWxAbilityBase` 상속. 입력 트리거형은 `UWxInputConfig.AbilityInputBindings`에 InputAction↔InputTag를 추가하면 `AWxPlayerCharacter`가 자동 바인딩.
-- **새 월드 오브젝트**: 즉시·반복형(모닥불 류)은 `AWxCheckPoint`처럼 단순 상속(APlayerStart 파생이라 부활 지점 후보로도 잡힘), 영속 State/StateTree 기믹은 [[WxWorld]]의 `AWxGimmick` 상속(예: `AWxLaserCorridor` — 권위 State만 C++ 소유, 스폰·토글은 StateTree가 적용).
+- **새 월드 오브젝트**: 즉시·반복형(모닥불 류)은 `AWxCheckPoint`처럼 단순 상속(APlayerStart 파생이라 부활 지점 후보로도 잡힘), 영속 State/StateTree 기믹은 [[WxWorld]]의 `AWxGimmick` 상속(예: `AWxLaserCorridor`).
+- **새 프레임워크 컴포넌트**: `UGameStateComponent` 파생 후 `AWxGameMode.FrameworkComponents` 목록에 등록 → `InitGame`에서 ModularGameplay 매니저가 GameState에 자동 주입(GameState 수정 불필요, 예: `UWxPlayerSpawningComponent`).
 - **WxUI 위젯 연동**: WBP View Bindings에서 Creation Type=Resolver로 `MVVM/`의 `UWxViewModelResolver_*`를 선택. 도메인 플러그인이 WxUI를 모르고 WxUI가 도메인을 모르므로, 양쪽에 의존하는 본 모듈의 리졸버가 데이터를 주입한다.
 - **리플리케이션**: 상호작용 선택은 로컬 레지스트리 소유 → 입력 시 클라가 읽어 서버로 TargetData 전송, 실행은 서버 권한. 인벤토리는 PlayerController가 소유 클라 연결로만 복제.
 
 ## 여기서부터 읽어라
-1. `Source/WxGame/Character/WxCharacterBase.h` — 모든 캐릭터의 ASC 소유·초기화·사망/팀 모델. 캐릭터 계층의 뿌리
-2. `Source/WxGame/Framework/WxGameMode.h` — 스폰 위임(Lyra 패턴)과 ModularGameplay 컴포넌트 주입으로 프레임워크가 어떻게 조립되는지
+1. `Source/WxGame/Framework/WxGameMode.h` — 스폰 위임(Lyra 패턴)과 ModularGameplay 컴포넌트 주입으로 부팅 프레임워크가 어떻게 조립되는지
+2. `Source/WxGame/Character/WxCharacterBase.h` — 모든 캐릭터의 ASC 소유·초기화·사망/팀 모델. 캐릭터 계층의 뿌리
 3. `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.h` — 상호작용의 클라 감지/선택과 서버 권한 실행 흐름(헤더 주석에 전체 분기 정리)
-4. `Source/WxGame/MVVM/WxViewModel_Inventory.h` — 리졸버 패턴과 도메인↔WxUI 데이터 주입 규약의 대표 사례
+4. `Source/WxGame/MVVM/WxViewModelResolver_PlayerCharacter.h` — 리졸버 패턴과 도메인↔WxUI 데이터 주입 규약의 대표 사례
 
 ## 관련
-- 상위: 게임 전체의 조립점. 도메인 로직은 [[WxCombat]] · [[WxInventory]] · [[WxAI]] · [[WxWorld]] · [[WxUI]] · [[WxSave]] · 공용 정의는 [[WxCore]]
+- 상위: 게임 전체의 조립점(이 위에는 엔진뿐). 도메인 로직은 [[WxCombat]] · [[WxInventory]] · [[WxAI]] · [[WxWorld]] · [[WxUI]] · [[WxSave]] · 공용 정의는 [[WxCore]]
 
 ---
-*문서 기준 커밋 `9e49a09` · 생성일 2026-06-27 · 소스 48파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `4506c33` · 생성일 2026-06-28 · 소스 48파일 — `/readme-writer`로 갱신*
