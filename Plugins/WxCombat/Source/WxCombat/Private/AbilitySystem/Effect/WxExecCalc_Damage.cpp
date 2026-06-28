@@ -2,7 +2,6 @@
 
 #include "AbilitySystem/Effect/WxExecCalc_Damage.h"
 #include "AbilitySystem/Ability/WxAbility_Guard.h"
-#include "AbilitySystem/Ability/WxAbility_Groggy.h"
 #include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/Effect/WxEffect_Reflect.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
@@ -118,23 +117,6 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 				if (const UWxAbility_Guard* Guard = Cast<UWxAbility_Guard>(Spec.GetPrimaryInstance()))
 				{
 					DamageResult.FinalDamage *= Guard->GetDamageReductionRate();
-					break;
-				}
-			}
-		}
-
-		// 그로기 상태의 타겟은 발동 중인 Groggy 어빌리티의 DamageTakenMultiplier 만큼 받는 최종 피해량이 증가한다.
-		if (bIsGroggy)
-		{
-			for (const FGameplayAbilitySpec& Spec : TargetASC->GetActivatableAbilities())
-			{
-				if (!Spec.IsActive())
-				{
-					continue;
-				}
-				if (const UWxAbility_Groggy* Groggy = Cast<UWxAbility_Groggy>(Spec.GetPrimaryInstance()))
-				{
-					DamageResult.FinalDamage *= Groggy->GetDamageTakenMultiplier();
 					break;
 				}
 			}

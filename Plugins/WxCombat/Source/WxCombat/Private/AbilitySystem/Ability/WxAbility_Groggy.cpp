@@ -27,11 +27,6 @@ UWxAbility_Groggy::UWxAbility_Groggy()
 	AbilityTriggers.Add(TriggerData);
 }
 
-float UWxAbility_Groggy::GetDamageTakenMultiplier() const
-{
-	return DamageTakenMultiplier;
-}
-
 void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
