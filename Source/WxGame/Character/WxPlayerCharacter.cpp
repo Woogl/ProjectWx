@@ -102,6 +102,10 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EIC->BindAction(InputConfig->JumpAction, ETriggerEvent::Started,   this, &ACharacter::Jump);
 		EIC->BindAction(InputConfig->JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	}
+	if (InputConfig->CrouchAction)
+	{
+		EIC->BindAction(InputConfig->CrouchAction, ETriggerEvent::Started, this, &AWxPlayerCharacter::ToggleCrouch);
+	}
 
 	// 어빌리티 입력 바인딩: 각 매핑에 대해 Press/Release 바인딩
 	for (const FWxInputAbilityBinding& Binding : InputConfig->AbilityInputBindings)
@@ -143,6 +147,18 @@ void AWxPlayerCharacter::Look(const FInputActionValue& Value)
 	const FVector2D LookAxis = Value.Get<FVector2D>();
 	AddControllerYawInput(LookAxis.X);
 	AddControllerPitchInput(LookAxis.Y);
+}
+
+void AWxPlayerCharacter::ToggleCrouch()
+{
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	}
+	else
+	{
+		Crouch();
+	}
 }
 
 void AWxPlayerCharacter::AbilityInputPressed(FGameplayTag InputTag)
