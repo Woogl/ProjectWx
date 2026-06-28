@@ -21,9 +21,15 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Knockdown, "Event.HitReact.Knockdown");
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Knockup, "Event.HitReact.Knockup");
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Parry, "Event.HitReact.Parry");
+	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Finisher, "Event.HitReact.Finisher");
+	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Backstab, "Event.HitReact.Backstab");
 	UE_DEFINE_GAMEPLAY_TAG(Event_DodgeSuccess, "Event.DodgeSuccess");
 	UE_DEFINE_GAMEPLAY_TAG(Event_PerfectGuard, "Event.PerfectGuard");
 	UE_DEFINE_GAMEPLAY_TAG(Event_UseItem, "Event.UseItem");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Finisher, "Event.Finisher");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Finisher_Damage, "Event.Finisher.Damage");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Backstab, "Event.Backstab");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Backstab_Damage, "Event.Backstab.Damage");
 
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Door_Close, "Gimmick.Door.Close");
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Door_Open, "Gimmick.Door.Open");
@@ -77,6 +83,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Ultimate, "Ability.Ultimate");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Interact, "Ability.Interact");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_UseItem, "Ability.UseItem");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Finisher, "Ability.Finisher");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern, "Ability.Pattern");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_1, "Ability.Pattern.1");

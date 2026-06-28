@@ -4,12 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
+#include "Engine/TimerHandle.h"
 #include "Spawnable/WxSpawnableInterface.h"
 #include "Character/WxCharacterBase.h"
 #include "WxEnemyCharacter.generated.h"
 
 class AWxSpawner;
 class UBehaviorTree;
+class UWxInteractionComponent;
 class UWxLockOnPointComponent;
 class UWxNameplateComponent;
 
@@ -46,6 +48,13 @@ protected:
 	/** 사망 시 자신을 스폰한 Spawner 에 처치 기록을 남긴다. */
 	virtual void HandleDeath() override;
 
+	/** 처형 상호작용 노출 조건(그로기=앞잡 / 미인지·후방=뒤잡)을 주기적으로 평가해 켜고 끈다(권위). */
+	void UpdateFinisherAffordance();
+
+	/** 처형 상호작용 시, 현재 조건에 따라 공격자(플레이어) ASC 로 Event.Finisher(앞잡) 또는 Event.Backstab(뒤잡)을 송출한다. */
+	UFUNCTION()
+	void HandleFinisherInteracted(AActor* InstigatorActor);
+
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
 	TObjectPtr<UBehaviorTree> BehaviorTreeAsset;
 
@@ -67,6 +76,17 @@ protected:
 	/** 락온 대상이 되는 지점. 메시의 pelvis 본에 부착되어 카메라·캐릭터 시선과 레티클·호밍이 이 위치를 향한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|LockOn")
 	TObjectPtr<UWxLockOnPointComponent> LockOnPoint;
+
+	/** 처형 상호작용 볼륨. 그로기면 앞잡(Event.Finisher), 미인지·후방이면 뒤잡(Event.Backstab)을 노출한다. */
+	UPROPERTY(VisibleAnywhere, Category = "Wx|Interaction")
+	TObjectPtr<UWxInteractionComponent> FinisherInteractionComponent;
+
+	/** 백스탭 후방 판정 반각(도). 정면 기준 이 각도 바깥(후방 원뿔)에 플레이어가 있어야 백스탭이 노출된다. 기본 90 = 후방 반구. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Interaction", meta = (ClampMin = "0", ClampMax = "180"))
+	float BackstabRearHalfAngle = 90.f;
+
+	/** 처형 어포던스 주기 갱신 타이머(권위). */
+	FTimerHandle FinisherAffordanceTimerHandle;
 
 	/** 처치 시 지급할 보상. FWxRewardTableRow 로우. 비우면 보상 없음. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Reward", meta = (RowType = "/Script/WxInventory.WxRewardTableRow"))

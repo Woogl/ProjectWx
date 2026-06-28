@@ -72,6 +72,16 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	ParryTrigger.TriggerTag = WxGameplayTags::Event_HitReact_Parry;
 	ParryTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	AbilityTriggers.Add(ParryTrigger);
+
+	FAbilityTriggerData FinisherTrigger;
+	FinisherTrigger.TriggerTag = WxGameplayTags::Event_HitReact_Finisher;
+	FinisherTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
+	AbilityTriggers.Add(FinisherTrigger);
+
+	FAbilityTriggerData BackstabTrigger;
+	BackstabTrigger.TriggerTag = WxGameplayTags::Event_HitReact_Backstab;
+	BackstabTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
+	AbilityTriggers.Add(BackstabTrigger);
 }
 
 void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -124,6 +134,17 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		{
 			SelectedMontage = ParryReactMontage;
 			FaceInstigator(ActorInfo->AvatarActor.Get(), TriggerEventData->Instigator.Get());
+		}
+		else if (EventTag == WxGameplayTags::Event_HitReact_Finisher && FinisherMontage)
+		{
+			// 피니셔(앞잡) 짝 피격. 공격자를 바라보게 정렬 후 피격 몽타주 재생.
+			SelectedMontage = FinisherMontage;
+			FaceInstigator(ActorInfo->AvatarActor.Get(), TriggerEventData->Instigator.Get());
+		}
+		else if (EventTag == WxGameplayTags::Event_HitReact_Backstab && BackstabMontage)
+		{
+			// 백스탭(뒤잡) 짝 피격. 공격자가 등 뒤이므로 회전 없이 정면을 유지한 채 피격 몽타주 재생.
+			SelectedMontage = BackstabMontage;
 		}
 	}
 

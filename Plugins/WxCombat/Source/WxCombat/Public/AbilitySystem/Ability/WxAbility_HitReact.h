@@ -10,7 +10,7 @@ class UAnimMontage;
 class UAbilityTask_PlayMontageAndWait;
 
 /**
- * 피격 반응 어빌리티. (일반 / 넉백 / 넉다운 / 넉업 / 패리)
+ * 피격 반응 어빌리티. (일반 / 넉백 / 넉다운 / 넉업 / 패리 / 피니셔(앞잡) / 백스탭(뒤잡))
  *
  * 사용 흐름:
  *  1. 데미지 수신 → Event.HitReact.[Normal|Knockback|Knockdown|Knockup|Parry] 이벤트 발송
@@ -59,6 +59,14 @@ protected:
 	/** 패리 피격 몽타주. 공격이 퍼펙트 가드로 막혀 공격자가 경직될 때 재생 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> ParryReactMontage;
+
+	/** 피니셔(앞잡) 짝 피격 몽타주. Event.HitReact.Finisher 트리거 시 재생. 공격자 피니셔 몽타주와 프레임 싱크되도록 같은 길이로 제작 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TObjectPtr<UAnimMontage> FinisherMontage;
+
+	/** 백스탭(뒤잡) 짝 피격 몽타주. Event.HitReact.Backstab 트리거 시 재생. 공격자가 등 뒤이므로 피해자는 정면을 유지한다(공격자 향해 회전하지 않음) */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TObjectPtr<UAnimMontage> BackstabMontage;
 
 private:
 	bool PlayHitReactMontage(UAnimMontage* Montage);
