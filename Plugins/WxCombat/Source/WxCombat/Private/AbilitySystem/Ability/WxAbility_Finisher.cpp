@@ -2,11 +2,11 @@
 
 #include "AbilitySystem/Ability/WxAbility_Finisher.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "MotionWarpingComponent.h"
 #include "WxCombatLibrary.h"
+#include "WxDamageInfo.h"
 #include "WxGameplayTags.h"
 
 const FName UWxAbility_Finisher::WarpTargetName = TEXT("Finisher");
@@ -44,11 +44,11 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	AActor* Target = TriggerEventData ? const_cast<AActor*>(TriggerEventData->Target.Get()) : nullptr;
 	const FGameplayTag TriggerTag = TriggerEventData ? TriggerEventData->EventTag : FGameplayTag();
 
-	// 트리거로 변형을 분기한다. 공격 몽타주·짝 피격 태그·대미지 타이밍 태그만 변형별로 다르고 나머지 흐름은 공유한다.
+	// 트리거로 변형을 분기한다. 공격 몽타주·짝 피격 태그만 변형별로 다르고 나머지 흐름은 공유한다.
+	// 대미지 수치·타이밍은 어빌리티가 아니라 공격 몽타주의 WxAnimNotify_FinisherDamage 가 결정한다.
 	const bool bBackstab = (TriggerTag == WxGameplayTags::Event_Backstab);
 	UAnimMontage* AttackerMontage = bBackstab ? BackstabMontage : FinisherMontage;
 	const FGameplayTag VictimHitReactTag = bBackstab ? WxGameplayTags::Event_HitReact_Backstab : WxGameplayTags::Event_HitReact_Finisher;
-	const FGameplayTag DamageEventTag = bBackstab ? WxGameplayTags::Event_Backstab_Damage : WxGameplayTags::Event_Finisher_Damage;
 
 	if (!AttackerMontage || !AvatarActor || !Target || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
@@ -58,7 +58,7 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	TargetActor = Target;
 
-	// 1. 대상 적 쪽으로 모션워핑 정렬(몽타주의 MotionWarping 노티파이가 이 워프 타겟을 소비한다).
+	// 1. 대상 적 현재 위치 앞으로 플레이어 위치를 모션워핑 정렬(회전은 플레이어 방향 유지). 몽타주의 MotionWarping 노티파이가 소비한다.
 	RegisterWarpTarget(AvatarActor, Target);
 
 	// 2. 적에게 짝 피격 이벤트 송출 → HitReact 가 짝 피격 몽타주를 공격 몽타주와 동시 재생.
@@ -68,12 +68,7 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	VictimEvent.EventTag = VictimHitReactTag;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Target, VictimHitReactTag, VictimEvent);
 
-	// 3. 대미지 타이밍 이벤트 대기(몽타주 후반 노티파이가 1회 송출).
-	DamageEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, DamageEventTag, nullptr, true, true);
-	DamageEventTask->EventReceived.AddDynamic(this, &UWxAbility_Finisher::HandleDamageEvent);
-	DamageEventTask->ReadyForActivation();
-
-	// 4. 공격자 몽타주 재생.
+	// 3. 공격자 몽타주 재생(몽타주의 WxAnimNotify_FinisherDamage 가 ApplyFinisherDamage 를 호출해 대미지 적용).
 	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, AttackerMontage, GetMontagePlayRate(), NAME_None, true, 1.f, 0.f, true);
 	if (!MontageTask)
 	{
@@ -94,26 +89,8 @@ void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, co
 		MontageTask->EndTask();
 		MontageTask = nullptr;
 	}
-	if (DamageEventTask)
-	{
-		DamageEventTask->EndTask();
-		DamageEventTask = nullptr;
-	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-}
-
-void UWxAbility_Finisher::HandleDamageEvent(FGameplayEventData Payload)
-{
-	// 어떤 변형의 대미지 노티파이가 도착했는지는 Payload 의 EventTag 로 판별한다(별도 상태 보관 없음).
-	if (Payload.EventTag == WxGameplayTags::Event_Backstab_Damage)
-	{
-		ApplyBackstabDamage();
-	}
-	else
-	{
-		ApplyFinisherDamage();
-	}
 }
 
 void UWxAbility_Finisher::HandleMontageFinished()
@@ -129,8 +106,8 @@ void UWxAbility_Finisher::RegisterWarpTarget(AActor* AvatarActor, const AActor* 
 		return;
 	}
 
-	// SnapToTarget 과 동일한 수평(yaw) 접근/정렬 규칙. 대상 WarpDistance 지점에서 멈추고 대상을 바라본다.
-	// 공격자가 앞(앞잡)이든 뒤(뒤잡)든 "공격자→대상 방향"을 그대로 따르므로 변형 공통이다(뒤잡은 어포던스가 후방을 보장).
+	// 위치만 정렬한다: 대상(몬스터) 현재 위치 기준으로 WarpDistance 지점까지 접근하되, 회전은 플레이어
+	// 현재 방향을 유지한다(각도 기준=플레이어). 몬스터가 플레이어를 향해 회전하는 것은 HitReact 짝 피격이 담당한다.
 	const FVector OwnerLocation = AvatarActor->GetActorLocation();
 	const FVector TargetLocation = Target->GetActorLocation();
 	FVector Direction = TargetLocation - OwnerLocation;
@@ -144,12 +121,12 @@ void UWxAbility_Finisher::RegisterWarpTarget(AActor* AvatarActor, const AActor* 
 	const FVector DirectionNorm = Direction / Distance;
 	const float StopDistance = FMath::Max(0.f, Distance - WarpDistance);
 	const FVector WarpLocation = OwnerLocation + DirectionNorm * StopDistance;
-	const FRotator WarpRotation = Direction.Rotation();
+	const FRotator WarpRotation = AvatarActor->GetActorRotation();
 
 	MotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(WarpTargetName, WarpLocation, WarpRotation);
 }
 
-void UWxAbility_Finisher::ApplyFinisherDamage() const
+void UWxAbility_Finisher::ApplyFinisherDamage(const FWxDamageInfo& DamageInfo) const
 {
 	AActor* Target = TargetActor.Get();
 	if (!Target)
@@ -168,23 +145,7 @@ void UWxAbility_Finisher::ApplyFinisherDamage() const
 	HitResult.ImpactPoint = Target->GetActorLocation();
 	HitResult.Location = Target->GetActorLocation();
 
+	// 상호작용으로 확정한 대상에 노티파이가 넘긴 피해를 적용한다. 앞잡·뒤잡 공통 경로.
+	// 앞잡 그로기 해제(DP 0)·뒤잡 즉사(CoeffATK)는 노티파이의 대미지 행 데이터로 결정된다.
 	UWxCombatLibrary::ApplyDamage(SourceASC, TargetASC, DamageInfo, HitResult, 0.f);
-}
-
-void UWxAbility_Finisher::ApplyBackstabDamage() const
-{
-	AActor* Target = TargetActor.Get();
-	if (!Target)
-	{
-		return;
-	}
-
-	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Target);
-	if (!TargetASC)
-	{
-		return;
-	}
-
-	// 고정 치명 대미지로 HP 0 → State.Dead → HandleDeath(보상·AI 정지). 짝 피격 몽타주는 발동 즉시 시작돼 이미 재생 중이다.
-	UWxCombatLibrary::ApplyRawDamage(TargetASC, BackstabDamage, FGameplayTag());
 }
