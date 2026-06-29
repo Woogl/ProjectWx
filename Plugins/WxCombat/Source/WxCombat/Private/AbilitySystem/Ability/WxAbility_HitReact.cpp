@@ -143,8 +143,9 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		}
 		else if (EventTag == WxGameplayTags::Event_HitReact_Backstab && BackstabMontage)
 		{
-			// 백스탭(뒤잡) 짝 피격. 공격자가 등 뒤이므로 회전 없이 정면을 유지한 채 피격 몽타주 재생.
+			// 백스탭(뒤잡) 짝 피격. 몬스터가 공격자(플레이어)를 향해 회전한 뒤 피격 몽타주 재생(돌려세워 처형).
 			SelectedMontage = BackstabMontage;
+			FaceInstigator(ActorInfo->AvatarActor.Get(), TriggerEventData->Instigator.Get());
 		}
 	}
 

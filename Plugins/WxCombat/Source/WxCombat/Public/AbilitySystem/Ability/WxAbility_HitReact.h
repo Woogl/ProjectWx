@@ -64,7 +64,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> FinisherMontage;
 
-	/** 백스탭(뒤잡) 짝 피격 몽타주. Event.HitReact.Backstab 트리거 시 재생. 공격자가 등 뒤이므로 피해자는 정면을 유지한다(공격자 향해 회전하지 않음) */
+	/** 백스탭(뒤잡) 짝 피격 몽타주. Event.HitReact.Backstab 트리거 시 재생. 피해자는 공격자(플레이어)를 향해 회전한 뒤 재생한다 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> BackstabMontage;
 
