@@ -38,9 +38,10 @@ AWxEnemyCharacter::AWxEnemyCharacter()
 	LockOnPoint->SetupAttachment(GetMesh(), TEXT("pelvis"));
 
 	// 처형 상호작용 볼륨. 평소엔 BeginPlay 에서 비활성화하고, 조건(그로기 또는 미인지·후방)을 주기 평가해 켠다.
+	// 메시에 부착해 처형 가능 시 Gimmick과 동일한 외곽선(Custom Depth/Stencil)이 적 몸체에 적용되게 한다.
 	FinisherInteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("FinisherInteractionComponent"));
-	FinisherInteractionComponent->SetupAttachment(GetRootComponent());
-	FinisherInteractionComponent->SetSphereRadius(100.f);
+	FinisherInteractionComponent->SetupAttachment(GetMesh());
+	FinisherInteractionComponent->SetInteractionText(FText::FromString(TEXT("Finisher")));
 }
 
 void AWxEnemyCharacter::BeginPlay()
@@ -77,7 +78,10 @@ void AWxEnemyCharacter::HandleDeath()
 
 	// 외형 없는 재화(골드 등)는 로컬 플레이어 인벤토리에 즉시 지급한다.
 	// 외형 있는 보상은 사망 위치에서 월드 Z 업으로 수직 발사된다(스칼라 LaunchSpeed 를 업 벡터로 올려 전달).
-	UWxRewardLibrary::GrantReward(this, RewardRow, UGameplayStatics::GetPlayerController(this, 0), GetActorTransform(), FVector::UpVector * LaunchSpeed);
+	if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0))
+	{
+		UWxRewardLibrary::GrantReward(this, RewardRow, PlayerController, GetActorTransform(), FVector::UpVector * LaunchSpeed);
+	}
 }
 
 void AWxEnemyCharacter::UpdateFinisherAffordance()
