@@ -27,13 +27,13 @@
 | `UWxPrimaryGameLayout` | 4개 레이어 스택(Game/GameMenu/Menu/Modal)을 들고 태그로 위젯 푸시 (Abstract, BP 파생) | `Plugins/WxUI/Source/WxUI/Public/System/WxPrimaryGameLayout.h` |
 | `UWxActivatableWidget` | CommonUI 활성화 위젯 베이스. 입력 모드/게임 일시정지 캡슐화 | `Plugins/WxUI/Source/WxUI/Public/Widget/WxActivatableWidget.h` |
 | `UWxHUDLayout` | 항상 활성화되는 HUD 루트. 메뉴 토글 액션을 Menu 레이어 푸시로 연결 | `Plugins/WxUI/Source/WxUI/Public/Widget/WxHUDLayout.h` |
-| `UWxViewModel` | 모든 뷰모델의 추상 베이스. `IsInitialized` FieldNotify 규약 | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h` |
+| `UWxViewModel` | 모든 뷰모델의 추상 베이스. `BeginDestroy`에서 `Deinitialize` 호출 보장 | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h` |
 | `UWxViewModel_AbilitySystem` | ASC를 어트리뷰트/어빌리티/이펙트/태그 자식 VM으로 노출(지연 생성) | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h` |
 | `UWxMVVMConversionLibrary` | UMG 바인딩용 컨버전(Get Attribute/Ability ViewModel, 태그→Visibility) | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxMVVMConversionLibrary.h` |
 | `UWxNameplateComponent` | ASC 기반 MVVM 초기화 + 거리별 스케일을 캡슐화한 위젯 컴포넌트 | `Plugins/WxUI/Source/WxUI/Public/Component/WxNameplateComponent.h` |
 
 ## 확장 포인트 / 규약
-- **새 뷰모델**: `UWxViewModel`을 상속하고, `Initialize` 말미에 `SetInitialized(true)`, `Deinitialize` 진입 시 `SetInitialized(false)`를 반드시 호출한다(`IsInitialized` FieldNotify 규약).
+- **새 뷰모델**: `UWxViewModel`을 상속하고, 정리 로직은 `Deinitialize` 오버라이드에 모은다(베이스 `BeginDestroy`가 자동 호출). 재초기화 가능한 VM은 `Initialize` 진입부에서 `Deinitialize`를 먼저 호출해 이전 상태를 비운다.
 - **Composite VM 패턴**: `UWxViewModel_Character` → `UWxViewModel_AbilitySystem` → 어트리뷰트/어빌리티/이펙트 자식 VM. 어트리뷰트·어빌리티 VM은 UI 바인딩이 요청할 때만 `GetOrCreate...`로 지연 생성된다.
 - **새 활성화 위젯/HUD**: `UWxActivatableWidget`(또는 `UWxHUDLayout`)을 상속한 WBP를 만들고, 입력 모드/일시정지/메뉴 위젯 클래스를 EditDefaults로 저작한다.
 - **표시 데이터 주입**: 캐릭터는 `FWxCharacterUIData`, 어빌리티는 `UWxAbilityComponent_UIData`, 이펙트는 `UWxEffectComponent_UIData`로 소비 측 BP에서 저작 → VM/컴포넌트가 소비.

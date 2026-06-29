@@ -18,8 +18,6 @@ void UWxViewModel_Character::Initialize(UAbilitySystemComponent* InASC, const FW
 
 	UE_MVVM_SET_PROPERTY_VALUE(CharacterName, InUIData.CharacterName);
 	UE_MVVM_SET_PROPERTY_VALUE(Portrait, InUIData.Portrait);
-
-	SetInitialized(true);
 }
 
 void UWxViewModel_Character::Deinitialize()
@@ -32,8 +30,6 @@ void UWxViewModel_Character::Deinitialize()
 
 	CharacterName = FText::GetEmpty();
 	Portrait = nullptr;
-
-	SetInitialized(false);
 
 	Super::Deinitialize();
 }

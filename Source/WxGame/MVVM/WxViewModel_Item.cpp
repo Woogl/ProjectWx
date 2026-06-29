@@ -30,8 +30,6 @@ void UWxViewModel_Item::Initialize(UWxInventoryManagerComponent* InInventory, UW
 	RefreshChargeIcon();
 	UE_MVVM_SET_PROPERTY_VALUE(TotalCount, InInventory->GetStackCountByInstance(InInstance));
 	UE_MVVM_SET_PROPERTY_VALUE(CurrentCharges, InInstance->GetCurrentCharges());
-
-	SetInitialized(true);
 }
 
 void UWxViewModel_Item::Initialize(UWxInventoryManagerComponent* InInventory, const UWxItemDefinition* InItemDef)
@@ -55,8 +53,6 @@ void UWxViewModel_Item::Initialize(UWxInventoryManagerComponent* InInventory, co
 		UE_MVVM_SET_PROPERTY_VALUE(CurrentCharges, FirstInstance->GetCurrentCharges());
 	}
 	RefreshChargeIcon();
-
-	SetInitialized(true);
 }
 
 void UWxViewModel_Item::Deinitialize()
@@ -82,8 +78,6 @@ void UWxViewModel_Item::Deinitialize()
 	DisplayName = FText::GetEmpty();
 	Grade = EWxItemGrade::Common;
 	GradeColor = FLinearColor::White;
-
-	SetInitialized(false);
 
 	Super::Deinitialize();
 }

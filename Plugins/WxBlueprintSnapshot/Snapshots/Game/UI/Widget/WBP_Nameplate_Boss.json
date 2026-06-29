@@ -19,11 +19,12 @@
 				{
 					"arguments":
 					{
-						"bIsVisible": "IsInitialized",
 						"FalseVisibility": "Collapsed",
+						"Tag": "(TagName=\"State.InCombat\")",
+						"TagContainer": "AbilitySystem.OwnedTags",
 						"TrueVisibility": "SelfHitTestInvisible"
 					},
-					"function": "Conv_BoolToSlateVisibility"
+					"function": "Conv_GameplayTagToSlateVisibility"
 				},
 				"destination": "Visibility",
 				"source": ""

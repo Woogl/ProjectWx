@@ -7,7 +7,6 @@ void UWxViewModel_InteractionList::Initialize(const TArray<FText>& InPrompts, in
 {
 	RebuildEntries(InPrompts);
 	ApplySelection(InSelectedIndex);
-	SetInitialized(true);
 }
 
 void UWxViewModel_InteractionList::Deinitialize()
@@ -17,8 +16,6 @@ void UWxViewModel_InteractionList::Deinitialize()
 		Entries.Reset();
 		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(Entries);
 	}
-
-	SetInitialized(false);
 }
 
 void UWxViewModel_InteractionList::HandleListChanged(const TArray<FText>& InPrompts)

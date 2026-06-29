@@ -24,8 +24,6 @@ void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 
 	RefreshActiveEffectViewModels();
 	RefreshOwnedTags();
-
-	SetInitialized(true);
 }
 
 void UWxViewModel_AbilitySystem::Deinitialize()
@@ -42,8 +40,6 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 	AbilityViewModels.Empty();
 	ActiveEffectViewModels.Empty();
 	OwnedTags.Reset();
-
-	SetInitialized(false);
 
 	Super::Deinitialize();
 }

@@ -22,8 +22,6 @@ void UWxViewModel_Inventory::Initialize(UWxInventoryManagerComponent* InInventor
 	StackChangedHandle = InInventory->OnInventoryStackChanged.AddUObject(this, &UWxViewModel_Inventory::HandleStackChanged);
 
 	RefreshAllItems();
-
-	SetInitialized(true);
 }
 
 void UWxViewModel_Inventory::Deinitialize()
@@ -49,8 +47,6 @@ void UWxViewModel_Inventory::Deinitialize()
 	}
 	AllItems.Reset();
 	CategorizedItems.Reset();
-
-	SetInitialized(false);
 
 	Super::Deinitialize();
 }
