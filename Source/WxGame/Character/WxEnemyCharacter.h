@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "Engine/TimerHandle.h"
+#include "GameplayTagContainer.h"
 #include "Spawnable/WxSpawnableInterface.h"
 #include "Character/WxCharacterBase.h"
 #include "WxEnemyCharacter.generated.h"
@@ -50,6 +51,14 @@ protected:
 
 	/** 처형 상호작용 노출 조건(그로기=앞잡 / 미인지·후방=뒤잡)을 주기적으로 평가해 켜고 끈다(권위). */
 	void UpdateFinisherAffordance();
+
+	/**
+	 * 현재 조건에서 발동 가능한 처형 변형의 송출 이벤트 태그를 반환한다(권위).
+	 * 그로기면 앞잡(Event.Finisher), 미인지·후방이면 뒤잡(Event.Backstab), 불가면 빈 태그.
+	 * 노출(UpdateFinisherAffordance)과 발동(HandleFinisherInteracted)이 이 단일 평가를 공유해
+	 * 노출 자격과 발동 변형이 어긋나지 않게 한다.
+	 */
+	FGameplayTag GetEligibleFinisherEventTag() const;
 
 	/** 처형 상호작용 시, 현재 조건에 따라 공격자(플레이어) ASC 로 Event.Finisher(앞잡) 또는 Event.Backstab(뒤잡)을 송출한다. */
 	UFUNCTION()
