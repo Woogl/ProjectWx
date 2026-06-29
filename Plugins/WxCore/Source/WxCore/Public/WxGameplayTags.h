@@ -54,13 +54,13 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Normal);
 
 	/** 넉백 피격 이벤트. HitReact 어빌리티가 Knockback 몽타주 재생 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Knockback);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_KnockBack);
 
 	/** 넉다운 피격 이벤트. HitReact 어빌리티가 Knockdown 몽타주 재생 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Knockdown);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_KnockDown);
 
 	/** 넉업 피격 이벤트. HitReact 어빌리티가 Knockup 몽타주 재생 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Knockup);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_KnockUp);
 
 	/** 패리 피격 이벤트. 공격이 퍼펙트 가드로 막힌 공격자에게 송출, HitReact 어빌리티가 ParryReactMontage 재생 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Parry);

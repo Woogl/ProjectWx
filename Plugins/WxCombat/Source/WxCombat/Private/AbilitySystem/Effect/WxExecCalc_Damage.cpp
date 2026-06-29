@@ -300,9 +300,9 @@ void UWxExecCalc_Damage::ApplyHitReaction(const FGameplayEffectCustomExecutionPa
 	if (bIsGroggy)
 	{
 		FGameplayTagContainer KnockTags;
-		KnockTags.AddTagFast(WxGameplayTags::Event_HitReact_Knockback);
-		KnockTags.AddTagFast(WxGameplayTags::Event_HitReact_Knockdown);
-		KnockTags.AddTagFast(WxGameplayTags::Event_HitReact_Knockup);
+		KnockTags.AddTagFast(WxGameplayTags::Event_HitReact_KnockBack);
+		KnockTags.AddTagFast(WxGameplayTags::Event_HitReact_KnockDown);
+		KnockTags.AddTagFast(WxGameplayTags::Event_HitReact_KnockUp);
 		if (HitReactTag.MatchesAny(KnockTags))
 		{
 			// 그로기 중에는 Knock 계열 HitReaction 사용하지 않고 Normal로 치환

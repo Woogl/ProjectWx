@@ -42,7 +42,7 @@ protected:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	/** 기본 피격 반응 몽타주. Event.HitReact 트리거 시 재생 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UAnimMontage> HitReactMontage;
+	TObjectPtr<UAnimMontage> NormalHitReactMontage;
 
 	/** 넉백 몽타주. Event.HitReact.Knockback 트리거 시 재생 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
@@ -62,17 +62,21 @@ protected:
 
 	/** 피니셔(앞잡) 짝 피격 몽타주. Event.HitReact.Finisher 트리거 시 재생. 공격자 피니셔 몽타주와 프레임 싱크되도록 같은 길이로 제작 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UAnimMontage> FinisherMontage;
+	TObjectPtr<UAnimMontage> FinisherHitReactMontage;
 
 	/** 백스탭(뒤잡) 짝 피격 몽타주. Event.HitReact.Backstab 트리거 시 재생. 피해자는 공격자(플레이어)를 향해 회전한 뒤 재생한다 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UAnimMontage> BackstabMontage;
+	TObjectPtr<UAnimMontage> BackstabHitReactMontage;
 
 private:
 	bool PlayHitReactMontage(UAnimMontage* Montage);
 
 	UFUNCTION()
 	void HandleMontageCompleted();
+
+	/** 앞잡(피니셔) 짝 피격 몽타주 정상 종료 시 호출. DP를 0으로 리셋해 그로기를 해제한 뒤 EndAbility. */
+	UFUNCTION()
+	void HandleFinisherMontageCompleted();
 
 	UFUNCTION()
 	void HandleMontageInterrupted();

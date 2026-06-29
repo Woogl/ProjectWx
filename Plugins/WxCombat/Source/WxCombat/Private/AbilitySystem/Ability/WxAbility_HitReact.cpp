@@ -3,6 +3,7 @@
 #include "AbilitySystem/Ability/WxAbility_HitReact.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "AbilitySystem/Effect/WxEffect_ResetDP.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "WxGameplayTags.h"
@@ -54,17 +55,17 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	AbilityTriggers.Add(NormalTrigger);
 
 	FAbilityTriggerData KnockbackTrigger;
-	KnockbackTrigger.TriggerTag = WxGameplayTags::Event_HitReact_Knockback;
+	KnockbackTrigger.TriggerTag = WxGameplayTags::Event_HitReact_KnockBack;
 	KnockbackTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	AbilityTriggers.Add(KnockbackTrigger);
 
 	FAbilityTriggerData KnockdownTrigger;
-	KnockdownTrigger.TriggerTag = WxGameplayTags::Event_HitReact_Knockdown;
+	KnockdownTrigger.TriggerTag = WxGameplayTags::Event_HitReact_KnockDown;
 	KnockdownTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	AbilityTriggers.Add(KnockdownTrigger);
 
 	FAbilityTriggerData KnockupTrigger;
-	KnockupTrigger.TriggerTag = WxGameplayTags::Event_HitReact_Knockup;
+	KnockupTrigger.TriggerTag = WxGameplayTags::Event_HitReact_KnockUp;
 	KnockupTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	AbilityTriggers.Add(KnockupTrigger);
 
@@ -103,20 +104,20 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	// }
 
 	// 트리거 태그에 따라 재생할 몽타주 선택. 매칭 몽타주가 없으면 기본 HitReactMontage로 폴백.
-	UAnimMontage* SelectedMontage = HitReactMontage;
+	UAnimMontage* SelectedMontage = NormalHitReactMontage;
 	if (TriggerEventData)
 	{
-		if (EventTag == WxGameplayTags::Event_HitReact_Knockback && KnockbackMontage)
+		if (EventTag == WxGameplayTags::Event_HitReact_KnockBack && KnockbackMontage)
 		{
 			SelectedMontage = KnockbackMontage;
 			FaceInstigator(ActorInfo->AvatarActor.Get(), TriggerEventData->Instigator.Get());
 		}
-		else if (EventTag == WxGameplayTags::Event_HitReact_Knockdown && KnockdownMontage)
+		else if (EventTag == WxGameplayTags::Event_HitReact_KnockDown && KnockdownMontage)
 		{
 			SelectedMontage = KnockdownMontage;
 			FaceInstigator(ActorInfo->AvatarActor.Get(), TriggerEventData->Instigator.Get());
 		}
-		else if (EventTag == WxGameplayTags::Event_HitReact_Knockup && KnockupMontage)
+		else if (EventTag == WxGameplayTags::Event_HitReact_KnockUp && KnockupMontage)
 		{
 			SelectedMontage = KnockupMontage;
 
@@ -135,16 +136,16 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 			SelectedMontage = ParryReactMontage;
 			FaceInstigator(ActorInfo->AvatarActor.Get(), TriggerEventData->Instigator.Get());
 		}
-		else if (EventTag == WxGameplayTags::Event_HitReact_Finisher && FinisherMontage)
+		else if (EventTag == WxGameplayTags::Event_HitReact_Finisher && FinisherHitReactMontage)
 		{
 			// 피니셔(앞잡) 짝 피격. 공격자를 바라보게 정렬 후 피격 몽타주 재생.
-			SelectedMontage = FinisherMontage;
+			SelectedMontage = FinisherHitReactMontage;
 			FaceInstigator(ActorInfo->AvatarActor.Get(), TriggerEventData->Instigator.Get());
 		}
-		else if (EventTag == WxGameplayTags::Event_HitReact_Backstab && BackstabMontage)
+		else if (EventTag == WxGameplayTags::Event_HitReact_Backstab && BackstabHitReactMontage)
 		{
 			// 백스탭(뒤잡) 짝 피격. 몬스터가 공격자(플레이어)를 향해 회전한 뒤 피격 몽타주 재생(돌려세워 처형).
-			SelectedMontage = BackstabMontage;
+			SelectedMontage = BackstabHitReactMontage;
 			FaceInstigator(ActorInfo->AvatarActor.Get(), TriggerEventData->Instigator.Get());
 		}
 	}
@@ -196,7 +197,15 @@ bool UWxAbility_HitReact::PlayHitReactMontage(UAnimMontage* Montage)
 
 	CurrentMontageTask = MontageTask;
 
-	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_HitReact::HandleMontageCompleted);
+	// 앞잡 짝 피격은 종료 시 DP 리셋(그로기 해제)이 필요하므로 전용 완료 핸들러를 바인딩한다.
+	if (Montage == FinisherHitReactMontage)
+	{
+		MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_HitReact::HandleFinisherMontageCompleted);
+	}
+	else
+	{
+		MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_HitReact::HandleMontageCompleted);
+	}
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_HitReact::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_HitReact::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
@@ -214,6 +223,19 @@ bool UWxAbility_HitReact::PlayHitReactMontage(UAnimMontage* Montage)
 
 void UWxAbility_HitReact::HandleMontageCompleted()
 {
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+}
+
+void UWxAbility_HitReact::HandleFinisherMontageCompleted()
+{
+	// 앞잡 짝 피격 종료 → DP를 0으로 리셋한다. GE로 적용해야 PostGameplayEffectExecute의
+	// State.Groggy 해제 캐스케이드가 작동해 그로기(WxAbility_Groggy)까지 정상 종료된다.
+	FGameplayEffectSpecHandle ResetSpec = MakeOutgoingGameplayEffectSpec(UWxEffect_ResetDP::StaticClass(), GetAbilityLevel());
+	if (ResetSpec.IsValid())
+	{
+		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, ResetSpec);
+	}
+
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 

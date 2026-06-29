@@ -17,9 +17,9 @@ namespace WxGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact, "Event.HitReact");
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Normal, "Event.HitReact.Normal");
-	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Knockback, "Event.HitReact.Knockback");
-	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Knockdown, "Event.HitReact.Knockdown");
-	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Knockup, "Event.HitReact.Knockup");
+	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_KnockBack, "Event.HitReact.KnockBack");
+	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_KnockDown, "Event.HitReact.KnockDown");
+	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_KnockUp, "Event.HitReact.KnockUp");
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Parry, "Event.HitReact.Parry");
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Finisher, "Event.HitReact.Finisher");
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Backstab, "Event.HitReact.Backstab");

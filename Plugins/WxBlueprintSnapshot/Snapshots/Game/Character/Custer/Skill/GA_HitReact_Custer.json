@@ -2,14 +2,16 @@
 	"blueprintPath": "/Game/Character/Custer/Skill/GA_HitReact_Custer.GA_HitReact_Custer",
 	"classDefaults":
 	{
+		"BackstabHitReactMontage": "/Game/AbilitySystem/Ability/AM_HitReact_Finisher.AM_HitReact_Finisher",
 		"BlockAbilitiesWithTag":
 		{
 			"GameplayTags": []
 		},
-		"HitReactMontage": "/Game/AbilitySystem/Ability/AM_HitReact.AM_HitReact",
+		"FinisherHitReactMontage": "/Game/AbilitySystem/Ability/AM_HitReact_Finisher.AM_HitReact_Finisher",
 		"KnockbackMontage": "/Game/AbilitySystem/Ability/AM_HitReact_Knockback.AM_HitReact_Knockback",
 		"KnockdownMontage": "/Game/AbilitySystem/Ability/AM_HitReact_Knockdown.AM_HitReact_Knockdown",
 		"KnockupMontage": "/Game/AbilitySystem/Ability/AM_HitReact_Knockup.AM_HitReact_Knockup",
+		"NormalHitReactMontage": "/Game/AbilitySystem/Ability/AM_HitReact.AM_HitReact",
 		"ParryReactMontage": "/Game/AbilitySystem/Ability/AM_ParryReact.AM_ParryReact"
 	},
 	"parentClass": "/Script/WxCombat.WxAbility_HitReact"
