@@ -23,6 +23,9 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	// 피니시 연출 중에는 다른 어빌리티로 캔슬되지 않게 자기 차단한다.
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
+	
+	// 피니시 중에는 무적
+	ActivationOwnedTags.AddTag(WxGameplayTags::State_Invincible);
 
 	// 변형별 트리거. 앞잡(Event.Finisher)과 뒤잡(Event.Backstab)을 한 어빌리티가 받는다.
 	FAbilityTriggerData FinisherTrigger;
@@ -58,7 +61,7 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	TargetActor = Target;
 
-	// 1. 대상 적 현재 위치 앞으로 플레이어 위치를 모션워핑 정렬(회전은 플레이어 방향 유지). 몽타주의 MotionWarping 노티파이가 소비한다.
+	// 1. 피해자 위치를 공유 앵커로, 공격자가 피해자를 바라보도록 워프 타겟 등록. 멈출 간격은 몽타주의 Warp Point가 소유한다.
 	RegisterWarpTarget(AvatarActor, Target);
 
 	// 2. 적에게 짝 피격 이벤트 송출 → HitReact 가 짝 피격 몽타주를 공격 몽타주와 동시 재생.
@@ -106,24 +109,19 @@ void UWxAbility_Finisher::RegisterWarpTarget(AActor* AvatarActor, const AActor* 
 		return;
 	}
 
-	// 위치만 정렬한다: 대상(몬스터) 현재 위치 기준으로 WarpDistance 지점까지 접근하되, 회전은 플레이어
-	// 현재 방향을 유지한다(각도 기준=플레이어). 몬스터가 플레이어를 향해 회전하는 것은 HitReact 짝 피격이 담당한다.
-	const FVector OwnerLocation = AvatarActor->GetActorLocation();
+	// 앵커 = 피해자 위치. 공격자는 피해자를 바라보도록 회전한다.
+	// 멈출 간격·상대 포즈는 공격 몽타주의 Motion Warping Warp Point(애니)가 소유한다.
+	// 몬스터가 플레이어를 향해 회전하는 것은 HitReact 짝 피격이 담당한다.
 	const FVector TargetLocation = Target->GetActorLocation();
-	FVector Direction = TargetLocation - OwnerLocation;
+	FVector Direction = TargetLocation - AvatarActor->GetActorLocation();
 	Direction.Z = 0.0;
 	if (Direction.IsNearlyZero())
 	{
 		return;
 	}
 
-	const float Distance = Direction.Size();
-	const FVector DirectionNorm = Direction / Distance;
-	const float StopDistance = FMath::Max(0.f, Distance - WarpDistance);
-	const FVector WarpLocation = OwnerLocation + DirectionNorm * StopDistance;
-	const FRotator WarpRotation = AvatarActor->GetActorRotation();
-
-	MotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(WarpTargetName, WarpLocation, WarpRotation);
+	const FRotator WarpRotation = Direction.Rotation();
+	MotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(WarpTargetName, TargetLocation, WarpRotation);
 }
 
 void UWxAbility_Finisher::ApplyFinisherDamage(const FWxDamageInfo& DamageInfo) const
@@ -146,6 +144,7 @@ void UWxAbility_Finisher::ApplyFinisherDamage(const FWxDamageInfo& DamageInfo) c
 	HitResult.Location = Target->GetActorLocation();
 
 	// 상호작용으로 확정한 대상에 노티파이가 넘긴 피해를 적용한다. 앞잡·뒤잡 공통 경로.
-	// 앞잡 그로기 해제(DP 0)·뒤잡 즉사(CoeffATK)는 노티파이의 대미지 행 데이터로 결정된다.
+	// 뒤잡 즉사(CoeffATK)는 노티파이의 대미지 행 데이터로 결정된다.
+	// 앞잡 그로기 해제(DP 0)는 피해자의 앞잡 짝 피격 몽타주 종료 시 WxAbility_HitReact 가 처리한다.
 	UWxCombatLibrary::ApplyDamage(SourceASC, TargetASC, DamageInfo, HitResult, 0.f);
 }

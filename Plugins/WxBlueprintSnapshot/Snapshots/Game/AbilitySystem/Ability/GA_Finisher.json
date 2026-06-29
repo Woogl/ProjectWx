@@ -1,0 +1,9 @@
+{
+	"blueprintPath": "/Game/AbilitySystem/Ability/GA_Finisher.GA_Finisher",
+	"classDefaults":
+	{
+		"BackstabMontage": "/Game/AbilitySystem/Ability/AM_Finisher.AM_Finisher",
+		"FinisherMontage": "/Game/AbilitySystem/Ability/AM_Finisher.AM_Finisher"
+	},
+	"parentClass": "/Script/WxCombat.WxAbility_Finisher"
+}

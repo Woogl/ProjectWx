@@ -18,15 +18,15 @@ struct FWxDamageInfo;
  *
  * 공통 발동 흐름:
  *  1. 상호작용(서버 권위)이 보내는 GameplayEvent 로 트리거(Target=적)
- *  2. 플레이어 위치를 대상 적 현재 위치 앞으로 모션워핑 정렬(회전은 플레이어 방향 유지; 위치 기준=몬스터, 각도 기준=플레이어)
+ *  2. 피해자 위치를 공유 앵커로 모션워핑 정렬, 공격자는 피해자를 바라보도록 회전(멈출 간격은 몽타주 Warp Point 가 소유)
  *  3. 적에게 변형별 짝 피격 이벤트 송출 → 적이 공격자를 향해 회전 후 짝 피격 몽타주를 동시 재생
- *  4. 변형별 공격자 몽타주 재생(몽타주의 MotionWarping 노티파이가 워프 타겟으로 정렬)
+ *  4. 변형별 공격자 몽타주 재생(몽타주의 MotionWarping 노티파이가 워프 타겟·Warp Point 로 정렬)
  *  5. 몽타주의 WxAnimNotify_FinisherDamage 가 ApplyFinisherDamage 를 호출 → 확정 대상에 피해 적용
  *  6. 몽타주 종료 시 EndAbility
  *
  * 대미지 수치는 어빌리티가 아니라 공격 몽타주의 WxAnimNotify_FinisherDamage 가 대미지 테이블 행으로 입력한다.
  * 어빌리티는 상호작용으로 확정한 대상에 그 피해를 적용만 하므로 앞잡·뒤잡이 동일 경로로 통일된다.
- * 앞잡의 그로기 해제(DP 0)는 해당 대미지 행의 AdditionalEffects 에 DP Override 0 GE 를 포함해 처리한다.
+ * 앞잡의 그로기 해제(DP 0)는 피해자의 앞잡 짝 피격 몽타주가 끝날 때 WxAbility_HitReact 가 처리한다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Finisher : public UWxAbilityBase
@@ -54,17 +54,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> BackstabMontage;
 
-	/** 워프 정지 거리(cm). 대상 적 이 거리에서 멈춘다. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability", meta = (ClampMin = "0"))
-	float WarpDistance = 100.f;
-
 private:
 	UFUNCTION()
 	void HandleMontageFinished();
 
 	void RegisterWarpTarget(AActor* AvatarActor, const AActor* Target) const;
 
-	/** 워프 타겟 이름. 두 변형(앞잡·뒤잡)의 공격 몽타주 MotionWarping 노티파이 Warp Target Name 을 이 값으로 맞춘다. */
+	/** 워프 타겟 이름. 두 변형(앞잡·뒤잡)의 공격 몽타주 MotionWarping 노티파이 Warp Target Name·Warp Point 를 이 값으로 맞춘다. */
 	static const FName WarpTargetName;
 
 	TWeakObjectPtr<AActor> TargetActor;
