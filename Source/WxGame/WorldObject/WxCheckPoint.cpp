@@ -14,7 +14,7 @@
 AWxCheckPoint::AWxCheckPoint(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	// OnInteracted 는 서버 Multicast RPC 로 모든 피어에서 fire 되므로 액터 복제가 필요하다(과거 AWxGimmick 가 켜주던 설정을 직접 유지).
+	// 원격 클라가 이 액터의 InteractionComponent 를 상호작용 TargetData(PackageMap)로 서버에 참조 전달하므로, 컴포넌트가 net-addressable 하도록 액터 복제를 유지한다.
 	bReplicates = true;
 
 	// 루트는 APlayerStart(ANavigationObjectBase)의 CapsuleComponent 다. NoCollision 프로파일이라 플레이어를 막지 않는다.

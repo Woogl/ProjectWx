@@ -16,10 +16,10 @@
  * 흐름:
  *  1) 플레이어 스캐너가 주변 볼륨을 수집 → 로컬 레지스트리(HUD 리스트 소스)에 채운다. 외곽선 강조는 레지스트리가 선택 대상만 켠다
  *  2) 플레이어가 상호작용 입력 → WxAbility_Interact가 (원격 클라는) 레지스트리의 선택 컴포넌트를 TargetData로 서버에 전달, 서버 권한에서 TryInteract 호출
- *  3) 서버가 Multicast RPC로 OnInteracted 델리게이트를 서버+모든 클라이언트에서 fire
+ *  3) 서버 권한에서 OnInteracted 델리게이트를 fire(서버 전용). 클라 비주얼은 각 대상의 복제 상태(기믹 State, 픽업 Destroy 등)로 수렴한다
  *
  * 소유 액터는 OnInteracted 델리게이트에 핸들러를 바인딩해 동작을 구현한다.
- * 핸들러 내부에서 권위 로직은 GetOwner()->HasAuthority()로 분기한다.
+ * OnInteracted는 서버 권한에서만 fire되므로 핸들러는 권위 로직을 그대로 수행한다(클라에서는 호출되지 않는다).
  *
  * 프롬프트 표시는 본 컴포넌트가 아니라 플레이어 HUD 리스트(WBP_InteractionList)가 담당한다.
  */
@@ -51,8 +51,8 @@ public:
 	/** 이 컴포넌트가 부착된 메시에 외곽선 강조를 켜고 끈다. 레지스트리가 선택 대상만 호출한다. */
 	void SetHighlightEnabled(bool bNewEnabled);
 
-	/** 외부 리스너/소유 액터에서 바인딩. 서버+모든 클라이언트에서 fire 된다. */
-	UPROPERTY(BlueprintAssignable, Category = "Wx")
+	/** 소유 액터가 바인딩하는 상호작용 델리게이트. 서버 권한에서만 fire 된다(원격 클라에서는 호출되지 않는다). */
+	UPROPERTY()
 	FWxOnInteractedSignature OnInteracted;
 
 protected:
@@ -69,8 +69,5 @@ protected:
 	int32 HighlightStencilValue = 1;
 
 private:
-	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastInteracted(AActor* InstigatorActor);
-
 	bool bInteractionEnabled;
 };

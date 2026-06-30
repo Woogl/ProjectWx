@@ -24,7 +24,7 @@ class WXCORE_API IWxInteractionSource
 	GENERATED_BODY()
 
 public:
-	/** 상호작용 발생 델리게이트 접근자. 서버+모든 클라이언트에서 fire 된다. */
+	/** 상호작용 발생 델리게이트 접근자. 서버 권한에서만 fire 된다(클라 비주얼은 각 대상의 복제 상태로 수렴). */
 	virtual FWxOnInteractedSignature& GetOnInteractedDelegate() = 0;
 
 	/** 프롬프트 텍스트 갱신. */

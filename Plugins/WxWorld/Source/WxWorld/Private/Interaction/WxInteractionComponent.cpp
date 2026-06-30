@@ -9,6 +9,8 @@ UWxInteractionComponent::UWxInteractionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
+	// OnInteracted 자체는 서버 전용이라 RPC가 없지만, 상호작용 어빌리티의 TargetData(FWxAbilityTargetData_Interaction)가
+	// 이 컴포넌트 포인터를 PackageMap으로 클라→서버 직렬화한다. 동적 스폰 액터(픽업·적)의 컴포넌트도 net-addressable 하려면 복제가 필요하다.
 	SetIsReplicatedByDefault(true);
 
 	bInteractionEnabled = true;
@@ -31,7 +33,8 @@ void UWxInteractionComponent::TryInteract(AActor* InstigatorActor)
 		return;
 	}
 
-	MulticastInteracted(InstigatorActor);
+	// 서버 권한에서만 fire한다. 클라 비주얼은 각 대상의 복제 상태(기믹 State, 픽업 Destroy 등)로 수렴하므로 클라 전파는 불필요하다.
+	OnInteracted.Broadcast(InstigatorActor);
 }
 
 void UWxInteractionComponent::SetInteractionEnabled(bool bEnabled)
@@ -76,9 +79,4 @@ void UWxInteractionComponent::SetHighlightEnabled(bool bNewEnabled)
 	{
 		MeshComponent->SetCustomDepthStencilValue(HighlightStencilValue);
 	}
-}
-
-void UWxInteractionComponent::MulticastInteracted_Implementation(AActor* InstigatorActor)
-{
-	OnInteracted.Broadcast(InstigatorActor);
 }
