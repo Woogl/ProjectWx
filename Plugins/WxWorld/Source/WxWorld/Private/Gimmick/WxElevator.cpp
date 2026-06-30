@@ -28,18 +28,22 @@ AWxElevator::AWxElevator()
 
 	PlatformInteraction = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("PlatformInteraction"));
 	PlatformInteraction->SetupAttachment(PlatformRoot);
+	// 부착 부모(PlatformRoot)는 메시가 아니므로 강조 대상은 PlatformMesh 로 명시한다.
+	PlatformInteraction->SetHighlightTarget(PlatformMesh);
 
 	CallConsoleA = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CallConsoleA"));
 	CallConsoleA->SetupAttachment(SceneRoot);
 
 	CallConsoleAInteraction = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("CallConsoleAInteraction"));
 	CallConsoleAInteraction->SetupAttachment(CallConsoleA);
+	CallConsoleAInteraction->SetHighlightTarget(CallConsoleA);
 
 	CallConsoleB = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CallConsoleB"));
 	CallConsoleB->SetupAttachment(SceneRoot);
 
 	CallConsoleBInteraction = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("CallConsoleBInteraction"));
 	CallConsoleBInteraction->SetupAttachment(CallConsoleB);
+	CallConsoleBInteraction->SetHighlightTarget(CallConsoleB);
 
 	State = WxGameplayTags::Gimmick_Elevator_Closed;
 }

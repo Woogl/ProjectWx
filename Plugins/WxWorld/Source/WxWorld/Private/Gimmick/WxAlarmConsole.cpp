@@ -13,6 +13,7 @@ AWxAlarmConsole::AWxAlarmConsole()
 
 	ConsoleInteraction = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("ConsoleInteraction"));
 	ConsoleInteraction->SetupAttachment(Console);
+	ConsoleInteraction->SetHighlightTarget(Console);
 
 	State = WxGameplayTags::Gimmick_AlarmConsole_Idle;
 }

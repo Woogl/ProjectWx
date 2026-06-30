@@ -17,6 +17,7 @@ AWxLaserCorridor::AWxLaserCorridor()
 
 	ConsoleInteraction = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("ConsoleInteraction"));
 	ConsoleInteraction->SetupAttachment(Console);
+	ConsoleInteraction->SetHighlightTarget(Console);
 
 	State = WxGameplayTags::Gimmick_LaserCorridor_Active;
 }

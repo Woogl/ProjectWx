@@ -13,6 +13,7 @@ AWxCutsceneTrigger::AWxCutsceneTrigger()
 
 	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
 	InteractionComponent->SetupAttachment(MeshComponent);
+	InteractionComponent->SetHighlightTarget(MeshComponent);
 
 	State = WxGameplayTags::Gimmick_CutsceneTrigger_Idle;
 }

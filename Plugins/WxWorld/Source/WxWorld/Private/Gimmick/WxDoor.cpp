@@ -19,6 +19,7 @@ AWxDoor::AWxDoor()
 
 	ConsoleInteraction = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("ConsoleInteraction"));
 	ConsoleInteraction->SetupAttachment(Console);
+	ConsoleInteraction->SetHighlightTarget(Console);
 
 	State = WxGameplayTags::Gimmick_Door_Close;
 }

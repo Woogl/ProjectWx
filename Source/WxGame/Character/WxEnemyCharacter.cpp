@@ -41,6 +41,7 @@ AWxEnemyCharacter::AWxEnemyCharacter()
 	// 메시에 부착해 처형 가능 시 Gimmick과 동일한 외곽선(Custom Depth/Stencil)이 적 몸체에 적용되게 한다.
 	FinisherInteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("FinisherInteractionComponent"));
 	FinisherInteractionComponent->SetupAttachment(GetMesh());
+	FinisherInteractionComponent->SetHighlightTarget(GetMesh());
 	FinisherInteractionComponent->SetInteractionText(FText::FromString(TEXT("Finisher")));
 }
 

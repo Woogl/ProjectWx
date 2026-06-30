@@ -13,6 +13,7 @@ AWxSpawnConsole::AWxSpawnConsole()
 
 	ConsoleInteraction = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("ConsoleInteraction"));
 	ConsoleInteraction->SetupAttachment(ConsoleMesh);
+	ConsoleInteraction->SetHighlightTarget(ConsoleMesh);
 
 	State = WxGameplayTags::Gimmick_SpawnConsole_Idle;
 }

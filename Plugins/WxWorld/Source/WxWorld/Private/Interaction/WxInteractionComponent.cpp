@@ -62,21 +62,15 @@ void UWxInteractionComponent::SetInteractionText(const FText& InText)
 
 void UWxInteractionComponent::SetHighlightEnabled(bool bNewEnabled)
 {
-	if (!bEnableHighlight)
+	// 강조 대상은 소유 액터가 명시 지정한다(SetHighlightTarget / BP). 미지정이면 강조하지 않는다.
+	if (!bEnableHighlight || !HighlightTarget)
 	{
 		return;
 	}
 
-	// 이 컴포넌트가 부착된 메시만 강조한다. 부착 부모가 메시가 아니면 강조 대상이 없다.
-	UMeshComponent* MeshComponent = Cast<UMeshComponent>(GetAttachParent());
-	if (!MeshComponent)
-	{
-		return;
-	}
-
-	MeshComponent->SetRenderCustomDepth(bNewEnabled);
+	HighlightTarget->SetRenderCustomDepth(bNewEnabled);
 	if (bNewEnabled)
 	{
-		MeshComponent->SetCustomDepthStencilValue(HighlightStencilValue);
+		HighlightTarget->SetCustomDepthStencilValue(HighlightStencilValue);
 	}
 }

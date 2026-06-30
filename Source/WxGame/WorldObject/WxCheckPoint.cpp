@@ -24,6 +24,7 @@ AWxCheckPoint::AWxCheckPoint(const FObjectInitializer& ObjectInitializer)
 
 	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
 	InteractionComponent->SetupAttachment(MeshComponent);
+	InteractionComponent->SetHighlightTarget(MeshComponent);
 }
 
 #if WITH_EDITOR
