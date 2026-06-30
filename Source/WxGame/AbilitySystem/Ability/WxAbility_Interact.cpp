@@ -208,8 +208,18 @@ UWxInteractionComponent* UWxAbility_Interact::GetLocalSelectedComponent(const FG
 void UWxAbility_Interact::ExecuteInteract(UWxInteractionComponent* Selected, const FGameplayAbilityActorInfo* ActorInfo)
 {
 	AActor* Avatar = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
-	if (Selected && Avatar)
+	if (!Selected || !Avatar)
 	{
-		Selected->TryInteract(Avatar);
+		return;
 	}
+
+	// 서버 권위 거리 검증: 감지·선택은 클라 로컬이라, 변조 클라가 임의의 원거리 컴포넌트를 보내 상호작용하는 것을 막는다.
+	// 클라 스캔의 sphere-overlap 과 동일 판정 — 중심간 거리 <= ScanRadius + 대상 구 반경 — 으로 사거리를 재확인한다.
+	const float ReachRadius = ScanRadius + Selected->GetScaledSphereRadius();
+	if (FVector::DistSquared(Avatar->GetActorLocation(), Selected->GetComponentLocation()) > FMath::Square(ReachRadius))
+	{
+		return;
+	}
+
+	Selected->TryInteract(Avatar);
 }
