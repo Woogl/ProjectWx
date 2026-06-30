@@ -87,7 +87,16 @@ void AWxEnemyCharacter::HandleDeath()
 void AWxEnemyCharacter::UpdateFinisherAffordance()
 {
 	// 노출은 발동과 동일한 단일 평가를 따른다. 발동 가능한 변형이 있을 때만 상호작용을 노출한다.
-	FinisherInteractionComponent->SetInteractionEnabled(GetEligibleFinisherEventTag().IsValid());
+	const bool bEligible = GetEligibleFinisherEventTag().IsValid();
+
+	// 자격이 사라지면(앞잡은 연출 종료 시 DP 리셋으로 그로기 해제 등) 다음 처형을 위해 래치를 푼다.
+	if (!bEligible)
+	{
+		bFinisherTriggered = false;
+	}
+
+	// 한 번 발동되면 자격이 유지되는 동안엔 다시 노출하지 않는다(앞잡 연출 중 그로기 유지로 인한 재노출 차단).
+	FinisherInteractionComponent->SetInteractionEnabled(bEligible && !bFinisherTriggered);
 }
 
 FGameplayTag AWxEnemyCharacter::GetEligibleFinisherEventTag() const
@@ -147,6 +156,10 @@ void AWxEnemyCharacter::HandleFinisherInteracted(AActor* InstigatorActor)
 	EventData.Target = this;
 	EventData.EventTag = EventTag;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(InstigatorActor, EventTag, EventData);
+
+	// 발동 즉시 처형 상호작용을 잠근다. 연출 중(자격 유지) 어포던스 타이머의 재노출은 래치로 차단한다.
+	bFinisherTriggered = true;
+	FinisherInteractionComponent->SetInteractionEnabled(false);
 }
 
 void AWxEnemyCharacter::OnSpawnedBy(AWxSpawner* Spawner)

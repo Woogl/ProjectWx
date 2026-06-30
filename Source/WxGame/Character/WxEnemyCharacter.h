@@ -97,6 +97,9 @@ protected:
 	/** 처형 어포던스 주기 갱신 타이머(권위). */
 	FTimerHandle FinisherAffordanceTimerHandle;
 
+	/** 처형이 발동되어 상호작용 노출을 잠근 상태(권위). 자격(그로기/후방)이 사라질 때 해제되어 다음 처형을 다시 노출한다. */
+	bool bFinisherTriggered = false;
+
 	/** 처치 시 지급할 보상. FWxRewardTableRow 로우. 비우면 보상 없음. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Reward", meta = (RowType = "/Script/WxInventory.WxRewardTableRow"))
 	FDataTableRowHandle RewardRow;
