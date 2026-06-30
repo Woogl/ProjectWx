@@ -33,7 +33,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Component Move 가 Context 액터의 컴포넌트로 바인딩하기 위한 노출(State 의 Enum Compare 바인딩과 동일 패턴).
+	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Component Move 가 Context 액터의 컴포넌트로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> DoorLeft;
 
