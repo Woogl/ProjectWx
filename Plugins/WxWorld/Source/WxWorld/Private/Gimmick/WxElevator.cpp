@@ -28,8 +28,9 @@ AWxElevator::AWxElevator()
 
 	PlatformInteraction = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("PlatformInteraction"));
 	PlatformInteraction->SetupAttachment(PlatformRoot);
-	// 부착 부모(PlatformRoot)는 메시가 아니므로 강조 대상은 PlatformMesh 로 명시한다.
+	// 부착 부모(PlatformRoot)는 메시가 아니므로 강조 대상·볼륨은 PlatformMesh 로 명시한다.
 	PlatformInteraction->SetHighlightTarget(PlatformMesh);
+	PlatformInteraction->SetCollisionVolume(PlatformMesh);
 
 	CallConsoleA = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CallConsoleA"));
 	CallConsoleA->SetupAttachment(SceneRoot);

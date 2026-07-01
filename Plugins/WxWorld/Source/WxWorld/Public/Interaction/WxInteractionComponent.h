@@ -3,17 +3,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/SphereComponent.h"
+#include "Components/SceneComponent.h"
 #include "WxInteractionSource.h"
 #include "WxInteractionComponent.generated.h"
 
 class UMeshComponent;
+class UPrimitiveComponent;
 
 /**
  * 상호작용 컴포넌트.
- * 상호작용 가능 영역을 나타내는 수동 쿼리 볼륨(SphereComponent, Object Type=WxInteractable)이다.
- * 플레이어 측 스캐너(상호작용 어빌리티의 주기 스캔)가 이 볼륨을 OverlapMultiByObjectType 으로 수집해 레지스트리에 채운다.
- * 한 액터에 여러 인터랙션 영역을 두려면 본 컴포넌트를 영역 수만큼 추가한다.
+ * 상호작용 상태·로직만 보유하는 SceneComponent 이며, 쿼리 볼륨 자체는 CollisionVolume(임의 형상의 PrimitiveComponent,
+ * 보통 기존 메시)을 재사용한다. 볼륨은 BeginPlay 에서 부착 부모 프리미티브로 자동 해석되며(대부분 대상 메시에 직접 부착됨),
+ * 부착 부모가 대상 프리미티브가 아닐 때만 소유자가 SetCollisionVolume 으로 명시한다. 볼륨은 WxInteractable 채널에 Overlap
+ * 응답으로 표식되고, 플레이어 측 스캐너(상호작용 어빌리티의 주기 스캔)가 OverlapMultiByChannel(WxInteractable) 으로 수집한다.
+ * 한 액터에 여러 인터랙션 영역을 두려면 본 컴포넌트를 영역 수만큼 추가하고 각각 다른 볼륨에 부착한다.
  *
  * 흐름:
  *  1) 플레이어 스캐너가 주변 볼륨을 수집 → 로컬 레지스트리(HUD 리스트 소스)에 채운다. 외곽선 강조는 레지스트리가 선택 대상만 켠다
@@ -26,14 +29,31 @@ class UMeshComponent;
  * 프롬프트 표시는 본 컴포넌트가 아니라 플레이어 HUD 리스트(WBP_InteractionList)가 담당한다.
  */
 UCLASS(ClassGroup = "Wx", meta = (BlueprintSpawnableComponent))
-class WXWORLD_API UWxInteractionComponent : public USphereComponent, public IWxInteractionSource
+class WXWORLD_API UWxInteractionComponent : public USceneComponent, public IWxInteractionSource
 {
 	GENERATED_BODY()
 
 public:
 	UWxInteractionComponent();
 
+	virtual void BeginPlay() override;
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	/** 쿼리 볼륨을 명시 지정한다(오버라이드). 기본은 BeginPlay 에서 부착 부모를 자동 채택하므로, 부착 부모가 대상 프리미티브가 아닐 때만 호출한다. */
+	void SetCollisionVolume(UPrimitiveComponent* InVolume) { CollisionVolume = InVolume; }
+
+	/** 현재 쿼리 볼륨(미지정이면 nullptr). */
+	UPrimitiveComponent* GetCollisionVolume() const { return CollisionVolume; }
+
+	/** 볼륨 기준 상호작용 위치(볼륨 미지정이면 컴포넌트 위치). 스캐너 정렬·서버 사거리 검증이 읽는다. */
+	FVector GetInteractionLocation() const;
+
+	/** 서버 사거리 검증용 볼륨 바운딩 반경. 임의 형상을 바운딩 스피어로 보수적으로 감싼다(볼륨 미지정이면 0). */
+	float GetInteractionReachRadius() const;
+
+	/** 오버랩된 볼륨 프리미티브를 이를 참조하는 상호작용 컴포넌트로 역참조한다(스캐너용). 없으면 nullptr. */
+	static UWxInteractionComponent* FindByCollisionVolume(const UPrimitiveComponent* Volume);
 
 	/** 서버 권한에서 호출되는 상호작용 진입점. 권한/활성 상태를 검증한 뒤 Multicast 알림을 발사한다. */
 	void TryInteract(AActor* InstigatorActor);
@@ -63,6 +83,10 @@ public:
 	FWxOnInteractedSignature OnInteracted;
 
 protected:
+	/** 쿼리 볼륨(임의 형상). 미지정이면 BeginPlay 에서 부착 부모 프리미티브를 자동 채택한다. 자동 채택도 실패하면 스캔에 잡히지 않는다. */
+	UPROPERTY(EditAnywhere, Category = "Wx")
+	TObjectPtr<UPrimitiveComponent> CollisionVolume = nullptr;
+
 	/** HUD 리스트에 표시할 상호작용 텍스트. 레지스트리가 GetInteractionText 로 읽는다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (MultiLine = true))
 	FText InteractionText;

@@ -16,7 +16,7 @@ class UWxInteractionRegistrySubsystem;
  * 입력(Input.Interact) 시 활성화되어, 로컬 레지스트리의 현재 선택 컴포넌트를 대상으로 TryInteract를 실행하고 즉시 종료한다.
  * 감지(주변 스캔)는 어빌리티 활성화와 무관히 부여 동안 상주한다. OnGiveAbility에서 월드 타이머를 걸어 주기 스캔하고,
  * OnRemoveAbility에서 해제한다. 어빌리티 인스턴스(InstancedPerActor)는 부여 동안 살아 있으므로 타이머가 활성화와 독립적으로 틱한다.
- * 스캔은 아바타 주변을 OverlapMultiByObjectType(WxInteractable)으로 수집해 거리순으로 로컬 레지스트리에 push 한다(감지는 로컬 어포던스).
+ * 스캔은 아바타 주변을 OverlapMultiByChannel(WxInteractable)로 수집(볼륨 프리미티브 → 상호작용 컴포넌트 역참조)해 거리순으로 로컬 레지스트리에 push 한다(감지는 로컬 어포던스).
  * 단 어빌리티가 활성화 불가(CanActivateAbility 실패, 예: 사망)인 동안에는 스캔을 건너뛰고 후보를 비워 선택/프롬프트/하이라이트를 정리한다.
  *
  * 선택은 클라의 레지스트리(로컬 전용)가 소유하므로, 입력 시 클라가 선택을 읽어 서버로 전달하고 실행은 서버 권한에서만 한다.

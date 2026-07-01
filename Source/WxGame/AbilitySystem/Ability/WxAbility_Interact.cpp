@@ -150,17 +150,18 @@ void UWxAbility_Interact::ScanAndPush()
 
 	const FVector ScanOrigin = AvatarPawn->GetActorLocation();
 
-	FCollisionObjectQueryParams ObjectParams;
-	ObjectParams.AddObjectTypesToQuery(WxCollision::WxInteractable);
+	// 볼륨 메시가 WxInteractable 채널에 Overlap 응답으로 표식되므로 채널 오버랩으로 수집한다(메시의 ObjectType 은 불변).
+	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(WxInteractionScan), false);
 
 	TArray<FOverlapResult> Overlaps;
-	World->OverlapMultiByObjectType(Overlaps, ScanOrigin, FQuat::Identity, ObjectParams, FCollisionShape::MakeSphere(ScanRadius));
+	World->OverlapMultiByChannel(Overlaps, ScanOrigin, FQuat::Identity, WxCollision::WxInteractable, FCollisionShape::MakeSphere(ScanRadius), QueryParams);
 
-	// 후보 컴포넌트를 모은다. 한 액터에 여러 영역이 있으면(예: 엘리베이터) 컴포넌트 단위로 각각 수집한다.
+	// 후보 컴포넌트를 모은다. 오버랩 결과는 볼륨 프리미티브이므로 이를 참조하는 상호작용 컴포넌트로 역참조한다.
+	// 한 액터에 여러 영역이 있으면(예: 엘리베이터) 컴포넌트 단위로 각각 수집한다.
 	TArray<UWxInteractionComponent*> Candidates;
 	for (const FOverlapResult& Overlap : Overlaps)
 	{
-		if (UWxInteractionComponent* Component = Cast<UWxInteractionComponent>(Overlap.GetComponent()))
+		if (UWxInteractionComponent* Component = UWxInteractionComponent::FindByCollisionVolume(Overlap.GetComponent()))
 		{
 			Candidates.AddUnique(Component);
 		}
@@ -169,7 +170,7 @@ void UWxAbility_Interact::ScanAndPush()
 	// 가까운 영역이 먼저 오도록 거리순 정렬한다(레지스트리가 신규를 이 순서로 append).
 	Candidates.Sort([ScanOrigin](const UWxInteractionComponent& A, const UWxInteractionComponent& B)
 	{
-		return FVector::DistSquared(ScanOrigin, A.GetComponentLocation()) < FVector::DistSquared(ScanOrigin, B.GetComponentLocation());
+		return FVector::DistSquared(ScanOrigin, A.GetInteractionLocation()) < FVector::DistSquared(ScanOrigin, B.GetInteractionLocation());
 	});
 
 	Registry->UpdateInRange(Candidates);
@@ -214,9 +215,9 @@ void UWxAbility_Interact::ExecuteInteract(UWxInteractionComponent* Selected, con
 	}
 
 	// 서버 권위 거리 검증: 감지·선택은 클라 로컬이라, 변조 클라가 임의의 원거리 컴포넌트를 보내 상호작용하는 것을 막는다.
-	// 클라 스캔의 sphere-overlap 과 동일 판정 — 중심간 거리 <= ScanRadius + 대상 구 반경 — 으로 사거리를 재확인한다.
-	const float ReachRadius = ScanRadius + Selected->GetScaledSphereRadius();
-	if (FVector::DistSquared(Avatar->GetActorLocation(), Selected->GetComponentLocation()) > FMath::Square(ReachRadius))
+	// 클라 스캔의 overlap 과 동일 판정 — 중심간 거리 <= ScanRadius + 볼륨 바운딩 반경 — 으로 사거리를 재확인한다.
+	const float ReachRadius = ScanRadius + Selected->GetInteractionReachRadius();
+	if (FVector::DistSquared(Avatar->GetActorLocation(), Selected->GetInteractionLocation()) > FMath::Square(ReachRadius))
 	{
 		return;
 	}
