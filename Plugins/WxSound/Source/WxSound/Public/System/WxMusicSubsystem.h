@@ -10,14 +10,19 @@
 
 class APawn;
 class APlayerController;
+class ULocalPlayer;
+class UAbilitySystemComponent;
 class UAudioComponent;
 class UChooserTable;
 class UWxBGMData;
 
 /**
- * 게임 상태(전투/보스/플레이어 상태태그/지역)를 입력으로 Chooser 테이블을 평가해 적절한 BGM 을 골라 재생하는 월드 서브시스템.
+ * 게임 상태(플레이어 상태태그 + BGM 분류 태그)를 입력으로 Chooser 테이블을 평가해 적절한 BGM 을 골라 재생하는 월드 서브시스템.
  *
- * 주기 타이머(설정값) + 이벤트(지역 변경/폰 교체)로 재평가하고, 선택된 UWxBGMData 가 직전 곡과 다를 때만 크로스페이드한다.
+ * 재평가는 완전 이벤트 구동이다: BGM 분류 태그 주입(StartBGM), 로컬 플레이어 폰 교체(OnPossessedPawnChanged),
+ * 폰 ASC 의 owned-tag 변경(RegisterGenericGameplayTagEvent) 시점에만 재평가하고, 선택된 UWxBGMData 가 직전 곡과
+ * 다를 때만 크로스페이드한다(같으면 no-op). 로컬 플레이어/컨트롤러의 늦은 스폰은 OnLocalPlayerAddedEvent 체인으로
+ * 잡으므로 주기 폴링이 없다.
  * BGM 은 로컬 전용이므로 데디케이티드 서버에서는 동작하지 않으며, 로컬 플레이어의 ASC/상태만 읽는다.
  * 진입점은 UWxMusicLibrary(Blueprint) 가 제공한다.
  */
@@ -37,21 +42,29 @@ public:
 	void StopBGM();
 
 private:
-	void HandleReevaluate();
+	/** 보류 중이 아니면 Chooser 를 평가해 결과를 적용한다. 모든 입력 이벤트가 이 함수로 수렴한다. */
+	void Reevaluate();
+
+	/** GameInstance 의 로컬 플레이어(기존/신규)마다 컨트롤러 교체 델리게이트를 건다. */
+	void HandleLocalPlayerAdded(ULocalPlayer* LocalPlayer);
+
+	/** 로컬 플레이어의 컨트롤러가 설정/교체될 때 폰 교체 델리게이트를 재바인딩한다. */
+	void HandlePlayerControllerChanged(APlayerController* PC);
 
 	UFUNCTION()
 	void HandlePawnChanged(APawn* OldPawn, APawn* NewPawn);
 
-	/** 로컬 PlayerController 의 폰 교체 델리게이트에 한 번 바인딩한다(폰이 늦게 생기는 경우 대비, 매 재평가에서 멱등 호출). */
-	void BindLocalController();
+	/** 폰 ASC 의 owned-tag 변경 콜백. 곧바로 재평가한다. */
+	void HandleOwnedTagsChanged(const FGameplayTag Tag, int32 NewCount);
+
+	/** generic tag 이벤트 구독을 새 폰의 ASC 로 옮긴다(기존 구독 해제 포함). */
+	void RebindAbilitySystem(APawn* NewPawn);
 
 	/** 선택 결과를 적용한다. 직전 곡과 같으면 no-op, 다르면 크로스페이드. nullptr 이면 페이드아웃. */
 	void ApplyBGM(UWxBGMData* NewBGM);
 
 	/** 컨텍스트를 채우고 Chooser 를 평가해 BGM 을 고른다. */
 	UWxBGMData* EvaluateBGM();
-
-	APawn* GetLocalPlayerPawn() const;
 
 	// 평가 컨텍스트. AddStructParam 이 참조만 저장하므로 멤버로 두어 평가 호출 동안 수명을 보장한다.
 	FWxBGMChooserContext ChooserContext;
@@ -73,9 +86,11 @@ private:
 	UPROPERTY()
 	TObjectPtr<UAudioComponent> PreviousComponent;
 
+	// 폰 교체 델리게이트를 건 현재 컨트롤러.
 	TWeakObjectPtr<APlayerController> BoundController;
 
-	FTimerHandle ReevaluateTimerHandle;
+	// owned-tag 이벤트를 구독 중인 현재 폰의 ASC. 폰 교체 시 옮겨 단다.
+	TWeakObjectPtr<UAbilitySystemComponent> BoundASC;
 
 	// StopBGM 으로 보류된 상태. StartBGM 호출 시 해제된다.
 	bool bSuspended = false;

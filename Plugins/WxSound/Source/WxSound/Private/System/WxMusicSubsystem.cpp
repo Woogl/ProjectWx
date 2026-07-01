@@ -11,11 +11,12 @@
 #include "AbilitySystemBlueprintLibrary.h"
 
 #include "Components/AudioComponent.h"
+#include "Engine/GameInstance.h"
+#include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
-#include "TimerManager.h"
 
 void UWxMusicSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
@@ -33,20 +34,36 @@ void UWxMusicSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 		Chooser = Settings->DefaultBGMChooser.LoadSynchronous();
 	}
 
-	const float Interval = Settings ? Settings->ReevaluateInterval : 0.5f;
-	if (Interval > 0.f)
+	UGameInstance* GameInstance = InWorld.GetGameInstance();
+	if (!GameInstance)
 	{
-		InWorld.GetTimerManager().SetTimer(ReevaluateTimerHandle, this, &UWxMusicSubsystem::HandleReevaluate, Interval, true);
+		return;
 	}
 
-	HandleReevaluate();
+	// 이미 있는 로컬 플레이어 + 앞으로 추가될 로컬 플레이어 모두에 컨트롤러 교체 델리게이트를 건다.
+	// (늦게 스폰되는 PC/폰을 폴링 없이 잡기 위한 부트스트랩.)
+	for (ULocalPlayer* LocalPlayer : GameInstance->GetLocalPlayers())
+	{
+		HandleLocalPlayerAdded(LocalPlayer);
+	}
+	GameInstance->OnLocalPlayerAddedEvent.AddUObject(this, &UWxMusicSubsystem::HandleLocalPlayerAdded);
 }
 
 void UWxMusicSubsystem::Deinitialize()
 {
 	if (const UWorld* World = GetWorld())
 	{
-		World->GetTimerManager().ClearTimer(ReevaluateTimerHandle);
+		if (UGameInstance* GameInstance = World->GetGameInstance())
+		{
+			GameInstance->OnLocalPlayerAddedEvent.RemoveAll(this);
+			for (ULocalPlayer* LocalPlayer : GameInstance->GetLocalPlayers())
+			{
+				if (LocalPlayer)
+				{
+					LocalPlayer->OnPlayerControllerChanged().RemoveAll(this);
+				}
+			}
+		}
 	}
 
 	if (APlayerController* PC = BoundController.Get())
@@ -54,6 +71,12 @@ void UWxMusicSubsystem::Deinitialize()
 		PC->OnPossessedPawnChanged.RemoveDynamic(this, &UWxMusicSubsystem::HandlePawnChanged);
 	}
 	BoundController = nullptr;
+
+	if (UAbilitySystemComponent* ASC = BoundASC.Get())
+	{
+		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
+	}
+	BoundASC = nullptr;
 
 	if (CurrentComponent)
 	{
@@ -73,7 +96,7 @@ void UWxMusicSubsystem::StartBGM(const FGameplayTag& InBGMTag)
 {
 	bSuspended = false;
 	BGMTag = InBGMTag;
-	HandleReevaluate();
+	Reevaluate();
 }
 
 void UWxMusicSubsystem::StopBGM()
@@ -82,10 +105,8 @@ void UWxMusicSubsystem::StopBGM()
 	ApplyBGM(nullptr);
 }
 
-void UWxMusicSubsystem::HandleReevaluate()
+void UWxMusicSubsystem::Reevaluate()
 {
-	BindLocalController();
-
 	if (bSuspended)
 	{
 		return;
@@ -94,26 +115,71 @@ void UWxMusicSubsystem::HandleReevaluate()
 	ApplyBGM(EvaluateBGM());
 }
 
-void UWxMusicSubsystem::HandlePawnChanged(APawn* OldPawn, APawn* NewPawn)
+void UWxMusicSubsystem::HandleLocalPlayerAdded(ULocalPlayer* LocalPlayer)
 {
-	HandleReevaluate();
-}
-
-void UWxMusicSubsystem::BindLocalController()
-{
-	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (!PC || PC == BoundController.Get())
+	if (!LocalPlayer)
 	{
 		return;
 	}
 
-	if (APlayerController* Old = BoundController.Get())
+	// 이미 컨트롤러가 있으면 즉시 반영하고, 이후 교체는 델리게이트로 잡는다.
+	if (APlayerController* PC = LocalPlayer->GetPlayerController(GetWorld()))
 	{
-		Old->OnPossessedPawnChanged.RemoveDynamic(this, &UWxMusicSubsystem::HandlePawnChanged);
+		HandlePlayerControllerChanged(PC);
+	}
+	LocalPlayer->OnPlayerControllerChanged().AddUObject(this, &UWxMusicSubsystem::HandlePlayerControllerChanged);
+}
+
+void UWxMusicSubsystem::HandlePlayerControllerChanged(APlayerController* PC)
+{
+	APlayerController* Old = BoundController.Get();
+	if (Old != PC)
+	{
+		if (Old)
+		{
+			Old->OnPossessedPawnChanged.RemoveDynamic(this, &UWxMusicSubsystem::HandlePawnChanged);
+		}
+		BoundController = PC;
+		if (PC)
+		{
+			PC->OnPossessedPawnChanged.AddDynamic(this, &UWxMusicSubsystem::HandlePawnChanged);
+		}
 	}
 
-	PC->OnPossessedPawnChanged.AddDynamic(this, &UWxMusicSubsystem::HandlePawnChanged);
-	BoundController = PC;
+	// 컨트롤러가 이미 폰을 물고 있을 수 있으므로 ASC 를 지금 재바인딩한다(이후 교체는 HandlePawnChanged 가 처리).
+	RebindAbilitySystem(PC ? PC->GetPawn() : nullptr);
+	Reevaluate();
+}
+
+void UWxMusicSubsystem::HandlePawnChanged(APawn* OldPawn, APawn* NewPawn)
+{
+	RebindAbilitySystem(NewPawn);
+	Reevaluate();
+}
+
+void UWxMusicSubsystem::HandleOwnedTagsChanged(const FGameplayTag Tag, int32 NewCount)
+{
+	Reevaluate();
+}
+
+void UWxMusicSubsystem::RebindAbilitySystem(APawn* NewPawn)
+{
+	UAbilitySystemComponent* NewASC = NewPawn ? UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(NewPawn) : nullptr;
+	UAbilitySystemComponent* OldASC = BoundASC.Get();
+	if (NewASC == OldASC)
+	{
+		return;
+	}
+
+	if (OldASC)
+	{
+		OldASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
+	}
+	if (NewASC)
+	{
+		NewASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxMusicSubsystem::HandleOwnedTagsChanged);
+	}
+	BoundASC = NewASC;
 }
 
 UWxBGMData* UWxMusicSubsystem::EvaluateBGM()
@@ -125,12 +191,9 @@ UWxBGMData* UWxMusicSubsystem::EvaluateBGM()
 
 	// 컨텍스트 채우기. 멤버 ChooserContext 는 AddStructParam 이 참조만 잡으므로 평가 동안 살아있어야 한다.
 	ChooserContext.PlayerStateTags.Reset();
-	if (APawn* Pawn = GetLocalPlayerPawn())
+	if (UAbilitySystemComponent* ASC = BoundASC.Get())
 	{
-		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn))
-		{
-			ASC->GetOwnedGameplayTags(ChooserContext.PlayerStateTags);
-		}
+		ASC->GetOwnedGameplayTags(ChooserContext.PlayerStateTags);
 	}
 
 	ChooserContext.BGMTag = BGMTag;
@@ -180,9 +243,4 @@ void UWxMusicSubsystem::ApplyBGM(UWxBGMData* NewBGM)
 			CurrentComponent = NewComponent;
 		}
 	}
-}
-
-APawn* UWxMusicSubsystem::GetLocalPlayerPawn() const
-{
-	return UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 }
