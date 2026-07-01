@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class WxAudio : ModuleRules
+public class WxSound : ModuleRules
 {
-	public WxAudio(ReadOnlyTargetRules Target) : base(Target)
+	public WxSound(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 

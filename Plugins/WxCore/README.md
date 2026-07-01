@@ -57,7 +57,7 @@
 3. `Plugins/WxCore/Source/WxCore/Public/WxAbilityComponent.h` — 같은 분리 패턴의 또 다른 형태 (추상 베이스 앵커)
 
 ## 관련
-- 상위: 모든 Wx 도메인 플러그인([[WxCombat]], [[WxInventory]], [[WxUI]], [[WxWorld]], [[WxAudio]], [[WxAI]], [[WxQuest]], [[WxSave]])과 게임 모듈 [[WxGame]]이 WxCore를 참조
+- 상위: 모든 Wx 도메인 플러그인([[WxCombat]], [[WxInventory]], [[WxUI]], [[WxWorld]], [[WxSound]], [[WxAI]], [[WxQuest]], [[WxSave]])과 게임 모듈 [[WxGame]]이 WxCore를 참조
 
 ---
 *문서 기준 커밋 `6f04ccd` · 생성일 2026-06-30 · 소스 8파일 — `/readme-writer`로 갱신*

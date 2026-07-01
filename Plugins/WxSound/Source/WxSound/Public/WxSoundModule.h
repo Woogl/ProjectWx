@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleInterface.h"
 
-class FWxAudioModule : public IModuleInterface
+class FWxSoundModule : public IModuleInterface
 {
 public:
 	virtual void StartupModule() override;

@@ -80,7 +80,7 @@
 			"Enabled": true
 		},
 		{
-			"Name": "WxAudio",
+			"Name": "WxSound",
 			"Enabled": true
 		}
 	]

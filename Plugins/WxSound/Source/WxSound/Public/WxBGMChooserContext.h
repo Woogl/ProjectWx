@@ -17,7 +17,7 @@
  * 해당 상태를 플레이어 ASC 에 태그로 부여하면 PlayerStateTags 에 그대로 잡힌다.
  */
 USTRUCT(BlueprintType)
-struct WXAUDIO_API FWxBGMChooserContext
+struct WXSOUND_API FWxBGMChooserContext
 {
 	GENERATED_BODY()
 

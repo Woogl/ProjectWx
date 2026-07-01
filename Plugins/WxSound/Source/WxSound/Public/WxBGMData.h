@@ -15,7 +15,7 @@ class USoundBase;
  * 곡마다 다른 페이드 길이를 줄 수 있다. 실제 루프는 Sound 에셋(Sound Cue/Wave 의 Looping)에서 켠다.
  */
 UCLASS(BlueprintType)
-class WXAUDIO_API UWxBGMData : public UPrimaryDataAsset
+class WXSOUND_API UWxBGMData : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 

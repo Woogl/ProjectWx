@@ -11,7 +11,7 @@
  * BGM 시스템의 Blueprint 진입점. UWxMusicSubsystem 으로 위임하는 thin wrapper.
  */
 UCLASS()
-class WXAUDIO_API UWxMusicLibrary : public UBlueprintFunctionLibrary
+class WXSOUND_API UWxMusicLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 

@@ -22,7 +22,7 @@ class UWxBGMData;
  * 진입점은 UWxMusicLibrary(Blueprint) 가 제공한다.
  */
 UCLASS()
-class WXAUDIO_API UWxMusicSubsystem : public UWorldSubsystem
+class WXSOUND_API UWxMusicSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 

@@ -12,7 +12,7 @@ class UChooserTable;
  * BGM 시스템 프로젝트 설정. Project Settings > Wx > "Wx Music Settings".
  */
 UCLASS(Config = Game, DefaultConfig, meta = (DisplayName = "Wx Music Settings"))
-class WXAUDIO_API UWxMusicSettings : public UDeveloperSettings
+class WXSOUND_API UWxMusicSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
 
