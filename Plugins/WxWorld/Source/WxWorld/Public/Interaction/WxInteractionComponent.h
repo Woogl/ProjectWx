@@ -33,6 +33,8 @@ class WXWORLD_API UWxInteractionComponent : public USphereComponent, public IWxI
 public:
 	UWxInteractionComponent();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	/** 서버 권한에서 호출되는 상호작용 진입점. 권한/활성 상태를 검증한 뒤 Multicast 알림을 발사한다. */
 	void TryInteract(AActor* InstigatorActor);
 
@@ -78,5 +80,16 @@ protected:
 	int32 HighlightStencilValue = 1;
 
 private:
-	bool bInteractionEnabled;
+	UFUNCTION()
+	void OnRep_InteractionEnabled();
+
+	/** bInteractionEnabled 값에 맞춰 쿼리 콜리전을 토글한다. SetInteractionEnabled(로컬)와 OnRep(복제)이 공유한다. */
+	void ApplyInteractionCollision();
+
+	/**
+	 * 상호작용 활성 여부. 서버 권위에서 SetInteractionEnabled 로 토글되고 복제된다.
+	 * 서버 전용으로 구동되는 소유자(예: enemy finisher 어포던스 타이머)의 토글이 OnRep 을 통해 원격 클라의 쿼리 콜리전에 반영되게 한다.
+	 */
+	UPROPERTY(ReplicatedUsing = OnRep_InteractionEnabled)
+	bool bInteractionEnabled = true;
 };

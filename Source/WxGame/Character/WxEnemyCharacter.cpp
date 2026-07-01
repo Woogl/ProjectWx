@@ -51,11 +51,13 @@ void AWxEnemyCharacter::BeginPlay()
 
 	NameplateComponent->InitializeViewModels(AbilitySystemComponent, GetCharacterUIData());
 
-	// 처형 상호작용은 조건(그로기=앞잡 / 미인지·후방=뒤잡)을 권위에서 주기적으로 평가해 노출한다.
-	FinisherInteractionComponent->SetInteractionEnabled(false);
 	FinisherInteractionComponent->OnInteracted.AddDynamic(this, &AWxEnemyCharacter::HandleFinisherInteracted);
+
+	// 처형 상호작용은 권위에서만 토글한다 — 시작 시 꺼두고, 조건(그로기=앞잡 / 미인지·후방=뒤잡)을 어포던스 타이머가 주기 평가해 켠다.
+	// 클라는 복제(bInteractionEnabled)로 활성 상태를 추종한다. 클라에서 토글하면 이미 복제된 값을 로컬로 덮어써(변경 기반 복제라 자가 치유 안 됨) 레이트조인에서 활성 상태가 깨진다.
 	if (HasAuthority())
 	{
+		FinisherInteractionComponent->SetInteractionEnabled(false);
 		GetWorldTimerManager().SetTimer(FinisherAffordanceTimerHandle, this, &AWxEnemyCharacter::UpdateFinisherAffordance, 0.15f, true);
 	}
 }
