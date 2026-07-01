@@ -56,4 +56,4 @@
 - 상위: 게임 전체의 조립점(이 위에는 엔진뿐). 도메인 로직은 [[WxCombat]] · [[WxInventory]] · [[WxAI]] · [[WxWorld]] · [[WxUI]] · [[WxSave]] · 공용 정의는 [[WxCore]]
 
 ---
-*문서 기준 커밋 `d273f23c` · 생성일 2026-07-01 · 소스 48파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `dbe4858` · 생성일 2026-07-01 · 소스 48파일 — `/readme-writer`로 갱신*
