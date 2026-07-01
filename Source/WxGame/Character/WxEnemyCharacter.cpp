@@ -89,8 +89,9 @@ void AWxEnemyCharacter::HandleDeath()
 
 void AWxEnemyCharacter::UpdateFinisherAffordance()
 {
-	// 노출은 발동과 동일한 단일 평가를 따른다. 발동 가능한 변형이 있을 때만 상호작용을 노출한다.
-	const bool bEligible = GetEligibleFinisherEventTag().IsValid();
+	// 노출은 로컬 플레이어(player0) 기준으로 평가한다 — 뒤잡 후방 판정의 플레이어별 노출 정합성은 별도 과제.
+	// 발동 검증은 실제 instigator 를 쓰므로(HandleFinisherInteracted) 노출~발동 주체가 갈릴 수 있으나, 발동이 서버 권위 최종 판정이다.
+	const bool bEligible = GetEligibleFinisherEventTag(UGameplayStatics::GetPlayerPawn(this, 0)).IsValid();
 
 	// 자격이 사라지면(앞잡은 연출 종료 시 DP 리셋으로 그로기 해제 등) 다음 처형을 위해 래치를 푼다.
 	if (!bEligible)
@@ -102,7 +103,7 @@ void AWxEnemyCharacter::UpdateFinisherAffordance()
 	FinisherInteractionComponent->SetInteractionEnabled(bEligible && !bFinisherTriggered);
 }
 
-FGameplayTag AWxEnemyCharacter::GetEligibleFinisherEventTag() const
+FGameplayTag AWxEnemyCharacter::GetEligibleFinisherEventTag(const AActor* Interactor) const
 {
 	if (!IsAlive() || !AbilitySystemComponent)
 	{
@@ -111,26 +112,23 @@ FGameplayTag AWxEnemyCharacter::GetEligibleFinisherEventTag() const
 
 	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
 	{
-		// 앞잡: 그로기 상태면 방향과 무관하게 가능하다.
+		// 앞잡: 그로기 상태면 방향과 무관하게 가능하다(주체 위치 불필요).
 		return WxGameplayTags::Event_Finisher;
 	}
 
-	if (!AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_InCombat))
+	if (!AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_InCombat) && Interactor)
 	{
-		// 뒤잡: 미인지(비전투) 상태에서 로컬 플레이어가 후방 원뿔 안에 있을 때만 가능하다.
-		if (const APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0))
+		// 뒤잡: 미인지(비전투) 상태에서 상호작용 주체가 후방 원뿔 안에 있을 때만 가능하다.
+		FVector ToInteractor = Interactor->GetActorLocation() - GetActorLocation();
+		ToInteractor.Z = 0.0;
+		if (ToInteractor.Normalize())
 		{
-			FVector ToPlayer = PlayerPawn->GetActorLocation() - GetActorLocation();
-			ToPlayer.Z = 0.0;
-			if (ToPlayer.Normalize())
+			// 정면 내적이 후방 임계 이하 = 주체가 후방 원뿔 안. (반각 90° → 임계 0 → 후방 반구)
+			const float ForwardDot = FVector::DotProduct(GetActorForwardVector(), ToInteractor);
+			const float RearThreshold = -FMath::Cos(FMath::DegreesToRadians(BackstabRearHalfAngle));
+			if (ForwardDot <= RearThreshold)
 			{
-				// 정면 내적이 후방 임계 이하 = 플레이어가 후방 원뿔 안. (반각 90° → 임계 0 → 후방 반구)
-				const float ForwardDot = FVector::DotProduct(GetActorForwardVector(), ToPlayer);
-				const float RearThreshold = -FMath::Cos(FMath::DegreesToRadians(BackstabRearHalfAngle));
-				if (ForwardDot <= RearThreshold)
-				{
-					return WxGameplayTags::Event_Backstab;
-				}
+				return WxGameplayTags::Event_Backstab;
 			}
 		}
 	}
@@ -145,9 +143,9 @@ void AWxEnemyCharacter::HandleFinisherInteracted(AActor* InstigatorActor)
 		return;
 	}
 
-	// 발동 변형은 노출과 동일한 평가로 발동 시점에 다시 정한다(노출~발동 사이 상태 변화를 흡수).
-	// 자격이 없으면(어포던스 없음) 아무것도 발동하지 않는다.
-	const FGameplayTag EventTag = GetEligibleFinisherEventTag();
+	// 발동 변형은 실제 상호작용 주체(InstigatorActor) 기준으로 발동 시점에 다시 정한다(노출~발동 사이 상태·위치 변화를 흡수, 서버 권위 검증).
+	// 자격이 없으면(후방 아님 등) 아무것도 발동하지 않는다.
+	const FGameplayTag EventTag = GetEligibleFinisherEventTag(InstigatorActor);
 	if (!EventTag.IsValid())
 	{
 		return;

@@ -53,12 +53,13 @@ protected:
 	void UpdateFinisherAffordance();
 
 	/**
-	 * 현재 조건에서 발동 가능한 처형 변형의 송출 이벤트 태그를 반환한다(권위).
-	 * 그로기면 앞잡(Event.Finisher), 미인지·후방이면 뒤잡(Event.Backstab), 불가면 빈 태그.
-	 * 노출(UpdateFinisherAffordance)과 발동(HandleFinisherInteracted)이 이 단일 평가를 공유해
-	 * 노출 자격과 발동 변형이 어긋나지 않게 한다.
+	 * 주어진 상호작용 주체(Interactor) 기준으로 발동 가능한 처형 변형의 송출 이벤트 태그를 반환한다(권위).
+	 * 그로기면 앞잡(Event.Finisher, 방향 무관), 미인지·후방이면 뒤잡(Event.Backstab), 불가면 빈 태그.
+	 * 앞잡은 Interactor 위치를 쓰지 않고, 뒤잡의 후방 판정만 Interactor 위치를 쓴다.
+	 * 노출(UpdateFinisherAffordance)은 로컬 플레이어를, 발동(HandleFinisherInteracted)은 실제 instigator 를 넘겨
+	 * 서버가 실제 상호작용 주체를 기준으로 검증하게 한다.
 	 */
-	FGameplayTag GetEligibleFinisherEventTag() const;
+	FGameplayTag GetEligibleFinisherEventTag(const AActor* Interactor) const;
 
 	/** 처형 상호작용 시, 현재 조건에 따라 공격자(플레이어) ASC 로 Event.Finisher(앞잡) 또는 Event.Backstab(뒤잡)을 송출한다. */
 	UFUNCTION()
