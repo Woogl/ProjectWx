@@ -83,14 +83,8 @@ namespace WxGameplayTags
 	/** 피니셔(앞잡) 발동 이벤트. 그로기 적 상호작용 시 플레이어 ASC로 송출(Target=적), WxAbility_Finisher가 트리거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Finisher);
 
-	/** 피니셔(앞잡) 대미지 타이밍 이벤트. 피니셔 몽타주 노티파이가 송출, 어빌리티가 WaitGameplayEvent로 받아 피해·DP 제거 GE 적용 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Finisher_Damage);
-
 	/** 백스탭(뒤잡) 발동 이벤트. 미인지 적 후방 상호작용 시 플레이어 ASC로 송출(Target=적), WxAbility_Finisher가 트리거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Backstab);
-
-	/** 백스탭 대미지 타이밍 이벤트. 백스탭 공격 몽타주 노티파이가 송출, 어빌리티가 WaitGameplayEvent로 받아 치명 대미지 적용 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Backstab_Damage);
 
 	// ── Gimmick ───────────────────────────────────────────────────────────
 	// 각 태그는 해당 기믹의 권위 상태 값(복제·SaveGame)이자, GimmickStateTree 로 보내는
@@ -178,7 +172,6 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Ultimate);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Interact);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_UseItem);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Finisher);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_1);
