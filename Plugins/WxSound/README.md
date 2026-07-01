@@ -1,45 +1,47 @@
-# WxSound — 오디오/배경음악 시스템
+# WxSound — BGM/음악 시스템
 
-> 게임 상태(전투/보스/플레이어 상태태그/BGM 분류 태그)를 Chooser 테이블로 평가해 적절한 BGM 을 골라 크로스페이드 재생한다. 로컬 전용으로 동작한다.
+> 게임 상태(플레이어 상태 태그 + BGM 분류 태그)를 Chooser 테이블로 평가해 적절한 배경음악을 고르고, 곡 전환 시 크로스페이드로 재생하는 로컬 전용 오디오 모듈이다.
 
 ## 책임
 **담당**
-- BGM 분류 태그 + 로컬 플레이어 ASC 의 owned-tag 를 입력으로 Chooser 테이블을 평가해 곡 선택
-- 선택된 곡으로의 크로스페이드 전환(곡별 페이드 인/아웃 시간), 페이드 동안 직전 컴포넌트 보유
-- 주기 타이머/이벤트(폰 교체) 기반 재평가, StartBGM/StopBGM 보류 상태 관리
-- 트랙 정의(`UWxBGMData`) 및 프로젝트 설정(`UWxMusicSettings`) 데이터 주도 구성
+- 상태→곡 선택: `FWxBGMChooserContext`(플레이어 ASC owned-tag + BGM 분류 태그)를 Chooser 테이블에 넣어 `UWxBGMData` 를 고른다.
+- 재생/전환: 선택된 곡이 직전과 다를 때만 이전 곡 페이드아웃 + 새 곡 페이드인(같으면 no-op, `nullptr` 이면 페이드아웃). 페이드 동안 직전 컴포넌트를 보유해 GC 를 막는다.
+- 완전 이벤트 구동 재평가: `OnLocalPlayerAddedEvent` → 컨트롤러 교체 → 폰 교체(`OnPossessedPawnChanged`) → 폰 ASC owned-tag 변경(`RegisterGenericGameplayTagEvent`), 그리고 BP `StartBGM` 주입 — 이 이벤트들만 재평가를 트리거하며 주기 폴링/타이머가 없다.
+- Blueprint 진입점(`StartBGM`/`StopBGM`)과 프로젝트 설정(Chooser 테이블 지정) 제공.
 
 **경계 (비담당)**
-- 전투/보스/지역 등 "상태" 자체의 판정은 안 함 — 해당 상태를 플레이어 ASC 에 태그로 부여하면 `PlayerStateTags` 로 그대로 잡힘
-- BGM 분류 태그를 언제 바꿀지(전투 진입 등)는 호출 측이 `UWxMusicLibrary::StartBGM` 으로 결정
-- SFX/사운드 에셋 루프 자체는 Sound Cue/Wave 에 위임
+- 언제 어떤 BGM 분류를 켤지 결정 — 게임플레이/BP 가 `StartBGM(태그)` 호출로 주도.
+- 플레이어 상태(전투/보스/지역 등) 판정과 태그 부여 — 이 모듈은 플레이어 ASC 의 owned-tag 를 읽기만 하며, 부여는 ASC 소유자([[WxCombat]] 등 도메인)가 한다.
+- 사운드 에셋 자체의 루프/믹싱 — Sound Cue/Wave 에 위임한다.
+- 데디케이티드 서버 오디오 — BGM 은 로컬 전용이라 서버에서는 아무 것도 하지 않는다.
 
 ## 의존성
-- **주요 의존**: `WxCore` / `Chooser`(테이블 평가) / `GameplayAbilities`(로컬 ASC owned-tag 조회) / `GameplayTags` / `DeveloperSettings`
-- 규칙: 플러그인 의존은 `WxCore`, `GameplayAbilities`, `Chooser` 뿐 — WxCore 외 Wx 플러그인 참조 없음 ✅
+- **주요 의존**: `WxCore` · `GameplayAbilities`(ASC owned-tag 이벤트/조회) · `Chooser`(테이블 평가) · `GameplayTags` · `DeveloperSettings`
+- 규칙: 「WxCore 외 Wx 플러그인 참조」 — 없음 ✅ (`.Build.cs`·`.uplugin` 모두 Wx 계열은 `WxCore` 만, 나머지는 엔진 모듈/플러그인)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxMusicLibrary` | Blueprint 진입점. StartBGM/StopBGM 을 서브시스템으로 위임하는 thin wrapper | `Plugins/WxSound/Source/WxSound/Public/WxMusicLibrary.h` |
-| `UWxMusicSubsystem` | 핵심 엔진. 재평가→선택→크로스페이드의 전 과정을 담당하는 월드 서브시스템 | `Plugins/WxSound/Source/WxSound/Public/System/WxMusicSubsystem.h` |
-| `FWxBGMChooserContext` | Chooser 에 넘기는 Struct Parameter. 평가 입력(PlayerStateTags/BGMTag) | `Plugins/WxSound/Source/WxSound/Public/WxBGMChooserContext.h` |
-| `UWxBGMData` | 한 BGM 트랙 정의이자 Chooser 의 결과 타입(Sound + 페이드 시간) | `Plugins/WxSound/Source/WxSound/Public/WxBGMData.h` |
-| `UWxMusicSettings` | 프로젝트 설정. 사용할 Chooser 테이블과 재평가 주기 | `Plugins/WxSound/Source/WxSound/Public/System/WxMusicSettings.h` |
+| `UWxMusicLibrary` | BP 진입점. World 서브시스템으로 위임하는 thin wrapper(`StartBGM`/`StopBGM`) | `Plugins/WxSound/Source/WxSound/Public/WxMusicLibrary.h` |
+| `UWxMusicSubsystem` | 모든 입력 이벤트가 수렴하는 재평가·재생 엔진(WorldSubsystem). 이벤트 바인딩·크로스페이드가 여기 | `Plugins/WxSound/Source/WxSound/Public/System/WxMusicSubsystem.h` |
+| `FWxBGMChooserContext` | Chooser 평가 입력 struct. `PlayerStateTags`(ASC 스냅샷) + `BGMTag`(BP 주입) | `Plugins/WxSound/Source/WxSound/Public/WxBGMChooserContext.h` |
+| `UWxBGMData` | 한 BGM 트랙 정의이자 Chooser 결과 타입. `Sound` + 곡별 `FadeInTime`/`FadeOutTime` | `Plugins/WxSound/Source/WxSound/Public/WxBGMData.h` |
+| `UWxMusicSettings` | 프로젝트 설정(Project Settings > Wx > Wx Music Settings). `DefaultBGMChooser` 테이블 지정 | `Plugins/WxSound/Source/WxSound/Public/System/WxMusicSettings.h` |
 
 ## 확장 포인트 / 규약
-- 새 곡 추가: `UWxBGMData` 데이터 에셋을 만들고 Sound/페이드 시간을 채운 뒤, Chooser 테이블의 행 결과로 연결한다.
-- 선택 규칙 변경: `UWxMusicSettings::DefaultBGMChooser` 가 가리키는 Chooser 테이블을 편집한다. (Result Class = `UWxBGMData`, Parameter = `FWxBGMChooserContext`)
-- 새 입력 키 추가: `FWxBGMChooserContext` 에 `UPROPERTY` 멤버를 추가하고 서브시스템의 `EvaluateBGM` 에서 채운 뒤, 테이블 컬럼에 바인딩한다.
-- 상태 반영: 별도 감지 코드 없이 플레이어 ASC 에 태그를 부여하면 `PlayerStateTags` 로 흘러든다.
+- **새 곡 추가**: `UWxBGMData` 에셋을 만들어 `Sound`·페이드 값을 넣고, Chooser 테이블의 한 행 결과로 연결한다.
+- **새 선택 규칙**: `DefaultBGMChooser` 가 가리키는 Chooser 테이블 컬럼을 `FWxBGMChooserContext` 멤버(`PlayerStateTags`/`BGMTag`)에 바인딩해 편집한다.
+- **새 입력 키 추가**: `FWxBGMChooserContext` 에 `UPROPERTY` 멤버를 추가하고 `UWxMusicSubsystem::EvaluateBGM` 에서 채운 뒤 테이블 컬럼에 바인딩한다. (컬럼 대상이 되려면 멤버가 `UPROPERTY` 로 노출돼야 한다.)
+- **새 상태를 BGM 에 반영**: 별도 감지 배선 없이 해당 상태를 플레이어 ASC 에 GameplayTag 로 부여하면 `PlayerStateTags` 로 자동 유입되어 재평가를 트리거한다.
+- **Chooser 테이블 지정**: Project Settings > Wx > *Wx Music Settings* > `DefaultBGMChooser`(Result Class = `UWxBGMData`, Parameter = `FWxBGMChooserContext`).
 
 ## 여기서부터 읽어라
-1. `Plugins/WxSound/Source/WxSound/Public/System/WxMusicSubsystem.h` — 전체 흐름(재평가/선택/크로스페이드/보류)의 골격이 여기 다 있음
-2. `Plugins/WxSound/Source/WxSound/Private/System/WxMusicSubsystem.cpp` — `EvaluateBGM`/`ApplyBGM` 의 실제 Chooser 호출·페이드 처리
-3. `Plugins/WxSound/Source/WxSound/Public/WxBGMChooserContext.h` — 데이터 계약(테이블 컬럼이 무엇에 바인딩되는지)
+1. `Plugins/WxSound/Source/WxSound/Private/System/WxMusicSubsystem.cpp` — 이벤트 구동 재평가 파이프라인의 심장. `OnWorldBeginPlay` 부트스트랩 → `Handle*` 델리게이트 체인 → `Reevaluate`/`EvaluateBGM`/`ApplyBGM` 흐름을 먼저 잡는다.
+2. `Plugins/WxSound/Source/WxSound/Public/WxMusicLibrary.h` — 외부에서 이 모듈을 두드리는 유일한 진입점(BP `StartBGM`/`StopBGM`).
+3. `Plugins/WxSound/Source/WxSound/Public/WxBGMChooserContext.h` + `Plugins/WxSound/Source/WxSound/Public/WxBGMData.h` — Chooser 의 입력 계약과 결과 타입. 선택 로직이 무엇을 읽고 무엇을 내놓는지의 양 끝.
 
 ## 관련
-- 상위: 호출 측(게임플레이/레벨/[[WxCombat]] 등)이 [[WxCore]] 의 태그로 `UWxMusicLibrary::StartBGM` 을 호출해 BGM 분류를 전환한다.
+- 상위: 게임플레이 BP/코드가 `UWxMusicLibrary`(BlueprintCallable)로 진입해 BGM 분류를 켠다. 상태 태그 공급원은 플레이어 ASC — [[WxCombat]] 등 도메인 모듈이 부여한 owned-tag 를 그대로 읽는다.
 
 ---
-*문서 기준 커밋 `9e49a09` · 생성일 2026-06-27 · 소스 11파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `d273f23c` · 생성일 2026-07-01 · 소스 10파일 — `/readme-writer`로 갱신*
