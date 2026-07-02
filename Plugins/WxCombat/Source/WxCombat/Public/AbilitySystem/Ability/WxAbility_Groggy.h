@@ -39,9 +39,13 @@ protected:
 private:
 	void HandleGroggyTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
+	// 그로기 도중 사망 시 즉시 종료. ActivationBlockedTags(State.Dead)는 신규 활성화만 막고 실행 중 인스턴스는 종료하지 못하므로 별도 구독한다.
+	void HandleDeadTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
 	void TickPlayMontage();
 
 	FDelegateHandle GroggyTagDelegateHandle;
+	FDelegateHandle DeadTagDelegateHandle;
 	FActiveGameplayEffectHandle DrainDPEffectHandle;
 	FTimerHandle MontagePollingTimerHandle;
 };

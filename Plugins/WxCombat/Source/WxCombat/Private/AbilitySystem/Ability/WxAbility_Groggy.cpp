@@ -47,6 +47,11 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	GroggyTagDelegateHandle = ASC->RegisterGameplayTagEvent(WxGameplayTags::State_Groggy, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &UWxAbility_Groggy::HandleGroggyTagChanged);
 
+	// 그로기 도중 사망하면 폴러가 사망 몽타주 종료 후 시체 위에 그로기 몽타주를 덮어씌우므로, 사망 태그 부여 시 즉시 종료한다.
+	// (ActivationBlockedTags 는 활성화 시점 전용이라 실행 중 종료엔 쓸 수 없다. 활성화 시엔 State.Dead 로 차단되므로 이후 부여만 감지하면 충분하다.)
+	DeadTagDelegateHandle = ASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
+		.AddUObject(this, &UWxAbility_Groggy::HandleDeadTagChanged);
+
 	FGameplayEffectSpecHandle DrainSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_DrainDP::StaticClass(), GetAbilityLevel());
 	if (DrainSpecHandle.IsValid())
 	{
@@ -113,6 +118,13 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 					.Remove(GroggyTagDelegateHandle);
 				GroggyTagDelegateHandle.Reset();
 			}
+
+			if (DeadTagDelegateHandle.IsValid())
+			{
+				ASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
+					.Remove(DeadTagDelegateHandle);
+				DeadTagDelegateHandle.Reset();
+			}
 		}
 	}
 
@@ -124,6 +136,14 @@ void UWxAbility_Groggy::HandleGroggyTagChanged(const FGameplayTag CallbackTag, i
 	if (NewCount == 0)
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
+}
+
+void UWxAbility_Groggy::HandleDeadTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	if (NewCount > 0)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 	}
 }
 
