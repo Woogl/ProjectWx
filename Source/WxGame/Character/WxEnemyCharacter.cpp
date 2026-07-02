@@ -12,6 +12,7 @@
 #include "TimerManager.h"
 #include "Spawnable/WxSpawner.h"
 #include "Targeting/WxLockOnPointComponent.h"
+#include "WxBGMSourceComponent.h"
 #include "WxGameplayTags.h"
 
 AWxEnemyCharacter::AWxEnemyCharacter()
@@ -43,6 +44,9 @@ AWxEnemyCharacter::AWxEnemyCharacter()
 	FinisherInteractionComponent->SetupAttachment(GetMesh());
 	FinisherInteractionComponent->SetHighlightTarget(GetMesh());
 	FinisherInteractionComponent->SetInteractionText(FText::FromString(TEXT("Finisher")));
+
+	// 상태 기반 BGM 소스. 실제 태그·우선순위는 각 적·보스 BP 에서 설정한다(MusicTag 를 비우면 inert).
+	BGMSourceComponent = CreateDefaultSubobject<UWxBGMSourceComponent>(TEXT("BGMSourceComponent"));
 }
 
 void AWxEnemyCharacter::BeginPlay()

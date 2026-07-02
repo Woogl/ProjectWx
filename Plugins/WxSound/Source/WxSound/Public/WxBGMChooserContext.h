@@ -6,6 +6,8 @@
 #include "GameplayTagContainer.h"
 #include "WxBGMChooserContext.generated.h"
 
+class AActor;
+
 /**
  * Chooser 평가에 넘기는 BGM 선택 컨텍스트(Struct Parameter).
  *
@@ -28,4 +30,9 @@ struct WXSOUND_API FWxBGMChooserContext
 	// BP StartBGM 으로 주입된 BGM 분류 태그(탐험 / 전투 / 보스 / 마을 등). Chooser 가 이 키로 해당 행을 고른다.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|BGM")
 	FGameplayTag BGMTag;
+
+	// 우선순위 승자 소스의 소유자 액터. Chooser 의 Object Class 컬럼이 이 액터의 클래스로 행을 필터한다
+	// (예: SubClassOf AWxBossCharacter → 보스곡). 활성 소스가 없으면 null.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|BGM")
+	TObjectPtr<AActor> SourceOwner;
 };

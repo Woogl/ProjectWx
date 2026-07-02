@@ -10,6 +10,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 
+#include "Components/ActorComponent.h"
 #include "Components/AudioComponent.h"
 #include "Engine/GameInstance.h"
 #include "Engine/LocalPlayer.h"
@@ -105,6 +106,58 @@ void UWxMusicSubsystem::StopBGM()
 	ApplyBGM(nullptr);
 }
 
+void UWxMusicSubsystem::RegisterBGMSource(UObject* Source, const FGameplayTag& InMusicTag, int32 InPriority)
+{
+	if (!Source)
+	{
+		return;
+	}
+
+	// 같은 소스의 기존 등록을 먼저 제거해 갱신 겸 최근 순서로 재삽입한다(RemoveAt 로 순서 보존).
+	for (int32 Index = ActiveSources.Num() - 1; Index >= 0; --Index)
+	{
+		if (ActiveSources[Index].Source.Get() == Source)
+		{
+			ActiveSources.RemoveAt(Index);
+		}
+	}
+
+	FWxBGMSourceRequest& Request = ActiveSources.AddDefaulted_GetRef();
+	Request.Source = Source;
+	// 소스는 컴포넌트이므로 그 소유자 액터를 미리 해석해 둔다(Chooser 가 클래스로 필터).
+	if (const UActorComponent* SourceComponent = Cast<UActorComponent>(Source))
+	{
+		Request.Owner = SourceComponent->GetOwner();
+	}
+	Request.MusicTag = InMusicTag;
+	Request.Priority = InPriority;
+
+	Reevaluate();
+}
+
+void UWxMusicSubsystem::UnregisterBGMSource(UObject* Source)
+{
+	if (!Source)
+	{
+		return;
+	}
+
+	bool bRemoved = false;
+	for (int32 Index = ActiveSources.Num() - 1; Index >= 0; --Index)
+	{
+		if (ActiveSources[Index].Source.Get() == Source)
+		{
+			ActiveSources.RemoveAt(Index);
+			bRemoved = true;
+		}
+	}
+
+	if (bRemoved)
+	{
+		Reevaluate();
+	}
+}
+
 void UWxMusicSubsystem::Reevaluate()
 {
 	if (bSuspended)
@@ -196,7 +249,10 @@ UWxBGMData* UWxMusicSubsystem::EvaluateBGM()
 		ASC->GetOwnedGameplayTags(ChooserContext.PlayerStateTags);
 	}
 
-	ChooserContext.BGMTag = BGMTag;
+	// 승자 소스가 있으면 그 MusicTag/소유자를, 없으면 베이스라인 BGMTag/null 을 컨텍스트에 채운다.
+	const FWxBGMSourceRequest* TopSource = GetTopSource();
+	ChooserContext.BGMTag = TopSource ? TopSource->MusicTag : BGMTag;
+	ChooserContext.SourceOwner = TopSource ? TopSource->Owner.Get() : nullptr;
 
 	FChooserEvaluationContext Context = UChooserFunctionLibrary::MakeChooserEvaluationContext();
 	Context.AddStructParam(ChooserContext);
@@ -208,6 +264,27 @@ UWxBGMData* UWxMusicSubsystem::EvaluateBGM()
 		false);
 
 	return Cast<UWxBGMData>(Result);
+}
+
+const FWxBGMSourceRequest* UWxMusicSubsystem::GetTopSource() const
+{
+	const FWxBGMSourceRequest* Best = nullptr;
+	for (const FWxBGMSourceRequest& Request : ActiveSources)
+	{
+		// 파괴된 소스, 또는 유효하지 않은 MusicTag 는 건너뛴다(빈 태그가 베이스라인 폴백을 덮지 않도록).
+		if (!Request.Source.IsValid() || !Request.MusicTag.IsValid())
+		{
+			continue;
+		}
+
+		// 동률은 배열 뒤(최근 등록)가 이기도록 >= 로 갱신한다.
+		if (!Best || Request.Priority >= Best->Priority)
+		{
+			Best = &Request;
+		}
+	}
+
+	return Best;
 }
 
 void UWxMusicSubsystem::ApplyBGM(UWxBGMData* NewBGM)
