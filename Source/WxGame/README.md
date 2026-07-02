@@ -1,59 +1,60 @@
-# WxGame — 게임 모듈 (플러그인 조립 + 프레임워크)
+# WxGame — 기본 게임 모듈 (부트스트랩·프레임워크·캐릭터)
 
-> 플레이어/적/보스 캐릭터, GAS 기반 입력·어빌리티, 게임 프레임워크(GameMode/State/Controller), 월드 오브젝트, 그리고 WxUI↔도메인 플러그인을 잇는 MVVM 리졸버를 한데 모으는 기본 게임 모듈. 각 도메인 플러그인(WxCombat/WxInventory/WxAI/WxWorld/WxUI/WxSave)을 실제 게임플레이로 조립하는 자리다.
+> 도메인 플러그인들을 조립해 실제 플레이 가능한 게임을 구성하는 최상위 모듈. GameMode/GameState/Controller/Character 등 언리얼 게임 프레임워크 액터와, 각 도메인 시스템을 이어 붙이는 접착(glue) 코드를 소유한다.
 
 ## 책임
 **담당**
-- 캐릭터 계층(`AWxCharacterBase` → Player/Enemy/Boss)과 ASC 직접 소유·초기화, SPD→이동속도 반영, 사망/팀 처리, 장비 비주얼 스왑
-- 게임 프레임워크: GameMode(스폰 위임 + ModularGameplay 컴포넌트 주입), GameState(컴포넌트 receiver), PlayerController(인벤토리 소유·HUD/데스스크린 푸시), PlayerState
-- 플레이어 입력: EnhancedInput IMC + 어빌리티 InputTag 매핑(`UWxInputConfig`), Move/Look/Crouch, 어빌리티 입력 트리거
-- 적 처형 어포던스: `AWxEnemyCharacter`가 그로기=앞잡(`Event.Finisher`)/미인지·후방=뒤잡(`Event.Backstab`)을 권위에서 주기 평가해 상호작용 노출. 노출 판정은 로컬 플레이어, **발동 검증은 실제 상호작용 주체(instigator)** 기준으로 서버가 재확인
-- 게임 모듈 고유 어빌리티: 상호작용(`UWxAbility_Interact`), 소비 아이템 사용(`UWxAbility_UseItem`)과 그 AnimNotify
-- 월드 오브젝트: 체크포인트(`AWxCheckPoint`), 레이저 트랩(`AWxLaserCorridor`)
-- WxUI 위젯과 도메인 플러그인 데이터를 잇는 MVVM 리졸버/뷰모델(플러그인 간 의존 금지를 양쪽에 의존하는 본 모듈에서 해소)
+- 게임 프레임워크 액터: `AWxGameMode`, `AWxGameState`, `AWxPlayerController`, `AWxPlayerState`
+- 스폰/부활 지점 선택: `UWxPlayerSpawningComponent` (Lyra PlayerSpawning 패턴, ModularGameplay 컴포넌트로 GameState 에 주입)
+- 캐릭터 계층: `AWxCharacterBase`(ASC 직접 소유·팀·사망 공통) → `AWxPlayerCharacter` / `AWxEnemyCharacter` → `AWxBossCharacter`
+- 에너미 AI 컨트롤러 골격: `AWxEnemyController` (BB 세팅·BT 실행)
+- 플레이어 입력 구성: `UWxInputConfig` (Enhanced Input Action ↔ Gameplay Tag 매핑)
+- 모듈 특화 어빌리티/노티파이: `WxAbility_Interact`, `WxAbility_UseItem`, `WxAnimNotify_Footstep`, `WxAnimNotify_UseItem`
+- 플러그인 간 접착: WxUI 뷰모델에 게임 상태를 주입하는 MVVM 리졸버/뷰모델(`WxViewModelResolver_*`, `WxViewModel_*`)
+- 프레임워크에 밀착된 월드 오브젝트: `AWxCheckPoint`(APlayerStart 상속 모닥불), `AWxLaserCorridor`
 
 **경계 (비담당)**
-- 전투 규칙·어트리뷰트·`UWxAbilityBase`·무기 → [[WxCombat]]
-- 인벤토리 데이터/아이템 정의·보상 지급(`GrantReward`) → [[WxInventory]]
-- AI 인지·행동트리·정찰·스포너(`AWxSpawner`)·락온/네임플레이트 컴포넌트 → [[WxAI]]
-- 상호작용 컴포넌트/레지스트리·기믹(`AWxGimmick`)·StateTree 인프라 → [[WxWorld]]
-- 위젯·뷰모델 베이스·CommonUI 레이아웃 → [[WxUI]]
-- savable 액터 상태 복원 → [[WxSave]]
-- 공용 정의(팀 타입·캐릭터 UI 데이터 등) → [[WxCore]]
+- 전투/ASC 어트리뷰트·이펙트: [[WxCombat]] (`UWxAbilitySystemComponent`, `UWxCombatAttributeSet`, `UWxEquipmentComponent`)
+- 인벤토리/보상: [[WxInventory]] (`UWxInventoryManagerComponent`, `WxRewardTableRow`)
+- UI 위젯·MVVM 베이스: [[WxUI]] (`UWxActivatableWidget`, `UWxViewModel_Character` — 게임 모듈을 참조 못 하므로 주입은 이 모듈 리졸버가 수행)
+- AI 인지/BehaviorTree Task: [[WxAI]] (`UWxAIPerceptionComponent`, `UWxBTTask_Patrol`, `UWxPatrolComponent`)
+- 상호작용 컴포넌트·기믹·스포너: [[WxWorld]] (`UWxInteractionComponent`, `AWxSpawner`)
+- 세이브/월드 상태 복원: [[WxSave]] (`UWxSaveGameSubsystem`)
+- BGM/발소리 사운드 소스: [[WxSound]] (`UWxBGMSourceComponent`)
+- 공용 정의(팀 타입·인터페이스 등): [[WxCore]]
 
 ## 의존성
-- **주요 의존**: `WxCore`, `WxCombat`, `WxInventory`, `WxAI`, `WxWorld`, `WxUI`, `WxSave` / 엔진: `GameplayAbilities`, `GameplayTags`, `GameplayTasks`, `ModularGameplay`, `ModelViewViewModel`, `CommonUI`, `EnhancedInput`(Private), `AIModule`, `MotionWarping`, `Niagara`
+- **주요 의존**: [[WxCore]], [[WxCombat]], [[WxInventory]], [[WxUI]], [[WxWorld]], [[WxAI]], [[WxSave]] (Public), [[WxSound]] (Private)
+- 특징적 엔진 서브시스템: `GameplayAbilities`, `ModelViewViewModel`, `ModularGameplay`, `EnhancedInput`, `MotionWarping`, `AIModule`, `CommonUI`
 - 규칙: 기본 게임 모듈로 여러 플러그인을 조립하는 정상 역할(규칙 무관)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `AWxCharacterBase` | 모든 캐릭터의 베이스(Abstract). ASC를 직접 소유하고 사망/팀/장비 비주얼을 처리. 아래 모든 캐릭터가 여기서 갈라진다 | `Source/WxGame/Character/WxCharacterBase.h` |
-| `AWxPlayerCharacter` | 플레이어 폰. 카메라·락온·입력·상호작용 리스트 위젯. `UWxInputConfig`로 입력 주입 | `Source/WxGame/Character/WxPlayerCharacter.h` |
-| `AWxEnemyCharacter` | 적 폰. BT/시야·청각 파라미터 보유, 처형(앞잡/뒤잡) 어포던스, 처치 시 [[WxInventory]] 보상 지급, [[WxAI]] Spawner 연동 | `Source/WxGame/Character/WxEnemyCharacter.h` |
-| `AWxPlayerController` | 인벤토리 소유처(소유 클라 복제), HUD/데스스크린 푸시, 캐릭터 사망 바인딩 | `Source/WxGame/Controller/WxPlayerController.h` |
-| `AWxGameMode` | 스폰 선택을 `UWxPlayerSpawningComponent`에 위임, ModularGameplay 프레임워크 컴포넌트 주입 | `Source/WxGame/Framework/WxGameMode.h` |
-| `UWxInputConfig` | IMC + Move/Look/Crouch + 어빌리티 InputTag 매핑 DataAsset | `Source/WxGame/Input/WxInputConfig.h` |
-| `UWxAbility_Interact` | 상호작용 어빌리티(상주 스캔 + 입력 트리거, 로컬 선택→서버 실행) | `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.h` |
-| `UWxViewModelResolver_PlayerCharacter` | WBP View Bindings 리졸버 패턴의 대표. WxUI↔도메인 데이터 주입을 양쪽에 의존하는 본 모듈이 수행 | `Source/WxGame/MVVM/WxViewModelResolver_PlayerCharacter.h` |
+| `AWxGameMode` | InitGame 에서 프레임워크 컴포넌트 주입 등록, ChoosePlayerStart 를 스폰 컴포넌트에 위임 | `Source/WxGame/Framework/WxGameMode.h` |
+| `AWxGameState` | ModularGameplay 컴포넌트 receiver (스폰/TimeDilation 등 자동 주입) | `Source/WxGame/Framework/WxGameState.h` |
+| `UWxPlayerSpawningComponent` | 저장 태그 → "Default" 태그 순으로 부활 지점 선택 | `Source/WxGame/Framework/WxPlayerSpawningComponent.h` |
+| `AWxPlayerController` | 인벤토리 소유(소유 클라 복제), HUD/데스스크린 푸시, 캐릭터 사망 바인딩 | `Source/WxGame/Controller/WxPlayerController.h` |
+| `AWxCharacterBase` | 플레이어·에너미 공통 베이스(ASC/팀/장비/사망) | `Source/WxGame/Character/WxCharacterBase.h` |
+| `AWxPlayerCharacter` | 3인칭 카메라·입력·락온·HUD 소유 | `Source/WxGame/Character/WxPlayerCharacter.h` |
+| `AWxEnemyCharacter` | AI 제어 적, 처형 어포던스·처치 보상 | `Source/WxGame/Character/WxEnemyCharacter.h` |
+| `UWxInputConfig` | IMC + 이동/시선 + 어빌리티 입력 태그 매핑 DataAsset | `Source/WxGame/Input/WxInputConfig.h` |
 
 ## 확장 포인트 / 규약
-- **새 캐릭터**: `AWxCharacterBase`(Abstract) 또는 `AWxEnemyCharacter`/`AWxBossCharacter`를 BP로 상속. ASC는 캐릭터가 직접 소유하며 리스폰 시 재초기화(PlayerState 불필요). 사망 연출은 `HandleDeath` override(`Super::` 호출). 무기는 `WeaponActor`(ChildActor)에 구체 무기 BP를 지정하고, 적의 BT/보상(`RewardRow`)/시야는 BP 디폴트로 설정.
-- **새 어빌리티**: [[WxCombat]]의 `UWxAbilityBase` 상속. 입력 트리거형은 `UWxInputConfig.AbilityInputBindings`에 InputAction↔InputTag를 추가하면 `AWxPlayerCharacter`가 자동 바인딩.
-- **새 월드 오브젝트**: 즉시·반복형(모닥불 류)은 `AWxCheckPoint`처럼 단순 상속(APlayerStart 파생이라 부활 지점 후보로도 잡힘), 영속 State/StateTree 기믹은 [[WxWorld]]의 `AWxGimmick` 상속(예: `AWxLaserCorridor` — Active/Disabled State만 C++가 복제·SaveGame 소유, 스폰/철거/인터랙션 토글은 GimmickStateTree가 State 태그 이벤트로 적용).
-- **새 프레임워크 컴포넌트**: `UGameFrameworkComponent`(예: `UGameStateComponent`) 파생 후 `AWxGameMode.FrameworkComponents` 목록에 등록 → `InitGame`에서 ModularGameplay 매니저가 receiver 액터(GameState 등)에 자동 주입(receiver 수정 불필요, 예: `UWxPlayerSpawningComponent`).
-- **WxUI 위젯 연동**: WBP View Bindings에서 Creation Type=Resolver로 `MVVM/`의 `UWxViewModelResolver_*`를 선택. 도메인 플러그인이 WxUI를 모르고 WxUI가 도메인을 모르므로, 양쪽에 의존하는 본 모듈의 리졸버가 데이터를 주입한다.
-- **리플리케이션 / 권한**: 상호작용 선택은 클라의 로컬 레지스트리(로컬 전용)가 소유 → 입력 시 클라가 선택을 읽어 서버로 TargetData 전송, 실행은 서버 권한. 처형 노출은 로컬 플레이어 기준으로 평가하되 발동 검증은 실제 instigator 기준으로 서버가 재확인. 인벤토리는 PlayerController가 소유 클라 연결로만 복제.
+- 프레임워크 컴포넌트 추가: `AWxGameMode::FrameworkComponents`(EditDefaults)에 `UGameFrameworkComponent` 파생을 넣으면 receiver 액터(GameState 등)에 자동 주입된다 — GameState 코드 수정 불필요.
+- 새 부활 지점 유형: `APlayerStart`(또는 `AWxCheckPoint`)를 배치하고 `PlayerStartTag` 를 지정하면 스폰 컴포넌트의 태그 탐색에 편입된다.
+- 캐릭터 파생: `AWxCharacterBase`(Abstract)를 상속하고 BP 에서 `WeaponActor` ChildActorClass·`UIData`·`Team` 등을 지정. 사망 연출은 `HandleDeath()` override.
+- 새 플레이어 입력: `UWxInputConfig` 에셋에 InputAction 을 추가하고, 어빌리티 입력은 `AbilityInputBindings` 로 Gameplay Tag 에 매핑.
+- WxUI 위젯에 게임 상태 노출: 게임→UI 단방향 참조 제약 때문에, WBP View Bindings 의 Resolver 로 `WxViewModelResolver_*` 를 선택해 이 모듈이 주입을 대행한다.
 
 ## 여기서부터 읽어라
-1. `Source/WxGame/Framework/WxGameMode.h` — 스폰 위임(Lyra 패턴)과 ModularGameplay 컴포넌트 주입으로 부팅 프레임워크가 어떻게 조립되는지
-2. `Source/WxGame/Character/WxCharacterBase.h` — 모든 캐릭터의 ASC 소유·초기화·사망/팀 모델. 캐릭터 계층의 뿌리
-3. `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.h` — 상호작용의 클라 감지/선택과 서버 권한 실행 흐름(헤더 주석에 전체 분기 정리)
-4. `Source/WxGame/Character/WxEnemyCharacter.h` — 처형 어포던스(앞잡/뒤잡)의 노출(로컬)/발동(instigator 기준 서버 검증) 분리와 처치 보상 흐름
-5. `Source/WxGame/MVVM/WxViewModelResolver_PlayerCharacter.h` — 리졸버 패턴과 도메인↔WxUI 데이터 주입 규약의 대표 사례
+1. `Source/WxGame/Framework/WxGameMode.h` — 부트스트랩·컴포넌트 주입·스폰 위임의 진입점. 모듈이 프레임워크를 어떻게 조립하는지 전체 그림.
+2. `Source/WxGame/Character/WxCharacterBase.h` — 캐릭터 계층의 뿌리. ASC 소유·팀·장비·사망 흐름이 여기서 갈라진다.
+3. `Source/WxGame/Controller/WxPlayerController.h` — 인벤토리 소유·HUD/데스스크린 수명 등 플레이어 세션 접착 로직.
+4. `Source/WxGame/MVVM/WxViewModelResolver_PlayerCharacter.h` — 게임↔UI 경계를 잇는 리졸버 패턴의 대표 예.
 
 ## 관련
-- 상위: 게임 전체의 조립점(이 위에는 엔진뿐). 도메인 로직은 [[WxCombat]] · [[WxInventory]] · [[WxAI]] · [[WxWorld]] · [[WxUI]] · [[WxSave]] · 공용 정의는 [[WxCore]]
+- 상위: 도메인 시스템은 각 플러그인에 위임 — [[WxCombat]], [[WxInventory]], [[WxUI]], [[WxWorld]], [[WxAI]], [[WxSave]], [[WxSound]], [[WxCore]]
 
 ---
-*문서 기준 커밋 `dbe4858` · 생성일 2026-07-01 · 소스 48파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `1a693b0` · 생성일 2026-07-02 · 소스 48파일 — `/readme-writer`로 갱신*

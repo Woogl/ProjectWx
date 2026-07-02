@@ -1,55 +1,51 @@
 # WxCombat — 전투 시스템
 
-> GAS(Gameplay Ability System) 기반의 액션 RPG 전투 도메인. 어빌리티·이펙트·어트리뷰트로 캐릭터의 공격/방어/피격/사망과 대미지 파이프라인을 구동하고, 락온·무기·투사체·시간 감속 등 전투 주변 시스템을 함께 제공한다.
+> Gameplay Ability System(GAS) 기반의 액션 RPG 전투 도메인. 어빌리티·이펙트·어트리뷰트·데미지 파이프라인, 락온 타겟팅, 무기/투사체, 히트스톱·슬로우 등 전투 연출을 담당한다.
 
 ## 책임
 **담당**
-- ASC/AttributeSet/AbilitySet — 캐릭터에 어빌리티·이펙트·어트리뷰트를 부여하는 GAS 런타임 골격
-- 어빌리티 카탈로그 — Attack/Dodge/Guard/Skill/Ultimate/HitReact/Death/LockOn 등 플레이어·AI 공용 어빌리티 베이스 및 구현
-- 대미지 파이프라인 — `FWxDamageInfo` → Damage GE Spec → `UWxExecCalc_Damage`(크리·가드·퍼펙트가드·무적 판정) → AttributeSet HP/DP/SP 차감
-- GameplayEffect/Cue/MMC/ExecCalc — 버프·도트·코스트·쿨다운 GE와 피격/히트스탑 등 연출 큐
-- AnimNotify(State) — 몽타주 구동 히트박스 활성, 무적/퍼펙트가드 윈도우, 콤보 윈도우, 투사체/광역 발생, 게임플레이 이벤트 송출
-- 타게팅/락온 — `TargetingSystem` 기반 후보 필터 + `UWxLockOnManagerComponent` 복제 대상 관리
-- 무기/투사체/이펙트존 — 히트 콜리전 액터(`AWxWeaponBase`/`AWxProjectileBase`/`AWxEffectZone`)
-- 전투용 시간 제어 — 서버 권위 글로벌 TimeDilation, 어빌리티 단위 슬로우/히트스탑
+- GAS 골격: `UWxAbilitySystemComponent`(입력 태그 라우팅·래그돌 복제), `UWxAbilityBase`(공용 쿨다운/코스트 규약), `UWxCombatAttributeSet`(HP/SP/DP/MP/UP/ATK/DEF 등 전투 스탯), `UWxAbilitySet`(어빌리티·이펙트·어트리뷰트 일괄 부여 데이터에셋).
+- 전투 어빌리티 구현군: 공격·회피·가드·스킬·궁극기·히트리액트·그로기·처형·AI 패턴 등 (`Public/AbilitySystem/Ability/`).
+- 데미지 파이프라인: `FWxDamageInfo` → GameplayEffect Spec 변환 → `WxExecCalc_Damage` 실행 계산 → `IncomingDamage` 메타 어트리뷰트로 HP 차감. 상태이상(Burn/Exceed/BuffATK 등) GE·MMC·ExecCalc.
+- 데미지 전달 매체: `AWxWeaponBase`(스윕 히트 판정), `AWxProjectileBase`(투사체), `AWxEffectZone`(광역), `UWxCombatLibrary`(즉시 데미지 적용 유틸).
+- 락온 타겟팅: `UWxLockOnManagerComponent`·`UWxLockOnPointComponent` + TargetingSystem 필터 태스크(`Targeting/`).
+- 애님 노티파이: 콤보 윈도우·무적·퍼펙트가드·무기 어택·투사체 스폰·게임플레이 이벤트 송출 등 (`AnimNotify/`).
+- 시간 연출: `UWxTimeDilationComponent`(서버 권위 글로벌 슬로우), GameplayCue를 통한 히트스톱.
 
 **경계 (비담당)**
-- 입력 바인딩·플레이어 컨트롤러·캐릭터 클래스 정의는 [[WxGame]]/캐릭터 측 (이 모듈은 `InputTag` 라우팅 진입점만 제공)
-- 어빌리티 UI 표시 데이터(아이콘 등)는 `UWxAbilityComponent` 파생으로 [[WxUI]]에 위임 (이 모듈은 `Components` 슬롯과 베이스만 정의)
-- AI 의사결정/패턴 선택 로직은 [[WxAI]] (이 모듈은 `WxAbility_Pattern` 실행 골격만)
-- 공용 팀/태그/베이스 정의 등 foundation은 [[WxCore]]
+- Gameplay Tag(Event.HitReact.*, Input.*, State.* 등)의 네이티브 선언과 공용 정의는 [[WxCore]]에 있다. 이 모듈은 소비만 한다.
+- UI 표시 데이터(어빌리티 아이콘 등)는 `UWxAbilityComponent` 파생 클래스로 [[WxUI]]에 위임한다.
+- AI 의사결정/행동 트리는 [[WxAI]]. 이 모듈은 AI가 트리거하는 패턴 어빌리티(`WxAbility_Pattern*`)만 제공한다.
 
 ## 의존성
-- **주요 의존**: [[WxCore]], `GameplayAbilities`, `GameplayTags`, `GameplayTasks`, `TargetingSystem`, `EnhancedInput`, `ModularGameplay`, `MotionWarping`, `AIModule`/`NavigationSystem`, `Niagara`, `LevelSequence`/`MovieScene`(스킬 컷신)
-- 규칙: 플러그인이므로 「WxCore 외 Wx 플러그인 참조」를 검증 — 없음 ✅ (`.uplugin`·`Build.cs` 모두 Wx 중 `WxCore`만 참조)
+- **주요 의존**: `WxCore` (유일한 Wx 의존). 엔진 서브시스템: GameplayAbilities(GAS), TargetingSystem, MotionWarping, ModularGameplay, EnhancedInput, Niagara·LevelSequence/MovieScene(연출).
+- 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅ (`.uplugin`·`Build.cs` 모두 `WxCore`만 참조)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxAbilitySystemComponent` | 캐릭터 ASC. `InputTag`→어빌리티 활성화 라우팅, AbilitySet 부여, 래그돌 복제 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h` |
-| `UWxAbilitySet` | 캐릭터 BP가 지정하는 부여 데이터 에셋(어빌리티+이펙트+어트리뷰트 초기값). 모듈의 데이터 진입점 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySet.h` |
-| `UWxAbilityBase` | 모든 어빌리티의 베이스. 공용 쿨다운/코스트 GE 위임, 후딜=캔슬 구간, 테이블 Row 수치 주입 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` |
-| `UWxCombatAttributeSet` | HP/SP/DP/MP/UP·ATK/DEF/Crit 등 전투 스탯과 `IncomingDamage` 메타 어트리뷰트 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h` |
-| `FWxDamageInfo` | 대미지 한 건의 설계 데이터. AnimNotify에서 편집→무기/투사체로 전달→GE Spec 변환 | `Plugins/WxCombat/Source/WxCombat/Public/WxDamageInfo.h` |
-| `UWxExecCalc_Damage` | 대미지 계산 핵심. ATK·DEF·크리·가드·퍼펙트가드·무적 판정의 단일 지점 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxExecCalc_Damage.h` |
-| `UWxCombatLibrary` | 무기/투사체 외 경로의 대미지 적용 진입점(`ApplyDamage`/`ApplyRawDamage`) 및 적대 판정 | `Plugins/WxCombat/Source/WxCombat/Public/WxCombatLibrary.h` |
-| `AWxWeaponBase` | 몽타주 ANS가 구동하는 히트 콜리전 무기 액터. 스윙당 1히트 보장 | `Plugins/WxCombat/Source/WxCombat/Public/Weapon/WxWeaponBase.h` |
-| `UWxLockOnManagerComponent` | 락온 대상(SceneComponent 단위) 복제 관리. 발사체 방향/몽타주 스냅이 소비 | `Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxLockOnManagerComponent.h` |
+| `UWxAbilitySystemComponent` | 캐릭터 ASC. 입력 태그→어빌리티 라우팅, AbilitySet 부여 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h` |
+| `UWxAbilityBase` | 모든 어빌리티의 베이스. 공용 쿨다운/코스트·후딜(StartRecovery)·테이블 주도 수치 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` |
+| `UWxAbilitySet` | 어빌리티·이펙트·어트리뷰트 초기 데이터를 한 에셋으로 부여 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySet.h` |
+| `UWxCombatAttributeSet` | 전투 스탯 어트리뷰트 세트(복제·데미지 처리) | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h` |
+| `FWxDamageInfo` | 데미지 한 건의 설계 데이터→GE Spec 변환의 중심 | `Plugins/WxCombat/Source/WxCombat/Public/WxDamageInfo.h` |
+| `UWxCombatLibrary` | 무기/투사체 외 경로의 데미지 적용·적대 판정 BP 라이브러리 | `Plugins/WxCombat/Source/WxCombat/Public/WxCombatLibrary.h` |
+| `AWxWeaponBase` | 무기 액터. ANS_WeaponAttack이 구동하는 스윕 히트 판정 | `Plugins/WxCombat/Source/WxCombat/Public/Weapon/WxWeaponBase.h` |
+| `UWxLockOnManagerComponent` | 락온 대상(SceneComponent 단위) 복제 관리 | `Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxLockOnManagerComponent.h` |
 
 ## 확장 포인트 / 규약
-- 새 어빌리티: `UWxAbilityBase`(또는 `WxAbility_*`) 상속. 쿨다운/코스트는 `CooldownTime`/`MaxRecharges`/`MPCost`/`UPCost` 프로퍼티나 `AbilityDataRow`(`FWxAbilityTableRow`)로 설정 — 별도 쿨다운/코스트 GE 작성 불필요(공용 `UWxEffect_Cooldown`/`UWxEffect_Cost` 위임).
-- 데이터 주도: `UWxAbilitySet`(어빌리티+`GrantedEffects`+`AttributeInitRow`)이 캐릭터 1대를 구동. 어빌리티 밸런스는 `WxAbilityTableRow` DataTable, 대미지 설계는 `WxDamageTableRow`(`FWxDamageInfo::ApplyTableRow`). `InputTag`가 빈 어빌리티는 입력이 아닌 부여/이벤트로 발동(AI 패턴 등).
-- 대미지 추가 경로: 무기/투사체 외에는 `UWxCombatLibrary::ApplyDamage`/`ApplyRawDamage`를 쓴다. 추가 상태이상은 `FWxDamageInfo::AdditionalEffects`로 Damage GE와 함께 적용.
-- 리플리케이션/권한(최대 4인 멀티): 어트리뷰트·락온 대상·래그돌·글로벌 TimeDilation은 서버 권위 복제. 락온은 소유 클라가 로컬 예측 후 서버 정합. TimeDilation은 CMC 동기화를 위해 `UWxTimeDilationComponent`로 전 머신에 강제 동기화.
+- 새 어빌리티: `UWxAbilityBase`를 상속(C++ 또는 BP). 쿨다운은 `CooldownTime`/`MaxRecharges`, 코스트는 `MPCost`/`UPCost` 프로퍼티로 데이터 주도 설정. 공용 `UWxEffect_Cooldown`/`UWxEffect_Cost` GE를 재사용하므로 개별 GE를 만들 필요 없음.
+- 데이터 주도: 어빌리티 수치는 `WxAbilityTableRow`, 어트리뷰트 초기값은 `WxCombatAttributeInitTableRow`, 데미지는 `WxDamageTableRow` DataTable Row로 주입. 캐릭터 BP에 `UWxAbilitySet`을 지정하면 InitAbilityActorInfo 시 일괄 부여.
+- 새 데미지 효과: 타겟에 함께 걸 GE는 `FWxDamageInfo::AdditionalEffects`에 추가. 스탯 반영 계산은 `WxExecCalc_Damage`/`WxMMC_LinearDrain` 등을 참고해 ExecCalc/MMC로 확장.
+- 리플리케이션: ASC 입력 태그·락온 대상·글로벌 TimeDilation·래그돌은 모두 서버 권위 복제. 소유 클라 예측 후 정합하는 패턴(`UWxLockOnManagerComponent` 참고).
 
 ## 여기서부터 읽어라
-1. `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySet.h` — 캐릭터가 무엇을 부여받는지(어빌리티·이펙트·어트리뷰트)부터 보면 모듈 전체 데이터 흐름이 잡힌다
-2. `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` — 모든 어빌리티의 공용 규약(쿨다운/코스트/후딜/테이블)
-3. `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxExecCalc_Damage.h` — 대미지가 가드/크리/무적을 거쳐 HP까지 가는 판정 흐름(헤더 주석에 단계별 명시)
-4. `Plugins/WxCombat/Source/WxCombat/Public/WxDamageInfo.h` — AnimNotify→무기→GE Spec로 이어지는 대미지 데이터의 출발점
+1. `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` — 쿨다운/코스트/후딜 규약이 모든 어빌리티의 전제. 헤더 주석에 GAS 순정 API를 왜 오버라이드하는지 설명.
+2. `Plugins/WxCombat/Source/WxCombat/Public/WxDamageInfo.h` + `Public/AbilitySystem/Attribute/WxCombatAttributeSet.h` — 데미지가 어떻게 Spec이 되고 어트리뷰트를 차감하는지 데이터 흐름의 양끝.
+3. `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySet.h` — 캐릭터가 전투 능력을 획득하는 진입점.
 
 ## 관련
-- 상위: 캐릭터 클래스가 ASC/AttributeSet/AbilitySet을 호스팅하고 이 모듈의 어빌리티를 사용 — [[WxGame]]. AI 패턴 구동은 [[WxAI]], 어빌리티 UI 표시는 [[WxUI]], 공용 정의는 [[WxCore]].
+- 상위: 플레이어/적 캐릭터([[WxGame]])가 ASC·AbilitySet을 붙여 사용. 태그·공용 정의는 [[WxCore]], 어빌리티 UI 데이터는 [[WxUI]], AI 패턴 구동은 [[WxAI]]와 함께 본다.
 
 ---
-*문서 기준 커밋 `dbe4858` · 생성일 2026-07-01 · 소스 149파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `1a693b0` · 생성일 2026-07-02 · 소스 149파일 — `/readme-writer`로 갱신*
