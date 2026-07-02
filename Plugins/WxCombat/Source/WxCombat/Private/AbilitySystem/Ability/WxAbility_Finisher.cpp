@@ -74,7 +74,8 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Target, VictimHitReactTag, VictimEvent);
 
 	// 3. 공격자 몽타주 재생(몽타주의 WxAnimNotify_FinisherDamage 가 ApplyFinisherDamage 를 호출해 대미지 적용).
-	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, AttackerMontage, GetMontagePlayRate(), NAME_None, true, 1.f, 0.f, true);
+	// 피해자 짝 피격(WxAbility_HitReact)이 고정 1.0 으로 재생되므로, 처형 연출의 프레임 싱크를 위해 공격자도 ASPD 비의존 고정 1.0 으로 재생한다.
+	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, AttackerMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
 	if (!MontageTask)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
