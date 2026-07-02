@@ -127,6 +127,17 @@ void UWxAIPerceptionComponent::UpdateRecognition()
 		return;
 	}
 
+	// 죽은 폰은 전투 상태가 아니다. 사망 후에도 계속 도는 리시 폴이 인식을 재부여하지 않도록, 판정 앞에서 인식을 끈다.
+	// SetRecognized(false) 가 곧 State.InCombat 제거이며, 이 태그를 감시하는 BGMSourceComponent 가 시체 위에서 계속 재생되는 것을 막는다.
+	if (const UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwnerPawn()))
+	{
+		if (ASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
+		{
+			SetRecognized(false);
+			return;
+		}
+	}
+
 	const AActor* Target = WxBlackboardKeys::GetTargetActor(BB);
 	if (!Target)
 	{
