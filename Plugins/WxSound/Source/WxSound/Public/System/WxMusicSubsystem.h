@@ -23,7 +23,6 @@ struct FWxBGMSourceRequest
 	// 소스 컴포넌트의 소유자 액터. Chooser 가 클래스로 필터할 수 있게 컨텍스트로 전달한다.
 	TWeakObjectPtr<AActor> Owner;
 	FGameplayTag MusicTag;
-	int32 Priority = 0;
 };
 
 /**
@@ -52,7 +51,7 @@ public:
 	void StopBGM();
 
 	/** 상태 기반 BGM 소스가 활성화될 때 자신을 등록한다(같은 Source 는 갱신). 등록/해제 즉시 재평가한다. */
-	void RegisterBGMSource(UObject* Source, const FGameplayTag& InMusicTag, int32 InPriority);
+	void RegisterBGMSource(UObject* Source, const FGameplayTag& InMusicTag);
 
 	/** 활성화가 끝난 BGM 소스를 해제한다. */
 	void UnregisterBGMSource(UObject* Source);
@@ -82,7 +81,7 @@ private:
 	/** 컨텍스트를 채우고 Chooser 를 평가해 BGM 을 고른다. */
 	UWxBGMData* EvaluateBGM();
 
-	/** 활성 소스 중 최고 우선순위(동률은 최근 등록)의 유효 소스를 반환한다. 활성 소스가 없으면 nullptr. */
+	/** 활성 소스 중 가장 최근 등록된 유효 소스를 반환한다. 활성 소스가 없으면 nullptr. */
 	const FWxBGMSourceRequest* GetTopSource() const;
 
 	// 평가 컨텍스트. AddStructParam 이 참조만 저장하므로 멤버로 두어 평가 호출 동안 수명을 보장한다.
@@ -91,7 +90,7 @@ private:
 	// BP StartBGM 으로 주입된 베이스라인 BGM 분류 태그(활성 소스가 없을 때의 폴백).
 	FGameplayTag BGMTag;
 
-	// 활성 상태 기반 소스들의 등록 집합. 배열 순서 = 등록 순(동률 우선순위 시 뒤쪽=최근이 이긴다).
+	// 활성 상태 기반 소스들의 등록 집합. 배열 순서 = 등록 순(뒤쪽=최근이 승자).
 	TArray<FWxBGMSourceRequest> ActiveSources;
 
 	UPROPERTY()

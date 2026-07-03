@@ -31,7 +31,7 @@ struct WXSOUND_API FWxBGMChooserContext
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|BGM")
 	FGameplayTag BGMTag;
 
-	// 우선순위 승자 소스의 소유자 액터. Chooser 의 Object Class 컬럼이 이 액터의 클래스로 행을 필터한다
+	// 승자(가장 최근 활성) 소스의 소유자 액터. Chooser 의 Object Class 컬럼이 이 액터의 클래스로 행을 필터한다
 	// (예: SubClassOf AWxBossCharacter → 보스곡). 활성 소스가 없으면 null.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|BGM")
 	TObjectPtr<AActor> SourceOwner;

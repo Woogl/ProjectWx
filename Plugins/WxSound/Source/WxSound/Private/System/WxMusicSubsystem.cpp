@@ -106,7 +106,7 @@ void UWxMusicSubsystem::StopBGM()
 	ApplyBGM(nullptr);
 }
 
-void UWxMusicSubsystem::RegisterBGMSource(UObject* Source, const FGameplayTag& InMusicTag, int32 InPriority)
+void UWxMusicSubsystem::RegisterBGMSource(UObject* Source, const FGameplayTag& InMusicTag)
 {
 	if (!Source)
 	{
@@ -130,7 +130,6 @@ void UWxMusicSubsystem::RegisterBGMSource(UObject* Source, const FGameplayTag& I
 		Request.Owner = SourceComponent->GetOwner();
 	}
 	Request.MusicTag = InMusicTag;
-	Request.Priority = InPriority;
 
 	Reevaluate();
 }
@@ -268,23 +267,19 @@ UWxBGMData* UWxMusicSubsystem::EvaluateBGM()
 
 const FWxBGMSourceRequest* UWxMusicSubsystem::GetTopSource() const
 {
-	const FWxBGMSourceRequest* Best = nullptr;
-	for (const FWxBGMSourceRequest& Request : ActiveSources)
+	// 우선순위 해소는 Chooser 테이블의 Row 순서가 담당하므로, 여기선 가장 최근 등록된 유효 소스를 승자로 고른다.
+	// 배열 뒤에서부터 훑어 처음 만난 유효 소스를 반환한다(파괴된 소스나 무효 MusicTag 는 건너뛴다 —
+	// 빈 태그가 베이스라인 폴백을 덮지 않도록).
+	for (int32 Index = ActiveSources.Num() - 1; Index >= 0; --Index)
 	{
-		// 파괴된 소스, 또는 유효하지 않은 MusicTag 는 건너뛴다(빈 태그가 베이스라인 폴백을 덮지 않도록).
-		if (!Request.Source.IsValid() || !Request.MusicTag.IsValid())
+		const FWxBGMSourceRequest& Request = ActiveSources[Index];
+		if (Request.Source.IsValid() && Request.MusicTag.IsValid())
 		{
-			continue;
-		}
-
-		// 동률은 배열 뒤(최근 등록)가 이기도록 >= 로 갱신한다.
-		if (!Best || Request.Priority >= Best->Priority)
-		{
-			Best = &Request;
+			return &Request;
 		}
 	}
 
-	return Best;
+	return nullptr;
 }
 
 void UWxMusicSubsystem::ApplyBGM(UWxBGMData* NewBGM)

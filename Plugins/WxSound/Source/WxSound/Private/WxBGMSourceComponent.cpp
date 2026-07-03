@@ -78,7 +78,7 @@ void UWxBGMSourceComponent::UpdateRegistration(bool bActive)
 
 	if (bActive)
 	{
-		Music->RegisterBGMSource(this, MusicTag, Priority);
+		Music->RegisterBGMSource(this, MusicTag);
 	}
 	else
 	{
