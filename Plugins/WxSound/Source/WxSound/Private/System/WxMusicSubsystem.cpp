@@ -113,7 +113,7 @@ void UWxMusicSubsystem::RegisterBGMSource(UObject* Source, const FGameplayTag& I
 		return;
 	}
 
-	// 같은 소스의 기존 등록을 먼저 제거해 갱신 겸 최근 순서로 재삽입한다(RemoveAt 로 순서 보존).
+	// 같은 소스의 기존 등록을 먼저 제거해 중복 없이 갱신한다(순서는 무의미).
 	for (int32 Index = ActiveSources.Num() - 1; Index >= 0; --Index)
 	{
 		if (ActiveSources[Index].Source.Get() == Source)
@@ -124,7 +124,7 @@ void UWxMusicSubsystem::RegisterBGMSource(UObject* Source, const FGameplayTag& I
 
 	FWxBGMSourceRequest& Request = ActiveSources.AddDefaulted_GetRef();
 	Request.Source = Source;
-	// 소스는 컴포넌트이므로 그 소유자 액터를 미리 해석해 둔다(Chooser 가 클래스로 필터).
+	// 소스는 컴포넌트이므로 그 소유자 액터를 미리 해석해 둔다(평가 시 이 액터 ASC 의 owned 태그를 읽는다).
 	if (const UActorComponent* SourceComponent = Cast<UActorComponent>(Source))
 	{
 		Request.Owner = SourceComponent->GetOwner();
@@ -248,10 +248,34 @@ UWxBGMData* UWxMusicSubsystem::EvaluateBGM()
 		ASC->GetOwnedGameplayTags(ChooserContext.PlayerStateTags);
 	}
 
-	// 승자 소스가 있으면 그 MusicTag/소유자를, 없으면 베이스라인 BGMTag/null 을 컨텍스트에 채운다.
-	const FWxBGMSourceRequest* TopSource = GetTopSource();
-	ChooserContext.BGMTag = TopSource ? TopSource->MusicTag : BGMTag;
-	ChooserContext.SourceOwner = TopSource ? TopSource->Owner.Get() : nullptr;
+	// 베이스라인 + 활성 소스들의 MusicTag 와 각 owner 의 owned 태그를 모두 컨테이너로 모아 Chooser 에 노출한다.
+	// 선정 없이 Row 순서(위→아래)가 우선순위이므로, 동시 다중 소스여도 첫 매치 Row 가 이긴다.
+	ChooserContext.BGMTags.Reset();
+	ChooserContext.SourceOwnerTags.Reset();
+	if (BGMTag.IsValid())
+	{
+		ChooserContext.BGMTags.AddTag(BGMTag);
+	}
+	for (const FWxBGMSourceRequest& Request : ActiveSources)
+	{
+		// 파괴된 소스는 건너뛴다(무효 MusicTag 는 AddTag 가 무시한다).
+		if (!Request.Source.IsValid())
+		{
+			continue;
+		}
+
+		ChooserContext.BGMTags.AddTag(Request.MusicTag);
+		if (AActor* Owner = Request.Owner.Get())
+		{
+			if (UAbilitySystemComponent* OwnerASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
+			{
+				// GetOwnedGameplayTags 는 인자 컨테이너를 Reset 후 채우므로 임시로 받아 합친다.
+				FGameplayTagContainer OwnerTags;
+				OwnerASC->GetOwnedGameplayTags(OwnerTags);
+				ChooserContext.SourceOwnerTags.AppendTags(OwnerTags);
+			}
+		}
+	}
 
 	FChooserEvaluationContext Context = UChooserFunctionLibrary::MakeChooserEvaluationContext();
 	Context.AddStructParam(ChooserContext);
@@ -263,23 +287,6 @@ UWxBGMData* UWxMusicSubsystem::EvaluateBGM()
 		false);
 
 	return Cast<UWxBGMData>(Result);
-}
-
-const FWxBGMSourceRequest* UWxMusicSubsystem::GetTopSource() const
-{
-	// 우선순위 해소는 Chooser 테이블의 Row 순서가 담당하므로, 여기선 가장 최근 등록된 유효 소스를 승자로 고른다.
-	// 배열 뒤에서부터 훑어 처음 만난 유효 소스를 반환한다(파괴된 소스나 무효 MusicTag 는 건너뛴다 —
-	// 빈 태그가 베이스라인 폴백을 덮지 않도록).
-	for (int32 Index = ActiveSources.Num() - 1; Index >= 0; --Index)
-	{
-		const FWxBGMSourceRequest& Request = ActiveSources[Index];
-		if (Request.Source.IsValid() && Request.MusicTag.IsValid())
-		{
-			return &Request;
-		}
-	}
-
-	return nullptr;
 }
 
 void UWxMusicSubsystem::ApplyBGM(UWxBGMData* NewBGM)

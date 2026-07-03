@@ -16,11 +16,11 @@ class UAudioComponent;
 class UChooserTable;
 class UWxBGMData;
 
-/** 활성 BGM 소스 한 건의 등록 정보. 배열 순서로 최근성을 표현하므로 UPROPERTY 없이 TWeakObjectPtr 로 보유한다. */
+/** 활성 BGM 소스 한 건의 등록 정보. 순서 무관한 활성 기여자 집합이라 UPROPERTY 없이 TWeakObjectPtr 로 보유한다. */
 struct FWxBGMSourceRequest
 {
 	TWeakObjectPtr<UObject> Source;
-	// 소스 컴포넌트의 소유자 액터. Chooser 가 클래스로 필터할 수 있게 컨텍스트로 전달한다.
+	// 소스 컴포넌트의 소유자 액터. 평가 시점에 이 액터 ASC 의 owned 태그를 읽어 컨텍스트에 합친다.
 	TWeakObjectPtr<AActor> Owner;
 	FGameplayTag MusicTag;
 };
@@ -81,16 +81,13 @@ private:
 	/** 컨텍스트를 채우고 Chooser 를 평가해 BGM 을 고른다. */
 	UWxBGMData* EvaluateBGM();
 
-	/** 활성 소스 중 가장 최근 등록된 유효 소스를 반환한다. 활성 소스가 없으면 nullptr. */
-	const FWxBGMSourceRequest* GetTopSource() const;
-
 	// 평가 컨텍스트. AddStructParam 이 참조만 저장하므로 멤버로 두어 평가 호출 동안 수명을 보장한다.
 	FWxBGMChooserContext ChooserContext;
 
 	// BP StartBGM 으로 주입된 베이스라인 BGM 분류 태그(활성 소스가 없을 때의 폴백).
 	FGameplayTag BGMTag;
 
-	// 활성 상태 기반 소스들의 등록 집합. 배열 순서 = 등록 순(뒤쪽=최근이 승자).
+	// 활성 상태 기반 소스들의 등록 집합. 순서 무관 — 평가 시 태그를 합집합으로 모은다.
 	TArray<FWxBGMSourceRequest> ActiveSources;
 
 	UPROPERTY()
