@@ -1,6 +1,6 @@
 # WxCombat — 전투 시스템
 
-> Gameplay Ability System(GAS) 기반의 액션 RPG 전투 도메인. 어빌리티·이펙트·어트리뷰트·데미지 파이프라인, 락온 타겟팅, 무기/투사체, 히트스톱·슬로우 등 전투 연출을 담당한다.
+> Gameplay Ability System(GAS) 기반의 액션 RPG 전투 도메인. 어빌리티·이펙트·어트리뷰트·데미지 파이프라인, 락온 타겟팅, 무기/투사체, 히트스톱·슬로우 등 "때리고 맞는" 런타임 전반을 담당한다.
 
 ## 책임
 **담당**
@@ -18,8 +18,8 @@
 - AI 의사결정/행동 트리는 [[WxAI]]. 이 모듈은 AI가 트리거하는 패턴 어빌리티(`WxAbility_Pattern*`)만 제공한다.
 
 ## 의존성
-- **주요 의존**: `WxCore` (유일한 Wx 의존). 엔진 서브시스템: GameplayAbilities(GAS), TargetingSystem, MotionWarping, ModularGameplay, EnhancedInput, Niagara·LevelSequence/MovieScene(연출).
-- 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅ (`.uplugin`·`Build.cs` 모두 `WxCore`만 참조)
+- **주요 의존**: `WxCore` (유일한 Wx 의존). 엔진 서브시스템: GameplayAbilities(GAS), TargetingSystem, MotionWarping, ModularGameplay, EnhancedInput, AIModule, Niagara·LevelSequence/MovieScene(연출).
+- 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅ (`.uplugin`·`Build.cs` 모두 Wx 의존은 `WxCore`만 참조)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
@@ -30,13 +30,14 @@
 | `UWxCombatAttributeSet` | 전투 스탯 어트리뷰트 세트(복제·데미지 처리) | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h` |
 | `FWxDamageInfo` | 데미지 한 건의 설계 데이터→GE Spec 변환의 중심 | `Plugins/WxCombat/Source/WxCombat/Public/WxDamageInfo.h` |
 | `UWxCombatLibrary` | 무기/투사체 외 경로의 데미지 적용·적대 판정 BP 라이브러리 | `Plugins/WxCombat/Source/WxCombat/Public/WxCombatLibrary.h` |
-| `AWxWeaponBase` | 무기 액터. ANS_WeaponAttack이 구동하는 스윕 히트 판정 | `Plugins/WxCombat/Source/WxCombat/Public/Weapon/WxWeaponBase.h` |
-| `UWxLockOnManagerComponent` | 락온 대상(SceneComponent 단위) 복제 관리 | `Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxLockOnManagerComponent.h` |
+| `AWxWeaponBase` / `AWxProjectileBase` | 근접 스윕 히트 판정 / 투사체를 통한 히트 전달 매체 | `Plugins/WxCombat/Source/WxCombat/Public/Weapon/` |
+| `UWxLockOnManagerComponent` | 락온 대상(SceneComponent 단위) 서버 권위 복제 관리 | `Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxLockOnManagerComponent.h` |
 
 ## 확장 포인트 / 규약
-- 새 어빌리티: `UWxAbilityBase`를 상속(C++ 또는 BP). 쿨다운은 `CooldownTime`/`MaxRecharges`, 코스트는 `MPCost`/`UPCost` 프로퍼티로 데이터 주도 설정. 공용 `UWxEffect_Cooldown`/`UWxEffect_Cost` GE를 재사용하므로 개별 GE를 만들 필요 없음.
-- 데이터 주도: 어빌리티 수치는 `WxAbilityTableRow`, 어트리뷰트 초기값은 `WxCombatAttributeInitTableRow`, 데미지는 `WxDamageTableRow` DataTable Row로 주입. 캐릭터 BP에 `UWxAbilitySet`을 지정하면 InitAbilityActorInfo 시 일괄 부여.
-- 새 데미지 효과: 타겟에 함께 걸 GE는 `FWxDamageInfo::AdditionalEffects`에 추가. 스탯 반영 계산은 `WxExecCalc_Damage`/`WxMMC_LinearDrain` 등을 참고해 ExecCalc/MMC로 확장.
+- 새 어빌리티: `UWxAbilityBase`를 상속(C++ 또는 BP). 쿨다운은 `CooldownTime`/`MaxRecharges`, 코스트는 `MPCost`/`UPCost` 프로퍼티로 데이터 주도 설정. 공용 `UWxEffect_Cooldown`/`UWxEffect_Cost` GE를 CDO로 구분해 재사용하므로 개별 GE를 만들 필요 없음.
+- 후딜=캔슬 구간 규약: `StartRecovery()`(AnimNotify `WxAnimNotify_StartRecovery`)가 하드 차단을 풀어 캔슬 진입을 허용한다. 새 액션 어빌리티는 이 흐름을 따른다.
+- 데이터 주도: 어빌리티 수치는 `WxAbilityTableRow`, 어트리뷰트 초기값은 `WxCombatAttributeInitTableRow`, 데미지는 `WxDamageTableRow` DataTable Row로 주입. 캐릭터 BP에 `UWxAbilitySet`을 지정하면 InitAbilityActorInfo 시 일괄 부여(입력 발동 어빌리티만 `InputTag`를 채운다).
+- 새 데미지 효과: 타겟에 함께 걸 GE는 `FWxDamageInfo::AdditionalEffects`(또는 `WxDamageTableRow`)에 추가. 스탯 반영 계산은 `WxExecCalc_Damage`/`WxMMC_LinearDrain` 등을 참고해 ExecCalc/MMC로 확장.
 - 리플리케이션: ASC 입력 태그·락온 대상·글로벌 TimeDilation·래그돌은 모두 서버 권위 복제. 소유 클라 예측 후 정합하는 패턴(`UWxLockOnManagerComponent` 참고).
 
 ## 여기서부터 읽어라
@@ -48,4 +49,4 @@
 - 상위: 플레이어/적 캐릭터([[WxGame]])가 ASC·AbilitySet을 붙여 사용. 태그·공용 정의는 [[WxCore]], 어빌리티 UI 데이터는 [[WxUI]], AI 패턴 구동은 [[WxAI]]와 함께 본다.
 
 ---
-*문서 기준 커밋 `1a693b0` · 생성일 2026-07-02 · 소스 149파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `5fd2b73` · 생성일 2026-07-04 · 소스 149파일 — `/readme-writer`로 갱신*
