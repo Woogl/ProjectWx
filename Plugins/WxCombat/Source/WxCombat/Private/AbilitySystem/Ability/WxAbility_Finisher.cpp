@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/Ability/WxAbility_Finisher.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "AbilitySystem/Effect/WxEffect_ResetDP.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "MotionWarpingComponent.h"
@@ -82,7 +83,15 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		return;
 	}
 
-	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Finisher::HandleMontageFinished);
+	// 앞잡만 종료 시 대상 DP를 리셋해 그로기를 해제한다. 뒤잡(즉사)은 리셋 대상이 아니다.
+	if (bBackstab)
+	{
+		MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Finisher::HandleMontageFinished);
+	}
+	else
+	{
+		MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Finisher::HandleFinisherMontageCompleted);
+	}
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Finisher::HandleMontageFinished);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Finisher::HandleMontageFinished);
 	MontageTask->ReadyForActivation();
@@ -101,6 +110,28 @@ void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, co
 
 void UWxAbility_Finisher::HandleMontageFinished()
 {
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+}
+
+void UWxAbility_Finisher::HandleFinisherMontageCompleted()
+{
+	// 앞잡 처형 종료 → 확정 대상의 DP를 0으로 리셋해 그로기를 해제한다.
+	// 피해자 짝 피격 몽타주 완료에 의존하지 않고 공격자가 권위적으로 해제한다.
+	if (AActor* Target = TargetActor.Get())
+	{
+		UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
+		UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Target);
+		if (SourceASC && TargetASC)
+		{
+			FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
+			const FGameplayEffectSpecHandle ResetSpec = SourceASC->MakeOutgoingSpec(UWxEffect_ResetDP::StaticClass(), GetAbilityLevel(), Context);
+			if (ResetSpec.IsValid())
+			{
+				SourceASC->ApplyGameplayEffectSpecToTarget(*ResetSpec.Data.Get(), TargetASC);
+			}
+		}
+	}
+
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
