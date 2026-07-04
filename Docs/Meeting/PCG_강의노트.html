@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCG 강의 노트 — 절차적 콘텐츠 생성 스스로 배우기</title>
+<style>
+  :root{
+    --paper:#f7f5f0; --paper2:#fffefb; --card:#ffffff;
+    --ink:#22262e; --ink2:#4b515c; --ink3:#7c828e; --ink4:#a7adb7;
+    --line:#e5e1d8; --line2:#d8d3c8;
+    --acc:#2f6fe0; --accBg:#eaf1fd; --accSoft:#5b8ee8;
+    --term:#b57814; --termBg:#fbf3e2;
+    --grn:#3c9d63; --grnBg:#e9f6ee; --red:#c8475f;
+    --sans:"Pretendard","Apple SD Gothic Neo","Segoe UI",system-ui,-apple-system,"Malgun Gothic",sans-serif;
+    --mono:ui-monospace,"JetBrains Mono","Cascadia Code",Consolas,monospace;
+    --maxw:1160px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+    font-size:17px;line-height:1.78;letter-spacing:.1px;-webkit-font-smoothing:antialiased}
+  a{color:var(--acc);text-decoration:none} a:hover{text-decoration:underline}
+  code{font-family:var(--mono);font-size:.85em;background:#eef0f3;color:#2b5bb0;
+    padding:.12em .45em;border-radius:5px;border:1px solid #e0e3e8}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+
+  /* HERO */
+  header{background:linear-gradient(180deg,#fffefb,#f4f1ea);border-bottom:1px solid var(--line)}
+  .hero{padding:66px 0 52px}
+  .ey{font-family:var(--mono);font-size:12.5px;letter-spacing:3px;text-transform:uppercase;color:var(--acc);margin:0 0 16px;font-weight:600}
+  h1.tt{font-size:clamp(30px,4.6vw,48px);line-height:1.12;margin:0 0 18px;font-weight:800;letter-spacing:-.5px}
+  h1.tt .g{color:var(--acc)}
+  .sub{font-size:18.5px;color:var(--ink2);max-width:640px;margin:0 0 26px}
+  .meta{display:flex;flex-wrap:wrap;gap:10px}
+  .mchip{font-family:var(--mono);font-size:12.5px;color:var(--ink2);background:#fff;
+    border:1px solid var(--line2);padding:7px 14px;border-radius:8px}
+  .mchip b{color:var(--acc)}
+
+  /* OBJECTIVES */
+  .obj{background:var(--accBg);border:1px solid #d3e2fb;border-radius:14px;padding:22px 26px;margin:34px 0 0}
+  .obj h3{margin:0 0 12px;font-size:16px;color:var(--acc);font-family:var(--mono);letter-spacing:.5px}
+  .obj ul{margin:0;padding-left:20px;columns:2;column-gap:34px}
+  .obj li{margin:0 0 7px;font-size:15px;color:var(--ink2);break-inside:avoid}
+
+  /* LAYOUT */
+  .layout{display:grid;grid-template-columns:224px 1fr;gap:52px;align-items:start;padding:50px 0 100px}
+  nav.toc{position:sticky;top:24px;font-size:14px}
+  nav.toc .tt{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--ink3);text-transform:uppercase;margin:0 0 12px;padding-left:14px}
+  nav.toc ol{list-style:none;margin:0;padding:0;border-left:2px solid var(--line)}
+  nav.toc li a{display:block;color:var(--ink3);padding:7px 0 7px 14px;margin-left:-2px;border-left:2px solid transparent}
+  nav.toc li a:hover{color:var(--ink)}
+  nav.toc li a.on{color:var(--acc);border-left-color:var(--acc);font-weight:600}
+  main{min-width:0}
+
+  .chap{margin:0 0 60px;scroll-margin-top:22px}
+  .chap-h{display:flex;align-items:baseline;gap:14px;margin:0 0 8px}
+  .chap-n{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--acc)}
+  h2{font-size:clamp(24px,3vw,30px);margin:0;font-weight:780;letter-spacing:-.3px}
+  .chap-lead{color:var(--ink2);font-size:17px;margin:6px 0 24px;padding-bottom:20px;border-bottom:1px solid var(--line)}
+  h3{font-size:20px;margin:32px 0 10px;font-weight:750}
+  p{margin:0 0 15px;color:var(--ink2)}
+  strong{color:var(--ink);font-weight:650}
+  ul.body,ol.body{margin:0 0 16px;padding-left:22px;color:var(--ink2)}
+  ul.body li,ol.body li{margin:0 0 7px}
+  .analogy{color:var(--ink);font-style:normal}
+  .analogy b{color:var(--term)}
+
+  /* TERM */
+  .term{border-left:4px solid var(--term);background:var(--termBg);border-radius:0 10px 10px 0;
+    padding:14px 20px;margin:20px 0}
+  .term .h{font-size:16.5px;font-weight:750;color:var(--ink)}
+  .term .h i{font-style:normal;font-family:var(--mono);font-size:13px;color:var(--term);font-weight:600;margin-left:9px}
+  .term .d{font-size:15px;color:var(--ink2);margin-top:5px;line-height:1.6}
+
+  /* CALLOUTS */
+  .call{border-radius:10px;padding:15px 20px;margin:20px 0;font-size:15.5px;border:1px solid}
+  .call .lab{font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;display:block;margin-bottom:5px}
+  .call p{margin:0;color:var(--ink2)}
+  .call.key{background:var(--accBg);border-color:#d3e2fb} .call.key .lab{color:var(--acc)}
+  .call.tip{background:var(--grnBg);border-color:#cbe8d5} .call.tip .lab{color:var(--grn)}
+
+  /* SUMMARY BOX */
+  .summary{background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:20px 24px;margin:26px 0}
+  .summary h4{margin:0 0 10px;font-size:14px;font-family:var(--mono);letter-spacing:.5px;color:var(--acc);text-transform:uppercase}
+  .summary ul{margin:0;padding-left:20px}
+  .summary li{margin:0 0 6px;color:var(--ink);font-size:15.5px}
+
+  /* QUIZ */
+  .quiz{background:#fbfaf6;border:1px dashed var(--line2);border-radius:12px;padding:20px 24px;margin:26px 0}
+  .quiz h4{margin:0 0 12px;font-size:14px;font-family:var(--mono);letter-spacing:.5px;color:var(--term);text-transform:uppercase}
+  .quiz .q{margin:0 0 8px;font-weight:600;color:var(--ink)}
+  details{margin:0 0 14px;border-bottom:1px solid var(--line);padding-bottom:12px}
+  details:last-child{border-bottom:none;padding-bottom:0}
+  summary{cursor:pointer;color:var(--ink);font-weight:600;list-style:none;padding:4px 0}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"▸ ";color:var(--acc)}
+  details[open] summary::before{content:"▾ "}
+  details .ans{margin:8px 0 0;padding:10px 14px;background:var(--accBg);border-radius:8px;font-size:15px;color:var(--ink2)}
+
+  /* FIGURE */
+  figure{margin:26px 0;background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:24px}
+  figure svg{display:block;width:100%;height:auto}
+  figcaption{font-family:var(--mono);font-size:12px;color:var(--ink3);text-align:center;margin-top:14px;letter-spacing:.2px}
+
+  /* TABLE */
+  table.tbl{width:100%;border-collapse:collapse;margin:20px 0;font-size:15px;border:1px solid var(--line2);border-radius:10px;overflow:hidden}
+  .tbl th{background:#f0ede5;text-align:left;padding:11px 15px;font-size:12.5px;font-family:var(--mono);color:var(--ink2);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--line2)}
+  .tbl td{padding:11px 15px;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top}
+  .tbl tr:last-child td{border-bottom:none}
+  .tbl td:first-child{color:var(--ink);font-weight:650}
+
+  .node{font-family:var(--mono);font-size:.84em;background:#eef0f3;color:#2b5bb0;border:1px solid #e0e3e8;border-radius:5px;padding:.1em .5em;white-space:nowrap}
+  footer{border-top:1px solid var(--line);background:#f1eee7}
+  .foot-in{padding:28px 0 60px;color:var(--ink3);font-size:14px}
+  .src li{margin-bottom:6px}
+
+  @media(max-width:880px){.layout{grid-template-columns:1fr;gap:0}nav.toc{display:none}.obj ul{columns:1}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap hero">
+    <p class="ey">Unreal Engine 5 · 자기주도 학습 노트</p>
+    <h1 class="tt">PCG 강의 노트<br><span class="g">절차적 콘텐츠 생성</span>, 스스로 배우기</h1>
+    <p class="sub">함께 제공된 강연 슬라이드의 내용을 <b>혼자 읽고 이해</b>할 수 있도록 풀어 쓴 학습 문서. 각 장 끝에 스스로 점검 문제가 있다.</p>
+    <div class="meta">
+      <span class="mchip">난이도 <b>입문 → 기초</b></span>
+      <span class="mchip">기준 <b>UE 5.7</b></span>
+      <span class="mchip">읽는 시간 <b>~30분</b></span>
+      <span class="mchip">구성 <b>4장 + 용어집</b></span>
+    </div>
+    <div class="obj">
+      <h3>이 노트를 다 읽으면</h3>
+      <ul>
+        <li>절차적 생성과 결정론의 의미를 설명할 수 있다</li>
+        <li>포인트·어트리뷰트·밀도·시드를 구분할 수 있다</li>
+        <li>PCG 4단계 파이프라인을 그릴 수 있다</li>
+        <li>게임 제작에서 PCG를 어디에 쓸지 판단할 수 있다</li>
+        <li>핵심 용어 10개를 우리말·영어로 말할 수 있다</li>
+      </ul>
+    </div>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <nav class="toc">
+    <p class="tt">목차</p>
+    <ol>
+      <li><a href="#c1">1 · 절차적 생성이란</a></li>
+      <li><a href="#c2">2 · 데이터 모델</a></li>
+      <li><a href="#c3">3 · 파이프라인과 노드</a></li>
+      <li><a href="#c4">4 · 게임 제작 활용</a></li>
+      <li><a href="#gl">＋ 용어집</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+  <div class="call key" style="margin:0 0 42px">
+    <span class="lab">이 노트 사용법 · 슬라이드와 함께 보기</span>
+    <p>함께 제공된 <b>「PCG 강연(v3)」 슬라이드</b>와 장(章)이 짝을 이룬다 — 발표·훑어보기는 슬라이드로, 복습·독학은 이 노트로. <b>1장</b> 왜 PCG·정의 · <b>2장</b> 포인트·밀도·시드 · <b>3장</b> 나무 심는 4단계 · <b>4장</b> 활용·균형·정리. <i>(공간 설계 기법(스플라인·집합 연산·바이옴·계층)은 언리얼 실습 단계에서 다루므로 이 노트에선 뺐다.)</i></p>
+  </div>
+
+  <!-- ===== CH1 ===== -->
+  <section class="chap" id="c1">
+    <div class="chap-h"><span class="chap-n">CHAPTER 01</span></div>
+    <h2>절차적 생성이란</h2>
+    <p class="chap-lead">"무엇을 놓을까"를 사람이 반복하는 대신, "어떤 규칙으로 놓을까"를 설계하는 사고의 전환.</p>
+
+    <h3>1-1. 문제: 손으로 채우는 세계</h3>
+    <p>넓은 게임 맵을 자연물로 채우는 일은 오랫동안 <strong>고된 반복 작업</strong>이었다. 나무·바위·풀을 하나하나 배치하고, 길을 하나 옮기면 그 주변을 <strong>처음부터 다시</strong> 손봐야 했다. 맵이 커질수록 필요한 사람과 시간이 끝없이 늘어난다. PCG는 이 관계를 근본적으로 뒤집는다.</p>
+    <table class="tbl">
+      <thead><tr><th>수작업 배치 (기존)</th><th>PCG (규칙 기반)</th></tr></thead>
+      <tbody>
+        <tr><td>에셋을 하나하나 손으로 놓음</td><td>배치 규칙을 한 번만 설계</td></tr>
+        <tr><td>길을 옮기면 주변을 전부 다시 손봄</td><td>길을 옮기면 주변이 자동 재생성</td></tr>
+        <tr><td>맵이 커질수록 인원·시간이 비례해 증가</td><td>맵이 커져도 규칙은 그대로 재사용</td></tr>
+        <tr><td>일관성이 사람 손에 좌우됨</td><td>규칙이 일관성을 보장</td></tr>
+      </tbody>
+    </table>
+
+    <h3>1-2. 발상의 전환</h3>
+    <p><strong>PCG(Procedural Content Generation, 절차적 콘텐츠 생성)</strong>는 이 관계를 뒤집는다. 콘텐츠를 직접 배치해 저장하는 대신, <strong>콘텐츠를 만들어내는 규칙</strong>을 저장한다. 규칙을 한 번 잘 설계하면, 조건이 바뀔 때 결과가 <strong>자동으로 따라온다.</strong></p>
+    <p class="analogy">비유하자면 — 물고기를 하나씩 잡아 늘어놓는 대신, <b>그물 짜는 법</b>을 적어 두는 것이다. 그물만 있으면 바다가 아무리 넓어도 대응할 수 있다.</p>
+
+    <div class="term"><div class="h">절차적 생성 <i>Procedural Generation</i></div>
+      <div class="d">데이터를 손으로 배치하는 대신 알고리즘·규칙으로 자동 생성하는 방식.</div></div>
+
+    <h3>1-3. 핵심 성질: 결정론</h3>
+    <p>PCG를 관통하는 가장 중요한 성질은 <strong>결정론(Deterministic)</strong>이다. <strong>같은 입력에 같은 규칙이면 언제나 같은 결과</strong>가 나온다. "랜덤처럼 보이지만 재현 가능하다"는 뜻이다. 이 성질이 왜 중요한지는 2장 시드에서 자세히 다룬다.</p>
+
+    <figure>
+      <svg viewBox="0 0 780 200">
+        <g font-family="var(--mono)">
+          <rect x="10" y="20" width="140" height="52" rx="9" fill="#fbf3e2" stroke="#b57814"/>
+          <text x="80" y="43" fill="#b57814" font-size="15" text-anchor="middle">시드 42</text>
+          <text x="80" y="61" fill="#7c828e" font-size="11" text-anchor="middle">입력</text>
+          <text x="168" y="52" fill="#7c828e" font-size="20" text-anchor="middle">+</text>
+          <rect x="190" y="20" width="140" height="52" rx="9" fill="#fff" stroke="#d8d3c8"/>
+          <text x="260" y="51" fill="#22262e" font-size="14" text-anchor="middle">규칙(그래프)</text>
+          <text x="350" y="52" fill="#2f6fe0" font-size="22" text-anchor="middle">→</text>
+          <rect x="375" y="20" width="140" height="52" rx="9" fill="#eaf1fd" stroke="#2f6fe0"/>
+          <text x="445" y="51" fill="#2f6fe0" font-size="14" text-anchor="middle">월드 A</text>
+
+          <rect x="10" y="110" width="140" height="52" rx="9" fill="#fbf3e2" stroke="#b57814"/>
+          <text x="80" y="141" fill="#b57814" font-size="15" text-anchor="middle">시드 42</text>
+          <text x="168" y="141" fill="#7c828e" font-size="20" text-anchor="middle">+</text>
+          <rect x="190" y="110" width="140" height="52" rx="9" fill="#fff" stroke="#d8d3c8"/>
+          <text x="260" y="141" fill="#22262e" font-size="14" text-anchor="middle">규칙(그래프)</text>
+          <text x="350" y="141" fill="#2f6fe0" font-size="22" text-anchor="middle">→</text>
+          <rect x="375" y="110" width="140" height="52" rx="9" fill="#eaf1fd" stroke="#2f6fe0"/>
+          <text x="445" y="141" fill="#2f6fe0" font-size="14" text-anchor="middle">월드 A</text>
+
+          <path d="M525 46 H545 V136 H525" fill="none" stroke="#3c9d63" stroke-width="1.5"/>
+          <text x="558" y="82" fill="#3c9d63" font-size="16">항상 똑같은 결과</text>
+          <text x="558" y="106" fill="#7c828e" font-size="13">= 결정론적</text>
+        </g>
+      </svg>
+      <figcaption>그림 1 — 콘텐츠가 아니라 "규칙"을 저장한다 · 같은 입력이면 언제나 같은 결과</figcaption>
+    </figure>
+
+    <h3>1-4. 왜 지금 배워야 하나 — Electric Dreams</h3>
+    <p>PCG의 위력을 단적으로 보여준 사례가 에픽게임즈의 <strong>Electric Dreams</strong> 데모다. 원래 <strong>수십 명의 레벨디자이너가 몇 달</strong>에 걸쳐 할 배치 작업을, <strong>소수의 아티스트가 규칙을 정의</strong>하는 것으로 대체했다.</p>
+    <table class="tbl">
+      <thead><tr><th>지표</th><th>의미</th></tr></thead>
+      <tbody>
+        <tr><td>4km × 4km</td><td>한 명의 아티스트가 만든 절차적 정글의 규모</td></tr>
+        <tr><td>코드 0줄</td><td>노드 그래프만으로 — 프로그래밍 없이</td></tr>
+        <tr><td>수십 명 → 소수</td><td>몇 달치 배치 작업을 규칙으로 압축</td></tr>
+      </tbody>
+    </table>
+    <p>게다가 <strong>UE 5.7</strong>에서 PCG는 실험 기능을 벗어나 <strong>프로덕션 레디(실제 출시에 쓸 수 있는 수준)</strong>로 공식화됐다. GPU 연산 경로, 2배 빨라진 성능, 코드 없이 쓰는 새 에디터 모드까지 갖췄다. <strong>지금 익혀 두면 곧 표준 스킬</strong>이 된다는 신호다.</p>
+    <div class="call key"><span class="lab">한 줄로</span><p>PCG는 화려한 그래픽 기술이 아니라 <b>제작 파이프라인 자체를 바꾸는 레버리지</b>다. 소규모 팀도 오픈월드 스케일을 다룰 수 있게 해 준다.</p></div>
+
+    <div class="summary">
+      <h4>핵심 정리</h4>
+      <ul>
+        <li>PCG = 에셋을 놓는 게 아니라 <strong>배치 규칙을 설계</strong>하는 것</li>
+        <li>규칙을 저장하면 조건이 바뀔 때 결과가 <strong>자동 재생성</strong>된다</li>
+        <li><strong>결정론</strong>: 같은 입력 → 같은 결과 (재현 가능한 랜덤)</li>
+      </ul>
+    </div>
+
+    <div class="quiz">
+      <h4>스스로 점검</h4>
+      <details><summary>Q1. PCG가 "저장하는 것"은 콘텐츠 자체인가, 아니면 무엇인가?</summary>
+        <p class="ans">콘텐츠 자체가 아니라 <b>콘텐츠를 만들어내는 규칙(그래프)</b>을 저장한다. 그래서 조건이 바뀌면 결과가 자동으로 다시 만들어진다.</p></details>
+      <details><summary>Q2. "결정론적"이라는 말을 한 문장으로 설명해 보자.</summary>
+        <p class="ans">같은 입력(시드+규칙)이면 <b>언제나 같은 결과</b>가 나온다는 성질. 랜덤해 보이지만 재현 가능하다.</p></details>
+      <details><summary>Q3. Electric Dreams 사례의 핵심 시사점은?</summary>
+        <p class="ans">한 명이 <b>코드 0줄로 4km² 정글</b>을 만들 만큼, PCG는 <b>제작 파이프라인을 바꾸는 레버리지</b>다. 배치를 에셋이 아니라 규칙·태그로 관리하면 소규모 팀도 오픈월드 스케일을 다룰 수 있다.</p></details>
+    </div>
+  </section>
+
+  <!-- ===== CH2 ===== -->
+  <section class="chap" id="c2">
+    <div class="chap-h"><span class="chap-n">CHAPTER 02</span></div>
+    <h2>데이터 모델</h2>
+    <p class="chap-lead">PCG는 세계를 무엇으로 표현하는가 — 모든 것은 "포인트"에서 시작한다. 이 장이 강의 전체의 중심이다.</p>
+
+    <h3>2-1. 기본 단위: 포인트</h3>
+    <p>PCG가 다루는 모든 것은 <strong>포인트(Point)</strong>다. 하지만 포인트는 단순한 좌표가 아니다. <strong>위치·회전·크기(Transform)</strong>에 더해 여러 <strong>속성</strong>을 함께 들고 다니는 데이터 묶음이다. 이 포인트 위에 나중에 메시를 심으면 비로소 나무·바위가 된다.</p>
+    <p class="analogy">포인트는 <b>"라벨이 잔뜩 붙은 압정"</b>이라고 생각하면 쉽다. 지도에 압정을 수천 개 꽂고, 각 압정에 "여기 경사 몇 도, 밀도 얼마, 시드 얼마"라고 적어 둔 것.</p>
+
+    <figure>
+      <svg viewBox="0 0 820 340">
+        <g stroke="#d8d3c8" stroke-width="1.5">
+          <line x1="410" y1="170" x2="190" y2="72"/><line x1="410" y1="170" x2="630" y2="72"/>
+          <line x1="410" y1="170" x2="130" y2="170"/><line x1="410" y1="170" x2="690" y2="170"/>
+          <line x1="410" y1="170" x2="190" y2="268"/><line x1="410" y1="170" x2="630" y2="268"/>
+        </g>
+        <circle cx="410" cy="170" r="58" fill="#eaf1fd" stroke="#2f6fe0" stroke-width="2.5"/>
+        <text x="410" y="166" fill="#2f6fe0" font-size="19" font-weight="700" text-anchor="middle" font-family="var(--sans)">포인트</text>
+        <text x="410" y="188" fill="#7c828e" font-size="12" text-anchor="middle" font-family="var(--mono)">Point</text>
+        <g font-family="var(--sans)">
+          <g><rect x="93" y="48" width="194" height="48" rx="9" fill="#fff" stroke="#d8d3c8"/><text x="190" y="70" fill="#2b5bb0" font-size="14" font-weight="700" text-anchor="middle">트랜스폼</text><text x="190" y="87" fill="#7c828e" font-size="10.5" text-anchor="middle" font-family="var(--mono)">Transform · 위치·회전·크기</text></g>
+          <g><rect x="533" y="48" width="194" height="48" rx="9" fill="#fff" stroke="#d8d3c8"/><text x="630" y="70" fill="#2b5bb0" font-size="14" font-weight="700" text-anchor="middle">밀도</text><text x="630" y="87" fill="#7c828e" font-size="10.5" text-anchor="middle" font-family="var(--mono)">Density · 존재 확률 0~1</text></g>
+          <g><rect x="16" y="146" width="200" height="48" rx="9" fill="#fff" stroke="#d8d3c8"/><text x="116" y="168" fill="#2b5bb0" font-size="14" font-weight="700" text-anchor="middle">경사</text><text x="116" y="185" fill="#7c828e" font-size="10.5" text-anchor="middle" font-family="var(--mono)">Steepness · 지형 기울기</text></g>
+          <g><rect x="610" y="146" width="200" height="48" rx="9" fill="#fff" stroke="#d8d3c8"/><text x="710" y="168" fill="#2b5bb0" font-size="14" font-weight="700" text-anchor="middle">범위</text><text x="710" y="185" fill="#7c828e" font-size="10.5" text-anchor="middle" font-family="var(--mono)">Bounds · 차지하는 크기</text></g>
+          <g><rect x="93" y="244" width="194" height="48" rx="9" fill="#fff" stroke="#d8d3c8"/><text x="190" y="266" fill="#2b5bb0" font-size="14" font-weight="700" text-anchor="middle">시드</text><text x="190" y="283" fill="#7c828e" font-size="10.5" text-anchor="middle" font-family="var(--mono)">Seed · 난수 씨앗</text></g>
+          <g><rect x="531" y="244" width="200" height="48" rx="9" fill="#fbf3e2" stroke="#b57814"/><text x="631" y="266" fill="#b57814" font-size="14" font-weight="700" text-anchor="middle">커스텀 속성</text><text x="631" y="283" fill="#7c828e" font-size="10.5" text-anchor="middle" font-family="var(--mono)">Custom · 예) BiomeType</text></g>
+        </g>
+      </svg>
+      <figcaption>그림 2 — 하나의 포인트가 지니는 속성들 · 노드는 이 값을 읽어 판단한다</figcaption>
+    </figure>
+
+    <div class="term"><div class="h">포인트 <i>Point</i></div><div class="d">3D 공간의 한 지점 + 그 지점이 지닌 속성들의 묶음. PCG의 최소 단위.</div></div>
+    <div class="term"><div class="h">트랜스폼 <i>Transform</i></div><div class="d">포인트가 놓인 <b>위치(어디에)·회전(어느 방향)·크기(얼마나 크게)</b> 세 가지 정보 묶음. 나무 한 그루가 "어디에, 어느 쪽으로, 얼마나 크게" 서 있는지를 정한다. 포인트가 태어날 때부터 기본으로 갖는 값이다.</div></div>
+
+    <h3>2-2. 속성 시스템: 어트리뷰트와 메타데이터</h3>
+    <p>각 포인트에는 여러 <strong>속성</strong>이 붙는다. 엔진이 <strong>기본으로 주는 속성</strong>(밀도·경사 등)도 있고, 내가 <strong>직접 만든 속성</strong>(<code>BiomeType</code> 등)도 있다. 이 "속성"을 영어로 <strong>어트리뷰트(Attribute)</strong>라 부른다 — 같은 말이다. <strong>PCG 로직의 본질은 이 속성값을 읽어 판단하고, 값에 따라 다르게 처리하는 것</strong>이다. (예: "경사가 30도 넘으면 나무 심지 마라"는 <code>Steepness</code> 값을 읽는 것이다.)</p>
+    <table class="tbl">
+      <thead><tr><th>기본 속성</th><th>의미</th></tr></thead>
+      <tbody>
+        <tr><td>밀도 <code>Density</code></td><td>포인트 존재 확률 (0~1)</td></tr>
+        <tr><td>경사 <code>Steepness</code></td><td>그 지점의 지형 기울기</td></tr>
+        <tr><td>범위 <code>Bounds</code></td><td>포인트가 차지하는 공간 크기</td></tr>
+        <tr><td>시드 <code>Seed</code></td><td>난수 씨앗</td></tr>
+        <tr><td>커스텀 <code>Custom</code></td><td>내가 정의 — 예: <code>BiomeType</code>, <code>MeshIndex</code></td></tr>
+      </tbody>
+    </table>
+    <p>포인트들을 <strong>엑셀 표</strong>라고 생각하면 쉽다. 포인트 하나가 <strong>한 줄(행)</strong>이고, 밀도·경사·<code>BiomeType</code> 같은 속성이 <strong>각각의 칸(열)</strong>이다. 여기서 <strong>어트리뷰트 = 칸 하나하나</strong>(이름+값), <strong>메타데이터 = 그 칸들을 담고 있는 표 자체</strong>다. 즉 어트리뷰트는 <b>적힌 내용</b>, 메타데이터는 <b>그 내용이 적혀 있는 표</b>인 셈이다.</p>
+    <p class="analogy">쉽게는 — <b>메타데이터 = 포인트마다 딸린 정보 표</b>, <b>어트리뷰트 = 그 표의 각 칸</b>. 입문 단계에선 딱 이만큼만 알면 된다.</p>
+    <div class="term"><div class="h">어트리뷰트 <i>Attribute</i></div><div class="d">포인트에 붙는 이름-값 데이터(예: 밀도=0.7, BiomeType=사막). 필터·스폰의 판단 근거가 되는 데이터 알맹이.</div></div>
+    <div class="term"><div class="h">메타데이터 <i>Metadata</i></div><div class="d">어트리뷰트를 담아 노드 사이로 전달하는 시스템. 값 자체가 아니라 값을 실어 나르는 통로.</div></div>
+
+    <h3>2-3. 밀도는 "개수"가 아니라 "확률"</h3>
+    <p>초보가 가장 많이 오해하는 지점. <strong>밀도(Density)는 "이 자리에 포인트가 존재할 확률" 0~1 값</strong>이다. 디버그 뷰에서 검정(0)→흰색(1) 그라데이션으로 보인다. 밀도를 <strong>노이즈로 흔들면</strong> 균일한 배치가 자연스러운 소밀(疏密)로 바뀐다 — 진짜 자연처럼 무리 짓고 비는 곳이 생긴다.</p>
+    <p class="analogy">쉽게는 <b>동전 던지기 확률</b>이다. 밀도 0.7인 자리들은 "열 곳 중 일곱 곳쯤 나무가 선다"는 뜻 — 각 자리마다 그 확률로 있고/없고가 정해진다. 0.5면 반반, 0이면 절대 없음, 1이면 반드시 있음.</p>
+    <figure>
+      <svg viewBox="0 0 620 130">
+        <text x="10" y="26" fill="#4b515c" font-size="15" font-family="var(--mono)">밀도 = 존재 확률 (낮음 → 높음)</text>
+        <circle cx="50" cy="72" r="17" fill="#2f6fe0" opacity="0.14"/>
+        <circle cx="130" cy="72" r="17" fill="#2f6fe0" opacity="0.32"/>
+        <circle cx="210" cy="72" r="17" fill="#2f6fe0" opacity="0.5"/>
+        <circle cx="290" cy="72" r="17" fill="#2f6fe0" opacity="0.68"/>
+        <circle cx="370" cy="72" r="17" fill="#2f6fe0" opacity="0.85"/>
+        <circle cx="450" cy="72" r="17" fill="#2f6fe0" opacity="1"/>
+        <text x="50" y="114" fill="#7c828e" font-size="12" text-anchor="middle" font-family="var(--mono)">0.0</text>
+        <text x="50" y="128" fill="#a7adb7" font-size="10.5" text-anchor="middle" font-family="var(--sans)">없음</text>
+        <text x="250" y="114" fill="#7c828e" font-size="12" text-anchor="middle" font-family="var(--mono)">0.5</text>
+        <text x="250" y="128" fill="#a7adb7" font-size="10.5" text-anchor="middle" font-family="var(--sans)">반반</text>
+        <text x="450" y="114" fill="#7c828e" font-size="12" text-anchor="middle" font-family="var(--mono)">1.0</text>
+        <text x="450" y="128" fill="#a7adb7" font-size="10.5" text-anchor="middle" font-family="var(--sans)">반드시</text>
+        <text x="512" y="70" fill="#3c9d63" font-size="13" font-family="var(--mono)">← 필터로</text>
+        <text x="512" y="88" fill="#7c828e" font-size="12" font-family="var(--mono)">낮은 확률 제거</text>
+      </svg>
+      <figcaption>그림 3 — 밀도는 각 포인트의 존재 확률 · 낮은 확률을 걸러내면 듬성듬성한 자연 배치가 된다</figcaption>
+    </figure>
+    <div class="term"><div class="h">밀도 <i>Density</i></div><div class="d">포인트의 존재 확률(0~1). 배치의 성김·빽빽함, 무리 짓기를 제어하는 핵심 값.</div></div>
+
+    <h3>2-4. 시드와 재현성</h3>
+    <p>PCG의 랜덤은 진짜 무작위가 아니라 <strong>시드에서 계산된 값</strong>이다. 시드가 같으면 결과도 똑같다(1장의 결정론). 이게 실무에서 왜 결정적이냐면:</p>
+    <ul class="body">
+      <li><strong>협업</strong> — 팀원 모두 같은 시드로 같은 월드를 본다</li>
+      <li><strong>버전 관리</strong> — 결과물 대신 규칙+시드만 저장하면 된다 (용량↓)</li>
+      <li><strong>멀티플레이</strong> — 서버와 클라이언트가 통신 없이 <strong>각자 같은 결과</strong>를 계산한다</li>
+    </ul>
+    <p class="analogy">비유하면 <b>주사위를 고정하는 번호</b>다. 같은 번호(시드)를 넣으면 주사위는 언제나 같은 눈이 나온다. 번호를 43으로 바꾸면 결과는 달라지지만, <b>그 결과 역시 매번 똑같이 재현된다</b> — 그래서 "다양하되 예측 가능"하다.</p>
+    <div class="term"><div class="h">시드 <i>Seed</i></div><div class="d">난수 생성의 출발값. 랜덤한 다양성을 주되 언제든 똑같이 재현 가능하게 만드는 장치.</div></div>
+    <div class="call key"><span class="lab">왜 중요한가</span><p>재현성 없는 절차 생성은 <b>협업이 불가능</b>하다. 매번 결과가 달라지면 팀원끼리 다른 월드를 보게 되니까. 결정론은 PCG를 "실무 도구"로 만드는 전제 조건이다.</p></div>
+
+    <div class="summary">
+      <h4>핵심 정리</h4>
+      <ul>
+        <li>모든 것은 <strong>포인트</strong> = 위치 + 속성 묶음</li>
+        <li>PCG 로직 = <strong>속성값을 읽어 판단하고 값에 따라 처리</strong>하는 것</li>
+        <li>밀도는 개수가 아니라 <strong>확률(0~1)</strong></li>
+        <li>시드가 같으면 결과도 같다 → <strong>협업·멀티플레이</strong>의 토대</li>
+      </ul>
+    </div>
+    <div class="quiz">
+      <h4>스스로 점검</h4>
+      <details><summary>Q1. 포인트는 단순한 좌표인가?</summary><p class="ans">아니다. 위치·회전·크기(Transform)에 더해 밀도·경사·시드·커스텀 등 <b>여러 속성을 지닌 데이터 묶음</b>이다.</p></details>
+      <details><summary>Q2. 밀도 0.3은 무슨 뜻인가?</summary><p class="ans">그 자리에 포인트가 존재할 <b>확률이 30%</b>라는 뜻. 개수가 아니라 확률값이다.</p></details>
+      <details><summary>Q3. 시드가 같으면 왜 협업에 유리한가?</summary><p class="ans">같은 시드 → 같은 결과이므로, 팀원 전체가 <b>동일한 월드</b>를 보고 작업할 수 있고, 결과물 대신 규칙+시드만 공유하면 된다.</p></details>
+    </div>
+  </section>
+
+  <!-- ===== CH3 ===== -->
+  <section class="chap" id="c3">
+    <div class="chap-h"><span class="chap-n">CHAPTER 03</span></div>
+    <h2>파이프라인과 노드</h2>
+    <p class="chap-lead">데이터가 어떤 순서로 흐르고, 각 단계가 무슨 일을 하는가.</p>
+
+    <h3>3-1. 한 방향으로 흐르는 데이터</h3>
+    <p>PCG는 코드를 한 줄씩 타이핑하는 게 아니라, <strong>상자를 선으로 이어서</strong> 만든다. 상자 하나는 <strong>한 가지 일만</strong> 한다 — "포인트 찍기" 상자, "경사 급한 곳 버리기" 상자처럼. 이 상자 하나가 <strong>노드</strong>, 상자들을 다 이어 붙인 전체가 <strong>그래프</strong>다. 상자를 왼쪽부터 오른쪽으로 이으면, 포인트 데이터가 그 선을 타고 <strong>왼쪽 상자 → 오른쪽 상자</strong>로 지나간다.</p>
+    <p class="analogy">공장 <b>컨베이어 벨트</b>를 떠올리면 된다 — 왼쪽에서 재료가 들어와 첫 기계를 지나면 조금 가공되고, 다음 기계를 지나면 또 가공되어, 오른쪽 끝에서 완성품이 나온다. PCG도 똑같이 포인트가 상자들을 차례로 지나며 다듬어진다.</p>
+    <p>중요한 점 하나 — 각 상자는 들어온 <strong>원본을 직접 뜯어고치지 않는다.</strong> 대신 <strong>복사본을 하나 떠서 거기에만 변화를 준 뒤</strong> 다음 상자로 넘긴다. 그래서 중간 상자의 설정을 나중에 바꿔도 앞 단계가 안 망가지고, <strong>바꾼 지점부터 오른쪽만 자동으로 다시 계산</strong>된다. 이렇게 원본을 훼손하지 않는 방식을 <strong>비파괴적(Non-destructive)</strong>이라 한다.</p>
+    <div class="call tip"><span class="lab">"원본을 안 고친다"는 게 무슨 뜻?</span><p>①포인트 찍기 상자가 <b>포인트 100개</b>를 만들어 ②경사 필터 상자에 넘긴다고 하자. ②번은 그 100개를 <b>그대로 두고</b>, 복사본에서 급한 것 40개를 지워 <b>"60개짜리 새 결과"</b>를 만들어 다음으로 넘긴다. ①번의 100개는 손도 안 댔으니 그대로 살아있다. 그래서 나중에 필터 기준을 30도→40도로 바꿔도, <b>①번의 원본 100개에서 다시 걸러내기만</b> 하면 될 뿐 처음부터 다시 만들 필요가 없다.</p></div>
+    <p class="analogy">그래서 실제로 뭐가 좋냐면 — "경사 30도에서 버리기"를 "40도"로 바꾸고 싶을 때 <b>그 상자 숫자 하나만 고치면</b> 뒤 단계가 알아서 다시 흐른다. 손으로 나무를 다시 심을 필요가 없다.</p>
+    <div class="term"><div class="h">그래프 · 노드 <i>Graph · Node</i></div><div class="d">노드는 데이터를 처리하는 상자, 그래프는 그 상자들을 연결한 규칙 전체.</div></div>
+    <div class="term"><div class="h">비파괴적 <i>Non-destructive</i></div><div class="d">원본을 훼손하지 않고 단계마다 새 결과를 만든다. 그래서 반복 수정이 자유롭다.</div></div>
+
+    <h3>3-2. 모든 그래프의 뼈대 — 네 단계</h3>
+    <p>PCG 그래프가 처음엔 상자가 수십 개라 복잡해 보이지만, 뜯어보면 결국 <strong>네 박자</strong>의 반복·변주일 뿐이다. <strong>빈 땅에 나무 심는 순서</strong>와 똑같다고 생각하면 쉽다 — ① 심을 자리를 점으로 찍고, ② 안 되는 자리(절벽 등)를 골라내고, ③ 방향·크기를 제각각으로 다듬고, ④ 그 자리에 진짜 나무를 심는다.</p>
+    <p>이 네 박자를 외워두면 <strong>남이 만든 복잡한 그래프를 봐도 안 무섭다.</strong> "이 상자는 자리 찍는 쪽(①)이구나, 여긴 골라내는 쪽(②)이구나" 하고 역할별로 묶어 읽으면, 아무리 상자가 많아도 큰 흐름이 한눈에 잡힌다.</p>
+    <figure>
+      <svg viewBox="0 0 800 155">
+        <g font-family="var(--sans)">
+          <rect x="10" y="35" width="150" height="86" rx="12" fill="#fff" stroke="#d8d3c8"/>
+          <text x="85" y="60" fill="#2f6fe0" font-size="14" text-anchor="middle" font-weight="700">① 자리 찍기</text>
+          <text x="85" y="84" fill="#22262e" font-size="14" text-anchor="middle" font-weight="700">샘플러</text>
+          <text x="85" y="104" fill="#7c828e" font-size="11" text-anchor="middle" font-family="var(--mono)">Sampler</text>
+          <text x="178" y="82" fill="#2f6fe0" font-size="20" text-anchor="middle">→</text>
+          <rect x="205" y="35" width="150" height="86" rx="12" fill="#fff" stroke="#d8d3c8"/>
+          <text x="280" y="60" fill="#2f6fe0" font-size="14" text-anchor="middle" font-weight="700">② 골라내기</text>
+          <text x="280" y="84" fill="#22262e" font-size="14" text-anchor="middle" font-weight="700">필터</text>
+          <text x="280" y="104" fill="#7c828e" font-size="11" text-anchor="middle" font-family="var(--mono)">Filter</text>
+          <text x="373" y="82" fill="#2f6fe0" font-size="20" text-anchor="middle">→</text>
+          <rect x="400" y="35" width="150" height="86" rx="12" fill="#fff" stroke="#d8d3c8"/>
+          <text x="475" y="60" fill="#2f6fe0" font-size="14" text-anchor="middle" font-weight="700">③ 다듬기</text>
+          <text x="475" y="84" fill="#22262e" font-size="14" text-anchor="middle" font-weight="700">변형</text>
+          <text x="475" y="104" fill="#7c828e" font-size="11" text-anchor="middle" font-family="var(--mono)">Transform</text>
+          <text x="568" y="82" fill="#2f6fe0" font-size="20" text-anchor="middle">→</text>
+          <rect x="595" y="35" width="150" height="86" rx="12" fill="#eaf1fd" stroke="#2f6fe0"/>
+          <text x="670" y="60" fill="#2f6fe0" font-size="14" text-anchor="middle" font-weight="700">④ 심기</text>
+          <text x="670" y="84" fill="#22262e" font-size="14" text-anchor="middle" font-weight="700">스포너</text>
+          <text x="670" y="104" fill="#7c828e" font-size="11" text-anchor="middle" font-family="var(--mono)">Spawner</text>
+        </g>
+      </svg>
+      <figcaption>그림 4 — 나무 심듯: 자리 찍고 → 골라내고 → 다듬고 → 심기</figcaption>
+    </figure>
+    <div class="call tip"><span class="lab">순서를 왜 지켜야 좋을까</span><p>상자는 왼→오로 차례로 실행된다. 그래서 <b>버릴 포인트는 최대한 일찍 버리는 게 이득</b>이다. 예를 들어 포인트 1000개 중 절벽에 걸린 700개를 ②필터에서 미리 지우면, ③다듬기·④심기는 남은 <b>300개만</b> 처리하면 된다. 반대로 필터를 맨 뒤로 미루면 1000개를 전부 다듬고 심은 뒤에야 700개를 버리는 꼴 — 헛일을 잔뜩 하는 셈이다.</p></div>
+
+    <h3>3-3. 첫 단계 — 샘플러</h3>
+    <p>모든 그래프는 포인트가 있어야 시작된다. 그런데 빈 땅에는 아직 포인트가 하나도 없다. <strong>이 "빈 공간"에 포인트를 촘촘히 뿌려주는 상자가 샘플러</strong>다. 한마디로 <strong>"공간을 넣으면 포인트가 나오는 변환기"</strong>다 — 지형을 넣으면 그 표면을 덮는 포인트 수백~수천 개가 튀어나온다.</p>
+    <p>그런데 "어떤 공간에" 뿌리느냐가 상황마다 다르다. 넓은 땅바닥에 숲을 깔 때랑, 길 하나를 따라 가로등을 세울 때는 뿌리는 모양이 완전히 다르니까. 그래서 <strong>입력하는 공간의 종류에 따라 샘플러도 갈린다.</strong></p>
+    <table class="tbl">
+      <thead><tr><th>종류</th><th>입력</th><th>쓰임</th></tr></thead>
+      <tbody>
+        <tr><td>Surface Sampler</td><td>지형·표면</td><td>숲, 들판, 잔해 흩뿌리기</td></tr>
+        <tr><td>Spline Sampler</td><td>선(곡선)</td><td>길가 가로등, 강둑 나무, 울타리</td></tr>
+        <tr><td>Volume Sampler</td><td>부피(공간)</td><td>동굴 속, 실내 클러터</td></tr>
+      </tbody>
+    </table>
+    <div class="term"><div class="h">샘플러 · 샘플링 <i>Sampler · Sampling</i></div><div class="d">주어진 공간에서 규칙에 따라 포인트를 뽑아내는 것. 모든 그래프의 시작점.</div></div>
+
+    <h3>3-4. 둘째 단계 — 필터는 무엇을 기준으로 거를까</h3>
+    <p>샘플러가 자리를 <strong>일단 다 뿌려놓으면</strong>, 그중엔 나무가 서면 안 되는 자리도 잔뜩 섞여 있다 — 절벽, 물속, 길 한복판 같은 곳. 필터는 이런 <strong>"안 되는 자리"를 골라 지우는 상자</strong>다.</p>
+    <p>그럼 뭘 보고 "안 되는 자리"라고 판단할까? 바로 <strong>2장에서 배운 포인트의 속성값</strong>이다. 각 포인트는 경사·밀도·BiomeType 같은 값을 이미 들고 있으니, 필터는 <strong>"경사 > 30도인 포인트는 버려" 같은 조건식</strong>을 걸어 통과 못 한 포인트를 지운다. 대표적인 기준은 이렇다.</p>
+    <table class="tbl">
+      <thead><tr><th>기준</th><th>거르는 예</th></tr></thead>
+      <tbody>
+        <tr><td>경사 <code>Steepness</code></td><td>너무 가파른 절벽 → 나무·건물 자리에서 제외</td></tr>
+        <tr><td>밀도 <code>Density</code></td><td>존재 확률이 낮은 포인트 제거 → 듬성듬성한 자연 배치</td></tr>
+        <tr><td>겹침·거리</td><td>길·바위·건물과 겹치는 포인트 제거(<code>Difference</code>) → 배제 영역</td></tr>
+        <tr><td>속성·태그</td><td>특정 <code>BiomeType</code>이거나 특정 태그가 붙은 포인트만 남기기</td></tr>
+        <tr><td>높이·좌표</td><td>수면 아래, 또는 일정 고도 밖의 포인트 제거</td></tr>
+      </tbody>
+    </table>
+    <div class="call key"><span class="lab">핵심</span><p>필터 = "조건식으로 포인트를 걸러내는 것". <b>무엇을 기준으로 거를지는 결국 2장에서 배운 속성값을 읽는 일</b>이다. 그래서 데이터 모델을 이해하면 필터는 저절로 이해된다.</p></div>
+
+    <h3>3-5. 셋째 단계 — 변형(트랜스폼 다듬기)</h3>
+    <p>필터로 <strong>심을 자리를 다 골라냈으면</strong>, 이제 그 자리에 설 나무들의 <strong>트랜스폼(위치·회전·크기)</strong>을 다듬을 차례다. 2장에서 배운 그 트랜스폼을, 이 단계에서 손본다.</p>
+    <p>왜 필요할까? 샘플러가 막 찍은 포인트들은 <strong>전부 회전 0, 크기 1로 똑같다.</strong> 그대로 나무를 심으면 <strong>수백 그루가 전부 같은 방향, 같은 크기로 서 있어서</strong> 복사해 붙인 티가 확 난다 — 진짜 숲처럼 안 보이고 어색하다.</p>
+    <p>그래서 변형 단계에서 <strong>각 나무의 회전을 제각각 랜덤으로 돌리고, 크기도 조금씩 다르게 흔든다.</strong> 그러면 똑같은 나무 하나로도 크고 작고 이리저리 기운 나무가 섞인 <strong>자연스러운 숲</strong>이 된다. 이 "랜덤"은 진짜 무작위가 아니라 <strong>시드에서 계산된 값</strong>(2장)이라, 아무리 흔들어도 언제든 똑같이 재현된다.</p>
+    <div class="call tip"><span class="lab">한 걸음 더</span><p>흔드는 기준을 <b>속성값에 연결</b>할 수도 있다. 예를 들어 경사(<code>Steepness</code>)가 급한 자리의 나무는 비탈을 따라 살짝 기울이거나, 특정 <code>BiomeType</code>에서만 크기를 키우는 식이다. "무작정 랜덤"이 아니라 <b>지형에 반응하는 다양함</b>을 줄 수 있다.</p></div>
+    <div class="term"><div class="h">변형 <i>Transform (스텝)</i></div><div class="d">포인트의 위치·회전·크기를 조정하는 단계. 복제한 듯 똑같은 배치를 제각각으로 흔들어 자연스럽게 만든다.</div></div>
+
+    <h3>3-6. 마지막 단계 — 스포너와 인스턴싱</h3>
+    <p>여기까지 오면 포인트(자리)만 정해졌을 뿐 아직 눈에 보이는 건 없다. <strong>스포너는 그 자리마다 실제 3D 모델(메시)을 갖다 심어</strong> 비로소 나무·바위가 화면에 나타나게 하는 상자다.</p>
+    <p>문제는 개수다. 나무가 <strong>수천~수백만 그루</strong>인데, 이걸 하나하나 <strong>독립된 물체(액터)로 만들면</strong> 컴퓨터가 매 순간 "이 나무 그려, 저 나무도 그려…"를 수백만 번 따로 명령해야 해서 게임이 뚝뚝 끊긴다. <strong>똑같이 생긴 나무인데도</strong> 전부 남남처럼 취급하니 낭비가 심한 것이다.</p>
+    <p><strong>인스턴싱</strong>은 이 낭비를 없앤다. <strong>모양이 같은 나무들을 한 덩어리로 묶어</strong>, 컴퓨터한테 "이 나무를 이 위치 목록에 한 번에 다 찍어"라고 <strong>딱 한 번만</strong> 시키는 방식이다. 도장 하나로 같은 그림을 수백만 번 쾅쾅 찍는 것과 같다. 그래서 수백만 그루도 게임이 안 끊기고 감당된다.</p>
+    <div class="call tip"><span class="lab">이 최적화는 자동이다</span><p>다행히 이 인스턴싱은 <b>내가 따로 켜거나 설정할 필요가 없다.</b> 스포너 상자에 심을 메시(나무 모델)만 물려주면, <b>PCG가 알아서 인스턴싱 방식으로 심어준다.</b> 그래서 수백만 개를 배치하면서도 성능 걱정 없이 규칙 설계에만 집중하면 된다. (참고로 인스턴싱은 PCG 전용 기술이 아니라 엔진이 원래 갖춘 기능이고, PCG는 그걸 자동으로 써줄 뿐이다.)</p></div>
+    <div class="term"><div class="h">인스턴싱 <i>Instancing (ISM / HISM)</i></div><div class="d">모양이 같은 메시를 한 덩어리로 묶어 한 번에 그리는 성능 기법. 대량 배치를 끊김 없이 가능케 한다. 이름만 알아둬도 충분하다.</div></div>
+
+    <div class="summary">
+      <h4>핵심 정리</h4>
+      <ul>
+        <li>데이터는 <strong>왼→오</strong>로 흐르고, 노드는 <strong>비파괴적</strong>이라 수정이 자유롭다</li>
+        <li>4단계: <strong>샘플 → 필터 → 변형 → 스폰</strong></li>
+        <li>필터를 앞에 두면 성능이 좋아진다</li>
+        <li>스폰은 <strong>인스턴싱</strong>으로 대량 배치를 감당한다</li>
+      </ul>
+    </div>
+    <div class="quiz">
+      <h4>스스로 점검</h4>
+      <details><summary>Q1. PCG 4단계를 순서대로 말해 보자.</summary><p class="ans">① 샘플(포인트 생성) → ② 필터(제거) → ③ 변형(회전·크기) → ④ 스폰(메시 배치).</p></details>
+      <details><summary>Q2. 필터를 앞쪽에 두면 왜 좋은가?</summary><p class="ans">버릴 포인트를 일찍 버리면 <b>뒤 단계가 처리할 양이 줄어</b> 성능이 좋아진다.</p></details>
+      <details><summary>Q3. 길을 따라 가로등을 놓으려면 어떤 샘플러?</summary><p class="ans"><b>Spline Sampler</b> — 선(곡선)을 입력으로 받아 그 위에 포인트를 만든다.</p></details>
+    </div>
+  </section>
+
+  <!-- ===== CH4 ===== -->
+  <section class="chap" id="c4">
+    <div class="chap-h"><span class="chap-n">CHAPTER 04</span></div>
+    <h2>게임 제작 활용</h2>
+    <p class="chap-lead">이론을 실제 개발 파이프라인의 어디에, 왜 넣는가 — 그리고 언제 쓰지 말아야 하는가.</p>
+
+    <h3>4-1. 제작 전 단계에 걸친 활용</h3>
+    <table class="tbl">
+      <thead><tr><th>단계</th><th>활용</th></tr></thead>
+      <tbody>
+        <tr><td>프로토타입 가속</td><td>회색 블록아웃에 즉시 환경을 입혀 플레이 느낌을 조기 검증. 규칙만 바꿔 재생성.</td></tr>
+        <tr><td>오픈월드 스케일</td><td>소수 인원으로 거대한 자연을 일관되게. 바이옴으로 지역 개성까지.</td></tr>
+        <tr><td>게임플레이 공간 설계</td><td>배제·집합 연산으로 동선·전투 공간·엄폐물을 명시적으로 배치.</td></tr>
+        <tr><td>라이브 · 런타임</td><td>결정론 덕에 서버-클라가 통신 없이 같은 절차적 던전·지형을 생성.</td></tr>
+      </tbody>
+    </table>
+    <div class="call key"><span class="lab">이론이 실무로 착지하는 지점</span><p>4번(런타임)이 가능한 건 순전히 1·2장의 <b>결정론</b> 덕분이다. 서버와 클라이언트가 같은 시드로 각자 계산하면 통신 없이도 똑같은 던전이 나온다. 이론을 이해해야 이 활용이 보인다.</p></div>
+
+    <h3>4-2. 언제 PCG를, 언제 손으로</h3>
+    <p>PCG는 만능이 아니다. 전도사가 되지 말고 <strong>도구로</strong> 쓰자.</p>
+    <table class="tbl">
+      <thead><tr><th>PCG가 유리</th><th>손이 더 나은 것</th></tr></thead>
+      <tbody>
+        <tr><td>넓고 반복적인 자연 환경</td><td>시선을 잡는 랜드마크</td></tr>
+        <tr><td>자주 바뀌는 배치(실험 중인 동선)</td><td>연출상 정확히 놓여야 할 것</td></tr>
+        <tr><td>규칙으로 설명 가능한 것</td><td>유니크한 1회성 배치</td></tr>
+        <tr><td>대량 인스턴스(수천~수백만)</td><td>세밀한 아트 디렉션</td></tr>
+      </tbody>
+    </table>
+    <div class="call tip"><span class="lab">한 문장 원칙</span><p><b>배경과 밀도는 PCG로 채우고, 의도와 초점은 손으로 놓는다.</b></p></div>
+
+    <h3>4-3. 마무리: 세 가지만 가져가기</h3>
+    <ol class="body">
+      <li><strong>에셋이 아니라 규칙을 설계한다</strong> — 반복 노동을 재사용 가능한 지식으로.</li>
+      <li><strong>모든 것은 포인트와 속성이다</strong> — 데이터 모델을 알면 어떤 노드든 응용된다.</li>
+      <li><strong>결정론이 협업을 가능케 한다</strong> — 재현 가능한 랜덤이라야 팀·멀티플레이가 성립한다.</li>
+    </ol>
+    <div class="quiz">
+      <h4>스스로 점검</h4>
+      <details><summary>Q1. 게임 속 상징적인 랜드마크는 PCG로 놓는 게 좋을까?</summary><p class="ans">아니다. 시선을 잡는 랜드마크·연출 배치는 <b>손으로</b> 놓는 편이 낫다. PCG는 배경과 밀도에 강하다.</p></details>
+      <details><summary>Q2. 멀티플레이에서 절차적 던전이 동기화되는 원리는?</summary><p class="ans"><b>결정론</b> — 서버와 클라이언트가 같은 시드+규칙으로 각자 계산하면 통신 없이도 같은 결과가 나온다.</p></details>
+    </div>
+  </section>
+
+  <!-- ===== GLOSSARY ===== -->
+  <section class="chap" id="gl">
+    <div class="chap-h"><span class="chap-n">APPENDIX</span></div>
+    <h2>용어집</h2>
+    <p class="chap-lead">강의에 나온 핵심 용어를 우리말·영어로 정리했다.</p>
+    <table class="tbl">
+      <tbody>
+        <tr><td>포인트 <span style="color:#b57814;font-family:var(--mono);font-size:.85em">Point</span></td><td>위치+속성을 지닌 PCG의 최소 단위</td></tr>
+        <tr><td>트랜스폼 <span style="color:#b57814;font-family:var(--mono);font-size:.85em">Transform</span></td><td>포인트의 위치·회전·크기</td></tr>
+        <tr><td>어트리뷰트 <span style="color:#b57814;font-family:var(--mono);font-size:.85em">Attribute</span></td><td>포인트에 붙는 이름-값 데이터</td></tr>
+        <tr><td>메타데이터 <span style="color:#b57814;font-family:var(--mono);font-size:.85em">Metadata</span></td><td>어트리뷰트를 담고 전달하는 시스템</td></tr>
+        <tr><td>밀도 <span style="color:#b57814;font-family:var(--mono);font-size:.85em">Density</span></td><td>포인트의 존재 확률(0~1)</td></tr>
+        <tr><td>시드 <span style="color:#b57814;font-family:var(--mono);font-size:.85em">Seed</span></td><td>재현 가능한 난수의 출발값</td></tr>
+        <tr><td>결정론적 <span style="color:#b57814;font-family:var(--mono);font-size:.85em">Deterministic</span></td><td>같은 입력 → 같은 출력</td></tr>
+        <tr><td>비파괴적 <span style="color:#b57814;font-family:var(--mono);font-size:.85em">Non-destructive</span></td><td>원본 보존, 자유로운 재수정</td></tr>
+        <tr><td>샘플러 <span style="color:#b57814;font-family:var(--mono);font-size:.85em">Sampler</span></td><td>공간에서 포인트를 뽑는 노드</td></tr>
+        <tr><td>스포너 <span style="color:#b57814;font-family:var(--mono);font-size:.85em">Spawner</span></td><td>포인트에 메시를 심는 노드</td></tr>
+        <tr><td>인스턴싱 <span style="color:#b57814;font-family:var(--mono);font-size:.85em">Instancing</span></td><td>대량 메시를 묶어 렌더(ISM/HISM)</td></tr>
+        <tr><td>스플라인 <span style="color:#b57814;font-family:var(--mono);font-size:.85em">Spline</span></td><td>경로를 지시하는 곡선 입력</td></tr>
+        <tr><td>바이옴 <span style="color:#b57814;font-family:var(--mono);font-size:.85em">Biome</span></td><td>속성으로 분기되는 지역 단위</td></tr>
+        <tr><td>어셈블리 <span style="color:#b57814;font-family:var(--mono);font-size:.85em">Assembly</span></td><td>부모-자식 복합 오브젝트</td></tr>
+      </tbody>
+    </table>
+    <h3>더 배우기 · 출처</h3>
+    <ul class="body src" style="font-size:14.5px">
+      <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/procedural-content-generation-overview">PCG Overview — Epic 공식 문서</a></li>
+      <li><a href="https://dev.epicgames.com/documentation/unreal-engine/procedural-content-generation-in-electric-dreams">PCG in Electric Dreams — Epic 공식 문서</a></li>
+      <li><a href="https://www.unrealengine.com/en-US/electric-dreams-environment">Electric Dreams Environment 샘플 프로젝트</a></li>
+      <li><a href="https://blog.imseankim.com/unreal-engine-5-7-pcg-framework-gdc-2026-procedural-worlds/">UE 5.7 PCG at GDC 2026 — 프로덕션 레디 정리</a></li>
+    </ul>
+  </section>
+
+  </main>
+</div>
+
+<footer><div class="wrap foot-in">
+  PCG 강의 노트 · UE 5.7 기준 · 함께 제공된 「PCG 강연 슬라이드(v3)」와 짝을 이루는 자기주도 학습 문서<br>
+  노드 이름·UI는 엔진 버전에 따라 다를 수 있으니, 실제 작업 시 해당 버전 공식 문서를 함께 확인하세요.
+</div></footer>
+
+<script>
+  const links=[...document.querySelectorAll('nav.toc a')];
+  const secs=links.map(a=>document.querySelector(a.getAttribute('href')));
+  const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){
+    const i=secs.indexOf(e.target);links.forEach(l=>l.classList.remove('on'));links[i]&&links[i].classList.add('on');
+  }})},{rootMargin:'-15% 0px -75% 0px'});
+  secs.forEach(s=>s&&obs.observe(s));
+</script>
+</body>
+</html>
