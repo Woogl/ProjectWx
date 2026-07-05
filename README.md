@@ -5,11 +5,12 @@
 때로는 피하고, 때로는 충돌하며 어떤 방식으로 살아갈지 선택하세요.
 
 ---
+
 # 게임 스펙
 
 | 항목       | 내용                |
 | -------- | ----------------- |
-| Engine   | Unreal Engine 5.7 |
+| Engine   | Unreal Engine 5.8 |
 | Platform | PC |
 | Player   | 최대 4인 |
 
