@@ -31,7 +31,7 @@ namespace
 		{
 			return;
 		}
-		Obj->Values.KeySort(TLess<FString>());
+		Obj->Values.KeySort(TLess<>());
 		for (auto& Pair : Obj->Values)
 		{
 			SortJsonValueRecursive(Pair.Value);
@@ -72,10 +72,10 @@ namespace
 			TEXT("macros"),       // BP My Blueprint 매크로 순서
 			TEXT("components")    // SCS 트리 순회 순서 (parent → child)
 		};
-		Root->Values.KeySort(TLess<FString>());
+		Root->Values.KeySort(TLess<>());
 		for (auto& Pair : Root->Values)
 		{
-			if (KeepInsertOrder.Contains(Pair.Key) && Pair.Value.IsValid() && Pair.Value->Type == EJson::Object)
+			if (KeepInsertOrder.Contains(*Pair.Key) && Pair.Value.IsValid() && Pair.Value->Type == EJson::Object)
 			{
 				// 이 키의 직속 자식 object 는 키 정렬을 건너뛴다. 손자(grandchild) 들은 재귀 정렬.
 				TSharedPtr<FJsonObject> ChildObj = Pair.Value->AsObject();

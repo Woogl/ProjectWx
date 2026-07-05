@@ -78,7 +78,7 @@ void FWxBlueprintSnapshotModule::HandlePackageSaved(const FString& PackageFileNa
 	}
 
 	TArray<UObject*> AssetsInPackage;
-	GetObjectsWithOuter(Package, AssetsInPackage, false);
+	GetObjectsWithOuter(Package, AssetsInPackage, EGetObjectsFlags::None);
 	for (UObject* Asset : AssetsInPackage)
 	{
 		UBlueprint* Blueprint = Cast<UBlueprint>(Asset);
