@@ -17,7 +17,7 @@
 
 ## 골격 대응 관계
 
-| 샘플 (`C:\Sample-PersistenceLab-main`) | Wx | 비고 |
+| Sample-PersistenceLab-main | WxSave | 비고 |
 | --- | --- | --- |
 | `UPersistenceSaveGame` | `UWxPersistenceSaveGame` | `SlotName`/`UserIndex`/`TravelData` 동일. `SavedStatePerMap` 대신 `ActorRecords`+`PlayerStartTag` |
 | `FPersistenceTravelData` | `FWxPersistenceTravelData` | 필드 구성 동일(`Map`·폰 트랜스폼·컨트롤 로테이션·플래그 2개) |
