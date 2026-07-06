@@ -211,18 +211,25 @@ void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)
 		return;
 	}
 
+	// 포커스는 MovementComponent 가 없어도 발행하고, 회전 모드 플래그 쓰기만 Movement 유효할 때로 가드한다(Patrol 과 동일한 방어).
 	UCharacterMovementComponent* Movement = Character->GetCharacterMovement();
 	if (NewTarget)
 	{
-		Movement->bOrientRotationToMovement = false;
-		Movement->bUseControllerDesiredRotation = true;
 		AIC->SetFocus(NewTarget);
+		if (Movement)
+		{
+			Movement->bOrientRotationToMovement = false;
+			Movement->bUseControllerDesiredRotation = true;
+		}
 	}
 	else
 	{
 		AIC->ClearFocus(EAIFocusPriority::Gameplay);
-		Movement->bUseControllerDesiredRotation = false;
-		Movement->bOrientRotationToMovement = true;
+		if (Movement)
+		{
+			Movement->bUseControllerDesiredRotation = false;
+			Movement->bOrientRotationToMovement = true;
+		}
 	}
 }
 
