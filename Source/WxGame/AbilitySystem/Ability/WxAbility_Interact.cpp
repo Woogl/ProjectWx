@@ -3,6 +3,7 @@
 #include "AbilitySystem/Ability/WxAbility_Interact.h"
 #include "AbilitySystem/TargetData/WxAbilityTargetData_Interaction.h"
 #include "AbilitySystemComponent.h"
+#include "Engine/GameInstance.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/OverlapResult.h"
 #include "Engine/World.h"
@@ -11,6 +12,8 @@
 #include "GameplayPrediction.h"
 #include "Interaction/WxInteractionComponent.h"
 #include "Interaction/WxInteractionRegistrySubsystem.h"
+#include "MVVM/WxViewModel_Selection.h"
+#include "System/WxUIManagerSubsystem.h"
 #include "TimerManager.h"
 #include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
@@ -55,6 +58,7 @@ void UWxAbility_Interact::OnRemoveAbility(const FGameplayAbilityActorInfo* Actor
 		}
 
 		Registry->UpdateInRange({});
+		PushSelectionToViewModel(Registry);
 	}
 
 	Super::OnRemoveAbility(ActorInfo, Spec);
@@ -138,6 +142,7 @@ void UWxAbility_Interact::ScanAndPush()
 	if (!CanActivateAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo()))
 	{
 		Registry->UpdateInRange({});
+		PushSelectionToViewModel(Registry);
 		return;
 	}
 
@@ -174,6 +179,34 @@ void UWxAbility_Interact::ScanAndPush()
 	});
 
 	Registry->UpdateInRange(Candidates);
+	PushSelectionToViewModel(Registry);
+}
+
+void UWxAbility_Interact::PushSelectionToViewModel(UWxInteractionRegistrySubsystem* Registry)
+{
+	if (!Registry)
+	{
+		return;
+	}
+
+	const UWorld* World = GetWorld();
+	const UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
+	const UWxUIManagerSubsystem* UIManager = GameInstance ? GameInstance->GetSubsystem<UWxUIManagerSubsystem>() : nullptr;
+	UWxViewModel_Selection* ViewModel = UIManager ? UIManager->GetSelectionViewModel() : nullptr;
+	if (!ViewModel)
+	{
+		return;
+	}
+
+	// 상호작용 컴포넌트는 현재 표시 데이터로 InteractionText 만 노출한다(Description/Icon 은 비움).
+	if (const UWxInteractionComponent* Selected = Registry->GetSelectedComponent())
+	{
+		ViewModel->SetSelection(Selected->GetInteractionText(), FText::GetEmpty(), nullptr);
+	}
+	else
+	{
+		ViewModel->ClearSelection();
+	}
 }
 
 void UWxAbility_Interact::HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag)

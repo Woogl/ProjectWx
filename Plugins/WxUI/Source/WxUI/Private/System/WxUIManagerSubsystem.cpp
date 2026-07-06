@@ -3,6 +3,10 @@
 #include "System/WxUIManagerSubsystem.h"
 #include "System/WxPrimaryGameLayout.h"
 #include "System/WxUIDeveloperSettings.h"
+#include "MVVM/WxViewModel_Selection.h"
+#include "MVVMGameSubsystem.h"
+#include "Types/MVVMViewModelCollection.h"
+#include "Types/MVVMViewModelContext.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/GameInstance.h"
 #include "GameFramework/PlayerController.h"
@@ -15,6 +19,22 @@ void UWxUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	if (!GameInstance)
 	{
 		return;
+	}
+
+	// 전 위젯이 공유하는 "현재 선택" 글로벌 뷰모델을 생성해 MVVM 글로벌 컬렉션에 등록한다.
+	// 초기화 순서를 보장하기 위해 UMVVMGameSubsystem 을 먼저 확정 초기화한다.
+	Collection.InitializeDependency(UMVVMGameSubsystem::StaticClass());
+	if (UMVVMGameSubsystem* ViewModelSubsystem = GameInstance->GetSubsystem<UMVVMGameSubsystem>())
+	{
+		if (UMVVMViewModelCollectionObject* ViewModelCollection = ViewModelSubsystem->GetViewModelCollection())
+		{
+			SelectionViewModel = NewObject<UWxViewModel_Selection>(this);
+
+			FMVVMViewModelContext Context;
+			Context.ContextClass = UWxViewModel_Selection::StaticClass();
+			Context.ContextName = TEXT("VM_Selection");
+			ViewModelCollection->AddViewModelInstance(Context, SelectionViewModel);
+		}
 	}
 
 	for (ULocalPlayer* LocalPlayer : GameInstance->GetLocalPlayers())
@@ -39,7 +59,21 @@ void UWxUIManagerSubsystem::Deinitialize()
 				LocalPlayer->OnPlayerControllerChanged().RemoveAll(this);
 			}
 		}
+
+		// 글로벌 선택 뷰모델을 컬렉션에서 등록 해제한다.
+		if (UMVVMGameSubsystem* ViewModelSubsystem = GameInstance->GetSubsystem<UMVVMGameSubsystem>())
+		{
+			if (UMVVMViewModelCollectionObject* ViewModelCollection = ViewModelSubsystem->GetViewModelCollection())
+			{
+				FMVVMViewModelContext Context;
+				Context.ContextClass = UWxViewModel_Selection::StaticClass();
+				Context.ContextName = TEXT("VM_Selection");
+				ViewModelCollection->RemoveViewModel(Context);
+			}
+		}
 	}
+
+	SelectionViewModel = nullptr;
 
 	Super::Deinitialize();
 }
