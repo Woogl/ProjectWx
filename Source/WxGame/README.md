@@ -19,7 +19,7 @@
 - UI 위젯·MVVM 베이스: [[WxUI]] (`UWxActivatableWidget`, `UWxViewModel_Character` — 게임 모듈을 참조 못 하므로 주입은 이 모듈 리졸버가 수행)
 - AI 인지/BehaviorTree Task: [[WxAI]] (`UWxAIPerceptionComponent`, `UWxBTTask_Patrol`, `UWxPatrolComponent`)
 - 상호작용 컴포넌트·기믹·스포너: [[WxWorld]] (`UWxInteractionComponent`, `AWxSpawner`)
-- 세이브/월드 상태 복원: [[WxSave]] (`UWxSaveGameSubsystem`)
+- 세이브/월드 상태 복원: [[WxSave]] (`UWxPersistenceGameSubsystem`/`UWxPersistenceWorldSubsystem`)
 - BGM/발소리 사운드 소스: [[WxSound]] (`UWxBGMSourceComponent`)
 - 공용 정의(팀 타입·인터페이스 등): [[WxCore]]
 

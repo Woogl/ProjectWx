@@ -16,7 +16,7 @@ class UGameFrameworkComponent;
  * 찾아 위임하고, 컴포넌트가 nullptr 을 주면(저장/"Default" 태그 미발견) 엔진 기본(미점유 PlayerStart 랜덤)으로 폴백한다.
  * 게임플레이 프레임워크 컴포넌트는 InjectedFrameworkComponents(에셋 설정)를 InitGame 에서 ModularGameplay 컴포넌트
  * 매니저에 요청 등록해 receiver 액터(GameState 등)에 자동 주입한다 — GameState 가 컴포넌트를 알지 않아도 된다.
- * 적/오브젝트 등 savable 액터의 상태 복원은 새 월드 초기화 시 UWxSaveGameSubsystem 의 OnWorldInitializedActors 후크가 자동 처리한다.
+ * 적/오브젝트 등 savable 액터의 상태 복원은 새 월드의 UWxPersistenceWorldSubsystem 이 OnWorldInitializedActors 후크로 자동 처리한다.
  */
 UCLASS()
 class AWxGameMode : public AGameModeBase
@@ -27,8 +27,14 @@ public:
 	/** 스폰 지점 선택을 UWxPlayerSpawningComponent 에 위임하고, 없거나 못 찾으면 엔진 기본으로 폴백한다. */
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
+	/** 세이브에 유효한 폰 트랜스폼이 있으면(맵 일치) 그 위치에 스폰하고, 없으면 StartSpot(PlayerStartTag 경로) 기본 동작으로 폴백한다. */
+	virtual APawn* SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot) override;
+
 	//~ Begin AGameModeBase
 	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
+
+	/** Super 가 StartSpot 회전으로 세팅한 컨트롤 로테이션을 세이브의 저장 값으로 덮어쓴다(맵 일치 시). */
+	virtual void FinishRestartPlayer(AController* NewPlayer, const FRotator& StartRotation) override;
 	//~ End AGameModeBase
 
 protected:

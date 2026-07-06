@@ -10,7 +10,7 @@
 		"CommonButtonBaseClicked__DelegateSignature": [
 			"void CommonButtonBaseClicked__DelegateSignature(UCommonButtonBase* Button)",
 			"{",
-			"    UWxSaveGameLibrary::LoadSlot(TEXT(\"Test\"));",
+			"    UWxSaveFilePersistenceUtils::LoadFromFile();",
 			"}"
 		]
 	},

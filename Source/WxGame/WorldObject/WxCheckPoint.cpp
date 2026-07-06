@@ -9,7 +9,7 @@
 #include "Interaction/WxInteractionComponent.h"
 #include "Inventory/WxInventoryManagerComponent.h"
 #include "System/WxSpawnerLibrary.h"
-#include "WxSaveGameSubsystem.h"
+#include "WxPersistenceGameSubsystem.h"
 
 AWxCheckPoint::AWxCheckPoint(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -65,13 +65,13 @@ void AWxCheckPoint::HandleInteracted(AActor* InstigatorActor)
 		return;
 	}
 
-	UWxSaveGameSubsystem* SaveSubsystem = nullptr;
+	UWxPersistenceGameSubsystem* SaveSubsystem = nullptr;
 	if (UGameInstance* GameInstance = GetGameInstance())
 	{
-		SaveSubsystem = GameInstance->GetSubsystem<UWxSaveGameSubsystem>();
+		SaveSubsystem = GameInstance->GetSubsystem<UWxPersistenceGameSubsystem>();
 	}
 
-	// 자신을 부활/시작 지점으로 등록한다(메모리). 디스크 영속은 아래 SaveSlot 이 수행하고, ChoosePlayerStart 가 FindPlayerStart 로 이 액터를 찾는다.
+	// 자신을 부활/시작 지점으로 등록한다(메모리). 디스크 영속은 아래 SaveToFile 이 수행하고, ChoosePlayerStart 가 FindPlayerStart 로 이 액터를 찾는다.
 	// PlayerStartTag 는 APlayerStart 가 노출하는 식별자로, 디자이너가 인스턴스마다 고유 부여한다.
 	if (SaveSubsystem)
 	{
@@ -104,10 +104,10 @@ void AWxCheckPoint::HandleInteracted(AActor* InstigatorActor)
 
 	UWxSpawnerLibrary::TryRespawnAll(this);
 
-	// 갱신된 PlayerStartTag + 리셋된 월드 상태를 디스크에 저장한다. 과거 BP OnInteracted 의 SaveSlot 호출을 C++ 로 이관 —
-	// SetPlayerStartTag 이후 실행돼 순서가 보장되고, HasAuthority 게이트 안이라 서버 전용으로 저장된다("Test" 는 현재 단일 개발 슬롯).
+	// 갱신된 PlayerStartTag + 리셋된 월드 상태를 활성 슬롯에 저장한다. 과거 BP OnInteracted 의 저장 호출을 C++ 로 이관 —
+	// SetPlayerStartTag 이후 실행돼 순서가 보장되고, HasAuthority 게이트 안이라 서버 전용으로 저장된다(슬롯 정체성은 활성 SaveGame 이 보유).
 	if (SaveSubsystem)
 	{
-		SaveSubsystem->SaveSlot(TEXT("Test"));
+		SaveSubsystem->SaveToFile();
 	}
 }
