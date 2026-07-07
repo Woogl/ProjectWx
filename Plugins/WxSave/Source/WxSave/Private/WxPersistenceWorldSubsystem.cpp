@@ -2,6 +2,9 @@
 
 #include "WxPersistenceWorldSubsystem.h"
 
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
+#include "AttributeSet.h"
 #include "Components/ActorComponent.h"
 #include "Engine/GameInstance.h"
 #include "Engine/Level.h"
@@ -14,6 +17,7 @@
 #include "Serialization/MemoryWriter.h"
 #include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 #include "UObject/ObjectVersion.h"
+#include "UObject/UnrealType.h"
 #include "WxPersistenceGameSubsystem.h"
 #include "WxPersistenceSaveGame.h"
 #include "WxSavable.h"
@@ -28,6 +32,7 @@ void UWxPersistenceWorldSubsystem::RequestSaveFlush(FOnSaveFlushComplete::FDeleg
 	if (World && !World->bIsTearingDown)
 	{
 		FlushMapTravelData();
+		FlushPlayerStats();
 	}
 	FlushSavableActors();
 
@@ -132,6 +137,108 @@ void UWxPersistenceWorldSubsystem::FlushSavableActors()
 	}
 
 	UE_LOG(LogWxSave, Log, TEXT("FlushSavableActors: IWxSavable %d개 캡처, 누적 레코드 %d개"), CapturedCount, SaveGame->ActorRecords.Num());
+}
+
+void UWxPersistenceWorldSubsystem::FlushPlayerStats()
+{
+	UWorld* World = GetWorld();
+	UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
+	UWxPersistenceGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxPersistenceGameSubsystem>() : nullptr;
+	UWxPersistenceSaveGame* SaveGame = GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
+	if (!SaveGame)
+	{
+		return;
+	}
+
+	// 첫 플레이어 폰의 어트리뷰트를 캡처한다(스탠드얼론 싱글 전제 — FlushMapTravelData 와 동일 대상). 폰 부재 시 이전 캡처를 보존한다.
+	const APlayerController* PC = World->GetFirstPlayerController();
+	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+	if (!Pawn)
+	{
+		return;
+	}
+
+	SaveGame->PlayerStats.Reset();
+	CapturePlayerStats(Pawn, SaveGame->PlayerStats);
+	SaveGame->bHasPlayerStats = SaveGame->PlayerStats.Num() > 0;
+
+	UE_LOG(LogWxSave, Log, TEXT("FlushPlayerStats: 어트리뷰트 %d개 캡처"), SaveGame->PlayerStats.Num());
+}
+
+void UWxPersistenceWorldSubsystem::CapturePlayerStats(AActor* PlayerActor, TMap<FName, float>& OutStats)
+{
+	const UAbilitySystemComponent* ASC = UAbilitySystemGlobals::Get().GetAbilitySystemComponentFromActor(PlayerActor);
+	if (!ASC)
+	{
+		return;
+	}
+
+	// ASC 에 붙은 모든 AttributeSet 을 리플렉션으로 순회한다. 구체 타입(WxCombatAttributeSet)을 참조하지 않아 WxSave 가 전투 도메인에 독립적이다.
+	for (const UAttributeSet* Set : ASC->GetSpawnedAttributes())
+	{
+		if (!Set)
+		{
+			continue;
+		}
+
+		for (TFieldIterator<FStructProperty> It(Set->GetClass()); It; ++It)
+		{
+			// 복제되는 어트리뷰트의 base 값만 담는다(CPF_Net 이 비복제 메타를 자동 제외).
+			if (It->Struct != FGameplayAttributeData::StaticStruct() || !It->HasAnyPropertyFlags(CPF_Net))
+			{
+				continue;
+			}
+
+			const FGameplayAttribute Attribute(*It);
+			OutStats.Add(It->GetFName(), ASC->GetNumericAttributeBase(Attribute));
+		}
+	}
+}
+
+void UWxPersistenceWorldSubsystem::ApplyPlayerStats(AActor* PlayerActor, const TMap<FName, float>& InStats)
+{
+	UAbilitySystemComponent* ASC = UAbilitySystemGlobals::Get().GetAbilitySystemComponentFromActor(PlayerActor);
+	if (!ASC)
+	{
+		return;
+	}
+
+	// Max 계열을 먼저, 나머지를 나중에 2패스로 세팅한다: current(HP 등)는 PreAttributeChange 에서 현재 Max 로 클램프되고
+	// Max 변경은 PostAttributeChange 에서 current 를 비율 재조정하므로, Max 를 저장 값으로 먼저 세팅해야 이후 current 세팅이 정확히 복원된다.
+	for (int32 Pass = 0; Pass < 2; ++Pass)
+	{
+		const bool bMaxPass = (Pass == 0);
+		for (const UAttributeSet* Set : ASC->GetSpawnedAttributes())
+		{
+			if (!Set)
+			{
+				continue;
+			}
+
+			for (TFieldIterator<FStructProperty> It(Set->GetClass()); It; ++It)
+			{
+				if (It->Struct != FGameplayAttributeData::StaticStruct())
+				{
+					continue;
+				}
+
+				const float* SavedValue = InStats.Find(It->GetFName());
+				if (!SavedValue)
+				{
+					continue;
+				}
+
+				// "Max" 접두 어트리뷰트는 1패스, 나머지는 2패스에서만 적용한다.
+				if (It->GetName().StartsWith(TEXT("Max")) != bMaxPass)
+				{
+					continue;
+				}
+
+				const FGameplayAttribute Attribute(*It);
+				ASC->SetNumericAttributeBase(Attribute, *SavedValue);
+			}
+		}
+	}
 }
 
 void UWxPersistenceWorldSubsystem::CaptureActor(UWxPersistenceSaveGame& SaveGame, AActor* Actor)

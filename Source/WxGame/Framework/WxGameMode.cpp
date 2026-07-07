@@ -14,6 +14,9 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerState.h"
 #include "WxGame.h"
+#include "WxPersistenceGameSubsystem.h"
+#include "WxPersistenceSaveGame.h"
+#include "WxPersistenceWorldSubsystem.h"
 
 void AWxGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
 {
@@ -119,6 +122,18 @@ void AWxGameMode::FinishRestartPlayer(AController* NewPlayer, const FRotator& St
 		{
 			SavedControlRotation.Roll = 0.f;
 			NewPlayer->SetControlRotation(SavedControlRotation);
+		}
+	}
+
+	// 저장된 스탯이 있으면 새 폰의 어트리뷰트를 복원한다. Super 의 Possess 이후라 ASC 초기화(GiveAbilitySet)가 끝나 있어 기본값 위에 안전하게 덮어쓴다(스탠드얼론 authority 전제).
+	UGameInstance* GameInstance = GetGameInstance();
+	UWxPersistenceGameSubsystem* SaveSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxPersistenceGameSubsystem>() : nullptr;
+	const UWxPersistenceSaveGame* SaveGame = SaveSubsystem ? SaveSubsystem->GetSaveGame() : nullptr;
+	if (SaveGame && SaveGame->bHasPlayerStats && NewPlayer)
+	{
+		if (APawn* Pawn = NewPlayer->GetPawn())
+		{
+			UWxPersistenceWorldSubsystem::ApplyPlayerStats(Pawn, SaveGame->PlayerStats);
 		}
 	}
 }

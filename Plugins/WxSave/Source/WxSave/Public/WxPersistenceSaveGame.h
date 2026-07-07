@@ -87,6 +87,18 @@ public:
 	UPROPERTY()
 	FWxPersistenceTravelData TravelData;
 
+	/** PlayerStats 가 유효한 저장 값인지 여부. false 면 신규 세션/미저장 — 데이터테이블 기본 스탯 유지. */
+	UPROPERTY()
+	bool bHasPlayerStats = false;
+
+	/**
+	 * 플레이어 캐릭터 어트리뷰트 스냅샷(어트리뷰트 프로퍼티 이름 -> base 값). 체크포인트 저장 시 캡처, 로드 후 스폰 경로가 적용한다.
+	 * TravelData 밖 최상위에 두어 SaveToFile 의 FlushMapTravelData(TravelData 재구성)가 덮어쓰지 않게 한다.
+	 * 좌표와 달리 스탯은 맵 무관이라 맵 일치 게이트 없이 bHasPlayerStats 만으로 적용한다.
+	 */
+	UPROPERTY()
+	TMap<FName, float> PlayerStats;
+
 	/**
 	 * WxSaveId -> 스냅샷. IWxSavable::GetWxSaveId() 의 에디터-부여 영속 GUID 를 안정적 키로 사용한다(쿠킹 빌드 안전).
 	 * GUID 가 맵을 넘어 전역 유일하므로 샘플(PersistenceLab)의 맵별 키잉(SavedStatePerMap) 없이 평면 맵으로 충분하다.
