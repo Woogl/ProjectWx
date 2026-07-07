@@ -57,4 +57,4 @@
 - 상위: 도메인 시스템은 각 플러그인에 위임 — [[WxCombat]], [[WxInventory]], [[WxUI]], [[WxWorld]], [[WxAI]], [[WxSave]], [[WxSound]], [[WxCore]]
 
 ---
-*문서 기준 커밋 `7a536dd` · 생성일 2026-07-06 · 소스 48파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `81ac3e4` · 생성일 2026-07-07 · 소스 48파일 — `/readme-writer`로 갱신*
