@@ -27,13 +27,10 @@ public:
 	/** 스폰 지점 선택을 UWxPlayerSpawningComponent 에 위임하고, 없거나 못 찾으면 엔진 기본으로 폴백한다. */
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
-	/** 세이브에 유효한 폰 트랜스폼이 있으면(맵 일치) 그 위치에 스폰하고, 없으면 StartSpot(PlayerStartTag 경로) 기본 동작으로 폴백한다. */
-	virtual APawn* SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot) override;
-
 	//~ Begin AGameModeBase
 	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
 
-	/** Super 가 StartSpot 회전으로 세팅한 컨트롤 로테이션을 세이브의 저장 값으로 덮어쓴다(맵 일치 시). */
+	/** 부활 스폰(Super) 이후 세이브에 저장된 플레이어 스탯을 복원한다(위치·시선은 체크포인트 PlayerStart 가 정한다). */
 	virtual void FinishRestartPlayer(AController* NewPlayer, const FRotator& StartRotation) override;
 	//~ End AGameModeBase
 

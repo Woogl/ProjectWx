@@ -88,42 +88,9 @@ AActor* AWxGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	return Super::ChoosePlayerStart_Implementation(Player);
 }
 
-APawn* AWxGameMode::SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot)
-{
-	// 세이브에 유효한 폰 트랜스폼이 있으면(맵 일치) StartSpot 대신 그 위치에 스폰한다. 엔진 기본 스폰 정책이 AdjustIfPossibleButAlwaysSpawn 이라 끼임에 안전하다.
-	AWxGameState* WxGameState = Cast<AWxGameState>(GameState);
-	UWxPlayerSpawningComponent* PlayerSpawning = WxGameState ? WxGameState->FindComponentByClass<UWxPlayerSpawningComponent>() : nullptr;
-	if (PlayerSpawning)
-	{
-		FTransform SavedTransform;
-		FRotator SavedControlRotation;
-		if (PlayerSpawning->TryGetSavedPawnSpawn(SavedTransform, SavedControlRotation))
-		{
-			return SpawnDefaultPawnAtTransform(NewPlayer, SavedTransform);
-		}
-	}
-
-	// 세이브 폰 트랜스폼 부재·맵 불일치·신규 세션: StartSpot(PlayerStartTag 경로) 기본 동작으로 폴백한다.
-	return Super::SpawnDefaultPawnFor_Implementation(NewPlayer, StartSpot);
-}
-
 void AWxGameMode::FinishRestartPlayer(AController* NewPlayer, const FRotator& StartRotation)
 {
 	Super::FinishRestartPlayer(NewPlayer, StartRotation);
-
-	// 세이브 스폰이면 Super 가 StartSpot 회전으로 세팅한 컨트롤 로테이션을 저장된 시선으로 덮어쓴다(스탠드얼론 전제 직접 적용).
-	AWxGameState* WxGameState = Cast<AWxGameState>(GameState);
-	UWxPlayerSpawningComponent* PlayerSpawning = WxGameState ? WxGameState->FindComponentByClass<UWxPlayerSpawningComponent>() : nullptr;
-	if (PlayerSpawning && NewPlayer)
-	{
-		FTransform SavedTransform;
-		FRotator SavedControlRotation;
-		if (PlayerSpawning->TryGetSavedPawnSpawn(SavedTransform, SavedControlRotation))
-		{
-			SavedControlRotation.Roll = 0.f;
-			NewPlayer->SetControlRotation(SavedControlRotation);
-		}
-	}
 
 	// 저장된 스탯이 있으면 새 폰의 어트리뷰트를 복원한다. Super 의 Possess 이후라 ASC 초기화(GiveAbilitySet)가 끝나 있어 기본값 위에 안전하게 덮어쓴다(스탠드얼론 authority 전제).
 	UGameInstance* GameInstance = GetGameInstance();

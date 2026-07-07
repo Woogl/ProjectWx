@@ -30,12 +30,6 @@ public:
 	 */
 	AActor* ChoosePlayerStart(AController* Player);
 
-	/**
-	 * 세이브에 저장된 폰 스폰 상태(트랜스폼+컨트롤 로테이션) 조회. 유효 캡처가 있고 저장 맵=현재 맵일 때만 true —
-	 * false 면 기존 ChoosePlayerStart(PlayerStartTag) 경로가 폴백이다. 스폰 정책 판단을 이 컴포넌트가 소유하고 GameMode 는 위임만 한다.
-	 */
-	bool TryGetSavedPawnSpawn(FTransform& OutPawnTransform, FRotator& OutControlRotation) const;
-
 private:
 	/** 월드에서 PlayerStartTag 가 일치하는 첫 PlayerStart 를 직접 탐색(미일치 시 nullptr). 엔진 FindPlayerStart 의 ChoosePlayerStart 재귀 폴백을 피한다. */
 	APlayerStart* FindPlayerStartByTag(FName Tag) const;

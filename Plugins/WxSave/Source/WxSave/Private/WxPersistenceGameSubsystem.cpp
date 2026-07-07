@@ -235,18 +235,6 @@ void UWxPersistenceGameSubsystem::LogSaveState() const
 		bHasPlayerStartTag ? *SaveGame->PlayerStartTag.ToString() : TEXT("(미설정)"),
 		SaveGame->TravelData.Map.IsNull() ? TEXT("(미기록)") : *SaveGame->TravelData.Map.ToString());
 
-	if (SaveGame->TravelData.bHasPawnTransform)
-	{
-		const FVector PawnLocation = SaveGame->TravelData.PawnTransform.GetLocation();
-		UE_LOG(LogWxSave, Display, TEXT("[Wx.Save.Dump] 폰 위치 (%.1f, %.1f, %.1f) · 컨트롤 로테이션 (P=%.1f, Y=%.1f)"),
-			PawnLocation.X, PawnLocation.Y, PawnLocation.Z,
-			SaveGame->TravelData.ControlRotation.Pitch, SaveGame->TravelData.ControlRotation.Yaw);
-	}
-	else
-	{
-		UE_LOG(LogWxSave, Display, TEXT("[Wx.Save.Dump] 폰 위치 (미캡처)"));
-	}
-
 	for (const TPair<FGuid, FWxActorRecord>& Pair : SaveGame->ActorRecords)
 	{
 		UE_LOG(LogWxSave, Display, TEXT("[Wx.Save.Dump]   %s : 액터바이트 %d · 컴포넌트 %d개 · 버전헤더 %d바이트"),

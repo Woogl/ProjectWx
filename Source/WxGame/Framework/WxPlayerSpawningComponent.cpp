@@ -42,29 +42,6 @@ AActor* UWxPlayerSpawningComponent::ChoosePlayerStart(AController* Player)
 	return nullptr;
 }
 
-bool UWxPlayerSpawningComponent::TryGetSavedPawnSpawn(FTransform& OutPawnTransform, FRotator& OutControlRotation) const
-{
-	const UWorld* World = GetWorld();
-	const UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
-	const UWxPersistenceGameSubsystem* SaveSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxPersistenceGameSubsystem>() : nullptr;
-	const UWxPersistenceSaveGame* SaveGame = SaveSubsystem ? SaveSubsystem->GetSaveGame() : nullptr;
-	if (!SaveGame || !SaveGame->TravelData.bHasPawnTransform)
-	{
-		return false;
-	}
-
-	// 저장 맵과 현재 맵이 다르면(다른 맵에서 PIE 시작 등) 좌표가 무의미하므로 적용하지 않는다.
-	const FName SavedMap = SaveGame->TravelData.Map.GetAssetPath().GetPackageName();
-	if (SavedMap != UWxPersistenceGameSubsystem::GetStableMapPackageName(World))
-	{
-		return false;
-	}
-
-	OutPawnTransform = SaveGame->TravelData.PawnTransform;
-	OutControlRotation = SaveGame->TravelData.ControlRotation;
-	return true;
-}
-
 APlayerStart* UWxPlayerSpawningComponent::FindPlayerStartByTag(FName Tag) const
 {
 	if (Tag.IsNone())

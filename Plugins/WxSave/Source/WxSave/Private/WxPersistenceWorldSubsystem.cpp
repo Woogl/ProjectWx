@@ -96,19 +96,9 @@ void UWxPersistenceWorldSubsystem::FlushMapTravelData()
 		return;
 	}
 
-	// 현재 맵 경로와 첫 플레이어의 폰 트랜스폼·컨트롤 로테이션을 캡처한다(스탠드얼론 싱글 전제). 폰 부재 시 트랜스폼은 무효로 남는다.
+	// 현재 맵 경로를 캡처한다. 부활 위치·시선은 체크포인트 PlayerStart 가 정하므로 폰 트랜스폼은 저장하지 않는다.
 	FWxPersistenceTravelData TravelData;
 	TravelData.Map = FSoftObjectPath(UWxPersistenceGameSubsystem::GetStableMapPackageName(World).ToString());
-	if (const APlayerController* PC = World->GetFirstPlayerController())
-	{
-		if (const APawn* Pawn = PC->GetPawn())
-		{
-			TravelData.PawnTransform = Pawn->GetActorTransform();
-			TravelData.bHasPawnTransform = true;
-		}
-		TravelData.ControlRotation = PC->GetControlRotation();
-		TravelData.bHasControlRotation = true;
-	}
 	GameSubsystem->SetPersistenceTravelData(MoveTemp(TravelData));
 }
 

@@ -42,7 +42,7 @@ struct WXSAVE_API FWxActorRecord
 	TArray<uint8> VersionHeader;
 };
 
-/** 맵 트래블 후 플레이어 위치를 복원하는 데 필요한 데이터. 저장 시 SaveToFile 플러시가 채우고, 로드 시 TravelFromSaveFile 과 GameMode 스폰 경로가 소비한다. */
+/** 맵 트래블에 필요한 데이터. 저장 시 SaveToFile 플러시가 채우고, 로드 시 TravelFromSaveFile 이 대상 맵으로 트래블한다. */
 USTRUCT()
 struct WXSAVE_API FWxPersistenceTravelData
 {
@@ -51,22 +51,6 @@ struct WXSAVE_API FWxPersistenceTravelData
 	/** 트래블 대상 맵. PIE 접두사를 제거한 긴 패키지 경로로 구성한다(예: /Game/Level/LV_Combat). null 은 구버전 파일/미기록 — 현재 맵 리로드로 폴백. */
 	UPROPERTY()
 	FSoftObjectPath Map;
-
-	/** PawnTransform 이 유효한 저장 값인지 여부. */
-	UPROPERTY()
-	bool bHasPawnTransform = false;
-
-	/** 저장 시점 첫 플레이어 폰의 월드 트랜스폼. */
-	UPROPERTY()
-	FTransform PawnTransform = FTransform::Identity;
-
-	/** ControlRotation 이 유효한 저장 값인지 여부. */
-	UPROPERTY()
-	bool bHasControlRotation = false;
-
-	/** 저장 시점 첫 플레이어의 컨트롤 로테이션. */
-	UPROPERTY()
-	FRotator ControlRotation = FRotator::ZeroRotator;
 };
 
 /** WxSave 슬롯 데이터. 슬롯 정체성 + 트래블 데이터 + savable 액터 상태 맵 + 부활/시작 PlayerStart 식별자를 보관한다. */
