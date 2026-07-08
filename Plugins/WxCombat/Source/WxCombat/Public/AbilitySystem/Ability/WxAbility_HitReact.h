@@ -85,4 +85,6 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> CurrentMontageTask;
+	
+	void FaceInstigator(AActor* AvatarActor, const AActor* Instigator);
 };

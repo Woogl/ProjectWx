@@ -7,24 +7,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "WxGameplayTags.h"
 
-namespace
-{
-	void FaceInstigator(AActor* AvatarActor, const AActor* Instigator)
-	{
-		if (!AvatarActor || !Instigator)
-		{
-			return;
-		}
-
-		FVector Direction = Instigator->GetActorLocation() - AvatarActor->GetActorLocation();
-		Direction.Z = 0.0;
-		if (!Direction.IsNearlyZero())
-		{
-			AvatarActor->SetActorRotation(Direction.ToOrientationRotator());
-		}
-	}
-}
-
 UWxAbility_HitReact::UWxAbility_HitReact()
 {
 	// HitReact는 항상 서버의 ExecCalc에서 GameplayEvent로 트리거되므로 ServerInitiated를 사용한다.
@@ -240,5 +222,20 @@ void UWxAbility_HitReact::HandleMovementModeChanged(ACharacter* Character, EMove
 				AnimInstance->Montage_JumpToSection(FName(TEXT("Grounded")), KnockupMontage);
 			}
 		}
+	}
+}
+
+void UWxAbility_HitReact::FaceInstigator(AActor* AvatarActor, const AActor* Instigator)
+{
+	if (!AvatarActor || !Instigator)
+	{
+		return;
+	}
+
+	FVector Direction = Instigator->GetActorLocation() - AvatarActor->GetActorLocation();
+	Direction.Z = 0.0;
+	if (!Direction.IsNearlyZero())
+	{
+		AvatarActor->SetActorRotation(Direction.ToOrientationRotator());
 	}
 }
