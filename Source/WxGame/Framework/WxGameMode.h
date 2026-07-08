@@ -30,7 +30,10 @@ public:
 	//~ Begin AGameModeBase
 	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
 
-	/** 부활 스폰(Super) 이후 세이브에 저장된 플레이어 스탯을 복원한다(위치·시선은 체크포인트 PlayerStart 가 정한다). */
+	/** 명시 저장된 플레이어 위치가 있으면(TryGetSavedPlayerTransform) 그 트랜스폼으로, 아니면 인자(PlayerStart)로 Super 스폰한다. */
+	virtual APawn* SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform) override;
+
+	/** 부활 스폰(Super) 이후 저장된 플레이어 스탯을 복원하고, 저장 위치로 복원된 경우 카메라(컨트롤 로테이션)를 캐릭터가 바라보는 방향으로 맞춘다. */
 	virtual void FinishRestartPlayer(AController* NewPlayer, const FRotator& StartRotation) override;
 	//~ End AGameModeBase
 
@@ -40,6 +43,13 @@ protected:
 	TArray<TSubclassOf<UGameFrameworkComponent>> FrameworkComponents;
 
 private:
+	/**
+	 * 활성 세이브에 명시 저장된 플레이어 트랜스폼이 있고 저장 맵이 현재 월드와 일치하면 OutTransform 에 채우고 true. 없으면(오토세이브/신규/맵 불일치) false.
+	 * 위치 유효성은 Identity(미기록) sentinel 로 판정한다(별도 bool 플래그 없음). PIE "여기서 플레이"(APlayerStartPIE)가 있으면 개발 중 지정 위치 우선이라 false 를 반환한다.
+	 * 스폰 위치(SpawnDefaultPawnAtTransform)와 로드 직후 카메라 시선(FinishRestartPlayer)이 공유한다.
+	 */
+	bool TryGetSavedPlayerTransform(FTransform& OutTransform) const;
+
 	/** 주입 요청 핸들. 살아있는 동안 컴포넌트가 유지되므로 GameMode 수명 동안 보유한다. */
 	TArray<TSharedPtr<FComponentRequestHandle>> ComponentRequestHandles;
 };

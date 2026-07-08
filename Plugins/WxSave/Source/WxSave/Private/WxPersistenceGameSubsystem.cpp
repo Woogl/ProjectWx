@@ -139,12 +139,22 @@ void UWxPersistenceGameSubsystem::TravelFromSaveFile()
 	}
 }
 
-void UWxPersistenceGameSubsystem::SaveToFile()
+void UWxPersistenceGameSubsystem::SaveToFile(const FString& SlotName, int32 UserIndex)
 {
 	if (!SaveGame)
 	{
 		UE_LOG(LogWxSave, Warning, TEXT("SaveToFile: 활성 SaveGame 없음 — StartNewSaveFile 을 먼저 호출하라."));
 		return;
+	}
+
+	// 슬롯 이름이 지정되면(=명시 저장) 활성 슬롯을 그 이름으로 재지정한다(이후 체크포인트 오토세이브도 이 슬롯을 이어감). 비면(=오토세이브) 현재 활성 슬롯을 유지한다.
+	// 이 신호는 플레이어 위치 캡처 여부와도 같다: 명시 저장만 저장 지점을 기억하고, 오토세이브는 위치를 미기록으로 두어 사망 리스폰이 체크포인트로 폴백한다.
+	// 재지정은 플러시(FlushMapTravelData 등 — 슬롯 정체성 무관)와 디스크 기록(SaveGame->SlotName 사용) 사이에서 안전하다.
+	const bool bExplicitSave = !SlotName.IsEmpty();
+	if (bExplicitSave)
+	{
+		SaveGame->SlotName = SlotName;
+		SaveGame->UserIndex = UserIndex;
 	}
 
 	UWxPersistenceWorldSubsystem* WorldSubsystem = nullptr;
@@ -159,7 +169,8 @@ void UWxPersistenceGameSubsystem::SaveToFile()
 	if (WorldSubsystem)
 	{
 		// 라이브 상태(트래블 데이터 + savable 액터)를 SaveGame 에 플러시한 뒤 완료 콜백으로 디스크에 기록한다(현재 전부 동기 — 콜백은 즉시 발화).
-		WorldSubsystem->RequestSaveFlush(
+		// 명시 저장(bExplicitSave)일 때만 플레이어 폰 트랜스폼을 캡처해 로드 시 저장 지점 복원을 가능케 한다.
+		WorldSubsystem->RequestSaveFlush(bExplicitSave,
 			UWxPersistenceWorldSubsystem::FOnSaveFlushComplete::FDelegate::CreateUObject(this, &UWxPersistenceGameSubsystem::ContinueSaveToFileToDisk));
 	}
 	else
@@ -167,6 +178,26 @@ void UWxPersistenceGameSubsystem::SaveToFile()
 		// 월드 서브시스템 부재(트랜지션 등): 플러시할 것이 없으니 바로 기록한다.
 		ContinueSaveToFileToDisk();
 	}
+}
+
+bool UWxPersistenceGameSubsystem::DoesSaveFileExist(const FString& SlotName, int32 UserIndex) const
+{
+	return UGameplayStatics::DoesSaveGameExist(SlotName, UserIndex);
+}
+
+bool UWxPersistenceGameSubsystem::DeleteSaveFile(const FString& SlotName, int32 UserIndex)
+{
+	// 디스크 파일만 삭제한다. 인메모리 활성 SaveGame 은 그대로 두므로, 활성 슬롯을 지웠다면 다음 SaveToFile 이 그 파일을 다시 만든다.
+	const bool bDeleted = UGameplayStatics::DeleteGameInSlot(SlotName, UserIndex);
+	if (bDeleted)
+	{
+		UE_LOG(LogWxSave, Log, TEXT("DeleteSaveFile: 슬롯 '%s' (UserIndex %d) 삭제"), *SlotName, UserIndex);
+	}
+	else
+	{
+		UE_LOG(LogWxSave, Warning, TEXT("DeleteSaveFile: 슬롯 '%s' (UserIndex %d) 삭제 실패(파일 없음 등)"), *SlotName, UserIndex);
+	}
+	return bDeleted;
 }
 
 void UWxPersistenceGameSubsystem::SetPersistenceTravelData(FWxPersistenceTravelData InTravelData)
@@ -229,11 +260,13 @@ void UWxPersistenceGameSubsystem::LogSaveState() const
 	}
 
 	const bool bHasPlayerStartTag = !SaveGame->PlayerStartTag.IsNone();
-	UE_LOG(LogWxSave, Display, TEXT("[Wx.Save.Dump] 슬롯 '%s' · 레코드 %d개 · PlayerStart 태그 %s · 저장 맵 %s"),
+	const bool bHasPlayerLocation = !SaveGame->TravelData.PlayerTransform.Equals(FTransform::Identity);
+	UE_LOG(LogWxSave, Display, TEXT("[Wx.Save.Dump] 슬롯 '%s' · 레코드 %d개 · PlayerStart 태그 %s · 저장 맵 %s · 저장 위치 %s"),
 		*SaveGame->SlotName,
 		SaveGame->ActorRecords.Num(),
 		bHasPlayerStartTag ? *SaveGame->PlayerStartTag.ToString() : TEXT("(미설정)"),
-		SaveGame->TravelData.Map.IsNull() ? TEXT("(미기록)") : *SaveGame->TravelData.Map.ToString());
+		SaveGame->TravelData.Map.IsNull() ? TEXT("(미기록)") : *SaveGame->TravelData.Map.ToString(),
+		bHasPlayerLocation ? *SaveGame->TravelData.PlayerTransform.GetLocation().ToString() : TEXT("(미기록)"));
 
 	for (const TPair<FGuid, FWxActorRecord>& Pair : SaveGame->ActorRecords)
 	{

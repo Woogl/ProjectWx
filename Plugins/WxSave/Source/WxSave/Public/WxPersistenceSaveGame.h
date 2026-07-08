@@ -42,7 +42,7 @@ struct WXSAVE_API FWxActorRecord
 	TArray<uint8> VersionHeader;
 };
 
-/** 맵 트래블에 필요한 데이터. 저장 시 SaveToFile 플러시가 채우고, 로드 시 TravelFromSaveFile 이 대상 맵으로 트래블한다. */
+/** 맵 트래블 + 트래블 후 플레이어 위치 복원에 필요한 데이터. 저장 시 SaveToFile 플러시가 채우고, 로드 시 TravelFromSaveFile 이 대상 맵으로 트래블한다. */
 USTRUCT()
 struct WXSAVE_API FWxPersistenceTravelData
 {
@@ -51,6 +51,14 @@ struct WXSAVE_API FWxPersistenceTravelData
 	/** 트래블 대상 맵. PIE 접두사를 제거한 긴 패키지 경로로 구성한다(예: /Game/Level/LV_Combat). null 은 구버전 파일/미기록 — 현재 맵 리로드로 폴백. */
 	UPROPERTY()
 	FSoftObjectPath Map;
+
+	/**
+	 * 명시(이름 지정) 저장 시점의 플레이어 폰 월드 트랜스폼. 로드 후 스폰 경로가 스폰 지점 대신 여기로 배치해 "저장 지점 복원"을 구현한다.
+	 * Identity 는 "미기록" sentinel(오토세이브/신규 세션 — 별도 bool 플래그 없이 값으로 판정) — 이때 스폰은 PlayerStartTag(체크포인트)로 폴백한다.
+	 * 매 플러시마다 FlushMapTravelData 가 TravelData 를 재구성해 이 값을 Identity 로 리셋하므로, 명시 저장의 FlushPlayerTransform 만 실제 값을 남기고 오토세이브는 자동으로 미기록이 된다.
+	 */
+	UPROPERTY()
+	FTransform PlayerTransform = FTransform::Identity;
 };
 
 /** WxSave 슬롯 데이터. 슬롯 정체성 + 트래블 데이터 + savable 액터 상태 맵 + 부활/시작 PlayerStart 식별자를 보관한다. */

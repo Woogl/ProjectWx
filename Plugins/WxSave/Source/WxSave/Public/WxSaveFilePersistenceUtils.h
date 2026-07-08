@@ -30,15 +30,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
 	static UWxPersistenceSaveGame* ReloadFromFile(const UObject* WorldContextObject, bool bStartTravel = true);
 
-	/** 라이브 상태를 활성 SaveGame 에 플러시하고 그 슬롯에 디스크 기록한다. */
+	/** 라이브 상태를 활성 SaveGame 에 플러시하고 디스크 기록한다. SlotName 이 비면 활성 슬롯에, 지정되면 활성 슬롯을 그 이름으로 재지정한 뒤 기록한다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
-	static void SaveToFile(const UObject* WorldContextObject);
+	static void SaveToFile(const UObject* WorldContextObject, const FString& SlotName, int32 UserIndex);
 
 	/** 활성 SaveGame 의 트래블 데이터에 저장된 맵으로 트래블한다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
 	static void TravelFromSaveFile(const UObject* WorldContextObject);
 
-	/** 개발 기본 슬롯 이름("Test"). UI BP 가 하드코딩 문자열 대신 사용한다. */
-	UFUNCTION(BlueprintPure, Category = "Wx|Save")
-	static FString GetDefaultSlotName();
+	/** 슬롯 파일이 디스크에 존재하는지 반환한다. 로드/삭제 버튼 활성화·덮어쓰기 확인에 쓴다. */
+	UFUNCTION(BlueprintCallable, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
+	static bool DoesSaveFileExist(const UObject* WorldContextObject, const FString& SlotName, int32 UserIndex);
+
+	/** 슬롯 파일을 디스크에서 삭제한다(인메모리 활성 SaveGame 은 불변). @return 삭제 성공 여부(파일 없음 등 실패 시 false). */
+	UFUNCTION(BlueprintCallable, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
+	static bool DeleteSaveFile(const UObject* WorldContextObject, const FString& SlotName, int32 UserIndex);
 };

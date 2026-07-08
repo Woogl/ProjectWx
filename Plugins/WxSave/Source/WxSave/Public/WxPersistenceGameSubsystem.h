@@ -57,8 +57,15 @@ public:
 	/**
 	 * 저장을 시작한다: 월드 서브시스템의 RequestSaveFlush 로 라이브 상태(트래블 데이터 + savable 액터)를 SaveGame 에 플러시한 뒤 디스크에 기록한다.
 	 * 월드 서브시스템이 없으면(트랜지션 등) 플러시 없이 바로 기록한다. 활성 SaveGame 이 없으면 경고 후 중단.
+	 * SlotName 이 비면 활성 슬롯에 그대로 기록하고(체크포인트 오토세이브 경로), 지정되면 활성 슬롯을 그 이름으로 재지정한 뒤 기록한다(이후 저장도 그 슬롯을 이어감).
 	 */
-	void SaveToFile();
+	void SaveToFile(const FString& SlotName = FString(), int32 UserIndex = 0);
+
+	/** 슬롯 파일이 디스크에 존재하는지. UI 가 로드/삭제 버튼 활성화·덮어쓰기 확인에 쓴다. */
+	bool DoesSaveFileExist(const FString& SlotName, int32 UserIndex) const;
+
+	/** 슬롯 파일을 디스크에서 삭제한다. 인메모리 활성 SaveGame 은 건드리지 않으므로, 활성 슬롯을 지웠다면 다음 SaveToFile 이 그 파일을 다시 만든다. @return 삭제 성공 여부(파일 없음 등 실패 시 false). */
+	bool DeleteSaveFile(const FString& SlotName, int32 UserIndex);
 
 	void SetPersistenceTravelData(FWxPersistenceTravelData InTravelData);
 

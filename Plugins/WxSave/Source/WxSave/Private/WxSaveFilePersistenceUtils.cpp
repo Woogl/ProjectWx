@@ -61,11 +61,11 @@ UWxPersistenceSaveGame* UWxSaveFilePersistenceUtils::ReloadFromFile(const UObjec
 	return nullptr;
 }
 
-void UWxSaveFilePersistenceUtils::SaveToFile(const UObject* WorldContextObject)
+void UWxSaveFilePersistenceUtils::SaveToFile(const UObject* WorldContextObject, const FString& SlotName, int32 UserIndex)
 {
 	if (UWxPersistenceGameSubsystem* Subsystem = GetSubsystem(WorldContextObject))
 	{
-		Subsystem->SaveToFile();
+		Subsystem->SaveToFile(SlotName, UserIndex);
 	}
 }
 
@@ -77,7 +77,22 @@ void UWxSaveFilePersistenceUtils::TravelFromSaveFile(const UObject* WorldContext
 	}
 }
 
-FString UWxSaveFilePersistenceUtils::GetDefaultSlotName()
+bool UWxSaveFilePersistenceUtils::DoesSaveFileExist(const UObject* WorldContextObject, const FString& SlotName, int32 UserIndex)
 {
-	return WxPersistence::DefaultSlotName;
+	if (const UWxPersistenceGameSubsystem* Subsystem = GetSubsystem(WorldContextObject))
+	{
+		return Subsystem->DoesSaveFileExist(SlotName, UserIndex);
+	}
+
+	return false;
+}
+
+bool UWxSaveFilePersistenceUtils::DeleteSaveFile(const UObject* WorldContextObject, const FString& SlotName, int32 UserIndex)
+{
+	if (UWxPersistenceGameSubsystem* Subsystem = GetSubsystem(WorldContextObject))
+	{
+		return Subsystem->DeleteSaveFile(SlotName, UserIndex);
+	}
+
+	return false;
 }

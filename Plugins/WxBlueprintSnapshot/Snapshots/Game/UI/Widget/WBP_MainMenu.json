@@ -4,6 +4,7 @@
 	{
 		"bIsBackHandler": true,
 		"DeleteSave": "",
+		"EditableText_302": "",
 		"EnterInventory": "",
 		"LoadGame": "",
 		"SaveGame": ""
@@ -13,7 +14,17 @@
 		"CommonButtonBaseClicked__DelegateSignature": [
 			"void CommonButtonBaseClicked__DelegateSignature(UCommonButtonBase* Button)",
 			"{",
-			"    UWxSaveFilePersistenceUtils::SaveToFile();",
+			"    UWxSaveFilePersistenceUtils::SaveToFile(UKismetTextLibrary::Conv_TextToString(EditableText_302->GetText()));",
+			"    UKismetSystemLibrary::PrintString(TEXT(\"세이브 파일 저장\"));",
+			"}"
+		],
+		"EventGraph": [
+			"void EventGraph()  // [macro]",
+			"{",
+			"    // entry: Is Valid",
+			"    UKismetSystemLibrary::PrintString(TEXT(\"세이브 파일 적용 성공\"));",
+			"    // entry: Is Not Valid",
+			"    UKismetSystemLibrary::PrintString(TEXT(\"세이브 파일 적용 실패\"));",
 			"}"
 		]
 	},
@@ -60,6 +71,20 @@
 							"Top": 10
 						}
 					}
+				}
+			},
+			"EditableText_302":
+			{
+				"class": "/Script/UMG.EditableText",
+				"delta":
+				{
+					"Text": "SaveSlotName"
+				},
+				"isVariable": true,
+				"parent": "VerticalBox_0",
+				"slot":
+				{
+					"class": "/Script/UMG.VerticalBoxSlot"
 				}
 			},
 			"EnterInventory":

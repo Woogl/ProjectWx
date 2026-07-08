@@ -23,7 +23,7 @@
 #include "WxSavable.h"
 #include "WxSaveModule.h"
 
-void UWxPersistenceWorldSubsystem::RequestSaveFlush(FOnSaveFlushComplete::FDelegate OnComplete)
+void UWxPersistenceWorldSubsystem::RequestSaveFlush(bool bCapturePlayerTransform, FOnSaveFlushComplete::FDelegate OnComplete)
 {
 	// Wx 엔 Mass 같은 페이즈 지연 작업이 없어 플러시가 전부 동기다(샘플은 여기서 Mass 스냅샷을 FrameEnd 로 지연).
 	UWorld* World = GetWorld();
@@ -33,6 +33,12 @@ void UWxPersistenceWorldSubsystem::RequestSaveFlush(FOnSaveFlushComplete::FDeleg
 	{
 		FlushMapTravelData();
 		FlushPlayerStats();
+
+		// 위치 캡처는 FlushMapTravelData 뒤에 온다: TravelData 재구성이 PlayerTransform 을 Identity 로 리셋한 뒤 명시 저장만 실제 값으로 덮어써야 한다.
+		if (bCapturePlayerTransform)
+		{
+			FlushPlayerTransform();
+		}
 	}
 	FlushSavableActors();
 
@@ -153,6 +159,30 @@ void UWxPersistenceWorldSubsystem::FlushPlayerStats()
 	SaveGame->bHasPlayerStats = SaveGame->PlayerStats.Num() > 0;
 
 	UE_LOG(LogWxSave, Log, TEXT("FlushPlayerStats: 어트리뷰트 %d개 캡처"), SaveGame->PlayerStats.Num());
+}
+
+void UWxPersistenceWorldSubsystem::FlushPlayerTransform()
+{
+	UWorld* World = GetWorld();
+	UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
+	UWxPersistenceGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxPersistenceGameSubsystem>() : nullptr;
+	UWxPersistenceSaveGame* SaveGame = GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
+	if (!SaveGame)
+	{
+		return;
+	}
+
+	// 첫 플레이어 폰의 월드 트랜스폼을 캡처한다(스탠드얼론 싱글 전제 — FlushPlayerStats 와 동일 대상). 폰 부재 시 미기록(FlushMapTravelData 가 세팅한 Identity)으로 남긴다.
+	const APlayerController* PC = World->GetFirstPlayerController();
+	const APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+	if (!Pawn)
+	{
+		return;
+	}
+
+	SaveGame->TravelData.PlayerTransform = Pawn->GetActorTransform();
+
+	UE_LOG(LogWxSave, Log, TEXT("FlushPlayerTransform: 위치 %s 캡처"), *SaveGame->TravelData.PlayerTransform.GetLocation().ToString());
 }
 
 void UWxPersistenceWorldSubsystem::CapturePlayerStats(AActor* PlayerActor, TMap<FName, float>& OutStats)
