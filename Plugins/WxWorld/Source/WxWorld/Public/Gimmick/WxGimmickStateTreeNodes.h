@@ -29,7 +29,7 @@ class UWxInteractionComponent;
  * 여기의 노드는 기믹 종류와 무관한 공통 동작만 다루며, 소유 액터의 얇은 프리미티브만 호출한다.
  * 컨텍스트 액터는 StateTreeComponentSchema 가 제공하는 소유 액터(= AWxGimmick 파생) 이며, 각 노드는 Context.GetOwner() 를 캐스트해 얻는다.
  *
- *  - EnableInteraction 은 (InteractionComponent, bEnable) 으로 지정 상호작용 컴포넌트 하나의 활성/비활성을 토글한다.
+ *  - EnableInteraction 은 (InteractionComponent, bEnable, bUseHighlight) 으로 지정 상호작용 컴포넌트 하나의 활성/비활성과 외곽선 강조 허용을 토글한다.
  *  - EnablePlayerInput 은 (bEnable) 으로 로컬 플레이어 폰의 입력 전체를 진입 시 1회 토글한다(컷신 등 연출 중 조작 차단).
  *  - ComponentMove 는 (TargetComponent, LocalOffset, Duration) 으로 지정 컴포넌트를 현재 위치에서 기준(아키타입)+offset 으로 일정 속도 슬라이드한다(범용 메시 이동, 목표=아키타입인 닫기 방향도 지원).
  *  - ComponentSplineMove 는 (TargetComponent, Spline, TargetPointIndex, Duration) 으로 지정 컴포넌트를 목표 스플라인 포인트로 옮긴다. 초기 진입이면 목표 포인트로 즉시 스냅, 라이브 전이면 현재(가장 가까운) 포인트에서 목표까지 곡선을 따라 일정 속도 이동한다(State 가 목표 끝점을 직접 선언하므로 복원도 정확).
@@ -61,10 +61,14 @@ struct FWxStateTreeTask_EnableInteractionInstanceData
 	/** 진입 시 위 컴포넌트의 상호작용 활성 여부. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	bool bEnable = false;
+
+	/** 위 컴포넌트의 외곽선 강조 허용 여부. 끄면 스캔 선택 대상이 되어도 외곽선을 표시하지 않는다(예: 엘리베이터 플랫폼 바닥). */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	bool bUseHighlight = true;
 };
 
 /**
- * 진입 시 지정 상호작용 컴포넌트(UWxInteractionComponent) 하나의 활성/비활성을 bEnable 로 토글한 뒤 Succeeded 로 완료한다.
+ * 진입 시 지정 상호작용 컴포넌트(UWxInteractionComponent) 하나의 활성/비활성을 bEnable 로, 외곽선 강조 허용을 bUseHighlight 로 토글한 뒤 Succeeded 로 완료한다.
  * 포즈/이동 등과 직교하는 단일 책임 태스크. 인터랙션이 여러 개인 기믹은 영역마다 노드를 둔다. 틱하지 않으므로 비용이 없다.
  * 각 상태가 자기 인터랙션 가용 여부를 명시하도록 상태마다 둔다(직접 복원 시에도 일관). 컴포넌트가 비면 Failed.
  * 순간 side-effect 라 기본적으로 상태 완료를 구동하지 않는다(bConsideredForCompletion=false; 토글만 든 정지 leaf 가 즉시 완료→재선택 루프에 빠지지 않도록). 인스턴스별로 다시 켤 수 있다.

@@ -45,6 +45,16 @@ void UWxInteractionComponent::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	DOREPLIFETIME(UWxInteractionComponent, bInteractionEnabled);
 }
 
+void UWxInteractionComponent::SetCollisionVolume(UPrimitiveComponent* InVolume)
+{
+	CollisionVolume = InVolume;
+}
+
+UPrimitiveComponent* UWxInteractionComponent::GetCollisionVolume() const
+{
+	return CollisionVolume;
+}
+
 FVector UWxInteractionComponent::GetInteractionLocation() const
 {
 	return CollisionVolume ? CollisionVolume->GetComponentLocation() : GetComponentLocation();
@@ -142,10 +152,15 @@ void UWxInteractionComponent::SetInteractionText(const FText& InText)
 	InteractionText = InText;
 }
 
+FText UWxInteractionComponent::GetInteractionText() const
+{
+	return InteractionText;
+}
+
 void UWxInteractionComponent::SetHighlightEnabled(bool bNewEnabled)
 {
 	// 강조 대상은 소유 액터가 명시 지정한다(SetHighlightTarget / BP). 미지정이면 강조하지 않는다.
-	if (!bEnableHighlight || !HighlightTarget)
+	if (!bUseHighlight || !HighlightTarget)
 	{
 		return;
 	}
@@ -155,4 +170,25 @@ void UWxInteractionComponent::SetHighlightEnabled(bool bNewEnabled)
 	{
 		HighlightTarget->SetCustomDepthStencilValue(HighlightStencilValue);
 	}
+}
+
+void UWxInteractionComponent::SetHighlightTarget(UMeshComponent* InTarget)
+{
+	HighlightTarget = InTarget;
+}
+
+void UWxInteractionComponent::SetUseHighlight(bool bNewUseHighlight)
+{
+	if (bUseHighlight == bNewUseHighlight)
+	{
+		return;
+	}
+
+	// 게이트를 닫기 전에 이미 켜진 외곽선을 끈다(닫힌 뒤에는 SetHighlightEnabled 가 early-return 이라 끌 수 없다).
+	if (!bNewUseHighlight)
+	{
+		SetHighlightEnabled(false);
+	}
+
+	bUseHighlight = bNewUseHighlight;
 }

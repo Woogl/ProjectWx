@@ -41,10 +41,10 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	/** 쿼리 볼륨을 명시 지정한다(오버라이드). 기본은 BeginPlay 에서 부착 부모를 자동 채택하므로, 부착 부모가 대상 프리미티브가 아닐 때만 호출한다. */
-	void SetCollisionVolume(UPrimitiveComponent* InVolume) { CollisionVolume = InVolume; }
+	void SetCollisionVolume(UPrimitiveComponent* InVolume);
 
 	/** 현재 쿼리 볼륨(미지정이면 nullptr). */
-	UPrimitiveComponent* GetCollisionVolume() const { return CollisionVolume; }
+	UPrimitiveComponent* GetCollisionVolume() const;
 
 	/** 볼륨 기준 상호작용 위치(볼륨 미지정이면 컴포넌트 위치). 스캐너 정렬·서버 사거리 검증이 읽는다. */
 	FVector GetInteractionLocation() const;
@@ -70,13 +70,16 @@ public:
 	virtual void SetInteractionText(const FText& InText) override;
 
 	/** 현재 상호작용 텍스트. 레지스트리가 HUD 리스트 구성을 위해 읽는다. */
-	FText GetInteractionText() const { return InteractionText; }
+	FText GetInteractionText() const;
 
 	/** 지정된 HighlightTarget 메시에 외곽선 강조를 켜고 끈다. 레지스트리가 선택 대상만 호출한다. */
 	void SetHighlightEnabled(bool bNewEnabled);
 
 	/** 강조할 메시를 지정한다. 소유 액터가 인터랙션 컴포넌트 생성·부착 직후 호출한다(미지정이면 강조하지 않는다). */
-	void SetHighlightTarget(UMeshComponent* InTarget) { HighlightTarget = InTarget; }
+	void SetHighlightTarget(UMeshComponent* InTarget);
+
+	/** 외곽선 강조 게이트(bUseHighlight)를 토글한다. 끄면 이후 SetHighlightEnabled 가 무시되며, 이미 켜진 외곽선도 즉시 끈다. */
+	void SetUseHighlight(bool bNewUseHighlight);
 
 	/** 소유 액터가 바인딩하는 상호작용 델리게이트. 서버 권한에서만 fire 된다(원격 클라에서는 호출되지 않는다). */
 	UPROPERTY()
@@ -84,7 +87,7 @@ public:
 
 protected:
 	/** 쿼리 볼륨(임의 형상). 미지정이면 BeginPlay 에서 부착 부모 프리미티브를 자동 채택한다. 자동 채택도 실패하면 스캔에 잡히지 않는다. */
-	UPROPERTY(EditAnywhere, Category = "Wx")
+	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TObjectPtr<UPrimitiveComponent> CollisionVolume = nullptr;
 
 	/** HUD 리스트에 표시할 상호작용 텍스트. 레지스트리가 GetInteractionText 로 읽는다. */
@@ -93,14 +96,14 @@ protected:
 
 	/** 외곽선 강조(Custom Depth/Stencil)를 적용할지 여부. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
-	bool bEnableHighlight = true;
+	bool bUseHighlight = true;
 
 	/** 강조(외곽선)를 적용할 메시. 소유 액터가 명시적으로 지정한다(C++ 는 SetHighlightTarget, BP 는 디테일 패널). 미지정이면 강조하지 않는다. */
-	UPROPERTY(EditAnywhere, Category = "Wx", meta = (EditCondition = "bEnableHighlight"))
+	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (EditCondition = "bUseHighlight"))
 	TObjectPtr<UMeshComponent> HighlightTarget = nullptr;
 
 	/** 외곽선 강조용 Custom Depth Stencil 값. 포스트프로세스 아웃라인 머티리얼이 비교하는 값과 일치시킨다. */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (ClampMin = 0, ClampMax = 255, EditCondition = "bEnableHighlight"))
+	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (ClampMin = 0, ClampMax = 255, EditCondition = "bUseHighlight"))
 	int32 HighlightStencilValue = 1;
 
 private:
