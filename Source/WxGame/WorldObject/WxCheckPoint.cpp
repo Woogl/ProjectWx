@@ -97,7 +97,10 @@ void AWxCheckPoint::BeginPlay()
 {
 	Super::BeginPlay();
 
-	InteractionComponent->OnInteracted.AddDynamic(this, &AWxCheckPoint::HandleInteracted);
+	if (InteractionComponent)
+	{
+		InteractionComponent->OnInteracted.AddDynamic(this, &AWxCheckPoint::HandleInteracted);
+	}
 }
 
 void AWxCheckPoint::HandleInteracted(AActor* InstigatorActor)
