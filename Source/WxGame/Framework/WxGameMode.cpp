@@ -74,7 +74,7 @@ AActor* AWxGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	UWxPlayerSpawningComponent* PlayerSpawning = WxGameState ? WxGameState->FindComponentByClass<UWxPlayerSpawningComponent>() : nullptr;
 	if (PlayerSpawning)
 	{
-		// 저장 태그/"Default" 태그를 못 찾으면 컴포넌트가 에러 로그 후 nullptr 을 반환하므로 엔진 기본(랜덤)으로 폴백한다.
+		// 저장 태그·최초 시작지점(bIsDefaultStart)을 못 찾으면 컴포넌트가 nullptr 을 반환하므로 엔진 기본(랜덤)으로 폴백한다.
 		if (AActor* Start = PlayerSpawning->ChoosePlayerStart(Player))
 		{
 			return Start;

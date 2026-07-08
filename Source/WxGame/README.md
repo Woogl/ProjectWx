@@ -42,7 +42,7 @@
 
 ## 확장 포인트 / 규약
 - 프레임워크 컴포넌트 추가: `AWxGameMode::FrameworkComponents`(EditDefaults)에 `UGameFrameworkComponent` 파생을 넣으면 receiver 액터(GameState 등)에 자동 주입된다 — GameState 코드 수정 불필요.
-- 새 부활 지점 유형: `APlayerStart`(또는 `AWxCheckPoint`)를 배치하고 `PlayerStartTag` 를 지정하면 스폰 컴포넌트의 태그 탐색에 편입된다.
+- 새 부활 지점: `AWxCheckPoint`(또는 `APlayerStart`)를 배치하고 `PlayerStartTag` 를 인스턴스마다 고유하게 지정하면 저장·복원 탐색에 편입된다. 레벨 최초 접속 시작지점은 체크포인트 하나에 `bIsDefaultStart` 을 켠다(레벨당 1개). 태그 미지정·중복·다중 지정은 Map Check 가 에러로 잡는다.
 - 캐릭터 파생: `AWxCharacterBase`(Abstract)를 상속하고 BP 에서 `WeaponActor` ChildActorClass·`UIData`·`Team` 등을 지정. 사망 연출은 `HandleDeath()` override.
 - 새 플레이어 입력: `UWxInputConfig` 에셋에 InputAction 을 추가하고, 어빌리티 입력은 `AbilityInputBindings` 로 Gameplay Tag 에 매핑.
 - WxUI 위젯에 게임 상태 노출: 게임→UI 단방향 참조 제약 때문에, WBP View Bindings 의 Resolver 로 `WxViewModelResolver_*` 를 선택해 이 모듈이 주입을 대행한다.
