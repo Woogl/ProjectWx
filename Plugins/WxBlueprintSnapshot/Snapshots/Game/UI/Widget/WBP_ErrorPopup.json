@@ -1,11 +1,48 @@
 {
 	"blueprintPath": "/Game/UI/Widget/WBP_ErrorPopup.WBP_ErrorPopup",
+	"classDefaults":
+	{
+		"bIsBackHandler": true
+	},
 	"parentClass": "/Script/WxUI.WxConfirmationPopup",
 	"widgetTree":
 	{
 		"root": "CanvasPanel_80",
 		"widgets":
 		{
+			"BackgroundBlur_186":
+			{
+				"class": "/Script/UMG.BackgroundBlur",
+				"delta":
+				{
+					"BlurStrength": 4,
+					"Visibility": "Visible"
+				},
+				"parent": "CanvasPanel_80",
+				"slot":
+				{
+					"class": "/Script/UMG.CanvasPanelSlot",
+					"delta":
+					{
+						"LayoutData":
+						{
+							"Anchors":
+							{
+								"Maximum":
+								{
+									"X": 1,
+									"Y": 1
+								}
+							},
+							"Offsets":
+							{
+								"Bottom": 0,
+								"Right": 0
+							}
+						}
+					}
+				}
+			},
 			"Button_Cancel":
 			{
 				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
@@ -126,7 +163,7 @@
 				{
 					"ColorAndOpacity":
 					{
-						"A": 0.5,
+						"A": 0.80000001192092896,
 						"B": 0,
 						"G": 0,
 						"R": 0.10000000149011612

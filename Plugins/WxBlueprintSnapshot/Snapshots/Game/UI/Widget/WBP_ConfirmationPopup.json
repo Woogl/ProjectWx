@@ -1,11 +1,48 @@
 {
 	"blueprintPath": "/Game/UI/Widget/WBP_ConfirmationPopup.WBP_ConfirmationPopup",
+	"classDefaults":
+	{
+		"bIsBackHandler": true
+	},
 	"parentClass": "/Script/WxUI.WxConfirmationPopup",
 	"widgetTree":
 	{
 		"root": "CanvasPanel_80",
 		"widgets":
 		{
+			"BackgroundBlur_186":
+			{
+				"class": "/Script/UMG.BackgroundBlur",
+				"delta":
+				{
+					"BlurStrength": 4,
+					"Visibility": "Visible"
+				},
+				"parent": "CanvasPanel_80",
+				"slot":
+				{
+					"class": "/Script/UMG.CanvasPanelSlot",
+					"delta":
+					{
+						"LayoutData":
+						{
+							"Anchors":
+							{
+								"Maximum":
+								{
+									"X": 1,
+									"Y": 1
+								}
+							},
+							"Offsets":
+							{
+								"Bottom": 0,
+								"Right": 0
+							}
+						}
+					}
+				}
+			},
 			"Button_Cancel":
 			{
 				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
@@ -14,39 +51,16 @@
 					"ButtonText": "Cancel"
 				},
 				"isVariable": true,
-				"parent": "CanvasPanel_80",
+				"parent": "HorizontalBox_0",
 				"slot":
 				{
-					"class": "/Script/UMG.CanvasPanelSlot",
+					"class": "/Script/UMG.HorizontalBoxSlot",
 					"delta":
 					{
-						"bAutoSize": true,
-						"LayoutData":
+						"Padding":
 						{
-							"Alignment":
-							{
-								"X": 0.5,
-								"Y": 0.5
-							},
-							"Anchors":
-							{
-								"Maximum":
-								{
-									"X": 0.5,
-									"Y": 0.5
-								},
-								"Minimum":
-								{
-									"X": 0.5,
-									"Y": 0.5
-								}
-							},
-							"Offsets":
-							{
-								"Bottom": 40,
-								"Left": 200,
-								"Top": 200
-							}
+							"Left": 100,
+							"Right": 100
 						}
 					}
 				}
@@ -59,39 +73,16 @@
 					"ButtonText": "Yes"
 				},
 				"isVariable": true,
-				"parent": "CanvasPanel_80",
+				"parent": "HorizontalBox_0",
 				"slot":
 				{
-					"class": "/Script/UMG.CanvasPanelSlot",
+					"class": "/Script/UMG.HorizontalBoxSlot",
 					"delta":
 					{
-						"bAutoSize": true,
-						"LayoutData":
+						"Padding":
 						{
-							"Alignment":
-							{
-								"X": 0.5,
-								"Y": 0.5
-							},
-							"Anchors":
-							{
-								"Maximum":
-								{
-									"X": 0.5,
-									"Y": 0.5
-								},
-								"Minimum":
-								{
-									"X": 0.5,
-									"Y": 0.5
-								}
-							},
-							"Offsets":
-							{
-								"Bottom": 40,
-								"Left": -200,
-								"Top": 200
-							}
+							"Left": 100,
+							"Right": 100
 						}
 					}
 				}
@@ -104,6 +95,27 @@
 					"ButtonText": "No"
 				},
 				"isVariable": true,
+				"parent": "HorizontalBox_0",
+				"slot":
+				{
+					"class": "/Script/UMG.HorizontalBoxSlot",
+					"delta":
+					{
+						"Padding":
+						{
+							"Left": 100,
+							"Right": 100
+						}
+					}
+				}
+			},
+			"CanvasPanel_80":
+			{
+				"class": "/Script/UMG.CanvasPanel"
+			},
+			"HorizontalBox_0":
+			{
+				"class": "/Script/UMG.HorizontalBox",
 				"parent": "CanvasPanel_80",
 				"slot":
 				{
@@ -140,10 +152,6 @@
 					}
 				}
 			},
-			"CanvasPanel_80":
-			{
-				"class": "/Script/UMG.CanvasPanel"
-			},
 			"Image_69":
 			{
 				"class": "/Script/UMG.Image",
@@ -151,7 +159,7 @@
 				{
 					"ColorAndOpacity":
 					{
-						"A": 0.5,
+						"A": 0.80000001192092896,
 						"B": 0,
 						"G": 0,
 						"R": 0
