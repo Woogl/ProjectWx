@@ -113,6 +113,7 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExe
 		return EStateTreeRunStatus::Failed;
 	}
 
+	Interaction->SetUseHighlight(Instance.bUseHighlight);
 	Interaction->SetInteractionEnabled(Instance.bEnable);
 
 	// 토글은 즉시 끝나므로 곧바로 완료한다.
@@ -132,7 +133,8 @@ FText FWxStateTreeTask_EnableInteraction::GetDescription(const FGuid& ID, FState
 		InteractionText = InstanceData->InteractionComponent ? FText::FromString(InstanceData->InteractionComponent->GetName()) : INVTEXT("(none)");
 	}
 
-	return FText::Format(INVTEXT("Enable Interaction ({0}: {1})"), InteractionText, InstanceData->bEnable ? INVTEXT("true") : INVTEXT("false"));
+	// 강조 허용은 기본(true)에서 벗어난 경우에만 표기해 요약을 짧게 유지한다.
+	return FText::Format(INVTEXT("Enable Interaction ({0}: {1}{2})"), InteractionText, InstanceData->bEnable ? INVTEXT("true") : INVTEXT("false"), InstanceData->bUseHighlight ? FText::GetEmpty() : INVTEXT(", no highlight"));
 }
 #endif
 

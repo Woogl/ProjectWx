@@ -1,50 +1,53 @@
 # WxSave — 세이브/로드 시스템
 
-> 등록된 액터(`IWxSavable`)의 상태와 플레이어 부활 체크포인트를 슬롯 파일에 직렬화하고, World Partition 셀 왕복·맵 리로드를 가로질러 복원하는 런타임 플러그인.
+> 슬롯 파일 기반 세이브/로드 플러그인. 메모리 SaveGame 의 수명·디스크 I/O·맵 트래블을 오케스트레이션하고, 월드 수명 이벤트에 맞춰 `IWxSavable` 액터 상태·플레이어 위치·GAS 스탯을 캡처/복원한다. 체크포인트 오토세이브와 사망 리스폰(리로드 트래블)을 지원한다.
 
 ## 책임
 **담당**
-- `IWxSavable` 액터의 `UPROPERTY(SaveGame)` 필드 + Transform 을 `FObjectAndNameAsStringProxyArchive`(`ArIsSaveGame=true`)로 바이트 직렬화/역직렬화.
-- 슬롯 단위 디스크 영속화: `AsyncSaveGameToSlot` 비동기 저장, `LoadGameFromSlot` 로드.
-- World Partition 셀 스트리밍-인/아웃 시 메모리 슬롯과 액터 상태를 자동 동기화(스트리밍-아웃 캡처, 스트리밍-인 복원).
-- `LoadSlot` 의 맵 리로드(`ServerTravel`) 오케스트레이션 — 복원은 리로드된 새 월드의 스트리밍 핸들러가 수행.
-- 부활/시작 진입점 `PlayerStartTag` 보관/조회 (사망 후 부활 + 레벨 시작 지점).
-- BP 노출(`UWxSaveGameLibrary`)과 콘솔 진단(`Wx.Save.Dump`).
+- 활성 SaveGame 슬롯의 소유·수명 관리(맵 트래블을 가로질러 유지), 이름 지정 슬롯 저장/로드/삭제·존재확인, 슬롯 리셋 (`UWxPersistenceGameSubsystem`)
+- 저장된 맵으로의 `ServerTravel` 및 로드-트래블 가드(`IsTravelingFromSaveFile`)로 막 로드한 세이브 오염 방지
+- 월드 수명 이벤트(레벨 스트리밍 인/아웃, teardown, BeginPlay)에 맞춘 `IWxSavable` 액터 상태의 자동 캡처·복원 (`UWxPersistenceWorldSubsystem`)
+- 액터+컴포넌트 `UPROPERTY(SaveGame)` 바이트 직렬화와 이기종 빌드 안전을 위한 레코드 단위 버전 헤더 처리
+- 플레이어 ASC 어트리뷰트 base 값 스냅샷 캡처/적용, 부활/시작 지점 식별자(`PlayerStartTag`) 슬롯 기록
+- 명시(이름 지정) 저장 시 폰 트랜스폼 캡처(`TravelData.PlayerTransform`) → 로드 시 저장 지점 복원. 오토세이브·사망 리스폰은 위치를 미기록으로 두어 `PlayerStartTag` 로 폴백
 
 **경계 (비담당)**
-- 무엇을 저장할지의 선언: 각 액터가 `IWxSavable`([[WxCore]])을 구현하고 `UPROPERTY(SaveGame)` 를 마킹한다. WxSave 는 마킹된 것을 기계적으로 직렬화만 한다.
-- 부활 위치를 실제 액터로 해석하는 로직 + 태그 갱신 시점: GameMode 의 `ChoosePlayerStart` 가 `GetPlayerStartTag()` 의 Tag 를 `FindPlayerStart` 에 넘기고, 선택된 PlayerStart 태그를 `SetPlayerStartTag` 로 되기록한다(WxGame 측 GameMode).
-- 체크포인트 액터/상호작용 자체: 호출 측이 `SetPlayerStartTag` 호출 + `SaveSlot` 영속을 수행한다(WxGame/WxWorld 측 체크포인트 액터).
+- `IWxSavable` 인터페이스 및 안정 키 `GetWxSaveId()` 정의 → [[WxCore]] (`WxSavable.h`)
+- 저장된 `PlayerStartTag`·폰 트랜스폼을 소비하는 실제 스폰 선정(`ChoosePlayerStart` 등)은 GameMode(게임 코드). 이 모듈은 값만 저장/제공한다.
 
 ## 의존성
-- **주요 의존**: [[WxCore]](`IWxSavable` 인터페이스, `GetWxSaveId()`). 엔진: `UGameInstanceSubsystem`(ServerTravel 가로질러 메모리 유지), `UGameplayStatics` 비동기 슬롯 IO, `FWorldDelegates`(LevelAdded/Removed/OnWorldInitializedActors) 셀 스트리밍 후크.
-- 규칙: 「WxCore 외 Wx 플러그인 참조」 — 없음 ✅ (`.uplugin`/`Build.cs` 의존은 `WxCore` 뿐).
+- **주요 의존**: `WxCore`(`IWxSavable`), `GameplayAbilities`(플레이어 ASC 어트리뷰트 base 캡처/적용 — `CapturePlayerStats`/`ApplyPlayerStats`), 엔진 서브시스템 `UGameInstanceSubsystem`·`UWorldSubsystem`·`USaveGame`
+- 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅ (uplugin·Build.cs 모두 WxCore + 엔진 GameplayAbilities 만 의존)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxSaveGameSubsystem` | 모듈 단일 진입점. 저장/로드/복원/스트리밍 핸들러를 모두 보유한 `GameInstanceSubsystem`(ServerTravel 가로질러 유지) | `Source/WxSave/Public/WxSaveGameSubsystem.h` |
-| `UWxSaveGameLibrary` | BP 진입점. `SaveSlot`/`LoadSlot` 를 정적 래퍼로 노출(서브시스템 위임) | `Source/WxSave/Public/WxSaveGameLibrary.h` |
-| `UWxSaveGame` | 슬롯 데이터 컨테이너. `TMap<FGuid, FWxActorRecord>` + `PlayerStartTag` 보관 | `Source/WxSave/Public/WxSaveGame.h` |
-| `FWxActorRecord` | 액터 1개의 스냅샷(Transform + 본체 바이트 + 컴포넌트별 바이트), 슬롯 맵의 value | `Source/WxSave/Public/WxSaveGame.h` |
-| `IWxSavable` | 저장 대상 마킹 인터페이스. WxCore 소속(여기선 의존만) | `../WxCore/Source/WxCore/Public/WxSavable.h` |
+| `UWxPersistenceGameSubsystem` | 슬롯 소유·디스크 I/O·맵 트래블 오케스트레이션의 중심. 저장/로드 전 흐름의 시작점 (GameInstance 수명) | `Plugins/WxSave/Source/WxSave/Public/WxPersistenceGameSubsystem.h` |
+| `UWxPersistenceWorldSubsystem` | 월드 수명 이벤트별 savable 액터 자동 캡처/복원 + `RequestSaveFlush` + GAS 스탯 캡처/적용 | `Plugins/WxSave/Source/WxSave/Public/WxPersistenceWorldSubsystem.h` |
+| `UWxPersistenceSaveGame` | 슬롯 데이터 컨테이너(TravelData + `ActorRecords` + `PlayerStats` + `PlayerStartTag`) | `Plugins/WxSave/Source/WxSave/Public/WxPersistenceSaveGame.h` |
+| `FWxActorRecord` / `FWxComponentRecord` | 액터·컴포넌트 스냅샷(Transform + 바이트 + 컴포넌트별 레코드 + 버전 헤더) | `Plugins/WxSave/Source/WxSave/Public/WxPersistenceSaveGame.h` |
+| `FWxPersistenceTravelData` | 트래블 대상 맵(`FSoftObjectPath Map`) + 명시 저장 시점 폰 트랜스폼(`FTransform`, Identity=미기록 sentinel) | `Plugins/WxSave/Source/WxSave/Public/WxPersistenceSaveGame.h` |
+| `UWxSaveFilePersistenceUtils` | BP 진입점. 게임 서브시스템 공개 API 의 정적 래퍼(Save/Load/Reload/Travel/Delete·존재확인) | `Plugins/WxSave/Source/WxSave/Public/WxSaveFilePersistenceUtils.h` |
+| `WxPersistence::DefaultSlotName` | 개발 기본 슬롯 `"Test"` (체크포인트·PIE 자동로드 폴백) | `Plugins/WxSave/Source/WxSave/Public/WxPersistenceGameSubsystem.h` |
 
 ## 확장 포인트 / 규약
-- **세이브 대상 추가**: 액터에 `IWxSavable`([[WxCore]]) 구현 + `GetWxSaveId()` 가 에디터-부여 영속 GUID 반환. 이 GUID 가 슬롯 키이므로 쿠킹 빌드에서도 안정적이어야 한다(`GetActorGuid()` 는 WITH_EDITOR 전용이라 사용 불가). 무효 GUID 는 저장/복원에서 제외. 보존할 필드는 `UPROPERTY(SaveGame)` 로 마킹(액터 본체·컴포넌트 모두 지원).
-- **복원 후처리**: `OnWxSaveRestored()` 오버라이드로 시각/인터랙션 동기화. BeginPlay 이전 호출 가능성 주의.
-- **컴포넌트 필드**: `Actor::Serialize` 가 컴포넌트 SaveGame 필드를 자동으로 끌지 않으므로 컴포넌트 FName 키로 별도 캡처/복원(`FWxComponentRecord` wrapper — TMap value 로 TArray 직접 불가).
-- **부활/시작 지점 연동**: 호출 측이 `SetPlayerStartTag(Tag)` 로 Tag 기록(레벨 시작·체크포인트 상호작용) → 저장 시 디스크 영속 → 리로드 후 GameMode 가 `GetPlayerStartTag()` 조회. 좌표가 아닌 Tag 만 저장하여 실제 배치 액터를 엔진이 찾는다. `NAME_None` 은 미설정 sentinel(기본 PlayerStart 폴백).
-- **권한 모델**: `LoadSlot` 는 authority(서버) 전제 — `ServerTravel` 로 맵을 리로드하고, 액터 복원/부활은 리로드된 새 월드의 핸들러가 담당한다. 즉시 in-place 복원이 아니다.
-- **PIE 격리**: 모든 핸들러가 `IsOwnedGameWorld` 로 자기 GameInstance 월드만 처리.
+- **새 세이브 대상 추가**: 액터가 [[WxCore]]의 `IWxSavable` 을 구현하고 안정적 `WxSaveId`(에디터 부여 영속 GUID, 쿠킹 빌드 안전)를 반환하면 월드 서브시스템이 스트리밍/트래블 이벤트에서 자동 캡처·복원한다. 별도 등록 코드 불필요. 저장할 필드엔 `UPROPERTY(SaveGame)` 지정.
+- **커스텀 슬롯 데이터**: `UWxPersistenceSaveGame` 을 서브클래싱하고 `StartNewSaveFile` 의 `SpecificClass` 로 지정.
+- **이름 지정 슬롯**: `SaveToFile(SlotName)` 은 이름을 넘기면 활성 슬롯을 그 이름으로 재지정 후 저장하고, 빈 이름은 활성 슬롯을 유지한다(체크포인트 오토세이브 경로). 슬롯 목록 열거·메타데이터는 미지원.
+- **저장 지점 복원**: 명시 저장(비빈 이름)만 `RequestSaveFlush` 에 캡처 게이트를 넘겨 폰 트랜스폼을 `TravelData.PlayerTransform` 에 기록한다. 오토세이브(`SaveToFile()`)는 `FlushMapTravelData` 의 TravelData 재구성으로 위치가 Identity 로 리셋돼 미기록이 되고, 사망 리스폰은 `PlayerStartTag` 로 폴백. 스탯은 맵 무관이라 `bHasPlayerStats` 만으로 적용된다.
+- **슬롯 키잉**: `ActorRecords` 는 `FGuid`(전역 유일) 평면 맵이라 맵별 키잉이 필요 없다.
+- **버전 안전성**: 레코드마다 `[FPackageFileVersion][FCustomVersionContainer]` 헤더 블롭을 보관해 이기종 빌드 누적 복원 시 `FMemoryReader` 커스텀 버전 리셋 함정을 막는다(빈 헤더는 구버전 레코드로 현재 빌드 버전 적용).
+- **권한/타이밍**: `TravelFromSaveFile` 은 authority(서버) 전제 `ServerTravel(bAbsolute)`. 로드-트래블 시작~새 월드 `OnWorldBeginPlay`(→`ReportTravelFromSaveFileComplete`) 사이 자동 캡처는 전부 스킵된다.
+- **콘솔**: `Wx.Save.Dump` → `LogSaveState` 로 현재 메모리 슬롯 덤프.
 
 ## 여기서부터 읽어라
-1. `Source/WxSave/Public/WxSaveGameSubsystem.h` — 헤더 doc-comment 에 저장/로드/스트리밍 복원 전체 흐름이 정리돼 있다.
-2. `Source/WxSave/Private/WxSaveGameSubsystem.cpp` — `CaptureActor`/`RestoreActor` 의 ProxyArchive 직렬화, `ServerTravel` 리로드, 셀 스트리밍 핸들러 구현.
-3. `../WxCore/Source/WxCore/Public/WxSavable.h` — 저장 참여 계약(키·후크) 전문.
+1. `Plugins/WxSave/Source/WxSave/Public/WxPersistenceSaveGame.h` — 무엇이 저장되는지(레코드·트래블 데이터·PlayerStats·PlayerStartTag) 데이터 모델부터 잡으면 나머지가 읽힌다. 필드 주석에 설계 의도가 담겨 있다.
+2. `Plugins/WxSave/Source/WxSave/Public/WxPersistenceGameSubsystem.h` — 시작/로드/저장/트래블 전체 API 와 슬롯 수명.
+3. `Plugins/WxSave/Source/WxSave/Public/WxPersistenceWorldSubsystem.h` — 언제 자동 캡처/복원이 일어나는지(월드 이벤트별 정리).
+4. `Plugins/WxSave/Source/WxSave/Private/WxPersistenceGameSubsystem.cpp` — `Wx.Save.Dump` 콘솔 명령과 실제 I/O·트래블 구현.
 
 ## 관련
-- 상위: [[WxCore]] — `IWxSavable` 인터페이스 정의처.
-- 소비: 저장 대상 액터(`IWxSavable` 구현 측), 부활 처리 GameMode(WxGame), 체크포인트 액터([[WxWorld]]).
+- 상위: [[WxCore]] (`IWxSavable` 정의 소유). 저장 대상 액터를 제공하는 도메인([[WxWorld]] 등), 로드 후 스폰을 처리하는 GameMode, 세이브 API 를 호출하는 [[WxUI]] 가 소비자다.
 
 ---
-*문서 기준 커밋 `97577fb` · 생성일 2026-06-29 · 소스 7파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `9554c3c` · 생성일 2026-07-08 · 소스 9파일 — `/readme-writer`로 갱신*

@@ -73,8 +73,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	EWxSpawnerMode SpawnMode = EWxSpawnerMode::Auto;
 	
-	/** true 면 처치 후 부활 금지(보스 등): 죽은 뒤 Respawn 이 호출돼도 새 인스턴스를 생성하지 않는다. 살아있을 땐 일반 대상처럼 리셋됨. Manual 모드에선 효력이 없어 비활성화된다. */
-	UPROPERTY(EditAnywhere, Category = "Wx", meta = (EditCondition = "SpawnMode == EWxSpawnerMode::Auto"))
+	/** true 면 처치 후 부활 금지(보스 등): 죽은 뒤 Respawn 이 호출돼도 새 인스턴스를 생성하지 않는다. 살아있을 땐 일반 대상처럼 리셋됨. */
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (EditCondition = "SpawnMode == EWxSpawnerMode::Auto", EditConditionHides))
 	bool bNeverRevive = false;
 
 	/** 본 Spawner 가 처치 상태인지. WxSave 슬롯에 보존되어 셀 리로드/세션 간에 유지된다. */

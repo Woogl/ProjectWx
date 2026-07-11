@@ -3,28 +3,9 @@
 #include "AbilitySystem/Ability/WxAbility_HitReact.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "AbilitySystem/Effect/WxEffect_ResetDP.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "WxGameplayTags.h"
-
-namespace
-{
-	void FaceInstigator(AActor* AvatarActor, const AActor* Instigator)
-	{
-		if (!AvatarActor || !Instigator)
-		{
-			return;
-		}
-
-		FVector Direction = Instigator->GetActorLocation() - AvatarActor->GetActorLocation();
-		Direction.Z = 0.0;
-		if (!Direction.IsNearlyZero())
-		{
-			AvatarActor->SetActorRotation(Direction.ToOrientationRotator());
-		}
-	}
-}
 
 UWxAbility_HitReact::UWxAbility_HitReact()
 {
@@ -197,15 +178,7 @@ bool UWxAbility_HitReact::PlayHitReactMontage(UAnimMontage* Montage)
 
 	CurrentMontageTask = MontageTask;
 
-	// 앞잡 짝 피격은 종료 시 DP 리셋(그로기 해제)이 필요하므로 전용 완료 핸들러를 바인딩한다.
-	if (Montage == FinisherHitReactMontage)
-	{
-		MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_HitReact::HandleFinisherMontageCompleted);
-	}
-	else
-	{
-		MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_HitReact::HandleMontageCompleted);
-	}
+	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_HitReact::HandleMontageCompleted);
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_HitReact::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_HitReact::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
@@ -223,19 +196,6 @@ bool UWxAbility_HitReact::PlayHitReactMontage(UAnimMontage* Montage)
 
 void UWxAbility_HitReact::HandleMontageCompleted()
 {
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-}
-
-void UWxAbility_HitReact::HandleFinisherMontageCompleted()
-{
-	// 앞잡 짝 피격 종료 → DP를 0으로 리셋한다. GE로 적용해야 PostGameplayEffectExecute의
-	// State.Groggy 해제 캐스케이드가 작동해 그로기(WxAbility_Groggy)까지 정상 종료된다.
-	FGameplayEffectSpecHandle ResetSpec = MakeOutgoingGameplayEffectSpec(UWxEffect_ResetDP::StaticClass(), GetAbilityLevel());
-	if (ResetSpec.IsValid())
-	{
-		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, ResetSpec);
-	}
-
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
@@ -262,5 +222,20 @@ void UWxAbility_HitReact::HandleMovementModeChanged(ACharacter* Character, EMove
 				AnimInstance->Montage_JumpToSection(FName(TEXT("Grounded")), KnockupMontage);
 			}
 		}
+	}
+}
+
+void UWxAbility_HitReact::FaceInstigator(AActor* AvatarActor, const AActor* Instigator)
+{
+	if (!AvatarActor || !Instigator)
+	{
+		return;
+	}
+
+	FVector Direction = Instigator->GetActorLocation() - AvatarActor->GetActorLocation();
+	Direction.Z = 0.0;
+	if (!Direction.IsNearlyZero())
+	{
+		AvatarActor->SetActorRotation(Direction.ToOrientationRotator());
 	}
 }

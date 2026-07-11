@@ -28,7 +28,7 @@ void UWxBTComposite_RandomChoice::InitializeMemory(UBehaviorTreeComponent& Owner
 
 FString UWxBTComposite_RandomChoice::GetStaticDescription() const
 {
-	return FString::Printf(TEXT("AvoidRepeat = %s\n자식 Weight Decorator 지원"), bAvoidRepeat ? TEXT("true") : TEXT("false"));
+	return FString::Printf(TEXT("AvoidRepeat = %s"), bAvoidRepeat ? TEXT("true") : TEXT("false"));
 }
 
 int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& SearchData, int32 PrevChild, EBTNodeResult::Type LastResult) const

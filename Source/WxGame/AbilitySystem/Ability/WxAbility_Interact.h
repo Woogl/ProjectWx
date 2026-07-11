@@ -72,6 +72,12 @@ private:
 	/** 선택 컴포넌트가 유효하면 아바타를 instigator로 TryInteract 호출. 권한 분기에서만 호출한다. */
 	void ExecuteInteract(UWxInteractionComponent* Selected, const FGameplayAbilityActorInfo* ActorInfo);
 
+	/**
+	 * 레지스트리의 현재 선택을 UIManager 소유 글로벌 선택 뷰모델(UWxViewModel_Selection)에 반영한다.
+	 * 레지스트리 멤버십 갱신(UpdateInRange) 직후 호출해 표시를 lockstep으로 유지한다(로컬 표시 전용).
+	 */
+	void PushSelectionToViewModel(UWxInteractionRegistrySubsystem* Registry);
+
 	/** 주기 스캔 타이머 핸들. OnGiveAbility에서 설정, OnRemoveAbility에서 해제. */
 	FTimerHandle ScanTimerHandle;
 };

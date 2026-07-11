@@ -40,6 +40,8 @@ public:
 protected:
 	virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
+	virtual void OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult) override;
+
 	/** 총 배회 지속 시간(초) */
 	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (ClampMin = "0.0", UIMin = "0.0"))
 	float Duration = 1.f;
@@ -48,9 +50,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (Bitmask, BitmaskEnum = "/Script/WxAI.EWxWanderDirection"))
 	int32 Directions = 0xFF;
 
-	/** 배회 중 이동 입력 배율. 최대 이동 속도가 이 비율로 제한된다. (1.0 = 평상시 속도) */
+	/** 배회 중 이동 속도 배율. 최대 이동 속도가 이 비율로 제한된다. (1.0 = 평상시 속도) */
 	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
 	float MoveSpeedMultiplier = 0.5f;
+
+	/** 진행 방향 앞을 이만큼 내다봐 navmesh 위인지 확인한다. navmesh 가 없으면(낭떠러지/벽) 그 틱은 이동을 멈춘다. */
+	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (ClampMin = "0.0", UIMin = "0.0"))
+	float LookAheadDistance = 150.f;
 
 private:
 	FVector MoveDirection = FVector::ForwardVector;
@@ -58,4 +64,7 @@ private:
 	float TotalTime = 0.f;
 
 	float ElapsedTime = 0.f;
+
+	/** ExecuteTask 에서 낮추기 전의 MaxWalkSpeed. OnTaskFinished 에서 이 값으로 복원한다. */
+	float CachedMaxWalkSpeed = 0.f;
 };

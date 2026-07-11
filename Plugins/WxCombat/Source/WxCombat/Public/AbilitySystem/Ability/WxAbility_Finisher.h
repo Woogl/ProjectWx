@@ -58,6 +58,10 @@ private:
 	UFUNCTION()
 	void HandleMontageFinished();
 
+	/** 앞잡 공격 몽타주 정상 종료 시 호출. 확정 대상의 DP를 0으로 리셋해 그로기를 해제한 뒤 EndAbility. */
+	UFUNCTION()
+	void HandleFinisherMontageCompleted();
+
 	void RegisterWarpTarget(AActor* AvatarActor, const AActor* Target) const;
 
 	/** 워프 타겟 이름. 두 변형(앞잡·뒤잡)의 공격 몽타주 MotionWarping 노티파이 Warp Target Name·Warp Point 를 이 값으로 맞춘다. */

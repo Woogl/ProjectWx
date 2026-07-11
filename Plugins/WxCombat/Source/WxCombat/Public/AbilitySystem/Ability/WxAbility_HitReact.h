@@ -74,10 +74,6 @@ private:
 	UFUNCTION()
 	void HandleMontageCompleted();
 
-	/** 앞잡(피니셔) 짝 피격 몽타주 정상 종료 시 호출. DP를 0으로 리셋해 그로기를 해제한 뒤 EndAbility. */
-	UFUNCTION()
-	void HandleFinisherMontageCompleted();
-
 	UFUNCTION()
 	void HandleMontageInterrupted();
 
@@ -89,4 +85,6 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> CurrentMontageTask;
+	
+	void FaceInstigator(AActor* AvatarActor, const AActor* Instigator);
 };
