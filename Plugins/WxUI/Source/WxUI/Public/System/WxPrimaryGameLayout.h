@@ -6,6 +6,7 @@
 #include "CommonUserWidget.h"
 #include "CommonActivatableWidget.h"
 #include "GameplayTagContainer.h"
+#include "Widgets/CommonActivatableWidgetContainer.h"
 #include "WxPrimaryGameLayout.generated.h"
 
 class UCommonActivatableWidgetStack;
@@ -19,6 +20,18 @@ public:
 	UCommonActivatableWidgetStack* GetLayerWidgetStack(FGameplayTag LayerTag) const;
 
 	UCommonActivatableWidget* PushWidgetToLayerStack(FGameplayTag LayerTag, TSubclassOf<UCommonActivatableWidget> WidgetClass);
+
+	/** 위젯을 스택에 push 하되, 활성화되기 전에 InitInstanceFunc 로 인스턴스를 초기화한다. */
+	template <typename ActivatableWidgetT = UCommonActivatableWidget>
+	ActivatableWidgetT* PushWidgetToLayerStack(FGameplayTag LayerTag, TSubclassOf<UCommonActivatableWidget> WidgetClass, TFunctionRef<void(ActivatableWidgetT&)> InitInstanceFunc)
+	{
+		UCommonActivatableWidgetStack* Stack = GetLayerWidgetStack(LayerTag);
+		if (!Stack)
+		{
+			return nullptr;
+		}
+		return Stack->AddWidget<ActivatableWidgetT>(WidgetClass, InitInstanceFunc);
+	}
 
 	UCommonActivatableWidget* PushWidgetInstanceToLayerStack(FGameplayTag LayerTag, UCommonActivatableWidget* WidgetInstance);
 

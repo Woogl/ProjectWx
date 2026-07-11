@@ -3,6 +3,8 @@
 #include "System/WxUIManagerSubsystem.h"
 #include "System/WxPrimaryGameLayout.h"
 #include "System/WxUIDeveloperSettings.h"
+#include "Widget/WxGameDialog.h"
+#include "WxGameplayTags.h"
 #include "MVVM/WxViewModel_Selection.h"
 #include "MVVMGameSubsystem.h"
 #include "Types/MVVMViewModelCollection.h"
@@ -94,6 +96,39 @@ UCommonActivatableWidget* UWxUIManagerSubsystem::PushWidgetInstanceToLayer(FGame
 		return nullptr;
 	}
 	return PrimaryGameLayout->PushWidgetInstanceToLayerStack(LayerTag, WidgetInstance);
+}
+
+void UWxUIManagerSubsystem::ShowConfirmation(UWxGameDialogDescriptor* Descriptor, FWxMessagingResultDelegate ResultCallback)
+{
+	const UWxUIDeveloperSettings* Settings = GetDefault<UWxUIDeveloperSettings>();
+	PushDialog(Settings->ConfirmationDialogClass, Descriptor, ResultCallback);
+}
+
+void UWxUIManagerSubsystem::ShowError(UWxGameDialogDescriptor* Descriptor, FWxMessagingResultDelegate ResultCallback)
+{
+	const UWxUIDeveloperSettings* Settings = GetDefault<UWxUIDeveloperSettings>();
+	PushDialog(Settings->ErrorDialogClass, Descriptor, ResultCallback);
+}
+
+void UWxUIManagerSubsystem::PushDialog(const TSoftClassPtr<UWxGameDialog>& DialogClass, UWxGameDialogDescriptor* Descriptor, FWxMessagingResultDelegate ResultCallback)
+{
+	if (!PrimaryGameLayout || !Descriptor || DialogClass.IsNull())
+	{
+		return;
+	}
+
+	TSubclassOf<UWxGameDialog> LoadedClass = DialogClass.LoadSynchronous();
+	if (!LoadedClass)
+	{
+		return;
+	}
+
+	// 활성화 이전에 호출되는 초기화 콜백에서 SetupDialog 를 실행해 표시 전에 내용을 채운다.
+	PrimaryGameLayout->PushWidgetToLayerStack<UWxGameDialog>(WxGameplayTags::UI_Layer_Modal, LoadedClass,
+		[Descriptor, ResultCallback](UWxGameDialog& Dialog)
+		{
+			Dialog.SetupDialog(Descriptor, ResultCallback);
+		});
 }
 
 UWxPrimaryGameLayout* UWxUIManagerSubsystem::GetPrimaryGameLayout() const

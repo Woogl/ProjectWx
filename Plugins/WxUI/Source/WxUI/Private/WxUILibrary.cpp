@@ -3,12 +3,31 @@
 #include "WxUILibrary.h"
 #include "System/WxUIManagerSubsystem.h"
 #include "System/WxPrimaryGameLayout.h"
+#include "Widget/WxGameDialog.h"
 #include "CommonActivatableWidget.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/Widget.h"
 #include "Engine/GameInstance.h"
 #include "Kismet/GameplayStatics.h"
+
+namespace
+{
+	/** BP 다이나믹 결과 델리게이트를 서브시스템이 받는 네이티브 델리게이트로 브릿지한다. */
+	FWxMessagingResultDelegate MakeNativeResultDelegate(const FWxDialogResultDynamicDelegate& OnResult)
+	{
+		if (!OnResult.IsBound())
+		{
+			return FWxMessagingResultDelegate();
+		}
+
+		// 바인딩 대상 UObject 수명에 묶어, 대상이 사라지면 호출되지 않도록 한다.
+		return FWxMessagingResultDelegate::CreateWeakLambda(OnResult.GetUObject(), [OnResult](EWxMessagingResult Result)
+		{
+			OnResult.ExecuteIfBound(Result);
+		});
+	}
+}
 
 UWxUIManagerSubsystem* UWxUILibrary::GetUIManagerSubsystem(const UObject* WorldContextObject)
 {
@@ -62,4 +81,36 @@ void UWxUILibrary::DeactivateWidgetsInLayer(const UObject* WorldContextObject, F
 	}
 
 	Stack->ClearWidgets();
+}
+
+void UWxUILibrary::ShowConfirmationDialog(const UObject* WorldContextObject, EWxDialogButtonLayout Buttons, FText Header, FText Body, const FWxDialogResultDynamicDelegate& OnResult)
+{
+	UWxUIManagerSubsystem* UIManager = GetUIManagerSubsystem(WorldContextObject);
+	if (!UIManager)
+	{
+		return;
+	}
+
+	UWxGameDialogDescriptor* Descriptor = nullptr;
+	switch (Buttons)
+	{
+	case EWxDialogButtonLayout::Ok:          Descriptor = UWxGameDialogDescriptor::CreateConfirmationOk(Header, Body); break;
+	case EWxDialogButtonLayout::OkCancel:    Descriptor = UWxGameDialogDescriptor::CreateConfirmationOkCancel(Header, Body); break;
+	case EWxDialogButtonLayout::YesNo:       Descriptor = UWxGameDialogDescriptor::CreateConfirmationYesNo(Header, Body); break;
+	case EWxDialogButtonLayout::YesNoCancel: Descriptor = UWxGameDialogDescriptor::CreateConfirmationYesNoCancel(Header, Body); break;
+	}
+
+	UIManager->ShowConfirmation(Descriptor, MakeNativeResultDelegate(OnResult));
+}
+
+void UWxUILibrary::ShowErrorDialog(const UObject* WorldContextObject, FText Header, FText Body, const FWxDialogResultDynamicDelegate& OnResult)
+{
+	UWxUIManagerSubsystem* UIManager = GetUIManagerSubsystem(WorldContextObject);
+	if (!UIManager)
+	{
+		return;
+	}
+
+	UWxGameDialogDescriptor* Descriptor = UWxGameDialogDescriptor::CreateConfirmationOk(Header, Body);
+	UIManager->ShowError(Descriptor, MakeNativeResultDelegate(OnResult));
 }

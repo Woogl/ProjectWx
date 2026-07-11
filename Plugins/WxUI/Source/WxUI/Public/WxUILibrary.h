@@ -5,11 +5,25 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "Widget/WxGameDialog.h"
 #include "WxUILibrary.generated.h"
 
 class UWidget;
 class UWxUIManagerSubsystem;
 class UWxPrimaryGameLayout;
+
+/** 팝업 결과를 Blueprint 로 돌려주는 델리게이트. */
+DECLARE_DYNAMIC_DELEGATE_OneParam(FWxDialogResultDynamicDelegate, EWxMessagingResult, Result);
+
+/** BP 파사드에서 선택할 확인 팝업 버튼 구성. */
+UENUM(BlueprintType)
+enum class EWxDialogButtonLayout : uint8
+{
+	Ok,
+	OkCancel,
+	YesNo,
+	YesNoCancel
+};
 
 /**
  * WxUI 전용 Blueprint Function Library.
@@ -34,4 +48,12 @@ public:
 	/** 지정한 레이어 스택의 모든 위젯을 비활성화/제거한다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|UI", meta = (WorldContext = "WorldContextObject"))
 	static void DeactivateWidgetsInLayer(const UObject* WorldContextObject, UPARAM(meta = (Categories = "UI.Layer"))FGameplayTag LayerTag);
+
+	/** 확인 팝업을 띄운다. 버튼 클릭 결과는 OnResult 로 돌려준다. */
+	UFUNCTION(BlueprintCallable, Category = "Wx|UI|Dialog", meta = (WorldContext = "WorldContextObject", AutoCreateRefTerm = "OnResult"))
+	static void ShowConfirmationDialog(const UObject* WorldContextObject, EWxDialogButtonLayout Buttons, FText Header, FText Body, const FWxDialogResultDynamicDelegate& OnResult);
+
+	/** 에러 팝업(확인 버튼)을 띄운다. 결과는 OnResult 로 돌려준다. */
+	UFUNCTION(BlueprintCallable, Category = "Wx|UI|Dialog", meta = (WorldContext = "WorldContextObject", AutoCreateRefTerm = "OnResult"))
+	static void ShowErrorDialog(const UObject* WorldContextObject, FText Header, FText Body, const FWxDialogResultDynamicDelegate& OnResult);
 };
