@@ -72,7 +72,7 @@ void UWxAnimNotifyState_CameraMove::NotifyBegin(USkeletalMeshComponent* MeshComp
 	// NotifyEnd가 누락되는 예외 상황(몽타주 급종료 등)에서도 임시 카메라가 남지 않도록 안전망을 건다.
 	CameraActor->SetLifeSpan(TotalDuration + BlendOutTime + 1.0f);
 
-	PC->SetViewTargetWithBlend(CameraActor, BlendInTime, EViewTargetBlendFunction::VTBlend_Linear);
+	PC->SetViewTargetWithBlend(CameraActor, BlendInTime, EViewTargetBlendFunction::VTBlend_Cubic);
 }
 
 void UWxAnimNotifyState_CameraMove::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference)
