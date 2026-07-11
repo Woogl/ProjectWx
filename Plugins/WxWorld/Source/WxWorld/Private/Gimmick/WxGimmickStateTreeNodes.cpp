@@ -58,32 +58,6 @@ namespace
 		return Archetype ? Archetype->GetRelativeLocation() : Component->GetRelativeLocation();
 	}
 
-	// 컴포넌트의 현재 월드 위치에서 가장 가까운 스플라인 포인트(vertex) 인덱스. 포인트가 없으면 INDEX_NONE.
-	// 거리 비교는 World 공간(부모 관계 무가정). 정지 시 컴포넌트는 항상 포인트에 주차되는 사용을 전제한다.
-	int32 FindNearestSplinePointIndex(const USceneComponent* Component, const USplineComponent* Spline)
-	{
-		const int32 NumPoints = Spline->GetNumberOfSplinePoints();
-		if (NumPoints == 0)
-		{
-			return INDEX_NONE;
-		}
-
-		const FVector CurrentLocation = Component->GetComponentLocation();
-		int32 NearestIndex = 0;
-		float NearestDistSq = TNumericLimits<float>::Max();
-		for (int32 Index = 0; Index < NumPoints; ++Index)
-		{
-			const float DistSq = FVector::DistSquared(CurrentLocation, Spline->GetLocationAtSplinePoint(Index, ESplineCoordinateSpace::World));
-			if (DistSq < NearestDistSq)
-			{
-				NearestDistSq = DistSq;
-				NearestIndex = Index;
-			}
-		}
-
-		return NearestIndex;
-	}
-
 	// 이 진입을 스냅·스킵으로 처리해야 하는가 — StateTree 시작/복원/레이트조인(SourceStateID 무효)이거나,
 	// 세이브 복원(호스트 AWxGimmick 가 상태 태그와 함께 보내는 Gimmick.Restore 마커)이면 참.
 	// Required Event 전이로 저장 상태에 진입할 때 라이브 발동처럼 보여도 일회성 효과를 발동하지 않고 스냅하도록.
@@ -277,11 +251,10 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentSplineMove::EnterState(FStateTreeE
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	// 라이브 전이: 현재 위치에서 가장 가까운 스플라인 포인트(vertex)를 시작점으로 잡는다(정지 시 항상 끝점에 주차됨).
-	const int32 NearestIndex = FindNearestSplinePointIndex(Component, Spline);
-	const float StartDistance = Spline->GetDistanceAlongSplineAtSplinePoint(NearestIndex);
+	// 라이브 전이: 플랫폼의 실제 현재 위치에 해당하는 스플라인 거리를 시작점으로 잡는다(vertex 로 양자화하지 않아 이동 중 반전도 스냅 없이 현재 지점에서 출발).
+	const float StartDistance = Spline->GetDistanceAlongSplineAtLocation(Component->GetComponentLocation(), ESplineCoordinateSpace::World);
 
-	// 속도는 시작→목표 호 길이/Duration 고정값이라 재진입해도 일정하다(Duration 0 이하면 아래에서 즉시 스냅).
+	// 속도는 시작→목표 남은 거리/Duration 으로 EnterState 에서 1회 산출한다(Duration 0 이하면 아래에서 즉시 스냅).
 	const float SegmentLength = FMath::Abs(TargetDistance - StartDistance);
 	Instance.MoveSpeed = Instance.Duration > 0.f ? SegmentLength / Instance.Duration : SegmentLength;
 

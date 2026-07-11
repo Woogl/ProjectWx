@@ -32,8 +32,7 @@ class UWxInteractionComponent;
  *  - EnableInteraction 은 (InteractionComponent, bEnable, bUseHighlight) 으로 지정 상호작용 컴포넌트 하나의 활성/비활성과 외곽선 강조 허용을 토글한다.
  *  - EnablePlayerInput 은 (bEnable) 으로 로컬 플레이어 폰의 입력 전체를 진입 시 1회 토글한다(컷신 등 연출 중 조작 차단).
  *  - ComponentMove 는 (TargetComponent, LocalOffset, Duration) 으로 지정 컴포넌트를 현재 위치에서 기준(아키타입)+offset 으로 일정 속도 슬라이드한다(범용 메시 이동, 목표=아키타입인 닫기 방향도 지원).
- *  - ComponentSplineMove 는 (TargetComponent, Spline, TargetPointIndex, Duration) 으로 지정 컴포넌트를 목표 스플라인 포인트로 옮긴다. 초기 진입이면 목표 포인트로 즉시 스냅, 라이브 전이면 현재(가장 가까운) 포인트에서 목표까지 곡선을 따라 일정 속도 이동한다(State 가 목표 끝점을 직접 선언하므로 복원도 정확).
- *  - AtSplinePoint(조건) 는 (TargetComponent, Spline, PointIndex, bInvert) 로 대상 컴포넌트의 현재 위치에서 가장 가까운 스플라인 포인트가 PointIndex 와 같은지 검사한다(기하 판정, 멤버 저장 없음). ComponentSplineMove 와 nearest 로직을 공유한다.
+ *  - ComponentSplineMove 는 (TargetComponent, Spline, TargetPointIndex, Duration) 으로 지정 컴포넌트를 목표 스플라인 포인트로 옮긴다. 초기 진입이면 목표 포인트로 즉시 스냅, 라이브 전이면 실제 현재 위치에서 목표까지 곡선을 따라 이동한다(State 가 목표 끝점을 직접 선언하므로 복원도 정확).
  *  - PlayAnimation 은 (TargetMesh, Animation) 으로 초기 진입이면 끝 프레임 스냅, 라이브 전이면 처음부터 재생한다. 범용 애니 재생.
  *  - PlayLevelSequence 는 (LevelSequence) 로 라이브 전이 진입 시 시퀀스를 재생하고 Tick 으로 종료를 폴링하다, 종료 시 시퀀스를 정리하고 권위 측이면 소유 기믹의 HandleLevelSequenceFinished 로 통지한 뒤 Succeeded 를 반환한다(호스트가 State 복귀를 구동; OnComplete 전이를 쓰는 기믹도 그대로 가능). 입력 차단은 별도 EnablePlayerInput 이 맡는다. 중도 이탈 시 ExitState 가 시퀀스 정지·정리(복원 시 침묵·통지 없음).
  *  - PlaySound 는 (Sound) 로 라이브 전이 진입 시에만 사운드를 1회 재생한다(복원 시 침묵).
@@ -190,11 +189,11 @@ struct FWxStateTreeTask_ComponentSplineMoveInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
 	int32 TargetPointIndex = 0;
 
-	/** 목표 포인트까지 주파 시간(초). 0 이하면 즉시 스냅. 속도는 호 길이/Duration 고정값이라 재진입과 무관하게 일정하다. */
+	/** 목표 포인트까지 주파 시간(초). 0 이하면 즉시 스냅. 속도는 시작→목표 남은 거리/Duration 이라, 이동 중 재진입 시엔 남은 거리를 이 시간에 주파한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
 	float Duration = 1.f;
 
-	/** (런타임) Tick 이 보간하는 현재 스플라인 거리. EnterState 에서 시작 포인트 거리로 초기화한다. */
+	/** (런타임) Tick 이 보간하는 현재 스플라인 거리. EnterState 에서 시작 거리(현재 위치의 스플라인 거리)로 초기화한다. */
 	UPROPERTY()
 	float CurrentDistance = 0.f;
 
@@ -210,7 +209,7 @@ struct FWxStateTreeTask_ComponentSplineMoveInstanceData
 /**
  * 지정 컴포넌트를 TargetPointIndex 가 가리키는 스플라인 포인트로 옮기고, 도달하면 Succeeded 를 반환해 상태를 완료시킨다. 각 상태가 자기 목표 끝점을 직접 선언하는 순수 비주얼 태스크라 어떤 기믹이든 경로 이동에 재사용한다.
  * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 목표 포인트로 즉시 스냅한다 — State 가 끝점을 직접 가리키므로 복제/복원된 상태의 위치를 정확히 복원한다(C++ 스냅 불필요).
- * 라이브 전이면 현재 위치에서 가장 가까운 포인트를 시작점으로 잡아 목표 포인트까지 곡선을 따라 일정 속도 슬라이드한다(Duration 0 이하·이미 목표면 즉시 스냅). 정지 시 항상 포인트에 머무는 사용을 전제한다.
+ * 라이브 전이면 플랫폼의 실제 현재 위치에서 목표 포인트까지 곡선을 따라 슬라이드한다(Duration 0 이하·이미 목표면 즉시 스냅). 이동 중 재진입해도 vertex 로 스냅하지 않고 현재 지점에서 반전한다.
  */
 USTRUCT(meta = (DisplayName = "Wx Component Spline Move"))
 struct FWxStateTreeTask_ComponentSplineMove : public FStateTreeTaskCommonBase
