@@ -7,34 +7,15 @@
 		"EditableText_302": "",
 		"EnterInventory": "",
 		"LoadGame": "",
-		"SaveGame": "",
-		"TestPopup": ""
+		"SaveGame": ""
 	},
 	"eventGraph":
 	{
 		"CommonButtonBaseClicked__DelegateSignature": [
 			"void CommonButtonBaseClicked__DelegateSignature(UCommonButtonBase* Button)",
 			"{",
-			"    UWxUILibrary::ShowConfirmationPopup(EWxPopupButtonLayout::Ok, OutputDelegate);",
-			"}"
-		],
-		"CustomEvent": [
-			"void CustomEvent(EWxPopupResult Result)",
-			"{",
-			"    switch (Result)",
-			"    {",
-			"    case EWxPopupResult::Confirmed:",
-			"        UKismetSystemLibrary::PrintString(TEXT(\"Ok\"));",
-			"        break;",
-			"    case EWxPopupResult::Declined:",
-			"        UKismetSystemLibrary::PrintString(TEXT(\"No\"));",
-			"        break;",
-			"    case EWxPopupResult::Cancelled:",
-			"        UKismetSystemLibrary::PrintString(TEXT(\"Cancel\"));",
-			"        break;",
-			"    case EWxPopupResult::Killed:",
-			"        break;",
-			"    }",
+			"    UWxSaveFilePersistenceUtils::SaveToFile(UKismetTextLibrary::Conv_TextToString(EditableText_302->GetText()));",
+			"    UKismetSystemLibrary::PrintString(TEXT(\"세이브 파일 저장\"));",
 			"}"
 		],
 		"EventGraph": [
@@ -162,31 +143,6 @@
 				"delta":
 				{
 					"ButtonText": "[ Save Game ]"
-				},
-				"isVariable": true,
-				"parent": "VerticalBox_0",
-				"slot":
-				{
-					"class": "/Script/UMG.VerticalBoxSlot",
-					"delta":
-					{
-						"HorizontalAlignment": "HAlign_Center",
-						"Padding":
-						{
-							"Bottom": 10,
-							"Left": 10,
-							"Right": 10,
-							"Top": 10
-						}
-					}
-				}
-			},
-			"TestPopup":
-			{
-				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
-				"delta":
-				{
-					"ButtonText": "[ Popup Test ]"
 				},
 				"isVariable": true,
 				"parent": "VerticalBox_0",
