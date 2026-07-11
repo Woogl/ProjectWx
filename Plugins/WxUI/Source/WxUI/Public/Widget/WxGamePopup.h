@@ -76,6 +76,8 @@ class WXUI_API UWxGamePopup : public UWxActivatableWidget
 	GENERATED_BODY()
 
 public:
+	UWxGamePopup();
+	
 	/** 서술자 내용으로 팝업을 채우고, 결과 콜백을 등록한다. */
 	virtual void SetupPopup(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback);
 

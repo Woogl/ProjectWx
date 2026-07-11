@@ -163,7 +163,8 @@
 				"class": "/Script/CommonUI.CommonRichTextBlock",
 				"delta":
 				{
-					"Text": "{Text_Description}"
+					"Text": "{RichText_Description}",
+					"TextStyleSet": "/Game/UI/Style/DT_RichTextStyle.DT_RichTextStyle"
 				},
 				"isVariable": true,
 				"parent": "CanvasPanel_80",
