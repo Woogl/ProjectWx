@@ -48,6 +48,15 @@ private:
 	/** ShowConfirmation/ShowError 공통 경로. 클래스를 로드해 Modal 레이어에 push 하고 SetupPopup 를 호출한다. */
 	void PushPopup(const TSoftClassPtr<UWxGamePopup>& PopupClass, UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback);
 
+	/** push 된 위젯의 활성/비활성 델리게이트를 구독해, 상태가 바뀔 때 정지 재평가가 돌게 한다. 위젯은 서브시스템을 알지 못한다. */
+	void ObserveWidgetForGamePause(UCommonActivatableWidget* Widget);
+
+	/** 구독한 위젯이 활성/비활성될 때 호출된다. */
+	void HandleObservedWidgetActivationChanged();
+
+	/** 전 레이어의 활성 위젯을 순회해, 정지를 원하는 활성 위젯이 하나라도 있으면 게임을 정지(아니면 해제)한다. */
+	void RefreshGamePause();
+
 	UPROPERTY()
 	TObjectPtr<UWxPrimaryGameLayout> PrimaryGameLayout;
 

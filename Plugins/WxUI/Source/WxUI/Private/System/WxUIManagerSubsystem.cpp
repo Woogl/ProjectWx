@@ -4,6 +4,9 @@
 #include "System/WxPrimaryGameLayout.h"
 #include "System/WxUIDeveloperSettings.h"
 #include "Widget/WxGamePopup.h"
+#include "Widget/WxActivatableWidget.h"
+#include "Widgets/CommonActivatableWidgetContainer.h"
+#include "Kismet/GameplayStatics.h"
 #include "WxGameplayTags.h"
 #include "MVVM/WxViewModel_Selection.h"
 #include "MVVMGameSubsystem.h"
@@ -86,7 +89,9 @@ UCommonActivatableWidget* UWxUIManagerSubsystem::PushContentToLayer(FGameplayTag
 	{
 		return nullptr;
 	}
-	return PrimaryGameLayout->PushWidgetToLayerStack(LayerTag, WidgetClass);
+	UCommonActivatableWidget* Widget = PrimaryGameLayout->PushWidgetToLayerStack(LayerTag, WidgetClass);
+	ObserveWidgetForGamePause(Widget);
+	return Widget;
 }
 
 UCommonActivatableWidget* UWxUIManagerSubsystem::PushWidgetInstanceToLayer(FGameplayTag LayerTag, UCommonActivatableWidget* WidgetInstance)
@@ -95,7 +100,9 @@ UCommonActivatableWidget* UWxUIManagerSubsystem::PushWidgetInstanceToLayer(FGame
 	{
 		return nullptr;
 	}
-	return PrimaryGameLayout->PushWidgetInstanceToLayerStack(LayerTag, WidgetInstance);
+	UCommonActivatableWidget* Widget = PrimaryGameLayout->PushWidgetInstanceToLayerStack(LayerTag, WidgetInstance);
+	ObserveWidgetForGamePause(Widget);
+	return Widget;
 }
 
 void UWxUIManagerSubsystem::ShowConfirmation(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback)
@@ -124,16 +131,75 @@ void UWxUIManagerSubsystem::PushPopup(const TSoftClassPtr<UWxGamePopup>& PopupCl
 	}
 
 	// 활성화 이전에 호출되는 초기화 콜백에서 SetupPopup 를 실행해 표시 전에 내용을 채운다.
-	PrimaryGameLayout->PushWidgetToLayerStack<UWxGamePopup>(WxGameplayTags::UI_Layer_Modal, LoadedClass,
+	UWxGamePopup* PushedPopup = PrimaryGameLayout->PushWidgetToLayerStack<UWxGamePopup>(WxGameplayTags::UI_Layer_Modal, LoadedClass,
 		[Descriptor, ResultCallback](UWxGamePopup& Popup)
 		{
 			Popup.SetupPopup(Descriptor, ResultCallback);
 		});
+	ObserveWidgetForGamePause(PushedPopup);
 }
 
 UWxPrimaryGameLayout* UWxUIManagerSubsystem::GetPrimaryGameLayout() const
 {
 	return PrimaryGameLayout;
+}
+
+void UWxUIManagerSubsystem::ObserveWidgetForGamePause(UCommonActivatableWidget* Widget)
+{
+	if (!Widget)
+	{
+		return;
+	}
+
+	// 위젯은 CommonUI 풀에서 재사용될 수 있어 이미 구독돼 있을 수 있으므로, 중복 없이 다시 건다.
+	Widget->OnActivated().RemoveAll(this);
+	Widget->OnDeactivated().RemoveAll(this);
+	Widget->OnActivated().AddUObject(this, &ThisClass::HandleObservedWidgetActivationChanged);
+	Widget->OnDeactivated().AddUObject(this, &ThisClass::HandleObservedWidgetActivationChanged);
+
+	// push 과정에서 이미 활성화됐을 수 있으므로 즉시 1회 재평가한다.
+	RefreshGamePause();
+}
+
+void UWxUIManagerSubsystem::HandleObservedWidgetActivationChanged()
+{
+	RefreshGamePause();
+}
+
+void UWxUIManagerSubsystem::RefreshGamePause()
+{
+	if (!PrimaryGameLayout)
+	{
+		return;
+	}
+
+	UGameInstance* GameInstance = GetGameInstance();
+	UWorld* World = GameInstance ? GameInstance->GetWorld() : nullptr;
+	if (!World || !World->IsNetMode(NM_Standalone))
+	{
+		return;
+	}
+
+	// 전 레이어의 현재 활성 위젯 중 정지를 원하는 것이 하나라도 있으면 정지한다.
+	// 스택에 위젯이 하나뿐이면 비활성화 후에도 GetActiveWidget 이 그 위젯을 반환할 수 있어 IsActivated 로 걸러낸다.
+	bool bWantsPause = false;
+	for (const TPair<FGameplayTag, TObjectPtr<UCommonActivatableWidgetStack>>& Layer : PrimaryGameLayout->GetLayerMap())
+	{
+		UCommonActivatableWidgetStack* Stack = Layer.Value;
+		if (!Stack)
+		{
+			continue;
+		}
+
+		UWxActivatableWidget* ActiveWidget = Cast<UWxActivatableWidget>(Stack->GetActiveWidget());
+		if (ActiveWidget && ActiveWidget->IsActivated() && ActiveWidget->ShouldPauseGame())
+		{
+			bWantsPause = true;
+			break;
+		}
+	}
+
+	UGameplayStatics::SetGamePaused(World, bWantsPause);
 }
 
 void UWxUIManagerSubsystem::HandleLocalPlayerAdded(ULocalPlayer* LocalPlayer)
