@@ -1,32 +1,32 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Widget/WxConfirmationScreen.h"
+#include "Widget/WxConfirmationPopup.h"
 #include "CommonButtonBase.h"
 #include "CommonTextBlock.h"
 #include "CommonRichTextBlock.h"
 
-void UWxConfirmationScreen::NativeOnInitialized()
+void UWxConfirmationPopup::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
 	// 버튼→결과는 고정이므로 최초 초기화 시 1회만 바인딩한다.
 	if (Button_Confirm)
 	{
-		Button_Confirm->OnClicked().AddUObject(this, &ThisClass::HandleResultChosen, EWxMessagingResult::Confirmed);
+		Button_Confirm->OnClicked().AddUObject(this, &ThisClass::HandleResultChosen, EWxPopupResult::Confirmed);
 	}
 	if (Button_Decline)
 	{
-		Button_Decline->OnClicked().AddUObject(this, &ThisClass::HandleResultChosen, EWxMessagingResult::Declined);
+		Button_Decline->OnClicked().AddUObject(this, &ThisClass::HandleResultChosen, EWxPopupResult::Declined);
 	}
 	if (Button_Cancel)
 	{
-		Button_Cancel->OnClicked().AddUObject(this, &ThisClass::HandleResultChosen, EWxMessagingResult::Cancelled);
+		Button_Cancel->OnClicked().AddUObject(this, &ThisClass::HandleResultChosen, EWxPopupResult::Cancelled);
 	}
 }
 
-void UWxConfirmationScreen::SetupDialog(UWxGameDialogDescriptor* Descriptor, FWxMessagingResultDelegate ResultCallback)
+void UWxConfirmationPopup::SetupPopup(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback)
 {
-	Super::SetupDialog(Descriptor, ResultCallback);
+	Super::SetupPopup(Descriptor, ResultCallback);
 
 	if (!Descriptor)
 	{
@@ -48,14 +48,18 @@ void UWxConfirmationScreen::SetupDialog(UWxGameDialogDescriptor* Descriptor, FWx
 	bool bHasConfirm = false;
 	bool bHasDecline = false;
 	bool bHasCancel = false;
-	for (const FWxConfirmationDialogAction& Action : Descriptor->ButtonActions)
+	for (const FWxConfirmationPopupAction& Action : Descriptor->ButtonActions)
 	{
 		switch (Action.Result)
 		{
-		case EWxMessagingResult::Confirmed: bHasConfirm = true; break;
-		case EWxMessagingResult::Declined:  bHasDecline = true; break;
-		case EWxMessagingResult::Cancelled: bHasCancel = true; break;
-		default: break;
+		case EWxPopupResult::Confirmed: bHasConfirm = true;
+			break;
+		case EWxPopupResult::Declined:  bHasDecline = true;
+			break;
+		case EWxPopupResult::Cancelled: bHasCancel = true;
+			break;
+		default:
+			break;
 		}
 	}
 
@@ -72,20 +76,20 @@ void UWxConfirmationScreen::SetupDialog(UWxGameDialogDescriptor* Descriptor, FWx
 		Button_Cancel->SetVisibility(bHasCancel ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 	}
 
-	OnSetupDialog(Descriptor);
+	OnSetupPopup(Descriptor);
 }
 
-void UWxConfirmationScreen::KillDialog()
+void UWxConfirmationPopup::KillPopup()
 {
-	Super::KillDialog();
-	HandleResultChosen(EWxMessagingResult::Killed);
+	Super::KillPopup();
+	HandleResultChosen(EWxPopupResult::Killed);
 }
 
-void UWxConfirmationScreen::HandleResultChosen(EWxMessagingResult Result)
+void UWxConfirmationPopup::HandleResultChosen(EWxPopupResult Result)
 {
 	// 결과 콜백은 최초 1회만 실행한다. 별도 플래그 대신 델리게이트 언바인딩으로 상태를 표현해
 	// 연타나 종료 후 재진입에서 중복 실행을 막는다.
-	FWxMessagingResultDelegate Callback = OnResultCallback;
+	FWxPopupResultDelegate Callback = OnResultCallback;
 	OnResultCallback.Unbind();
 
 	DeactivateWidget();

@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "Widget/WxGameDialog.h"
-#include "WxConfirmationScreen.generated.h"
+#include "Widget/WxGamePopup.h"
+#include "WxConfirmationPopup.generated.h"
 
 class UCommonTextBlock;
 class UCommonRichTextBlock;
@@ -16,13 +16,13 @@ class UCommonButtonBase;
  * WBP는 이 클래스를 상속해 레이아웃과 버튼 라벨을 구성한다.
  */
 UCLASS(Abstract, Blueprintable)
-class WXUI_API UWxConfirmationScreen : public UWxGameDialog
+class WXUI_API UWxConfirmationPopup : public UWxGamePopup
 {
 	GENERATED_BODY()
 
 public:
-	virtual void SetupDialog(UWxGameDialogDescriptor* Descriptor, FWxMessagingResultDelegate ResultCallback) override;
-	virtual void KillDialog() override;
+	virtual void SetupPopup(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback) override;
+	virtual void KillPopup() override;
 
 protected:
 	virtual void NativeOnInitialized() override;
@@ -31,30 +31,30 @@ protected:
 	 * 텍스트/버튼 표시가 끝난 뒤, WBP가 버튼 라벨(OptionalDisplayText)이나 부가 비주얼을
 	 * 구성하도록 호출된다.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category = "Wx|Dialog")
-	void OnSetupDialog(UWxGameDialogDescriptor* Descriptor);
+	UFUNCTION(BlueprintImplementableEvent, Category = "Wx|Popup")
+	void OnSetupPopup(UWxGamePopupDescriptor* Descriptor);
 
 	/** "예/확인" 결과 버튼. */
-	UPROPERTY(BlueprintReadOnly, Category = "Wx|Dialog", meta = (BindWidgetOptional))
+	UPROPERTY(BlueprintReadOnly, Category = "Wx|Popup", meta = (BindWidgetOptional))
 	TObjectPtr<UCommonButtonBase> Button_Confirm;
 
 	/** "아니오" 결과 버튼. */
-	UPROPERTY(BlueprintReadOnly, Category = "Wx|Dialog", meta = (BindWidgetOptional))
+	UPROPERTY(BlueprintReadOnly, Category = "Wx|Popup", meta = (BindWidgetOptional))
 	TObjectPtr<UCommonButtonBase> Button_Decline;
 
 	/** "취소" 결과 버튼. */
-	UPROPERTY(BlueprintReadOnly, Category = "Wx|Dialog", meta = (BindWidgetOptional))
+	UPROPERTY(BlueprintReadOnly, Category = "Wx|Popup", meta = (BindWidgetOptional))
 	TObjectPtr<UCommonButtonBase> Button_Cancel;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Wx|Dialog", meta = (BindWidgetOptional))
+	UPROPERTY(BlueprintReadOnly, Category = "Wx|Popup", meta = (BindWidgetOptional))
 	TObjectPtr<UCommonTextBlock> Text_Title;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Wx|Dialog", meta = (BindWidgetOptional))
+	UPROPERTY(BlueprintReadOnly, Category = "Wx|Popup", meta = (BindWidgetOptional))
 	TObjectPtr<UCommonRichTextBlock> RichText_Description;
 
 private:
 	/** 버튼 클릭/강제 종료 공통 진입점. 결과 콜백은 최초 1회만 실행하고 위젯을 닫는다. */
-	void HandleResultChosen(EWxMessagingResult Result);
+	void HandleResultChosen(EWxPopupResult Result);
 
-	FWxMessagingResultDelegate OnResultCallback;
+	FWxPopupResultDelegate OnResultCallback;
 };

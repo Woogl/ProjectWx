@@ -5,13 +5,13 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "GameplayTagContainer.h"
-#include "Widget/WxGameDialog.h"
+#include "Widget/WxGamePopup.h"
 #include "WxUIManagerSubsystem.generated.h"
 
 class UWxPrimaryGameLayout;
 class UCommonActivatableWidget;
 class UWxViewModel_Selection;
-class UWxGameDialogDescriptor;
+class UWxGamePopupDescriptor;
 
 UCLASS()
 class WXUI_API UWxUIManagerSubsystem : public UGameInstanceSubsystem
@@ -28,10 +28,10 @@ public:
 	UCommonActivatableWidget* PushWidgetInstanceToLayer(FGameplayTag LayerTag, UCommonActivatableWidget* WidgetInstance);
 
 	/** 확인 팝업을 Modal 레이어에 띄운다. 결과는 ResultCallback 으로 돌려준다. */
-	void ShowConfirmation(UWxGameDialogDescriptor* Descriptor, FWxMessagingResultDelegate ResultCallback = FWxMessagingResultDelegate());
+	void ShowConfirmation(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback = FWxPopupResultDelegate());
 
 	/** 에러 팝업을 Modal 레이어에 띄운다. 결과는 ResultCallback 으로 돌려준다. */
-	void ShowError(UWxGameDialogDescriptor* Descriptor, FWxMessagingResultDelegate ResultCallback = FWxMessagingResultDelegate());
+	void ShowError(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback = FWxPopupResultDelegate());
 
 	UWxPrimaryGameLayout* GetPrimaryGameLayout() const;
 
@@ -45,8 +45,8 @@ private:
 
 	void CreateLayoutForPlayer(APlayerController* PC);
 
-	/** ShowConfirmation/ShowError 공통 경로. 클래스를 로드해 Modal 레이어에 push 하고 SetupDialog 를 호출한다. */
-	void PushDialog(const TSoftClassPtr<UWxGameDialog>& DialogClass, UWxGameDialogDescriptor* Descriptor, FWxMessagingResultDelegate ResultCallback);
+	/** ShowConfirmation/ShowError 공통 경로. 클래스를 로드해 Modal 레이어에 push 하고 SetupPopup 를 호출한다. */
+	void PushPopup(const TSoftClassPtr<UWxGamePopup>& PopupClass, UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback);
 
 	UPROPERTY()
 	TObjectPtr<UWxPrimaryGameLayout> PrimaryGameLayout;
