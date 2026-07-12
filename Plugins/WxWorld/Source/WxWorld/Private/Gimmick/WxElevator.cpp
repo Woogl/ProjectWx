@@ -11,7 +11,8 @@ AWxElevator::AWxElevator()
 {
 	SplineComponent = CreateDefaultSubobject<USplineComponent>(TEXT("SplineComponent"));
 	SplineComponent->SetupAttachment(SceneRoot);
-	// 두 끝점(Start/End)을 잇는 열린 경로. Spline Move 는 각 상태가 가리키는 끝점 포인트 거리만 목표하므로 폐합 구간은 쓰지 않는다.
+	// 두 끝점(Start/End)을 잇는 열린 경로.
+	// Spline Move 는 각 상태가 가리키는 끝점 포인트 거리만 목표하므로 폐합 구간은 쓰지 않는다.
 	SplineComponent->SetClosedLoop(false);
 
 	PlatformRoot = CreateDefaultSubobject<USceneComponent>(TEXT("PlatformRoot"));
@@ -83,7 +84,8 @@ void AWxElevator::HandleCallConsoleAInteracted(AActor* InteractingActor)
 		return;
 	}
 
-	// Start 호출. 이미 AtStart 면 동일값이라 복제 변화 없음(사실상 노옵).
+	// Start 호출.
+	// 이미 AtStart 면 동일값이라 복제 변화 없음(사실상 노옵).
 	CommitGimmickState(WxGameplayTags::Gimmick_Elevator_AtStart);
 }
 
@@ -94,6 +96,7 @@ void AWxElevator::HandleCallConsoleBInteracted(AActor* InteractingActor)
 		return;
 	}
 
-	// End 호출. 이미 AtEnd 면 동일값이라 복제 변화 없음(사실상 노옵).
+	// End 호출.
+	// 이미 AtEnd 면 동일값이라 복제 변화 없음(사실상 노옵).
 	CommitGimmickState(WxGameplayTags::Gimmick_Elevator_AtEnd);
 }

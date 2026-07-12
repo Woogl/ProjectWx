@@ -21,13 +21,15 @@ void UWxItemFragment_Charges::OnInstanceCreated(UWxItemInstance* Instance) const
 
 UWxItemFragment_Grade::UWxItemFragment_Grade()
 {
-	// 기본 등급(Common)의 기본 색으로 시드. 등급 변경 시엔 PostEditChangeProperty 가 재시드한다.
+	// 기본 등급(Common)의 기본 색으로 시드.
+	// 등급 변경 시엔 PostEditChangeProperty 가 재시드한다.
 	Color = GetDefaultColorForGrade(Grade);
 }
 
 FLinearColor UWxItemFragment_Grade::GetDefaultColorForGrade(EWxItemGrade Grade)
 {
-	// 등급별 기본 색 팔레트는 프로그래머만 여기서 정의한다(에디터 비노출). 기획자는 Fragment 의 Color 로 오버라이드.
+	// 등급별 기본 색 팔레트는 프로그래머만 여기서 정의한다(에디터 비노출).
+	// 기획자는 Fragment 의 Color 로 오버라이드.
 	switch (Grade)
 	{
 	case EWxItemGrade::Common:    return FLinearColor(0.7f, 0.7f, 0.7f);

@@ -237,7 +237,8 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 	FGameplayEffectQuery Query;
 	Query.EffectDefinition = CachedCooldownClass;
 
-	// 활성 쿨다운 GE 1개 = 회복 대기 중인 충전 1개. 가장 먼저 만료될 GE가 다음 충전 회복 시점이다.
+	// 활성 쿨다운 GE 1개 = 회복 대기 중인 충전 1개.
+	// 가장 먼저 만료될 GE가 다음 충전 회복 시점이다.
 	int32 ConsumedCharges = 0;
 	float NextChargeRemaining = 0.f;
 	for (const FActiveGameplayEffectHandle& ActiveHandle : ASC->GetActiveEffects(Query))

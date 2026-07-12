@@ -13,13 +13,12 @@ class UTargetingPreset;
 /**
  * 범위 공격 AnimNotify.
  *
- * 인스턴트 1회성 AoE 공격용. 해당 프레임에 TargetingPreset 쿼리를 1회 실행해
- * 잡힌 액터들의 ASC에 DamageInfo로부터 만든 Damage Spec을 적용한다.
+ * 인스턴트 1회성 AoE 공격용.
+ * 해당 프레임에 TargetingPreset 쿼리를 1회 실행해 잡힌 액터들의 ASC에 DamageInfo로부터 만든 Damage Spec을 적용한다.
  * 서버에서만 처리한다.
  *
- * SourceSocketName이 NAME_None이 아니면 해당 소켓 위치를 쿼리의
- * SourceLocation으로 사용한다. NAME_None이면 Preset이 SourceActor의
- * 액터 위치를 기준으로 동작한다.
+ * SourceSocketName이 NAME_None이 아니면 해당 소켓 위치를 쿼리의 SourceLocation으로 사용한다.
+ * NAME_None이면 Preset이 SourceActor의 액터 위치를 기준으로 동작한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAnimNotify_AreaAttack : public UAnimNotify

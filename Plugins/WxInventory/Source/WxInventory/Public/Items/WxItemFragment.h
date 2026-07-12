@@ -53,8 +53,7 @@ public:
 /**
  * 장착 시 무기 액터의 스켈레탈 메시를 교체하는 Fragment.
  *
- * 무기 액터 자체는 캐릭터가 항상 소유하므로(WxEquipmentComponent::WeaponActor),
- * 장비 변경은 액터 스폰/디스트로이가 아닌 메시 스왑과 부착 소켓 변경으로만 수행한다.
+ * 무기 액터 자체는 캐릭터가 항상 소유하므로(WxEquipmentComponent::WeaponActor), 장비 변경은 액터 스폰/디스트로이가 아닌 메시 스왑과 부착 소켓 변경으로만 수행한다.
  */
 UCLASS(DisplayName = "Equippable")
 class WXINVENTORY_API UWxItemFragment_Equippable : public UWxItemFragment
@@ -100,7 +99,9 @@ public:
  * 인스턴스 생성 시 MaxCharges 만큼 가득 채워진다(OnInstanceCreated).
  * 사용 처리(충전 검증·차감)와 회복 GE 적용은 UWxInventoryManagerComponent::UseItemByDef 가 담당한다.
  *
- * 기능 축은 Usable 과 직교한다. 회복 등 사용 효과는 Usable Fragment 가 담당하므로, 충전형 소비 아이템은 Usable 과 함께 부착한다. 단독 부착 시 충전만 소모된다.
+ * 기능 축은 Usable 과 직교한다.
+ * 회복 등 사용 효과는 Usable Fragment 가 담당하므로, 충전형 소비 아이템은 Usable 과 함께 부착한다.
+ * 단독 부착 시 충전만 소모된다.
  */
 UCLASS(DisplayName = "Refill")
 class WXINVENTORY_API UWxItemFragment_Charges : public UWxItemFragment
@@ -147,8 +148,7 @@ public:
 /**
  * 픽업 액터(AWxItemPickup) 의 클래스와 외형을 정의하는 Fragment.
  *
- * 다양한 스포너(보물 상자, 적 드랍 등) 가 아이템별로 지정된 픽업 액터를 스폰하면서도
- * 동일한 픽업 BP 를 재사용해 아이템별로 다른 메시/이펙트를 출력하도록 한다.
+ * 다양한 스포너(보물 상자, 적 드랍 등) 가 아이템별로 지정된 픽업 액터를 스폰하면서도 동일한 픽업 BP 를 재사용해 아이템별로 다른 메시/이펙트를 출력하도록 한다.
  *
  * 본 Fragment 는 데이터만 기술한다 — 실제 스폰은 스포너(UWxRewardLibrary::GrantReward), 컴포넌트 세팅은 픽업 액터 측에서 수행한다.
  */

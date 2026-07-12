@@ -25,9 +25,8 @@ void UWxAnimNotifyState_CameraMove::NotifyBegin(USkeletalMeshComponent* MeshComp
 		return;
 	}
 
-	// 플레이어가 재생한 몽타주는 그 플레이어 본인의 화면에만 적용한다. 몽타주는 모든 클라에
-	// 리플리케이트돼 이 노티가 남의 클라에서도 실행되므로, 로컬이 아닌 플레이어의 몽타주는
-	// 여기서 걸러 그 사람 피니셔가 남의 카메라를 흔들지 않게 한다.
+	// 플레이어가 재생한 몽타주는 그 플레이어 본인의 화면에만 적용한다.
+	// 몽타주는 모든 클라에 리플리케이트돼 이 노티가 남의 클라에서도 실행되므로, 로컬이 아닌 플레이어의 몽타주는 여기서 걸러 그 사람 피니셔가 남의 카메라를 흔들지 않게 한다.
 	// 적/AI(비플레이어) 몽타주는 걸러지지 않고 각 클라의 로컬 플레이어 뷰에 적용된다.
 	const APawn* OwnerPawn = Cast<APawn>(Owner);
 	if (OwnerPawn && OwnerPawn->IsPlayerControlled() && !OwnerPawn->IsLocallyControlled())
@@ -41,9 +40,9 @@ void UWxAnimNotifyState_CameraMove::NotifyBegin(USkeletalMeshComponent* MeshComp
 		return;
 	}
 
-	// 배치 기준은 몽타주가 재생되는 스켈레탈 메시(실제 렌더되는 캐릭터 몸체). 애님 프리뷰 기즈모도
-	// 같은 기준을 써야 프리뷰와 인게임 배치가 일치한다. 액터 프레임을 쓰면 ACharacter의 메시 -90도
-	// 보정 때문에 프리뷰(보정 없음)와 방향이 어긋난다.
+	// 배치 기준은 몽타주가 재생되는 스켈레탈 메시(실제 렌더되는 캐릭터 몸체).
+	// 애님 프리뷰 기즈모도 같은 기준을 써야 프리뷰와 인게임 배치가 일치한다.
+	// 액터 프레임을 쓰면 ACharacter의 메시 -90도 보정 때문에 프리뷰(보정 없음)와 방향이 어긋난다.
 	const FTransform CameraTransform = FTransform(CameraRelativeRotation, CameraRelativeLocation) * MeshComp->GetComponentTransform();
 
 	FActorSpawnParameters SpawnParams;
@@ -109,9 +108,8 @@ void UWxAnimNotifyState_CameraMove::NotifyTick(USkeletalMeshComponent* MeshComp,
 		PreviewCameraMeshComponent = nullptr;
 	}
 
-	// 프리뷰 카메라 모델 메시(PreviewCameraMesh, 기본 MatineeCam_SM)를 프리뷰 월드에 한 번만 스폰해
-	// 그대로 렌더한다(디버그 드로잉 아님). 컴포넌트는 파괴하지 않고 재사용하며, 구간 진입/이탈은
-	// 비저빌리티로만 토글한다(생성·파괴 반복 회피).
+	// 프리뷰 카메라 모델 메시(PreviewCameraMesh, 기본 MatineeCam_SM)를 프리뷰 월드에 한 번만 스폰해 그대로 렌더한다(디버그 드로잉 아님).
+	// 컴포넌트는 파괴하지 않고 재사용하며, 구간 진입/이탈은 비저빌리티로만 토글한다(생성·파괴 반복 회피).
 	// 에디터 프리뷰 전용이라 로드 비용은 신경 쓰지 않고 생성 시점에 동기 로드한다.
 	if (!PreviewCameraMeshComponent)
 	{
@@ -133,9 +131,8 @@ void UWxAnimNotifyState_CameraMove::NotifyTick(USkeletalMeshComponent* MeshComp,
 	// 구간 안(NotifyTick 실행 중)에는 보이게 한다.
 	PreviewCameraMeshComponent->SetVisibility(true);
 
-	// 부착 모드(bAttachToOwner=true)는 실시간 몸체 트랜스폼을 따라가고(매 틱 갱신), 고정 모드는 구간
-	// 첫 진입 시점의 몸체 트랜스폼에 고정한다(최초 1회만 기록). 이 기준 트랜스폼은 정지 중 프로퍼티
-	// 편집 즉시 반영(PostEditChangeProperty)에도 재사용한다.
+	// 부착 모드(bAttachToOwner=true)는 실시간 몸체 트랜스폼을 따라가고(매 틱 갱신), 고정 모드는 구간 첫 진입 시점의 몸체 트랜스폼에 고정한다(최초 1회만 기록).
+	// 이 기준 트랜스폼은 정지 중 프로퍼티 편집 즉시 반영(PostEditChangeProperty)에도 재사용한다.
 	if (bAttachToOwner || !PreviewCameraTransform.IsSet())
 	{
 		PreviewCameraTransform = MeshComp->GetComponentTransform();
@@ -150,8 +147,8 @@ void UWxAnimNotifyState_CameraMove::NotifyEnd(USkeletalMeshComponent* MeshComp, 
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
 
 #if WITH_EDITOR
-	// 구간 안에서 일시정지해도 이 프리뷰 경로는 NotifyEnd를 호출한다. 그래서 무조건 숨기지 않고,
-	// 현재 플레이헤드가 실제로 구간 밖일 때만 숨긴다(구간 안이면 유지 → 멈춰도 계속 보인다).
+	// 구간 안에서 일시정지해도 이 프리뷰 경로는 NotifyEnd를 호출한다.
+	// 그래서 무조건 숨기지 않고, 현재 플레이헤드가 실제로 구간 밖일 때만 숨긴다(구간 안이면 유지 → 멈춰도 계속 보인다).
 	// 런타임 PIE에선 컴포넌트가 없어 no-op.
 	const FAnimNotifyEvent* NotifyEvent = EventReference.GetNotify();
 	const UAnimSingleNodeInstance* PreviewInstance = MeshComp ? Cast<UAnimSingleNodeInstance>(MeshComp->GetAnimInstance()) : nullptr;
@@ -188,10 +185,11 @@ void UWxAnimNotifyState_CameraMove::NotifyEnd(USkeletalMeshComponent* MeshComp, 
 		return;
 	}
 
-	// 로컬 플레이어가 조종하는 폰(원래 게임플레이 뷰타겟)으로 블렌드 복귀한다. 적 패턴이 끝나도
-	// 적이 아니라 내 캐릭터 시점으로 돌아온다. 임시 카메라 액터는 lifespan으로 스스로 정리된다.
-	// bLockOutgoing=true: 블렌드 시작 시점의 출발 POV를 고정한다. 부착(bAttachToOwner) 카메라가 피니셔
-	// 종료 후 캐릭터를 따라 움직이거나 lifespan으로 파괴돼도 출발점이 튀지 않고 매끄럽게 복귀한다.
+	// 로컬 플레이어가 조종하는 폰(원래 게임플레이 뷰타겟)으로 블렌드 복귀한다.
+	// 적 패턴이 끝나도 적이 아니라 내 캐릭터 시점으로 돌아온다.
+	// 임시 카메라 액터는 lifespan으로 스스로 정리된다.
+	// bLockOutgoing=true: 블렌드 시작 시점의 출발 POV를 고정한다.
+	// 부착(bAttachToOwner) 카메라가 피니셔 종료 후 캐릭터를 따라 움직이거나 lifespan으로 파괴돼도 출발점이 튀지 않고 매끄럽게 복귀한다.
 	PC->SetViewTargetWithBlend(PC->GetPawn(), BlendOutTime, EViewTargetBlendFunction::VTBlend_Cubic, 0.0f, true);
 }
 
@@ -200,8 +198,7 @@ void UWxAnimNotifyState_CameraMove::PostEditChangeProperty(FPropertyChangedEvent
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	// 프리뷰가 떠 있는 동안(구간 안에서 정지 등) 오프셋·회전을 편집하면, 다음 NotifyTick을 기다리지 않고
-	// 마지막 틱의 기준 트랜스폼으로 즉시 재배치해 정지 상태에서도 편집이 바로 보이게 한다.
+	// 프리뷰가 떠 있는 동안(구간 안에서 정지 등) 오프셋·회전을 편집하면, 다음 NotifyTick을 기다리지 않고 마지막 틱의 기준 트랜스폼으로 즉시 재배치해 정지 상태에서도 편집이 바로 보이게 한다.
 	if (PreviewCameraMeshComponent && PreviewCameraTransform.IsSet())
 	{
 		const FTransform CameraTransform = FTransform(CameraRelativeRotation, CameraRelativeLocation) * PreviewCameraTransform.GetValue();

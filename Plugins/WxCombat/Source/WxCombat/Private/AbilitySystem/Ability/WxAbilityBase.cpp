@@ -320,8 +320,7 @@ void UWxAbilityBase::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FG
 		return;
 	}
 
-	// 엔진 ApplyCost(ApplyGameplayEffectToOwner)는 전달받은 GE의 GetClass() CDO로 스펙을 만들어,
-	// 런타임에 모디파이어를 채운 CostEffect 인스턴스가 무시된다(UWxEffect_Cost CDO는 모디파이어가 비어 있다).
+	// 엔진 ApplyCost(ApplyGameplayEffectToOwner)는 전달받은 GE의 GetClass() CDO로 스펙을 만들어, 런타임에 모디파이어를 채운 CostEffect 인스턴스가 무시된다(UWxEffect_Cost CDO는 모디파이어가 비어 있다).
 	// 인스턴스 Def로 직접 스펙을 만들어 적용한다. 권한/예측 처리는 ApplyGameplayEffectSpecToOwner가 담당한다.
 	FGameplayEffectSpecHandle SpecHandle(new FGameplayEffectSpec(CostGE, MakeEffectContext(Handle, ActorInfo), GetAbilityLevel(Handle, ActorInfo)));
 	ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);

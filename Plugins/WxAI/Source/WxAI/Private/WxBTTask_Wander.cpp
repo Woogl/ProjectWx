@@ -91,8 +91,8 @@ void UWxBTTask_Wander::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMe
 		return;
 	}
 
-	// 진행 방향 앞 지점이 navmesh 위인지 확인한다. navmesh 가 없으면(낭떠러지/벽) 그 틱은 이동을 생략하고
-	// 남은 Duration 동안 제자리에서 대기한다(시간 박스 의미 보존, navmesh 밖으로의 낙하/끼임 방지).
+	// 진행 방향 앞 지점이 navmesh 위인지 확인한다.
+	// navmesh 가 없으면(낭떠러지/벽) 그 틱은 이동을 생략하고 남은 Duration 동안 제자리에서 대기한다(시간 박스 의미 보존, navmesh 밖으로의 낙하/끼임 방지).
 	// 수직 extent 를 낮게 두어 아래로 떨어지는 지형을 "안전"으로 오판하지 않게 한다.
 	bool bSafeToMove = true;
 	if (const UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(Pawn->GetWorld()))

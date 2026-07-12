@@ -14,7 +14,10 @@ class WXUI_API UWxActivatableWidget : public UCommonActivatableWidget
 public:
 	virtual TOptional<FUIInputConfig> GetDesiredInputConfig() const override;
 
-	/** 이 위젯이 활성화된 동안 게임 정지를 원하는지. 정지 적용은 UWxUIManagerSubsystem 이 전 레이어를 재평가해 결정한다. */
+	/**
+	 * 이 위젯이 활성화된 동안 게임 정지를 원하는지.
+	 * 정지 적용은 UWxUIManagerSubsystem 이 전 레이어를 재평가해 결정한다.
+	 */
 	bool ShouldPauseGame() const;
 
 protected:

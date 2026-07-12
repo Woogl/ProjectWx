@@ -21,8 +21,8 @@ struct FGameplayEffectSpec;
  * 어빌리티의 GetCooldownGameplayEffect()를 기준으로 쿨다운/충전 상태를 UI에 제공한다.
  *
  * 사용 흐름:
- *  1. Initialize(ASC, Ability)로 초기화. 어빌리티 CDO에서 CooldownGE 클래스와
- *     StackLimitCount(=MaxRecharges)를 자동으로 읽어온다.
+ *  1. Initialize(ASC, Ability)로 초기화.
+ *     어빌리티 CDO에서 CooldownGE 클래스와 StackLimitCount(=MaxRecharges)를 자동으로 읽어온다.
  *  2. 쿨다운 GE 적용 시 타이머로 매 프레임 남은 시간/남은 충전 수 갱신
  *  3. 쿨다운 만료 시 타이머 중단, 프로퍼티 초기화
  *

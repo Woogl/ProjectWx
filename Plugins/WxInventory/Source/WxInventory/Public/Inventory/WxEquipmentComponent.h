@@ -24,8 +24,7 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FWxOnEquipVisualChanged, USkeletalMesh* /*M
  * 현재 장착된 ItemDef 의 보관/복제와 EquipEffect GE 라이프사이클을 캡슐화한다.
  *
  * 무기 외형 반영(메시 스왑/소켓 재부착)은 본 컴포넌트가 직접 수행하지 않는다.
- * 무기 액터·캐릭터의 ChildActorComponent 는 게임 모듈 소유라 인벤토리 도메인에서 접근할 수 없으므로,
- * Equippable 프래그먼트에서 뽑은 메시/소켓을 OnEquipVisualChanged 로 방송하고 게임 측이 반영한다.
+ * 무기 액터·캐릭터의 ChildActorComponent 는 게임 모듈 소유라 인벤토리 도메인에서 접근할 수 없으므로, Equippable 프래그먼트에서 뽑은 메시/소켓을 OnEquipVisualChanged 로 방송하고 게임 측이 반영한다.
  */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))
 class WXINVENTORY_API UWxEquipmentComponent : public UActorComponent
@@ -35,17 +34,27 @@ class WXINVENTORY_API UWxEquipmentComponent : public UActorComponent
 public:
 	UWxEquipmentComponent();
 
-	/** 권한: ItemDef 의 Equippable Fragment 에 따라 장착 효과/외형을 반영. nullptr 이면 장착 해제. */
+	/**
+	 * 권한: ItemDef 의 Equippable Fragment 에 따라 장착 효과/외형을 반영.
+	 * nullptr 이면 장착 해제.
+	 */
 	void EquipItem(const UWxItemDefinition* ItemDef);
 
-	/** 장착 외형 변경 방송. 게임 측(캐릭터)이 바인딩해 무기 메시/소켓을 반영한다. 서버 EquipItem·클라 OnRep 양쪽에서 fire 된다. */
+	/**
+	 * 장착 외형 변경 방송.
+	 * 게임 측(캐릭터)이 바인딩해 무기 메시/소켓을 반영한다.
+	 * 서버 EquipItem·클라 OnRep 양쪽에서 fire 된다.
+	 */
 	FWxOnEquipVisualChanged OnEquipVisualChanged;
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	/** 현재 장착 중인 아이템. 변경 시 OnEquipVisualChanged 로 외형 갱신이 방송된다. */
+	/**
+	 * 현재 장착 중인 아이템.
+	 * 변경 시 OnEquipVisualChanged 로 외형 갱신이 방송된다.
+	 */
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_EquippedItemDef, Category = "Wx|Equipment")
 	TObjectPtr<const UWxItemDefinition> EquippedItemDef;
 
@@ -53,7 +62,10 @@ private:
 	UFUNCTION()
 	void OnRep_EquippedItemDef();
 
-	/** EquippedItemDef 의 Equippable 프래그먼트에서 메시/소켓을 뽑아 OnEquipVisualChanged 로 방송. 서버/클라이언트 공통. */
+	/**
+	 * EquippedItemDef 의 Equippable 프래그먼트에서 메시/소켓을 뽑아 OnEquipVisualChanged 로 방송.
+	 * 서버/클라이언트 공통.
+	 */
 	void BroadcastEquipVisual();
 
 	/** 권한: 새 장비의 EquipEffects 를 소유자 ASC 에 적용하고 핸들을 보관. */
@@ -64,6 +76,9 @@ private:
 
 	UAbilitySystemComponent* ResolveOwnerASC() const;
 
-	/** 권한 측에서만 채워진다. 클라는 ASC 가 ActiveGameplayEffects 를 자동 복제 받음. */
+	/**
+	 * 권한 측에서만 채워진다.
+	 * 클라는 ASC 가 ActiveGameplayEffects 를 자동 복제 받음.
+	 */
 	TArray<FActiveGameplayEffectHandle> ActiveEquipEffectHandles;
 };

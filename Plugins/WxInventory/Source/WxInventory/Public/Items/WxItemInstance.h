@@ -52,17 +52,22 @@ public:
 	/** Charges Fragment 의 MaxCharges. Fragment 가 없으면 0. */
 	int32 GetMaxCharges() const;
 
-	/** 현재 상태 표시 아이콘. 충전형이면 Charges Fragment 의 ChargeIcons[CurrentCharges] 를, 없으면 Definition 의 기본 Icon 을 반환한다. */
+	/**
+	 * 현재 상태 표시 아이콘.
+	 * 충전형이면 Charges Fragment 의 ChargeIcons[CurrentCharges] 를, 없으면 Definition 의 기본 Icon 을 반환한다.
+	 */
 	TSoftObjectPtr<UTexture2D> GetDisplayIcon() const;
 
 	/**
-	 * 권한: 충전 횟수를 설정한다. [0, MaxCharges] 로 클램프된다.
+	 * 권한: 충전 횟수를 설정한다.
+	 * [0, MaxCharges] 로 클램프된다.
 	 * 변경 브로드캐스트(OnInventoryChargeChanged)는 호출자(인벤토리 매니저) 책임이다.
 	 */
 	void SetCurrentCharges(int32 InCharges);
 
 	/**
-	 * 권한: 정의를 1회 바인딩한다. 인스턴스 생성 직후 FWxInventoryList::AddEntry 가 호출한다.
+	 * 권한: 정의를 1회 바인딩한다.
+	 * 인스턴스 생성 직후 FWxInventoryList::AddEntry 가 호출한다.
 	 * 재바인딩은 금지되며 check(ItemDef == nullptr) 로 가드된다.
 	 */
 	void SetItemDef(const UWxItemDefinition* InItemDef);
@@ -75,7 +80,10 @@ private:
 	UPROPERTY(Replicated)
 	TObjectPtr<const UWxItemDefinition> ItemDef;
 
-	/** 인스턴스 단위 충전 횟수(에스트병 방식). Charges Fragment 가 부착된 아이템에서만 의미를 가진다. */
+	/**
+	 * 인스턴스 단위 충전 횟수(에스트병 방식).
+	 * Charges Fragment 가 부착된 아이템에서만 의미를 가진다.
+	 */
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentCharges)
 	int32 CurrentCharges = 0;
 };

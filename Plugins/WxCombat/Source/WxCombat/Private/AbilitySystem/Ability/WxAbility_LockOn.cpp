@@ -16,8 +16,7 @@
 
 UWxAbility_LockOn::UWxAbility_LockOn()
 {
-	// AssetTag 의도적 미설정: Ability 태그가 없어야 HitReact/Guard 등의
-	// CancelAbilitiesWithTag(Ability)에 의해 락온이 해제되지 않는다.
+	// AssetTag 의도적 미설정: Ability 태그가 없어야 HitReact/Guard 등의 CancelAbilitiesWithTag(Ability)에 의해 락온이 해제되지 않는다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	ActivationOwnedTags.AddTag(WxGameplayTags::State_LockOn);
 }
@@ -89,8 +88,8 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	// Super::EndAbility 가 태스크를 해제하기 전에 타겟을 먼저 비운다. 그래야 아직 살아있는 태스크가
-	// 컴포넌트의 null 변경 브로드캐스트를 받아 레티클을 즉시 정리한다.
+	// Super::EndAbility 가 태스크를 해제하기 전에 타겟을 먼저 비운다.
+	// 그래야 아직 살아있는 태스크가 컴포넌트의 null 변경 브로드캐스트를 받아 레티클을 즉시 정리한다.
 	if (ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
 	{
 		if (UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(GetOwningActorFromActorInfo()))

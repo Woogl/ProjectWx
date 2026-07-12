@@ -66,14 +66,13 @@ void AWxWeaponBase::BeginAttack(const FWxDamageInfo& InDamageInfo)
 	HitActorsThisSwing.Empty();
 
 	// DamageInfo를 콜리전 활성화보다 먼저 설정한다.
-	// SetCollisionEnabled 시 이미 겹쳐있는 액터에 대해 Overlap이 즉시 발생할 수 있으므로,
-	// 그 전에 설정이 준비되어 있어야 한다.
+	// SetCollisionEnabled 시 이미 겹쳐있는 액터에 대해 Overlap이 즉시 발생할 수 있으므로, 그 전에 설정이 준비되어 있어야 한다.
 	DamageInfo = InDamageInfo;
 
 	if (ActiveAttackCount == 0)
 	{
-		// 첫 프레임 Sweep이 0 거리가 되도록 현재 트랜스폼으로 초기화. 직전 위치를 모르는 상태에서
-		// 임의 값이 들어가면 무관한 액터까지 Sweep으로 잡힐 수 있다.
+		// 첫 프레임 Sweep이 0 거리가 되도록 현재 트랜스폼으로 초기화.
+		// 직전 위치를 모르는 상태에서 임의 값이 들어가면 무관한 액터까지 Sweep으로 잡힐 수 있다.
 		PrevCapsuleLocation = HitCollision->GetComponentLocation();
 		PrevCapsuleRotation = HitCollision->GetComponentQuat();
 
@@ -202,8 +201,7 @@ void AWxWeaponBase::Tick(float DeltaSeconds)
 	const FVector CurrLocation = HitCollision->GetComponentLocation();
 	const FQuat CurrRotation = HitCollision->GetComponentQuat();
 
-	// 직전 프레임 위치 → 현재 위치 사이를 캡슐 모양으로 Sweep해서, Overlap 이벤트가
-	// 한 틱에 캡슐을 지나친 액터를 놓치는 터널링을 보완한다.
+	// 직전 프레임 위치 → 현재 위치 사이를 캡슐 모양으로 Sweep해서, Overlap 이벤트가 한 틱에 캡슐을 지나친 액터를 놓치는 터널링을 보완한다.
 	const FCollisionShape Shape = FCollisionShape::MakeCapsule(HitCollision->GetScaledCapsuleRadius(), HitCollision->GetScaledCapsuleHalfHeight());
 
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(WxWeaponSweep), false);
@@ -270,8 +268,7 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 void AWxWeaponBase::ProcessHit(AActor* OtherActor, const FHitResult& HitResult)
 {
 	// 클라이언트와 서버 모두 동일한 히트 판정과 GE 적용을 수행한다.
-	// 클라이언트의 GE 적용은 어빌리티의 ScopedPredictionKey로 예측 처리되며,
-	// 서버의 권위 적용과 불일치하면 GAS가 자동으로 롤백한다.
+	// 클라이언트의 GE 적용은 어빌리티의 ScopedPredictionKey로 예측 처리되며, 서버의 권위 적용과 불일치하면 GAS가 자동으로 롤백한다.
 
 	AActor* WeaponOwner = GetOwner();
 	if (!OtherActor || OtherActor == WeaponOwner || HitActorsThisSwing.Contains(OtherActor))

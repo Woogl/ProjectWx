@@ -37,8 +37,8 @@ public:
 	UWxAbility_Finisher();
 
 	/**
-	 * 상호작용으로 확정한 대상에 주어진 피해를 적용한다. 공격 몽타주의 WxAnimNotify_FinisherDamage 가
-	 * 대미지 테이블 행을 해석해 호출한다(대미지 타이밍·수치는 노티파이가 결정, 어빌리티는 대상·적용만 담당).
+	 * 상호작용으로 확정한 대상에 주어진 피해를 적용한다.
+	 * 공격 몽타주의 WxAnimNotify_FinisherDamage 가 대미지 테이블 행을 해석해 호출한다(대미지 타이밍·수치는 노티파이가 결정, 어빌리티는 대상·적용만 담당).
 	 */
 	void ApplyFinisherDamage(const FWxDamageInfo& DamageInfo) const;
 

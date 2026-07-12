@@ -12,10 +12,9 @@ class UPrimitiveComponent;
 
 /**
  * 상호작용 컴포넌트.
- * 상호작용 상태·로직만 보유하는 SceneComponent 이며, 쿼리 볼륨 자체는 CollisionVolume(임의 형상의 PrimitiveComponent,
- * 보통 기존 메시)을 재사용한다. 볼륨은 BeginPlay 에서 부착 부모 프리미티브로 자동 해석되며(대부분 대상 메시에 직접 부착됨),
- * 부착 부모가 대상 프리미티브가 아닐 때만 소유자가 SetCollisionVolume 으로 명시한다. 볼륨은 WxInteractable 채널에 Overlap
- * 응답으로 표식되고, 플레이어 측 스캐너(상호작용 어빌리티의 주기 스캔)가 OverlapMultiByChannel(WxInteractable) 으로 수집한다.
+ * 상호작용 상태·로직만 보유하는 SceneComponent 이며, 쿼리 볼륨 자체는 CollisionVolume(임의 형상의 PrimitiveComponent, 보통 기존 메시)을 재사용한다.
+ * 볼륨은 BeginPlay 에서 부착 부모 프리미티브로 자동 해석되며(대부분 대상 메시에 직접 부착됨), 부착 부모가 대상 프리미티브가 아닐 때만 소유자가 SetCollisionVolume 으로 명시한다.
+ * 볼륨은 WxInteractable 채널에 Overlap 응답으로 표식되고, 플레이어 측 스캐너(상호작용 어빌리티의 주기 스캔)가 OverlapMultiByChannel(WxInteractable) 으로 수집한다.
  * 한 액터에 여러 인터랙션 영역을 두려면 본 컴포넌트를 영역 수만큼 추가하고 각각 다른 볼륨에 부착한다.
  *
  * 흐름:

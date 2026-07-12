@@ -109,8 +109,8 @@ void UWxAIPerceptionComponent::HandleTargetPerceptionUpdated(AActor* Actor, FAIS
 	}
 	else if (WxBlackboardKeys::GetTargetActor(BB) == Actor)
 	{
-		// 시야를 잃어도 TargetActor 는 유지한다(보스 등 뒤로 이동 등 일시적 상실). 마지막 인지 위치만 갱신하고,
-		// 실제 해제는 UpdateRecognition 의 리시 이탈 판정에 맡긴다.
+		// 시야를 잃어도 TargetActor 는 유지한다(보스 등 뒤로 이동 등 일시적 상실).
+		// 마지막 인지 위치만 갱신하고, 실제 해제는 UpdateRecognition 의 리시 이탈 판정에 맡긴다.
 		WxBlackboardKeys::SetTargetLastKnownLocation(BB, Stimulus.StimulusLocation);
 	}
 
@@ -162,8 +162,8 @@ void UWxAIPerceptionComponent::UpdateRecognition()
 
 void UWxAIPerceptionComponent::SetRecognized(bool bNewRecognized)
 {
-	// 인식 상태를 폰의 ASC 태그로 발행한다. MinimalReplication 태그는 GE 없이 서버→클라이언트로
-	// 복제(COND_SkipOwner)되어, 각 클라이언트의 네임플레이트가 이 태그를 읽어 표시를 결정한다.
+	// 인식 상태를 폰의 ASC 태그로 발행한다.
+	// MinimalReplication 태그는 GE 없이 서버→클라이언트로 복제(COND_SkipOwner)되어, 각 클라이언트의 네임플레이트가 이 태그를 읽어 표시를 결정한다.
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwnerPawn());
 	if (!ASC)
 	{

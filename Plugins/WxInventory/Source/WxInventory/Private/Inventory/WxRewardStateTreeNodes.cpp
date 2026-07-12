@@ -37,7 +37,8 @@ EStateTreeRunStatus FWxStateTreeTask_GrantReward::EnterState(FStateTreeExecution
 	const FTransform OwnerTransform = Owner->GetActorTransform();
 	const FTransform SpawnTransform(OwnerTransform.GetRotation(), OwnerTransform.TransformPosition(Instance.SpawnOffset));
 
-	// 비-픽업 보상(재화 등)은 로컬 플레이어(0번 컨트롤러)에게 직접 지급한다. 픽업 보상은 대상과 무관하게 월드에 스폰된다.
+	// 비-픽업 보상(재화 등)은 로컬 플레이어(0번 컨트롤러)에게 직접 지급한다.
+	// 픽업 보상은 대상과 무관하게 월드에 스폰된다.
 	UWxRewardLibrary::GrantReward(Owner, Instance.RewardRow, UGameplayStatics::GetPlayerController(Owner, 0), SpawnTransform, Instance.LaunchVelocity);
 
 	// 지급은 즉시 끝나므로 곧바로 완료한다.
@@ -50,7 +51,8 @@ FText FWxStateTreeTask_GrantReward::GetDescription(const FGuid& ID, FStateTreeDa
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	// 지급할 보상은 RewardRow 의 로우 이름으로 식별한다. 비어 있으면 아무것도 지급하지 않으므로 (none) 으로 표시.
+	// 지급할 보상은 RewardRow 의 로우 이름으로 식별한다.
+	// 비어 있으면 아무것도 지급하지 않으므로 (none) 으로 표시.
 	const FName RewardName = InstanceData->RewardRow.RowName;
 	return FText::Format(INVTEXT("Grant Reward ({0})"),
 		RewardName.IsNone() ? INVTEXT("(none)") : FText::FromName(RewardName));

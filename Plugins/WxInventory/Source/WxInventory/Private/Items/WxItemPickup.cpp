@@ -67,8 +67,8 @@ void AWxItemPickup::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// BP 에서 추가한 상호작용 소스를 자동으로 찾아 바인딩한다. 서버는 Deferred 스폰 주입, 클라는 InitialOnly 복제가
-	// 모두 BeginPlay 전에 끝나므로 텍스트 갱신도 여기 한 곳이면 충분하다.
+	// BP 에서 추가한 상호작용 소스를 자동으로 찾아 바인딩한다.
+	// 서버는 Deferred 스폰 주입, 클라는 InitialOnly 복제가 모두 BeginPlay 전에 끝나므로 텍스트 갱신도 여기 한 곳이면 충분하다.
 	for (UActorComponent* Source : GetComponentsByInterface(UWxInteractionSource::StaticClass()))
 	{
 		Cast<IWxInteractionSource>(Source)->GetOnInteractedDelegate().AddDynamic(this, &AWxItemPickup::HandleInteracted);

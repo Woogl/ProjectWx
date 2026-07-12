@@ -17,8 +17,8 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	// 발동은 상호작용(서버 권위)이 보내는 GameplayEvent 다. 대미지도 서버에서 적용하므로 ServerInitiated.
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 
-	// 처형은 상호작용으로 발동되는 실행형 반응이다. 앞잡(그로기)은 플레이어의 공격으로 만들어지므로,
-	// 그로기 직후 F를 누르면 아직 활성인 공격의 BlockAbilitiesWithTag(Ability)에 걸려 발동이 거부된다(막힌 발동은 재시도 없이 소모).
+	// 처형은 상호작용으로 발동되는 실행형 반응이다.
+	// 앞잡(그로기)은 플레이어의 공격으로 만들어지므로, 그로기 직후 F를 누르면 아직 활성인 공격의 BlockAbilitiesWithTag(Ability)에 걸려 발동이 거부된다(막힌 발동은 재시도 없이 소모).
 	// HitReact·Groggy처럼 매칭될 애셋태그를 비워 두어 공격/스킬의 하드 차단에 막히지 않게 한다. (Ability.Finisher 태그는 어디서도 조회하지 않음)
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Attack);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Skill);

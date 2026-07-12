@@ -11,9 +11,8 @@ class UTargetingPreset;
 /**
  * 모션 워핑 기반 타겟 스냅 AnimNotifyState.
  *
- * NotifyBegin에서 락온 대상을 우선 사용하고, TargetingPreset 쿼리 결과로
- * "스냅 가능한 타겟팅 범위"를 판정한다. MotionWarpingComponent에 SkewWarp
- * modifier를 직접 등록하여 루트 모션을 보정, 타겟 쪽으로 이동·회전시킨다.
+ * NotifyBegin에서 락온 대상을 우선 사용하고, TargetingPreset 쿼리 결과로 "스냅 가능한 타겟팅 범위"를 판정한다.
+ * MotionWarpingComponent에 SkewWarp modifier를 직접 등록하여 루트 모션을 보정, 타겟 쪽으로 이동·회전시킨다.
  *
  * bSnapLocation: 타겟 위치로 접근할지 여부 (MinDistance만큼 앞에서 멈춤).
  *                타겟팅 범위 밖이면 회전만 적용하고 이동은 생략한다.

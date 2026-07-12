@@ -13,8 +13,7 @@ class AWxProjectileBase;
 /**
  * 투사체 스폰 AnimNotify.
  *
- * 원거리 공격 몽타주에 배치하면 해당 프레임에서
- * SpawnSocketName 소켓 위치에 투사체를 스폰한다.
+ * 원거리 공격 몽타주에 배치하면 해당 프레임에서 SpawnSocketName 소켓 위치에 투사체를 스폰한다.
  * 서버에서만 스폰한다.
  */
 UCLASS()

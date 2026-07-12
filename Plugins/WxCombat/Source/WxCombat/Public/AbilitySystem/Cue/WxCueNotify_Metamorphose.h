@@ -12,8 +12,7 @@ class USkeletalMeshComponent;
 /**
  * 변신 GameplayCue.
  *
- * GameplayEffect의 유효 기간 동안 캐릭터의 SkeletalMesh를 교체하고,
- * 이펙트가 만료되거나 제거되면 원래 메쉬로 복원한다.
+ * GameplayEffect의 유효 기간 동안 캐릭터의 SkeletalMesh를 교체하고, 이펙트가 만료되거나 제거되면 원래 메쉬로 복원한다.
  *
  * BP에서 캐릭터 메시에 추가 부착한 외형 SkeletalMeshComponent("VisualOverride" 태그)가 있으면 그 컴포넌트를 우선 대상으로 한다.
  * (AWxWeaponBase::AttachToCharacter 와 동일 규칙)

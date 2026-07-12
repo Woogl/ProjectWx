@@ -27,7 +27,8 @@ void AWxAlarmConsole::BeginPlay()
 
 void AWxAlarmConsole::HandleInteracted(AActor* InstigatorActor)
 {
-	// 권위 측만 State 를 Alarmed 로 확정한다. 클라는 복제 State 의 OnRep 이벤트가 ST 진입을 구동하므로 비권위는 노옵.
+	// 권위 측만 State 를 Alarmed 로 확정한다.
+	// 클라는 복제 State 의 OnRep 이벤트가 ST 진입을 구동하므로 비권위는 노옵.
 	if (HasAuthority())
 	{
 		CommitGimmickState(WxGameplayTags::Gimmick_AlarmConsole_Alarmed);

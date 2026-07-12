@@ -8,8 +8,7 @@
 #include "WxBTComposite_RandomChoice.generated.h"
 
 /**
- * 베이스(UBTCompositeNode)가 노드 메모리 앞쪽을 FBTCompositeMemory(CurrentChild/OverrideChild)로
- * 사용하므로, 자체 상태는 반드시 그 뒤에 배치해 겹치지 않게 한다. (엔진의 FBTParallelMemory 와 동일 패턴)
+ * 베이스(UBTCompositeNode)가 노드 메모리 앞쪽을 FBTCompositeMemory(CurrentChild/OverrideChild)로 사용하므로, 자체 상태는 반드시 그 뒤에 배치해 겹치지 않게 한다. (엔진의 FBTParallelMemory 와 동일 패턴)
  */
 struct FWxBTRandomChoiceMemory : public FBTCompositeMemory
 {
@@ -26,8 +25,7 @@ struct FWxBTRandomChoiceMemory : public FBTCompositeMemory
  * bAvoidRepeat 가 켜져 있으면 직전 진입에서 선택된 자식을 본 진입의 후보에서 제외한다.
  * 자식이 1개뿐이면 회피는 무시되고 항상 그 자식이 선택된다.
  *
- * 베이스 클래스로 UBTComposite_Selector 를 사용하는 것은 시멘틱 일치가 아니라 BT 시스템 호환성 때문이며,
- * 실제 동작은 GetNextChildHandler 오버라이드 한 곳에서 결정된다.
+ * 베이스 클래스로 UBTComposite_Selector 를 사용하는 것은 시멘틱 일치가 아니라 BT 시스템 호환성 때문이며, 실제 동작은 GetNextChildHandler 오버라이드 한 곳에서 결정된다.
  */
 UCLASS()
 class WXAI_API UWxBTComposite_RandomChoice : public UBTComposite_Selector

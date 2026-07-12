@@ -14,8 +14,8 @@ class UWxItemFragment;
 /**
  * 아이템의 분류. 기능과 UI 출력 형태의 1차 분기 축으로 사용된다(인벤토리 탭, 상점 카테고리, 사용/장착 가능 여부 등).
  *
- * 데이터 자산이 UWxItemDefinition::Category 필드로 직접 선언한다. Fragment 구성과 독립적이므로,
- * 같은 카테고리 안에서도 Fragment 조합으로 세부 행동을 차별화할 수 있다.
+ * 데이터 자산이 UWxItemDefinition::Category 필드로 직접 선언한다.
+ * Fragment 구성과 독립적이므로, 같은 카테고리 안에서도 Fragment 조합으로 세부 행동을 차별화할 수 있다.
  */
 UENUM(BlueprintType)
 enum class EWxItemCategory : uint8
@@ -29,11 +29,11 @@ enum class EWxItemCategory : uint8
 /**
  * 아이템의 정적 정의.
  *
- * UPrimaryDataAsset 기반의 데이터 자산 인스턴스로 사용된다. 동일한 Definition 을 참조하는 모든
- * 인스턴스는 같은 정의를 공유하며, 런타임 가변 상태는 별도 UWxItemInstance 에서 관리한다.
+ * UPrimaryDataAsset 기반의 데이터 자산 인스턴스로 사용된다.
+ * 동일한 Definition 을 참조하는 모든 인스턴스는 같은 정의를 공유하며, 런타임 가변 상태는 별도 UWxItemInstance 에서 관리한다.
  *
- * Fragment 컴포지션으로 아이템의 속성/행동을 선언한다. Fragment 자체는 UObject(EditInline)이며
- * Fragment 베이스 가상 함수(OnInstanceCreated)로 인스턴스 초기 상태를 주입한다.
+ * Fragment 컴포지션으로 아이템의 속성/행동을 선언한다.
+ * Fragment 자체는 UObject(EditInline)이며 Fragment 베이스 가상 함수(OnInstanceCreated)로 인스턴스 초기 상태를 주입한다.
  */
 UCLASS(BlueprintType)
 class WXINVENTORY_API UWxItemDefinition : public UPrimaryDataAsset

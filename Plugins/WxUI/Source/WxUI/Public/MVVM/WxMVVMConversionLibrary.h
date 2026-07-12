@@ -29,15 +29,19 @@ public:
 	static ESlateVisibility Conv_GameplayTagToSlateVisibility(const FGameplayTagContainer& TagContainer, FGameplayTag Tag, ESlateVisibility TrueVisibility = ESlateVisibility::SelfHitTestInvisible, ESlateVisibility FalseVisibility = ESlateVisibility::Collapsed);
 
 	/**
-	 * AbilitySystem VM 에서 (현재값, 최대값) 어트리뷰트 쌍에 대응하는 어트리뷰트 VM 을 가져온다. 없으면 생성한다.
-	 * 바인딩이 요청한 어트리뷰트에 대해서만 VM 이 지연 생성된다. MaxAttribute 미지정 시 CurrentAttribute 를 최대값으로 사용한다.
+	 * AbilitySystem VM 에서 (현재값, 최대값) 어트리뷰트 쌍에 대응하는 어트리뷰트 VM 을 가져온다.
+	 * 없으면 생성한다.
+	 * 바인딩이 요청한 어트리뷰트에 대해서만 VM 이 지연 생성된다.
+	 * MaxAttribute 미지정 시 CurrentAttribute 를 최대값으로 사용한다.
 	 */
 	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "Get Attribute ViewModel"))
 	static UWxViewModel_Attribute* GetAttributeViewModel(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayAttribute CurrentAttribute, FGameplayAttribute MaxAttribute);
 
 	/**
-	 * AbilitySystem VM 에서 Asset Tags 가 AbilityTags 를 모두 포함하는(HasAll) 어빌리티 VM 을 가져온다. 없으면 생성한다.
-	 * 바인딩이 요청한 어빌리티에 대해서만 VM 이 지연 생성된다. 매칭되는 어빌리티가 부여되지 않았으면 nullptr 를 반환한다.
+	 * AbilitySystem VM 에서 Asset Tags 가 AbilityTags 를 모두 포함하는(HasAll) 어빌리티 VM 을 가져온다.
+	 * 없으면 생성한다.
+	 * 바인딩이 요청한 어빌리티에 대해서만 VM 이 지연 생성된다.
+	 * 매칭되는 어빌리티가 부여되지 않았으면 nullptr 를 반환한다.
 	 */
 	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "Get Ability ViewModel"))
 	static UWxViewModel_Ability* GetAbilityViewModel(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayTagContainer AbilityTags);

@@ -43,8 +43,7 @@ enum class EWxAbilityActivationPolicy : uint8
  * 모든 어빌리티는 이 클래스를 상속받아 작성.
  *
  * 쿨다운은 CooldownTime, MaxRecharges 프로퍼티로 설정한다.
- * 내부적으로 공용 UWxEffect_Cooldown GE를 사용하며,
- * 소스 어빌리티 CDO로 개별 어빌리티의 쿨다운을 구분한다.
+ * 내부적으로 공용 UWxEffect_Cooldown GE를 사용하며, 소스 어빌리티 CDO로 개별 어빌리티의 쿨다운을 구분한다.
  * 소모된 충전 1개당 GE 1개를 적용하고, 기존 GE는 제거하지 않고 자연 만료로 충전을 회복한다.
  *
  * 코스트는 MPCost, UPCost 프로퍼티로 설정한다.
