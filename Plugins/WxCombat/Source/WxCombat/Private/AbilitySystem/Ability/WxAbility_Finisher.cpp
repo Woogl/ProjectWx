@@ -219,7 +219,6 @@ void UWxAbility_Finisher::ApplyFinisherEffect(TSubclassOf<UGameplayEffect> Effec
 	HitResult.Location = Target->GetActorLocation();
 	Context.AddHitResult(HitResult);
 
-	// 대미지 플로터(GameplayCue_Damage)는 UWxEffect_Kill 이 자체 GameplayCue 로 발행한다.
 	const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(EffectClass, GetAbilityLevel(), Context);
 	if (SpecHandle.IsValid())
 	{
