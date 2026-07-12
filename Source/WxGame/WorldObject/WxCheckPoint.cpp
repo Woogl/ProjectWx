@@ -24,7 +24,8 @@ AWxCheckPoint::AWxCheckPoint(const FObjectInitializer& ObjectInitializer)
 	// 원격 클라가 이 액터의 InteractionComponent 를 상호작용 TargetData(PackageMap)로 서버에 참조 전달하므로, 컴포넌트가 net-addressable 하도록 액터 복제를 유지한다.
 	bReplicates = true;
 
-	// 루트는 APlayerStart(ANavigationObjectBase)의 CapsuleComponent 다. NoCollision 프로파일이라 플레이어를 막지 않는다.
+	// 루트는 APlayerStart(ANavigationObjectBase)의 CapsuleComponent 다.
+	// NoCollision 프로파일이라 플레이어를 막지 않는다.
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	MeshComponent->SetupAttachment(RootComponent);
 	MeshComponent->SetRelativeLocation(FVector(-90.f, 0.f, 0.f));
@@ -44,8 +45,15 @@ void AWxCheckPoint::PostDuplicate(EDuplicateMode::Type DuplicateMode)
 {
 	Super::PostDuplicate(DuplicateMode);
 
-	// 복제본은 원본의 PlayerStartTag·bIsDefaultStart 을 그대로 복사받는다. 초기화해 "명백히 미완성" 상태로 두면
-	// 디자이너가 새 태그를 지정하도록 강제되고, 방치 시 CheckForErrors 가 태그 미지정으로 잡는다.
+	// 초기화 대상은 디자이너의 에디터 단일 액터 복제(Ctrl+W = Normal)뿐이다.
+	// PIE 월드 복제(EDuplicateMode::PIE)·레벨 복제(World)도 여기를 거치므로, 가드가 없으면 PIE 진입마다 플레이 월드의 모든 체크포인트에서 아래 두 값이 리셋돼 시작지점·부활이 깨진다.
+	if (DuplicateMode != EDuplicateMode::Normal)
+	{
+		return;
+	}
+
+	// 복제본은 원본의 PlayerStartTag·bIsDefaultStart 을 그대로 복사받는다.
+	// 초기화해 "명백히 미완성" 상태로 두면 디자이너가 새 태그를 지정하도록 강제되고, 방치 시 CheckForErrors 가 태그 미지정으로 잡는다.
 	PlayerStartTag = NAME_None;
 	bIsDefaultStart = false;
 }
@@ -116,7 +124,8 @@ void AWxCheckPoint::HandleInteracted(AActor* InstigatorActor)
 		SaveSubsystem = GameInstance->GetSubsystem<UWxPersistenceGameSubsystem>();
 	}
 
-	// 자신을 부활/시작 지점으로 등록한다(메모리). 디스크 영속은 아래 SaveToFile 이 수행하고, ChoosePlayerStart 가 FindPlayerStartByTag 로 이 액터를 찾는다.
+	// 자신을 부활/시작 지점으로 등록한다(메모리).
+	// 디스크 영속은 아래 SaveToFile 이 수행하고, ChoosePlayerStart 가 FindPlayerStartByTag 로 이 액터를 찾는다.
 	// PlayerStartTag 는 APlayerStart 가 노출하는 식별자로, 디자이너가 인스턴스마다 고유 부여한다(미지정·중복은 CheckForErrors 가 잡는다).
 	if (SaveSubsystem)
 	{
@@ -138,7 +147,8 @@ void AWxCheckPoint::HandleInteracted(AActor* InstigatorActor)
 		}
 	}
 
-	// 에스트병 등 충전형 소비 아이템의 충전을 가득 채운다(다크소울 모닥불 방식). 충전형이 아닌 아이템은 내부에서 무시된다.
+	// 에스트병 등 충전형 소비 아이템의 충전을 가득 채운다(다크소울 모닥불 방식).
+	// 충전형이 아닌 아이템은 내부에서 무시된다.
 	if (UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(InstigatorActor))
 	{
 		for (UWxItemInstance* Item : Inventory->GetAllItems())
@@ -149,8 +159,8 @@ void AWxCheckPoint::HandleInteracted(AActor* InstigatorActor)
 
 	UWxSpawnerLibrary::TryRespawnAll(this);
 
-	// 갱신된 PlayerStartTag + 리셋된 월드 상태를 활성 슬롯에 저장한다. 과거 BP OnInteracted 의 저장 호출을 C++ 로 이관 —
-	// SetPlayerStartTag 이후 실행돼 순서가 보장되고, HasAuthority 게이트 안이라 서버 전용으로 저장된다(슬롯 정체성은 활성 SaveGame 이 보유).
+	// 갱신된 PlayerStartTag + 리셋된 월드 상태를 활성 슬롯에 저장한다.
+	// 과거 BP OnInteracted 의 저장 호출을 C++ 로 이관 — SetPlayerStartTag 이후 실행돼 순서가 보장되고, HasAuthority 게이트 안이라 서버 전용으로 저장된다(슬롯 정체성은 활성 SaveGame 이 보유).
 	if (SaveSubsystem)
 	{
 		SaveSubsystem->SaveToFile();
