@@ -8,6 +8,7 @@
 
 class UAnimMontage;
 class UAbilityTask_PlayMontageAndWait;
+class UGameplayEffect;
 struct FGameplayEventData;
 struct FWxDamageInfo;
 
@@ -21,11 +22,11 @@ struct FWxDamageInfo;
  *  2. 피해자 위치를 공유 앵커로 모션워핑 정렬, 공격자는 피해자를 바라보도록 회전(멈출 간격은 몽타주 Warp Point 가 소유)
  *  3. 적에게 변형별 짝 피격 이벤트 송출 → 적이 공격자를 향해 회전 후 짝 피격 몽타주를 동시 재생
  *  4. 변형별 공격자 몽타주 재생(몽타주의 MotionWarping 노티파이가 워프 타겟·Warp Point 로 정렬)
- *  5. 몽타주의 WxAnimNotify_FinisherDamage 가 ApplyFinisherDamage 를 호출 → 확정 대상에 피해 적용
+ *  5. 몽타주의 WxAnimNotify_FinisherDamage 가 대미지 프레임에 ApplyFinisherDamage 호출
  *  6. 몽타주 종료 시 EndAbility
  *
- * 대미지 수치는 어빌리티가 아니라 공격 몽타주의 WxAnimNotify_FinisherDamage 가 대미지 테이블 행으로 입력한다.
- * 어빌리티는 상호작용으로 확정한 대상에 그 피해를 적용만 하므로 앞잡·뒤잡이 동일 경로로 통일된다.
+ * 대미지 적용 타이밍은 노티파이가, 무엇을 적용할지는 어빌리티가 현재 재생 몽타주로 정한다.
+ * 뒤잡은 BackstabEffectClass(생성자 기본 UWxEffect_Kill)로 즉사, 앞잡은 노티파이 DamageDataRow의 계수 대미지.
  * 앞잡의 그로기 해제(DP 0)는 피해자의 앞잡 짝 피격 몽타주가 끝날 때 WxAbility_HitReact 가 처리한다.
  */
 UCLASS(Abstract)
@@ -37,8 +38,9 @@ public:
 	UWxAbility_Finisher();
 
 	/**
-	 * 상호작용으로 확정한 대상에 주어진 피해를 적용한다.
-	 * 공격 몽타주의 WxAnimNotify_FinisherDamage 가 대미지 테이블 행을 해석해 호출한다(대미지 타이밍·수치는 노티파이가 결정, 어빌리티는 대상·적용만 담당).
+	 * 공격 몽타주의 WxAnimNotify_FinisherDamage 가 대미지 프레임에 호출한다(적용 타이밍은 노티파이가 결정).
+	 * 뒤잡(현재 재생 몽타주가 BackstabMontage)이면 BackstabEffectClass(UWxEffect_Kill 즉사)를 확정 대상에 직접 적용,
+	 * 앞잡이면 인자 DamageInfo(대미지 테이블 행 계수)를 적용한다.
 	 */
 	void ApplyFinisherDamage(const FWxDamageInfo& DamageInfo) const;
 
@@ -54,7 +56,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> BackstabMontage;
 
+	/** 뒤잡 즉사에 적용할 자기완결형 GameplayEffect. 생성자에서 UWxEffect_Kill 로 기본 설정된다. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TSubclassOf<UGameplayEffect> BackstabEffectClass;
+
 private:
+	/** 확정 대상에 자기완결형 GameplayEffect 한 개를 직접 적용한다(뒤잡 즉사). */
+	void ApplyFinisherEffect(TSubclassOf<UGameplayEffect> EffectClass) const;
+
 	UFUNCTION()
 	void HandleMontageFinished();
 

@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/Ability/WxAbility_Finisher.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "AbilitySystem/Effect/WxEffect_Kill.h"
 #include "AbilitySystem/Effect/WxEffect_ResetDP.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
@@ -29,6 +30,9 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	
 	// 피니시 중에는 무적
 	ActivationOwnedTags.AddTag(WxGameplayTags::State_Invincible);
+
+	// 뒤잡 즉사에 쓸 GE 기본값. 방어력과 무관하게 확정 처치한다(BP에서 재정의 가능).
+	BackstabEffectClass = UWxEffect_Kill::StaticClass();
 
 	// 변형별 트리거. 앞잡(Event.Finisher)과 뒤잡(Event.Backstab)을 한 어빌리티가 받는다.
 	FAbilityTriggerData FinisherTrigger;
@@ -160,6 +164,13 @@ void UWxAbility_Finisher::RegisterWarpTarget(AActor* AvatarActor, const AActor* 
 
 void UWxAbility_Finisher::ApplyFinisherDamage(const FWxDamageInfo& DamageInfo) const
 {
+	// 뒤잡(현재 재생 몽타주가 BackstabMontage)은 생성자 기본값 BackstabEffectClass(UWxEffect_Kill)로 즉사시킨다.
+	if (BackstabEffectClass && GetCurrentMontage() == BackstabMontage)
+	{
+		ApplyFinisherEffect(BackstabEffectClass);
+		return;
+	}
+
 	AActor* Target = TargetActor.Get();
 	if (!Target)
 	{
@@ -177,8 +188,41 @@ void UWxAbility_Finisher::ApplyFinisherDamage(const FWxDamageInfo& DamageInfo) c
 	HitResult.ImpactPoint = Target->GetActorLocation();
 	HitResult.Location = Target->GetActorLocation();
 
-	// 상호작용으로 확정한 대상에 노티파이가 넘긴 피해를 적용한다. 앞잡·뒤잡 공통 경로.
-	// 뒤잡 즉사(CoeffATK)는 노티파이의 대미지 행 데이터로 결정된다.
+	// 앞잡: 노티파이가 넘긴 계수 피해를 적용한다.
 	// 앞잡 그로기 해제(DP 0)는 피해자의 앞잡 짝 피격 몽타주 종료 시 WxAbility_HitReact 가 처리한다.
 	UWxCombatLibrary::ApplyDamage(SourceASC, TargetASC, DamageInfo, HitResult, 0.f);
+}
+
+void UWxAbility_Finisher::ApplyFinisherEffect(TSubclassOf<UGameplayEffect> EffectClass) const
+{
+	AActor* Target = TargetActor.Get();
+	if (!Target || !EffectClass)
+	{
+		return;
+	}
+
+	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Target);
+	if (!SourceASC || !TargetASC)
+	{
+		return;
+	}
+
+	// 확정 대상에 자기완결형 GE(UWxEffect_Kill 등)를 직접 적용한다.
+	// Instigator 를 실어 사망 처리·AI 보고가 가해자를 귀속하게 한다.
+	AActor* SourceActor = SourceASC->GetOwnerActor();
+	FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
+	Context.AddInstigator(SourceActor, SourceActor);
+
+	FHitResult HitResult;
+	HitResult.ImpactPoint = Target->GetActorLocation();
+	HitResult.Location = Target->GetActorLocation();
+	Context.AddHitResult(HitResult);
+
+	// 대미지 플로터(GameplayCue_Damage)는 UWxEffect_Kill 이 자체 GameplayCue 로 발행한다.
+	const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(EffectClass, GetAbilityLevel(), Context);
+	if (SpecHandle.IsValid())
+	{
+		SourceASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);
+	}
 }
