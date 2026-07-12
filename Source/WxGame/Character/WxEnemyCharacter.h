@@ -37,7 +37,7 @@ public:
 	float GetSightAngle() const;
 	float GetMaxHearingRange() const;
 
-	// IWxSpawnableInterface
+	//~ Begin IWxSpawnableInterface
 	/**
 	 * 스폰 직후 자신을 스폰한 Spawner 를 기억한다.
 	 * 사망 시 순회 없이 해당 Spawner 에 처치 기록을 남기기 위함.
@@ -46,6 +46,7 @@ public:
 #if WITH_EDITOR
 	virtual const UMeshComponent* GetEditorPreviewMeshComponent() const override;
 #endif
+	//~ End IWxSpawnableInterface
 
 protected:
 	virtual void BeginPlay() override;

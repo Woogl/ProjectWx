@@ -37,16 +37,19 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual bool CanJumpInternal_Implementation() const override;
 
-	// IAbilitySystemInterface
+	//~ Begin IAbilitySystemInterface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	//~ End IAbilitySystemInterface
 
-	// IGameplayTagAssetInterface
+	//~ Begin IGameplayTagAssetInterface
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
+	//~ End IGameplayTagAssetInterface
 
-	// IGenericTeamAgentInterface
+	//~ Begin IGenericTeamAgentInterface
 	virtual void SetGenericTeamId(const FGenericTeamId& InTeamId) override;
 	virtual FGenericTeamId GetGenericTeamId() const override;
 	virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
+	//~ End IGenericTeamAgentInterface
 
 	bool IsAlive() const;
 	AWxWeaponBase* GetEquippedWeapon() const;
