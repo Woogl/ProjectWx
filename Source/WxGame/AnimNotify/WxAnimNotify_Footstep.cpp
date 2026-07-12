@@ -62,7 +62,8 @@ void UWxAnimNotify_Footstep::PlaySurfaceSound(USkeletalMeshComponent* MeshComp, 
 		return;
 	}
 	
-	// 위에서 시작해 발밑 아래까지 트레이스. PhysicalMaterial 을 받아 표면 타입을 얻는다.
+	// 위에서 시작해 발밑 아래까지 트레이스.
+	// PhysicalMaterial 을 받아 표면 타입을 얻는다.
 	const FVector TraceStart = FootLocation + FVector(0.f, 0.f, 50.f);
 	const FVector TraceEnd = FootLocation - FVector(0.f, 0.f, 200.f);
 

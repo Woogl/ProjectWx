@@ -18,7 +18,8 @@ UWxPlayerSpawningComponent::UWxPlayerSpawningComponent(const FObjectInitializer&
 
 AActor* UWxPlayerSpawningComponent::ChoosePlayerStart(AController* Player)
 {
-	// 0. PIE "여기서 플레이"(APlayerStartPIE)가 있으면 최우선 사용한다. 저장 태그가 이를 덮으면 개발 중 원하는 위치로 못 뜨므로 앞에 둔다.
+	// 0. PIE "여기서 플레이"(APlayerStartPIE)가 있으면 최우선 사용한다.
+	// 저장 태그가 이를 덮으면 개발 중 원하는 위치로 못 뜨므로 앞에 둔다.
 	for (TActorIterator<APlayerStartPIE> It(GetWorld()); It; ++It)
 	{
 		return *It;
@@ -54,7 +55,8 @@ AActor* UWxPlayerSpawningComponent::ChoosePlayerStart(AController* Player)
 	// 3. 플래그된 체크포인트가 없음.
 	if (bAnyCheckPoint)
 	{
-		// 체크포인트는 있는데 아무도 최초 시작지점으로 지정되지 않음 — 기획 실수. 에러 로그 후 엔진 기본 선택으로 폴백한다.
+		// 체크포인트는 있는데 아무도 최초 시작지점으로 지정되지 않음 — 기획 실수.
+		// 에러 로그 후 엔진 기본 선택으로 폴백한다.
 		UE_LOG(LogWxGame, Error, TEXT("bIsDefaultStart 이 켜진 체크포인트가 없음 — 최초 시작지점을 결정할 수 없다. 체크포인트 하나에 지정하라."));
 	}
 	// 체크포인트가 아예 없는 맵(메뉴·테스트 짐 등 부활 흐름 밖)은 정상 케이스이므로 무로그로 엔진 기본 선택에 맡긴다.

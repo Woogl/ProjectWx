@@ -18,7 +18,8 @@ class UWxInteractionComponent;
  * 영속 State·StateTree 가 없는 반복형 즉시 효과(다크소울 모닥불)라 기믹 인프라(AWxGimmick) 대신 APlayerStart 를 상속한다.
  * APlayerStart 상속으로 배치된 인스턴스가 GameMode 의 ChoosePlayerStart 흐름에서 부활/시작 지점 후보가 된다.
  *
- * 식별자(PlayerStartTag)는 디자이너가 인스턴스마다 고유하게 직접 지정한다(예: "CP_Chapel"). 부활 지점은 이 태그로 저장·복원된다.
+ * 식별자(PlayerStartTag)는 디자이너가 인스턴스마다 고유하게 직접 지정한다(예: "CP_Chapel").
+ * 부활 지점은 이 태그로 저장·복원된다.
  * 최초 접속(저장된 시작지점 없음) 시 시작지점은 bIsDefaultStart 으로 지정한다.
  * 태그 미지정·중복·bIsDefaultStart 다중은 CheckForErrors(Map Check) 가 에디터에서 잡는다.
  */
@@ -35,7 +36,8 @@ public:
 
 #if WITH_EDITOR
 	//~ Begin AActor
-	// 복제본은 원본의 PlayerStartTag·bIsDefaultStart 을 복사받는다. 초기화해 "명백히 미완성" 상태로 만들어 아래 CheckForErrors 가 잡게 한다.
+	// 복제본은 원본의 PlayerStartTag·bIsDefaultStart 을 복사받는다.
+	// 초기화해 "명백히 미완성" 상태로 만들어 아래 CheckForErrors 가 잡게 한다.
 	virtual void PostDuplicate(EDuplicateMode::Type DuplicateMode) override;
 	// Map Check: 태그 미지정·다른 PlayerStart 와 태그 중복·bIsDefaultStart 다중 지정을 에러로 리포트한다.
 	virtual void CheckForErrors() override;

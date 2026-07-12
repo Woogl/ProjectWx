@@ -39,12 +39,15 @@ protected:
 /**
  * 발소리 AnimNotify.
  *
- * 보행/달리기 애니메이션의 발 접지 프레임에 배치한다. 두 가지를 처리한다.
+ * 보행/달리기 애니메이션의 발 접지 프레임에 배치한다.
+ * 두 가지를 처리한다.
  * 1) UAISense_Hearing::ReportNoiseEvent 로 소음 이벤트를 발생시켜 주변 AI 청각이 감지하게 한다(서버 전용).
  * 2) 발 아래로 라인 트레이스해 바닥 표면(EPhysicalSurface)을 알아내고, SoundSet 에서 해당 표면의 발소리를 재생한다(로컬).
  *
- * 소음은 서버에서만 보고한다(AI Perception 은 서버에서 동작). 사운드는 데디케이티드 서버를 제외한 각 머신에서 로컬 재생한다.
- * 청취 거리는 HearingDistance(cm)로 직접 지정한다. 단 엔진 구조상 청취 AI 의 HearingRange 를 초과할 수 없어, 실제 청취 거리 = min(HearingDistance, 청취자 HearingRange) 가 된다.
+ * 소음은 서버에서만 보고한다(AI Perception 은 서버에서 동작).
+ * 사운드는 데디케이티드 서버를 제외한 각 머신에서 로컬 재생한다.
+ * 청취 거리는 HearingDistance(cm)로 직접 지정한다.
+ * 단 엔진 구조상 청취 AI 의 HearingRange 를 초과할 수 없어, 실제 청취 거리 = min(HearingDistance, 청취자 HearingRange) 가 된다.
  * 따라서 HearingDistance 를 키우려면 청취 AI 의 HearingRange 도 그만큼 확보해야 한다.
  */
 UCLASS(DisplayName = "Wx Footstep")

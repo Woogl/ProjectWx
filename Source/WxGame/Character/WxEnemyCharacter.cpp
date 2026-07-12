@@ -24,7 +24,8 @@ AWxEnemyCharacter::AWxEnemyCharacter()
 
 	GetCharacterMovement()->MaxWalkSpeed = 400.f;
 
-	// Full 모드: 모든 GE를 모든 클라이언트에 복제한다. 네임플레이트 UI(아이콘, 남은 시간 비율)에 필요.
+	// Full 모드: 모든 GE를 모든 클라이언트에 복제한다.
+	// 네임플레이트 UI(아이콘, 남은 시간 비율)에 필요.
 	// 적이 많아지거나 GE 수가 늘어날 경우 대역폭 비용을 측정하고, 필요하면 아래 방향으로 개선을 고려할 것:
 	//   - UI 표시용 최소 데이터(Icon, Duration, StartWorldTime)만 담는 경량 복제 컴포넌트로 교체
 	//   - UI에 표시할 이펙트에만 UWxEffectComponent_UIData를 붙이는 규칙을 엄수해 복제 대상 GE 수를 제한
@@ -38,14 +39,16 @@ AWxEnemyCharacter::AWxEnemyCharacter()
 	LockOnPoint = CreateDefaultSubobject<UWxLockOnPointComponent>(TEXT("LockOnPoint"));
 	LockOnPoint->SetupAttachment(GetMesh(), TEXT("pelvis"));
 
-	// 처형 상호작용 볼륨. 평소엔 BeginPlay 에서 비활성화하고, 조건(그로기 또는 미인지·후방)을 주기 평가해 켠다.
+	// 처형 상호작용 볼륨.
+	// 평소엔 BeginPlay 에서 비활성화하고, 조건(그로기 또는 미인지·후방)을 주기 평가해 켠다.
 	// 메시에 부착해 처형 가능 시 Gimmick과 동일한 외곽선(Custom Depth/Stencil)이 적 몸체에 적용되게 한다.
 	FinisherInteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("FinisherInteractionComponent"));
 	FinisherInteractionComponent->SetupAttachment(GetMesh());
 	FinisherInteractionComponent->SetHighlightTarget(GetMesh());
 	FinisherInteractionComponent->SetInteractionText(FText::FromString(TEXT("Finisher")));
 
-	// 상태 기반 BGM 소스. 실제 태그·우선순위는 각 적·보스 BP 에서 설정한다(MusicTag 를 비우면 inert).
+	// 상태 기반 BGM 소스.
+	// 실제 태그·우선순위는 각 적·보스 BP 에서 설정한다(MusicTag 를 비우면 inert).
 	BGMSourceComponent = CreateDefaultSubobject<UWxBGMSourceComponent>(TEXT("BGMSourceComponent"));
 }
 
@@ -58,7 +61,8 @@ void AWxEnemyCharacter::BeginPlay()
 	FinisherInteractionComponent->OnInteracted.AddDynamic(this, &AWxEnemyCharacter::HandleFinisherInteracted);
 
 	// 처형 상호작용은 권위에서만 토글한다 — 시작 시 꺼두고, 조건(그로기=앞잡 / 미인지·후방=뒤잡)을 어포던스 타이머가 주기 평가해 켠다.
-	// 클라는 복제(bInteractionEnabled)로 활성 상태를 추종한다. 클라에서 토글하면 이미 복제된 값을 로컬로 덮어써(변경 기반 복제라 자가 치유 안 됨) 레이트조인에서 활성 상태가 깨진다.
+	// 클라는 복제(bInteractionEnabled)로 활성 상태를 추종한다.
+	// 클라에서 토글하면 이미 복제된 값을 로컬로 덮어써(변경 기반 복제라 자가 치유 안 됨) 레이트조인에서 활성 상태가 깨진다.
 	if (HasAuthority())
 	{
 		FinisherInteractionComponent->SetInteractionEnabled(false);
@@ -155,14 +159,16 @@ void AWxEnemyCharacter::HandleFinisherInteracted(AActor* InstigatorActor)
 		return;
 	}
 
-	// 공격자(플레이어) ASC 로 처형 발동 이벤트를 보낸다. 대상(this)은 EventData.Target 으로 전달된다.
+	// 공격자(플레이어) ASC 로 처형 발동 이벤트를 보낸다.
+	// 대상(this)은 EventData.Target 으로 전달된다.
 	FGameplayEventData EventData;
 	EventData.Instigator = InstigatorActor;
 	EventData.Target = this;
 	EventData.EventTag = EventTag;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(InstigatorActor, EventTag, EventData);
 
-	// 발동 즉시 처형 상호작용을 잠근다. 연출 중(자격 유지) 어포던스 타이머의 재노출은 래치로 차단한다.
+	// 발동 즉시 처형 상호작용을 잠근다.
+	// 연출 중(자격 유지) 어포던스 타이머의 재노출은 래치로 차단한다.
 	bFinisherTriggered = true;
 	FinisherInteractionComponent->SetInteractionEnabled(false);
 }

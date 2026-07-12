@@ -14,8 +14,9 @@ class UWxInteractionRegistrySubsystem;
  * 상호작용 어빌리티(감지 + 입력 트리거 실행).
  *
  * 입력(Input.Interact) 시 활성화되어, 로컬 레지스트리의 현재 선택 컴포넌트를 대상으로 TryInteract를 실행하고 즉시 종료한다.
- * 감지(주변 스캔)는 어빌리티 활성화와 무관히 부여 동안 상주한다. OnGiveAbility에서 월드 타이머를 걸어 주기 스캔하고,
- * OnRemoveAbility에서 해제한다. 어빌리티 인스턴스(InstancedPerActor)는 부여 동안 살아 있으므로 타이머가 활성화와 독립적으로 틱한다.
+ * 감지(주변 스캔)는 어빌리티 활성화와 무관히 부여 동안 상주한다.
+ * OnGiveAbility에서 월드 타이머를 걸어 주기 스캔하고, OnRemoveAbility에서 해제한다.
+ * 어빌리티 인스턴스(InstancedPerActor)는 부여 동안 살아 있으므로 타이머가 활성화와 독립적으로 틱한다.
  * 스캔은 아바타 주변을 OverlapMultiByChannel(WxInteractable)로 수집(볼륨 프리미티브 → 상호작용 컴포넌트 역참조)해 거리순으로 로컬 레지스트리에 push 한다(감지는 로컬 어포던스).
  * 단 어빌리티가 활성화 불가(CanActivateAbility 실패, 예: 사망)인 동안에는 스캔을 건너뛰고 후보를 비워 선택/프롬프트/하이라이트를 정리한다.
  *
@@ -52,7 +53,8 @@ protected:
 
 private:
 	/**
-	 * 월드 타이머매니저에 주기 스캔(ScanAndPush)을 걸고 진입 즉시 1회 스캔한다. 로컬에서만 설정(데디 서버는 미설정).
+	 * 월드 타이머매니저에 주기 스캔(ScanAndPush)을 걸고 진입 즉시 1회 스캔한다.
+	 * 로컬에서만 설정(데디 서버는 미설정).
 	 * OnGiveAbility와 EndAbility 양쪽에서 호출한다 — 엔진 EndAbility가 어빌리티의 모든 타이머를 비우므로 활성화 종료 후 재설정이 필요하다.
 	 */
 	void StartScanTimer(const FGameplayAbilityActorInfo* ActorInfo);

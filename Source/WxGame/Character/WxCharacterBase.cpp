@@ -214,7 +214,8 @@ void AWxCharacterBase::HandleEquipVisualChanged(USkeletalMesh* MeshAsset, FName 
 	AWxWeaponBase* Weapon = GetEquippedWeapon();
 	if (!Weapon)
 	{
-		// ChildActor 가 아직 스폰되지 않았을 수 있다(초기 복제 타이밍). 다음 방송 사이클에 재시도된다.
+		// ChildActor 가 아직 스폰되지 않았을 수 있다(초기 복제 타이밍).
+		// 다음 방송 사이클에 재시도된다.
 		return;
 	}
 
