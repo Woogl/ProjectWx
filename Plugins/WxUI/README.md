@@ -1,54 +1,50 @@
 # WxUI — UI 시스템
 
-> CommonUI 레이어 스택과 ModelViewViewModel(MVVM) 뷰모델로 게임의 런타임 UI를 책임진다. C++는 레이어 관리·위젯 베이스·표시 데이터 뷰모델(진실 소스는 밖)을 제공하고, 실제 위젯 외형은 WBP가 담당한다.
+> CommonUI 레이어 스택과 ModelViewViewModel(MVVM)을 기반으로 하는 UI 도메인 플러그인. 활성화 위젯 스택·팝업·전역 뷰모델을 관리하고, 게임 상태(ASC 어트리뷰트/어빌리티/이펙트, 캐릭터, 상호작용, 선택)를 View 로 노출하는 C++ 골격을 제공한다. 실제 화면(WBP)은 이 골격에 바인딩한다.
 
 ## 책임
 **담당**
-- CommonUI 레이어 스택 관리: `UWxPrimaryGameLayout`(Game/GameMenu/Menu/Modal 레이어)와 `UWxUIManagerSubsystem`을 통한 레이어별 위젯 push
-- 위젯 베이스 클래스: 입력 모드/게임 일시정지를 캡슐화한 `UWxActivatableWidget`, HUD 루트 `UWxHUDLayout`
-- MVVM 뷰모델 계층: ASC(어트리뷰트/어빌리티/이펙트) 및 캐릭터/선택/상호작용 표시 데이터를 View에 노출하는 순수 표시 계약
-- 월드 부착 UI 컴포넌트: 네임플레이트(`UWxNameplateComponent`)
-- UI 바인딩용 Blueprint Function Library 및 비동기 push 액션
+- CommonUI 레이어 스택 관리: `UWxPrimaryGameLayout`(Game/GameMenu/Menu/Modal 레이어)과 `UWxUIManagerSubsystem`(레이어 push, 로컬플레이어 생명주기, 위젯 활성 상태 기반 게임 정지 재평가).
+- 활성화 위젯 베이스 계층: `UWxActivatableWidget`(입력 모드·정지 정책) → `UWxHUDLayout`·`UWxGamePopup`.
+- MVVM 뷰모델 계층: `UWxViewModel` 파생 VM 들이 ASC/캐릭터/상호작용/선택 데이터를 순수 표시 계약으로 노출. Blueprint 바인딩용 컨버전(`UWxMVVMConversionLibrary`)·파사드(`UWxUILibrary`) 제공.
+- 월드 부착 UI: `UWxNameplateComponent`(WidgetComponent 확장, 거리 스케일·태그 기반 표시).
+- UI 클래스 설정: `UWxUIDeveloperSettings`(레이아웃/팝업 클래스 소프트 참조).
 
 **경계 (비담당)**
-- 어트리뷰트/어빌리티/이펙트의 실제 값·수명 — GAS([[WxCombat]] 등이 세팅하는 ASC)가 진실 소스이며 VM은 표시만
-- 상호작용 대상 목록/선택 상태의 소유 — [[WxWorld]] 레지스트리가 소유하고 WxGame 리졸버가 델리게이트로 VM에 흘려줌
-- 구체 캐릭터 타입·표시 데이터의 출처 — 소비 측(WxGame)이 `FWxCharacterUIData`를 주입
-- 위젯 외형·계층·바인딩 그래프 — WBP(범위 밖)
+- ASC·어트리뷰트·어빌리티 정의는 [[WxCombat]]/[[WxCore]] 소유. VM 은 ASC 에서 값을 읽어 표시만 한다.
+- 상호작용 대상 레지스트리·선택 소유권은 [[WxWorld]]. WxUI 는 엔진 타입 인자로 값을 받아 표시만 하며(도메인 타입 미참조), 레지스트리 델리게이트 연결은 게임 모듈(WxGame) 리졸버가 수행한다.
+- 캐릭터/어빌리티 표시 데이터(이름·초상화·아이콘)의 저작·주입은 소비 측(게임 모듈·BP)이 담당. WxUI 는 데이터 "모양"(`FWxCharacterUIData` 등)만 소유.
 
 ## 의존성
-- **주요 의존**: `WxCore` · 엔진: `CommonUI` / `CommonInput` / `ModelViewViewModel` / `UMG` / `GameplayAbilities` / `GameplayTags` / `DeveloperSettings`
-- 규칙: 「WxCore 외 Wx 플러그인 참조」 — 없음 ✅ (uplugin/Build.cs 상 Wx 의존은 `WxCore`뿐. [[WxWorld]] 등 타 도메인은 참조하지 않고 WxGame 리졸버 경유 델리게이트로만 연결)
+- **주요 의존**: `WxCore`(유일한 Wx 의존, `WxAbilityComponent` 등), CommonUI/CommonInput(레이어·활성화 위젯·입력 모드), ModelViewViewModel(VM 베이스·전역 컬렉션), GameplayAbilities/GameplayTags(ASC·태그), UMG/Slate.
+- 규칙: 위반 없음 ✅ (WxCore 외 Wx 플러그인 참조 없음)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxUIManagerSubsystem` | GameInstance 서브시스템. 레이아웃 생성·레이어 push 진입점, 글로벌 Selection VM 소유 | `Source/WxUI/Public/System/WxUIManagerSubsystem.h` |
-| `UWxPrimaryGameLayout` | 4개 레이어 스택(Game/GameMenu/Menu/Modal)을 태그로 관리하는 루트 위젯 | `Source/WxUI/Public/System/WxPrimaryGameLayout.h` |
-| `UWxActivatableWidget` | 입력 모드·게임 일시정지를 다루는 모든 활성화 위젯의 베이스 | `Source/WxUI/Public/Widget/WxActivatableWidget.h` |
-| `UWxViewModel` | 모든 뷰모델의 추상 베이스(`Deinitialize` 규약) | `Source/WxUI/Public/MVVM/WxViewModel.h` |
-| `UWxViewModel_AbilitySystem` | ASC를 어트리뷰트/어빌리티/이펙트 자식 VM으로 노출(지연 생성) | `Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h` |
-| `UWxViewModel_Character` | 캐릭터 표시(이름/초상화) + AbilitySystem 자식 VM 묶는 Composite | `Source/WxUI/Public/MVVM/WxViewModel_Character.h` |
-| `UWxMVVMConversionLibrary` | UMG 바인딩용 컨버전(어트리뷰트/어빌리티/이펙트 VM 조회, 태그→Visibility) | `Source/WxUI/Public/MVVM/WxMVVMConversionLibrary.h` |
-| `UWxUILibrary` | UI 매니저/레이아웃 접근 및 레이어 제어 BP 라이브러리 | `Source/WxUI/Public/WxUILibrary.h` |
-
-## Gameplay Tags
-C++ Native Tag 선언 없음. 레이어/액션 태그(`UI.Layer.*`, `UI.Action.*`)는 문자열·에셋 태그로 참조되며 코드에서 정적 선언하지 않는다.
+| `UWxUIManagerSubsystem` | UI 중앙 오케스트레이터(GameInstanceSubsystem). 레이어 push·팝업·전역 선택 VM·게임 정지 | `Plugins\WxUI\Source\WxUI\Public\System\WxUIManagerSubsystem.h` |
+| `UWxPrimaryGameLayout` | 레이어 스택 루트 위젯(태그→스택 맵). 서브시스템이 생성·소유 | `Plugins\WxUI\Source\WxUI\Public\System\WxPrimaryGameLayout.h` |
+| `UWxActivatableWidget` | 모든 활성화 위젯의 베이스. 입력 모드·게임 정지 정책 | `Plugins\WxUI\Source\WxUI\Public\Widget\WxActivatableWidget.h` |
+| `UWxGamePopup` | 팝업 위젯 베이스 + `UWxGamePopupDescriptor`·`EWxPopupResult` | `Plugins\WxUI\Source\WxUI\Public\Widget\WxGamePopup.h` |
+| `UWxViewModel` | MVVM 뷰모델 베이스(Abstract). 전 파생 VM 의 뿌리 | `Plugins\WxUI\Source\WxUI\Public\MVVM\WxViewModel.h` |
+| `UWxViewModel_AbilitySystem` | ASC Composite VM. 어트리뷰트/어빌리티/이펙트 자식 VM 지연 생성 | `Plugins\WxUI\Source\WxUI\Public\MVVM\WxViewModel_AbilitySystem.h` |
+| `UWxUILibrary` / `UWxMVVMConversionLibrary` | BP 파사드(레이어·팝업 제어) / MVVM 바인딩 컨버전 함수 | `Plugins\WxUI\Source\WxUI\Public\WxUILibrary.h` |
+| `UWxNameplateComponent` | 월드 부착 네임플레이트(WidgetComponent 확장, ASC VM 바인딩) | `Plugins\WxUI\Source\WxUI\Public\Component\WxNameplateComponent.h` |
 
 ## 확장 포인트 / 규약
-- **새 위젯**: `UWxActivatableWidget`(또는 `UWxHUDLayout`)을 베이스로 WBP 작성 → `UWxUIManagerSubsystem::PushContentToLayer` 혹은 `UWxAsyncAction_PushWidgetToLayer`로 레이어에 push. 레이어는 `FGameplayTag`(`UI.Layer.*`)로 지정.
-- **새 뷰모델**: `UWxViewModel` 상속, 표시 필드는 `UPROPERTY(BlueprintReadOnly, FieldNotify)`. VM은 도메인 타입을 참조하지 않는 **순수 표시 계약**을 유지하고, 진실 소스(ASC/레지스트리/게임 모듈)가 값을 push하도록 둔다.
-- **ASC 바인딩**: Composite VM(`_AbilitySystem`)에 중첩 바인딩하고, `UWxMVVMConversionLibrary`의 Get Attribute/Ability ViewModel 컨버전으로 자식 VM을 지연 조회한다.
-- **레이아웃 지정**: `UWxUIDeveloperSettings::LayoutClass`(Project Settings, Config=Game)로 플레이어별 생성할 `UWxPrimaryGameLayout` 지정.
-- **타 도메인 연동**: WxUI는 타 도메인을 직접 참조하지 않으므로, 목록/선택 등 외부 상태는 WxGame 리졸버가 `Handle*` 델리게이트 콜백에 연결해 흘려준다.
+- **새 화면 위젯**: `UWxActivatableWidget` 을 상속(BP)하고, `UWxUIDeveloperSettings`·`UWxHUDLayout` 의 소프트 클래스 슬롯에 지정하거나 `UWxUIManagerSubsystem::PushContentToLayer`·`UWxUILibrary`·`UWxAsyncAction_PushWidgetToLayer` 로 레이어에 push 한다. 레이어는 `UI.Layer.*` 게임플레이 태그로 식별(네이티브 선언 아님, 문자열 태그).
+- **정지 정책**: 위젯이 `bPauseGame` 을 켜면 서브시스템이 전 레이어 활성 위젯을 재평가해 게임 정지를 적용한다. 위젯은 서브시스템을 알지 못한다.
+- **새 뷰모델**: `UWxViewModel` 을 상속하고 `Deinitialize()` 를 오버라이드해 구독을 해제한다. 표시 필드는 `FieldNotify` UPROPERTY 로 노출. 전역 공유 VM 은 `UMVVMGameSubsystem` 컬렉션에 등록(예: 선택 VM `"VM_Selection"`).
+- **도메인 값 주입 규약**: WxUI 는 도메인 타입을 참조하지 않으므로, VM 은 엔진 타입/평면 표시 필드만 노출하고 값은 외부 소스가 push 한다(`SetSelection`, `Initialize` 등).
+- **아이콘/초상화**: `TSoftObjectPtr<UTexture2D>` 를 그대로 노출만 하고 View 측 `UCommonLazyImage` 가 비동기 로드·수명 관리(VM 은 `LoadSynchronous` 미호출).
 
 ## 여기서부터 읽어라
-1. `Source/WxUI/Public/System/WxUIManagerSubsystem.h` — UI 진입점. 레이아웃 생성/레이어 push/글로벌 VM 소유 흐름의 중심
-2. `Source/WxUI/Public/System/WxPrimaryGameLayout.h` — 레이어 스택 구조(무엇이 어디로 push되는지)
-3. `Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h` — MVVM 계층의 핵심. 지연 생성·자식 VM·컨버전 라이브러리 연계 이해의 기준점
+1. `Plugins\WxUI\Source\WxUI\Public\System\WxUIManagerSubsystem.h` — UI 진입점. 레이어 push·팝업·정지·전역 VM 이 모두 여기서 시작한다.
+2. `Plugins\WxUI\Source\WxUI\Public\System\WxPrimaryGameLayout.h` — 레이어 스택 구조. 위젯이 어디에 쌓이는지 이해의 기준.
+3. `Plugins\WxUI\Source\WxUI\Public\MVVM\WxViewModel_AbilitySystem.h` — 게임 상태→UI 노출의 대표 패턴(지연 생성·자식 Composite VM).
 
 ## 관련
-- 상위: WxGame(리졸버가 도메인 상태를 VM에 연결, 표시 데이터 주입), [[WxCombat]](ASC 진실 소스), [[WxWorld]](상호작용 레지스트리 — 델리게이트 경유)
-
+- 상위: [[WxCore]]
+- 데이터 소스: [[WxCombat]], [[WxWorld]]
 ---
-*문서 기준 커밋 `83a7315` · 생성일 2026-07-11 · 소스 48파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `d0c804a` · 생성일 2026-07-12 · 소스 48파일 — `/readme-writer`로 갱신*

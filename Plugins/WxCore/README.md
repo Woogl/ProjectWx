@@ -39,14 +39,14 @@
   - `ANS.*` — AnimNotifyState 구간 (WeaponCollision, ComboWindow)
   - `GameplayCue.*` — Cue 트리거 (Damage, PerfectGuard, BuffATK, Exceed, Burn, HitStop, Metamorphose)
   - `Damage.*` — 대미지 판정 결과/속성 (Critical, Unblockable, ParryHitReact)
-  - `Ability.*` / `Input.*` — 어빌리티·입력 매핑 (Attack, Dodge, Sprint, Guard, Skill_N, Ultimate, Interact, UseItem, Finisher, AI Pattern_N 등)
+  - `Ability.*` / `Input.*` — 어빌리티·입력 매핑 (Attack, Dodge, Sprint, Guard, Skill_N, Ultimate, Interact, UseItem, AI Pattern_N 등)
   - `SetByCaller.*` — GE SetByCaller 키 (Duration, Recovery_UP/MP, ReflectDP, Coeff_ATK, RawDamage)
   - `UI.Layer.*` / `UI.Action.*` — UI 레이어 스택(Game/GameMenu/Menu/Modal) 및 CommonUI 액션(Inventory/MainMenu)
 
 ## 확장 포인트 / 규약
 - 태그 추가: `WxGameplayTags.h`에 `UE_DECLARE_GAMEPLAY_TAG_EXTERN`, `WxGameplayTags.cpp`에 정의를 같이 작성. 변수명은 점(.)을 언더스코어(_)로 치환 (`State.Dead` → `State_Dead`). 다른 모듈에서 임의 선언 금지
 - 세이브 대상 액터: `IWxSavable`을 구현하고 `GetWxSaveId()`로 세션 불변 `FGuid`를 반환(보존 필드에 `UPROPERTY(SaveGame)` 표시, 무효 GUID면 저장/복원 제외). 복원 후처리는 `OnWxSaveRestored()` 오버라이드. 인터페이스를 WxCore에 둠으로써 WxSave ↔ 소비 도메인(예: WxWorld)의 직접 의존을 끊는다
-- 상호작용 발행: `IWxInteractionSource`를 통해 소비 도메인이 WxWorld 구현체에 의존하지 않고 델리게이트 바인딩/프롬프트 갱신. 델리게이트는 서버+모든 클라이언트에서 fire
+- 상호작용 발행: `IWxInteractionSource`를 통해 소비 도메인이 WxWorld 구현체에 의존하지 않고 델리게이트 바인딩/프롬프트 갱신. 델리게이트는 서버 권한에서만 fire
 - 공유 어빌리티 컴포넌트: 도메인 모듈에서 `UWxAbilityComponent`를 상속해 구체 컴포넌트 정의 (예: WxUI의 UI 데이터 컴포넌트). 베이스만 WxCore에 두어 도메인 간 공유 앵커로 사용
 - 콜리전 채널 추가 시 `DefaultEngine.ini`의 채널 등록 순서와 `WxCollisionChannels.h` 상수가 일치해야 함
 - 여기엔 정의/공용 계약만 둔다. 리플리케이션·권한 로직은 갖지 않으며 소비 도메인이 책임진다
@@ -60,4 +60,4 @@
 - 상위: 모든 Wx 도메인 플러그인([[WxCombat]], [[WxInventory]], [[WxUI]], [[WxWorld]], [[WxSound]], [[WxAI]], [[WxQuest]], [[WxSave]])과 게임 모듈 [[WxGame]]이 WxCore를 참조
 
 ---
-*문서 기준 커밋 `5f4a7a5` · 생성일 2026-07-09 · 소스 8파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `d0c804a` · 생성일 2026-07-12 · 소스 8파일 — `/readme-writer`로 갱신*
