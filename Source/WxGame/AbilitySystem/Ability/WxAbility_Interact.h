@@ -59,10 +59,16 @@ private:
 	 */
 	void StartScanTimer(const FGameplayAbilityActorInfo* ActorInfo);
 
-	/** 아바타 중심 SphereOverlap으로 후보 컴포넌트를 모아 거리순 정렬 후 레지스트리에 push 한다. 타이머가 주기 호출한다. */
+	/**
+	 * 아바타 중심 SphereOverlap으로 후보 컴포넌트를 모아 거리순 정렬 후 레지스트리에 push 한다.
+	 * 타이머가 주기 호출한다.
+	 */
 	void ScanAndPush();
 
-	/** 서버가 클라이언트로부터 선택 컴포넌트 TargetData를 수신했을 때 호출. 권한에서 TryInteract 실행 후 EndAbility. */
+	/**
+	 * 서버가 클라이언트로부터 선택 컴포넌트 TargetData를 수신했을 때 호출.
+	 * 권한에서 TryInteract 실행 후 EndAbility.
+	 */
 	void HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag);
 
 	/** ActorInfo의 로컬 플레이어 상호작용 레지스트리(로컬에서만 유효, 데디 서버는 nullptr). */
@@ -71,7 +77,10 @@ private:
 	/** 레지스트리에서 현재 선택 컴포넌트를 읽는다(로컬에서만 유효). */
 	UWxInteractionComponent* GetLocalSelectedComponent(const FGameplayAbilityActorInfo* ActorInfo) const;
 
-	/** 선택 컴포넌트가 유효하면 아바타를 instigator로 TryInteract 호출. 권한 분기에서만 호출한다. */
+	/**
+	 * 선택 컴포넌트가 유효하면 아바타를 instigator로 TryInteract 호출.
+	 * 권한 분기에서만 호출한다.
+	 */
 	void ExecuteInteract(UWxInteractionComponent* Selected, const FGameplayAbilityActorInfo* ActorInfo);
 
 	/**

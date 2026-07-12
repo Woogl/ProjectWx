@@ -57,7 +57,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TSubclassOf<UGameplayEffect> HealEffect;
 
-	/** true 면 이 레벨 최초 접속(저장된 시작지점 없음) 시 시작지점으로 사용된다. 레벨당 정확히 1개에만 지정한다. */
+	/**
+	 * true 면 이 레벨 최초 접속(저장된 시작지점 없음) 시 시작지점으로 사용된다.
+	 * 레벨당 정확히 1개에만 지정한다.
+	 */
 	UPROPERTY(EditInstanceOnly, Category = "Wx")
 	bool bIsDefaultStart = false;
 
