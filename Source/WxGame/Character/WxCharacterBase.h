@@ -17,6 +17,7 @@ class UMotionWarpingComponent;
 class UWxAbilitySystemComponent;
 class UWxCombatAttributeSet;
 class UWxEquipmentComponent;
+class UWxContextEffectsComponent;
 class AWxWeaponBase;
 class USkeletalMesh;
 
@@ -75,6 +76,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Equipment")
 	TObjectPtr<UWxEquipmentComponent> EquipmentComponent;
+
+	/** 표면별 코스메틱(오디오/VFX)을 재생하는 컨텍스트 이펙트 컴포넌트. 라이브러리는 BP 에서 지정한다. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|ContextEffects")
+	TObjectPtr<UWxContextEffectsComponent> ContextEffectsComponent;
 
 	/**
 	 * 캐릭터가 항상 소유하는 무기 액터를 호스팅하는 ChildActor 컴포넌트.
