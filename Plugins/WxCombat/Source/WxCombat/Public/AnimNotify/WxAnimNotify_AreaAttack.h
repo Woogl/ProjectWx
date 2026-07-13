@@ -20,6 +20,7 @@ class UTargetingPreset;
  * SourceSocketName이 NAME_None이 아니면 해당 소켓 위치를 쿼리의 SourceLocation으로 사용한다.
  * NAME_None이면 Preset이 SourceActor의 액터 위치를 기준으로 동작한다.
  */
+// TODO: 게임 로직 이관 필요
 UCLASS()
 class WXCOMBAT_API UWxAnimNotify_AreaAttack : public UAnimNotify
 {

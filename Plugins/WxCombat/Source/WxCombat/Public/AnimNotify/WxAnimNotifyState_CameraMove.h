@@ -20,6 +20,7 @@ class UStaticMeshComponent;
  * 적/AI 몽타주는 각 클라의 로컬 플레이어 뷰에 적용된다.
  * 데디서버/원격 클라(로컬 PC 없음)에선 아무 것도 하지 않는다.
  */
+// TODO: 게임 로직 이관 필요
 UCLASS(meta = (DisplayName = "Wx Camera Move"))
 class WXCOMBAT_API UWxAnimNotifyState_CameraMove : public UAnimNotifyState
 {

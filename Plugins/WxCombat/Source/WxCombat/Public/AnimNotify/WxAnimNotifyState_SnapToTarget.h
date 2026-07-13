@@ -18,6 +18,7 @@ class UTargetingPreset;
  *                타겟팅 범위 밖이면 회전만 적용하고 이동은 생략한다.
  * bSnapRotation: 타겟 방향으로 회전할지 여부. 거리와 무관하게 적용된다.
  */
+// TODO: 게임 로직 이관 필요
 UCLASS()
 class WXCOMBAT_API UWxAnimNotifyState_SnapToTarget : public UAnimNotifyState
 {
