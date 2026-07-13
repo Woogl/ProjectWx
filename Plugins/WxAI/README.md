@@ -4,9 +4,10 @@
 
 ## 책임
 **담당**
-- 지각·추적: 시각/청각/피해 감지, TargetActor 확정, 리시(leash) 기반 추적 종료, 회전 모드(strafe) 발행 (`UWxAIPerceptionComponent`)
+- 지각·추적: 시각/청각/피해 감지, TargetActor 확정, 회전 모드(strafe) 발행, 사망·복귀 시 인식 해제. 리시 복귀 진입 시 타겟 억제(disengage) (`UWxAIPerceptionComponent`)
+- 리시(leash) 판정·복귀: 홈 이탈 판정 데코레이터 + 복귀 태스크로 BT가 소유(데이터 주도, 반경은 디자이너 지정)
 - Blackboard 키 이름 + 타입드 accessor 규약 (`WxBlackboardKeys`)
-- 커스텀 BT 노드: 어빌리티 발동, 정찰/배회 이동, 거리 서비스, 어트리뷰트 비율·랜덤 가중 데코레이터, 랜덤 선택 컴포지트
+- 커스텀 BT 노드: 어빌리티 발동, 정찰/배회 이동, 리시 복귀, 거리 서비스, 어트리뷰트 비율·랜덤 가중·리시 이탈 데코레이터, 랜덤 선택 컴포지트
 - 정찰 경로 데이터(스플라인)와 순회 규칙 (`UWxPatrolComponent`), 팀 구분 enum (`EWxTeam`)
 
 **경계 (비담당)**
@@ -21,7 +22,8 @@
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxAIPerceptionComponent` | AIController에 부착. Sight/Hearing/Damage → TargetActor/LastKnown 동기화, 리시 이탈 시 추적·인식 해제, strafe 회전 모드 발행. AI 상태 전환의 단일 판정 지점 | `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h` |
+| `UWxAIPerceptionComponent` | AIController에 부착. Sight/Hearing/Damage → TargetActor/LastKnown 동기화, strafe 회전 모드 발행, 사망·복귀 시 인식 해제. 리시 복귀는 `SetTargetingSuppressed`로 타겟/재감지 억제 | `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h` |
+| `UWxBTDecorator_BeyondLeash` / `UWxBTTask_ReturnHome` | 폰이 HomeLocation에서 LeashRadius 이상 이탈했는지 판정하는 조건 데코 / 이탈 시 타겟 억제 후 Home으로 MoveTo 복귀하는 태스크. 리시 검출·복귀를 퍼셉션 폴에서 BT로 이관 | `Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_BeyondLeash.h` · `WxBTTask_ReturnHome.h` |
 | `WxBlackboardKeys` | BB 키 이름 + 타입드 accessor namespace. Perception/AIController가 SET, BT 노드가 참조하는 데이터 계약 허브 | `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` |
 | `UWxPatrolComponent` | 스플라인 기반 정찰 경로(무상태). MoveMode(PingPong/Loop/Once) 규칙, `FindPatrolComponent`로 조회. 커서는 BT 태스크가 폰별 소유 | `Plugins/WxAI/Source/WxAI/Public/WxPatrolComponent.h` |
 | `UWxBTComposite_RandomChoice` | 자식 1개를 가중 랜덤 선택(폴백 없음). 공격 패턴 분기용. `bAvoidRepeat`로 직전 선택 회피 | `Plugins/WxAI/Source/WxAI/Public/WxBTComposite_RandomChoice.h` |
@@ -41,7 +43,7 @@
 
 ## 여기서부터 읽어라
 1. `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` — Perception·AIController·BT 노드가 데이터를 주고받는 중앙 계약. 시스템 전체 데이터 흐름의 허브.
-2. `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h` — 타겟 확정/리시 해제/회전 모드/인식 태그가 한 클래스에 모여 AI 상태 전환의 근원. 주석이 상태 수명을 상세히 설명한다.
+2. `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h` — 타겟 확정/회전 모드/인식 태그/억제(disengage)가 한 클래스에 모여 AI 상태 전환의 근원. 리시 판정은 BT로 이관됐고, 주석이 상태 수명을 상세히 설명한다.
 3. `Plugins/WxAI/Source/WxAI/Private/WxBTComposite_RandomChoice.cpp` — 노드 메모리 레이아웃과 `GetNextChildHandler` 가중 룰렛. 커스텀 컴포지트 작성 패턴 참고.
 
 ## 관련

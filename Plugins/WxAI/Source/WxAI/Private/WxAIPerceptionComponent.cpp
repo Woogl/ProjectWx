@@ -9,8 +9,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
-#include "Engine/World.h"
-#include "TimerManager.h"
 #include "Perception/AISense_Hearing.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Hearing.h"
@@ -44,23 +42,10 @@ void UWxAIPerceptionComponent::PostInitProperties()
 	}
 }
 
-void UWxAIPerceptionComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// 인식 판정은 감지 이벤트뿐 아니라 폰의 이동(귀환/리시 이탈)에도 좌우되므로, 항상 일정 주기로 재판정한다.
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().SetTimer(LeashTimerHandle, this, &UWxAIPerceptionComponent::UpdateRecognition, 1.f, true);
-	}
-}
-
 void UWxAIPerceptionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().ClearTimer(LeashTimerHandle);
-	}
+	// 액터 파괴 등 OnUnPossess 를 거치지 않는 종료 경로에서도 사망 콜백을 안전하게 해제한다.
+	UnbindOwnerDeath();
 
 	Super::EndPlay(EndPlayReason);
 }
@@ -87,6 +72,12 @@ void UWxAIPerceptionComponent::ApplySenseSettings(float InSightRadius, float InS
 
 void UWxAIPerceptionComponent::HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
+	// 억제(복귀) 중에는 어떤 감지 자극도 무시한다(복귀 중 재-어그로 방지).
+	if (bTargetingSuppressed)
+	{
+		return;
+	}
+
 	UBlackboardComponent* BB = GetBlackboard();
 	if (!BB)
 	{
@@ -110,7 +101,7 @@ void UWxAIPerceptionComponent::HandleTargetPerceptionUpdated(AActor* Actor, FAIS
 	else if (WxBlackboardKeys::GetTargetActor(BB) == Actor)
 	{
 		// 시야를 잃어도 TargetActor 는 유지한다(보스 등 뒤로 이동 등 일시적 상실).
-		// 마지막 인지 위치만 갱신하고, 실제 해제는 UpdateRecognition 의 리시 이탈 판정에 맡긴다.
+		// 마지막 인지 위치만 갱신하고, 실제 해제는 BT 의 리시 복귀(UWxBTTask_ReturnHome → SetTargetingSuppressed)에 맡긴다.
 		WxBlackboardKeys::SetTargetLastKnownLocation(BB, Stimulus.StimulusLocation);
 	}
 
@@ -120,14 +111,20 @@ void UWxAIPerceptionComponent::HandleTargetPerceptionUpdated(AActor* Actor, FAIS
 
 void UWxAIPerceptionComponent::UpdateRecognition()
 {
-	const APawn* Pawn = GetOwnerPawn();
 	UBlackboardComponent* BB = GetBlackboard();
-	if (!Pawn || !BB)
+	if (!BB)
 	{
 		return;
 	}
 
-	// 죽은 폰은 전투 상태가 아니다. 사망 후에도 계속 도는 리시 폴이 인식을 재부여하지 않도록, 판정 앞에서 인식을 끈다.
+	// 억제(복귀) 중이면 인식을 끈 채로 둔다. 리시 이탈 판정·복귀는 BT 로 이관됐다.
+	if (bTargetingSuppressed)
+	{
+		SetRecognized(false);
+		return;
+	}
+
+	// 죽은 폰은 전투 상태가 아니다. 사망 정리는 HandleDeathTagChanged 가 1회 수행하고, 여기서는 잔여 감지 자극이 인식을 재부여하지 않도록 방어한다.
 	// SetRecognized(false) 가 곧 State.InCombat 제거이며, 이 태그를 감시하는 BGMSourceComponent 가 시체 위에서 계속 재생되는 것을 막는다.
 	if (const UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwnerPawn()))
 	{
@@ -138,26 +135,8 @@ void UWxAIPerceptionComponent::UpdateRecognition()
 		}
 	}
 
-	const AActor* Target = WxBlackboardKeys::GetTargetActor(BB);
-	if (!Target)
-	{
-		// 추적 대상이 없으면 인식도 없다. 조사(LastKnown)/복귀(Home)는 BT 가 처리한다.
-		SetRecognized(false);
-		return;
-	}
-
-	// 리시 이탈 판정: 자신(폰)이 배치 지점(HomeLocation)에서 LeashRadius 이상 벗어나면 추적을 끝내고 TargetActor/LastKnown 을 모두 비워 BT 가 복귀(MoveTo HomeLocation)로 떨어지게 한다.
-	const float PawnHomeDistSquared = FVector::DistSquared(Pawn->GetActorLocation(), WxBlackboardKeys::GetHomeLocation(BB));
-	const bool bExceededLeash = PawnHomeDistSquared > LeashRadius * LeashRadius;
-	if (bExceededLeash)
-	{
-		SetTargetActor(nullptr);
-		WxBlackboardKeys::ClearTargetLastKnownLocation(BB);
-		SetRecognized(false);
-		return;
-	}
-
-	SetRecognized(true);
+	// 추적 대상이 있으면 인식 on, 없으면 off. 조사(LastKnown)/복귀(Home)는 BT 가 처리한다.
+	SetRecognized(WxBlackboardKeys::GetTargetActor(BB) != nullptr);
 }
 
 void UWxAIPerceptionComponent::SetRecognized(bool bNewRecognized)
@@ -184,6 +163,74 @@ void UWxAIPerceptionComponent::SetRecognized(bool bNewRecognized)
 	{
 		ASC->RemoveMinimalReplicationGameplayTag(WxGameplayTags::State_InCombat);
 	}
+}
+
+void UWxAIPerceptionComponent::SetTargetingSuppressed(bool bSuppressed)
+{
+	if (bTargetingSuppressed == bSuppressed)
+	{
+		return;
+	}
+
+	bTargetingSuppressed = bSuppressed;
+
+	// 억제를 켜는 순간, 현재 타겟/마지막 인지 위치와 인식을 함께 해제한다(회전 모드 원복은 SetTargetActor(nullptr)가 담당).
+	// 억제를 끌 때는 상태를 건드리지 않는다 — 다음 감지 자극에서 정상적으로 재획득한다.
+	if (bSuppressed)
+	{
+		SetTargetActor(nullptr);
+		if (UBlackboardComponent* BB = GetBlackboard())
+		{
+			WxBlackboardKeys::ClearTargetLastKnownLocation(BB);
+		}
+		SetRecognized(false);
+	}
+}
+
+void UWxAIPerceptionComponent::BindOwnerDeath()
+{
+	// 재빙의 등으로 중복 바인드되지 않도록 먼저 정리한다.
+	UnbindOwnerDeath();
+
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwnerPawn());
+	if (!ASC)
+	{
+		return;
+	}
+
+	DeathBoundASC = ASC;
+	DeathTagDelegateHandle = ASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
+		.AddUObject(this, &UWxAIPerceptionComponent::HandleDeathTagChanged);
+}
+
+void UWxAIPerceptionComponent::UnbindOwnerDeath()
+{
+	if (UAbilitySystemComponent* ASC = DeathBoundASC.Get())
+	{
+		if (DeathTagDelegateHandle.IsValid())
+		{
+			ASC->UnregisterGameplayTagEvent(DeathTagDelegateHandle, WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved);
+		}
+	}
+	DeathBoundASC = nullptr;
+	DeathTagDelegateHandle.Reset();
+}
+
+void UWxAIPerceptionComponent::HandleDeathTagChanged(const FGameplayTag Tag, int32 NewCount)
+{
+	// 태그 제거(부활)는 무시한다 — 리스폰은 새 액터라 별도 초기화가 필요 없다.
+	if (NewCount <= 0)
+	{
+		return;
+	}
+
+	// 사망: 타겟/마지막 인지 위치와 인식을 정리해 시체 위에 State.InCombat 이 남지 않게 한다(네임플레이트/BGM 잔존 방지).
+	SetTargetActor(nullptr);
+	if (UBlackboardComponent* BB = GetBlackboard())
+	{
+		WxBlackboardKeys::ClearTargetLastKnownLocation(BB);
+	}
+	SetRecognized(false);
 }
 
 void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)
