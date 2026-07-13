@@ -9,6 +9,7 @@
 - 컨트롤러: `AWxPlayerController`(인벤토리 소유·HUD/사망화면 push), `AWxEnemyController`(폰 BT 실행, Perception 위임).
 - 입력 배선: `UWxInputConfig`(IMC + Move/Look + 어빌리티 태그 매핑), 게임플레이 어빌리티 `UWxAbility_Interact`·`UWxAbility_UseItem`, AnimNotify(Footstep/UseItem).
 - 위젯-도메인 접착: `MVVM/` 뷰모델·리졸버(Inventory/Item/BossCharacter/PlayerCharacter/InteractionList) — 도메인 데이터를 WBP에 노출.
+- 컨텍스트 이펙트: `WxContextEffectsComponent`/`Library`/`AnimNotify_ContextEffects` — 표면별 오디오/VFX 로컬 재생.
 - 게임 고유 월드 오브젝트: `AWxCheckPoint`(AWxGimmick 상속 모닥불형 부활 지점), `AWxLaserCorridor`(AWxGimmick 상속 트랩).
 
 **경계 (비담당)**
@@ -28,25 +29,28 @@
 | --- | --- | --- |
 | `AWxGameMode` | 게임 골격 진입점. 세이브 트랜스폼·스탯·카메라 복원, 프레임워크 컴포넌트 주입(시작지점은 엔진 기본 ChoosePlayerStart) | `Source/WxGame/Framework/WxGameMode.h` |
 | `AWxGameState` | ModularGameplay 컴포넌트 receiver(GameMode가 주입, 무엇이 붙는지 모름) | `Source/WxGame/Framework/WxGameState.h` |
-| `AWxCharacterBase` | 플레이어·적 공통 베이스. ASC/AttributeSet/장비/모션워핑 직접 소유, 팀·사망·SPD 이동 반영 | `Source/WxGame/Character/WxCharacterBase.h` |
+| `AWxCharacterBase` | 플레이어·적 공통 Abstract 베이스. ASC/AttributeSet/장비/모션워핑 직접 소유, 팀·사망·SPD 이동 반영 | `Source/WxGame/Character/WxCharacterBase.h` |
 | `AWxPlayerCharacter` | 3인칭 카메라 + Enhanced Input + 어빌리티 입력·락온·상호작용 위젯 소유 | `Source/WxGame/Character/WxPlayerCharacter.h` |
 | `AWxEnemyCharacter` | BT 구동 적. 처형 어포던스(앞잡/뒤잡)·보상 지급, `IWxSpawnableInterface` (`AWxBossCharacter`가 파생) | `Source/WxGame/Character/WxEnemyCharacter.h` |
 | `AWxPlayerController` | 소유 클라이언트 인벤토리(`UWxInventoryManagerComponent`) 소유, HUD/사망화면 push, 캐릭터 사망 바인딩 | `Source/WxGame/Controller/WxPlayerController.h` |
+| `AWxEnemyController` | 폰 BT 실행·BB 컨텍스트 키 세팅, Perception→BB 동기화는 컴포넌트에 위임 | `Source/WxGame/Controller/WxEnemyController.h` |
 | `UWxInputConfig` | IMC + Move/Look/Jump/Crouch + 어빌리티 태그 바인딩 DataAsset | `Source/WxGame/Input/WxInputConfig.h` |
 
 ## 확장 포인트 / 규약
-- 새 캐릭터/적/보스는 `AWxPlayerCharacter`/`AWxEnemyCharacter`/`AWxBossCharacter`를 BP 상속 후 컴포넌트(무기 `ChildActorClass`, `BehaviorTreeAsset`, `RewardRow`, BGM 태그 등)를 디폴트에서 지정. ASC는 PlayerState가 아닌 캐릭터가 직접 소유(리스폰 시 스탯 재초기화).
+- 새 캐릭터/적/보스는 `AWxPlayerCharacter`/`AWxEnemyCharacter`/`AWxBossCharacter`를 BP 상속 후 컴포넌트(무기 `ChildActorClass`, `BehaviorTreeAsset`, `RewardRow`, ContextEffects 라이브러리, BGM 태그 등)를 디폴트에서 지정. ASC는 PlayerState가 아닌 캐릭터가 직접 소유(리스폰 시 스탯 재초기화).
 - 입력 확장은 `UWxInputConfig` DataAsset의 `AbilityInputBindings`(InputAction→InputTag). 메뉴/UI 입력은 여기 넣지 않고 CommonUI 액션([[WxUI]] `WxHUDLayout`)으로.
 - GameMode `FrameworkComponents`(EditDefaultsOnly)에 프레임워크 컴포넌트 클래스를 추가하면 GameState 등 receiver에 자동 주입(GameState는 무엇이 붙는지 모른다).
+- 새 월드 오브젝트/기믹은 [[WxWorld]] `AWxGimmick` 상속(예: `AWxCheckPoint`, `AWxLaserCorridor`). 권위 State만 C++가 확정하고 비주얼·스폰은 GimmickStateTree가 담당하는 패턴.
 - 신규 세션 시작지점은 레벨에 배치한 일반 `APlayerStart`(엔진 기본 ChoosePlayerStart)가 담당. `AWxCheckPoint`는 순수 부활 지점으로, 상호작용 시 자기 트랜스폼을 `RespawnTransform`으로 저장해 사망/재로드 부활에 쓴다.
+- WBP의 View Bindings에서 Creation Type = Resolver로 `MVVM/`의 리졸버를 선택하면 게임 상태를 [[WxUI]] 뷰모델에 주입.
 
 ## 여기서부터 읽어라
 1. `Source/WxGame/Framework/WxGameMode.h` — 게임 부팅·스폰·세이브 복원의 조립 지점, 위임 구조가 한눈에.
-2. `Source/WxGame/Character/WxCharacterBase.h` — 캐릭터가 어떤 도메인 컴포넌트(ASC/장비/모션워핑)를 조립하는지 = 모듈 경계의 축소판.
+2. `Source/WxGame/Character/WxCharacterBase.h` — 캐릭터가 어떤 도메인 컴포넌트(ASC/장비/모션워핑/컨텍스트 이펙트)를 조립하는지 = 모듈 경계의 축소판.
 3. `Source/WxGame/Controller/WxPlayerController.h` — 인벤토리 소유 위치와 HUD/사망 UI 흐름.
 
 ## 관련
 - 함께: [[WxCombat]] · [[WxInventory]] · [[WxWorld]] · [[WxAI]] · [[WxUI]] · [[WxSound]] · [[WxSave]] · [[WxCore]]
 
 ---
-*문서 기준 커밋 `d0c804a` · 생성일 2026-07-12 · 소스 48파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `d8c7d4e` · 생성일 2026-07-13 · 소스 52파일 — `/readme-writer`로 갱신*
