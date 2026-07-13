@@ -4,12 +4,12 @@
 
 ## 책임
 **담당**
-- 게임 프레임워크: `AWxGameMode`(스폰 지점 선택 위임·저장 트랜스폼 복원·ModularGameplay 프레임워크 컴포넌트 주입), `AWxGameState`(컴포넌트 receiver), `AWxPlayerState`(세션 상태 거주처, 현재 비어있음), `UWxPlayerSpawningComponent`(Lyra 패턴 PlayerStart 선택).
+- 게임 프레임워크: `AWxGameMode`(저장 트랜스폼 복원·ModularGameplay 프레임워크 컴포넌트 주입), `AWxGameState`(컴포넌트 receiver), `AWxPlayerState`(세션 상태 거주처, 현재 비어있음).
 - 캐릭터 계층: `AWxCharacterBase`(ASC 직접 소유 + 3개 인터페이스 구현) → `AWxPlayerCharacter`(카메라/입력), `AWxEnemyCharacter`(BehaviorTree/처형 어포던스/보상) → `AWxBossCharacter`.
 - 컨트롤러: `AWxPlayerController`(인벤토리 소유·HUD/사망화면 push), `AWxEnemyController`(폰 BT 실행, Perception 위임).
 - 입력 배선: `UWxInputConfig`(IMC + Move/Look + 어빌리티 태그 매핑), 게임플레이 어빌리티 `UWxAbility_Interact`·`UWxAbility_UseItem`, AnimNotify(Footstep/UseItem).
 - 위젯-도메인 접착: `MVVM/` 뷰모델·리졸버(Inventory/Item/BossCharacter/PlayerCharacter/InteractionList) — 도메인 데이터를 WBP에 노출.
-- 게임 고유 월드 오브젝트: `AWxCheckPoint`(APlayerStart 상속 모닥불형 부활 지점), `AWxLaserCorridor`(AWxGimmick 상속 트랩).
+- 게임 고유 월드 오브젝트: `AWxCheckPoint`(AWxGimmick 상속 모닥불형 부활 지점), `AWxLaserCorridor`(AWxGimmick 상속 트랩).
 
 **경계 (비담당)**
 - ASC/AttributeSet/무기/락온/처형 규칙 정의는 [[WxCombat]] (본 모듈은 컴포넌트를 조립·소유만).
@@ -26,9 +26,8 @@
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `AWxGameMode` | 게임 골격 진입점. 스폰 선택을 `UWxPlayerSpawningComponent`에 위임, 세이브 트랜스폼·스탯·카메라 복원, 프레임워크 컴포넌트 주입 | `Source/WxGame/Framework/WxGameMode.h` |
+| `AWxGameMode` | 게임 골격 진입점. 세이브 트랜스폼·스탯·카메라 복원, 프레임워크 컴포넌트 주입(시작지점은 엔진 기본 ChoosePlayerStart) | `Source/WxGame/Framework/WxGameMode.h` |
 | `AWxGameState` | ModularGameplay 컴포넌트 receiver(GameMode가 주입, 무엇이 붙는지 모름) | `Source/WxGame/Framework/WxGameState.h` |
-| `UWxPlayerSpawningComponent` | PlayerStart 선택 로직 소유(Lyra 패턴): PIE → 저장 태그 → `bIsDefaultStart` 체크포인트 | `Source/WxGame/Framework/WxPlayerSpawningComponent.h` |
 | `AWxCharacterBase` | 플레이어·적 공통 베이스. ASC/AttributeSet/장비/모션워핑 직접 소유, 팀·사망·SPD 이동 반영 | `Source/WxGame/Character/WxCharacterBase.h` |
 | `AWxPlayerCharacter` | 3인칭 카메라 + Enhanced Input + 어빌리티 입력·락온·상호작용 위젯 소유 | `Source/WxGame/Character/WxPlayerCharacter.h` |
 | `AWxEnemyCharacter` | BT 구동 적. 처형 어포던스(앞잡/뒤잡)·보상 지급, `IWxSpawnableInterface` (`AWxBossCharacter`가 파생) | `Source/WxGame/Character/WxEnemyCharacter.h` |
@@ -39,7 +38,7 @@
 - 새 캐릭터/적/보스는 `AWxPlayerCharacter`/`AWxEnemyCharacter`/`AWxBossCharacter`를 BP 상속 후 컴포넌트(무기 `ChildActorClass`, `BehaviorTreeAsset`, `RewardRow`, BGM 태그 등)를 디폴트에서 지정. ASC는 PlayerState가 아닌 캐릭터가 직접 소유(리스폰 시 스탯 재초기화).
 - 입력 확장은 `UWxInputConfig` DataAsset의 `AbilityInputBindings`(InputAction→InputTag). 메뉴/UI 입력은 여기 넣지 않고 CommonUI 액션([[WxUI]] `WxHUDLayout`)으로.
 - GameMode `FrameworkComponents`(EditDefaultsOnly)에 프레임워크 컴포넌트 클래스를 추가하면 GameState 등 receiver에 자동 주입(GameState는 무엇이 붙는지 모른다).
-- 부활/시작 지점은 `AWxCheckPoint`를 배치하고 `PlayerStartTag`를 고유 지정, 레벨당 하나만 `bIsDefaultStart` 지정(Map Check가 태그 누락·중복을 검증).
+- 신규 세션 시작지점은 레벨에 배치한 일반 `APlayerStart`(엔진 기본 ChoosePlayerStart)가 담당. `AWxCheckPoint`는 순수 부활 지점으로, 상호작용 시 자기 트랜스폼을 `RespawnTransform`으로 저장해 사망/재로드 부활에 쓴다.
 
 ## 여기서부터 읽어라
 1. `Source/WxGame/Framework/WxGameMode.h` — 게임 부팅·스폰·세이브 복원의 조립 지점, 위임 구조가 한눈에.

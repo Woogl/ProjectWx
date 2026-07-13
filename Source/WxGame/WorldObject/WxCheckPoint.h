@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/PlayerStart.h"
+#include "Gimmick/WxGimmick.h"
 #include "WxCheckPoint.generated.h"
 
 class UGameplayEffect;
@@ -11,58 +11,37 @@ class UStaticMeshComponent;
 class UWxInteractionComponent;
 
 /**
- * 체크 포인트.
- * 플레이어가 상호작용하면 HP를 최대치로 회복시키고, 이 지점을 부활 지점으로 저장한다.
+ * 체크 포인트(다크소울 모닥불).
+ * 플레이어가 상호작용하면 HP를 최대치로 회복시키고, 충전형 아이템을 리필하며, 적을 리스폰하고, 이 지점을 부활 지점으로 저장한다.
  * HealEffect 프로퍼티에 HP를 MaxHP로 설정하는 GameplayEffect를 지정해야 한다.
  *
- * 영속 State·StateTree 가 없는 반복형 즉시 효과(다크소울 모닥불)라 기믹 인프라(AWxGimmick) 대신 APlayerStart 를 상속한다.
- * APlayerStart 상속으로 배치된 인스턴스가 GameMode 의 ChoosePlayerStart 흐름에서 부활/시작 지점 후보가 된다.
+ * AWxGimmick 자식이다. 상호작용 시 State 를 Lit(불 켜짐)으로 확정하며, 이 상태는 복제 + SaveGame 으로 지속된다(한 번 불이 붙으면 재로드 후에도 유지).
+ * 불 켜짐 비주얼은 GimmickStateTree(자식 BP 에서 ST 에셋 할당)가 Lit 상태에서 적용한다.
  *
- * 식별자(PlayerStartTag)는 디자이너가 인스턴스마다 고유하게 직접 지정한다(예: "CP_Chapel").
- * 부활 지점은 이 태그로 저장·복원된다.
- * 최초 접속(저장된 시작지점 없음) 시 시작지점은 bIsDefaultStart 으로 지정한다.
- * 태그 미지정·중복·bIsDefaultStart 다중은 CheckForErrors(Map Check) 가 에디터에서 잡는다.
+ * 부활 지점은 좌표(RespawnTransform)로 저장된다: 상호작용 시 자기 트랜스폼을 SaveSubsystem 에 세팅하고, 로드/사망 재개 시 AWxGameMode::SpawnDefaultPawnAtTransform 이 그 위치로 스폰한다.
+ * 신규 세션(저장 없음) 시작지점은 체크포인트가 아니라 레벨에 배치된 일반 APlayerStart(엔진 기본 ChoosePlayerStart)가 담당한다.
  */
 UCLASS(Abstract)
-class AWxCheckPoint : public APlayerStart
+class AWxCheckPoint : public AWxGimmick
 {
 	GENERATED_BODY()
 
 public:
-	AWxCheckPoint(const FObjectInitializer& ObjectInitializer);
-
-	/** 최초 접속 시작지점으로 지정됐는지 여부. 스폰 컴포넌트가 시작지점 후보 판정에 사용한다. */
-	bool IsDefaultStart() const;
-
-#if WITH_EDITOR
-	//~ Begin AActor
-	// 복제본은 원본의 PlayerStartTag·bIsDefaultStart 을 복사받는다.
-	// 초기화해 "명백히 미완성" 상태로 만들어 아래 CheckForErrors 가 잡게 한다.
-	virtual void PostDuplicate(EDuplicateMode::Type DuplicateMode) override;
-	// Map Check: 태그 미지정·다른 PlayerStart 와 태그 중복·bIsDefaultStart 다중 지정을 에러로 리포트한다.
-	virtual void CheckForErrors() override;
-	//~ End AActor
-#endif
+	AWxCheckPoint();
 
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	// VisibleAnywhere + AllowPrivateAccess: StateTree 태스크(불 켜짐 비주얼·인터랙션 토글)가 Context 액터의 컴포넌트로 바인딩하기 위한 노출.
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UWxInteractionComponent> InteractionComponent;
 
 	/** 상호작용 시 적용할 회복 GameplayEffect. HP를 MaxHP로 설정하는 GE를 지정한다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TSubclassOf<UGameplayEffect> HealEffect;
-
-	/**
-	 * true 면 이 레벨 최초 접속(저장된 시작지점 없음) 시 시작지점으로 사용된다.
-	 * 레벨당 정확히 1개에만 지정한다.
-	 */
-	UPROPERTY(EditInstanceOnly, Category = "Wx")
-	bool bIsDefaultStart = false;
 
 private:
 	UFUNCTION()

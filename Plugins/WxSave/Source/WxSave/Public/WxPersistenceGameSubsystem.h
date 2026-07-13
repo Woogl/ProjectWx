@@ -50,7 +50,7 @@ public:
 
 	/**
 	 * TravelData.Map 으로 ServerTravel 한다(authority 전제). Map 이 비면(구버전 파일/신규 슬롯) 현재 맵 리로드로 폴백한다(샘플은 경고 후 중단 — Wx 는 사망 리스폰 경로가 리로드에 의존).
-	 * 액터 복원은 새 월드의 UWxPersistenceWorldSubsystem 이, 플레이어 스폰은 GameMode 가 TravelData 폰 트랜스폼 우선 + PlayerStartTag 폴백으로 담당한다.
+	 * 액터 복원은 새 월드의 UWxPersistenceWorldSubsystem 이, 플레이어 스폰은 GameMode 가 RespawnTransform 우선 + ChoosePlayerStart 폴백으로 담당한다.
 	 */
 	void TravelFromSaveFile();
 
@@ -69,11 +69,11 @@ public:
 
 	void SetPersistenceTravelData(FWxPersistenceTravelData InTravelData);
 
-	/** 부활/시작 진입점 PlayerStartTag 를 메모리 슬롯에 기록한다(다음 SaveToFile 이 디스크 영속). 레벨 시작·체크포인트 상호작용 시 호출된다. */
-	void SetPlayerStartTag(FName InPlayerStartTag);
+	/** 부활 지점 트랜스폼을 메모리 슬롯에 기록한다(다음 SaveToFile 이 디스크 영속). 체크포인트 상호작용 시 자기 트랜스폼으로 호출된다. */
+	void SetRespawnTransform(const FTransform& InRespawnTransform);
 
-	/** GameMode 스폰 경로가 호출. 저장된 부활/시작 PlayerStartTag 를 반환한다(미설정이면 NAME_None). */
-	FName GetPlayerStartTag() const;
+	/** GameMode 스폰 경로가 호출. 저장된 부활 지점 트랜스폼을 반환한다(미설정이면 Identity). */
+	FTransform GetRespawnTransform() const;
 
 	/** 새 월드의 UWxPersistenceWorldSubsystem::OnWorldBeginPlay 가 호출 — 트래블 완료를 보고받아 가드를 해제한다. */
 	void ReportTravelFromSaveFileComplete(UWorld* World);

@@ -31,11 +31,11 @@ public:
 	DECLARE_MULTICAST_DELEGATE(FOnSaveFlushComplete);
 
 	/**
-	 * 디스크 기록 전, 라이브 상태를 SaveGame 에 플러시한다: 맵 트래블 데이터(teardown 중엔 스킵 — 맵 전환을 일으킨 게임 코드가 다음 시작 지점의 소유자) + IWxSavable 액터 전체.
-	 * bCapturePlayerTransform 이면 플레이어 폰 트랜스폼도 캡처한다(명시 저장 전용 — 오토세이브는 false 라 위치가 리셋된 채 남아 사망 리스폰이 체크포인트로 폴백).
+	 * 디스크 기록 전, 라이브 상태를 SaveGame 에 플러시한다: 맵 트래블 데이터(teardown 중엔 스킵 — 맵 전환을 일으킨 게임 코드가 다음 시작 지점의 소유자) + 플레이어 스탯 + IWxSavable 액터 전체.
+	 * 부활 지점(RespawnTransform)은 체크포인트가 직접 세팅하므로 여기서 캡처하지 않는다.
 	 * OnComplete 는 플러시 완료 후 발화한다(현재 동기라 반환 전 즉시).
 	 */
-	void RequestSaveFlush(bool bCapturePlayerTransform, FOnSaveFlushComplete::FDelegate OnComplete);
+	void RequestSaveFlush(FOnSaveFlushComplete::FDelegate OnComplete);
 
 	/** 플레이어 액터의 ASC 어트리뷰트 base 값을 OutStats 에 캡처한다(복제되는 것만 — 비복제 메타 제외). ASC 부재 시 noop. GAS 만 알고 구체 AttributeSet 타입엔 무관하다. */
 	static void CapturePlayerStats(AActor* PlayerActor, TMap<FName, float>& OutStats);
@@ -59,9 +59,6 @@ private:
 
 	/** 첫 플레이어 폰의 어트리뷰트를 SaveGame 최상위 PlayerStats 로 캡처한다(명시적 저장 경로 공통 — 체크포인트·메뉴 모두). */
 	void FlushPlayerStats();
-
-	/** 첫 플레이어 폰의 월드 트랜스폼을 SaveGame TravelData.PlayerTransform 으로 캡처한다(명시 저장 전용 — 로드 후 저장 지점 복원). */
-	void FlushPlayerTransform();
 
 	/** 액터+컴포넌트의 UPROPERTY(SaveGame) 를 레코드로 직렬화하고 버전 헤더를 갱신한다. */
 	void CaptureActor(UWxPersistenceSaveGame& SaveGame, AActor* Actor);

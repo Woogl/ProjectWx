@@ -109,6 +109,9 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_TreasureChest_Closed);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_TreasureChest_Open);
 
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_CheckPoint_Unlit);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_CheckPoint_Lit);
+
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_LaserCorridor_Active);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_LaserCorridor_Deactivated);
 

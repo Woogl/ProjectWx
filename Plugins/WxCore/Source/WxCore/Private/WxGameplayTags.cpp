@@ -48,6 +48,9 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_TreasureChest_Closed, "Gimmick.TreasureChest.Closed");
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_TreasureChest_Open, "Gimmick.TreasureChest.Open");
 
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_CheckPoint_Unlit, "Gimmick.CheckPoint.Unlit");
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_CheckPoint_Lit, "Gimmick.CheckPoint.Lit");
+
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_LaserCorridor_Active, "Gimmick.LaserCorridor.Active");
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_LaserCorridor_Deactivated, "Gimmick.LaserCorridor.Deactivated");
 
