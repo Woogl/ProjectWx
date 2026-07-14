@@ -30,20 +30,8 @@ void UWxPersistenceGameSubsystem::Initialize(FSubsystemCollectionBase& Collectio
 {
 	Super::Initialize(Collection);
 
-#if WITH_EDITOR
-	// PIE 반복 테스트: 기본 슬롯을 메모리로만 자동 로드한다(트래블 없음 — 최초 월드의 초기화 복원이 자연 적용). 파일 부재 시 LoadFromFile 이 새 슬롯으로 리셋한다.
-	// PIE 는 InitializeForPlayInEditor 가 WorldContext 세팅 후 Init() 을 호출하므로 이 시점 WorldType 판별이 안전하다(월드 포인터 유효성 가정 불필요).
-	const FWorldContext* WorldContext = GetGameInstance() ? GetGameInstance()->GetWorldContext() : nullptr;
-	if (WorldContext && WorldContext->WorldType == EWorldType::PIE)
-	{
-		UE_LOG(LogWxSave, Log, TEXT("Initialize: PIE 감지 — 기본 슬롯 '%s' 자동 로드 시도"), WxPersistence::DefaultSlotName);
-		LoadFromFile(WxPersistence::DefaultSlotName, 0, /*bStartTravel=*/false);
-		return;
-	}
-#endif
-
-	// 비 PIE(스탠드얼론/패키지): 빈 새 슬롯으로 시작해 기존 "신선한 시작" 의미론을 유지한다. 이후 로드는 UI 의 LoadFromFile 몫이다.
-	StartNewSaveFile(WxPersistence::DefaultSlotName, 0, UWxPersistenceSaveGame::StaticClass());
+	// PIE·스탠드얼론·패키지 모두 빈 새 SaveGame 으로 시작한다("신선한 시작" 의미론). 슬롯 이름은 체크포인트 오토세이브·UI 로드가 쓸 디스크 파일명이며, 이후 로드는 UI 의 LoadFromFile 몫이다.
+	StartNewSaveFile(TEXT("Test"), 0, UWxPersistenceSaveGame::StaticClass());
 }
 
 UWxPersistenceSaveGame* UWxPersistenceGameSubsystem::StartNewSaveFile(const FString& SlotName, int32 UserIndex, TSubclassOf<UWxPersistenceSaveGame> SpecificClass)
@@ -61,7 +49,7 @@ UWxPersistenceSaveGame* UWxPersistenceGameSubsystem::StartNewSaveFile(const FStr
 		return nullptr;
 	}
 
-	NewSaveGame->SlotName = SlotName.IsEmpty() ? WxPersistence::DefaultSlotName : SlotName;
+	NewSaveGame->SlotName = SlotName;
 	NewSaveGame->UserIndex = UserIndex;
 
 	SaveGame = NewSaveGame;

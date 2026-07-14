@@ -26,7 +26,7 @@
 | `USaveFilePersistenceUtils` | `UWxSaveFilePersistenceUtils` | BFL 5함수 동일 + `GetDefaultSlotName`(Wx 추가) |
 | `UPersistenceUtilsSettings` | (없음) | Wx 는 설정 클래스 미도입 — 아래 흡수 후보 |
 
-Wx 유지분(샘플에 없음): `SetPlayerStartTag`/`GetPlayerStartTag`, `GetStableMapPackageName`(PIE 접두사 제거 맵 키 표현의 단일 출처), `Wx.Save.Dump` 콘솔 명령, `WxPersistence::DefaultSlotName = "Test"` 상수.
+Wx 유지분(샘플에 없음): `SetPlayerStartTag`/`GetPlayerStartTag`, `GetStableMapPackageName`(PIE 접두사 제거 맵 키 표현의 단일 출처), `Wx.Save.Dump` 콘솔 명령.
 
 ---
 
@@ -54,8 +54,7 @@ Wx 는 이를 채택하지 않았다:
 | 트래블 수단 | `UGameplayStatics::OpenLevel` | `ServerTravel(bAbsolute=true)` | 스탠드얼론에서 기능 차 없음, 기존 검증 경로·authority 게이트와 일관 |
 | 폰 위치 복원 | 저장 트랜스폼에 `APlayerStartPIE` 스폰(엔진 관례 의존) | `AWxGameMode::SpawnDefaultPawnFor`/`FinishRestartPlayer` 오버라이드 + `UWxPlayerSpawningComponent::TryGetSavedPawnSpawn` 판정(맵 일치 게이트) | 샘플 주석 스스로 GameMode 오버라이드가 가장 신뢰성 높다고 권고 — Wx 는 스포닝을 직접 소유 |
 | `RequestSaveFlush` | Mass 스냅샷을 FrameEnd 페이즈 경계로 지연 + teardown 페일세이프 | 전부 동기, 완료 델리게이트는 즉시 발화(비동기 도입 대비 seam 만 유지) | Wx 에 페이즈 제약이 있는 작업(Mass)이 없음 |
-| PIE 판별 | `GetWorld()->IsPlayInEditor()` | `WorldContext->WorldType == EWorldType::PIE` | Initialize 시점 월드 포인터 유효성 가정이 불필요해 더 견고 |
-| Initialize 의 SaveGame 보장 | PIE 에서만 자동 로드/생성 | PIE 자동 로드 + **비 PIE 도 `StartNewSaveFile`** | 체크포인트/UI 가 활성 SaveGame 을 전제 — 흩어진 EnsureSaveObject 를 init 보장 + null 경고 가드로 대체 |
+| Initialize 의 SaveGame 보장 | PIE 에서 `PIETestFile` 자동 로드/생성 | 모드 무관 항상 `StartNewSaveFile`(자동 로드 없음 — 매 시작이 빈 새 슬롯) | 체크포인트/UI 가 활성 SaveGame 을 전제 — 흩어진 EnsureSaveObject 를 init 보장 + null 경고 가드로 대체. PIE 반복 테스트용 자동 로드는 제거(매 PIE 는 신선한 시작) |
 | 버전 헤더 | IAM 블롭에 내장(2패스 직렬화) | 레코드의 별도 UPROPERTY 블롭(1패스) | 헤더가 블롭 밖이라 본체 포맷 불변·구버전 하위호환이 공짜 |
 | 델리게이트 콜백 네이밍 | `On*` | `Handle*` | Wx 코딩 규칙 6 이 우선 |
 | 로드 가드 소유 | `bTravelingFromSaveFile`(게임 서브시스템) — 동일 | 동일 이식. 해제는 새 월드 `OnWorldBeginPlay` 의 보고(샘플 시점 동일) | 트래블 중 자동 캡처가 막 로드한 세이브를 덮어쓰는 오염 방지 |

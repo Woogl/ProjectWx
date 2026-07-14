@@ -10,17 +10,11 @@
 
 class UWorld;
 
-namespace WxPersistence
-{
-	/** 개발 단계 기본 슬롯 이름. 체크포인트 저장·PIE 자동 로드·UI 가 공유한다. */
-	inline constexpr const TCHAR* DefaultSlotName = TEXT("Test");
-}
-
 /**
  * 메모리 SaveGame 의 수명·디스크 I/O·맵 트래블을 담당하는 GameInstance 서브시스템 (샘플 UPersistenceGameSubsystem 골격 이식).
  * 슬롯 정체성(SlotName/UserIndex)은 SaveGame 이 보유하므로 SaveToFile 은 무인자다.
  * GameInstanceSubsystem 이라 SaveGame 이 맵 트래블을 가로질러 유지되고, 월드 단위 플러시/복원 오케스트레이션은 UWxPersistenceWorldSubsystem 이 맡는다.
- * Initialize 가 활성 SaveGame 을 항상 보장한다: PIE 는 기본 슬롯 자동 로드(실패 시 새 파일), 그 외는 새 파일 시작.
+ * Initialize 가 활성 SaveGame 을 항상 보장한다: 모드(PIE/스탠드얼론/패키지) 무관하게 항상 빈 새 파일로 시작하고, 이후 로드는 UI 의 LoadFromFile 몫이다.
  */
 UCLASS()
 class WXSAVE_API UWxPersistenceGameSubsystem : public UGameInstanceSubsystem
@@ -35,7 +29,7 @@ public:
 	/** LoadFromFile 트래블 시작 ~ 새 월드 복원 완료(BeginPlay 보고) 사이 true. 월드 서브시스템의 자동 캡처가 이 동안 스킵돼 막 로드한 세이브의 오염을 막는다. */
 	bool IsTravelingFromSaveFile() const { return bTravelingFromSaveFile; }
 
-	/** SpecificClass 의 새 SaveGame 을 만들어 활성 슬롯으로 등록한다. SlotName 이 비면 기본 슬롯 이름을 쓴다. @return 생성 실패 시 nullptr. */
+	/** SpecificClass 의 새 SaveGame 을 만들어 활성 슬롯으로 등록한다. SlotName 은 그대로 슬롯 정체성이 되므로 유효한 이름을 넘겨야 한다. @return 생성 실패 시 nullptr. */
 	UWxPersistenceSaveGame* StartNewSaveFile(const FString& SlotName, int32 UserIndex, TSubclassOf<UWxPersistenceSaveGame> SpecificClass);
 
 	/**

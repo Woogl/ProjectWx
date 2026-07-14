@@ -18,7 +18,7 @@ class WXSAVE_API UWxSaveFilePersistenceUtils : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
-	/** SpecificClass 의 새 SaveGame 을 만들어 활성 슬롯으로 등록하고 반환한다. SlotName 이 비면 기본 슬롯 이름을 쓴다. */
+	/** SpecificClass 의 새 SaveGame 을 만들어 활성 슬롯으로 등록하고 반환한다. SlotName 은 그대로 슬롯 정체성이 되므로 유효한 이름을 넘겨야 한다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
 	static UWxPersistenceSaveGame* StartNewSaveFile(const UObject* WorldContextObject, const FString& SlotName, int32 UserIndex, TSubclassOf<UWxPersistenceSaveGame> SpecificClass);
 
