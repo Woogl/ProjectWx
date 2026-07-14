@@ -7,6 +7,7 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_Interact.generated.h"
 
+class UAnimMontage;
 class UWxInteractionComponent;
 class UWxInteractionRegistrySubsystem;
 
@@ -28,7 +29,7 @@ class UWxInteractionRegistrySubsystem;
  *  - 서버(원격 클라 처리): 구독한 TargetData를 받아 선택 컴포넌트의 TryInteract 호출(권한) 후 EndAbility
  *  - 선택이 없으면 무동작. 사망(State.Dead) 중에는 ActivationBlockedTags로 활성화 자체가 막힌다.
  */
-UCLASS()
+UCLASS(Abstract)
 class WXGAME_API UWxAbility_Interact : public UWxAbilityBase
 {
 	GENERATED_BODY()
@@ -38,10 +39,10 @@ public:
 
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual void OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
-	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 	/** 주변 상호작용 볼륨을 수집할 반경(cm). */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Interact")
@@ -50,6 +51,17 @@ protected:
 	/** 스캔 주기(초). */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Interact")
 	float ScanInterval = 0.1f;
+
+	/**
+	 * 상호작용 시 재생할 몽타주. 미설정이면 종전대로 즉시 실행 후 종료한다(모션 없음).
+	 * 설정 시 활성화 즉시 상호작용을 실행하고, 몽타주 재생이 끝날 때 어빌리티를 종료한다.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Interact")
+	TObjectPtr<UAnimMontage> InteractMontage = nullptr;
+
+	/** 대상 응시 회전 보간 속도. 클수록 빨리 돌아본다. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Interact")
+	float FacingInterpSpeed = 10.f;
 
 private:
 	/**
@@ -88,6 +100,23 @@ private:
 	 * 레지스트리 멤버십 갱신(UpdateInRange) 직후 호출해 표시를 lockstep으로 유지한다(로컬 표시 전용).
 	 */
 	void PushSelectionToViewModel(UWxInteractionRegistrySubsystem* Registry);
+
+	/**
+	 * 상호작용 몽타주를 재생하고(있으면), 로컬 컨트롤 인스턴스에서는 대상 쪽으로 서서히 회전(응시)을 시작한다.
+	 * 몽타주를 재생했으면 true — 이 경우 어빌리티는 즉시 끝나지 않고 몽타주 종료 델리게이트에서 종료된다.
+	 * 몽타주가 없거나 대상이 없으면 false — 호출자가 종전대로 즉시 EndAbility 한다.
+	 */
+	bool PlayInteractMontage(UWxInteractionComponent* Target);
+
+	//~ 몽타주 종료 계열 — 재생이 끝나면 어빌리티를 종료한다(Interrupted/Cancelled 는 취소 종료).
+	UFUNCTION()
+	void HandleInteractMontageCompleted();
+	UFUNCTION()
+	void HandleInteractMontageBlendOut();
+	UFUNCTION()
+	void HandleInteractMontageInterrupted();
+	UFUNCTION()
+	void HandleInteractMontageCancelled();
 
 	/** 주기 스캔 타이머 핸들. OnGiveAbility에서 설정, OnRemoveAbility에서 해제. */
 	FTimerHandle ScanTimerHandle;

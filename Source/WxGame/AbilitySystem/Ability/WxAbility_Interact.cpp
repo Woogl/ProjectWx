@@ -2,6 +2,8 @@
 
 #include "AbilitySystem/Ability/WxAbility_Interact.h"
 #include "AbilitySystem/TargetData/WxAbilityTargetData_Interaction.h"
+#include "AbilitySystem/Task/WxAbilityTask_TurnAround.h"
+#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystemComponent.h"
 #include "Engine/GameInstance.h"
 #include "Engine/LocalPlayer.h"
@@ -39,16 +41,6 @@ void UWxAbility_Interact::OnGiveAbility(const FGameplayAbilityActorInfo* ActorIn
 	StartScanTimer(ActorInfo);
 }
 
-void UWxAbility_Interact::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
-{
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-
-	// 엔진 EndAbility는 이 어빌리티의 모든 월드 타이머를 비운다(ClearAllTimersForObject).
-	// 감지는 부여 동안 상시여야 하므로 활성화(상호작용)가 끝나도 스캔 타이머를 다시 건다.
-	// 어빌리티 제거 경로면 직후 OnRemoveAbility가 타이머를 최종 정리한다.
-	StartScanTimer(ActorInfo);
-}
-
 void UWxAbility_Interact::OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
 	// 어빌리티 제거(언포제스/사망 리스폰 등) 시 스캔 타이머를 해제하고 잔여 후보를 비워 HUD 리스트·하이라이트를 정리한다.
@@ -81,8 +73,14 @@ void UWxAbility_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	if (HasAuthority(&ActivationInfo) && IsLocallyControlled())
 	{
 		// 리슨 호스트/단일 PIE: 로컬 선택을 직접 읽어 즉시 실행(RPC 왕복 불필요).
-		ExecuteInteract(GetLocalSelectedComponent(ActorInfo), ActorInfo);
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		UWxInteractionComponent* Selected = GetLocalSelectedComponent(ActorInfo);
+		ExecuteInteract(Selected, ActorInfo);
+
+		// 몽타주가 있으면 재생+응시하고 몽타주 종료 시 끝낸다. 없으면 종전대로 즉시 종료.
+		if (!PlayInteractMontage(Selected))
+		{
+			EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		}
 		return;
 	}
 
@@ -98,13 +96,15 @@ void UWxAbility_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		return;
 	}
 
-	// 원격 클라: 로컬 선택을 TargetData로 서버에 전송한 뒤 종료.
+	// 원격 클라: 로컬 선택을 TargetData로 서버에 전송한다.
 	// 선택이 없으면 null을 보내 서버가 무동작하게 한다.
 	FScopedPredictionWindow ScopedPrediction(ASC);
 
+	UWxInteractionComponent* Selected = GetLocalSelectedComponent(ActorInfo);
+
 	FGameplayAbilityTargetDataHandle DataHandle;
 	FWxAbilityTargetData_Interaction* TargetData = new FWxAbilityTargetData_Interaction();
-	TargetData->Component = GetLocalSelectedComponent(ActorInfo);
+	TargetData->Component = Selected;
 	DataHandle.Add(TargetData);
 
 	ASC->CallServerSetReplicatedTargetData(
@@ -114,7 +114,21 @@ void UWxAbility_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		FGameplayTag(),
 		ASC->ScopedPredictionKey);
 
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+	// 예측 클라에서 몽타주+응시를 재생하고 몽타주 종료 시 끝낸다. 없으면 종전대로 즉시 종료.
+	if (!PlayInteractMontage(Selected))
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+	}
+}
+
+void UWxAbility_Interact::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
+	// 엔진 EndAbility는 이 어빌리티의 모든 월드 타이머를 비운다(ClearAllTimersForObject).
+	// 감지는 부여 동안 상시여야 하므로 활성화(상호작용)가 끝나도 스캔 타이머를 다시 건다.
+	// 어빌리티 제거 경로면 직후 OnRemoveAbility가 타이머를 최종 정리한다.
+	StartScanTimer(ActorInfo);
 }
 
 void UWxAbility_Interact::StartScanTimer(const FGameplayAbilityActorInfo* ActorInfo)
@@ -230,7 +244,13 @@ void UWxAbility_Interact::HandleTargetDataReceived(const FGameplayAbilityTargetD
 	}
 
 	ExecuteInteract(Selected, CurrentActorInfo);
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+
+	// 서버는 시뮬레이션 프록시로 몽타주를 복제하기 위해 재생하고 몽타주 종료 시 끝낸다(응시는 로컬 컨트롤 아님 → 미수행).
+	// 없으면 종전대로 즉시 종료.
+	if (!PlayInteractMontage(Selected))
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
 }
 
 UWxInteractionRegistrySubsystem* UWxAbility_Interact::GetLocalRegistry(const FGameplayAbilityActorInfo* ActorInfo) const
@@ -263,4 +283,62 @@ void UWxAbility_Interact::ExecuteInteract(UWxInteractionComponent* Selected, con
 	}
 
 	Selected->TryInteract(Avatar);
+}
+
+bool UWxAbility_Interact::PlayInteractMontage(UWxInteractionComponent* Target)
+{
+	if (!InteractMontage || !Target)
+	{
+		return false;
+	}
+
+	// 응시 회전은 로컬 컨트롤 인스턴스에서만 — 오토노머스 프록시가 회전 권위라 서버/시뮬은 복제 회전을 따른다.
+	if (IsLocallyControlled())
+	{
+		if (const AActor* Avatar = GetAvatarActorFromActorInfo())
+		{
+			const FVector ToTarget = Target->GetInteractionLocation() - Avatar->GetActorLocation();
+			if (!ToTarget.IsNearlyZero())
+			{
+				if (UWxAbilityTask_TurnAround* TurnTask = UWxAbilityTask_TurnAround::CreateTask(this, ToTarget, FacingInterpSpeed))
+				{
+					TurnTask->ReadyForActivation();
+				}
+			}
+		}
+	}
+
+	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		this, NAME_None, InteractMontage, GetMontagePlayRate(), NAME_None, true, 1.f, 0.f, true);
+	if (!MontageTask)
+	{
+		return false;
+	}
+
+	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Interact::HandleInteractMontageCompleted);
+	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Interact::HandleInteractMontageBlendOut);
+	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Interact::HandleInteractMontageInterrupted);
+	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Interact::HandleInteractMontageCancelled);
+	MontageTask->ReadyForActivation();
+	return true;
+}
+
+void UWxAbility_Interact::HandleInteractMontageCompleted()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+}
+
+void UWxAbility_Interact::HandleInteractMontageBlendOut()
+{
+	// OnCompleted 가 후속 발동하므로 여기서는 종료하지 않음.
+}
+
+void UWxAbility_Interact::HandleInteractMontageInterrupted()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+}
+
+void UWxAbility_Interact::HandleInteractMontageCancelled()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
