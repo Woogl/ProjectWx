@@ -13,6 +13,7 @@
 **경계 (비담당)**
 - `IWxSavable` 인터페이스 및 안정 키 `GetWxSaveId()` 정의 → [[WxCore]] (`Plugins/WxCore/Source/WxCore/Public/WxSavable.h`)
 - 저장된 `RespawnTransform` 을 소비하는 실제 스폰 선정(우선 적용 + `ChoosePlayerStart` 폴백)은 GameMode(게임 코드). 이 모듈은 값만 저장/제공한다.
+- 저장을 트리거하는 체크포인트·기믹 액터는 [[WxWorld]] 소관. 세이브/로드 UI 는 [[WxUI]] 소관. 이 모듈은 BP 정적 래퍼만 노출한다.
 - 어트리뷰트 정의·구체 AttributeSet 타입은 GAS/전투 도메인 소관. 이 모듈은 복제되는 base 값만 이름 기준으로 다룬다.
 
 ## 의존성
@@ -49,4 +50,4 @@
 - 상위: [[WxCore]] (`IWxSavable` 정의 소유). 저장 대상 액터를 제공하는 도메인([[WxWorld]] 등), 로드 후 스폰을 처리하는 GameMode, 세이브 API 를 호출하는 [[WxUI]] 가 소비자다.
 
 ---
-*문서 기준 커밋 `d8c7d4e` · 생성일 2026-07-13 · 소스 9파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `842f761` · 생성일 2026-07-14 · 소스 9파일 — `/readme-writer`로 갱신*
