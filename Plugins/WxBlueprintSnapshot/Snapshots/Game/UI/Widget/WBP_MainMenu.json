@@ -78,7 +78,7 @@
 				"class": "/Script/UMG.EditableText",
 				"delta":
 				{
-					"Text": "SaveSlotName"
+					"Text": "SaveSlot1"
 				},
 				"isVariable": true,
 				"parent": "VerticalBox_0",
