@@ -45,8 +45,6 @@ namespace WxBlackboardKeys
 
 	const FName TargetLastKnownLocation = TEXT("TargetLastKnownLocation");
 
-	const FName Phase = TEXT("Phase");
-
 	const FName PatrolTargetLocation = TEXT("PatrolTargetLocation");
 
 	const FName TargetDistance = TEXT("TargetDistance");
