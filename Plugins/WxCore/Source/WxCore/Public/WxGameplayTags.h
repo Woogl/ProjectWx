@@ -126,11 +126,6 @@ namespace WxGameplayTags
 	/** 콤보 입력 수용 구간. ANS_ComboWindow가 부여/제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_ComboWindow);
 
-	// ── AnimNotify ───────────────────────────────────────────────────────
-
-	/** 발소리 컨텍스트 이펙트 종류. 컨텍스트 이펙트 라이브러리가 이 태그로 표면별 사운드/VFX 를 조회 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(AnimNotify_Footstep);
-
 	// ── GameplayCue ──────────────────────────────────────────────────────
 
 	/** 데미지 Cue. 임팩트 위치에 스파크/사운드 재생, 데미지 플로터 출력 */

@@ -59,8 +59,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(ANS_WeaponCollision, "ANS.WeaponCollision");
 	UE_DEFINE_GAMEPLAY_TAG(ANS_ComboWindow, "ANS.ComboWindow");
 
-	UE_DEFINE_GAMEPLAY_TAG(AnimNotify_Footstep, "AnimNotify.Footstep");
-
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Damage, "GameplayCue.Damage");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_PerfectGuard, "GameplayCue.PerfectGuard");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_BuffATK, "GameplayCue.BuffATK");

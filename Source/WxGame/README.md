@@ -7,10 +7,8 @@
 - 게임 프레임워크: `AWxGameMode`(저장 트랜스폼 복원·ModularGameplay 프레임워크 컴포넌트 주입), `AWxGameState`(컴포넌트 receiver), `AWxPlayerState`(세션 상태 거주처, 현재 비어있음).
 - 캐릭터 계층: `AWxCharacterBase`(ASC 직접 소유 + 3개 인터페이스 구현) → `AWxPlayerCharacter`(카메라/입력), `AWxEnemyCharacter`(BehaviorTree/처형 어포던스/보상) → `AWxBossCharacter`.
 - 컨트롤러: `AWxPlayerController`(인벤토리 소유·HUD/사망화면 push), `AWxEnemyController`(폰 BT 실행, Perception 위임).
-- 입력 배선: `UWxInputConfig`(IMC + Move/Look + 어빌리티 태그 매핑), 게임플레이 어빌리티 `UWxAbility_Interact`·`UWxAbility_UseItem`, AnimNotify(Footstep/UseItem).
-- 위젯-도메인 접착: `MVVM/` 뷰모델·리졸버(Inventory/Item/BossCharacter/PlayerCharacter/InteractionList) — 도메인 데이터를 WBP에 노출.
-- 컨텍스트 이펙트: `WxContextEffectsComponent`/`Library`/`AnimNotify_ContextEffects` — 표면별 오디오/VFX 로컬 재생.
-- 게임 고유 월드 오브젝트: `AWxCheckPoint`(AWxGimmick 상속 모닥불형 부활 지점), `AWxLaserCorridor`(AWxGimmick 상속 트랩).
+- 입력 배선: `UWxInputConfig`(IMC + Move/Look + 어빌리티 태그 매핑), 게임플레이 어빌리티 `UWxAbility_Interact`·`UWxAbility_UseItem`, AnimNotify(UseItem).
+- 위젯-도메인 접착: `MVVM/` 뷰모델·리졸버(Inventory/Item/BossCharacter/PlayerCharacter/InteractionList) — 도메인 데이터를 WBP에 노출.- 게임 고유 월드 오브젝트: `AWxCheckPoint`(AWxGimmick 상속 모닥불형 부활 지점), `AWxLaserCorridor`(AWxGimmick 상속 트랩).
 
 **경계 (비담당)**
 - ASC/AttributeSet/무기/락온/처형 규칙 정의는 [[WxCombat]] (본 모듈은 컴포넌트를 조립·소유만).
@@ -21,7 +19,7 @@
 - BGM 소스/Chooser 오디오는 [[WxSound]], 저장/영속 복원은 [[WxSave]], 팀·어빌리티 베이스 등 공용 정의는 [[WxCore]].
 
 ## 의존성
-- **주요 의존**: `WxCore` `WxCombat` `WxInventory` `WxUI` `WxWorld` `WxAI` `WxSave`(Public) + `WxSound`(Private). 엔진: `GameplayAbilities`/`GameplayTags`/`GameplayTasks`, `ModularGameplay`, `ModelViewViewModel`(MVVM), `EnhancedInput`, `MotionWarping`, `AIModule`, `CommonUI`, `Niagara`.
+- **주요 의존**: `WxCore` `WxCombat` `WxInventory` `WxUI` `WxWorld` `WxAI` `WxSave`(Public) + `WxSound`(Private). 엔진: `GameplayAbilities`/`GameplayTags`/`GameplayTasks`, `ModularGameplay`, `ModelViewViewModel`(MVVM), `EnhancedInput`, `MotionWarping`, `AIModule`, `CommonUI`.
 - 규칙: 기본 게임 모듈로 여러 플러그인을 조립하는 정상 역할(규칙 무관).
 
 ## 핵심 타입 (진입점)
@@ -37,7 +35,7 @@
 | `UWxInputConfig` | IMC + Move/Look/Jump/Crouch + 어빌리티 태그 바인딩 DataAsset | `Source/WxGame/Input/WxInputConfig.h` |
 
 ## 확장 포인트 / 규약
-- 새 캐릭터/적/보스는 `AWxPlayerCharacter`/`AWxEnemyCharacter`/`AWxBossCharacter`를 BP 상속 후 컴포넌트(무기 `ChildActorClass`, `BehaviorTreeAsset`, `RewardRow`, ContextEffects 라이브러리, BGM 태그 등)를 디폴트에서 지정. ASC는 PlayerState가 아닌 캐릭터가 직접 소유(리스폰 시 스탯 재초기화).
+- 새 캐릭터/적/보스는 `AWxPlayerCharacter`/`AWxEnemyCharacter`/`AWxBossCharacter`를 BP 상속 후 컴포넌트(무기 `ChildActorClass`, `BehaviorTreeAsset`, `RewardRow`, BGM 태그 등)를 디폴트에서 지정. ASC는 PlayerState가 아닌 캐릭터가 직접 소유(리스폰 시 스탯 재초기화).
 - 입력 확장은 `UWxInputConfig` DataAsset의 `AbilityInputBindings`(InputAction→InputTag). 메뉴/UI 입력은 여기 넣지 않고 CommonUI 액션([[WxUI]] `WxHUDLayout`)으로.
 - GameMode `FrameworkComponents`(EditDefaultsOnly)에 프레임워크 컴포넌트 클래스를 추가하면 GameState 등 receiver에 자동 주입(GameState는 무엇이 붙는지 모른다).
 - 새 월드 오브젝트/기믹은 [[WxWorld]] `AWxGimmick` 상속(예: `AWxCheckPoint`, `AWxLaserCorridor`). 권위 State만 C++가 확정하고 비주얼·스폰은 GimmickStateTree가 담당하는 패턴.

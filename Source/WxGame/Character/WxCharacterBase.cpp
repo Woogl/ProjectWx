@@ -3,7 +3,6 @@
 #include "Character/WxCharacterBase.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
-#include "ContextEffects/WxContextEffectsComponent.h"
 #include "Inventory/WxEquipmentComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/ChildActorComponent.h"
@@ -31,8 +30,6 @@ AWxCharacterBase::AWxCharacterBase()
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
 
 	EquipmentComponent = CreateDefaultSubobject<UWxEquipmentComponent>(TEXT("EquipmentComponent"));
-
-	ContextEffectsComponent = CreateDefaultSubobject<UWxContextEffectsComponent>(TEXT("ContextEffectsComponent"));
 
 	WeaponActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("WeaponActor"));
 	WeaponActor->SetupAttachment(GetMesh(), TEXT("hand_r"));
