@@ -8,14 +8,31 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Pawn.h"
 
+namespace
+{
+	// 데코 인스턴스별로 직전 이탈 여부를 보관해, 상태가 바뀌는 프레임에만 재평가를 요청하기 위한 노드 메모리다.
+	// 엔진이 zero-init 하고 OnBecomeRelevant 가 시드하므로 별도 초기화·정리가 필요없다.
+	struct FWxBeyondLeashMemory
+	{
+		bool bWasBeyond;
+	};
+}
+
 UWxBTDecorator_BeyondLeash::UWxBTDecorator_BeyondLeash()
 {
 	NodeName = TEXT("Beyond Leash");
+
+	// TickNode/OnBecomeRelevant 오버라이드를 감지해 알림 플래그(bNotifyTick 등)를 자동 설정한다(엔진 데코 관용).
+	INIT_DECORATOR_NODE_NOTIFY_FLAGS();
+
+	// 새 배치의 기본 FlowAbortMode 다.
+	// 이탈 시 하위 전투만 선점하고 복귀 중엔 자기중단하지 않도록 Lower Priority 로 둔다(Self/Both 는 경계 왕복 유발).
+	FlowAbortMode = EBTFlowAbortMode::LowerPriority;
 }
 
 FString UWxBTDecorator_BeyondLeash::GetStaticDescription() const
 {
-	return FString::Printf(TEXT("Home 에서 %.0f 이상 이탈 시 true"), LeashRadius);
+	return FString::Printf(TEXT("HomeLocation에서 %.0f 이상 이탈 시 true"), LeashRadius);
 }
 
 bool UWxBTDecorator_BeyondLeash::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
@@ -30,4 +47,33 @@ bool UWxBTDecorator_BeyondLeash::CalculateRawConditionValue(UBehaviorTreeCompone
 
 	const float DistSquared = FVector::DistSquared(Pawn->GetActorLocation(), WxBlackboardKeys::GetHomeLocation(Blackboard));
 	return DistSquared > LeashRadius * LeashRadius;
+}
+
+void UWxBTDecorator_BeyondLeash::OnBecomeRelevant(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+{
+	Super::OnBecomeRelevant(OwnerComp, NodeMemory);
+
+	// 관찰 시작 시점의 이탈 여부를 시드해, 첫 틱에서 불필요한 재평가 요청이 나가지 않게 한다.
+	FWxBeyondLeashMemory* Memory = CastInstanceNodeMemory<FWxBeyondLeashMemory>(NodeMemory);
+	Memory->bWasBeyond = CalculateRawConditionValue(OwnerComp, NodeMemory);
+}
+
+void UWxBTDecorator_BeyondLeash::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+{
+	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
+
+	// 이탈 여부가 바뀌는 순간에만 플로우 재평가를 요청한다.
+	// 실제 abort 여부·방향은 엔진이 FlowAbortMode 로 판단한다(Lower Priority 면 하위 전투만 중단).
+	FWxBeyondLeashMemory* Memory = CastInstanceNodeMemory<FWxBeyondLeashMemory>(NodeMemory);
+	const bool bBeyond = CalculateRawConditionValue(OwnerComp, NodeMemory);
+	if (bBeyond != Memory->bWasBeyond)
+	{
+		Memory->bWasBeyond = bBeyond;
+		OwnerComp.RequestExecution(this);
+	}
+}
+
+uint16 UWxBTDecorator_BeyondLeash::GetInstanceMemorySize() const
+{
+	return sizeof(FWxBeyondLeashMemory);
 }
