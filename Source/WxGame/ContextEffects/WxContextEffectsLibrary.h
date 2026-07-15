@@ -12,7 +12,7 @@
 class USoundBase;
 class UNiagaraSystem;
 
-/** 한 (EffectTag, 표면)에서 재생할 코스메틱 애셋. 둘 중 설정된 것만 재생된다. */
+/** 한 (EffectTag, 표면)에서 재생할 코스메틱 애셋. 설정된 것만 재생된다. */
 USTRUCT(BlueprintType)
 struct FWxContextEffectAssets
 {
