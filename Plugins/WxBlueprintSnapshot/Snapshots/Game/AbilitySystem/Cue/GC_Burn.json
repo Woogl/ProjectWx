@@ -1,0 +1,16 @@
+{
+	"blueprintPath": "/Game/AbilitySystem/Cue/GC_Burn.GC_Burn",
+	"classDefaults":
+	{
+		"NiagaraSystem": "/Game/AbilitySystem/Cue/NS_Burn.NS_Burn"
+	},
+	"components":
+	{
+		"DefaultSceneRoot":
+		{
+			"componentClass": "/Script/Engine.SceneComponent",
+			"variableName": "DefaultSceneRoot"
+		}
+	},
+	"parentClass": "/Script/WxCombat.WxCueNotify_Burn"
+}

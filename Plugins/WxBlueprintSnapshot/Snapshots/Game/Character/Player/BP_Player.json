@@ -1,0 +1,112 @@
+{
+	"blueprintPath": "/Game/Character/Player/BP_Player.BP_Player",
+	"classDefaults":
+	{
+		"AbilitySystemComponent":
+		{
+			"class": "/Script/WxCombat.WxAbilitySystemComponent",
+			"delta":
+			{
+				"AbilitySet": "/Game/Character/Player/ABS_Player.ABS_Player"
+			}
+		},
+		"CharacterMovement":
+		{
+			"class": "/Script/Engine.CharacterMovementComponent",
+			"delta":
+			{
+				"MaxWalkSpeed": 500
+			}
+		},
+		"EquipmentComponent": "",
+		"FollowCamera":
+		{
+			"class": "/Script/Engine.CameraComponent",
+			"delta":
+			{
+				"bUsePawnControlRotation": true
+			}
+		},
+		"GameHUDClass": "/Game/UI/Widget/WBP_GameHUD.WBP_GameHUD_C",
+		"InputConfig": "/Game/Input/DA_InputConfig.DA_InputConfig",
+		"InteractionListWidget":
+		{
+			"class": "/Script/UMG.WidgetComponent",
+			"delta":
+			{
+				"WidgetClass": "/Game/UI/Widget/WBP_InteractionList.WBP_InteractionList_C"
+			}
+		},
+		"Mesh":
+		{
+			"class": "/Script/Engine.SkeletalMeshComponent",
+			"delta":
+			{
+				"AnimClass": "/Game/Mannequins/Animations/Unarmed/ABP_Unarmed.ABP_Unarmed_C",
+				"BodyInstance":
+				{
+					"CollisionResponses":
+					{
+						"ResponseArray": [
+							{
+								"Channel": "Pawn",
+								"Response": "ECR_Ignore"
+							},
+							{
+								"Channel": "Vehicle",
+								"Response": "ECR_Ignore"
+							},
+							{
+								"Channel": "Camera",
+								"Response": "ECR_Ignore"
+							}
+						]
+					},
+					"SolverAsyncDeltaTime": 0.016666999086737633
+				},
+				"bVisible": false,
+				"OverrideMaterials": [
+					"",
+					""
+				],
+				"RelativeLocation":
+				{
+					"Z": -90
+				},
+				"RelativeRotation":
+				{
+					"Yaw": -90
+				},
+				"SkeletalMesh": "/Game/Mannequins/Meshes/SKM_Quinn_Simple.SKM_Quinn_Simple",
+				"SkinnedAsset": "/Game/Mannequins/Meshes/SKM_Quinn_Simple.SKM_Quinn_Simple",
+				"VisibilityBasedAnimTickOption": "AlwaysTickPoseAndRefreshBones"
+			}
+		},
+		"WeaponActor":
+		{
+			"class": "/Script/Engine.ChildActorComponent",
+			"delta":
+			{
+				"ChildActorClass": "/Game/Item/BP_Katana.BP_Katana_C"
+			}
+		}
+	},
+	"components":
+	{
+		"VisualOverride":
+		{
+			"componentClass": "/Script/Engine.SkeletalMeshComponent",
+			"delta":
+			{
+				"AnimClass": "/Game/Character/Player/HR/ABP_HR_Shinbi.ABP_HR_Shinbi_C",
+				"ComponentTags": [
+					"VisualOverride"
+				],
+				"SkeletalMesh": "/Game/ParagonShinbi/Characters/Heroes/Shinbi/Meshes/Shinbi.Shinbi",
+				"SkinnedAsset": "/Game/ParagonShinbi/Characters/Heroes/Shinbi/Meshes/Shinbi.Shinbi"
+			},
+			"variableName": "VisualOverride"
+		}
+	},
+	"parentClass": "/Script/WxGame.WxPlayerCharacter"
+}
