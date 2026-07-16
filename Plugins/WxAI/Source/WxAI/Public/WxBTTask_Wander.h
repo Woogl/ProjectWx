@@ -52,11 +52,7 @@ protected:
 
 	/** 배회 중 이동 속도 배율. 최대 이동 속도가 이 비율로 제한된다. (1.0 = 평상시 속도) */
 	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
-	float MoveSpeedMultiplier = 0.5f;
-
-	/** 진행 방향 앞을 이만큼 내다봐 navmesh 위인지 확인한다. navmesh 가 없으면(낭떠러지/벽) 그 틱은 이동을 멈춘다. */
-	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (ClampMin = "0.0", UIMin = "0.0"))
-	float LookAheadDistance = 150.f;
+	float MoveSpeedMultiplier = 0.3f;
 
 private:
 	FVector MoveDirection = FVector::ForwardVector;

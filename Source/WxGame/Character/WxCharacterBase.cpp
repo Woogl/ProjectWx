@@ -43,6 +43,7 @@ AWxCharacterBase::AWxCharacterBase()
 	GetCharacterMovement()->GetNavMovementProperties()->bUseAccelerationForPaths = true;
 
 	// 이동 속도·가감속 디폴트
+	GetCharacterMovement()->MaxWalkSpeed = 450.f;
 	GetCharacterMovement()->MaxAcceleration = 1500.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;

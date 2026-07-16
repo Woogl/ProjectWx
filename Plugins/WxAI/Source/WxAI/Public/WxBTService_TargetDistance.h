@@ -23,12 +23,6 @@ class WXAI_API UWxBTService_TargetDistance : public UBTService
 public:
 	UWxBTService_TargetDistance();
 
-	virtual FString GetStaticDescription() const override;
-
 protected:
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
-
-	/** 수평거리(Z 무시) 로 계산한다. 슬로프나 캡슐 높이차로 근접 판정이 어긋나는 것을 막는다. */
-	UPROPERTY(EditAnywhere, Category = "Wx|AI")
-	bool bUse2DDistance = true;
 };
