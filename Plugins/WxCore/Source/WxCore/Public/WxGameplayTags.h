@@ -146,9 +146,6 @@ namespace WxGameplayTags
 	/** 역경직(히트 스톱) Cue. WxWeaponBase로 공격 적중 시 공격자·피격자의 애니메이션 일시 정지 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_HitStop);
 
-	/** 변신 Cue. GE 유효 기간 동안 캐릭터 외형을 교체한다 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Metamorphose);
-
 	// ── Damage ────────────────────────────────────────────────────────────
 
 	/** 치명타 판정 결과 태그 */

@@ -65,7 +65,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Exceed, "GameplayCue.Exceed");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Burn, "GameplayCue.Burn");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_HitStop, "GameplayCue.HitStop");
-	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Metamorphose, "GameplayCue.Metamorphose");
 
 	UE_DEFINE_GAMEPLAY_TAG(Damage_Critical, "Damage.Critical");
 	UE_DEFINE_GAMEPLAY_TAG(Damage_Unblockable, "Damage.Unblockable");
