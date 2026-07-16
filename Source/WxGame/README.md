@@ -48,9 +48,10 @@
 1. `Source/WxGame/Framework/WxGameMode.h` — 게임 부팅·스폰·세이브 복원의 조립 지점, 위임 구조가 한눈에.
 2. `Source/WxGame/Character/WxCharacterBase.h` — 캐릭터가 어떤 도메인 컴포넌트(ASC/장비/모션워핑)를 조립하는지 = 모듈 경계의 축소판.
 3. `Source/WxGame/Controller/WxPlayerController.h` — 인벤토리 소유 위치와 HUD/사망 UI 흐름.
+4. `Source/WxGame/WxGame.Build.cs` — 이 모듈이 조립하는 플러그인·엔진 서브시스템 전체 목록.
 
 ## 관련
 - 함께: [[WxCombat]] · [[WxInventory]] · [[WxWorld]] · [[WxAI]] · [[WxUI]] · [[WxSound]] · [[WxSave]] · [[WxCore]]
 
 ---
-*문서 기준 커밋 `6dbc0c4` · 생성일 2026-07-15 · 소스 44파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `08c2d0c` · 생성일 2026-07-16 · 소스 44파일 — `/readme-writer`로 갱신*

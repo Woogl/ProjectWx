@@ -1,50 +1,56 @@
 # WxWorld — 월드 오브젝트 및 상호작용
 
-> 레벨에 배치되는 상호작용 가능한 월드 오브젝트(문·엘리베이터·상자·콘솔·컷신 트리거 등 "기믹")와, 플레이어가 그것들을 조준·선택·발동하는 상호작용 파이프라인, 그리고 적/오브젝트를 배치·리스폰하는 스포너를 담당한다.
+> 레벨에 배치되는 상호작용 기믹(문/엘리베이터/보물상자/콘솔/컷신 트리거)과 스폰 시스템, 그리고 플레이어 상호작용 스캔·선택·프롬프트 레지스트리를 담당하는 도메인 플러그인.
 
 ## 책임
 **담당**
-- 상호작용 파이프라인의 월드 측: 상호작용 볼륨 등록(`UWxInteractionComponent`)과 로컬 플레이어별 인-레인지/선택 관리(`UWxInteractionRegistrySubsystem`), 외곽선 강조 조율.
-- 기믹 공통 뼈대: 서버 권위 State 태그(복제 + SaveGame), StateTree 구동, 전 기믹이 공유하는 StateTree 노드 라이브러리(이동/애니/사운드/Niagara/시퀀스/스폰 등).
-- 구체 기믹 액터: 문, 엘리베이터, 보물상자, 경보/스폰 콘솔, 컷신 트리거.
-- 레벨 배치 스포너(`AWxSpawner`)와 일괄 리스폰, 처치 상태의 세이브 보존.
+- 상호작용 기믹의 공통 프레임: `AWxGimmick` 베이스가 서버 권위 State 태그(복제 + SaveGame)와 GimmickStateTree 구동 패턴(권위 쓰기 → 복제 → ST 이벤트 진입)을 제공한다.
+- 기믹 구현체: Door / Elevator / TreasureChest / AlarmConsole / SpawnConsole / CutsceneTrigger.
+- 기믹 StateTree 공용 노드 라이브러리(`WxGimmickStateTreeNodes`): 이동/애니/시퀀스/사운드/Niagara/스폰/인터랙션·입력 토글 태스크 + State 비교 조건.
+- 상호작용 컴포넌트(`UWxInteractionComponent`)와 로컬 플레이어 레지스트리(`UWxInteractionRegistrySubsystem`): 볼륨 쿼리 표식, 인-레인지 수집, 선택/외곽선 강조.
+- 스폰 시스템: `AWxSpawner`(처치 상태 GUID 보존, 리스폰/부활 금지) + `IWxSpawnableInterface` + `UWxSpawnerLibrary`(일괄 리스폰 BP 진입점).
 
 **경계 (비담당)**
-- 플레이어 측 스캐너(주변 볼륨 수집)와 상호작용 어빌리티·TargetData 전달은 어빌리티/전투 쪽([[WxCombat]])이 구동한다. 본 모듈은 볼륨을 등록하고 서버 `TryInteract` 진입점만 노출한다.
-- 상호작용 프롬프트 UI(HUD 리스트/뷰모델)는 [[WxUI]]가 표시한다. 레지스트리는 텍스트/선택만 제공한다.
-- Gameplay Tag 정의(`WxGameplayTags::Gimmick_*` 등)와 `IWxSavable`/`IWxInteractionSource` 인터페이스는 [[WxCore]]에 있다.
-- 세이브 슬롯 직렬화·복원 구동은 [[WxSave]]가 담당한다. 본 모듈은 `IWxSavable` 구현과 `SaveGame` 필드만 제공한다.
+- 상호작용 어빌리티(스캐너 주기 스캔, TargetData 전달, 범용 몽타주) — [[WxCombat]] 계열(GAS 어빌리티 측).
+- HUD 프롬프트 리스트 위젯·뷰모델(WBP_InteractionList / VM) — [[WxUI]].
+- 보상 정의·지급 로직(`WxRewardTableRow`, `Wx Grant Reward` ST 태스크, `GrantReward`) — [[WxInventory]]. TreasureChest 는 보상 로우만 노출하고 지급은 위임한다.
+- 공용 정의(`IWxSavable`, `IWxInteractionSource`/`FWxOnInteractedSignature`, `WxGameplayTags`, `WxCollisionChannels`) — [[WxCore]].
+- 세이브 슬롯 직렬화·복원 오케스트레이션 — [[WxSave]].
 
 ## 의존성
-- **주요 의존**: [[WxCore]] (Savable/InteractionSource 인터페이스, 공용 Gameplay Tag) · StateTree/GameplayStateTree (기믹 상태머신) · GameplayAbilities · Niagara · LevelSequence/MovieScene (컷신 재생) · DeveloperSettings.
-- 규칙: WxCore 외 다른 Wx 플러그인 참조 — 없음 ✅
+- **주요 의존**: `WxCore`(유일한 Wx 의존). 엔진: `StateTree` + `GameplayStateTree`(기믹 상태머신), `Niagara`(FX), `LevelSequence`/`MovieScene`(컷신), `GameplayAbilities`, `GameplayTags`, `DeveloperSettings`.
+- 규칙: 「WxCore 외 Wx 플러그인 참조」 검증 — 없음 ✅ (`.uplugin`·`Build.cs` 모두 Wx 중 `WxCore` 만 참조. TreasureChest 의 `WxInventory.WxRewardTableRow` 는 메타데이터 문자열 경로일 뿐 컴파일 의존이 아님).
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `AWxGimmick` | 모든 기믹의 추상 부모. State 태그·StateTree·세이브 공통 소유, `CommitGimmickState`가 유일한 서버 권위 쓰기 진입점 | `Source/WxWorld/Public/Gimmick/WxGimmick.h` |
-| `FWxStateTreeTask_*` / `FWxStateTreeCondition_GimmickStateIs` | 전 기믹이 공유하는 StateTree 노드 라이브러리(이동·애니·사운드·Niagara·시퀀스·스폰·인터랙션 토글) | `Source/WxWorld/Public/Gimmick/WxGimmickStateTreeNodes.h` |
-| `UWxInteractionComponent` | 액터에 붙는 상호작용 영역. 볼륨 등록·`TryInteract`·`OnInteracted` 델리게이트·외곽선 강조 | `Source/WxWorld/Public/Interaction/WxInteractionComponent.h` |
-| `UWxInteractionRegistrySubsystem` | 로컬 플레이어별 인-레인지 목록/선택 소유, HUD·강조 조율 | `Source/WxWorld/Public/Interaction/WxInteractionRegistrySubsystem.h` |
-| `AWxSpawner` | 레벨 배치 스폰 액터. 처치 상태 보존·리스폰·`bNeverRevive`(보스) | `Source/WxWorld/Public/Spawnable/WxSpawner.h` |
-| `IWxSpawnableInterface` | 스폰 대상이 구현하는 훅(`OnSpawnedBy`, 에디터 미리보기 메시) | `Source/WxWorld/Public/Spawnable/WxSpawnableInterface.h` |
-| `UWxSpawnerLibrary` | `TryRespawnAll` — 월드의 Auto 스포너 일괄 리스폰(BP 진입점) | `Source/WxWorld/Public/System/WxSpawnerLibrary.h` |
-| `UWxWorldDeveloperSettings` | 스포너 클래스별 에디터 아이콘 매핑(프로젝트 설정) | `Source/WxWorld/Public/System/WxWorldDeveloperSettings.h` |
+| `AWxGimmick` | 모든 기믹의 Abstract 베이스. 권위 State 커밋(`CommitGimmickState`)·복제·SaveGame·ST 이벤트 구동을 소유 | `Source/WxWorld/Public/Gimmick/WxGimmick.h` |
+| `WxGimmickStateTreeNodes` | 전 기믹 공유 ST 태스크/조건 모음(이동·애니·시퀀스·사운드·Niagara·스폰·토글) | `Source/WxWorld/Public/Gimmick/WxGimmickStateTreeNodes.h` |
+| `UWxInteractionComponent` | 상호작용 상태·볼륨·강조 보유 SceneComponent. 서버 권위 `TryInteract` → `OnInteracted` 발화 | `Source/WxWorld/Public/Interaction/WxInteractionComponent.h` |
+| `UWxInteractionRegistrySubsystem` | 로컬 플레이어별 인-레인지 수집·선택·강조 조율(HUD 리스트 소스) | `Source/WxWorld/Public/Interaction/WxInteractionRegistrySubsystem.h` |
+| `AWxSpawner` | 레벨 배치 스포너. 처치 상태 GUID 보존, Auto/Manual·부활금지 | `Source/WxWorld/Public/Spawnable/WxSpawner.h` |
+| `IWxSpawnableInterface` | 스폰 대상이 구현. `OnSpawnedBy` 훅 + 에디터 프리뷰 메시 제공 | `Source/WxWorld/Public/Spawnable/WxSpawnableInterface.h` |
+| `UWxSpawnerLibrary` | `TryRespawnAll` BP 진입점(월드의 Auto 스포너 일괄 리스폰) | `Source/WxWorld/Public/System/WxSpawnerLibrary.h` |
+| `UWxWorldDeveloperSettings` | 스포너 클래스별 에디터 아이콘 매핑(Config=Game) | `Source/WxWorld/Public/System/WxWorldDeveloperSettings.h` |
+
+## Gameplay Tags
+- 본 모듈은 Native Tag 를 **선언하지 않는다**. 기믹 State 태그(`Gimmick.*`)와 복원 마커 `Gimmick.Restore` 는 [[WxCore]]의 `WxGameplayTags` 에서 선언되며 여기서는 사용만 한다.
 
 ## 확장 포인트 / 규약
-- **새 기믹 추가**: `AWxGimmick`을 상속한 `Abstract` C++ 클래스를 만들어 컴포넌트(메시/`UWxInteractionComponent`)를 들고, 생성자에서 초기 `State` 태그를 지정한다. 인터랙션 핸들러는 `CommitGimmickState`로만 State를 전이한다(항상 서버 권위). 비주얼·사이드이펙트는 C++에 두지 않고, 자식 BP에 할당한 StateTree 에셋이 State 태그를 `Required Event to Enter`로 받아 공유 노드로 처리한다. 기존 문/상자/콘솔 구현이 그 패턴의 최소 예시다.
-- **리플리케이션/권한 모델**: State 쓰기는 무조건 서버 권위(단일 진입점 `CommitGimmickState`), 클라는 복제 State(`OnRep_GimmickState`)를 추종하며 서버·클라가 같은 ST 이벤트 로직을 공유한다. 상호작용도 `OnInteracted`는 서버에서만 fire된다.
-- **초기 진입 vs 라이브 전이**: 모든 ST 노드가 `Transition.SourceStateID` 유효성으로 복원/시작/레이트조인(스냅·침묵)과 실제 발동(재생·스폰)을 구분한다. 세이브 복원 시엔 `Gimmick.Restore` 마커가 함께 발행되어 일회성 노드가 재실행되지 않는다.
-- **새 스폰 대상**: `IWxSpawnableInterface`를 구현하면 `AWxSpawner`의 `SpawnableActorClass`에 지정 가능하다.
+- **새 기믹 추가**: `AWxGimmick` 상속(Abstract), 생성자에서 컴포넌트와 초기 `State` 태그 지정, 인터랙션 핸들러에서 `CommitGimmickState(NewState)` 로만 State 를 쓴다(서버 권위 단일 진입점, 클라는 복제 추종). 비주얼/사이드이펙트는 자식 BP 에 할당한 ST 에셋이 State 태그 이벤트로 진입해 처리한다. State 쓰기는 C++ 만.
+- **ST 노드 규약**: 태스크는 State 를 읽지 않는 순수 비주얼/사이드이펙트가 원칙(재사용). 초기 진입(복원/시작/레이트조인)과 라이브 전이는 `Transition.SourceStateID` 유효성으로 구분하고, 발동 FX/사운드/스폰은 복원 시 침묵(`bPlayOnRestore` 로 지속 FX 예외). 즉시완료 토글 태스크는 `bConsideredForCompletion=false` 로 재선택 루프를 피한다.
+- **복원 마커**: 저장 State 진입 시 `Gimmick.Restore` 이벤트를 함께 발행 → 일회성 노드가 스냅·스킵한다.
+- **새 스폰 대상**: `IWxSpawnableInterface` 구현. `AWxSpawner::SpawnableActorClass` 는 `MustImplement` 로 강제. Manual 모드 스포너는 콘솔 등 외부 트리거로만 스폰한다.
+- **데이터 주도**: 기믹 이동/애니/오프셋/보상 등 세부는 ST 에셋과 액터 UPROPERTY(디자이너 편집)로 author.
 
 ## 여기서부터 읽어라
-1. `Source/WxWorld/Public/Gimmick/WxGimmick.h` — 기믹의 State/권한/세이브/StateTree 구동 규약. 모듈의 중심 개념이 이 헤더 주석에 모여 있다.
-2. `Source/WxWorld/Public/Gimmick/WxGimmickStateTreeNodes.h` — 기믹이 실제로 "무엇을 하는지"는 전부 이 공유 노드들. 각 노드의 초기/라이브 구분과 완료 규약을 파악하면 기믹 저작 방식이 보인다.
-3. `Source/WxWorld/Public/Interaction/WxInteractionComponent.h` — 상호작용 흐름(스캐너→레지스트리→어빌리티→서버 TryInteract)의 3단계 주석이 모듈 경계를 설명한다.
-4. `Source/WxWorld/Private/Gimmick/WxDoor.cpp` — 가장 단순한 구체 기믹. 생성자 초기 State + 인터랙션 핸들러 → `CommitGimmickState` 패턴의 정석.
+1. `Source/WxWorld/Public/Gimmick/WxGimmick.h` — 전 기믹 공통 State 구동/복제/Save 패턴. 헤더 doc-comment 가 핵심 계약을 설명한다.
+2. `Source/WxWorld/Public/Gimmick/WxGimmickStateTreeNodes.h` — 기믹 비주얼/사이드이펙트를 구성하는 ST 태스크·조건 카탈로그.
+3. `Source/WxWorld/Public/Gimmick/WxDoor.h` — 가장 단순한 구현체로 State→ST 흐름을 구체 확인. 이후 Elevator/CutsceneTrigger 로 확장 패턴 비교.
+4. `Source/WxWorld/Public/Interaction/WxInteractionComponent.h` — 상호작용 볼륨/스캔/강조/서버 권위 발화 흐름.
 
 ## 관련
-- 상위: 플레이어 상호작용 어빌리티·스캐너는 [[WxCombat]], 프롬프트 HUD는 [[WxUI]], 세이브 복원 구동은 [[WxSave]]가 담당하며 본 모듈과 맞물린다. 공용 인터페이스·태그는 [[WxCore]].
+- 상위/함께: 상호작용 어빌리티·스캐너 [[WxCombat]], HUD 프롬프트 [[WxUI]], 보상 [[WxInventory]], 세이브/복원 [[WxSave]], 공용 정의 [[WxCore]].
 
 ---
-*문서 기준 커밋 `842f761` · 생성일 2026-07-14 · 소스 29파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `08c2d0c` · 생성일 2026-07-16 · 소스 27파일 — `/readme-writer`로 갱신*
