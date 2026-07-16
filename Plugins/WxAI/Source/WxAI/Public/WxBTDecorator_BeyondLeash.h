@@ -6,6 +6,11 @@
 #include "BehaviorTree/BTDecorator.h"
 #include "WxBTDecorator_BeyondLeash.generated.h"
 
+struct FWxBeyondLeashMemory
+{
+	bool bWasBeyond;
+};
+
 /**
  * BT Decorator: 폰이 배치 지점(HomeLocation)에서 LeashRadius 이상 벗어났는지(리시 이탈) 판정한다.
  *
