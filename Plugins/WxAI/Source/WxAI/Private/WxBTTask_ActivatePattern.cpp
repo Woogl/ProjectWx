@@ -61,9 +61,21 @@ EBTNodeResult::Type UWxBTTask_ActivatePattern::ExecuteTask(UBehaviorTreeComponen
 		return BeginActivateAbility(Pawn);
 
 	case EPathFollowingRequestResult::RequestSuccessful:
+	{
+		// MoveTo 가 같은 콜스택에서 완료 콜백을 이미 브로드캐스트했다면(즉시 완료),
+		// bMovePhaseActive 세팅 전이라 HandleMoveCompleted 가 콜백을 버려 Task 가 InProgress 로 영구 정지한다.
+		// 그 경우 PathFollowing 상태가 이미 Idle 이므로 여기서 직접 발동한다.
+		const UPathFollowingComponent* PathComp = AIController->GetPathFollowingComponent();
+		if (PathComp && PathComp->GetStatus() == EPathFollowingStatus::Idle)
+		{
+			AIController->ReceiveMoveCompleted.RemoveDynamic(this, &UWxBTTask_ActivatePattern::HandleMoveCompleted);
+			return BeginActivateAbility(Pawn);
+		}
+
 		MoveRequestID = MoveResult.MoveId;
 		bMovePhaseActive = true;
 		return EBTNodeResult::InProgress;
+	}
 
 	default:
 		// 경로 실패 등으로 이동을 시작조차 못하면 실패로 마감한다.
@@ -92,14 +104,15 @@ EBTNodeResult::Type UWxBTTask_ActivatePattern::AbortTask(UBehaviorTreeComponent&
 		return Super::AbortTask(OwnerComp, NodeMemory);
 	}
 
-	// 발동 페이즈 중단: 델리게이트를 먼저 해제하여 CancelAbilities 가 트리거하는 OnAbilityEnded 콜백이 FinishLatentTask 를 호출하지 않도록 한다.
+	// 발동 페이즈 중단: CleanUp 이 ActivatedHandle 을 리셋하므로 취소할 핸들을 먼저 캡처한다.
+	const FGameplayAbilitySpecHandle HandleToCancel = ActivatedHandle;
+
+	// 델리게이트를 먼저 해제하여 CancelAbilityHandle 이 트리거하는 OnAbilityEnded 콜백이 FinishLatentTask 를 호출하지 않도록 한다.
 	CleanUp();
 
 	if (UAbilitySystemComponent* ASC = CachedASC.Get())
 	{
-		FGameplayTagContainer Tags;
-		Tags.AddTag(AbilityTag);
-		ASC->CancelAbilities(&Tags);
+		ASC->CancelAbilityHandle(HandleToCancel);
 	}
 
 	return Super::AbortTask(OwnerComp, NodeMemory);
@@ -113,30 +126,41 @@ EBTNodeResult::Type UWxBTTask_ActivatePattern::BeginActivateAbility(APawn* Pawn)
 		return EBTNodeResult::Failed;
 	}
 
-	FGameplayAbilitySpec* Spec = nullptr;
-	for (FGameplayAbilitySpec& IterSpec : ASC->GetActivatableAbilities())
+	// 동일 태그 어빌리티가 여러 개일 수 있으므로, 발동에 성공하는 첫 후보를 채택한다.
+	FGameplayAbilitySpecHandle ActivatedSpecHandle;
+	for (const FGameplayAbilitySpec& IterSpec : ASC->GetActivatableAbilities())
 	{
 		if (IterSpec.Ability && IterSpec.Ability->GetAssetTags().HasTag(AbilityTag))
 		{
-			Spec = &IterSpec;
-			break;
+			// 핸들은 값 타입이라 TryActivateAbility 가 배열을 재할당해도 안전하다. 호출 전에 캡처한다.
+			const FGameplayAbilitySpecHandle CandidateHandle = IterSpec.Handle;
+			if (ASC->TryActivateAbility(CandidateHandle))
+			{
+				// 성공 시 즉시 break — 활성화로 배열이 재할당됐어도 이후 IterSpec 을 건드리지 않는다.
+				ActivatedSpecHandle = CandidateHandle;
+				break;
+			}
+			// 실패(CanActivate 실패)는 ActivatableAbilities 를 바꾸지 않으므로 다음 후보로 계속 진행해도 안전하다.
 		}
 	}
 
-	if (!Spec || !ASC->TryActivateAbility(Spec->Handle))
+	if (!ActivatedSpecHandle.IsValid())
 	{
 		return EBTNodeResult::Failed;
 	}
 
-	// TryActivateAbility 내부에서 어빌리티가 동기적으로 종료될 수 있다 (CommitAbility 실패 등).
+	// TryActivateAbility 는 활성화 도중 어빌리티 부여/제거로 ActivatableAbilities 배열을 재할당할 수 있어,
+	// 활성화 이전에 잡아둔 Spec 포인터는 무효가 될 수 있다. 반드시 핸들로 다시 조회한다.
+	// 또한 TryActivateAbility 내부에서 어빌리티가 동기적으로 종료될 수 있다 (CommitAbility 실패 등).
 	// 이 경우 OnAbilityEnded가 이미 브로드캐스트된 후이므로, 델리게이트를 등록해도 콜백이 발생하지 않아 BT가 InProgress 상태로 영구 정지한다.
-	if (!Spec->IsActive())
+	const FGameplayAbilitySpec* ActiveSpec = ASC->FindAbilitySpecFromHandle(ActivatedSpecHandle);
+	if (!ActiveSpec || !ActiveSpec->IsActive())
 	{
 		return EBTNodeResult::Failed;
 	}
 
 	CachedASC = ASC;
-	ActivatedHandle = Spec->Handle;
+	ActivatedHandle = ActivatedSpecHandle;
 
 	AbilityEndedDelegateHandle = ASC->OnAbilityEnded.AddUObject(
 		this, &UWxBTTask_ActivatePattern::HandleAbilityEnded);
