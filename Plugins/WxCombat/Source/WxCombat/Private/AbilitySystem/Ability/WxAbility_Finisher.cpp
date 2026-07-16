@@ -11,7 +11,11 @@
 #include "WxDamageInfo.h"
 #include "WxGameplayTags.h"
 
-const FName UWxAbility_Finisher::WarpTargetName = TEXT("Finisher");
+namespace
+{
+	// 워프 타겟 이름. 두 변형(앞잡·뒤잡)의 공격 몽타주 MotionWarping 노티파이 Warp Target Name·Warp Point 를 이 값으로 맞춘다.
+	const FName WarpTargetName = TEXT("Finisher");
+}
 
 UWxAbility_Finisher::UWxAbility_Finisher()
 {
@@ -30,6 +34,9 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	
 	// 피니시 중에는 무적
 	ActivationOwnedTags.AddTag(WxGameplayTags::State_Invincible);
+
+	// 처형 연출 진행 상태를 발행한다. 상호작용(WxAbility_Interact)이 이 태그에 막혀, 연출 도중 재입력으로 다른 대상을 상호작용해 몽타주가 겹치는 것을 차단한다.
+	ActivationOwnedTags.AddTag(WxGameplayTags::State_Finisher);
 
 	// 뒤잡 즉사에 쓸 GE 기본값. 방어력과 무관하게 확정 처치한다(BP에서 재정의 가능).
 	BackstabEffectClass = UWxEffect_Kill::StaticClass();

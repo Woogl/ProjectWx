@@ -45,6 +45,9 @@ namespace WxGameplayTags
 	/** 슈퍼 아머 상태. 소유 중인 어빌리티는 HitReact로 캔슬되지 않음 (HitReact의 ActivationBlockedTags) */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_SuperArmor);
 
+	/** 처형(앞잡·뒤잡) 연출 진행 상태. WxAbility_Finisher가 ActivationOwnedTags로 발행. 연출 중 상호작용 재입력을 막기 위해 WxAbility_Interact가 ActivationBlockedTags로 사용 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Finisher);
+
 	// ── Event ─────────────────────────────────────────────────────────────
 
 	/** 피격 이벤트 부모 카테고리. ExecCalc 필터링용. Guard 어빌리티가 자식 태그를 모두 수신하기 위해 부모로도 구독 (직접 dispatch 금지) */

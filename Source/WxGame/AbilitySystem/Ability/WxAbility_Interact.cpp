@@ -32,6 +32,10 @@ UWxAbility_Interact::UWxAbility_Interact()
 	// 사망 중에는 활성화 거부.
 	// 입력 트리거라 ActivationBlockedTags가 활성화 자체를 막는다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
+
+	// 처형 연출 중에는 상호작용 재입력을 막는다(WxAbility_Finisher가 State.Finisher를 발행).
+	// 연출 도중 근처 다른 대상을 상호작용해 일반 몽타주가 처형 위에 얹히는 것을 차단한다.
+	ActivationBlockedTags.AddTag(WxGameplayTags::State_Finisher);
 }
 
 void UWxAbility_Interact::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
@@ -287,7 +291,8 @@ void UWxAbility_Interact::ExecuteInteract(UWxInteractionComponent* Selected, con
 
 bool UWxAbility_Interact::PlayInteractMontage(UWxInteractionComponent* Target)
 {
-	if (!InteractMontage || !Target)
+	// 대상이 자체 어빌리티로 모션을 구동하면(예: 처형) 범용 몽타주를 재생하지 않는다 — 처형 몽타주와의 중복을 막는다.
+	if (!InteractMontage || !Target || !Target->GetUseInteractMontage())
 	{
 		return false;
 	}
