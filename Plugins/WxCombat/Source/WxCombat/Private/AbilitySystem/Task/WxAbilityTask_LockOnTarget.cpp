@@ -39,7 +39,8 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 		return;
 	}
 
-	// 대상이 더 이상 락온 가능 조건(LockOnRequirements)을 만족하지 않으면(사망 등) 해제한다. 거리/널 상실 감지와 같은 폴링 방식.
+	// 대상이 더 이상 락온 가능 조건(LockOnRequirements)을 만족하지 않으면(사망 등) 해제한다.
+	// 거리/널 상실 감지와 같은 폴링 방식.
 	const UWxLockOnPointComponent* TargetPoint = Cast<UWxLockOnPointComponent>(TargetComponent);
 	if (TargetPoint && !TargetPoint->CanBeLockedOn())
 	{
@@ -71,7 +72,9 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 
 	const FRotator LookAtRotation = (TargetLocation - AvatarPawn->GetActorLocation()).Rotation();
 
-	// 카메라(컨트롤러)를 타겟 방향으로 보간. PitchOffset만큼 살짝 내려다본다. 회피 중에도 적을 화면에 두도록 카메라 추적은 유지한다.
+	// 카메라(컨트롤러)를 타겟 방향으로 보간.
+	// PitchOffset만큼 살짝 내려다본다.
+	// 회피 중에도 적을 화면에 두도록 카메라 추적은 유지한다.
 	FRotator DesiredControlRotation = LookAtRotation;
 	DesiredControlRotation.Pitch += PitchOffset;
 	const FRotator NewControlRotation = FMath::RInterpTo(PC->GetControlRotation(), DesiredControlRotation, DeltaTime, InterpSpeed);
@@ -133,7 +136,8 @@ void UWxAbilityTask_LockOnTarget::Activate()
 {
 	Super::Activate();
 
-	// 락온 대상은 컴포넌트가 권위·복제 소스다. 변경을 구독하고 현재 값을 초기 대상으로 채택한다(이후 재탐색/복제 정합은 델리게이트가 처리).
+	// 락온 대상은 컴포넌트가 권위·복제 소스다.
+	// 변경을 구독하고 현재 값을 초기 대상으로 채택한다(이후 재탐색/복제 정합은 델리게이트가 처리).
 	LockOnManagerComponent = UWxLockOnManagerComponent::FindComponent(GetAvatarActor());
 	if (UWxLockOnManagerComponent* Comp = LockOnManagerComponent.Get())
 	{
@@ -169,8 +173,9 @@ void UWxAbilityTask_LockOnTarget::BindTarget()
 		return;
 	}
 
-	// 파괴 이벤트는 소유 액터 단위다. 부위 컴포넌트만 파괴되고 액터는 살아있는 경우에도
-	// 정확히 해제할 수 있도록 바인딩한 소유 액터를 캐시한다. 사망 등 태그 기반 해제는 TickTask 의 CanBeLockedOn 폴링이 담당한다.
+	// 파괴 이벤트는 소유 액터 단위다.
+	// 부위 컴포넌트만 파괴되고 액터는 살아있는 경우에도 정확히 해제할 수 있도록 바인딩한 소유 액터를 캐시한다.
+	// 사망 등 태그 기반 해제는 TickTask 의 CanBeLockedOn 폴링이 담당한다.
 	AActor* TargetActor = TargetComponent->GetOwner();
 	BoundTargetActor = TargetActor;
 	if (TargetActor)

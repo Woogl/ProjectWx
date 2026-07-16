@@ -23,8 +23,7 @@ class UAbilityTask_PlayMontageAndWait;
  * 적 패턴(Ability.Pattern) 발동 중에는 일반(Normal) 피격 반응을 발생시키지 않는다(평타 경직 무시).
  * 넉백·넉다운·넉업·패리는 패턴 중에도 그대로 반응한다.
  *
- * 재생 중 다른 종류의 HitReact 이벤트가 도착하면(예: Normal 재생 중 Knockback), bRetriggerInstancedAbility로 EndAbility 후 ActivateAbility가 재진입하며,
- * CurrentMontageTask를 명시적으로 정리해 이전 태스크의 잔여 콜백이 새 재생을 즉시 종료시키는 레이스를 방지한다.
+ * 재생 중 다른 종류의 HitReact 이벤트가 도착하면(예: Normal 재생 중 Knockback), bRetriggerInstancedAbility로 EndAbility 후 ActivateAbility가 재진입하며, CurrentMontageTask를 명시적으로 정리해 이전 태스크의 잔여 콜백이 새 재생을 즉시 종료시키는 레이스를 방지한다.
  *
  * 가드 중 피격 반응은 WxAbility_Guard가 직접 처리하므로, State.Guard 활성 시 이 어빌리티는 활성화되지 않는다.
  */

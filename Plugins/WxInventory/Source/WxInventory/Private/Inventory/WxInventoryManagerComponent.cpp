@@ -490,14 +490,16 @@ bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef
 		return false;
 	}
 
-	// 사용 대상 인스턴스. GE SourceObject 이자 충전형 아이템의 충전량 보유 주체다.
+	// 사용 대상 인스턴스.
+	// GE SourceObject 이자 충전형 아이템의 충전량 보유 주체다.
 	UWxItemInstance* SourceInstance = FindUsableInstance(ItemDef);
 	if (!SourceInstance)
 	{
 		return false;
 	}
 
-	// GE가 지정된 경우, ASC와 Spec 유효성을 차감 전에 검증한다. 검증 실패 시 차감하지 않고 false 반환.
+	// GE가 지정된 경우, ASC와 Spec 유효성을 차감 전에 검증한다.
+	// 검증 실패 시 차감하지 않고 false 반환.
 	UAbilitySystemComponent* TargetASC = nullptr;
 	FGameplayEffectSpecHandle Spec;
 	if (Usable->Effect)
@@ -569,7 +571,8 @@ bool UWxInventoryManagerComponent::EquipItemByDef(const UWxItemDefinition* ItemD
 {
 	check(GetOwner() && GetOwner()->HasAuthority());
 
-	// 장착 해제(nullptr)는 그대로 전달한다. 장착일 경우에만 Fragment 유효성과 실제 소유 여부를 검증한다.
+	// 장착 해제(nullptr)는 그대로 전달한다.
+	// 장착일 경우에만 Fragment 유효성과 실제 소유 여부를 검증한다.
 	if (ItemDef)
 	{
 		if (!ItemDef->FindFragmentByClass<UWxItemFragment_Equippable>())

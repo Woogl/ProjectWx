@@ -13,10 +13,12 @@ UWxNameplateComponent::UWxNameplateComponent()
 	SetWidgetSpace(EWidgetSpace::Screen);
 	SetDrawAtDesiredSize(true);
 
-	// 기본 숨김: 적의 존재를 미리 노출하지 않는다. 인식/락온 시 RefreshVisibility 가 노출한다.
+	// 기본 숨김: 적의 존재를 미리 노출하지 않는다.
+	// 인식/락온 시 RefreshVisibility 가 노출한다.
 	SetVisibility(false);
 
-	// 기본 표시 정책: 죽지 않았고 (인식되거나 락온됨). 보스·샌드백 등 특수 엔티티는 BP 에서 오버라이드한다.
+	// 기본 표시 정책: 죽지 않았고 (인식되거나 락온됨).
+	// 보스·샌드백 등 특수 엔티티는 BP 에서 오버라이드한다.
 	// 표시(둘 중 하나)는 OR 이라 TagQuery(MatchAny)로, 숨김은 IgnoreTags(HasAny면 숨김)로 둔다.
 	VisibilityRequirements.IgnoreTags.AddTag(WxGameplayTags::State_Dead);
 

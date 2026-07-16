@@ -16,7 +16,8 @@ UWxEffect_Burn::UWxEffect_Burn()
 	ExecDef.CalculationClass = UWxExecCalc_Burn::StaticClass();
 	Executions.Add(ExecDef);
 
-	// TODO: StackingType 직접 대입은 UE 5.7에서 deprecated. SetStackingType()은 WITH_EDITOR 전용이라 런타임 빌드에서 링크 실패.
+	// TODO: StackingType 직접 대입은 UE 5.7에서 deprecated.
+	//       SetStackingType()은 WITH_EDITOR 전용이라 런타임 빌드에서 링크 실패.
 	//       엔진 업데이트로 런타임 setter가 추가되면 교체할 것.
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
 	StackingType = EGameplayEffectStackingType::AggregateByTarget;

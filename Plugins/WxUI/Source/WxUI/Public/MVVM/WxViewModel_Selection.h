@@ -10,11 +10,9 @@ class UTexture2D;
 
 /**
  * "현재 선택된 대상 하나" 의 상세 표시를 노출하는 범용 뷰모델.
- * 상호작용/인벤토리 등 소스와 무관하게 상세·설명 패널이 동일 계약에 바인딩하도록,
- * 도메인 타입을 참조하지 않는 평면 표시 필드만 노출한다(그래서 WxUI 에 둔다).
+ * 상호작용/인벤토리 등 소스와 무관하게 상세·설명 패널이 동일 계약에 바인딩하도록, 도메인 타입을 참조하지 않는 평면 표시 필드만 노출한다(그래서 WxUI 에 둔다).
  *
- * 값은 외부 소스(도메인별 브리지)가 SetSelection/ClearSelection 으로 push 하며,
- * 본 VM 은 무엇이 선택되었는지·어떻게 선택되는지 알지 못한다(순수 표시 계약).
+ * 값은 외부 소스(도메인별 브리지)가 SetSelection/ClearSelection 으로 push 하며, 본 VM 은 무엇이 선택되었는지·어떻게 선택되는지 알지 못한다(순수 표시 계약).
  */
 UCLASS()
 class WXUI_API UWxViewModel_Selection : public UWxViewModel

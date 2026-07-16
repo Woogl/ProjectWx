@@ -25,8 +25,7 @@ enum class EWxAttributeRatioComparison : uint8
  * 비교 결과가 참이면 조건 통과(true), 거짓이면 조건 실패(false) 를 반환한다.
  * 실시간 재평가가 필요한 경우 BT 에디터에서 FlowAbortMode 를 LowerPriority/Self/Both 로 설정한다.
  *
- * WxAI 는 WxCombat 에 의존하지 않으므로, Attribute / MaxAttribute 는
- * 디자이너가 BT 에디터에서 직접 지정한다 (예: WxCombatAttributeSet::HP, WxCombatAttributeSet::MaxHP).
+ * WxAI 는 WxCombat 에 의존하지 않으므로, Attribute / MaxAttribute 는 디자이너가 BT 에디터에서 직접 지정한다 (예: WxCombatAttributeSet::HP, WxCombatAttributeSet::MaxHP).
  */
 UCLASS()
 class WXAI_API UWxBTDecorator_AttributeRatio : public UBTDecorator

@@ -19,6 +19,12 @@ class WXUI_API UWxPrimaryGameLayout : public UCommonUserWidget
 public:
 	UCommonActivatableWidgetStack* GetLayerWidgetStack(FGameplayTag LayerTag) const;
 
+	/**
+	 * 등록된 전체 레이어 스택.
+	 * 정지 재평가 등 전 레이어 순회에 사용한다.
+	 */
+	const TMap<FGameplayTag, TObjectPtr<UCommonActivatableWidgetStack>>& GetLayerMap() const { return LayerMap; }
+
 	UCommonActivatableWidget* PushWidgetToLayerStack(FGameplayTag LayerTag, TSubclassOf<UCommonActivatableWidget> WidgetClass);
 
 	/** 위젯을 스택에 push 하되, 활성화되기 전에 InitInstanceFunc 로 인스턴스를 초기화한다. */

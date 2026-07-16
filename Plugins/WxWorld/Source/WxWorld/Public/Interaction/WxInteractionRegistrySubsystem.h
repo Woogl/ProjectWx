@@ -19,7 +19,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionSelectionChanged, in
  * 플레이어 측 스캐너(상호작용 어빌리티의 주기 스캔)가 매 스캔마다 UpdateInRange로 후보 집합을 push 한다.
  * 기존 항목 순서는 보존하고 신규만 뒤에 추가하므로(이탈은 제거), 거리 변동에 목록 순서가 흔들리지 않는다.
  * 선택(SelectedIndex)을 본 서브시스템이 소유하고, 선택된 컴포넌트만 외곽선 강조하도록 조율한다.
- * 입력(휠/방향키)은 WBP가 CycleSelection을 호출해 흘려준다. VM은 목록/선택을 받아 표시만 한다. 로컬 표시 전용이다.
+ * 입력(휠/방향키)은 WBP가 CycleSelection을 호출해 흘려준다.
+ * VM은 목록/선택을 받아 표시만 한다. 로컬 표시 전용이다.
  */
 UCLASS()
 class WXWORLD_API UWxInteractionRegistrySubsystem : public ULocalPlayerSubsystem

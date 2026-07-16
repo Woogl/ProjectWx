@@ -71,8 +71,8 @@ void UWxAnimNotify_AreaAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 			continue;
 		}
 
-		// HitReact 위치 등을 위해 ImpactPoint 를 타겟 위치로 채운다. 각 타겟마다
-		// 컨텍스트가 달라야 하므로 루프 안에서 컨텍스트와 Spec 을 새로 생성한다.
+		// HitReact 위치 등을 위해 ImpactPoint 를 타겟 위치로 채운다.
+		// 각 타겟마다 컨텍스트가 달라야 하므로 루프 안에서 컨텍스트와 Spec 을 새로 생성한다.
 		FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
 		Context.AddSourceObject(Owner);
 		Context.AddInstigator(OwnerPawn ? static_cast<AActor*>(OwnerPawn) : Owner, Owner);

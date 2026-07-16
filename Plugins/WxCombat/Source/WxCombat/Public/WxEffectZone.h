@@ -13,8 +13,8 @@ class USceneComponent;
 /**
  * 접촉 시 GameplayEffect를 적용하는 베이스 액터.
  *
- * 콜리전·외형 컴포넌트는 Blueprint에서 구성한다. NotifyActorBeginOverlap에서 ApplyEffect를 호출하므로
- * GenerateOverlapEvents가 켜진 모든 컴포넌트의 진입이 자동으로 처리된다.
+ * 콜리전·외형 컴포넌트는 Blueprint에서 구성한다.
+ * NotifyActorBeginOverlap에서 ApplyEffect를 호출하므로 GenerateOverlapEvents가 켜진 모든 컴포넌트의 진입이 자동으로 처리된다.
  */
 UCLASS(Abstract, Blueprintable)
 class WXCOMBAT_API AWxEffectZone : public AActor

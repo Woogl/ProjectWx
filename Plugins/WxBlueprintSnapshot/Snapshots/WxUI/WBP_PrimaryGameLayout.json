@@ -1,0 +1,143 @@
+{
+	"blueprintPath": "/WxUI/WBP_PrimaryGameLayout.WBP_PrimaryGameLayout",
+	"parentClass": "/Script/WxUI.WxPrimaryGameLayout",
+	"widgetTree":
+	{
+		"root": "CanvasPanel_20",
+		"widgets":
+		{
+			"CanvasPanel_20":
+			{
+				"class": "/Script/UMG.CanvasPanel"
+			},
+			"GameLayer":
+			{
+				"class": "/Script/CommonUI.CommonActivatableWidgetStack",
+				"delta":
+				{
+					"TransitionDuration": 0
+				},
+				"parent": "CanvasPanel_20",
+				"slot":
+				{
+					"class": "/Script/UMG.CanvasPanelSlot",
+					"delta":
+					{
+						"LayoutData":
+						{
+							"Anchors":
+							{
+								"Maximum":
+								{
+									"X": 1,
+									"Y": 1
+								}
+							},
+							"Offsets":
+							{
+								"Bottom": 0,
+								"Right": 0
+							}
+						}
+					}
+				}
+			},
+			"GameMenuLayer":
+			{
+				"class": "/Script/CommonUI.CommonActivatableWidgetStack",
+				"delta":
+				{
+					"TransitionDuration": 0
+				},
+				"parent": "CanvasPanel_20",
+				"slot":
+				{
+					"class": "/Script/UMG.CanvasPanelSlot",
+					"delta":
+					{
+						"LayoutData":
+						{
+							"Anchors":
+							{
+								"Maximum":
+								{
+									"X": 1,
+									"Y": 1
+								}
+							},
+							"Offsets":
+							{
+								"Bottom": 0,
+								"Right": 0
+							}
+						}
+					}
+				}
+			},
+			"MenuLayer":
+			{
+				"class": "/Script/CommonUI.CommonActivatableWidgetStack",
+				"delta":
+				{
+					"TransitionDuration": 0
+				},
+				"parent": "CanvasPanel_20",
+				"slot":
+				{
+					"class": "/Script/UMG.CanvasPanelSlot",
+					"delta":
+					{
+						"LayoutData":
+						{
+							"Anchors":
+							{
+								"Maximum":
+								{
+									"X": 1,
+									"Y": 1
+								}
+							},
+							"Offsets":
+							{
+								"Bottom": 0,
+								"Right": 0
+							}
+						}
+					}
+				}
+			},
+			"ModalLayer":
+			{
+				"class": "/Script/CommonUI.CommonActivatableWidgetStack",
+				"delta":
+				{
+					"TransitionDuration": 0
+				},
+				"parent": "CanvasPanel_20",
+				"slot":
+				{
+					"class": "/Script/UMG.CanvasPanelSlot",
+					"delta":
+					{
+						"LayoutData":
+						{
+							"Anchors":
+							{
+								"Maximum":
+								{
+									"X": 1,
+									"Y": 1
+								}
+							},
+							"Offsets":
+							{
+								"Bottom": 0,
+								"Right": 0
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

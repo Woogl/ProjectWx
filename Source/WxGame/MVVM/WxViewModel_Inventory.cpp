@@ -173,7 +173,8 @@ UObject* UWxViewModelResolver_Inventory::CreateInstance(const UClass* ExpectedTy
 		return nullptr;
 	}
 
-	// 위젯이 아닌 데이터 소스(인벤토리 매니저)를 Outer 로 생성한다. 수명은 뷰의 강참조와 BeginDestroy 의 Deinitialize 가 관리한다.
+	// 위젯이 아닌 데이터 소스(인벤토리 매니저)를 Outer 로 생성한다.
+	// 수명은 뷰의 강참조와 BeginDestroy 의 Deinitialize 가 관리한다.
 	UWxViewModel_Inventory* ViewModel = NewObject<UWxViewModel_Inventory>(InventoryManager);
 	ViewModel->Initialize(InventoryManager);
 	return ViewModel;

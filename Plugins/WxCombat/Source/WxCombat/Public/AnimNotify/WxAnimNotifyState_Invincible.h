@@ -9,8 +9,7 @@
 /**
  * 무적 구간 AnimNotifyState.
  *
- * 몽타주에 배치하면 NotifyBegin~NotifyEnd 구간 동안
- * 캐릭터 ASC에 State.Invincible 태그를 부여.
+ * 몽타주에 배치하면 NotifyBegin~NotifyEnd 구간 동안 캐릭터 ASC에 State.Invincible 태그를 부여.
  * 이 태그가 있는 동안 대미지 계산(ExecCalc)에서 대미지를 무시한다.
  */
 UCLASS()

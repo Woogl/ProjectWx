@@ -12,8 +12,8 @@ class UWxItemDefinition;
 /**
  * 단일 보상 항목. 지급할 아이템 정의와 수량의 Pair.
  *
- * Item 은 TSoftObjectPtr 로 지연 로드된다. 보상 테이블을 로드해도 참조 아이템 자산까지
- * 강참조로 끌어오지 않으며, 실제 지급 시점에 로드한다.
+ * Item 은 TSoftObjectPtr 로 지연 로드된다.
+ * 보상 테이블을 로드해도 참조 아이템 자산까지 강참조로 끌어오지 않으며, 실제 지급 시점에 로드한다.
  */
 USTRUCT(BlueprintType)
 struct WXINVENTORY_API FWxItemRewardEntry

@@ -40,8 +40,10 @@ public:
 
 protected:
 	/**
-	 * 네임플레이트 표시 조건. ASC 보유 태그로 평가한다: Must Have(HasAll)·Must Not Have(HasAny면 숨김)·Query Must Match(복합).
-	 * 기본값은 생성자에서 저작한다(Dead 면 숨김, InCombat 또는 LockedOn 이면 표시). 엔티티별로 BP 에서 오버라이드한다.
+	 * 네임플레이트 표시 조건.
+	 * ASC 보유 태그로 평가한다: Must Have(HasAll)·Must Not Have(HasAny면 숨김)·Query Must Match(복합).
+	 * 기본값은 생성자에서 저작한다(Dead 면 숨김, InCombat 또는 LockedOn 이면 표시).
+	 * 엔티티별로 BP 에서 오버라이드한다.
 	 */
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	FGameplayTagRequirements VisibilityRequirements;

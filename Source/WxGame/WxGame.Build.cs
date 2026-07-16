@@ -23,8 +23,6 @@ public class WxGame : ModuleRules
 			"ModelViewViewModel",
 			"ModularGameplay",
 			"MotionWarping",
-			"Niagara",
-			"PhysicsCore",
 			"UMG",
 			"WxAI",
 			"WxCombat",

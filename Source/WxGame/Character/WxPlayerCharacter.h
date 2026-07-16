@@ -44,11 +44,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")
 	TObjectPtr<UWxLockOnManagerComponent> LockOnManagerComponent;
 
-	/** 상호작용 목록(WBP_InteractionList) 표시용 Screen-space 위젯 컴포넌트. Widget Class는 BP_Player에서 지정한다. */
+	/**
+	 * 상호작용 목록(WBP_InteractionList) 표시용 Screen-space 위젯 컴포넌트.
+	 * Widget Class는 BP_Player에서 지정한다.
+	 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|UI")
 	TObjectPtr<UWidgetComponent> InteractionListWidget;
 
-	/** 전투 등 상태 기반으로 BGM 을 기여하는 소스. MusicTag/ActivationTag/Priority 는 BP_Player 에서 지정한다. */
+	/**
+	 * 전투 등 상태 기반으로 BGM 을 기여하는 소스.
+	 * MusicTag/ActivationTag/Priority 는 BP_Player 에서 지정한다.
+	 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|BGM")
 	TObjectPtr<UWxBGMSourceComponent> BGMSourceComponent;
 

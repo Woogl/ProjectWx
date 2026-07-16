@@ -1,0 +1,102 @@
+{
+	"blueprintPath": "/Game/UI/Widget/WBP_GameHUD.WBP_GameHUD",
+	"classDefaults":
+	{
+		"MainMenuWidgetClass": "/Game/UI/Widget/WBP_MainMenu.WBP_MainMenu_C"
+	},
+	"eventGraph":
+	{
+		"PreConstruct": [
+			"void PreConstruct(bool IsDesignTime)",
+			"{",
+			"    Super::PreConstruct(IsDesignTime);",
+			"}"
+		]
+	},
+	"mvvm":
+	{
+		"bindings": [
+			{
+				"bindingType": "OneWayToDestination",
+				"conversionSourceToDestination":
+				{
+					"arguments":
+					{
+						"AbilitySystem": "AbilitySystem",
+						"CurrentAttribute": "(AttributeName=\"SP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:SP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")",
+						"MaxAttribute": "(AttributeName=\"MaxSP\",Attribute=/Script/WxCombat.WxCombatAttributeSet:MaxSP,AttributeOwner=\"/Script/CoreUObject.Class'/Script/WxCombat.WxCombatAttributeSet'\")"
+					},
+					"function": "GetAttributeViewModel"
+				},
+				"destination": "WxViewModel_Attribute",
+				"source": ""
+			}
+		],
+		"viewModels":
+		{
+			"VM_PlayerCharacter":
+			{
+				"class": "/Script/WxUI.WxViewModel_Character",
+				"contextId": "D74A339D-4A49-4CB9-11AB-8C909851D741",
+				"createGetter": true,
+				"createSetter": false,
+				"creationType": "Resolver",
+				"globalIdentifier": "VM_PlayerCharacter",
+				"optional": false
+			}
+		}
+	},
+	"parentClass": "/Game/UI/Widget/WBP_GameHUDBase.WBP_GameHUDBase_C",
+	"widgetTree":
+	{
+		"widgets":
+		{
+			"TextBlock_37":
+			{
+				"class": "/Script/UMG.TextBlock",
+				"delta":
+				{
+					"Font":
+					{
+						"OutlineSettings":
+						{
+							"OutlineSize": 1
+						}
+					},
+					"Text": "Move : WASD\r\nJump : Space bar\r\nAttack: L Click\r\nDodge : R Click, L Shift\r\nSkill : E  /  Ultimate : R\r\nGuard : Q\r\nLock-on : M Click"
+				}
+			},
+			"WBP_AcquiredItemList_620":
+			{
+				"class": "/Game/UI/Widget/WBP_AcquiredItemList.WBP_AcquiredItemList_C"
+			},
+			"WBP_Nameplate_Boss_109":
+			{
+				"class": "/Game/UI/Widget/WBP_Nameplate_Boss.WBP_Nameplate_Boss_C"
+			},
+			"WBP_Nameplate_Player":
+			{
+				"class": "/Game/UI/Widget/WBP_Nameplate_Player.WBP_Nameplate_Player_C"
+			},
+			"WBP_PlayerSkills":
+			{
+				"class": "/Game/UI/Widget/WBP_PlayerSkills.WBP_PlayerSkills_C"
+			},
+			"WBP_PotionSlot_504":
+			{
+				"class": "/Game/UI/Widget/WBP_PotionSlot.WBP_PotionSlot_C"
+			},
+			"WBP_StaminaBar_90":
+			{
+				"class": "/Game/UI/Widget/WBP_StaminaBar.WBP_StaminaBar_C",
+				"delta":
+				{
+					"Padding":
+					{
+						"Right": 300
+					}
+				}
+			}
+		}
+	}
+}

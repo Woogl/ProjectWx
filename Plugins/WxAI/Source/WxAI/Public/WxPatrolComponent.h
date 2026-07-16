@@ -26,8 +26,8 @@ enum class EWxPatrolMoveMode : uint8
 /**
  * 정찰 경로를 정의하는 스플라인 컴포넌트. 스플라인 포인트들이 정찰 지점이 된다.
  *
- * 순수 경로 데이터( + MoveMode 순회 규칙)만 제공하고 상태를 갖지 않는다. 진행 커서는 BT 태스크(UWxBTTask_Patrol)가 폰별로 소유하므로,
- * 같은 경로를 여러 폰이 재사용하거나 적이 리스폰돼도 안전하다.
+ * 순수 경로 데이터( + MoveMode 순회 규칙)만 제공하고 상태를 갖지 않는다.
+ * 진행 커서는 BT 태스크(UWxBTTask_Patrol)가 폰별로 소유하므로, 같은 경로를 여러 폰이 재사용하거나 적이 리스폰돼도 안전하다.
  * AWxSpawner 인스턴스에 추가하면, 스폰된 적이 FindPatrolComponent(액터) 로 본 컴포넌트를 찾아 이 경로를 따라 정찰한다.
  */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))

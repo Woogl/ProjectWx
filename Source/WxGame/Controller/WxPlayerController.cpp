@@ -58,7 +58,8 @@ void AWxPlayerController::OnRep_Pawn()
 
 	BindCharacterDeath(GetPawn());
 
-	// 원격 클라이언트: Pawn 복제 시 HUD Push. 리졸버가 생성 시점에 Pawn 의 ASC/인벤토리를 읽으므로 이 시점이어야 한다.
+	// 원격 클라이언트: Pawn 복제 시 HUD Push.
+	// 리졸버가 생성 시점에 Pawn 의 ASC/인벤토리를 읽으므로 이 시점이어야 한다.
 	if (AWxPlayerCharacter* WxPlayerCharacter = Cast<AWxPlayerCharacter>(GetPawn()))
 	{
 		PushGameHUD(WxPlayerCharacter);

@@ -35,8 +35,8 @@ class UWxInteractionComponent;
  *  - ComponentSplineMove 는 (TargetComponent, Spline, TargetPointIndex, Duration) 으로 지정 컴포넌트를 목표 스플라인 포인트로 옮긴다. 초기 진입이면 목표 포인트로 즉시 스냅, 라이브 전이면 실제 현재 위치에서 목표까지 곡선을 따라 이동한다(State 가 목표 끝점을 직접 선언하므로 복원도 정확).
  *  - PlayAnimation 은 (TargetMesh, Animation) 으로 초기 진입이면 끝 프레임 스냅, 라이브 전이면 처음부터 재생한다. 범용 애니 재생.
  *  - PlayLevelSequence 는 (LevelSequence) 로 라이브 전이 진입 시 시퀀스를 재생하고 Tick 으로 종료를 폴링하다, 종료 시 시퀀스를 정리하고 권위 측이면 소유 기믹의 HandleLevelSequenceFinished 로 통지한 뒤 Succeeded 를 반환한다(호스트가 State 복귀를 구동; OnComplete 전이를 쓰는 기믹도 그대로 가능). 입력 차단은 별도 EnablePlayerInput 이 맡는다. 중도 이탈 시 ExitState 가 시퀀스 정지·정리(복원 시 침묵·통지 없음).
- *  - PlaySound 는 (Sound) 로 라이브 전이 진입 시에만 사운드를 1회 재생한다(복원 시 침묵).
- *  - SpawnNiagara 는 (AttachComponent, Niagara) 로 라이브 전이 진입 시에만 Niagara 를 1회 재생한다(복원 시 침묵).
+ *  - PlaySound 는 (Sound, bPlayOnRestore) 로 라이브 전이 진입 시 사운드를 1회 재생한다(기본은 복원 시 침묵, bPlayOnRestore 면 복원/시작 진입에서도 재생).
+ *  - SpawnNiagara 는 (AttachComponent, Niagara, bPlayOnRestore) 로 라이브 전이 진입 시 Niagara 를 1회 재생한다(기본은 복원 시 침묵, bPlayOnRestore 면 복원/시작 진입에서도 재생 — 상태에 묶인 지속 FX 용).
  *  - TriggerSpawners 는 (Spawners) 로 라이브 전이 진입 시 권위 측에서만 각 스포너의 Respawn 을 호출한다(복원 시 재실행 안 함).
  *  - SpawnActor 는 (ActorClass, LocalSpawnTransform, Interval, Lifetime, bDestroyOnExit, SpawnCollisionHandlingOverride) 로 매 틱 권위 측에서 LocalSpawnTransform 을 오너 트랜스폼에 합성한 자리에 Interval 마다 액터를 스폰하고 살아있는 목록을 유지한다(Interval 0 이면 1회만 스폰, Lifetime 양수면 자동 파괴, 완료 없는 머무는 태스크, 상태 이탈 시 bDestroyOnExit 면 전부 파괴).
  *
@@ -207,7 +207,8 @@ struct FWxStateTreeTask_ComponentSplineMoveInstanceData
 };
 
 /**
- * 지정 컴포넌트를 TargetPointIndex 가 가리키는 스플라인 포인트로 옮기고, 도달하면 Succeeded 를 반환해 상태를 완료시킨다. 각 상태가 자기 목표 끝점을 직접 선언하는 순수 비주얼 태스크라 어떤 기믹이든 경로 이동에 재사용한다.
+ * 지정 컴포넌트를 TargetPointIndex 가 가리키는 스플라인 포인트로 옮기고, 도달하면 Succeeded 를 반환해 상태를 완료시킨다.
+ * 각 상태가 자기 목표 끝점을 직접 선언하는 순수 비주얼 태스크라 어떤 기믹이든 경로 이동에 재사용한다.
  * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 목표 포인트로 즉시 스냅한다 — State 가 끝점을 직접 가리키므로 복제/복원된 상태의 위치를 정확히 복원한다(C++ 스냅 불필요).
  * 라이브 전이면 플랫폼의 실제 현재 위치에서 목표 포인트까지 곡선을 따라 슬라이드한다(Duration 0 이하·이미 목표면 즉시 스냅). 이동 중 재진입해도 vertex 로 스냅하지 않고 현재 지점에서 반전한다.
  */
@@ -354,12 +355,18 @@ struct FWxStateTreeTask_PlaySoundInstanceData
 	/** 라이브 진입 시 재생할 사운드(액터 위치). */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<USoundBase> Sound;
+
+	/** 초기·복원 진입에서도 재생할지. false(기본)면 라이브 발동에서만 1회 재생(트리거 사운드), true 면 로드/복원 시에도 재생한다(상태에 묶인 지속 사운드용). */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	bool bPlayOnRestore = false;
 };
 
 /**
  * 라이브 전이로 진입할 때 사운드를 액터 위치에서 1회 재생하고 Succeeded 로 완료한다(트리거 사운드). State 를 읽지 않아 어떤 기믹이든 재사용한다.
- * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 재생하지 않는다 — 발동 사운드는 발동 순간에만 울리고 복원 시엔 침묵한다.
+ * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 기본적으로 재생하지 않는다 — 발동 사운드는 발동 순간에만 울리고 복원 시엔 침묵한다.
+ * bPlayOnRestore 면 복원/시작 진입에서도 재생한다 — 상태에 묶인 지속 사운드용(트리거가 아니라 상태가 켜져 있는 동안 울려야 하는 경우).
  * 모든 피어(서버+클라)가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다. 틱하지 않으므로 비용이 없다.
+ * 무틱 즉시완료 태스크라 상태 완료를 구동하지 않는다(bConsideredForCompletion=false; 정지 leaf 에 놓여도 재선택 루프에 빠지지 않도록). 완료 구동이 필요한 드문 상태는 인스턴스별로 다시 켠다.
  */
 USTRUCT(meta = (DisplayName = "Wx Play Sound"))
 struct FWxStateTreeTask_PlaySound : public FStateTreeTaskCommonBase
@@ -392,13 +399,19 @@ struct FWxStateTreeTask_SpawnNiagaraInstanceData
 	/** 라이브 진입 시 재생할 Niagara 시스템. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<UNiagaraSystem> Niagara;
+
+	/** 초기·복원 진입에서도 재생할지. false(기본)면 라이브 발동에서만 1회 재생(트리거 FX), true 면 로드/복원 시에도 재생한다(루프 Niagara 를 상태에 묶는 지속 FX 용, 예: 모닥불 불꽃). */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	bool bPlayOnRestore = false;
 };
 
 /**
  * 라이브 전이로 진입할 때 Niagara 를 1회 재생하고 Succeeded 로 완료한다(트리거 FX). State 를 읽지 않아 어떤 기믹이든 재사용한다.
  * AttachComponent 가 있으면 그 컴포넌트에 붙여 재생하고, 비우면 액터 위치에 재생한다.
- * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 재생하지 않는다 — 발동 FX 는 발동 순간에만 울리고 복원 시엔 침묵한다.
+ * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 기본적으로 재생하지 않는다 — 발동 FX 는 발동 순간에만 울리고 복원 시엔 침묵한다.
+ * bPlayOnRestore 면 복원/시작 진입에서도 재생한다 — 루프 Niagara 를 지정하면 상태에 묶인 지속 FX 가 되어 로드 후에도 유지된다(예: 체크포인트 모닥불).
  * 모든 피어(서버+클라)가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다. 틱하지 않으므로 비용이 없다.
+ * 무틱 즉시완료 태스크라 상태 완료를 구동하지 않는다(bConsideredForCompletion=false; 정지 leaf 에 놓여도 재선택 루프에 빠지지 않도록). 완료 구동이 필요한 드문 상태는 인스턴스별로 다시 켠다.
  */
 USTRUCT(meta = (DisplayName = "Wx Spawn Niagara"))
 struct FWxStateTreeTask_SpawnNiagara : public FStateTreeTaskCommonBase

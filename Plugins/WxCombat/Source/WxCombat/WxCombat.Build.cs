@@ -19,6 +19,7 @@ public class WxCombat : ModuleRules
 			"GameplayTags",
 			"GameplayTasks",
 			"ModularGameplay",
+			"MotionWarping",
 			"NavigationSystem",
 			"NetCore",
 			"TargetingSystem",
@@ -30,7 +31,6 @@ public class WxCombat : ModuleRules
 		{
 			"InputCore",
 			"LevelSequence",
-			"MotionWarping",
 			"MovieScene",
 			"Niagara",
 		});

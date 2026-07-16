@@ -35,8 +35,7 @@
  *   SPD      - Speed              : 이동 속도
  *   ASPD     - Attack Speed       : 공격 속도(애니메이션 몽타주 재생 속도)
  *
- * IncomingDamage: GameplayEffect ExecutionCalculation에서 최종 데미지를 이 어트리뷰트로 전달하고
- *                 PostGameplayEffectExecute에서 HP를 차감하는 패턴으로 사용.
+ * IncomingDamage: GameplayEffect ExecutionCalculation에서 최종 데미지를 이 어트리뷰트로 전달하고 PostGameplayEffectExecute에서 HP를 차감하는 패턴으로 사용.
  *
  * 복제됨: HP, MaxHP, SP, MaxSP, DP, MaxDP, MP, MaxMP, UP, MaxUP, ATK, DEF, CritRate, CritDMG, SPD, ASPD
  * 복제 안 함 (Meta): IncomingDamage

@@ -9,8 +9,7 @@
 /**
  * 퍼펙트 가드 판정 구간 AnimNotifyState.
  *
- * 몽타주에 배치하면 NotifyBegin~NotifyEnd 구간 동안
- * 캐릭터 ASC에 ANS.PerfectGuard 태그를 부여.
+ * 몽타주에 배치하면 NotifyBegin~NotifyEnd 구간 동안 캐릭터 ASC에 ANS.PerfectGuard 태그를 부여.
  * ANS_PerfectGuard와 겹치는 구간에서 피격 시 대미지를 무효화하고 공격자에게 DP를 반사한다.
  */
 UCLASS()

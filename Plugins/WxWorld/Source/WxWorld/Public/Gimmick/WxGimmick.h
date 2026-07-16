@@ -49,7 +49,9 @@ public:
 
 	/**
 	 * Wx Play Level Sequence 태스크가 재생 종료 시 권위 측에서 호출하는 통지 진입점. 기본 노옵이다.
-	 * 시퀀스 종료를 아는 주체는 그것을 재생·폴링하는 태스크뿐이라, 태스크가 소유 기믹에 직접 통지한다. 자식은 이를 받아 CommitGimmickState 로 State 전이를 구동한다(예: 컷신 종료 후 Idle 복귀). State 쓰기는 여전히 자식(C++)만 한다.
+	 * 시퀀스 종료를 아는 주체는 그것을 재생·폴링하는 태스크뿐이라, 태스크가 소유 기믹에 직접 통지한다.
+	 * 자식은 이를 받아 CommitGimmickState 로 State 전이를 구동한다(예: 컷신 종료 후 Idle 복귀).
+	 * State 쓰기는 여전히 자식(C++)만 한다.
 	 */
 	virtual void HandleLevelSequenceFinished() {}
 
@@ -70,8 +72,7 @@ protected:
 
 	/**
 	 * 라이브 State 변경을 GimmickStateTree 에 통지한다 — 현재 상태 태그를 ST 이벤트로 보내 그 상태의 Required Event 전이를 구동한다.
-	 * 베이스의 복제 State(ReplicatedUsing=OnRep_GimmickState)가 클라에서 갱신될 때 호출되며, 권위 측은 CommitGimmickState 가 직접 호출해
-	 * 서버·클라가 같은 통지 로직을 공유한다(서버 OnRep 미발화를 메우는 RepNotify 관용구). 트리 미실행 중엔 노옵이다.
+	 * 베이스의 복제 State(ReplicatedUsing=OnRep_GimmickState)가 클라에서 갱신될 때 호출되며, 권위 측은 CommitGimmickState 가 직접 호출해 서버·클라가 같은 통지 로직을 공유한다(서버 OnRep 미발화를 메우는 RepNotify 관용구). 트리 미실행 중엔 노옵이다.
 	 */
 	UFUNCTION()
 	void OnRep_GimmickState();

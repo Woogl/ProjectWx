@@ -23,7 +23,6 @@ namespace WxBlackboardKeys
 	WXAI_API extern const FName TargetActor;
 	WXAI_API extern const FName HomeLocation;
 	WXAI_API extern const FName TargetLastKnownLocation;
-	WXAI_API extern const FName Phase;
 	WXAI_API extern const FName PatrolTargetLocation;
 	WXAI_API extern const FName TargetDistance;
 

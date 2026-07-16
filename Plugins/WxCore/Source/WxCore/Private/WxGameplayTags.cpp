@@ -48,6 +48,9 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_TreasureChest_Closed, "Gimmick.TreasureChest.Closed");
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_TreasureChest_Open, "Gimmick.TreasureChest.Open");
 
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_CheckPoint_Unlit, "Gimmick.CheckPoint.Unlit");
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_CheckPoint_Lit, "Gimmick.CheckPoint.Lit");
+
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_LaserCorridor_Active, "Gimmick.LaserCorridor.Active");
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_LaserCorridor_Deactivated, "Gimmick.LaserCorridor.Deactivated");
 
@@ -62,7 +65,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Exceed, "GameplayCue.Exceed");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Burn, "GameplayCue.Burn");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_HitStop, "GameplayCue.HitStop");
-	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Metamorphose, "GameplayCue.Metamorphose");
 
 	UE_DEFINE_GAMEPLAY_TAG(Damage_Critical, "Damage.Critical");
 	UE_DEFINE_GAMEPLAY_TAG(Damage_Unblockable, "Damage.Unblockable");
@@ -93,7 +95,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_8, "Ability.Pattern.8");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_9, "Ability.Pattern.9");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_10, "Ability.Pattern.10");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_Phase, "Ability.Pattern.Phase");
 
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Duration, "SetByCaller.Duration");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Recovery_UP, "SetByCaller.Recovery.UP");

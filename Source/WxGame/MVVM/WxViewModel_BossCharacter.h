@@ -48,7 +48,8 @@ private:
 /**
  * VM_BossCharacter 용 View Bindings Resolver.
  *
- * 위젯별로 관찰형 보스 뷰모델(UWxViewModel_BossCharacter)을 생성해 돌려준다. 보스 탐색/연결은 뷰모델이 스스로 수행한다.
+ * 위젯별로 관찰형 보스 뷰모델(UWxViewModel_BossCharacter)을 생성해 돌려준다.
+ * 보스 탐색/연결은 뷰모델이 스스로 수행한다.
  * WBP 의 View Bindings 에서 Creation Type = Resolver 로 본 클래스를 선택한다.
  */
 UCLASS(EditInlineNew, CollapseCategories)

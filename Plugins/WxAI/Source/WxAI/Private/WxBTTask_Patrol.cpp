@@ -36,8 +36,8 @@ EBTNodeResult::Type UWxBTTask_Patrol::ExecuteTask(UBehaviorTreeComponent& OwnerC
 		return EBTNodeResult::Failed;
 	}
 
-	// Once 로 경로를 마쳤으면 마지막 지점에 그대로 정지한다. Failed 를 반환하면 하위 폴백 분기가 폰을 집/배회로 끌고 가므로,
-	// 이동 없이 Succeeded 로 정찰 분기를 점유해 그 자리에 머물게 한다.
+	// Once 로 경로를 마쳤으면 마지막 지점에 그대로 정지한다.
+	// Failed 를 반환하면 하위 폴백 분기가 폰을 집/배회로 끌고 가므로, 이동 없이 Succeeded 로 정찰 분기를 점유해 그 자리에 머물게 한다.
 	if (bPatrolFinished)
 	{
 		return EBTNodeResult::Succeeded;

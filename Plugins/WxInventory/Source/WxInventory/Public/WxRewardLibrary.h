@@ -18,10 +18,10 @@ class WXINVENTORY_API UWxRewardLibrary : public UBlueprintFunctionLibrary
 
 public:
 	/**
-	 * RewardRow 의 유효한 (아이템, 수량) 항목을 서버 권한에서 지급한다. 비권한·미지정이면 노옵.
+	 * RewardRow 의 유효한 (아이템, 수량) 항목을 서버 권한에서 지급한다.
+	 * 비권한·미지정이면 노옵.
 	 *
-	 * Pickup Fragment 가 있는 보상은 SpawnTransform 위치에 픽업 액터를 스폰해 LaunchVelocity 방향·크기로 발사하고,
-	 * Pickup Fragment 가 없는 보상(예: 재화)은 외형이 없으므로 DirectGrantTarget 의 인벤토리에 직접 지급한다(대상이 없으면 스킵).
+	 * Pickup Fragment 가 있는 보상은 SpawnTransform 위치에 픽업 액터를 스폰해 LaunchVelocity 방향·크기로 발사하고, Pickup Fragment 가 없는 보상(예: 재화)은 외형이 없으므로 DirectGrantTarget 의 인벤토리에 직접 지급한다(대상이 없으면 스킵).
 	 *
 	 * @param SourceActor        권위 판정과 월드(스폰) 출처. nullptr 이거나 비권한이면 아무것도 하지 않는다.
 	 * @param RewardRow          지급할 보상. FWxRewardTableRow 로우. 비어 있으면 노옵.

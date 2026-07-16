@@ -9,8 +9,7 @@
 /**
  * 지속시간 동안 MP를 항상 최대치로 유지하는 GameplayEffect.
  *
- * 1/30초 간격으로 MP를 MaxMP로 Override하여,
- * MP 소모가 발생하더라도 즉시 최대치로 복원한다.
+ * 1/30초 간격으로 MP를 MaxMP로 Override하여, MP 소모가 발생하더라도 즉시 최대치로 복원한다.
  * 지속시간은 SetByCaller.Duration 태그로 지정한다.
  */
 UCLASS()

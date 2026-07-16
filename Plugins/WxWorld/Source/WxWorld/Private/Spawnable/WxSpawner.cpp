@@ -145,8 +145,9 @@ void AWxSpawner::BeginPlay()
 
 	if (HasAuthority())
 	{
-		// 정상 흐름에선 BeginPlay 시점에 bIsKilled=false. 슬롯 복원으로 true 가 들어왔다면
-		// OnWxSaveRestored 가 SpawnedActor 정리를 담당. 본 가드는 에디터 디폴트 등으로 true 가 들어오는 경우의 안전망.
+		// 정상 흐름에선 BeginPlay 시점에 bIsKilled=false.
+		// 슬롯 복원으로 true 가 들어왔다면 OnWxSaveRestored 가 SpawnedActor 정리를 담당.
+		// 본 가드는 에디터 디폴트 등으로 true 가 들어오는 경우의 안전망.
 		if (bIsKilled)
 		{
 			return;
@@ -214,8 +215,8 @@ void AWxSpawner::SpawnTarget()
 }
 
 #if WITH_EDITOR
-// 에디터 전용 GetActorGuid() 를 런타임 가용 UPROPERTY 로 복사한다. ActorGuid 는 에디터에서 액터별로 안정·고유하고,
-// 부여된 WxSaveId 는 에셋 저장 시 직렬화되어 쿠커가 그대로 읽으므로 런타임 키가 보장된다.
+// 에디터 전용 GetActorGuid() 를 런타임 가용 UPROPERTY 로 복사한다.
+// ActorGuid 는 에디터에서 액터별로 안정·고유하고, 부여된 WxSaveId 는 에셋 저장 시 직렬화되어 쿠커가 그대로 읽으므로 런타임 키가 보장된다.
 void AWxSpawner::PostActorCreated()
 {
 	Super::PostActorCreated();

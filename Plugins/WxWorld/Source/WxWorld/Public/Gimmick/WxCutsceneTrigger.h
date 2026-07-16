@@ -15,7 +15,9 @@ class UWxInteractionComponent;
  * 플레이어가 상호작용하면 지정된 Level Sequence 를 재생하고, 재생 동안 플레이어 입력이 막힌다. 재생이 끝나면 다시 상호작용할 수 있다(반복 재생).
  *
  * 상태는 자체 State 태그(Gimmick.CutsceneTrigger.*)가 권위 원천이며, 복제된다(다른 기믹과 동일한 「권위 State 태그 → StateTree 진입」 패턴).
- * 상호작용(권위)이 State 를 Playing 으로 확정한다. 재생은 GimmickStateTree(ST_CutsceneTrigger)의 Wx Play Level Sequence 가 맡고, 재생이 끝나면 그 태스크가 권위 측에서 HandleLevelSequenceFinished 로 통지해 State 를 Idle 로 되돌린다. State 쓰기는 여전히 이 액터(C++)만 하므로 ST 는 진입만 한다.
+ * 상호작용(권위)이 State 를 Playing 으로 확정한다.
+ * 재생은 GimmickStateTree(ST_CutsceneTrigger)의 Wx Play Level Sequence 가 맡고, 재생이 끝나면 그 태스크가 권위 측에서 HandleLevelSequenceFinished 로 통지해 State 를 Idle 로 되돌린다.
+ * State 쓰기는 여전히 이 액터(C++)만 하므로 ST 는 진입만 한다.
  *
  *   Idle (초기) ──상호작용(권위)──> Playing ──재생 종료 통지(권위)──> Idle
  *

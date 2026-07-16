@@ -1,0 +1,39 @@
+{
+	"blueprintPath": "/Game/WorldObject/Gimmick/BP_CheckPoint.BP_CheckPoint",
+	"classDefaults":
+	{
+		"HealEffect": "/Script/WxCombat.WxEffect_FullHP",
+		"InteractionComponent":
+		{
+			"class": "/Script/WxWorld.WxInteractionComponent",
+			"delta":
+			{
+				"InteractionText": "Rest"
+			}
+		},
+		"MeshComponent":
+		{
+			"class": "/Script/Engine.StaticMeshComponent",
+			"delta":
+			{
+				"RelativeLocation":
+				{
+					"X": -100
+				},
+				"StaticMesh": "/Game/NiagaraExamples/Gallery/StaticMesh/SM_TorchBase.SM_TorchBase"
+			}
+		},
+		"StateTree":
+		{
+			"class": "/Script/GameplayStateTreeModule.StateTreeComponent",
+			"delta":
+			{
+				"StateTreeRef":
+				{
+					"StateTree": "/Game/WorldObject/Gimmick/ST_CheckPoint.ST_CheckPoint"
+				}
+			}
+		}
+	},
+	"parentClass": "/Script/WxGame.WxCheckPoint"
+}

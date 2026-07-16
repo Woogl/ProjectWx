@@ -1,0 +1,8 @@
+{
+	"blueprintPath": "/Game/AbilitySystem/Ability/GA_Interact.GA_Interact",
+	"classDefaults":
+	{
+		"InteractMontage": "/Game/AbilitySystem/Ability/AM_Interact.AM_Interact"
+	},
+	"parentClass": "/Script/WxGame.WxAbility_Interact"
+}

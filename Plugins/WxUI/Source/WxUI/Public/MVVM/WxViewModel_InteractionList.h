@@ -12,8 +12,7 @@ class UWxViewModel_Interaction;
  * 상호작용 HUD 리스트 뷰모델.
  * 현재 범위 안에 있는 상호작용 대상들을 항목 VM 목록으로 노출하고, 그중 선택된 인덱스를 표시한다.
  *
- * WxUI 는 WxWorld 레지스트리를 참조할 수 없으므로, WxGame 리졸버가 레지스트리의 목록/선택 변경 델리게이트를
- * 본 VM 의 HandleListChanged/HandleSelectionChanged(엔진 타입 인자)에 연결해 흘려준다.
+ * WxUI 는 WxWorld 레지스트리를 참조할 수 없으므로, WxGame 리졸버가 레지스트리의 목록/선택 변경 델리게이트를 본 VM 의 HandleListChanged/HandleSelectionChanged(엔진 타입 인자)에 연결해 흘려준다.
  * 선택은 레지스트리가 소유하며, 본 VM 은 받은 값을 표시만 한다(휠/방향키 입력은 WBP 가 레지스트리에 직접 전달).
  */
 UCLASS()

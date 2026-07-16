@@ -35,7 +35,8 @@ struct FWxStateTreeTask_GrantRewardInstanceData
  * 아이템 타입별 분기(Pickup Fragment 있으면 월드 드랍, 없으면 로컬 플레이어(0번 컨트롤러) 인벤토리 직접 지급)는 GrantReward 가 처리하므로 여기선 트리거만 한다.
  * 픽업 스폰 위치는 오너 트랜스폼에 SpawnOffset 을 더한 지점이며, 발사는 LaunchVelocity 가 가리키는 방향·크기로 한다.
  * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 호출하지 않는다 — 보상은 발동 순간에만 지급하고 복원/조인 시 중복 지급하지 않는다.
- * 보상 스폰/지급은 서버 권위 사건이라 클라 진입은 노옵(클라는 복제로 픽업/인벤토리를 추종). 틱하지 않으므로 비용이 없다.
+ * 보상 스폰/지급은 서버 권위 사건이라 클라 진입은 노옵(클라는 복제로 픽업/인벤토리를 추종).
+ * 틱하지 않으므로 비용이 없다.
  */
 USTRUCT(meta = (DisplayName = "Wx Grant Reward"))
 struct FWxStateTreeTask_GrantReward : public FStateTreeTaskCommonBase

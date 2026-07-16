@@ -2,9 +2,6 @@
 
 #include "Widget/WxActivatableWidget.h"
 
-#include "Engine/World.h"
-#include "Kismet/GameplayStatics.h"
-
 TOptional<FUIInputConfig> UWxActivatableWidget::GetDesiredInputConfig() const
 {
 	switch (InputMode)
@@ -18,44 +15,7 @@ TOptional<FUIInputConfig> UWxActivatableWidget::GetDesiredInputConfig() const
 	}
 }
 
-void UWxActivatableWidget::NativeOnActivated()
+bool UWxActivatableWidget::ShouldPauseGame() const
 {
-	Super::NativeOnActivated();
-
-	if (bPauseGame)
-	{
-		ApplyGamePause(true);
-	}
-}
-
-void UWxActivatableWidget::NativeOnDeactivated()
-{
-	if (bPauseGame)
-	{
-		ApplyGamePause(false);
-	}
-
-	Super::NativeOnDeactivated();
-}
-
-void UWxActivatableWidget::NativeDestruct()
-{
-	// OnDeactivated 없이 파괴되는 비정상 경로 안전망. 정상 경로에선 이미 IsActivated()가 false라 자동 무시.
-	if (bPauseGame && IsActivated())
-	{
-		ApplyGamePause(false);
-	}
-
-	Super::NativeDestruct();
-}
-
-void UWxActivatableWidget::ApplyGamePause(bool bPaused)
-{
-	UWorld* World = GetWorld();
-	if (!World || !World->IsNetMode(NM_Standalone))
-	{
-		return;
-	}
-
-	UGameplayStatics::SetGamePaused(World, bPaused);
+	return bPauseGame;
 }

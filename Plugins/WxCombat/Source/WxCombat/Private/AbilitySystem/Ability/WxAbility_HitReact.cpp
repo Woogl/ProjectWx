@@ -161,8 +161,7 @@ void UWxAbility_HitReact::EndAbility(const FGameplayAbilitySpecHandle Handle, co
 
 bool UWxAbility_HitReact::PlayHitReactMontage(UAnimMontage* Montage)
 {
-	// 재진입(Normal → Knockback 등) 시 이전 몽타주 태스크를 명시적으로 정리해
-	// 잔여 OnInterrupted/OnCancelled 콜백이 새로 시작된 재생을 즉시 종료시키는 레이스를 차단한다.
+	// 재진입(Normal → Knockback 등) 시 이전 몽타주 태스크를 명시적으로 정리해 잔여 OnInterrupted/OnCancelled 콜백이 새로 시작된 재생을 즉시 종료시키는 레이스를 차단한다.
 	if (CurrentMontageTask)
 	{
 		CurrentMontageTask->EndTask();

@@ -13,9 +13,8 @@ class AWxProjectileBase;
 /**
  * 투사체 스폰 AnimNotify.
  *
- * 원거리 공격 몽타주에 배치하면 해당 프레임에서
- * SpawnSocketName 소켓 위치에 투사체를 스폰한다.
- * 서버에서만 스폰한다.
+ * 원거리 공격 몽타주에 배치하면 해당 프레임에서 재생 중인 어빌리티에 스폰을 위임한다(UWxAbilityBase::SpawnProjectile).
+ * 스폰할 투사체 클래스·소켓·데미지는 이 노티파이에서 저작하고, 실제 스폰 실행(서버 권위)은 어빌리티가 담당한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAnimNotify_SpawnProjectile : public UAnimNotify

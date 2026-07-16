@@ -41,7 +41,8 @@ void UWxRewardLibrary::GrantReward(AActor* SourceActor, const FDataTableRowHandl
 	// 유효한 보상 항목마다 처리: Pickup Fragment 가 있으면 픽업을 스폰해 LaunchVelocity 방향·크기로 발사하고, 없으면 인벤토리에 직접 지급한다.
 	for (const FWxItemRewardEntry& Reward : ValidRewards)
 	{
-		// 보상 아이템 정의는 SoftObjectPtr 로 지연 로드된다. 실제 지급 시점인 지금 동기 로드한다.
+		// 보상 아이템 정의는 SoftObjectPtr 로 지연 로드된다.
+		// 실제 지급 시점인 지금 동기 로드한다.
 		UWxItemDefinition* ItemDef = Reward.Item.LoadSynchronous();
 		if (!ItemDef)
 		{
@@ -62,7 +63,8 @@ void UWxRewardLibrary::GrantReward(AActor* SourceActor, const FDataTableRowHandl
 			continue;
 		}
 
-		// 픽업 액터 클래스는 SoftClassPtr 로 지연 로드된다. 실제 스폰 시점인 지금 동기 로드한다.
+		// 픽업 액터 클래스는 SoftClassPtr 로 지연 로드된다.
+		// 실제 스폰 시점인 지금 동기 로드한다.
 		UClass* ItemActorClass = PickupFragment->ItemActorClass.LoadSynchronous();
 		if (!ItemActorClass)
 		{

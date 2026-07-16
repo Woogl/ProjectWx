@@ -10,8 +10,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractedSignature, AActor*, I
 
 /**
  * 상호작용 알림을 발행하는 컴포넌트의 공용 계약. 구현체는 WxWorld 의 UWxInteractionComponent.
- * 소비 도메인(예: WxInventory 의 픽업)이 WxWorld 에 의존하지 않고, BP 에서 오너에 추가된
- * 상호작용 컴포넌트를 본 인터페이스로 찾아 델리게이트 바인딩과 프롬프트 텍스트 갱신을 할 수 있게 한다.
+ * 소비 도메인(예: WxInventory 의 픽업)이 WxWorld 에 의존하지 않고, BP 에서 오너에 추가된 상호작용 컴포넌트를 본 인터페이스로 찾아 델리게이트 바인딩과 프롬프트 텍스트 갱신을 할 수 있게 한다.
  */
 UINTERFACE(MinimalAPI, NotBlueprintable, meta = (CannotImplementInterfaceInBlueprint))
 class UWxInteractionSource : public UInterface

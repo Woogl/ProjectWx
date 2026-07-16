@@ -136,8 +136,7 @@ void UWxAbility_Guard::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 bool UWxAbility_Guard::PlayMontage(UAnimMontage* Montage)
 {
 	// 페이즈 전환 시 이전 몽타주 태스크를 명시적으로 정리해 콜백 잔여 발생을 차단한다.
-	// HandleMontageBlendingOut 콜백 내에서 호출될 수 있으나, EndTask가 AnimInstance 바인딩을
-	// 해제하므로 구 태스크의 OnInterrupted 등 후속 이벤트는 발송되지 않는다.
+	// HandleMontageBlendingOut 콜백 내에서 호출될 수 있으나, EndTask가 AnimInstance 바인딩을 해제하므로 구 태스크의 OnInterrupted 등 후속 이벤트는 발송되지 않는다.
 	if (CurrentMontageTask)
 	{
 		CurrentMontageTask->EndTask();
@@ -230,8 +229,7 @@ void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 	const UWxCombatAttributeSet* AttributeSet = ASC ? ASC->GetSet<UWxCombatAttributeSet>() : nullptr;
 
 	// Payload.EventMagnitude는 ExecCalc가 전달한 SP 차감량.
-	// ExecCalc는 SP OutputModifier를 큐잉한 직후 동기적으로 이벤트를 디스패치하므로
-	// 이 시점의 GetSP()는 차감 적용 전 값이며, (GetSP() - Magnitude)가 차감 후 예상 SP다.
+	// ExecCalc는 SP OutputModifier를 큐잉한 직후 동기적으로 이벤트를 디스패치하므로 이 시점의 GetSP()는 차감 적용 전 값이며, (GetSP() - Magnitude)가 차감 후 예상 SP다.
 	const bool bWillBreak = AttributeSet && (AttributeSet->GetSP() - Payload.EventMagnitude) <= 0.f;
 
 	if (bWillBreak)

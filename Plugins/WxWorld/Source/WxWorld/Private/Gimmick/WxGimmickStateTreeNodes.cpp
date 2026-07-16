@@ -58,8 +58,7 @@ namespace
 		return Archetype ? Archetype->GetRelativeLocation() : Component->GetRelativeLocation();
 	}
 
-	// 이 진입을 스냅·스킵으로 처리해야 하는가 — StateTree 시작/복원/레이트조인(SourceStateID 무효)이거나,
-	// 세이브 복원(호스트 AWxGimmick 가 상태 태그와 함께 보내는 Gimmick.Restore 마커)이면 참.
+	// 이 진입을 스냅·스킵으로 처리해야 하는가 — StateTree 시작/복원/레이트조인(SourceStateID 무효)이거나, 세이브 복원(호스트 AWxGimmick 가 상태 태그와 함께 보내는 Gimmick.Restore 마커)이면 참.
 	// Required Event 전이로 저장 상태에 진입할 때 라이브 발동처럼 보여도 일회성 효과를 발동하지 않고 스냅하도록.
 	bool IsInitialOrRestoreEntry(const FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition)
 	{
@@ -71,10 +70,6 @@ FWxStateTreeTask_EnableInteraction::FWxStateTreeTask_EnableInteraction()
 {
 	// 인터랙션을 진입 시 1회 토글만 하므로 틱이 불필요하다.
 	bShouldCallTick = false;
-#if WITH_EDITORONLY_DATA
-	// 순간 side-effect 토글이라 상태 완료를 구동하지 않는다(정지 leaf 가 즉시 완료→재선택 루프에 빠지지 않게). 단독 완료 구동이 필요한 드문 상태는 인스턴스별로 다시 켠다.
-	bConsideredForCompletion = false;
-#endif
 }
 
 EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
@@ -118,10 +113,6 @@ FWxStateTreeTask_EnablePlayerInput::FWxStateTreeTask_EnablePlayerInput()
 {
 	// 입력을 진입 시 1회 토글만 하므로 틱이 불필요하다.
 	bShouldCallTick = false;
-#if WITH_EDITORONLY_DATA
-	// 순간 side-effect 토글이라 상태 완료를 구동하지 않는다(컷신 등에선 PlayLevelSequence 가 완료를 구동). 단독 완료 구동이 필요한 드문 상태는 인스턴스별로 다시 켠다.
-	bConsideredForCompletion = false;
-#endif
 }
 
 EStateTreeRunStatus FWxStateTreeTask_EnablePlayerInput::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
@@ -508,18 +499,23 @@ FWxStateTreeTask_PlaySound::FWxStateTreeTask_PlaySound()
 {
 	// 진입 시 1회 재생만 하므로 틱이 불필요하다.
 	bShouldCallTick = false;
+#if WITH_EDITORONLY_DATA
+	// 무틱 즉시완료 트리거 태스크라 상태 완료를 구동하지 않는다(정지 leaf 에 놓여도 즉시 완료→재선택 루프에 빠지지 않게). 완료 구동이 필요한 드문 상태는 인스턴스별로 다시 켠다.
+	bConsideredForCompletion = false;
+#endif
 }
 
 EStateTreeRunStatus FWxStateTreeTask_PlaySound::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// 초기 진입(StateTree 시작/복원/레이트조인)이면 사운드를 재생하지 않고 곧바로 완료한다(발동 순간에만 울림).
+	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
+
+	// 초기 진입(StateTree 시작/복원/레이트조인)이면 기본적으로 재생하지 않고 곧바로 완료한다(발동 순간에만 울림). bPlayOnRestore 면 복원/시작 진입에서도 재생한다(지속 사운드용).
 	const bool bInitialEntry = IsInitialOrRestoreEntry(Context, Transition);
-	if (bInitialEntry)
+	if (bInitialEntry && !Instance.bPlayOnRestore)
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 	AActor* Owner = Cast<AActor>(Context.GetOwner());
 	if (!Owner)
 	{
@@ -555,13 +551,6 @@ FWxStateTreeTask_SpawnNiagara::FWxStateTreeTask_SpawnNiagara()
 
 EStateTreeRunStatus FWxStateTreeTask_SpawnNiagara::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// 초기 진입(StateTree 시작/복원/레이트조인)이면 트리거 FX 를 재생하지 않고 곧바로 완료한다(발동 순간에만 울림).
-	const bool bInitialEntry = IsInitialOrRestoreEntry(Context, Transition);
-	if (bInitialEntry)
-	{
-		return EStateTreeRunStatus::Succeeded;
-	}
-
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 	AActor* Owner = Cast<AActor>(Context.GetOwner());
 	if (!Owner)
