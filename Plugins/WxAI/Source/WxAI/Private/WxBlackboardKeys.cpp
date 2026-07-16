@@ -43,8 +43,6 @@ namespace WxBlackboardKeys
 
 	const FName HomeLocation = TEXT("HomeLocation");
 
-	const FName TargetLastKnownLocation = TEXT("TargetLastKnownLocation");
-
 	const FName PatrolTargetLocation = TEXT("PatrolTargetLocation");
 
 	const FName TargetDistance = TEXT("TargetDistance");
@@ -59,18 +57,6 @@ namespace WxBlackboardKeys
 	{
 		VerifyBlackboardKey(Blackboard, TargetActor, UBlackboardKeyType_Object::StaticClass());
 		Blackboard->SetValueAsObject(TargetActor, Value);
-	}
-
-	void SetTargetLastKnownLocation(UBlackboardComponent* Blackboard, const FVector& Value)
-	{
-		VerifyBlackboardKey(Blackboard, TargetLastKnownLocation, UBlackboardKeyType_Vector::StaticClass());
-		Blackboard->SetValueAsVector(TargetLastKnownLocation, Value);
-	}
-
-	void ClearTargetLastKnownLocation(UBlackboardComponent* Blackboard)
-	{
-		VerifyBlackboardKey(Blackboard, TargetLastKnownLocation, UBlackboardKeyType_Vector::StaticClass());
-		Blackboard->ClearValue(TargetLastKnownLocation);
 	}
 
 	FVector GetHomeLocation(const UBlackboardComponent* Blackboard)

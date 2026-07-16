@@ -9,7 +9,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
-#include "Perception/AISense_Hearing.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/AISenseConfig_Damage.h"
@@ -78,34 +77,14 @@ void UWxAIPerceptionComponent::HandleTargetPerceptionUpdated(AActor* Actor, FAIS
 		return;
 	}
 
-	UBlackboardComponent* BB = GetBlackboard();
-	if (!BB)
-	{
-		return;
-	}
-
-	// 청각은 위치만 기록(조사형). 타겟 확정(TargetActor)과 시야 확장은 시각/피해 전용.
-	if (Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
-	{
-		if (Stimulus.WasSuccessfullySensed())
-		{
-			WxBlackboardKeys::SetTargetLastKnownLocation(BB, Stimulus.StimulusLocation);
-		}
-		return;
-	}
-
+	// 시각·청각·피해 모두 동일한 획득 경로를 탄다. 감지 성공이면 그 액터(소리 발생원 포함)를 TargetActor 로 확정한다.
+	// 감지 실패(시야/소리 상실)에는 TargetActor 를 건드리지 않아 그대로 유지된다 — 실제 해제는 BT 의 리시 복귀(UWxBTTask_ReturnHome → SetTargetingSuppressed)가 담당한다.
 	if (Stimulus.WasSuccessfullySensed())
 	{
 		SetTargetActor(Actor);
 	}
-	else if (WxBlackboardKeys::GetTargetActor(BB) == Actor)
-	{
-		// 시야를 잃어도 TargetActor 는 유지한다(보스 등 뒤로 이동 등 일시적 상실).
-		// 마지막 인지 위치만 갱신하고, 실제 해제는 BT 의 리시 복귀(UWxBTTask_ReturnHome → SetTargetingSuppressed)에 맡긴다.
-		WxBlackboardKeys::SetTargetLastKnownLocation(BB, Stimulus.StimulusLocation);
-	}
 
-	// 인식/추적 판정은 UpdateRecognition 한 곳에서만 한다. 여기서는 BB(TargetActor/LastKnown)만 갱신하고 판정을 위임한다.
+	// 인식/추적 판정은 UpdateRecognition 한 곳에서만 한다. 여기서는 TargetActor 만 갱신하고 판정을 위임한다.
 	UpdateRecognition();
 }
 
@@ -135,7 +114,7 @@ void UWxAIPerceptionComponent::UpdateRecognition()
 		}
 	}
 
-	// 추적 대상이 있으면 인식 on, 없으면 off. 조사(LastKnown)/복귀(Home)는 BT 가 처리한다.
+	// 추적 대상이 있으면 인식 on, 없으면 off. 복귀(Home)는 BT 가 처리한다.
 	SetRecognized(WxBlackboardKeys::GetTargetActor(BB) != nullptr);
 }
 
@@ -174,15 +153,11 @@ void UWxAIPerceptionComponent::SetTargetingSuppressed(bool bSuppressed)
 
 	bTargetingSuppressed = bSuppressed;
 
-	// 억제를 켜는 순간, 현재 타겟/마지막 인지 위치와 인식을 함께 해제한다(회전 모드 원복은 SetTargetActor(nullptr)가 담당).
+	// 억제를 켜는 순간, 현재 타겟과 인식을 함께 해제한다(회전 모드 원복은 SetTargetActor(nullptr)가 담당).
 	// 억제를 끌 때는 상태를 건드리지 않는다 — 다음 감지 자극에서 정상적으로 재획득한다.
 	if (bSuppressed)
 	{
 		SetTargetActor(nullptr);
-		if (UBlackboardComponent* BB = GetBlackboard())
-		{
-			WxBlackboardKeys::ClearTargetLastKnownLocation(BB);
-		}
 		SetRecognized(false);
 	}
 }
@@ -224,12 +199,8 @@ void UWxAIPerceptionComponent::HandleDeathTagChanged(const FGameplayTag Tag, int
 		return;
 	}
 
-	// 사망: 타겟/마지막 인지 위치와 인식을 정리해 시체 위에 State.InCombat 이 남지 않게 한다(네임플레이트/BGM 잔존 방지).
+	// 사망: 타겟과 인식을 정리해 시체 위에 State.InCombat 이 남지 않게 한다(네임플레이트/BGM 잔존 방지).
 	SetTargetActor(nullptr);
-	if (UBlackboardComponent* BB = GetBlackboard())
-	{
-		WxBlackboardKeys::ClearTargetLastKnownLocation(BB);
-	}
 	SetRecognized(false);
 }
 
