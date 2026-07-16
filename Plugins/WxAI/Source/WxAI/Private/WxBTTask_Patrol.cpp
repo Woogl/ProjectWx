@@ -65,7 +65,7 @@ EBTNodeResult::Type UWxBTTask_Patrol::ExecuteTask(UBehaviorTreeComponent& OwnerC
 
 FString UWxBTTask_Patrol::GetStaticDescription() const
 {
-	return FString::Printf(TEXT("%s\n도착 후 다음 정찰 지점으로 진행\nSpeed: x%.2f"), *Super::GetStaticDescription(), MoveSpeedMultiplier);
+	return FString::Printf(TEXT("%s\nSpeed: x%.2f"), *Super::GetStaticDescription(), MoveSpeedMultiplier);
 }
 
 void UWxBTTask_Patrol::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult)

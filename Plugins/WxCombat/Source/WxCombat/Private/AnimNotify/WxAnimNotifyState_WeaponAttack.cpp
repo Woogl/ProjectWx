@@ -42,31 +42,12 @@ void UWxAnimNotifyState_WeaponAttack::NotifyEnd(USkeletalMeshComponent* MeshComp
 	}
 }
 
-#if WITH_EDITOR
-bool UWxAnimNotifyState_WeaponAttack::CanEditChange(const FProperty* InProperty) const
-{
-	if (!Super::CanEditChange(InProperty))
-	{
-		return false;
-	}
-
-	if (DamageDataRow.DataTable != nullptr && InProperty->GetOwnerStruct() == FWxDamageInfo::StaticStruct())
-	{
-		return false;
-	}
-
-	return true;
-}
-#endif
-
 FWxDamageInfo UWxAnimNotifyState_WeaponAttack::ResolveDamageInfo() const
 {
+	FWxDamageInfo Resolved;
 	if (const FWxDamageTableRow* Row = DamageDataRow.GetRow<FWxDamageTableRow>(TEXT("WxAnimNotifyState_WeaponAttack")))
 	{
-		FWxDamageInfo Resolved;
 		Resolved.ApplyTableRow(*Row);
-		return Resolved;
 	}
-
-	return DamageInfo;
+	return Resolved;
 }

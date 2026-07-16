@@ -22,13 +22,11 @@ namespace WxBlackboardKeys
 	WXAI_API extern const FName SelfActor;
 	WXAI_API extern const FName TargetActor;
 	WXAI_API extern const FName HomeLocation;
-	WXAI_API extern const FName TargetLastKnownLocation;
 	WXAI_API extern const FName PatrolTargetLocation;
 	WXAI_API extern const FName TargetDistance;
 
 	// 타입드 accessor (키 이름 ↔ 값 타입을 묶는다)
 	// Object 키: null = 미설정이라 setter 에 nullptr 을 넘기면 Clear 와 동일하게 동작 → 별도 Clear 불필요.
-	// Vector 키: 모든 FVector 가 유효값이라 "값 없음"을 Set 으로 표현할 수 없어, 필요 시 Clear 를 별도로 둔다(예: TargetLastKnownLocation 의 탐색 종료).
 
 	WXAI_API AActor* GetTargetActor(const UBlackboardComponent* Blackboard);
 	WXAI_API void SetTargetActor(UBlackboardComponent* Blackboard, AActor* Value);
@@ -38,9 +36,6 @@ namespace WxBlackboardKeys
 
 	WXAI_API FVector GetHomeLocation(const UBlackboardComponent* Blackboard);
 	WXAI_API void SetHomeLocation(UBlackboardComponent* Blackboard, const FVector& Value);
-
-	WXAI_API void SetTargetLastKnownLocation(UBlackboardComponent* Blackboard, const FVector& Value);
-	WXAI_API void ClearTargetLastKnownLocation(UBlackboardComponent* Blackboard);
 
 	WXAI_API void SetPatrolTargetLocation(UBlackboardComponent* Blackboard, const FVector& Value);
 

@@ -76,25 +76,17 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 	const bool bRequireLockOnForTranslation = OwnerPawn && OwnerPawn->IsPlayerControlled();
 	const bool bShouldWarpTranslation = bWarpTranslation && bTargetInSnapRange && (!bRequireLockOnForTranslation || bFacingTargetIsLockOn);
 
-	// 접근/회전 모두 수평(yaw) 전용. ground 전투의 안전한 표준이며, 작은 높이차는 캡슐 step-up/CMC 가 흡수한다.
-	const FVector OwnerLocation = Owner->GetActorLocation();
-	const FVector TargetLocation = FacingTarget->GetActorLocation();
-	FVector Direction = TargetLocation - OwnerLocation;
-	Direction.Z = 0.0;
-
-	if (Direction.IsNearlyZero())
+	USceneComponent* TargetComponent = FacingTarget->GetRootComponent();
+	if (!TargetComponent)
 	{
 		return;
 	}
 
-	const float CurrentDistance = Direction.Size();
-	const FVector DirectionNorm = Direction / CurrentDistance;
-	const float StopDistance = FMath::Max(0.0f, CurrentDistance - MinDistance);
-	const FVector WarpLocation = OwnerLocation + DirectionNorm * StopDistance;
-	const FRotator WarpRotation = Direction.Rotation();
-
 	// 게이팅 결과를 부모 워프 설정에 반영한다(범위 밖·플레이어 폰 락온 없음이면 회전만).
 	bWarpTranslation = bShouldWarpTranslation;
 
-	MotionWarpingComp->AddOrUpdateWarpTargetFromLocationAndRotation(WarpTargetName, WarpLocation, WarpRotation);
+	// 대상 컴포넌트 추종으로 등록해 워프 중 대상 이동을 매 프레임 추적한다.
+	// LocationOffset(X=대상→오너 앞, Y=우, Z=위)을 VectorFromTargetToOwner 프레임 오프셋으로 넘긴다.
+	// 접근/회전 모두 수평(yaw) 전용. 작은 높이차는 SkewWarp 의 bIgnoreZAxis 와 캡슐 step-up/CMC 가 흡수한다.
+	MotionWarpingComp->AddOrUpdateWarpTargetFromComponent(WarpTargetName, TargetComponent, NAME_None, true, EWarpTargetLocationOffsetDirection::VectorFromTargetToOwner, LocationOffset);
 }

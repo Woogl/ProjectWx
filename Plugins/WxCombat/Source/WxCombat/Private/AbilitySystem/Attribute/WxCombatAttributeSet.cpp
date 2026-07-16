@@ -133,7 +133,7 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 			}
 
 			// 피해를 AI Perception(촉각)에 보고해 가해자를 즉시 TargetActor 로 인지하게 한다.
-			// EventLocation 으로 가해자 위치를 넘기면 그대로 Stimulus 위치(TargetLastKnownLocation)가 된다.
+			// EventLocation 으로 가해자 위치를 넘기면 그대로 Stimulus 위치가 된다.
 			const FGameplayEffectContextHandle Context = Data.EffectSpec.GetContext();
 			AActor* DamageInstigator = Context.GetInstigator();
 			AActor* DamagedActor = GetOwningActor();

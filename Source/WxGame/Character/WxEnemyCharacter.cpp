@@ -47,6 +47,9 @@ AWxEnemyCharacter::AWxEnemyCharacter()
 	FinisherInteractionComponent->SetHighlightTarget(GetMesh());
 	FinisherInteractionComponent->SetInteractionText(FText::FromString(TEXT("Finisher")));
 
+	// 처형은 상호작용이 쏘는 GameplayEvent 로 WxAbility_Finisher(자체 몽타주)를 깨우므로, 상호작용 어빌리티의 범용 몽타주는 재생하지 않는다(중복 방지).
+	FinisherInteractionComponent->SetUseInteractMontage(false);
+
 	// 상태 기반 BGM 소스.
 	// 실제 태그·우선순위는 각 적·보스 BP 에서 설정한다(MusicTag 를 비우면 inert).
 	BGMSourceComponent = CreateDefaultSubobject<UWxBGMSourceComponent>(TEXT("BGMSourceComponent"));

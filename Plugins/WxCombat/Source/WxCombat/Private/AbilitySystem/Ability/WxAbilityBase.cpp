@@ -64,7 +64,7 @@ void UWxAbilityBase::StartRecovery()
 	}
 }
 
-void UWxAbilityBase::SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileClass, FName SpawnSocketName, const FWxDamageInfo& DamageInfo) const
+void UWxAbilityBase::SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileClass, FName SpawnSocketName) const
 {
 	if (!ProjectileClass)
 	{
@@ -85,21 +85,13 @@ void UWxAbilityBase::SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileCl
 	const FRotator SpawnRotation = Avatar->GetActorRotation();
 	const FTransform SpawnTransform(SpawnRotation, SpawnLocation);
 
-	// DamageSpec을 BeginPlay 이전에 준비해야 하므로 Deferred 스폰 후 InitializeDamageSpec 호출
-	AWxProjectileBase* Projectile = Avatar->GetWorld()->SpawnActorDeferred<AWxProjectileBase>(
-		ProjectileClass,
-		SpawnTransform,
-		Avatar,
-		Cast<APawn>(Avatar),
-		ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+	// 대미지는 투사체가 자기 클래스 데이터로 BeginPlay에서 준비하므로 일반 SpawnActor로 충분하다.
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = Avatar;
+	SpawnParams.Instigator = Cast<APawn>(Avatar);
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	if (!Projectile)
-	{
-		return;
-	}
-
-	Projectile->InitializeDamageSpec(DamageInfo);
-	Projectile->FinishSpawning(SpawnTransform);
+	Avatar->GetWorld()->SpawnActor<AWxProjectileBase>(ProjectileClass, SpawnTransform, SpawnParams);
 }
 
 #if WITH_EDITOR

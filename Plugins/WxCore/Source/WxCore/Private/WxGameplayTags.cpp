@@ -14,6 +14,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_PerfectGuard, "State.PerfectGuard");
 	UE_DEFINE_GAMEPLAY_TAG(State_HitReact, "State.HitReact");
 	UE_DEFINE_GAMEPLAY_TAG(State_SuperArmor, "State.SuperArmor");
+	UE_DEFINE_GAMEPLAY_TAG(State_Finisher, "State.Finisher");
 
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact, "Event.HitReact");
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Normal, "Event.HitReact.Normal");

@@ -8,16 +8,6 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Pawn.h"
 
-namespace
-{
-	// 데코 인스턴스별로 직전 이탈 여부를 보관해, 상태가 바뀌는 프레임에만 재평가를 요청하기 위한 노드 메모리다.
-	// 엔진이 zero-init 하고 OnBecomeRelevant 가 시드하므로 별도 초기화·정리가 필요없다.
-	struct FWxBeyondLeashMemory
-	{
-		bool bWasBeyond;
-	};
-}
-
 UWxBTDecorator_BeyondLeash::UWxBTDecorator_BeyondLeash()
 {
 	NodeName = TEXT("Beyond Leash");

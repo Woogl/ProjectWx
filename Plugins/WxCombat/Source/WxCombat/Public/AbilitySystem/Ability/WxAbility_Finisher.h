@@ -73,9 +73,6 @@ private:
 
 	void RegisterWarpTarget(AActor* AvatarActor, const AActor* Target) const;
 
-	/** 워프 타겟 이름. 두 변형(앞잡·뒤잡)의 공격 몽타주 MotionWarping 노티파이 Warp Target Name·Warp Point 를 이 값으로 맞춘다. */
-	static const FName WarpTargetName;
-
 	TWeakObjectPtr<AActor> TargetActor;
 
 	UPROPERTY(Transient)

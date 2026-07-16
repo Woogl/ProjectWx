@@ -13,6 +13,7 @@
 #include "Targeting/WxLockOnManagerComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "WxCombatLibrary.h"
+#include "WxDamageTableRow.h"
 
 AWxProjectileBase::AWxProjectileBase()
 {
@@ -44,10 +45,16 @@ AWxProjectileBase::AWxProjectileBase()
 	InitialLifeSpan = 10.f;
 }
 
-void AWxProjectileBase::InitializeDamageSpec(const FWxDamageInfo& InDamageInfo)
+void AWxProjectileBase::InitializeDamageSpec()
 {
 	UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator());
 	if (!SourceASC)
+	{
+		return;
+	}
+
+	const FWxDamageTableRow* Row = DamageDataRow.GetRow<FWxDamageTableRow>(TEXT("WxProjectileBase"));
+	if (!Row)
 	{
 		return;
 	}
@@ -57,7 +64,9 @@ void AWxProjectileBase::InitializeDamageSpec(const FWxDamageInfo& InDamageInfo)
 	CachedEffectContext.AddInstigator(GetOwner(), GetInstigator());
 	CachedEffectContext.SetAbility(SourceASC->GetAnimatingAbility());
 
-	CachedSpecHandles = InDamageInfo.MakeSpecs(SourceASC, CachedEffectContext);
+	FWxDamageInfo DamageInfo;
+	DamageInfo.ApplyTableRow(*Row);
+	CachedSpecHandles = DamageInfo.MakeSpecs(SourceASC, CachedEffectContext);
 }
 
 void AWxProjectileBase::Destroyed()
@@ -73,6 +82,8 @@ void AWxProjectileBase::Destroyed()
 void AWxProjectileBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	InitializeDamageSpec();
 
 	if (UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(GetInstigator()))
 	{

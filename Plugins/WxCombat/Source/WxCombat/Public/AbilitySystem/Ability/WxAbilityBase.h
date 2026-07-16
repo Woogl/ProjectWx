@@ -15,7 +15,6 @@ class UWxEffect_Cost;
 class UWxAbilityComponent;
 class AWxProjectileBase;
 struct FWxAbilityTableRow;
-struct FWxDamageInfo;
 
 /** 어빌리티 발동 시 적용할 GameplayEffect 항목 */
 USTRUCT(BlueprintType)
@@ -121,10 +120,10 @@ public:
 
 	/**
 	 * 재생 중인 이 어빌리티가 확정(서버)에서 투사체를 스폰한다. WxAnimNotify_SpawnProjectile 가 위임한다.
-	 * 아바타 SkeletalMesh 의 SpawnSocketName 소켓 위치 + 아바타 회전으로 스폰하며, DamageSpec 을 BeginPlay 이전에 넣어야 하므로 Deferred 스폰 후 초기화한다.
+	 * 아바타 SkeletalMesh 의 SpawnSocketName 소켓 위치 + 아바타 회전으로 스폰한다. 대미지는 투사체 클래스가 저작한다.
 	 * 투사체는 서버가 스폰해 복제하므로 클라(예측 인스턴스)에선 authority 게이트로 무동작.
 	 */
-	void SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileClass, FName SpawnSocketName, const FWxDamageInfo& DamageInfo) const;
+	void SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileClass, FName SpawnSocketName) const;
 
 #if WITH_EDITOR
 	virtual bool CanEditChange(const FProperty* InProperty) const override;

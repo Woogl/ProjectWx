@@ -19,15 +19,6 @@ UWxBTService_TargetDistance::UWxBTService_TargetDistance()
 	RandomDeviation = 0.0f;
 }
 
-FString UWxBTService_TargetDistance::GetStaticDescription() const
-{
-	return FString::Printf(TEXT("%s = dist(%s, %s)%s"),
-		*WxBlackboardKeys::TargetDistance.ToString(),
-		*WxBlackboardKeys::SelfActor.ToString(),
-		*WxBlackboardKeys::TargetActor.ToString(),
-		bUse2DDistance ? TEXT(" [2D]") : TEXT(""));
-}
-
 void UWxBTService_TargetDistance::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
@@ -49,9 +40,7 @@ void UWxBTService_TargetDistance::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 
 	const FVector SelfLocation = Self->GetActorLocation();
 	const FVector TargetLocation = Target->GetActorLocation();
-	const float Distance = bUse2DDistance
-		? FVector::Dist2D(SelfLocation, TargetLocation)
-		: FVector::Dist(SelfLocation, TargetLocation);
+	const float Distance = FVector::Dist(SelfLocation, TargetLocation);
 
 	WxBlackboardKeys::SetTargetDistance(Blackboard, Distance);
 }
