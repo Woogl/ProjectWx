@@ -5,18 +5,8 @@
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
 #include "BehaviorTree/BTDecorator.h"
+#include "BehaviorTree/Blackboard/BlackboardKeyEnums.h"
 #include "WxBTDecorator_AttributeRatio.generated.h"
-
-/** 어트리뷰트 비율 비교 연산자 */
-UENUM()
-enum class EWxAttributeRatioComparison : uint8
-{
-	Less,
-	LessOrEqual,
-	Equal,
-	GreaterOrEqual,
-	Greater,
-};
 
 /**
  * BT Decorator: 현재 캐릭터의 어트리뷰트 비율(Attribute / MaxAttribute) 을 지정된 값과 비교한다.
@@ -50,7 +40,7 @@ protected:
 
 	/** 비교 연산자 */
 	UPROPERTY(EditAnywhere, Category = "Wx")
-	EWxAttributeRatioComparison Comparison;
+	TEnumAsByte<EArithmeticKeyOperation::Type> ArithmeticOperation;
 
 	/** 비교 기준 비율 (0.0 ~ 1.0) */
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))

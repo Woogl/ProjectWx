@@ -8,7 +8,7 @@
 
 UWxBTDecorator_AttributeRatio::UWxBTDecorator_AttributeRatio()
 {
-	Comparison = EWxAttributeRatioComparison::LessOrEqual;
+	ArithmeticOperation = EArithmeticKeyOperation::LessOrEqual;
 	Ratio = 0.5f;
 }
 
@@ -18,13 +18,15 @@ FString UWxBTDecorator_AttributeRatio::GetStaticDescription() const
 	const FString MaxAttributeName = MaxAttribute.IsValid() ? MaxAttribute.GetName() : TEXT("<None>");
 
 	const TCHAR* ComparisonSymbol = TEXT("?");
-	switch (Comparison)
+	switch (ArithmeticOperation)
 	{
-		case EWxAttributeRatioComparison::Less:           ComparisonSymbol = TEXT("<");  break;
-		case EWxAttributeRatioComparison::LessOrEqual:    ComparisonSymbol = TEXT("<="); break;
-		case EWxAttributeRatioComparison::Equal:          ComparisonSymbol = TEXT("=="); break;
-		case EWxAttributeRatioComparison::GreaterOrEqual: ComparisonSymbol = TEXT(">="); break;
-		case EWxAttributeRatioComparison::Greater:        ComparisonSymbol = TEXT(">");  break;
+		case EArithmeticKeyOperation::Less:           ComparisonSymbol = TEXT("<");  break;
+		case EArithmeticKeyOperation::LessOrEqual:    ComparisonSymbol = TEXT("<="); break;
+		case EArithmeticKeyOperation::Equal:          ComparisonSymbol = TEXT("=="); break;
+		case EArithmeticKeyOperation::NotEqual:       ComparisonSymbol = TEXT("!="); break;
+		case EArithmeticKeyOperation::GreaterOrEqual: ComparisonSymbol = TEXT(">="); break;
+		case EArithmeticKeyOperation::Greater:        ComparisonSymbol = TEXT(">");  break;
+		default: break;
 	}
 
 	return FString::Printf(TEXT("%s / %s  %s  %.2f"), *AttributeName, *MaxAttributeName, ComparisonSymbol, Ratio);
@@ -63,13 +65,15 @@ bool UWxBTDecorator_AttributeRatio::CalculateRawConditionValue(UBehaviorTreeComp
 
 	const float CurrentRatio = CurrentValue / MaxValue;
 
-	switch (Comparison)
+	switch (ArithmeticOperation)
 	{
-	case EWxAttributeRatioComparison::Less:           return CurrentRatio <  Ratio;
-	case EWxAttributeRatioComparison::LessOrEqual:    return CurrentRatio <= Ratio;
-	case EWxAttributeRatioComparison::Equal:          return FMath::IsNearlyEqual(CurrentRatio, Ratio);
-	case EWxAttributeRatioComparison::GreaterOrEqual: return CurrentRatio >= Ratio;
-	case EWxAttributeRatioComparison::Greater:        return CurrentRatio >  Ratio;
+	case EArithmeticKeyOperation::Less:           return CurrentRatio <  Ratio;
+	case EArithmeticKeyOperation::LessOrEqual:    return CurrentRatio <= Ratio;
+	case EArithmeticKeyOperation::Equal:          return FMath::IsNearlyEqual(CurrentRatio, Ratio);
+	case EArithmeticKeyOperation::NotEqual:       return !FMath::IsNearlyEqual(CurrentRatio, Ratio);
+	case EArithmeticKeyOperation::GreaterOrEqual: return CurrentRatio >= Ratio;
+	case EArithmeticKeyOperation::Greater:        return CurrentRatio >  Ratio;
+	default: break;
 	}
 	return false;
 }
