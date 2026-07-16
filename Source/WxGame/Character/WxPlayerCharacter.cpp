@@ -26,6 +26,7 @@ AWxPlayerCharacter::AWxPlayerCharacter()
 	CameraBoom->bEnableCameraLag     = true;
 	CameraBoom->CameraLagSpeed       = 8.f;
 	
+	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));

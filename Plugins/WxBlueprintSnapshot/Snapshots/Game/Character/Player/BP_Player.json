@@ -10,14 +10,6 @@
 				"AbilitySet": "/Game/Character/Player/ABS_Player.ABS_Player"
 			}
 		},
-		"CharacterMovement":
-		{
-			"class": "/Script/Engine.CharacterMovementComponent",
-			"delta":
-			{
-				"MaxWalkSpeed": 500
-			}
-		},
 		"EquipmentComponent": "",
 		"FollowCamera":
 		{

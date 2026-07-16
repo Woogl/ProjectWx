@@ -43,7 +43,6 @@ AWxCharacterBase::AWxCharacterBase()
 	GetCharacterMovement()->GetNavMovementProperties()->bUseAccelerationForPaths = true;
 
 	// 이동 속도·가감속 디폴트
-	GetCharacterMovement()->MaxWalkSpeed = 450.f;
 	GetCharacterMovement()->MaxAcceleration = 1500.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
@@ -51,9 +50,7 @@ AWxCharacterBase::AWxCharacterBase()
 	GetCharacterMovement()->BrakingFrictionFactor = 1.f;
 
 	// 점프·낙하 디폴트
-	GetCharacterMovement()->JumpZVelocity = 420.f;
 	GetCharacterMovement()->AirControl = 0.35f;
-	GetCharacterMovement()->GravityScale = 1.5f;
 }
 
 void AWxCharacterBase::PostInitializeComponents()
