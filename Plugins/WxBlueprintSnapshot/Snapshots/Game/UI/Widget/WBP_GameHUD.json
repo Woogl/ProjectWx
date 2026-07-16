@@ -72,7 +72,11 @@
 			},
 			"WBP_Nameplate_Boss_109":
 			{
-				"class": "/Game/UI/Widget/WBP_Nameplate_Boss.WBP_Nameplate_Boss_C"
+				"class": "/Game/UI/Widget/WBP_Nameplate_Boss.WBP_Nameplate_Boss_C",
+				"delta":
+				{
+					"Visibility": "Collapsed"
+				}
 			},
 			"WBP_Nameplate_Player":
 			{
