@@ -183,7 +183,7 @@ void UWxAbility_Interact::ScanAndPush()
 	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(WxInteractionScan), false);
 
 	TArray<FOverlapResult> Overlaps;
-	World->OverlapMultiByChannel(Overlaps, ScanOrigin, FQuat::Identity, WxCollision::WxInteractable, FCollisionShape::MakeSphere(ScanRadius), QueryParams);
+	World->OverlapMultiByChannel(Overlaps, ScanOrigin, FQuat::Identity, ECC_WxInteractable, FCollisionShape::MakeSphere(ScanRadius), QueryParams);
 
 	// 후보 컴포넌트를 모은다.
 	// 오버랩 결과는 볼륨 프리미티브이므로 이를 참조하는 상호작용 컴포넌트로 역참조한다.

@@ -28,7 +28,7 @@ AWxItemPickup::AWxItemPickup()
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
 	MeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	MeshComponent->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
-	MeshComponent->SetCollisionResponseToChannel(WxCollision::WxAttack, ECR_Ignore);
+	MeshComponent->SetCollisionResponseToChannel(ECC_WxAttack, ECR_Ignore);
 	MeshComponent->SetGenerateOverlapEvents(false);
 
 	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));

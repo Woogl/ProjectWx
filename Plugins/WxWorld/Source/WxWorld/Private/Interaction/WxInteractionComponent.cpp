@@ -133,7 +133,7 @@ void UWxInteractionComponent::ApplyInteractionCollision()
 
 	// 볼륨의 WxInteractable 응답만 토글한다. 메시의 CollisionEnabled·ObjectType·다른 응답은 건드리지 않아 본래 콜리전이 보존된다.
 	// 비활성(Ignore) 볼륨은 스캐너의 OverlapMultiByChannel 에 잡히지 않아 스캔에서 자연 탈락한다.
-	CollisionVolume->SetCollisionResponseToChannel(WxCollision::WxInteractable, bInteractionEnabled ? ECR_Overlap : ECR_Ignore);
+	CollisionVolume->SetCollisionResponseToChannel(ECC_WxInteractable, bInteractionEnabled ? ECR_Overlap : ECR_Ignore);
 
 	// 비활성화 즉시 외곽선을 끈다 — 레지스트리 다음 스캔까지의 잔상을 막는다. 활성화 시 강조 ON 은 레지스트리가 선택 대상만 결정한다.
 	if (!bInteractionEnabled)

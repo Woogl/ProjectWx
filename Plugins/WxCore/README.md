@@ -5,7 +5,7 @@
 ## 책임
 **담당**
 - 프로젝트 전역 Gameplay Tag의 C++ Native Tag 선언·정의 (`WxGameplayTags`)
-- 커스텀 콜리전 채널 상수 (`WxCollision::WxAttack`, `WxCollision::WxInteractable`)
+- 커스텀 콜리전 채널 상수 (`ECC_WxAttack`, `ECC_WxInteractable`)
 - 도메인 간 결합을 끊는 공용 인터페이스/추상 베이스 (`IWxSavable`, `IWxInteractionSource`, `UWxAbilityComponent`)
 
 **경계 (비담당)**
@@ -22,7 +22,7 @@
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
 | `WxGameplayTags` (namespace) | 프로젝트 전역 Native Tag 선언부 (State/Event/Gimmick/ANS/Cue/Damage/Ability/Input/SetByCaller/UI). 다른 모듈이 참조하는 어휘집 | `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h` |
-| `WxCollision` (namespace) | 커스텀 콜리전 채널 상수 (`WxAttack=ECC_GameTraceChannel1`, `WxInteractable=ECC_GameTraceChannel2`). ini 등록과 동기화되는 단일 출처 | `Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h` |
+| `ECC_WxAttack` / `ECC_WxInteractable` | 커스텀 콜리전 채널 상수 (`ECC_GameTraceChannel1`/`ECC_GameTraceChannel2`). ini 등록과 동기화되는 단일 출처 | `Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h` |
 | `IWxSavable` | WxSave 슬롯 저장/로드 라이프사이클 참여 마커+후크 (`GetWxSaveId`, `OnWxSaveRestored`). WxSave↔소비 도메인 직접 의존 차단 | `Plugins/WxCore/Source/WxCore/Public/WxSavable.h` |
 | `IWxInteractionSource` | 상호작용 발행 컴포넌트의 공용 계약 (`GetOnInteractedDelegate`, `SetInteractionText`). 구현체는 WxWorld | `Plugins/WxCore/Source/WxCore/Public/WxInteractionSource.h` |
 | `UWxAbilityComponent` | 어빌리티(`UWxAbilityBase`)에 Instanced로 붙는 컴포넌트의 추상 베이스. GE의 `UGameplayEffectComponent`에 대응하는 도메인 간 공유 앵커 | `Plugins/WxCore/Source/WxCore/Public/WxAbilityComponent.h` |
@@ -48,7 +48,7 @@
 - 세이브 대상 액터: `IWxSavable` 구현 + 보존 필드에 `UPROPERTY(SaveGame)` 표시. `GetWxSaveId()`가 세션 불변 `FGuid`를 반환(무효 GUID면 저장/복원 제외), 복원 후처리는 `OnWxSaveRestored()` 오버라이드. 인터페이스를 WxCore에 둠으로써 WxSave↔소비 도메인 직접 의존을 끊는다.
 - 상호작용 발행: `IWxInteractionSource`로 소비 도메인이 WxWorld 구현체에 의존하지 않고 델리게이트 바인딩/프롬프트 갱신. 델리게이트는 서버 권한에서만 fire.
 - 공유 어빌리티 컴포넌트: 도메인 모듈에서 `UWxAbilityComponent`를 상속해 구체 컴포넌트 정의 (예: WxUI의 UI 데이터 컴포넌트). 베이스만 WxCore에 두어 공유 앵커로 사용.
-- 콜리전 채널 추가: `WxCollision` 상수와 `Config/DefaultEngine.ini`의 채널 등록 순서가 일치해야 함.
+- 콜리전 채널 추가: `ECC_Wx*` 상수와 `Config/DefaultEngine.ini`의 채널 등록 순서가 일치해야 함.
 - WxCore엔 정의/공용 계약만 둔다. 리플리케이션·권한 로직은 소비 도메인이 책임진다.
 
 ## 여기서부터 읽어라
