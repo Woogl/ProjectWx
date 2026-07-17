@@ -30,25 +30,18 @@ protected:
 
 	// UCommonButtonBase interface
 	virtual void UpdateInputActionWidget() override;
-	virtual void OnInputMethodChanged(ECommonInputType CurrentInputType) override;
 	// End of UCommonButtonBase interface
 
 	void RefreshButtonText();
 
 	/** 버튼 텍스트를 바인딩된 TextBlock에 세팅한다. */
 	void UpdateButtonText(const FText& InText);
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void UpdateButtonStyle();
-
+	
 	/** 있으면 UpdateButtonText 기본 구현이 여기에 텍스트를 세팅한다. */
 	UPROPERTY(BlueprintReadOnly, Category = "Button", meta = (BindWidgetOptional))
 	TObjectPtr<UCommonTextBlock> TextBlock;
 
 private:
-	UPROPERTY(EditAnywhere, Category = "Button", meta = (InlineEditConditionToggle))
-	uint8 bOverride_ButtonText : 1;
-
-	UPROPERTY(EditAnywhere, Category = "Button", meta = (editcondition = "bOverride_ButtonText"))
+	UPROPERTY(EditAnywhere, Category = "Button")
 	FText ButtonText;
 };
