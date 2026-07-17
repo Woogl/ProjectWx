@@ -14,6 +14,7 @@ public class WxSave : ModuleRules
 			"CoreUObject",
 			"Engine",
 			"GameplayAbilities",
+			"ModularGameplay",
 			"WxCore",
 		});
 	}

@@ -45,7 +45,7 @@
 - WBP의 View Bindings에서 Creation Type = Resolver로 `MVVM/`의 리졸버를 선택하면 게임 상태를 [[WxUI]] 뷰모델에 주입.
 
 ## 여기서부터 읽어라
-1. `Source/WxGame/Framework/WxGameMode.h` — 게임 부팅(프레임워크 컴포넌트 주입)의 조립 지점. 재개 지점 주입과 스탯 복원은 `WxPlayerSpawnComponent.h`로 위임돼 있다.
+1. `Source/WxGame/Framework/WxGameMode.h` — 게임 부팅(프레임워크 컴포넌트 주입)의 조립 지점. 재개 지점 주입과 스탯 복원은 [[WxSave]]의 `UWxPlayerSpawnComponent`로 위임돼 있다.
 2. `Source/WxGame/Character/WxCharacterBase.h` — 캐릭터가 어떤 도메인 컴포넌트(ASC/장비/모션워핑)를 조립하는지 = 모듈 경계의 축소판.
 3. `Source/WxGame/Controller/WxPlayerController.h` — 인벤토리 소유 위치와 HUD/사망 UI 흐름.
 4. `Source/WxGame/WxGame.Build.cs` — 이 모듈이 조립하는 플러그인·엔진 서브시스템 전체 목록.

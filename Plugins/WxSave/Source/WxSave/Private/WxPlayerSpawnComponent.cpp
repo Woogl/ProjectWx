@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Framework/WxPlayerSpawnComponent.h"
+#include "WxPlayerSpawnComponent.h"
 
 #include "Engine/PlayerStartPIE.h"
 #include "Engine/World.h"
@@ -8,8 +8,8 @@
 #include "GameFramework/GameModeBase.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerStart.h"
-#include "WxGame.h"
 #include "WxSaveGameSubsystem.h"
+#include "WxSaveModule.h"
 
 void UWxPlayerSpawnComponent::OnRegister()
 {
@@ -71,7 +71,7 @@ void UWxPlayerSpawnComponent::HandleGameModePostLogin(AGameModeBase* GameMode, A
 	APlayerStart* Marker = GetWorld()->SpawnActor<APlayerStart>(APlayerStart::StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
 	if (!Marker)
 	{
-		UE_LOG(LogWxGame, Warning, TEXT("HandleGameModePostLogin: 재개 지점 마커 스폰 실패 — 엔진 기본 시작 지점으로 폴백한다."));
+		UE_LOG(LogWxSave, Warning, TEXT("HandleGameModePostLogin: 재개 지점 마커 스폰 실패 — 엔진 기본 시작 지점으로 폴백한다."));
 		return;
 	}
 

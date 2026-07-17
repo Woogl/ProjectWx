@@ -21,7 +21,7 @@ class APlayerController;
  * GameMode 의 FrameworkComponents 에 등록해야 부착된다 — 등록하지 않으면 재개 지점과 스탯 복원이 조용히 동작하지 않는다.
  */
 UCLASS()
-class UWxPlayerSpawnComponent : public UControllerComponent
+class WXSAVE_API UWxPlayerSpawnComponent : public UControllerComponent
 {
 	GENERATED_BODY()
 

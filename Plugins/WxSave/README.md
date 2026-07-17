@@ -29,6 +29,7 @@
 | `FWxActorRecord` / `FWxComponentRecord` | 액터·컴포넌트 스냅샷(Transform + 바이트 + 컴포넌트별 레코드 + 버전 헤더) | `Plugins/WxSave/Source/WxSave/Public/WxSaveGame.h` |
 | `FWxSaveTravelData` | 트래블 대상 맵(`FSoftObjectPath Map`, null=구버전/미기록→현재 맵 리로드 폴백) | `Plugins/WxSave/Source/WxSave/Public/WxSaveGame.h` |
 | `UWxSaveLibrary` | BP 진입점. 게임 서브시스템 공개 API 의 정적 래퍼(Save/Load/Travel/Delete·존재확인·활성 슬롯 조회) | `Plugins/WxSave/Source/WxSave/Public/WxSaveLibrary.h` |
+| `UWxPlayerSpawnComponent` | 저장된 재개 지점·스탯을 새 세션에 세우는 컨트롤러 컴포넌트. GameMode 의 `FrameworkComponents` 에 등록해야 부착된다 | `Plugins/WxSave/Source/WxSave/Public/WxPlayerSpawnComponent.h` |
 
 ## 확장 포인트 / 규약
 - **새 세이브 대상 추가**: 액터가 [[WxCore]]의 `IWxSavable` 을 구현하고 안정적 `WxSaveId`(에디터 부여 영속 GUID, 쿠킹 빌드 안전)를 반환하면 월드 서브시스템이 스트리밍/트래블 이벤트에서 자동 캡처·복원한다. 별도 등록 코드 불필요. 저장할 필드엔 `UPROPERTY(SaveGame)` 지정(액터 본체 + 컴포넌트별).

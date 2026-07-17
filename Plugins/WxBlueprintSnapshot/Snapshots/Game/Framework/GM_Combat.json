@@ -5,7 +5,7 @@
 		"DefaultPawnClass": "/Game/Character/Player/BP_Player.BP_Player_C",
 		"FrameworkComponents": [
 			"/Script/WxCombat.WxTimeDilationComponent",
-			"/Script/WxGame.WxPlayerSpawnComponent"
+			"/Script/WxSave.WxPlayerSpawnComponent"
 		],
 		"GameStateClass": "/Script/WxGame.WxGameState",
 		"PlayerControllerClass": "/Game/Framework/BP_PlayerController.BP_PlayerController_C",
