@@ -11,7 +11,7 @@
  * 소스 폰의 플레이어 컨트롤러로 타겟 위치를 화면 좌표에 투영해, 카메라 뒤이거나 화면 영역을 벗어나면 해당 타겟을 제외한다.
  * 락온에서 화면에 보이지 않는 대상을 후보에서 빼는 데 쓴다. 플레이어 컨트롤러가 없으면(AI) 아무것도 제외하지 않는다.
  */
-UCLASS(Blueprintable)
+UCLASS()
 class WXCOMBAT_API UWxTargetingFilterTask_ScreenBounds : public UTargetingFilterTask_BasicFilterTemplate
 {
 	GENERATED_BODY()

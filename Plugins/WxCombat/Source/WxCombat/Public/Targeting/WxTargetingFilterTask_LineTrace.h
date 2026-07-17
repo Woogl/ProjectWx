@@ -11,7 +11,7 @@
  * 소스 액터에서 타겟 액터로의 트레이스가 차단되면 해당 타겟을 제외한다.
  * 예: ECC_Visibility 채널로 시야가 차단된 타겟을 제거.
  */
-UCLASS(Blueprintable)
+UCLASS()
 class WXCOMBAT_API UWxTargetingFilterTask_LineTrace : public UTargetingFilterTask_BasicFilterTemplate
 {
 	GENERATED_BODY()

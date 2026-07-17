@@ -15,7 +15,7 @@ class APawn;
  * 입력이 없으면(스틱 중립) 아무것도 제외하지 않는다. 락온에서 미는 방향의 대상만 추리는 데 쓴다.
  * 콘 안에 드는 후보가 하나도 없을 때는 bKeepAllWhenNoMatch 에 따라 전체를 유지하거나 전부 제외한다.
  */
-UCLASS(Blueprintable)
+UCLASS()
 class WXCOMBAT_API UWxTargetingFilterTask_InputDirection : public UTargetingFilterTask_BasicFilterTemplate
 {
 	GENERATED_BODY()
