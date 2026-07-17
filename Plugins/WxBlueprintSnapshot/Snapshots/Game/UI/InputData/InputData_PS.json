@@ -1,0 +1,363 @@
+{
+	"blueprintPath": "/Game/UI/InputData/InputData_PS.InputData_PS",
+	"classDefaults":
+	{
+		"GamepadName": "PS",
+		"InputBrushDataMap": [
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_LeftX"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadLeftThumbstickX-Axis.T_GamepadLeftThumbstickX-Axis"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_LeftY"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadLeftThumbstickY-Axis.T_GamepadLeftThumbstickY-Axis"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_Left2D"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadLeftThumbstick2D-Axis.T_GamepadLeftThumbstick2D-Axis"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_RightX"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadRightThumbstickX-Axis.T_GamepadRightThumbstickX-Axis"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_RightY"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadRightThumbstickY-Axis.T_GamepadRightThumbstickY-Axis"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_Right2D"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadRightThumbstick2D-Axis.T_GamepadRightThumbstick2D-Axis"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_DPad_Up"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadD-padUp.T_P_GamepadD-padUp"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_DPad_Down"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadD-padDown.T_P_GamepadD-padDown"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_DPad_Right"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadD-padRight.T_P_GamepadD-padRight"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_DPad_Left"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadD-padLeft.T_P_GamepadD-padLeft"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_LeftStick_Up"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadLeftThumbstickUp.T_GamepadLeftThumbstickUp"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_LeftStick_Down"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadLeftThumbstickDown.T_GamepadLeftThumbstickDown"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_LeftStick_Right"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadLeftThumbstickRight.T_GamepadLeftThumbstickRight"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_LeftStick_Left"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadLeftThumbstickLeft.T_GamepadLeftThumbstickLeft"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_RightStick_Up"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadRightThumbstickUp.T_GamepadRightThumbstickUp"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_RightStick_Down"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadRightThumbstickDown.T_GamepadRightThumbstickDown"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_RightStick_Right"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadRightThumbstickRight.T_GamepadRightThumbstickRight"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_RightStick_Left"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadRightThumbstickLeft.T_GamepadRightThumbstickLeft"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_Special_Left"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadSpecialLeft.T_P_GamepadSpecialLeft"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_Special_Right"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadSpecialRight.T_P_GamepadSpecialRight"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_FaceButton_Bottom"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadFaceButtonBottom.T_P_GamepadFaceButtonBottom"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_FaceButton_Right"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadFaceButtonRight.T_P_GamepadFaceButtonRight"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_FaceButton_Left"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadFaceButtonLeft.T_P_GamepadFaceButtonLeft"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_FaceButton_Top"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadFaceButtonTop.T_P_GamepadFaceButtonTop"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_LeftTriggerAxis"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadLeftTriggerAxis.T_P_GamepadLeftTriggerAxis"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_RightTriggerAxis"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadRightTriggerAxis.T_P_GamepadRightTriggerAxis"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_LeftShoulder"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadLeftShoulder.T_P_GamepadLeftShoulder"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_RightShoulder"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadRightShoulder.T_P_GamepadRightShoulder"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_LeftTrigger"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadLeftTriggerAxis.T_P_GamepadLeftTriggerAxis"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_RightTrigger"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadRightTriggerAxis.T_P_GamepadRightTriggerAxis"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_LeftThumbstick"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadLeftThumbstickButton.T_GamepadLeftThumbstickButton"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Gamepad_RightThumbstick"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadRightThumbstickButton.T_GamepadRightThumbstickButton"
+				}
+			}
+		],
+		"InputType": "Gamepad"
+	},
+	"parentClass": "/Script/CommonInput.CommonInputBaseControllerData"
+}

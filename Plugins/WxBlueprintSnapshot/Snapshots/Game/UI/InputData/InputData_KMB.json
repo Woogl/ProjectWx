@@ -1,0 +1,1241 @@
+{
+	"blueprintPath": "/Game/UI/InputData/InputData_KMB.InputData_KMB",
+	"classDefaults":
+	{
+		"InputBrushDataMap": [
+			{
+				"Key":
+				{
+					"KeyName": "MouseX"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_MouseX.T_Keyboard_MouseX"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "MouseY"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_MouseY.T_Keyboard_MouseY"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Mouse2D"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_MouseXY2D-Axis.T_Keyboard_MouseXY2D-Axis"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "MouseWheelAxis"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_MouseWheelAxis.T_Keyboard_MouseWheelAxis"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "MouseScrollUp"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_MouseWheelUp.T_Keyboard_MouseWheelUp"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "MouseScrollDown"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_MouseWheelDown.T_Keyboard_MouseWheelDown"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "LeftMouseButton"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_LeftMouseButton.T_Keyboard_LeftMouseButton"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "RightMouseButton"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_RightMouseButton.T_Keyboard_RightMouseButton"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "MiddleMouseButton"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_MiddleMouseButton.T_Keyboard_MiddleMouseButton"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "ThumbMouseButton"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_ThumbMouseButton.T_Keyboard_ThumbMouseButton"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "ThumbMouseButton2"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_ThumbMouseButton2.T_Keyboard_ThumbMouseButton2"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Tab"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Tab.T_Keyboard_Tab"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Enter"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Enter.T_Keyboard_Enter"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Pause"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Pause.T_Keyboard_Pause"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "CapsLock"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_CapsLock.T_Keyboard_CapsLock"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Escape"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Escape.T_Keyboard_Escape"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "SpaceBar"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_SpaceBar.T_Keyboard_SpaceBar"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "PageUp"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_PageUp.T_Keyboard_PageUp"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "PageDown"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_PageDown.T_Keyboard_PageDown"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "End"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_End.T_Keyboard_End"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Home"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Home.T_Keyboard_Home"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Left"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Left.T_Keyboard_Left"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Up"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Up.T_Keyboard_Up"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Right"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Right.T_Keyboard_Right"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Down"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Down.T_Keyboard_Down"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Insert"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Insert.T_Keyboard_Insert"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "BackSpace"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_BackSpace.T_Keyboard_BackSpace"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Delete"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Delete.T_Keyboard_Delete"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Zero"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_0.T_Keyboard_0"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "One"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_1.T_Keyboard_1"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Two"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_2.T_Keyboard_2"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Three"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_3.T_Keyboard_3"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Four"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_4.T_Keyboard_4"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Five"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_5.T_Keyboard_5"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Six"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_6.T_Keyboard_6"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Seven"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_7.T_Keyboard_7"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Eight"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_8.T_Keyboard_8"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Nine"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_9.T_Keyboard_9"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "A"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_A.T_Keyboard_A"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "B"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_B.T_Keyboard_B"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "C"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_C.T_Keyboard_C"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "D"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_D.T_Keyboard_D"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "E"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_E.T_Keyboard_E"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "F"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F.T_Keyboard_F"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "G"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_G.T_Keyboard_G"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "H"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_H.T_Keyboard_H"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "I"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_I.T_Keyboard_I"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "J"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_J.T_Keyboard_J"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "K"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_K.T_Keyboard_K"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "L"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_L.T_Keyboard_L"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "M"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_M.T_Keyboard_M"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "N"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_N.T_Keyboard_N"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "O"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_O.T_Keyboard_O"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "P"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_P.T_Keyboard_P"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Q"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Q.T_Keyboard_Q"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "R"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_R.T_Keyboard_R"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "S"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_S.T_Keyboard_S"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "T"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_T.T_Keyboard_T"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "U"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_U.T_Keyboard_U"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "V"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_V.T_Keyboard_V"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "W"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_W.T_Keyboard_W"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "X"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_X.T_Keyboard_X"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Y"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Y.T_Keyboard_Y"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Z"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Z.T_Keyboard_Z"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "NumPadZero"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num0.T_Keyboard_Num0"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "NumPadOne"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num1.T_Keyboard_Num1"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "NumPadTwo"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num2.T_Keyboard_Num2"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "NumPadThree"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num3.T_Keyboard_Num3"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "NumPadFour"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num4.T_Keyboard_Num4"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "NumPadFive"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num5.T_Keyboard_Num5"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "NumPadSix"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num6.T_Keyboard_Num6"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "NumPadSeven"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num7.T_Keyboard_Num7"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "NumPadEight"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num8.T_Keyboard_Num8"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "NumPadNine"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num9.T_Keyboard_Num9"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Multiply"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_NumMultiply.T_Keyboard_NumMultiply"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Add"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_NumPlus.T_Keyboard_NumPlus"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Subtract"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_NumMinus.T_Keyboard_NumMinus"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Decimal"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_NumPeriod.T_Keyboard_NumPeriod"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Divide"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_NumDivide.T_Keyboard_NumDivide"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "F1"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F1.T_Keyboard_F1"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "F2"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F2.T_Keyboard_F2"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "F3"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F3.T_Keyboard_F3"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "F4"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F4.T_Keyboard_F4"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "F5"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F5.T_Keyboard_F5"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "F6"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F6.T_Keyboard_F6"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "F7"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F7.T_Keyboard_F7"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "F8"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F8.T_Keyboard_F8"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "F9"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F9.T_Keyboard_F9"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "F10"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F10.T_Keyboard_F10"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "F11"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F11.T_Keyboard_F11"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "F12"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F12.T_Keyboard_F12"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "NumLock"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_NumLock.T_Keyboard_NumLock"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "ScrollLock"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_ScrollLock.T_Keyboard_ScrollLock"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "LeftShift"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_LeftShift.T_Keyboard_LeftShift"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "RightShift"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_RightShift.T_Keyboard_RightShift"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "LeftControl"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_LeftCtrl.T_Keyboard_LeftCtrl"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "RightControl"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_RightCtrl.T_Keyboard_RightCtrl"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "LeftAlt"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_LeftAlt.T_Keyboard_LeftAlt"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "RightAlt"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_RightAlt.T_Keyboard_RightAlt"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "LeftCommand"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_WinKey.T_Keyboard_WinKey"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "RightCommand"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_WinKey.T_Keyboard_WinKey"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Semicolon"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Semicolon.T_Keyboard_Semicolon"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Equals"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Equals.T_Keyboard_Equals"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Comma"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Comma.T_Keyboard_Comma"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Hyphen"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Hyphen.T_Keyboard_Hyphen"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Period"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Period.T_Keyboard_Period"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Slash"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Slash.T_Keyboard_Slash"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Tilde"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Tilde.T_Keyboard_Tilde"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "LeftBracket"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_LeftBracket.T_Keyboard_LeftBracket"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Backslash"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Backslash.T_Keyboard_Backslash"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "RightBracket"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_RightBracket.T_Keyboard_RightBracket"
+				}
+			},
+			{
+				"Key":
+				{
+					"KeyName": "Apostrophe"
+				},
+				"KeyBrush":
+				{
+					"ImageType": "FullColor",
+					"ResourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Apostrophe.T_Keyboard_Apostrophe"
+				}
+			}
+		]
+	},
+	"parentClass": "/Script/CommonInput.CommonInputBaseControllerData"
+}
