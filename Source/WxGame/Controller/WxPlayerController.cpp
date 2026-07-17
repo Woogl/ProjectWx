@@ -35,24 +35,6 @@ void AWxPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void AWxPlayerController::OnPossess(APawn* InPawn)
-{
-	Super::OnPossess(InPawn);
-
-	if (!IsLocalController())
-	{
-		return;
-	}
-
-	BindCharacterDeath(InPawn);
-
-	// HUD 위젯의 리졸버가 생성 시점에 빙의 Pawn 의 ASC/인벤토리를 읽으므로 빙의 완료 후에 푸시해야 한다.
-	if (Cast<AWxPlayerCharacter>(InPawn))
-	{
-		PushGameHUD();
-	}
-}
-
 void AWxPlayerController::OnRep_Pawn()
 {
 	Super::OnRep_Pawn();
@@ -65,6 +47,21 @@ void AWxPlayerController::OnRep_Pawn()
 	BindCharacterDeath(GetPawn());
 
 	// 원격 클라이언트: Pawn 복제 시 HUD Push.
+	PushGameHUD();
+}
+
+void AWxPlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	if (!IsLocalController())
+	{
+		return;
+	}
+
+	BindCharacterDeath(InPawn);
+
+	// HUD 위젯의 리졸버가 생성 시점에 빙의 Pawn 의 ASC/인벤토리를 읽으므로 빙의 완료 후에 푸시해야 한다.
 	PushGameHUD();
 }
 

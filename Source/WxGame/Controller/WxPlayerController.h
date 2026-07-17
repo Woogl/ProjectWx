@@ -29,15 +29,15 @@ public:
 	AWxPlayerController(const FObjectInitializer& ObjectInitializer);
 
 	UWxInventoryManagerComponent* GetInventoryManager() const;
-
-protected:
+	
 	//~ Begin AActor
 	virtual void PreInitializeComponents() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	//~ End AActor
 
-	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnRep_Pawn() override;
+protected:
+	virtual void OnPossess(APawn* InPawn) override;
 
 	/** 소유 클라이언트의 인벤토리. 서버 권한, 소유 연결로만 복제된다. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Inventory")
