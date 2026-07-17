@@ -3,11 +3,13 @@
 #include "AbilitySystem/Ability/WxAbility_Dodge.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
 #include "AbilitySystem/Task/WxAbilityTask_WaitInputTagPressed.h"
 #include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
 #include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
 #include "AbilitySystemComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "WxGameplayTags.h"
 
@@ -93,11 +95,15 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		ListenForCounterInput();
 	}
 
+	ListenForInvincibleWindow();
 	ListenForDodgeSuccess();
 }
 
 void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	// 어빌리티가 무적 구간 도중 취소되면 태그 해제 콜백을 받지 못하므로 여기서 비활성화한다.
+	DeactivateJudgementCapsule();
+
 	if (WaitInputTask)
 	{
 		WaitInputTask->EndTask();
@@ -213,23 +219,6 @@ bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 	return true;
 }
 
-void UWxAbility_Dodge::HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag)
-{
-	// 클라이언트가 캐릭터 로컬 공간으로 변환해 보낸 방향. 서버는 그대로 사용해 동일한 8방향 섹션을 선택한다.
-	FVector LocalDirection = FVector::ZeroVector;
-	if (const FWxAbilityTargetData_Direction* DirectionData = static_cast<const FWxAbilityTargetData_Direction*>(DataHandle.Get(0)))
-	{
-		LocalDirection = DirectionData->Direction;
-	}
-
-	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
-	{
-		ASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
-	}
-
-	StartDodge(LocalDirection);
-}
-
 // ────────────────────────────────────────────────────────────────────────────
 //  극한 회피 / 반격 처리
 // ────────────────────────────────────────────────────────────────────────────
@@ -244,28 +233,6 @@ void UWxAbility_Dodge::ListenForDodgeSuccess()
 	{
 		EventTask->EventReceived.AddDynamic(this, &UWxAbility_Dodge::HandleDodgeSuccess);
 		EventTask->ReadyForActivation();
-	}
-}
-
-void UWxAbility_Dodge::PlayPerfectDodgeMontage()
-{
-	if (!PlayMontage(PerfectDodgeMontage))
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-	}
-}
-
-void UWxAbility_Dodge::PlayDodgeCounterMontage()
-{
-	if (WaitInputTask)
-	{
-		WaitInputTask->EndTask();
-		WaitInputTask = nullptr;
-	}
-
-	if (!PlayMontage(DodgeCounterMontage))
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 	}
 }
 
@@ -324,7 +291,10 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 		SlowTimeTask->ReadyForActivation();
 	}
 
-	PlayPerfectDodgeMontage();
+	if (!PlayMontage(PerfectDodgeMontage))
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+	}
 }
 
 void UWxAbility_Dodge::HandleCounterInputPressed()
@@ -342,7 +312,113 @@ void UWxAbility_Dodge::HandleCounterInputPressed()
 		return;
 	}
 
-	PlayDodgeCounterMontage();
+	if (WaitInputTask)
+	{
+		WaitInputTask->EndTask();
+		WaitInputTask = nullptr;
+	}
+
+	if (!PlayMontage(DodgeCounterMontage))
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+	}
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+//  극한 회피 판정 캡슐
+// ────────────────────────────────────────────────────────────────────────────
+
+void UWxAbility_Dodge::ListenForInvincibleWindow()
+{
+	// 무적 태그는 ANS_Invincible이 발행한다. 여기서는 관찰만 해 판정 캡슐의 수명을 태그에 일치시킨다.
+	// 두 태스크 모두 재무장하므로, PerfectDodgeMontage에 무적 구간이 또 있어도 그대로 처리된다.
+	UAbilityTask_WaitGameplayTagAdded* AddedTask = UAbilityTask_WaitGameplayTagAdded::WaitGameplayTagAdd(this, WxGameplayTags::State_Invincible, nullptr, false);
+	if (AddedTask)
+	{
+		AddedTask->Added.AddDynamic(this, &UWxAbility_Dodge::HandleInvincibleTagAdded);
+		AddedTask->ReadyForActivation();
+	}
+
+	UAbilityTask_WaitGameplayTagRemoved* RemovedTask = UAbilityTask_WaitGameplayTagRemoved::WaitGameplayTagRemove(this, WxGameplayTags::State_Invincible, nullptr, false);
+	if (RemovedTask)
+	{
+		RemovedTask->Removed.AddDynamic(this, &UWxAbility_Dodge::HandleInvincibleTagRemoved);
+		RemovedTask->ReadyForActivation();
+	}
+}
+
+void UWxAbility_Dodge::ActivateJudgementCapsule()
+{
+	// 판정 캡슐은 첫 무적 구간에서 한 번만 만들고 이후 회피에서 재사용한다.
+	// 평상시엔 콜리전을 끈 채 몸통에 붙어 함께 움직이므로, 여기서 떼어내기만 하면 무적이 시작된 자리에 남는다.
+	if (!JudgementCapsule)
+	{
+		ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
+		if (!Character)
+		{
+			return;
+		}
+
+		UCapsuleComponent* BodyCapsule = Character->GetCapsuleComponent();
+		if (!BodyCapsule)
+		{
+			return;
+		}
+
+		JudgementCapsule = NewObject<UCapsuleComponent>(Character, TEXT("DodgeJudgementCapsule"));
+		JudgementCapsule->SetCapsuleSize(BodyCapsule->GetScaledCapsuleRadius(), BodyCapsule->GetScaledCapsuleHalfHeight());
+
+		// 공격은 Pawn 오브젝트 타입 오버랩으로 대상을 찾는다. 오브젝트 타입 쿼리는 채널 응답을 보지 않으므로,
+		// 모든 채널을 무시해도 공격에는 잡히면서 이동·시야·카메라 트레이스에는 전혀 걸리지 않는다.
+		JudgementCapsule->SetCollisionObjectType(ECC_Pawn);
+		JudgementCapsule->SetCollisionResponseToAllChannels(ECR_Ignore);
+		JudgementCapsule->SetGenerateOverlapEvents(false);
+		JudgementCapsule->SetupAttachment(BodyCapsule);
+		JudgementCapsule->RegisterComponent();
+	}
+
+	// 콜리전을 켜고 아바타에서 떼어내 무적이 시작된 자리에 남긴다.
+	JudgementCapsule->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	JudgementCapsule->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+}
+
+void UWxAbility_Dodge::DeactivateJudgementCapsule()
+{
+	const ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
+	if (!JudgementCapsule || !Character)
+	{
+		return;
+	}
+
+	JudgementCapsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	JudgementCapsule->AttachToComponent(Character->GetCapsuleComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+}
+
+void UWxAbility_Dodge::HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag)
+{
+	// 클라이언트가 캐릭터 로컬 공간으로 변환해 보낸 방향. 서버는 그대로 사용해 동일한 8방향 섹션을 선택한다.
+	FVector LocalDirection = FVector::ZeroVector;
+	if (const FWxAbilityTargetData_Direction* DirectionData = static_cast<const FWxAbilityTargetData_Direction*>(DataHandle.Get(0)))
+	{
+		LocalDirection = DirectionData->Direction;
+	}
+
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		ASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
+	}
+
+	StartDodge(LocalDirection);
+}
+
+void UWxAbility_Dodge::HandleInvincibleTagAdded()
+{
+	ActivateJudgementCapsule();
+}
+
+void UWxAbility_Dodge::HandleInvincibleTagRemoved()
+{
+	DeactivateJudgementCapsule();
 }
 
 // ────────────────────────────────────────────────────────────────────────────

@@ -8,6 +8,7 @@
 
 class UAnimMontage;
 class UAbilityTask_PlayMontageAndWait;
+class UCapsuleComponent;
 class UWxAbilityTask_WaitInputTagPressed;
 struct FGameplayAbilityTargetDataHandle;
 
@@ -33,10 +34,14 @@ enum class EWxDodgeDirection : uint8
  *
  * 사용 흐름:
  *  1. 입력 → ActivateAbility → 회피 몽타주를 입력 방향에 해당하는 8방향 섹션부터 재생(이동 입력이 없으면 BackstepMontage 재생), Event.DodgeSuccess 대기
- *  2. 몽타주의 State.Invincible 구간 동안 무적
+ *  2. 몽타주의 State.Invincible 구간 동안 무적. 무적이 시작된 자리에 판정 캡슐을 고정해 남긴다
  *  3. 무적 중 피격(극한 회피) → PerfectDodgeMontage 재생
  *  4. ANS_ComboWindow 구간 내 공격 입력 시 DodgeCounterMontage로 전환
  *  5. 몽타주 완료/중단 → EndAbility
+ *
+ * 극한 회피 판정:
+ * 몸통 캡슐은 그대로 두므로 실시간 위치는 기존대로 판정되고, 판정 캡슐이 "피하지 않았다면 맞았을 자리"를 추가로 덮는다.
+ * 둘 중 어느 쪽이 공격에 잡히든 타겟은 플레이어 액터 하나이므로, 무적을 확인한 데미지 파이프라인이 Event.DodgeSuccess를 발송한다.
  *
  * 회피 방향은 캐릭터 정면 기준으로 계산한다.
  * 비락온은 섹션 양자화 잔차만큼 시작 시 몸을 회전시켜 루트모션 이동을 입력 방향과 일치시킨다.
@@ -100,18 +105,27 @@ private:
 
 	/** 진행 중인 몽타주 태스크를 정리하고 새 몽타주를 StartSection부터 재생한다. 재생 실패 시 false 반환. */
 	bool PlayMontage(UAnimMontage* Montage, FName StartSection = NAME_None);
-
-	void HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag);
+	
 	void ListenForDodgeSuccess();
-	void PlayPerfectDodgeMontage();
-	void PlayDodgeCounterMontage();
 	void ListenForCounterInput();
+	void ListenForInvincibleWindow();
+	
+	void ActivateJudgementCapsule();
+	void DeactivateJudgementCapsule();
+	
+	void HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag);
 
 	UFUNCTION()
 	void HandleDodgeSuccess(FGameplayEventData Payload);
 
 	UFUNCTION()
 	void HandleCounterInputPressed();
+
+	UFUNCTION()
+	void HandleInvincibleTagAdded();
+
+	UFUNCTION()
+	void HandleInvincibleTagRemoved();
 
 	UFUNCTION()
 	void HandleMontageCompleted();
@@ -130,4 +144,14 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UWxAbilityTask_WaitInputTagPressed> WaitInputTask;
+
+	/**
+	 * 극한 회피 판정용 캡슐.
+	 * 평상시에는 콜리전을 끈 채 아바타에 붙어 함께 움직이고, 무적이 시작되면 콜리전을 켜고 떼어내 그 자리에 남는다.
+	 * 붙어 다니다 떼어내는 방식이라 판정 위치를 따로 계산할 필요가 없다.
+	 * 공격 쿼리는 Pawn 오브젝트 타입 오버랩으로 액터를 찾으므로, 아바타의 컴포넌트로 두어야 타겟 필터(ACharacter 요구·팀)를 그대로 통과한다.
+	 * 무장은 무적 구간에만 이뤄지며, 이때는 데미지가 어차피 무효화되므로 판정 캡슐이 실제 피해로 이어질 일은 없다.
+	 */
+	UPROPERTY()
+	TObjectPtr<UCapsuleComponent> JudgementCapsule;
 };
