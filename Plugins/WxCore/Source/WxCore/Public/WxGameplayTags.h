@@ -18,6 +18,9 @@ namespace WxGameplayTags
 	/** 사망 상태. HandleDeath 시 ASC에 부여되며, 부활 시 제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dead);
 
+	/** 래그돌 상태. 사망 어빌리티가 서버에서 부여하며, 전 머신의 캐릭터가 감지해 물리 전환. 해제 없이 시체에 유지 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Ragdoll);
+
 	/** 그로기 상태. DP가 MaxDP에 도달 시 부여 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Groggy);
 

@@ -100,6 +100,12 @@ protected:
 	/** State.Dead 태그 변경 콜백. 태그 부여 시 HandleDeath 호출 */
 	void HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
+	/** State.Ragdoll 태그 변경 콜백. 태그 부여 시 각 머신에서 래그돌 물리 전환 적용 */
+	void HandleRagdollTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
+	/** 자기 메시·캡슐·무브먼트를 래그돌 물리로 전환. State.Ragdoll 감지 시 각 머신에서 호출 */
+	void EnterRagdoll();
+
 	/**
 	 * 장비 컴포넌트의 외형 변경 방송 콜백.
 	 * 무기 메시 스왑 + WeaponActor 소켓 재부착을 반영한다.

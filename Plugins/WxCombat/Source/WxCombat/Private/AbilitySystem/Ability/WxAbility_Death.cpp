@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Death.h"
-#include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AIController.h"
 #include "BrainComponent.h"
@@ -106,9 +106,15 @@ void UWxAbility_Death::RagdollAndEnd(bool bWasCancelled)
 
 void UWxAbility_Death::EnableRagdoll()
 {
-	UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
-	if (WxASC)
+	// 오너 클라 인스턴스도 이 경로에 들어오므로, 로컬 루스 태그가 중복 추가되지 않게 서버에서만 발행한다.
+	const AActor* Avatar = GetAvatarActorFromActorInfo();
+	if (!Avatar || !Avatar->HasAuthority())
 	{
-		WxASC->SetRagdollActive(true);
+		return;
+	}
+
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		ASC->AddLooseGameplayTag(WxGameplayTags::State_Ragdoll, 1, EGameplayTagReplicationState::TagOnly);
 	}
 }

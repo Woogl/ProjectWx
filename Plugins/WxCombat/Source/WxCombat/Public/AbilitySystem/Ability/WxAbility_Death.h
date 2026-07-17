@@ -18,6 +18,7 @@ class UAnimMontage;
  *     DeathMontage 무효 → 짧은 지연 후 래그돌 활성화 → EndAbility (활성 HitReact 몽타주가 잘리지 않게 인계)
  *
  * DeathMontage가 외부 시스템에 의해 중단되면 안전 폴백으로 래그돌 활성화.
+ * 래그돌은 어빌리티 인스턴스가 없는 시뮬 프록시·late joiner도 커버해야 하므로, 서버가 State.Ragdoll 루스 태그를 발행(TagOnly 복제)하고 전 머신의 캐릭터가 감지해 자체 래그돌 전환을 수행한다.
  * 사망 발동 시 신규 어빌리티 차단.
  */
 UCLASS()

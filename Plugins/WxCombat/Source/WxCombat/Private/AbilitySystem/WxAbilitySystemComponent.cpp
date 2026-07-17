@@ -1,10 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/WxAbilitySystemComponent.h"
-#include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "Components/CapsuleComponent.h"
-#include "Net/UnrealNetwork.h"
 
 UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 {
@@ -89,47 +85,6 @@ const FGameplayTag& UWxAbilitySystemComponent::GetLastReleasedInputTag() const
 	return LastReleasedInputTag;
 }
 
-void UWxAbilitySystemComponent::SetRagdollActive(bool bNewActive)
-{
-	const AActor* Owner = GetOwnerActor();
-	if (!Owner || !Owner->HasAuthority())
-	{
-		return;
-	}
-
-	if (bRagdollActive == bNewActive)
-	{
-		return;
-	}
-
-	bRagdollActive = bNewActive;
-	// 서버에서는 ReplicatedUsing 콜백이 자동 호출되지 않으므로 직접 발화한다.
-	OnRep_RagdollActive();
-}
-
-void UWxAbilitySystemComponent::OnRep_RagdollActive()
-{
-	if (!bRagdollActive)
-	{
-		return;
-	}
-
-	ACharacter* Character = Cast<ACharacter>(GetOwnerActor());
-	if (!Character)
-	{
-		return;
-	}
-
-	USkeletalMeshComponent* Mesh = Character->GetMesh();
-	Mesh->SetCollisionProfileName(TEXT("Ragdoll"));
-	// Ragdoll 프로필이 Camera 응답을 Block으로 덮어쓰므로, 스프링암 카메라가 래그돌 본에 걸려 줌-인되는 현상을 방지한다.
-	Mesh->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
-	Mesh->SetSimulatePhysics(true);
-
-	Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	Character->GetCharacterMovement()->DisableMovement();
-}
-
 void UWxAbilitySystemComponent::SetLastPressedInputTag(const FGameplayTag& InputTag)
 {
 	LastPressedInputTag = InputTag;
@@ -158,11 +113,4 @@ void UWxAbilitySystemComponent::ServerSetLastPressedInputTag_Implementation(cons
 void UWxAbilitySystemComponent::ServerSetLastReleasedInputTag_Implementation(const FGameplayTag& InputTag)
 {
 	LastReleasedInputTag = InputTag;
-}
-
-void UWxAbilitySystemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(UWxAbilitySystemComponent, bRagdollActive);
 }

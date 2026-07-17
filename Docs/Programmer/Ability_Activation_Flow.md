@@ -112,7 +112,7 @@ flowchart TD
 | `WxAbility_Attack` | 입력(AssetTag `Ability.Attack`) | `ANS_ComboWindow` 입력 → 경로 누적 → EndAbility 후 **동일 Spec 재발동**(`Reactivate`). 단계마다 재커밋. |
 | `WxAbility_Guard` | 입력(AssetTag `Ability.Guard`) | `ActiveMontage`로 페이즈 전환(가드/피격/브레이크/카운터). `InputReleased`/`InputPressed` 오버라이드, PerfectGuard 이벤트 구독. |
 | `WxAbility_HitReact` | GameplayEvent `Event.HitReact.*` | 종류별 트리거 개별 등록, `bRetriggerInstancedAbility`로 재진입. Attack/Skill을 캔슬하되 Pattern은 안 함. |
-| `WxAbility_Death` | OwnedTag `State.Dead` | 몽타주 유효 시 사망 포즈, 무효 시 지연 후 래그돌(`ASC->SetRagdollActive`). `Ability` 전체 차단. |
+| `WxAbility_Death` | OwnedTag `State.Dead` | 몽타주 유효 시 사망 포즈, 무효 시 지연 후 래그돌 — 서버가 `State.Ragdoll` 루스 태그 발행(TagOnly 복제), 전 머신의 캐릭터가 감지해 자체 `EnterRagdoll` 수행. `Ability` 전체 차단. |
 | `WxAbility_Pattern` | AI BT(AssetTag) | 단일 몽타주 재생→종료. 입력/UI 미사용. 쿨다운/충전은 Base 프로퍼티로만. |
 
 > WxGame 측 `UWxAbility_UseItem`/`UWxAbility_Interact`도 `UWxAbilityBase`를 상속해 동일 파이프라인을 탄다(WxGame→WxCombat 의존 방향 예시).
