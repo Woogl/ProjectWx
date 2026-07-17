@@ -12,15 +12,12 @@ bool UWxTargetingFilterTask_GameplayTag::ShouldFilterTarget(const FTargetingRequ
 	{
 		return false;
 	}
-	
-	const IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(TargetActor);
-	if (!TagInterface)
-	{
-		return false;
-	}
-	
+
 	FGameplayTagContainer OwnedTags;
-	TagInterface->GetOwnedGameplayTags(OwnedTags);
-	
-	return TagRequirements.RequirementsMet(OwnedTags);
+	if (const IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(TargetActor))
+	{
+		TagInterface->GetOwnedGameplayTags(OwnedTags);
+	}
+
+	return !TagRequirements.RequirementsMet(OwnedTags);
 }
