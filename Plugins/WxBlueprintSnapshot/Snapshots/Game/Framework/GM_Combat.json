@@ -1,0 +1,24 @@
+{
+	"blueprintPath": "/Game/Framework/GM_Combat.GM_Combat",
+	"classDefaults":
+	{
+		"DefaultPawnClass": "/Game/Character/Player/BP_Player.BP_Player_C",
+		"FrameworkComponents": [
+			"/Script/WxCombat.WxTimeDilationComponent",
+			"/Script/WxGame.WxPlayerSpawnComponent"
+		],
+		"GameStateClass": "/Script/WxGame.WxGameState",
+		"PlayerControllerClass": "/Game/Framework/BP_PlayerController.BP_PlayerController_C",
+		"PlayerStateClass": "/Script/WxGame.WxPlayerState",
+		"ReplaySpectatorPlayerControllerClass": "/Game/Framework/BP_PlayerController.BP_PlayerController_C"
+	},
+	"components":
+	{
+		"DefaultSceneRoot":
+		{
+			"componentClass": "/Script/Engine.SceneComponent",
+			"variableName": "DefaultSceneRoot"
+		}
+	},
+	"parentClass": "/Script/WxGame.WxGameMode"
+}

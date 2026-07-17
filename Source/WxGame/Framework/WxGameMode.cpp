@@ -8,15 +8,10 @@
 #include "Components/PawnComponent.h"
 #include "Components/PlayerStateComponent.h"
 #include "Engine/GameInstance.h"
-#include "Engine/PlayerStartPIE.h"
-#include "EngineUtils.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerState.h"
 #include "WxGame.h"
-#include "WxPersistenceGameSubsystem.h"
-#include "WxPersistenceSaveGame.h"
-#include "WxPersistenceWorldSubsystem.h"
 
 void AWxGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
 {
@@ -65,69 +60,4 @@ void AWxGameMode::InitGame(const FString& MapName, const FString& Options, FStri
 
 		ComponentRequestHandles.Add(Manager->AddComponentRequest(TSoftClassPtr<AActor>(ReceiverClass), ComponentClass));
 	}
-}
-
-APawn* AWxGameMode::SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform)
-{
-	// 저장된 부활 지점(마지막 체크포인트)이 있으면 그 트랜스폼으로 스폰한다.
-	// 없으면(신규 세션/체크포인트 미접촉/PIE 여기서플레이) 인자 그대로 = ChoosePlayerStart 가 고른 지점.
-	FTransform SavedTransform;
-	const FTransform& FinalTransform = TryGetSavedRespawnTransform(SavedTransform) ? SavedTransform : SpawnTransform;
-	return Super::SpawnDefaultPawnAtTransform_Implementation(NewPlayer, FinalTransform);
-}
-
-void AWxGameMode::FinishRestartPlayer(AController* NewPlayer, const FRotator& StartRotation)
-{
-	Super::FinishRestartPlayer(NewPlayer, StartRotation);
-
-	// 저장된 스탯이 있으면 새 폰의 어트리뷰트를 복원한다.
-	// Super 의 Possess 이후라 ASC 초기화(GiveAbilitySet)가 끝나 있어 기본값 위에 안전하게 덮어쓴다(스탠드얼론 authority 전제).
-	UGameInstance* GameInstance = GetGameInstance();
-	UWxPersistenceGameSubsystem* SaveSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxPersistenceGameSubsystem>() : nullptr;
-	const UWxPersistenceSaveGame* SaveGame = SaveSubsystem ? SaveSubsystem->GetSaveGame() : nullptr;
-	if (SaveGame && SaveGame->bHasPlayerStats && NewPlayer)
-	{
-		if (APawn* Pawn = NewPlayer->GetPawn())
-		{
-			UWxPersistenceWorldSubsystem::ApplyPlayerStats(Pawn, SaveGame->PlayerStats);
-		}
-	}
-
-	// 부활 지점으로 복원된 경우, 로드 직후 카메라(컨트롤 로테이션)를 체크포인트가 바라보는 방향(저장된 트랜스폼 회전 Yaw)으로 맞춘다.
-	// 시선은 별도 저장 없이 복원된 트랜스폼 회전에서 파생한다.
-	FTransform SavedTransform;
-	if (NewPlayer && TryGetSavedRespawnTransform(SavedTransform))
-	{
-		NewPlayer->SetControlRotation(FRotator(0.0f, SavedTransform.GetRotation().Rotator().Yaw, 0.0f));
-	}
-}
-
-bool AWxGameMode::TryGetSavedRespawnTransform(FTransform& OutTransform) const
-{
-	// PIE "여기서 플레이"(APlayerStartPIE)가 있으면 저장 위치로 덮지 않는다 — 개발 중 지정 위치 우선(ChoosePlayerStart 의 최우선 규칙과 일치).
-	for (TActorIterator<APlayerStartPIE> It(GetWorld()); It; ++It)
-	{
-		return false;
-	}
-
-	UGameInstance* GameInstance = GetGameInstance();
-	UWxPersistenceGameSubsystem* SaveSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxPersistenceGameSubsystem>() : nullptr;
-	const UWxPersistenceSaveGame* SaveGame = SaveSubsystem ? SaveSubsystem->GetSaveGame() : nullptr;
-	if (!SaveGame)
-	{
-		return false;
-	}
-
-	// 유효성은 sentinel(Identity)로 판정한다(별도 플래그 없음).
-	// 좌표는 맵 종속이라 저장 맵이 현재 월드와 일치할 때만 유효하다(정상 로드-트래블은 같은 맵으로 오므로 통과, 크로스맵 오적용만 차단 — ReportTravelFromSaveFileComplete 와 동일 비교).
-	const FTransform SavedTransform = SaveGame->RespawnTransform;
-	const FName SavedMap = SaveGame->TravelData.Map.IsNull() ? NAME_None : SaveGame->TravelData.Map.GetAssetPath().GetPackageName();
-	const FName CurrentMap = UWxPersistenceGameSubsystem::GetStableMapPackageName(GetWorld());
-	if (SavedTransform.Equals(FTransform::Identity) || SavedMap != CurrentMap)
-	{
-		return false;
-	}
-
-	OutTransform = SavedTransform;
-	return true;
 }

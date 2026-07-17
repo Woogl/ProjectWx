@@ -10,7 +10,7 @@
 #include "Inventory/WxInventoryManagerComponent.h"
 #include "System/WxSpawnerLibrary.h"
 #include "WxGameplayTags.h"
-#include "WxPersistenceGameSubsystem.h"
+#include "WxSaveGameSubsystem.h"
 
 AWxCheckPoint::AWxCheckPoint()
 {
@@ -44,19 +44,6 @@ void AWxCheckPoint::HandleInteracted(AActor* InstigatorActor)
 	// 불을 켠다(권위). State 는 복제 + SaveGame 으로 지속돼 재로드 후에도 Lit 을 유지하며, 비주얼은 GimmickStateTree 가 적용한다.
 	CommitGimmickState(WxGameplayTags::Gimmick_CheckPoint_Lit);
 
-	UWxPersistenceGameSubsystem* SaveSubsystem = nullptr;
-	if (UGameInstance* GameInstance = GetGameInstance())
-	{
-		SaveSubsystem = GameInstance->GetSubsystem<UWxPersistenceGameSubsystem>();
-	}
-
-	// 자기 트랜스폼을 부활 지점으로 등록한다(메모리).
-	// 디스크 영속은 아래 SaveToFile 이 수행하고, 로드/사망 재개 시 AWxGameMode::SpawnDefaultPawnAtTransform 이 이 위치로 스폰한다.
-	if (SaveSubsystem)
-	{
-		SaveSubsystem->SetRespawnTransform(GetActorTransform());
-	}
-
 	if (HealEffect)
 	{
 		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(InstigatorActor))
@@ -84,10 +71,14 @@ void AWxCheckPoint::HandleInteracted(AActor* InstigatorActor)
 
 	UWxSpawnerLibrary::TryRespawnAll(this);
 
-	// 갱신된 부활 지점 + 리셋된 월드 상태 + Lit State 를 활성 슬롯에 저장한다(HasAuthority 게이트 안이라 서버 전용).
-	// SetRespawnTransform·CommitGimmickState 이후 실행돼 순서가 보장된다(슬롯 정체성은 활성 SaveGame 이 보유).
-	if (SaveSubsystem)
+	// 리셋된 월드 상태 + Lit State 를 활성 슬롯에 저장한다(HasAuthority 게이트 안이라 서버 전용).
+	// 재개 지점은 세이브 플러시가 플레이어 위치로 캡처한다 — 지금 플레이어가 이 앞에 서 있으므로 그 값이 곧 이 체크포인트 자리다.
+	// CommitGimmickState 이후 실행돼 순서가 보장된다(슬롯 정체성은 활성 SaveGame 이 보유).
+	if (UGameInstance* GameInstance = GetGameInstance())
 	{
-		SaveSubsystem->SaveToFile();
+		if (UWxSaveGameSubsystem* SaveSubsystem = GameInstance->GetSubsystem<UWxSaveGameSubsystem>())
+		{
+			SaveSubsystem->SaveToFile();
+		}
 	}
 }

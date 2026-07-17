@@ -17,7 +17,7 @@
 - 상호작용 컴포넌트·기믹/EffectZone/StateTree 인프라는 [[WxWorld]].
 - AI 지각·Blackboard·BT Task·정찰·Spawner는 [[WxAI]].
 - ActivatableWidget/HUDLayout/뷰모델 베이스 등 UI 프레임워크는 [[WxUI]].
-- BGM 소스/Chooser 오디오는 [[WxSound]], 저장/영속 복원(`UWxPersistenceWorldSubsystem`)은 [[WxSave]], 팀·어빌리티 베이스 등 공용 정의는 [[WxCore]].
+- BGM 소스/Chooser 오디오는 [[WxSound]], 저장/영속 복원(`UWxSaveWorldSubsystem`)은 [[WxSave]], 팀·어빌리티 베이스 등 공용 정의는 [[WxCore]].
 
 ## 의존성
 - **주요 의존**: `WxCore` `WxCombat` `WxInventory` `WxUI` `WxWorld` `WxAI` `WxSave`(Public) + `WxSound` `EnhancedInput`(Private). 엔진: `GameplayAbilities`/`GameplayTags`/`GameplayTasks`, `ModularGameplay`, `ModelViewViewModel`(MVVM), `MotionWarping`, `AIModule`, `CommonUI`, `UMG`.
@@ -40,12 +40,12 @@
 - 입력 확장은 `UWxInputConfig` DataAsset의 `AbilityInputBindings`(InputAction→InputTag). 메뉴/UI 입력은 여기 넣지 않고 CommonUI 액션([[WxUI]] `WxHUDLayout`)으로.
 - GameMode `FrameworkComponents`(EditDefaultsOnly)에 프레임워크 컴포넌트 클래스를 추가하면 GameState 등 receiver에 자동 주입(GameState는 무엇이 붙는지 모른다).
 - 새 월드 오브젝트/기믹은 [[WxWorld]] `AWxGimmick` 상속(예: `AWxCheckPoint`, `AWxLaserCorridor`). 권위 State만 C++가 확정하고 비주얼·스폰은 GimmickStateTree가 담당하는 패턴.
-- 부활 지점은 좌표(RespawnTransform)로 저장된다: `AWxCheckPoint` 상호작용 시 자기 트랜스폼을 세이브에 세팅하고, 사망/재로드 시 `AWxGameMode::SpawnDefaultPawnAtTransform`이 그 위치로 스폰. 신규 세션 시작지점은 레벨의 일반 `APlayerStart`가 담당.
+- 재개 지점은 좌표(`PlayerTransform`)로 저장된다: 세이브 플러시가 저장 시점의 플레이어 위치를 캡처하고, 로드/사망 재개 시 `UWxPlayerSpawnComponent`가 그 좌표에 `APlayerStart` 마커를 스폰해 `StartSpot`으로 주입한다(스폰은 엔진 기본 경로). 로드도 사망 부활도 이 값 하나로 재개하므로, 오토세이브가 `AWxCheckPoint`뿐인 한 사망 부활은 마지막으로 불을 켠 체크포인트가 된다. 신규 세션 시작지점은 레벨의 일반 `APlayerStart`가 담당.
 - 권한 모델: 인벤토리는 서버 권한 + 소유 연결 전용 복제. 에너미 처형 어포던스/발동·보상 지급·부활 판정은 서버 권한.
 - WBP의 View Bindings에서 Creation Type = Resolver로 `MVVM/`의 리졸버를 선택하면 게임 상태를 [[WxUI]] 뷰모델에 주입.
 
 ## 여기서부터 읽어라
-1. `Source/WxGame/Framework/WxGameMode.h` — 게임 부팅·스폰·세이브 복원의 조립 지점, 위임 구조가 한눈에.
+1. `Source/WxGame/Framework/WxGameMode.h` — 게임 부팅(프레임워크 컴포넌트 주입)의 조립 지점. 재개 지점 주입과 스탯 복원은 `WxPlayerSpawnComponent.h`로 위임돼 있다.
 2. `Source/WxGame/Character/WxCharacterBase.h` — 캐릭터가 어떤 도메인 컴포넌트(ASC/장비/모션워핑)를 조립하는지 = 모듈 경계의 축소판.
 3. `Source/WxGame/Controller/WxPlayerController.h` — 인벤토리 소유 위치와 HUD/사망 UI 흐름.
 4. `Source/WxGame/WxGame.Build.cs` — 이 모듈이 조립하는 플러그인·엔진 서브시스템 전체 목록.

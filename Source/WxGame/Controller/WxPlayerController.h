@@ -17,6 +17,8 @@ class UWxInventoryManagerComponent;
  *
  * 인벤토리(UWxInventoryManagerComponent)를 소유 클라이언트 단위로 관리한다.
  * Pawn 라이프사이클(사망/리스폰)과 디커플링되며, 다른 클라이언트에는 복제되지 않아 네트워크 효율적이다.
+ *
+ * ModularGameplay 컴포넌트 receiver 다 — GameMode 가 요청 등록한 컨트롤러 컴포넌트(PlayerSpawn 등)를 자동 주입받으며, 어떤 컴포넌트가 붙는지 알지 않는다.
  */
 UCLASS()
 class WXGAME_API AWxPlayerController : public APlayerController
@@ -29,6 +31,11 @@ public:
 	UWxInventoryManagerComponent* GetInventoryManager() const;
 
 protected:
+	//~ Begin AActor
+	virtual void PreInitializeComponents() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	//~ End AActor
+
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnRep_Pawn() override;
 

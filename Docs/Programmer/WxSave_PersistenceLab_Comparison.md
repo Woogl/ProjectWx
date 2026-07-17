@@ -19,11 +19,11 @@
 
 | Sample-PersistenceLab-main | WxSave | 비고 |
 | --- | --- | --- |
-| `UPersistenceSaveGame` | `UWxPersistenceSaveGame` | `SlotName`/`UserIndex`/`TravelData` 동일. `SavedStatePerMap` 대신 `ActorRecords`+`PlayerStartTag` |
-| `FPersistenceTravelData` | `FWxPersistenceTravelData` | 필드 구성 동일(`Map`·폰 트랜스폼·컨트롤 로테이션·플래그 2개) |
-| `UPersistenceGameSubsystem` | `UWxPersistenceGameSubsystem` | 함수명 1:1: `GetSaveGame` `IsTravelingFromSaveFile` `StartNewSaveFile` `LoadFromFile` `ReloadFromFile` `TravelFromSaveFile` `SaveToFile` `SetPersistenceTravelData` `ReportTravelFromSaveFileComplete` `ContinueSaveToFileToDisk` |
-| `UPersistenceWorldSubsystem` | `UWxPersistenceWorldSubsystem` | `RequestSaveFlush`(+`FOnSaveFlushComplete`)·`FlushMapTravelData` 이식. 페이로드 워커는 `FlushSavableActors`/`CaptureActor`/`RestoreActor`(Wx 고유) |
-| `USaveFilePersistenceUtils` | `UWxSaveFilePersistenceUtils` | BFL 5함수 동일 + `GetDefaultSlotName`(Wx 추가) |
+| `UPersistenceSaveGame` | `UWxSaveGame` | `SlotName`/`UserIndex`/`TravelData` 동일. `SavedStatePerMap` 대신 `ActorRecords`+`PlayerStartTag` |
+| `FPersistenceTravelData` | `FWxSaveTravelData` | 필드 구성 동일(`Map`·폰 트랜스폼·컨트롤 로테이션·플래그 2개) |
+| `UPersistenceGameSubsystem` | `UWxSaveGameSubsystem` | 함수명 1:1: `GetSaveGame` `IsTravelingFromSaveFile` `StartNewSaveFile` `LoadFromFile` `TravelFromSaveFile` `SaveToFile` `ReportTravelFromSaveFileComplete` `ContinueSaveToFileToDisk`. 샘플 `SetPersistenceTravelData` 만 `SetTravelData` 로 축약. 샘플 `ReloadFromFile` 은 Wx 에 없다 — `LoadFromFile` 의 빈 슬롯이 곧 활성 슬롯 리로드라 동의어였다 |
+| `UPersistenceWorldSubsystem` | `UWxSaveWorldSubsystem` | `RequestSaveFlush`(+`FOnSaveFlushComplete`)·`FlushMapTravelData` 이식. 페이로드 워커는 `FlushSavableActors`/`CaptureActor`/`RestoreActor`(Wx 고유) |
+| `USaveFilePersistenceUtils` | `UWxSaveLibrary` | BFL 5함수 동일 + `GetDefaultSlotName`(Wx 추가) |
 | `UPersistenceUtilsSettings` | (없음) | Wx 는 설정 클래스 미도입 — 아래 흡수 후보 |
 
 Wx 유지분(샘플에 없음): `SetPlayerStartTag`/`GetPlayerStartTag`, `GetStableMapPackageName`(PIE 접두사 제거 맵 키 표현의 단일 출처), `Wx.Save.Dump` 콘솔 명령.
@@ -86,7 +86,7 @@ Wx 는 이를 채택하지 않았다:
 
 ## 주의할 점
 
-- **BP 진입점 이름이 바뀌었다** — 구 `UWxSaveGameLibrary::SaveSlot/LoadSlot` 은 삭제됐다. WBP_MainMenu·WBP_DeathScreen 은 `UWxSaveFilePersistenceUtils::SaveToFile`/`LoadFromFile` 노드로 교체돼야 동작한다.
+- **BP 진입점 이름이 바뀌었다** — 구 `UWxSaveGameLibrary::SaveSlot/LoadSlot` 은 삭제됐다. WBP_MainMenu·WBP_DeathScreen 은 `UWxSaveLibrary::SaveToFile`/`LoadFromFile` 노드로 교체돼야 동작한다.
 - **`RequestSaveFlush` 는 이름과 달리 동기다** — 완료 델리게이트가 반환 전에 발화한다. 비동기 플러시 작업을 추가하면 샘플처럼 지연 완료(재진입 병합 포함)로 되돌려야 한다.
 - **맵 키 표현은 `GetStableMapPackageName` 하나로 통일돼 있다** — 트래블 데이터 스탬프와 맵 일치 판정이 이 함수를 공유한다. 다른 표현(`GetMapName` 등)을 섞으면 PIE 접두사 때문에 조용한 복원 실패가 난다.
 - **저장은 명시적 `SaveToFile` 만 디스크에 쓴다** — teardown/스트리밍 캡처는 전부 메모리 SaveGame 갱신이다.
@@ -99,10 +99,10 @@ Wx 는 저장소 루트(`C:\Wx`) 기준, 샘플은 `C:\Sample-PersistenceLab-mai
 
 | 타입 | 위치 | 역할 |
 | --- | --- | --- |
-| `UWxPersistenceSaveGame` / `FWxPersistenceTravelData` / `FWxActorRecord` | `Plugins/WxSave/Source/WxSave/Public/WxPersistenceSaveGame.h` | 슬롯 데이터·트래블 데이터·GUID 레코드 |
-| `UWxPersistenceGameSubsystem` | `Plugins/WxSave/Source/WxSave/Public/WxPersistenceGameSubsystem.h` (+cpp) | SaveGame 수명·디스크 I/O·트래블·가드 |
-| `UWxPersistenceWorldSubsystem` | `Plugins/WxSave/Source/WxSave/Public/WxPersistenceWorldSubsystem.h` (+cpp) | 플러시/복원 오케스트레이션·캡처/복원 워커 |
-| `UWxSaveFilePersistenceUtils` | `Plugins/WxSave/Source/WxSave/Public/WxSaveFilePersistenceUtils.h` (+cpp) | BP 진입점 |
+| `UWxSaveGame` / `FWxSaveTravelData` / `FWxActorRecord` | `Plugins/WxSave/Source/WxSave/Public/WxSaveGame.h` | 슬롯 데이터·트래블 데이터·GUID 레코드 |
+| `UWxSaveGameSubsystem` | `Plugins/WxSave/Source/WxSave/Public/WxSaveGameSubsystem.h` (+cpp) | SaveGame 수명·디스크 I/O·트래블·가드 |
+| `UWxSaveWorldSubsystem` | `Plugins/WxSave/Source/WxSave/Public/WxSaveWorldSubsystem.h` (+cpp) | 플러시/복원 오케스트레이션·캡처/복원 워커 |
+| `UWxSaveLibrary` | `Plugins/WxSave/Source/WxSave/Public/WxSaveLibrary.h` (+cpp) | BP 진입점 |
 | `IWxSavable` | `Plugins/WxCore/Source/WxCore/Public/WxSavable.h` | 저장 옵트인 계약(GUID·복원 훅) |
 | `AWxCheckPoint` | `Source/WxGame/WorldObject/WxCheckPoint.cpp` | 저장 트리거(태그 등록→SaveToFile) |
 | `UWxPlayerSpawningComponent` / `AWxGameMode` | `Source/WxGame/Framework/` | 세이브 폰 트랜스폼 우선 스폰·태그 폴백 |

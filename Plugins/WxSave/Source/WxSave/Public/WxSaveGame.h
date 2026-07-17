@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
 #include "UObject/SoftObjectPath.h"
-#include "WxPersistenceSaveGame.generated.h"
+#include "WxSaveGame.generated.h"
 
 /** 한 컴포넌트의 UPROPERTY(SaveGame) 직렬화 결과 바이트. UPROPERTY TMap 의 value 로 TArray 를 직접 받지 못해 wrapper. */
 USTRUCT()
@@ -44,7 +44,7 @@ struct WXSAVE_API FWxActorRecord
 
 /** 맵 트래블에 필요한 데이터. 저장 시 SaveToFile 플러시가 대상 맵을 채우고, 로드 시 TravelFromSaveFile 이 그 맵으로 트래블한다. */
 USTRUCT()
-struct WXSAVE_API FWxPersistenceTravelData
+struct WXSAVE_API FWxSaveTravelData
 {
 	GENERATED_BODY()
 
@@ -53,9 +53,9 @@ struct WXSAVE_API FWxPersistenceTravelData
 	FSoftObjectPath Map;
 };
 
-/** WxSave 슬롯 데이터. 슬롯 정체성 + 트래블 데이터 + savable 액터 상태 맵 + 부활 지점 트랜스폼을 보관한다. */
+/** WxSave 슬롯 데이터. 슬롯 정체성 + 트래블 데이터 + 저장 시점 플레이어 스냅샷(스탯·트랜스폼) + savable 액터 상태 맵을 보관한다. */
 UCLASS()
-class WXSAVE_API UWxPersistenceSaveGame : public USaveGame
+class WXSAVE_API UWxSaveGame : public USaveGame
 {
 	GENERATED_BODY()
 
@@ -67,9 +67,9 @@ public:
 	UPROPERTY()
 	int32 UserIndex = 0;
 
-	/** 맵 트래블 후 플레이어 위치 복원용 데이터. */
+	/** 로드 시 트래블할 맵. PlayerTransform 유효성의 맵 일치 게이트 기준이기도 하다. */
 	UPROPERTY()
-	FWxPersistenceTravelData TravelData;
+	FWxSaveTravelData TravelData;
 
 	/** PlayerStats 가 유효한 저장 값인지 여부. false 면 신규 세션/미저장 — 데이터테이블 기본 스탯 유지. */
 	UPROPERTY()
@@ -84,18 +84,18 @@ public:
 	TMap<FName, float> PlayerStats;
 
 	/**
+	 * 마지막 저장 시점의 플레이어 트랜스폼(재개 지점). 로드 후 새 Pawn 스폰 지점으로 사용된다 — 로드도 사망 부활도 이 값 하나로 재개한다.
+	 * Identity 는 "미설정" sentinel(신규 세션 + 미저장) — 이때 스폰은 엔진 ChoosePlayerStart(레벨의 APlayerStart)로 폴백한다.
+	 * 좌표라 맵 종속이므로 TravelData.Map 일치 게이트와 함께 유효성을 판정한다.
+	 * PlayerStats 와 나란히 저장 시점 플레이어 스냅샷을 이루며, 캡처는 SaveToFile 플러시가 전담한다(체크포인트 등 외부가 세팅하지 않는다).
+	 */
+	UPROPERTY()
+	FTransform PlayerTransform = FTransform::Identity;
+
+	/**
 	 * WxSaveId -> 스냅샷. IWxSavable::GetWxSaveId() 의 에디터-부여 영속 GUID 를 안정적 키로 사용한다(쿠킹 빌드 안전).
 	 * GUID 가 맵을 넘어 전역 유일하므로 샘플(PersistenceLab)의 맵별 키잉(SavedStatePerMap) 없이 평면 맵으로 충분하다.
 	 */
 	UPROPERTY()
 	TMap<FGuid, FWxActorRecord> ActorRecords;
-
-	/**
-	 * 마지막으로 상호작용한 체크포인트의 월드 트랜스폼(부활 지점). 로드 후 새 Pawn 스폰 지점으로 사용된다.
-	 * Identity 는 "미설정" sentinel(신규 세션 + 체크포인트 미접촉) — 이때 스폰은 ChoosePlayerStart(bIsDefaultStart 체크포인트)로 폴백한다.
-	 * 좌표라 맵 종속이므로 TravelData.Map 일치 게이트와 함께 유효성을 판정한다.
-	 * TravelData 밖 최상위에 둬 FlushMapTravelData 의 TravelData 재구성에 지워지지 않으며, 체크포인트가 SaveToFile 전에 직접 세팅한다.
-	 */
-	UPROPERTY()
-	FTransform RespawnTransform = FTransform::Identity;
 };

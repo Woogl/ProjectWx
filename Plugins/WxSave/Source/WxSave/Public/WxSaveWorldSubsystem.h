@@ -5,14 +5,14 @@
 #include "CoreMinimal.h"
 #include "Engine/World.h"
 #include "Subsystems/WorldSubsystem.h"
-#include "WxPersistenceWorldSubsystem.generated.h"
+#include "WxSaveWorldSubsystem.generated.h"
 
 class ULevel;
-class UWxPersistenceSaveGame;
+class UWxSaveGame;
 
 /**
  * 월드 단위 플러시/복원 오케스트레이션을 담당하는 World 서브시스템 (샘플 UPersistenceWorldSubsystem 골격 이식).
- * 메모리 SaveGame 의 소유는 UWxPersistenceGameSubsystem 이고, 이 서브시스템은 월드 수명 이벤트에 맞춰 그 SaveGame 을 읽고 쓴다.
+ * 메모리 SaveGame 의 소유는 UWxSaveGameSubsystem 이고, 이 서브시스템은 월드 수명 이벤트에 맞춰 그 SaveGame 을 읽고 쓴다.
  *
  * 자동 처리:
  *  - 영구 레벨 초기화 (OnWorldInitializedActors) / 스트리밍-인 (LevelAddedToWorld): IWxSavable 액터에 레코드 자동 복원.
@@ -22,7 +22,7 @@ class UWxPersistenceSaveGame;
  *  - OnWorldBeginPlay 에서 트래블 완료를 게임 서브시스템에 보고해 가드를 해제한다.
  */
 UCLASS()
-class WXSAVE_API UWxPersistenceWorldSubsystem : public UWorldSubsystem
+class WXSAVE_API UWxSaveWorldSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 
@@ -31,8 +31,8 @@ public:
 	DECLARE_MULTICAST_DELEGATE(FOnSaveFlushComplete);
 
 	/**
-	 * 디스크 기록 전, 라이브 상태를 SaveGame 에 플러시한다: 맵 트래블 데이터(teardown 중엔 스킵 — 맵 전환을 일으킨 게임 코드가 다음 시작 지점의 소유자) + 플레이어 스탯 + IWxSavable 액터 전체.
-	 * 부활 지점(RespawnTransform)은 체크포인트가 직접 세팅하므로 여기서 캡처하지 않는다.
+	 * 디스크 기록 전, 라이브 상태를 SaveGame 에 플러시한다: 맵 트래블 데이터 + 플레이어 스냅샷(트랜스폼·스탯) + IWxSavable 액터 전체.
+	 * 앞의 셋은 teardown 중엔 스킵한다 — 맵 전환을 일으킨 게임 코드가 다음 시작 지점의 소유자이고, 그 시점 폰은 이미 사라졌거나 사망 상태일 수 있다.
 	 * OnComplete 는 플러시 완료 후 발화한다(현재 동기라 반환 전 즉시).
 	 */
 	void RequestSaveFlush(FOnSaveFlushComplete::FDelegate OnComplete);
@@ -51,20 +51,23 @@ public:
 	//~ End UWorldSubsystem
 
 private:
-	/** 현재 맵·폰 트랜스폼·컨트롤 로테이션을 캡처해 게임 서브시스템의 TravelData 로 푸시한다. */
+	/** 현재 맵을 캡처해 게임 서브시스템의 TravelData 로 푸시한다. */
 	void FlushMapTravelData();
 
 	/** 현재 월드의 IWxSavable 액터 전체를 SaveGame 레코드로 캡처한다. */
 	void FlushSavableActors();
 
+	/** 첫 플레이어 폰의 트랜스폼을 SaveGame 최상위 PlayerTransform(재개 지점)으로 캡처한다. 폰 부재 시 이전 캡처를 보존한다. */
+	void FlushPlayerTransform();
+
 	/** 첫 플레이어 폰의 어트리뷰트를 SaveGame 최상위 PlayerStats 로 캡처한다(명시적 저장 경로 공통 — 체크포인트·메뉴 모두). */
 	void FlushPlayerStats();
 
 	/** 액터+컴포넌트의 UPROPERTY(SaveGame) 를 레코드로 직렬화하고 버전 헤더를 갱신한다. */
-	void CaptureActor(UWxPersistenceSaveGame& SaveGame, AActor* Actor);
+	void CaptureActor(UWxSaveGame& SaveGame, AActor* Actor);
 
 	/** @return 슬롯에서 일치 레코드를 찾아 복원했으면 true (신규 세션 등 레코드 없음/미설정 키는 false). */
-	bool RestoreActor(const UWxPersistenceSaveGame& SaveGame, AActor* Actor);
+	bool RestoreActor(const UWxSaveGame& SaveGame, AActor* Actor);
 
 	/** OnWorldInitializedActors 핸들러: 영구 레벨 + 초기 WP 셀 액터에 레코드 자동 복원. */
 	void HandleWorldInitializedActors(const UWorld::FActorsInitializedParams& Params);

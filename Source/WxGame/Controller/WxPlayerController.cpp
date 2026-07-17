@@ -3,6 +3,7 @@
 #include "Controller/WxPlayerController.h"
 #include "Character/WxCharacterBase.h"
 #include "Character/WxPlayerCharacter.h"
+#include "Components/GameFrameworkComponentManager.h"
 #include "Inventory/WxInventoryManagerComponent.h"
 #include "System/WxUIManagerSubsystem.h"
 #include "Widget/WxActivatableWidget.h"
@@ -17,6 +18,21 @@ AWxPlayerController::AWxPlayerController(const FObjectInitializer& ObjectInitial
 UWxInventoryManagerComponent* AWxPlayerController::GetInventoryManager() const
 {
 	return InventoryManager;
+}
+
+void AWxPlayerController::PreInitializeComponents()
+{
+	Super::PreInitializeComponents();
+
+	// ModularGameplay 컴포넌트 수신 opt-in. 활성 주입 요청(GameMode 가 등록)의 컴포넌트가 여기에 자동 부착된다.
+	UGameFrameworkComponentManager::AddGameFrameworkComponentReceiver(this);
+}
+
+void AWxPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	UGameFrameworkComponentManager::RemoveGameFrameworkComponentReceiver(this);
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void AWxPlayerController::OnPossess(APawn* InPawn)

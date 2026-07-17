@@ -14,7 +14,7 @@
 		"CommonButtonBaseClicked__DelegateSignature": [
 			"void CommonButtonBaseClicked__DelegateSignature(UCommonButtonBase* Button)",
 			"{",
-			"    UWxSaveFilePersistenceUtils::SaveToFile(UKismetTextLibrary::Conv_TextToString(EditableText_302->GetText()));",
+			"    UWxSaveLibrary::SaveToFile(UKismetTextLibrary::Conv_TextToString(EditableText_302->GetText()));",
 			"    UKismetSystemLibrary::PrintString(TEXT(\"세이브 파일 저장\"));",
 			"}"
 		],

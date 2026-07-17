@@ -1,48 +1,48 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "WxPersistenceGameSubsystem.h"
+#include "WxSaveGameSubsystem.h"
 
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
-#include "WxPersistenceWorldSubsystem.h"
+#include "WxSaveWorldSubsystem.h"
 #include "WxSaveModule.h"
 
-// 현재 GameInstance 의 WxPersistence 슬롯 상태를 로그로 덤프하는 디버그 콘솔 명령.
+// 현재 GameInstance 의 WxSave 슬롯 상태를 로그로 덤프하는 디버그 콘솔 명령.
 static FAutoConsoleCommandWithWorld GWxSaveDumpCommand(
 	TEXT("Wx.Save.Dump"),
 	TEXT("현재 WxSave 메모리 슬롯 상태(슬롯·맵·폰·레코드 목록)를 로그로 덤프한다."),
 	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World)
 	{
 		UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
-		if (UWxPersistenceGameSubsystem* Subsystem = GameInstance ? GameInstance->GetSubsystem<UWxPersistenceGameSubsystem>() : nullptr)
+		if (UWxSaveGameSubsystem* Subsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr)
 		{
 			Subsystem->LogSaveState();
 		}
 		else
 		{
-			UE_LOG(LogWxSave, Warning, TEXT("Wx.Save.Dump: WxPersistenceGameSubsystem 을 찾을 수 없음"));
+			UE_LOG(LogWxSave, Warning, TEXT("Wx.Save.Dump: WxSaveGameSubsystem 을 찾을 수 없음"));
 		}
 	}));
 
-void UWxPersistenceGameSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+void UWxSaveGameSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
 	// PIE·스탠드얼론·패키지 모두 빈 새 SaveGame 으로 시작한다("신선한 시작" 의미론). 슬롯 이름은 체크포인트 오토세이브·UI 로드가 쓸 디스크 파일명이며, 이후 로드는 UI 의 LoadFromFile 몫이다.
-	StartNewSaveFile(TEXT("Test"), 0, UWxPersistenceSaveGame::StaticClass());
+	StartNewSaveFile(TEXT("Test"), 0, UWxSaveGame::StaticClass());
 }
 
-UWxPersistenceSaveGame* UWxPersistenceGameSubsystem::StartNewSaveFile(const FString& SlotName, int32 UserIndex, TSubclassOf<UWxPersistenceSaveGame> SpecificClass)
+UWxSaveGame* UWxSaveGameSubsystem::StartNewSaveFile(const FString& SlotName, int32 UserIndex, TSubclassOf<UWxSaveGame> SpecificClass)
 {
 	if (!SpecificClass)
 	{
-		UE_LOG(LogWxSave, Warning, TEXT("StartNewSaveFile: SpecificClass 가 null — UWxPersistenceSaveGame 서브클래스를 지정해야 한다."));
+		UE_LOG(LogWxSave, Warning, TEXT("StartNewSaveFile: SpecificClass 가 null — UWxSaveGame 서브클래스를 지정해야 한다."));
 		return nullptr;
 	}
 
-	UWxPersistenceSaveGame* NewSaveGame = Cast<UWxPersistenceSaveGame>(UGameplayStatics::CreateSaveGameObject(SpecificClass));
+	UWxSaveGame* NewSaveGame = Cast<UWxSaveGame>(UGameplayStatics::CreateSaveGameObject(SpecificClass));
 	if (!NewSaveGame)
 	{
 		UE_LOG(LogWxSave, Warning, TEXT("StartNewSaveFile: '%s' SaveGame 생성 실패"), *SpecificClass->GetName());
@@ -57,22 +57,31 @@ UWxPersistenceSaveGame* UWxPersistenceGameSubsystem::StartNewSaveFile(const FStr
 	return SaveGame;
 }
 
-UWxPersistenceSaveGame* UWxPersistenceGameSubsystem::LoadFromFile(const FString& SlotName, int32 UserIndex, bool bStartTravel)
+UWxSaveGame* UWxSaveGameSubsystem::LoadFromFile(const FString& SlotName, int32 UserIndex, bool bStartTravel)
 {
-	if (UWxPersistenceSaveGame* Loaded = Cast<UWxPersistenceSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName, UserIndex)))
+	// 슬롯이 비면 활성 슬롯을 다시 읽는다(사망 리스폰 경로). 값 복사라 아래에서 SaveGame 이 교체돼도 안전하다.
+	FString TargetSlot = SlotName;
+	int32 TargetUserIndex = UserIndex;
+	if (TargetSlot.IsEmpty() && SaveGame)
+	{
+		TargetSlot = SaveGame->SlotName;
+		TargetUserIndex = SaveGame->UserIndex;
+	}
+
+	if (UWxSaveGame* Loaded = Cast<UWxSaveGame>(UGameplayStatics::LoadGameFromSlot(TargetSlot, TargetUserIndex)))
 	{
 		SaveGame = Loaded;
 		// 구버전 파일엔 슬롯 정체성이 없을 수 있으므로 로드 경로의 값으로 보정한다.
-		SaveGame->SlotName = SlotName;
-		SaveGame->UserIndex = UserIndex;
-		UE_LOG(LogWxSave, Log, TEXT("LoadFromFile: 슬롯 '%s' 로드 — 레코드 %d개"), *SlotName, SaveGame->ActorRecords.Num());
+		SaveGame->SlotName = TargetSlot;
+		SaveGame->UserIndex = TargetUserIndex;
+		UE_LOG(LogWxSave, Log, TEXT("LoadFromFile: 슬롯 '%s' 로드 — 레코드 %d개"), *TargetSlot, SaveGame->ActorRecords.Num());
 	}
 	else
 	{
 		// 파일 부재/손상: 같은 슬롯의 빈 SaveGame 으로 리셋한다(이전 세션 잔여 상태 차단).
 		// 샘플은 여기서 중단하지만, Wx 는 사망 리스폰(WBP_DeathScreen)이 파일 없이도 월드 리로드에 의존하므로 리셋 후에도 트래블을 이어간다.
-		StartNewSaveFile(SlotName, UserIndex, UWxPersistenceSaveGame::StaticClass());
-		UE_LOG(LogWxSave, Log, TEXT("LoadFromFile: 슬롯 '%s' 파일 없음/손상 — 빈 슬롯으로 시작"), *SlotName);
+		StartNewSaveFile(TargetSlot, TargetUserIndex, UWxSaveGame::StaticClass());
+		UE_LOG(LogWxSave, Log, TEXT("LoadFromFile: 슬롯 '%s' 파일 없음/손상 — 빈 슬롯으로 시작"), *TargetSlot);
 	}
 
 	if (bStartTravel)
@@ -83,18 +92,7 @@ UWxPersistenceSaveGame* UWxPersistenceGameSubsystem::LoadFromFile(const FString&
 	return SaveGame;
 }
 
-UWxPersistenceSaveGame* UWxPersistenceGameSubsystem::ReloadFromFile(bool bStartTravel)
-{
-	if (!SaveGame)
-	{
-		UE_LOG(LogWxSave, Warning, TEXT("ReloadFromFile: 활성 SaveGame 없음 — LoadFromFile 또는 StartNewSaveFile 을 먼저 호출하라."));
-		return nullptr;
-	}
-
-	return LoadFromFile(SaveGame->SlotName, SaveGame->UserIndex, bStartTravel);
-}
-
-void UWxPersistenceGameSubsystem::TravelFromSaveFile()
+void UWxSaveGameSubsystem::TravelFromSaveFile()
 {
 	if (!SaveGame)
 	{
@@ -127,7 +125,7 @@ void UWxPersistenceGameSubsystem::TravelFromSaveFile()
 	}
 }
 
-void UWxPersistenceGameSubsystem::SaveToFile(const FString& SlotName, int32 UserIndex)
+void UWxSaveGameSubsystem::SaveToFile(const FString& SlotName, int32 UserIndex)
 {
 	if (!SaveGame)
 	{
@@ -143,21 +141,20 @@ void UWxPersistenceGameSubsystem::SaveToFile(const FString& SlotName, int32 User
 		SaveGame->UserIndex = UserIndex;
 	}
 
-	UWxPersistenceWorldSubsystem* WorldSubsystem = nullptr;
+	UWxSaveWorldSubsystem* WorldSubsystem = nullptr;
 	if (UGameInstance* GameInstance = GetGameInstance())
 	{
 		if (UWorld* World = GameInstance->GetWorld())
 		{
-			WorldSubsystem = World->GetSubsystem<UWxPersistenceWorldSubsystem>();
+			WorldSubsystem = World->GetSubsystem<UWxSaveWorldSubsystem>();
 		}
 	}
 
 	if (WorldSubsystem)
 	{
-		// 라이브 상태(트래블 데이터 + 스탯 + savable 액터)를 SaveGame 에 플러시한 뒤 완료 콜백으로 디스크에 기록한다(현재 전부 동기 — 콜백은 즉시 발화).
-		// 부활 지점(RespawnTransform)은 체크포인트가 이미 세팅해 둔 값을 그대로 영속한다.
+		// 라이브 상태(트래블 데이터 + 플레이어 스냅샷 + savable 액터)를 SaveGame 에 플러시한 뒤 완료 콜백으로 디스크에 기록한다(현재 전부 동기 — 콜백은 즉시 발화).
 		WorldSubsystem->RequestSaveFlush(
-			UWxPersistenceWorldSubsystem::FOnSaveFlushComplete::FDelegate::CreateUObject(this, &UWxPersistenceGameSubsystem::ContinueSaveToFileToDisk));
+			UWxSaveWorldSubsystem::FOnSaveFlushComplete::FDelegate::CreateUObject(this, &UWxSaveGameSubsystem::ContinueSaveToFileToDisk));
 	}
 	else
 	{
@@ -166,12 +163,12 @@ void UWxPersistenceGameSubsystem::SaveToFile(const FString& SlotName, int32 User
 	}
 }
 
-bool UWxPersistenceGameSubsystem::DoesSaveFileExist(const FString& SlotName, int32 UserIndex) const
+bool UWxSaveGameSubsystem::DoesSaveFileExist(const FString& SlotName, int32 UserIndex) const
 {
 	return UGameplayStatics::DoesSaveGameExist(SlotName, UserIndex);
 }
 
-bool UWxPersistenceGameSubsystem::DeleteSaveFile(const FString& SlotName, int32 UserIndex)
+bool UWxSaveGameSubsystem::DeleteSaveFile(const FString& SlotName, int32 UserIndex)
 {
 	// 디스크 파일만 삭제한다. 인메모리 활성 SaveGame 은 그대로 두므로, 활성 슬롯을 지웠다면 다음 SaveToFile 이 그 파일을 다시 만든다.
 	const bool bDeleted = UGameplayStatics::DeleteGameInSlot(SlotName, UserIndex);
@@ -186,34 +183,48 @@ bool UWxPersistenceGameSubsystem::DeleteSaveFile(const FString& SlotName, int32 
 	return bDeleted;
 }
 
-void UWxPersistenceGameSubsystem::SetPersistenceTravelData(FWxPersistenceTravelData InTravelData)
+void UWxSaveGameSubsystem::SetTravelData(FWxSaveTravelData InTravelData)
 {
 	if (!SaveGame)
 	{
-		UE_LOG(LogWxSave, Warning, TEXT("SetPersistenceTravelData: 활성 SaveGame 없음 — StartNewSaveFile 을 먼저 호출하라."));
+		UE_LOG(LogWxSave, Warning, TEXT("SetTravelData: 활성 SaveGame 없음 — StartNewSaveFile 을 먼저 호출하라."));
 		return;
 	}
 
 	SaveGame->TravelData = MoveTemp(InTravelData);
 }
 
-void UWxPersistenceGameSubsystem::SetRespawnTransform(const FTransform& InRespawnTransform)
+bool UWxSaveGameSubsystem::TryGetPlayerTransform(const UWorld* World, FTransform& OutTransform) const
 {
-	if (!SaveGame)
+	if (!SaveGame || !World)
 	{
-		UE_LOG(LogWxSave, Warning, TEXT("SetRespawnTransform: 활성 SaveGame 없음 — StartNewSaveFile 을 먼저 호출하라."));
+		return false;
+	}
+
+	// 유효성은 sentinel(Identity)로 판정한다(별도 플래그 없음).
+	// 좌표는 맵 종속이라 저장 맵이 현재 월드와 일치할 때만 유효하다(ReportTravelFromSaveFileComplete 와 동일 비교).
+	const FName SavedMap = SaveGame->TravelData.Map.IsNull() ? NAME_None : SaveGame->TravelData.Map.GetAssetPath().GetPackageName();
+	const FName CurrentMap = GetStableMapPackageName(World);
+	if (SaveGame->PlayerTransform.Equals(FTransform::Identity) || SavedMap != CurrentMap)
+	{
+		return false;
+	}
+
+	OutTransform = SaveGame->PlayerTransform;
+	return true;
+}
+
+void UWxSaveGameSubsystem::ApplySavedPlayerStats(AActor* PlayerActor) const
+{
+	if (!SaveGame || !SaveGame->bHasPlayerStats || !PlayerActor)
+	{
 		return;
 	}
 
-	SaveGame->RespawnTransform = InRespawnTransform;
+	UWxSaveWorldSubsystem::ApplyPlayerStats(PlayerActor, SaveGame->PlayerStats);
 }
 
-FTransform UWxPersistenceGameSubsystem::GetRespawnTransform() const
-{
-	return SaveGame ? SaveGame->RespawnTransform : FTransform::Identity;
-}
-
-void UWxPersistenceGameSubsystem::ReportTravelFromSaveFileComplete(UWorld* World)
+void UWxSaveGameSubsystem::ReportTravelFromSaveFileComplete(UWorld* World)
 {
 	const FName ExpectedMap = SaveGame && !SaveGame->TravelData.Map.IsNull()
 		? SaveGame->TravelData.Map.GetAssetPath().GetPackageName() : NAME_None;
@@ -231,13 +242,13 @@ void UWxPersistenceGameSubsystem::ReportTravelFromSaveFileComplete(UWorld* World
 	bTravelingFromSaveFile = false;
 }
 
-FName UWxPersistenceGameSubsystem::GetStableMapPackageName(const UWorld* World)
+FName UWxSaveGameSubsystem::GetStableMapPackageName(const UWorld* World)
 {
 	// PIE 의 UEDPIE_N_ 접두사를 제거한 긴 패키지 이름. 엔진 LoadMap 이 트래블 시 접두사를 제거/재부여하므로 이 표현이 PIE/스탠드얼론 공통으로 안전하다.
 	return FName(*UWorld::RemovePIEPrefix(World->GetOutermost()->GetName()));
 }
 
-void UWxPersistenceGameSubsystem::LogSaveState() const
+void UWxSaveGameSubsystem::LogSaveState() const
 {
 	if (!SaveGame)
 	{
@@ -245,12 +256,12 @@ void UWxPersistenceGameSubsystem::LogSaveState() const
 		return;
 	}
 
-	const bool bHasRespawn = !SaveGame->RespawnTransform.Equals(FTransform::Identity);
-	UE_LOG(LogWxSave, Display, TEXT("[Wx.Save.Dump] 슬롯 '%s' · 레코드 %d개 · 저장 맵 %s · 부활 위치 %s"),
+	const bool bHasPlayerTransform = !SaveGame->PlayerTransform.Equals(FTransform::Identity);
+	UE_LOG(LogWxSave, Display, TEXT("[Wx.Save.Dump] 슬롯 '%s' · 레코드 %d개 · 저장 맵 %s · 재개 위치 %s"),
 		*SaveGame->SlotName,
 		SaveGame->ActorRecords.Num(),
 		SaveGame->TravelData.Map.IsNull() ? TEXT("(미기록)") : *SaveGame->TravelData.Map.ToString(),
-		bHasRespawn ? *SaveGame->RespawnTransform.GetLocation().ToString() : TEXT("(미설정)"));
+		bHasPlayerTransform ? *SaveGame->PlayerTransform.GetLocation().ToString() : TEXT("(미설정)"));
 
 	for (const TPair<FGuid, FWxActorRecord>& Pair : SaveGame->ActorRecords)
 	{
@@ -259,7 +270,7 @@ void UWxPersistenceGameSubsystem::LogSaveState() const
 	}
 }
 
-void UWxPersistenceGameSubsystem::ContinueSaveToFileToDisk()
+void UWxSaveGameSubsystem::ContinueSaveToFileToDisk()
 {
 	if (!SaveGame)
 	{

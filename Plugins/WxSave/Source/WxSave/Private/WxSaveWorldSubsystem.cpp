@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "WxPersistenceWorldSubsystem.h"
+#include "WxSaveWorldSubsystem.h"
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
@@ -18,20 +18,21 @@
 #include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 #include "UObject/ObjectVersion.h"
 #include "UObject/UnrealType.h"
-#include "WxPersistenceGameSubsystem.h"
-#include "WxPersistenceSaveGame.h"
+#include "WxSaveGameSubsystem.h"
+#include "WxSaveGame.h"
 #include "WxSavable.h"
 #include "WxSaveModule.h"
 
-void UWxPersistenceWorldSubsystem::RequestSaveFlush(FOnSaveFlushComplete::FDelegate OnComplete)
+void UWxSaveWorldSubsystem::RequestSaveFlush(FOnSaveFlushComplete::FDelegate OnComplete)
 {
 	// Wx 엔 Mass 같은 페이즈 지연 작업이 없어 플러시가 전부 동기다(샘플은 여기서 Mass 스냅샷을 FrameEnd 로 지연).
 	UWorld* World = GetWorld();
 
-	// 맵 트래블 데이터는 명시적 저장에서만 캡처한다 — teardown 시엔 맵 전환을 일으킨 게임 코드가 다음 시작 지점의 소유자다.
+	// 맵 트래블 데이터와 플레이어 스냅샷은 명시적 저장에서만 캡처한다 — teardown 시엔 맵 전환을 일으킨 게임 코드가 다음 시작 지점의 소유자다.
 	if (World && !World->bIsTearingDown)
 	{
 		FlushMapTravelData();
+		FlushPlayerTransform();
 		FlushPlayerStats();
 	}
 	FlushSavableActors();
@@ -39,7 +40,7 @@ void UWxPersistenceWorldSubsystem::RequestSaveFlush(FOnSaveFlushComplete::FDeleg
 	OnComplete.ExecuteIfBound();
 }
 
-bool UWxPersistenceWorldSubsystem::ShouldCreateSubsystem(UObject* Outer) const
+bool UWxSaveWorldSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
 	if (!Super::ShouldCreateSubsystem(Outer))
 	{
@@ -51,18 +52,18 @@ bool UWxPersistenceWorldSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 	return World && World->IsGameWorld() && !World->IsNetMode(NM_Client);
 }
 
-void UWxPersistenceWorldSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+void UWxSaveWorldSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
 	// FWorldDelegates 는 전역이라 모든 월드에서 발화한다 — 각 핸들러 선두에서 자기 월드만 필터한다(PIE 다중 인스턴스 격리 포함).
-	WorldInitializedActorsHandle = FWorldDelegates::OnWorldInitializedActors.AddUObject(this, &UWxPersistenceWorldSubsystem::HandleWorldInitializedActors);
-	LevelAddedHandle = FWorldDelegates::LevelAddedToWorld.AddUObject(this, &UWxPersistenceWorldSubsystem::HandleLevelAddedToWorld);
-	LevelRemovedHandle = FWorldDelegates::LevelRemovedFromWorld.AddUObject(this, &UWxPersistenceWorldSubsystem::HandleLevelRemovedFromWorld);
-	WorldBeginTearDownHandle = FWorldDelegates::OnWorldBeginTearDown.AddUObject(this, &UWxPersistenceWorldSubsystem::HandleWorldBeginTearDown);
+	WorldInitializedActorsHandle = FWorldDelegates::OnWorldInitializedActors.AddUObject(this, &UWxSaveWorldSubsystem::HandleWorldInitializedActors);
+	LevelAddedHandle = FWorldDelegates::LevelAddedToWorld.AddUObject(this, &UWxSaveWorldSubsystem::HandleLevelAddedToWorld);
+	LevelRemovedHandle = FWorldDelegates::LevelRemovedFromWorld.AddUObject(this, &UWxSaveWorldSubsystem::HandleLevelRemovedFromWorld);
+	WorldBeginTearDownHandle = FWorldDelegates::OnWorldBeginTearDown.AddUObject(this, &UWxSaveWorldSubsystem::HandleWorldBeginTearDown);
 }
 
-void UWxPersistenceWorldSubsystem::Deinitialize()
+void UWxSaveWorldSubsystem::Deinitialize()
 {
 	FWorldDelegates::OnWorldInitializedActors.Remove(WorldInitializedActorsHandle);
 	FWorldDelegates::LevelAddedToWorld.Remove(LevelAddedHandle);
@@ -72,42 +73,42 @@ void UWxPersistenceWorldSubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
-void UWxPersistenceWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
+void UWxSaveWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
 
 	// 트래블 완료를 보고해 가드를 해제한다. 복원(OnWorldInitializedActors)과 구 월드 teardown 이 모두 끝난 뒤라 안전한 해제점이다.
 	UGameInstance* GameInstance = InWorld.GetGameInstance();
-	UWxPersistenceGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxPersistenceGameSubsystem>() : nullptr;
+	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
 	if (GameSubsystem && GameSubsystem->IsTravelingFromSaveFile())
 	{
 		GameSubsystem->ReportTravelFromSaveFileComplete(&InWorld);
 	}
 }
 
-void UWxPersistenceWorldSubsystem::FlushMapTravelData()
+void UWxSaveWorldSubsystem::FlushMapTravelData()
 {
 	UWorld* World = GetWorld();
 	UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
-	UWxPersistenceGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxPersistenceGameSubsystem>() : nullptr;
+	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
 	if (!GameSubsystem)
 	{
-		UE_LOG(LogWxSave, Warning, TEXT("FlushMapTravelData: WxPersistenceGameSubsystem 을 찾을 수 없음 — 트래블 데이터 미갱신"));
+		UE_LOG(LogWxSave, Warning, TEXT("FlushMapTravelData: WxSaveGameSubsystem 을 찾을 수 없음 — 트래블 데이터 미갱신"));
 		return;
 	}
 
-	// 현재 맵 경로를 캡처한다. 부활 위치는 체크포인트가 RespawnTransform(SaveGame 최상위)에 직접 세팅하므로 TravelData 는 맵만 담는다.
-	FWxPersistenceTravelData TravelData;
-	TravelData.Map = FSoftObjectPath(UWxPersistenceGameSubsystem::GetStableMapPackageName(World).ToString());
-	GameSubsystem->SetPersistenceTravelData(MoveTemp(TravelData));
+	// 현재 맵 경로를 캡처한다. 재개 지점은 FlushPlayerTransform 이 SaveGame 최상위에 담으므로 TravelData 는 맵만 담는다.
+	FWxSaveTravelData TravelData;
+	TravelData.Map = FSoftObjectPath(UWxSaveGameSubsystem::GetStableMapPackageName(World).ToString());
+	GameSubsystem->SetTravelData(MoveTemp(TravelData));
 }
 
-void UWxPersistenceWorldSubsystem::FlushSavableActors()
+void UWxSaveWorldSubsystem::FlushSavableActors()
 {
 	UWorld* World = GetWorld();
 	UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
-	UWxPersistenceGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxPersistenceGameSubsystem>() : nullptr;
-	UWxPersistenceSaveGame* SaveGame = GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
+	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
+	UWxSaveGame* SaveGame = GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
 	if (!SaveGame)
 	{
 		UE_LOG(LogWxSave, Warning, TEXT("FlushSavableActors: 활성 SaveGame 없음 — 캡처 중단"));
@@ -129,12 +130,36 @@ void UWxPersistenceWorldSubsystem::FlushSavableActors()
 	UE_LOG(LogWxSave, Log, TEXT("FlushSavableActors: IWxSavable %d개 캡처, 누적 레코드 %d개"), CapturedCount, SaveGame->ActorRecords.Num());
 }
 
-void UWxPersistenceWorldSubsystem::FlushPlayerStats()
+void UWxSaveWorldSubsystem::FlushPlayerTransform()
 {
 	UWorld* World = GetWorld();
 	UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
-	UWxPersistenceGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxPersistenceGameSubsystem>() : nullptr;
-	UWxPersistenceSaveGame* SaveGame = GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
+	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
+	UWxSaveGame* SaveGame = GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
+	if (!SaveGame)
+	{
+		return;
+	}
+
+	// 첫 플레이어 폰의 위치를 재개 지점으로 캡처한다(스탠드얼론 싱글 전제 — FlushPlayerStats 와 동일 대상). 폰 부재 시 이전 캡처를 보존한다.
+	const APlayerController* PC = World->GetFirstPlayerController();
+	const APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+	if (!Pawn)
+	{
+		return;
+	}
+
+	SaveGame->PlayerTransform = Pawn->GetActorTransform();
+
+	UE_LOG(LogWxSave, Log, TEXT("FlushPlayerTransform: 재개 지점 %s 캡처"), *SaveGame->PlayerTransform.GetLocation().ToString());
+}
+
+void UWxSaveWorldSubsystem::FlushPlayerStats()
+{
+	UWorld* World = GetWorld();
+	UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
+	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
+	UWxSaveGame* SaveGame = GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
 	if (!SaveGame)
 	{
 		return;
@@ -155,7 +180,7 @@ void UWxPersistenceWorldSubsystem::FlushPlayerStats()
 	UE_LOG(LogWxSave, Log, TEXT("FlushPlayerStats: 어트리뷰트 %d개 캡처"), SaveGame->PlayerStats.Num());
 }
 
-void UWxPersistenceWorldSubsystem::CapturePlayerStats(AActor* PlayerActor, TMap<FName, float>& OutStats)
+void UWxSaveWorldSubsystem::CapturePlayerStats(AActor* PlayerActor, TMap<FName, float>& OutStats)
 {
 	const UAbilitySystemComponent* ASC = UAbilitySystemGlobals::Get().GetAbilitySystemComponentFromActor(PlayerActor);
 	if (!ASC)
@@ -185,7 +210,7 @@ void UWxPersistenceWorldSubsystem::CapturePlayerStats(AActor* PlayerActor, TMap<
 	}
 }
 
-void UWxPersistenceWorldSubsystem::ApplyPlayerStats(AActor* PlayerActor, const TMap<FName, float>& InStats)
+void UWxSaveWorldSubsystem::ApplyPlayerStats(AActor* PlayerActor, const TMap<FName, float>& InStats)
 {
 	UAbilitySystemComponent* ASC = UAbilitySystemGlobals::Get().GetAbilitySystemComponentFromActor(PlayerActor);
 	if (!ASC)
@@ -231,7 +256,7 @@ void UWxPersistenceWorldSubsystem::ApplyPlayerStats(AActor* PlayerActor, const T
 	}
 }
 
-void UWxPersistenceWorldSubsystem::CaptureActor(UWxPersistenceSaveGame& SaveGame, AActor* Actor)
+void UWxSaveWorldSubsystem::CaptureActor(UWxSaveGame& SaveGame, AActor* Actor)
 {
 	const IWxSavable* Savable = Cast<IWxSavable>(Actor);
 	if (!Savable)
@@ -292,7 +317,7 @@ void UWxPersistenceWorldSubsystem::CaptureActor(UWxPersistenceSaveGame& SaveGame
 	UsedCustomVersions.Serialize(HeaderWriter);
 }
 
-bool UWxPersistenceWorldSubsystem::RestoreActor(const UWxPersistenceSaveGame& SaveGame, AActor* Actor)
+bool UWxSaveWorldSubsystem::RestoreActor(const UWxSaveGame& SaveGame, AActor* Actor)
 {
 	IWxSavable* Savable = Cast<IWxSavable>(Actor);
 	if (!Savable)
@@ -370,7 +395,7 @@ bool UWxPersistenceWorldSubsystem::RestoreActor(const UWxPersistenceSaveGame& Sa
 	return true;
 }
 
-void UWxPersistenceWorldSubsystem::HandleWorldInitializedActors(const UWorld::FActorsInitializedParams& Params)
+void UWxSaveWorldSubsystem::HandleWorldInitializedActors(const UWorld::FActorsInitializedParams& Params)
 {
 	if (Params.World != GetWorld())
 	{
@@ -378,8 +403,8 @@ void UWxPersistenceWorldSubsystem::HandleWorldInitializedActors(const UWorld::FA
 	}
 
 	UGameInstance* GameInstance = Params.World->GetGameInstance();
-	UWxPersistenceGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxPersistenceGameSubsystem>() : nullptr;
-	const UWxPersistenceSaveGame* SaveGame = GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
+	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
+	const UWxSaveGame* SaveGame = GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
 	if (!SaveGame)
 	{
 		return;
@@ -402,7 +427,7 @@ void UWxPersistenceWorldSubsystem::HandleWorldInitializedActors(const UWorld::FA
 		SavableCount, RestoredCount, SaveGame->ActorRecords.Num());
 }
 
-void UWxPersistenceWorldSubsystem::HandleLevelAddedToWorld(ULevel* Level, UWorld* World)
+void UWxSaveWorldSubsystem::HandleLevelAddedToWorld(ULevel* Level, UWorld* World)
 {
 	if (!Level || World != GetWorld())
 	{
@@ -410,8 +435,8 @@ void UWxPersistenceWorldSubsystem::HandleLevelAddedToWorld(ULevel* Level, UWorld
 	}
 
 	UGameInstance* GameInstance = World->GetGameInstance();
-	UWxPersistenceGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxPersistenceGameSubsystem>() : nullptr;
-	const UWxPersistenceSaveGame* SaveGame = GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
+	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
+	const UWxSaveGame* SaveGame = GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
 	if (!SaveGame)
 	{
 		return;
@@ -430,7 +455,7 @@ void UWxPersistenceWorldSubsystem::HandleLevelAddedToWorld(ULevel* Level, UWorld
 	UE_LOG(LogWxSave, Verbose, TEXT("스트리밍-인 복원: 레벨 '%s' — %d개 복원"), *Level->GetOutermost()->GetName(), RestoredCount);
 }
 
-void UWxPersistenceWorldSubsystem::HandleLevelRemovedFromWorld(ULevel* Level, UWorld* World)
+void UWxSaveWorldSubsystem::HandleLevelRemovedFromWorld(ULevel* Level, UWorld* World)
 {
 	if (!Level || World != GetWorld())
 	{
@@ -438,8 +463,8 @@ void UWxPersistenceWorldSubsystem::HandleLevelRemovedFromWorld(ULevel* Level, UW
 	}
 
 	UGameInstance* GameInstance = World->GetGameInstance();
-	UWxPersistenceGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxPersistenceGameSubsystem>() : nullptr;
-	UWxPersistenceSaveGame* SaveGame = GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
+	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
+	UWxSaveGame* SaveGame = GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
 	if (!SaveGame)
 	{
 		return;
@@ -465,7 +490,7 @@ void UWxPersistenceWorldSubsystem::HandleLevelRemovedFromWorld(ULevel* Level, UW
 	UE_LOG(LogWxSave, Verbose, TEXT("스트리밍-아웃 캡처: 레벨 '%s' — IWxSavable %d개"), *Level->GetOutermost()->GetName(), CapturedCount);
 }
 
-void UWxPersistenceWorldSubsystem::HandleWorldBeginTearDown(UWorld* World)
+void UWxSaveWorldSubsystem::HandleWorldBeginTearDown(UWorld* World)
 {
 	if (World != GetWorld())
 	{
@@ -473,7 +498,7 @@ void UWxPersistenceWorldSubsystem::HandleWorldBeginTearDown(UWorld* World)
 	}
 
 	UGameInstance* GameInstance = World->GetGameInstance();
-	UWxPersistenceGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxPersistenceGameSubsystem>() : nullptr;
+	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
 	if (!GameSubsystem)
 	{
 		return;
