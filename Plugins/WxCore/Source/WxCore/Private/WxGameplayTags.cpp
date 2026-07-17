@@ -27,6 +27,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_DodgeSuccess, "Event.DodgeSuccess");
 	UE_DEFINE_GAMEPLAY_TAG(Event_PerfectGuard, "Event.PerfectGuard");
 	UE_DEFINE_GAMEPLAY_TAG(Event_UseItem, "Event.UseItem");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Interact, "Event.Interact");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Finisher, "Event.Finisher");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Backstab, "Event.Backstab");
 
@@ -116,7 +117,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Input_Skill_4, "Input.Skill.4");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Ultimate, "Input.Ultimate");
 	UE_DEFINE_GAMEPLAY_TAG(Input_LockOn, "Input.LockOn");
-	UE_DEFINE_GAMEPLAY_TAG(Input_Interact, "Input.Interact");
 	UE_DEFINE_GAMEPLAY_TAG(Input_UseItem, "Input.UseItem");
 	
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Game, "UI.Layer.Game");

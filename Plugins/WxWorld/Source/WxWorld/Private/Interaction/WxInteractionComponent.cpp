@@ -11,8 +11,9 @@ UWxInteractionComponent::UWxInteractionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
-	// OnInteracted 자체는 서버 전용이라 RPC가 없지만, 상호작용 어빌리티의 TargetData(FWxAbilityTargetData_Interaction)가 이 컴포넌트 포인터를 PackageMap으로 클라→서버 직렬화한다.
-	// 동적 스폰 액터(픽업·적)의 컴포넌트도 net-addressable 하려면 복제가 필요하다.
+	// OnInteracted 자체는 서버 전용이라 RPC가 없지만, 상호작용 입력 시 소유 클라가 선택 컴포넌트를 이벤트 페이로드에 실어 보낸다(LocalPredicted 어빌리티 → ServerTryActivateAbilityWithEventData).
+	// 그 포인터가 PackageMap 으로 직렬화되려면 동적 스폰 액터(픽업·적)의 컴포넌트도 net-addressable 해야 하므로 복제가 필요하다.
+	// bInteractionEnabled 복제(서버 전용 소유자의 어포던스 토글을 원격 클라 쿼리 콜리전에 반영)도 이 복제에 의존한다.
 	SetIsReplicatedByDefault(true);
 
 	InteractionText = FText::FromString(TEXT("Interact"));

@@ -12,22 +12,22 @@ class UWxInteractionComponent;
 class UWxInteractionRegistrySubsystem;
 
 /**
- * 상호작용 어빌리티(감지 + 입력 트리거 실행).
+ * 상호작용 어빌리티(감지 + 이벤트 트리거 실행).
  *
- * 입력(Input.Interact) 시 활성화되어, 로컬 레지스트리의 현재 선택 컴포넌트를 대상으로 TryInteract를 실행하고 즉시 종료한다.
  * 감지(주변 스캔)는 어빌리티 활성화와 무관히 부여 동안 상주한다.
  * OnGiveAbility에서 월드 타이머를 걸어 주기 스캔하고, OnRemoveAbility에서 해제한다.
  * 어빌리티 인스턴스(InstancedPerActor)는 부여 동안 살아 있으므로 타이머가 활성화와 독립적으로 틱한다.
  * 스캔은 아바타 주변을 OverlapMultiByChannel(WxInteractable)로 수집(볼륨 프리미티브 → 상호작용 컴포넌트 역참조)해 거리순으로 로컬 레지스트리에 push 한다(감지는 로컬 어포던스).
  * 단 어빌리티가 활성화 불가(CanActivateAbility 실패, 예: 사망)인 동안에는 스캔을 건너뛰고 후보를 비워 선택/프롬프트/하이라이트를 정리한다.
  *
- * 선택은 클라의 레지스트리(로컬 전용)가 소유하므로, 입력 시 클라가 선택을 읽어 서버로 전달하고 실행은 서버 권한에서만 한다.
+ * 실행은 Event.Interact GameplayEvent 로 발동한다(LocalPredicted).
+ * 선택은 클라 레지스트리(로컬 전용)가 소유하므로, 상호작용 입력을 받은 AWxPlayerCharacter 가 선택 컴포넌트를 OptionalObject 에 실어 자기 ASC 로 이벤트를 송출한다.
+ * LocalPredicted 라 엔진이 그 페이로드를 ServerTryActivateAbilityWithEventData 로 서버에 전송한다 — 클라가 고른 대상을 서버로 나르는 순정 통로다.
  *
- * 입력 흐름(ActivateAbility):
- *  - 리슨 호스트/단일 PIE(권한+로컬): 로컬 선택을 직접 읽어 TryInteract 즉시 호출 후 EndAbility
- *  - 원격 클라: 로컬 선택 컴포넌트를 TargetData로 서버에 전송 후 EndAbility
- *  - 서버(원격 클라 처리): 구독한 TargetData를 받아 선택 컴포넌트의 TryInteract 호출(권한) 후 EndAbility
- *  - 선택이 없으면 무동작. 사망(State.Dead) 중에는 ActivationBlockedTags로 활성화 자체가 막힌다.
+ * 활성화 흐름(ActivateAbility):
+ *  - 예측 클라: 이벤트로 즉시 활성화되어 몽타주·응시를 재생한다(코스메틱 예측, 실행은 안 한다). RTT 지연이 없다
+ *  - 서버(권위): 엔진이 전송한 같은 페이로드로 활성화되어 사거리 검증 후 TryInteract. 몽타주는 시뮬 프록시로 복제된다
+ *  - 선택이 없으면 무동작. 사망(State.Dead)·처형 중(State.Finisher)에는 CanActivateAbility 가 활성화를 막는다(예측 클라·서버 양쪽)
  */
 UCLASS(Abstract)
 class WXGAME_API UWxAbility_Interact : public UWxAbilityBase
@@ -77,17 +77,8 @@ private:
 	 */
 	void ScanAndPush();
 
-	/**
-	 * 서버가 클라이언트로부터 선택 컴포넌트 TargetData를 수신했을 때 호출.
-	 * 권한에서 TryInteract 실행 후 EndAbility.
-	 */
-	void HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag);
-
 	/** ActorInfo의 로컬 플레이어 상호작용 레지스트리(로컬에서만 유효, 데디 서버는 nullptr). */
 	UWxInteractionRegistrySubsystem* GetLocalRegistry(const FGameplayAbilityActorInfo* ActorInfo) const;
-
-	/** 레지스트리에서 현재 선택 컴포넌트를 읽는다(로컬에서만 유효). */
-	UWxInteractionComponent* GetLocalSelectedComponent(const FGameplayAbilityActorInfo* ActorInfo) const;
 
 	/**
 	 * 선택 컴포넌트가 유효하면 아바타를 instigator로 TryInteract 호출.

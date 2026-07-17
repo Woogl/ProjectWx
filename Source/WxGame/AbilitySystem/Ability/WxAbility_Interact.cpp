@@ -1,17 +1,14 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Interact.h"
-#include "AbilitySystem/TargetData/WxAbilityTargetData_Interaction.h"
 #include "AbilitySystem/Task/WxAbilityTask_TurnAround.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "AbilitySystemComponent.h"
 #include "Engine/GameInstance.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/OverlapResult.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
-#include "GameplayPrediction.h"
 #include "Interaction/WxInteractionComponent.h"
 #include "Interaction/WxInteractionRegistrySubsystem.h"
 #include "MVVM/WxViewModel_Selection.h"
@@ -22,15 +19,19 @@
 
 UWxAbility_Interact::UWxAbility_Interact()
 {
-	// 입력(Input.Interact)으로 활성화되는 1회성 실행 어빌리티.
+	// 상호작용 입력을 받은 캐릭터가 선택 대상을 실어 보내는 GameplayEvent 로 발동한다.
 	// 감지(스캔)는 부여 동안 타이머로 상주한다.
-	ActivationPolicy = EWxAbilityActivationPolicy::OnInputTriggered;
+	FAbilityTriggerData TriggerData;
+	TriggerData.TriggerTag = WxGameplayTags::Event_Interact;
+	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
+	AbilityTriggers.Add(TriggerData);
 
-	// 클라가 선택을 읽어 서버로 전달해야 하므로 클라/서버 모두에서 활성화되는 LocalPredicted를 쓴다.
+	// 클라가 선택 대상을 이벤트 페이로드로 실어 보내는 순정 통로(ServerTryActivateAbilityWithEventData)는 LocalPredicted 분기에만 존재한다.
+	// 그래서 LocalPredicted 를 쓴다. 다만 예측하는 것은 로컬 몽타주·응시(코스메틱)뿐이고, 실제 실행(TryInteract)은 아래 ExecuteInteract 의 권위 게이트를 통과한다.
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 
 	// 사망 중에는 활성화 거부.
-	// 입력 트리거라 ActivationBlockedTags가 활성화 자체를 막는다.
+	// 이벤트로 활성화하는 클라/서버 양쪽의 CanActivateAbility 가 검사한다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 
 	// 처형 연출 중에는 상호작용 재입력을 막는다(WxAbility_Finisher가 State.Finisher를 발행).
@@ -67,58 +68,19 @@ void UWxAbility_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (!ASC)
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
+	// 대상은 이벤트 페이로드로 온다. 예측 클라는 자기가 실어 보낸 값을, 서버는 엔진이 전송(ServerTryActivateAbilityWithEventData)한 같은 값을 받는다.
+	// OptionalObject 가 const 라 실행을 위해 const_cast 한다(WxAbility_Finisher 의 Target 과 동일).
+	UWxInteractionComponent* Selected = TriggerEventData
+		? const_cast<UWxInteractionComponent*>(Cast<UWxInteractionComponent>(TriggerEventData->OptionalObject.Get()))
+		: nullptr;
 
-	if (HasAuthority(&ActivationInfo) && IsLocallyControlled())
-	{
-		// 리슨 호스트/단일 PIE: 로컬 선택을 직접 읽어 즉시 실행(RPC 왕복 불필요).
-		UWxInteractionComponent* Selected = GetLocalSelectedComponent(ActorInfo);
-		ExecuteInteract(Selected, ActorInfo);
-
-		// 몽타주가 있으면 재생+응시하고 몽타주 종료 시 끝낸다. 없으면 종전대로 즉시 종료.
-		if (!PlayInteractMontage(Selected))
-		{
-			EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-		}
-		return;
-	}
-
+	// 실행은 권위에서만. 예측 클라 인스턴스는 연출만 재생한다.
 	if (HasAuthority(&ActivationInfo))
 	{
-		// 서버의 원격 클라 인스턴스: 클라가 보낼 선택 컴포넌트 TargetData를 구독한다.
-		// 실행/종료는 수신 핸들러에서 한다.
-		FAbilityTargetDataSetDelegate& Delegate = ASC->AbilityTargetDataSetDelegate(Handle, ActivationInfo.GetActivationPredictionKey());
-		Delegate.AddUObject(this, &UWxAbility_Interact::HandleTargetDataReceived);
-
-		// 활성화 RPC보다 TargetData가 먼저 도착해 위 구독을 놓치는 레이스를 방어한다(이미 와 있으면 즉시 발화).
-		ASC->CallReplicatedTargetDataDelegatesIfSet(Handle, ActivationInfo.GetActivationPredictionKey());
-		return;
+		ExecuteInteract(Selected, ActorInfo);
 	}
 
-	// 원격 클라: 로컬 선택을 TargetData로 서버에 전송한다.
-	// 선택이 없으면 null을 보내 서버가 무동작하게 한다.
-	FScopedPredictionWindow ScopedPrediction(ASC);
-
-	UWxInteractionComponent* Selected = GetLocalSelectedComponent(ActorInfo);
-
-	FGameplayAbilityTargetDataHandle DataHandle;
-	FWxAbilityTargetData_Interaction* TargetData = new FWxAbilityTargetData_Interaction();
-	TargetData->Component = Selected;
-	DataHandle.Add(TargetData);
-
-	ASC->CallServerSetReplicatedTargetData(
-		Handle,
-		ActivationInfo.GetActivationPredictionKey(),
-		DataHandle,
-		FGameplayTag(),
-		ASC->ScopedPredictionKey);
-
-	// 예측 클라에서 몽타주+응시를 재생하고 몽타주 종료 시 끝낸다. 없으면 종전대로 즉시 종료.
+	// 몽타주가 있으면 재생+응시하고 몽타주 종료 시 끝낸다. 없으면 즉시 종료.
 	if (!PlayInteractMontage(Selected))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
@@ -234,40 +196,11 @@ void UWxAbility_Interact::PushSelectionToViewModel(UWxInteractionRegistrySubsyst
 	}
 }
 
-void UWxAbility_Interact::HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag)
-{
-	UWxInteractionComponent* Selected = nullptr;
-	if (const FWxAbilityTargetData_Interaction* TargetData = static_cast<const FWxAbilityTargetData_Interaction*>(DataHandle.Get(0)))
-	{
-		Selected = TargetData->Component;
-	}
-
-	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
-	{
-		ASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
-	}
-
-	ExecuteInteract(Selected, CurrentActorInfo);
-
-	// 서버는 시뮬레이션 프록시로 몽타주를 복제하기 위해 재생하고 몽타주 종료 시 끝낸다(응시는 로컬 컨트롤 아님 → 미수행).
-	// 없으면 종전대로 즉시 종료.
-	if (!PlayInteractMontage(Selected))
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-	}
-}
-
 UWxInteractionRegistrySubsystem* UWxAbility_Interact::GetLocalRegistry(const FGameplayAbilityActorInfo* ActorInfo) const
 {
 	const APlayerController* PlayerController = ActorInfo ? ActorInfo->PlayerController.Get() : nullptr;
 	const ULocalPlayer* LocalPlayer = PlayerController ? PlayerController->GetLocalPlayer() : nullptr;
 	return LocalPlayer ? LocalPlayer->GetSubsystem<UWxInteractionRegistrySubsystem>() : nullptr;
-}
-
-UWxInteractionComponent* UWxAbility_Interact::GetLocalSelectedComponent(const FGameplayAbilityActorInfo* ActorInfo) const
-{
-	UWxInteractionRegistrySubsystem* Registry = GetLocalRegistry(ActorInfo);
-	return Registry ? Registry->GetSelectedComponent() : nullptr;
 }
 
 void UWxAbility_Interact::ExecuteInteract(UWxInteractionComponent* Selected, const FGameplayAbilityActorInfo* ActorInfo)

@@ -8,7 +8,12 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "Engine/LocalPlayer.h"
+#include "GameFramework/PlayerController.h"
 #include "Input/WxInputConfig.h"
+#include "Interaction/WxInteractionComponent.h"
+#include "Interaction/WxInteractionRegistrySubsystem.h"
 #include "Targeting/WxLockOnManagerComponent.h"
 #include "WxBGMSourceComponent.h"
 #include "WxGameplayTags.h"
@@ -114,6 +119,10 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	{
 		EIC->BindAction(InputConfig->CrouchAction, ETriggerEvent::Started, this, &AWxPlayerCharacter::ToggleCrouch);
 	}
+	if (InputConfig->InteractAction)
+	{
+		EIC->BindAction(InputConfig->InteractAction, ETriggerEvent::Started, this, &AWxPlayerCharacter::Interact);
+	}
 
 	// 어빌리티 입력 바인딩: 각 매핑에 대해 Press/Release 바인딩
 	for (const FWxInputAbilityBinding& Binding : InputConfig->AbilityInputBindings)
@@ -162,6 +171,26 @@ void AWxPlayerCharacter::ToggleCrouch()
 	{
 		Crouch();
 	}
+}
+
+void AWxPlayerCharacter::Interact()
+{
+	// 선택은 로컬 플레이어의 레지스트리만 아는 상태다.
+	// 선택 대상을 이벤트 페이로드에 실어 자기 ASC 로 상호작용 이벤트를 송출한다.
+	// 상호작용 어빌리티가 LocalPredicted 라, 엔진이 이 페이로드를 서버로 전송(ServerTryActivateAbilityWithEventData)한다 — 별도 RPC 불필요.
+	const APlayerController* PC = GetController<APlayerController>();
+	const ULocalPlayer* LocalPlayer = PC ? PC->GetLocalPlayer() : nullptr;
+	const UWxInteractionRegistrySubsystem* Registry = LocalPlayer ? LocalPlayer->GetSubsystem<UWxInteractionRegistrySubsystem>() : nullptr;
+	if (!Registry)
+	{
+		return;
+	}
+
+	FGameplayEventData EventData;
+	EventData.Instigator = this;
+	EventData.EventTag = WxGameplayTags::Event_Interact;
+	EventData.OptionalObject = Registry->GetSelectedComponent();
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, WxGameplayTags::Event_Interact, EventData);
 }
 
 void AWxPlayerCharacter::AbilityInputPressed(FGameplayTag InputTag)

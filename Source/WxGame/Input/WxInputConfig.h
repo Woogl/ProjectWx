@@ -50,6 +50,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TObjectPtr<UInputAction> CrouchAction;
 
+	/**
+	 * 상호작용 입력.
+	 * 어빌리티 입력 바인딩이 아니라 직접 바인딩인 이유는, 상호작용이 클라의 로컬 선택 대상을 페이로드로 함께 실어 보내야 하기 때문이다.
+	 * ASC 의 입력 태그 라우팅에는 페이로드 통로가 없다.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
+	TObjectPtr<UInputAction> InteractAction;
+
 	/** 어빌리티 입력 바인딩 설정. InputAction → InputTag 매핑 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TArray<FWxInputAbilityBinding> AbilityInputBindings;

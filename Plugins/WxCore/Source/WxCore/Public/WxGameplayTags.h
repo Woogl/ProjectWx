@@ -83,6 +83,9 @@ namespace WxGameplayTags
 	/** 소비 아이템 사용 이벤트. 마시기 몽타주의 노티파이가 송출, UseItem 어빌리티가 수신해 아이템을 실제 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_UseItem);
 
+	/** 상호작용 발동 이벤트. 상호작용 입력 시 소유 클라가 선택 대상을 실어 서버에 요청하고, 서버가 플레이어 ASC로 송출(OptionalObject=선택 컴포넌트), WxAbility_Interact가 트리거 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Interact);
+
 	/** 피니셔(앞잡) 발동 이벤트. 그로기 적 상호작용 시 플레이어 ASC로 송출(Target=적), WxAbility_Finisher가 트리거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Finisher);
 
@@ -222,7 +225,6 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Skill_4);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Ultimate);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_LockOn);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Interact);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_UseItem);
 
 	// ── UI ────────────────────────────────────────────────────────────────

@@ -6,11 +6,11 @@
 
 ## 한 문장 요약
 
-> 플레이어 측 어빌리티(`UWxAbility_Interact`)가 주변의 `UWxInteractionComponent` 볼륨을 주기 스캔해 로컬 레지스트리에 모으고(감지=로컬 어포던스, 비복제), 입력 시 선택된 컴포넌트를 GAS TargetData로 서버에 보내 **서버 권위**에서 `TryInteract`→`Multicast`로 `OnInteracted` 델리게이트를 fire한다(실행=권위).
+> 플레이어 측 어빌리티(`UWxAbility_Interact`)가 주변의 `UWxInteractionComponent` 볼륨을 주기 스캔해 로컬 레지스트리에 모으고(감지=로컬 어포던스, 비복제), 입력 시 캐릭터가 선택된 컴포넌트를 `FGameplayEventData`에 실어 `Event.Interact` GameplayEvent를 자기 ASC로 송출한다. 어빌리티(`LocalPredicted`)가 그 이벤트로 발동하면, 엔진이 페이로드를 서버로 전송(`ServerTryActivateAbilityWithEventData`)해 **서버 권위**에서 `TryInteract`→`OnInteracted`(서버 전용)를 fire한다(실행=권위, 클라 몽타주는 코스메틱 예측).
 
 이 시스템을 가르는 두 축:
 
-- **감지 vs 실행** — 감지(스캔·목록·선택·하이라이트)는 **로컬 전용**이고 어디에도 복제되지 않는다 / 실행(`TryInteract`→효과)은 **서버 권위**이며 Multicast로 모든 피어에 알린다.
+- **감지 vs 실행** — 감지(스캔·목록·선택·하이라이트)는 **로컬 전용**이고 어디에도 복제되지 않는다 / 실행(`TryInteract`→효과)은 **서버 권위**이며 `OnInteracted`는 서버에서만 fire된다(클라 비주얼은 복제 상태로 수렴).
 - **계약의 위치** — 상호작용 대상의 계약 인터페이스 `IWxInteractionSource`는 `WxCore`에, 그 유일 구현 `UWxInteractionComponent`는 `WxWorld`에 있다. 소비 도메인(`WxInventory` 픽업 등)은 `WxWorld`를 보지 않고 인터페이스로만 대상을 다룬다.
 
 ---
@@ -28,12 +28,10 @@ flowchart TD
         Reg -->|"ApplyHighlight"| Outline["선택 대상 메시 외곽선"]
     end
     subgraph 실행["실행 — 서버 권위"]
-        Input["Input.Interact"] --> Ability["Ability_Interact 활성화"]
-        Ability -->|"원격 클라: 선택을 TargetData로 전송"| Server["서버 인스턴스 수신"]
-        Ability -->|"리슨/단일 PIE: 직접"| Try
-        Server --> Try["Selected->TryInteract(Avatar) [권위 가드]"]
-        Try --> Mcast["MulticastInteracted (Unreliable)"]
-        Mcast --> Fire["OnInteracted.Broadcast (서버+모든 클라)"]
+        Input["InteractAction → Character.Interact()"] --> Send["SendGameplayEventToActor<br/>(Event.Interact, OptionalObject=Selected)"]
+        Send --> Ability["Ability_Interact 활성화 (LocalPredicted)<br/>엔진이 페이로드를 서버로 전송"]
+        Ability --> Try["Selected->TryInteract(Avatar) [권위·사거리 가드]"]
+        Try --> Fire["OnInteracted.Broadcast (서버 전용)"]
         Fire --> Handler{"소유 액터 핸들러"}
         Handler -->|"기믹"| Commit["CommitGimmickState (권위) → State 복제 → ST"]
         Handler -->|"아이템 픽업"| Grant["인벤토리 지급 (권위) → Destroy"]
@@ -46,7 +44,7 @@ flowchart TD
 
 핵심 반전: 대상은 자신을 레지스트리에 **등록하지 않는다.** 등록의 실체는 (1) 콜리전 채널로 식별되는 수동 볼륨과 (2) 플레이어가 그 볼륨을 주기 폴링해 로컬 목록에 채우는 것이다.
 
-1. **식별** — `UWxInteractionComponent`는 `USphereComponent`이며 Object Type을 `WxCollision::WxInteractable`(`ECC_GameTraceChannel2`, DefaultResponse=Ignore)로 설정한 `QueryOnly` 볼륨이다. 오버랩 이벤트는 끈다(`SetGenerateOverlapEvents(false)`) — 자신은 아무 이벤트도 쏘지 않고, 스캐너의 쿼리에 잡히기만 하는 수동 표적이다. 한 액터에 영역이 여럿이면(엘리베이터 등) 컴포넌트를 영역 수만큼 둔다.
+1. **식별** — `UWxInteractionComponent`는 `USphereComponent`이며 Object Type을 `ECC_WxInteractable`(`ECC_GameTraceChannel2`, DefaultResponse=Ignore)로 설정한 `QueryOnly` 볼륨이다. 오버랩 이벤트는 끈다(`SetGenerateOverlapEvents(false)`) — 자신은 아무 이벤트도 쏘지 않고, 스캐너의 쿼리에 잡히기만 하는 수동 표적이다. 한 액터에 영역이 여럿이면(엘리베이터 등) 컴포넌트를 영역 수만큼 둔다.
 2. **수집 주체** — `UWxAbility_Interact`가 `OnGiveAbility`에서 월드 타이머매니저에 `ScanAndPush`를 건다(`ScanInterval` 기본 0.1초). 타이머는 **어빌리티 활성화와 독립**이며 부여(grant) 동안 상주한다(인스턴스는 `InstancedPerActor`). 데디 서버는 LocalPlayer가 없어 미설정 — 감지는 로컬 어포던스다.
 3. **스캔** — `ScanAndPush`는 아바타 위치에서 `OverlapMultiByObjectType(WxInteractable)`로 후보 컴포넌트를 모아 거리순 정렬 후 `Registry->UpdateInRange(Candidates)`로 push한다. 단, `CanActivateAbility` 실패(예: `State.Dead`) 시엔 빈 배열을 push해 목록·선택·하이라이트를 즉시 정리한다.
 4. **생명주기 토글** — 활성/비활성은 `SetInteractionEnabled(bool)`로 콜리전을 `QueryOnly`↔`NoCollision` 토글한다. 비활성 볼륨은 ObjectType 쿼리에 안 잡혀 다음 스캔에서 자연 탈락한다. 기믹은 StateTree의 `Wx Enable Interaction` 노드가 상태별로 이를 토글한다(예: 문이 열리면 콘솔 인터랙션 비활성).
@@ -67,34 +65,36 @@ flowchart TD
 
 ## 실행 — 입력에서 효과까지 (서버 권위)
 
-입력 `Input.Interact`가 `Ability_Interact`(`ActivationPolicy = OnInputTriggered`, `NetExecutionPolicy = LocalPredicted`, `ActivationBlockedTags = State.Dead`)를 활성화한다. `ActivateAbility`는 네트워크 역할로 갈린다.
+상호작용 실행은 `Event.Interact` GameplayEvent로 발동한다(Lyra식). 입력을 받은 `AWxPlayerCharacter::Interact()`가 로컬 레지스트리의 선택 컴포넌트를 `FGameplayEventData.OptionalObject`에 실어 `SendGameplayEventToActor(this, Event.Interact, ...)`로 자기 ASC에 송출한다. 어빌리티(`Ability_Interact`, `NetExecutionPolicy = LocalPredicted`, `AbilityTriggers = Event.Interact`, `ActivationBlockedTags = State.Dead·State.Finisher`)가 그 이벤트로 발동한다.
 
-| 분기 | 조건 | 동작 |
-| --- | --- | --- |
-| **리슨 호스트 / 단일 PIE** | `HasAuthority && IsLocallyControlled` | 로컬 선택을 직접 읽어 `TryInteract` 즉시 호출 후 `EndAbility` (RPC 왕복 없음) |
-| **원격 클라** | `!HasAuthority` | 로컬 선택 컴포넌트를 `FWxAbilityTargetData_Interaction`에 담아 `CallServerSetReplicatedTargetData`로 전송 후 `EndAbility` |
-| **서버(원격 클라 처리)** | `HasAuthority && !IsLocallyControlled` | `AbilityTargetDataSetDelegate` 구독 → 수신 핸들러 `HandleTargetDataReceived`에서 `TryInteract` 후 `EndAbility` |
+핵심은 전송 통로다. GAS에서 클라가 고른 페이로드를 서버로 나르는 순정 통로는 `ServerTryActivateAbilityWithEventData`이고, 이는 **LocalPredicted 분기에만** 존재한다(`HasNetworkAuthorityToActivateTriggeredAbility`가 정책으로 가름). 그래서 LocalPredicted를 쓴다 — 커스텀 TargetData 구조체도, 커스텀 RPC도 필요 없다. 예측하는 것은 로컬 몽타주·응시(코스메틱)뿐이고, 실제 실행(`TryInteract`)은 여전히 권위 게이트를 통과한다.
 
-선택은 클라의 로컬 레지스트리만 알기 때문에, 클라가 선택을 읽어 서버로 넘기고 실행은 권위에서만 한다 — 이것이 GAS TargetData 경유의 이유다. `TryInteract` 자체도 `Owner->HasAuthority() && bInteractionEnabled` 가드를 다시 건다(이중 안전).
+| 역할 | 동작 |
+| --- | --- |
+| **리슨 호스트 / 단일 PIE** | `HandleGameplayEvent`가 권위에서 즉시 활성화 → `ExecuteInteract` + 몽타주·응시 |
+| **예측 클라(원격)** | 이벤트로 즉시 로컬 활성화(몽타주·응시 재생, RTT 지연 없음). 엔진이 `ServerTryActivateAbilityWithEventData`로 페이로드를 서버에 전송 |
+| **서버(원격 클라 처리)** | 엔진이 전송한 페이로드로 활성화 → 선택 컴포넌트 사거리 검증 후 `TryInteract`. 몽타주는 시뮬 프록시로 복제 |
+
+`ExecuteInteract`는 서버 권위 사거리 검증(중심간 거리 ≤ `ScanRadius + 볼륨 바운딩 반경`)으로 변조 클라의 원거리 상호작용을 막고, `TryInteract` 자체도 `Owner->HasAuthority() && bInteractionEnabled` 가드를 다시 건다(이중 안전). 예측 클라의 활성화를 서버가 거부하면(예: 사거리 실패) 예측 몽타주는 취소된다(코스메틱만 영향).
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant C as 원격 클라 (Ability_Interact)
-    participant S as 서버 (Ability_Interact)
+    participant PC as PlayerCharacter (클라)
+    participant ASC as ASC (클라)
+    participant AB as Ability_Interact (LocalPredicted)
+    participant SV as 서버 (Ability_Interact)
     participant IC as UWxInteractionComponent (대상)
-    participant All as 모든 피어
     participant H as 소유 액터 핸들러
-    C->>C: 로컬 레지스트리 선택 컴포넌트 읽기
-    C->>S: CallServerSetReplicatedTargetData(선택 컴포넌트)
-    Note over S: 활성화 RPC보다 TargetData가<br/>먼저 와도 CallReplicatedTargetData-<br/>DelegatesIfSet로 즉시 처리
-    S->>IC: TryInteract(Avatar) [권위·enabled 가드]
-    IC->>All: MulticastInteracted (Unreliable)
-    All->>H: OnInteracted.Broadcast(Instigator)
-    H->>H: HasAuthority() 분기로 권위 로직 실행
+    PC->>ASC: SendGameplayEventToActor(Event.Interact, OptionalObject=선택)
+    ASC->>AB: HandleGameplayEvent → 로컬 활성화(예측 몽타주)
+    AB->>SV: 엔진 ServerTryActivateAbilityWithEventData(payload)
+    SV->>IC: 사거리 검증 후 TryInteract(Avatar) [권위·enabled 가드]
+    IC->>H: OnInteracted.Broadcast(Instigator) [서버 전용]
+    Note over AB: 엔진이 오너 클라에 페이로드 push<br/>→ 클라 인스턴스가 몽타주·응시 재생
 ```
 
-`OnInteracted`는 Multicast로 **서버와 모든 클라이언트에서 fire**된다. 따라서 효과의 권위 로직(상태 확정·아이템 지급)은 핸들러 안에서 `HasAuthority()`로 분기해야 한다.
+`OnInteracted`는 서버 권위에서만 fire된다(클라 비주얼은 각 대상의 복제 상태로 수렴). 핸들러는 권위 로직을 그대로 수행한다.
 
 ### 효과 — 대상별 핸들러
 
@@ -109,17 +109,17 @@ sequenceDiagram
 
 - **모든 플러그인은 WxCore만 참조 가능, 도메인↔도메인 의존 금지** → 상호작용 대상의 계약 `IWxInteractionSource`(델리게이트 접근자 + 프롬프트 setter)를 `WxCore`에 두고, 구현 `UWxInteractionComponent`만 `WxWorld`에 둔다. `WxInventory` 픽업은 `WxWorld`를 모른 채 인터페이스로 컴포넌트를 찾아 바인딩한다.
 - **WxUI는 WxWorld(레지스트리)를 못 본다** → 양쪽에 의존할 수 있는 `WxGame`의 리졸버가 델리게이트를 연결한다(통합 모듈이 다리, 의존 방향 보존).
-- **감지는 로컬, 실행은 권위** → GAS `LocalPredicted` + TargetData로 "클라만 아는 선택"을 권위로 전달한다. 레지스트리 자체는 복제하지 않는다(로컬 표시 전용 LocalPlayerSubsystem).
+- **감지는 로컬, 실행은 권위** → 캐릭터가 입력을 받아 "클라만 아는 선택"을 `FGameplayEventData`에 실어 `Event.Interact`를 송출하고, `LocalPredicted` 어빌리티가 발동하면 엔진의 `ServerTryActivateAbilityWithEventData`가 페이로드를 서버로 전송한다(Lyra식 순정 통로). 레지스트리 자체는 복제하지 않는다(로컬 표시 전용 LocalPlayerSubsystem).
 
 ---
 
 ## 주의할 점
 
-- **`OnInteracted`는 서버+모든 클라에서 fire** — 핸들러에서 `HasAuthority()`로 권위 로직을 반드시 분기. 빠뜨리면 클라가 상태/지급을 중복·무권한 실행.
+- **`OnInteracted`는 서버 권위에서만 fire** — 핸들러는 권위 로직을 그대로 수행한다. 클라 비주얼은 각 대상의 복제 상태(기믹 State, 픽업 Destroy 등)로 수렴한다.
 - **외곽선 강조는 부착 부모가 메시일 때만** — `SetHighlightEnabled`는 `Cast<UMeshComponent>(GetAttachParent())` 성공 시에만 Custom Depth를 켠다. 인터랙션 볼륨을 비-메시에 부착하면 강조가 안 보인다(프롬프트는 정상).
 - **EndAbility가 어빌리티의 모든 타이머를 비운다** — 그래서 `EndAbility`에서 스캔 타이머를 다시 건다(`StartScanTimer`). 제거 경로면 직후 `OnRemoveAbility`가 최종 정리.
-- **TargetData 레이스** — 서버가 활성화 RPC보다 TargetData를 먼저 받을 수 있어, 구독 직후 `CallReplicatedTargetDataDelegatesIfSet`로 이미 도착분을 즉시 처리한다.
-- **책임 경계** — 컴포넌트는 프롬프트 표시를 하지 않는다(HUD 리스트 담당). 선택 소유는 레지스트리, 표시는 VM, 입력은 WBP, 실행 권위는 서버로 분리돼 있다.
+- **선택 페이로드의 net-addressable 요구** — 이벤트 페이로드의 선택 컴포넌트 포인터가 `ServerTryActivateAbilityWithEventData`로 서버에 전송될 때 PackageMap으로 직렬화되므로, 동적 스폰 액터(픽업·적)의 컴포넌트도 복제돼야 한다(`SetIsReplicatedByDefault(true)`). 막 스폰돼 아직 복제 안 된 대상은 서버에서 null로 도착해 무동작할 수 있다(권위 게이트라 안전).
+- **책임 경계** — 컴포넌트는 프롬프트 표시를 하지 않는다(HUD 리스트 담당). 선택 소유는 레지스트리, 표시는 VM, 선택 이동(휠/방향키)은 WBP, 실행 입력은 캐릭터, 실행 권위는 서버로 분리돼 있다.
 
 ---
 
@@ -128,13 +128,13 @@ sequenceDiagram
 | 타입 | 모듈 | 역할 |
 | --- | --- | --- |
 | `IWxInteractionSource` | `WxCore` | 대상 계약 인터페이스(`GetOnInteractedDelegate`/`SetInteractionText`). 소비 도메인이 WxWorld 없이 대상을 다루는 접점 |
-| `WxCollision::WxInteractable` | `WxCore` | 인터랙션 볼륨 Object Channel(`ECC_GameTraceChannel2`). 스캐너 쿼리의 식별 키 |
-| `Input_Interact` / `Ability_Interact` | `WxCore` | 입력·어빌리티 GameplayTag |
-| `UWxInteractionComponent` | `WxWorld` | 수동 쿼리 볼륨 + `IWxInteractionSource` 구현. `TryInteract`(권위)→`MulticastInteracted`→`OnInteracted` |
+| `ECC_WxInteractable` | `WxCore` | 인터랙션 볼륨 Object Channel(`ECC_GameTraceChannel2`). 스캐너 쿼리의 식별 키 |
+| `Event_Interact` | `WxCore` | 상호작용 발동 GameplayEvent 태그. 캐릭터가 선택 대상을 실어 송출, 어빌리티가 트리거 |
+| `UWxInteractionComponent` | `WxWorld` | 수동 쿼리 볼륨 + `IWxInteractionSource` 구현. `TryInteract`(권위)→`OnInteracted`(서버 전용) |
 | `UWxInteractionRegistrySubsystem` | `WxWorld` | LocalPlayer별 인-레인지 목록·선택 소유. `UpdateInRange`/`CycleSelection`/`GetSelectedComponent` |
 | `AWxGimmick` / `AWxDoor` | `WxWorld` | 상호작용 대상 구현(기믹). `OnInteracted`→`CommitGimmickState`(권위)→복제 State→StateTree |
-| `UWxAbility_Interact` | `WxGame` | 스캔 타이머(감지) + 입력 트리거 실행. 역할별 분기로 TargetData 송수신·`ExecuteInteract` |
-| `FWxAbilityTargetData_Interaction` | `WxGame` | 선택 컴포넌트를 서버로 넘기는 TargetData(PackageMap 직렬화) |
+| `AWxPlayerCharacter` | `WxGame` | 상호작용 입력 수신(`Interact()`). 로컬 선택을 `FGameplayEventData`에 실어 `Event.Interact` 송출 |
+| `UWxAbility_Interact` | `WxGame` | 스캔 타이머(감지) + 이벤트 트리거 실행(`LocalPredicted`). 페이로드 선택 대상으로 `ExecuteInteract`(권위) |
 | `UWxViewModelResolver_InteractionList` | `WxGame` | 레지스트리(WxWorld)↔VM(WxUI) 델리게이트 연결·시드 |
 | `UWxViewModel_InteractionList` / `UWxViewModel_Interaction` | `WxUI` | HUD 리스트·항목 표시 전용 VM |
 | `AWxItemPickup` | `WxInventory` | 비-기믹 대상 구현. BP에서 컴포넌트 추가, `GetComponentsByInterface`로 자동 바인딩→인벤토리 지급 |
