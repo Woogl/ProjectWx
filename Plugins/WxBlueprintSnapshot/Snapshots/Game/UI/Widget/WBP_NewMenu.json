@@ -1,0 +1,85 @@
+{
+	"blueprintPath": "/Game/UI/Widget/WBP_NewMenu.WBP_NewMenu",
+	"parentClass": "/Script/WxUI.WxActivatableWidget",
+	"widgetTree":
+	{
+		"root": "CanvasPanel_40",
+		"widgets":
+		{
+			"BG":
+			{
+				"class": "/Script/UMG.Image",
+				"delta":
+				{
+					"ColorAndOpacity":
+					{
+						"A": 0.5,
+						"B": 0,
+						"G": 0,
+						"R": 0
+					}
+				},
+				"parent": "CanvasPanel_40",
+				"slot":
+				{
+					"class": "/Script/UMG.CanvasPanelSlot",
+					"delta":
+					{
+						"LayoutData":
+						{
+							"Anchors":
+							{
+								"Maximum":
+								{
+									"X": 1,
+									"Y": 1
+								}
+							},
+							"Offsets":
+							{
+								"Bottom": 0,
+								"Right": 0
+							}
+						}
+					}
+				}
+			},
+			"CanvasPanel_40":
+			{
+				"class": "/Script/UMG.CanvasPanel"
+			},
+			"MenuTabList":
+			{
+				"class": "/Game/UI/Widget/WBP_TabList.WBP_TabList_C",
+				"delta":
+				{
+					"PreregisteredTabInfoArray": []
+				},
+				"parent": "CanvasPanel_40",
+				"slot":
+				{
+					"class": "/Script/UMG.CanvasPanelSlot",
+					"delta":
+					{
+						"LayoutData":
+						{
+							"Anchors":
+							{
+								"Maximum":
+								{
+									"X": 1,
+									"Y": 1
+								}
+							},
+							"Offsets":
+							{
+								"Bottom": 0,
+								"Right": 0
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

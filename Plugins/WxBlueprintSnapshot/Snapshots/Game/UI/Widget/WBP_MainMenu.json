@@ -18,6 +18,12 @@
 			"    UKismetSystemLibrary::PrintString(TEXT(\"세이브 파일 저장\"));",
 			"}"
 		],
+		"Construct": [
+			"void Construct()",
+			"{",
+			"    EditableText_302->SetText(UKismetTextLibrary::Conv_StringToText(UWxSaveLibrary::GetCurrentSaveSlotName()));",
+			"}"
+		],
 		"EventGraph": [
 			"void EventGraph()  // [macro]",
 			"{",
@@ -53,7 +59,8 @@
 				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
 				"delta":
 				{
-					"ButtonText": "[ Delete Saved Data ]"
+					"bOverride_ButtonText": true,
+					"ButtonText": "Delete Saved Data"
 				},
 				"isVariable": true,
 				"parent": "VerticalBox_0",
@@ -92,7 +99,8 @@
 				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
 				"delta":
 				{
-					"ButtonText": "[ Enter Inventory ]"
+					"bOverride_ButtonText": true,
+					"ButtonText": "Enter Inventory"
 				},
 				"isVariable": true,
 				"parent": "VerticalBox_0",
@@ -117,7 +125,8 @@
 				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
 				"delta":
 				{
-					"ButtonText": "[ Load Game ]"
+					"bOverride_ButtonText": true,
+					"ButtonText": "Load Game"
 				},
 				"isVariable": true,
 				"parent": "VerticalBox_0",
@@ -142,7 +151,8 @@
 				"class": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
 				"delta":
 				{
-					"ButtonText": "[ Save Game ]"
+					"bOverride_ButtonText": true,
+					"ButtonText": "Save Game"
 				},
 				"isVariable": true,
 				"parent": "VerticalBox_0",
