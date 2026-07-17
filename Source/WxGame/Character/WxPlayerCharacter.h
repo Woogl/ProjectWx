@@ -30,6 +30,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void OnRep_PlayerState() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	virtual bool CanCrouch() const override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Camera")
@@ -58,12 +59,6 @@ protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void ToggleCrouch();
-
-	/**
-	 * 상호작용 입력. 로컬 레지스트리의 현재 선택 컴포넌트를 서버에 실어 보낸다.
-	 * 선택은 클라의 로컬 상태이고 실행은 서버 권위이므로, 의도(입력)와 대상(선택)을 한 RPC 로 원자적으로 넘긴다.
-	 * 선택이 없으면 nullptr 을 보내 서버가 무동작한다.
-	 */
 	void Interact();
 
 	void AbilityInputPressed(FGameplayTag InputTag);

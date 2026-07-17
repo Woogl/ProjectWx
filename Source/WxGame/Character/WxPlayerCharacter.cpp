@@ -135,6 +135,13 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	}
 }
 
+bool AWxPlayerCharacter::CanCrouch() const
+{
+	const bool bParent = Super::CanCrouch();
+	const bool bIsFalling = GetCharacterMovement()->IsFalling();
+	return bParent && !bIsFalling;
+}
+
 void AWxPlayerCharacter::Move(const FInputActionValue& Value)
 {
 	if (!Controller)
