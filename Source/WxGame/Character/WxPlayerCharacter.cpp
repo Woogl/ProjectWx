@@ -126,11 +126,6 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	}
 }
 
-TSubclassOf<UWxActivatableWidget> AWxPlayerCharacter::GetGameHUDClass() const
-{
-	return GameHUDClass;
-}
-
 void AWxPlayerCharacter::Move(const FInputActionValue& Value)
 {
 	if (!Controller)

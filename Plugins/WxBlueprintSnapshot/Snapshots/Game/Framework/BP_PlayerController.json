@@ -1,0 +1,21 @@
+{
+	"blueprintPath": "/Game/Framework/BP_PlayerController.BP_PlayerController",
+	"classDefaults":
+	{
+		"DeathScreenWidgetClass": "/Game/UI/Widget/WBP_DeathScreen.WBP_DeathScreen_C",
+		"GameHUDWidgetClass": "/Game/UI/Widget/WBP_GameHUD.WBP_GameHUD_C",
+		"InventoryManager":
+		{
+			"class": "/Script/WxInventory.WxInventoryManagerComponent",
+			"delta":
+			{
+				"DefaultItems": [
+					{
+						"Item": "/Game/Item/DA_Potion.DA_Potion"
+					}
+				]
+			}
+		}
+	},
+	"parentClass": "/Script/WxGame.WxPlayerController"
+}

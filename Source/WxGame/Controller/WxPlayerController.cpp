@@ -31,20 +31,10 @@ void AWxPlayerController::OnPossess(APawn* InPawn)
 	BindCharacterDeath(InPawn);
 
 	// HUD 위젯의 리졸버가 생성 시점에 빙의 Pawn 의 ASC/인벤토리를 읽으므로 빙의 완료 후에 푸시해야 한다.
-	if (AWxPlayerCharacter* WxPlayerCharacter = Cast<AWxPlayerCharacter>(InPawn))
+	if (Cast<AWxPlayerCharacter>(InPawn))
 	{
-		PushGameHUD(WxPlayerCharacter);
+		PushGameHUD();
 	}
-}
-
-void AWxPlayerController::OnUnPossess()
-{
-	if (IsLocalController())
-	{
-		UnbindCharacterDeath();
-	}
-
-	Super::OnUnPossess();
 }
 
 void AWxPlayerController::OnRep_Pawn()
@@ -59,28 +49,12 @@ void AWxPlayerController::OnRep_Pawn()
 	BindCharacterDeath(GetPawn());
 
 	// 원격 클라이언트: Pawn 복제 시 HUD Push.
-	// 리졸버가 생성 시점에 Pawn 의 ASC/인벤토리를 읽으므로 이 시점이어야 한다.
-	if (AWxPlayerCharacter* WxPlayerCharacter = Cast<AWxPlayerCharacter>(GetPawn()))
-	{
-		PushGameHUD(WxPlayerCharacter);
-	}
+	PushGameHUD();
 }
 
-void AWxPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void AWxPlayerController::PushGameHUD()
 {
-	if (IsLocalController())
-	{
-		UnbindCharacterDeath();
-		DismissDeathScreen();
-	}
-
-	Super::EndPlay(EndPlayReason);
-}
-
-void AWxPlayerController::PushGameHUD(AWxPlayerCharacter* PlayerCharacter)
-{
-	TSubclassOf<UWxActivatableWidget> HUDClass = PlayerCharacter->GetGameHUDClass();
-	if (!HUDClass)
+	if (!GameHUDWidgetClass)
 	{
 		return;
 	}
@@ -97,41 +71,19 @@ void AWxPlayerController::PushGameHUD(AWxPlayerCharacter* PlayerCharacter)
 		return;
 	}
 
-	GameHUD = Cast<UWxActivatableWidget>(UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Game, HUDClass));
+	UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Game, GameHUDWidgetClass);
 }
 
 void AWxPlayerController::BindCharacterDeath(APawn* InPawn)
 {
-	// 이전 캐릭터 정리 및 이전 사망 화면 제거 (부활/Pawn 교체 시 자동 정리)
-	UnbindCharacterDeath();
-	DismissDeathScreen();
-
 	AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(InPawn);
 	if (!WxCharacter)
 	{
 		return;
 	}
 
-	WxCharacter->OnDeath.AddDynamic(this, &ThisClass::HandleCharacterDeath);
-	BoundCharacter = WxCharacter;
-}
-
-void AWxPlayerController::UnbindCharacterDeath()
-{
-	if (AWxCharacterBase* WxCharacter = BoundCharacter.Get())
-	{
-		WxCharacter->OnDeath.RemoveDynamic(this, &ThisClass::HandleCharacterDeath);
-	}
-	BoundCharacter.Reset();
-}
-
-void AWxPlayerController::DismissDeathScreen()
-{
-	if (DeathScreen)
-	{
-		DeathScreen->DeactivateWidget();
-		DeathScreen = nullptr;
-	}
+	// 같은 Pawn 에 대해 OnRep_Pawn 이 거듭 올 수 있어 중복 바인딩을 막는다.
+	WxCharacter->OnDeath.AddUniqueDynamic(this, &ThisClass::HandleCharacterDeath);
 }
 
 void AWxPlayerController::HandleCharacterDeath(AWxCharacterBase* DeadCharacter)
@@ -159,5 +111,6 @@ void AWxPlayerController::HandleCharacterDeath(AWxCharacterBase* DeadCharacter)
 		return;
 	}
 
-	DeathScreen = Cast<UWxActivatableWidget>(UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Menu, ResolvedClass));
+	// 사망 화면은 걷어내지 않는다. 부활은 월드 리로드(TravelFromSaveFile)이고, 그때 UI 매니저가 레이아웃을 통째로 재생성한다.
+	UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Menu, ResolvedClass);
 }

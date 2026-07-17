@@ -30,33 +30,25 @@ public:
 
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
-	virtual void OnUnPossess() override;
 	virtual void OnRep_Pawn() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	/** 소유 클라이언트의 인벤토리. 서버 권한, 소유 연결로만 복제된다. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Inventory")
 	TObjectPtr<UWxInventoryManagerComponent> InventoryManager;
+
+	/** 플레이어 캐릭터에 빙의하면 Game 레이어에 띄울 HUD. 미지정이면 동작 없음. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|UI")
+	TSubclassOf<UWxActivatableWidget> GameHUDWidgetClass;
 
 	/** 빙의된 캐릭터 사망 시 Menu 레이어에 띄울 위젯. 미지정이면 동작 없음. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|UI")
 	TSoftClassPtr<UWxActivatableWidget> DeathScreenWidgetClass;
 
 private:
-	void PushGameHUD(AWxPlayerCharacter* PlayerCharacter);
+	void PushGameHUD();
 
 	void BindCharacterDeath(APawn* InPawn);
-	void UnbindCharacterDeath();
-	void DismissDeathScreen();
 
 	UFUNCTION()
 	void HandleCharacterDeath(AWxCharacterBase* DeadCharacter);
-
-	UPROPERTY(Transient)
-	TObjectPtr<UWxActivatableWidget> GameHUD;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UWxActivatableWidget> DeathScreen;
-
-	TWeakObjectPtr<AWxCharacterBase> BoundCharacter;
 };

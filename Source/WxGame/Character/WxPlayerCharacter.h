@@ -6,7 +6,6 @@
 #include "Character/WxCharacterBase.h"
 #include "WxPlayerCharacter.generated.h"
 
-class UWxActivatableWidget;
 class USpringArmComponent;
 class UCameraComponent;
 class UWidgetComponent;
@@ -31,8 +30,6 @@ public:
 	virtual void BeginPlay() override;
 	virtual void OnRep_PlayerState() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-
-	TSubclassOf<UWxActivatableWidget> GetGameHUDClass() const;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Camera")
@@ -64,9 +61,6 @@ protected:
 
 	void AbilityInputPressed(FGameplayTag InputTag);
 	void AbilityInputReleased(FGameplayTag InputTag);
-
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|UI")
-	TSubclassOf<UWxActivatableWidget> GameHUDClass;
 
 	/** 캐릭터 입력 설정 (IMC + Move/Look + 어빌리티 바인딩) */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
