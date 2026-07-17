@@ -239,7 +239,7 @@ void UWxPersistenceWorldSubsystem::CaptureActor(UWxPersistenceSaveGame& SaveGame
 		return;
 	}
 
-	const FGuid ActorId = Savable->GetWxSaveId();
+	const FGuid ActorId = Savable->GetSaveId();
 	if (!ActorId.IsValid())
 	{
 		UE_LOG(LogWxSave, Warning, TEXT("CaptureActor: '%s' 의 WxSaveId 가 유효하지 않아 저장에서 제외됨. 에디터에서 WxSaveId 부여 경로(PostLoad 등)가 동작했는지 확인하라."), *GetNameSafe(Actor));
@@ -300,7 +300,7 @@ bool UWxPersistenceWorldSubsystem::RestoreActor(const UWxPersistenceSaveGame& Sa
 		return false;
 	}
 
-	const FGuid ActorId = Savable->GetWxSaveId();
+	const FGuid ActorId = Savable->GetSaveId();
 	if (!ActorId.IsValid())
 	{
 		UE_LOG(LogWxSave, Warning, TEXT("RestoreActor: '%s' 의 WxSaveId 가 유효하지 않아 복원할 수 없음."), *GetNameSafe(Actor));

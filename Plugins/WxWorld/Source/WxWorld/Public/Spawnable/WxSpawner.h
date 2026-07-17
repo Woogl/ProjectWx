@@ -53,7 +53,7 @@ public:
 	void MarkKilled();
 
 	//~ Begin IWxSavable
-	virtual FGuid GetWxSaveId() const override;
+	virtual FGuid GetSaveId() const override;
 	virtual void OnWxSaveRestored() override;
 	//~ End IWxSavable
 
@@ -83,7 +83,7 @@ protected:
 
 	/** WxSave 슬롯 레코드의 안정적 키. 에디터에서 부여되어 에셋에 직렬화되고, 런타임/세션 간 불변이다. */
 	UPROPERTY()
-	FGuid WxSaveId;
+	FGuid SaveId;
 
 	TWeakObjectPtr<AActor> SpawnedActor;
 

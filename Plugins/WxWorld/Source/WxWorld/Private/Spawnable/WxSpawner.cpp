@@ -108,9 +108,9 @@ void AWxSpawner::MarkKilled()
 	bIsKilled = true;
 }
 
-FGuid AWxSpawner::GetWxSaveId() const
+FGuid AWxSpawner::GetSaveId() const
 {
-	return WxSaveId;
+	return SaveId;
 }
 
 void AWxSpawner::OnWxSaveRestored()
@@ -221,7 +221,7 @@ void AWxSpawner::PostActorCreated()
 {
 	Super::PostActorCreated();
 
-	WxSaveId = GetActorGuid();
+	SaveId = GetActorGuid();
 }
 
 void AWxSpawner::PostDuplicate(EDuplicateMode::Type DuplicateMode)
@@ -229,7 +229,7 @@ void AWxSpawner::PostDuplicate(EDuplicateMode::Type DuplicateMode)
 	Super::PostDuplicate(DuplicateMode);
 
 	// 복제 시 엔진이 새 ActorGuid 를 부여하므로 그대로 따라가면 원본과 충돌하지 않는다.
-	WxSaveId = GetActorGuid();
+	SaveId = GetActorGuid();
 }
 
 // 키 부여는 PostActorCreated/PostDuplicate 가 담당한다. 여기서는 Transient 프리뷰 컴포넌트만 로드 시 복원한다.

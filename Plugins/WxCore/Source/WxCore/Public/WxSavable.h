@@ -33,7 +33,7 @@ public:
 	 * AActor::GetActorGuid() 는 에디터 전용(WITH_EDITOR) API 라 쿠킹 빌드에서 쓸 수 없어, 영속 UPROPERTY 로 키를 들고 간다.
 	 * 유효하지 않은(IsValid()==false) 값을 반환하면 해당 액터는 저장/복원에서 제외된다.
 	 */
-	virtual FGuid GetWxSaveId() const = 0;
+	virtual FGuid GetSaveId() const = 0;
 
 	/** SaveGame 필드 복원 직후 호출. 자식이 시각/인터랙션 동기화 후처리를 한다. BeginPlay 이전에 호출될 수 있다. */
 	virtual void OnWxSaveRestored() {}

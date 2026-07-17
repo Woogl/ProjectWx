@@ -55,9 +55,9 @@ void AWxGimmick::CommitGimmickState(FGameplayTag NewState)
 	OnRep_GimmickState();
 }
 
-FGuid AWxGimmick::GetWxSaveId() const
+FGuid AWxGimmick::GetSaveId() const
 {
-	return WxSaveId;
+	return SaveId;
 }
 
 void AWxGimmick::OnWxSaveRestored()
@@ -78,7 +78,7 @@ void AWxGimmick::PostActorCreated()
 {
 	Super::PostActorCreated();
 
-	WxSaveId = GetActorGuid();
+	SaveId = GetActorGuid();
 }
 
 void AWxGimmick::PostDuplicate(EDuplicateMode::Type DuplicateMode)
@@ -86,7 +86,7 @@ void AWxGimmick::PostDuplicate(EDuplicateMode::Type DuplicateMode)
 	Super::PostDuplicate(DuplicateMode);
 
 	// 복제 시 엔진이 새 ActorGuid 를 부여하므로 그대로 따라가면 원본과 충돌하지 않는다.
-	WxSaveId = GetActorGuid();
+	SaveId = GetActorGuid();
 }
 #endif
 
