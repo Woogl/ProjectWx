@@ -3,7 +3,20 @@
 #include "System/WxPrimaryGameLayout.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 #include "CommonActivatableWidget.h"
+#include "Blueprint/WidgetTree.h"
+#include "Components/Overlay.h"
+#include "Components/OverlaySlot.h"
 #include "WxGameplayTags.h"
+
+UWxPrimaryGameLayout::UWxPrimaryGameLayout()
+{
+	LayerTags = {
+		WxGameplayTags::UI_Layer_Game,
+		WxGameplayTags::UI_Layer_GameMenu,
+		WxGameplayTags::UI_Layer_Menu,
+		WxGameplayTags::UI_Layer_Modal,
+	};
+}
 
 UCommonActivatableWidgetStack* UWxPrimaryGameLayout::GetLayerWidgetStack(FGameplayTag LayerTag) const
 {
@@ -46,8 +59,35 @@ void UWxPrimaryGameLayout::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	LayerMap.Add(WxGameplayTags::UI_Layer_Game, GameLayer);
-	LayerMap.Add(WxGameplayTags::UI_Layer_GameMenu, GameMenuLayer);
-	LayerMap.Add(WxGameplayTags::UI_Layer_Menu, MenuLayer);
-	LayerMap.Add(WxGameplayTags::UI_Layer_Modal, ModalLayer);
+	LayerMap.Reset();
+	if (!LayerContainer || !WidgetTree)
+	{
+		return;
+	}
+
+	for (const FGameplayTag& LayerTag : LayerTags)
+	{
+		if (!LayerTag.IsValid())
+		{
+			continue;
+		}
+
+		UCommonActivatableWidgetStack* Stack = WidgetTree->ConstructWidget<UCommonActivatableWidgetStack>();
+		if (!Stack)
+		{
+			continue;
+		}
+
+		// 새 스택 CDO 기본 TransitionDuration(0.4s)을 0으로 되돌려 즉시전환을 유지한다.
+		Stack->SetTransitionDuration(0.f);
+
+		if (UOverlaySlot* LayerSlot = LayerContainer->AddChildToOverlay(Stack))
+		{
+			// Overlay 슬롯 기본 정렬은 Left/Top이라 전체 화면을 채우도록 명시한다.
+			LayerSlot->SetHorizontalAlignment(HAlign_Fill);
+			LayerSlot->SetVerticalAlignment(VAlign_Fill);
+		}
+
+		LayerMap.Add(LayerTag, Stack);
+	}
 }

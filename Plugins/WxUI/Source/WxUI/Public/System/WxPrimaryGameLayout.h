@@ -10,6 +10,7 @@
 #include "WxPrimaryGameLayout.generated.h"
 
 class UCommonActivatableWidgetStack;
+class UOverlay;
 
 UCLASS(Abstract)
 class WXUI_API UWxPrimaryGameLayout : public UCommonUserWidget
@@ -17,6 +18,8 @@ class WXUI_API UWxPrimaryGameLayout : public UCommonUserWidget
 	GENERATED_BODY()
 
 public:
+	UWxPrimaryGameLayout();
+
 	UCommonActivatableWidgetStack* GetLayerWidgetStack(FGameplayTag LayerTag) const;
 
 	/**
@@ -44,17 +47,16 @@ public:
 protected:
 	virtual void NativeOnInitialized() override;
 
+	/** 모든 레이어 스택을 담는 루트 컨테이너. */
 	UPROPERTY(BlueprintReadOnly, Category = "UI|Layers", meta = (BindWidget))
-	TObjectPtr<UCommonActivatableWidgetStack> GameLayer;
+	TObjectPtr<UOverlay> LayerContainer;
 
-	UPROPERTY(BlueprintReadOnly, Category = "UI|Layers", meta = (BindWidget))
-	TObjectPtr<UCommonActivatableWidgetStack> GameMenuLayer;
-
-	UPROPERTY(BlueprintReadOnly, Category = "UI|Layers", meta = (BindWidget))
-	TObjectPtr<UCommonActivatableWidgetStack> MenuLayer;
-
-	UPROPERTY(BlueprintReadOnly, Category = "UI|Layers", meta = (BindWidget))
-	TObjectPtr<UCommonActivatableWidgetStack> ModalLayer;
+	/**
+	 * 생성할 레이어 태그 목록.
+	 * 배열 순서가 z-order다(0 = 최하단).
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Layers", meta = (Categories = "UI.Layer"))
+	TArray<FGameplayTag> LayerTags;
 
 private:
 	UPROPERTY(Transient)
