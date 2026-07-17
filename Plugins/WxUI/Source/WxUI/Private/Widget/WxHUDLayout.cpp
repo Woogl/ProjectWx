@@ -3,6 +3,7 @@
 #include "Widget/WxHUDLayout.h"
 
 #include "CommonInputModeTypes.h"
+#include "Input/CommonUIActionRouterBase.h"
 #include "Input/CommonUIInputTypes.h"
 #include "System/WxUIManagerSubsystem.h"
 #include "UITag.h"
@@ -25,6 +26,18 @@ void UWxHUDLayout::NativeOnInitialized()
 	FBindUIActionArgs MainMenuArgs(FUIActionTag::ConvertChecked(WxGameplayTags::UI_Action_MainMenu), FSimpleDelegate::CreateUObject(this, &UWxHUDLayout::HandleMainMenuAction));
 	MainMenuArgs.InputMode = ECommonInputMode::Game;
 	RegisterUIActionBinding(MainMenuArgs);
+
+	// 자유 커서: 누르는 동안(Pressed~Released)만 커서 표시 + 게임 포커스 부분 해제.
+	// press/release 를 KeyEvent 로 나눠 등록한다. 홀드 중 입력모드는 All 이라 Released 는 All 와일드카드로 매칭된다.
+	FBindUIActionArgs FreeCursorPressedArgs(FUIActionTag::ConvertChecked(WxGameplayTags::UI_Action_FreeCursor), FSimpleDelegate::CreateUObject(this, &UWxHUDLayout::HandleFreeCursorPressed));
+	FreeCursorPressedArgs.InputMode = ECommonInputMode::Game;
+	FreeCursorPressedArgs.KeyEvent = IE_Pressed;
+	RegisterUIActionBinding(FreeCursorPressedArgs);
+
+	FBindUIActionArgs FreeCursorReleasedArgs(FUIActionTag::ConvertChecked(WxGameplayTags::UI_Action_FreeCursor), FSimpleDelegate::CreateUObject(this, &UWxHUDLayout::HandleFreeCursorReleased));
+	FreeCursorReleasedArgs.InputMode = ECommonInputMode::Game;
+	FreeCursorReleasedArgs.KeyEvent = IE_Released;
+	RegisterUIActionBinding(FreeCursorReleasedArgs);
 }
 
 void UWxHUDLayout::HandleInventoryAction()
@@ -35,6 +48,32 @@ void UWxHUDLayout::HandleInventoryAction()
 void UWxHUDLayout::HandleMainMenuAction()
 {
 	PushMenuWidget(MainMenuWidgetClass);
+}
+
+void UWxHUDLayout::HandleFreeCursorPressed()
+{
+	UCommonUIActionRouterBase* ActionRouter = UCommonUIActionRouterBase::Get(*this);
+	if (!ActionRouter)
+	{
+		return;
+	}
+
+	// All: 이동 등 게임 입력 유지, NoCapture: 커서 표시, bIgnoreLookInput: 마우스 카메라만 정지.
+	FUIInputConfig Config(ECommonInputMode::All, EMouseCaptureMode::NoCapture);
+	Config.bIgnoreLookInput = true;
+	ActionRouter->SetActiveUIInputConfig(Config, this);
+}
+
+void UWxHUDLayout::HandleFreeCursorReleased()
+{
+	UCommonUIActionRouterBase* ActionRouter = UCommonUIActionRouterBase::Get(*this);
+	if (!ActionRouter)
+	{
+		return;
+	}
+
+	// HUD 의 게임 입력 설정으로 복원.
+	ActionRouter->SetActiveUIInputConfig(FUIInputConfig(ECommonInputMode::Game, EMouseCaptureMode::CapturePermanently), this);
 }
 
 void UWxHUDLayout::PushMenuWidget(TSoftClassPtr<UWxActivatableWidget> WidgetClass)

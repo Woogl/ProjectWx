@@ -21,6 +21,8 @@ protected:
 
 	void HandleInventoryAction();
 	void HandleMainMenuAction();
+	void HandleFreeCursorPressed();
+	void HandleFreeCursorReleased();
 
 	/** UI.Action.Inventory 입력 시 Menu 레이어에 푸시할 위젯 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|UI")

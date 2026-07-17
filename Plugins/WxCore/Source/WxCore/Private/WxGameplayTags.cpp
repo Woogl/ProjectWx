@@ -127,4 +127,5 @@ namespace WxGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(UI_Action_Inventory, "UI.Action.Inventory");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Action_MainMenu, "UI.Action.MainMenu");
+	UE_DEFINE_GAMEPLAY_TAG(UI_Action_FreeCursor, "UI.Action.FreeCursor");
 }
