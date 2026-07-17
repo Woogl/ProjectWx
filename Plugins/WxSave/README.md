@@ -1,54 +1,54 @@
 # WxSave — 세이브/로드 시스템
 
-> 슬롯 파일 기반 세이브/로드 플러그인. 메모리 SaveGame 의 수명·디스크 I/O·맵 트래블을 오케스트레이션하고, 월드 수명 이벤트에 맞춰 `IWxSavable` 액터 상태·GAS 플레이어 스탯·재개 지점을 캡처/복원한다. 체크포인트 오토세이브와 사망 리스폰(리로드 트래블)을 지원한다.
+> 슬롯 기반 세이브 파일에 플레이어 재개 지점·스탯과 `IWxSavable` 액터 상태를 캡처하고, 로드 시 저장된 맵으로 트래블해 복원한다. 로드도 사망 부활도 "마지막 저장 재개 지점" 하나로 처리하는 것이 설계 축이다.
 
 ## 책임
 **담당**
-- 활성 SaveGame 슬롯의 소유·수명 관리(맵 트래블을 가로질러 유지), 이름 지정 슬롯 저장/로드/삭제·존재확인, 슬롯 리셋 (`UWxSaveGameSubsystem`)
-- 저장된 맵으로의 `ServerTravel` 및 로드-트래블 가드(`IsTravelingFromSaveFile`)로 막 로드한 세이브 오염 방지
-- 월드 수명 이벤트(레벨 스트리밍 인/아웃, teardown, BeginPlay)에 맞춘 `IWxSavable` 액터 상태의 자동 캡처·복원 (`UWxSaveWorldSubsystem`)
-- 액터+컴포넌트 `UPROPERTY(SaveGame)` 바이트 직렬화와 이기종 빌드 안전을 위한 레코드 단위 버전 헤더 처리
-- 저장 시점 플레이어 스냅샷 캡처/제공 — ASC 어트리뷰트 base 값(`PlayerStats`)과 재개 지점 트랜스폼(`PlayerTransform`)
+- 메모리 SaveGame 의 수명·디스크 I/O·맵 트래블 오케스트레이션 (`UWxSaveGameSubsystem`). 슬롯은 맵 트래블을 가로질러 유지된다.
+- 월드 수명 이벤트(레벨 초기화/스트리밍 인·아웃/맵 이탈)에 맞춘 `IWxSavable` 액터 자동 캡처·복원 (`UWxSaveWorldSubsystem`).
+- 저장된 재개 지점·스탯을 새 세션 플레이어에 세우기 — 엔진 스폰 경로(`StartSpot`/`ChoosePlayerStart`)에 올라탐 (`UWxPlayerSpawnComponent`).
+- 액터/컴포넌트 `UPROPERTY(SaveGame)` 필드의 바이트 직렬화 + 이기종 빌드 대비 레코드 단위 버전 헤더 관리 (`FWxActorRecord`).
+- 저장 시점 플레이어 스냅샷 캡처/적용 — ASC 어트리뷰트 base 값과 재개 지점 트랜스폼.
 
 **경계 (비담당)**
-- `IWxSavable` 인터페이스 및 안정 키 `GetWxSaveId()` 정의 → [[WxCore]] (`Plugins/WxCore/Source/WxCore/Public/WxSavable.h`)
-- 저장된 `PlayerTransform` 을 소비하는 실제 스폰 선정(우선 적용 + `ChoosePlayerStart` 폴백)은 `UWxPlayerSpawnComponent`(게임 코드). 이 모듈은 값만 저장/제공한다.
-- 저장을 트리거하는 체크포인트·기믹 액터는 [[WxWorld]] 소관. 세이브/로드 UI 는 [[WxUI]] 소관. 이 모듈은 BP 정적 래퍼만 노출한다.
-- 어트리뷰트 정의·구체 AttributeSet 타입은 GAS/전투 도메인 소관. 이 모듈은 복제되는 base 값만 이름 기준으로 다룬다.
+- 세이브 참여 마커·후크 인터페이스 `IWxSavable`/`GetSaveId()` 정의는 [[WxCore]] 소유 (`WxSavable.h`). WxSave 는 이를 소비만 한다.
+- 저장 대상 액터의 실제 보존 필드 선정·복원 후처리(`OnWxSaveRestored`)와 저장 트리거(체크포인트/기믹)는 [[WxWorld]] 등 소비 도메인 몫.
+- 세이브/로드 UI 는 [[WxUI]] 소관 — 이 모듈은 BP 정적 래퍼만 노출한다.
+- 어트리뷰트 정의·구체 AttributeSet 타입은 GAS/전투 도메인 소관 — WxSave 는 이름-값 맵으로만 왕복한다.
 
 ## 의존성
-- **주요 의존**: `WxCore`(`IWxSavable`), `GameplayAbilities`(플레이어 ASC 어트리뷰트 base 캡처/적용 — `CapturePlayerStats`/`ApplyPlayerStats`), 엔진 서브시스템 `UGameInstanceSubsystem`·`UWorldSubsystem`·`USaveGame`
-- 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅ (uplugin·Build.cs 모두 WxCore + 엔진 GameplayAbilities 만 의존)
+- **주요 의존**: [[WxCore]] (`IWxSavable`), `GameplayAbilities`(ASC 어트리뷰트 base 캡처/적용), `ModularGameplay`(GameFramework 컴포넌트 등록). 참여 인터페이스가 WxCore 에 있어 WxSave 와 소비 도메인이 서로 직접 의존하지 않는다.
+- 규칙: 「WxCore 외 Wx 플러그인 참조」 — 없음 ✅ (uplugin·Build.cs 모두 WxCore + 엔진 GameplayAbilities/ModularGameplay 만 의존)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxSaveGameSubsystem` | 슬롯 소유·디스크 I/O·맵 트래블 오케스트레이션의 중심. 저장/로드 전 흐름의 시작점 (GameInstance 수명) | `Plugins/WxSave/Source/WxSave/Public/WxSaveGameSubsystem.h` |
-| `UWxSaveWorldSubsystem` | 월드 수명 이벤트별 savable 액터 자동 캡처/복원 + `RequestSaveFlush` + GAS 스탯 캡처/적용 | `Plugins/WxSave/Source/WxSave/Public/WxSaveWorldSubsystem.h` |
-| `UWxSaveGame` | 슬롯 데이터 컨테이너(`TravelData` + `ActorRecords` + `PlayerStats` + `PlayerTransform`) | `Plugins/WxSave/Source/WxSave/Public/WxSaveGame.h` |
-| `FWxActorRecord` / `FWxComponentRecord` | 액터·컴포넌트 스냅샷(Transform + 바이트 + 컴포넌트별 레코드 + 버전 헤더) | `Plugins/WxSave/Source/WxSave/Public/WxSaveGame.h` |
-| `FWxSaveTravelData` | 트래블 대상 맵(`FSoftObjectPath Map`, null=구버전/미기록→현재 맵 리로드 폴백) | `Plugins/WxSave/Source/WxSave/Public/WxSaveGame.h` |
-| `UWxSaveLibrary` | BP 진입점. 게임 서브시스템 공개 API 의 정적 래퍼(Save/Load/Travel/Delete·존재확인·활성 슬롯 조회) | `Plugins/WxSave/Source/WxSave/Public/WxSaveLibrary.h` |
-| `UWxPlayerSpawnComponent` | 저장된 재개 지점·스탯을 새 세션에 세우는 컨트롤러 컴포넌트. GameMode 의 `FrameworkComponents` 에 등록해야 부착된다 | `Plugins/WxSave/Source/WxSave/Public/WxPlayerSpawnComponent.h` |
+| `UWxSaveGameSubsystem` | 슬롯 소유·디스크 I/O·맵 트래블의 중심(GameInstance 수명). 저장/로드 전 흐름의 시작점 | `Source/WxSave/Public/WxSaveGameSubsystem.h` |
+| `UWxSaveWorldSubsystem` | 월드 이벤트별 savable 액터 자동 캡처/복원 + `RequestSaveFlush` + 플레이어 스탯 캡처/적용 | `Source/WxSave/Public/WxSaveWorldSubsystem.h` |
+| `UWxSaveGame` | 슬롯 데이터(`TravelData` + `ActorRecords` + `PlayerStats` + `PlayerTransform`) | `Source/WxSave/Public/WxSaveGame.h` |
+| `FWxActorRecord` / `FWxComponentRecord` | 액터·컴포넌트 스냅샷(Transform + 바이트 + 컴포넌트 레코드 + 버전 헤더) | `Source/WxSave/Public/WxSaveGame.h` |
+| `UWxPlayerSpawnComponent` | 저장 재개 지점·스탯을 스폰 경로에 주입(컨트롤러 컴포넌트) | `Source/WxSave/Public/WxPlayerSpawnComponent.h` |
+| `UWxSaveLibrary` | 세이브/로드/트래블/삭제 BP 정적 래퍼 | `Source/WxSave/Public/WxSaveLibrary.h` |
 
 ## 확장 포인트 / 규약
-- **새 세이브 대상 추가**: 액터가 [[WxCore]]의 `IWxSavable` 을 구현하고 안정적 `WxSaveId`(에디터 부여 영속 GUID, 쿠킹 빌드 안전)를 반환하면 월드 서브시스템이 스트리밍/트래블 이벤트에서 자동 캡처·복원한다. 별도 등록 코드 불필요. 저장할 필드엔 `UPROPERTY(SaveGame)` 지정(액터 본체 + 컴포넌트별).
-- **커스텀 슬롯 데이터**: `UWxSaveGame` 을 서브클래싱하고 `StartNewSaveFile` 의 `SpecificClass` 로 지정.
-- **이름 지정 슬롯**: 빈 슬롯 이름은 양쪽 다 "활성 슬롯"을 뜻한다 — `SaveToFile(SlotName)` 은 이름을 넘기면 활성 슬롯을 그 이름으로 재지정 후 저장하고(이후 저장도 그 슬롯을 이어감), `LoadFromFile(SlotName)` 은 이름을 넘기면 그 슬롯을, 비면 활성 슬롯을 다시 읽는다(사망 리스폰 경로). 슬롯 목록 열거·메타데이터는 미지원.
-- **재개 지점 복원**: `SaveToFile` 플러시가 저장 시점의 플레이어 트랜스폼을 `PlayerTransform` 으로 캡처하고, 로드 후 `UWxPlayerSpawnComponent` 이 `TryGetPlayerTransform` 으로 소비한다. 로드도 사망 부활도 이 값 하나로 재개하므로 좌표 원천은 하나다(체크포인트 등 외부가 세팅하지 않는다). `Identity` 는 "미설정" sentinel — 이때 스폰은 `ChoosePlayerStart` 폴백. 좌표라 맵 종속이므로 `TravelData.Map` 일치 게이트와 함께 유효성 판정. 스탯은 맵 무관이라 `bHasPlayerStats` 만으로 적용된다.
-- **슬롯 키잉**: `ActorRecords` 는 `FGuid`(전역 유일) 평면 맵이라 맵별 키잉이 필요 없다.
-- **버전 안전성**: 레코드마다 `[FPackageFileVersion][FCustomVersionContainer]` 헤더 블롭을 보관해 이기종 빌드 누적 복원 시 `FMemoryReader` 커스텀 버전 리셋 함정을 막는다(빈 헤더는 구버전 레코드로 현재 빌드 버전 적용).
-- **권한/타이밍**: `TravelFromSaveFile` 은 authority(서버) 전제 `ServerTravel`. 로드-트래블 시작~새 월드 `OnWorldBeginPlay`(→`ReportTravelFromSaveFileComplete`) 사이 자동 캡처는 전부 스킵된다.
-- **콘솔**: `Wx.Save.Dump` → `LogSaveState` 로 현재 메모리 슬롯 덤프.
+- **저장 대상 등록**: 액터에 `IWxSavable`([[WxCore]]) 구현 + 유효한 `GetSaveId()`(에디터 부여 영속 GUID, 쿠킹 빌드 안전) 반환, 보존 필드에 `UPROPERTY(SaveGame)` 플래그. 무효 GUID 반환 시 저장/복원에서 제외. 별도 등록 코드 불필요 — 월드 서브시스템이 스트리밍/트래블 이벤트에서 자동 처리.
+- **커스텀 슬롯 데이터**: `UWxSaveGame` 서브클래싱 후 `StartNewSaveFile` 의 `SpecificClass` 로 지정.
+- **이름 지정 슬롯**: 빈 슬롯 이름은 양쪽 다 "활성 슬롯"을 뜻한다. `SaveToFile(SlotName)` 은 이름을 넘기면 활성 슬롯을 그 이름으로 재지정 후 저장(이후도 그 슬롯 이어감), `LoadFromFile(SlotName)` 은 비면 활성 슬롯을 다시 읽는다(사망 리스폰 경로). 슬롯 목록 열거·메타데이터는 미지원.
+- **재개 지점**: `SaveToFile` 플러시가 플레이어 트랜스폼을 `PlayerTransform` 으로 캡처(외부가 세팅하지 않음), 로드 후 `UWxPlayerSpawnComponent` 이 `TryGetPlayerTransform` 으로 소비. `Identity` 는 "미설정" sentinel → `ChoosePlayerStart` 폴백. 좌표는 맵 종속이라 `TravelData.Map` 일치 게이트로 유효성 판정(크로스맵 오적용 차단). 스탯은 맵 무관이라 `bHasPlayerStats` 만으로 적용.
+- **슬롯 키잉**: `ActorRecords` 는 `FGuid`(전역 유일) 평면 맵이라 맵별 키잉 불필요.
+- **버전 안전**: 레코드마다 `[FPackageFileVersion][FCustomVersionContainer]` 헤더 블롭을 보관 — 세션 넘어 이기종 빌드로 누적되는 레코드의 `FMemoryReader` 커스텀 버전 리셋 함정을 막는다. 빈 헤더는 구버전 레코드(현재 빌드 버전으로 읽음).
+- **권한/타이밍**: `TravelFromSaveFile` 은 authority(서버) 전제 `ServerTravel`. 로드-트래블 시작~새 월드 `OnWorldBeginPlay`(→`ReportTravelFromSaveFileComplete`) 사이 자동 캡처는 전부 스킵된다(막 로드한 세이브 오염 방지).
+- **콘솔**: `Wx.Save.Dump` → `UWxSaveGameSubsystem::LogSaveState` 로 현재 메모리 슬롯 덤프.
 
 ## 여기서부터 읽어라
-1. `Plugins/WxSave/Source/WxSave/Public/WxSaveGame.h` — 무엇이 저장되는지(레코드·트래블 데이터·PlayerStats·PlayerTransform) 데이터 모델부터 잡으면 나머지가 읽힌다. 필드 주석에 설계 의도가 담겨 있다.
-2. `Plugins/WxSave/Source/WxSave/Public/WxSaveGameSubsystem.h` — 시작/로드/저장/트래블 전체 API 와 슬롯 수명·트래블 가드.
-3. `Plugins/WxSave/Source/WxSave/Public/WxSaveWorldSubsystem.h` — 언제 자동 캡처/복원이 일어나는지(월드 이벤트별 정리).
-4. `Plugins/WxSave/Source/WxSave/Private/WxSaveGameSubsystem.cpp` — `Wx.Save.Dump` 콘솔 명령과 실제 I/O·트래블 구현.
+1. `Source/WxSave/Public/WxSaveGame.h` — 무엇이 저장되는지(레코드·트래블 데이터·PlayerStats·PlayerTransform) 데이터 모델부터 잡으면 나머지가 읽힌다. 필드 주석에 설계 의도가 담겨 있다.
+2. `Source/WxSave/Public/WxSaveGameSubsystem.h` — 시작/로드/저장/트래블 전체 API 와 슬롯 수명·트래블 가드(빈 슬롯 대칭, Identity sentinel).
+3. `Source/WxSave/Private/WxSaveWorldSubsystem.cpp` — 언제·어떻게 자동 캡처/복원이 일어나는지(월드 이벤트별 실제 직렬화 구현).
+4. `Source/WxSave/Public/WxPlayerSpawnComponent.h` — "세이브가 단일 원천, 마커는 파생물" 스폰 전략. GameMode `FrameworkComponents` 등록 필수 조건 주의.
 
 ## 관련
-- 상위: [[WxCore]] (`IWxSavable` 정의 소유). 저장 대상 액터를 제공하는 도메인([[WxWorld]] 등), 로드 후 스폰을 처리하는 `UWxPlayerSpawnComponent`, 세이브 API 를 호출하는 [[WxUI]] 가 소비자다.
+- 상위: [[WxCore]] (`IWxSavable` 정의 소유)
+- 소비 도메인: [[WxWorld]] (기믹/스포너 등 savable 액터·저장 트리거), [[WxUI]] (세이브/로드 API 호출)
 
 ---
-*문서 기준 커밋 `842f761` · 생성일 2026-07-14 · 소스 9파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `465b77a` · 생성일 2026-07-17 · 소스 11파일 — `/readme-writer`로 갱신*

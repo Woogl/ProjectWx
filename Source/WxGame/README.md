@@ -54,4 +54,4 @@
 - 함께: [[WxCombat]] · [[WxInventory]] · [[WxWorld]] · [[WxAI]] · [[WxUI]] · [[WxSound]] · [[WxSave]] · [[WxCore]]
 
 ---
-*문서 기준 커밋 `08c2d0c` · 생성일 2026-07-16 · 소스 44파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `465b77a` · 생성일 2026-07-17 · 소스 42파일 — `/readme-writer`로 갱신*
