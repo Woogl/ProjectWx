@@ -449,6 +449,13 @@ void UWxAbilityBase::HandleHitStopEvent(FGameplayEventData Payload)
 		return;
 	}
 
+	// 이 어빌리티가 더 이상 재생 중인 몽타주의 주인이 아니면(예: 패리 반응이 몽타주를 가로챈 경우) 히트스톱을 적용하지 않는다.
+	// CurrentMontageSetPlayRate는 ASC의 현재 몽타주를 건드리므로, 남의 몽타주를 0.001로 얼려 영구 정지시키는 것을 막는다.
+	if (ASC->GetAnimatingAbility() != this)
+	{
+		return;
+	}
+
 	// 재생 중인 자기 몽타주를 거의 정지시킨다. 완전한 0이 아닌 미세 값으로 두어 몽타주 진행 판정 이슈를 피한다.
 	ASC->CurrentMontageSetPlayRate(0.001f);
 
