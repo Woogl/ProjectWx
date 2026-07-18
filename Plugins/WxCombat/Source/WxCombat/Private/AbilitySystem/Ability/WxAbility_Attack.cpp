@@ -31,6 +31,8 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
+	StartHitStopListener();
+
 	// 콤보 재발동이면 저장된 경로, 아니면 입력 종류로 첫 경로 결정
 	FString ActivationPath;
 	if (!NextComboPath.IsEmpty() && ComboMap.Contains(FName(*NextComboPath)))

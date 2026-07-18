@@ -31,6 +31,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_Interact, "Event.Interact");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Finisher, "Event.Finisher");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Backstab, "Event.Backstab");
+	UE_DEFINE_GAMEPLAY_TAG(Event_HitStop, "Event.HitStop");
 
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Door_Close, "Gimmick.Door.Close");
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Door_Open, "Gimmick.Door.Open");
@@ -67,7 +68,10 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_BuffATK, "GameplayCue.BuffATK");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Exceed, "GameplayCue.Exceed");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Burn, "GameplayCue.Burn");
-	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_HitStop, "GameplayCue.HitStop");
+	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_AttackTelegraph_Red, "GameplayCue.AttackTelegraph.Red");
+	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_AttackTelegraph_Yellow, "GameplayCue.AttackTelegraph.Yellow");
+	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_AttackTelegraph_Blue, "GameplayCue.AttackTelegraph.Blue");
+	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_AttackTelegraph_Purple, "GameplayCue.AttackTelegraph.Purple");
 
 	UE_DEFINE_GAMEPLAY_TAG(Damage_Critical, "Damage.Critical");
 	UE_DEFINE_GAMEPLAY_TAG(Damage_Unblockable, "Damage.Unblockable");
@@ -105,6 +109,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_ReflectDP, "SetByCaller.ReflectDP");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Coeff_ATK, "SetByCaller.Coeff.ATK");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_RawDamage, "SetByCaller.RawDamage");
+	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_HitStop, "SetByCaller.HitStop");
 
 	UE_DEFINE_GAMEPLAY_TAG(Input_Attack, "Input.Attack");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Attack_Light, "Input.Attack.Light");

@@ -26,16 +26,14 @@ bool UWxCombatLibrary::ApplyDamage(UAbilitySystemComponent* Source, UAbilitySyst
 	{
 		if (Spec.IsValid())
 		{
+			// 히트스톱 지속시간을 스펙에 실어 보낸다. 실제 발동(무적 회피 제외)은 WxExecCalc_Damage가 적중 판정 후 처리한다.
+			if (HitStopDuration > 0.f)
+			{
+				Spec.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_HitStop, HitStopDuration);
+			}
 			Source->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), Target);
 			bAppliedAny = true;
 		}
-	}
-
-	if (bAppliedAny && HitStopDuration > 0.f)
-	{
-		FGameplayCueParameters HitStopParams;
-		HitStopParams.RawMagnitude = HitStopDuration;
-		Source->ExecuteGameplayCue(WxGameplayTags::GameplayCue_HitStop, HitStopParams);
 	}
 
 	return bAppliedAny;

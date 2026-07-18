@@ -29,6 +29,8 @@ void UWxAbility_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		return;
 	}
 
+	StartHitStopListener();
+
 	if (SkillMontages.Num() == 0)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);

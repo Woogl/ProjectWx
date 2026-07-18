@@ -13,6 +13,7 @@ class UGameplayEffect;
 class UWxEffect_Cooldown;
 class UWxEffect_Cost;
 class UWxAbilityComponent;
+class UAbilityTask_WaitGameplayEvent;
 class AWxProjectileBase;
 struct FWxAbilityTableRow;
 
@@ -146,7 +147,16 @@ public:
 	virtual UGameplayEffect* GetCostGameplayEffect() const override;
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
+	/** 히트스톱 복원 타이머를 정리한다. 몽타주로 대미지를 주는 파생 어빌리티는 Super 체인으로 이 정리를 받는다. */
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+
 protected:
+	/**
+	 * 히트스톱(역경직) 이벤트 리스너를 시작한다. 몽타주로 대미지를 주는 어빌리티가 ActivateAbility에서 opt-in 호출한다.
+	 * Event.HitStop 수신 시 재생 중인 자기 몽타주 재생률을 잠깐 0 근처로 낮췄다가 GetMontagePlayRate()로 복원한다.
+	 */
+	void StartHitStopListener();
+
 	/** 테이블 Row 데이터를 내부 변수에 적용한다 */
 	virtual void ApplyAbilityTableRow(const FWxAbilityTableRow& Row);
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
@@ -175,4 +185,16 @@ private:
 	 */
 	UPROPERTY(Transient)
 	mutable TObjectPtr<UWxEffect_Cost> CostEffect;
+
+	/** Event.HitStop 수신 시 재생 중인 몽타주를 정지시키고 복원 타이머를 (재)예약한다 */
+	UFUNCTION()
+	void HandleHitStopEvent(FGameplayEventData Payload);
+
+	/** 히트스톱 복원. 몽타주 재생률을 GetMontagePlayRate()(ASPD 반영)로 되돌린다 */
+	void ResumeFromHitStop();
+
+	UPROPERTY()
+	TObjectPtr<UAbilityTask_WaitGameplayEvent> HitStopListenerTask;
+
+	FTimerHandle HitStopResumeTimer;
 };

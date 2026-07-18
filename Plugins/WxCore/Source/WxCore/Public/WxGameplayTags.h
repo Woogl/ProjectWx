@@ -95,6 +95,9 @@ namespace WxGameplayTags
 	/** 백스탭(뒤잡) 발동 이벤트. 미인지 적 후방 상호작용 시 플레이어 ASC로 송출(Target=적), WxAbility_Finisher가 트리거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Backstab);
 
+	/** 역경직(히트 스톱) 이벤트. WxExecCalc_Damage가 무적 회피가 아닌 적중에 공격자 ASC로 송출(EventMagnitude=정지 시간), 재생 중인 공격 어빌리티가 자기 몽타주를 잠깐 정지 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitStop);
+
 	// ── Gimmick ───────────────────────────────────────────────────────────
 	// 각 태그는 해당 기믹의 권위 상태 값(복제·SaveGame)이자, GimmickStateTree 로 보내는
 	// 진입 이벤트(상태의 Required Event to Enter 와 매칭)를 겸한다.
@@ -152,8 +155,11 @@ namespace WxGameplayTags
 	/** 화상 지속 Cue */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Burn);
 
-	/** 역경직(히트 스톱) Cue. WxWeaponBase로 공격 적중 시 공격자·피격자의 애니메이션 일시 정지 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_HitStop);
+	/** 공격 텔레그래프(선딜 표시) Cue. 색상별로 나뉘며, AttackTelegraph 노티파이가 권위에서 발행. RawMagnitude에 차징 길이를 실어 전달 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_AttackTelegraph_Red);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_AttackTelegraph_Yellow);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_AttackTelegraph_Blue);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_AttackTelegraph_Purple);
 
 	// ── Damage ────────────────────────────────────────────────────────────
 
@@ -213,6 +219,9 @@ namespace WxGameplayTags
 
 	/** 원시 대미지 SetByCaller 키. 양수일 때 ATK/DEF/Coeff/크리를 우회하고 평탄 값으로 대미지 처리 (환경 대미지). 가드/퍼펙트 가드/HitReact는 정상 동작 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_RawDamage);
+
+	/** 역경직(히트 스톱) 지속시간 SetByCaller 키. WxExecCalc_Damage가 적중 시 이 값을 실어 공격자에게 Event.HitStop을 발동한다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_HitStop);
 
 	// ── Input ──────────────────────────────────────────────────────────────
 
