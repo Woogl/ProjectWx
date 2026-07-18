@@ -5,7 +5,6 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "WxDamageTableRow.h"
 
 void UWxAnimNotify_FinisherDamage::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
@@ -27,16 +26,6 @@ void UWxAnimNotify_FinisherDamage::Notify(USkeletalMeshComponent* MeshComp, UAni
 	// 뒤잡 즉사/앞잡 계수 분기는 어빌리티가 현재 재생 몽타주로 판단한다.
 	if (UWxAbility_Finisher* Finisher = Cast<UWxAbility_Finisher>(ASC->GetAnimatingAbility()))
 	{
-		Finisher->ApplyFinisherDamage(ResolveDamageInfo());
+		Finisher->ApplyFinisherDamage(FWxDamageInfo::FromDataRow(DamageDataRow));
 	}
-}
-
-FWxDamageInfo UWxAnimNotify_FinisherDamage::ResolveDamageInfo() const
-{
-	FWxDamageInfo Resolved;
-	if (const FWxDamageTableRow* Row = DamageDataRow.GetRow<FWxDamageTableRow>(TEXT("WxAnimNotify_FinisherDamage")))
-	{
-		Resolved.ApplyTableRow(*Row);
-	}
-	return Resolved;
 }

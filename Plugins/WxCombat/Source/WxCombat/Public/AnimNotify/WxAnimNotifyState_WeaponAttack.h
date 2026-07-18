@@ -29,7 +29,4 @@ protected:
 	/** 이 공격의 대미지 수치 테이블 Row */
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxDamageTableRow"))
 	FDataTableRowHandle DamageDataRow;
-
-private:
-	FWxDamageInfo ResolveDamageInfo() const;
 };

@@ -1,7 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AnimNotify/WxAnimNotifyState_WeaponAttack.h"
-#include "WxDamageTableRow.h"
 #include "Weapon/WxWeaponBase.h"
 
 UWxAnimNotifyState_WeaponAttack::UWxAnimNotifyState_WeaponAttack()
@@ -22,7 +21,7 @@ void UWxAnimNotifyState_WeaponAttack::NotifyBegin(USkeletalMeshComponent* MeshCo
 
 	if (AWxWeaponBase* Weapon = AWxWeaponBase::FindWeapon(Owner))
 	{
-		Weapon->BeginAttack(ResolveDamageInfo());
+		Weapon->BeginAttack(FWxDamageInfo::FromDataRow(DamageDataRow));
 	}
 }
 
@@ -40,14 +39,4 @@ void UWxAnimNotifyState_WeaponAttack::NotifyEnd(USkeletalMeshComponent* MeshComp
 	{
 		Weapon->EndAttack();
 	}
-}
-
-FWxDamageInfo UWxAnimNotifyState_WeaponAttack::ResolveDamageInfo() const
-{
-	FWxDamageInfo Resolved;
-	if (const FWxDamageTableRow* Row = DamageDataRow.GetRow<FWxDamageTableRow>(TEXT("WxAnimNotifyState_WeaponAttack")))
-	{
-		Resolved.ApplyTableRow(*Row);
-	}
-	return Resolved;
 }

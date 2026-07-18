@@ -11,15 +11,20 @@ FWxDamageInfo::FWxDamageInfo()
 	HitReactTag = WxGameplayTags::Event_HitReact_Normal;
 }
 
-void FWxDamageInfo::ApplyTableRow(const FWxDamageTableRow& Row)
+FWxDamageInfo FWxDamageInfo::FromDataRow(const FDataTableRowHandle& RowHandle)
 {
-	CoeffATK = Row.CoeffATK;
-	RecoverMP = Row.RecoverMP;
-	RecoverUP = Row.RecoverUP;
-	HitReactTag = Row.HitReactTag;
-	bUnblockable = Row.bUnblockable;
-	bParryHitReact = Row.bParryHitReact;
-	AdditionalEffects = Row.AdditionalEffects;
+	FWxDamageInfo DamageInfo;
+	if (const FWxDamageTableRow* Row = RowHandle.GetRow<FWxDamageTableRow>(RowHandle.ToDebugString()))
+	{
+		DamageInfo.CoeffATK = Row->CoeffATK;
+		DamageInfo.RecoverMP = Row->RecoverMP;
+		DamageInfo.RecoverUP = Row->RecoverUP;
+		DamageInfo.HitReactTag = Row->HitReactTag;
+		DamageInfo.bUnblockable = Row->bUnblockable;
+		DamageInfo.bParryHitReact = Row->bParryHitReact;
+		DamageInfo.AdditionalEffects = Row->AdditionalEffects;
+	}
+	return DamageInfo;
 }
 
 TArray<FGameplayEffectSpecHandle> FWxDamageInfo::MakeSpecs(UAbilitySystemComponent* SourceASC, const FGameplayEffectContextHandle& Context) const

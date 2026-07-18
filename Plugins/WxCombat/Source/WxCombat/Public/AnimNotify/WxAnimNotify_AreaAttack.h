@@ -14,7 +14,7 @@ class UTargetingPreset;
  * 범위 공격 AnimNotify.
  *
  * 인스턴트 1회성 AoE 공격용.
- * 해당 프레임에 TargetingPreset 쿼리를 1회 실행해 잡힌 액터들의 ASC에 DamageInfo로부터 만든 Damage Spec을 적용한다.
+ * 해당 프레임에 TargetingPreset 쿼리를 1회 실행해 잡힌 액터들의 ASC에 DamageDataRow로부터 만든 Damage Spec을 적용한다.
  * 서버에서만 처리한다.
  *
  * SourceSocketName이 NAME_None이 아니면 해당 소켓 위치를 쿼리의 SourceLocation으로 사용한다.
@@ -29,10 +29,6 @@ class WXCOMBAT_API UWxAnimNotify_AreaAttack : public UAnimNotify
 public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 
-#if WITH_EDITOR
-	virtual bool CanEditChange(const FProperty* InProperty) const override;
-#endif
-
 protected:
 	/** 타겟 후보 쿼리에 사용할 TargetingPreset. AOE Selection + Team/LineTrace Filter 조합을 권장 */
 	UPROPERTY(EditAnywhere, Category = "Wx|Targeting")
@@ -42,13 +38,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|Targeting")
 	FName SourceSocketName = NAME_None;
 
-	/** 설정 시 DamageInfo를 테이블에서 읽어 사용한다. 미설정 시 아래 DamageInfo를 직접 사용 */
+	/** 잡힌 액터들에게 적용할 대미지 수치를 읽을 대미지 테이블 행 */
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxDamageTableRow"))
 	FDataTableRowHandle DamageDataRow;
-
-	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ShowOnlyInnerProperties))
-	FWxDamageInfo DamageInfo;
-
-private:
-	FWxDamageInfo ResolveDamageInfo() const;
 };

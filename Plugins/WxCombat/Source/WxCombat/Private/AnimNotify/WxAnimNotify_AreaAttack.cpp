@@ -6,7 +6,6 @@
 #include "AbilitySystemComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "TargetingSystem/TargetingSubsystem.h"
-#include "WxDamageTableRow.h"
 
 void UWxAnimNotify_AreaAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
@@ -54,8 +53,7 @@ void UWxAnimNotify_AreaAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 	{
 		return;
 	}
-
-	const FWxDamageInfo ResolvedDamageInfo = ResolveDamageInfo();
+	
 	APawn* OwnerPawn = Cast<APawn>(Owner);
 
 	for (AActor* TargetActor : TargetActors)
@@ -83,7 +81,8 @@ void UWxAnimNotify_AreaAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 		HitResult.Location = TargetActor->GetActorLocation();
 		Context.AddHitResult(HitResult, true);
 
-		const TArray<FGameplayEffectSpecHandle> Specs = ResolvedDamageInfo.MakeSpecs(SourceASC, Context);
+		FWxDamageInfo DamageInfo = FWxDamageInfo::FromDataRow(DamageDataRow);
+		const TArray<FGameplayEffectSpecHandle> Specs = DamageInfo.MakeSpecs(SourceASC, Context);
 		for (const FGameplayEffectSpecHandle& SpecHandle : Specs)
 		{
 			if (SpecHandle.IsValid())
@@ -92,33 +91,4 @@ void UWxAnimNotify_AreaAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 			}
 		}
 	}
-}
-
-#if WITH_EDITOR
-bool UWxAnimNotify_AreaAttack::CanEditChange(const FProperty* InProperty) const
-{
-	if (!Super::CanEditChange(InProperty))
-	{
-		return false;
-	}
-
-	if (DamageDataRow.DataTable != nullptr && InProperty->GetOwnerStruct() == FWxDamageInfo::StaticStruct())
-	{
-		return false;
-	}
-
-	return true;
-}
-#endif
-
-FWxDamageInfo UWxAnimNotify_AreaAttack::ResolveDamageInfo() const
-{
-	if (const FWxDamageTableRow* Row = DamageDataRow.GetRow<FWxDamageTableRow>(TEXT("WxAnimNotify_AreaAttack")))
-	{
-		FWxDamageInfo Resolved;
-		Resolved.ApplyTableRow(*Row);
-		return Resolved;
-	}
-
-	return DamageInfo;
 }

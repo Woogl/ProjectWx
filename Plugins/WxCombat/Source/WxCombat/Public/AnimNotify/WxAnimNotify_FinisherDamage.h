@@ -30,7 +30,4 @@ protected:
 	/** 앞잡 계수 대미지 수치를 읽을 대미지 테이블 행. (뒤잡은 어빌리티가 즉사 GE를 적용하므로 무시된다) */
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxDamageTableRow"))
 	FDataTableRowHandle DamageDataRow;
-
-private:
-	FWxDamageInfo ResolveDamageInfo() const;
 };

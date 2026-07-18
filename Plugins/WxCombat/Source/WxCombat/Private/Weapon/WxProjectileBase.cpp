@@ -53,19 +53,12 @@ void AWxProjectileBase::InitializeDamageSpec()
 		return;
 	}
 
-	const FWxDamageTableRow* Row = DamageDataRow.GetRow<FWxDamageTableRow>(TEXT("WxProjectileBase"));
-	if (!Row)
-	{
-		return;
-	}
-
 	CachedEffectContext = SourceASC->MakeEffectContext();
 	CachedEffectContext.AddSourceObject(this);
 	CachedEffectContext.AddInstigator(GetOwner(), GetInstigator());
 	CachedEffectContext.SetAbility(SourceASC->GetAnimatingAbility());
 
-	FWxDamageInfo DamageInfo;
-	DamageInfo.ApplyTableRow(*Row);
+	FWxDamageInfo DamageInfo = FWxDamageInfo::FromDataRow(DamageDataRow);
 	CachedSpecHandles = DamageInfo.MakeSpecs(SourceASC, CachedEffectContext);
 }
 
