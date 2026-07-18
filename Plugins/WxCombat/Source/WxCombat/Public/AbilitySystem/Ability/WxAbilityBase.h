@@ -44,15 +44,15 @@ enum class EWxAbilityActivationPolicy : uint8
  * 프로젝트 전체 어빌리티 베이스 클래스.
  * 모든 어빌리티는 이 클래스를 상속받아 작성.
  *
- * 쿨다운은 CooldownTime, MaxRecharges 프로퍼티로 설정한다.
- * 내부적으로 공용 UWxEffect_Cooldown GE를 사용하며, 소스 어빌리티 CDO로 개별 어빌리티의 쿨다운을 구분한다.
+ * 쿨다운/코스트 수치는 AbilityDataRow(FWxAbilityTableRow)에서만 읽는다. 필요한 시점마다 GetTableRow()로 Row를 해석해 온디맨드로 사용한다.
+ * 쿨다운은 내부적으로 공용 UWxEffect_Cooldown GE를 사용하며, 소스 어빌리티 CDO로 개별 어빌리티의 쿨다운을 구분한다.
  * 소모된 충전 1개당 GE 1개를 적용하고, 기존 GE는 제거하지 않고 자연 만료로 충전을 회복한다.
  *
- * 코스트는 MPCost, UPCost 프로퍼티로 설정한다.
- * GetCostGameplayEffect()가 공용 UWxEffect_Cost GE에 모디파이어를 채워 반환하므로 검사는 엔진 순정 CheckCost를 그대로 사용한다.
+ * 코스트는 GetCostGameplayEffect()가 공용 UWxEffect_Cost GE에 모디파이어를 채워 반환하므로 검사는 엔진 순정 CheckCost를 그대로 사용한다.
  * ApplyCost는 엔진이 GE의 GetClass() CDO로 스펙을 다시 만드는 탓에 런타임 구성 인스턴스가 무시되어, 인스턴스 Def로 스펙을 만드는 얇은 오버라이드만 둔다.
  *
- * AbilityDataRow가 설정되어 있으면 어빌리티 부여 시 테이블 Row에서 수치를 읽어온다.
+ * CooldownGameplayEffectClass/CostGameplayEffectClass의 기본값은 각 공용 GE(UWxEffect_Cooldown/UWxEffect_Cost)를 가리키는 "마커"다.
+ * 마커 그대로면 프로젝트 방식(AbilityDataRow 기반), 다른 GE로 바꾸면 그 어빌리티는 엔진 순정 GE 경로를 쓴다(AbilityDataRow와 상호배타). 디테일 패널에서 어느 쪽인지 바로 읽힌다.
  */
 UCLASS(Abstract, BlueprintType, Blueprintable)
 class WXCOMBAT_API UWxAbilityBase : public UGameplayAbility
@@ -83,25 +83,9 @@ public:
 		return Cast<T>(FindComponent(T::StaticClass()));
 	}
 
-	/** 어빌리티 수치 데이터테이블 Row 참조. 설정 시 OnGiveAbility에서 테이블 값으로 덮어쓴다 */
+	/** 어빌리티 수치(쿨다운·충전·코스트) 데이터테이블 Row 참조. 쿨다운/코스트 함수가 이 Row에서 값을 읽는다 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxAbilityTableRow"))
 	FDataTableRowHandle AbilityDataRow;
-
-	/** 쿨다운 시간(초). 0 이하이면 쿨다운 미적용 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cooldown", meta = (ClampMin = "0"))
-	float CooldownTime = 0.f;
-
-	/** 최대 충전 수. 1이면 단일 쿨다운 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cooldown", meta = (ClampMin = "1"))
-	int32 MaxRecharges = 1;
-
-	/** MP 소모량. 0 이하이면 미적용 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cost", meta = (ClampMin = "0"))
-	float MPCost = 0.f;
-
-	/** UP 소모량. 0 이하이면 미적용 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cost", meta = (ClampMin = "0"))
-	float UPCost = 0.f;
 
 	/**
 	 * 현재 아바타의 ASPD가 반영된 몽타주 재생 속도. ASC/AttributeSet 미가용 시 1.0
@@ -147,18 +131,16 @@ public:
 	virtual UGameplayEffect* GetCostGameplayEffect() const override;
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
+protected:
 	/** 히트스톱 복원 타이머를 정리한다. 몽타주로 대미지를 주는 파생 어빌리티는 Super 체인으로 이 정리를 받는다. */
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-
-protected:
+	
 	/**
 	 * 히트스톱(역경직) 이벤트 리스너를 시작한다. 몽타주로 대미지를 주는 어빌리티가 ActivateAbility에서 opt-in 호출한다.
 	 * Event.HitStop 수신 시 재생 중인 자기 몽타주 재생률을 잠깐 0 근처로 낮췄다가 GetMontagePlayRate()로 복원한다.
 	 */
 	void StartHitStopListener();
 
-	/** 테이블 Row 데이터를 내부 변수에 적용한다 */
-	virtual void ApplyAbilityTableRow(const FWxAbilityTableRow& Row);
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
 	/** 어빌리티 발동 시 자신에게 적용할 GameplayEffect 목록 (버프, 상태 부여 등). 각 GE의 Duration 정책에 따라 자연 만료된다. */
@@ -166,6 +148,9 @@ protected:
 	TArray<FWxAbilityEffect> OnActivateEffects;
 
 private:
+	/** AbilityDataRow가 가리키는 수치 Row를 해석해 반환한다. 미설정/무효면 nullptr. */
+	const FWxAbilityTableRow* GetTableRow() const;
+
 	/**
 	 * 이 어빌리티(소스 CDO 기준)가 적용한 활성 쿨다운 GE를 집계한다. 활성 GE 1개 = 회복 대기 중인 충전 1개.
 	 * 가장 늦게 만료되는 GE의 잔여시간과 전체 지속시간을 출력 인자로 채우고, 활성 GE 수를 반환한다.
@@ -174,14 +159,14 @@ private:
 
 	/**
 	 * GetCooldownGameplayEffect()가 반환하는 GE 인스턴스.
-	 * ViewModel이 GetClass()로 쿨다운 GE 클래스를, StackLimitCount로 MaxRecharges를 읽는다.
+	 * ViewModel이 GetClass()로 쿨다운 GE 클래스를, StackLimitCount로 최대 충전 수를 읽는다.
 	 */
 	UPROPERTY(Transient)
 	mutable TObjectPtr<UWxEffect_Cooldown> CooldownEffect;
 
 	/**
 	 * GetCostGameplayEffect()가 반환하는 GE 인스턴스.
-	 * Modifiers는 호출 시점의 MPCost/UPCost로 갱신된다. ViewModel이 Modifiers에서 코스트 어트리뷰트를 읽는다.
+	 * Modifiers는 AbilityDataRow의 MPCost/UPCost로 갱신된다. ViewModel이 Modifiers에서 코스트 어트리뷰트를 읽는다.
 	 */
 	UPROPERTY(Transient)
 	mutable TObjectPtr<UWxEffect_Cost> CostEffect;

@@ -16,7 +16,7 @@ class UAnimMontage;
  * 입력/UI 아이콘는 사용하지 않으며, 디테일 패널에서 해당 프로퍼티는 비활성화된다.
  *
  * 단일 몽타주를 재생하고 완료 또는 중단 시 EndAbility.
- * 쿨다운/충전은 WxAbilityBase의 CooldownTime, MaxRecharges로 설정한다.
+ * 쿨다운/충전은 WxAbilityBase의 AbilityDataRow로 설정한다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Pattern : public UWxAbilityBase

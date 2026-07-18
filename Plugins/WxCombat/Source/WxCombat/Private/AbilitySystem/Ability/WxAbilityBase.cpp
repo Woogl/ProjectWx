@@ -21,6 +21,10 @@ UWxAbilityBase::UWxAbilityBase()
 {
 	InstancingPolicy  = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+
+	// 기본값을 공용 GE 마커로 둔다. 마커 그대로면 프로젝트 방식(AbilityDataRow 기반), 다른 GE로 바꾸면 커스텀(엔진 순정 경로).
+	CooldownGameplayEffectClass = UWxEffect_Cooldown::StaticClass();
+	CostGameplayEffectClass = UWxEffect_Cost::StaticClass();
 }
 
 const UWxAbilityComponent* UWxAbilityBase::FindComponent(TSubclassOf<UWxAbilityComponent> ComponentClass) const
@@ -107,37 +111,16 @@ bool UWxAbilityBase::CanEditChange(const FProperty* InProperty) const
 	if (InProperty)
 	{
 		const FName PropertyName = InProperty->GetFName();
-		const bool bHasDataRow = !AbilityDataRow.IsNull();
 
+		// 스톡 GE 클래스 경로는 AbilityDataRow와 상호배타다. Row가 설정돼 있으면 스톡 클래스 편집을 막는다.
 		static const FName CooldownGEName = TEXT("CooldownGameplayEffectClass");
 		static const FName CostGEName = TEXT("CostGameplayEffectClass");
-		if (PropertyName == CooldownGEName || PropertyName == CostGEName)
+		if ((PropertyName == CooldownGEName || PropertyName == CostGEName) && !AbilityDataRow.IsNull())
 		{
-			if (bHasDataRow)
-			{
-				return false;
-			}
-		}
-
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, CooldownTime)
-			|| PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, MaxRecharges))
-		{
-			if (CooldownGameplayEffectClass || bHasDataRow)
-			{
-				return false;
-			}
-		}
-
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, MPCost)
-			|| PropertyName == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, UPCost))
-		{
-			if (CostGameplayEffectClass || bHasDataRow)
-			{
-				return false;
-			}
+			return false;
 		}
 	}
-	
+
 	return true;
 }
 
@@ -149,8 +132,9 @@ void UWxAbilityBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChang
 	{
 		if (!AbilityDataRow.IsNull())
 		{
-			CooldownGameplayEffectClass = nullptr;
-			CostGameplayEffectClass = nullptr;
+			// Row = 프로젝트 방식이므로 커스텀 GE를 걷어내고 마커로 되돌린다("Row = 마커 표시" 불변식 유지).
+			CooldownGameplayEffectClass = UWxEffect_Cooldown::StaticClass();
+			CostGameplayEffectClass = UWxEffect_Cost::StaticClass();
 		}
 	}
 }
@@ -161,17 +145,6 @@ void UWxAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, c
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
 
-	if (const FWxAbilityTableRow* Row = AbilityDataRow.GetRow<FWxAbilityTableRow>(TEXT("WxAbilityBase::OnGiveAbility")))
-	{
-		ApplyAbilityTableRow(*Row);
-
-		UWxAbilityBase* CDO = GetClass()->GetDefaultObject<UWxAbilityBase>();
-		if (CDO != this)
-		{
-			CDO->ApplyAbilityTableRow(*Row);
-		}
-	}
-
 	if (ActivationPolicy == EWxAbilityActivationPolicy::OnGranted)
 	{
 		ActorInfo->AbilitySystemComponent->TryActivateAbility(Spec.Handle);
@@ -180,12 +153,13 @@ void UWxAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, c
 
 UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
 {
-	if (CooldownGameplayEffectClass)
+	if (CooldownGameplayEffectClass && CooldownGameplayEffectClass != UWxEffect_Cooldown::StaticClass())
 	{
 		return Super::GetCooldownGameplayEffect();
 	}
 
-	if (CooldownTime <= 0.f)
+	const FWxAbilityTableRow* Row = GetTableRow();
+	if (!Row || Row->CooldownTime <= 0.f)
 	{
 		return nullptr;
 	}
@@ -195,18 +169,19 @@ UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
 		CooldownEffect = NewObject<UWxEffect_Cooldown>(const_cast<UWxAbilityBase*>(this), TEXT("CooldownEffect"));
 	}
 
-	CooldownEffect->StackLimitCount = MaxRecharges;
+	CooldownEffect->StackLimitCount = FMath::Max(1, Row->MaxRecharges);
 	return CooldownEffect;
 }
 
 bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	if (CooldownGameplayEffectClass)
+	if (CooldownGameplayEffectClass && CooldownGameplayEffectClass != UWxEffect_Cooldown::StaticClass())
 	{
 		return Super::CheckCooldown(Handle, ActorInfo, OptionalRelevantTags);
 	}
 
-	if (CooldownTime <= 0.f)
+	const FWxAbilityTableRow* Row = GetTableRow();
+	if (!Row || Row->CooldownTime <= 0.f)
 	{
 		return true;
 	}
@@ -219,7 +194,7 @@ bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, cons
 
 	float LongestRemaining = 0.f;
 	float LongestDuration = 0.f;
-	if (QueryActiveCooldowns(*ASC, LongestRemaining, LongestDuration) >= MaxRecharges)
+	if (QueryActiveCooldowns(*ASC, LongestRemaining, LongestDuration) >= FMath::Max(1, Row->MaxRecharges))
 	{
 		// 엔진 순정 CheckCooldown과 동일하게 실패 사유 태그를 채워 OnAbilityFailed 파이프라인(실패 피드백 UI 등)에 전달한다
 		if (OptionalRelevantTags)
@@ -238,13 +213,14 @@ bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, cons
 
 void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
 {
-	if (CooldownGameplayEffectClass)
+	if (CooldownGameplayEffectClass && CooldownGameplayEffectClass != UWxEffect_Cooldown::StaticClass())
 	{
 		Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
 		return;
 	}
 
-	if (CooldownTime <= 0.f)
+	const FWxAbilityTableRow* Row = GetTableRow();
+	if (!Row || Row->CooldownTime <= 0.f)
 	{
 		return;
 	}
@@ -265,14 +241,14 @@ void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, cons
 	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_Cooldown::StaticClass(), GetAbilityLevel());
 	if (SpecHandle.IsValid())
 	{
-		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, LongestRemaining + CooldownTime);
+		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, LongestRemaining + Row->CooldownTime);
 		ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
 	}
 }
 
 float UWxAbilityBase::GetCooldownTimeRemaining(const FGameplayAbilityActorInfo* ActorInfo) const
 {
-	if (CooldownGameplayEffectClass)
+	if (CooldownGameplayEffectClass && CooldownGameplayEffectClass != UWxEffect_Cooldown::StaticClass())
 	{
 		return Super::GetCooldownTimeRemaining(ActorInfo);
 	}
@@ -288,7 +264,7 @@ float UWxAbilityBase::GetCooldownTimeRemaining(const FGameplayAbilityActorInfo* 
 
 void UWxAbilityBase::GetCooldownTimeRemainingAndDuration(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, float& TimeRemaining, float& CooldownDuration) const
 {
-	if (CooldownGameplayEffectClass)
+	if (CooldownGameplayEffectClass && CooldownGameplayEffectClass != UWxEffect_Cooldown::StaticClass())
 	{
 		Super::GetCooldownTimeRemainingAndDuration(Handle, ActorInfo, TimeRemaining, CooldownDuration);
 		return;
@@ -304,12 +280,13 @@ void UWxAbilityBase::GetCooldownTimeRemainingAndDuration(FGameplayAbilitySpecHan
 
 UGameplayEffect* UWxAbilityBase::GetCostGameplayEffect() const
 {
-	if (CostGameplayEffectClass)
+	if (CostGameplayEffectClass && CostGameplayEffectClass != UWxEffect_Cost::StaticClass())
 	{
 		return Super::GetCostGameplayEffect();
 	}
 
-	if (MPCost <= 0.f && UPCost <= 0.f)
+	const FWxAbilityTableRow* Row = GetTableRow();
+	if (!Row || (Row->MPCost <= 0.f && Row->UPCost <= 0.f))
 	{
 		return nullptr;
 	}
@@ -321,21 +298,21 @@ UGameplayEffect* UWxAbilityBase::GetCostGameplayEffect() const
 
 	CostEffect->Modifiers.Reset();
 
-	if (MPCost > 0.f)
+	if (Row->MPCost > 0.f)
 	{
 		FGameplayModifierInfo Modifier;
 		Modifier.Attribute = UWxCombatAttributeSet::GetMPAttribute();
 		Modifier.ModifierOp = EGameplayModOp::AddBase;
-		Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(-MPCost));
+		Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(-Row->MPCost));
 		CostEffect->Modifiers.Add(Modifier);
 	}
 
-	if (UPCost > 0.f)
+	if (Row->UPCost > 0.f)
 	{
 		FGameplayModifierInfo Modifier;
 		Modifier.Attribute = UWxCombatAttributeSet::GetUPAttribute();
 		Modifier.ModifierOp = EGameplayModOp::AddBase;
-		Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(-UPCost));
+		Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(-Row->UPCost));
 		CostEffect->Modifiers.Add(Modifier);
 	}
 
@@ -344,7 +321,7 @@ UGameplayEffect* UWxAbilityBase::GetCostGameplayEffect() const
 
 void UWxAbilityBase::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
 {
-	if (CostGameplayEffectClass)
+	if (CostGameplayEffectClass && CostGameplayEffectClass != UWxEffect_Cost::StaticClass())
 	{
 		Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
 		return;
@@ -389,12 +366,13 @@ void UWxAbilityBase::StartHitStopListener()
 	HitStopListenerTask->ReadyForActivation();
 }
 
-void UWxAbilityBase::ApplyAbilityTableRow(const FWxAbilityTableRow& Row)
+const FWxAbilityTableRow* UWxAbilityBase::GetTableRow() const
 {
-	CooldownTime = Row.CooldownTime;
-	MaxRecharges = FMath::Max(1, Row.MaxRecharges);
-	MPCost = Row.MPCost;
-	UPCost = Row.UPCost;
+	if (AbilityDataRow.IsNull())
+	{
+		return nullptr;
+	}
+	return AbilityDataRow.GetRow<FWxAbilityTableRow>(TEXT("WxAbilityBase::GetDataRow"));
 }
 
 void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

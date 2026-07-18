@@ -40,7 +40,7 @@ flowchart TD
 - 부여는 `AWxCharacterBase::InitAbilitySystem()`에서 일어난다. 서버는 `PossessedBy`에서, 클라이언트는 `OnRep_PlayerState`(플레이어) 경로로 호출한다. 실제 `GiveAbility`는 `if (HasAuthority())` 안에서만 실행되고 클라이언트에는 복제된다 — **부여는 서버 권위**.
 - `UWxAbilitySet`(EditDefaultsOnly로 BP에 지정한 `UPrimaryDataAsset`)이 단일 출처다. `GiveToAbilitySystem()`이 ① AttributeInitRow로 어트리뷰트 초기값 세팅, ② `GrantedEffects` 적용, ③ `GrantedAbilities` 부여를 한다.
 - **InputTag 라우팅의 키 등록**: `FWxAbilitySet_GameplayAbility.InputTag`가 유효하면 부여 시 `Spec.GetDynamicSpecSourceTags().AddTag(InputTag)`로 Spec의 소스 태그에 박힌다. 입력으로 발동하지 않는 어빌리티(AI 패턴, 반응형)는 InputTag를 비워둔다.
-- `OnGiveAbility`(Base 오버라이드)에서 `AbilityDataRow`가 설정돼 있으면 테이블 값으로 쿨다운/코스트 수치를 덮어쓰고(인스턴스 + CDO 둘 다), `ActivationPolicy == OnGranted`이면 그 자리에서 `TryActivateAbility`를 호출한다.
+- `OnGiveAbility`(Base 오버라이드)에서 `ActivationPolicy == OnGranted`이면 그 자리에서 `TryActivateAbility`를 호출한다. 쿨다운/코스트 수치는 `AbilityDataRow`에서 필요 시점에 온디맨드로 읽으므로 부여 시 별도 복사가 없다.
 
 ---
 
@@ -91,9 +91,9 @@ flowchart TD
 - `BlockAbilitiesWithTag` / `CancelAbilitiesWithTag` — 활성 동안 다른 어빌리티를 하드 차단/캔슬. 액션류는 `Ability` 태그 전체를 차단(`BlockAbilitiesWithTag.AddTag(Ability)`)해 도중 캔슬을 막는다.
 
 **2. 커밋 (`CommitAbility` → CheckCost/CheckCooldown → ApplyCost/ApplyCooldown)** — Base가 4개 함수를 모두 오버라이드한다. 핵심은 **공용 GE를 CDO 단위로 구분**하는 설계:
-- 코스트: `MPCost`/`UPCost`로 공용 `UWxEffect_Cost`에 모디파이어를 채워 반환. `CheckCost`는 엔진 순정 사용. `ApplyCost`는 엔진이 GE의 `GetClass()` CDO로 스펙을 다시 만드는 탓에 인스턴스가 무시되므로, 인스턴스 Def로 직접 스펙을 만드는 얇은 오버라이드.
-- 쿨다운: `CooldownTime`/`MaxRecharges`로 공용 `UWxEffect_Cooldown` 사용. 소스 어빌리티 CDO로 개별 쿨다운을 구분하고, 소모 충전 1개당 GE 1개를 적용해 자연 만료로 충전 회복(`QueryActiveCooldowns`). `Get...TimeRemaining`도 CDO 쿼리 기반으로 재구현(순정은 GrantedTags 기반이라 무태그 GE에서 0 반환).
-- BP에서 `CooldownGameplayEffectClass`/`CostGameplayEffectClass`를 직접 지정하면 모든 오버라이드가 `Super::`로 폴백(`if (...Class) return Super::...`).
+- 코스트: `AbilityDataRow`의 `MPCost`/`UPCost`로 공용 `UWxEffect_Cost`에 모디파이어를 채워 반환. `CheckCost`는 엔진 순정 사용. `ApplyCost`는 엔진이 GE의 `GetClass()` CDO로 스펙을 다시 만드는 탓에 인스턴스가 무시되므로, 인스턴스 Def로 직접 스펙을 만드는 얇은 오버라이드.
+- 쿨다운: `AbilityDataRow`의 `CooldownTime`/`MaxRecharges`로 공용 `UWxEffect_Cooldown` 사용. 소스 어빌리티 CDO로 개별 쿨다운을 구분하고, 소모 충전 1개당 GE 1개를 적용해 자연 만료로 충전 회복(`QueryActiveCooldowns`). `Get...TimeRemaining`도 CDO 쿼리 기반으로 재구현(순정은 GrantedTags 기반이라 무태그 GE에서 0 반환).
+- `CooldownGameplayEffectClass`/`CostGameplayEffectClass`의 기본값은 각 공용 GE(`UWxEffect_Cooldown`/`UWxEffect_Cost`)를 가리키는 **마커**다. 마커 그대로면 위 프로젝트 경로, 다른 GE로 바꾸면 그 어빌리티만 엔진 순정 GE 경로로 폴백(`if (HasCustomCooldownGE()) return Super::...`). 디테일 패널에서 프로젝트/커스텀 여부가 바로 읽힌다.
 
 > 커밋은 각 구체 어빌리티의 `ActivateAbility`에서 명시 호출하는 패턴이다(예: `WxAbility_Attack`은 `if (!CommitAbility(...)) { EndAbility(...); return; }`). 실패 시 즉시 종료. 콤보는 단계마다 재발동되므로 단계마다 커밋이 새로 걸린다.
 
@@ -137,7 +137,7 @@ flowchart TD
 | `FWxAbilitySet_GameplayAbility.InputTag` | AbilitySet의 `GrantedAbilities` | 입력 라우팅 키(빈 값=비입력형) |
 | `UWxInputConfig.AbilityInputBindings` | `AWxPlayerCharacter.InputConfig` DA | InputAction → InputTag 매핑 |
 | `ActivationPolicy` | 어빌리티 BP(`Wx`) | `OnInputTriggered`/`OnGranted` |
-| `CooldownTime`/`MaxRecharges`/`MPCost`/`UPCost` | 어빌리티 BP(`Wx|Cooldown`,`Wx|Cost`) 또는 `AbilityDataRow` | 커밋 수치. DataRow 지정 시 BP 값 비활성·테이블이 덮어씀 |
+| `CooldownTime`/`MaxRecharges`/`MPCost`/`UPCost` | `AbilityDataRow`가 가리키는 DataTable Row(`FWxAbilityTableRow`) | 커밋 수치. 어빌리티에 `AbilityDataRow`만 지정하면 이 Row에서 읽는다 |
 | `AbilityTag` | `WxBTTask_ActivateAbility` 노드 | AI가 매칭할 AssetTag |
 
 ---
