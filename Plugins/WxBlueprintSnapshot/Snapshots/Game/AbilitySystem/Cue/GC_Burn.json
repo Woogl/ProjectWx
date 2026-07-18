@@ -2,7 +2,7 @@
 	"blueprintPath": "/Game/AbilitySystem/Cue/GC_Burn.GC_Burn",
 	"classDefaults":
 	{
-		"NiagaraSystem": "/Game/AbilitySystem/Cue/NS_Burn.NS_Burn"
+		"NiagaraSystem": "/Game/NiagaraExamples/FX_Misc/NS_Fire.NS_Fire"
 	},
 	"components":
 	{
