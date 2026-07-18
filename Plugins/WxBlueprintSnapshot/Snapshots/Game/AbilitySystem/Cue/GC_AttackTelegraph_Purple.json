@@ -1,0 +1,21 @@
+{
+	"blueprintPath": "/Game/AbilitySystem/Cue/GC_AttackTelegraph_Purple.GC_AttackTelegraph_Purple",
+	"classDefaults":
+	{
+		"GameplayCueTag":
+		{
+			"TagName": "GameplayCue.AttackTelegraph.Purple"
+		},
+		"NiagaraSystem": "/Game/AbilitySystem/Cue/NS_AttackTelegraph_Purple.NS_AttackTelegraph_Purple",
+		"SocketName": "hand_r"
+	},
+	"components":
+	{
+		"DefaultSceneRoot":
+		{
+			"componentClass": "/Script/Engine.SceneComponent",
+			"variableName": "DefaultSceneRoot"
+		}
+	},
+	"parentClass": "/Script/WxCombat.WxCueNotify_AttackTelegraph"
+}
