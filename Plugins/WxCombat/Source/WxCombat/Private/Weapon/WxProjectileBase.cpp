@@ -12,8 +12,6 @@
 #include "NiagaraFunctionLibrary.h"
 #include "Targeting/WxLockOnManagerComponent.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "WxCombatLibrary.h"
-#include "WxDamageTableRow.h"
 
 AWxProjectileBase::AWxProjectileBase()
 {
@@ -97,11 +95,6 @@ void AWxProjectileBase::BeginPlay()
 void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!OtherActor || OtherActor == GetOwner() || OtherActor == GetInstigator())
-	{
-		return;
-	}
-
-	if (!UWxCombatLibrary::IsHostile(GetInstigator(), OtherActor))
 	{
 		return;
 	}

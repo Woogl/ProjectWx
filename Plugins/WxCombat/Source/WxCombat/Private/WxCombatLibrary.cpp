@@ -3,7 +3,6 @@
 #include "WxCombatLibrary.h"
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "AbilitySystemComponent.h"
-#include "GenericTeamAgentInterface.h"
 #include "WxDamageInfo.h"
 #include "WxGameplayTags.h"
 
@@ -71,20 +70,4 @@ bool UWxCombatLibrary::ApplyRawDamage(UAbilitySystemComponent* Target, float Dam
 	Target->ApplyGameplayEffectSpecToSelf(*Spec);
 
 	return true;
-}
-
-bool UWxCombatLibrary::IsHostile(const AActor* Source, const AActor* Target)
-{
-	if (!Source || !Target)
-	{
-		return false;
-	}
-
-	const IGenericTeamAgentInterface* SourceTeam = Cast<IGenericTeamAgentInterface>(Source);
-	if (!SourceTeam)
-	{
-		return true;
-	}
-
-	return SourceTeam->GetTeamAttitudeTowards(*Target) == ETeamAttitude::Hostile;
 }

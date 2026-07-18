@@ -276,11 +276,6 @@ void AWxWeaponBase::ProcessHit(AActor* OtherActor, const FHitResult& HitResult)
 		return;
 	}
 
-	if (!UWxCombatLibrary::IsHostile(WeaponOwner, OtherActor))
-	{
-		return;
-	}
-
 	HitActorsThisSwing.Add(OtherActor);
 	UAbilitySystemComponent* OwnerASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(WeaponOwner);
 	UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);

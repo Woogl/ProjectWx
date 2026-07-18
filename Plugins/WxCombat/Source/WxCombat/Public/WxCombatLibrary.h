@@ -53,8 +53,4 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Combat")
 	static bool ApplyRawDamage(UAbilitySystemComponent* Target, float DamageAmount, UPARAM(meta = (Categories = "Event.HitReact")) FGameplayTag HitReaction);
-
-	/** Source가 Target을 적대 관계로 보는지 검사 (IGenericTeamAgentInterface 기반) */
-	UFUNCTION(BlueprintPure, Category = "Wx|Combat")
-	static bool IsHostile(const AActor* Source, const AActor* Target);
 };
