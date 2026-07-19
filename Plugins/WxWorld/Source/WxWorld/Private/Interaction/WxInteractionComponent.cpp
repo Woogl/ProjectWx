@@ -193,13 +193,3 @@ void UWxInteractionComponent::SetUseHighlight(bool bNewUseHighlight)
 
 	bUseHighlight = bNewUseHighlight;
 }
-
-void UWxInteractionComponent::SetUseInteractMontage(bool bNewUseInteractMontage)
-{
-	bUseInteractMontage = bNewUseInteractMontage;
-}
-
-bool UWxInteractionComponent::GetUseInteractMontage() const
-{
-	return bUseInteractMontage;
-}

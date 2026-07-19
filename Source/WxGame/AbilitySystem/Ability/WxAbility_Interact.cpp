@@ -1,8 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Interact.h"
-#include "AbilitySystem/Task/WxAbilityTask_TurnAround.h"
-#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Engine/GameInstance.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/OverlapResult.h"
@@ -27,7 +25,7 @@ UWxAbility_Interact::UWxAbility_Interact()
 	AbilityTriggers.Add(TriggerData);
 
 	// 클라가 선택 대상을 이벤트 페이로드로 실어 보내는 순정 통로(ServerTryActivateAbilityWithEventData)는 LocalPredicted 분기에만 존재한다.
-	// 그래서 LocalPredicted 를 쓴다. 다만 예측하는 것은 로컬 몽타주·응시(코스메틱)뿐이고, 실제 실행(TryInteract)은 아래 ExecuteInteract 의 권위 게이트를 통과한다.
+	// 그래서 LocalPredicted 를 쓴다. 코스메틱 예측은 없고(상호작용 모션은 대상 StateTree 담당), 실제 실행(TryInteract)은 아래 ExecuteInteract 의 권위 게이트를 통과한다.
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 
 	// 사망 중에는 활성화 거부.
@@ -35,7 +33,7 @@ UWxAbility_Interact::UWxAbility_Interact()
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 
 	// 처형 연출 중에는 상호작용 재입력을 막는다(WxAbility_Finisher가 State.Finisher를 발행).
-	// 연출 도중 근처 다른 대상을 상호작용해 일반 몽타주가 처형 위에 얹히는 것을 차단한다.
+	// 연출 도중 근처 다른 대상과 상호작용해 처형 흐름에 개입하는 것을 차단한다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Finisher);
 }
 
@@ -74,17 +72,14 @@ void UWxAbility_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		? const_cast<UWxInteractionComponent*>(Cast<UWxInteractionComponent>(TriggerEventData->OptionalObject.Get()))
 		: nullptr;
 
-	// 실행은 권위에서만. 예측 클라 인스턴스는 연출만 재생한다.
+	// 실행은 권위에서만. 예측 클라 인스턴스는 아무 연출 없이 활성화·종료만 한다.
 	if (HasAuthority(&ActivationInfo))
 	{
 		ExecuteInteract(Selected, ActorInfo);
 	}
 
-	// 몽타주가 있으면 재생+응시하고 몽타주 종료 시 끝낸다. 없으면 즉시 종료.
-	if (!PlayInteractMontage(Selected))
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-	}
+	// 상호작용 모션·연출은 대상 StateTree 가 담당하므로 어빌리티는 즉시 종료한다.
+	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
 void UWxAbility_Interact::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -220,63 +215,4 @@ void UWxAbility_Interact::ExecuteInteract(UWxInteractionComponent* Selected, con
 	}
 
 	Selected->TryInteract(Avatar);
-}
-
-bool UWxAbility_Interact::PlayInteractMontage(UWxInteractionComponent* Target)
-{
-	// 대상이 자체 어빌리티로 모션을 구동하면(예: 처형) 범용 몽타주를 재생하지 않는다 — 처형 몽타주와의 중복을 막는다.
-	if (!InteractMontage || !Target || !Target->GetUseInteractMontage())
-	{
-		return false;
-	}
-
-	// 응시 회전은 로컬 컨트롤 인스턴스에서만 — 오토노머스 프록시가 회전 권위라 서버/시뮬은 복제 회전을 따른다.
-	if (IsLocallyControlled())
-	{
-		if (const AActor* Avatar = GetAvatarActorFromActorInfo())
-		{
-			const FVector ToTarget = Target->GetInteractionLocation() - Avatar->GetActorLocation();
-			if (!ToTarget.IsNearlyZero())
-			{
-				if (UWxAbilityTask_TurnAround* TurnTask = UWxAbilityTask_TurnAround::CreateTask(this, ToTarget, FacingInterpSpeed))
-				{
-					TurnTask->ReadyForActivation();
-				}
-			}
-		}
-	}
-
-	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, InteractMontage, GetMontagePlayRate(), NAME_None, true, 1.f, 0.f, true);
-	if (!MontageTask)
-	{
-		return false;
-	}
-
-	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Interact::HandleInteractMontageCompleted);
-	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Interact::HandleInteractMontageBlendOut);
-	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Interact::HandleInteractMontageInterrupted);
-	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Interact::HandleInteractMontageCancelled);
-	MontageTask->ReadyForActivation();
-	return true;
-}
-
-void UWxAbility_Interact::HandleInteractMontageCompleted()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-}
-
-void UWxAbility_Interact::HandleInteractMontageBlendOut()
-{
-	// OnCompleted 가 후속 발동하므로 여기서는 종료하지 않음.
-}
-
-void UWxAbility_Interact::HandleInteractMontageInterrupted()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-}
-
-void UWxAbility_Interact::HandleInteractMontageCancelled()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }

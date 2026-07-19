@@ -7,7 +7,6 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_Interact.generated.h"
 
-class UAnimMontage;
 class UWxInteractionComponent;
 class UWxInteractionRegistrySubsystem;
 
@@ -24,9 +23,9 @@ class UWxInteractionRegistrySubsystem;
  * 선택은 클라 레지스트리(로컬 전용)가 소유하므로, 상호작용 입력을 받은 AWxPlayerCharacter 가 선택 컴포넌트를 OptionalObject 에 실어 자기 ASC 로 이벤트를 송출한다.
  * LocalPredicted 라 엔진이 그 페이로드를 ServerTryActivateAbilityWithEventData 로 서버에 전송한다 — 클라가 고른 대상을 서버로 나르는 순정 통로다.
  *
- * 활성화 흐름(ActivateAbility):
- *  - 예측 클라: 이벤트로 즉시 활성화되어 몽타주·응시를 재생한다(코스메틱 예측, 실행은 안 한다). RTT 지연이 없다
- *  - 서버(권위): 엔진이 전송한 같은 페이로드로 활성화되어 사거리 검증 후 TryInteract. 몽타주는 시뮬 프록시로 복제된다
+ * 활성화 흐름(ActivateAbility): 활성화 즉시 실행하고 곧바로 종료한다(fire-and-forget). 상호작용 모션·연출은 대상의 StateTree 가 담당한다.
+ *  - 예측 클라: 이벤트로 즉시 활성화·종료(코스메틱 없음, 실행은 안 한다)
+ *  - 서버(권위): 엔진이 전송한 같은 페이로드로 활성화되어 사거리 검증 후 TryInteract 하고 종료한다
  *  - 선택이 없으면 무동작. 사망(State.Dead)·처형 중(State.Finisher)에는 CanActivateAbility 가 활성화를 막는다(예측 클라·서버 양쪽)
  */
 UCLASS(Abstract)
@@ -51,17 +50,6 @@ protected:
 	/** 스캔 주기(초). */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Interact")
 	float ScanInterval = 0.1f;
-
-	/**
-	 * 상호작용 시 재생할 몽타주. 미설정이면 종전대로 즉시 실행 후 종료한다(모션 없음).
-	 * 설정 시 활성화 즉시 상호작용을 실행하고, 몽타주 재생이 끝날 때 어빌리티를 종료한다.
-	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Interact")
-	TObjectPtr<UAnimMontage> InteractMontage = nullptr;
-
-	/** 대상 응시 회전 보간 속도. 클수록 빨리 돌아본다. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Interact")
-	float FacingInterpSpeed = 10.f;
 
 private:
 	/**
@@ -91,23 +79,6 @@ private:
 	 * 레지스트리 멤버십 갱신(UpdateInRange) 직후 호출해 표시를 lockstep으로 유지한다(로컬 표시 전용).
 	 */
 	void PushSelectionToViewModel(UWxInteractionRegistrySubsystem* Registry);
-
-	/**
-	 * 상호작용 몽타주를 재생하고(있으면), 로컬 컨트롤 인스턴스에서는 대상 쪽으로 서서히 회전(응시)을 시작한다.
-	 * 몽타주를 재생했으면 true — 이 경우 어빌리티는 즉시 끝나지 않고 몽타주 종료 델리게이트에서 종료된다.
-	 * 몽타주가 없거나 대상이 없으면 false — 호출자가 종전대로 즉시 EndAbility 한다.
-	 */
-	bool PlayInteractMontage(UWxInteractionComponent* Target);
-
-	//~ 몽타주 종료 계열 — 재생이 끝나면 어빌리티를 종료한다(Interrupted/Cancelled 는 취소 종료).
-	UFUNCTION()
-	void HandleInteractMontageCompleted();
-	UFUNCTION()
-	void HandleInteractMontageBlendOut();
-	UFUNCTION()
-	void HandleInteractMontageInterrupted();
-	UFUNCTION()
-	void HandleInteractMontageCancelled();
 
 	/** 주기 스캔 타이머 핸들. OnGiveAbility에서 설정, OnRemoveAbility에서 해제. */
 	FTimerHandle ScanTimerHandle;

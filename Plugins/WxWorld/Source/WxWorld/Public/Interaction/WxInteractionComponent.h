@@ -80,12 +80,6 @@ public:
 	/** 외곽선 강조 게이트(bUseHighlight)를 토글한다. 끄면 이후 SetHighlightEnabled 가 무시되며, 이미 켜진 외곽선도 즉시 끈다. */
 	void SetUseHighlight(bool bNewUseHighlight);
 
-	/** 이 대상과 상호작용할 때 상호작용 어빌리티가 자기 범용 몽타주를 재생할지 토글한다. 자체 어빌리티로 모션을 구동하는 대상(예: 처형)은 꺼서 몽타주 중복을 막는다. */
-	void SetUseInteractMontage(bool bNewUseInteractMontage);
-
-	/** 상호작용 어빌리티가 범용 몽타주 재생 전에 읽는다. false 면 이 대상은 자체 어빌리티가 모션을 구동하므로 범용 몽타주를 재생하지 않는다. */
-	bool GetUseInteractMontage() const;
-
 	/** 소유 액터가 바인딩하는 상호작용 델리게이트. 서버 권한에서만 fire 된다(원격 클라에서는 호출되지 않는다). */
 	UPROPERTY()
 	FWxOnInteractedSignature OnInteracted;
@@ -102,13 +96,6 @@ protected:
 	/** 외곽선 강조(Custom Depth/Stencil)를 적용할지 여부. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	bool bUseHighlight = true;
-
-	/**
-	 * 상호작용 어빌리티가 이 대상과 상호작용할 때 자기 범용 몽타주를 재생할지 여부.
-	 * 자체 어빌리티로 상호작용 모션을 구동하는 대상(예: 적 처형)은 false 로 두어 범용 몽타주와의 중복 재생을 막는다.
-	 */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx")
-	bool bUseInteractMontage = true;
 
 	/** 강조(외곽선)를 적용할 메시. 소유 액터가 명시적으로 지정한다(C++ 는 SetHighlightTarget, BP 는 디테일 패널). 미지정이면 강조하지 않는다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (EditCondition = "bUseHighlight"))
