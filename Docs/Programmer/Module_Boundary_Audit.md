@@ -115,7 +115,7 @@ WxCore 비-태그 표면은 모범적이다:
 | 태그 그룹 | 위치 | 유일 소비자 | 성격 |
 | --- | --- | --- | --- |
 | `SetByCaller.*` (Recovery.UP/MP, ReflectDP, Coeff.ATK, RawDamage, Duration) | `:151-166` | WxCombat | GE SetByCaller 매그니튜드 키 — 순수 내부 수식 배선 |
-| `GameplayCue.*` (Damage, PerfectGuard, BuffATK, Exceed, Burn, HitStop) | `:88-106` | WxCombat | 각 태그가 WxCombat `WxCueNotify_*`와 1:1 — 내부 VFX 분류 |
+| `GameplayCue.*` (Damage, PerfectGuard, Exceed, Burn, HitStop) | `:88-106` | WxCombat | 각 태그가 WxCombat `WxCueNotify_*`와 1:1 — 내부 VFX 분류 |
 | `ANS.*` (WeaponCollision, ComboWindow) | `:80-83` | WxCombat | AnimNotifyState 마커 — 몽타주/콜리전 내부 흐름 |
 | `Ability.Pattern.*` (1~10, Phase) | `:135-146` | WxCombat | 보스 공격 패턴 인덱스 — WxAI조차 소비 안 함 |
 | `Damage.*` (Critical, Unblockable, ParryHitReact) | `:111-117` | WxCombat | 데미지 판정 분류 |

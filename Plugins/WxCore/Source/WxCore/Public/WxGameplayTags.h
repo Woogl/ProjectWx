@@ -146,9 +146,6 @@ namespace WxGameplayTags
 	/** 퍼펙트 가드 성공 Cue. 임팩트 위치에 스파크/사운드 재생 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_PerfectGuard);
 
-	/** ATK 버프 지속 Cue */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_BuffATK);
-
 	/** Exceed 버프 지속 Cue. 활성 동안 캐릭터의 무기에 Niagara 이펙트를 부착 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Exceed);
 
