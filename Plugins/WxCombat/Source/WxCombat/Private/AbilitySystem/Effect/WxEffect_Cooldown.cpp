@@ -1,13 +1,14 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Effect/WxEffect_Cooldown.h"
-#include "WxGameplayTags.h"
+#include "AbilitySystem/Effect/WxMMC_CooldownDuration.h"
 
 UWxEffect_Cooldown::UWxEffect_Cooldown()
 {
 	DurationPolicy = EGameplayEffectDurationType::HasDuration;
 
-	FSetByCallerFloat SetByCaller;
-	SetByCaller.DataTag = WxGameplayTags::SetByCaller_Duration;
-	DurationMagnitude = FGameplayEffectModifierMagnitude(SetByCaller);
+	// Duration = 소스 어빌리티 AbilityDataRow의 CooldownTime + 직렬 회복분. MMC가 계산 시점에 조회한다.
+	FCustomCalculationBasedFloat DurationCalc;
+	DurationCalc.CalculationClassMagnitude = UWxMMC_CooldownDuration::StaticClass();
+	DurationMagnitude = FGameplayEffectModifierMagnitude(DurationCalc);
 }

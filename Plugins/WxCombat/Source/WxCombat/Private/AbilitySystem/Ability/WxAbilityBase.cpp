@@ -164,12 +164,19 @@ UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
 		return nullptr;
 	}
 
+	// 단일 충전이면 공유 CDO로 충분하다(ViewModel이 Max(1, StackLimitCount)=1로 읽는다). per-ability 인스턴스는 다중 충전에서만 StackLimitCount 전달용으로 만든다.
+	const int32 MaxRecharges = FMath::Max(1, Row->MaxRecharges);
+	if (MaxRecharges <= 1)
+	{
+		return Super::GetCooldownGameplayEffect();
+	}
+
 	if (!CooldownEffect)
 	{
 		CooldownEffect = NewObject<UWxEffect_Cooldown>(const_cast<UWxAbilityBase*>(this), TEXT("CooldownEffect"));
 	}
 
-	CooldownEffect->StackLimitCount = FMath::Max(1, Row->MaxRecharges);
+	CooldownEffect->StackLimitCount = MaxRecharges;
 	return CooldownEffect;
 }
 
@@ -209,41 +216,6 @@ bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, cons
 	}
 
 	return true;
-}
-
-void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
-{
-	if (CooldownGameplayEffectClass && CooldownGameplayEffectClass != UWxEffect_Cooldown::StaticClass())
-	{
-		Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
-		return;
-	}
-
-	const FWxAbilityTableRow* Row = GetTableRow();
-	if (!Row || Row->CooldownTime <= 0.f)
-	{
-		return;
-	}
-
-	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-	if (!ASC)
-	{
-		return;
-	}
-
-	// 소모한 충전 1개당 GE 1개를 새로 적용하고, 기존 GE는 제거하지 않고 자연 만료에 맡긴다.
-	// (UE 5.7부터 비-authority의 RemoveActiveGameplayEffect가 거부되므로, 예측 커밋 중 기존 GE를 제거 후 재적용하는 방식은 쓸 수 없다)
-	// 새 GE의 Duration = 가장 늦은 기존 만료까지 잔여시간 + CooldownTime 으로 직렬 충전 회복이 된다.
-	float LongestRemaining = 0.f;
-	float LongestDuration = 0.f;
-	QueryActiveCooldowns(*ASC, LongestRemaining, LongestDuration);
-
-	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_Cooldown::StaticClass(), GetAbilityLevel());
-	if (SpecHandle.IsValid())
-	{
-		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, LongestRemaining + Row->CooldownTime);
-		ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
-	}
 }
 
 float UWxAbilityBase::GetCooldownTimeRemaining(const FGameplayAbilityActorInfo* ActorInfo) const

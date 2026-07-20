@@ -44,8 +44,9 @@ enum class EWxAbilityActivationPolicy : uint8
  * 모든 어빌리티는 이 클래스를 상속받아 작성.
  *
  * 쿨다운/코스트 수치는 AbilityDataRow(FWxAbilityTableRow)에서만 읽는다. 필요한 시점마다 GetTableRow()로 Row를 해석해 온디맨드로 사용한다.
- * 쿨다운은 내부적으로 공용 UWxEffect_Cooldown GE를 사용하며, 소스 어빌리티 CDO로 개별 어빌리티의 쿨다운을 구분한다.
- * 소모된 충전 1개당 GE 1개를 적용하고, 기존 GE는 제거하지 않고 자연 만료로 충전을 회복한다.
+ * 쿨다운은 공용 UWxEffect_Cooldown GE를 사용하며, 소스 어빌리티 CDO로 개별 어빌리티의 쿨다운을 구분한다.
+ * Duration(CooldownTime + 직렬 회복분)은 UWxEffect_Cooldown의 MMC가 AbilityDataRow에서 조회해 계산하므로 ApplyCooldown 오버라이드는 없다(엔진 순정 경로가 적용).
+ * 소모된 충전 1개당 GE 1개가 활성화되고, 기존 GE는 제거하지 않고 자연 만료로 충전을 회복한다. CheckCooldown이 활성 GE 수를 MaxRecharges와 비교해 다중 충전을 판정한다.
  *
  * 코스트는 공용 UWxEffect_Cost GE가 MP·UP 모디파이어를 정적으로 선언하고 각 MMC가 AbilityDataRow에서 MPCost/UPCost를 조회하므로, 검사·적용 모두 엔진 순정 경로를 그대로 사용한다(코스트 관련 오버라이드 없음).
  *
@@ -116,7 +117,6 @@ public:
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual UGameplayEffect* GetCooldownGameplayEffect() const override;
 	virtual bool CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
-	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
 	/**
 	 * 엔진 순정 구현은 쿨다운 GE의 GrantedTags 쿼리 기반이라, 태그를 부여하지 않는 공용 쿨다운 GE에서는 항상 0을 반환한다.
@@ -125,6 +125,13 @@ public:
 	 */
 	virtual float GetCooldownTimeRemaining(const FGameplayAbilityActorInfo* ActorInfo) const override;
 	virtual void GetCooldownTimeRemainingAndDuration(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, float& TimeRemaining, float& CooldownDuration) const override;
+
+	/**
+	 * 이 어빌리티(소스 CDO 기준)가 적용한 활성 쿨다운 GE를 집계한다. 활성 GE 1개 = 회복 대기 중인 충전 1개.
+	 * 가장 늦게 만료되는 GE의 잔여시간과 전체 지속시간을 출력 인자로 채우고, 활성 GE 수를 반환한다.
+	 * CheckCooldown·GetCooldownTimeRemaining과 Duration MMC(UWxMMC_CooldownDuration)가 공유한다.
+	 */
+	int32 QueryActiveCooldowns(const UAbilitySystemComponent& ASC, float& OutLongestRemaining, float& OutLongestDuration) const;
 
 protected:
 	/** 히트스톱 복원 타이머를 정리한다. 몽타주로 대미지를 주는 파생 어빌리티는 Super 체인으로 이 정리를 받는다. */
@@ -147,14 +154,8 @@ private:
 	const FWxAbilityTableRow* GetTableRow() const;
 
 	/**
-	 * 이 어빌리티(소스 CDO 기준)가 적용한 활성 쿨다운 GE를 집계한다. 활성 GE 1개 = 회복 대기 중인 충전 1개.
-	 * 가장 늦게 만료되는 GE의 잔여시간과 전체 지속시간을 출력 인자로 채우고, 활성 GE 수를 반환한다.
-	 */
-	int32 QueryActiveCooldowns(const UAbilitySystemComponent& ASC, float& OutLongestRemaining, float& OutLongestDuration) const;
-
-	/**
-	 * GetCooldownGameplayEffect()가 반환하는 GE 인스턴스.
-	 * ViewModel이 GetClass()로 쿨다운 GE 클래스를, StackLimitCount로 최대 충전 수를 읽는다.
+	 * GetCooldownGameplayEffect()가 다중 충전 어빌리티에서 반환하는 GE 인스턴스.
+	 * ViewModel이 StackLimitCount로 최대 충전 수를 읽는다. 단일 충전은 공유 CDO를 반환하므로 이 인스턴스를 만들지 않는다.
 	 */
 	UPROPERTY(Transient)
 	mutable TObjectPtr<UWxEffect_Cooldown> CooldownEffect;
