@@ -11,7 +11,6 @@
 class UAbilitySystemComponent;
 class UGameplayEffect;
 class UWxEffect_Cooldown;
-class UWxEffect_Cost;
 class UWxAbilityComponent;
 class UAbilityTask_WaitGameplayEvent;
 class AWxProjectileBase;
@@ -48,8 +47,7 @@ enum class EWxAbilityActivationPolicy : uint8
  * 쿨다운은 내부적으로 공용 UWxEffect_Cooldown GE를 사용하며, 소스 어빌리티 CDO로 개별 어빌리티의 쿨다운을 구분한다.
  * 소모된 충전 1개당 GE 1개를 적용하고, 기존 GE는 제거하지 않고 자연 만료로 충전을 회복한다.
  *
- * 코스트는 GetCostGameplayEffect()가 공용 UWxEffect_Cost GE에 모디파이어를 채워 반환하므로 검사는 엔진 순정 CheckCost를 그대로 사용한다.
- * ApplyCost는 엔진이 GE의 GetClass() CDO로 스펙을 다시 만드는 탓에 런타임 구성 인스턴스가 무시되어, 인스턴스 Def로 스펙을 만드는 얇은 오버라이드만 둔다.
+ * 코스트는 공용 UWxEffect_Cost GE가 MP·UP 모디파이어를 정적으로 선언하고 각 MMC가 AbilityDataRow에서 MPCost/UPCost를 조회하므로, 검사·적용 모두 엔진 순정 경로를 그대로 사용한다(코스트 관련 오버라이드 없음).
  *
  * CooldownGameplayEffectClass/CostGameplayEffectClass의 기본값은 각 공용 GE(UWxEffect_Cooldown/UWxEffect_Cost)를 가리키는 "마커"다.
  * 마커 그대로면 프로젝트 방식(AbilityDataRow 기반), 다른 GE로 바꾸면 그 어빌리티는 엔진 순정 GE 경로를 쓴다(AbilityDataRow와 상호배타). 디테일 패널에서 어느 쪽인지 바로 읽힌다.
@@ -128,9 +126,6 @@ public:
 	virtual float GetCooldownTimeRemaining(const FGameplayAbilityActorInfo* ActorInfo) const override;
 	virtual void GetCooldownTimeRemainingAndDuration(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, float& TimeRemaining, float& CooldownDuration) const override;
 
-	virtual UGameplayEffect* GetCostGameplayEffect() const override;
-	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
-
 protected:
 	/** 히트스톱 복원 타이머를 정리한다. 몽타주로 대미지를 주는 파생 어빌리티는 Super 체인으로 이 정리를 받는다. */
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
@@ -163,13 +158,6 @@ private:
 	 */
 	UPROPERTY(Transient)
 	mutable TObjectPtr<UWxEffect_Cooldown> CooldownEffect;
-
-	/**
-	 * GetCostGameplayEffect()가 반환하는 GE 인스턴스.
-	 * Modifiers는 AbilityDataRow의 MPCost/UPCost로 갱신된다. ViewModel이 Modifiers에서 코스트 어트리뷰트를 읽는다.
-	 */
-	UPROPERTY(Transient)
-	mutable TObjectPtr<UWxEffect_Cost> CostEffect;
 
 	/** Event.HitStop 수신 시 재생 중인 몽타주를 정지시키고 복원 타이머를 (재)예약한다 */
 	UFUNCTION()

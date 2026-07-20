@@ -278,67 +278,6 @@ void UWxAbilityBase::GetCooldownTimeRemainingAndDuration(FGameplayAbilitySpecHan
 	}
 }
 
-UGameplayEffect* UWxAbilityBase::GetCostGameplayEffect() const
-{
-	if (CostGameplayEffectClass && CostGameplayEffectClass != UWxEffect_Cost::StaticClass())
-	{
-		return Super::GetCostGameplayEffect();
-	}
-
-	const FWxAbilityTableRow* Row = GetTableRow();
-	if (!Row || (Row->MPCost <= 0.f && Row->UPCost <= 0.f))
-	{
-		return nullptr;
-	}
-
-	if (!CostEffect)
-	{
-		CostEffect = NewObject<UWxEffect_Cost>(const_cast<UWxAbilityBase*>(this), TEXT("CostEffect"));
-	}
-
-	CostEffect->Modifiers.Reset();
-
-	if (Row->MPCost > 0.f)
-	{
-		FGameplayModifierInfo Modifier;
-		Modifier.Attribute = UWxCombatAttributeSet::GetMPAttribute();
-		Modifier.ModifierOp = EGameplayModOp::AddBase;
-		Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(-Row->MPCost));
-		CostEffect->Modifiers.Add(Modifier);
-	}
-
-	if (Row->UPCost > 0.f)
-	{
-		FGameplayModifierInfo Modifier;
-		Modifier.Attribute = UWxCombatAttributeSet::GetUPAttribute();
-		Modifier.ModifierOp = EGameplayModOp::AddBase;
-		Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(-Row->UPCost));
-		CostEffect->Modifiers.Add(Modifier);
-	}
-
-	return CostEffect;
-}
-
-void UWxAbilityBase::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
-{
-	if (CostGameplayEffectClass && CostGameplayEffectClass != UWxEffect_Cost::StaticClass())
-	{
-		Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
-		return;
-	}
-
-	const UGameplayEffect* CostGE = GetCostGameplayEffect();
-	if (!CostGE)
-	{
-		return;
-	}
-
-	// 엔진 ApplyCost(ApplyGameplayEffectToOwner)는 전달받은 GE의 GetClass() CDO로 스펙을 만들어, 런타임에 모디파이어를 채운 CostEffect 인스턴스가 무시된다(UWxEffect_Cost CDO는 모디파이어가 비어 있다).
-	// 인스턴스 Def로 직접 스펙을 만들어 적용한다. 권한/예측 처리는 ApplyGameplayEffectSpecToOwner가 담당한다.
-	FGameplayEffectSpecHandle SpecHandle(new FGameplayEffectSpec(CostGE, MakeEffectContext(Handle, ActorInfo), GetAbilityLevel(Handle, ActorInfo)));
-	ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
-}
-
 void UWxAbilityBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	// 어빌리티가 끝나면 히트스톱 복원 타이머를 정리한다. 취소·블렌드아웃된 몽타주에 뒤늦은 복원이 닿지 않게 한다.
