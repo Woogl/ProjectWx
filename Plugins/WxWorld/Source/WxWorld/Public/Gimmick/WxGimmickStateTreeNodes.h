@@ -12,8 +12,10 @@
 struct FStateTreeExecutionContext;
 struct FStateTreeTransitionResult;
 class AActor;
+class ACharacter;
 class ALevelSequenceActor;
 class AWxSpawner;
+class UAnimMontage;
 class UAnimSequenceBase;
 class ULevelSequence;
 class ULevelSequencePlayer;
@@ -34,6 +36,8 @@ class UWxInteractionComponent;
  *  - ComponentMove 는 (TargetComponent, LocalOffset, Duration) 으로 지정 컴포넌트를 현재 위치에서 기준(아키타입)+offset 으로 일정 속도 슬라이드한다(범용 메시 이동, 목표=아키타입인 닫기 방향도 지원).
  *  - ComponentSplineMove 는 (TargetComponent, Spline, TargetPointIndex, Duration) 으로 지정 컴포넌트를 목표 스플라인 포인트로 옮긴다. 초기 진입이면 목표 포인트로 즉시 스냅, 라이브 전이면 실제 현재 위치에서 목표까지 곡선을 따라 이동한다(State 가 목표 끝점을 직접 선언하므로 복원도 정확).
  *  - PlayAnimation 은 (TargetMesh, Animation) 으로 초기 진입이면 끝 프레임 스냅, 라이브 전이면 처음부터 재생한다. 범용 애니 재생.
+ *  - MoveInteractorToTarget 은 (InteractingCharacter, AnchorComponent, RelativeLocation, bAlignRotation, RelativeRotation, Duration) 으로 상호작용한 플레이어 캐릭터를 앵커(또는 오너) 기준 상대 위치/방향으로 일정 시간 이동·응시시키고, 도착하면 완료한다. 목표는 모든 머신에서 동일해 각 피어 로컬 보간으로 수렴한다(복원/초기 진입은 스킵). 이동 중에는 로컬 플레이어의 이동·어빌리티·점프 입력을 막는다(카메라 look 은 유지).
+ *  - PlayInteractorMontage 는 (InteractingCharacter, Montage) 으로 상호작용한 플레이어 캐릭터에게 몽타주를 재생하고, 재생이 끝나면 완료한다. 각 머신이 메시 AnimInstance 로 로컬 재생·폴링한다(복원/초기 진입은 스킵). 이동+몽타주 연출은 두 태스크를 상태로 나눠(이동 상태 → 몽타주 상태) 조립한다.
  *  - PlayLevelSequence 는 (LevelSequence) 로 라이브 전이 진입 시 시퀀스를 재생하고 Tick 으로 종료를 폴링하다, 종료 시 시퀀스를 정리하고 권위 측이면 소유 기믹의 HandleLevelSequenceFinished 로 통지한 뒤 Succeeded 를 반환한다(호스트가 State 복귀를 구동; OnComplete 전이를 쓰는 기믹도 그대로 가능). 입력 차단은 별도 EnablePlayerInput 이 맡는다. 중도 이탈 시 ExitState 가 시퀀스 정지·정리(복원 시 침묵·통지 없음).
  *  - PlaySound 는 (Sound, bPlayOnRestore) 로 라이브 전이 진입 시 사운드를 1회 재생한다(기본은 복원 시 침묵, bPlayOnRestore 면 복원/시작 진입에서도 재생).
  *  - SpawnNiagara 는 (AttachComponent, Niagara, bPlayOnRestore) 로 라이브 전이 진입 시 Niagara 를 1회 재생한다(기본은 복원 시 침묵, bPlayOnRestore 면 복원/시작 진입에서도 재생 — 상태에 묶인 지속 FX 용).
@@ -291,6 +295,108 @@ struct FWxStateTreeTask_PlayAnimation : public FStateTreeTaskCommonBase
 	GENERATED_BODY()
 
 	using FInstanceDataType = FWxStateTreeTask_PlayAnimationInstanceData;
+
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
+
+#if WITH_EDITOR
+	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
+#endif
+};
+
+// ── MoveInteractorToTarget: 상호작용 플레이어를 대상 앞으로 이동 ─────────────────
+
+USTRUCT()
+struct FWxStateTreeTask_MoveInteractorToTargetInstanceData
+{
+	GENERATED_BODY()
+
+	/** 이동시킬 상호작용 당사자(플레이어 캐릭터). ST 에셋에서 기믹의 InteractingCharacter 프로퍼티로 바인딩한다. 비면 아무 것도 하지 않고 완료. */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	TObjectPtr<ACharacter> InteractingCharacter;
+
+	/** 목표를 잴 기준 앵커. ST 에셋에서 Context 액터의 컴포넌트(예: 상호작용 지점)로 바인딩한다. 비우면 오너 액터 트랜스폼 기준. */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	TObjectPtr<USceneComponent> AnchorComponent;
+
+	/** 앵커(또는 오너) 기준 목표 상대 위치. 모든 머신에서 동일하게 합성돼 수렴한다. */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	FVector RelativeLocation = FVector::ZeroVector;
+
+	/** 도착 방향으로 캐릭터 yaw 를 정렬(대상 응시)할지. 끄면 위치만 이동한다. */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	bool bAlignRotation = true;
+
+	/** 앵커(또는 오너) 기준 목표 상대 회전(응시 방향). yaw 만 사용한다. */
+	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (EditCondition = "bAlignRotation"))
+	FRotator RelativeRotation = FRotator::ZeroRotator;
+
+	/** 목표까지 이동 시간(초). 0 이하면 즉시 스냅. 속도는 시작→목표 실제 거리/Duration 으로 EnterState 에서 1회 산출한다. */
+	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
+	float Duration = 0.5f;
+
+	/** (런타임) 시작→목표 구간의 일정 속도(초당 거리). EnterState 에서 1회 산출. */
+	UPROPERTY()
+	float MoveSpeed = 0.f;
+
+	/** (런타임) 시작→목표 yaw 의 일정 회전 속도(초당 도). EnterState 에서 1회 산출. */
+	UPROPERTY()
+	float TurnSpeed = 0.f;
+};
+
+/**
+ * 상호작용한 플레이어 캐릭터를 앵커(또는 오너) 기준 상대 위치/방향으로 일정 시간 이동·응시시키고, 도착하면 Succeeded 로 상태를 완료시킨다.
+ * 목표 = 앵커(또는 오너) 트랜스폼 ∘ 상대오프셋 이라 모든 머신에서 동일하게 계산돼, 각 피어가 자기 캐릭터 사본을 로컬 보간해도 수렴한다(별도 복제 미러 불필요, 'Wx Component Move' 철학). 진입 시 StopMovementImmediately 로 CMC 잔여 속도를 제거한다.
+ * 이동 중에는 로컬 플레이어의 입력을 막고 ExitState 에서 해제한다. 이동은 AController::SetIgnoreMoveInput, 어빌리티+점프는 ASC 의 BlockAbilitiesWithTags(Ability) — 액션 어빌리티가 연출 중 서로를 막는 GAS 순정 관례 그대로이며 캐릭터 CanJumpInternal 이 AreAbilityTagsBlocked(Ability) 로 점프를 이미 게이트하므로 점프도 함께 막힌다. 카메라(look) 입력은 별개 게이트라 유지된다. 예측이 발동을 게이트하므로 소유 클라(IsLocallyControlled)에서만 걸어도 충분하다.
+ * 초기 진입(StateTree 시작/복원/레이트조인)이면 이동 없이 곧바로 완료한다(발동 순간에만 동작; InteractingCharacter 는 비영속이라 복원 시 비어 있음). 대상이 없어도(비캐릭터 상호작용 등) 상태가 갇히지 않게 곧바로 완료한다.
+ * 도착 후 몽타주 연출이 필요하면 다음 상태에 'Wx Play Interactor Montage' 를 둔다(단일 책임 분리).
+ */
+USTRUCT(meta = (DisplayName = "Wx Move Interactor To Target"))
+struct FWxStateTreeTask_MoveInteractorToTarget : public FStateTreeTaskCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType = FWxStateTreeTask_MoveInteractorToTargetInstanceData;
+
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
+	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+
+#if WITH_EDITOR
+	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
+#endif
+};
+
+// ── PlayInteractorMontage: 상호작용 플레이어에게 몽타주 재생, 종료 시 완료 ───────────
+
+USTRUCT()
+struct FWxStateTreeTask_PlayInteractorMontageInstanceData
+{
+	GENERATED_BODY()
+
+	/** 몽타주를 재생할 상호작용 당사자(플레이어 캐릭터). ST 에셋에서 기믹의 InteractingCharacter 프로퍼티로 바인딩한다. 비면 아무 것도 하지 않고 완료. */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	TObjectPtr<ACharacter> InteractingCharacter;
+
+	/** 재생할 몽타주. 비면 재생 없이 곧바로 완료한다. */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	TObjectPtr<UAnimMontage> Montage;
+};
+
+/**
+ * 상호작용한 플레이어 캐릭터의 메시에 몽타주를 재생하고, 재생이 끝나면 Succeeded 로 상태를 완료시킨다.
+ * 복제형 PlayAnimMontage 가 아니라 각 머신이 메시 AnimInstance 로 로컬 재생·폴링한다('Wx Play Animation' 과 동형) — 모든 피어가 InteractingCharacter 를 복제로 알아 중복 재생이 없다.
+ * 초기 진입(StateTree 시작/복원/레이트조인)이면 재생 없이 곧바로 완료한다(발동 순간에만 재생; InteractingCharacter 는 비영속이라 복원 시 비어 있음). 대상/몽타주가 없어도 상태가 갇히지 않게 곧바로 완료한다.
+ * 이동 후 재생하려면 'Wx Move Interactor To Target' 상태 다음 상태에 둔다(단일 책임 분리).
+ */
+USTRUCT(meta = (DisplayName = "Wx Play Interactor Montage"))
+struct FWxStateTreeTask_PlayInteractorMontage : public FStateTreeTaskCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType = FWxStateTreeTask_PlayInteractorMontageInstanceData;
 
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;

@@ -4,6 +4,7 @@
 
 #include "Components/ArrowComponent.h"
 #include "Components/StateTreeComponent.h"
+#include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
 #include "WxGameplayTags.h"
 
@@ -39,6 +40,7 @@ void AWxGimmick::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWxGimmick, State);
+	DOREPLIFETIME(AWxGimmick, InteractingCharacter);
 }
 
 void AWxGimmick::CommitGimmickState(FGameplayTag NewState)
@@ -53,6 +55,18 @@ void AWxGimmick::CommitGimmickState(FGameplayTag NewState)
 
 	// 권위 측에선 OnRep 이 자동 발화하지 않으므로 직접 호출해 서버·클라가 같은 통지를 공유한다(RepNotify 관용구).
 	OnRep_GimmickState();
+}
+
+void AWxGimmick::SetInteractingCharacter(AActor* InActor)
+{
+	// 상호작용 당사자 쓰기는 권위 전용(State 와 같은 서버 권위 규약). 클라는 복제된 InteractingCharacter 를 추종한다.
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	// 캐릭터가 아니면(비캐릭터 상호작용) null 을 저장해 상호작용 이동/몽타주 태스크가 안전하게 no-op 하도록 둔다.
+	InteractingCharacter = Cast<ACharacter>(InActor);
 }
 
 FGuid AWxGimmick::GetSaveId() const

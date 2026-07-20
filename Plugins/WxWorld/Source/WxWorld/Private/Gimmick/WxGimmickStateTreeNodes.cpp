@@ -2,6 +2,10 @@
 
 #include "Gimmick/WxGimmickStateTreeNodes.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
 #include "Animation/AnimSequenceBase.h"
 #include "Animation/AnimSingleNodeInstance.h"
 #include "Components/SceneComponent.h"
@@ -10,6 +14,8 @@
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Gimmick/WxGimmick.h"
@@ -383,6 +389,224 @@ FText FWxStateTreeTask_PlayAnimation::GetDescription(const FGuid& ID, FStateTree
 
 	return FText::Format(INVTEXT("Play Animation ({0})"),
 		InstanceData->Animation ? FText::FromString(InstanceData->Animation->GetName()) : INVTEXT("(none)"));
+}
+#endif
+
+// ── MoveInteractorToTarget ─────────────────────────────────────────────────────
+
+EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+{
+	FInstanceDataType& Instance = Context.GetInstanceData(*this);
+
+	// 초기 진입(StateTree 시작/복원/레이트조인)이면 이동 없이 곧바로 완료한다(발동 순간에만 동작; InteractingCharacter 는 비영속이라 복원 시 비어 있음).
+	if (IsInitialOrRestoreEntry(Context, Transition))
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	ACharacter* Character = Instance.InteractingCharacter;
+	const AActor* Owner = Cast<AActor>(Context.GetOwner());
+
+	// 상호작용 당사자가 없으면(비캐릭터 상호작용 등) 상태가 갇히지 않게 곧바로 완료한다.
+	if (!Character || !Owner)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Wx Move Interactor To Target: InteractingCharacter/Owner is null — 완료로 넘어간다."));
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	// 스크립트 이동 동안 CMC 잔여 속도를 제거한다.
+	if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
+	{
+		Movement->StopMovementImmediately();
+	}
+
+	// 이동/응시 동안 로컬 플레이어의 입력을 막는다(카메라 look 은 별개 게이트라 유지). ExitState 에서 짝 해제한다.
+	//  - 이동: AController::SetIgnoreMoveInput 로 AddMovementInput 을 무시.
+	//  - 어빌리티+점프: ASC 의 BlockAbilitiesWithTags(Ability) — 액션 어빌리티가 연출 중 서로를 막는 것과 동일한 GAS 순정 관례이며, 캐릭터의 CanJumpInternal 이 이미 AreAbilityTagsBlocked(Ability) 로 점프를 막으므로 점프도 함께 차단된다.
+	// 입력이 실제로 생기고 예측이 발동을 게이트하는 로컬 컨트롤 인스턴스에서만 건다(소유 클라가 막으면 서버로 활성화가 전송되지 않아 서버 차단이 불필요). 스냅·이동 두 경로 모두에서 걸어 ExitState 해제와 짝을 맞춘다.
+	if (Character->IsLocallyControlled())
+	{
+		if (AController* Controller = Character->GetController())
+		{
+			Controller->SetIgnoreMoveInput(true);
+		}
+		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Character))
+		{
+			ASC->BlockAbilitiesWithTags(FGameplayTagContainer(WxGameplayTags::Ability));
+		}
+	}
+
+	// 목표 = 앵커(또는 오너) 트랜스폼 ∘ 상대오프셋. 모든 머신에서 동일하게 합성돼 수렴한다.
+	const FTransform Anchor = Instance.AnchorComponent ? Instance.AnchorComponent->GetComponentTransform() : Owner->GetActorTransform();
+	const FVector TargetLocation = Anchor.TransformPosition(Instance.RelativeLocation);
+	const float TargetYaw = (Anchor.GetRotation() * Instance.RelativeRotation.Quaternion()).Rotator().Yaw;
+
+	const FVector StartLocation = Character->GetActorLocation();
+
+	// Duration 0 이하·이미 목표면 즉시 스냅해 곧바로 완료, 아니면 시작→목표 실제 거리/시간으로 등속을 1회 산출하고 Tick 이 슬라이드한다.
+	const bool bReachNow = Instance.Duration <= 0.f || StartLocation.Equals(TargetLocation);
+	if (bReachNow)
+	{
+		Character->SetActorLocation(TargetLocation);
+		if (Instance.bAlignRotation)
+		{
+			FRotator Rotation = Character->GetActorRotation();
+			Rotation.Yaw = TargetYaw;
+			Character->SetActorRotation(Rotation);
+		}
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	Instance.MoveSpeed = (TargetLocation - StartLocation).Size() / Instance.Duration;
+	if (Instance.bAlignRotation)
+	{
+		const float YawDelta = FMath::Abs(FMath::FindDeltaAngleDegrees(Character->GetActorRotation().Yaw, TargetYaw));
+		Instance.TurnSpeed = YawDelta / Instance.Duration;
+	}
+
+	return EStateTreeRunStatus::Running;
+}
+
+EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
+{
+	FInstanceDataType& Instance = Context.GetInstanceData(*this);
+
+	ACharacter* Character = Instance.InteractingCharacter;
+	const AActor* Owner = Cast<AActor>(Context.GetOwner());
+	if (!Character || !Owner)
+	{
+		return EStateTreeRunStatus::Failed;
+	}
+
+	const FTransform Anchor = Instance.AnchorComponent ? Instance.AnchorComponent->GetComponentTransform() : Owner->GetActorTransform();
+	const FVector TargetLocation = Anchor.TransformPosition(Instance.RelativeLocation);
+	const float TargetYaw = (Anchor.GetRotation() * Instance.RelativeRotation.Quaternion()).Rotator().Yaw;
+
+	// 도달 전까지 EnterState 에서 산출한 등속으로 슬라이드한다.
+	FVector NewLocation = Character->GetActorLocation();
+	if (!NewLocation.Equals(TargetLocation))
+	{
+		NewLocation = FMath::VInterpConstantTo(NewLocation, TargetLocation, DeltaTime, Instance.MoveSpeed);
+		Character->SetActorLocation(NewLocation);
+	}
+
+	if (Instance.bAlignRotation)
+	{
+		FRotator Rotation = Character->GetActorRotation();
+		Rotation.Yaw = FMath::FixedTurn(Rotation.Yaw, TargetYaw, Instance.TurnSpeed * DeltaTime);
+		Character->SetActorRotation(Rotation);
+	}
+
+	// 아직 도달 전이면 계속 이동한다.
+	if (!NewLocation.Equals(TargetLocation))
+	{
+		return EStateTreeRunStatus::Running;
+	}
+
+	// 도달: yaw 를 목표로 스냅해 마무리하고 상태를 완료시킨다.
+	if (Instance.bAlignRotation)
+	{
+		FRotator Rotation = Character->GetActorRotation();
+		Rotation.Yaw = TargetYaw;
+		Character->SetActorRotation(Rotation);
+	}
+	return EStateTreeRunStatus::Succeeded;
+}
+
+void FWxStateTreeTask_MoveInteractorToTarget::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+{
+	// EnterState 에서 건 입력 차단을 해제한다. SetIgnoreMoveInput·BlockAbilitiesWithTags 모두 스택 카운터라 진입 시의 +1 과 짝을 맞춰야 한다.
+	// 진입은 초기/복원 검사 통과 후(스냅·이동 두 경로 모두) 차단하고 여기서 해제하므로 정상 흐름은 짝이 맞는다. 초기/복원 진입은 차단 전에 완료하지만 그땐 InteractingCharacter 가 비영속이라 대개 null → 아래 가드로 스킵된다.
+	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
+	ACharacter* Character = Instance.InteractingCharacter;
+	if (Character && Character->IsLocallyControlled())
+	{
+		if (AController* Controller = Character->GetController())
+		{
+			Controller->SetIgnoreMoveInput(false);
+		}
+		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Character))
+		{
+			ASC->UnBlockAbilitiesWithTags(FGameplayTagContainer(WxGameplayTags::Ability));
+		}
+	}
+}
+
+#if WITH_EDITOR
+FText FWxStateTreeTask_MoveInteractorToTarget::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
+{
+	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
+	check(InstanceData);
+
+	// 이동 대상은 보통 바인딩이라 런타임 포인터가 비어 있다. 바인딩 소스명을 우선 보이고, 없으면 (none) 으로 폴백.
+	FText CharacterText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, InteractingCharacter)), Formatting);
+	if (CharacterText.IsEmpty())
+	{
+		CharacterText = INVTEXT("(none)");
+	}
+
+	return FText::Format(INVTEXT("Move Interactor To Target ({0})"), CharacterText);
+}
+#endif
+
+// ── PlayInteractorMontage ──────────────────────────────────────────────────────
+
+EStateTreeRunStatus FWxStateTreeTask_PlayInteractorMontage::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+{
+	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
+
+	// 초기 진입(StateTree 시작/복원/레이트조인)이면 재생 없이 곧바로 완료한다(발동 순간에만 재생; InteractingCharacter 는 비영속이라 복원 시 비어 있음).
+	if (IsInitialOrRestoreEntry(Context, Transition))
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	ACharacter* Character = Instance.InteractingCharacter;
+	USkeletalMeshComponent* Mesh = Character ? Character->GetMesh() : nullptr;
+	UAnimInstance* AnimInstance = Mesh ? Mesh->GetAnimInstance() : nullptr;
+
+	// 대상/몽타주/애님인스턴스가 없으면 상태가 갇히지 않게 곧바로 완료한다.
+	if (!AnimInstance || !Instance.Montage)
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	// 각 머신이 메시 AnimInstance 로 로컬 재생한다(복제형 PlayAnimMontage 아님 — 모든 피어가 각자 재생해 중복이 없다).
+	AnimInstance->Montage_Play(Instance.Montage);
+
+	// Tick 이 종료를 폴링해 완료시킨다.
+	return EStateTreeRunStatus::Running;
+}
+
+EStateTreeRunStatus FWxStateTreeTask_PlayInteractorMontage::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
+{
+	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
+
+	ACharacter* Character = Instance.InteractingCharacter;
+	if (!Character)
+	{
+		return EStateTreeRunStatus::Failed;
+	}
+
+	USkeletalMeshComponent* Mesh = Character->GetMesh();
+	UAnimInstance* AnimInstance = Mesh ? Mesh->GetAnimInstance() : nullptr;
+	if (!AnimInstance || !Instance.Montage)
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	// 재생이 끝나면(또는 다른 몽타주로 교체되면) 상태를 완료시킨다.
+	return AnimInstance->Montage_IsPlaying(Instance.Montage) ? EStateTreeRunStatus::Running : EStateTreeRunStatus::Succeeded;
+}
+
+#if WITH_EDITOR
+FText FWxStateTreeTask_PlayInteractorMontage::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
+{
+	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
+	check(InstanceData);
+
+	return FText::Format(INVTEXT("Play Interactor Montage ({0})"),
+		InstanceData->Montage ? FText::FromString(InstanceData->Montage->GetName()) : INVTEXT("(none)"));
 }
 #endif
 

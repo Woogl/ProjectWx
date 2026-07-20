@@ -8,6 +8,7 @@
 #include "WxSavable.h"
 #include "WxGimmick.generated.h"
 
+class ACharacter;
 class UArrowComponent;
 class USceneComponent;
 class UStateTreeComponent;
@@ -48,6 +49,13 @@ public:
 	FGameplayTag GetGimmickState() const { return State; }
 
 	/**
+	 * 이번 상호작용의 당사자(플레이어 캐릭터)를 권위 측에서 기록한다. 비권위면 노옵.
+	 * instigator 는 권위 측 OnInteracted 에서만 오므로, 자식이 HandleInteracted 에서 CommitGimmickState 직전에 호출한다(복제되어 클라가 추종).
+	 * 캐릭터가 아니면(비캐릭터 상호작용) null 을 저장한다. 상호작용 이동/몽타주 태스크('Wx Move Interactor To Target'·'Wx Play Interactor Montage')가 InteractingCharacter 를 바인딩해 이동/재생 대상으로 삼는다.
+	 */
+	void SetInteractingCharacter(AActor* InActor);
+
+	/**
 	 * Wx Play Level Sequence 태스크가 재생 종료 시 권위 측에서 호출하는 통지 진입점. 기본 노옵이다.
 	 * 시퀀스 종료를 아는 주체는 그것을 재생·폴링하는 태스크뿐이라, 태스크가 소유 기믹에 직접 통지한다.
 	 * 자식은 이를 받아 CommitGimmickState 로 State 전이를 구동한다(예: 컷신 종료 후 Idle 복귀).
@@ -83,6 +91,13 @@ protected:
 	 */
 	UPROPERTY(ReplicatedUsing = OnRep_GimmickState, SaveGame, VisibleAnywhere,  meta = (AllowPrivateAccess = "true"))
 	FGameplayTag State;
+
+	/**
+	 * 이번 상호작용의 당사자(플레이어 캐릭터). 복제되지만 비영속(SaveGame 아님) — 상호작용 순간에만 유효하다.
+	 * 권위 측이 SetInteractingCharacter 로만 쓰고, ST 에셋이 상호작용 이동/몽타주 태스크('Wx Move Interactor To Target'·'Wx Play Interactor Montage')의 InteractingCharacter 입력에 바인딩한다(자식 컴포넌트 바인딩과 동일 패턴).
+	 */
+	UPROPERTY(Replicated, VisibleAnywhere, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<ACharacter> InteractingCharacter;
 
 	/** 모든 자식 컴포넌트의 부착 베이스. 자식 클래스는 SetRootComponent 호출 없이 SceneRoot 에 SetupAttachment 한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
