@@ -13,7 +13,8 @@
 #include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 
-AWxCharacterBase::AWxCharacterBase()
+AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECC_WxAttack, ECR_Overlap);

@@ -26,7 +26,7 @@ class WXGAME_API AWxPlayerCharacter : public AWxCharacterBase
 	GENERATED_BODY()
 
 public:
-	AWxPlayerCharacter();
+	AWxPlayerCharacter(const FObjectInitializer& ObjectInitializer);
 	virtual void BeginPlay() override;
 	virtual void OnRep_PlayerState() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;

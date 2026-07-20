@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Character/WxPlayerCharacter.h"
+#include "Character/WxCharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -19,7 +20,8 @@
 #include "WxGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-AWxPlayerCharacter::AWxPlayerCharacter()
+AWxPlayerCharacter::AWxPlayerCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UWxCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	Team = EWxTeam::Player;
 
@@ -33,6 +35,9 @@ AWxPlayerCharacter::AWxPlayerCharacter()
 	
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+
+	// 더블 점프 허용(2단). 2단 Z속도 절반 적용은 UWxCharacterMovementComponent::DoJump에서 처리한다.
+	JumpMaxCount = 2;
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
