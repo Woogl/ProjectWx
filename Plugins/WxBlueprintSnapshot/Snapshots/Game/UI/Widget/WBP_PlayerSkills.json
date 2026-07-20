@@ -112,6 +112,10 @@
 			"Ability_Ultimate":
 			{
 				"class": "/Game/UI/Widget/WBP_Ability.WBP_Ability_C",
+				"delta":
+				{
+					"TriggeringEnhancedInputAction": "/Game/Input/Actions/IA_Ultimate.IA_Ultimate"
+				},
 				"parent": "Overlay_0",
 				"slot":
 				{
@@ -190,6 +194,10 @@
 			"Skill_1":
 			{
 				"class": "/Game/UI/Widget/WBP_Ability.WBP_Ability_C",
+				"delta":
+				{
+					"TriggeringEnhancedInputAction": "/Game/Input/Actions/IA_Skill_1.IA_Skill_1"
+				},
 				"parent": "HorizontalBox_0",
 				"slot":
 				{
@@ -199,6 +207,10 @@
 			"Skill_2":
 			{
 				"class": "/Game/UI/Widget/WBP_Ability.WBP_Ability_C",
+				"delta":
+				{
+					"TriggeringEnhancedInputAction": "/Game/Input/Actions/IA_Skill_2.IA_Skill_2"
+				},
 				"parent": "HorizontalBox_0",
 				"slot":
 				{
@@ -208,6 +220,10 @@
 			"Skill_3":
 			{
 				"class": "/Game/UI/Widget/WBP_Ability.WBP_Ability_C",
+				"delta":
+				{
+					"TriggeringEnhancedInputAction": "/Game/Input/Actions/IA_Skill_3.IA_Skill_3"
+				},
 				"parent": "HorizontalBox_0",
 				"slot":
 				{
@@ -217,6 +233,10 @@
 			"Skill_4":
 			{
 				"class": "/Game/UI/Widget/WBP_Ability.WBP_Ability_C",
+				"delta":
+				{
+					"TriggeringEnhancedInputAction": "/Game/Input/Actions/IA_Skill_4.IA_Skill_4"
+				},
 				"parent": "HorizontalBox_0",
 				"slot":
 				{

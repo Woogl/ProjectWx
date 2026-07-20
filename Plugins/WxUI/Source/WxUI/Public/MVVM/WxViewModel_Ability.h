@@ -44,6 +44,10 @@ public:
 	void Initialize(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility);
 	virtual void Deinitialize() override;
 
+	/** 바인딩된 어빌리티의 발동을 시도한다. 위젯 OnClicked 등 MVVM 이벤트 바인딩의 대상으로 사용한다. 비용/쿨다운/태그 요건은 엔진 TryActivateAbility가 판정한다. */
+	UFUNCTION(BlueprintCallable, Category = "Wx|Ability")
+	bool TryActivateAbility();
+
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	float CooldownRemaining = 0.f;
 

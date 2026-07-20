@@ -1,5 +1,18 @@
 {
 	"blueprintPath": "/Game/UI/Widget/WBP_Ability.WBP_Ability",
+	"classDefaults":
+	{
+		"bIsFocusable": false
+	},
+	"eventGraph":
+	{
+		"BP_OnClicked": [
+			"void BP_OnClicked()",
+			"{",
+			"    WxViewModel_Ability->TryActivateAbility();",
+			"}"
+		]
+	},
 	"mvvm":
 	{
 		"bindings": [
@@ -119,7 +132,7 @@
 			}
 		}
 	},
-	"parentClass": "/Script/UMG.UserWidget",
+	"parentClass": "/Game/UI/Widget/WBP_Button.WBP_Button_C",
 	"widgetTree":
 	{
 		"root": "SizeBox_0",
@@ -137,6 +150,7 @@
 							"OutlineSize": 1
 						}
 					},
+					"Style": "/Game/UI/Style/TextStyle_Small.TextStyle_Small_C",
 					"Text": "0.0"
 				},
 				"parent": "Overlay_0",
@@ -174,6 +188,20 @@
 					{
 						"HorizontalAlignment": "HAlign_Fill",
 						"VerticalAlignment": "VAlign_Fill"
+					}
+				}
+			},
+			"InputActionWidget":
+			{
+				"class": "/Script/WxUI.WxActionWidget",
+				"parent": "Overlay_16",
+				"slot":
+				{
+					"class": "/Script/UMG.OverlaySlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Fill",
+						"VerticalAlignment": "VAlign_Bottom"
 					}
 				}
 			},
@@ -252,17 +280,13 @@
 							"OutlineSize": 1
 						}
 					},
+					"Style": "/Game/UI/Style/TextStyle_Small.TextStyle_Small_C",
 					"Text": "3"
 				},
 				"parent": "Overlay_16",
 				"slot":
 				{
-					"class": "/Script/UMG.OverlaySlot",
-					"delta":
-					{
-						"HorizontalAlignment": "HAlign_Right",
-						"VerticalAlignment": "VAlign_Bottom"
-					}
+					"class": "/Script/UMG.OverlaySlot"
 				}
 			}
 		}

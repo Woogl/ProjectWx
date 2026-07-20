@@ -82,6 +82,26 @@ void UWxViewModel_Ability::Deinitialize()
 	Super::Deinitialize();
 }
 
+bool UWxViewModel_Ability::TryActivateAbility()
+{
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	const UGameplayAbility* AbilityCDO = CachedAbility.Get();
+	if (!ASC || !AbilityCDO)
+	{
+		return false;
+	}
+
+	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+	{
+		if (Spec.Ability.Get() == AbilityCDO)
+		{
+			return ASC->TryActivateAbility(Spec.Handle);
+		}
+	}
+
+	return false;
+}
+
 float UWxViewModel_Ability::GetCooldownRemaining() const
 {
 	return CooldownRemaining;
