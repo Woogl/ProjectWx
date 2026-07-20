@@ -2,7 +2,6 @@
 
 #include "AbilitySystem/Ability/WxAbility_Skill.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
 #include "AbilitySystemComponent.h"
 #include "WxGameplayTags.h"
 
@@ -13,10 +12,36 @@ UWxAbility_Skill::UWxAbility_Skill()
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 
 	// 스킬은 재생 중 다른 GA로 캔슬되지 않는다. (PC규격서 §5.6)
-	// 콤보는 EndAbility 후 재발동 방식이라 자기 차단이 다음 단계를 막지 않으며, 후딜 캔슬은 몽타주 StartRecovery 노티파이로 허용한다.
+	// 후딜 캔슬은 몽타주 StartRecovery 노티파이로 허용한다.
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 
+	// 콤보는 재발동으로 다음 단계로 넘어간다. 콤보 윈도우 판정은 CanActivateAbility가 담당한다.
+	bRetriggerInstancedAbility = true;
+
 	// 입력 태그(Input.Skill.1~4)는 AbilitySet 항목의 InputTag로 지정한다.
+}
+
+bool UWxAbility_Skill::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+	const FGameplayAbilitySpec* Spec = ASC ? ASC->FindAbilitySpecFromHandle(Handle) : nullptr;
+
+	// 활성 중 재발동 = 콤보 진행. 이 어빌리티가 건 자기 차단(Ability)은 곧 EndAbility가 해제하므로 무시하고,
+	// 콤보 윈도우 안에서만 허용하되 사망/비용/쿨다운은 그대로 판정한다.
+	if (Spec && Spec->IsActive())
+	{
+		if (!ASC || !ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_ComboWindow))
+		{
+			return false;
+		}
+		if (ASC->HasAnyMatchingGameplayTags(ActivationBlockedTags))
+		{
+			return false;
+		}
+		return CheckCooldown(Handle, ActorInfo, OptionalRelevantTags) && CheckCost(Handle, ActorInfo, OptionalRelevantTags);
+	}
+
+	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 }
 
 void UWxAbility_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -37,27 +62,25 @@ void UWxAbility_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		return;
 	}
 
-	// 콤보 재발동으로 들어왔다면 저장된 인덱스, 아니면 0부터 시작
-	const int32 ActivationIndex = (NextComboIndex != INDEX_NONE && SkillMontages.IsValidIndex(NextComboIndex))
-		? NextComboIndex
-		: 0;
-	NextComboIndex = INDEX_NONE;
+	// 재발동으로 이어온 콤보면 다음 인덱스, 아니면(신규 발동/터미널) 첫 인덱스부터.
+	// CurrentIndex는 재발동 사이 보존되고(INDEX_NONE이면 IsValidIndex(0)로 0에서 시작), 콤보 자연 종료 시 몽타주 핸들러가 INDEX_NONE으로 되돌린다.
+	CurrentIndex = SkillMontages.IsValidIndex(CurrentIndex + 1) ? CurrentIndex + 1 : 0;
 
-	CurrentIndex = ActivationIndex;
 	PlayCurrentMontage();
 }
 
 void UWxAbility_Skill::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	if (WaitInputTask)
+	// 콤보 재발동 시 엔진이 이 EndAbility를 먼저 호출한다.
+	// 몽타주 태스크를 콜백 해제(EndTask) 후 정리해, 그 종료가 Interrupted/Cancelled 핸들러를 깨워 CurrentIndex를 되돌리는 것을 막는다.
+	// CurrentIndex는 여기서 리셋하지 않는다(재발동 시 보존). 콤보 자연 종료는 몽타주 핸들러가 INDEX_NONE으로 리셋한다.
+	if (MontageTask)
 	{
-		WaitInputTask->EndTask();
-		WaitInputTask = nullptr;
+		MontageTask->EndTask();
+		MontageTask = nullptr;
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-
-	CurrentIndex = 0;
 }
 
 void UWxAbility_Skill::PlayCurrentMontage()
@@ -89,26 +112,12 @@ void UWxAbility_Skill::PlayCurrentMontage()
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Skill::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Skill::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
-
-	WaitForComboInput();
-}
-
-void UWxAbility_Skill::WaitForComboInput()
-{
-	// 터미널 인덱스에서도 첫 인덱스 재시작 입력을 받아야 하므로 항상 입력을 대기한다.
-	if (WaitInputTask)
-	{
-		WaitInputTask->EndTask();
-		WaitInputTask = nullptr;
-	}
-
-	WaitInputTask = UAbilityTask_WaitInputPress::WaitInputPress(this);
-	WaitInputTask->OnPress.AddDynamic(this, &UWxAbility_Skill::HandleComboInputPressed);
-	WaitInputTask->ReadyForActivation();
 }
 
 void UWxAbility_Skill::HandleMontageCompleted()
 {
+	// 콤보 미입력으로 자연 종료 → 콤보 리셋(다음 발동은 첫 인덱스부터).
+	CurrentIndex = INDEX_NONE;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
@@ -119,36 +128,12 @@ void UWxAbility_Skill::HandleMontageBlendOut()
 
 void UWxAbility_Skill::HandleMontageInterrupted()
 {
+	CurrentIndex = INDEX_NONE;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
 
 void UWxAbility_Skill::HandleMontageCancelled()
 {
+	CurrentIndex = INDEX_NONE;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-}
-
-void UWxAbility_Skill::HandleComboInputPressed(float TimeWaited)
-{
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (!ASC || !ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_ComboWindow))
-	{
-		// 콤보 윈도우 밖이면 다음 입력을 다시 대기
-		WaitForComboInput();
-		return;
-	}
-
-	// 다음 인덱스가 있으면 콤보를 진행하고, 없으면(터미널) 첫 인덱스로 재시작한다.
-	const int32 NextIndex = SkillMontages.IsValidIndex(CurrentIndex + 1) ? (CurrentIndex + 1) : 0;
-
-	// 현재 활성화를 종료하고 동일 spec을 즉시 재발동. NextComboIndex는 다음 ActivateAbility가 소비.
-	const FGameplayAbilitySpecHandle SpecHandle = CurrentSpecHandle;
-	NextComboIndex = NextIndex;
-
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-
-	if (!ASC->TryActivateAbility(SpecHandle))
-	{
-		// 재발동 실패 (쿨다운, 비용 부족, 차단 등) — 다음 신규 발동이 NextComboIndex를 잘못 쓰지 않도록 클리어
-		NextComboIndex = INDEX_NONE;
-	}
 }

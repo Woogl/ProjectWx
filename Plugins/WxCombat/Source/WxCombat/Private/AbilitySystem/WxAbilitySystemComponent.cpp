@@ -33,11 +33,16 @@ void UWxAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Input
 			Spec.InputPressed = true;
 			if (Spec.IsActive())
 			{
-				AbilitySpecInputPressed(Spec);
-
-				for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
+				// 콤보처럼 재발동 가능한 어빌리티는 TryActivateAbility가 다음 단계로 진행시킨다.
+				// 재발동이 성립하지 않는 어빌리티(가드/회피 카운터 등)에서만 활성 인스턴스로 InputPressed 이벤트를 전달한다.
+				if (!TryActivateAbility(Spec.Handle))
 				{
-					InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
+					AbilitySpecInputPressed(Spec);
+
+					for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
+					{
+						InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
+					}
 				}
 			}
 			else if (TryActivateAbility(Spec.Handle))
@@ -54,8 +59,6 @@ void UWxAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& Inpu
 	{
 		return;
 	}
-
-	SetLastReleasedInputTag(InputTag);
 
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
@@ -80,11 +83,6 @@ const FGameplayTag& UWxAbilitySystemComponent::GetLastPressedInputTag() const
 	return LastPressedInputTag;
 }
 
-const FGameplayTag& UWxAbilitySystemComponent::GetLastReleasedInputTag() const
-{
-	return LastReleasedInputTag;
-}
-
 void UWxAbilitySystemComponent::SetLastPressedInputTag(const FGameplayTag& InputTag)
 {
 	LastPressedInputTag = InputTag;
@@ -95,22 +93,7 @@ void UWxAbilitySystemComponent::SetLastPressedInputTag(const FGameplayTag& Input
 	}
 }
 
-void UWxAbilitySystemComponent::SetLastReleasedInputTag(const FGameplayTag& InputTag)
-{
-	LastReleasedInputTag = InputTag;
-
-	if (!GetOwnerActor()->HasAuthority())
-	{
-		ServerSetLastReleasedInputTag(InputTag);
-	}
-}
-
 void UWxAbilitySystemComponent::ServerSetLastPressedInputTag_Implementation(const FGameplayTag& InputTag)
 {
 	LastPressedInputTag = InputTag;
-}
-
-void UWxAbilitySystemComponent::ServerSetLastReleasedInputTag_Implementation(const FGameplayTag& InputTag)
-{
-	LastReleasedInputTag = InputTag;
 }

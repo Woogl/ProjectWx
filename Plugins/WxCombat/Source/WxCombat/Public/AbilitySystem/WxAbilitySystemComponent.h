@@ -26,21 +26,12 @@ public:
 	/** 가장 최근에 눌린 입력 태그 반환 */
 	const FGameplayTag& GetLastPressedInputTag() const;
 
-	/** 가장 최근에 해제된 입력 태그 반환 */
-	const FGameplayTag& GetLastReleasedInputTag() const;
-
 private:
 	/** LastPressedInputTag를 설정하고, 클라이언트이면 서버에 동기화 */
 	void SetLastPressedInputTag(const FGameplayTag& InputTag);
 
-	/** LastReleasedInputTag를 설정하고, 클라이언트이면 서버에 동기화 */
-	void SetLastReleasedInputTag(const FGameplayTag& InputTag);
-
 	UFUNCTION(Server, Reliable)
 	void ServerSetLastPressedInputTag(const FGameplayTag& InputTag);
-
-	UFUNCTION(Server, Reliable)
-	void ServerSetLastReleasedInputTag(const FGameplayTag& InputTag);
 
 protected:
 	/** Ability, Effect 초기 데이터 */
@@ -50,5 +41,4 @@ protected:
 	FWxAbilitySetGrantedHandles AbilitySetGrantedHandles;
 
 	FGameplayTag LastPressedInputTag;
-	FGameplayTag LastReleasedInputTag;
 };

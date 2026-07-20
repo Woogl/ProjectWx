@@ -7,20 +7,20 @@
 #include "WxAbility_Skill.generated.h"
 
 class UAbilityTask_PlayMontageAndWait;
-class UAbilityTask_WaitInputPress;
 class UAnimMontage;
 
 /**
  * 스킬 어빌리티.
  *
  * 사용 흐름:
- *  1. 입력 → ActivateAbility → SkillMontages[0] 재생
- *  2. ANS_ComboWindow 구간 입력 → EndAbility 후 동일 spec 재발동, 다음 인덱스 몽타주 재생
- *  3. 터미널 인덱스(다음 없음)의 ANS_ComboWindow 구간 입력 → 첫 인덱스로 재시작 (EndAbility 후 재발동)
+ *  1. 입력/UI → ActivateAbility → SkillMontages[0] 재생
+ *  2. ANS_ComboWindow 구간에 재발동(TryActivateAbility) → 엔진 재발동으로 현재 단계를 끝내고 다음 인덱스 몽타주 재생
+ *  3. 터미널 인덱스에서 재발동 → 첫 인덱스로 재시작
  *  4. 콤보 미입력 → 몽타주 완료/중단 시 EndAbility
  *
- * 콤보 단계마다 재발동되므로 비용/쿨다운(CommitAbility)과 OnActivateEffects가 단계마다 새로 적용된다.
- * 콤보가 끊김 없이 이어지려면 AbilityDataRow에서 단계 사이 간격보다 쿨다운을 짧게 잡거나 최대 충전 수를 단계 수 이상으로 둔다.
+ * 콤보 진행은 엔진 순정 재발동(bRetriggerInstancedAbility)으로 처리한다. 진행 신호는 곧 평범한 TryActivateAbility 재호출이므로
+ * 하드웨어 입력과 UI 버튼이 같은 경로를 쓰고, 콤보 윈도우 밖 재발동은 CanActivateAbility가 막는다.
+ * 단계마다 재발동되므로 비용/쿨다운(CommitAbility)과 OnActivateEffects가 단계마다 새로 적용된다.
  *
  * SkillMontages가 1개뿐이면 진행할 다음 단계가 없어, ComboWindow를 배치하지 않는 한 단일 몽타주만 재생하고 종료한다.
  * 타겟 방향 회전은 ANS_SnapToTarget이 담당.
@@ -33,19 +33,24 @@ class WXCOMBAT_API UWxAbility_Skill : public UWxAbilityBase
 public:
 	UWxAbility_Skill();
 
+	/**
+	 * 활성 중 재발동(콤보 진행)은 콤보 윈도우 안에서만 허용한다.
+	 * 이때 자기 차단(BlockAbilitiesWithTag=Ability)은 무시하되(직후 EndAbility가 해제) 사망/비용/쿨다운은 그대로 판정한다.
+	 * 신규 발동은 엔진 순정 경로(Super)를 따른다.
+	 */
+	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-	/** 순차 재생할 스킬 몽타주 목록. 인덱스 0부터 재생하고, ANS_ComboWindow 구간 입력 시 다음 인덱스로 전환 */
+
+	/** 순차 재생할 스킬 몽타주 목록. 인덱스 0부터 재생하고, ANS_ComboWindow 구간 재발동 시 다음 인덱스로 전환 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TArray<TObjectPtr<UAnimMontage>> SkillMontages;
 
 private:
 	/** 현재 인덱스의 몽타주를 재생한다 */
 	void PlayCurrentMontage();
-
-	/** 콤보 입력 대기 태스크를 시작한다 */
-	void WaitForComboInput();
 
 	UFUNCTION()
 	void HandleMontageCompleted();
@@ -59,18 +64,12 @@ private:
 	UFUNCTION()
 	void HandleMontageCancelled();
 
-	UFUNCTION()
-	void HandleComboInputPressed(float TimeWaited);
-
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
 
-	UPROPERTY()
-	TObjectPtr<UAbilityTask_WaitInputPress> WaitInputTask;
-
-	/** 현재 재생 중인 SkillMontages 인덱스 */
-	int32 CurrentIndex = 0;
-
-	/** 다음 ActivateAbility에서 사용할 콤보 인덱스. INDEX_NONE이면 신규 발동(0부터 시작) */
-	int32 NextComboIndex = INDEX_NONE;
+	/**
+	 * 현재 재생 중인 SkillMontages 인덱스. INDEX_NONE이면 진행 중인 콤보가 없다(다음 발동은 첫 인덱스부터).
+	 * 재발동 사이에는 보존되고, 콤보가 자연 종료되면 몽타주 핸들러가 INDEX_NONE으로 되돌린다.
+	 */
+	int32 CurrentIndex = INDEX_NONE;
 };
