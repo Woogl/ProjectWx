@@ -23,20 +23,12 @@ public:
 	virtual float GetGravityZ() const override;
 	//~ End UMovementComponent Interface
 
-	//~ Begin UCharacterMovementComponent Interface
-	virtual bool DoJump(bool bReplayingMoves, float DeltaTime) override;
-	//~ End UCharacterMovementComponent Interface
-
 protected:
 	/** 상승 중(Velocity.Z >= 0) 중력 스케일. 값이 작을수록 천천히 올라간다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Jump", meta = (ClampMin = "0.0"))
-	float RiseGravityScale = 1.2f;
+	float RiseGravityScale = 2.f;
 
 	/** 하강 중(Velocity.Z < 0) 중력 스케일. RiseGravityScale보다 크게 두어 빠른 낙하감을 만든다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Jump", meta = (ClampMin = "0.0"))
-	float FallGravityScale = 1.8f;
-
-	/** 2단 이상(공중) 점프의 Z 속도(절대값). 1단(655)의 절반 높이가 나오도록 465로 둔다. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Jump", meta = (ClampMin = "0.0"))
-	float SecondJumpZVelocity = 465.f;
+	float FallGravityScale = 2.5f;
 };
