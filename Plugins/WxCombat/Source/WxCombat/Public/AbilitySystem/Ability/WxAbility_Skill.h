@@ -23,7 +23,7 @@ class UAnimMontage;
  * 콤보가 끊김 없이 이어지려면 AbilityDataRow에서 단계 사이 간격보다 쿨다운을 짧게 잡거나 최대 충전 수를 단계 수 이상으로 둔다.
  *
  * SkillMontages가 1개뿐이면 진행할 다음 단계가 없어, ComboWindow를 배치하지 않는 한 단일 몽타주만 재생하고 종료한다.
- * 타겟 방향 회전은 ANS_TurnAround이 담당.
+ * 타겟 방향 회전은 ANS_SnapToTarget이 담당.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Skill : public UWxAbilityBase

@@ -23,7 +23,7 @@ class UAnimMontage;
  * 콤보가 끊김 없이 이어지려면 AbilityDataRow에서 단계 사이 간격보다 쿨다운을 짧게 잡거나 최대 충전 수를 단계 수 이상으로 둔다.
  *
  * ComboMap에 콤보 경로와 몽타주를 등록. (Key: L = 약공격, H = 강공격)
- * 타겟 방향 회전은 ANS_TurnAround이 담당.
+ * 타겟 방향 회전은 ANS_SnapToTarget이 담당.
  *
  * 예시 ComboMap 설정:
  *  "L"    → AM_Attack_L
