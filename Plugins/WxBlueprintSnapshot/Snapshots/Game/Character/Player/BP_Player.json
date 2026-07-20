@@ -19,7 +19,6 @@
 				"bUsePawnControlRotation": true
 			}
 		},
-		"GameHUDClass": "/Game/UI/Widget/WBP_GameHUD.WBP_GameHUD_C",
 		"InputConfig": "/Game/Input/DA_InputConfig.DA_InputConfig",
 		"InteractionListWidget":
 		{
