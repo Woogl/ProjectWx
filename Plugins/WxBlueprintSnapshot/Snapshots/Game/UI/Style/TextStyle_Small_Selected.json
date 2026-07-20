@@ -1,0 +1,22 @@
+{
+	"blueprintPath": "/Game/UI/Style/TextStyle_Small_Selected.TextStyle_Small_Selected",
+	"classDefaults":
+	{
+		"Color":
+		{
+			"G": 0.83333301544189453,
+			"R": 1
+		},
+		"Font":
+		{
+			"FontObject": "/Game/UIMaterialLab/Fonts/Roboto.Roboto",
+			"OutlineSettings":
+			{
+				"OutlineSize": 1
+			},
+			"Size": 20,
+			"TypefaceFontName": "Medium"
+		}
+	},
+	"parentClass": "/Script/CommonUI.CommonTextStyle"
+}

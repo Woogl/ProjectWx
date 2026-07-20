@@ -30,6 +30,7 @@ protected:
 
 	// UCommonButtonBase interface
 	virtual void UpdateInputActionWidget() override;
+	virtual void NativeOnCurrentTextStyleChanged() override;
 	// End of UCommonButtonBase interface
 
 	void RefreshButtonText();

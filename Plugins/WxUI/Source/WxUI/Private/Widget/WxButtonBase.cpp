@@ -48,6 +48,16 @@ void UWxButtonBase::UpdateInputActionWidget()
 	RefreshButtonText();
 }
 
+void UWxButtonBase::NativeOnCurrentTextStyleChanged()
+{
+	Super::NativeOnCurrentTextStyleChanged();
+
+	if (TextBlock)
+	{
+		TextBlock->SetStyle(GetCurrentTextStyleClass());
+	}
+}
+
 void UWxButtonBase::SetButtonText(const FText& InText)
 {
 	ButtonText = InText;
