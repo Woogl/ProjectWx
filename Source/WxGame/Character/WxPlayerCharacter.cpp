@@ -35,6 +35,7 @@ AWxPlayerCharacter::AWxPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+	GetCharacterMovement()->SetCrouchedHalfHeight(60.f);
 
 	// 더블 점프 허용(2단). 2단 Z속도 절반 적용은 UWxCharacterMovementComponent::DoJump에서 처리한다.
 	JumpMaxCount = 2;
@@ -175,7 +176,7 @@ void AWxPlayerCharacter::Look(const FInputActionValue& Value)
 
 void AWxPlayerCharacter::ToggleCrouch()
 {
-	if (bIsCrouched)
+	if (IsCrouched())
 	{
 		UnCrouch();
 	}
