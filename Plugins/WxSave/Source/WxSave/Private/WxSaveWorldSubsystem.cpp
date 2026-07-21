@@ -218,11 +218,12 @@ void UWxSaveWorldSubsystem::ApplyPlayerStats(AActor* PlayerActor, const TMap<FNa
 		return;
 	}
 
-	// Max 계열을 먼저, 나머지를 나중에 2패스로 세팅한다: current(HP 등)는 PreAttributeChange 에서 현재 Max 로 클램프되고
-	// Max 변경은 PostAttributeChange 에서 current 를 비율 재조정하므로, Max 를 저장 값으로 먼저 세팅해야 이후 current 세팅이 정확히 복원된다.
+	// 어트리뷰트 간 세팅 순서 의존(current 는 PreAttributeChange 에서 현재 Max 로 클램프되고, Max 변경은
+	// PostAttributeChange 에서 current 를 비율 재조정)을 이름 규칙 없이 흡수한다. 1패스로 전량 적용하면 모든 Max 가
+	// 저장 값으로 확정되고(Max 는 다른 어트리뷰트에 의해 재조정되지 않으므로), 2패스는 아직 저장 값과 다른 것(주로
+	// 잘못된 Max 로 클램프된 current)만 재적용해 이제 정확한 Max 로 저장 값에 정확히 복원한다.
 	for (int32 Pass = 0; Pass < 2; ++Pass)
 	{
-		const bool bMaxPass = (Pass == 0);
 		for (const UAttributeSet* Set : ASC->GetSpawnedAttributes())
 		{
 			if (!Set)
@@ -243,13 +244,14 @@ void UWxSaveWorldSubsystem::ApplyPlayerStats(AActor* PlayerActor, const TMap<FNa
 					continue;
 				}
 
-				// "Max" 접두 어트리뷰트는 1패스, 나머지는 2패스에서만 적용한다.
-				if (It->GetName().StartsWith(TEXT("Max")) != bMaxPass)
+				const FGameplayAttribute Attribute(*It);
+
+				// 이미 저장 값이면(주로 1패스에서 확정된 Max) 재적용을 건너뛴다. 불필요한 재조정에 의한 미세 드리프트를 막는다.
+				if (Pass == 1 && ASC->GetNumericAttributeBase(Attribute) == *SavedValue)
 				{
 					continue;
 				}
 
-				const FGameplayAttribute Attribute(*It);
 				ASC->SetNumericAttributeBase(Attribute, *SavedValue);
 			}
 		}
