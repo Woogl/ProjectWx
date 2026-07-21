@@ -73,11 +73,18 @@ void UWxAbility_Skill::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 {
 	// 콤보 재발동 시 엔진이 이 EndAbility를 먼저 호출한다.
 	// 몽타주 태스크를 콜백 해제(EndTask) 후 정리해, 그 종료가 Interrupted/Cancelled 핸들러를 깨워 CurrentIndex를 되돌리는 것을 막는다.
-	// CurrentIndex는 여기서 리셋하지 않는다(재발동 시 보존). 콤보 자연 종료는 몽타주 핸들러가 INDEX_NONE으로 리셋한다.
 	if (MontageTask)
 	{
 		MontageTask->EndTask();
 		MontageTask = nullptr;
+	}
+
+	// 외부 캔슬(HitReact/Guard/Dodge 등이 CancelAbilitiesWithTag로 취소)에서는 위 EndTask가 몽타주 핸들러를 끊어
+	// CurrentIndex를 되돌리는 Interrupted/Cancelled 핸들러가 실행되지 않는다. 여기서 직접 리셋해 다음 신규 스킬이
+	// 콤보 중간이 아니라 첫 인덱스부터 시작하게 한다. 콤보 재발동은 bWasCancelled=false로 들어오므로 진행 중 인덱스는 보존된다.
+	if (bWasCancelled)
+	{
+		CurrentIndex = INDEX_NONE;
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);

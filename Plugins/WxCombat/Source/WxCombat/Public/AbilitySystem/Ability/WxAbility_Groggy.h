@@ -44,8 +44,12 @@ private:
 
 	void TickPlayMontage();
 
+	// 실패복구: DrainDP가 DP를 0까지 못 내려 그로기가 끝나지 않을 때, 지속시간을 넘기면 DP를 강제 리셋해 종료시킨다.
+	void HandleGroggySafetyTimeout();
+
 	FDelegateHandle GroggyTagDelegateHandle;
 	FDelegateHandle DeadTagDelegateHandle;
 	FActiveGameplayEffectHandle DrainDPEffectHandle;
 	FTimerHandle MontagePollingTimerHandle;
+	FTimerHandle GroggySafetyTimerHandle;
 };

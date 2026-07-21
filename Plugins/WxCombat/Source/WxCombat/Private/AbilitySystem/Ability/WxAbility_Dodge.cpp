@@ -103,6 +103,17 @@ void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 	// 어빌리티가 무적 구간 도중 취소되면 태그 해제 콜백을 받지 못하므로 여기서 비활성화한다.
 	DeactivateJudgementCapsule();
 
+	// 무적 구간 도중 취소되어 ANS_Invincible의 NotifyEnd가 스킵되면 State.Invincible이 잔존해 영구 무적이 된다.
+	// 판정 캡슐과 동일하게 실패복구로 태그를 정리한다(State.Invincible은 ANS_Invincible만 부여하므로 이 시점 잔존분은 회피가 흘린 것).
+	if (ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
+	{
+		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+		if (ASC->HasMatchingGameplayTag(WxGameplayTags::State_Invincible))
+		{
+			ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Invincible);
+		}
+	}
+
 	if (WaitInputTask)
 	{
 		WaitInputTask->EndTask();

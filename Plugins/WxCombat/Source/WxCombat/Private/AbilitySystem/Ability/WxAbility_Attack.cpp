@@ -83,11 +83,18 @@ void UWxAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 {
 	// 콤보 재발동 시 엔진이 이 EndAbility를 먼저 호출한다.
 	// 몽타주 태스크를 콜백 해제(EndTask) 후 정리해, 그 종료가 Interrupted/Cancelled 핸들러를 깨워 CurrentPath를 되돌리는 것을 막는다.
-	// CurrentPath는 여기서 비우지 않는다(재발동 시 보존). 콤보 자연 종료는 몽타주 핸들러가 비운다.
 	if (MontageTask)
 	{
 		MontageTask->EndTask();
 		MontageTask = nullptr;
+	}
+
+	// 외부 캔슬(HitReact/Guard/Dodge 등이 CancelAbilitiesWithTag로 취소)에서는 위 EndTask가 몽타주 핸들러를 끊어
+	// CurrentPath를 되돌리는 Interrupted/Cancelled 핸들러가 실행되지 않는다. 여기서 직접 리셋해 다음 신규 공격이
+	// 콤보 중간이 아니라 첫타부터 시작하게 한다. 콤보 재발동은 bWasCancelled=false로 들어오므로 진행 중 경로는 보존된다.
+	if (bWasCancelled)
+	{
+		CurrentPath.Empty();
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);

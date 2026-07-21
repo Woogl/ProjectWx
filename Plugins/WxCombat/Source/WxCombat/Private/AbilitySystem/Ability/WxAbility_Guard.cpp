@@ -116,6 +116,13 @@ void UWxAbility_Guard::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Guard);
 	}
 
+	// 패링 윈도우 도중 취소되어 ANS_PerfectGuard의 NotifyEnd가 스킵되면 State.PerfectGuard가 잔존해 영구 패링이 된다.
+	// State.PerfectGuard는 ANS_PerfectGuard만 부여하므로 이 시점 잔존분은 가드가 흘린 것 — 실패복구로 정리한다.
+	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::State_PerfectGuard))
+	{
+		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_PerfectGuard);
+	}
+
 	ActiveMontage = nullptr;
 	CurrentMontageTask = nullptr;
 

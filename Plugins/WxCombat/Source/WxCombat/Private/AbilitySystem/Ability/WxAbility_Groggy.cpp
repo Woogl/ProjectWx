@@ -3,6 +3,7 @@
 #include "AbilitySystem/Ability/WxAbility_Groggy.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/Effect/WxEffect_DrainDP.h"
+#include "AbilitySystem/Effect/WxEffect_ResetDP.h"
 #include "AIController.h"
 #include "Animation/AnimInstance.h"
 #include "BrainComponent.h"
@@ -52,12 +53,13 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	DeadTagDelegateHandle = ASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &UWxAbility_Groggy::HandleDeadTagChanged);
 
+	// 그로기 지속시간은 그로기 몽타주의 재생 길이를 따른다. (몽타주는 rate 1.0 으로 재생)
+	const float GroggyDuration = GroggyMontage->GetPlayLength();
+
 	FGameplayEffectSpecHandle DrainSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_DrainDP::StaticClass(), GetAbilityLevel());
 	if (DrainSpecHandle.IsValid())
 	{
-		// 그로기 지속시간은 그로기 몽타주의 재생 길이를 따른다. (몽타주는 rate 1.0 으로 재생)
 		// DP는 이 시간 동안 0까지 드레인되며, 0에 도달해 State.Groggy 태그가 제거되면 그로기가 끝난다.
-		const float GroggyDuration = GroggyMontage->GetPlayLength();
 		DrainSpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, GroggyDuration);
 		DrainDPEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, DrainSpecHandle);
 	}
@@ -65,6 +67,10 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	if (UWorld* World = ActorInfo->AvatarActor.IsValid() ? ActorInfo->AvatarActor->GetWorld() : nullptr)
 	{
 		World->GetTimerManager().SetTimer(MontagePollingTimerHandle, this, &UWxAbility_Groggy::TickPlayMontage, 0.1f, true);
+
+		// 실패복구: DrainDP가 무효/외부 제거로 DP를 0까지 못 내리면 State.Groggy가 잔존해 무한 그로기가 된다.
+		// 지속시간을 넉넉히(+1s) 넘겨도 끝나지 않으면 DP를 강제로 0으로 리셋해 종료시킨다.
+		World->GetTimerManager().SetTimer(GroggySafetyTimerHandle, this, &UWxAbility_Groggy::HandleGroggySafetyTimeout, GroggyDuration + 1.f, false);
 	}
 
 	if (APawn* AvatarPawn = Cast<APawn>(ActorInfo->AvatarActor.Get()))
@@ -88,6 +94,7 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 		if (UWorld* World = ActorInfo->AvatarActor.IsValid() ? ActorInfo->AvatarActor->GetWorld() : nullptr)
 		{
 			World->GetTimerManager().ClearTimer(MontagePollingTimerHandle);
+			World->GetTimerManager().ClearTimer(GroggySafetyTimerHandle);
 		}
 
 		if (APawn* AvatarPawn = Cast<APawn>(ActorInfo->AvatarActor.Get()))
@@ -144,6 +151,18 @@ void UWxAbility_Groggy::HandleDeadTagChanged(const FGameplayTag CallbackTag, int
 	if (NewCount > 0)
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+	}
+}
+
+void UWxAbility_Groggy::HandleGroggySafetyTimeout()
+{
+	// DP를 강제로 0으로 리셋한다. AttributeSet가 DP<=0에서 State.Groggy를 제거하고,
+	// 그 태그 변화가 HandleGroggyTagChanged를 통해 정상 종료 경로를 태운다.
+	// (여기서 곧장 EndAbility만 하면 DP가 MaxDP로 남아 OwnedTagPresent(State.Groggy) 트리거가 즉시 재발동한다.)
+	const FGameplayEffectSpecHandle ResetSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_ResetDP::StaticClass(), GetAbilityLevel());
+	if (ResetSpecHandle.IsValid())
+	{
+		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, ResetSpecHandle);
 	}
 }
 
