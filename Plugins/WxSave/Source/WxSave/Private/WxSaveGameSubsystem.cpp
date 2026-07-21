@@ -30,8 +30,8 @@ void UWxSaveGameSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
-	// PIE·스탠드얼론·패키지 모두 빈 새 SaveGame 으로 시작한다("신선한 시작" 의미론). 슬롯 이름은 체크포인트 오토세이브·UI 로드가 쓸 디스크 파일명이며, 이후 로드는 UI 의 LoadFromFile 몫이다.
-	StartNewSaveFile(TEXT("Test"), 0, UWxSaveGame::StaticClass());
+	// PIE·스탠드얼론·패키지 모두 빈 새 SaveGame 으로 시작한다("신선한 시작" 의미론). 부트스트랩 기본 슬롯(DefaultSaveSlotName)은 체크포인트 오토세이브가 쓸 디스크 파일명이며, 이후 로드/슬롯 재지정은 UI 의 LoadFromFile/StartNewSaveFile 몫이다.
+	StartNewSaveFile(WxSave::DefaultSaveSlotName, 0, UWxSaveGame::StaticClass());
 }
 
 UWxSaveGame* UWxSaveGameSubsystem::StartNewSaveFile(const FString& SlotName, int32 UserIndex, TSubclassOf<UWxSaveGame> SpecificClass)

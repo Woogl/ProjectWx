@@ -11,6 +11,12 @@
 class AActor;
 class UWorld;
 
+namespace WxSave
+{
+	/** 부트스트랩 기본 슬롯 이름(=디스크 파일명). Initialize 가 UI 의 LoadFromFile/StartNewSaveFile 이 슬롯을 재지정하기 전까지 쓰는 활성 슬롯이다. UI 의 명명 세이브 슬롯과는 분리된 전용 기본 슬롯. */
+	inline const TCHAR* DefaultSaveSlotName = TEXT("Default");
+}
+
 /**
  * 메모리 SaveGame 의 수명·디스크 I/O·맵 트래블을 담당하는 GameInstance 서브시스템 (샘플 UPersistenceGameSubsystem 골격 이식).
  * 슬롯 정체성(SlotName/UserIndex)은 SaveGame 이 보유하므로 SaveToFile 은 무인자다.
