@@ -24,6 +24,7 @@
 				}
 			}
 		],
+		"InputAction": "/Game/Input/Actions/IA_Skill_3.IA_Skill_3",
 		"SkillMontages": [
 			"/Game/AbilitySystem/Ability/AM_Skill_3_1.AM_Skill_3_1",
 			"/Game/AbilitySystem/Ability/AM_Skill_3_2.AM_Skill_3_2",

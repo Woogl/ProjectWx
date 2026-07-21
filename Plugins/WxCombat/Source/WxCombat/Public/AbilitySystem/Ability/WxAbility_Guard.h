@@ -8,7 +8,8 @@
 
 class UAnimMontage;
 class UAbilityTask_PlayMontageAndWait;
-class UWxAbilityTask_WaitInputTagPressed;
+class UWxAbilityTask_WaitInputActionPressed;
+class UInputAction;
 
 /**
  * 가드 어빌리티.
@@ -41,6 +42,9 @@ public:
 	/** 가드 중 받는 대미지 배율(0~1). ExecCalc 가 가드 피격 시 이 값을 곱한다. */
 	float GetDamageReductionRate() const;
 
+	/** 가드 활성 중에는 반격 입력(CounterInputAction)도 라우팅받는다. */
+	virtual bool IsObservedInput(const UInputAction* Action) const override;
+
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
@@ -63,6 +67,10 @@ protected:
 	/** ANS_ComboWindow 구간 내 공격 입력 시 재생할 반격 몽타주 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> GuardCounterMontage;
+
+	/** 가드 활성 중 이 입력을 누르면(ANS_ComboWindow 구간 내) 반격으로 전환한다. 보통 약공격 입력. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
+	TObjectPtr<UInputAction> CounterInputAction;
 
 	/** 가드 중 받는 대미지 배율(0~1). 0.5 면 50% 감소. ExecCalc_Damage 가 가드 피격 분기에서 참조. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|PerfectGuard", meta = (ClampMin = "0", ClampMax = "1"))
@@ -115,5 +123,5 @@ private:
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> CurrentMontageTask;
 
 	UPROPERTY(Transient)
-	TObjectPtr<UWxAbilityTask_WaitInputTagPressed> WaitInputTask;
+	TObjectPtr<UWxAbilityTask_WaitInputActionPressed> WaitInputTask;
 };

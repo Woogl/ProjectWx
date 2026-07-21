@@ -8,6 +8,7 @@
 
 class UAbilityTask_PlayMontageAndWait;
 class UAnimMontage;
+class UInputAction;
 
 /**
  * 공격 어빌리티.
@@ -50,9 +51,17 @@ public:
 	 */
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
+	/** 약공격(InputAction)에 더해 강공격(HeavyInputAction)으로도 발동한다. */
+	virtual bool IsActivationInput(const UInputAction* Action) const override;
+
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+
+	/** 강공격 입력 액션. 약공격(InputAction)과 함께 발동시키며, 눌린 쪽으로 콤보 L/H를 가른다. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
+	TObjectPtr<UInputAction> HeavyInputAction;
+
 	/**
 	 * 콤보 경로-몽타주 매핑.
 	 * Key: 콤보 경로 (L = 약공격, H = 강공격. 예: "L", "LL", "LH", "LHLH")
@@ -69,7 +78,7 @@ private:
 	bool HasNextCombo() const;
 
 	/**
-	 * 눌린 입력(LastPressedInputTag의 L/H)과 CurrentPath로 이번에 재생할 콤보 경로를 계산한다.
+	 * 눌린 입력(LastPressedInputAction의 L/H)과 CurrentPath로 이번에 재생할 콤보 경로를 계산한다.
 	 * 신규 발동이면 첫타(L/H), 콤보 진행이면 CurrentPath+입력(또는 터미널 시 첫타 재시작), 잇지 못하면 빈 문자열(무시).
 	 * CanActivateAbility(게이트)와 ActivateAbility(적용)가 공유한다.
 	 */

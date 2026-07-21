@@ -109,20 +109,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Coeff_ATK, "SetByCaller.Coeff.ATK");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_RawDamage, "SetByCaller.RawDamage");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_HitStop, "SetByCaller.HitStop");
-
-	UE_DEFINE_GAMEPLAY_TAG(Input_Attack, "Input.Attack");
-	UE_DEFINE_GAMEPLAY_TAG(Input_Attack_Light, "Input.Attack.Light");
-	UE_DEFINE_GAMEPLAY_TAG(Input_Attack_Heavy, "Input.Attack.Heavy");
-	UE_DEFINE_GAMEPLAY_TAG(Input_Dodge, "Input.Dodge");
-	UE_DEFINE_GAMEPLAY_TAG(Input_Sprint, "Input.Sprint");
-	UE_DEFINE_GAMEPLAY_TAG(Input_Guard, "Input.Guard");
-	UE_DEFINE_GAMEPLAY_TAG(Input_Skill_1, "Input.Skill.1");
-	UE_DEFINE_GAMEPLAY_TAG(Input_Skill_2, "Input.Skill.2");
-	UE_DEFINE_GAMEPLAY_TAG(Input_Skill_3, "Input.Skill.3");
-	UE_DEFINE_GAMEPLAY_TAG(Input_Skill_4, "Input.Skill.4");
-	UE_DEFINE_GAMEPLAY_TAG(Input_Ultimate, "Input.Ultimate");
-	UE_DEFINE_GAMEPLAY_TAG(Input_LockOn, "Input.LockOn");
-	UE_DEFINE_GAMEPLAY_TAG(Input_UseItem, "Input.UseItem");
 	
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Game, "UI.Layer.Game");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_GameMenu, "UI.Layer.GameMenu");

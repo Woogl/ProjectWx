@@ -4,7 +4,7 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
-#include "AbilitySystem/Task/WxAbilityTask_WaitInputTagPressed.h"
+#include "AbilitySystem/Task/WxAbilityTask_WaitInputActionPressed.h"
 #include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
 #include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
@@ -21,6 +21,11 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
+}
+
+bool UWxAbility_Dodge::IsObservedInput(const UInputAction* Action) const
+{
+	return Super::IsObservedInput(Action) || (Action && Action == CounterInputAction);
 }
 
 void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -83,15 +88,9 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		}
 	}
 
-	// 극한 회피 여부와 무관하게, 회피 중 ANS_ComboWindow 구간 공격 입력으로 반격 전환
+	// 극한 회피 여부와 무관하게, 회피 중 ANS_ComboWindow 구간 공격 입력으로 반격 전환. 반격 입력 라우팅은 HandlesInput override가 선언적으로 처리한다.
 	if (DodgeCounterMontage)
 	{
-		if (FGameplayAbilitySpec* Spec = ASC ? ASC->FindAbilitySpecFromHandle(Handle) : nullptr)
-		{
-			Spec->GetDynamicSpecSourceTags().AddTag(WxGameplayTags::Input_Attack);
-			ASC->MarkAbilitySpecDirty(*Spec);
-		}
-
 		ListenForCounterInput();
 	}
 
@@ -108,17 +107,6 @@ void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 	{
 		WaitInputTask->EndTask();
 		WaitInputTask = nullptr;
-	}
-
-	// ActivateAbility에서 추가한 공격 입력 태그 제거
-	if (DodgeCounterMontage && ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
-	{
-		FGameplayAbilitySpec* Spec = ActorInfo->AbilitySystemComponent->FindAbilitySpecFromHandle(Handle);
-		if (Spec)
-		{
-			Spec->GetDynamicSpecSourceTags().RemoveTag(WxGameplayTags::Input_Attack);
-			ActorInfo->AbilitySystemComponent->MarkAbilitySpecDirty(*Spec);
-		}
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
@@ -267,7 +255,7 @@ bool UWxAbility_Dodge::PlayMontage(UAnimMontage* Montage, FName StartSection)
 
 void UWxAbility_Dodge::ListenForCounterInput()
 {
-	WaitInputTask = UWxAbilityTask_WaitInputTagPressed::CreateTask(this, WxGameplayTags::Input_Attack);
+	WaitInputTask = UWxAbilityTask_WaitInputActionPressed::CreateTask(this, CounterInputAction);
 	if (WaitInputTask)
 	{
 		WaitInputTask->OnPressed.AddDynamic(this, &UWxAbility_Dodge::HandleCounterInputPressed);

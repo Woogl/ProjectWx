@@ -1,0 +1,8 @@
+{
+	"blueprintPath": "/Game/AbilitySystem/Ability/GA_Sprint.GA_Sprint",
+	"classDefaults":
+	{
+		"InputAction": "/Game/Input/Actions/IA_Sprint.IA_Sprint"
+	},
+	"parentClass": "/Script/WxCombat.WxAbility_Sprint"
+}

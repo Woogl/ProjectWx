@@ -1,17 +1,17 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Task/WxAbilityTask_WaitInputTagPressed.h"
+#include "AbilitySystem/Task/WxAbilityTask_WaitInputActionPressed.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystemComponent.h"
 
-UWxAbilityTask_WaitInputTagPressed* UWxAbilityTask_WaitInputTagPressed::CreateTask(UGameplayAbility* OwningAbility, FGameplayTag InInputTag)
+UWxAbilityTask_WaitInputActionPressed* UWxAbilityTask_WaitInputActionPressed::CreateTask(UGameplayAbility* OwningAbility, const UInputAction* InInputAction)
 {
-	UWxAbilityTask_WaitInputTagPressed* Task = NewAbilityTask<UWxAbilityTask_WaitInputTagPressed>(OwningAbility);
-	Task->InputTag = InInputTag;
+	UWxAbilityTask_WaitInputActionPressed* Task = NewAbilityTask<UWxAbilityTask_WaitInputActionPressed>(OwningAbility);
+	Task->InputAction = InInputAction;
 	return Task;
 }
 
-void UWxAbilityTask_WaitInputTagPressed::OnDestroy(bool AbilityEnded)
+void UWxAbilityTask_WaitInputActionPressed::OnDestroy(bool AbilityEnded)
 {
 	UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
 	if (ASC)
@@ -26,7 +26,7 @@ void UWxAbilityTask_WaitInputTagPressed::OnDestroy(bool AbilityEnded)
 	Super::OnDestroy(AbilityEnded);
 }
 
-void UWxAbilityTask_WaitInputTagPressed::Activate()
+void UWxAbilityTask_WaitInputActionPressed::Activate()
 {
 	UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
 	if (!ASC || !Ability || !IsLocallyControlled())
@@ -39,10 +39,10 @@ void UWxAbilityTask_WaitInputTagPressed::Activate()
 		EAbilityGenericReplicatedEvent::InputPressed,
 		GetAbilitySpecHandle(),
 		GetActivationPredictionKey()
-	).AddUObject(this, &UWxAbilityTask_WaitInputTagPressed::HandleInputPressed);
+	).AddUObject(this, &UWxAbilityTask_WaitInputActionPressed::HandleInputPressed);
 }
 
-void UWxAbilityTask_WaitInputTagPressed::HandleInputPressed()
+void UWxAbilityTask_WaitInputActionPressed::HandleInputPressed()
 {
 	const UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(AbilitySystemComponent.Get());
 	if (!WxASC)
@@ -50,7 +50,7 @@ void UWxAbilityTask_WaitInputTagPressed::HandleInputPressed()
 		return;
 	}
 
-	if (!WxASC->GetLastPressedInputTag().MatchesTag(InputTag))
+	if (WxASC->GetLastPressedInputAction() != InputAction)
 	{
 		return;
 	}

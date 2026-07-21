@@ -1,0 +1,10 @@
+{
+	"blueprintPath": "/Game/AbilitySystem/Ability/GA_UseItem.GA_UseItem",
+	"classDefaults":
+	{
+		"ConsumableDef": "/Game/Item/DA_Potion.DA_Potion",
+		"InputAction": "/Game/Input/Actions/IA_UseItem.IA_UseItem",
+		"UseMontage": "/Game/AbilitySystem/Ability/AM_UseItem.AM_UseItem"
+	},
+	"parentClass": "/Script/WxGame.WxAbility_UseItem"
+}

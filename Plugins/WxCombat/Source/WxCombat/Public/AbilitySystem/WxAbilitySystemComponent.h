@@ -7,6 +7,8 @@
 #include "WxAbilitySet.h"
 #include "WxAbilitySystemComponent.generated.h"
 
+class UInputAction;
+
 UCLASS()
 class WXCOMBAT_API UWxAbilitySystemComponent : public UAbilitySystemComponent
 {
@@ -17,21 +19,21 @@ public:
 
 	void GiveAbilitySet();
 
-	/** 입력 태그에 매칭되는 어빌리티 활성화 (입력 눌림) */
-	void AbilityInputTagPressed(const FGameplayTag& InputTag);
+	/** 입력 액션에 매칭되는 어빌리티 활성화 (입력 눌림) */
+	void AbilityInputActionPressed(const UInputAction* Action);
 
-	/** 입력 태그에 매칭되는 어빌리티에 입력 해제 전달 */
-	void AbilityInputTagReleased(const FGameplayTag& InputTag);
+	/** 입력 액션에 매칭되는 어빌리티에 입력 해제 전달 */
+	void AbilityInputActionReleased(const UInputAction* Action);
 
-	/** 가장 최근에 눌린 입력 태그 반환 */
-	const FGameplayTag& GetLastPressedInputTag() const;
+	/** 가장 최근에 눌린 입력 액션 반환 */
+	const UInputAction* GetLastPressedInputAction() const;
 
 private:
-	/** LastPressedInputTag를 설정하고, 클라이언트이면 서버에 동기화 */
-	void SetLastPressedInputTag(const FGameplayTag& InputTag);
+	/** LastPressedInputAction을 설정하고, 클라이언트이면 서버에 동기화 */
+	void SetLastPressedInputAction(const UInputAction* Action);
 
 	UFUNCTION(Server, Reliable)
-	void ServerSetLastPressedInputTag(const FGameplayTag& InputTag);
+	void ServerSetLastPressedInputAction(const UInputAction* Action);
 
 protected:
 	/** Ability, Effect 초기 데이터 */
@@ -40,5 +42,6 @@ protected:
 
 	FWxAbilitySetGrantedHandles AbilitySetGrantedHandles;
 
-	FGameplayTag LastPressedInputTag;
+	UPROPERTY()
+	TObjectPtr<const UInputAction> LastPressedInputAction;
 };

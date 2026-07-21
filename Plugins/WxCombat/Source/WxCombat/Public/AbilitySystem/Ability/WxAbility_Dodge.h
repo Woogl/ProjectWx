@@ -9,7 +9,8 @@
 class UAnimMontage;
 class UAbilityTask_PlayMontageAndWait;
 class UCapsuleComponent;
-class UWxAbilityTask_WaitInputTagPressed;
+class UWxAbilityTask_WaitInputActionPressed;
+class UInputAction;
 struct FGameplayAbilityTargetDataHandle;
 
 /**
@@ -57,6 +58,9 @@ class WXCOMBAT_API UWxAbility_Dodge : public UWxAbilityBase
 public:
 	UWxAbility_Dodge();
 
+	/** 회피 활성 중에는 반격 입력(CounterInputAction)도 라우팅받는다. */
+	virtual bool IsObservedInput(const UInputAction* Action) const override;
+
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
@@ -80,6 +84,10 @@ protected:
 	/** 극한 회피 성공 중 공격 입력 시 재생할 반격 몽타주 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> DodgeCounterMontage;
+
+	/** 회피 활성 중 이 입력을 누르면(ANS_ComboWindow 구간 내) 반격으로 전환한다. 보통 약공격 입력. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
+	TObjectPtr<UInputAction> CounterInputAction;
 
 	/** 극한 회피 성공 시 회복하는 MP량 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
@@ -143,7 +151,7 @@ private:
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
 
 	UPROPERTY()
-	TObjectPtr<UWxAbilityTask_WaitInputTagPressed> WaitInputTask;
+	TObjectPtr<UWxAbilityTask_WaitInputActionPressed> WaitInputTask;
 
 	/**
 	 * 극한 회피 판정용 캡슐.

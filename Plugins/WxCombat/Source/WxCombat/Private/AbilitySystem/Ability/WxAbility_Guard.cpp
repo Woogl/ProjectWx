@@ -3,7 +3,7 @@
 #include "AbilitySystem/Ability/WxAbility_Guard.h"
 #include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
-#include "AbilitySystem/Task/WxAbilityTask_WaitInputTagPressed.h"
+#include "AbilitySystem/Task/WxAbilityTask_WaitInputActionPressed.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
@@ -55,6 +55,11 @@ float UWxAbility_Guard::GetDamageReductionRate() const
 	return DamageReductionRate;
 }
 
+bool UWxAbility_Guard::IsObservedInput(const UInputAction* Action) const
+{
+	return Super::IsObservedInput(Action) || (Action && Action == CounterInputAction);
+}
+
 void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
@@ -90,15 +95,9 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	ListenForGuardHit();
 	ListenForPerfectGuard();
 
-	// ANS_ComboWindow 구간 공격 입력으로 반격 전환
+	// ANS_ComboWindow 구간 공격 입력으로 반격 전환. 반격 입력 라우팅은 HandlesInput override가 선언적으로 처리한다.
 	if (GuardCounterMontage)
 	{
-		if (FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromHandle(Handle))
-		{
-			Spec->GetDynamicSpecSourceTags().AddTag(WxGameplayTags::Input_Attack);
-			ASC->MarkAbilitySpecDirty(*Spec);
-		}
-
 		ListenForCounterInput();
 	}
 }
@@ -115,16 +114,6 @@ void UWxAbility_Guard::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard))
 	{
 		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Guard);
-	}
-
-	// ActivateAbility에서 추가한 공격 입력 태그 제거
-	if (GuardCounterMontage && ASC)
-	{
-		if (FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromHandle(Handle))
-		{
-			Spec->GetDynamicSpecSourceTags().RemoveTag(WxGameplayTags::Input_Attack);
-			ASC->MarkAbilitySpecDirty(*Spec);
-		}
 	}
 
 	ActiveMontage = nullptr;
@@ -187,7 +176,7 @@ void UWxAbility_Guard::ListenForPerfectGuard()
 
 void UWxAbility_Guard::ListenForCounterInput()
 {
-	WaitInputTask = UWxAbilityTask_WaitInputTagPressed::CreateTask(this, WxGameplayTags::Input_Attack);
+	WaitInputTask = UWxAbilityTask_WaitInputActionPressed::CreateTask(this, CounterInputAction);
 	if (WaitInputTask)
 	{
 		WaitInputTask->OnPressed.AddDynamic(this, &UWxAbility_Guard::HandleCounterInputPressed);

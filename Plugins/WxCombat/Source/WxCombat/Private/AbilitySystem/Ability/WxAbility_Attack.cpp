@@ -49,6 +49,11 @@ bool UWxAbility_Attack::CanActivateAbility(const FGameplayAbilitySpecHandle Hand
 	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 }
 
+bool UWxAbility_Attack::IsActivationInput(const UInputAction* Action) const
+{
+	return Super::IsActivationInput(Action) || (Action && Action == HeavyInputAction);
+}
+
 void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
@@ -127,7 +132,7 @@ bool UWxAbility_Attack::HasNextCombo() const
 FString UWxAbility_Attack::ResolveNextComboPath() const
 {
 	const UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
-	const TCHAR* Suffix = (ASC && ASC->GetLastPressedInputTag() == WxGameplayTags::Input_Attack_Heavy)
+	const TCHAR* Suffix = (ASC && ASC->GetLastPressedInputAction() == HeavyInputAction)
 		? TEXT("H")
 		: TEXT("L");
 

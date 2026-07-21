@@ -4,24 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "GameplayTagContainer.h"
 #include "WxInputConfig.generated.h"
 
 class UInputMappingContext;
 class UInputAction;
-
-/** Enhanced Input Action과 Gameplay Tag를 매핑하는 단일 항목 */
-USTRUCT(BlueprintType)
-struct FWxInputAbilityBinding
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<const UInputAction> InputAction = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (Categories = "Input"))
-	FGameplayTag InputTag;
-};
 
 /**
  * 플레이어 입력 설정.
@@ -58,7 +44,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TObjectPtr<UInputAction> InteractAction;
 
-	/** 어빌리티 입력 바인딩 설정. InputAction → InputTag 매핑 */
+	/** 어빌리티 입력으로 바인딩할 InputAction 목록. 각 액션의 press/release가 ASC 입력 라우팅으로 전달된다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
-	TArray<FWxInputAbilityBinding> AbilityInputBindings;
+	TArray<TObjectPtr<const UInputAction>> AbilityInputActions;
 };

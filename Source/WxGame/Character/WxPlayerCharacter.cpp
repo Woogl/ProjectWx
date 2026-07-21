@@ -7,6 +7,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "InputAction.h"
 #include "InputActionValue.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -130,13 +131,13 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EIC->BindAction(InputConfig->InteractAction, ETriggerEvent::Started, this, &AWxPlayerCharacter::Interact);
 	}
 
-	// 어빌리티 입력 바인딩: 각 매핑에 대해 Press/Release 바인딩
-	for (const FWxInputAbilityBinding& Binding : InputConfig->AbilityInputBindings)
+	// 어빌리티 입력 바인딩: 각 InputAction의 Press/Release를 액션 포인터를 payload로 실어 바인딩
+	for (const TObjectPtr<const UInputAction>& Action : InputConfig->AbilityInputActions)
 	{
-		if (Binding.InputAction && Binding.InputTag.IsValid())
+		if (Action)
 		{
-			EIC->BindAction(Binding.InputAction, ETriggerEvent::Started,   this, &AWxPlayerCharacter::AbilityInputPressed,  Binding.InputTag);
-			EIC->BindAction(Binding.InputAction, ETriggerEvent::Completed, this, &AWxPlayerCharacter::AbilityInputReleased, Binding.InputTag);
+			EIC->BindAction(Action, ETriggerEvent::Started,   this, &AWxPlayerCharacter::AbilityInputPressed,  Action.Get());
+			EIC->BindAction(Action, ETriggerEvent::Completed, this, &AWxPlayerCharacter::AbilityInputReleased, Action.Get());
 		}
 	}
 }
@@ -206,18 +207,18 @@ void AWxPlayerCharacter::Interact()
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, WxGameplayTags::Event_Interact, EventData);
 }
 
-void AWxPlayerCharacter::AbilityInputPressed(FGameplayTag InputTag)
+void AWxPlayerCharacter::AbilityInputPressed(const UInputAction* Action)
 {
 	if (AbilitySystemComponent)
 	{
-		AbilitySystemComponent->AbilityInputTagPressed(InputTag);
+		AbilitySystemComponent->AbilityInputActionPressed(Action);
 	}
 }
 
-void AWxPlayerCharacter::AbilityInputReleased(FGameplayTag InputTag)
+void AWxPlayerCharacter::AbilityInputReleased(const UInputAction* Action)
 {
 	if (AbilitySystemComponent)
 	{
-		AbilitySystemComponent->AbilityInputTagReleased(InputTag);
+		AbilitySystemComponent->AbilityInputActionReleased(Action);
 	}
 }

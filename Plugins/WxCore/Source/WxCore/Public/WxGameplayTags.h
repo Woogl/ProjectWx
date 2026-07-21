@@ -220,22 +220,6 @@ namespace WxGameplayTags
 	/** 역경직(히트 스톱) 지속시간 SetByCaller 키. WxExecCalc_Damage가 적중 시 이 값을 실어 공격자에게 Event.HitStop을 발동한다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_HitStop);
 
-	// ── Input ──────────────────────────────────────────────────────────────
-
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Attack);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Attack_Light);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Attack_Heavy);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Dodge);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Sprint);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Guard);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Skill_1);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Skill_2);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Skill_3);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Skill_4);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Ultimate);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_LockOn);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_UseItem);
-
 	// ── UI ────────────────────────────────────────────────────────────────
 
 	/** HUD 레이어 (플레이어 체력 바 등) */

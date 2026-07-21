@@ -24,6 +24,7 @@
 				}
 			}
 		],
+		"InputAction": "/Game/Input/Actions/IA_Skill_4.IA_Skill_4",
 		"OnActivateEffects": [
 			{
 				"EffectClass": "/Game/AbilitySystem/Effect/GE_Exceed.GE_Exceed_C"

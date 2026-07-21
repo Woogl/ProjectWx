@@ -12,6 +12,7 @@ class UWidgetComponent;
 class UWxInputConfig;
 class UWxLockOnManagerComponent;
 class UWxBGMSourceComponent;
+class UInputAction;
 struct FInputActionValue;
 
 /**
@@ -61,8 +62,8 @@ protected:
 	void ToggleCrouch();
 	void Interact();
 
-	void AbilityInputPressed(FGameplayTag InputTag);
-	void AbilityInputReleased(FGameplayTag InputTag);
+	void AbilityInputPressed(const UInputAction* Action);
+	void AbilityInputReleased(const UInputAction* Action);
 
 	/** 캐릭터 입력 설정 (IMC + Move/Look + 어빌리티 바인딩) */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")

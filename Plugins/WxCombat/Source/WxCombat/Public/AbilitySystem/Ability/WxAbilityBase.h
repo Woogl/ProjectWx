@@ -14,6 +14,7 @@ class UWxEffect_Cooldown;
 class UWxAbilityComponent;
 class UAbilityTask_WaitGameplayEvent;
 class AWxProjectileBase;
+class UInputAction;
 struct FWxAbilityTableRow;
 
 /** 어빌리티 발동 시 적용할 GameplayEffect 항목 */
@@ -33,8 +34,8 @@ struct FWxAbilityEffect
 UENUM(BlueprintType)
 enum class EWxAbilityActivationPolicy : uint8
 {
-	/** 입력 트리거 시 활성화 */
-	OnInputTriggered,
+	/** 트리거(입력·이벤트·AI)를 기다려 활성화 */
+	OnTriggered,
 	/** 부여(Grant)될 때 즉시 자동 활성화 (패시브, 상시 버프 등) */
 	OnGranted,
 };
@@ -62,7 +63,27 @@ public:
 	UWxAbilityBase();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
-	EWxAbilityActivationPolicy ActivationPolicy = EWxAbilityActivationPolicy::OnInputTriggered;
+	EWxAbilityActivationPolicy ActivationPolicy = EWxAbilityActivationPolicy::OnTriggered;
+
+	/**
+	 * 이 어빌리티를 발동시키는 입력 액션(플레이어 입력 라우팅 키).
+	 * ASC가 눌린 InputAction을 IsActivationInput으로 대조해 어빌리티를 활성화한다.
+	 * 입력으로 발동하지 않는 어빌리티(AI 패턴, 반응형, 패시브)는 비워둔다.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
+	TObjectPtr<UInputAction> InputAction;
+
+	/**
+	 * 눌린 InputAction이 이 어빌리티를 발동시키는 입력인지 반환한다. 기본은 InputAction 일치.
+	 * 복수 발동 입력을 갖는 어빌리티(예: 약/강 공격)가 override로 확장한다.
+	 */
+	virtual bool IsActivationInput(const UInputAction* Action) const;
+
+	/**
+	 * 이 어빌리티가 활성인 동안 추가로 라우팅받는(관찰하는) 입력인지 반환한다. 기본은 없음(false).
+	 * ASC는 활성 spec에 한해 검사한다. 가드/회피의 반격처럼 활성 중 다른 어빌리티의 입력을 가로채는 어빌리티가 override한다.
+	 */
+	virtual bool IsObservedInput(const UInputAction* Action) const;
 
 	/**
 	 * 어빌리티에 부착된 컴포넌트 모음. 필요한 어빌리티에서만 BP 디테일 패널(Wx)에서 EditInline 으로 추가한다.

@@ -9,6 +9,7 @@
 #include "AbilitySystemGlobals.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "GameplayEffect.h"
+#include "InputAction.h"
 #include "WxAbilityComponent.h"
 #include "WxGameplayTags.h"
 #include "Weapon/WxProjectileBase.h"
@@ -25,6 +26,16 @@ UWxAbilityBase::UWxAbilityBase()
 	// 기본값을 공용 GE 마커로 둔다. 마커 그대로면 프로젝트 방식(AbilityDataRow 기반), 다른 GE로 바꾸면 커스텀(엔진 순정 경로).
 	CooldownGameplayEffectClass = UWxEffect_Cooldown::StaticClass();
 	CostGameplayEffectClass = UWxEffect_Cost::StaticClass();
+}
+
+bool UWxAbilityBase::IsActivationInput(const UInputAction* Action) const
+{
+	return Action && Action == InputAction;
+}
+
+bool UWxAbilityBase::IsObservedInput(const UInputAction* /*Action*/) const
+{
+	return false;
 }
 
 const UWxAbilityComponent* UWxAbilityBase::FindComponent(TSubclassOf<UWxAbilityComponent> ComponentClass) const
