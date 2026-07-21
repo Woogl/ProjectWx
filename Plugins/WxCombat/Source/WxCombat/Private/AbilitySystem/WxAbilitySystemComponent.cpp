@@ -18,7 +18,7 @@ void UWxAbilitySystemComponent::GiveAbilitySet()
 	AbilitySet->GiveToAbilitySystem(this, &AbilitySetGrantedHandles);
 }
 
-void UWxAbilitySystemComponent::AbilityInputActionPressed(const UInputAction* Action)
+void UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* Action)
 {
 	if (!Action)
 	{
@@ -26,6 +26,9 @@ void UWxAbilitySystemComponent::AbilityInputActionPressed(const UInputAction* Ac
 	}
 
 	SetLastPressedInputAction(Action);
+
+	// 활성 어빌리티의 입력 대기 태스크가 관심 입력을 스스로 필터링한다(가드/회피의 반격 등).
+	OnInputActionTriggeredDelegate.Broadcast(Action);
 
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
@@ -35,13 +38,7 @@ void UWxAbilitySystemComponent::AbilityInputActionPressed(const UInputAction* Ac
 			continue;
 		}
 
-		// 비활성이면 발동 입력만, 활성이면 발동 입력 + 관찰 입력(가드/회피의 반격 차용)까지 받는다.
-		bool bMatch = Ability->IsActivationInput(Action);
-		if (!bMatch && Spec.IsActive())
-		{
-			bMatch = Ability->IsObservedInput(Action);
-		}
-		if (!bMatch)
+		if (!Ability->IsActivationInput(Action))
 		{
 			continue;
 		}
@@ -49,8 +46,9 @@ void UWxAbilitySystemComponent::AbilityInputActionPressed(const UInputAction* Ac
 		Spec.InputPressed = true;
 		if (Spec.IsActive())
 		{
+			// 활성 어빌리티에 자기 발동 입력이 다시 들어온 경우다(반격 등 남의 입력은 위 OnInputActionTriggered 방송으로 처리).
 			// 콤보처럼 재발동 가능한 어빌리티는 TryActivateAbility가 다음 단계로 진행시킨다.
-			// 재발동이 성립하지 않는 어빌리티(가드/회피 카운터 등)에서만 활성 인스턴스로 InputPressed 이벤트를 전달한다.
+			// 재발동이 성립하지 않으면 활성 인스턴스에 InputPressed 이벤트를 전달한다(예: 가드 버튼 재입력으로 패링 중 가드 복귀).
 			if (!TryActivateAbility(Spec.Handle))
 			{
 				AbilitySpecInputPressed(Spec);
@@ -83,13 +81,7 @@ void UWxAbilitySystemComponent::AbilityInputActionReleased(const UInputAction* A
 			continue;
 		}
 
-		// 비활성이면 발동 입력만, 활성이면 발동 입력 + 관찰 입력(가드/회피의 반격 차용)까지 받는다.
-		bool bMatch = Ability->IsActivationInput(Action);
-		if (!bMatch && Spec.IsActive())
-		{
-			bMatch = Ability->IsObservedInput(Action);
-		}
-		if (!bMatch)
+		if (!Ability->IsActivationInput(Action))
 		{
 			continue;
 		}
@@ -104,6 +96,14 @@ void UWxAbilitySystemComponent::AbilityInputActionReleased(const UInputAction* A
 				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
 			}
 		}
+	}
+}
+
+void UWxAbilitySystemComponent::CollectAbilityInputActions(TArray<const UInputAction*>& Out) const
+{
+	if (AbilitySet)
+	{
+		AbilitySet->CollectInputActions(Out);
 	}
 }
 

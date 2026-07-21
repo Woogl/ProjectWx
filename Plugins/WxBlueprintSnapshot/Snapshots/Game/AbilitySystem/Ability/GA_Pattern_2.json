@@ -1,0 +1,16 @@
+{
+	"blueprintPath": "/Game/AbilitySystem/Ability/GA_Pattern_2.GA_Pattern_2",
+	"classDefaults":
+	{
+		"AbilityTags":
+		{
+			"GameplayTags": [
+				{
+					"TagName": "Ability.Pattern.2"
+				}
+			]
+		},
+		"Montage": "/Game/AbilitySystem/Ability/AM_Pattern_2.AM_Pattern_2"
+	},
+	"parentClass": "/Script/WxCombat.WxAbility_Pattern"
+}

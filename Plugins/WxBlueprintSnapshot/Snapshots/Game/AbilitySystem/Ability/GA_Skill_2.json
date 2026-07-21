@@ -15,6 +15,7 @@
 				}
 			]
 		},
+		"ActivationInputAction": "/Game/Input/Actions/IA_Skill_2.IA_Skill_2",
 		"Components": [
 			{
 				"class": "/Script/WxUI.WxAbilityComponent_UIData",

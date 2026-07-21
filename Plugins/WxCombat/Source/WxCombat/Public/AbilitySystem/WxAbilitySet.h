@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "Engine/DataTable.h"
-#include "GameplayTagContainer.h"
 #include "GameplayAbilitySpecHandle.h"
 #include "ActiveGameplayEffectHandle.h"
 #include "WxAbilitySet.generated.h"
@@ -13,6 +12,7 @@
 class UWxAbilityBase;
 class UGameplayEffect;
 class UWxAbilitySystemComponent;
+class UInputAction;
 
 /**
  * AbilitySet 부여 결과를 저장하는 핸들 구조체.
@@ -43,12 +43,15 @@ public:
 	/** ASC에 이 AbilitySet의 모든 항목을 부여한다. OutHandles에 결과를 저장 */
 	void GiveToAbilitySystem(UWxAbilitySystemComponent* ASC, FWxAbilitySetGrantedHandles* OutHandles) const;
 
+	/** GrantedAbilities의 각 CDO가 요구하는 입력 액션 전체(중복 제거)를 Out에 채운다. 플레이어 입력 바인딩용. */
+	void CollectInputActions(TArray<const UInputAction*>& Out) const;
+
 protected:
 	/** 어트리뷰트 초기값 데이터테이블 Row 참조 (FWxCombatAttributeInitTableRow) */
 	UPROPERTY(EditDefaultsOnly, Category = "Attributes", meta = (RowType = "/Script/WxCombat.WxCombatAttributeInitTableRow"))
 	FDataTableRowHandle AttributeInitRow;
 
-	/** 부여할 어빌리티 클래스 목록. 입력 라우팅 키(InputAction)는 어빌리티 CDO(UWxAbilityBase::InputAction)가 보유한다. */
+	/** 부여할 어빌리티 클래스 목록. 입력 라우팅 키(ActivationInputAction)는 어빌리티 CDO(UWxAbilityBase::ActivationInputAction)가 보유한다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
 	TArray<TSubclassOf<UWxAbilityBase>> GrantedAbilities;
 

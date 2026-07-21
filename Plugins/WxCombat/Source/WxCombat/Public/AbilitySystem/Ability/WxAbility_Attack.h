@@ -51,14 +51,17 @@ public:
 	 */
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
-	/** 약공격(InputAction)에 더해 강공격(HeavyInputAction)으로도 발동한다. */
+	/** 약공격(ActivationInputAction)에 더해 강공격(HeavyInputAction)으로도 발동한다. */
 	virtual bool IsActivationInput(const UInputAction* Action) const override;
+
+	/** 약공격(ActivationInputAction)에 더해 강공격(HeavyInputAction)도 바인딩 대상으로 열거한다. */
+	virtual void GetInputActions(TArray<const UInputAction*>& OutActions) const override;
 
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
-	/** 강공격 입력 액션. 약공격(InputAction)과 함께 발동시키며, 눌린 쪽으로 콤보 L/H를 가른다. */
+	/** 강공격 입력 액션. 약공격(ActivationInputAction)과 함께 발동시키며, 눌린 쪽으로 콤보 L/H를 가른다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TObjectPtr<UInputAction> HeavyInputAction;
 

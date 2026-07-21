@@ -1,0 +1,8 @@
+{
+	"blueprintPath": "/Game/AbilitySystem/Ability/GA_Death.GA_Death",
+	"classDefaults":
+	{
+		"DeathMontage": "/Game/AbilitySystem/Ability/AM_Death.AM_Death"
+	},
+	"parentClass": "/Script/WxCombat.WxAbility_Death"
+}

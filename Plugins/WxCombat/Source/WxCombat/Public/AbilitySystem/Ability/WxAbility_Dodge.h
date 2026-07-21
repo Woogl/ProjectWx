@@ -9,7 +9,7 @@
 class UAnimMontage;
 class UAbilityTask_PlayMontageAndWait;
 class UCapsuleComponent;
-class UWxAbilityTask_WaitInputActionPressed;
+class UWxAbilityTask_WaitInputActionTriggered;
 class UInputAction;
 struct FGameplayAbilityTargetDataHandle;
 
@@ -58,8 +58,8 @@ class WXCOMBAT_API UWxAbility_Dodge : public UWxAbilityBase
 public:
 	UWxAbility_Dodge();
 
-	/** 회피 활성 중에는 반격 입력(CounterInputAction)도 라우팅받는다. */
-	virtual bool IsObservedInput(const UInputAction* Action) const override;
+	/** 발동 입력(ActivationInputAction)에 더해 반격 입력(CounterInputAction)도 바인딩 대상으로 열거한다. */
+	virtual void GetInputActions(TArray<const UInputAction*>& OutActions) const override;
 
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
@@ -127,7 +127,7 @@ private:
 	void HandleDodgeSuccess(FGameplayEventData Payload);
 
 	UFUNCTION()
-	void HandleCounterInputPressed();
+	void HandleCounterInputTriggered();
 
 	UFUNCTION()
 	void HandleInvincibleTagAdded();
@@ -151,7 +151,7 @@ private:
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
 
 	UPROPERTY()
-	TObjectPtr<UWxAbilityTask_WaitInputActionPressed> WaitInputTask;
+	TObjectPtr<UWxAbilityTask_WaitInputActionTriggered> WaitInputTask;
 
 	/**
 	 * 극한 회피 판정용 캡슐.

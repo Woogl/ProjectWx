@@ -11,7 +11,8 @@ class UInputAction;
 
 /**
  * 플레이어 입력 설정.
- * 이동/시선/점프 등 직접 바인딩 입력과 어빌리티 입력 매핑을 포함한다.
+ * IMC와 이동/시선/점프 등 직접 바인딩 입력을 담는다.
+ * 어빌리티 입력은 여기 두지 않는다 — 발동 IA는 어빌리티 CDO가 보유하고, 바인딩 목록은 AbilitySet의 부여 대상에서 파생한다.
  * 메뉴/UI 입력은 CommonUI 액션(WxHUDLayout)으로 처리하므로 여기 포함하지 않는다.
  */
 UCLASS()
@@ -43,8 +44,4 @@ public:
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TObjectPtr<UInputAction> InteractAction;
-
-	/** 어빌리티 입력으로 바인딩할 InputAction 목록. 각 액션의 press/release가 ASC 입력 라우팅으로 전달된다. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
-	TArray<TObjectPtr<const UInputAction>> AbilityInputActions;
 };

@@ -4,7 +4,7 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
-#include "AbilitySystem/Task/WxAbilityTask_WaitInputActionPressed.h"
+#include "AbilitySystem/Task/WxAbilityTask_WaitInputActionTriggered.h"
 #include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
 #include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
@@ -23,9 +23,13 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 }
 
-bool UWxAbility_Dodge::IsObservedInput(const UInputAction* Action) const
+void UWxAbility_Dodge::GetInputActions(TArray<const UInputAction*>& OutActions) const
 {
-	return Super::IsObservedInput(Action) || (Action && Action == CounterInputAction);
+	Super::GetInputActions(OutActions);
+	if (CounterInputAction)
+	{
+		OutActions.AddUnique(CounterInputAction);
+	}
 }
 
 void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -266,10 +270,10 @@ bool UWxAbility_Dodge::PlayMontage(UAnimMontage* Montage, FName StartSection)
 
 void UWxAbility_Dodge::ListenForCounterInput()
 {
-	WaitInputTask = UWxAbilityTask_WaitInputActionPressed::CreateTask(this, CounterInputAction);
+	WaitInputTask = UWxAbilityTask_WaitInputActionTriggered::CreateTask(this, CounterInputAction);
 	if (WaitInputTask)
 	{
-		WaitInputTask->OnPressed.AddDynamic(this, &UWxAbility_Dodge::HandleCounterInputPressed);
+		WaitInputTask->OnTriggered.AddDynamic(this, &UWxAbility_Dodge::HandleCounterInputTriggered);
 		WaitInputTask->ReadyForActivation();
 	}
 }
@@ -296,7 +300,7 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 	}
 }
 
-void UWxAbility_Dodge::HandleCounterInputPressed()
+void UWxAbility_Dodge::HandleCounterInputTriggered()
 {
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	if (!ASC)

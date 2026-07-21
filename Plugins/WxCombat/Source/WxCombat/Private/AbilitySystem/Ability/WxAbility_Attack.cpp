@@ -54,6 +54,16 @@ bool UWxAbility_Attack::IsActivationInput(const UInputAction* Action) const
 	return Super::IsActivationInput(Action) || (Action && Action == HeavyInputAction);
 }
 
+void UWxAbility_Attack::GetInputActions(TArray<const UInputAction*>& OutActions) const
+{
+	Super::GetInputActions(OutActions);
+	
+	if (HeavyInputAction)
+	{
+		OutActions.AddUnique(HeavyInputAction);
+	}
+}
+
 void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);

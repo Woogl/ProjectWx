@@ -2,13 +2,13 @@
 	"blueprintPath": "/Game/AbilitySystem/Ability/GA_Guard.GA_Guard",
 	"classDefaults":
 	{
+		"ActivationInputAction": "/Game/Input/Actions/IA_Guard.IA_Guard",
 		"CounterInputAction": "/Game/Input/Actions/IA_Attack_Light.IA_Attack_Light",
 		"GuardBreakMontage": "/Game/AbilitySystem/Ability/AM_GuardBreak.AM_GuardBreak",
 		"GuardCounterMontage": "/Game/AbilitySystem/Ability/AM_GuardCounter.AM_GuardCounter",
 		"GuardHitReactMontage": "/Game/AbilitySystem/Ability/AM_GuardHit.AM_GuardHit",
 		"GuardKnockbackMontage": "/Game/AbilitySystem/Ability/AM_GuardKnockback.AM_GuardKnockback",
 		"GuardMontage": "/Game/AbilitySystem/Ability/AM_Guard.AM_Guard",
-		"InputAction": "/Game/Input/Actions/IA_Guard.IA_Guard",
 		"PerfectGuardMontage": "/Game/AbilitySystem/Ability/AM_Parry.AM_Parry"
 	},
 	"parentClass": "/Script/WxCombat.WxAbility_Guard"

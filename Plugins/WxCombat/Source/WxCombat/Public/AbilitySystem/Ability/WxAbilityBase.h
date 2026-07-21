@@ -71,19 +71,20 @@ public:
 	 * 입력으로 발동하지 않는 어빌리티(AI 패턴, 반응형, 패시브)는 비워둔다.
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
-	TObjectPtr<UInputAction> InputAction;
+	TObjectPtr<UInputAction> ActivationInputAction;
 
 	/**
-	 * 눌린 InputAction이 이 어빌리티를 발동시키는 입력인지 반환한다. 기본은 InputAction 일치.
+	 * 눌린 InputAction이 이 어빌리티를 발동시키는 입력인지 반환한다. 기본은 ActivationInputAction 일치.
 	 * 복수 발동 입력을 갖는 어빌리티(예: 약/강 공격)가 override로 확장한다.
 	 */
 	virtual bool IsActivationInput(const UInputAction* Action) const;
 
 	/**
-	 * 이 어빌리티가 활성인 동안 추가로 라우팅받는(관찰하는) 입력인지 반환한다. 기본은 없음(false).
-	 * ASC는 활성 spec에 한해 검사한다. 가드/회피의 반격처럼 활성 중 다른 어빌리티의 입력을 가로채는 어빌리티가 override한다.
+	 * 이 어빌리티가 바인딩을 요구하는 입력 액션 전부를 OutActions에 더한다(중복은 AddUnique). 기본은 ActivationInputAction 하나.
+	 * 플레이어 입력 바인딩이 이 목록으로 EnhancedInput에 어떤 액션을 등록할지 결정한다(발동/관찰 판정과 별개, 바인딩 열거용).
+	 * 복수 입력을 갖는 어빌리티(예: 약/강 공격, 가드/회피의 반격)가 override로 확장한다.
 	 */
-	virtual bool IsObservedInput(const UInputAction* Action) const;
+	virtual void GetInputActions(TArray<const UInputAction*>& OutActions) const;
 
 	/**
 	 * 어빌리티에 부착된 컴포넌트 모음. 필요한 어빌리티에서만 BP 디테일 패널(Wx)에서 EditInline 으로 추가한다.

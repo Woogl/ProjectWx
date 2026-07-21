@@ -131,14 +131,17 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EIC->BindAction(InputConfig->InteractAction, ETriggerEvent::Started, this, &AWxPlayerCharacter::Interact);
 	}
 
-	// 어빌리티 입력 바인딩: 각 InputAction의 Press/Release를 액션 포인터를 payload로 실어 바인딩
-	for (const TObjectPtr<const UInputAction>& Action : InputConfig->AbilityInputActions)
+	// 어빌리티 입력 바인딩: 바인딩할 InputAction 목록은 AbilitySet의 부여 대상 어빌리티 CDO들에서 파생한다.
+	// 각 InputAction의 Press/Release를 액션 포인터를 payload로 실어 바인딩한다.
+	TArray<const UInputAction*> AbilityActions;
+	if (AbilitySystemComponent)
 	{
-		if (Action)
-		{
-			EIC->BindAction(Action, ETriggerEvent::Started,   this, &AWxPlayerCharacter::AbilityInputPressed,  Action.Get());
-			EIC->BindAction(Action, ETriggerEvent::Completed, this, &AWxPlayerCharacter::AbilityInputReleased, Action.Get());
-		}
+		AbilitySystemComponent->CollectAbilityInputActions(AbilityActions);
+	}
+	for (const UInputAction* Action : AbilityActions)
+	{
+		EIC->BindAction(Action, ETriggerEvent::Started,   this, &AWxPlayerCharacter::AbilityInputPressed,  Action);
+		EIC->BindAction(Action, ETriggerEvent::Completed, this, &AWxPlayerCharacter::AbilityInputReleased, Action);
 	}
 }
 
@@ -211,7 +214,7 @@ void AWxPlayerCharacter::AbilityInputPressed(const UInputAction* Action)
 {
 	if (AbilitySystemComponent)
 	{
-		AbilitySystemComponent->AbilityInputActionPressed(Action);
+		AbilitySystemComponent->AbilityInputActionTriggered(Action);
 	}
 }
 

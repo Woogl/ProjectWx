@@ -3,7 +3,7 @@
 #include "AbilitySystem/Ability/WxAbility_Guard.h"
 #include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
-#include "AbilitySystem/Task/WxAbilityTask_WaitInputActionPressed.h"
+#include "AbilitySystem/Task/WxAbilityTask_WaitInputActionTriggered.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
@@ -55,9 +55,13 @@ float UWxAbility_Guard::GetDamageReductionRate() const
 	return DamageReductionRate;
 }
 
-bool UWxAbility_Guard::IsObservedInput(const UInputAction* Action) const
+void UWxAbility_Guard::GetInputActions(TArray<const UInputAction*>& OutActions) const
 {
-	return Super::IsObservedInput(Action) || (Action && Action == CounterInputAction);
+	Super::GetInputActions(OutActions);
+	if (CounterInputAction)
+	{
+		OutActions.AddUnique(CounterInputAction);
+	}
 }
 
 void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -95,7 +99,7 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	ListenForGuardHit();
 	ListenForPerfectGuard();
 
-	// ANS_ComboWindow 구간 공격 입력으로 반격 전환. 반격 입력 라우팅은 HandlesInput override가 선언적으로 처리한다.
+	// ANS_ComboWindow 구간 공격 입력으로 반격 전환. 반격 입력 감지는 WaitInputActionTriggered 태스크가 담당한다.
 	if (GuardCounterMontage)
 	{
 		ListenForCounterInput();
@@ -183,10 +187,10 @@ void UWxAbility_Guard::ListenForPerfectGuard()
 
 void UWxAbility_Guard::ListenForCounterInput()
 {
-	WaitInputTask = UWxAbilityTask_WaitInputActionPressed::CreateTask(this, CounterInputAction);
+	WaitInputTask = UWxAbilityTask_WaitInputActionTriggered::CreateTask(this, CounterInputAction);
 	if (WaitInputTask)
 	{
-		WaitInputTask->OnPressed.AddDynamic(this, &UWxAbility_Guard::HandleCounterInputPressed);
+		WaitInputTask->OnTriggered.AddDynamic(this, &UWxAbility_Guard::HandleCounterInputTriggered);
 		WaitInputTask->ReadyForActivation();
 	}
 }
@@ -281,7 +285,7 @@ void UWxAbility_Guard::HandlePerfectGuard(FGameplayEventData Payload)
 	}
 }
 
-void UWxAbility_Guard::HandleCounterInputPressed()
+void UWxAbility_Guard::HandleCounterInputTriggered()
 {
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	if (!ASC)

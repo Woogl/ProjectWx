@@ -30,12 +30,15 @@ UWxAbilityBase::UWxAbilityBase()
 
 bool UWxAbilityBase::IsActivationInput(const UInputAction* Action) const
 {
-	return Action && Action == InputAction;
+	return Action && Action == ActivationInputAction;
 }
 
-bool UWxAbilityBase::IsObservedInput(const UInputAction* /*Action*/) const
+void UWxAbilityBase::GetInputActions(TArray<const UInputAction*>& OutActions) const
 {
-	return false;
+	if (ActivationInputAction)
+	{
+		OutActions.AddUnique(ActivationInputAction);
+	}
 }
 
 const UWxAbilityComponent* UWxAbilityBase::FindComponent(TSubclassOf<UWxAbilityComponent> ComponentClass) const

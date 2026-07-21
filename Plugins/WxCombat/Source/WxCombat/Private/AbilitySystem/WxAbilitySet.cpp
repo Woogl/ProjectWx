@@ -98,3 +98,14 @@ void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC, FWxAbili
 		}
 	}
 }
+
+void UWxAbilitySet::CollectInputActions(TArray<const UInputAction*>& Out) const
+{
+	for (const TSubclassOf<UWxAbilityBase>& AbilityClass : GrantedAbilities)
+	{
+		if (const UWxAbilityBase* AbilityCDO = AbilityClass.GetDefaultObject())
+		{
+			AbilityCDO->GetInputActions(Out);
+		}
+	}
+}

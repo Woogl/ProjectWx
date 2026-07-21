@@ -8,7 +8,7 @@
 
 class UAnimMontage;
 class UAbilityTask_PlayMontageAndWait;
-class UWxAbilityTask_WaitInputActionPressed;
+class UWxAbilityTask_WaitInputActionTriggered;
 class UInputAction;
 
 /**
@@ -42,8 +42,8 @@ public:
 	/** 가드 중 받는 대미지 배율(0~1). ExecCalc 가 가드 피격 시 이 값을 곱한다. */
 	float GetDamageReductionRate() const;
 
-	/** 가드 활성 중에는 반격 입력(CounterInputAction)도 라우팅받는다. */
-	virtual bool IsObservedInput(const UInputAction* Action) const override;
+	/** 발동 입력(ActivationInputAction)에 더해 반격 입력(CounterInputAction)도 바인딩 대상으로 열거한다. */
+	virtual void GetInputActions(TArray<const UInputAction*>& OutActions) const override;
 
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
@@ -102,7 +102,7 @@ private:
 	void HandlePerfectGuard(FGameplayEventData Payload);
 
 	UFUNCTION()
-	void HandleCounterInputPressed();
+	void HandleCounterInputTriggered();
 
 	UFUNCTION()
 	void HandleMontageBlendingOut();
@@ -123,5 +123,5 @@ private:
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> CurrentMontageTask;
 
 	UPROPERTY(Transient)
-	TObjectPtr<UWxAbilityTask_WaitInputActionPressed> WaitInputTask;
+	TObjectPtr<UWxAbilityTask_WaitInputActionTriggered> WaitInputTask;
 };

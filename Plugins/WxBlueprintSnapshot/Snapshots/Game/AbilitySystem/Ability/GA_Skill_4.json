@@ -15,6 +15,7 @@
 				}
 			]
 		},
+		"ActivationInputAction": "/Game/Input/Actions/IA_Skill_4.IA_Skill_4",
 		"Components": [
 			{
 				"class": "/Script/WxUI.WxAbilityComponent_UIData",
@@ -24,7 +25,6 @@
 				}
 			}
 		],
-		"InputAction": "/Game/Input/Actions/IA_Skill_4.IA_Skill_4",
 		"OnActivateEffects": [
 			{
 				"EffectClass": "/Game/AbilitySystem/Effect/GE_Exceed.GE_Exceed_C"

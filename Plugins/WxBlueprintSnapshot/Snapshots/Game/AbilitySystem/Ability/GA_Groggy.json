@@ -1,0 +1,8 @@
+{
+	"blueprintPath": "/Game/AbilitySystem/Ability/GA_Groggy.GA_Groggy",
+	"classDefaults":
+	{
+		"GroggyMontage": "/Game/AbilitySystem/Ability/AM_Groggy.AM_Groggy"
+	},
+	"parentClass": "/Script/WxCombat.WxAbility_Groggy"
+}

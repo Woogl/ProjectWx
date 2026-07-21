@@ -1,0 +1,61 @@
+{
+	"blueprintPath": "/Game/AbilitySystem/Ability/GA_Ultimate.GA_Ultimate",
+	"classDefaults":
+	{
+		"AbilityDataRow":
+		{
+			"DataTable": "/Game/AbilitySystem/DT_Ability.DT_Ability",
+			"RowName": "GA_Ultimate"
+		},
+		"ActivationInputAction": "/Game/Input/Actions/IA_Ultimate.IA_Ultimate",
+		"Components": [
+			{
+				"class": "/Script/WxUI.WxAbilityComponent_UIData",
+				"delta":
+				{
+					"Icon": "/Game/Framework/Splash/Wx_192.Wx_192"
+				}
+			}
+		],
+		"CutsceneSequence": "/Game/AbilitySystem/Ability/LS_Ultimate.LS_Ultimate",
+		"OnActivateEffects": [
+			{
+				"SetByCallers": [
+					{
+						"key":
+						{
+							"TagName": "SetByCaller.Duration"
+						},
+						"value": 10
+					}
+				]
+			},
+			{
+				"EffectClass": "/Script/WxCombat.WxEffect_NoCooldown",
+				"SetByCallers": [
+					{
+						"key":
+						{
+							"TagName": "SetByCaller.Duration"
+						},
+						"value": 10
+					}
+				]
+			},
+			{
+				"EffectClass": "/Script/WxCombat.WxEffect_InfiniteMP",
+				"SetByCallers": [
+					{
+						"key":
+						{
+							"TagName": "SetByCaller.Duration"
+						},
+						"value": 10
+					}
+				]
+			}
+		],
+		"UltimateMontage": "/Game/AbilitySystem/Ability/AM_Ultimate.AM_Ultimate"
+	},
+	"parentClass": "/Script/WxCombat.WxAbility_Ultimate"
+}
