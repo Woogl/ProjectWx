@@ -1,6 +1,6 @@
 ---
 name: module-review
-description: 각 플러그인/모듈을 코드 리뷰해 개선점을 Docs/Programmer/ModuleReview/에 심각도별로 문서화한다. 모듈 단위로 분석하고 변경된 모듈만 골라 다시 쓰므로 큰 코드베이스에서도 점진적으로 리뷰를 쌓아나갈 수 있다.
+description: 각 플러그인/모듈을 코드 리뷰해 개선점을 Docs/Programmer/에 심각도별로 문서화한다. 모듈 단위로 분석하고 변경된 모듈만 골라 다시 쓰므로 큰 코드베이스에서도 점진적으로 리뷰를 쌓아나갈 수 있다.
 argument-hint: "[모듈명...|all]"
 user-invocable: true
 allowed-tools: Read, Grep, Glob, Bash, Agent
@@ -8,7 +8,7 @@ allowed-tools: Read, Grep, Glob, Bash, Agent
 
 # 모듈 코드 리뷰 문서 생성·갱신
 
-프로젝트의 각 **플러그인/모듈**을 코드 리뷰해, 개발자·미래 세션이 **무엇을 고쳐야 하는지**를 심각도별로 정리한 리뷰 문서를 `Docs/Programmer/ModuleReview/<Module>.md`로 만든다. `readme-writer`가 "이 모듈이 무엇인지"의 오리엔테이션 맵이라면, 이 스킬은 그 지도 위에서 "이 모듈의 무엇이 문제인지"를 짚는 액션 목록이다 — 두 스킬은 상보적이다.
+프로젝트의 각 **플러그인/모듈**을 코드 리뷰해, 개발자·미래 세션이 **무엇을 고쳐야 하는지**를 심각도별로 정리한 리뷰 문서를 `Docs/Programmer/module_review_<Module>.md`로 만든다. `readme-writer`가 "이 모듈이 무엇인지"의 오리엔테이션 맵이라면, 이 스킬은 그 지도 위에서 "이 모듈의 무엇이 문제인지"를 짚는 액션 목록이다 — 두 스킬은 상보적이다.
 
 핵심 원칙은 세 가지다.
 
@@ -26,10 +26,10 @@ allowed-tools: Read, Grep, Glob, Bash, Agent
 
 | 종류 | 분석 경로(소스) | 리뷰 문서 |
 | --- | --- | --- |
-| 플러그인 `<Name>` | `Plugins/<Name>` | `Docs/Programmer/ModuleReview/<Name>.md` |
-| 소스 모듈 `<Name>` | `Source/<Name>` | `Docs/Programmer/ModuleReview/<Name>.md` |
+| 플러그인 `<Name>` | `Plugins/<Name>` | `Docs/Programmer/module_review_<Name>.md` |
+| 소스 모듈 `<Name>` | `Source/<Name>` | `Docs/Programmer/module_review_<Name>.md` |
 
-리뷰 문서는 종류와 무관하게 **항상** `Docs/Programmer/ModuleReview/<Name>.md`에 둔다(모듈 소스 밖 중앙 폴더 — 아침에 한 곳에서 전 모듈 리뷰를 훑을 수 있고, stale 판정도 단순해진다).
+리뷰 문서는 종류와 무관하게 **항상** `Docs/Programmer/module_review_<Name>.md`에 둔다(모듈 소스 밖 중앙 폴더 — 아침에 한 곳에서 전 모듈 리뷰를 훑을 수 있고, stale 판정도 단순해진다).
 
 인자에 따라 대상 집합을 정한다.
 
@@ -45,7 +45,7 @@ allowed-tools: Read, Grep, Glob, Bash, Agent
 *문서 기준 커밋 `<short-sha>` · 리뷰일 <YYYY-MM-DD> · 소스 <N>파일 — `/module-review`로 갱신*
 ```
 
-판정 절차(모듈 경로 = 위 표의 "분석 경로", 문서 경로 = `Docs/Programmer/ModuleReview/<Name>.md`):
+판정 절차(모듈 경로 = 위 표의 "분석 경로", 문서 경로 = `Docs/Programmer/module_review_<Name>.md`):
 
 1. 리뷰 문서 파일이 없으면 → **missing**.
 2. `Grep`으로 `문서 기준 커밋` 라인을 찾는다.
@@ -57,7 +57,7 @@ allowed-tools: Read, Grep, Glob, Bash, Agent
    둘 중 하나라도 변경이 있으면 → **stale**, 둘 다 비어 있으면 → **fresh**.
    - 단, `git diff`가 기록된 SHA를 못 찾아 실패하면(`fatal: bad object` 등 — 히스토리 재작성·squash·shallow clone) 변경 여부를 판정할 수 없으므로 **stale로 간주**해 다시 리뷰한다(에러로 중단하지 않는다).
 
-> 리뷰 문서는 모듈 폴더 *밖*(`Docs/Programmer/ModuleReview/`)에 있으므로, `readme-writer`와 달리 diff·status에서 문서 자신을 빼는 `:(exclude)` pathspec이 필요 없다 — `-- <모듈경로>` 한정만으로 문서 자신의 변경은 애초에 잡히지 않는다.
+> 리뷰 문서는 모듈 폴더 *밖*(`Docs/Programmer/`, `module_review_` 접두)에 있으므로, `readme-writer`와 달리 diff·status에서 문서 자신을 빼는 `:(exclude)` pathspec이 필요 없다 — `-- <모듈경로>` 한정만으로 문서 자신의 변경은 애초에 잡히지 않는다.
 
 > 점진 갱신은 모듈 *소스 디렉터리* 변경만 본다. (1) `WxCore` 공용 정의(태그/Enum) 변경은 이를 인용하는 소비 모듈 경로 diff에 안 잡히고, (2) BP/WBP가 본체인 모듈(WxUI)의 에셋·스냅샷은 게임 루트 `Content/`·`Snapshots/`에 있어 모듈 경로 밖이다. 이런 파급이 의심되면 해당 모듈을 인자로 지정해 강제 재리뷰한다.
 
@@ -67,7 +67,7 @@ allowed-tools: Read, Grep, Glob, Bash, Agent
 
 대상 모듈마다 **서브에이전트 1개**를 띄운다(`Agent`, subagent_type: `general-purpose`; 여러 모듈이면 한 메시지에 여러 호출로 병렬). 각 서브에이전트에 아래를 전달한다.
 
-- 모듈명, 분석 경로, 리뷰 문서 경로(`Docs/Programmer/ModuleReview/<Name>.md`)
+- 모듈명, 분석 경로, 리뷰 문서 경로(`Docs/Programmer/module_review_<Name>.md`)
 - provenance 라인에 박을 **커밋 SHA**(현재 `git rev-parse --short HEAD` 값)와 **리뷰일**(오늘 날짜). 이 둘은 오케스트레이터가 확정해 넘긴다 — 서브에이전트는 git·날짜를 다시 조회하지 말고 받은 값을 그대로 쓴다. **소스 파일 수 `<N>`** 은 서브에이전트가 직접 센다(아래 작성 규칙의 카운트 기준).
 - 아래 **리뷰 루브릭**, **리뷰 문서 템플릿**, **작성 규칙**
 
@@ -153,7 +153,7 @@ allowed-tools: Read, Grep, Glob, Bash, Agent
 
   | 모듈 | 🔴 | 🟡 | 🟢 | 문서 |
   | --- | --- | --- | --- | --- |
-  | `WxCombat` | 2 | 5 | 3 | `Docs/Programmer/ModuleReview/WxCombat.md` |
+  | `WxCombat` | 2 | 5 | 3 | `Docs/Programmer/module_review_WxCombat.md` |
 
 - **분류**: **생성**(missing→신규) / **갱신**(stale→재리뷰) / **건너뜀(fresh)** 모듈을 각각 나열. **보존(foreign)** — provenance가 없어 건드리지 않은 외부 문서가 있으면 모듈명과 함께 명시(예: `<Module> — 외부 문서로 보존, 덮어쓰려면 모듈명을 직접 지정`).
 - **가장 중요한 발견 몇 개**를 서브에이전트 `DONE` 한 줄에서 뽑아 최상단에 요약한다(전체 발견을 산문으로 다시 풀지 않는다 — 상세는 각 문서에 있다).
