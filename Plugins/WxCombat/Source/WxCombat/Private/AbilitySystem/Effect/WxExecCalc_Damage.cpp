@@ -8,7 +8,6 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayEffect.h"
-#include "Perception/AISense_Damage.h"
 #include "WxGameplayTags.h"
 
 struct FWxDamageStatics
@@ -140,17 +139,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		}
 	}
 
-	// --- 5. AI 대미지 감지 ---
-	AActor* SourceActor = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
-	AActor* TargetActor = TargetASC->GetOwnerActor();
-	if (SourceActor && TargetActor)
-	{
-		// 퍼펙트 가드 성공 시 Target에 실제 대미지가 없으므로 0으로 보고
-		const float ReportedDamage = bPerfectGuardApplied ? 0.f : DamageResult.FinalDamage;
-		UAISense_Damage::ReportDamageEvent(TargetActor->GetWorld(), TargetActor, SourceActor, ReportedDamage, SourceActor->GetActorLocation(), TargetActor->GetActorLocation());
-	}
-
-	// --- 6. GameplayCue ---
+	// --- 5. GameplayCue ---
 	// 퍼펙트 가드 시 PerfectGuard 큐, 그 외 대미지 발생 시 Damage 큐 발행.
 	FVector HitLocation = FVector::ZeroVector;
 	const FHitResult* HitResult = OwningSpec.GetEffectContext().GetHitResult();
@@ -172,17 +161,17 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		ExecuteGameplayCueDamage(TargetASC, DamageResult.FinalDamage, HitLocation, OwningSpec, DamageResult.bIsCritical);
 	}
 
-	// --- 7. 히트스톱 ---
+	// --- 6. 히트스톱 ---
 	// 무적 회피(1단계 조기 리턴)를 제외한 모든 적중(퍼펙트 가드 포함)에서 공격자에게 Event.HitStop을 보낸다.
 	// 재생 중인 공격 어빌리티가 이 이벤트를 받아 자기 몽타주를 SetByCaller.HitStop 시간만큼 잠깐 멈춘다.
-	if (SourceActor)
+	if (AActor* SourceActor = SourceASC ? SourceASC->GetOwnerActor() : nullptr)
 	{
 		const float HitStopDuration = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_HitStop, false, 0.f);
 		if (HitStopDuration > 0.f)
 		{
 			FGameplayEventData HitStopEvent;
 			HitStopEvent.Instigator = SourceActor;
-			HitStopEvent.Target = TargetActor;
+			HitStopEvent.Target = TargetASC->GetOwnerActor();
 			HitStopEvent.EventMagnitude = HitStopDuration;
 			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(SourceActor, WxGameplayTags::Event_HitStop, HitStopEvent);
 		}
