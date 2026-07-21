@@ -1,6 +1,6 @@
 # WxSave — 코드 리뷰
 
-> 규모 대비 설계 밀도가 높고 매우 깨끗한 모듈이다. 권위(서버) 게이팅, 레코드별 버전 헤더 보존, 로드 트래블 가드 플래그 등 함정을 이미 문서화·방어해 뒀다. 직전 리뷰(2026-07-21)의 두 🟡(하드코딩 슬롯명 `"Test"`, `ApplyPlayerStats`의 `"Max"` 문자열 접두 의존)은 그 뒤 각각 `DefaultSaveSlotName` 상수화·이름 무관 멱등 2패스로 해소됐다. 이번 리뷰는 11개 소스 전체를 통독했고 직렬화 핵심(`WxSaveWorldSubsystem.cpp`)과 슬롯/트래블 오케스트레이션(`WxSaveGameSubsystem.cpp`)을 깊게 봤다.
+> 슬롯 기반 세이브/로드·맵 트래블·savable 액터 직렬화가 방어적 널 체크와 상세한 설계 주석으로 잘 다듬어진 모듈이다. 직렬화 버전 관리·비동기 저장·트래블 가드 등 위험 지점을 깊게 봤고, 심각 결함은 없다. 발견은 견고성 1건과 규칙/설계 소수다.
 
 ## 요약
 | 심각도 | 개수 |
@@ -9,39 +9,34 @@
 | 🟡 개선 | 1 |
 | 🟢 사소 | 2 |
 
-가장 먼저: 저장 액터 복원 archive가 `bLoadIfFindFails=false`라, 향후 `UPROPERTY(SaveGame)` 오브젝트 참조 필드가 추가되면 로드되지 않은 애셋 참조가 조용히 null로 복원될 수 있다(현재 저장 대상은 전부 값 타입이라 미발현).
+## 결과
 
-## 발견
+### 1. 🟡 트래블 가드 `bTravelingFromSaveFile` 가 단일 래치라 해제 실패 시 이후 자동 캡처가 영구 스킵될 수 있다
+- **위치**: `Plugins/WxSave/Source/WxSave/Private/WxSaveGameSubsystem.cpp:116` / `:242`, `Plugins/WxSave/Source/WxSave/Private/WxSaveWorldSubsystem.cpp:83`
+- **범주**: 버그/정확성, 상태 관리
+- **문제**: `TravelFromSaveFile` 이 가드를 `true` 로 세운 뒤 이를 되돌리는 경로는 두 곳뿐이다 — `ServerTravel` 이 즉시 실패(false 반환)했을 때, 또는 목적지 월드의 `OnWorldBeginPlay` 가 `ReportTravelFromSaveFileComplete` 를 호출했을 때(`WxSaveWorldSubsystem.cpp:83`). `ServerTravel` 이 `true` 를 반환(트래블 시작 성공)했지만 이후 실제 맵 로드가 실패하거나, 목적지 월드에서 `UWxSaveWorldSubsystem` 의 `OnWorldBeginPlay` 가 traveling 플래그를 관측하지 못하는 경로가 생기면 가드가 래치된 채 남는다. 그 뒤 `HandleLevelRemovedFromWorld`/`HandleWorldBeginTearDown` 의 자동 캡처가 GameInstance 수명 내내 조용히 전부 스킵되어 세이브가 라이브 상태를 담지 못하게 된다(로그도 `Verbose` 라 표면화되지 않음).
+- **제안**: 정상 스탠드얼론 트래블 경로에선 재현되지 않을 가능성이 높다. 다만 방어적으로, 트래블 시작 후 일정 프레임/시간 내 완료 보고가 없으면 가드를 자동 해제하는 워치독을 두거나, 최소한 가드가 예상보다 오래 유지될 때 경고 로그를 남기면 침묵 실패를 조기에 드러낼 수 있다.
+- **확신도**: 낮음(정상 경로에선 재현되지 않으며 의도된 단순화일 수 있음 — 견고성 관점 지적)
 
-### 🟡 복원 archive의 `bLoadIfFindFails=false` — 오브젝트 참조 필드에 대한 잠복 데이터 손실
-- **위치**: `Plugins/WxSave/Source/WxSave/Private/WxSaveWorldSubsystem.cpp:365`, `:389` (복원). 대칭 캡처는 `:286`, `:304`.
-- **범주**: 버그/정확성
-- **문제**: `RestoreActor`가 `FObjectAndNameAsStringProxyArchive(MemReader, false)`로 복원한다. 두 번째 인자 `bLoadIfFindFails=false`는 문자열로 직렬화된 오브젝트 참조를 복원할 때 `FindObject`만 시도하고 실패해도 `LoadObject`를 하지 않는다. 따라서 `UPROPERTY(SaveGame)`로 저장된 오브젝트/소프트 참조가 가리키는 애셋이 복원 시점에 아직 로드돼 있지 않으면 참조가 **조용히 null**이 된다(에러·경고 없음). 현재 소비 도메인의 저장 필드는 값 타입뿐이라(`WxWorld` `Spawnable/WxSpawner.h:82` `bool bIsKilled`, `Gimmick/WxGimmick.h:92` `FGameplayTag State`) 실제로는 발현하지 않지만, 누군가 저장 액터에 애셋 참조 필드를 `SaveGame` 플래그로 추가하는 순간 재현이 어려운 상태 손실로 이어질 수 있는 함정이다.
-- **제안**: 복원 경로의 두 archive를 `bLoadIfFindFails=true`로 두거나(참조 애셋을 로드해 해결), "값 타입만 저장한다"는 제약을 `CaptureActor`/`RestoreActor` 및 `WxCore`의 `WxSavable.h` 계약 주석에 명시한다.
-- **확신도**: 낮음(의도된 설계일 수 있음 — 값 타입 전용 저장을 전제한 선택으로 보임).
+### 2. 🟢 `ContinueSaveToFileToDisk` 가 델리게이트에 바인딩되는 콜백인데 `Handle` prefix 규칙을 따르지 않는다
+- **위치**: `Plugins/WxSave/Source/WxSave/Private/WxSaveGameSubsystem.cpp:157` (바인딩), `Plugins/WxSave/Source/WxSave/Public/WxSaveGameSubsystem.h:93`
+- **범주**: 규칙 위반 (CLAUDE.md 규칙 6 — 델리게이트 바인딩 콜백은 `Handle` prefix)
+- **문제**: `FOnSaveFlushComplete::FDelegate::CreateUObject(this, &UWxSaveGameSubsystem::ContinueSaveToFileToDisk)` 로 델리게이트에 바인딩되므로 규칙상 `Handle` prefix 대상이나 `Continue...` 명명을 쓴다. 다만 이 함수는 직접 호출(`:162`)과 델리게이트 콜백을 겸하는 continuation 성격이라 순수 이벤트 핸들러와 결이 다르다. 나머지 델리게이트 콜백(`HandleWorldInitializedActors`, `HandleGameModePostLogin`, `HandlePossessedPawnChanged` 등)은 규칙을 모두 준수한다.
+- **제안**: 규칙을 엄격히 따르려면 `HandleSaveFlushComplete` 등으로 개명. 직접 호출 겸용 의도를 살리려면 현행 유지도 합리적 — 판단 필요.
+- **확신도**: 높음(규칙 문언상 명확한 대상). 개명 필요 여부는 낮음(의도된 continuation 명명일 수 있음).
 
-### 🟢 `ApplyPlayerStats` 헤더 주석이 제거된 "Max 접두" 방식을 그대로 서술 (문서 드리프트)
-- **위치**: `Plugins/WxSave/Source/WxSave/Public/WxSaveWorldSubsystem.h:43-44`
-- **범주**: 중복/복잡도(문서 드리프트)
-- **문제**: 헤더 주석은 여전히 "Max 접두 어트리뷰트를 먼저 세팅해 …충돌을 막는다"라고 적혀 있으나, 2026-07-22 작업으로 구현은 이름 heuristic 없는 멱등 2패스로 교체됐다(`WxSaveWorldSubsystem.cpp:221-258`의 cpp 주석은 정확히 갱신됨). 헤더 doc만 옛 방식을 설명해 실제 로직과 어긋난다 — 미래 세션이 오독할 소지.
-- **제안**: 헤더 주석을 "이름 규칙 없이 전량 적용 후 미복원분만 재적용하는 멱등 2패스로 Max/current 세팅 순서 의존을 흡수한다" 취지로 갱신.
-- **확신도**: 높음.
-
-### 🟢 델리게이트에 바인딩되는 `ContinueSaveToFileToDisk`의 `Handle` 접두 부재 (규칙 6)
-- **위치**: `Plugins/WxSave/Source/WxSave/Private/WxSaveGameSubsystem.cpp:157` (바인딩), 선언 `Public/WxSaveGameSubsystem.h:93`, 정의 `:273`
-- **범주**: 규칙 위반
-- **문제**: `ContinueSaveToFileToDisk`는 `FOnSaveFlushComplete::FDelegate::CreateUObject(this, &UWxSaveGameSubsystem::ContinueSaveToFileToDisk)`로 플러시 완료 델리게이트에 바인딩되는 콜백이다. CLAUDE.md 규칙 6("Delegate에 바인딩되는 Callback 함수는 `Handle` Prefix")에 해당하며, 이 모듈의 다른 핸들러(`HandleWorldInitializedActors`, `HandlePossessedPawnChanged` 등)는 전부 이를 지킨다. 다만 이 함수는 월드 서브시스템 부재 경로(`SaveToFile` else 분기 `:162`)에서 직접 호출되는 이중 용도라, 순수 콜백만을 겨냥한 규칙에 딱 맞지는 않는다.
-- **제안**: 판단 위임. 규칙을 엄격 적용하려면 `HandleSaveFlushComplete` 등으로 개명하되, "연속 단계 직접 호출"이라는 의미와의 상충을 감안하면 현행 유지도 합리적이다.
-- **확신도**: 낮음(의도된 명명일 수 있음).
+### 3. 🟢 `PlayerTransform` 의 `Identity` sentinel 이 월드 원점 저장과 충돌할 수 있다
+- **위치**: `Plugins/WxSave/Source/WxSave/Private/WxSaveGameSubsystem.cpp:208`, `Plugins/WxSave/Source/WxSave/Public/WxSaveGame.h:92`
+- **범주**: 버그/정확성 (경계 조건)
+- **문제**: `TryGetPlayerTransform` 은 `PlayerTransform.Equals(FTransform::Identity)` 를 "미설정"으로 판정한다. 플레이어가 정확히 월드 원점(위치 0,0,0 · 회전 없음)에서 저장하면 유효한 재개 지점이 "미설정"으로 오판되어 `ChoosePlayerStart` 폴백으로 스폰된다(재개 지점 손실). 확률이 극히 낮고 `WxSaveGame.h:88` 주석에 의도된 tradeoff 로 명시돼 있다.
+- **제안**: 실무상 무해에 가깝다. 엄밀히 하려면 `bHasPlayerStats` 처럼 `bHasPlayerTransform` 명시 플래그로 유효성을 표현하면 sentinel 충돌이 사라진다.
+- **확신도**: 낮음(문서에 의도된 설계로 명시됨)
 
 ## 검토 범위
-- **깊게 본 파일**: `Plugins/WxSave/Source/WxSave/Private/WxSaveWorldSubsystem.cpp`(직렬화·버전 헤더·자동 캡처/복원·GAS 2패스), `Plugins/WxSave/Source/WxSave/Private/WxSaveGameSubsystem.cpp`(슬롯 수명·트래블 가드·디스크 I/O), `Plugins/WxSave/Source/WxSave/Private/WxPlayerSpawnComponent.cpp`(스폰 경로 주입)
-- **훑은 파일**: `Public/WxSaveGame.h`, `Public/WxSaveGameSubsystem.h`, `Public/WxSaveWorldSubsystem.h`, `Public/WxPlayerSpawnComponent.h`, `Private/WxSaveLibrary.cpp`·`Public/WxSaveLibrary.h`(BP 정적 래퍼 — 순수 위임), `Private/WxSaveModule.cpp`·`Public/WxSaveModule.h`(빈 모듈), `WxSave.Build.cs`·`WxSave.uplugin`·`README.md`
-- **미검토 / 한계**:
-  - GAS 2패스 `ApplyPlayerStats`의 실기 정확성(로드 시 저장 MaxHP < 기본 MaxHP에서 current가 안 잘리는지)은 코드 근거상 타당하나 런타임 미검증 — 워크로그 후속 과제와 동일.
-  - `UGameplayStatics::AsyncSaveGameToSlot`의 내부 스레딩(주석 전제: "게임 스레드 동기 직렬화 + 비동기 디스크 쓰기")은 엔진 소스로 직접 확인하지 않았다. 전제가 맞다면 저장 직후 SaveGame 변형과의 경쟁은 없다.
-  - 두 서브시스템에서 반복되는 `World→GameInstance→GameSubsystem→SaveGame` 획득 보일러플레이트(약 8회)는 프로젝트 메모리의 "prefer-explicit-over-tiny-helpers / prefer-inplace-over-structural-extraction" 선호에 부합하므로 발견으로 올리지 않았다.
-  - 규칙 준수(Copyright 첫 줄·`Super::` 호출·`Wx` 접두·`BlueprintCallable`은 BP 라이브러리에서만·플러그인 의존 WxCore+엔진 한정)는 전부 확인해 위반 없음(규칙 6 이중목적 콜백 1건만 위 🟢로 표면화).
+- **깊게 본 파일**: `Plugins/WxSave/Source/WxSave/Private/WxSaveWorldSubsystem.cpp`(직렬화·버전 헤더·자동 캡처/복원·ASC 스탯 2패스 적용), `Plugins/WxSave/Source/WxSave/Private/WxSaveGameSubsystem.cpp`(슬롯 수명·트래블 가드·비동기 디스크 기록), `Plugins/WxSave/Source/WxSave/Public/WxSaveGame.h`(데이터 모델·버전 헤더 설계), `Plugins/WxSave/Source/WxSave/Private/WxPlayerSpawnComponent.cpp`(스폰 경로 주입·스탯 복원 타이밍)
+- **훑은 파일**: `Plugins/WxSave/Source/WxSave/Public/WxSaveGameSubsystem.h`, `Plugins/WxSave/Source/WxSave/Public/WxSaveWorldSubsystem.h`, `Plugins/WxSave/Source/WxSave/Public/WxPlayerSpawnComponent.h`, `Plugins/WxSave/Source/WxSave/Private/WxSaveLibrary.cpp`, `Plugins/WxSave/Source/WxSave/Public/WxSaveLibrary.h`, `Plugins/WxSave/Source/WxSave/Private/WxSaveModule.cpp`, `Plugins/WxSave/Source/WxSave/Public/WxSaveModule.h`, `Plugins/WxSave/Source/WxSave/WxSave.Build.cs`, `Plugins/WxSave/README.md`
+- **모듈 경계**: `WxSave.Build.cs` 는 `WxCore` + 엔진(`GameplayAbilities`/`ModularGameplay`)만 의존 — 「WxCore 외 Wx 플러그인 참조 금지」 준수 ✅. `BlueprintCallable` 은 `UWxSaveLibrary`(BlueprintFunctionLibrary)에만 사용 — 규칙 7 준수 ✅. 모든 소스 첫 줄 Copyright 준수 ✅. `Super::` 호출 준수 ✅.
+- **미검토 / 한계**: `IWxSavable`/`GetSaveId()` 정의 자체는 WxCore 소유라 이 리뷰 범위 밖. 비동기 저장 경합은 엔진 `AsyncSaveGameToSlot` 이 게임 스레드에서 메모리 직렬화 후 디스크 쓰기만 비동기라는 전제로 판단했으며(주석·구현 일치), 동일 슬롯에 저장 다중 인플라이트 시 엔진 내부 큐잉 동작은 코드로 확인하지 않음.
 
 ---
-*문서 기준 커밋 `702fc70f` · 리뷰일 2026-07-22 · 소스 11파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `9661edf` · 리뷰일 2026-07-21 · 소스 11파일 — `/module-review`로 갱신*

@@ -1,47 +1,41 @@
 # WxCombat — 코드 리뷰
 
-> GAS 기반 전투 런타임 전반이 일관된 규약(공용 Cooldown/Cost GE + MMC, DataRow 주도, 반응형 어빌리티의 실패복구 패턴)으로 짜여 있고 네트워크 권위 처리도 대체로 신중하다 — 코드 건강도는 높은 편이다. 이번 리뷰는 ASC·AbilitySet·대미지 ExecCalc·AttributeSet·대미지 진입점(Library/DamageInfo)·무기/투사체·LockOn·TimeDilation과 핵심 반응형 어빌리티(HitReact/Guard/Groggy/Finisher/Dodge/Attack/Skill/Death/Ultimate/Pattern)를 깊게 봤고, 나머지 GE/MMC/Cue/AnimNotify/Targeting 필터는 훑었다.
+> GAS 위에 얹은 전투 런타임으로, 어빌리티·어트리뷰트·대미지 파이프라인·락온·무기/투사체·히트스톱을 폭넓게 다룬다. 전반적으로 네트워크 권위 모델과 몽타주/태스크 수명주기를 세심하게 처리한 건강한 코드베이스이며, 코딩·모듈 규칙 위반은 발견되지 않았다. 대미지 계산(WxExecCalc_Damage), 어트리뷰트(PostGameplayEffectExecute), ASC 입력 라우팅, 어빌리티(Attack/Dodge/HitReact/Death), 무기/투사체 히트 경로, 락온·시간감속을 깊게 검토했다.
 
 ## 요약
 | 심각도 | 개수 |
 | --- | --- |
 | 🔴 심각 | 0 |
-| 🟡 개선 | 1 |
-| 🟢 사소 | 2 |
+| 🟡 개선 | 2 |
+| 🟢 사소 | 1 |
 
-가장 먼저 볼 것: 투사체(`AWxProjectileBase`)와 접촉 이펙트 존(`AWxEffectZone`)이 오버랩 콜백에서 대미지/이펙트 GE를 `HasAuthority` 게이트 없이 적용한다. 같은 모듈의 `WxAnimNotify_AreaAttack`는 명시적으로 권위 게이트를 두는데, 이 둘만 빠져 있어 오버사이트로 보인다.
+## 결과
 
-## 발견
-
-### 🟡 투사체·이펙트 존이 권위 게이트 없이 대미지/이펙트 GE를 적용
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxProjectileBase.cpp:95`(`HandleHitCollisionOverlap`, 특히 :126~137), `Plugins/WxCombat/Source/WxCombat/Private/WxEffectZone.cpp:18`(`ApplyEffect`)·`:72`(`NotifyActorBeginOverlap`)
+### 1. 🟡 투사체 히트 처리가 권위 게이트 없이 클라에서도 Destroy를 호출
+- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxProjectileBase.cpp:137`, `:147`
 - **범주**: 설계/구조 (리플리케이션 권위 모델)
-- **문제**: 투사체는 서버 스폰·`bReplicates=true`라 클라에서 시뮬프록시로 존재하고, 오버랩은 클라에서도 발생한다. 그런데 두 경로 모두 `Owner->HasAuthority()` 검사 없이 `ApplyGameplayEffectSpecToSelf/ToTarget`으로 Instant 대미지 GE를 바로 적용한다. Instant GE는 비권위 클라에서도 로컬 실행되므로:
-  - `UWxCombatAttributeSet::PostGameplayEffectExecute`가 클라 로컬에서 돌며 HP<=0/DP만땅 시 `State.Dead`·`State.Groggy` **루스 태그를 로컬로 추가**한다(`WxCombatAttributeSet.cpp:131,168`). 이 루스 태그는 복제 정합으로 되돌려지지 않아, 실제로는 살아있는 적이 특정 클라에서만 사망/그로기 상태로 남을 수 있다.
-  - 투사체는 이어서 `Destroy()`(`WxProjectileBase.cpp:137`)를 클라에서도 호출한다 — 복제 액터의 수명은 서버 권위여야 하며, 클라 선파괴는 조기 소멸/타이밍 불일치를 만든다.
-  - (대미지 GameplayCue는 `ExecuteGameplayCue`가 비권위·무예측키에서 self-gate 되어 중복되지 않으므로, 핵심 피해는 위 두 가지다.)
-  대비: `WxAnimNotify_AreaAttack.cpp:20`는 동일 대미지 적용 전에 `Owner->HasAuthority()`로 게이트한다. 이 일관성 결여가 오버사이트라는 근거.
-- **제안**: 두 경로의 GE 적용(및 투사체 `Destroy`)을 `HasAuthority()` 뒤로 넣어 `WxAnimNotify_AreaAttack`와 통일한다. 무기(`WxWeaponBase::ProcessHit`)처럼 예측을 의도한다면 예측키 스코프에서 적용하도록 명시하고, 아니라면 서버 권위로 단일화한다.
-- **확신도**: 중간 (Instant GE의 비권위 클라 로컬 실행·루스 태그 미정합 동작에 기반. 실제 노출 정도는 `WxProjectile` 콜리전 프로파일과 State.Dead를 읽는 클라 소비처에 따라 달라짐)
+- **문제**: 투사체는 `bReplicates = true`로 서버가 스폰하고(`WxAnimNotify_SpawnProjectile` → `WxAbilityBase::SpawnProjectile`는 `HasAuthority()` 게이트로 서버 전용) 클라엔 시뮬프록시로 복제된다. 그런데 `HandleHitCollisionOverlap`/`HandleHitCollisionHit`에는 권위 체크가 없어 클라이언트의 로컬 오버랩/히트 타이밍에서도 그대로 실행되고 마지막에 무조건 `Destroy()`를 호출한다. 시뮬프록시에서 복제 액터를 클라가 로컬로 파괴하면 서버 권위와 무관하게 투사체가 조기·불일치 소멸하고, `Destroyed()`가 클라 로컬 임팩트 위치에 `ImpactFX`를 스폰해 서버 권위 소멸 지점과 어긋난다. 같은 대미지 트리거인 `WxAnimNotify_AreaAttack`은 `Owner->HasAuthority()`로 게이트하고 있어 처리 방식이 일관되지 않다. (대미지 GE 자체는 비권위·프리딕션키 부재 시 GAS가 instant 실행을 건너뛰어 무해할 가능성이 높으나, `Destroy()`는 조건 없이 실행된다.)
+- **제안**: 히트 처리를 `HasAuthority()`로 게이트해 서버에서만 대미지 적용·`Destroy()`를 수행하고, 클라 소멸은 복제로 전파되게 한다. 클라 예측 소멸이 목적이라면 그 의도를 명시적으로 설계·주석화한다.
+- **확신도**: 중간
 
-### 🟢 대미지 ExecCalc의 치명타가 비결정적 `FMath::FRand()` — 예측 경로에서 클라/서버 분기
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxExecCalc_Damage.cpp:263`
-- **범주**: 버그/정확성
-- **문제**: 무기 근접타(`WxWeaponBase::ProcessHit`)는 클라(예측)와 서버 양쪽에서 대미지 GE를 적용하고, ExecCalc도 양쪽에서 실행된다. 전역 RNG `FRand()`는 시드가 공유되지 않아 치명타 판정이 클라/서버 간 달라져 예측 `IncomingDamage` 값이 잠깐 튈 수 있다(HP 복제로 자기수정되고, 크리 큐는 self-gate라 중복은 없음).
-- **제안**: 실질 피해가 크지 않으면 그대로 둬도 무방하나, 정합이 중요하면 치명타 판정을 서버 권위로 분리하거나 히트별 결정적 시드를 쓴다.
-- **확신도**: 중간 (자기수정되는 시각적 소음 수준)
+### 2. 🟡 SetLastPressedInputAction의 GetOwnerActor() 널 미검사 역참조
+- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemComponent.cpp:119`
+- **범주**: 버그/정확성 (널 역참조)
+- **문제**: `if (!GetOwnerActor()->HasAuthority())`에서 `GetOwnerActor()` 반환을 널 검사 없이 역참조한다. 이 모듈의 다른 권위 판정 지점(`WxAbility_Death::EnableRagdoll`의 `if (!Avatar || !Avatar->HasAuthority())` 등)은 모두 액터를 먼저 가드하는데, 여기만 무방비다. ActorInfo 초기화 이전이나 소유 액터 해제 시점에 호출되면 크래시로 이어진다.
+- **제안**: `const AActor* Owner = GetOwnerActor(); if (Owner && !Owner->HasAuthority()) { ServerSetLastPressedInputAction(Action); }` 형태로 가드한다.
+- **확신도**: 낮음 (입력이 도착하는 시점엔 소유 액터가 유효한 것이 일반적이라 실제 발생 빈도는 낮을 수 있음)
 
-### 🟢 Targeting 필터 파일 2건의 UTF-8 BOM
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxTargetingFilterTask_GameplayTag.h:1`, `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxTargetingFilterTask_GameplayTag.cpp:1`
-- **범주**: 규칙 위반 (사소)
-- **문제**: 첫 줄 copyright 앞에 UTF-8 BOM(`﻿`)이 붙어 있어 "첫 줄은 `// Copyright ...`로 시작한다" 규칙에 미세하게 어긋난다(내용 자체는 존재). 나머지 파일은 BOM 없음.
-- **제안**: 두 파일을 BOM 없는 UTF-8로 재저장.
-- **확신도**: 높음
+### 3. 🟢 무기 히트 시 "클라 예측" 주석과 실제 프리딕션 부재
+- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxWeaponBase.cpp:270`
+- **범주**: 중복/복잡도 (오해 소지 있는 주석·불변식)
+- **문제**: `ProcessHit`의 주석은 "클라이언트의 GE 적용은 어빌리티의 ScopedPredictionKey로 예측 처리되며 … 롤백된다"고 설명하지만, `ProcessHit`는 `Tick`(스윕)과 오버랩 콜백에서 호출되어 어빌리티의 `ActivateAbility` 스코프 밖이다. 즉 활성 ScopedPredictionKey가 없어 클라의 `ApplyDamage`는 실제로 예측되지 않으며, instant GE는 비권위·키 부재 시 실행되지 않아 사실상 무동작에 가깝다(결과적으로 서버 권위만으로 정상 동작). 기능상 문제는 아니나 주석이 실제 동작과 어긋나 유지보수 시 오해를 부른다.
+- **제안**: 주석을 실제 경로(예측 키가 없어 클라 적용은 무동작이며 서버 권위로 확정)에 맞게 정정하거나, 예측이 필요하면 어빌리티 스코프 내에서 대미지를 적용하도록 경로를 재설계한다.
+- **확신도**: 낮음 (GAS 내부 동작 추정에 의존)
 
 ## 검토 범위
-- **깊게 본 파일**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxExecCalc_Damage.cpp`, `.../Attribute/WxCombatAttributeSet.cpp`, `.../Ability/WxAbilityBase.cpp`, `.../Ability/WxAbility_Finisher.cpp`, `.../Ability/WxAbility_HitReact.cpp`, `.../Ability/WxAbility_Guard.cpp`, `.../Ability/WxAbility_Groggy.cpp`, `.../Ability/WxAbility_Dodge.cpp`, `.../Ability/WxAbility_Attack.cpp`, `.../Ability/WxAbility_Skill.cpp`, `.../Ability/WxAbility_LockOn.cpp`, `.../WxAbilitySystemComponent.cpp`, `.../WxAbilitySet.cpp`, `.../Task/WxAbilityTask_LockOnTarget.cpp`, `Private/Weapon/WxWeaponBase.cpp`, `Private/Weapon/WxProjectileBase.cpp`, `Private/Targeting/WxLockOnManagerComponent.cpp`, `Private/Targeting/WxRootMotionModifier_SnapToTarget.cpp`, `Private/Time/WxTimeDilationComponent.cpp`, `Private/WxCombatLibrary.cpp`, `Private/WxDamageInfo.cpp`, `Private/WxEffectZone.cpp`
-- **훑은 파일**: 나머지 `WxEffect_*`/`WxMMC_*`(Cooldown/Cost/Damage 확인), `WxCueNotify_*`, `WxAnimNotify(State)_*`(WeaponAttack/ComboWindow/StartRecovery/AreaAttack/FinisherDamage/SpawnProjectile/SnapToTarget 확인), `WxTargetingFilterTask_*`, `WxAbility_Ultimate/Death/Pattern/Sprint`, `WxAbilityTask_SlowTime/WaitInputActionTriggered/PlaySkillCutscene`, `WxCombat.Build.cs`
-- **미검토 / 한계**: `WxCueNotify_Burn`(메모리상 이미 미해결 애셋 이슈로 기록됨)과 각 Cue의 세부 연출 로직, `WxAbilityTask_PlaySkillCutscene`/Sprint 내부는 얕게만 확인. BP 디폴트값(몽타주·DataRow·GE 클래스 배선)은 C++ 범위 밖이라 미검증. 리플리케이션 관련 발견은 런타임 네트워크 실측이 아니라 코드·GAS 동작 추론 기반이다.
+- **깊게 본 파일**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxExecCalc_Damage.cpp`, `Private/AbilitySystem/Attribute/WxCombatAttributeSet.cpp`, `Private/WxCombatLibrary.cpp`, `Private/WxDamageInfo.cpp`, `Private/Weapon/WxWeaponBase.cpp`, `Private/Weapon/WxProjectileBase.cpp`, `Private/AbilitySystem/WxAbilitySystemComponent.cpp`, `Private/AbilitySystem/Ability/WxAbilityBase.cpp`, `Private/AbilitySystem/Ability/WxAbility_Attack.cpp`, `Private/AbilitySystem/Ability/WxAbility_Dodge.cpp`, `Private/AbilitySystem/Ability/WxAbility_HitReact.cpp`, `Private/AbilitySystem/Ability/WxAbility_Death.cpp`, `Private/Targeting/WxLockOnManagerComponent.cpp`, `Private/Time/WxTimeDilationComponent.cpp`, `Private/WxEffectZone.cpp`, `Private/AbilitySystem/WxAbilitySet.cpp`, `Private/AnimNotify/WxAnimNotify_AreaAttack.cpp`, `Private/AnimNotify/WxAnimNotifyState_WeaponAttack.cpp`, `Private/AnimNotify/WxAnimNotify_SpawnProjectile.cpp`
+- **훑은 파일**: `WxCombat.Build.cs`, `README.md`, Public 헤더 전반, 나머지 Effect/MMC/ExecCalc·Cue·Task·TargetingFilter·AnimNotify 계열 cpp(패턴 반복 확인 수준)
+- **미검토 / 한계**: 데이터 주도 수치(DataTable Row·`UWxAbilitySet` 에셋 디폴트값)와 BP 파생 어빌리티/이펙트의 실제 설정값은 코드만으로 검증 불가. 리플리케이션 관련 지적은 GAS 내부 동작(비권위 instant GE 실행 여부, 시뮬프록시 오버랩 발생 여부)에 대한 정적 추론에 기반하며 실런타임·네트워크 프로파일(리슨 서버 vs 데디케이티드) 검증은 수행하지 않았다. Skill/Ultimate/Guard/Finisher/Groggy/Pattern/LockOn/Sprint 등 나머지 어빌리티 cpp는 통독하지 않았다.
 
 ---
-*문서 기준 커밋 `702fc70f` · 리뷰일 2026-07-22 · 소스 149파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `9661edf` · 리뷰일 2026-07-21 · 소스 149파일 — `/module-review`로 갱신*
