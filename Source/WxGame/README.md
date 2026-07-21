@@ -33,11 +33,11 @@
 | `AWxEnemyCharacter` | BT 구동 적. 처형 어포던스(앞잡/뒤잡)·보상 지급, `IWxSpawnableInterface`(`AWxBossCharacter`가 파생) | `Source/WxGame/Character/WxEnemyCharacter.h` |
 | `AWxPlayerController` | 소유 클라이언트 인벤토리(`UWxInventoryManagerComponent`) 소유, HUD/사망화면 push, 캐릭터 사망 바인딩 | `Source/WxGame/Controller/WxPlayerController.h` |
 | `AWxEnemyController` | 폰 BT 실행·BB 컨텍스트 키 세팅, Perception→BB 동기화는 컴포넌트에 위임 | `Source/WxGame/Controller/WxEnemyController.h` |
-| `UWxInputConfig` | IMC + Move/Look/Jump/Crouch/Interact + 어빌리티 태그 바인딩 DataAsset | `Source/WxGame/Input/WxInputConfig.h` |
+| `UWxInputConfig` | IMC + Move/Look/Jump/Crouch/Interact 직접 바인딩 입력 DataAsset(어빌리티 입력은 담지 않음) | `Source/WxGame/Input/WxInputConfig.h` |
 
 ## 확장 포인트 / 규약
 - 새 캐릭터/적/보스는 `AWxPlayerCharacter`/`AWxEnemyCharacter`/`AWxBossCharacter`를 BP 상속 후 컴포넌트(무기 `ChildActorClass`, `BehaviorTreeAsset`, `RewardRow`, BGM 태그 등)를 디폴트에서 지정. ASC는 PlayerState가 아닌 캐릭터가 직접 소유(리스폰 시 스탯 재초기화).
-- 입력 확장은 `UWxInputConfig` DataAsset의 `AbilityInputBindings`(InputAction→InputTag). 상호작용은 페이로드 운반이 필요해 직접 바인딩(`InteractAction`), 메뉴/UI 입력은 여기 넣지 않고 CommonUI 액션([[WxUI]] `WxHUDLayout`)으로.
+- 직접 바인딩 입력(이동/시선/점프/웅크리기/상호작용)은 `UWxInputConfig` DataAsset에 IA를 추가하고 `AWxPlayerCharacter::SetupPlayerInputComponent`에서 바인딩. 어빌리티 입력은 `UWxInputConfig`에 두지 않고 AbilitySet 부여 대상 CDO에서 파생(`ASC::CollectAbilityInputActions`)해 자동 바인딩. 상호작용은 페이로드 운반이 필요해 직접 바인딩(`InteractAction`), 메뉴/UI 입력은 여기 넣지 않고 CommonUI 액션([[WxUI]] `WxHUDLayout`)으로.
 - GameMode `FrameworkComponents`(EditDefaultsOnly)에 프레임워크 컴포넌트 클래스를 추가하면 GameState/Controller 등 receiver에 자동 주입(receiver는 무엇이 붙는지 모른다). 새 프레임워크 기능은 컴포넌트로 추가.
 - 새 월드 오브젝트/기믹은 [[WxWorld]] `AWxGimmick` 상속(예: `AWxCheckPoint`, `AWxLaserCorridor`). 권위 State만 C++가 확정하고 비주얼은 GimmickStateTree가 담당하는 패턴.
 - 재개 지점은 [[WxSave]] `UWxPlayerSpawnComponent`가 저장 좌표를 `StartSpot`으로 주입해 처리(스폰은 엔진 기본 경로). 오토세이브가 `AWxCheckPoint`뿐인 한 사망 부활은 마지막으로 불을 켠 체크포인트가 된다. 신규 세션 시작지점은 레벨의 일반 `APlayerStart`.
@@ -54,4 +54,4 @@
 - 함께: [[WxCombat]] · [[WxInventory]] · [[WxWorld]] · [[WxAI]] · [[WxUI]] · [[WxSound]] · [[WxSave]] · [[WxCore]]
 
 ---
-*문서 기준 커밋 `94f2eaf` · 생성일 2026-07-20 · 소스 44파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `b850e71` · 생성일 2026-07-21 · 소스 44파일 — `/readme-writer`로 갱신*

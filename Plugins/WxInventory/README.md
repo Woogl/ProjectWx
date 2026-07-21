@@ -1,51 +1,51 @@
-# WxInventory — 인벤토리 시스템
+# WxInventory — 아이템·인벤토리 시스템
 
-> 아이템의 정적 정의(DataAsset)와 런타임 인스턴스를 분리해 소지·스택·사용·장착·보상 지급을 관장하는 도메인 플러그인. Fragment 컴포지션으로 아이템 행동을 선언하고, FastArray로 인벤토리를 복제한다.
+> 아이템의 정적 정의(Fragment 컴포지션)와 런타임 인스턴스, 서버 권위 인벤토리/장비 관리, 보상 지급까지 아이템 수명 전체를 담당하는 플러그인.
 
 ## 책임
 **담당**
-- 아이템 데이터 모델: 정적 정의(`UWxItemDefinition`) + Fragment 컴포지션(속성/행동) + 런타임 인스턴스(`UWxItemInstance`)
-- 인벤토리 소지/스택 머지·분할/정의 단위 차감의 서버 권위 처리와 FastArray 복제(`UWxInventoryManagerComponent`)
-- Usable/Charges 기반 사용, Equippable 장착 효과(GE) 라이프사이클(`UWxEquipmentComponent`)
-- DataTable Row 기반 보상 지급(픽업 드랍 또는 인벤토리 직접 지급)과 진입점(`UWxRewardLibrary`, `FWxStateTreeTask_GrantReward`, `AWxItemPickup`)
+- 아이템 정적 정의(`UWxItemDefinition`)와 Fragment 컴포지션(Stackable/Usable/Charges/Equippable/Pickup/Grade)
+- 런타임 아이템 인스턴스(`UWxItemInstance`)의 생성·소멸·복제, 인스턴스별 충전량(에스트병 방식)
+- 서버 권위 인벤토리 관리: 추가/차감/스택 머지·분할·사용, FastArray 기반 복제(`UWxInventoryManagerComponent`)
+- 장비 착용 상태 보관과 EquipEffect GE 라이프사이클(`UWxEquipmentComponent`)
+- 보상 데이터테이블(`FWxRewardTableRow`) 지급 진입점 — 픽업 월드 드랍 또는 인벤토리 직접 지급(`UWxRewardLibrary`, StateTree Task)
 
 **경계 (비담당)**
-- 무기 메시 스왑·소켓 재부착 등 실제 외형 반영 — 무기 액터가 게임 모듈 소유라 도메인에서 접근 불가. `OnEquipVisualChanged`로 방송만 하고 [[WxGame]]이 반영
-- 픽업 상호작용 컴포넌트 배선 — `IWxInteractionSource`(WxCore)를 BeginPlay에 자동 바인딩, 컴포넌트 자체는 상속 BP가 추가([[WxWorld]])
-- 인벤토리·아이템 UI 표현 — [[WxUI]]
+- 무기 외형 반영(메시 스왑/소켓 재부착): `UWxEquipmentComponent`는 델리게이트로 방송만, 실제 반영은 게임 모듈(`WxGame`)이 수행
+- 픽업 상호작용 컴포넌트 배선: 상속 BP에서 추가([[WxWorld]] `IWxInteractionSource` 구현체를 런타임 바인딩)
+- GAS 어빌리티/스탯 정의 자체는 담당하지 않음 — GE 적용만 트리거
 
 ## 의존성
-- **주요 의존**: `WxCore`(상호작용 인터페이스 등), `GameplayAbilities`/`GameplayTags`(사용/장착 GE·ASC), `StateTree`(보상 Task), `NetCore`(FastArray 복제), `Niagara`(픽업 이펙트), `DeveloperSettings`
-- 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅ (`WxWorld` 언급은 참조 회피를 설명하는 주석뿐)
+- **주요 의존**: `WxCore`, `GameplayAbilities`(GE 적용/ASC), `GameplayTags`, `StateTreeModule`(보상 Task), `NetCore`(FastArray/서브오브젝트 복제), `Niagara`·`DeveloperSettings`(private)
+- 규칙: 「WxCore 외 Wx 플러그인 참조」 없음 ✅ — 참조 Wx 플러그인은 `WxCore`뿐. 픽업/장비의 상호작용·외형 결합은 델리게이트/BP 상속으로 우회해 도메인 경계를 지킴
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxInventoryManagerComponent` | 소지/스택/사용/장착 요청의 권위 허브, FastArray 복제 소유. PlayerController 부착, `FindInventory`로 조회 | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryManagerComponent.h` |
-| `FWxInventoryList` / `FWxInventoryEntry` | 매니저 내부 FastArray 슬롯 컬렉션·엔트리(권한 변경 메서드 AddEntry/Consume…) | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryManagerComponent.h` |
-| `UWxItemDefinition` | 아이템 정적 정의(PrimaryDataAsset). Category + Fragment 컬렉션 | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemDefinition.h` |
-| `UWxItemFragment` | Fragment 베이스(EditInline) + Equippable/Usable/Charges/Stackable/Pickup/Grade 파생 | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemFragment.h` |
-| `UWxItemInstance` | 슬롯 단위 식별·충전량을 가진 런타임 인스턴스(복제, GA SourceObject) | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemInstance.h` |
-| `UWxEquipmentComponent` | 장착 ItemDef 보관·EquipEffect GE 라이프사이클, 외형은 방송만 | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxEquipmentComponent.h` |
-| `UWxRewardLibrary` | 보상 Row 서버 권위 지급(픽업 스폰 또는 직접 지급)의 BP 라이브러리 | `Plugins/WxInventory/Source/WxInventory/Public/WxRewardLibrary.h` |
-| `AWxItemPickup` | 월드 드랍 픽업 액터, 상호작용 시 인벤토리 지급 후 파괴(Abstract, BP 상속) | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemPickup.h` |
-| `FWxStateTreeTask_GrantReward` | 라이브 전이 시 1회성 보상 지급 StateTree Task | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxRewardStateTreeNodes.h` |
+| `UWxInventoryManagerComponent` | 인벤토리 진입점. 추가/차감/사용/장착요청·통지 허브. PlayerController에 부착 | `Source/WxInventory/Public/Inventory/WxInventoryManagerComponent.h` |
+| `FWxInventoryList` / `FWxInventoryEntry` | 매니저 내부 FastArray 슬롯 컬렉션·엔트리. 실제 머지/분할/차감 로직 | 같은 파일 |
+| `UWxItemDefinition` | 아이템 정적 정의(PrimaryDataAsset). Fragment 컨테이너 | `Source/WxInventory/Public/Items/WxItemDefinition.h` |
+| `UWxItemFragment` | Fragment 베이스 + 6종 파생(Stackable/Usable/Charges/Equippable/Pickup/Grade) | `Source/WxInventory/Public/Items/WxItemFragment.h` |
+| `UWxItemInstance` | 런타임 아이템 단위. 충전량 보유, 슬롯 델리게이트 안정 식별자 | `Source/WxInventory/Public/Items/WxItemInstance.h` |
+| `UWxEquipmentComponent` | 장착 ItemDef 보관·복제 + EquipEffect GE 관리. 폰에 부착 | `Source/WxInventory/Public/Inventory/WxEquipmentComponent.h` |
+| `UWxRewardLibrary` | 보상 지급 서버 권위 진입점(픽업 드랍/직접 지급 분기) | `Source/WxInventory/Public/WxRewardLibrary.h` |
+| `AWxItemPickup` | 월드 드랍 픽업 액터(Abstract). 상호작용 시 인벤토리 지급 | `Source/WxInventory/Public/Items/WxItemPickup.h` |
 
 ## 확장 포인트 / 규약
-- **새 아이템**: `UWxItemDefinition` 데이터 자산 생성 → `Category`(EWxItemCategory) 설정 → `Fragments`에 필요한 Fragment를 EditInline으로 조합. 카테고리(UI/기능 1차 분기)와 Fragment("무엇을 할 수 있는가")는 직교하도록 설계한다.
-- **새 Fragment**: `UWxItemFragment`(EditInlineNew, Abstract) 상속. 인스턴스 초기 상태 주입이 필요하면 `OnInstanceCreated` 오버라이드(예: `_Charges`가 MaxCharges 시드).
-- **사용/장착 조합**: Usable(GE 적용), Charges(에스트병식 인스턴스 충전), Stackable(MaxStack 머지), Equippable(EquipEffects + 메시/소켓)을 조합. Stackable 부재 시 1슬롯=1개, Charges 단독 부착 시 스택 유지·충전만 소모.
-- **보상 데이터**: `FWxRewardTableRow` DataTable(최대 5항목)에 Row 작성 후 `GrantReward`/StateTree Task/픽업으로 지급. `Item`은 `TSoftObjectPtr` 지연 로드. 매니저 `DefaultItems`는 BeginPlay 1회 자동 지급.
-- **리플리케이션**: 슬롯은 `FWxInventoryList`(FFastArraySerializer), 인스턴스는 SubObject 등록. Add/Consume/Equip은 서버 권한에서만 호출하고, 서버 변경·클라 OnRep 양 경로가 `NotifyXxxFromList/Source` 진입점으로 수렴해 3종 델리게이트(Stack/Slot/Charge)를 발행한다.
+- **새 아이템**: `UWxItemDefinition` 데이터 자산을 만들고 `Category`(EWxItemCategory) 지정, `Fragments` 배열에 필요한 Fragment를 EditInline으로 조합. 정적 정의는 공유, 가변 상태는 `UWxItemInstance`가 보유
+- **새 행동 축**: `UWxItemFragment`를 상속(EditInlineNew). 인스턴스 초기 상태 주입이 필요하면 `OnInstanceCreated` 오버라이드(예: Charges가 MaxCharges로 시드)
+- **스택 규약**: `Stackable` Fragment 있으면 한 슬롯 MaxStack까지 머지 후 초과분 분할, 없으면 1슬롯=1개 강제
+- **충전형(에스트병)**: `Charges` + `Usable` 조합. 사용 시 인벤토리 스택 유지, 인스턴스 충전량만 감소. `RefillItemCharges`로 회복
+- **보상 데이터 주도**: `FWxRewardTableRow`(최대 5 항목) DataTable Row. `Pickup` Fragment 유무로 월드 드랍/직접 지급이 갈림
+- **권한 모델**: Add/Consume/Use/Equip은 모두 서버 권위. FastArray + 복제 서브오브젝트로 클라 동기화. 서버 변경 경로와 클라 OnRep 콜백이 매니저의 `Notify*FromList/FromSource` 진입점으로 수렴해 델리게이트 발행
 
 ## 여기서부터 읽어라
-1. `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryManagerComponent.h` — Add/Consume/Use/Equip 권위 API와 FastArray(`FWxInventoryList`)·통지 델리게이트 구조가 모듈의 중심
-2. `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemFragment.h` — Fragment 컴포지션이 아이템 행동을 결정하는 핵심 데이터 모델(Stackable↔Charges↔Usable 직교)
-3. `Plugins/WxInventory/Source/WxInventory/Public/WxRewardLibrary.h` — 픽업 드랍 vs 직접 지급 분기와 외부(퀘스트/상자) 진입점
+1. `Source/WxInventory/Public/Inventory/WxInventoryManagerComponent.h` — 시스템 전체 API·통지 흐름·스택 규약이 한 곳에 정리된 허브
+2. `Source/WxInventory/Public/Items/WxItemFragment.h` — Fragment 6종으로 아이템 기능 축 파악, 정의/인스턴스 관계 이해
+3. `Source/WxInventory/Private/Inventory/WxInventoryManagerComponent.cpp` — 머지/분할/차감/사용의 실제 구현과 복제 콜백 배선
 
 ## 관련
-- 상위: [[WxGame]](인벤토리·장비 컴포넌트 소유·바인딩), [[WxCore]](공용 정의)
-- 협력: [[WxWorld]](상호작용), [[WxUI]](표시)
+- 상위: [[WxGame]](장비 외형 반영·픽업 상호작용 BP), [[WxWorld]](상호작용 소스), [[WxQuest]]·[[WxAI]](StateTree 보상 지급)
 
 ---
-*문서 기준 커밋 `465b77a` · 생성일 2026-07-17 · 소스 19파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `b850e71` · 생성일 2026-07-21 · 소스 19파일 — `/readme-writer`로 갱신*

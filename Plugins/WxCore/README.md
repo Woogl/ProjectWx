@@ -39,7 +39,7 @@
   - `ANS.*` — AnimNotifyState 구간 (WeaponCollision, ComboWindow)
   - `GameplayCue.*` — Cue 트리거 (Damage, PerfectGuard, Exceed, Burn, AttackTelegraph 색상별 Red/Yellow/Blue/Purple)
   - `Damage.*` — 대미지 판정 결과/속성 (Critical, Unblockable, ParryHitReact)
-  - `Ability.*` / `Input.*` — 어빌리티·입력 매핑 (Attack, Dodge, Sprint, Guard, Skill_N, Ultimate, Interact, UseItem, AI Pattern_N)
+  - `Ability.*` — 어빌리티 식별 (Attack, Dodge, Sprint, Guard, Skill_N, Ultimate, Interact, UseItem, AI Pattern_N)
   - `SetByCaller.*` — GE SetByCaller 키 (Duration, Recovery_UP/MP, ReflectDP, Coeff_ATK, RawDamage, HitStop)
   - `UI.Layer.*` / `UI.Action.*` — CommonUI 레이어 스택(Game/GameMenu/Menu/Modal) 및 액션(Inventory/MainMenu/FreeCursor)
 
@@ -60,4 +60,4 @@
 - 상위: 모든 Wx 도메인 플러그인([[WxCombat]], [[WxInventory]], [[WxUI]], [[WxWorld]], [[WxSound]], [[WxAI]], [[WxQuest]], [[WxSave]])과 게임 모듈 [[WxGame]]이 WxCore를 참조
 
 ---
-*문서 기준 커밋 `a9e6ea8` · 생성일 2026-07-19 · 소스 8파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `b850e71` · 생성일 2026-07-21 · 소스 8파일 — `/readme-writer`로 갱신*

@@ -4,7 +4,7 @@
 
 ## 책임
 **담당**
-- 메모리 SaveGame 의 수명·디스크 I/O·맵 트래블 오케스트레이션 (`UWxSaveGameSubsystem`). 슬롯은 맵 트래블을 가로질러 유지된다.
+- 인메모리 SaveGame 의 수명·디스크 I/O·맵 트래블 오케스트레이션 (`UWxSaveGameSubsystem`). 슬롯은 맵 트래블을 가로질러 유지된다.
 - 월드 수명 이벤트(레벨 초기화/스트리밍 인·아웃/맵 이탈)에 맞춘 `IWxSavable` 액터 자동 캡처·복원 (`UWxSaveWorldSubsystem`).
 - 저장된 재개 지점·스탯을 새 세션 플레이어에 세우기 — 엔진 스폰 경로(`StartSpot`/`ChoosePlayerStart`)에 올라탐 (`UWxPlayerSpawnComponent`).
 - 액터/컴포넌트 `UPROPERTY(SaveGame)` 필드의 바이트 직렬화 + 이기종 빌드 대비 레코드 단위 버전 헤더 관리 (`FWxActorRecord`).
@@ -12,13 +12,13 @@
 
 **경계 (비담당)**
 - 세이브 참여 마커·후크 인터페이스 `IWxSavable`/`GetSaveId()` 정의는 [[WxCore]] 소유 (`WxSavable.h`). WxSave 는 이를 소비만 한다.
-- 저장 대상 액터의 실제 보존 필드 선정·복원 후처리(`OnWxSaveRestored`)와 저장 트리거(체크포인트/기믹)는 [[WxWorld]] 등 소비 도메인 몫.
+- 저장 대상 액터의 보존 필드 선정·복원 후처리(`OnWxSaveRestored`)와 저장 트리거(체크포인트/기믹)는 [[WxWorld]] 등 소비 도메인 몫.
 - 세이브/로드 UI 는 [[WxUI]] 소관 — 이 모듈은 BP 정적 래퍼만 노출한다.
 - 어트리뷰트 정의·구체 AttributeSet 타입은 GAS/전투 도메인 소관 — WxSave 는 이름-값 맵으로만 왕복한다.
 
 ## 의존성
 - **주요 의존**: [[WxCore]] (`IWxSavable`), `GameplayAbilities`(ASC 어트리뷰트 base 캡처/적용), `ModularGameplay`(GameFramework 컴포넌트 등록). 참여 인터페이스가 WxCore 에 있어 WxSave 와 소비 도메인이 서로 직접 의존하지 않는다.
-- 규칙: 「WxCore 외 Wx 플러그인 참조」 — 없음 ✅ (uplugin·Build.cs 모두 WxCore + 엔진 GameplayAbilities/ModularGameplay 만 의존)
+- 규칙: 「WxCore 외 Wx 플러그인 참조」 — 없음 ✅ (uplugin·Build.cs 모두 WxCore + 엔진 GameplayAbilities/ModularGameplay 만 의존. 저장소의 PersistenceUtils/PersistenceExamples 플러그인 의존 없음 — 코드 주석의 "샘플 골격 이식"은 참조가 아닌 이식 표현)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
@@ -51,4 +51,4 @@
 - 소비 도메인: [[WxWorld]] (기믹/스포너 등 savable 액터·저장 트리거), [[WxUI]] (세이브/로드 API 호출)
 
 ---
-*문서 기준 커밋 `465b77a` · 생성일 2026-07-17 · 소스 11파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `b850e71` · 생성일 2026-07-21 · 소스 11파일 — `/readme-writer`로 갱신*
