@@ -82,20 +82,14 @@ void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC, FWxAbili
 	}
 
 	// Ability 부여
-	for (const FWxAbilitySet_GameplayAbility& AbilityToGrant : GrantedAbilities)
+	for (const TSubclassOf<UWxAbilityBase>& AbilityClass : GrantedAbilities)
 	{
-		if (!AbilityToGrant.Ability)
+		if (!AbilityClass)
 		{
 			continue;
 		}
 
-		FGameplayAbilitySpec Spec(AbilityToGrant.Ability, 1);
-
-		// 입력으로 발동하는 어빌리티는 InputTag를 Spec 소스 태그로 추가해 ASC 입력 매칭의 키로 쓴다.
-		if (AbilityToGrant.InputTag.IsValid())
-		{
-			Spec.GetDynamicSpecSourceTags().AddTag(AbilityToGrant.InputTag);
-		}
+		FGameplayAbilitySpec Spec(AbilityClass, 1);
 
 		const FGameplayAbilitySpecHandle Handle = ASC->GiveAbility(Spec);
 		if (OutHandles)
