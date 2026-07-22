@@ -93,7 +93,7 @@ public:
 	FTransform PlayerTransform = FTransform::Identity;
 
 	/**
-	 * WxSaveId -> 스냅샷. IWxSavable::GetWxSaveId() 의 에디터-부여 영속 GUID 를 안정적 키로 사용한다(쿠킹 빌드 안전).
+	 * WxSaveId -> 스냅샷. IWxSavable::GetSaveId() 의 에디터-부여 영속 GUID 를 안정적 키로 사용한다(쿠킹 빌드 안전).
 	 * GUID 가 맵을 넘어 전역 유일하므로 샘플(PersistenceLab)의 맵별 키잉(SavedStatePerMap) 없이 평면 맵으로 충분하다.
 	 */
 	UPROPERTY()

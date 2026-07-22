@@ -16,6 +16,8 @@ void UWxViewModel_InteractionList::Deinitialize()
 		Entries.Reset();
 		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(Entries);
 	}
+
+	Super::Deinitialize();
 }
 
 void UWxViewModel_InteractionList::HandleListChanged(const TArray<FText>& InPrompts)

@@ -22,7 +22,6 @@ public class WxInventory : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
-			"DeveloperSettings",
 			"Niagara",
 		});
 	}

@@ -9,7 +9,7 @@
 
 UWxAbility_UseItem::UWxAbility_UseItem()
 {
-	// 인벤토리 차감은 서버 권한 작업이므로 서버에서 활성화한다(WxAbility_Interact 와 동일).
+	// 인벤토리 차감은 서버 권한 작업이므로 서버에서 활성화한다.
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 
 	FGameplayTagContainer AssetTags;

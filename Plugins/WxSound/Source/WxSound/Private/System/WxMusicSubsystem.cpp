@@ -242,10 +242,15 @@ UWxBGMData* UWxMusicSubsystem::EvaluateBGM()
 	}
 
 	// 컨텍스트 채우기. 멤버 ChooserContext 는 AddStructParam 이 참조만 잡으므로 평가 동안 살아있어야 한다.
-	ChooserContext.PlayerStateTags.Reset();
 	if (UAbilitySystemComponent* ASC = BoundASC.Get())
 	{
+		// GetOwnedGameplayTags 가 인자 컨테이너를 내부에서 Reset 후 채우므로 별도 Reset 은 불필요하다.
 		ASC->GetOwnedGameplayTags(ChooserContext.PlayerStateTags);
+	}
+	else
+	{
+		// ASC 부재 시엔 이전 스냅샷을 비워 낡은 태그가 남지 않게 한다.
+		ChooserContext.PlayerStateTags.Reset();
 	}
 
 	// 베이스라인 + 활성 소스들의 MusicTag 와 각 owner 의 owned 태그를 모두 컨테이너로 모아 Chooser 에 노출한다.

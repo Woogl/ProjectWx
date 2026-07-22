@@ -2,7 +2,6 @@
 
 #include "WxBTTask_Wander.h"
 #include "AIController.h"
-#include "NavigationSystem.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"

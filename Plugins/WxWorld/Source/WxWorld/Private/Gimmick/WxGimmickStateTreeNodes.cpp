@@ -137,7 +137,7 @@ FText FWxStateTreeTask_EnablePlayerInput::GetDescription(const FGuid& ID, FState
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Enable Player Input ({0})"), InstanceData->bEnable);
+	return FText::Format(INVTEXT("Enable Player Input ({0})"), InstanceData->bEnable ? INVTEXT("true") : INVTEXT("false"));
 }
 #endif
 

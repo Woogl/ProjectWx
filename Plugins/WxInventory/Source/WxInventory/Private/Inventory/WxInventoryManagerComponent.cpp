@@ -65,9 +65,18 @@ void FWxInventoryList::PreReplicatedRemove(const TArrayView<int32> RemovedIndice
 		}
 
 		const int32 Delta = -Entry.LastObservedCount;
+
+		// PreReplicatedRemove 는 엔트리가 배열에서 실제 제거되기 "전"에 호출된다.
+		// NotifyStackChangedFromList 의 총량 재계산(GetTotalItemCountByDefinition)은 StackCount 합산이므로,
+		// 재계산 전에 이 엔트리의 StackCount 를 0 으로 내려 제거분을 합산에서 제외한다.
+		// 그래야 서버(제거 후 재계산) 경로와 동일한 사후 총량이 발행된다. 동일 배치에서 같은 Def 가
+		// 여러 슬롯 제거돼도, 이미 0 으로 내린 엔트리는 이후 재계산에서 빠져 누적이 정확히 반영된다.
+		// (엔트리는 이 콜백 직후 배열에서 실제 제거되므로 StackCount mutate 는 무해하다.)
+		Entry.StackCount = 0;
+		Entry.LastObservedCount = 0;
+
 		Manager->NotifySlotChangedFromList(Entry.Instance, 0, Delta);
 		Manager->NotifyStackChangedFromList(Entry.Instance->GetItemDef(), Delta);
-		Entry.LastObservedCount = 0;
 	}
 }
 
