@@ -17,7 +17,14 @@ UWxAbility_Interact::UWxAbility_Interact()
 	// 선택 전달은 레지스트리 컴포넌트의 ServerInteract RPC 가 담당하므로 LocalPredicted 의 페이로드 통로가 필요 없다.
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
 
-	// 사망 중에는 활성화 거부.
+	// 시스템/AI 가 클래스 의존 없이 이 어빌리티를 식별하도록 애셋 태그를 부여한다.
+	// 상호작용 레지스트리 컴포넌트(WxWorld)가 이 태그로 스펙을 찾아 CanActivateAbility 로 클라 표시 게이트를 삼는다.
+	// Ability 하위 태그이므로 GAS 순정 AreAbilityTagsBlocked(Ability) 차단(마시는 중·기믹 연출 중 등)도 함께 존중한다.
+	FGameplayTagContainer AssetTags;
+	AssetTags.AddTag(WxGameplayTags::Ability_Interact);
+	SetAssetTags(AssetTags);
+
+	// 사망 중에는 활성화 거부. 이 차단 태그가 서버 활성·클라 표시(레지스트리 컴포넌트) 게이트의 단일 소스다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 
 	// 처형 연출 중에는 상호작용 재입력을 막는다(WxAbility_Finisher가 State.Finisher를 발행).

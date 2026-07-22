@@ -8,6 +8,7 @@
 #include "WxInteractionRegistryComponent.generated.h"
 
 class UWxInteractionComponent;
+class UAbilitySystemComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionListChanged, const TArray<FText>&, Prompts);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionSelectionChanged, int32, SelectedIndex);
@@ -92,6 +93,13 @@ private:
 
 	/** 선택된 컴포넌트만 외곽선 강조 ON, 나머지는 OFF. */
 	void ApplyHighlight();
+
+	/**
+	 * 상호작용 어빌리티(Ability.Interact 애셋 태그)를 찾아 그 CanActivateAbility 로 현재 상호작용 가능 여부를 판정한다.
+	 * 차단 조건의 단일 소스는 어빌리티(ActivationBlockedTags 등)이므로 컴포넌트가 상태 태그를 하드코딩하지 않는다.
+	 * 어빌리티가 아직 부여되지 않았으면 true(표시를 열어둔다).
+	 */
+	bool CanInteractNow(const UAbilitySystemComponent* ASC) const;
 
 	/** 소유 PC 의 현재 폰(없으면 nullptr). 스캔 원점·이벤트 instigator 로 쓴다. */
 	APawn* GetOwnerPawn() const;

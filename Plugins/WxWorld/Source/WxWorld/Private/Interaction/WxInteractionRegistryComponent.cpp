@@ -91,11 +91,11 @@ void UWxInteractionRegistryComponent::ScanAndPush()
 		return;
 	}
 
-	// 상호작용 불가(사망·처형 중)면 스캔하지 않고 후보를 비워 프롬프트·하이라이트를 정리한다.
-	// ServerOnly 어빌리티의 ActivationBlockedTags(State.Dead/State.Finisher) 와 동일한 게이트를 클라 표시용으로 미러링한다.
+	// 상호작용 불가면 스캔하지 않고 후보를 비워 프롬프트·하이라이트를 정리한다.
+	// 게이트는 어빌리티의 CanActivateAbility 에 위임한다(차단 태그를 컴포넌트가 하드코딩하지 않는 단일 소스).
 	if (const UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn))
 	{
-		if (ASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead) || ASC->HasMatchingGameplayTag(WxGameplayTags::State_Finisher))
+		if (!CanInteractNow(ASC))
 		{
 			UpdateInRange({});
 			return;
@@ -234,6 +234,28 @@ void UWxInteractionRegistryComponent::ApplyHighlight()
 			Component->SetHighlightEnabled(Index == SelectedIndex);
 		}
 	}
+}
+
+bool UWxInteractionRegistryComponent::CanInteractNow(const UAbilitySystemComponent* ASC) const
+{
+	// 상호작용 어빌리티를 Ability.Interact 애셋 태그로 찾아(클래스 의존 회피, UWxBTTask_ActivateAbility 와 동일 관례)
+	// 그 CanActivateAbility 를 표시 게이트로 위임한다. 차단 조건의 단일 소스는 어빌리티다.
+	const FGameplayAbilityActorInfo* ActorInfo = ASC->AbilityActorInfo.Get();
+	if (!ActorInfo)
+	{
+		return true;
+	}
+
+	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+	{
+		if (Spec.Ability && Spec.Ability->GetAssetTags().HasTag(WxGameplayTags::Ability_Interact))
+		{
+			return Spec.Ability->CanActivateAbility(Spec.Handle, ActorInfo);
+		}
+	}
+
+	// 어빌리티가 아직 부여되지 않았으면 게이트하지 않는다(표시를 열어둔다).
+	return true;
 }
 
 APawn* UWxInteractionRegistryComponent::GetOwnerPawn() const
