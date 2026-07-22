@@ -47,4 +47,4 @@
 - 상위: 게임플레이 BP/코드가 `UWxMusicLibrary`(BlueprintCallable)로 진입해 BGM 분류를 켠다. 상태 태그 공급원은 플레이어/적 ASC — [[WxCombat]] 등 도메인 모듈이 부여한 owned-tag 를 그대로 읽는다.
 
 ---
-*문서 기준 커밋 `2c06890` · 생성일 2026-07-03 · 소스 12파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `b382b78` · 생성일 2026-07-22 · 소스 12파일 — `/readme-writer`로 갱신*

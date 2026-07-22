@@ -1,12 +1,12 @@
 # WxCore — 공용 정의 모듈
 
-> 모든 Wx 도메인 플러그인이 공유하는 공용 정의(Gameplay Tag, 콜리전 채널, 도메인 간 인터페이스/추상 베이스)를 한곳에 모은 foundation 모듈. 구현 로직은 두지 않고 선언·상수·계약만 제공한다.
+> 모든 Wx 도메인 플러그인이 공유하는 공용 정의(Gameplay Tag, 콜리전 채널, 도메인 간 인터페이스)를 한곳에 모은 foundation 모듈. 구현 로직은 두지 않고 선언·상수·계약만 제공한다.
 
 ## 책임
 **담당**
 - 프로젝트 전역 Gameplay Tag의 C++ Native Tag 선언·정의 (`WxGameplayTags`)
 - 커스텀 콜리전 채널 상수 (`ECC_WxAttack`, `ECC_WxInteractable`)
-- 도메인 간 결합을 끊는 공용 인터페이스/추상 베이스 (`IWxSavable`, `IWxInteractionSource`)
+- 도메인 간 결합을 끊는 공용 인터페이스 (`IWxSavable`, `IWxInteractionSource`)
 
 **경계 (비담당)**
 - 시스템 구현 일체 — 전투 [[WxCombat]], 세이브 로직 [[WxSave]], 상호작용/월드 오브젝트 [[WxWorld]], UI [[WxUI]]
@@ -21,7 +21,7 @@
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `WxGameplayTags` (namespace) | 프로젝트 전역 Native Tag 선언부 (State/Event/Gimmick/ANS/Cue/Damage/Ability/Input/SetByCaller/UI). 다른 모듈이 참조하는 어휘집 | `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h` |
+| `WxGameplayTags` (namespace) | 프로젝트 전역 Native Tag 선언부 (State/Event/Gimmick/ANS/Cue/Damage/Ability/SetByCaller/UI). 다른 모듈이 참조하는 어휘집 | `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h` |
 | `ECC_WxAttack` / `ECC_WxInteractable` | 커스텀 콜리전 채널 상수 (`ECC_GameTraceChannel1`/`ECC_GameTraceChannel2`). ini 등록과 동기화되는 단일 출처 | `Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h` |
 | `IWxSavable` | WxSave 슬롯 저장/로드 라이프사이클 참여 마커+후크 (`GetSaveId`, `OnWxSaveRestored`). WxSave↔소비 도메인 직접 의존 차단 | `Plugins/WxCore/Source/WxCore/Public/WxSavable.h` |
 | `IWxInteractionSource` | 상호작용 발행 컴포넌트의 공용 계약 (`GetOnInteractedDelegate`, `SetInteractionText`). 구현체는 WxWorld | `Plugins/WxCore/Source/WxCore/Public/WxInteractionSource.h` |
@@ -44,7 +44,7 @@
 
 ## 확장 포인트 / 규약
 - 태그 추가: `WxGameplayTags.h`에 `UE_DECLARE_GAMEPLAY_TAG_EXTERN`, `WxGameplayTags.cpp`에 `UE_DEFINE_GAMEPLAY_TAG`를 쌍으로 작성. 다른 모듈에서 임의 선언 금지.
-- 세이브 대상 액터: `IWxSavable` 구현 + 보존 필드에 `UPROPERTY(SaveGame)` 표시. `GetSaveId()`가 세션 불변 `FGuid`를 반환(무효 GUID면 저장/복원 제외), 복원 후처리는 `OnWxSaveRestored()` 오버라이드. 인터페이스를 WxCore에 둠으로써 WxSave↔소비 도메인 직접 의존을 끊는다. (구현은 BP 불가 — `CannotImplementInterfaceInBlueprint`)
+- 세이브 대상 액터: `IWxSavable` 구현 + 보존 필드에 `UPROPERTY(SaveGame)` 표시. `GetSaveId()`가 세션 불변 `FGuid`를 반환(무효 GUID면 저장/복원 제외), 복원 후처리는 `OnWxSaveRestored()` 오버라이드(BeginPlay 이전 호출 가능). 인터페이스를 WxCore에 둠으로써 WxSave↔소비 도메인 직접 의존을 끊는다. (구현은 BP 불가 — `CannotImplementInterfaceInBlueprint`)
 - 상호작용 발행: `IWxInteractionSource`로 소비 도메인이 WxWorld 구현체에 의존하지 않고 델리게이트 바인딩/프롬프트 갱신. 델리게이트는 서버 권한에서만 fire.
 - 콜리전 채널 추가: `ECC_Wx*` 상수와 `Config/DefaultEngine.ini`의 채널 등록 순서가 일치해야 함.
 - WxCore엔 정의/공용 계약만 둔다. 리플리케이션·권한 로직은 소비 도메인이 책임진다.
@@ -57,4 +57,4 @@
 - 상위: 모든 Wx 도메인 플러그인([[WxCombat]], [[WxInventory]], [[WxUI]], [[WxWorld]], [[WxSound]], [[WxAI]], [[WxQuest]], [[WxSave]])과 게임 모듈 [[WxGame]]이 WxCore를 참조
 
 ---
-*문서 기준 커밋 `b850e71` · 생성일 2026-07-21 · 소스 8파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `b382b78` · 생성일 2026-07-22 · 소스 7파일 — `/readme-writer`로 갱신*
