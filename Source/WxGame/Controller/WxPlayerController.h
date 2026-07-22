@@ -31,7 +31,7 @@ public:
 
 	UWxInventoryManagerComponent* GetInventoryManager() const;
 
-	/** 소유 클라의 상호작용 레지스트리 컴포넌트. 캐릭터 입력 바인딩·리졸버가 조회한다. */
+	/** 소유 클라의 상호작용 레지스트리 컴포넌트. 뷰모델 리졸버가 조회해 목록·선택·입력 요청을 잇는다. */
 	UWxInteractionRegistryComponent* GetInteractionRegistry() const { return InteractionRegistry; }
 
 	//~ Begin AActor

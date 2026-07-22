@@ -22,7 +22,7 @@
 		{
 			"WxViewModel_InteractionList":
 			{
-				"class": "/Script/WxUI.WxViewModel_InteractionList",
+				"class": "/Script/WxGame.WxViewModel_InteractionList",
 				"contextId": "D9EAA1D9-486E-69F7-28DA-339501541CD8",
 				"createGetter": true,
 				"createSetter": false,

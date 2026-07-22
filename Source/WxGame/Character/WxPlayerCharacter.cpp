@@ -10,11 +10,9 @@
 #include "InputAction.h"
 #include "InputActionValue.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
-#include "Controller/WxPlayerController.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "Input/WxInputConfig.h"
-#include "Interaction/WxInteractionRegistryComponent.h"
 #include "Targeting/WxLockOnManagerComponent.h"
 #include "WxBGMSourceComponent.h"
 #include "WxGameplayTags.h"
@@ -125,19 +123,6 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	{
 		EIC->BindAction(InputConfig->CrouchAction, ETriggerEvent::Started, this, &AWxPlayerCharacter::ToggleCrouch);
 	}
-	// 상호작용 입력은 PlayerController 의 레지스트리 컴포넌트로 라우팅한다.
-	// 컴포넌트가 로컬 선택을 읽어 ServerInteract 로 전송하므로, 캐릭터엔 상호작용 로직이 없다.
-	if (InputConfig->InteractAction)
-	{
-		if (AWxPlayerController* WxPC = Cast<AWxPlayerController>(PC))
-		{
-			if (UWxInteractionRegistryComponent* Registry = WxPC->GetInteractionRegistry())
-			{
-				EIC->BindAction(InputConfig->InteractAction, ETriggerEvent::Started, Registry, &UWxInteractionRegistryComponent::TryInteractSelected);
-			}
-		}
-	}
-
 	// 어빌리티 입력 바인딩: 바인딩할 InputAction 목록은 AbilitySet의 부여 대상 어빌리티 CDO들에서 파생한다.
 	// 각 InputAction의 Press/Release를 액션 포인터를 payload로 실어 바인딩한다.
 	TArray<const UInputAction*> AbilityActions;
