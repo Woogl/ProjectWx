@@ -10,7 +10,6 @@
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "GameplayEffect.h"
 #include "InputAction.h"
-#include "WxAbilityComponent.h"
 #include "WxGameplayTags.h"
 #include "Weapon/WxProjectileBase.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -41,21 +40,10 @@ void UWxAbilityBase::GetInputActions(TArray<const UInputAction*>& OutActions) co
 	}
 }
 
-const UWxAbilityComponent* UWxAbilityBase::FindComponent(TSubclassOf<UWxAbilityComponent> ComponentClass) const
+TSoftObjectPtr<UTexture2D> UWxAbilityBase::GetIcon() const
 {
-	if (!ComponentClass)
-	{
-		return nullptr;
-	}
-
-	for (const UWxAbilityComponent* Component : Components)
-	{
-		if (Component && Component->IsA(ComponentClass))
-		{
-			return Component;
-		}
-	}
-	return nullptr;
+	const FWxAbilityTableRow* Row = GetTableRow();
+	return Row ? Row->Icon : nullptr;
 }
 
 float UWxAbilityBase::GetMontagePlayRate() const

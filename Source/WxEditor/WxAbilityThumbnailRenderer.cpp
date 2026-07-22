@@ -5,13 +5,12 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "CanvasItem.h"
 #include "CanvasTypes.h"
-#include "Component/WxAbilityComponent_UIData.h"
 #include "Engine/Blueprint.h"
 #include "Engine/Texture2D.h"
 
 namespace WxAbilityThumbnailRenderer
 {
-	/** Blueprint 가 UWxAbilityBase 파생이고 UIData 컴포넌트를 가지면 그 아이콘 소프트 참조를 반환한다. 아니면 Null 참조. */
+	/** Blueprint 가 UWxAbilityBase 파생이면 그 어빌리티 아이콘 소프트 참조를 반환한다. 아니면 Null 참조. */
 	static TSoftObjectPtr<UTexture2D> GetAbilityIcon(UObject* Object)
 	{
 		const UBlueprint* Blueprint = Cast<UBlueprint>(Object);
@@ -26,8 +25,7 @@ namespace WxAbilityThumbnailRenderer
 			return nullptr;
 		}
 
-		const UWxAbilityComponent_UIData* UIData = AbilityCDO->FindComponent<UWxAbilityComponent_UIData>();
-		return UIData != nullptr ? UIData->Icon : nullptr;
+		return AbilityCDO->GetIcon();
 	}
 }
 

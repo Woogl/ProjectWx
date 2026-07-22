@@ -12,7 +12,7 @@
 - 전투용 AnimNotify(무기 활성 구간, 투사체 스폰, 광역 공격, 콤보 윈도우, 무적 구간 등)와 히트스톱/시간감속
 
 **경계 (비담당)**
-- 어빌리티 UI 표시 데이터(아이콘 등)는 [[WxUI]]로 위임 — `UWxAbilityBase::Components`에 도메인별 `UWxAbilityComponent` 파생을 EditInline으로 부착
+- 어빌리티 아이콘의 소프트 참조는 `AbilityDataRow`(`FWxAbilityTableRow::Icon`)가 보유하고 `UWxAbilityBase::GetIcon()`으로 노출 — 실제 표시/비동기 로드는 [[WxUI]] VM이 담당
 - 적 AI 의사결정/행동 트리는 [[WxAI]] — WxCombat은 AI가 트리거하는 어빌리티(`WxAbility_Pattern` 등)만 제공
 
 ## 의존성

@@ -6,9 +6,11 @@
 #include "Engine/DataTable.h"
 #include "WxAbilityTableRow.generated.h"
 
+class UTexture2D;
+
 /**
- * 어빌리티 수치 데이터테이블 Row 구조체.
- * 쿨다운, 충전, 코스트 등 어빌리티별 밸런스 수치를 관리한다.
+ * 어빌리티 데이터테이블 Row 구조체.
+ * 쿨다운, 충전, 코스트 등 어빌리티별 밸런스 수치와 UI 표시 데이터(아이콘)를 관리한다.
  * RowName 예시: GA_Skill_1, GA_Dodge
  */
 USTRUCT(BlueprintType)
@@ -35,4 +37,10 @@ struct WXCOMBAT_API FWxAbilityTableRow : public FTableRowBase
 	/** UP 소모량. 0 이하이면 미적용 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cost")
 	float UPCost = 0.f;
+
+	// ── Display ────────────────────────────────────────────────────────────
+
+	/** UI 표시 아이콘. 비동기 로드 권장 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Display")
+	TSoftObjectPtr<UTexture2D> Icon;
 };

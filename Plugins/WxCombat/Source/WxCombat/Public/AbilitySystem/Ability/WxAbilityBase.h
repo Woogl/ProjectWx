@@ -11,10 +11,10 @@
 class UAbilitySystemComponent;
 class UGameplayEffect;
 class UWxEffect_Cooldown;
-class UWxAbilityComponent;
 class UAbilityTask_WaitGameplayEvent;
 class AWxProjectileBase;
 class UInputAction;
+class UTexture2D;
 struct FWxAbilityTableRow;
 
 /** 어빌리티 발동 시 적용할 GameplayEffect 항목 */
@@ -86,27 +86,12 @@ public:
 	 */
 	virtual void GetInputActions(TArray<const UInputAction*>& OutActions) const;
 
-	/**
-	 * 어빌리티에 부착된 컴포넌트 모음. 필요한 어빌리티에서만 BP 디테일 패널(Wx)에서 EditInline 으로 추가한다.
-	 * 표시 데이터 등은 도메인별 UWxAbilityComponent 파생 클래스로 부착한다.
-	 * (예: UI 아이콘은 WxUI 의 UWxAbilityComponent_UIData)
-	 */
-	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Wx")
-	TArray<TObjectPtr<UWxAbilityComponent>> Components;
-
-	/** 첫 번째로 일치하는 컴포넌트 포인터 반환. 없으면 nullptr. */
-	const UWxAbilityComponent* FindComponent(TSubclassOf<UWxAbilityComponent> ComponentClass) const;
-
-	template <typename T>
-	const T* FindComponent() const
-	{
-		static_assert(TIsDerivedFrom<T, UWxAbilityComponent>::IsDerived, "T must derive from UWxAbilityComponent");
-		return Cast<T>(FindComponent(T::StaticClass()));
-	}
-
-	/** 어빌리티 수치(쿨다운·충전·코스트) 데이터테이블 Row 참조. 쿨다운/코스트 함수가 이 Row에서 값을 읽는다 */
+	/** 어빌리티 데이터(쿨다운·충전·코스트·아이콘) 데이터테이블 Row 참조. 쿨다운/코스트/아이콘 접근자가 이 Row에서 값을 읽는다 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxAbilityTableRow"))
 	FDataTableRowHandle AbilityDataRow;
+
+	/** UI 표시 아이콘의 소프트 참조. AbilityDataRow에서 읽으며 로드하지 않는다(소비자가 비동기 로드). 행/아이콘 미설정 시 null 소프트. */
+	TSoftObjectPtr<UTexture2D> GetIcon() const;
 
 	/**
 	 * 현재 아바타의 ASPD가 반영된 몽타주 재생 속도. ASC/AttributeSet 미가용 시 1.0

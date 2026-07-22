@@ -3,6 +3,9 @@
 #include "MVVM/WxViewModel_Ability.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
+#include "Engine/AssetManager.h"
+#include "Engine/StreamableManager.h"
+#include "Engine/Texture2D.h"
 #include "GameplayEffect.h"
 
 void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility)
@@ -72,6 +75,12 @@ void UWxViewModel_Ability::Deinitialize()
 	{
 		FTSTicker::GetCoreTicker().RemoveTicker(TickerHandle);
 		TickerHandle.Reset();
+	}
+
+	if (IconStreamHandle.IsValid())
+	{
+		IconStreamHandle->CancelHandle();
+		IconStreamHandle.Reset();
 	}
 
 	CachedASC.Reset();
@@ -202,6 +211,35 @@ void UWxViewModel_Ability::SetIcon(UTexture2D* NewValue)
 	UE_MVVM_SET_PROPERTY_VALUE(Icon, NewValue);
 }
 
+void UWxViewModel_Ability::SetIconSoft(const TSoftObjectPtr<UTexture2D>& InIcon)
+{
+	// 진행 중이던 이전 스트리밍을 취소한다(콤보 재바인딩 등으로 아이콘이 바뀔 수 있다).
+	if (IconStreamHandle.IsValid())
+	{
+		IconStreamHandle->CancelHandle();
+		IconStreamHandle.Reset();
+	}
+
+	PendingIcon = InIcon;
+
+	if (InIcon.IsNull())
+	{
+		SetIcon(nullptr);
+		return;
+	}
+
+	// 이미 로드돼 있으면 스트리밍 없이 즉시 반영한다.
+	if (UTexture2D* Loaded = InIcon.Get())
+	{
+		SetIcon(Loaded);
+		return;
+	}
+
+	IconStreamHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+		InIcon.ToSoftObjectPath(),
+		FStreamableDelegate::CreateUObject(this, &UWxViewModel_Ability::HandleIconLoaded));
+}
+
 void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle)
 {
 	if (!CachedCooldownClass || !SpecApplied.Def || SpecApplied.Def->GetClass() != CachedCooldownClass)
@@ -303,6 +341,12 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 	RefreshActivationState();
 
 	return true;
+}
+
+void UWxViewModel_Ability::HandleIconLoaded()
+{
+	SetIcon(PendingIcon.Get());
+	IconStreamHandle.Reset();
 }
 
 void UWxViewModel_Ability::RefreshActivationState()

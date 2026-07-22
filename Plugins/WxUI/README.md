@@ -9,7 +9,7 @@
 - MVVM 뷰모델 계층: `UWxViewModel` 파생 VM 들이 ASC/캐릭터/상호작용/선택 데이터를 순수 표시 계약으로 노출. Blueprint 바인딩용 컨버전(`UWxMVVMConversionLibrary`)·파사드(`UWxUILibrary`) 제공.
 - 공용 위젯 베이스: Button/Tab/ActionWidget/LazyImage 등 WBP 가 상속·바인딩할 C++ 베이스.
 - 월드 부착 UI: `UWxNameplateComponent`(WidgetComponent 확장, 거리 스케일·태그 기반 표시).
-- UI 표시 데이터 "모양" 소유: `FWxCharacterUIData`, `UWxAbilityComponent_UIData`, `UWxEffectComponent_UIData`. UI 클래스 설정은 `UWxUIDeveloperSettings`(레이아웃/팝업 소프트 클래스).
+- UI 표시 데이터 "모양" 소유: `FWxCharacterUIData`, `UWxEffectComponent_UIData`. UI 클래스 설정은 `UWxUIDeveloperSettings`(레이아웃/팝업 소프트 클래스). (어빌리티 아이콘은 WxCombat의 `AbilityDataRow`에 있고 VM이 비동기 스트리밍만 담당.)
 
 **경계 (비담당)**
 - ASC·어트리뷰트·어빌리티 정의는 [[WxCombat]]/[[WxCore]] 소유. VM 은 ASC 에서 값을 읽어 표시만 한다.
@@ -17,7 +17,7 @@
 - 캐릭터/어빌리티 표시 데이터(이름·초상화·아이콘)의 저작·주입은 소비 측(게임 모듈·BP)이 담당. WxUI 는 데이터 "모양"만 소유.
 
 ## 의존성
-- **주요 의존**: `WxCore`(유일한 Wx 의존 — `WxAbilityComponent`, `WxGameplayTags`), CommonUI/CommonInput(레이어·활성화 위젯·입력 모드), ModelViewViewModel(VM 베이스·전역 컬렉션), GameplayAbilities/GameplayTags(ASC·태그), UMG/Slate.
+- **주요 의존**: `WxCore`(유일한 Wx 의존 — `WxGameplayTags` 등), CommonUI/CommonInput(레이어·활성화 위젯·입력 모드), ModelViewViewModel(VM 베이스·전역 컬렉션), GameplayAbilities/GameplayTags(ASC·태그), UMG/Slate.
 - 규칙: 「WxCore 외 Wx 플러그인 참조」 검증 — 없음 ✅ (`.uplugin`·`Build.cs`·include 전수 확인, WxCore 만 참조)
 
 ## 핵심 타입 (진입점)

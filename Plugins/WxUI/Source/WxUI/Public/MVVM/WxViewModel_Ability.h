@@ -14,7 +14,9 @@
 class UAbilitySystemComponent;
 class UGameplayAbility;
 class UGameplayEffect;
+class UTexture2D;
 struct FGameplayEffectSpec;
+struct FStreamableHandle;
 
 /**
  * 어빌리티 쿨다운/발동 가능 여부 뷰모델.
@@ -114,11 +116,17 @@ public:
 	UTexture2D* GetIcon() const;
 	void SetIcon(UTexture2D* NewValue);
 
+	/** 소프트 아이콘을 비동기 스트리밍한다. 로드 완료 시 Icon(하드)을 세팅해 바인딩을 발화한다. null이면 즉시 Icon을 비운다. */
+	void SetIconSoft(const TSoftObjectPtr<UTexture2D>& InIcon);
+
 private:
 	void HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle);
 	void HandleTagChanged(const FGameplayTag Tag, int32 NewCount);
 	void HandleCostAttributeChanged(const FOnAttributeChangeData& Data);
 	bool UpdateCooldownState(float DeltaTime);
+
+	/** SetIconSoft의 비동기 로드 완료 콜백. PendingIcon을 해석해 Icon을 세팅한다 */
+	void HandleIconLoaded();
 
 	/** 부여된 스펙을 찾아 발동 가능 여부(CanActivateAbility)와 비용 지불 가능 여부(CheckCost)를 재평가한다 */
 	void RefreshActivationState();
@@ -131,4 +139,10 @@ private:
 	TArray<FGameplayAttribute> CostAttributes;
 
 	FTSTicker::FDelegateHandle TickerHandle;
+
+	/** 비동기 로드 대기 중인 아이콘 소프트 참조. 로드 완료 콜백이 해석한다 */
+	TSoftObjectPtr<UTexture2D> PendingIcon;
+
+	/** 진행 중인 아이콘 스트리밍 핸들. 재요청/해제 시 취소한다 */
+	TSharedPtr<FStreamableHandle> IconStreamHandle;
 };
