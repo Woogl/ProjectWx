@@ -10,6 +10,7 @@ class AWxCharacterBase;
 class AWxPlayerCharacter;
 class UWxActivatableWidget;
 class UWxInventoryManagerComponent;
+class UWxInteractionRegistryComponent;
 
 /**
  * 플레이어 컨트롤러.
@@ -29,9 +30,13 @@ public:
 	AWxPlayerController(const FObjectInitializer& ObjectInitializer);
 
 	UWxInventoryManagerComponent* GetInventoryManager() const;
-	
+
+	/** 소유 클라의 상호작용 레지스트리 컴포넌트. 캐릭터 입력 바인딩·리졸버가 조회한다. */
+	UWxInteractionRegistryComponent* GetInteractionRegistry() const { return InteractionRegistry; }
+
 	//~ Begin AActor
 	virtual void PreInitializeComponents() override;
+	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	//~ End AActor
 
@@ -42,6 +47,10 @@ protected:
 	/** 소유 클라이언트의 인벤토리. 서버 권한, 소유 연결로만 복제된다. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Inventory")
 	TObjectPtr<UWxInventoryManagerComponent> InventoryManager;
+
+	/** 소유 클라의 상호작용 감지·선택·서버전달 컴포넌트. 스캔·하이라이트는 소유 클라에서만 구동된다. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Interact")
+	TObjectPtr<UWxInteractionRegistryComponent> InteractionRegistry;
 
 	/** 플레이어 캐릭터에 빙의하면 Game 레이어에 띄울 HUD. 미지정이면 동작 없음. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|UI")
@@ -58,4 +67,13 @@ private:
 
 	UFUNCTION()
 	void HandleCharacterDeath(AWxCharacterBase* DeadCharacter);
+
+	/** 레지스트리 컴포넌트의 현재 선택을 전역 선택 VM(UWxViewModel_Selection)에 반영한다. WxWorld→WxUI 브리지(로컬 표시 전용). */
+	void PushSelectionToViewModel();
+
+	UFUNCTION()
+	void HandleInteractionListChanged(const TArray<FText>& Prompts);
+
+	UFUNCTION()
+	void HandleInteractionSelectionChanged(int32 SelectedIndex);
 };

@@ -1,0 +1,105 @@
+// Copyright Woogle. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "Engine/TimerHandle.h"
+#include "WxInteractionRegistryComponent.generated.h"
+
+class UWxInteractionComponent;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionListChanged, const TArray<FText>&, Prompts);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionSelectionChanged, int32, SelectedIndex);
+
+/**
+ * 상호작용 레지스트리 컴포넌트.
+ * AWxPlayerController 에 붙어, 소유 클라(리슨호스트 포함)에서 주변 UWxInteractionComponent 를 주기 스캔해 in-range 집합을 모은다.
+ * HUD 리스트 뷰모델(UWxViewModel_InteractionList)이 이 목록을, 전역 선택 VM(UWxViewModel_Selection)이 선택 항목을 표시한다.
+ *
+ * PlayerController 소유인 이유: 폰 리스폰에도 생존하고, 소유 클라 연결로 net-owned 라 ServerInteract RPC 를 직접 들 수 있으며, 타 클라에 복제되지 않아 로컬리티가 좋다.
+ * 감지·선택·하이라이트는 로컬 어포던스라 소유 클라에서만 구동한다(데디 서버 PC 는 스캔하지 않는다). ServerInteract 수신만 서버에서 실행된다.
+ *
+ * 선택 전달: 입력 시 로컬 선택을 읽어 ServerInteract 로 컴포넌트 포인터를 원자 전송한다(선택을 복제하지 않으므로 "사이클→즉시입력" 순서가 로컬 동기 읽기로 보장된다).
+ * 서버는 Event.Interact(OptionalObject=선택)를 폰 ASC 로 송출해 ServerOnly WxAbility_Interact 가 권위에서 사거리검증 후 TryInteract 하게 한다.
+ */
+UCLASS(ClassGroup = "Wx", meta = (BlueprintSpawnableComponent))
+class WXWORLD_API UWxInteractionRegistryComponent : public UActorComponent
+{
+	GENERATED_BODY()
+
+public:
+	UWxInteractionRegistryComponent();
+
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	/**
+	 * 입력(상호작용 키)이 호출하는 진입점. 로컬 선택을 읽어 ServerInteract 로 전송한다.
+	 * 선택이 없으면 무동작. 리슨호스트에선 ServerInteract 가 로컬 권위 호출이 된다.
+	 */
+	void TryInteractSelected();
+
+	/** 현재 인-레인지 컴포넌트들의 프롬프트 텍스트를 순서대로 반환한다. 리졸버가 초기 시드로 읽는다. */
+	TArray<FText> GetPrompts() const;
+
+	/** 현재 선택 인덱스(없으면 INDEX_NONE). 리졸버가 초기 시드로 읽는다. */
+	int32 GetSelectedIndex() const { return SelectedIndex; }
+
+	/** 현재 선택된 인-레인지 컴포넌트(없으면 nullptr). */
+	UWxInteractionComponent* GetSelectedComponent() const;
+
+	/** 선택을 Delta 만큼 순환 이동한다(휠/방향키). 목록이 비면 무시. WBP 입력이 호출한다. */
+	UFUNCTION(BlueprintCallable, Category = "Wx")
+	void CycleSelection(int32 Delta);
+
+	/** 인-레인지 목록 변경 시 발사. */
+	UPROPERTY(BlueprintAssignable, Category = "Wx")
+	FWxOnInteractionListChanged OnListChanged;
+
+	/** 선택 인덱스 변경 시 발사. */
+	UPROPERTY(BlueprintAssignable, Category = "Wx")
+	FWxOnInteractionSelectionChanged OnSelectionChanged;
+
+protected:
+	/** 주변 상호작용 볼륨을 수집할 반경(cm). */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Interact")
+	float ScanRadius = 150.f;
+
+	/** 스캔 주기(초). */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Interact")
+	float ScanInterval = 0.1f;
+
+private:
+	/** 선택을 서버로 전송한다. 서버가 Event.Interact 를 폰 ASC 로 송출해 권위 실행을 시작한다. */
+	UFUNCTION(Server, Reliable)
+	void ServerInteract(UWxInteractionComponent* Selected);
+
+	/**
+	 * 소유 클라에서만 주기 스캔 타이머를 건다. 소유 PC 의 폰을 원점으로 SphereOverlap 해 후보를 거리순으로 UpdateInRange 한다.
+	 * 상호작용 불가(사망·처형 중)면 후보를 비워 프롬프트·하이라이트를 정리한다.
+	 */
+	void ScanAndPush();
+
+	/**
+	 * 후보 집합으로 in-range 멤버십을 갱신한다. 기존 순서 보존·신규만 뒤에 추가·이탈은 제거.
+	 * 멤버십이 실제로 바뀐 경우에만 강조/목록/선택을 갱신·발화한다(불변이면 침묵).
+	 */
+	void UpdateInRange(const TArray<UWxInteractionComponent*>& InCandidates);
+
+	/** 선택 인덱스를 갱신하고(변경 시) 강조 갱신 + 선택 변경을 알린다. */
+	void UpdateSelection(int32 NewIndex);
+
+	/** 선택된 컴포넌트만 외곽선 강조 ON, 나머지는 OFF. */
+	void ApplyHighlight();
+
+	/** 소유 PC 의 현재 폰(없으면 nullptr). 스캔 원점·이벤트 instigator 로 쓴다. */
+	APawn* GetOwnerPawn() const;
+
+	TArray<TWeakObjectPtr<UWxInteractionComponent>> InRangeComponents;
+
+	int32 SelectedIndex = INDEX_NONE;
+
+	/** 주기 스캔 타이머 핸들. BeginPlay(로컬)에서 설정, EndPlay 에서 해제. */
+	FTimerHandle ScanTimerHandle;
+};

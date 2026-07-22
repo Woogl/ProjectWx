@@ -60,7 +60,6 @@ protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void ToggleCrouch();
-	void Interact();
 
 	void AbilityInputPressed(const UInputAction* Action);
 	void AbilityInputReleased(const UInputAction* Action);

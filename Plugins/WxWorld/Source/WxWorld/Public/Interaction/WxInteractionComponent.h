@@ -18,8 +18,8 @@ class UPrimitiveComponent;
  * 한 액터에 여러 인터랙션 영역을 두려면 본 컴포넌트를 영역 수만큼 추가하고 각각 다른 볼륨에 부착한다.
  *
  * 흐름:
- *  1) 플레이어 스캐너가 주변 볼륨을 수집 → 로컬 레지스트리(HUD 리스트 소스)에 채운다. 외곽선 강조는 레지스트리가 선택 대상만 켠다
- *  2) 플레이어가 상호작용 입력 → WxAbility_Interact가 (원격 클라는) 레지스트리의 선택 컴포넌트를 TargetData로 서버에 전달, 서버 권한에서 TryInteract 호출
+ *  1) PlayerController 의 UWxInteractionRegistryComponent 가 주변 볼륨을 수집 → in-range 집합(HUD 리스트 소스)에 채운다. 외곽선 강조는 선택 대상만 켠다
+ *  2) 플레이어가 상호작용 입력 → 레지스트리 컴포넌트가 로컬 선택을 읽어 ServerInteract RPC 로 전송 → 서버가 Event.Interact 를 폰 ASC 로 송출 → ServerOnly WxAbility_Interact 가 권위에서 사거리검증 후 TryInteract 호출
  *  3) 서버 권한에서 OnInteracted 델리게이트를 fire(서버 전용). 클라 비주얼은 각 대상의 복제 상태(기믹 State, 픽업 Destroy 등)로 수렴한다
  *
  * 소유 액터는 OnInteracted 델리게이트에 핸들러를 바인딩해 동작을 구현한다.

@@ -4,7 +4,10 @@
 #include "Character/WxCharacterBase.h"
 #include "Character/WxPlayerCharacter.h"
 #include "Components/GameFrameworkComponentManager.h"
+#include "Interaction/WxInteractionComponent.h"
+#include "Interaction/WxInteractionRegistryComponent.h"
 #include "Inventory/WxInventoryManagerComponent.h"
+#include "MVVM/WxViewModel_Selection.h"
 #include "System/WxUIManagerSubsystem.h"
 #include "Widget/WxActivatableWidget.h"
 #include "WxGameplayTags.h"
@@ -13,6 +16,7 @@ AWxPlayerController::AWxPlayerController(const FObjectInitializer& ObjectInitial
 	: Super(ObjectInitializer)
 {
 	InventoryManager = CreateDefaultSubobject<UWxInventoryManagerComponent>(TEXT("InventoryManager"));
+	InteractionRegistry = CreateDefaultSubobject<UWxInteractionRegistryComponent>(TEXT("InteractionRegistry"));
 }
 
 UWxInventoryManagerComponent* AWxPlayerController::GetInventoryManager() const
@@ -26,6 +30,22 @@ void AWxPlayerController::PreInitializeComponents()
 
 	// ModularGameplay 컴포넌트 수신 opt-in. 활성 주입 요청(GameMode 가 등록)의 컴포넌트가 여기에 자동 부착된다.
 	UGameFrameworkComponentManager::AddGameFrameworkComponentReceiver(this);
+}
+
+void AWxPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// 선택 표시는 로컬 어포던스라 소유 클라(리슨호스트 포함)에서만 브리지한다.
+	// 레지스트리 컴포넌트(WxWorld)는 WxUI 를 참조할 수 없으므로, 선택 변경을 PC 가 받아 전역 선택 VM 에 push 한다.
+	if (IsLocalController() && InteractionRegistry)
+	{
+		InteractionRegistry->OnListChanged.AddDynamic(this, &ThisClass::HandleInteractionListChanged);
+		InteractionRegistry->OnSelectionChanged.AddDynamic(this, &ThisClass::HandleInteractionSelectionChanged);
+
+		// 컴포넌트의 초기 스캔 broadcast 는 바인딩 전에 끝났을 수 있으므로 현재 선택으로 1회 시드한다.
+		PushSelectionToViewModel();
+	}
 }
 
 void AWxPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -126,4 +146,37 @@ void AWxPlayerController::HandleCharacterDeath(AWxCharacterBase* DeadCharacter)
 
 	// 사망 화면은 걷어내지 않는다. 부활은 월드 리로드(TravelFromSaveFile)이고, 그때 UI 매니저가 레이아웃을 통째로 재생성한다.
 	UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Menu, ResolvedClass);
+}
+
+void AWxPlayerController::HandleInteractionListChanged(const TArray<FText>& Prompts)
+{
+	// 목록이 바뀌면 선택 대상도 바뀔 수 있으므로 현재 선택으로 VM 을 다시 push 한다.
+	PushSelectionToViewModel();
+}
+
+void AWxPlayerController::HandleInteractionSelectionChanged(int32 SelectedIndex)
+{
+	PushSelectionToViewModel();
+}
+
+void AWxPlayerController::PushSelectionToViewModel()
+{
+	UGameInstance* GameInst = GetGameInstance();
+	UWxUIManagerSubsystem* UIManager = GameInst ? GameInst->GetSubsystem<UWxUIManagerSubsystem>() : nullptr;
+	UWxViewModel_Selection* ViewModel = UIManager ? UIManager->GetSelectionViewModel() : nullptr;
+	if (!ViewModel)
+	{
+		return;
+	}
+
+	// 상호작용 컴포넌트는 현재 표시 데이터로 InteractionText 만 노출한다(Description/Icon 은 비움).
+	const UWxInteractionComponent* Selected = InteractionRegistry ? InteractionRegistry->GetSelectedComponent() : nullptr;
+	if (Selected)
+	{
+		ViewModel->SetSelection(Selected->GetInteractionText(), FText::GetEmpty(), nullptr);
+	}
+	else
+	{
+		ViewModel->ClearSelection();
+	}
 }

@@ -1,35 +1,23 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Interact.h"
-#include "Engine/GameInstance.h"
-#include "Engine/LocalPlayer.h"
-#include "Engine/OverlapResult.h"
-#include "Engine/World.h"
-#include "GameFramework/Pawn.h"
-#include "GameFramework/PlayerController.h"
+#include "GameFramework/Actor.h"
 #include "Interaction/WxInteractionComponent.h"
-#include "Interaction/WxInteractionRegistrySubsystem.h"
-#include "MVVM/WxViewModel_Selection.h"
-#include "System/WxUIManagerSubsystem.h"
-#include "TimerManager.h"
-#include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_Interact::UWxAbility_Interact()
 {
-	// 상호작용 입력을 받은 캐릭터가 선택 대상을 실어 보내는 GameplayEvent 로 발동한다.
-	// 감지(스캔)는 부여 동안 타이머로 상주한다.
+	// 레지스트리 컴포넌트(클라)가 선택 대상을 실어 보낸 뒤, 서버가 폰 ASC 로 송출하는 GameplayEvent 로 발동한다.
 	FAbilityTriggerData TriggerData;
 	TriggerData.TriggerTag = WxGameplayTags::Event_Interact;
 	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	AbilityTriggers.Add(TriggerData);
 
-	// 클라가 선택 대상을 이벤트 페이로드로 실어 보내는 순정 통로(ServerTryActivateAbilityWithEventData)는 LocalPredicted 분기에만 존재한다.
-	// 그래서 LocalPredicted 를 쓴다. 코스메틱 예측은 없고(상호작용 모션은 대상 StateTree 담당), 실제 실행(TryInteract)은 아래 ExecuteInteract 의 권위 게이트를 통과한다.
-	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+	// 클라 예측이 없다 — 코스메틱 연출은 대상 StateTree 가 담당하고, 실행은 서버 권위에서만 일어난다.
+	// 선택 전달은 레지스트리 컴포넌트의 ServerInteract RPC 가 담당하므로 LocalPredicted 의 페이로드 통로가 필요 없다.
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
 
 	// 사망 중에는 활성화 거부.
-	// 이벤트로 활성화하는 클라/서버 양쪽의 CanActivateAbility 가 검사한다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 
 	// 처형 연출 중에는 상호작용 재입력을 막는다(WxAbility_Finisher가 State.Finisher를 발행).
@@ -37,42 +25,17 @@ UWxAbility_Interact::UWxAbility_Interact()
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Finisher);
 }
 
-void UWxAbility_Interact::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
-{
-	Super::OnGiveAbility(ActorInfo, Spec);
-
-	StartScanTimer(ActorInfo);
-}
-
-void UWxAbility_Interact::OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
-{
-	// 어빌리티 제거(언포제스/사망 리스폰 등) 시 스캔 타이머를 해제하고 잔여 후보를 비워 HUD 리스트·하이라이트를 정리한다.
-	if (UWxInteractionRegistrySubsystem* Registry = GetLocalRegistry(ActorInfo))
-	{
-		const APlayerController* PlayerController = ActorInfo ? ActorInfo->PlayerController.Get() : nullptr;
-		if (UWorld* World = PlayerController ? PlayerController->GetWorld() : nullptr)
-		{
-			World->GetTimerManager().ClearTimer(ScanTimerHandle);
-		}
-
-		Registry->UpdateInRange({});
-		PushSelectionToViewModel(Registry);
-	}
-
-	Super::OnRemoveAbility(ActorInfo, Spec);
-}
-
 void UWxAbility_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	// 대상은 이벤트 페이로드로 온다. 예측 클라는 자기가 실어 보낸 값을, 서버는 엔진이 전송(ServerTryActivateAbilityWithEventData)한 같은 값을 받는다.
+	// 대상은 이벤트 페이로드로 온다(서버가 레지스트리 컴포넌트의 선택을 실어 송출).
 	// OptionalObject 가 const 라 실행을 위해 const_cast 한다(WxAbility_Finisher 의 Target 과 동일).
 	UWxInteractionComponent* Selected = TriggerEventData
 		? const_cast<UWxInteractionComponent*>(Cast<UWxInteractionComponent>(TriggerEventData->OptionalObject.Get()))
 		: nullptr;
 
-	// 실행은 권위에서만. 예측 클라 인스턴스는 아무 연출 없이 활성화·종료만 한다.
+	// ServerOnly 라 항상 권위지만, 방어적으로 게이트한다.
 	if (HasAuthority(&ActivationInfo))
 	{
 		ExecuteInteract(Selected, ActorInfo);
@@ -80,122 +43,6 @@ void UWxAbility_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	// 상호작용 모션·연출은 대상 StateTree 가 담당하므로 어빌리티는 즉시 종료한다.
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-}
-
-void UWxAbility_Interact::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
-{
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-
-	// 엔진 EndAbility는 이 어빌리티의 모든 월드 타이머를 비운다(ClearAllTimersForObject).
-	// 감지는 부여 동안 상시여야 하므로 활성화(상호작용)가 끝나도 스캔 타이머를 다시 건다.
-	// 어빌리티 제거 경로면 직후 OnRemoveAbility가 타이머를 최종 정리한다.
-	StartScanTimer(ActorInfo);
-}
-
-void UWxAbility_Interact::StartScanTimer(const FGameplayAbilityActorInfo* ActorInfo)
-{
-	// 감지는 로컬 어포던스.
-	// 소유 클라/리슨 호스트에서만 주기 스캔 타이머를 건다(데디 서버는 LocalPlayer 부재로 미설정).
-	// 타이머는 월드 타이머매니저에 걸려 어빌리티 활성화와 무관히 부여 동안 틱한다(인스턴스는 InstancedPerActor로 상주).
-	const APlayerController* PlayerController = ActorInfo ? ActorInfo->PlayerController.Get() : nullptr;
-	UWorld* World = PlayerController ? PlayerController->GetWorld() : nullptr;
-	if (!GetLocalRegistry(ActorInfo) || !World)
-	{
-		return;
-	}
-
-	World->GetTimerManager().SetTimer(ScanTimerHandle, this, &UWxAbility_Interact::ScanAndPush, FMath::Max(ScanInterval, 0.01f), true);
-
-	// 설정 즉시 1회 스캔해 진입/재개 시점의 주변 상호작용을 바로 반영한다.
-	ScanAndPush();
-}
-
-void UWxAbility_Interact::ScanAndPush()
-{
-	UWxInteractionRegistrySubsystem* Registry = GetLocalRegistry(GetCurrentActorInfo());
-	if (!Registry)
-	{
-		return;
-	}
-
-	// 어빌리티가 지금 활성화 불가(사망 등 차단 태그·비용·쿨다운·요구 태그 미충족)면 스캔하지 않고 후보를 비운다.
-	// 활성화 자체도 막히지만, 후보를 비워 선택/프롬프트/하이라이트까지 정리해 상호작용을 완전히 막는다.
-	if (!CanActivateAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo()))
-	{
-		Registry->UpdateInRange({});
-		PushSelectionToViewModel(Registry);
-		return;
-	}
-
-	const APawn* AvatarPawn = Cast<APawn>(GetAvatarActorFromActorInfo());
-	UWorld* World = AvatarPawn ? AvatarPawn->GetWorld() : nullptr;
-	if (!World)
-	{
-		return;
-	}
-
-	const FVector ScanOrigin = AvatarPawn->GetActorLocation();
-
-	// 볼륨 메시가 WxInteractable 채널에 Overlap 응답으로 표식되므로 채널 오버랩으로 수집한다(메시의 ObjectType 은 불변).
-	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(WxInteractionScan), false);
-
-	TArray<FOverlapResult> Overlaps;
-	World->OverlapMultiByChannel(Overlaps, ScanOrigin, FQuat::Identity, ECC_WxInteractable, FCollisionShape::MakeSphere(ScanRadius), QueryParams);
-
-	// 후보 컴포넌트를 모은다.
-	// 오버랩 결과는 볼륨 프리미티브이므로 이를 참조하는 상호작용 컴포넌트로 역참조한다.
-	// 한 액터에 여러 영역이 있으면(예: 엘리베이터) 컴포넌트 단위로 각각 수집한다.
-	TArray<UWxInteractionComponent*> Candidates;
-	for (const FOverlapResult& Overlap : Overlaps)
-	{
-		if (UWxInteractionComponent* Component = UWxInteractionComponent::FindByCollisionVolume(Overlap.GetComponent()))
-		{
-			Candidates.AddUnique(Component);
-		}
-	}
-
-	// 가까운 영역이 먼저 오도록 거리순 정렬한다(레지스트리가 신규를 이 순서로 append).
-	Candidates.Sort([ScanOrigin](const UWxInteractionComponent& A, const UWxInteractionComponent& B)
-	{
-		return FVector::DistSquared(ScanOrigin, A.GetInteractionLocation()) < FVector::DistSquared(ScanOrigin, B.GetInteractionLocation());
-	});
-
-	Registry->UpdateInRange(Candidates);
-	PushSelectionToViewModel(Registry);
-}
-
-void UWxAbility_Interact::PushSelectionToViewModel(UWxInteractionRegistrySubsystem* Registry)
-{
-	if (!Registry)
-	{
-		return;
-	}
-
-	const UWorld* World = GetWorld();
-	const UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
-	const UWxUIManagerSubsystem* UIManager = GameInstance ? GameInstance->GetSubsystem<UWxUIManagerSubsystem>() : nullptr;
-	UWxViewModel_Selection* ViewModel = UIManager ? UIManager->GetSelectionViewModel() : nullptr;
-	if (!ViewModel)
-	{
-		return;
-	}
-
-	// 상호작용 컴포넌트는 현재 표시 데이터로 InteractionText 만 노출한다(Description/Icon 은 비움).
-	if (const UWxInteractionComponent* Selected = Registry->GetSelectedComponent())
-	{
-		ViewModel->SetSelection(Selected->GetInteractionText(), FText::GetEmpty(), nullptr);
-	}
-	else
-	{
-		ViewModel->ClearSelection();
-	}
-}
-
-UWxInteractionRegistrySubsystem* UWxAbility_Interact::GetLocalRegistry(const FGameplayAbilityActorInfo* ActorInfo) const
-{
-	const APlayerController* PlayerController = ActorInfo ? ActorInfo->PlayerController.Get() : nullptr;
-	const ULocalPlayer* LocalPlayer = PlayerController ? PlayerController->GetLocalPlayer() : nullptr;
-	return LocalPlayer ? LocalPlayer->GetSubsystem<UWxInteractionRegistrySubsystem>() : nullptr;
 }
 
 void UWxAbility_Interact::ExecuteInteract(UWxInteractionComponent* Selected, const FGameplayAbilityActorInfo* ActorInfo)

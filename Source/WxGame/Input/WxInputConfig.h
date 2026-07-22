@@ -39,8 +39,8 @@ public:
 
 	/**
 	 * 상호작용 입력.
-	 * 어빌리티 입력 바인딩이 아니라 직접 바인딩인 이유는, 상호작용이 클라의 로컬 선택 대상을 페이로드로 함께 실어 보내야 하기 때문이다.
-	 * ASC 의 입력 태그 라우팅에는 페이로드 통로가 없다.
+	 * 어빌리티 입력 바인딩이 아니라 직접 바인딩인 이유는, 상호작용이 클라의 로컬 선택 대상을 읽어 전송해야 하기 때문이다.
+	 * 캐릭터는 이 입력을 PlayerController 의 UWxInteractionRegistryComponent::TryInteractSelected 로 라우팅한다(컴포넌트가 선택을 읽어 ServerInteract 로 전송).
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TObjectPtr<UInputAction> InteractAction;

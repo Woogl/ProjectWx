@@ -10,12 +10,11 @@
 #include "InputAction.h"
 #include "InputActionValue.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
-#include "AbilitySystemBlueprintLibrary.h"
+#include "Controller/WxPlayerController.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "Input/WxInputConfig.h"
-#include "Interaction/WxInteractionComponent.h"
-#include "Interaction/WxInteractionRegistrySubsystem.h"
+#include "Interaction/WxInteractionRegistryComponent.h"
 #include "Targeting/WxLockOnManagerComponent.h"
 #include "WxBGMSourceComponent.h"
 #include "WxGameplayTags.h"
@@ -126,9 +125,17 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	{
 		EIC->BindAction(InputConfig->CrouchAction, ETriggerEvent::Started, this, &AWxPlayerCharacter::ToggleCrouch);
 	}
+	// 상호작용 입력은 PlayerController 의 레지스트리 컴포넌트로 라우팅한다.
+	// 컴포넌트가 로컬 선택을 읽어 ServerInteract 로 전송하므로, 캐릭터엔 상호작용 로직이 없다.
 	if (InputConfig->InteractAction)
 	{
-		EIC->BindAction(InputConfig->InteractAction, ETriggerEvent::Started, this, &AWxPlayerCharacter::Interact);
+		if (AWxPlayerController* WxPC = Cast<AWxPlayerController>(PC))
+		{
+			if (UWxInteractionRegistryComponent* Registry = WxPC->GetInteractionRegistry())
+			{
+				EIC->BindAction(InputConfig->InteractAction, ETriggerEvent::Started, Registry, &UWxInteractionRegistryComponent::TryInteractSelected);
+			}
+		}
 	}
 
 	// 어빌리티 입력 바인딩: 바인딩할 InputAction 목록은 AbilitySet의 부여 대상 어빌리티 CDO들에서 파생한다.
@@ -188,26 +195,6 @@ void AWxPlayerCharacter::ToggleCrouch()
 	{
 		Crouch();
 	}
-}
-
-void AWxPlayerCharacter::Interact()
-{
-	// 선택은 로컬 플레이어의 레지스트리만 아는 상태다.
-	// 선택 대상을 이벤트 페이로드에 실어 자기 ASC 로 상호작용 이벤트를 송출한다.
-	// 상호작용 어빌리티가 LocalPredicted 라, 엔진이 이 페이로드를 서버로 전송(ServerTryActivateAbilityWithEventData)한다 — 별도 RPC 불필요.
-	const APlayerController* PC = GetController<APlayerController>();
-	const ULocalPlayer* LocalPlayer = PC ? PC->GetLocalPlayer() : nullptr;
-	const UWxInteractionRegistrySubsystem* Registry = LocalPlayer ? LocalPlayer->GetSubsystem<UWxInteractionRegistrySubsystem>() : nullptr;
-	if (!Registry)
-	{
-		return;
-	}
-
-	FGameplayEventData EventData;
-	EventData.Instigator = this;
-	EventData.EventTag = WxGameplayTags::Event_Interact;
-	EventData.OptionalObject = Registry->GetSelectedComponent();
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, WxGameplayTags::Event_Interact, EventData);
 }
 
 void AWxPlayerCharacter::AbilityInputPressed(const UInputAction* Action)

@@ -2,23 +2,25 @@
 
 #include "MVVM/WxViewModelResolver_InteractionList.h"
 #include "Blueprint/UserWidget.h"
+#include "Controller/WxPlayerController.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
-#include "Interaction/WxInteractionRegistrySubsystem.h"
+#include "Interaction/WxInteractionRegistryComponent.h"
 #include "MVVM/WxViewModel_InteractionList.h"
 
 UObject* UWxViewModelResolver_InteractionList::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
 {
 	const APlayerController* PC = UserWidget ? UserWidget->GetOwningPlayer() : nullptr;
+	const AWxPlayerController* WxPC = Cast<AWxPlayerController>(PC);
+	UWxInteractionRegistryComponent* Registry = WxPC ? WxPC->GetInteractionRegistry() : nullptr;
 	ULocalPlayer* LocalPlayer = PC ? PC->GetLocalPlayer() : nullptr;
-	UWxInteractionRegistrySubsystem* Registry = LocalPlayer ? LocalPlayer->GetSubsystem<UWxInteractionRegistrySubsystem>() : nullptr;
-	if (!Registry)
+	if (!Registry || !LocalPlayer)
 	{
 		return nullptr;
 	}
 
-	// 데이터 소스(LocalPlayer)를 Outer 로 생성한다.
-	// 폰 리스폰에도 생존하며, 수명은 뷰의 강참조와 BeginDestroy 의 Deinitialize 가 관리한다.
+	// 데이터 소스(레지스트리 컴포넌트)는 PlayerController 에 살아 폰 리스폰에도 생존한다.
+	// VM 수명은 뷰의 강참조와 BeginDestroy 의 Deinitialize 가 관리하므로 Outer 는 LocalPlayer 로 둔다.
 	UWxViewModel_InteractionList* ViewModel = NewObject<UWxViewModel_InteractionList>(LocalPlayer);
 
 	// WxUI VM 은 WxWorld 레지스트리를 못 보므로, 목록·선택 변경 델리게이트를 VM 핸들러(엔진 타입 인자)에 본 리졸버가 연결한다.
