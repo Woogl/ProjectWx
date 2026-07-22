@@ -1,0 +1,50 @@
+{
+	"blueprintPath": "/Game/UI/Widget/WBP_InteractionList.WBP_InteractionList",
+	"classDefaults":
+	{
+		"bIsFocusable": true,
+		"Padding":
+		{
+			"Bottom": 150,
+			"Left": 350
+		}
+	},
+	"mvvm":
+	{
+		"bindings": [
+			{
+				"bindingType": "OneWayToDestination",
+				"destination": "BP_SetListItems",
+				"source": "Entries"
+			}
+		],
+		"viewModels":
+		{
+			"WxViewModel_InteractionList":
+			{
+				"class": "/Script/WxUI.WxViewModel_InteractionList",
+				"contextId": "D9EAA1D9-486E-69F7-28DA-339501541CD8",
+				"createGetter": true,
+				"createSetter": false,
+				"creationType": "Resolver",
+				"optional": false
+			}
+		}
+	},
+	"parentClass": "/Script/UMG.UserWidget",
+	"widgetTree":
+	{
+		"root": "CommonListView_38",
+		"widgets":
+		{
+			"CommonListView_38":
+			{
+				"class": "/Script/CommonUI.CommonListView",
+				"delta":
+				{
+					"EntryWidgetClass": "/Game/UI/Widget/WBP_Interaction.WBP_Interaction_C"
+				}
+			}
+		}
+	}
+}
