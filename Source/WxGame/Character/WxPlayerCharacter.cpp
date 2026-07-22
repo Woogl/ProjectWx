@@ -143,7 +143,7 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	TArray<const UInputAction*> AbilityActions;
 	if (AbilitySystemComponent)
 	{
-		AbilitySystemComponent->CollectAbilityInputActions(AbilityActions);
+		AbilityActions = AbilitySystemComponent->GetAbilityInputActions();
 	}
 	for (const UInputAction* Action : AbilityActions)
 	{

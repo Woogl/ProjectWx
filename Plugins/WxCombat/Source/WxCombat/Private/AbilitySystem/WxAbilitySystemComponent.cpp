@@ -99,12 +99,13 @@ void UWxAbilitySystemComponent::AbilityInputActionReleased(const UInputAction* A
 	}
 }
 
-void UWxAbilitySystemComponent::CollectAbilityInputActions(TArray<const UInputAction*>& Out) const
+TArray<const UInputAction*> UWxAbilitySystemComponent::GetAbilityInputActions() const
 {
 	if (AbilitySet)
 	{
-		AbilitySet->CollectInputActions(Out);
+		return AbilitySet->GetInputActions();
 	}
+	return TArray<const UInputAction*>();
 }
 
 const UInputAction* UWxAbilitySystemComponent::GetLastPressedInputAction() const

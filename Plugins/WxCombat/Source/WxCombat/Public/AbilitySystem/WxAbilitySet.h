@@ -43,8 +43,8 @@ public:
 	/** ASC에 이 AbilitySet의 모든 항목을 부여한다. OutHandles에 결과를 저장 */
 	void GiveToAbilitySystem(UWxAbilitySystemComponent* ASC, FWxAbilitySetGrantedHandles* OutHandles) const;
 
-	/** GrantedAbilities의 각 CDO가 요구하는 입력 액션 전체(중복 제거)를 Out에 채운다. 플레이어 입력 바인딩용. */
-	void CollectInputActions(TArray<const UInputAction*>& Out) const;
+	/** GrantedAbilities의 각 CDO가 요구하는 입력 액션 전체(중복 제거)를 반환한다. 플레이어 입력 바인딩용. */
+	TArray<const UInputAction*> GetInputActions() const;
 
 protected:
 	/** 어트리뷰트 초기값 데이터테이블 Row 참조 (FWxCombatAttributeInitTableRow) */
