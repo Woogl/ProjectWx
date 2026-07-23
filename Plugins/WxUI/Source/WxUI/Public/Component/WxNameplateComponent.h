@@ -30,6 +30,8 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	/**
 	 * 주입받은 표시 데이터(InUIData)와 ASC 를 묶은 UWxViewModel_Character 를 생성해 MVVM View 에 바인딩한다.
 	 * (자식 AbilitySystem VM 이 어트리뷰트/이펙트를, 본체가 이름/초상화/설명을 노출한다.)
@@ -62,11 +64,15 @@ protected:
 
 private:
 	/**
-	 * 표시 조건을 매 틱 진실로부터 재계산한다.
+	 * 표시 조건을 ASC 진실로부터 재계산한다.
+	 * ASC 태그가 바뀔 때(HandleOwnedTagsChanged) 및 최초 바인딩 직후에만 호출한다.
 	 * 표시 = VisibilityRequirements.RequirementsMet(ASC 보유 태그).
 	 * 어떤 게임플레이 상태가 조건인지는 VisibilityRequirements 가 정하며, 본 함수는 구체 태그를 알지 않는다.
 	 */
 	void RefreshVisibility();
+
+	/** ASC 보유 태그 변경 시 표시 조건을 재평가한다. 어떤 태그가 바뀌었는지는 보지 않는다. */
+	void HandleOwnedTagsChanged(const FGameplayTag Tag, int32 NewCount);
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 };
