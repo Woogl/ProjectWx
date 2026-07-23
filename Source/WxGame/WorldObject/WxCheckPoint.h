@@ -30,8 +30,11 @@ class AWxCheckPoint : public AWxGimmick
 public:
 	AWxCheckPoint();
 
+	//~ Begin IWxInteractable — 상호작용 시 State 를 Lit 으로 확정하고 힐·충전·리스폰·세이브를 수행(프롬프트는 베이스 InteractionPrompt).
+	virtual void OnInteracted(AActor* Interactor, UActorComponent* Source) override;
+	//~ End IWxInteractable
+
 protected:
-	virtual void BeginPlay() override;
 
 	// VisibleAnywhere + AllowPrivateAccess: StateTree 태스크(불 켜짐 비주얼·인터랙션 토글)가 Context 액터의 컴포넌트로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx", meta = (AllowPrivateAccess = "true"))
@@ -43,8 +46,4 @@ protected:
 	/** 상호작용 시 적용할 회복 GameplayEffect. HP를 MaxHP로 설정하는 GE를 지정한다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TSubclassOf<UGameplayEffect> HealEffect;
-
-private:
-	UFUNCTION()
-	void HandleInteracted(AActor* InstigatorActor);
 };

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GameplayTagContainer.h"
+#include "WxInteractable.h"
 #include "WxSavable.h"
 #include "WxGimmick.generated.h"
 
@@ -30,7 +31,7 @@ class UStateTreeComponent;
  *  - 복원 시 BeginPlay(월드 초기화 복원)·OnWxSaveRestored(스트리밍 인) 가 저장된 State 태그를 Gimmick.Restore 마커와 함께 ST 이벤트로 발행한다. 마커가 있으면 일회성 노드들이 이 진입을 라이브 발동이 아닌 복원으로 보아 스냅·스킵한다.
  */
 UCLASS(Abstract)
-class WXWORLD_API AWxGimmick : public AActor, public IWxSavable
+class WXWORLD_API AWxGimmick : public AActor, public IWxSavable, public IWxInteractable
 {
 	GENERATED_BODY()
 
@@ -63,6 +64,14 @@ public:
 	 */
 	virtual void HandleLevelSequenceFinished() {}
 
+	//~ Begin IWxInteractable
+	// 상호작용 응답은 각 구체 기믹이 override 한다. UCLASS(Abstract) 라도 CDO 는 생성되므로 순수 가상은 피하고 PURE_VIRTUAL 로 미구현 계약을 표시한다(미override 시 런타임 에러).
+	virtual void OnInteracted(AActor* Interactor, UActorComponent* Source) override PURE_VIRTUAL(AWxGimmick::OnInteracted, );
+
+	/** HUD 프롬프트. 기본은 InteractionPrompt 필드를 반환한다(다중 영역 대상은 override 해 Source 별로 낸다). */
+	virtual FText GetInteractionPrompt(const UActorComponent* Source) const override;
+	//~ End IWxInteractable
+
 	//~ Begin IWxSavable
 	virtual FGuid GetSaveId() const override;
 	virtual void OnWxSaveRestored() override;
@@ -91,6 +100,10 @@ protected:
 	 */
 	UPROPERTY(ReplicatedUsing = OnRep_GimmickState, SaveGame, VisibleAnywhere,  meta = (AllowPrivateAccess = "true"))
 	FGameplayTag State;
+
+	/** HUD 리스트에 표시할 상호작용 프롬프트. 다중 영역 대상은 GetInteractionPrompt 를 override 해 Source 별로 낸다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx")
+	FText InteractionPrompt = FText::FromString(TEXT("Interact"));
 
 	/**
 	 * 이번 상호작용의 당사자(플레이어 캐릭터). 복제되지만 비영속(SaveGame 아님) — 상호작용 순간에만 유효하다.

@@ -11,7 +11,7 @@
 이 시스템을 가르는 두 축:
 
 - **감지 vs 실행** — 감지(스캔·목록·선택·하이라이트)는 **로컬 전용**이고 어디에도 복제되지 않는다 / 실행(`TryInteract`→효과)은 **서버 권위**이며 `OnInteracted`는 서버에서만 fire된다(클라 비주얼은 복제 상태로 수렴).
-- **계약의 위치** — 상호작용 대상의 계약 인터페이스 `IWxInteractionSource`는 `WxCore`에, 그 유일 구현 `UWxInteractionComponent`는 `WxWorld`에 있다. 소비 도메인(`WxInventory` 픽업 등)은 `WxWorld`를 보지 않고 인터페이스로만 대상을 다룬다.
+- **계약의 위치** — 상호작용 대상의 계약 인터페이스 `IWxInteractable`는 `WxCore`에 있고 대상 액터가 직접 구현한다(감지 컴포넌트 `UWxInteractionComponent`만 `WxWorld`). 소비 도메인(`WxInventory` 픽업 등)은 `WxWorld`를 보지 않고 인터페이스로 자기 액터를 상호작용 대상으로 만든다.
 
 ---
 
@@ -31,7 +31,7 @@ flowchart TD
         Input["InteractAction → Character.Interact()"] --> Send["SendGameplayEventToActor<br/>(Event.Interact, OptionalObject=Selected)"]
         Send --> Ability["Ability_Interact 활성화 (LocalPredicted)<br/>엔진이 페이로드를 서버로 전송"]
         Ability --> Try["Selected->TryInteract(Avatar) [권위·사거리 가드]"]
-        Try --> Fire["OnInteracted.Broadcast (서버 전용)"]
+        Try --> Fire["IWxInteractable::OnInteracted (서버 전용)"]
         Fire --> Handler{"소유 액터 핸들러"}
         Handler -->|"기믹"| Commit["CommitGimmickState (권위) → State 복제 → ST"]
         Handler -->|"아이템 픽업"| Grant["인벤토리 지급 (권위) → Destroy"]
@@ -59,7 +59,7 @@ flowchart TD
 
 - **리졸버** `UWxViewModelResolver_InteractionList`(WBP의 View Bindings에서 `Creation Type = Resolver`)가 `CreateInstance`에서 LocalPlayer의 레지스트리를 찾아 `UWxViewModel_InteractionList`를 생성하고, 레지스트리의 `OnListChanged`/`OnSelectionChanged`를 VM의 `HandleListChanged`/`HandleSelectionChanged`(엔진 타입 인자)에 연결한 뒤 현재 목록·선택으로 시드한다. VM은 LocalPlayer를 Outer로 두어 폰 리스폰에도 생존한다.
 - **VM** `UWxViewModel_InteractionList`는 프롬프트 목록을 항목 VM(`UWxViewModel_Interaction`: `Prompt`+`bSelected`) 배열로 재구성하고 선택 인덱스를 표시만 한다. **입력(휠/방향키)은 VM이 아니라 WBP가 레지스트리의 `CycleSelection`을 직접 호출**해 흘린다 — 선택의 단일 소유자는 레지스트리다.
-- 프롬프트 문자열은 각 컴포넌트의 `GetInteractionText()`(대상이 `SetInteractionText`로 갱신)에서 온다.
+- 프롬프트 문자열은 각 대상의 `IWxInteractable::GetInteractionPrompt(Source)`에서 온다(레지스트리가 스캔 때 pull).
 
 ---
 
@@ -90,16 +90,16 @@ sequenceDiagram
     ASC->>AB: HandleGameplayEvent → 로컬 활성화(예측 몽타주)
     AB->>SV: 엔진 ServerTryActivateAbilityWithEventData(payload)
     SV->>IC: 사거리 검증 후 TryInteract(Avatar) [권위·enabled 가드]
-    IC->>H: OnInteracted.Broadcast(Instigator) [서버 전용]
+    IC->>H: IWxInteractable::OnInteracted(Instigator) [서버 전용]
     Note over AB: 엔진이 오너 클라에 페이로드 push<br/>→ 클라 인스턴스가 몽타주·응시 재생
 ```
 
-`OnInteracted`는 서버 권위에서만 fire된다(클라 비주얼은 각 대상의 복제 상태로 수렴). 핸들러는 권위 로직을 그대로 수행한다.
+소유자의 `IWxInteractable::OnInteracted`는 서버 권위에서만 호출된다(클라 비주얼은 각 대상의 복제 상태로 수렴). 핸들러는 권위 로직을 그대로 수행한다.
 
 ### 효과 — 대상별 핸들러
 
-- **기믹** (`AWxGimmick` 자식, 예: `AWxDoor`): 자식이 BP가 아니라 C++ 생성자에서 `UWxInteractionComponent`를 직접 만들고, `BeginPlay`에서 `OnInteracted`에 핸들러를 바인딩한다. 핸들러는 `HasAuthority()` 가드 후 `CommitGimmickState(NewState)`로 State를 확정한다. State는 복제+SaveGame이며, `OnRep_GimmickState`(권위는 Commit이 직접 호출)가 그 태그를 StateTree 이벤트로 발행해 비주얼·인터랙션 토글·사이드이펙트를 구동한다. 클라 핸들러는 노옵 — 복제된 State가 ST 진입을 구동하므로 클라가 직접 State를 쓰지 않는다(기믹 전이의 서버 권위 규칙).
-- **아이템 픽업** (`AWxItemPickup`, WxInventory): 플러그인 참조 금지 때문에 상호작용 컴포넌트를 C++가 아닌 **상속 BP에서** 추가한다. `BeginPlay`가 `GetComponentsByInterface(UWxInteractionSource::StaticClass())`로 그 컴포넌트를 자동으로 찾아 `GetOnInteractedDelegate()`에 `HandleInteracted`를 바인딩한다(BP 배선 불필요). 핸들러는 권위에서 `UWxInventoryManagerComponent::FindInventory(Interactor)`로 인벤토리에 지급 후 `Destroy`. 프롬프트도 `SetInteractionText`로 `"[F] {DisplayName}"` 형태로 갱신한다.
+- **기믹** (`AWxGimmick` 자식, 예: `AWxDoor`): 자식이 C++ 생성자에서 `UWxInteractionComponent`를 직접 만들고, `IWxInteractable::OnInteracted`를 override 해 `CommitGimmickState(NewState)`로 State를 확정한다(서버 권위 호출이라 핸들러 내 별도 가드 불필요). State는 복제+SaveGame이며, `OnRep_GimmickState`(권위는 Commit이 직접 호출)가 그 태그를 StateTree 이벤트로 발행해 비주얼·인터랙션 토글·사이드이펙트를 구동한다. 클라 핸들러는 노옵 — 복제된 State가 ST 진입을 구동하므로 클라가 직접 State를 쓰지 않는다(기믹 전이의 서버 권위 규칙).
+- **아이템 픽업** (`AWxItemPickup`, WxInventory): 플러그인 참조 금지 때문에 상호작용 컴포넌트를 C++가 아닌 **상속 BP에서** 추가한다. 액터 자신이 `IWxInteractable`를 구현해 `OnInteracted`에서 `UWxInventoryManagerComponent::FindInventory(Interactor)`로 인벤토리에 지급 후 `Destroy` 하고, `GetInteractionPrompt`가 `"[F] {DisplayName}"` 프롬프트를 반환한다(BP 배선·자동 바인딩 불필요).
 
 `AWxGimmick`의 다른 자식들(`WxElevator`, `WxTreasureChest`, `WxAlarmConsole`, `WxSpawnConsole`, `WxCutsceneTrigger`)도 같은 `OnInteracted`→`CommitGimmickState` 패턴을 따른다(`WxCutsceneTrigger`는 일시 상태라 복원 시 Idle 리셋).
 
@@ -107,7 +107,7 @@ sequenceDiagram
 
 ## 아키텍처 제약이 강제한 설계
 
-- **모든 플러그인은 WxCore만 참조 가능, 도메인↔도메인 의존 금지** → 상호작용 대상의 계약 `IWxInteractionSource`(델리게이트 접근자 + 프롬프트 setter)를 `WxCore`에 두고, 구현 `UWxInteractionComponent`만 `WxWorld`에 둔다. `WxInventory` 픽업은 `WxWorld`를 모른 채 인터페이스로 컴포넌트를 찾아 바인딩한다.
+- **모든 플러그인은 WxCore만 참조 가능, 도메인↔도메인 의존 금지** → 상호작용 대상의 계약 `IWxInteractable`(응답 + 프롬프트)를 `WxCore`에 두고 대상 액터가 구현하며, 감지 컴포넌트 `UWxInteractionComponent`만 `WxWorld`에 둔다. `WxInventory` 픽업은 `WxWorld`를 모른 채 `IWxInteractable`로 자기 액터를 상호작용 대상으로 만든다.
 - **WxUI는 WxWorld(레지스트리)를 못 본다** → 양쪽에 의존할 수 있는 `WxGame`의 리졸버가 델리게이트를 연결한다(통합 모듈이 다리, 의존 방향 보존).
 - **감지는 로컬, 실행은 권위** → 캐릭터가 입력을 받아 "클라만 아는 선택"을 `FGameplayEventData`에 실어 `Event.Interact`를 송출하고, `LocalPredicted` 어빌리티가 발동하면 엔진의 `ServerTryActivateAbilityWithEventData`가 페이로드를 서버로 전송한다(Lyra식 순정 통로). 레지스트리 자체는 복제하지 않는다(로컬 표시 전용 LocalPlayerSubsystem).
 
@@ -127,14 +127,14 @@ sequenceDiagram
 
 | 타입 | 모듈 | 역할 |
 | --- | --- | --- |
-| `IWxInteractionSource` | `WxCore` | 대상 계약 인터페이스(`GetOnInteractedDelegate`/`SetInteractionText`). 소비 도메인이 WxWorld 없이 대상을 다루는 접점 |
+| `IWxInteractable` | `WxCore` | 대상 계약 인터페이스(`OnInteracted` 응답 / `GetInteractionPrompt`). 대상 액터가 직접 구현, 소비 도메인이 WxWorld 없이 대상을 만드는 접점 |
 | `ECC_WxInteractable` | `WxCore` | 인터랙션 볼륨 Object Channel(`ECC_GameTraceChannel2`). 스캐너 쿼리의 식별 키 |
 | `Event_Interact` | `WxCore` | 상호작용 발동 GameplayEvent 태그. 캐릭터가 선택 대상을 실어 송출, 어빌리티가 트리거 |
-| `UWxInteractionComponent` | `WxWorld` | 수동 쿼리 볼륨 + `IWxInteractionSource` 구현. `TryInteract`(권위)→`OnInteracted`(서버 전용) |
+| `UWxInteractionComponent` | `WxWorld` | 순수 감지 볼륨(강조·활성 토글). `TryInteract`(권위)→소유자 `IWxInteractable::OnInteracted`(서버 전용) |
 | `UWxInteractionRegistrySubsystem` | `WxWorld` | LocalPlayer별 인-레인지 목록·선택 소유. `UpdateInRange`/`CycleSelection`/`GetSelectedComponent` |
 | `AWxGimmick` / `AWxDoor` | `WxWorld` | 상호작용 대상 구현(기믹). `OnInteracted`→`CommitGimmickState`(권위)→복제 State→StateTree |
 | `AWxPlayerCharacter` | `WxGame` | 상호작용 입력 수신(`Interact()`). 로컬 선택을 `FGameplayEventData`에 실어 `Event.Interact` 송출 |
 | `UWxAbility_Interact` | `WxGame` | 스캔 타이머(감지) + 이벤트 트리거 실행(`LocalPredicted`). 페이로드 선택 대상으로 `ExecuteInteract`(권위) |
 | `UWxViewModelResolver_InteractionList` | `WxGame` | 레지스트리(WxWorld)↔VM(WxUI) 델리게이트 연결·시드 |
 | `UWxViewModel_InteractionList` / `UWxViewModel_Interaction` | `WxUI` | HUD 리스트·항목 표시 전용 VM |
-| `AWxItemPickup` | `WxInventory` | 비-기믹 대상 구현. BP에서 컴포넌트 추가, `GetComponentsByInterface`로 자동 바인딩→인벤토리 지급 |
+| `AWxItemPickup` | `WxInventory` | 비-기믹 대상 구현(`IWxInteractable`). BP에서 컴포넌트 추가, `OnInteracted`→인벤토리 지급 |

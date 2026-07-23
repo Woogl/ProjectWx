@@ -69,6 +69,11 @@ void AWxGimmick::SetInteractingCharacter(AActor* InActor)
 	InteractingCharacter = Cast<ACharacter>(InActor);
 }
 
+FText AWxGimmick::GetInteractionPrompt(const UActorComponent* Source) const
+{
+	return InteractionPrompt;
+}
+
 FGuid AWxGimmick::GetSaveId() const
 {
 	return SaveId;

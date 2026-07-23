@@ -28,8 +28,11 @@ class AWxLaserCorridor : public AWxGimmick
 public:
 	AWxLaserCorridor();
 
+	//~ Begin IWxInteractable — 상호작용 시 State 를 Deactivated 로 확정(프롬프트는 베이스 InteractionPrompt).
+	virtual void OnInteracted(AActor* Interactor, UActorComponent* Source) override;
+	//~ End IWxInteractable
+
 protected:
-	virtual void BeginPlay() override;
 
 	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Spawn Actor 가 SpawnPoint 로 바인딩하기 위한 노출.
 	// 통로 입구에 배치하고 벽 크기에 맞춰 스케일한다.
@@ -55,8 +58,4 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category = "Wx|Corridor", meta = (ClampMin = "0", AllowPrivateAccess = "true"))
 	float LaserLifetime = 4.f;
-
-private:
-	UFUNCTION()
-	void HandleConsoleInteracted(AActor* InstigatorActor);
 };

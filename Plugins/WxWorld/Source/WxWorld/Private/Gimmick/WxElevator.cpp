@@ -50,53 +50,29 @@ AWxElevator::AWxElevator()
 	State = WxGameplayTags::Gimmick_Elevator_Closed;
 }
 
-void AWxElevator::BeginPlay()
+void AWxElevator::OnInteracted(AActor* Interactor, UActorComponent* Source)
 {
-	Super::BeginPlay();
-
-	PlatformInteraction->OnInteracted.AddDynamic(this, &AWxElevator::HandlePlatformInteracted);
-	CallConsoleAInteraction->OnInteracted.AddDynamic(this, &AWxElevator::HandleCallConsoleAInteracted);
-	CallConsoleBInteraction->OnInteracted.AddDynamic(this, &AWxElevator::HandleCallConsoleBInteracted);
-}
-
-void AWxElevator::HandlePlatformInteracted(AActor* InteractingActor)
-{
-	if (!HasAuthority())
+	// 서버 권위(TryInteract)에서만 호출된다. Source(상호작용 영역)로 분기한다.
+	if (Source == PlatformInteraction)
 	{
-		return;
+		// 플랫폼 위: 반대 끝점으로 토글(문이 열린 정지 상태에서만 — Closed 는 문 닫힘이라 플랫폼에 탈 수 없다).
+		if (State == WxGameplayTags::Gimmick_Elevator_AtStart)
+		{
+			CommitGimmickState(WxGameplayTags::Gimmick_Elevator_AtEnd);
+		}
+		else if (State == WxGameplayTags::Gimmick_Elevator_AtEnd)
+		{
+			CommitGimmickState(WxGameplayTags::Gimmick_Elevator_AtStart);
+		}
 	}
-
-	// 플랫폼 위 상호작용은 반대 끝점으로 토글한다(문이 열린 정지 상태에서만 — Closed 는 문 닫힘이라 플랫폼에 탈 수 없다).
-	if (State == WxGameplayTags::Gimmick_Elevator_AtStart)
+	else if (Source == CallConsoleAInteraction)
 	{
-		CommitGimmickState(WxGameplayTags::Gimmick_Elevator_AtEnd);
-	}
-	else if (State == WxGameplayTags::Gimmick_Elevator_AtEnd)
-	{
+		// Start 호출(이미 AtStart 면 동일값이라 노옵).
 		CommitGimmickState(WxGameplayTags::Gimmick_Elevator_AtStart);
 	}
-}
-
-void AWxElevator::HandleCallConsoleAInteracted(AActor* InteractingActor)
-{
-	if (!HasAuthority())
+	else if (Source == CallConsoleBInteraction)
 	{
-		return;
+		// End 호출(이미 AtEnd 면 동일값이라 노옵).
+		CommitGimmickState(WxGameplayTags::Gimmick_Elevator_AtEnd);
 	}
-
-	// Start 호출.
-	// 이미 AtStart 면 동일값이라 복제 변화 없음(사실상 노옵).
-	CommitGimmickState(WxGameplayTags::Gimmick_Elevator_AtStart);
-}
-
-void AWxElevator::HandleCallConsoleBInteracted(AActor* InteractingActor)
-{
-	if (!HasAuthority())
-	{
-		return;
-	}
-
-	// End 호출.
-	// 이미 AtEnd 면 동일값이라 복제 변화 없음(사실상 노옵).
-	CommitGimmickState(WxGameplayTags::Gimmick_Elevator_AtEnd);
 }

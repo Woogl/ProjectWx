@@ -45,7 +45,6 @@ AWxEnemyCharacter::AWxEnemyCharacter()
 	FinisherInteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("FinisherInteractionComponent"));
 	FinisherInteractionComponent->SetupAttachment(GetMesh());
 	FinisherInteractionComponent->SetHighlightTarget(GetMesh());
-	FinisherInteractionComponent->SetInteractionText(FText::FromString(TEXT("Finisher")));
 
 	// 상태 기반 BGM 소스.
 	// 실제 태그·우선순위는 각 적·보스 BP 에서 설정한다(MusicTag 를 비우면 inert).
@@ -57,8 +56,6 @@ void AWxEnemyCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	NameplateComponent->InitializeViewModels(AbilitySystemComponent, GetCharacterUIData());
-
-	FinisherInteractionComponent->OnInteracted.AddDynamic(this, &AWxEnemyCharacter::HandleFinisherInteracted);
 
 	// 처형 상호작용은 권위에서만 토글한다 — 시작 시 꺼두고, 조건(그로기=앞잡 / 미인지·후방=뒤잡)을 어포던스 타이머가 주기 평가해 켠다.
 	// 클라는 복제(bInteractionEnabled)로 활성 상태를 추종한다.
@@ -144,16 +141,17 @@ FGameplayTag AWxEnemyCharacter::GetEligibleFinisherEventTag(const AActor* Intera
 	return FGameplayTag();
 }
 
-void AWxEnemyCharacter::HandleFinisherInteracted(AActor* InstigatorActor)
+void AWxEnemyCharacter::OnInteracted(AActor* Interactor, UActorComponent* Source)
 {
-	if (!HasAuthority() || !InstigatorActor)
+	// 서버 권위(TryInteract)에서만 호출된다.
+	if (!Interactor)
 	{
 		return;
 	}
 
-	// 발동 변형은 실제 상호작용 주체(InstigatorActor) 기준으로 발동 시점에 다시 정한다(노출~발동 사이 상태·위치 변화를 흡수, 서버 권위 검증).
+	// 발동 변형은 실제 상호작용 주체(Interactor) 기준으로 발동 시점에 다시 정한다(노출~발동 사이 상태·위치 변화를 흡수, 서버 권위 검증).
 	// 자격이 없으면(후방 아님 등) 아무것도 발동하지 않는다.
-	const FGameplayTag EventTag = GetEligibleFinisherEventTag(InstigatorActor);
+	const FGameplayTag EventTag = GetEligibleFinisherEventTag(Interactor);
 	if (!EventTag.IsValid())
 	{
 		return;
@@ -162,15 +160,20 @@ void AWxEnemyCharacter::HandleFinisherInteracted(AActor* InstigatorActor)
 	// 공격자(플레이어) ASC 로 처형 발동 이벤트를 보낸다.
 	// 대상(this)은 EventData.Target 으로 전달된다.
 	FGameplayEventData EventData;
-	EventData.Instigator = InstigatorActor;
+	EventData.Instigator = Interactor;
 	EventData.Target = this;
 	EventData.EventTag = EventTag;
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(InstigatorActor, EventTag, EventData);
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Interactor, EventTag, EventData);
 
 	// 발동 즉시 처형 상호작용을 잠근다.
 	// 연출 중(자격 유지) 어포던스 타이머의 재노출은 래치로 차단한다.
 	bFinisherTriggered = true;
 	FinisherInteractionComponent->SetInteractionEnabled(false);
+}
+
+FText AWxEnemyCharacter::GetInteractionPrompt(const UActorComponent* Source) const
+{
+	return FText::FromString(TEXT("Finisher"));
 }
 
 void AWxEnemyCharacter::OnSpawnedBy(AWxSpawner* Spawner)

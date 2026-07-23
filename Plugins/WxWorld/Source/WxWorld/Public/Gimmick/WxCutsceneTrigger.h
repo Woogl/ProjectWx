@@ -40,6 +40,10 @@ public:
 	virtual void OnWxSaveRestored() override;
 	//~ End IWxSavable
 
+	//~ Begin IWxInteractable — 상호작용 시 State 를 Playing 으로 확정(프롬프트는 베이스 InteractionPrompt).
+	virtual void OnInteracted(AActor* Interactor, UActorComponent* Source) override;
+	//~ End IWxInteractable
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -54,8 +58,4 @@ protected:
 	/** 재생할 Level Sequence 에셋. */
 	UPROPERTY(EditInstanceOnly, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<ULevelSequence> LevelSequence;
-
-private:
-	UFUNCTION()
-	void HandleInteracted(AActor* InstigatorActor);
 };

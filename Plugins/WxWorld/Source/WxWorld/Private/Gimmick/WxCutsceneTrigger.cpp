@@ -27,8 +27,6 @@ void AWxCutsceneTrigger::BeginPlay()
 	}
 
 	Super::BeginPlay();
-
-	InteractionComponent->OnInteracted.AddDynamic(this, &AWxCutsceneTrigger::HandleInteracted);
 }
 
 void AWxCutsceneTrigger::OnWxSaveRestored()
@@ -42,14 +40,11 @@ void AWxCutsceneTrigger::OnWxSaveRestored()
 	Super::OnWxSaveRestored();
 }
 
-void AWxCutsceneTrigger::HandleInteracted(AActor* InstigatorActor)
+void AWxCutsceneTrigger::OnInteracted(AActor* Interactor, UActorComponent* Source)
 {
-	// 권위 측만 State 를 Playing 으로 확정한다. 클라는 복제 State 의 OnRep 이벤트가 ST 진입을 구동하므로 비권위는 노옵.
+	// 서버 권위(TryInteract)에서만 호출된다. State 를 Playing 으로 확정하면 클라는 복제 State 의 OnRep 이 ST 진입을 구동한다.
 	// 재생 종료 후 Idle 복귀는 Wx Play Level Sequence 태스크의 HandleLevelSequenceFinished 통지가 맡는다. 재생 중엔 ST 가 인터랙션을 비활성화해 재진입을 막는다.
-	if (HasAuthority())
-	{
-		CommitGimmickState(WxGameplayTags::Gimmick_CutsceneTrigger_Playing);
-	}
+	CommitGimmickState(WxGameplayTags::Gimmick_CutsceneTrigger_Playing);
 }
 
 void AWxCutsceneTrigger::HandleLevelSequenceFinished()

@@ -59,7 +59,7 @@ flowchart TD
 ## 나머지 규칙 — 대부분 표준이거나 StateTree 마찰
 
 ### 네트워크·컴포넌트 표준 (UE 프로그래머라면 이미 하는 것)
-- 인터랙션/델리게이트 핸들러는 `if (!HasAuthority()) return;` 로 시작한다 — `OnInteracted` 는 `MulticastInteracted` 로 **서버+전 클라**에서 발화한다.
+- 인터랙션 응답(`IWxInteractable::OnInteracted` override)은 서버 권위(`TryInteract`)에서만 호출되므로 핸들러 내 `HasAuthority` 게이트는 불필요하다(`CommitGimmickState` 도 자체 권위 가드).
 - 서버 권위 부수효과(스폰/`Respawn`/보상)는 노드 안에서 `Owner->HasAuthority()` 게이트를 추가한다. 로컬 표현(사운드/Niagara)은 권위 게이트 없이 피어별 1회.
 - `OnRep_GimmickState` 는 이벤트 재발행 외 로직을 두지 않는다(추종 경로 이원화 금지). State 변화에 별도 코드 훅을 달지 않는다.
 - 자식은 `StartLogic`/`RestartLogic` 을 호출하지 않는다(베이스 자동시작). 실행 ST 에셋은 자식 **BP** 에서 할당한다.
@@ -102,7 +102,7 @@ flowchart TD
 
 ## 주의할 점 (놓치기 쉬운 함정)
 
-- **`OnInteracted` 는 전 피어에서 발화** — 핸들러 권위 가드를 빠뜨리면 클라가 State 를 쓰려 든다(`CommitGimmickState` 가 다시 막지만 핸들러 내 다른 권위 로직은 무방비).
+- **`OnInteracted` 는 서버 권위에서만 호출** — `TryInteract` 가 권위·활성 게이트를 통과한 뒤에만 소유자 `IWxInteractable::OnInteracted` 를 부른다(클라 호출 없음). 클라 비주얼은 복제 State 로 수렴한다.
 - **복원은 추종 경로의 특수 케이스** — 베이스가 `Gimmick.Restore` 마커로 상태 태그를 재발행하면 노드들이 라이브 대신 스냅·스킵으로 처리한다. 기믹별 전용 복원 코드는 없다(일시상태 리셋 예외만).
 - **책임 경계: 플러그인 참조 규칙** — `WxWorld` 는 `WxCore` 외 도메인을 참조 못 한다. 타 도메인 동작(보상 지급 등)은 그 도메인의 ST 노드가 맡고 WxCore 공유 태그로 복원 프로토콜에 참여한다.
 
@@ -112,11 +112,11 @@ flowchart TD
 
 | 타입 | 모듈 | 역할 |
 | --- | --- | --- |
-| `AWxGimmick` | `WxWorld` (`Public\|Private/Gimmick/WxGimmick.h/.cpp`) | 베이스: `State`(복제+SaveGame) 소유, `CommitGimmickState`(규칙 1), `OnRep_GimmickState`/`SendGimmickStateEvent`(ST 발행), `HandleLevelSequenceFinished`(virtual), `IWxSavable` |
-| `AWxTreasureChest` / `AWxAlarmConsole` / `AWxSpawnConsole` / `AWxDoor` | `WxWorld` (`.../Gimmick/`) | 사소형: 생성자 기본 태그 + `HasAuthority` 게이트 핸들러 |
+| `AWxGimmick` | `WxWorld` (`Public\|Private/Gimmick/WxGimmick.h/.cpp`) | 베이스: `State`(복제+SaveGame) 소유, `CommitGimmickState`(규칙 1), `OnRep_GimmickState`/`SendGimmickStateEvent`(ST 발행), `HandleLevelSequenceFinished`(virtual), `IWxSavable`, `IWxInteractable`(`OnInteracted` 은 자식 override) |
+| `AWxTreasureChest` / `AWxAlarmConsole` / `AWxSpawnConsole` / `AWxDoor` | `WxWorld` (`.../Gimmick/`) | 사소형: 생성자 기본 태그 + `IWxInteractable::OnInteracted` override(`CommitGimmickState`) |
 | `AWxElevator` / `AWxCutsceneTrigger` | `WxWorld` (`.../Gimmick/`) | 시퀀스형: 다중 인터랙션·완료 대기. CutsceneTrigger 는 일시상태 리셋 예외(규칙 1) |
 | `FWxStateTreeTask_*` / `FWxStateTreeCondition_GimmickStateIs` | `WxWorld` (`.../Gimmick/WxGimmickStateTreeNodes.h/.cpp`) | 추종 노드들. `IsInitialOrRestoreEntry`(규칙 3)·`HasAuthority`(권위) 가드 |
 | `FWxStateTreeTask_GrantReward` | `WxInventory` (`.../Inventory/WxRewardStateTreeNodes.cpp`) | 크로스모듈 노드 예시: `AActor` 캐스트 + WxCore `Gimmick.Restore` 인라인 검사 |
-| `UWxInteractionComponent` | `WxWorld` (`.../Interaction/WxInteractionComponent.cpp`) | 서버 진입점 `TryInteract`(권위 가드) → `MulticastInteracted` → `OnInteracted`(전 피어) |
+| `UWxInteractionComponent` | `WxWorld` (`.../Interaction/WxInteractionComponent.cpp`) | 순수 감지 컴포넌트. 서버 진입점 `TryInteract`(권위 가드) → 소유자 `IWxInteractable::OnInteracted`(서버 전용) |
 | `WxGameplayTags` (`Gimmick.*`, `Gimmick.Restore`) | `WxCore` (`Public/WxGameplayTags.h`) | 상태 어휘·복원 마커. 도메인 간 공유 통로 |
 | `IWxSavable` | `WxCore` (`Public/WxSavable.h`) | `SaveGame` State 슬롯 기록·복원 계약(도메인 디커플링) |

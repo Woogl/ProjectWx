@@ -45,8 +45,11 @@ class WXWORLD_API AWxElevator : public AWxGimmick
 public:
 	AWxElevator();
 
+	//~ Begin IWxInteractable — Source(플랫폼/콜콘솔A/콜콘솔B)로 분기해 State 를 확정(프롬프트는 베이스 InteractionPrompt).
+	virtual void OnInteracted(AActor* Interactor, UActorComponent* Source) override;
+	//~ End IWxInteractable
+
 protected:
-	virtual void BeginPlay() override;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USplineComponent> SplineComponent;
@@ -81,14 +84,4 @@ protected:
 	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UWxInteractionComponent> CallConsoleBInteraction;
-
-private:
-	UFUNCTION()
-	void HandlePlatformInteracted(AActor* InteractingActor);
-
-	UFUNCTION()
-	void HandleCallConsoleAInteracted(AActor* InteractingActor);
-
-	UFUNCTION()
-	void HandleCallConsoleBInteracted(AActor* InteractingActor);
 };

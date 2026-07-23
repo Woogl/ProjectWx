@@ -11,6 +11,7 @@
 #include "TimerManager.h"
 #include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
+#include "WxInteractable.h"
 
 UWxInteractionRegistryComponent::UWxInteractionRegistryComponent()
 {
@@ -184,7 +185,9 @@ TArray<FText> UWxInteractionRegistryComponent::GetPrompts() const
 	{
 		if (const UWxInteractionComponent* Component = Weak.Get())
 		{
-			Prompts.Add(Component->GetInteractionText());
+			// 프롬프트는 대상 액터가 IWxInteractable 로 제공한다(pull). 인덱스 정합을 위해 대상이 없으면 빈 텍스트로 자리를 채운다.
+			const IWxInteractable* Target = Cast<IWxInteractable>(Component->GetOwner());
+			Prompts.Add(Target ? Target->GetInteractionPrompt(Component) : FText::GetEmpty());
 		}
 	}
 	return Prompts;

@@ -29,8 +29,11 @@ class WXWORLD_API AWxTreasureChest : public AWxGimmick
 public:
 	AWxTreasureChest();
 
+	//~ Begin IWxInteractable — 상호작용 시 State 를 Open 으로 확정(프롬프트는 베이스 InteractionPrompt).
+	virtual void OnInteracted(AActor* Interactor, UActorComponent* Source) override;
+	//~ End IWxInteractable
+
 protected:
-	virtual void BeginPlay() override;
 
 	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Play Animation 이 Context 액터의 컴포넌트로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx", meta = (AllowPrivateAccess = "true"))
@@ -44,8 +47,4 @@ protected:
 	/** 상호작용 시 지급할 보상. FWxRewardTableRow 로우. 비우면 보상 없음. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|Reward", meta = (RowType = "/Script/WxInventory.WxRewardTableRow", AllowPrivateAccess = "true"))
 	FDataTableRowHandle RewardRow;
-
-private:
-	UFUNCTION()
-	void HandleInteracted(AActor* InstigatorActor);
 };

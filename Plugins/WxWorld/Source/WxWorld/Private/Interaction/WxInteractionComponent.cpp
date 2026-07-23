@@ -6,17 +6,16 @@
 #include "Components/PrimitiveComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "WxCollisionChannels.h"
+#include "WxInteractable.h"
 
 UWxInteractionComponent::UWxInteractionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
-	// OnInteracted 자체는 서버 전용이라 RPC가 없지만, 상호작용 입력 시 소유 클라가 선택 컴포넌트를 이벤트 페이로드에 실어 보낸다(LocalPredicted 어빌리티 → ServerTryActivateAbilityWithEventData).
+	// 상호작용 입력 시 소유 클라가 선택 컴포넌트를 ServerInteract RPC 로 서버에 보낸다.
 	// 그 포인터가 PackageMap 으로 직렬화되려면 동적 스폰 액터(픽업·적)의 컴포넌트도 net-addressable 해야 하므로 복제가 필요하다.
 	// bInteractionEnabled 복제(서버 전용 소유자의 어포던스 토글을 원격 클라 쿼리 콜리전에 반영)도 이 복제에 의존한다.
 	SetIsReplicatedByDefault(true);
-
-	InteractionText = FText::FromString(TEXT("Interact"));
 }
 
 void UWxInteractionComponent::BeginPlay()
@@ -100,8 +99,11 @@ void UWxInteractionComponent::TryInteract(AActor* InstigatorActor)
 		return;
 	}
 
-	// 서버 권한에서만 fire한다. 클라 비주얼은 각 대상의 복제 상태(기믹 State, 픽업 Destroy 등)로 수렴하므로 클라 전파는 불필요하다.
-	OnInteracted.Broadcast(InstigatorActor);
+	// 응답은 소유 액터가 IWxInteractable 로 구현한다. 서버 권위에서만 호출된다(클라 비주얼은 각 대상의 복제 상태로 수렴).
+	if (IWxInteractable* Target = Cast<IWxInteractable>(GetOwner()))
+	{
+		Target->OnInteracted(InstigatorActor, this);
+	}
 }
 
 void UWxInteractionComponent::SetInteractionEnabled(bool bEnabled)
@@ -141,21 +143,6 @@ void UWxInteractionComponent::ApplyInteractionCollision()
 	{
 		SetHighlightEnabled(false);
 	}
-}
-
-FWxOnInteractedSignature& UWxInteractionComponent::GetOnInteractedDelegate()
-{
-	return OnInteracted;
-}
-
-void UWxInteractionComponent::SetInteractionText(const FText& InText)
-{
-	InteractionText = InText;
-}
-
-FText UWxInteractionComponent::GetInteractionText() const
-{
-	return InteractionText;
 }
 
 void UWxInteractionComponent::SetHighlightEnabled(bool bNewEnabled)

@@ -6,6 +6,7 @@
 #include "Engine/DataTable.h"
 #include "Engine/TimerHandle.h"
 #include "GameplayTagContainer.h"
+#include "WxInteractable.h"
 #include "Spawnable/WxSpawnableInterface.h"
 #include "Character/WxCharacterBase.h"
 #include "WxEnemyCharacter.generated.h"
@@ -24,7 +25,7 @@ class UWxNameplateComponent;
  * - 처치 시 UWxRewardLibrary::GrantReward 로 RewardRow 의 보상을 지급한다(픽업은 사망 위치에서 수직 발사, 재화는 직접 지급)
  */
 UCLASS(Abstract)
-class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnableInterface
+class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnableInterface, public IWxInteractable
 {
 	GENERATED_BODY()
 
@@ -65,9 +66,10 @@ protected:
 	 */
 	FGameplayTag GetEligibleFinisherEventTag(const AActor* Interactor) const;
 
-	/** 처형 상호작용 시, 현재 조건에 따라 공격자(플레이어) ASC 로 Event.Finisher(앞잡) 또는 Event.Backstab(뒤잡)을 송출한다. */
-	UFUNCTION()
-	void HandleFinisherInteracted(AActor* InstigatorActor);
+	//~ Begin IWxInteractable — 처형 상호작용(응답 + "Finisher" 프롬프트).
+	virtual void OnInteracted(AActor* Interactor, UActorComponent* Source) override;
+	virtual FText GetInteractionPrompt(const UActorComponent* Source) const override;
+	//~ End IWxInteractable
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
 	TObjectPtr<UBehaviorTree> BehaviorTreeAsset;

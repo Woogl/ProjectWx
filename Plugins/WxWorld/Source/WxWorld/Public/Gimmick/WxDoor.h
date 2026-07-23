@@ -31,8 +31,11 @@ class WXWORLD_API AWxDoor : public AWxGimmick
 public:
 	AWxDoor();
 
+	//~ Begin IWxInteractable — 상호작용 시 현재 State 의 반대 목표(Open/Close)로 확정(프롬프트는 베이스 InteractionPrompt).
+	virtual void OnInteracted(AActor* Interactor, UActorComponent* Source) override;
+	//~ End IWxInteractable
+
 protected:
-	virtual void BeginPlay() override;
 
 	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Component Move 가 Context 액터의 컴포넌트로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
@@ -47,8 +50,4 @@ protected:
 	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UWxInteractionComponent> ConsoleInteraction;
-
-private:
-	UFUNCTION()
-	void HandleConsoleInteracted(AActor* InstigatorActor);
 };

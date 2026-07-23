@@ -27,26 +27,15 @@ AWxCheckPoint::AWxCheckPoint()
 	State = WxGameplayTags::Gimmick_CheckPoint_Unlit;
 }
 
-void AWxCheckPoint::BeginPlay()
+void AWxCheckPoint::OnInteracted(AActor* Interactor, UActorComponent* Source)
 {
-	Super::BeginPlay();
-
-	InteractionComponent->OnInteracted.AddDynamic(this, &AWxCheckPoint::HandleInteracted);
-}
-
-void AWxCheckPoint::HandleInteracted(AActor* InstigatorActor)
-{
-	if (!HasAuthority())
-	{
-		return;
-	}
-
-	// 불을 켠다(권위). State 는 복제 + SaveGame 으로 지속돼 재로드 후에도 Lit 을 유지하며, 비주얼은 GimmickStateTree 가 적용한다.
+	// 서버 권위(TryInteract)에서만 호출된다.
+	// 불을 켠다. State 는 복제 + SaveGame 으로 지속돼 재로드 후에도 Lit 을 유지하며, 비주얼은 GimmickStateTree 가 적용한다.
 	CommitGimmickState(WxGameplayTags::Gimmick_CheckPoint_Lit);
 
 	if (HealEffect)
 	{
-		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(InstigatorActor))
+		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Interactor))
 		{
 			FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
 			Context.AddSourceObject(this);
@@ -61,7 +50,7 @@ void AWxCheckPoint::HandleInteracted(AActor* InstigatorActor)
 
 	// 에스트병 등 충전형 소비 아이템의 충전을 가득 채운다(다크소울 모닥불 방식).
 	// 충전형이 아닌 아이템은 내부에서 무시된다.
-	if (UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(InstigatorActor))
+	if (UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(Interactor))
 	{
 		for (UWxItemInstance* Item : Inventory->GetAllItems())
 		{

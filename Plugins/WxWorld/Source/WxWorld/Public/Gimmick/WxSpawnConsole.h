@@ -28,8 +28,11 @@ class WXWORLD_API AWxSpawnConsole : public AWxGimmick
 public:
 	AWxSpawnConsole();
 
+	//~ Begin IWxInteractable — 상호작용 시 State 를 Spawned 로 확정(프롬프트는 베이스 InteractionPrompt).
+	virtual void OnInteracted(AActor* Interactor, UActorComponent* Source) override;
+	//~ End IWxInteractable
+
 protected:
-	virtual void BeginPlay() override;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> ConsoleMesh;
@@ -42,8 +45,4 @@ protected:
 	/** 발동 시 Respawn() 을 호출할 외부 WxSpawner 들. */
 	UPROPERTY(EditInstanceOnly, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TArray<TSoftObjectPtr<AWxSpawner>> TargetSpawners;
-
-private:
-	UFUNCTION()
-	void HandleInteracted(AActor* InstigatorActor);
 };

@@ -11,6 +11,7 @@
 #include "System/WxUIManagerSubsystem.h"
 #include "Widget/WxActivatableWidget.h"
 #include "WxGameplayTags.h"
+#include "WxInteractable.h"
 
 AWxPlayerController::AWxPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -169,11 +170,11 @@ void AWxPlayerController::PushSelectionToViewModel()
 		return;
 	}
 
-	// 상호작용 컴포넌트는 현재 표시 데이터로 InteractionText 만 노출한다(Description/Icon 은 비움).
+	// 프롬프트는 선택 대상이 IWxInteractable 로 제공한다(pull). 표시는 프롬프트만(Description/Icon 은 비움).
 	const UWxInteractionComponent* Selected = InteractionRegistry ? InteractionRegistry->GetSelectedComponent() : nullptr;
-	if (Selected)
+	if (const IWxInteractable* Target = Selected ? Cast<IWxInteractable>(Selected->GetOwner()) : nullptr)
 	{
-		ViewModel->SetSelection(Selected->GetInteractionText(), FText::GetEmpty(), nullptr);
+		ViewModel->SetSelection(Target->GetInteractionPrompt(Selected), FText::GetEmpty(), nullptr);
 	}
 	else
 	{

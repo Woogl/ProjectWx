@@ -18,19 +18,8 @@ AWxTreasureChest::AWxTreasureChest()
 	State = WxGameplayTags::Gimmick_TreasureChest_Closed;
 }
 
-void AWxTreasureChest::BeginPlay()
+void AWxTreasureChest::OnInteracted(AActor* Interactor, UActorComponent* Source)
 {
-	Super::BeginPlay();
-
-	InteractionComponent->OnInteracted.AddDynamic(this, &AWxTreasureChest::HandleInteracted);
-}
-
-void AWxTreasureChest::HandleInteracted(AActor* InstigatorActor)
-{
-	// 권위 측만 State 를 Open 으로 확정한다.
-	// 클라는 복제 State 의 OnRep 이벤트가 ST 진입을 구동하므로 비권위는 노옵.
-	if (HasAuthority())
-	{
-		CommitGimmickState(WxGameplayTags::Gimmick_TreasureChest_Open);
-	}
+	// 서버 권위(TryInteract)에서만 호출된다. State 를 Open 으로 확정하면 클라는 복제 State 의 OnRep 이 ST 진입을 구동한다.
+	CommitGimmickState(WxGameplayTags::Gimmick_TreasureChest_Open);
 }

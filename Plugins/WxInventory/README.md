@@ -12,7 +12,7 @@
 
 **경계 (비담당)**
 - 무기 외형 반영(메시 스왑/소켓 재부착): `UWxEquipmentComponent`는 델리게이트(`OnEquipVisualChanged`)로 방송만, 실제 반영은 게임 모듈([[WxGame]])이 수행
-- 픽업 상호작용 컴포넌트 배선: 상속 BP에서 추가([[WxWorld]] `IWxInteractionSource` 구현체를 런타임 바인딩)
+- 픽업 상호작용: 컴포넌트는 상속 BP에서 추가, 응답·프롬프트는 `AWxItemPickup` 이 [[WxCore]] `IWxInteractable` 로 직접 구현
 - GAS 어빌리티/스탯 정의 자체는 담당하지 않음 — GE 적용만 트리거
 
 ## 의존성
@@ -48,7 +48,7 @@ C++ Native Tag 선언 없음.
 3. `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryManagerComponent.cpp` — 머지/분할/차감/사용의 실제 구현과 복제 콜백 배선
 
 ## 관련
-- 상위: [[WxGame]](장비 외형 반영·픽업 상호작용 BP), [[WxWorld]](상호작용 소스), [[WxQuest]]·[[WxAI]](StateTree 보상 지급)
+- 상위: [[WxGame]](장비 외형 반영·픽업 상호작용 BP), [[WxWorld]](상호작용 컴포넌트), [[WxQuest]]·[[WxAI]](StateTree 보상 지급)
 
 ---
 *문서 기준 커밋 `b382b78` · 생성일 2026-07-22 · 소스 19파일 — `/readme-writer`로 갱신*
