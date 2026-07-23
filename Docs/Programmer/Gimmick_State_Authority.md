@@ -117,6 +117,6 @@ flowchart TD
 | `AWxElevator` / `AWxCutsceneTrigger` | `WxWorld` (`.../Gimmick/`) | 시퀀스형: 다중 인터랙션·완료 대기. CutsceneTrigger 는 일시상태 리셋 예외(규칙 1) |
 | `FWxStateTreeTask_*` / `FWxStateTreeCondition_GimmickStateIs` | `WxWorld` (`.../Gimmick/WxGimmickStateTreeNodes.h/.cpp`) | 추종 노드들. `IsInitialOrRestoreEntry`(규칙 3)·`HasAuthority`(권위) 가드 |
 | `FWxStateTreeTask_GrantReward` | `WxInventory` (`.../Inventory/WxRewardStateTreeNodes.cpp`) | 크로스모듈 노드 예시: `AActor` 캐스트 + WxCore `Gimmick.Restore` 인라인 검사 |
-| `UWxInteractionComponent` | `WxWorld` (`.../Interaction/WxInteractionComponent.cpp`) | 순수 감지 컴포넌트. 서버 진입점 `TryInteract`(권위 가드) → 소유자 `IWxInteractable::OnInteracted`(서버 전용) |
+| `UWxAbility_Interact` | `WxGame` (`.../Ability/WxAbility_Interact.cpp`) | 서버 권위 실행 진입점. 사거리·활성 검증 → 대상 액터 `IWxInteractable::OnInteracted`(서버 전용) |
 | `WxGameplayTags` (`Gimmick.*`, `Gimmick.Restore`) | `WxCore` (`Public/WxGameplayTags.h`) | 상태 어휘·복원 마커. 도메인 간 공유 통로 |
 | `IWxSavable` | `WxCore` (`Public/WxSavable.h`) | `SaveGame` State 슬롯 기록·복원 계약(도메인 디커플링) |

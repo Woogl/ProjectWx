@@ -23,12 +23,15 @@ AWxItemPickup::AWxItemPickup()
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	SetRootComponent(MeshComponent);
 
-	MeshComponent->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	// 이 메시가 곧 상호작용 영역이다. 스캐너가 채널 쿼리로 잡아야 하므로 쿼리 콜리전이 켜져 있어야 한다(LaunchInDirection 도 같은 설정을 쓴다).
+	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	MeshComponent->SetCollisionObjectType(ECC_WorldDynamic);
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
 	MeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	MeshComponent->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	MeshComponent->SetCollisionResponseToChannel(ECC_WxAttack, ECR_Ignore);
+	// 픽업은 항상 상호작용 가능하므로 Overlap 으로 고정한다(Block 이면 어빌리티의 활성 검증에 걸린다).
+	MeshComponent->SetCollisionResponseToChannel(ECC_WxInteractable, ECR_Overlap);
 	MeshComponent->SetGenerateOverlapEvents(false);
 
 	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
@@ -63,9 +66,9 @@ void AWxItemPickup::LaunchInDirection(const FVector& Direction, float Speed)
 	MeshComponent->SetPhysicsLinearVelocity(Direction.GetSafeNormal() * Speed);
 }
 
-void AWxItemPickup::OnInteracted(AActor* Interactor, UActorComponent* Source)
+void AWxItemPickup::OnInteracted(AActor* Interactor, const UActorComponent* Source)
 {
-	// 서버 권위(TryInteract)에서만 호출된다.
+	// 서버 권위에서만 호출된다.
 	if (!Interactor)
 	{
 		return;
@@ -91,7 +94,7 @@ void AWxItemPickup::OnInteracted(AActor* Interactor, UActorComponent* Source)
 	Destroy();
 }
 
-FText AWxItemPickup::GetInteractionPrompt(const UActorComponent* Source) const
+FText AWxItemPickup::GetInteractionPrompt() const
 {
 	if (!ItemDef)
 	{

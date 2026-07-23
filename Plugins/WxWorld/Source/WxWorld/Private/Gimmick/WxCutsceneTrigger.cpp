@@ -3,17 +3,15 @@
 #include "Gimmick/WxCutsceneTrigger.h"
 
 #include "Components/StaticMeshComponent.h"
-#include "Interaction/WxInteractionComponent.h"
+#include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 
 AWxCutsceneTrigger::AWxCutsceneTrigger()
 {
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	MeshComponent->SetupAttachment(SceneRoot);
-
-	InteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("InteractionComponent"));
-	InteractionComponent->SetupAttachment(MeshComponent);
-	InteractionComponent->SetHighlightTarget(MeshComponent);
+	// 이 메시가 곧 상호작용 영역이다. 활성/비활성은 ST 의 Wx Enable Interaction 이 이 응답을 토글해 가른다.
+	MeshComponent->SetCollisionResponseToChannel(ECC_WxInteractable, ECR_Overlap);
 
 	State = WxGameplayTags::Gimmick_CutsceneTrigger_Idle;
 }
@@ -40,9 +38,9 @@ void AWxCutsceneTrigger::OnWxSaveRestored()
 	Super::OnWxSaveRestored();
 }
 
-void AWxCutsceneTrigger::OnInteracted(AActor* Interactor, UActorComponent* Source)
+void AWxCutsceneTrigger::OnInteracted(AActor* Interactor, const UActorComponent* Source)
 {
-	// 서버 권위(TryInteract)에서만 호출된다. State 를 Playing 으로 확정하면 클라는 복제 State 의 OnRep 이 ST 진입을 구동한다.
+	// 서버 권위에서만 호출된다. State 를 Playing 으로 확정하면 클라는 복제 State 의 OnRep 이 ST 진입을 구동한다.
 	// 재생 종료 후 Idle 복귀는 Wx Play Level Sequence 태스크의 HandleLevelSequenceFinished 통지가 맡는다. 재생 중엔 ST 가 인터랙션을 비활성화해 재진입을 막는다.
 	CommitGimmickState(WxGameplayTags::Gimmick_CutsceneTrigger_Playing);
 }

@@ -4,7 +4,6 @@
 #include "Character/WxCharacterBase.h"
 #include "Character/WxPlayerCharacter.h"
 #include "Components/GameFrameworkComponentManager.h"
-#include "Interaction/WxInteractionComponent.h"
 #include "Interaction/WxInteractionRegistryComponent.h"
 #include "Inventory/WxInventoryManagerComponent.h"
 #include "MVVM/WxViewModel_Selection.h"
@@ -171,10 +170,10 @@ void AWxPlayerController::PushSelectionToViewModel()
 	}
 
 	// 프롬프트는 선택 대상이 IWxInteractable 로 제공한다(pull). 표시는 프롬프트만(Description/Icon 은 비움).
-	const UWxInteractionComponent* Selected = InteractionRegistry ? InteractionRegistry->GetSelectedComponent() : nullptr;
+	const UPrimitiveComponent* Selected = InteractionRegistry ? InteractionRegistry->GetSelectedMesh() : nullptr;
 	if (const IWxInteractable* Target = Selected ? Cast<IWxInteractable>(Selected->GetOwner()) : nullptr)
 	{
-		ViewModel->SetSelection(Target->GetInteractionPrompt(Selected), FText::GetEmpty(), nullptr);
+		ViewModel->SetSelection(Target->GetInteractionPrompt(), FText::GetEmpty(), nullptr);
 	}
 	else
 	{

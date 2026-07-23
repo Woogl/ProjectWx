@@ -8,7 +8,6 @@
 
 class USplineComponent;
 class UStaticMeshComponent;
-class UWxInteractionComponent;
 
 /**
  * 엘리베이터.
@@ -32,10 +31,10 @@ class UWxInteractionComponent;
  *   플랫폼 위치는 초기/복원/라이브 전부 Spline Move 가 전담한다(C++ 스냅 없음).
  *   각 leaf 의 이동 단계 Spline Move 가 TargetPointIndex 로 자기 끝점을 직접 가리키므로, StateTree 시작·스트리밍 복원 시에도 mover 가 복제/복원된 State 의 끝점으로 스냅한다(과거의 BeginPlay 1회 C++ 스냅이 불필요해짐).
  *
- * 인터랙션 영역은 셋:
- *  - PlatformInteraction: 플랫폼 위에서 상호작용하면 반대 끝점으로 이동
- *  - CallConsoleAInteraction: 플랫폼을 스플라인 시작점(거리 0)으로 호출
- *  - CallConsoleBInteraction: 플랫폼을 스플라인 끝점(SplineLength)으로 호출
+ * 인터랙션 영역은 셋(각 메시가 곧 영역이다):
+ *  - PlatformMesh: 플랫폼 위에서 상호작용하면 반대 끝점으로 이동
+ *  - CallConsoleA: 플랫폼을 스플라인 시작점(거리 0)으로 호출
+ *  - CallConsoleB: 플랫폼을 스플라인 끝점(SplineLength)으로 호출
  */
 UCLASS(Abstract)
 class WXWORLD_API AWxElevator : public AWxGimmick
@@ -46,7 +45,7 @@ public:
 	AWxElevator();
 
 	//~ Begin IWxInteractable — Source(플랫폼/콜콘솔A/콜콘솔B)로 분기해 State 를 확정(프롬프트는 베이스 InteractionPrompt).
-	virtual void OnInteracted(AActor* Interactor, UActorComponent* Source) override;
+	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
 	//~ End IWxInteractable
 
 protected:
@@ -57,7 +56,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USceneComponent> PlatformRoot;
 
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
+	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> PlatformMesh;
 
 	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Component Move 가 Context 액터의 컴포넌트로 바인딩하기 위한 노출.
@@ -69,19 +69,9 @@ protected:
 
 	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UWxInteractionComponent> PlatformInteraction;
-
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> CallConsoleA;
 
 	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UWxInteractionComponent> CallConsoleAInteraction;
-
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> CallConsoleB;
-
-	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
-	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UWxInteractionComponent> CallConsoleBInteraction;
 };

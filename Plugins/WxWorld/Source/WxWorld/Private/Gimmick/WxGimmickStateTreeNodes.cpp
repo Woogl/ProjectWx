@@ -8,6 +8,7 @@
 #include "Animation/AnimMontage.h"
 #include "Animation/AnimSequenceBase.h"
 #include "Animation/AnimSingleNodeInstance.h"
+#include "Components/PrimitiveComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/SplineComponent.h"
@@ -19,7 +20,6 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Gimmick/WxGimmick.h"
-#include "Interaction/WxInteractionComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "LevelSequence.h"
 #include "LevelSequenceActor.h"
@@ -28,6 +28,7 @@
 #include "Spawnable/WxSpawner.h"
 #include "StateTreeExecutionContext.h"
 #include "StateTreePropertyBindings.h"
+#include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 
 namespace
@@ -82,14 +83,15 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExe
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	UWxInteractionComponent* Interaction = Instance.InteractionComponent;
-	if (!Interaction)
+	UPrimitiveComponent* TargetMesh = Instance.TargetMesh;
+	if (!TargetMesh)
 	{
 		return EStateTreeRunStatus::Failed;
 	}
 
-	Interaction->SetUseHighlight(Instance.bUseHighlight);
-	Interaction->SetInteractionEnabled(Instance.bEnable);
+	// 메시의 WxInteractable 응답만 토글한다. 메시의 CollisionEnabled·ObjectType·다른 응답은 건드리지 않아 본래 콜리전이 보존된다.
+	// Ignore 메시는 스캐너의 채널 오버랩에 잡히지 않아 다음 스캔에서 자연 탈락하고, 외곽선도 그때 레지스트리가 끈다.
+	TargetMesh->SetCollisionResponseToChannel(ECC_WxInteractable, Instance.bEnable ? ECR_Overlap : ECR_Ignore);
 
 	// 토글은 즉시 끝나므로 곧바로 완료한다.
 	return EStateTreeRunStatus::Succeeded;
@@ -101,15 +103,14 @@ FText FWxStateTreeTask_EnableInteraction::GetDescription(const FGuid& ID, FState
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	// 상호작용 컴포넌트는 보통 바인딩이라 런타임 포인터가 비어 있다. 바인딩 소스명을 우선 보이고, 직접 지정 시 그 이름으로 폴백.
-	FText InteractionText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, InteractionComponent)), Formatting);
-	if (InteractionText.IsEmpty())
+	// 대상 메시는 보통 바인딩이라 런타임 포인터가 비어 있다. 바인딩 소스명을 우선 보이고, 직접 지정 시 그 이름으로 폴백.
+	FText TargetText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, TargetMesh)), Formatting);
+	if (TargetText.IsEmpty())
 	{
-		InteractionText = InstanceData->InteractionComponent ? FText::FromString(InstanceData->InteractionComponent->GetName()) : INVTEXT("(none)");
+		TargetText = InstanceData->TargetMesh ? FText::FromString(InstanceData->TargetMesh->GetName()) : INVTEXT("(none)");
 	}
 
-	// 강조 허용은 기본(true)에서 벗어난 경우에만 표기해 요약을 짧게 유지한다.
-	return FText::Format(INVTEXT("Enable Interaction ({0}: {1}{2})"), InteractionText, InstanceData->bEnable ? INVTEXT("true") : INVTEXT("false"), InstanceData->bUseHighlight ? FText::GetEmpty() : INVTEXT(", no highlight"));
+	return FText::Format(INVTEXT("{0} ({1})"), InstanceData->bEnable ? INVTEXT("Enable Interaction") : INVTEXT("Disable Interaction"), TargetText);
 }
 #endif
 
@@ -137,7 +138,7 @@ FText FWxStateTreeTask_EnablePlayerInput::GetDescription(const FGuid& ID, FState
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Enable Player Input ({0})"), InstanceData->bEnable ? INVTEXT("true") : INVTEXT("false"));
+	return InstanceData->bEnable ? INVTEXT("Enable Player Input") : INVTEXT("Disable Player Input");
 }
 #endif
 

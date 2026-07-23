@@ -69,7 +69,7 @@ void AWxGimmick::SetInteractingCharacter(AActor* InActor)
 	InteractingCharacter = Cast<ACharacter>(InActor);
 }
 
-FText AWxGimmick::GetInteractionPrompt(const UActorComponent* Source) const
+FText AWxGimmick::GetInteractionPrompt() const
 {
 	return InteractionPrompt;
 }

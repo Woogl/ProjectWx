@@ -13,7 +13,6 @@
 
 class AWxSpawner;
 class UBehaviorTree;
-class UWxInteractionComponent;
 class UWxLockOnPointComponent;
 class UWxBGMSourceComponent;
 class UWxNameplateComponent;
@@ -55,20 +54,20 @@ protected:
 	/** 사망 시 자신을 스폰한 Spawner 에 처치 기록을 남긴다. */
 	virtual void HandleDeath() override;
 
-	/** 처형 상호작용 노출 조건(그로기=앞잡 / 미인지·후방=뒤잡)을 주기적으로 평가해 켜고 끈다(권위). */
+	/** 처형 상호작용 노출 조건(그로기=앞잡 / 미인지·후방=뒤잡)을 주기적으로 평가해 켜고 끈다. 전 머신에서 각자 로컬로 구동한다. */
 	void UpdateFinisherAffordance();
 
 	/**
-	 * 주어진 상호작용 주체(Interactor) 기준으로 발동 가능한 처형 변형의 송출 이벤트 태그를 반환한다(권위).
-	 * 그로기면 앞잡(Event.Finisher, 방향 무관), 미인지·후방이면 뒤잡(Event.Backstab), 불가면 빈 태그.
+	 * 주어진 상호작용 주체(Interactor) 기준으로 발동 가능한 처형 변형의 송출 이벤트 태그를 반환한다.
+	 * 그로기면 앞잡(Event.Finisher, 방향 무관), 미인지·후방이면 뒤잡(Event.Backstab), 불가면 빈 태그. 이미 처형 연출 중(State.Finisher)이면 무조건 빈 태그다.
 	 * 앞잡은 Interactor 위치를 쓰지 않고, 뒤잡의 후방 판정만 Interactor 위치를 쓴다.
-	 * 노출(UpdateFinisherAffordance)은 로컬 플레이어를, 발동(HandleFinisherInteracted)은 실제 instigator 를 넘겨 서버가 실제 상호작용 주체를 기준으로 검증하게 한다.
+	 * 판정 입력이 전부 복제되므로 어느 머신에서 불러도 같은 답이 나온다. 노출(UpdateFinisherAffordance)은 그 머신의 로컬 플레이어를, 발동(OnInteracted)은 실제 instigator 를 넘겨 서버가 실제 상호작용 주체를 기준으로 검증하게 한다.
 	 */
 	FGameplayTag GetEligibleFinisherEventTag(const AActor* Interactor) const;
 
 	//~ Begin IWxInteractable — 처형 상호작용(응답 + "Finisher" 프롬프트).
-	virtual void OnInteracted(AActor* Interactor, UActorComponent* Source) override;
-	virtual FText GetInteractionPrompt(const UActorComponent* Source) const override;
+	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
+	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
@@ -106,13 +105,6 @@ protected:
 	TObjectPtr<UWxBGMSourceComponent> BGMSourceComponent;
 
 	/**
-	 * 처형 상호작용 볼륨.
-	 * 그로기면 앞잡(Event.Finisher), 미인지·후방이면 뒤잡(Event.Backstab)을 노출한다.
-	 */
-	UPROPERTY(VisibleAnywhere, Category = "Wx|Interaction")
-	TObjectPtr<UWxInteractionComponent> FinisherInteractionComponent;
-
-	/**
 	 * 백스탭 후방 판정 반각(도).
 	 * 정면 기준 이 각도 바깥(후방 원뿔)에 플레이어가 있어야 백스탭이 노출된다.
 	 * 기본 90 = 후방 반구.
@@ -120,14 +112,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Interaction", meta = (ClampMin = "0", ClampMax = "180"))
 	float BackstabRearHalfAngle = 90.f;
 
-	/** 처형 어포던스 주기 갱신 타이머(권위). */
+	/** 처형 어포던스 주기 갱신 타이머. 전 머신에서 구동되며 각자 자기 로컬 플레이어 기준으로 노출을 평가한다. */
 	FTimerHandle FinisherAffordanceTimerHandle;
-
-	/**
-	 * 처형이 발동되어 상호작용 노출을 잠근 상태(권위).
-	 * 자격(그로기/후방)이 사라질 때 해제되어 다음 처형을 다시 노출한다.
-	 */
-	bool bFinisherTriggered = false;
 
 	/**
 	 * 처치 시 지급할 보상.

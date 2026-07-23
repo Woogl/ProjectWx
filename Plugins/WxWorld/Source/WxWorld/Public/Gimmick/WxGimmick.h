@@ -66,10 +66,10 @@ public:
 
 	//~ Begin IWxInteractable
 	// 상호작용 응답은 각 구체 기믹이 override 한다. UCLASS(Abstract) 라도 CDO 는 생성되므로 순수 가상은 피하고 PURE_VIRTUAL 로 미구현 계약을 표시한다(미override 시 런타임 에러).
-	virtual void OnInteracted(AActor* Interactor, UActorComponent* Source) override PURE_VIRTUAL(AWxGimmick::OnInteracted, );
+	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override PURE_VIRTUAL(AWxGimmick::OnInteracted, );
 
-	/** HUD 프롬프트. 기본은 InteractionPrompt 필드를 반환한다(다중 영역 대상은 override 해 Source 별로 낸다). */
-	virtual FText GetInteractionPrompt(const UActorComponent* Source) const override;
+	/** HUD 프롬프트. 기본은 InteractionPrompt 필드를 반환한다. */
+	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
 
 	//~ Begin IWxSavable
@@ -101,7 +101,7 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_GimmickState, SaveGame, VisibleAnywhere,  meta = (AllowPrivateAccess = "true"))
 	FGameplayTag State;
 
-	/** HUD 리스트에 표시할 상호작용 프롬프트. 다중 영역 대상은 GetInteractionPrompt 를 override 해 Source 별로 낸다. */
+	/** HUD 리스트에 표시할 상호작용 프롬프트. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	FText InteractionPrompt = FText::FromString(TEXT("Interact"));
 

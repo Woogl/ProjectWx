@@ -1,9 +1,9 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Interaction/WxInteractionRegistryComponent.h"
-#include "Interaction/WxInteractionComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "Components/PrimitiveComponent.h"
 #include "Engine/OverlapResult.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
@@ -57,7 +57,7 @@ void UWxInteractionRegistryComponent::EndPlay(const EEndPlayReason::Type EndPlay
 void UWxInteractionRegistryComponent::TryInteractSelected()
 {
 	// 로컬 선택을 읽어 서버로 전송한다. 선택이 없으면 무동작.
-	UWxInteractionComponent* Selected = GetSelectedComponent();
+	UPrimitiveComponent* Selected = GetSelectedMesh();
 	if (!Selected)
 	{
 		return;
@@ -66,10 +66,48 @@ void UWxInteractionRegistryComponent::TryInteractSelected()
 	ServerInteract(Selected);
 }
 
-void UWxInteractionRegistryComponent::ServerInteract_Implementation(UWxInteractionComponent* Selected)
+TArray<FText> UWxInteractionRegistryComponent::GetPrompts() const
+{
+	TArray<FText> Prompts;
+	Prompts.Reserve(InRangeMeshes.Num());
+	for (const TWeakObjectPtr<UPrimitiveComponent>& Weak : InRangeMeshes)
+	{
+		if (const UPrimitiveComponent* Mesh = Weak.Get())
+		{
+			// 프롬프트는 대상 액터가 IWxInteractable 로 제공한다(pull). 인덱스 정합을 위해 대상이 없으면 빈 텍스트로 자리를 채운다.
+			const IWxInteractable* Target = Cast<IWxInteractable>(Mesh->GetOwner());
+			Prompts.Add(Target ? Target->GetInteractionPrompt() : FText::GetEmpty());
+		}
+	}
+	return Prompts;
+}
+
+UPrimitiveComponent* UWxInteractionRegistryComponent::GetSelectedMesh() const
+{
+	if (!InRangeMeshes.IsValidIndex(SelectedIndex))
+	{
+		return nullptr;
+	}
+	return InRangeMeshes[SelectedIndex].Get();
+}
+
+void UWxInteractionRegistryComponent::CycleSelection(int32 Delta)
+{
+	const int32 Count = InRangeMeshes.Num();
+	if (Count == 0 || Delta == 0)
+	{
+		return;
+	}
+
+	const int32 Base = (SelectedIndex == INDEX_NONE) ? 0 : SelectedIndex;
+	const int32 NewIndex = ((Base + Delta) % Count + Count) % Count;
+	UpdateSelection(NewIndex);
+}
+
+void UWxInteractionRegistryComponent::ServerInteract_Implementation(UPrimitiveComponent* Selected)
 {
 	// 선택 대상을 이벤트 페이로드에 실어 폰 ASC 로 송출한다.
-	// ServerOnly WxAbility_Interact 가 권위에서 트리거되어 차단태그 게이트·사거리검증 후 TryInteract 한다.
+	// ServerOnly WxAbility_Interact 가 권위에서 트리거되어 차단태그 게이트·사거리·활성 검증 후 대상 인터페이스를 호출한다.
 	APawn* Pawn = GetOwnerPawn();
 	if (!Pawn)
 	{
@@ -105,60 +143,56 @@ void UWxInteractionRegistryComponent::ScanAndPush()
 
 	const FVector ScanOrigin = Pawn->GetActorLocation();
 
-	// 볼륨 메시가 WxInteractable 채널에 Overlap 응답으로 표식되므로 채널 오버랩으로 수집한다.
+	// 대상 메시가 WxInteractable 채널에 Overlap 응답으로 표식되므로 채널 오버랩으로 수집한다.
+	// 오버랩 결과가 곧 상호작용 영역이다 — 한 액터에 여러 영역이 있으면(예: 엘리베이터) 메시 단위로 각각 잡힌다.
 	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(WxInteractionScan), false);
 
 	TArray<FOverlapResult> Overlaps;
 	World->OverlapMultiByChannel(Overlaps, ScanOrigin, FQuat::Identity, ECC_WxInteractable, FCollisionShape::MakeSphere(ScanRadius), QueryParams);
 
-	// 오버랩 결과는 볼륨 프리미티브이므로 이를 참조하는 상호작용 컴포넌트로 역참조한다.
-	// 한 액터에 여러 영역이 있으면(예: 엘리베이터) 컴포넌트 단위로 각각 수집한다.
-	TArray<UWxInteractionComponent*> Candidates;
+	TArray<UPrimitiveComponent*> Candidates;
 	for (const FOverlapResult& Overlap : Overlaps)
 	{
-		if (UWxInteractionComponent* Component = UWxInteractionComponent::FindByCollisionVolume(Overlap.GetComponent()))
+		if (UPrimitiveComponent* Mesh = Overlap.GetComponent())
 		{
-			Candidates.AddUnique(Component);
+			Candidates.AddUnique(Mesh);
 		}
 	}
 
 	// 가까운 영역이 먼저 오도록 거리순 정렬한다(레지스트리가 신규를 이 순서로 append).
-	Candidates.Sort([ScanOrigin](const UWxInteractionComponent& A, const UWxInteractionComponent& B)
+	Candidates.Sort([ScanOrigin](const UPrimitiveComponent& A, const UPrimitiveComponent& B)
 	{
-		return FVector::DistSquared(ScanOrigin, A.GetInteractionLocation()) < FVector::DistSquared(ScanOrigin, B.GetInteractionLocation());
+		return FVector::DistSquared(ScanOrigin, A.GetComponentLocation()) < FVector::DistSquared(ScanOrigin, B.GetComponentLocation());
 	});
 
 	UpdateInRange(Candidates);
 }
 
-void UWxInteractionRegistryComponent::UpdateInRange(const TArray<UWxInteractionComponent*>& InCandidates)
+void UWxInteractionRegistryComponent::UpdateInRange(const TArray<UPrimitiveComponent*>& InCandidates)
 {
-	// 선택 안정성을 위해 갱신 전 선택 컴포넌트를 포인터로 캐시한다. 순서가 바뀌어도 동일 컴포넌트를 다시 찾아 선택을 잇는다.
-	UWxInteractionComponent* PreviousSelected = GetSelectedComponent();
+	// 선택 안정성을 위해 갱신 전 선택 메시를 포인터로 캐시한다. 순서가 바뀌어도 동일 메시를 다시 찾아 선택을 잇는다.
+	UPrimitiveComponent* PreviousSelected = GetSelectedMesh();
 
 	bool bChanged = false;
 
 	// 이탈/파괴 제거: 새 후보 집합에 없는 기존 항목을 떼고 강조를 끈다.
-	for (int32 Index = InRangeComponents.Num() - 1; Index >= 0; --Index)
+	for (int32 Index = InRangeMeshes.Num() - 1; Index >= 0; --Index)
 	{
-		UWxInteractionComponent* Existing = InRangeComponents[Index].Get();
+		UPrimitiveComponent* Existing = InRangeMeshes[Index].Get();
 		if (!Existing || !InCandidates.Contains(Existing))
 		{
-			if (Existing)
-			{
-				Existing->SetHighlightEnabled(false);
-			}
-			InRangeComponents.RemoveAt(Index);
+			SetMeshHighlighted(Existing, false);
+			InRangeMeshes.RemoveAt(Index);
 			bChanged = true;
 		}
 	}
 
 	// 신규 추가: 기존에 없던 후보를 뒤에 붙인다(후보는 거리순이라 가까운 것부터 들어온다).
-	for (UWxInteractionComponent* Candidate : InCandidates)
+	for (UPrimitiveComponent* Candidate : InCandidates)
 	{
-		if (Candidate && !InRangeComponents.Contains(Candidate))
+		if (Candidate && !InRangeMeshes.Contains(Candidate))
 		{
-			InRangeComponents.Add(Candidate);
+			InRangeMeshes.Add(Candidate);
 			bChanged = true;
 		}
 	}
@@ -168,56 +202,18 @@ void UWxInteractionRegistryComponent::UpdateInRange(const TArray<UWxInteractionC
 		return;
 	}
 
-	// 선택 복원: 캐시한 컴포넌트가 남아 있으면 그 인덱스로, 없으면 비었을 때 INDEX_NONE / 아니면 0.
-	const int32 RestoredIndex = PreviousSelected ? InRangeComponents.IndexOfByKey(PreviousSelected) : INDEX_NONE;
-	SelectedIndex = InRangeComponents.IsEmpty() ? INDEX_NONE : (RestoredIndex != INDEX_NONE ? RestoredIndex : 0);
+	// 선택 복원: 캐시한 메시가 남아 있으면 그 인덱스로, 없으면 비었을 때 INDEX_NONE / 아니면 0.
+	const int32 RestoredIndex = PreviousSelected ? InRangeMeshes.IndexOfByKey(PreviousSelected) : INDEX_NONE;
+	SelectedIndex = InRangeMeshes.IsEmpty() ? INDEX_NONE : (RestoredIndex != INDEX_NONE ? RestoredIndex : 0);
 
 	ApplyHighlight();
 	OnListChanged.Broadcast(GetPrompts());
 	OnSelectionChanged.Broadcast(SelectedIndex);
 }
 
-TArray<FText> UWxInteractionRegistryComponent::GetPrompts() const
-{
-	TArray<FText> Prompts;
-	Prompts.Reserve(InRangeComponents.Num());
-	for (const TWeakObjectPtr<UWxInteractionComponent>& Weak : InRangeComponents)
-	{
-		if (const UWxInteractionComponent* Component = Weak.Get())
-		{
-			// 프롬프트는 대상 액터가 IWxInteractable 로 제공한다(pull). 인덱스 정합을 위해 대상이 없으면 빈 텍스트로 자리를 채운다.
-			const IWxInteractable* Target = Cast<IWxInteractable>(Component->GetOwner());
-			Prompts.Add(Target ? Target->GetInteractionPrompt(Component) : FText::GetEmpty());
-		}
-	}
-	return Prompts;
-}
-
-UWxInteractionComponent* UWxInteractionRegistryComponent::GetSelectedComponent() const
-{
-	if (!InRangeComponents.IsValidIndex(SelectedIndex))
-	{
-		return nullptr;
-	}
-	return InRangeComponents[SelectedIndex].Get();
-}
-
-void UWxInteractionRegistryComponent::CycleSelection(int32 Delta)
-{
-	const int32 Count = InRangeComponents.Num();
-	if (Count == 0 || Delta == 0)
-	{
-		return;
-	}
-
-	const int32 Base = (SelectedIndex == INDEX_NONE) ? 0 : SelectedIndex;
-	const int32 NewIndex = ((Base + Delta) % Count + Count) % Count;
-	UpdateSelection(NewIndex);
-}
-
 void UWxInteractionRegistryComponent::UpdateSelection(int32 NewIndex)
 {
-	const int32 Clamped = InRangeComponents.IsEmpty() ? INDEX_NONE : FMath::Clamp(NewIndex, 0, InRangeComponents.Num() - 1);
+	const int32 Clamped = InRangeMeshes.IsEmpty() ? INDEX_NONE : FMath::Clamp(NewIndex, 0, InRangeMeshes.Num() - 1);
 	if (Clamped == SelectedIndex)
 	{
 		return;
@@ -230,12 +226,23 @@ void UWxInteractionRegistryComponent::UpdateSelection(int32 NewIndex)
 
 void UWxInteractionRegistryComponent::ApplyHighlight()
 {
-	for (int32 Index = 0; Index < InRangeComponents.Num(); ++Index)
+	for (int32 Index = 0; Index < InRangeMeshes.Num(); ++Index)
 	{
-		if (UWxInteractionComponent* Component = InRangeComponents[Index].Get())
-		{
-			Component->SetHighlightEnabled(Index == SelectedIndex);
-		}
+		SetMeshHighlighted(InRangeMeshes[Index].Get(), Index == SelectedIndex);
+	}
+}
+
+void UWxInteractionRegistryComponent::SetMeshHighlighted(UPrimitiveComponent* Mesh, bool bHighlighted) const
+{
+	if (!Mesh)
+	{
+		return;
+	}
+
+	Mesh->SetRenderCustomDepth(bHighlighted);
+	if (bHighlighted)
+	{
+		Mesh->SetCustomDepthStencilValue(HighlightStencilValue);
 	}
 }
 

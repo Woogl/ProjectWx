@@ -7,7 +7,7 @@
 #include "WxRewardLibrary.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
-#include "Interaction/WxInteractionComponent.h"
+#include "WxCollisionChannels.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "Spawnable/WxSpawner.h"
@@ -39,12 +39,6 @@ AWxEnemyCharacter::AWxEnemyCharacter()
 	LockOnPoint = CreateDefaultSubobject<UWxLockOnPointComponent>(TEXT("LockOnPoint"));
 	LockOnPoint->SetupAttachment(GetMesh(), TEXT("pelvis"));
 
-	// 처형 상호작용 볼륨.
-	// 평소엔 BeginPlay 에서 비활성화하고, 조건(그로기 또는 미인지·후방)을 주기 평가해 켠다.
-	// 메시에 부착해 처형 가능 시 Gimmick과 동일한 외곽선(Custom Depth/Stencil)이 적 몸체에 적용되게 한다.
-	FinisherInteractionComponent = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("FinisherInteractionComponent"));
-	FinisherInteractionComponent->SetupAttachment(GetMesh());
-	FinisherInteractionComponent->SetHighlightTarget(GetMesh());
 
 	// 상태 기반 BGM 소스.
 	// 실제 태그·우선순위는 각 적·보스 BP 에서 설정한다(MusicTag 를 비우면 inert).
@@ -57,27 +51,23 @@ void AWxEnemyCharacter::BeginPlay()
 
 	NameplateComponent->InitializeViewModels(AbilitySystemComponent, GetCharacterUIData());
 
-	// 처형 상호작용은 권위에서만 토글한다 — 시작 시 꺼두고, 조건(그로기=앞잡 / 미인지·후방=뒤잡)을 어포던스 타이머가 주기 평가해 켠다.
-	// 클라는 복제(bInteractionEnabled)로 활성 상태를 추종한다.
-	// 클라에서 토글하면 이미 복제된 값을 로컬로 덮어써(변경 기반 복제라 자가 치유 안 됨) 레이트조인에서 활성 상태가 깨진다.
-	if (HasAuthority())
-	{
-		FinisherInteractionComponent->SetInteractionEnabled(false);
-		GetWorldTimerManager().SetTimer(FinisherAffordanceTimerHandle, this, &AWxEnemyCharacter::UpdateFinisherAffordance, 0.15f, true);
-	}
+	// 처형 상호작용 영역은 캐릭터 메시 자체다. 시작 시 꺼두고, 조건(그로기=앞잡 / 미인지·후방=뒤잡)을 어포던스 타이머가 주기 평가해 켠다.
+	// 각 머신이 로컬로 평가한다 — 판정 입력(HP·상태 태그·트랜스폼)이 전부 복제되므로 복제 없이 같은 값에 수렴하고, 클라는 자기 로컬 플레이어 기준으로 노출을 판정한다.
+	GetMesh()->SetCollisionResponseToChannel(ECC_WxInteractable, ECR_Ignore);
+	GetWorldTimerManager().SetTimer(FinisherAffordanceTimerHandle, this, &AWxEnemyCharacter::UpdateFinisherAffordance, 0.15f, true);
 }
 
 void AWxEnemyCharacter::HandleDeath()
 {
 	Super::HandleDeath();
 
+	// 사망 시 처형 어포던스 갱신을 멈춘다(전 머신에서 구동되므로 권위 가드 바깥이다).
+	GetWorldTimerManager().ClearTimer(FinisherAffordanceTimerHandle);
+
 	if (!HasAuthority())
 	{
 		return;
 	}
-
-	// 사망 시 처형 어포던스 갱신을 멈춘다.
-	GetWorldTimerManager().ClearTimer(FinisherAffordanceTimerHandle);
 
 	if (AWxSpawner* Spawner = OwningSpawner.Get())
 	{
@@ -94,23 +84,23 @@ void AWxEnemyCharacter::HandleDeath()
 
 void AWxEnemyCharacter::UpdateFinisherAffordance()
 {
-	// 노출은 로컬 플레이어(player0) 기준으로 평가한다 — 뒤잡 후방 판정의 플레이어별 노출 정합성은 별도 과제.
-	// 발동 검증은 실제 instigator 를 쓰므로(HandleFinisherInteracted) 노출~발동 주체가 갈릴 수 있으나, 발동이 서버 권위 최종 판정이다.
+	// 노출은 이 머신의 로컬 플레이어 기준으로 평가한다. 발동 검증은 실제 instigator 를 쓰므로(OnInteracted) 노출~발동 주체가 갈려도 발동이 서버 권위 최종 판정이다.
 	const bool bEligible = GetEligibleFinisherEventTag(UGameplayStatics::GetPlayerPawn(this, 0)).IsValid();
 
-	// 자격이 사라지면(앞잡은 연출 종료 시 DP 리셋으로 그로기 해제 등) 다음 처형을 위해 래치를 푼다.
-	if (!bEligible)
-	{
-		bFinisherTriggered = false;
-	}
-
-	// 한 번 발동되면 자격이 유지되는 동안엔 다시 노출하지 않는다(앞잡 연출 중 그로기 유지로 인한 재노출 차단).
-	FinisherInteractionComponent->SetInteractionEnabled(bEligible && !bFinisherTriggered);
+	// 처형 가능하면 메시를 스캔에 노출한다. 외곽선은 레지스트리가 선택 대상에만 켠다.
+	GetMesh()->SetCollisionResponseToChannel(ECC_WxInteractable, bEligible ? ECR_Overlap : ECR_Ignore);
 }
 
 FGameplayTag AWxEnemyCharacter::GetEligibleFinisherEventTag(const AActor* Interactor) const
 {
 	if (!IsAlive() || !AbilitySystemComponent)
+	{
+		return FGameplayTag();
+	}
+
+	// 이미 처형 연출 중이면 자격 없음 — 공격자 어빌리티(WxAbility_Finisher)가 연출 동안 대상에 State.Finisher 를 걸어 둔다.
+	// 노출과 발동 검증이 같은 함수를 지나므로, 연출 중 재노출도 다른 플레이어의 중복 발동도 여기서 함께 막힌다.
+	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Finisher))
 	{
 		return FGameplayTag();
 	}
@@ -141,9 +131,9 @@ FGameplayTag AWxEnemyCharacter::GetEligibleFinisherEventTag(const AActor* Intera
 	return FGameplayTag();
 }
 
-void AWxEnemyCharacter::OnInteracted(AActor* Interactor, UActorComponent* Source)
+void AWxEnemyCharacter::OnInteracted(AActor* Interactor, const UActorComponent* Source)
 {
-	// 서버 권위(TryInteract)에서만 호출된다.
+	// 서버 권위에서만 호출된다.
 	if (!Interactor)
 	{
 		return;
@@ -163,15 +153,12 @@ void AWxEnemyCharacter::OnInteracted(AActor* Interactor, UActorComponent* Source
 	EventData.Instigator = Interactor;
 	EventData.Target = this;
 	EventData.EventTag = EventTag;
+	// 이 호출로 처형 어빌리티가 동기 트리거되어 대상(this)에 State.Finisher 가 붙는다.
+	// 그 시점부터 GetEligibleFinisherEventTag 가 자격을 거부하므로, 재노출·중복 발동 차단에 별도 래치가 필요 없다.
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Interactor, EventTag, EventData);
-
-	// 발동 즉시 처형 상호작용을 잠근다.
-	// 연출 중(자격 유지) 어포던스 타이머의 재노출은 래치로 차단한다.
-	bFinisherTriggered = true;
-	FinisherInteractionComponent->SetInteractionEnabled(false);
 }
 
-FText AWxEnemyCharacter::GetInteractionPrompt(const UActorComponent* Source) const
+FText AWxEnemyCharacter::GetInteractionPrompt() const
 {
 	return FText::FromString(TEXT("Finisher"));
 }

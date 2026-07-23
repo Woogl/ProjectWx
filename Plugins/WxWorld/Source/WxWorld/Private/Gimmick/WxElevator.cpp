@@ -4,7 +4,7 @@
 
 #include "Components/SplineComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Interaction/WxInteractionComponent.h"
+#include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 
 AWxElevator::AWxElevator()
@@ -20,6 +20,8 @@ AWxElevator::AWxElevator()
 
 	PlatformMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlatformMesh"));
 	PlatformMesh->SetupAttachment(PlatformRoot);
+	// 세 메시가 각각 독립된 상호작용 영역이다. 활성/비활성은 ST 의 Wx Enable Interaction 이 영역마다 이 응답을 토글해 가른다.
+	PlatformMesh->SetCollisionResponseToChannel(ECC_WxInteractable, ECR_Overlap);
 
 	DoorLeft = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DoorLeft"));
 	DoorLeft->SetupAttachment(PlatformRoot);
@@ -27,33 +29,21 @@ AWxElevator::AWxElevator()
 	DoorRight = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DoorRight"));
 	DoorRight->SetupAttachment(PlatformRoot);
 
-	PlatformInteraction = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("PlatformInteraction"));
-	PlatformInteraction->SetupAttachment(PlatformRoot);
-	// 부착 부모(PlatformRoot)는 메시가 아니므로 강조 대상·볼륨은 PlatformMesh 로 명시한다.
-	PlatformInteraction->SetHighlightTarget(PlatformMesh);
-	PlatformInteraction->SetCollisionVolume(PlatformMesh);
-
 	CallConsoleA = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CallConsoleA"));
 	CallConsoleA->SetupAttachment(SceneRoot);
-
-	CallConsoleAInteraction = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("CallConsoleAInteraction"));
-	CallConsoleAInteraction->SetupAttachment(CallConsoleA);
-	CallConsoleAInteraction->SetHighlightTarget(CallConsoleA);
+	CallConsoleA->SetCollisionResponseToChannel(ECC_WxInteractable, ECR_Overlap);
 
 	CallConsoleB = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CallConsoleB"));
 	CallConsoleB->SetupAttachment(SceneRoot);
-
-	CallConsoleBInteraction = CreateDefaultSubobject<UWxInteractionComponent>(TEXT("CallConsoleBInteraction"));
-	CallConsoleBInteraction->SetupAttachment(CallConsoleB);
-	CallConsoleBInteraction->SetHighlightTarget(CallConsoleB);
+	CallConsoleB->SetCollisionResponseToChannel(ECC_WxInteractable, ECR_Overlap);
 
 	State = WxGameplayTags::Gimmick_Elevator_Closed;
 }
 
-void AWxElevator::OnInteracted(AActor* Interactor, UActorComponent* Source)
+void AWxElevator::OnInteracted(AActor* Interactor, const UActorComponent* Source)
 {
-	// 서버 권위(TryInteract)에서만 호출된다. Source(상호작용 영역)로 분기한다.
-	if (Source == PlatformInteraction)
+	// 서버 권위에서만 호출된다. Source(상호작용이 일어난 메시)로 영역을 가른다.
+	if (Source == PlatformMesh)
 	{
 		// 플랫폼 위: 반대 끝점으로 토글(문이 열린 정지 상태에서만 — Closed 는 문 닫힘이라 플랫폼에 탈 수 없다).
 		if (State == WxGameplayTags::Gimmick_Elevator_AtStart)
@@ -65,12 +55,12 @@ void AWxElevator::OnInteracted(AActor* Interactor, UActorComponent* Source)
 			CommitGimmickState(WxGameplayTags::Gimmick_Elevator_AtStart);
 		}
 	}
-	else if (Source == CallConsoleAInteraction)
+	else if (Source == CallConsoleA)
 	{
 		// Start 호출(이미 AtStart 면 동일값이라 노옵).
 		CommitGimmickState(WxGameplayTags::Gimmick_Elevator_AtStart);
 	}
-	else if (Source == CallConsoleBInteraction)
+	else if (Source == CallConsoleB)
 	{
 		// End 호출(이미 AtEnd 면 동일값이라 노옵).
 		CommitGimmickState(WxGameplayTags::Gimmick_Elevator_AtEnd);

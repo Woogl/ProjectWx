@@ -1,9 +1,11 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Interact.h"
+#include "Components/PrimitiveComponent.h"
 #include "GameFramework/Actor.h"
-#include "Interaction/WxInteractionComponent.h"
+#include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
+#include "WxInteractable.h"
 
 UWxAbility_Interact::UWxAbility_Interact()
 {
@@ -36,10 +38,10 @@ void UWxAbility_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	// 대상은 이벤트 페이로드로 온다(서버가 레지스트리 컴포넌트의 선택을 실어 송출).
-	// OptionalObject 가 const 라 실행을 위해 const_cast 한다(WxAbility_Finisher 의 Target 과 동일).
-	UWxInteractionComponent* Selected = TriggerEventData
-		? const_cast<UWxInteractionComponent*>(Cast<UWxInteractionComponent>(TriggerEventData->OptionalObject.Get()))
+	// 대상은 이벤트 페이로드로 온다(서버가 레지스트리 컴포넌트의 선택 메시를 실어 송출).
+	// 실행 경로가 선택 메시를 읽기만 하므로 OptionalObject 의 const 를 그대로 들고 간다(const_cast 불필요).
+	const UPrimitiveComponent* Selected = TriggerEventData
+		? Cast<UPrimitiveComponent>(TriggerEventData->OptionalObject.Get())
 		: nullptr;
 
 	// ServerOnly 라 항상 권위지만, 방어적으로 게이트한다.
@@ -52,7 +54,7 @@ void UWxAbility_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
-void UWxAbility_Interact::ExecuteInteract(UWxInteractionComponent* Selected, const FGameplayAbilityActorInfo* ActorInfo)
+void UWxAbility_Interact::ExecuteInteract(const UPrimitiveComponent* Selected, const FGameplayAbilityActorInfo* ActorInfo)
 {
 	AActor* Avatar = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
 	if (!Selected || !Avatar)
@@ -60,13 +62,25 @@ void UWxAbility_Interact::ExecuteInteract(UWxInteractionComponent* Selected, con
 		return;
 	}
 
-	// 서버 권위 거리 검증: 감지·선택은 클라 로컬이라, 변조 클라가 임의의 원거리 컴포넌트를 보내 상호작용하는 것을 막는다.
-	// 클라 스캔의 overlap 과 동일 판정 — 중심간 거리 <= ScanRadius + 볼륨 바운딩 반경 — 으로 사거리를 재확인한다.
-	const float ReachRadius = ScanRadius + Selected->GetInteractionReachRadius();
-	if (FVector::DistSquared(Avatar->GetActorLocation(), Selected->GetInteractionLocation()) > FMath::Square(ReachRadius))
+	// 서버 권위 활성 검증: 대상 메시의 WxInteractable 응답이 곧 상호작용 활성 여부다.
+	// 클라가 비활성 대상을(또는 비활성 직후에) 보내도 여기서 걸린다.
+	if (Selected->GetCollisionResponseToChannel(ECC_WxInteractable) != ECR_Overlap)
 	{
 		return;
 	}
 
-	Selected->TryInteract(Avatar);
+	// 서버 권위 거리 검증: 감지·선택은 클라 로컬이라, 변조 클라가 임의의 원거리 메시를 보내 상호작용하는 것을 막는다.
+	// 클라 스캔의 overlap 과 동일 판정 — 중심간 거리 <= ScanRadius + 메시 바운딩 반경 — 으로 사거리를 재확인한다.
+	const float ReachRadius = ScanRadius + Selected->Bounds.SphereRadius;
+	if (FVector::DistSquared(Avatar->GetActorLocation(), Selected->GetComponentLocation()) > FMath::Square(ReachRadius))
+	{
+		return;
+	}
+
+	// 응답은 메시의 소유 액터가 IWxInteractable 로 구현한다. 서버 권위에서만 호출된다(클라 비주얼은 각 대상의 복제 상태로 수렴).
+	// Source 로 선택 메시를 넘겨, 한 액터에 영역이 여럿이면(예: 엘리베이터) 어느 영역이었는지 가를 수 있게 한다.
+	if (IWxInteractable* Target = Cast<IWxInteractable>(Selected->GetOwner()))
+	{
+		Target->OnInteracted(Avatar, Selected);
+	}
 }
