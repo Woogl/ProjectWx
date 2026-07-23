@@ -34,8 +34,32 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 		ASC->OnAnyGameplayEffectRemovedDelegate().RemoveAll(this);
 		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
 	}
-	CachedASC.Reset();
+	
+	// 자식 VM 의 티커·ASC 구독을 즉시 정리한다.
+	// Empty() 로 배열에서만 떼면 자식은 GC 의 BeginDestroy→Deinitialize 까지 티킹·구독을 유지한다(Character VM 패턴과 동일).
+	for (UWxViewModel_Attribute* AttributeVM : AttributeViewModels)
+	{
+		if (AttributeVM)
+		{
+			AttributeVM->Deinitialize();
+		}
+	}
+	for (UWxViewModel_Ability* AbilityVM : AbilityViewModels)
+	{
+		if (AbilityVM)
+		{
+			AbilityVM->Deinitialize();
+		}
+	}
+	for (UWxViewModel_Effect* EffectVM : ActiveEffectViewModels)
+	{
+		if (EffectVM)
+		{
+			EffectVM->Deinitialize();
+		}
+	}
 
+	CachedASC.Reset();
 	AttributeViewModels.Empty();
 	AbilityViewModels.Empty();
 	ActiveEffectViewModels.Empty();
@@ -155,6 +179,10 @@ void UWxViewModel_AbilitySystem::RefreshActiveEffectViewModels()
 			continue;
 		}
 		const UGameplayEffect* GE = Effect->Spec.Def;
+		if (!GE)
+		{
+			continue;
+		}
 		if (const UWxEffectComponent_UIData* UIData = GE->FindComponent<UWxEffectComponent_UIData>())
 		{
 			UWxViewModel_Effect* EffectVM = NewObject<UWxViewModel_Effect>(ASC);
