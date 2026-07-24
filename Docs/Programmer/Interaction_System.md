@@ -65,7 +65,7 @@ flowchart TD
 - **리졸버** `UWxViewModelResolver_InteractionList`(WBP의 View Bindings에서 `Creation Type = Resolver`)가 `CreateInstance`에서 PlayerController의 레지스트리를 찾아 `UWxViewModel_InteractionList`를 생성하고, 레지스트리의 `OnListChanged`/`OnSelectionChanged`를 VM의 `HandleListChanged`/`HandleSelectionChanged`에 연결한 뒤 현재 목록·선택으로 시드한다.
 - **VM** `UWxViewModel_InteractionList`(`WxGame`)는 프롬프트 목록을 항목 VM(`UWxViewModel_Interaction`(`WxUI`): `Prompt`+`bSelected`) 배열로 재구성하고 선택 인덱스를 표시한다.
 - **입력** — HUD 리스트 위젯이 Enhanced Input으로 받아 VM의 `RequestInteract()`/`RequestCycle(Delta)`를 호출하고, VM이 레지스트리의 `TryInteractSelected`/`CycleSelection`으로 넘긴다. 선택의 단일 소유자는 레지스트리다.
-- 프롬프트 문자열은 각 대상의 `IWxInteractable::GetInteractionPrompt()`에서 온다(레지스트리가 스캔 때 pull).
+- 프롬프트 문자열은 각 대상의 `IWxInteractable::GetInteractionPrompt()`에서 온다(레지스트리가 스캔 때 pull). 기믹은 상태별로 다른 프롬프트를 표시할 수 있다 — `Wx Enable Interaction` 태스크의 `Prompt` 필드가 상호작용을 켜는 상태에서 오너 기믹에 프롬프트를 세팅하고(로컬), `AWxGimmick::GetInteractionPrompt`가 그 값을 반환한다(미지정 시 `InteractionPrompt` 기본값 폴백).
 
 ---
 

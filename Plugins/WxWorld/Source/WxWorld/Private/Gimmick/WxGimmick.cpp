@@ -71,7 +71,13 @@ void AWxGimmick::SetInteractingCharacter(AActor* InActor)
 
 FText AWxGimmick::GetInteractionPrompt() const
 {
-	return InteractionPrompt;
+	// ST 가 상태 진입 시 세팅한 현재 프롬프트를 우선 쓰고, 없으면(태스크에서 프롬프트를 지정하지 않은 기믹/상태) 디자이너 기본값으로 폴백한다.
+	return CurrentInteractionPrompt.IsEmpty() ? InteractionPrompt : CurrentInteractionPrompt;
+}
+
+void AWxGimmick::SetCurrentInteractionPrompt(const FText& InPrompt)
+{
+	CurrentInteractionPrompt = InPrompt;
 }
 
 FGuid AWxGimmick::GetSaveId() const

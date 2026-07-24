@@ -33,7 +33,7 @@ class USplineComponent;
  * 여기의 노드는 기믹 종류와 무관한 공통 동작만 다루며, 소유 액터의 얇은 프리미티브만 호출한다.
  * 컨텍스트 액터는 StateTreeComponentSchema 가 제공하는 소유 액터(= AWxGimmick 파생) 이며, 각 노드는 Context.GetOwner() 를 캐스트해 얻는다.
  *
- *  - EnableInteraction 은 (TargetMesh, bEnable) 으로 지정 메시의 상호작용 활성/비활성을 토글한다.
+ *  - EnableInteraction 은 (TargetMesh, bEnable, Prompt) 으로 지정 메시의 상호작용 활성/비활성을 토글하고, 켤 때 그 메시의 HUD 프롬프트를 오너 기믹에 세팅한다.
  *  - EnablePlayerInput 은 (bEnable) 으로 로컬 플레이어 폰의 입력 전체를 진입 시 1회 토글한다(컷신 등 연출 중 조작 차단).
  *  - ComponentMove 는 (TargetComponent, LocalOffset, Duration) 으로 지정 컴포넌트를 현재 위치에서 기준(아키타입)+offset 으로 일정 속도 슬라이드한다(범용 메시 이동, 목표=아키타입인 닫기 방향도 지원).
  *  - ComponentSplineMove 는 (TargetComponent, Spline, TargetPointIndex, Duration) 으로 지정 컴포넌트를 목표 스플라인 포인트로 옮긴다. 초기 진입이면 목표 포인트로 즉시 스냅, 라이브 전이면 실제 현재 위치에서 목표까지 곡선을 따라 이동한다(State 가 목표 끝점을 직접 선언하므로 복원도 정확).
@@ -66,12 +66,17 @@ struct FWxStateTreeTask_EnableInteractionInstanceData
 	/** 진입 시 위 메시의 상호작용 활성 여부. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	bool bEnable = false;
+
+	/** 상호작용을 켤 때 표시할 HUD 프롬프트. 오너 기믹의 GetInteractionPrompt 로 pull 된다. 비우면 기믹의 기본 InteractionPrompt 로 폴백. bEnable 일 때만 의미가 있다. */
+	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (EditCondition = "bEnable"))
+	FText Prompt;
 };
 
 /**
  * 진입 시 지정 메시의 상호작용 활성/비활성을 bEnable 로 토글한 뒤 Succeeded 로 완료한다 — WxInteractable 채널 응답을 Overlap/Ignore 로 바꿔 스캔 포함 여부를 가른다.
+ * 상호작용을 켜는 상태면 그 프롬프트(Prompt)도 함께 오너 기믹에 세팅해, "이 상태가 상호작용 가능한가 + 프롬프트는 무엇인가"를 한 자리에서 author 한다(끄는 상태는 스캔에 안 잡혀 프롬프트 불필요, EditCondition 으로 필드 숨김).
  * 포즈/이동 등과 직교하는 단일 책임 태스크. 인터랙션이 여러 개인 기믹은 영역마다 노드를 둔다. 틱하지 않으므로 비용이 없다.
- * 각 상태가 자기 인터랙션 가용 여부를 명시하도록 상태마다 둔다(직접 복원 시에도 일관). 메시가 비면 Failed.
+ * 각 상태가 자기 인터랙션 가용 여부·프롬프트를 명시하도록 상태마다 둔다(직접 복원 시에도 일관). 상호작용 가능 상태가 프롬프트를 지정하지 않으면 기믹의 기본 InteractionPrompt 로 폴백한다. 메시가 비면 Failed.
  * 순간 side-effect 라 기본적으로 상태 완료를 구동하지 않는다(bConsideredForCompletion=false; 토글만 든 정지 leaf 가 즉시 완료→재선택 루프에 빠지지 않도록). 인스턴스별로 다시 켤 수 있다.
  */
 USTRUCT(meta = (DisplayName = "Wx Enable Interaction"))

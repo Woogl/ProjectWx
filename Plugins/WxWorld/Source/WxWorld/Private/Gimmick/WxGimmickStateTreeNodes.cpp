@@ -93,6 +93,16 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExe
 	// Ignore 메시는 스캐너의 채널 오버랩에 잡히지 않아 다음 스캔에서 자연 탈락하고, 외곽선도 그때 스캐너가 끈다.
 	TargetMesh->SetCollisionResponseToChannel(ECC_WxInteractable, Instance.bEnable ? ECR_Overlap : ECR_Ignore);
 
+	// 상호작용을 켜는 상태면 이 메시의 프롬프트를 오너 기믹에 세팅한다(스캐너가 GetInteractionPrompt 로 pull). 끄는 상태는 스캔에 안 잡혀 프롬프트가 무의미하므로 건드리지 않는다.
+	// 오너가 기믹이 아니면(비기믹 ST) 프롬프트만 스킵하고 콜리전 토글은 유지한다.
+	if (Instance.bEnable)
+	{
+		if (AWxGimmick* Gimmick = Cast<AWxGimmick>(Context.GetOwner()))
+		{
+			Gimmick->SetCurrentInteractionPrompt(Instance.Prompt);
+		}
+	}
+
 	// 토글은 즉시 끝나므로 곧바로 완료한다.
 	return EStateTreeRunStatus::Succeeded;
 }
@@ -108,6 +118,12 @@ FText FWxStateTreeTask_EnableInteraction::GetDescription(const FGuid& ID, FState
 	if (TargetText.IsEmpty())
 	{
 		TargetText = InstanceData->TargetMesh ? FText::FromString(InstanceData->TargetMesh->GetName()) : INVTEXT("(none)");
+	}
+
+	// 상호작용을 켜고 프롬프트가 있으면 함께 보여, 상태별 프롬프트를 노드 설명에서 바로 확인할 수 있게 한다.
+	if (InstanceData->bEnable && !InstanceData->Prompt.IsEmpty())
+	{
+		return FText::Format(INVTEXT("Enable Interaction ({0}) — \"{1}\""), TargetText, InstanceData->Prompt);
 	}
 
 	return FText::Format(INVTEXT("{0} ({1})"), InstanceData->bEnable ? INVTEXT("Enable Interaction") : INVTEXT("Disable Interaction"), TargetText);

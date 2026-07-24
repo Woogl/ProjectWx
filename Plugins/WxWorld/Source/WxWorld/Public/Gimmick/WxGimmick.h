@@ -69,9 +69,15 @@ public:
 	// 상호작용 응답은 각 구체 기믹이 override 한다. UCLASS(Abstract) 라도 CDO 는 생성되므로 순수 가상은 피하고 PURE_VIRTUAL 로 미구현 계약을 표시한다(미override 시 런타임 에러).
 	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override PURE_VIRTUAL(AWxGimmick::OnInteracted, );
 
-	/** HUD 프롬프트. 기본은 InteractionPrompt 필드를 반환한다. */
+	/** HUD 프롬프트. ST 가 상태 진입 시 세팅한 현재 값(CurrentInteractionPrompt)을 우선 반환하고, 비어 있으면 InteractionPrompt 기본값으로 폴백한다. */
 	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
+
+	/**
+	 * 현재 상태의 상호작용 프롬프트를 로컬로 세팅한다. 'Wx Enable Interaction' 태스크가 상호작용을 켤 때 호출한다.
+	 * 복제하지 않는다 — ST 는 각 피어에서 실행되어 EnterState 가 로컬로 이 값을 채우고, 스캐너도 로컬에서 GetInteractionPrompt 를 pull 하므로 같은 피어에서 저장·조회가 닫힌다(State 복제가 각 피어를 같은 상태로 수렴시켜 표시가 일치한다).
+	 */
+	void SetCurrentInteractionPrompt(const FText& InPrompt);
 
 	//~ Begin IWxSavable
 	virtual FGuid GetSaveId() const override;
@@ -102,9 +108,16 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_GimmickState, SaveGame, VisibleAnywhere,  meta = (AllowPrivateAccess = "true"))
 	FGameplayTag State;
 
-	/** HUD 리스트에 표시할 상호작용 프롬프트. */
+	/** HUD 리스트에 표시할 기본 상호작용 프롬프트. ST 가 상태별 프롬프트를 세팅하지 않은 기믹/상태의 폴백이다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	FText InteractionPrompt = FText::FromString(TEXT("Interact"));
+
+	/**
+	 * (런타임) 현재 상태의 상호작용 프롬프트. 'Wx Enable Interaction' 태스크가 상태 진입 시 SetCurrentInteractionPrompt 로 채우고, GetInteractionPrompt 가 읽는 로컬 표시 값이다.
+	 * 로컬 전용(복제·SaveGame 아님) — 복원/late-join 시 ST 재진입이 다시 세팅한다.
+	 */
+	UPROPERTY(Transient)
+	FText CurrentInteractionPrompt;
 
 	/**
 	 * 이번 상호작용의 당사자(플레이어 캐릭터). 복제되지만 비영속(SaveGame 아님) — 상호작용 순간에만 유효하다.

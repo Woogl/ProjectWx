@@ -74,12 +74,12 @@ flowchart TD
 ### StateTree 를 이 용도로 쓰며 생기는 마찰 (기믹 설계 탓이 아니라 ST 모서리)
 - **완료/thrash** — 노드는 작업이 끝나면 `Succeeded` 를 반환해 상태를 자가 완료시킨다. 단 **정지(머무는) leaf** 는 즉시완료 태스크를 완료판정에서 빼거나 `bConsideredForCompletion=false` 로 둬야 Root 재선택 thrash 를 피한다(순간 토글 태스크는 기본 off). 순차 choreography(엘리베이터)만 완료판정을 켜고 *On State Completed→Next*.
 - **바인딩 단방향** — 태스크는 바인딩으로 액터 멤버에 못 쓴다(읽기만). 태스크가 생산하는 런타임 데이터(스폰 목록 등)는 그 태스크의 인스턴스 데이터에 두고, 소비 노드는 태스크↔태스크 바인딩으로 읽는다(생산 노드를 앞에 배치).
-- **노드 순수성** — 노드는 바인딩된 파라미터/컴포넌트만 읽고 동작하게 둔다. `Context.GetOwner()` 를 `AWxGimmick` 으로 캐스트하는 건 진짜 기믹 상태/콜백이 필요한 노드만(현재 `GimmickStateIs`·`PlayLevelSequence` 둘).
+- **노드 순수성** — 노드는 바인딩된 파라미터/컴포넌트만 읽고 동작하게 둔다. `Context.GetOwner()` 를 `AWxGimmick` 으로 캐스트하는 건 진짜 기믹 상태/콜백이 필요한 노드만(현재 `GimmickStateIs`·`PlayLevelSequence`·`EnableInteraction` 셋 — `EnableInteraction` 은 상호작용을 켤 때 오너 기믹에 상태별 프롬프트를 세팅한다. 캐스트 실패해도 콜리전 토글은 유지).
 - **노드→호스트 통지** — 필요하면 `AWxGimmick` 의 virtual(기본 노옵·권위 측 호출)로 받는다(`HandleLevelSequenceFinished`). 통지받은 자식도 결국 `CommitGimmickState`(규칙 1)로만 State 를 바꾼다.
 
 ### 크로스모듈 노드 (WxWorld 외 도메인)
-- 오너는 `AActor` 로만 캐스트한다(`AWxGimmick` 금지 — 플러그인 참조 규칙). 복원 게이트는 WxCore 의 `Gimmick.Restore` 태그로 직접 검사한다(WxWorld 헬퍼 공유 불가라 인라인 — `Wx Grant Reward` 가 그 예).
-- 복원 프로토콜의 공유 어휘(`Gimmick.Restore`, `Gimmick.*` 상태 태그)는 **WxCore** 에 둔다 — 도메인 간 코드 의존 없이 복원에 참여하는 유일한 통로.
+- 오너는 `AActor` 로만 캐스트한다(`AWxGimmick` 금지 — 플러그인 참조 규칙). 복원 게이트는 WxCore 의 `StateTree.Restore` 태그로 직접 검사한다(WxWorld 헬퍼 공유 불가라 인라인 — `Wx Grant Reward` 가 그 예).
+- 복원 프로토콜의 공유 어휘(`StateTree.Restore`, `Gimmick.*` 상태 태그)는 **WxCore** 에 둔다 — 도메인 간 코드 의존 없이 복원에 참여하는 유일한 통로.
 
 ---
 
