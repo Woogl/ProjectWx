@@ -8,7 +8,6 @@
 
 class USceneComponent;
 class UStaticMeshComponent;
-class UWxInteractionComponent;
 
 /**
  * 레이저 벽이 주기적으로 스폰되어 통로를 따라 전진하는 트랩 액터.
@@ -28,20 +27,20 @@ class AWxLaserCorridor : public AWxGimmick
 public:
 	AWxLaserCorridor();
 
+	//~ Begin IWxInteractable — 상호작용 시 State 를 Deactivated 로 확정(프롬프트는 베이스 InteractionPrompt).
+	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
+	//~ End IWxInteractable
+
 protected:
-	virtual void BeginPlay() override;
 
 	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Spawn Actor 가 SpawnPoint 로 바인딩하기 위한 노출.
 	// 통로 입구에 배치하고 벽 크기에 맞춰 스케일한다.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USceneComponent> SpawnPoint;
 
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	TObjectPtr<UStaticMeshComponent> Console;
-
 	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UWxInteractionComponent> ConsoleInteraction;
+	TObjectPtr<UStaticMeshComponent> Console;
 
 	// EditAnywhere + AllowPrivateAccess: 디자이너가 인스턴스마다 튜닝하고, StateTree 의 Wx Laser Spawn 이 Context 액터 프로퍼티로 바인딩하기 위한 노출.
 	/** 벽 스폰 간격(초). */
@@ -55,8 +54,4 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category = "Wx|Corridor", meta = (ClampMin = "0", AllowPrivateAccess = "true"))
 	float LaserLifetime = 4.f;
-
-private:
-	UFUNCTION()
-	void HandleConsoleInteracted(AActor* InstigatorActor);
 };

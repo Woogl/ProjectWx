@@ -73,7 +73,7 @@ private:
 
 	void RegisterWarpTarget(AActor* AvatarActor, const AActor* Target) const;
 
-	TWeakObjectPtr<AActor> TargetActor;
+	TWeakObjectPtr<const AActor> TargetActor;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;

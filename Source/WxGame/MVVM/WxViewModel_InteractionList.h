@@ -8,7 +8,7 @@
 
 #include "WxViewModel_InteractionList.generated.h"
 
-class UWxInteractionRegistryComponent;
+class UWxInteractionScannerComponent;
 class UWxViewModel_Interaction;
 class UUserWidget;
 class UMVVMView;
@@ -17,10 +17,10 @@ class UMVVMView;
  * 상호작용 HUD 리스트 뷰모델.
  * 현재 범위 안에 있는 상호작용 대상들을 항목 VM 목록으로 노출하고, 그중 선택된 인덱스를 표시한다.
  *
- * 레지스트리 컴포넌트(WxWorld)를 직접 들고 목록·선택 변경을 구독한다. 그래서 WxUI 가 아니라 양쪽에 의존할 수 있는 본 모듈에 있다.
- * 선택의 소유자는 어디까지나 레지스트리이며, 본 VM 은 받은 값을 표시한다.
+ * 스캐너 컴포넌트(WxWorld)를 직접 들고 목록·선택 변경을 구독한다. 그래서 WxUI 가 아니라 양쪽에 의존할 수 있는 본 모듈에 있다.
+ * 선택의 소유자는 어디까지나 스캐너이며, 본 VM 은 받은 값을 표시한다.
  *
- * 표시에 더해 뷰(WBP)의 입력을 레지스트리로 넘긴다. WBP 가 Enhanced Input 으로 받은 실행·선택이동을 Request 함수로 호출하면 레지스트리 진입점을 그대로 부른다.
+ * 표시에 더해 뷰(WBP)의 입력을 스캐너로 넘긴다. WBP 가 Enhanced Input 으로 받은 실행·선택이동을 Request 함수로 호출하면 스캐너 진입점을 그대로 부른다.
  */
 UCLASS()
 class WXGAME_API UWxViewModel_InteractionList : public UWxViewModel
@@ -28,8 +28,8 @@ class WXGAME_API UWxViewModel_InteractionList : public UWxViewModel
 	GENERATED_BODY()
 
 public:
-	/** 레지스트리를 물려 목록·선택 변경을 구독하고 현재 상태로 시드한다. */
-	void Initialize(UWxInteractionRegistryComponent* InRegistry);
+	/** 스캐너를 물려 목록·선택 변경을 구독하고 현재 상태로 시드한다. */
+	void Initialize(UWxInteractionScannerComponent* InScanner);
 
 	virtual void Deinitialize() override;
 
@@ -41,7 +41,7 @@ public:
 	UFUNCTION()
 	void HandleSelectionChanged(int32 InSelectedIndex);
 
-	/** 뷰(WBP)의 상호작용 실행 요청. 선택 대상은 레지스트리가 알고 있으므로 인자가 없다. */
+	/** 뷰(WBP)의 상호작용 실행 요청. 선택 대상은 스캐너가 알고 있으므로 인자가 없다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Interaction")
 	void RequestInteract();
 
@@ -64,14 +64,14 @@ private:
 	/** 선택 인덱스를 클램프해 각 항목의 bSelected 와 SelectedIndex 를 갱신한다. */
 	void ApplySelection(int32 InSelectedIndex);
 
-	TWeakObjectPtr<UWxInteractionRegistryComponent> CachedRegistry;
+	TWeakObjectPtr<UWxInteractionScannerComponent> CachedScanner;
 };
 
 /**
  * VM_InteractionList 용 View Bindings Resolver.
  *
- * 위젯을 소유한 AWxPlayerController 의 InteractionRegistry 를 끌어와 위젯별 UWxViewModel_InteractionList 를 생성/초기화한다.
- * InteractionRegistry 는 PC 의 생성자 서브오브젝트라 위젯이 존재하는 시점엔 항상 사용 가능하다.
+ * 위젯을 소유한 AWxPlayerController 의 InteractionScanner 를 끌어와 위젯별 UWxViewModel_InteractionList 를 생성/초기화한다.
+ * InteractionScanner 는 PC 의 생성자 서브오브젝트라 위젯이 존재하는 시점엔 항상 사용 가능하다.
  * WBP 의 View Bindings 에서 Creation Type = Resolver 로 본 클래스를 선택한다.
  */
 UCLASS(EditInlineNew, CollapseCategories)

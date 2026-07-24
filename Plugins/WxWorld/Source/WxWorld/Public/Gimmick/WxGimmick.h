@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GameplayTagContainer.h"
+#include "WxInteractable.h"
 #include "WxSavable.h"
 #include "WxGimmick.generated.h"
 
@@ -22,15 +23,16 @@ class UStateTreeComponent;
  *
  * 상태 구동 패턴(전 기믹 공통):
  *  - State 쓰기는 무조건 서버 권위다. 인터랙션 핸들러 등 액터 측 콜백은 CommitGimmickState 로만 State 를 확정하며, 이 단일 진입점이 권위 가드를 적용한다(클라는 State 를 쓰지 않는다).
- *  - 자식의 State 태그는 복제된다. State 가 바뀌면 권위(CommitGimmickState)·클라(OnRep_GimmickState) 양쪽이 그 상태 태그를 ST 이벤트로 발행하고, GimmickStateTree(실행할 ST 에셋은 자식 BP 에서 할당) 가 그 상태의 Required Event to Enter 로 자식 상태를 진입해 비주얼(이동/애니)·인터랙션 토글·사이드이펙트(FX/스폰 등) 를 적용한다(서버/클라 동일). 클라가 비주얼을 로컬로 선반영하더라도 복제 State 의 재선택으로 수렴한다(서버 권위 우선).
- *  - GimmickStateTree 는 자동 시작한다. 기본(resting) 상태는 Required Event 없이 시작 시 선택되고, 비기본 상태는 State 태그 이벤트로 진입한다.
+ *  - 자식의 State 태그는 복제된다. State 가 바뀌면 권위(CommitGimmickState)·클라(OnRep_GimmickState) 양쪽이 그 상태 태그를 ST 이벤트로 발행하고, GimmickStateTree(실행할 ST 에셋은 자식 BP 에서 할당) 가 그 이벤트로 자식 상태를 진입해 비주얼(이동/애니)·인터랙션 토글·사이드이펙트(FX/스폰 등) 를 적용한다(서버/클라 동일). 클라가 비주얼을 로컬로 선반영하더라도 복제 State 의 재선택으로 수렴한다(서버 권위 우선).
+ *  - ST 에셋 배선은 재선택 패턴이다. Root 에 전이 하나(On Event: Gimmick → GotoState: Root)만 두면 부모 태그 계층 매칭으로 Gimmick.* 상태 태그 전부가 그 전이를 발화시켜 Root 재선택을 열고, 어느 자식으로 갈지는 각 상태의 Required Event to Enter 가 정한다. 상태를 추가해도 Root 배선은 그대로다.
+ *  - GimmickStateTree 는 자동 시작한다. 기본(resting) 상태는 Required Event 없이 두어 시작 시 선택되게 하고, 비기본 상태는 State 태그를 Required Event to Enter 로 받는다. 조건 없는 상태는 재선택 때마다 항상 매칭되므로 resting 은 반드시 Root 자식 중 마지막에 둔다(위에 있으면 상태를 바꿔도 계속 resting 이 선택된다).
  *
  * WxSave 통합:
  *  - IWxSavable 구현. 자식의 UPROPERTY(SaveGame) State 필드가 슬롯에 기록된다.
- *  - 복원 시 BeginPlay(월드 초기화 복원)·OnWxSaveRestored(스트리밍 인) 가 저장된 State 태그를 Gimmick.Restore 마커와 함께 ST 이벤트로 발행한다. 마커가 있으면 일회성 노드들이 이 진입을 라이브 발동이 아닌 복원으로 보아 스냅·스킵한다.
+ *  - 복원 시 BeginPlay(월드 초기화 복원)·OnWxSaveRestored(스트리밍 인) 가 저장된 State 태그를 StateTree.Restore 마커와 함께 ST 이벤트로 발행한다. 마커가 있으면 일회성 노드들이 이 진입을 라이브 발동이 아닌 복원으로 보아 스냅·스킵한다.
  */
 UCLASS(Abstract)
-class WXWORLD_API AWxGimmick : public AActor, public IWxSavable
+class WXWORLD_API AWxGimmick : public AActor, public IWxSavable, public IWxInteractable
 {
 	GENERATED_BODY()
 
@@ -63,6 +65,20 @@ public:
 	 */
 	virtual void HandleLevelSequenceFinished() {}
 
+	//~ Begin IWxInteractable
+	// 상호작용 응답은 각 구체 기믹이 override 한다. UCLASS(Abstract) 라도 CDO 는 생성되므로 순수 가상은 피하고 PURE_VIRTUAL 로 미구현 계약을 표시한다(미override 시 런타임 에러).
+	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override PURE_VIRTUAL(AWxGimmick::OnInteracted, );
+
+	/** HUD 프롬프트. ST 가 상태 진입 시 세팅한 현재 값(CurrentInteractionPrompt)을 우선 반환하고, 비어 있으면 InteractionPrompt 기본값으로 폴백한다. */
+	virtual FText GetInteractionPrompt() const override;
+	//~ End IWxInteractable
+
+	/**
+	 * 현재 상태의 상호작용 프롬프트를 로컬로 세팅한다. 'Wx Enable Interaction' 태스크가 상호작용을 켤 때 호출한다.
+	 * 복제하지 않는다 — ST 는 각 피어에서 실행되어 EnterState 가 로컬로 이 값을 채우고, 스캐너도 로컬에서 GetInteractionPrompt 를 pull 하므로 같은 피어에서 저장·조회가 닫힌다(State 복제가 각 피어를 같은 상태로 수렴시켜 표시가 일치한다).
+	 */
+	void SetCurrentInteractionPrompt(const FText& InPrompt);
+
 	//~ Begin IWxSavable
 	virtual FGuid GetSaveId() const override;
 	virtual void OnWxSaveRestored() override;
@@ -92,6 +108,17 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_GimmickState, SaveGame, VisibleAnywhere,  meta = (AllowPrivateAccess = "true"))
 	FGameplayTag State;
 
+	/** HUD 리스트에 표시할 기본 상호작용 프롬프트. ST 가 상태별 프롬프트를 세팅하지 않은 기믹/상태의 폴백이다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx")
+	FText InteractionPrompt = FText::FromString(TEXT("Interact"));
+
+	/**
+	 * (런타임) 현재 상태의 상호작용 프롬프트. 'Wx Enable Interaction' 태스크가 상태 진입 시 SetCurrentInteractionPrompt 로 채우고, GetInteractionPrompt 가 읽는 로컬 표시 값이다.
+	 * 로컬 전용(복제·SaveGame 아님) — 복원/late-join 시 ST 재진입이 다시 세팅한다.
+	 */
+	UPROPERTY(Transient)
+	FText CurrentInteractionPrompt;
+
 	/**
 	 * 이번 상호작용의 당사자(플레이어 캐릭터). 복제되지만 비영속(SaveGame 아님) — 상호작용 순간에만 유효하다.
 	 * 권위 측이 SetInteractingCharacter 로만 쓰고, ST 에셋이 상호작용 이동/몽타주 태스크('Wx Move Interactor To Target'·'Wx Play Interactor Montage')의 InteractingCharacter 입력에 바인딩한다(자식 컴포넌트 바인딩과 동일 패턴).
@@ -119,7 +146,7 @@ protected:
 private:
 	/**
 	 * 현재 상태 태그를 GimmickStateTree 로 보내 그 상태의 Required Event 전이를 구동한다(트리 실행 중일 때만).
-	 * bRestoreEntry 면 Gimmick.Restore 마커를 함께 보내, 일회성 노드가 이 진입을 라이브 발동이 아닌 복원(스냅·스킵)으로 처리하게 한다.
+	 * bRestoreEntry 면 StateTree.Restore 마커를 함께 보내, 일회성 노드가 이 진입을 라이브 발동이 아닌 복원(스냅·스킵)으로 처리하게 한다.
 	 */
 	void SendGimmickStateEvent(bool bRestoreEntry);
 

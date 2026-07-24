@@ -8,6 +8,7 @@
 #include "Animation/AnimMontage.h"
 #include "Animation/AnimSequenceBase.h"
 #include "Animation/AnimSingleNodeInstance.h"
+#include "Components/PrimitiveComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/SplineComponent.h"
@@ -19,7 +20,6 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Gimmick/WxGimmick.h"
-#include "Interaction/WxInteractionComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "LevelSequence.h"
 #include "LevelSequenceActor.h"
@@ -28,6 +28,7 @@
 #include "Spawnable/WxSpawner.h"
 #include "StateTreeExecutionContext.h"
 #include "StateTreePropertyBindings.h"
+#include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 
 namespace
@@ -64,11 +65,11 @@ namespace
 		return Archetype ? Archetype->GetRelativeLocation() : Component->GetRelativeLocation();
 	}
 
-	// 이 진입을 스냅·스킵으로 처리해야 하는가 — StateTree 시작/복원/레이트조인(SourceStateID 무효)이거나, 세이브 복원(호스트 AWxGimmick 가 상태 태그와 함께 보내는 Gimmick.Restore 마커)이면 참.
+	// 이 진입을 스냅·스킵으로 처리해야 하는가 — StateTree 시작/복원/레이트조인(SourceStateID 무효)이거나, 세이브 복원(호스트 AWxGimmick 가 상태 태그와 함께 보내는 StateTree.Restore 마커)이면 참.
 	// Required Event 전이로 저장 상태에 진입할 때 라이브 발동처럼 보여도 일회성 효과를 발동하지 않고 스냅하도록.
 	bool IsInitialOrRestoreEntry(const FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition)
 	{
-		return !Transition.SourceStateID.IsValid() || Context.HasEventToProcess(WxGameplayTags::Gimmick_Restore);
+		return !Transition.SourceStateID.IsValid() || Context.HasEventToProcess(WxGameplayTags::StateTree_Restore);
 	}
 }
 
@@ -82,14 +83,25 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExe
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	UWxInteractionComponent* Interaction = Instance.InteractionComponent;
-	if (!Interaction)
+	UPrimitiveComponent* TargetMesh = Instance.TargetMesh;
+	if (!TargetMesh)
 	{
 		return EStateTreeRunStatus::Failed;
 	}
 
-	Interaction->SetUseHighlight(Instance.bUseHighlight);
-	Interaction->SetInteractionEnabled(Instance.bEnable);
+	// 메시의 WxInteractable 응답만 토글한다. 메시의 CollisionEnabled·ObjectType·다른 응답은 건드리지 않아 본래 콜리전이 보존된다.
+	// Ignore 메시는 스캐너의 채널 오버랩에 잡히지 않아 다음 스캔에서 자연 탈락하고, 외곽선도 그때 스캐너가 끈다.
+	TargetMesh->SetCollisionResponseToChannel(ECC_WxInteractable, Instance.bEnable ? ECR_Overlap : ECR_Ignore);
+
+	// 상호작용을 켜는 상태면 이 메시의 프롬프트를 오너 기믹에 세팅한다(스캐너가 GetInteractionPrompt 로 pull). 끄는 상태는 스캔에 안 잡혀 프롬프트가 무의미하므로 건드리지 않는다.
+	// 오너가 기믹이 아니면(비기믹 ST) 프롬프트만 스킵하고 콜리전 토글은 유지한다.
+	if (Instance.bEnable)
+	{
+		if (AWxGimmick* Gimmick = Cast<AWxGimmick>(Context.GetOwner()))
+		{
+			Gimmick->SetCurrentInteractionPrompt(Instance.Prompt);
+		}
+	}
 
 	// 토글은 즉시 끝나므로 곧바로 완료한다.
 	return EStateTreeRunStatus::Succeeded;
@@ -101,15 +113,20 @@ FText FWxStateTreeTask_EnableInteraction::GetDescription(const FGuid& ID, FState
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	// 상호작용 컴포넌트는 보통 바인딩이라 런타임 포인터가 비어 있다. 바인딩 소스명을 우선 보이고, 직접 지정 시 그 이름으로 폴백.
-	FText InteractionText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, InteractionComponent)), Formatting);
-	if (InteractionText.IsEmpty())
+	// 대상 메시는 보통 바인딩이라 런타임 포인터가 비어 있다. 바인딩 소스명을 우선 보이고, 직접 지정 시 그 이름으로 폴백.
+	FText TargetText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, TargetMesh)), Formatting);
+	if (TargetText.IsEmpty())
 	{
-		InteractionText = InstanceData->InteractionComponent ? FText::FromString(InstanceData->InteractionComponent->GetName()) : INVTEXT("(none)");
+		TargetText = InstanceData->TargetMesh ? FText::FromString(InstanceData->TargetMesh->GetName()) : INVTEXT("(none)");
 	}
 
-	// 강조 허용은 기본(true)에서 벗어난 경우에만 표기해 요약을 짧게 유지한다.
-	return FText::Format(INVTEXT("Enable Interaction ({0}: {1}{2})"), InteractionText, InstanceData->bEnable ? INVTEXT("true") : INVTEXT("false"), InstanceData->bUseHighlight ? FText::GetEmpty() : INVTEXT(", no highlight"));
+	// 상호작용을 켜고 프롬프트가 있으면 함께 보여, 상태별 프롬프트를 노드 설명에서 바로 확인할 수 있게 한다.
+	if (InstanceData->bEnable && !InstanceData->Prompt.IsEmpty())
+	{
+		return FText::Format(INVTEXT("Enable Interaction ({0}) — \"{1}\""), TargetText, InstanceData->Prompt);
+	}
+
+	return FText::Format(INVTEXT("{0} ({1})"), InstanceData->bEnable ? INVTEXT("Enable Interaction") : INVTEXT("Disable Interaction"), TargetText);
 }
 #endif
 
@@ -137,7 +154,7 @@ FText FWxStateTreeTask_EnablePlayerInput::GetDescription(const FGuid& ID, FState
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Enable Player Input ({0})"), InstanceData->bEnable ? INVTEXT("true") : INVTEXT("false"));
+	return InstanceData->bEnable ? INVTEXT("Enable Player Input") : INVTEXT("Disable Player Input");
 }
 #endif
 
@@ -398,6 +415,10 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::EnterState(FStateTr
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
+	// 차단 기록을 비운 상태로 시작한다. 아래 어느 조기 완료 경로로 빠지든 ExitState 가 걸지도 않은 차단을 해제하는 일이 없어야 한다.
+	Instance.BlockedController = nullptr;
+	Instance.BlockedAbilitySystem = nullptr;
+
 	// 초기 진입(StateTree 시작/복원/레이트조인)이면 이동 없이 곧바로 완료한다(발동 순간에만 동작; InteractingCharacter 는 비영속이라 복원 시 비어 있음).
 	if (IsInitialOrRestoreEntry(Context, Transition))
 	{
@@ -424,15 +445,18 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::EnterState(FStateTr
 	//  - 이동: AController::SetIgnoreMoveInput 로 AddMovementInput 을 무시.
 	//  - 어빌리티+점프: ASC 의 BlockAbilitiesWithTags(Ability) — 액션 어빌리티가 연출 중 서로를 막는 것과 동일한 GAS 순정 관례이며, 캐릭터의 CanJumpInternal 이 이미 AreAbilityTagsBlocked(Ability) 로 점프를 막으므로 점프도 함께 차단된다.
 	// 입력이 실제로 생기고 예측이 발동을 게이트하는 로컬 컨트롤 인스턴스에서만 건다(소유 클라가 막으면 서버로 활성화가 전송되지 않아 서버 차단이 불필요). 스냅·이동 두 경로 모두에서 걸어 ExitState 해제와 짝을 맞춘다.
+	// 차단에 성공한 대상은 그때그때 인스턴스에 기록해 둔다 — ExitState 는 이 기록만 보고 해제하므로, 그 사이 캐릭터가 소멸·언포제스돼도 카운터가 새지 않는다.
 	if (Character->IsLocallyControlled())
 	{
 		if (AController* Controller = Character->GetController())
 		{
 			Controller->SetIgnoreMoveInput(true);
+			Instance.BlockedController = Controller;
 		}
 		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Character))
 		{
 			ASC->BlockAbilitiesWithTags(FGameplayTagContainer(WxGameplayTags::Ability));
+			Instance.BlockedAbilitySystem = ASC;
 		}
 	}
 
@@ -516,20 +540,21 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::Tick(FStateTreeExec
 void FWxStateTreeTask_MoveInteractorToTarget::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	// EnterState 에서 건 입력 차단을 해제한다. SetIgnoreMoveInput·BlockAbilitiesWithTags 모두 스택 카운터라 진입 시의 +1 과 짝을 맞춰야 한다.
-	// 진입은 초기/복원 검사 통과 후(스냅·이동 두 경로 모두) 차단하고 여기서 해제하므로 정상 흐름은 짝이 맞는다. 초기/복원 진입은 차단 전에 완료하지만 그땐 InteractingCharacter 가 비영속이라 대개 null → 아래 가드로 스킵된다.
-	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
-	ACharacter* Character = Instance.InteractingCharacter;
-	if (Character && Character->IsLocallyControlled())
+	// 해제 대상을 InteractingCharacter 로 되짚지 않는 이유: 바인딩 프로퍼티는 bShouldCopyBoundPropertiesOnExitState(기본 true) 로 여기 직전 재복사되므로 진입 시점의 스냅샷이 아니다.
+	// 이동 중 캐릭터가 파괴되거나(Tick 이 Failed 반환) 언포제스되면 그 경로로는 대상을 잃어 해제가 통째로 스킵되고, 컨트롤러에 쌓인 카운터가 리스폰 후에도 남는다.
+	// 그래서 진입 때 차단에 성공한 대상 자체를 기록해 두고, 여기서는 그 기록만 근거로 해제한다(기록이 비어 있으면 애초에 걸지 않은 것이다).
+	FInstanceDataType& Instance = Context.GetInstanceData(*this);
+	if (AController* Controller = Instance.BlockedController.Get())
 	{
-		if (AController* Controller = Character->GetController())
-		{
-			Controller->SetIgnoreMoveInput(false);
-		}
-		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Character))
-		{
-			ASC->UnBlockAbilitiesWithTags(FGameplayTagContainer(WxGameplayTags::Ability));
-		}
+		Controller->SetIgnoreMoveInput(false);
 	}
+	if (UAbilitySystemComponent* ASC = Instance.BlockedAbilitySystem.Get())
+	{
+		ASC->UnBlockAbilitiesWithTags(FGameplayTagContainer(WxGameplayTags::Ability));
+	}
+
+	Instance.BlockedController = nullptr;
+	Instance.BlockedAbilitySystem = nullptr;
 }
 
 #if WITH_EDITOR

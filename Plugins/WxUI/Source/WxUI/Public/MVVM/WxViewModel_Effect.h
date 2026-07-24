@@ -11,6 +11,7 @@
 
 class UWxEffectComponent_UIData;
 class UAbilitySystemComponent;
+struct FStreamableHandle;
 
 /**
  * GameplayEffect 뷰모델.
@@ -80,9 +81,18 @@ public:
 private:
 	bool UpdateEffectState(float DeltaTime);
 
+	/** 아이콘 비동기 로드 완료 콜백. PendingIcon을 해석해 Icon을 세팅한다 */
+	void HandleIconLoaded();
+
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	FActiveGameplayEffectHandle BoundHandle;
 	float EffectEndTime = 0.f;
 	float CachedDuration = 0.f;
 	FTSTicker::FDelegateHandle TickerHandle;
+
+	/** 비동기 로드 대기 중인 아이콘 소프트 참조. 로드 완료 콜백이 해석한다 */
+	TSoftObjectPtr<UTexture2D> PendingIcon;
+
+	/** 진행 중인 아이콘 스트리밍 핸들. 해제 시 취소한다 */
+	TSharedPtr<FStreamableHandle> IconStreamHandle;
 };

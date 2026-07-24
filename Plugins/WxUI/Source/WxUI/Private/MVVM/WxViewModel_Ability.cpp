@@ -290,7 +290,12 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 	}
 
 	const UGameplayAbility* AbilityCDO = CachedAbility.Get();
-	const float WorldTime = ASC->GetWorld()->GetTimeSeconds();
+	const UWorld* World = ASC->GetWorld();
+	if (!World)
+	{
+		return false;
+	}
+	const float WorldTime = World->GetTimeSeconds();
 
 	FGameplayEffectQuery Query;
 	Query.EffectDefinition = CachedCooldownClass;

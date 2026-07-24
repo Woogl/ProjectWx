@@ -4,34 +4,34 @@
 #include "Blueprint/UserWidget.h"
 #include "Controller/WxPlayerController.h"
 #include "GameFramework/PlayerController.h"
-#include "Interaction/WxInteractionRegistryComponent.h"
+#include "Interaction/WxInteractionScannerComponent.h"
 #include "MVVM/WxViewModel_Interaction.h"
 
-void UWxViewModel_InteractionList::Initialize(UWxInteractionRegistryComponent* InRegistry)
+void UWxViewModel_InteractionList::Initialize(UWxInteractionScannerComponent* InScanner)
 {
-	if (!InRegistry)
+	if (!InScanner)
 	{
 		return;
 	}
 
-	CachedRegistry = InRegistry;
+	CachedScanner = InScanner;
 
-	InRegistry->OnListChanged.AddDynamic(this, &ThisClass::HandleListChanged);
-	InRegistry->OnSelectionChanged.AddDynamic(this, &ThisClass::HandleSelectionChanged);
+	InScanner->OnListChanged.AddDynamic(this, &ThisClass::HandleListChanged);
+	InScanner->OnSelectionChanged.AddDynamic(this, &ThisClass::HandleSelectionChanged);
 
 	// 구독 전에 끝난 broadcast 가 있을 수 있으므로 현재 목록/선택으로 시드한다(목록이 비면 INDEX_NONE).
-	RebuildEntries(InRegistry->GetPrompts());
-	ApplySelection(InRegistry->GetSelectedIndex());
+	RebuildEntries(InScanner->GetPrompts());
+	ApplySelection(InScanner->GetSelectedIndex());
 }
 
 void UWxViewModel_InteractionList::Deinitialize()
 {
-	if (UWxInteractionRegistryComponent* Registry = CachedRegistry.Get())
+	if (UWxInteractionScannerComponent* Scanner = CachedScanner.Get())
 	{
-		Registry->OnListChanged.RemoveDynamic(this, &ThisClass::HandleListChanged);
-		Registry->OnSelectionChanged.RemoveDynamic(this, &ThisClass::HandleSelectionChanged);
+		Scanner->OnListChanged.RemoveDynamic(this, &ThisClass::HandleListChanged);
+		Scanner->OnSelectionChanged.RemoveDynamic(this, &ThisClass::HandleSelectionChanged);
 	}
-	CachedRegistry.Reset();
+	CachedScanner.Reset();
 
 	if (!Entries.IsEmpty())
 	{
@@ -57,17 +57,17 @@ void UWxViewModel_InteractionList::HandleSelectionChanged(int32 InSelectedIndex)
 
 void UWxViewModel_InteractionList::RequestInteract()
 {
-	if (UWxInteractionRegistryComponent* Registry = CachedRegistry.Get())
+	if (UWxInteractionScannerComponent* Scanner = CachedScanner.Get())
 	{
-		Registry->TryInteractSelected();
+		Scanner->TryInteractSelected();
 	}
 }
 
 void UWxViewModel_InteractionList::RequestCycle(int32 Delta)
 {
-	if (UWxInteractionRegistryComponent* Registry = CachedRegistry.Get())
+	if (UWxInteractionScannerComponent* Scanner = CachedScanner.Get())
 	{
-		Registry->CycleSelection(Delta);
+		Scanner->CycleSelection(Delta);
 	}
 }
 
@@ -106,15 +106,15 @@ void UWxViewModel_InteractionList::ApplySelection(int32 InSelectedIndex)
 UObject* UWxViewModelResolver_InteractionList::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
 {
 	const AWxPlayerController* PC = UserWidget ? Cast<AWxPlayerController>(UserWidget->GetOwningPlayer()) : nullptr;
-	UWxInteractionRegistryComponent* Registry = PC ? PC->GetInteractionRegistry() : nullptr;
-	if (!Registry)
+	UWxInteractionScannerComponent* Scanner = PC ? PC->GetInteractionScanner() : nullptr;
+	if (!Scanner)
 	{
 		return nullptr;
 	}
 
-	// 위젯이 아닌 데이터 소스(레지스트리 컴포넌트)를 Outer 로 생성한다.
-	// 레지스트리는 PC 소유라 폰 리스폰에도 생존하며, 수명은 뷰의 강참조와 BeginDestroy 의 Deinitialize 가 관리한다.
-	UWxViewModel_InteractionList* ViewModel = NewObject<UWxViewModel_InteractionList>(Registry);
-	ViewModel->Initialize(Registry);
+	// 위젯이 아닌 데이터 소스(스캐너 컴포넌트)를 Outer 로 생성한다.
+	// 스캐너는 PC 소유라 폰 리스폰에도 생존하며, 수명은 뷰의 강참조와 BeginDestroy 의 Deinitialize 가 관리한다.
+	UWxViewModel_InteractionList* ViewModel = NewObject<UWxViewModel_InteractionList>(Scanner);
+	ViewModel->Initialize(Scanner);
 	return ViewModel;
 }

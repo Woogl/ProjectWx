@@ -8,7 +8,6 @@
 
 class ULevelSequence;
 class UStaticMeshComponent;
-class UWxInteractionComponent;
 
 /**
  * 컷신 트리거.
@@ -40,22 +39,19 @@ public:
 	virtual void OnWxSaveRestored() override;
 	//~ End IWxSavable
 
+	//~ Begin IWxInteractable — 상호작용 시 State 를 Playing 으로 확정(프롬프트는 베이스 InteractionPrompt).
+	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
+	//~ End IWxInteractable
+
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	TObjectPtr<UStaticMeshComponent> MeshComponent;
-
 	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UWxInteractionComponent> InteractionComponent;
+	TObjectPtr<UStaticMeshComponent> MeshComponent;
 
 	// EditInstanceOnly + AllowPrivateAccess: 디자이너가 인스턴스마다 지정하고, StateTree 의 Wx Play Level Sequence 가 Context 액터 프로퍼티로 바인딩하기 위한 노출.
 	/** 재생할 Level Sequence 에셋. */
 	UPROPERTY(EditInstanceOnly, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<ULevelSequence> LevelSequence;
-
-private:
-	UFUNCTION()
-	void HandleInteracted(AActor* InstigatorActor);
 };

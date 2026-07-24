@@ -69,6 +69,17 @@ void AWxGimmick::SetInteractingCharacter(AActor* InActor)
 	InteractingCharacter = Cast<ACharacter>(InActor);
 }
 
+FText AWxGimmick::GetInteractionPrompt() const
+{
+	// ST 가 상태 진입 시 세팅한 현재 프롬프트를 우선 쓰고, 없으면(태스크에서 프롬프트를 지정하지 않은 기믹/상태) 디자이너 기본값으로 폴백한다.
+	return CurrentInteractionPrompt.IsEmpty() ? InteractionPrompt : CurrentInteractionPrompt;
+}
+
+void AWxGimmick::SetCurrentInteractionPrompt(const FText& InPrompt)
+{
+	CurrentInteractionPrompt = InPrompt;
+}
+
 FGuid AWxGimmick::GetSaveId() const
 {
 	return SaveId;
@@ -133,6 +144,6 @@ void AWxGimmick::SendGimmickStateEvent(bool bRestoreEntry)
 	// 복원 진입이면 마커를 함께 보내, 일회성 노드가 라이브 발동이 아닌 복원(스냅·스킵)으로 처리하게 한다.
 	if (bRestoreEntry)
 	{
-		StateTree->SendStateTreeEvent(WxGameplayTags::Gimmick_Restore);
+		StateTree->SendStateTreeEvent(WxGameplayTags::StateTree_Restore);
 	}
 }

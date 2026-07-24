@@ -12,7 +12,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
 #include "WxCollisionChannels.h"
-#include "WxInteractionSource.h"
+#include "WxInteractable.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogWxItemPickup, Log, All);
 
@@ -23,12 +23,15 @@ AWxItemPickup::AWxItemPickup()
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	SetRootComponent(MeshComponent);
 
-	MeshComponent->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	// 이 메시가 곧 상호작용 영역이다. 스캐너가 채널 쿼리로 잡아야 하므로 쿼리 콜리전이 켜져 있어야 한다(LaunchInDirection 도 같은 설정을 쓴다).
+	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	MeshComponent->SetCollisionObjectType(ECC_WorldDynamic);
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
 	MeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	MeshComponent->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	MeshComponent->SetCollisionResponseToChannel(ECC_WxAttack, ECR_Ignore);
+	// 픽업은 항상 상호작용 가능하므로 Overlap 으로 고정한다(Block 이면 어빌리티의 활성 검증에 걸린다).
+	MeshComponent->SetCollisionResponseToChannel(ECC_WxInteractable, ECR_Overlap);
 	MeshComponent->SetGenerateOverlapEvents(false);
 
 	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
@@ -63,23 +66,10 @@ void AWxItemPickup::LaunchInDirection(const FVector& Direction, float Speed)
 	MeshComponent->SetPhysicsLinearVelocity(Direction.GetSafeNormal() * Speed);
 }
 
-void AWxItemPickup::BeginPlay()
+void AWxItemPickup::OnInteracted(AActor* Interactor, const UActorComponent* Source)
 {
-	Super::BeginPlay();
-
-	// BP 에서 추가한 상호작용 소스를 자동으로 찾아 바인딩한다.
-	// 서버는 Deferred 스폰 주입, 클라는 InitialOnly 복제가 모두 BeginPlay 전에 끝나므로 텍스트 갱신도 여기 한 곳이면 충분하다.
-	for (UActorComponent* Source : GetComponentsByInterface(UWxInteractionSource::StaticClass()))
-	{
-		Cast<IWxInteractionSource>(Source)->GetOnInteractedDelegate().AddDynamic(this, &AWxItemPickup::HandleInteracted);
-	}
-
-	UpdateInteractionText();
-}
-
-void AWxItemPickup::HandleInteracted(AActor* InteractingActor)
-{
-	if (!HasAuthority() || !InteractingActor)
+	// 서버 권위에서만 호출된다.
+	if (!Interactor)
 	{
 		return;
 	}
@@ -90,10 +80,10 @@ void AWxItemPickup::HandleInteracted(AActor* InteractingActor)
 		return;
 	}
 
-	UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(InteractingActor);
+	UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(Interactor);
 	if (!Inventory)
 	{
-		UE_LOG(LogWxItemPickup, Warning, TEXT("Interactor %s has no UWxInventoryManagerComponent"), *InteractingActor->GetName());
+		UE_LOG(LogWxItemPickup, Warning, TEXT("Interactor %s has no UWxInventoryManagerComponent"), *Interactor->GetName());
 		return;
 	}
 
@@ -104,26 +94,21 @@ void AWxItemPickup::HandleInteracted(AActor* InteractingActor)
 	Destroy();
 }
 
-void AWxItemPickup::OnRep_ItemDef()
-{
-	ApplyPickupVisual();
-}
-
-void AWxItemPickup::UpdateInteractionText()
+FText AWxItemPickup::GetInteractionPrompt() const
 {
 	if (!ItemDef)
 	{
-		return;
+		return FText::GetEmpty();
 	}
 
-	const FText FormattedText = (Quantity > 1)
+	return (Quantity > 1)
 		? FText::Format(NSLOCTEXT("WxItemPickup", "InteractionFormatQuantity", "[F] {0} x{1}"), ItemDef->DisplayName, Quantity)
 		: FText::Format(NSLOCTEXT("WxItemPickup", "InteractionFormat", "[F] {0}"), ItemDef->DisplayName);
+}
 
-	for (UActorComponent* Source : GetComponentsByInterface(UWxInteractionSource::StaticClass()))
-	{
-		Cast<IWxInteractionSource>(Source)->SetInteractionText(FormattedText);
-	}
+void AWxItemPickup::OnRep_ItemDef()
+{
+	ApplyPickupVisual();
 }
 
 void AWxItemPickup::ApplyPickupVisual()

@@ -4,8 +4,8 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystem/Effect/WxEffect_Kill.h"
 #include "AbilitySystem/Effect/WxEffect_ResetDP.h"
-#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
 #include "MotionWarpingComponent.h"
 #include "WxCombatLibrary.h"
 #include "WxDamageInfo.h"
@@ -58,7 +58,8 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	AActor* AvatarActor = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
-	AActor* Target = TriggerEventData ? const_cast<AActor*>(TriggerEventData->Target.Get()) : nullptr;
+	// 대상에 가하는 변경은 전부 대상 ASC 를 거치고 액터 자체는 위치만 읽으므로 const 로 다룬다.
+	const AActor* Target = TriggerEventData ? TriggerEventData->Target.Get() : nullptr;
 	const FGameplayTag TriggerTag = TriggerEventData ? TriggerEventData->EventTag : FGameplayTag();
 
 	// 트리거로 변형을 분기한다. 공격 몽타주·짝 피격 태그만 변형별로 다르고 나머지 흐름은 공유한다.
@@ -75,15 +76,28 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	TargetActor = Target;
 
+	// 연출 진행 상태를 대상에게도 발행한다(권위 발행 + 복제).
+	// 대상 액터가 이 태그로 자기 처형 어포던스를 닫으므로, 연출 중 다른 플레이어에게 프롬프트가 재노출되거나 중복 발동되지 않는다.
+	if (ActorInfo->IsNetAuthority())
+	{
+		if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target))
+		{
+			TargetASC->AddLooseGameplayTag(WxGameplayTags::State_Finisher, 1, EGameplayTagReplicationState::TagOnly);
+		}
+	}
+
 	// 1. 피해자 위치를 공유 앵커로, 공격자가 피해자를 바라보도록 워프 타겟 등록. 멈출 간격은 몽타주의 Warp Point가 소유한다.
 	RegisterWarpTarget(AvatarActor, Target);
 
 	// 2. 적에게 짝 피격 이벤트 송출 → HitReact 가 짝 피격 몽타주를 공격 몽타주와 동시 재생.
-	FGameplayEventData VictimEvent;
-	VictimEvent.Instigator = AvatarActor;
-	VictimEvent.Target = Target;
-	VictimEvent.EventTag = VictimHitReactTag;
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Target, VictimHitReactTag, VictimEvent);
+	if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target))
+	{
+		FGameplayEventData VictimEvent;
+		VictimEvent.Instigator = AvatarActor;
+		VictimEvent.Target = Target;
+		VictimEvent.EventTag = VictimHitReactTag;
+		TargetASC->HandleGameplayEvent(VictimHitReactTag, &VictimEvent);
+	}
 
 	// 3. 공격자 몽타주 재생(몽타주의 WxAnimNotify_FinisherDamage 가 ApplyFinisherDamage 를 호출해 대미지 적용).
 	// 피해자 짝 피격(WxAbility_HitReact)이 고정 1.0 으로 재생되므로, 처형 연출의 프레임 싱크를 위해 공격자도 ASPD 비의존 고정 1.0 으로 재생한다.
@@ -116,6 +130,17 @@ void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, co
 		MontageTask = nullptr;
 	}
 
+	// 대상에 걸어둔 연출 진행 상태를 해제한다. 중단·캔슬도 이 경로를 지나므로 태그가 새지 않는다.
+	// 앞잡은 직전에 DP 리셋으로 그로기가 풀리고 뒤잡은 즉사하므로, 해제 시점에 대상은 이미 자격을 잃은 상태다.
+	if (ActorInfo && ActorInfo->IsNetAuthority())
+	{
+		if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(TargetActor.Get()))
+		{
+			TargetASC->RemoveLooseGameplayTag(WxGameplayTags::State_Finisher, 1, EGameplayTagReplicationState::TagOnly);
+		}
+	}
+	TargetActor = nullptr;
+
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
@@ -128,10 +153,10 @@ void UWxAbility_Finisher::HandleFinisherMontageCompleted()
 {
 	// 앞잡 처형 종료 → 확정 대상의 DP를 0으로 리셋해 그로기를 해제한다.
 	// 피해자 짝 피격 몽타주 완료에 의존하지 않고 공격자가 권위적으로 해제한다.
-	if (AActor* Target = TargetActor.Get())
+	if (const AActor* Target = TargetActor.Get())
 	{
 		UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
-		UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Target);
+		UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
 		if (SourceASC && TargetASC)
 		{
 			FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
@@ -178,14 +203,14 @@ void UWxAbility_Finisher::ApplyFinisherDamage(const FWxDamageInfo& DamageInfo) c
 		return;
 	}
 
-	AActor* Target = TargetActor.Get();
+	const AActor* Target = TargetActor.Get();
 	if (!Target)
 	{
 		return;
 	}
 
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
-	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Target);
+	UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
 	if (!SourceASC || !TargetASC)
 	{
 		return;
@@ -202,14 +227,14 @@ void UWxAbility_Finisher::ApplyFinisherDamage(const FWxDamageInfo& DamageInfo) c
 
 void UWxAbility_Finisher::ApplyFinisherEffect(TSubclassOf<UGameplayEffect> EffectClass) const
 {
-	AActor* Target = TargetActor.Get();
+	const AActor* Target = TargetActor.Get();
 	if (!Target || !EffectClass)
 	{
 		return;
 	}
 
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
-	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Target);
+	UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
 	if (!SourceASC || !TargetASC)
 	{
 		return;

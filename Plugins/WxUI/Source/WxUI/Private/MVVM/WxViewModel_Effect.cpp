@@ -4,6 +4,9 @@
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
 #include "Component/WxEffectComponent_UIData.h"
+#include "Engine/AssetManager.h"
+#include "Engine/StreamableManager.h"
+#include "Engine/Texture2D.h"
 
 void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const UWxEffectComponent_UIData* InUIData)
 {
@@ -23,8 +26,26 @@ void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGame
 	BoundHandle = InHandle;
 
 	SetEffectName(InUIData->DisplayName);
-	UTexture2D* MyIcon = InUIData->Icon.IsNull() ? nullptr : InUIData->Icon.LoadSynchronous();
-	SetIcon(MyIcon);
+
+	// 아이콘은 비동기 스트리밍한다(전투 중 동기 로드 히치 회피). 로드 완료 시 HandleIconLoaded 가 Icon 을 세팅한다.
+	const TSoftObjectPtr<UTexture2D>& IconSoft = InUIData->Icon;
+	if (IconSoft.IsNull())
+	{
+		SetIcon(nullptr);
+	}
+	else if (UTexture2D* Loaded = IconSoft.Get())
+	{
+		// 이미 로드돼 있으면 스트리밍 없이 즉시 반영한다.
+		SetIcon(Loaded);
+	}
+	else
+	{
+		PendingIcon = IconSoft;
+		IconStreamHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+			IconSoft.ToSoftObjectPath(),
+			FStreamableDelegate::CreateUObject(this, &UWxViewModel_Effect::HandleIconLoaded));
+	}
+
 	SetStackCount(ActiveEffect->Spec.GetStackCount());
 	
 	if (const UGameplayEffect* EffectCDO = InASC->GetGameplayEffectCDO(InHandle))
@@ -65,6 +86,12 @@ void UWxViewModel_Effect::Deinitialize()
 	{
 		FTSTicker::GetCoreTicker().RemoveTicker(TickerHandle);
 		TickerHandle.Reset();
+	}
+
+	if (IconStreamHandle.IsValid())
+	{
+		IconStreamHandle->CancelHandle();
+		IconStreamHandle.Reset();
 	}
 
 	CachedASC.Reset();
@@ -183,4 +210,10 @@ bool UWxViewModel_Effect::UpdateEffectState(float DeltaTime)
 	}
 
 	return true;
+}
+
+void UWxViewModel_Effect::HandleIconLoaded()
+{
+	SetIcon(PendingIcon.Get());
+	IconStreamHandle.Reset();
 }

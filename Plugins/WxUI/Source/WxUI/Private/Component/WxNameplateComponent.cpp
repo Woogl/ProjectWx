@@ -32,8 +32,6 @@ void UWxNameplateComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	RefreshVisibility();
-
 	UUserWidget* NameplateWidget = GetWidget();
 	if (!NameplateWidget)
 	{
@@ -61,6 +59,16 @@ void UWxNameplateComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	NameplateWidget->SetRenderScale(FVector2D(Scale, Scale));
 }
 
+void UWxNameplateComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UAbilitySystemComponent* ASC = CachedASC.Get())
+	{
+		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
+	}
+
+	Super::EndPlay(EndPlayReason);
+}
+
 void UWxNameplateComponent::InitializeViewModels(UAbilitySystemComponent* InASC, const FWxCharacterUIData& InUIData)
 {
 	UUserWidget* NameplateWidget = GetWidget();
@@ -81,6 +89,12 @@ void UWxNameplateComponent::InitializeViewModels(UAbilitySystemComponent* InASC,
 	View->SetViewModelByClass(CharacterViewModel);
 
 	CachedASC = InASC;
+
+	// 표시 여부는 ASC 태그가 바뀔 때만 갱신하면 충분하다(매 틱 재계산 불필요).
+	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxNameplateComponent::HandleOwnedTagsChanged);
+
+	// 이벤트는 변화 시에만 발화하므로 초기 표시 상태는 여기서 한 번 확정한다.
+	RefreshVisibility();
 }
 
 void UWxNameplateComponent::RefreshVisibility()
@@ -91,8 +105,13 @@ void UWxNameplateComponent::RefreshVisibility()
 		return;
 	}
 
-	// SetVisibility 는 값이 동일하면 내부에서 no-op 처리되므로 매 틱 호출해도 부담이 없다.
+	// 태그 변경 이벤트가 표시 결과와 무관하게 발화할 수 있으나, SetVisibility 는 값이 같으면 내부에서 no-op 이다.
 	FGameplayTagContainer OwnedTags;
 	ASC->GetOwnedGameplayTags(OwnedTags);
 	SetVisibility(VisibilityRequirements.RequirementsMet(OwnedTags));
+}
+
+void UWxNameplateComponent::HandleOwnedTagsChanged(const FGameplayTag Tag, int32 NewCount)
+{
+	RefreshVisibility();
 }

@@ -13,25 +13,27 @@ struct FStateTreeExecutionContext;
 struct FStateTreeTransitionResult;
 class AActor;
 class ACharacter;
+class AController;
 class ALevelSequenceActor;
 class AWxSpawner;
+class UAbilitySystemComponent;
 class UAnimMontage;
 class UAnimSequenceBase;
 class ULevelSequence;
 class ULevelSequencePlayer;
 class UNiagaraSystem;
+class UPrimitiveComponent;
 class USceneComponent;
 class USkeletalMeshComponent;
 class USoundBase;
 class USplineComponent;
-class UWxInteractionComponent;
 
 /**
  * 모든 Gimmick(AWxGimmick 파생) 의 StateTree 가 공유하는 노드 모음.
  * 여기의 노드는 기믹 종류와 무관한 공통 동작만 다루며, 소유 액터의 얇은 프리미티브만 호출한다.
  * 컨텍스트 액터는 StateTreeComponentSchema 가 제공하는 소유 액터(= AWxGimmick 파생) 이며, 각 노드는 Context.GetOwner() 를 캐스트해 얻는다.
  *
- *  - EnableInteraction 은 (InteractionComponent, bEnable, bUseHighlight) 으로 지정 상호작용 컴포넌트 하나의 활성/비활성과 외곽선 강조 허용을 토글한다.
+ *  - EnableInteraction 은 (TargetMesh, bEnable, Prompt) 으로 지정 메시의 상호작용 활성/비활성을 토글하고, 켤 때 그 메시의 HUD 프롬프트를 오너 기믹에 세팅한다.
  *  - EnablePlayerInput 은 (bEnable) 으로 로컬 플레이어 폰의 입력 전체를 진입 시 1회 토글한다(컷신 등 연출 중 조작 차단).
  *  - ComponentMove 는 (TargetComponent, LocalOffset, Duration) 으로 지정 컴포넌트를 현재 위치에서 기준(아키타입)+offset 으로 일정 속도 슬라이드한다(범용 메시 이동, 목표=아키타입인 닫기 방향도 지원).
  *  - ComponentSplineMove 는 (TargetComponent, Spline, TargetPointIndex, Duration) 으로 지정 컴포넌트를 목표 스플라인 포인트로 옮긴다. 초기 진입이면 목표 포인트로 즉시 스냅, 라이브 전이면 실제 현재 위치에서 목표까지 곡선을 따라 이동한다(State 가 목표 끝점을 직접 선언하므로 복원도 정확).
@@ -50,30 +52,31 @@ class UWxInteractionComponent;
  * 상태가 언제 완료로 판정되는지(완료 판정에 포함할 태스크·All/Any)는 에셋이 상태별로 정한다. 완료 전이가 없는 머무는 상태는 그 태스크를 완료 판정에서 빼야 루트 재선택 thrash 를 피한다.
  */
 
-// ── EnableInteraction: 지정 상호작용 컴포넌트 토글 ─────────────────────────────
+// ── EnableInteraction: 지정 메시의 상호작용 토글 ─────────────────────────────
 
 USTRUCT()
 struct FWxStateTreeTask_EnableInteractionInstanceData
 {
 	GENERATED_BODY()
 
-	/** 토글할 상호작용 컴포넌트. ST 에셋에서 Context 액터의 컴포넌트(예: ConsoleInteraction)로 바인딩한다. */
+	/** 토글할 상호작용 영역(대상 메시). ST 에셋에서 Context 액터의 메시(예: Console)로 바인딩한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
-	TObjectPtr<UWxInteractionComponent> InteractionComponent;
+	TObjectPtr<UPrimitiveComponent> TargetMesh;
 
-	/** 진입 시 위 컴포넌트의 상호작용 활성 여부. */
+	/** 진입 시 위 메시의 상호작용 활성 여부. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	bool bEnable = false;
 
-	/** 위 컴포넌트의 외곽선 강조 허용 여부. 끄면 스캔 선택 대상이 되어도 외곽선을 표시하지 않는다(예: 엘리베이터 플랫폼 바닥). */
-	UPROPERTY(EditAnywhere, Category = "Parameter")
-	bool bUseHighlight = true;
+	/** 상호작용을 켤 때 표시할 HUD 프롬프트. 오너 기믹의 GetInteractionPrompt 로 pull 된다. 비우면 기믹의 기본 InteractionPrompt 로 폴백. bEnable 일 때만 의미가 있다. */
+	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (EditCondition = "bEnable"))
+	FText Prompt;
 };
 
 /**
- * 진입 시 지정 상호작용 컴포넌트(UWxInteractionComponent) 하나의 활성/비활성을 bEnable 로, 외곽선 강조 허용을 bUseHighlight 로 토글한 뒤 Succeeded 로 완료한다.
+ * 진입 시 지정 메시의 상호작용 활성/비활성을 bEnable 로 토글한 뒤 Succeeded 로 완료한다 — WxInteractable 채널 응답을 Overlap/Ignore 로 바꿔 스캔 포함 여부를 가른다.
+ * 상호작용을 켜는 상태면 그 프롬프트(Prompt)도 함께 오너 기믹에 세팅해, "이 상태가 상호작용 가능한가 + 프롬프트는 무엇인가"를 한 자리에서 author 한다(끄는 상태는 스캔에 안 잡혀 프롬프트 불필요, EditCondition 으로 필드 숨김).
  * 포즈/이동 등과 직교하는 단일 책임 태스크. 인터랙션이 여러 개인 기믹은 영역마다 노드를 둔다. 틱하지 않으므로 비용이 없다.
- * 각 상태가 자기 인터랙션 가용 여부를 명시하도록 상태마다 둔다(직접 복원 시에도 일관). 컴포넌트가 비면 Failed.
+ * 각 상태가 자기 인터랙션 가용 여부·프롬프트를 명시하도록 상태마다 둔다(직접 복원 시에도 일관). 상호작용 가능 상태가 프롬프트를 지정하지 않으면 기믹의 기본 InteractionPrompt 로 폴백한다. 메시가 비면 Failed.
  * 순간 side-effect 라 기본적으로 상태 완료를 구동하지 않는다(bConsideredForCompletion=false; 토글만 든 정지 leaf 가 즉시 완료→재선택 루프에 빠지지 않도록). 인스턴스별로 다시 켤 수 있다.
  */
 USTRUCT(meta = (DisplayName = "Wx Enable Interaction"))
@@ -343,12 +346,24 @@ struct FWxStateTreeTask_MoveInteractorToTargetInstanceData
 	/** (런타임) 시작→목표 yaw 의 일정 회전 속도(초당 도). EnterState 에서 1회 산출. */
 	UPROPERTY()
 	float TurnSpeed = 0.f;
+
+	/**
+	 * (런타임) EnterState 에서 이동 입력을 실제로 막은 컨트롤러. 해제 근거를 InteractingCharacter 가 아니라 대상 자체로 두는 이유는,
+	 * 바인딩 프로퍼티가 ExitState 직전 재복사되고 캐릭터가 소멸·언포제스될 수도 있어 진입 시점의 차단 대상을 되짚을 수 없기 때문이다.
+	 * 카운터는 폰이 아니라 컨트롤러에 쌓이므로, 폰이 죽어도 이 기록으로 짝을 맞춰야 리스폰 후 이동이 살아난다.
+	 */
+	UPROPERTY()
+	TWeakObjectPtr<AController> BlockedController;
+
+	/** (런타임) EnterState 에서 어빌리티를 실제로 막은 ASC. 캐릭터가 아니라 PlayerState 에 살 수 있어 별도로 기록한다(BlockedController 와 동일한 이유). */
+	UPROPERTY()
+	TWeakObjectPtr<UAbilitySystemComponent> BlockedAbilitySystem;
 };
 
 /**
  * 상호작용한 플레이어 캐릭터를 앵커(또는 오너) 기준 상대 위치/방향으로 일정 시간 이동·응시시키고, 도착하면 Succeeded 로 상태를 완료시킨다.
  * 목표 = 앵커(또는 오너) 트랜스폼 ∘ 상대오프셋 이라 모든 머신에서 동일하게 계산돼, 각 피어가 자기 캐릭터 사본을 로컬 보간해도 수렴한다(별도 복제 미러 불필요, 'Wx Component Move' 철학). 진입 시 StopMovementImmediately 로 CMC 잔여 속도를 제거한다.
- * 이동 중에는 로컬 플레이어의 입력을 막고 ExitState 에서 해제한다. 이동은 AController::SetIgnoreMoveInput, 어빌리티+점프는 ASC 의 BlockAbilitiesWithTags(Ability) — 액션 어빌리티가 연출 중 서로를 막는 GAS 순정 관례 그대로이며 캐릭터 CanJumpInternal 이 AreAbilityTagsBlocked(Ability) 로 점프를 이미 게이트하므로 점프도 함께 막힌다. 카메라(look) 입력은 별개 게이트라 유지된다. 예측이 발동을 게이트하므로 소유 클라(IsLocallyControlled)에서만 걸어도 충분하다.
+ * 이동 중에는 로컬 플레이어의 입력을 막고, ExitState 가 차단을 건 대상 자체(BlockedController/BlockedAbilitySystem 기록)로 해제해 캐릭터가 소멸·언포제스돼도 스택 카운터의 짝이 맞는다. 이동은 AController::SetIgnoreMoveInput, 어빌리티+점프는 ASC 의 BlockAbilitiesWithTags(Ability) — 액션 어빌리티가 연출 중 서로를 막는 GAS 순정 관례 그대로이며 캐릭터 CanJumpInternal 이 AreAbilityTagsBlocked(Ability) 로 점프를 이미 게이트하므로 점프도 함께 막힌다. 카메라(look) 입력은 별개 게이트라 유지된다. 예측이 발동을 게이트하므로 소유 클라(IsLocallyControlled)에서만 걸어도 충분하다.
  * 초기 진입(StateTree 시작/복원/레이트조인)이면 이동 없이 곧바로 완료한다(발동 순간에만 동작; InteractingCharacter 는 비영속이라 복원 시 비어 있음). 대상이 없어도(비캐릭터 상호작용 등) 상태가 갇히지 않게 곧바로 완료한다.
  * 도착 후 몽타주 연출이 필요하면 다음 상태에 'Wx Play Interactor Montage' 를 둔다(단일 책임 분리).
  */

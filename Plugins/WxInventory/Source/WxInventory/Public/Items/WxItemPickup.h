@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "WxInteractable.h"
 #include "WxItemPickup.generated.h"
 
 class UNiagaraComponent;
@@ -13,14 +14,14 @@ class UWxItemDefinition;
 /**
  * 아이템(또는 재화) 지급용 픽업.
  *
- * 상호작용 컴포넌트(WxWorld)는 플러그인 간 참조 금지 규칙 때문에 C++ 가 아니라 상속 BP 에서 추가한다.
- * BeginPlay 에서 IWxInteractionSource 구현 컴포넌트를 자동으로 찾아 바인딩하므로 BP 그래프 배선은 필요 없다.
+ * 메시 자체가 상호작용 영역이다 — 생성자에서 WxInteractable 채널(WxCore) 응답을 켜므로 WxWorld 를 참조하지 않고도 스캐너에 잡힌다.
+ * 응답·프롬프트는 본 액터가 IWxInteractable 로 제공하므로 BP 배선은 필요 없다.
  * 상호작용 시 Interactor 의 인벤토리에 ItemDef 를 지급한 뒤 파괴된다.
  *
  * 외부 스포너(예: UWxRewardLibrary::GrantReward) 가 SetItemDef 로 지급 데이터를 주입하고 LaunchInDirection 으로 물리 발사한다.
  */
 UCLASS(Abstract)
-class WXINVENTORY_API AWxItemPickup : public AActor
+class WXINVENTORY_API AWxItemPickup : public AActor, public IWxInteractable
 {
 	GENERATED_BODY()
 
@@ -41,9 +42,12 @@ public:
 	 */
 	void LaunchInDirection(const FVector& Direction, float Speed);
 
-protected:
-	virtual void BeginPlay() override;
+	//~ Begin IWxInteractable — 인벤토리 지급+파괴 응답, "[F] {DisplayName}" 프롬프트.
+	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
+	virtual FText GetInteractionPrompt() const override;
+	//~ End IWxInteractable
 
+protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 
@@ -68,13 +72,7 @@ protected:
 
 private:
 	UFUNCTION()
-	void HandleInteracted(AActor* InteractingActor);
-
-	UFUNCTION()
 	void OnRep_ItemDef();
-
-	/** ItemDef->DisplayName 을 사용해 모든 상호작용 소스의 프롬프트 텍스트를 "[F] {DisplayName}" 으로 갱신한다. */
-	void UpdateInteractionText();
 
 	/** ItemDef 의 Pickup Fragment 데이터를 메시/나이아가라 컴포넌트에 동기 로드 후 적용한다. */
 	void ApplyPickupVisual();
