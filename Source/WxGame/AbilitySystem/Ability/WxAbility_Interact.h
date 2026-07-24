@@ -11,11 +11,11 @@ class UPrimitiveComponent;
 /**
  * 상호작용 실행 어빌리티(권위 실행 전용).
  *
- * 감지(주변 스캔)·선택·프롬프트는 이 어빌리티가 아니라 PlayerController 의 UWxInteractionRegistryComponent 가 담당한다.
+ * 감지(주변 스캔)·선택·프롬프트는 이 어빌리티가 아니라 PlayerController 의 UWxInteractionScannerComponent 가 담당한다.
  * 이 어빌리티는 "선택된 대상에 대한 서버 권위 실행"만 책임진다.
  *
  * 실행은 Event.Interact GameplayEvent 로 발동한다(ServerOnly).
- * 입력을 받은 클라의 레지스트리 컴포넌트가 선택 컴포넌트를 실어 ServerInteract RPC 를 보내고,
+ * 입력을 받은 클라의 스캐너 컴포넌트가 선택 컴포넌트를 실어 ServerInteract RPC 를 보내고,
  * 서버가 그 페이로드로 Event.Interact 를 폰 ASC 에 송출해 이 어빌리티를 권위에서 활성화한다.
  * ServerOnly 라 클라 인스턴스는 없다 — 코스메틱 예측이 없고(상호작용 연출은 대상 StateTree 가 담당), 실행은 서버 권위에서만 일어난다.
  *
@@ -34,7 +34,7 @@ protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
 	/**
-	 * 서버 사거리 검증 반경(cm). 레지스트리 컴포넌트의 스캔 반경과 일치시켜야 클라 감지와 서버 검증이 정합한다.
+	 * 서버 사거리 검증 반경(cm). 스캐너 컴포넌트의 스캔 반경과 일치시켜야 클라 감지와 서버 검증이 정합한다.
 	 * 감지는 클라 컴포넌트가, 검증은 서버 어빌리티가 독립적으로 수행하므로(변조 방지) 양쪽이 각자 보유한다.
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Interact")

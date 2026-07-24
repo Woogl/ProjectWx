@@ -153,10 +153,21 @@ void UWxInteractionScannerComponent::ScanAndPush()
 	TArray<UPrimitiveComponent*> Candidates;
 	for (const FOverlapResult& Overlap : Overlaps)
 	{
-		if (UPrimitiveComponent* Mesh = Overlap.GetComponent())
+		UPrimitiveComponent* Mesh = Overlap.GetComponent();
+		if (!Mesh)
 		{
-			Candidates.AddUnique(Mesh);
+			continue;
 		}
+
+		// 주체별로 자격이 갈리는 대상(예: 처형은 주체가 후방이어야 뒤잡)은 채널만으론 걸러지지 않는다.
+		// 소유 폰을 주체로 물어 표시를 거른다 — 서버는 같은 함수를 실제 instigator 로 다시 물어 권위 판정한다.
+		const IWxInteractable* Target = Cast<IWxInteractable>(Mesh->GetOwner());
+		if (Target && !Target->CanBeInteractedBy(Pawn, Mesh))
+		{
+			continue;
+		}
+
+		Candidates.AddUnique(Mesh);
 	}
 
 	// 가까운 영역이 먼저 오도록 거리순 정렬한다(스캐너가 신규를 이 순서로 append).

@@ -9,7 +9,6 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "WxCollisionChannels.h"
 #include "Kismet/GameplayStatics.h"
-#include "TimerManager.h"
 #include "Spawnable/WxSpawner.h"
 #include "Targeting/WxLockOnPointComponent.h"
 #include "WxBGMSourceComponent.h"
@@ -51,18 +50,18 @@ void AWxEnemyCharacter::BeginPlay()
 
 	NameplateComponent->InitializeViewModels(AbilitySystemComponent, GetCharacterUIData());
 
-	// 처형 상호작용 영역은 캐릭터 메시 자체다. 시작 시 꺼두고, 조건(그로기=앞잡 / 미인지·후방=뒤잡)을 어포던스 타이머가 주기 평가해 켠다.
-	// 각 머신이 로컬로 평가한다 — 판정 입력(HP·상태 태그·트랜스폼)이 전부 복제되므로 복제 없이 같은 값에 수렴하고, 클라는 자기 로컬 플레이어 기준으로 노출을 판정한다.
-	GetMesh()->SetCollisionResponseToChannel(ECC_WxInteractable, ECR_Ignore);
-	GetWorldTimerManager().SetTimer(FinisherAffordanceTimerHandle, this, &AWxEnemyCharacter::UpdateFinisherAffordance, 0.15f, true);
+	// 처형 상호작용 영역은 캐릭터 메시 자체다. 살아있는 동안 채널에 열어 두고, 실제 자격(그로기=앞잡 / 미인지·후방=뒤잡)은 CanBeInteractedBy 가 주체별로 판정한다.
+	// 채널 응답은 머신당 값이 하나뿐이라 특정 플레이어에 종속시킬 수 없다 — 그렇게 하면 서버 값이 한 플레이어 기준이 되어 다른 플레이어의 정당한 처형이 거부된다.
+	GetMesh()->SetCollisionResponseToChannel(ECC_WxInteractable, ECR_Overlap);
 }
 
 void AWxEnemyCharacter::HandleDeath()
 {
 	Super::HandleDeath();
 
-	// 사망 시 처형 어포던스 갱신을 멈춘다(전 머신에서 구동되므로 권위 가드 바깥이다).
-	GetWorldTimerManager().ClearTimer(FinisherAffordanceTimerHandle);
+	// 시체를 스캔 브로드페이즈에서 뺀다(전 머신에서 구동되므로 권위 가드 바깥이다).
+	// CanBeInteractedBy 도 IsAlive 로 걸러내지만, 채널에서 내려 후보 수집 자체를 없애는 편이 싸다.
+	GetMesh()->SetCollisionResponseToChannel(ECC_WxInteractable, ECR_Ignore);
 
 	if (!HasAuthority())
 	{
@@ -82,13 +81,11 @@ void AWxEnemyCharacter::HandleDeath()
 	}
 }
 
-void AWxEnemyCharacter::UpdateFinisherAffordance()
+bool AWxEnemyCharacter::CanBeInteractedBy(const AActor* Interactor, const UActorComponent* Source) const
 {
-	// 노출은 이 머신의 로컬 플레이어 기준으로 평가한다. 발동 검증은 실제 instigator 를 쓰므로(OnInteracted) 노출~발동 주체가 갈려도 발동이 서버 권위 최종 판정이다.
-	const bool bEligible = GetEligibleFinisherEventTag(UGameplayStatics::GetPlayerPawn(this, 0)).IsValid();
-
-	// 처형 가능하면 메시를 스캔에 노출한다. 외곽선은 레지스트리가 선택 대상에만 켠다.
-	GetMesh()->SetCollisionResponseToChannel(ECC_WxInteractable, bEligible ? ECR_Overlap : ECR_Ignore);
+	// 처형 자격은 주체별로 갈린다(뒤잡은 주체가 후방 원뿔 안에 있어야 한다) — 채널로는 표현할 수 없어 여기서 판정한다.
+	// 클라 스캐너는 로컬 폰으로, 서버 어빌리티는 실제 instigator 로 부른다. 외곽선은 스캐너가 선택 대상에만 켠다.
+	return GetEligibleFinisherEventTag(Interactor).IsValid();
 }
 
 FGameplayTag AWxEnemyCharacter::GetEligibleFinisherEventTag(const AActor* Interactor) const

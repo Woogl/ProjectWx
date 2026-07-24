@@ -32,6 +32,16 @@ public:
 	 */
 	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) = 0;
 
-	/** HUD 리스트에 표시할 프롬프트 텍스트. 레지스트리가 스캔 때 대상에서 읽는다(pull). */
+	/**
+	 * 이 주체가 지금 이 영역과 상호작용할 수 있는가.
+	 * 주체별로 자격이 갈리는 대상(예: 처형 — 주체가 후방에 있어야 뒤잡)만 오버라이드한다. 기본은 항상 허용이라 기존 구현체는 영향이 없다.
+	 * 채널 응답은 머신당 값이 하나뿐이라 "주체 A 에겐 가능, 주체 B 에겐 불가"를 표현할 수 없으므로, 그런 자격은 채널이 아니라 여기서 판정한다.
+	 *
+	 * 스캐너가 클라에서 로컬 폰을 주체로 호출해 표시를 거르고, 상호작용 어빌리티가 서버에서 실제 instigator 를 주체로 호출해 권위 검증한다.
+	 * 판정 입력이 전부 복제돼야 양쪽이 같은 답에 수렴한다.
+	 */
+	virtual bool CanBeInteractedBy(const AActor* Interactor, const UActorComponent* Source) const { return true; }
+
+	/** HUD 리스트에 표시할 프롬프트 텍스트. 스캐너가 스캔 때 대상에서 읽는다(pull). */
 	virtual FText GetInteractionPrompt() const = 0;
 };
