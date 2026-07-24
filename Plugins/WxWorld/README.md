@@ -33,10 +33,10 @@
 | `AWxDoor` / `AWxElevator` / `AWxTreasureChest` / `AWxAlarmConsole` / `AWxSpawnConsole` / `AWxCutsceneTrigger` | 구체 기믹. 생성자에서 컴포넌트·초기 State 지정, `OnInteracted` 에서 목표 State 확정 | `Source/WxWorld/Public/Gimmick/*.h` |
 
 ## Gameplay Tags
-- 본 모듈은 Native Tag 를 **선언하지 않는다**. 기믹 State 태그(`Gimmick.*`)와 복원 마커 `Gimmick.Restore`, 상호작용 이벤트(`Event.Interact`) 는 [[WxCore]]의 `WxGameplayTags` 에서 선언되며 여기서는 사용만 한다.
+- 본 모듈은 Native Tag 를 **선언하지 않는다**. 기믹 State 태그(`Gimmick.*`)와 그 부모 태그 `Gimmick`(ST Root 재선택 전이가 받는다), 복원 마커 `StateTree.Restore`, 상호작용 이벤트(`Event.Interact`) 는 [[WxCore]]의 `WxGameplayTags` 에서 선언되며 여기서는 사용만 한다.
 
 ## 확장 포인트 / 규약
-- **새 기믹 추가**: `AWxGimmick` 을 상속해 컴포넌트(메시·`UWxInteractionComponent`)를 생성자에서 구성하고 초기 `State` 태그를 지정, `OnInteracted` 에서 `SetInteractingCharacter` → `CommitGimmickState(목표태그)` 로 상태를 전이한다. State 쓰기는 항상 서버 권위(`CommitGimmickState`)만 사용하고 클라는 복제 State 를 추종한다. 비주얼/연출은 C++ 가 아니라 자식 BP 에 할당한 StateTree 에셋이 State 태그를 `Required Event to Enter` 로 받아 구동한다.
+- **새 기믹 추가**: `AWxGimmick` 을 상속해 컴포넌트(메시·`UWxInteractionComponent`)를 생성자에서 구성하고 초기 `State` 태그를 지정, `OnInteracted` 에서 `SetInteractingCharacter` → `CommitGimmickState(목표태그)` 로 상태를 전이한다. State 쓰기는 항상 서버 권위(`CommitGimmickState`)만 사용하고 클라는 복제 State 를 추종한다. 비주얼/연출은 C++ 가 아니라 자식 BP 에 할당한 StateTree 에셋이 State 태그를 `Required Event to Enter` 로 받아 구동한다. ST 에셋 배선은 Root 에 재선택 전이 하나(`On Event: Gimmick` → `GotoState: Root`)만 두고 각 상태가 자기 태그를 `Required Event to Enter` 로 선언하는 형태이며, 조건 없는 resting 상태는 Root 자식 중 **마지막**에 둔다(위에 있으면 항상 그것이 선택된다). 상태별 HUD 프롬프트(예: `Call Elevator`/`Open`)는 그 상태의 `Wx Enable Interaction` 태스크 `Prompt` 필드로 지정하며, 미지정 시 기믹의 `InteractionPrompt` 기본값으로 폴백한다.
 - **새 연출 프리미티브**: `WxGimmickStateTreeNodes.h` 에 `FStateTreeTaskCommonBase` 파생 태스크를 추가한다. 초기 진입(시작/복원/레이트조인)은 `Transition.SourceStateID` 무효로 판별해 스냅·침묵하고, 라이브 전이에서만 재생/사이드이펙트를 낸다. 순간 side-effect 태스크는 `bConsideredForCompletion=false` 로 재선택 루프를 피한다.
 - **새 상호작용 대상**: 액터가 `IWxInteractable`(WxCore)을 구현하고 감지 영역마다 `UWxInteractionComponent` 를 붙인다(볼륨은 부착 부모 프리미티브 자동 채택, 아니면 `SetCollisionVolume`). 응답·프롬프트는 컴포넌트가 아닌 소유 액터가 낸다.
 - **새 스폰 대상**: `IWxSpawnableInterface` 를 구현하면 `AWxSpawner`/`FWxStateTreeTask_TriggerSpawners`/`FWxStateTreeTask_SpawnActor` 로 스폰된다.

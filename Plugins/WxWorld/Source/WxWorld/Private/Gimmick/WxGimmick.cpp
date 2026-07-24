@@ -138,6 +138,6 @@ void AWxGimmick::SendGimmickStateEvent(bool bRestoreEntry)
 	// 복원 진입이면 마커를 함께 보내, 일회성 노드가 라이브 발동이 아닌 복원(스냅·스킵)으로 처리하게 한다.
 	if (bRestoreEntry)
 	{
-		StateTree->SendStateTreeEvent(WxGameplayTags::Gimmick_Restore);
+		StateTree->SendStateTreeEvent(WxGameplayTags::StateTree_Restore);
 	}
 }

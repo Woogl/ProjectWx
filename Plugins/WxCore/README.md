@@ -34,7 +34,8 @@
 - 주요 네임스페이스:
   - `State.*` — 캐릭터/ASC 상태 (Dead, Ragdoll, Groggy, LockOn, LockedOn, InCombat, Invincible, Guard, PerfectGuard, HitReact, SuperArmor, Finisher)
   - `Event.*` — GameplayEvent dispatch 태그 (HitReact 계열, DodgeSuccess, PerfectGuard, UseItem, Interact, Finisher/Backstab, HitStop 역경직)
-  - `Gimmick.*` — 월드 기믹의 권위 상태값이자 GimmickStateTree 진입 이벤트 겸용 (Door/Elevator/SpawnConsole/AlarmConsole/CutsceneTrigger/TreasureChest/CheckPoint/LaserCorridor) + `Gimmick.Restore` 세이브 복원 마커
+  - `Gimmick.*` — 월드 기믹의 권위 상태값이자 GimmickStateTree 진입 이벤트 겸용 (Door/Elevator/SpawnConsole/AlarmConsole/CutsceneTrigger/TreasureChest/CheckPoint/LaserCorridor). 부모 태그 `Gimmick` 자체가 ST Root 재선택 전이의 트리거라, 이 계층에는 **상태 태그만** 둔다
+  - `StateTree.*` — ST 실행 마커. `StateTree.Restore` 세이브 복원 마커(상태가 아니므로 `Gimmick.*` 밖에 산다)
   - `ANS.*` — AnimNotifyState 구간 (WeaponCollision, ComboWindow)
   - `GameplayCue.*` — Cue 트리거 (Damage, PerfectGuard, Exceed, Burn, AttackTelegraph 색상별 Red/Yellow/Blue/Purple)
   - `Damage.*` — 대미지 판정 결과/속성 (Critical, Unblockable, ParryHitReact)

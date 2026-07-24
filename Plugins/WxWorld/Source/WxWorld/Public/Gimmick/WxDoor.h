@@ -18,9 +18,9 @@ class UStaticMeshComponent;
  *
  *   Close (초기) ──상호작용──> Open ──(양방향 시)상호작용──> Close
  *
- * 전이는 ST_Door 의 각 상태 Required Event to Enter(State 태그) 가 구동한다 — State 가 바뀌면 베이스가 그 태그를 ST 이벤트로 보내 해당 상태로 진입한다.
+ * 전이는 ST_Door 의 각 상태 Required Event to Enter(State 태그) 가 구동한다 — State 가 바뀌면 베이스가 그 태그를 ST 이벤트로 보내고, Root 의 재선택 전이가 열린 선택에서 그 상태가 자신을 고른다.
  * State 는 슬라이드와 무관하게 즉시 확정되며, 서버·클라 동일.
- * 시작 시엔 기본 상태(Close)가 Required Event 없이 선택되고, 복원 시엔 저장된 State 태그가 Gimmick.Restore 마커와 함께 발행돼 그 상태로 스냅 진입한다.
+ * 시작 시엔 기본 상태(Close)가 Required Event 없이 선택되고(그래서 Root 자식 중 마지막에 둔다), 복원 시엔 저장된 State 태그가 StateTree.Restore 마커와 함께 발행돼 그 상태로 스냅 진입한다.
  */
 UCLASS(Abstract)
 class WXWORLD_API AWxDoor : public AWxGimmick

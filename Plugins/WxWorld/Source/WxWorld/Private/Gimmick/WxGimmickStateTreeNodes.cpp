@@ -65,11 +65,11 @@ namespace
 		return Archetype ? Archetype->GetRelativeLocation() : Component->GetRelativeLocation();
 	}
 
-	// 이 진입을 스냅·스킵으로 처리해야 하는가 — StateTree 시작/복원/레이트조인(SourceStateID 무효)이거나, 세이브 복원(호스트 AWxGimmick 가 상태 태그와 함께 보내는 Gimmick.Restore 마커)이면 참.
+	// 이 진입을 스냅·스킵으로 처리해야 하는가 — StateTree 시작/복원/레이트조인(SourceStateID 무효)이거나, 세이브 복원(호스트 AWxGimmick 가 상태 태그와 함께 보내는 StateTree.Restore 마커)이면 참.
 	// Required Event 전이로 저장 상태에 진입할 때 라이브 발동처럼 보여도 일회성 효과를 발동하지 않고 스냅하도록.
 	bool IsInitialOrRestoreEntry(const FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition)
 	{
-		return !Transition.SourceStateID.IsValid() || Context.HasEventToProcess(WxGameplayTags::Gimmick_Restore);
+		return !Transition.SourceStateID.IsValid() || Context.HasEventToProcess(WxGameplayTags::StateTree_Restore);
 	}
 }
 

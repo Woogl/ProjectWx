@@ -19,9 +19,9 @@ FWxStateTreeTask_SaveGame::FWxStateTreeTask_SaveGame()
 
 EStateTreeRunStatus FWxStateTreeTask_SaveGame::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// 초기 진입(StateTree 시작/복원/레이트조인) 또는 세이브 복원(호스트가 상태 태그와 함께 보내는 Gimmick.Restore 마커)이면 저장하지 않는다.
+	// 초기 진입(StateTree 시작/복원/레이트조인) 또는 세이브 복원(호스트가 상태 태그와 함께 보내는 StateTree.Restore 마커)이면 저장하지 않는다.
 	// 막 로드한 세이브를 로드 직후 되쓰면 그 사이 라이브 상태로 파일이 오염된다.
-	const bool bInitialEntry = !Transition.SourceStateID.IsValid() || Context.HasEventToProcess(WxGameplayTags::Gimmick_Restore);
+	const bool bInitialEntry = !Transition.SourceStateID.IsValid() || Context.HasEventToProcess(WxGameplayTags::StateTree_Restore);
 	if (bInitialEntry)
 	{
 		return EStateTreeRunStatus::Succeeded;

@@ -23,12 +23,13 @@ class UStateTreeComponent;
  *
  * 상태 구동 패턴(전 기믹 공통):
  *  - State 쓰기는 무조건 서버 권위다. 인터랙션 핸들러 등 액터 측 콜백은 CommitGimmickState 로만 State 를 확정하며, 이 단일 진입점이 권위 가드를 적용한다(클라는 State 를 쓰지 않는다).
- *  - 자식의 State 태그는 복제된다. State 가 바뀌면 권위(CommitGimmickState)·클라(OnRep_GimmickState) 양쪽이 그 상태 태그를 ST 이벤트로 발행하고, GimmickStateTree(실행할 ST 에셋은 자식 BP 에서 할당) 가 그 상태의 Required Event to Enter 로 자식 상태를 진입해 비주얼(이동/애니)·인터랙션 토글·사이드이펙트(FX/스폰 등) 를 적용한다(서버/클라 동일). 클라가 비주얼을 로컬로 선반영하더라도 복제 State 의 재선택으로 수렴한다(서버 권위 우선).
- *  - GimmickStateTree 는 자동 시작한다. 기본(resting) 상태는 Required Event 없이 시작 시 선택되고, 비기본 상태는 State 태그 이벤트로 진입한다.
+ *  - 자식의 State 태그는 복제된다. State 가 바뀌면 권위(CommitGimmickState)·클라(OnRep_GimmickState) 양쪽이 그 상태 태그를 ST 이벤트로 발행하고, GimmickStateTree(실행할 ST 에셋은 자식 BP 에서 할당) 가 그 이벤트로 자식 상태를 진입해 비주얼(이동/애니)·인터랙션 토글·사이드이펙트(FX/스폰 등) 를 적용한다(서버/클라 동일). 클라가 비주얼을 로컬로 선반영하더라도 복제 State 의 재선택으로 수렴한다(서버 권위 우선).
+ *  - ST 에셋 배선은 재선택 패턴이다. Root 에 전이 하나(On Event: Gimmick → GotoState: Root)만 두면 부모 태그 계층 매칭으로 Gimmick.* 상태 태그 전부가 그 전이를 발화시켜 Root 재선택을 열고, 어느 자식으로 갈지는 각 상태의 Required Event to Enter 가 정한다. 상태를 추가해도 Root 배선은 그대로다.
+ *  - GimmickStateTree 는 자동 시작한다. 기본(resting) 상태는 Required Event 없이 두어 시작 시 선택되게 하고, 비기본 상태는 State 태그를 Required Event to Enter 로 받는다. 조건 없는 상태는 재선택 때마다 항상 매칭되므로 resting 은 반드시 Root 자식 중 마지막에 둔다(위에 있으면 상태를 바꿔도 계속 resting 이 선택된다).
  *
  * WxSave 통합:
  *  - IWxSavable 구현. 자식의 UPROPERTY(SaveGame) State 필드가 슬롯에 기록된다.
- *  - 복원 시 BeginPlay(월드 초기화 복원)·OnWxSaveRestored(스트리밍 인) 가 저장된 State 태그를 Gimmick.Restore 마커와 함께 ST 이벤트로 발행한다. 마커가 있으면 일회성 노드들이 이 진입을 라이브 발동이 아닌 복원으로 보아 스냅·스킵한다.
+ *  - 복원 시 BeginPlay(월드 초기화 복원)·OnWxSaveRestored(스트리밍 인) 가 저장된 State 태그를 StateTree.Restore 마커와 함께 ST 이벤트로 발행한다. 마커가 있으면 일회성 노드들이 이 진입을 라이브 발동이 아닌 복원으로 보아 스냅·스킵한다.
  */
 UCLASS(Abstract)
 class WXWORLD_API AWxGimmick : public AActor, public IWxSavable, public IWxInteractable
@@ -132,7 +133,7 @@ protected:
 private:
 	/**
 	 * 현재 상태 태그를 GimmickStateTree 로 보내 그 상태의 Required Event 전이를 구동한다(트리 실행 중일 때만).
-	 * bRestoreEntry 면 Gimmick.Restore 마커를 함께 보내, 일회성 노드가 이 진입을 라이브 발동이 아닌 복원(스냅·스킵)으로 처리하게 한다.
+	 * bRestoreEntry 면 StateTree.Restore 마커를 함께 보내, 일회성 노드가 이 진입을 라이브 발동이 아닌 복원(스냅·스킵)으로 처리하게 한다.
 	 */
 	void SendGimmickStateEvent(bool bRestoreEntry);
 
