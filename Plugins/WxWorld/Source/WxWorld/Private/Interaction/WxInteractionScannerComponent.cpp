@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Interaction/WxInteractionRegistryComponent.h"
+#include "Interaction/WxInteractionScannerComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Components/PrimitiveComponent.h"
@@ -13,15 +13,15 @@
 #include "WxGameplayTags.h"
 #include "WxInteractable.h"
 
-UWxInteractionRegistryComponent::UWxInteractionRegistryComponent()
+UWxInteractionScannerComponent::UWxInteractionScannerComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
-	// Server RPC(ServerInteract) 라우팅을 위해 복제 활성화. 복제 프로퍼티는 없다(레지스트리 상태는 클라 로컬).
+	// Server RPC(ServerInteract) 라우팅을 위해 복제 활성화. 복제 프로퍼티는 없다(스캐너 상태는 클라 로컬).
 	SetIsReplicatedByDefault(true);
 }
 
-void UWxInteractionRegistryComponent::BeginPlay()
+void UWxInteractionScannerComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -34,14 +34,14 @@ void UWxInteractionRegistryComponent::BeginPlay()
 
 	if (UWorld* World = GetWorld())
 	{
-		World->GetTimerManager().SetTimer(ScanTimerHandle, this, &UWxInteractionRegistryComponent::ScanAndPush, FMath::Max(ScanInterval, 0.01f), true);
+		World->GetTimerManager().SetTimer(ScanTimerHandle, this, &UWxInteractionScannerComponent::ScanAndPush, FMath::Max(ScanInterval, 0.01f), true);
 	}
 
 	// 설정 즉시 1회 스캔해 진입 시점의 주변 상호작용을 바로 반영한다.
 	ScanAndPush();
 }
 
-void UWxInteractionRegistryComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void UWxInteractionScannerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (UWorld* World = GetWorld())
 	{
@@ -54,7 +54,7 @@ void UWxInteractionRegistryComponent::EndPlay(const EEndPlayReason::Type EndPlay
 	Super::EndPlay(EndPlayReason);
 }
 
-void UWxInteractionRegistryComponent::TryInteractSelected()
+void UWxInteractionScannerComponent::TryInteractSelected()
 {
 	// 로컬 선택을 읽어 서버로 전송한다. 선택이 없으면 무동작.
 	UPrimitiveComponent* Selected = GetSelectedMesh();
@@ -66,7 +66,7 @@ void UWxInteractionRegistryComponent::TryInteractSelected()
 	ServerInteract(Selected);
 }
 
-TArray<FText> UWxInteractionRegistryComponent::GetPrompts() const
+TArray<FText> UWxInteractionScannerComponent::GetPrompts() const
 {
 	TArray<FText> Prompts;
 	Prompts.Reserve(InRangeMeshes.Num());
@@ -82,7 +82,7 @@ TArray<FText> UWxInteractionRegistryComponent::GetPrompts() const
 	return Prompts;
 }
 
-UPrimitiveComponent* UWxInteractionRegistryComponent::GetSelectedMesh() const
+UPrimitiveComponent* UWxInteractionScannerComponent::GetSelectedMesh() const
 {
 	if (!InRangeMeshes.IsValidIndex(SelectedIndex))
 	{
@@ -91,7 +91,7 @@ UPrimitiveComponent* UWxInteractionRegistryComponent::GetSelectedMesh() const
 	return InRangeMeshes[SelectedIndex].Get();
 }
 
-void UWxInteractionRegistryComponent::CycleSelection(int32 Delta)
+void UWxInteractionScannerComponent::CycleSelection(int32 Delta)
 {
 	const int32 Count = InRangeMeshes.Num();
 	if (Count == 0 || Delta == 0)
@@ -104,7 +104,7 @@ void UWxInteractionRegistryComponent::CycleSelection(int32 Delta)
 	UpdateSelection(NewIndex);
 }
 
-void UWxInteractionRegistryComponent::ServerInteract_Implementation(UPrimitiveComponent* Selected)
+void UWxInteractionScannerComponent::ServerInteract_Implementation(UPrimitiveComponent* Selected)
 {
 	// 선택 대상을 이벤트 페이로드에 실어 폰 ASC 로 송출한다.
 	// ServerOnly WxAbility_Interact 가 권위에서 트리거되어 차단태그 게이트·사거리·활성 검증 후 대상 인터페이스를 호출한다.
@@ -121,7 +121,7 @@ void UWxInteractionRegistryComponent::ServerInteract_Implementation(UPrimitiveCo
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Pawn, WxGameplayTags::Event_Interact, EventData);
 }
 
-void UWxInteractionRegistryComponent::ScanAndPush()
+void UWxInteractionScannerComponent::ScanAndPush()
 {
 	APawn* Pawn = GetOwnerPawn();
 	UWorld* World = Pawn ? Pawn->GetWorld() : nullptr;
@@ -159,7 +159,7 @@ void UWxInteractionRegistryComponent::ScanAndPush()
 		}
 	}
 
-	// 가까운 영역이 먼저 오도록 거리순 정렬한다(레지스트리가 신규를 이 순서로 append).
+	// 가까운 영역이 먼저 오도록 거리순 정렬한다(스캐너가 신규를 이 순서로 append).
 	Candidates.Sort([ScanOrigin](const UPrimitiveComponent& A, const UPrimitiveComponent& B)
 	{
 		return FVector::DistSquared(ScanOrigin, A.GetComponentLocation()) < FVector::DistSquared(ScanOrigin, B.GetComponentLocation());
@@ -168,7 +168,7 @@ void UWxInteractionRegistryComponent::ScanAndPush()
 	UpdateInRange(Candidates);
 }
 
-void UWxInteractionRegistryComponent::UpdateInRange(const TArray<UPrimitiveComponent*>& InCandidates)
+void UWxInteractionScannerComponent::UpdateInRange(const TArray<UPrimitiveComponent*>& InCandidates)
 {
 	// 선택 안정성을 위해 갱신 전 선택 메시를 포인터로 캐시한다. 순서가 바뀌어도 동일 메시를 다시 찾아 선택을 잇는다.
 	UPrimitiveComponent* PreviousSelected = GetSelectedMesh();
@@ -211,7 +211,7 @@ void UWxInteractionRegistryComponent::UpdateInRange(const TArray<UPrimitiveCompo
 	OnSelectionChanged.Broadcast(SelectedIndex);
 }
 
-void UWxInteractionRegistryComponent::UpdateSelection(int32 NewIndex)
+void UWxInteractionScannerComponent::UpdateSelection(int32 NewIndex)
 {
 	const int32 Clamped = InRangeMeshes.IsEmpty() ? INDEX_NONE : FMath::Clamp(NewIndex, 0, InRangeMeshes.Num() - 1);
 	if (Clamped == SelectedIndex)
@@ -224,7 +224,7 @@ void UWxInteractionRegistryComponent::UpdateSelection(int32 NewIndex)
 	OnSelectionChanged.Broadcast(SelectedIndex);
 }
 
-void UWxInteractionRegistryComponent::ApplyHighlight()
+void UWxInteractionScannerComponent::ApplyHighlight()
 {
 	for (int32 Index = 0; Index < InRangeMeshes.Num(); ++Index)
 	{
@@ -232,7 +232,7 @@ void UWxInteractionRegistryComponent::ApplyHighlight()
 	}
 }
 
-void UWxInteractionRegistryComponent::SetMeshHighlighted(UPrimitiveComponent* Mesh, bool bHighlighted) const
+void UWxInteractionScannerComponent::SetMeshHighlighted(UPrimitiveComponent* Mesh, bool bHighlighted) const
 {
 	if (!Mesh)
 	{
@@ -246,7 +246,7 @@ void UWxInteractionRegistryComponent::SetMeshHighlighted(UPrimitiveComponent* Me
 	}
 }
 
-bool UWxInteractionRegistryComponent::CanInteractNow(const UAbilitySystemComponent* ASC) const
+bool UWxInteractionScannerComponent::CanInteractNow(const UAbilitySystemComponent* ASC) const
 {
 	// 상호작용 어빌리티를 Ability.Interact 애셋 태그로 찾아(클래스 의존 회피, UWxBTTask_ActivateAbility 와 동일 관례)
 	// 그 CanActivateAbility 를 표시 게이트로 위임한다. 차단 조건의 단일 소스는 어빌리티다.
@@ -268,7 +268,7 @@ bool UWxInteractionRegistryComponent::CanInteractNow(const UAbilitySystemCompone
 	return true;
 }
 
-APawn* UWxInteractionRegistryComponent::GetOwnerPawn() const
+APawn* UWxInteractionScannerComponent::GetOwnerPawn() const
 {
 	const APlayerController* PC = Cast<APlayerController>(GetOwner());
 	return PC ? PC->GetPawn() : nullptr;

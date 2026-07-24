@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Engine/TimerHandle.h"
-#include "WxInteractionRegistryComponent.generated.h"
+#include "WxInteractionScannerComponent.generated.h"
 
 class UPrimitiveComponent;
 class UAbilitySystemComponent;
@@ -14,7 +14,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionListChanged, const T
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionSelectionChanged, int32, SelectedIndex);
 
 /**
- * 상호작용 레지스트리 컴포넌트.
+ * 상호작용 스캐너 컴포넌트.
  * AWxPlayerController 에 붙어, 소유 클라(리슨호스트 포함)에서 주변 상호작용 메시를 주기 스캔해 in-range 집합을 모은다.
  * HUD 리스트 뷰모델(UWxViewModel_InteractionList)이 이 목록을, 전역 선택 VM(UWxViewModel_Selection)이 선택 항목을 표시한다.
  *
@@ -29,12 +29,12 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionSelectionChanged, in
  * 서버는 Event.Interact(OptionalObject=선택)를 폰 ASC 로 송출해 ServerOnly WxAbility_Interact 가 권위에서 사거리·활성 검증 후 대상 인터페이스를 호출하게 한다.
  */
 UCLASS(ClassGroup = "Wx", meta = (BlueprintSpawnableComponent))
-class WXWORLD_API UWxInteractionRegistryComponent : public UActorComponent
+class WXWORLD_API UWxInteractionScannerComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
-	UWxInteractionRegistryComponent();
+	UWxInteractionScannerComponent();
 
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

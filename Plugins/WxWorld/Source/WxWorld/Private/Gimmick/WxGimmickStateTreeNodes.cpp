@@ -90,7 +90,7 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExe
 	}
 
 	// 메시의 WxInteractable 응답만 토글한다. 메시의 CollisionEnabled·ObjectType·다른 응답은 건드리지 않아 본래 콜리전이 보존된다.
-	// Ignore 메시는 스캐너의 채널 오버랩에 잡히지 않아 다음 스캔에서 자연 탈락하고, 외곽선도 그때 레지스트리가 끈다.
+	// Ignore 메시는 스캐너의 채널 오버랩에 잡히지 않아 다음 스캔에서 자연 탈락하고, 외곽선도 그때 스캐너가 끈다.
 	TargetMesh->SetCollisionResponseToChannel(ECC_WxInteractable, Instance.bEnable ? ECR_Overlap : ECR_Ignore);
 
 	// 토글은 즉시 끝나므로 곧바로 완료한다.
