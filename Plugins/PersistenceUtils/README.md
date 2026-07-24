@@ -12,12 +12,12 @@
 - 저장 대상 오브젝트용 pre/post 훅 인터페이스 (`IPersistedObject`), 설정 (`UPersistenceUtilsSettings`).
 
 **경계 (비담당)**
-- 실제 프로퍼티 직렬화·델타 계산은 엔진 플러그인 `LevelStreamingPersistence` / `InstancedActors`에 위임.
-- 게임별 저장 데이터 정의·저장 시점 결정은 소비 측 게임 코드 몫 (`FPersistenceUtilsDelegates::OnPreSave` 구독).
+- 실제 프로퍼티 직렬화·델타 계산은 엔진 플러그인 `LevelStreamingPersistence` / `InstancedActors` / `MassEntity`에 위임.
+- 게임별 저장 데이터 정의·저장 시점 결정은 소비 측 게임 코드 몫 — [[WxSave]]가 이 플러그인을 래핑, 통합 예제는 [[PersistenceExamples]].
 
 ## 의존성
-- **주요 의존**: 엔진 플러그인 `LevelStreamingPersistence`, `InstancedActors`(`.uplugin` 명시). Mass 스택 `MassEntity`/`MassCore`(Public), `MassActors`/`MassSpawner`/`MassSimulation`(Private). 기타 `Engine`, `DeveloperSettings`, `EngineSettings`, `GameplayDebugger`.
-- 규칙: 「WxCore 외 Wx 플러그인 참조」 — 없음 ✅ (Epic 예제 플러그인, Wx 모듈 미참조. Build.cs·`.uplugin` 확인)
+- **주요 의존**: 엔진 플러그인 `LevelStreamingPersistence`, `InstancedActors`(`.uplugin` 명시). Mass 스택 `MassEntity`/`MassCore`(Public), `MassActors`/`MassSpawner`/`MassSimulation`(Private). 기타 `DeveloperSettings`, `EngineSettings`, `GameplayDebugger`.
+- 규칙: Epic Games 제공 외부 플러그인 — Wx 참조 규칙 무관 (Wx 모듈 미참조, Build.cs·`.uplugin` 확인).
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
@@ -34,7 +34,7 @@
 ## 확장 포인트 / 규약
 - **Mass 엔티티 저장**: config 자산에 `UPersistableEntityConfigTrait`를 추가하고, `UPersistenceUtilsSettings::MassFragmentsToSerialize`에 직렬화할 프래그먼트 타입을 등록. 스폰은 `APersistedMassSpawner`(또는 서브클래스에서 `ShouldSpawnEntities()` 오버라이드) 사용. IAM 소유 엔티티는 `FMassPersistenceSnapshotTag`를 달지 않아 이중 저장 방지.
 - **저장 시점 게임 상태 주입**: `FPersistenceUtilsDelegates::OnPreSave` 구독(디스크 쓰기 직전) 또는 World 서브시스템의 `OnPreFlushMassEntityData`/`OnPreFlushInstancedActorsData` 구독(Mass/IAM 직렬화 직전).
-- **일반 액터 프로퍼티 저장**: `UPROPERTY(SaveGame)` + `IPersistedObject` 구현(전환 로직). 세션 간 재참조가 필요하면 `UPersistableReferencedActorComponent` 부착.
+- **일반 액터 프로퍼티 저장**: `UPROPERTY(SaveGame)` + `IPersistedObject` 구현(전환 로직). 세션 간 재참조가 필요하면 `UPersistableReferencedActorComponent` 부착, BP 라텐트 해석은 `UResolvePersistableActorReferenceAction`.
 - **쿡 타임 변환**: `UInstancedActorsCellTransformerBase` 상속 후 `ShouldConvertActorToInstanced()`/`GetInstancedActorsManagerClass()` 오버라이드.
 
 ## 여기서부터 읽어라
@@ -43,7 +43,7 @@
 3. `Source/PersistenceUtils/Public/Framework/PersistenceGameSubsystem.h` — SaveGame 수명과 디스크 I/O가 World 서브시스템 플러시와 어떻게 맞물리는지.
 
 ## 관련
-- 상위(소비 측): ProjectWx 게임 모듈 및 이 플러그인의 저장 델리게이트/서브시스템을 구독하는 도메인 플러그인들.
+- 상위: 이 플러그인을 래핑/소비하는 [[WxSave]], 통합 예제 [[PersistenceExamples]].
 
 ---
-*문서 기준 커밋 `9554c3c` · 생성일 2026-07-08 · 소스 34파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `c275320` · 생성일 2026-07-24 · 소스 33파일 — `/readme-writer`로 갱신*

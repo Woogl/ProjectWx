@@ -24,8 +24,8 @@
 | `WxGameplayTags` (namespace) | 프로젝트 전역 Native Tag 선언부 (State/Event/Gimmick/ANS/Cue/Damage/Ability/SetByCaller/UI). 다른 모듈이 참조하는 어휘집 | `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h` |
 | `ECC_WxAttack` / `ECC_WxInteractable` | 커스텀 콜리전 채널 상수 (`ECC_GameTraceChannel1`/`ECC_GameTraceChannel2`). ini 등록과 동기화되는 단일 출처 | `Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h` |
 | `IWxSavable` | WxSave 슬롯 저장/로드 라이프사이클 참여 마커+후크 (`GetSaveId`, `OnWxSaveRestored`). WxSave↔소비 도메인 직접 의존 차단 | `Plugins/WxCore/Source/WxCore/Public/WxSavable.h` |
-| `IWxInteractable` | 상호작용 대상의 공용 계약 (`OnInteracted` 응답, `GetInteractionPrompt`). 대상 액터가 직접 구현 | `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h` |
-| `FWxCoreModule` | 모듈 진입점 (Startup/Shutdown 비어 있음, 별도 부트스트랩 없음) | `Plugins/WxCore/Source/WxCore/Public/WxCoreModule.h` |
+| `IWxInteractable` | 상호작용 대상의 공용 계약 (`OnInteracted` 응답, `CanBeInteractedBy` 자격, `GetInteractionPrompt`). 대상 액터가 직접 구현 | `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h` |
+| `FWxCoreModule` | 모듈 진입점 (Startup/Shutdown, 별도 부트스트랩 없음) | `Plugins/WxCore/Source/WxCore/Public/WxCoreModule.h` |
 
 ## Gameplay Tags
 이 모듈이 프로젝트의 유일한 C++ Native Tag 선언처다.
@@ -46,7 +46,7 @@
 ## 확장 포인트 / 규약
 - 태그 추가: `WxGameplayTags.h`에 `UE_DECLARE_GAMEPLAY_TAG_EXTERN`, `WxGameplayTags.cpp`에 `UE_DEFINE_GAMEPLAY_TAG`를 쌍으로 작성. 다른 모듈에서 임의 선언 금지.
 - 세이브 대상 액터: `IWxSavable` 구현 + 보존 필드에 `UPROPERTY(SaveGame)` 표시. `GetSaveId()`가 세션 불변 `FGuid`를 반환(무효 GUID면 저장/복원 제외), 복원 후처리는 `OnWxSaveRestored()` 오버라이드(BeginPlay 이전 호출 가능). 인터페이스를 WxCore에 둠으로써 WxSave↔소비 도메인 직접 의존을 끊는다. (구현은 BP 불가 — `CannotImplementInterfaceInBlueprint`)
-- 상호작용 대상: `IWxInteractable`로 소비 도메인이 WxWorld 구현체에 의존하지 않고 자기 액터를 상호작용 대상으로 구현. `OnInteracted` 응답은 서버 권위 호출, `GetInteractionPrompt` 는 레지스트리가 pull.
+- 상호작용 대상: `IWxInteractable`로 소비 도메인이 WxWorld 구현체에 의존하지 않고 자기 액터를 상호작용 대상으로 구현. 상호작용 영역은 액터 메시 자체이며 `ECC_WxInteractable` 채널 응답으로 표식한다. `OnInteracted` 응답은 서버 권위 호출, `CanBeInteractedBy`는 주체별 자격(예: 뒤잡)을 채널로 표현 못 할 때 판정, `GetInteractionPrompt`는 스캐너가 pull.
 - 콜리전 채널 추가: `ECC_Wx*` 상수와 `Config/DefaultEngine.ini`의 채널 등록 순서가 일치해야 함.
 - WxCore엔 정의/공용 계약만 둔다. 리플리케이션·권한 로직은 소비 도메인이 책임진다.
 
@@ -58,4 +58,4 @@
 - 상위: 모든 Wx 도메인 플러그인([[WxCombat]], [[WxInventory]], [[WxUI]], [[WxWorld]], [[WxSound]], [[WxAI]], [[WxQuest]], [[WxSave]])과 게임 모듈 [[WxGame]]이 WxCore를 참조
 
 ---
-*문서 기준 커밋 `10f1722` · 생성일 2026-07-23 · 소스 7파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `c275320` · 생성일 2026-07-24 · 소스 7파일 — `/readme-writer`로 갱신*

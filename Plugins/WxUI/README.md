@@ -1,54 +1,54 @@
 # WxUI — UI 시스템
 
-> CommonUI 레이어 스택과 ModelViewViewModel(MVVM)을 기반으로 하는 UI 도메인 플러그인. 활성화 위젯 스택·팝업·전역 뷰모델을 관리하고, 게임 상태(ASC 어트리뷰트/어빌리티/이펙트, 캐릭터, 상호작용, 선택)를 View 로 노출하는 C++ 골격을 제공한다. 실제 화면(WBP)은 이 골격에 바인딩한다.
+> CommonUI 레이어 스택과 MVVM(ModelViewViewModel)을 뼈대로 한 게임 UI 프레임워크. 위젯 베이스 클래스, 레이어/팝업 관리 서브시스템, ASC·캐릭터·상호작용을 UMG에 노출하는 뷰모델 계층을 제공한다.
 
 ## 책임
 **담당**
-- CommonUI 레이어 스택 관리: `UWxPrimaryGameLayout`(LayerTag→위젯 스택 맵, z-order 저작)과 `UWxUIManagerSubsystem`(레이어 push, 로컬플레이어 생명주기, 위젯 활성 상태 기반 게임 정지 재평가).
-- 활성화 위젯 베이스 계층: `UWxActivatableWidget`(입력 모드·정지 정책) → `UWxHUDLayout`·`UWxGamePopup`.
-- MVVM 뷰모델 계층: `UWxViewModel` 파생 VM 들이 ASC/캐릭터/상호작용/선택 데이터를 순수 표시 계약으로 노출. Blueprint 바인딩용 컨버전(`UWxMVVMConversionLibrary`)·파사드(`UWxUILibrary`) 제공.
-- 공용 위젯 베이스: Button/Tab/ActionWidget/LazyImage 등 WBP 가 상속·바인딩할 C++ 베이스.
-- 월드 부착 UI: `UWxNameplateComponent`(WidgetComponent 확장, 거리 스케일·태그 기반 표시).
-- UI 표시 데이터 "모양" 소유: `FWxCharacterUIData`, `UWxEffectComponent_UIData`. UI 클래스 설정은 `UWxUIDeveloperSettings`(레이아웃/팝업 소프트 클래스).
+- 레이어드 UI 스택 관리: `UWxPrimaryGameLayout`(레이어 태그별 위젯 스택)와 이를 플레이어별로 생성·구동하는 `UWxUIManagerSubsystem`.
+- 위젯 베이스 클래스군: Activatable/HUD/팝업/버튼/탭/액션/LazyImage 등 CommonUI 파생 공통 위젯.
+- MVVM 뷰모델 계층: ASC(어트리뷰트/어빌리티/이펙트/OwnedTags), 캐릭터 표시 데이터, 선택 대상, 상호작용을 UMG 바인딩용 도메인-무관 표시 계약으로 노출.
+- 확인/에러 팝업 파이프라인과 BP 파사드(`UWxUILibrary`), MVVM 바인딩 컨버전 함수(`UWxMVVMConversionLibrary`).
+- 월드 네임플레이트 컴포넌트, GameplayEffect UI 데이터 컴포넌트.
 
 **경계 (비담당)**
-- ASC·어트리뷰트·어빌리티 정의는 [[WxCombat]]/[[WxCore]] 소유. VM 은 ASC 에서 값을 읽어 표시만 한다.
-- 상호작용 대상 레지스트리·선택 소유권은 [[WxWorld]]. WxUI 는 엔진 타입 인자로 값을 받아 표시만 하며(도메인 타입 미참조), 레지스트리 델리게이트 연결은 게임 모듈(WxGame) 리졸버가 수행한다.
-- 캐릭터/어빌리티 표시 데이터(이름·초상화·아이콘)의 저작·주입은 소비 측(게임 모듈·BP)이 담당. WxUI 는 데이터 "모양"만 소유.
+- 전투/어트리뷰트 정의·계산은 [[WxCombat]] (WxUI는 ASC를 표시만 함).
+- 인벤토리 데이터·아이템 뷰모델은 [[WxInventory]].
+- 상호작용 판정·대상 탐지는 [[WxWorld]] (VM은 push된 표시값만 보유).
+- 구체 캐릭터 타입·표시 데이터 저작은 소비 측(게임 모듈)이 `FWxCharacterUIData`로 주입.
 
 ## 의존성
-- **주요 의존**: `WxCore`(유일한 Wx 의존), CommonUI/CommonInput(레이어·활성화 위젯·입력 모드), ModelViewViewModel(VM 베이스·전역 컬렉션), GameplayAbilities/GameplayTags(ASC·태그), UMG/Slate, DeveloperSettings.
-- 규칙: 「WxCore 외 Wx 플러그인 참조」 검증 — 없음 ✅ (`.uplugin`·`Build.cs`·include 전수 확인, WxCore 만 참조)
+- **주요 의존**: `WxCore`, `CommonUI` / `CommonInput`, `ModelViewViewModel`(MVVM), `GameplayAbilities`(ASC 관찰), `UMG`, `DeveloperSettings`. 에디터 전용으로 `EnhancedInput`·`AssetRegistry`(`WxActionWidget` 디자인타임 아이콘 프리뷰).
+- 규칙: 「WxCore 외 Wx 플러그인 참조」 — 없음 ✅ (`.uplugin`·`Build.cs` 모두 Wx 중 `WxCore`만 참조).
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxUIManagerSubsystem` | UI 중앙 오케스트레이터(GameInstanceSubsystem). 레이어 push·팝업·전역 선택 VM·게임 정지 | `Plugins/WxUI/Source/WxUI/Public/System/WxUIManagerSubsystem.h` |
-| `UWxPrimaryGameLayout` | 레이어 스택 루트 위젯(태그→스택 맵). 서브시스템이 생성·소유 | `Plugins/WxUI/Source/WxUI/Public/System/WxPrimaryGameLayout.h` |
-| `UWxActivatableWidget` | 모든 활성화 위젯의 베이스. 입력 모드·게임 정지 정책 | `Plugins/WxUI/Source/WxUI/Public/Widget/WxActivatableWidget.h` |
-| `UWxGamePopup` | 팝업 위젯 베이스 + `UWxGamePopupDescriptor`·`EWxPopupResult` | `Plugins/WxUI/Source/WxUI/Public/Widget/WxGamePopup.h` |
-| `UWxViewModel` | MVVM 뷰모델 베이스(Abstract). 전 파생 VM 의 뿌리 | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h` |
-| `UWxViewModel_Character` | 캐릭터 Composite VM. 자식 AbilitySystem VM 소유 + 이름/초상화 노출 | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Character.h` |
-| `UWxViewModel_AbilitySystem` | ASC Composite VM. 어트리뷰트/어빌리티/이펙트 자식 VM 지연 생성 | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h` |
-| `UWxUILibrary` / `UWxMVVMConversionLibrary` | BP 파사드(레이어·팝업 제어) / MVVM 바인딩 컨버전 함수 | `Plugins/WxUI/Source/WxUI/Public/WxUILibrary.h` |
-| `UWxNameplateComponent` | 월드 부착 네임플레이트(WidgetComponent 확장, ASC VM 바인딩) | `Plugins/WxUI/Source/WxUI/Public/Component/WxNameplateComponent.h` |
+| `UWxUIManagerSubsystem` | GameInstance 서브시스템. 플레이어별 레이아웃 생성, 레이어 push, 팝업, 게임 정지 재평가, 공유 Selection VM 소유 | `Source/WxUI/Public/System/WxUIManagerSubsystem.h` |
+| `UWxPrimaryGameLayout` | 레이어 태그별 `UCommonActivatableWidgetStack` 컨테이너. 배열 순서가 z-order | `Source/WxUI/Public/System/WxPrimaryGameLayout.h` |
+| `UWxActivatableWidget` | 모든 화면 위젯 베이스. 입력 모드/게임 정지 의향(`ShouldPauseGame`) 노출 | `Source/WxUI/Public/Widget/WxActivatableWidget.h` |
+| `UWxHUDLayout` | 상시 활성 HUD 루트. 메뉴 토글 입력을 Menu 레이어 push로 연결 | `Source/WxUI/Public/Widget/WxHUDLayout.h` |
+| `UWxGamePopup` / `UWxGamePopupDescriptor` | 팝업 위젯 베이스 + 헤더/본문/버튼 서술자, 결과 델리게이트 | `Source/WxUI/Public/Widget/WxGamePopup.h` |
+| `UWxViewModel_AbilitySystem` | ASC를 어트리뷰트/어빌리티/이펙트/OwnedTags 자식 VM으로 노출(지연 생성) | `Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h` |
+| `UWxViewModel_Character` | 캐릭터 Composite VM. AbilitySystem 자식 VM + 이름/초상화 | `Source/WxUI/Public/MVVM/WxViewModel_Character.h` |
+| `UWxUILibrary` | BP 파사드. 서브시스템/레이아웃 접근, 레이어 제어, 팝업 표시 | `Source/WxUI/Public/WxUILibrary.h` |
+| `UWxMVVMConversionLibrary` | UMG 바인딩용 컨버전(태그→Visibility, 어트리뷰트/어빌리티 VM 조회) | `Source/WxUI/Public/MVVM/WxMVVMConversionLibrary.h` |
 
 ## 확장 포인트 / 규약
-- **새 화면 위젯**: `UWxActivatableWidget` 을 상속(BP)하고, `UWxUIDeveloperSettings`·`UWxHUDLayout` 의 소프트 클래스 슬롯에 지정하거나 `UWxUIManagerSubsystem::PushContentToLayer`·`UWxUILibrary`·`UWxAsyncAction_PushWidgetToLayer`(비동기 로드+push) 로 레이어에 push 한다. 레이어는 `UI.Layer.*` 게임플레이 태그로 식별(네이티브 선언 아님, 문자열 태그). z-order/레이어 목록은 `UWxPrimaryGameLayout::LayerTags` 배열로 저작.
-- **정지 정책**: 위젯이 `bPauseGame` 을 켜면 서브시스템이 전 레이어 활성 위젯을 재평가해 게임 정지를 적용한다. 위젯은 서브시스템을 알지 못한다(단방향).
-- **새 뷰모델**: `UWxViewModel` 을 상속하고 `Deinitialize()` 를 오버라이드해 구독을 해제한다. 표시 필드는 `UPROPERTY(BlueprintReadOnly, FieldNotify)` 로 노출. 자식 VM 은 Composite VM(`_Character`/`_AbilitySystem`)이 소유하며 바인딩이 요청할 때 `GetOrCreate...` 로 지연 생성. 전역 공유 VM 은 `UMVVMGameSubsystem` 컬렉션에 등록(예: 선택 VM `"VM_Selection"`).
-- **도메인 값 주입 규약**: WxUI 는 도메인 타입을 참조하지 않으므로, VM 은 엔진 타입/평면 표시 필드만 노출하고 값은 외부 소스가 push 한다(`SetSelection`, `Initialize` 등). 네임플레이트는 `UWxNameplateComponent::InitializeViewModels(ASC, FWxCharacterUIData)` 로 바인딩. UMG 중첩 바인딩은 `UWxMVVMConversionLibrary` 의 `Get Attribute/Ability ViewModel` 컨버전으로 자식 VM 을 가져온다.
-- **아이콘/초상화**: `TSoftObjectPtr<UTexture2D>` 를 그대로 노출만 하고 View 측 `UWxLazyImage`/`UCommonLazyImage` 가 비동기 로드·수명 관리(VM 은 `LoadSynchronous` 미호출).
-- BP/WBP 위젯 계층·MVVM 바인딩 그래프·디폴트값은 CLAUDE.md 의 「Blueprint 분석」 절 참조.
+- **새 화면 위젯**: `UWxActivatableWidget`(Abstract) 상속 → WBP로 저작. HUD는 `UWxHUDLayout`, 팝업은 `UWxGamePopup` 파생. 게임 정지가 필요하면 `bPauseGame`을 켜면 서브시스템이 전 레이어를 재평가해 적용한다(위젯은 서브시스템을 모른다).
+- **새 뷰모델**: `UWxViewModel`(Abstract, `UMVVMViewModelBase` 파생) 상속. 값은 외부 소스가 push하고 VM은 도메인 타입을 참조하지 않는 평면 표시 필드만 노출(`UWxViewModel_Selection` 참조). `FieldNotify` UPROPERTY로 바인딩을 통지한다.
+- **레이어 추가**: `UWxPrimaryGameLayout::LayerTags`(BP 디폴트, `UI.Layer.*` 태그)에 추가. 레이어/액션 태그는 이 모듈이 선언하지 않고 프로젝트 태그 소스에서 온다.
+- **레이아웃/팝업 클래스 지정**: `UWxUIDeveloperSettings`(Project Settings)에서 `LayoutClass`·`ConfirmationPopupClass`·`ErrorPopupClass`를 소프트 클래스로 설정.
+- **네임플레이트**: 오너 액터 생성자에서 `UWxNameplateComponent` 서브오브젝트 생성 → BeginPlay 이후 `InitializeViewModels(ASC, UIData)`.
 
 ## 여기서부터 읽어라
-1. `Plugins/WxUI/Source/WxUI/Public/System/WxUIManagerSubsystem.h` — UI 진입점. 레이어 push·팝업·정지·전역 VM 이 모두 여기서 시작한다.
-2. `Plugins/WxUI/Source/WxUI/Public/System/WxPrimaryGameLayout.h` — 레이어 스택 구조. 위젯이 어디에 쌓이는지 이해의 기준.
-3. `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h` — 게임 상태→UI 노출의 대표 패턴(지연 생성·자식 Composite VM).
+1. `Source/WxUI/Public/System/WxUIManagerSubsystem.h` — 모듈의 런타임 오케스트레이터. 레이어·팝업·정지·공유 VM의 진입점.
+2. `Source/WxUI/Public/System/WxPrimaryGameLayout.h` — 레이어 스택 구조와 push API. UI 배치의 뼈대.
+3. `Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h` — ASC를 UMG로 잇는 MVVM 계층의 중심. 지연 생성·자식 VM 패턴이 여기에 있다.
+4. `Source/WxUI/Public/Widget/WxActivatableWidget.h` — 모든 화면 위젯의 공통 계약(입력 모드/정지 의향).
 
 ## 관련
-- 상위: [[WxGame]](레이아웃/팝업 클래스 저작·뷰모델 브리지 리졸버).
-- 데이터 소스: [[WxCombat]], [[WxWorld]].
+- 상위: [[WxGame]] (레이아웃/팝업 클래스 저작·주입), [[WxCore]] (공용 정의)
+- 데이터 소스: [[WxCombat]], [[WxInventory]], [[WxWorld]]
 
 ---
-*문서 기준 커밋 `10f1722` · 생성일 2026-07-23 · 소스 53파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `c275320` · 생성일 2026-07-24 · 소스 53파일 — `/readme-writer`로 갱신*
