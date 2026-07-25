@@ -38,7 +38,7 @@ struct FWxStateTreeTask_GrantRewardInstanceData
  * 보상 스폰/지급은 서버 권위 사건이라 클라 진입은 노옵(클라는 복제로 픽업/인벤토리를 추종).
  * 틱하지 않으므로 비용이 없다.
  */
-USTRUCT(meta = (DisplayName = "Wx Grant Reward"))
+USTRUCT(meta = (DisplayName = "Grant Reward", Category = "Wx"))
 struct FWxStateTreeTask_GrantReward : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

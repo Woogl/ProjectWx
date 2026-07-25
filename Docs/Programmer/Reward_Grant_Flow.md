@@ -12,7 +12,7 @@
 두 개의 축만 알면 전부 설명된다.
 
 - **무엇을 하느냐** — 아이템에 `Pickup` Fragment 가 있으면 **픽업 스폰**, 없으면 **직접 지급**
-- **언제 하느냐** — **적 사망**(코드가 직접 호출) 또는 **상호작용**(상자 등, StateTree 의 Wx Grant Reward 태스크)
+- **언제 하느냐** — **적 사망**(코드가 직접 호출) 또는 **상호작용**(상자 등, StateTree 의 Grant Reward 태스크)
 
 ---
 
@@ -22,7 +22,7 @@
 flowchart TD
     subgraph 트리거
         Death["적 사망<br/>GrantReward(this, RewardRow, 로컬 PC, GetActorTransform, Speed)"]
-        Interact["상호작용 기믹<br/>State→Open · ST: Wx Grant Reward"]
+        Interact["상호작용 기믹<br/>State→Open · ST: Grant Reward"]
     end
 
     Death --> Grant
@@ -97,7 +97,7 @@ sequenceDiagram
 
 외형 없는 아이템(재화 등)은 띄울 모습이 없으니 **대상 인벤토리에 바로 넣는다.** 대상이 없으면 경고 후 스킵.
 
-직접 지급 대상은 **로컬 플레이어 컨트롤러(`GetPlayerController(0)`)** 다. 적 사망(코드가 직접 호출)·상호작용(Wx Grant Reward 태스크) 양쪽 모두 0번 컨트롤러를 넘긴다.
+직접 지급 대상은 **로컬 플레이어 컨트롤러(`GetPlayerController(0)`)** 다. 적 사망(코드가 직접 호출)·상호작용(Grant Reward 태스크) 양쪽 모두 0번 컨트롤러를 넘긴다.
 
 > 💡 재화처럼 외형 없는 아이템은 `Pickup` Fragment 없이 두면 적 사망·상호작용 양쪽에서 **처치/획득 즉시** 대상 인벤토리에 지급된다. 픽업으로 월드에 스폰하고 싶을 때만 `Pickup` Fragment 를 준다.
 
@@ -119,13 +119,13 @@ void AWxEnemyCharacter::HandleDeath()
 }
 ```
 
-**상호작용** — 상호작용 기믹(보물 상자)은 상호작용 시 자신의 `State` 를 `Open` 으로 확정하고, 이를 추종하는 GimmickStateTree 의 Open 상태에서 `Wx Grant Reward` 태스크가 `GrantReward` 를 호출한다. 보상 데이터(`RewardRow` / `SpawnOffset` / `LaunchSpeed`)는 태스크의 **인스턴스 데이터**라 ST 에셋에서 설정한다. 스폰 위치는 오너 트랜스폼 + 로컬 `SpawnOffset`(기본 +90Z) 이다. 1회성 게이팅은 상자의 `State` 가 담당한다.
+**상호작용** — 상호작용 기믹(보물 상자)은 상호작용 시 자신의 `State` 를 `Open` 으로 확정하고, 이를 추종하는 GimmickStateTree 의 Open 상태에서 `Grant Reward` 태스크가 `GrantReward` 를 호출한다. 보상 데이터(`RewardRow` / `SpawnOffset` / `LaunchSpeed`)는 태스크의 **인스턴스 데이터**라 ST 에셋에서 설정한다. 스폰 위치는 오너 트랜스폼 + 로컬 `SpawnOffset`(기본 +90Z) 이다. 1회성 게이팅은 상자의 `State` 가 담당한다.
 
 ```mermaid
 flowchart LR
     Player["플레이어"] -->|상호작용| Chest["상자: State→Open"]
     Chest -->|복제 State 추종| ST["GimmickStateTree<br/>Open 상태 진입"]
-    ST --> Task["Wx Grant Reward 태스크<br/>인스턴스 데이터 RewardRow/SpawnOffset/Speed"]
+    ST --> Task["Grant Reward 태스크<br/>인스턴스 데이터 RewardRow/SpawnOffset/Speed"]
     Task --> L["GrantReward(오너, ..., 오너+SpawnOffset, Speed)"]
 ```
 
@@ -180,6 +180,6 @@ flowchart LR
 | `AWxItemPickup` | WxInventory | 월드 픽업 액터. 발사·줍기·인벤토리 지급 |
 | `UWxInventoryManagerComponent` | WxInventory | 최종 적재(`AddItemDefinition`)·인벤토리 조회(`FindInventory`) |
 | `AWxEnemyCharacter` | WxGame | 적 사망 드랍 호출처(`HandleDeath`), `RewardRow`/`LaunchSpeed` 보유 |
-| `FWxStateTreeTask_GrantReward` | WxInventory | ST 상태 진입 시 `GrantReward` 호출(권위·라이브 진입 가드). 인스턴스 데이터로 보상 보유. "Wx Grant Reward" |
+| `FWxStateTreeTask_GrantReward` | WxInventory | ST 상태 진입 시 `GrantReward` 호출(권위·라이브 진입 가드). 인스턴스 데이터로 보상 보유. "Grant Reward" |
 | `AWxTreasureChest` | WxWorld | 상호작용 트리거 예시(`State` 게이팅) |
 | `IWxInteractionSource` | WxCore | 상호작용 연동용 공용 인터페이스 |

@@ -55,6 +55,6 @@ FText FWxStateTreeTask_GrantReward::GetDescription(const FGuid& ID, FStateTreeDa
 	// 비어 있으면 아무것도 지급하지 않으므로 (none) 으로 표시.
 	const FName RewardName = InstanceData->RewardRow.RowName;
 	return FText::Format(INVTEXT("Grant Reward ({0})"),
-		RewardName.IsNone() ? INVTEXT("(none)") : FText::FromName(RewardName));
+		RewardName.IsNone() ? INVTEXT("none") : FText::FromName(RewardName));
 }
 #endif

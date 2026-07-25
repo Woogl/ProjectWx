@@ -46,7 +46,7 @@
 ### 5. 🟢 상호작용 이동/몽타주 경로가 여전히 휴면 — 어떤 기믹도 `SetInteractingCharacter` 를 호출하지 않는다
 - **위치**: `Plugins/WxWorld/Source/WxWorld/Public/Gimmick/WxGimmick.h:57`, `Plugins/WxWorld/Source/WxWorld/Private/Gimmick/WxGimmick.cpp:60`
 - **범주**: 중복/복잡도
-- **문제**: 직전 리뷰의 판정이 그대로 유효하다. 저장소 전체에서 `SetInteractingCharacter` 의 호출부는 0 개이며(정의·선언·주석만 존재), Door/Elevator/TreasureChest/AlarmConsole/SpawnConsole/CutsceneTrigger 의 `OnInteracted` 어디에서도 호출하지 않는다. 따라서 복제 프로퍼티 `InteractingCharacter`(`WxGimmick.h:113`)는 항상 null 이고, 이를 바인딩하는 `Wx Move Interactor To Target`·`Wx Play Interactor Montage` 두 태스크는 현재 no-op 다. 발견 1 이 아직 실전 결함이 되지 않는 이유이기도 하다.
+- **문제**: 직전 리뷰의 판정이 그대로 유효하다. 저장소 전체에서 `SetInteractingCharacter` 의 호출부는 0 개이며(정의·선언·주석만 존재), Door/Elevator/TreasureChest/AlarmConsole/SpawnConsole/CutsceneTrigger 의 `OnInteracted` 어디에서도 호출하지 않는다. 따라서 복제 프로퍼티 `InteractingCharacter`(`WxGimmick.h:113`)는 항상 null 이고, 이를 바인딩하는 `Move Interactor To Target`·`Play Interactor Montage` 두 태스크는 현재 no-op 다. 발견 1 이 아직 실전 결함이 되지 않는 이유이기도 하다.
 - **제안**: 배선 계획이 살아 있으면 그대로 두되 발견 1 을 배선 **전에** 고친다. 계획이 없다면 두 태스크와 `InteractingCharacter` 복제 프로퍼티를 함께 정리한다.
 - **확신도**: 높음(사실). 의도된 미배선일 수 있다.
 
