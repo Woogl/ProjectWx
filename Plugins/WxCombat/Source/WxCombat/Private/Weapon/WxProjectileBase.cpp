@@ -60,14 +60,12 @@ void AWxProjectileBase::InitializeDamageSpec()
 	CachedSpecHandles = DamageInfo.MakeSpecs(SourceASC, CachedEffectContext);
 }
 
-void AWxProjectileBase::Destroyed()
+void AWxProjectileBase::PlayImpactFX()
 {
 	if (ImpactFX)
 	{
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ImpactFX, GetActorLocation(), GetActorRotation());
 	}
-
-	Super::Destroyed();
 }
 
 void AWxProjectileBase::BeginPlay()
@@ -99,6 +97,14 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 		return;
 	}
 
+	PlayImpactFX();
+
+	// 대미지 적용과 파괴는 서버 권위로만 처리한다. 클라는 복제된 파괴로 투사체가 사라진다.
+	if (!HasAuthority())
+	{
+		return;
+	}
+
 	if (CachedEffectContext.IsValid())
 	{
 		FHitResult HitResult;
@@ -106,7 +112,7 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 		{
 			HitResult = SweepResult;
 		}
-		else
+		else if (OtherComp)
 		{
 			FVector ClosestPoint;
 			if (OtherComp->GetClosestPointOnCollision(HitCollision->GetComponentLocation(), ClosestPoint) >= 0.f)
@@ -140,6 +146,14 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 void AWxProjectileBase::HandleHitCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (OtherActor == GetOwner() || OtherActor == GetInstigator())
+	{
+		return;
+	}
+
+	PlayImpactFX();
+
+	// 파괴는 서버 권위로만 처리한다. 클라는 복제된 파괴로 투사체가 사라진다.
+	if (!HasAuthority())
 	{
 		return;
 	}
