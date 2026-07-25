@@ -62,7 +62,8 @@ protected:
 	FGameplayTag GetEligibleFinisherEventTag(const AActor* Interactor) const;
 
 	//~ Begin IWxInteractable — 처형 상호작용(영역 + 자격 + 응답 + "Finisher" 프롬프트).
-	virtual void GetActiveInteractionMeshes(TArray<UPrimitiveComponent*>& OutMeshes) const override;
+	// 파라미터명이 InMesh 인 것은 ACharacter::Mesh 멤버를 가리지 않기 위해서다.
+	virtual bool IsInteractionMeshActive(const UPrimitiveComponent* InMesh) const override;
 	virtual bool CanBeInteractedBy(const AActor* Interactor, const UActorComponent* Source) const override;
 	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
 	virtual FText GetInteractionPrompt(const UActorComponent* Source) const override;

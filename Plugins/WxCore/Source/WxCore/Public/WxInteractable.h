@@ -12,7 +12,7 @@ class UPrimitiveComponent;
 
 /**
  * 상호작용 대상의 공용 계약. 대상 액터가 직접 구현한다.
- * 상호작용 영역은 액터의 메시 그 자체이며, 어느 메시가 영역인지는 대상이 GetActiveInteractionMeshes 로 직접 답한다 — 콜리전은 관여하지 않는다.
+ * 상호작용 영역은 액터의 메시 그 자체이며, 어느 메시가 영역인지는 대상이 IsInteractionMeshActive 로 직접 답한다 — 콜리전 프리셋·응답은 관여하지 않는다.
  * 응답·프롬프트도 그 메시의 소유 액터가 본 인터페이스로 제공한다.
  * 계약이 WxCore 에 있으므로 소비 도메인(예: WxInventory 픽업)이 WxWorld 에 의존하지 않고도 자기 액터를 상호작용 대상으로 만들 수 있다.
  */
@@ -34,20 +34,21 @@ public:
 	static IWxInteractable* Find(const UActorComponent* Mesh);
 
 	/**
-	 * 영역 메시가 Origin 에서 Radius 안에 있는가. 감지(스캐너)와 서버 사거리 검증(상호작용 어빌리티)이 같은 식을 써야 하므로 여기 하나로 둔다.
+	 * 영역 메시가 Origin 에서 Radius 안에 있는가. 서버 사거리 검증(상호작용 어빌리티)이 쓴다.
 	 * 콜리전 형상 기준이므로 영역 메시엔 쿼리 콜리전이 켜져 있어야 한다(응답·프로파일은 무관, 스켈레탈이면 피직스 애셋 필요).
-	 * 대상 자격 자체는 GetActiveInteractionMeshes 가 정하므로 콜리전과 무관하다 — 콜리전은 "얼마나 가까워야 하는가"에만 쓰인다.
+	 * 클라 스캐너는 같은 원점·반경의 구 오버랩으로 주변을 모으므로 결과가 이 판정과 일치한다 — 쿼리 콜리전 요구는 사거리뿐 아니라 감지 자체의 전제다.
+	 * 대상 자격 자체는 IsInteractionMeshActive 가 정하므로 콜리전 프리셋·응답과 무관하다 — 콜리전은 "얼마나 가까워야 하는가"에만 쓰인다.
 	 */
 	static bool IsMeshInRange(const UPrimitiveComponent* Mesh, const FVector& Origin, float Radius);
 
 	/**
-	 * 지금 상호작용 가능한 내 영역 메시들. 어느 메시가 영역인가(표식)와 그 영역이 지금 켜져 있는가(활성)를 이 목록 하나가 함께 답한다.
-	 * 켜고 끄는 방식은 구현체가 정한다 — 상시 활성이면 자기 메시를 그대로 담고, 상태별로 갈리면(기믹) 그 상태에서 켜진 영역만 담는다.
+	 * 이 메시가 지금 상호작용 가능한 내 영역인가. 어느 메시가 영역인가(표식)와 그 영역이 지금 켜져 있는가(활성)를 이 판정 하나가 함께 답한다.
+	 * 켜고 끄는 방식은 구현체가 정한다 — 상시 활성이면 자기 메시인지만 보고, 상태별로 갈리면(기믹) 그 상태에서 켜진 영역인지 본다.
 	 *
-	 * 스캐너가 클라에서 주변 후보를 모을 때 읽고, 상호작용 어빌리티가 서버에서 선택 메시가 이 목록에 있는지로 활성을 권위 검증한다.
+	 * 스캐너가 클라에서 주변 후보를 거를 때 묻고, 상호작용 어빌리티가 서버에서 선택 메시로 활성을 권위 검증한다.
 	 * 양쪽이 같은 답에 수렴하도록 켜고 끄는 근거는 전 머신에서 동일해야 한다(기믹은 복제 State 로 구동되는 StateTree 가 각 피어에서 토글한다).
 	 */
-	virtual void GetActiveInteractionMeshes(TArray<UPrimitiveComponent*>& OutMeshes) const = 0;
+	virtual bool IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const = 0;
 
 	/**
 	 * 상호작용 응답. 서버 권위에서 상호작용 어빌리티가 호출한다(비권위 호출 없음).

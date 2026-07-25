@@ -3,9 +3,11 @@
 #include "Interaction/WxInteractionScannerComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "CollisionQueryParams.h"
+#include "CollisionShape.h"
 #include "Components/PrimitiveComponent.h"
+#include "Engine/OverlapResult.h"
 #include "Engine/World.h"
-#include "EngineUtils.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "TimerManager.h"
@@ -143,38 +145,43 @@ void UWxInteractionScannerComponent::ScanAndPush()
 
 	const FVector ScanOrigin = Pawn->GetActorLocation();
 
-	// 대상이 자기 영역 메시를 인터페이스로 직접 답하므로, 로드된 액터를 훑어 계약 구현체만 남긴다(구현 액터는 소수라 이 캐스트가 사실상의 필터다).
-	// 누가 대상인가는 콜리전과 무관하다 — 프리셋·응답이 무엇이든 영역으로 잡힌다. 콜리전은 아래 사거리 판정에만 쓰인다.
+	// 반경 구를 전 오브젝트 채널로 던져 겹친 컴포넌트를 받는다.
+	// 오브젝트 쿼리는 셰이프의 오브젝트 타입만 보고 채널 응답 매트릭스를 보지 않으므로, 누가 대상인가가 콜리전 프리셋·응답과 무관하다는 설계가 유지된다.
+	TArray<FOverlapResult> Overlaps;
+	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(WxInteractionScan), /*bTraceComplex*/ false);
+	QueryParams.AddIgnoredActor(Pawn);
+	World->OverlapMultiByObjectType(Overlaps, ScanOrigin, FQuat::Identity, FCollisionObjectQueryParams(FCollisionObjectQueryParams::AllObjects), FCollisionShape::MakeSphere(ScanRadius), QueryParams);
+
+	// 스켈레탈은 피직스 애셋 바디마다 결과가 따로 오므로 컴포넌트 단위로 한 번만 검사한다.
+	// 채택 여부가 아니라 검사 여부로 걸어야, 자격 미달로 탈락하는 대상(정면을 본 적 등)의 판정이 바디 수만큼 반복되지 않는다.
+	TArray<const UPrimitiveComponent*> Examined;
+	Examined.Reserve(Overlaps.Num());
+
 	TArray<UPrimitiveComponent*> Candidates;
-	TArray<UPrimitiveComponent*> ActiveMeshes;
-	for (TActorIterator<AActor> It(World); It; ++It)
+	for (const FOverlapResult& Overlap : Overlaps)
 	{
-		const IWxInteractable* Target = Cast<IWxInteractable>(*It);
+		UPrimitiveComponent* Mesh = Overlap.GetComponent();
+		if (!Mesh || Examined.Contains(Mesh))
+		{
+			continue;
+		}
+		Examined.Add(Mesh);
+
+		// 소유 액터가 계약 구현체가 아니면(바닥·벽·소품 등) 여기서 탈락한다.
+		const IWxInteractable* Target = IWxInteractable::Find(Mesh);
 		if (!Target)
 		{
 			continue;
 		}
 
-		// 목록에 담긴 것이 곧 지금 켜져 있는 영역이다 — 한 액터에 여러 영역이 있으면(예: 엘리베이터) 메시 단위로 각각 잡힌다.
-		ActiveMeshes.Reset();
-		Target->GetActiveInteractionMeshes(ActiveMeshes);
-
-		for (UPrimitiveComponent* Mesh : ActiveMeshes)
+		// 겹쳤다는 것이 곧 사거리 판정이다 — 오버랩 구가 IsMeshInRange 와 같은 원점·반경·형상이라 다시 재지 않는다.
+		// 남은 건 이 메시가 지금 켜져 있는 영역인가(서버 권위 검증과 같은 판정)와, 이 주체에게 자격이 있는가다.
+		// 주체별로 자격이 갈리는 대상(예: 처형은 주체가 후방이어야 뒤잡)은 활성 판정만으론 걸러지지 않으므로 소유 폰을 주체로 물어 표시를 거른다.
+		// 서버는 같은 두 함수를 실제 instigator 로 다시 물어 권위 판정한다.
+		if (Target->IsInteractionMeshActive(Mesh) && Target->CanBeInteractedBy(Pawn, Mesh))
 		{
-			// 영역이 반경 안이어야 후보다(콜리전 형상 기준, 없으면 바운즈). 서버의 사거리 검증도 같은 식을 쓴다.
-			if (!IWxInteractable::IsMeshInRange(Mesh, ScanOrigin, ScanRadius))
-			{
-				continue;
-			}
-
-			// 주체별로 자격이 갈리는 대상(예: 처형은 주체가 후방이어야 뒤잡)은 활성 목록만으론 걸러지지 않는다.
-			// 소유 폰을 주체로 물어 표시를 거른다 — 서버는 같은 함수를 실제 instigator 로 다시 물어 권위 판정한다.
-			if (!Target->CanBeInteractedBy(Pawn, Mesh))
-			{
-				continue;
-			}
-
-			Candidates.AddUnique(Mesh);
+			// 한 액터에 여러 영역이 있으면(예: 엘리베이터) 메시 단위로 각각 잡힌다.
+			Candidates.Add(Mesh);
 		}
 	}
 

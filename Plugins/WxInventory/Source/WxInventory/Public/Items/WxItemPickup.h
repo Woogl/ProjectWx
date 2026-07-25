@@ -43,7 +43,7 @@ public:
 	void LaunchInDirection(const FVector& Direction, float Speed);
 
 	//~ Begin IWxInteractable — 상시 활성인 메시 하나가 영역, 인벤토리 지급+파괴 응답, "[F] {DisplayName}" 프롬프트.
-	virtual void GetActiveInteractionMeshes(TArray<UPrimitiveComponent*>& OutMeshes) const override;
+	virtual bool IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const override;
 	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
 	virtual FText GetInteractionPrompt(const UActorComponent* Source) const override;
 	//~ End IWxInteractable

@@ -18,8 +18,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionSelectionChanged, in
  * AWxPlayerController 에 붙어, 소유 클라(리슨호스트 포함)에서 주변 상호작용 메시를 주기 스캔해 in-range 집합을 모은다.
  * HUD 리스트 뷰모델(UWxViewModel_InteractionList)이 이 목록을, 전역 선택 VM(UWxViewModel_Selection)이 선택 항목을 표시한다.
  *
- * 상호작용 영역은 대상 액터의 메시 그 자체다 — 대상이 IWxInteractable 로 지금 켜져 있는 영역 메시를 답하고, 목록에서 빠지면 다음 스캔에서 탈락한다.
- * 콜리전은 관여하지 않으므로 대상 메시의 콜리전 설정과 무관하게 잡힌다. 응답·프롬프트도 같은 인터페이스가 제공한다.
+ * 상호작용 영역은 대상 액터의 메시 그 자체다 — 대상이 IWxInteractable 로 그 메시가 지금 켜져 있는 영역인지 답하고, 꺼지면 다음 스캔에서 탈락한다.
+ * 주변 후보는 반경 구 오버랩으로 모으되 전 오브젝트 채널로 던지므로, 대상 자격은 콜리전 프리셋·응답과 무관하다(쿼리 콜리전만 켜져 있으면 된다). 응답·프롬프트도 같은 인터페이스가 제공한다.
  *
  * PlayerController 소유인 이유: 폰 리스폰에도 생존하고, 소유 클라 연결로 net-owned 라 ServerInteract RPC 를 직접 들 수 있으며, 타 클라에 복제되지 않아 로컬리티가 좋다.
  * 감지·선택·하이라이트는 로컬 어포던스라 소유 클라에서만 구동한다(데디 서버 PC 는 스캔하지 않는다). ServerInteract 수신만 서버에서 실행된다.
@@ -66,7 +66,7 @@ public:
 	FWxOnInteractionSelectionChanged OnSelectionChanged;
 
 protected:
-	/** 주변 상호작용 메시를 수집할 반경(cm). 영역 메시의 바운즈에서 잰다. */
+	/** 주변 상호작용 메시를 수집할 반경(cm). 이 반경의 구를 오버랩해 후보를 모으므로, 서버 사거리 검증(WxAbility_Interact)의 반경과 일치시킨다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Interact")
 	float ScanRadius = 150.f;
 
@@ -84,7 +84,8 @@ private:
 	void ServerInteract(UPrimitiveComponent* Selected);
 
 	/**
-	 * 소유 클라에서만 주기 스캔 타이머를 건다. 로드된 액터 중 IWxInteractable 구현체를 훑어 활성 영역을 모으고, 소유 PC 의 폰에서 반경 안인 것을 거리순으로 UpdateInRange 한다.
+	 * 소유 클라에서만 주기 스캔 타이머를 건다. 폰 주위 ScanRadius 구를 오버랩해 겹친 컴포넌트 중 IWxInteractable 의 활성 영역인 것만 남기고 거리순으로 UpdateInRange 한다.
+	 * 겹쳤다는 사실이 곧 사거리 판정이라 메시별 사거리 재측정은 하지 않는다(오버랩 구가 IsMeshInRange 와 같은 원점·반경·형상이다).
 	 * 상호작용 불가(사망·처형 중)면 후보를 비워 프롬프트·하이라이트를 정리한다.
 	 */
 	void ScanAndPush();

@@ -70,8 +70,8 @@ public:
 	virtual void HandleLevelSequenceFinished() {}
 
 	//~ Begin IWxInteractable
-	/** 현재 켜져 있는 영역 메시들. 자식은 생성자에서 기본 활성 영역을 선언하고, 이후엔 'Enable Interaction' 태스크가 상태별로 넣고 뺀다. */
-	virtual void GetActiveInteractionMeshes(TArray<UPrimitiveComponent*>& OutMeshes) const override;
+	/** 지금 켜져 있는 영역인가. 자식은 생성자에서 기본 활성 영역을 선언하고, 이후엔 'Enable Interaction' 태스크가 상태별로 넣고 뺀다. */
+	virtual bool IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const override;
 
 	// 상호작용 응답은 각 구체 기믹이 override 한다. UCLASS(Abstract) 라도 CDO 는 생성되므로 순수 가상은 피하고 PURE_VIRTUAL 로 미구현 계약을 표시한다(미override 시 런타임 에러).
 	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override PURE_VIRTUAL(AWxGimmick::OnInteracted, );
@@ -82,7 +82,7 @@ public:
 
 	/**
 	 * Mesh 영역의 상호작용을 켜고 끈다. 'Enable Interaction' 태스크가 상태 진입 시 자기 대상 메시로 호출한다.
-	 * 꺼진 영역은 GetActiveInteractionMeshes 에 담기지 않아 다음 스캔에서 후보에서 빠지고, 어빌리티의 서버 활성 검증에도 걸린다.
+	 * 꺼진 영역은 IsInteractionMeshActive 가 false 를 답해 다음 스캔에서 후보에서 빠지고, 어빌리티의 서버 활성 검증에도 걸린다.
 	 * 프롬프트와 마찬가지로 복제하지 않는다 — ST 가 각 피어에서 실행되어 같은 값에 수렴한다.
 	 */
 	void SetInteractionEnabled(UPrimitiveComponent* Mesh, bool bEnabled);

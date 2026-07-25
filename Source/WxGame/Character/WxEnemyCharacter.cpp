@@ -72,11 +72,11 @@ void AWxEnemyCharacter::HandleDeath()
 	}
 }
 
-void AWxEnemyCharacter::GetActiveInteractionMeshes(TArray<UPrimitiveComponent*>& OutMeshes) const
+bool AWxEnemyCharacter::IsInteractionMeshActive(const UPrimitiveComponent* InMesh) const
 {
-	// 처형 상호작용 영역은 캐릭터 메시 자체다. 목록은 늘 열어 두고, 실제 자격(생사·그로기=앞잡 / 미인지·후방=뒤잡)은 CanBeInteractedBy 가 주체별로 판정한다.
-	// 목록은 머신당 값이 하나뿐이라 특정 플레이어에 종속시킬 수 없다 — 그렇게 하면 서버 값이 한 플레이어 기준이 되어 다른 플레이어의 정당한 처형이 거부된다.
-	OutMeshes.Add(GetMesh());
+	// 처형 상호작용 영역은 캐릭터 메시 자체다. 영역은 늘 열어 두고, 실제 자격(생사·그로기=앞잡 / 미인지·후방=뒤잡)은 CanBeInteractedBy 가 주체별로 판정한다.
+	// 이 판정은 머신당 답이 하나뿐이라 특정 플레이어에 종속시킬 수 없다 — 그렇게 하면 서버 답이 한 플레이어 기준이 되어 다른 플레이어의 정당한 처형이 거부된다.
+	return InMesh == GetMesh();
 }
 
 bool AWxEnemyCharacter::CanBeInteractedBy(const AActor* Interactor, const UActorComponent* Source) const

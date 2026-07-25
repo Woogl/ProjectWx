@@ -23,7 +23,7 @@
 | --- | --- | --- |
 | `AWxGimmick` | 모든 상호작용 기믹의 Abstract 베이스. 권위 State 쓰기(`CommitGimmickState`)·복제/SaveGame·GimmickStateTree 구동을 소유. 자식은 컴포넌트·인터랙션 핸들러만 제공 | `Source/WxWorld/Public/Gimmick/WxGimmick.h` |
 | `WxGimmickStateTreeNodes` | 전 기믹 StateTree 가 공유하는 태스크/조건 struct 모음(`Component Move`, `Play Level Sequence`, `Spawn Actor`, `Wx Gimmick State Is` 등). 초기 진입/라이브 전이를 `SourceStateID` 로 구분 | `Source/WxWorld/Public/Gimmick/WxGimmickStateTreeNodes.h` |
-| `UWxInteractionScannerComponent` | PlayerController 에 붙어 소유 클라에서 `IWxInteractable` 구현 액터를 주기 순회해 활성 영역을 모으고 선택·하이라이트하며 `ServerInteract` 로 전송 | `Source/WxWorld/Public/Interaction/WxInteractionScannerComponent.h` |
+| `UWxInteractionScannerComponent` | PlayerController 에 붙어 소유 클라에서 폰 주위 반경 구를 주기 오버랩해 `IWxInteractable` 의 활성 영역을 모으고 선택·하이라이트하며 `ServerInteract` 로 전송 | `Source/WxWorld/Public/Interaction/WxInteractionScannerComponent.h` |
 | `AWxSpawner` | `SpawnableActorClass` 를 스폰하는 배치 액터. 처치/부활 상태(`bIsKilled`)를 GUID 키로 SaveGame 보존 | `Source/WxWorld/Public/Spawnable/WxSpawner.h` |
 | `IWxSpawnableInterface` | 스폰 대상이 구현하는 계약(`OnSpawnedBy` 훅, 에디터 미리보기 메시) | `Source/WxWorld/Public/Spawnable/WxSpawnableInterface.h` |
 | `UWxSpawnerLibrary` | 월드의 Auto 모드 스포너 일괄 리스폰 BP 진입점(`TryRespawnAll`) | `Source/WxWorld/Public/System/WxSpawnerLibrary.h` |

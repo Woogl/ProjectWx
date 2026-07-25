@@ -29,8 +29,8 @@ AWxNpc::AWxNpc()
 	// 캐릭터 계열은 이 정렬을 BP 에서 주지만, NPC 는 BP 마다 반복시키지 않고 여기서 준다.
 	MeshComponent->SetRelativeLocationAndRotation(FVector(0.f, 0.f, -90.f), FRotator(0.f, -90.f, 0.f));
 
-	// 이 메시가 곧 상호작용 영역이다. 대상 자격은 GetActiveInteractionMeshes 가 정하지만 사거리는 콜리전 형상으로 재므로 쿼리 콜리전은 켜 둔다.
-	// 몸통 충돌은 캡슐이 맡으므로 응답은 전부 Ignore 다 — 사거리 판정은 바디에 직접 던지는 테스트라 응답을 보지 않는다.
+	// 이 메시가 곧 상호작용 영역이다. 대상 자격은 IsInteractionMeshActive 가 정하지만 감지·사거리를 콜리전 형상으로 재므로 쿼리 콜리전은 켜 둔다.
+	// 몸통 충돌은 캡슐이 맡으므로 응답은 전부 Ignore 다 — 스캐너의 오버랩도 사거리 판정도 오브젝트 타입만 보고 응답 매트릭스를 보지 않는다.
 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	MeshComponent->SetGenerateOverlapEvents(false);
@@ -38,10 +38,10 @@ AWxNpc::AWxNpc()
 	DialogueComponent = CreateDefaultSubobject<UWxDialogueComponent>(TEXT("DialogueComponent"));
 }
 
-void AWxNpc::GetActiveInteractionMeshes(TArray<UPrimitiveComponent*>& OutMeshes) const
+bool AWxNpc::IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const
 {
 	// NPC 는 항상 말을 걸 수 있다. 대화 중 차단은 상호작용 어빌리티의 State.Dialogue 차단 태그가 맡는다.
-	OutMeshes.Add(MeshComponent);
+	return Mesh == MeshComponent;
 }
 
 void AWxNpc::OnInteracted(AActor* Interactor, const UActorComponent* Source)

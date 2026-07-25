@@ -73,11 +73,9 @@ void UWxAbility_Interact::ExecuteInteract(const UPrimitiveComponent* Selected, c
 		return;
 	}
 
-	// 서버 권위 활성 검증: 대상이 지금 켜져 있다고 답한 영역에 선택 메시가 들어 있어야 한다.
+	// 서버 권위 활성 검증: 선택 메시가 대상이 지금 켜져 있다고 답하는 영역이어야 한다.
 	// 클라가 비활성 대상을(또는 비활성 직후에) 보내도 여기서 걸린다.
-	TArray<UPrimitiveComponent*> ActiveMeshes;
-	Target->GetActiveInteractionMeshes(ActiveMeshes);
-	if (!ActiveMeshes.Contains(Selected))
+	if (!Target->IsInteractionMeshActive(Selected))
 	{
 		return;
 	}

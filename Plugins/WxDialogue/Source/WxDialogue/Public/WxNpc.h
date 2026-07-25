@@ -26,7 +26,7 @@ public:
 	AWxNpc();
 
 	//~ Begin IWxInteractable — 상시 활성인 메시 하나가 영역, 상호작용자 세션에 대화 시작 위임, "[F] Talk to {Name}" 프롬프트.
-	virtual void GetActiveInteractionMeshes(TArray<UPrimitiveComponent*>& OutMeshes) const override;
+	virtual bool IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const override;
 	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
 	virtual FText GetInteractionPrompt(const UActorComponent* Source) const override;
 	//~ End IWxInteractable

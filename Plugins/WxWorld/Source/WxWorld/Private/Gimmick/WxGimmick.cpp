@@ -70,16 +70,22 @@ void AWxGimmick::SetInteractingCharacter(AActor* InActor)
 	InteractingCharacter = Cast<ACharacter>(InActor);
 }
 
-void AWxGimmick::GetActiveInteractionMeshes(TArray<UPrimitiveComponent*>& OutMeshes) const
+bool AWxGimmick::IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const
 {
-	OutMeshes.Reserve(OutMeshes.Num() + ActiveInteractionMeshes.Num());
-	for (const TObjectPtr<UPrimitiveComponent>& Mesh : ActiveInteractionMeshes)
+	// 목록에 파괴된 항목이 남아 있을 수 있으므로 null 끼리 맞아떨어지지 않게 막는다.
+	if (!Mesh)
 	{
-		if (Mesh)
+		return false;
+	}
+
+	for (const TObjectPtr<UPrimitiveComponent>& Active : ActiveInteractionMeshes)
+	{
+		if (Active.Get() == Mesh)
 		{
-			OutMeshes.Add(Mesh);
+			return true;
 		}
 	}
+	return false;
 }
 
 FText AWxGimmick::GetInteractionPrompt(const UActorComponent* Source) const

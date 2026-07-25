@@ -23,7 +23,7 @@ AWxItemPickup::AWxItemPickup()
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	SetRootComponent(MeshComponent);
 
-	// 이 메시가 곧 상호작용 영역이지만 감지는 콜리전과 무관하다(GetActiveInteractionMeshes 로 답한다).
+	// 이 메시가 곧 상호작용 영역이지만 대상 자격은 콜리전 프리셋·응답과 무관하다(IsInteractionMeshActive 로 답한다).
 	// 아래 콜리전은 순전히 LaunchInDirection 의 물리 발사와 월드 충돌을 위한 것이다.
 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	MeshComponent->SetCollisionObjectType(ECC_WorldDynamic);
@@ -65,10 +65,10 @@ void AWxItemPickup::LaunchInDirection(const FVector& Direction, float Speed)
 	MeshComponent->SetPhysicsLinearVelocity(Direction.GetSafeNormal() * Speed);
 }
 
-void AWxItemPickup::GetActiveInteractionMeshes(TArray<UPrimitiveComponent*>& OutMeshes) const
+bool AWxItemPickup::IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const
 {
 	// 픽업은 존재하는 동안 항상 상호작용 가능하다(지급 후엔 액터가 파괴되므로 끌 상태가 없다).
-	OutMeshes.Add(MeshComponent);
+	return Mesh == MeshComponent;
 }
 
 void AWxItemPickup::OnInteracted(AActor* Interactor, const UActorComponent* Source)
