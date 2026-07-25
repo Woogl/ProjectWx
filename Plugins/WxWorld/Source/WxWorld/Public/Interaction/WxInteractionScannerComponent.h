@@ -92,7 +92,7 @@ private:
 
 	/**
 	 * 후보 집합으로 in-range 멤버십을 갱신한다. 기존 순서 보존·신규만 뒤에 추가·이탈은 제거.
-	 * 멤버십이 실제로 바뀐 경우에만 강조/목록/선택을 갱신·발화한다(불변이면 침묵).
+	 * 멤버십이 실제로 바뀐 경우에만 강조·선택을 갱신·발화하고, 목록(프롬프트)은 문구 스냅샷이 달라졌을 때 발화한다 — 멤버십이 그대로여도 대상이 상태별로 문구를 바꾸면 그것도 갱신이다.
 	 */
 	void UpdateInRange(const TArray<UPrimitiveComponent*>& InCandidates);
 
@@ -116,6 +116,9 @@ private:
 	APawn* GetOwnerPawn() const;
 
 	TArray<TWeakObjectPtr<UPrimitiveComponent>> InRangeMeshes;
+
+	/** 마지막으로 내보낸 프롬프트 스냅샷. 대상이 pull 로 주는 문구가 실제로 달라졌을 때만 OnListChanged 를 발화하려고 든다. */
+	TArray<FText> LastPrompts;
 
 	int32 SelectedIndex = INDEX_NONE;
 

@@ -225,18 +225,40 @@ void UWxInteractionScannerComponent::UpdateInRange(const TArray<UPrimitiveCompon
 		}
 	}
 
-	if (!bChanged)
+	// 멤버십도 그대로고 볼 대상도 없으면 비교할 문구조차 없다 — 주변에 아무것도 없는 대부분의 스캔이 여기서 끝나 아래 프롬프트 수집 비용이 들지 않는다.
+	if (!bChanged && InRangeMeshes.IsEmpty())
 	{
 		return;
 	}
 
-	// 선택 복원: 캐시한 메시가 남아 있으면 그 인덱스로, 없으면 비었을 때 INDEX_NONE / 아니면 0.
-	const int32 RestoredIndex = PreviousSelected ? InRangeMeshes.IndexOfByKey(PreviousSelected) : INDEX_NONE;
-	SelectedIndex = InRangeMeshes.IsEmpty() ? INDEX_NONE : (RestoredIndex != INDEX_NONE ? RestoredIndex : 0);
+	if (bChanged)
+	{
+		// 선택 복원: 캐시한 메시가 남아 있으면 그 인덱스로, 없으면 비었을 때 INDEX_NONE / 아니면 0.
+		const int32 RestoredIndex = PreviousSelected ? InRangeMeshes.IndexOfByKey(PreviousSelected) : INDEX_NONE;
+		SelectedIndex = InRangeMeshes.IsEmpty() ? INDEX_NONE : (RestoredIndex != INDEX_NONE ? RestoredIndex : 0);
 
-	ApplyHighlight();
-	OnListChanged.Broadcast(GetPrompts());
-	OnSelectionChanged.Broadcast(SelectedIndex);
+		ApplyHighlight();
+	}
+
+	// 프롬프트는 대상에서 pull 하는 값이라 멤버십이 그대로여도 문구만 바뀔 수 있다(상태가 바뀌어도 그 영역을 끄지 않는 기믹).
+	// 멤버십 변화만 보고 발화하면 플레이어가 영역 안에 서 있는 동안 HUD 문구가 이전 상태 값으로 굳으므로, 직전 스냅샷과 비교해 실제로 달라졌을 때 내보낸다.
+	TArray<FText> Prompts = GetPrompts();
+	bool bPromptsChanged = Prompts.Num() != LastPrompts.Num();
+	for (int32 Index = 0; !bPromptsChanged && Index < Prompts.Num(); ++Index)
+	{
+		bPromptsChanged = !Prompts[Index].EqualTo(LastPrompts[Index]);
+	}
+
+	if (bPromptsChanged)
+	{
+		LastPrompts = MoveTemp(Prompts);
+		OnListChanged.Broadcast(LastPrompts);
+	}
+
+	if (bChanged)
+	{
+		OnSelectionChanged.Broadcast(SelectedIndex);
+	}
 }
 
 void UWxInteractionScannerComponent::UpdateSelection(int32 NewIndex)
