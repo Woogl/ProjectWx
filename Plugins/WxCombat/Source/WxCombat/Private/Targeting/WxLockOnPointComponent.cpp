@@ -15,11 +15,6 @@ UWxLockOnPointComponent::UWxLockOnPointComponent()
 
 	// 기본값: 죽은 대상은 락온 불가. 다른 조건은 엔티티별로 BP 에서 오버라이드한다.
 	LockOnRequirements.IgnoreTags.AddTag(WxGameplayTags::State_Dead);
-
-#if WITH_EDITORONLY_DATA
-	// 보이지 않는 마커이므로 에디터에서 위치를 스프라이트로 표시해 배치·선택을 돕는다.
-	bVisualizeComponent = true;
-#endif
 }
 
 bool UWxLockOnPointComponent::CanBeLockedOn() const
