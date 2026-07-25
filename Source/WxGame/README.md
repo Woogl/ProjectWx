@@ -9,12 +9,12 @@
 - 컨트롤러: `AWxPlayerController`(인벤토리 소유·HUD/사망화면 push), `AWxEnemyController`(폰 BT 실행, Perception 위임).
 - 입력 배선: `UWxInputConfig`(IMC + Move/Look + 어빌리티 태그 매핑), 게임플레이 어빌리티 `UWxAbility_Interact`·`UWxAbility_UseItem`, AnimNotify(UseItem).
 - 위젯-도메인 접착: `MVVM/` 뷰모델·리졸버(Inventory/Item/BossCharacter/PlayerCharacter/InteractionList) — 도메인 데이터를 WBP에 노출.
-- 게임 고유 월드 오브젝트: `AWxCheckPoint`(AWxGimmick 상속 모닥불형 부활 지점), `AWxLaserCorridor`(AWxGimmick 상속 트랩).
+- 게임 고유 월드 오브젝트: `AWxLaserCorridor`(AWxGimmick 상속 트랩).
 
 **경계 (비담당)**
 - ASC/AttributeSet/무기/락온/처형 규칙 정의는 [[WxCombat]] (본 모듈은 컴포넌트를 조립·소유만).
 - 인벤토리 자료구조·보상 지급(`GrantReward`) 로직은 [[WxInventory]].
-- 상호작용 컴포넌트·기믹/StateTree 인프라·Spawner는 [[WxWorld]].
+- 상호작용 컴포넌트·기믹/StateTree 인프라·Spawner는 [[WxWorld]]. 체크포인트(`AWxCheckPoint`)도 기믹이라 여기가 아니라 [[WxWorld]] 소관.
 - AI 지각·Blackboard·BT Task·정찰은 [[WxAI]].
 - ActivatableWidget/HUDLayout/뷰모델 베이스 등 UI 프레임워크는 [[WxUI]].
 - BGM 소스/Chooser 오디오는 [[WxSound]], 저장/영속 복원(`UWxSaveWorldSubsystem`·`UWxPlayerSpawnComponent`)은 [[WxSave]], 팀·어빌리티 베이스 등 공용 정의는 [[WxCore]].
@@ -39,7 +39,7 @@
 - 새 캐릭터/적/보스는 `AWxPlayerCharacter`/`AWxEnemyCharacter`/`AWxBossCharacter`를 BP 상속 후 컴포넌트(무기 `ChildActorClass`, `BehaviorTreeAsset`, `RewardRow`, BGM 태그 등)를 디폴트에서 지정. ASC는 PlayerState가 아닌 캐릭터가 직접 소유(리스폰 시 스탯 재초기화).
 - 직접 바인딩 입력(이동/시선/점프/웅크리기/상호작용)은 `UWxInputConfig` DataAsset에 IA를 추가하고 `AWxPlayerCharacter::SetupPlayerInputComponent`에서 바인딩. 어빌리티 입력은 `UWxInputConfig`에 두지 않고 AbilitySet 부여 대상 CDO에서 파생(`ASC::CollectAbilityInputActions`)해 자동 바인딩. 상호작용은 페이로드 운반이 필요해 직접 바인딩(`InteractAction`), 메뉴/UI 입력은 여기 넣지 않고 CommonUI 액션([[WxUI]] `WxHUDLayout`)으로.
 - GameMode `FrameworkComponents`(EditDefaultsOnly)에 프레임워크 컴포넌트 클래스를 추가하면 GameState/Controller 등 receiver에 자동 주입(receiver는 무엇이 붙는지 모른다). 새 프레임워크 기능은 컴포넌트로 추가.
-- 새 월드 오브젝트/기믹은 [[WxWorld]] `AWxGimmick` 상속(예: `AWxCheckPoint`, `AWxLaserCorridor`). 권위 State만 C++가 확정하고 비주얼은 GimmickStateTree가 담당하는 패턴.
+- 새 월드 오브젝트/기믹은 [[WxWorld]] `AWxGimmick` 상속(예: `AWxLaserCorridor`). 권위 State만 C++가 확정하고 비주얼은 GimmickStateTree가 담당하는 패턴. 기믹 자체는 [[WxWorld]] 에 두고, 다른 도메인 부수효과가 필요하면 그 도메인이 제공하는 ST 태스크로 ST 에셋에서 조립한다(체크포인트 리필 = [[WxInventory]] `Refill Item Charges`).
 - 재개 지점은 [[WxSave]] `UWxPlayerSpawnComponent`가 저장 좌표를 `StartSpot`으로 주입해 처리(스폰은 엔진 기본 경로). 오토세이브가 `AWxCheckPoint`뿐인 한 사망 부활은 마지막으로 불을 켠 체크포인트가 된다. 신규 세션 시작지점은 레벨의 일반 `APlayerStart`.
 - 권한 모델: 인벤토리는 서버 권한 + 소유 연결 전용 복제. 상호작용 선택은 로컬 레지스트리 소유·예측 실행(LocalPredicted)으로 페이로드를 서버 전송. 에너미 처형 어포던스/발동·보상 지급은 서버 권한.
 - WBP의 View Bindings에서 Creation Type = Resolver로 `MVVM/`의 리졸버를 선택하면 게임 상태를 [[WxUI]] 뷰모델에 주입(게임 모듈만 양쪽에 의존 가능하므로 이 글루가 유일 통로).
