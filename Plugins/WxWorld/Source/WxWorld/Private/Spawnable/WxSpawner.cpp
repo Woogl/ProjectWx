@@ -43,13 +43,14 @@ AWxSpawner::AWxSpawner()
 		ArrowComponent->bIsScreenSizeScaled = true;
 	}
 
+	// 프리뷰는 에디터 월드에서만 존재해야 하므로 자동 등록을 끄고 PostRegisterAllComponents 에서 직접 등록한다.
+	// 콜리전 비활성화는 에디터 월드의 네비메시 빌드에 끼어들지 않기 위함이다.
 	PreviewSkeletalMeshComponent = CreateEditorOnlyDefaultSubobject<USkeletalMeshComponent>(TEXT("PreviewSkeletalMeshComponent"));
 	if (PreviewSkeletalMeshComponent)
 	{
 		PreviewSkeletalMeshComponent->SetupAttachment(SceneRoot);
 		PreviewSkeletalMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		PreviewSkeletalMeshComponent->SetHiddenInGame(true);
-		PreviewSkeletalMeshComponent->bCastHiddenShadow = true;
+		PreviewSkeletalMeshComponent->bAutoRegister = false;
 	}
 
 	PreviewStaticMeshComponent = CreateEditorOnlyDefaultSubobject<UStaticMeshComponent>(TEXT("PreviewStaticMeshComponent"));
@@ -57,8 +58,7 @@ AWxSpawner::AWxSpawner()
 	{
 		PreviewStaticMeshComponent->SetupAttachment(SceneRoot);
 		PreviewStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		PreviewStaticMeshComponent->SetHiddenInGame(true);
-		PreviewStaticMeshComponent->bCastHiddenShadow = true;
+		PreviewStaticMeshComponent->bAutoRegister = false;
 	}
 #endif
 }
@@ -129,19 +129,6 @@ void AWxSpawner::OnWxSaveRestored()
 void AWxSpawner::BeginPlay()
 {
 	Super::BeginPlay();
-
-#if WITH_EDITORONLY_DATA
-	if (PreviewSkeletalMeshComponent)
-	{
-		PreviewSkeletalMeshComponent->DestroyComponent();
-		PreviewSkeletalMeshComponent = nullptr;
-	}
-	if (PreviewStaticMeshComponent)
-	{
-		PreviewStaticMeshComponent->DestroyComponent();
-		PreviewStaticMeshComponent = nullptr;
-	}
-#endif
 
 	if (HasAuthority())
 	{
@@ -238,6 +225,29 @@ void AWxSpawner::PostLoad()
 	Super::PostLoad();
 
 	UpdateEditorPreviewFromSpawnableClass();
+}
+
+// 프리뷰 메시는 bAutoRegister 를 꺼 둬서 엔진 일괄 등록에서 빠진다. 여기서 에디터 월드일 때만 직접 등록해 게임 월드로 새지 않게 한다.
+// 등록 훅으로 PreRegisterAllComponents 는 쓸 수 없다. 월드파티션 셀 스트리밍이 타는 증분 등록 경로가 그 함수를 호출하지 않는다.
+void AWxSpawner::PostRegisterAllComponents()
+{
+	Super::PostRegisterAllComponents();
+
+	const UWorld* World = GetWorld();
+	if (!World || World->IsGameWorld())
+	{
+		return;
+	}
+
+	if (PreviewSkeletalMeshComponent)
+	{
+		PreviewSkeletalMeshComponent->RegisterComponent();
+	}
+
+	if (PreviewStaticMeshComponent)
+	{
+		PreviewStaticMeshComponent->RegisterComponent();
+	}
 }
 
 void AWxSpawner::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
