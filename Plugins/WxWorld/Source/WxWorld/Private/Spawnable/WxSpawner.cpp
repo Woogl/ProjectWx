@@ -171,8 +171,9 @@ void AWxSpawner::SpawnTarget()
 
 	Spawned->FinishSpawning(SpawnTransform);
 
+	// 스포너에 attach 하지 않는다. 스폰 대상은 CMC 로 돌아다니는 캐릭터라, 루트가 붙어 있으면 이동 복제가 ReplicatedMovement 대신 AttachmentReplication(부모 상대 오프셋) 경로를 타 원격 스무딩에서 벗어나고 스포너를 옮기면 딸려 온다.
+	// 수명은 이 약참조와 Respawn/EndPlay/OnWxSaveRestored 의 명시 Destroy 가 관리하므로 부착이 필요 없다.
 	SpawnedActor = Spawned;
-	Spawned->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
 }
 
 #if WITH_EDITOR
@@ -229,6 +230,19 @@ void AWxSpawner::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(AWxSpawner, SpawnableActorClass))
 	{
 		UpdateEditorPreviewFromSpawnableClass();
+
+		// 라벨 동기화는 프리뷰 갱신과 달리 여기(디자이너가 클래스를 실제로 바꾼 순간)에서만 한다.
+		// 프리뷰 쪽에 두면 맵/셀을 열 때마다 도는 PostRegisterAllComponents 경로에서도 불려, 디자이너가 지은 이름(예: Boss_Room_Guard_01)이 매 로드마다 클래스명으로 되돌아가고 SetActorLabel 의 Modify() 가 아무 편집 없이 패키지를 dirty 로 만든다.
+		if (SpawnableActorClass)
+		{
+			FString NewLabel = SpawnableActorClass->GetName();
+			NewLabel.RemoveFromEnd(TEXT("_C"));
+			SetActorLabel(NewLabel);
+		}
+		else
+		{
+			SetActorLabel(GetClass()->GetName());
+		}
 	}
 }
 
@@ -268,17 +282,6 @@ void AWxSpawner::UpdateEditorPreviewFromSpawnableClass()
 		}
 		SpriteComponent->SetSprite(NewSprite);
 		SpriteComponent->SetRelativeLocation(FVector(0.f, 0.f, PreviewTopZ + 50.f));
-	}
-
-	if (SpawnableActorClass)
-	{
-		FString NewLabel = SpawnableActorClass->GetName();
-		NewLabel.RemoveFromEnd(TEXT("_C"));
-		SetActorLabel(NewLabel);
-	}
-	else
-	{
-		SetActorLabel(GetClass()->GetName());
 	}
 }
 #endif
