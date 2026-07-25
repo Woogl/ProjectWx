@@ -43,9 +43,6 @@ public:
 	 * 사망 시 순회 없이 해당 Spawner 에 처치 기록을 남기기 위함.
 	 */
 	virtual void OnSpawnedBy(AWxSpawner* Spawner) override;
-#if WITH_EDITOR
-	virtual const UMeshComponent* GetEditorPreviewMeshComponent() const override;
-#endif
 	//~ End IWxSpawnableInterface
 
 protected:

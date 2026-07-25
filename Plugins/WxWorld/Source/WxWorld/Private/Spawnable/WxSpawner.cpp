@@ -3,12 +3,10 @@
 #include "Spawnable/WxSpawner.h"
 
 #include "Spawnable/WxSpawnableInterface.h"
-#include "Components/ArrowComponent.h"
 #include "Components/BillboardComponent.h"
-#include "Components/SkeletalMeshComponent.h"
-#include "Components/StaticMeshComponent.h"
-#include "Engine/SkeletalMesh.h"
-#include "Engine/StaticMesh.h"
+#include "Components/ChildActorComponent.h"
+#include "Components/PrimitiveComponent.h"
+#include "Engine/World.h"
 #include "UObject/ConstructorHelpers.h"
 #include "System/WxWorldDeveloperSettings.h"
 
@@ -33,33 +31,8 @@ AWxSpawner::AWxSpawner()
 		}
 	}
 
-	ArrowComponent = CreateEditorOnlyDefaultSubobject<UArrowComponent>(TEXT("ArrowComponent"));
-	if (ArrowComponent)
-	{
-		ArrowComponent->SetupAttachment(SceneRoot);
-		ArrowComponent->ArrowColor = FColor(150, 200, 255);
-		ArrowComponent->ArrowSize = 1.0f;
-		ArrowComponent->bTreatAsASprite = true;
-		ArrowComponent->bIsScreenSizeScaled = true;
-	}
-
-	// 프리뷰는 에디터 월드에서만 존재해야 하므로 자동 등록을 끄고 PostRegisterAllComponents 에서 직접 등록한다.
-	// 콜리전 비활성화는 에디터 월드의 네비메시 빌드에 끼어들지 않기 위함이다.
-	PreviewSkeletalMeshComponent = CreateEditorOnlyDefaultSubobject<USkeletalMeshComponent>(TEXT("PreviewSkeletalMeshComponent"));
-	if (PreviewSkeletalMeshComponent)
-	{
-		PreviewSkeletalMeshComponent->SetupAttachment(SceneRoot);
-		PreviewSkeletalMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		PreviewSkeletalMeshComponent->bAutoRegister = false;
-	}
-
-	PreviewStaticMeshComponent = CreateEditorOnlyDefaultSubobject<UStaticMeshComponent>(TEXT("PreviewStaticMeshComponent"));
-	if (PreviewStaticMeshComponent)
-	{
-		PreviewStaticMeshComponent->SetupAttachment(SceneRoot);
-		PreviewStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		PreviewStaticMeshComponent->bAutoRegister = false;
-	}
+	// 프리뷰 컴포넌트는 여기서 만들지 않는다. CDO 서브오브젝트로 두면 게임 월드에도 딸려오고 RF_Transient 도 붙지 않으므로,
+	// 에디터 월드에서만 PostRegisterAllComponents 가 NewObject 로 생성한다.
 #endif
 }
 
@@ -219,16 +192,8 @@ void AWxSpawner::PostDuplicate(EDuplicateMode::Type DuplicateMode)
 	SaveId = GetActorGuid();
 }
 
-// 키 부여는 PostActorCreated/PostDuplicate 가 담당한다. 여기서는 Transient 프리뷰 컴포넌트만 로드 시 복원한다.
-void AWxSpawner::PostLoad()
-{
-	Super::PostLoad();
-
-	UpdateEditorPreviewFromSpawnableClass();
-}
-
-// 프리뷰 메시는 bAutoRegister 를 꺼 둬서 엔진 일괄 등록에서 빠진다. 여기서 에디터 월드일 때만 직접 등록해 게임 월드로 새지 않게 한다.
-// 등록 훅으로 PreRegisterAllComponents 는 쓸 수 없다. 월드파티션 셀 스트리밍이 타는 증분 등록 경로가 그 함수를 호출하지 않는다.
+// 프리뷰 컴포넌트를 에디터 월드에서만 만들어 게임 월드로 새지 않게 한다.
+// 생성 훅으로 PreRegisterAllComponents 는 쓸 수 없다. 월드파티션 셀 스트리밍이 타는 증분 등록 경로가 그 함수를 호출하지 않는다.
 void AWxSpawner::PostRegisterAllComponents()
 {
 	Super::PostRegisterAllComponents();
@@ -239,15 +204,20 @@ void AWxSpawner::PostRegisterAllComponents()
 		return;
 	}
 
-	if (PreviewSkeletalMeshComponent)
+	if (!PreviewChildActorComponent)
 	{
-		PreviewSkeletalMeshComponent->RegisterComponent();
+		// RF_Transient 는 자식 액터까지 전파되어, 자식이 스포너의 외부 패키지에 얹히는 것을 막는다.
+		PreviewChildActorComponent = NewObject<UChildActorComponent>(this, TEXT("PreviewChildActorComponent"), RF_Transient);
+		PreviewChildActorComponent->SetupAttachment(SceneRoot);
+
+		// 자식 액터에 bIsEditorOnlyActor 를 세우고, 아웃라이너에서 감춘다.
+		PreviewChildActorComponent->SetIsVisualizationComponent(true);
+		PreviewChildActorComponent->SetEditorTreeViewVisualizationMode(EChildActorComponentTreeViewVisualizationMode::Hidden);
+
+		PreviewChildActorComponent->RegisterComponent();
 	}
 
-	if (PreviewStaticMeshComponent)
-	{
-		PreviewStaticMeshComponent->RegisterComponent();
-	}
+	UpdateEditorPreviewFromSpawnableClass();
 }
 
 void AWxSpawner::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -263,61 +233,29 @@ void AWxSpawner::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 
 void AWxSpawner::UpdateEditorPreviewFromSpawnableClass()
 {
-	const UMeshComponent* SourceMeshComponent = nullptr;
-	if (SpawnableActorClass)
+	// 프리뷰 루트의 상단 높이. 스프라이트를 그 위에 띄우는 데 쓴다.
+	float PreviewTopZ = 0.f;
+
+	if (PreviewChildActorComponent)
 	{
-		if (const IWxSpawnableInterface* Spawnable = Cast<IWxSpawnableInterface>(SpawnableActorClass->GetDefaultObject()))
+		// 등록된 컴포넌트에 클래스를 지정하면 엔진이 자식 액터를 즉시 재생성한다. 부착물·머티리얼·소켓 배치가 함께 따라온다.
+		PreviewChildActorComponent->SetChildActorClass(SpawnableActorClass);
+
+		// 캐릭터는 캡슐 중심이 액터 원점이라 그대로 두면 허리까지 묻힌다. 루트 바운드 하단만큼 올려 발을 스포너 원점에 맞춘다.
+		// 바운드는 컴포넌트의 현재 위치와 무관한 로컬 값이므로 이 계산은 몇 번을 호출해도 같은 결과가 나온다.
+		float FootOffset = 0.f;
+		if (const AActor* PreviewActor = PreviewChildActorComponent->GetChildActor())
 		{
-			SourceMeshComponent = Spawnable->GetEditorPreviewMeshComponent();
-		}
-	}
-
-	const USkeletalMeshComponent* SourceSkeletal = Cast<USkeletalMeshComponent>(SourceMeshComponent);
-	const UStaticMeshComponent* SourceStatic = Cast<UStaticMeshComponent>(SourceMeshComponent);
-
-	// 소스 메시의 액터 기준 누적 Transform (상위 체인의 Location/Rotation/Scale 반영)
-	FTransform PreviewTransform = FTransform::Identity;
-	for (const USceneComponent* C = SourceMeshComponent; C; C = C->GetAttachParent())
-	{
-		PreviewTransform = PreviewTransform * C->GetRelativeTransform();
-	}
-
-	// 루트 바운드(Scale 반영) 하단만큼 올려 발을 스포너 원점에 정렬
-	if (const AActor* CDO = SpawnableActorClass ? SpawnableActorClass->GetDefaultObject<AActor>() : nullptr)
-	{
-		if (const UPrimitiveComponent* Root = Cast<UPrimitiveComponent>(CDO->GetRootComponent()))
-		{
-			const FTransform ScaleOnly(FQuat::Identity, FVector::ZeroVector, Root->GetRelativeScale3D());
-			PreviewTransform.AddToTranslation(FVector(0.f, 0.f, FMath::Max(0.f, -Root->CalcBounds(ScaleOnly).GetBox().Min.Z)));
-		}
-	}
-
-	if (PreviewSkeletalMeshComponent)
-	{
-		PreviewSkeletalMeshComponent->SetSkeletalMeshAsset(SourceSkeletal ? SourceSkeletal->GetSkeletalMeshAsset() : nullptr);
-		PreviewSkeletalMeshComponent->EmptyOverrideMaterials();
-		PreviewSkeletalMeshComponent->SetRelativeTransform(PreviewTransform);
-		if (SourceSkeletal)
-		{
-			for (int32 i = 0; i < SourceSkeletal->GetNumMaterials(); ++i)
+			if (const UPrimitiveComponent* Root = Cast<UPrimitiveComponent>(PreviewActor->GetRootComponent()))
 			{
-				PreviewSkeletalMeshComponent->SetMaterial(i, SourceSkeletal->GetMaterial(i));
+				const FTransform ScaleOnly(FQuat::Identity, FVector::ZeroVector, Root->GetRelativeScale3D());
+				const FBox RootBounds = Root->CalcBounds(ScaleOnly).GetBox();
+
+				FootOffset = FMath::Max(0.f, -RootBounds.Min.Z);
+				PreviewTopZ = FootOffset + RootBounds.Max.Z;
 			}
 		}
-	}
-
-	if (PreviewStaticMeshComponent)
-	{
-		PreviewStaticMeshComponent->SetStaticMesh(SourceStatic ? SourceStatic->GetStaticMesh() : nullptr);
-		PreviewStaticMeshComponent->EmptyOverrideMaterials();
-		PreviewStaticMeshComponent->SetRelativeTransform(PreviewTransform);
-		if (SourceStatic)
-		{
-			for (int32 i = 0; i < SourceStatic->GetNumMaterials(); ++i)
-			{
-				PreviewStaticMeshComponent->SetMaterial(i, SourceStatic->GetMaterial(i));
-			}
-		}
+		PreviewChildActorComponent->SetRelativeLocation(FVector(0.f, 0.f, FootOffset));
 	}
 
 	if (SpriteComponent)
@@ -328,11 +266,7 @@ void AWxSpawner::UpdateEditorPreviewFromSpawnableClass()
 			NewSprite = LoadObject<UTexture2D>(nullptr, TEXT("/Engine/EditorResources/Spawn_Point.Spawn_Point"));
 		}
 		SpriteComponent->SetSprite(NewSprite);
-
-		const UPrimitiveComponent* ActivePreview = SourceSkeletal ? static_cast<UPrimitiveComponent*>(PreviewSkeletalMeshComponent)
-			: SourceStatic ? static_cast<UPrimitiveComponent*>(PreviewStaticMeshComponent) : nullptr;
-		const float TopZ = ActivePreview ? ActivePreview->CalcBounds(PreviewTransform).GetBox().Max.Z : 0.f;
-		SpriteComponent->SetRelativeLocation(FVector(0.f, 0.f, TopZ + 50.f));
+		SpriteComponent->SetRelativeLocation(FVector(0.f, 0.f, PreviewTopZ + 50.f));
 	}
 
 	if (SpawnableActorClass)

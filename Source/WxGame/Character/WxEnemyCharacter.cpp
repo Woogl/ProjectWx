@@ -185,10 +185,3 @@ float AWxEnemyCharacter::GetMaxHearingRange() const
 	return MaxHearingRange;
 }
 
-#if WITH_EDITOR
-const UMeshComponent* AWxEnemyCharacter::GetEditorPreviewMeshComponent() const
-{
-	return GetMesh();
-}
-#endif
-

@@ -9,9 +9,8 @@
 
 class UArrowComponent;
 class UBillboardComponent;
+class UChildActorComponent;
 class USceneComponent;
-class USkeletalMeshComponent;
-class UStaticMeshComponent;
 
 /** Spawner 의 스폰 트리거 방식. */
 UENUM(BlueprintType)
@@ -91,7 +90,6 @@ protected:
 public:
 	virtual void PostActorCreated() override;
 	virtual void PostDuplicate(EDuplicateMode::Type DuplicateMode) override;
-	virtual void PostLoad() override;
 	virtual void PostRegisterAllComponents() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	void UpdateEditorPreviewFromSpawnableClass();
@@ -102,13 +100,11 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UBillboardComponent> SpriteComponent;
 
-	UPROPERTY()
-	TObjectPtr<UArrowComponent> ArrowComponent;
-
+	/**
+	 * SpawnableActorClass 인스턴스를 에디터 뷰포트에 그대로 세우는 프리뷰.
+	 * 에디터 월드에서만 RF_Transient 로 생성되므로 게임 월드에는 존재하지 않고, 자식 액터도 스포너 패키지에 직렬화되지 않는다.
+	 */
 	UPROPERTY(Transient)
-	TObjectPtr<USkeletalMeshComponent> PreviewSkeletalMeshComponent;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UStaticMeshComponent> PreviewStaticMeshComponent;
+	TObjectPtr<UChildActorComponent> PreviewChildActorComponent;
 #endif
 };
