@@ -1,69 +1,103 @@
 # WxUI — 코드 리뷰
 
-> CommonUI 레이어 스택 + MVVM 뷰모델 골격으로, 전반적으로 잘 정돈돼 있고 수명 관리(Deinitialize/구독 해제)와 디커플링(도메인 타입 미참조, 태그/엔진 타입만 노출) 규약이 일관되게 지켜진다. 치명적 결함(🔴)은 없다. 이번 리뷰는 System(Manager/Layout)·MVVM 뷰모델 전 계층·AsyncAction·Nameplate·주요 위젯 베이스의 cpp를 깊게 보고, 나머지 위젯·라이브러리·헤더는 훑어 확인했다. BP/WBP 내부(위젯 계층·바인딩 그래프)는 범위 밖이다.
+> CommonUI 레이어 스택 + MVVM 뷰모델 골격이 잘 정돈돼 있고, 이전 리뷰(2026-07-24)에서 지적된 아이콘 동기 로드·널 가드 누락·자식 VM Deinitialize 미전파·네임플레이트 표시 판정 매 틱 재계산은 모두 해소됐다. 남은 결함은 쿨다운 VM의 티커 수명 관리와 초기 상태 시딩, 그리고 이벤트 구동 재평가의 비용에 몰려 있으며 🔴는 없다. 이번 리뷰는 MVVM 뷰모델 전 계층·UIManager/Layout·Nameplate·TabList의 cpp를 깊게 보고, 나머지 위젯·라이브러리·헤더는 훑었다(BP/WBP 내부는 범위 밖).
 
 ## 요약
 | 심각도 | 개수 |
 | --- | --- |
 | 🔴 심각 | 0 |
-| 🟡 개선 | 5 |
-| 🟢 사소 | 2 |
+| 🟡 개선 | 6 |
+| 🟢 사소 | 5 |
 
 ## 결과
 
-### 1. 🟡 Effect 뷰모델이 아이콘을 동기 로드해 규약·성능에서 벗어남
-- **위치**: `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Effect.cpp:26`
-- **범주**: 성능/안전
-- **문제**: `InUIData->Icon.LoadSynchronous()` 로 이펙트 아이콘을 게임 스레드에서 동기 로드한다. GE가 적용될 때(전투 중) 아이콘 텍스처가 아직 스트리밍되지 않았다면 그 자리에서 로드 히치가 발생한다. 같은 목적의 `UWxViewModel_Ability::SetIconSoft`(`WxViewModel_Ability.cpp:214`)는 `RequestAsyncLoad`로 비동기 처리하고, README도 「VM 은 `LoadSynchronous` 미호출」을 규약으로 명시하고 있어 이 한 곳만 규약을 벗어난다.
-- **제안**: Ability VM과 동일하게 소프트 참조를 비동기 스트리밍하거나(취소 핸들 포함), 아이콘을 `TSoftObjectPtr`로 그대로 노출해 View 측 `UWxLazyImage`/`UCommonLazyImage`가 로드하도록 위임한다.
-- **확신도**: 높음
-
-### 2. 🟡 티커/리프레시 경로의 가드 없는 널 역참조(형제 경로엔 가드 존재)
-- **위치**: `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_AbilitySystem.cpp:157-158` · `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Ability.cpp:293`
+### 1. 🟡 티커 조기 종료 시 `TickerHandle`이 남아 쿨다운 갱신이 영구 정지된다
+- **위치**: `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Ability.cpp:284-297` (`UpdateCooldownState` 조기 반환) · 같은 파일 `263-268` (재등록 게이트)
 - **범주**: 버그/정확성
-- **문제**: 두 곳이 형제 경로에는 있는 널 가드를 빠뜨렸다. (a) `RefreshActiveEffectViewModels`는 `const UGameplayEffect* GE = Effect->Spec.Def;` 직후 `GE->FindComponent<...>()`를 호출하는데 `GE`를 검사하지 않는다. 반면 같은 데이터를 다루는 `HandleActiveEffectAdded`(같은 파일 189줄)는 `Spec.Def`를 널 체크한다. (b) `UpdateCooldownState`는 `ASC->GetWorld()->GetTimeSeconds()`로 `GetWorld()` 결과를 검사 없이 역참조하는데, 동일 패턴의 `UWxViewModel_Effect::UpdateEffectState`(`WxViewModel_Effect.cpp:173-177`)는 `World` 널을 가드한다. 레벨 전환/월드 teardown 중 티커가 살아있는 짧은 구간에서 크래시 가능성이 있다.
-- **제안**: (a) `if (!GE) continue;` 추가. (b) `UWorld* World = ASC->GetWorld(); if (!World) return false;`로 형제 경로와 동일하게 가드.
-- **확신도**: 중간 (정상 경로에선 대부분 유효하나, 형제 경로가 이미 방어하고 있어 일관성·teardown 안전 측면에서 보강 가치가 있음)
+- **문제**: `UpdateCooldownState`가 `!ASC || !CachedCooldownClass || CooldownDuration <= 0.f`(287) 또는 `!World`(295)로 `return false`할 때 `TickerHandle.Reset()`을 하지 않는다. `false` 반환은 티커를 제거하지만 핸들은 유효한 값으로 남고, `HandleGameplayEffectApplied`는 `if (!TickerHandle.IsValid())`(263)로만 재등록 여부를 판단하므로 이후 어떤 쿨다운 GE가 적용돼도 티커가 다시 붙지 않는다. 정상 만료 경로(329-339)만 `Reset()`을 부른다.
+  구체적 실패: 쿨다운 GE의 DurationPolicy가 Infinite이거나 `SpecApplied.GetDuration()`이 0 이하면 `CooldownDuration`이 0으로 남은 채(256) `SetIsOnCooldown(true)`(261) + 티커 등록(265)이 일어나고, 첫 틱에서 287 조건으로 즉시 빠져나간다. 결과적으로 그 어빌리티는 `IsOnCooldown = true`, `CooldownRemaining/Percent`가 초기값 그대로 고정되며 이후 영구히 복구되지 않는다. 레벨 전환 중 `World`가 잠깐 null이 되는 경우도 같은 상태로 빠진다.
+- **제안**: 두 조기 반환 앞에서 `TickerHandle.Reset()`을 호출하거나(정상 만료 경로와 동일), 재등록 게이트를 핸들 유효성이 아니라 `IsOnCooldown`/`ConsumedCharges` 같은 상태로 바꾼다.
+- **확신도**: 높음 (코드 결함은 확정. 발현 빈도는 쿨다운 GE 저작에 의존)
 
-### 3. 🟡 AbilitySystem VM의 Deinitialize가 자식 VM에 전파되지 않음
-- **위치**: `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_AbilitySystem.cpp:39-42`
-- **범주**: 설계/구조
-- **문제**: `Deinitialize`가 `AttributeViewModels`/`AbilityViewModels`/`ActiveEffectViewModels`를 `Empty()`만 하고 각 자식 VM의 `Deinitialize()`는 호출하지 않는다. 부모인 `UWxViewModel_Character::Deinitialize`는 자식(`AbilitySystem`)에 명시적으로 전파(`WxViewModel_Character.cpp:27`)하는 것과 대비된다. 결과적으로 배열에서 떨어져 나온 자식 Effect/Ability VM은 GC가 `BeginDestroy→Deinitialize`를 부를 때까지 FTSTicker 티커와 ASC 델리게이트 구독을 유지한 채로 남아, 그 사이 ASC 이벤트에 반응하고 매 프레임 티킹한다. `BeginDestroy` 경로 덕분에 크래시나 영구 누수는 아니지만(수명 안전은 확보됨), 결정적 teardown이 아니며 형제 클래스와 일관되지 않는다.
-- **제안**: `Empty()` 전에 각 자식 VM에 `Deinitialize()`를 호출해 티커·구독을 즉시 정리한다(Character VM 패턴과 동일).
+### 2. 🟡 어빌리티 VM이 이미 진행 중인 쿨다운을 반영하지 않고 초기화된다
+- **위치**: `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Ability.cpp:24-33`, `59`
+- **범주**: 버그/정확성
+- **문제**: `Initialize`는 `SetCurrentCharges(AbilityMaxRecharges)` / `IsOnCooldown = false`(기본값)로만 시작하고, ASC에 이미 붙어 있는 활성 쿨다운 GE를 조회하지 않는다. VM은 `GetOrCreateAbilityViewModel`로 UI 바인딩 시점에 지연 생성되므로(`WxViewModel_AbilitySystem.cpp:128-159`), 쿨다운 중에 HUD/패널이 새로 만들어지면(PC 교체로 레이아웃 재생성, 리스폰, 메뉴 최초 오픈) 그 어빌리티는 "충전 만땅·쿨다운 없음"으로 표시된다. 티커는 다음 쿨다운 GE 적용 전까지 돌지 않으므로 자가 교정도 되지 않는다(`RefreshActivationState`가 `CanActivate=false`로 만들어 부분적으로만 가려준다).
+- **제안**: `Initialize` 말미에서 `UpdateCooldownState(0.f)`를 1회 실행하고, 반환값이 true면 티커를 등록한다(활성 쿨다운 GE 스캔 로직을 그대로 재사용).
 - **확신도**: 중간
 
-### 4. 🟡 네임플레이트가 매 틱 태그 컨테이너를 할당하고 PC를 조회
-- **위치**: `Plugins/WxUI/Source/WxUI/Private/Component/WxNameplateComponent.cpp:31-98`
+### 3. 🟡 런타임 제거 경로가 자식 Effect VM의 `Deinitialize()`를 건너뛴다
+- **위치**: `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_AbilitySystem.cpp:236-244` (`HandleActiveEffectRemoved`) · 같은 파일 `169` (`RefreshActiveEffectViewModels`의 `Empty()`)
+- **범주**: 설계/구조
+- **문제**: 같은 파일 `38-60`의 `Deinitialize`는 "배열에서만 떼면 자식이 GC까지 티킹·구독을 유지한다"는 이유로 자식 VM에 명시적으로 `Deinitialize()`를 전파하는데, 정작 런타임에 가장 자주 도는 제거 경로인 `HandleActiveEffectRemoved`는 `RemoveAt`만 하고 전파하지 않는다. `RefreshActiveEffectViewModels`의 `Empty()`도 동일하다(현재는 `Initialize`에서만 호출돼 배열이 비어 있지만, 주석상 재호출 가능한 API로 설계돼 있다). 버려진 `UWxViewModel_Effect`는 `IconStreamHandle`(`WxViewModel_Effect.h:97`)을 쥔 채 GC의 `BeginDestroy`까지 남아 텍스처 스트리밍 참조를 붙잡고, 티커도 다음 틱까지 한 번 더 돈다.
+- **제안**: `RemoveAt`/`Empty()` 직전에 대상 VM의 `Deinitialize()`를 호출해 `Deinitialize` 경로와 동일한 결정적 정리를 보장한다.
+- **확신도**: 중간
+
+### 4. 🟡 어빌리티 발동 가능 재평가가 제네릭 태그 이벤트와 매 틱 GE 질의에 얹혀 있다
+- **위치**: `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Ability.cpp:44`, `300-327`, `346`, `357-385`
 - **범주**: 성능/안전
-- **문제**: `TickComponent`가 네임플레이트마다 매 틱 `RefreshVisibility`를 돌리고, 그 안에서 `ASC->GetOwnedGameplayTags(OwnedTags)`로 태그 컨테이너를 새로 채운다(힙 할당·복사). 또 매 틱 `World->GetFirstPlayerController()`를 조회한다. 화면에 적이 다수일 때 프레임당 N회 할당이 쌓인다. 스케일 계산(거리 기반)은 카메라가 움직이므로 매 틱이 타당하지만, 표시 여부는 태그가 바뀔 때만 갱신하면 충분하다.
-- **제안**: 표시 판정은 `ASC->RegisterGenericGameplayTagEvent()` 구독(VM들이 이미 쓰는 패턴)으로 이벤트 구동화하고, 틱에서는 스케일만 갱신한다. PC/뷰포인트는 필요 시 캐시한다.
-- **확신도**: 중간 (`SetVisibility`가 동일값 no-op이라 시각적 문제는 없으나, 다수 엔티티에서 할당 비용은 실재)
+- **문제**: (a) VM마다 `RegisterGenericGameplayTagEvent()`를 구독해(44) ASC의 **모든** 태그 변경 1회당 `RefreshActivationState`를 돌린다. 이 함수는 `GetActivatableAbilities()` 선형 탐색 + `CanActivateAbility` + `CheckCost`(비용 GE 평가)를 수행한다. 전투 중 태그 변경은 프레임당 수 회 발생하므로 비용이 `VM 수 × 태그 변경 수`로 곱해진다. (b) `UpdateCooldownState`는 쿨다운이 도는 동안 매 틱 `ASC->GetActiveEffects(Query)`로 `TArray`를 새로 할당·반환받아 전체 활성 GE를 훑고(307), 그 위에 다시 `RefreshActivationState`를 부른다(346).
+- **제안**: 태그 이벤트는 해당 어빌리티의 요건 태그(`ActivationRequiredTags`/`ActivationBlockedTags`)에 대한 `RegisterGameplayTagEvent` 단위 구독으로 좁히고, 매 틱 재평가는 프레임 단위 dirty 플래그로 합치거나 갱신 주기를 늘린다(UI 표시에 60Hz 정확도는 불필요).
+- **확신도**: 중간 (측정 없이 코드 형태로만 판단 — 실제 VM 수/태그 트래픽에 좌우됨)
 
-### 5. 🟡 위젯 헬퍼의 BlueprintCallable 이 규칙 7과 충돌
-- **위치**: `Plugins/WxUI/Source/WxUI/Public/Widget/WxButtonBase.h:23` · `Plugins/WxUI/Source/WxUI/Public/Widget/WxTabListWidgetBase.h:71,78,81,84,87,90,93` · `Plugins/WxUI/Source/WxUI/Public/Widget/WxLazyImage.h:29`
-- **범주**: 규칙 위반
-- **문제**: CLAUDE.md 규칙 7은 `BlueprintCallable`을 「Blueprint Function Library·Blueprint Async Action 팩토리 함수에서만」 허용한다. 위 위젯 베이스들의 세터/탭 관리 헬퍼는 그 두 범주가 아니다(WBP 그래프에서 호출할 목적). `UWxUILibrary`(BP Function Library), `UWxAsyncAction_PushWidgetToLayer::PushWidgetToLayer`(Async 팩토리)는 규칙에 부합하고, `UWxViewModel_Ability::TryActivateAbility`는 프로젝트가 이미 인정한 VM 커맨드 예외에 해당한다. 남는 것이 이 위젯 헬퍼들로, CommonUI/Lyra 유래의 관용 패턴이라 의도된 것으로 보이나 문언상으로는 규칙 7 위반이다.
-- **제안**: 위젯 헬퍼 `BlueprintCallable`을 규칙의 명시적 예외로 문서화(VM 커맨드처럼)하거나, WBP에서 직접 호출이 불필요한 것은 지정자를 제거해 규칙과 코드를 일치시킨다.
-- **확신도**: 낮음 (의도된 위젯 관용 패턴일 가능성이 높음 — 판단은 사람이)
+### 5. 🟡 네임플레이트가 숨김 상태에서도 매 틱 스케일을 갱신한다
+- **위치**: `Plugins/WxUI/Source/WxUI/Private/Component/WxNameplateComponent.cpp:31-60`, `12` (`bCanEverTick = true`), `18` (기본 숨김)
+- **범주**: 성능/안전
+- **문제**: 표시 판정은 태그 이벤트 구동으로 개선됐지만, `TickComponent`는 컴포넌트 가시성과 무관하게 매 틱 `GetFirstPlayerController()` → `GetPlayerViewPoint()` → `SetRenderScale()`을 수행한다. 네임플레이트는 기본 숨김(18)이라 월드의 적 대부분이 "보이지 않는 상태로 매 프레임 렌더 트랜스폼을 갱신"한다(`SetRenderScale`은 위젯 무효화를 유발한다). 적 수에 비례해 낭비가 커진다.
+- **제안**: `RefreshVisibility`에서 결과에 맞춰 `SetComponentTickEnabled(bVisible)`을 함께 토글한다(표시 상태 진실이 이미 한 곳에 모여 있으므로 추가 상태가 필요 없다). 거리 컬링 상한을 두는 것도 같은 지점에서 가능하다.
+- **확신도**: 중간
 
-### 6. 🟢 GetDesiredInputConfig override가 Super:: 를 호출하지 않음
-- **위치**: `Plugins/WxUI/Source/WxUI/Private/Widget/WxActivatableWidget.cpp:5-16`
-- **범주**: 규칙 위반
-- **문제**: 규칙 5는 override 시 `Super::` 호출을 요구하나 이 override는 값을 완전 대체 산출하며 `Super::`를 부르지 않는다. `default` 분기가 베이스 기본값과 동일한 미설정 `TOptional`을 반환하므로 동작상 문제는 없고 `Super::` 호출이 오히려 결과를 덮어써 무의미하다. 규칙 문언과의 미세한 간극이라, 미래 세션이 기계적으로 「고치려」다 회귀를 넣지 않도록 기록만 남긴다.
-- **제안**: 현행 유지 권장. 규칙 5의 「값 완전 대체 override」 예외를 인지.
-- **확신도**: 낮음(의도된 설계)
+### 6. 🟡 `PrimaryGameLayout`이 단일 필드라 로컬 플레이어가 둘 이상이면 앞 플레이어의 레이아웃이 파괴된다
+- **위치**: `Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp:45-48`, `220-237` · `Plugins/WxUI/Source/WxUI/Public/System/WxUIManagerSubsystem.h:75-76`
+- **범주**: 설계/구조
+- **문제**: `Initialize`가 모든 로컬 플레이어에 대해 `HandleLocalPlayerAdded`를 돌리고(45-48), 각자의 `HandlePlayerControllerSet`이 무조건 기존 `PrimaryGameLayout`을 `RemoveFromParent()` 후 자기 것으로 교체한다(225-236). 필드가 하나뿐이라 스플릿스크린/로컬 co-op에서는 마지막 플레이어의 레이아웃만 남고 앞 플레이어는 UI가 사라진다. `UWxUILibrary::GetPrimaryGameLayout`(`WxUILibrary.cpp:42`)도 플레이어 구분 없이 이 하나를 돌려준다. README는 "플레이어별 레이아웃 생성"이라고 기술하고 있어 문서와 구현이 어긋난다.
+- **제안**: 싱글 로컬 플레이어 전제가 확정이라면 `HandleLocalPlayerAdded`를 첫 로컬 플레이어로 제한하고 헤더 주석·README를 그 전제로 정정한다. 아니라면 `TMap<ULocalPlayer*, UWxPrimaryGameLayout*>`로 승격하고 조회 API에 플레이어 인자를 추가한다.
+- **확신도**: 낮음(의도된 설계일 수 있음 — 오픈월드 싱글 전제라면 문서 정정만으로 충분)
 
-### 7. 🟢 티커 콜백에 Handle prefix 부재(규칙 6 경계)
-- **위치**: `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Ability.cpp:284`(`UpdateCooldownState`) · `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Effect.cpp:152`(`UpdateEffectState`)
+### 7. 🟢 override 2곳이 `Super::`를 호출하지 않는다
+- **위치**: `Plugins/WxUI/Source/WxUI/Private/Widget/WxAsyncAction_PushWidgetToLayer.cpp:22` (`Activate`) · `Plugins/WxUI/Source/WxUI/Private/Widget/WxTabListWidgetBase.cpp:108` (`HandleTabCreation_Implementation`)
 - **범주**: 규칙 위반
-- **문제**: 규칙 6은 델리게이트 바인딩 콜백에 `Handle` prefix를 요구한다. 이 둘은 `FTickerDelegate`(델리게이트)에 바인딩되지만 `Handle`을 쓰지 않는다. 같은 모듈에서 `FStreamableDelegate` 콜백은 `HandleIconLoaded`/`HandleWidgetClassLoaded`로 prefix를 지킨다. 다만 이벤트 콜백이 아니라 매 프레임 tick 루프(반환 bool로 지속 제어)라 의도적으로 구분한 것으로 보인다.
-- **제안**: 규칙을 엄격 적용하려면 `HandleCooldownTick`/`HandleEffectTick` 등으로 통일하고, 아니면 「tick 루프는 예외」를 규약에 명문화한다.
-- **확신도**: 낮음(tick 루프와 이벤트 콜백을 구분한 의도로 보임)
+- **문제**: CLAUDE.md 규칙 5는 override 시 `Super::` 호출을 요구한다. 두 베이스 구현은 현재 비어 있어 동작 차이는 없지만, 값 전체를 대체하는 `GetDesiredInputConfig`(이전 리뷰에서 예외로 판정)와 달리 여기서는 `Super::` 호출이 무해하고 규칙과도 일치한다.
+- **제안**: 각 함수 선두에 `Super::Activate();` / `Super::HandleTabCreation_Implementation(TabId, TabButton);`을 추가한다.
+- **확신도**: 높음
+
+### 8. 🟢 `HandleTabCreation_Implementation`의 `TabButton` 널 검사 순서가 뒤집혀 있다
+- **위치**: `Plugins/WxUI/Source/WxUI/Private/Widget/WxTabListWidgetBase.cpp:122`, `131`
+- **범주**: 버그/정확성
+- **문제**: 122줄이 `TabButton->GetClass()`를 검사 없이 역참조하는데, 정작 131줄에서는 `if (TabButtonContainer && TabButton)`으로 널을 방어한다. 같은 함수 안에서 같은 포인터에 대한 가정이 상충한다(방어가 필요하다면 122줄이 먼저 터진다).
+- **제안**: 함수 진입부에서 `if (!TabButton) { return; }`으로 한 번에 정리하고 131줄의 중복 검사를 제거한다.
+- **확신도**: 높음 (엔진 경로에서 널이 오지 않을 가능성이 크지만 일관성 결함은 확정)
+
+### 9. 🟢 쿨다운 퍼센트만 클램프되지 않는다
+- **위치**: `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Ability.cpp:342`
+- **범주**: 버그/정확성
+- **문제**: `SetCooldownPercent(NextChargeRemaining / CooldownDuration)`에 상한이 없다. `CooldownDuration`은 첫 적용 시에만 기록되고(256-259) 충전이 모두 회복될 때까지 갱신되지 않으므로, 도중에 더 긴 쿨다운이 적용되면 1을 초과한 값이 프로그레스 바에 전달된다. 동일 패턴인 `UWxViewModel_Effect::UpdateEffectState`는 `FMath::Min(..., 1.f)`로 클램프한다(`WxViewModel_Effect.cpp:209`).
+- **제안**: Effect VM과 동일하게 `FMath::Clamp(..., 0.f, 1.f)`를 적용한다.
+- **확신도**: 중간
+
+### 10. 🟢 `InitializeViewModels`가 ASC 널을 검증하지 않고 재호출도 방어하지 않는다
+- **위치**: `Plugins/WxUI/Source/WxUI/Private/Component/WxNameplateComponent.cpp:91-97`
+- **범주**: 버그/정확성
+- **문제**: 위젯/`UMVVMView` 유효성은 조기 반환으로 방어하면서(74-84) `InASC`는 검사 없이 94줄에서 역참조한다. 또 같은 컴포넌트에 두 번 호출하면 `RegisterGenericGameplayTagEvent()`에 중복 바인딩되고 VM도 새로 생성된다(기존 VM은 `Deinitialize` 없이 버려진다). 현재 유일한 호출부(`Source/WxGame/Character/WxEnemyCharacter.cpp:50`)는 생성자 서브오브젝트 ASC를 1회만 넘기므로 발현하지 않지만, 플러그인 공개 API라 소비 측이 늘면 노출된다.
+- **제안**: 선두에 `if (!InASC) { return; }`를 추가하고, 재초기화 시 기존 구독을 `RemoveAll(this)`로 떼고 이전 VM에 `Deinitialize()`를 호출한다.
+- **확신도**: 중간
+
+### 11. 🟢 `EffectEndTime`은 계산만 하고 아무도 읽지 않는 데드 필드다
+- **위치**: `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Effect.h:89` · `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Effect.cpp:71`
+- **범주**: 중복/복잡도
+- **문제**: `Initialize`에서 `EffectEndTime = CurrentTime + Remaining`을 기록하지만 `UpdateEffectState`는 `ActiveEffect->StartWorldTime + CachedDuration`으로 매번 다시 계산하며 이 필드를 읽지 않는다. 또 `Deinitialize`가 `EffectEndTime`/`CachedDuration`/`PendingIcon`을 되돌리지 않아 "남은 값"의 의미가 모호하다.
+- **제안**: 필드를 제거하거나(권장), 남긴다면 `UpdateEffectState`가 이 값을 진실로 사용하도록 통일하고 `Deinitialize`에서 초기화한다.
+- **확신도**: 높음
 
 ## 검토 범위
-- **깊게 본 파일**: `Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp`, `Plugins/WxUI/Source/WxUI/Private/System/WxPrimaryGameLayout.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_AbilitySystem.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Ability.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Effect.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Attribute.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Character.cpp`, `Plugins/WxUI/Source/WxUI/Private/Component/WxNameplateComponent.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxAsyncAction_PushWidgetToLayer.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxConfirmationPopup.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxHUDLayout.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxTabListWidgetBase.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxButtonBase.cpp`, `Plugins/WxUI/Source/WxUI/Private/WxUILibrary.cpp`
-- **훑은 파일**: `Plugins/WxUI/Source/WxUI/WxUI.Build.cs`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxActionWidget.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxLazyImage.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxTabButtonBase.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxGamePopup.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxActivatableWidget.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Selection.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Interaction.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxMVVMConversionLibrary.cpp`, `Plugins/WxUI/Source/WxUI/Private/Component/WxEffectComponent_UIData.cpp`, `Plugins/WxUI/Source/WxUI/Private/System/WxUIDeveloperSettings.cpp`, `Plugins/WxUI/Source/WxUI/Private/WxUIModule.cpp`, 및 대응 Public 헤더 전반
-- **미검토 / 한계**: BP/WBP 내부(위젯 계층·MVVM 바인딩 그래프·디폴트값)는 리뷰 범위 밖. MVVM 매크로(`UE_MVVM_SET_PROPERTY_VALUE`/`BROADCAST_FIELD_VALUE_CHANGED`)가 생성하는 FieldNotify 배선은 엔진 정상 동작으로 가정. 티커/GC 상호작용(자식 VM orphan 구간)은 정적 분석 기준 추론이며 런타임 프로파일링은 수행하지 않음.
+- **깊게 본 파일**: `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Ability.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_AbilitySystem.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Effect.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Attribute.cpp`, `Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp`, `Plugins/WxUI/Source/WxUI/Private/System/WxPrimaryGameLayout.cpp`, `Plugins/WxUI/Source/WxUI/Private/Component/WxNameplateComponent.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxTabListWidgetBase.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxConfirmationPopup.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxAsyncAction_PushWidgetToLayer.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxHUDLayout.cpp`, `Plugins/WxUI/Source/WxUI/Private/WxUILibrary.cpp`
+- **훑은 파일**: `Plugins/WxUI/Source/WxUI/WxUI.Build.cs`, `Plugins/WxUI/WxUI.uplugin`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxButtonBase.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxActionWidget.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxTabButtonBase.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxLazyImage.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxGamePopup.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxActivatableWidget.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Character.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Selection.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Interaction.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxMVVMConversionLibrary.cpp`, `Plugins/WxUI/Source/WxUI/Private/Component/WxEffectComponent_UIData.cpp`, `Plugins/WxUI/Source/WxUI/Private/System/WxUIDeveloperSettings.cpp`, `Plugins/WxUI/Source/WxUI/Private/WxUIModule.cpp`, 및 대응 Public 헤더 전반
+- **미검토 / 한계**:
+  - BP/WBP 내부(위젯 계층·MVVM 바인딩 그래프·디폴트값)와 `Plugins/WxUI/Content/`는 범위 밖.
+  - 모듈 경계는 정적으로 확인 완료 — `.uplugin`·`Build.cs`·include 모두 Wx 중 `WxCore`만 참조하며, 전 소스 파일이 Copyright 첫 줄을 지킨다(위반 0건).
+  - 위젯 헬퍼의 `BlueprintCallable`(`WxButtonBase.h:23`, `WxTabListWidgetBase.h:71-93`, `WxLazyImage.h:29`, `WxViewModel_Ability.h:50`)은 이전 리뷰에서 "의도된 위젯/VM 관용 패턴"으로 판정됐고 그 이후 변화가 없어 재보고하지 않았다. 판정을 뒤집으려면 규칙 7의 예외를 CLAUDE.md에 명문화하는 편이 낫다.
+  - 성능 항목(4·5)은 코드 형태 기반 추론이며 프로파일링은 수행하지 않았다. CommonUI 스택의 위젯 풀링/전이 타이밍과 MVVM 바인딩 재평가 시점은 엔진 정상 동작으로 가정했다.
+  - 멀티플레이/스플릿스크린 실행 검증 없음(6번은 정적 판단).
 
 ---
-*문서 기준 커밋 `efc26014` · 리뷰일 2026-07-24 · 소스 53파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `c42b5fec` · 리뷰일 2026-07-25 · 소스 53파일 — `/module-review`로 갱신*
