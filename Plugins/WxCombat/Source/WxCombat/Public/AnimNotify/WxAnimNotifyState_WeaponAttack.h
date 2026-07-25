@@ -11,8 +11,8 @@
 /**
  * 무기 공격 구간 AnimNotifyState.
  *
- * ANS_WeaponCollision과 공격 속성 설정을 하나로 결합.
- * NotifyBegin에서 캐릭터 ASC에 ANS.WeaponCollision 태그를 부여해 무기 히트 콜리전을 활성화하고, 무기에 DamageInfo를 전달한다.
+ * NotifyBegin에서 소유자의 무기를 찾아 DamageDataRow로 만든 DamageInfo와 함께 공격 구간을 열고, NotifyEnd에서 닫는다.
+ * 히트 콜리전을 켜고 끄는 것은 무기 자신이다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAnimNotifyState_WeaponAttack : public UAnimNotifyState

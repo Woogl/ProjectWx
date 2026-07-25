@@ -51,6 +51,9 @@ namespace WxGameplayTags
 	/** 처형(앞잡·뒤잡) 연출 진행 상태. WxAbility_Finisher가 ActivationOwnedTags로 발행. 연출 중 상호작용 재입력을 막기 위해 WxAbility_Interact가 ActivationBlockedTags로 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Finisher);
 
+	/** 대화 세션 진행 상태. 대화 세션 컴포넌트가 시작·종료에 맞춰 폰 ASC에 loose 태그로 발행. WxAbility_Interact가 ActivationBlockedTags로 사용해 대화 중 프롬프트 표시·상호작용을 닫는다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dialogue);
+
 	// ── Event ─────────────────────────────────────────────────────────────
 
 	/** 피격 이벤트 부모 카테고리. ExecCalc 필터링용. Guard 어빌리티가 자식 태그를 모두 수신하기 위해 부모로도 구독 (직접 dispatch 금지) */
@@ -146,9 +149,6 @@ namespace WxGameplayTags
 
 	// ── ANS ───────────────────────────────────────────────────────────────
 
-	/** 무기 콜리전 활성 구간. ANS_WeaponCollision이 부여/제거 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_WeaponCollision);
-
 	/** 콤보 입력 수용 구간. ANS_ComboWindow가 부여/제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ANS_ComboWindow);
 
@@ -209,7 +209,6 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_7);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_8);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_9);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_10);
 
 	// ── SetByCaller ──────────────────────────────────────────────────────
 

@@ -8,7 +8,6 @@
 #include "AbilitySystemGlobals.h"
 #include "WxCollisionChannels.h"
 #include "WxCombatLibrary.h"
-#include "WxGameplayTags.h"
 
 AWxWeaponBase::AWxWeaponBase()
 {
@@ -78,11 +77,6 @@ void AWxWeaponBase::BeginAttack(const FWxDamageInfo& InDamageInfo)
 
 		HitCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		SetActorTickEnabled(true);
-
-		if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OwnerActor))
-		{
-			ASC->AddLooseGameplayTag(WxGameplayTags::ANS_WeaponCollision);
-		}
 	}
 
 	++ActiveAttackCount;
@@ -103,14 +97,6 @@ void AWxWeaponBase::EndAttack()
 		SetActorTickEnabled(false);
 		HitActorsThisSwing.Empty();
 		DamageInfo = FWxDamageInfo();
-
-		if (AActor* OwnerActor = GetOwner())
-		{
-			if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OwnerActor))
-			{
-				ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_WeaponCollision);
-			}
-		}
 	}
 }
 
@@ -164,14 +150,6 @@ void AWxWeaponBase::DetachFromCharacter()
 		SetActorTickEnabled(false);
 		HitActorsThisSwing.Empty();
 		DamageInfo = FWxDamageInfo();
-
-		if (AActor* OwnerActor = GetOwner())
-		{
-			if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OwnerActor))
-			{
-				ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_WeaponCollision);
-			}
-		}
 	}
 
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
