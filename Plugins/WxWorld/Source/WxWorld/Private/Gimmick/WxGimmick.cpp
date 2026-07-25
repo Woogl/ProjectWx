@@ -3,6 +3,7 @@
 #include "Gimmick/WxGimmick.h"
 
 #include "Components/ArrowComponent.h"
+#include "Components/PrimitiveComponent.h"
 #include "Components/StateTreeComponent.h"
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
@@ -69,15 +70,65 @@ void AWxGimmick::SetInteractingCharacter(AActor* InActor)
 	InteractingCharacter = Cast<ACharacter>(InActor);
 }
 
-FText AWxGimmick::GetInteractionPrompt() const
+void AWxGimmick::GetActiveInteractionMeshes(TArray<UPrimitiveComponent*>& OutMeshes) const
 {
-	// ST 가 상태 진입 시 세팅한 현재 프롬프트를 우선 쓰고, 없으면(태스크에서 프롬프트를 지정하지 않은 기믹/상태) 디자이너 기본값으로 폴백한다.
-	return CurrentInteractionPrompt.IsEmpty() ? InteractionPrompt : CurrentInteractionPrompt;
+	OutMeshes.Reserve(OutMeshes.Num() + ActiveInteractionMeshes.Num());
+	for (const TObjectPtr<UPrimitiveComponent>& Mesh : ActiveInteractionMeshes)
+	{
+		if (Mesh)
+		{
+			OutMeshes.Add(Mesh);
+		}
+	}
 }
 
-void AWxGimmick::SetCurrentInteractionPrompt(const FText& InPrompt)
+FText AWxGimmick::GetInteractionPrompt(const UActorComponent* Source) const
 {
-	CurrentInteractionPrompt = InPrompt;
+	// 맵 키가 비const 포인터라 조회용으로만 const 를 벗긴다(맵을 통해 대상을 수정하지 않는다).
+	UPrimitiveComponent* Mesh = const_cast<UPrimitiveComponent*>(Cast<UPrimitiveComponent>(Source));
+
+	// ST 가 이 영역에 세팅한 상태별 프롬프트를 우선 쓰고, 없으면(태스크에서 프롬프트를 지정하지 않은 기믹/상태) 영역별 폴백으로 내려간다.
+	if (const FText* Prompt = CurrentInteractionPrompts.Find(Mesh))
+	{
+		return *Prompt;
+	}
+
+	return GetDefaultInteractionPrompt(Source);
+}
+
+void AWxGimmick::SetInteractionEnabled(UPrimitiveComponent* Mesh, bool bEnabled)
+{
+	if (!Mesh)
+	{
+		return;
+	}
+
+	// 집합의 멤버십이 곧 활성 상태다. 꺼진 영역은 스캐너의 후보 수집에서 빠져 다음 스캔에 프롬프트·외곽선이 정리된다.
+	if (bEnabled)
+	{
+		ActiveInteractionMeshes.Add(Mesh);
+	}
+	else
+	{
+		ActiveInteractionMeshes.Remove(Mesh);
+	}
+}
+
+void AWxGimmick::SetCurrentInteractionPrompt(UPrimitiveComponent* Mesh, const FText& InPrompt)
+{
+	if (!Mesh)
+	{
+		return;
+	}
+
+	// 빈 텍스트는 "이 영역엔 상태별 문구가 없다"는 뜻이라 세팅을 지운다. 남겨두면 다음 조회가 빈 프롬프트를 폴백보다 우선해 집는다.
+	if (InPrompt.IsEmpty())
+	{
+		CurrentInteractionPrompts.Remove(Mesh);
+		return;
+	}
+
+	CurrentInteractionPrompts.Add(Mesh, InPrompt);
 }
 
 FGuid AWxGimmick::GetSaveId() const

@@ -14,7 +14,7 @@ class UStaticMeshComponent;
  * 구조상 다시 닫을 수도 있으나(Open ──상호작용──> Close), 현재는 Open 상태의 인터랙션을 에셋에서 비활성화해 단방향(열기 전용)으로 동작한다.
  *
  * 상태는 자체 State 태그(Gimmick.Door.*)가 권위 원천이며, 복제·SaveGame 으로 보존된다.
- * State 는 "여닫는 확정 목표"라 상호작용 시점에 곧장 최종값(Open/Close)으로 확정되고, 슬라이드 애니는 StateTree 의 Wx Component Move 가 그 목표를 향한 순수 비주얼로 처리한다(이동할 문 메시·오프셋은 ST_Door 에셋에서 author).
+ * State 는 "여닫는 확정 목표"라 상호작용 시점에 곧장 최종값(Open/Close)으로 확정되고, 슬라이드 애니는 StateTree 의 Component Move 가 그 목표를 향한 순수 비주얼로 처리한다(이동할 문 메시·오프셋은 ST_Door 에셋에서 author).
  *
  *   Close (초기) ──상호작용──> Open ──(양방향 시)상호작용──> Close
  *
@@ -36,14 +36,14 @@ public:
 
 protected:
 
-	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Component Move 가 Context 액터의 컴포넌트로 바인딩하기 위한 노출.
+	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Component Move 가 Context 액터의 컴포넌트로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> DoorLeft;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> DoorRight;
 
-	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
+	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> Console;
 };

@@ -61,10 +61,11 @@ protected:
 	 */
 	FGameplayTag GetEligibleFinisherEventTag(const AActor* Interactor) const;
 
-	//~ Begin IWxInteractable — 처형 상호작용(자격 + 응답 + "Finisher" 프롬프트).
+	//~ Begin IWxInteractable — 처형 상호작용(영역 + 자격 + 응답 + "Finisher" 프롬프트).
+	virtual void GetActiveInteractionMeshes(TArray<UPrimitiveComponent*>& OutMeshes) const override;
 	virtual bool CanBeInteractedBy(const AActor* Interactor, const UActorComponent* Source) const override;
 	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
-	virtual FText GetInteractionPrompt() const override;
+	virtual FText GetInteractionPrompt(const UActorComponent* Source) const override;
 	//~ End IWxInteractable
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")

@@ -3,7 +3,6 @@
 #include "AbilitySystem/Ability/WxAbility_Interact.h"
 #include "Components/PrimitiveComponent.h"
 #include "GameFramework/Actor.h"
-#include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 #include "WxInteractable.h"
 
@@ -32,6 +31,10 @@ UWxAbility_Interact::UWxAbility_Interact()
 	// 처형 연출 중에는 상호작용 재입력을 막는다(WxAbility_Finisher가 State.Finisher를 발행).
 	// 연출 도중 근처 다른 대상과 상호작용해 처형 흐름에 개입하는 것을 차단한다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Finisher);
+
+	// 대화 중에는 상호작용을 막는다(PC가 대화 세션 시작·종료에 맞춰 State.Dialogue를 발행).
+	// 이 차단으로 스캐너 표시 게이트도 함께 닫혀 대화 중 프롬프트·하이라이트가 사라진다.
+	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dialogue);
 }
 
 void UWxAbility_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -62,31 +65,32 @@ void UWxAbility_Interact::ExecuteInteract(const UPrimitiveComponent* Selected, c
 		return;
 	}
 
-	// 서버 권위 활성 검증: 대상 메시의 WxInteractable 응답이 곧 상호작용 활성 여부다.
-	// 클라가 비활성 대상을(또는 비활성 직후에) 보내도 여기서 걸린다.
-	if (Selected->GetCollisionResponseToChannel(ECC_WxInteractable) != ECR_Overlap)
-	{
-		return;
-	}
-
-	// 서버 권위 거리 검증: 감지·선택은 클라 로컬이라, 변조 클라가 임의의 원거리 메시를 보내 상호작용하는 것을 막는다.
-	// 클라 스캔의 overlap 과 동일 판정 — 중심간 거리 <= ScanRadius + 메시 바운딩 반경 — 으로 사거리를 재확인한다.
-	const float ReachRadius = ScanRadius + Selected->Bounds.SphereRadius;
-	if (FVector::DistSquared(Avatar->GetActorLocation(), Selected->GetComponentLocation()) > FMath::Square(ReachRadius))
-	{
-		return;
-	}
-
 	// 응답은 메시의 소유 액터가 IWxInteractable 로 구현한다. 서버 권위에서만 호출된다(클라 비주얼은 각 대상의 복제 상태로 수렴).
 	// Source 로 선택 메시를 넘겨, 한 액터에 영역이 여럿이면(예: 엘리베이터) 어느 영역이었는지 가를 수 있게 한다.
-	IWxInteractable* Target = Cast<IWxInteractable>(Selected->GetOwner());
+	IWxInteractable* Target = IWxInteractable::Find(Selected);
 	if (!Target)
 	{
 		return;
 	}
 
-	// 서버 권위 자격 검증: 주체별로 자격이 갈리는 대상(처형 등)은 채널로 표현할 수 없으므로 실제 아바타를 주체로 대상에 묻는다.
-	// 채널 검증이 "이 영역이 켜져 있는가"라면 이쪽은 "이 주체가 자격이 있는가"다. 기본 구현이 true 라 기믹 등은 영향이 없다.
+	// 서버 권위 활성 검증: 대상이 지금 켜져 있다고 답한 영역에 선택 메시가 들어 있어야 한다.
+	// 클라가 비활성 대상을(또는 비활성 직후에) 보내도 여기서 걸린다.
+	TArray<UPrimitiveComponent*> ActiveMeshes;
+	Target->GetActiveInteractionMeshes(ActiveMeshes);
+	if (!ActiveMeshes.Contains(Selected))
+	{
+		return;
+	}
+
+	// 서버 권위 거리 검증: 감지·선택은 클라 로컬이라, 변조 클라가 임의의 원거리 메시를 보내 상호작용하는 것을 막는다.
+	// 클라 스캔과 같은 식으로 사거리를 재확인한다.
+	if (!IWxInteractable::IsMeshInRange(Selected, Avatar->GetActorLocation(), ScanRadius))
+	{
+		return;
+	}
+
+	// 서버 권위 자격 검증: 주체별로 자격이 갈리는 대상(처형 등)은 활성 목록으로 표현할 수 없으므로 실제 아바타를 주체로 대상에 묻는다.
+	// 활성 검증이 "이 영역이 켜져 있는가"라면 이쪽은 "이 주체가 자격이 있는가"다. 기본 구현이 true 라 기믹 등은 영향이 없다.
 	if (!Target->CanBeInteractedBy(Avatar, Selected))
 	{
 		return;

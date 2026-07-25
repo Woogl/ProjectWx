@@ -14,8 +14,8 @@ class UWxItemDefinition;
 /**
  * 아이템(또는 재화) 지급용 픽업.
  *
- * 메시 자체가 상호작용 영역이다 — 생성자에서 WxInteractable 채널(WxCore) 응답을 켜므로 WxWorld 를 참조하지 않고도 스캐너에 잡힌다.
- * 응답·프롬프트는 본 액터가 IWxInteractable 로 제공하므로 BP 배선은 필요 없다.
+ * 메시 자체가 상호작용 영역이며 상시 활성이다 — 계약 인터페이스(WxCore)로 자기 메시를 답하므로 WxWorld 를 참조하지 않고도 스캐너에 잡힌다.
+ * 응답·프롬프트도 본 액터가 IWxInteractable 로 제공하므로 BP 배선은 필요 없다.
  * 상호작용 시 Interactor 의 인벤토리에 ItemDef 를 지급한 뒤 파괴된다.
  *
  * 외부 스포너(예: UWxRewardLibrary::GrantReward) 가 SetItemDef 로 지급 데이터를 주입하고 LaunchInDirection 으로 물리 발사한다.
@@ -42,9 +42,10 @@ public:
 	 */
 	void LaunchInDirection(const FVector& Direction, float Speed);
 
-	//~ Begin IWxInteractable — 인벤토리 지급+파괴 응답, "[F] {DisplayName}" 프롬프트.
+	//~ Begin IWxInteractable — 상시 활성인 메시 하나가 영역, 인벤토리 지급+파괴 응답, "[F] {DisplayName}" 프롬프트.
+	virtual void GetActiveInteractionMeshes(TArray<UPrimitiveComponent*>& OutMeshes) const override;
 	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
-	virtual FText GetInteractionPrompt() const override;
+	virtual FText GetInteractionPrompt(const UActorComponent* Source) const override;
 	//~ End IWxInteractable
 
 protected:

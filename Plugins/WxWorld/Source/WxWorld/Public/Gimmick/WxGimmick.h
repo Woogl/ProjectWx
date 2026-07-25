@@ -11,6 +11,7 @@
 
 class ACharacter;
 class UArrowComponent;
+class UPrimitiveComponent;
 class USceneComponent;
 class UStateTreeComponent;
 
@@ -53,12 +54,15 @@ public:
 	/**
 	 * 이번 상호작용의 당사자(플레이어 캐릭터)를 권위 측에서 기록한다. 비권위면 노옵.
 	 * instigator 는 권위 측 OnInteracted 에서만 오므로, 자식이 HandleInteracted 에서 CommitGimmickState 직전에 호출한다(복제되어 클라가 추종).
-	 * 캐릭터가 아니면(비캐릭터 상호작용) null 을 저장한다. 상호작용 이동/몽타주 태스크('Wx Move Interactor To Target'·'Wx Play Interactor Montage')가 InteractingCharacter 를 바인딩해 이동/재생 대상으로 삼는다.
+	 * 캐릭터가 아니면(비캐릭터 상호작용) null 을 저장한다. 상호작용 이동/몽타주 태스크('Move Interactor To Target'·'Play Interactor Montage')가 이 값을 읽어 이동/재생 대상으로 삼는다.
 	 */
 	void SetInteractingCharacter(AActor* InActor);
 
+	/** 이번 상호작용의 당사자(플레이어 캐릭터). 상호작용 이동/몽타주 태스크가 오너를 캐스트해 읽는다. 상호작용 중이 아니면 null. */
+	ACharacter* GetInteractingCharacter() const { return InteractingCharacter; }
+
 	/**
-	 * Wx Play Level Sequence 태스크가 재생 종료 시 권위 측에서 호출하는 통지 진입점. 기본 노옵이다.
+	 * Play Level Sequence 태스크가 재생 종료 시 권위 측에서 호출하는 통지 진입점. 기본 노옵이다.
 	 * 시퀀스 종료를 아는 주체는 그것을 재생·폴링하는 태스크뿐이라, 태스크가 소유 기믹에 직접 통지한다.
 	 * 자식은 이를 받아 CommitGimmickState 로 State 전이를 구동한다(예: 컷신 종료 후 Idle 복귀).
 	 * State 쓰기는 여전히 자식(C++)만 한다.
@@ -66,18 +70,29 @@ public:
 	virtual void HandleLevelSequenceFinished() {}
 
 	//~ Begin IWxInteractable
+	/** 현재 켜져 있는 영역 메시들. 자식은 생성자에서 기본 활성 영역을 선언하고, 이후엔 'Enable Interaction' 태스크가 상태별로 넣고 뺀다. */
+	virtual void GetActiveInteractionMeshes(TArray<UPrimitiveComponent*>& OutMeshes) const override;
+
 	// 상호작용 응답은 각 구체 기믹이 override 한다. UCLASS(Abstract) 라도 CDO 는 생성되므로 순수 가상은 피하고 PURE_VIRTUAL 로 미구현 계약을 표시한다(미override 시 런타임 에러).
 	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override PURE_VIRTUAL(AWxGimmick::OnInteracted, );
 
-	/** HUD 프롬프트. ST 가 상태 진입 시 세팅한 현재 값(CurrentInteractionPrompt)을 우선 반환하고, 비어 있으면 InteractionPrompt 기본값으로 폴백한다. */
-	virtual FText GetInteractionPrompt() const override;
+	/** HUD 프롬프트. ST 가 그 메시에 세팅한 현재 값(CurrentInteractionPrompts)을 우선 반환하고, 없으면 GetDefaultInteractionPrompt 로 폴백한다. 우선순위는 베이스가 소유하므로 자식은 이 함수가 아니라 폴백 쪽을 override 한다. */
+	virtual FText GetInteractionPrompt(const UActorComponent* Source) const override;
 	//~ End IWxInteractable
 
 	/**
-	 * 현재 상태의 상호작용 프롬프트를 로컬로 세팅한다. 'Wx Enable Interaction' 태스크가 상호작용을 켤 때 호출한다.
+	 * Mesh 영역의 상호작용을 켜고 끈다. 'Enable Interaction' 태스크가 상태 진입 시 자기 대상 메시로 호출한다.
+	 * 꺼진 영역은 GetActiveInteractionMeshes 에 담기지 않아 다음 스캔에서 후보에서 빠지고, 어빌리티의 서버 활성 검증에도 걸린다.
+	 * 프롬프트와 마찬가지로 복제하지 않는다 — ST 가 각 피어에서 실행되어 같은 값에 수렴한다.
+	 */
+	void SetInteractionEnabled(UPrimitiveComponent* Mesh, bool bEnabled);
+
+	/**
+	 * 현재 상태에서 Mesh 영역이 표시할 상호작용 프롬프트를 로컬로 세팅한다(빈 텍스트면 그 영역의 세팅을 지운다). 'Enable Interaction' 태스크가 자기 대상 메시로 호출한다.
+	 * 영역마다 따로 담으므로 한 상태가 여러 영역을 켜도 서로 덮어쓰지 않는다.
 	 * 복제하지 않는다 — ST 는 각 피어에서 실행되어 EnterState 가 로컬로 이 값을 채우고, 스캐너도 로컬에서 GetInteractionPrompt 를 pull 하므로 같은 피어에서 저장·조회가 닫힌다(State 복제가 각 피어를 같은 상태로 수렴시켜 표시가 일치한다).
 	 */
-	void SetCurrentInteractionPrompt(const FText& InPrompt);
+	void SetCurrentInteractionPrompt(UPrimitiveComponent* Mesh, const FText& InPrompt);
 
 	//~ Begin IWxSavable
 	virtual FGuid GetSaveId() const override;
@@ -95,6 +110,12 @@ protected:
 	virtual void BeginPlay() override;
 
 	/**
+	 * ST 가 상태별 문구를 세팅하지 않았을 때 Source 영역이 표시할 프롬프트. 기본은 기믹 하나짜리 InteractionPrompt 다.
+	 * 상호작용 영역이 여럿인 기믹(예: 엘리베이터)이 이를 override 해 영역별 고정 문구를 고른다 — ST 값 우선 규칙은 베이스가 소유하므로 자식은 폴백만 신경 쓰면 된다.
+	 */
+	virtual FText GetDefaultInteractionPrompt(const UActorComponent* Source) const { return InteractionPrompt; }
+
+	/**
 	 * 라이브 State 변경을 GimmickStateTree 에 통지한다 — 현재 상태 태그를 ST 이벤트로 보내 그 상태의 Required Event 전이를 구동한다.
 	 * 베이스의 복제 State(ReplicatedUsing=OnRep_GimmickState)가 클라에서 갱신될 때 호출되며, 권위 측은 CommitGimmickState 가 직접 호출해 서버·클라가 같은 통지 로직을 공유한다(서버 OnRep 미발화를 메우는 RepNotify 관용구). 트리 미실행 중엔 노옵이다.
 	 */
@@ -108,22 +129,31 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_GimmickState, SaveGame, VisibleAnywhere,  meta = (AllowPrivateAccess = "true"))
 	FGameplayTag State;
 
-	/** HUD 리스트에 표시할 기본 상호작용 프롬프트. ST 가 상태별 프롬프트를 세팅하지 않은 기믹/상태의 폴백이다. */
+	/** HUD 리스트에 표시할 기본 상호작용 프롬프트. 영역별·상태별 프롬프트가 없는 기믹/상태의 최종 폴백이다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	FText InteractionPrompt = FText::FromString(TEXT("Interact"));
 
 	/**
-	 * (런타임) 현재 상태의 상호작용 프롬프트. 'Wx Enable Interaction' 태스크가 상태 진입 시 SetCurrentInteractionPrompt 로 채우고, GetInteractionPrompt 가 읽는 로컬 표시 값이다.
+	 * 지금 상호작용이 켜져 있는 영역 메시들. 멤버십 자체가 활성 상태라 따로 담는 bool 이 없다.
+	 * 자식 생성자가 기본 활성 영역을 담고, 이후엔 'Enable Interaction' 태스크가 SetInteractionEnabled 로 넣고 뺀다.
+	 * 로컬 전용(복제·SaveGame 아님) — 복제 State 로 구동되는 ST 가 각 피어에서 같은 값으로 수렴시킨다.
+	 */
+	UPROPERTY()
+	TSet<TObjectPtr<UPrimitiveComponent>> ActiveInteractionMeshes;
+
+	/**
+	 * (런타임) 영역(메시)별 현재 상태의 상호작용 프롬프트. 'Enable Interaction' 태스크가 상태 진입 시 SetCurrentInteractionPrompt 로 채우고, GetInteractionPrompt 가 읽는 로컬 표시 값이다.
 	 * 로컬 전용(복제·SaveGame 아님) — 복원/late-join 시 ST 재진입이 다시 세팅한다.
 	 */
 	UPROPERTY(Transient)
-	FText CurrentInteractionPrompt;
+	TMap<TObjectPtr<UPrimitiveComponent>, FText> CurrentInteractionPrompts;
 
 	/**
 	 * 이번 상호작용의 당사자(플레이어 캐릭터). 복제되지만 비영속(SaveGame 아님) — 상호작용 순간에만 유효하다.
-	 * 권위 측이 SetInteractingCharacter 로만 쓰고, ST 에셋이 상호작용 이동/몽타주 태스크('Wx Move Interactor To Target'·'Wx Play Interactor Montage')의 InteractingCharacter 입력에 바인딩한다(자식 컴포넌트 바인딩과 동일 패턴).
+	 * 권위 측이 SetInteractingCharacter 로만 쓰고, 상호작용 이동/몽타주 태스크가 GetInteractingCharacter 로 읽는다.
+	 * ST 바인딩 대상이 아니므로 AllowPrivateAccess 를 붙이지 않는다 — 붙이면 타입과 무관하게 모든 바인딩 피커 목록에 오른다. VisibleAnywhere 는 디테일 패널 디버깅용으로 유지.
 	 */
-	UPROPERTY(Replicated, VisibleAnywhere, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Replicated, VisibleAnywhere)
 	TObjectPtr<ACharacter> InteractingCharacter;
 
 	/** 모든 자식 컴포넌트의 부착 베이스. 자식 클래스는 SetRootComponent 호출 없이 SceneRoot 에 SetupAttachment 한다. */

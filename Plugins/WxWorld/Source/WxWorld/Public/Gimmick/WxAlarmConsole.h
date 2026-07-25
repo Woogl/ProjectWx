@@ -29,7 +29,7 @@ public:
 
 protected:
 
-	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Spawn Niagara 가 attach 대상으로 바인딩하기 위한 노출.
+	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Spawn Niagara 가 attach 대상으로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> Console;
 };

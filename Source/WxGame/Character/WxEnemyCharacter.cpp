@@ -7,7 +7,6 @@
 #include "WxRewardLibrary.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
-#include "WxCollisionChannels.h"
 #include "Kismet/GameplayStatics.h"
 #include "Spawnable/WxSpawner.h"
 #include "Targeting/WxLockOnPointComponent.h"
@@ -49,19 +48,11 @@ void AWxEnemyCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	NameplateComponent->InitializeViewModels(AbilitySystemComponent, GetCharacterUIData());
-
-	// 처형 상호작용 영역은 캐릭터 메시 자체다. 살아있는 동안 채널에 열어 두고, 실제 자격(그로기=앞잡 / 미인지·후방=뒤잡)은 CanBeInteractedBy 가 주체별로 판정한다.
-	// 채널 응답은 머신당 값이 하나뿐이라 특정 플레이어에 종속시킬 수 없다 — 그렇게 하면 서버 값이 한 플레이어 기준이 되어 다른 플레이어의 정당한 처형이 거부된다.
-	GetMesh()->SetCollisionResponseToChannel(ECC_WxInteractable, ECR_Overlap);
 }
 
 void AWxEnemyCharacter::HandleDeath()
 {
 	Super::HandleDeath();
-
-	// 시체를 스캔 브로드페이즈에서 뺀다(전 머신에서 구동되므로 권위 가드 바깥이다).
-	// CanBeInteractedBy 도 IsAlive 로 걸러내지만, 채널에서 내려 후보 수집 자체를 없애는 편이 싸다.
-	GetMesh()->SetCollisionResponseToChannel(ECC_WxInteractable, ECR_Ignore);
 
 	if (!HasAuthority())
 	{
@@ -79,6 +70,13 @@ void AWxEnemyCharacter::HandleDeath()
 	{
 		UWxRewardLibrary::GrantReward(this, RewardRow, PlayerController, GetActorTransform(), FVector::UpVector * LaunchSpeed);
 	}
+}
+
+void AWxEnemyCharacter::GetActiveInteractionMeshes(TArray<UPrimitiveComponent*>& OutMeshes) const
+{
+	// 처형 상호작용 영역은 캐릭터 메시 자체다. 목록은 늘 열어 두고, 실제 자격(생사·그로기=앞잡 / 미인지·후방=뒤잡)은 CanBeInteractedBy 가 주체별로 판정한다.
+	// 목록은 머신당 값이 하나뿐이라 특정 플레이어에 종속시킬 수 없다 — 그렇게 하면 서버 값이 한 플레이어 기준이 되어 다른 플레이어의 정당한 처형이 거부된다.
+	OutMeshes.Add(GetMesh());
 }
 
 bool AWxEnemyCharacter::CanBeInteractedBy(const AActor* Interactor, const UActorComponent* Source) const
@@ -155,7 +153,7 @@ void AWxEnemyCharacter::OnInteracted(AActor* Interactor, const UActorComponent* 
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Interactor, EventTag, EventData);
 }
 
-FText AWxEnemyCharacter::GetInteractionPrompt() const
+FText AWxEnemyCharacter::GetInteractionPrompt(const UActorComponent* Source) const
 {
 	return FText::FromString(TEXT("Finisher"));
 }

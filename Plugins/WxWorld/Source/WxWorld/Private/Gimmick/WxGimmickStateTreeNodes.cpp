@@ -28,7 +28,6 @@
 #include "Spawnable/WxSpawner.h"
 #include "StateTreeExecutionContext.h"
 #include "StateTreePropertyBindings.h"
-#include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 
 namespace
@@ -89,18 +88,14 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExe
 		return EStateTreeRunStatus::Failed;
 	}
 
-	// 메시의 WxInteractable 응답만 토글한다. 메시의 CollisionEnabled·ObjectType·다른 응답은 건드리지 않아 본래 콜리전이 보존된다.
-	// Ignore 메시는 스캐너의 채널 오버랩에 잡히지 않아 다음 스캔에서 자연 탈락하고, 외곽선도 그때 스캐너가 끈다.
-	TargetMesh->SetCollisionResponseToChannel(ECC_WxInteractable, Instance.bEnable ? ECR_Overlap : ECR_Ignore);
-
-	// 상호작용을 켜는 상태면 이 메시의 프롬프트를 오너 기믹에 세팅한다(스캐너가 GetInteractionPrompt 로 pull). 끄는 상태는 스캔에 안 잡혀 프롬프트가 무의미하므로 건드리지 않는다.
-	// 오너가 기믹이 아니면(비기믹 ST) 프롬프트만 스킵하고 콜리전 토글은 유지한다.
-	if (Instance.bEnable)
+	// 활성 여부와 프롬프트를 둘 다 오너 기믹에 세팅한다 — 콜리전은 관여하지 않으므로 대상 메시의 콜리전 설정은 그대로 보존된다.
+	// 꺼진 영역은 기믹의 활성 목록에서 빠져 스캐너의 다음 스캔에서 자연 탈락하고, 외곽선도 그때 스캐너가 끈다.
+	// 프롬프트는 영역별로 담기므로 한 상태가 여러 영역을 켜도 서로 덮어쓰지 않는다. 끄는 상태는 빈 텍스트를 넘겨 이전 상태가 남긴 문구를 지운다(다시 켤 때 stale 값을 물려받지 않게).
+	// 오너가 기믹이 아니면(비기믹 ST) 세팅할 대상이 없으므로 노옵이다.
+	if (AWxGimmick* Gimmick = Cast<AWxGimmick>(Context.GetOwner()))
 	{
-		if (AWxGimmick* Gimmick = Cast<AWxGimmick>(Context.GetOwner()))
-		{
-			Gimmick->SetCurrentInteractionPrompt(Instance.Prompt);
-		}
+		Gimmick->SetInteractionEnabled(TargetMesh, Instance.bEnable);
+		Gimmick->SetCurrentInteractionPrompt(TargetMesh, Instance.bEnable ? Instance.Prompt : FText::GetEmpty());
 	}
 
 	// 토글은 즉시 끝나므로 곧바로 완료한다.
@@ -117,13 +112,13 @@ FText FWxStateTreeTask_EnableInteraction::GetDescription(const FGuid& ID, FState
 	FText TargetText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, TargetMesh)), Formatting);
 	if (TargetText.IsEmpty())
 	{
-		TargetText = InstanceData->TargetMesh ? FText::FromString(InstanceData->TargetMesh->GetName()) : INVTEXT("(none)");
+		TargetText = InstanceData->TargetMesh ? FText::FromString(InstanceData->TargetMesh->GetName()) : INVTEXT("none");
 	}
 
 	// 상호작용을 켜고 프롬프트가 있으면 함께 보여, 상태별 프롬프트를 노드 설명에서 바로 확인할 수 있게 한다.
 	if (InstanceData->bEnable && !InstanceData->Prompt.IsEmpty())
 	{
-		return FText::Format(INVTEXT("Enable Interaction ({0}) — \"{1}\""), TargetText, InstanceData->Prompt);
+		return FText::Format(INVTEXT("Enable \"{1}\" Interaction ({0})"), TargetText, InstanceData->Prompt);
 	}
 
 	return FText::Format(INVTEXT("{0} ({1})"), InstanceData->bEnable ? INVTEXT("Enable Interaction") : INVTEXT("Disable Interaction"), TargetText);
@@ -222,7 +217,7 @@ FText FWxStateTreeTask_ComponentMove::GetDescription(const FGuid& ID, FStateTree
 	FText ComponentText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, TargetComponent)), Formatting);
 	if (ComponentText.IsEmpty())
 	{
-		ComponentText = InstanceData->TargetComponent ? FText::FromString(InstanceData->TargetComponent->GetName()) : INVTEXT("(none)");
+		ComponentText = InstanceData->TargetComponent ? FText::FromString(InstanceData->TargetComponent->GetName()) : INVTEXT("none");
 	}
 
 	return FText::Format(INVTEXT("Component Move ({0})"), ComponentText);
@@ -319,7 +314,7 @@ FText FWxStateTreeTask_ComponentSplineMove::GetDescription(const FGuid& ID, FSta
 	FText SplineText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, Spline)), Formatting);
 	if (SplineText.IsEmpty())
 	{
-		SplineText = InstanceData->Spline ? FText::FromString(InstanceData->Spline->GetName()) : INVTEXT("(none)");
+		SplineText = InstanceData->Spline ? FText::FromString(InstanceData->Spline->GetName()) : INVTEXT("none");
 	}
 
 	return FText::Format(INVTEXT("Component Spline Move ({0} → point {1})"), SplineText, FText::AsNumber(InstanceData->TargetPointIndex));
@@ -376,7 +371,7 @@ FText FWxStateTreeTask_PlayAnimation::GetDescription(const FGuid& ID, FStateTree
 	check(InstanceData);
 
 	return FText::Format(INVTEXT("Play Animation ({0})"),
-		InstanceData->Animation ? FText::FromString(InstanceData->Animation->GetName()) : INVTEXT("(none)"));
+		InstanceData->Animation ? FText::FromString(InstanceData->Animation->GetName()) : INVTEXT("none"));
 }
 #endif
 
@@ -396,13 +391,14 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::EnterState(FStateTr
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	ACharacter* Character = Instance.InteractingCharacter;
-	const AActor* Owner = Cast<AActor>(Context.GetOwner());
+	// 당사자는 오너 기믹이 권위 측에서 기록해 복제한 값이라 모든 피어가 같은 대상을 본다(에셋 배선 없음).
+	const AWxGimmick* Gimmick = Cast<AWxGimmick>(Context.GetOwner());
+	ACharacter* Character = Gimmick ? Gimmick->GetInteractingCharacter() : nullptr;
 
-	// 상호작용 당사자가 없으면(비캐릭터 상호작용 등) 상태가 갇히지 않게 곧바로 완료한다.
-	if (!Character || !Owner)
+	// 당사자가 없으면(비캐릭터 상호작용, 비기믹 오너 등) 상태가 갇히지 않게 곧바로 완료한다.
+	if (!Character)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Wx Move Interactor To Target: InteractingCharacter/Owner is null — 완료로 넘어간다."));
+		UE_LOG(LogTemp, Warning, TEXT("Move Interactor To Target: 오너 기믹의 InteractingCharacter 가 비어 있다 — 완료로 넘어간다."));
 		return EStateTreeRunStatus::Succeeded;
 	}
 
@@ -432,7 +428,7 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::EnterState(FStateTr
 	}
 
 	// 목표 = 앵커(또는 오너) 트랜스폼 ∘ 상대오프셋. 모든 머신에서 동일하게 합성돼 수렴한다.
-	const FTransform Anchor = Instance.AnchorComponent ? Instance.AnchorComponent->GetComponentTransform() : Owner->GetActorTransform();
+	const FTransform Anchor = Instance.AnchorComponent ? Instance.AnchorComponent->GetComponentTransform() : Gimmick->GetActorTransform();
 	const FVector TargetLocation = Anchor.TransformPosition(Instance.RelativeLocation);
 	const float TargetYaw = (Anchor.GetRotation() * Instance.RelativeRotation.Quaternion()).Rotator().Yaw;
 
@@ -466,14 +462,14 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::Tick(FStateTreeExec
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	ACharacter* Character = Instance.InteractingCharacter;
-	const AActor* Owner = Cast<AActor>(Context.GetOwner());
-	if (!Character || !Owner)
+	const AWxGimmick* Gimmick = Cast<AWxGimmick>(Context.GetOwner());
+	ACharacter* Character = Gimmick ? Gimmick->GetInteractingCharacter() : nullptr;
+	if (!Character)
 	{
 		return EStateTreeRunStatus::Failed;
 	}
 
-	const FTransform Anchor = Instance.AnchorComponent ? Instance.AnchorComponent->GetComponentTransform() : Owner->GetActorTransform();
+	const FTransform Anchor = Instance.AnchorComponent ? Instance.AnchorComponent->GetComponentTransform() : Gimmick->GetActorTransform();
 	const FVector TargetLocation = Anchor.TransformPosition(Instance.RelativeLocation);
 	const float TargetYaw = (Anchor.GetRotation() * Instance.RelativeRotation.Quaternion()).Rotator().Yaw;
 
@@ -511,7 +507,7 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::Tick(FStateTreeExec
 void FWxStateTreeTask_MoveInteractorToTarget::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	// EnterState 에서 건 입력 차단을 해제한다. SetIgnoreMoveInput·BlockAbilitiesWithTags 모두 스택 카운터라 진입 시의 +1 과 짝을 맞춰야 한다.
-	// 해제 대상을 InteractingCharacter 로 되짚지 않는 이유: 바인딩 프로퍼티는 bShouldCopyBoundPropertiesOnExitState(기본 true) 로 여기 직전 재복사되므로 진입 시점의 스냅샷이 아니다.
+	// 해제 대상을 오너 기믹의 InteractingCharacter 로 되짚지 않는 이유: 그 값은 권위 측이 언제든 갱신하는 라이브 멤버라 진입 시점의 스냅샷이 아니다.
 	// 이동 중 캐릭터가 파괴되거나(Tick 이 Failed 반환) 언포제스되면 그 경로로는 대상을 잃어 해제가 통째로 스킵되고, 컨트롤러에 쌓인 카운터가 리스폰 후에도 남는다.
 	// 그래서 진입 때 차단에 성공한 대상 자체를 기록해 두고, 여기서는 그 기록만 근거로 해제한다(기록이 비어 있으면 애초에 걸지 않은 것이다).
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
@@ -534,14 +530,15 @@ FText FWxStateTreeTask_MoveInteractorToTarget::GetDescription(const FGuid& ID, F
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	// 이동 대상은 보통 바인딩이라 런타임 포인터가 비어 있다. 바인딩 소스명을 우선 보이고, 없으면 (none) 으로 폴백.
-	FText CharacterText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, InteractingCharacter)), Formatting);
-	if (CharacterText.IsEmpty())
+	// 이동 대상은 오너 기믹에서 읽으므로 표시할 것이 없다. 상태마다 갈리는 건 목표 앵커라 그것을 보인다.
+	// 앵커는 보통 바인딩이라 런타임 포인터가 비어 있다. 바인딩 소스명을 우선 보이고, 비우면 오너 트랜스폼 기준이므로 owner 로 폴백.
+	FText AnchorText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, AnchorComponent)), Formatting);
+	if (AnchorText.IsEmpty())
 	{
-		CharacterText = INVTEXT("(none)");
+		AnchorText = InstanceData->AnchorComponent ? FText::FromString(InstanceData->AnchorComponent->GetName()) : INVTEXT("owner");
 	}
 
-	return FText::Format(INVTEXT("Move Interactor To Target ({0})"), CharacterText);
+	return FText::Format(INVTEXT("Move Interactor To Target ({0})"), AnchorText);
 }
 #endif
 
@@ -557,7 +554,9 @@ EStateTreeRunStatus FWxStateTreeTask_PlayInteractorMontage::EnterState(FStateTre
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	ACharacter* Character = Instance.InteractingCharacter;
+	// 당사자는 오너 기믹이 권위 측에서 기록해 복제한 값이라 모든 피어가 같은 대상을 본다(에셋 배선 없음).
+	const AWxGimmick* Gimmick = Cast<AWxGimmick>(Context.GetOwner());
+	ACharacter* Character = Gimmick ? Gimmick->GetInteractingCharacter() : nullptr;
 	USkeletalMeshComponent* Mesh = Character ? Character->GetMesh() : nullptr;
 	UAnimInstance* AnimInstance = Mesh ? Mesh->GetAnimInstance() : nullptr;
 
@@ -578,7 +577,8 @@ EStateTreeRunStatus FWxStateTreeTask_PlayInteractorMontage::Tick(FStateTreeExecu
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	ACharacter* Character = Instance.InteractingCharacter;
+	const AWxGimmick* Gimmick = Cast<AWxGimmick>(Context.GetOwner());
+	ACharacter* Character = Gimmick ? Gimmick->GetInteractingCharacter() : nullptr;
 	if (!Character)
 	{
 		return EStateTreeRunStatus::Failed;
@@ -602,7 +602,7 @@ FText FWxStateTreeTask_PlayInteractorMontage::GetDescription(const FGuid& ID, FS
 	check(InstanceData);
 
 	return FText::Format(INVTEXT("Play Interactor Montage ({0})"),
-		InstanceData->Montage ? FText::FromString(InstanceData->Montage->GetName()) : INVTEXT("(none)"));
+		InstanceData->Montage ? FText::FromString(InstanceData->Montage->GetName()) : INVTEXT("none"));
 }
 #endif
 
@@ -709,7 +709,7 @@ FText FWxStateTreeTask_PlayLevelSequence::GetDescription(const FGuid& ID, FState
 	check(InstanceData);
 
 	return FText::Format(INVTEXT("Play Level Sequence ({0})"),
-		InstanceData->LevelSequence ? FText::FromString(InstanceData->LevelSequence->GetName()) : INVTEXT("(none)"));
+		InstanceData->LevelSequence ? FText::FromString(InstanceData->LevelSequence->GetName()) : INVTEXT("none"));
 }
 #endif
 
@@ -719,10 +719,6 @@ FWxStateTreeTask_PlaySound::FWxStateTreeTask_PlaySound()
 {
 	// 진입 시 1회 재생만 하므로 틱이 불필요하다.
 	bShouldCallTick = false;
-#if WITH_EDITORONLY_DATA
-	// 무틱 즉시완료 트리거 태스크라 상태 완료를 구동하지 않는다(정지 leaf 에 놓여도 즉시 완료→재선택 루프에 빠지지 않게). 완료 구동이 필요한 드문 상태는 인스턴스별로 다시 켠다.
-	bConsideredForCompletion = false;
-#endif
 }
 
 EStateTreeRunStatus FWxStateTreeTask_PlaySound::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
@@ -757,7 +753,7 @@ FText FWxStateTreeTask_PlaySound::GetDescription(const FGuid& ID, FStateTreeData
 	check(InstanceData);
 
 	return FText::Format(INVTEXT("Play Sound ({0})"),
-		InstanceData->Sound ? FText::FromString(InstanceData->Sound->GetName()) : INVTEXT("(none)"));
+		InstanceData->Sound ? FText::FromString(InstanceData->Sound->GetName()) : INVTEXT("none"));
 }
 #endif
 
@@ -801,7 +797,7 @@ FText FWxStateTreeTask_SpawnNiagara::GetDescription(const FGuid& ID, FStateTreeD
 	check(InstanceData);
 
 	return FText::Format(INVTEXT("Spawn Niagara ({0})"),
-		InstanceData->Niagara ? FText::FromString(InstanceData->Niagara->GetName()) : INVTEXT("(none)"));
+		InstanceData->Niagara ? FText::FromString(InstanceData->Niagara->GetName()) : INVTEXT("none"));
 }
 #endif
 
@@ -839,7 +835,7 @@ EStateTreeRunStatus FWxStateTreeTask_TriggerSpawners::EnterState(FStateTreeExecu
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Wx Trigger Spawners: TargetSpawner is null or not loaded."));
+			UE_LOG(LogTemp, Warning, TEXT("Trigger Spawners: TargetSpawner is null or not loaded."));
 		}
 	}
 
@@ -955,6 +951,6 @@ FText FWxStateTreeTask_SpawnActor::GetDescription(const FGuid& ID, FStateTreeDat
 	check(InstanceData);
 
 	return FText::Format(INVTEXT("Spawn Actor ({0})"),
-		InstanceData->ActorClass ? FText::FromString(InstanceData->ActorClass->GetName()) : INVTEXT("(none)"));
+		InstanceData->ActorClass ? FText::FromString(InstanceData->ActorClass->GetName()) : INVTEXT("none"));
 }
 #endif

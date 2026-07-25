@@ -12,7 +12,7 @@
 
 **경계 (비담당)**
 - 무기 외형 반영(메시 스왑/소켓 재부착): `UWxEquipmentComponent` 는 `OnEquipVisualChanged` 로 방송만, 실제 반영은 [[WxGame]] 캐릭터가 수행
-- 픽업 상호작용 컴포넌트 배선: 컴포넌트는 상속 BP 에서 추가([[WxWorld]] 규약), 응답·프롬프트는 `AWxItemPickup` 이 [[WxCore]] `IWxInteractable` 로 직접 구현
+- 픽업 상호작용 감지·선택: 주변 스캔은 [[WxWorld]] 스캐너 소관이고, 영역·응답·프롬프트는 `AWxItemPickup` 이 [[WxCore]] `IWxInteractable` 로 직접 구현(BP 배선 없음)
 - GAS 어빌리티/스탯 정의 자체 — GE 적용만 트리거([[WxCombat]] 도메인)
 - 인벤토리 UI 표시 — [[WxUI]]
 

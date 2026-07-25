@@ -4,7 +4,6 @@
 
 #include "Components/SplineComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 
 AWxElevator::AWxElevator()
@@ -20,8 +19,8 @@ AWxElevator::AWxElevator()
 
 	PlatformMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlatformMesh"));
 	PlatformMesh->SetupAttachment(PlatformRoot);
-	// 세 메시가 각각 독립된 상호작용 영역이다. 활성/비활성은 ST 의 Wx Enable Interaction 이 영역마다 이 응답을 토글해 가른다.
-	PlatformMesh->SetCollisionResponseToChannel(ECC_WxInteractable, ECR_Overlap);
+	// 세 메시가 각각 독립된 상호작용 영역이며, 셋 다 기본 활성으로 시작한다. 이후 활성/비활성은 ST 의 Enable Interaction 이 영역마다 이 집합에 넣고 빼 가른다.
+	ActiveInteractionMeshes.Add(PlatformMesh);
 
 	DoorLeft = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DoorLeft"));
 	DoorLeft->SetupAttachment(PlatformRoot);
@@ -31,11 +30,11 @@ AWxElevator::AWxElevator()
 
 	CallConsoleA = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CallConsoleA"));
 	CallConsoleA->SetupAttachment(SceneRoot);
-	CallConsoleA->SetCollisionResponseToChannel(ECC_WxInteractable, ECR_Overlap);
+	ActiveInteractionMeshes.Add(CallConsoleA);
 
 	CallConsoleB = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CallConsoleB"));
 	CallConsoleB->SetupAttachment(SceneRoot);
-	CallConsoleB->SetCollisionResponseToChannel(ECC_WxInteractable, ECR_Overlap);
+	ActiveInteractionMeshes.Add(CallConsoleB);
 
 	State = WxGameplayTags::Gimmick_Elevator_Closed;
 }
@@ -65,4 +64,25 @@ void AWxElevator::OnInteracted(AActor* Interactor, const UActorComponent* Source
 		// End 호출(이미 AtEnd 면 동일값이라 노옵).
 		CommitGimmickState(WxGameplayTags::Gimmick_Elevator_AtEnd);
 	}
+}
+
+FText AWxElevator::GetDefaultInteractionPrompt(const UActorComponent* Source) const
+{
+	// 응답(OnInteracted)과 같은 영역 분기다. ST 가 상태별 문구를 세팅한 영역은 여기까지 내려오지 않는다.
+	if (Source == PlatformMesh)
+	{
+		return PlatformPrompt;
+	}
+
+	if (Source == CallConsoleA)
+	{
+		return CallConsoleAPrompt;
+	}
+
+	if (Source == CallConsoleB)
+	{
+		return CallConsoleBPrompt;
+	}
+
+	return Super::GetDefaultInteractionPrompt(Source);
 }

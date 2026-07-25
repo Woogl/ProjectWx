@@ -15,9 +15,9 @@ class UStaticMeshComponent;
  *
  * 도어와 동일한 결: 권위 State(Closed/AtStart/AtEnd)는 인터랙션 시 즉시 최종값으로 확정한다.
  * 이동/문 개폐는 권위와 무관한 순수 비주얼이라 "도착"이라는 권위 사건이 없다.
- *   - 플랫폼 이동: StateTree 의 Wx Component Spline Move 가 두 끝점 사이 단일 세그먼트를 라이브 전이마다 주파(Start↔End).
+ *   - 플랫폼 이동: StateTree 의 Component Spline Move 가 두 끝점 사이 단일 세그먼트를 라이브 전이마다 주파(Start↔End).
  *     가장 가까운 포인트에서 목표 끝점으로 정/역방향 슬라이드한다.
- *   - 문 개폐·인터랙션 토글: 각 상태의 Wx Component Move / Wx Enable Interaction(이동할 메시·오프셋·시퀀스는 ST_Elevator 에셋에서 author).
+ *   - 문 개폐·인터랙션 토글: 각 상태의 Component Move / Enable Interaction(이동할 메시·오프셋·시퀀스는 ST_Elevator 에셋에서 author).
  *
  * ST_Elevator 는 권위 State 값마다 최상위 leaf 하나(Closed/AtStart/AtEnd, Required Event to Enter = 그 State 태그)를 두고, 각 leaf 안에서 "문 닫기 → 플랫폼 이동 → 문 열기"를 자식 상태 시퀀스로 choreography 한다(각 단계 완료 시 다음 단계로).
  * mover 는 현재 위치에서 목표로 슬라이드하고 이미 목표면 즉시 완료하므로(self-anchoring), 같은 층 전이(Closed↔AtStart)는 닫기·이동 단계가 즉시 collapse 되고 문 개폐만 실제로 보인다.
@@ -35,6 +35,9 @@ class UStaticMeshComponent;
  *  - PlatformMesh: 플랫폼 위에서 상호작용하면 반대 끝점으로 이동
  *  - CallConsoleA: 플랫폼을 스플라인 시작점(거리 0)으로 호출
  *  - CallConsoleB: 플랫폼을 스플라인 끝점(SplineLength)으로 호출
+ *
+ * 프롬프트도 응답과 같은 Source 분기로 영역마다 갈린다. 영역별 고정 문구는 BP 디폴트(아래 세 필드)에서 author 하고,
+ * 상태에 따라 문구가 달라져야 하는 영역만 ST_Elevator 의 Enable Interaction Prompt 로 덮는다(ST 값이 있으면 베이스가 그것을 먼저 집는다).
  */
 UCLASS(Abstract)
 class WXWORLD_API AWxElevator : public AWxGimmick
@@ -44,11 +47,27 @@ class WXWORLD_API AWxElevator : public AWxGimmick
 public:
 	AWxElevator();
 
-	//~ Begin IWxInteractable — Source(플랫폼/콜콘솔A/콜콘솔B)로 분기해 State 를 확정(프롬프트는 베이스 InteractionPrompt).
+	//~ Begin IWxInteractable — Source(플랫폼/콜콘솔A/콜콘솔B)로 분기해 State 를 확정한다.
 	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
 	//~ End IWxInteractable
 
 protected:
+
+	//~ Begin AWxGimmick — 응답과 같은 Source 분기로 영역별 고정 문구를 고른다.
+	virtual FText GetDefaultInteractionPrompt(const UActorComponent* Source) const override;
+	//~ End AWxGimmick
+
+	/** 플랫폼 위에서 표시할 프롬프트. 층에 따라 문구를 바꾸려면 ST_Elevator 의 해당 상태 Enable Interaction 에서 덮는다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx")
+	FText PlatformPrompt;
+
+	/** 시작점 호출 콘솔에서 표시할 프롬프트. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx")
+	FText CallConsoleAPrompt;
+
+	/** 끝점 호출 콘솔에서 표시할 프롬프트. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx")
+	FText CallConsoleBPrompt;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USplineComponent> SplineComponent;
@@ -56,22 +75,22 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USceneComponent> PlatformRoot;
 
-	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
+	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> PlatformMesh;
 
-	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Component Move 가 Context 액터의 컴포넌트로 바인딩하기 위한 노출.
+	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Component Move 가 Context 액터의 컴포넌트로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> DoorLeft;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> DoorRight;
 
-	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
+	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> CallConsoleA;
 
-	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Wx Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
+	// VisibleAnywhere + AllowPrivateAccess: StateTree 의 Enable Interaction 이 토글 대상으로 바인딩하기 위한 노출.
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> CallConsoleB;
 };

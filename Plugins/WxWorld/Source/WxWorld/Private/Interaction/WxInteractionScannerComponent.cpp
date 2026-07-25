@@ -4,12 +4,11 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Components/PrimitiveComponent.h"
-#include "Engine/OverlapResult.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "TimerManager.h"
-#include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 #include "WxInteractable.h"
 
@@ -74,9 +73,10 @@ TArray<FText> UWxInteractionScannerComponent::GetPrompts() const
 	{
 		if (const UPrimitiveComponent* Mesh = Weak.Get())
 		{
-			// 프롬프트는 대상 액터가 IWxInteractable 로 제공한다(pull). 인덱스 정합을 위해 대상이 없으면 빈 텍스트로 자리를 채운다.
-			const IWxInteractable* Target = Cast<IWxInteractable>(Mesh->GetOwner());
-			Prompts.Add(Target ? Target->GetInteractionPrompt() : FText::GetEmpty());
+			// 프롬프트는 대상이 IWxInteractable 로 제공한다(pull). 어느 영역의 문구인지는 이 메시가 정하므로 함께 넘긴다.
+			// 인덱스 정합을 위해 대상이 없으면 빈 텍스트로 자리를 채운다.
+			const IWxInteractable* Target = IWxInteractable::Find(Mesh);
+			Prompts.Add(Target ? Target->GetInteractionPrompt(Mesh) : FText::GetEmpty());
 		}
 	}
 	return Prompts;
@@ -143,31 +143,39 @@ void UWxInteractionScannerComponent::ScanAndPush()
 
 	const FVector ScanOrigin = Pawn->GetActorLocation();
 
-	// 대상 메시가 WxInteractable 채널에 Overlap 응답으로 표식되므로 채널 오버랩으로 수집한다.
-	// 오버랩 결과가 곧 상호작용 영역이다 — 한 액터에 여러 영역이 있으면(예: 엘리베이터) 메시 단위로 각각 잡힌다.
-	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(WxInteractionScan), false);
-
-	TArray<FOverlapResult> Overlaps;
-	World->OverlapMultiByChannel(Overlaps, ScanOrigin, FQuat::Identity, ECC_WxInteractable, FCollisionShape::MakeSphere(ScanRadius), QueryParams);
-
+	// 대상이 자기 영역 메시를 인터페이스로 직접 답하므로, 로드된 액터를 훑어 계약 구현체만 남긴다(구현 액터는 소수라 이 캐스트가 사실상의 필터다).
+	// 누가 대상인가는 콜리전과 무관하다 — 프리셋·응답이 무엇이든 영역으로 잡힌다. 콜리전은 아래 사거리 판정에만 쓰인다.
 	TArray<UPrimitiveComponent*> Candidates;
-	for (const FOverlapResult& Overlap : Overlaps)
+	TArray<UPrimitiveComponent*> ActiveMeshes;
+	for (TActorIterator<AActor> It(World); It; ++It)
 	{
-		UPrimitiveComponent* Mesh = Overlap.GetComponent();
-		if (!Mesh)
+		const IWxInteractable* Target = Cast<IWxInteractable>(*It);
+		if (!Target)
 		{
 			continue;
 		}
 
-		// 주체별로 자격이 갈리는 대상(예: 처형은 주체가 후방이어야 뒤잡)은 채널만으론 걸러지지 않는다.
-		// 소유 폰을 주체로 물어 표시를 거른다 — 서버는 같은 함수를 실제 instigator 로 다시 물어 권위 판정한다.
-		const IWxInteractable* Target = Cast<IWxInteractable>(Mesh->GetOwner());
-		if (Target && !Target->CanBeInteractedBy(Pawn, Mesh))
-		{
-			continue;
-		}
+		// 목록에 담긴 것이 곧 지금 켜져 있는 영역이다 — 한 액터에 여러 영역이 있으면(예: 엘리베이터) 메시 단위로 각각 잡힌다.
+		ActiveMeshes.Reset();
+		Target->GetActiveInteractionMeshes(ActiveMeshes);
 
-		Candidates.AddUnique(Mesh);
+		for (UPrimitiveComponent* Mesh : ActiveMeshes)
+		{
+			// 영역이 반경 안이어야 후보다(콜리전 형상 기준, 없으면 바운즈). 서버의 사거리 검증도 같은 식을 쓴다.
+			if (!IWxInteractable::IsMeshInRange(Mesh, ScanOrigin, ScanRadius))
+			{
+				continue;
+			}
+
+			// 주체별로 자격이 갈리는 대상(예: 처형은 주체가 후방이어야 뒤잡)은 활성 목록만으론 걸러지지 않는다.
+			// 소유 폰을 주체로 물어 표시를 거른다 — 서버는 같은 함수를 실제 instigator 로 다시 물어 권위 판정한다.
+			if (!Target->CanBeInteractedBy(Pawn, Mesh))
+			{
+				continue;
+			}
+
+			Candidates.AddUnique(Mesh);
+		}
 	}
 
 	// 가까운 영역이 먼저 오도록 거리순 정렬한다(스캐너가 신규를 이 순서로 append).

@@ -12,7 +12,6 @@
 struct FStateTreeExecutionContext;
 struct FStateTreeTransitionResult;
 class AActor;
-class ACharacter;
 class AController;
 class ALevelSequenceActor;
 class AWxSpawner;
@@ -38,8 +37,8 @@ class USplineComponent;
  *  - ComponentMove 는 (TargetComponent, LocalOffset, Duration) 으로 지정 컴포넌트를 현재 위치에서 기준(아키타입)+offset 으로 일정 속도 슬라이드한다(범용 메시 이동, 목표=아키타입인 닫기 방향도 지원).
  *  - ComponentSplineMove 는 (TargetComponent, Spline, TargetPointIndex, Duration) 으로 지정 컴포넌트를 목표 스플라인 포인트로 옮긴다. 초기 진입이면 목표 포인트로 즉시 스냅, 라이브 전이면 실제 현재 위치에서 목표까지 곡선을 따라 이동한다(State 가 목표 끝점을 직접 선언하므로 복원도 정확).
  *  - PlayAnimation 은 (TargetMesh, Animation) 으로 초기 진입이면 끝 프레임 스냅, 라이브 전이면 처음부터 재생한다. 범용 애니 재생.
- *  - MoveInteractorToTarget 은 (InteractingCharacter, AnchorComponent, RelativeLocation, bAlignRotation, RelativeRotation, Duration) 으로 상호작용한 플레이어 캐릭터를 앵커(또는 오너) 기준 상대 위치/방향으로 일정 시간 이동·응시시키고, 도착하면 완료한다. 목표는 모든 머신에서 동일해 각 피어 로컬 보간으로 수렴한다(복원/초기 진입은 스킵). 이동 중에는 로컬 플레이어의 이동·어빌리티·점프 입력을 막는다(카메라 look 은 유지).
- *  - PlayInteractorMontage 는 (InteractingCharacter, Montage) 으로 상호작용한 플레이어 캐릭터에게 몽타주를 재생하고, 재생이 끝나면 완료한다. 각 머신이 메시 AnimInstance 로 로컬 재생·폴링한다(복원/초기 진입은 스킵). 이동+몽타주 연출은 두 태스크를 상태로 나눠(이동 상태 → 몽타주 상태) 조립한다.
+ *  - MoveInteractorToTarget 은 (AnchorComponent, RelativeLocation, bAlignRotation, RelativeRotation, Duration) 으로 상호작용한 플레이어 캐릭터(오너 기믹에서 읽는다)를 앵커(또는 오너) 기준 상대 위치/방향으로 일정 시간 이동·응시시키고, 도착하면 완료한다. 목표는 모든 머신에서 동일해 각 피어 로컬 보간으로 수렴한다(복원/초기 진입은 스킵). 이동 중에는 로컬 플레이어의 이동·어빌리티·점프 입력을 막는다(카메라 look 은 유지).
+ *  - PlayInteractorMontage 는 (Montage) 으로 상호작용한 플레이어 캐릭터(오너 기믹에서 읽는다)에게 몽타주를 재생하고, 재생이 끝나면 완료한다. 각 머신이 메시 AnimInstance 로 로컬 재생·폴링한다(복원/초기 진입은 스킵). 이동+몽타주 연출은 두 태스크를 상태로 나눠(이동 상태 → 몽타주 상태) 조립한다.
  *  - PlayLevelSequence 는 (LevelSequence) 로 라이브 전이 진입 시 시퀀스를 재생하고 Tick 으로 종료를 폴링하다, 종료 시 시퀀스를 정리하고 권위 측이면 소유 기믹의 HandleLevelSequenceFinished 로 통지한 뒤 Succeeded 를 반환한다(호스트가 State 복귀를 구동; OnComplete 전이를 쓰는 기믹도 그대로 가능). 입력 차단은 별도 EnablePlayerInput 이 맡는다. 중도 이탈 시 ExitState 가 시퀀스 정지·정리(복원 시 침묵·통지 없음).
  *  - PlaySound 는 (Sound, bPlayOnRestore) 로 라이브 전이 진입 시 사운드를 1회 재생한다(기본은 복원 시 침묵, bPlayOnRestore 면 복원/시작 진입에서도 재생).
  *  - SpawnNiagara 는 (AttachComponent, Niagara, bPlayOnRestore) 로 라이브 전이 진입 시 Niagara 를 1회 재생한다(기본은 복원 시 침묵, bPlayOnRestore 면 복원/시작 진입에서도 재생 — 상태에 묶인 지속 FX 용).
@@ -67,19 +66,19 @@ struct FWxStateTreeTask_EnableInteractionInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	bool bEnable = false;
 
-	/** 상호작용을 켤 때 표시할 HUD 프롬프트. 오너 기믹의 GetInteractionPrompt 로 pull 된다. 비우면 기믹의 기본 InteractionPrompt 로 폴백. bEnable 일 때만 의미가 있다. */
+	/** 상호작용을 켤 때 이 메시가 표시할 HUD 프롬프트. 오너 기믹의 GetInteractionPrompt 로 pull 된다. 비우면 기믹이 정한 폴백(영역별 고정 문구 → 기본 InteractionPrompt)이 그대로 보인다. 상태에 따라 문구가 달라지는 영역만 채운다. bEnable 일 때만 의미가 있다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (EditCondition = "bEnable"))
 	FText Prompt;
 };
 
 /**
  * 진입 시 지정 메시의 상호작용 활성/비활성을 bEnable 로 토글한 뒤 Succeeded 로 완료한다 — WxInteractable 채널 응답을 Overlap/Ignore 로 바꿔 스캔 포함 여부를 가른다.
- * 상호작용을 켜는 상태면 그 프롬프트(Prompt)도 함께 오너 기믹에 세팅해, "이 상태가 상호작용 가능한가 + 프롬프트는 무엇인가"를 한 자리에서 author 한다(끄는 상태는 스캔에 안 잡혀 프롬프트 불필요, EditCondition 으로 필드 숨김).
+ * 상호작용을 켜는 상태면 그 메시의 프롬프트(Prompt)도 함께 오너 기믹에 세팅해, "이 상태가 상호작용 가능한가 + 프롬프트는 무엇인가"를 한 자리에서 author 한다(끄는 상태는 스캔에 안 잡혀 프롬프트 불필요, EditCondition 으로 필드 숨김).
+ * 프롬프트는 대상 메시별로 담기므로 한 상태가 여러 영역을 켜도 서로 덮어쓰지 않는다. 끄는 상태에서는 그 영역의 세팅을 지워 다시 켤 때 이전 상태의 문구를 물려받지 않는다.
  * 포즈/이동 등과 직교하는 단일 책임 태스크. 인터랙션이 여러 개인 기믹은 영역마다 노드를 둔다. 틱하지 않으므로 비용이 없다.
- * 각 상태가 자기 인터랙션 가용 여부·프롬프트를 명시하도록 상태마다 둔다(직접 복원 시에도 일관). 상호작용 가능 상태가 프롬프트를 지정하지 않으면 기믹의 기본 InteractionPrompt 로 폴백한다. 메시가 비면 Failed.
- * 순간 side-effect 라 기본적으로 상태 완료를 구동하지 않는다(bConsideredForCompletion=false; 토글만 든 정지 leaf 가 즉시 완료→재선택 루프에 빠지지 않도록). 인스턴스별로 다시 켤 수 있다.
+ * 각 상태가 자기 인터랙션 가용 여부·프롬프트를 명시하도록 상태마다 둔다(직접 복원 시에도 일관). 프롬프트를 지정하지 않으면 기믹이 정한 폴백(영역별 고정 문구 → 기본 InteractionPrompt)이 그대로 보이므로, 상태에 따라 문구가 달라지는 영역만 채우면 된다. 메시가 비면 Failed.
  */
-USTRUCT(meta = (DisplayName = "Wx Enable Interaction"))
+USTRUCT(meta = (DisplayName = "Enable Interaction", Category = "Wx"))
 struct FWxStateTreeTask_EnableInteraction : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
@@ -112,9 +111,8 @@ struct FWxStateTreeTask_EnablePlayerInputInstanceData
  * 진입 시 로컬 플레이어 폰의 입력 전체를 bEnable 로 토글한 뒤 Succeeded 로 완료한다(EnableInteraction 과 동형의 토글 태스크).
  * 각 상태가 자기 입력 가용 여부를 선언하도록 상태마다 둔다(예: 컷신 Playing 은 false, Idle 은 true). 직접 복원/레이트조인 시에도 일관되게 적용된다.
  * 로컬 플레이어 컨트롤러/폰이 없으면(예: 데디 서버) 노옵. 틱하지 않으므로 비용이 없다.
- * 순간 side-effect 라 기본적으로 상태 완료를 구동하지 않는다(bConsideredForCompletion=false; 컷신은 PlayLevelSequence 가 완료를 구동). 인스턴스별로 다시 켤 수 있다.
  */
-USTRUCT(meta = (DisplayName = "Wx Enable Player Input"))
+USTRUCT(meta = (DisplayName = "Enable Player Input", Category = "Wx"))
 struct FWxStateTreeTask_EnablePlayerInput : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
@@ -161,7 +159,7 @@ struct FWxStateTreeTask_ComponentMoveInstanceData
  * 속도는 시작→목표 실제 거리/Duration 으로 EnterState 에서 1회 산출하므로, 목표가 아키타입(offset 0)인 '닫기' 방향도 일정 속도로 슬라이드한다.
  * 시작 시 이미 목표거나(복원/레이트조인) 초기 진입이거나 길이가 0이면 움직임 없이 즉시 스냅해 곧바로 완료, 라이브 전이면 슬라이드 후 도달 시 완료한다.
  */
-USTRUCT(meta = (DisplayName = "Wx Component Move"))
+USTRUCT(meta = (DisplayName = "Component Move", Category = "Wx"))
 struct FWxStateTreeTask_ComponentMove : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
@@ -219,7 +217,7 @@ struct FWxStateTreeTask_ComponentSplineMoveInstanceData
  * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 목표 포인트로 즉시 스냅한다 — State 가 끝점을 직접 가리키므로 복제/복원된 상태의 위치를 정확히 복원한다(C++ 스냅 불필요).
  * 라이브 전이면 플랫폼의 실제 현재 위치에서 목표 포인트까지 곡선을 따라 슬라이드한다(Duration 0 이하·이미 목표면 즉시 스냅). 이동 중 재진입해도 vertex 로 스냅하지 않고 현재 지점에서 반전한다.
  */
-USTRUCT(meta = (DisplayName = "Wx Component Spline Move"))
+USTRUCT(meta = (DisplayName = "Component Spline Move", Category = "Wx"))
 struct FWxStateTreeTask_ComponentSplineMove : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
@@ -256,7 +254,7 @@ struct FWxStateTreeTask_PlayAnimationInstanceData
  * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 끝 프레임으로 스냅해 발동 완료 포즈를 복원하고 곧바로 완료, 라이브 전이면 처음부터 재생한다.
  * 재생 종료를 감지하려고 틱한다 — 싱글노드 인스턴스가 멈추면 완료로 본다.
  */
-USTRUCT(meta = (DisplayName = "Wx Play Animation"))
+USTRUCT(meta = (DisplayName = "Play Animation", Category = "Wx"))
 struct FWxStateTreeTask_PlayAnimation : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
@@ -278,10 +276,6 @@ USTRUCT()
 struct FWxStateTreeTask_MoveInteractorToTargetInstanceData
 {
 	GENERATED_BODY()
-
-	/** 이동시킬 상호작용 당사자(플레이어 캐릭터). ST 에셋에서 기믹의 InteractingCharacter 프로퍼티로 바인딩한다. 비면 아무 것도 하지 않고 완료. */
-	UPROPERTY(EditAnywhere, Category = "Parameter")
-	TObjectPtr<ACharacter> InteractingCharacter;
 
 	/** 목표를 잴 기준 앵커. ST 에셋에서 Context 액터의 컴포넌트(예: 상호작용 지점)로 바인딩한다. 비우면 오너 액터 트랜스폼 기준. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
@@ -312,8 +306,8 @@ struct FWxStateTreeTask_MoveInteractorToTargetInstanceData
 	float TurnSpeed = 0.f;
 
 	/**
-	 * (런타임) EnterState 에서 이동 입력을 실제로 막은 컨트롤러. 해제 근거를 InteractingCharacter 가 아니라 대상 자체로 두는 이유는,
-	 * 바인딩 프로퍼티가 ExitState 직전 재복사되고 캐릭터가 소멸·언포제스될 수도 있어 진입 시점의 차단 대상을 되짚을 수 없기 때문이다.
+	 * (런타임) EnterState 에서 이동 입력을 실제로 막은 컨트롤러. 해제 근거를 오너 기믹의 InteractingCharacter 가 아니라 대상 자체로 두는 이유는,
+	 * 그 값이 권위 측이 언제든 갱신하는 라이브 멤버이고 캐릭터가 소멸·언포제스될 수도 있어 진입 시점의 차단 대상을 되짚을 수 없기 때문이다.
 	 * 카운터는 폰이 아니라 컨트롤러에 쌓이므로, 폰이 죽어도 이 기록으로 짝을 맞춰야 리스폰 후 이동이 살아난다.
 	 */
 	UPROPERTY()
@@ -326,12 +320,13 @@ struct FWxStateTreeTask_MoveInteractorToTargetInstanceData
 
 /**
  * 상호작용한 플레이어 캐릭터를 앵커(또는 오너) 기준 상대 위치/방향으로 일정 시간 이동·응시시키고, 도착하면 Succeeded 로 상태를 완료시킨다.
- * 목표 = 앵커(또는 오너) 트랜스폼 ∘ 상대오프셋 이라 모든 머신에서 동일하게 계산돼, 각 피어가 자기 캐릭터 사본을 로컬 보간해도 수렴한다(별도 복제 미러 불필요, 'Wx Component Move' 철학). 진입 시 StopMovementImmediately 로 CMC 잔여 속도를 제거한다.
+ * 대상은 오너 기믹의 InteractingCharacter 를 직접 읽는다(바인딩 입력 없음) — 값이 이미 복제되어 모든 피어가 같은 대상을 보므로 에셋에서 배선할 것이 없다.
+ * 목표 = 앵커(또는 오너) 트랜스폼 ∘ 상대오프셋 이라 모든 머신에서 동일하게 계산돼, 각 피어가 자기 캐릭터 사본을 로컬 보간해도 수렴한다(별도 복제 미러 불필요, 'Component Move' 철학). 진입 시 StopMovementImmediately 로 CMC 잔여 속도를 제거한다.
  * 이동 중에는 로컬 플레이어의 입력을 막고, ExitState 가 차단을 건 대상 자체(BlockedController/BlockedAbilitySystem 기록)로 해제해 캐릭터가 소멸·언포제스돼도 스택 카운터의 짝이 맞는다. 이동은 AController::SetIgnoreMoveInput, 어빌리티+점프는 ASC 의 BlockAbilitiesWithTags(Ability) — 액션 어빌리티가 연출 중 서로를 막는 GAS 순정 관례 그대로이며 캐릭터 CanJumpInternal 이 AreAbilityTagsBlocked(Ability) 로 점프를 이미 게이트하므로 점프도 함께 막힌다. 카메라(look) 입력은 별개 게이트라 유지된다. 예측이 발동을 게이트하므로 소유 클라(IsLocallyControlled)에서만 걸어도 충분하다.
  * 초기 진입(StateTree 시작/복원/레이트조인)이면 이동 없이 곧바로 완료한다(발동 순간에만 동작; InteractingCharacter 는 비영속이라 복원 시 비어 있음). 대상이 없어도(비캐릭터 상호작용 등) 상태가 갇히지 않게 곧바로 완료한다.
- * 도착 후 몽타주 연출이 필요하면 다음 상태에 'Wx Play Interactor Montage' 를 둔다(단일 책임 분리).
+ * 도착 후 몽타주 연출이 필요하면 다음 상태에 'Play Interactor Montage' 를 둔다(단일 책임 분리).
  */
-USTRUCT(meta = (DisplayName = "Wx Move Interactor To Target"))
+USTRUCT(meta = (DisplayName = "Move Interactor To Target", Category = "Wx"))
 struct FWxStateTreeTask_MoveInteractorToTarget : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
@@ -355,10 +350,6 @@ struct FWxStateTreeTask_PlayInteractorMontageInstanceData
 {
 	GENERATED_BODY()
 
-	/** 몽타주를 재생할 상호작용 당사자(플레이어 캐릭터). ST 에셋에서 기믹의 InteractingCharacter 프로퍼티로 바인딩한다. 비면 아무 것도 하지 않고 완료. */
-	UPROPERTY(EditAnywhere, Category = "Parameter")
-	TObjectPtr<ACharacter> InteractingCharacter;
-
 	/** 재생할 몽타주. 비면 재생 없이 곧바로 완료한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<UAnimMontage> Montage;
@@ -366,11 +357,12 @@ struct FWxStateTreeTask_PlayInteractorMontageInstanceData
 
 /**
  * 상호작용한 플레이어 캐릭터의 메시에 몽타주를 재생하고, 재생이 끝나면 Succeeded 로 상태를 완료시킨다.
- * 복제형 PlayAnimMontage 가 아니라 각 머신이 메시 AnimInstance 로 로컬 재생·폴링한다('Wx Play Animation' 과 동형) — 모든 피어가 InteractingCharacter 를 복제로 알아 중복 재생이 없다.
+ * 대상은 오너 기믹의 InteractingCharacter 를 직접 읽는다(바인딩 입력 없음) — 'Move Interactor To Target' 과 동일.
+ * 복제형 PlayAnimMontage 가 아니라 각 머신이 메시 AnimInstance 로 로컬 재생·폴링한다('Play Animation' 과 동형) — 모든 피어가 InteractingCharacter 를 복제로 알아 중복 재생이 없다.
  * 초기 진입(StateTree 시작/복원/레이트조인)이면 재생 없이 곧바로 완료한다(발동 순간에만 재생; InteractingCharacter 는 비영속이라 복원 시 비어 있음). 대상/몽타주가 없어도 상태가 갇히지 않게 곧바로 완료한다.
- * 이동 후 재생하려면 'Wx Move Interactor To Target' 상태 다음 상태에 둔다(단일 책임 분리).
+ * 이동 후 재생하려면 'Move Interactor To Target' 상태 다음 상태에 둔다(단일 책임 분리).
  */
-USTRUCT(meta = (DisplayName = "Wx Play Interactor Montage"))
+USTRUCT(meta = (DisplayName = "Play Interactor Montage", Category = "Wx"))
 struct FWxStateTreeTask_PlayInteractorMontage : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
@@ -413,7 +405,7 @@ struct FWxStateTreeTask_PlayLevelSequenceInstanceData
  * Tick 이 ULevelSequencePlayer::IsPlaying 로 종료를 폴링하다, 종료되면 시퀀스를 정리하고 권위 측이면 소유 기믹의 HandleLevelSequenceFinished 로 통지한다 — 호스트가 그 통지로 권위 State 전이(예: Idle 복귀)를 구동한다(OnComplete 전이를 쓰는 기믹도 그대로 가능). OnFinished 콜백 중 시퀀스 액터 파괴를 피하려고 폴링→다음 틱 정리를 쓴다.
  * 중도 이탈·액터 파괴 시엔 ExitState 가 시퀀스를 정지·정리한다(멱등, 통지 없음). 모든 피어가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다.
  */
-USTRUCT(meta = (DisplayName = "Wx Play Level Sequence"))
+USTRUCT(meta = (DisplayName = "Play Level Sequence", Category = "Wx"))
 struct FWxStateTreeTask_PlayLevelSequence : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
@@ -451,9 +443,8 @@ struct FWxStateTreeTask_PlaySoundInstanceData
  * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 기본적으로 재생하지 않는다 — 발동 사운드는 발동 순간에만 울리고 복원 시엔 침묵한다.
  * bPlayOnRestore 면 복원/시작 진입에서도 재생한다 — 상태에 묶인 지속 사운드용(트리거가 아니라 상태가 켜져 있는 동안 울려야 하는 경우).
  * 모든 피어(서버+클라)가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다. 틱하지 않으므로 비용이 없다.
- * 무틱 즉시완료 태스크라 상태 완료를 구동하지 않는다(bConsideredForCompletion=false; 정지 leaf 에 놓여도 재선택 루프에 빠지지 않도록). 완료 구동이 필요한 드문 상태는 인스턴스별로 다시 켠다.
  */
-USTRUCT(meta = (DisplayName = "Wx Play Sound"))
+USTRUCT(meta = (DisplayName = "Play Sound", Category = "Wx"))
 struct FWxStateTreeTask_PlaySound : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
@@ -496,9 +487,8 @@ struct FWxStateTreeTask_SpawnNiagaraInstanceData
  * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 기본적으로 재생하지 않는다 — 발동 FX 는 발동 순간에만 울리고 복원 시엔 침묵한다.
  * bPlayOnRestore 면 복원/시작 진입에서도 재생한다 — 루프 Niagara 를 지정하면 상태에 묶인 지속 FX 가 되어 로드 후에도 유지된다(예: 체크포인트 모닥불).
  * 모든 피어(서버+클라)가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다. 틱하지 않으므로 비용이 없다.
- * 무틱 즉시완료 태스크라 상태 완료를 구동하지 않는다(bConsideredForCompletion=false; 정지 leaf 에 놓여도 재선택 루프에 빠지지 않도록). 완료 구동이 필요한 드문 상태는 인스턴스별로 다시 켠다.
  */
-USTRUCT(meta = (DisplayName = "Wx Spawn Niagara"))
+USTRUCT(meta = (DisplayName = "Spawn Niagara", Category = "Wx"))
 struct FWxStateTreeTask_SpawnNiagara : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
@@ -532,7 +522,7 @@ struct FWxStateTreeTask_TriggerSpawnersInstanceData
  * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 호출하지 않는다 — 스폰은 발동 순간에만 일어나고 복원 시엔 재실행하지 않는다.
  * 스트리밍 아웃된 스포너는 강제 로드하지 않고 스킵한다. 틱하지 않으므로 비용이 없다.
  */
-USTRUCT(meta = (DisplayName = "Wx Trigger Spawners"))
+USTRUCT(meta = (DisplayName = "Trigger Spawners", Category = "Wx"))
 struct FWxStateTreeTask_TriggerSpawners : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
@@ -595,7 +585,7 @@ struct FWxStateTreeTask_SpawnActorInstanceData
  * 스폰은 서버 권위 사건이라 권위 측에서만 일어나고(클라는 복제 추종), 스폰체는 Transient 라 복원할 포즈가 없어 초기 진입·라이브 구분 없이 진입 즉시 스폰을 재개한다.
  * 완료 전이가 없는 머무는 태스크라 항상 Running 을 유지하며(이 태스크는 상태 완료 판정에서 빼야 한다), 상태를 떠날 때 ExitState 가 bDestroyOnExit 면 남은 스폰체를 전부 파괴한다(끄면 각자 Lifetime 으로 자동 파괴되게 남긴다).
  */
-USTRUCT(meta = (DisplayName = "Wx Spawn Actor"))
+USTRUCT(meta = (DisplayName = "Spawn Actor", Category = "Wx"))
 struct FWxStateTreeTask_SpawnActor : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
