@@ -3,7 +3,6 @@
 #include "AbilitySystem/Effect/WxExecCalc_Damage.h"
 #include "AbilitySystem/Ability/WxAbility_Guard.h"
 #include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
-#include "AbilitySystem/Effect/WxEffect_Reflect.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -205,10 +204,10 @@ void UWxExecCalc_Damage::ReflectPerfectGuard(UAbilitySystemComponent* SourceASC,
 	}
 
 	const float ClampedReflect = FMath::Max(ReflectAmount, 0.f);
-	const UGameplayEffect* ReflectEffect = UWxEffect_Reflect::StaticClass()->GetDefaultObject<UGameplayEffect>();
-	FGameplayEffectSpec Spec(ReflectEffect, SourceASC->MakeEffectContext(), 1.f);
-	Spec.SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_ReflectDP, ClampedReflect);
-	SourceASC->ApplyGameplayEffectSpecToSelf(Spec);
+	const FGameplayAttribute DPAttribute = UWxCombatAttributeSet::GetDPAttribute();
+
+	// 상한 클램프와 그로기 판정은 어트리뷰트 셋의 변경 훅이 맡으므로 여기서는 가산만 한다.
+	SourceASC->SetNumericAttributeBase(DPAttribute, SourceASC->GetNumericAttributeBase(DPAttribute) + ClampedReflect);
 }
 
 // ────────────────────────────────────────────────────────────────────────────

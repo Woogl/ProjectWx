@@ -40,7 +40,7 @@
   - `GameplayCue.*` — Cue 트리거 (Damage, PerfectGuard, Exceed, Burn, AttackTelegraph 색상별 Red/Yellow/Blue/Purple)
   - `Damage.*` — 대미지 판정 결과/속성 (Critical, Unblockable, ParryHitReact)
   - `Ability.*` — 어빌리티 식별 (Attack, Dodge, Sprint, Guard, Skill_N, Ultimate, Interact, UseItem, AI Pattern_N)
-  - `SetByCaller.*` — GE SetByCaller 키 (Duration, Recovery_UP/MP, ReflectDP, Coeff_ATK, RawDamage, HitStop)
+  - `SetByCaller.*` — GE SetByCaller 키 (Duration, Recovery_UP/MP, Coeff_ATK, RawDamage, HitStop)
   - `UI.Layer.*` / `UI.Action.*` — CommonUI 레이어 스택(Game/GameMenu/Menu/Modal) 및 액션(Inventory/MainMenu/FreeCursor)
 
 ## 확장 포인트 / 규약

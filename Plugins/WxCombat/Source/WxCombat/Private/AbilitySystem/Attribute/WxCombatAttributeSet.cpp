@@ -108,6 +108,22 @@ void UWxCombatAttributeSet::PostAttributeChange(const FGameplayAttribute& Attrib
 		const float Ratio = GetMP() / OldValue;
 		SetMP(NewValue * Ratio);
 	}
+	else if (Attribute == GetDPAttribute())
+	{
+		// 이 훅은 클라이언트의 복제 수신 경로에서도 호출된다. 그로기 태그는 서버가 붙여 복제되므로 권위 측에서만 토글한다.
+		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+		if (ASC && ASC->IsOwnerActorAuthoritative() && GetMaxDP() > 0.f)
+		{
+			if (GetDP() >= GetMaxDP() && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
+			{
+				ASC->AddLooseGameplayTag(WxGameplayTags::State_Groggy, 1, EGameplayTagReplicationState::TagOnly);
+			}
+			else if (GetDP() <= 0.f && ASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
+			{
+				ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Groggy, 1, EGameplayTagReplicationState::TagOnly);
+			}
+		}
+	}
 }
 
 void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -155,23 +171,6 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 	else if (Data.EvaluatedData.Attribute == GetSPAttribute())
 	{
 		SetSP(FMath::Clamp(GetSP(), 0.f, GetMaxSP()));
-	}
-	else if (Data.EvaluatedData.Attribute == GetDPAttribute())
-	{
-		SetDP(FMath::Clamp(GetDP(), 0.f, GetMaxDP()));
-
-		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
-		if (ASC && GetMaxDP() > 0.f)
-		{
-			if (GetDP() >= GetMaxDP() && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
-			{
-				ASC->AddLooseGameplayTag(WxGameplayTags::State_Groggy, 1, EGameplayTagReplicationState::TagOnly);
-			}
-			else if (GetDP() <= 0.f && ASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
-			{
-				ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Groggy, 1, EGameplayTagReplicationState::TagOnly);
-			}
-		}
 	}
 	else if (Data.EvaluatedData.Attribute == GetUPAttribute())
 	{

@@ -7,8 +7,8 @@
 **담당**
 - 어빌리티 실행 프레임워크: `UWxAbilitySystemComponent`(입력 라우팅) + `UWxAbilityBase`(공용 베이스, DataRow 기반 쿨다운/코스트/충전) + 구체 어빌리티(Attack/Dodge/Guard/Skill/Ultimate/Finisher/Groggy/HitReact/Death/LockOn/Sprint/Pattern)
 - 캐릭터 스탯: `UWxCombatAttributeSet` (HP/SP/DP/MP/UP, ATK/DEF/Crit/SPD/ASPD, 메타 IncomingDamage)
-- 대미지 파이프라인: `FWxDamageInfo` → GE Spec 변환 → `WxExecCalc_Damage` 실행 계산, `UWxCombatLibrary::ApplyDamage`/`ApplyRawDamage` 진입점
-- GameplayEffect/MMC/ExecCalc/Cue 라이브러리(버프·디버프·화상·코스트·쿨다운·회복·반사 등)
+- 대미지 파이프라인: `FWxDamageInfo` → GE Spec 변환 → `WxExecCalc_Damage` 실행 계산, `UWxCombatLibrary::ApplyDamage` 진입점
+- GameplayEffect/MMC/ExecCalc/Cue 라이브러리(버프·디버프·화상·코스트·쿨다운·회복 등)
 - 애님 노티파이 기반 전투 타이밍(콤보 윈도우, 무적, 퍼펙트가드, 무기 공격 구간, 투사체/광역 스폰, 후딜 진입)
 - 락온 타게팅(`UWxLockOnManagerComponent` + `TargetingSystem` 필터 태스크들), 모션워핑 타겟 스냅, 히트스톱/슬로모(`UWxTimeDilationComponent`)
 - 무기/투사체/이펙트존 액터(`AWxWeaponBase`, `AWxProjectileBase`, `AWxEffectZone`)
