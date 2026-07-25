@@ -123,11 +123,20 @@ void UWxAbilityTask_PlaySkillCutscene::AddInvincibleTag()
 	if (ASC)
 	{
 		ASC->AddLooseGameplayTag(WxGameplayTags::State_Invincible);
+		bInvincibleTagAdded = true;
 	}
 }
 
 void UWxAbilityTask_PlaySkillCutscene::RemoveInvincibleTag()
 {
+	// 루즈 태그는 레퍼런스 카운트라, 부여하지 않았는데 제거하면 남이 열어 둔 무적 창(ANS_Invincible 등)을 대신 걷어낸다.
+	// Activate 가 조기 종료해 AddInvincibleTag 를 지나치지 못한 채 OnDestroy 로 흐르는 경로가 있다.
+	if (!bInvincibleTagAdded)
+	{
+		return;
+	}
+	bInvincibleTagAdded = false;
+
 	UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
 	if (ASC)
 	{

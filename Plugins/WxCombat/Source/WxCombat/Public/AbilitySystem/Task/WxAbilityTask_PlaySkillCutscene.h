@@ -61,4 +61,5 @@ private:
 	float GlobalTimeDilation = 1.f;
 	float OriginalTimeDilation = 1.f;
 	bool bTimeDilationActive = false;
+	bool bInvincibleTagAdded = false;
 };

@@ -286,6 +286,9 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 	UAbilitySystemComponent* ASC = CachedASC.Get();
 	if (!ASC || !CachedCooldownClass || CooldownDuration <= 0.f)
 	{
+		// false 반환은 티커를 제거하므로 핸들도 함께 비운다.
+		// 남겨 두면 재등록 게이트(!TickerHandle.IsValid())가 닫힌 채로 굳어 쿨다운 갱신이 영구 정지한다.
+		TickerHandle.Reset();
 		return false;
 	}
 
@@ -293,6 +296,7 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 	const UWorld* World = ASC->GetWorld();
 	if (!World)
 	{
+		TickerHandle.Reset();
 		return false;
 	}
 	const float WorldTime = World->GetTimeSeconds();

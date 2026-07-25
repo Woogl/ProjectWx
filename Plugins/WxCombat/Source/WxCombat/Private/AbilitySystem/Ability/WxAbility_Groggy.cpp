@@ -111,7 +111,12 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 		if (ActorInfo->AbilitySystemComponent.IsValid())
 		{
 			UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-			ASC->StopMontageIfCurrent(*GroggyMontage);
+
+			// ActivateAbility 가 GroggyMontage 미설정을 이유로 EndAbility 를 부르는 경로가 있어 여기서 널일 수 있다.
+			if (GroggyMontage)
+			{
+				ASC->StopMontageIfCurrent(*GroggyMontage);
+			}
 
 			if (DrainDPEffectHandle.IsValid())
 			{
