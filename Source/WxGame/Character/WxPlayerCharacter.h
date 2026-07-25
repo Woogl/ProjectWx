@@ -61,7 +61,8 @@ protected:
 	void Look(const FInputActionValue& Value);
 	void ToggleCrouch();
 
-	void AbilityInputPressed(const UInputAction* Action);
+	void AbilityInputStarted(const UInputAction* Action);
+	void AbilityInputTriggered(const UInputAction* Action);
 	void AbilityInputReleased(const UInputAction* Action);
 
 	/** 캐릭터 입력 설정 (IMC + Move/Look + 어빌리티 바인딩) */

@@ -22,7 +22,13 @@ public:
 
 	void GiveAbilitySet();
 
-	/** 입력 액션에 매칭되는 어빌리티 활성화 (입력 눌림) */
+	/** 입력 액션을 누른 순간. 최근 입력을 기록하고 입력 대기 방송을 띄운다(발동은 하지 않는다) */
+	void AbilityInputActionStarted(const UInputAction* Action);
+
+	/**
+	 * 입력 액션이 트리거 조건을 만족했다. 매칭되는 어빌리티를 활성화한다.
+	 * 홀드형 트리거(Down·Hold 등)는 눌려 있는 동안 매 프레임 들어오므로, 아직 눌리지 않은 것으로 기록된 어빌리티에만 전달한다.
+	 */
 	void AbilityInputActionTriggered(const UInputAction* Action);
 
 	/** 입력 액션에 매칭되는 어빌리티에 입력 해제 전달 */

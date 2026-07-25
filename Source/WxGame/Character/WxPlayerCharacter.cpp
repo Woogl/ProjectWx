@@ -124,7 +124,11 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EIC->BindAction(InputConfig->CrouchAction, ETriggerEvent::Started, this, &AWxPlayerCharacter::ToggleCrouch);
 	}
 	// 어빌리티 입력 바인딩: 바인딩할 InputAction 목록은 AbilitySet의 부여 대상 어빌리티 CDO들에서 파생한다.
-	// 각 InputAction의 Press/Release를 액션 포인터를 payload로 실어 바인딩한다.
+	// 각 InputAction을 액션 포인터를 payload로 실어 바인딩한다. 세 이벤트는 서로 다른 뜻이라 용도가 갈린다.
+	//
+	// Started  : 트리거 종류와 무관하게 키를 누른 순간 1회. 최근 입력 기록과 입력 대기 방송이 원하는 신호다.
+	// Triggered: 트리거 조건을 만족한 시점. 같은 키에 걸린 Tap(회피)과 Hold(스프린트)를 가르므로 발동은 이쪽으로 받는다.
+	// Completed: 트리거가 풀린 시점. 홀드형에서는 키를 뗀 순간이다.
 	TArray<const UInputAction*> AbilityActions;
 	if (AbilitySystemComponent)
 	{
@@ -132,8 +136,9 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	}
 	for (const UInputAction* Action : AbilityActions)
 	{
-		EIC->BindAction(Action, ETriggerEvent::Started,   this, &AWxPlayerCharacter::AbilityInputPressed,  Action);
-		EIC->BindAction(Action, ETriggerEvent::Completed, this, &AWxPlayerCharacter::AbilityInputReleased, Action);
+		EIC->BindAction(Action, ETriggerEvent::Started,   this, &AWxPlayerCharacter::AbilityInputStarted,   Action);
+		EIC->BindAction(Action, ETriggerEvent::Triggered, this, &AWxPlayerCharacter::AbilityInputTriggered, Action);
+		EIC->BindAction(Action, ETriggerEvent::Completed, this, &AWxPlayerCharacter::AbilityInputReleased,  Action);
 	}
 }
 
@@ -182,7 +187,15 @@ void AWxPlayerCharacter::ToggleCrouch()
 	}
 }
 
-void AWxPlayerCharacter::AbilityInputPressed(const UInputAction* Action)
+void AWxPlayerCharacter::AbilityInputStarted(const UInputAction* Action)
+{
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->AbilityInputActionStarted(Action);
+	}
+}
+
+void AWxPlayerCharacter::AbilityInputTriggered(const UInputAction* Action)
 {
 	if (AbilitySystemComponent)
 	{
