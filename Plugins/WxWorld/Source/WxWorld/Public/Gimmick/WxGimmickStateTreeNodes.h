@@ -43,7 +43,7 @@ class USplineComponent;
  *  - PlayInteractorMontage 는 (Montage) 으로 상호작용한 플레이어 캐릭터(오너 기믹에서 읽는다)에게 몽타주를 재생하고, 재생이 끝나면 완료한다. 각 머신이 메시 AnimInstance 로 로컬 재생·폴링한다(복원/초기 진입은 스킵). 이동+몽타주 연출은 두 태스크를 상태로 나눠(이동 상태 → 몽타주 상태) 조립한다.
  *  - PlayLevelSequence 는 (LevelSequence) 로 라이브 전이 진입 시 시퀀스를 재생하고 Tick 으로 종료를 폴링하다, 종료 시 시퀀스를 정리하고 권위 측이면 소유 기믹의 HandleLevelSequenceFinished 로 통지한 뒤 Succeeded 를 반환한다(호스트가 State 복귀를 구동; OnComplete 전이를 쓰는 기믹도 그대로 가능). 입력 차단은 별도 EnablePlayerInput 이 맡는다. 중도 이탈 시 ExitState 가 시퀀스 정지·정리(복원 시 침묵·통지 없음).
  *  - PlaySound 는 (Sound, bPlayOnRestore) 로 라이브 전이 진입 시 사운드를 1회 재생한다(기본은 복원 시 침묵, bPlayOnRestore 면 복원/시작 진입에서도 재생).
- *  - SpawnNiagara 는 (AttachComponent, Niagara, bPlayOnRestore) 로 라이브 전이 진입 시 Niagara 를 1회 재생한다(기본은 복원 시 침묵, bPlayOnRestore 면 복원/시작 진입에서도 재생 — 상태에 묶인 지속 FX 용). 자기가 띄운 FX 가 아직 살아 있으면 겹쳐 쌓지 않고 통과한다.
+ *  - SpawnNiagara 는 (AttachComponent, Niagara) 로 진입 시 자기가 띄운 FX 가 재생 중이 아니면 재생한다(진입 경로 무관). 루프 Niagara 를 지정하면 상태에 묶인 지속 FX 가 되어 로드·복원에서도 알아서 살아나고 중복도 쌓이지 않는다.
  *  - TriggerSpawners 는 (Spawners) 로 라이브 전이 진입 시 권위 측에서만 각 스포너의 Respawn 을 호출한다(복원 시 재실행 안 함).
  *  - SpawnActor 는 (ActorClass, LocalSpawnTransform, Interval, Lifetime, bDestroyOnExit, SpawnCollisionHandlingOverride) 로 매 틱 권위 측에서 LocalSpawnTransform 을 오너 트랜스폼에 합성한 자리에 Interval 마다 액터를 스폰하고 살아있는 목록을 유지한다(Interval 0 이면 1회만 스폰, Lifetime 양수면 자동 파괴, 완료 없는 머무는 태스크, 상태 이탈 시 bDestroyOnExit 면 전부 파괴).
  *
@@ -493,7 +493,7 @@ struct FWxStateTreeTask_PlaySound : public FStateTreeTaskCommonBase
 #endif
 };
 
-// ── SpawnNiagara: 라이브 진입 시 Niagara 1회 재생 ───────────────────────────
+// ── SpawnNiagara: 진입 시 재생 중이 아니면 Niagara 재생 ──────────────────────
 
 USTRUCT()
 struct FWxStateTreeTask_SpawnNiagaraInstanceData
@@ -504,28 +504,24 @@ struct FWxStateTreeTask_SpawnNiagaraInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<USceneComponent> AttachComponent;
 
-	/** 라이브 진입 시 재생할 Niagara 시스템. */
+	/** 진입 시 재생할 Niagara 시스템. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<UNiagaraSystem> Niagara;
 
-	/** 초기·복원 진입에서도 재생할지. false(기본)면 라이브 발동에서만 1회 재생(트리거 FX), true 면 로드/복원 시에도 재생한다(루프 Niagara 를 상태에 묶는 지속 FX 용, 예: 모닥불 불꽃). */
-	UPROPERTY(EditAnywhere, Category = "Parameter")
-	bool bPlayOnRestore = false;
-
 	/**
-	 * (런타임) 이 노드가 마지막으로 띄운 Niagara. 아직 살아 있으면 다시 스폰하지 않는다.
-	 * 루프 FX(지속 FX)는 컴포넌트가 계속 남아 중복 스폰이 막히고, 일회성 FX 는 재생이 끝나면 bAutoDestroy 로 사라져 다음 발동에 자연히 다시 스폰된다.
+	 * (런타임) 이 노드가 마지막으로 띄운 Niagara. 진입 시 재생 여부 판정의 단일 근거다 — 아직 재생 중이면 그대로 두고, 아니면 다시 띄운다.
+	 * 루프 FX(지속 FX)는 계속 미완료라 유지되고, 일회성 FX 는 재생이 끝나면 완료 상태가 되거나 bAutoDestroy 로 사라져 다음 진입에 다시 스폰된다.
 	 */
 	UPROPERTY()
 	TObjectPtr<UNiagaraComponent> SpawnedComponent;
 };
 
 /**
- * 라이브 전이로 진입할 때 Niagara 를 1회 재생하고 Succeeded 로 완료한다(트리거 FX). State 를 읽지 않아 어떤 기믹이든 재사용한다.
+ * 진입할 때 이 노드가 띄운 Niagara 가 재생 중이 아니면 재생하고 Succeeded 로 완료한다. State 를 읽지 않아 어떤 기믹이든 재사용한다.
  * AttachComponent 가 있으면 그 컴포넌트에 붙여 재생하고, 비우면 액터 위치에 재생한다.
- * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 기본적으로 재생하지 않는다 — 발동 FX 는 발동 순간에만 울리고 복원 시엔 침묵한다.
- * bPlayOnRestore 면 복원/시작 진입에서도 재생한다 — 루프 Niagara 를 지정하면 상태에 묶인 지속 FX 가 되어 로드 후에도 유지된다(예: 체크포인트 모닥불).
- * 이 노드가 띄운 FX 가 아직 살아 있으면 다시 스폰하지 않고 통과한다 — 재진입·재선택이 반복돼도 루프 이미터가 겹쳐 쌓이지 않는다.
+ * 진입 경로(라이브 전이/초기 시작/복원/레이트조인)를 가리지 않고 판단 기준은 하나다 — 이미 재생 중이면 그대로 두고, 아니면 띄운다.
+ * 그래서 루프 Niagara 를 지정하면 상태에 묶인 지속 FX 가 되어 배선 없이 로드·복원·스트리밍 인에서 알아서 살아나고(예: 체크포인트 모닥불), 진입이 반복돼도 이미터가 겹쳐 쌓이지 않는다.
+ * 반대로 일회성 FX 는 재생이 끝난 뒤 다시 진입하면 다시 터지므로, 복원 시 침묵해야 하는 순간 연출에는 맞지 않는다.
  * 모든 피어(서버+클라)가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다. 틱하지 않으므로 비용이 없다.
  */
 USTRUCT(meta = (DisplayName = "Spawn Niagara", Category = "Wx"))

@@ -813,16 +813,9 @@ EStateTreeRunStatus FWxStateTreeTask_SpawnNiagara::EnterState(FStateTreeExecutio
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 초기 진입(StateTree 시작/복원/레이트조인)이면 기본적으로 재생하지 않고 곧바로 완료한다(발동 순간에만 터진다). bPlayOnRestore 면 복원/시작 진입에서도 재생한다(상태에 묶인 지속 FX 용).
-	const bool bInitialEntry = IsInitialOrRestoreEntry(Context, Transition);
-	if (bInitialEntry && !Instance.bPlayOnRestore)
-	{
-		return EStateTreeRunStatus::Succeeded;
-	}
-
-	// 이 노드가 띄운 FX 가 아직 살아 있으면 겹쳐 쌓지 않고 통과한다.
-	// 루프 FX(지속 FX)는 컴포넌트가 계속 남아 여기서 걸리고, 일회성 FX 는 재생이 끝나면 bAutoDestroy 로 사라져 다음 발동에 다시 스폰된다.
-	if (IsValid(Instance.SpawnedComponent))
+	// 진입 경로(라이브 전이/초기 시작/복원/레이트조인)를 가리지 않고 판단 기준은 하나다 — 이 노드가 띄운 FX 가 아직 재생 중이면 그대로 두고 통과한다.
+	// 루프 FX(지속 FX)는 계속 미완료라 여기서 걸려 이미터가 겹쳐 쌓이지 않고, 재생이 끝났거나 아직 띄운 적이 없으면(로드·복원 직후) 아래에서 다시 띄운다.
+	if (IsValid(Instance.SpawnedComponent) && !Instance.SpawnedComponent->IsComplete())
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}
