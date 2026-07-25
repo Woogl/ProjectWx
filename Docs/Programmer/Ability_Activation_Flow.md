@@ -28,7 +28,7 @@ flowchart TD
     Event["GameplayEvent / OwnedTag<br/>(AbilityTriggers)"] --> TAA
     TAA --> Gate{"CanActivate<br/>태그·코스트·쿨다운"}
     Gate -- 실패 --> Fail["OnAbilityFailed"]
-    Gate -- 통과 --> Act["ActivateAbility<br/>(Base: OnActivateEffects 적용)"]
+    Gate -- 통과 --> Act["ActivateAbility<br/>(각 어빌리티 본체)"]
     Act --> End["EndAbility / CancelAbility"]
 ```
 
@@ -97,7 +97,7 @@ flowchart TD
 
 > 커밋은 각 구체 어빌리티의 `ActivateAbility`에서 명시 호출하는 패턴이다(예: `WxAbility_Attack`은 `if (!CommitAbility(...)) { EndAbility(...); return; }`). 실패 시 즉시 종료. 콤보는 단계마다 재발동되므로 단계마다 커밋이 새로 걸린다.
 
-**3. 활성화 본체 (`UWxAbilityBase::ActivateAbility`)** — `Super::ActivateAbility` 후 `OnActivateEffects`의 GE들을 SetByCaller 채워 자신에게 적용. 구체 어빌리티는 이 위에서 몽타주 재생/입력 대기/이벤트 구독을 얹는다.
+**3. 활성화 본체 (`ActivateAbility`)** — Base는 오버라이드하지 않는다. 구체 어빌리티가 `Super::ActivateAbility`(엔진 순정, BP 이벤트 포함) 위에 몽타주 재생/입력 대기/이벤트 구독을 얹고, 발동 시 걸 버프 GE가 있으면 그 어빌리티가 자기 멤버로 들고 직접 적용한다(예: `UWxAbility_Sprint`의 `SprintEffectClass`).
 
 **4. 네트워크** — Base 생성자: `InstancingPolicy = InstancedPerActor`, `NetExecutionPolicy = LocalPredicted`(입력형). 반응형(`WxAbility_HitReact/Death/Groggy`)은 생성자에서 `ServerInitiated`로 덮어쓴다(서버가 권위적으로 발화). 플레이어 ASC는 `Mixed` 리플리케이션 모드.
 
@@ -161,7 +161,7 @@ flowchart TD
 | `UWxInputConfig` (`Source\WxGame\Input\WxInputConfig.h`) | WxGame | IMC + 직접 바인딩 입력(이동/시선/점프 등) DA. 어빌리티 IA 목록은 보유 안 함 |
 | `UWxAbilitySystemComponent` (`Plugins\WxCombat\Source\WxCombat\...\WxAbilitySystemComponent.h/.cpp`) | WxCombat | `GiveAbilitySet`, `CollectAbilityInputActions`, `AbilityInputActionTriggered/Released`, LastPressedInputAction |
 | `UWxAbilitySet` (`Plugins\WxCombat\Source\WxCombat\...\WxAbilitySet.h/.cpp`) | WxCombat | 부여 묶음(`GrantedAbilities`는 어빌리티 클래스 배열, 입력 키는 어빌리티 CDO가 보유) |
-| `UWxAbilityBase` (`Plugins\WxCombat\Source\WxCombat\...\Ability\WxAbilityBase.h/.cpp`) | WxCombat | 공통 베이스: 코스트/쿨다운/태그/OnActivateEffects/ActivationPolicy |
+| `UWxAbilityBase` (`Plugins\WxCombat\Source\WxCombat\...\Ability\WxAbilityBase.h/.cpp`) | WxCombat | 공통 베이스: 코스트/쿨다운/태그/ActivationPolicy |
 | `FWxAbilityTableRow` (`Plugins\WxCombat\Source\WxCombat\...\Ability\WxAbilityTableRow.h`) | WxCombat | 쿨다운/코스트 밸런스 수치 DataTable Row |
 | `UWxAbilityTask_WaitInputActionTriggered` (`Plugins\WxCombat\Source\WxCombat\...\Task\`) | WxCombat | 어빌리티 자기완결 입력 감지(ASC `OnInputActionTriggered` 구독, InputAction 필터) |
 | `UWxAbility_Attack` / `_Guard` / `_HitReact` / `_Death` / `_Pattern` (`Plugins\WxCombat\Source\WxCombat\...\Ability\`) | WxCombat | 트리거 3종·공통 위 변주의 대표 예시 |

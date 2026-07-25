@@ -21,7 +21,7 @@ class UInputAction;
  *
  * 콤보 진행은 엔진 순정 재발동(bRetriggerInstancedAbility)으로 처리한다. 진행 신호는 곧 평범한 TryActivateAbility 재호출이며,
  * 콤보 윈도우 밖이거나 현재 노드를 잇지 못하는 입력은 CanActivateAbility가 재발동을 막아 현재 몽타주를 유지한다.
- * 콤보 단계마다 재발동되므로 비용/쿨다운(CommitAbility)과 OnActivateEffects가 단계마다 새로 적용된다.
+ * 콤보 단계마다 재발동되므로 비용/쿨다운(CommitAbility)이 단계마다 새로 적용된다.
  * 콤보가 끊김 없이 이어지려면 AbilityDataRow에서 단계 사이 간격보다 쿨다운을 짧게 잡거나 최대 충전 수를 단계 수 이상으로 둔다.
  *
  * ComboMap에 콤보 경로와 몽타주를 등록. (Key: L = 약공격, H = 강공격)

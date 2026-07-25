@@ -17,19 +17,6 @@ class UInputAction;
 class UTexture2D;
 struct FWxAbilityTableRow;
 
-/** 어빌리티 발동 시 적용할 GameplayEffect 항목 */
-USTRUCT(BlueprintType)
-struct FWxAbilityEffect
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<UGameplayEffect> EffectClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Categories = "SetByCaller"))
-	TMap<FGameplayTag, float> SetByCallers;
-};
-
 /** 어빌리티 활성화 정책 */
 UENUM(BlueprintType)
 enum class EWxAbilityActivationPolicy : uint8
@@ -149,12 +136,6 @@ protected:
 	 * Event.HitStop 수신 시 재생 중인 자기 몽타주 재생률을 잠깐 0 근처로 낮췄다가 GetMontagePlayRate()로 복원한다.
 	 */
 	void StartHitStopListener();
-
-	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-
-	/** 어빌리티 발동 시 자신에게 적용할 GameplayEffect 목록 (버프, 상태 부여 등). 각 GE의 Duration 정책에 따라 자연 만료된다. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
-	TArray<FWxAbilityEffect> OnActivateEffects;
 
 private:
 	/** AbilityDataRow가 가리키는 수치 Row를 해석해 반환한다. 미설정/무효면 nullptr. */

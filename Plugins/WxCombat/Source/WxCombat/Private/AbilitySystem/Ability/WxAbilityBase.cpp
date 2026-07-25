@@ -288,27 +288,6 @@ const FWxAbilityTableRow* UWxAbilityBase::GetTableRow() const
 	return AbilityDataRow.GetRow<FWxAbilityTableRow>(TEXT("WxAbilityBase::GetDataRow"));
 }
 
-void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
-{
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-	for (const FWxAbilityEffect& Effect : OnActivateEffects)
-	{
-		if (Effect.EffectClass)
-		{
-			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(Effect.EffectClass, GetAbilityLevel());
-			if (SpecHandle.IsValid())
-			{
-				for (const auto& [Tag, Value] : Effect.SetByCallers)
-				{
-					SpecHandle.Data->SetSetByCallerMagnitude(Tag, Value);
-				}
-				ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
-			}
-		}
-	}
-}
-
 int32 UWxAbilityBase::QueryActiveCooldowns(const UAbilitySystemComponent& ASC, float& OutLongestRemaining, float& OutLongestDuration) const
 {
 	OutLongestRemaining = 0.f;

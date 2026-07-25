@@ -20,7 +20,7 @@ class UAnimMontage;
  *
  * 콤보 진행은 엔진 순정 재발동(bRetriggerInstancedAbility)으로 처리한다. 진행 신호는 곧 평범한 TryActivateAbility 재호출이므로
  * 하드웨어 입력과 UI 버튼이 같은 경로를 쓰고, 콤보 윈도우 밖 재발동은 CanActivateAbility가 막는다.
- * 단계마다 재발동되므로 비용/쿨다운(CommitAbility)과 OnActivateEffects가 단계마다 새로 적용된다.
+ * 단계마다 재발동되므로 비용/쿨다운(CommitAbility)이 단계마다 새로 적용된다.
  *
  * SkillMontages가 1개뿐이면 진행할 다음 단계가 없어, ComboWindow를 배치하지 않는 한 단일 몽타주만 재생하고 종료한다.
  * 타겟 방향 회전은 ANS_SnapToTarget이 담당.
