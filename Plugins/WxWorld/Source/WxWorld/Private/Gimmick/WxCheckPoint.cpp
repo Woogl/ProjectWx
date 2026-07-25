@@ -32,6 +32,7 @@ void AWxCheckPoint::OnInteracted(AActor* Interactor, const UActorComponent* Sour
 	// 불을 켠다. State 는 복제 + SaveGame 으로 지속돼 재로드 후에도 Lit 을 유지하며, 비주얼은 GimmickStateTree 가 적용한다.
 	// 충전형 소비 아이템 리필과 세이브도 Lit 상태의 'Refill Item Charges'·'Save Game' 태스크가 맡는다.
 	// 상태 이벤트는 다음 ST 틱에 처리되므로 아래 힐·리스폰이 모두 반영된 뒤 리필·저장이 이어진다.
+	// 이미 Lit 이면 동일값이라 노옵이므로 그 두 태스크는 다시 돌지 않는다. 아래 회복·리스폰은 상태와 무관한 C++ 경로라 재휴식에서도 그대로 동작한다.
 	CommitGimmickState(WxGameplayTags::Gimmick_CheckPoint_Lit);
 
 	if (HealEffect)

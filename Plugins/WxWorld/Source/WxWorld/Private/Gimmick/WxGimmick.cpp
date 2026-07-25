@@ -52,6 +52,13 @@ void AWxGimmick::CommitGimmickState(FGameplayTag NewState)
 		return;
 	}
 
+	// 동일값 커밋은 복제 프로퍼티를 바꾸지 못해 클라 OnRep 이 발화하지 않는다. 여기서 통지를 그대로 돌리면 권위 측만 ST 를 재진입해 피어가 갈리므로 노옵으로 둔다
+	// (예: 이미 그 층에 있는 엘리베이터 호출). 같은 상태가 재선택될 때 무엇을 다시 실행할지는 각 ST 태스크가 bShouldStateChangeOnReselect 로 스스로 정한다.
+	if (State == NewState)
+	{
+		return;
+	}
+
 	State = NewState;
 
 	// 권위 측에선 OnRep 이 자동 발화하지 않으므로 직접 호출해 서버·클라가 같은 통지를 공유한다(RepNotify 관용구).

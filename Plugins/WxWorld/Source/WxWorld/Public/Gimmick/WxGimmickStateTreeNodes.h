@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Engine/EngineTypes.h"
 #include "GameplayTagContainer.h"
-#include "StateTreeConditionBase.h"
 #include "StateTreeTaskBase.h"
 #include "WxGimmickStateTreeNodes.generated.h"
 
@@ -14,12 +13,15 @@ struct FStateTreeTransitionResult;
 class AActor;
 class AController;
 class ALevelSequenceActor;
+class APawn;
+class APlayerController;
 class AWxSpawner;
 class UAbilitySystemComponent;
 class UAnimMontage;
 class UAnimSequenceBase;
 class ULevelSequence;
 class ULevelSequencePlayer;
+class UNiagaraComponent;
 class UNiagaraSystem;
 class UPrimitiveComponent;
 class USceneComponent;
@@ -41,11 +43,15 @@ class USplineComponent;
  *  - PlayInteractorMontage 는 (Montage) 으로 상호작용한 플레이어 캐릭터(오너 기믹에서 읽는다)에게 몽타주를 재생하고, 재생이 끝나면 완료한다. 각 머신이 메시 AnimInstance 로 로컬 재생·폴링한다(복원/초기 진입은 스킵). 이동+몽타주 연출은 두 태스크를 상태로 나눠(이동 상태 → 몽타주 상태) 조립한다.
  *  - PlayLevelSequence 는 (LevelSequence) 로 라이브 전이 진입 시 시퀀스를 재생하고 Tick 으로 종료를 폴링하다, 종료 시 시퀀스를 정리하고 권위 측이면 소유 기믹의 HandleLevelSequenceFinished 로 통지한 뒤 Succeeded 를 반환한다(호스트가 State 복귀를 구동; OnComplete 전이를 쓰는 기믹도 그대로 가능). 입력 차단은 별도 EnablePlayerInput 이 맡는다. 중도 이탈 시 ExitState 가 시퀀스 정지·정리(복원 시 침묵·통지 없음).
  *  - PlaySound 는 (Sound, bPlayOnRestore) 로 라이브 전이 진입 시 사운드를 1회 재생한다(기본은 복원 시 침묵, bPlayOnRestore 면 복원/시작 진입에서도 재생).
- *  - SpawnNiagara 는 (AttachComponent, Niagara, bPlayOnRestore) 로 라이브 전이 진입 시 Niagara 를 1회 재생한다(기본은 복원 시 침묵, bPlayOnRestore 면 복원/시작 진입에서도 재생 — 상태에 묶인 지속 FX 용).
+ *  - SpawnNiagara 는 (AttachComponent, Niagara, bPlayOnRestore) 로 라이브 전이 진입 시 Niagara 를 1회 재생한다(기본은 복원 시 침묵, bPlayOnRestore 면 복원/시작 진입에서도 재생 — 상태에 묶인 지속 FX 용). 자기가 띄운 FX 가 아직 살아 있으면 겹쳐 쌓지 않고 통과한다.
  *  - TriggerSpawners 는 (Spawners) 로 라이브 전이 진입 시 권위 측에서만 각 스포너의 Respawn 을 호출한다(복원 시 재실행 안 함).
  *  - SpawnActor 는 (ActorClass, LocalSpawnTransform, Interval, Lifetime, bDestroyOnExit, SpawnCollisionHandlingOverride) 로 매 틱 권위 측에서 LocalSpawnTransform 을 오너 트랜스폼에 합성한 자리에 Interval 마다 액터를 스폰하고 살아있는 목록을 유지한다(Interval 0 이면 1회만 스폰, Lifetime 양수면 자동 파괴, 완료 없는 머무는 태스크, 상태 이탈 시 bDestroyOnExit 면 전부 파괴).
  *
  * 초기 진입(StateTree 시작/복원/레이트조인) 과 라이브 전이는 모든 노드가 Transition.SourceStateID 유효성으로 구분한다.
+ *
+ * 같은 상태가 재선택될 때(Root 재선택이 지금 있는 상태를 다시 고른 경우: ChangeType=Sustained) 다시 돌지는 각 노드가 생성자에서 bShouldStateChangeOnReselect 로 선언한다.
+ * 엔진이 이 값으로 EnterState/ExitState 를 대칭 게이팅하므로, 발동 순간에 한 번 일어나는 액션형(사운드·애니·스폰 트리거)은 기본값 true 로 두고,
+ * 그 상태의 목표 포즈·가용성을 선언하는 상태형(메시 이동·상호작용/입력 토글)과 머무는 태스크는 false 로 두어 진행 중인 작업이 재선택에 끊기지 않게 한다.
  *
  * 모든 노드는 자기 작업이 끝나면 Succeeded 를 반환한다(즉시형은 진입 직후, ComponentMove/ComponentSplineMove 는 목표 도달 시, PlayAnimation/PlayLevelSequence 는 재생 종료 시). 이로써 상태가 스스로 완료돼 OnComplete 전이를 발화시킬 수 있다.
  * 상태가 언제 완료로 판정되는지(완료 판정에 포함할 태스크·All/Any)는 에셋이 상태별로 정한다. 완료 전이가 없는 머무는 상태는 그 태스크를 완료 판정에서 빼야 루트 재선택 thrash 를 피한다.
@@ -105,12 +111,27 @@ struct FWxStateTreeTask_EnablePlayerInputInstanceData
 	/** 진입 시 로컬 플레이어 폰의 입력 활성 여부. false 면 컷신 등 연출 중 조작을 막는다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	bool bEnable = true;
+
+	/**
+	 * (런타임) EnterState 에서 실제로 입력을 끈 폰. ExitState 는 이 기록만 근거로 되돌린다.
+	 * 되돌릴 대상을 그때그때 다시 조회하지 않는 이유는, 그 사이 폰이 소멸·언포제스·교체될 수 있어 진입 시점의 대상이 아닐 수 있기 때문이다.
+	 */
+	UPROPERTY()
+	TWeakObjectPtr<APawn> DisabledPawn;
+
+	/** (런타임) EnterState 에서 위 폰의 입력을 끌 때 짝으로 넘긴 컨트롤러. EnableInput/DisableInput 이 같은 컨트롤러를 요구하므로 함께 기록한다. */
+	UPROPERTY()
+	TWeakObjectPtr<APlayerController> DisabledController;
 };
 
 /**
  * 진입 시 로컬 플레이어 폰의 입력 전체를 bEnable 로 토글한 뒤 Succeeded 로 완료한다(EnableInteraction 과 동형의 토글 태스크).
  * 각 상태가 자기 입력 가용 여부를 선언하도록 상태마다 둔다(예: 컷신 Playing 은 false, Idle 은 true). 직접 복원/레이트조인 시에도 일관되게 적용된다.
+ * 끈 경우에는 그 대상(폰/컨트롤러)을 기록해 두고 ExitState 가 그 기록만 근거로 되돌린다 — 다음 상태에 Enable Player Input(true) 를 배선하지 않았거나 연출 중 기믹 액터/셀이 사라져 ST 가 멈춰도 입력이 꺼진 채 남지 않는다.
  * 로컬 플레이어 컨트롤러/폰이 없으면(예: 데디 서버) 노옵. 틱하지 않으므로 비용이 없다.
+ *
+ * 한계: 대상이 "이 머신의 첫 로컬 플레이어"라 상호작용 당사자를 가리지 않는다. 기믹 ST 는 모든 피어에서 각자 도므로, 멀티플레이에서는 연출을 유발하지 않은 플레이어의 조작까지 막힌다(스플릿스크린 2P 이상은 반대로 토글에서 빠진다).
+ * 당사자 지정으로 좁히려면 오너 기믹의 InteractingCharacter 를 읽어야 하는데, 그 값을 채우는 배선(SetInteractingCharacter 호출부)이 아직 없어 보류 상태다.
  */
 USTRUCT(meta = (DisplayName = "Enable Player Input", Category = "Wx"))
 struct FWxStateTreeTask_EnablePlayerInput : public FStateTreeTaskCommonBase
@@ -123,6 +144,7 @@ struct FWxStateTreeTask_EnablePlayerInput : public FStateTreeTaskCommonBase
 
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 
 #if WITH_EDITOR
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
@@ -169,6 +191,8 @@ struct FWxStateTreeTask_ComponentMove : public FStateTreeTaskCommonBase
 	GENERATED_BODY()
 
 	using FInstanceDataType = FWxStateTreeTask_ComponentMoveInstanceData;
+
+	FWxStateTreeTask_ComponentMove();
 
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
@@ -227,6 +251,8 @@ struct FWxStateTreeTask_ComponentSplineMove : public FStateTreeTaskCommonBase
 	GENERATED_BODY()
 
 	using FInstanceDataType = FWxStateTreeTask_ComponentSplineMoveInstanceData;
+
+	FWxStateTreeTask_ComponentSplineMove();
 
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
@@ -416,6 +442,8 @@ struct FWxStateTreeTask_PlayLevelSequence : public FStateTreeTaskCommonBase
 
 	using FInstanceDataType = FWxStateTreeTask_PlayLevelSequenceInstanceData;
 
+	FWxStateTreeTask_PlayLevelSequence();
+
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
@@ -483,6 +511,13 @@ struct FWxStateTreeTask_SpawnNiagaraInstanceData
 	/** 초기·복원 진입에서도 재생할지. false(기본)면 라이브 발동에서만 1회 재생(트리거 FX), true 면 로드/복원 시에도 재생한다(루프 Niagara 를 상태에 묶는 지속 FX 용, 예: 모닥불 불꽃). */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	bool bPlayOnRestore = false;
+
+	/**
+	 * (런타임) 이 노드가 마지막으로 띄운 Niagara. 아직 살아 있으면 다시 스폰하지 않는다.
+	 * 루프 FX(지속 FX)는 컴포넌트가 계속 남아 중복 스폰이 막히고, 일회성 FX 는 재생이 끝나면 bAutoDestroy 로 사라져 다음 발동에 자연히 다시 스폰된다.
+	 */
+	UPROPERTY()
+	TObjectPtr<UNiagaraComponent> SpawnedComponent;
 };
 
 /**
@@ -490,6 +525,7 @@ struct FWxStateTreeTask_SpawnNiagaraInstanceData
  * AttachComponent 가 있으면 그 컴포넌트에 붙여 재생하고, 비우면 액터 위치에 재생한다.
  * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 기본적으로 재생하지 않는다 — 발동 FX 는 발동 순간에만 울리고 복원 시엔 침묵한다.
  * bPlayOnRestore 면 복원/시작 진입에서도 재생한다 — 루프 Niagara 를 지정하면 상태에 묶인 지속 FX 가 되어 로드 후에도 유지된다(예: 체크포인트 모닥불).
+ * 이 노드가 띄운 FX 가 아직 살아 있으면 다시 스폰하지 않고 통과한다 — 재진입·재선택이 반복돼도 루프 이미터가 겹쳐 쌓이지 않는다.
  * 모든 피어(서버+클라)가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다. 틱하지 않으므로 비용이 없다.
  */
 USTRUCT(meta = (DisplayName = "Spawn Niagara", Category = "Wx"))
@@ -595,6 +631,8 @@ struct FWxStateTreeTask_SpawnActor : public FStateTreeTaskCommonBase
 	GENERATED_BODY()
 
 	using FInstanceDataType = FWxStateTreeTask_SpawnActorInstanceData;
+
+	FWxStateTreeTask_SpawnActor();
 
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;

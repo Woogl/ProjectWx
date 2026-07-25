@@ -5,7 +5,7 @@
 ## 책임
 **담당**
 - 상호작용 가능한 월드 기믹의 공통 골격: 서버 권위 State 태그 → 복제/SaveGame → GimmickStateTree 진입 패턴 (`AWxGimmick`)과 그 자식 기믹 일체(문·엘리베이터·보물상자·컷신 트리거·콘솔·체크포인트)
-- 기믹 StateTree 가 공유하는 범용 태스크/조건 노드(메시 이동·애니·시퀀스·사운드·Niagara·상호작용/입력 토글·스포너/액터 스폰) (`WxGimmickStateTreeNodes`)
+- 기믹 StateTree 가 공유하는 범용 태스크 노드(메시 이동·애니·시퀀스·사운드·Niagara·상호작용/입력 토글·스포너/액터 스폰) (`WxGimmickStateTreeNodes`)
 - 플레이어 측 상호작용 스캔·선택·하이라이트와 서버 상호작용 RPC (`UWxInteractionScannerComponent`)
 - 스폰 배치 액터와 처치/부활 상태 보존, 일괄 리스폰 (`AWxSpawner`, `UWxSpawnerLibrary`)
 
@@ -22,7 +22,7 @@
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
 | `AWxGimmick` | 모든 상호작용 기믹의 Abstract 베이스. 권위 State 쓰기(`CommitGimmickState`)·복제/SaveGame·GimmickStateTree 구동을 소유. 자식은 컴포넌트·인터랙션 핸들러만 제공 | `Source/WxWorld/Public/Gimmick/WxGimmick.h` |
-| `WxGimmickStateTreeNodes` | 전 기믹 StateTree 가 공유하는 태스크/조건 struct 모음(`Component Move`, `Play Level Sequence`, `Spawn Actor`, `Wx Gimmick State Is` 등). 초기 진입/라이브 전이를 `SourceStateID` 로 구분 | `Source/WxWorld/Public/Gimmick/WxGimmickStateTreeNodes.h` |
+| `WxGimmickStateTreeNodes` | 전 기믹 StateTree 가 공유하는 태스크 struct 모음(`Component Move`, `Play Level Sequence`, `Spawn Actor`, `Enable Interaction` 등). 초기 진입/라이브 전이를 `SourceStateID` 로 구분 | `Source/WxWorld/Public/Gimmick/WxGimmickStateTreeNodes.h` |
 | `UWxInteractionScannerComponent` | PlayerController 에 붙어 소유 클라에서 폰 주위 반경 구를 주기 오버랩해 `IWxInteractable` 의 활성 영역을 모으고 선택·하이라이트하며 `ServerInteract` 로 전송 | `Source/WxWorld/Public/Interaction/WxInteractionScannerComponent.h` |
 | `AWxSpawner` | `SpawnableActorClass` 를 스폰하는 배치 액터. 처치/부활 상태(`bIsKilled`)를 GUID 키로 SaveGame 보존 | `Source/WxWorld/Public/Spawnable/WxSpawner.h` |
 | `IWxSpawnableInterface` | 스폰 대상이 구현하는 계약(`OnSpawnedBy` 훅, 에디터 미리보기 메시) | `Source/WxWorld/Public/Spawnable/WxSpawnableInterface.h` |

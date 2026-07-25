@@ -24,6 +24,7 @@
 #include "LevelSequence.h"
 #include "LevelSequenceActor.h"
 #include "LevelSequencePlayer.h"
+#include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Spawnable/WxSpawner.h"
 #include "StateTreeExecutionContext.h"
@@ -33,31 +34,6 @@
 
 namespace
 {
-	// 로컬 플레이어 폰의 입력 전체를 토글한다. 컷신 등 연출 중 조작을 막고 복구하는 용도. PC/Pawn 이 없으면(예: 데디 서버) 노옵.
-	void SetLocalPlayerInputEnabled(UWorld* World, bool bEnabled)
-	{
-		APlayerController* PC = GEngine ? GEngine->GetFirstLocalPlayerController(World) : nullptr;
-		if (!PC)
-		{
-			return;
-		}
-
-		APawn* Pawn = PC->GetPawn();
-		if (!Pawn)
-		{
-			return;
-		}
-
-		if (bEnabled)
-		{
-			Pawn->EnableInput(PC);
-		}
-		else
-		{
-			Pawn->DisableInput(PC);
-		}
-	}
-
 	// 기준 포즈 = 컴포넌트 아키타입(BP/CDO 오서링)의 상대 위치. 런타임 위치가 어디든 안정적 앵커.
 	FVector GetMoveAnchor(const USceneComponent* Component)
 	{
@@ -77,6 +53,9 @@ FWxStateTreeTask_EnableInteraction::FWxStateTreeTask_EnableInteraction()
 {
 	// 인터랙션을 진입 시 1회 토글만 하므로 틱이 불필요하다.
 	bShouldCallTick = false;
+
+	// 그 상태의 상호작용 가용성·문구를 선언하는 상태형 태스크라, 같은 상태가 재선택돼도 이미 적용된 값이라 다시 쓸 것이 없다.
+	bShouldStateChangeOnReselect = false;
 }
 
 EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
@@ -132,16 +111,60 @@ FWxStateTreeTask_EnablePlayerInput::FWxStateTreeTask_EnablePlayerInput()
 {
 	// 입력을 진입 시 1회 토글만 하므로 틱이 불필요하다.
 	bShouldCallTick = false;
+
+	// 그 상태의 입력 가용성을 선언하는 상태형 태스크다. 재선택 시 EnterState/ExitState 가 함께 스킵되므로 아래 차단 기록과 해제의 짝도 그대로 유지된다.
+	bShouldStateChangeOnReselect = false;
 }
 
 EStateTreeRunStatus FWxStateTreeTask_EnablePlayerInput::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
+	FInstanceDataType& Instance = Context.GetInstanceData(*this);
+
+	// 차단 기록을 비운 상태로 시작한다. 아래 어느 조기 완료 경로로 빠지든 ExitState 가 끄지도 않은 입력을 되돌리는 일이 없어야 한다.
+	Instance.DisabledPawn = nullptr;
+	Instance.DisabledController = nullptr;
+
+	// 입력은 로컬에만 존재하므로 이 머신의 로컬 플레이어를 토글한다. PC/Pawn 이 없으면(예: 데디 서버) 노옵.
 	const AActor* Owner = Cast<AActor>(Context.GetOwner());
-	SetLocalPlayerInputEnabled(Owner ? Owner->GetWorld() : nullptr, Instance.bEnable);
+	APlayerController* PC = GEngine ? GEngine->GetFirstLocalPlayerController(Owner ? Owner->GetWorld() : nullptr) : nullptr;
+	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+	if (!Pawn)
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	if (Instance.bEnable)
+	{
+		Pawn->EnableInput(PC);
+	}
+	else
+	{
+		Pawn->DisableInput(PC);
+
+		// 실제로 끈 대상을 그때그때 기록해 둔다 — ExitState 는 이 기록만 보고 되돌리므로, 그 사이 폰이 소멸·언포제스돼도 엉뚱한 대상을 켜지 않는다.
+		Instance.DisabledPawn = Pawn;
+		Instance.DisabledController = PC;
+	}
 
 	// 토글은 즉시 끝나므로 곧바로 완료한다.
 	return EStateTreeRunStatus::Succeeded;
+}
+
+void FWxStateTreeTask_EnablePlayerInput::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+{
+	// EnterState 에서 끈 입력을 되돌린다. 복구를 "다음 상태에 Enable Player Input(true) 가 배선되어 있을 것"이라는 에셋 규약에만 맡기면,
+	// 연출 중 기믹 액터/셀이 사라져 ST 가 멈추거나 디자이너가 다음 상태에 토글을 빠뜨렸을 때 입력이 꺼진 채 남아 소프트락이 된다.
+	// 켜는 노드(bEnable)는 기록을 남기지 않으므로 여기서 되돌릴 것도 없다.
+	FInstanceDataType& Instance = Context.GetInstanceData(*this);
+	APawn* Pawn = Instance.DisabledPawn.Get();
+	APlayerController* PC = Instance.DisabledController.Get();
+	if (Pawn && PC)
+	{
+		Pawn->EnableInput(PC);
+	}
+
+	Instance.DisabledPawn = nullptr;
+	Instance.DisabledController = nullptr;
 }
 
 #if WITH_EDITOR
@@ -155,6 +178,12 @@ FText FWxStateTreeTask_EnablePlayerInput::GetDescription(const FGuid& ID, FState
 #endif
 
 // ── ComponentMove ───────────────────────────────────────────────────────────
+
+FWxStateTreeTask_ComponentMove::FWxStateTreeTask_ComponentMove()
+{
+	// 그 상태의 목표 포즈를 선언하는 상태형 태스크다. 재선택마다 다시 진입하면 이동 중이던 슬라이드가 끊기고 속도가 재산출된다.
+	bShouldStateChangeOnReselect = false;
+}
 
 EStateTreeRunStatus FWxStateTreeTask_ComponentMove::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
@@ -228,6 +257,12 @@ FText FWxStateTreeTask_ComponentMove::GetDescription(const FGuid& ID, FStateTree
 #endif
 
 // ── ComponentSplineMove ──────────────────────────────────────────────────────
+
+FWxStateTreeTask_ComponentSplineMove::FWxStateTreeTask_ComponentSplineMove()
+{
+	// ComponentMove 와 같은 이유 — 목표 끝점을 선언하는 상태형이라, 재선택으로 다시 진입하면 주파 중이던 구간이 끊긴다.
+	bShouldStateChangeOnReselect = false;
+}
 
 EStateTreeRunStatus FWxStateTreeTask_ComponentSplineMove::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
@@ -643,6 +678,12 @@ namespace
 	}
 }
 
+FWxStateTreeTask_PlayLevelSequence::FWxStateTreeTask_PlayLevelSequence()
+{
+	// 재선택마다 재진입하면 재생 중인 시퀀스를 ExitState 가 정리하고 처음부터 다시 튼다. 컷신은 그 상태에 들어온 순간 한 번만 재생한다.
+	bShouldStateChangeOnReselect = false;
+}
+
 EStateTreeRunStatus FWxStateTreeTask_PlayLevelSequence::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
@@ -770,7 +811,22 @@ FWxStateTreeTask_SpawnNiagara::FWxStateTreeTask_SpawnNiagara()
 
 EStateTreeRunStatus FWxStateTreeTask_SpawnNiagara::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
+	FInstanceDataType& Instance = Context.GetInstanceData(*this);
+
+	// 초기 진입(StateTree 시작/복원/레이트조인)이면 기본적으로 재생하지 않고 곧바로 완료한다(발동 순간에만 터진다). bPlayOnRestore 면 복원/시작 진입에서도 재생한다(상태에 묶인 지속 FX 용).
+	const bool bInitialEntry = IsInitialOrRestoreEntry(Context, Transition);
+	if (bInitialEntry && !Instance.bPlayOnRestore)
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	// 이 노드가 띄운 FX 가 아직 살아 있으면 겹쳐 쌓지 않고 통과한다.
+	// 루프 FX(지속 FX)는 컴포넌트가 계속 남아 여기서 걸리고, 일회성 FX 는 재생이 끝나면 bAutoDestroy 로 사라져 다음 발동에 다시 스폰된다.
+	if (IsValid(Instance.SpawnedComponent))
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
+
 	AActor* Owner = Cast<AActor>(Context.GetOwner());
 	if (!Owner)
 	{
@@ -782,11 +838,11 @@ EStateTreeRunStatus FWxStateTreeTask_SpawnNiagara::EnterState(FStateTreeExecutio
 		// attach 대상이 있으면 그 컴포넌트에 붙여 재생, 없으면 액터 위치에 재생.
 		if (Instance.AttachComponent)
 		{
-			UNiagaraFunctionLibrary::SpawnSystemAttached(Instance.Niagara, Instance.AttachComponent, NAME_None, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
+			Instance.SpawnedComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(Instance.Niagara, Instance.AttachComponent, NAME_None, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
 		}
 		else
 		{
-			UNiagaraFunctionLibrary::SpawnSystemAtLocation(Owner, Instance.Niagara, Owner->GetActorLocation());
+			Instance.SpawnedComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(Owner, Instance.Niagara, Owner->GetActorLocation());
 		}
 	}
 
@@ -856,6 +912,12 @@ FText FWxStateTreeTask_TriggerSpawners::GetDescription(const FGuid& ID, FStateTr
 #endif
 
 // ── SpawnActor ────────────────────────────────────────────────────────────────
+
+FWxStateTreeTask_SpawnActor::FWxStateTreeTask_SpawnActor()
+{
+	// 완료 없이 머무는 태스크다. 재선택마다 재진입하면 ExitState 의 bDestroyOnExit 가 스폰체를 전멸시키고 누적기가 리셋돼 스폰 주기가 끊긴다.
+	bShouldStateChangeOnReselect = false;
+}
 
 EStateTreeRunStatus FWxStateTreeTask_SpawnActor::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {

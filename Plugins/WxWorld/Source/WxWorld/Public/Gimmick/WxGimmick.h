@@ -45,15 +45,17 @@ public:
 	/**
 	 * 권위 측에서 State 를 NewState(상태 태그)로 확정한다. 비권위면 노옵.
 	 * State 에 직접 대입하며, 인터랙션 핸들러 등 액터 측 콜백이 호출하는 단일 서버 권위 쓰기 진입점이다. 클라는 복제된 State 를 추종한다.
+	 *
+	 * 이미 NewState 인 동일값 커밋은 노옵이다 — 복제 프로퍼티가 변하지 않아 클라에선 OnRep 이 발화하지 않으므로, 권위 측만 통지를 돌리면 서버/클라 ST 가 갈린다.
 	 */
 	void CommitGimmickState(FGameplayTag NewState);
 
-	/** 현재 권위 State 태그. ST 조건 'Wx Gimmick State Is' 등이 읽는다. */
+	/** 현재 권위 State 태그(외부 조회용). 자식은 protected State 를 직접 읽는다. */
 	FGameplayTag GetGimmickState() const { return State; }
 
 	/**
 	 * 이번 상호작용의 당사자(플레이어 캐릭터)를 권위 측에서 기록한다. 비권위면 노옵.
-	 * instigator 는 권위 측 OnInteracted 에서만 오므로, 자식이 HandleInteracted 에서 CommitGimmickState 직전에 호출한다(복제되어 클라가 추종).
+	 * instigator 는 권위 측 OnInteracted 에서만 오므로, 자식이 그 override 에서 CommitGimmickState 직전에 호출한다(복제되어 클라가 추종).
 	 * 캐릭터가 아니면(비캐릭터 상호작용) null 을 저장한다. 상호작용 이동/몽타주 태스크('Move Interactor To Target'·'Play Interactor Montage')가 이 값을 읽어 이동/재생 대상으로 삼는다.
 	 */
 	void SetInteractingCharacter(AActor* InActor);
