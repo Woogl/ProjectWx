@@ -1,8 +1,0 @@
-{
-	"blueprintPath": "/Game/AbilitySystem/Ability/GA_Interact.GA_Interact",
-	"classDefaults":
-	{
-		"ActivationInputAction": "/Game/Input/Actions/IA_Interact.IA_Interact"
-	},
-	"parentClass": "/Script/WxGame.WxAbility_Interact"
-}
