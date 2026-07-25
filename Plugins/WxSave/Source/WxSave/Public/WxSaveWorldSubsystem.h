@@ -33,9 +33,10 @@ public:
 	/**
 	 * 디스크 기록 전, 라이브 상태를 SaveGame 에 플러시한다: 맵 트래블 데이터 + 플레이어 스냅샷(트랜스폼·스탯) + IWxSavable 액터 전체.
 	 * 앞의 셋은 teardown 중엔 스킵한다 — 맵 전환을 일으킨 게임 코드가 다음 시작 지점의 소유자이고, 그 시점 폰은 이미 사라졌거나 사망 상태일 수 있다.
+	 * ResumeTransform 이 주어지면 재개 지점을 그 값으로 확정한다(체크포인트 오토세이브 — 상호작용 위치와 무관하게 체크포인트 자리로 고정). null 이면 폰 위치를 캡처한다.
 	 * OnComplete 는 플러시 완료 후 발화한다(현재 동기라 반환 전 즉시).
 	 */
-	void RequestSaveFlush(FOnSaveFlushComplete::FDelegate OnComplete);
+	void RequestSaveFlush(FOnSaveFlushComplete::FDelegate OnComplete, const FTransform* ResumeTransform = nullptr);
 
 	/** 플레이어 액터의 ASC 어트리뷰트 base 값을 OutStats 에 캡처한다(복제되는 것만 — 비복제 메타 제외). ASC 부재 시 noop. GAS 만 알고 구체 AttributeSet 타입엔 무관하다. */
 	static void CapturePlayerStats(AActor* PlayerActor, TMap<FName, float>& OutStats);
@@ -57,8 +58,11 @@ private:
 	/** 현재 월드의 IWxSavable 액터 전체를 SaveGame 레코드로 캡처한다. */
 	void FlushSavableActors();
 
-	/** 첫 플레이어 폰의 트랜스폼을 SaveGame 최상위 PlayerTransform(재개 지점)으로 캡처한다. 폰 부재 시 이전 캡처를 보존한다. */
-	void FlushPlayerTransform();
+	/**
+	 * SaveGame 최상위 PlayerTransform(재개 지점)을 채운다.
+	 * ResumeTransform 이 주어지면 폰을 보지 않고 그 값을 그대로 쓴다. null 이면 첫 플레이어 폰의 트랜스폼을 캡처하고, 폰 부재 시 이전 캡처를 보존한다.
+	 */
+	void FlushPlayerTransform(const FTransform* ResumeTransform);
 
 	/** 첫 플레이어 폰의 어트리뷰트를 SaveGame 최상위 PlayerStats 로 캡처한다(명시적 저장 경로 공통 — 체크포인트·메뉴 모두). */
 	void FlushPlayerStats();

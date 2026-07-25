@@ -84,10 +84,11 @@ public:
 	TMap<FName, float> PlayerStats;
 
 	/**
-	 * 마지막 저장 시점의 플레이어 트랜스폼(재개 지점). 로드 후 새 Pawn 스폰 지점으로 사용된다 — 로드도 사망 부활도 이 값 하나로 재개한다.
+	 * 마지막 저장 시점의 재개 지점. 로드 후 새 Pawn 스폰 지점으로 사용된다 — 로드도 사망 부활도 이 값 하나로 재개한다.
+	 * 체크포인트 오토세이브는 그 체크포인트의 트랜스폼을, 메뉴의 명시 저장은 저장 시점 플레이어 폰의 트랜스폼을 담는다.
 	 * Identity 는 "미설정" sentinel(신규 세션 + 미저장) — 이때 스폰은 엔진 ChoosePlayerStart(레벨의 APlayerStart)로 폴백한다.
 	 * 좌표라 맵 종속이므로 TravelData.Map 일치 게이트와 함께 유효성을 판정한다.
-	 * PlayerStats 와 나란히 저장 시점 플레이어 스냅샷을 이루며, 캡처는 SaveToFile 플러시가 전담한다(체크포인트 등 외부가 세팅하지 않는다).
+	 * 어느 경우든 값을 채우는 것은 SaveToFile 플러시다(외부가 이 필드를 직접 세팅하지 않고 저장 요청에 재개 지점을 실어 보낸다).
 	 */
 	UPROPERTY()
 	FTransform PlayerTransform = FTransform::Identity;

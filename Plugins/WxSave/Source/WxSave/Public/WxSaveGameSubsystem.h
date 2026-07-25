@@ -57,8 +57,9 @@ public:
 	 * 저장을 시작한다: 월드 서브시스템의 RequestSaveFlush 로 라이브 상태(트래블 데이터 + savable 액터)를 SaveGame 에 플러시한 뒤 디스크에 기록한다.
 	 * 월드 서브시스템이 없으면(트랜지션 등) 플러시 없이 바로 기록한다. 활성 SaveGame 이 없으면 경고 후 중단.
 	 * SlotName 이 비면 활성 슬롯에 그대로 기록하고(체크포인트 오토세이브 경로), 지정되면 활성 슬롯을 그 이름으로 재지정한 뒤 기록한다(이후 저장도 그 슬롯을 이어감).
+	 * ResumeTransform 이 주어지면 재개 지점을 그 값으로 확정한다(체크포인트가 자기 자리를 넘기는 경로). null 이면 플러시가 저장 시점 폰 위치를 캡처한다.
 	 */
-	void SaveToFile(const FString& SlotName = FString(), int32 UserIndex = 0);
+	void SaveToFile(const FString& SlotName = FString(), int32 UserIndex = 0, const FTransform* ResumeTransform = nullptr);
 
 	/** 슬롯 파일이 디스크에 존재하는지. UI 가 로드/삭제 버튼 활성화·덮어쓰기 확인에 쓴다. */
 	bool DoesSaveFileExist(const FString& SlotName, int32 UserIndex) const;

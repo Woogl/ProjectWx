@@ -23,7 +23,7 @@
 #include "WxSavable.h"
 #include "WxSaveModule.h"
 
-void UWxSaveWorldSubsystem::RequestSaveFlush(FOnSaveFlushComplete::FDelegate OnComplete)
+void UWxSaveWorldSubsystem::RequestSaveFlush(FOnSaveFlushComplete::FDelegate OnComplete, const FTransform* ResumeTransform)
 {
 	// Wx 엔 Mass 같은 페이즈 지연 작업이 없어 플러시가 전부 동기다(샘플은 여기서 Mass 스냅샷을 FrameEnd 로 지연).
 	UWorld* World = GetWorld();
@@ -32,7 +32,7 @@ void UWxSaveWorldSubsystem::RequestSaveFlush(FOnSaveFlushComplete::FDelegate OnC
 	if (World && !World->bIsTearingDown)
 	{
 		FlushMapTravelData();
-		FlushPlayerTransform();
+		FlushPlayerTransform(ResumeTransform);
 		FlushPlayerStats();
 	}
 	FlushSavableActors();
@@ -130,7 +130,7 @@ void UWxSaveWorldSubsystem::FlushSavableActors()
 	UE_LOG(LogWxSave, Log, TEXT("FlushSavableActors: IWxSavable %d개 캡처, 누적 레코드 %d개"), CapturedCount, SaveGame->ActorRecords.Num());
 }
 
-void UWxSaveWorldSubsystem::FlushPlayerTransform()
+void UWxSaveWorldSubsystem::FlushPlayerTransform(const FTransform* ResumeTransform)
 {
 	UWorld* World = GetWorld();
 	UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
@@ -141,15 +141,23 @@ void UWxSaveWorldSubsystem::FlushPlayerTransform()
 		return;
 	}
 
-	// 첫 플레이어 폰의 위치를 재개 지점으로 캡처한다(스탠드얼론 싱글 전제 — FlushPlayerStats 와 동일 대상). 폰 부재 시 이전 캡처를 보존한다.
-	const APlayerController* PC = World->GetFirstPlayerController();
-	const APawn* Pawn = PC ? PC->GetPawn() : nullptr;
-	if (!Pawn)
+	if (ResumeTransform)
 	{
-		return;
+		// 저장 요청자가 재개 지점을 지정했다(체크포인트 오토세이브). 폰이 어디에 서 있었든 그 자리로 확정한다.
+		SaveGame->PlayerTransform = *ResumeTransform;
 	}
+	else
+	{
+		// 첫 플레이어 폰의 위치를 재개 지점으로 캡처한다(스탠드얼론 싱글 전제 — FlushPlayerStats 와 동일 대상). 폰 부재 시 이전 캡처를 보존한다.
+		const APlayerController* PC = World->GetFirstPlayerController();
+		const APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+		if (!Pawn)
+		{
+			return;
+		}
 
-	SaveGame->PlayerTransform = Pawn->GetActorTransform();
+		SaveGame->PlayerTransform = Pawn->GetActorTransform();
+	}
 
 	UE_LOG(LogWxSave, Log, TEXT("FlushPlayerTransform: 재개 지점 %s 캡처"), *SaveGame->PlayerTransform.GetLocation().ToString());
 }

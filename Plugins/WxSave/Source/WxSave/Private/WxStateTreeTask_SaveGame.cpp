@@ -2,19 +2,18 @@
 
 #include "WxStateTreeTask_SaveGame.h"
 
+#include "Components/SceneComponent.h"
+#include "Engine/GameInstance.h"
 #include "GameFramework/Actor.h"
 #include "StateTreeExecutionContext.h"
+#include "StateTreePropertyBindings.h"
 #include "WxGameplayTags.h"
-#include "WxSaveLibrary.h"
+#include "WxSaveGameSubsystem.h"
 
 FWxStateTreeTask_SaveGame::FWxStateTreeTask_SaveGame()
 {
 	// 진입 시 1회 저장만 하므로 틱이 불필요하다.
 	bShouldCallTick = false;
-#if WITH_EDITORONLY_DATA
-	// 무틱 즉시완료 태스크라 상태 완료를 구동하지 않는다(정지 leaf 에 놓여도 즉시 완료→재선택 루프에 빠지지 않게).
-	bConsideredForCompletion = false;
-#endif
 }
 
 EStateTreeRunStatus FWxStateTreeTask_SaveGame::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
@@ -34,9 +33,39 @@ EStateTreeRunStatus FWxStateTreeTask_SaveGame::EnterState(FStateTreeExecutionCon
 		return EStateTreeRunStatus::Succeeded;
 	}
 
+	UGameInstance* GameInstance = Owner->GetGameInstance();
+	UWxSaveGameSubsystem* SaveSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
+	if (!SaveSubsystem)
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	// 재개 지점을 물린 ST 라면 그 컴포넌트 자리로 확정한다 — 플레이어가 어디에 서서 상호작용했든 부활 지점이 흔들리지 않는다(체크포인트).
+	// 비었으면 넘기지 않아 세이브 기본대로 저장 시점 플레이어 위치가 재개 지점이 된다.
+	const USceneComponent* ResumePoint = Context.GetInstanceData(*this).ResumePoint;
+	const FTransform ResumeTransform = ResumePoint ? ResumePoint->GetComponentTransform() : FTransform::Identity;
+
 	// 슬롯을 비워 활성 슬롯에 그대로 기록한다(오토세이브 경로). 실제 디스크 기록은 월드 플러시 완료 후 이어진다.
-	UWxSaveLibrary::SaveToFile(Owner, FString(), 0);
+	SaveSubsystem->SaveToFile(FString(), 0, ResumePoint ? &ResumeTransform : nullptr);
 
 	// 저장 요청은 즉시 끝나므로 곧바로 완료한다.
 	return EStateTreeRunStatus::Succeeded;
 }
+
+#if WITH_EDITOR
+FText FWxStateTreeTask_SaveGame::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
+{
+	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
+	check(InstanceData);
+
+	// 슬롯은 언제나 활성 슬롯이라 갈리는 건 재개 지점뿐이다. 그것을 보여 배선을 빠뜨린 노드가 눈에 띄게 한다.
+	// 재개 지점은 보통 바인딩이라 런타임 포인터가 비어 있다. 바인딩 소스명을 우선 보이고, 비우면 플레이어 위치를 쓰므로 player 로 폴백.
+	FText ResumeText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, ResumePoint)), Formatting);
+	if (ResumeText.IsEmpty())
+	{
+		ResumeText = InstanceData->ResumePoint ? FText::FromString(InstanceData->ResumePoint->GetName()) : INVTEXT("player");
+	}
+
+	return FText::Format(INVTEXT("Save Game ({0})"), ResumeText);
+}
+#endif

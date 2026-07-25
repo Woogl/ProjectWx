@@ -125,7 +125,7 @@ void UWxSaveGameSubsystem::TravelFromSaveFile()
 	}
 }
 
-void UWxSaveGameSubsystem::SaveToFile(const FString& SlotName, int32 UserIndex)
+void UWxSaveGameSubsystem::SaveToFile(const FString& SlotName, int32 UserIndex, const FTransform* ResumeTransform)
 {
 	if (!SaveGame)
 	{
@@ -154,7 +154,8 @@ void UWxSaveGameSubsystem::SaveToFile(const FString& SlotName, int32 UserIndex)
 	{
 		// 라이브 상태(트래블 데이터 + 플레이어 스냅샷 + savable 액터)를 SaveGame 에 플러시한 뒤 완료 콜백으로 디스크에 기록한다(현재 전부 동기 — 콜백은 즉시 발화).
 		WorldSubsystem->RequestSaveFlush(
-			UWxSaveWorldSubsystem::FOnSaveFlushComplete::FDelegate::CreateUObject(this, &UWxSaveGameSubsystem::ContinueSaveToFileToDisk));
+			UWxSaveWorldSubsystem::FOnSaveFlushComplete::FDelegate::CreateUObject(this, &UWxSaveGameSubsystem::ContinueSaveToFileToDisk),
+			ResumeTransform);
 	}
 	else
 	{
