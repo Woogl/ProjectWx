@@ -13,10 +13,12 @@ class UWxItemDefinition;
  * 소비 아이템 사용 어빌리티(다크소울 에스트병 방식).
  *
  * 사용 흐름:
- *  1. 입력 → ServerInitiated 로 서버에서 활성화 (인벤토리 차감은 서버 권한 작업)
- *  2. ConsumableDef 를 지금 사용할 수 있는지(보유 + 충전 잔량) 검사 — 불가하면 즉시 종료(빈 병 모션 방지)
+ *  1. 입력 → LocalPredicted(베이스 기본값)로 클라가 즉시 활성화하고 서버가 뒤따라 확정
+ *  2. ConsumableDef 를 지금 사용할 수 있는지(보유 + 충전 잔량) 검사 — 불가하면 즉시 종료(빈 병 모션 방지).
+ *     인벤토리와 인스턴스 충전량이 소유 클라에 복제되므로 이 판정은 클라에서도 성립한다.
  *  3. UseMontage(마시기 모션) 재생
- *  4. 몽타주의 WxAnimNotify_UseItem(Event.UseItem) 시점에 UseItemByDef 호출 → 충전 1 감소 + 회복 GE 적용
+ *  4. 몽타주의 WxAnimNotify_UseItem(Event.UseItem) 시점에 UseItemByDef 호출 → 충전 1 감소 + 회복 GE 적용.
+ *     차감은 예측 대상이 아니므로 이 단계만 서버 권위로 게이팅한다.
  *  5. 후딜 구간은 WxAnimNotify_StartRecovery 로 캔슬 허용, 몽타주 완료/중단 시 EndAbility
  *
  * 사용할 아이템과 회복 효과는 ConsumableDef(ItemDefinition)의 Usable/Charges Fragment 가 정의한다.

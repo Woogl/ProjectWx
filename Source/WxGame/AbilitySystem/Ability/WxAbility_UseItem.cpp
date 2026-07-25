@@ -9,8 +9,9 @@
 
 UWxAbility_UseItem::UWxAbility_UseItem()
 {
-	// 인벤토리 차감은 서버 권한 작업이므로 서버에서 활성화한다.
-	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
+	// NetExecutionPolicy 는 베이스의 LocalPredicted 를 그대로 쓴다 — 플레이어 입력이 발동하는 어빌리티라
+	// 몽타주와 블로킹 태그가 입력 프레임에 즉시 걸려야 한다.
+	// 인벤토리 차감은 예측 대상이 아니므로 정책이 아니라 HandleConsumeEvent 의 권위 게이트로 막는다.
 
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_UseItem);
@@ -73,7 +74,13 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 
 void UWxAbility_UseItem::HandleConsumeEvent(FGameplayEventData Payload)
 {
-	// ServerInitiated 라 이 경로는 서버에서만 실행된다.
+	// 몽타주가 클라에서도 재생되어 노티파이가 양쪽에서 발화하므로, 이 경로는 클라 인스턴스에서도 도달한다.
+	// 인벤토리 차감은 롤백 장치가 없어 예측 대상이 아니다(UseItemByDef 는 권한을 check 한다).
+	if (!HasAuthority(&CurrentActivationInfo))
+	{
+		return;
+	}
+
 	// UseItemByDef 가 충전 1 감소 + 회복 GE 적용을 원자적으로 수행한다.
 	APawn* Avatar = Cast<APawn>(GetAvatarActorFromActorInfo());
 	if (UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(Avatar))
