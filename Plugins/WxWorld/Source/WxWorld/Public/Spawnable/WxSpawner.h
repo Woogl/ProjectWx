@@ -7,7 +7,6 @@
 #include "WxSavable.h"
 #include "WxSpawner.generated.h"
 
-class UArrowComponent;
 class UBillboardComponent;
 class UChildActorComponent;
 class USceneComponent;
