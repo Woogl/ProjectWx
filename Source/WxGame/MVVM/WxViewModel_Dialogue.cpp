@@ -1,0 +1,69 @@
+// Copyright Woogle. All Rights Reserved.
+
+#include "MVVM/WxViewModel_Dialogue.h"
+#include "Blueprint/UserWidget.h"
+#include "Controller/WxPlayerController.h"
+#include "WxDialogueSessionComponent.h"
+
+void UWxViewModel_Dialogue::Initialize(UWxDialogueSessionComponent* InSession)
+{
+	if (!InSession)
+	{
+		return;
+	}
+
+	CachedSession = InSession;
+
+	InSession->OnLineChanged.AddDynamic(this, &ThisClass::HandleLineChanged);
+	InSession->OnDialogueEnded.AddDynamic(this, &ThisClass::HandleDialogueEnded);
+
+	// 세션 시드가 구독보다 먼저 끝나 있으므로 현재 대사로 시드한다.
+	HandleLineChanged(InSession->GetCurrentSpeaker(), InSession->GetCurrentText());
+}
+
+void UWxViewModel_Dialogue::Deinitialize()
+{
+	if (UWxDialogueSessionComponent* Session = CachedSession.Get())
+	{
+		Session->OnLineChanged.RemoveDynamic(this, &ThisClass::HandleLineChanged);
+		Session->OnDialogueEnded.RemoveDynamic(this, &ThisClass::HandleDialogueEnded);
+	}
+	CachedSession.Reset();
+
+	Super::Deinitialize();
+}
+
+void UWxViewModel_Dialogue::HandleLineChanged(const FText& InSpeaker, const FText& InText)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(Speaker, InSpeaker);
+	UE_MVVM_SET_PROPERTY_VALUE(LineText, InText);
+}
+
+void UWxViewModel_Dialogue::HandleDialogueEnded()
+{
+	UE_MVVM_SET_PROPERTY_VALUE(bFinished, true);
+}
+
+void UWxViewModel_Dialogue::RequestAdvance()
+{
+	if (UWxDialogueSessionComponent* Session = CachedSession.Get())
+	{
+		Session->Advance();
+	}
+}
+
+UObject* UWxViewModelResolver_Dialogue::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
+{
+	const AWxPlayerController* PC = UserWidget ? Cast<AWxPlayerController>(UserWidget->GetOwningPlayer()) : nullptr;
+	UWxDialogueSessionComponent* Session = PC ? PC->GetDialogueSession() : nullptr;
+	if (!Session)
+	{
+		return nullptr;
+	}
+
+	// 위젯이 아닌 데이터 소스(세션 컴포넌트)를 Outer 로 생성한다.
+	// 세션은 PC 소유라 폰 리스폰에도 생존하며, 수명은 뷰의 강참조와 BeginDestroy 의 Deinitialize 가 관리한다.
+	UWxViewModel_Dialogue* ViewModel = NewObject<UWxViewModel_Dialogue>(Session);
+	ViewModel->Initialize(Session);
+	return ViewModel;
+}

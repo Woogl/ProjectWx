@@ -9,6 +9,7 @@
 #include "MVVM/WxViewModel_Selection.h"
 #include "System/WxUIManagerSubsystem.h"
 #include "Widget/WxActivatableWidget.h"
+#include "WxDialogueSessionComponent.h"
 #include "WxGameplayTags.h"
 #include "WxInteractable.h"
 
@@ -17,6 +18,7 @@ AWxPlayerController::AWxPlayerController(const FObjectInitializer& ObjectInitial
 {
 	InventoryManager = CreateDefaultSubobject<UWxInventoryManagerComponent>(TEXT("InventoryManager"));
 	InteractionScanner = CreateDefaultSubobject<UWxInteractionScannerComponent>(TEXT("InteractionScanner"));
+	DialogueSession = CreateDefaultSubobject<UWxDialogueSessionComponent>(TEXT("DialogueSession"));
 }
 
 UWxInventoryManagerComponent* AWxPlayerController::GetInventoryManager() const
@@ -45,6 +47,12 @@ void AWxPlayerController::BeginPlay()
 
 		// 컴포넌트의 초기 스캔 broadcast 는 바인딩 전에 끝났을 수 있으므로 현재 선택으로 1회 시드한다.
 		PushSelectionToViewModel();
+	}
+
+	// 대화 창 표시도 로컬 어포던스다. 세션 컴포넌트(WxDialogue)는 WxUI 를 참조할 수 없으므로 시작 신호를 PC 가 받아 위젯을 푸시한다.
+	if (IsLocalController() && DialogueSession)
+	{
+		DialogueSession->OnDialogueStarted.AddDynamic(this, &ThisClass::HandleDialogueStarted);
 	}
 }
 
@@ -148,6 +156,35 @@ void AWxPlayerController::HandleCharacterDeath(AWxCharacterBase* DeadCharacter)
 	UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Menu, ResolvedClass);
 }
 
+void AWxPlayerController::HandleDialogueStarted()
+{
+	if (DialogueWidgetClass.IsNull())
+	{
+		return;
+	}
+
+	UGameInstance* GameInst = GetGameInstance();
+	if (!GameInst)
+	{
+		return;
+	}
+
+	UWxUIManagerSubsystem* UIManager = GameInst->GetSubsystem<UWxUIManagerSubsystem>();
+	if (!UIManager)
+	{
+		return;
+	}
+
+	TSubclassOf<UWxActivatableWidget> ResolvedClass = DialogueWidgetClass.LoadSynchronous();
+	if (!ResolvedClass)
+	{
+		return;
+	}
+
+	// 대화 위젯은 Game 레이어 스택 top 에 얹혀 HUD 를 잠시 가리고, 닫히면 HUD 가 복귀한다.
+	UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Game, ResolvedClass);
+}
+
 void AWxPlayerController::HandleInteractionListChanged(const TArray<FText>& Prompts)
 {
 	// 목록이 바뀌면 선택 대상도 바뀔 수 있으므로 현재 선택으로 VM 을 다시 push 한다.
@@ -173,7 +210,7 @@ void AWxPlayerController::PushSelectionToViewModel()
 	const UPrimitiveComponent* Selected = InteractionScanner ? InteractionScanner->GetSelectedMesh() : nullptr;
 	if (const IWxInteractable* Target = Selected ? Cast<IWxInteractable>(Selected->GetOwner()) : nullptr)
 	{
-		ViewModel->SetSelection(Target->GetInteractionPrompt(), FText::GetEmpty(), nullptr);
+		ViewModel->SetSelection(Target->GetInteractionPrompt(Selected), FText::GetEmpty(), nullptr);
 	}
 	else
 	{

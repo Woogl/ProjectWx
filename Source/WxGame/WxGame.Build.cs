@@ -27,6 +27,7 @@ public class WxGame : ModuleRules
 			"WxAI",
 			"WxCombat",
 			"WxCore",
+			"WxDialogue",
 			"WxInventory",
 			"WxSave",
 			"WxUI",

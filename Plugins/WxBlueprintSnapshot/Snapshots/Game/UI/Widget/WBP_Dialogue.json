@@ -1,0 +1,201 @@
+{
+	"blueprintPath": "/Game/UI/Widget/WBP_Dialogue.WBP_Dialogue",
+	"classDefaults":
+	{
+		"AdvanceButton": "",
+		"InputMode": "Menu",
+		"LineText": "",
+		"SpeakerText": ""
+	},
+	"eventGraph":
+	{
+		"OnButtonClickedEvent__DelegateSignature": [
+			"void OnButtonClickedEvent__DelegateSignature()",
+			"{",
+			"    WxViewModel_Dialogue->RequestAdvance();",
+			"    if (WxViewModel_Dialogue->bFinished)",
+			"    {",
+			"        DeactivateWidget();",
+			"    }",
+			"}"
+		]
+	},
+	"mvvm":
+	{
+		"bindings": [
+			{
+				"bindingType": "OneWayToDestination",
+				"destination": "Text",
+				"source": "LineText"
+			},
+			{
+				"bindingType": "OneWayToDestination",
+				"destination": "Text",
+				"source": "Speaker"
+			}
+		],
+		"viewModels":
+		{
+			"WxViewModel_Dialogue":
+			{
+				"class": "/Script/WxGame.WxViewModel_Dialogue",
+				"contextId": "49CD1C93-45F3-5555-2CD3-0C8F82DD075F",
+				"createGetter": true,
+				"createSetter": false,
+				"creationType": "Resolver",
+				"optional": false
+			}
+		}
+	},
+	"parentClass": "/Script/WxUI.WxActivatableWidget",
+	"widgetTree":
+	{
+		"root": "RootOverlay",
+		"widgets":
+		{
+			"AdvanceButton":
+			{
+				"class": "/Script/UMG.Button",
+				"delta":
+				{
+					"BackgroundColor":
+					{
+						"A": 0,
+						"B": 0,
+						"G": 0,
+						"R": 0
+					}
+				},
+				"isVariable": true,
+				"parent": "RootOverlay",
+				"slot":
+				{
+					"class": "/Script/UMG.OverlaySlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Fill",
+						"VerticalAlignment": "VAlign_Fill"
+					}
+				}
+			},
+			"BubbleBorder":
+			{
+				"class": "/Script/UMG.Border",
+				"delta":
+				{
+					"BrushColor":
+					{
+						"A": 0.69999998807907104,
+						"B": 0,
+						"G": 0,
+						"R": 0
+					},
+					"Padding":
+					{
+						"Bottom": 16,
+						"Left": 24,
+						"Right": 24,
+						"Top": 16
+					}
+				},
+				"parent": "RootOverlay",
+				"slot":
+				{
+					"class": "/Script/UMG.OverlaySlot",
+					"delta":
+					{
+						"HorizontalAlignment": "HAlign_Fill",
+						"Padding":
+						{
+							"Bottom": 80,
+							"Left": 120,
+							"Right": 120
+						},
+						"VerticalAlignment": "VAlign_Bottom"
+					}
+				}
+			},
+			"BubbleBox":
+			{
+				"class": "/Script/UMG.VerticalBox",
+				"parent": "BubbleBorder",
+				"slot":
+				{
+					"class": "/Script/UMG.BorderSlot"
+				}
+			},
+			"LineText":
+			{
+				"class": "/Script/CommonUI.CommonTextBlock",
+				"delta":
+				{
+					"AutoWrapText": true,
+					"Font":
+					{
+						"FontObject": "/Game/UIMaterialLab/Fonts/Roboto.Roboto",
+						"OutlineSettings":
+						{
+							"OutlineSize": 1
+						},
+						"Size": 20,
+						"TypefaceFontName": "Medium"
+					},
+					"ShadowOffset":
+					{
+						"X": 0,
+						"Y": 0
+					},
+					"Style": "/Game/UI/Style/TextStyle_Small.TextStyle_Small_C",
+					"Text": "Talk"
+				},
+				"isVariable": true,
+				"parent": "BubbleBox",
+				"slot":
+				{
+					"class": "/Script/UMG.VerticalBoxSlot"
+				}
+			},
+			"RootOverlay":
+			{
+				"class": "/Script/UMG.Overlay"
+			},
+			"SpeakerText":
+			{
+				"class": "/Script/CommonUI.CommonTextBlock",
+				"delta":
+				{
+					"Font":
+					{
+						"FontObject": "/Game/UIMaterialLab/Fonts/Roboto.Roboto",
+						"OutlineSettings":
+						{
+							"OutlineSize": 1
+						},
+						"Size": 20,
+						"TypefaceFontName": "Medium"
+					},
+					"ShadowOffset":
+					{
+						"X": 0,
+						"Y": 0
+					},
+					"Style": "/Game/UI/Style/TextStyle_Small.TextStyle_Small_C",
+					"Text": "Speaker"
+				},
+				"isVariable": true,
+				"parent": "BubbleBox",
+				"slot":
+				{
+					"class": "/Script/UMG.VerticalBoxSlot",
+					"delta":
+					{
+						"Padding":
+						{
+							"Bottom": 8
+						}
+					}
+				}
+			}
+		}
+	}
+}

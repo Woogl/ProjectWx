@@ -3,6 +3,7 @@
 	"classDefaults":
 	{
 		"DeathScreenWidgetClass": "/Game/UI/Widget/WBP_DeathScreen.WBP_DeathScreen_C",
+		"DialogueWidgetClass": "/Game/UI/Widget/WBP_Dialogue.WBP_Dialogue_C",
 		"GameHUDWidgetClass": "/Game/UI/Widget/WBP_GameHUD.WBP_GameHUD_C",
 		"InventoryManager":
 		{

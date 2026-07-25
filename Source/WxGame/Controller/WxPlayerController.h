@@ -9,6 +9,7 @@
 class AWxCharacterBase;
 class AWxPlayerCharacter;
 class UWxActivatableWidget;
+class UWxDialogueSessionComponent;
 class UWxInventoryManagerComponent;
 class UWxInteractionScannerComponent;
 
@@ -34,6 +35,9 @@ public:
 	/** 소유 클라의 상호작용 스캐너 컴포넌트. 뷰모델 리졸버가 조회해 목록·선택·입력 요청을 잇는다. */
 	UWxInteractionScannerComponent* GetInteractionScanner() const { return InteractionScanner; }
 
+	/** 소유 클라의 대화 세션 컴포넌트. 뷰모델 리졸버가 조회해 대사 표시·넘기기 요청을 잇는다. */
+	UWxDialogueSessionComponent* GetDialogueSession() const { return DialogueSession; }
+
 	//~ Begin AActor
 	virtual void PreInitializeComponents() override;
 	virtual void BeginPlay() override;
@@ -52,6 +56,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Interact")
 	TObjectPtr<UWxInteractionScannerComponent> InteractionScanner;
 
+	/** 대화 세션 진행·클라 전달 컴포넌트. NPC 상호작용(서버)이 여기로 진입해 소유 클라에서 세션을 연다. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Dialogue")
+	TObjectPtr<UWxDialogueSessionComponent> DialogueSession;
+
 	/** 플레이어 캐릭터에 빙의하면 Game 레이어에 띄울 HUD. 미지정이면 동작 없음. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|UI")
 	TSubclassOf<UWxActivatableWidget> GameHUDWidgetClass;
@@ -60,6 +68,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|UI")
 	TSoftClassPtr<UWxActivatableWidget> DeathScreenWidgetClass;
 
+	/** 대화 세션이 열리면 Game 레이어에 띄울 대화 위젯. 미지정이면 동작 없음. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|UI")
+	TSoftClassPtr<UWxActivatableWidget> DialogueWidgetClass;
+
 private:
 	void PushGameHUD();
 
@@ -67,6 +79,9 @@ private:
 
 	UFUNCTION()
 	void HandleCharacterDeath(AWxCharacterBase* DeadCharacter);
+
+	UFUNCTION()
+	void HandleDialogueStarted();
 
 	/** 스캐너 컴포넌트의 현재 선택을 전역 선택 VM(UWxViewModel_Selection)에 반영한다. WxWorld→WxUI 브리지(로컬 표시 전용). */
 	void PushSelectionToViewModel();
