@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "WxCombatLibrary.generated.h"
 
@@ -13,7 +12,7 @@ struct FHitResult;
 
 /**
  * WxCombat 전용 Blueprint Function Library.
- * 무기/투사체에 종속되지 않는 공용 전투 유틸리티(대미지 적용, 적대 판정 등)를 제공한다.
+ * 무기/투사체에 종속되지 않는 공용 전투 유틸리티를 제공한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxCombatLibrary : public UBlueprintFunctionLibrary
@@ -37,20 +36,4 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Combat")
 	static bool ApplyDamage(UAbilitySystemComponent* Source, UAbilitySystemComponent* Target, const FWxDamageInfo& DamageInfo, const FHitResult& HitResult, float HitStopDuration = 0.f);
-
-	/**
-	 * 고정 대미지를 단일 타겟에 즉시 적용한다.
-	 *
-	 * ApplyDamage 의 Raw 모드 — Source ATK·Target DEF 와 무관하게 DamageAmount 를 그대로 BaseDamage 로 사용한다.
-	 * 환경 대미지(낙사·트랩·도트 디버프 등) 처럼 정량 대미지가 필요한 경로에 적합하다.
-	 *
-	 * 대미지 GameplayCue 의 위치는 Target 액터의 월드 좌표가 사용된다.
-	 *
-	 * @param Target            피격 대상의 ASC.
-	 * @param DamageAmount      원본 그대로 들어갈 대미지.
-	 * @param HitReactionTag    적중 시 부여할 HitReact 태그. None 이면 HitReact 이벤트 미발송.
-	 *                          Normal/Knockback/Knockdown/Knockup 등을 지정하면 해당 종류의 HitReact가 발동된다.
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Wx|Combat")
-	static bool ApplyRawDamage(UAbilitySystemComponent* Target, float DamageAmount, UPARAM(meta = (Categories = "Event.HitReact")) FGameplayTag HitReaction);
 };

@@ -2,7 +2,6 @@
 
 #include "AbilitySystem/Effect/WxEffect_NoCooldown.h"
 #include "AbilitySystem/Effect/WxEffect_Cooldown.h"
-#include "AbilitySystemComponent.h"
 #include "GameplayEffectComponents/ImmunityGameplayEffectComponent.h"
 #include "GameplayEffectComponents/RemoveOtherGameplayEffectComponent.h"
 #include "WxGameplayTags.h"
@@ -27,12 +26,4 @@ UWxEffect_NoCooldown::UWxEffect_NoCooldown()
 	UImmunityGameplayEffectComponent* ImmunityComp = CreateDefaultSubobject<UImmunityGameplayEffectComponent>(TEXT("Immunity"));
 	ImmunityComp->ImmunityQueries.Add(CooldownQuery);
 	GEComponents.Add(ImmunityComp);
-}
-
-FActiveGameplayEffectHandle UWxEffect_NoCooldown::ApplyToASC(UAbilitySystemComponent* ASC, float Duration)
-{
-	FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
-	FGameplayEffectSpecHandle Spec = ASC->MakeOutgoingSpec(StaticClass(), 1.f, Context);
-	Spec.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, Duration);
-	return ASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
 }
