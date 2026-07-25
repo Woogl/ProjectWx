@@ -1,6 +1,9 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Character/WxCharacterMovementComponent.h"
+#include "Character/WxCharacterBase.h"
+#include "AbilitySystem/Ability/WxAbility_LockOn.h"
+#include "AbilitySystemComponent.h"
 #include "GameFramework/Character.h"
 
 UWxCharacterMovementComponent::UWxCharacterMovementComponent()
@@ -15,4 +18,24 @@ float UWxCharacterMovementComponent::GetGravityZ() const
 	const float BaseGravityZ = Super::GetGravityZ();
 	const float DirectionalScale = (Velocity.Z < 0.f) ? FallGravityScale : RiseGravityScale;
 	return BaseGravityZ * DirectionalScale;
+}
+
+void UWxCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float DeltaSeconds)
+{
+	const AWxCharacterBase* WxCharacter = bWantsToCrouch ? Cast<AWxCharacterBase>(CharacterOwner) : nullptr;
+	const UAbilitySystemComponent* ASC = WxCharacter ? WxCharacter->GetAbilitySystemComponent() : nullptr;
+	if (ASC)
+	{
+		for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+		{
+			// 락온은 토글형 조준이라 앉은 자세와 공존한다.
+			if (Spec.IsActive() && !Spec.Ability->IsA<UWxAbility_LockOn>())
+			{
+				bWantsToCrouch = false;
+				break;
+			}
+		}
+	}
+
+	Super::UpdateCharacterStateBeforeMovement(DeltaSeconds);
 }

@@ -23,6 +23,14 @@ public:
 	virtual float GetGravityZ() const override;
 	//~ End UMovementComponent Interface
 
+	//~ Begin UCharacterMovementComponent Interface
+	/**
+	 * 락온을 제외한 어빌리티를 수행하는 동안에는 앉기 의사를 지운다.
+	 * 앉은 채로 발동했다면 Super가 곧바로 일으켜 세우고, 수행 중 들어온 앉기 입력도 매 틱 여기서 취소된다.
+	 */
+	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
+	//~ End UCharacterMovementComponent Interface
+
 protected:
 	/** 상승 중(Velocity.Z >= 0) 중력 스케일. 값이 작을수록 천천히 올라간다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Jump", meta = (ClampMin = "0.0"))
