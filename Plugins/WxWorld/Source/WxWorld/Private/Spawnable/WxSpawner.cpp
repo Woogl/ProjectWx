@@ -9,6 +9,7 @@
 #include "Engine/World.h"
 #include "UObject/ConstructorHelpers.h"
 #include "System/WxWorldDeveloperSettings.h"
+#include "WxWorldModule.h"
 
 AWxSpawner::AWxSpawner()
 {
@@ -144,7 +145,7 @@ void AWxSpawner::SpawnTarget()
 
 	if (!SpawnableActorClass->ImplementsInterface(UWxSpawnableInterface::StaticClass()))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AWxSpawner: %s does not implement IWxSpawnableInterface and will not be spawned."), *SpawnableActorClass->GetName());
+		UE_LOG(LogWxWorld, Warning, TEXT("AWxSpawner: %s does not implement IWxSpawnableInterface and will not be spawned."), *SpawnableActorClass->GetName());
 		return;
 	}
 
