@@ -129,6 +129,8 @@ void UWxInteractionScannerComponent::ScanAndPush()
 	UWorld* World = Pawn ? Pawn->GetWorld() : nullptr;
 	if (!World)
 	{
+		// 폰이 사라지는 경로(폰 교체·언포제스·레벨 전환 대기)에서도 외곽선·목록을 남기지 않는다. 아래 상호작용 불가 게이트와 같은 정리다.
+		UpdateInRange({});
 		return;
 	}
 
