@@ -235,42 +235,6 @@ struct FWxStateTreeTask_ComponentSplineMove : public FStateTreeTaskCommonBase
 #endif
 };
 
-// ── GimmickStateIs: 기믹의 현재 State 태그가 지정 태그와 같은지 검사(조건) ─────────
-
-USTRUCT()
-struct FWxStateTreeCondition_GimmickStateIsInstanceData
-{
-	GENERATED_BODY()
-
-	/** 비교할 State 태그. 이 상태가 어느 Gimmick.* State 일 때 진입할지 author 한다. */
-	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (Categories = "Gimmick"))
-	FGameplayTag State;
-
-	/** 결과를 반전(현재 State 가 위 태그가 "아닐" 때 참). */
-	UPROPERTY(EditAnywhere, Category = "Parameter")
-	bool bInvert = false;
-};
-
-/**
- * 소유 기믹(AWxGimmick)의 현재 권위 State 태그가 지정 State 와 정확히 같으면 참을 반환한다(bInvert 면 반전).
- * 전 상태를 동일한 enter 조건으로 게이트하는 용도 — 완료 후 Root 재선택이 현재 State 와 일치하는 상태(=자기 자신)로 돌아오게 해 정지 상태가 무해하게 머문다.
- * State 를 읽기만 하며 액터 프로퍼티 바인딩이 불필요하다(Context.GetOwner() 캐스트로 직접 조회).
- */
-USTRUCT(meta = (DisplayName = "Wx Gimmick State Is"))
-struct FWxStateTreeCondition_GimmickStateIs : public FStateTreeConditionCommonBase
-{
-	GENERATED_BODY()
-
-	using FInstanceDataType = FWxStateTreeCondition_GimmickStateIsInstanceData;
-
-	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
-	virtual bool TestCondition(FStateTreeExecutionContext& Context) const override;
-
-#if WITH_EDITOR
-	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
-#endif
-};
-
 // ── PlayAnimation: 지정 스켈레탈 메시 애니 재생/스냅 ───────────────────────
 
 USTRUCT()

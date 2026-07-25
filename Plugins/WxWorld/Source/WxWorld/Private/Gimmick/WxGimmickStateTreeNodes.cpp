@@ -326,35 +326,6 @@ FText FWxStateTreeTask_ComponentSplineMove::GetDescription(const FGuid& ID, FSta
 }
 #endif
 
-// ── GimmickStateIs ────────────────────────────────────────────────────────────
-
-bool FWxStateTreeCondition_GimmickStateIs::TestCondition(FStateTreeExecutionContext& Context) const
-{
-	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
-
-	const AWxGimmick* Gimmick = Cast<AWxGimmick>(Context.GetOwner());
-	if (!Gimmick)
-	{
-		return false;
-	}
-
-	// 정확 일치 비교(State 태그는 단말 값이라 계층 매칭 불필요).
-	const bool bMatch = Gimmick->GetGimmickState() == Instance.State;
-	return bMatch != Instance.bInvert;
-}
-
-#if WITH_EDITOR
-FText FWxStateTreeCondition_GimmickStateIs::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
-{
-	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
-	check(InstanceData);
-
-	return FText::Format(INVTEXT("Gimmick State {0} {1}"),
-		InstanceData->bInvert ? INVTEXT("!=") : INVTEXT("=="),
-		FText::FromString(InstanceData->State.ToString()));
-}
-#endif
-
 // ── PlayAnimation ──────────────────────────────────────────────────────────
 
 EStateTreeRunStatus FWxStateTreeTask_PlayAnimation::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
