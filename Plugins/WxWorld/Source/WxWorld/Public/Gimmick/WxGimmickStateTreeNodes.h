@@ -151,6 +151,10 @@ struct FWxStateTreeTask_ComponentMoveInstanceData
 	/** (런타임) 시작→목표 구간의 일정 속도(초당 로컬 거리). EnterState 에서 1회 산출한다(LocalOffset 크기가 아니라 실제 시작 위치 기준 거리라, 목표가 아키타입인 닫기도 0 이 아니다). */
 	UPROPERTY()
 	float MoveSpeed = 0.f;
+
+	/** (런타임) 기준(아키타입)+LocalOffset 으로 산출한 목표 상대 위치. 아키타입 조회가 상수 시간이 아니라 EnterState 에서 1회만 구하고 Tick 은 이 값을 읽는다. */
+	UPROPERTY()
+	FVector TargetLocation = FVector::ZeroVector;
 };
 
 /**

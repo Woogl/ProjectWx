@@ -29,6 +29,7 @@
 #include "StateTreeExecutionContext.h"
 #include "StateTreePropertyBindings.h"
 #include "WxGameplayTags.h"
+#include "WxWorldModule.h"
 
 namespace
 {
@@ -165,19 +166,20 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentMove::EnterState(FStateTreeExecuti
 		return EStateTreeRunStatus::Failed;
 	}
 
-	const FVector Target = GetMoveAnchor(Component) + Instance.LocalOffset;
+	// 아키타입 조회가 상수 시간이 아니라 여기서 1회만 구해 인스턴스 데이터에 캐시하고, Tick 은 이 값을 읽기만 한다.
+	Instance.TargetLocation = GetMoveAnchor(Component) + Instance.LocalOffset;
 
 	// 초기 진입(StateTree 시작/복원)·길이 0·이미 목표면 애니 없이 즉시 스냅하고 곧바로 완료한다.
 	const bool bInitialEntry = IsInitialOrRestoreEntry(Context, Transition);
-	const bool bReachNow = bInitialEntry || Instance.Duration <= 0.f || Component->GetRelativeLocation().Equals(Target);
+	const bool bReachNow = bInitialEntry || Instance.Duration <= 0.f || Component->GetRelativeLocation().Equals(Instance.TargetLocation);
 	if (bReachNow)
 	{
-		Component->SetRelativeLocation(Target);
+		Component->SetRelativeLocation(Instance.TargetLocation);
 		return EStateTreeRunStatus::Succeeded;
 	}
 
 	// 라이브 전이: 속도를 시작(현재)→목표 실제 거리/Duration 으로 1회 산출한다(LocalOffset 크기가 아니라 실제 거리라, 목표가 아키타입인 닫기도 0 이 아니다).
-	Instance.MoveSpeed = (Target - Component->GetRelativeLocation()).Size() / Instance.Duration;
+	Instance.MoveSpeed = (Instance.TargetLocation - Component->GetRelativeLocation()).Size() / Instance.Duration;
 
 	// 라이브 전이면 Tick 이 고정 속도로 슬라이드하다 도달 시 완료한다.
 	return EStateTreeRunStatus::Running;
@@ -193,7 +195,8 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentMove::Tick(FStateTreeExecutionCont
 		return EStateTreeRunStatus::Failed;
 	}
 
-	const FVector Target = GetMoveAnchor(Component) + Instance.LocalOffset;
+	// 목표는 EnterState 에서 캐시한 값을 쓴다(아키타입 조회를 매 틱 반복하지 않는다).
+	const FVector& Target = Instance.TargetLocation;
 	FVector NewLocation = Component->GetRelativeLocation();
 
 	// 도달 전까지 EnterState 에서 산출한 고정 속도로 슬라이드한다.
@@ -398,7 +401,7 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::EnterState(FStateTr
 	// 당사자가 없으면(비캐릭터 상호작용, 비기믹 오너 등) 상태가 갇히지 않게 곧바로 완료한다.
 	if (!Character)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Move Interactor To Target: 오너 기믹의 InteractingCharacter 가 비어 있다 — 완료로 넘어간다."));
+		UE_LOG(LogWxWorld, Warning, TEXT("Move Interactor To Target: 오너 기믹의 InteractingCharacter 가 비어 있다 — 완료로 넘어간다."));
 		return EStateTreeRunStatus::Succeeded;
 	}
 
@@ -835,7 +838,7 @@ EStateTreeRunStatus FWxStateTreeTask_TriggerSpawners::EnterState(FStateTreeExecu
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Trigger Spawners: TargetSpawner is null or not loaded."));
+			UE_LOG(LogWxWorld, Warning, TEXT("Trigger Spawners: TargetSpawner is null or not loaded."));
 		}
 	}
 
