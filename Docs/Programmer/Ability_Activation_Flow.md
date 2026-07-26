@@ -56,13 +56,19 @@ flowchart TD
 
 ### ① 플레이어 입력 (InputAction 라우팅)
 
-체인: 바인딩할 InputAction 목록은 `AWxPlayerCharacter::SetupPlayerInputComponent`가 `UWxAbilitySystemComponent::CollectAbilityInputActions`로 파생한다(ASC→`AbilitySet`→부여 대상 어빌리티 CDO의 `GetInputActions`, 발동 IA는 어빌리티 CDO가 단일 원천으로 보유). → Enhanced Input의 `Started`/`Completed`를 `AbilityInputPressed/Released(const UInputAction*)`에 바인딩(액션을 payload로) → `UWxAbilitySystemComponent::AbilityInputActionTriggered(Action)`.
+체인: 바인딩할 InputAction 목록은 `AWxPlayerCharacter::SetupPlayerInputComponent`가 `UWxAbilitySystemComponent::GetAbilityInputActions`로 파생한다(ASC→`AbilitySet`→부여 대상 어빌리티 CDO의 `GetInputActions`, 발동 IA는 어빌리티 CDO가 단일 원천으로 보유). → Enhanced Input의 `Started`/`Triggered`/`Completed`를 `AbilityInputStarted/Triggered/Released(const UInputAction*)`에 바인딩(액션을 payload로) → ASC의 같은 이름 진입점.
 
-`AbilityInputActionTriggered`의 핵심 로직:
+`Started`는 최근 입력 기록과 입력 대기 방송만 맡는다. 어빌리티 라우팅은 `AbilityInputActionTriggered`가 전담한다 — `Pressed` 트리거는 두 이벤트가 같은 프레임에 들어오므로(엔진이 `None → Triggered` 전이에서 `Started`도 함께 발화한다), 라우팅을 양쪽에 두면 한 번의 입력이 두 번 처리된다.
+
+`AbilityInputActionStarted`:
 1. `SetLastPressedInputAction(Action)` — Attack 콤보의 L/H 판별 등이 참조할 "마지막 눌린 액션"을 저장(클라면 Server RPC로 동기화).
-2. `OnInputActionTriggered.Broadcast(Action)` — 활성 어빌리티의 입력 대기 태스크에 눌린 액션을 방송한다.
-3. `GetActivatableAbilities()` 순회 → `IsActivationInput(Action)` 매칭(자기 발동 입력만).
-4. 이미 활성(`Spec.IsActive()`)이면 → `AbilitySpecInputPressed` + `InvokeReplicatedEvent(InputPressed)` (콤보 재발동 등 자기 입력 재전달). 비활성이면 → `TryActivateAbility(Spec.Handle)` 성공 시 `break`.
+2. `OnInputActionTriggered.Broadcast(Action)` — 활성 어빌리티의 입력 대기 태스크에 눌린 액션을 방송한다. 반격 윈도우는 새로 누른 입력에만 반응해야 하므로 조건 충족(`Triggered`)이 아니라 누름(`Started`)이 옳다.
+
+`AbilityInputActionTriggered` — 라우팅의 유일한 진입점:
+1. `GetActivatableAbilities()` 순회 → `IsActivationInput(Action)` 매칭(자기 발동 입력만).
+2. **이미 돌고 있으면서 이미 눌려 있던** spec은 건너뛴다. 홀드형 트리거가 눌려 있는 동안 매 프레임 내는 반복분이며, 이걸 넘기면 가드가 매 프레임 재발동된다(`Spec.InputPressed`는 릴리즈 진입점이 `false`로 되돌린다). 아직 발동하지 못한 spec은 반복분도 받아, 차단이 풀리는 순간 쥐고 있던 입력이 발동한다.
+3. `TryActivateAbility(Spec.Handle)` 성공 시 `break`. **신규 발동과 콤보 재발동은 같은 호출**이다 — 엔진이 `bRetriggerInstancedAbility`로 가른다.
+4. 실패했는데 여전히 활성이면 → 재발동을 받지 않는 어빌리티다. `AbilitySpecInputPressed` + `InvokeReplicatedEvent(InputPressed)`로 활성 인스턴스에 입력을 넘긴다(락온 토글 해제, 패링 중 가드 복귀).
 
 > 가드/회피의 반격처럼 활성 중 자기 발동 입력이 아닌 입력을 감지하려면, 어빌리티가 `UWxAbilityTask_WaitInputActionTriggered`를 띄운다. 이 태스크는 ASC의 `OnInputActionTriggered` 방송을 구독해 지정 InputAction과 일치할 때만 반응한다(`IsLocallyControlled()` 게이트). 라우팅 판정을 어빌리티에 두지 않고 감지를 태스크가 자기완결한다.
 
