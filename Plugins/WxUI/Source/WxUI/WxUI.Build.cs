@@ -20,7 +20,10 @@ public class WxUI : ModuleRules
 				"GameplayAbilities",
 				"GameplayTags",
 				"ModelViewViewModel",
+				"ModularGameplay",
+				"StateTreeModule",
 				"UMG",
+				"UniversalObjectLocator",
 				"WxCore",
 			}
 		);
