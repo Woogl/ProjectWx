@@ -147,6 +147,11 @@ namespace WxGameplayTags
 	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(StateTree_Restore);
 
+	// ── Quest ─────────────────────────────────────────────────────────────
+
+	/** 퀘스트 실패 이벤트. 퀘스트 ST의 InProgress 전이(On Event → Failure)가 수신. 송출은 UWxQuestLibrary::SendQuestEvent 경유 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Quest_Fail);
+
 	// ── ANS ───────────────────────────────────────────────────────────────
 
 	/** 콤보 입력 수용 구간. ANS_ComboWindow가 부여/제거 */

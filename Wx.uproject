@@ -88,6 +88,18 @@
 			"Enabled": true
 		},
 		{
+			"Name": "WxQuest",
+			"Enabled": true
+		},
+		{
+			"Name": "StateTree",
+			"Enabled": true
+		},
+		{
+			"Name": "GameplayStateTree",
+			"Enabled": true
+		},
+		{
 			"Name": "ModelContextProtocol",
 			"Enabled": true
 		},

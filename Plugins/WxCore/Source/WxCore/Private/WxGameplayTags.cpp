@@ -63,6 +63,8 @@ namespace WxGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(StateTree_Restore, "StateTree.Restore");
 
+	UE_DEFINE_GAMEPLAY_TAG(Quest_Fail, "Quest.Fail");
+
 	UE_DEFINE_GAMEPLAY_TAG(ANS_ComboWindow, "ANS.ComboWindow");
 
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Damage, "GameplayCue.Damage");
