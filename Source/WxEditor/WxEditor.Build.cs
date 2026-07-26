@@ -19,13 +19,19 @@ public class WxEditor : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
+			"GameplayStateTreeModule",
+			"SceneOutliner",
 			"Slate",
 			"SlateCore",
 			"PropertyEditor",
+			"StateTreeEditorModule",
+			"UniversalObjectLocator",
+			"UniversalObjectLocatorEditor",
 			"UnrealEd",
 			"WxCombat",
 			"WxCore",
 			"WxInventory",
+			"WxQuest",
 			"WxUI",
 		});
 	}
