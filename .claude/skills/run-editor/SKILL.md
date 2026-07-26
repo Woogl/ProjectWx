@@ -83,6 +83,5 @@ $proc = Start-Process -FilePath $editorExe -ArgumentList "`"$projPath`"" -PassTh
 - 빌드 구성은 **Development Editor** 고정이다. DebugGame 등 다른 구성이 필요하면 스크립트의
   `Development` 인자를 바꾼다 (예: `DebugGame`).
 - 종료 대상은 **현재 프로젝트의** 에디터/게임 프로세스만이다(명령줄에 `.uproject` 경로가 포함된 인스턴스).
-  다른 프로젝트의 에디터는 건드리지 않는다. 에디터 매칭은 `UnrealEditor%.exe` 와일드카드라
-  DebugGame 등 구성별 바이너리도 잡는다(`UnrealTraceServer.exe`는 매칭되지 않아 안전).
+  다른 프로젝트의 에디터는 건드리지 않는다.
 - 빌드만 실패 없이 끝나면 에디터가 새 창으로 뜬다. 에디터는 대기하지 않고 백그라운드로 실행된다.
