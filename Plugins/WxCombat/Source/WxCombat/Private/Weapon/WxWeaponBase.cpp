@@ -100,6 +100,20 @@ void AWxWeaponBase::EndAttack()
 	}
 }
 
+void AWxWeaponBase::CancelAttack()
+{
+	if (ActiveAttackCount <= 0)
+	{
+		return;
+	}
+
+	ActiveAttackCount = 0;
+	HitCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SetActorTickEnabled(false);
+	HitActorsThisSwing.Empty();
+	DamageInfo = FWxDamageInfo();
+}
+
 void AWxWeaponBase::SetVisualMesh(USkeletalMesh* MeshAsset)
 {
 	if (!Mesh || !MeshAsset)
@@ -143,14 +157,7 @@ void AWxWeaponBase::AttachToCharacter(ACharacter* OwnerCharacter, FName SocketNa
 void AWxWeaponBase::DetachFromCharacter()
 {
 	// 활성 공격 구간이 남아있으면 강제 종료
-	if (ActiveAttackCount > 0)
-	{
-		ActiveAttackCount = 0;
-		HitCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		SetActorTickEnabled(false);
-		HitActorsThisSwing.Empty();
-		DamageInfo = FWxDamageInfo();
-	}
+	CancelAttack();
 
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	SetOwner(nullptr);

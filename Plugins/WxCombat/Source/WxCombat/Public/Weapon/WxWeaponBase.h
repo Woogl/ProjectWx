@@ -49,6 +49,12 @@ public:
 	 */
 	void EndAttack();
 
+	/**
+	 * 남은 활성 구간 수와 무관하게 공격을 즉시 전부 종료한다.
+	 * 사망처럼 ANS의 구간 종료를 기다릴 수 없는 상황에서 판정을 확실히 걷어내기 위한 경로다.
+	 */
+	void CancelAttack();
+
 	/** 무기 외형 메시를 교체한다. MeshAsset이 nullptr이면 무시한다. */
 	void SetVisualMesh(USkeletalMesh* MeshAsset);
 

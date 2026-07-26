@@ -6,9 +6,10 @@
 #include "AIController.h"
 #include "BrainComponent.h"
 #include "Engine/World.h"
-#include "GameFramework/Pawn.h"
+#include "GameFramework/Character.h"
 #include "TimerManager.h"
 #include "WxGameplayTags.h"
+#include "Components/SkeletalMeshComponent.h"
 
 UWxAbility_Death::UWxAbility_Death()
 {
@@ -35,7 +36,12 @@ void UWxAbility_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		return;
 	}
 	
-	APawn* Avatar = Cast<APawn>(GetAvatarActorFromActorInfo());
+	ACharacter* Avatar = Cast<ACharacter>(GetAvatarActorFromActorInfo());
+	if (Avatar && Avatar->GetMesh())
+	{
+		Avatar->GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	
 	AAIController* AIController = Avatar ? Cast<AAIController>(Avatar->GetController()) : nullptr;
 	if (UBrainComponent* Brain = AIController ? AIController->GetBrainComponent() : nullptr)
 	{
