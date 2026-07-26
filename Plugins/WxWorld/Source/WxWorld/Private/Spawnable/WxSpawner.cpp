@@ -11,6 +11,16 @@
 #include "System/WxWorldDeveloperSettings.h"
 #include "WxWorldModule.h"
 
+#if WITH_EDITOR
+#include "Editor/EditorEngine.h"
+#endif
+
+namespace WxSpawnerLabel
+{
+	/** 자동 생성 라벨의 접두사. 아웃라이너 정렬에서 스포너를 한 덩어리로 모으고, 디자이너가 지은 이름과 구분하는 표식도 겸한다. */
+	static const TCHAR* Prefix = TEXT("Spawner");
+}
+
 AWxSpawner::AWxSpawner()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -233,17 +243,27 @@ void AWxSpawner::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 
 		// 라벨 동기화는 프리뷰 갱신과 달리 여기(디자이너가 클래스를 실제로 바꾼 순간)에서만 한다.
 		// 프리뷰 쪽에 두면 맵/셀을 열 때마다 도는 PostRegisterAllComponents 경로에서도 불려, 디자이너가 지은 이름(예: Boss_Room_Guard_01)이 매 로드마다 클래스명으로 되돌아가고 SetActorLabel 의 Modify() 가 아무 편집 없이 패키지를 dirty 로 만든다.
-		if (SpawnableActorClass)
+		// 접두사로 시작하는 자동 라벨일 때만 갱신해, 손수 지은 이름은 대상 클래스를 바꿔도 남긴다.
+		if (GetActorLabel().StartsWith(WxSpawnerLabel::Prefix))
 		{
-			FString NewLabel = SpawnableActorClass->GetName();
-			NewLabel.RemoveFromEnd(TEXT("_C"));
-			SetActorLabel(NewLabel);
-		}
-		else
-		{
-			SetActorLabel(GetClass()->GetName());
+			// 엔진이 액터를 배치할 때와 같은 경로다. 중복 라벨에 번호를 붙여 같은 클래스를 여러 기 놓아도 Spawner_Enemy2, Spawner_Enemy3 으로 갈린다.
+			FActorLabelUtilities::SetActorLabelUnique(this, GetDefaultActorLabel());
 		}
 	}
+}
+
+FString AWxSpawner::GetDefaultActorLabel() const
+{
+	if (!SpawnableActorClass)
+	{
+		return WxSpawnerLabel::Prefix;
+	}
+
+	// 블루프린트 클래스의 _C 접미만 떼어 에셋 이름 그대로 붙인다. BP_Enemy 는 Spawner_BP_Enemy 가 된다.
+	FString TargetName = SpawnableActorClass->GetName();
+	TargetName.RemoveFromEnd(TEXT("_C"), ESearchCase::CaseSensitive);
+
+	return FString::Printf(TEXT("%s_%s"), WxSpawnerLabel::Prefix, *TargetName);
 }
 
 void AWxSpawner::UpdateEditorPreviewFromSpawnableClass()

@@ -16,6 +16,7 @@ public class WxWorld : ModuleRules
 			"Engine",
 			"GameplayTags",
 			"StateTreeModule",
+			"UniversalObjectLocator",
 			"WxCore",
 		});
 
@@ -27,5 +28,11 @@ public class WxWorld : ModuleRules
 			"MovieScene",
 			"Niagara",
 		});
+
+		if (Target.bBuildEditor)
+		{
+			// 스포너 라벨을 엔진 순정 규칙(FActorLabelUtilities::SetActorLabelUnique)으로 짓는 데만 사용한다.
+			PrivateDependencyModuleNames.Add("UnrealEd");
+		}
 	}
 }

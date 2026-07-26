@@ -91,6 +91,10 @@ public:
 	virtual void PostDuplicate(EDuplicateMode::Type DuplicateMode) override;
 	virtual void PostRegisterAllComponents() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
+	/** 아웃라이너 기본 라벨. 스폰 대상 클래스를 밝힌 "Spawner_Enemy" 형태로, 엔진이 중복 시 번호를 덧붙인다. */
+	virtual FString GetDefaultActorLabel() const override;
+
 	void UpdateEditorPreviewFromSpawnableClass();
 #endif
 
