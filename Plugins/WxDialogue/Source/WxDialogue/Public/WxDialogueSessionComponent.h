@@ -22,6 +22,10 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnDialogueEnded);
  * 대화 대상은 비소유 액터라 Client RPC 를 쏠 수 없으므로, 클라 UI 로 가는 전달은 PC 측인 본 컴포넌트가 소유한다.
  * 세션(현재 노드·라인)은 표시 전용 로컬 상태라 소유 클라가 진행을 소유하며 서버 검증은 없다. 대화가 게임 상태를 바꾸게 되면 그때 서버측으로 옮긴다.
  *
+ * 대화는 뜻을 해석하지도 기록을 남기지도 않는다 — 현재 대화 대상만 노출하고,
+ * 그 의미(퀘스트 수주 등)는 소비자(Wait Dialogue Completed 태스크)가 관찰로 판정한다.
+ * 세션 상태는 소유 클라에 있다 — v1 싱글/리슨 호스트(소유 클라=권위 동일 머신) 전제로 권위 측 소비자가 직접 읽는다.
+ *
  * UI 는 모른다 — 시작·대사·종료를 델리게이트로 발행하고, 구독자(PC·뷰모델)가 위젯을 잇는다.
  */
 UCLASS()
@@ -30,8 +34,8 @@ class WXDIALOGUE_API UWxDialogueSessionComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
-	/** 서버 권위 진입점. 상호작용 응답이 대상의 대화 정의를 물려 호출하면 소유 클라에서 세션이 열린다. */
-	void StartDialogue(const UWxDialogueComponent* Dialogue);
+	/** 서버 권위 진입점. 상호작용 응답이 대상의 대화 정의를 넘겨 호출하면 소유 클라에서 세션이 열린다. */
+	void StartDialogue(UWxDialogueComponent* Dialogue);
 
 	/** 뷰의 대사 넘기기 요청. 다음 라인으로 가고, 노드가 끝나면 NextRow 를 따라가며, 더 없으면 종료한다. 선택지 노드에선 Choose 를 기다린다. */
 	void Advance();
@@ -40,6 +44,9 @@ public:
 	void Choose(int32 ChoiceIndex);
 
 	bool HasActiveDialogue() const { return CurrentRow != nullptr; }
+
+	/** 진행 중인 대화의 대상 액터(정의 컴포넌트 소유자). 대화 중이 아니면 null. */
+	AActor* GetCurrentDialogueTarget() const;
 
 	FText GetCurrentSpeaker() const;
 
@@ -58,9 +65,9 @@ public:
 	FWxOnDialogueEnded OnDialogueEnded;
 
 private:
-	/** 시작 행을 소유 클라로 넘겨 세션을 시드하고 시작을 발행한다. */
+	/** 대화 정의를 소유 클라로 넘겨 세션을 시드하고 시작을 발행한다. 대상 정의는 관찰자 노출을 위해 세션 동안 기억한다. */
 	UFUNCTION(Client, Reliable)
-	void ClientStartDialogue(const FDataTableRowHandle& StartRow);
+	void ClientStartDialogue(UWxDialogueComponent* Dialogue);
 
 	/** 이름으로 노드를 찾아 현재 노드로 전환한다. 행이 없거나 대사가 비면 실패한다. */
 	bool EnterRow(FName RowName);
@@ -73,6 +80,9 @@ private:
 
 	/** 세션 동안 State.Dialogue 를 발행해 둔 폰 ASC. 종료 시 같은 ASC 에서 되돌리기 위해 기억한다(도중 폰 교체 대비). */
 	TWeakObjectPtr<UAbilitySystemComponent> TaggedAbilitySystem;
+
+	/** 진행 중인 대화의 대상 정의. 관찰자(GetCurrentDialogueTarget)에게 노출되며 세션 중에만 유효하다. */
+	TWeakObjectPtr<UWxDialogueComponent> CurrentDialogue;
 
 	/** 진행 중인 대화 테이블. 세션 동안 행 메모리를 붙잡는 강참조다. */
 	UPROPERTY()
