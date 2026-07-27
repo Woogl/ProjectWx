@@ -7,11 +7,12 @@
 #include "CanvasTypes.h"
 #include "Engine/Blueprint.h"
 #include "Engine/Texture2D.h"
+#include "Materials/MaterialInterface.h"
 
 namespace WxAbilityThumbnailRenderer
 {
 	/** Blueprint 가 UWxAbilityBase 파생이면 그 어빌리티 아이콘 소프트 참조를 반환한다. 아니면 Null 참조. */
-	static TSoftObjectPtr<UTexture2D> GetAbilityIcon(UObject* Object)
+	static TSoftObjectPtr<UObject> GetAbilityIcon(UObject* Object)
 	{
 		const UBlueprint* Blueprint = Cast<UBlueprint>(Object);
 		if (Blueprint == nullptr || Blueprint->GeneratedClass == nullptr || !Blueprint->GeneratedClass->IsChildOf(UWxAbilityBase::StaticClass()))
@@ -41,7 +42,8 @@ bool UWxAbilityThumbnailRenderer::CanVisualizeAsset(UObject* Object)
 
 void UWxAbilityThumbnailRenderer::GetThumbnailSize(UObject* Object, float Zoom, uint32& OutWidth, uint32& OutHeight) const
 {
-	if (const UTexture2D* IconTexture = WxAbilityThumbnailRenderer::GetAbilityIcon(Object).LoadSynchronous())
+	// 텍스처만 고유 해상도를 갖는다. 머터리얼 아이콘과 아이콘 미설정은 엔진 기본 크기로 위임한다.
+	if (const UTexture2D* IconTexture = Cast<UTexture2D>(WxAbilityThumbnailRenderer::GetAbilityIcon(Object).LoadSynchronous()))
 	{
 		OutWidth = FMath::TruncToInt(Zoom * static_cast<float>(IconTexture->GetSizeX()));
 		OutHeight = FMath::TruncToInt(Zoom * static_cast<float>(IconTexture->GetSizeY()));
@@ -53,19 +55,33 @@ void UWxAbilityThumbnailRenderer::GetThumbnailSize(UObject* Object, float Zoom, 
 
 void UWxAbilityThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint32 Width, uint32 Height, FRenderTarget* RenderTarget, FCanvas* Canvas, bool bAdditionalViewFamily)
 {
-	UTexture2D* IconTexture = WxAbilityThumbnailRenderer::GetAbilityIcon(Object).LoadSynchronous();
-	if (IconTexture == nullptr || IconTexture->GetResource() == nullptr)
+	UObject* IconAsset = WxAbilityThumbnailRenderer::GetAbilityIcon(Object).LoadSynchronous();
+
+	if (const UTexture2D* IconTexture = Cast<UTexture2D>(IconAsset))
 	{
-		Super::Draw(Object, X, Y, Width, Height, RenderTarget, Canvas, bAdditionalViewFamily);
+		if (IconTexture->GetResource() != nullptr)
+		{
+			// 아이콘은 알파 채널을 가질 수 있으므로 Translucent 블렌드로 그린다.
+			FCanvasTileItem TileItem(
+				FVector2D(X, Y),
+				IconTexture->GetResource(),
+				FVector2D(Width, Height),
+				FLinearColor::White);
+			TileItem.BlendMode = SE_BLEND_Translucent;
+			Canvas->DrawItem(TileItem);
+			return;
+		}
+	}
+	// 머터리얼 아이콘은 렌더 프록시로 그린다(블렌드 모드는 머터리얼 자신이 정한다).
+	else if (const UMaterialInterface* IconMaterial = Cast<UMaterialInterface>(IconAsset))
+	{
+		FCanvasTileItem TileItem(
+			FVector2D(X, Y),
+			IconMaterial->GetRenderProxy(),
+			FVector2D(Width, Height));
+		Canvas->DrawItem(TileItem);
 		return;
 	}
 
-	// 아이콘은 알파 채널을 가질 수 있으므로 Translucent 블렌드로 그린다.
-	FCanvasTileItem TileItem(
-		FVector2D(X, Y),
-		IconTexture->GetResource(),
-		FVector2D(Width, Height),
-		FLinearColor::White);
-	TileItem.BlendMode = SE_BLEND_Translucent;
-	Canvas->DrawItem(TileItem);
+	Super::Draw(Object, X, Y, Width, Height, RenderTarget, Canvas, bAdditionalViewFamily);
 }

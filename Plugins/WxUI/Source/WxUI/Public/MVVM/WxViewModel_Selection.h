@@ -21,7 +21,7 @@ class WXUI_API UWxViewModel_Selection : public UWxViewModel
 
 public:
 	/** 선택 대상의 상세를 반영하고 bHasSelection 을 켠다. 소스가 없는 필드는 빈 값으로 넘긴다. */
-	void SetSelection(const FText& InDisplayName, const FText& InDescription, const TSoftObjectPtr<UTexture2D>& InIcon);
+	void SetSelection(const FText& InDisplayName, const FText& InDescription, const TSoftObjectPtr<UObject>& InIcon);
 
 	/** 선택 없음 상태로 되돌린다(패널 숨김용). 표시 필드를 비운다. */
 	void ClearSelection();
@@ -39,9 +39,14 @@ public:
 	FText Description;
 
 	/**
-	 * 선택 대상의 아이콘 Soft 참조. View 측 UCommonLazyImage 가 비동기 로드/수명 관리한다.
-	 * VM 은 Soft 참조를 그대로 노출만 하며 LoadSynchronous 를 호출하지 않는다(WxViewModel_Item::Icon 과 동일 관례).
+	 * 선택 대상의 아이콘. 소스가 넘긴 Soft 참조를 베이스가 비동기 로드해 세팅한다.
+	 * View 는 일반 Image 의 SetBrushResourceObject 에 바인딩한다.
 	 */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Selection")
-	TSoftObjectPtr<UTexture2D> Icon;
+	TObjectPtr<UObject> Icon;
+
+protected:
+	//~ Begin UWxViewModel
+	virtual void ApplyLoadedImage(FName FieldName, UObject* LoadedImage) override;
+	//~ End UWxViewModel
 };

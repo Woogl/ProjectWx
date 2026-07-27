@@ -2,7 +2,7 @@
 
 #include "MVVM/WxViewModel_Selection.h"
 
-void UWxViewModel_Selection::SetSelection(const FText& InDisplayName, const FText& InDescription, const TSoftObjectPtr<UTexture2D>& InIcon)
+void UWxViewModel_Selection::SetSelection(const FText& InDisplayName, const FText& InDescription, const TSoftObjectPtr<UObject>& InIcon)
 {
 	if (!bHasSelection)
 	{
@@ -22,11 +22,8 @@ void UWxViewModel_Selection::SetSelection(const FText& InDisplayName, const FTex
 		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(Description);
 	}
 
-	if (Icon != InIcon)
-	{
-		Icon = InIcon;
-		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(Icon);
-	}
+	// 로드 완료 시점에 ApplyLoadedImage 가 Icon 을 세팅하고 발화한다.
+	RequestImageAsync(TEXT("Icon"), InIcon);
 }
 
 void UWxViewModel_Selection::ClearSelection()
@@ -49,9 +46,15 @@ void UWxViewModel_Selection::ClearSelection()
 		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(Description);
 	}
 
-	if (!Icon.IsNull())
+	// 진행 중인 스트리밍이 있으면 함께 취소된다.
+	RequestImageAsync(TEXT("Icon"), nullptr);
+}
+
+void UWxViewModel_Selection::ApplyLoadedImage(FName FieldName, UObject* LoadedImage)
+{
+	if (Icon != LoadedImage)
 	{
-		Icon = nullptr;
+		Icon = LoadedImage;
 		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(Icon);
 	}
 }

@@ -74,7 +74,7 @@ void UWxViewModel_Item::Deinitialize()
 	CurrentCharges = 0;
 	MaxCharges = 0;
 	AcquiredCount = 0;
-	Icon.Reset();
+	Icon = nullptr;
 	DisplayName = FText::GetEmpty();
 	Grade = EWxItemGrade::Common;
 	GradeColor = FLinearColor::White;
@@ -138,8 +138,13 @@ void UWxViewModel_Item::RefreshChargeIcon()
 
 	if (Instance)
 	{
-		UE_MVVM_SET_PROPERTY_VALUE(Icon, Instance->GetDisplayIcon());
+		RequestImageAsync(TEXT("Icon"), Instance->GetDisplayIcon());
 	}
+}
+
+void UWxViewModel_Item::ApplyLoadedImage(FName FieldName, UObject* LoadedImage)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(Icon, LoadedImage);
 }
 
 void UWxViewModel_Item::ApplyStaticDataFromDef(const UWxItemDefinition* InItemDef)
@@ -149,7 +154,7 @@ void UWxViewModel_Item::ApplyStaticDataFromDef(const UWxItemDefinition* InItemDe
 		return;
 	}
 
-	UE_MVVM_SET_PROPERTY_VALUE(Icon, InItemDef->Icon);
+	RequestImageAsync(TEXT("Icon"), InItemDef->Icon);
 	UE_MVVM_SET_PROPERTY_VALUE(DisplayName, InItemDef->DisplayName);
 
 	// 등급/색상은 Grade Fragment 에서 가져온다. 부재 시 Common 등급/Common 기본색으로 폴백.

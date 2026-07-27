@@ -53,10 +53,10 @@ public:
 	int32 GetMaxCharges() const;
 
 	/**
-	 * 현재 상태 표시 아이콘.
+	 * 현재 상태 표시 아이콘(텍스처 또는 머터리얼).
 	 * 충전형이면 Charges Fragment 의 ChargeIcons[CurrentCharges] 를, 없으면 Definition 의 기본 Icon 을 반환한다.
 	 */
-	TSoftObjectPtr<UTexture2D> GetDisplayIcon() const;
+	TSoftObjectPtr<UObject> GetDisplayIcon() const;
 
 	/**
 	 * 권한: 충전 횟수를 설정한다.

@@ -40,7 +40,7 @@ void UWxAbilityBase::GetInputActions(TArray<const UInputAction*>& OutActions) co
 	}
 }
 
-TSoftObjectPtr<UTexture2D> UWxAbilityBase::GetIcon() const
+TSoftObjectPtr<UObject> UWxAbilityBase::GetIcon() const
 {
 	const FWxAbilityTableRow* Row = GetTableRow();
 	return Row ? Row->Icon : nullptr;

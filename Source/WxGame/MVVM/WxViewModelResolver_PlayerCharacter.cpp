@@ -37,7 +37,7 @@ UObject* UWxViewModelResolver_PlayerCharacter::CreateInstance(const UClass* Expe
 	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
 	{
 		const UWxAbilityBase* WxAbility = Cast<UWxAbilityBase>(Spec.Ability);
-		const TSoftObjectPtr<UTexture2D> IconSoft = WxAbility ? WxAbility->GetIcon() : nullptr;
+		const TSoftObjectPtr<UObject> IconSoft = WxAbility ? WxAbility->GetIcon() : nullptr;
 		if (IconSoft.IsNull())
 		{
 			continue;

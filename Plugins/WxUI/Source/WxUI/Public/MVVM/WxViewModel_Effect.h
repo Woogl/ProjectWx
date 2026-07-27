@@ -11,7 +11,6 @@
 
 class UWxEffectComponent_UIData;
 class UAbilitySystemComponent;
-struct FStreamableHandle;
 
 /**
  * GameplayEffect 뷰모델.
@@ -51,8 +50,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Effect")
 	bool IsStackCountAboveOne = false;
 
+	/** UI 표시 아이콘. UIData 의 소프트 참조를 베이스가 비동기 로드해 세팅하며, 텍스처와 머터리얼 양쪽이 올 수 있다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Effect")
-	TObjectPtr<UTexture2D> Icon = nullptr;
+	TObjectPtr<UObject> Icon = nullptr;
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Effect")
 	FGameplayTag EffectTag;
@@ -75,24 +75,20 @@ public:
 	bool GetIsStackCountAboveOne() const;
 	void SetIsStackCountAboveOne(bool bNewValue);
 
-	UTexture2D* GetIcon() const;
-	void SetIcon(UTexture2D* NewValue);
+	UObject* GetIcon() const;
+	void SetIcon(UObject* NewValue);
+
+protected:
+	//~ Begin UWxViewModel
+	virtual void ApplyLoadedImage(FName FieldName, UObject* LoadedImage) override;
+	//~ End UWxViewModel
 
 private:
 	bool UpdateEffectState(float DeltaTime);
-
-	/** 아이콘 비동기 로드 완료 콜백. PendingIcon을 해석해 Icon을 세팅한다 */
-	void HandleIconLoaded();
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	FActiveGameplayEffectHandle BoundHandle;
 	float EffectEndTime = 0.f;
 	float CachedDuration = 0.f;
 	FTSTicker::FDelegateHandle TickerHandle;
-
-	/** 비동기 로드 대기 중인 아이콘 소프트 참조. 로드 완료 콜백이 해석한다 */
-	TSoftObjectPtr<UTexture2D> PendingIcon;
-
-	/** 진행 중인 아이콘 스트리밍 핸들. 해제 시 취소한다 */
-	TSharedPtr<FStreamableHandle> IconStreamHandle;
 };

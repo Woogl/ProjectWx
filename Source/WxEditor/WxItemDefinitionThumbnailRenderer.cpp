@@ -6,6 +6,7 @@
 #include "CanvasTypes.h"
 #include "Engine/Texture2D.h"
 #include "Items/WxItemDefinition.h"
+#include "Materials/MaterialInterface.h"
 
 bool UWxItemDefinitionThumbnailRenderer::CanVisualizeAsset(UObject* Object)
 {
@@ -18,10 +19,20 @@ void UWxItemDefinitionThumbnailRenderer::GetThumbnailSize(UObject* Object, float
 	const UWxItemDefinition* ItemDefinition = Cast<UWxItemDefinition>(Object);
 	if (ItemDefinition != nullptr)
 	{
-		if (const UTexture2D* IconTexture = ItemDefinition->Icon.LoadSynchronous())
+		UObject* IconAsset = ItemDefinition->Icon.LoadSynchronous();
+
+		if (const UTexture2D* IconTexture = Cast<UTexture2D>(IconAsset))
 		{
 			OutWidth = FMath::TruncToInt(Zoom * static_cast<float>(IconTexture->GetSizeX()));
 			OutHeight = FMath::TruncToInt(Zoom * static_cast<float>(IconTexture->GetSizeY()));
+			return;
+		}
+
+		// 머터리얼은 고유 해상도가 없으므로 엔진 기본 썸네일 한 변(128)을 기준 정사각으로 그린다.
+		if (IconAsset != nullptr && IconAsset->IsA<UMaterialInterface>())
+		{
+			OutWidth = FMath::TruncToInt(Zoom * 128.f);
+			OutHeight = OutWidth;
 			return;
 		}
 	}
@@ -38,18 +49,33 @@ void UWxItemDefinitionThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y,
 		return;
 	}
 
-	UTexture2D* IconTexture = ItemDefinition->Icon.LoadSynchronous();
-	if (IconTexture == nullptr || IconTexture->GetResource() == nullptr)
+	UObject* IconAsset = ItemDefinition->Icon.LoadSynchronous();
+
+	if (const UTexture2D* IconTexture = Cast<UTexture2D>(IconAsset))
 	{
+		if (IconTexture->GetResource() == nullptr)
+		{
+			return;
+		}
+
+		// 아이콘은 알파 채널을 가질 수 있으므로 Translucent 블렌드로 그린다.
+		FCanvasTileItem TileItem(
+			FVector2D(X, Y),
+			IconTexture->GetResource(),
+			FVector2D(Width, Height),
+			FLinearColor::White);
+		TileItem.BlendMode = SE_BLEND_Translucent;
+		Canvas->DrawItem(TileItem);
 		return;
 	}
 
-	// 아이콘은 알파 채널을 가질 수 있으므로 Translucent 블렌드로 그린다.
-	FCanvasTileItem TileItem(
-		FVector2D(X, Y),
-		IconTexture->GetResource(),
-		FVector2D(Width, Height),
-		FLinearColor::White);
-	TileItem.BlendMode = SE_BLEND_Translucent;
-	Canvas->DrawItem(TileItem);
+	// 머터리얼 아이콘은 렌더 프록시로 그린다(블렌드 모드는 머터리얼 자신이 정한다).
+	if (const UMaterialInterface* IconMaterial = Cast<UMaterialInterface>(IconAsset))
+	{
+		FCanvasTileItem TileItem(
+			FVector2D(X, Y),
+			IconMaterial->GetRenderProxy(),
+			FVector2D(Width, Height));
+		Canvas->DrawItem(TileItem);
+	}
 }

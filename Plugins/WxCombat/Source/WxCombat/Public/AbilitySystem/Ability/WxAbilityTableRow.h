@@ -40,7 +40,7 @@ struct WXCOMBAT_API FWxAbilityTableRow : public FTableRowBase
 
 	// ── Display ────────────────────────────────────────────────────────────
 
-	/** UI 표시 아이콘. 비동기 로드 권장 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Display")
-	TSoftObjectPtr<UTexture2D> Icon;
+	/** UI 표시 아이콘. 텍스처 또는 머터리얼을 지정할 수 있다. 비동기 로드 권장 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Display", meta = (AllowedClasses = "/Script/Engine.Texture2D,/Script/Engine.MaterialInterface"))
+	TSoftObjectPtr<UObject> Icon;
 };

@@ -77,8 +77,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxAbilityTableRow"))
 	FDataTableRowHandle AbilityDataRow;
 
-	/** UI 표시 아이콘의 소프트 참조. AbilityDataRow에서 읽으며 로드하지 않는다(소비자가 비동기 로드). 행/아이콘 미설정 시 null 소프트. */
-	TSoftObjectPtr<UTexture2D> GetIcon() const;
+	/** UI 표시 아이콘(텍스처 또는 머터리얼)의 소프트 참조. AbilityDataRow에서 읽으며 로드하지 않는다(소비자가 비동기 로드). 행/아이콘 미설정 시 null 소프트. */
+	TSoftObjectPtr<UObject> GetIcon() const;
 
 	/**
 	 * 현재 아바타의 ASPD가 반영된 몽타주 재생 속도. ASC/AttributeSet 미가용 시 1.0

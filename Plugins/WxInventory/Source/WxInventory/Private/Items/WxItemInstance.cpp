@@ -49,7 +49,7 @@ int32 UWxItemInstance::GetMaxCharges() const
 	return Charges ? Charges->MaxCharges : 0;
 }
 
-TSoftObjectPtr<UTexture2D> UWxItemInstance::GetDisplayIcon() const
+TSoftObjectPtr<UObject> UWxItemInstance::GetDisplayIcon() const
 {
 	if (!ItemDef)
 	{

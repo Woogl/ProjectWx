@@ -29,7 +29,7 @@ class UMVVMView;
  *
  * UMG 는 TotalCount/CurrentCharges/MaxCharges/Icon/DisplayName/Grade/GradeColor 에 직접 바인딩을 건다.
  * 정적 표시 데이터(DisplayName/Grade/GradeColor/MaxCharges)는 Initialize 시점 1회 세팅되며 이후 변하지 않는다.
- * Icon 은 Soft 참조 그대로 전달되므로, View 측은 UCommonLazyImage 의 SetBrushFromLazyDisplayAsset 으로 비동기 로드한다.
+ * Icon 은 ItemDef 의 Soft 참조를 베이스가 비동기 로드한 결과이므로, View 측은 일반 Image 의 SetBrushResourceObject 에 바인딩한다.
  * CurrentCharges 는 충전형(Charges Fragment) 아이템 전용으로, OnInventoryChargeChanged 구독으로 갱신된다(비충전형은 0 고정).
  * 충전형의 Icon 은 충전량 변경 시 ChargeIcons[CurrentCharges] 로 함께 갱신된다.
  *
@@ -83,11 +83,11 @@ public:
 	int32 AcquiredCount = 0;
 
 	/**
-	 * 슬롯 아이콘의 Soft 참조. View 측 UCommonLazyImage 가 비동기 로드/수명 관리한다.
-	 * VM 은 Definition 의 Soft 참조를 그대로 노출만 하며, LoadSynchronous 를 호출하지 않는다.
+	 * 슬롯 아이콘.
+	 * ItemDef(충전형이면 ChargeIcons)의 Soft 참조를 베이스가 비동기 스트리밍해 세팅한다.
 	 */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
-	TSoftObjectPtr<UTexture2D> Icon;
+	TObjectPtr<UObject> Icon;
 
 	/** 슬롯 표시 이름. 로컬라이즈 대상. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
@@ -105,6 +105,10 @@ public:
 	FLinearColor GradeColor = FLinearColor::White;
 
 protected:
+	//~ Begin UWxViewModel
+	virtual void ApplyLoadedImage(FName FieldName, UObject* LoadedImage) override;
+	//~ End UWxViewModel
+
 	/** ItemDef 합계 모드 핸들러. */
 	void HandleStackChanged(const UWxItemDefinition* ItemDef, int32 NewCount, int32 Delta);
 
@@ -120,7 +124,7 @@ protected:
 	/** Icon/Name/Grade 세팅 및 초기 TotalCount 갱신 공통 루틴. */
 	void ApplyStaticDataFromDef(const UWxItemDefinition* InItemDef);
 
-	/** 추적 인스턴스(슬롯 모드는 바인딩 인스턴스, Def 모드는 첫 인스턴스)의 현재 충전수 기준 표시 아이콘으로 Icon 을 갱신한다. */
+	/** 추적 인스턴스(슬롯 모드는 바인딩 인스턴스, Def 모드는 첫 인스턴스)의 현재 충전수 기준 표시 아이콘을 요청한다. */
 	void RefreshChargeIcon();
 
 	TWeakObjectPtr<UWxInventoryManagerComponent> CachedInventory;

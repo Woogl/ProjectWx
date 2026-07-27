@@ -114,11 +114,11 @@ public:
 	int32 MaxCharges = 3;
 
 	/**
-	 * 남은 충전수별 표시 아이콘. 인덱스 = 남은 충전 횟수(0=빈 상태, MaxCharges=가득)이므로 MaxCharges+1 개를 채운다.
+	 * 남은 충전수별 표시 아이콘(텍스처 또는 머터리얼). 인덱스 = 남은 충전 횟수(0=빈 상태, MaxCharges=가득)이므로 MaxCharges+1 개를 채운다.
 	 * 비어 있거나 현재 충전수에 해당하는 항목이 비어 있으면 UWxItemDefinition 의 기본 Icon 으로 폴백한다.
 	 */
-	UPROPERTY(EditDefaultsOnly, Category = "Charges")
-	TArray<TSoftObjectPtr<UTexture2D>> ChargeIcons;
+	UPROPERTY(EditDefaultsOnly, Category = "Charges", meta = (AllowedClasses = "/Script/Engine.Texture2D,/Script/Engine.MaterialInterface"))
+	TArray<TSoftObjectPtr<UObject>> ChargeIcons;
 
 	//~ Begin UWxItemFragment interface
 	virtual void OnInstanceCreated(UWxItemInstance* Instance) const override;

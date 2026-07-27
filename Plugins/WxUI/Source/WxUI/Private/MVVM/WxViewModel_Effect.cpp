@@ -4,8 +4,6 @@
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
 #include "Component/WxEffectComponent_UIData.h"
-#include "Engine/AssetManager.h"
-#include "Engine/StreamableManager.h"
 #include "Engine/Texture2D.h"
 
 void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const UWxEffectComponent_UIData* InUIData)
@@ -27,24 +25,8 @@ void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGame
 
 	SetEffectName(InUIData->DisplayName);
 
-	// 아이콘은 비동기 스트리밍한다(전투 중 동기 로드 히치 회피). 로드 완료 시 HandleIconLoaded 가 Icon 을 세팅한다.
-	const TSoftObjectPtr<UTexture2D>& IconSoft = InUIData->Icon;
-	if (IconSoft.IsNull())
-	{
-		SetIcon(nullptr);
-	}
-	else if (UTexture2D* Loaded = IconSoft.Get())
-	{
-		// 이미 로드돼 있으면 스트리밍 없이 즉시 반영한다.
-		SetIcon(Loaded);
-	}
-	else
-	{
-		PendingIcon = IconSoft;
-		IconStreamHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-			IconSoft.ToSoftObjectPath(),
-			FStreamableDelegate::CreateUObject(this, &UWxViewModel_Effect::HandleIconLoaded));
-	}
+	// 아이콘은 비동기 스트리밍한다(전투 중 동기 로드 히치 회피). 로드 완료 시 베이스가 ApplyLoadedImage 로 Icon 을 세팅한다.
+	RequestImageAsync(TEXT("Icon"), InUIData->Icon);
 
 	SetStackCount(ActiveEffect->Spec.GetStackCount());
 	
@@ -86,12 +68,6 @@ void UWxViewModel_Effect::Deinitialize()
 	{
 		FTSTicker::GetCoreTicker().RemoveTicker(TickerHandle);
 		TickerHandle.Reset();
-	}
-
-	if (IconStreamHandle.IsValid())
-	{
-		IconStreamHandle->CancelHandle();
-		IconStreamHandle.Reset();
 	}
 
 	CachedASC.Reset();
@@ -166,12 +142,12 @@ void UWxViewModel_Effect::SetIsStackCountAboveOne(bool bNewValue)
 	UE_MVVM_SET_PROPERTY_VALUE(IsStackCountAboveOne, bNewValue);
 }
 
-UTexture2D* UWxViewModel_Effect::GetIcon() const
+UObject* UWxViewModel_Effect::GetIcon() const
 {
 	return Icon;
 }
 
-void UWxViewModel_Effect::SetIcon(UTexture2D* NewValue)
+void UWxViewModel_Effect::SetIcon(UObject* NewValue)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(Icon, NewValue);
 }
@@ -212,8 +188,7 @@ bool UWxViewModel_Effect::UpdateEffectState(float DeltaTime)
 	return true;
 }
 
-void UWxViewModel_Effect::HandleIconLoaded()
+void UWxViewModel_Effect::ApplyLoadedImage(FName FieldName, UObject* LoadedImage)
 {
-	SetIcon(PendingIcon.Get());
-	IconStreamHandle.Reset();
+	SetIcon(LoadedImage);
 }

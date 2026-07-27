@@ -37,7 +37,12 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Character")
 	FText CharacterName;
 
-	/** 캐릭터 초상화. View 측 UCommonLazyImage 등이 Soft 참조를 비동기 로드한다. */
+	/** 캐릭터 초상화. UIData 의 Soft 참조를 베이스가 비동기 로드해 세팅한다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Character")
-	TSoftObjectPtr<UTexture2D> Portrait;
+	TObjectPtr<UObject> Portrait;
+
+protected:
+	//~ Begin UWxViewModel
+	virtual void ApplyLoadedImage(FName FieldName, UObject* LoadedImage) override;
+	//~ End UWxViewModel
 };

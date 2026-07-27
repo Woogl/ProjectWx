@@ -51,9 +51,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Display", meta = (MultiLine = true))
 	FText Description;
 
-	/** UI 표시용 아이콘. 비동기 로드 권장. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Display")
-	TSoftObjectPtr<UTexture2D> Icon;
+	/** UI 표시용 아이콘. 텍스처 또는 머터리얼을 지정할 수 있다. 비동기 로드 권장. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Display", meta = (AllowedClasses = "/Script/Engine.Texture2D,/Script/Engine.MaterialInterface"))
+	TSoftObjectPtr<UObject> Icon;
 
 	/** 아이템 카테고리. UI 분류와 기능 분기의 1차 축. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")

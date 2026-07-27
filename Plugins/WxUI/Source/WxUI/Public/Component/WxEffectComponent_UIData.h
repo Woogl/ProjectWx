@@ -18,8 +18,9 @@ class WXUI_API UWxEffectComponent_UIData : public UGameplayEffectUIData
 public:
 	UWxEffectComponent_UIData();
 
-	UPROPERTY(EditDefaultsOnly)
-	TSoftObjectPtr<UTexture2D> Icon;
+	/** UI 표시 아이콘. 텍스처 또는 머터리얼을 지정할 수 있다. */
+	UPROPERTY(EditDefaultsOnly, meta = (AllowedClasses = "/Script/Engine.Texture2D,/Script/Engine.MaterialInterface"))
+	TSoftObjectPtr<UObject> Icon;
 
 	UPROPERTY(EditDefaultsOnly)
 	FText DisplayName;
