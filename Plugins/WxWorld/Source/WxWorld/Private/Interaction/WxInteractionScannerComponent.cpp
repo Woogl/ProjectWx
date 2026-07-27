@@ -24,9 +24,14 @@ UWxInteractionScannerComponent::UWxInteractionScannerComponent(const FObjectInit
 	SetIsReplicatedByDefault(true);
 }
 
+FWxOnScannerReady UWxInteractionScannerComponent::OnAnyScannerReady;
+
 void UWxInteractionScannerComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// 주입으로 붙든 복제로 도착하든 등록이 끝나면 여기로 온다. 기다리던 관찰자에게 이제 쓸 수 있음을 알린다.
+	OnAnyScannerReady.Broadcast(this);
 
 	// 감지는 로컬 어포던스. 소유 클라(리슨호스트 포함)에서만 주기 스캔한다. 데디 서버 PC 는 스캔하지 않는다.
 	if (!IsLocalController())

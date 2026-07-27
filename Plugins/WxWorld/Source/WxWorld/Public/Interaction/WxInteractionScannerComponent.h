@@ -13,6 +13,9 @@ class UAbilitySystemComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionListChanged, const TArray<FText>&, Prompts);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionSelectionChanged, int32, SelectedIndex);
 
+/** 스캐너가 쓸 수 있게 됐다는 브로드캐스트. 소유 액터는 인자로 준 컴포넌트에서 얻는다. */
+DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnScannerReady, UWxInteractionScannerComponent* /*Scanner*/);
+
 /**
  * 상호작용 스캐너 컴포넌트.
  * AWxPlayerController 에 붙어, 소유 클라(리슨호스트 포함)에서 주변 상호작용 메시를 주기 스캔해 in-range 집합을 모은다.
@@ -66,6 +69,12 @@ public:
 	/** 선택 인덱스 변경 시 발사. */
 	UPROPERTY(BlueprintAssignable, Category = "Wx")
 	FWxOnInteractionSelectionChanged OnSelectionChanged;
+
+	/**
+	 * 스캐너가 쓸 수 있게 될 때마다 발행된다. 주입(서버)·복제 도착(클라) 어느 경로든 BeginPlay 로 수렴한다.
+	 * 관찰자가 스캐너보다 먼저 존재할 수 있어(HUD 뷰모델) 인스턴스가 아니라 클래스 차원에 둔다 — 구독자는 소유 액터로 자기 것인지 가린다.
+	 */
+	static FWxOnScannerReady OnAnyScannerReady;
 
 protected:
 	/** 주변 상호작용 메시를 수집할 반경(cm). 이 반경의 구를 오버랩해 후보를 모으므로, 서버 사거리 검증(WxAbility_Interact)의 반경과 일치시킨다. */

@@ -6,12 +6,33 @@
 #include "Interaction/WxInteractionScannerComponent.h"
 #include "MVVM/WxViewModel_Interaction.h"
 
+void UWxViewModel_InteractionList::StartObserving(APlayerController* PC)
+{
+	if (!PC)
+	{
+		return;
+	}
+
+	ObservedController = PC;
+
+	// 이미 붙어 있으면(호스트에선 위젯보다 항상 먼저다) 기다릴 것 없이 바로 연결한다.
+	if (UWxInteractionScannerComponent* Scanner = PC->FindComponentByClass<UWxInteractionScannerComponent>())
+	{
+		Initialize(Scanner);
+		return;
+	}
+
+	ScannerReadyHandle = UWxInteractionScannerComponent::OnAnyScannerReady.AddUObject(this, &UWxViewModel_InteractionList::HandleScannerReady);
+}
+
 void UWxViewModel_InteractionList::Initialize(UWxInteractionScannerComponent* InScanner)
 {
 	if (!InScanner)
 	{
 		return;
 	}
+
+	Deinitialize();
 
 	CachedScanner = InScanner;
 
@@ -41,6 +62,13 @@ void UWxViewModel_InteractionList::Deinitialize()
 	Super::Deinitialize();
 }
 
+void UWxViewModel_InteractionList::BeginDestroy()
+{
+	StopObserving();
+
+	Super::BeginDestroy();
+}
+
 void UWxViewModel_InteractionList::HandleListChanged(const TArray<FText>& InPrompts)
 {
 	RebuildEntries(InPrompts);
@@ -67,6 +95,27 @@ void UWxViewModel_InteractionList::RequestCycle(int32 Delta)
 	if (UWxInteractionScannerComponent* Scanner = CachedScanner.Get())
 	{
 		Scanner->CycleSelection(Delta);
+	}
+}
+
+void UWxViewModel_InteractionList::HandleScannerReady(UWxInteractionScannerComponent* Scanner)
+{
+	// 신호는 클래스 차원이라 남의 스캐너도 온다(PIE 다중 인스턴스 포함). 관찰 중인 컨트롤러의 것만 받는다.
+	if (!Scanner || Scanner->GetOwner() != ObservedController.Get())
+	{
+		return;
+	}
+
+	StopObserving();
+	Initialize(Scanner);
+}
+
+void UWxViewModel_InteractionList::StopObserving()
+{
+	if (ScannerReadyHandle.IsValid())
+	{
+		UWxInteractionScannerComponent::OnAnyScannerReady.Remove(ScannerReadyHandle);
+		ScannerReadyHandle.Reset();
 	}
 }
 
@@ -104,16 +153,14 @@ void UWxViewModel_InteractionList::ApplySelection(int32 InSelectedIndex)
 
 UObject* UWxViewModelResolver_InteractionList::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
 {
-	const APlayerController* PC = UserWidget ? UserWidget->GetOwningPlayer() : nullptr;
-	UWxInteractionScannerComponent* Scanner = PC ? PC->FindComponentByClass<UWxInteractionScannerComponent>() : nullptr;
-	if (!Scanner)
+	APlayerController* PC = UserWidget ? UserWidget->GetOwningPlayer() : nullptr;
+	if (!PC)
 	{
 		return nullptr;
 	}
 
-	// 위젯이 아닌 데이터 소스(스캐너 컴포넌트)를 Outer 로 생성한다.
-	// 스캐너는 PC 소유라 폰 리스폰에도 생존하며, 수명은 뷰의 강참조와 BeginDestroy 의 Deinitialize 가 관리한다.
-	UWxViewModel_InteractionList* ViewModel = NewObject<UWxViewModel_InteractionList>(Scanner);
-	ViewModel->Initialize(Scanner);
+	// 스캐너가 아직 없을 수 있으므로 Outer 는 PC 로 잡는다. 연결은 VM 이 관찰로 스스로 처리한다.
+	UWxViewModel_InteractionList* ViewModel = NewObject<UWxViewModel_InteractionList>(PC);
+	ViewModel->StartObserving(PC);
 	return ViewModel;
 }
