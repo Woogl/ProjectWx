@@ -18,7 +18,7 @@
 
 3. **구현**: 코드를 작성·수정한다.
 
-4. **검증**: WxEditor(Development) 타겟을 빌드해 컴파일을 확인한다. 엔진 경로는 `Wx.uproject`의 `EngineAssociation`에서 해석하며, 설치 폴더 존재 여부로 짐작하지 않는다(`build-doctor` 스킬의 「Build command」가 이 해석을 포함한 표준 명령이다). 에디터 재실행은 불필요, 실패 시 `build-doctor`.
+4. **검증**: WxEditor(Development) 타겟을 빌드해 컴파일을 확인한다. 엔진 경로는 `Wx.uproject`의 `EngineAssociation`에서 해석한다. 에디터 재실행은 불필요, 실패 시 `build-doctor`.
 
 5. **완료 기록**: 검증 후, 같은 파일의 「완료」를 채운다.
 
