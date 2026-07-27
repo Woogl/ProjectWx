@@ -116,6 +116,27 @@ EStateTreeRunStatus FWxStateTreeTask_TriggerSpawnersByLocator::EnterState(FState
 }
 
 #if WITH_EDITOR
+EDataValidationResult FWxStateTreeTask_TriggerSpawnersByLocator::Compile(UE::StateTree::ICompileNodeContext& CompileContext)
+{
+	const FInstanceDataType* InstanceData = CompileContext.GetInstanceDataView().GetPtr<FInstanceDataType>();
+	check(InstanceData);
+
+	EDataValidationResult Result = EDataValidationResult::Valid;
+
+	// 해석되는데 스포너가 아닌 지정만 잡는다. 미해석(빈 로케이터·WP 언로드)은 타입을 알 수 없으므로 통과시킨다 — 에디터의 로드 상태에 따라 컴파일 결과가 갈리면 안 된다.
+	for (const FUniversalObjectLocator& Locator : InstanceData->Spawners)
+	{
+		const UObject* Object = Locator.SyncFind();
+		if (Object && !Object->IsA<AWxSpawner>())
+		{
+			CompileContext.AddValidationError(FText::Format(INVTEXT("Spawners: '{0}' 은(는) WxSpawner 가 아니다."), FText::FromString(GetSpawnerDisplayName(Locator))));
+			Result = EDataValidationResult::Invalid;
+		}
+	}
+
+	return Result;
+}
+
 FText FWxStateTreeTask_TriggerSpawnersByLocator::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
 {
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
@@ -184,6 +205,27 @@ EStateTreeRunStatus FWxStateTreeTask_WaitSpawnersKilled::Tick(FStateTreeExecutio
 }
 
 #if WITH_EDITOR
+EDataValidationResult FWxStateTreeTask_WaitSpawnersKilled::Compile(UE::StateTree::ICompileNodeContext& CompileContext)
+{
+	const FInstanceDataType* InstanceData = CompileContext.GetInstanceDataView().GetPtr<FInstanceDataType>();
+	check(InstanceData);
+
+	EDataValidationResult Result = EDataValidationResult::Valid;
+
+	// 해석되는데 스포너가 아닌 지정만 잡는다. 미해석(빈 로케이터·WP 언로드)은 타입을 알 수 없으므로 통과시킨다 — 에디터의 로드 상태에 따라 컴파일 결과가 갈리면 안 된다.
+	for (const FUniversalObjectLocator& Locator : InstanceData->Spawners)
+	{
+		const UObject* Object = Locator.SyncFind();
+		if (Object && !Object->IsA<AWxSpawner>())
+		{
+			CompileContext.AddValidationError(FText::Format(INVTEXT("Spawners: '{0}' 은(는) WxSpawner 가 아니다."), FText::FromString(GetSpawnerDisplayName(Locator))));
+			Result = EDataValidationResult::Invalid;
+		}
+	}
+
+	return Result;
+}
+
 FText FWxStateTreeTask_WaitSpawnersKilled::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
 {
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();

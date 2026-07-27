@@ -24,6 +24,9 @@ class AWxSpawner;
  *    처치 상태(bIsKilled)는 복제되지 않으므로 권위에서 구동되는 ST 전용이다.
  *
  * 해석은 SyncFind(강제 로드 없음)라 스트리밍 아웃된 스포너는 미해석으로 남는다 — Trigger 는 스킵, Wait 는 대기한다.
+ *
+ * UOL 픽커에는 액터 클래스를 좁히는 엔진 확장점이 없으므로(필터를 걸 수 있는 자리가 엔진 Private 인 스톡 로케이터 에디터 안뿐이다),
+ * 두 태스크 모두 Compile 에서 지정값을 검사해 스포너가 아닌 액터가 물리면 ST 컴파일을 실패시킨다 — 드래그드롭으로 넣은 값도 같이 걸린다.
  */
 
 // ── TriggerSpawnersByLocator: 라이브 진입 시 권위 측에서 지정 스포너 트리거 ───
@@ -33,8 +36,8 @@ struct FWxStateTreeTask_TriggerSpawnersByLocatorInstanceData
 {
 	GENERATED_BODY()
 
-	/** 라이브 진입 시 Respawn() 을 호출할 배치 스포너 지정. 픽커는 WxSpawner 만 나열한다(AllowedClasses — WxActorLocatorEditor 가 해석). */
-	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedLocators = "Actor", AllowedClasses = "/Script/WxWorld.WxSpawner"))
+	/** 라이브 진입 시 Respawn() 을 호출할 배치 스포너 지정. 픽커는 모든 액터를 나열하고, 스포너가 아닌 액터를 고르면 ST 컴파일에서 에러가 난다(Compile 참조). */
+	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedLocators = "Actor"))
 	TArray<FUniversalObjectLocator> Spawners;
 };
 
@@ -58,6 +61,7 @@ struct FWxStateTreeTask_TriggerSpawnersByLocator : public FStateTreeTaskCommonBa
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 
 #if WITH_EDITOR
+	virtual EDataValidationResult Compile(UE::StateTree::ICompileNodeContext& CompileContext) override;
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
 #endif
 };
@@ -69,8 +73,8 @@ struct FWxStateTreeTask_WaitSpawnersKilledInstanceData
 {
 	GENERATED_BODY()
 
-	/** 처치를 판정할 배치 스포너 지정. 전원이 로드되고 처치여야 완료된다. 픽커는 WxSpawner 만 나열한다(AllowedClasses — WxActorLocatorEditor 가 해석). */
-	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedLocators = "Actor", AllowedClasses = "/Script/WxWorld.WxSpawner"))
+	/** 처치를 판정할 배치 스포너 지정. 전원이 로드되고 처치여야 완료된다. 픽커는 모든 액터를 나열하고, 스포너가 아닌 액터를 고르면 ST 컴파일에서 에러가 난다(Compile 참조). */
+	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedLocators = "Actor"))
 	TArray<FUniversalObjectLocator> Spawners;
 };
 
@@ -95,6 +99,7 @@ struct FWxStateTreeTask_WaitSpawnersKilled : public FStateTreeTaskCommonBase
 	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
 
 #if WITH_EDITOR
+	virtual EDataValidationResult Compile(UE::StateTree::ICompileNodeContext& CompileContext) override;
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
 #endif
 };
