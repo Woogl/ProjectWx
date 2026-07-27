@@ -225,17 +225,6 @@ UWxInventoryManagerComponent::UWxInventoryManagerComponent(const FObjectInitiali
 	bReplicateUsingRegisteredSubObjectList = true;
 }
 
-void UWxInventoryManagerComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// 기본 지급은 권한(서버)에서만 수행하고, 추가 결과는 FastArray 로 소유 클라이언트에 복제된다.
-	if (GetOwner() && GetOwner()->HasAuthority())
-	{
-		GrantDefaultItems();
-	}
-}
-
 void UWxInventoryManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -342,6 +331,23 @@ UWxItemInstance* UWxInventoryManagerComponent::AddItemDefinition(const UWxItemDe
 	}
 
 	return FirstAffected;
+}
+
+void UWxInventoryManagerComponent::GrantItems(const TArray<FWxItemRewardEntry>& Items)
+{
+	for (const FWxItemRewardEntry& Entry : Items)
+	{
+		if (!Entry.IsValid())
+		{
+			continue;
+		}
+
+		// 지급은 시작 시 1회 같은 산발적 호출이라 동기 로드해도 무방하다(픽업 비주얼 로드와 동일한 정책).
+		if (const UWxItemDefinition* ItemDef = Entry.Item.LoadSynchronous())
+		{
+			AddItemDefinition(ItemDef, Entry.Quantity);
+		}
+	}
 }
 
 void UWxInventoryManagerComponent::RemoveItemInstance(UWxItemInstance* ItemInstance)
@@ -664,23 +670,6 @@ UWxItemInstance* UWxInventoryManagerComponent::FindUsableInstance(const UWxItemD
 	}
 
 	return nullptr;
-}
-
-void UWxInventoryManagerComponent::GrantDefaultItems()
-{
-	for (const FWxItemRewardEntry& Entry : DefaultItems)
-	{
-		if (!Entry.IsValid())
-		{
-			continue;
-		}
-
-		// 기본 지급은 시작 시 1회뿐이라 동기 로드해도 무방하다(픽업 비주얼 로드와 동일한 정책).
-		if (const UWxItemDefinition* ItemDef = Entry.Item.LoadSynchronous())
-		{
-			AddItemDefinition(ItemDef, Entry.Quantity);
-		}
-	}
 }
 
 void UWxInventoryManagerComponent::RegisterReplicatedInstance(UWxItemInstance* Instance)

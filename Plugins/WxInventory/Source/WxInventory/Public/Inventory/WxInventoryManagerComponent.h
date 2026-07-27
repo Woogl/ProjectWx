@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "Components/ControllerComponent.h"
 #include "Items/WxRewardTableRow.h"
 #include "Net/Serialization/FastArraySerializer.h"
 
@@ -132,16 +132,19 @@ DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventorySlotChanged, UWxItemInstanc
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventoryChargeChanged, UWxItemInstance* /*Instance*/, int32 /*NewCharges*/, int32 /*Delta*/);
 
 /**
- * 액터에 부착되어 아이템 인스턴스의 생성·소멸·레플리케이션을 관장하는 컴포넌트.
+ * PlayerController 에 부착되어 아이템 인스턴스의 생성·소멸·레플리케이션을 관장하는 컴포넌트.
  *
  * AddItemDefinition 은 ItemDef 의 Stackable Fragment 한도(MaxStack) 까지 기존 엔트리에 머지하고, 초과분은 새 엔트리들로 분할한다.
  * Stackable Fragment 가 없는 ItemDef 는 항상 1슬롯 = 1개로 추가된다.
  * 정의 합계는 GetTotalItemCountByDefinition 로 조회하고, 차감은 ConsumeItemsByDefinition 로 수행한다.
  *
  * 권한(서버)에서만 Add/Consume 이 호출되어야 하며, FastArray 로 클라이언트에 동기화된다.
+ *
+ * 부착은 코드가 아니라 GameMode 에셋의 FrameworkComponents 주입 설정으로 한다(PlayerController 는 본 클래스를 모른다).
+ * 등록하지 않으면 인벤토리가 조용히 없는 상태가 된다.
  */
-UCLASS(meta = (BlueprintSpawnableComponent))
-class WXINVENTORY_API UWxInventoryManagerComponent : public UActorComponent
+UCLASS()
+class WXINVENTORY_API UWxInventoryManagerComponent : public UControllerComponent
 {
 	GENERATED_BODY()
 
@@ -149,7 +152,6 @@ public:
 	UWxInventoryManagerComponent(const FObjectInitializer& ObjectInitializer);
 
 	//~ Begin UActorComponent interface
-	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void ReadyForReplication() override;
 	//~ End UActorComponent interface
@@ -169,6 +171,13 @@ public:
 	 * 실패 시 nullptr.
 	 */
 	UWxItemInstance* AddItemDefinition(const UWxItemDefinition* ItemDef, int32 StackCount = 1);
+
+	/**
+	 * 권한: 보상 항목 목록을 순서대로 지급한다(기본 지급 아이템 등).
+	 * 빈(아이템 미지정) 항목은 무시되며, Item 은 지급 시점에 동기 로드된다.
+	 * 무엇을 지급할지는 호출자가 정한다 — 본 컴포넌트는 목록을 소유하지 않는다.
+	 */
+	void GrantItems(const TArray<FWxItemRewardEntry>& Items);
 
 	/** 권한: 특정 인스턴스 슬롯을 통째로 제거한다. */
 	void RemoveItemInstance(UWxItemInstance* ItemInstance);
@@ -252,21 +261,11 @@ private:
 	 */
 	UWxItemInstance* FindUsableInstance(const UWxItemDefinition* ItemDef) const;
 
-	/** 권한: DefaultItems 를 순서대로 인벤토리에 지급한다. BeginPlay 에서 1회 호출된다. */
-	void GrantDefaultItems();
-
 	/** 신규 인스턴스를 SubObject 시스템에 등록한다. */
 	void RegisterReplicatedInstance(UWxItemInstance* Instance);
 
 	/** 인스턴스를 SubObject 시스템에서 해제한다. */
 	void UnregisterReplicatedInstance(UWxItemInstance* Instance);
-
-	/**
-	 * 권한(서버) BeginPlay 시 소유자에게 1회 자동 지급할 기본 아이템 목록.
-	 * 빈(아이템 미지정) 항목은 무시되며, Item 은 지급 시점에 동기 로드된다.
-	 */
-	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
-	TArray<FWxItemRewardEntry> DefaultItems;
 
 	UPROPERTY(Replicated)
 	FWxInventoryList InventoryList;

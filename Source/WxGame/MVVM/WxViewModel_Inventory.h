@@ -109,8 +109,9 @@ protected:
 /**
  * VM_Inventory 용 View Bindings Resolver.
  *
- * 위젯을 소유한 AWxPlayerController 의 InventoryManager 를 끌어와 위젯별 UWxViewModel_Inventory 를 생성/초기화한다.
- * InventoryManager 는 PC 의 생성자 서브오브젝트라 위젯이 존재하는 시점엔 항상 사용 가능하다.
+ * 위젯을 소유한 AWxPlayerController 의 인벤토리를 끌어와 위젯별 UWxViewModel_Inventory 를 생성/초기화한다.
+ * 인벤토리는 서버에서 주입되고 클라에는 복제로 도착하므로 위젯 생성 시점에 없을 수 있고, 그때는 nullptr 을 반환해 VM 이 만들어지지 않는다.
+ * 그래서 HUD 푸시(AWxPlayerController::PushGameHUD)가 인벤토리 도착을 게이트로 잡아 이 리졸버가 항상 확보된 상태에서 돌게 한다.
  * WBP 의 View Bindings 에서 Creation Type = Resolver 로 본 클래스를 선택한다.
  */
 UCLASS(EditInlineNew, CollapseCategories)
