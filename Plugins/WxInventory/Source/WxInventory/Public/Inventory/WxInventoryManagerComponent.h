@@ -143,7 +143,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnInventoryReady, UWxInventoryManagerComp
  *
  * 권한(서버)에서만 Add/Consume 이 호출되어야 하며, FastArray 로 클라이언트에 동기화된다.
  *
- * 부착은 코드가 아니라 GameMode 에셋의 FrameworkComponents 주입 설정으로 한다(PlayerController 는 본 클래스를 모른다).
+ * 부착은 코드가 아니라 GameMode 가 고른 Experience 에셋의 주입 설정으로 한다(PlayerController 는 본 클래스를 모른다).
  * 등록하지 않으면 인벤토리가 조용히 없는 상태가 된다.
  */
 UCLASS()

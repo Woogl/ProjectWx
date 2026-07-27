@@ -14,7 +14,7 @@
  * 모든 머신이 동일한 값을 가지지 않으면 CharacterMovementComponent의
  * 서버/클라 시뮬레이션이 어긋난다.
  *
- * Lyra 패턴에 맞춰 ModularGameplay의 UGameStateComponent를 상속한다. AWxGameState 생성자에서 CreateDefaultSubobject로 부착된다.
+ * Lyra 패턴에 맞춰 ModularGameplay의 UGameStateComponent를 상속한다. 부착은 GameMode 가 고른 Experience 에셋의 주입 설정으로 한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxTimeDilationComponent : public UGameStateComponent

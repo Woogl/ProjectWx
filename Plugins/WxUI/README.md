@@ -37,7 +37,7 @@
 - **새 화면 위젯**: `UWxActivatableWidget`(Abstract) 상속 → WBP로 저작. HUD는 `UWxHUDLayout`, 팝업은 `UWxGamePopup` 파생. 게임 정지가 필요하면 `bPauseGame`을 켜면 서브시스템이 전 레이어를 재평가해 적용한다(위젯은 서브시스템을 모른다).
 - **새 뷰모델**: `UWxViewModel`(Abstract, `UMVVMViewModelBase` 파생) 상속. 값은 외부 소스가 push하고 VM은 도메인 타입을 참조하지 않는 평면 표시 필드만 노출(`UWxViewModel_Selection` 참조). `FieldNotify` UPROPERTY로 바인딩을 통지한다. 공유 글로벌 VM은 매니저가 `UMVVMGameSubsystem` 컬렉션에 등록(`VM_Selection`).
 - **레이어 추가**: `UWxPrimaryGameLayout::LayerTags`(BP 디폴트, `UI.Layer.*` 태그)에 추가. 레이어/액션 태그는 이 모듈이 C++로 선언하지 않고 프로젝트 태그 소스에서 온다. BP 비동기 push는 `UWxAsyncAction_PushWidgetToLayer`(소프트 클래스 로드).
-- **새 인디케이터**: WBP는 `UWxIndicatorWidget`(Abstract)을 상속해 `OnIndicatorRefreshed`로 외형 저작(위치는 캔버스가 정하므로 위젯은 모른다). 매니저 부착은 GameMode의 `FrameworkComponents` 주입으로, StateTree에서는 `FWxStateTreeTask_MarkIndicator` 노드로 대상 위에 표시.
+- **새 인디케이터**: WBP는 `UWxIndicatorWidget`(Abstract)을 상속해 `OnIndicatorRefreshed`로 외형 저작(위치는 캔버스가 정하므로 위젯은 모른다). 매니저 부착은 GameMode가 고른 `Experience` 에셋 주입(클라 사이드)으로, StateTree에서는 `FWxStateTreeTask_MarkIndicator` 노드로 대상 위에 표시.
 - **레이아웃/팝업 클래스 지정**: `UWxUIDeveloperSettings`(Project Settings)에서 `LayoutClass`·`ConfirmationPopupClass`·`ErrorPopupClass`를 소프트 클래스로 설정.
 - **네임플레이트**: 오너 액터 생성자에서 `UWxNameplateComponent` 서브오브젝트 생성 → BeginPlay 이후 `InitializeViewModels(ASC, UIData)`.
 

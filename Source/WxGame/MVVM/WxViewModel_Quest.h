@@ -58,7 +58,7 @@ private:
  * VM_Quest 용 View Bindings Resolver.
  *
  * 위젯이 속한 월드의 GameState 에서 퀘스트 컴포넌트를 끌어와 위젯별 UWxViewModel_Quest 를 생성/초기화한다.
- * 퀘스트 컴포넌트는 GameMode 에셋의 FrameworkComponents 주입으로 부착되므로, 미부착 게임모드에선 null 을 반환한다(WBP 에서 뷰모델을 optional 로 둔다).
+ * 퀘스트 컴포넌트는 Experience 에셋 주입으로 부착되므로, 미등록 게임모드에선 null 을 반환한다(WBP 에서 뷰모델을 optional 로 둔다).
  * WBP 의 View Bindings 에서 Creation Type = Resolver 로 본 클래스를 선택한다.
  */
 UCLASS(EditInlineNew, CollapseCategories)

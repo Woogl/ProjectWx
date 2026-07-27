@@ -39,12 +39,12 @@
 - 새 캐릭터/적/보스는 `AWxPlayerCharacter`/`AWxEnemyCharacter`/`AWxBossCharacter`를 BP 상속 후 컴포넌트(무기 `ChildActorClass`, `BehaviorTreeAsset`, `RewardRow`, BGM 태그 등)를 디폴트에서 지정. ASC는 PlayerState가 아닌 캐릭터가 직접 소유(리스폰 시 스탯 재초기화). 보스는 `AWxBossCharacter`만 상속하면 `UWxViewModel_BossCharacter`가 스폰/EndPlay를 관찰해 체력바를 붙인다(클래스 내 UI 코드 없음).
 - 직접 바인딩 입력(이동/시선/점프/웅크리기)은 `UWxInputConfig`에 IA를 추가하고 `AWxPlayerCharacter::SetupPlayerInputComponent`에서 바인딩. 어빌리티 입력은 여기 두지 않고 AbilitySet 부여 대상 CDO에서 파생해 자동 바인딩. 상호작용은 HUD 리스트 위젯이 Enhanced Input으로 직접 받고, 메뉴/UI 입력은 CommonUI 액션([[WxUI]] `WxHUDLayout`)으로 처리.
 - 새 어빌리티는 [[WxCombat]] `UWxAbilityBase` 파생. 게임 모듈 고유 실행(상호작용/아이템 사용)은 본 모듈에, 전투 공용 로직은 WxCombat에 둔다.
-- GameMode `FrameworkComponents`(EditDefaultsOnly)에 프레임워크 컴포넌트를 추가하면 GameState/Controller 등 receiver에 자동 주입(receiver는 무엇이 붙는지 모른다). 새 프레임워크 기능은 컴포넌트로 추가.
+- 프레임워크 컴포넌트는 GameMode가 고른 `Experience` 에셋(`UWxExperienceDefinition`)에 사이드 플래그와 함께 추가하면 GameState가 참조를 복제해 서버·클라 각자 receiver(GameState/Controller 등)에 자동 주입(receiver는 무엇이 붙는지 모른다). 새 프레임워크 기능은 컴포넌트로 추가.
 - 새 월드 오브젝트/기믹은 [[WxWorld]] `AWxGimmick` 상속(예: `AWxLaserCorridor`). 권위 State만 C++가 확정·복제하고 비주얼·스폰은 GimmickStateTree가 담당하는 패턴.
 - MVVM 글루: WxUI 뷰모델이 게임 모듈을 참조할 수 없으므로, 양쪽에 의존하는 리졸버·브리지 뷰모델(`MVVM/`)이 플러그인 데이터를 위젯에 잇는다. WBP의 View Bindings에서 Creation Type=Resolver로 선택하면 유일한 주입 통로가 된다.
 
 ## 여기서부터 읽어라
-1. `Framework/WxGameMode.h` — 게임 부팅(프레임워크 컴포넌트 주입)의 조립 지점. 재개/스탯 복원 위임 경계 파악.
+1. `Framework/WxGameMode.h` — 게임 부팅(Experience 선택·시작 아이템)의 조립 지점. 재개/스탯 복원 위임 경계 파악.
 2. `Character/WxCharacterBase.h` — 캐릭터가 어떤 도메인 컴포넌트(ASC/장비/모션워핑)를 조립하는지 = 모듈 경계의 축소판.
 3. `Controller/WxPlayerController.h` — 인벤토리 소유 위치와 상호작용/대화/HUD 흐름.
 4. `WxGame.Build.cs` — 이 모듈이 조립하는 플러그인·엔진 서브시스템 전체 목록.

@@ -16,7 +16,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnIndicatorChanged, UWxIndicatorDescripto
  * 등록증을 발급·회수하고 변경을 알리기만 하며, 화면에 어떻게 그리는지는 알지 않는다(HUD 의 인디케이터 캔버스가 구독해 그린다).
  * 표시는 보는 사람마다 다른 로컬 사건이라 월드가 아니라 컨트롤러에 매달린다.
  *
- * 부착은 코드가 아니라 GameMode 에셋의 FrameworkComponents 주입 설정으로 한다(컨트롤러는 본 클래스를 모른다).
+ * 부착은 코드가 아니라 GameMode 가 고른 Experience 에셋의 주입 설정으로 한다(컨트롤러는 본 클래스를 모른다). 로컬 표시 전용이라 클라 사이드로만 등록한다.
  */
 UCLASS()
 class WXUI_API UWxIndicatorManagerComponent : public UControllerComponent

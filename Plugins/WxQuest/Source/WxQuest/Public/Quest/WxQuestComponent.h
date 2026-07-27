@@ -45,7 +45,7 @@ struct FWxQuestObjective
  *  - 체인: StartNextQuest 태스크의 NextQuest 소프트 참조
  *  - 임의 시작: UWxQuestLibrary::StartQuest (레벨 스크립트 등 외부 호출)
  *
- * 부착은 코드가 아니라 GameMode 에셋의 FrameworkComponents 주입 설정으로 한다(GameState 는 본 클래스를 모른다).
+ * 부착은 코드가 아니라 GameMode 가 고른 Experience 에셋의 주입 설정으로 한다(GameState 는 본 클래스를 모른다).
  */
 UCLASS()
 class WXQUEST_API UWxQuestComponent : public UGameStateComponent

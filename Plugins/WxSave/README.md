@@ -30,7 +30,7 @@
 
 ## 확장 포인트 / 규약
 - **저장 대상 등록**: `IWxSavable`(WxCore) 을 구현한 액터가 자동 저장/복원 대상이다. 키는 `GetSaveId()` 가 반환하는 에디터-부여 영속 GUID(쿠킹 안전, 맵 전역 유일). 액터·컴포넌트의 `UPROPERTY(SaveGame)` 만 직렬화된다.
-- **재개 지점 주입**: `UWxPlayerSpawnComponent` 는 GameMode 의 `FrameworkComponents` 에 등록해야 부착된다 — 미등록 시 재개 지점·스탯 복원이 조용히 동작하지 않는다. `PlayerTransform` 이 단일 원천이고 `Identity` 는 "미설정" sentinel(→ 엔진 `ChoosePlayerStart` 폴백).
+- **재개 지점 주입**: `UWxPlayerSpawnComponent` 는 GameMode 가 고른 `Experience` 에셋에 등록해야 부착된다 — 미등록 시 재개 지점·스탯 복원이 조용히 동작하지 않는다. `PlayerTransform` 이 단일 원천이고 `Identity` 는 "미설정" sentinel(→ 엔진 `ChoosePlayerStart` 폴백).
 - **슬롯 규약**: 슬롯 정체성(SlotName/UserIndex)은 SaveGame 이 보유한다. `SaveToFile`/`LoadFromFile` 에 빈 SlotName 은 "활성 슬롯 그대로"(체크포인트·사망 리스폰 경로), 지정 SlotName 은 활성 슬롯 재지정(명명 세이브)이다.
 - **직렬화 버전**: 레코드마다 `[FPackageFileVersion][FCustomVersionContainer]` 블롭을 저장해, 세션·빌드를 넘어 누적된 이기종 레코드를 안전하게 읽는다. 빈 배열은 구버전 레코드로 현재 빌드 버전으로 읽는다.
 - **권한 모델**: 맵 트래블(ServerTravel)·오토세이브는 authority 전제. 클라 진입은 노옵. 로드/부활은 모두 맵 리로드를 거쳐 스폰 경로를 다시 탄다.

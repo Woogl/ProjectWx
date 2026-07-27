@@ -34,7 +34,7 @@
 - **저널 표시 규약**: 제목은 퀘스트당 하나이므로 진행이 시작되는 상태에 `SetQuestTitle` 을 한 번만 둔다. 목표는 `SetQuestObjective` 가 상태에 들 때 걸고 날 때 걷어가므로 상태 수명이 곧 목표 수명이며, 부모 상태와 자식 상태에 각각 걸면 둘이 동시에 표시된다. 두 노드 모두 상태 완료 판정에서 빠져 있다 — 판정에 끼면 자식을 둔 상태를 즉시 완료시켜 퀘스트가 관통된다.
 - **레벨 액터 지정**: `FWxActorTarget`(WxCore) 로 배치 액터를 직접 지정 — 순수 구조체라 ST 컴파일러의 레벨 액터 참조 검증을 통과하고 WP/PIE 해석이 엔진 내장. 해석은 매 틱 `SyncFind`(강제 로드 없음).
 - **새 퀘스트 에셋**: 스키마 `StateTreeComponentSchema` 로 고정된 `UWxQuestStateTree` 를 WxEditor 팩토리로 생성. 자동 시작 퀘스트는 `bAutoStart` 를 켜되 프로젝트에 1개만(활성 1개 원칙), 값 변경은 에셋 재저장 후 발견 반영.
-- **부착**: 코드가 아니라 GameMode 에셋의 `FrameworkComponents` 주입 설정으로 GameState 에 부착(GameState 는 본 클래스를 모름).
+- **부착**: 코드가 아니라 GameMode 가 고른 `Experience` 에셋의 주입 설정으로 GameState 에 부착(GameState 는 본 클래스를 모름).
 - **재진입 규약**: 러너 실행 콜스택 안 시작은 `RequestStartQuest`(다음 틱 예약), 밖은 `StartQuest`(즉시 교체). 저널 정리는 노드가 아니라 러너 실행 상태 변경 통지(`HandleStateTreeRunStatusChanged`)로 수렴.
 
 ## 여기서부터 읽어라

@@ -18,7 +18,7 @@ class APlayerController;
  * 로드도 사망 부활도 맵 리로드를 거쳐 이 경로를 다시 타므로 재개 지점 하나로 둘 다 처리된다 — 세이브가 단일 원천이고 마커는 월드 수명의 파생물이다.
  * 월드파티션에서는 UpdatePlayerStartSpot 이 PC 를 StartSpot 자리로 옮겨, 스트리밍 소스인 PC 가 폰보다 먼저 그 셀을 끌어온다.
  *
- * GameMode 의 FrameworkComponents 에 등록해야 부착된다 — 등록하지 않으면 재개 지점과 스탯 복원이 조용히 동작하지 않는다.
+ * GameMode 가 고른 Experience 에셋에 등록해야 부착된다 — 등록하지 않으면 재개 지점과 스탯 복원이 조용히 동작하지 않는다.
  */
 UCLASS()
 class WXSAVE_API UWxPlayerSpawnComponent : public UControllerComponent
