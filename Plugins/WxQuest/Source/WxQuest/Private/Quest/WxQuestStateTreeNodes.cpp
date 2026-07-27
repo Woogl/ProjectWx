@@ -90,7 +90,7 @@ FText FWxStateTreeTask_SetQuestTitle::GetDescription(const FGuid& ID, FStateTree
 	check(InstanceData);
 
 	const FText QuestTitle = InstanceData->QuestTitle.IsEmpty() ? INVTEXT("none") : InstanceData->QuestTitle;
-	return FText::Format(INVTEXT("Set Quest Title ({0})"), QuestTitle);
+	return FText::Format(INVTEXT("Set Quest Title (\"{0}\")"), QuestTitle);
 }
 #endif
 
@@ -143,7 +143,7 @@ FText FWxStateTreeTask_SetQuestObjective::GetDescription(const FGuid& ID, FState
 	check(InstanceData);
 
 	const FText ObjectiveText = InstanceData->ObjectiveText.IsEmpty() ? INVTEXT("none") : InstanceData->ObjectiveText;
-	return FText::Format(INVTEXT("Set Quest Objective ({0})"), ObjectiveText);
+	return FText::Format(INVTEXT("Set Quest Objective (\"{0}\")"), ObjectiveText);
 }
 #endif
 
