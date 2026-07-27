@@ -19,34 +19,72 @@ class UWxQuestStateTree;
  * 레벨 액터 지정은 FUniversalObjectLocator 로 배치 액터를 직접 지정한다(스포너 노드와 동일 — 순수 구조체라 ST 컴파일러의 레벨 액터 참조 검증에 걸리지 않고, 씬 픽커·WP·PIE 해석이 엔진에 내장).
  * 해석은 SyncFind(강제 로드 없음)를 캐시 없이 매 틱 수행한다 — 경로 조회라 소수 대상에선 비용이 무시되고 WP 언로드/재로드를 자연 처리한다.
  *
- *  - SetQuestObjective 는 (QuestTitle, ObjectiveText) 로 진입 시 저널을 갱신하고 즉시 완료한다. 제목을 채우면 저널 신규 등록(Start 상태), 비우면 목표 문구 갱신(각 Step 상태).
+ *  - SetQuestTitle 은 (QuestTitle) 로 진입 시 저널을 그 제목으로 등록하고 즉시 완료한다. 퀘스트당 한 번, 진행이 시작되는 상태에 둔다.
+ *  - SetQuestObjective 는 (ObjectiveText) 로 진입 시 목표를 저널에 걸고, 그 상태를 떠날 때 도로 걷어간다.
  *  - WaitMoveToTarget 은 (Target, AcceptRadius) 로 플레이어 폰(0번 컨트롤러)이 대상 반경에 들어올 때까지 대기하다 도달 시 완료한다.
  *  - StartNextQuest 는 (NextQuest) 로 다음 퀘스트 시작을 컴포넌트에 예약하고 즉시 완료한다(러너 재시작은 재진입을 피해 다음 틱).
+ *
+ * 저널 태스크(SetQuestTitle·SetQuestObjective)는 표시용 부수효과일 뿐이라 상태 완료 판정에서 빠진다.
+ * 엔진은 상태마다 자기 태스크의 완료를 따로 보므로, 판정에 끼면 자식을 둔 상태에 얹었을 때 그 상태가 곧바로 완료돼 퀘스트가 통째로 관통된다.
  *
  * 저널 정리(Unregister)는 노드가 아니다 — 트리 종료(완료·실패·교체)를 컴포넌트가 감지해 자동 정리한다.
  */
 
-// ── SetQuestObjective: 저널 등록·목표 문구 갱신 ───────────────────────────────
+// ── SetQuestTitle: 저널 등록 ──────────────────────────────────────────────────
+
+USTRUCT()
+struct FWxStateTreeTask_SetQuestTitleInstanceData
+{
+	GENERATED_BODY()
+
+	/** 저널·HUD 에 표시할 퀘스트 제목. */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	FText QuestTitle;
+};
+
+/**
+ * 진입 시 오너의 퀘스트 컴포넌트의 저널을 이 제목으로 등록하고(목표는 비움) Succeeded 로 완료한다.
+ * 제목은 퀘스트당 하나이므로 스텝마다 다시 걸지 말고 진행이 시작되는 상태에 한 번만 둔다.
+ * 퀘스트 컴포넌트가 없으면 잘못된 조립(퀘스트 러너 밖 사용)이므로 Failed. 틱하지 않으므로 비용이 없다.
+ */
+USTRUCT(meta = (DisplayName = "Set Quest Title", Category = "Wx"))
+struct FWxStateTreeTask_SetQuestTitle : public FStateTreeTaskCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType = FWxStateTreeTask_SetQuestTitleInstanceData;
+
+	FWxStateTreeTask_SetQuestTitle();
+
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+
+#if WITH_EDITOR
+	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
+#endif
+};
+
+// ── SetQuestObjective: 목표 표시 ──────────────────────────────────────────────
 
 USTRUCT()
 struct FWxStateTreeTask_SetQuestObjectiveInstanceData
 {
 	GENERATED_BODY()
 
-	/** 비우지 않으면 진입 시 저널을 이 제목으로 신규 등록한다(목표 비움 포함). 퀘스트 ST 의 Start 상태에서 쓴다. */
-	UPROPERTY(EditAnywhere, Category = "Parameter")
-	FText QuestTitle;
-
-	/** 저널·HUD 에 표시할 현재 목표 문구. */
+	/** 저널·HUD 에 표시할 목표 문구. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	FText ObjectiveText;
+
+	/** (런타임) 이 노드가 실제로 등록한 목표의 핸들. 제거는 이 기록만 근거로 한다. */
+	UPROPERTY()
+	int32 ObjectiveHandle = INDEX_NONE;
 };
 
 /**
- * 진입 시 오너의 퀘스트 컴포넌트의 저널을 갱신하고 Succeeded 로 완료한다.
- * QuestTitle 이 있으면 저널을 그 제목으로 신규 등록하고(목표 비움), ObjectiveText 가 있으면 이어서 목표 문구를 채운다.
- * QuestTitle 이 비면 목표 문구만 갱신한다 — 빈 문구는 목표 비우기다.
- * 퀘스트 컴포넌트가 없으면 잘못된 조립(퀘스트 러너 밖 사용)이므로 Failed. 틱하지 않으므로 비용이 없다.
+ * 진입 시 저널에 목표를 하나 걸고, 상태에 머무는 동안 유지하다 떠날 때 걷어간다.
+ * 목표의 수명이 곧 그 상태의 수명이라 정리 태스크가 따로 필요 없고, 부모 상태와 자식 상태가 각각 목표를 걸면 둘이 동시에 표시된다 —
+ * 병렬 상태가 없는 StateTree 에서 다중 목표는 이렇게 성립한다.
+ * 퀘스트 컴포넌트가 없으면 잘못된 조립(퀘스트 러너 밖 사용)이므로 Failed. 완료 없이 머무는 태스크라 항상 Running 이며, 상태 완료는 짝이 되는 Wait 태스크가 낸다.
  */
 USTRUCT(meta = (DisplayName = "Set Quest Objective", Category = "Wx"))
 struct FWxStateTreeTask_SetQuestObjective : public FStateTreeTaskCommonBase
@@ -59,6 +97,7 @@ struct FWxStateTreeTask_SetQuestObjective : public FStateTreeTaskCommonBase
 
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 
 #if WITH_EDITOR
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;

@@ -51,18 +51,49 @@ void UWxQuestComponent::SendQuestEvent(FGameplayTag EventTag)
 	}
 }
 
-void UWxQuestComponent::SetJournal(const FText& InQuestTitle)
+void UWxQuestComponent::SetQuestTitle(const FText& InQuestTitle)
 {
 	QuestTitle = InQuestTitle;
-	ObjectiveText = FText::GetEmpty();
+	Objectives.Reset();
 	bHasActiveQuest = true;
 	OnJournalChanged.Broadcast();
 }
 
-void UWxQuestComponent::SetObjective(const FText& InObjectiveText)
+int32 UWxQuestComponent::AddObjective(const FText& InObjectiveText)
 {
-	ObjectiveText = InObjectiveText;
+	FWxQuestObjective& Objective = Objectives.AddDefaulted_GetRef();
+	Objective.Handle = NextObjectiveHandle++;
+	Objective.Text = InObjectiveText;
+
 	OnJournalChanged.Broadcast();
+
+	return Objective.Handle;
+}
+
+void UWxQuestComponent::RemoveObjective(int32 ObjectiveHandle)
+{
+	// 제목 교체·저널 정리가 목록을 통째로 비운 뒤라면 이미 사라진 핸들이 들어온다. 정상 경로이므로 조용히 무시한다.
+	for (int32 Index = 0; Index < Objectives.Num(); ++Index)
+	{
+		if (Objectives[Index].Handle == ObjectiveHandle)
+		{
+			Objectives.RemoveAt(Index);
+			OnJournalChanged.Broadcast();
+			return;
+		}
+	}
+}
+
+TArray<FText> UWxQuestComponent::GetObjectiveTexts() const
+{
+	TArray<FText> ObjectiveTexts;
+	ObjectiveTexts.Reserve(Objectives.Num());
+	for (const FWxQuestObjective& Objective : Objectives)
+	{
+		ObjectiveTexts.Add(Objective.Text);
+	}
+
+	return ObjectiveTexts;
 }
 
 void UWxQuestComponent::BeginPlay()
@@ -155,6 +186,6 @@ void UWxQuestComponent::ClearJournal()
 
 	bHasActiveQuest = false;
 	QuestTitle = FText::GetEmpty();
-	ObjectiveText = FText::GetEmpty();
+	Objectives.Reset();
 	OnJournalChanged.Broadcast();
 }

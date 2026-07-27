@@ -14,6 +14,24 @@ class UWxQuestStateTree;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnQuestJournalChanged);
 
 /**
+ * 저널에 등록된 목표 하나.
+ * 목표는 등록한 태스크가 자기 상태를 떠날 때 스스로 걷어가므로, 문구가 아니라 발급 핸들로 지목한다(같은 문구가 둘일 수 있다).
+ */
+USTRUCT()
+struct FWxQuestObjective
+{
+	GENERATED_BODY()
+
+	/** 등록 시 발급된 핸들. */
+	UPROPERTY()
+	int32 Handle = INDEX_NONE;
+
+	/** 저널·HUD 에 표시할 목표 문구. */
+	UPROPERTY()
+	FText Text;
+};
+
+/**
  * GameState 에 부착되어 퀘스트 StateTree 실행과 저널(제목·목표)을 서버 권위로 관리하는 컴포넌트.
  *
  * 퀘스트 1개 = UWxQuestStateTree 에셋 1개이며, 활성 퀘스트는 동시 1개다(새 시작은 교체).
@@ -46,15 +64,20 @@ public:
 	/** 실행 중인 퀘스트 ST 로 이벤트를 보낸다(Quest.Fail 등 전이 트리거). */
 	void SendQuestEvent(FGameplayTag EventTag);
 
-	/** SetQuestObjective 태스크 진입점(제목 지정 시). 저널을 새 퀘스트 제목으로 등록한다(목표는 비움). */
-	void SetJournal(const FText& InQuestTitle);
+	/** SetQuestTitle 태스크 진입점. 저널을 새 퀘스트 제목으로 등록한다(목표는 비움). */
+	void SetQuestTitle(const FText& InQuestTitle);
 
-	/** SetQuestObjective 태스크 진입점. 현재 목표 문구를 갱신한다. */
-	void SetObjective(const FText& InObjectiveText);
+	/** SetQuestObjective 태스크 진입점. 목표를 추가하고 나중에 걷어갈 핸들을 돌려준다. */
+	int32 AddObjective(const FText& InObjectiveText);
+
+	/** SetQuestObjective 태스크 이탈점. 지정 핸들의 목표를 걷어간다. 이미 없는 핸들은 무시한다. */
+	void RemoveObjective(int32 ObjectiveHandle);
 
 	bool HasActiveQuest() const { return bHasActiveQuest; }
 	FText GetQuestTitle() const { return QuestTitle; }
-	FText GetObjectiveText() const { return ObjectiveText; }
+
+	/** 현재 표시 중인 목표 문구들을 등록 순서대로 돌려준다. */
+	TArray<FText> GetObjectiveTexts() const;
 
 	/** 저널 등록·목표 갱신·정리 시 발화. HUD 뷰모델이 구독해 현재 값을 pull 한다. */
 	UPROPERTY(BlueprintAssignable, Category = "Wx|Quest")
@@ -78,6 +101,12 @@ private:
 	TObjectPtr<UStateTreeComponent> QuestStateTree;
 
 	FText QuestTitle;
-	FText ObjectiveText;
+
+	/** 현재 표시 중인 목표들. 태스크가 상태에 들고 날 때마다 늘고 준다. */
+	TArray<FWxQuestObjective> Objectives;
+
+	/** 다음 목표에 발급할 핸들. 재사용하지 않으므로 뒤늦은 제거 요청이 엉뚱한 목표를 걷어가지 않는다. */
+	int32 NextObjectiveHandle = 0;
+
 	bool bHasActiveQuest = false;
 };

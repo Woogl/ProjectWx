@@ -56,12 +56,58 @@ namespace
 #endif
 }
 
+// ── SetQuestTitle ─────────────────────────────────────────────────────────────
+
+FWxStateTreeTask_SetQuestTitle::FWxStateTreeTask_SetQuestTitle()
+{
+	// 진입 시 1회 등록만 하므로 틱이 불필요하다.
+	bShouldCallTick = false;
+
+#if WITH_EDITORONLY_DATA
+	// 표시용 부수효과라 상태 완료를 판정해선 안 된다(헤더 주석 참조).
+	bConsideredForCompletion = false;
+#endif
+}
+
+EStateTreeRunStatus FWxStateTreeTask_SetQuestTitle::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+{
+	UWxQuestComponent* QuestComponent = GetQuestComponent(Context);
+	if (!QuestComponent)
+	{
+		return EStateTreeRunStatus::Failed;
+	}
+
+	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
+	QuestComponent->SetQuestTitle(Instance.QuestTitle);
+
+	return EStateTreeRunStatus::Succeeded;
+}
+
+#if WITH_EDITOR
+FText FWxStateTreeTask_SetQuestTitle::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
+{
+	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
+	check(InstanceData);
+
+	const FText QuestTitle = InstanceData->QuestTitle.IsEmpty() ? INVTEXT("none") : InstanceData->QuestTitle;
+	return FText::Format(INVTEXT("Set Quest Title ({0})"), QuestTitle);
+}
+#endif
+
 // ── SetQuestObjective ─────────────────────────────────────────────────────────
 
 FWxStateTreeTask_SetQuestObjective::FWxStateTreeTask_SetQuestObjective()
 {
-	// 진입 시 1회 갱신만 하므로 틱이 불필요하다.
+	// 완료 없이 머무는 태스크다. 재선택마다 재진입하면 ExitState 가 목표를 걷어가 표시가 깜빡인다.
+	bShouldStateChangeOnReselect = false;
+
+	// 진입·이탈에서만 저널을 건드리므로 틱이 불필요하다.
 	bShouldCallTick = false;
+
+#if WITH_EDITORONLY_DATA
+	// 표시용 부수효과라 상태 완료를 판정해선 안 된다(헤더 주석 참조).
+	bConsideredForCompletion = false;
+#endif
 }
 
 EStateTreeRunStatus FWxStateTreeTask_SetQuestObjective::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
@@ -72,23 +118,22 @@ EStateTreeRunStatus FWxStateTreeTask_SetQuestObjective::EnterState(FStateTreeExe
 		return EStateTreeRunStatus::Failed;
 	}
 
-	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
+	FInstanceDataType& Instance = Context.GetInstanceData(*this);
+	Instance.ObjectiveHandle = QuestComponent->AddObjective(Instance.ObjectiveText);
 
-	// 제목이 있으면 저널 신규 등록(목표 비움 포함) 후 목표가 있으면 이어서 채운다. 제목이 비면 목표만 갱신한다(빈 문구=목표 비우기).
-	if (!Instance.QuestTitle.IsEmpty())
-	{
-		QuestComponent->SetJournal(Instance.QuestTitle);
-		if (!Instance.ObjectiveText.IsEmpty())
-		{
-			QuestComponent->SetObjective(Instance.ObjectiveText);
-		}
-	}
-	else
-	{
-		QuestComponent->SetObjective(Instance.ObjectiveText);
-	}
+	return EStateTreeRunStatus::Running;
+}
 
-	return EStateTreeRunStatus::Succeeded;
+void FWxStateTreeTask_SetQuestObjective::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+{
+	FInstanceDataType& Instance = Context.GetInstanceData(*this);
+
+	// 자기가 등록한 기록만 근거로 걷어간다.
+	if (UWxQuestComponent* QuestComponent = GetQuestComponent(Context))
+	{
+		QuestComponent->RemoveObjective(Instance.ObjectiveHandle);
+	}
+	Instance.ObjectiveHandle = INDEX_NONE;
 }
 
 #if WITH_EDITOR
@@ -98,11 +143,7 @@ FText FWxStateTreeTask_SetQuestObjective::GetDescription(const FGuid& ID, FState
 	check(InstanceData);
 
 	const FText ObjectiveText = InstanceData->ObjectiveText.IsEmpty() ? INVTEXT("none") : InstanceData->ObjectiveText;
-	if (InstanceData->QuestTitle.IsEmpty())
-	{
-		return FText::Format(INVTEXT("Set Quest Objective ({0})"), ObjectiveText);
-	}
-	return FText::Format(INVTEXT("Set Quest Objective ({0}: {1})"), InstanceData->QuestTitle, ObjectiveText);
+	return FText::Format(INVTEXT("Set Quest Objective ({0})"), ObjectiveText);
 }
 #endif
 

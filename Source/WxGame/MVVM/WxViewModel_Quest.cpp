@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Engine/World.h"
 #include "GameFramework/GameStateBase.h"
+#include "MVVM/WxViewModel_QuestObjective.h"
 #include "Quest/WxQuestComponent.h"
 
 void UWxViewModel_Quest::Initialize(UWxQuestComponent* InQuestComponent)
@@ -29,6 +30,12 @@ void UWxViewModel_Quest::Deinitialize()
 	}
 	CachedQuestComponent.Reset();
 
+	if (!Objectives.IsEmpty())
+	{
+		Objectives.Reset();
+		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(Objectives);
+	}
+
 	Super::Deinitialize();
 }
 
@@ -42,7 +49,20 @@ void UWxViewModel_Quest::HandleJournalChanged()
 
 	UE_MVVM_SET_PROPERTY_VALUE(bHasActiveQuest, QuestComponent->HasActiveQuest());
 	UE_MVVM_SET_PROPERTY_VALUE(QuestTitle, QuestComponent->GetQuestTitle());
-	UE_MVVM_SET_PROPERTY_VALUE(ObjectiveText, QuestComponent->GetObjectiveText());
+	RebuildObjectives(QuestComponent->GetObjectiveTexts());
+}
+
+void UWxViewModel_Quest::RebuildObjectives(const TArray<FText>& InObjectiveTexts)
+{
+	Objectives.Reset(InObjectiveTexts.Num());
+	for (const FText& ObjectiveText : InObjectiveTexts)
+	{
+		UWxViewModel_QuestObjective* Objective = NewObject<UWxViewModel_QuestObjective>(this);
+		Objective->SetObjectiveText(ObjectiveText);
+		Objectives.Add(Objective);
+	}
+
+	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(Objectives);
 }
 
 UObject* UWxViewModelResolver_Quest::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
