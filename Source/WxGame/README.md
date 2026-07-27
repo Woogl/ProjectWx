@@ -26,7 +26,7 @@
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `AWxGameMode` | 게임 골격 진입점. `InitGame`에서 프레임워크 컴포넌트를 요청 등록→receiver 자동 주입. 플레이어 스폰은 엔진 기본 경로에 위임 | `Framework/WxGameMode.h` |
+| `AWxGameMode` | 게임 골격 진입점. `InitGameState`에서 Experience를 GameState로 넘겨 프레임워크 컴포넌트 주입 유발, 접속 시 시작 아이템 지급. 플레이어 스폰은 엔진 기본 경로에 위임 | `Framework/WxGameMode.h` |
 | `AWxCharacterBase` | 플레이어·적 공통 Abstract 베이스. ASC/AttributeSet/장비/모션워핑 직접 소유, 팀·사망·SPD 이동 반영 | `Character/WxCharacterBase.h` |
 | `AWxPlayerCharacter` | 3인칭 카메라 + Enhanced Input + 어빌리티 입력·락온·상호작용 위젯·BGM 소유 | `Character/WxPlayerCharacter.h` |
 | `AWxEnemyCharacter` | BT 구동 적(Abstract). 시야/청각·처형 어포던스(앞잡/뒤잡)·보상 지급·스포너 연동, `AWxBossCharacter`가 파생 | `Character/WxEnemyCharacter.h` |
@@ -54,4 +54,4 @@
 - 상위: 조립하는 플러그인 [[WxCombat]] · [[WxUI]] · [[WxWorld]] · [[WxInventory]] · [[WxDialogue]] · [[WxQuest]] · [[WxAI]] · [[WxSave]] · [[WxSound]] · [[WxCore]]
 
 ---
-*문서 기준 커밋 `1bd11a9` · 생성일 2026-07-26 · 소스 46파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `21e2e76` · 생성일 2026-07-27 · 소스 49파일 — `/readme-writer`로 갱신*

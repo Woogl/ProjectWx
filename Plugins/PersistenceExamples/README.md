@@ -1,46 +1,52 @@
-# PersistenceExamples — 지속성(저장/로드) 예제 모음
+# PersistenceExamples — 영속성 예제 모음
 
-> Epic Games(Zhi Kang Shao) 제공 서드파티 예제 플러그인. World Partition 맵 상태를 여러 SaveGame 파일로 직렬화하고, 로드 시 플레이어를 마지막 맵/위치로 복귀시키는 데모다. 액터, InstancedActor, Mass, GAS, GeometryCollection, StateTree, JSON 등 각 지속성 패턴별 최소 예제를 담고 있다. ProjectWx 고유 코드가 아니라 참고용 레퍼런스다. (`IsBetaVersion`)
+> Epic이 제공하는 서드파티/예제 플러그인. World Partition 맵 상태를 SaveGame으로 직렬화해 재접속 시 마지막 맵·위치로 복귀시키는 흐름을 중심으로, 일반 액터·Instanced Actors·Mass·GAS·StateTree·Chaos를 어떻게 영속화하는지 카테고리별 데모로 보여준다.
 
 ## 책임
 **담당**
-- `LevelStreamingPersistence`(LSP)·`PersistenceUtils` 프레임워크를 각 시스템에 붙이는 방법을 보여주는 예제 액터/컴포넌트 제공.
-- 지속성 패턴별 데모: 맵 배치 액터 프로퍼티(`PersistentTimer*`), 크로스 세션 액터 참조(`FlagPole` + `PersistableReferencedActorComponent`), GAS 어트리뷰트/이펙트(`GAS/*`), GeometryCollection 파괴 상태(`PersistedGeometryCollectionComponent`), InstancedActor 인스턴스 상태(`InstancedActors/*`), Mass 엔티티↔액터 왕복(`Mass/*`, `NPCMassActorComponent`), StateTree 상태 복원(`PersistedStateTreeComponent`), JSON 직렬화(`Json/*`).
+- `PersistenceUtils`(LevelStreamingPersistence) 위에서 각 서브시스템별 저장/복원 패턴 시연
+  - 맵 배치 WP 액터의 property-path 영속화 (`UPersistentTimerComponent`)
+  - Instanced Actors의 다중 비주얼 상태·체력·희소 델타 영속화 (`UExampleInstancedActorComponent`)
+  - Mass 엔티티 ↔ 하이드레이트 액터 간 상태 왕복 (`UNPCMassActorComponent`, `NPCMassFragments`)
+  - 활성 GameplayEffect 부분 스냅샷 저장/복원 (`UPersistedAbilitySystemComponent`)
+  - StateTree 활성 상태 GUID 저장/강제 전이 (`UPersistedStateTreeComponent`)
+  - GeometryCollection(Chaos) 파괴 상태·JSON 직렬화 데모
 
 **경계 (비담당)**
-- 실제 직렬화/저장 파일 관리·LSP 런타임·`IPersistedObject`·`FPersistableActorReference` 정의 → `PersistenceUtils` 플러그인(엔진 예제 제공)에 위임. 이 모듈은 소비자.
-- 인스턴스화/Mass 시뮬레이션 코어 → `InstancedActors`, `MassEntity`/`MassAI` 엔진 플러그인.
+- 실제 저장/복원 파이프라인·직렬화·PersistedObject 인터페이스는 전부 `PersistenceUtils` 플러그인에 위임 (이 모듈은 이를 소비만 함)
+- Instanced Actors / Mass 프레임워크 코어는 엔진 플러그인(`InstancedActors`, `MassGameplay`/`MassAI`)에 위임
 
 ## 의존성
-- **주요 의존**: `PersistenceUtils`(LSP 프레임워크, `IPersistedObject`·`FPersistableActorReference`·`UPersistableActorReferenceManager`), `InstancedActors`, `MassEntity`/`MassCommon`/`MassRepresentation`/`MassActors`/`MassAIBehavior`/`MassNavigation`, `GameplayStateTreeModule`/`StateTreeModule`, `GameplayAbilities`, `GeometryCollectionEngine`/`Chaos`, `Json`/`JsonUtilities`, `UMG`, `AIModule`.
-- 규칙: Epic Games 제공 외부 예제 플러그인 — Wx 참조 규칙 무관 (소스 전체에 `Wx` 심볼 0건, 순수 엔진/Epic 예제 의존만 있음).
+- **주요 의존**: `PersistenceUtils`(핵심 — `IPersistedObject`, `FPersistableActorReference`, LevelStreamingPersistence 세팅), `InstancedActors`, `MassEntity`/`MassActors`/`MassRepresentation` 및 `MassAIBehavior`/`MassNavigation`, `GameplayAbilities`, `GameplayStateTreeModule`, `Chaos`/`GeometryCollectionEngine`
+- 규칙: 서드파티/예제 플러그인 — 「WxCore 외 Wx 플러그인 참조 금지」 규칙 대상 아님(규칙 무관)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UPersistentTimerComponent` | 맵 배치·공간분할 액터의 프로퍼티(`TimeAlive`) 지속성 최소 예제. DefaultEngine.ini에 프로퍼티 경로 등록 | `Source/PersistenceExamples/Public/LevelStreamingPersistence/PersistentTimerComponent.h` |
-| `AFlagPole` | `PersistableReferencedActorComponent`로 크로스 세션 안정 ID 부여 → 타 액터가 `FPersistableActorReference`로 참조 | `Source/PersistenceExamples/Public/LevelStreamingPersistence/FlagPole.h` |
-| `UPersistedAbilitySystemComponent` | `IPersistedObject` ASC. asset 태그에 `Gameplay.Effect.Persistable`이 있는 활성 GE만 옵트인 스냅샷/복원(로시) | `Source/PersistenceExamples/Public/GAS/PersistedAbilitySystemComponent.h` |
-| `UPersistedGeometryCollectionComponent` | `IPersistedObject`. 파괴 조각별 트랜스폼·broken 상태를 캡처해 복원 | `Source/PersistenceExamples/Public/GeometryCollection/PersistedGeometryCollectionComponent.h` |
-| `ADestructibleCrate` | 위 GAS(ASC/HealthSet)+GeometryCollection을 조합한 파괴 상자 데모 액터. `IAbilitySystemInterface` 구현 | `Source/PersistenceExamples/Public/GAS/DestructibleCrate.h` |
-| `UExampleInstancedActorsSubsystem` / `AExampleInstancedActorsManager` / `UExampleInstancedActorsData` | IA 프레임워크 서브클래싱 3종 세트. 디하이드레이트 인스턴스의 Visual State를 late-join 클라에 복원. `Config/DefaultInstancedActors.ini`로 결선 | `Source/PersistenceExamples/Public/InstancedActors/` |
-| `UNPCMassActorComponent` | 하이드레이트된 `ACharacter`↔백킹 Mass 엔티티 브리지. 프래그먼트 왕복·GAS health 자동 동기화 | `Source/PersistenceExamples/Public/Mass/NPCMassActorComponent.h` |
-| `UPersistedStateTreeComponent` | `UStateTreeAIComponent` 서브클래스. 활성 leaf state GUID 읽기/강제 전이로 StateTree 상태 지속성 지원(호스트는 `APersistenceAIController`) | `Source/PersistenceExamples/Public/AI/PersistedStateTreeComponent.h` |
+| `UExampleInstancedActorComponent` | IA 다중 비주얼 상태 + GAS 체력 동기화 + 희소 영속화 컴포넌트 | `Source/PersistenceExamples/Public/InstancedActors/ExampleInstancedActorComponent.h` |
+| `UExampleInstancedActorsSubsystem` / `AExampleInstancedActorsManager` | 커스텀 IA 서브시스템·매니저 오버라이드 (config로 주입) | `Source/PersistenceExamples/Public/InstancedActors/ExampleInstancedActorsSubsystem.h` |
+| `UNPCMassActorComponent` | 하이드레이트 `ACharacter` ↔ Mass 엔티티 상태 브리지 | `Source/PersistenceExamples/Public/Mass/NPCMassActorComponent.h` |
+| `FNPCMassSnapshot` / `FNPC*Fragment` | Mass 엔티티에 저장되는 NPC 상태·태그 프래그먼트 | `Source/PersistenceExamples/Public/Mass/NPCMassFragments.h` |
+| `UPersistedAbilitySystemComponent` | `Gameplay.Effect.Persistable` 태그 GE만 스냅샷·복원하는 ASC | `Source/PersistenceExamples/Public/GAS/PersistedAbilitySystemComponent.h` |
+| `UPersistentTimerComponent` | property-path 등록만으로 WP 액터 필드 영속화하는 최소 예제 | `Source/PersistenceExamples/Public/LevelStreamingPersistence/PersistentTimerComponent.h` |
+| `UPersistedStateTreeComponent` | 활성 leaf 상태 GUID 읽기·강제 전이용 StateTree 컴포넌트 | `Source/PersistenceExamples/Public/AI/PersistedStateTreeComponent.h` |
+| `ATestActorForJson` | JSON 직렬화 데모용 액터 | `Source/PersistenceExamples/Public/Json/TestActorForJson.h` |
 
 ## 확장 포인트 / 규약
-- 새 타입에 액터 프로퍼티 지속성을 붙이려면: `SaveGame` UPROPERTY 선언 + `Config/DefaultEngine.ini`의 `LevelStreamingPersistenceSettings`에 프로퍼티 경로 등록(`PersistentTimerComponent` 참고).
-- 복잡한 상태(파괴 포즈·GE 등)는 `IPersistedObject`를 구현하고 `PrePersistObject_Implementation`/`PostRestoreObject_Implementation`에서 스냅샷↔재적용(`PersistedGeometryCollectionComponent`·`PersistedAbilitySystemComponent` 참고).
-- IA/Mass는 코드가 아니라 `Config/DefaultInstancedActors.ini`·엔티티 config(`UMassRepresentationTrait`의 `HighResSpawnedActor`)로 결선한다 — 헤더 doc-comment의 지침을 따를 것.
-- GE를 지속 대상으로 만들려면 asset의 GameplayEffectAssetTags에 `Gameplay.Effect.Persistable` 부여.
+- 새 영속 오브젝트: `IPersistedObject`(PersistenceUtils)를 구현하고 `PrePersistObject`/`PostRestoreObject`에서 스냅샷을 채우며, 대상 `UPROPERTY(SaveGame)`를 `DefaultEngine.ini`의 `LevelStreamingPersistenceSettings`에 등록한다 (`UPersistedAbilitySystemComponent`가 표준 패턴).
+- GE 영속화 opt-in: GE 에셋 태그에 `Gameplay.Effect.Persistable` 추가 (`GetPersistableEffectTag()`).
+- IA 커스터마이징: `UExampleInstancedActorComponent`를 exemplar에 붙여 비주얼 상태·체력을 데이터 주도로 구성하고, 서브시스템/매니저 클래스 교체는 `Config/DefaultInstancedActors.ini`로 주입한다 (헤더 doc-comment 참조).
+- Mass NPC: BP를 `APersistenceLabCharacter` 파생으로 만들고 `UNPCMassActorComponent`의 `OnHydrated`/`OnFlushPending`을 바인딩해 상태를 왕복시킨다.
 
 ## 여기서부터 읽어라
-1. `PersistenceExamples.uplugin` — 의존 플러그인 목록으로 어떤 지속성 프레임워크를 예시하는지 한눈에 파악.
-2. `Source/PersistenceExamples/Public/LevelStreamingPersistence/PersistentTimerComponent.h` — 가장 단순한 LSP 프로퍼티 지속성 패턴(입문용).
-3. `Source/PersistenceExamples/Public/GAS/DestructibleCrate.h` — LSP + `IPersistedObject`(GAS·GeometryCollection) 조합 데모, 실전 결선 예.
-4. `Source/PersistenceExamples/Public/Mass/NPCMassActorComponent.h` — 액터↔Mass 엔티티 하이드레이션/디하이드레이션 왕복의 핵심 흐름·authority 모델.
+1. `PersistenceExamples.uplugin` — 어떤 엔진 플러그인(PersistenceUtils/IA/Mass/StateTree/GAS)에 의존하는지, 데모 범위 파악
+2. `Source/PersistenceExamples/Public/InstancedActors/ExampleInstancedActorComponent.h` — 가장 밀도 높은 진입점. IA + Mass + GAS 영속화가 한 컴포넌트에 모여 있음
+3. `Source/PersistenceExamples/Public/Mass/NPCMassActorComponent.h` + `NPCMassFragments.h` — 액터/Mass 이중 표현의 상태 왕복 authority 모델
+4. `Source/PersistenceExamples/Public/GAS/PersistedAbilitySystemComponent.h` — `IPersistedObject` 구현 표준 패턴(스냅샷 → LSP 직렬화 → 지연 복원)
+5. `Source/PersistenceExamples/Public/LevelStreamingPersistence/PersistentTimerComponent.h` — 코드 최소의 영속화 예제, 개념 입문용
 
 ## 관련
-- 상위: [[PersistenceUtils]] (LSP 프레임워크·`IPersistedObject`·액터 참조 관리 — 이 예제들이 소비하는 실제 지속성 엔진)
+- 상위: 독립 예제 플러그인. `PersistenceUtils`(LevelStreamingPersistence)를 소비하며, 프로젝트의 `Wx*` 플러그인과는 직접 연결되지 않는 참고용 레퍼런스
 
 ---
-*문서 기준 커밋 `c275320` · 생성일 2026-07-24 · 소스 52파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `21e2e76` · 생성일 2026-07-27 · 소스 52파일 — `/readme-writer`로 갱신*

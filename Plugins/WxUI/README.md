@@ -52,4 +52,4 @@
 - 데이터 소스: [[WxCombat]], [[WxInventory]], [[WxWorld]]
 
 ---
-*문서 기준 커밋 `1bd11a9` · 생성일 2026-07-26 · 소스 62파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `21e2e76` · 생성일 2026-07-27 · 소스 60파일 — `/readme-writer`로 갱신*
