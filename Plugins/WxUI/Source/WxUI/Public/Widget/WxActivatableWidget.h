@@ -6,7 +6,7 @@
 #include "CommonActivatableWidget.h"
 #include "WxActivatableWidget.generated.h"
 
-UCLASS(Abstract)
+UCLASS(Abstract, meta = (DisableNativeTick))
 class WXUI_API UWxActivatableWidget : public UCommonActivatableWidget
 {
 	GENERATED_BODY()

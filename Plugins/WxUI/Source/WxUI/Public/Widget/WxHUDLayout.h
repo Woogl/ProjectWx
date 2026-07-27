@@ -12,7 +12,7 @@
  * 화면 인디케이터 캔버스를 HUD 내용 아래에 깔아 준다 — 위젯 트리에 배치하지 않아도 모든 HUD 레이아웃이 인디케이터를 갖는다.
  * Lyra의 ULyraHUDLayout 대응.
  */
-UCLASS(Abstract)
+UCLASS(Abstract, meta = (DisableNativeTick))
 class WXUI_API UWxHUDLayout : public UWxActivatableWidget
 {
 	GENERATED_BODY()

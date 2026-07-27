@@ -14,7 +14,7 @@ class UCommonButtonBase;
  * 결과 3종(Confirmed/Declined/Cancelled)에 1:1 대응하는 고정 버튼을 사용하며, 서술자의 버튼 구성에 따라 필요한 버튼만 표시한다.
  * WBP는 이 클래스를 상속해 레이아웃과 버튼 라벨을 구성한다.
  */
-UCLASS(Abstract, Blueprintable)
+UCLASS(Abstract, Blueprintable, meta = (DisableNativeTick))
 class WXUI_API UWxConfirmationPopup : public UWxGamePopup
 {
 	GENERATED_BODY()

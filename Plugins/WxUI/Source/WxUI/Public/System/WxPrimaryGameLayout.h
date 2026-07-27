@@ -12,7 +12,7 @@
 class UCommonActivatableWidgetStack;
 class UOverlay;
 
-UCLASS(Abstract)
+UCLASS(Abstract, meta = (DisableNativeTick))
 class WXUI_API UWxPrimaryGameLayout : public UCommonUserWidget
 {
 	GENERATED_BODY()

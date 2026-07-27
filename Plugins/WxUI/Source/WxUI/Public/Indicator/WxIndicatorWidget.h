@@ -11,7 +11,7 @@
  * 위젯은 자기가 화면 어디에 놓이는지 알지 않는다 — 배치는 캔버스가 하고, 위젯은 무엇을 그릴지만 정한다.
  * WBP 에서 OnIndicatorRefreshed 를 구현해 거리 문구나 화면 밖일 때의 외형을 저작한다.
  */
-UCLASS(Abstract)
+UCLASS(Abstract, meta = (DisableNativeTick))
 class WXUI_API UWxIndicatorWidget : public UUserWidget
 {
 	GENERATED_BODY()

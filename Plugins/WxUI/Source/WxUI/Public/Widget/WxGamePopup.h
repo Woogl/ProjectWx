@@ -70,7 +70,7 @@ public:
 };
 
 /** 팝업 위젯 베이스. 실제 표시 로직은 서브클래스에서 구현한다. */
-UCLASS(Abstract)
+UCLASS(Abstract, meta = (DisableNativeTick))
 class WXUI_API UWxGamePopup : public UWxActivatableWidget
 {
 	GENERATED_BODY()
