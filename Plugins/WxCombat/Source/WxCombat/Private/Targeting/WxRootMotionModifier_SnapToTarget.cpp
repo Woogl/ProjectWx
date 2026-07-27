@@ -59,8 +59,13 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 		FacingTarget = TargetingResults[0];
 	}
 
-	if (!FacingTarget)
+	// 워프 타겟은 이름으로 컴포넌트에 남고 대상 컴포넌트를 계속 추종한다. 몽타주가 끝나도 엔진은 지우지 않는다.
+	// 따라서 대상을 못 찾아 새로 등록하지 않으면 직전 공격이 남긴 타겟을 그대로 집어 써, 이미 죽은 대상을 계속 응시한다.
+	// 여기서 자기 워프 타겟을 지우면 부모 Warp::Update 가 타겟 부재를 감지해 modifier 를 끄고 순정 루트 모션으로 재생한다.
+	USceneComponent* TargetComponent = FacingTarget ? FacingTarget->GetRootComponent() : nullptr;
+	if (!TargetComponent)
 	{
+		MotionWarpingComp->RemoveWarpTarget(WarpTargetName);
 		return;
 	}
 
@@ -75,12 +80,6 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 	const APawn* OwnerPawn = Cast<APawn>(Owner);
 	const bool bRequireLockOnForTranslation = OwnerPawn && OwnerPawn->IsPlayerControlled();
 	const bool bShouldWarpTranslation = bWarpTranslation && bTargetInSnapRange && (!bRequireLockOnForTranslation || bFacingTargetIsLockOn);
-
-	USceneComponent* TargetComponent = FacingTarget->GetRootComponent();
-	if (!TargetComponent)
-	{
-		return;
-	}
 
 	// 게이팅 결과를 부모 워프 설정에 반영한다(범위 밖·플레이어 폰 락온 없음이면 회전만).
 	bWarpTranslation = bShouldWarpTranslation;
