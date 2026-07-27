@@ -38,6 +38,8 @@
 
 5. `BlueprintCallable` 지정자는 Blueprint Function Library, Blueprint Async Action의 팩토리 함수에서만 사용한다.
 
+6. 인라인 함수 정의를 금지한다. (`FORCEINLINE` 등)
+
 ---
 
 ## 모듈 및 플러그인 규칙
