@@ -39,7 +39,7 @@ public:
 	virtual void OnWxSaveRestored() override;
 	//~ End IWxSavable
 
-	//~ Begin IWxInteractable — 상호작용 시 State 를 Playing 으로 확정(프롬프트는 베이스 InteractionPrompt).
+	//~ Begin IWxInteractable — 상호작용 시 State 를 Playing 으로 확정(프롬프트는 ST_CutsceneTrigger 의 Enable Interaction 에서 author).
 	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
 	//~ End IWxInteractable
 

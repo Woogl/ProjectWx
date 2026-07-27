@@ -27,7 +27,7 @@ class AWxLaserCorridor : public AWxGimmick
 public:
 	AWxLaserCorridor();
 
-	//~ Begin IWxInteractable — 상호작용 시 State 를 Deactivated 로 확정(프롬프트는 베이스 InteractionPrompt).
+	//~ Begin IWxInteractable — 상호작용 시 State 를 Deactivated 로 확정(프롬프트는 ST_LaserCorridor 의 Enable Interaction 에서 author).
 	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
 	//~ End IWxInteractable
 

@@ -31,7 +31,7 @@ class WXWORLD_API AWxCheckPoint : public AWxGimmick
 public:
 	AWxCheckPoint();
 
-	//~ Begin IWxInteractable — 상호작용 시 State 를 Lit 으로 확정하고 힐·리스폰을 수행(프롬프트는 베이스 InteractionPrompt).
+	//~ Begin IWxInteractable — 상호작용 시 State 를 Lit 으로 확정하고 힐·리스폰을 수행(프롬프트는 ST_CheckPoint 의 Enable Interaction 에서 author).
 	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
 	//~ End IWxInteractable
 

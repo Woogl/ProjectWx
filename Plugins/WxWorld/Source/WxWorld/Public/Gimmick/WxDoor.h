@@ -30,7 +30,7 @@ class WXWORLD_API AWxDoor : public AWxGimmick
 public:
 	AWxDoor();
 
-	//~ Begin IWxInteractable — 상호작용 시 현재 State 의 반대 목표(Open/Close)로 확정(프롬프트는 베이스 InteractionPrompt).
+	//~ Begin IWxInteractable — 상호작용 시 현재 State 의 반대 목표(Open/Close)로 확정(프롬프트는 ST_Door 의 Enable Interaction 에서 author).
 	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
 	//~ End IWxInteractable
 

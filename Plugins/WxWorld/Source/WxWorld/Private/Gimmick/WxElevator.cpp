@@ -65,24 +65,3 @@ void AWxElevator::OnInteracted(AActor* Interactor, const UActorComponent* Source
 		CommitGimmickState(WxGameplayTags::Gimmick_Elevator_AtEnd);
 	}
 }
-
-FText AWxElevator::GetDefaultInteractionPrompt(const UActorComponent* Source) const
-{
-	// 응답(OnInteracted)과 같은 영역 분기다. ST 가 상태별 문구를 세팅한 영역은 여기까지 내려오지 않는다.
-	if (Source == PlatformMesh)
-	{
-		return PlatformPrompt;
-	}
-
-	if (Source == CallConsoleA)
-	{
-		return CallConsoleAPrompt;
-	}
-
-	if (Source == CallConsoleB)
-	{
-		return CallConsoleBPrompt;
-	}
-
-	return Super::GetDefaultInteractionPrompt(Source);
-}

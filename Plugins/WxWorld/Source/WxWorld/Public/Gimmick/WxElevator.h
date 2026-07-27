@@ -36,8 +36,7 @@ class UStaticMeshComponent;
  *  - CallConsoleA: 플랫폼을 스플라인 시작점(거리 0)으로 호출
  *  - CallConsoleB: 플랫폼을 스플라인 끝점(SplineLength)으로 호출
  *
- * 프롬프트도 응답과 같은 Source 분기로 영역마다 갈린다. 영역별 고정 문구는 BP 디폴트(아래 세 필드)에서 author 하고,
- * 상태에 따라 문구가 달라져야 하는 영역만 ST_Elevator 의 Enable Interaction Prompt 로 덮는다(ST 값이 있으면 베이스가 그것을 먼저 집는다).
+ * 프롬프트는 영역마다 갈리며, 세 영역 모두 ST_Elevator 의 각 상태 Enable Interaction Prompt 에서 author 한다(층에 따라 문구가 달라지는 것도 같은 자리에서 해결된다).
  */
 UCLASS(Abstract)
 class WXWORLD_API AWxElevator : public AWxGimmick
@@ -52,22 +51,6 @@ public:
 	//~ End IWxInteractable
 
 protected:
-
-	//~ Begin AWxGimmick — 응답과 같은 Source 분기로 영역별 고정 문구를 고른다.
-	virtual FText GetDefaultInteractionPrompt(const UActorComponent* Source) const override;
-	//~ End AWxGimmick
-
-	/** 플랫폼 위에서 표시할 프롬프트. 층에 따라 문구를 바꾸려면 ST_Elevator 의 해당 상태 Enable Interaction 에서 덮는다. */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx")
-	FText PlatformPrompt;
-
-	/** 시작점 호출 콘솔에서 표시할 프롬프트. */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx")
-	FText CallConsoleAPrompt;
-
-	/** 끝점 호출 콘솔에서 표시할 프롬프트. */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx")
-	FText CallConsoleBPrompt;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USplineComponent> SplineComponent;

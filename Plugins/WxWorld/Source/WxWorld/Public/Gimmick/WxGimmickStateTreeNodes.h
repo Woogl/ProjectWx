@@ -72,7 +72,7 @@ struct FWxStateTreeTask_EnableInteractionInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	bool bEnable = false;
 
-	/** 상호작용을 켤 때 이 메시가 표시할 HUD 프롬프트. 오너 기믹의 GetInteractionPrompt 로 pull 된다. 비우면 기믹이 정한 폴백(영역별 고정 문구 → 기본 InteractionPrompt)이 그대로 보인다. 상태에 따라 문구가 달라지는 영역만 채운다. bEnable 일 때만 의미가 있다. */
+	/** 상호작용을 켤 때 이 메시가 표시할 HUD 프롬프트. 오너 기믹의 GetInteractionPrompt 로 pull 된다. 코드 폴백이 없으므로 비우면 문구 없이 표시된다. bEnable 일 때만 의미가 있다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (EditCondition = "bEnable"))
 	FText Prompt;
 };
@@ -82,7 +82,7 @@ struct FWxStateTreeTask_EnableInteractionInstanceData
  * 상호작용을 켜는 상태면 그 메시의 프롬프트(Prompt)도 함께 오너 기믹에 세팅해, "이 상태가 상호작용 가능한가 + 프롬프트는 무엇인가"를 한 자리에서 author 한다(끄는 상태는 스캔에 안 잡혀 프롬프트 불필요, EditCondition 으로 필드 숨김).
  * 프롬프트는 대상 메시별로 담기므로 한 상태가 여러 영역을 켜도 서로 덮어쓰지 않는다. 끄는 상태에서는 그 영역의 세팅을 지워 다시 켤 때 이전 상태의 문구를 물려받지 않는다.
  * 포즈/이동 등과 직교하는 단일 책임 태스크. 인터랙션이 여러 개인 기믹은 영역마다 노드를 둔다. 틱하지 않으므로 비용이 없다.
- * 각 상태가 자기 인터랙션 가용 여부·프롬프트를 명시하도록 상태마다 둔다(직접 복원 시에도 일관). 프롬프트를 지정하지 않으면 기믹이 정한 폴백(영역별 고정 문구 → 기본 InteractionPrompt)이 그대로 보이므로, 상태에 따라 문구가 달라지는 영역만 채우면 된다. 메시가 비면 Failed.
+ * 각 상태가 자기 인터랙션 가용 여부·프롬프트를 명시하도록 상태마다 둔다(직접 복원 시에도 일관). 프롬프트는 이 태스크가 유일한 출처라 켜는 상태마다 채워야 한다 — 비우면 그 영역은 문구 없이 표시된다. 메시가 비면 Failed.
  */
 USTRUCT(meta = (DisplayName = "Enable Interaction", Category = "Wx"))
 struct FWxStateTreeTask_EnableInteraction : public FStateTreeTaskCommonBase

@@ -100,13 +100,9 @@ FText AWxGimmick::GetInteractionPrompt(const UActorComponent* Source) const
 	// 맵 키가 비const 포인터라 조회용으로만 const 를 벗긴다(맵을 통해 대상을 수정하지 않는다).
 	UPrimitiveComponent* Mesh = const_cast<UPrimitiveComponent*>(Cast<UPrimitiveComponent>(Source));
 
-	// ST 가 이 영역에 세팅한 상태별 프롬프트를 우선 쓰고, 없으면(태스크에서 프롬프트를 지정하지 않은 기믹/상태) 영역별 폴백으로 내려간다.
-	if (const FText* Prompt = CurrentInteractionPrompts.Find(Mesh))
-	{
-		return *Prompt;
-	}
-
-	return GetDefaultInteractionPrompt(Source);
+	// ST 가 이 영역에 세팅한 상태별 프롬프트가 전부다. 태스크에서 문구를 지정하지 않았으면 표시할 것이 없으므로 공백을 답한다.
+	const FText* Prompt = CurrentInteractionPrompts.Find(Mesh);
+	return Prompt ? *Prompt : FText::GetEmpty();
 }
 
 void AWxGimmick::SetInteractionEnabled(UPrimitiveComponent* Mesh, bool bEnabled)

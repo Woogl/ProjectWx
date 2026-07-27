@@ -78,7 +78,7 @@ public:
 	// 상호작용 응답은 각 구체 기믹이 override 한다. UCLASS(Abstract) 라도 CDO 는 생성되므로 순수 가상은 피하고 PURE_VIRTUAL 로 미구현 계약을 표시한다(미override 시 런타임 에러).
 	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override PURE_VIRTUAL(AWxGimmick::OnInteracted, );
 
-	/** HUD 프롬프트. ST 가 그 메시에 세팅한 현재 값(CurrentInteractionPrompts)을 우선 반환하고, 없으면 GetDefaultInteractionPrompt 로 폴백한다. 우선순위는 베이스가 소유하므로 자식은 이 함수가 아니라 폴백 쪽을 override 한다. */
+	/** HUD 프롬프트. ST 가 그 메시에 세팅한 현재 값(CurrentInteractionPrompts)을 반환하고, 없으면 공백이다. 문구는 전부 'Enable Interaction' 태스크가 상태별로 author 하므로 코드 폴백을 두지 않는다. */
 	virtual FText GetInteractionPrompt(const UActorComponent* Source) const override;
 	//~ End IWxInteractable
 
@@ -112,12 +112,6 @@ protected:
 	virtual void BeginPlay() override;
 
 	/**
-	 * ST 가 상태별 문구를 세팅하지 않았을 때 Source 영역이 표시할 프롬프트. 기본은 기믹 하나짜리 InteractionPrompt 다.
-	 * 상호작용 영역이 여럿인 기믹(예: 엘리베이터)이 이를 override 해 영역별 고정 문구를 고른다 — ST 값 우선 규칙은 베이스가 소유하므로 자식은 폴백만 신경 쓰면 된다.
-	 */
-	virtual FText GetDefaultInteractionPrompt(const UActorComponent* Source) const { return InteractionPrompt; }
-
-	/**
 	 * 라이브 State 변경을 GimmickStateTree 에 통지한다 — 현재 상태 태그를 ST 이벤트로 보내 그 상태의 Required Event 전이를 구동한다.
 	 * 베이스의 복제 State(ReplicatedUsing=OnRep_GimmickState)가 클라에서 갱신될 때 호출되며, 권위 측은 CommitGimmickState 가 직접 호출해 서버·클라가 같은 통지 로직을 공유한다(서버 OnRep 미발화를 메우는 RepNotify 관용구). 트리 미실행 중엔 노옵이다.
 	 */
@@ -130,10 +124,6 @@ protected:
 	 */
 	UPROPERTY(ReplicatedUsing = OnRep_GimmickState, SaveGame, VisibleAnywhere,  meta = (AllowPrivateAccess = "true"))
 	FGameplayTag State;
-
-	/** HUD 리스트에 표시할 기본 상호작용 프롬프트. 영역별·상태별 프롬프트가 없는 기믹/상태의 최종 폴백이다. */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx")
-	FText InteractionPrompt = FText::FromString(TEXT("Interact"));
 
 	/**
 	 * 지금 상호작용이 켜져 있는 영역 메시들. 멤버십 자체가 활성 상태라 따로 담는 bool 이 없다.

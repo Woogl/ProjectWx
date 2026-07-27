@@ -27,7 +27,7 @@ class WXWORLD_API AWxSpawnConsole : public AWxGimmick
 public:
 	AWxSpawnConsole();
 
-	//~ Begin IWxInteractable — 상호작용 시 State 를 Spawned 로 확정(프롬프트는 베이스 InteractionPrompt).
+	//~ Begin IWxInteractable — 상호작용 시 State 를 Spawned 로 확정(프롬프트는 ST_SpawnConsole 의 Enable Interaction 에서 author).
 	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
 	//~ End IWxInteractable
 
