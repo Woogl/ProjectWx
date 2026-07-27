@@ -14,8 +14,8 @@ struct FComponentRequestHandle;
  * 프로젝트 공용 GameState.
  *
  * ModularGameplay 컴포넌트 receiver 이자 Experience 적용 지점이다.
- * GameMode(서버 전용)가 고른 Experience 참조를 복제해, 서버는 직접 호출·클라는 OnRep 으로 각자 자기 사이드의
- * 프레임워크 컴포넌트를 컴포넌트 매니저에 등록한다. 어떤 컴포넌트가 붙는지는 여전히 에셋만 안다.
+ * GameMode(서버 전용)가 고른 Experience 참조를 복제해, 서버는 직접 호출·클라는 OnRep 으로 각자 프레임워크 컴포넌트를
+ * 컴포넌트 매니저에 등록한다. 어떤 컴포넌트가 붙는지는 여전히 에셋만 안다.
  */
 UCLASS()
 class WXGAME_API AWxGameState : public AGameStateBase
@@ -39,7 +39,7 @@ private:
 	UFUNCTION()
 	void OnRep_CurrentExperience();
 
-	/** 넷모드로 사이드를 판정해 자기 사이드 엔트리를 컴포넌트 매니저에 등록한다. 서버·클라 공통 경로. */
+	/** Experience 의 컴포넌트를 매니저에 등록한다. 서버·클라 공통 경로이며, 클라에서 만들 수 없는 복제 컴포넌트만 걸러낸다. */
 	void ApplyExperience();
 
 	/** 이 판의 프레임워크 구성. 서버가 InitGameState 에서 설정하고 클라는 복제로 받는다. */

@@ -3,6 +3,7 @@
 #include "Framework/WxGameState.h"
 
 #include "Components/ControllerComponent.h"
+#include "Components/GameFrameworkComponent.h"
 #include "Components/GameFrameworkComponentManager.h"
 #include "Components/GameStateComponent.h"
 #include "Components/PawnComponent.h"
@@ -71,51 +72,50 @@ void AWxGameState::ApplyExperience()
 		return;
 	}
 
-	// 사이드 판정은 엔진 GameFeatureAction_AddComponents 와 동일 규칙. 리슨 호스트·스탠드얼론은 양쪽을 모두 만족한다.
-	const ENetMode NetMode = GetNetMode();
-	const bool bIsServer = NetMode != NM_Client;
-	const bool bIsClient = NetMode != NM_DedicatedServer;
+	const bool bIsNetClient = GetNetMode() == NM_Client;
 
-	for (const FWxFrameworkComponentEntry& Entry : CurrentExperience->FrameworkComponents)
+	for (const TSubclassOf<UGameFrameworkComponent>& ComponentClass : CurrentExperience->FrameworkComponents)
 	{
-		if (!Entry.ComponentClass)
+		if (!ComponentClass)
 		{
 			continue;
 		}
 
-		const bool bShouldApply = (bIsServer && Entry.bServerComponent) || (bIsClient && Entry.bClientComponent);
-		if (!bShouldApply)
+		// 복제 컴포넌트는 authority 액터에만 생성된다(엔진 UGameFrameworkComponentManager::CreateComponentOnInstance 의 규칙).
+		// 클라에는 서버 사본이 복제로 도착하므로 아무것도 만들지 못할 요청을 남기지 않는다.
+		// 비복제 컴포넌트는 양쪽에 요청하고, 사이드 제한은 컴포넌트가 자기 role·로컬 여부로 스스로 한다.
+		if (bIsNetClient && ComponentClass.GetDefaultObject()->GetIsReplicated())
 		{
 			continue;
 		}
 
 		// 컴포넌트 베이스 클래스로 부착 대상 프레임워크 액터를 자동 추론한다.
 		UClass* ReceiverClass = nullptr;
-		if (Entry.ComponentClass->IsChildOf(UGameStateComponent::StaticClass()))
+		if (ComponentClass->IsChildOf(UGameStateComponent::StaticClass()))
 		{
 			ReceiverClass = AGameStateBase::StaticClass();
 		}
-		else if (Entry.ComponentClass->IsChildOf(UPawnComponent::StaticClass()))
+		else if (ComponentClass->IsChildOf(UPawnComponent::StaticClass()))
 		{
 			// 주의: 클라 OnRep 적용은 라이브 월드 도중이라 소급 스캔이 초기화 끝난 모든 폰(AI 포함)에 닿는다.
-			// 폰 컴포넌트를 엔트리에 넣으려면 그 폰 클래스가 receiver 로 등록돼 있어야 한다.
+			// 폰 컴포넌트를 목록에 넣으려면 그 폰 클래스가 receiver 로 등록돼 있어야 한다.
 			ReceiverClass = APawn::StaticClass();
 		}
-		else if (Entry.ComponentClass->IsChildOf(UControllerComponent::StaticClass()))
+		else if (ComponentClass->IsChildOf(UControllerComponent::StaticClass()))
 		{
 			ReceiverClass = AController::StaticClass();
 		}
-		else if (Entry.ComponentClass->IsChildOf(UPlayerStateComponent::StaticClass()))
+		else if (ComponentClass->IsChildOf(UPlayerStateComponent::StaticClass()))
 		{
 			ReceiverClass = APlayerState::StaticClass();
 		}
 
 		if (!ReceiverClass)
 		{
-			UE_LOG(LogWxGame, Warning, TEXT("ApplyExperience: '%s' 의 부착 대상을 추론할 수 없음(GameState/Pawn/Controller/PlayerState 컴포넌트 아님). 건너뜀."), *GetNameSafe(Entry.ComponentClass.Get()));
+			UE_LOG(LogWxGame, Warning, TEXT("ApplyExperience: '%s' 의 부착 대상을 추론할 수 없음(GameState/Pawn/Controller/PlayerState 컴포넌트 아님). 건너뜀."), *GetNameSafe(ComponentClass.Get()));
 			continue;
 		}
 
-		ComponentRequestHandles.Add(Manager->AddComponentRequest(TSoftClassPtr<AActor>(ReceiverClass), Entry.ComponentClass));
+		ComponentRequestHandles.Add(Manager->AddComponentRequest(TSoftClassPtr<AActor>(ReceiverClass), ComponentClass));
 	}
 }
