@@ -4,25 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "Items/WxRewardTableRow.h"
 #include "WxPlayerController.generated.h"
 
 class AWxCharacterBase;
 class AWxPlayerCharacter;
 class UWxActivatableWidget;
 class UWxDialogueSessionComponent;
-class UWxInventoryManagerComponent;
-class UWxInteractionScannerComponent;
 
 /**
  * 플레이어 컨트롤러.
  * 게임플레이 입력(이동/시선/어빌리티)은 AWxPlayerCharacter가, 메뉴 토글 입력은 UWxHUDLayout(CommonUI 액션)이 소유한다.
  *
- * 인벤토리(UWxInventoryManagerComponent)는 소유 클라이언트 단위로 관리된다.
- * Pawn 라이프사이클(사망/리스폰)과 디커플링되며, 다른 클라이언트에는 복제되지 않아 네트워크 효율적이다.
- *
- * ModularGameplay 컴포넌트 receiver 다 — GameMode 가 요청 등록한 컨트롤러 컴포넌트(인벤토리·PlayerSpawn 등)를 자동 주입받으며, 어떤 컴포넌트가 붙는지 알지 않는다.
- * 인벤토리처럼 복제되는 컴포넌트는 서버에서만 주입되고 클라에는 복제로 도착하므로, 조회는 항상 GetInventoryManager 를 거치고 늦은 도착을 전제해야 한다.
+ * ModularGameplay 컴포넌트 receiver 다 — GameMode 가 요청 등록한 컨트롤러 컴포넌트(인벤토리·상호작용 스캐너·PlayerSpawn 등)를 자동 주입받으며, 어떤 컴포넌트가 붙는지 알지 않는다.
+ * 주입 컴포넌트를 쓰는 쪽(뷰모델 등)이 직접 조회하고 늦은 도착까지 스스로 감당한다 — 본 클래스는 그 컴포넌트들을 중개하지 않는다.
  */
 UCLASS()
 class WXGAME_API AWxPlayerController : public APlayerController
@@ -32,12 +26,6 @@ class WXGAME_API AWxPlayerController : public APlayerController
 public:
 	AWxPlayerController(const FObjectInitializer& ObjectInitializer);
 
-	/** 소유 클라이언트의 인벤토리. 서버는 주입 시점부터, 클라는 복제 도착 후부터 유효하므로 nullptr 을 전제하고 써야 한다. */
-	UWxInventoryManagerComponent* GetInventoryManager() const;
-
-	/** 소유 클라의 상호작용 스캐너 컴포넌트. 뷰모델 리졸버가 조회해 목록·선택·입력 요청을 잇는다. */
-	UWxInteractionScannerComponent* GetInteractionScanner() const { return InteractionScanner; }
-
 	/** 소유 클라의 대화 세션 컴포넌트. 뷰모델 리졸버가 조회해 대사 표시·넘기기 요청을 잇는다. */
 	UWxDialogueSessionComponent* GetDialogueSession() const { return DialogueSession; }
 
@@ -45,16 +33,11 @@ public:
 	virtual void PreInitializeComponents() override;
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-	virtual void OnSubobjectCreatedFromReplication(UObject* NewSubobject) override;
 	//~ End AActor
 
 	virtual void OnRep_Pawn() override;
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
-
-	/** 소유 클라의 상호작용 감지·선택·서버전달 컴포넌트. 스캔·하이라이트는 소유 클라에서만 구동된다. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Interact")
-	TObjectPtr<UWxInteractionScannerComponent> InteractionScanner;
 
 	/** 대화 세션 진행·클라 전달 컴포넌트. NPC 상호작용(서버)이 여기로 진입해 소유 클라에서 세션을 연다. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Dialogue")
@@ -72,14 +55,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|UI")
 	TSoftClassPtr<UWxActivatableWidget> DialogueWidgetClass;
 
-	/**
-	 * 게임 시작 시 이 컨트롤러의 인벤토리에 1회 지급할 기본 아이템 목록.
-	 * 빈(아이템 미지정) 항목은 무시되며, 아이템 정의는 지급 시점에 동기 로드된다.
-	 * 지급은 서버에서만 이뤄지고 결과는 소유 클라이언트로 복제된다.
-	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Inventory")
-	TArray<FWxItemRewardEntry> DefaultInventoryItems;
-
 private:
 	void PushGameHUD();
 
@@ -90,13 +65,4 @@ private:
 
 	UFUNCTION()
 	void HandleDialogueStarted();
-
-	/** 스캐너 컴포넌트의 현재 선택을 전역 선택 VM(UWxViewModel_Selection)에 반영한다. WxWorld→WxUI 브리지(로컬 표시 전용). */
-	void PushSelectionToViewModel();
-
-	UFUNCTION()
-	void HandleInteractionListChanged(const TArray<FText>& Prompts);
-
-	UFUNCTION()
-	void HandleInteractionSelectionChanged(int32 SelectedIndex);
 };

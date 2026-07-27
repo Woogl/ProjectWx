@@ -3,7 +3,6 @@
 #include "MVVM/WxViewModel_Item.h"
 
 #include "Blueprint/UserWidget.h"
-#include "Controller/WxPlayerController.h"
 #include "Engine/Texture2D.h"
 #include "GameFramework/PlayerController.h"
 #include "Inventory/WxInventoryManagerComponent.h"
@@ -181,8 +180,7 @@ UObject* UWxViewModelResolver_Item::CreateInstance(const UClass* ExpectedType, c
 		return ViewModel;
 	}
 
-	const AWxPlayerController* PC = Cast<AWxPlayerController>(UserWidget->GetOwningPlayer());
-	UWxInventoryManagerComponent* Inventory = PC ? PC->GetInventoryManager() : nullptr;
+	UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(UserWidget->GetOwningPlayer());
 	if (Inventory)
 	{
 		ViewModel->Initialize(Inventory, ItemToDisplay);

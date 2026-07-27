@@ -217,12 +217,22 @@ const TArray<FWxInventoryEntry>& FWxInventoryList::GetEntries() const
 // UWxInventoryManagerComponent
 // ─────────────────────────────────────────────────────────────────────────────
 
+FWxOnInventoryReady UWxInventoryManagerComponent::OnAnyInventoryReady;
+
 UWxInventoryManagerComponent::UWxInventoryManagerComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 	, InventoryList(this)
 {
 	SetIsReplicatedByDefault(true);
 	bReplicateUsingRegisteredSubObjectList = true;
+}
+
+void UWxInventoryManagerComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// 주입으로 붙든 복제로 도착하든 등록이 끝나면 여기로 온다. 기다리던 관찰자에게 이제 쓸 수 있음을 알린다.
+	OnAnyInventoryReady.Broadcast(this);
 }
 
 void UWxInventoryManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

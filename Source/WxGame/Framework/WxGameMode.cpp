@@ -10,7 +10,9 @@
 #include "Engine/GameInstance.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
+#include "Inventory/WxInventoryManagerComponent.h"
 #include "WxGame.h"
 
 void AWxGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -59,5 +61,22 @@ void AWxGameMode::InitGame(const FString& MapName, const FString& Options, FStri
 		}
 
 		ComponentRequestHandles.Add(Manager->AddComponentRequest(TSoftClassPtr<AActor>(ReceiverClass), ComponentClass));
+	}
+}
+
+void AWxGameMode::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+
+	if (DefaultInventoryItems.IsEmpty())
+	{
+		return;
+	}
+
+	// 인벤토리 주입은 컨트롤러의 PreInitializeComponents 에서 동기로 끝나므로 여기선 이미 붙어 있다.
+	// 복제 등록 이전이어도 ReadyForReplication 이 기존 엔트리를 back-fill 하므로 지급이 누락되지 않는다.
+	if (UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(NewPlayer))
+	{
+		Inventory->GrantItems(DefaultInventoryItems);
 	}
 }

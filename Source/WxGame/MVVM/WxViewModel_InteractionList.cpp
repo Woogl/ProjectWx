@@ -2,7 +2,6 @@
 
 #include "MVVM/WxViewModel_InteractionList.h"
 #include "Blueprint/UserWidget.h"
-#include "Controller/WxPlayerController.h"
 #include "GameFramework/PlayerController.h"
 #include "Interaction/WxInteractionScannerComponent.h"
 #include "MVVM/WxViewModel_Interaction.h"
@@ -105,8 +104,8 @@ void UWxViewModel_InteractionList::ApplySelection(int32 InSelectedIndex)
 
 UObject* UWxViewModelResolver_InteractionList::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
 {
-	const AWxPlayerController* PC = UserWidget ? Cast<AWxPlayerController>(UserWidget->GetOwningPlayer()) : nullptr;
-	UWxInteractionScannerComponent* Scanner = PC ? PC->GetInteractionScanner() : nullptr;
+	const APlayerController* PC = UserWidget ? UserWidget->GetOwningPlayer() : nullptr;
+	UWxInteractionScannerComponent* Scanner = PC ? PC->FindComponentByClass<UWxInteractionScannerComponent>() : nullptr;
 	if (!Scanner)
 	{
 		return nullptr;

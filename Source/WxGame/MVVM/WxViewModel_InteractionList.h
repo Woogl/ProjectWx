@@ -70,8 +70,8 @@ private:
 /**
  * VM_InteractionList 용 View Bindings Resolver.
  *
- * 위젯을 소유한 AWxPlayerController 의 InteractionScanner 를 끌어와 위젯별 UWxViewModel_InteractionList 를 생성/초기화한다.
- * InteractionScanner 는 PC 의 생성자 서브오브젝트라 위젯이 존재하는 시점엔 항상 사용 가능하다.
+ * 위젯을 소유한 PlayerController 에서 스캐너 컴포넌트를 조회해 위젯별 UWxViewModel_InteractionList 를 생성/초기화한다.
+ * 스캐너는 GameMode 의 FrameworkComponents 주입으로 붙으므로, 등록되지 않은 모드에서는 조회가 비고 VM 도 만들어지지 않는다.
  * WBP 의 View Bindings 에서 Creation Type = Resolver 로 본 클래스를 선택한다.
  */
 UCLASS(EditInlineNew, CollapseCategories)

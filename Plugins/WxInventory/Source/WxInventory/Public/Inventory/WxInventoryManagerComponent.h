@@ -131,6 +131,9 @@ DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventorySlotChanged, UWxItemInstanc
  */
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventoryChargeChanged, UWxItemInstance* /*Instance*/, int32 /*NewCharges*/, int32 /*Delta*/);
 
+/** 인벤토리가 쓸 수 있게 됐다는 브로드캐스트. 소유 액터는 인자로 준 컴포넌트에서 얻는다. */
+DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnInventoryReady, UWxInventoryManagerComponent* /*Inventory*/);
+
 /**
  * PlayerController 에 부착되어 아이템 인스턴스의 생성·소멸·레플리케이션을 관장하는 컴포넌트.
  *
@@ -152,9 +155,16 @@ public:
 	UWxInventoryManagerComponent(const FObjectInitializer& ObjectInitializer);
 
 	//~ Begin UActorComponent interface
+	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void ReadyForReplication() override;
 	//~ End UActorComponent interface
+
+	/**
+	 * 인벤토리가 쓸 수 있게 될 때마다 발행된다. 주입(서버)·복제 도착(클라) 어느 경로든 BeginPlay 로 수렴한다.
+	 * 관찰자가 인벤토리보다 먼저 존재할 수 있어(HUD 뷰모델) 인스턴스가 아니라 클래스 차원에 둔다 — 구독자는 소유 액터로 자기 것인지 가린다.
+	 */
+	static FWxOnInventoryReady OnAnyInventoryReady;
 
 	/**
 	 * 임의 액터에서 인벤토리 매니저를 찾아 반환한다.

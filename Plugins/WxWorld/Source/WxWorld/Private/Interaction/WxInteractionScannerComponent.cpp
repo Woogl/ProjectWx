@@ -14,11 +14,13 @@
 #include "WxGameplayTags.h"
 #include "WxInteractable.h"
 
-UWxInteractionScannerComponent::UWxInteractionScannerComponent()
+UWxInteractionScannerComponent::UWxInteractionScannerComponent(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
 	// Server RPC(ServerInteract) 라우팅을 위해 복제 활성화. 복제 프로퍼티는 없다(스캐너 상태는 클라 로컬).
+	// 주입으로 부착되는 동적 컴포넌트라 기본 서브오브젝트의 안정된 이름이 없다 — 원격에서 이 객체를 해소하는 수단이 복제뿐이다.
 	SetIsReplicatedByDefault(true);
 }
 
@@ -27,8 +29,7 @@ void UWxInteractionScannerComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// 감지는 로컬 어포던스. 소유 클라(리슨호스트 포함)에서만 주기 스캔한다. 데디 서버 PC 는 스캔하지 않는다.
-	const APlayerController* PC = Cast<APlayerController>(GetOwner());
-	if (!PC || !PC->IsLocalController())
+	if (!IsLocalController())
 	{
 		return;
 	}
@@ -320,6 +321,6 @@ bool UWxInteractionScannerComponent::CanInteractNow(const UAbilitySystemComponen
 
 APawn* UWxInteractionScannerComponent::GetOwnerPawn() const
 {
-	const APlayerController* PC = Cast<APlayerController>(GetOwner());
+	const APlayerController* PC = GetController<APlayerController>();
 	return PC ? PC->GetPawn() : nullptr;
 }

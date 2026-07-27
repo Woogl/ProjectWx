@@ -3,11 +3,30 @@
 #include "MVVM/WxViewModel_Inventory.h"
 
 #include "Blueprint/UserWidget.h"
-#include "Controller/WxPlayerController.h"
+#include "GameFramework/PlayerController.h"
 #include "Inventory/WxInventoryManagerComponent.h"
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemInstance.h"
 #include "MVVM/WxViewModel_Item.h"
+
+void UWxViewModel_Inventory::StartObserving(APlayerController* PC)
+{
+	if (!PC)
+	{
+		return;
+	}
+
+	ObservedController = PC;
+
+	// 이미 붙어 있으면(호스트에선 위젯보다 항상 먼저다) 기다릴 것 없이 바로 연결한다.
+	if (UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(PC))
+	{
+		Initialize(Inventory);
+		return;
+	}
+
+	InventoryReadyHandle = UWxInventoryManagerComponent::OnAnyInventoryReady.AddUObject(this, &UWxViewModel_Inventory::HandleInventoryReady);
+}
 
 void UWxViewModel_Inventory::Initialize(UWxInventoryManagerComponent* InInventory)
 {
@@ -49,6 +68,13 @@ void UWxViewModel_Inventory::Deinitialize()
 	CategorizedItems.Reset();
 
 	Super::Deinitialize();
+}
+
+void UWxViewModel_Inventory::BeginDestroy()
+{
+	StopObserving();
+
+	Super::BeginDestroy();
 }
 
 int32 UWxViewModel_Inventory::GetCurrencyAmount(const UWxItemDefinition* ItemDef) const
@@ -164,18 +190,37 @@ void UWxViewModel_Inventory::RefreshCategorizedItems()
 	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(CategorizedItems);
 }
 
+void UWxViewModel_Inventory::HandleInventoryReady(UWxInventoryManagerComponent* Inventory)
+{
+	// 신호는 클래스 차원이라 남의 인벤토리도 온다. 관찰 중인 컨트롤러의 것만 받는다.
+	if (!Inventory || Inventory->GetOwner() != ObservedController.Get())
+	{
+		return;
+	}
+
+	StopObserving();
+	Initialize(Inventory);
+}
+
+void UWxViewModel_Inventory::StopObserving()
+{
+	if (InventoryReadyHandle.IsValid())
+	{
+		UWxInventoryManagerComponent::OnAnyInventoryReady.Remove(InventoryReadyHandle);
+		InventoryReadyHandle.Reset();
+	}
+}
+
 UObject* UWxViewModelResolver_Inventory::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
 {
-	const AWxPlayerController* PC = UserWidget ? Cast<AWxPlayerController>(UserWidget->GetOwningPlayer()) : nullptr;
-	UWxInventoryManagerComponent* InventoryManager = PC ? PC->GetInventoryManager() : nullptr;
-	if (!InventoryManager)
+	APlayerController* PC = UserWidget ? UserWidget->GetOwningPlayer() : nullptr;
+	if (!PC)
 	{
 		return nullptr;
 	}
 
-	// 위젯이 아닌 데이터 소스(인벤토리 매니저)를 Outer 로 생성한다.
-	// 수명은 뷰의 강참조와 BeginDestroy 의 Deinitialize 가 관리한다.
-	UWxViewModel_Inventory* ViewModel = NewObject<UWxViewModel_Inventory>(InventoryManager);
-	ViewModel->Initialize(InventoryManager);
+	// 인벤토리가 아직 없을 수 있으므로 Outer 는 PC 로 잡는다. 연결은 VM 이 관찰로 스스로 처리한다.
+	UWxViewModel_Inventory* ViewModel = NewObject<UWxViewModel_Inventory>(PC);
+	ViewModel->StartObserving(PC);
 	return ViewModel;
 }

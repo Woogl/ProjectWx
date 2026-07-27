@@ -15,6 +15,7 @@ public class WxWorld : ModuleRules
 			"DeveloperSettings",
 			"Engine",
 			"GameplayTags",
+			"ModularGameplay",
 			"StateTreeModule",
 			"UniversalObjectLocator",
 			"WxCore",

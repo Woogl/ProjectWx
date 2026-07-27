@@ -33,6 +33,10 @@
 		{
 			"Name": "GameplayStateTree",
 			"Enabled": true
+		},
+		{
+			"Name": "ModularGameplay",
+			"Enabled": true
 		}
 	]
 }

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "Components/ControllerComponent.h"
 #include "Engine/TimerHandle.h"
 #include "WxInteractionScannerComponent.generated.h"
 
@@ -27,14 +27,16 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionSelectionChanged, in
  * 입력 수신: 본 컴포넌트는 입력을 직접 바인딩하지 않는다. HUD 리스트 위젯이 Enhanced Input 으로 받아 리스트 뷰모델에 넘기고, 뷰모델이 TryInteractSelected/CycleSelection 을 호출한다.
  * 선택 전달: 입력 시 로컬 선택을 읽어 ServerInteract 로 메시 포인터를 원자 전송한다(선택을 복제하지 않으므로 "사이클→즉시입력" 순서가 로컬 동기 읽기로 보장된다).
  * 서버는 Event.Interact(OptionalObject=선택)를 폰 ASC 로 송출해 ServerOnly WxAbility_Interact 가 권위에서 사거리·활성 검증 후 대상 인터페이스를 호출하게 한다.
+ *
+ * 부착은 코드가 아니라 GameMode 에셋의 FrameworkComponents 주입 설정으로 한다(컨트롤러는 본 클래스를 모른다).
  */
-UCLASS(ClassGroup = "Wx", meta = (BlueprintSpawnableComponent))
-class WXWORLD_API UWxInteractionScannerComponent : public UActorComponent
+UCLASS()
+class WXWORLD_API UWxInteractionScannerComponent : public UControllerComponent
 {
 	GENERATED_BODY()
 
 public:
-	UWxInteractionScannerComponent();
+	UWxInteractionScannerComponent(const FObjectInitializer& ObjectInitializer);
 
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
