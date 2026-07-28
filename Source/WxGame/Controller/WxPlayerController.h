@@ -8,6 +8,7 @@
 
 class AWxCharacterBase;
 class AWxPlayerCharacter;
+class UCommonActivatableWidget;
 class UWxDialogueSessionComponent;
 
 /**
@@ -59,4 +60,7 @@ private:
 
 	UFUNCTION()
 	void HandleDialogueEnded();
+
+	/** 대화 중 띄워 둔 대화 창. 세션이 끝날 때 이 창을 닫기 위해 기억한다. */
+	TWeakObjectPtr<UCommonActivatableWidget> DialogueScreen;
 };

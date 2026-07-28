@@ -12,7 +12,7 @@ class UWxDialogueComponent;
 struct FWxDialogueTableRow;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnDialogueStarted);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWxOnDialogueLineChanged, const FText&, Speaker, const FText&, Text);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWxOnDialogueLineChanged, const FText&, Speaker, const FText&, Line);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnDialogueEnded);
 
 /**
@@ -43,7 +43,7 @@ public:
 	 */
 	void StartDialogueRow(const FDataTableRowHandle& StartRow, AActor* Target);
 
-	/** 뷰의 대사 넘기기 요청. 다음 라인으로 가고, 노드가 끝나면 NextRow 를 따라가며, 더 없으면 종료한다. 선택지 노드에선 Choose 를 기다린다. */
+	/** 뷰의 대사 넘기기 요청. NextDialogue 를 따라가고, 더 없으면 종료한다. 선택지 노드에선 Choose 를 기다린다. */
 	void Advance();
 
 	/** 뷰의 선택지 선택 요청. 현재 노드의 Choices[ChoiceIndex] 가 가리키는 노드로 점프한다. */
@@ -56,7 +56,7 @@ public:
 
 	FText GetCurrentSpeaker() const;
 
-	FText GetCurrentText() const;
+	FText GetCurrentLine() const;
 
 	/** 세션이 열렸다. 소유 클라에서만 발행된다. 구독자(PC)가 대화 위젯을 띄운다. */
 	UPROPERTY(BlueprintAssignable, Category = "Wx")
@@ -66,7 +66,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Wx")
 	FWxOnDialogueLineChanged OnLineChanged;
 
-	/** 세션이 끝났다. 구독자(뷰모델)가 대화 위젯을 닫게 한다. */
+	/** 세션이 끝났다. 구독자(PC)가 대화 위젯을 닫는다. */
 	UPROPERTY(BlueprintAssignable, Category = "Wx")
 	FWxOnDialogueEnded OnDialogueEnded;
 
@@ -75,7 +75,7 @@ private:
 	UFUNCTION(Client, Reliable)
 	void ClientStartDialogue(const FDataTableRowHandle& StartRow, AActor* Target);
 
-	/** 이름으로 노드를 찾아 현재 노드로 전환한다. 행이 없거나 대사가 비면 실패한다. */
+	/** 이름으로 노드를 찾아 현재 노드로 전환한다. 행이 없거나 대사가 비어 있으면 실패한다. */
 	bool EnterRow(FName RowName);
 
 	/** 현재 대사를 OnLineChanged 로 발행한다. */
@@ -96,7 +96,4 @@ private:
 
 	/** 현재 노드. Table 의 행 메모리를 가리키며 세션 중에만 유효하다. */
 	const FWxDialogueTableRow* CurrentRow = nullptr;
-
-	/** 현재 노드 안에서 몇 번째 대사인가. EnterRow 가 Lines 비어 있지 않음을 보장한다. */
-	int32 LineIndex = 0;
 };

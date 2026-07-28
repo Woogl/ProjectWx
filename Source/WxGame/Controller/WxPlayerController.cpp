@@ -3,6 +3,7 @@
 #include "Controller/WxPlayerController.h"
 #include "Character/WxCharacterBase.h"
 #include "Character/WxPlayerCharacter.h"
+#include "CommonActivatableWidget.h"
 #include "Components/GameFrameworkComponentManager.h"
 #include "System/WxUIDeveloperSettings.h"
 #include "Widget/WxActivatableWidget.h"
@@ -104,7 +105,8 @@ void AWxPlayerController::HandleCharacterDeath(AWxCharacterBase* DeadCharacter)
 void AWxPlayerController::HandleDialogueStarted()
 {
 	// 대화 위젯은 Game 레이어 스택 top 에 얹혀 HUD 를 잠시 가리고, 닫히면 HUD 가 복귀한다.
-	UWxUILibrary::PushSoftContentToLayer(this, WxGameplayTags::UI_Layer_Game, GetDefault<UWxUIDeveloperSettings>()->DialogueScreenClass);
+	// 띄운 창은 세션이 끝날 때 여기서 닫으므로 인스턴스를 기억해 둔다.
+	DialogueScreen = UWxUILibrary::PushSoftContentToLayer(this, WxGameplayTags::UI_Layer_Game, GetDefault<UWxUIDeveloperSettings>()->DialogueScreenClass);
 
 	// 대화 상대의 카메라로 넘긴다. 액터만 넘기면 AActor::CalcCamera 가 그 액터의 활성 카메라 컴포넌트를 골라 쓰므로 카메라를 직접 꺼내올 필요가 없다.
 	// 대상은 세션이 시작을 발행하기 전에 기억해 두므로 여기서 항상 유효하다.
@@ -116,6 +118,13 @@ void AWxPlayerController::HandleDialogueStarted()
 
 void AWxPlayerController::HandleDialogueEnded()
 {
+	// 창을 띄운 쪽에서 닫는다. 종료 신호를 받아 닫으므로 대화가 어떤 경로로 끝나든 창이 남지 않는다.
+	if (UCommonActivatableWidget* Screen = DialogueScreen.Get())
+	{
+		Screen->DeactivateWidget();
+	}
+	DialogueScreen.Reset();
+
 	// 원래 게임플레이 뷰타겟인 내 폰으로 블렌드 복귀한다.
 	// bLockOutgoing=true: 블렌드 시작 시점의 출발 POV 를 고정해, 대화가 끝난 NPC 가 움직이기 시작해도 복귀가 튀지 않는다.
 	if (APawn* MyPawn = GetPawn())

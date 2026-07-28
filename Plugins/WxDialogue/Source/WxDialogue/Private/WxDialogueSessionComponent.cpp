@@ -37,20 +37,13 @@ void UWxDialogueSessionComponent::Advance()
 		return;
 	}
 
-	if (LineIndex + 1 < CurrentRow->Lines.Num())
-	{
-		++LineIndex;
-		PublishCurrentLine();
-		return;
-	}
-
-	// 마지막 대사다. 선택지가 있으면 Choose 가 진행을 이어받는다.
+	// 선택지가 있으면 Choose 가 진행을 이어받는다.
 	if (!CurrentRow->Choices.IsEmpty())
 	{
 		return;
 	}
 
-	if (CurrentRow->NextRow.IsNone() || !EnterRow(CurrentRow->NextRow))
+	if (CurrentRow->NextDialogue.IsNone() || !EnterRow(CurrentRow->NextDialogue))
 	{
 		EndDialogue();
 		return;
@@ -66,8 +59,8 @@ void UWxDialogueSessionComponent::Choose(int32 ChoiceIndex)
 		return;
 	}
 
-	const FName TargetRow = CurrentRow->Choices[ChoiceIndex].TargetRow;
-	if (TargetRow.IsNone() || !EnterRow(TargetRow))
+	const FName TargetDialogue = CurrentRow->Choices[ChoiceIndex].TargetDialogue;
+	if (TargetDialogue.IsNone() || !EnterRow(TargetDialogue))
 	{
 		EndDialogue();
 		return;
@@ -83,12 +76,12 @@ AActor* UWxDialogueSessionComponent::GetCurrentDialogueTarget() const
 
 FText UWxDialogueSessionComponent::GetCurrentSpeaker() const
 {
-	return CurrentRow ? CurrentRow->Lines[LineIndex].Speaker : FText::GetEmpty();
+	return CurrentRow ? CurrentRow->Speaker : FText::GetEmpty();
 }
 
-FText UWxDialogueSessionComponent::GetCurrentText() const
+FText UWxDialogueSessionComponent::GetCurrentLine() const
 {
-	return CurrentRow ? CurrentRow->Lines[LineIndex].Text : FText::GetEmpty();
+	return CurrentRow ? CurrentRow->Line : FText::GetEmpty();
 }
 
 void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FDataTableRowHandle& StartRow, AActor* Target)
@@ -119,27 +112,25 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FData
 bool UWxDialogueSessionComponent::EnterRow(FName RowName)
 {
 	const FWxDialogueTableRow* Row = Table ? Table->FindRow<FWxDialogueTableRow>(RowName, TEXT("WxDialogueSession")) : nullptr;
-	if (!Row || Row->Lines.IsEmpty())
+	if (!Row || Row->Line.IsEmpty())
 	{
 		return false;
 	}
 
 	CurrentRow = Row;
-	LineIndex = 0;
 
 	return true;
 }
 
 void UWxDialogueSessionComponent::PublishCurrentLine()
 {
-	OnLineChanged.Broadcast(GetCurrentSpeaker(), GetCurrentText());
+	OnLineChanged.Broadcast(GetCurrentSpeaker(), GetCurrentLine());
 }
 
 void UWxDialogueSessionComponent::EndDialogue()
 {
 	Table = nullptr;
 	CurrentRow = nullptr;
-	LineIndex = 0;
 	CurrentTarget.Reset();
 
 	// 시작 때 발행한 대화 상태 태그를 같은 ASC 에서 되돌려 프롬프트 표시·상호작용을 복귀시킨다.

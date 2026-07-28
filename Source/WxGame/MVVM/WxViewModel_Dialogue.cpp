@@ -15,10 +15,9 @@ void UWxViewModel_Dialogue::Initialize(UWxDialogueSessionComponent* InSession)
 	CachedSession = InSession;
 
 	InSession->OnLineChanged.AddDynamic(this, &ThisClass::HandleLineChanged);
-	InSession->OnDialogueEnded.AddDynamic(this, &ThisClass::HandleDialogueEnded);
 
 	// 세션 시드가 구독보다 먼저 끝나 있으므로 현재 대사로 시드한다.
-	HandleLineChanged(InSession->GetCurrentSpeaker(), InSession->GetCurrentText());
+	HandleLineChanged(InSession->GetCurrentSpeaker(), InSession->GetCurrentLine());
 }
 
 void UWxViewModel_Dialogue::Deinitialize()
@@ -26,22 +25,20 @@ void UWxViewModel_Dialogue::Deinitialize()
 	if (UWxDialogueSessionComponent* Session = CachedSession.Get())
 	{
 		Session->OnLineChanged.RemoveDynamic(this, &ThisClass::HandleLineChanged);
-		Session->OnDialogueEnded.RemoveDynamic(this, &ThisClass::HandleDialogueEnded);
 	}
 	CachedSession.Reset();
 
 	Super::Deinitialize();
 }
 
-void UWxViewModel_Dialogue::HandleLineChanged(const FText& InSpeaker, const FText& InText)
+void UWxViewModel_Dialogue::HandleLineChanged(const FText& InSpeaker, const FText& InLine)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(Speaker, InSpeaker);
-	UE_MVVM_SET_PROPERTY_VALUE(LineText, InText);
-}
-
-void UWxViewModel_Dialogue::HandleDialogueEnded()
-{
-	UE_MVVM_SET_PROPERTY_VALUE(bFinished, true);
+	if (UE_MVVM_SET_PROPERTY_VALUE(Speaker, InSpeaker))
+	{
+		// HasSpeaker 는 Speaker 에서 파생되므로 원본이 바뀔 때 함께 알린다.
+		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(HasSpeaker);
+	}
+	UE_MVVM_SET_PROPERTY_VALUE(LineText, InLine);
 }
 
 void UWxViewModel_Dialogue::RequestAdvance()
@@ -50,6 +47,11 @@ void UWxViewModel_Dialogue::RequestAdvance()
 	{
 		Session->Advance();
 	}
+}
+
+bool UWxViewModel_Dialogue::HasSpeaker() const
+{
+	return !Speaker.IsEmpty();
 }
 
 UObject* UWxViewModelResolver_Dialogue::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
