@@ -7,6 +7,7 @@
 #include "WxInteractable.h"
 #include "WxNpc.generated.h"
 
+class UCameraComponent;
 class UCapsuleComponent;
 class USkeletalMeshComponent;
 class UWxDialogueComponent;
@@ -42,6 +43,13 @@ protected:
 	/** 이 NPC 의 대화 정의. 시작 노드는 인스턴스별로 지정한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UWxDialogueComponent> DialogueComponent;
+
+	/**
+	 * 대화 중 플레이어가 보게 될 카메라. 구도는 NPC 마다 다르므로 여기서 기본값만 주고 BP·레벨 인스턴스에서 조정한다.
+	 * 전환 자체는 뷰 타겟을 소유한 PlayerController 가 대화 세션 신호를 받아 처리한다 — 이 액터는 카메라를 들고만 있다.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "Wx|Dialogue")
+	TObjectPtr<UCameraComponent> DialogueCameraComponent;
 
 	/** NPC 표시 이름. 상호작용 프롬프트에 쓰인다. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Dialogue")
