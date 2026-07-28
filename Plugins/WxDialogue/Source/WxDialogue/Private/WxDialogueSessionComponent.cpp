@@ -16,13 +16,18 @@ void UWxDialogueSessionComponent::StartDialogue(UWxDialogueComponent* Dialogue)
 		return;
 	}
 
-	const FDataTableRowHandle& StartRow = Dialogue->GetStartRow();
+	// 정의 컴포넌트는 행과 대상을 꺼내기 위한 껍데기다 — 세션은 행만 안다.
+	StartDialogueRow(Dialogue->GetStartRow(), Dialogue->GetOwner());
+}
+
+void UWxDialogueSessionComponent::StartDialogueRow(const FDataTableRowHandle& StartRow, AActor* Target)
+{
 	if (!StartRow.DataTable || StartRow.RowName.IsNone())
 	{
 		return;
 	}
 
-	ClientStartDialogue(Dialogue);
+	ClientStartDialogue(StartRow, Target);
 }
 
 void UWxDialogueSessionComponent::Advance()
@@ -73,8 +78,7 @@ void UWxDialogueSessionComponent::Choose(int32 ChoiceIndex)
 
 AActor* UWxDialogueSessionComponent::GetCurrentDialogueTarget() const
 {
-	const UWxDialogueComponent* Dialogue = CurrentDialogue.Get();
-	return Dialogue ? Dialogue->GetOwner() : nullptr;
+	return CurrentTarget.Get();
 }
 
 FText UWxDialogueSessionComponent::GetCurrentSpeaker() const
@@ -87,15 +91,8 @@ FText UWxDialogueSessionComponent::GetCurrentText() const
 	return CurrentRow ? CurrentRow->Lines[LineIndex].Text : FText::GetEmpty();
 }
 
-void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(UWxDialogueComponent* Dialogue)
+void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FDataTableRowHandle& StartRow, AActor* Target)
 {
-	// 대상이 클라에서 해석되지 않으면 세션을 열 수 없다(v1 싱글/리슨에선 항상 해석된다).
-	if (!Dialogue)
-	{
-		return;
-	}
-
-	const FDataTableRowHandle& StartRow = Dialogue->GetStartRow();
 	Table = StartRow.DataTable;
 	if (!EnterRow(StartRow.RowName))
 	{
@@ -103,8 +100,8 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(UWxDialogue
 		return;
 	}
 
-	// 관찰자에게 노출할 대화 대상. 세션이 실제로 열린 뒤에만 기억한다.
-	CurrentDialogue = Dialogue;
+	// 관찰자에게 노출할 대화 대상. 세션이 실제로 열린 뒤에만 기억한다. 대상 없는 대사(나레이션)면 그대로 비어 있다.
+	CurrentTarget = Target;
 
 	// 대화 중 상태를 폰 ASC 에 발행한다. 상호작용 어빌리티가 이 태그로 차단되고 스캐너 표시 게이트(프롬프트·하이라이트)도 함께 닫힌다.
 	const AController* Controller = Cast<AController>(GetOwner());
@@ -143,7 +140,7 @@ void UWxDialogueSessionComponent::EndDialogue()
 	Table = nullptr;
 	CurrentRow = nullptr;
 	LineIndex = 0;
-	CurrentDialogue.Reset();
+	CurrentTarget.Reset();
 
 	// 시작 때 발행한 대화 상태 태그를 같은 ASC 에서 되돌려 프롬프트 표시·상호작용을 복귀시킨다.
 	if (UAbilitySystemComponent* ASC = TaggedAbilitySystem.Get())

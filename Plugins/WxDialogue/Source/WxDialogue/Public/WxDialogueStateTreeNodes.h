@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/DataTable.h"
 #include "StateTreeTaskBase.h"
 #include "UniversalObjectLocator.h"
 #include "WxActorTarget.h"
@@ -12,11 +13,14 @@ struct FStateTreeExecutionContext;
 struct FStateTreeTransitionResult;
 
 /**
- * 대화 사실을 StateTree 에서 판정하는 노드.
+ * 대화를 StateTree 에서 출력·판정하는 노드.
  * 대화 시스템을 소유한 본 모듈이 노드까지 함께 제공한다 — 보상 지급 노드를 WxInventory 가, 인디케이터 노드를 WxUI 가 소유하는 것과 같은 모양이라,
  * 퀘스트 같은 소비 도메인이 대화 모듈을 참조하지 않고도 에셋에서 이 노드를 골라 쓸 수 있다.
  *
  * 레벨 액터 지정은 FWxActorTarget(WxCore) 래퍼의 FUniversalObjectLocator 로 배치 액터를 직접 지정한다(스포너·인디케이터 노드와 동일).
+ *
+ *  - WaitDialogueCompleted 는 플레이어가 스스로 건 대화를 관찰만 한다(수주·납품 게이트).
+ *  - PlayDialogue 는 반대로 트리가 대사를 열어 연출한다(독백·무전·처치 후 대사).
  */
 
 // ── WaitDialogueCompleted: 대상과의 대화 완주 대기 ────────────────────────────
@@ -51,6 +55,44 @@ struct FWxStateTreeTask_WaitDialogueCompleted : public FStateTreeTaskCommonBase
 	using FInstanceDataType = FWxStateTreeTask_WaitDialogueCompletedInstanceData;
 
 	FWxStateTreeTask_WaitDialogueCompleted();
+
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
+
+#if WITH_EDITOR
+	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
+#endif
+};
+
+// ── PlayDialogue: 트리가 여는 대화 ────────────────────────────────────────────
+
+USTRUCT()
+struct FWxStateTreeTask_PlayDialogueInstanceData
+{
+	GENERATED_BODY()
+
+	/** 출력할 대화의 시작 노드. 이후 진행(다음 행·선택지)은 대화 데이터가 정한다. */
+	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (RowType = "/Script/WxDialogue.WxDialogueTableRow"))
+	FDataTableRowHandle StartRow;
+};
+
+/**
+ * 진입 시 로컬 플레이어(0번 컨트롤러)의 대화 세션에 지정 대사를 열고, 그 대화가 끝날 때까지 Running 으로 머물다 종료되면 Succeeded 로 완료한다.
+ * 대사를 트리가 소유하므로(대상 액터의 대화 정의가 아니라) 같은 NPC 라도 퀘스트 단계마다 다른 대사를 낼 수 있고, 화자 없는 독백도 낼 수 있다.
+ * 대화 대상을 두지 않으므로 카메라는 플레이어에 머문다 — 특정 액터를 비추는 연출이 필요해지면 별도 태스크로 분리한다.
+ * 세션 부재·StartRow 미지정·행 해석 실패(행 없음·대사 빔)는 완주할 수 없는 잘못된 조립이므로 경고를 남기고 Failed.
+ * 상태를 먼저 떠나도 대화를 끊지 않는다 — 읽던 대사가 사라지는 편이 더 나쁘고, 세션은 자기 데이터를 끝까지 진행한다.
+ * 종료 판정은 권위 측에서 세션 상태를 폴링한다. 0번 컨트롤러 사용과 함께 다른 크로스모듈 노드와 같은 전제(v1 싱글/리슨 호스트)다.
+ */
+USTRUCT(meta = (DisplayName = "Play Dialogue", Category = "Wx"))
+struct FWxStateTreeTask_PlayDialogue : public FStateTreeTaskCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType = FWxStateTreeTask_PlayDialogueInstanceData;
+
+	FWxStateTreeTask_PlayDialogue();
 
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
