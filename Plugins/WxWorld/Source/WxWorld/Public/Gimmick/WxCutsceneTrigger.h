@@ -36,7 +36,7 @@ public:
 	//~ End AWxGimmick
 
 	//~ Begin IWxSavable — 일시 상태라 복원 시 Idle 로 리셋(SaveGame 으로 끌려온 Playing 무시).
-	virtual void OnWxSaveRestored() override;
+	virtual void OnSaveRestored() override;
 	//~ End IWxSavable
 
 	//~ Begin IWxInteractable — 상호작용 시 State 를 Playing 으로 확정(프롬프트는 ST_CutsceneTrigger 의 Enable Interaction 에서 author).

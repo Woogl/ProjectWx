@@ -145,7 +145,7 @@ FGuid AWxGimmick::GetSaveId() const
 	return SaveId;
 }
 
-void AWxGimmick::OnWxSaveRestored()
+void AWxGimmick::OnSaveRestored()
 {
 	// 스트리밍 인 복원은 State 가 ST 시작 이후 직접 직렬화로 들어온다. 실행 중이면 재시작 후 저장된 상태 태그를 복원 진입으로 재송출해 그 상태로 스냅 진입한다.
 	// 미실행(월드 초기화 복원)이면 곧 BeginPlay 가 자동 시작 후 동일 송출을 하므로 건드리지 않는다(이중 처리 방지).
@@ -192,7 +192,7 @@ void AWxGimmick::OnRep_GimmickState()
 
 void AWxGimmick::SendGimmickStateEvent(bool bRestoreEntry)
 {
-	// 트리 미실행 중엔 보낼 수 없다 — 초기 시작은 BeginPlay 가, 스트리밍 복원은 OnWxSaveRestored 가 실행 보장 후 호출한다.
+	// 트리 미실행 중엔 보낼 수 없다 — 초기 시작은 BeginPlay 가, 스트리밍 복원은 OnSaveRestored 가 실행 보장 후 호출한다.
 	if (!StateTree || !StateTree->IsRunning())
 	{
 		return;

@@ -30,7 +30,7 @@ class UStateTreeComponent;
  *
  * WxSave 통합:
  *  - IWxSavable 구현. 자식의 UPROPERTY(SaveGame) State 필드가 슬롯에 기록된다.
- *  - 복원 시 BeginPlay(월드 초기화 복원)·OnWxSaveRestored(스트리밍 인) 가 저장된 State 태그를 StateTree.Restore 마커와 함께 ST 이벤트로 발행한다. 마커가 있으면 일회성 노드들이 이 진입을 라이브 발동이 아닌 복원으로 보아 스냅·스킵한다.
+ *  - 복원 시 BeginPlay(월드 초기화 복원)·OnSaveRestored(스트리밍 인) 가 저장된 State 태그를 StateTree.Restore 마커와 함께 ST 이벤트로 발행한다. 마커가 있으면 일회성 노드들이 이 진입을 라이브 발동이 아닌 복원으로 보아 스냅·스킵한다.
  */
 UCLASS(Abstract)
 class WXWORLD_API AWxGimmick : public AActor, public IWxSavable, public IWxInteractable
@@ -98,7 +98,7 @@ public:
 
 	//~ Begin IWxSavable
 	virtual FGuid GetSaveId() const override;
-	virtual void OnWxSaveRestored() override;
+	virtual void OnSaveRestored() override;
 	//~ End IWxSavable
 
 #if WITH_EDITOR

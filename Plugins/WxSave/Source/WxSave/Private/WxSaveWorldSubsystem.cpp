@@ -399,7 +399,7 @@ bool UWxSaveWorldSubsystem::RestoreActor(const UWxSaveGame& SaveGame, AActor* Ac
 		Component->Serialize(Ar);
 	}
 
-	Savable->OnWxSaveRestored();
+	Savable->OnSaveRestored();
 
 	UE_LOG(LogWxSave, Verbose, TEXT("RestoreActor: '%s' (%s) 복원"), *GetNameSafe(Actor), *ActorId.ToString());
 	return true;

@@ -52,7 +52,7 @@ public:
 
 	//~ Begin IWxSavable
 	virtual FGuid GetSaveId() const override;
-	virtual void OnWxSaveRestored() override;
+	virtual void OnSaveRestored() override;
 	//~ End IWxSavable
 
 protected:

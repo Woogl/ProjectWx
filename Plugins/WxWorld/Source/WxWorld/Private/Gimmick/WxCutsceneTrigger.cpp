@@ -26,7 +26,7 @@ void AWxCutsceneTrigger::BeginPlay()
 	Super::BeginPlay();
 }
 
-void AWxCutsceneTrigger::OnWxSaveRestored()
+void AWxCutsceneTrigger::OnSaveRestored()
 {
 	// 스트리밍 인 복원도 마찬가지로 Playing 을 무시하고 Idle 로 리셋한 뒤, Super 가 RestartLogic + Idle 발행으로 ST 를 Idle 로 진입시킨다.
 	if (HasAuthority())
@@ -34,7 +34,7 @@ void AWxCutsceneTrigger::OnWxSaveRestored()
 		State = WxGameplayTags::Gimmick_CutsceneTrigger_Idle;
 	}
 
-	Super::OnWxSaveRestored();
+	Super::OnSaveRestored();
 }
 
 void AWxCutsceneTrigger::OnInteracted(AActor* Interactor, const UActorComponent* Source)

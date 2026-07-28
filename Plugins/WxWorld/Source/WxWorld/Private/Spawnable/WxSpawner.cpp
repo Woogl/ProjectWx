@@ -97,7 +97,7 @@ FGuid AWxSpawner::GetSaveId() const
 	return SaveId;
 }
 
-void AWxSpawner::OnWxSaveRestored()
+void AWxSpawner::OnSaveRestored()
 {
 	// 슬롯 복원으로 bIsKilled=true 가 적용되었지만 BeginPlay 가 먼저 spawn 한 인스턴스가 남아있다면 정리.
 	if (bIsKilled)
@@ -117,7 +117,7 @@ void AWxSpawner::BeginPlay()
 	if (HasAuthority())
 	{
 		// 정상 흐름에선 BeginPlay 시점에 bIsKilled=false.
-		// 슬롯 복원으로 true 가 들어왔다면 OnWxSaveRestored 가 SpawnedActor 정리를 담당.
+		// 슬롯 복원으로 true 가 들어왔다면 OnSaveRestored 가 SpawnedActor 정리를 담당.
 		// 본 가드는 에디터 디폴트 등으로 true 가 들어오는 경우의 안전망.
 		if (bIsKilled)
 		{
@@ -182,7 +182,7 @@ void AWxSpawner::SpawnTarget()
 	Spawned->FinishSpawning(SpawnTransform);
 
 	// 스포너에 attach 하지 않는다. 스폰 대상은 CMC 로 돌아다니는 캐릭터라, 루트가 붙어 있으면 이동 복제가 ReplicatedMovement 대신 AttachmentReplication(부모 상대 오프셋) 경로를 타 원격 스무딩에서 벗어나고 스포너를 옮기면 딸려 온다.
-	// 수명은 이 약참조와 Respawn/EndPlay/OnWxSaveRestored 의 명시 Destroy 가 관리하므로 부착이 필요 없다.
+	// 수명은 이 약참조와 Respawn/EndPlay/OnSaveRestored 의 명시 Destroy 가 관리하므로 부착이 필요 없다.
 	SpawnedActor = Spawned;
 }
 
