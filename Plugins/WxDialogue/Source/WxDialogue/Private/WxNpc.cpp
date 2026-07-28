@@ -41,11 +41,8 @@ AWxNpc::AWxNpc()
 	DialogueCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("DialogueCameraComponent"));
 	// 메시가 아니라 루트(캡슐)에 붙인다. 메시엔 캐릭터 정렬 보정(Z -90, Yaw -90)이 걸려 있어 거기 기준으로는 구도 수치가 직관과 어긋난다.
 	DialogueCameraComponent->SetupAttachment(CapsuleComponent);
-
-	// 정면(+X)에서 살짝 우측으로 빠진 3/4 미디엄 샷. 눈높이(캡슐 중심 +70)에 두고 같은 높이의 머리를 겨눠 피치는 0 이다.
-	// Yaw -160 은 (110, 40) 에서 원점을 향하는 각이며, 약 117cm 거리는 기본 화각(90도)에서 허리 위가 화면을 채우는 거리다.
-	// 어디까지나 기본값이다 — 실제 구도는 NPC BP·레벨 인스턴스에서 조정한다.
-	DialogueCameraComponent->SetRelativeLocationAndRotation(FVector(110.f, 40.f, 70.f), FRotator(0.f, -160.f, 0.f));
+	
+	DialogueCameraComponent->SetRelativeLocationAndRotation(FVector(160.f, 60.f, 60.f), FRotator(0.f, -160.f, 0.f));
 }
 
 bool AWxNpc::IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const
