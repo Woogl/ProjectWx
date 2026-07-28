@@ -8,7 +8,6 @@
 
 class AWxCharacterBase;
 class AWxPlayerCharacter;
-class UWxActivatableWidget;
 class UWxDialogueSessionComponent;
 
 /**
@@ -43,17 +42,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Dialogue")
 	TObjectPtr<UWxDialogueSessionComponent> DialogueSession;
 
-	/** 플레이어 캐릭터에 빙의하면 Game 레이어에 띄울 HUD. 미지정이면 동작 없음. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|UI")
-	TSubclassOf<UWxActivatableWidget> GameHUDWidgetClass;
-
-	/** 빙의된 캐릭터 사망 시 Menu 레이어에 띄울 위젯. 미지정이면 동작 없음. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|UI")
-	TSoftClassPtr<UWxActivatableWidget> DeathScreenWidgetClass;
-
-	/** 대화 세션이 열리면 Game 레이어에 띄울 대화 위젯. 미지정이면 동작 없음. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|UI")
-	TSoftClassPtr<UWxActivatableWidget> DialogueWidgetClass;
+	/** 대화 카메라로의 전환·복귀 블렌드 시간(초). NPC 별 값이 아니라 대화 연출 전반의 정책이라 여기 둔다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Dialogue")
+	float DialogueCameraBlendTime = 0.75f;
 
 private:
 	void PushGameHUD();
@@ -65,4 +56,7 @@ private:
 
 	UFUNCTION()
 	void HandleDialogueStarted();
+
+	UFUNCTION()
+	void HandleDialogueEnded();
 };

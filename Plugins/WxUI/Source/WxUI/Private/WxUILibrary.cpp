@@ -49,6 +49,17 @@ UWxPrimaryGameLayout* UWxUILibrary::GetPrimaryGameLayout(const UObject* WorldCon
 	return UIManager->GetPrimaryGameLayout();
 }
 
+UCommonActivatableWidget* UWxUILibrary::PushSoftContentToLayer(const UObject* WorldContextObject, FGameplayTag LayerTag, TSoftClassPtr<UCommonActivatableWidget> WidgetClass)
+{
+	UWxUIManagerSubsystem* UIManager = GetUIManagerSubsystem(WorldContextObject);
+	if (!UIManager)
+	{
+		return nullptr;
+	}
+
+	return UIManager->PushSoftContentToLayer(LayerTag, WidgetClass);
+}
+
 void UWxUILibrary::DeactivateOwningActivatable(UWidget* StartingWidget)
 {
 	if (!StartingWidget)

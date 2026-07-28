@@ -25,6 +25,12 @@ public:
 
 	UCommonActivatableWidget* PushContentToLayer(FGameplayTag LayerTag, TSubclassOf<UCommonActivatableWidget> WidgetClass);
 
+	/**
+	 * 소프트 클래스를 동기 로드해 레이어에 push 한다.
+	 * 클래스 미지정·로드 실패면 아무 것도 하지 않는다. 로드 지연이 문제되는 경로는 UWxAsyncAction_PushWidgetToLayer 를 쓴다.
+	 */
+	UCommonActivatableWidget* PushSoftContentToLayer(FGameplayTag LayerTag, const TSoftClassPtr<UCommonActivatableWidget>& WidgetClass);
+
 	UCommonActivatableWidget* PushWidgetInstanceToLayer(FGameplayTag LayerTag, UCommonActivatableWidget* WidgetInstance);
 
 	/**

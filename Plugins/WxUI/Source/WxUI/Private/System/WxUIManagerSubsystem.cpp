@@ -94,6 +94,16 @@ UCommonActivatableWidget* UWxUIManagerSubsystem::PushContentToLayer(FGameplayTag
 	return Widget;
 }
 
+UCommonActivatableWidget* UWxUIManagerSubsystem::PushSoftContentToLayer(FGameplayTag LayerTag, const TSoftClassPtr<UCommonActivatableWidget>& WidgetClass)
+{
+	if (WidgetClass.IsNull())
+	{
+		return nullptr;
+	}
+
+	return PushContentToLayer(LayerTag, WidgetClass.LoadSynchronous());
+}
+
 UCommonActivatableWidget* UWxUIManagerSubsystem::PushWidgetInstanceToLayer(FGameplayTag LayerTag, UCommonActivatableWidget* WidgetInstance)
 {
 	if (!PrimaryGameLayout || !WidgetInstance)
