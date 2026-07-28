@@ -74,6 +74,11 @@ AActor* UWxDialogueSessionComponent::GetCurrentDialogueTarget() const
 	return CurrentTarget.Get();
 }
 
+const FDataTableRowHandle& UWxDialogueSessionComponent::GetCurrentStartRow() const
+{
+	return CurrentStartRow;
+}
+
 FText UWxDialogueSessionComponent::GetCurrentSpeaker() const
 {
 	return CurrentRow ? CurrentRow->Speaker : FText::GetEmpty();
@@ -86,10 +91,10 @@ FText UWxDialogueSessionComponent::GetCurrentLine() const
 
 void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FDataTableRowHandle& StartRow, AActor* Target)
 {
-	Table = StartRow.DataTable;
+	CurrentStartRow = StartRow;
 	if (!EnterRow(StartRow.RowName))
 	{
-		Table = nullptr;
+		CurrentStartRow = FDataTableRowHandle();
 		return;
 	}
 
@@ -111,6 +116,7 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FData
 
 bool UWxDialogueSessionComponent::EnterRow(FName RowName)
 {
+	const UDataTable* Table = CurrentStartRow.DataTable;
 	const FWxDialogueTableRow* Row = Table ? Table->FindRow<FWxDialogueTableRow>(RowName, TEXT("WxDialogueSession")) : nullptr;
 	if (!Row || Row->Line.IsEmpty())
 	{
@@ -129,7 +135,7 @@ void UWxDialogueSessionComponent::PublishCurrentLine()
 
 void UWxDialogueSessionComponent::EndDialogue()
 {
-	Table = nullptr;
+	CurrentStartRow = FDataTableRowHandle();
 	CurrentRow = nullptr;
 	CurrentTarget.Reset();
 

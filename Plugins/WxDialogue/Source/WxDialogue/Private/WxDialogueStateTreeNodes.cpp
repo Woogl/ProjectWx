@@ -6,18 +6,11 @@
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "StateTreeExecutionContext.h"
-#include "UniversalObjectLocators/ActorLocatorFragment.h"
 #include "WxDialogueModule.h"
 #include "WxDialogueSessionComponent.h"
 
 namespace
 {
-	/** 로케이터를 ST 오너 컨텍스트로 대상 액터로 해석한다. 빈 로케이터·미로드(스트리밍 아웃)는 nullptr. */
-	AActor* ResolveTargetActor(const FUniversalObjectLocator& Locator, AActor* Owner)
-	{
-		return Cast<AActor>(Locator.SyncFind(Owner));
-	}
-
 	/** 로컬 플레이어(0번 컨트롤러)의 대화 세션. 세션은 대화를 건 플레이어의 컨트롤러에 있다. */
 	UWxDialogueSessionComponent* FindDialogueSession(const AActor* Owner)
 	{
@@ -26,30 +19,10 @@ namespace
 	}
 
 #if WITH_EDITOR
-	/** 로케이터의 표시명. 에디터에서 해석되면 액터 라벨(아웃라이너와 동일), 미해석이면 경로 끝 오브젝트 이름, 빈 로케이터는 unset. */
-	FText GetTargetText(const FUniversalObjectLocator& Locator)
+	/** 대화 행의 표시명. 미지정이면 unset. */
+	FText GetStartRowText(const FDataTableRowHandle& StartRow)
 	{
-		if (Locator.IsEmpty())
-		{
-			return INVTEXT("unset");
-		}
-
-		if (const AActor* Actor = Cast<AActor>(Locator.SyncFind()))
-		{
-			return FText::FromString(Actor->GetActorLabel());
-		}
-
-		// 미해석(언로드 등)이면 액터 프래그먼트의 소프트 경로 끝 이름이라도 보여준다.
-		const FUniversalObjectLocatorFragment* Fragment = Locator.GetLastFragment();
-		const FActorLocatorFragment* Payload = nullptr;
-		if (Fragment && Fragment->TryGetPayloadAs(FActorLocatorFragment::FragmentType, Payload) && Payload)
-		{
-			const FString SubPath = Payload->Path.GetSubPathString();
-			int32 DotIndex = INDEX_NONE;
-			return FText::FromString(SubPath.FindLastChar(TEXT('.'), DotIndex) ? SubPath.Mid(DotIndex + 1) : SubPath);
-		}
-
-		return INVTEXT("unresolved");
+		return StartRow.RowName.IsNone() ? INVTEXT("unset") : FText::FromName(StartRow.RowName);
 	}
 #endif
 }
@@ -66,10 +39,10 @@ EStateTreeRunStatus FWxStateTreeTask_WaitDialogueCompleted::EnterState(FStateTre
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 대상 미지정은 완료될 수 없는 잘못된 조립이다. 침묵 대기 대신 경고를 남긴다.
-	if (Instance.Target.Locator.IsEmpty())
+	// 행 미지정은 어떤 대화와도 같지 않아 완료될 수 없는 잘못된 조립이다. 침묵 대기 대신 경고를 남긴다.
+	if (!Instance.StartRow.DataTable || Instance.StartRow.RowName.IsNone())
 	{
-		UE_LOG(LogWxDialogue, Warning, TEXT("Wait Dialogue Completed: 대상이 지정되지 않음(Target 빈 로케이터)."));
+		UE_LOG(LogWxDialogue, Warning, TEXT("Wait Dialogue Completed: 대기할 대화가 지정되지 않음(StartRow)."));
 	}
 
 	// 이전 실행의 잔존 기록을 비운다. 진입 이전의 대화는 세지 않는다.
@@ -82,22 +55,15 @@ EStateTreeRunStatus FWxStateTreeTask_WaitDialogueCompleted::Tick(FStateTreeExecu
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	AActor* Owner = Cast<AActor>(Context.GetOwner());
-	if (!Owner)
+	// 세션 부재(컨트롤러 미생성 등) 동안은 판정 없이 대기한다.
+	const UWxDialogueSessionComponent* Session = FindDialogueSession(Cast<AActor>(Context.GetOwner()));
+	if (!Session)
 	{
 		return EStateTreeRunStatus::Running;
 	}
 
-	// 미해석(빈 로케이터·스트리밍 아웃)·세션 부재 동안은 판정 없이 대기한다.
-	const AActor* Target = ResolveTargetActor(Instance.Target.Locator, Owner);
-	const UWxDialogueSessionComponent* Session = FindDialogueSession(Owner);
-	if (!Target || !Session)
-	{
-		return EStateTreeRunStatus::Running;
-	}
-
-	// 대상과 대화 중이면 목격을 기록하고, 목격 후 대상과의 대화가 아니게 되면(종료·전환) 완주다.
-	if (Session->GetCurrentDialogueTarget() == Target)
+	// 지정 대화가 진행 중이면 목격을 기록하고, 목격 후 그 대화가 아니게 되면(종료·다른 대화) 완주다.
+	if (Session->HasActiveDialogue() && Session->GetCurrentStartRow() == Instance.StartRow)
 	{
 		Instance.bObservedDialogue = true;
 	}
@@ -115,7 +81,7 @@ FText FWxStateTreeTask_WaitDialogueCompleted::GetDescription(const FGuid& ID, FS
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Wait Dialogue Completed ({0})"), GetTargetText(InstanceData->Target.Locator));
+	return FText::Format(INVTEXT("Wait Dialogue Completed ({0})"), GetStartRowText(InstanceData->StartRow));
 }
 #endif
 
@@ -172,8 +138,6 @@ FText FWxStateTreeTask_PlayDialogue::GetDescription(const FGuid& ID, FStateTreeD
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	const FName RowName = InstanceData->StartRow.RowName;
-
-	return FText::Format(INVTEXT("Play Dialogue ({0})"), RowName.IsNone() ? INVTEXT("unset") : FText::FromName(RowName));
+	return FText::Format(INVTEXT("Play Dialogue ({0})"), GetStartRowText(InstanceData->StartRow));
 }
 #endif
