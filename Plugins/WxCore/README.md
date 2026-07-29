@@ -24,7 +24,7 @@
 | --- | --- | --- |
 | `WxGameplayTags` (namespace) | 프로젝트 전역 Native Tag 선언부. 다른 모듈이 참조하는 상태/이벤트 어휘집 | `Source/WxCore/Public/WxGameplayTags.h` |
 | `IWxInteractable` | 상호작용 대상 계약. 대상 액터가 직접 구현, 소비처는 `Find`로 조회 | `Source/WxCore/Public/WxInteractable.h` |
-| `IWxSavable` | 세이브 라이프사이클 참여 마커 + 후크(`GetSaveId`/`OnWxSaveRestored`) | `Source/WxCore/Public/WxSavable.h` |
+| `IWxSavable` | 세이브 라이프사이클 참여 마커 + 후크(`GetSaveId`/`OnSaveRestored`) | `Source/WxCore/Public/WxSavable.h` |
 | `ECC_WxAttack` | 무기·투사체 히트박스용 커스텀 Object Channel 상수(`ECC_GameTraceChannel1`) | `Source/WxCore/Public/WxCollisionChannels.h` |
 | `FWxActorTarget` | UOL을 감싸 ST 인스턴스 데이터 픽커 제한(5.8)을 우회하는 래퍼 | `Source/WxCore/Public/WxActorTarget.h` |
 | `FWxCoreModule` | 모듈 진입점(Startup/Shutdown, 별도 부트스트랩 없음) | `Source/WxCore/Public/WxCoreModule.h` |
@@ -45,7 +45,7 @@
 ## 확장 포인트 / 규약
 - **태그 추가**: `WxGameplayTags.h`에 `UE_DECLARE_GAMEPLAY_TAG_EXTERN`, `WxGameplayTags.cpp`에 정의를 쌍으로 작성. 다른 모듈에서 임의 선언 금지.
 - **상호작용 대상 만들기**: 대상 액터가 `IWxInteractable`를 구현(BP 불가 — `CannotImplementInterfaceInBlueprint`)하고 `IsInteractionMeshActive`(어느 메시가 지금 켜진 영역인가 — 표식과 활성을 겸함)·`OnInteracted`(서버 권위 응답)·`GetInteractionPrompt`(스캐너 pull)를 채운다. 셋 다 `Source` 메시를 받아 한 액터의 여러 영역(예: 엘리베이터)을 가른다. 주체별 자격이 갈리면(예: 뒤잡) `CanBeInteractedBy` 오버라이드. 소비처는 항상 `IWxInteractable::Find(Mesh)`를 거치므로 계약이 액터→컴포넌트로 내려가도 조회 지점 한 곳만 바뀐다. 영역 메시엔 쿼리 콜리전 필요(감지·사거리를 형상으로 잰다).
-- **세이브 참여**: 액터가 `IWxSavable` 구현 + 보존 필드에 `UPROPERTY(SaveGame)` 표시. `GetSaveId()`는 세션 불변 `FGuid` 반환(무효 GUID면 저장/복원 제외 — `GetActorGuid`가 에디터 전용이라 영속 UPROPERTY로 대체), 복원 후처리는 `OnWxSaveRestored()`(BeginPlay 이전 호출 가능).
+- **세이브 참여**: 액터가 `IWxSavable` 구현 + 보존 필드에 `UPROPERTY(SaveGame)` 표시. `GetSaveId()`는 세션 불변 `FGuid` 반환(무효 GUID면 저장/복원 제외 — `GetActorGuid`가 에디터 전용이라 영속 UPROPERTY로 대체), 복원 후처리는 `OnSaveRestored()`(BeginPlay 이전 호출 가능).
 - **계약이 WxCore에 있는 이유**: 소비 도메인(예: WxInventory 픽업, WxWorld 기믹)이 WxWorld·WxSave에 직접 의존하지 않고도 계약을 구현하게 하는 결합 차단 장치.
 - **콜리전 채널 추가**: `ECC_Wx*` 상수와 `Config/DefaultEngine.ini` 채널 등록 순서가 일치해야 함.
 
@@ -58,4 +58,4 @@
 - 상위(소비): 모든 Wx 도메인 플러그인([[WxCombat]] 태그·Event·SetByCaller, [[WxWorld]] `IWxInteractable`·`Gimmick.*`, [[WxSave]] `IWxSavable`·`StateTree.Restore`, [[WxUI]] `UI.Layer/Action.*`, [[WxQuest]] `Quest.Fail`, [[WxInventory]]·[[WxAI]]·[[WxDialogue]])과 게임 모듈 [[WxGame]]이 WxCore를 참조.
 
 ---
-*문서 기준 커밋 `21e2e76` · 생성일 2026-07-27 · 소스 9파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `a5b5f20` · 생성일 2026-07-29 · 소스 9파일 — `/readme-writer`로 갱신*

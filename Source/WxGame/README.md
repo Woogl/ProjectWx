@@ -9,7 +9,7 @@
 - 게임 모듈 고유 어빌리티(`WxAbility_Interact`/`WxAbility_UseItem`)와 그 AnimNotify(`WxAnimNotify_UseItem`)
 - 플러그인 컴포넌트를 컨트롤러·캐릭터에 부착·배선(인벤토리/상호작용 스캐너/대화 세션/락온/네임플레이트 등)
 - 플러그인 데이터를 WxUI 뷰모델에 주입하는 MVVM 리졸버·브리지 뷰모델(`MVVM/`)
-- 게임 고유 월드 오브젝트 `AWxLaserCorridor`(WxWorld `AWxGimmick` 파생 트랩)
+- 게임 고유 프레임워크 파생물: 비대칭 중력 이동(`UWxCharacterMovementComponent`), 개발용 콘솔 치트(`UWxCheatManager`), PIE 다중 세션 GF 활성 카운팅(`UWxExperienceManager` 엔진 서브시스템)
 
 **경계 (비담당)**
 - ASC/AttributeSet/무기/락온/처형 규칙·어빌리티 베이스 정의 — [[WxCombat]] (본 모듈은 컴포넌트를 조립·소유만)
@@ -44,7 +44,8 @@
 - `AddComponents` 엔트리의 bClient/bServer 플래그는 기본값(양측 true)을 유지한다 — 사이드 제한은 **컴포넌트 스스로** 한다(권위 전용은 `HasAuthority` 가드, 로컬 표시 전용은 `IsLocalController` 가드). 복제 컴포넌트만 엔진이 authority로 제한한다.
 - 미니게임·사이드미션 같은 탈부착 콘텐츠는 `Plugins/GameFeatures/`의 GF 플러그인(초기 상태 Registered)으로 패키징하고, 그걸 켜는 Experience 에셋의 `GameFeaturesToEnable`에 이름을 적는다. GF 플러그인은 DAG 최상단이라 WxGame·도메인 참조 가능, 역참조 금지. 이름은 GF 표식 없이 `Wx`+콘텐츠명으로 짓는다. 축 전체는 2026-07-29 샘플로 실증 후 정리됐다(절차·함정은 워크로그 참고).
 - 로드는 비동기다 — 로드 완료에 의존하는 초기화는 `CallOrRegister_OnExperienceLoaded`로 대기하고, 주입 컴포넌트가 로그인 이벤트에 의존하면 부착이 로그인보다 늦은 경우의 캐치업을 자기 `OnRegister`에 마련한다(예: WxSave `UWxPlayerSpawnComponent`).
-- 새 월드 오브젝트/기믹은 [[WxWorld]] `AWxGimmick` 상속(예: `AWxLaserCorridor`). 권위 State만 C++가 확정·복제하고 비주얼·스폰은 GimmickStateTree가 담당하는 패턴.
+- 새 월드 오브젝트/기믹은 [[WxWorld]] `AWxGimmick` 상속. 권위 State만 C++가 확정·복제하고 비주얼·스폰은 GimmickStateTree가 담당하는 패턴.
+- 개발용 치트는 `UWxCheatManager`(`Cheat/`, Exec 함수)에 추가한다 — Standalone·에디터에서만 생성되고 그때가 곧 권위 측이라 권위 가드 없이 정상 대미지·사망 파이프라인을 그대로 탄다. 배포 빌드엔 존재하지 않는다.
 - MVVM 글루: WxUI 뷰모델이 게임 모듈을 참조할 수 없으므로, 양쪽에 의존하는 리졸버·브리지 뷰모델(`MVVM/`)이 플러그인 데이터를 위젯에 잇는다. WBP의 View Bindings에서 Creation Type=Resolver로 선택하면 유일한 주입 통로가 된다.
 
 ## 여기서부터 읽어라
@@ -57,4 +58,4 @@
 - 상위: 조립하는 플러그인 [[WxCombat]] · [[WxUI]] · [[WxWorld]] · [[WxInventory]] · [[WxDialogue]] · [[WxQuest]] · [[WxAI]] · [[WxSave]] · [[WxCore]]
 
 ---
-*문서 기준 커밋 `21e2e76` · 생성일 2026-07-27 · 소스 49파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `a5b5f20` · 생성일 2026-07-29 · 소스 59파일 — `/readme-writer`로 갱신*
