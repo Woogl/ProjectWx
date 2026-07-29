@@ -16,7 +16,6 @@ public class WxDialogue : ModuleRules
 			"GameplayAbilities",
 			"GameplayTags",
 			"StateTreeModule",
-			"UniversalObjectLocator",
 			"WxCore",
 		});
 	}
