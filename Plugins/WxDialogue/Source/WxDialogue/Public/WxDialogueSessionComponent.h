@@ -7,9 +7,9 @@
 #include "Engine/DataTable.h"
 #include "WxDialogueSessionComponent.generated.h"
 
-class ACameraActor;
 class APlayerController;
 class UAbilitySystemComponent;
+class USpringArmComponent;
 class UWxDialogueComponent;
 struct FWxDialogueTableRow;
 
@@ -30,8 +30,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnDialogueEnded);
  *
  * UI 는 모른다 — 시작·대사·종료를 델리게이트로 발행하고, 구독자(PC·뷰모델)가 위젯을 잇는다.
  *
- * 반면 대화 카메라는 여기서 직접 든다. 컨트롤러에 붙어 있어 뷰 타겟에 손이 닿고, 구도의 재료인 대상·시작·종료를 이미 다 알기 때문이다.
- * 구도는 NPC 가 들고 있는 값이 아니라 대화가 열리는 순간 플레이어와 대상의 위치에서 계산된다 — 어느 방향에서 말을 걸든 같은 품질의 샷이 나온다.
+ * 반면 대화 카메라는 여기서 직접 든다. 컨트롤러에 붙어 있어 컨트롤 회전에 손이 닿고, 구도의 재료인 대상·시작·종료를 이미 다 알기 때문이다.
+ * 카메라를 갈아끼우지는 않는다 — 뷰 타겟은 플레이어 폰에 그대로 두고, 평소 쓰는 3인칭 팔로우 카메라를 대화 동안만 대상 쪽으로 돌리고 앞으로 당긴다.
  */
 UCLASS()
 class WXDIALOGUE_API UWxDialogueSessionComponent : public UActorComponent
@@ -39,6 +39,11 @@ class WXDIALOGUE_API UWxDialogueSessionComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
+	UWxDialogueSessionComponent();
+
+	/** 대화 카메라 조정. 세션이 열려 있는 동안만 돌고, 복귀를 마치면 스스로 멈춘다. */
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
 	/** 서버 권위 진입점. 상호작용 응답이 대상의 대화 정의를 넘겨 호출하면 소유 클라에서 세션이 열린다. */
 	void StartDialogue(UWxDialogueComponent* Dialogue);
 
@@ -80,30 +85,26 @@ public:
 
 protected:
 	/**
-	 * 대화 카메라 구도 파라미터.
-	 * 구도가 매번 계산되므로 NPC 가 들고 있을 값이 없다 — 대화 연출 전반의 정책으로 여기 모아 둔다.
+	 * 대화 카메라 조정 파라미터.
+	 * 대상이 아니라 대화 연출 전반의 정책이라 여기 모아 둔다.
 	 * 본 컴포넌트는 PlayerController 의 기본 서브오브젝트라 컨트롤러 BP 의 디테일 패널에서 조정한다.
 	 */
 
-	/** 대화 카메라로의 전환·복귀 블렌드 시간(초). */
+	/** 대화 중 당길 스프링암 길이(cm). 평소 팔 길이에서 이만큼 줄인다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Camera")
-	float CameraBlendTime = 0.75f;
+	float CameraZoomDistance = 100.f;
 
-	/** 눈높이. 액터 원점(캡슐 중심) 기준 Z 오프셋이며 카메라 높이와 응시점 높이 양쪽에 쓴다 — 평지면 피치가 0 으로 떨어진다. */
+	/** 대화 중 카메라가 어깨 쪽으로 비껴서는 거리(cm). 0 이면 플레이어 등 뒤 정중앙이라 대상이 등에 가린다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Camera")
-	float CameraEyeHeight = 70.f;
+	float CameraShoulderOffset = 60.f;
 
-	/** 플레이어→대상 축 위에서 카메라가 설 지점. 0 이 플레이어, 1 이 대상이다. */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Camera", meta = (ClampMin = "0.0", ClampMax = "1.0"))
-	float CameraPivotAlpha = 0.5f;
-
-	/** 축에서 옆으로 비껴서는 거리(cm). 0 이면 두 사람을 잇는 선 위에 그대로 서서 대상 정면을 잡는다. */
+	/** 줌·어깨 오프셋 보간 속도. 대화가 열릴 때와 끝나고 되돌아올 때 양쪽에 쓴다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Camera")
-	float CameraLateralOffset = 120.f;
+	float CameraZoomSpeed = 12.f;
 
-	/** 대화 샷 시야각. 플레이어 팔로우 카메라(90)보다 좁혀 인물을 크게 잡는다. */
+	/** 대상을 향해 도는 속도. 겨누는 자리가 회전을 따라 함께 움직이므로 실제로 도는 속도는 이 값보다 느리다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Camera")
-	float CameraFov = 60.f;
+	float CameraTurnSpeed = 15.f;
 
 private:
 	/** 시작 행을 소유 클라로 넘겨 세션을 시드하고 시작을 발행한다. 대상 액터는 관찰자 노출을 위해 세션 동안 기억한다. */
@@ -119,21 +120,14 @@ private:
 	/** 세션을 비우고 종료를 발행한다. */
 	void EndDialogue();
 
-	/** 계산한 구도에 임시 카메라를 세우고 뷰 타겟을 그리로 넘긴다. 대상이 없거나(나레이션) 구도를 못 세우면 뷰가 폰에 머문다. */
-	void ActivateDialogueCamera(AActor* Target);
+	/** 평소 팔 길이를 재 두고 카메라 조정을 시작한다. 대상 없는 대사(나레이션)면 카메라를 건드리지 않는다. */
+	void BeginDialogueCamera();
 
-	/** 뷰 타겟을 폰으로 되돌리고 쓰던 대화 카메라를 회수한다. */
-	void RestoreGameplayCamera();
-
-	/**
-	 * 플레이어와 대상 사이에 설 대화 카메라의 위치·회전을 계산한다.
-	 * 두 사람을 잇는 축 위 CameraPivotAlpha 지점에서 옆으로 비껴서서 대상의 눈높이를 바라보는 2-shot 이다.
-	 * 폰이 없거나 둘이 겹쳐 축을 세울 수 없으면 false.
-	 */
-	bool ComputeDialogueCameraView(const APlayerController* PlayerController, const AActor* Target, FVector& OutLocation, FRotator& OutRotation) const;
-
-	/** 오너 컨트롤러를 로컬 플레이어 컨트롤러로 얻는다. 뷰 타겟은 로컬 어포던스라 그 밖에선 null 을 답해 카메라 경로를 통째로 건너뛴다. */
+	/** 오너 컨트롤러를 로컬 플레이어 컨트롤러로 얻는다. 카메라는 로컬 어포던스라 그 밖에선 null 을 답해 카메라 경로를 통째로 건너뛴다. */
 	APlayerController* GetLocalPlayerController() const;
+
+	/** 조정 대상인 팔로우 카메라의 스프링암. 폰의 것이므로 폰이 없으면 null. */
+	USpringArmComponent* FindCameraBoom() const;
 
 	/** 세션 동안 State.Dialogue 를 발행해 둔 폰 ASC. 종료 시 같은 ASC 에서 되돌리기 위해 기억한다(도중 폰 교체 대비). */
 	TWeakObjectPtr<UAbilitySystemComponent> TaggedAbilitySystem;
@@ -151,6 +145,8 @@ private:
 	/** 현재 노드의 행 이름. 행 구조체가 자기 이름을 모르므로 관찰자에게 노출할 신원을 세션이 따로 기억한다. */
 	FName CurrentRowName;
 
-	/** 대화 중 뷰 타겟으로 쓰는 임시 카메라. 시작 때 계산한 구도로 스폰하고 종료 때 회수한다. */
-	TWeakObjectPtr<ACameraActor> DialogueCamera;
+	/** 대화가 카메라를 건드리기 전의 팔 길이·어깨 오프셋. 종료 후 여기로 되돌아간다. */
+	float RestoreArmLength = 0.f;
+
+	float RestoreShoulderOffset = 0.f;
 };

@@ -3,18 +3,64 @@
 #include "WxDialogueSessionComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "Camera/CameraActor.h"
-#include "Camera/CameraComponent.h"
-#include "Camera/PlayerCameraManager.h"
-#include "CollisionQueryParams.h"
-#include "CollisionShape.h"
-#include "Engine/World.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "WxDialogueComponent.h"
 #include "WxDialogueTableRow.h"
 #include "WxGameplayTags.h"
+
+UWxDialogueSessionComponent::UWxDialogueSessionComponent()
+{
+	// 카메라를 조정하는 동안만 돈다. 시작 때 켜고, 대화가 끝나 원래 값으로 돌아오면 틱이 스스로 꺼진다.
+	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bStartWithTickEnabled = false;
+}
+
+void UWxDialogueSessionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	USpringArmComponent* CameraBoom = FindCameraBoom();
+	if (!CameraBoom)
+	{
+		// 폰이 사라졌으면 되돌릴 카메라도 없다. 다음 대화가 다시 켠다.
+		SetComponentTickEnabled(false);
+		return;
+	}
+
+	// 목표는 대화가 살아 있는지에서 그대로 나온다 — 끝나면 같은 보간이 원래 값으로 되돌리므로 진행 상태를 따로 들지 않는다.
+	const AActor* Target = CurrentTarget.Get();
+	const float DesiredArmLength = Target ? RestoreArmLength - CameraZoomDistance : RestoreArmLength;
+	const float DesiredShoulderOffset = Target ? CameraShoulderOffset : RestoreShoulderOffset;
+
+	CameraBoom->TargetArmLength = FMath::FInterpTo(CameraBoom->TargetArmLength, DesiredArmLength, DeltaTime, CameraZoomSpeed);
+	CameraBoom->SocketOffset.Y = FMath::FInterpTo(CameraBoom->SocketOffset.Y, DesiredShoulderOffset, DeltaTime, CameraZoomSpeed);
+
+	if (!Target)
+	{
+		// 되돌리기를 마쳤으면 더 돌 이유가 없다. FInterpTo 는 목표에 닿으면 목표값을 그대로 돌려주므로 여기서 정확히 걸린다.
+		if (FMath::IsNearlyEqual(CameraBoom->TargetArmLength, RestoreArmLength) && FMath::IsNearlyEqual(CameraBoom->SocketOffset.Y, RestoreShoulderOffset))
+		{
+			SetComponentTickEnabled(false);
+		}
+		return;
+	}
+
+	// 대상을 향해 카메라를 돌린다. 대화 중에도 시선 입력이 살아 있어 한 번 맞춘 각은 곧 풀리므로, 락온과 같이 매 틱 붙잡는다.
+	APlayerController* PlayerController = GetLocalPlayerController();
+	if (!PlayerController)
+	{
+		return;
+	}
+
+	// 겨누는 출발점은 폰이 아니라 카메라가 실제로 서 있는 자리다. 어깨 쪽으로 비껴선 만큼 각이 저절로 보정돼 대상이 화면 중앙에 온다.
+	// 돌린 결과가 다시 카메라 자리를 옮기므로 한 번에 맞아떨어지지는 않지만, 매 틱 다시 겨누며 한 자리로 수렴한다.
+	const FVector CameraLocation = CameraBoom->GetSocketLocation(USpringArmComponent::SocketName);
+	const FRotator LookAtRotation = (Target->GetActorLocation() - CameraLocation).Rotation();
+	PlayerController->SetControlRotation(FMath::RInterpTo(PlayerController->GetControlRotation(), LookAtRotation, DeltaTime, CameraTurnSpeed));
+}
 
 void UWxDialogueSessionComponent::StartDialogue(UWxDialogueComponent* Dialogue)
 {
@@ -100,7 +146,7 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FData
 		TaggedAbilitySystem = ASC;
 	}
 
-	ActivateDialogueCamera(Target);
+	BeginDialogueCamera();
 
 	// 구독자(PC)가 여기서 대화 위젯을 푸시하고, 위젯의 뷰모델이 현재 대사를 pull 해 시드한다.
 	OnDialogueStarted.Broadcast();
@@ -140,121 +186,41 @@ void UWxDialogueSessionComponent::EndDialogue()
 	}
 	TaggedAbilitySystem.Reset();
 
-	RestoreGameplayCamera();
+	// 카메라 복귀는 따로 부르지 않는다 — 세션이 비었으므로 돌고 있던 틱이 다음 프레임부터 원래 값을 목표로 삼는다.
 
 	OnDialogueEnded.Broadcast();
 }
 
-void UWxDialogueSessionComponent::ActivateDialogueCamera(AActor* Target)
+void UWxDialogueSessionComponent::BeginDialogueCamera()
 {
-	// 대상 없는 대사(나레이션)면 비출 것이 없다. 뷰는 플레이어 폰에 머문다.
-	APlayerController* PlayerController = GetLocalPlayerController();
-	if (!PlayerController || !Target)
+	// 대상 없는 대사(나레이션)면 쳐다볼 것이 없다. 카메라를 평소 그대로 둔다.
+	USpringArmComponent* CameraBoom = FindCameraBoom();
+	if (!CameraBoom || !CurrentTarget.IsValid())
 	{
 		return;
 	}
 
-	FVector CameraLocation;
-	FRotator CameraRotation;
-	if (!ComputeDialogueCameraView(PlayerController, Target, CameraLocation, CameraRotation))
+	// 되돌릴 기준은 대화가 손대기 전의 값이다. 앞선 대화의 복귀가 아직 진행 중이면 지금 값은 당겨진 상태라, 그때는 처음 잰 값을 그대로 쓴다.
+	if (!IsComponentTickEnabled())
 	{
-		return;
+		RestoreArmLength = CameraBoom->TargetArmLength;
+		RestoreShoulderOffset = CameraBoom->SocketOffset.Y;
 	}
 
-	// 구도가 매 대화마다 달라지므로 그 자리에 세울 액터를 그때 만든다. 뷰 타겟은 액터 단위라 계산 결과를 담을 그릇이 필요하다.
-	// 재진입으로 이전 카메라가 남아 있을 수 있어 먼저 보낸다.
-	RestoreGameplayCamera();
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = PlayerController;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	ACameraActor* SpawnedCamera = GetWorld()->SpawnActor<ACameraActor>(ACameraActor::StaticClass(), CameraLocation, CameraRotation, SpawnParams);
-	if (!SpawnedCamera)
-	{
-		return;
-	}
-
-	if (UCameraComponent* CameraComponent = SpawnedCamera->GetCameraComponent())
-	{
-		CameraComponent->SetFieldOfView(CameraFov);
-		// ACameraActor 기본값(bConstrainAspectRatio=true, 16:9)이 뷰포트를 마스킹해 레터박스를 만든다. 제약을 꺼 뷰포트 전체를 채운다.
-		CameraComponent->SetConstraintAspectRatio(false);
-	}
-
-	DialogueCamera = SpawnedCamera;
-	PlayerController->SetViewTargetWithBlend(SpawnedCamera, CameraBlendTime, EViewTargetBlendFunction::VTBlend_Cubic);
-}
-
-void UWxDialogueSessionComponent::RestoreGameplayCamera()
-{
-	APlayerController* PlayerController = GetLocalPlayerController();
-
-	// 원래 게임플레이 뷰타겟인 플레이어 폰으로 블렌드 복귀한다.
-	// bLockOutgoing=true: 블렌드 시작 시점의 출발 POV 를 고정해, 대화가 끝난 NPC 가 움직이기 시작해도 복귀가 튀지 않는다.
-	if (PlayerController)
-	{
-		if (APawn* Pawn = PlayerController->GetPawn())
-		{
-			PlayerController->SetViewTargetWithBlend(Pawn, CameraBlendTime, EViewTargetBlendFunction::VTBlend_Cubic, 0.f, true);
-		}
-	}
-
-	// 즉시 파괴하면 복귀 블렌드의 출발 뷰 타겟이 사라져 화면이 튄다. 블렌드가 끝나고도 남을 만큼의 수명만 걸고 손을 뗀다.
-	if (ACameraActor* Camera = DialogueCamera.Get())
-	{
-		Camera->SetLifeSpan(CameraBlendTime + 1.f);
-	}
-	DialogueCamera.Reset();
-}
-
-bool UWxDialogueSessionComponent::ComputeDialogueCameraView(const APlayerController* PlayerController, const AActor* Target, FVector& OutLocation, FRotator& OutRotation) const
-{
-	const APawn* Pawn = PlayerController->GetPawn();
-	if (!Pawn || !Target)
-	{
-		return false;
-	}
-
-	// 두 사람의 눈높이를 기준선으로 삼는다. 같은 오프셋을 카메라 높이와 응시점 양쪽에 쓰므로 평지에선 피치가 0 이고, 지면 높이가 다르면 그만큼만 기운다.
-	const FVector EyeOffset(0.f, 0.f, CameraEyeHeight);
-	const FVector PlayerEye = Pawn->GetActorLocation() + EyeOffset;
-	const FVector TargetEye = Target->GetActorLocation() + EyeOffset;
-
-	FVector Axis = TargetEye - PlayerEye;
-	Axis.Z = 0.f;
-	if (!Axis.Normalize())
-	{
-		// 둘이 수평으로 겹쳐 있으면 세울 축이 없다. 뷰를 폰에 남긴다.
-		return false;
-	}
-
-	const FVector Pivot = FMath::Lerp(PlayerEye, TargetEye, CameraPivotAlpha);
-	const FVector Side = FVector::CrossProduct(FVector::UpVector, Axis);
-
-	// 180도 법칙 — 지금 카메라가 있는 쪽 옆으로 나간다. 반대쪽을 고르면 대화가 열리는 순간 화면이 축을 넘어 좌우로 뒤집힌다.
-	const APlayerCameraManager* CameraManager = PlayerController->PlayerCameraManager;
-	const float SideSign = (CameraManager && FVector::DotProduct(CameraManager->GetCameraLocation() - Pivot, Side) < 0.f) ? -1.f : 1.f;
-	FVector DesiredLocation = Pivot + Side * (SideSign * CameraLateralOffset);
-
-	// 좁은 실내에선 옆으로 비껴선 자리가 벽 안쪽일 수 있다. 축 위 기준점에서 그 자리까지 훑어 막히면 앞까지 당긴다.
-	// 두 당사자는 무시한다 — 카메라가 뚫어야 할 대상은 지형이지 대화하는 사람이 아니다.
-	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(WxDialogueCamera), /*bTraceComplex*/ false, Pawn);
-	QueryParams.AddIgnoredActor(Target);
-
-	FHitResult Hit;
-	if (GetWorld()->SweepSingleByChannel(Hit, Pivot, DesiredLocation, FQuat::Identity, ECC_Camera, FCollisionShape::MakeSphere(12.f), QueryParams))
-	{
-		DesiredLocation = Hit.Location;
-	}
-
-	OutLocation = DesiredLocation;
-	OutRotation = (TargetEye - DesiredLocation).Rotation();
-	return true;
+	SetComponentTickEnabled(true);
 }
 
 APlayerController* UWxDialogueSessionComponent::GetLocalPlayerController() const
 {
 	APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
 	return (PlayerController && PlayerController->IsLocalController()) ? PlayerController : nullptr;
+}
+
+USpringArmComponent* UWxDialogueSessionComponent::FindCameraBoom() const
+{
+	// 스프링암은 엔진 타입이라, 플레이어 캐릭터 클래스를 알지 못해도(WxDialogue 는 게임 모듈을 참조하지 않는다) 폰에서 바로 집을 수 있다.
+	const APlayerController* PlayerController = GetLocalPlayerController();
+	const APawn* Pawn = PlayerController ? PlayerController->GetPawn() : nullptr;
+
+	return Pawn ? Pawn->FindComponentByClass<USpringArmComponent>() : nullptr;
 }
