@@ -128,18 +128,7 @@ UCommonActivatableWidget* UWxUIManagerSubsystem::PushWidgetInstanceToLayer(FGame
 
 void UWxUIManagerSubsystem::ShowConfirmation(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback)
 {
-	const UWxUIDeveloperSettings* Settings = GetDefault<UWxUIDeveloperSettings>();
-	PushPopup(Settings->ConfirmationPopupClass, Descriptor, ResultCallback);
-}
-
-void UWxUIManagerSubsystem::ShowError(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback)
-{
-	const UWxUIDeveloperSettings* Settings = GetDefault<UWxUIDeveloperSettings>();
-	PushPopup(Settings->ErrorPopupClass, Descriptor, ResultCallback);
-}
-
-void UWxUIManagerSubsystem::PushPopup(const TSoftClassPtr<UWxGamePopup>& PopupClass, UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback)
-{
+	const TSoftClassPtr<UWxGamePopup>& PopupClass = GetDefault<UWxUIDeveloperSettings>()->ConfirmationPopupClass;
 	if (!PrimaryGameLayout || !Descriptor || PopupClass.IsNull())
 	{
 		return;

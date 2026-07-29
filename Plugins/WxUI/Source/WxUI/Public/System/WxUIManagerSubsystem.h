@@ -41,12 +41,6 @@ public:
 	 */
 	void ShowConfirmation(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback = FWxPopupResultDelegate());
 
-	/**
-	 * 에러 팝업을 Modal 레이어에 띄운다.
-	 * 결과는 ResultCallback 으로 돌려준다.
-	 */
-	void ShowError(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback = FWxPopupResultDelegate());
-
 	UWxPrimaryGameLayout* GetPrimaryGameLayout() const;
 
 	/**
@@ -74,12 +68,6 @@ private:
 
 	/** 사망 태그 변화 콜백. 부여되면 사망 화면을 띄운다. */
 	void HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
-
-	/**
-	 * ShowConfirmation/ShowError 공통 경로.
-	 * 클래스를 로드해 Modal 레이어에 push 하고 SetupPopup 를 호출한다.
-	 */
-	void PushPopup(const TSoftClassPtr<UWxGamePopup>& PopupClass, UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback);
 
 	/**
 	 * push 된 위젯의 활성/비활성 델리게이트를 구독해, 상태가 바뀔 때 정지 재평가가 돌게 한다.

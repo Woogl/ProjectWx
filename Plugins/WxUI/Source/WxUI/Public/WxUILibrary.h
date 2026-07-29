@@ -60,8 +60,4 @@ public:
 	/** 확인 팝업을 띄운다. 버튼 클릭 결과는 OnResult 로 돌려준다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|UI|Popup", meta = (WorldContext = "WorldContextObject", AutoCreateRefTerm = "OnResult"))
 	static void ShowConfirmationPopup(const UObject* WorldContextObject, EWxPopupButtonLayout Buttons, FText Header, FText Body, const FWxPopupResultDynamicDelegate& OnResult);
-
-	/** 에러 팝업(확인 버튼)을 띄운다. 결과는 OnResult 로 돌려준다. */
-	UFUNCTION(BlueprintCallable, Category = "Wx|UI|Popup", meta = (WorldContext = "WorldContextObject", AutoCreateRefTerm = "OnResult"))
-	static void ShowErrorPopup(const UObject* WorldContextObject, FText Header, FText Body, const FWxPopupResultDynamicDelegate& OnResult);
 };

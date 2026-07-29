@@ -25,10 +25,6 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Popup")
 	TSoftClassPtr<UWxGamePopup> ConfirmationPopupClass;
 
-	/** 에러 팝업에 사용할 위젯 클래스. */
-	UPROPERTY(Config, EditAnywhere, Category = "Popup")
-	TSoftClassPtr<UWxGamePopup> ErrorPopupClass;
-
 	/** 플레이어 캐릭터에 빙의하면 Game 레이어에 띄울 HUD. 미지정이면 동작 없음. */
 	UPROPERTY(Config, EditAnywhere, Category = "Screen")
 	TSoftClassPtr<UWxActivatableWidget> GameHUDClass;

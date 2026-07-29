@@ -113,15 +113,3 @@ void UWxUILibrary::ShowConfirmationPopup(const UObject* WorldContextObject, EWxP
 
 	UIManager->ShowConfirmation(Descriptor, MakeNativeResultDelegate(OnResult));
 }
-
-void UWxUILibrary::ShowErrorPopup(const UObject* WorldContextObject, FText Header, FText Body, const FWxPopupResultDynamicDelegate& OnResult)
-{
-	UWxUIManagerSubsystem* UIManager = GetUIManagerSubsystem(WorldContextObject);
-	if (!UIManager)
-	{
-		return;
-	}
-
-	UWxGamePopupDescriptor* Descriptor = UWxGamePopupDescriptor::CreateConfirmationOk(Header, Body);
-	UIManager->ShowError(Descriptor, MakeNativeResultDelegate(OnResult));
-}
