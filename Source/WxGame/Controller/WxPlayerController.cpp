@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Controller/WxPlayerController.h"
+#include "Cheat/WxCheatManager.h"
 #include "CommonActivatableWidget.h"
 #include "Components/GameFrameworkComponentManager.h"
 #include "System/WxUIDeveloperSettings.h"
@@ -13,6 +14,9 @@ AWxPlayerController::AWxPlayerController(const FObjectInitializer& ObjectInitial
 	: Super(ObjectInitializer)
 {
 	DialogueSession = CreateDefaultSubobject<UWxDialogueSessionComponent>(TEXT("DialogueSession"));
+
+	// 개발용 콘솔 치트. 클래스만 지정해 두면 엔진이 Standalone·에디터에서만 실제로 생성한다.
+	CheatClass = UWxCheatManager::StaticClass();
 }
 
 void AWxPlayerController::PreInitializeComponents()
