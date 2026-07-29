@@ -76,14 +76,6 @@
 			"Enabled": true
 		},
 		{
-			"Name": "Chooser",
-			"Enabled": true
-		},
-		{
-			"Name": "WxSound",
-			"Enabled": true
-		},
-		{
 			"Name": "WxDialogue",
 			"Enabled": true
 		},

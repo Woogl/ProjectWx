@@ -55,7 +55,7 @@
 3. `Source/WxCore/Public/WxSavable.h` — 세이브 시스템 참여 규약.
 
 ## 관련
-- 상위(소비): 모든 Wx 도메인 플러그인([[WxCombat]] 태그·Event·SetByCaller, [[WxWorld]] `IWxInteractable`·`Gimmick.*`, [[WxSave]] `IWxSavable`·`StateTree.Restore`, [[WxUI]] `UI.Layer/Action.*`, [[WxQuest]] `Quest.Fail`, [[WxInventory]]·[[WxAI]]·[[WxSound]]·[[WxDialogue]])과 게임 모듈 [[WxGame]]이 WxCore를 참조.
+- 상위(소비): 모든 Wx 도메인 플러그인([[WxCombat]] 태그·Event·SetByCaller, [[WxWorld]] `IWxInteractable`·`Gimmick.*`, [[WxSave]] `IWxSavable`·`StateTree.Restore`, [[WxUI]] `UI.Layer/Action.*`, [[WxQuest]] `Quest.Fail`, [[WxInventory]]·[[WxAI]]·[[WxDialogue]])과 게임 모듈 [[WxGame]]이 WxCore를 참조.
 
 ---
 *문서 기준 커밋 `21e2e76` · 생성일 2026-07-27 · 소스 9파일 — `/readme-writer`로 갱신*

@@ -14,7 +14,6 @@
 #include "GameFramework/PlayerController.h"
 #include "Input/WxInputConfig.h"
 #include "Targeting/WxLockOnManagerComponent.h"
-#include "WxBGMSourceComponent.h"
 #include "WxGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -55,10 +54,6 @@ AWxPlayerCharacter::AWxPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	// 원격 프록시 캐릭터에 중복 렌더되지 않도록 기본 숨김.
 	// BeginPlay에서 로컬 컨트롤일 때만 표시한다.
 	InteractionListWidget->SetVisibility(false);
-
-	// 상태 기반 BGM 소스.
-	// 실제 태그·우선순위는 BP_Player 에서 설정한다.
-	BGMSourceComponent = CreateDefaultSubobject<UWxBGMSourceComponent>(TEXT("BGMSourceComponent"));
 
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 }

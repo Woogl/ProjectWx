@@ -14,7 +14,7 @@
 - AIController·Pawn·BehaviorTree/Blackboard 에셋 자체는 게임 콘텐츠 측이 소유하고, 여기선 그것들이 조립해 쓰는 노드/컴포넌트만 제공한다.
 - 어트리뷰트·어빌리티 정의와 전투 로직은 [[WxCombat]]. WxAI는 WxCombat에 의존하지 않으므로 어트리뷰트/AbilityTag는 디자이너가 BT 에디터에서 직접 지정한다.
 - `State.InCombat` / `State.Dead` 등 태그는 소비만 한다(자체 Native Tag 없음).
-- 복제된 `State.InCombat`을 읽는 네임플레이트·BGM은 소비자([[WxUI]]/[[WxSound]]) 책임이다.
+- 복제된 `State.InCombat`을 읽는 네임플레이트는 소비자([[WxUI]]) 책임이다.
 
 ## 의존성
 - **주요 의존**: WxCore(공용 정의), 엔진 `AIModule`(BehaviorTree/Perception) · `GameplayAbilities`(GAS) · `GameplayTasks` · `NavigationSystem` · `GameplayTags`
@@ -45,7 +45,7 @@
 4. `Plugins/WxAI/Source/WxAI/Public/WxBTComposite_RandomChoice.h` — 가중 추첨·조건 필터·폴백 없음 시멘틱. 적 공격 패턴 분기의 핵심.
 
 ## 관련
-- 상위: 게임 측 AIController/BehaviorTree 에셋이 이 노드·컴포넌트를 조립해 사용. 인식 태그 소비는 [[WxUI]]·[[WxSound]], 어트리뷰트·전투 정의는 [[WxCombat]], 공용 정의는 [[WxCore]].
+- 상위: 게임 측 AIController/BehaviorTree 에셋이 이 노드·컴포넌트를 조립해 사용. 인식 태그 소비는 [[WxUI]], 어트리뷰트·전투 정의는 [[WxCombat]], 공용 정의는 [[WxCore]].
 
 ---
 *문서 기준 커밋 `b382b78` · 생성일 2026-07-22 · 소스 29파일 — `/readme-writer`로 갱신*

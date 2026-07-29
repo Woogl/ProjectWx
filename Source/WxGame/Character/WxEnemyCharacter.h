@@ -14,7 +14,6 @@
 class AWxSpawner;
 class UBehaviorTree;
 class UWxLockOnPointComponent;
-class UWxBGMSourceComponent;
 class UWxNameplateComponent;
 
 /**
@@ -95,13 +94,6 @@ protected:
 	 */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|LockOn")
 	TObjectPtr<UWxLockOnPointComponent> LockOnPoint;
-
-	/**
-	 * 전투 등 상태 기반으로 BGM 을 기여하는 소스.
-	 * MusicTag/ActivationTag/Priority 는 각 적·보스 BP 에서 지정한다(비우면 inert).
-	 */
-	UPROPERTY(VisibleAnywhere, Category = "Wx|BGM")
-	TObjectPtr<UWxBGMSourceComponent> BGMSourceComponent;
 
 	/**
 	 * 백스탭 후방 판정 반각(도).

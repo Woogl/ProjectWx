@@ -38,7 +38,6 @@ public class WxGame : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"EnhancedInput",
-			"WxSound",
 		});
 
 		// Uncomment if you are using Slate UI

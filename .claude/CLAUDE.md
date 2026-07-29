@@ -56,7 +56,6 @@
 | `WxInventory`| 도메인            | 인벤토리 시스템                   |
 | `WxUI`       | 도메인            | UI 시스템                         |
 | `WxWorld`    | 도메인            | 월드 오브젝트 및 상호작용         |
-| `WxSound`    | 도메인            | 오디오/음악 (Chooser 기반 BGM)    |
 | `WxAI`       | 도메인            | AI 시스템                         |
 | `WxDialogue` | 도메인            | 대화 시스템                       |
 | `WxQuest`    | 도메인            | 퀘스트 시스템                     |

@@ -11,7 +11,6 @@ class UCameraComponent;
 class UWidgetComponent;
 class UWxInputConfig;
 class UWxLockOnManagerComponent;
-class UWxBGMSourceComponent;
 class UInputAction;
 struct FInputActionValue;
 
@@ -49,13 +48,6 @@ protected:
 	 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|UI")
 	TObjectPtr<UWidgetComponent> InteractionListWidget;
-
-	/**
-	 * 전투 등 상태 기반으로 BGM 을 기여하는 소스.
-	 * MusicTag/ActivationTag/Priority 는 BP_Player 에서 지정한다.
-	 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|BGM")
-	TObjectPtr<UWxBGMSourceComponent> BGMSourceComponent;
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);

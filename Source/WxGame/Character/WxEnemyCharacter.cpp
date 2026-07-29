@@ -10,7 +10,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "Spawnable/WxSpawner.h"
 #include "Targeting/WxLockOnPointComponent.h"
-#include "WxBGMSourceComponent.h"
 #include "WxGameplayTags.h"
 
 AWxEnemyCharacter::AWxEnemyCharacter()
@@ -36,11 +35,6 @@ AWxEnemyCharacter::AWxEnemyCharacter()
 	// 락온 지점을 메시에 부착한다.
 	LockOnPoint = CreateDefaultSubobject<UWxLockOnPointComponent>(TEXT("LockOnPoint"));
 	LockOnPoint->SetupAttachment(GetMesh(), TEXT("pelvis"));
-
-
-	// 상태 기반 BGM 소스.
-	// 실제 태그·우선순위는 각 적·보스 BP 에서 설정한다(MusicTag 를 비우면 inert).
-	BGMSourceComponent = CreateDefaultSubobject<UWxBGMSourceComponent>(TEXT("BGMSourceComponent"));
 }
 
 void AWxEnemyCharacter::BeginPlay()
