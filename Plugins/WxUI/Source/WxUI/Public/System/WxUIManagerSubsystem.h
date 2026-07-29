@@ -8,6 +8,8 @@
 #include "Widget/WxGamePopup.h"
 #include "WxUIManagerSubsystem.generated.h"
 
+class APawn;
+class UAbilitySystemComponent;
 class UWxPrimaryGameLayout;
 class UCommonActivatableWidget;
 class UWxViewModel_Selection;
@@ -61,6 +63,19 @@ private:
 	void CreateLayoutForPlayer(APlayerController* PC);
 
 	/**
+	 * 추적 중인 PC 가 빙의한 폰을 갈아탔다. 그 폰 기준으로 HUD 를 세우고 사망 관찰을 옮긴다.
+	 * 이 신호는 빙의가 끝난 뒤에 오므로, HUD 뷰모델 리졸버가 생성 시점에 빙의 폰의 ASC 를 읽는다는 전제가 지켜진다.
+	 */
+	UFUNCTION()
+	void HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn);
+
+	/** 폰 ASC 의 사망 태그를 관찰하기 시작한다. 이전 관찰은 먼저 끊는다 — 폰이 null 이면 끊기만 한다. */
+	void WatchPawnDeath(APawn* Pawn);
+
+	/** 사망 태그 변화 콜백. 부여되면 사망 화면을 띄운다. */
+	void HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
+	/**
 	 * ShowConfirmation/ShowError 공통 경로.
 	 * 클래스를 로드해 Modal 레이어에 push 하고 SetupPopup 를 호출한다.
 	 */
@@ -87,4 +102,12 @@ private:
 	 */
 	UPROPERTY()
 	TObjectPtr<UWxViewModel_Selection> SelectionViewModel;
+
+	/** 빙의를 구독해 둔 로컬 PC. 교체·종료 때 같은 PC 에서 끊기 위해 기억한다. */
+	TWeakObjectPtr<APlayerController> TrackedPlayerController;
+
+	/** 사망 태그를 구독해 둔 폰 ASC. 폰이 바뀌면 같은 ASC 에서 끊기 위해 기억한다. */
+	TWeakObjectPtr<UAbilitySystemComponent> WatchedAbilitySystem;
+
+	FDelegateHandle DeathTagHandle;
 };

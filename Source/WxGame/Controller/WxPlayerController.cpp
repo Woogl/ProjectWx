@@ -1,8 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Controller/WxPlayerController.h"
-#include "Character/WxCharacterBase.h"
-#include "Character/WxPlayerCharacter.h"
 #include "CommonActivatableWidget.h"
 #include "Components/GameFrameworkComponentManager.h"
 #include "System/WxUIDeveloperSettings.h"
@@ -43,64 +41,6 @@ void AWxPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	UGameFrameworkComponentManager::RemoveGameFrameworkComponentReceiver(this);
 
 	Super::EndPlay(EndPlayReason);
-}
-
-void AWxPlayerController::OnRep_Pawn()
-{
-	Super::OnRep_Pawn();
-
-	if (!IsLocalController())
-	{
-		return;
-	}
-
-	BindCharacterDeath(GetPawn());
-
-	// 원격 클라이언트: Pawn 복제 시 HUD Push.
-	PushGameHUD();
-}
-
-void AWxPlayerController::OnPossess(APawn* InPawn)
-{
-	Super::OnPossess(InPawn);
-
-	if (!IsLocalController())
-	{
-		return;
-	}
-
-	BindCharacterDeath(InPawn);
-
-	// HUD 위젯의 리졸버가 생성 시점에 빙의 Pawn 의 ASC 를 읽으므로 빙의 완료 후에 푸시해야 한다.
-	PushGameHUD();
-}
-
-void AWxPlayerController::PushGameHUD()
-{
-	UWxUILibrary::PushSoftContentToLayer(this, WxGameplayTags::UI_Layer_Game, GetDefault<UWxUIDeveloperSettings>()->GameHUDClass);
-}
-
-void AWxPlayerController::BindCharacterDeath(APawn* InPawn)
-{
-	AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(InPawn);
-	if (!WxCharacter)
-	{
-		return;
-	}
-
-	// 같은 Pawn 에 대해 OnRep_Pawn 이 거듭 올 수 있어 중복 바인딩을 막는다.
-	WxCharacter->OnDeath.AddUniqueDynamic(this, &ThisClass::HandleCharacterDeath);
-}
-
-void AWxPlayerController::HandleCharacterDeath(AWxCharacterBase* DeadCharacter)
-{
-	if (!IsLocalController())
-	{
-		return;
-	}
-
-	// 사망 화면은 걷어내지 않는다. 부활은 월드 리로드(TravelFromSaveFile)이고, 그때 UI 매니저가 레이아웃을 통째로 재생성한다.
-	UWxUILibrary::PushSoftContentToLayer(this, WxGameplayTags::UI_Layer_Menu, GetDefault<UWxUIDeveloperSettings>()->DeathScreenClass);
 }
 
 void AWxPlayerController::HandleDialogueStarted()
