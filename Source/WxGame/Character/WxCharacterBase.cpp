@@ -5,6 +5,7 @@
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "Inventory/WxEquipmentComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/GameFrameworkComponentManager.h"
 #include "Components/ChildActorComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -54,6 +55,14 @@ AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
 	GetCharacterMovement()->AirControl = 0.35f;
 }
 
+void AWxCharacterBase::PreInitializeComponents()
+{
+	Super::PreInitializeComponents();
+
+	// ModularGameplay 컴포넌트 수신 opt-in. 폰 대상 주입 요청(Experience 액션)의 컴포넌트가 여기에 자동 부착된다.
+	UGameFrameworkComponentManager::AddGameFrameworkComponentReceiver(this);
+}
+
 void AWxCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -100,6 +109,13 @@ void AWxCharacterBase::PostInitializeComponents()
 			break;
 		}
 	}
+}
+
+void AWxCharacterBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	UGameFrameworkComponentManager::RemoveGameFrameworkComponentReceiver(this);
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void AWxCharacterBase::PossessedBy(AController* NewController)

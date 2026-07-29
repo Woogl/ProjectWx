@@ -32,6 +32,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "GameFeatures",
+			"Enabled": true
+		},
+		{
 			"Name": "WxCore",
 			"Enabled": true
 		},

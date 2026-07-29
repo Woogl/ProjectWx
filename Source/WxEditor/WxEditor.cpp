@@ -2,7 +2,9 @@
 
 #include "WxEditor.h"
 
+#include "Editor.h"
 #include "Engine/Blueprint.h"
+#include "Framework/WxExperienceManager.h"
 #include "Items/WxItemDefinition.h"
 #include "Modules/ModuleManager.h"
 #include "PropertyEditorModule.h"
@@ -42,10 +44,15 @@ void FWxEditorModule::StartupModule()
 	UThumbnailManager::Get().RegisterCustomRenderer(
 		UBlueprint::StaticClass(),
 		UWxAbilityThumbnailRenderer::StaticClass());
+
+	BeginPIEHandle = FEditorDelegates::BeginPIE.AddRaw(this, &FWxEditorModule::HandleBeginPIE);
 }
 
 void FWxEditorModule::ShutdownModule()
 {
+	FEditorDelegates::BeginPIE.Remove(BeginPIEHandle);
+	BeginPIEHandle.Reset();
+
 	if (FModuleManager::Get().IsModuleLoaded(WxEditorModule::PropertyEditorModuleName))
 	{
 		FPropertyEditorModule& PropertyModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>(WxEditorModule::PropertyEditorModuleName);
@@ -64,4 +71,12 @@ void FWxEditorModule::ShutdownModule()
 			UBlueprint::StaticClass(),
 			UBlueprintThumbnailRenderer::StaticClass());
 	}
+}
+
+void FWxEditorModule::HandleBeginPIE(bool bIsSimulating)
+{
+	UWxExperienceManager* ExperienceManager = GEngine->GetEngineSubsystem<UWxExperienceManager>();
+	check(ExperienceManager);
+
+	ExperienceManager->OnPlayInEditorBegun();
 }

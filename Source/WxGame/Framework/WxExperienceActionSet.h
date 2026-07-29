@@ -1,0 +1,47 @@
+// Copyright Woogle. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Engine/DataAsset.h"
+#include "Items/WxRewardTableRow.h"
+#include "WxExperienceActionSet.generated.h"
+
+class FDataValidationContext;
+class UGameFeatureAction;
+
+/**
+ * 여러 Experience 가 공유하는 액션·GameFeature 묶음.
+ * Experience 정의의 ActionSets 로 합성되며, 로드 파이프라인에서 본체 액션과 같은 방식으로 실행된다.
+ * 에셋은 네이티브 클래스 인스턴스로만 만든다 — Experience 정의와 같은 스캔 정책.
+ */
+UCLASS()
+class UWxExperienceActionSet : public UPrimaryDataAsset
+{
+	GENERATED_BODY()
+
+public:
+#if WITH_EDITOR
+	//~ Begin UObject
+	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
+	//~ End UObject
+#endif
+
+#if WITH_EDITORONLY_DATA
+	//~ Begin UPrimaryDataAsset
+	virtual void UpdateAssetBundleData() override;
+	//~ End UPrimaryDataAsset
+#endif
+
+	/** 이 묶음이 실행할 액션. */
+	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Wx")
+	TArray<TObjectPtr<UGameFeatureAction>> Actions;
+
+	/** 로드 완료 시 활성화할 GameFeature 플러그인 이름 목록. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx")
+	TArray<FString> GameFeaturesToEnable;
+
+	/** 이 묶음이 지급할 시작 아이템. Experience 본체의 목록과 합산된다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx")
+	TArray<FWxItemRewardEntry> DefaultInventoryItems;
+};

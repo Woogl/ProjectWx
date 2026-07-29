@@ -16,7 +16,6 @@ void UWxPlayerSpawnComponent::OnRegister()
 	Super::OnRegister();
 
 	// BeginPlay 가 아니라 OnRegister 에서 구독한다: SpawnPlayActor(Login -> PostLogin)가 World BeginPlay 보다 먼저라 BeginPlay 시점엔 PostLogin 을 이미 놓친다.
-	// 이 컴포넌트는 PC 의 PreInitializeComponents 에서 동기 부착되므로 OnRegister 는 PostLogin 보다 앞선다.
 	// 스폰 지점 결정과 스탯 복원은 authority 전용이라 클라이언트 PC 에 붙은 사본은 제외한다.
 	AActor* Owner = GetOwner();
 	if (!Owner || !Owner->HasAuthority() || !GetWorld() || !GetWorld()->IsGameWorld() || PostLoginHandle.IsValid())
@@ -25,6 +24,16 @@ void UWxPlayerSpawnComponent::OnRegister()
 	}
 
 	PostLoginHandle = FGameModeEvents::OnGameModePostLoginEvent().AddUObject(this, &UWxPlayerSpawnComponent::HandleGameModePostLogin);
+
+	// 부착 시점은 두 갈래다: 로드 완료 후 접속한 PC 는 초기화 중 동기 부착이라 위 구독이 PostLogin 을 잡고,
+	// Experience 비동기 로드가 접속보다 늦으면 액션 실행(소급 주입) 시점 부착이라 오너 PC 의 PostLogin 이 이미 지나갔다.
+	// 후자는 여기서 같은 셋업을 즉시 수행한다(캐치업) — 지연 스폰의 RestartPlayer 는 로드 완료 브로드캐스트 뒤라 항상 이보다 늦다.
+	// 로그인 경과는 PlayerState 유무로 가른다(컨트롤러 초기화 중 부착이면 아직 없고, 로그인 완료 뒤 부착이면 있다).
+	APlayerController* OwnerPC = GetController<APlayerController>();
+	if (OwnerPC && OwnerPC->PlayerState)
+	{
+		HandleGameModePostLogin(nullptr, OwnerPC);
+	}
 }
 
 void UWxPlayerSpawnComponent::OnUnregister()

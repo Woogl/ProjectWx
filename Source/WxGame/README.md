@@ -20,13 +20,14 @@
 
 ## 의존성
 - **주요 의존**: `WxCore` `WxCombat` `WxUI` `WxWorld` `WxInventory` `WxDialogue` `WxQuest` `WxAI` `WxSave`(Public) + `EnhancedInput`(Private)
-- **엔진 서브시스템**: `GameplayAbilities`/`GameplayTags`/`GameplayTasks`, `ModelViewViewModel`(MVVM), `ModularGameplay`(프레임워크 컴포넌트 주입), `MotionWarping`, `AIModule`, `CommonUI`, `UMG`
+- **엔진 서브시스템**: `GameplayAbilities`/`GameplayTags`/`GameplayTasks`, `ModelViewViewModel`(MVVM), `ModularGameplay`(프레임워크 컴포넌트 주입), `GameFeatures`(Experience 액션·GF 플러그인 활성), `MotionWarping`, `AIModule`, `CommonUI`, `UMG`
 - 규칙: 기본 게임 모듈로 여러 플러그인을 조립하는 정상 역할(규칙 무관)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `AWxGameMode` | 게임 골격 진입점. `InitGameState`에서 Experience를 GameState로 넘겨 프레임워크 컴포넌트 주입 유발, 접속 시 시작 아이템 지급. 플레이어 스폰은 엔진 기본 경로에 위임 | `Framework/WxGameMode.h` |
+| `AWxGameMode` | 게임 골격 진입점. 진입 URL(`?Experience=`)→WorldSettings→자체 폴백 순으로 Experience를 확정해 GameState의 매니저에 넘기고, 폰 스폰·시작 지급을 로드 완료까지 미룬다. 폰 클래스는 Experience의 PawnData가 정한다 | `Framework/WxGameMode.h` |
+| `UWxExperienceManagerComponent` | Experience 로드·적용의 주체(GameState 서브오브젝트). 참조 복제 후 서버·클라 각자 번들 비동기 로드→GF 플러그인 활성→액션 실행→`CallOrRegister_OnExperienceLoaded` 브로드캐스트 | `Framework/WxExperienceManagerComponent.h` |
 | `AWxCharacterBase` | 플레이어·적 공통 Abstract 베이스. ASC/AttributeSet/장비/모션워핑 직접 소유, 팀·사망·SPD 이동 반영 | `Character/WxCharacterBase.h` |
 | `AWxPlayerCharacter` | 3인칭 카메라 + Enhanced Input + 어빌리티 입력·락온·상호작용 위젯 소유 | `Character/WxPlayerCharacter.h` |
 | `AWxEnemyCharacter` | BT 구동 적(Abstract). 시야/청각·처형 어포던스(앞잡/뒤잡)·보상 지급·스포너 연동, `AWxBossCharacter`가 파생 | `Character/WxEnemyCharacter.h` |
@@ -39,8 +40,10 @@
 - 새 캐릭터/적/보스는 `AWxPlayerCharacter`/`AWxEnemyCharacter`/`AWxBossCharacter`를 BP 상속 후 컴포넌트(무기 `ChildActorClass`, `BehaviorTreeAsset`, `RewardRow` 등)를 디폴트에서 지정. ASC는 PlayerState가 아닌 캐릭터가 직접 소유(리스폰 시 스탯 재초기화). 보스는 `AWxBossCharacter`만 상속하면 `UWxViewModel_BossCharacter`가 스폰/EndPlay를 관찰해 체력바를 붙인다(클래스 내 UI 코드 없음).
 - 직접 바인딩 입력(이동/시선/점프/웅크리기)은 `UWxInputConfig`에 IA를 추가하고 `AWxPlayerCharacter::SetupPlayerInputComponent`에서 바인딩. 어빌리티 입력은 여기 두지 않고 AbilitySet 부여 대상 CDO에서 파생해 자동 바인딩. 상호작용은 HUD 리스트 위젯이 Enhanced Input으로 직접 받고, 메뉴/UI 입력은 CommonUI 액션([[WxUI]] `WxHUDLayout`)으로 처리.
 - 새 어빌리티는 [[WxCombat]] `UWxAbilityBase` 파생. 게임 모듈 고유 실행(상호작용/아이템 사용)은 본 모듈에, 전투 공용 로직은 WxCombat에 둔다.
-- 프레임워크 컴포넌트는 GameMode가 고른 `Experience` 에셋(`UWxExperienceDefinition`)에 클래스만 추가하면 GameState가 참조를 복제해 서버·클라 각자 receiver(GameState/Controller 등)에 자동 주입(receiver는 무엇이 붙는지 모른다). 새 프레임워크 기능은 컴포넌트로 추가.
-- 그 컴포넌트가 한쪽 사이드 전용이면 **자기 사이드 제한은 컴포넌트 스스로** 한다(권위 전용은 `HasAuthority` 가드, 로컬 표시 전용은 `IsLocalController` 가드). 에셋에는 사이드 구분이 없고, 복제 컴포넌트만 엔진이 authority로 제한한다.
+- Experience(`UWxExperienceDefinition`, `/Game/Framework` 스캔)는 GameFeature 플러그인 목록 + 액션(`GameFeatureAction`) + 액션셋(`UWxExperienceActionSet`) + PawnData + 시작 아이템으로 게임 구성을 데이터화한다. 시작 아이템은 본체·액션셋 목록의 합산이며 전용 액션셋 `WAS_StartingItems`(튜닝 영역, 배선인 `WAS_CoreGameplay`와 분리)에 담는 것이 기본이다. 프레임워크 컴포넌트 주입은 엔진 스톡 `AddComponents` 액션에 엔트리(대상 액터 클래스↔컴포넌트 클래스)를 추가하면 receiver(GameState/PlayerController/PlayerState/CharacterBase — 각 클래스가 수동 opt-in)에 자동 부착된다. 공용 6종은 `WAS_CoreGameplay`에 있다.
+- `AddComponents` 엔트리의 bClient/bServer 플래그는 기본값(양측 true)을 유지한다 — 사이드 제한은 **컴포넌트 스스로** 한다(권위 전용은 `HasAuthority` 가드, 로컬 표시 전용은 `IsLocalController` 가드). 복제 컴포넌트만 엔진이 authority로 제한한다.
+- 미니게임·사이드미션 같은 탈부착 콘텐츠는 `Plugins/GameFeatures/`의 GF 플러그인(초기 상태 Registered)으로 패키징하고, 그걸 켜는 Experience 에셋의 `GameFeaturesToEnable`에 이름을 적는다. GF 플러그인은 DAG 최상단이라 WxGame·도메인 참조 가능, 역참조 금지. 이름은 GF 표식 없이 `Wx`+콘텐츠명으로 짓는다. 축 전체는 2026-07-29 샘플로 실증 후 정리됐다(절차·함정은 워크로그 참고).
+- 로드는 비동기다 — 로드 완료에 의존하는 초기화는 `CallOrRegister_OnExperienceLoaded`로 대기하고, 주입 컴포넌트가 로그인 이벤트에 의존하면 부착이 로그인보다 늦은 경우의 캐치업을 자기 `OnRegister`에 마련한다(예: WxSave `UWxPlayerSpawnComponent`).
 - 새 월드 오브젝트/기믹은 [[WxWorld]] `AWxGimmick` 상속(예: `AWxLaserCorridor`). 권위 State만 C++가 확정·복제하고 비주얼·스폰은 GimmickStateTree가 담당하는 패턴.
 - MVVM 글루: WxUI 뷰모델이 게임 모듈을 참조할 수 없으므로, 양쪽에 의존하는 리졸버·브리지 뷰모델(`MVVM/`)이 플러그인 데이터를 위젯에 잇는다. WBP의 View Bindings에서 Creation Type=Resolver로 선택하면 유일한 주입 통로가 된다.
 

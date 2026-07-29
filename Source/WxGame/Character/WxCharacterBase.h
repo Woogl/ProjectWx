@@ -25,6 +25,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBas
 /**
  * 플레이어·에너미 공통 베이스 캐릭터.
  * ASC를 캐릭터에 직접 소유 (리스폰 시 스탯을 새로 초기화하므로 PlayerState 불필요).
+ * ModularGameplay 컴포넌트 receiver 다 — 폰 대상 주입 요청(Experience 액션)의 컴포넌트가 자동 부착된다.
  */
 UCLASS(Abstract)
 class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface, public IGenericTeamAgentInterface
@@ -36,7 +37,9 @@ public:
 	// 실제 셋업은 ObjectInitializer 버전으로 위임한다.
 	AWxCharacterBase() : AWxCharacterBase(FObjectInitializer::Get()) {}
 	AWxCharacterBase(const FObjectInitializer& ObjectInitializer);
+	virtual void PreInitializeComponents() override;
 	virtual void PostInitializeComponents() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual bool CanJumpInternal_Implementation() const override;
 
