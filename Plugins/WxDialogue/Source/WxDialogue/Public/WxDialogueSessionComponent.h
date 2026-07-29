@@ -48,11 +48,8 @@ public:
 	 */
 	void StartDialogueRow(const FDataTableRowHandle& StartRow, AActor* Target);
 
-	/** 뷰의 대사 넘기기 요청. NextDialogue 를 따라가고, 더 없으면 종료한다. 선택지 노드에선 Choose 를 기다린다. */
+	/** 뷰의 대사 넘기기 요청. NextDialogue 를 따라가고, 더 없으면 종료한다. */
 	void Advance();
-
-	/** 뷰의 선택지 선택 요청. 현재 노드의 Choices[ChoiceIndex] 가 가리키는 노드로 점프한다. */
-	void Choose(int32 ChoiceIndex);
 
 	bool HasActiveDialogue() const { return CurrentRow != nullptr; }
 

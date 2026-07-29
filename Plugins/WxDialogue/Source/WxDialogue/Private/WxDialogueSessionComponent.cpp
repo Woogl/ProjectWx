@@ -44,30 +44,7 @@ void UWxDialogueSessionComponent::Advance()
 		return;
 	}
 
-	// 선택지가 있으면 Choose 가 진행을 이어받는다.
-	if (!CurrentRow->Choices.IsEmpty())
-	{
-		return;
-	}
-
 	if (CurrentRow->NextDialogue.IsNone() || !EnterRow(CurrentRow->NextDialogue))
-	{
-		EndDialogue();
-		return;
-	}
-
-	PublishCurrentLine();
-}
-
-void UWxDialogueSessionComponent::Choose(int32 ChoiceIndex)
-{
-	if (!CurrentRow || !CurrentRow->Choices.IsValidIndex(ChoiceIndex))
-	{
-		return;
-	}
-
-	const FName TargetDialogue = CurrentRow->Choices[ChoiceIndex].TargetDialogue;
-	if (TargetDialogue.IsNone() || !EnterRow(TargetDialogue))
 	{
 		EndDialogue();
 		return;
