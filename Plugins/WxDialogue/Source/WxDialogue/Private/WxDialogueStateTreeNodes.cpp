@@ -20,9 +20,9 @@ namespace
 
 #if WITH_EDITOR
 	/** 대화 행의 표시명. 미지정이면 unset. */
-	FText GetStartRowText(const FDataTableRowHandle& StartRow)
+	FText GetRowText(const FDataTableRowHandle& Row)
 	{
-		return StartRow.RowName.IsNone() ? INVTEXT("unset") : FText::FromName(StartRow.RowName);
+		return Row.RowName.IsNone() ? INVTEXT("unset") : FText::FromName(Row.RowName);
 	}
 #endif
 }
@@ -39,10 +39,10 @@ EStateTreeRunStatus FWxStateTreeTask_WaitDialogueCompleted::EnterState(FStateTre
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 행 미지정은 어떤 대화와도 같지 않아 완료될 수 없는 잘못된 조립이다. 침묵 대기 대신 경고를 남긴다.
-	if (!Instance.StartRow.DataTable || Instance.StartRow.RowName.IsNone())
+	// 행 미지정은 어떤 대사와도 같지 않아 완료될 수 없는 잘못된 조립이다. 침묵 대기 대신 경고를 남긴다.
+	if (!Instance.DialogueRow.DataTable || Instance.DialogueRow.RowName.IsNone())
 	{
-		UE_LOG(LogWxDialogue, Warning, TEXT("Wait Dialogue Completed: 대기할 대화가 지정되지 않음(StartRow)."));
+		UE_LOG(LogWxDialogue, Warning, TEXT("Wait Dialogue Completed: 대기할 대화가 지정되지 않음(DialogueRow)."));
 	}
 
 	// 이전 실행의 잔존 기록을 비운다. 진입 이전의 대화는 세지 않는다.
@@ -62,11 +62,15 @@ EStateTreeRunStatus FWxStateTreeTask_WaitDialogueCompleted::Tick(FStateTreeExecu
 		return EStateTreeRunStatus::Running;
 	}
 
-	// 지정 대화가 진행 중이면 목격을 기록하고, 목격 후 그 대화가 아니게 되면(종료·다른 대화) 완주다.
-	if (Session->HasActiveDialogue() && Session->GetCurrentStartRow() == Instance.StartRow)
+	// 지정 대사가 화면에 있으면 목격을 기록한다. 대화 중이 아닐 때의 빈 핸들이 미지정 인자와 같아 보이므로 활성 대화만 맞춰 본다.
+	if (Session->HasActiveDialogue())
 	{
-		Instance.bObservedDialogue = true;
+		if (Session->GetCurrentRowHandle() == Instance.DialogueRow)
+		{
+			Instance.bObservedDialogue = true;
+		}
 	}
+	// 목격한 대화가 닫히면 완주다. 지정 행 다음 대사로 넘어간 것만으로는 아직 아니다 — 대화창이 닫힌 뒤 단계가 넘어가야 연출이 끊기지 않는다.
 	else if (Instance.bObservedDialogue)
 	{
 		return EStateTreeRunStatus::Succeeded;
@@ -81,7 +85,7 @@ FText FWxStateTreeTask_WaitDialogueCompleted::GetDescription(const FGuid& ID, FS
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Wait Dialogue Completed ({0})"), GetStartRowText(InstanceData->StartRow));
+	return FText::Format(INVTEXT("Wait Dialogue Completed ({0})"), GetRowText(InstanceData->DialogueRow));
 }
 #endif
 
@@ -111,7 +115,7 @@ EStateTreeRunStatus FWxStateTreeTask_PlayDialogue::EnterState(FStateTreeExecutio
 		return EStateTreeRunStatus::Failed;
 	}
 
-	// 대상 없는 대사다 — 카메라는 플레이어에 머물고 관찰자(Wait Dialogue Completed)에도 잡히지 않는다.
+	// 대상 없는 대사다 — 카메라는 플레이어에 머문다. 관찰자(Wait Dialogue Completed)는 대상이 아니라 행으로 판정하므로 이 대화도 게이트로 쓸 수 있다.
 	Session->StartDialogueRow(Instance.StartRow, nullptr);
 
 	// 소유 클라와 권위가 같은 머신이라 세션은 위 호출 안에서 열린다. 열리지 않았다면 행이 없거나 대사가 빈 것이다.
@@ -138,6 +142,6 @@ FText FWxStateTreeTask_PlayDialogue::GetDescription(const FGuid& ID, FStateTreeD
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Play Dialogue ({0})"), GetStartRowText(InstanceData->StartRow));
+	return FText::Format(INVTEXT("Play Dialogue ({0})"), GetRowText(InstanceData->StartRow));
 }
 #endif

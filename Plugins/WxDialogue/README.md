@@ -8,7 +8,7 @@
 - 세션 진행: 대사 넘기기·선형 진행·종료를 PlayerController 측 세션이 소유 (`UWxDialogueSessionComponent`)
 - 대화 정의 부착: 대화 가능한 액터에 시작 노드를 얹는 컴포넌트 (`UWxDialogueComponent`)
 - 상호작용 진입점: 상호작용 시 자기 대화 정의를 상호작용자 세션에 넘기는 NPC 베이스 (`AWxNpc`)
-- StateTree 관찰 노드: 지정 대상과의 대화 완주를 판정하는 태스크 제공 (`FWxStateTreeTask_WaitDialogueCompleted`)
+- StateTree 노드: 지정 대사를 거친 대화의 완주를 판정하는 관찰 태스크와, 트리가 직접 대사를 여는 출력 태스크 제공 (`FWxStateTreeTask_WaitDialogueCompleted`·`FWxStateTreeTask_PlayDialogue`)
 
 **경계 (비담당)**
 - 대화 위젯 표시 — 시작/대사/종료를 델리게이트로만 발행하고, 구독자([[WxUI]]·뷰모델)가 위젯을 잇는다
@@ -16,7 +16,7 @@
 - 상호작용 스캔·발동·차단 태그 — 계약 인터페이스와 어빌리티는 [[WxCore]]/[[WxCombat]] 영역
 
 ## 의존성
-- **주요 의존**: [[WxCore]], GameplayAbilities(세션 중 `State.Dialogue` Loose 태그 부착), StateTree(관찰 태스크), GameplayTags, UniversalObjectLocator(`FWxActorTarget` 로케이터)
+- **주요 의존**: [[WxCore]], GameplayAbilities(세션 중 `State.Dialogue` Loose 태그 부착), StateTree(관찰·출력 태스크), GameplayTags
 - 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅
 
 ## 핵심 타입 (진입점)
@@ -26,12 +26,14 @@
 | `UWxDialogueComponent` | 대화 가능 액터에 붙는 정의 컴포넌트. 시작 노드만 보유 | `Source/WxDialogue/Public/WxDialogueComponent.h` |
 | `AWxNpc` | 대화 NPC 베이스. 상호작용을 세션 시작으로 위임 (Abstract) | `Source/WxDialogue/Public/WxNpc.h` |
 | `FWxDialogueTableRow` | 대화 노드 데이터. 대사 한 줄(Speaker/Line) + NextDialogue 로 사슬 구성 | `Source/WxDialogue/Public/WxDialogueTableRow.h` |
-| `FWxStateTreeTask_WaitDialogueCompleted` | 지정 대상과의 대화 완주를 관찰로 판정하는 StateTree 태스크 | `Source/WxDialogue/Public/WxDialogueStateTreeNodes.h` |
+| `FWxStateTreeTask_WaitDialogueCompleted` | 지정 행을 거친 대화의 완주를 관찰로 판정하는 StateTree 태스크 | `Source/WxDialogue/Public/WxDialogueStateTreeNodes.h` |
+| `FWxStateTreeTask_PlayDialogue` | 트리가 지정 행에서 대화를 열고 종료까지 머무는 StateTree 태스크 | `Source/WxDialogue/Public/WxDialogueStateTreeNodes.h` |
 
 ## 확장 포인트 / 규약
 - **새 대화**: `FWxDialogueTableRow` 로우 타입 DataTable 을 만들고, 액터의 `UWxDialogueComponent::StartRow` 에 시작 노드를 지정한다. 진행은 `NextDialogue` 로 이어가고 None 이면 종료다. 분기(선택지)는 없다 — 필요해지면 그때 설계한다.
 - **새 NPC**: `AWxNpc` 를 상속(Abstract)하고 인스턴스별 `StartRow`·`NpcName` 을 채운다. 상호작용 계약은 `IWxInteractable`(WxCore) 로 이미 구현되어 있다.
-- **퀘스트 연동**: 대화 완주 게이트가 필요하면 퀘스트 StateTree 에 `Wait Dialogue Completed` 태스크를 놓고 `FWxActorTarget` 로 대상 배치 액터를 지정한다. 진입 이전 대화는 세지 않는 엣지 감지다.
+- **퀘스트 연동**: 대화 완주 게이트가 필요하면 퀘스트 StateTree 에 `Wait Dialogue Completed` 태스크를 놓고 `DialogueRow` 에 대화 행을 지정한다. 시작 행이면 그 대화 전체가, 중간·끝 행이면 그 대사까지 읽은 대화만 통과한다(어느 쪽이든 대화창이 닫혀야 완주). 진입 이전 대화는 세지 않는 엣지 감지다.
+- **트리가 여는 대화**: 대상 액터의 대화 정의가 아니라 퀘스트가 대사를 소유해야 하면(독백·처치 후 대사) `Play Dialogue` 태스크에 `StartRow` 를 지정한다. 대상이 없어 카메라는 플레이어에 머문다.
 - **리플리케이션**: 서버 상호작용 응답 → `StartDialogue` → 소유 클라 `ClientStartDialogue`(Client RPC). 세션 상태는 표시 전용 로컬 상태로 소유 클라가 소유하며 서버 검증은 없다(v1 싱글/리슨 호스트 전제).
 
 ## 여기서부터 읽어라

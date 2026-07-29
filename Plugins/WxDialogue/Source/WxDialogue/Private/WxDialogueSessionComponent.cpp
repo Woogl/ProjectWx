@@ -58,9 +58,14 @@ AActor* UWxDialogueSessionComponent::GetCurrentDialogueTarget() const
 	return CurrentTarget.Get();
 }
 
-const FDataTableRowHandle& UWxDialogueSessionComponent::GetCurrentStartRow() const
+FDataTableRowHandle UWxDialogueSessionComponent::GetCurrentRowHandle() const
 {
-	return CurrentStartRow;
+	// 테이블은 세션이 붙잡고 있는 그것이고, 행 이름만 진행에 따라 갈아끼운다.
+	FDataTableRowHandle Handle;
+	Handle.DataTable = CurrentStartRow.DataTable;
+	Handle.RowName = CurrentRowName;
+
+	return Handle;
 }
 
 FText UWxDialogueSessionComponent::GetCurrentSpeaker() const
@@ -79,6 +84,7 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FData
 	if (!EnterRow(StartRow.RowName))
 	{
 		CurrentStartRow = FDataTableRowHandle();
+		CurrentRowName = NAME_None;
 		return;
 	}
 
@@ -110,6 +116,7 @@ bool UWxDialogueSessionComponent::EnterRow(FName RowName)
 	}
 
 	CurrentRow = Row;
+	CurrentRowName = RowName;
 
 	return true;
 }
@@ -123,6 +130,7 @@ void UWxDialogueSessionComponent::EndDialogue()
 {
 	CurrentStartRow = FDataTableRowHandle();
 	CurrentRow = nullptr;
+	CurrentRowName = NAME_None;
 	CurrentTarget.Reset();
 
 	// 시작 때 발행한 대화 상태 태그를 같은 ASC 에서 되돌려 프롬프트 표시·상호작용을 복귀시킨다.

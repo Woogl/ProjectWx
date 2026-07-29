@@ -24,7 +24,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnDialogueEnded);
  * 대화 대상은 비소유 액터라 Client RPC 를 쏠 수 없으므로, 클라 UI 로 가는 전달은 PC 측인 본 컴포넌트가 소유한다.
  * 세션(현재 노드·라인)은 표시 전용 로컬 상태라 소유 클라가 진행을 소유하며 서버 검증은 없다. 대화가 게임 상태를 바꾸게 되면 그때 서버측으로 옮긴다.
  *
- * 대화는 뜻을 해석하지도 기록을 남기지도 않는다 — 진행 중인 대화의 신원(시작 행)과 대상만 노출하고,
+ * 대화는 뜻을 해석하지도 기록을 남기지도 않는다 — 진행 중인 대사의 신원(현재 행)과 대상만 노출하고,
  * 그 의미(퀘스트 수주 등)는 소비자(Wait Dialogue Completed 태스크)가 관찰로 판정한다.
  * 세션 상태는 소유 클라에 있다 — v1 싱글/리슨 호스트(소유 클라=권위 동일 머신) 전제로 권위 측 소비자가 직접 읽는다.
  *
@@ -56,8 +56,11 @@ public:
 	/** 진행 중인 대화의 대상 액터. 대화 중이 아니거나 대상 없는 대사(나레이션)면 null. */
 	AActor* GetCurrentDialogueTarget() const;
 
-	/** 진행 중인 대화를 연 시작 행. 관찰자가 "어느 대화인가"를 가리는 신원이며, 세션이 열려 있는 동안 변하지 않는다. 대화 중이 아니면 비어 있다. */
-	const FDataTableRowHandle& GetCurrentStartRow() const;
+	/**
+	 * 진행 중인 대사의 행 핸들. 관찰자가 "지금 어느 대사인가"를 가리는 신원이며, 대사를 넘길 때마다 바뀐다.
+	 * 대화 중이 아니면 비어 있다 — 미지정 인자와 같아 보이므로 비교 전에 HasActiveDialogue 로 가린다.
+	 */
+	FDataTableRowHandle GetCurrentRowHandle() const;
 
 	FText GetCurrentSpeaker() const;
 
@@ -138,12 +141,15 @@ private:
 	/** 진행 중인 대화의 대상 액터. 관찰자(GetCurrentDialogueTarget)에게 노출되며 세션 중에만 유효하다. 대상 없는 대사(나레이션)에선 비어 있다. */
 	TWeakObjectPtr<AActor> CurrentTarget;
 
-	/** 진행 중인 대화를 연 시작 행. 세션 동안 행 메모리를 붙잡는 강참조이자 관찰자에게 노출하는 대화의 신원이다. */
+	/** 진행 중인 대화를 연 시작 행. 세션 동안 행 메모리를 붙잡는 강참조이자 진행 중 노드를 찾을 테이블의 출처다. */
 	UPROPERTY()
 	FDataTableRowHandle CurrentStartRow;
 
 	/** 현재 노드. 시작 행이 붙잡고 있는 테이블의 행 메모리를 가리키며 세션 중에만 유효하다. */
 	const FWxDialogueTableRow* CurrentRow = nullptr;
+
+	/** 현재 노드의 행 이름. 행 구조체가 자기 이름을 모르므로 관찰자에게 노출할 신원을 세션이 따로 기억한다. */
+	FName CurrentRowName;
 
 	/** 대화 중 뷰 타겟으로 쓰는 임시 카메라. 시작 때 계산한 구도로 스폰하고 종료 때 회수한다. */
 	TWeakObjectPtr<ACameraActor> DialogueCamera;
