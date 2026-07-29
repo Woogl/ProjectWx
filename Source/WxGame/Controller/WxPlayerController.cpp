@@ -29,7 +29,8 @@ void AWxPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// 대화 창 표시도, 대화 카메라 전환도 로컬 어포던스다. 세션 컴포넌트(WxDialogue)는 WxUI 도 뷰 타겟도 모르므로 시작·종료 신호를 PC 가 받아 처리한다.
+	// 대화 창 표시는 로컬 어포던스다. 세션 컴포넌트(WxDialogue)는 WxUI 를 모르므로 시작·종료 신호를 PC 가 받아 창만 여닫는다.
+	// 카메라 전환은 세션이 직접 한다 — 뷰 타겟은 Engine 이라 플러그인 안에서 닿고, 구도의 재료(대상·시작·종료)도 세션이 이미 들고 있다.
 	if (IsLocalController() && DialogueSession)
 	{
 		DialogueSession->OnDialogueStarted.AddDynamic(this, &ThisClass::HandleDialogueStarted);
@@ -107,13 +108,6 @@ void AWxPlayerController::HandleDialogueStarted()
 	// 대화 위젯은 Game 레이어 스택 top 에 얹혀 HUD 를 잠시 가리고, 닫히면 HUD 가 복귀한다.
 	// 띄운 창은 세션이 끝날 때 여기서 닫으므로 인스턴스를 기억해 둔다.
 	DialogueScreen = UWxUILibrary::PushSoftContentToLayer(this, WxGameplayTags::UI_Layer_Game, GetDefault<UWxUIDeveloperSettings>()->DialogueScreenClass);
-
-	// 대화 상대의 카메라로 넘긴다. 액터만 넘기면 AActor::CalcCamera 가 그 액터의 활성 카메라 컴포넌트를 골라 쓰므로 카메라를 직접 꺼내올 필요가 없다.
-	// 대상은 세션이 시작을 발행하기 전에 기억해 두므로 여기서 항상 유효하다.
-	if (AActor* DialogueTarget = DialogueSession->GetCurrentDialogueTarget())
-	{
-		SetViewTargetWithBlend(DialogueTarget, DialogueCameraBlendTime, EViewTargetBlendFunction::VTBlend_Cubic);
-	}
 }
 
 void AWxPlayerController::HandleDialogueEnded()
@@ -124,11 +118,4 @@ void AWxPlayerController::HandleDialogueEnded()
 		Screen->DeactivateWidget();
 	}
 	DialogueScreen.Reset();
-
-	// 원래 게임플레이 뷰타겟인 내 폰으로 블렌드 복귀한다.
-	// bLockOutgoing=true: 블렌드 시작 시점의 출발 POV 를 고정해, 대화가 끝난 NPC 가 움직이기 시작해도 복귀가 튀지 않는다.
-	if (APawn* MyPawn = GetPawn())
-	{
-		SetViewTargetWithBlend(MyPawn, DialogueCameraBlendTime, EViewTargetBlendFunction::VTBlend_Cubic, 0.f, true);
-	}
 }

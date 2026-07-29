@@ -1,7 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "WxNpc.h"
-#include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Controller.h"
@@ -37,12 +36,6 @@ AWxNpc::AWxNpc()
 	MeshComponent->SetGenerateOverlapEvents(false);
 
 	DialogueComponent = CreateDefaultSubobject<UWxDialogueComponent>(TEXT("DialogueComponent"));
-
-	DialogueCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("DialogueCameraComponent"));
-	// 메시가 아니라 루트(캡슐)에 붙인다. 메시엔 캐릭터 정렬 보정(Z -90, Yaw -90)이 걸려 있어 거기 기준으로는 구도 수치가 직관과 어긋난다.
-	DialogueCameraComponent->SetupAttachment(CapsuleComponent);
-	
-	DialogueCameraComponent->SetRelativeLocationAndRotation(FVector(160.f, 60.f, 60.f), FRotator(0.f, -160.f, 0.f));
 }
 
 bool AWxNpc::IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const

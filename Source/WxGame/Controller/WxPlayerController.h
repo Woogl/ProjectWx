@@ -43,10 +43,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Dialogue")
 	TObjectPtr<UWxDialogueSessionComponent> DialogueSession;
 
-	/** 대화 카메라로의 전환·복귀 블렌드 시간(초). NPC 별 값이 아니라 대화 연출 전반의 정책이라 여기 둔다. */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Dialogue")
-	float DialogueCameraBlendTime = 0.75f;
-
 private:
 	void PushGameHUD();
 
