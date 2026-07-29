@@ -27,7 +27,7 @@ class WXGAME_API AWxPlayerCharacter : public AWxCharacterBase
 
 public:
 	AWxPlayerCharacter(const FObjectInitializer& ObjectInitializer);
-	virtual void BeginPlay() override;
+	virtual void NotifyControllerChanged() override;
 	virtual void OnRep_PlayerState() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual bool CanCrouch() const override;
