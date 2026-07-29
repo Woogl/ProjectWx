@@ -23,7 +23,7 @@ void UWxAnimNotify_FinisherDamage::Notify(USkeletalMeshComponent* MeshComp, UAni
 	}
 
 	// 몽타주를 재생 중인 처형 어빌리티(서버 인스턴스)가 확정 대상에 적용한다. 클라에선 캐스팅 실패로 무동작.
-	// 뒤잡 즉사/앞잡 계수 분기는 어빌리티가 현재 재생 몽타주로 판단한다.
+	// 앞잡·뒤잡 모두 이 행의 계수 피해를 쓰므로 어빌리티 쪽에 변형 분기가 없다.
 	if (UWxAbility_Finisher* Finisher = Cast<UWxAbility_Finisher>(ASC->GetAnimatingAbility()))
 	{
 		Finisher->ApplyFinisherDamage(FWxDamageInfo::FromDataRow(DamageDataRow));

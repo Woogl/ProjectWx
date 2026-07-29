@@ -8,7 +8,6 @@
 
 class UAnimMontage;
 class UAbilityTask_PlayMontageAndWait;
-class UGameplayEffect;
 struct FGameplayEventData;
 struct FWxDamageInfo;
 
@@ -25,8 +24,8 @@ struct FWxDamageInfo;
  *  5. 몽타주의 WxAnimNotify_FinisherDamage 가 대미지 프레임에 ApplyFinisherDamage 호출
  *  6. 몽타주 종료 시 EndAbility
  *
- * 대미지 적용 타이밍은 노티파이가, 무엇을 적용할지는 어빌리티가 현재 재생 몽타주로 정한다.
- * 뒤잡은 BackstabEffectClass(생성자 기본 UWxEffect_Kill)로 즉사, 앞잡은 노티파이 DamageDataRow의 계수 대미지.
+ * 대미지는 변형에 따라 갈리지 않는다 — 두 변형 모두 노티파이 DamageDataRow의 계수 대미지를 쓰고, 수치도 타이밍도 노티파이가 소유한다.
+ * 변형별로 다른 것은 공격 몽타주·짝 피격 태그·종료 시 DP 리셋 여부 셋뿐이다.
  * 앞잡의 그로기 해제(DP 0)는 피해자의 앞잡 짝 피격 몽타주가 끝날 때 WxAbility_HitReact 가 처리한다.
  */
 UCLASS(Abstract)
@@ -39,8 +38,7 @@ public:
 
 	/**
 	 * 공격 몽타주의 WxAnimNotify_FinisherDamage 가 대미지 프레임에 호출한다(적용 타이밍은 노티파이가 결정).
-	 * 뒤잡(현재 재생 몽타주가 BackstabMontage)이면 BackstabEffectClass(UWxEffect_Kill 즉사)를 확정 대상에 직접 적용,
-	 * 앞잡이면 인자 DamageInfo(대미지 테이블 행 계수)를 적용한다.
+	 * 상호작용으로 확정한 대상에 인자 DamageInfo(대미지 테이블 행 계수)를 적용한다 — 앞잡·뒤잡이 같은 경로를 쓴다.
 	 */
 	void ApplyFinisherDamage(const FWxDamageInfo& DamageInfo) const;
 
@@ -56,14 +54,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> BackstabMontage;
 
-	/** 뒤잡 즉사에 적용할 자기완결형 GameplayEffect. 생성자에서 UWxEffect_Kill 로 기본 설정된다. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TSubclassOf<UGameplayEffect> BackstabEffectClass;
-
 private:
-	/** 확정 대상에 자기완결형 GameplayEffect 한 개를 직접 적용한다(뒤잡 즉사). */
-	void ApplyFinisherEffect(TSubclassOf<UGameplayEffect> EffectClass) const;
-
 	UFUNCTION()
 	void HandleMontageFinished();
 

@@ -2,7 +2,6 @@
 
 #include "AbilitySystem/Ability/WxAbility_Finisher.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "AbilitySystem/Effect/WxEffect_Kill.h"
 #include "AbilitySystem/Effect/WxEffect_ResetDP.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
@@ -38,9 +37,6 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	// 처형 연출 진행 상태를 발행한다. 상호작용(WxAbility_Interact)이 이 태그에 막혀, 연출 도중 재입력으로 다른 대상을 상호작용해 몽타주가 겹치는 것을 차단한다.
 	ActivationOwnedTags.AddTag(WxGameplayTags::State_Finisher);
 
-	// 뒤잡 즉사에 쓸 GE 기본값. 방어력과 무관하게 확정 처치한다(BP에서 재정의 가능).
-	BackstabEffectClass = UWxEffect_Kill::StaticClass();
-
 	// 변형별 트리거. 앞잡(Event.Finisher)과 뒤잡(Event.Backstab)을 한 어빌리티가 받는다.
 	FAbilityTriggerData FinisherTrigger;
 	FinisherTrigger.TriggerTag = WxGameplayTags::Event_Finisher;
@@ -62,8 +58,8 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	const AActor* Target = TriggerEventData ? TriggerEventData->Target.Get() : nullptr;
 	const FGameplayTag TriggerTag = TriggerEventData ? TriggerEventData->EventTag : FGameplayTag();
 
-	// 트리거로 변형을 분기한다. 공격 몽타주·짝 피격 태그만 변형별로 다르고 나머지 흐름은 공유한다.
-	// 대미지 수치·타이밍은 어빌리티가 아니라 공격 몽타주의 WxAnimNotify_FinisherDamage 가 결정한다.
+	// 트리거로 변형을 분기한다. 공격 몽타주·짝 피격 태그·종료 시 DP 리셋 여부만 변형별로 다르고 나머지 흐름은 공유한다.
+	// 대미지는 두 변형이 같다 — 수치도 타이밍도 어빌리티가 아니라 공격 몽타주의 WxAnimNotify_FinisherDamage 가 결정한다.
 	const bool bBackstab = (TriggerTag == WxGameplayTags::Event_Backstab);
 	UAnimMontage* AttackerMontage = bBackstab ? BackstabMontage : FinisherMontage;
 	const FGameplayTag VictimHitReactTag = bBackstab ? WxGameplayTags::Event_HitReact_Backstab : WxGameplayTags::Event_HitReact_Finisher;
@@ -108,7 +104,7 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		return;
 	}
 
-	// 앞잡만 종료 시 대상 DP를 리셋해 그로기를 해제한다. 뒤잡(즉사)은 리셋 대상이 아니다.
+	// 앞잡만 종료 시 대상 DP를 리셋해 그로기를 해제한다. 뒤잡은 애초에 그로기를 전제하지 않아 리셋할 DP가 없다.
 	if (bBackstab)
 	{
 		MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Finisher::HandleMontageFinished);
@@ -131,7 +127,7 @@ void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, co
 	}
 
 	// 대상에 걸어둔 연출 진행 상태를 해제한다. 중단·캔슬도 이 경로를 지나므로 태그가 새지 않는다.
-	// 앞잡은 직전에 DP 리셋으로 그로기가 풀리고 뒤잡은 즉사하므로, 해제 시점에 대상은 이미 자격을 잃은 상태다.
+	// 대상이 대미지를 견뎌 살아남으면 여기서 어포던스가 정상 복구된다.
 	if (ActorInfo && ActorInfo->IsNetAuthority())
 	{
 		if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(TargetActor.Get()))
@@ -196,13 +192,6 @@ void UWxAbility_Finisher::RegisterWarpTarget(AActor* AvatarActor, const AActor* 
 
 void UWxAbility_Finisher::ApplyFinisherDamage(const FWxDamageInfo& DamageInfo) const
 {
-	// 뒤잡(현재 재생 몽타주가 BackstabMontage)은 생성자 기본값 BackstabEffectClass(UWxEffect_Kill)로 즉사시킨다.
-	if (BackstabEffectClass && GetCurrentMontage() == BackstabMontage)
-	{
-		ApplyFinisherEffect(BackstabEffectClass);
-		return;
-	}
-
 	const AActor* Target = TargetActor.Get();
 	if (!Target)
 	{
@@ -220,40 +209,7 @@ void UWxAbility_Finisher::ApplyFinisherDamage(const FWxDamageInfo& DamageInfo) c
 	HitResult.ImpactPoint = Target->GetActorLocation();
 	HitResult.Location = Target->GetActorLocation();
 
-	// 앞잡: 노티파이가 넘긴 계수 피해를 적용한다.
+	// 앞잡·뒤잡 모두 노티파이가 넘긴 같은 계수 피해를 적용한다 — 대미지는 변형에 따라 갈리지 않는다.
 	// 앞잡 그로기 해제(DP 0)는 피해자의 앞잡 짝 피격 몽타주 종료 시 WxAbility_HitReact 가 처리한다.
 	UWxCombatLibrary::ApplyDamage(SourceASC, TargetASC, DamageInfo, HitResult, 0.f);
-}
-
-void UWxAbility_Finisher::ApplyFinisherEffect(TSubclassOf<UGameplayEffect> EffectClass) const
-{
-	const AActor* Target = TargetActor.Get();
-	if (!Target || !EffectClass)
-	{
-		return;
-	}
-
-	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
-	UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
-	if (!SourceASC || !TargetASC)
-	{
-		return;
-	}
-
-	// 확정 대상에 자기완결형 GE(UWxEffect_Kill 등)를 직접 적용한다.
-	// Instigator 를 실어 사망 처리·AI 보고가 가해자를 귀속하게 한다.
-	AActor* SourceActor = SourceASC->GetOwnerActor();
-	FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
-	Context.AddInstigator(SourceActor, SourceActor);
-
-	FHitResult HitResult;
-	HitResult.ImpactPoint = Target->GetActorLocation();
-	HitResult.Location = Target->GetActorLocation();
-	Context.AddHitResult(HitResult);
-
-	const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(EffectClass, GetAbilityLevel(), Context);
-	if (SpecHandle.IsValid())
-	{
-		SourceASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);
-	}
 }
