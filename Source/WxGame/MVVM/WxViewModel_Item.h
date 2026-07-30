@@ -54,6 +54,16 @@ public:
 	/** 슬롯 모드에서 바인딩된 인스턴스. Def 모드이거나 미초기화 상태면 nullptr. */
 	UWxItemInstance* GetTargetInstance() const;
 
+	/**
+	 * 뷰(WBP)의 소비 아이템 사용 요청.
+	 * 인벤토리의 사용 요청 진입점을 그대로 부르며, 사용 가능 여부는 요청을 받은 어빌리티가 판정한다.
+	 *
+	 * 소비 아이템이 하나뿐이라 바인딩된 아이템과 무관하게 그 하나를 사용한다.
+	 * 종류가 늘면 인벤토리 진입점이 대상을 받도록 바뀌므로 여기서 TargetItemDef 를 넘기게 된다.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Wx|Inventory")
+	void RequestUseConsumable();
+
 	/** 대상 ItemDef 의 현재 총 보유량. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	int32 TotalCount = 0;

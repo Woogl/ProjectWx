@@ -12,6 +12,7 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Net/UnrealNetwork.h"
+#include "WxGameplayTags.h"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FWxInventoryEntry
@@ -491,6 +492,19 @@ TArray<UWxItemInstance*> UWxInventoryManagerComponent::GetAllItems() const
 		}
 	}
 	return Result;
+}
+
+void UWxInventoryManagerComponent::RequestUseConsumable()
+{
+	const APlayerController* PC = GetOwner<APlayerController>();
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(PC ? PC->GetPawn() : nullptr);
+	if (!ASC)
+	{
+		return;
+	}
+
+	// 입력이 타는 것과 같은 발동이다. 무엇을 어떻게 쓰는지는 전부 어빌리티 쪽 지식이라 인벤토리는 지목만 한다.
+	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(WxGameplayTags::Ability_UseItem));
 }
 
 bool UWxInventoryManagerComponent::CanUseItemByDef(const UWxItemDefinition* ItemDef) const
