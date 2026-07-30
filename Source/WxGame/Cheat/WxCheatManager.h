@@ -34,5 +34,5 @@ public:
 	 * 구역의 적을 한 번에 치워 「전원 처치」 집계·기믹 진행·전투 종료 흐름을 확인하기 위한 치트다.
 	 */
 	UFUNCTION(Exec)
-	void WxKillNearby(float RadiusMeters = 100.f);
+	void WxKillEnemies(float RadiusMeters = 100.f);
 };

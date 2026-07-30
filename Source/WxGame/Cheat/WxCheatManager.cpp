@@ -63,7 +63,7 @@ void UWxCheatManager::WxDamagePlayer(float Amount)
 	}
 }
 
-void UWxCheatManager::WxKillNearby(float RadiusMeters)
+void UWxCheatManager::WxKillEnemies(float RadiusMeters)
 {
 	const APlayerController* PC = GetOuterAPlayerController();
 	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
