@@ -21,15 +21,15 @@
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxUIManagerSubsystem` | GameInstance 서브시스템. 레이어 push·확인 팝업·HUD/사망화면 생성·게임 정지 재평가의 중앙 오케스트레이터 | `Source/WxUI/Public/System/WxUIManagerSubsystem.h` |
-| `UWxPrimaryGameLayout` | 레이어 태그별 `UCommonActivatableWidgetStack`을 담는 루트 위젯. z-order = 태그 배열 순서 | `Source/WxUI/Public/System/WxPrimaryGameLayout.h` |
-| `UWxViewModel` | MVVM 베이스. 텍스처/머터리얼 소프트 참조를 필드별로 비동기 스트리밍해 하드 참조로 노출 | `Source/WxUI/Public/MVVM/WxViewModel.h` |
-| `UWxViewModel_AbilitySystem` | ASC를 어트리뷰트/어빌리티/이펙트/OwnedTags 자식 VM으로 노출하는 Composite(요청 시 지연 생성) | `Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h` |
-| `UWxMVVMConversionLibrary` | UMG 바인딩용 BP 컨버전(태그→Visibility, 어트리뷰트/어빌리티/이펙트 VM 조회) | `Source/WxUI/Public/MVVM/WxMVVMConversionLibrary.h` |
-| `UWxUILibrary` | UI 매니저·레이어 제어·확인 팝업의 BP 파사드 | `Source/WxUI/Public/WxUILibrary.h` |
-| `UWxIndicatorManagerComponent` | 로컬 PC에 매달린 화면 인디케이터 등록증 목록. 캔버스가 구독해 그림 | `Source/WxUI/Public/Indicator/WxIndicatorManagerComponent.h` |
-| `UWxNameplateComponent` | ASC 태그 조건으로 표시되고 카메라 거리로 스케일되는 월드 네임플레이트 위젯 컴포넌트 | `Source/WxUI/Public/Component/WxNameplateComponent.h` |
-| `UWxActivatableWidget` | CommonUI 액티버터블 위젯 베이스(입력 모드·게임 정지 의사) | `Source/WxUI/Public/Widget/WxActivatableWidget.h` |
+| `UWxUIManagerSubsystem` | GameInstance 서브시스템. 레이어 push·확인 팝업·HUD/사망화면 생성·게임 정지 재평가의 중앙 오케스트레이터 | `Plugins/WxUI/Source/WxUI/Public/System/WxUIManagerSubsystem.h` |
+| `UWxPrimaryGameLayout` | 레이어 태그별 `UCommonActivatableWidgetStack`을 담는 루트 위젯. z-order = 태그 배열 순서 | `Plugins/WxUI/Source/WxUI/Public/System/WxPrimaryGameLayout.h` |
+| `UWxViewModel` | MVVM 베이스. 텍스처/머터리얼 소프트 참조를 필드별로 비동기 스트리밍해 하드 참조로 노출 | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h` |
+| `UWxViewModel_AbilitySystem` | ASC를 어트리뷰트/어빌리티/이펙트/OwnedTags 자식 VM으로 노출하는 Composite(요청 시 지연 생성) | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h` |
+| `UWxMVVMConversionLibrary` | UMG 바인딩용 BP 컨버전(태그→Visibility, 어트리뷰트/어빌리티/이펙트 VM 조회) | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxMVVMConversionLibrary.h` |
+| `UWxUILibrary` | UI 매니저·레이어 제어·확인 팝업의 BP 파사드 | `Plugins/WxUI/Source/WxUI/Public/WxUILibrary.h` |
+| `UWxIndicatorManagerComponent` | 로컬 PC에 매달린 화면 인디케이터 등록증 목록. 캔버스가 구독해 그림 | `Plugins/WxUI/Source/WxUI/Public/Indicator/WxIndicatorManagerComponent.h` |
+| `UWxNameplateComponent` | ASC 태그 조건으로 표시되고 카메라 거리로 스케일되는 월드 네임플레이트 위젯 컴포넌트 | `Plugins/WxUI/Source/WxUI/Public/Component/WxNameplateComponent.h` |
+| `UWxActivatableWidget` | CommonUI 액티버터블 위젯 베이스(입력 모드·게임 정지 의사) | `Plugins/WxUI/Source/WxUI/Public/Widget/WxActivatableWidget.h` |
 
 ## 확장 포인트 / 규약
 - **레이어 push**: 동기 로드는 `UWxUILibrary::PushSoftContentToLayer`, 로드 지연이 문제면 `UWxAsyncAction_PushWidgetToLayer`(BP async). 레이어 지정은 `UI.Layer.*` 게임플레이 태그(코드에서 native 선언은 없음 — config/애셋이 정의).
@@ -37,15 +37,16 @@
 - **캐릭터/네임플레이트**: 소비 측이 `FWxCharacterUIData`+ASC를 `InitializeViewModels`/`Initialize`로 주입 — WxUI는 구체 캐릭터 타입을 모른다.
 - **게임 정지**: `UWxActivatableWidget::bPauseGame`을 켜면 매니저가 전 레이어를 재평가해 정지 결정(위젯은 서브시스템을 모른다).
 - **화면 인디케이터**: `UWxIndicatorManagerComponent::AddIndicator`로 등록증을 받고 해제 시 반납. StateTree로 쓰려면 `FWxStateTreeTask_MarkIndicator` 노드를 애셋에서 선택(소비 도메인이 UI 모듈을 참조하지 않아도 됨).
+- **화면 클래스 주입**: 레이아웃/확인 팝업/HUD/사망·대화 화면은 `UWxUIDeveloperSettings`의 소프트 클래스 슬롯(config)으로 연결 — 코드가 아니라 설정으로 배선.
 
 ## 여기서부터 읽어라
-1. `Source/WxUI/Public/System/WxUIManagerSubsystem.h` — 레이어/팝업/HUD/사망화면/정지의 진입점이자 수명 흐름의 중심.
-2. `Source/WxUI/Public/MVVM/WxViewModel.h` + `WxViewModel_AbilitySystem.h` — VM 계층의 이미지 스트리밍 규약과 ASC 지연 생성 패턴.
-3. `Source/WxUI/Public/Indicator/WxIndicatorStateTreeNodes.h` — 인디케이터 등록증·캔버스·StateTree 노드가 맞물리는 방식(소유·해제 규약 포함).
+1. `Plugins/WxUI/Source/WxUI/Public/System/WxUIManagerSubsystem.h` — 레이어/팝업/HUD/사망화면/정지의 진입점이자 수명 흐름의 중심.
+2. `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h` + `WxViewModel_AbilitySystem.h` — VM 계층의 이미지 스트리밍 규약과 ASC 지연 생성 패턴.
+3. `Plugins/WxUI/Source/WxUI/Public/Indicator/WxIndicatorStateTreeNodes.h` — 인디케이터 등록증·캔버스·StateTree 노드가 맞물리는 방식(소유·해제 규약 포함).
 
 ## 관련
 - 상위: [[WxGame]] / GameFeature 콘텐츠 플러그인(Experience 애셋이 위젯·컴포넌트를 주입)
 - 데이터 소스: [[WxCombat]](ASC) · [[WxWorld]] · [[WxInventory]] · [[WxDialogue]](표시할 도메인 진실)
 
 ---
-*문서 기준 커밋 `a5b5f20` · 생성일 2026-07-29 · 소스 62파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `59acb24` · 생성일 2026-07-30 · 소스 60파일 — `/readme-writer`로 갱신*
