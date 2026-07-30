@@ -27,10 +27,11 @@
 - Tag 를 안 달면 그 상태는 저장되지 않는다(마지막 유효 Tag 가 유지된다). 신규 상태 태그는 **`WxCore` 의 `WxGameplayTags.h`/`.cpp`** 에 쌍으로 선언한다 — 프로젝트 태그는 전부 여기서만 만든다(에디터의 태그 매니저로 추가하지 않는다).
 
 ### 2. 상호작용은 이벤트로 오고, 목적지는 전이가 정한다
-`Enable Interaction` 태스크가 상태마다 "이 영역이 켜지는가 / 문구는 무엇인가 / 누르면 어떤 이벤트가 뜨는가(`InteractEvent`)"를 선언한다. 눌리면 컴포넌트가 그 태그를 **Reliable 멀티캐스트**로 전 피어에 뿌리고, 각 피어의 트리가 자기 전이로 이동한다.
+`Enable Interaction` 태스크가 상태마다 "이 영역이 켜지는가 / 문구는 무엇인가"를 선언한다. 눌리면 컴포넌트가 공용 태그 `StateTree.Interact` 를 눌린 영역과 함께 **Reliable 멀티캐스트**로 전 피어에 뿌리고, 각 피어의 트리가 자기 전이로 이동한다.
 
-- `InteractEvent` 를 비우면 공용 태그 `StateTree.Interact` 를 쓴다. 영역이 하나뿐인 기믹은 그대로 두면 된다.
-- 영역마다 갈 곳이 다르면 `StateTree.Interact` **아래에 영역별 자식 태그**를 두고 전이를 그 태그로 받는다. 부모로 받는 전이는 아무 영역이나 받고, 자식으로 받는 전이는 그 영역만 받는다(태그 계층 매칭).
+- 발동 태그는 영역이 몇 개든 `StateTree.Interact` 하나다. **영역별 태그를 만들지 않는다** — 특정 기믹의 버튼 하나를 프로젝트 전역 태그 어휘집에 올리는 셈이라 기믹이 늘수록 `WxCore` 가 부푼다.
+- 영역마다 갈 곳이 다르면 전이에 **`Object Equals` 조건**을 달아 이벤트 페이로드의 `Source` 를 대상 메시와 비교한다(전이의 Required Event 에 Payload Struct 로 `WxGimmickInteractEvent` 를 지정해야 `Source` 가 바인딩 소스로 열린다).
+- 조건이 필요한 상태는 생각보다 적다. **그 상태에서 의미 없는 영역은 `Enable Interaction` 으로 꺼두면** 남은 영역이 같은 목적지가 되어 조건 없는 단일 전이로 끝난다(엘리베이터의 AtStart/AtEnd 가 자기 층 콘솔을 끄는 이유).
 - 상태를 바꾸지 않는 반응(예: 이미 불이 켜진 체크포인트에서 다시 쉬기)은 **자기 자신으로 가는 전이**로 표현한다 — 재진입이 그 상태의 액션 태스크를 다시 돌린다.
 - 이벤트 페이로드(`FWxGimmickInteractEvent`: Source 메시·Interactor)는 더 세밀한 전이 조건이 필요할 때만 바인딩해 쓴다.
 
@@ -90,6 +91,7 @@ flowchart TD
 - **상태 Tag 누락·중복.** 저장이 안 되거나(복원하면 다른 상태) 엉뚱한 상태로 복원된다.
 - **resting 이 첫 자식이 아님.** 저장 값이 없는 새 세션에서 엉뚱한 상태로 시작한다.
 - **`InteractEvent` ↔ 전이 태그 불일치.** 상호작용해도 무반응이다.
+- **전이 조건의 `Source` 바인딩 누락.** 비교 대상이 둘 다 null 이 되어 조건이 항상 참이 되고, 위에 있는 전이가 언제나 이긴다. 무반응이 아니라 *엉뚱한 곳으로 가는* 형태라 더 늦게 발견된다.
 - **배치 후 맵 미저장.** 저장 키(`SaveId`)는 에디터에서 심어 에셋에 직렬화되므로, 기믹을 놓고 맵을 저장하지 않으면 키가 없어 영속되지 않는다. 이 경우만 캡처 경로가 경고를 남긴다.
 
 ---
@@ -115,4 +117,4 @@ flowchart TD
 | `FWxStateTreeTask_GrantReward` | `WxInventory` (`.../Inventory/WxRewardStateTreeNodes.cpp`) | 크로스모듈 노드 예시: `AActor` 캐스트 + 초기 진입 인라인 검사 |
 | `UWxAbility_Interact` | `WxGame` (`.../Ability/WxAbility_Interact.cpp`) | 서버 권위 실행 진입점. 사거리·활성 검증 → 대상의 `IWxInteractable::OnInteracted` |
 | `IWxInteractable` / `IWxSavable` | `WxCore` (`Public/WxInteractable.h`, `Public/WxSavable.h`) | 상호작용·영속 계약. 액터가 구현하지 않았으면 컴포넌트에서 찾으므로 호스트를 순수 BP 로 둘 수 있다 |
-| `WxGameplayTags::StateTree_Interact` | `WxCore` (`Public/WxGameplayTags.h`) | 상호작용 발동 이벤트의 기본 태그. 영역별 자식 태그도 같은 파일에 함께 선언한다 |
+| `WxGameplayTags::StateTree_Interact` | `WxCore` (`Public/WxGameplayTags.h`) | 상호작용 발동 이벤트 태그. 영역이 여럿이어도 이 하나를 공유하고, 구분은 전이 조건이 페이로드 `Source` 로 한다 |

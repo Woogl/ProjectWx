@@ -129,12 +129,6 @@ namespace WxGameplayTags
 	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(StateTree_Interact);
 
-	/** 엘리베이터 시작점 호출 콘솔의 상호작용. ST_Elevator 의 전이가 AtStart 로 보낸다 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(StateTree_Interact_Elevator_CallA);
-
-	/** 엘리베이터 끝점 호출 콘솔의 상호작용. ST_Elevator 의 전이가 AtEnd 로 보낸다 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(StateTree_Interact_Elevator_CallB);
-
 	// ── Quest ─────────────────────────────────────────────────────────────
 
 	/** 퀘스트 실패 이벤트. 퀘스트 ST의 InProgress 전이(On Event → Failure)가 수신. 송출은 UWxQuestLibrary::SendQuestEvent 경유 */

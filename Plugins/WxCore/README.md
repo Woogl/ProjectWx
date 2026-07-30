@@ -37,7 +37,7 @@
   - `State.*` — 캐릭터/ASC 상태(Dead, Ragdoll, Groggy, LockOn, LockedOn, InCombat, Invincible, Guard, PerfectGuard, HitReact, SuperArmor, Finisher, Dialogue)
   - `Event.*` — GameplayEvent dispatch 태그(HitReact 계열, DodgeSuccess, PerfectGuard, UseItem, Interact, Finisher/Backstab, HitStop 역경직)
   - `Gimmick.*` — 월드 기믹 ST 에셋의 상태 라벨(상태 디테일의 Tag). 그 값이 곧 세이브에 담기는 상태이며, 코드는 읽지도 쓰지도 않는다. 신규 기믹의 상태 태그는 ini 에 추가한다
-  - `StateTree.Interact` — 기믹 상호작용 발동 이벤트의 기본 태그. 영역마다 갈 곳이 다른 기믹은 이 아래 자식 태그를 ini 에 두어 전이를 가른다
+  - `StateTree.Interact` — 기믹 상호작용 발동 이벤트 태그. 영역이 여럿이어도 이 하나를 공유하고, 갈 곳이 갈리는 전이는 조건이 페이로드의 `Source` 를 대상 메시와 비교해 가른다
   - `ANS.*`(ComboWindow), `GameplayCue.*`(Damage/PerfectGuard/Exceed/Burn/AttackTelegraph 색상별), `Damage.*`(Critical/Unblockable/ParryHitReact)
   - `Ability.*`(Attack/Dodge/Sprint/Guard/Skill_N/Ultimate/Interact/UseItem, AI Pattern_N), `SetByCaller.*`(Duration/Recovery_UP·MP/Coeff_ATK/RawDamage/HitStop)
   - `UI.Layer.*`(Game/GameMenu/Menu/Modal) / `UI.Action.*`(Inventory/MainMenu/FreeCursor) — CommonUI 레이어 스택·액션

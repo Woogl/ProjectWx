@@ -48,8 +48,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_CheckPoint_Lit, "Gimmick.CheckPoint.Lit");
 
 	UE_DEFINE_GAMEPLAY_TAG(StateTree_Interact, "StateTree.Interact");
-	UE_DEFINE_GAMEPLAY_TAG(StateTree_Interact_Elevator_CallA, "StateTree.Interact.Elevator.CallA");
-	UE_DEFINE_GAMEPLAY_TAG(StateTree_Interact_Elevator_CallB, "StateTree.Interact.Elevator.CallB");
 
 	UE_DEFINE_GAMEPLAY_TAG(Quest_Fail, "Quest.Fail");
 

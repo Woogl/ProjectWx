@@ -22,9 +22,9 @@ class UStaticMeshComponent;
  * ST_Elevator 는 상태값마다 최상위 leaf 하나(Closed/AtStart/AtEnd, 그 leaf 의 Tag 가 곧 저장 값)를 두고, 각 leaf 안에서 "문 닫기 → 플랫폼 이동 → 문 열기"를 자식 상태 시퀀스로 choreography 한다(각 단계 완료 시 다음 단계로).
  * mover 는 현재 위치에서 목표로 슬라이드하고 이미 목표면 즉시 완료하므로(self-anchoring), 같은 층 전이(Closed↔AtStart)는 닫기·이동 단계가 즉시 collapse 되고 문 개폐만 실제로 보인다.
  *
- * 전이는 상호작용 이벤트를 받는 각 leaf 의 전이가 구동하며, 어느 영역이 눌렸는지는 전이 조건이 이벤트 페이로드의 Source 로 가른다(전 피어 동일):
- *   - CallConsoleA → AtStart, CallConsoleB → AtEnd (이미 그 층이면 자기 자신이라 사실상 노옵).
- *     Platform → 반대 끝점 토글(문 열린 정지 상태에서만).
+ * 전이는 상호작용 이벤트를 받는 각 leaf 의 전이가 구동한다. 세 영역이 모두 공용 태그(StateTree.Interact)로 발동하고, 갈 곳이 갈리는 상태에서만 전이 조건이 페이로드의 Source 를 대상 메시와 비교해 가른다(전 피어 동일):
+ *   - Closed 는 두 콘솔이 서로 다른 끝점을 부르므로 전이마다 Object Equals 조건을 둔다(Source==CallConsoleA → AtStart, Source==CallConsoleB → AtEnd).
+ *   - AtStart/AtEnd 는 자기 층 콘솔을 Enable Interaction 에서 꺼두어 남은 영역(반대편 콘솔·Platform)이 전부 같은 목적지라, 조건 없는 단일 전이로 반대 끝점에 간다.
  *
  * 위치 정보:
  *   플랫폼 위치는 초기/복원/라이브 전부 Spline Move 가 전담한다(C++ 스냅 없음).
