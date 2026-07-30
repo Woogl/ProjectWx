@@ -92,11 +92,18 @@ protected:
 
 	/** 대화 중 당길 스프링암 길이(cm). 평소 팔 길이에서 이만큼 줄인다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Camera")
-	float CameraZoomDistance = 100.f;
+	float CameraZoomDistance = 200.f;
 
 	/** 대화 중 카메라가 어깨 쪽으로 비껴서는 거리(cm). 0 이면 플레이어 등 뒤 정중앙이라 대상이 등에 가린다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Camera")
 	float CameraShoulderOffset = 60.f;
+
+	/**
+	 * 겨눌 지점을 대상의 루트에서 위로 올리는 높이(cm). 루트는 캡슐 중심(허리)이라 0 이면 얼굴이 아니라 허리를 내려본다.
+	 * 기본값은 눈높이 수준이다. 카메라보다 조금 높은 지점이라 살짝 올려보게 되며, 수평에 가깝게 두려면 가슴 높이로 낮춘다.
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Camera")
+	float CameraTargetHeightOffset = 40.f;
 
 	/** 줌·어깨 오프셋 보간 속도. 대화가 열릴 때와 끝나고 되돌아올 때 양쪽에 쓴다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Camera")

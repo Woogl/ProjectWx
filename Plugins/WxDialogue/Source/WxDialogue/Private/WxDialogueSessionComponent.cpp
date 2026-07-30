@@ -57,8 +57,10 @@ void UWxDialogueSessionComponent::TickComponent(float DeltaTime, ELevelTick Tick
 
 	// 겨누는 출발점은 폰이 아니라 카메라가 실제로 서 있는 자리다. 어깨 쪽으로 비껴선 만큼 각이 저절로 보정돼 대상이 화면 중앙에 온다.
 	// 돌린 결과가 다시 카메라 자리를 옮기므로 한 번에 맞아떨어지지는 않지만, 매 틱 다시 겨누며 한 자리로 수렴한다.
+	// 겨누는 지점은 대상의 루트에서 얼굴 높이로 올린 자리다. 루트는 캡슐 중심(허리)이라 그대로 겨누면 카메라가 아래를 내려본다.
 	const FVector CameraLocation = CameraBoom->GetSocketLocation(USpringArmComponent::SocketName);
-	const FRotator LookAtRotation = (Target->GetActorLocation() - CameraLocation).Rotation();
+	const FVector LookAtLocation = Target->GetActorLocation() + FVector(0.f, 0.f, CameraTargetHeightOffset);
+	const FRotator LookAtRotation = (LookAtLocation - CameraLocation).Rotation();
 	PlayerController->SetControlRotation(FMath::RInterpTo(PlayerController->GetControlRotation(), LookAtRotation, DeltaTime, CameraTurnSpeed));
 }
 
