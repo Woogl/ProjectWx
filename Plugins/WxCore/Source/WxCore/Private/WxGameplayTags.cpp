@@ -34,8 +34,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_Backstab, "Event.Backstab");
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitStop, "Event.HitStop");
 
-	UE_DEFINE_GAMEPLAY_TAG(Gimmick, "Gimmick");
-
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Door_Close, "Gimmick.Door.Close");
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Door_Open, "Gimmick.Door.Open");
 
@@ -61,7 +59,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_LaserCorridor_Active, "Gimmick.LaserCorridor.Active");
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_LaserCorridor_Deactivated, "Gimmick.LaserCorridor.Deactivated");
 
-	UE_DEFINE_GAMEPLAY_TAG(StateTree_Restore, "StateTree.Restore");
+	UE_DEFINE_GAMEPLAY_TAG(StateTree_Interact, "StateTree.Interact");
 
 	UE_DEFINE_GAMEPLAY_TAG(Quest_Fail, "Quest.Fail");
 

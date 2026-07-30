@@ -10,10 +10,13 @@ public class WxWorld : ModuleRules
 
 		PublicDependencyModuleNames.AddRange(new string[]
 		{
+			// 기믹 컴포넌트가 UStateTreeComponent(= UBrainComponent 파생) 를 상속하므로 공개 헤더가 두 모듈을 함께 노출한다.
+			"AIModule",
 			"Core",
 			"CoreUObject",
 			"DeveloperSettings",
 			"Engine",
+			"GameplayStateTreeModule",
 			"GameplayTags",
 			"ModularGameplay",
 			"StateTreeModule",
@@ -24,7 +27,6 @@ public class WxWorld : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"GameplayAbilities",
-			"GameplayStateTreeModule",
 			"LevelSequence",
 			"MovieScene",
 			"Niagara",

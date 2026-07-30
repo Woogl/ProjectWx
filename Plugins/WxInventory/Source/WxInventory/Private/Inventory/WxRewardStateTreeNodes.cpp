@@ -6,7 +6,6 @@
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "StateTreeExecutionContext.h"
-#include "WxGameplayTags.h"
 #include "WxRewardLibrary.h"
 
 FWxStateTreeTask_GrantReward::FWxStateTreeTask_GrantReward()
@@ -17,8 +16,8 @@ FWxStateTreeTask_GrantReward::FWxStateTreeTask_GrantReward()
 
 EStateTreeRunStatus FWxStateTreeTask_GrantReward::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// 초기 진입(StateTree 시작/복원/레이트조인) 또는 세이브 복원(호스트가 상태 태그와 함께 보내는 StateTree.Restore 마커)이면 지급을 재실행하지 않고 곧바로 완료한다(발동 순간에만 지급).
-	const bool bInitialEntry = !Transition.SourceStateID.IsValid() || Context.HasEventToProcess(WxGameplayTags::StateTree_Restore);
+	// 전이로 들어온 것이 아니면(StateTree 시작·세이브 복원·레이트조인) 지급을 재실행하지 않고 곧바로 완료한다(발동 순간에만 지급).
+	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
 	if (bInitialEntry)
 	{
 		return EStateTreeRunStatus::Succeeded;

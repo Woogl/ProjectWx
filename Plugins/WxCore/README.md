@@ -36,8 +36,8 @@
 - 주요 네임스페이스:
   - `State.*` — 캐릭터/ASC 상태(Dead, Ragdoll, Groggy, LockOn, LockedOn, InCombat, Invincible, Guard, PerfectGuard, HitReact, SuperArmor, Finisher, Dialogue)
   - `Event.*` — GameplayEvent dispatch 태그(HitReact 계열, DodgeSuccess, PerfectGuard, UseItem, Interact, Finisher/Backstab, HitStop 역경직)
-  - `Gimmick.*` — 월드 기믹의 권위 상태값이자 GimmickStateTree 진입 이벤트 겸용(Door/Elevator/SpawnConsole/AlarmConsole/CutsceneTrigger/TreasureChest/CheckPoint/LaserCorridor). 부모 태그 `Gimmick`이 ST Root 재선택 전이를 받으므로 이 계층에는 **상태 태그만** 둔다
-  - `StateTree.Restore` — 세이브 복원 시 일회성 효과를 스냅 처리하는 공용 복원 마커(상태가 아니므로 `Gimmick.*` 밖에 산다)
+  - `Gimmick.*` — 월드 기믹 ST 에셋의 상태 라벨(상태 디테일의 Tag). 그 값이 곧 세이브에 담기는 상태이며, 코드는 읽지도 쓰지도 않는다. 신규 기믹의 상태 태그는 ini 에 추가한다
+  - `StateTree.Interact` — 기믹 상호작용 발동 이벤트의 기본 태그. 영역마다 갈 곳이 다른 기믹은 이 아래 자식 태그를 ini 에 두어 전이를 가른다
   - `ANS.*`(ComboWindow), `GameplayCue.*`(Damage/PerfectGuard/Exceed/Burn/AttackTelegraph 색상별), `Damage.*`(Critical/Unblockable/ParryHitReact)
   - `Ability.*`(Attack/Dodge/Sprint/Guard/Skill_N/Ultimate/Interact/UseItem, AI Pattern_N), `SetByCaller.*`(Duration/Recovery_UP·MP/Coeff_ATK/RawDamage/HitStop)
   - `UI.Layer.*`(Game/GameMenu/Menu/Modal) / `UI.Action.*`(Inventory/MainMenu/FreeCursor) — CommonUI 레이어 스택·액션
@@ -55,7 +55,7 @@
 3. `Source/WxCore/Public/WxSavable.h` — 세이브 시스템 참여 규약.
 
 ## 관련
-- 상위(소비): 모든 Wx 도메인 플러그인([[WxCombat]] 태그·Event·SetByCaller, [[WxWorld]] `IWxInteractable`·`Gimmick.*`, [[WxSave]] `IWxSavable`·`StateTree.Restore`, [[WxUI]] `UI.Layer/Action.*`, [[WxQuest]] `Quest.Fail`, [[WxInventory]]·[[WxAI]]·[[WxDialogue]])과 게임 모듈 [[WxGame]]이 WxCore를 참조.
+- 상위(소비): 모든 Wx 도메인 플러그인([[WxCombat]] 태그·Event·SetByCaller, [[WxWorld]] `IWxInteractable`·`StateTree.Interact`, [[WxSave]] `IWxSavable`, [[WxUI]] `UI.Layer/Action.*`, [[WxQuest]] `Quest.Fail`, [[WxInventory]]·[[WxAI]]·[[WxDialogue]])과 게임 모듈 [[WxGame]]이 WxCore를 참조.
 
 ---
 *문서 기준 커밋 `a5b5f20` · 생성일 2026-07-29 · 소스 9파일 — `/readme-writer`로 갱신*

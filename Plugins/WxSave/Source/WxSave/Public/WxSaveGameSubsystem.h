@@ -89,9 +89,18 @@ public:
 	/** 현재 메모리 슬롯 상태(슬롯·맵·폰·레코드 목록)를 LogWxSave 로 덤프한다. 콘솔 명령 Wx.Save.Dump 의 구현. */
 	void LogSaveState() const;
 
+	/**
+	 * SaveToFile 이 요청한 기록이 아직 끝나지 않았는가. 직렬화는 동기지만 디스크 쓰기는 비동기라, 요청 직후엔 아직 파일이 없다.
+	 * 저장이 끝나기를 기다려야 하는 쪽(예: 'Save Game' ST 태스크)이 이것을 폴링한다.
+	 */
+	bool IsSaveInProgress() const;
+
 private:
 	/** SaveGame 을 자기 슬롯에 기록한다. SaveToFile 에서 직접(월드 서브시스템 부재) 또는 RequestSaveFlush 완료 콜백으로 호출된다. */
 	void ContinueSaveToFileToDisk();
+
+	/** 디스크 기록 요청이 걸려 있는 동안 참. SaveToFile 이 세우고 비동기 기록 콜백이 내린다. */
+	bool bSaveInProgress = false;
 
 	UPROPERTY()
 	TObjectPtr<UWxSaveGame> SaveGame;

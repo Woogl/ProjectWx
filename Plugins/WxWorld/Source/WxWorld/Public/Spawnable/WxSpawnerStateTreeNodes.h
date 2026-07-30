@@ -43,7 +43,7 @@ struct FWxStateTreeTask_TriggerSpawnersByLocatorInstanceData
 
 /**
  * 라이브 전이로 진입할 때 권위 측에서만 지정 스포너 전부의 Respawn() 을 호출하고 Succeeded 로 완료한다(1회성 스폰 트리거).
- * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효) 또는 복원 마커(StateTree.Restore)면 호출하지 않는다 — 스폰은 발동 순간에만 일어난다.
+ * 초기 진입(StateTree 시작·세이브 복원·레이트조인: SourceStateID 무효)이면 호출하지 않는다 — 스폰은 발동 순간에만 일어난다.
  * 미해석(스트리밍 아웃) 스포너는 강제 로드 없이 스킵한다.
  * 배열이 비었거나 전부 미해석이면 조립·배치 실수일 수 있어 경고를 남긴다.
  * 틱하지 않으므로 비용이 없다.

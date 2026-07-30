@@ -86,6 +86,23 @@ void UWxSaveWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	}
 }
 
+IWxSavable* UWxSaveWorldSubsystem::FindSavable(AActor* Actor)
+{
+	if (!Actor)
+	{
+		return nullptr;
+	}
+
+	// 액터가 직접 구현했으면 그것이 답이다(스포너 등 영속이 액터 고유 상태인 경우).
+	if (IWxSavable* ActorImplementation = Cast<IWxSavable>(Actor))
+	{
+		return ActorImplementation;
+	}
+
+	// 아니면 컴포넌트가 계약을 든다(기믹). 액터 자체는 C++ 없이 순수 BP 일 수 있다.
+	return Cast<IWxSavable>(Actor->FindComponentByInterface(UWxSavable::StaticClass()));
+}
+
 void UWxSaveWorldSubsystem::FlushMapTravelData()
 {
 	UWorld* World = GetWorld();
@@ -119,12 +136,7 @@ void UWxSaveWorldSubsystem::FlushSavableActors()
 	int32 CapturedCount = 0;
 	for (TActorIterator<AActor> It(World); It; ++It)
 	{
-		AActor* Actor = *It;
-		if (Actor && Actor->Implements<UWxSavable>())
-		{
-			CaptureActor(*SaveGame, Actor);
-			++CapturedCount;
-		}
+		CapturedCount += CaptureActor(*SaveGame, *It) ? 1 : 0;
 	}
 
 	UE_LOG(LogWxSave, Log, TEXT("FlushSavableActors: IWxSavable %d개 캡처, 누적 레코드 %d개"), CapturedCount, SaveGame->ActorRecords.Num());
@@ -266,19 +278,19 @@ void UWxSaveWorldSubsystem::ApplyPlayerStats(AActor* PlayerActor, const TMap<FNa
 	}
 }
 
-void UWxSaveWorldSubsystem::CaptureActor(UWxSaveGame& SaveGame, AActor* Actor)
+bool UWxSaveWorldSubsystem::CaptureActor(UWxSaveGame& SaveGame, AActor* Actor)
 {
-	const IWxSavable* Savable = Cast<IWxSavable>(Actor);
+	const IWxSavable* Savable = FindSavable(Actor);
 	if (!Savable)
 	{
-		return;
+		return false;
 	}
 
 	const FGuid ActorId = Savable->GetSaveId();
 	if (!ActorId.IsValid())
 	{
 		UE_LOG(LogWxSave, Warning, TEXT("CaptureActor: '%s' 의 WxSaveId 가 유효하지 않아 저장에서 제외됨. 에디터에서 WxSaveId 부여 경로(PostLoad 등)가 동작했는지 확인하라."), *GetNameSafe(Actor));
-		return;
+		return false;
 	}
 
 	FWxActorRecord& Record = SaveGame.ActorRecords.FindOrAdd(ActorId);
@@ -325,11 +337,13 @@ void UWxSaveWorldSubsystem::CaptureActor(UWxSaveGame& SaveGame, AActor* Actor)
 	FPackageFileVersion UEVersion = GPackageFileUEVersion;
 	HeaderWriter << UEVersion;
 	UsedCustomVersions.Serialize(HeaderWriter);
+
+	return true;
 }
 
 bool UWxSaveWorldSubsystem::RestoreActor(const UWxSaveGame& SaveGame, AActor* Actor)
 {
-	IWxSavable* Savable = Cast<IWxSavable>(Actor);
+	IWxSavable* Savable = FindSavable(Actor);
 	if (!Savable)
 	{
 		return false;
@@ -426,7 +440,7 @@ void UWxSaveWorldSubsystem::HandleWorldInitializedActors(const UWorld::FActorsIn
 	for (TActorIterator<AActor> It(Params.World); It; ++It)
 	{
 		AActor* Actor = *It;
-		if (Actor && Actor->Implements<UWxSavable>())
+		if (FindSavable(Actor))
 		{
 			++SavableCount;
 			RestoredCount += RestoreActor(*SaveGame, Actor) ? 1 : 0;
@@ -456,10 +470,7 @@ void UWxSaveWorldSubsystem::HandleLevelAddedToWorld(ULevel* Level, UWorld* World
 	int32 RestoredCount = 0;
 	for (AActor* Actor : Level->Actors)
 	{
-		if (Actor && Actor->Implements<UWxSavable>())
-		{
-			RestoredCount += RestoreActor(*SaveGame, Actor) ? 1 : 0;
-		}
+		RestoredCount += RestoreActor(*SaveGame, Actor) ? 1 : 0;
 	}
 
 	UE_LOG(LogWxSave, Verbose, TEXT("스트리밍-인 복원: 레벨 '%s' — %d개 복원"), *Level->GetOutermost()->GetName(), RestoredCount);
@@ -490,11 +501,7 @@ void UWxSaveWorldSubsystem::HandleLevelRemovedFromWorld(ULevel* Level, UWorld* W
 	int32 CapturedCount = 0;
 	for (AActor* Actor : Level->Actors)
 	{
-		if (Actor && Actor->Implements<UWxSavable>())
-		{
-			CaptureActor(*SaveGame, Actor);
-			++CapturedCount;
-		}
+		CapturedCount += CaptureActor(*SaveGame, Actor) ? 1 : 0;
 	}
 
 	UE_LOG(LogWxSave, Verbose, TEXT("스트리밍-아웃 캡처: 레벨 '%s' — IWxSavable %d개"), *Level->GetOutermost()->GetName(), CapturedCount);

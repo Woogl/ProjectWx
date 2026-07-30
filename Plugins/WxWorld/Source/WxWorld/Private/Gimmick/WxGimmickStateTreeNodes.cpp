@@ -19,7 +19,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
-#include "Gimmick/WxGimmick.h"
+#include "Gimmick/WxGimmickStateTreeComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "LevelSequence.h"
 #include "LevelSequenceActor.h"
@@ -29,6 +29,7 @@
 #include "Spawnable/WxSpawner.h"
 #include "StateTreeExecutionContext.h"
 #include "StateTreePropertyBindings.h"
+#include "System/WxSpawnerLibrary.h"
 #include "WxGameplayTags.h"
 #include "WxWorldModule.h"
 
@@ -41,11 +42,18 @@ namespace
 		return Archetype ? Archetype->GetRelativeLocation() : Component->GetRelativeLocation();
 	}
 
-	// 이 진입을 스냅·스킵으로 처리해야 하는가 — StateTree 시작/복원/레이트조인(SourceStateID 무효)이거나, 세이브 복원(호스트 AWxGimmick 가 상태 태그와 함께 보내는 StateTree.Restore 마커)이면 참.
-	// Required Event 전이로 저장 상태에 진입할 때 라이브 발동처럼 보여도 일회성 효과를 발동하지 않고 스냅하도록.
-	bool IsInitialOrRestoreEntry(const FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition)
+	// 이 진입을 스냅·스킵으로 처리해야 하는가 — 전이로 들어온 것이 아니면(StateTree 시작·세이브 복원·레이트조인) 참.
+	// 세이브 복원은 저장된 상태에서 트리를 여는 것이라 전이 없는 시작으로 들어온다. 그래서 별도의 복원 마커 없이 이 한 줄로 갈린다.
+	bool IsInitialEntry(const FStateTreeTransitionResult& Transition)
 	{
-		return !Transition.SourceStateID.IsValid() || Context.HasEventToProcess(WxGameplayTags::StateTree_Restore);
+		return !Transition.SourceStateID.IsValid();
+	}
+
+	// 노드가 오너 기믹의 얇은 프리미티브를 부를 때 쓰는 조회. 컨텍스트 오너는 액터이므로 그 액터에서 기믹 컴포넌트를 찾는다.
+	UWxGimmickStateTreeComponent* FindGimmickComponent(const FStateTreeExecutionContext& Context)
+	{
+		const AActor* Owner = Cast<AActor>(Context.GetOwner());
+		return Owner ? Owner->FindComponentByClass<UWxGimmickStateTreeComponent>() : nullptr;
 	}
 }
 
@@ -68,14 +76,13 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExe
 		return EStateTreeRunStatus::Failed;
 	}
 
-	// 활성 여부와 프롬프트를 둘 다 오너 기믹에 세팅한다 — 콜리전은 관여하지 않으므로 대상 메시의 콜리전 설정은 그대로 보존된다.
+	// 활성 여부와 프롬프트를 함께 오너 기믹에 세팅한다 — 콜리전은 관여하지 않으므로 대상 메시의 콜리전 설정은 그대로 보존된다.
 	// 꺼진 영역은 기믹의 활성 목록에서 빠져 스캐너의 다음 스캔에서 자연 탈락하고, 외곽선도 그때 스캐너가 끈다.
-	// 프롬프트는 영역별로 담기므로 한 상태가 여러 영역을 켜도 서로 덮어쓰지 않는다. 끄는 상태는 빈 텍스트를 넘겨 이전 상태가 남긴 문구를 지운다(다시 켤 때 stale 값을 물려받지 않게).
-	// 오너가 기믹이 아니면(비기믹 ST) 세팅할 대상이 없으므로 노옵이다.
-	if (AWxGimmick* Gimmick = Cast<AWxGimmick>(Context.GetOwner()))
+	// 프롬프트는 영역별로 담기므로 한 상태가 여러 영역을 켜도 서로 덮어쓰지 않는다.
+	// 오너에 기믹 컴포넌트가 없으면(비기믹 ST) 세팅할 대상이 없으므로 노옵이다.
+	if (UWxGimmickStateTreeComponent* Gimmick = FindGimmickComponent(Context))
 	{
-		Gimmick->SetInteractionEnabled(TargetMesh, Instance.bEnable);
-		Gimmick->SetCurrentInteractionPrompt(TargetMesh, Instance.bEnable ? Instance.Prompt : FText::GetEmpty());
+		Gimmick->SetInteractionEnabled(TargetMesh, Instance.bEnable, Instance.Prompt, Instance.InteractEvent);
 	}
 
 	// 토글은 즉시 끝나므로 곧바로 완료한다.
@@ -102,6 +109,94 @@ FText FWxStateTreeTask_EnableInteraction::GetDescription(const FGuid& ID, FState
 	}
 
 	return FText::Format(INVTEXT("{0} ({1})"), InstanceData->bEnable ? INVTEXT("Enable Interaction") : INVTEXT("Disable Interaction"), TargetText);
+}
+#endif
+
+// ── ApplyGameplayEffectToInteractor ───────────────────────────────────────────
+
+FWxStateTreeTask_ApplyGameplayEffectToInteractor::FWxStateTreeTask_ApplyGameplayEffectToInteractor()
+{
+	// 진입 시 1회 적용하고 끝난다.
+	bShouldCallTick = false;
+}
+
+EStateTreeRunStatus FWxStateTreeTask_ApplyGameplayEffectToInteractor::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+{
+	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
+
+	// 초기 진입(StateTree 시작/복원/레이트조인)이면 적용하지 않는다 — 회복은 발동 순간의 효과라 로드 때 다시 일어나면 안 된다.
+	if (IsInitialEntry(Transition))
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	// GE 적용은 서버 권위 사건이다. 클라는 복제된 어트리뷰트를 추종한다.
+	AActor* Owner = Cast<AActor>(Context.GetOwner());
+	const UWxGimmickStateTreeComponent* Gimmick = FindGimmickComponent(Context);
+	if (!Owner || !Owner->HasAuthority() || !Gimmick || !Instance.EffectClass)
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Gimmick->GetInteractingCharacter());
+	if (!ASC)
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+	EffectContext.AddSourceObject(Owner);
+
+	const FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(Instance.EffectClass, 1.0f, EffectContext);
+	if (SpecHandle.IsValid())
+	{
+		ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+	}
+
+	return EStateTreeRunStatus::Succeeded;
+}
+
+#if WITH_EDITOR
+FText FWxStateTreeTask_ApplyGameplayEffectToInteractor::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
+{
+	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
+	check(InstanceData);
+
+	const FText EffectText = InstanceData->EffectClass ? FText::FromString(InstanceData->EffectClass->GetName()) : INVTEXT("none");
+	return FText::Format(INVTEXT("Apply \"{0}\" To Interactor"), EffectText);
+}
+#endif
+
+// ── RespawnSpawners ───────────────────────────────────────────────────────────
+
+FWxStateTreeTask_RespawnSpawners::FWxStateTreeTask_RespawnSpawners()
+{
+	// 진입 시 1회 호출하고 끝난다.
+	bShouldCallTick = false;
+}
+
+EStateTreeRunStatus FWxStateTreeTask_RespawnSpawners::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+{
+	// 초기 진입(StateTree 시작/복원/레이트조인)이면 호출하지 않는다 — 리스폰은 발동 순간의 효과다.
+	if (IsInitialEntry(Transition))
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	// 스폰은 서버 권위 사건이다(스포너 내부에서도 한 번 더 가린다).
+	AActor* Owner = Cast<AActor>(Context.GetOwner());
+	if (Owner && Owner->HasAuthority())
+	{
+		UWxSpawnerLibrary::TryRespawnAll(Owner);
+	}
+
+	return EStateTreeRunStatus::Succeeded;
+}
+
+#if WITH_EDITOR
+FText FWxStateTreeTask_RespawnSpawners::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
+{
+	return INVTEXT("Respawn Spawners");
 }
 #endif
 
@@ -198,19 +293,18 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentMove::EnterState(FStateTreeExecuti
 	// 아키타입 조회가 상수 시간이 아니라 여기서 1회만 구해 인스턴스 데이터에 캐시하고, Tick 은 이 값을 읽기만 한다.
 	Instance.TargetLocation = GetMoveAnchor(Component) + Instance.LocalOffset;
 
-	// 초기 진입(StateTree 시작/복원)·길이 0·이미 목표면 애니 없이 즉시 스냅하고 곧바로 완료한다.
-	const bool bInitialEntry = IsInitialOrRestoreEntry(Context, Transition);
-	const bool bReachNow = bInitialEntry || Instance.Duration <= 0.f || Component->GetRelativeLocation().Equals(Instance.TargetLocation);
+	// 길이 0 이거나 이미 목표면 애니 없이 즉시 스냅하고 곧바로 완료한다.
+	const bool bReachNow = Instance.Duration <= 0.f || Component->GetRelativeLocation().Equals(Instance.TargetLocation);
 	if (bReachNow)
 	{
 		Component->SetRelativeLocation(Instance.TargetLocation);
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	// 라이브 전이: 속도를 시작(현재)→목표 실제 거리/Duration 으로 1회 산출한다(LocalOffset 크기가 아니라 실제 거리라, 목표가 아키타입인 닫기도 0 이 아니다).
+	// 속도를 시작(현재)→목표 실제 거리/Duration 으로 1회 산출한다(LocalOffset 크기가 아니라 실제 거리라, 목표가 아키타입인 닫기도 0 이 아니다).
 	Instance.MoveSpeed = (Instance.TargetLocation - Component->GetRelativeLocation()).Size() / Instance.Duration;
 
-	// 라이브 전이면 Tick 이 고정 속도로 슬라이드하다 도달 시 완료한다.
+	// Tick 이 고정 속도로 슬라이드하다 도달 시 완료한다.
 	return EStateTreeRunStatus::Running;
 }
 
@@ -287,25 +381,14 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentSplineMove::EnterState(FStateTreeE
 	const float TargetDistance = Spline->GetDistanceAlongSplineAtSplinePoint(TargetIndex);
 	Instance.TargetDistance = TargetDistance;
 
-	// 초기 진입(StateTree 시작/복원/레이트조인)이면 목표 포인트로 즉시 스냅한다(복제/복원된 State 의 끝점을 정확히 복원).
-	const bool bInitialEntry = IsInitialOrRestoreEntry(Context, Transition);
-	if (bInitialEntry)
-	{
-		Instance.CurrentDistance = TargetDistance;
-		Instance.MoveSpeed = 0.f;
-		Component->SetWorldLocation(Spline->GetLocationAtDistanceAlongSpline(TargetDistance, ESplineCoordinateSpace::World));
-		// 목표 포인트로 스냅했으니 곧바로 완료한다(복원 시 단계 캐스케이드).
-		return EStateTreeRunStatus::Succeeded;
-	}
-
-	// 라이브 전이: 플랫폼의 실제 현재 위치에 해당하는 스플라인 거리를 시작점으로 잡는다(vertex 로 양자화하지 않아 이동 중 반전도 스냅 없이 현재 지점에서 출발).
+	// 플랫폼의 실제 현재 위치에 해당하는 스플라인 거리를 시작점으로 잡는다(vertex 로 양자화하지 않아 이동 중 반전도 스냅 없이 현재 지점에서 출발).
 	const float StartDistance = Spline->GetDistanceAlongSplineAtLocation(Component->GetComponentLocation(), ESplineCoordinateSpace::World);
 
 	// 속도는 시작→목표 남은 거리/Duration 으로 EnterState 에서 1회 산출한다(Duration 0 이하면 아래에서 즉시 스냅).
 	const float SegmentLength = FMath::Abs(TargetDistance - StartDistance);
 	Instance.MoveSpeed = Instance.Duration > 0.f ? SegmentLength / Instance.Duration : SegmentLength;
 
-	// 길이 0·이미 목표면 즉시 목표로 스냅, 아니면 시작에서 Tick 이 슬라이드한다.
+	// 길이 0 이거나 이미 목표면 즉시 목표로 스냅, 아니면 시작에서 Tick 이 슬라이드한다.
 	const bool bSnap = Instance.Duration <= 0.f || FMath::IsNearlyEqual(StartDistance, TargetDistance);
 	Instance.CurrentDistance = bSnap ? TargetDistance : StartDistance;
 	Component->SetWorldLocation(Spline->GetLocationAtDistanceAlongSpline(Instance.CurrentDistance, ESplineCoordinateSpace::World));
@@ -371,16 +454,7 @@ EStateTreeRunStatus FWxStateTreeTask_PlayAnimation::EnterState(FStateTreeExecuti
 		return EStateTreeRunStatus::Failed;
 	}
 
-	// 초기 진입(StateTree 시작/복원/레이트조인)이면 끝 프레임으로 스냅해 발동 완료 포즈를 복원하고 곧바로 완료한다.
-	const bool bInitialEntry = IsInitialOrRestoreEntry(Context, Transition);
-	if (bInitialEntry)
-	{
-		Mesh->SetAnimation(Instance.Animation);
-		Mesh->SetPosition(Instance.Animation->GetPlayLength(), false);
-		return EStateTreeRunStatus::Succeeded;
-	}
-
-	// 라이브 전이면 처음부터 재생하고 Tick 이 종료를 감지해 완료한다.
+	// 진입 경로를 가리지 않고 처음부터 재생하고, Tick 이 종료를 감지해 완료한다.
 	Mesh->PlayAnimation(Instance.Animation, false);
 
 	return EStateTreeRunStatus::Running;
@@ -424,17 +498,18 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::EnterState(FStateTr
 	Instance.BlockedAbilitySystem = nullptr;
 
 	// 초기 진입(StateTree 시작/복원/레이트조인)이면 이동 없이 곧바로 완료한다(발동 순간에만 동작; InteractingCharacter 는 비영속이라 복원 시 비어 있음).
-	if (IsInitialOrRestoreEntry(Context, Transition))
+	if (IsInitialEntry(Transition))
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	// 당사자는 오너 기믹이 권위 측에서 기록해 복제한 값이라 모든 피어가 같은 대상을 본다(에셋 배선 없음).
-	const AWxGimmick* Gimmick = Cast<AWxGimmick>(Context.GetOwner());
+	// 당사자는 오너 기믹이 상호작용 멀티캐스트로 각 피어에 기록한 값이라 모든 피어가 같은 대상을 본다(에셋 배선 없음).
+	const AActor* Owner = Cast<AActor>(Context.GetOwner());
+	const UWxGimmickStateTreeComponent* Gimmick = FindGimmickComponent(Context);
 	ACharacter* Character = Gimmick ? Gimmick->GetInteractingCharacter() : nullptr;
 
 	// 당사자가 없으면(비캐릭터 상호작용, 비기믹 오너 등) 상태가 갇히지 않게 곧바로 완료한다.
-	if (!Character)
+	if (!Character || !Owner)
 	{
 		UE_LOG(LogWxWorld, Warning, TEXT("Move Interactor To Target: 오너 기믹의 InteractingCharacter 가 비어 있다 — 완료로 넘어간다."));
 		return EStateTreeRunStatus::Succeeded;
@@ -466,7 +541,7 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::EnterState(FStateTr
 	}
 
 	// 목표 = 앵커(또는 오너) 트랜스폼 ∘ 상대오프셋. 모든 머신에서 동일하게 합성돼 수렴한다.
-	const FTransform Anchor = Instance.AnchorComponent ? Instance.AnchorComponent->GetComponentTransform() : Gimmick->GetActorTransform();
+	const FTransform Anchor = Instance.AnchorComponent ? Instance.AnchorComponent->GetComponentTransform() : Owner->GetActorTransform();
 	const FVector TargetLocation = Anchor.TransformPosition(Instance.RelativeLocation);
 	const float TargetYaw = (Anchor.GetRotation() * Instance.RelativeRotation.Quaternion()).Rotator().Yaw;
 
@@ -500,14 +575,15 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::Tick(FStateTreeExec
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	const AWxGimmick* Gimmick = Cast<AWxGimmick>(Context.GetOwner());
+	const AActor* Owner = Cast<AActor>(Context.GetOwner());
+	const UWxGimmickStateTreeComponent* Gimmick = FindGimmickComponent(Context);
 	ACharacter* Character = Gimmick ? Gimmick->GetInteractingCharacter() : nullptr;
-	if (!Character)
+	if (!Character || !Owner)
 	{
 		return EStateTreeRunStatus::Failed;
 	}
 
-	const FTransform Anchor = Instance.AnchorComponent ? Instance.AnchorComponent->GetComponentTransform() : Gimmick->GetActorTransform();
+	const FTransform Anchor = Instance.AnchorComponent ? Instance.AnchorComponent->GetComponentTransform() : Owner->GetActorTransform();
 	const FVector TargetLocation = Anchor.TransformPosition(Instance.RelativeLocation);
 	const float TargetYaw = (Anchor.GetRotation() * Instance.RelativeRotation.Quaternion()).Rotator().Yaw;
 
@@ -587,13 +663,13 @@ EStateTreeRunStatus FWxStateTreeTask_PlayInteractorMontage::EnterState(FStateTre
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
 	// 초기 진입(StateTree 시작/복원/레이트조인)이면 재생 없이 곧바로 완료한다(발동 순간에만 재생; InteractingCharacter 는 비영속이라 복원 시 비어 있음).
-	if (IsInitialOrRestoreEntry(Context, Transition))
+	if (IsInitialEntry(Transition))
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	// 당사자는 오너 기믹이 권위 측에서 기록해 복제한 값이라 모든 피어가 같은 대상을 본다(에셋 배선 없음).
-	const AWxGimmick* Gimmick = Cast<AWxGimmick>(Context.GetOwner());
+	// 당사자는 오너 기믹이 상호작용 멀티캐스트로 각 피어에 기록한 값이라 모든 피어가 같은 대상을 본다(에셋 배선 없음).
+	const UWxGimmickStateTreeComponent* Gimmick = FindGimmickComponent(Context);
 	ACharacter* Character = Gimmick ? Gimmick->GetInteractingCharacter() : nullptr;
 	USkeletalMeshComponent* Mesh = Character ? Character->GetMesh() : nullptr;
 	UAnimInstance* AnimInstance = Mesh ? Mesh->GetAnimInstance() : nullptr;
@@ -615,7 +691,7 @@ EStateTreeRunStatus FWxStateTreeTask_PlayInteractorMontage::Tick(FStateTreeExecu
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	const AWxGimmick* Gimmick = Cast<AWxGimmick>(Context.GetOwner());
+	const UWxGimmickStateTreeComponent* Gimmick = FindGimmickComponent(Context);
 	ACharacter* Character = Gimmick ? Gimmick->GetInteractingCharacter() : nullptr;
 	if (!Character)
 	{
@@ -665,17 +741,6 @@ namespace
 		Instance.SequenceActor = nullptr;
 		Instance.Player = nullptr;
 	}
-
-	// 재생 종료를 소유 기믹에 통지한다(권위 측만). 종료를 아는 주체가 재생 소유자(이 태스크)뿐이므로 직접 발행한다.
-	// HandleLevelSequenceFinished 를 구현하지 않는 기믹은 기본 노옵이라 무해하다(예: OnComplete 전이로 진행하는 기믹).
-	void NotifyHostSequenceFinished(FStateTreeExecutionContext& Context)
-	{
-		AWxGimmick* OwnerGimmick = Cast<AWxGimmick>(Context.GetOwner());
-		if (OwnerGimmick && OwnerGimmick->HasAuthority())
-		{
-			OwnerGimmick->HandleLevelSequenceFinished();
-		}
-	}
 }
 
 FWxStateTreeTask_PlayLevelSequence::FWxStateTreeTask_PlayLevelSequence()
@@ -688,19 +753,17 @@ EStateTreeRunStatus FWxStateTreeTask_PlayLevelSequence::EnterState(FStateTreeExe
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 초기 진입(StateTree 시작/복원/레이트조인)이면 재생하지 않고 침묵 완료한다 — 복원 시 호스트에 통지하지 않는다(라이브 복귀 오발화 방지).
-	const bool bInitialEntry = IsInitialOrRestoreEntry(Context, Transition);
-	if (bInitialEntry)
+	// 초기 진입(StateTree 시작/복원/레이트조인)이면 재생하지 않고 침묵 완료한다 — 컷신은 발동 순간에만 재생한다.
+	if (IsInitialEntry(Transition))
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	// 라이브 진입이지만 재생할 게 없으면, 호스트가 Playing 에 갇히지 않게 곧장 종료를 통지하고 완료한다.
+	// 라이브 진입이지만 재생할 게 없으면, 상태가 갇히지 않게 곧장 완료한다(완료 전이가 다음 상태를 잇는다).
 	AActor* Owner = Cast<AActor>(Context.GetOwner());
 	UWorld* World = Owner ? Owner->GetWorld() : nullptr;
 	if (!Instance.LevelSequence || !World)
 	{
-		NotifyHostSequenceFinished(Context);
 		return EStateTreeRunStatus::Succeeded;
 	}
 
@@ -709,17 +772,16 @@ EStateTreeRunStatus FWxStateTreeTask_PlayLevelSequence::EnterState(FStateTreeExe
 	Instance.Player = ULevelSequencePlayer::CreateLevelSequencePlayer(World, Instance.LevelSequence, PlaybackSettings, NewSequenceActor);
 	Instance.SequenceActor = NewSequenceActor;
 
-	// 플레이어 생성 실패면 정리하고, 라이브 진입이므로 호스트에 종료를 통지한 뒤 완료한다.
+	// 플레이어 생성 실패면 정리하고 완료한다.
 	if (!Instance.Player)
 	{
 		FinishSequencePlayback(Instance);
-		NotifyHostSequenceFinished(Context);
 		return EStateTreeRunStatus::Succeeded;
 	}
 
 	Instance.Player->Play();
 
-	// 상태를 떠날 때까지 머문다. 재생 종료를 Tick 이 폴링해 호스트에 통지하고, State 가 바뀌면 ExitState 가 정리한다.
+	// 상태를 떠날 때까지 머문다. 재생 종료를 Tick 이 폴링해 완료시키고, 상태를 떠나면 ExitState 가 정리한다.
 	return EStateTreeRunStatus::Running;
 }
 
@@ -733,15 +795,14 @@ EStateTreeRunStatus FWxStateTreeTask_PlayLevelSequence::Tick(FStateTreeExecution
 		return EStateTreeRunStatus::Running;
 	}
 
-	// 재생이 끝났다. 시퀀스를 정리하고 권위 측이면 소유 기믹에 종료를 통지해 State 복귀(예: Idle)를 구동하게 한 뒤 완료한다.
+	// 재생이 끝났다. 시퀀스를 정리하고 완료해, 상태의 완료 전이가 다음 상태를 잇게 한다.
 	FinishSequencePlayback(Instance);
-	NotifyHostSequenceFinished(Context);
 	return EStateTreeRunStatus::Succeeded;
 }
 
 void FWxStateTreeTask_PlayLevelSequence::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// 상태 이탈(호스트의 State 복귀)·중도 이탈·액터 파괴 시 시퀀스를 정지·정리한다(멱등).
+	// 상태 이탈·중도 이탈·액터 파괴 시 시퀀스를 정지·정리한다(멱등).
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 	FinishSequencePlayback(Instance);
 }
@@ -770,7 +831,7 @@ EStateTreeRunStatus FWxStateTreeTask_PlaySound::EnterState(FStateTreeExecutionCo
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
 	// 초기 진입(StateTree 시작/복원/레이트조인)이면 기본적으로 재생하지 않고 곧바로 완료한다(발동 순간에만 울림). bPlayOnRestore 면 복원/시작 진입에서도 재생한다(지속 사운드용).
-	const bool bInitialEntry = IsInitialOrRestoreEntry(Context, Transition);
+	const bool bInitialEntry = IsInitialEntry(Transition);
 	if (bInitialEntry && !Instance.bPlayOnRestore)
 	{
 		return EStateTreeRunStatus::Succeeded;
@@ -828,14 +889,15 @@ EStateTreeRunStatus FWxStateTreeTask_SpawnNiagara::EnterState(FStateTreeExecutio
 
 	if (Instance.Niagara)
 	{
-		// attach 대상이 있으면 그 컴포넌트에 붙여 재생, 없으면 액터 위치에 재생.
+		// attach 대상이 있으면 그 컴포넌트(지정 시 그 소켓)에 붙여 재생, 없으면 액터 위치에 재생.
+		// 어느 쪽이든 RelativeLocation 을 더해, 소켓이 없는 메시에서도 불꽃 높이 같은 부착 지점을 에셋에서 잡을 수 있게 한다.
 		if (Instance.AttachComponent)
 		{
-			Instance.SpawnedComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(Instance.Niagara, Instance.AttachComponent, NAME_None, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, true);
+			Instance.SpawnedComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(Instance.Niagara, Instance.AttachComponent, Instance.AttachSocketName, Instance.RelativeLocation, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, true);
 		}
 		else
 		{
-			Instance.SpawnedComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(Owner, Instance.Niagara, Owner->GetActorLocation());
+			Instance.SpawnedComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(Owner, Instance.Niagara, Owner->GetActorTransform().TransformPosition(Instance.RelativeLocation));
 		}
 	}
 
@@ -864,7 +926,7 @@ FWxStateTreeTask_TriggerSpawners::FWxStateTreeTask_TriggerSpawners()
 EStateTreeRunStatus FWxStateTreeTask_TriggerSpawners::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	// 초기 진입(StateTree 시작/복원/레이트조인)이면 스폰을 재실행하지 않고 곧바로 완료한다(발동 순간에만 스폰).
-	const bool bInitialEntry = IsInitialOrRestoreEntry(Context, Transition);
+	const bool bInitialEntry = IsInitialEntry(Transition);
 	if (bInitialEntry)
 	{
 		return EStateTreeRunStatus::Succeeded;

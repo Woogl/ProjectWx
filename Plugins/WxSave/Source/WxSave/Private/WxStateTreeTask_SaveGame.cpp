@@ -7,20 +7,18 @@
 #include "GameFramework/Actor.h"
 #include "StateTreeExecutionContext.h"
 #include "StateTreePropertyBindings.h"
-#include "WxGameplayTags.h"
 #include "WxSaveGameSubsystem.h"
 
 FWxStateTreeTask_SaveGame::FWxStateTreeTask_SaveGame()
 {
-	// 진입 시 1회 저장만 하므로 틱이 불필요하다.
-	bShouldCallTick = false;
+	// 디스크 기록이 끝나기를 기다려야 하므로 틱한다(직렬화는 동기지만 쓰기는 비동기다).
 }
 
 EStateTreeRunStatus FWxStateTreeTask_SaveGame::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// 초기 진입(StateTree 시작/복원/레이트조인) 또는 세이브 복원(호스트가 상태 태그와 함께 보내는 StateTree.Restore 마커)이면 저장하지 않는다.
+	// 전이로 들어온 것이 아니면(StateTree 시작·세이브 복원·레이트조인) 저장하지 않는다.
 	// 막 로드한 세이브를 로드 직후 되쓰면 그 사이 라이브 상태로 파일이 오염된다.
-	const bool bInitialEntry = !Transition.SourceStateID.IsValid() || Context.HasEventToProcess(WxGameplayTags::StateTree_Restore);
+	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
 	if (bInitialEntry)
 	{
 		return EStateTreeRunStatus::Succeeded;
@@ -48,8 +46,22 @@ EStateTreeRunStatus FWxStateTreeTask_SaveGame::EnterState(FStateTreeExecutionCon
 	// 슬롯을 비워 활성 슬롯에 그대로 기록한다(오토세이브 경로). 실제 디스크 기록은 월드 플러시 완료 후 이어진다.
 	SaveSubsystem->SaveToFile(FString(), 0, ResumePoint ? &ResumeTransform : nullptr);
 
-	// 저장 요청은 즉시 끝나므로 곧바로 완료한다.
-	return EStateTreeRunStatus::Succeeded;
+	// 기록이 끝날 때까지 머문다. Tick 이 완료를 폴링해 상태를 완료시킨다(요청 즉시 끝났으면 첫 틱에 바로 빠진다).
+	return EStateTreeRunStatus::Running;
+}
+
+EStateTreeRunStatus FWxStateTreeTask_SaveGame::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
+{
+	// 저장을 건 주체가 사라졌으면(레벨 전환 등) 상태가 갇히지 않게 완료로 빠진다.
+	const AActor* Owner = Cast<AActor>(Context.GetOwner());
+	UGameInstance* GameInstance = Owner ? Owner->GetGameInstance() : nullptr;
+	const UWxSaveGameSubsystem* SaveSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
+	if (!SaveSubsystem)
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	return SaveSubsystem->IsSaveInProgress() ? EStateTreeRunStatus::Running : EStateTreeRunStatus::Succeeded;
 }
 
 #if WITH_EDITOR

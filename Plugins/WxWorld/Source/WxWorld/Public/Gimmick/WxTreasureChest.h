@@ -11,9 +11,9 @@ class USkeletalMeshComponent;
 
 /**
  * 보물 상자.
- * 플레이어가 메시 범위에 진입하면 프롬프트 위젯이 표시되고, 상호작용 입력 시 권위 측이 State 를 Open 으로 확정한다.
- * 상태는 자체 State 태그(Gimmick.TreasureChest.*)가 권위 원천이며, 복제·SaveGame 으로 보존된다.
- * 열기 애니메이션과 인터랙션 비활성은 GimmickStateTree(ST_TreasureChest)가 State 태그 이벤트로 진입한 상태에서 적용한다(라이브 발동=처음부터 재생, 복원=StateTree.Restore 마커로 끝 프레임 스냅).
+ * 플레이어가 메시 범위에 진입하면 프롬프트 위젯이 표시되고, 상호작용 입력 시 ST_TreasureChest 의 전이가 Open 상태로 넘긴다.
+ * 그 상태의 Tag 가 곧 저장 값이라, 한 번 열린 상자는 복원 시에도 열린 상태로 트리가 열린다.
+ * 열기 애니메이션과 인터랙션 비활성은 그 상태의 태스크가 적용한다(라이브 발동=처음부터 재생, 복원=초기 진입이라 끝 프레임 스냅).
  *
  * 보상 지급은 GimmickStateTree(ST_TreasureChest)의 Open 상태에서 Grant Reward 태스크가 수행한다(UWxRewardLibrary::GrantReward 호출).
  * 지급할 보상(RewardRow)은 이 액터의 프로퍼티로 두고 ST 태스크가 Context 액터 바인딩으로 읽는다.
@@ -27,10 +27,6 @@ class WXWORLD_API AWxTreasureChest : public AWxGimmick
 
 public:
 	AWxTreasureChest();
-
-	//~ Begin IWxInteractable — 상호작용 시 State 를 Open 으로 확정(프롬프트는 ST_TreasureChest 의 Enable Interaction 에서 author).
-	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
-	//~ End IWxInteractable
 
 protected:
 

@@ -141,6 +141,9 @@ void UWxSaveGameSubsystem::SaveToFile(const FString& SlotName, int32 UserIndex, 
 		SaveGame->UserIndex = UserIndex;
 	}
 
+	// 기록이 끝날 때까지 참으로 두어, 저장 완료를 기다리는 쪽이 폴링으로 알 수 있게 한다. 아래 경로 중 어디로 가든 ContinueSaveToFileToDisk 가 내린다.
+	bSaveInProgress = true;
+
 	UWxSaveWorldSubsystem* WorldSubsystem = nullptr;
 	if (UGameInstance* GameInstance = GetGameInstance())
 	{
@@ -271,18 +274,30 @@ void UWxSaveGameSubsystem::LogSaveState() const
 	}
 }
 
+bool UWxSaveGameSubsystem::IsSaveInProgress() const
+{
+	return bSaveInProgress;
+}
+
 void UWxSaveGameSubsystem::ContinueSaveToFileToDisk()
 {
 	if (!SaveGame)
 	{
 		UE_LOG(LogWxSave, Warning, TEXT("ContinueSaveToFileToDisk: 활성 SaveGame 없음 — 기록 중단"));
+		bSaveInProgress = false;
 		return;
 	}
 
-	// 직렬화는 게임 스레드에서 동기 수행되고 디스크 쓰기만 비동기다. 완료 델리게이트로 기록 성공/실패를 가시화한다.
+	// 직렬화는 게임 스레드에서 동기 수행되고 디스크 쓰기만 비동기다. 완료 델리게이트로 기록 성공/실패를 가시화하고 진행 플래그를 내린다.
+	TWeakObjectPtr<UWxSaveGameSubsystem> WeakThis(this);
 	UGameplayStatics::AsyncSaveGameToSlot(SaveGame, SaveGame->SlotName, SaveGame->UserIndex,
-		FAsyncSaveGameToSlotDelegate::CreateLambda([](const FString& Slot, int32 /*UserIndex*/, bool bSuccess)
+		FAsyncSaveGameToSlotDelegate::CreateLambda([WeakThis](const FString& Slot, int32 /*UserIndex*/, bool bSuccess)
 		{
+			if (UWxSaveGameSubsystem* Subsystem = WeakThis.Get())
+			{
+				Subsystem->bSaveInProgress = false;
+			}
+
 			if (bSuccess)
 			{
 				UE_LOG(LogWxSave, Log, TEXT("SaveToFile 완료: 슬롯 '%s' 디스크 기록 성공"), *Slot);

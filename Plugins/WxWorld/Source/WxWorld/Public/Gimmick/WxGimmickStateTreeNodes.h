@@ -17,6 +17,7 @@ class APawn;
 class APlayerController;
 class AWxSpawner;
 class UAbilitySystemComponent;
+class UGameplayEffect;
 class UAnimMontage;
 class UAnimSequenceBase;
 class ULevelSequence;
@@ -30,20 +31,22 @@ class USoundBase;
 class USplineComponent;
 
 /**
- * 모든 Gimmick(AWxGimmick 파생) 의 StateTree 가 공유하는 노드 모음.
+ * 기믹(GimmickStateTree 컴포넌트를 든 액터) 의 StateTree 가 공유하는 노드 모음.
  * 여기의 노드는 기믹 종류와 무관한 공통 동작만 다루며, 소유 액터의 얇은 프리미티브만 호출한다.
- * 컨텍스트 액터는 StateTreeComponentSchema 가 제공하는 소유 액터(= AWxGimmick 파생) 이며, 각 노드는 Context.GetOwner() 를 캐스트해 얻는다.
+ * 컨텍스트 액터는 StateTreeComponentSchema 가 제공하는 소유 액터이며, 기믹 상태를 다뤄야 하는 노드는 그 액터에서 GimmickStateTree 컴포넌트를 찾아 쓴다.
  *
- *  - EnableInteraction 은 (TargetMesh, bEnable, Prompt) 으로 지정 메시의 상호작용 활성/비활성을 토글하고, 켤 때 그 메시의 HUD 프롬프트를 오너 기믹에 세팅한다.
+ *  - EnableInteraction 은 (TargetMesh, bEnable, Prompt, InteractEvent) 으로 지정 메시의 상호작용 활성/비활성을 토글하고, 켤 때 그 메시의 HUD 프롬프트와 발동 이벤트 태그를 오너 기믹에 세팅한다.
+ *  - ApplyGameplayEffectToInteractor 는 (EffectClass) 로 라이브 진입 시 권위 측에서 상호작용 당사자에게 GE 를 적용한다(회복·버프 등).
+ *  - RespawnSpawners 는 라이브 진입 시 권위 측에서 월드의 Auto 스포너를 일괄 리스폰한다(체크포인트 휴식).
  *  - EnablePlayerInput 은 (bEnable) 으로 로컬 플레이어 폰의 입력 전체를 진입 시 1회 토글한다(컷신 등 연출 중 조작 차단).
  *  - ComponentMove 는 (TargetComponent, LocalOffset, Duration) 으로 지정 컴포넌트를 현재 위치에서 기준(아키타입)+offset 으로 일정 속도 슬라이드한다(범용 메시 이동, 목표=아키타입인 닫기 방향도 지원).
- *  - ComponentSplineMove 는 (TargetComponent, Spline, TargetPointIndex, Duration) 으로 지정 컴포넌트를 목표 스플라인 포인트로 옮긴다. 초기 진입이면 목표 포인트로 즉시 스냅, 라이브 전이면 실제 현재 위치에서 목표까지 곡선을 따라 이동한다(State 가 목표 끝점을 직접 선언하므로 복원도 정확).
- *  - PlayAnimation 은 (TargetMesh, Animation) 으로 초기 진입이면 끝 프레임 스냅, 라이브 전이면 처음부터 재생한다. 범용 애니 재생.
+ *  - ComponentSplineMove 는 (TargetComponent, Spline, TargetPointIndex, Duration) 으로 지정 컴포넌트를 실제 현재 위치에서 목표 스플라인 포인트까지 곡선을 따라 옮긴다(진입 경로 무관).
+ *  - PlayAnimation 은 (TargetMesh, Animation) 으로 진입 경로를 가리지 않고 처음부터 재생한다. 범용 애니 재생.
  *  - MoveInteractorToTarget 은 (AnchorComponent, RelativeLocation, bAlignRotation, RelativeRotation, Duration) 으로 상호작용한 플레이어 캐릭터(오너 기믹에서 읽는다)를 앵커(또는 오너) 기준 상대 위치/방향으로 일정 시간 이동·응시시키고, 도착하면 완료한다. 목표는 모든 머신에서 동일해 각 피어 로컬 보간으로 수렴한다(복원/초기 진입은 스킵). 이동 중에는 로컬 플레이어의 이동·어빌리티·점프 입력을 막는다(카메라 look 은 유지).
  *  - PlayInteractorMontage 는 (Montage) 으로 상호작용한 플레이어 캐릭터(오너 기믹에서 읽는다)에게 몽타주를 재생하고, 재생이 끝나면 완료한다. 각 머신이 메시 AnimInstance 로 로컬 재생·폴링한다(복원/초기 진입은 스킵). 이동+몽타주 연출은 두 태스크를 상태로 나눠(이동 상태 → 몽타주 상태) 조립한다.
  *  - PlayLevelSequence 는 (LevelSequence) 로 라이브 전이 진입 시 시퀀스를 재생하고 Tick 으로 종료를 폴링하다, 종료 시 시퀀스를 정리하고 권위 측이면 소유 기믹의 HandleLevelSequenceFinished 로 통지한 뒤 Succeeded 를 반환한다(호스트가 State 복귀를 구동; OnComplete 전이를 쓰는 기믹도 그대로 가능). 입력 차단은 별도 EnablePlayerInput 이 맡는다. 중도 이탈 시 ExitState 가 시퀀스 정지·정리(복원 시 침묵·통지 없음).
  *  - PlaySound 는 (Sound, bPlayOnRestore) 로 라이브 전이 진입 시 사운드를 1회 재생한다(기본은 복원 시 침묵, bPlayOnRestore 면 복원/시작 진입에서도 재생).
- *  - SpawnNiagara 는 (AttachComponent, Niagara) 로 진입 시 자기가 띄운 FX 가 재생 중이 아니면 재생한다(진입 경로 무관). 루프 Niagara 를 지정하면 상태에 묶인 지속 FX 가 되어 로드·복원에서도 알아서 살아나고 중복도 쌓이지 않는다.
+ *  - SpawnNiagara 는 (AttachComponent, AttachSocketName, RelativeLocation, Niagara) 로 진입 시 자기가 띄운 FX 가 재생 중이 아니면 재생한다(진입 경로 무관). 루프 Niagara 를 지정하면 상태에 묶인 지속 FX 가 되어 로드·복원에서도 알아서 살아나고 중복도 쌓이지 않는다.
  *  - TriggerSpawners 는 (Spawners) 로 라이브 전이 진입 시 권위 측에서만 각 스포너의 Respawn 을 호출한다(복원 시 재실행 안 함).
  *  - SpawnActor 는 (ActorClass, LocalSpawnTransform, Interval, Lifetime, bDestroyOnExit, SpawnCollisionHandlingOverride) 로 매 틱 권위 측에서 LocalSpawnTransform 을 오너 트랜스폼에 합성한 자리에 Interval 마다 액터를 스폰하고 살아있는 목록을 유지한다(Interval 0 이면 1회만 스폰, Lifetime 양수면 자동 파괴, 완료 없는 머무는 태스크, 상태 이탈 시 bDestroyOnExit 면 전부 파괴).
  *
@@ -75,11 +78,19 @@ struct FWxStateTreeTask_EnableInteractionInstanceData
 	/** 상호작용을 켤 때 이 메시가 표시할 HUD 프롬프트. 오너 기믹의 GetInteractionPrompt 로 pull 된다. 코드 폴백이 없으므로 비우면 문구 없이 표시된다. bEnable 일 때만 의미가 있다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (EditCondition = "bEnable"))
 	FText Prompt;
+
+	/**
+	 * 이 영역을 눌렀을 때 트리에 발행할 이벤트 태그. 비우면 StateTree.Interact 를 쓴다.
+	 * 상호작용 영역이 여럿이고 영역마다 갈 곳이 다른 기믹만 채운다 — StateTree.Interact 아래에 영역별 자식 태그를 두면, 부모로 받는 전이는 아무 영역이나, 자식으로 받는 전이는 그 영역만 받는다.
+	 */
+	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (EditCondition = "bEnable"))
+	FGameplayTag InteractEvent;
 };
 
 /**
- * 진입 시 지정 메시의 상호작용 활성/비활성을 bEnable 로 토글한 뒤 Succeeded 로 완료한다 — WxInteractable 채널 응답을 Overlap/Ignore 로 바꿔 스캔 포함 여부를 가른다.
- * 상호작용을 켜는 상태면 그 메시의 프롬프트(Prompt)도 함께 오너 기믹에 세팅해, "이 상태가 상호작용 가능한가 + 프롬프트는 무엇인가"를 한 자리에서 author 한다(끄는 상태는 스캔에 안 잡혀 프롬프트 불필요, EditCondition 으로 필드 숨김).
+ * 진입 시 지정 메시의 상호작용 활성/비활성을 bEnable 로 토글한 뒤 Succeeded 로 완료한다 — 꺼진 영역은 오너 기믹의 활성 목록에서 빠져 스캔 후보에서 탈락한다.
+ * 상호작용을 켜는 상태면 그 메시의 프롬프트(Prompt)와 발동 이벤트 태그(InteractEvent)도 함께 오너 기믹에 세팅해, "이 상태가 상호작용 가능한가 + 문구는 무엇인가 + 누르면 어떤 신호가 뜨는가"를 한 자리에서 author 한다(끄는 상태는 스캔에 안 잡혀 둘 다 불필요, EditCondition 으로 필드 숨김).
+ * 그 신호를 받아 어느 상태로 갈지는 전적으로 에셋의 전이가 정한다 — 이 노드는 목적지를 모른다.
  * 프롬프트는 대상 메시별로 담기므로 한 상태가 여러 영역을 켜도 서로 덮어쓰지 않는다. 끄는 상태에서는 그 영역의 세팅을 지워 다시 켤 때 이전 상태의 문구를 물려받지 않는다.
  * 포즈/이동 등과 직교하는 단일 책임 태스크. 인터랙션이 여러 개인 기믹은 영역마다 노드를 둔다. 틱하지 않으므로 비용이 없다.
  * 각 상태가 자기 인터랙션 가용 여부·프롬프트를 명시하도록 상태마다 둔다(직접 복원 시에도 일관). 프롬프트는 이 태스크가 유일한 출처라 켜는 상태마다 채워야 한다 — 비우면 그 영역은 문구 없이 표시된다. 메시가 비면 Failed.
@@ -98,6 +109,71 @@ struct FWxStateTreeTask_EnableInteraction : public FStateTreeTaskCommonBase
 
 #if WITH_EDITOR
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
+#endif
+};
+
+// ── ApplyGameplayEffectToInteractor: 상호작용 당사자에게 GE 적용 ───────────────
+
+USTRUCT()
+struct FWxStateTreeTask_ApplyGameplayEffectToInteractorInstanceData
+{
+	GENERATED_BODY()
+
+	/** 당사자에게 적용할 GameplayEffect. 비우면 노옵. */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	TSubclassOf<UGameplayEffect> EffectClass;
+};
+
+/**
+ * 라이브 전이로 진입할 때 권위 측에서 상호작용 당사자에게 GameplayEffect 를 적용하고 Succeeded 로 완료한다(체크포인트 회복 등).
+ * 대상은 오너 기믹의 InteractingCharacter 이며, 그 ASC 를 찾아 자기 자신에게 스펙을 적용한다(레벨 1 고정, 소스 오브젝트는 오너).
+ * 초기 진입(StateTree 시작/복원/레이트조인)이면 적용하지 않는다 — 회복은 발동 순간의 효과라 로드 때 다시 일어나면 안 된다.
+ * 어떤 GE 를 줄지는 에셋에서 정하므로 이 노드는 전투 도메인을 알지 못한다(클래스 참조는 에셋 레벨).
+ */
+USTRUCT(meta = (DisplayName = "Apply Gameplay Effect To Interactor", Category = "Wx"))
+struct FWxStateTreeTask_ApplyGameplayEffectToInteractor : public FStateTreeTaskCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType = FWxStateTreeTask_ApplyGameplayEffectToInteractorInstanceData;
+
+	FWxStateTreeTask_ApplyGameplayEffectToInteractor();
+
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+
+#if WITH_EDITOR
+	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const override;
+#endif
+};
+
+// ── RespawnSpawners: 월드의 Auto 스포너 일괄 리스폰 ──────────────────────────
+
+USTRUCT()
+struct FWxStateTreeTask_RespawnSpawnersInstanceData
+{
+	GENERATED_BODY()
+};
+
+/**
+ * 라이브 전이로 진입할 때 권위 측에서 월드의 Auto 모드 스포너를 일괄 리스폰하고 Succeeded 로 완료한다(체크포인트 휴식 시 적 리스폰).
+ * 대상을 지정하지 않고 월드 전체를 훑는다는 점에서 'Trigger Spawners'(지정 스포너 트리거)와 갈린다.
+ * 초기 진입(StateTree 시작/복원/레이트조인)이면 호출하지 않는다 — 리스폰은 발동 순간의 효과다.
+ */
+USTRUCT(meta = (DisplayName = "Respawn Spawners", Category = "Wx"))
+struct FWxStateTreeTask_RespawnSpawners : public FStateTreeTaskCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType = FWxStateTreeTask_RespawnSpawnersInstanceData;
+
+	FWxStateTreeTask_RespawnSpawners();
+
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+
+#if WITH_EDITOR
+	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const override;
 #endif
 };
 
@@ -183,7 +259,7 @@ struct FWxStateTreeTask_ComponentMoveInstanceData
  * 지정 컴포넌트를 현재 상대 위치에서 기준(아키타입)+LocalOffset 으로 일정 속도 슬라이드하고, 도달하면 Succeeded 를 반환해 상태를 완료시킨다.
  * State 를 읽지 않는 순수 비주얼 태스크라 어떤 기믹이든 메시 이동에 재사용한다.
  * 속도는 시작→목표 실제 거리/Duration 으로 EnterState 에서 1회 산출하므로, 목표가 아키타입(offset 0)인 '닫기' 방향도 일정 속도로 슬라이드한다.
- * 시작 시 이미 목표거나(복원/레이트조인) 초기 진입이거나 길이가 0이면 움직임 없이 즉시 스냅해 곧바로 완료, 라이브 전이면 슬라이드 후 도달 시 완료한다.
+ * 이미 목표거나 길이가 0이면 움직임 없이 즉시 스냅해 곧바로 완료하고, 아니면 슬라이드 후 도달 시 완료한다(진입 경로 무관).
  */
 USTRUCT(meta = (DisplayName = "Component Move", Category = "Wx"))
 struct FWxStateTreeTask_ComponentMove : public FStateTreeTaskCommonBase
@@ -242,8 +318,7 @@ struct FWxStateTreeTask_ComponentSplineMoveInstanceData
 /**
  * 지정 컴포넌트를 TargetPointIndex 가 가리키는 스플라인 포인트로 옮기고, 도달하면 Succeeded 를 반환해 상태를 완료시킨다.
  * 각 상태가 자기 목표 끝점을 직접 선언하는 순수 비주얼 태스크라 어떤 기믹이든 경로 이동에 재사용한다.
- * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 목표 포인트로 즉시 스냅한다 — State 가 끝점을 직접 가리키므로 복제/복원된 상태의 위치를 정확히 복원한다(C++ 스냅 불필요).
- * 라이브 전이면 플랫폼의 실제 현재 위치에서 목표 포인트까지 곡선을 따라 슬라이드한다(Duration 0 이하·이미 목표면 즉시 스냅). 이동 중 재진입해도 vertex 로 스냅하지 않고 현재 지점에서 반전한다.
+ * 진입 경로를 가리지 않고 플랫폼의 실제 현재 위치에서 목표 포인트까지 곡선을 따라 슬라이드한다(Duration 0 이하·이미 목표면 즉시 스냅). 이동 중 재진입해도 vertex 로 스냅하지 않고 현재 지점에서 반전한다.
  */
 USTRUCT(meta = (DisplayName = "Component Spline Move", Category = "Wx"))
 struct FWxStateTreeTask_ComponentSplineMove : public FStateTreeTaskCommonBase
@@ -263,7 +338,7 @@ struct FWxStateTreeTask_ComponentSplineMove : public FStateTreeTaskCommonBase
 #endif
 };
 
-// ── PlayAnimation: 지정 스켈레탈 메시 애니 재생/스냅 ───────────────────────
+// ── PlayAnimation: 지정 스켈레탈 메시 애니 재생 ────────────────────────────
 
 USTRUCT()
 struct FWxStateTreeTask_PlayAnimationInstanceData
@@ -274,14 +349,14 @@ struct FWxStateTreeTask_PlayAnimationInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<USkeletalMeshComponent> TargetMesh;
 
-	/** 진입 시 적용할 애니메이션. 초기 진입이면 끝 프레임으로 스냅, 라이브 전이면 처음부터 재생한다. */
+	/** 진입 시 재생할 애니메이션. 진입 경로를 가리지 않고 처음부터 재생한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<UAnimSequenceBase> Animation;
 };
 
 /**
  * 진입 시 지정 스켈레탈 메시에 애니메이션을 적용하고, 재생이 끝나면 Succeeded 를 반환해 상태를 완료시킨다. State 를 읽지 않는 순수 비주얼 태스크라 어떤 기믹이든 재사용한다.
- * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 끝 프레임으로 스냅해 발동 완료 포즈를 복원하고 곧바로 완료, 라이브 전이면 처음부터 재생한다.
+ * 진입 경로(라이브 전이/초기 시작/복원/레이트조인)를 가리지 않고 처음부터 재생한다 — 복원 직후에도 그 연출이 한 번 다시 보인다('Component Move' 와 동일한 방침).
  * 재생 종료를 감지하려고 틱한다 — 싱글노드 인스턴스가 멈추면 완료로 본다.
  */
 USTRUCT(meta = (DisplayName = "Play Animation", Category = "Wx"))
@@ -504,6 +579,14 @@ struct FWxStateTreeTask_SpawnNiagaraInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<USceneComponent> AttachComponent;
 
+	/** 붙을 소켓·본 이름. 비우면 컴포넌트 원점에 붙는다. AttachComponent 를 지정했을 때만 의미가 있다. */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	FName AttachSocketName;
+
+	/** 부착 지점 기준 상대 위치. 소켓이 없는 메시에서 불꽃 높이 같은 것을 잡을 때 쓴다(부착 대상이 없으면 액터 기준). */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	FVector RelativeLocation = FVector::ZeroVector;
+
 	/** 진입 시 재생할 Niagara 시스템. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<UNiagaraSystem> Niagara;
@@ -518,7 +601,7 @@ struct FWxStateTreeTask_SpawnNiagaraInstanceData
 
 /**
  * 진입할 때 이 노드가 띄운 Niagara 가 재생 중이 아니면 재생하고 Succeeded 로 완료한다. State 를 읽지 않아 어떤 기믹이든 재사용한다.
- * AttachComponent 가 있으면 그 컴포넌트에 붙여 재생하고, 비우면 액터 위치에 재생한다.
+ * AttachComponent 가 있으면 그 컴포넌트(지정 시 그 소켓)에 붙여 재생하고, 비우면 액터 위치에 재생한다. 어느 쪽이든 RelativeLocation 만큼 옮겨 붙으므로 소켓이 없는 메시에서도 불꽃 높이를 잡을 수 있다.
  * 진입 경로(라이브 전이/초기 시작/복원/레이트조인)를 가리지 않고 판단 기준은 하나다 — 이미 재생 중이면 그대로 두고, 아니면 띄운다.
  * 그래서 루프 Niagara 를 지정하면 상태에 묶인 지속 FX 가 되어 배선 없이 로드·복원·스트리밍 인에서 알아서 살아나고(예: 체크포인트 모닥불), 진입이 반복돼도 이미터가 겹쳐 쌓이지 않는다.
  * 반대로 일회성 FX 는 재생이 끝난 뒤 다시 진입하면 다시 터지므로, 복원 시 침묵해야 하는 순간 연출에는 맞지 않는다.

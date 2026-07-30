@@ -44,7 +44,7 @@
 - 주입 엔트리에 클라·서버 사이드 플래그는 없다 — 넷모드와 무관하게 양측에 요청되고, 사이드 제한은 **컴포넌트 스스로** 한다(권위 전용은 `HasAuthority` 가드, 로컬 표시 전용은 `IsLocalController` 가드). 복제 컴포넌트만 엔진이 authority로 제한한다.
 - 미니게임·사이드미션 같은 탈부착 콘텐츠는 `Plugins/GameFeatures/`의 GF 플러그인(초기 상태 Registered)으로 패키징하고, 그걸 켜는 Experience 에셋의 `GameFeaturesToEnable`에 이름을 적는다. GF 플러그인은 DAG 최상단이라 WxGame·도메인 참조 가능, 역참조 금지. 이름은 GF 표식 없이 `Wx`+콘텐츠명으로 짓는다. 축 전체는 2026-07-29 샘플로 실증 후 정리됐다(절차·함정은 워크로그 참고).
 - 로드는 비동기다 — 로드 완료에 의존하는 초기화는 `CallOrRegister_OnExperienceLoaded`로 대기하고, 주입 컴포넌트가 로그인 이벤트에 의존하면 부착이 로그인보다 늦은 경우의 캐치업을 자기 `OnRegister`에 마련한다(예: WxSave `UWxPlayerSpawnComponent`).
-- 새 월드 오브젝트/기믹은 [[WxWorld]] `AWxGimmick` 상속. 권위 State만 C++가 확정·복제하고 비주얼·스폰은 GimmickStateTree가 담당하는 패턴.
+- 새 월드 오브젝트/기믹은 [[WxWorld]] `UWxGimmickStateTreeComponent` 를 붙인 BP 액터로 만든다(C++ 불필요). 상태·전이·연출이 전부 ST 에셋에 있고, 컴포넌트는 상호작용 이벤트 발행과 상태 Tag 영속만 맡는다.
 - 개발용 치트는 `UWxCheatManager`(`Cheat/`, Exec 함수)에 추가한다 — Standalone·에디터에서만 생성되고 그때가 곧 권위 측이라 권위 가드 없이 정상 대미지·사망 파이프라인을 그대로 탄다. 배포 빌드엔 존재하지 않는다.
 - MVVM 글루: WxUI 뷰모델이 게임 모듈을 참조할 수 없으므로, 양쪽에 의존하는 리졸버·브리지 뷰모델(`MVVM/`)이 플러그인 데이터를 위젯에 잇는다. WBP의 View Bindings에서 Creation Type=Resolver로 선택하면 유일한 주입 통로가 된다.
 

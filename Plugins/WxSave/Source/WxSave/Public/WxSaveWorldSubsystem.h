@@ -7,6 +7,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "WxSaveWorldSubsystem.generated.h"
 
+class IWxSavable;
 class ULevel;
 class UWxSaveGame;
 
@@ -52,6 +53,13 @@ public:
 	//~ End UWorldSubsystem
 
 private:
+	/**
+	 * 액터의 IWxSavable 구현체를 찾는다. 액터가 직접 구현했으면 그것을, 아니면 그 액터의 컴포넌트를 답한다.
+	 * 컴포넌트 갈래 덕에 호스트 액터를 순수 BP 로 둘 수 있다(기믹) — 이 인터페이스는 BP 에서 구현할 수 없다.
+	 * 레코드 키는 찾은 구현체의 WxSaveId 이고, 직렬화 대상은 어느 쪽이든 액터와 그 컴포넌트 전체다.
+	 */
+	static IWxSavable* FindSavable(AActor* Actor);
+
 	/** 현재 맵을 캡처해 게임 서브시스템의 TravelData 로 푸시한다. */
 	void FlushMapTravelData();
 
@@ -67,8 +75,8 @@ private:
 	/** 첫 플레이어 폰의 어트리뷰트를 SaveGame 최상위 PlayerStats 로 캡처한다(명시적 저장 경로 공통 — 체크포인트·메뉴 모두). */
 	void FlushPlayerStats();
 
-	/** 액터+컴포넌트의 UPROPERTY(SaveGame) 를 레코드로 직렬화하고 버전 헤더를 갱신한다. */
-	void CaptureActor(UWxSaveGame& SaveGame, AActor* Actor);
+	/** 액터+컴포넌트의 UPROPERTY(SaveGame) 를 레코드로 직렬화하고 버전 헤더를 갱신한다. @return 레코드를 기록했으면 true (구현체 없음/미설정 키는 false). */
+	bool CaptureActor(UWxSaveGame& SaveGame, AActor* Actor);
 
 	/** @return 슬롯에서 일치 레코드를 찾아 복원했으면 true (신규 세션 등 레코드 없음/미설정 키는 false). */
 	bool RestoreActor(const UWxSaveGame& SaveGame, AActor* Actor);

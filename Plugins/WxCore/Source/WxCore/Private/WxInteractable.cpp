@@ -8,7 +8,20 @@
 
 IWxInteractable* IWxInteractable::Find(const UActorComponent* Mesh)
 {
-	return Mesh ? Cast<IWxInteractable>(Mesh->GetOwner()) : nullptr;
+	AActor* Owner = Mesh ? Mesh->GetOwner() : nullptr;
+	if (!Owner)
+	{
+		return nullptr;
+	}
+
+	// 액터가 직접 구현했으면 그것이 답이다(NPC·픽업·적처럼 상호작용이 액터 고유 동작인 경우).
+	if (IWxInteractable* OwnerImplementation = Cast<IWxInteractable>(Owner))
+	{
+		return OwnerImplementation;
+	}
+
+	// 아니면 컴포넌트가 계약을 든다(기믹). 이 갈래 덕에 호스트 액터는 C++ 없이 순수 BP 로 둘 수 있다.
+	return Cast<IWxInteractable>(Owner->FindComponentByInterface(UWxInteractable::StaticClass()));
 }
 
 bool IWxInteractable::IsMeshInRange(const UPrimitiveComponent* Mesh, const FVector& Origin, float Radius)

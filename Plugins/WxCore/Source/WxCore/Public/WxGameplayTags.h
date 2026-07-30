@@ -102,16 +102,11 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitStop);
 
 	// ── Gimmick ───────────────────────────────────────────────────────────
-	// 각 태그는 해당 기믹의 권위 상태 값(복제·SaveGame)이자, GimmickStateTree 로 보내는
-	// 진입 이벤트(상태의 Required Event to Enter 와 매칭)를 겸한다.
+	// 각 태그는 ST 에셋의 상태에 붙는 라벨(상태 디테일의 Tag 필드)이며, 그 값이 곧
+	// 세이브 슬롯에 담기는 기믹의 상태다. 코드가 읽거나 쓰는 값이 아니다.
 	//
-	// 이 계층 아래에는 기믹 상태만 둔다. ST 에셋의 Root 는 부모 태그 Gimmick 하나로
-	// 재선택 전이를 걸고(On Event: Gimmick → GotoState: Root), 어느 자식으로 갈지는
-	// 각 상태의 Required Event to Enter 가 정한다. 상태가 아닌 마커를 여기 두면
-	// 그 마커까지 재선택을 유발하므로, 복원 마커는 StateTree 계층에 따로 있다.
-
-	/** 기믹 상태 태그 전체의 부모. ST Root 재선택 전이가 이 태그 하나로 Gimmick.* 전부를 받는다(태그 계층 매칭). */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick);
+	// 여기 있는 것은 이미 배치된 기믹들의 상태 이름일 뿐이라, 신규 기믹은 C++ 을
+	// 건드리지 않고 프로젝트 태그 설정(ini)에 자기 상태 이름을 추가하면 된다.
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_Door_Close);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_Door_Open);
@@ -141,11 +136,11 @@ namespace WxGameplayTags
 	// ── StateTree ─────────────────────────────────────────────────────────
 
 	/**
-	 * 복원 진입 마커. 세이브 복원 시 호스트가 상태 태그 이벤트와 함께 발행해, 일회성 효과(보상·스폰·FX)를 발동하지 않고 스냅으로 처리하게 한다.
-	 * 기믹 전용이 아니라 ST 복원 프로토콜의 공용 어휘다 — 도메인 간 코드 의존 없이 복원에 참여하는 통로라 WxWorld 가 아닌 여기에 산다.
-	 * 상태가 아니므로 Gimmick 계층 밖에 둔다. 안에 두면 Root 재선택 전이가 이 마커에도 반응한다.
+	 * 상호작용 발동 이벤트. 기믹 컴포넌트가 권위 측에서 상호작용을 받아 전 피어의 ST 에 발행하며, 페이로드로 눌린 영역 메시와 주체를 나른다.
+	 * 어느 상태로 갈지는 이 이벤트를 받는 각 상태의 전이가 정한다 — 영역이 여럿이면 전이 조건에서 페이로드의 Source 를 대상 메시와 비교해 가른다.
+	 * 상태가 아니라 발동 신호라 Gimmick 계층 밖에 둔다.
 	 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(StateTree_Restore);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(StateTree_Interact);
 
 	// ── Quest ─────────────────────────────────────────────────────────────
 
