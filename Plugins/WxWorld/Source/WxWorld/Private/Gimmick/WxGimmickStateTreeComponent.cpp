@@ -111,12 +111,9 @@ void UWxGimmickStateTreeComponent::OnInteracted(AActor* Interactor, const UActor
 		return;
 	}
 
-	// 눌린 영역이 선언한 이벤트 태그로 발행한다. 영역마다 갈 곳이 다른 기믹은 이 태그로 갈리고, 선언이 없으면 공용 태그를 쓴다.
+	// 발행 태그는 언제나 공용 태그다. 영역마다 갈 곳이 다른 기믹은 전이 조건이 페이로드의 눌린 메시로 가른다.
 	UPrimitiveComponent* SourceMesh = const_cast<UPrimitiveComponent*>(Cast<UPrimitiveComponent>(Source));
-	const FWxGimmickInteractionRegion* Region = InteractionRegions.Find(SourceMesh);
-	const FGameplayTag EventTag = (Region && Region->InteractEvent.IsValid()) ? Region->InteractEvent : WxGameplayTags::StateTree_Interact;
-
-	Multicast_Interact(SourceMesh, Interactor, EventTag);
+	Multicast_Interact(SourceMesh, Interactor);
 }
 
 FText UWxGimmickStateTreeComponent::GetInteractionPrompt(const UActorComponent* Source) const
@@ -125,8 +122,8 @@ FText UWxGimmickStateTreeComponent::GetInteractionPrompt(const UActorComponent* 
 	UPrimitiveComponent* Mesh = const_cast<UPrimitiveComponent*>(Cast<UPrimitiveComponent>(Source));
 
 	// ST 가 이 영역에 세팅한 상태별 프롬프트가 전부다. 태스크에서 문구를 지정하지 않았으면 표시할 것이 없으므로 공백을 답한다.
-	const FWxGimmickInteractionRegion* Region = InteractionRegions.Find(Mesh);
-	return Region ? Region->Prompt : FText::GetEmpty();
+	const FText* Prompt = InteractionRegions.Find(Mesh);
+	return Prompt ? *Prompt : FText::GetEmpty();
 }
 
 FGuid UWxGimmickStateTreeComponent::GetSaveId() const
@@ -144,7 +141,7 @@ void UWxGimmickStateTreeComponent::OnSaveRestored()
 	}
 }
 
-void UWxGimmickStateTreeComponent::SetInteractionEnabled(UPrimitiveComponent* Mesh, bool bEnabled, const FText& Prompt, FGameplayTag InteractEvent)
+void UWxGimmickStateTreeComponent::SetInteractionEnabled(UPrimitiveComponent* Mesh, bool bEnabled, const FText& Prompt)
 {
 	if (!Mesh)
 	{
@@ -158,10 +155,7 @@ void UWxGimmickStateTreeComponent::SetInteractionEnabled(UPrimitiveComponent* Me
 		return;
 	}
 
-	FWxGimmickInteractionRegion Region;
-	Region.Prompt = Prompt;
-	Region.InteractEvent = InteractEvent;
-	InteractionRegions.Add(Mesh, MoveTemp(Region));
+	InteractionRegions.Add(Mesh, Prompt);
 }
 
 ACharacter* UWxGimmickStateTreeComponent::GetInteractingCharacter() const
@@ -239,7 +233,7 @@ void UWxGimmickStateTreeComponent::OnRep_StateTag()
 	RestartLogic();
 }
 
-void UWxGimmickStateTreeComponent::Multicast_Interact_Implementation(UPrimitiveComponent* Source, AActor* Interactor, FGameplayTag EventTag)
+void UWxGimmickStateTreeComponent::Multicast_Interact_Implementation(UPrimitiveComponent* Source, AActor* Interactor)
 {
 	// 당사자는 복제 프로퍼티가 아니라 이 호출이 각 피어에 나른다 — 이동·몽타주 태스크가 모든 머신에서 같은 대상을 본다.
 	InteractingCharacter = Cast<ACharacter>(Interactor);
@@ -248,7 +242,7 @@ void UWxGimmickStateTreeComponent::Multicast_Interact_Implementation(UPrimitiveC
 	Payload.Source = Source;
 	Payload.Interactor = Interactor;
 
-	SendStateTreeEvent(EventTag, FConstStructView::Make(Payload));
+	SendStateTreeEvent(WxGameplayTags::StateTree_Interact, FConstStructView::Make(Payload));
 }
 
 void UWxGimmickStateTreeComponent::StartTreeAtSavedState()

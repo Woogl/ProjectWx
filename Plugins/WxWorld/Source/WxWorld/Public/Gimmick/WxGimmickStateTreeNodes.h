@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Engine/EngineTypes.h"
-#include "GameplayTagContainer.h"
 #include "StateTreeTaskBase.h"
 #include "WxGimmickStateTreeNodes.generated.h"
 
@@ -35,7 +34,7 @@ class USplineComponent;
  * 여기의 노드는 기믹 종류와 무관한 공통 동작만 다루며, 소유 액터의 얇은 프리미티브만 호출한다.
  * 컨텍스트 액터는 StateTreeComponentSchema 가 제공하는 소유 액터이며, 기믹 상태를 다뤄야 하는 노드는 그 액터에서 GimmickStateTree 컴포넌트를 찾아 쓴다.
  *
- *  - EnableInteraction 은 (TargetMesh, bEnable, Prompt, InteractEvent) 으로 지정 메시의 상호작용 활성/비활성을 토글하고, 켤 때 그 메시의 HUD 프롬프트와 발동 이벤트 태그를 오너 기믹에 세팅한다.
+ *  - EnableInteraction 은 (TargetMesh, bEnable, Prompt) 으로 지정 메시의 상호작용 활성/비활성을 토글하고, 켤 때 그 메시의 HUD 프롬프트를 오너 기믹에 세팅한다.
  *  - ApplyGameplayEffectToInteractor 는 (EffectClass) 로 라이브 진입 시 권위 측에서 상호작용 당사자에게 GE 를 적용한다(회복·버프 등).
  *  - RespawnSpawners 는 라이브 진입 시 권위 측에서 월드의 Auto 스포너를 일괄 리스폰한다(체크포인트 휴식).
  *  - EnablePlayerInput 은 (bEnable) 으로 로컬 플레이어 폰의 입력 전체를 진입 시 1회 토글한다(컷신 등 연출 중 조작 차단).
@@ -78,19 +77,13 @@ struct FWxStateTreeTask_EnableInteractionInstanceData
 	/** 상호작용을 켤 때 이 메시가 표시할 HUD 프롬프트. 오너 기믹의 GetInteractionPrompt 로 pull 된다. 코드 폴백이 없으므로 비우면 문구 없이 표시된다. bEnable 일 때만 의미가 있다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (EditCondition = "bEnable"))
 	FText Prompt;
-
-	/**
-	 * 이 영역을 눌렀을 때 트리에 발행할 이벤트 태그. 비우면 StateTree.Interact 를 쓴다.
-	 * 상호작용 영역이 여럿이고 영역마다 갈 곳이 다른 기믹만 채운다 — StateTree.Interact 아래에 영역별 자식 태그를 두면, 부모로 받는 전이는 아무 영역이나, 자식으로 받는 전이는 그 영역만 받는다.
-	 */
-	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (EditCondition = "bEnable"))
-	FGameplayTag InteractEvent;
 };
 
 /**
  * 진입 시 지정 메시의 상호작용 활성/비활성을 bEnable 로 토글한 뒤 Succeeded 로 완료한다 — 꺼진 영역은 오너 기믹의 활성 목록에서 빠져 스캔 후보에서 탈락한다.
- * 상호작용을 켜는 상태면 그 메시의 프롬프트(Prompt)와 발동 이벤트 태그(InteractEvent)도 함께 오너 기믹에 세팅해, "이 상태가 상호작용 가능한가 + 문구는 무엇인가 + 누르면 어떤 신호가 뜨는가"를 한 자리에서 author 한다(끄는 상태는 스캔에 안 잡혀 둘 다 불필요, EditCondition 으로 필드 숨김).
- * 그 신호를 받아 어느 상태로 갈지는 전적으로 에셋의 전이가 정한다 — 이 노드는 목적지를 모른다.
+ * 상호작용을 켜는 상태면 그 메시의 프롬프트(Prompt)도 함께 오너 기믹에 세팅해, "이 상태가 상호작용 가능한가 + 문구는 무엇인가"를 한 자리에서 author 한다(끄는 상태는 스캔에 안 잡혀 불필요, EditCondition 으로 필드 숨김).
+ * 눌리면 공용 태그 StateTree.Interact 가 발행되고, 그것을 받아 어느 상태로 갈지는 전적으로 에셋의 전이가 정한다 — 이 노드는 목적지를 모른다.
+ * 영역이 여럿이라 갈 곳이 갈리는 상태는 전이에 Object Equals 조건을 달아 이벤트 페이로드의 Source 를 대상 메시와 비교한다(영역별 태그를 새로 만들지 않는다).
  * 프롬프트는 대상 메시별로 담기므로 한 상태가 여러 영역을 켜도 서로 덮어쓰지 않는다. 끄는 상태에서는 그 영역의 세팅을 지워 다시 켤 때 이전 상태의 문구를 물려받지 않는다.
  * 포즈/이동 등과 직교하는 단일 책임 태스크. 인터랙션이 여러 개인 기믹은 영역마다 노드를 둔다. 틱하지 않으므로 비용이 없다.
  * 각 상태가 자기 인터랙션 가용 여부·프롬프트를 명시하도록 상태마다 둔다(직접 복원 시에도 일관). 프롬프트는 이 태스크가 유일한 출처라 켜는 상태마다 채워야 한다 — 비우면 그 영역은 문구 없이 표시된다. 메시가 비면 Failed.

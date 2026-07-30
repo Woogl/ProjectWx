@@ -46,21 +46,6 @@ struct FWxGimmickInteractEvent
 	TObjectPtr<AActor> Interactor;
 };
 
-/** 지금 켜져 있는 상호작용 영역 하나의 표시·발동 설정. 'Enable Interaction' 태스크가 상태 진입 시 채운다. */
-USTRUCT()
-struct FWxGimmickInteractionRegion
-{
-	GENERATED_BODY()
-
-	/** 이 영역이 표시할 HUD 프롬프트. 비면 문구 없이 표시된다. */
-	UPROPERTY()
-	FText Prompt;
-
-	/** 이 영역을 눌렀을 때 트리에 발행할 이벤트 태그. 비면 StateTree.Interact 를 쓴다. */
-	UPROPERTY()
-	FGameplayTag InteractEvent;
-};
-
 /**
  * 기믹의 상태머신·상호작용·영속을 한 몸에 담는 StateTree 컴포넌트.
  * 이 컴포넌트를 붙이면 어떤 액터든(순수 BP 포함) 기믹이 된다 — 전용 C++ 액터 클래스가 필요 없다.
@@ -122,11 +107,11 @@ public:
 	//~ End IWxSavable
 
 	/**
-	 * Mesh 영역의 상호작용을 켜고 끄며, 켤 때는 그 영역의 프롬프트와 발동 이벤트 태그도 함께 담는다. 'Enable Interaction' 태스크가 상태 진입 시 자기 대상 메시로 호출한다.
+	 * Mesh 영역의 상호작용을 켜고 끄며, 켤 때는 그 영역의 프롬프트도 함께 담는다. 'Enable Interaction' 태스크가 상태 진입 시 자기 대상 메시로 호출한다.
 	 * 꺼진 영역은 IsInteractionMeshActive 가 false 를 답해 다음 스캔에서 후보에서 빠지고, 어빌리티의 서버 활성 검증에도 걸린다.
 	 * 복제하지 않는다 — ST 가 각 피어에서 실행되어 같은 값에 수렴한다.
 	 */
-	void SetInteractionEnabled(UPrimitiveComponent* Mesh, bool bEnabled, const FText& Prompt, FGameplayTag InteractEvent);
+	void SetInteractionEnabled(UPrimitiveComponent* Mesh, bool bEnabled, const FText& Prompt);
 
 	/** 이번 상호작용의 당사자(플레이어 캐릭터). 상호작용 이동/몽타주 태스크가 읽는다. 상호작용이 없었으면 null. */
 	ACharacter* GetInteractingCharacter() const;
@@ -155,11 +140,11 @@ protected:
 	FGameplayTag StateTag;
 
 	/**
-	 * 지금 상호작용이 켜져 있는 영역들. 멤버십 자체가 활성 상태라 따로 담는 bool 이 없다.
+	 * 지금 상호작용이 켜져 있는 영역들과 각자의 HUD 프롬프트. 멤버십 자체가 활성 상태라 따로 담는 bool 이 없다.
 	 * 'Enable Interaction' 태스크가 상태 진입 시 넣고 뺀다. 로컬 전용(복제·SaveGame 아님) — 각 피어의 ST 가 같은 값으로 수렴시킨다.
 	 */
 	UPROPERTY(Transient)
-	TMap<TObjectPtr<UPrimitiveComponent>, FWxGimmickInteractionRegion> InteractionRegions;
+	TMap<TObjectPtr<UPrimitiveComponent>, FText> InteractionRegions;
 
 	/**
 	 * 이번 상호작용의 당사자(플레이어 캐릭터). 로컬 전용이며 멀티캐스트가 각 피어에 같은 값을 채운다.
@@ -169,9 +154,9 @@ protected:
 	TObjectPtr<ACharacter> InteractingCharacter;
 
 private:
-	/** 상호작용을 전 피어에 알린다. 각 피어가 당사자를 기록하고 자기 트리에 그 영역의 발동 이벤트를 발행한다. 태그는 권위 측에서 정해 실어 보내, 피어마다 영역 설정이 잠시 어긋나도 같은 이벤트가 뜬다. */
+	/** 상호작용을 전 피어에 알린다. 각 피어가 당사자를 기록하고 자기 트리에 StateTree.Interact 를 발행한다. 눌린 영역은 페이로드로 실려가, 갈 곳이 갈리는 전이가 그것을 조건으로 가른다. */
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_Interact(UPrimitiveComponent* Source, AActor* Interactor, FGameplayTag EventTag);
+	void Multicast_Interact(UPrimitiveComponent* Source, AActor* Interactor);
 
 	/**
 	 * 저장된 StateTag 가 가리키는 상태에서 트리를 시작한다. 태그가 없거나 에셋에서 찾지 못하면 순정 시작(루트 선택)에 맡긴다.

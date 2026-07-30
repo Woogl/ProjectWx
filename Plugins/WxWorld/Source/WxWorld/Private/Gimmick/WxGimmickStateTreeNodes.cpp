@@ -82,7 +82,7 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExe
 	// 오너에 기믹 컴포넌트가 없으면(비기믹 ST) 세팅할 대상이 없으므로 노옵이다.
 	if (UWxGimmickStateTreeComponent* Gimmick = FindGimmickComponent(Context))
 	{
-		Gimmick->SetInteractionEnabled(TargetMesh, Instance.bEnable, Instance.Prompt, Instance.InteractEvent);
+		Gimmick->SetInteractionEnabled(TargetMesh, Instance.bEnable, Instance.Prompt);
 	}
 
 	// 토글은 즉시 끝나므로 곧바로 완료한다.
