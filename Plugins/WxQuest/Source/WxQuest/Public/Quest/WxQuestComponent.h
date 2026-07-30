@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Components/GameStateComponent.h"
 #include "GameplayTagContainer.h"
-#include "StateTreeExecutionTypes.h"
 #include "WxQuestComponent.generated.h"
 
 class UStateTreeComponent;
