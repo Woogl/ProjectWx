@@ -9,28 +9,29 @@
 #include "WxGameFeatureAction_AddComponents.generated.h"
 
 class FDataValidationContext;
-class UActorComponent;
+class UGameFrameworkComponent;
 class UGameInstance;
 struct FComponentRequestHandle;
 struct FWorldContext;
 
-/** 주입 1건: 대상 액터 클래스와 붙일 컴포넌트 클래스. 사이드 플래그는 두지 않는다. */
+/** 주입 1건: 붙일 프레임워크 컴포넌트 클래스. 사이드 플래그는 두지 않는다. */
 USTRUCT()
 struct FWxGameFeatureComponentEntry
 {
 	GENERATED_BODY()
 
-	/** 컴포넌트를 붙일 대상 액터의 베이스 클래스. 대상은 ModularGameplay receiver 로 opt-in 돼 있어야 한다. */
-	UPROPERTY(EditAnywhere, Category = "Wx", meta = (AllowAbstract = "True"))
-	TSoftClassPtr<AActor> ActorClass;
-
-	/** 붙일 컴포넌트 클래스. */
+	/**
+	 * 붙일 컴포넌트 클래스.
+	 * 대상 액터는 이 클래스가 상속한 ModularGameplay 베이스(Pawn·Controller·PlayerState·GameState 컴포넌트)에서 도출한다.
+	 * 대상은 ModularGameplay receiver 로 opt-in 돼 있어야 한다.
+	 */
 	UPROPERTY(EditAnywhere, Category = "Wx")
-	TSoftClassPtr<UActorComponent> ComponentClass;
+	TSoftClassPtr<UGameFrameworkComponent> ComponentClass;
 };
 
 /**
  * 스톡 AddComponents 를 대체하는, 사이드 플래그 없는 컴포넌트 주입 액션 (스톡은 final 이라 신설).
+ * 대상 액터도 엔트리가 지정하지 않는다 — 컴포넌트 클래스가 상속한 프레임워크 컴포넌트 베이스가 곧 대상 선언이므로 거기서 도출한다.
  * 넷모드와 무관하게 전 엔트리를 컴포넌트 매니저에 요청만 한다 — 복제 컴포넌트는 매니저가 authority 액터에서만 생성하고,
  * 비복제 컴포넌트의 사이드 제한은 컴포넌트 자신이 한다(권위 전용은 HasAuthority 가드, 로컬 표시 전용은 IsLocalController 가드).
  * 요청이 넷모드에 의존하지 않으므로 스톡의 월드 넷모드 변화 추적은 두지 않는다.
@@ -56,7 +57,7 @@ public:
 #endif
 
 	/** 이 액션이 주입할 컴포넌트 목록. */
-	UPROPERTY(EditAnywhere, meta = (TitleProperty = "{ActorClass} -> {ComponentClass}"))
+	UPROPERTY(EditAnywhere, meta = (TitleProperty = "{ComponentClass}"))
 	TArray<FWxGameFeatureComponentEntry> ComponentList;
 
 private:

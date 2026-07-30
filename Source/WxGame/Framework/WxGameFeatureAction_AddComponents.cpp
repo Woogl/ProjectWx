@@ -3,17 +3,53 @@
 #include "Framework/WxGameFeatureAction_AddComponents.h"
 
 #include "AssetRegistry/AssetBundleData.h"
+#include "Components/ControllerComponent.h"
 #include "Components/GameFrameworkComponentManager.h"
+#include "Components/GameStateComponent.h"
+#include "Components/PawnComponent.h"
+#include "Components/PlayerStateComponent.h"
 #include "Engine/AssetManager.h"
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "GameFeaturesSubsystemSettings.h"
+#include "GameFramework/GameStateBase.h"
+#include "GameFramework/PlayerState.h"
 #include "WxGame.h"
 
 #if WITH_EDITOR
 #include "Misc/DataValidation.h"
 #endif
+
+/**
+ * 프레임워크 컴포넌트가 상속한 ModularGameplay 베이스로 컴포넌트를 받을 액터 클래스를 정한다.
+ * 네 베이스는 UGameFrameworkComponent 아래 형제라 서로 겹치지 않으므로 검사 순서는 무관하다.
+ * 어느 베이스에도 속하지 않으면 대상을 정할 수 없다는 뜻으로 nullptr 을 준다.
+ */
+static UClass* WxResolveReceiverClass(const UClass* ComponentClass)
+{
+	if (ComponentClass->IsChildOf(UPawnComponent::StaticClass()))
+	{
+		return APawn::StaticClass();
+	}
+
+	if (ComponentClass->IsChildOf(UControllerComponent::StaticClass()))
+	{
+		return AController::StaticClass();
+	}
+
+	if (ComponentClass->IsChildOf(UPlayerStateComponent::StaticClass()))
+	{
+		return APlayerState::StaticClass();
+	}
+
+	if (ComponentClass->IsChildOf(UGameStateComponent::StaticClass()))
+	{
+		return AGameStateBase::StaticClass();
+	}
+
+	return nullptr;
+}
 
 void UWxGameFeatureAction_AddComponents::OnGameFeatureActivating(FGameFeatureActivatingContext& Context)
 {
@@ -70,12 +106,6 @@ EDataValidationResult UWxGameFeatureAction_AddComponents::IsDataValid(FDataValid
 
 	for (int32 Index = 0; Index < ComponentList.Num(); ++Index)
 	{
-		if (ComponentList[Index].ActorClass.IsNull())
-		{
-			Result = EDataValidationResult::Invalid;
-			Context.AddError(FText::FromString(FString::Printf(TEXT("ComponentList[%d] 의 ActorClass 가 비어 있습니다."), Index)));
-		}
-
 		if (ComponentList[Index].ComponentClass.IsNull())
 		{
 			Result = EDataValidationResult::Invalid;
@@ -105,19 +135,26 @@ void UWxGameFeatureAction_AddComponents::AddToWorld(const FWorldContext& WorldCo
 	// 넷모드 분기 없이 전 엔트리를 요청한다. 사이드 제한은 매니저의 authority 규칙과 컴포넌트 자기 가드가 담당한다.
 	for (const FWxGameFeatureComponentEntry& Entry : ComponentList)
 	{
-		if (Entry.ActorClass.IsNull() || Entry.ComponentClass.IsNull())
+		if (Entry.ComponentClass.IsNull())
 		{
 			continue;
 		}
 
-		const TSubclassOf<UActorComponent> ComponentClass = Entry.ComponentClass.LoadSynchronous();
+		const TSubclassOf<UGameFrameworkComponent> ComponentClass = Entry.ComponentClass.LoadSynchronous();
 		if (!ComponentClass)
 		{
 			UE_LOG(LogWxGame, Error, TEXT("AddToWorld: 컴포넌트 클래스 '%s' 로드 실패. 주입을 건너뜀."), *Entry.ComponentClass.ToString());
 			continue;
 		}
 
-		Handles.ComponentRequestHandles.Add(ComponentManager->AddComponentRequest(Entry.ActorClass, ComponentClass));
+		UClass* ReceiverClass = WxResolveReceiverClass(ComponentClass);
+		if (!ReceiverClass)
+		{
+			UE_LOG(LogWxGame, Error, TEXT("AddToWorld: 컴포넌트 클래스 '%s' 가 Pawn·Controller·PlayerState·GameState 컴포넌트 중 무엇도 아니라 대상 액터를 정할 수 없음. 주입을 건너뜀."), *ComponentClass->GetPathName());
+			continue;
+		}
+
+		Handles.ComponentRequestHandles.Add(ComponentManager->AddComponentRequest(ReceiverClass, ComponentClass));
 	}
 }
 
