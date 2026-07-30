@@ -2,7 +2,7 @@
 
 #include "MVVM/WxViewModel_Dialogue.h"
 #include "Blueprint/UserWidget.h"
-#include "Controller/WxPlayerController.h"
+#include "GameFramework/PlayerController.h"
 #include "WxDialogueSessionComponent.h"
 
 void UWxViewModel_Dialogue::Initialize(UWxDialogueSessionComponent* InSession)
@@ -56,8 +56,8 @@ bool UWxViewModel_Dialogue::HasSpeaker() const
 
 UObject* UWxViewModelResolver_Dialogue::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
 {
-	const AWxPlayerController* PC = UserWidget ? Cast<AWxPlayerController>(UserWidget->GetOwningPlayer()) : nullptr;
-	UWxDialogueSessionComponent* Session = PC ? PC->GetDialogueSession() : nullptr;
+	const APlayerController* PC = UserWidget ? UserWidget->GetOwningPlayer() : nullptr;
+	UWxDialogueSessionComponent* Session = PC ? PC->FindComponentByClass<UWxDialogueSessionComponent>() : nullptr;
 	if (!Session)
 	{
 		return nullptr;

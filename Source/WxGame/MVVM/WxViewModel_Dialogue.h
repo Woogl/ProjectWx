@@ -20,7 +20,7 @@ class UMVVMView;
  * 진행의 소유자는 어디까지나 세션이며, 본 VM 은 받은 값을 표시한다.
  *
  * 표시에 더해 뷰(WBP)의 넘기기 요청을 세션으로 넘긴다. 뷰는 그래프 없이 MVVM Event 바인딩으로 버튼 클릭을 RequestAdvance 에 잇는다.
- * 대화 창을 닫는 것은 창을 띄운 AWxPlayerController 의 몫이라 본 VM 은 종료를 알지 않는다.
+ * 대화 창을 닫는 것은 창을 띄운 UWxUIManagerSubsystem 의 몫이라 본 VM 은 종료를 알지 않는다.
  */
 UCLASS()
 class WXGAME_API UWxViewModel_Dialogue : public UWxViewModel
@@ -60,8 +60,8 @@ private:
 /**
  * VM_Dialogue 용 View Bindings Resolver.
  *
- * 위젯을 소유한 AWxPlayerController 의 DialogueSession 을 끌어와 위젯별 UWxViewModel_Dialogue 를 생성/초기화한다.
- * 대화 위젯은 세션이 열린 뒤에만 푸시되므로 생성 시점엔 항상 활성 세션이 있다.
+ * 위젯을 소유한 PlayerController 에 주입된 대화 세션을 끌어와 위젯별 UWxViewModel_Dialogue 를 생성/초기화한다.
+ * 대화 위젯은 세션이 열린 뒤에만 푸시되므로 생성 시점엔 항상 활성 세션이 있다 — 늦은 도착을 기다릴 필요가 없다.
  * WBP 의 View Bindings 에서 Creation Type = Resolver 로 본 클래스를 선택한다.
  */
 UCLASS(EditInlineNew, CollapseCategories)

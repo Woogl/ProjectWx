@@ -15,6 +15,7 @@ public class WxDialogue : ModuleRules
 			"Engine",
 			"GameplayAbilities",
 			"GameplayTags",
+			"ModularGameplay",
 			"StateTreeModule",
 			"WxCore",
 		});

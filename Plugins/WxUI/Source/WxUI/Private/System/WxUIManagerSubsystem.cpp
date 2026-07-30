@@ -61,7 +61,7 @@ void UWxUIManagerSubsystem::Deinitialize()
 		TrackedPC->OnPossessedPawnChanged.RemoveDynamic(this, &ThisClass::HandlePossessedPawnChanged);
 	}
 	TrackedPlayerController.Reset();
-	WatchPawnDeath(nullptr);
+	WatchPawnTags(nullptr);
 
 	UGameInstance* GameInstance = GetGameInstance();
 	if (GameInstance)
@@ -229,13 +229,13 @@ void UWxUIManagerSubsystem::HandleLocalPlayerAdded(ULocalPlayer* LocalPlayer)
 
 void UWxUIManagerSubsystem::HandlePlayerControllerSet(APlayerController* PC)
 {
-	// 이전 PC 의 빙의 구독을 끊는다. 그 폰의 사망 관찰도 함께 정리한다.
+	// 이전 PC 의 빙의 구독을 끊는다. 그 폰의 상태 태그 관찰도 함께 정리한다.
 	if (APlayerController* PreviousPC = TrackedPlayerController.Get())
 	{
 		PreviousPC->OnPossessedPawnChanged.RemoveDynamic(this, &ThisClass::HandlePossessedPawnChanged);
 	}
 	TrackedPlayerController.Reset();
-	WatchPawnDeath(nullptr);
+	WatchPawnTags(nullptr);
 
 	// PC 가 들어올 때마다 layout 을 무조건 재생성한다.
 	// stale 식별을 시도하지 않는 이유: widget 의 GetOwningPlayer/GetWorld/GetOuter 가 모두 유지되는 LocalPlayer/GameInstance 를 따라 자동으로 새 값을 반환하므로, widget 만 보고는 stale 여부를 알 수 없다.
@@ -263,7 +263,7 @@ void UWxUIManagerSubsystem::HandlePlayerControllerSet(APlayerController* PC)
 
 void UWxUIManagerSubsystem::HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 {
-	WatchPawnDeath(NewPawn);
+	WatchPawnTags(NewPawn);
 
 	if (!NewPawn)
 	{
@@ -273,17 +273,22 @@ void UWxUIManagerSubsystem::HandlePossessedPawnChanged(APawn* OldPawn, APawn* Ne
 	PushSoftContentToLayer(WxGameplayTags::UI_Layer_Game, GetDefault<UWxUIDeveloperSettings>()->GameHUDClass);
 }
 
-void UWxUIManagerSubsystem::WatchPawnDeath(APawn* Pawn)
+void UWxUIManagerSubsystem::WatchPawnTags(APawn* Pawn)
 {
 	if (UAbilitySystemComponent* PreviousASC = WatchedAbilitySystem.Get())
 	{
 		PreviousASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved).Remove(DeathTagHandle);
+		PreviousASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dialogue, EGameplayTagEventType::NewOrRemoved).Remove(DialogueTagHandle);
 	}
 	WatchedAbilitySystem.Reset();
 	DeathTagHandle.Reset();
+	DialogueTagHandle.Reset();
+
+	// 관찰을 놓는 순간 대화 태그가 걷히는 것을 볼 수 없게 되므로, 열려 있던 대화 창은 여기서 닫는다.
+	CloseDialogueScreen();
 
 	// 캐릭터의 ASC 는 기본 서브오브젝트라 폰이 있으면 곧바로 잡힌다 — 늦은 도착을 기다릴 필요가 없다.
-	// 사망을 캐릭터 델리게이트가 아니라 태그로 듣는 이유: 그 델리게이트도 결국 이 태그가 출처이고, 태그는 WxCore 라 WxUI 가 게임 모듈 타입을 알지 않아도 된다.
+	// 사망·대화를 도메인 델리게이트가 아니라 태그로 듣는 이유: 그 신호들의 출처가 결국 이 태그들이고, 태그는 WxCore 라 WxUI 가 게임 모듈·다른 플러그인 타입을 알지 않아도 된다.
 	UAbilitySystemComponent* AbilitySystem = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
 	if (!AbilitySystem)
 	{
@@ -292,6 +297,8 @@ void UWxUIManagerSubsystem::WatchPawnDeath(APawn* Pawn)
 
 	DeathTagHandle = AbilitySystem->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &ThisClass::HandleDeathTagChanged);
+	DialogueTagHandle = AbilitySystem->RegisterGameplayTagEvent(WxGameplayTags::State_Dialogue, EGameplayTagEventType::NewOrRemoved)
+		.AddUObject(this, &ThisClass::HandleDialogueTagChanged);
 	WatchedAbilitySystem = AbilitySystem;
 }
 
@@ -304,6 +311,29 @@ void UWxUIManagerSubsystem::HandleDeathTagChanged(const FGameplayTag CallbackTag
 
 	// 사망 화면은 걷어내지 않는다. 부활은 월드 리로드(TravelFromSaveFile)이고, 그때 layout 이 통째로 재생성된다.
 	PushSoftContentToLayer(WxGameplayTags::UI_Layer_Menu, GetDefault<UWxUIDeveloperSettings>()->DeathScreenClass);
+}
+
+void UWxUIManagerSubsystem::HandleDialogueTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	if (NewCount <= 0)
+	{
+		CloseDialogueScreen();
+		return;
+	}
+
+	// 대화 위젯은 Game 레이어 스택 top 에 얹혀 HUD 를 잠시 가리고, 닫히면 HUD 가 복귀한다.
+	// 위젯의 뷰모델이 생성 시점에 세션의 현재 대사를 pull 하므로, 세션이 다 채워진 뒤에 오는 이 신호로 띄운다.
+	DialogueScreen = PushSoftContentToLayer(WxGameplayTags::UI_Layer_Game, GetDefault<UWxUIDeveloperSettings>()->DialogueScreenClass);
+}
+
+void UWxUIManagerSubsystem::CloseDialogueScreen()
+{
+	// 띄운 쪽에서 닫는다. 태그가 걷히는 어느 경로로 끝나든 창이 남지 않는다.
+	if (UCommonActivatableWidget* Screen = DialogueScreen.Get())
+	{
+		Screen->DeactivateWidget();
+	}
+	DialogueScreen.Reset();
 }
 
 void UWxUIManagerSubsystem::CreateLayoutForPlayer(APlayerController* PC)

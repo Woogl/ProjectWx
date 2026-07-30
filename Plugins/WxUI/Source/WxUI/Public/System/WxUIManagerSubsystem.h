@@ -57,17 +57,23 @@ private:
 	void CreateLayoutForPlayer(APlayerController* PC);
 
 	/**
-	 * 추적 중인 PC 가 빙의한 폰을 갈아탔다. 그 폰 기준으로 HUD 를 세우고 사망 관찰을 옮긴다.
+	 * 추적 중인 PC 가 빙의한 폰을 갈아탔다. 그 폰 기준으로 HUD 를 세우고 상태 태그 관찰을 옮긴다.
 	 * 이 신호는 빙의가 끝난 뒤에 오므로, HUD 뷰모델 리졸버가 생성 시점에 빙의 폰의 ASC 를 읽는다는 전제가 지켜진다.
 	 */
 	UFUNCTION()
 	void HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn);
 
-	/** 폰 ASC 의 사망 태그를 관찰하기 시작한다. 이전 관찰은 먼저 끊는다 — 폰이 null 이면 끊기만 한다. */
-	void WatchPawnDeath(APawn* Pawn);
+	/** 폰 ASC 의 상태 태그(사망·대화)를 관찰하기 시작한다. 이전 관찰은 먼저 끊는다 — 폰이 null 이면 끊기만 한다. */
+	void WatchPawnTags(APawn* Pawn);
 
 	/** 사망 태그 변화 콜백. 부여되면 사망 화면을 띄운다. */
 	void HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
+	/** 대화 태그 변화 콜백. 세션이 열리면 대화 창을 띄우고, 닫히면 걷는다. */
+	void HandleDialogueTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
+	/** 띄워 둔 대화 창을 닫는다. 창이 없으면 아무 것도 하지 않는다. */
+	void CloseDialogueScreen();
 
 	/**
 	 * push 된 위젯의 활성/비활성 델리게이트를 구독해, 상태가 바뀔 때 정지 재평가가 돌게 한다.
@@ -94,8 +100,13 @@ private:
 	/** 빙의를 구독해 둔 로컬 PC. 교체·종료 때 같은 PC 에서 끊기 위해 기억한다. */
 	TWeakObjectPtr<APlayerController> TrackedPlayerController;
 
-	/** 사망 태그를 구독해 둔 폰 ASC. 폰이 바뀌면 같은 ASC 에서 끊기 위해 기억한다. */
+	/** 상태 태그를 구독해 둔 폰 ASC. 폰이 바뀌면 같은 ASC 에서 끊기 위해 기억한다. */
 	TWeakObjectPtr<UAbilitySystemComponent> WatchedAbilitySystem;
 
 	FDelegateHandle DeathTagHandle;
+
+	FDelegateHandle DialogueTagHandle;
+
+	/** 대화 중 띄워 둔 대화 창. 세션이 끝날 때 이 창을 닫기 위해 기억한다. */
+	TWeakObjectPtr<UCommonActivatableWidget> DialogueScreen;
 };
