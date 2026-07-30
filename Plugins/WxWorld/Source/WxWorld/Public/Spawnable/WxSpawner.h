@@ -30,7 +30,7 @@ enum class EWxSpawnerMode : uint8
  *  - bNeverRevive=false (일반): Respawn 호출 시 bIsKilled=false 로 리셋 후 새 인스턴스 생성.
  *  - bNeverRevive=true (보스 등): 죽은 뒤 Respawn 이 호출돼도 부활하지 않음(bIsKilled 유지, 생성 스킵). 살아있을 땐 일반 대상처럼 리셋됨.
  */
-UCLASS()
+UCLASS(NotBlueprintable)
 class WXWORLD_API AWxSpawner : public AActor, public IWxSavable
 {
 	GENERATED_BODY()
