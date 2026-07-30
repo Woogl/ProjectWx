@@ -18,7 +18,7 @@
 - HUD 프롬프트/선택 뷰모델 표시 — [[WxUI]].
 
 ## 의존성
-- **주요 의존**: `WxCore`(유일한 Wx 의존). 엔진: StateTree/GameplayStateTree/AIModule(상태머신 — 기믹 컴포넌트가 `UStateTreeComponent` 파생), GameplayTags, GameplayAbilities(상호작용/입력 차단/GE 적용), Niagara·LevelSequence·MovieScene(연출), ModularGameplay, UniversalObjectLocator(스포너 로케이터 지정). 기믹 상태 태그는 ST 에셋의 상태 Tag 이고, 영역 태그는 `Config/DefaultGameplayTags.ini`.
+- **주요 의존**: `WxCore`(유일한 Wx 의존). 엔진: StateTree/GameplayStateTree/AIModule(상태머신 — 기믹 컴포넌트가 `UStateTreeComponent` 파생), GameplayTags, GameplayAbilities(상호작용/입력 차단/GE 적용), Niagara·LevelSequence·MovieScene(연출), ModularGameplay, UniversalObjectLocator(스포너 로케이터 지정). 기믹 상태 태그는 ST 에셋의 상태 Tag 이고, 상태·영역 태그 모두 `WxCore` 의 `WxGameplayTags` 에 선언한다.
 - 규칙: 「WxCore 외 Wx 플러그인 참조」 — 없음 ✅ (Build.cs 상 Wx 의존은 `WxCore` 하나. WxInventory 는 `RowType` 문자열 메타·주석뿐이고, WxCombat/WxUI 연계는 GAS 이벤트·ST 에셋 조립으로 느슨 결합).
 
 ## 핵심 타입 (진입점)
@@ -33,7 +33,7 @@
 | `UWxSpawnerLibrary` · `UWxWorldDeveloperSettings` | 월드 내 Auto 스포너 일괄 리스폰 BP 진입점 · 스포너 클래스별 에디터 아이콘 설정 | `Source/WxWorld/Public/System/` |
 
 ## 확장 포인트 / 규약
-- **새 기믹 추가(C++ 불필요)**: BP 액터에 메시와 `WxGimmickStateTree` 컴포넌트를 얹고 → ST 에셋을 만들어 그 컴포넌트에 지정 → 상태마다 Tag(저장 값)와 `Enable Interaction`(활성·문구·발동 이벤트)을 달고 → 전이(On Event)로 목적지를 잇는다. 상태 태그는 프로젝트 태그 설정(ini)에 추가한다.
+- **새 기믹 추가(기믹 클래스 불필요)**: BP 액터에 메시와 `WxGimmickStateTree` 컴포넌트를 얹고 → ST 에셋을 만들어 그 컴포넌트에 지정 → 상태마다 Tag(저장 값)와 `Enable Interaction`(활성·문구·발동 이벤트)을 달고 → 전이(On Event)로 목적지를 잇는다. 상태 태그는 `WxCore` 의 `WxGameplayTags.h`/`.cpp` 에 선언한다.
 - **상태 구동 규약**: 저장 값은 활성 상태의 Tag 이고, 복원은 그 Tag 로 트리를 여는 것이다(엔진 순정 시작 상태 지정). 저장 값이 없으면 Root 의 **첫 자식**이 선택되므로 resting 상태를 맨 위에 둔다. 초기 진입(시작·복원·레이트조인)과 라이브 전이는 노드가 `Transition.SourceStateID` 유효성 하나로 구분한다.
 - **새 ST 태스크**: `FStateTreeTaskCommonBase` 상속, `Context.GetOwner()` 를 기믹으로 캐스트해 얇은 프리미티브만 호출. 발동형(사운드·스폰 트리거)은 생성자 `bShouldStateChangeOnReselect = true`, 상태형(이동·토글)·머무는 태스크는 false.
 - **새 스포너 대상**: 스폰 액터가 `IWxSpawnableInterface` 구현(`MustImplement` 메타로 강제). 콘솔/ST 로 개별 트리거하려면 대상 스포너의 `SpawnMode = Manual`(BeginPlay 자동 스폰·일괄 리스폰과 겹치지 않게).

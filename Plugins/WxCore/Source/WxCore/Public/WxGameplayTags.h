@@ -105,8 +105,7 @@ namespace WxGameplayTags
 	// 각 태그는 ST 에셋의 상태에 붙는 라벨(상태 디테일의 Tag 필드)이며, 그 값이 곧
 	// 세이브 슬롯에 담기는 기믹의 상태다. 코드가 읽거나 쓰는 값이 아니다.
 	//
-	// 여기 있는 것은 이미 배치된 기믹들의 상태 이름일 뿐이라, 신규 기믹은 C++ 을
-	// 건드리지 않고 프로젝트 태그 설정(ini)에 자기 상태 이름을 추가하면 된다.
+	// 코드가 안 읽어도 태그는 여기서만 만든다 — 신규 기믹의 상태 이름도 이 파일에 추가한다.
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_Door_Close);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_Door_Open);
@@ -115,23 +114,11 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_Elevator_AtStart);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_Elevator_AtEnd);
 
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_SpawnConsole_Idle);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_SpawnConsole_Spawned);
-
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_AlarmConsole_Idle);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_AlarmConsole_Alarmed);
-
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_CutsceneTrigger_Idle);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_CutsceneTrigger_Playing);
-
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_TreasureChest_Closed);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_TreasureChest_Open);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_CheckPoint_Unlit);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_CheckPoint_Lit);
-
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_LaserCorridor_Active);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_LaserCorridor_Deactivated);
 
 	// ── StateTree ─────────────────────────────────────────────────────────
 
@@ -141,6 +128,12 @@ namespace WxGameplayTags
 	 * 상태가 아니라 발동 신호라 Gimmick 계층 밖에 둔다.
 	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(StateTree_Interact);
+
+	/** 엘리베이터 시작점 호출 콘솔의 상호작용. ST_Elevator 의 전이가 AtStart 로 보낸다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(StateTree_Interact_Elevator_CallA);
+
+	/** 엘리베이터 끝점 호출 콘솔의 상호작용. ST_Elevator 의 전이가 AtEnd 로 보낸다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(StateTree_Interact_Elevator_CallB);
 
 	// ── Quest ─────────────────────────────────────────────────────────────
 

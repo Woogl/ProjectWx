@@ -24,7 +24,7 @@
 
 - 활성 leaf 에서 **위로 올라가며** 처음 만나는 Tag 를 쓴다. 그래서 시퀀스를 자식 상태로 쪼갠 기믹(엘리베이터)은 시퀀스를 감싼 상위 상태에만 Tag 를 달면 된다.
 - **한 에셋 안에서 Tag 는 유일해야 한다.** 같은 태그가 둘이면 breadth-first 로 먼저 찾은 상태가 잡힌다.
-- Tag 를 안 달면 그 상태는 저장되지 않는다(마지막 유효 Tag 가 유지된다). 신규 상태 태그는 **프로젝트 태그 설정(`Config/DefaultGameplayTags.ini`, 에디터의 태그 매니저)** 에 추가한다 — C++ 은 필요 없다.
+- Tag 를 안 달면 그 상태는 저장되지 않는다(마지막 유효 Tag 가 유지된다). 신규 상태 태그는 **`WxCore` 의 `WxGameplayTags.h`/`.cpp`** 에 쌍으로 선언한다 — 프로젝트 태그는 전부 여기서만 만든다(에디터의 태그 매니저로 추가하지 않는다).
 
 ### 2. 상호작용은 이벤트로 오고, 목적지는 전이가 정한다
 `Enable Interaction` 태스크가 상태마다 "이 영역이 켜지는가 / 문구는 무엇인가 / 누르면 어떤 이벤트가 뜨는가(`InteractEvent`)"를 선언한다. 눌리면 컴포넌트가 그 태그를 **Reliable 멀티캐스트**로 전 피어에 뿌리고, 각 피어의 트리가 자기 전이로 이동한다.
@@ -115,4 +115,4 @@ flowchart TD
 | `FWxStateTreeTask_GrantReward` | `WxInventory` (`.../Inventory/WxRewardStateTreeNodes.cpp`) | 크로스모듈 노드 예시: `AActor` 캐스트 + 초기 진입 인라인 검사 |
 | `UWxAbility_Interact` | `WxGame` (`.../Ability/WxAbility_Interact.cpp`) | 서버 권위 실행 진입점. 사거리·활성 검증 → 대상의 `IWxInteractable::OnInteracted` |
 | `IWxInteractable` / `IWxSavable` | `WxCore` (`Public/WxInteractable.h`, `Public/WxSavable.h`) | 상호작용·영속 계약. 액터가 구현하지 않았으면 컴포넌트에서 찾으므로 호스트를 순수 BP 로 둘 수 있다 |
-| `WxGameplayTags::StateTree_Interact` | `WxCore` (`Public/WxGameplayTags.h`) | 상호작용 발동 이벤트의 기본 태그. 영역별 자식 태그는 `Config/DefaultGameplayTags.ini` |
+| `WxGameplayTags::StateTree_Interact` | `WxCore` (`Public/WxGameplayTags.h`) | 상호작용 발동 이벤트의 기본 태그. 영역별 자식 태그도 같은 파일에 함께 선언한다 |
