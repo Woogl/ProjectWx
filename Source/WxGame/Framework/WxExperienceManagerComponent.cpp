@@ -121,6 +121,11 @@ const UWxExperienceDefinition* UWxExperienceManagerComponent::GetCurrentExperien
 	return CurrentExperience;
 }
 
+const UWxExperienceDefinition* UWxExperienceManagerComponent::GetCurrentExperience() const
+{
+	return CurrentExperience;
+}
+
 void UWxExperienceManagerComponent::OnRep_CurrentExperience()
 {
 	// async 패키지 로딩 설정에선 참조가 unmapped(null)로 먼저 도착할 수 있다. 매핑이 끝나면 RepNotify 가 다시 불려 회복된다.

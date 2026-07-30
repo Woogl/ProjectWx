@@ -4,13 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "Items/WxRewardTableRow.h"
 #include "WxExperienceDefinition.generated.h"
 
+class APawn;
 class FDataValidationContext;
 class UGameFeatureAction;
 class UWxExperienceActionSet;
-class UWxPawnData;
 
 /**
  * 게임 모드 하나의 게임플레이 구성을 정의하는 프라이머리 데이터 에셋 (Lyra Experience 이식).
@@ -41,13 +40,9 @@ public:
 	//~ End UPrimaryDataAsset
 #endif
 
-	/** 이 Experience 의 플레이어 폰 구성. 미지정이면 GameMode 의 DefaultPawnClass 로 폴백한다(경고 로그). */
+	/** 플레이어가 빙의할 폰 클래스. 폰 클래스의 유일한 출처다 — GameMode 의 DefaultPawnClass 는 쓰이지 않는다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
-	TObjectPtr<const UWxPawnData> DefaultPawnData;
-
-	/** 접속한 플레이어에게 1회 지급할 시작 아이템. 액션셋의 목록과 합산되며, 빈(아이템 미지정) 항목은 무시된다. */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx")
-	TArray<FWxItemRewardEntry> DefaultInventoryItems;
+	TSubclassOf<APawn> DefaultPawnClass;
 
 	/** 로드 완료 시 활성화할 GameFeature 플러그인 이름 목록. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")

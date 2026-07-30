@@ -41,7 +41,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TArray<FString> GameFeaturesToEnable;
 
-	/** 이 묶음이 지급할 시작 아이템. Experience 본체의 목록과 합산된다. */
+	/** 이 묶음이 지급할 시작 아이템. Experience 가 참조한 전체 묶음의 목록이 합산된다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TArray<FWxItemRewardEntry> DefaultInventoryItems;
 };

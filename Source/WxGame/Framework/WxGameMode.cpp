@@ -6,7 +6,6 @@
 #include "Framework/WxExperienceDefinition.h"
 #include "Framework/WxExperienceManagerComponent.h"
 #include "Framework/WxGameState.h"
-#include "Framework/WxPawnData.h"
 #include "Framework/WxWorldSettings.h"
 #include "GameFramework/PlayerController.h"
 #include "Inventory/WxInventoryManagerComponent.h"
@@ -33,21 +32,25 @@ void AWxGameMode::InitGameState()
 
 UClass* AWxGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
 {
-	// 폰 스폰은 로드 완료 뒤로 게이트되므로 정상 경로에선 항상 Experience 의 PawnData 를 본다.
+	// 폰 클래스는 정의 에셋 자체의 데이터라 로드 완료(주입·GF 활성)를 기다리지 않는다 — 엔진이 로그인 중 시작 지점을 고르며
+	// (ChoosePlayerStart) 폰 CDO 크기로 점유 여부를 재는 시점이 로드보다 이르기 때문이다.
 	const AWxGameState* WxGameState = Cast<AWxGameState>(GameState);
 	const UWxExperienceManagerComponent* ExperienceManager = WxGameState ? WxGameState->GetExperienceManagerComponent() : nullptr;
-	if (ExperienceManager && ExperienceManager->IsExperienceLoaded())
+	const UWxExperienceDefinition* Experience = ExperienceManager ? ExperienceManager->GetCurrentExperience() : nullptr;
+	if (!Experience)
 	{
-		const UWxPawnData* PawnData = ExperienceManager->GetCurrentExperienceChecked()->DefaultPawnData;
-		if (PawnData && PawnData->PawnClass)
-		{
-			return PawnData->PawnClass;
-		}
-
-		UE_LOG(LogWxGame, Warning, TEXT("GetDefaultPawnClassForController: Experience 에 PawnData 미설정. GameMode DefaultPawnClass 로 폴백."));
+		// Experience 미확정은 InitGameState 가 이미 경고한 상태다.
+		return nullptr;
 	}
 
-	return Super::GetDefaultPawnClassForController_Implementation(InController);
+	// Super 를 부르지 않는다 — GameMode 의 DefaultPawnClass 로 폴백하면 폰 클래스의 출처가 둘이 된다.
+	// 엔진은 nullptr 을 받으면 스폰을 건너뛰고 FailedToRestartPlayer 로 빠지므로, 폰 없이 뜨고 이 로그가 원인을 지목한다.
+	if (!Experience->DefaultPawnClass)
+	{
+		UE_LOG(LogWxGame, Error, TEXT("GetDefaultPawnClassForController: Experience 에 DefaultPawnClass 미설정. 폰을 스폰할 수 없다."));
+	}
+
+	return Experience->DefaultPawnClass;
 }
 
 void AWxGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
@@ -124,8 +127,8 @@ void AWxGameMode::HandleExperienceLoaded(const UWxExperienceDefinition* Experien
 
 void AWxGameMode::GrantDefaultInventory(APlayerController* PlayerController, const UWxExperienceDefinition* Experience) const
 {
-	// 지급 목록은 Experience 가 정의한다 — 본체와 액션셋의 목록을 이어붙인다(매니저의 GameFeature 목록 합성과 같은 규칙).
-	TArray<FWxItemRewardEntry> Items = Experience->DefaultInventoryItems;
+	// 지급 목록은 Experience 가 참조한 액션셋들이 정의한다 — 전 묶음의 목록을 이어붙인다(매니저의 GameFeature 목록 합성과 같은 규칙).
+	TArray<FWxItemRewardEntry> Items;
 	for (const TObjectPtr<UWxExperienceActionSet>& ActionSet : Experience->ActionSets)
 	{
 		if (ActionSet)

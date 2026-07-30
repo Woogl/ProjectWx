@@ -58,6 +58,9 @@ public:
 	/** 로드 완료를 전제로 현재 Experience 를 반환한다. 완료 전 호출은 프로그래밍 오류다. */
 	const UWxExperienceDefinition* GetCurrentExperienceChecked() const;
 
+	/** 확정됐으나 아직 로드 중일 수 있는 Experience 를 반환한다(미확정이면 널). 로드 상태와 무관한 정의 데이터 조회용. */
+	const UWxExperienceDefinition* GetCurrentExperience() const;
+
 private:
 	UFUNCTION()
 	void OnRep_CurrentExperience();
