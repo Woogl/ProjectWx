@@ -74,6 +74,9 @@ EStateTreeRunStatus FWxStateTreeTask_SetQuestTitle::EnterState(FStateTreeExecuti
 	UWxQuestComponent* QuestComponent = GetQuestComponent(Context);
 	if (!QuestComponent)
 	{
+		// 이 태스크는 완료 판정 대상이 아니라 엔진이 반환 상태를 무시한다 — 로그가 유일한 진단 수단이다.
+		UE_LOG(LogWxQuest, Warning, TEXT("Set Quest Title: 오너 %s 에서 퀘스트 컴포넌트를 찾지 못함(퀘스트 러너 밖 조립). 제목이 등록되지 않는다."),
+			*GetNameSafe(Context.GetOwner()));
 		return EStateTreeRunStatus::Failed;
 	}
 
@@ -115,6 +118,9 @@ EStateTreeRunStatus FWxStateTreeTask_SetQuestObjective::EnterState(FStateTreeExe
 	UWxQuestComponent* QuestComponent = GetQuestComponent(Context);
 	if (!QuestComponent)
 	{
+		// 이 태스크는 완료 판정 대상이 아니라 엔진이 반환 상태를 무시한다 — 로그가 유일한 진단 수단이다.
+		UE_LOG(LogWxQuest, Warning, TEXT("Set Quest Objective: 오너 %s 에서 퀘스트 컴포넌트를 찾지 못함(퀘스트 러너 밖 조립). 목표가 등록되지 않는다."),
+			*GetNameSafe(Context.GetOwner()));
 		return EStateTreeRunStatus::Failed;
 	}
 

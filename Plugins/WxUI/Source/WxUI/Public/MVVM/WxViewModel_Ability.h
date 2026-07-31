@@ -130,6 +130,13 @@ private:
 	void HandleCostAttributeChanged(const FOnAttributeChangeData& Data);
 	bool UpdateCooldownState(float DeltaTime);
 
+	/**
+	 * 초기화 시점에 이미 돌고 있는 쿨다운을 1회 스캔해 반영한다.
+	 * 이 VM 은 UMG 바인딩 최초 평가 시 지연 생성되므로(메뉴 최초 오픈·HUD 재생성) 쿨다운 도중에 태어날 수 있고,
+	 * 그때는 GE 적용 통지를 받을 기회가 없어 다음 발동까지 "충전 만땅"으로 잘못 표시된다.
+	 */
+	void SeedActiveCooldown();
+
 	/** 부여된 스펙을 찾아 발동 가능 여부(CanActivateAbility)와 비용 지불 가능 여부(CheckCost)를 재평가한다 */
 	void RefreshActivationState();
 

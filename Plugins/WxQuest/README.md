@@ -31,7 +31,7 @@
 | `UWxQuestLibrary` | BP 진입점. 레벨 스크립트→컴포넌트 위임 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestLibrary.h` |
 
 ## 확장 포인트 / 규약
-- **새 퀘스트 노드**: `FStateTreeTaskCommonBase` 상속, InstanceData 구조체 + `FInstanceDataType` 별칭. 오너(GameState)에서 `UWxQuestComponent`를 찾아 위임하고, 컴포넌트 부재 시 Failed(러너 밖 오조립).
+- **새 퀘스트 노드**: `FStateTreeTaskCommonBase` 상속, InstanceData 구조체 + `FInstanceDataType` 별칭. 오너(GameState)에서 `UWxQuestComponent`를 찾아 위임하고, 컴포넌트 부재 시 Failed(러너 밖 오조립) + `LogWxQuest` 경고. 단 `bConsideredForCompletion=false`인 저널 태스크(SetQuestTitle·SetQuestObjective)는 엔진이 반환 상태를 무시하므로 실제 진단은 그 경고 로그가 전부다.
 - **저널 태스크는 상태 완료 판정에서 빠진다** — 판정에 끼면 자식 있는 상태가 즉시 완료돼 퀘스트가 관통된다. 상태 완료는 짝이 되는 Wait 태스크가 낸다.
 - **저널 정리는 노드가 아님** — 트리 종료를 컴포넌트가 감지해 자동 정리(완료·실패·교체 세 경로 수렴).
 - **러너 재시작은 다음 틱** — ST 실행 콜스택 안 재진입 금지. 임의 시작은 `RequestStartQuest`.

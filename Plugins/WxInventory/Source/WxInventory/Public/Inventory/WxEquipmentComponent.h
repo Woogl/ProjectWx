@@ -25,6 +25,12 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FWxOnEquipVisualChanged, USkeletalMesh* /*M
  *
  * 무기 외형 반영(메시 스왑/소켓 재부착)은 본 컴포넌트가 직접 수행하지 않는다.
  * 무기 액터·캐릭터의 ChildActorComponent 는 게임 모듈 소유라 인벤토리 도메인에서 접근할 수 없으므로, Equippable 프래그먼트에서 뽑은 메시/소켓을 OnEquipVisualChanged 로 방송하고 게임 측이 반영한다.
+ *
+ * ── 미구현: 배선만 있고 트리거가 없다 ──
+ * EquipItem 의 유일한 호출부는 UWxInventoryManagerComponent::EquipItemByDef 이고, 그 함수를 부르는 곳이 저장소 전체에 없다(BlueprintCallable 도 아니라 BP 진입도 불가).
+ * 따라서 현재 EquippedItemDef 는 항상 null 이며 OnEquipVisualChanged 방송과 EquipEffects 적용은 한 번도 일어나지 않는다 — 구독 측(캐릭터)이 붙어 있어도 마찬가지다.
+ * 장비를 실제로 쓰려면 트리거(UI 슬롯 → 어빌리티/서버 RPC → EquipItemByDef)를 붙여 경로를 닫아야 한다.
+ * 그때 함께 볼 것: 늦게 relevant 해진 클라는 초기 복제 RepNotify 가 구독보다 앞서 방송을 유실하는데, 현재 상태를 되물을 pull API 가 없다.
  */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))
 class WXINVENTORY_API UWxEquipmentComponent : public UActorComponent

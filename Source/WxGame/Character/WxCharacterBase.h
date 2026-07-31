@@ -35,7 +35,7 @@ class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInte
 public:
 	// 기본 생성자는 파생 클래스(에너미/보스)의 암시적 생성 경로 호환을 위해 유지하고,
 	// 실제 셋업은 ObjectInitializer 버전으로 위임한다.
-	AWxCharacterBase() : AWxCharacterBase(FObjectInitializer::Get()) {}
+	AWxCharacterBase();
 	AWxCharacterBase(const FObjectInitializer& ObjectInitializer);
 	virtual void PreInitializeComponents() override;
 	virtual void PostInitializeComponents() override;
@@ -103,7 +103,7 @@ protected:
 	 */
 	void HandleSPDAttributeChanged(const FOnAttributeChangeData& Data);
 
-	/** State.Dead 태그 변경 콜백. 태그 부여 시 HandleDeath 호출 */
+	/** State.Dead 태그 변경 콜백. 태그 부여 시 각 머신에서 HandleDeath 호출 (구독은 PostInitializeComponents) */
 	void HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
 	/** State.Ragdoll 태그 변경 콜백. 태그 부여 시 각 머신에서 래그돌 물리 전환 적용 */

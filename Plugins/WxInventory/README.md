@@ -7,7 +7,7 @@
 - 아이템 정의(`UWxItemDefinition`) + Fragment 컴포지션(Equippable/Usable/Charges/Stackable/Pickup/Grade)으로 데이터 주도 아이템 선언
 - 런타임 인스턴스(`UWxItemInstance`) 생성·소멸·복제, 슬롯/충전량 상태 관리
 - 인벤토리 매니저(`UWxInventoryManagerComponent`): 추가/차감/스택 머지·분할, 사용(GE 적용), 충전형(에스트병) 사용·리필, FastArray 복제
-- 장비 컴포넌트(`UWxEquipmentComponent`): 장착 ItemDef 보관·복제, EquipEffect GE 라이프사이클
+- 장비 컴포넌트(`UWxEquipmentComponent`): 장착 ItemDef 보관·복제, EquipEffect GE 라이프사이클 — **미구현(배선만 존재, 아래 참조)**
 - 보상 지급(`UWxRewardLibrary::GrantReward`) 및 월드 픽업(`AWxItemPickup`) 드랍/획득
 
 **경계 (비담당)**
@@ -26,7 +26,7 @@
 | `UWxItemDefinition` | 아이템 정적 정의(`UPrimaryDataAsset`). Fragment 컬렉션 + Category 선언 | `Source/WxInventory/Public/Items/WxItemDefinition.h` |
 | `UWxItemFragment` | 아이템 행동 컴포지션 베이스. 파생: Equippable/Usable/Charges/Stackable/Pickup/Grade | `Source/WxInventory/Public/Items/WxItemFragment.h` |
 | `UWxItemInstance` | 런타임 인스턴스(수명·식별·충전량). GAS SourceObject | `Source/WxInventory/Public/Items/WxItemInstance.h` |
-| `UWxEquipmentComponent` | 장착 ItemDef 복제 + EquipEffect GE 관리, 외형 변경 방송 | `Source/WxInventory/Public/Inventory/WxEquipmentComponent.h` |
+| `UWxEquipmentComponent` | 장착 ItemDef 복제 + EquipEffect GE 관리, 외형 변경 방송 (미구현 — 트리거 없음) | `Source/WxInventory/Public/Inventory/WxEquipmentComponent.h` |
 | `AWxItemPickup` | 월드 드랍 픽업 액터(`IWxInteractable`). 획득 시 인벤토리 지급 후 파괴 | `Source/WxInventory/Public/Items/WxItemPickup.h` |
 | `UWxRewardLibrary` | 보상 지급 서버 권위 진입점(픽업 스폰 vs 직접 지급 분기) | `Source/WxInventory/Public/WxRewardLibrary.h` |
 | `FWxRewardTableRow` | 보상 DataTable Row(아이템,수량 Pair 최대 5). 지연 로드 | `Source/WxInventory/Public/Items/WxRewardTableRow.h` |
@@ -35,6 +35,7 @@
 - **새 아이템**: `UWxItemDefinition` 데이터 자산을 만들고 `Category`(`EWxItemCategory`) 지정 + `Fragments` 배열에 필요한 Fragment 를 EditInline 으로 조합한다. 행동은 Fragment 조합으로 결정 — 스택 가능하려면 `Stackable`(MaxStack), 사용 효과는 `Usable`(GE), 충전형 소비는 `Charges`+`Usable`, 장비는 `Equippable`(메시/소켓/EquipEffects), 월드 드랍은 `Pickup`, 등급/색은 `Grade`.
 - **새 Fragment**: `UWxItemFragment` 를 상속하고 필요 시 `OnInstanceCreated(Instance)` 오버라이드로 인스턴스 초기 상태를 주입한다(예: Charges 가 MaxCharges 로 시드).
 - **보상**: `FWxRewardTableRow` DataTable 을 채우고, StateTree 로 지급하려면 `FWxStateTreeTask_GrantReward`(RewardRow/SpawnOffset/LaunchVelocity), 체크포인트 리필은 `FWxStateTreeTask_RefillItemCharges` Task 를 배치한다. 둘 다 라이브 전이·권위 측에서만 1회 발동.
+- **장비는 아직 동작하지 않는다**: `EquipItemByDef` → `UWxEquipmentComponent::EquipItem` 배선은 완성돼 있으나 `EquipItemByDef` 를 부르는 곳이 저장소 전체에 없다(BP 진입도 불가). 그래서 `EquippedItemDef` 는 항상 null 이고 `OnEquipVisualChanged`·`EquipEffects` 는 발화하지 않는다 — 캐릭터 측 구독이 붙어 있어도 마찬가지다. 쓰려면 UI 슬롯 → 어빌리티/서버 RPC → `EquipItemByDef` 로 트리거를 붙여 경로를 닫는다. `RemoveItemInstance` 도 같은 이유로 호출부가 없다.
 - **권위 규약**: Add/Consume/Use/Equip/Refill 은 서버 권한에서만 호출하고 클라이언트는 FastArray/SubObject 복제로 추종한다. 픽업 지급 데이터는 SpawnActorDeferred → `SetItemDef` → FinishSpawning 흐름으로 주입.
 
 ## 여기서부터 읽어라

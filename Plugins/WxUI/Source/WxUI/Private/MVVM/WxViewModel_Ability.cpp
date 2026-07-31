@@ -55,6 +55,56 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 	}
 
 	RefreshActivationState();
+
+	SeedActiveCooldown();
+}
+
+void UWxViewModel_Ability::SeedActiveCooldown()
+{
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	if (!ASC || !CachedCooldownClass)
+	{
+		return;
+	}
+
+	const UGameplayAbility* AbilityCDO = CachedAbility.Get();
+
+	FGameplayEffectQuery Query;
+	Query.EffectDefinition = CachedCooldownClass;
+
+	// UpdateCooldownState 는 CooldownDuration 을 기준으로 진행률을 내는데, 그 값은 GE 적용 통지에서만 채워진다.
+	// 통지를 놓친 채 태어난 VM 을 위해 활성 GE 에서 기준 지속시간을 먼저 심는다(판별식은 UpdateCooldownState 와 동일).
+	for (const FActiveGameplayEffectHandle& ActiveHandle : ASC->GetActiveEffects(Query))
+	{
+		const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(ActiveHandle);
+		if (!ActiveGE || ActiveGE->Spec.GetEffectContext().GetAbility() != AbilityCDO)
+		{
+			continue;
+		}
+
+		const float SpecDuration = ActiveGE->Spec.GetDuration();
+		if (SpecDuration > 0.f)
+		{
+			SetCooldownDuration(SpecDuration);
+			break;
+		}
+	}
+
+	if (CooldownDuration <= 0.f)
+	{
+		// 돌고 있는 쿨다운이 없다 — Initialize 가 세운 만충 상태가 그대로 옳다.
+		return;
+	}
+
+	SetIsOnCooldown(true);
+
+	// 남은 시간·소모 충전 수 계산과 만료 판정은 평시 갱신 경로에 그대로 맡긴다.
+	if (UpdateCooldownState(0.f) && !TickerHandle.IsValid())
+	{
+		TickerHandle = FTSTicker::GetCoreTicker().AddTicker(
+			FTickerDelegate::CreateUObject(this, &UWxViewModel_Ability::UpdateCooldownState)
+		);
+	}
 }
 
 void UWxViewModel_Ability::Deinitialize()

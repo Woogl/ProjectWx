@@ -189,7 +189,7 @@ public:
 	 */
 	void GrantItems(const TArray<FWxItemRewardEntry>& Items);
 
-	/** 권한: 특정 인스턴스 슬롯을 통째로 제거한다. */
+	/** 권한: 특정 인스턴스 슬롯을 통째로 제거한다. 미구현: 현재 호출부가 0건이다(소비는 ConsumeItemsByDefinition 경로가 담당한다). */
 	void RemoveItemInstance(UWxItemInstance* ItemInstance);
 
 	/**
@@ -247,6 +247,8 @@ public:
 	 * 미소유 ItemDef 는 거부한다.
 	 * 스택은 차감하지 않는다.
 	 * ItemDef 가 nullptr 이면 장착 해제.
+	 *
+	 * 미구현: 현재 호출부가 0건이다(BlueprintCallable 도 아니라 BP 진입도 불가). 장비 경로 전체가 배선만 있고 트리거가 없는 상태다 — UWxEquipmentComponent 주석 참조.
 	 */
 	bool EquipItemByDef(const UWxItemDefinition* ItemDef);
 

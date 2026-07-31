@@ -53,7 +53,7 @@ public:
 	/** 뷰의 대사 넘기기 요청. NextDialogue 를 따라가고, 더 없으면 종료한다. */
 	void Advance();
 
-	bool HasActiveDialogue() const { return CurrentRow != nullptr; }
+	bool HasActiveDialogue() const;
 
 	/** 진행 중인 대화의 대상 액터. 대화 중이 아니거나 대상 없는 대사(나레이션)면 null. */
 	AActor* GetCurrentDialogueTarget() const;

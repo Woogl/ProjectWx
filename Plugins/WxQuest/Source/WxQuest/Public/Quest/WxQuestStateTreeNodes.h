@@ -12,6 +12,8 @@ struct FStateTreeExecutionContext;
 struct FStateTreeTransitionResult;
 class UWxQuestStateTree;
 
+// GetInstanceDataType() 의 헤더 정의는 코딩 규칙 6 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
+
 /**
  * 퀘스트 StateTree(UWxQuestComponent 러너)가 사용하는 노드 모음.
  * 컨텍스트 오너는 러너를 소유한 GameState 이며, 각 노드는 오너에서 UWxQuestComponent 를 찾아 저널 갱신·다음 퀘스트 시작을 위임한다.
@@ -45,7 +47,10 @@ struct FWxStateTreeTask_SetQuestTitleInstanceData
 /**
  * 진입 시 오너의 퀘스트 컴포넌트의 저널을 이 제목으로 등록하고(목표는 비움) Succeeded 로 완료한다.
  * 제목은 퀘스트당 하나이므로 스텝마다 다시 걸지 말고 진행이 시작되는 상태에 한 번만 둔다.
- * 퀘스트 컴포넌트가 없으면 잘못된 조립(퀘스트 러너 밖 사용)이므로 Failed. 틱하지 않으므로 비용이 없다.
+ * 틱하지 않으므로 비용이 없다.
+ *
+ * 퀘스트 컴포넌트가 없으면 잘못된 조립(퀘스트 러너 밖 사용)이다. Failed 를 돌려주긴 하지만 이 태스크는
+ * bConsideredForCompletion=false 라 엔진이 그 반환 상태를 결과에 반영하지 않는다 — 트리는 그대로 진행하며, 오조립은 경고 로그로만 드러난다.
  */
 USTRUCT(meta = (DisplayName = "Set Quest Title", Category = "Wx"))
 struct FWxStateTreeTask_SetQuestTitle : public FStateTreeTaskCommonBase
@@ -84,7 +89,10 @@ struct FWxStateTreeTask_SetQuestObjectiveInstanceData
  * 진입 시 저널에 목표를 하나 걸고, 상태에 머무는 동안 유지하다 떠날 때 걷어간다.
  * 목표의 수명이 곧 그 상태의 수명이라 정리 태스크가 따로 필요 없고, 부모 상태와 자식 상태가 각각 목표를 걸면 둘이 동시에 표시된다 —
  * 병렬 상태가 없는 StateTree 에서 다중 목표는 이렇게 성립한다.
- * 퀘스트 컴포넌트가 없으면 잘못된 조립(퀘스트 러너 밖 사용)이므로 Failed. 완료 없이 머무는 태스크라 항상 Running 이며, 상태 완료는 짝이 되는 Wait 태스크가 낸다.
+ * 완료 없이 머무는 태스크라 항상 Running 이며, 상태 완료는 짝이 되는 Wait 태스크가 낸다.
+ *
+ * 퀘스트 컴포넌트가 없으면 잘못된 조립(퀘스트 러너 밖 사용)이다. Failed 를 돌려주긴 하지만 이 태스크는
+ * bConsideredForCompletion=false 라 엔진이 그 반환 상태를 결과에 반영하지 않는다 — 트리는 그대로 진행하며, 오조립은 경고 로그로만 드러난다.
  */
 USTRUCT(meta = (DisplayName = "Set Quest Objective", Category = "Wx"))
 struct FWxStateTreeTask_SetQuestObjective : public FStateTreeTaskCommonBase

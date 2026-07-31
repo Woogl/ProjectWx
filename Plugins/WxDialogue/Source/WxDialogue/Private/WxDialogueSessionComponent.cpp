@@ -10,6 +10,7 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "WxDialogueComponent.h"
+#include "WxDialogueModule.h"
 #include "WxDialogueTableRow.h"
 #include "WxGameplayTags.h"
 
@@ -25,6 +26,7 @@ void UWxDialogueSessionComponent::StartDialogue(UWxDialogueComponent* Dialogue)
 {
 	if (!Dialogue)
 	{
+		UE_LOG(LogWxDialogue, Warning, TEXT("StartDialogue: 대화 정의 컴포넌트가 없다."));
 		return;
 	}
 
@@ -36,6 +38,9 @@ void UWxDialogueSessionComponent::StartDialogueRow(const FDataTableRowHandle& St
 {
 	if (!StartRow.DataTable || StartRow.RowName.IsNone())
 	{
+		// 디자이너가 대화 정의에 시작 행을 안 채운 경우다. 이 갈래가 조용하면 "F 를 눌러도 아무 일이 없다"만 남는다.
+		UE_LOG(LogWxDialogue, Warning, TEXT("StartDialogueRow: 시작 행이 지정되지 않음(테이블 %s / 행 %s, 대상 %s)."),
+			*GetNameSafe(StartRow.DataTable), *StartRow.RowName.ToString(), *GetNameSafe(Target));
 		return;
 	}
 
@@ -49,13 +54,28 @@ void UWxDialogueSessionComponent::Advance()
 		return;
 	}
 
-	if (CurrentRow->NextDialogue.IsNone() || !EnterRow(CurrentRow->NextDialogue))
+	const FName NextRowName = CurrentRow->NextDialogue;
+	if (NextRowName.IsNone())
 	{
 		EndDialogue();
 		return;
 	}
 
+	if (!EnterRow(NextRowName))
+	{
+		// 다음 행이 지정돼 있는데 해석에 실패한 것은 정상 종료가 아니다. 구분해 찍지 않으면 오타가 "대화가 이유 없이 끊김"으로만 보인다.
+		UE_LOG(LogWxDialogue, Warning, TEXT("Advance: 다음 행을 해석하지 못해 대화를 종료한다(테이블 %s / 행 %s → %s)."),
+			*GetNameSafe(CurrentStartRow.DataTable), *CurrentRowName.ToString(), *NextRowName.ToString());
+		EndDialogue();
+		return;
+	}
+
 	PublishCurrentLine();
+}
+
+bool UWxDialogueSessionComponent::HasActiveDialogue() const
+{
+	return CurrentRow != nullptr;
 }
 
 AActor* UWxDialogueSessionComponent::GetCurrentDialogueTarget() const
@@ -85,10 +105,19 @@ FText UWxDialogueSessionComponent::GetCurrentLine() const
 
 void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FDataTableRowHandle& StartRow, AActor* Target)
 {
+	// 겹쳐 열리는 경로가 실재한다(퀘스트 트리의 Play Dialogue 는 상호작용 차단 태그의 게이트를 거치지 않는다).
+	// 앞 세션을 그대로 덮으면 그쪽 태그·카메라를 되돌릴 주체가 사라지므로, 새 세션을 열기 전에 접는다.
+	if (HasActiveDialogue())
+	{
+		EndDialogue();
+	}
+
 	CurrentStartRow = StartRow;
 	if (!EnterRow(StartRow.RowName))
 	{
+		// CurrentRow 까지 되돌려야 한다 — 남겨 두면 HasActiveDialogue() 는 참인데 테이블은 비어 있는 상태가 굳는다.
 		CurrentStartRow = FDataTableRowHandle();
+		CurrentRow = nullptr;
 		CurrentRowName = NAME_None;
 		return;
 	}
@@ -102,7 +131,9 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FData
 	APawn* Pawn = Controller ? Controller->GetPawn() : nullptr;
 	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn))
 	{
-		ASC->AddLooseGameplayTag(WxGameplayTags::State_Dialogue);
+		// 카운트 가감이 아니라 절대값으로 지정한다. 이 태그를 loose 로 쓰는 곳은 이 컴포넌트뿐이고,
+		// 소비자(UI 매니저)는 0↔비0 전이만 듣기 때문에 카운트가 1 이라도 남으면 대화 창이 영영 닫히지 않는다.
+		ASC->SetLooseGameplayTagCount(WxGameplayTags::State_Dialogue, 1);
 		TaggedAbilitySystem = ASC;
 	}
 
@@ -115,6 +146,9 @@ bool UWxDialogueSessionComponent::EnterRow(FName RowName)
 	const FWxDialogueTableRow* Row = Table ? Table->FindRow<FWxDialogueTableRow>(RowName, TEXT("WxDialogueSession")) : nullptr;
 	if (!Row || Row->Line.IsEmpty())
 	{
+		// FindRow 의 ContextString 경고는 행이 아예 없을 때만 뜬다 — 대사가 빈 행은 여기서만 드러난다.
+		UE_LOG(LogWxDialogue, Warning, TEXT("EnterRow: 행을 해석하지 못했거나 대사가 비어 있다(테이블 %s / 행 %s)."),
+			*GetNameSafe(Table), *RowName.ToString());
 		return false;
 	}
 
@@ -137,9 +171,10 @@ void UWxDialogueSessionComponent::EndDialogue()
 	CurrentTarget.Reset();
 
 	// 시작 때 발행한 대화 상태 태그를 같은 ASC 에서 되돌려 대화 창·프롬프트 표시·상호작용을 복귀시킨다.
+	// 발행과 대칭으로 절대값 0 을 지정한다 — 감산이면 겹침 이력에 따라 잔량이 남을 수 있다.
 	if (UAbilitySystemComponent* ASC = TaggedAbilitySystem.Get())
 	{
-		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Dialogue);
+		ASC->SetLooseGameplayTagCount(WxGameplayTags::State_Dialogue, 0);
 	}
 	TaggedAbilitySystem.Reset();
 

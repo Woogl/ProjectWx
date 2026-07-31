@@ -14,6 +14,11 @@
 #include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 
+AWxCharacterBase::AWxCharacterBase()
+	: AWxCharacterBase(FObjectInitializer::Get())
+{
+}
+
 AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -75,6 +80,16 @@ void AWxCharacterBase::PostInitializeComponents()
 	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Ragdoll))
 	{
 		EnterRagdoll();
+	}
+
+	// 사망 처리도 같은 이유로 여기서 구독한다 — 무기 판정 해제와 OnDeath 방송은 시뮬 프록시를 포함한 전 머신에서 일어나야 한다.
+	// 보상 지급 같은 권위 전용 처리는 HandleDeath 내부의 HasAuthority 가드가 계속 가른다.
+	AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
+		.AddUObject(this, &AWxCharacterBase::HandleDeathTagChanged);
+
+	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
+	{
+		HandleDeath();
 	}
 
 	if (EquipmentComponent)
@@ -210,9 +225,6 @@ void AWxCharacterBase::InitAbilitySystem()
 	// InitializeAbilities보다 먼저 등록해야 초기 어트리뷰트 변경(SPD 등)이 콜백에 반영됨
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetSPDAttribute())
 		.AddUObject(this, &AWxCharacterBase::HandleSPDAttributeChanged);
-
-	AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
-		.AddUObject(this, &AWxCharacterBase::HandleDeathTagChanged);
 
 	// GiveAbility는 서버에서만 허용. 클라이언트에는 서버로부터 복제됨
 	if (HasAuthority())

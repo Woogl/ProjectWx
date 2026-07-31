@@ -68,6 +68,8 @@ private:
 	 * ASC 태그가 바뀔 때(HandleOwnedTagsChanged) 및 최초 바인딩 직후에만 호출한다.
 	 * 표시 = VisibilityRequirements.RequirementsMet(ASC 보유 태그).
 	 * 어떤 게임플레이 상태가 조건인지는 VisibilityRequirements 가 정하며, 본 함수는 구체 태그를 알지 않는다.
+	 *
+	 * 거리 스케일 틱도 같은 판정으로 함께 여닫는다 — 표시 진실이 여기 하나에 모여 있어 별도 상태가 필요 없다.
 	 */
 	void RefreshVisibility();
 
@@ -75,4 +77,10 @@ private:
 	void HandleOwnedTagsChanged(const FGameplayTag Tag, int32 NewCount);
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
+
+	/**
+	 * 직전에 위젯에 적용한 렌더 스케일. 값이 같아도 SetRenderScale 은 위젯을 무효화하므로 변화가 있을 때만 부른다.
+	 * 음수 초기값은 "아직 한 번도 적용하지 않음"을 뜻해 첫 틱이 반드시 반영되게 한다.
+	 */
+	float LastRenderScale = -1.f;
 };

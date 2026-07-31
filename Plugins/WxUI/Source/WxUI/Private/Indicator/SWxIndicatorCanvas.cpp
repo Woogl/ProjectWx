@@ -388,12 +388,12 @@ void SWxIndicatorCanvas::SetShowAnyIndicators(bool bInShowAnyIndicators)
 
 	bShowAnyIndicators = bInShowAnyIndicators;
 
-	if (!bShowAnyIndicators)
+	// 위젯 Visibility 를 직접 덮지 않고 슬롯을 거친다 — 슬롯의 플래그와 실제 Visibility 가 한 창구에서만 갈리게 해야
+	// "플래그는 보임인데 위젯만 접혀 있어 복구 경로가 영구 no-op" 이 되는 조합이 아예 생기지 않는다.
+	// 되살아날 때 전부 켜 두어도 곧바로 이어지는 슬롯 순회가 대상별 판정으로 다시 접는다.
+	for (int32 ChildIndex = 0; ChildIndex < CanvasChildren.Num(); ++ChildIndex)
 	{
-		for (int32 ChildIndex = 0; ChildIndex < CanvasChildren.Num(); ++ChildIndex)
-		{
-			CanvasChildren.GetChildAt(ChildIndex)->SetVisibility(EVisibility::Collapsed);
-		}
+		CanvasChildren[ChildIndex].SetIndicatorVisible(bShowAnyIndicators);
 	}
 }
 

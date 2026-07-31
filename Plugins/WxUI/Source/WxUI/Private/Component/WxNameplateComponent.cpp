@@ -10,6 +10,8 @@
 UWxNameplateComponent::UWxNameplateComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+	// 거리 스케일은 보일 때만 의미가 있다. 기본 숨김에 맞춰 틱도 꺼진 채로 출발하고, RefreshVisibility 가 표시와 함께 켠다.
+	PrimaryComponentTick.bStartWithTickEnabled = false;
 	SetWidgetSpace(EWidgetSpace::Screen);
 	SetDrawAtDesiredSize(true);
 
@@ -56,6 +58,14 @@ void UWxNameplateComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 
 	const float Distance = FVector::Dist(GetComponentLocation(), CameraLocation);
 	const float Scale = FMath::Clamp(ReferenceDistance / FMath::Max(Distance, 1.0f), MinScale, MaxScale);
+
+	// SetRenderScale 은 값이 같아도 위젯을 무효화하므로, 눈에 띄지 않는 미세 변화로 Slate 무효화를 쌓지 않는다.
+	if (FMath::IsNearlyEqual(Scale, LastRenderScale, KINDA_SMALL_NUMBER))
+	{
+		return;
+	}
+
+	LastRenderScale = Scale;
 	NameplateWidget->SetRenderScale(FVector2D(Scale, Scale));
 }
 
@@ -108,7 +118,12 @@ void UWxNameplateComponent::RefreshVisibility()
 	// 태그 변경 이벤트가 표시 결과와 무관하게 발화할 수 있으나, SetVisibility 는 값이 같으면 내부에서 no-op 이다.
 	FGameplayTagContainer OwnedTags;
 	ASC->GetOwnedGameplayTags(OwnedTags);
-	SetVisibility(VisibilityRequirements.RequirementsMet(OwnedTags));
+
+	const bool bShouldShow = VisibilityRequirements.RequirementsMet(OwnedTags);
+	SetVisibility(bShouldShow);
+
+	// 숨겨진 네임플레이트는 거리 스케일을 갱신할 이유가 없다. 월드의 적 대부분이 기본 숨김이라 이 차이가 곧 전체 비용이다.
+	SetComponentTickEnabled(bShouldShow);
 }
 
 void UWxNameplateComponent::HandleOwnedTagsChanged(const FGameplayTag Tag, int32 NewCount)

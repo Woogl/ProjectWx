@@ -26,7 +26,18 @@ IWxInteractable* IWxInteractable::Find(const UActorComponent* Mesh)
 
 bool IWxInteractable::IsMeshInRange(const UPrimitiveComponent* Mesh, const FVector& Origin, float Radius)
 {
+	if (!Mesh)
+	{
+		return false;
+	}
+
+	// 쿼리 콜리전이 꺼져 있으면 아래 테스트가 무조건 false 라 상호작용이 경고 한 줄 없이 통째로 사라진다.
+	// 폴백을 두면 판정 기준이 대상마다 갈리므로, 동작은 그대로 두고 전제가 깨진 사실만 개발 빌드에서 드러낸다.
+	ensureMsgf(Mesh->IsQueryCollisionEnabled(),
+		TEXT("%s 의 %s 에 쿼리 콜리전이 꺼져 있어 상호작용 사거리 판정이 항상 실패한다(스켈레탈이면 피직스 애셋도 필요)."),
+		*GetNameSafe(Mesh->GetOwner()), *Mesh->GetName());
+
 	// 콜리전 형상에 구를 던져 겹치는지로 잰다 — 스켈레탈 메시는 오버라이드가 피직스 애셋의 모든 바디를 훑는다.
 	// 채널이 아니라 바디에 직접 던지는 테스트라 콜리전 응답·프로파일은 보지 않는다. 쿼리 콜리전이 켜져 있기만 하면 된다.
-	return Mesh && Mesh->OverlapComponent(Origin, FQuat::Identity, FCollisionShape::MakeSphere(Radius));
+	return Mesh->OverlapComponent(Origin, FQuat::Identity, FCollisionShape::MakeSphere(Radius));
 }
