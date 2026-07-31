@@ -9,9 +9,8 @@
 
 UWxNameplateComponent::UWxNameplateComponent()
 {
+	// 틱은 늘 켜 둔다. 스크린 스페이스 위젯의 화면 부착·해제를 엔진이 이 틱에서만 처리하므로, 틱을 끄면 숨김이 화면에 반영되지 않는다.
 	PrimaryComponentTick.bCanEverTick = true;
-	// 거리 스케일은 보일 때만 의미가 있다. 기본 숨김에 맞춰 틱도 꺼진 채로 출발하고, RefreshVisibility 가 표시와 함께 켠다.
-	PrimaryComponentTick.bStartWithTickEnabled = false;
 	SetWidgetSpace(EWidgetSpace::Screen);
 	SetDrawAtDesiredSize(true);
 
@@ -33,6 +32,13 @@ UWxNameplateComponent::UWxNameplateComponent()
 void UWxNameplateComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	// 화면 부착·해제를 맡은 Super 는 지나가되, 거리 스케일은 보일 때만 계산한다.
+	// 판정이 갈리지 않도록 엔진의 화면 부착 조건과 같은 술어를 쓴다.
+	if (!IsVisible())
+	{
+		return;
+	}
 
 	UUserWidget* NameplateWidget = GetWidget();
 	if (!NameplateWidget)
@@ -119,11 +125,9 @@ void UWxNameplateComponent::RefreshVisibility()
 	FGameplayTagContainer OwnedTags;
 	ASC->GetOwnedGameplayTags(OwnedTags);
 
-	const bool bShouldShow = VisibilityRequirements.RequirementsMet(OwnedTags);
-	SetVisibility(bShouldShow);
-
-	// 숨겨진 네임플레이트는 거리 스케일을 갱신할 이유가 없다. 월드의 적 대부분이 기본 숨김이라 이 차이가 곧 전체 비용이다.
-	SetComponentTickEnabled(bShouldShow);
+	// 숨김은 컴포넌트를 화면 위젯 레이어에서 빼내므로, 거리 스케일 계산뿐 아니라 레이어의 매 프레임 투영 비용까지 함께 사라진다.
+	// 월드의 적 대부분이 기본 숨김이라 이 차이가 곧 전체 비용이다.
+	SetVisibility(VisibilityRequirements.RequirementsMet(OwnedTags));
 }
 
 void UWxNameplateComponent::HandleOwnedTagsChanged(const FGameplayTag Tag, int32 NewCount)

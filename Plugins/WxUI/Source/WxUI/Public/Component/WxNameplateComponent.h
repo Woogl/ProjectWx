@@ -68,8 +68,6 @@ private:
 	 * ASC 태그가 바뀔 때(HandleOwnedTagsChanged) 및 최초 바인딩 직후에만 호출한다.
 	 * 표시 = VisibilityRequirements.RequirementsMet(ASC 보유 태그).
 	 * 어떤 게임플레이 상태가 조건인지는 VisibilityRequirements 가 정하며, 본 함수는 구체 태그를 알지 않는다.
-	 *
-	 * 거리 스케일 틱도 같은 판정으로 함께 여닫는다 — 표시 진실이 여기 하나에 모여 있어 별도 상태가 필요 없다.
 	 */
 	void RefreshVisibility();
 
