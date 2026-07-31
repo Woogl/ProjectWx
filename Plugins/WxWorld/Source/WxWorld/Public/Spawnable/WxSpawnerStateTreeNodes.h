@@ -11,6 +11,8 @@ struct FStateTreeExecutionContext;
 struct FStateTreeTransitionResult;
 class AWxSpawner;
 
+// GetInstanceDataType() 의 헤더 정의는 코딩 규칙 6 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
+
 /**
  * 스포너(AWxSpawner)를 다루는 StateTree 공유 노드 모음.
  * 대상 스포너는 FUniversalObjectLocator 로 배치 액터를 직접 지정한다.

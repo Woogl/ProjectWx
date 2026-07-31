@@ -29,6 +29,8 @@ class USkeletalMeshComponent;
 class USoundBase;
 class USplineComponent;
 
+// GetInstanceDataType() 의 헤더 정의는 코딩 규칙 6 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
+
 /**
  * 기믹(GimmickStateTree 컴포넌트를 든 액터) 의 StateTree 가 공유하는 노드 모음.
  * 여기의 노드는 기믹 종류와 무관한 공통 동작만 다루며, 소유 액터의 얇은 프리미티브만 호출한다.

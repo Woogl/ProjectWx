@@ -75,6 +75,7 @@ public:
 	/** 첫 번째로 일치하는 Fragment 포인터 반환. 없으면 nullptr. */
 	const UWxItemFragment* FindFragmentByClass(TSubclassOf<UWxItemFragment> FragmentClass) const;
 
+	// 헤더 정의는 코딩 규칙 6 의 예외다 — 템플릿이라 cpp 로 내릴 수 없고, 실제 조회는 위 오버로드가 한다.
 	template <typename T>
 	const T* FindFragmentByClass() const
 	{

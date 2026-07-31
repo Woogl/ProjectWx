@@ -13,6 +13,8 @@ struct FStateTreeTransitionResult;
 class UWxIndicatorDescriptor;
 class UWxIndicatorWidget;
 
+// GetInstanceDataType() 의 헤더 정의는 코딩 규칙 6 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
+
 /**
  * 화면 인디케이터를 StateTree 로 켜고 끄는 노드.
  * 인디케이터 시스템을 소유한 본 모듈이 노드까지 함께 제공한다 — 보상 지급 노드를 WxInventory 가 소유하는 것과 같은 모양이라,

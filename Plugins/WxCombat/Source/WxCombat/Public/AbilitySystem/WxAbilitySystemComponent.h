@@ -41,7 +41,7 @@ public:
 	void AbilityInputActionReleased(const UInputAction* Action);
 
 	/** 어빌리티 입력 트리거 방송에 접근. 활성 어빌리티가 자기 관심 입력을 대기할 때 구독한다. */
-	FWxInputActionTriggeredSignature& OnInputActionTriggered() { return OnInputActionTriggeredDelegate; }
+	FWxInputActionTriggeredSignature& OnInputActionTriggered();
 
 	/** AbilitySet의 부여 대상 어빌리티들이 요구하는 입력 액션 전체를 반환한다(플레이어 입력 바인딩용). AbilitySet이 없으면 빈 배열을 반환한다. */
 	TArray<const UInputAction*> GetAbilityInputActions() const;

@@ -24,7 +24,7 @@ public:
 
 	virtual FString GetStaticDescription() const override;
 
-	float GetWeight() const { return Weight; }
+	float GetWeight() const;
 
 protected:
 	virtual bool CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;

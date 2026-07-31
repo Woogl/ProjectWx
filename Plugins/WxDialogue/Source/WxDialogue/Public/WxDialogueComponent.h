@@ -18,7 +18,7 @@ class WXDIALOGUE_API UWxDialogueComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
-	const FDataTableRowHandle& GetStartRow() const { return StartRow; }
+	const FDataTableRowHandle& GetStartRow() const;
 
 protected:
 	/** 대화를 시작할 노드. 비우면 대화가 시작되지 않는다. */

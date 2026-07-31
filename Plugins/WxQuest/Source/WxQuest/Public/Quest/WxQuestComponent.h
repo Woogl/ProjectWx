@@ -73,8 +73,8 @@ public:
 	/** SetQuestObjective 태스크 이탈점. 지정 핸들의 목표를 걷어간다. 이미 없는 핸들은 무시한다. */
 	void RemoveObjective(int32 ObjectiveHandle);
 
-	bool HasActiveQuest() const { return bHasActiveQuest; }
-	FText GetQuestTitle() const { return QuestTitle; }
+	bool HasActiveQuest() const;
+	FText GetQuestTitle() const;
 
 	/** 현재 표시 중인 목표 문구들을 등록 순서대로 돌려준다. */
 	TArray<FText> GetObjectiveTexts() const;

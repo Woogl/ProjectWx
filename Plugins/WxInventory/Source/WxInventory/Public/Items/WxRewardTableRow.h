@@ -29,10 +29,7 @@ struct WXINVENTORY_API FWxItemRewardEntry
 	int32 Quantity = 1;
 
 	/** 아이템이 지정되어 있고 수량이 1 이상이면 유효하다. */
-	bool IsValid() const
-	{
-		return !Item.IsNull() && Quantity > 0;
-	}
+	bool IsValid() const;
 };
 
 /**
@@ -70,13 +67,5 @@ struct WXINVENTORY_API FWxRewardTableRow : public FTableRowBase
 	 * 유효한(아이템이 지정된) 보상 항목만 순서대로 수집한다.
 	 * 빈 슬롯은 건너뛴다.
 	 */
-	void GetValidRewards(TArray<FWxItemRewardEntry>& OutRewards) const
-	{
-		OutRewards.Reset();
-		if (Reward1.IsValid()) { OutRewards.Add(Reward1); }
-		if (Reward2.IsValid()) { OutRewards.Add(Reward2); }
-		if (Reward3.IsValid()) { OutRewards.Add(Reward3); }
-		if (Reward4.IsValid()) { OutRewards.Add(Reward4); }
-		if (Reward5.IsValid()) { OutRewards.Add(Reward5); }
-	}
+	void GetValidRewards(TArray<FWxItemRewardEntry>& OutRewards) const;
 };

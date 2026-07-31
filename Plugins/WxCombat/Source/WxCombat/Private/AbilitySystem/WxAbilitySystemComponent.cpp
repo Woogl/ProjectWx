@@ -8,6 +8,11 @@ UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 	SetIsReplicatedByDefault(true);
 }
 
+FWxInputActionTriggeredSignature& UWxAbilitySystemComponent::OnInputActionTriggered()
+{
+	return OnInputActionTriggeredDelegate;
+}
+
 void UWxAbilitySystemComponent::GiveAbilitySet()
 {
 	if (!AbilitySet)
