@@ -16,7 +16,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnCutsceneCancelled);
  * Level Sequence 컷신 재생 AbilityTask.
  * Global Time Dilation으로 게임 월드를 정지시키고, 시퀀스만 정상 속도로 재생한다.
  * AvatarActor의 Transform을 TransformOrigin으로 사용하며, BindingTag로 액터를 리바인딩한다.
- * 시퀀스 종료 시 Time Dilation을 복원하고 OnCompleted를 브로드캐스트한다.
+ * 시퀀스 종료 시 Time Dilation을 거두고 OnCompleted를 브로드캐스트한다.
+ *
+ * 딜레이션은 UWxTimeDilationComponent가 서버 권위로 관리하므로, 클라이언트에는 복제로 도착한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAbilityTask_PlaySkillCutscene : public UAbilityTask
@@ -49,7 +51,6 @@ private:
 
 	void AddInvincibleTag();
 	void RemoveInvincibleTag();
-	void RestoreTimeDilation();
 	void CleanupSequenceActor();
 
 	UPROPERTY()
@@ -59,7 +60,5 @@ private:
 	TObjectPtr<ALevelSequenceActor> SequenceActor;
 
 	float GlobalTimeDilation = 1.f;
-	float OriginalTimeDilation = 1.f;
-	bool bTimeDilationActive = false;
 	bool bInvincibleTagAdded = false;
 };

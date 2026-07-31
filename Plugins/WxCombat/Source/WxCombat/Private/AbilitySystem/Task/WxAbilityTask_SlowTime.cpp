@@ -27,7 +27,7 @@ void UWxAbilityTask_SlowTime::TickTask(float DeltaTime)
 
 void UWxAbilityTask_SlowTime::OnDestroy(bool bInOwnerFinished)
 {
-	UWxTimeDilationComponent::SetGlobalTimeDilationAuthoritative(this, 1.f);
+	UWxTimeDilationComponent::ClearGlobalTimeDilationAuthoritative(this);
 
 	Super::OnDestroy(bInOwnerFinished);
 }

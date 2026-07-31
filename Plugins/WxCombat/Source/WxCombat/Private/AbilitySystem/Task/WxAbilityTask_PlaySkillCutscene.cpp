@@ -5,7 +5,7 @@
 #include "DefaultLevelSequenceInstanceData.h"
 #include "LevelSequenceActor.h"
 #include "LevelSequencePlayer.h"
-#include "Kismet/GameplayStatics.h"
+#include "Time/WxTimeDilationComponent.h"
 #include "WxGameplayTags.h"
 #include "GameFramework/Character.h"
 
@@ -20,7 +20,7 @@ UWxAbilityTask_PlaySkillCutscene* UWxAbilityTask_PlaySkillCutscene::CreateTask(U
 void UWxAbilityTask_PlaySkillCutscene::OnDestroy(bool bInOwnerFinished)
 {
 	RemoveInvincibleTag();
-	RestoreTimeDilation();
+	UWxTimeDilationComponent::ClearGlobalTimeDilationAuthoritative(this);
 	CleanupSequenceActor();
 
 	Super::OnDestroy(bInOwnerFinished);
@@ -48,10 +48,8 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 	}
 	
 	// Time Dilation 설정
-	OriginalTimeDilation = UGameplayStatics::GetGlobalTimeDilation(World);
-	UGameplayStatics::SetGlobalTimeDilation(World, GlobalTimeDilation);
-	bTimeDilationActive = true;
-	
+	UWxTimeDilationComponent::SetGlobalTimeDilationAuthoritative(this, GlobalTimeDilation);
+
 	// 캐릭터가 재생 중이던 애님 몽타주 정지
 	AActor* AvatarActor = GetAvatarActor();
 	if (AvatarActor)
@@ -70,7 +68,7 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 
 	if (!SequencePlayer)
 	{
-		RestoreTimeDilation();
+		UWxTimeDilationComponent::ClearGlobalTimeDilationAuthoritative(this);
 		CleanupSequenceActor();
 		OnCancelled.Broadcast();
 		EndTask();
@@ -106,7 +104,7 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 
 void UWxAbilityTask_PlaySkillCutscene::HandleSequenceFinished()
 {
-	RestoreTimeDilation();
+	UWxTimeDilationComponent::ClearGlobalTimeDilationAuthoritative(this);
 	CleanupSequenceActor();
 
 	if (ShouldBroadcastAbilityTaskDelegates())
@@ -141,21 +139,6 @@ void UWxAbilityTask_PlaySkillCutscene::RemoveInvincibleTag()
 	if (ASC)
 	{
 		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Invincible);
-	}
-}
-
-void UWxAbilityTask_PlaySkillCutscene::RestoreTimeDilation()
-{
-	if (!bTimeDilationActive)
-	{
-		return;
-	}
-	bTimeDilationActive = false;
-
-	UWorld* World = GetWorld();
-	if (World)
-	{
-		UGameplayStatics::SetGlobalTimeDilation(World, OriginalTimeDilation);
 	}
 }
 
