@@ -1,19 +1,19 @@
 # WxDialogue — 대화 시스템
 
-> 데이터 테이블로 정의한 대사를 NPC 상호작용·퀘스트 트리에서 열어 소유 클라의 세션 컴포넌트가 진행·연출하고, 관찰자(퀘스트)가 완주를 판정하는 대화 시스템.
+> 데이터 테이블로 정의한 대사를 NPC 상호작용·퀘스트 트리에서 열어, PlayerController에 주입된 세션 컴포넌트가 소유 클라에서 진행·연출하고, 관찰자(퀘스트)가 완주를 판정하는 대화 시스템.
 
 ## 책임
 **담당**
-- 대화 데이터 정의(`FWxDialogueTableRow` — 화자·대사·`NextDialogue` 링크, 대화 1편 = 테이블 1개)
-- 대화 가능 액터에 시작 노드를 얹는 정의 컴포넌트(`UWxDialogueComponent`)
-- PlayerController에 주입되는 대화 세션의 소유·진행(`Advance`)·종료와 대화 전용 카메라 연출(`UWxDialogueSessionComponent`)
-- 대화 NPC 베이스와 상호작용 시 세션으로의 대화 진입(`AWxNpc`)
-- 대화를 StateTree에서 관찰·출력하는 크로스모듈 노드(`WaitDialogueCompleted`·`PlayDialogue`)
+- 대화 데이터 정의 — `FWxDialogueTableRow`(화자·대사·`NextDialogue` 링크, 노드 = 대사 한 줄 = 행, 대화 1편 = 테이블 1개)
+- 대화 가능 액터에 시작 노드만 얹는 정의 컴포넌트 — `UWxDialogueComponent`
+- PC에 주입되는 세션의 소유·진행(`Advance`)·종료와 대화 전용 카메라 연출 — `UWxDialogueSessionComponent`
+- 대화 NPC 베이스와 상호작용 시 세션으로의 대화 진입 — `AWxNpc`
+- 대화를 StateTree에서 관찰·출력하는 크로스모듈 노드 — `WaitDialogueCompleted`·`PlayDialogue`
 
 **경계 (비담당)**
 - 대화 창 열고 닫기·위젯·뷰모델 — 세션은 `State.Dialogue` 태그와 델리게이트만 발행, 위임 [[WxUI]]
 - 대화의 의미 해석(수주·납품 판정)과 대화를 여는 퀘스트 진행 — 위임 [[WxQuest]]
-- 상호작용 스캔·발동·프롬프트 계약(`IWxInteractable`) — 위임 [[WxCore]]/[[WxWorld]]
+- 상호작용 스캔·발동·프롬프트 계약(`IWxInteractable`) — 위임 [[WxCore]]
 
 ## 의존성
 - **주요 의존**: `WxCore`(`IWxInteractable`·`WxGameplayTags::State_Dialogue`), `GameplayAbilities`(세션 중 ASC Loose 태그), `ModularGameplay`(컨트롤러 컴포넌트 주입), `StateTreeModule`(관찰·출력 태스크)
@@ -23,7 +23,7 @@
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
 | `FWxDialogueTableRow` | 대화 노드 한 줄(화자·대사·`NextDialogue`). 대화 1편 = 테이블 1개 | `Source/WxDialogue/Public/WxDialogueTableRow.h` |
-| `UWxDialogueSessionComponent` | PC에 주입되는 세션. 진입(`StartDialogue`/`StartDialogueRow`)·진행·카메라·태그 | `Source/WxDialogue/Public/WxDialogueSessionComponent.h` |
+| `UWxDialogueSessionComponent` | PC에 주입되는 세션. 진입(`StartDialogue`/`StartDialogueRow`)·진행·카메라·태그 (모듈 심장부) | `Source/WxDialogue/Public/WxDialogueSessionComponent.h` |
 | `UWxDialogueComponent` | 대화 가능 액터가 보유하는 대화 정의(시작 행만) | `Source/WxDialogue/Public/WxDialogueComponent.h` |
 | `AWxNpc` | 대화 NPC 베이스(Abstract). 메시가 상호작용 영역, 상호작용을 세션에 위임 | `Source/WxDialogue/Public/WxNpc.h` |
 | `FWxStateTreeTask_WaitDialogueCompleted` | 지정 대사를 거친 대화 완주를 관찰(퀘스트 게이트) | `Source/WxDialogue/Public/WxDialogueStateTreeNodes.h` |
@@ -47,4 +47,4 @@
 - 상위 계약: [[WxCore]](`IWxInteractable`·`State.Dialogue` 태그)
 
 ---
-*문서 기준 커밋 `59acb24` · 생성일 2026-07-30 · 소스 10파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `c549ea2` · 생성일 2026-07-31 · 소스 11파일 — `/readme-writer`로 갱신*

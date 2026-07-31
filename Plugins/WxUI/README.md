@@ -49,4 +49,4 @@
 - 데이터 소스: [[WxCombat]](ASC) · [[WxWorld]] · [[WxInventory]] · [[WxDialogue]](표시할 도메인 진실)
 
 ---
-*문서 기준 커밋 `59acb24` · 생성일 2026-07-30 · 소스 60파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `c549ea2` · 생성일 2026-07-31 · 소스 60파일 — `/readme-writer`로 갱신*

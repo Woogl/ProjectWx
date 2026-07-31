@@ -1,51 +1,59 @@
-# WxInventory — 아이템/인벤토리 시스템
+# WxInventory — 아이템·인벤토리 시스템
 
-> 아이템 정적 정의(Fragment 컴포지션)와 런타임 인스턴스, 서버 권위 인벤토리/장비 관리, 보상 지급·픽업 드랍을 담당하는 도메인 플러그인. FastArray 로 인벤토리를 복제하고, GAS(GameplayEffect)로 사용/장착 효과를 반영한다.
+> 아이템의 정적 정의(Definition + Fragment 컴포지션)와 런타임 인스턴스, PlayerController 부착형 인벤토리 매니저, 보상 지급, 월드 픽업, 장비를 다루는 도메인 플러그인. 인벤토리 상태는 FastArray 로 서버→클라 복제된다.
 
 ## 책임
 **담당**
-- 아이템 정의(`UWxItemDefinition`) + Fragment 컴포지션(Equippable/Usable/Charges/Stackable/Pickup/Grade)으로 데이터 주도 아이템 선언
-- 런타임 인스턴스(`UWxItemInstance`) 생성·소멸·복제, 슬롯/충전량 상태 관리
-- 인벤토리 매니저(`UWxInventoryManagerComponent`): 추가/차감/스택 머지·분할, 사용(GE 적용), 충전형(에스트병) 사용·리필, FastArray 복제
-- 장비 컴포넌트(`UWxEquipmentComponent`): 장착 ItemDef 보관·복제, EquipEffect GE 라이프사이클 — **미구현(배선만 존재, 아래 참조)**
-- 보상 지급(`UWxRewardLibrary::GrantReward`) 및 월드 픽업(`AWxItemPickup`) 드랍/획득
+- 아이템 정적 정의(`UWxItemDefinition`)와 Fragment 컴포지션(Stackable/Usable/Charges/Equippable/Pickup/Grade)
+- 런타임 아이템 인스턴스(`UWxItemInstance`) 생성·소멸·복제, 인스턴스별 충전량(에스트병 방식)
+- 인벤토리 소유·조회·차감·사용(`UWxInventoryManagerComponent`), 슬롯/정의/충전 단위 변경 델리게이트
+- 보상 지급 진입점(`UWxRewardLibrary::GrantReward`)과 데이터테이블 Row(`FWxRewardTableRow`)
+- 월드 아이템 픽업 액터(`AWxItemPickup`, `IWxInteractable` 자체 구현)
+- 장비 상태 보관·복제와 EquipEffect GE 라이프사이클(`UWxEquipmentComponent`) — 단, 트리거 미배선(아래 참조)
+- 보상/충전리필을 라이브 전이에서 발동하는 StateTree Task 노드
 
 **경계 (비담당)**
-- 무기 외형 반영(메시 스왑/소켓 부착): 장비 컴포넌트는 `OnEquipVisualChanged` 로 메시/소켓만 방송하고, 실제 반영은 게임 모듈(캐릭터)이 수행
-- 상호작용 스캔/프롬프트 배선: 픽업은 `IWxInteractable`(WxCore 계약)만 구현하며 스캐너는 [[WxWorld]] 소관
-- UI 출력(인벤토리 탭/아이콘 렌더): [[WxUI]]
+- 소비/사용의 실제 판정·발동은 소유 폰의 GameplayAbility(UseItem)가 수행 — `RequestUseConsumable`은 어빌리티를 AssetTag 로 발동만 함 [[WxCombat]] 계열 어빌리티
+- 무기 외형 반영(메시 스왑/소켓 재부착)은 `OnEquipVisualChanged` 방송만 하고 실제 반영은 게임 모듈이 담당 [[WxGame]]
+- 상호작용 스캔/프롬프트 표시 파이프라인 [[WxWorld]] (픽업은 `IWxInteractable` 계약만 구현)
+- 인벤토리 뷰 표시 [[WxUI]] (매니저는 클래스 차원 `OnAnyInventoryReady` 로 관찰자에 알림만)
 
 ## 의존성
-- **주요 의존**: `WxCore`(`WxInteractable` 계약 인터페이스), `GameplayAbilities`/`GameplayTags`(사용·장착 GE 적용, ASC), `StateTreeModule`(GrantReward·RefillItemCharges Task), `NetCore`(FastArray/SubObject 복제), `Niagara`(픽업 이펙트, private)
-- 규칙: 「WxCore 외 Wx 플러그인 참조」 검증 — 없음 ✅ (WxCore 만 참조)
+- **주요 의존**: `WxCore`(`IWxInteractable` 등 공용 계약), 엔진 서브시스템 `GameplayAbilities`(ASC/GE), `ModularGameplay`(ControllerComponent 주입), `StateTree`, `NetCore`(FastArray/SubObject 복제), `Niagara`(픽업 이펙트, Private)
+- 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅ (uplugin·Build.cs 모두 Wx 중 WxCore 하나만 참조)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxInventoryManagerComponent` | 인벤토리 소유·복제 허브. Add/Consume/Use/Equip/Refill 진입점. `FindInventory(Actor)` 로 조회 | `Source/WxInventory/Public/Inventory/WxInventoryManagerComponent.h` |
-| `UWxItemDefinition` | 아이템 정적 정의(`UPrimaryDataAsset`). Fragment 컬렉션 + Category 선언 | `Source/WxInventory/Public/Items/WxItemDefinition.h` |
-| `UWxItemFragment` | 아이템 행동 컴포지션 베이스. 파생: Equippable/Usable/Charges/Stackable/Pickup/Grade | `Source/WxInventory/Public/Items/WxItemFragment.h` |
-| `UWxItemInstance` | 런타임 인스턴스(수명·식별·충전량). GAS SourceObject | `Source/WxInventory/Public/Items/WxItemInstance.h` |
-| `UWxEquipmentComponent` | 장착 ItemDef 복제 + EquipEffect GE 관리, 외형 변경 방송 (미구현 — 트리거 없음) | `Source/WxInventory/Public/Inventory/WxEquipmentComponent.h` |
-| `AWxItemPickup` | 월드 드랍 픽업 액터(`IWxInteractable`). 획득 시 인벤토리 지급 후 파괴 | `Source/WxInventory/Public/Items/WxItemPickup.h` |
-| `UWxRewardLibrary` | 보상 지급 서버 권위 진입점(픽업 스폰 vs 직접 지급 분기) | `Source/WxInventory/Public/WxRewardLibrary.h` |
-| `FWxRewardTableRow` | 보상 DataTable Row(아이템,수량 Pair 최대 5). 지연 로드 | `Source/WxInventory/Public/Items/WxRewardTableRow.h` |
+| `UWxInventoryManagerComponent` | PlayerController 부착 인벤토리 매니저. Add/Consume/Use/Equip 서버 권위 진입점 | `Source/WxInventory/Public/Inventory/WxInventoryManagerComponent.h` |
+| `UWxItemDefinition` | 아이템 정적 정의(PrimaryDataAsset) + Fragment 컬렉션 | `Source/WxInventory/Public/Items/WxItemDefinition.h` |
+| `UWxItemFragment` | Fragment 베이스 + 구체 6종(Stackable/Usable/Charges/Equippable/Pickup/Grade) | `Source/WxInventory/Public/Items/WxItemFragment.h` |
+| `UWxItemInstance` | 아이템 런타임 인스턴스. 충전량 보관, GA SourceObject | `Source/WxInventory/Public/Items/WxItemInstance.h` |
+| `FWxInventoryList` / `FWxInventoryEntry` | FastArray 슬롯 컬렉션. 머지/분할/차감 로직 | `Source/WxInventory/Public/Inventory/WxInventoryManagerComponent.h` |
+| `UWxRewardLibrary` | 보상 지급 BP 라이브러리(`GrantReward`) | `Source/WxInventory/Public/WxRewardLibrary.h` |
+| `FWxRewardTableRow` / `FWxItemRewardEntry` | 보상 DataTable Row(최대 5항목) | `Source/WxInventory/Public/Items/WxRewardTableRow.h` |
+| `AWxItemPickup` | 월드 픽업 액터(`IWxInteractable`) | `Source/WxInventory/Public/Items/WxItemPickup.h` |
+| `UWxEquipmentComponent` | 장비 상태·GE 라이프사이클(폰 부착) | `Source/WxInventory/Public/Inventory/WxEquipmentComponent.h` |
 
 ## 확장 포인트 / 규약
-- **새 아이템**: `UWxItemDefinition` 데이터 자산을 만들고 `Category`(`EWxItemCategory`) 지정 + `Fragments` 배열에 필요한 Fragment 를 EditInline 으로 조합한다. 행동은 Fragment 조합으로 결정 — 스택 가능하려면 `Stackable`(MaxStack), 사용 효과는 `Usable`(GE), 충전형 소비는 `Charges`+`Usable`, 장비는 `Equippable`(메시/소켓/EquipEffects), 월드 드랍은 `Pickup`, 등급/색은 `Grade`.
-- **새 Fragment**: `UWxItemFragment` 를 상속하고 필요 시 `OnInstanceCreated(Instance)` 오버라이드로 인스턴스 초기 상태를 주입한다(예: Charges 가 MaxCharges 로 시드).
-- **보상**: `FWxRewardTableRow` DataTable 을 채우고, StateTree 로 지급하려면 `FWxStateTreeTask_GrantReward`(RewardRow/SpawnOffset/LaunchVelocity), 체크포인트 리필은 `FWxStateTreeTask_RefillItemCharges` Task 를 배치한다. 둘 다 라이브 전이·권위 측에서만 1회 발동.
-- **장비는 아직 동작하지 않는다**: `EquipItemByDef` → `UWxEquipmentComponent::EquipItem` 배선은 완성돼 있으나 `EquipItemByDef` 를 부르는 곳이 저장소 전체에 없다(BP 진입도 불가). 그래서 `EquippedItemDef` 는 항상 null 이고 `OnEquipVisualChanged`·`EquipEffects` 는 발화하지 않는다 — 캐릭터 측 구독이 붙어 있어도 마찬가지다. 쓰려면 UI 슬롯 → 어빌리티/서버 RPC → `EquipItemByDef` 로 트리거를 붙여 경로를 닫는다. `RemoveItemInstance` 도 같은 이유로 호출부가 없다.
-- **권위 규약**: Add/Consume/Use/Equip/Refill 은 서버 권한에서만 호출하고 클라이언트는 FastArray/SubObject 복제로 추종한다. 픽업 지급 데이터는 SpawnActorDeferred → `SetItemDef` → FinishSpawning 흐름으로 주입.
+- **새 아이템**: `UWxItemDefinition` 데이터 자산을 만들고 `Category`(EWxItemCategory) 지정 + 필요한 Fragment 를 EditInline 으로 부착. 카테고리(분류축)와 Fragment(기능축)는 직교.
+- **새 기능 축**: `UWxItemFragment` 파생 UCLASS(`DefaultToInstanced, EditInlineNew`)를 추가. 인스턴스 초기화가 필요하면 `OnInstanceCreated` 오버라이드. 조회는 `FindFragmentByClass<T>()`.
+- **스택 규칙**: Stackable Fragment 있으면 `MaxStack`까지 한 슬롯 머지·초과분 분할, 없으면 1슬롯=1개.
+- **충전형(에스트병)**: Charges + Usable 함께 부착. 사용 시 스택이 아니라 인스턴스 충전량 1 감소, 리필로 `MaxCharges` 회복.
+- **보상**: `FWxRewardTableRow` Row 작성 후 `GrantReward` 로 지급. Pickup Fragment 있으면 월드 드랍, 없으면 대상 인벤토리 직접 지급.
+- **리플리케이션 모델**: 인벤토리는 `FWxInventoryList`(FastArraySerializer)로, 인스턴스는 SubObject 복제로 클라 동기화. 모든 변경은 서버 권위이며 클라는 복제 콜백이 서버 변경 경로와 같은 통지 진입점으로 수렴.
+- **⚠️ 미구현(배선만 존재)**: 장비 경로(`EquipItemByDef`→`UWxEquipmentComponent::EquipItem`)는 호출부가 저장소 전무. `EquippedItemDef`는 항상 null, `OnEquipVisualChanged`/EquipEffects 미발동. `RemoveItemInstance`도 호출부 0건. 실사용하려면 UI→어빌리티/RPC→`EquipItemByDef` 트리거를 붙여 경로를 닫아야 한다.
 
 ## 여기서부터 읽어라
-1. `Source/WxInventory/Public/Inventory/WxInventoryManagerComponent.h` — 인벤토리 데이터 모델(Entry/List FastArray)과 모든 변경/통지 진입점, 스택 머지·차감·충전 정책이 한곳에 서술됨
-2. `Source/WxInventory/Public/Items/WxItemFragment.h` — Fragment 6종이 아이템 행동을 어떻게 컴포지션하는지, 카테고리와 기능 축의 분리 원칙
-3. `Source/WxInventory/Public/WxRewardLibrary.h` — 보상 지급이 픽업 드랍/직접 지급으로 갈리는 서버 권위 흐름
+1. `Source/WxInventory/Public/Inventory/WxInventoryManagerComponent.h` — 인벤토리 전체 API·FastArray 슬롯 모델·통지 델리게이트가 한곳에 있는 허브
+2. `Source/WxInventory/Public/Items/WxItemFragment.h` — Fragment 6종이 곧 아이템 기능의 어휘. 이걸 알아야 Definition 을 읽을 수 있다
+3. `Source/WxInventory/Private/Inventory/WxInventoryManagerComponent.cpp` — 머지/분할/차감/사용/복제 등록의 실제 구현
+4. `Source/WxInventory/Public/WxRewardLibrary.h` + `Public/Inventory/WxRewardStateTreeNodes.h` — 아이템이 세계로 들어오는 지급 경로
 
 ## 관련
-- 상위: [[WxGame]] (인벤토리/장비 컴포넌트 부착·외형 반영), [[WxWorld]] (픽업 상호작용 스캔), [[WxUI]] (인벤토리 표시)
-- 기반: [[WxCore]] (`WxInteractable` 계약)
+- 상위: `WxGame`(게임 모듈, 무기 외형 반영·어빌리티 소유), Experience 에셋(컴포넌트 주입)
+- 계약: `WxCore`(`IWxInteractable`)
+- 소비처: `WxUI`(인벤토리 뷰), `WxWorld`(상호작용 스캔)
 
 ---
-*문서 기준 커밋 `59acb24` · 생성일 2026-07-30 · 소스 21파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `c549ea2` · 생성일 2026-07-31 · 소스 22파일 — `/readme-writer`로 갱신*
