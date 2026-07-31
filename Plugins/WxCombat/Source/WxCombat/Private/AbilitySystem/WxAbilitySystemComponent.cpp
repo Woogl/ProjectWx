@@ -39,6 +39,11 @@ void UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* 
 		return;
 	}
 
+	// 순회 중 활성화가 어빌리티 목록을 바꿀 수 있다(GE의 GrantedAbilities, RemoveAfterActivation 등).
+	// 락이 없으면 Give/Clear가 ActivatableAbilities.Items를 즉시 Add/RemoveAtSwap 해 참조와 이터레이터가 무효화된다.
+	// 엔진의 AbilityLocalInputPressed도 같은 이유로 이 락을 건다.
+	ABILITYLIST_SCOPE_LOCK();
+
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
 		const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.Ability);
@@ -77,6 +82,9 @@ void UWxAbilitySystemComponent::AbilityInputActionReleased(const UInputAction* A
 	{
 		return;
 	}
+
+	// AbilityInputActionTriggered와 같은 이유로 락을 건다(엔진의 AbilityLocalInputReleased와 동일).
+	ABILITYLIST_SCOPE_LOCK();
 
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
