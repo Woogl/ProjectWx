@@ -3,9 +3,12 @@
 #include "WxDialogueSessionComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
 #include "Camera/PlayerCameraManager.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
@@ -71,6 +74,7 @@ void UWxDialogueSessionComponent::Advance()
 	}
 
 	PublishCurrentLine();
+	ApplyCurrentPose();
 }
 
 bool UWxDialogueSessionComponent::HasActiveDialogue() const
@@ -138,6 +142,7 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FData
 	}
 
 	BeginDialogueCamera();
+	ApplyCurrentPose();
 }
 
 bool UWxDialogueSessionComponent::EnterRow(FName RowName)
@@ -178,6 +183,7 @@ void UWxDialogueSessionComponent::EndDialogue()
 	}
 	TaggedAbilitySystem.Reset();
 
+	// 포즈는 거두지 않는다. 대상은 마지막 자세로 남고, 다음 대사나 다음 대화가 그것을 갈아끼운다.
 	EndDialogueCamera();
 }
 
@@ -248,6 +254,30 @@ void UWxDialogueSessionComponent::EndDialogueCamera()
 
 	// 블렌드가 끝날 때까지는 남아 있어야 하므로 즉시 파괴하지 않고 수명만 준다.
 	CameraActor->SetLifeSpan(CameraBlendTime + 1.f);
+}
+
+void UWxDialogueSessionComponent::ApplyCurrentPose()
+{
+	// 지목이 없는 대사는 직전 포즈를 그대로 둔다 — 한 자세로 여러 대사를 이어가는 것이 기본값이라 매 행에 같은 몽타주를 반복 기입시키지 않는다.
+	if (!CurrentRow || !CurrentRow->TargetPose)
+	{
+		return;
+	}
+	UAnimMontage* Pose = CurrentRow->TargetPose;
+
+	const AActor* Target = CurrentTarget.Get();
+	const USkeletalMeshComponent* Mesh = Target ? Target->FindComponentByClass<USkeletalMeshComponent>() : nullptr;
+	UAnimInstance* AnimInstance = Mesh ? Mesh->GetAnimInstance() : nullptr;
+	if (!AnimInstance)
+	{
+		// 대상이 애님 BP 없이(단일 노드 모드 등) 도는 경우다. 조용히 넘기면 "포즈를 지정했는데 아무 일도 없다"만 남는다.
+		UE_LOG(LogWxDialogue, Warning, TEXT("ApplyCurrentPose: 대상에 애님 인스턴스가 없어 포즈를 얹을 수 없다(대상 %s / 포즈 %s)."),
+			*GetNameSafe(Target), *GetNameSafe(Pose));
+		return;
+	}
+
+	// 같은 슬롯이라 직전 포즈는 엔진이 알아서 블렌드 아웃시킨다. 블렌드 시간도 루프 여부도 전부 몽타주 애셋의 값이다.
+	AnimInstance->Montage_Play(Pose);
 }
 
 APlayerController* UWxDialogueSessionComponent::GetLocalPlayerController() const

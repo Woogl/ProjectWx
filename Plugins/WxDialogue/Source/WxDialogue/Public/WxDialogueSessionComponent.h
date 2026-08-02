@@ -32,6 +32,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWxOnDialogueLineChanged, const FTe
  *
  * 반면 대화 카메라는 여기서 직접 든다. 컨트롤러에 붙어 있어 뷰 타겟에 손이 닿고, 구도의 재료인 대상·시작·종료를 이미 다 알기 때문이다.
  * 대화 동안에는 전용 카메라를 세워 뷰 타겟을 그리로 넘긴다 — 게임플레이 카메라는 플레이어 등 뒤에 매여 있어, 두 사람을 잇는 선에서 크게 비껴선 구도를 잡을 수 없다.
+ *
+ * 대상의 포즈도 같은 이유로 여기서 든다. 어느 대사에 어떤 자세인지는 대화 데이터가 이미 들고 있어, 대사를 넘기는 이 자리가 그것을 갈아끼울 유일한 지점이다.
+ * 다만 카메라와 달리 되돌리지 않는다 — 대화가 끝나도 대상은 마지막 자세로 남고, 다음 대사나 다음 대화가 그것을 갈아끼운다. 그래서 세션은 무엇을 재생했는지 기억할 필요가 없다.
  */
 UCLASS()
 class WXDIALOGUE_API UWxDialogueSessionComponent : public UControllerComponent
@@ -121,6 +124,9 @@ private:
 
 	/** 게임플레이 뷰로 되돌리고 대화 카메라를 정리한다. */
 	void EndDialogueCamera();
+
+	/** 현재 대사가 지목한 포즈를 대상 메시에 재생한다. 지목이 없으면 직전 포즈를 그대로 둔다. */
+	void ApplyCurrentPose();
 
 	/** 오너 컨트롤러를 로컬 플레이어 컨트롤러로 얻는다. 카메라는 로컬 어포던스라 그 밖에선 null 을 답해 카메라 경로를 통째로 건너뛴다. */
 	APlayerController* GetLocalPlayerController() const;
