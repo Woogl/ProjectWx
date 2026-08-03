@@ -1,11 +1,14 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Targeting/WxRootMotionModifier_SnapToTarget.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "Components/SceneComponent.h"
 #include "GameFramework/Pawn.h"
 #include "MotionWarpingComponent.h"
 #include "Targeting/WxLockOnManagerComponent.h"
 #include "TargetingSystem/TargetingSubsystem.h"
+#include "WxGameplayTags.h"
 
 void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState LastState)
 {
@@ -69,6 +72,9 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 		return;
 	}
 
+	// 창 도중 이 대상의 생존을 다시 보기 위해 확정된 대상을 기억한다.
+	SnapTarget = FacingTarget;
+
 	const bool bFacingTargetIsLockOn = (FacingTarget == LockOnTarget);
 
 	// TargetingPreset이 설정되어 있을 때만 범위 체크. Preset이 없으면 판정 근거가 없으므로 허용(기본 동작).
@@ -88,4 +94,32 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 	// LocationOffset(X=대상→오너 앞, Y=우, Z=위)을 VectorFromTargetToOwner 프레임 오프셋으로 넘긴다.
 	// 접근/회전 모두 수평(yaw) 전용. 작은 높이차는 SkewWarp 의 bIgnoreZAxis 와 캡슐 step-up/CMC 가 흡수한다.
 	MotionWarpingComp->AddOrUpdateWarpTargetFromComponent(WarpTargetName, TargetComponent, NAME_None, true, EWarpTargetLocationOffsetDirection::VectorFromTargetToOwner, LocationOffset);
+}
+
+void UWxRootMotionModifier_SnapToTarget::Update(const FMotionWarpingUpdateContext& Context)
+{
+	// 부모 SkewWarp 는 창 끝까지 반드시 도달시키는 마감형 보정이라, 매 프레임 "남은 거리 / 남은 시간" 만큼의 속도를 요구한다(상한 없음).
+	// 대상이 죽으면 시체가 사망 몽타주 루트 모션으로 밀리고 래그돌로 캡슐 콜리전까지 사라져 워프 타겟이 크게 흔들리는데,
+	// 창 끝 몇 프레임에 그 흔들림이 겹치면 요구 속도가 그대로 튄다. 자격을 잃은 즉시 워프 타겟을 거둬 그 구간을 만들지 않는다.
+	// 제거 후 Super 가 타겟 부재를 감지해 modifier 를 끄므로, 남은 구간은 순정 루트 모션으로 재생된다.
+	if (GetState() == ERootMotionModifierState::Active && !IsSnapTargetAlive())
+	{
+		if (UMotionWarpingComponent* MotionWarpingComp = GetOwnerComponent())
+		{
+			MotionWarpingComp->RemoveWarpTarget(WarpTargetName);
+		}
+	}
+
+	Super::Update(Context);
+}
+
+bool UWxRootMotionModifier_SnapToTarget::IsSnapTargetAlive() const
+{
+	const UAbilitySystemComponent* TargetAbilitySystem = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(SnapTarget.Get());
+	if (!TargetAbilitySystem)
+	{
+		return true;
+	}
+
+	return !TargetAbilitySystem->HasMatchingGameplayTag(WxGameplayTags::State_Dead);
 }

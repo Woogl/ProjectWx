@@ -21,6 +21,8 @@ class UTargetingPreset;
  *
  * 타겟 판정은 각 머신 로컬에서 이뤄지며, 플레이어 폰의 위치 워프는 복제되는 락온 대상이 있을 때만
  * 허용해 멀티플레이 위치 디싱크를 막는다(회전 워프는 항상 허용).
+ *
+ * 워프 구간 도중 대상이 죽으면 워프 타겟을 거둬 남은 구간을 순정 루트 모션으로 넘긴다.
  */
 UCLASS()
 class WXCOMBAT_API UWxRootMotionModifier_SnapToTarget : public URootMotionModifier_SkewWarp
@@ -37,4 +39,14 @@ public:
 	FVector LocationOffset = FVector(150.0f, 0.0f, 0.0f);
 
 	virtual void OnStateChanged(ERootMotionModifierState LastState) override;
+
+	virtual void Update(const FMotionWarpingUpdateContext& Context) override;
+
+private:
+	/** 워프 도중 생존을 다시 보기 위해 활성 시 확정한 스냅 대상을 기억한다. */
+	UPROPERTY()
+	TWeakObjectPtr<AActor> SnapTarget;
+
+	/** 스냅 대상이 아직 살아 있는지 판정한다. ASC 가 없으면 판정 근거가 없으므로 살아있는 것으로 본다. */
+	bool IsSnapTargetAlive() const;
 };
