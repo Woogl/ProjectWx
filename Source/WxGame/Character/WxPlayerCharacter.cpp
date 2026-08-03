@@ -3,7 +3,6 @@
 #include "Character/WxPlayerCharacter.h"
 #include "Character/WxCharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
-#include "Components/WidgetComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -43,29 +42,7 @@ AWxPlayerCharacter::AWxPlayerCharacter(const FObjectInitializer& ObjectInitializ
 
 	LockOnManagerComponent = CreateDefaultSubobject<UWxLockOnManagerComponent>(TEXT("LockOnManagerComponent"));
 
-	// 상호작용 목록 위젯.
-	// Widget Class는 BP_Player에서 WBP_InteractionList로 지정한다.
-	// 디폴트와 다른 값만 설정한다(DrawSize·Pivot은 UWidgetComponent 디폴트와 동일).
-	InteractionListWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractionListWidget"));
-	InteractionListWidget->SetupAttachment(RootComponent);
-	InteractionListWidget->SetWidgetSpace(EWidgetSpace::Screen);
-	InteractionListWidget->SetDrawAtDesiredSize(true);
-	InteractionListWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	// 원격 프록시 캐릭터에 중복 렌더되지 않도록 기본 숨김.
-	// 컨트롤러가 붙는 시점에 로컬 컨트롤이면 표시한다.
-	InteractionListWidget->SetVisibility(false);
-
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
-}
-
-void AWxPlayerCharacter::NotifyControllerChanged()
-{
-	Super::NotifyControllerChanged();
-
-	// Screen-space 위젯은 컴포넌트 월드 위치를 로컬 뷰포트에 투영하므로, 로컬 뷰어의 폰에서만 목록을 띄운다.
-	// BeginPlay 가 아니라 여기서 판정하는 이유: 컨트롤러는 Possess 에서 붙고, 스폰 순서에 따라 그것이 BeginPlay 보다 늦을 수 있다.
-	// 엔진이 서버 빙의·해제와 소유 클라의 컨트롤러 복제 도착 모두에서 이 훅을 부르므로, 대입 한 번으로 표시와 정리가 함께 따라온다.
-	InteractionListWidget->SetVisibility(IsLocallyControlled());
 }
 
 void AWxPlayerCharacter::OnRep_PlayerState()
