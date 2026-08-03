@@ -1,5 +1,5 @@
 {
-  "asset": "/Game/UI/Widget/WBP_GameHUDBase",
+  "asset": "/Game/UI/Widget/WBP_GameHUD",
   "class": "/Script/UMGEditor.WidgetBlueprint",
   "data": {
     "cdo": {
@@ -57,7 +57,7 @@
       "inputMappingPriority": 0,
       "inputMode": "GAME",
       "inventoryWidgetClass": "/Game/UI/Widget/WBP_Inventory.WBP_Inventory_C",
-      "mainMenuWidgetClass": null,
+      "mainMenuWidgetClass": "/Game/UI/Widget/WBP_MainMenu.WBP_MainMenu_C",
       "navigation": null,
       "onVisibilityChanged": "<Multicast delegate 'OnVisibilityChangedEvent' <Unbound>>",
       "overrideBackActionDisplayName": "",
@@ -94,12 +94,14 @@
       "tickFrequency": "AUTO",
       "toolTipText": "",
       "toolTipWidget": null,
-      "visibility": "SELF_HIT_TEST_INVISIBLE"
+      "vM_PlayerCharacter": null,
+      "visibility": "SELF_HIT_TEST_INVISIBLE",
+      "wBP_QuestTracker": null,
+      "wBP_StaminaBar_90": null
     },
     "components": [],
     "event_dispatchers": [],
     "events": [
-      "Construct",
       "PreConstruct"
     ],
     "functions": [],
@@ -107,7 +109,7 @@
       "EventGraph"
     ],
     "native_parent": "/Script/WxUI.WxHUDLayout",
-    "parent": "/Script/WxUI.WxHUDLayout",
+    "parent": "/Game/UI/Widget/WBP_GameHUDBase.WBP_GameHUDBase_C",
     "variables": [
       "/Script/CommonUI.CommonActivatableWidget.ActionDomainOverride",
       "/Script/CommonUI.CommonActivatableWidget.ActivatedVisibility",
@@ -204,53 +206,48 @@
       {
         "children": [
           {
-            "children": [],
-            "class": "/Script/UMG.NamedSlot",
-            "name": "TopLeft"
+            "class": "/Game/UI/Widget/WBP_ItemQuickSlot.WBP_ItemQuickSlot_C",
+            "name": "WBP_ItemQuickSlot"
           },
           {
-            "children": [],
-            "class": "/Script/UMG.NamedSlot",
-            "name": "TopCenter"
-          },
-          {
-            "children": [],
-            "class": "/Script/UMG.NamedSlot",
-            "name": "TopRight"
-          },
-          {
-            "children": [],
-            "class": "/Script/UMG.NamedSlot",
-            "name": "MiddleLeft"
-          },
-          {
-            "children": [],
-            "class": "/Script/UMG.NamedSlot",
-            "name": "Center"
-          },
-          {
-            "children": [],
-            "class": "/Script/UMG.NamedSlot",
-            "name": "MiddleRight"
-          },
-          {
-            "children": [],
-            "class": "/Script/UMG.NamedSlot",
-            "name": "BottomLeft"
-          },
-          {
-            "children": [],
-            "class": "/Script/UMG.NamedSlot",
-            "name": "BottomCenter"
-          },
-          {
-            "children": [],
-            "class": "/Script/UMG.NamedSlot",
-            "name": "BottomRight"
+            "class": "/Script/WxUI.WxActionWidget",
+            "name": "WxActionWidget_119"
           }
         ],
-        "class": "/Script/UMG.CanvasPanel",
-        "name": "CanvasPanel_22"
+        "class": "/Script/UMG.Overlay",
+        "name": "Overlay_0"
+      },
+      {
+        "class": "/Script/UMG.TextBlock",
+        "name": "TextBlock_37"
+      },
+      {
+        "class": "/Game/UI/Widget/WBP_AcquiredItemList.WBP_AcquiredItemList_C",
+        "name": "WBP_AcquiredItemList_620"
+      },
+      {
+        "class": "/Game/UI/Widget/WBP_Nameplate_Boss.WBP_Nameplate_Boss_C",
+        "name": "WBP_Nameplate_Boss_109"
+      },
+      {
+        "class": "/Game/UI/Widget/WBP_Nameplate_Player.WBP_Nameplate_Player_C",
+        "name": "WBP_Nameplate_Player"
+      },
+      {
+        "class": "/Game/UI/Widget/WBP_PlayerSkills.WBP_PlayerSkills_C",
+        "name": "WBP_PlayerSkills"
+      },
+      {
+        "class": "/Game/UI/Widget/WBP_QuestTracker.WBP_QuestTracker_C",
+        "name": "WBP_QuestTracker"
+      },
+      {
+        "class": "/Game/UI/Widget/WBP_StaminaBar.WBP_StaminaBar_C",
+        "name": "WBP_StaminaBar_90"
+      },
+      {
+        "class": "/Game/UI/Widget/WBP_Subtitle.WBP_Subtitle_C",
+        "name": "WBP_Subtitle_102"
       }
     ]
   }

@@ -4,4 +4,4 @@
 
 본문 덤프는 `Blueprints/`·`DataAssets/`·`DataTables/`·`StateTrees/`·`Widgets/`에 에셋당 1파일이다. 몽타주·BehaviorTree·레벨·아트·마켓플레이스 에셋은 본문 덤프가 없다 — 에셋의 존재·경로는 `Content/`의 `.uasset`이 원본이므로 거기서 직접 찾는다.
 
-*문서 기준 커밋 `8cc68810` · 생성일 2026-08-03 · 에셋 315개 — `/dump-assets`로 갱신*
+*문서 기준 커밋 `578bd8ec` · 생성일 2026-08-03 · 에셋 320개 — `/dump-assets`로 갱신*

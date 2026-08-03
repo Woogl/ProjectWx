@@ -31,18 +31,18 @@
       "TargetPose": "None"
     },
     {
-      "Line": "저는 여기까지인 것 같습니다. 크윽...",
+      "Line": "알겠습니다.\r\n제가 가보죠.",
       "Name": "BP_Npc_4",
       "NextDialogue": "BP_Npc_5",
-      "Speaker": "생존자",
-      "TargetPose": "/Script/Engine.AnimMontage'/Game/AbilitySystem/Ability/AM_Death.AM_Death'"
-    },
-    {
-      "Line": "알겠습니다.\r\n제가 가보죠.",
-      "Name": "BP_Npc_6",
-      "NextDialogue": "None",
       "Speaker": "나",
       "TargetPose": "None"
+    },
+    {
+      "Line": "저는 여기까지인 것 같습니다. 크윽...",
+      "Name": "BP_Npc_5",
+      "NextDialogue": "None",
+      "Speaker": "생존자",
+      "TargetPose": "/Script/Engine.AnimMontage'/Game/AbilitySystem/Ability/AM_Death.AM_Death'"
     },
     {
       "Line": "정체불명의 괴물을 쓰러뜨렸다!",

@@ -1,6 +1,6 @@
 ---
 name: dump-assets
-description: 프로젝트 에셋(.uasset)을 JSON 텍스트로 덤프해 Docs/AssetDump/에 기록한다. 에디터 없이 헤드리스 커맨드릿으로 전체 재덤프하므로 언제든 다시 돌릴 수 있다.
+description: 프로젝트 에셋(.uasset)을 JSON 텍스트로 덤프해 .claude/asset_dump/에 기록한다. 에디터 없이 헤드리스 커맨드릿으로 전체 재덤프하므로 언제든 다시 돌릴 수 있다.
 argument-hint: "[all|에셋명...]"
 user-invocable: true
 allowed-tools: PowerShell, Bash, Read, Glob, Grep, Write
@@ -8,7 +8,7 @@ allowed-tools: PowerShell, Bash, Read, Glob, Grep, Write
 
 # 에셋 텍스트 덤프
 
-프로젝트 자체 에셋(마켓플레이스 제외, ~315개)을 JSON으로 덤프해 `Docs/AssetDump/`에 기록한다. 이후 세션은 에디터·MCP 없이 grep/Read로 DataTable 행, DataAsset 값, StateTree 구조, BP/WBP 구조를 파악한다. 덤프 본체는 이 폴더의 `dump_assets.py`이고, 이 스킬은 실행·검증·보고를 오케스트레이션한다.
+프로젝트 자체 에셋(마켓플레이스 제외, ~315개)을 JSON으로 덤프해 `.claude/asset_dump/`에 기록한다. 이후 세션은 에디터·MCP 없이 grep/Read로 DataTable 행, DataAsset 값, StateTree 구조, BP/WBP 구조를 파악한다. 덤프 본체는 이 폴더의 `dump_assets.py`이고, 이 스킬은 실행·검증·보고를 오케스트레이션한다.
 
 인자: 없거나 `all`이면 전체 재생성(증분 없음). 에셋명(또는 `/Game/...` 경로, 쉼표 구분 가능)을 주면 **그 에셋의 JSON 파일만 교체**한다 — `README.md`(신선도 기록)는 전체 실행에서만 재작성되므로, stale 판정의 기준은 언제나 마지막 전체 실행이다.
 
@@ -16,7 +16,7 @@ allowed-tools: PowerShell, Bash, Read, Glob, Grep, Write
 
 ## 1. stale 확인 (실행 전)
 
-`Docs/AssetDump/README.md` 끝의 provenance 라인에서 첫 백틱 스팬(`[0-9a-f]{7,40}`)을 `<sha>`로 읽는다(readme-writer와 동일 규칙). 아래 두 명령의 출력 중 `.uasset`/`.umap`만 남긴다:
+`.claude/asset_dump/README.md` 끝의 provenance 라인에서 첫 백틱 스팬(`[0-9a-f]{7,40}`)을 `<sha>`로 읽는다(readme-writer와 동일 규칙). 아래 두 명령의 출력 중 `.uasset`/`.umap`만 남긴다:
 
 - `git diff --name-only <sha> HEAD -- Content Plugins/WxUI/Content Plugins/WxWorld/Content`
 - `git status --porcelain -- Content Plugins/WxUI/Content Plugins/WxWorld/Content`
@@ -55,7 +55,7 @@ $cmd = Join-Path $engine "Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
 
 ## 3. 검증·보고
 
-1. 로그의 카테고리별 개수와 실제 생성 파일 수(`Docs/AssetDump/<카테고리>/*.json`)를 대조한다.
+1. 로그의 카테고리별 개수와 실제 생성 파일 수(`.claude/asset_dump/<카테고리>/*.json`)를 대조한다.
 2. `errors=N`이 0이 아니면 해당 `DUMP:` 오류 라인을 그대로 보고한다.
 3. 마무리 보고는 짧게: 카테고리별 개수, 오류 유무, provenance 갱신 여부.
 
@@ -63,6 +63,7 @@ $cmd = Join-Path $engine "Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
 
 ## 참고
 
+- **이 폴더를 gitignore에 넣으면 안 된다.** Grep 도구는 ripgrep 기반이라 무시된 경로를 경로 지정으로도 못 읽는다 — 넣는 순간 덤프 전체가 검색에서 조용히 사라진다. 재생성 가능한 산출물이지만 추적 상태로 커밋해 둔다.
 - 몽타주(AM_)·BehaviorTree·레벨·아트 에셋은 본문 덤프가 없다 — 에셋의 존재·경로는 `Content/`의 `.uasset`이 원본(SSOT)이므로 Glob으로 직접 찾는다. 그래프 노드 수준(핀 연결)·MVVM 바인딩도 아직 없다 — 필요하면 라이브 에디터 + unreal-mcp로 개별 조회한다.
 - 새 마켓플레이스 팩을 들이면 `dump_assets.py`의 `EXCLUDED_TOP`에 폴더명을 추가한다.
 - 플러그인 Content 루트를 새로 만들면 `ROOTS`에 마운트 경로(`/<플러그인명>`)를 추가한다.

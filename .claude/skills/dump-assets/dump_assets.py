@@ -1,5 +1,5 @@
 # Copyright Woogle. All Rights Reserved.
-# 프로젝트 에셋을 JSON 텍스트로 덤프해 Docs/AssetDump/ 에 기록한다.
+# 프로젝트 에셋을 JSON 텍스트로 덤프해 .claude/asset_dump/ 에 기록한다.
 #
 # 실행 (셋 다 동일 동작):
 #   (A) 헤드리스 커맨드릿 (기본):
@@ -11,7 +11,7 @@
 #
 # 인자:
 #   --asset=<에셋명 | /Game 경로>[,...]  지정 에셋의 JSON만 교체 (README.md는 갱신 안 함)
-#   --out=<출력 루트>   (기본: <프로젝트>/Docs/AssetDump)
+#   --out=<출력 루트>   (기본: <프로젝트>/.claude/asset_dump)
 #   --sha=<short-sha> --date=<YYYY-MM-DD>   (README.md provenance 라인용, 오케스트레이터가 전달)
 #
 # 출력은 결정적이어야 한다(재실행 diff 0): 키 정렬, 에셋 경로 정렬, LF 고정, 날짜/SHA는 README.md에만.
@@ -567,7 +567,7 @@ def write_readme(out_root, total, sha, date):
 def main():
     opts = parse_args(sys.argv[1:])
     project_dir = os.path.abspath(unreal.Paths.project_dir())
-    out_root = opts["out"] or os.path.join(project_dir, "Docs", "AssetDump")
+    out_root = opts["out"] or os.path.join(project_dir, ".claude", "asset_dump")
     asset_filter = opts["asset"]
     full_run = asset_filter is None
 

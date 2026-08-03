@@ -59,7 +59,7 @@ allowed-tools: Read, Grep, Glob, Bash, Agent
 
 > 리뷰 문서는 모듈 폴더 *밖*(`Docs/Programmer/`, `module_review_` 접두)에 있으므로, `readme-writer`와 달리 diff·status에서 문서 자신을 빼는 `:(exclude)` pathspec이 필요 없다 — `-- <모듈경로>` 한정만으로 문서 자신의 변경은 애초에 잡히지 않는다.
 
-> 점진 갱신은 모듈 *소스 디렉터리* 변경만 본다. (1) `WxCore` 공용 정의(태그/Enum) 변경은 이를 인용하는 소비 모듈 경로 diff에 안 잡히고, (2) BP/WBP가 본체인 모듈(WxUI)의 에셋·덤프는 게임 루트 `Content/`·`Docs/AssetDump/`에 있어 모듈 경로 밖이다. 이런 파급이 의심되면 해당 모듈을 인자로 지정해 강제 재리뷰한다.
+> 점진 갱신은 모듈 *소스 디렉터리* 변경만 본다. (1) `WxCore` 공용 정의(태그/Enum) 변경은 이를 인용하는 소비 모듈 경로 diff에 안 잡히고, (2) BP/WBP가 본체인 모듈(WxUI)의 에셋·덤프는 게임 루트 `Content/`·`.claude/asset_dump/`에 있어 모듈 경로 밖이다. 이런 파급이 의심되면 해당 모듈을 인자로 지정해 강제 재리뷰한다.
 
 ---
 
@@ -139,7 +139,7 @@ allowed-tools: Read, Grep, Glob, Bash, Agent
 - 끝의 provenance 라인은 숨기지 말 것. SHA·리뷰일은 받은 값 그대로 쓰고(재계산 금지) `<N>` 자리만 채운다. 본문은 **한국어 평서체**(~한다/~이다). 타입명·함수명·경로·Gameplay Tag 등 식별자는 **영문 원문** 유지.
 - provenance의 `<N>`(소스 파일 수)은 `<모듈경로>` 아래의 `*.h`/`*.cpp` 개수만 센다(레이아웃 비의존 — 플러그인은 `Plugins/<Name>/Source/...`, 소스 모듈은 `Source/<Name>/...`에 파일이 있다) — `Intermediate/`·`*.gen.cpp`·`*.generated.h`(빌드 산출물)는 제외한다.
 - 모든 파일 경로는 저장소 루트(`C:\Wx`) 기준 상대경로로 적어 클릭 가능하게 한다.
-- BP/WBP 내부 구조(위젯 계층·MVVM 바인딩·이벤트 그래프)는 이 리뷰의 범위 밖이다(C++ 코드에 집중). BP 디폴트값·구조가 리뷰에 꼭 필요하면 `Docs/AssetDump/`의 JSON 덤프를 참조하되(카테고리·범위는 `Docs/AssetDump/README.md`, 갱신은 `/dump-assets`), 발견은 C++ 근거로 적는다.
+- BP/WBP 내부 구조(위젯 계층·MVVM 바인딩·이벤트 그래프)는 이 리뷰의 범위 밖이다(C++ 코드에 집중). BP 디폴트값·구조가 리뷰에 꼭 필요하면 `.claude/asset_dump/`의 JSON 덤프를 참조하되(카테고리·범위는 `.claude/asset_dump/README.md`, 갱신은 `/dump-assets`), 발견은 C++ 근거로 적는다.
 
 ---
 
