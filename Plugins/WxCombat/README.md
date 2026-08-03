@@ -1,52 +1,55 @@
 # WxCombat — 전투 시스템
 
-> GAS(Gameplay Ability System) 기반의 액션 RPG 전투 도메인. 어빌리티·이펙트·어트리뷰트, 락온 타게팅, 무기/투사체 히트, 애님 노티파이 구동, 시간 감속을 담당한다.
+> GAS(Gameplay Ability System) 위에 구축한 액션 RPG 전투의 핵심 모듈. 어빌리티·어트리뷰트·대미지 파이프라인부터 무기/투사체, 락온 타게팅, 히트박스 AnimNotify, 시간 감속까지 "때리고 맞고 반응하는" 흐름 전체를 담당한다.
 
 ## 책임
 **담당**
-- 어빌리티 파이프라인: 공격/스킬/회피/가드/궁극기/그로기/피격/사망 등 어빌리티(`AbilitySystem/Ability/`), 전용 ASC의 입력 라우팅
-- 어트리뷰트·이펙트: `UWxCombatAttributeSet`(HP/SP/DP/MP/UP/ATK/DEF 등), Damage/Cost/Cooldown/Burn 등 GameplayEffect·ExecCalc·MMC(`AbilitySystem/Effect/`)
-- 데미지 산출·적용: `FWxDamageInfo`→Spec 변환, `WxExecCalc_Damage`, 무기(`AWxWeaponBase`)·투사체(`AWxProjectileBase`)·광역존(`AWxEffectZone`) 히트 경로
-- 타게팅/락온: `UWxLockOnManagerComponent`, TargetingSystem 필터 태스크(`Targeting/`), 스냅 루트모션
-- 애니메이션 구동 노티파이(`AnimNotify/`): 콤보 윈도우·무기 공격·무적·퍼펙트가드·투사체 스폰 등
-- 연출: `UWxTimeDilationComponent`(히트스톱/슬로우), GameplayCue(`AbilitySystem/Cue/`)
+- GAS 통합: `UWxAbilitySystemComponent`(입력 라우팅), `UWxCombatAttributeSet`(스탯), `UWxAbilitySet`(데이터 주도 부여)
+- 전투 어빌리티: 공격·회피·가드·스킬·궁극기·피니셔·히트리액트·그로기·사망·락온 등 (`AbilitySystem/Ability/WxAbility_*`)
+- 대미지 파이프라인: `FWxDamageInfo` 설계 데이터 → GE Spec 변환 → `WxExecCalc_Damage` 산출 → `PostGameplayEffectExecute` HP 차감
+- GameplayEffect/계산 모듈군: `WxEffect_*`(대미지·코스트·쿨다운·번·리소스), `WxExecCalc_*`, `WxMMC_*`, GameplayCue(`AbilitySystem/Cue/`)
+- 무기·투사체·광역 액터: `AWxWeaponBase`, `AWxProjectileBase`, `AWxEffectZone`
+- 히트박스/전투 타이밍 AnimNotify: `WxAnimNotify*`(무기 공격창·콤보 윈도·무적·퍼펙트가드·투사체 스폰 등)
+- 락온 타게팅: `UWxLockOnManagerComponent`, TargetingSystem 필터 태스크(`Targeting/WxTargetingFilterTask_*`), 스냅 루트모션
+- 시간 조작(히트스톱/슬로모): `UWxTimeDilationComponent`, `WxAbilityTask_SlowTime`
 
 **경계 (비담당)**
-- 공용 정의·태그·팀/캐릭터 기반은 [[WxCore]] 참조 (WxCore 외 Wx 플러그인 비참조)
-- 캐릭터/폰·입력 소유 및 AbilitySet 지정은 게임 모듈/캐릭터 BP 측에서 수행
+- 공용 정의·팀/태그 등 파운데이션은 [[WxCore]]에 위임
+- 어떤 어빌리티를 언제 쓸지(패턴 선택 등) 결정 로직은 [[WxAI]]. 본 모듈은 어빌리티 실행만 제공
+- 전투 HUD·체력바 등 표현은 [[WxUI]]
 
 ## 의존성
-- **주요 의존**: [[WxCore]] · 엔진 서브시스템 GameplayAbilities, TargetingSystem, MotionWarping, ModularGameplay, EnhancedInput
-- 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅ (uplugin/Build.cs 확인)
+- **주요 의존**: `WxCore` · GameplayAbilities · GameplayTags · GameplayTasks · ModularGameplay · TargetingSystem · MotionWarping · EnhancedInput · AIModule · Niagara · LevelSequence/MovieScene
+- 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅ (Build.cs 의존은 `WxCore` 하나뿐)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxAbilityBase` | 모든 어빌리티의 베이스. 쿨다운/코스트를 `FWxAbilityTableRow` 데이터 주도로 처리 | `Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` |
-| `UWxAbilitySystemComponent` | 전용 ASC. 입력 액션→어빌리티 라우팅, 입력 대기 방송 | `Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h` |
-| `UWxAbilitySet` | 어빌리티/이펙트/어트리뷰트 초기값을 한 에셋으로 일괄 부여 | `Source/WxCombat/Public/AbilitySystem/WxAbilitySet.h` |
-| `UWxCombatAttributeSet` | 캐릭터 스탯 어트리뷰트 세트(+ Meta `IncomingDamage`) | `Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h` |
-| `FWxDamageInfo` | 데미지 한 건의 설계 데이터→Effect Spec 변환 | `Source/WxCombat/Public/WxDamageInfo.h` |
-| `UWxExecCalc_Damage` | 데미지 최종 산출(ExecutionCalculation) | `Source/WxCombat/Public/AbilitySystem/Effect/WxExecCalc_Damage.h` |
-| `AWxWeaponBase` / `AWxProjectileBase` | 무기 스윙·투사체 히트 콜리전 및 데미지 전달 | `Source/WxCombat/Public/Weapon/` |
-| `UWxLockOnManagerComponent` | 락온 대상(SceneComponent) 복제 관리 | `Source/WxCombat/Public/Targeting/WxLockOnManagerComponent.h` |
-| `UWxCombatLibrary` | 무기 외 경로의 단일 데미지 적용 진입점(`ApplyDamage`) | `Source/WxCombat/Public/WxCombatLibrary.h` |
+| `UWxAbilitySystemComponent` | 캐릭터 ASC. 입력 액션 라우팅과 AbilitySet 부여의 허브 | `Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h` |
+| `UWxAbilitySet` | 어빌리티·이펙트·어트리뷰트를 한 번에 부여/회수하는 데이터 애셋 | `Source/WxCombat/Public/AbilitySystem/WxAbilitySet.h` |
+| `UWxCombatAttributeSet` | HP/SP/DP/MP/UP·ATK/DEF·크리 등 전투 스탯 + Meta `IncomingDamage` | `Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h` |
+| `UWxAbilityBase` | 모든 어빌리티의 베이스. 쿨다운/코스트를 DataTable Row로 해석 | `Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` |
+| `FWxDamageInfo` | 대미지 한 건의 설계 데이터. GE Spec 변환의 입력 | `Source/WxCombat/Public/WxDamageInfo.h` |
+| `UWxExecCalc_Damage` | 대미지 최종 산출(ExecutionCalculation) | `Source/WxCombat/Public/AbilitySystem/Effect/WxExecCalc_Damage.h` |
+| `AWxWeaponBase` / `AWxProjectileBase` | 무기 스윙·투사체 히트 콜리전과 대미지 전달 | `Source/WxCombat/Public/Weapon/` |
+| `UWxLockOnManagerComponent` | 락온 대상(SceneComponent 단위)을 서버 권위로 복제·추적 | `Source/WxCombat/Public/Targeting/WxLockOnManagerComponent.h` |
 
 ## 확장 포인트 / 규약
-- 새 어빌리티: `UWxAbilityBase` 상속. 입력 발동은 `ActivationInputAction` 지정, AI/반응형/패시브는 비움. 쿨다운/코스트 수치는 오버라이드 없이 `FWxAbilityTableRow`(AbilityDataRow)에서 조회 — 공용 `UWxEffect_Cooldown`/`UWxEffect_Cost` GE가 엔진 순정 경로로 적용. `CooldownGameplayEffectClass`를 다른 GE로 바꾸면 순정 GE 경로로 전환(상호배타).
-- 새 이펙트: `AbilitySystem/Effect/`에 GE/ExecCalc/MMC 추가. 데미지는 `FWxDamageInfo`→`MakeSpecs`로 SetByCaller·DynamicAssetTags를 실어 전달.
-- 데이터 주도 설정: `UWxAbilitySet`(GrantedAbilities/Effects + AttributeInitRow), `FWxDamageTableRow`, `FWxCombatAttributeInitTableRow` DataTable.
-- 리플리케이션/권한: HP/SP/DP/MP/UP 등 어트리뷰트는 서버 권위 복제. 락온 대상·최근 입력도 서버 권위이며 소유 클라는 즉시 예측 후 서버 요청·복제 정합. 데미지 적용은 권위 측 GE.
-- Gameplay Tag는 C++ Native 선언 없이 에디터/에셋에서 관리(`Event.HitReact.*` 등 메타 카테고리로 참조).
+- **새 어빌리티**: `UWxAbilityBase` 상속. `EWxAbilityActivationPolicy`로 트리거형/부여즉시형 선택. 쿨다운·코스트 수치는 코드가 아닌 `FWxAbilityTableRow`(`AbilitySystem/Ability/WxAbilityTableRow.h`)에서만 읽는다. 쿨다운은 공용 `UWxEffect_Cooldown` GE + 소스 어빌리티 CDO로 구분.
+- **데이터 주도 부여**: `UWxAbilitySet`에 Ability/Effect/AttributeInit을 묶어 `GiveAbilitySet()`으로 부여, `FWxAbilitySetGrantedHandles`로 일괄 회수. 초기값은 `FWxCombatAttributeInitTableRow`.
+- **대미지 튜닝**: `FWxDamageInfo` + `WxDamageTableRow`(`Public/WxDamageTableRow.h`), 최종 계산은 `WxExecCalc_Damage`. 파생 코스트/쿨다운은 `WxMMC_*`.
+- **히트박스/타이밍**: 신규 전투 타이밍은 `WxAnimNotify_*`/`WxAnimNotifyState_*`로 몽타주에 배치. 무기 공격창은 ANS_WeaponAttack이 `AWxWeaponBase::BeginAttack/EndAttack` 호출.
+- **타게팅 필터**: TargetingSystem 필터 태스크로 확장(`WxTargetingFilterTask_Team/LineTrace/ScreenBounds/GameplayTag/InputDirection`).
+- **리플리케이션**: 어트리뷰트·락온 대상·최근 입력은 서버 권위 복제. 락온은 소유 클라 예측 후 복제값으로 정합. Gameplay Tag는 C++ Native 선언 없이 에셋에서 관리.
 
 ## 여기서부터 읽어라
-1. `Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` — 어빌리티 계약(활성화 정책·입력·쿨다운/코스트 데이터 규약)의 핵심
-2. `Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h` — 입력이 어빌리티로 흘러가는 라우팅 경계
-3. `Source/WxCombat/Public/WxDamageInfo.h` + `Source/WxCombat/Public/AbilitySystem/Effect/WxExecCalc_Damage.h` — 데미지 데이터→Spec→산출의 파일 횡단 흐름
-4. `Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h` — 스탯 정의와 피격/사망 파이프라인(`IncomingDamage`→HP 차감)
+1. `Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h` — 입력→어빌리티 라우팅과 AbilitySet 부여, 전투의 중심 허브
+2. `Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` — 어빌리티 작성 규약(활성화 정책·데이터 Row·쿨다운) 파악
+3. `Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h` — 스탯 약어(HP/SP/DP/MP/UP…)와 피격/사망 파이프라인(`IncomingDamage`→HP 차감)
+4. `Source/WxCombat/Public/WxDamageInfo.h` + `Source/WxCombat/Public/AbilitySystem/Effect/WxExecCalc_Damage.h` — 대미지가 설계 데이터에서 최종 수치로 흐르는 경로
 
 ## 관련
-- 상위: [[WxCore]] (공용 정의) · Experience/캐릭터 BP가 `UWxAbilitySet`을 지정해 이 시스템을 부팅
+- 상위: 전투 어빌리티를 구동하는 [[WxAI]], 전투 상태를 표시하는 [[WxUI]] · Experience/캐릭터 BP가 `UWxAbilitySet`을 지정해 이 시스템을 부팅 · 공용 정의는 [[WxCore]]
 
 ---
-*문서 기준 커밋 `c549ea2` · 생성일 2026-07-31 · 소스 147파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `28ee2c6` · 생성일 2026-08-03 · 소스 147파일 — `/readme-writer`로 갱신*

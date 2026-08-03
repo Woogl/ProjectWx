@@ -58,4 +58,4 @@
 - 상위(소비): 모든 Wx 도메인 플러그인([[WxCombat]] 태그·Event·SetByCaller, [[WxWorld]] `IWxInteractable`·`StateTree.Interact`, [[WxSave]] `IWxSavable`, [[WxUI]] `UI.Layer/Action.*`, [[WxQuest]] `Quest.Fail`, [[WxInventory]]·[[WxAI]]·[[WxDialogue]])과 게임 모듈 [[WxGame]]이 WxCore를 참조.
 
 ---
-*문서 기준 커밋 `c549ea2` · 생성일 2026-07-31 · 소스 9파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `28ee2c6` · 생성일 2026-08-03 · 소스 10파일 — `/readme-writer`로 갱신*
