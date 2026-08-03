@@ -5,14 +5,26 @@
 #include "Components/SceneComponent.h"
 #include "Indicator/WxIndicatorManagerComponent.h"
 
-void UWxIndicatorDescriptor::Initialize(UWxIndicatorManagerComponent* InOwningManager, USceneComponent* InTargetComponent, const TSoftClassPtr<UWxIndicatorWidget>& InIndicatorWidgetClass, const FVector& InWorldOffset)
+void UWxIndicatorDescriptor::Initialize(UWxIndicatorManagerComponent* InOwningManager, USceneComponent* InTargetComponent, const FVector& InWorldOffset)
 {
 	check(!OwningManager.IsValid());
 
 	OwningManager = InOwningManager;
 	TargetComponent = InTargetComponent;
-	IndicatorWidgetClass = InIndicatorWidgetClass;
 	WorldOffset = InWorldOffset;
+}
+
+void UWxIndicatorDescriptor::SetProjection(const FVector2D& InScreenPosition, float InDistanceMeters, bool bInClamped)
+{
+	ScreenPosition = InScreenPosition;
+	DistanceMeters = InDistanceMeters;
+	bClamped = bInClamped;
+	bProjected = true;
+}
+
+void UWxIndicatorDescriptor::ClearProjection()
+{
+	bProjected = false;
 }
 
 void UWxIndicatorDescriptor::Unregister()

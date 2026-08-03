@@ -11,7 +11,6 @@
 struct FStateTreeExecutionContext;
 struct FStateTreeTransitionResult;
 class UWxIndicatorDescriptor;
-class UWxIndicatorWidget;
 
 // GetInstanceDataType() 의 헤더 정의는 코딩 규칙 6 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
 
@@ -34,10 +33,6 @@ struct FWxStateTreeTask_MarkIndicatorInstanceData
 	/** 가리킬 대상 배치 액터 지정. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	FWxActorTarget Target;
-
-	/** 화면에 띄울 인디케이터 위젯. 소프트 참조라 표시 시점에 로드된다. */
-	UPROPERTY(EditAnywhere, Category = "Parameter")
-	TSoftClassPtr<UWxIndicatorWidget> IndicatorWidgetClass;
 
 	/** 대상 원점에서 위로 올릴 높이(cm). 액터 원점이 보통 발밑이므로 머리 위를 가리키게 한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")

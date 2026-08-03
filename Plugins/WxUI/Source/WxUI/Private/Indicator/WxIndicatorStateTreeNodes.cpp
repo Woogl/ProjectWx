@@ -59,7 +59,7 @@ namespace
 			return;
 		}
 
-		Instance.RegisteredIndicator = Manager->AddIndicator(Target->GetRootComponent(), Instance.IndicatorWidgetClass, FVector(0.f, 0.f, Instance.WorldZOffset));
+		Instance.RegisteredIndicator = Manager->AddIndicator(Target->GetRootComponent(), FVector(0.f, 0.f, Instance.WorldZOffset));
 	}
 
 #if WITH_EDITOR

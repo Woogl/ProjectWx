@@ -27,7 +27,7 @@
 | `UWxViewModel_AbilitySystem` | ASC를 어트리뷰트/어빌리티/이펙트/OwnedTags 자식 VM으로 노출하는 Composite(요청 시 지연 생성) | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h` |
 | `UWxMVVMConversionLibrary` | UMG 바인딩용 BP 컨버전(태그→Visibility, 어트리뷰트/어빌리티/이펙트 VM 조회) | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxMVVMConversionLibrary.h` |
 | `UWxUILibrary` | UI 매니저·레이어 제어·확인 팝업의 BP 파사드 | `Plugins/WxUI/Source/WxUI/Public/WxUILibrary.h` |
-| `UWxIndicatorManagerComponent` | 로컬 PC에 매달린 화면 인디케이터 등록증 목록. 캔버스가 구독해 그림 | `Plugins/WxUI/Source/WxUI/Public/Indicator/WxIndicatorManagerComponent.h` |
+| `UWxIndicatorManagerComponent` | 로컬 PC에 매달린 화면 인디케이터 등록증 목록. 매 틱 화면 좌표를 계산해 발행 | `Plugins/WxUI/Source/WxUI/Public/Indicator/WxIndicatorManagerComponent.h` |
 | `UWxNameplateComponent` | ASC 태그 조건으로 표시되고 카메라 거리로 스케일되는 월드 네임플레이트 위젯 컴포넌트 | `Plugins/WxUI/Source/WxUI/Public/Component/WxNameplateComponent.h` |
 | `UWxActivatableWidget` | CommonUI 액티버터블 위젯 베이스(입력 모드·게임 정지 의사) | `Plugins/WxUI/Source/WxUI/Public/Widget/WxActivatableWidget.h` |
 
@@ -36,13 +36,13 @@
 - **새 뷰모델**: `UWxViewModel`을 상속하고 이미지 슬롯이 있으면 `RequestImageAsync`/`ApplyLoadedImage(FieldName,...)`를 쓴다. 도메인 타입 참조 없이 평면 표시 필드만 노출하고, 값은 소비 측이 push/inject한다. UMG는 소프트 참조가 아닌 로드된 하드 참조를 일반 `Image`의 `SetBrushResourceObject`에 바인딩.
 - **캐릭터/네임플레이트**: 소비 측이 `FWxCharacterUIData`+ASC를 `InitializeViewModels`/`Initialize`로 주입 — WxUI는 구체 캐릭터 타입을 모른다.
 - **게임 정지**: `UWxActivatableWidget::bPauseGame`을 켜면 매니저가 전 레이어를 재평가해 정지 결정(위젯은 서브시스템을 모른다).
-- **화면 인디케이터**: `UWxIndicatorManagerComponent::AddIndicator`로 등록증을 받고 해제 시 반납. StateTree로 쓰려면 `FWxStateTreeTask_MarkIndicator` 노드를 애셋에서 선택(소비 도메인이 UI 모듈을 참조하지 않아도 됨).
+- **화면 인디케이터**: `UWxIndicatorManagerComponent::AddIndicator`로 등록증을 받고 해제 시 반납. 표시는 HUD에 배치한 위젯이 `UWxViewModel_Indicator`(리졸버 생성)에 바인딩해 맡는다. StateTree로 쓰려면 `FWxStateTreeTask_MarkIndicator` 노드를 애셋에서 선택(소비 도메인이 UI 모듈을 참조하지 않아도 됨).
 - **화면 클래스 주입**: 레이아웃/확인 팝업/HUD/사망·대화 화면은 `UWxUIDeveloperSettings`의 소프트 클래스 슬롯(config)으로 연결 — 코드가 아니라 설정으로 배선.
 
 ## 여기서부터 읽어라
 1. `Plugins/WxUI/Source/WxUI/Public/System/WxUIManagerSubsystem.h` — 레이어/팝업/HUD/사망화면/정지의 진입점이자 수명 흐름의 중심.
 2. `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h` + `WxViewModel_AbilitySystem.h` — VM 계층의 이미지 스트리밍 규약과 ASC 지연 생성 패턴.
-3. `Plugins/WxUI/Source/WxUI/Public/Indicator/WxIndicatorStateTreeNodes.h` — 인디케이터 등록증·캔버스·StateTree 노드가 맞물리는 방식(소유·해제 규약 포함).
+3. `Plugins/WxUI/Source/WxUI/Public/Indicator/WxIndicatorStateTreeNodes.h` — 인디케이터 등록증·뷰모델·StateTree 노드가 맞물리는 방식(소유·해제 규약 포함).
 
 ## 관련
 - 상위: [[WxGame]] / GameFeature 콘텐츠 플러그인(Experience 애셋이 위젯·컴포넌트를 주입)

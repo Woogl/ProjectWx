@@ -3,13 +3,10 @@
 #include "Widget/WxHUDLayout.h"
 
 #include "CommonInputModeTypes.h"
-#include "Engine/LocalPlayer.h"
-#include "Indicator/SWxIndicatorCanvas.h"
 #include "Input/CommonUIActionRouterBase.h"
 #include "Input/CommonUIInputTypes.h"
 #include "System/WxUIManagerSubsystem.h"
 #include "UITag.h"
-#include "Widgets/SOverlay.h"
 #include "WxGameplayTags.h"
 
 void UWxHUDLayout::NativeOnInitialized()
@@ -41,30 +38,6 @@ void UWxHUDLayout::NativeOnInitialized()
 	FreeCursorReleasedArgs.InputMode = ECommonInputMode::Game;
 	FreeCursorReleasedArgs.KeyEvent = IE_Released;
 	RegisterUIActionBinding(FreeCursorReleasedArgs);
-}
-
-TSharedRef<SWidget> UWxHUDLayout::RebuildWidget()
-{
-	TSharedRef<SWidget> HUDContent = Super::RebuildWidget();
-
-	// 디자인타임엔 화면을 볼 사람(로컬 플레이어)이 없어 투영할 수 없다 — HUD 내용만 그린다.
-	ULocalPlayer* LocalPlayer = IsDesignTime() ? nullptr : GetOwningLocalPlayer();
-	if (!LocalPlayer)
-	{
-		return HUDContent;
-	}
-
-	// 인디케이터를 HUD 내용 아래에 깐다. 감싸는 오버레이 자신은 입력을 가로막지 않는다(자식들은 각자의 설정을 따른다).
-	return SNew(SOverlay)
-		.Visibility(EVisibility::SelfHitTestInvisible)
-		+ SOverlay::Slot()
-		[
-			SNew(SWxIndicatorCanvas, FLocalPlayerContext(LocalPlayer))
-		]
-		+ SOverlay::Slot()
-		[
-			HUDContent
-		];
 }
 
 void UWxHUDLayout::HandleInventoryAction()
