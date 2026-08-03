@@ -85,7 +85,7 @@
         "rotationQuantizationLevel": "BYTE_COMPONENTS",
         "velocityQuantizationLevel": "ROUND_WHOLE_NUMBER"
       },
-      "resumePoint": null,
+      "respawnPoint": null,
       "role": "ROLE_AUTHORITY",
       "rootComponent": null,
       "runtimeGrid": "None",
@@ -107,11 +107,11 @@
       },
       {
         "class": "/Script/Engine.SceneComponent",
-        "name": "ResumePoint_GEN_VARIABLE"
+        "name": "RespawnPoint_GEN_VARIABLE"
       },
       {
         "class": "/Script/Engine.SceneComponent",
-        "name": "ResumePoint_GEN_VARIABLE"
+        "name": "RespawnPoint_GEN_VARIABLE"
       },
       {
         "class": "/Script/Engine.ArrowComponent",
