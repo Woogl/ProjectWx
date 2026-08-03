@@ -15,7 +15,6 @@
         "c": 0,
         "d": 0
       },
-      "arrowComponent": null,
       "autoReceiveInput": "DISABLED",
       "bAllowTickBeforeBeginPlay": false,
       "bAlwaysRelevant": false,
@@ -103,14 +102,6 @@
       {
         "class": "/Script/Engine.SceneComponent",
         "name": "SceneRoot_GEN_VARIABLE"
-      },
-      {
-        "class": "/Script/Engine.ArrowComponent",
-        "name": "ArrowComponent_GEN_VARIABLE"
-      },
-      {
-        "class": "/Script/Engine.ArrowComponent",
-        "name": "ArrowComponent_GEN_VARIABLE"
       },
       {
         "class": "/Script/Engine.SkeletalMeshComponent",

@@ -15,7 +15,6 @@
         "c": 0,
         "d": 0
       },
-      "arrowComponent": null,
       "autoReceiveInput": "DISABLED",
       "bAllowTickBeforeBeginPlay": false,
       "bAlwaysRelevant": false,
@@ -103,72 +102,64 @@
     },
     "components": [
       {
-        "class": "/Script/Engine.StaticMeshComponent",
-        "name": "DoorRight_GEN_VARIABLE"
+        "class": "/Script/Engine.SplineComponent",
+        "name": "SplineComponent_GEN_VARIABLE"
       },
       {
-        "class": "/Script/Engine.StaticMeshComponent",
-        "name": "DoorLeft_GEN_VARIABLE"
-      },
-      {
-        "class": "/Script/Engine.StaticMeshComponent",
-        "name": "DoorLeft_GEN_VARIABLE"
-      },
-      {
-        "class": "/Script/Engine.StaticMeshComponent",
-        "name": "PlatformMesh_GEN_VARIABLE"
-      },
-      {
-        "class": "/Script/Engine.StaticMeshComponent",
-        "name": "PlatformMesh_GEN_VARIABLE"
+        "class": "/Script/Engine.SplineComponent",
+        "name": "SplineComponent_GEN_VARIABLE"
       },
       {
         "class": "/Script/Engine.SceneComponent",
         "name": "PlatformRoot_GEN_VARIABLE"
       },
       {
-        "class": "/Script/Engine.SplineComponent",
-        "name": "SplineComponent_GEN_VARIABLE"
+        "class": "/Script/Engine.StaticMeshComponent",
+        "name": "PlatformMesh_GEN_VARIABLE"
       },
       {
-        "class": "/Script/Engine.SplineComponent",
-        "name": "SplineComponent_GEN_VARIABLE"
+        "class": "/Script/Engine.StaticMeshComponent",
+        "name": "PlatformMesh_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/Engine.StaticMeshComponent",
+        "name": "DoorLeft_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/Engine.StaticMeshComponent",
+        "name": "DoorLeft_GEN_VARIABLE"
       },
       {
         "class": "/Script/Engine.StaticMeshComponent",
         "name": "DoorRight_GEN_VARIABLE"
       },
       {
-        "class": "/Script/Engine.ArrowComponent",
-        "name": "ArrowComponent_GEN_VARIABLE"
+        "class": "/Script/Engine.StaticMeshComponent",
+        "name": "DoorRight_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/Engine.SceneComponent",
+        "name": "PlatformRoot_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/Engine.StaticMeshComponent",
+        "name": "CallConsoleA_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/Engine.StaticMeshComponent",
+        "name": "CallConsoleA_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/Engine.StaticMeshComponent",
+        "name": "CallConsoleB_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/Engine.StaticMeshComponent",
+        "name": "CallConsoleB_GEN_VARIABLE"
       },
       {
         "class": "/Script/Engine.SceneComponent",
         "name": "SceneRoot_GEN_VARIABLE"
-      },
-      {
-        "class": "/Script/Engine.ArrowComponent",
-        "name": "ArrowComponent_GEN_VARIABLE"
-      },
-      {
-        "class": "/Script/Engine.StaticMeshComponent",
-        "name": "CallConsoleB_GEN_VARIABLE"
-      },
-      {
-        "class": "/Script/Engine.SceneComponent",
-        "name": "PlatformRoot_GEN_VARIABLE"
-      },
-      {
-        "class": "/Script/Engine.StaticMeshComponent",
-        "name": "CallConsoleB_GEN_VARIABLE"
-      },
-      {
-        "class": "/Script/Engine.StaticMeshComponent",
-        "name": "CallConsoleA_GEN_VARIABLE"
-      },
-      {
-        "class": "/Script/Engine.StaticMeshComponent",
-        "name": "CallConsoleA_GEN_VARIABLE"
       },
       {
         "class": "/Script/WxWorld.WxGimmickStateTreeComponent",
