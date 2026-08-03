@@ -10,11 +10,11 @@
 #   (C) 에디터 py 콘솔: py "C:/Wx/.claude/skills/dump-assets/dump_assets.py"
 #
 # 인자:
-#   --only=index,datatables,dataassets,statetrees,blueprints,widgets  (기본: 전부)
+#   --asset=<에셋명 | /Game 경로>[,...]  지정 에셋의 JSON만 교체 (README.md는 갱신 안 함)
 #   --out=<출력 루트>   (기본: <프로젝트>/Docs/AssetDump)
-#   --sha=<short-sha> --date=<YYYY-MM-DD>   (INDEX.md provenance 라인용, 오케스트레이터가 전달)
+#   --sha=<short-sha> --date=<YYYY-MM-DD>   (README.md provenance 라인용, 오케스트레이터가 전달)
 #
-# 출력은 결정적이어야 한다(재실행 diff 0): 키 정렬, 에셋 경로 정렬, LF 고정, 날짜/SHA는 INDEX.md에만.
+# 출력은 결정적이어야 한다(재실행 diff 0): 키 정렬, 에셋 경로 정렬, LF 고정, 날짜/SHA는 README.md에만.
 
 import unreal
 import json
@@ -74,18 +74,14 @@ CATEGORY_DIRS = {
 # ---------------------------------------------------------------------------
 
 def parse_args(argv):
-    opts = {"only": None, "out": None, "sha": "", "date": ""}
+    opts = {"asset": None, "out": None, "sha": "", "date": ""}
     for a in argv:
-        m = re.match(r"^--(only|out|sha|date)=(.*)$", a)
+        m = re.match(r"^--(asset|out|sha|date)=(.*)$", a)
         if m:
             opts[m.group(1)] = m.group(2)
-    only = opts["only"]
-    opts["only"] = set(s.strip() for s in only.split(",") if s.strip()) if only else None
+    asset = opts["asset"]
+    opts["asset"] = set(s.strip().lower() for s in asset.split(",") if s.strip()) if asset else None
     return opts
-
-
-def category_enabled(opts, name):
-    return opts["only"] is None or name in opts["only"]
 
 # ---------------------------------------------------------------------------
 # 범용 프로퍼티 직렬화기
@@ -537,27 +533,34 @@ def unique_name(used, asset_name, package_name):
     return slug
 
 
-def write_index_md(out_root, counts, excluded_counts, total, sha, date):
+def find_existing_file(cat_dir, asset_path):
+    # 단일 에셋 갱신 시 기존 파일명(충돌 슬러그 포함)을 보존하려고 봉투의 asset 경로로 역탐색한다
+    if not os.path.isdir(cat_dir):
+        return None
+    for f in sorted(os.listdir(cat_dir)):
+        if not f.endswith(".json"):
+            continue
+        try:
+            with io.open(os.path.join(cat_dir, f), encoding="utf-8") as fp:
+                if json.load(fp).get("asset") == asset_path:
+                    return f[:-5]
+        except Exception:
+            continue
+    return None
+
+
+def write_readme(out_root, total, sha, date):
+    # 파생 가능한 정보는 싣지 않는다 — 에셋의 존재·경로는 Content/의 .uasset이 원본(SSOT)이다.
+    cats = "·".join("`%s/`" % CATEGORY_DIRS[c] for c in sorted(CATEGORY_DIRS))
     lines = ["# AssetDump", ""]
     lines.append("에셋을 JSON으로 덤프한 텍스트 미러다. 에셋 내용 검색은 여기서 grep으로 한다. 갱신은 `/dump-assets`.")
     lines.append("")
-    lines.append("| 카테고리 | 파일 수 | 위치 |")
-    lines.append("|---|---|---|")
-    lines.append("| 전체 인덱스 | %d 에셋 | `index.json` |" % total)
-    for cat in sorted(CATEGORY_DIRS):
-        lines.append("| %s | %d | `%s/` |" % (cat, counts.get(cat, 0), CATEGORY_DIRS[cat]))
-    lines.append("")
-    lines.append("인덱스에서 제외한 폴더(마켓플레이스·샘플·OFPA)와 에셋 수:")
-    lines.append("")
-    for name in sorted(excluded_counts):
-        lines.append("- `/Game/%s` — %d" % (name, excluded_counts[name]))
-    lines.append("")
-    lines.append("본문 덤프는 DataTable·DataAsset·StateTree·BP/WBP만 한다. 몽타주·BT·레벨·아트 에셋은 인덱스에만 있다.")
+    lines.append("본문 덤프는 %s에 에셋당 1파일이다. 몽타주·BehaviorTree·레벨·아트·마켓플레이스 에셋은 본문 덤프가 없다 — 에셋의 존재·경로는 `Content/`의 `.uasset`이 원본이므로 거기서 직접 찾는다." % cats)
     lines.append("")
     if sha:
         lines.append("*문서 기준 커밋 `%s` · 생성일 %s · 에셋 %d개 — `/dump-assets`로 갱신*" % (sha, date, total))
         lines.append("")
-    with io.open(os.path.join(out_root, "INDEX.md"), "w", encoding="utf-8", newline="\n") as f:
+    with io.open(os.path.join(out_root, "README.md"), "w", encoding="utf-8", newline="\n") as f:
         f.write("\n".join(lines))
 
 
@@ -565,34 +568,21 @@ def main():
     opts = parse_args(sys.argv[1:])
     project_dir = os.path.abspath(unreal.Paths.project_dir())
     out_root = opts["out"] or os.path.join(project_dir, "Docs", "AssetDump")
+    asset_filter = opts["asset"]
+    full_run = asset_filter is None
 
     assets, excluded_counts = gather_assets()
     unreal.log("DUMP: project assets=%d (excluded folders=%d)" % (len(assets), sum(excluded_counts.values())))
 
-    # 인덱스 (로드 없이 AssetRegistry 메타만)
-    if category_enabled(opts, "index"):
-        entries = []
-        for ad in assets:
-            entry = {
-                "path": "%s.%s" % (str(ad.package_name), str(ad.asset_name)),
-                "class": asset_class_name(ad),
-            }
-            parent = get_tag(ad, "NativeParentClass") or get_tag(ad, "ParentClass")
-            if parent:
-                entry["parent"] = parent
-            entries.append(entry)
-        if not os.path.isdir(out_root):
-            os.makedirs(out_root)
-        write_json(os.path.join(out_root, "index.json"), {"assets": entries})
-        unreal.log("DUMP: index.json written (%d entries)" % len(entries))
+    if full_run and not os.path.isdir(out_root):
+        os.makedirs(out_root)
 
     # 본문 덤프
     counts = {}
     errors = []
-    body_categories = [c for c in CATEGORY_DIRS if category_enabled(opts, c)]
-    if body_categories:
-        # 재생성 카테고리의 기존 산출물을 비워 삭제된 에셋의 잔존 파일을 막는다
-        for cat in body_categories:
+    if full_run:
+        # 기존 산출물을 비워 삭제·개명된 에셋의 잔존 파일을 막는다
+        for cat in CATEGORY_DIRS:
             cat_dir = os.path.join(out_root, CATEGORY_DIRS[cat])
             if os.path.isdir(cat_dir):
                 for f in os.listdir(cat_dir):
@@ -601,39 +591,67 @@ def main():
             else:
                 os.makedirs(cat_dir)
 
-        used_names = {cat: set() for cat in body_categories}
-        for ad in assets:
-            cls_name = asset_class_name(ad)
-            if cls_name in NEVER_LOAD_CLASSES:
+    used_names = {cat: set() for cat in CATEGORY_DIRS}
+    matched = set()
+    for ad in assets:
+        pkg = str(ad.package_name)
+        name = str(ad.asset_name)
+        if not full_run:
+            hit = {name.lower(), pkg.lower(), ("%s.%s" % (pkg, name)).lower()} & asset_filter
+            if not hit:
                 continue
-            pkg = str(ad.package_name)
-            obj = unreal.load_asset(pkg)
-            if obj is None:
-                errors.append("load failed: %s" % pkg)
-                continue
-            cat, handler = route(obj)
-            if cat is None or cat not in body_categories:
-                continue
-            try:
-                payload = handler(obj)
-            except Exception as e:
-                errors.append("%s: %s" % (pkg, e))
-                continue
-            if cat in ("blueprints", "widgets"):
-                # ParentClass UPROPERTY는 protected — AssetRegistry 태그로 채운다
-                for tag, key in (("ParentClass", "parent"), ("NativeParentClass", "native_parent")):
-                    v = get_tag(ad, tag)
-                    if v:
-                        payload["data"][key] = v
-            fname = unique_name(used_names[cat], str(ad.asset_name), pkg)
-            write_json(os.path.join(out_root, CATEGORY_DIRS[cat], fname + ".json"), payload)
-            counts[cat] = counts.get(cat, 0) + 1
+            matched |= hit
+        cls_name = asset_class_name(ad)
+        if cls_name in NEVER_LOAD_CLASSES:
+            if not full_run:
+                errors.append("본문 덤프 대상 아님(%s): %s" % (cls_name, pkg))
+            continue
+        obj = unreal.load_asset(pkg)
+        if obj is None:
+            errors.append("load failed: %s" % pkg)
+            continue
+        cat, handler = route(obj)
+        if cat is None:
+            if not full_run:
+                errors.append("본문 덤프 대상 아님(%s): %s" % (cls_name, pkg))
+            continue
+        try:
+            payload = handler(obj)
+        except Exception as e:
+            errors.append("%s: %s" % (pkg, e))
+            continue
+        if cat in ("blueprints", "widgets"):
+            # ParentClass UPROPERTY는 protected — AssetRegistry 태그로 채운다
+            for tag, key in (("ParentClass", "parent"), ("NativeParentClass", "native_parent")):
+                v = get_tag(ad, tag)
+                if v:
+                    payload["data"][key] = v
+        cat_dir = os.path.join(out_root, CATEGORY_DIRS[cat])
+        if not os.path.isdir(cat_dir):
+            os.makedirs(cat_dir)
+        if full_run:
+            fname = unique_name(used_names[cat], name, pkg)
+        else:
+            # 단일 에셋 모드: 기존 파일명을 보존해 그 파일만 교체한다
+            fname = find_existing_file(cat_dir, payload["asset"])
+            if fname is None:
+                fname = name
+                if os.path.exists(os.path.join(cat_dir, fname + ".json")):
+                    fname = pkg.strip("/").replace("/", "_")
+        write_json(os.path.join(cat_dir, fname + ".json"), payload)
+        counts[cat] = counts.get(cat, 0) + 1
 
-        for cat in sorted(counts):
-            unreal.log("DUMP: %s=%d" % (cat, counts[cat]))
+    if not full_run:
+        for miss in sorted(asset_filter - matched):
+            errors.append("에셋을 찾지 못함: %s" % miss)
 
-    if category_enabled(opts, "index"):
-        write_index_md(out_root, counts, excluded_counts, len(assets), opts["sha"], opts["date"])
+    for cat in sorted(counts):
+        unreal.log("DUMP: %s=%d" % (cat, counts[cat]))
+
+    # README.md(provenance)는 전체 실행에서만 재작성한다 — 단일 에셋 갱신이
+    # 본문 전체가 낡은 채 신선도 기록만 앞서가게 만드는 것을 막는다.
+    if full_run:
+        write_readme(out_root, len(assets), opts["sha"], opts["date"])
 
     for msg in errors:
         unreal.log_error("DUMP: " + msg)

@@ -1,7 +1,7 @@
 ---
 name: dump-assets
 description: 프로젝트 에셋(.uasset)을 JSON 텍스트로 덤프해 Docs/AssetDump/에 기록한다. 에디터 없이 헤드리스 커맨드릿으로 전체 재덤프하므로 언제든 다시 돌릴 수 있다.
-argument-hint: "[all|index|datatables|dataassets|statetrees|blueprints|widgets]"
+argument-hint: "[all|에셋명...]"
 user-invocable: true
 allowed-tools: PowerShell, Bash, Read, Glob, Grep, Write
 ---
@@ -10,22 +10,22 @@ allowed-tools: PowerShell, Bash, Read, Glob, Grep, Write
 
 프로젝트 자체 에셋(마켓플레이스 제외, ~315개)을 JSON으로 덤프해 `Docs/AssetDump/`에 기록한다. 이후 세션은 에디터·MCP 없이 grep/Read로 DataTable 행, DataAsset 값, StateTree 구조, BP/WBP 구조를 파악한다. 덤프 본체는 이 폴더의 `dump_assets.py`이고, 이 스킬은 실행·검증·보고를 오케스트레이션한다.
 
-인자: 없거나 `all`이면 전부, 카테고리명(쉼표 구분 가능)이면 그것만 재덤프한다. 카테고리 무관하게 항상 전체 재생성이다(증분 없음).
+인자: 없거나 `all`이면 전체 재생성(증분 없음). 에셋명(또는 `/Game/...` 경로, 쉼표 구분 가능)을 주면 **그 에셋의 JSON 파일만 교체**한다 — `README.md`(신선도 기록)는 전체 실행에서만 재작성되므로, stale 판정의 기준은 언제나 마지막 전체 실행이다.
 
 ---
 
 ## 1. stale 확인 (실행 전)
 
-`Docs/AssetDump/INDEX.md` 끝의 provenance 라인에서 첫 백틱 스팬(`[0-9a-f]{7,40}`)을 `<sha>`로 읽는다(readme-writer와 동일 규칙). 아래 두 명령의 출력 중 `.uasset`/`.umap`만 남긴다:
+`Docs/AssetDump/README.md` 끝의 provenance 라인에서 첫 백틱 스팬(`[0-9a-f]{7,40}`)을 `<sha>`로 읽는다(readme-writer와 동일 규칙). 아래 두 명령의 출력 중 `.uasset`/`.umap`만 남긴다:
 
 - `git diff --name-only <sha> HEAD -- Content Plugins/WxUI/Content Plugins/WxWorld/Content`
 - `git status --porcelain -- Content Plugins/WxUI/Content Plugins/WxWorld/Content`
 
-변경이 없고 사용자가 강제하지 않았다면 "덤프가 최신"이라 보고하고 끝낸다. INDEX.md가 없으면 첫 실행이다. SHA를 못 찾으면(`fatal: bad object`) stale로 간주하고 진행한다.
+변경이 없고 사용자가 강제하지 않았다면 "덤프가 최신"이라 보고하고 끝낸다. README.md가 없으면 첫 실행이다. SHA를 못 찾으면(`fatal: bad object`) stale로 간주하고 진행한다.
 
 ## 2. 실행
 
-아래 PowerShell로 엔진을 해석하고 커맨드릿을 실행한다. `<인자>`에는 `--sha=`(현재 `git rev-parse --short HEAD`)와 `--date=`(오늘)를 항상 넣고, 카테고리 지정 시 `--only=`를 덧붙인다.
+아래 PowerShell로 엔진을 해석하고 커맨드릿을 실행한다. `<인자>`에는 `--sha=`(현재 `git rev-parse --short HEAD`)와 `--date=`(오늘)를 항상 넣고, 에셋 지정 시 `--asset=<에셋명,...>`을 덧붙인다.
 
 ```powershell
 # 엔진 해석 (run-editor와 동일한 3단 폴백)
@@ -63,6 +63,6 @@ $cmd = Join-Path $engine "Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
 
 ## 참고
 
-- 몽타주(AM_)·BehaviorTree·레벨·아트 에셋은 `index.json`에만 있고 본문 덤프는 없다. 그래프 노드 수준(핀 연결)·MVVM 바인딩도 아직 없다 — 필요하면 라이브 에디터 + unreal-mcp로 개별 조회한다.
+- 몽타주(AM_)·BehaviorTree·레벨·아트 에셋은 본문 덤프가 없다 — 에셋의 존재·경로는 `Content/`의 `.uasset`이 원본(SSOT)이므로 Glob으로 직접 찾는다. 그래프 노드 수준(핀 연결)·MVVM 바인딩도 아직 없다 — 필요하면 라이브 에디터 + unreal-mcp로 개별 조회한다.
 - 새 마켓플레이스 팩을 들이면 `dump_assets.py`의 `EXCLUDED_TOP`에 폴더명을 추가한다.
 - 플러그인 Content 루트를 새로 만들면 `ROOTS`에 마운트 경로(`/<플러그인명>`)를 추가한다.

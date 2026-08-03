@@ -139,7 +139,7 @@ allowed-tools: Read, Grep, Glob, Bash, Agent
 - 끝의 provenance 라인은 숨기지 말 것. SHA·리뷰일은 받은 값 그대로 쓰고(재계산 금지) `<N>` 자리만 채운다. 본문은 **한국어 평서체**(~한다/~이다). 타입명·함수명·경로·Gameplay Tag 등 식별자는 **영문 원문** 유지.
 - provenance의 `<N>`(소스 파일 수)은 `<모듈경로>` 아래의 `*.h`/`*.cpp` 개수만 센다(레이아웃 비의존 — 플러그인은 `Plugins/<Name>/Source/...`, 소스 모듈은 `Source/<Name>/...`에 파일이 있다) — `Intermediate/`·`*.gen.cpp`·`*.generated.h`(빌드 산출물)는 제외한다.
 - 모든 파일 경로는 저장소 루트(`C:\Wx`) 기준 상대경로로 적어 클릭 가능하게 한다.
-- BP/WBP 내부 구조(위젯 계층·MVVM 바인딩·이벤트 그래프)는 이 리뷰의 범위 밖이다(C++ 코드에 집중). BP 디폴트값·구조가 리뷰에 꼭 필요하면 프로젝트 `CLAUDE.md`의 `에셋 분석` 절이 안내하는 `Docs/AssetDump/` 덤프를 참조하되, 발견은 C++ 근거로 적는다.
+- BP/WBP 내부 구조(위젯 계층·MVVM 바인딩·이벤트 그래프)는 이 리뷰의 범위 밖이다(C++ 코드에 집중). BP 디폴트값·구조가 리뷰에 꼭 필요하면 `Docs/AssetDump/`의 JSON 덤프를 참조하되(카테고리·범위는 `Docs/AssetDump/README.md`, 갱신은 `/dump-assets`), 발견은 C++ 근거로 적는다.
 
 ---
 
