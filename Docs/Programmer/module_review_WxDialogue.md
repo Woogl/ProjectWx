@@ -1,61 +1,76 @@
 # WxDialogue — 코드 리뷰
 
-> 모듈 경계와 책임 분리는 여전히 깔끔하다 — 의존은 `WxCore`/엔진 플러그인뿐이고, 세션이 UI 를 모른 채 태그·델리게이트로만 말하며, 이전 리뷰의 소프트락(Choices 반쪽 구현)은 데이터 모델이 단순해지며 사라졌다. 다만 세션의 수명 관리가 여전히 `Advance()` 한 줄기에 매달려 있어, 대화가 겹치거나 밖에서 끊길 때 빠져나올 길이 없다. 커버리지: 소스 10개 전부 읽었고 세션 컴포넌트 cpp/h 와 StateTree 노드를 정독했으며, 실제 발현을 확인하려 소비처(`UWxUIManagerSubsystem`·`UWxViewModel_Dialogue`·`UWxAbility_Interact`)까지 따라갔다.
+> 11개 소스로 이루어진 작고 응집도 높은 모듈이다. 지난 리뷰의 🔴(대화 겹침 시 태그 카운트 누수)와 무음 실패 경로는 실제로 해소됐고, 모듈 의존 규칙·코딩 규칙 위반도 사실상 남아 있지 않다 — 이번에 남은 지적은 전부 수명 관리와 데이터 참조 방식에 몰려 있다. 커버리지: `*.Build.cs`·`.uplugin` 포함 소스 11개를 모두 읽었고 세션 컴포넌트 cpp/h 와 StateTree 노드를 정독했으며, 발현 확인용으로 소비처(`UWxViewModel_Dialogue`·`UWxUIManagerSubsystem`·`IWxInteractable`)와 `WBP_DialogueScreen` 덤프까지 따라갔다.
 
 ## 요약
 | 심각도 | 개수 |
 | --- | --- |
-| 🔴 심각 | 1 |
-| 🟡 개선 | 2 |
-| 🟢 사소 | 2 |
+| 🔴 심각 | 0 |
+| 🟡 개선 | 4 |
+| 🟢 사소 | 3 |
 
 ## 결과
 
-### 1. 🔴 대화가 겹쳐 시작되면 State.Dialogue 카운트가 남아 영구 소프트락이 된다
-- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueSessionComponent.cpp:86-110`
-- **범주**: 버그/정확성
-- **문제**: `ClientStartDialogue_Implementation` 이 이미 활성 세션인지 보지 않고 무조건 새 세션으로 덮어쓴다. `AddLooseGameplayTag`(`:105`)는 카운트 +1, `EndDialogue` 의 `RemoveLooseGameplayTag`(`:142`)는 -1 이므로, 두 번 시작되면 대화가 끝난 뒤에도 `State.Dialogue` 카운트 1 이 폰 ASC 에 영구히 남는다.
-  귀결이 나쁘다. `UWxUIManagerSubsystem` 은 이 태그를 `EGameplayTagEventType::NewOrRemoved` 로 듣는데(`Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp:300`), 그 이벤트는 0↔비0 전이에서만 발화하므로 2→1 은 신호가 없다 → `CloseDialogueScreen`(`:320`)이 영영 불리지 않아 대화 창이 대사 없이 열린 채 남는다. 동시에 `UWxAbility_Interact` 의 `ActivationBlockedTags`(`Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp:37`)가 계속 닫혀 상호작용·스캐너 프롬프트가 모두 죽는다. 세션이 이미 닫혀 `Advance()` 는 즉시 반환하므로(`:47-50`) 플레이어가 스스로 풀 방법이 없다.
-  겹침 경로는 실재한다. `FWxStateTreeTask_PlayDialogue::EnterState`(`Private/WxDialogueStateTreeNodes.cpp:119`)가 활성 세션 여부를 보지 않고 `StartDialogueRow` 를 호출한다 — 무전·독백처럼 트리가 스스로 여는 대사라 상호작용 차단 태그의 게이트를 아예 거치지 않는다. 플레이어가 NPC 와 대화 중일 때 퀘스트 트리가 `Play Dialogue` 상태로 넘어가면 그대로 발현한다.
-  같은 함수의 실패 경로(`:89-94`)도 `CurrentStartRow`/`CurrentRowName` 만 되돌리고 `CurrentRow` 는 직전 세션의 행을 계속 가리켜, `HasActiveDialogue()` 는 참인데 테이블은 비어 있는 어긋난 상태를 남긴다. 이 상태에선 `PlayDialogue` 의 성공 판정(`Private/WxDialogueStateTreeNodes.cpp:122`)이 열리지도 않은 대화를 열렸다고 보고, `Tick` 이 영원히 `Running` 이라 퀘스트가 멈춘다.
-  덤으로 겹칠 때 `DialogueCamera`(`:193`)가 덮여, 앞 세션 카메라는 `SetLifeSpan` 을 못 받고 컨트롤러가 사라질 때까지 월드에 남는다.
-- **제안**: `ClientStartDialogue_Implementation` 진입부에서 `HasActiveDialogue()` 면 `EndDialogue()` 로 앞 세션을 정리하고 시작한다(또는 새 시작을 거부). 태그는 `AddLooseGameplayTag` 대신 `SetLooseGameplayTagCount(WxGameplayTags::State_Dialogue, 1)` 로 두면 카운트 누수가 원천 차단된다. 실패 경로에선 `CurrentRow` 도 함께 `nullptr` 로 되돌린다. `FWxStateTreeTask_PlayDialogue::EnterState` 쪽에도 "이미 대화 중이면 Failed(또는 대기)" 정책을 명시해 두면 겹침 의도가 데이터에서 드러난다.
-- **확신도**: 높음(메커니즘은 코드로 확정. 동시 진입 빈도는 퀘스트 트리 조립에 달렸다)
-
-### 2. 🟡 세션을 밖에서 끊을 경로가 없다 — 굳으면 카메라·태그가 함께 묶인다
-- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueSessionComponent.h:117`, `Private/WxDialogueSessionComponent.cpp:45-59`
+### 1. 🟡 세션을 밖에서 접을 방법이 없어, 대화 창이 다른 경로로 닫히면 세션이 영구 고착한다
+- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueSessionComponent.h:48-76`, `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueSessionComponent.cpp:53-78`
 - **범주**: 설계/구조
-- **문제**: `EndDialogue()` 는 private 이고 도달 경로가 `Advance()` 하나뿐이다. 즉 "뷰가 대사를 넘긴다"는 단 하나의 사건 말고는 세션이 끝나지 않으며, `EndPlay`/`UninitializeComponent`/빙의 변경 훅도 없다.
-  반대편은 그렇지 않다. `UWxUIManagerSubsystem::WatchPawnTags` 는 빙의가 바뀌면 무조건 `CloseDialogueScreen()`(`Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp:288`)으로 대화 창을 닫는다. 대화 중 폰이 교체되면 창은 닫히는데 세션은 활성인 채 남고, `Advance` 를 부를 뷰가 사라져 `HasActiveDialogue()` 가 영영 참이 된다 — `Wait Dialogue Completed`(세션 종료로 완주 판정)와 `Play Dialogue`(세션 종료로 성공 판정) 두 태스크가 함께 멈춘다. 이때 뷰 타겟도 대화 카메라에 머물고, 태그는 이전 폰 ASC 에 남는다(`TaggedAbilitySystem` 이 그쪽을 붙잡고 있다).
-- **제안**: 공개 취소 경로(`CancelDialogue()` 등)를 열고, 컴포넌트 종료(`UninitializeComponent`)와 빙의 변경(`APlayerController::OnPossessedPawnChanged`) 시 세션을 정리한다. 최소한 `EndDialogueCamera()` 만이라도 컴포넌트 정리 시점에 불러 뷰 타겟과 스폰 카메라를 되돌린다.
-- **확신도**: 중간(폰 교체 빈도는 콘텐츠에 달렸으나, 비대칭 자체는 코드로 확정)
+- **문제**: 세션이 끝나는 유일한 경로는 `Advance()` 가 `NextDialogue == None` 인 행에 닿는 것뿐이다. `EndDialogue()` 는 private 이고(`Public/WxDialogueSessionComponent.h:120`) 공개 API 에 취소·강제 종료가 없으며, 컴포넌트에 `EndPlay`/`OnUnregister`/빙의 변경 훅도 없다. 그런데 대화 창을 닫는 주체는 세션이 아니라 UI 매니저이고, 그쪽에는 세션과 무관하게 창을 닫는 경로가 있다 — `UWxUIManagerSubsystem::WatchPawnTags` 가 폰이 바뀔 때마다 `CloseDialogueScreen()` 을 무조건 부른다(`Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp:293`). 게다가 `WBP_DialogueScreen` 은 `bPauseGame=false` 라 대화 중에도 게임이 돌고 플레이어가 피해를 입을 수 있다.
+  대화 도중 폰이 교체되면 창은 닫히는데 `CurrentRow` 는 남아 `HasActiveDialogue()` 가 영영 참이 된다 — `Advance()` 를 불러 줄 뷰가 사라졌으므로 스스로 풀리지 않는다. 결과로 `Wait Dialogue Completed`(대사 목격 후 세션이 닫히기를 기다림)와 `Play Dialogue`(세션 종료로 성공 판정)가 영구 Running 이 되어 퀘스트가 소프트락되고, 스폰한 대화 카메라 액터도 `SetLifeSpan` 을 못 받아 컨트롤러가 사라질 때까지 남는다. 다음 대화가 열릴 때 `ClientStartDialogue` 의 선행 `EndDialogue()`(`:114-117`)가 우연히 치워 주지만, 그 사이 걸린 퀘스트 게이트는 이미 지나간 뒤다.
+- **제안**: 세션에 외부 종료 진입점(`CancelDialogue()` 성격)을 열고, 컴포넌트가 오너 컨트롤러의 `OnPossessedPawnChanged` 와 `EndPlay`/`OnUnregister` 에서 활성 세션을 접도록 한다. 또는 반대로 UI 매니저가 창을 닫을 때 세션에 통보해 "창은 닫혔는데 세션은 열려 있다"는 상태 자체를 없앤다.
+- **확신도**: 중간(비대칭 자체는 코드로 확정. 폰 교체 빈도는 콘텐츠에 달렸다)
 
-### 3. 🟡 세션의 데이터 오류가 전부 무음으로 사라진다
-- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueSessionComponent.cpp:26-29`, `:37-40`, `:52-56`, `:112-119`
+### 2. 🟡 `CurrentRow` 가 DataTable 행 메모리를 원시 포인터로 캐시한다
+- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueSessionComponent.h:140-148`, `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueSessionComponent.cpp:150-163`
 - **범주**: 버그/정확성
-- **문제**: 세션의 실패 경로가 하나도 로그를 남기지 않는다. `StartRow` 미지정 NPC 는 F 를 눌러도 아무 일이 없고(`:37-40`), 행 이름 오타나 `Line` 이 빈 행은 `EnterRow` 실패로 조용히 걸러진다(`:112-119`). 특히 `Advance()` 는 `EnterRow(NextDialogue)` 실패를 정상 종료와 같은 경로로 처리하므로(`:52-56`), `NextDialogue` 오타가 "대화가 이유 없이 중간에 끊김"으로만 나타나 단서가 없다. `FindRow` 의 ContextString 경고는 행이 아예 없을 때만 뜨고, 대사가 빈 행과 `StartRow` 미지정은 흔적조차 없다.
-  모듈은 `LogWxDialogue` 를 이미 갖고 있고 StateTree 노드는 잘 쓰고 있는데(`Private/WxDialogueStateTreeNodes.cpp:45`,`:107`,`:114`,`:124`), 정작 디자이너가 DT 를 직접 편집하는 세션 쪽만 비어 있다.
-- **제안**: 위 네 지점에 `UE_LOG(LogWxDialogue, Warning, ...)` 로 테이블명·행 이름을 남긴다. 특히 `Advance` 의 "다음 행 해석 실패"는 정상 종료와 구분해 찍어야 의미가 있다.
+- **문제**: 헤더 주석은 `CurrentStartRow` 를 "세션 동안 행 메모리를 붙잡는 강참조"라고 적었지만, `FDataTableRowHandle::DataTable` 의 강참조가 지키는 것은 `UDataTable` 객체뿐이고 행 메모리 블록이 아니다. 행 실체는 `UDataTable::RowMap` 이 직접 잡은 버퍼이며 CSV 재임포트·로우 구조체 변경(`EmptyTable`/`CleanBeforeStructChange`)에서 통째로 해제·재할당된다. PIE 중 대화 테이블을 재임포트하면 `CurrentRow` 가 해제된 메모리를 가리킨 채 남고, 다음 `Advance()` 의 `CurrentRow->NextDialogue`(`:60`)에서 크래시한다. 쿠킹 빌드엔 이 경로가 없어 에디터 워크플로 한정이지만, 데이터 테이블을 PIE 중 만지는 것은 흔한 작업이다.
+- **제안**: 포인터 대신 `CurrentRowName` 만 진실로 두고 읽는 자리마다 다시 조회한다(`CurrentStartRow.DataTable->FindRow<FWxDialogueTableRow>(CurrentRowName, ...)`). 대사 넘김이 프레임당 1회 미만이라 TMap 조회 비용은 사실상 없고, `HasActiveDialogue()` 는 `CurrentRowName.IsNone()` 으로 대체된다.
+- **확신도**: 중간(런타임 실패 경로는 없고 에디터 편집 중에만 드러난다)
+
+### 3. 🟡 포즈 대상 메시를 `FindComponentByClass` 로 아무거나 하나 집는다
+- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueSessionComponent.cpp:268-277`
+- **범주**: 버그/정확성
+- **문제**: `Target->FindComponentByClass<USkeletalMeshComponent>()` 는 `AActor::OwnedComponents`(TSet) 순회의 첫 항목을 돌려주므로, 액터에 스켈레탈 메시가 둘 이상이면 어느 것이 나올지 보장되지 않는다. `AWxNpc` 는 몸통 메시를 `MeshComponent` 로 이미 명시해 두었는데(`Public/WxNpc.h:49-50`) 이 경로는 그것을 쓰지 않는다. NPC BP 가 무기·머리카락 같은 스켈레탈 메시를 하나만 더 붙여도 포즈가 엉뚱한 메시로 가고, 그쪽에 애님 인스턴스가 없으면 경고만 남긴 채 포즈가 사라진다.
+- **제안**: 대상이 `AWxNpc`(또는 `ACharacter`)면 그 액터가 지정한 몸통 메시를 쓰고, 그 밖의 일반 액터에서만 `FindComponentByClass` 로 폴백한다.
 - **확신도**: 높음
 
-### 4. 🟢 CurrentRow 가 DataTable 행 메모리를 세션 내내 원시 포인터로 붙든다
-- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueSessionComponent.h:139`
+### 4. 🟡 대화 행이 포즈 몽타주를 하드 참조한다
+- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueTableRow.h:31-32`
 - **범주**: 성능/안전
-- **문제**: `CurrentStartRow` 가 `UDataTable` 객체는 GC 로부터 지키지만, 행 메모리는 `UDataTable::EmptyTable()`(리임포트·에디터 편집·`OnPostDataImport`)에서 해제된다. PIE 중 디자이너가 대화 테이블을 건드리면 다음 `Advance()`/`GetCurrentLine()` 이 해제된 메모리를 읽는다. 헤더 주석이 "세션 중에만 유효"라 못 박은 인지된 제약으로 보이나, 이미 `CurrentRowName` 을 따로 들고 있어 회피 비용이 사실상 0 이다.
-- **제안**: `CurrentRow` 를 지우고 접근 시점마다 `CurrentStartRow.DataTable->FindRow<FWxDialogueTableRow>(CurrentRowName, ...)` 로 해석한다. 조회는 대사를 넘길 때와 표시할 때뿐이라 비용이 없고, `HasActiveDialogue()` 는 `CurrentRowName.IsNone()` 으로 대체된다.
-- **확신도**: 낮음(의도된 설계일 수 있음)
+- **문제**: `TObjectPtr<UAnimMontage> TargetPose` 는 하드 참조라, 대화 테이블이 로드되는 순간 그 테이블 모든 행의 몽타주(와 그것이 끌고 오는 스켈레톤·애님 시퀀스)가 함께 로드된다. 테이블은 배치된 NPC 의 `UWxDialogueComponent::StartRow` 핸들이 하드로 붙잡고 있으므로(`Public/WxDialogueComponent.h:25-26`) 레벨 로드와 함께 상주한다. 즉 "말을 걸기 전부터 그 테이블의 모든 대화 연출 애셋이 메모리에 있다"가 되며, 대화 편수와 포즈 종류에 비례해 커지는 종류의 비용이다.
+- **제안**: `TSoftObjectPtr<UAnimMontage>` 로 바꾸고 `ApplyCurrentPose` 에서 스트리밍한다(어빌리티 아이콘이 이미 쓰는 방식). 최소한 대화 테이블을 레벨 상주 하드 참조에서 떼어낸다.
+- **확신도**: 중간(v1 규모에서는 실측 문제가 아닐 수 있다)
 
-### 5. 🟢 헤더 인라인 함수 정의 (코딩 규칙 6)
-- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueSessionComponent.h:56`, `Public/WxDialogueComponent.h:21`, `Public/WxDialogueStateTreeNodes.h:63`, `:101`
-- **범주**: 규칙 위반
-- **문제**: `CLAUDE.md` 코딩 규칙 6("인라인 함수 정의를 금지한다")에 대한 위반이다. `HasActiveDialogue`·`GetStartRow` 는 순수한 사소 게터고, `GetInstanceDataType` 두 건은 StateTree 순정 관용구다.
-- **제안**: 게터 두 건은 cpp 로 내리면 끝난다. `GetInstanceDataType` 은 저장소의 모든 StateTree 노드 헤더가 같은 모양이라(`WxQuestStateTreeNodes.h`·`WxGimmickStateTreeNodes.h` 등) 이 모듈만 고칠 일이 아니다 — 규칙의 예외로 명시하든 전역으로 정리하든 프로젝트 차원의 결정이 먼저다.
-- **확신도**: 높음(규칙 문언 기준). 다만 코드베이스 전반의 관례라 이 모듈 단독 조치는 효과가 작다
+### 5. 🟢 "빈 대사 = 정상 종료"라는 문서와 "빈 대사 = 경고·실패"라는 코드가 어긋난다
+- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueTableRow.h:24-26` vs `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueSessionComponent.cpp:152-157`
+- **범주**: 중복/복잡도
+- **문제**: 행 구조체 주석과 README(`Plugins/WxDialogue/README.md:33`)는 "대사가 비면 대화가 종료된다"를 정상 관용구로 안내한다. 그런데 `EnterRow` 는 빈 대사를 실패로 보고 Warning 을 남기며, 그 실패는 `Advance` 에서 "다음 행을 해석하지 못해"라는 두 번째 Warning 을 부른다(`:67-74`). 시작 행이 그런 행이면 `Play Dialogue` 태스크가 아예 Failed 를 낸다(`Private/WxDialogueStateTreeNodes.cpp:134-138`). 동작은 "종료"로 수렴하므로 버그는 아니지만, 안내대로 만든 데이터가 매번 경고 두 줄을 찍는다.
+- **제안**: 빈 대사를 정상 종료로 인정해 경고에서 빼거나, 반대로 문서에서 그 관용구를 지우고 `NextDialogue=None` 하나로 종료를 통일한다.
+- **확신도**: 높음
+
+### 6. 🟢 `AWxNpc::OnInteracted` 가 세션을 못 찾으면 로그 없이 무동작한다
+- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Private/WxNpc.cpp:49-60`
+- **범주**: 버그/정확성
+- **문제**: 상호작용자가 폰이 아니거나 컨트롤러에 세션 컴포넌트가 아직 주입되지 않았으면 조용히 반환한다. 세션 주입은 Experience 비동기 상태머신에 달려 있어 타이밍에 따라 없을 수 있는 값인데, 이 갈래가 침묵하면 증상은 "F 를 눌러도 아무 일이 없다" 하나로만 남는다. 지난 리뷰 이후 세션 쪽 실패 갈래는 전부 Warning 을 남기도록 정리됐으므로(`Private/WxDialogueSessionComponent.cpp:32`, `:45`, `:70`, `:155`) 여기만 남은 예외다.
+- **제안**: 세션 부재 갈래에 `LogWxDialogue` Warning 을 하나 남긴다.
+- **확신도**: 높음
+
+### 7. 🟢 카메라 경로에서 엔진 포인터를 검사 없이 역참조한다
+- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueSessionComponent.cpp:211`, `:252`
+- **범주**: 성능/안전
+- **문제**: `PlayerController->PlayerCameraManager->GetCameraLocation()` 은 카메라 매니저를 검사 없이 역참조한다. 로컬 PC 라면 사실상 항상 유효하지만, 같은 함수의 다른 입력(폰·대상)은 모두 검사를 거치고 있어 여기만 예외다. `EndDialogueCamera` 의 `PlayerController->GetPawn()` 도 null 일 수 있고(대화 중 사망 후 폰 소멸), 그때 뷰 타겟이 컨트롤러 자신으로 떨어져 구도가 튄다.
+- **제안**: 카메라 매니저 null 검사를 더하고, 복귀 뷰 타겟이 null 이면 뷰 전환을 건너뛴다.
+- **확신도**: 낮음(의도된 설계일 수 있음)
 
 ## 검토 범위
 - **깊게 본 파일**: `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueSessionComponent.cpp`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueSessionComponent.h`, `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueStateTreeNodes.cpp`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueStateTreeNodes.h`, `Plugins/WxDialogue/Source/WxDialogue/Private/WxNpc.cpp`
-- **훑은 파일**: `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueTableRow.h`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueComponent.h`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxNpc.h`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueModule.h`, `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueModule.cpp`, `Plugins/WxDialogue/Source/WxDialogue/WxDialogue.Build.cs`, `Plugins/WxDialogue/WxDialogue.uplugin`, `Plugins/WxDialogue/README.md`
-- **미검토 / 한계**: 발견 근거 검증용으로만 모듈 밖 파일을 읽었다(`Source/WxGame/MVVM/WxViewModel_Dialogue.cpp`, `Plugins/WxUI/.../WxUIManagerSubsystem.cpp`, `Source/WxGame/.../WxAbility_Interact.cpp`) — 리뷰 대상은 아니다. `WBP_DialogueScreen`·`BP_Npc`·`DT_*` 대화 테이블의 실제 내용은 uasset 이고 `WxBlueprintSnapshot/Snapshots/` 미러도 현재 없어 확인하지 못했다. 발견 1 의 최종 체감(입력 잠김 여부)은 위젯의 입력 모드에 달려 있어 C++ 근거로만 적었다. 카메라 구도 수식(`BeginDialogueCamera` 의 축·측면 판정)은 논리적으로만 따라갔고 실플레이 검증은 하지 않았다.
+- **훑은 파일**: `Plugins/WxDialogue/Source/WxDialogue/Public/WxNpc.h`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueTableRow.h`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueComponent.h`, `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueComponent.cpp`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueModule.h`, `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueModule.cpp`, `Plugins/WxDialogue/Source/WxDialogue/WxDialogue.Build.cs`, `Plugins/WxDialogue/WxDialogue.uplugin`, `Plugins/WxDialogue/README.md`
+- **미검토 / 한계**:
+  - 발견 근거 검증용으로만 모듈 밖 파일을 읽었다(`Source/WxGame/MVVM/WxViewModel_Dialogue.cpp`, `Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp`, `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h`·`WxActorTarget.h`) — 리뷰 대상은 아니다.
+  - 멀티플레이 동작은 코드 독해로만 판단했다. `ClientStartDialogue` 가 동기 실행되는 것에 기대는 `Play Dialogue`(`Private/WxDialogueStateTreeNodes.cpp:131-138`)와 0번 컨트롤러 폴링은 데디케이티드·원격 클라에서 깨지지만, 세 곳의 주석이 v1 싱글/리슨 호스트 전제를 명시하고 있어 의도된 한계로 보고 발견에서 뺐다. 실측은 하지 않았다.
+  - `Public/WxDialogueStateTreeNodes.h:69`, `:107`, `:148` 의 `GetInstanceDataType()` 헤더 정의는 코딩 규칙 6(인라인 정의 금지) 위반이나, 같은 파일 14행이 엔진 StateTree 관례를 근거로 예외임을 명시하고 있어 발견으로 올리지 않았다(지난 리뷰가 지적한 사소 게터 두 건은 cpp 로 이관돼 해소).
+  - 에셋 내부는 범위 밖이라 `.claude/asset_dump` 로 `WBP_DialogueScreen` 의 `bPauseGame=false`·`bIsBackHandler=false` 만 확인했고 바인딩 구성은 보지 않았다. `DT_Dialogue` 의 실제 행 조립도 검토하지 않았다.
+  - 카메라 구도 수식(`BeginDialogueCamera` 의 축·측면 판정)은 논리적으로만 따라갔고 실플레이 검증은 하지 않았다.
+  - `AWxNpc` 가 영역 메시의 응답을 전부 Ignore 로 두는 구성(`Private/WxNpc.cpp:34-36`)이 상호작용 스캐너의 오버랩 쿼리 방식과 맞물리는지는 확인하지 않았다 — WxCore/스캐너 리뷰의 몫이다.
 
 ---
-*문서 기준 커밋 `c37b6fa6` · 리뷰일 2026-07-31 · 소스 10파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `14a77aef` · 리뷰일 2026-08-03 · 소스 11파일 — `/module-review`로 갱신*
