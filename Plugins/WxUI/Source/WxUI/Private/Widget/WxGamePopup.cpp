@@ -2,6 +2,11 @@
 
 #include "Widget/WxGamePopup.h"
 
+bool FWxConfirmationPopupAction::operator==(const FWxConfirmationPopupAction& Other) const
+{
+	return Result == Other.Result && OptionalDisplayText.EqualTo(Other.OptionalDisplayText);
+}
+
 UWxGamePopupDescriptor* UWxGamePopupDescriptor::CreateConfirmationOk(const FText& Header, const FText& Body)
 {
 	UWxGamePopupDescriptor* Descriptor = NewObject<UWxGamePopupDescriptor>();

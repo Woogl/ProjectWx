@@ -154,6 +154,11 @@ UWxPrimaryGameLayout* UWxUIManagerSubsystem::GetPrimaryGameLayout() const
 	return PrimaryGameLayout;
 }
 
+UWxViewModel_Selection* UWxUIManagerSubsystem::GetSelectionViewModel() const
+{
+	return SelectionViewModel;
+}
+
 void UWxUIManagerSubsystem::ObserveWidgetForGamePause(UCommonActivatableWidget* Widget)
 {
 	if (!Widget)

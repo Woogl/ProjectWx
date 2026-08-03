@@ -20,11 +20,6 @@ struct FWxTabDescriptor
 	GENERATED_BODY()
 
 public:
-	FWxTabDescriptor()
-		: bHidden(false)
-		, CreatedTabContentWidget(nullptr)
-	{ }
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FName TabId;
 
@@ -35,7 +30,7 @@ public:
 	FSlateBrush IconBrush;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	bool bHidden;
+	bool bHidden = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<UCommonButtonBase> TabButtonType;
@@ -44,7 +39,7 @@ public:
 	TSubclassOf<UCommonUserWidget> TabContentType;
 
 	UPROPERTY(Transient)
-	TObjectPtr<UWidget> CreatedTabContentWidget;
+	TObjectPtr<UWidget> CreatedTabContentWidget = nullptr;
 };
 
 UINTERFACE(BlueprintType)
@@ -72,7 +67,7 @@ public:
 	bool GetPreregisteredTabInfo(const FName TabNameId, FWxTabDescriptor& OutTabInfo);
 
 	/** 프리레지스터된 전체 탭 정보 접근용 헬퍼. */
-	const TArray<FWxTabDescriptor>& GetAllPreregisteredTabInfos() { return PreregisteredTabInfoArray; }
+	const TArray<FWxTabDescriptor>& GetAllPreregisteredTabInfos();
 
 	// 특정 탭의 숨김 상태를 토글한다. 스위처와 연결되기 전에만 호출할 수 있다.
 	UFUNCTION(BlueprintCallable, Category = "Tab List")

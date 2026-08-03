@@ -37,10 +37,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FText OptionalDisplayText;
 
-	bool operator==(const FWxConfirmationPopupAction& Other) const
-	{
-		return Result == Other.Result && OptionalDisplayText.EqualTo(Other.OptionalDisplayText);
-	}
+	bool operator==(const FWxConfirmationPopupAction& Other) const;
 };
 
 /** 팝업에 표시할 헤더/본문/버튼 구성을 담는 데이터 객체. */

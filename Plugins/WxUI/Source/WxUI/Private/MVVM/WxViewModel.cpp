@@ -55,6 +55,10 @@ void UWxViewModel::RequestImageAsync(FName FieldName, const TSoftObjectPtr<UObje
 		FStreamableDelegate::CreateUObject(this, &UWxViewModel::HandleImageLoaded, FieldName));
 }
 
+void UWxViewModel::ApplyLoadedImage(FName FieldName, UObject* LoadedImage)
+{
+}
+
 void UWxViewModel::HandleImageLoaded(FName FieldName)
 {
 	FWxImageRequest* Request = ImageRequests.Find(FieldName);

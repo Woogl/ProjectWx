@@ -40,7 +40,7 @@ public:
 	/** 등록증을 목록에서 뺀다. 목록에 없는 등록증은 무시한다. */
 	void RemoveIndicator(UWxIndicatorDescriptor* Indicator);
 
-	const TArray<TObjectPtr<UWxIndicatorDescriptor>>& GetIndicators() const { return Indicators; }
+	const TArray<TObjectPtr<UWxIndicatorDescriptor>>& GetIndicators() const;
 
 	/**
 	 * 등록증의 투영 결과가 갱신되었다는 통지. 매 틱과 등록·해제 시점에 발행된다.

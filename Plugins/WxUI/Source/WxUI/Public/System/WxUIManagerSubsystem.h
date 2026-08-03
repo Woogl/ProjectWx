@@ -47,7 +47,7 @@ public:
 	 * 전 위젯이 공유하는 범용 "현재 선택" 글로벌 뷰모델.
 	 * 도메인 소스(상호작용/인벤토리 등)가 표시 데이터를 push 한다.
 	 */
-	UWxViewModel_Selection* GetSelectionViewModel() const { return SelectionViewModel; }
+	UWxViewModel_Selection* GetSelectionViewModel() const;
 
 private:
 	void HandleLocalPlayerAdded(ULocalPlayer* LocalPlayer);

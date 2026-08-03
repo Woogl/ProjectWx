@@ -55,6 +55,11 @@ bool UWxTabListWidgetBase::GetPreregisteredTabInfo(const FName TabNameId, FWxTab
 	return true;
 }
 
+const TArray<FWxTabDescriptor>& UWxTabListWidgetBase::GetAllPreregisteredTabInfos()
+{
+	return PreregisteredTabInfoArray;
+}
+
 void UWxTabListWidgetBase::SetTabHiddenState(FName TabNameId, bool bHidden)
 {
 	for (FWxTabDescriptor& TabInfo : PreregisteredTabInfoArray)

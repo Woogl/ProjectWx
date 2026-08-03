@@ -28,6 +28,11 @@ UCommonActivatableWidgetStack* UWxPrimaryGameLayout::GetLayerWidgetStack(FGamepl
 	return nullptr;
 }
 
+const TMap<FGameplayTag, TObjectPtr<UCommonActivatableWidgetStack>>& UWxPrimaryGameLayout::GetLayerMap() const
+{
+	return LayerMap;
+}
+
 UCommonActivatableWidget* UWxPrimaryGameLayout::PushWidgetToLayerStack(FGameplayTag LayerTag, TSubclassOf<UCommonActivatableWidget> WidgetClass)
 {
 	UCommonActivatableWidgetStack* Stack = GetLayerWidgetStack(LayerTag);

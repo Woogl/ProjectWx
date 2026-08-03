@@ -180,6 +180,11 @@ void UWxIndicatorManagerComponent::RemoveIndicator(UWxIndicatorDescriptor* Indic
 	OnIndicatorsUpdated.Broadcast();
 }
 
+const TArray<TObjectPtr<UWxIndicatorDescriptor>>& UWxIndicatorManagerComponent::GetIndicators() const
+{
+	return Indicators;
+}
+
 void UWxIndicatorManagerComponent::UpdateProjections()
 {
 	const APlayerController* OwningController = GetController<APlayerController>();

@@ -14,6 +14,16 @@ void UWxIndicatorDescriptor::Initialize(UWxIndicatorManagerComponent* InOwningMa
 	WorldOffset = InWorldOffset;
 }
 
+USceneComponent* UWxIndicatorDescriptor::GetTargetComponent() const
+{
+	return TargetComponent;
+}
+
+FVector UWxIndicatorDescriptor::GetWorldOffset() const
+{
+	return WorldOffset;
+}
+
 void UWxIndicatorDescriptor::SetProjection(const FVector2D& InScreenPosition, float InDistanceMeters, bool bInClamped)
 {
 	ScreenPosition = InScreenPosition;
@@ -25,6 +35,26 @@ void UWxIndicatorDescriptor::SetProjection(const FVector2D& InScreenPosition, fl
 void UWxIndicatorDescriptor::ClearProjection()
 {
 	bProjected = false;
+}
+
+bool UWxIndicatorDescriptor::IsProjected() const
+{
+	return bProjected;
+}
+
+FVector2D UWxIndicatorDescriptor::GetScreenPosition() const
+{
+	return ScreenPosition;
+}
+
+float UWxIndicatorDescriptor::GetDistanceMeters() const
+{
+	return DistanceMeters;
+}
+
+bool UWxIndicatorDescriptor::IsClamped() const
+{
+	return bClamped;
 }
 
 void UWxIndicatorDescriptor::Unregister()

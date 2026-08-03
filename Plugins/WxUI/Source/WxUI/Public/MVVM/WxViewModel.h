@@ -50,7 +50,7 @@ protected:
 	 * 파생 VM 이 FieldName 에 해당하는 자기 표시 필드에 세팅한다.
 	 * 이미지를 하나만 쓰는 VM 은 FieldName 을 무시하면 된다.
 	 */
-	virtual void ApplyLoadedImage(FName FieldName, UObject* LoadedImage) {}
+	virtual void ApplyLoadedImage(FName FieldName, UObject* LoadedImage);
 
 private:
 	/** 스트리밍 완료 콜백. 어느 슬롯의 완료인지 페이로드 인자로 받는다. */

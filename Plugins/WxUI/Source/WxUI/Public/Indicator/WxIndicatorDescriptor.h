@@ -25,9 +25,9 @@ public:
 	/** 매니저가 발급 직후 1회 호출한다. */
 	void Initialize(UWxIndicatorManagerComponent* InOwningManager, USceneComponent* InTargetComponent, const FVector& InWorldOffset);
 
-	USceneComponent* GetTargetComponent() const { return TargetComponent; }
+	USceneComponent* GetTargetComponent() const;
 
-	FVector GetWorldOffset() const { return WorldOffset; }
+	FVector GetWorldOffset() const;
 
 	/** 매니저가 매 틱 투영 결과를 기록한다. */
 	void SetProjection(const FVector2D& InScreenPosition, float InDistanceMeters, bool bInClamped);
@@ -35,13 +35,13 @@ public:
 	/** 대상이 무효하거나 투영을 얻지 못했음을 기록한다. 표시 측은 이 상태를 숨김으로 읽는다. */
 	void ClearProjection();
 
-	bool IsProjected() const { return bProjected; }
+	bool IsProjected() const;
 
-	FVector2D GetScreenPosition() const { return ScreenPosition; }
+	FVector2D GetScreenPosition() const;
 
-	float GetDistanceMeters() const { return DistanceMeters; }
+	float GetDistanceMeters() const;
 
-	bool IsClamped() const { return bClamped; }
+	bool IsClamped() const;
 
 	/** 발급한 매니저에서 스스로 빠진다. 등록한 쪽이 매니저를 다시 찾지 않아도 되게 한다. */
 	void Unregister();
