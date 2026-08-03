@@ -72,9 +72,8 @@ WxCombat WxInventory WxUI WxWorld WxAI WxQuest WxSave
 
 WxCore 비-태그 표면은 모범적이다:
 
-- `IWxInteractionSource` (`WxInteractionSource.h:22`) — 생산자 `WxWorld`, 소비자 `WxInventory`. 두 도메인을 직접 의존 없이 연결하는 정석 계약.
-- `IWxSavable` (`WxSavable.h:26`) — 생산자 `WxWorld`, 소비자 `WxSave`. 동일 패턴.
-- `UWxAbilityComponent` (`WxAbilityComponent.h:17`) — 어빌리티에 도메인별 데이터를 붙이는 공용 앵커. `WxUI`가 `UWxAbilityComponent_UIData`로 상속.
+- `IWxInteractable` (`WxInteractable.h`) — 소비자 `WxWorld`(스캐너)·`WxGame`(어빌리티), 구현자 `WxWorld`(기믹 컴포넌트)·`WxInventory`(픽업)·`WxGame`(처형). 두 도메인을 직접 의존 없이 연결하는 정석 계약.
+- `IWxSavable` (`WxSavable.h`) — 구현자 `WxWorld`, 소비자 `WxSave`. 동일 패턴.
 - `ECC_WxAttack` (`WxCollisionChannels.h`) — 프로젝트 공용 콜리전 채널. 3개 모듈 소비.
 
 ---

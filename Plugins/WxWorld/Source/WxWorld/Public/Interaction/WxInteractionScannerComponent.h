@@ -19,7 +19,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnScannerReady, UWxInteractionScannerComp
 /**
  * 상호작용 스캐너 컴포넌트.
  * AWxPlayerController 에 붙어, 소유 클라(리슨호스트 포함)에서 주변 상호작용 메시를 주기 스캔해 in-range 집합을 모은다.
- * HUD 리스트 뷰모델(UWxViewModel_InteractionList)이 이 목록을, 전역 선택 VM(UWxViewModel_Selection)이 선택 항목을 표시한다.
+ * HUD 리스트 뷰모델(UWxViewModel_InteractionList)이 이 목록과 선택 인덱스를 함께 표시한다.
  *
  * 상호작용 영역은 대상 액터의 메시 그 자체다 — 대상이 IWxInteractable 로 그 메시가 지금 켜져 있는 영역인지 답하고, 꺼지면 다음 스캔에서 탈락한다.
  * 주변 후보는 반경 구 오버랩으로 모으되 전 오브젝트 채널로 던지므로, 대상 자격은 콜리전 프리셋·응답과 무관하다(쿼리 콜리전만 켜져 있으면 된다). 응답·프롬프트도 같은 인터페이스가 제공한다.

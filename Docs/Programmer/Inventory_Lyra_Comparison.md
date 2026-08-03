@@ -335,7 +335,7 @@ DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventorySlotChanged,
 
 **왜 갈랐나**
 - 던진 무기 회수, 적 시체 다중 아이템 루팅 같은 시나리오 미지원 → Templates/Instances 분리 가치 없음
-- 보물상자도 `AWxTreasureChest` 가 단일 ItemDef 만 스폰하는 단순 모델
+- 보물상자도 ST 의 `Grant Reward` 태스크가 보상 행 하나를 지급하는 단순 모델
 
 향후 무기 드롭/회수가 필요해지면 Lyra 의 IPickupable + FInventoryPickup 모델을 도입 가능. 현재는 의도적 미도입.
 

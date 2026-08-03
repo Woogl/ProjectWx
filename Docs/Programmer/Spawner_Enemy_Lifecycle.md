@@ -39,9 +39,9 @@ sequenceDiagram
     Enemy->>Enemy: State_Dead 태그 부여 → HandleDeathTagChanged → HandleDeath
     Enemy->>Spawner: OwningSpawner->MarkKilled() — bIsKilled=true
     Enemy->>Enemy: UWxRewardLibrary::GrantReward(...) (종착 효과)
-    Trigger->>Save: 체크포인트 상호작용 → SaveSlot
+    Trigger->>Save: 체크포인트 상호작용 → Save Game 태스크
     Save->>Spawner: CaptureActor — bIsKilled(SaveGame) 직렬화
-    Note over Save,Spawner: 재로드/스트리밍-인 시 RestoreActor → OnWxSaveRestored
+    Note over Save,Spawner: 재로드/스트리밍-인 시 RestoreActor → OnSaveRestored
     Trigger->>Spawner: TryRespawnAll → Respawn() — bIsKilled 리셋 후 재스폰
 ```
 
@@ -92,18 +92,18 @@ sequenceDiagram
 
 `bIsKilled` 는 `UPROPERTY(SaveGame)` 로, `MarkKilled()` 가 서버에서 `true` 로 세팅한다. 영속·복원은 `IWxSavable` 계약(WxCore 정의)을 통해 `UWxSaveGameSubsystem`(WxSave)이 처리한다.
 
-- **키** — `GetWxSaveId()` 가 반환하는 `WxSaveId`. 에디터에서 `PostActorCreated`/`PostDuplicate` 가 `GetActorGuid()` 를 복사해 에셋에 직렬화하므로 쿠킹 빌드/세션 간 불변이다(런타임에선 `GetActorGuid()` 가 에디터 전용이라 못 씀).
-- **캡처** — `CaptureActor` 가 `ArIsSaveGame=true` 아카이브로 `bIsKilled` 를 `FWxActorRecord.ByteData` 에 직렬화. 호출 시점은 ① `SaveSlot`(체크포인트), ② `LevelRemovedFromWorld`(스트리밍-아웃).
-- **복원** — `RestoreActor` 가 레코드를 역직렬화한 뒤 `OnWxSaveRestored()` 를 호출. 호출 시점은 ① `OnWorldInitializedActors`(영구 레벨/초기 셀), ② `LevelAddedToWorld`(스트리밍-인).
+- **키** — `GetSaveId()` 가 반환하는 `WxSaveId`. 에디터에서 `PostActorCreated`/`PostDuplicate` 가 `GetActorGuid()` 를 복사해 에셋에 직렬화하므로 쿠킹 빌드/세션 간 불변이다(런타임에선 `GetActorGuid()` 가 에디터 전용이라 못 씀).
+- **캡처** — `CaptureActor` 가 `ArIsSaveGame=true` 아카이브로 `bIsKilled` 를 `FWxActorRecord.ByteData` 에 직렬화. 호출 시점은 ① `SaveToFile`(체크포인트 Save Game 태스크), ② `LevelRemovedFromWorld`(스트리밍-아웃).
+- **복원** — `RestoreActor` 가 레코드를 역직렬화한 뒤 `OnSaveRestored()` 를 호출. 호출 시점은 ① `OnWorldInitializedActors`(영구 레벨/초기 셀), ② `LevelAddedToWorld`(스트리밍-인).
 
-**복원 타이밍이 두 갈래라는 점이 `OnWxSaveRestored` 설계를 좌우한다:**
+**복원 타이밍이 두 갈래라는 점이 `OnSaveRestored` 설계를 좌우한다:**
 
-| 복원 시점 | BeginPlay 와의 순서 | 문제 | `OnWxSaveRestored` 의 역할 |
+| 복원 시점 | BeginPlay 와의 순서 | 문제 | `OnSaveRestored` 의 역할 |
 | --- | --- | --- | --- |
 | 초기 로드 (`OnWorldInitializedActors`) | **BeginPlay 이전** | `bIsKilled=true` 가 BeginPlay 전에 들어와, BeginPlay 의 가드(`if (bIsKilled) return;`)가 자동 스폰을 막음 | 추가 정리 불필요 |
 | 스트리밍-인 (`LevelAddedToWorld`) | **BeginPlay 이후** | BeginPlay 가 이미 인스턴스를 스폰한 뒤 `bIsKilled=true` 가 적용됨 | 이미 스폰된 `SpawnedActor` 를 `Destroy()` 로 정리 |
 
-> 즉 `OnWxSaveRestored` 는 "BeginPlay 가 먼저 달려서 시체(살아있는 인스턴스)를 만들어 버린 경우"의 사후 청소를 담당한다. BeginPlay 의 `if (bIsKilled) return;` 가드는 초기 로드 경로용 + 에디터 디폴트로 `true` 가 들어오는 경우의 안전망이다.
+> 즉 `OnSaveRestored` 는 "BeginPlay 가 먼저 달려서 시체(살아있는 인스턴스)를 만들어 버린 경우"의 사후 청소를 담당한다. BeginPlay 의 `if (bIsKilled) return;` 가드는 초기 로드 경로용 + 에디터 디폴트로 `true` 가 들어오는 경우의 안전망이다.
 
 ---
 
@@ -126,12 +126,14 @@ sequenceDiagram
 >
 > **collect-first 의 이유** — `TryRespawnAll` 은 스포너를 배열에 먼저 모은 뒤 순회를 끝내고 일괄 호출한다. `Respawn()` 이 루프 안에서 액터를 `Destroy`/`Spawn` 하는데, 그러면 `TActorIterator` 가 가리키는 월드 액터 배열이 순회 중 변경되어 무효화되기 때문이다.
 
-체크포인트 상호작용(`AWxCheckPoint::HandleInteracted`, `HasAuthority()` 게이트)의 **호출 순서**:
+체크포인트에는 C++ 핸들러가 없다. `BP_CheckPoint` 는 GimmickStateTree 컴포넌트를 든 순수 BP 이고, 상호작용이 넘긴 Lit 상태에 태스크 넷이 순서대로 나열돼 있을 뿐이다(`ST_CheckPoint`). **순서는 에셋의 태스크 배열이 정한다**:
 
-1. `SetPlayerStartTag(PlayerStartTag)` — 부활 지점 등록(메모리).
-2. `HealEffect` 적용 + 인벤토리 `RefillItemCharges` — 힐/충전 리필.
-3. `TryRespawnAll(this)` — 일괄 리스폰.
-4. `SaveSlot("Test")` — 갱신된 PlayerStartTag + 리셋된 월드 상태를 디스크에 영속. **반드시 마지막** — `SetPlayerStartTag` 이후라 순서가 보장된다.
+1. `Apply Gameplay Effect To Interactor` — 회복 GE 적용(WxWorld).
+2. `Refill Item Charges` — 충전형 아이템 리필(WxInventory).
+3. `Respawn Spawners` — `TryRespawnAll` 일괄 리스폰(WxWorld).
+4. `Save Game` — 리셋된 월드 상태를 활성 슬롯에 영속(WxSave). **반드시 마지막**이어야 앞 셋의 결과가 파일에 담긴다.
+
+재개 지점은 이 마지막 태스크의 `ResumePoint` 를 체크포인트의 `ResumePoint` 컴포넌트에 물려 정한다 — 플레이어가 어디에 서서 상호작용했든 부활 자리는 그 컴포넌트 자리로 고정된다. 권위 게이트(`HasAuthority`)와 라이브 진입 판정은 각 태스크가 자체 수행하므로, 넷을 한 상태에 늘어놓는 것 말고 조율 코드가 없다.
 
 ---
 
@@ -163,15 +165,15 @@ sequenceDiagram
 | 타입 | 모듈 | 역할 |
 | --- | --- | --- |
 | [`AWxSpawner`](../../Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawner.h) | WxWorld | 스폰/Respawn/MarkKilled/bIsKilled 보유, IWxSavable 구현 |
-| [`AWxSpawner` (cpp)](../../Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawner.cpp) | WxWorld | SpawnTarget(Deferred 3단), Respawn 의미론, OnWxSaveRestored 정리 |
+| [`AWxSpawner` (cpp)](../../Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawner.cpp) | WxWorld | SpawnTarget(Deferred 3단), Respawn 의미론, OnSaveRestored 정리 |
 | [`IWxSpawnableInterface`](../../Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawnableInterface.h) | WxWorld | OnSpawnedBy 컨텍스트 주입 훅(도메인이 정의) |
 | [`UWxSpawnerLibrary`](../../Plugins/WxWorld/Source/WxWorld/Public/System/WxSpawnerLibrary.h) | WxWorld | TryRespawnAll — collect-first 일괄 리스폰(Manual 제외) |
 | [`FWxStateTreeTask_TriggerSpawners`](../../Plugins/WxWorld/Source/WxWorld/Private/Gimmick/WxGimmickStateTreeNodes.cpp) | WxWorld | 명시 리스트 기반 기믹 리스폰(약 537행~) |
 | [`AWxEnemyCharacter`](../../Source/WxGame/Character/WxEnemyCharacter.h) | WxGame | IWxSpawnableInterface 구현, OwningSpawner 보유, HandleDeath 부작용 |
 | [`AWxCharacterBase`](../../Source/WxGame/Character/WxCharacterBase.cpp) | WxGame | State_Dead 태그 → HandleDeathTagChanged → HandleDeath 경로 |
 | [`AWxEnemyController`](../../Source/WxGame/Controller/WxEnemyController.cpp) | WxGame | OnPossess — Perception 주입 + RunBehaviorTree |
-| [`AWxCheckPoint`](../../Source/WxGame/WorldObject/WxCheckPoint.cpp) | WxGame | HandleInteracted — 힐/리필 → TryRespawnAll → SaveSlot 순서 |
-| [`IWxSavable`](../../Plugins/WxCore/Source/WxCore/Public/WxSavable.h) | WxCore | 저장/복원 계약(GetWxSaveId/OnWxSaveRestored) |
+| `ST_CheckPoint` (`/Game/WorldObject/Gimmick/`) | 콘텐츠 | Lit 상태의 태스크 넷 — 회복 → 리필 → Respawn Spawners → Save Game 순서 |
+| [`IWxSavable`](../../Plugins/WxCore/Source/WxCore/Public/WxSavable.h) | WxCore | 저장/복원 계약(GetSaveId/OnSaveRestored) |
 | [`UWxSaveGameSubsystem`](../../Plugins/WxSave/Source/WxSave/Private/WxSaveGameSubsystem.cpp) | WxSave | CaptureActor/RestoreActor, World/Level 훅으로 자동 캡처·복원 |
 | [`FWxActorRecord`](../../Plugins/WxSave/Source/WxSave/Public/WxSaveGame.h) | WxSave | bIsKilled(SaveGame) 직렬화 레코드 |
 | [`UWxRewardLibrary`](../../Plugins/WxInventory/Source/WxInventory/Public/WxRewardLibrary.h) | WxInventory | GrantReward — 라이프사이클 종착 효과(범위 밖) |

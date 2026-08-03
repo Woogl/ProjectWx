@@ -89,7 +89,7 @@ sequenceDiagram
 - **Deferred 스폰인 이유** — `BeginPlay` 전에 `ItemDef` 를 주입해야 픽업의 상호작용 텍스트(`[F] 이름 x수량`)가 `BeginPlay` 한 곳에서 갱신된다.
 - **수직 발사** — 항상 월드 Z 업(`FVector::UpVector`)으로 `LaunchSpeed` 만큼 물리 발사. 여러 개면 같은 위치에서 함께 튀어 오른다(콘 랜덤 퍼짐은 없다).
 - **외형** — `Pickup` Fragment 의 메시/나이아가라를 로드해 적용. 클라는 `ItemDef` 초기 복제 후 `OnRep` 으로 동일 적용.
-- **줍기** — 픽업의 상호작용 컴포넌트도 BP 상속으로 붙고 `IWxInteractionSource` 로 자동 바인딩된다.
+- **줍기** — 픽업 액터가 `IWxInteractable`(WxCore)을 직접 구현한다. 자기 메시를 상시 활성 영역으로 답하고 프롬프트도 스스로 내므로 별도 컴포넌트도 BP 배선도 없다.
 
 ---
 
@@ -165,8 +165,8 @@ flowchart LR
 - **외형 없는 아이템 + 적 드랍 = 로컬 플레이어 인벤토리에 즉시 지급** (적 사망이 `GetPlayerController(0)` 를 대상으로 넘김). 대상이 없을 때만 스킵.
 - **`Pickup` 있는데 `ItemActorClass` 미설정** → 경고 후 스킵 (이 경우엔 직접 지급 폴백 없음).
 - **줍는 주체에 인벤토리 없음** → 경고만, 픽업은 파괴되지 않고 남음.
-- **반복 지급 방지는 BFL 의 책임이 아니다** — 게이팅은 오너(상자의 `State`)가 하고, ST 태스크의 초기진입 가드가 복원/조인 재지급을 막는다.
-- `AWxItemPickup`·`AWxTreasureChest` 는 `Abstract` — 실제 사용은 BP 서브클래스.
+- **반복 지급 방지는 BFL 의 책임이 아니다** — 게이팅은 ST 상태가 한다(상자의 Open 은 되돌아오는 전이가 없는 종착 상태다). 그 위에서 태스크의 초기진입 가드가 복원/조인 재지급을 막는다.
+- `AWxItemPickup` 는 `Abstract` — 실제 사용은 BP 서브클래스. 보물상자는 C++ 클래스가 없다(순수 BP + ST 에셋).
 
 ---
 
@@ -181,5 +181,5 @@ flowchart LR
 | `UWxInventoryManagerComponent` | WxInventory | 최종 적재(`AddItemDefinition`)·인벤토리 조회(`FindInventory`) |
 | `AWxEnemyCharacter` | WxGame | 적 사망 드랍 호출처(`HandleDeath`), `RewardRow`/`LaunchSpeed` 보유 |
 | `FWxStateTreeTask_GrantReward` | WxInventory | ST 상태 진입 시 `GrantReward` 호출(권위·라이브 진입 가드). 인스턴스 데이터로 보상 보유. "Grant Reward" |
-| `AWxTreasureChest` | WxWorld | 상호작용 트리거 예시(`State` 게이팅) |
-| `IWxInteractionSource` | WxCore | 상호작용 연동용 공용 인터페이스 |
+| `BP_TreasureChest` / `ST_TreasureChest` | 콘텐츠 | 상호작용 트리거 예시. Open 상태가 종착이라 1회만 지급되고, 그 상태 Tag 가 영속된다 |
+| `IWxInteractable` | WxCore | 상호작용 대상 계약. 픽업 액터가 직접 구현한다 |

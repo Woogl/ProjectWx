@@ -19,14 +19,14 @@
 
 | Sample-PersistenceLab-main | WxSave | 비고 |
 | --- | --- | --- |
-| `UPersistenceSaveGame` | `UWxSaveGame` | `SlotName`/`UserIndex`/`TravelData` 동일. `SavedStatePerMap` 대신 `ActorRecords`+`PlayerStartTag` |
+| `UPersistenceSaveGame` | `UWxSaveGame` | `SlotName`/`UserIndex`/`TravelData` 동일. `SavedStatePerMap` 대신 `ActorRecords`(GUID 평면 맵) + `PlayerTransform`(재개 지점) + `PlayerStats` |
 | `FPersistenceTravelData` | `FWxSaveTravelData` | 필드 구성 동일(`Map`·폰 트랜스폼·컨트롤 로테이션·플래그 2개) |
 | `UPersistenceGameSubsystem` | `UWxSaveGameSubsystem` | 함수명 1:1: `GetSaveGame` `IsTravelingFromSaveFile` `StartNewSaveFile` `LoadFromFile` `TravelFromSaveFile` `SaveToFile` `ReportTravelFromSaveFileComplete` `ContinueSaveToFileToDisk`. 샘플 `SetPersistenceTravelData` 만 `SetTravelData` 로 축약. 샘플 `ReloadFromFile` 은 Wx 에 없다 — `LoadFromFile` 의 빈 슬롯이 곧 활성 슬롯 리로드라 동의어였다 |
 | `UPersistenceWorldSubsystem` | `UWxSaveWorldSubsystem` | `RequestSaveFlush`(+`FOnSaveFlushComplete`)·`FlushMapTravelData` 이식. 페이로드 워커는 `FlushSavableActors`/`CaptureActor`/`RestoreActor`(Wx 고유) |
 | `USaveFilePersistenceUtils` | `UWxSaveLibrary` | BFL 5함수 동일 + `GetDefaultSlotName`(Wx 추가) |
 | `UPersistenceUtilsSettings` | (없음) | Wx 는 설정 클래스 미도입 — 아래 흡수 후보 |
 
-Wx 유지분(샘플에 없음): `SetPlayerStartTag`/`GetPlayerStartTag`, `GetStableMapPackageName`(PIE 접두사 제거 맵 키 표현의 단일 출처), `Wx.Save.Dump` 콘솔 명령.
+Wx 유지분(샘플에 없음): `SaveToFile` 의 `ResumeTransform` 인자(재개 지점을 저장 요청에 실어 보내는 경로), `GetStableMapPackageName`(PIE 접두사 제거 맵 키 표현의 단일 출처), `Wx.Save.Dump` 콘솔 명령.
 
 ---
 
@@ -37,9 +37,9 @@ Wx 유지분(샘플에 없음): `SetPlayerStartTag`/`GetPlayerStartTag`, `GetSta
 Wx 는 이를 채택하지 않았다:
 
 - **LSP/Mass/IA 미채택 이유** — 셋 다 experimental 이고 Mass/IA 는 Wx 가 아예 쓰지 않는 시스템이다. 샘플 C++ 를 통째로 이식하면 코드의 6~7할이 죽은 의존성이 되고, 정작 기믹/스포너 상태를 저장하는 본체는 따라오지 않는다.
-- **Wx 방식** — `IWxSavable`(WxCore 계약)을 구현한 액터를 `TActorIterator` 로 수집해, 에디터에서 1회 부여된 영속 GUID(`GetWxSaveId`, 쿠킹 빌드 안전)를 키로 `FWxActorRecord` 에 직렬화한다. 레코드는 Transform + 액터 본체 블롭 + 컴포넌트 FName 별 블롭 + **레코드당 버전 헤더**(`[FPackageFileVersion][FCustomVersionContainer]` 별도 UPROPERTY 블롭)로 구성된다.
+- **Wx 방식** — `IWxSavable`(WxCore 계약)을 구현한 액터를 `TActorIterator` 로 수집해, 에디터에서 1회 부여된 영속 GUID(`GetSaveId`, 쿠킹 빌드 안전)를 키로 `FWxActorRecord` 에 직렬화한다. 레코드는 Transform + 액터 본체 블롭 + 컴포넌트 FName 별 블롭 + **레코드당 버전 헤더**(`[FPackageFileVersion][FCustomVersionContainer]` 별도 UPROPERTY 블롭)로 구성된다.
 - **맵별 키잉이 불필요한 이유** — GUID 가 맵을 넘어 전역 유일하므로 평면 `TMap<FGuid, FWxActorRecord>` 로 충돌 없이 다중 맵 상태가 공존한다. 샘플의 맵/레벨 키잉은 이름 기반 식별(매니저 FName·레벨 패키지)이라서 필요했던 구조다.
-- 현재 `IWxSavable` 구현체는 `AWxGimmick` 계열(State 태그)과 `AWxSpawner`(`bIsKilled`) 2계열이다.
+- 현재 `IWxSavable` 구현체는 `UWxGimmickStateTreeComponent`(활성 상태 Tag)와 `AWxSpawner`(`bIsKilled`) 2계열이다. 앞쪽은 액터가 아니라 컴포넌트가 계약을 구현하므로 호스트를 순수 BP 로 둘 수 있다.
 
 ---
 
@@ -52,7 +52,7 @@ Wx 는 이를 채택하지 않았다:
 | `LoadFromFile` 파일 부재 | nullptr 반환, 중단 | 같은 슬롯 새 SaveGame 으로 리셋 후에도 트래블 | 사망 리스폰(WBP_DeathScreen)이 파일 없이도 월드 리로드에 의존 |
 | `TravelFromSaveFile` Map 부재 | 경고 후 중단 | 현재 맵 리로드로 폴백 | 위와 동일(구버전 파일 호환 겸) |
 | 트래블 수단 | `UGameplayStatics::OpenLevel` | `ServerTravel(bAbsolute=true)` | 스탠드얼론에서 기능 차 없음, 기존 검증 경로·authority 게이트와 일관 |
-| 폰 위치 복원 | 저장 트랜스폼에 `APlayerStartPIE` 스폰(엔진 관례 의존) | `AWxGameMode::SpawnDefaultPawnFor`/`FinishRestartPlayer` 오버라이드 + `UWxPlayerSpawningComponent::TryGetSavedPawnSpawn` 판정(맵 일치 게이트) | 샘플 주석 스스로 GameMode 오버라이드가 가장 신뢰성 높다고 권고 — Wx 는 스포닝을 직접 소유 |
+| 폰 위치 복원 | 저장 트랜스폼에 `APlayerStartPIE` 스폰(엔진 관례 의존) | `UWxPlayerSpawnComponent` 가 `PostLogin` 에서 저장 좌표에 `APlayerStart` 를 스폰해 `StartSpot` 에 꽂는다(맵 일치 게이트) | 결과적으로 샘플과 같은 결. GameMode·PC 오버라이드 없이 엔진의 `ShouldSpawnAtStartSpot` → `FindPlayerStart` 경로에 그대로 올라탄다 |
 | `RequestSaveFlush` | Mass 스냅샷을 FrameEnd 페이즈 경계로 지연 + teardown 페일세이프 | 전부 동기, 완료 델리게이트는 즉시 발화(비동기 도입 대비 seam 만 유지) | Wx 에 페이즈 제약이 있는 작업(Mass)이 없음 |
 | Initialize 의 SaveGame 보장 | PIE 에서 `PIETestFile` 자동 로드/생성 | 모드 무관 항상 `StartNewSaveFile`(자동 로드 없음 — 매 시작이 빈 새 슬롯) | 체크포인트/UI 가 활성 SaveGame 을 전제 — 흩어진 EnsureSaveObject 를 init 보장 + null 경고 가드로 대체. PIE 반복 테스트용 자동 로드는 제거(매 PIE 는 신선한 시작) |
 | 버전 헤더 | IAM 블롭에 내장(2패스 직렬화) | 레코드의 별도 UPROPERTY 블롭(1패스) | 헤더가 블롭 밖이라 본체 포맷 불변·구버전 하위호환이 공짜 |
@@ -66,7 +66,7 @@ Wx 는 이를 채택하지 않았다:
 | 기능 | 샘플 구현 | Wx 도입 전제 |
 | --- | --- | --- |
 | 저장 직전 게임 코드 확장점 | `FPersistenceUtilsDelegates::OnPreSave` | 인벤토리·스탯 등 액터 외 상태의 영속화가 생길 때(WxCore 계약으로) |
-| 객체별 pre/post 훅 | `IPersistedObject::PrePersistObject`/`PostRestoreObject` | Wx 는 복원 후 훅(`OnWxSaveRestored`)만 있음 — 런타임 상태↔SaveGame 프로퍼티 변환이 필요한 액터가 생길 때 `PrePersist` 상당 추가 |
+| 객체별 pre/post 훅 | `IPersistedObject::PrePersistObject`/`PostRestoreObject` | Wx 는 복원 후 훅(`OnSaveRestored`)만 있음 — 런타임 상태↔SaveGame 프로퍼티 변환이 필요한 액터가 생길 때 `PrePersist` 상당 추가 |
 | 크로스 세션 액터 참조 | `FPersistableActorReference` + `UPersistableActorReferenceManager` + `UPersistableReferencedActorComponent` | 저장 대상이 다른 액터를 참조로 기억해야 할 때(예: GE 인스티게이터, AI 타겟) |
 | 런타임 스폰 액터 재스폰 | LSP `RuntimeRespawnedActorClasses`(ini) | 드롭 아이템·투사체 등 런타임 스폰물을 세션 넘어 유지할 때 — Wx 레코드 방식으론 스폰 파이프라인 신설 필요 |
 | 맵 배치 액터 파괴 영속 | LSP `bPersistAllActorDestruction` | 파괴가 상태 태그로 표현 안 되는 액터가 생길 때(현재 기믹/스포너는 태그·bool 로 충분) |
@@ -78,7 +78,7 @@ Wx 는 이를 채택하지 않았다:
 
 - **스트리밍-아웃 자동 캡처** — `HandleLevelRemovedFromWorld` 가 WP 셀 이탈 시 상태를 메모리에 기록한다. 샘플은 이 몫을 LSP 가 엔진 레벨에서 대신한다.
 - **teardown 전체 메모리 플러시** — `HandleWorldBeginTearDown` 이 맵 이탈 시 savable 전체를 캡처해 같은 세션 맵 왕복 상태를 유지한다(샘플의 `bAutoSaveWhenLeavingMap` 상당을 설정 없이 상시 수행).
-- **PlayerStartTag 체크포인트 부활 체계** — 좌표가 아닌 PlayerStart 식별자 저장. `AWxCheckPoint` 상호작용 → `SetPlayerStartTag` → `SaveToFile()` 흐름과 `UWxPlayerSpawningComponent` 의 태그 탐색 폴백.
+- **재개 지점 단일화** — 로드도 사망 부활도 `PlayerTransform` 하나로 재개한다. 체크포인트의 `Save Game` 태스크가 자기 `ResumePoint` 트랜스폼을 실어 `SaveToFile` 하고, `UWxPlayerSpawnComponent` 가 `PostLogin` 에서 그 좌표에 `APlayerStart` 를 스폰해 `StartSpot` 에 꽂아 엔진 기본 스폰 경로에 올라탄다(GameMode·PC 수정 없음).
 - **레코드 단위 버전 헤더** — 모든 페이로드 블롭이 커스텀 버전 마이그레이션 가능. 샘플은 IAM 블롭 경로만 자체 버전 관리하고 LSP/Mass 는 각자 정책을 따른다.
 - **`Wx.Save.Dump`** — 메모리 슬롯 상태(슬롯·맵·폰·레코드별 바이트/헤더) 덤프 콘솔 명령.
 
@@ -104,6 +104,6 @@ Wx 는 저장소 루트(`C:\Wx`) 기준, 샘플은 `C:\Sample-PersistenceLab-mai
 | `UWxSaveWorldSubsystem` | `Plugins/WxSave/Source/WxSave/Public/WxSaveWorldSubsystem.h` (+cpp) | 플러시/복원 오케스트레이션·캡처/복원 워커 |
 | `UWxSaveLibrary` | `Plugins/WxSave/Source/WxSave/Public/WxSaveLibrary.h` (+cpp) | BP 진입점 |
 | `IWxSavable` | `Plugins/WxCore/Source/WxCore/Public/WxSavable.h` | 저장 옵트인 계약(GUID·복원 훅) |
-| `AWxCheckPoint` | `Source/WxGame/WorldObject/WxCheckPoint.cpp` | 저장 트리거(태그 등록→SaveToFile) |
-| `UWxPlayerSpawningComponent` / `AWxGameMode` | `Source/WxGame/Framework/` | 세이브 폰 트랜스폼 우선 스폰·태그 폴백 |
+| `FWxStateTreeTask_SaveGame` | `Plugins/WxSave/Source/WxSave/Public/WxStateTreeTask_SaveGame.h` | 저장 트리거("Save Game" ST 태스크). `ResumePoint` 를 물려 재개 지점 확정 |
+| `UWxPlayerSpawnComponent` | `Plugins/WxSave/Source/WxSave/Public/WxPlayerSpawnComponent.h` | 저장된 재개 지점에 `APlayerStart` 를 스폰해 `StartSpot` 주입, 스탯 복원 |
 | `UPersistenceGameSubsystem` 외 샘플 전반 | `Plugins/PersistenceUtils/Source/PersistenceUtils/` (샘플 루트 기준) | 이식 원본 — 상세는 [Sample_PersistenceLab_Save_System.md](Sample_PersistenceLab_Save_System.md) |

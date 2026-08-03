@@ -45,7 +45,7 @@ class USplineComponent;
  *  - PlayAnimation 은 (TargetMesh, Animation) 으로 진입 경로를 가리지 않고 처음부터 재생한다. 범용 애니 재생.
  *  - MoveInteractorToTarget 은 (AnchorComponent, RelativeLocation, bAlignRotation, RelativeRotation, Duration) 으로 상호작용한 플레이어 캐릭터(오너 기믹에서 읽는다)를 앵커(또는 오너) 기준 상대 위치/방향으로 일정 시간 이동·응시시키고, 도착하면 완료한다. 목표는 모든 머신에서 동일해 각 피어 로컬 보간으로 수렴한다(복원/초기 진입은 스킵). 이동 중에는 로컬 플레이어의 이동·어빌리티·점프 입력을 막는다(카메라 look 은 유지).
  *  - PlayInteractorMontage 는 (Montage) 으로 상호작용한 플레이어 캐릭터(오너 기믹에서 읽는다)에게 몽타주를 재생하고, 재생이 끝나면 완료한다. 각 머신이 메시 AnimInstance 로 로컬 재생·폴링한다(복원/초기 진입은 스킵). 이동+몽타주 연출은 두 태스크를 상태로 나눠(이동 상태 → 몽타주 상태) 조립한다.
- *  - PlayLevelSequence 는 (LevelSequence) 로 라이브 전이 진입 시 시퀀스를 재생하고 Tick 으로 종료를 폴링하다, 종료 시 시퀀스를 정리하고 권위 측이면 소유 기믹의 HandleLevelSequenceFinished 로 통지한 뒤 Succeeded 를 반환한다(호스트가 State 복귀를 구동; OnComplete 전이를 쓰는 기믹도 그대로 가능). 입력 차단은 별도 EnablePlayerInput 이 맡는다. 중도 이탈 시 ExitState 가 시퀀스 정지·정리(복원 시 침묵·통지 없음).
+ *  - PlayLevelSequence 는 (LevelSequence) 로 라이브 전이 진입 시 시퀀스를 재생하고 Tick 으로 종료를 폴링하다, 종료 시 시퀀스를 정리하고 Succeeded 를 반환한다(상태의 완료 전이가 다음 상태를 잇는다). 입력 차단은 별도 EnablePlayerInput 이 맡는다. 중도 이탈 시 ExitState 가 시퀀스 정지·정리(복원 시 침묵).
  *  - PlaySound 는 (Sound, bPlayOnRestore) 로 라이브 전이 진입 시 사운드를 1회 재생한다(기본은 복원 시 침묵, bPlayOnRestore 면 복원/시작 진입에서도 재생).
  *  - SpawnNiagara 는 (AttachComponent, AttachSocketName, RelativeLocation, Niagara) 로 진입 시 자기가 띄운 FX 가 재생 중이 아니면 재생한다(진입 경로 무관). 루프 Niagara 를 지정하면 상태에 묶인 지속 FX 가 되어 로드·복원에서도 알아서 살아나고 중복도 쌓이지 않는다.
  *  - TriggerSpawners 는 (Spawners) 로 라이브 전이 진입 시 권위 측에서만 각 스포너의 Respawn 을 호출한다(복원 시 재실행 안 함).
@@ -202,7 +202,7 @@ struct FWxStateTreeTask_EnablePlayerInputInstanceData
  * 로컬 플레이어 컨트롤러/폰이 없으면(예: 데디 서버) 노옵. 틱하지 않으므로 비용이 없다.
  *
  * 한계: 대상이 "이 머신의 첫 로컬 플레이어"라 상호작용 당사자를 가리지 않는다. 기믹 ST 는 모든 피어에서 각자 도므로, 멀티플레이에서는 연출을 유발하지 않은 플레이어의 조작까지 막힌다(스플릿스크린 2P 이상은 반대로 토글에서 빠진다).
- * 당사자 지정으로 좁히려면 오너 기믹의 InteractingCharacter 를 읽어야 하는데, 그 값을 채우는 배선(SetInteractingCharacter 호출부)이 아직 없어 보류 상태다.
+ * 당사자로 좁히는 것은 지금도 가능하다 — 멀티캐스트가 전 피어에 채워 두는 GetInteractingCharacter 를 읽으면 된다. 아직 적용하지 않았을 뿐이라 남은 것은 배선이 아니라 판단이다.
  */
 USTRUCT(meta = (DisplayName = "Enable Player Input", Category = "Wx"))
 struct FWxStateTreeTask_EnablePlayerInput : public FStateTreeTaskCommonBase
@@ -499,11 +499,11 @@ struct FWxStateTreeTask_PlayLevelSequenceInstanceData
 };
 
 /**
- * 라이브 전이로 진입할 때 Level Sequence 를 재생하고, 재생이 끝나면 소유 기믹에 통지한 뒤 Succeeded 를 반환한다. State 를 읽지 않아 어떤 기믹이든 재사용한다.
- * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 재생·통지 없이 곧바로 완료한다 — 컷신은 발동 순간에만 재생하고 복원 시엔 침묵한다. 라이브 진입인데 재생할 게 없으면(시퀀스/월드 부재·플레이어 생성 실패) 호스트가 갇히지 않게 곧장 통지하고 완료한다.
+ * 라이브 전이로 진입할 때 Level Sequence 를 재생하고, 재생이 끝나면 Succeeded 를 반환한다. 상태를 읽지 않아 어떤 기믹이든 재사용한다.
+ * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 재생 없이 곧바로 완료한다 — 컷신은 발동 순간에만 재생하고 복원 시엔 침묵한다. 라이브 진입인데 재생할 게 없으면(시퀀스/월드 부재·플레이어 생성 실패) 상태가 갇히지 않게 곧장 완료한다.
  * 입력 차단은 직교 태스크(EnablePlayerInput)가 맡고, 이 노드는 재생만 다룬다.
- * Tick 이 ULevelSequencePlayer::IsPlaying 로 종료를 폴링하다, 종료되면 시퀀스를 정리하고 권위 측이면 소유 기믹의 HandleLevelSequenceFinished 로 통지한다 — 호스트가 그 통지로 권위 State 전이(예: Idle 복귀)를 구동한다(OnComplete 전이를 쓰는 기믹도 그대로 가능). OnFinished 콜백 중 시퀀스 액터 파괴를 피하려고 폴링→다음 틱 정리를 쓴다.
- * 중도 이탈·액터 파괴 시엔 ExitState 가 시퀀스를 정지·정리한다(멱등, 통지 없음). 모든 피어가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다.
+ * Tick 이 ULevelSequencePlayer::IsPlaying 로 종료를 폴링하다, 종료되면 시퀀스를 정리하고 완료한다 — 다음 상태로 넘기는 것은 이 상태의 완료 전이(On State Completed)다. OnFinished 콜백 중 시퀀스 액터 파괴를 피하려고 폴링→다음 틱 정리를 쓴다.
+ * 중도 이탈·액터 파괴 시엔 ExitState 가 시퀀스를 정지·정리한다(멱등). 모든 피어가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다.
  */
 USTRUCT(meta = (DisplayName = "Play Level Sequence", Category = "Wx"))
 struct FWxStateTreeTask_PlayLevelSequence : public FStateTreeTaskCommonBase
