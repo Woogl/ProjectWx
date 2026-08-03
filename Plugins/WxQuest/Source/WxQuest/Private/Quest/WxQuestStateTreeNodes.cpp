@@ -60,13 +60,11 @@ namespace
 
 FWxStateTreeTask_SetQuestTitle::FWxStateTreeTask_SetQuestTitle()
 {
+	// 완료 없이 머무는 태스크다. 재진입은 제목을 다시 걸며 목표 목록을 비우므로, 스텝이 넘어갈 때마다 목표가 지워졌다 붙는다.
+	bShouldStateChangeOnReselect = false;
+
 	// 진입 시 1회 등록만 하므로 틱이 불필요하다.
 	bShouldCallTick = false;
-
-#if WITH_EDITORONLY_DATA
-	// 표시용 부수효과라 상태 완료를 판정해선 안 된다(헤더 주석 참조).
-	bConsideredForCompletion = false;
-#endif
 }
 
 EStateTreeRunStatus FWxStateTreeTask_SetQuestTitle::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
@@ -74,7 +72,6 @@ EStateTreeRunStatus FWxStateTreeTask_SetQuestTitle::EnterState(FStateTreeExecuti
 	UWxQuestComponent* QuestComponent = GetQuestComponent(Context);
 	if (!QuestComponent)
 	{
-		// 이 태스크는 완료 판정 대상이 아니라 엔진이 반환 상태를 무시한다 — 로그가 유일한 진단 수단이다.
 		UE_LOG(LogWxQuest, Warning, TEXT("Set Quest Title: 오너 %s 에서 퀘스트 컴포넌트를 찾지 못함(퀘스트 러너 밖 조립). 제목이 등록되지 않는다."),
 			*GetNameSafe(Context.GetOwner()));
 		return EStateTreeRunStatus::Failed;
@@ -83,7 +80,7 @@ EStateTreeRunStatus FWxStateTreeTask_SetQuestTitle::EnterState(FStateTreeExecuti
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 	QuestComponent->SetQuestTitle(Instance.QuestTitle);
 
-	return EStateTreeRunStatus::Succeeded;
+	return EStateTreeRunStatus::Running;
 }
 
 #if WITH_EDITOR
@@ -108,7 +105,7 @@ FWxStateTreeTask_SetQuestObjective::FWxStateTreeTask_SetQuestObjective()
 	bShouldCallTick = false;
 
 #if WITH_EDITORONLY_DATA
-	// 표시용 부수효과라 상태 완료를 판정해선 안 된다(헤더 주석 참조).
+	// 대기 태스크와 같은 상태에 얹히므로 판정에서 뺀다 — 완료를 내지 않는 태스크가 판정에 끼면 그 상태가 영영 완료되지 않는다.
 	bConsideredForCompletion = false;
 #endif
 }
