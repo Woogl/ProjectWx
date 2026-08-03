@@ -27,7 +27,6 @@ struct FWxDialogueTableRow : public FTableRowBase
 	
 	/**
 	 * 이 대사 동안 NPC가 취할 포즈. 비우면 직전 포즈를 그대로 둔다.
-	 * 자기 자신으로 이어지는 섹션을 가진 몽타주는 다음 포즈가 올 때까지 자세를 붙잡고(대화가 끝나도 그대로 남는다), 루프가 없으면 한 번 연기한 뒤 기본 자세로 풀린다 — 유지·일회성은 애셋이 정한다.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|Dialogue")
 	TObjectPtr<UAnimMontage> TargetPose;
