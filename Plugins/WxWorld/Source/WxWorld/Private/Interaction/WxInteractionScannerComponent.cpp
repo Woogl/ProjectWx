@@ -90,6 +90,11 @@ TArray<FText> UWxInteractionScannerComponent::GetPrompts() const
 	return Prompts;
 }
 
+int32 UWxInteractionScannerComponent::GetSelectedIndex() const
+{
+	return SelectedIndex;
+}
+
 UPrimitiveComponent* UWxInteractionScannerComponent::GetSelectedMesh() const
 {
 	if (!InRangeMeshes.IsValidIndex(SelectedIndex))

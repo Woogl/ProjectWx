@@ -70,7 +70,7 @@ public:
 	 * 스캐너가 클라에서 로컬 폰을 주체로 호출해 표시를 거르고, 상호작용 어빌리티가 서버에서 실제 instigator 를 주체로 호출해 권위 검증한다.
 	 * 판정 입력이 전부 복제돼야 양쪽이 같은 답에 수렴한다.
 	 */
-	virtual bool CanBeInteractedBy(const AActor* Interactor, const UActorComponent* Source) const { return true; }
+	virtual bool CanBeInteractedBy(const AActor* Interactor, const UActorComponent* Source) const;
 
 	/**
 	 * HUD 리스트에 표시할 프롬프트 텍스트. 스캐너가 스캔 때 대상에서 읽는다(pull).

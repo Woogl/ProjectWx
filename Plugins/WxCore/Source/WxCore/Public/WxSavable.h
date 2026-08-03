@@ -37,5 +37,5 @@ public:
 	virtual FGuid GetSaveId() const = 0;
 
 	/** SaveGame 필드 복원 직후 호출. 자식이 시각/인터랙션 동기화 후처리를 한다. BeginPlay 이전에 호출될 수 있다. */
-	virtual void OnSaveRestored() {}
+	virtual void OnSaveRestored();
 };

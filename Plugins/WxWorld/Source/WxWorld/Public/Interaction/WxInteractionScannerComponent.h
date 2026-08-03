@@ -54,7 +54,7 @@ public:
 	TArray<FText> GetPrompts() const;
 
 	/** 현재 선택 인덱스(없으면 INDEX_NONE). 리졸버가 초기 시드로 읽는다. */
-	int32 GetSelectedIndex() const { return SelectedIndex; }
+	int32 GetSelectedIndex() const;
 
 	/** 현재 선택된 인-레인지 메시(없으면 nullptr). */
 	UPrimitiveComponent* GetSelectedMesh() const;

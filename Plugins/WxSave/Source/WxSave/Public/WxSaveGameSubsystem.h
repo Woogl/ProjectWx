@@ -31,10 +31,10 @@ class WXSAVE_API UWxSaveGameSubsystem : public UGameInstanceSubsystem
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
-	UWxSaveGame* GetSaveGame() const { return SaveGame; }
+	UWxSaveGame* GetSaveGame() const;
 
 	/** LoadFromFile 트래블 시작 ~ 새 월드 복원 완료(BeginPlay 보고) 사이 true. 월드 서브시스템의 자동 캡처가 이 동안 스킵돼 막 로드한 세이브의 오염을 막는다. */
-	bool IsTravelingFromSaveFile() const { return bTravelingFromSaveFile; }
+	bool IsTravelingFromSaveFile() const;
 
 	/** SpecificClass 의 새 SaveGame 을 만들어 활성 슬롯으로 등록한다. SlotName 은 그대로 슬롯 정체성이 되므로 유효한 이름을 넘겨야 한다. @return 생성 실패 시 nullptr. */
 	UWxSaveGame* StartNewSaveFile(const FString& SlotName, int32 UserIndex, TSubclassOf<UWxSaveGame> SpecificClass);

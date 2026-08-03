@@ -34,6 +34,16 @@ void UWxSaveGameSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	StartNewSaveFile(WxSave::DefaultSaveSlotName, 0, UWxSaveGame::StaticClass());
 }
 
+UWxSaveGame* UWxSaveGameSubsystem::GetSaveGame() const
+{
+	return SaveGame;
+}
+
+bool UWxSaveGameSubsystem::IsTravelingFromSaveFile() const
+{
+	return bTravelingFromSaveFile;
+}
+
 UWxSaveGame* UWxSaveGameSubsystem::StartNewSaveFile(const FString& SlotName, int32 UserIndex, TSubclassOf<UWxSaveGame> SpecificClass)
 {
 	if (!SpecificClass)

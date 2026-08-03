@@ -41,3 +41,8 @@ bool IWxInteractable::IsMeshInRange(const UPrimitiveComponent* Mesh, const FVect
 	// 채널이 아니라 바디에 직접 던지는 테스트라 콜리전 응답·프로파일은 보지 않는다. 쿼리 콜리전이 켜져 있기만 하면 된다.
 	return Mesh->OverlapComponent(Origin, FQuat::Identity, FCollisionShape::MakeSphere(Radius));
 }
+
+bool IWxInteractable::CanBeInteractedBy(const AActor* Interactor, const UActorComponent* Source) const
+{
+	return true;
+}
