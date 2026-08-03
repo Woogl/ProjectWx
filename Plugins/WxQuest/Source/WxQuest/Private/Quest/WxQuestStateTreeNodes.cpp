@@ -211,15 +211,15 @@ FText FWxStateTreeTask_WaitMoveToTarget::GetDescription(const FGuid& ID, FStateT
 }
 #endif
 
-// ── StartNextQuest ────────────────────────────────────────────────────────────
+// ── ActivateNextQuest ────────────────────────────────────────────────────────────
 
-FWxStateTreeTask_StartNextQuest::FWxStateTreeTask_StartNextQuest()
+FWxStateTreeTask_ActivateNextQuest::FWxStateTreeTask_ActivateNextQuest()
 {
 	// 진입 시 1회 예약만 하므로 틱이 불필요하다.
 	bShouldCallTick = false;
 }
 
-EStateTreeRunStatus FWxStateTreeTask_StartNextQuest::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+EStateTreeRunStatus FWxStateTreeTask_ActivateNextQuest::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	UWxQuestComponent* QuestComponent = GetQuestComponent(Context);
 	if (!QuestComponent)
@@ -229,18 +229,18 @@ EStateTreeRunStatus FWxStateTreeTask_StartNextQuest::EnterState(FStateTreeExecut
 
 	// 빈 지정은 컴포넌트가 무시하므로 체인 종점 처리도 같은 호출로 수렴한다.
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
-	QuestComponent->RequestStartQuest(Instance.NextQuest);
+	QuestComponent->RequestActivateQuest(Instance.NextQuest);
 
 	return EStateTreeRunStatus::Succeeded;
 }
 
 #if WITH_EDITOR
-FText FWxStateTreeTask_StartNextQuest::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
+FText FWxStateTreeTask_ActivateNextQuest::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
 {
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
 	const FText NextQuestText = InstanceData->NextQuest.IsNull() ? INVTEXT("none") : FText::FromString(InstanceData->NextQuest.GetAssetName());
-	return FText::Format(INVTEXT("Start Next Quest ({0})"), NextQuestText);
+	return FText::Format(INVTEXT("Activate Next Quest ({0})"), NextQuestText);
 }
 #endif

@@ -2,13 +2,10 @@
 
 #include "Quest/WxQuestComponent.h"
 
-#include "AssetRegistry/ARFilter.h"
-#include "AssetRegistry/AssetRegistryModule.h"
 #include "Components/StateTreeComponent.h"
 #include "Engine/World.h"
 #include "Quest/WxQuestStateTree.h"
 #include "TimerManager.h"
-#include "WxQuestModule.h"
 
 UWxQuestComponent::UWxQuestComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -17,7 +14,7 @@ UWxQuestComponent::UWxQuestComponent(const FObjectInitializer& ObjectInitializer
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UWxQuestComponent::StartQuest(UWxQuestStateTree* QuestAsset)
+void UWxQuestComponent::ActivateQuest(UWxQuestStateTree* QuestAsset)
 {
 	// 러너는 권위에서만 생성되므로 비-권위 머신의 호출은 자연히 노옵이다.
 	if (!QuestStateTree || !QuestAsset)
@@ -27,12 +24,12 @@ void UWxQuestComponent::StartQuest(UWxQuestStateTree* QuestAsset)
 
 	// 정지 → 교체 → 시작. 엔진이 Running 중 SetStateTree 를 거부하므로 반드시 이 순서다.
 	// 정지가 저널 정리(HandleStateTreeRunStatusChanged)를 발화시키고, 새 퀘스트 진행이 저널을 다시 채운다.
-	QuestStateTree->StopLogic(TEXT("StartQuest"));
+	QuestStateTree->StopLogic(TEXT("ActivateQuest"));
 	QuestStateTree->SetStateTree(QuestAsset);
 	QuestStateTree->StartLogic();
 }
 
-void UWxQuestComponent::RequestStartQuest(TSoftObjectPtr<UWxQuestStateTree> QuestAsset)
+void UWxQuestComponent::RequestActivateQuest(TSoftObjectPtr<UWxQuestStateTree> QuestAsset)
 {
 	if (QuestAsset.IsNull())
 	{
@@ -40,7 +37,7 @@ void UWxQuestComponent::RequestStartQuest(TSoftObjectPtr<UWxQuestStateTree> Ques
 	}
 
 	// 타이머 대기 중 GC 로 로드가 풀릴 수 있어 포인터가 아닌 소프트 참조를 넘기고 실행 시점에 로드한다.
-	GetWorld()->GetTimerManager().SetTimerForNextTick(FTimerDelegate::CreateUObject(this, &UWxQuestComponent::HandleDeferredStartQuest, QuestAsset));
+	GetWorld()->GetTimerManager().SetTimerForNextTick(FTimerDelegate::CreateUObject(this, &UWxQuestComponent::HandleDeferredActivateQuest, QuestAsset));
 }
 
 void UWxQuestComponent::SendQuestEvent(FGameplayTag EventTag)
@@ -117,60 +114,11 @@ void UWxQuestComponent::BeginPlay()
 		return;
 	}
 
-	// 자동 시작을 끈 순정 러너를 런타임 부착한다. 실행할 에셋은 StartQuest 가 그때그때 지정한다.
+	// 자동 시작을 끈 순정 러너를 런타임 부착한다. 실행할 에셋은 ActivateQuest 가 그때그때 지정한다.
 	QuestStateTree = NewObject<UStateTreeComponent>(Owner, TEXT("QuestStateTree"));
 	QuestStateTree->SetStartLogicAutomatically(false);
 	QuestStateTree->RegisterComponent();
 	QuestStateTree->OnStateTreeRunStatusChanged.AddDynamic(this, &UWxQuestComponent::HandleStateTreeRunStatusChanged);
-
-	// 첫 탑재 지정은 에셋 자신에게 있다(bAutoStart) — 레지스트리 발견이라 컴포넌트는 여전히 특정 에셋을 모른다.
-	FARFilter Filter;
-	Filter.ClassPaths.Add(UWxQuestStateTree::StaticClass()->GetClassPathName());
-	Filter.bRecursiveClasses = true;
-
-	IAssetRegistry& AssetRegistry = FAssetRegistryModule::GetRegistry();
-	TArray<FAssetData> QuestAssets;
-	AssetRegistry.GetAssets(Filter, QuestAssets);
-
-	// 발견 0건 자체는 정상(퀘스트 없는 상태)이나, 스캔 미완이 원인이면 침묵이 오진을 만들므로 구분해 남긴다.
-	if (QuestAssets.IsEmpty() && AssetRegistry.IsLoadingAssets())
-	{
-		UE_LOG(LogWxQuest, Warning, TEXT("퀘스트 에셋 발견 0건 — 애셋 레지스트리 스캔 미완이라 자동 탑재가 누락됐을 수 있음."));
-	}
-
-	// 활성 1개 원칙이라 자동 탑재도 1개만 성립한다.
-	// 복수 선언은 잘못된 조립이므로 경고하되, 경로 사전순 첫 에셋을 골라 결정성은 유지한다(레지스트리 결과는 순서 비보장).
-	const FAssetData* AutoStartQuest = nullptr;
-	int32 AutoStartCount = 0;
-	for (const FAssetData& QuestAsset : QuestAssets)
-	{
-		// 태그 부재(프로퍼티 도입 전 저장분)는 false 와 같다.
-		bool bAutoStart = false;
-		QuestAsset.GetTagValue(GET_MEMBER_NAME_CHECKED(UWxQuestStateTree, bAutoStart), bAutoStart);
-		if (!bAutoStart)
-		{
-			continue;
-		}
-
-		++AutoStartCount;
-		if (!AutoStartQuest || QuestAsset.GetSoftObjectPath().LexicalLess(AutoStartQuest->GetSoftObjectPath()))
-		{
-			AutoStartQuest = &QuestAsset;
-		}
-	}
-
-	if (!AutoStartQuest)
-	{
-		return;
-	}
-
-	if (AutoStartCount > 1)
-	{
-		UE_LOG(LogWxQuest, Warning, TEXT("bAutoStart 퀘스트가 %d개 — 활성 1개 원칙에 따라 %s 만 탑재함."), AutoStartCount, *AutoStartQuest->GetSoftObjectPath().ToString());
-	}
-
-	// BeginPlay 중의 초기화 순서를 타지 않도록 기존 지연 시작 경로(다음 틱 로드·시작)로 탑재한다.
-	RequestStartQuest(TSoftObjectPtr<UWxQuestStateTree>(AutoStartQuest->GetSoftObjectPath()));
 }
 
 void UWxQuestComponent::HandleStateTreeRunStatusChanged(EStateTreeRunStatus StateTreeRunStatus)
@@ -182,9 +130,9 @@ void UWxQuestComponent::HandleStateTreeRunStatusChanged(EStateTreeRunStatus Stat
 	}
 }
 
-void UWxQuestComponent::HandleDeferredStartQuest(TSoftObjectPtr<UWxQuestStateTree> QuestAsset)
+void UWxQuestComponent::HandleDeferredActivateQuest(TSoftObjectPtr<UWxQuestStateTree> QuestAsset)
 {
-	StartQuest(QuestAsset.LoadSynchronous());
+	ActivateQuest(QuestAsset.LoadSynchronous());
 }
 
 void UWxQuestComponent::ClearJournal()

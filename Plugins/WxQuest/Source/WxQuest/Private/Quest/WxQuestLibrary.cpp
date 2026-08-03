@@ -17,11 +17,11 @@ namespace
 	}
 }
 
-void UWxQuestLibrary::StartQuest(const UObject* WorldContextObject, UWxQuestStateTree* QuestAsset)
+void UWxQuestLibrary::ActivateQuest(const UObject* WorldContextObject, UWxQuestStateTree* QuestAsset)
 {
 	if (UWxQuestComponent* QuestComponent = ResolveQuestComponent(WorldContextObject))
 	{
-		QuestComponent->StartQuest(QuestAsset);
+		QuestComponent->ActivateQuest(QuestAsset);
 	}
 }
 

@@ -22,9 +22,9 @@ class WXQUEST_API UWxQuestLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
-	/** 진행 중인 퀘스트를 정지하고 지정 퀘스트를 시작한다. */
+	/** 진행 중인 퀘스트를 정지하고 지정 퀘스트를 활성화한다(진행 개시는 퀘스트 자신의 Start 게이트가 판정). */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Quest", meta = (WorldContext = "WorldContextObject"))
-	static void StartQuest(const UObject* WorldContextObject, UWxQuestStateTree* QuestAsset);
+	static void ActivateQuest(const UObject* WorldContextObject, UWxQuestStateTree* QuestAsset);
 
 	/** 실행 중인 퀘스트 ST 로 이벤트를 보낸다(Quest.Fail 등 전이 트리거). */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Quest", meta = (WorldContext = "WorldContextObject"))

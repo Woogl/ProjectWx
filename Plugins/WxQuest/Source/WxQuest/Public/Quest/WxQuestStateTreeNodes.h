@@ -151,10 +151,10 @@ struct FWxStateTreeTask_WaitMoveToTarget : public FStateTreeTaskCommonBase
 #endif
 };
 
-// ── StartNextQuest: 다음 퀘스트 시작 예약 ─────────────────────────────────────
+// ── ActivateNextQuest: 다음 퀘스트 시작 예약 ─────────────────────────────────────
 
 USTRUCT()
-struct FWxStateTreeTask_StartNextQuestInstanceData
+struct FWxStateTreeTask_ActivateNextQuestInstanceData
 {
 	GENERATED_BODY()
 
@@ -168,14 +168,14 @@ struct FWxStateTreeTask_StartNextQuestInstanceData
  * 러너 실행 콜스택 안에서는 에셋 교체가 거부되므로 즉시 시작이 아니라 다음 틱 예약이다.
  * NextQuest 가 비면 아무것도 하지 않는다(체인 종점). 퀘스트 컴포넌트가 없으면 잘못된 조립(퀘스트 러너 밖 사용)이므로 Failed.
  */
-USTRUCT(meta = (DisplayName = "Start Next Quest", Category = "Wx"))
-struct FWxStateTreeTask_StartNextQuest : public FStateTreeTaskCommonBase
+USTRUCT(meta = (DisplayName = "Activate Next Quest", Category = "Wx"))
+struct FWxStateTreeTask_ActivateNextQuest : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
 
-	using FInstanceDataType = FWxStateTreeTask_StartNextQuestInstanceData;
+	using FInstanceDataType = FWxStateTreeTask_ActivateNextQuestInstanceData;
 
-	FWxStateTreeTask_StartNextQuest();
+	FWxStateTreeTask_ActivateNextQuest();
 
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
