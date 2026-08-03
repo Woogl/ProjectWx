@@ -112,7 +112,7 @@ flowchart TD
 | 타입 | 모듈 | 역할 |
 | --- | --- | --- |
 | `UWxGimmickStateTreeComponent` | `WxWorld` (`Public\|Private/Gimmick/WxGimmickStateTreeComponent.h/.cpp`) | 기믹의 실체: 상호작용 계약(`IWxInteractable`)·영속(`IWxSavable`)·상태 Tag 기록/복제·저장 상태에서 트리 열기 |
-| `AWxGimmick` 과 그 자식들 | `WxWorld` (`.../Gimmick/`) | 이미 배치된 기믹 넷의 얇은 호스트(부착 루트 + 메시). 순수 BP 재저작 후 삭제 예정이며, 신규 기믹은 상속하지 않는다 |
+| `BP_Door` / `BP_Elevator` / `BP_TreasureChest` / `BP_CheckPoint` | 콘텐츠 (`/Game/WorldObject/Gimmick/`) | 배치된 기믹 넷. 전부 순정 `AActor` BP 이며 메시 + GimmickStateTree 컴포넌트뿐이다. 기믹용 C++ 액터 클래스는 없다 |
 | `FWxStateTreeTask_*` | `WxWorld` (`.../Gimmick/WxGimmickStateTreeNodes.h/.cpp`) | 공용 노드들. `IsInitialEntry`(규칙 3)·`HasAuthority`(권위) 가드 |
 | `FWxStateTreeTask_GrantReward` | `WxInventory` (`.../Inventory/WxRewardStateTreeNodes.cpp`) | 크로스모듈 노드 예시: `AActor` 캐스트 + 초기 진입 인라인 검사 |
 | `UWxAbility_Interact` | `WxGame` (`.../Ability/WxAbility_Interact.cpp`) | 서버 권위 실행 진입점. 사거리·활성 검증 → 대상의 `IWxInteractable::OnInteracted` |
