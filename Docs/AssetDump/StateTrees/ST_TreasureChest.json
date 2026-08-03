@@ -1,0 +1,73 @@
+{
+  "asset": "/Game/WorldObject/Gimmick/ST_TreasureChest",
+  "class": "/Script/StateTreeModule.StateTree",
+  "data": {
+    "evaluators": [],
+    "global_tasks": [],
+    "schema": "/Script/GameplayStateTreeModule.StateTreeComponentSchema",
+    "sub_trees": [
+      {
+        "children": [
+          {
+            "children": [],
+            "enter_conditions": [],
+            "name": "Closed",
+            "selection_behavior": "TRY_SELECT_CHILDREN_IN_ORDER",
+            "tasks": [
+              {
+                "desc": "Enable \"Open\" Interaction (Actor.Mesh Component)",
+                "node": "/Script/WxWorld.WxStateTreeTask_EnableInteraction"
+              }
+            ],
+            "transitions": [
+              {
+                "state": {
+                  "linkType": "GOTO_STATE",
+                  "name": "Open"
+                },
+                "trigger": "ON_EVENT"
+              }
+            ],
+            "type": "STATE"
+          },
+          {
+            "children": [],
+            "enter_conditions": [],
+            "name": "Open",
+            "selection_behavior": "TRY_SELECT_CHILDREN_IN_ORDER",
+            "tasks": [
+              {
+                "desc": "Disable Interaction (Actor.Mesh Component)",
+                "node": "/Script/WxWorld.WxStateTreeTask_EnableInteraction"
+              },
+              {
+                "desc": "Grant Reward (none)",
+                "node": "/Script/WxInventory.WxStateTreeTask_GrantReward"
+              },
+              {
+                "desc": "Play Animation (scene_Anim_Open)",
+                "node": "/Script/WxWorld.WxStateTreeTask_PlayAnimation"
+              }
+            ],
+            "transitions": [
+              {
+                "state": {
+                  "linkType": "SUCCEEDED",
+                  "name": "Root"
+                },
+                "trigger": "ON_STATE_COMPLETED"
+              }
+            ],
+            "type": "STATE"
+          }
+        ],
+        "enter_conditions": [],
+        "name": "Root",
+        "selection_behavior": "TRY_SELECT_CHILDREN_IN_ORDER",
+        "tasks": [],
+        "transitions": [],
+        "type": "STATE"
+      }
+    ]
+  }
+}

@@ -1,0 +1,5866 @@
+{
+  "asset": "/Game/UI/InputData/InputData_KMB",
+  "class": "/Script/Engine.Blueprint",
+  "data": {
+    "cdo": {
+      "controllerButtonMaskTexture": null,
+      "controllerTexture": null,
+      "gamepadCategory": "",
+      "gamepadDisplayName": "",
+      "gamepadHardwareIdMapping": [],
+      "gamepadName": "None",
+      "gamepadPlatformName": "",
+      "inputBrushDataMap": [
+        {
+          "key": {
+            "keyName": "MouseX"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_MouseX.T_Keyboard_MouseX",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "MouseY"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_MouseY.T_Keyboard_MouseY",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Mouse2D"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_MouseXY2D-Axis.T_Keyboard_MouseXY2D-Axis",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "MouseWheelAxis"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_MouseWheelAxis.T_Keyboard_MouseWheelAxis",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "MouseScrollUp"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_MouseWheelUp.T_Keyboard_MouseWheelUp",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "MouseScrollDown"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_MouseWheelDown.T_Keyboard_MouseWheelDown",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "LeftMouseButton"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_LeftMouseButton.T_Keyboard_LeftMouseButton",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "RightMouseButton"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_RightMouseButton.T_Keyboard_RightMouseButton",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "MiddleMouseButton"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_MiddleMouseButton.T_Keyboard_MiddleMouseButton",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "ThumbMouseButton"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_ThumbMouseButton.T_Keyboard_ThumbMouseButton",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "ThumbMouseButton2"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_ThumbMouseButton2.T_Keyboard_ThumbMouseButton2",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Tab"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Tab.T_Keyboard_Tab",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Enter"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Enter.T_Keyboard_Enter",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Pause"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Pause.T_Keyboard_Pause",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "CapsLock"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_CapsLock.T_Keyboard_CapsLock",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Escape"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Escape.T_Keyboard_Escape",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "SpaceBar"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_SpaceBar.T_Keyboard_SpaceBar",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "PageUp"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_PageUp.T_Keyboard_PageUp",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "PageDown"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_PageDown.T_Keyboard_PageDown",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "End"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_End.T_Keyboard_End",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Home"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Home.T_Keyboard_Home",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Left"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Left.T_Keyboard_Left",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Up"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Up.T_Keyboard_Up",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Right"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Right.T_Keyboard_Right",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Down"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Down.T_Keyboard_Down",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Insert"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Insert.T_Keyboard_Insert",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "BackSpace"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_BackSpace.T_Keyboard_BackSpace",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Delete"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Delete.T_Keyboard_Delete",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Zero"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_0.T_Keyboard_0",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "One"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_1.T_Keyboard_1",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Two"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_2.T_Keyboard_2",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Three"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_3.T_Keyboard_3",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Four"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_4.T_Keyboard_4",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Five"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_5.T_Keyboard_5",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Six"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_6.T_Keyboard_6",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Seven"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_7.T_Keyboard_7",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Eight"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_8.T_Keyboard_8",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Nine"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_9.T_Keyboard_9",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "A"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_A.T_Keyboard_A",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "B"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_B.T_Keyboard_B",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "C"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_C.T_Keyboard_C",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "D"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_D.T_Keyboard_D",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "E"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_E.T_Keyboard_E",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "F"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F.T_Keyboard_F",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "G"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_G.T_Keyboard_G",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "H"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_H.T_Keyboard_H",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "I"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_I.T_Keyboard_I",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "J"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_J.T_Keyboard_J",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "K"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_K.T_Keyboard_K",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "L"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_L.T_Keyboard_L",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "M"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_M.T_Keyboard_M",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "N"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_N.T_Keyboard_N",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "O"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_O.T_Keyboard_O",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "P"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_P.T_Keyboard_P",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Q"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Q.T_Keyboard_Q",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "R"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_R.T_Keyboard_R",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "S"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_S.T_Keyboard_S",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "T"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_T.T_Keyboard_T",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "U"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_U.T_Keyboard_U",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "V"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_V.T_Keyboard_V",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "W"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_W.T_Keyboard_W",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "X"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_X.T_Keyboard_X",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Y"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Y.T_Keyboard_Y",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Z"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Z.T_Keyboard_Z",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "NumPadZero"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num0.T_Keyboard_Num0",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "NumPadOne"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num1.T_Keyboard_Num1",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "NumPadTwo"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num2.T_Keyboard_Num2",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "NumPadThree"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num3.T_Keyboard_Num3",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "NumPadFour"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num4.T_Keyboard_Num4",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "NumPadFive"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num5.T_Keyboard_Num5",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "NumPadSix"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num6.T_Keyboard_Num6",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "NumPadSeven"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num7.T_Keyboard_Num7",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "NumPadEight"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num8.T_Keyboard_Num8",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "NumPadNine"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Num9.T_Keyboard_Num9",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Multiply"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_NumMultiply.T_Keyboard_NumMultiply",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Add"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_NumPlus.T_Keyboard_NumPlus",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Subtract"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_NumMinus.T_Keyboard_NumMinus",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Decimal"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_NumPeriod.T_Keyboard_NumPeriod",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Divide"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_NumDivide.T_Keyboard_NumDivide",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "F1"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F1.T_Keyboard_F1",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "F2"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F2.T_Keyboard_F2",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "F3"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F3.T_Keyboard_F3",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "F4"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F4.T_Keyboard_F4",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "F5"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F5.T_Keyboard_F5",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "F6"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F6.T_Keyboard_F6",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "F7"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F7.T_Keyboard_F7",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "F8"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F8.T_Keyboard_F8",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "F9"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F9.T_Keyboard_F9",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "F10"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F10.T_Keyboard_F10",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "F11"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F11.T_Keyboard_F11",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "F12"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F12.T_Keyboard_F12",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "NumLock"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_NumLock.T_Keyboard_NumLock",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "ScrollLock"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_ScrollLock.T_Keyboard_ScrollLock",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "LeftShift"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_LeftShift.T_Keyboard_LeftShift",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "RightShift"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_RightShift.T_Keyboard_RightShift",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "LeftControl"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_LeftCtrl.T_Keyboard_LeftCtrl",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "RightControl"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_RightCtrl.T_Keyboard_RightCtrl",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "LeftAlt"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_LeftAlt.T_Keyboard_LeftAlt",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "RightAlt"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_RightAlt.T_Keyboard_RightAlt",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "LeftCommand"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_WinKey.T_Keyboard_WinKey",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "RightCommand"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_WinKey.T_Keyboard_WinKey",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Semicolon"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Semicolon.T_Keyboard_Semicolon",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Equals"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Equals.T_Keyboard_Equals",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Comma"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Comma.T_Keyboard_Comma",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Hyphen"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Hyphen.T_Keyboard_Hyphen",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Period"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Period.T_Keyboard_Period",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Slash"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Slash.T_Keyboard_Slash",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Tilde"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Tilde.T_Keyboard_Tilde",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "LeftBracket"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_LeftBracket.T_Keyboard_LeftBracket",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Backslash"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Backslash.T_Keyboard_Backslash",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "RightBracket"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_RightBracket.T_Keyboard_RightBracket",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Apostrophe"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_Apostrophe.T_Keyboard_Apostrophe",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        }
+      ],
+      "inputBrushKeySets": [],
+      "inputType": "MOUSE_AND_KEYBOARD",
+      "setButtonImageHeightTo": 0
+    },
+    "components": [],
+    "event_dispatchers": [],
+    "events": [],
+    "functions": [],
+    "graphs": [
+      "EventGraph"
+    ],
+    "native_parent": "/Script/CommonInput.CommonInputBaseControllerData",
+    "parent": "/Script/CommonInput.CommonInputBaseControllerData",
+    "variables": [
+      "/Script/CommonInput.CommonInputBaseControllerData.ControllerButtonMaskTexture",
+      "/Script/CommonInput.CommonInputBaseControllerData.ControllerTexture",
+      "/Script/CommonInput.CommonInputBaseControllerData.GamepadCategory",
+      "/Script/CommonInput.CommonInputBaseControllerData.GamepadDisplayName",
+      "/Script/CommonInput.CommonInputBaseControllerData.GamepadHardwareIdMapping",
+      "/Script/CommonInput.CommonInputBaseControllerData.GamepadName",
+      "/Script/CommonInput.CommonInputBaseControllerData.GamepadPlatformName",
+      "/Script/CommonInput.CommonInputBaseControllerData.InputBrushDataMap",
+      "/Script/CommonInput.CommonInputBaseControllerData.InputBrushKeySets",
+      "/Script/CommonInput.CommonInputBaseControllerData.InputType",
+      "/Script/CommonInput.CommonInputBaseControllerData.SetButtonImageHeightTo"
+    ]
+  }
+}

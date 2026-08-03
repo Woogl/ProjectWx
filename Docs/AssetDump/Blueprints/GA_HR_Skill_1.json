@@ -1,0 +1,143 @@
+{
+  "asset": "/Game/Character/Player/HR/Skill/Skill1/GA_HR_Skill_1",
+  "class": "/Script/GameplayAbilities.GameplayAbilityBlueprint",
+  "data": {
+    "cdo": {
+      "abilityDataRow": {
+        "dataTable": "/Game/DesignerTables/DT_Ability.DT_Ability",
+        "rowName": "GA_HR_Skill_1"
+      },
+      "abilityTags": {
+        "gameplayTags": [
+          {
+            "tagName": "Ability.Skill.1"
+          }
+        ]
+      },
+      "abilityTriggers": [],
+      "activationBlockedTags": {
+        "gameplayTags": [
+          {
+            "tagName": "State.Dead"
+          }
+        ]
+      },
+      "activationInputAction": null,
+      "activationOwnedTags": {
+        "gameplayTags": []
+      },
+      "activationPolicy": "ON_TRIGGERED",
+      "activationRequiredTags": {
+        "gameplayTags": []
+      },
+      "bReplicateInputDirectly": false,
+      "bRetriggerInstancedAbility": true,
+      "bServerRespectsRemoteAbilityCancellation": true,
+      "blockAbilitiesWithTag": {
+        "gameplayTags": [
+          {
+            "tagName": "Ability"
+          }
+        ]
+      },
+      "cancelAbilitiesWithTag": {
+        "gameplayTags": []
+      },
+      "cooldownGameplayEffectClass": "/Script/WxCombat.WxEffect_Cooldown",
+      "costGameplayEffectClass": "/Script/WxCombat.WxEffect_Cost",
+      "currentActivationInfo": {
+        "activationMode": "AUTHORITY"
+      },
+      "currentEventData": {
+        "contextHandle": "()",
+        "eventMagnitude": 0.0,
+        "eventTag": {
+          "tagName": "None"
+        },
+        "instigator": null,
+        "instigatorTags": {
+          "gameplayTags": []
+        },
+        "optionalObject": null,
+        "optionalObject2": null,
+        "target": null,
+        "targetData": "()",
+        "targetTags": {
+          "gameplayTags": []
+        }
+      },
+      "instancingPolicy": "INSTANCED_PER_ACTOR",
+      "netExecutionPolicy": "LOCAL_PREDICTED",
+      "netSecurityPolicy": "CLIENT_OR_SERVER",
+      "replicationPolicy": "REPLICATE_NO",
+      "skillMontages": [
+        "/Game/Character/Player/HR/Skill/Skill1/AM_HR_Skill_1.AM_HR_Skill_1",
+        "/Game/Character/Player/HR/Skill/Skill1/AM_HR_Skill_1_3.AM_HR_Skill_1_3",
+        "/Game/Character/Player/HR/Skill/Skill1/AM_HR_Skill_1_2.AM_HR_Skill_1_2",
+        "/Game/Character/Player/HR/Skill/Skill1/AM_HR_Skill_1_4.AM_HR_Skill_1_4"
+      ],
+      "sourceBlockedTags": {
+        "gameplayTags": []
+      },
+      "sourceRequiredTags": {
+        "gameplayTags": []
+      },
+      "targetBlockedTags": {
+        "gameplayTags": []
+      },
+      "targetRequiredTags": {
+        "gameplayTags": []
+      }
+    },
+    "components": [],
+    "event_dispatchers": [],
+    "events": [
+      "K2_ActivateAbility",
+      "K2_OnEndAbility"
+    ],
+    "functions": [],
+    "graphs": [
+      "Gameplay Ability Graph"
+    ],
+    "native_parent": "/Script/WxCombat.WxAbility_Skill",
+    "parent": "/Script/WxCombat.WxAbility_Skill",
+    "variables": [
+      "/Script/GameplayAbilities.GameplayAbility.AbilityTags",
+      "/Script/GameplayAbilities.GameplayAbility.AbilityTriggers",
+      "/Script/GameplayAbilities.GameplayAbility.ActivationBlockedTags",
+      "/Script/GameplayAbilities.GameplayAbility.ActivationOwnedTags",
+      "/Script/GameplayAbilities.GameplayAbility.ActivationRequiredTags",
+      "/Script/GameplayAbilities.GameplayAbility.ActiveTasks",
+      "/Script/GameplayAbilities.GameplayAbility.BlockAbilitiesWithTag",
+      "/Script/GameplayAbilities.GameplayAbility.CancelAbilitiesWithTag",
+      "/Script/GameplayAbilities.GameplayAbility.CooldownGameplayEffectClass",
+      "/Script/GameplayAbilities.GameplayAbility.CostGameplayEffectClass",
+      "/Script/GameplayAbilities.GameplayAbility.CurrentActivationInfo",
+      "/Script/GameplayAbilities.GameplayAbility.CurrentEventData",
+      "/Script/GameplayAbilities.GameplayAbility.CurrentMontage",
+      "/Script/GameplayAbilities.GameplayAbility.InstancingPolicy",
+      "/Script/GameplayAbilities.GameplayAbility.NetExecutionPolicy",
+      "/Script/GameplayAbilities.GameplayAbility.NetSecurityPolicy",
+      "/Script/GameplayAbilities.GameplayAbility.RemoteInstanceEnded",
+      "/Script/GameplayAbilities.GameplayAbility.ReplicationPolicy",
+      "/Script/GameplayAbilities.GameplayAbility.SourceBlockedTags",
+      "/Script/GameplayAbilities.GameplayAbility.SourceRequiredTags",
+      "/Script/GameplayAbilities.GameplayAbility.TargetBlockedTags",
+      "/Script/GameplayAbilities.GameplayAbility.TargetRequiredTags",
+      "/Script/GameplayAbilities.GameplayAbility.bIsAbilityEnding",
+      "/Script/GameplayAbilities.GameplayAbility.bIsActive",
+      "/Script/GameplayAbilities.GameplayAbility.bIsBlockingOtherAbilities",
+      "/Script/GameplayAbilities.GameplayAbility.bIsCancelable",
+      "/Script/GameplayAbilities.GameplayAbility.bReplicateInputDirectly",
+      "/Script/GameplayAbilities.GameplayAbility.bRetriggerInstancedAbility",
+      "/Script/GameplayAbilities.GameplayAbility.bServerRespectsRemoteAbilityCancellation",
+      "/Script/WxCombat.WxAbilityBase.AbilityDataRow",
+      "/Script/WxCombat.WxAbilityBase.ActivationInputAction",
+      "/Script/WxCombat.WxAbilityBase.ActivationPolicy",
+      "/Script/WxCombat.WxAbilityBase.CooldownEffect",
+      "/Script/WxCombat.WxAbilityBase.HitStopListenerTask",
+      "/Script/WxCombat.WxAbility_Skill.MontageTask",
+      "/Script/WxCombat.WxAbility_Skill.SkillMontages"
+    ]
+  }
+}

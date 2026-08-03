@@ -1,0 +1,1377 @@
+{
+  "assets": [
+    {
+      "class": "BlackboardData",
+      "path": "/Game/AI/BB_Enemy.BB_Enemy"
+    },
+    {
+      "class": "BehaviorTree",
+      "path": "/Game/AI/BT_Custer.BT_Custer"
+    },
+    {
+      "class": "BehaviorTree",
+      "path": "/Game/AI/BT_Enemy.BT_Enemy"
+    },
+    {
+      "class": "BehaviorTree",
+      "path": "/Game/AI/BT_Enemy1.BT_Enemy1"
+    },
+    {
+      "class": "BehaviorTree",
+      "path": "/Game/AI/BT_Enemy2.BT_Enemy2"
+    },
+    {
+      "class": "BehaviorTree",
+      "path": "/Game/AI/BT_Gunman.BT_Gunman"
+    },
+    {
+      "class": "BehaviorTree",
+      "path": "/Game/AI/BT_Sandbag.BT_Sandbag"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Attack_H.AM_Attack_H"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Attack_HH.AM_Attack_HH"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Attack_HHH.AM_Attack_HHH"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Attack_L.AM_Attack_L"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Attack_LL.AM_Attack_LL"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Attack_LLL.AM_Attack_LLL"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Attack_LLLH.AM_Attack_LLLH"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Attack_LLLL.AM_Attack_LLLL"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_BackstabFinisher.AM_BackstabFinisher"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Backstep.AM_Backstep"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Death.AM_Death"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Dodge.AM_Dodge"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_DodgeCounter.AM_DodgeCounter"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_DodgeSuccess.AM_DodgeSuccess"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Finisher.AM_Finisher"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Groggy.AM_Groggy"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Guard.AM_Guard"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_GuardBreak.AM_GuardBreak"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_GuardCounter.AM_GuardCounter"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_GuardHit.AM_GuardHit"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_GuardKnockback.AM_GuardKnockback"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_HitReact.AM_HitReact"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_HitReact_Finisher.AM_HitReact_Finisher"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_HitReact_Knockback.AM_HitReact_Knockback"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_HitReact_Knockdown.AM_HitReact_Knockdown"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_HitReact_Knockup.AM_HitReact_Knockup"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Interact.AM_Interact"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Parry.AM_Parry"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_ParryReact.AM_ParryReact"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Pattern_1.AM_Pattern_1"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Pattern_2.AM_Pattern_2"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Pattern_3.AM_Pattern_3"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Pattern_4.AM_Pattern_4"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Skill_1.AM_Skill_1"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Skill_2.AM_Skill_2"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Skill_3.AM_Skill_3"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Skill_3_1.AM_Skill_3_1"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Skill_3_2.AM_Skill_3_2"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Skill_3_3.AM_Skill_3_3"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Skill_4.AM_Skill_4"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_Ultimate.AM_Ultimate"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/AM_UseItem.AM_UseItem"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxCombat.WxProjectileBase",
+      "path": "/Game/AbilitySystem/Ability/BP_Projectile.BP_Projectile"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Attack",
+      "path": "/Game/AbilitySystem/Ability/GA_Attack.GA_Attack"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Death",
+      "path": "/Game/AbilitySystem/Ability/GA_Death.GA_Death"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Dodge",
+      "path": "/Game/AbilitySystem/Ability/GA_Dodge.GA_Dodge"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Finisher",
+      "path": "/Game/AbilitySystem/Ability/GA_Finisher.GA_Finisher"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Groggy",
+      "path": "/Game/AbilitySystem/Ability/GA_Groggy.GA_Groggy"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Guard",
+      "path": "/Game/AbilitySystem/Ability/GA_Guard.GA_Guard"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_HitReact",
+      "path": "/Game/AbilitySystem/Ability/GA_HitReact.GA_HitReact"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxGame.WxAbility_Interact",
+      "path": "/Game/AbilitySystem/Ability/GA_Interact.GA_Interact"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_LockOn",
+      "path": "/Game/AbilitySystem/Ability/GA_LockOn.GA_LockOn"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Pattern",
+      "path": "/Game/AbilitySystem/Ability/GA_Pattern_1.GA_Pattern_1"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Pattern",
+      "path": "/Game/AbilitySystem/Ability/GA_Pattern_2.GA_Pattern_2"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Pattern",
+      "path": "/Game/AbilitySystem/Ability/GA_Pattern_3.GA_Pattern_3"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Pattern",
+      "path": "/Game/AbilitySystem/Ability/GA_Pattern_4.GA_Pattern_4"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/AbilitySystem/Ability/GA_Phase2.GA_Phase2"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Skill",
+      "path": "/Game/AbilitySystem/Ability/GA_Skill_1.GA_Skill_1"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Skill",
+      "path": "/Game/AbilitySystem/Ability/GA_Skill_2.GA_Skill_2"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Skill",
+      "path": "/Game/AbilitySystem/Ability/GA_Skill_3.GA_Skill_3"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Skill",
+      "path": "/Game/AbilitySystem/Ability/GA_Skill_4.GA_Skill_4"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Sprint",
+      "path": "/Game/AbilitySystem/Ability/GA_Sprint.GA_Sprint"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Ultimate",
+      "path": "/Game/AbilitySystem/Ability/GA_Ultimate.GA_Ultimate"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxGame.WxAbility_UseItem",
+      "path": "/Game/AbilitySystem/Ability/GA_UseItem.GA_UseItem"
+    },
+    {
+      "class": "LevelSequence",
+      "parent": "/Script/LevelSequence.LevelSequenceDirector",
+      "path": "/Game/AbilitySystem/Ability/LS_Ultimate.LS_Ultimate"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxCombat.WxCueNotify_AttackTelegraph",
+      "path": "/Game/AbilitySystem/Cue/GC_AttackTelegraph_Blue.GC_AttackTelegraph_Blue"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxCombat.WxCueNotify_AttackTelegraph",
+      "path": "/Game/AbilitySystem/Cue/GC_AttackTelegraph_Purple.GC_AttackTelegraph_Purple"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxCombat.WxCueNotify_AttackTelegraph",
+      "path": "/Game/AbilitySystem/Cue/GC_AttackTelegraph_Red.GC_AttackTelegraph_Red"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxCombat.WxCueNotify_AttackTelegraph",
+      "path": "/Game/AbilitySystem/Cue/GC_AttackTelegraph_Yellow.GC_AttackTelegraph_Yellow"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxCombat.WxCueNotify_Burn",
+      "path": "/Game/AbilitySystem/Cue/GC_Burn.GC_Burn"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxCombat.WxCueNotify_Damage",
+      "path": "/Game/AbilitySystem/Cue/GC_Damage.GC_Damage"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxCombat.WxCueNotify_Exceed",
+      "path": "/Game/AbilitySystem/Cue/GC_Exceed.GC_Exceed"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxCombat.WxCueNotify_PerfectGuard",
+      "path": "/Game/AbilitySystem/Cue/GC_PerfectGuard.GC_PerfectGuard"
+    },
+    {
+      "class": "Material",
+      "path": "/Game/AbilitySystem/Cue/M_AttackTelegraph.M_AttackTelegraph"
+    },
+    {
+      "class": "NiagaraSystem",
+      "path": "/Game/AbilitySystem/Cue/NS_AttackTelegraph_Blue.NS_AttackTelegraph_Blue"
+    },
+    {
+      "class": "NiagaraSystem",
+      "path": "/Game/AbilitySystem/Cue/NS_AttackTelegraph_Purple.NS_AttackTelegraph_Purple"
+    },
+    {
+      "class": "NiagaraSystem",
+      "path": "/Game/AbilitySystem/Cue/NS_AttackTelegraph_Red.NS_AttackTelegraph_Red"
+    },
+    {
+      "class": "NiagaraSystem",
+      "path": "/Game/AbilitySystem/Cue/NS_AttackTelegraph_Yellow.NS_AttackTelegraph_Yellow"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxCombat.WxEffect_Burn",
+      "path": "/Game/AbilitySystem/Effect/GE_Burn.GE_Burn"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxCombat.WxEffect_Exceed",
+      "path": "/Game/AbilitySystem/Effect/GE_Exceed.GE_Exceed"
+    },
+    {
+      "class": "TargetingPreset",
+      "path": "/Game/AbilitySystem/Targeting/TP_Attack_1000.TP_Attack_1000"
+    },
+    {
+      "class": "TargetingPreset",
+      "path": "/Game/AbilitySystem/Targeting/TP_Attack_10000.TP_Attack_10000"
+    },
+    {
+      "class": "TargetingPreset",
+      "path": "/Game/AbilitySystem/Targeting/TP_Attack_250.TP_Attack_250"
+    },
+    {
+      "class": "TargetingPreset",
+      "path": "/Game/AbilitySystem/Targeting/TP_Chase.TP_Chase"
+    },
+    {
+      "class": "TargetingPreset",
+      "path": "/Game/AbilitySystem/Targeting/TP_LockOn.TP_LockOn"
+    },
+    {
+      "class": "WxAbilitySet",
+      "path": "/Game/Character/Boss/ABS_Boss.ABS_Boss"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxGame.WxBossCharacter",
+      "path": "/Game/Character/Boss/BP_Boss.BP_Boss"
+    },
+    {
+      "class": "WxAbilitySet",
+      "path": "/Game/Character/Custer/ABS_Custer.ABS_Custer"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxGame.WxBossCharacter",
+      "path": "/Game/Character/Custer/BP_Custer.BP_Custer"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Custer/Skill/AM_Custer_Skill_1.AM_Custer_Skill_1"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Custer/Skill/AM_Custer_Skill_2.AM_Custer_Skill_2"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Custer/Skill/AM_Custer_Skill_3.AM_Custer_Skill_3"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Custer/Skill/AM_Custer_Skill_4.AM_Custer_Skill_4"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Custer/Skill/AM_Custer_Skill_5.AM_Custer_Skill_5"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Custer/Skill/AM_Custer_Skill_6.AM_Custer_Skill_6"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Custer/Skill/AM_Custer_Skill_7.AM_Custer_Skill_7"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_HitReact",
+      "path": "/Game/Character/Custer/Skill/GA_HitReact_Custer.GA_HitReact_Custer"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Pattern",
+      "path": "/Game/Character/Custer/Skill/GA_Pattern_1.GA_Pattern_1"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Pattern",
+      "path": "/Game/Character/Custer/Skill/GA_Pattern_2.GA_Pattern_2"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Pattern",
+      "path": "/Game/Character/Custer/Skill/GA_Pattern_3.GA_Pattern_3"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Pattern",
+      "path": "/Game/Character/Custer/Skill/GA_Pattern_4.GA_Pattern_4"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Pattern",
+      "path": "/Game/Character/Custer/Skill/GA_Pattern_5.GA_Pattern_5"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Pattern",
+      "path": "/Game/Character/Custer/Skill/GA_Pattern_6.GA_Pattern_6"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Pattern",
+      "path": "/Game/Character/Custer/Skill/GA_Pattern_7.GA_Pattern_7"
+    },
+    {
+      "class": "WxAbilitySet",
+      "path": "/Game/Character/Enemy/ABS_Enemy.ABS_Enemy"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxGame.WxEnemyCharacter",
+      "path": "/Game/Character/Enemy/BP_Enemy.BP_Enemy"
+    },
+    {
+      "class": "AnimBlueprint",
+      "parent": "/Script/Engine.AnimInstance",
+      "path": "/Game/Character/Player/ABP_Shinbi.ABP_Shinbi"
+    },
+    {
+      "class": "WxAbilitySet",
+      "path": "/Game/Character/Player/ABS_Player.ABS_Player"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxGame.WxPlayerCharacter",
+      "path": "/Game/Character/Player/BP_Player.BP_Player"
+    },
+    {
+      "class": "AnimBlueprint",
+      "parent": "/Script/Engine.AnimInstance",
+      "path": "/Game/Character/Player/HR/ABP_HR_Shinbi.ABP_HR_Shinbi"
+    },
+    {
+      "class": "WxAbilitySet",
+      "path": "/Game/Character/Player/HR/ABS_HR_Player.ABS_HR_Player"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxGame.WxPlayerCharacter",
+      "path": "/Game/Character/Player/HR/BP_HR_Player.BP_HR_Player"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Combo/Combo1/AM_HR_Attack_L.AM_HR_Attack_L"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Combo/Combo1/AM_HR_Attack_LL.AM_HR_Attack_LL"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Combo/Combo1/AM_HR_Attack_LLL.AM_HR_Attack_LLL"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Combo/Combo1/AM_HR_Attack_LLLL.AM_HR_Attack_LLLL"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Combo/Combo2/AM_HR_Attack_LH.AM_HR_Attack_LH"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Combo/Combo2/AM_HR_Attack_LHH.AM_HR_Attack_LHH"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Combo/Combo2/AM_HR_Attack_LHHH.AM_HR_Attack_LHHH"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Combo/Combo2/AM_HR_Attack_LHHHH.AM_HR_Attack_LHHHH"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Combo/Combo2/AM_HR_Attack_LHHHHH.AM_HR_Attack_LHHHHH"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Combo/Combo3/AM_HR_Attack_LLH.AM_HR_Attack_LLH"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Combo/Combo3/AM_HR_Attack_LLHH.AM_HR_Attack_LLHH"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Combo/Combo3/AM_HR_Attack_LLHHH.AM_HR_Attack_LLHHH"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Combo/Combo4/AM_HR_Attack_LLLH.AM_HR_Attack_LLLH"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Attack",
+      "path": "/Game/Character/Player/HR/Skill/Combo/GA_HR_Attack.GA_HR_Attack"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Dodge/AM_HR_Dodge.AM_HR_Dodge"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Dodge/AM_HR_DodgeCounter.AM_HR_DodgeCounter"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Dodge/AM_HR_DodgeSuccess.AM_HR_DodgeSuccess"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Dodge",
+      "path": "/Game/Character/Player/HR/Skill/Dodge/GA_HR_Dodge.GA_HR_Dodge"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Guard/AM_HR_Guard.AM_HR_Guard"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Guard/AM_HR_GuardBreak.AM_HR_GuardBreak"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Guard/AM_HR_GuardCounter.AM_HR_GuardCounter"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Guard/AM_HR_GuardHit.AM_HR_GuardHit"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Guard/AM_HR_GuardKnockback.AM_HR_GuardKnockback"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Guard/AM_HR_Parry.AM_HR_Parry"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Guard",
+      "path": "/Game/Character/Player/HR/Skill/Guard/GA_HR_Guard.GA_HR_Guard"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Skill1/AM_HR_Skill_1.AM_HR_Skill_1"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Skill1/AM_HR_Skill_1_2.AM_HR_Skill_1_2"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Skill1/AM_HR_Skill_1_3.AM_HR_Skill_1_3"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Skill1/AM_HR_Skill_1_4.AM_HR_Skill_1_4"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Skill",
+      "path": "/Game/Character/Player/HR/Skill/Skill1/GA_HR_Skill_1.GA_HR_Skill_1"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Skill2/AM_HR_Skill_2.AM_HR_Skill_2"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Skill2/AM_HR_Skill_2_1.AM_HR_Skill_2_1"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Skill",
+      "path": "/Game/Character/Player/HR/Skill/Skill2/GA_HR_Skill_2.GA_HR_Skill_2"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Skill3/AM_HR_Skill_3.AM_HR_Skill_3"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Skill",
+      "path": "/Game/Character/Player/HR/Skill/Skill3/GA_HR_Skill_3.GA_HR_Skill_3"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Skill4/AM_HR_Skill_4.AM_HR_Skill_4"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Skill",
+      "path": "/Game/Character/Player/HR/Skill/Skill4/GA_HR_Skill_4.GA_HR_Skill_4"
+    },
+    {
+      "class": "AnimMontage",
+      "path": "/Game/Character/Player/HR/Skill/Ultimate/AM_HR_Ultimate.AM_HR_Ultimate"
+    },
+    {
+      "class": "GameplayAbilityBlueprint",
+      "parent": "/Script/WxCombat.WxAbility_Ultimate",
+      "path": "/Game/Character/Player/HR/Skill/Ultimate/GA_HR_Ultimate.GA_HR_Ultimate"
+    },
+    {
+      "class": "LevelSequence",
+      "parent": "/Script/LevelSequence.LevelSequenceDirector",
+      "path": "/Game/Character/Player/HR/Skill/Ultimate/LS_HR_Ultimate.LS_HR_Ultimate"
+    },
+    {
+      "class": "WxAbilitySet",
+      "path": "/Game/Character/Sandbag/ABS_Sandbag.ABS_Sandbag"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxGame.WxEnemyCharacter",
+      "path": "/Game/Character/Sandbag/BP_Sandbag.BP_Sandbag"
+    },
+    {
+      "class": "DataTable",
+      "path": "/Game/DesignerTables/DT_Ability.DT_Ability"
+    },
+    {
+      "class": "DataTable",
+      "path": "/Game/DesignerTables/DT_CharacterAttribute.DT_CharacterAttribute"
+    },
+    {
+      "class": "DataTable",
+      "path": "/Game/DesignerTables/DT_Damage.DT_Damage"
+    },
+    {
+      "class": "DataTable",
+      "path": "/Game/DesignerTables/DT_Dialogue.DT_Dialogue"
+    },
+    {
+      "class": "DataTable",
+      "path": "/Game/DesignerTables/DT_Reward.DT_Reward"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxGame.WxPlayerController",
+      "path": "/Game/Framework/BP_PlayerController.BP_PlayerController"
+    },
+    {
+      "class": "WxExperienceDefinition",
+      "path": "/Game/Framework/EXP_Combat.EXP_Combat"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxGame.WxGameMode",
+      "path": "/Game/Framework/GM_Combat.GM_Combat"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/Framework/Splash/EdSplash.EdSplash"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/Framework/Splash/Splash.Splash"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/Framework/Splash/Wx_192.Wx_192"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/Framework/Splash/Wx_512.Wx_512"
+    },
+    {
+      "class": "WxExperienceActionSet",
+      "path": "/Game/Framework/WAS_CoreGameplay.WAS_CoreGameplay"
+    },
+    {
+      "class": "WxExperienceActionSet",
+      "path": "/Game/Framework/WAS_StartingItems.WAS_StartingItems"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_Attack_Heavy.IA_Attack_Heavy"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_Attack_Light.IA_Attack_Light"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_Dodge.IA_Dodge"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_Guard.IA_Guard"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_Interact.IA_Interact"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_Interact_Next.IA_Interact_Next"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_Interact_Prev.IA_Interact_Prev"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_Inventory.IA_Inventory"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_Jump.IA_Jump"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_LockOn.IA_LockOn"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_Look.IA_Look"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_Menu.IA_Menu"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_Move.IA_Move"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_Skill_1.IA_Skill_1"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_Skill_2.IA_Skill_2"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_Skill_3.IA_Skill_3"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_Skill_4.IA_Skill_4"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_Sprint.IA_Sprint"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_ToggleCrouch.IA_ToggleCrouch"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_Ultimate.IA_Ultimate"
+    },
+    {
+      "class": "InputAction",
+      "path": "/Game/Input/Actions/IA_UseItem.IA_UseItem"
+    },
+    {
+      "class": "WxInputConfig",
+      "path": "/Game/Input/DA_InputConfig.DA_InputConfig"
+    },
+    {
+      "class": "InputMappingContext",
+      "path": "/Game/Input/IMC_Controller.IMC_Controller"
+    },
+    {
+      "class": "InputMappingContext",
+      "path": "/Game/Input/IMC_PlayerCharacter.IMC_PlayerCharacter"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxCombat.WxWeaponBase",
+      "path": "/Game/Item/BP_Katana.BP_Katana"
+    },
+    {
+      "class": "WxItemDefinition",
+      "path": "/Game/Item/DA_Gold.DA_Gold"
+    },
+    {
+      "class": "WxItemDefinition",
+      "path": "/Game/Item/DA_Katana.DA_Katana"
+    },
+    {
+      "class": "WxItemDefinition",
+      "path": "/Game/Item/DA_Potion.DA_Potion"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/Item/coin.coin"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/Item/potion_empty.potion_empty"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/Item/potion_full.potion_full"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/Item/potion_one_third.potion_one_third"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/Item/potion_two_third.potion_two_third"
+    },
+    {
+      "class": "DataLayerAsset",
+      "path": "/Game/LevelDesign/DataLayers/DL_EditorOnly.DL_EditorOnly"
+    },
+    {
+      "class": "StaticMesh",
+      "path": "/Game/LevelDesign/Meshes/SM_RoadSurface.SM_RoadSurface"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/Engine.Actor",
+      "path": "/Game/LevelDesign/PCG/BP_RoadDecal.BP_RoadDecal"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/Engine.Actor",
+      "path": "/Game/LevelDesign/PCG/BP_RoadSplineMesh.BP_RoadSplineMesh"
+    },
+    {
+      "class": "PCGGraph",
+      "path": "/Game/LevelDesign/PCG/PCG_DevScaleRef.PCG_DevScaleRef"
+    },
+    {
+      "class": "PCGGraph",
+      "path": "/Game/LevelDesign/PCG/PCG_RoadDecal.PCG_RoadDecal"
+    },
+    {
+      "class": "PCGGraph",
+      "path": "/Game/LevelDesign/PCG/PCG_RoadSplineMesh.PCG_RoadSplineMesh"
+    },
+    {
+      "class": "World",
+      "path": "/Game/Maps/LV_DevCombat.LV_DevCombat"
+    },
+    {
+      "class": "HLODLayer",
+      "path": "/Game/Maps/LV_DevCombat_HLOD0_Instancing.LV_DevCombat_HLOD0_Instancing"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/Maps/LV_FirstPlace.LV_FirstPlace"
+    },
+    {
+      "class": "Material",
+      "path": "/Game/Maps/LV_FirstPlace_Mat.LV_FirstPlace_Mat"
+    },
+    {
+      "class": "World",
+      "path": "/Game/Maps/LV_OpenWorld.LV_OpenWorld"
+    },
+    {
+      "class": "HLODLayer",
+      "path": "/Game/Maps/LV_OpenWorld_HLOD0_Instancing.LV_OpenWorld_HLOD0_Instancing"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/Maps/wx_openworld.wx_openworld"
+    },
+    {
+      "class": "Material",
+      "path": "/Game/Maps/wx_openworld_Mat.wx_openworld_Mat"
+    },
+    {
+      "class": "WxQuestStateTree",
+      "path": "/Game/Quest/ST_Quest_Main1.ST_Quest_Main1"
+    },
+    {
+      "class": "DataTable",
+      "path": "/Game/UI/CommonUI/DT_InputActions.DT_InputActions"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/CommonInput.CommonUIInputData",
+      "path": "/Game/UI/CommonUI/WxUIInputData.WxUIInputData"
+    },
+    {
+      "class": "FontFace",
+      "path": "/Game/UI/Font/NanumGothicExtraBold.NanumGothicExtraBold"
+    },
+    {
+      "class": "Font",
+      "path": "/Game/UI/Font/NanumGothicExtraBold_Font.NanumGothicExtraBold_Font"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/CommonInput.CommonInputBaseControllerData",
+      "path": "/Game/UI/InputData/InputData_KMB.InputData_KMB"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/CommonInput.CommonInputBaseControllerData",
+      "path": "/Game/UI/InputData/InputData_PS.InputData_PS"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/CommonInput.CommonInputBaseControllerData",
+      "path": "/Game/UI/InputData/InputData_Xbox.InputData_Xbox"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/CommonUI.CommonButtonStyle",
+      "path": "/Game/UI/Style/ButtonStyle_Default.ButtonStyle_Default"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/CommonUI.CommonButtonStyle",
+      "path": "/Game/UI/Style/ButtonStyle_Empty.ButtonStyle_Empty"
+    },
+    {
+      "class": "DataTable",
+      "path": "/Game/UI/Style/DT_RichTextStyle.DT_RichTextStyle"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/CommonUI.CommonTextStyle",
+      "path": "/Game/UI/Style/TextStyle_Medium.TextStyle_Medium"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/CommonUI.CommonTextStyle",
+      "path": "/Game/UI/Style/TextStyle_Small.TextStyle_Small"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/CommonUI.CommonTextStyle",
+      "path": "/Game/UI/Style/TextStyle_Small_Selected.TextStyle_Small_Selected"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/WxUI.WxButtonBase",
+      "path": "/Game/UI/Widget/WBP_Ability.WBP_Ability"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/UMG.UserWidget",
+      "path": "/Game/UI/Widget/WBP_AcquiredItemEntry.WBP_AcquiredItemEntry"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/UMG.UserWidget",
+      "path": "/Game/UI/Widget/WBP_AcquiredItemList.WBP_AcquiredItemList"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/UMG.UserWidget",
+      "path": "/Game/UI/Widget/WBP_AttributeBar.WBP_AttributeBar"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/WxUI.WxButtonBase",
+      "path": "/Game/UI/Widget/WBP_Button.WBP_Button"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/CommonUI.CommonButtonBase",
+      "path": "/Game/UI/Widget/WBP_Close.WBP_Close"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/WxUI.WxConfirmationPopup",
+      "path": "/Game/UI/Widget/WBP_ConfirmationPopup.WBP_ConfirmationPopup"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/UMG.UserWidget",
+      "path": "/Game/UI/Widget/WBP_DamageFloater.WBP_DamageFloater"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/WxUI.WxActivatableWidget",
+      "path": "/Game/UI/Widget/WBP_DeathScreen.WBP_DeathScreen"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/WxUI.WxActivatableWidget",
+      "path": "/Game/UI/Widget/WBP_DialogueScreen.WBP_DialogueScreen"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/UMG.UserWidget",
+      "path": "/Game/UI/Widget/WBP_Effect.WBP_Effect"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/WxUI.WxHUDLayout",
+      "path": "/Game/UI/Widget/WBP_GameHUD.WBP_GameHUD"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/WxUI.WxHUDLayout",
+      "path": "/Game/UI/Widget/WBP_GameHUDBase.WBP_GameHUDBase"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/UMG.UserWidget",
+      "path": "/Game/UI/Widget/WBP_Interaction.WBP_Interaction"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/UMG.UserWidget",
+      "path": "/Game/UI/Widget/WBP_InteractionList.WBP_InteractionList"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/WxUI.WxActivatableWidget",
+      "path": "/Game/UI/Widget/WBP_Inventory.WBP_Inventory"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/WxUI.WxButtonBase",
+      "path": "/Game/UI/Widget/WBP_ItemQuickSlot.WBP_ItemQuickSlot"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/UMG.UserWidget",
+      "path": "/Game/UI/Widget/WBP_ItemSlot.WBP_ItemSlot"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/UMG.UserWidget",
+      "path": "/Game/UI/Widget/WBP_LockOnReticle.WBP_LockOnReticle"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/WxUI.WxActivatableWidget",
+      "path": "/Game/UI/Widget/WBP_MainMenu.WBP_MainMenu"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/WxUI.WxActivatableWidget",
+      "path": "/Game/UI/Widget/WBP_MenuBase.WBP_MenuBase"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/UMG.UserWidget",
+      "path": "/Game/UI/Widget/WBP_Nameplate_Boss.WBP_Nameplate_Boss"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/UMG.UserWidget",
+      "path": "/Game/UI/Widget/WBP_Nameplate_Enemy.WBP_Nameplate_Enemy"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/UMG.UserWidget",
+      "path": "/Game/UI/Widget/WBP_Nameplate_Player.WBP_Nameplate_Player"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/WxUI.WxActivatableWidget",
+      "path": "/Game/UI/Widget/WBP_NewMenu.WBP_NewMenu"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/UMG.UserWidget",
+      "path": "/Game/UI/Widget/WBP_PlayerSkills.WBP_PlayerSkills"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/WxUI.WxIndicatorWidget",
+      "path": "/Game/UI/Widget/WBP_QuestIndicator.WBP_QuestIndicator"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/UMG.UserWidget",
+      "path": "/Game/UI/Widget/WBP_QuestObjective.WBP_QuestObjective"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/UMG.UserWidget",
+      "path": "/Game/UI/Widget/WBP_QuestTracker.WBP_QuestTracker"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/UMG.UserWidget",
+      "path": "/Game/UI/Widget/WBP_RadialBar.WBP_RadialBar"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/UMG.UserWidget",
+      "path": "/Game/UI/Widget/WBP_StaminaBar.WBP_StaminaBar"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/WxUI.WxTabButtonBase",
+      "path": "/Game/UI/Widget/WBP_TabButton.WBP_TabButton"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/WxUI.WxTabListWidgetBase",
+      "path": "/Game/UI/Widget/WBP_TabList.WBP_TabList"
+    },
+    {
+      "class": "WidgetBlueprint",
+      "parent": "/Script/UMG.UserWidget",
+      "path": "/Game/UI/Widget/WBP_TotalGold.WBP_TotalGold"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxCombat.WxEffectZone",
+      "path": "/Game/WorldObject/Actor/BP_DamageZone.BP_DamageZone"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxInventory.WxItemPickup",
+      "path": "/Game/WorldObject/Actor/BP_ItemPickup.BP_ItemPickup"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/Engine.Actor",
+      "path": "/Game/WorldObject/BP_PostProcess.BP_PostProcess"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/Engine.Actor",
+      "path": "/Game/WorldObject/Gimmick/BP_CheckPoint.BP_CheckPoint"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/Engine.Actor",
+      "path": "/Game/WorldObject/Gimmick/BP_Door.BP_Door"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/Engine.Actor",
+      "path": "/Game/WorldObject/Gimmick/BP_Elevator.BP_Elevator"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/Engine.Actor",
+      "path": "/Game/WorldObject/Gimmick/BP_TreasureChest.BP_TreasureChest"
+    },
+    {
+      "class": "StateTree",
+      "path": "/Game/WorldObject/Gimmick/ST_CheckPoint.ST_CheckPoint"
+    },
+    {
+      "class": "StateTree",
+      "path": "/Game/WorldObject/Gimmick/ST_Door.ST_Door"
+    },
+    {
+      "class": "StateTree",
+      "path": "/Game/WorldObject/Gimmick/ST_Elevator.ST_Elevator"
+    },
+    {
+      "class": "StateTree",
+      "path": "/Game/WorldObject/Gimmick/ST_TreasureChest.ST_TreasureChest"
+    },
+    {
+      "class": "Material",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/Materials/M_Transparent.M_Transparent"
+    },
+    {
+      "class": "MaterialInstanceConstant",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/Materials/crate.crate"
+    },
+    {
+      "class": "MaterialInstanceConstant",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/Materials/crate_2.crate_2"
+    },
+    {
+      "class": "MaterialInstanceConstant",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/Materials/ground.ground"
+    },
+    {
+      "class": "SkeletalMesh",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/SkeletalMeshes/scene.scene"
+    },
+    {
+      "class": "AnimSequence",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/SkeletalMeshes/scene_Anim.scene_Anim"
+    },
+    {
+      "class": "AnimSequence",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/SkeletalMeshes/scene_Anim_Open.scene_Anim_Open"
+    },
+    {
+      "class": "PhysicsAsset",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/SkeletalMeshes/scene_PhysicsAsset.scene_PhysicsAsset"
+    },
+    {
+      "class": "Skeleton",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/SkeletalMeshes/scene_Skeleton.scene_Skeleton"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/Textures/crate_2_baseColor.crate_2_baseColor"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/Textures/crate_2_emissive.crate_2_emissive"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/Textures/crate_2_metallicRoughness.crate_2_metallicRoughness"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/Textures/crate_2_normal.crate_2_normal"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/Textures/crate_baseColor.crate_baseColor"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/Textures/crate_emissive.crate_emissive"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/Textures/crate_metallicRoughness.crate_metallicRoughness"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/Textures/crate_normal.crate_normal"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/Textures/ground_baseColor.ground_baseColor"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/Textures/ground_metallicRoughness.ground_metallicRoughness"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/scene/Textures/ground_normal.ground_normal"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/textures/crate_2_baseColor.crate_2_baseColor"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/textures/crate_2_emissive.crate_2_emissive"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/textures/crate_2_metallicRoughness.crate_2_metallicRoughness"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/textures/crate_2_normal.crate_2_normal"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/textures/crate_baseColor.crate_baseColor"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/textures/crate_emissive.crate_emissive"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/textures/crate_metallicRoughness.crate_metallicRoughness"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/textures/crate_normal.crate_normal"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/textures/ground_baseColor.ground_baseColor"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/textures/ground_metallicRoughness.ground_metallicRoughness"
+    },
+    {
+      "class": "Texture2D",
+      "path": "/Game/WorldObject/Gimmick/scifi_crate_container_gltf/textures/ground_normal.ground_normal"
+    },
+    {
+      "class": "Material",
+      "path": "/Game/WorldObject/M_Outline.M_Outline"
+    },
+    {
+      "class": "Blueprint",
+      "parent": "/Script/WxDialogue.WxNpc",
+      "path": "/Game/WorldObject/Npc/BP_Npc.BP_Npc"
+    }
+  ]
+}

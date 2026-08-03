@@ -1,0 +1,14 @@
+{
+  "asset": "/Game/Framework/WAS_StartingItems",
+  "class": "/Script/WxGame.WxExperienceActionSet",
+  "data": {
+    "actions": [],
+    "defaultInventoryItems": [
+      {
+        "item": "/Game/Item/DA_Potion.DA_Potion",
+        "quantity": 1
+      }
+    ],
+    "gameFeaturesToEnable": []
+  }
+}

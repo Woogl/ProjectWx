@@ -1,0 +1,1706 @@
+{
+  "asset": "/Game/UI/InputData/InputData_PS",
+  "class": "/Script/Engine.Blueprint",
+  "data": {
+    "cdo": {
+      "controllerButtonMaskTexture": null,
+      "controllerTexture": null,
+      "gamepadCategory": "",
+      "gamepadDisplayName": "",
+      "gamepadHardwareIdMapping": [],
+      "gamepadName": "PS",
+      "gamepadPlatformName": "",
+      "inputBrushDataMap": [
+        {
+          "key": {
+            "keyName": "Gamepad_LeftX"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadLeftThumbstickX-Axis.T_GamepadLeftThumbstickX-Axis",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_LeftY"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadLeftThumbstickY-Axis.T_GamepadLeftThumbstickY-Axis",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_Left2D"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadLeftThumbstick2D-Axis.T_GamepadLeftThumbstick2D-Axis",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_RightX"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadRightThumbstickX-Axis.T_GamepadRightThumbstickX-Axis",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_RightY"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadRightThumbstickY-Axis.T_GamepadRightThumbstickY-Axis",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_Right2D"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadRightThumbstick2D-Axis.T_GamepadRightThumbstick2D-Axis",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_DPad_Up"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadD-padUp.T_P_GamepadD-padUp",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_DPad_Down"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadD-padDown.T_P_GamepadD-padDown",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_DPad_Right"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadD-padRight.T_P_GamepadD-padRight",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_DPad_Left"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadD-padLeft.T_P_GamepadD-padLeft",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_LeftStick_Up"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadLeftThumbstickUp.T_GamepadLeftThumbstickUp",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_LeftStick_Down"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadLeftThumbstickDown.T_GamepadLeftThumbstickDown",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_LeftStick_Right"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadLeftThumbstickRight.T_GamepadLeftThumbstickRight",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_LeftStick_Left"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadLeftThumbstickLeft.T_GamepadLeftThumbstickLeft",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_RightStick_Up"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadRightThumbstickUp.T_GamepadRightThumbstickUp",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_RightStick_Down"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadRightThumbstickDown.T_GamepadRightThumbstickDown",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_RightStick_Right"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadRightThumbstickRight.T_GamepadRightThumbstickRight",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_RightStick_Left"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadRightThumbstickLeft.T_GamepadRightThumbstickLeft",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_Special_Left"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadSpecialLeft.T_P_GamepadSpecialLeft",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_Special_Right"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadSpecialRight.T_P_GamepadSpecialRight",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_FaceButton_Bottom"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadFaceButtonBottom.T_P_GamepadFaceButtonBottom",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_FaceButton_Right"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadFaceButtonRight.T_P_GamepadFaceButtonRight",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_FaceButton_Left"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadFaceButtonLeft.T_P_GamepadFaceButtonLeft",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_FaceButton_Top"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadFaceButtonTop.T_P_GamepadFaceButtonTop",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_LeftTriggerAxis"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadLeftTriggerAxis.T_P_GamepadLeftTriggerAxis",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_RightTriggerAxis"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadRightTriggerAxis.T_P_GamepadRightTriggerAxis",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_LeftShoulder"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadLeftShoulder.T_P_GamepadLeftShoulder",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_RightShoulder"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadRightShoulder.T_P_GamepadRightShoulder",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_LeftTrigger"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadLeftTriggerAxis.T_P_GamepadLeftTriggerAxis",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_RightTrigger"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/Gamepad_P/T_P_GamepadRightTriggerAxis.T_P_GamepadRightTriggerAxis",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_LeftThumbstick"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadLeftThumbstickButton.T_GamepadLeftThumbstickButton",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "keyName": "Gamepad_RightThumbstick"
+          },
+          "keyBrush": {
+            "drawAs": "IMAGE",
+            "imageSize": {
+              "x": 32.0,
+              "y": 32.0
+            },
+            "imageType": "FULL_COLOR",
+            "margin": {
+              "bottom": 0.0,
+              "left": 0.0,
+              "right": 0.0,
+              "top": 0.0
+            },
+            "mirroring": "NO_MIRROR",
+            "outlineSettings": {
+              "bUseBrushTransparency": false,
+              "color": {
+                "colorUseRule": "USE_COLOR_SPECIFIED",
+                "specifiedColor": {
+                  "a": 0.0,
+                  "b": 0.0,
+                  "g": 0.0,
+                  "r": 0.0
+                }
+              },
+              "cornerRadii": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "roundingType": "HALF_HEIGHT_RADIUS",
+              "width": 0.0
+            },
+            "resourceName": "None",
+            "resourceObject": "/Game/EasyInputPrompts/GraphicContent/GamepadThumbsticks/T_GamepadRightThumbstickButton.T_GamepadRightThumbstickButton",
+            "tiling": "NO_TILE",
+            "tintColor": {
+              "colorUseRule": "USE_COLOR_SPECIFIED",
+              "specifiedColor": {
+                "a": 1.0,
+                "b": 1.0,
+                "g": 1.0,
+                "r": 1.0
+              }
+            }
+          }
+        }
+      ],
+      "inputBrushKeySets": [],
+      "inputType": "GAMEPAD",
+      "setButtonImageHeightTo": 0
+    },
+    "components": [],
+    "event_dispatchers": [],
+    "events": [],
+    "functions": [],
+    "graphs": [
+      "EventGraph"
+    ],
+    "native_parent": "/Script/CommonInput.CommonInputBaseControllerData",
+    "parent": "/Script/CommonInput.CommonInputBaseControllerData",
+    "variables": [
+      "/Script/CommonInput.CommonInputBaseControllerData.ControllerButtonMaskTexture",
+      "/Script/CommonInput.CommonInputBaseControllerData.ControllerTexture",
+      "/Script/CommonInput.CommonInputBaseControllerData.GamepadCategory",
+      "/Script/CommonInput.CommonInputBaseControllerData.GamepadDisplayName",
+      "/Script/CommonInput.CommonInputBaseControllerData.GamepadHardwareIdMapping",
+      "/Script/CommonInput.CommonInputBaseControllerData.GamepadName",
+      "/Script/CommonInput.CommonInputBaseControllerData.GamepadPlatformName",
+      "/Script/CommonInput.CommonInputBaseControllerData.InputBrushDataMap",
+      "/Script/CommonInput.CommonInputBaseControllerData.InputBrushKeySets",
+      "/Script/CommonInput.CommonInputBaseControllerData.InputType",
+      "/Script/CommonInput.CommonInputBaseControllerData.SetButtonImageHeightTo"
+    ]
+  }
+}

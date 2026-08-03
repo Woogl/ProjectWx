@@ -1,0 +1,179 @@
+{
+  "asset": "/Game/Quest/ST_Quest_Main1",
+  "class": "/Script/WxQuest.WxQuestStateTree",
+  "data": {
+    "evaluators": [],
+    "global_tasks": [],
+    "schema": "/Script/GameplayStateTreeModule.StateTreeComponentSchema",
+    "sub_trees": [
+      {
+        "children": [
+          {
+            "children": [],
+            "enter_conditions": [],
+            "name": "Before Start",
+            "selection_behavior": "TRY_SELECT_CHILDREN_IN_ORDER",
+            "tasks": [
+              {
+                "desc": "Wait Dialogue Completed (BP_Npc_4)",
+                "node": "/Script/WxDialogue.WxStateTreeTask_WaitDialogueCompleted"
+              }
+            ],
+            "transitions": [
+              {
+                "state": {
+                  "linkType": "GOTO_STATE",
+                  "name": "InProgress"
+                },
+                "trigger": "ON_STATE_COMPLETED"
+              }
+            ],
+            "type": "STATE"
+          },
+          {
+            "children": [
+              {
+                "children": [],
+                "enter_conditions": [],
+                "name": "Step1",
+                "selection_behavior": "TRY_SELECT_CHILDREN_IN_ORDER",
+                "tasks": [
+                  {
+                    "desc": "Set Quest Objective (\"언덕으로 이동하기\")",
+                    "node": "/Script/WxQuest.WxStateTreeTask_SetQuestObjective"
+                  },
+                  {
+                    "desc": "Mark Indicator (WxSpawner_UAID_345A6050E8ACCDF102_1126150075)",
+                    "node": "/Script/WxUI.WxStateTreeTask_MarkIndicator"
+                  },
+                  {
+                    "desc": "Wait Move To Target (WxSpawner_UAID_345A6050E8ACCDF102_1126150075)",
+                    "node": "/Script/WxQuest.WxStateTreeTask_WaitMoveToTarget"
+                  }
+                ],
+                "transitions": [
+                  {
+                    "state": {
+                      "linkType": "GOTO_STATE",
+                      "name": "Step2"
+                    },
+                    "trigger": "ON_STATE_COMPLETED"
+                  }
+                ],
+                "type": "STATE"
+              },
+              {
+                "children": [],
+                "enter_conditions": [],
+                "name": "Step2",
+                "selection_behavior": "TRY_SELECT_CHILDREN_IN_ORDER",
+                "tasks": [
+                  {
+                    "desc": "Set Quest Objective (\"적을 처치하기\")",
+                    "node": "/Script/WxQuest.WxStateTreeTask_SetQuestObjective"
+                  },
+                  {
+                    "desc": "Trigger Spawners By Locator (WxSpawner_UAID_345A6050E8ACCDF102_1126150075)",
+                    "node": "/Script/WxWorld.WxStateTreeTask_TriggerSpawnersByLocator"
+                  },
+                  {
+                    "desc": "Wait Spawners Killed (WxSpawner_UAID_345A6050E8ACCDF102_1126150075)",
+                    "node": "/Script/WxWorld.WxStateTreeTask_WaitSpawnersKilled"
+                  }
+                ],
+                "transitions": [
+                  {
+                    "state": {
+                      "linkType": "GOTO_STATE",
+                      "name": "Success"
+                    },
+                    "trigger": "ON_STATE_COMPLETED"
+                  }
+                ],
+                "type": "STATE"
+              }
+            ],
+            "enter_conditions": [],
+            "name": "InProgress",
+            "selection_behavior": "TRY_SELECT_CHILDREN_IN_ORDER",
+            "tasks": [
+              {
+                "desc": "Set Quest Title (\"모험의 시작\")",
+                "node": "/Script/WxQuest.WxStateTreeTask_SetQuestTitle"
+              }
+            ],
+            "transitions": [
+              {
+                "state": {
+                  "linkType": "GOTO_STATE",
+                  "name": "Failure"
+                },
+                "trigger": "ON_EVENT"
+              }
+            ],
+            "type": "STATE"
+          },
+          {
+            "children": [
+              {
+                "children": [],
+                "enter_conditions": [],
+                "name": "Success",
+                "selection_behavior": "TRY_SELECT_CHILDREN_IN_ORDER",
+                "tasks": [
+                  {
+                    "desc": "Play Dialogue (ST_Quest_Main1_Success)",
+                    "node": "/Script/WxDialogue.WxStateTreeTask_PlayDialogue"
+                  },
+                  {
+                    "desc": "Grant Reward (Gold1000)",
+                    "node": "/Script/WxInventory.WxStateTreeTask_GrantReward"
+                  }
+                ],
+                "transitions": [
+                  {
+                    "state": {
+                      "linkType": "SUCCEEDED",
+                      "name": "Success"
+                    },
+                    "trigger": "ON_STATE_COMPLETED"
+                  }
+                ],
+                "type": "STATE"
+              },
+              {
+                "children": [],
+                "enter_conditions": [],
+                "name": "Failure",
+                "selection_behavior": "TRY_SELECT_CHILDREN_IN_ORDER",
+                "tasks": [],
+                "transitions": [
+                  {
+                    "state": {
+                      "linkType": "FAILED",
+                      "name": "Failure"
+                    },
+                    "trigger": "ON_STATE_COMPLETED"
+                  }
+                ],
+                "type": "STATE"
+              }
+            ],
+            "enter_conditions": [],
+            "name": "Finish",
+            "selection_behavior": "TRY_SELECT_CHILDREN_IN_ORDER",
+            "tasks": [],
+            "transitions": [],
+            "type": "GROUP"
+          }
+        ],
+        "enter_conditions": [],
+        "name": "Root",
+        "selection_behavior": "TRY_SELECT_CHILDREN_IN_ORDER",
+        "tasks": [],
+        "transitions": [],
+        "type": "STATE"
+      }
+    ]
+  }
+}

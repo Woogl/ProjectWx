@@ -1,0 +1,17 @@
+{
+  "asset": "/Game/Input/Actions/IA_Interact_Prev",
+  "class": "/Script/EnhancedInput.InputAction",
+  "data": {
+    "accumulationBehavior": "TAKE_HIGHEST_ABSOLUTE_VALUE",
+    "actionDescription": "",
+    "bConsumeInput": true,
+    "bConsumesActionAndAxisMappings": false,
+    "bReserveAllMappings": false,
+    "bTriggerWhenPaused": false,
+    "modifiers": [],
+    "playerMappableKeySettings": null,
+    "triggerEventsThatConsumeLegacyKeys": 0,
+    "triggers": [],
+    "valueType": "BOOLEAN"
+  }
+}

@@ -1,0 +1,327 @@
+{
+  "asset": "/Game/UI/Widget/WBP_ItemQuickSlot",
+  "class": "/Script/UMGEditor.WidgetBlueprint",
+  "data": {
+    "cdo": {
+      "accessibleBehavior": "NOT_ACCESSIBLE",
+      "accessibleSummaryBehavior": "AUTO",
+      "accessibleSummaryText": "",
+      "accessibleText": "",
+      "bApplyAlphaOnDisable": true,
+      "bCanChildrenBeAccessible": true,
+      "bConsumePointerInput": false,
+      "bDisplayInActionBar": false,
+      "bDisplayInputActionWhenNotInteractable": true,
+      "bHideInputAction": false,
+      "bHideInputActionWithKeyboard": false,
+      "bInteractableWhenSelected": false,
+      "bIsEnabled": true,
+      "bIsFocusable": true,
+      "bIsPersistentBinding": false,
+      "bIsVolatile": false,
+      "bLocked": false,
+      "bNavigateToNextWidgetOnDisable": false,
+      "bOverrideAccessibleDefaults": false,
+      "bOverride_Cursor": false,
+      "bRequiresHold": false,
+      "bSelectable": false,
+      "bShouldSelectUponReceivingFocus": false,
+      "bShouldUseFallbackDefaultInputAction": false,
+      "bSimulateHoverOnTouchInput": true,
+      "bStopAction": false,
+      "bToggleable": false,
+      "bTriggerClickedAfterSelection": false,
+      "buttonText": "",
+      "clickEvent": "()",
+      "clickMethod": "DOWN_AND_UP",
+      "clickedSlateSoundOverride": {
+        "resourceObject": null
+      },
+      "clipping": "INHERIT",
+      "colorAndOpacity": {
+        "a": 1.0,
+        "b": 1.0,
+        "g": 1.0,
+        "r": 1.0
+      },
+      "commonLazyImage_112": null,
+      "count": null,
+      "cursor": "DEFAULT",
+      "desiredFocusWidget": {
+        "widgetName": "None"
+      },
+      "flowDirectionPreference": "INHERIT",
+      "foregroundColor": {
+        "colorUseRule": "USE_COLOR_FOREGROUND",
+        "specifiedColor": {
+          "a": 1.0,
+          "b": 1.0,
+          "g": 0.0,
+          "r": 1.0
+        }
+      },
+      "holdData": null,
+      "hoveredSlateSoundOverride": {
+        "resourceObject": null
+      },
+      "inputActionWidget": null,
+      "inputModeOverride": "MENU",
+      "inputPriority": 0,
+      "lockedClickedSlateSoundOverride": {
+        "resourceObject": null
+      },
+      "lockedHoveredSlateSoundOverride": {
+        "resourceObject": null
+      },
+      "lockedPressedSlateSoundOverride": {
+        "resourceObject": null
+      },
+      "maxHeight": 0,
+      "maxWidth": 0,
+      "minHeight": 0,
+      "minWidth": 0,
+      "navigation": null,
+      "onButtonBaseClicked": "<Multicast delegate 'CommonButtonBaseClicked' <Unbound>>",
+      "onButtonBaseDoubleClicked": "<Multicast delegate 'CommonButtonBaseClicked' <Unbound>>",
+      "onButtonBaseDragDetected": "<Multicast delegate 'OnButtonBaseGeoOperationDynamic' <Unbound>>",
+      "onButtonBaseDragEnter": "<Multicast delegate 'OnButtonBaseGeoOperationDynamic' <Unbound>>",
+      "onButtonBaseDragLeave": "<Multicast delegate 'OnButtonBaseOperationDynamic' <Unbound>>",
+      "onButtonBaseDragOver": "<Multicast delegate 'OnButtonBaseGeoOperationDynamic' <Unbound>>",
+      "onButtonBaseDrop": "<Multicast delegate 'OnButtonBaseGeoOperationDynamic' <Unbound>>",
+      "onButtonBaseFocused": "<Multicast delegate 'CommonButtonBaseClicked' <Unbound>>",
+      "onButtonBaseHovered": "<Multicast delegate 'CommonButtonBaseClicked' <Unbound>>",
+      "onButtonBaseLockClicked": "<Multicast delegate 'CommonButtonBaseClicked' <Unbound>>",
+      "onButtonBaseLockDoubleClicked": "<Multicast delegate 'CommonButtonBaseClicked' <Unbound>>",
+      "onButtonBaseSelected": "<Multicast delegate 'CommonButtonBaseClicked' <Unbound>>",
+      "onButtonBaseUnfocused": "<Multicast delegate 'CommonButtonBaseClicked' <Unbound>>",
+      "onButtonBaseUnhovered": "<Multicast delegate 'CommonButtonBaseClicked' <Unbound>>",
+      "onButtonBaseUnselected": "<Multicast delegate 'CommonButtonBaseClicked' <Unbound>>",
+      "onSelectedChangedBase": "<Multicast delegate 'CommonSelectedStateChangedBase' <Unbound>>",
+      "onVisibilityChanged": "<Multicast delegate 'OnVisibilityChangedEvent' <Unbound>>",
+      "padding": {
+        "bottom": 0.0,
+        "left": 0.0,
+        "right": 0.0,
+        "top": 0.0
+      },
+      "pixelSnapping": "INHERIT",
+      "pressMethod": "DOWN_AND_UP",
+      "pressedSlateSoundOverride": {
+        "resourceObject": null
+      },
+      "previewBackground": null,
+      "priority": 0,
+      "renderOpacity": 1.0,
+      "renderTransform": {
+        "angle": 0.0,
+        "scale": {
+          "x": 1.0,
+          "y": 1.0
+        },
+        "shear": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "translation": {
+          "x": 0.0,
+          "y": 0.0
+        }
+      },
+      "renderTransformPivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "selectedClickedSlateSoundOverride": {
+        "resourceObject": null
+      },
+      "selectedHoveredSlateSoundOverride": {
+        "resourceObject": null
+      },
+      "selectedPressedSlateSoundOverride": {
+        "resourceObject": null
+      },
+      "slot": null,
+      "style": "/Game/UI/Style/ButtonStyle_Empty.ButtonStyle_Empty_C",
+      "textBlock": null,
+      "tickFrequency": "AUTO",
+      "toolTipText": "",
+      "toolTipWidget": null,
+      "touchMethod": "DOWN_AND_UP",
+      "triggeringEnhancedInputAction": "/Game/Input/Actions/IA_UseItem.IA_UseItem",
+      "triggeringInputAction": {
+        "dataTable": null,
+        "rowName": "None"
+      },
+      "visibility": "SELF_HIT_TEST_INVISIBLE",
+      "wxViewModel_Item": null
+    },
+    "components": [],
+    "event_dispatchers": [],
+    "events": [
+      "Construct",
+      "PreConstruct",
+      "Tick"
+    ],
+    "functions": [],
+    "graphs": [
+      "EventGraph"
+    ],
+    "native_parent": "/Script/WxUI.WxButtonBase",
+    "parent": "/Script/WxUI.WxButtonBase",
+    "variables": [
+      "/Script/CommonUI.CommonButtonBase.ClickEvent",
+      "/Script/CommonUI.CommonButtonBase.ClickMethod",
+      "/Script/CommonUI.CommonButtonBase.ClickedSlateSoundOverride",
+      "/Script/CommonUI.CommonButtonBase.DisabledStyle",
+      "/Script/CommonUI.CommonButtonBase.HoldData",
+      "/Script/CommonUI.CommonButtonBase.HoveredSlateSoundOverride",
+      "/Script/CommonUI.CommonButtonBase.InputActionWidget",
+      "/Script/CommonUI.CommonButtonBase.InputModeOverride",
+      "/Script/CommonUI.CommonButtonBase.InputPriority",
+      "/Script/CommonUI.CommonButtonBase.LockedClickedSlateSoundOverride",
+      "/Script/CommonUI.CommonButtonBase.LockedHoveredSlateSoundOverride",
+      "/Script/CommonUI.CommonButtonBase.LockedPressedSlateSoundOverride",
+      "/Script/CommonUI.CommonButtonBase.LockedStyle",
+      "/Script/CommonUI.CommonButtonBase.MaxHeight",
+      "/Script/CommonUI.CommonButtonBase.MaxWidth",
+      "/Script/CommonUI.CommonButtonBase.MinHeight",
+      "/Script/CommonUI.CommonButtonBase.MinWidth",
+      "/Script/CommonUI.CommonButtonBase.NormalStyle",
+      "/Script/CommonUI.CommonButtonBase.OnButtonBaseClicked",
+      "/Script/CommonUI.CommonButtonBase.OnButtonBaseDoubleClicked",
+      "/Script/CommonUI.CommonButtonBase.OnButtonBaseDragDetected",
+      "/Script/CommonUI.CommonButtonBase.OnButtonBaseDragEnter",
+      "/Script/CommonUI.CommonButtonBase.OnButtonBaseDragLeave",
+      "/Script/CommonUI.CommonButtonBase.OnButtonBaseDragOver",
+      "/Script/CommonUI.CommonButtonBase.OnButtonBaseDrop",
+      "/Script/CommonUI.CommonButtonBase.OnButtonBaseFocused",
+      "/Script/CommonUI.CommonButtonBase.OnButtonBaseHovered",
+      "/Script/CommonUI.CommonButtonBase.OnButtonBaseLockClicked",
+      "/Script/CommonUI.CommonButtonBase.OnButtonBaseLockDoubleClicked",
+      "/Script/CommonUI.CommonButtonBase.OnButtonBaseSelected",
+      "/Script/CommonUI.CommonButtonBase.OnButtonBaseUnfocused",
+      "/Script/CommonUI.CommonButtonBase.OnButtonBaseUnhovered",
+      "/Script/CommonUI.CommonButtonBase.OnButtonBaseUnselected",
+      "/Script/CommonUI.CommonButtonBase.OnSelectedChangedBase",
+      "/Script/CommonUI.CommonButtonBase.PressMethod",
+      "/Script/CommonUI.CommonButtonBase.PressedSlateSoundOverride",
+      "/Script/CommonUI.CommonButtonBase.SelectedClickedSlateSoundOverride",
+      "/Script/CommonUI.CommonButtonBase.SelectedHoveredSlateSoundOverride",
+      "/Script/CommonUI.CommonButtonBase.SelectedPressedSlateSoundOverride",
+      "/Script/CommonUI.CommonButtonBase.SelectedStyle",
+      "/Script/CommonUI.CommonButtonBase.SingleMaterialStyleMID",
+      "/Script/CommonUI.CommonButtonBase.Style",
+      "/Script/CommonUI.CommonButtonBase.TouchMethod",
+      "/Script/CommonUI.CommonButtonBase.TriggeringEnhancedInputAction",
+      "/Script/CommonUI.CommonButtonBase.TriggeringInputAction",
+      "/Script/CommonUI.CommonButtonBase.bApplyAlphaOnDisable",
+      "/Script/CommonUI.CommonButtonBase.bDisplayInputActionWhenNotInteractable",
+      "/Script/CommonUI.CommonButtonBase.bHideInputAction",
+      "/Script/CommonUI.CommonButtonBase.bHideInputActionWithKeyboard",
+      "/Script/CommonUI.CommonButtonBase.bInteractableWhenSelected",
+      "/Script/CommonUI.CommonButtonBase.bIsPersistentBinding",
+      "/Script/CommonUI.CommonButtonBase.bLocked",
+      "/Script/CommonUI.CommonButtonBase.bNavigateToNextWidgetOnDisable",
+      "/Script/CommonUI.CommonButtonBase.bRequiresHold",
+      "/Script/CommonUI.CommonButtonBase.bSelectable",
+      "/Script/CommonUI.CommonButtonBase.bShouldSelectUponReceivingFocus",
+      "/Script/CommonUI.CommonButtonBase.bShouldUseFallbackDefaultInputAction",
+      "/Script/CommonUI.CommonButtonBase.bSimulateHoverOnTouchInput",
+      "/Script/CommonUI.CommonButtonBase.bStopDoubleClickPropagation",
+      "/Script/CommonUI.CommonButtonBase.bStyleNoLongerNeedsConversion",
+      "/Script/CommonUI.CommonButtonBase.bToggleable",
+      "/Script/CommonUI.CommonButtonBase.bTriggerClickedAfterSelection",
+      "/Script/CommonUI.CommonUserWidget.bConsumePointerInput",
+      "/Script/CommonUI.CommonUserWidget.bDisplayInActionBar",
+      "/Script/UMG.UserWidget.ActiveSequencePlayers",
+      "/Script/UMG.UserWidget.AnimationCallbacks",
+      "/Script/UMG.UserWidget.AnimationTickManager",
+      "/Script/UMG.UserWidget.ColorAndOpacity",
+      "/Script/UMG.UserWidget.ColorAndOpacityDelegate",
+      "/Script/UMG.UserWidget.DesignSizeMode",
+      "/Script/UMG.UserWidget.DesignTimeSize",
+      "/Script/UMG.UserWidget.DesiredFocusWidget",
+      "/Script/UMG.UserWidget.Extensions",
+      "/Script/UMG.UserWidget.ForegroundColor",
+      "/Script/UMG.UserWidget.ForegroundColorDelegate",
+      "/Script/UMG.UserWidget.InputComponent",
+      "/Script/UMG.UserWidget.NamedSlotBindings",
+      "/Script/UMG.UserWidget.OnVisibilityChanged",
+      "/Script/UMG.UserWidget.Padding",
+      "/Script/UMG.UserWidget.PaletteCategory",
+      "/Script/UMG.UserWidget.PreviewBackground",
+      "/Script/UMG.UserWidget.Priority",
+      "/Script/UMG.UserWidget.QueuedWidgetAnimationTransitions",
+      "/Script/UMG.UserWidget.StoppedSequencePlayers",
+      "/Script/UMG.UserWidget.TickFrequency",
+      "/Script/UMG.UserWidget.WidgetTree",
+      "/Script/UMG.UserWidget.bAutomaticallyRegisterInputOnConstruction",
+      "/Script/UMG.UserWidget.bHasScriptImplementedPaint",
+      "/Script/UMG.UserWidget.bHasScriptImplementedTick",
+      "/Script/UMG.UserWidget.bIsFocusable",
+      "/Script/UMG.UserWidget.bStopAction",
+      "/Script/UMG.Widget.AccessibleBehavior",
+      "/Script/UMG.Widget.AccessibleSummaryBehavior",
+      "/Script/UMG.Widget.AccessibleSummaryText",
+      "/Script/UMG.Widget.AccessibleSummaryTextDelegate",
+      "/Script/UMG.Widget.AccessibleText",
+      "/Script/UMG.Widget.AccessibleTextDelegate",
+      "/Script/UMG.Widget.AccessibleWidgetData",
+      "/Script/UMG.Widget.CategoryName",
+      "/Script/UMG.Widget.Clipping",
+      "/Script/UMG.Widget.Cursor",
+      "/Script/UMG.Widget.DesignerFlags",
+      "/Script/UMG.Widget.DisplayLabel",
+      "/Script/UMG.Widget.FlowDirectionPreference",
+      "/Script/UMG.Widget.NativeBindings",
+      "/Script/UMG.Widget.Navigation",
+      "/Script/UMG.Widget.PixelSnapping",
+      "/Script/UMG.Widget.RenderOpacity",
+      "/Script/UMG.Widget.RenderTransform",
+      "/Script/UMG.Widget.RenderTransformPivot",
+      "/Script/UMG.Widget.Slot",
+      "/Script/UMG.Widget.ToolTipText",
+      "/Script/UMG.Widget.ToolTipTextDelegate",
+      "/Script/UMG.Widget.ToolTipWidget",
+      "/Script/UMG.Widget.ToolTipWidgetDelegate",
+      "/Script/UMG.Widget.Visibility",
+      "/Script/UMG.Widget.VisibilityDelegate",
+      "/Script/UMG.Widget.bCanChildrenBeAccessible",
+      "/Script/UMG.Widget.bCreatedByConstructionScript",
+      "/Script/UMG.Widget.bExpandedInDesigner",
+      "/Script/UMG.Widget.bHiddenInDesigner",
+      "/Script/UMG.Widget.bIsEnabled",
+      "/Script/UMG.Widget.bIsEnabledDelegate",
+      "/Script/UMG.Widget.bIsVariable",
+      "/Script/UMG.Widget.bIsVolatile",
+      "/Script/UMG.Widget.bLockedInDesigner",
+      "/Script/UMG.Widget.bOverrideAccessibleDefaults",
+      "/Script/UMG.Widget.bOverride_Cursor",
+      "/Script/UMG.Widget.bWrappedByComponent",
+      "/Script/WxUI.WxButtonBase.ButtonText",
+      "/Script/WxUI.WxButtonBase.TextBlock"
+    ],
+    "widget_tree": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "class": "/Script/CommonUI.CommonLazyImage",
+                "name": "CommonLazyImage_112"
+              },
+              {
+                "class": "/Script/CommonUI.CommonTextBlock",
+                "name": "Count"
+              }
+            ],
+            "class": "/Script/UMG.Overlay",
+            "name": "Overlay_25"
+          }
+        ],
+        "class": "/Script/UMG.SizeBox",
+        "name": "SizeBox_18"
+      }
+    ]
+  }
+}

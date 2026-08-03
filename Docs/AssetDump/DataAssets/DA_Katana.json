@@ -1,0 +1,18 @@
+{
+  "asset": "/Game/Item/DA_Katana",
+  "class": "/Script/WxInventory.WxItemDefinition",
+  "data": {
+    "category": "EQUIPMENT",
+    "description": "Katana weapon",
+    "displayName": "Katana",
+    "fragments": [
+      {
+        "__class__": "/Script/WxInventory.WxItemFragment_Equippable",
+        "attachSocket": "hand_r",
+        "equipEffects": [],
+        "skeletalMesh": "/Game/ARPG_Pack/ARPG_Samurai/Demo/Weapon/Mesh/SKM_katana.SKM_katana"
+      }
+    ],
+    "icon": "/Game/UIMaterialLab/Textures/T_UI_Sword.T_UI_Sword"
+  }
+}

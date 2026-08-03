@@ -1,0 +1,205 @@
+{
+  "asset": "/Game/Character/Custer/Skill/GA_HitReact_Custer",
+  "class": "/Script/GameplayAbilities.GameplayAbilityBlueprint",
+  "data": {
+    "cdo": {
+      "abilityDataRow": {
+        "dataTable": null,
+        "rowName": "None"
+      },
+      "abilityTags": {
+        "gameplayTags": []
+      },
+      "abilityTriggers": [
+        {
+          "triggerSource": "GAMEPLAY_EVENT",
+          "triggerTag": {
+            "tagName": "Event.HitReact.Normal"
+          }
+        },
+        {
+          "triggerSource": "GAMEPLAY_EVENT",
+          "triggerTag": {
+            "tagName": "Event.HitReact.KnockBack"
+          }
+        },
+        {
+          "triggerSource": "GAMEPLAY_EVENT",
+          "triggerTag": {
+            "tagName": "Event.HitReact.KnockDown"
+          }
+        },
+        {
+          "triggerSource": "GAMEPLAY_EVENT",
+          "triggerTag": {
+            "tagName": "Event.HitReact.KnockUp"
+          }
+        },
+        {
+          "triggerSource": "GAMEPLAY_EVENT",
+          "triggerTag": {
+            "tagName": "Event.HitReact.Parry"
+          }
+        },
+        {
+          "triggerSource": "GAMEPLAY_EVENT",
+          "triggerTag": {
+            "tagName": "Event.HitReact.Finisher"
+          }
+        },
+        {
+          "triggerSource": "GAMEPLAY_EVENT",
+          "triggerTag": {
+            "tagName": "Event.HitReact.Backstab"
+          }
+        }
+      ],
+      "activationBlockedTags": {
+        "gameplayTags": [
+          {
+            "tagName": "State.Dead"
+          },
+          {
+            "tagName": "State.Invincible"
+          },
+          {
+            "tagName": "State.Guard"
+          },
+          {
+            "tagName": "State.SuperArmor"
+          }
+        ]
+      },
+      "activationInputAction": null,
+      "activationOwnedTags": {
+        "gameplayTags": [
+          {
+            "tagName": "State.HitReact"
+          }
+        ]
+      },
+      "activationPolicy": "ON_TRIGGERED",
+      "activationRequiredTags": {
+        "gameplayTags": []
+      },
+      "bReplicateInputDirectly": false,
+      "bRetriggerInstancedAbility": true,
+      "bServerRespectsRemoteAbilityCancellation": true,
+      "backstabHitReactMontage": "/Game/AbilitySystem/Ability/AM_HitReact_Finisher.AM_HitReact_Finisher",
+      "blockAbilitiesWithTag": {
+        "gameplayTags": []
+      },
+      "cancelAbilitiesWithTag": {
+        "gameplayTags": [
+          {
+            "tagName": "Ability.Attack"
+          },
+          {
+            "tagName": "Ability.Skill"
+          }
+        ]
+      },
+      "cooldownGameplayEffectClass": "/Script/WxCombat.WxEffect_Cooldown",
+      "costGameplayEffectClass": "/Script/WxCombat.WxEffect_Cost",
+      "currentActivationInfo": {
+        "activationMode": "AUTHORITY"
+      },
+      "currentEventData": {
+        "contextHandle": "()",
+        "eventMagnitude": 0.0,
+        "eventTag": {
+          "tagName": "None"
+        },
+        "instigator": null,
+        "instigatorTags": {
+          "gameplayTags": []
+        },
+        "optionalObject": null,
+        "optionalObject2": null,
+        "target": null,
+        "targetData": "()",
+        "targetTags": {
+          "gameplayTags": []
+        }
+      },
+      "finisherHitReactMontage": "/Game/AbilitySystem/Ability/AM_HitReact_Finisher.AM_HitReact_Finisher",
+      "instancingPolicy": "INSTANCED_PER_ACTOR",
+      "knockbackMontage": "/Game/AbilitySystem/Ability/AM_HitReact_Knockback.AM_HitReact_Knockback",
+      "knockdownMontage": "/Game/AbilitySystem/Ability/AM_HitReact_Knockdown.AM_HitReact_Knockdown",
+      "knockupMontage": "/Game/AbilitySystem/Ability/AM_HitReact_Knockup.AM_HitReact_Knockup",
+      "netExecutionPolicy": "SERVER_INITIATED",
+      "netSecurityPolicy": "CLIENT_OR_SERVER",
+      "normalHitReactMontage": "/Game/AbilitySystem/Ability/AM_HitReact.AM_HitReact",
+      "parryReactMontage": "/Game/AbilitySystem/Ability/AM_ParryReact.AM_ParryReact",
+      "replicationPolicy": "REPLICATE_NO",
+      "sourceBlockedTags": {
+        "gameplayTags": []
+      },
+      "sourceRequiredTags": {
+        "gameplayTags": []
+      },
+      "targetBlockedTags": {
+        "gameplayTags": []
+      },
+      "targetRequiredTags": {
+        "gameplayTags": []
+      }
+    },
+    "components": [],
+    "event_dispatchers": [],
+    "events": [
+      "K2_ActivateAbility",
+      "K2_OnEndAbility"
+    ],
+    "functions": [],
+    "graphs": [
+      "Gameplay Ability Graph"
+    ],
+    "native_parent": "/Script/WxCombat.WxAbility_HitReact",
+    "parent": "/Script/WxCombat.WxAbility_HitReact",
+    "variables": [
+      "/Script/GameplayAbilities.GameplayAbility.AbilityTags",
+      "/Script/GameplayAbilities.GameplayAbility.AbilityTriggers",
+      "/Script/GameplayAbilities.GameplayAbility.ActivationBlockedTags",
+      "/Script/GameplayAbilities.GameplayAbility.ActivationOwnedTags",
+      "/Script/GameplayAbilities.GameplayAbility.ActivationRequiredTags",
+      "/Script/GameplayAbilities.GameplayAbility.ActiveTasks",
+      "/Script/GameplayAbilities.GameplayAbility.BlockAbilitiesWithTag",
+      "/Script/GameplayAbilities.GameplayAbility.CancelAbilitiesWithTag",
+      "/Script/GameplayAbilities.GameplayAbility.CooldownGameplayEffectClass",
+      "/Script/GameplayAbilities.GameplayAbility.CostGameplayEffectClass",
+      "/Script/GameplayAbilities.GameplayAbility.CurrentActivationInfo",
+      "/Script/GameplayAbilities.GameplayAbility.CurrentEventData",
+      "/Script/GameplayAbilities.GameplayAbility.CurrentMontage",
+      "/Script/GameplayAbilities.GameplayAbility.InstancingPolicy",
+      "/Script/GameplayAbilities.GameplayAbility.NetExecutionPolicy",
+      "/Script/GameplayAbilities.GameplayAbility.NetSecurityPolicy",
+      "/Script/GameplayAbilities.GameplayAbility.RemoteInstanceEnded",
+      "/Script/GameplayAbilities.GameplayAbility.ReplicationPolicy",
+      "/Script/GameplayAbilities.GameplayAbility.SourceBlockedTags",
+      "/Script/GameplayAbilities.GameplayAbility.SourceRequiredTags",
+      "/Script/GameplayAbilities.GameplayAbility.TargetBlockedTags",
+      "/Script/GameplayAbilities.GameplayAbility.TargetRequiredTags",
+      "/Script/GameplayAbilities.GameplayAbility.bIsAbilityEnding",
+      "/Script/GameplayAbilities.GameplayAbility.bIsActive",
+      "/Script/GameplayAbilities.GameplayAbility.bIsBlockingOtherAbilities",
+      "/Script/GameplayAbilities.GameplayAbility.bIsCancelable",
+      "/Script/GameplayAbilities.GameplayAbility.bReplicateInputDirectly",
+      "/Script/GameplayAbilities.GameplayAbility.bRetriggerInstancedAbility",
+      "/Script/GameplayAbilities.GameplayAbility.bServerRespectsRemoteAbilityCancellation",
+      "/Script/WxCombat.WxAbilityBase.AbilityDataRow",
+      "/Script/WxCombat.WxAbilityBase.ActivationInputAction",
+      "/Script/WxCombat.WxAbilityBase.ActivationPolicy",
+      "/Script/WxCombat.WxAbilityBase.CooldownEffect",
+      "/Script/WxCombat.WxAbilityBase.HitStopListenerTask",
+      "/Script/WxCombat.WxAbility_HitReact.BackstabHitReactMontage",
+      "/Script/WxCombat.WxAbility_HitReact.CurrentMontageTask",
+      "/Script/WxCombat.WxAbility_HitReact.FinisherHitReactMontage",
+      "/Script/WxCombat.WxAbility_HitReact.KnockbackMontage",
+      "/Script/WxCombat.WxAbility_HitReact.KnockdownMontage",
+      "/Script/WxCombat.WxAbility_HitReact.KnockupMontage",
+      "/Script/WxCombat.WxAbility_HitReact.NormalHitReactMontage",
+      "/Script/WxCombat.WxAbility_HitReact.ParryReactMontage"
+    ]
+  }
+}

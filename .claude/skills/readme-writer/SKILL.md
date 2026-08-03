@@ -20,7 +20,7 @@ allowed-tools: Read, Grep, Glob, Bash, Write, Agent
 
 ## 1. 대상 결정 (인자 처리)
 
-`Glob("Plugins/*/*.uplugin")`로 플러그인을, `Glob("Source/*/*.Build.cs")`로 소스 모듈(`WxGame` 등)을 동적으로 발견한다. 새 모듈·플러그인이 추가돼도 이 스킬을 고칠 필요가 없어야 한다. **런타임 모듈만 대상으로 한다** — descriptor의 모듈 `Type`이 `Runtime`이 아니면(예: `WxEditor`·`WxBlueprintSnapshot`의 `Editor`) 대상에서 제외한다(인자로 명시해도 생성하지 않는다). `Type`은 플러그인이면 `.uplugin`, 소스 모듈이면 루트 `.uproject`의 `Modules[]`에 있다.
+`Glob("Plugins/*/*.uplugin")`로 플러그인을, `Glob("Source/*/*.Build.cs")`로 소스 모듈(`WxGame` 등)을 동적으로 발견한다. 새 모듈·플러그인이 추가돼도 이 스킬을 고칠 필요가 없어야 한다. **런타임 모듈만 대상으로 한다** — descriptor의 모듈 `Type`이 `Runtime`이 아니면(예: `WxEditor`의 `Editor`) 대상에서 제외한다(인자로 명시해도 생성하지 않는다). `Type`은 플러그인이면 `.uplugin`, 소스 모듈이면 루트 `.uproject`의 `Modules[]`에 있다.
 
 모듈 → 경로 / 본문 위치 매핑:
 
@@ -57,7 +57,7 @@ allowed-tools: Read, Grep, Glob, Bash, Write, Agent
 
 > README.md는 모듈 폴더 *안*에 있으므로 `-- <모듈경로>` 한정만으로는 제외되지 않는다 — diff·status 모두 README 자신의 커밋/수정(생성 직후엔 untracked, 커밋 후엔 provenance SHA 이후의 변경)을 잡아 모든 모듈이 영구히 stale이 된다. 위 `:(exclude)` pathspec으로 README를 명시적으로 빼야 "변경된 모듈만 재생성"이 실제로 작동한다.
 
-> 점진 갱신은 모듈 *소스 디렉터리* 변경만 본다. (1) `WxCore` 공용 정의(태그/Enum) 변경은 이를 인용하는 소비 모듈 경로 diff에 안 잡히고, (2) BP/WBP가 본체인 모듈(WxUI)의 에셋·스냅샷은 게임 루트 `Content/`·`Snapshots/`에 있어 모듈 경로 밖이다. 이런 파급이 의심되면 해당 모듈을 인자로 지정해 강제 재생성한다.
+> 점진 갱신은 모듈 *소스 디렉터리* 변경만 본다. (1) `WxCore` 공용 정의(태그/Enum) 변경은 이를 인용하는 소비 모듈 경로 diff에 안 잡히고, (2) BP/WBP가 본체인 모듈(WxUI)의 에셋·덤프는 게임 루트 `Content/`·`Docs/AssetDump/`에 있어 모듈 경로 밖이다. 이런 파급이 의심되면 해당 모듈을 인자로 지정해 강제 재생성한다.
 
 ---
 
@@ -130,7 +130,7 @@ allowed-tools: Read, Grep, Glob, Bash, Write, Agent
 - 끝의 provenance 라인은 숨기지 말 것. SHA·생성일은 받은 값 그대로 쓰고(재계산 금지) `<N>` 자리만 채운다. 본문은 한국어. 타입명·경로·태그명 등 식별자는 원문(영문) 유지.
 - provenance의 `<N>`(소스 파일 수)은 `<모듈경로>` 아래의 `*.h`/`*.cpp` 개수만 센다(레이아웃 비의존 — 플러그인은 `Plugins/<Name>/Source/...`, 소스 모듈은 `Source/<Name>/...`에 파일이 있다) — `Intermediate/`·`*.gen.cpp`·`*.generated.h`(빌드 산출물)는 제외한다.
 - 모든 파일 경로는 저장소 루트(`C:\Wx`) 기준 상대경로로 적어 클릭 가능하게 한다.
-- BP/WBP 내부 구조(위젯 계층·MVVM 바인딩 그래프·스냅샷)는 README 범위 밖이다. 프로젝트 `CLAUDE.md`의 `Blueprint 분석` 절이 스냅샷 위치·용법을 이미 안내하므로, 중복을 피해 README에는 특정 WBP 파일이나 `Plugins/WxBlueprintSnapshot/Snapshots/...` JSON 경로를 나열하지 않는다. BP/WBP가 본체인 모듈(특히 WxUI)도 README는 C++ 타입·모듈 구조에 집중한다.
+- BP/WBP 내부 구조(위젯 계층·MVVM 바인딩 그래프·덤프)는 README 범위 밖이다. 프로젝트 `CLAUDE.md`의 `에셋 분석` 절이 덤프 위치·용법을 이미 안내하므로, 중복을 피해 README에는 특정 WBP 파일이나 `Docs/AssetDump/...` JSON 경로를 나열하지 않는다. BP/WBP가 본체인 모듈(특히 WxUI)도 README는 C++ 타입·모듈 구조에 집중한다.
 - 프로젝트 `CLAUDE.md`의 코딩/모듈 규칙(특히 "WxCore 외 상호참조 금지")을 의존성 절에서 실제로 검증해 표기한다.
 
 ---

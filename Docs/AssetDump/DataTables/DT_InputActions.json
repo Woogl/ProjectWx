@@ -1,0 +1,947 @@
+{
+  "asset": "/Game/UI/CommonUI/DT_InputActions",
+  "class": "/Script/Engine.DataTable",
+  "data": [
+    {
+      "DefaultGamepadInputTypeInfo": {
+        "AdditionalKeys": [],
+        "HoldRollbackTime": 0,
+        "HoldTime": 0.5,
+        "Key": {
+          "KeyName": "Gamepad_FaceButton_Bottom"
+        },
+        "OverrideBrush": {
+          "DrawAs": "NoDrawType",
+          "ImageSize": {
+            "X": 32,
+            "Y": 32
+          },
+          "ImageType": "NoImage",
+          "Margin": {
+            "Bottom": 0,
+            "Left": 0,
+            "Right": 0,
+            "Top": 0
+          },
+          "Mirroring": "NoMirror",
+          "OutlineSettings": {
+            "Color": {
+              "ColorUseRule": "UseColor_Specified",
+              "SpecifiedColor": {
+                "A": 0,
+                "B": 0,
+                "G": 0,
+                "R": 0
+              }
+            },
+            "CornerRadii": {
+              "W": 0,
+              "X": 0,
+              "Y": 0,
+              "Z": 0
+            },
+            "RoundingType": "HalfHeightRadius",
+            "Width": 0,
+            "bUseBrushTransparency": false
+          },
+          "ResourceName": "None",
+          "ResourceObject": "None",
+          "Tiling": "NoTile",
+          "Tint": {
+            "A": 1,
+            "B": 1,
+            "G": 1,
+            "R": 1
+          },
+          "TintColor": {
+            "ColorUseRule": "UseColor_Specified",
+            "SpecifiedColor": {
+              "A": 1,
+              "B": 1,
+              "G": 1,
+              "R": 1
+            }
+          },
+          "UVRegion": {
+            "Max": {
+              "X": 0,
+              "Y": 0
+            },
+            "Min": {
+              "X": 0,
+              "Y": 0
+            },
+            "bIsValid": false
+          },
+          "bHasUObject": false,
+          "bIsDynamicallyLoaded": false
+        },
+        "OverrrideState": "Enabled",
+        "bActionRequiresHold": false
+      },
+      "DisplayName": "Click",
+      "GamepadInputOverrides": {},
+      "HoldDisplayName": "",
+      "KeyboardInputTypeInfo": {
+        "AdditionalKeys": [],
+        "HoldRollbackTime": 0,
+        "HoldTime": 0.5,
+        "Key": {
+          "KeyName": "Enter"
+        },
+        "OverrideBrush": {
+          "DrawAs": "NoDrawType",
+          "ImageSize": {
+            "X": 32,
+            "Y": 32
+          },
+          "ImageType": "NoImage",
+          "Margin": {
+            "Bottom": 0,
+            "Left": 0,
+            "Right": 0,
+            "Top": 0
+          },
+          "Mirroring": "NoMirror",
+          "OutlineSettings": {
+            "Color": {
+              "ColorUseRule": "UseColor_Specified",
+              "SpecifiedColor": {
+                "A": 0,
+                "B": 0,
+                "G": 0,
+                "R": 0
+              }
+            },
+            "CornerRadii": {
+              "W": 0,
+              "X": 0,
+              "Y": 0,
+              "Z": 0
+            },
+            "RoundingType": "HalfHeightRadius",
+            "Width": 0,
+            "bUseBrushTransparency": false
+          },
+          "ResourceName": "None",
+          "ResourceObject": "None",
+          "Tiling": "NoTile",
+          "Tint": {
+            "A": 1,
+            "B": 1,
+            "G": 1,
+            "R": 1
+          },
+          "TintColor": {
+            "ColorUseRule": "UseColor_Specified",
+            "SpecifiedColor": {
+              "A": 1,
+              "B": 1,
+              "G": 1,
+              "R": 1
+            }
+          },
+          "UVRegion": {
+            "Max": {
+              "X": 0,
+              "Y": 0
+            },
+            "Min": {
+              "X": 0,
+              "Y": 0
+            },
+            "bIsValid": false
+          },
+          "bHasUObject": false,
+          "bIsDynamicallyLoaded": false
+        },
+        "OverrrideState": "Enabled",
+        "bActionRequiresHold": false
+      },
+      "Name": "DefaultClick",
+      "NavBarPriority": 0,
+      "TouchInputTypeInfo": {
+        "AdditionalKeys": [],
+        "HoldRollbackTime": 0,
+        "HoldTime": 0.5,
+        "Key": {
+          "KeyName": "None"
+        },
+        "OverrideBrush": {
+          "DrawAs": "NoDrawType",
+          "ImageSize": {
+            "X": 32,
+            "Y": 32
+          },
+          "ImageType": "NoImage",
+          "Margin": {
+            "Bottom": 0,
+            "Left": 0,
+            "Right": 0,
+            "Top": 0
+          },
+          "Mirroring": "NoMirror",
+          "OutlineSettings": {
+            "Color": {
+              "ColorUseRule": "UseColor_Specified",
+              "SpecifiedColor": {
+                "A": 0,
+                "B": 0,
+                "G": 0,
+                "R": 0
+              }
+            },
+            "CornerRadii": {
+              "W": 0,
+              "X": 0,
+              "Y": 0,
+              "Z": 0
+            },
+            "RoundingType": "HalfHeightRadius",
+            "Width": 0,
+            "bUseBrushTransparency": false
+          },
+          "ResourceName": "None",
+          "ResourceObject": "None",
+          "Tiling": "NoTile",
+          "Tint": {
+            "A": 1,
+            "B": 1,
+            "G": 1,
+            "R": 1
+          },
+          "TintColor": {
+            "ColorUseRule": "UseColor_Specified",
+            "SpecifiedColor": {
+              "A": 1,
+              "B": 1,
+              "G": 1,
+              "R": 1
+            }
+          },
+          "UVRegion": {
+            "Max": {
+              "X": 0,
+              "Y": 0
+            },
+            "Min": {
+              "X": 0,
+              "Y": 0
+            },
+            "bIsValid": false
+          },
+          "bHasUObject": false,
+          "bIsDynamicallyLoaded": false
+        },
+        "OverrrideState": "Enabled",
+        "bActionRequiresHold": false
+      }
+    },
+    {
+      "DefaultGamepadInputTypeInfo": {
+        "AdditionalKeys": [],
+        "HoldRollbackTime": 0,
+        "HoldTime": 0.5,
+        "Key": {
+          "KeyName": "Gamepad_FaceButton_Right"
+        },
+        "OverrideBrush": {
+          "DrawAs": "NoDrawType",
+          "ImageSize": {
+            "X": 32,
+            "Y": 32
+          },
+          "ImageType": "NoImage",
+          "Margin": {
+            "Bottom": 0,
+            "Left": 0,
+            "Right": 0,
+            "Top": 0
+          },
+          "Mirroring": "NoMirror",
+          "OutlineSettings": {
+            "Color": {
+              "ColorUseRule": "UseColor_Specified",
+              "SpecifiedColor": {
+                "A": 0,
+                "B": 0,
+                "G": 0,
+                "R": 0
+              }
+            },
+            "CornerRadii": {
+              "W": 0,
+              "X": 0,
+              "Y": 0,
+              "Z": 0
+            },
+            "RoundingType": "HalfHeightRadius",
+            "Width": 0,
+            "bUseBrushTransparency": false
+          },
+          "ResourceName": "None",
+          "ResourceObject": "None",
+          "Tiling": "NoTile",
+          "Tint": {
+            "A": 1,
+            "B": 1,
+            "G": 1,
+            "R": 1
+          },
+          "TintColor": {
+            "ColorUseRule": "UseColor_Specified",
+            "SpecifiedColor": {
+              "A": 1,
+              "B": 1,
+              "G": 1,
+              "R": 1
+            }
+          },
+          "UVRegion": {
+            "Max": {
+              "X": 0,
+              "Y": 0
+            },
+            "Min": {
+              "X": 0,
+              "Y": 0
+            },
+            "bIsValid": false
+          },
+          "bHasUObject": false,
+          "bIsDynamicallyLoaded": false
+        },
+        "OverrrideState": "Enabled",
+        "bActionRequiresHold": false
+      },
+      "DisplayName": "Back",
+      "GamepadInputOverrides": {},
+      "HoldDisplayName": "",
+      "KeyboardInputTypeInfo": {
+        "AdditionalKeys": [],
+        "HoldRollbackTime": 0,
+        "HoldTime": 0.5,
+        "Key": {
+          "KeyName": "Escape"
+        },
+        "OverrideBrush": {
+          "DrawAs": "Image",
+          "ImageSize": {
+            "X": 128,
+            "Y": 128
+          },
+          "ImageType": "FullColor",
+          "Margin": {
+            "Bottom": 0,
+            "Left": 0,
+            "Right": 0,
+            "Top": 0
+          },
+          "Mirroring": "NoMirror",
+          "OutlineSettings": {
+            "Color": {
+              "ColorUseRule": "UseColor_Specified",
+              "SpecifiedColor": {
+                "A": 0,
+                "B": 0,
+                "G": 0,
+                "R": 0
+              }
+            },
+            "CornerRadii": {
+              "W": 0,
+              "X": 0,
+              "Y": 0,
+              "Z": 0
+            },
+            "RoundingType": "HalfHeightRadius",
+            "Width": 0,
+            "bUseBrushTransparency": false
+          },
+          "ResourceName": "None",
+          "ResourceObject": "/Script/Engine.Texture2D'/Game/EasyInputPrompts/GraphicContent/MouseAndKeyboard/T_Keyboard_F.T_Keyboard_F'",
+          "Tiling": "NoTile",
+          "Tint": {
+            "A": 1,
+            "B": 1,
+            "G": 1,
+            "R": 1
+          },
+          "TintColor": {
+            "ColorUseRule": "UseColor_Specified",
+            "SpecifiedColor": {
+              "A": 1,
+              "B": 1,
+              "G": 1,
+              "R": 1
+            }
+          },
+          "UVRegion": {
+            "Max": {
+              "X": 0,
+              "Y": 0
+            },
+            "Min": {
+              "X": 0,
+              "Y": 0
+            },
+            "bIsValid": false
+          },
+          "bHasUObject": false,
+          "bIsDynamicallyLoaded": false
+        },
+        "OverrrideState": "Enabled",
+        "bActionRequiresHold": false
+      },
+      "Name": "DefaultBack",
+      "NavBarPriority": 0,
+      "TouchInputTypeInfo": {
+        "AdditionalKeys": [],
+        "HoldRollbackTime": 0,
+        "HoldTime": 0.5,
+        "Key": {
+          "KeyName": "None"
+        },
+        "OverrideBrush": {
+          "DrawAs": "NoDrawType",
+          "ImageSize": {
+            "X": 32,
+            "Y": 32
+          },
+          "ImageType": "NoImage",
+          "Margin": {
+            "Bottom": 0,
+            "Left": 0,
+            "Right": 0,
+            "Top": 0
+          },
+          "Mirroring": "NoMirror",
+          "OutlineSettings": {
+            "Color": {
+              "ColorUseRule": "UseColor_Specified",
+              "SpecifiedColor": {
+                "A": 0,
+                "B": 0,
+                "G": 0,
+                "R": 0
+              }
+            },
+            "CornerRadii": {
+              "W": 0,
+              "X": 0,
+              "Y": 0,
+              "Z": 0
+            },
+            "RoundingType": "HalfHeightRadius",
+            "Width": 0,
+            "bUseBrushTransparency": false
+          },
+          "ResourceName": "None",
+          "ResourceObject": "None",
+          "Tiling": "NoTile",
+          "Tint": {
+            "A": 1,
+            "B": 1,
+            "G": 1,
+            "R": 1
+          },
+          "TintColor": {
+            "ColorUseRule": "UseColor_Specified",
+            "SpecifiedColor": {
+              "A": 1,
+              "B": 1,
+              "G": 1,
+              "R": 1
+            }
+          },
+          "UVRegion": {
+            "Max": {
+              "X": 0,
+              "Y": 0
+            },
+            "Min": {
+              "X": 0,
+              "Y": 0
+            },
+            "bIsValid": false
+          },
+          "bHasUObject": false,
+          "bIsDynamicallyLoaded": false
+        },
+        "OverrrideState": "Enabled",
+        "bActionRequiresHold": false
+      }
+    },
+    {
+      "DefaultGamepadInputTypeInfo": {
+        "AdditionalKeys": [],
+        "HoldRollbackTime": 0,
+        "HoldTime": 0.5,
+        "Key": {
+          "KeyName": "None"
+        },
+        "OverrideBrush": {
+          "DrawAs": "NoDrawType",
+          "ImageSize": {
+            "X": 32,
+            "Y": 32
+          },
+          "ImageType": "NoImage",
+          "Margin": {
+            "Bottom": 0,
+            "Left": 0,
+            "Right": 0,
+            "Top": 0
+          },
+          "Mirroring": "NoMirror",
+          "OutlineSettings": {
+            "Color": {
+              "ColorUseRule": "UseColor_Specified",
+              "SpecifiedColor": {
+                "A": 0,
+                "B": 0,
+                "G": 0,
+                "R": 0
+              }
+            },
+            "CornerRadii": {
+              "W": 0,
+              "X": 0,
+              "Y": 0,
+              "Z": 0
+            },
+            "RoundingType": "HalfHeightRadius",
+            "Width": 0,
+            "bUseBrushTransparency": false
+          },
+          "ResourceName": "None",
+          "ResourceObject": "None",
+          "Tiling": "NoTile",
+          "Tint": {
+            "A": 1,
+            "B": 1,
+            "G": 1,
+            "R": 1
+          },
+          "TintColor": {
+            "ColorUseRule": "UseColor_Specified",
+            "SpecifiedColor": {
+              "A": 1,
+              "B": 1,
+              "G": 1,
+              "R": 1
+            }
+          },
+          "UVRegion": {
+            "Max": {
+              "X": 0,
+              "Y": 0
+            },
+            "Min": {
+              "X": 0,
+              "Y": 0
+            },
+            "bIsValid": false
+          },
+          "bHasUObject": false,
+          "bIsDynamicallyLoaded": false
+        },
+        "OverrrideState": "Enabled",
+        "bActionRequiresHold": false
+      },
+      "DisplayName": "Interact",
+      "GamepadInputOverrides": {},
+      "HoldDisplayName": "",
+      "KeyboardInputTypeInfo": {
+        "AdditionalKeys": [],
+        "HoldRollbackTime": 0,
+        "HoldTime": 0.5,
+        "Key": {
+          "KeyName": "F"
+        },
+        "OverrideBrush": {
+          "DrawAs": "NoDrawType",
+          "ImageSize": {
+            "X": 32,
+            "Y": 32
+          },
+          "ImageType": "NoImage",
+          "Margin": {
+            "Bottom": 0,
+            "Left": 0,
+            "Right": 0,
+            "Top": 0
+          },
+          "Mirroring": "NoMirror",
+          "OutlineSettings": {
+            "Color": {
+              "ColorUseRule": "UseColor_Specified",
+              "SpecifiedColor": {
+                "A": 0,
+                "B": 0,
+                "G": 0,
+                "R": 0
+              }
+            },
+            "CornerRadii": {
+              "W": 0,
+              "X": 0,
+              "Y": 0,
+              "Z": 0
+            },
+            "RoundingType": "HalfHeightRadius",
+            "Width": 0,
+            "bUseBrushTransparency": false
+          },
+          "ResourceName": "None",
+          "ResourceObject": "None",
+          "Tiling": "NoTile",
+          "Tint": {
+            "A": 1,
+            "B": 1,
+            "G": 1,
+            "R": 1
+          },
+          "TintColor": {
+            "ColorUseRule": "UseColor_Specified",
+            "SpecifiedColor": {
+              "A": 1,
+              "B": 1,
+              "G": 1,
+              "R": 1
+            }
+          },
+          "UVRegion": {
+            "Max": {
+              "X": 0,
+              "Y": 0
+            },
+            "Min": {
+              "X": 0,
+              "Y": 0
+            },
+            "bIsValid": false
+          },
+          "bHasUObject": false,
+          "bIsDynamicallyLoaded": false
+        },
+        "OverrrideState": "Enabled",
+        "bActionRequiresHold": false
+      },
+      "Name": "Interact",
+      "NavBarPriority": 0,
+      "TouchInputTypeInfo": {
+        "AdditionalKeys": [],
+        "HoldRollbackTime": 0,
+        "HoldTime": 0.5,
+        "Key": {
+          "KeyName": "None"
+        },
+        "OverrideBrush": {
+          "DrawAs": "NoDrawType",
+          "ImageSize": {
+            "X": 32,
+            "Y": 32
+          },
+          "ImageType": "NoImage",
+          "Margin": {
+            "Bottom": 0,
+            "Left": 0,
+            "Right": 0,
+            "Top": 0
+          },
+          "Mirroring": "NoMirror",
+          "OutlineSettings": {
+            "Color": {
+              "ColorUseRule": "UseColor_Specified",
+              "SpecifiedColor": {
+                "A": 0,
+                "B": 0,
+                "G": 0,
+                "R": 0
+              }
+            },
+            "CornerRadii": {
+              "W": 0,
+              "X": 0,
+              "Y": 0,
+              "Z": 0
+            },
+            "RoundingType": "HalfHeightRadius",
+            "Width": 0,
+            "bUseBrushTransparency": false
+          },
+          "ResourceName": "None",
+          "ResourceObject": "None",
+          "Tiling": "NoTile",
+          "Tint": {
+            "A": 1,
+            "B": 1,
+            "G": 1,
+            "R": 1
+          },
+          "TintColor": {
+            "ColorUseRule": "UseColor_Specified",
+            "SpecifiedColor": {
+              "A": 1,
+              "B": 1,
+              "G": 1,
+              "R": 1
+            }
+          },
+          "UVRegion": {
+            "Max": {
+              "X": 0,
+              "Y": 0
+            },
+            "Min": {
+              "X": 0,
+              "Y": 0
+            },
+            "bIsValid": false
+          },
+          "bHasUObject": false,
+          "bIsDynamicallyLoaded": false
+        },
+        "OverrrideState": "Enabled",
+        "bActionRequiresHold": false
+      }
+    },
+    {
+      "DefaultGamepadInputTypeInfo": {
+        "AdditionalKeys": [],
+        "HoldRollbackTime": 0,
+        "HoldTime": 0.5,
+        "Key": {
+          "KeyName": "None"
+        },
+        "OverrideBrush": {
+          "DrawAs": "NoDrawType",
+          "ImageSize": {
+            "X": 32,
+            "Y": 32
+          },
+          "ImageType": "NoImage",
+          "Margin": {
+            "Bottom": 0,
+            "Left": 0,
+            "Right": 0,
+            "Top": 0
+          },
+          "Mirroring": "NoMirror",
+          "OutlineSettings": {
+            "Color": {
+              "ColorUseRule": "UseColor_Specified",
+              "SpecifiedColor": {
+                "A": 0,
+                "B": 0,
+                "G": 0,
+                "R": 0
+              }
+            },
+            "CornerRadii": {
+              "W": 0,
+              "X": 0,
+              "Y": 0,
+              "Z": 0
+            },
+            "RoundingType": "HalfHeightRadius",
+            "Width": 0,
+            "bUseBrushTransparency": false
+          },
+          "ResourceName": "None",
+          "ResourceObject": "None",
+          "Tiling": "NoTile",
+          "Tint": {
+            "A": 1,
+            "B": 1,
+            "G": 1,
+            "R": 1
+          },
+          "TintColor": {
+            "ColorUseRule": "UseColor_Specified",
+            "SpecifiedColor": {
+              "A": 1,
+              "B": 1,
+              "G": 1,
+              "R": 1
+            }
+          },
+          "UVRegion": {
+            "Max": {
+              "X": 0,
+              "Y": 0
+            },
+            "Min": {
+              "X": 0,
+              "Y": 0
+            },
+            "bIsValid": false
+          },
+          "bHasUObject": false,
+          "bIsDynamicallyLoaded": false
+        },
+        "OverrrideState": "Enabled",
+        "bActionRequiresHold": false
+      },
+      "DisplayName": "Inventory",
+      "GamepadInputOverrides": {},
+      "HoldDisplayName": "",
+      "KeyboardInputTypeInfo": {
+        "AdditionalKeys": [],
+        "HoldRollbackTime": 0,
+        "HoldTime": 0.5,
+        "Key": {
+          "KeyName": "B"
+        },
+        "OverrideBrush": {
+          "DrawAs": "NoDrawType",
+          "ImageSize": {
+            "X": 32,
+            "Y": 32
+          },
+          "ImageType": "NoImage",
+          "Margin": {
+            "Bottom": 0,
+            "Left": 0,
+            "Right": 0,
+            "Top": 0
+          },
+          "Mirroring": "NoMirror",
+          "OutlineSettings": {
+            "Color": {
+              "ColorUseRule": "UseColor_Specified",
+              "SpecifiedColor": {
+                "A": 0,
+                "B": 0,
+                "G": 0,
+                "R": 0
+              }
+            },
+            "CornerRadii": {
+              "W": 0,
+              "X": 0,
+              "Y": 0,
+              "Z": 0
+            },
+            "RoundingType": "HalfHeightRadius",
+            "Width": 0,
+            "bUseBrushTransparency": false
+          },
+          "ResourceName": "None",
+          "ResourceObject": "None",
+          "Tiling": "NoTile",
+          "Tint": {
+            "A": 1,
+            "B": 1,
+            "G": 1,
+            "R": 1
+          },
+          "TintColor": {
+            "ColorUseRule": "UseColor_Specified",
+            "SpecifiedColor": {
+              "A": 1,
+              "B": 1,
+              "G": 1,
+              "R": 1
+            }
+          },
+          "UVRegion": {
+            "Max": {
+              "X": 0,
+              "Y": 0
+            },
+            "Min": {
+              "X": 0,
+              "Y": 0
+            },
+            "bIsValid": false
+          },
+          "bHasUObject": false,
+          "bIsDynamicallyLoaded": false
+        },
+        "OverrrideState": "Enabled",
+        "bActionRequiresHold": false
+      },
+      "Name": "Inventory",
+      "NavBarPriority": 0,
+      "TouchInputTypeInfo": {
+        "AdditionalKeys": [],
+        "HoldRollbackTime": 0,
+        "HoldTime": 0.5,
+        "Key": {
+          "KeyName": "None"
+        },
+        "OverrideBrush": {
+          "DrawAs": "NoDrawType",
+          "ImageSize": {
+            "X": 32,
+            "Y": 32
+          },
+          "ImageType": "NoImage",
+          "Margin": {
+            "Bottom": 0,
+            "Left": 0,
+            "Right": 0,
+            "Top": 0
+          },
+          "Mirroring": "NoMirror",
+          "OutlineSettings": {
+            "Color": {
+              "ColorUseRule": "UseColor_Specified",
+              "SpecifiedColor": {
+                "A": 0,
+                "B": 0,
+                "G": 0,
+                "R": 0
+              }
+            },
+            "CornerRadii": {
+              "W": 0,
+              "X": 0,
+              "Y": 0,
+              "Z": 0
+            },
+            "RoundingType": "HalfHeightRadius",
+            "Width": 0,
+            "bUseBrushTransparency": false
+          },
+          "ResourceName": "None",
+          "ResourceObject": "None",
+          "Tiling": "NoTile",
+          "Tint": {
+            "A": 1,
+            "B": 1,
+            "G": 1,
+            "R": 1
+          },
+          "TintColor": {
+            "ColorUseRule": "UseColor_Specified",
+            "SpecifiedColor": {
+              "A": 1,
+              "B": 1,
+              "G": 1,
+              "R": 1
+            }
+          },
+          "UVRegion": {
+            "Max": {
+              "X": 0,
+              "Y": 0
+            },
+            "Min": {
+              "X": 0,
+              "Y": 0
+            },
+            "bIsValid": false
+          },
+          "bHasUObject": false,
+          "bIsDynamicallyLoaded": false
+        },
+        "OverrrideState": "Enabled",
+        "bActionRequiresHold": false
+      }
+    }
+  ],
+  "row_struct": "/Script/CommonUI.CommonInputActionDataBase"
+}

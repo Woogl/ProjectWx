@@ -1,0 +1,111 @@
+{
+  "asset": "/Game/AbilitySystem/Targeting/TP_Attack_1000",
+  "class": "/Script/TargetingSystem.TargetingPreset",
+  "data": {
+    "targetingTaskSet": {
+      "tasks": [
+        {
+          "__class__": "/Script/TargetingSystem.TargetingSelectionTask_AOE",
+          "bIgnoreInstigatorActor": true,
+          "bIgnoreSourceActor": true,
+          "bTraceComplex": false,
+          "bUseRelativeOffset": false,
+          "collisionChannel": "ECC_PHYSICS_BODY",
+          "collisionObjectTypes": [
+            "ECC_PAWN"
+          ],
+          "collisionProfileName": {
+            "name": "Pawn"
+          },
+          "componentTag": "None",
+          "defaultSourceOffset": {
+            "x": 50.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "defaultSourceRotationOffset": {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": 0.0
+          },
+          "halfExtent": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "halfHeight": {
+            "curve": {
+              "curveTable": null,
+              "rowName": "None"
+            },
+            "registryType": {
+              "name": "None"
+            },
+            "value": 0.0
+          },
+          "radius": {
+            "curve": {
+              "curveTable": null,
+              "rowName": "None"
+            },
+            "registryType": {
+              "name": "None"
+            },
+            "value": 1000.0
+          },
+          "shapeType": "SPHERE"
+        },
+        {
+          "__class__": "/Script/TargetingSystem.TargetingFilterTask_ActorClass",
+          "ignoredActorClassFilters": [],
+          "requiredActorClassFilters": [
+            "/Script/Engine.Character"
+          ]
+        },
+        {
+          "__class__": "/Script/WxCombat.WxTargetingFilterTask_Team",
+          "bIncludeFriendly": false,
+          "bIncludeHostile": true,
+          "bIncludeNeutral": false
+        },
+        {
+          "__class__": "/Script/WxCombat.WxTargetingFilterTask_GameplayTag",
+          "tagRequirements": {
+            "ignoreTags": {
+              "gameplayTags": [
+                {
+                  "tagName": "State.Dead"
+                },
+                {
+                  "tagName": "State.Ragdoll"
+                }
+              ]
+            },
+            "requireTags": {
+              "gameplayTags": []
+            },
+            "tagQuery": {
+              "autoDescription": "",
+              "queryTokenStream": [],
+              "tagDictionary": [],
+              "tokenStreamVersion": 0,
+              "userDescription": ""
+            }
+          }
+        },
+        {
+          "__class__": "/Script/WxCombat.WxTargetingFilterTask_InputDirection",
+          "bKeepAllWhenNoMatch": true,
+          "maxInputAngle": 90.0
+        },
+        {
+          "__class__": "/Script/TargetingSystem.TargetingFilterTask_SortByDistance",
+          "bAscending": true,
+          "bStableSort": false,
+          "bUseDistanceToNearestBlockingCollider": false,
+          "distanceToCollisionChannel": "ECC_WORLD_DYNAMIC"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "asset": "/Game/UI/CommonUI/WxUIInputData",
+  "class": "/Script/Engine.Blueprint",
+  "data": {
+    "cdo": {
+      "defaultBackAction": {
+        "dataTable": "/Game/UI/CommonUI/DT_InputActions.DT_InputActions",
+        "rowName": "DefaultBack"
+      },
+      "defaultClickAction": {
+        "dataTable": "/Game/UI/CommonUI/DT_InputActions.DT_InputActions",
+        "rowName": "DefaultClick"
+      },
+      "defaultHoldData": null,
+      "enhancedInputBackAction": null,
+      "enhancedInputClickAction": null
+    },
+    "components": [],
+    "event_dispatchers": [],
+    "events": [],
+    "functions": [],
+    "graphs": [
+      "EventGraph"
+    ],
+    "native_parent": "/Script/CommonInput.CommonUIInputData",
+    "parent": "/Script/CommonInput.CommonUIInputData",
+    "variables": [
+      "/Script/CommonInput.CommonUIInputData.DefaultBackAction",
+      "/Script/CommonInput.CommonUIInputData.DefaultClickAction",
+      "/Script/CommonInput.CommonUIInputData.DefaultHoldData",
+      "/Script/CommonInput.CommonUIInputData.EnhancedInputBackAction",
+      "/Script/CommonInput.CommonUIInputData.EnhancedInputClickAction"
+    ]
+  }
+}

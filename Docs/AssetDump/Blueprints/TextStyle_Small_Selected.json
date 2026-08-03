@@ -1,0 +1,124 @@
+{
+  "asset": "/Game/UI/Style/TextStyle_Small_Selected",
+  "class": "/Script/Engine.Blueprint",
+  "data": {
+    "cdo": {
+      "applyLineHeightToBottomLine": true,
+      "bUsesDropShadow": false,
+      "color": {
+        "a": 1.0,
+        "b": 0.0,
+        "g": 0.8333330154418945,
+        "r": 1.0
+      },
+      "font": {
+        "bForceMonospaced": false,
+        "bMaterialIsStencil": false,
+        "fontMaterial": null,
+        "fontObject": "/Game/UI/Font/NanumGothicExtraBold_Font.NanumGothicExtraBold_Font",
+        "letterSpacing": 0,
+        "monospacedWidth": 1.0,
+        "outlineSettings": {
+          "bApplyOutlineToDropShadows": false,
+          "bMiteredCorners": false,
+          "bSeparateFillAlpha": false,
+          "outlineColor": {
+            "a": 1.0,
+            "b": 0.0,
+            "g": 0.0,
+            "r": 0.0
+          },
+          "outlineMaterial": null,
+          "outlineSize": 1
+        },
+        "size": 20.0,
+        "skewAmount": 0.0,
+        "typefaceFontName": "Default"
+      },
+      "lineHeightPercentage": 1.0,
+      "margin": {
+        "bottom": 0.0,
+        "left": 0.0,
+        "right": 0.0,
+        "top": 0.0
+      },
+      "shadowColor": {
+        "a": 0.0,
+        "b": 0.0,
+        "g": 0.0,
+        "r": 0.0
+      },
+      "shadowOffset": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "strikeBrush": {
+        "drawAs": "IMAGE",
+        "imageSize": {
+          "x": 32.0,
+          "y": 32.0
+        },
+        "imageType": "NO_IMAGE",
+        "margin": {
+          "bottom": 0.0,
+          "left": 0.0,
+          "right": 0.0,
+          "top": 0.0
+        },
+        "mirroring": "NO_MIRROR",
+        "outlineSettings": {
+          "bUseBrushTransparency": false,
+          "color": {
+            "colorUseRule": "USE_COLOR_SPECIFIED",
+            "specifiedColor": {
+              "a": 0.0,
+              "b": 0.0,
+              "g": 0.0,
+              "r": 0.0
+            }
+          },
+          "cornerRadii": {
+            "w": 0.0,
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "roundingType": "HALF_HEIGHT_RADIUS",
+          "width": 0.0
+        },
+        "resourceName": "None",
+        "resourceObject": null,
+        "tiling": "NO_TILE",
+        "tintColor": {
+          "colorUseRule": "USE_COLOR_SPECIFIED",
+          "specifiedColor": {
+            "a": 1.0,
+            "b": 1.0,
+            "g": 1.0,
+            "r": 1.0
+          }
+        }
+      }
+    },
+    "components": [],
+    "event_dispatchers": [],
+    "events": [],
+    "functions": [],
+    "graphs": [
+      "EventGraph"
+    ],
+    "native_parent": "/Script/CommonUI.CommonTextStyle",
+    "parent": "/Script/CommonUI.CommonTextStyle",
+    "variables": [
+      "/Script/CommonUI.CommonTextStyle.ApplyLineHeightToBottomLine",
+      "/Script/CommonUI.CommonTextStyle.Color",
+      "/Script/CommonUI.CommonTextStyle.Font",
+      "/Script/CommonUI.CommonTextStyle.LineHeightPercentage",
+      "/Script/CommonUI.CommonTextStyle.Margin",
+      "/Script/CommonUI.CommonTextStyle.ShadowColor",
+      "/Script/CommonUI.CommonTextStyle.ShadowOffset",
+      "/Script/CommonUI.CommonTextStyle.StrikeBrush",
+      "/Script/CommonUI.CommonTextStyle.bUsesDropShadow"
+    ]
+  }
+}

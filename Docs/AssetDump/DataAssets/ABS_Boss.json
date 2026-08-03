@@ -1,0 +1,20 @@
+{
+  "asset": "/Game/Character/Boss/ABS_Boss",
+  "class": "/Script/WxCombat.WxAbilitySet",
+  "data": {
+    "attributeInitRow": {
+      "dataTable": "/Game/DesignerTables/DT_CharacterAttribute.DT_CharacterAttribute",
+      "rowName": "Boss"
+    },
+    "grantedAbilities": [
+      "/Script/WxCombat.WxAbility_Death",
+      "/Game/AbilitySystem/Ability/GA_Groggy.GA_Groggy_C",
+      "/Game/AbilitySystem/Ability/GA_HitReact.GA_HitReact_C",
+      "/Game/AbilitySystem/Ability/GA_Pattern_1.GA_Pattern_1_C",
+      "/Game/AbilitySystem/Ability/GA_Pattern_2.GA_Pattern_2_C",
+      "/Game/AbilitySystem/Ability/GA_Pattern_3.GA_Pattern_3_C",
+      "/Game/AbilitySystem/Ability/GA_Pattern_4.GA_Pattern_4_C"
+    ],
+    "grantedEffects": []
+  }
+}

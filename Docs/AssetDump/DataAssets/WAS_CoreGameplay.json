@@ -1,0 +1,22 @@
+{
+  "asset": "/Game/Framework/WAS_CoreGameplay",
+  "class": "/Script/WxGame.WxExperienceActionSet",
+  "data": {
+    "actions": [
+      {
+        "__class__": "/Script/WxGame.WxGameFeatureAction_AddComponents",
+        "componentList": [
+          "(ComponentClass=\"/Script/WxInventory.WxInventoryManagerComponent\")",
+          "(ComponentClass=\"/Script/WxWorld.WxInteractionScannerComponent\")",
+          "(ComponentClass=\"/Script/WxSave.WxPlayerSpawnComponent\")",
+          "(ComponentClass=\"/Script/WxUI.WxIndicatorManagerComponent\")",
+          "(ComponentClass=\"/Script/WxQuest.WxQuestComponent\")",
+          "(ComponentClass=\"/Script/WxCombat.WxTimeDilationComponent\")",
+          "(ComponentClass=\"/Script/WxDialogue.WxDialogueSessionComponent\")"
+        ]
+      }
+    ],
+    "defaultInventoryItems": [],
+    "gameFeaturesToEnable": []
+  }
+}

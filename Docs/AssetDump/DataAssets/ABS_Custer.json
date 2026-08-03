@@ -1,0 +1,23 @@
+{
+  "asset": "/Game/Character/Custer/ABS_Custer",
+  "class": "/Script/WxCombat.WxAbilitySet",
+  "data": {
+    "attributeInitRow": {
+      "dataTable": "/Game/DesignerTables/DT_CharacterAttribute.DT_CharacterAttribute",
+      "rowName": "Custer"
+    },
+    "grantedAbilities": [
+      "/Script/WxCombat.WxAbility_Death",
+      "/Game/AbilitySystem/Ability/GA_Groggy.GA_Groggy_C",
+      "/Game/AbilitySystem/Ability/GA_HitReact.GA_HitReact_C",
+      "/Game/Character/Custer/Skill/GA_Pattern_1.GA_Pattern_1_C",
+      "/Game/Character/Custer/Skill/GA_Pattern_2.GA_Pattern_2_C",
+      "/Game/Character/Custer/Skill/GA_Pattern_3.GA_Pattern_3_C",
+      "/Game/Character/Custer/Skill/GA_Pattern_4.GA_Pattern_4_C",
+      "/Game/Character/Custer/Skill/GA_Pattern_5.GA_Pattern_5_C",
+      "/Game/Character/Custer/Skill/GA_Pattern_6.GA_Pattern_6_C",
+      "/Game/Character/Custer/Skill/GA_Pattern_7.GA_Pattern_7_C"
+    ],
+    "grantedEffects": []
+  }
+}

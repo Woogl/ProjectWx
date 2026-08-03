@@ -1,0 +1,24 @@
+{
+  "asset": "/Game/Input/Actions/IA_Skill_2",
+  "class": "/Script/EnhancedInput.InputAction",
+  "data": {
+    "accumulationBehavior": "TAKE_HIGHEST_ABSOLUTE_VALUE",
+    "actionDescription": "",
+    "bConsumeInput": true,
+    "bConsumesActionAndAxisMappings": false,
+    "bReserveAllMappings": false,
+    "bTriggerWhenPaused": false,
+    "modifiers": [],
+    "playerMappableKeySettings": null,
+    "triggerEventsThatConsumeLegacyKeys": 0,
+    "triggers": [
+      {
+        "__class__": "/Script/EnhancedInput.InputTriggerPressed",
+        "actuationThreshold": 0.5,
+        "bShouldAlwaysTick": false,
+        "lastValue": "()"
+      }
+    ],
+    "valueType": "BOOLEAN"
+  }
+}
