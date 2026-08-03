@@ -78,6 +78,9 @@ DerivedDataCache/*
 # Claude
 .claude/**/*.local.json
 
+# Python
+__pycache__/
+
 # IDE
 *.DotSettings.user
 .idea/
