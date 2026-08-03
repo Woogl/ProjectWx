@@ -8,6 +8,7 @@
 #include "StateTreeExecutionContext.h"
 #include "WxDialogueModule.h"
 #include "WxDialogueSessionComponent.h"
+#include "WxNpc.h"
 
 namespace
 {
@@ -23,6 +24,17 @@ namespace
 	FText GetRowText(const FDataTableRowHandle& Row)
 	{
 		return Row.RowName.IsNone() ? INVTEXT("unset") : FText::FromName(Row.RowName);
+	}
+
+	/** 대상 액터의 표시명. 해석되면 액터 라벨(아웃라이너와 동일), 아니면 미지정과 미로드를 갈라 보여준다. */
+	FText GetTargetText(const FUniversalObjectLocator& Locator)
+	{
+		if (const AActor* Actor = Cast<AActor>(Locator.SyncFind()))
+		{
+			return FText::FromString(Actor->GetActorLabel());
+		}
+
+		return Locator.IsEmpty() ? INVTEXT("unset") : INVTEXT("unloaded");
 	}
 #endif
 }
@@ -143,5 +155,46 @@ FText FWxStateTreeTask_PlayDialogue::GetDescription(const FGuid& ID, FStateTreeD
 	check(InstanceData);
 
 	return FText::Format(INVTEXT("Play Dialogue ({0})"), GetRowText(InstanceData->StartRow));
+}
+#endif
+
+// ── EnableNpcInteraction ──────────────────────────────────────────────────────
+
+FWxStateTreeTask_EnableNpcInteraction::FWxStateTreeTask_EnableNpcInteraction()
+{
+	// 부수효과일 뿐 이 상태의 완료를 내지 않는다. 즉시 완료를 판정에 끼우면 자식을 둔 상태나 대기 태스크와 같은 상태가 곧바로 완료돼 퀘스트가 관통된다.
+	bConsideredForCompletion = false;
+
+	// 잠금은 그 상태가 선언하는 가용성이라, 같은 상태가 재선택돼도 껐다 켤 이유가 없다.
+	bShouldStateChangeOnReselect = false;
+}
+
+EStateTreeRunStatus FWxStateTreeTask_EnableNpcInteraction::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+{
+	FInstanceDataType& Instance = Context.GetInstanceData(*this);
+
+	AWxNpc* Npc = Cast<AWxNpc>(Instance.Target.Locator.SyncFind(Cast<AActor>(Context.GetOwner())));
+	if (!Npc)
+	{
+		// 미지정·NPC 아님(잘못된 조립)과 스트리밍 아웃(정상)이 여기로 함께 들어온다. 어느 쪽이든 지금 잠글 대상이 없으므로 상태를 막지 않는다.
+		UE_LOG(LogWxDialogue, Warning, TEXT("Enable Npc Interaction: 대상 NPC 를 해석하지 못함(Target)."));
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	Npc->SetInteractionEnabled(Instance.bEnable);
+
+	return EStateTreeRunStatus::Succeeded;
+}
+
+#if WITH_EDITOR
+FText FWxStateTreeTask_EnableNpcInteraction::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
+{
+	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
+	check(InstanceData);
+
+	// 켜기·끄기가 한눈에 갈리도록 표시명 자체를 바꾼다(노드 목록에서 값을 펼치지 않고도 읽힌다).
+	const FText Action = InstanceData->bEnable ? INVTEXT("Enable") : INVTEXT("Disable");
+
+	return FText::Format(INVTEXT("{0} Npc Interaction ({1})"), Action, GetTargetText(InstanceData->Target.Locator));
 }
 #endif

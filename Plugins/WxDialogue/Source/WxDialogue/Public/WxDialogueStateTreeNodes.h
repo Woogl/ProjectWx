@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "StateTreeTaskBase.h"
+#include "WxActorTarget.h"
 #include "WxDialogueStateTreeNodes.generated.h"
 
 struct FStateTreeExecutionContext;
@@ -17,11 +18,14 @@ struct FStateTreeTransitionResult;
  * 대화 시스템을 소유한 본 모듈이 노드까지 함께 제공한다 — 보상 지급 노드를 WxInventory 가, 인디케이터 노드를 WxUI 가 소유하는 것과 같은 모양이라,
  * 퀘스트 같은 소비 도메인이 대화 모듈을 참조하지 않고도 에셋에서 이 노드를 골라 쓸 수 있다.
  *
- * 두 노드 모두 대화를 행으로 지목한다 — 대화 정의 컴포넌트가 쓰는 것과 같은 값이라, 관찰(대기)과 출력이 같은 어휘로 맞물린다.
+ * 앞의 두 노드는 대화를 행으로 지목한다 — 대화 정의 컴포넌트가 쓰는 것과 같은 값이라, 관찰(대기)과 출력이 같은 어휘로 맞물린다.
  * 출력은 대화를 여는 자리라 시작 행을 받고, 관찰은 거쳐 가는 지점을 보므로 대화 안의 어느 행이든 받는다.
  *
  *  - WaitDialogueCompleted 는 플레이어가 스스로 건 대화를 관찰만 한다(수주·납품 게이트).
  *  - PlayDialogue 는 반대로 트리가 대사를 열어 연출한다(독백·무전·처치 후 대사).
+ *  - EnableNpcInteraction 은 대화가 아니라 화자를 다룬다 — (Target, bEnable) 로 지정 NPC 에게 말을 걸 수 있는지를 토글한다.
+ *
+ * NPC 지목은 FWxActorTarget(WxCore)으로 배치 액터를 직접 가리킨다 — 퀘스트·스포너 노드와 같은 방식이라 씬 픽커·WP·PIE 해석이 엔진에 내장돼 있다.
  */
 
 // ── WaitDialogueCompleted: 지정 대화의 완주 대기 ──────────────────────────────
@@ -103,6 +107,46 @@ struct FWxStateTreeTask_PlayDialogue : public FStateTreeTaskCommonBase
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
+
+#if WITH_EDITOR
+	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
+#endif
+};
+
+// ── EnableNpcInteraction: 지정 NPC 의 상호작용 토글 ───────────────────────────
+
+USTRUCT()
+struct FWxStateTreeTask_EnableNpcInteractionInstanceData
+{
+	GENERATED_BODY()
+
+	/** 상호작용을 토글할 NPC 배치 액터 지정. */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	FWxActorTarget Target;
+
+	/** 진입 시 그 NPC 의 상호작용 활성 여부. 기본이 잠금인 것은 이 태스크를 놓는 이유가 대개 그것이기 때문이다. */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	bool bEnable = false;
+};
+
+/**
+ * 진입 시 지정 NPC 의 상호작용을 bEnable 로 토글한 뒤 곧바로 완료한다 — 잠긴 NPC 는 스캔 후보에서 빠져 프롬프트조차 뜨지 않고, 서버 활성 검증에도 걸려 대화가 열리지 않는다.
+ * 상태를 떠나도 되돌리지 않는다. 잠금은 그 상태에 딸린 임시 연출이 아니라 월드에 남는 변경이며, 다시 열 시점은 퀘스트마다 다르므로 여는 상태에 이 태스크를 bEnable=true 로 한 번 더 두어 에셋이 정한다.
+ * 상태 완료 판정에서는 빠진다(bConsideredForCompletion=false) — 즉시 완료를 내는 부수효과 태스크가 판정에 끼면 자식을 둔 상태나 대기 태스크와 같은 상태가 곧바로 완료돼 퀘스트가 통째로 관통된다(저널 태스크와 같은 이유).
+ * 대상을 해석하지 못하면(미지정·스트리밍 아웃·NPC 아님) 잠글 것이 없으므로 경고만 남기고 완료한다.
+ * 값을 복제하지 않으므로 서버가 곧 클라인 싱글/리슨 호스트가 전제다(다른 크로스모듈 노드와 같은 전제). 틱하지 않으므로 비용이 없다.
+ */
+USTRUCT(meta = (DisplayName = "Enable Npc Interaction", Category = "Wx"))
+struct FWxStateTreeTask_EnableNpcInteraction : public FStateTreeTaskCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType = FWxStateTreeTask_EnableNpcInteractionInstanceData;
+
+	FWxStateTreeTask_EnableNpcInteraction();
+
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 
 #if WITH_EDITOR
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
