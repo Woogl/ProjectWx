@@ -12,10 +12,10 @@ struct FStateTreeTransitionResult;
 
 // GetInstanceDataType() 의 헤더 정의는 코딩 규칙 6 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
 
-// ── GrantReward: 라이브 진입 시 권위 측에서 보상 지급 ──────────────────────────
+// ── GiveRewards: 라이브 진입 시 권위 측에서 보상 지급 ──────────────────────────
 
 USTRUCT()
-struct FWxStateTreeTask_GrantRewardInstanceData
+struct FWxStateTreeTask_GiveRewardsInstanceData
 {
 	GENERATED_BODY()
 
@@ -40,14 +40,14 @@ struct FWxStateTreeTask_GrantRewardInstanceData
  * 보상 스폰/지급은 서버 권위 사건이라 클라 진입은 노옵(클라는 복제로 픽업/인벤토리를 추종).
  * 틱하지 않으므로 비용이 없다.
  */
-USTRUCT(meta = (DisplayName = "Grant Reward", Category = "Wx"))
-struct FWxStateTreeTask_GrantReward : public FStateTreeTaskCommonBase
+USTRUCT(meta = (DisplayName = "Give Rewards", Category = "Wx"))
+struct FWxStateTreeTask_GiveRewards : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
 
-	using FInstanceDataType = FWxStateTreeTask_GrantRewardInstanceData;
+	using FInstanceDataType = FWxStateTreeTask_GiveRewardsInstanceData;
 
-	FWxStateTreeTask_GrantReward();
+	FWxStateTreeTask_GiveRewards();
 
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;

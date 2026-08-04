@@ -119,13 +119,13 @@ void AWxEnemyCharacter::HandleDeath()
 }
 ```
 
-**상호작용** — 상호작용 기믹(보물 상자)은 상호작용 시 자신의 `State` 를 `Open` 으로 확정하고, 이를 추종하는 GimmickStateTree 의 Open 상태에서 `Grant Reward` 태스크가 `GrantReward` 를 호출한다. 보상 데이터(`RewardRow` / `SpawnOffset` / `LaunchSpeed`)는 태스크의 **인스턴스 데이터**라 ST 에셋에서 설정한다. 스폰 위치는 오너 트랜스폼 + 로컬 `SpawnOffset`(기본 +90Z) 이다. 1회성 게이팅은 상자의 `State` 가 담당한다.
+**상호작용** — 상호작용 기믹(보물 상자)은 상호작용 시 자신의 `State` 를 `Open` 으로 확정하고, 이를 추종하는 GimmickStateTree 의 Open 상태에서 `Give Rewards` 태스크가 `GrantReward` 를 호출한다. 보상 데이터(`RewardRow` / `SpawnOffset` / `LaunchSpeed`)는 태스크의 **인스턴스 데이터**라 ST 에셋에서 설정한다. 스폰 위치는 오너 트랜스폼 + 로컬 `SpawnOffset`(기본 +90Z) 이다. 1회성 게이팅은 상자의 `State` 가 담당한다.
 
 ```mermaid
 flowchart LR
     Player["플레이어"] -->|상호작용| Chest["상자: State→Open"]
     Chest -->|복제 State 추종| ST["GimmickStateTree<br/>Open 상태 진입"]
-    ST --> Task["Grant Reward 태스크<br/>인스턴스 데이터 RewardRow/SpawnOffset/Speed"]
+    ST --> Task["Give Rewards 태스크<br/>인스턴스 데이터 RewardRow/SpawnOffset/Speed"]
     Task --> L["GrantReward(오너, ..., 오너+SpawnOffset, Speed)"]
 ```
 
@@ -180,6 +180,6 @@ flowchart LR
 | `AWxItemPickup` | WxInventory | 월드 픽업 액터. 발사·줍기·인벤토리 지급 |
 | `UWxInventoryManagerComponent` | WxInventory | 최종 적재(`AddItemDefinition`)·인벤토리 조회(`FindInventory`) |
 | `AWxEnemyCharacter` | WxGame | 적 사망 드랍 호출처(`HandleDeath`), `RewardRow`/`LaunchSpeed` 보유 |
-| `FWxStateTreeTask_GrantReward` | WxInventory | ST 상태 진입 시 `GrantReward` 호출(권위·라이브 진입 가드). 인스턴스 데이터로 보상 보유. "Grant Reward" |
+| `FWxStateTreeTask_GiveRewards` | WxInventory | ST 상태 진입 시 `GrantReward` 호출(권위·라이브 진입 가드). 인스턴스 데이터로 보상 보유. "Give Rewards" |
 | `BP_TreasureChest` / `ST_TreasureChest` | 콘텐츠 | 상호작용 트리거 예시. Open 상태가 종착이라 1회만 지급되고, 그 상태 Tag 가 영속된다 |
 | `IWxInteractable` | WxCore | 상호작용 대상 계약. 픽업 액터가 직접 구현한다 |

@@ -137,7 +137,7 @@ struct FWxStateTreeTask_WaitMoveToTargetInstanceData
 
 /**
  * 플레이어 폰(0번 컨트롤러)이 지정 대상의 AcceptRadius 안에 들어올 때까지 Running 으로 대기하다 도달 시 Succeeded 로 완료한다.
- * 대상 미해석(스트리밍 아웃)·폰 부재 동안은 판정 없이 대기한다. 0번 컨트롤러 사용은 GrantReward 등 기존 크로스모듈 노드와 같은 전제(v1 싱글/리슨 호스트)다.
+ * 대상 미해석(스트리밍 아웃)·폰 부재 동안은 판정 없이 대기한다. 0번 컨트롤러 사용은 GiveRewards 등 기존 크로스모듈 노드와 같은 전제(v1 싱글/리슨 호스트)다.
  * 빈 로케이터는 완료될 수 없는 잘못된 조립이므로 진입 시 경고를 남긴다.
  */
 USTRUCT(meta = (DisplayName = "Wait Move To Target", Category = "Wx"))

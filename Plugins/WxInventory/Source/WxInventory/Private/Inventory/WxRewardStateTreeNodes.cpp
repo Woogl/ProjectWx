@@ -8,13 +8,13 @@
 #include "StateTreeExecutionContext.h"
 #include "WxRewardLibrary.h"
 
-FWxStateTreeTask_GrantReward::FWxStateTreeTask_GrantReward()
+FWxStateTreeTask_GiveRewards::FWxStateTreeTask_GiveRewards()
 {
 	// 진입 시 1회 지급만 하므로 틱이 불필요하다.
 	bShouldCallTick = false;
 }
 
-EStateTreeRunStatus FWxStateTreeTask_GrantReward::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+EStateTreeRunStatus FWxStateTreeTask_GiveRewards::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	// 전이로 들어온 것이 아니면(StateTree 시작·세이브 복원·레이트조인) 지급을 재실행하지 않고 곧바로 완료한다(발동 순간에만 지급).
 	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
@@ -45,7 +45,7 @@ EStateTreeRunStatus FWxStateTreeTask_GrantReward::EnterState(FStateTreeExecution
 }
 
 #if WITH_EDITOR
-FText FWxStateTreeTask_GrantReward::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
+FText FWxStateTreeTask_GiveRewards::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
 {
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
@@ -53,7 +53,7 @@ FText FWxStateTreeTask_GrantReward::GetDescription(const FGuid& ID, FStateTreeDa
 	// 지급할 보상은 RewardRow 의 로우 이름으로 식별한다.
 	// 비어 있으면 아무것도 지급하지 않으므로 (none) 으로 표시.
 	const FName RewardName = InstanceData->RewardRow.RowName;
-	return FText::Format(INVTEXT("Grant Reward ({0})"),
+	return FText::Format(INVTEXT("Give Rewards ({0})"),
 		RewardName.IsNone() ? INVTEXT("none") : FText::FromName(RewardName));
 }
 #endif

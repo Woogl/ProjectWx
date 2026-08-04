@@ -138,8 +138,8 @@
                     "node": "/Script/WxDialogue.WxStateTreeTask_PlayDialogue"
                   },
                   {
-                    "desc": "Grant Reward (Gold1000)",
-                    "node": "/Script/WxInventory.WxStateTreeTask_GrantReward"
+                    "desc": "Give Rewards (Gold1000)",
+                    "node": "/Script/WxInventory.WxStateTreeTask_GiveRewards"
                   }
                 ],
                 "transitions": [

@@ -41,8 +41,8 @@
                 "node": "/Script/WxWorld.WxStateTreeTask_EnableInteraction"
               },
               {
-                "desc": "Grant Reward (none)",
-                "node": "/Script/WxInventory.WxStateTreeTask_GrantReward"
+                "desc": "Give Rewards (none)",
+                "node": "/Script/WxInventory.WxStateTreeTask_GiveRewards"
               },
               {
                 "desc": "Play Animation (scene_Anim_Open)",

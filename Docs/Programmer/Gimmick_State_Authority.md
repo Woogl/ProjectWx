@@ -114,7 +114,7 @@ flowchart TD
 | `UWxGimmickStateTreeComponent` | `WxWorld` (`Public\|Private/Gimmick/WxGimmickStateTreeComponent.h/.cpp`) | 기믹의 실체: 상호작용 계약(`IWxInteractable`)·영속(`IWxSavable`)·상태 Tag 기록/복제·저장 상태에서 트리 열기 |
 | `BP_Door` / `BP_Elevator` / `BP_TreasureChest` / `BP_CheckPoint` | 콘텐츠 (`/Game/WorldObject/Gimmick/`) | 배치된 기믹 넷. 전부 순정 `AActor` BP 이며 메시 + GimmickStateTree 컴포넌트뿐이다. 기믹용 C++ 액터 클래스는 없다 |
 | `FWxStateTreeTask_*` | `WxWorld` (`.../Gimmick/WxGimmickStateTreeNodes.h/.cpp`) | 공용 노드들. `IsInitialEntry`(규칙 3)·`HasAuthority`(권위) 가드 |
-| `FWxStateTreeTask_GrantReward` | `WxInventory` (`.../Inventory/WxRewardStateTreeNodes.cpp`) | 크로스모듈 노드 예시: `AActor` 캐스트 + 초기 진입 인라인 검사 |
+| `FWxStateTreeTask_GiveRewards` | `WxInventory` (`.../Inventory/WxRewardStateTreeNodes.cpp`) | 크로스모듈 노드 예시: `AActor` 캐스트 + 초기 진입 인라인 검사 |
 | `UWxAbility_Interact` | `WxGame` (`.../Ability/WxAbility_Interact.cpp`) | 서버 권위 실행 진입점. 사거리·활성 검증 → 대상의 `IWxInteractable::OnInteracted` |
 | `IWxInteractable` / `IWxSavable` | `WxCore` (`Public/WxInteractable.h`, `Public/WxSavable.h`) | 상호작용·영속 계약. 액터가 구현하지 않았으면 컴포넌트에서 찾으므로 호스트를 순수 BP 로 둘 수 있다 |
 | `WxGameplayTags::StateTree_Interact` | `WxCore` (`Public/WxGameplayTags.h`) | 상호작용 발동 이벤트 태그. 영역이 여럿이어도 이 하나를 공유하고, 구분은 전이 조건이 페이로드 `Source` 로 한다 |
