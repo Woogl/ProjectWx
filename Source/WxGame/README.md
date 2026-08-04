@@ -58,4 +58,4 @@
 - 상위: 조립하는 플러그인 [[WxCombat]] · [[WxUI]] · [[WxWorld]] · [[WxInventory]] · [[WxDialogue]] · [[WxQuest]] · [[WxAI]] · [[WxSave]] · [[WxCore]]
 
 ---
-*문서 기준 커밋 `28ee2c6` · 생성일 2026-08-03 · 소스 60파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `c9c7765` · 생성일 2026-08-04 · 소스 60파일 — `/readme-writer`로 갱신*
