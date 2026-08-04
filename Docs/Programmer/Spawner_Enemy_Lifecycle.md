@@ -6,7 +6,7 @@
 
 ## 한 문장 요약
 
-> `AWxSpawner`(WxWorld)는 `SpawnableActorClass` 인스턴스를 스폰하고, 스폰된 적(`AWxEnemyCharacter`, WxGame)은 `IWxSpawnableInterface::OnSpawnedBy` 로 자신을 만든 스포너의 백레퍼런스를 보유한다. 적 사망 시 그 백레퍼런스로 스포너에 처치를 마킹하고, 처치 상태(`bIsKilled`)는 `WxSave` 슬롯에 영속되며, 체크포인트 상호작용 시 일괄 리스폰된다. **스폰/Respawn/MarkKilled/HandleDeath 의 모든 부작용은 `HasAuthority()` 로 게이팅되어 클라이언트 경로는 no-op 이다.**
+> `AWxSpawner`(WxWorld)는 `SpawnableActorClass` 인스턴스를 스폰하고, 스폰된 적(`AWxEnemyCharacter`, WxGame)은 `IWxSpawnable::OnSpawnedBy` 로 자신을 만든 스포너의 백레퍼런스를 보유한다. 적 사망 시 그 백레퍼런스로 스포너에 처치를 마킹하고, 처치 상태(`bIsKilled`)는 `WxSave` 슬롯에 영속되며, 체크포인트 상호작용 시 일괄 리스폰된다. **스폰/Respawn/MarkKilled/HandleDeath 의 모든 부작용은 `HasAuthority()` 로 게이팅되어 클라이언트 경로는 no-op 이다.**
 
 이 라이프사이클을 가르는 두 축:
 
@@ -52,10 +52,10 @@ sequenceDiagram
 스폰의 핵심은 `AWxSpawner::SpawnTarget()` 의 **Deferred Spawn 3단 순서**와, 그것이 가능케 하는 **양방향 weak 백레퍼런스**다.
 
 1. `SpawnActorDeferred<AActor>(...)` 로 미완성 액터 생성 — 아직 `BeginPlay`/빙의 전.
-2. `Cast<IWxSpawnableInterface>(Spawned)->OnSpawnedBy(this)` 로 per-instance 컨텍스트 주입.
+2. `Cast<IWxSpawnable>(Spawned)->OnSpawnedBy(this)` 로 per-instance 컨텍스트 주입.
 3. `FinishSpawning(SpawnTransform)` — 이 시점에 `AutoPossessAI` 빙의가 일어난다.
 
-> **왜 Deferred 인가** — 일반 `SpawnActor` 는 호출 내부에서 빙의까지 끝내므로, 그 뒤에 컨텍스트를 심으면 컨트롤러 `OnPossess`/`BeginPlay` 가 이미 컨텍스트 없이 실행된 뒤다. Deferred 로 `FinishSpawning` 직전에 `OnSpawnedBy` 를 끼워 넣어야 빙의 전에 컨텍스트가 보장된다(`WxSpawnableInterface.h` 주석 참조).
+> **왜 Deferred 인가** — 일반 `SpawnActor` 는 호출 내부에서 빙의까지 끝내므로, 그 뒤에 컨텍스트를 심으면 컨트롤러 `OnPossess`/`BeginPlay` 가 이미 컨텍스트 없이 실행된 뒤다. Deferred 로 `FinishSpawning` 직전에 `OnSpawnedBy` 를 끼워 넣어야 빙의 전에 컨텍스트가 보장된다(`WxSpawnable.h` 주석 참조).
 
 역조회(적 → 스포너) 설계는 다음 표로 갈린다.
 
@@ -141,9 +141,9 @@ sequenceDiagram
 
 플러그인 규칙상 **WxWorld 는 WxGame 을 참조할 수 없다.** 그래서 "적이 스포너를 안다"는 링크는 다음 방식으로만 성립한다.
 
-- 인터페이스 `IWxSpawnableInterface` 는 **WxWorld 가 정의**한다(`OnSpawnedBy` 훅). 단, WxCore 가 아니라 WxWorld 에 둔 점에 주의 — 스포너 도메인 내부 계약이라서다.
+- 인터페이스 `IWxSpawnable` 는 **WxWorld 가 정의**한다(`OnSpawnedBy` 훅). 단, WxCore 가 아니라 WxWorld 에 둔 점에 주의 — 스포너 도메인 내부 계약이라서다.
 - 적 `AWxEnemyCharacter`(WxGame)가 그 인터페이스를 **구현**한다. WxGame → WxWorld 의존은 허용되므로 적이 `AWxSpawner*` 를 직접 들 수 있다.
-- 역방향 백레퍼런스 `OwningSpawner` 는 **WxGame 쪽에만** 존재한다. WxWorld 는 어떤 적 타입도 모른 채 `IWxSpawnableInterface*` 로만 다룬다.
+- 역방향 백레퍼런스 `OwningSpawner` 는 **WxGame 쪽에만** 존재한다. WxWorld 는 어떤 적 타입도 모른 채 `IWxSpawnable*` 로만 다룬다.
 - `IWxSavable` 계약은 WxCore 에 둬서 WxSave 와 소비 도메인(WxWorld)이 서로 직접 의존하지 않게 한다.
 
 > 이 제약이 "인터페이스는 도메인이 정의, 백레퍼런스는 게임 모듈이 보유"라는 연동 형태를 **강제**했다. 의존 방향이 한쪽으로만(WxGame → WxWorld → WxCore) 흐른다.
@@ -166,10 +166,10 @@ sequenceDiagram
 | --- | --- | --- |
 | [`AWxSpawner`](../../Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawner.h) | WxWorld | 스폰/Respawn/MarkKilled/bIsKilled 보유, IWxSavable 구현 |
 | [`AWxSpawner` (cpp)](../../Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawner.cpp) | WxWorld | SpawnTarget(Deferred 3단), Respawn 의미론, OnSaveRestored 정리 |
-| [`IWxSpawnableInterface`](../../Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawnableInterface.h) | WxWorld | OnSpawnedBy 컨텍스트 주입 훅(도메인이 정의) |
+| [`IWxSpawnable`](../../Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawnable.h) | WxWorld | OnSpawnedBy 컨텍스트 주입 훅(도메인이 정의) |
 | [`UWxSpawnerLibrary`](../../Plugins/WxWorld/Source/WxWorld/Public/System/WxSpawnerLibrary.h) | WxWorld | TryRespawnAll — collect-first 일괄 리스폰(Manual 제외) |
 | [`FWxStateTreeTask_TriggerSpawners`](../../Plugins/WxWorld/Source/WxWorld/Private/Gimmick/WxGimmickStateTreeNodes.cpp) | WxWorld | 명시 리스트 기반 기믹 리스폰(약 537행~) |
-| [`AWxEnemyCharacter`](../../Source/WxGame/Character/WxEnemyCharacter.h) | WxGame | IWxSpawnableInterface 구현, OwningSpawner 보유, HandleDeath 부작용 |
+| [`AWxEnemyCharacter`](../../Source/WxGame/Character/WxEnemyCharacter.h) | WxGame | IWxSpawnable 구현, OwningSpawner 보유, HandleDeath 부작용 |
 | [`AWxCharacterBase`](../../Source/WxGame/Character/WxCharacterBase.cpp) | WxGame | State_Dead 태그 → HandleDeathTagChanged → HandleDeath 경로 |
 | [`AWxEnemyController`](../../Source/WxGame/Controller/WxEnemyController.cpp) | WxGame | OnPossess — Perception 주입 + RunBehaviorTree |
 | `ST_CheckPoint` (`/Game/WorldObject/Gimmick/`) | 콘텐츠 | Lit 상태의 태스크 넷 — 회복 → 리필 → Respawn Spawners → Save Game 순서 |

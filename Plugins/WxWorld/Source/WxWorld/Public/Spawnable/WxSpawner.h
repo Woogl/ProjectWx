@@ -64,7 +64,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<USceneComponent> SceneRoot;
 
-	UPROPERTY(EditAnywhere, Category = "Wx", meta = (MustImplement = "/Script/WxWorld.WxSpawnableInterface", AllowAbstract = "false"))
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (MustImplement = "/Script/WxWorld.WxSpawnable", AllowAbstract = "false"))
 	TSubclassOf<AActor> SpawnableActorClass;
 
 	/** 스폰 트리거 방식. Auto 면 BeginPlay 에서 자동 스폰, Manual 이면 외부 트리거(Respawn) 로만 스폰. */

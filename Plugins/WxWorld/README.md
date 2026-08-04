@@ -6,7 +6,7 @@
 **담당**
 - 상호작용 기믹 프레임워크: `UWxGimmickStateTreeComponent`(상태머신 + `IWxInteractable` + `IWxSavable`를 한 몸에)와 이를 구동하는 공유 StateTree 태스크 라이브러리(이동·애니·사운드·FX·컷신·스폰·입력/효과 토글)
 - 플레이어 상호작용 스캔·선택·하이라이트(`UWxInteractionScannerComponent`, PlayerController 소유·소유 클라 구동)
-- 스폰 오브젝트 배치·처치·리스폰(`AWxSpawner`, `IWxSpawnableInterface`)와 스포너를 트리거·처치 대기시키는 StateTree 노드
+- 스폰 오브젝트 배치·처치·리스폰(`AWxSpawner`, `IWxSpawnable`)와 스포너를 트리거·처치 대기시키는 StateTree 노드
 
 **경계 (비담당)**
 - 상호작용 어빌리티의 권위 실행(사거리·활성 검증, `Ability.Interact`)·GameplayEffect 적용 — [[WxCombat]]/GAS (스캐너는 폰 ASC로 `Event.Interact`만 송출)
@@ -25,7 +25,7 @@
 | `WxGimmickStateTreeNodes.h` | 기믹 종류 무관 공유 ST 태스크 모음(EnableInteraction·ComponentMove·ComponentSplineMove·MoveInteractorToTarget·PlayLevelSequence·SpawnActor 등) | `Source/WxWorld/Public/Gimmick/WxGimmickStateTreeNodes.h` |
 | `UWxInteractionScannerComponent` | 소유 클라에서 주변 상호작용 메시를 주기 스캔·선택·하이라이트하고 `ServerInteract` 송출 | `Source/WxWorld/Public/Interaction/WxInteractionScannerComponent.h` |
 | `AWxSpawner` | `SpawnableActorClass` 인스턴스를 스폰·처치·리스폰하는 배치 액터(`IWxSavable`로 처치 상태 영속) | `Source/WxWorld/Public/Spawnable/WxSpawner.h` |
-| `IWxSpawnableInterface` | 스폰 직후(빙의 전) per-instance 컨텍스트를 스포너에서 끌어오는 훅(`OnSpawnedBy`) | `Source/WxWorld/Public/Spawnable/WxSpawnableInterface.h` |
+| `IWxSpawnable` | 스폰 직후(빙의 전) per-instance 컨텍스트를 스포너에서 끌어오는 훅(`OnSpawnedBy`) | `Source/WxWorld/Public/Spawnable/WxSpawnable.h` |
 | `WxSpawnerStateTreeNodes.h` | 배치 스포너를 UOL로 직접 지정해 트리거(`TriggerSpawnersByLocator`)·처치 대기(`WaitSpawnersKilled`)하는 ST 노드 | `Source/WxWorld/Public/Spawnable/WxSpawnerStateTreeNodes.h` |
 | `UWxSpawnerLibrary` | `TryRespawnAll` — 월드의 Auto 스포너 일괄 리스폰(BP 진입점) | `Source/WxWorld/Public/System/WxSpawnerLibrary.h` |
 | `UWxWorldDeveloperSettings` | 스포너 클래스별 에디터 아이콘 매핑 | `Source/WxWorld/Public/System/WxWorldDeveloperSettings.h` |
@@ -35,7 +35,7 @@
 - **상태·영속 규약**: ST 상태 디테일의 Tag 필드가 곧 저장 키다(에셋 안에서 유일). 권위 측이 틱마다 활성 상태 Tag를 `StateTag`(Replicated+SaveGame)에 반영하고, 클라·레이트조인·복원은 복제된 Tag로 그 상태에서 트리를 재시작해 수렴한다. Tag 없는 상태는 저장되지 않는다. `SaveId`는 에디터에서 오너 ActorGuid로 심어 에셋에 직렬화하므로, 배치 후 맵을 한 번 저장해야 저장/복원 대상이 된다(WP 스트리밍 경로를 키에 섞지 않으려는 설계).
 - **초기 진입 vs 라이브 전이**: 모든 ST 태스크가 `Transition.SourceStateID` 유효성으로 구분한다 — 트리거형(사운드·GE·스폰·컷신)은 라이브 진입에서만, 상태형(메시 포즈·인터랙션/입력 토글)은 진입 경로 무관하게 적용. 재선택(Sustained) 재실행 여부는 각 노드 생성자의 `bShouldStateChangeOnReselect`가 선언한다.
 - **새 상호작용 대상**: `IWxInteractable`(WxCore)을 구현해 활성 메시·프롬프트·`OnInteracted`를 답하면 스캐너 후보가 된다. 쿼리 콜리전만 켜져 있으면 되고 콜리전 프리셋·응답과 무관하다.
-- **신규 스폰 대상**: `IWxSpawnableInterface`를 구현하고 `AWxSpawner::SpawnableActorClass`에 지정(`MustImplement` 강제). `EWxSpawnerMode::Auto`는 일괄 리스폰(`TryRespawnAll`) 대상, `Manual`은 ST 노드 개별 트리거 전용. `bNeverRevive`로 보스류 영구 처치.
+- **신규 스폰 대상**: `IWxSpawnable`를 구현하고 `AWxSpawner::SpawnableActorClass`에 지정(`MustImplement` 강제). `EWxSpawnerMode::Auto`는 일괄 리스폰(`TryRespawnAll`) 대상, `Manual`은 ST 노드 개별 트리거 전용. `bNeverRevive`로 보스류 영구 처치.
 - **신규 ST 태스크**: `FStateTreeTaskCommonBase` 파생 USTRUCT + InstanceData 쌍으로 추가. 종류 무관 공통 동작은 `WxGimmickStateTreeNodes.h`(Context 액터 전제), 스포너 대상은 `WxSpawnerStateTreeNodes.h`(UOL 지정, 액터 클래스 검증은 `Compile`)에 둔다.
 
 ## 여기서부터 읽어라

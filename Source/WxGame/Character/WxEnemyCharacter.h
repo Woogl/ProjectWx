@@ -7,7 +7,7 @@
 #include "Engine/TimerHandle.h"
 #include "GameplayTagContainer.h"
 #include "WxInteractable.h"
-#include "Spawnable/WxSpawnableInterface.h"
+#include "Spawnable/WxSpawnable.h"
 #include "Character/WxCharacterBase.h"
 #include "WxEnemyCharacter.generated.h"
 
@@ -23,7 +23,7 @@ class UWxNameplateComponent;
  * - 처치 시 UWxRewardLibrary::GrantReward 로 RewardRow 의 보상을 지급한다(픽업은 사망 위치에서 수직 발사, 재화는 직접 지급)
  */
 UCLASS(Abstract)
-class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnableInterface, public IWxInteractable
+class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnable, public IWxInteractable
 {
 	GENERATED_BODY()
 
@@ -36,13 +36,13 @@ public:
 	float GetSightAngle() const;
 	float GetMaxHearingRange() const;
 
-	//~ Begin IWxSpawnableInterface
+	//~ Begin IWxSpawnable
 	/**
 	 * 스폰 직후 자신을 스폰한 Spawner 를 기억한다.
 	 * 사망 시 순회 없이 해당 Spawner 에 처치 기록을 남기기 위함.
 	 */
 	virtual void OnSpawnedBy(AWxSpawner* Spawner) override;
-	//~ End IWxSpawnableInterface
+	//~ End IWxSpawnable
 
 protected:
 	virtual void BeginPlay() override;

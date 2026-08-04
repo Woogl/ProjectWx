@@ -2,7 +2,7 @@
 
 #include "Spawnable/WxSpawner.h"
 
-#include "Spawnable/WxSpawnableInterface.h"
+#include "Spawnable/WxSpawnable.h"
 #include "Components/BillboardComponent.h"
 #include "Components/ChildActorComponent.h"
 #include "Components/PrimitiveComponent.h"
@@ -153,9 +153,9 @@ void AWxSpawner::SpawnTarget()
 		return;
 	}
 
-	if (!SpawnableActorClass->ImplementsInterface(UWxSpawnableInterface::StaticClass()))
+	if (!SpawnableActorClass->ImplementsInterface(UWxSpawnable::StaticClass()))
 	{
-		UE_LOG(LogWxWorld, Warning, TEXT("AWxSpawner: %s does not implement IWxSpawnableInterface and will not be spawned."), *SpawnableActorClass->GetName());
+		UE_LOG(LogWxWorld, Warning, TEXT("AWxSpawner: %s does not implement IWxSpawnable and will not be spawned."), *SpawnableActorClass->GetName());
 		return;
 	}
 
@@ -174,7 +174,7 @@ void AWxSpawner::SpawnTarget()
 		return;
 	}
 
-	if (IWxSpawnableInterface* Spawnable = Cast<IWxSpawnableInterface>(Spawned))
+	if (IWxSpawnable* Spawnable = Cast<IWxSpawnable>(Spawned))
 	{
 		Spawnable->OnSpawnedBy(this);
 	}

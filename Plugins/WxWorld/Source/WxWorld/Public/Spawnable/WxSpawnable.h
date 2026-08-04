@@ -4,17 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "WxSpawnableInterface.generated.h"
+#include "WxSpawnable.generated.h"
 
 class AWxSpawner;
 
 UINTERFACE(MinimalAPI)
-class UWxSpawnableInterface : public UInterface
+class UWxSpawnable : public UInterface
 {
 	GENERATED_BODY()
 };
 
-class WXWORLD_API IWxSpawnableInterface
+class WXWORLD_API IWxSpawnable
 {
 	GENERATED_BODY()
 
