@@ -20,6 +20,9 @@ AWxItemPickup::AWxItemPickup()
 {
 	bReplicates = true;
 
+	// LaunchInDirection 이 서버에서만 물리를 걸므로, 이동 복제 없이는 클라에서 스폰 지점에 멈춰 있다.
+	SetReplicateMovement(true);
+
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	SetRootComponent(MeshComponent);
 
