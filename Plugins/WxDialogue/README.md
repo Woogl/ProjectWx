@@ -17,7 +17,7 @@
 
 ## 의존성
 - **주요 의존**: `WxCore`(`IWxInteractable`·`FWxActorTarget`·`WxGameplayTags::State_Dialogue`), `GameplayAbilities`(세션 중 ASC Loose 태그), `ModularGameplay`(컨트롤러 컴포넌트 주입), `StateTreeModule`(관찰·출력·토글 태스크)
-- 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅
+- 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅ (`.uplugin`·`Build.cs` 모두 `WxCore`만 참조. WxUI/WxQuest는 역방향 소비자로 이 모듈이 참조하지 않는다.)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
@@ -48,4 +48,4 @@
 - 상위 계약: [[WxCore]](`IWxInteractable`·`FWxActorTarget`·`State.Dialogue` 태그)
 
 ---
-*문서 기준 커밋 `28ee2c6` · 생성일 2026-08-03 · 소스 11파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `6e08d6d` · 생성일 2026-08-05 · 소스 11파일 — `/readme-writer`로 갱신*
