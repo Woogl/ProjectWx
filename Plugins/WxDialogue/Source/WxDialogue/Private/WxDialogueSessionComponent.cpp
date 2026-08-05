@@ -57,7 +57,7 @@ void UWxDialogueSessionComponent::Advance()
 		return;
 	}
 
-	const FName NextRowName = CurrentRow->NextDialogue;
+	const FName NextRowName = CurrentRow->NextRow;
 	if (NextRowName.IsNone())
 	{
 		EndDialogue();

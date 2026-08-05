@@ -53,7 +53,7 @@ public:
 	 */
 	void StartDialogueRow(const FDataTableRowHandle& StartRow, AActor* Target);
 
-	/** 뷰의 대사 넘기기 요청. NextDialogue 를 따라가고, 더 없으면 종료한다. */
+	/** 뷰의 대사 넘기기 요청. NextRow 를 따라가고, 더 없으면 종료한다. */
 	void Advance();
 
 	bool HasActiveDialogue() const;

@@ -10,7 +10,7 @@ class UAnimMontage;
 
 /**
  * 대화 노드 하나 = 대사 한 줄 = 행 하나. 대화 1편 = 테이블 1개.
- * 대사를 출력한 뒤 NextDialogue 로 이어가고, 가리키는 곳이 없으면 대화가 끝난다.
+ * 대사를 출력한 뒤 NextRow 로 이어가고, 가리키는 곳이 없으면 대화가 끝난다.
  */
 USTRUCT(BlueprintType)
 struct FWxDialogueTableRow : public FTableRowBase
@@ -31,7 +31,7 @@ struct FWxDialogueTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|Dialogue")
 	TObjectPtr<UAnimMontage> TargetPose;
 
-	/** 이 대사 다음 이어갈 노드. None 이면 대화 종료. */
+	/** 이 대사 다음 이어갈 행. None 이면 대화 종료. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|Dialogue")
-	FName NextDialogue;
+	FName NextRow;
 };

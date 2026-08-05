@@ -5,49 +5,49 @@
     {
       "Line": "쿨럭...\r\n거기, 누구 없어요?",
       "Name": "BP_Npc_0",
-      "NextDialogue": "BP_Npc_1",
+      "NextRow": "BP_Npc_1",
       "Speaker": "생존자",
       "TargetPose": "None"
     },
     {
       "Line": "진정하세요.\r\n무슨 일이 일어난 거죠?",
       "Name": "BP_Npc_1",
-      "NextDialogue": "BP_Npc_2",
+      "NextRow": "BP_Npc_2",
       "Speaker": "나",
       "TargetPose": "None"
     },
     {
       "Line": "저 언덕 너머에서 괴물이 나타나 마을을 덮쳤어요.",
       "Name": "BP_Npc_2",
-      "NextDialogue": "BP_Npc_3",
+      "NextRow": "BP_Npc_3",
       "Speaker": "생존자",
       "TargetPose": "None"
     },
     {
       "Line": "놈은 아직 거기 남아 있을 거예요.\r\n싸울 수 있다면 가서 살펴봐 주세요.",
       "Name": "BP_Npc_3",
-      "NextDialogue": "BP_Npc_4",
+      "NextRow": "BP_Npc_4",
       "Speaker": "생존자",
       "TargetPose": "None"
     },
     {
       "Line": "알겠습니다.\r\n제가 가보죠.",
       "Name": "BP_Npc_4",
-      "NextDialogue": "BP_Npc_5",
+      "NextRow": "BP_Npc_5",
       "Speaker": "나",
       "TargetPose": "None"
     },
     {
       "Line": "저는 여기까지인 것 같습니다. 크윽...",
       "Name": "BP_Npc_5",
-      "NextDialogue": "None",
+      "NextRow": "None",
       "Speaker": "생존자",
       "TargetPose": "/Script/Engine.AnimMontage'/Game/AbilitySystem/Ability/AM_Death.AM_Death'"
     },
     {
       "Line": "정체불명의 괴물을 쓰러뜨렸다!",
       "Name": "ST_Quest_Main1_Success",
-      "NextDialogue": "None",
+      "NextRow": "None",
       "Speaker": "",
       "TargetPose": "None"
     }
