@@ -66,7 +66,7 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 	if (UWorld* World = ActorInfo->AvatarActor.IsValid() ? ActorInfo->AvatarActor->GetWorld() : nullptr)
 	{
-		World->GetTimerManager().SetTimer(MontagePollingTimerHandle, this, &UWxAbility_Groggy::TickPlayMontage, 0.1f, true);
+		World->GetTimerManager().SetTimer(MontagePollingTimerHandle, this, &UWxAbility_Groggy::HandleMontagePollTick, 0.1f, true);
 
 		// 실패복구: DrainDP가 무효/외부 제거로 DP를 0까지 못 내리면 State.Groggy가 잔존해 무한 그로기가 된다.
 		// 지속시간을 넉넉히(+1s) 넘겨도 끝나지 않으면 DP를 강제로 0으로 리셋해 종료시킨다.
@@ -84,7 +84,7 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		}
 	}
 
-	TickPlayMontage();
+	HandleMontagePollTick();
 }
 
 void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -171,7 +171,7 @@ void UWxAbility_Groggy::HandleGroggySafetyTimeout()
 	}
 }
 
-void UWxAbility_Groggy::TickPlayMontage()
+void UWxAbility_Groggy::HandleMontagePollTick()
 {
 	if (!CurrentActorInfo)
 	{

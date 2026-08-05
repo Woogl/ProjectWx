@@ -352,10 +352,10 @@ void UWxAbilityBase::HandleHitStopEvent(FGameplayEventData Payload)
 	ASC->CurrentMontageSetPlayRate(0.001f);
 
 	// 연속 적중이면 타이머를 재설정해 조기 복원을 막는다.
-	Avatar->GetWorldTimerManager().SetTimer(HitStopResumeTimer, this, &UWxAbilityBase::ResumeFromHitStop, Duration, false);
+	Avatar->GetWorldTimerManager().SetTimer(HitStopResumeTimer, this, &UWxAbilityBase::HandleHitStopElapsed, Duration, false);
 }
 
-void UWxAbilityBase::ResumeFromHitStop()
+void UWxAbilityBase::HandleHitStopElapsed()
 {
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 	{

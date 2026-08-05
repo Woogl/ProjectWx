@@ -16,7 +16,7 @@
 - 보상 지급 등 크로스모듈 부수효과 — 본 모듈 밖 ST 노드/도메인
 
 ## 의존성
-- **주요 의존**: `WxCore`(`FWxActorTarget` 레벨 액터 지정), StateTree / GameplayStateTree(러너·노드 베이스), ModularGameplay(`UGameStateComponent`), UniversalObjectLocator, DeveloperSettings
+- **주요 의존**: `WxCore`(`FWxActorTarget` 레벨 액터 지정), StateTree / GameplayStateTree(러너·노드 베이스), ModularGameplay(`UGameStateComponent`), UniversalObjectLocator
 - 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅
 
 ## 핵심 타입 (진입점)

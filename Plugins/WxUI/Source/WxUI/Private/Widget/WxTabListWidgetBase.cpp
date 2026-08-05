@@ -112,6 +112,11 @@ void UWxTabListWidgetBase::HandlePostLinkedSwitcherChanged()
 
 void UWxTabListWidgetBase::HandleTabCreation_Implementation(FName TabId, UCommonButtonBase* TabButton)
 {
+	if (!TabButton)
+	{
+		return;
+	}
+
 	FWxTabDescriptor* TabInfoPtr = nullptr;
 
 	FWxTabDescriptor TabInfo;
@@ -133,7 +138,7 @@ void UWxTabListWidgetBase::HandleTabCreation_Implementation(FName TabId, UCommon
 	}
 
 	// 바인딩된 컨테이너가 있으면 생성된 탭 버튼을 붙인다(WBP 이벤트 그래프 불필요).
-	if (TabButtonContainer && TabButton)
+	if (TabButtonContainer)
 	{
 		TabButtonContainer->AddChild(TabButton);
 	}

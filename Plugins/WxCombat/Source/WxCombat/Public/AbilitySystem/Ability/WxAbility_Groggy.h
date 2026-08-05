@@ -42,7 +42,7 @@ private:
 	// 그로기 도중 사망 시 즉시 종료. ActivationBlockedTags(State.Dead)는 신규 활성화만 막고 실행 중 인스턴스는 종료하지 못하므로 별도 구독한다.
 	void HandleDeadTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
-	void TickPlayMontage();
+	void HandleMontagePollTick();
 
 	// 실패복구: DrainDP가 DP를 0까지 못 내려 그로기가 끝나지 않을 때, 지속시간을 넘기면 DP를 강제 리셋해 종료시킨다.
 	void HandleGroggySafetyTimeout();

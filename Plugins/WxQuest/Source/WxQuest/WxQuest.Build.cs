@@ -22,7 +22,6 @@ public class WxQuest : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
-			"DeveloperSettings",
 			"GameplayStateTreeModule",
 		});
 	}

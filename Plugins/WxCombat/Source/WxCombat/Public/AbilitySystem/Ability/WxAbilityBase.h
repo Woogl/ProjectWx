@@ -153,7 +153,7 @@ private:
 	void HandleHitStopEvent(FGameplayEventData Payload);
 
 	/** 히트스톱 복원. 몽타주 재생률을 GetMontagePlayRate()(ASPD 반영)로 되돌린다 */
-	void ResumeFromHitStop();
+	void HandleHitStopElapsed();
 
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_WaitGameplayEvent> HitStopListenerTask;
