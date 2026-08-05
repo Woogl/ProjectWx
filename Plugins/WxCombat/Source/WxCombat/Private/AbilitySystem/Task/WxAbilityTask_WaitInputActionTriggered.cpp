@@ -22,6 +22,8 @@ void UWxAbilityTask_WaitInputActionTriggered::OnDestroy(bool AbilityEnded)
 
 void UWxAbilityTask_WaitInputActionTriggered::Activate()
 {
+	Super::Activate();
+
 	UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(AbilitySystemComponent.Get());
 	if (!WxASC || !Ability || !IsLocallyControlled())
 	{
