@@ -101,9 +101,11 @@ private:
 	int32 ActiveAttackCount = 0;
 
 	/** 현재 활성 공격의 DamageInfo. 히트 시 Damage Spec 생성에 사용 */
+	UPROPERTY()
 	FWxDamageInfo DamageInfo;
 
 	/** 한 스윙 내 이미 피격된 액터 목록 */
+	UPROPERTY()
 	TSet<TObjectPtr<AActor>> HitActorsThisSwing;
 
 	/** 직전 프레임 HitCollision 위치. Tick에서 현재 위치까지 Sweep할 때 시작점으로 사용 */

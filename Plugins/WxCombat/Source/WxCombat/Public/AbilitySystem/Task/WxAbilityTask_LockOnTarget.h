@@ -66,6 +66,8 @@ private:
 	float MaxDistanceSquared = 2000.f * 2000.f;
 	float RetargetLookThreshold = 40.f;
 	FVector2D AccumulatedLook = FVector2D::ZeroVector;
+
+	UPROPERTY()
 	TSubclassOf<UUserWidget> ReticleWidgetClass;
 
 	UPROPERTY()
