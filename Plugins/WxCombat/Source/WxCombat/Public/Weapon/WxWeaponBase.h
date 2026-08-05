@@ -106,7 +106,6 @@ private:
 	/** 한 스윙 내 이미 피격된 액터 목록 */
 	TSet<TObjectPtr<AActor>> HitActorsThisSwing;
 
-	/** 직전 프레임 HitCollision 위치/회전. Tick에서 현재 위치까지 Sweep할 때 시작점으로 사용 */
+	/** 직전 프레임 HitCollision 위치. Tick에서 현재 위치까지 Sweep할 때 시작점으로 사용 */
 	FVector PrevCapsuleLocation = FVector::ZeroVector;
-	FQuat PrevCapsuleRotation = FQuat::Identity;
 };

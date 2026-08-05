@@ -88,7 +88,6 @@ private:
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	FActiveGameplayEffectHandle BoundHandle;
-	float EffectEndTime = 0.f;
 	float CachedDuration = 0.f;
 	FTSTicker::FDelegateHandle TickerHandle;
 };

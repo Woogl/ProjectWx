@@ -112,5 +112,5 @@ void UWxCheatManager::WxKillEnemies(float RadiusMeters)
 	}
 
 	// 화면 밖에서 벌어지는 일이라 결과가 보이지 않는다. 대상이 없었던 것과 치트가 안 먹은 것을 구분할 수 있게 남긴다.
-	UE_LOG(LogWxGame, Log, TEXT("WxKillNearby: 반경 %.0fm 안에서 %d 개 대상을 처치했다."), RadiusMeters, KillCount);
+	UE_LOG(LogWxGame, Log, TEXT("WxKillEnemies: 반경 %.0fm 안에서 %d 개 대상을 처치했다."), RadiusMeters, KillCount);
 }

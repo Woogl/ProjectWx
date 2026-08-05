@@ -1,7 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_HitReact.h"
-#include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -17,8 +16,6 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	// 피격 시 플레이어가 진행 중인 공격·스킬만 캔슬한다.
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Attack);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Skill);
-	// 피격 시 적의 패턴은 캔슬하지 않으므로 주석 처리
-	// CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Pattern);
 
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	ActivationOwnedTags.AddTag(WxGameplayTags::State_HitReact);
@@ -71,18 +68,6 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	const FGameplayTag EventTag = TriggerEventData ? TriggerEventData->EventTag : WxGameplayTags::Event_HitReact_Normal;
-
-	// // 적 패턴(Ability.Pattern) 발동 중에는 일반(Normal) 피격 반응을 발생시키지 않는다.
-	// // 강한 피격(넉백·넉다운·넉업·패리)은 패턴 중에도 그대로 반응한다.
-	// if (EventTag == WxGameplayTags::Event_HitReact_Normal)
-	// {
-	// 	const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-	// 	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Pattern))
-	// 	{
-	// 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-	// 		return;
-	// 	}
-	// }
 
 	// 트리거 태그에 따라 재생할 몽타주 선택. 매칭 몽타주가 없으면 기본 HitReactMontage로 폴백.
 	UAnimMontage* SelectedMontage = NormalHitReactMontage;

@@ -73,7 +73,6 @@ void AWxWeaponBase::BeginAttack(const FWxDamageInfo& InDamageInfo)
 		// 첫 프레임 Sweep이 0 거리가 되도록 현재 트랜스폼으로 초기화.
 		// 직전 위치를 모르는 상태에서 임의 값이 들어가면 무관한 액터까지 Sweep으로 잡힐 수 있다.
 		PrevCapsuleLocation = HitCollision->GetComponentLocation();
-		PrevCapsuleRotation = HitCollision->GetComponentQuat();
 
 		HitCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		SetActorTickEnabled(true);
@@ -215,7 +214,6 @@ void AWxWeaponBase::Tick(float DeltaSeconds)
 	}
 
 	PrevCapsuleLocation = CurrLocation;
-	PrevCapsuleRotation = CurrRotation;
 }
 
 void AWxWeaponBase::EndPlay(const EEndPlayReason::Type EndPlayReason)

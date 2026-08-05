@@ -50,7 +50,6 @@ void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGame
 
 		const float CurrentTime = World->GetTimeSeconds();
 		const float Remaining = FMath::Max((ActiveEffect->StartWorldTime + CachedDuration) - CurrentTime, 0.f);
-		EffectEndTime = CurrentTime + Remaining;
 
 		SetDuration(CachedDuration);
 		SetTimeRemaining(Remaining);
