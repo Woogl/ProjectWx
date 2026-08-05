@@ -35,8 +35,8 @@ public:
 	 */
 	static UWxViewModel_Subtitle* GetOrCreate(const UObject* WorldContextObject);
 
-	/** 자막을 이 문구로 바꾸고, 나중에 회수할 때 쓸 핸들을 발급한다. */
-	int32 ShowSubtitle(const FText& InSubtitleText);
+	/** 자막을 이 화자·문구로 바꾸고, 나중에 회수할 때 쓸 핸들을 발급한다. */
+	int32 ShowSubtitle(const FText& InSpeakerText, const FText& InSubtitleText);
 
 	/** 발급 핸들이 지금 걸린 자막의 것일 때만 화면에서 걷어간다. 어긋나면 무시한다. */
 	void HideSubtitle(int32 InSubtitleHandle);
@@ -44,6 +44,10 @@ public:
 	/** 자막이 걸려 있는지 여부. 자막 위젯의 표시/숨김 바인딩용. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Subtitle")
 	bool bHasSubtitle = false;
+
+	/** 현재 자막의 화자 표시명. 화자 없는 나레이션이면 비어 있다. */
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Subtitle")
+	FText SpeakerText;
 
 	/** 현재 자막 본문. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Subtitle")

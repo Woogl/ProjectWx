@@ -45,7 +45,7 @@ UWxViewModel_Subtitle* UWxViewModel_Subtitle::GetOrCreate(const UObject* WorldCo
 	return SubtitleViewModel;
 }
 
-int32 UWxViewModel_Subtitle::ShowSubtitle(const FText& InSubtitleText)
+int32 UWxViewModel_Subtitle::ShowSubtitle(const FText& InSpeakerText, const FText& InSubtitleText)
 {
 	CurrentHandle = NextHandle++;
 
@@ -53,6 +53,12 @@ int32 UWxViewModel_Subtitle::ShowSubtitle(const FText& InSubtitleText)
 	{
 		bHasSubtitle = true;
 		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(bHasSubtitle);
+	}
+
+	if (!SpeakerText.IdenticalTo(InSpeakerText))
+	{
+		SpeakerText = InSpeakerText;
+		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(SpeakerText);
 	}
 
 	if (!SubtitleText.IdenticalTo(InSubtitleText))
@@ -78,6 +84,12 @@ void UWxViewModel_Subtitle::HideSubtitle(int32 InSubtitleHandle)
 	{
 		bHasSubtitle = false;
 		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(bHasSubtitle);
+	}
+
+	if (!SpeakerText.IsEmpty())
+	{
+		SpeakerText = FText::GetEmpty();
+		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(SpeakerText);
 	}
 
 	if (!SubtitleText.IsEmpty())

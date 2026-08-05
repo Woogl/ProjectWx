@@ -4,13 +4,14 @@
 
 #include "MVVM/WxViewModel_Subtitle.h"
 #include "StateTreeExecutionContext.h"
+#include "Subtitle/WxSubtitleTableRow.h"
 #include "WxUIModule.h"
 
 // ── PrintSubtitle ─────────────────────────────────────────────────────────────
 
 FWxStateTreeTask_PrintSubtitle::FWxStateTreeTask_PrintSubtitle()
 {
-	// 재선택마다 재진입하면 ExitState 가 자막을 걷어가 표시가 깜빡이고 경과 시간도 초기화된다.
+	// 재선택마다 재진입하면 ExitState 가 자막을 걷어가 표시가 깜빡이고 진행도 첫 줄로 되돌아간다.
 	bShouldStateChangeOnReselect = false;
 }
 
@@ -18,18 +19,21 @@ EStateTreeRunStatus FWxStateTreeTask_PrintSubtitle::EnterState(FStateTreeExecuti
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 빈 문구는 띄울 것이 없는 잘못된 조립이다. 침묵 대신 경고를 남긴다.
-	if (Instance.SubtitleText.IsEmpty())
-	{
-		UE_LOG(LogWxUI, Warning, TEXT("Print Subtitle: 자막 문구가 비어 있음."));
-	}
-
+	Instance.CurrentRowName = NAME_None;
+	Instance.CurrentDuration = 0.f;
 	Instance.ElapsedSeconds = 0.f;
 	Instance.SubtitleHandle = INDEX_NONE;
 
-	if (UWxViewModel_Subtitle* SubtitleViewModel = UWxViewModel_Subtitle::GetOrCreate(Context.GetOwner()))
+	// 아래 둘은 모두 낼 자막이 없는 잘못된 조립이다 — 빈 화면으로 상태에 눌러앉는 대신 실패를 낸다.
+	if (!Instance.StartRow.DataTable || Instance.StartRow.RowName.IsNone())
 	{
-		Instance.SubtitleHandle = SubtitleViewModel->ShowSubtitle(Instance.SubtitleText);
+		UE_LOG(LogWxUI, Warning, TEXT("Print Subtitle: 시작 행이 지정되지 않음(StartRow)."));
+		return EStateTreeRunStatus::Failed;
+	}
+
+	if (!ShowRow(Context, Instance, Instance.StartRow.RowName))
+	{
+		return EStateTreeRunStatus::Failed;
 	}
 
 	return EStateTreeRunStatus::Running;
@@ -39,20 +43,29 @@ EStateTreeRunStatus FWxStateTreeTask_PrintSubtitle::Tick(FStateTreeExecutionCont
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 시간으로 끝내지 않는 설정이면 상태를 떠날 때까지 머문다(완료는 같은 상태의 다른 태스크가 낸다).
-	if (Instance.Duration <= 0.f)
+	// 시간으로 넘기지 않는 줄이면 상태를 떠날 때까지 머문다(완료는 같은 상태의 다른 태스크가 낸다).
+	if (Instance.CurrentDuration <= 0.f)
 	{
 		return EStateTreeRunStatus::Running;
 	}
 
 	Instance.ElapsedSeconds += DeltaTime;
-	if (Instance.ElapsedSeconds < Instance.Duration)
+	if (Instance.ElapsedSeconds < Instance.CurrentDuration)
 	{
 		return EStateTreeRunStatus::Running;
 	}
 
-	// 시간이 다 차면 상태를 떠나기 전에 여기서 걷는다.
-	// 완료를 내도 상태는 같은 상태의 다른 대기 태스크에 붙잡힐 수 있어(TasksCompletion=All), ExitState 만 믿으면 자막이 화면에 남는다.
+	// 다음 줄로 이어간다. 슬롯이 하나라 새 줄이 앞 줄을 덮으므로 넘어가는 자리에선 걷지 않는다.
+	const UDataTable* Table = Instance.StartRow.DataTable;
+	const FWxSubtitleTableRow* Row = Table ? Table->FindRow<FWxSubtitleTableRow>(Instance.CurrentRowName, TEXT("WxPrintSubtitle")) : nullptr;
+	const FName NextRowName = Row ? Row->NextRow : NAME_None;
+	if (!NextRowName.IsNone() && ShowRow(Context, Instance, NextRowName))
+	{
+		return EStateTreeRunStatus::Running;
+	}
+
+	// 마지막 줄이었거나 다음 줄을 해석하지 못했다(후자는 ShowRow 가 경고를 남긴다). 어느 쪽이든 자막은 여기서 끝난다.
+	// 상태를 떠나기 전에 여기서 걷는다 — 완료를 내도 상태는 같은 상태의 다른 대기 태스크에 붙잡힐 수 있어(TasksCompletion=All), ExitState 만 믿으면 자막이 화면에 남는다.
 	if (UWxViewModel_Subtitle* SubtitleViewModel = UWxViewModel_Subtitle::GetOrCreate(Context.GetOwner()))
 	{
 		SubtitleViewModel->HideSubtitle(Instance.SubtitleHandle);
@@ -66,12 +79,39 @@ void FWxStateTreeTask_PrintSubtitle::ExitState(FStateTreeExecutionContext& Conte
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// Duration 을 채우기 전에 상태를 떠나는 경로. 이미 걷었으면 기록이 비어 있어 회수가 무시된다.
+	// 마지막 줄을 다 채우기 전에 상태를 떠나는 경로. 이미 걷었으면 기록이 비어 있어 회수가 무시된다.
 	if (UWxViewModel_Subtitle* SubtitleViewModel = UWxViewModel_Subtitle::GetOrCreate(Context.GetOwner()))
 	{
 		SubtitleViewModel->HideSubtitle(Instance.SubtitleHandle);
 	}
 	Instance.SubtitleHandle = INDEX_NONE;
+}
+
+bool FWxStateTreeTask_PrintSubtitle::ShowRow(FStateTreeExecutionContext& Context, FInstanceDataType& Instance, FName RowName) const
+{
+	const UDataTable* Table = Instance.StartRow.DataTable;
+	const FWxSubtitleTableRow* Row = Table ? Table->FindRow<FWxSubtitleTableRow>(RowName, TEXT("WxPrintSubtitle")) : nullptr;
+	if (!Row || Row->Line.IsEmpty())
+	{
+		// FindRow 의 ContextString 경고는 행이 아예 없을 때만 뜬다 — 본문이 빈 행은 여기서만 드러난다.
+		UE_LOG(LogWxUI, Warning, TEXT("Print Subtitle: 행을 해석하지 못했거나 본문이 비어 있다(테이블 %s / 행 %s)."),
+			*GetNameSafe(Table), *RowName.ToString());
+		return false;
+	}
+
+	UWxViewModel_Subtitle* SubtitleViewModel = UWxViewModel_Subtitle::GetOrCreate(Context.GetOwner());
+	if (!SubtitleViewModel)
+	{
+		UE_LOG(LogWxUI, Warning, TEXT("Print Subtitle: 자막 뷰모델을 얻지 못해 표시할 수 없다(행 %s)."), *RowName.ToString());
+		return false;
+	}
+
+	Instance.CurrentRowName = RowName;
+	Instance.CurrentDuration = Row->Duration;
+	Instance.ElapsedSeconds = 0.f;
+	Instance.SubtitleHandle = SubtitleViewModel->ShowSubtitle(Row->Speaker, Row->Line);
+
+	return true;
 }
 
 #if WITH_EDITOR
@@ -80,7 +120,7 @@ FText FWxStateTreeTask_PrintSubtitle::GetDescription(const FGuid& ID, FStateTree
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	const FText SubtitleText = InstanceData->SubtitleText.IsEmpty() ? INVTEXT("none") : InstanceData->SubtitleText;
-	return FText::Format(INVTEXT("Print Subtitle (\"{0}\")"), SubtitleText);
+	const FText RowText = InstanceData->StartRow.RowName.IsNone() ? INVTEXT("unset") : FText::FromName(InstanceData->StartRow.RowName);
+	return FText::Format(INVTEXT("Print Subtitle ({0})"), RowText);
 }
 #endif
