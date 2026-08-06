@@ -6,10 +6,10 @@
 #include "GameplayTagContainer.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AIPerceptionTypes.h"
+#include "UObject/ObjectKey.h"
 #include "WxAIPerceptionComponent.generated.h"
 
 class APawn;
-class UAbilitySystemComponent;
 class UAISenseConfig_Sight;
 class UAISenseConfig_Hearing;
 class UAISenseConfig_Damage;
@@ -26,7 +26,10 @@ class UBlackboardComponent;
  *
  * 한 번 확보한 TargetActor 는 시야를 잠시 잃어도(보스 등 뒤로 이동, 벽 뒤 등) 유지되며, 리시 이탈 판정과 복귀는 BT(UWxBTDecorator_BeyondLeash + UWxBTTask_ReturnHome)가 담당한다 — 복귀 Task 가 SetTargetingSuppressed 로 타겟을 비우고 복귀 중 재감지를 억제한다.
  * 다만 타겟이 죽거나 파괴되면 즉시 비운다. 시체는 파괴되지 않고 시야에 남고 파괴는 감지 이벤트를 남기지 않으므로, 자극이 아니라 타겟의 사망 태그·EndPlay 를 구독해 그 시점을 잡는다.
- * 인식(State.InCombat)도 같은 수명을 따른다 — 추적 중이면 on, 복귀(억제)·자타 사망 시 off 이며, 서버에서 폰 ASC 에 MinimalReplication 태그로 발행되어 네임플레이트 표시에 소비된다.
+ * 인식(State.InCombat)도 같은 수명을 따른다 — 추적 중이면 on, 복귀(억제)·타겟 소실 시 off 이며, 서버에서 폰 ASC 에 MinimalReplication 태그로 발행되어 네임플레이트 표시에 소비된다.
+ *
+ * 자기 폰의 사망은 다루지 않는다. 이 태그의 소비자(네임플레이트의 표시 정책, 뒤잡 자격 판정)가 저마다 사망을 먼저 걸러내므로 시체 위에 태그가 남아도 관측되지 않는다 — 어빌리티들이 활성 차단 태그로 각자 막는 것과 같은 방식이다.
+ * 죽음과 무관하게 이 태그를 읽는 소비자가 생기면 폰 ASC 의 State.Dead 를 구독해 되살린다(타겟 쪽과 같은 형태라 비용이 작다).
  */
 UCLASS(ClassGroup=(AI), meta=(BlueprintSpawnableComponent))
 class WXAI_API UWxAIPerceptionComponent : public UAIPerceptionComponent
@@ -47,16 +50,9 @@ public:
 	 */
 	void SetTargetingSuppressed(bool bSuppressed);
 
-	/** 빙의한 폰의 ASC 사망 태그(State.Dead)에 인식 해제 콜백을 바인드/언바인드한다. 컨트롤러가 OnPossess/OnUnPossess 에서 호출한다. */
-	void BindOwnerDeath();
-	void UnbindOwnerDeath();
-
 private:
 	UFUNCTION()
 	void HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
-
-	/** 폰의 ASC 에 State.Dead 가 부여되면(사망) 타겟과 인식을 정리한다. 폴 제거로 사라진 "시체 위 인식 잔존 방지"를 이벤트로 대체한다. */
-	void HandleDeathTagChanged(const FGameplayTag Tag, int32 NewCount);
 
 	/** 추적 중인 타겟이 죽으면 타겟과 인식을 정리한다. 시체는 파괴되지 않고 시야에 남아 자극만으로는 재판정이 오지 않는다. */
 	void HandleTargetDeathTagChanged(const FGameplayTag Tag, int32 NewCount);
@@ -65,15 +61,15 @@ private:
 	UFUNCTION()
 	void HandleTargetEndPlay(AActor* Actor, EEndPlayReason::Type EndPlayReason);
 
-	/** 현재 타겟의 사망 태그와 EndPlay 에 정리 콜백을 바인드/언바인드한다. 타겟이 바뀔 때마다 SetTargetActor 가 교체한다. */
+	/** 현재 타겟의 사망 태그와 EndPlay 에 정리 콜백을 바인드/언바인드하고, 적용 기록(AppliedTarget)을 함께 옮긴다. 타겟이 바뀔 때마다 SetTargetActor 가 교체한다. */
 	void BindTargetLoss(AActor* NewTarget);
 	void UnbindTargetLoss();
 
 	/**
 	 * 인식/추적 상태를 판정하는 단일 지점.
-	 *  - 억제(복귀) 중이거나 사망 상태면 인식 off.
+	 *  - 억제(복귀) 중이면 인식 off.
 	 *  - 그 외에서는 추적 대상이 있으면 on, 없으면 off 를 SetRecognized 로 적용한다.
-	 * 리시 이탈 판정은 BT 로 이관되어 여기서 다루지 않는다. 감지 갱신과 타겟 소실(사망·파괴) 이벤트에서 호출된다.
+	 * 리시 이탈 판정은 BT 로 이관되어 여기서 다루지 않는다. 인식을 바꿀 수 있는 모든 경로(감지 갱신, 억제 진입, 타겟 소실)가 여기로만 들어온다.
 	 */
 	void UpdateRecognition();
 
@@ -97,12 +93,9 @@ private:
 	// 복귀(리시) Task 가 켜는 억제 플래그. 켜져 있으면 감지 자극을 무시하고 인식을 끈 채로 둔다.
 	bool bTargetingSuppressed = false;
 
-	// 사망 태그 콜백을 바인드한 폰의 ASC 와 그 델리게이트 핸들. 언바인드/재빙의 시 정확히 해제하기 위해 보관한다.
-	TWeakObjectPtr<UAbilitySystemComponent> DeathBoundASC;
-	FDelegateHandle DeathTagDelegateHandle;
-
-	// 소실 콜백을 바인드한 타겟 액터와 그 사망 태그 델리게이트 핸들. 타겟 교체 시 이전 타겟에서 정확히 해제하기 위해 보관한다.
-	TWeakObjectPtr<AActor> LossBoundTarget;
+	// 마지막으로 적용한 타겟. SetTargetActor 의 중복 적용 가드 기준이자, 소실 콜백을 해제할 대상이다.
+	// 블랙보드 Object 키와 약참조는 대상이 파괴되면 비교에서 nullptr 과 같아져 "이미 해제됨" 으로 오판하므로, 유효성과 무관하게 식별자만 비교하는 오브젝트 키로 든다.
+	TObjectKey<AActor> AppliedTarget;
 	FDelegateHandle TargetDeathTagDelegateHandle;
 
 	UPROPERTY()

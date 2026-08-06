@@ -60,8 +60,7 @@ void UWxAIPerceptionComponent::PostInitProperties()
 
 void UWxAIPerceptionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	// 액터 파괴 등 OnUnPossess 를 거치지 않는 종료 경로에서도 사망 콜백을 안전하게 해제한다.
-	UnbindOwnerDeath();
+	// 타겟이 살아 있는 채로 컨트롤러째 사라지는 종료 경로에서도 구독을 안전하게 해제한다.
 	UnbindTargetLoss();
 
 	Super::EndPlay(EndPlayReason);
@@ -89,12 +88,6 @@ void UWxAIPerceptionComponent::HandleTargetPerceptionUpdated(AActor* Actor, FAIS
 
 void UWxAIPerceptionComponent::UpdateRecognition()
 {
-	UBlackboardComponent* BB = GetBlackboard();
-	if (!BB)
-	{
-		return;
-	}
-
 	// 억제(복귀) 중이면 인식을 끈 채로 둔다. 리시 이탈 판정·복귀는 BT 로 이관됐다.
 	if (bTargetingSuppressed)
 	{
@@ -102,16 +95,10 @@ void UWxAIPerceptionComponent::UpdateRecognition()
 		return;
 	}
 
-	// 죽은 폰은 전투 상태가 아니다. 사망 정리는 HandleDeathTagChanged 가 1회 수행하고, 여기서는 잔여 감지 자극이 인식을 재부여하지 않도록 방어한다.
-	// SetRecognized(false) 가 곧 State.InCombat 제거이며, 이 태그를 읽는 네임플레이트가 시체 위에서 계속 전투 표시를 하는 것을 막는다.
-	if (IsActorDead(GetOwnerPawn()))
-	{
-		SetRecognized(false);
-		return;
-	}
-
 	// 추적 대상이 있으면 인식 on, 없으면 off. 타겟은 살아있는 액터만 담기므로(획득 가드 + 소실 구독) 유무만 봐도 된다. 복귀(Home)는 BT 가 처리한다.
-	SetRecognized(WxBlackboardKeys::GetTargetActor(BB) != nullptr);
+	// 블랙보드는 여기서만 필요하다 — 없으면 추적 대상도 없는 것이므로 off 로 본다.
+	const UBlackboardComponent* BB = GetBlackboard();
+	SetRecognized(BB && WxBlackboardKeys::GetTargetActor(BB) != nullptr);
 }
 
 void UWxAIPerceptionComponent::SetRecognized(bool bNewRecognized)
@@ -149,55 +136,13 @@ void UWxAIPerceptionComponent::SetTargetingSuppressed(bool bSuppressed)
 
 	bTargetingSuppressed = bSuppressed;
 
-	// 억제를 켜는 순간, 현재 타겟과 인식을 함께 해제한다(회전 모드 원복은 SetTargetActor(nullptr)가 담당).
+	// 억제를 켜는 순간, 현재 타겟을 비운다(회전 모드 원복은 SetTargetActor(nullptr)가 담당). 인식은 판정에 맡기면 억제 중이라 자연히 꺼진다.
 	// 억제를 끌 때는 상태를 건드리지 않는다 — 다음 감지 자극에서 정상적으로 재획득한다.
 	if (bSuppressed)
 	{
 		SetTargetActor(nullptr);
-		SetRecognized(false);
+		UpdateRecognition();
 	}
-}
-
-void UWxAIPerceptionComponent::BindOwnerDeath()
-{
-	// 재빙의 등으로 중복 바인드되지 않도록 먼저 정리한다.
-	UnbindOwnerDeath();
-
-	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwnerPawn());
-	if (!ASC)
-	{
-		return;
-	}
-
-	DeathBoundASC = ASC;
-	DeathTagDelegateHandle = ASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
-		.AddUObject(this, &UWxAIPerceptionComponent::HandleDeathTagChanged);
-}
-
-void UWxAIPerceptionComponent::UnbindOwnerDeath()
-{
-	if (UAbilitySystemComponent* ASC = DeathBoundASC.Get())
-	{
-		if (DeathTagDelegateHandle.IsValid())
-		{
-			ASC->UnregisterGameplayTagEvent(DeathTagDelegateHandle, WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved);
-		}
-	}
-	DeathBoundASC = nullptr;
-	DeathTagDelegateHandle.Reset();
-}
-
-void UWxAIPerceptionComponent::HandleDeathTagChanged(const FGameplayTag Tag, int32 NewCount)
-{
-	// 태그 제거(부활)는 무시한다 — 리스폰은 새 액터라 별도 초기화가 필요 없다.
-	if (NewCount <= 0)
-	{
-		return;
-	}
-
-	// 사망: 타겟과 인식을 정리해 시체 위에 State.InCombat 이 남지 않게 한다(네임플레이트 잔존 방지).
-	SetTargetActor(nullptr);
-	SetRecognized(false);
 }
 
 void UWxAIPerceptionComponent::HandleTargetDeathTagChanged(const FGameplayTag Tag, int32 NewCount)
@@ -229,7 +174,7 @@ void UWxAIPerceptionComponent::BindTargetLoss(AActor* NewTarget)
 		return;
 	}
 
-	LossBoundTarget = NewTarget;
+	AppliedTarget = NewTarget;
 
 	// 파괴는 ASC 도 함께 없애 사망 태그로 잡을 수 없고, 엔진은 소스가 무효해진 뒤엔 감지 갱신을 방송하지 않는다. 그래서 액터 소멸을 따로 받는다.
 	NewTarget->OnEndPlay.AddDynamic(this, &UWxAIPerceptionComponent::HandleTargetEndPlay);
@@ -243,7 +188,8 @@ void UWxAIPerceptionComponent::BindTargetLoss(AActor* NewTarget)
 
 void UWxAIPerceptionComponent::UnbindTargetLoss()
 {
-	if (AActor* Target = LossBoundTarget.Get())
+	// 대상이 이미 사라졌으면 그 구독도 함께 사라졌으므로 해제할 것이 없다.
+	if (AActor* Target = AppliedTarget.ResolveObjectPtr())
 	{
 		Target->OnEndPlay.RemoveDynamic(this, &UWxAIPerceptionComponent::HandleTargetEndPlay);
 
@@ -255,7 +201,7 @@ void UWxAIPerceptionComponent::UnbindTargetLoss()
 			}
 		}
 	}
-	LossBoundTarget = nullptr;
+	AppliedTarget = nullptr;
 	TargetDeathTagDelegateHandle.Reset();
 }
 
@@ -267,14 +213,15 @@ void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)
 		return;
 	}
 
-	if (WxBlackboardKeys::GetTargetActor(BB) == NewTarget)
+	// 블랙보드 값이 아니라 적용 기록과 비교한다. 블랙보드 Object 키는 약참조라 타겟이 파괴되면 이 컴포넌트 모르게 비워지고, 그걸 기준으로 삼으면 뒤늦은 해제 요청이 "이미 비어 있다" 로 걸러져 포커스·회전 모드가 strafe 에 고착된다.
+	if (AppliedTarget == TObjectKey<AActor>(NewTarget))
 	{
 		return;
 	}
 
 	WxBlackboardKeys::SetTargetActor(BB, NewTarget);
 
-	// 타겟 소실 감시를 새 타겟으로 옮긴다. 사망(시체 잔존)·파괴 어느 쪽도 감지 자극으로는 재판정이 오지 않아 타겟을 직접 구독해야 한다.
+	// 타겟 소실 감시와 적용 기록을 새 타겟으로 옮긴다. 사망(시체 잔존)·파괴 어느 쪽도 감지 자극으로는 재판정이 오지 않아 타겟을 직접 구독해야 한다.
 	BindTargetLoss(NewTarget);
 
 	// 타겟 유무에 따라 회전 모드를 발행한다(상태는 원천이 발행).
