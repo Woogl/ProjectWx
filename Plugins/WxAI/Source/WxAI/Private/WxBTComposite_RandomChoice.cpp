@@ -48,21 +48,14 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 	FWxBTRandomChoiceMemory* Memory = reinterpret_cast<FWxBTRandomChoiceMemory*>(GetNodeMemory<uint8>(SearchData));
 	int32& LastChosenChild = Memory->LastChosenChild;
 
-	const bool bShouldAvoid = bAvoidRepeat && LastChosenChild != INDEX_NONE && ChildrenNum > 1;
-
 	TArray<int32, TInlineAllocator<8>> Candidates;
 	TArray<float, TInlineAllocator<8>> Weights;
 	Candidates.Reserve(ChildrenNum);
 	Weights.Reserve(ChildrenNum);
-	float TotalWeight = 0.0f;
 
+	// 회피는 여기서 보지 않는다. 회피를 풀지 말지는 조건을 통과한 후보가 몇 개인지에 달렸으므로, 수집을 끝낸 뒤에 판단해야 한다.
 	for (int32 Index = 0; Index < ChildrenNum; ++Index)
 	{
-		if (bShouldAvoid && Index == LastChosenChild)
-		{
-			continue;
-		}
-
 		// 자식의 조건 Decorator가 실행을 막으면 후보에서 제외한다 — 유효 후보 중에서만 가중 추첨.
 		// 엔진이 선택 직후 FindChildToExecute 에서 이 자식에 대해 동일하게 호출하는 검사이므로, 미리 걸러도 선택 결과가 엔진 판정과 어긋나지 않는다. Weight Decorator 는 항상 true 라 여기 걸리지 않는다.
 		if (!DoDecoratorsAllowExecution(SearchData.OwnerComp, SearchData.OwnerComp.GetActiveInstanceIdx(), Index))
@@ -82,15 +75,37 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 			}
 		}
 
+		// 가중치 0 은 뽑히지 않겠다는 뜻이므로 후보로 세지 않는다. 회피를 풀지 말지도 이 후보 수를 기준으로 하므로, 뽑힐 수 없는 자식이 그 수에 끼면 안 된다.
+		if (Weight <= 0.0f)
+		{
+			continue;
+		}
+
 		Candidates.Add(Index);
 		Weights.Add(Weight);
-		TotalWeight += Weight;
 	}
 
-	// 후보가 없거나(전부 회피됨) 모든 후보 가중치가 0 이면 실행할 자식이 없으므로 부모에 실패를 반환한다.
-	if (Candidates.Num() == 0 || TotalWeight <= 0.0f)
+	// 조건을 통과한 후보가 하나도 없으면 실행할 자식이 없으므로 부모에 실패를 반환한다. 회피와 무관하다.
+	if (Candidates.Num() == 0)
 	{
 		return BTSpecialChild::ReturnToParent;
+	}
+
+	// 회피는 유효 후보가 2개 이상일 때만 적용한다. 유효 후보가 직전 선택 자식 하나뿐이면 회피가 무의미하므로 그대로 다시 고른다.
+	if (bAvoidRepeat && Candidates.Num() > 1)
+	{
+		const int32 RepeatIndex = Candidates.Find(LastChosenChild);
+		if (RepeatIndex != INDEX_NONE)
+		{
+			Candidates.RemoveAt(RepeatIndex);
+			Weights.RemoveAt(RepeatIndex);
+		}
+	}
+
+	float TotalWeight = 0.0f;
+	for (const float Weight : Weights)
+	{
+		TotalWeight += Weight;
 	}
 
 	// 누적 가중치 룰렛: [0, TotalWeight) 난수를 뽑아 누적합이 처음으로 이를 넘는 후보를 고른다.
