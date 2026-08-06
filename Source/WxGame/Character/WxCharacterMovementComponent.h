@@ -30,13 +30,4 @@ public:
 	 */
 	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
 	//~ End UCharacterMovementComponent Interface
-
-protected:
-	/** 상승 중(Velocity.Z >= 0) 중력 스케일. 값이 작을수록 천천히 올라간다. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Jump", meta = (ClampMin = "0.0"))
-	float RiseGravityScale = 2.f;
-
-	/** 하강 중(Velocity.Z < 0) 중력 스케일. RiseGravityScale보다 크게 두어 빠른 낙하감을 만든다. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Jump", meta = (ClampMin = "0.0"))
-	float FallGravityScale = 2.5f;
 };

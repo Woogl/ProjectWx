@@ -13,11 +13,10 @@ UWxCharacterMovementComponent::UWxCharacterMovementComponent()
 
 float UWxCharacterMovementComponent::GetGravityZ() const
 {
-	// Super::GetGravityZ() == 월드 중력 * GravityScale(=1.0 유지) == 월드 중력값.
-	// 여기에 상승/하강 스케일만 곱해 비대칭 중력을 적용한다.
-	const float BaseGravityZ = Super::GetGravityZ();
-	const float DirectionalScale = (Velocity.Z < 0.f) ? FallGravityScale : RiseGravityScale;
-	return BaseGravityZ * DirectionalScale;
+	// 상승 중일 때 2배, 하강 중일 때 2.5배 중력 스케일 적용
+	const float Multiplier = (Velocity.Z < 0.f) ? 2.f : 2.5f;
+
+	return Super::GetGravityZ() * Multiplier;
 }
 
 void UWxCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float DeltaSeconds)
