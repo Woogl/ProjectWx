@@ -39,6 +39,8 @@ public class WxGame : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"EnhancedInput",
+			"HairStrandsCore",
+			"MetaHumanSDKRuntime",
 		});
 
 		// Uncomment if you are using Slate UI
