@@ -3,12 +3,13 @@
 #include "WxBTTask_Patrol.h"
 
 #include "WxPatrolComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "AIController.h"
 #include "WxBlackboardKeys.h"
+#include "WxGameplayTags.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
 
 UWxBTTask_Patrol::UWxBTTask_Patrol()
 {
@@ -20,7 +21,7 @@ UWxBTTask_Patrol::UWxBTTask_Patrol()
 	// 도착 후 커서를 진행시키기 위해 종료 콜백을 받는다.
 	bNotifyTaskFinished = true;
 
-	// 정찰 커서·이동 속도 캐시를 폰별로 보관하기 위해 노드를 인스턴싱한다.
+	// 정찰 커서·감속 GE 핸들을 폰별로 보관하기 위해 노드를 인스턴싱한다.
 	bCreateNodeInstance = true;
 }
 
@@ -49,14 +50,16 @@ EBTNodeResult::Type UWxBTTask_Patrol::ExecuteTask(UBehaviorTreeComponent& OwnerC
 		WxBlackboardKeys::SetPatrolTargetLocation(Blackboard, Patrol->GetPointLocation(PatrolCursor));
 	}
 
-	// 정찰 이동 동안만 폰의 최대 이동 속도를 배율만큼 낮춘다. 원래 값은 OnTaskFinished 에서 복원한다.
-	CachedMaxWalkSpeed = 0.f;
-	if (const ACharacter* Character = Cast<ACharacter>(Pawn))
+	// 정찰 이동 동안만 이동 속도를 배율만큼 낮춘다. GE 는 OnTaskFinished 에서 제거한다.
+	// MaxWalkSpeed 를 직접 쓰면 SPD 어트리뷰트 콜백과 주인이 겹쳐, 정찰 중 버프가 걸리거나 정찰이 끝날 때 서로의 값을 덮어쓴다.
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
+	if (ASC && MoveSpeedEffect)
 	{
-		if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
+		const FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(MoveSpeedEffect, 1.f, ASC->MakeEffectContext());
+		if (SpecHandle.IsValid())
 		{
-			CachedMaxWalkSpeed = Movement->MaxWalkSpeed;
-			Movement->MaxWalkSpeed *= MoveSpeedMultiplier;
+			SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_MoveSpeedScale, MoveSpeedMultiplier);
+			MoveSpeedEffectHandle = ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
 		}
 	}
 
@@ -65,6 +68,11 @@ EBTNodeResult::Type UWxBTTask_Patrol::ExecuteTask(UBehaviorTreeComponent& OwnerC
 
 FString UWxBTTask_Patrol::GetStaticDescription() const
 {
+	if (!MoveSpeedEffect)
+	{
+		return FString::Printf(TEXT("%s\nSpeed: 감속 GE 미지정"), *Super::GetStaticDescription());
+	}
+
 	return FString::Printf(TEXT("%s\nSpeed: x%.2f"), *Super::GetStaticDescription(), MoveSpeedMultiplier);
 }
 
@@ -72,21 +80,12 @@ void UWxBTTask_Patrol::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* 
 {
 	Super::OnTaskFinished(OwnerComp, NodeMemory, TaskResult);
 
-	const AAIController* AIController = OwnerComp.GetAIOwner();
-	APawn* Pawn = AIController ? AIController->GetPawn() : nullptr;
-
-	// 이동 동안 낮췄던 최대 이동 속도를 복원한다. 도착·중단·실패 등 어떤 종료 경로에서도 호출된다.
-	if (CachedMaxWalkSpeed > 0.f)
+	// 이동 동안 걸어 뒀던 감속 GE 를 제거한다. 도착·중단·실패 등 어떤 종료 경로에서도 호출된다.
+	if (UAbilitySystemComponent* ASC = MoveSpeedEffectHandle.GetOwningAbilitySystemComponent())
 	{
-		if (const ACharacter* Character = Cast<ACharacter>(Pawn))
-		{
-			if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
-			{
-				Movement->MaxWalkSpeed = CachedMaxWalkSpeed;
-			}
-		}
-		CachedMaxWalkSpeed = 0.f;
+		ASC->RemoveActiveGameplayEffect(MoveSpeedEffectHandle);
 	}
+	MoveSpeedEffectHandle = FActiveGameplayEffectHandle();
 
 	// 도착(성공)했을 때만 커서를 다음 지점으로 진행한다. 중단·실패 시엔 커서를 보존해 재개 시 이어서 정찰한다.
 	if (TaskResult != EBTNodeResult::Succeeded)
@@ -94,6 +93,8 @@ void UWxBTTask_Patrol::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* 
 		return;
 	}
 
+	const AAIController* AIController = OwnerComp.GetAIOwner();
+	APawn* Pawn = AIController ? AIController->GetPawn() : nullptr;
 	if (const UWxPatrolComponent* Patrol = UWxPatrolComponent::FindPatrolComponent(Pawn))
 	{
 		int32 NextIndex = PatrolCursor;

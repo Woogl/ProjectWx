@@ -1,10 +1,11 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "WxBTTask_Wander.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "AIController.h"
+#include "WxGameplayTags.h"
 #include "GameFramework/Pawn.h"
-#include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 
 UWxBTTask_Wander::UWxBTTask_Wander()
@@ -52,14 +53,15 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	TotalTime = Duration;
 	ElapsedTime = 0.f;
 
-	// 배회 이동 동안만 폰의 최대 이동 속도를 배율만큼 낮춘다. 원래 값은 OnTaskFinished 에서 복원한다(Patrol 과 동일).
-	CachedMaxWalkSpeed = 0.f;
-	if (const ACharacter* Character = Cast<ACharacter>(Pawn))
+	// 배회 이동 동안만 이동 속도를 배율만큼 낮춘다. GE 는 OnTaskFinished 에서 제거한다(Patrol 과 동일).
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
+	if (ASC && MoveSpeedEffect)
 	{
-		if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
+		const FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(MoveSpeedEffect, 1.f, ASC->MakeEffectContext());
+		if (SpecHandle.IsValid())
 		{
-			CachedMaxWalkSpeed = Movement->MaxWalkSpeed;
-			Movement->MaxWalkSpeed *= MoveSpeedMultiplier;
+			SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_MoveSpeedScale, MoveSpeedMultiplier);
+			MoveSpeedEffectHandle = ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
 		}
 	}
 
@@ -68,6 +70,11 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 
 FString UWxBTTask_Wander::GetStaticDescription() const
 {
+	if (!MoveSpeedEffect)
+	{
+		return FString::Printf(TEXT("Duration: %.1f s\nSpeed: 감속 GE 미지정"), Duration);
+	}
+
 	return FString::Printf(TEXT("Duration: %.1f s\nSpeed: x %.1f"), Duration, MoveSpeedMultiplier);
 }
 
@@ -90,7 +97,7 @@ void UWxBTTask_Wander::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMe
 		return;
 	}
 
-	// 속도는 위에서 낮춘 MaxWalkSpeed 가 제어하므로 입력 스케일은 1.0 으로 넣는다.
+	// 속도는 감속 GE 가 낮춘 SPD → MaxWalkSpeed 가 제어하므로 입력 스케일은 1.0 으로 넣는다.
 	Pawn->AddMovementInput(MoveDirection, 1.f);
 }
 
@@ -98,18 +105,10 @@ void UWxBTTask_Wander::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* 
 {
 	Super::OnTaskFinished(OwnerComp, NodeMemory, TaskResult);
 
-	// 이동 동안 낮췄던 최대 이동 속도를 복원한다. 도착·중단·실패 등 어떤 종료 경로에서도 호출된다(Patrol 과 동일).
-	if (CachedMaxWalkSpeed > 0.f)
+	// 이동 동안 걸어 뒀던 감속 GE 를 제거한다. 도착·중단·실패 등 어떤 종료 경로에서도 호출된다(Patrol 과 동일).
+	if (UAbilitySystemComponent* ASC = MoveSpeedEffectHandle.GetOwningAbilitySystemComponent())
 	{
-		const AAIController* AIController = OwnerComp.GetAIOwner();
-		const APawn* Pawn = AIController ? AIController->GetPawn() : nullptr;
-		if (const ACharacter* Character = Cast<ACharacter>(Pawn))
-		{
-			if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
-			{
-				Movement->MaxWalkSpeed = CachedMaxWalkSpeed;
-			}
-		}
-		CachedMaxWalkSpeed = 0.f;
+		ASC->RemoveActiveGameplayEffect(MoveSpeedEffectHandle);
 	}
+	MoveSpeedEffectHandle = FActiveGameplayEffectHandle();
 }

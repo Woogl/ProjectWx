@@ -217,6 +217,9 @@ namespace WxGameplayTags
 	/** 역경직(히트 스톱) 지속시간 SetByCaller 키. WxExecCalc_Damage가 적중 시 이 값을 실어 공격자에게 Event.HitStop을 발동한다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_HitStop);
 
+	/** 이동 속도 배율 SetByCaller 키. WxEffect_MoveSpeedScale이 SPD 어트리뷰트에 곱하는 배율 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_MoveSpeedScale);
+
 	// ── UI ────────────────────────────────────────────────────────────────
 
 	/** HUD 레이어 (플레이어 체력 바 등) */

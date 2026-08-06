@@ -3,8 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ActiveGameplayEffectHandle.h"
 #include "BehaviorTree/Tasks/BTTask_MoveTo.h"
 #include "WxBTTask_Patrol.generated.h"
+
+class UGameplayEffect;
 
 /**
  * BT Task: 현재 정찰 지점으로 이동하고, 도착하면 커서를 다음 지점으로 진행시킨다.
@@ -32,6 +35,15 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
 	float MoveSpeedMultiplier = 0.5f;
 
+	/**
+	 * 감속에 사용할 GameplayEffect. MoveSpeedMultiplier 를 SetByCaller 로 실어 부여하고 종료 시 제거한다.
+	 *
+	 * WxAI 는 WxCombat 에 의존하지 않으므로, 디자이너가 BT 에디터에서 직접 지정한다 (WxEffect_MoveSpeedScale).
+	 * 지정하지 않으면 감속 없이 평상시 속도로 정찰한다.
+	 */
+	UPROPERTY(EditAnywhere, Category = "Wx|AI")
+	TSubclassOf<UGameplayEffect> MoveSpeedEffect;
+
 	// 아래 상태들은 노드 인스턴스(폰)별로 보관된다(bCreateNodeInstance). 폰마다 독립된 커서를 가지므로 같은 경로 공유·리스폰에 안전하다.
 
 	/** 현재 향하는 정찰 지점 인덱스. */
@@ -43,6 +55,6 @@ private:
 	/** Once 로 경로 끝에 도달해 정찰이 끝났는지. */
 	bool bPatrolFinished = false;
 
-	/** ExecuteTask 에서 낮추기 전의 MaxWalkSpeed. OnTaskFinished 에서 이 값으로 복원한다. */
-	float CachedMaxWalkSpeed = 0.f;
+	/** ExecuteTask 에서 부여한 감속 GE. OnTaskFinished 에서 이 핸들로 제거한다. */
+	FActiveGameplayEffectHandle MoveSpeedEffectHandle;
 };

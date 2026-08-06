@@ -3,8 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ActiveGameplayEffectHandle.h"
 #include "BehaviorTree/BTTaskNode.h"
 #include "WxBTTask_Wander.generated.h"
+
+class UGameplayEffect;
 
 /** 배회 이동 방향. 폰의 정면(ControlRotation)을 기준으로 시계 방향 45도 간격의 8방향. */
 UENUM()
@@ -54,6 +57,15 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
 	float MoveSpeedMultiplier = 0.3f;
 
+	/**
+	 * 감속에 사용할 GameplayEffect. MoveSpeedMultiplier 를 SetByCaller 로 실어 부여하고 종료 시 제거한다.
+	 *
+	 * WxAI 는 WxCombat 에 의존하지 않으므로, 디자이너가 BT 에디터에서 직접 지정한다 (WxEffect_MoveSpeedScale).
+	 * 지정하지 않으면 감속 없이 평상시 속도로 배회한다.
+	 */
+	UPROPERTY(EditAnywhere, Category = "Wx|AI")
+	TSubclassOf<UGameplayEffect> MoveSpeedEffect;
+
 private:
 	FVector MoveDirection = FVector::ForwardVector;
 
@@ -61,6 +73,6 @@ private:
 
 	float ElapsedTime = 0.f;
 
-	/** ExecuteTask 에서 낮추기 전의 MaxWalkSpeed. OnTaskFinished 에서 이 값으로 복원한다. */
-	float CachedMaxWalkSpeed = 0.f;
+	/** ExecuteTask 에서 부여한 감속 GE. OnTaskFinished 에서 이 핸들로 제거한다. */
+	FActiveGameplayEffectHandle MoveSpeedEffectHandle;
 };
