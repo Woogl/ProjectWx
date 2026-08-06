@@ -14,11 +14,8 @@ UWxBTTask_ReturnHome::UWxBTTask_ReturnHome()
 	// 기본 이동 목표 키를 HomeLocation 으로 지정한다(에디터에서 별도 선택 없이 동작). 실제 키 해석은 InitializeFromAsset 가 한다.
 	BlackboardKey.SelectedKeyName = WxBlackboardKeys::HomeLocation;
 
-	// 종료 시 억제 해제·속도 복원을 위해 종료 콜백을 받는다.
+	// 종료 시 억제를 해제하기 위해 종료 콜백을 받는다.
 	bNotifyTaskFinished = true;
-
-	// 이동 속도 캐시를 폰별로 보관하기 위해 노드를 인스턴싱한다.
-	bCreateNodeInstance = true;
 }
 
 EBTNodeResult::Type UWxBTTask_ReturnHome::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)

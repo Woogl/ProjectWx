@@ -26,7 +26,7 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	}
 
 	// 선택된 방향들을 모아 그중 하나를 무작위로 고른다. 8 = EWxWanderDirection 의 방향 개수.
-	TArray<int32> AllowedIndices;
+	TArray<int32, TInlineAllocator<8>> AllowedIndices;
 	for (int32 Index = 0; Index < 8; ++Index)
 	{
 		if (Directions & (1 << Index))
