@@ -87,6 +87,18 @@ void UWxCombatAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribu
 			NewValue = FMath::Clamp(NewValue, 0.f, CurrentMaxDP);
 		}
 	}
+	else if (Attribute == GetMaxUPAttribute())
+	{
+		NewValue = FMath::Max(NewValue, 0.f);
+	}
+	else if (Attribute == GetUPAttribute())
+	{
+		const float CurrentMaxUP = GetMaxUP();
+		if (CurrentMaxUP > 0.f)
+		{
+			NewValue = FMath::Clamp(NewValue, 0.f, CurrentMaxUP);
+		}
+	}
 	else if (Attribute == GetSPDAttribute())
 	{
 		NewValue = FMath::Max(NewValue, 0.f);
