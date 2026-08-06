@@ -20,6 +20,12 @@ void UWxMetaHumanVisualComponent::OnRegister()
 {
 	Super::OnRegister();
 
+	// 커맨드릿(에셋 덤프 등)에선 시각 부착물이 불필요하므로 조립하지 않는다.
+	if (IsRunningCommandlet())
+	{
+		return;
+	}
+
 	// BP 리컴파일·레벨 스트리밍으로 등록이 반복돼도 조립은 한 번만 한다. (해제 시 전부 파괴되므로 포인터가 곧 가드)
 	if (FaceComponent || OutfitComponent || LODSyncComponent || MetaHumanComponent || GroomComponents.Num() > 0)
 	{
@@ -37,6 +43,8 @@ void UWxMetaHumanVisualComponent::OnRegister()
 	if (FaceMesh)
 	{
 		FaceComponent = NewObject<USkeletalMeshComponent>(Owner, MakeUniqueObjectName(Owner, USkeletalMeshComponent::StaticClass(), TEXT("Face")), RF_Transient);
+		// 부착물이 생성 주체와 같은 수명 분류로 취급되도록 CreationMethod를 물려준다. (이하 모든 부착물 동일)
+		FaceComponent->CreationMethod = CreationMethod;
 		FaceComponent->SetSkeletalMeshAsset(FaceMesh);
 		FaceComponent->SetAnimInstanceClass(FaceAnimClass);
 		FaceComponent->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
@@ -56,6 +64,7 @@ void UWxMetaHumanVisualComponent::OnRegister()
 	if (OutfitMesh)
 	{
 		OutfitComponent = NewObject<USkeletalMeshComponent>(Owner, MakeUniqueObjectName(Owner, USkeletalMeshComponent::StaticClass(), TEXT("Outfit")), RF_Transient);
+		OutfitComponent->CreationMethod = CreationMethod;
 		OutfitComponent->SetSkeletalMeshAsset(OutfitMesh);
 		OutfitComponent->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
 		OutfitComponent->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
@@ -82,6 +91,7 @@ void UWxMetaHumanVisualComponent::OnRegister()
 	const int32 NumSyncLODs = FMath::Max3(BodyLODCount, FaceLODCount, OutfitLODCount);
 
 	LODSyncComponent = NewObject<ULODSyncComponent>(Owner, MakeUniqueObjectName(Owner, ULODSyncComponent::StaticClass(), TEXT("LODSync")), RF_Transient);
+	LODSyncComponent->CreationMethod = CreationMethod;
 	LODSyncComponent->NumLODs = NumSyncLODs;
 
 	FComponentSync& BodySync = LODSyncComponent->ComponentsToSync.AddDefaulted_GetRef();
@@ -131,6 +141,7 @@ void UWxMetaHumanVisualComponent::OnRegister()
 	if (FaceComponent)
 	{
 		MetaHumanComponent = NewObject<UWxMetaHumanComponent>(Owner, MakeUniqueObjectName(Owner, UWxMetaHumanComponent::StaticClass(), TEXT("MetaHuman")), RF_Transient);
+		MetaHumanComponent->CreationMethod = CreationMethod;
 		MetaHumanComponent->SetTargetComponentNames(BodyMesh->GetName(), FaceComponent->GetName());
 		MetaHumanComponent->RegisterComponent();
 	}
@@ -194,6 +205,7 @@ void UWxMetaHumanVisualComponent::CreateGroom(const FWxGroomSlot& Slot, const TC
 
 	AActor* Owner = GetOwner();
 	UGroomComponent* GroomComponent = NewObject<UGroomComponent>(Owner, MakeUniqueObjectName(Owner, UGroomComponent::StaticClass(), BaseName), RF_Transient);
+	GroomComponent->CreationMethod = CreationMethod;
 	GroomComponent->SetGroomAsset(Slot.Groom, Slot.Binding);
 	// 메타휴먼 그룸의 표준 부착점. 페이스 스켈레톤의 얼굴 루트 본에 붙는다.
 	GroomComponent->AttachmentName = TEXT("FACIAL_C_FacialRoot");
