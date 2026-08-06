@@ -8,6 +8,7 @@
 #include "Components/GameFrameworkComponentManager.h"
 #include "Components/ChildActorComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Engine/World.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "MotionWarpingComponent.h"
 #include "Weapon/WxWeaponBase.h"
@@ -238,13 +239,28 @@ void AWxCharacterBase::HandleRagdollTagChanged(const FGameplayTag CallbackTag, i
 
 void AWxCharacterBase::EnterRagdoll()
 {
+	// 메시 등록 해제 도중 AnimInstance가 몽타주를 강제 종료하면 사망 어빌리티의 인터럽트 경로가 여기로 재진입한다.
+	// 그때는 bRegistered가 아직 참이라 물리 상태가 새로 생기고, 곧 등록만 풀려 orphan으로 남는다.
+	const UWorld* World = GetWorld();
+	if (!World || World->bIsTearingDown || IsActorBeingDestroyed())
+	{
+		return;
+	}
+
 	USkeletalMeshComponent* MeshComp = GetMesh();
 	MeshComp->SetCollisionProfileName(TEXT("Ragdoll"));
-	// Ragdoll 프로필이 Camera 응답을 Block으로 덮어쓰므로, 스프링암 카메라가 래그돌 본에 걸려 줌-인되는 현상을 방지한다.
+	// Ragdoll 프로필이 응답 컨테이너를 통째로 덮으므로, 사망 시 걸어둔 override를 다시 적용한다.
+	// Camera는 Block으로 덮이면 스프링암 카메라가 래그돌 본에 걸려 줌-인되고, WxAttack은 Block으로 덮이면 시체가 다시 맞는다.
 	MeshComp->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	MeshComp->SetCollisionResponseToChannel(ECC_WxAttack, ECR_Ignore);
+
+	// 전자는 모든 바디를 시뮬로 돌리고, 후자는 bBlendPhysics를 켜되 PhysType_Default 바디만 건드리므로 둘 다 필요하다.
+	MeshComp->SetAllBodiesSimulatePhysics(true);
 	MeshComp->SetSimulatePhysics(true);
+	MeshComp->WakeAllRigidBodies();
 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->DisableMovement();
 }
 

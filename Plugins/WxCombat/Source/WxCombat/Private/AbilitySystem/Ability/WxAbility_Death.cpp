@@ -8,6 +8,7 @@
 #include "Engine/World.h"
 #include "GameFramework/Character.h"
 #include "TimerManager.h"
+#include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 #include "Components/SkeletalMeshComponent.h"
 
@@ -39,7 +40,9 @@ void UWxAbility_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	ACharacter* Avatar = Cast<ACharacter>(GetAvatarActorFromActorInfo());
 	if (Avatar && Avatar->GetMesh())
 	{
-		Avatar->GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		// 시체가 계속 피격되지 않도록 공격 채널 응답만 끈다.
+		// CollisionEnabled를 내리면 ShouldCreatePhysicsState가 false가 되어 피직스 애셋 바디가 통째로 파괴되고, 래그돌 진입에서 다시 만드는 왕복이 생긴다.
+		Avatar->GetMesh()->SetCollisionResponseToChannel(ECC_WxAttack, ECR_Ignore);
 	}
 	
 	AAIController* AIController = Avatar ? Cast<AAIController>(Avatar->GetController()) : nullptr;
