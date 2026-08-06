@@ -24,7 +24,7 @@ public:
 	 * 한 건의 대미지를 단일 타겟에 즉시 적용한다.
 	 *
 	 * 절차: EffectContext 구성 → DamageInfo→Spec 변환 → HitStop SetByCaller 부착 → Spec 적용.
-	 * Source/Target ASC 가 nullptr 이거나 둘이 동일하면 false 반환.
+	 * Source/Target ASC 가 nullptr 이면 false 반환.
 	 *
 	 * 광역 대미지·신체부위 공격·환경 트리거 등 무기/투사체 외 경로의 단일 진입점이다.
 	 *
