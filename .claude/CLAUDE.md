@@ -18,7 +18,7 @@
 
 3. **구현**: 코드를 작성·수정한다.
 
-4. **검증**: WxEditor(Development) 타겟을 빌드해 컴파일을 확인한다. 엔진 경로는 `Wx.uproject`의 `EngineAssociation`에서 해석한다. 에디터 재실행은 불필요, 실패 시 `build-doctor`.
+4. **검증**: WxEditor(Development) 타겟을 빌드해 컴파일을 확인한다. 엔진 버전은 UE 5.8 고정이며, 설치 경로는 런처 정보(`%ProgramData%\Epic\UnrealEngineLauncher\LauncherInstalled.dat`)에서 조회한다. 에디터 재실행은 불필요, 실패 시 `build-doctor`.
 
 5. **완료 기록**: 검증 후, 같은 파일의 「완료」를 채운다.
 

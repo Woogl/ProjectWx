@@ -28,16 +28,22 @@ allowed-tools: PowerShell, Bash, Read, Glob, Grep, Write
 아래 PowerShell로 엔진을 해석하고 커맨드릿을 실행한다. `<인자>`에는 `--sha=`(현재 `git rev-parse --short HEAD`)와 `--date=`(오늘)를 항상 넣고, 에셋 지정 시 `--asset=<에셋명,...>`을 덧붙인다.
 
 ```powershell
-# 엔진 해석 (run-editor와 동일한 3단 폴백)
+# 엔진: 버전은 UE 5.8 고정, 설치 경로만 조회한다 (build-doctor·run-editor와 동일).
 $projPath = "C:\Wx\Wx.uproject"
-$assoc = (Get-Content $projPath -Raw | ConvertFrom-Json).EngineAssociation
 $engine = $null
-try { $engine = (Get-ItemProperty "HKLM:\SOFTWARE\EpicGames\Unreal Engine\$assoc" -ErrorAction Stop).InstalledDirectory } catch {}
-if (-not $engine) { try { $engine = (Get-ItemProperty "HKCU:\Software\Epic Games\Unreal Engine\Builds" -ErrorAction Stop).$assoc } catch {} }
-if (-not $engine -and $assoc -match '^[\d.]+$') { $engine = "C:\Program Files\Epic Games\UE_$assoc" }
-if (-not $engine -or -not (Test-Path $engine)) { throw "엔진 경로를 찾을 수 없습니다 (EngineAssociation=$assoc)." }
+$dat = "$env:ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat"
+if (Test-Path $dat) {
+  $entry = (Get-Content $dat -Raw | ConvertFrom-Json).InstallationList | Where-Object { $_.AppName -eq 'UE_5.8' } | Select-Object -First 1
+  if ($entry) { $engine = $entry.InstallLocation }
+}
+if (-not $engine) {
+  $rk = 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\EpicGames\Unreal Engine\5.8'
+  if (Test-Path $rk) { $engine = (Get-ItemProperty $rk).InstalledDirectory }   # 이 키는 없을 수 있다
+}
+if (-not $engine) { $engine = 'C:\Program Files\Epic Games\UE_5.8' }           # 최후 기본 경로
 
 $cmd = Join-Path $engine "Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
+if (-not (Test-Path $cmd)) { throw "UE 5.8 UnrealEditor-Cmd.exe 없음: $cmd" }
 & $cmd $projPath -run=pythonscript `
   -script="C:/Wx/.claude/skills/dump-assets/dump_assets.py <인자>" `
   -EnablePlugins=PythonScriptPlugin -DisablePlugins=ModelContextProtocol `

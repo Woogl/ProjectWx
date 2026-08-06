@@ -21,23 +21,25 @@ allowed-tools: PowerShell, Glob
 ```powershell
 $ErrorActionPreference = 'Stop'
 
-# --- 0) 프로젝트 / 엔진 해석 ---
+# --- 0) 프로젝트 / 엔진 (UE 5.8 고정) ---
 $uproject = Get-ChildItem -Path . -Filter *.uproject -File | Select-Object -First 1
 if (-not $uproject) { throw '.uproject 파일을 찾을 수 없습니다. 프로젝트 루트에서 실행하세요.' }
 $projPath = $uproject.FullName
 $projName = [System.IO.Path]::GetFileNameWithoutExtension($projPath)   # 예: Wx
 $editorTarget = "${projName}Editor"                                    # 예: WxEditor
 
-$assoc = (Get-Content $projPath -Raw | ConvertFrom-Json).EngineAssociation
+# 버전은 5.8 고정, 설치 경로만 조회한다(설치 드라이브가 C가 아닐 수 있음).
 $engine = $null
-$rk = "Registry::HKEY_LOCAL_MACHINE\SOFTWARE\EpicGames\Unreal Engine\$assoc"
-if (Test-Path $rk) { $engine = (Get-ItemProperty $rk).InstalledDirectory }
-if (-not $engine) {
-  $rkb = 'Registry::HKEY_CURRENT_USER\Software\Epic Games\Unreal Engine\Builds'
-  if (Test-Path $rkb) { $v = (Get-ItemProperty $rkb).$assoc; if ($v) { $engine = $v } }   # 소스 빌드(GUID)
+$dat = "$env:ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat"
+if (Test-Path $dat) {
+  $entry = (Get-Content $dat -Raw | ConvertFrom-Json).InstallationList | Where-Object { $_.AppName -eq 'UE_5.8' } | Select-Object -First 1
+  if ($entry) { $engine = $entry.InstallLocation }
 }
-if (-not $engine -and $assoc -match '^[\d.]+$') { $engine = "C:\Program Files\Epic Games\UE_$assoc" }
-if (-not $engine -or -not (Test-Path $engine)) { throw "엔진 경로를 찾을 수 없습니다 (EngineAssociation=$assoc)." }
+if (-not $engine) {
+  $rk = 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\EpicGames\Unreal Engine\5.8'
+  if (Test-Path $rk) { $engine = (Get-ItemProperty $rk).InstalledDirectory }   # 이 키는 없을 수 있다
+}
+if (-not $engine) { $engine = 'C:\Program Files\Epic Games\UE_5.8' }           # 최후 기본 경로
 
 $buildBat  = Join-Path $engine 'Engine\Build\BatchFiles\Build.bat'
 $editorExe = Join-Path $engine 'Engine\Binaries\Win64\UnrealEditor.exe'

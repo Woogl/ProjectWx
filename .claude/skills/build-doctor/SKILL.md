@@ -17,31 +17,33 @@ Build UE5 C++ projects and explain failures in Korean.
 
 ## Build command
 
-Build target is **`<프로젝트명>Editor` / Win64 / Development** (C++ 이터레이션 기준). Run the PowerShell below from the project root. It resolves the engine from the `.uproject`'s `EngineAssociation`, builds, tees the full output to a log file, and prints the exit code (0 = 성공). Preserve the resolved `Build.bat ...` command in the response so the user can rerun it.
+Build target is **`<프로젝트명>Editor` / Win64 / Development** (C++ 이터레이션 기준). Run the PowerShell below from the project root. 엔진 버전은 **UE 5.8 고정**이고 설치 경로만 런처 정보에서 조회한다(C 드라이브가 아닐 수 있으므로 경로는 박아두지 않는다). 스크립트는 빌드 후 전체 출력을 로그 파일에 tee하고 종료 코드를 출력한다(0 = 성공). Preserve the `Build.bat ...` command in the response so the user can rerun it.
 
 ```powershell
 $ErrorActionPreference = 'Stop'
 
-# --- 프로젝트 / 엔진 해석 ---
+# --- 프로젝트 / 엔진 (UE 5.8 고정) ---
 $uproject = Get-ChildItem -Path . -Filter *.uproject -File | Select-Object -First 1
 if (-not $uproject) { throw '.uproject 파일을 찾을 수 없습니다. 프로젝트 루트에서 실행하세요.' }
 $projPath = $uproject.FullName
 $projName = [System.IO.Path]::GetFileNameWithoutExtension($projPath)   # 예: Wx
 $editorTarget = "${projName}Editor"                                    # 예: WxEditor
 
-$assoc = (Get-Content $projPath -Raw | ConvertFrom-Json).EngineAssociation
+# 버전은 5.8 고정, 설치 경로만 조회한다(설치 드라이브가 C가 아닐 수 있음).
 $engine = $null
-$rk = "Registry::HKEY_LOCAL_MACHINE\SOFTWARE\EpicGames\Unreal Engine\$assoc"
-if (Test-Path $rk) { $engine = (Get-ItemProperty $rk).InstalledDirectory }
-if (-not $engine) {
-  $rkb = 'Registry::HKEY_CURRENT_USER\Software\Epic Games\Unreal Engine\Builds'
-  if (Test-Path $rkb) { $v = (Get-ItemProperty $rkb).$assoc; if ($v) { $engine = $v } }   # 소스 빌드(GUID)
+$dat = "$env:ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat"
+if (Test-Path $dat) {
+  $entry = (Get-Content $dat -Raw | ConvertFrom-Json).InstallationList | Where-Object { $_.AppName -eq 'UE_5.8' } | Select-Object -First 1
+  if ($entry) { $engine = $entry.InstallLocation }
 }
-if (-not $engine -and $assoc -match '^[\d.]+$') { $engine = "C:\Program Files\Epic Games\UE_$assoc" }
-if (-not $engine -or -not (Test-Path $engine)) { throw "엔진 경로를 찾을 수 없습니다 (EngineAssociation=$assoc)." }
+if (-not $engine) {
+  $rk = 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\EpicGames\Unreal Engine\5.8'
+  if (Test-Path $rk) { $engine = (Get-ItemProperty $rk).InstalledDirectory }   # 이 키는 없을 수 있다
+}
+if (-not $engine) { $engine = 'C:\Program Files\Epic Games\UE_5.8' }           # 최후 기본 경로
 
 $buildBat = Join-Path $engine 'Engine\Build\BatchFiles\Build.bat'
-if (-not (Test-Path $buildBat)) { throw "Build.bat 없음: $buildBat" }
+if (-not (Test-Path $buildBat)) { throw "UE 5.8 Build.bat 없음: $buildBat" }
 
 # --- 빌드 (전체 출력 로그 저장: 날짜·시간별) ---
 $logDir = 'C:\Wx\.claude\skills\build-doctor\logs'
