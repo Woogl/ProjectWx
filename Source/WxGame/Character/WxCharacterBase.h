@@ -70,16 +70,16 @@ public:
 	FWxOnDeathSignature OnDeath;
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|GAS")
+	UPROPERTY(VisibleAnywhere, Category = "Wx|GAS")
 	TObjectPtr<UWxAbilitySystemComponent> AbilitySystemComponent;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|GAS")
+	UPROPERTY(VisibleAnywhere, Category = "Wx|GAS")
 	TObjectPtr<UWxCombatAttributeSet> CombatAttributeSet;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")
+	UPROPERTY(VisibleAnywhere, Category = "Wx|Combat")
 	TObjectPtr<UMotionWarpingComponent> MotionWarpingComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Equipment")
+	UPROPERTY(VisibleAnywhere, Category = "Wx|Equipment")
 	TObjectPtr<UWxEquipmentComponent> EquipmentComponent;
 
 	/**
@@ -87,7 +87,7 @@ protected:
 	 * BP 의 ChildActorClass 에 구체 무기 BP 를 지정한다.
 	 * 장착 변경 시 메시 스왑/소켓 재부착의 대상이 된다.
 	 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Equipment")
+	UPROPERTY(VisibleAnywhere, Category = "Wx|Equipment")
 	TObjectPtr<UChildActorComponent> WeaponActor;
 
 	/**
@@ -122,11 +122,11 @@ protected:
 	 * 네임플레이트/HUD 등 UI 표시 데이터.
 	 * BP 디폴트에서 지정한다.
 	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
+	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	FWxCharacterUIData UIData;
 
 	/** 캐릭터의 팀. 같은 팀끼리는 아군, 다른 팀끼리는 적군 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Team")
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Team")
 	EWxTeam Team = EWxTeam::Player;
 
 	/** 기본 이동 속도 (cm/s). SPD Multiplier의 기준값 */
