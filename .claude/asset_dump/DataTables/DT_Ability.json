@@ -41,14 +41,6 @@
       "MaxRecharges": 1,
       "Name": "GA_Ultimate",
       "UPCost": 100
-    },
-    {
-      "CooldownTime": 0,
-      "Icon": "None",
-      "MPCost": 0,
-      "MaxRecharges": 1,
-      "Name": "GA_HR_Skill_1",
-      "UPCost": 0
     }
   ],
   "row_struct": "/Script/WxCombat.WxAbilityTableRow"

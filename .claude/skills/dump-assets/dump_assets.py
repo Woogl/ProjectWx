@@ -32,7 +32,7 @@ ROOTS = ["/Game", "/WxUI", "/WxWorld"]
 
 # /Game 바로 아래에서 통째로 제외할 폴더 (마켓플레이스·엔진 샘플·OFPA). 인덱스에 개수만 남긴다.
 EXCLUDED_TOP = {
-    "ParagonShinbi", "ARPG_Pack", "NiagaraExamples", "Grz_HammerPack",
+    "ARPG_Pack", "NiagaraExamples", "Grz_HammerPack",
     "UIMaterialLab", "EasyInputPrompts", "Fab", "Nodachi_AnimSet",
     "Imortal_Loot_Drop_VFX", "Mannequins",
     "Collections", "Developers", "__ExternalActors__", "__ExternalObjects__",

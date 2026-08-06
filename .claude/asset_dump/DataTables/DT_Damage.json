@@ -88,18 +88,6 @@
     },
     {
       "AdditionalEffects": [],
-      "CoeffATK": 1,
-      "HitReactTag": {
-        "TagName": "None"
-      },
-      "Name": "AM_HR_Attack_L",
-      "RecoverMP": 0,
-      "RecoverUP": 0,
-      "bParryHitReact": true,
-      "bUnblockable": false
-    },
-    {
-      "AdditionalEffects": [],
       "CoeffATK": 3,
       "HitReactTag": {
         "TagName": "None"
