@@ -10,6 +10,7 @@
 
 struct FStateTreeExecutionContext;
 struct FStateTreeTransitionResult;
+class AWxNpc;
 
 // GetInstanceDataType() 의 헤더 정의는 코딩 규칙 6 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
 
@@ -127,14 +128,21 @@ struct FWxStateTreeTask_EnableNpcInteractionInstanceData
 	/** 진입 시 그 NPC 의 상호작용 활성 여부. 기본이 잠금인 것은 이 태스크를 놓는 이유가 대개 그것이기 때문이다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	bool bEnable = false;
+
+	/** (런타임) 이 노드가 실제로 토글을 걸어 준 NPC. 다시 해석한 NPC 가 이 기록과 다르면 그때 다시 적용한다. */
+	UPROPERTY()
+	TWeakObjectPtr<AWxNpc> AppliedNpc;
 };
 
 /**
- * 진입 시 지정 NPC 의 상호작용을 bEnable 로 토글한 뒤 곧바로 완료한다 — 잠긴 NPC 는 스캔 후보에서 빠져 프롬프트조차 뜨지 않고, 서버 활성 검증에도 걸려 대화가 열리지 않는다.
+ * 지정 NPC 의 상호작용을 bEnable 로 토글하고 그 상태에 머물며 유지한다 — 잠긴 NPC 는 스캔 후보에서 빠져 프롬프트조차 뜨지 않고, 서버 활성 검증에도 걸려 대화가 열리지 않는다.
  * 상태를 떠나도 되돌리지 않는다. 잠금은 그 상태에 딸린 임시 연출이 아니라 월드에 남는 변경이며, 다시 열 시점은 퀘스트마다 다르므로 여는 상태에 이 태스크를 bEnable=true 로 한 번 더 두어 에셋이 정한다.
- * 상태 완료 판정에서는 빠진다(bConsideredForCompletion=false) — 즉시 완료를 내는 부수효과 태스크가 판정에 끼면 자식을 둔 상태나 대기 태스크와 같은 상태가 곧바로 완료돼 퀘스트가 통째로 관통된다(저널 태스크와 같은 이유).
- * 대상을 해석하지 못하면(미지정·스트리밍 아웃·NPC 아님) 잠글 것이 없으므로 경고만 남기고 완료한다.
- * 값을 복제하지 않으므로 서버가 곧 클라인 싱글/리슨 호스트가 전제다(다른 크로스모듈 노드와 같은 전제). 틱하지 않으므로 비용이 없다.
+ * 상태 완료 판정에서는 빠진다(bConsideredForCompletion=false) — 완료를 내지 않는 태스크가 판정에 끼면 대기 태스크와 같은 상태(TasksCompletion=All)가 영영 완료되지 않는다.
+ *
+ * 대상 해석은 매 틱 수행하고, 해석된 NPC 가 기록과 다를 때만(첫 해석 성공·스트리밍 재로드로 액터가 새로 만들어진 경우) 토글을 적용한다.
+ * 토글은 대상 액터의 메시 콜리전이라 재로드 때 레벨에 저장된 값으로 되돌아가므로, 진입 1회 적용으로는 대상이 그 순간 언로드면 영영 적용되지 않고 상태 유지 중 스트리밍되면 적용분이 사라진다.
+ * 미해석은 스트리밍 아웃의 정상 상황이라 조용히 대기한다. 잘못된 조립(지정 누락·NPC 아님)만 진입 시 1회 경고한다.
+ * 값을 복제하지 않으므로 서버가 곧 클라인 싱글/리슨 호스트가 전제다(다른 크로스모듈 노드와 같은 전제).
  */
 USTRUCT(meta = (DisplayName = "Enable Npc Interaction", Category = "Wx"))
 struct FWxStateTreeTask_EnableNpcInteraction : public FStateTreeTaskCommonBase
@@ -147,6 +155,7 @@ struct FWxStateTreeTask_EnableNpcInteraction : public FStateTreeTaskCommonBase
 
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
 
 #if WITH_EDITOR
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;

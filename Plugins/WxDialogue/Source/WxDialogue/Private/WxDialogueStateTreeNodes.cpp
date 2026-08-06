@@ -19,6 +19,29 @@ namespace
 		return PlayerController ? PlayerController->FindComponentByClass<UWxDialogueSessionComponent>() : nullptr;
 	}
 
+	/**
+	 * 대상을 다시 해석해, 앞서 토글을 걸어 준 NPC 와 다를 때만 적용한다.
+	 * 재로드로 액터가 새로 만들어지면 콜리전이 레벨 값으로 돌아가 있으므로 그때 다시 걸어야 하고, 같은 액터면 이미 적용돼 있어 건드리지 않는다.
+	 */
+	void RefreshNpcInteraction(const FStateTreeExecutionContext& Context, FWxStateTreeTask_EnableNpcInteractionInstanceData& Instance)
+	{
+		AWxNpc* Npc = Cast<AWxNpc>(Instance.Target.Locator.SyncFind(Cast<AActor>(Context.GetOwner())));
+		if (!Npc)
+		{
+			// 미지정·NPC 아님(잘못된 조립)과 스트리밍 아웃(정상)이 여기로 함께 들어온다. 기록을 비워 다시 로드되면 그때 적용한다.
+			Instance.AppliedNpc.Reset();
+			return;
+		}
+
+		if (Instance.AppliedNpc.Get() == Npc)
+		{
+			return;
+		}
+
+		Npc->SetInteractionEnabled(Instance.bEnable);
+		Instance.AppliedNpc = Npc;
+	}
+
 #if WITH_EDITOR
 	/** 대화 행의 표시명. 미지정이면 unset. */
 	FText GetRowText(const FDataTableRowHandle& Row)
@@ -162,28 +185,45 @@ FText FWxStateTreeTask_PlayDialogue::GetDescription(const FGuid& ID, FStateTreeD
 
 FWxStateTreeTask_EnableNpcInteraction::FWxStateTreeTask_EnableNpcInteraction()
 {
-	// 부수효과일 뿐 이 상태의 완료를 내지 않는다. 즉시 완료를 판정에 끼우면 자식을 둔 상태나 대기 태스크와 같은 상태가 곧바로 완료돼 퀘스트가 관통된다.
-	bConsideredForCompletion = false;
-
 	// 잠금은 그 상태가 선언하는 가용성이라, 같은 상태가 재선택돼도 껐다 켤 이유가 없다.
 	bShouldStateChangeOnReselect = false;
+
+#if WITH_EDITORONLY_DATA
+	// 부수효과일 뿐 이 상태의 완료를 내지 않는다. 완료를 내지 않는 태스크가 판정에 끼면 대기 태스크와 같은 상태가 영영 완료되지 않는다.
+	bConsideredForCompletion = false;
+#endif
 }
 
 EStateTreeRunStatus FWxStateTreeTask_EnableNpcInteraction::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	AWxNpc* Npc = Cast<AWxNpc>(Instance.Target.Locator.SyncFind(Cast<AActor>(Context.GetOwner())));
-	if (!Npc)
+	// 잘못된 조립만 여기서 한 번 가른다. 미해석(스트리밍 아웃)은 정상 상황이라 경고하지 않는다 — 매 틱 재시도하는 판이라 로그가 폭주하기도 한다.
+	if (Instance.Target.Locator.IsEmpty())
 	{
-		// 미지정·NPC 아님(잘못된 조립)과 스트리밍 아웃(정상)이 여기로 함께 들어온다. 어느 쪽이든 지금 잠글 대상이 없으므로 상태를 막지 않는다.
-		UE_LOG(LogWxDialogue, Warning, TEXT("Enable Npc Interaction: 대상 NPC 를 해석하지 못함(Target)."));
-		return EStateTreeRunStatus::Succeeded;
+		UE_LOG(LogWxDialogue, Warning, TEXT("Enable Npc Interaction: 대상이 지정되지 않음(Target 빈 로케이터)."));
+	}
+	else if (const UObject* Object = Instance.Target.Locator.SyncFind(Cast<AActor>(Context.GetOwner())))
+	{
+		if (!Object->IsA<AWxNpc>())
+		{
+			UE_LOG(LogWxDialogue, Warning, TEXT("Enable Npc Interaction: 대상 %s 이(가) NPC 가 아님(Target)."), *GetNameSafe(Object));
+		}
 	}
 
-	Npc->SetInteractionEnabled(Instance.bEnable);
+	// 이전 실행의 잔존 기록을 비우고 첫 적용을 시도한다. 대상이 아직 언로드면 Tick 이 재시도한다.
+	Instance.AppliedNpc.Reset();
+	RefreshNpcInteraction(Context, Instance);
 
-	return EStateTreeRunStatus::Succeeded;
+	return EStateTreeRunStatus::Running;
+}
+
+EStateTreeRunStatus FWxStateTreeTask_EnableNpcInteraction::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
+{
+	FInstanceDataType& Instance = Context.GetInstanceData(*this);
+	RefreshNpcInteraction(Context, Instance);
+
+	return EStateTreeRunStatus::Running;
 }
 
 #if WITH_EDITOR

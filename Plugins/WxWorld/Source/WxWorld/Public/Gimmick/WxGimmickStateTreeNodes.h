@@ -697,7 +697,8 @@ struct FWxStateTreeTask_SpawnActorInstanceData
  * 매 틱 권위 측에서 LocalSpawnTransform 을 오너 월드 트랜스폼에 합성한 자리에 ActorClass 를 Interval 마다 1회 스폰하고 살아있는 목록(SpawnedActors)을 유지한다(Interval 0 이면 진입 직후 1회만 스폰하는 일회성). State 를 읽지 않아 어떤 기믹이든 주기 스폰에 재사용한다(예: LaserCorridor 의 레이저 벽).
  * 스폰 위치·회전·크기는 LocalSpawnTransform×오너 트랜스폼이 그대로 정하고(스폰체 크기는 로컬 스케일×오너 스케일), 수명은 Lifetime 으로 받아 양수면 SetLifeSpan 으로 자동 파괴한다. 스폰 충돌 처리는 SpawnCollisionHandlingOverride 로 디자이너가 정한다. 후속 이동이 필요하면 이동 노드가 SpawnedActors 를 바인딩해 구동하므로, 에셋에서 이 노드를 그 앞에 둔다.
  * 스폰은 서버 권위 사건이라 권위 측에서만 일어나고(클라는 복제 추종), 스폰체는 Transient 라 복원할 포즈가 없어 초기 진입·라이브 구분 없이 진입 즉시 스폰을 재개한다.
- * 완료 전이가 없는 머무는 태스크라 항상 Running 을 유지하며(이 태스크는 상태 완료 판정에서 빼야 한다), 상태를 떠날 때 ExitState 가 bDestroyOnExit 면 남은 스폰체를 전부 파괴한다(끄면 각자 Lifetime 으로 자동 파괴되게 남긴다).
+ * 완료 전이가 없는 머무는 태스크라 항상 Running 을 유지하며, 상태를 떠날 때 ExitState 가 bDestroyOnExit 면 남은 스폰체를 전부 파괴한다(끄면 각자 Lifetime 으로 자동 파괴되게 남긴다).
+ * 완료 판정 참여 여부는 얹히는 상태가 정한다 — 대기 태스크와 같은 상태에 두면 판정에서 빼야 그 상태가 완료될 수 있고(완료를 내지 않으므로), 이 태스크만 있는 상태라면 판정 태스크가 0개가 되지 않게 남겨 둔다(형제의 완료 비트를 물려받는 엔진 동작).
  */
 USTRUCT(meta = (DisplayName = "Spawn Actor", Category = "Wx"))
 struct FWxStateTreeTask_SpawnActor : public FStateTreeTaskCommonBase
