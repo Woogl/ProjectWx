@@ -14,7 +14,7 @@ UWxCharacterMovementComponent::UWxCharacterMovementComponent()
 float UWxCharacterMovementComponent::GetGravityZ() const
 {
 	// 상승 중일 때 2배, 하강 중일 때 2.5배 중력 스케일 적용
-	const float Multiplier = (Velocity.Z < 0.f) ? 2.f : 2.5f;
+	const float Multiplier = (Velocity.Z > 0.f) ? 2.f : 2.5f;
 
 	return Super::GetGravityZ() * Multiplier;
 }
