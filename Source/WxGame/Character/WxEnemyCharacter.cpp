@@ -162,18 +162,3 @@ UBehaviorTree* AWxEnemyCharacter::GetBehaviorTree() const
 	return BehaviorTreeAsset;
 }
 
-float AWxEnemyCharacter::GetSightRadius() const
-{
-	return SightRadius;
-}
-
-float AWxEnemyCharacter::GetSightAngle() const
-{
-	return SightAngle;
-}
-
-float AWxEnemyCharacter::GetMaxHearingRange() const
-{
-	return MaxHearingRange;
-}
-

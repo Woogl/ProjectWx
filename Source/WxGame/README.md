@@ -30,7 +30,7 @@
 | `UWxExperienceDefinition` | 한 판의 게임플레이 구성 데이터 에셋(폰 클래스·GF 플러그인·액션·액션셋). 네이티브 클래스 인스턴스로만 생성 | `Framework/WxExperienceDefinition.h` |
 | `AWxCharacterBase` | 플레이어·적 공통 Abstract 베이스. ASC/AttributeSet/장비/모션워핑 직접 소유, 팀·사망·SPD 이동 반영 | `Character/WxCharacterBase.h` |
 | `AWxPlayerCharacter` | 3인칭 카메라 + Enhanced Input + 어빌리티 입력·락온 소유 | `Character/WxPlayerCharacter.h` |
-| `AWxEnemyCharacter` | BT 구동 적(Abstract). 시야/청각·처형 어포던스·보상 지급·스포너 연동, `AWxBossCharacter`가 파생 | `Character/WxEnemyCharacter.h` |
+| `AWxEnemyCharacter` | BT 구동 적(Abstract). 처형 어포던스·보상 지급·스포너 연동, `AWxBossCharacter`가 파생 | `Character/WxEnemyCharacter.h` |
 | `AWxPlayerController` | 순수 ModularGameplay receiver. 주입된 컨트롤러 컴포넌트(인벤토리·상호작용 스캐너·대화 세션·PlayerSpawn)를 자동 부착만 하고 중개하지 않으며, 화면 push는 [[WxUI]] `UWxUIManagerSubsystem`이 담당 | `Controller/WxPlayerController.h` |
 | `UWxInputConfig` | IMC + Move/Look/Jump/Crouch 직접 바인딩 입력 DataAsset(어빌리티 입력은 담지 않음) | `Input/WxInputConfig.h` |
 | `UWxViewModelResolver_PlayerCharacter` | 폰 ASC/표시 데이터를 WxUI 뷰모델에 주입하는 리졸버(MVVM 글루 대표) | `MVVM/WxViewModelResolver_PlayerCharacter.h` |

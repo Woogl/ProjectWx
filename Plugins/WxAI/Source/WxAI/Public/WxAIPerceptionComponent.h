@@ -19,6 +19,7 @@ class UBlackboardComponent;
  * AIController 에 부착해 사용하는 Perception 컴포넌트.
  *
  * Sight/Hearing/Damage 감지를 셋업하고 결과를 Blackboard 의 TargetActor 에 동기화한다.
+ * 세 센스의 수치는 이 컴포넌트가 소유한다 — 폰별로 달리 쓰는 곳이 없어 주입 경로를 두지 않는다. 필요해지면 그때 도입한다.
  * 세 센스 모두 감지 성공 시 그 액터(소리 발생원 포함)를 TargetActor 로 확정한다.
  *
  * TargetActor 의 유무에 따라 폰의 회전 모드도 함께 발행한다 — 타겟이 있으면 그 액터를 바라본 채 이동(strafe), 없으면 이동 방향으로 회전(평상시).
@@ -37,9 +38,6 @@ public:
 	virtual void PostInitProperties() override;
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-	/** 빙의한 폰이 가진 시야/청각 파라미터를 주입해 센스를 재구성한다. 컨트롤러가 OnPossess 에서 호출한다. */
-	void ApplySenseSettings(float InSightRadius, float InSightAngle, float InMaxHearingRange);
 
 	/**
 	 * 타겟팅 억제(disengage)를 켜고 끈다. 리시 복귀 Task(UWxBTTask_ReturnHome)가 복귀 진입/종료에 호출한다.

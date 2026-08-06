@@ -74,7 +74,7 @@ sequenceDiagram
 
 `AWxEnemyCharacter` 생성자가 `AIControllerClass = AWxEnemyController`, `AutoPossessAI = PlacedInWorldOrSpawned` 를 설정하므로 `FinishSpawning` 이 빙의를 트리거한다. `OnPossess` 는 적의 per-class 데이터를 AI 시스템에 주입한다.
 
-- `ApplySenseSettings(SightRadius, SightAngle, MaxHearingRange)` — 적의 시야/청각 값을 `UWxAIPerceptionComponent` 에 주입.
+- 시야/청각 수치는 `UWxAIPerceptionComponent` 가 직접 소유하므로 빙의 시 주입하지 않는다.
 - `RunBehaviorTree(Enemy->GetBehaviorTree())` 를 **먼저** 호출한 뒤 Blackboard 키(`SelfActor`, `HomeLocation`)를 세팅 — Blackboard 컴포넌트가 `RunBehaviorTree` 내부에서 생성되므로 순서가 반대면 키 세팅이 통째로 누락된다.
 
 ### 사망 경로 (HandleDeath)

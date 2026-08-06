@@ -19,11 +19,17 @@ UWxAIPerceptionComponent::UWxAIPerceptionComponent()
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
 	SightConfig->DetectionByAffiliation.bDetectNeutrals = false;
 	SightConfig->DetectionByAffiliation.bDetectFriendlies = false;
+	// 시야 상실 반경을 감지 반경과 같게 둔다 — 반경 경계에서 붙었다 떨어졌다 하는 것은 리시 복귀가 다루므로 히스테리시스를 두지 않는다.
+	SightConfig->SightRadius = 1500.0f;
+	SightConfig->LoseSightRadius = 1500.0f;
+	// 정면 기준 편측 시야각(도). 전체 시야각은 이 값의 2배다.
+	SightConfig->PeripheralVisionAngleDegrees = 60.0f;
 
 	HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
 	HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
 	HearingConfig->DetectionByAffiliation.bDetectNeutrals = false;
 	HearingConfig->DetectionByAffiliation.bDetectFriendlies = false;
+	HearingConfig->HearingRange = 1000.0f;
 
 	DamageConfig = CreateDefaultSubobject<UAISenseConfig_Damage>(TEXT("DamageConfig"));
 
@@ -34,6 +40,17 @@ UWxAIPerceptionComponent::UWxAIPerceptionComponent()
 void UWxAIPerceptionComponent::PostInitProperties()
 {
 	Super::PostInitProperties();
+
+	// 엔진은 여기서 등록한 센스만 OnRegister 에서 퍼셉션 시스템 리스너로 올린다. 셋 다 이 컴포넌트가 항상 갖추는 감각이므로 등록을 외부에 맡기지 않는다.
+	if (SightConfig)
+	{
+		ConfigureSense(*SightConfig);
+	}
+
+	if (HearingConfig)
+	{
+		ConfigureSense(*HearingConfig);
+	}
 
 	if (DamageConfig)
 	{
@@ -47,26 +64,6 @@ void UWxAIPerceptionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	UnbindOwnerDeath();
 
 	Super::EndPlay(EndPlayReason);
-}
-
-void UWxAIPerceptionComponent::ApplySenseSettings(float InSightRadius, float InSightAngle, float InMaxHearingRange)
-{
-	if (SightConfig)
-	{
-		SightConfig->SightRadius = InSightRadius;
-		SightConfig->LoseSightRadius = InSightRadius;
-		SightConfig->PeripheralVisionAngleDegrees = InSightAngle;
-		ConfigureSense(*SightConfig);
-	}
-
-	if (HearingConfig)
-	{
-		HearingConfig->HearingRange = InMaxHearingRange;
-		ConfigureSense(*HearingConfig);
-	}
-
-	// 이미 퍼셉션 시스템에 등록된 뒤(런타임 주입)라면 변경된 센스 설정을 반영한다. 등록 전(초기 구성)이면 no-op.
-	RequestStimuliListenerUpdate();
 }
 
 void UWxAIPerceptionComponent::HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
