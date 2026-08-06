@@ -58,7 +58,8 @@ private:
 
 protected:
 	/** Ability, Effect 초기 데이터 */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|GAS")
+	// 소유 캐릭터가 "Wx|GAS"를 쓰므로 여기서 같은 경로를 쓰면 Class Defaults 패널에 GAS 헤더가 두 번 그려진다.
+	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TObjectPtr<UWxAbilitySet> AbilitySet;
 
 	FWxAbilitySetGrantedHandles AbilitySetGrantedHandles;
