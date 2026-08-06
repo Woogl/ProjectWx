@@ -87,3 +87,6 @@ __pycache__/
 
 # Temporary files
 ~*
+
+# 메타휴먼 크리에이터 소스 에셋 — GitHub 100MB 하드 리밋 초과(130MB)라 버전 관리 제외, 로컬 보관·별도 백업 필요
+Content/MetaHumans/MH_Player/MH_Player.uasset
