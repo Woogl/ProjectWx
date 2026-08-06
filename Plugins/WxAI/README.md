@@ -48,4 +48,4 @@
 - 상위: 게임 측 AIController/BehaviorTree 에셋이 이 노드·컴포넌트를 조립해 사용. 인식 태그 소비는 [[WxUI]], 어트리뷰트·전투 정의는 [[WxCombat]], 공용 정의는 [[WxCore]].
 
 ---
-*문서 기준 커밋 `c549ea2` · 생성일 2026-07-31 · 소스 29파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `2fdf0ab` · 생성일 2026-08-06 · 소스 29파일 — `/readme-writer`로 갱신*

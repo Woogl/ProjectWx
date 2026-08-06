@@ -48,4 +48,4 @@
 - 상위 계약: [[WxCore]](`IWxInteractable`·`FWxActorTarget`·`State.Dialogue` 태그)
 
 ---
-*문서 기준 커밋 `6e08d6d` · 생성일 2026-08-05 · 소스 11파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `2fdf0ab` · 생성일 2026-08-06 · 소스 11파일 — `/readme-writer`로 갱신*

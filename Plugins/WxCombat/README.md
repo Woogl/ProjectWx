@@ -17,8 +17,8 @@
 - 어빌리티/이펙트/무기의 구체 값과 몽타주 연결은 BP·DataTable 에셋에 위임(C++는 베이스와 규약만)
 
 ## 의존성
-- **주요 의존**: [[WxCore]] · GameplayAbilities(GAS) · ModularGameplay(Lyra식 GameStateComponent) · EnhancedInput · TargetingSystem · MotionWarping · AIModule · Niagara(private)
-- 규칙: 플러그인이므로 「WxCore 외 Wx 플러그인 참조」 검증 — 없음 ✅ (`.uplugin`·`Build.cs` 모두 Wx 참조는 `WxCore`뿐)
+- **주요 의존**: [[WxCore]] · GameplayAbilities(GAS) · ModularGameplay · EnhancedInput · TargetingSystem · MotionWarping
+- 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅ (`.uplugin`·`Build.cs` 모두 Wx 참조는 `WxCore`뿐)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
@@ -48,4 +48,4 @@
 - 상위: [[WxGame]](캐릭터·플레이어 컨트롤러·Experience에서 이 모듈의 컴포넌트/에셋을 조립), WxEditor
 
 ---
-*문서 기준 커밋 `6e08d6d` · 생성일 2026-08-05 · 소스 145파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `2fdf0ab` · 생성일 2026-08-06 · 소스 143파일 — `/readme-writer`로 갱신*
