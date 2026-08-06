@@ -3,7 +3,7 @@
 #include "AbilitySystem/Ability/WxAbility_Sprint.h"
 #include "AbilitySystemComponent.h"
 #include "WxGameplayTags.h"
-#include "AbilitySystem/Effect/WxEffect_Sprint.h"
+#include "AbilitySystem/Effect/WxEffect_MoveSpeedScale.h"
 
 UWxAbility_Sprint::UWxAbility_Sprint()
 {
@@ -11,8 +11,6 @@ UWxAbility_Sprint::UWxAbility_Sprint()
 	AssetTags.AddTag(WxGameplayTags::Ability_Sprint);
 	SetAssetTags(AssetTags);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
-
-	SprintEffectClass = UWxEffect_Sprint::StaticClass();
 }
 
 void UWxAbility_Sprint::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
@@ -39,14 +37,10 @@ void UWxAbility_Sprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	if (!SprintEffectClass)
-	{
-		return;
-	}
-
-	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(SprintEffectClass, GetAbilityLevel());
+	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_MoveSpeedScale::StaticClass(), GetAbilityLevel());
 	if (SpecHandle.IsValid())
 	{
+		SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_MoveSpeedScale, SprintSpeedScale);
 		SpeedEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
 	}
 }
