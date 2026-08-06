@@ -31,21 +31,24 @@ EBTNodeResult::Type UWxBTTask_ActivateAbility::ExecuteTask(UBehaviorTreeComponen
 		return EBTNodeResult::Failed;
 	}
 
-	// 동일 태그 어빌리티가 여러 개일 수 있으므로, 발동에 성공하는 첫 후보를 채택한다.
 	FGameplayAbilitySpecHandle ActivatedSpecHandle;
-	for (const FGameplayAbilitySpec& IterSpec : ASC->GetActivatableAbilities())
 	{
-		if (IterSpec.Ability && IterSpec.Ability->GetAssetTags().HasTag(AbilityTag))
+		// 순회 중 활성화도 실패 통지도 어빌리티 목록을 바꿀 수 있다(GE의 GrantedAbilities, 실패 콜백의 Give/Clear 등).
+		// 락이 없으면 Add/RemoveAtSwap 이 즉시 반영돼 순회 중인 참조가 무효화된다. 엔진 입력 경로도 같은 이유로 이 락을 건다.
+		// 락은 루프에만 걸어, 뒤따르는 재조회가 부여/제거까지 반영된 목록을 보게 한다.
+		FScopedAbilityListLock ActiveScopeLock(*ASC);
+
+		// 동일 태그 어빌리티가 여러 개일 수 있으므로, 발동에 성공하는 첫 후보를 채택한다.
+		for (const FGameplayAbilitySpec& IterSpec : ASC->GetActivatableAbilities())
 		{
-			// 핸들은 값 타입이라 TryActivateAbility 가 배열을 재할당해도 안전하다. 호출 전에 캡처한다.
-			const FGameplayAbilitySpecHandle CandidateHandle = IterSpec.Handle;
-			if (ASC->TryActivateAbility(CandidateHandle))
+			if (IterSpec.Ability && IterSpec.Ability->GetAssetTags().HasTag(AbilityTag))
 			{
-				// 성공 시 즉시 break — 활성화로 배열이 재할당됐어도 이후 IterSpec 을 건드리지 않는다.
-				ActivatedSpecHandle = CandidateHandle;
-				break;
+				if (ASC->TryActivateAbility(IterSpec.Handle))
+				{
+					ActivatedSpecHandle = IterSpec.Handle;
+					break;
+				}
 			}
-			// 실패(CanActivate 실패)는 ActivatableAbilities 를 바꾸지 않으므로 다음 후보로 계속 진행해도 안전하다.
 		}
 	}
 
