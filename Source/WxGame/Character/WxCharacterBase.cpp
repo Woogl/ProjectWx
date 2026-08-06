@@ -106,24 +106,6 @@ void AWxCharacterBase::PostInitializeComponents()
 	{
 		SpawnedWeapon->SetOwner(this);
 	}
-
-	// "VisualOverride" 태그가 붙은 외형 SkeletalMeshComponent 가 캐릭터 메시 하위에 있으면 무기 부착 대상을 그쪽으로 옮긴다.
-	// 동일 스켈레톤을 공유하는 외형 오버라이드 메시 위 소켓에 무기가 따라가도록 보장하기 위함.
-	USkeletalMeshComponent* CharacterMesh = GetMesh();
-	if (!CharacterMesh)
-	{
-		return;
-	}
-
-	for (USceneComponent* Child : CharacterMesh->GetAttachChildren())
-	{
-		USkeletalMeshComponent* SkelChild = Cast<USkeletalMeshComponent>(Child);
-		if (SkelChild && SkelChild->ComponentHasTag(TEXT("VisualOverride")))
-		{
-			WeaponActor->AttachToComponent(SkelChild, FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponActor->GetAttachSocketName());
-			break;
-		}
-	}
 }
 
 void AWxCharacterBase::EndPlay(const EEndPlayReason::Type EndPlayReason)

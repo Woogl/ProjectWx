@@ -136,19 +136,6 @@ void AWxWeaponBase::AttachToCharacter(ACharacter* OwnerCharacter, FName SocketNa
 		return;
 	}
 
-	// BP에서 추가한 외형 SkeletalMeshComponent("VisualOverride" 태그)가 있으면 그 컴포넌트에 부착한다.
-	for (USceneComponent* Child : TargetMesh->GetAttachChildren())
-	{
-		if (USkeletalMeshComponent* SkelChild = Cast<USkeletalMeshComponent>(Child))
-		{
-			if (SkelChild->ComponentHasTag(TEXT("VisualOverride")))
-			{
-				TargetMesh = SkelChild;
-				break;
-			}
-		}
-	}
-
 	AttachToComponent(TargetMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
 	SetOwner(OwnerCharacter);
 }

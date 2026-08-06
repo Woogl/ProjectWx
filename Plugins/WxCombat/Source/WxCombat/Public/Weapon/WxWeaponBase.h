@@ -59,8 +59,7 @@ public:
 	void SetVisualMesh(USkeletalMesh* MeshAsset);
 
 	/**
-	 * 무기를 대상 캐릭터의 소켓에 부착한다.
-	 * 부착 대상은 캐릭터의 GetMesh() 또는 BP에서 추가한 외형용 자식 SkeletalMeshComponent("VisualOverride" 태그)가 있으면 그쪽이 우선된다.
+	 * 무기를 대상 캐릭터의 GetMesh() 소켓에 부착한다.
 	 * 무기의 Owner는 캐릭터로 설정된다.
 	 */
 	void AttachToCharacter(ACharacter* OwnerCharacter, FName SocketName);
