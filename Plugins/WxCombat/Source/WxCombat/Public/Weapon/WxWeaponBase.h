@@ -93,7 +93,10 @@ protected:
 	virtual void HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 private:
-	/** 히트 검증/팀 체크/GE 적용/HitStop을 수행. Overlap 이벤트와 Tick Sweep이 공통으로 호출 */
+	/**
+	 * 소유자와 한 스윙 내 중복 히트만 걸러 GE 적용과 HitStop을 수행. Overlap 이벤트와 Tick Sweep이 공통으로 호출.
+	 * 팀 판정은 하지 않는다 — 맞은 대상은 아군·중립 여부와 무관하게 피해를 받는다.
+	 */
 	void ProcessHit(AActor* OtherActor, const FHitResult& HitResult);
 
 	/** 현재 활성 공격 구간 수. 0이면 콜리전 비활성 상태 */

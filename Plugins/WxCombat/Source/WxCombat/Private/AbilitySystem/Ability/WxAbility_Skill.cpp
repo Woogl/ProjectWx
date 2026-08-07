@@ -7,8 +7,7 @@
 
 UWxAbility_Skill::UWxAbility_Skill()
 {
-	// BP에서 WxGameplayTags::Ability_Skill_1~4로 설정한다.
-	//AssetTags.AddTag(WxGameplayTags::Ability_Skill_@);
+	// 슬롯마다 다른 애셋 태그(Ability.Skill.1~4)와 입력 액션(ActivationInputAction = IA_Skill_1~4)은 BP 서브클래스가 지정한다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 
 	// 스킬은 재생 중 다른 GA로 캔슬되지 않는다. (PC규격서 §5.6)
@@ -17,8 +16,6 @@ UWxAbility_Skill::UWxAbility_Skill()
 
 	// 콤보는 재발동으로 다음 단계로 넘어간다. 콤보 윈도우 판정은 CanActivateAbility가 담당한다.
 	bRetriggerInstancedAbility = true;
-
-	// 입력 태그(Input.Skill.1~4)는 AbilitySet 항목의 InputTag로 지정한다.
 }
 
 bool UWxAbility_Skill::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
