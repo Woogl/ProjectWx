@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/Ability/WxAbility_Sprint.h"
 #include "AbilitySystemComponent.h"
+#include "GameFramework/Character.h"
 #include "WxGameplayTags.h"
 #include "AbilitySystem/Effect/WxEffect_MoveSpeedScale.h"
 
@@ -9,6 +10,7 @@ UWxAbility_Sprint::UWxAbility_Sprint()
 {
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Sprint);
+	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
 	SetAssetTags(AssetTags);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 }
@@ -35,6 +37,12 @@ void UWxAbility_Sprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
+	}
+
+	// 스프린트는 선 자세로 달린다. 몽타주를 쓰지 않아 이동 컴포넌트의 앉기 취소에 걸리지 않으므로 여기서 직접 일으켜 세운다.
+	if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
+	{
+		Character->UnCrouch();
 	}
 
 	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_MoveSpeedScale::StaticClass(), GetAbilityLevel());

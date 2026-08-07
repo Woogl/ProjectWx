@@ -2,7 +2,6 @@
 
 #include "Character/WxCharacterMovementComponent.h"
 #include "Character/WxCharacterBase.h"
-#include "AbilitySystem/Ability/WxAbility_LockOn.h"
 #include "AbilitySystemComponent.h"
 #include "GameFramework/Character.h"
 
@@ -23,17 +22,12 @@ void UWxCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float Del
 {
 	const AWxCharacterBase* WxCharacter = bWantsToCrouch ? Cast<AWxCharacterBase>(CharacterOwner) : nullptr;
 	const UAbilitySystemComponent* ASC = WxCharacter ? WxCharacter->GetAbilitySystemComponent() : nullptr;
-	if (ASC)
+
+	// 어빌리티 몽타주가 재생 중이면 앉지 않는다. 차단이 풀리는 후딜 구간에도 몽타주는 이어지므로 재생 도중 자세가 바뀌지 않는다.
+	// 락온·스프린트·상호작용처럼 몽타주를 쓰지 않는 어빌리티는 앉은 자세와 공존한다.
+	if (ASC && ASC->GetAnimatingAbility())
 	{
-		for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
-		{
-			// 락온은 토글형 조준이라 앉은 자세와 공존한다.
-			if (Spec.IsActive() && !Spec.Ability->IsA<UWxAbility_LockOn>())
-			{
-				bWantsToCrouch = false;
-				break;
-			}
-		}
+		bWantsToCrouch = false;
 	}
 
 	Super::UpdateCharacterStateBeforeMovement(DeltaSeconds);
