@@ -26,7 +26,7 @@ struct FWxDamageInfo;
  *
  * 대미지는 변형에 따라 갈리지 않는다 — 두 변형 모두 노티파이 DamageDataRow의 계수 대미지를 쓰고, 수치도 타이밍도 노티파이가 소유한다.
  * 변형별로 다른 것은 공격 몽타주·짝 피격 태그·종료 시 DP 리셋 여부 셋뿐이다.
- * 앞잡의 그로기 해제(DP 0)는 피해자의 앞잡 짝 피격 몽타주가 끝날 때 WxAbility_HitReact 가 처리한다.
+ * 앞잡의 그로기 해제(DP 0)는 공격자 몽타주가 정상 종료될 때 이 어빌리티가 대상에 UWxEffect_ResetDP 를 적용해 처리한다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Finisher : public UWxAbilityBase

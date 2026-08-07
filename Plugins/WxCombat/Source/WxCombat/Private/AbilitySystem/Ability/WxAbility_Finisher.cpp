@@ -210,6 +210,5 @@ void UWxAbility_Finisher::ApplyFinisherDamage(const FWxDamageInfo& DamageInfo) c
 	HitResult.Location = Target->GetActorLocation();
 
 	// 앞잡·뒤잡 모두 노티파이가 넘긴 같은 계수 피해를 적용한다 — 대미지는 변형에 따라 갈리지 않는다.
-	// 앞잡 그로기 해제(DP 0)는 피해자의 앞잡 짝 피격 몽타주 종료 시 WxAbility_HitReact 가 처리한다.
 	UWxCombatLibrary::ApplyDamage(SourceASC, TargetASC, DamageInfo, HitResult, 0.f);
 }
