@@ -94,7 +94,7 @@ flowchart TD
 **1. 활성화 게이트 (`CanActivateAbility`, 엔진)** — Spec/태그/`CanActivate` 조건을 본다. Base는 다음 태그 컨테이너로 거른다(각 구체 어빌리티 생성자에서 설정):
 - `ActivationBlockedTags` — 이 태그가 소유돼 있으면 활성화 거부. 거의 모든 어빌리티가 `State.Dead`를 넣는다.
 - `ActivationOwnedTags` — 활성 동안 부여되는 상태 태그(예: HitReact의 `State.HitReact`).
-- `BlockAbilitiesWithTag` / `CancelAbilitiesWithTag` — 활성 동안 다른 어빌리티를 하드 차단/캔슬. **둘 다 `Ability.Exclusive` 하나만 지목한다.** 이 태그는 「액션 슬롯을 점유한다」는 표식이고, 붙은 어빌리티끼리만 서로 막고 끊으므로 어빌리티가 서로를 이름으로 지목하지 않는다. 공격·스킬·회피·가드·궁극·아이템·스프린트·상호작용·AI 패턴이 표식을 갖고, 반응·상태형(피격·그로기·사망·처형·락온)은 갖지 않아 무엇에도 막히거나 끊기지 않는다. 루트 `Ability`는 식별 태그의 부모일 뿐 차단·캔슬에 쓰이지 않는다. 캐릭터별 차이는 규칙의 예외가 아니라 BP 데이터로 표현한다 — `GA_HitReact_Custer`는 두 컨테이너가 비어 있어 피격에도 패턴이 이어진다.
+- `BlockAbilitiesWithTag` / `CancelAbilitiesWithTag` — 활성 동안 다른 어빌리티를 하드 차단/캔슬. **기본은 `Ability.Exclusive` 하나만 지목한다.** 이 태그는 「액션 슬롯을 점유한다」는 표식이고, 붙은 어빌리티끼리만 서로 막고 끊으므로 어빌리티가 서로를 이름으로 지목하지 않는다. 공격·스킬·회피·가드·궁극·아이템·스프린트·상호작용·AI 패턴이 표식을 갖고, 반응·상태형(피격·그로기·사망·처형·락온)은 갖지 않아 무엇에도 막히거나 끊기지 않는다. 루트 `Ability`는 식별 태그의 부모일 뿐 차단·캔슬에 쓰이지 않는다. **예외는 피격의 캔슬 하나뿐이다** — 마커로 끊으면 마커를 가진 적 패턴이 평타 피격에 중단되므로, 피격만 `Ability.Attack`\`Ability.Skill`을 좁게 지목해 플레이어 액션만 끊는다(차단은 마커 그대로). 캐릭터별 차이는 규칙의 예외가 아니라 BP 데이터로 표현한다 — `GA_HitReact_Custer`는 두 컨테이너가 비어 있어 피격에도 패턴이 이어진다.
 
 **2. 커밋 (`CommitAbility` → CheckCost/CheckCooldown → ApplyCost/ApplyCooldown)** — Base가 4개 함수를 모두 오버라이드한다. 핵심은 **공용 GE를 CDO 단위로 구분**하는 설계:
 - 코스트: `AbilityDataRow`의 `MPCost`/`UPCost`로 공용 `UWxEffect_Cost`에 모디파이어를 채워 반환. `CheckCost`는 엔진 순정 사용. `ApplyCost`는 엔진이 GE의 `GetClass()` CDO로 스펙을 다시 만드는 탓에 인스턴스가 무시되므로, 인스턴스 Def로 직접 스펙을 만드는 얇은 오버라이드.
@@ -117,7 +117,7 @@ flowchart TD
 | --- | --- | --- |
 | `WxAbility_Attack` | 입력(AssetTag `Ability.Attack`) | `ANS_ComboWindow` 입력 → 경로 누적 → EndAbility 후 **동일 Spec 재발동**(`Reactivate`). 단계마다 재커밋. |
 | `WxAbility_Guard` | 입력(AssetTag `Ability.Guard`) | `ActiveMontage`로 페이즈 전환(가드/피격/브레이크/카운터). `InputReleased`/`InputPressed` 오버라이드, PerfectGuard 이벤트 구독. |
-| `WxAbility_HitReact` | GameplayEvent `Event.HitReact.*` | 종류별 트리거 개별 등록, `bRetriggerInstancedAbility`로 재진입. 새 액션(`Ability.Exclusive`)을 차단하기만 하고 캔슬은 하지 않는다(적 패턴이 평타에 끊기면 안 되므로). 진행 중인 플레이어 액션은 몽타주 슬롯이 덮으면서 끝난다. |
+| `WxAbility_HitReact` | GameplayEvent `Event.HitReact.*` | 종류별 트리거 개별 등록, `bRetriggerInstancedAbility`로 재진입. 새 액션(`Ability.Exclusive`)은 차단하고, 진행 중인 것 중에서는 공격·스킬만 캔슬한다(적 패턴은 지목 밖이라 유지). 차단만으로는 부족한데, 공격·스킬의 콤보 재발동 분기가 `Super`를 타지 않아 차단 태그 검사를 건너뛰기 때문이다. |
 | `WxAbility_Death` | OwnedTag `State.Dead` | 몽타주 유효 시 사망 포즈, 무효 시 지연 후 래그돌 — 서버가 `State.Ragdoll` 루스 태그 발행(TagOnly 복제), 전 머신의 캐릭터가 감지해 자체 `EnterRagdoll` 수행. 액션 전체 차단. |
 | `WxAbility_Pattern` | AI BT(AssetTag) | 단일 몽타주 재생→종료. 입력/UI 미사용. 쿨다운/충전은 Base 프로퍼티로만. |
 

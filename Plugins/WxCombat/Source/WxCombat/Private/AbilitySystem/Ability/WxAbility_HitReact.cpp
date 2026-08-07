@@ -15,9 +15,14 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	AssetTags.AddTag(WxGameplayTags::Ability_HitReact);
 	SetAssetTags(AssetTags);
 
-	// 피격은 반응이 끝날 때까지 새 액션을 막기만 한다. 진행 중인 것은 태그로 끊지 않는다 — 적 패턴이 평타 피격에 중단되면 안 되기 때문이다.
-	// 플레이어 공격·스킬은 피격 몽타주가 같은 슬롯을 덮으면서 자연히 종료된다(Attack이 후딜 캔슬에서 쓰는 것과 같은 경로).
+	// 피격은 반응이 끝날 때까지 새 액션을 막는다.
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
+
+	// 진행 중인 것은 공격·스킬만 끊는다. 마커로 끊으면 마커를 가진 적 패턴까지 끊겨 평타 피격에 패턴이 중단되기 때문이다.
+	// 차단만으로는 부족하다 — 공격·스킬의 콤보 재발동 분기는 활성 Spec을 보고 자체 판정만 하므로 ASC의 차단 태그 검사를 건너뛴다.
+	// Ability.Skill 은 부모 태그라 슬롯별 Ability.Skill.1~4 까지 함께 잡는다.
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Attack);
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Skill);
 
 	ActivationOwnedTags.AddTag(WxGameplayTags::State_HitReact);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
