@@ -4,18 +4,15 @@
 #include "AbilitySystem/Effect/WxEffect_Cooldown.h"
 #include "AbilitySystem/Effect/WxEffect_Cost.h"
 #include "AbilitySystem/Ability/WxAbilityTableRow.h"
-#include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
+#include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
-#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "GameplayEffect.h"
 #include "InputAction.h"
-#include "WxGameplayTags.h"
 #include "Weapon/WxProjectileBase.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Pawn.h"
 #include "Engine/World.h"
-#include "TimerManager.h"
 
 UWxAbilityBase::UWxAbilityBase()
 {
@@ -48,28 +45,16 @@ TSoftObjectPtr<UObject> UWxAbilityBase::GetIcon() const
 
 float UWxAbilityBase::GetMontagePlayRate() const
 {
-	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (!ASC)
-	{
-		return 1.f;
-	}
-
-	const UWxCombatAttributeSet* AttrSet = ASC->GetSet<UWxCombatAttributeSet>();
-	if (!AttrSet)
-	{
-		return 1.f;
-	}
-
-	return FMath::Max(AttrSet->GetASPD(), 0.01f);
+	const UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
+	return ASC ? ASC->GetMontagePlayRate() : 1.f;
 }
 
 void UWxAbilityBase::StartRecovery()
 {
-	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
-	{
-		// 자기 자신이 건 차단만 정확히 해제한다(전역 스냅샷 아님). ref-count는 0에서 클램프되므로 EndAbility의 중복 해제도 무해.
-		ASC->UnBlockAbilitiesWithTags(BlockAbilitiesWithTag);
-	}
+	// 차단 태그를 직접 해제하면 안 된다. 엔진은 어빌리티가 차단을 쥐고 있는지 따로 기억했다가 EndAbility에서 한 번 더 해제하므로,
+	// 그 여분의 해제가 후딜에 캔슬로 진입한 어빌리티의 차단을 대신 풀어 버린다(공유 카운터라 주인을 가리지 않는다).
+	// 이 API는 해제와 소유 표시 정리를 함께 하므로 해제가 한 번만 일어난다.
+	SetShouldBlockOtherAbilities(false);
 }
 
 void UWxAbilityBase::SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileClass, FName SpawnSocketName) const
@@ -252,33 +237,6 @@ void UWxAbilityBase::GetCooldownTimeRemainingAndDuration(FGameplayAbilitySpecHan
 	}
 }
 
-void UWxAbilityBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
-{
-	// 어빌리티가 끝나면 히트스톱 복원 타이머를 정리한다. 취소·블렌드아웃된 몽타주에 뒤늦은 복원이 닿지 않게 한다.
-	if (AActor* Avatar = GetAvatarActorFromActorInfo())
-	{
-		Avatar->GetWorldTimerManager().ClearTimer(HitStopResumeTimer);
-	}
-	HitStopListenerTask = nullptr;
-
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-}
-
-void UWxAbilityBase::StartHitStopListener()
-{
-	// 콤보 재발동 등으로 이전 활성화의 리스너가 남아 있으면 교체한다.
-	if (HitStopListenerTask)
-	{
-		HitStopListenerTask->EndTask();
-		HitStopListenerTask = nullptr;
-	}
-
-	// OnlyTriggerOnce=false: 한 몽타주 안 여러 적중마다 히트스톱을 받는다.
-	HitStopListenerTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, WxGameplayTags::Event_HitStop, nullptr, false);
-	HitStopListenerTask->EventReceived.AddDynamic(this, &UWxAbilityBase::HandleHitStopEvent);
-	HitStopListenerTask->ReadyForActivation();
-}
-
 const FWxAbilityTableRow* UWxAbilityBase::GetTableRow() const
 {
 	if (AbilityDataRow.IsNull())
@@ -324,42 +282,4 @@ int32 UWxAbilityBase::QueryActiveCooldowns(const UAbilitySystemComponent& ASC, f
 	}
 
 	return ActiveCount;
-}
-
-void UWxAbilityBase::HandleHitStopEvent(FGameplayEventData Payload)
-{
-	const float Duration = Payload.EventMagnitude;
-	if (Duration <= 0.f)
-	{
-		return;
-	}
-
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	AActor* Avatar = GetAvatarActorFromActorInfo();
-	if (!ASC || !Avatar)
-	{
-		return;
-	}
-
-	// 이 어빌리티가 더 이상 재생 중인 몽타주의 주인이 아니면(예: 패리 반응이 몽타주를 가로챈 경우) 히트스톱을 적용하지 않는다.
-	// CurrentMontageSetPlayRate는 ASC의 현재 몽타주를 건드리므로, 남의 몽타주를 0.001로 얼려 영구 정지시키는 것을 막는다.
-	if (ASC->GetAnimatingAbility() != this)
-	{
-		return;
-	}
-
-	// 재생 중인 자기 몽타주를 거의 정지시킨다. 완전한 0이 아닌 미세 값으로 두어 몽타주 진행 판정 이슈를 피한다.
-	ASC->CurrentMontageSetPlayRate(0.001f);
-
-	// 연속 적중이면 타이머를 재설정해 조기 복원을 막는다.
-	Avatar->GetWorldTimerManager().SetTimer(HitStopResumeTimer, this, &UWxAbilityBase::HandleHitStopElapsed, Duration, false);
-}
-
-void UWxAbilityBase::HandleHitStopElapsed()
-{
-	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
-	{
-		// 하드코딩 1.0이 아니라 ASPD가 반영된 재생률로 복원한다.
-		ASC->CurrentMontageSetPlayRate(GetMontagePlayRate());
-	}
 }

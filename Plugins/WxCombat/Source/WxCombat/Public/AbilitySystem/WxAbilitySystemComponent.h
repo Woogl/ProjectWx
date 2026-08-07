@@ -49,12 +49,29 @@ public:
 	/** 가장 최근에 눌린 입력 액션 반환 */
 	const UInputAction* GetLastPressedInputAction() const;
 
+	/**
+	 * 이 액터의 ASPD가 반영된 몽타주 재생 속도. AttributeSet 미가용 시 1.0
+	 * 어빌리티의 몽타주 재생과 히트스톱 복원이 공유한다.
+	 */
+	float GetMontagePlayRate() const;
+
+	/** Event.HitStop이면 히트스톱을 적용하고, 라우팅은 순정 경로에 그대로 위임한다 */
+	virtual int32 HandleGameplayEvent(FGameplayTag EventTag, const FGameplayEventData* Payload) override;
+
 private:
 	/** LastPressedInputAction을 설정하고, 클라이언트이면 서버에 동기화 */
 	void SetLastPressedInputAction(const UInputAction* Action);
 
 	UFUNCTION(Server, Reliable)
 	void ServerSetLastPressedInputAction(const UInputAction* Action);
+
+	/** 히트스톱(역경직): 대미지를 준 어빌리티의 재생 중인 몽타주를 잠깐 얼리고 복원을 예약한다 */
+	void ApplyHitStop(const FGameplayEventData& Payload);
+
+	/** 히트스톱 복원. 얼렸던 그 몽타주의 재생률을 GetMontagePlayRate()로 되돌린다 */
+	void HandleHitStopElapsed(TWeakObjectPtr<UAnimMontage> FrozenMontage);
+
+	FTimerHandle HitStopResumeTimer;
 
 protected:
 	/** Ability, Effect 초기 데이터 */

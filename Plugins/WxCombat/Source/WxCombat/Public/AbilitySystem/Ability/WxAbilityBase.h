@@ -11,7 +11,6 @@
 class UAbilitySystemComponent;
 class UGameplayEffect;
 class UWxEffect_Cooldown;
-class UAbilityTask_WaitGameplayEvent;
 class AWxProjectileBase;
 class UInputAction;
 class UTexture2D;
@@ -91,8 +90,8 @@ public:
 	 * 이 어빌리티가 건 하드 차단(BlockAbilitiesWithTag)을 해제해, 후딜 동안 평소 막히던 어빌리티로 캔슬 진입할 수 있게 한다.
 	 * 진입한 어빌리티는 자신의 CancelAbilitiesWithTag(또는 동일 슬롯 몽타주 인터럽트)로 이 어빌리티를 끊는다.
 	 *
-	 * 복원하지 않는다 — 후딜은 몽타주의 마지막 구간이므로 한 번 진입하면 어빌리티 종료까지 캔슬 가능 상태로 두고, 차단은 어빌리티 종료 시 엔진이 자연히 되돌린다.
-	 * 비용/쿨다운/ActivationBlockedTags는 그대로 검사되므로 못 쓰는 입력은 후딜을 끊지 못한다. BlockAbilitiesWithTag가 비어 있으면(예: Attack) 무효과.
+	 * 복원하지 않는다 — 후딜은 몽타주의 마지막 구간이므로 한 번 진입하면 어빌리티 종료까지 캔슬 가능 상태로 둔다.
+	 * 비용/쿨다운/ActivationBlockedTags는 그대로 검사되므로 못 쓰는 입력은 후딜을 끊지 못한다. 차단을 걸지 않는 어빌리티(스프린트·상호작용 등)에서는 무효과.
 	 */
 	void StartRecovery();
 
@@ -127,16 +126,6 @@ public:
 	 */
 	int32 QueryActiveCooldowns(const UAbilitySystemComponent& ASC, float& OutLongestRemaining, float& OutLongestDuration) const;
 
-protected:
-	/** 히트스톱 복원 타이머를 정리한다. 몽타주로 대미지를 주는 파생 어빌리티는 Super 체인으로 이 정리를 받는다. */
-	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-	
-	/**
-	 * 히트스톱(역경직) 이벤트 리스너를 시작한다. 몽타주로 대미지를 주는 어빌리티가 ActivateAbility에서 opt-in 호출한다.
-	 * Event.HitStop 수신 시 재생 중인 자기 몽타주 재생률을 잠깐 0 근처로 낮췄다가 GetMontagePlayRate()로 복원한다.
-	 */
-	void StartHitStopListener();
-
 private:
 	/** AbilityDataRow가 가리키는 수치 Row를 해석해 반환한다. 미설정/무효면 nullptr. */
 	const FWxAbilityTableRow* GetTableRow() const;
@@ -147,16 +136,4 @@ private:
 	 */
 	UPROPERTY(Transient)
 	mutable TObjectPtr<UWxEffect_Cooldown> CooldownEffect;
-
-	/** Event.HitStop 수신 시 재생 중인 몽타주를 정지시키고 복원 타이머를 (재)예약한다 */
-	UFUNCTION()
-	void HandleHitStopEvent(FGameplayEventData Payload);
-
-	/** 히트스톱 복원. 몽타주 재생률을 GetMontagePlayRate()(ASPD 반영)로 되돌린다 */
-	void HandleHitStopElapsed();
-
-	UPROPERTY()
-	TObjectPtr<UAbilityTask_WaitGameplayEvent> HitStopListenerTask;
-
-	FTimerHandle HitStopResumeTimer;
 };

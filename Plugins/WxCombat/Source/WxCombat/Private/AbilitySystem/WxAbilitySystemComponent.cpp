@@ -2,6 +2,12 @@
 
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
+#include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
+#include "WxGameplayTags.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
+#include "Engine/World.h"
+#include "TimerManager.h"
 
 UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 {
@@ -130,6 +136,27 @@ const UInputAction* UWxAbilitySystemComponent::GetLastPressedInputAction() const
 	return LastPressedInputAction;
 }
 
+float UWxAbilitySystemComponent::GetMontagePlayRate() const
+{
+	const UWxCombatAttributeSet* AttrSet = GetSet<UWxCombatAttributeSet>();
+	if (!AttrSet)
+	{
+		return 1.f;
+	}
+
+	return FMath::Max(AttrSet->GetASPD(), 0.01f);
+}
+
+int32 UWxAbilitySystemComponent::HandleGameplayEvent(FGameplayTag EventTag, const FGameplayEventData* Payload)
+{
+	if (EventTag == WxGameplayTags::Event_HitStop && Payload)
+	{
+		ApplyHitStop(*Payload);
+	}
+
+	return Super::HandleGameplayEvent(EventTag, Payload);
+}
+
 void UWxAbilitySystemComponent::SetLastPressedInputAction(const UInputAction* Action)
 {
 	LastPressedInputAction = Action;
@@ -143,4 +170,44 @@ void UWxAbilitySystemComponent::SetLastPressedInputAction(const UInputAction* Ac
 void UWxAbilitySystemComponent::ServerSetLastPressedInputAction_Implementation(const UInputAction* Action)
 {
 	LastPressedInputAction = Action;
+}
+
+void UWxAbilitySystemComponent::ApplyHitStop(const FGameplayEventData& Payload)
+{
+	// 0 이하 지속시간은 무시한다. SetTimer가 0 이하를 예약 취소로 취급해 복원 없는 정지가 되는 것을 막는다.
+	const float Duration = Payload.EventMagnitude;
+	if (Duration <= 0.f)
+	{
+		return;
+	}
+
+	// 대미지를 준 그 어빌리티가 여전히 몽타주 주인일 때만 얼린다. 같은 적중 처리에서 먼저 발동한 반응(패리 등)이 몽타주를 가로챘으면 건너뛴다.
+	if (!GetAnimatingAbility() || GetAnimatingAbility() != Payload.ContextHandle.GetAbilityInstance_NotReplicated())
+	{
+		return;
+	}
+
+	UAnimMontage* Montage = GetCurrentMontage();
+	if (!Montage)
+	{
+		return;
+	}
+
+	// 재생 중인 몽타주를 거의 정지시킨다. 완전한 0이 아닌 미세 값으로 두어 몽타주 진행 판정 이슈를 피한다.
+	CurrentMontageSetPlayRate(0.001f);
+
+	// 복원 예약이 지금 얼린 그 몽타주를 들고 간다. 연속 적중이면 재설정되어 조기 복원을 막는다.
+	GetWorld()->GetTimerManager().SetTimer(HitStopResumeTimer,
+		FTimerDelegate::CreateUObject(this, &UWxAbilitySystemComponent::HandleHitStopElapsed, TWeakObjectPtr<UAnimMontage>(Montage)),
+		Duration, false);
+}
+
+void UWxAbilitySystemComponent::HandleHitStopElapsed(TWeakObjectPtr<UAnimMontage> FrozenMontage)
+{
+	// 복원은 현재 몽타주가 아니라 얼렸던 그 몽타주에 간다. 피격 등이 현재를 가로챘어도 정확히 닿고, 인스턴스가 사라졌으면 무동작이다.
+	UAnimInstance* AnimInstance = AbilityActorInfo.IsValid() ? AbilityActorInfo->GetAnimInstance() : nullptr;
+	if (AnimInstance && FrozenMontage.IsValid())
+	{
+		AnimInstance->Montage_SetPlayRate(FrozenMontage.Get(), GetMontagePlayRate());
+	}
 }

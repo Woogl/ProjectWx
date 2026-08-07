@@ -162,7 +162,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	// --- 6. 히트스톱 ---
 	// 무적 회피(1단계 조기 리턴)를 제외한 모든 적중(퍼펙트 가드 포함)에서 공격자에게 Event.HitStop을 보낸다.
-	// 재생 중인 공격 어빌리티가 이 이벤트를 받아 자기 몽타주를 SetByCaller.HitStop 시간만큼 잠깐 멈춘다.
+	// 공격자의 ASC가 이 이벤트를 받아, 컨텍스트의 어빌리티가 재생 중인 몽타주를 SetByCaller.HitStop 시간만큼 잠깐 멈춘다.
 	if (AActor* SourceActor = SourceASC ? SourceASC->GetOwnerActor() : nullptr)
 	{
 		const float HitStopDuration = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_HitStop, false, 0.f);
@@ -172,6 +172,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 			HitStopEvent.Instigator = SourceActor;
 			HitStopEvent.Target = TargetASC->GetOwnerActor();
 			HitStopEvent.EventMagnitude = HitStopDuration;
+			HitStopEvent.ContextHandle = OwningSpec.GetEffectContext();
 			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(SourceActor, WxGameplayTags::Event_HitStop, HitStopEvent);
 		}
 	}
