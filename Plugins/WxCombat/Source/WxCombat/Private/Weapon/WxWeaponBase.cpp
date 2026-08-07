@@ -238,7 +238,8 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 void AWxWeaponBase::ProcessHit(AActor* OtherActor, const FHitResult& HitResult)
 {
 	// 클라이언트와 서버 모두 동일한 히트 판정과 GE 적용을 수행한다.
-	// 클라이언트의 GE 적용은 어빌리티의 ScopedPredictionKey로 예측 처리되며, 서버의 권위 적용과 불일치하면 GAS가 자동으로 롤백한다.
+	// 클라이언트의 GE 적용은 몽타주를 재생 중인 어빌리티의 활성화 예측 키로 예측되며(ApplyDamage가 해석), 서버 확정본이 도착하면 GAS가 예측본을 정리한다.
+	// 애님 중인 어빌리티가 없는 머신(복제 몽타주만 도는 시뮬레이티드 프록시)은 키가 무효라 엔진의 권위 검사에서 걸러진다.
 
 	AActor* WeaponOwner = GetOwner();
 	if (!OtherActor || OtherActor == WeaponOwner || HitActorsThisSwing.Contains(OtherActor))

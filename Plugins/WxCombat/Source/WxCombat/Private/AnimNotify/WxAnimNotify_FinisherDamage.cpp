@@ -22,7 +22,8 @@ void UWxAnimNotify_FinisherDamage::Notify(USkeletalMeshComponent* MeshComp, UAni
 		return;
 	}
 
-	// 몽타주를 재생 중인 처형 어빌리티(서버 인스턴스)가 확정 대상에 적용한다. 클라에선 캐스팅 실패로 무동작.
+	// 몽타주를 재생 중인 처형 어빌리티가 확정 대상에 적용한다.
+	// 클라에도 인스턴스가 있어 이 캐스팅은 성공하지만, 처형은 ServerInitiated 라 예측 키가 서버 발행 키다 — 엔진 권위 검사에 걸러져 GE 적용은 서버에서만 성립한다.
 	// 앞잡·뒤잡 모두 이 행의 계수 피해를 쓰므로 어빌리티 쪽에 변형 분기가 없다.
 	if (UWxAbility_Finisher* Finisher = Cast<UWxAbility_Finisher>(ASC->GetAnimatingAbility()))
 	{
