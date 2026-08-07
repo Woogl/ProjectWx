@@ -32,6 +32,9 @@ public:
 
 	UBehaviorTree* GetBehaviorTree() const;
 
+	/** 사망 시 자신을 스폰한 Spawner 에 처치 기록을 남긴다. */
+	virtual void HandleDeath() override;
+
 	//~ Begin IWxSpawnable
 	/**
 	 * 스폰 직후 자신을 스폰한 Spawner 를 기억한다.
@@ -42,9 +45,6 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-
-	/** 사망 시 자신을 스폰한 Spawner 에 처치 기록을 남긴다. */
-	virtual void HandleDeath() override;
 
 	/**
 	 * 주어진 상호작용 주체(Interactor) 기준으로 발동 가능한 처형 변형의 송출 이벤트 태그를 반환한다.
