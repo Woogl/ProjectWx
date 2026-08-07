@@ -251,6 +251,9 @@ void UWxUIManagerSubsystem::HandlePlayerControllerSet(APlayerController* PC)
 		PrimaryGameLayout = nullptr;
 	}
 
+	// layout 과 함께 사라질 HUD 다. 약참조가 GC 전까지 유효한 채로 남으면 새 layout 에 HUD 를 push 하지 않아 HUD 가 통째로 빠진다.
+	GameHUD.Reset();
+
 	if (!PC)
 	{
 		return;
@@ -275,7 +278,13 @@ void UWxUIManagerSubsystem::HandlePossessedPawnChanged(APawn* OldPawn, APawn* Ne
 		return;
 	}
 
-	PushSoftContentToLayer(WxGameplayTags::UI_Layer_Game, GetDefault<UWxUIDeveloperSettings>()->GameHUDClass);
+	// 폰만 갈아타는 흐름(탈것·연출 폰)에서는 이미 떠 있는 HUD 를 그대로 쓴다. 다시 push 하면 스택에 인스턴스가 쌓인다.
+	if (GameHUD.IsValid())
+	{
+		return;
+	}
+
+	GameHUD = PushSoftContentToLayer(WxGameplayTags::UI_Layer_Game, GetDefault<UWxUIDeveloperSettings>()->GameHUDClass);
 }
 
 void UWxUIManagerSubsystem::WatchPawnTags(APawn* Pawn)

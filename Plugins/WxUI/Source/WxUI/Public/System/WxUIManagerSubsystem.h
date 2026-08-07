@@ -109,4 +109,7 @@ private:
 
 	/** 대화 중 띄워 둔 대화 창. 세션이 끝날 때 이 창을 닫기 위해 기억한다. */
 	TWeakObjectPtr<UCommonActivatableWidget> DialogueScreen;
+
+	/** Game 레이어에 띄워 둔 HUD. 폰이 갈아탈 때마다 다시 push 하지 않고 이 인스턴스를 그대로 쓰기 위해 기억한다. */
+	TWeakObjectPtr<UCommonActivatableWidget> GameHUD;
 };
