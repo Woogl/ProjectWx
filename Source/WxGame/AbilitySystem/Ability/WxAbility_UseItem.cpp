@@ -31,7 +31,7 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (!UseMontage || !ConsumableDef || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	if (!UseMontage || !ConsumableDef)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -42,6 +42,13 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 	APawn* Avatar = Cast<APawn>(ActorInfo->AvatarActor.Get());
 	UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(Avatar);
 	if (!Inventory || !Inventory->CanUseItemByDef(ConsumableDef))
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	// 커밋은 모든 거부 조건을 통과한 뒤에 한다. GAS 는 취소로 커밋된 쿨다운·코스트를 되돌리지 않는다.
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
