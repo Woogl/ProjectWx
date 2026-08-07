@@ -9,6 +9,8 @@
 #include "Camera/CameraComponent.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Engine/AssetManager.h"
+#include "Engine/StreamableManager.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
@@ -52,12 +54,20 @@ void UWxDialogueSessionComponent::StartDialogueRow(const FDataTableRowHandle& St
 
 void UWxDialogueSessionComponent::Advance()
 {
-	if (!CurrentRow)
+	if (!HasActiveDialogue())
 	{
 		return;
 	}
 
-	const FName NextRowName = CurrentRow->NextRow;
+	const FWxDialogueTableRow* Row = FindCurrentRow();
+	if (!Row)
+	{
+		// 세션 도중 테이블이 갈린 경우다(에디터 재임포트). 이어갈 곳이 없으니 접는다 — 남겨 두면 진행도 종료도 없는 세션이 굳는다.
+		EndDialogue();
+		return;
+	}
+
+	const FName NextRowName = Row->NextRow;
 	if (NextRowName.IsNone())
 	{
 		EndDialogue();
@@ -79,7 +89,7 @@ void UWxDialogueSessionComponent::Advance()
 
 bool UWxDialogueSessionComponent::HasActiveDialogue() const
 {
-	return CurrentRow != nullptr;
+	return !CurrentRowName.IsNone();
 }
 
 AActor* UWxDialogueSessionComponent::GetCurrentDialogueTarget() const
@@ -99,12 +109,14 @@ FDataTableRowHandle UWxDialogueSessionComponent::GetCurrentRowHandle() const
 
 FText UWxDialogueSessionComponent::GetCurrentSpeaker() const
 {
-	return CurrentRow ? CurrentRow->Speaker : FText::GetEmpty();
+	const FWxDialogueTableRow* Row = FindCurrentRow();
+	return Row ? Row->Speaker : FText::GetEmpty();
 }
 
 FText UWxDialogueSessionComponent::GetCurrentLine() const
 {
-	return CurrentRow ? CurrentRow->Line : FText::GetEmpty();
+	const FWxDialogueTableRow* Row = FindCurrentRow();
+	return Row ? Row->Line : FText::GetEmpty();
 }
 
 void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FDataTableRowHandle& StartRow, AActor* Target)
@@ -119,9 +131,8 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FData
 	CurrentStartRow = StartRow;
 	if (!EnterRow(StartRow.RowName))
 	{
-		// CurrentRow 까지 되돌려야 한다 — 남겨 두면 HasActiveDialogue() 는 참인데 테이블은 비어 있는 상태가 굳는다.
+		// 앞서 대입한 테이블도 되돌린다 — 행 없이 테이블만 남으면 GetCurrentRowHandle() 이 반쪽짜리 핸들을 답한다.
 		CurrentStartRow = FDataTableRowHandle();
-		CurrentRow = nullptr;
 		CurrentRowName = NAME_None;
 		return;
 	}
@@ -149,18 +160,36 @@ bool UWxDialogueSessionComponent::EnterRow(FName RowName)
 {
 	const UDataTable* Table = CurrentStartRow.DataTable;
 	const FWxDialogueTableRow* Row = Table ? Table->FindRow<FWxDialogueTableRow>(RowName, TEXT("WxDialogueSession")) : nullptr;
-	if (!Row || Row->Line.IsEmpty())
+	if (!Row)
 	{
-		// FindRow 의 ContextString 경고는 행이 아예 없을 때만 뜬다 — 대사가 빈 행은 여기서만 드러난다.
-		UE_LOG(LogWxDialogue, Warning, TEXT("EnterRow: 행을 해석하지 못했거나 대사가 비어 있다(테이블 %s / 행 %s)."),
+		UE_LOG(LogWxDialogue, Warning, TEXT("EnterRow: 행을 찾지 못했다(테이블 %s / 행 %s). 가리키는 이름이 틀렸거나 행이 지워졌다."),
 			*GetNameSafe(Table), *RowName.ToString());
 		return false;
 	}
 
-	CurrentRow = Row;
+	if (Row->Line.IsEmpty())
+	{
+		// FindRow 의 ContextString 경고는 행이 아예 없을 때만 뜬다 — 대사가 빈 행은 여기서만 드러난다.
+		UE_LOG(LogWxDialogue, Warning, TEXT("EnterRow: 대사가 비어 있다(테이블 %s / 행 %s). 종료는 NextRow=None 으로 표시한다."),
+			*GetNameSafe(Table), *RowName.ToString());
+		return false;
+	}
+
 	CurrentRowName = RowName;
 
 	return true;
+}
+
+const FWxDialogueTableRow* UWxDialogueSessionComponent::FindCurrentRow() const
+{
+	// 이름이 비어 있는 것은 세션이 닫혔다는 뜻이라 오류가 아니다 — FindRow 는 NAME_None 에도 경고를 찍으므로 그 앞에서 가른다.
+	const UDataTable* Table = CurrentStartRow.DataTable;
+	if (!Table || CurrentRowName.IsNone())
+	{
+		return nullptr;
+	}
+
+	return Table->FindRow<FWxDialogueTableRow>(CurrentRowName, TEXT("WxDialogueSession"));
 }
 
 void UWxDialogueSessionComponent::PublishCurrentLine()
@@ -171,7 +200,6 @@ void UWxDialogueSessionComponent::PublishCurrentLine()
 void UWxDialogueSessionComponent::EndDialogue()
 {
 	CurrentStartRow = FDataTableRowHandle();
-	CurrentRow = nullptr;
 	CurrentRowName = NAME_None;
 	CurrentTarget.Reset();
 
@@ -184,6 +212,7 @@ void UWxDialogueSessionComponent::EndDialogue()
 	TaggedAbilitySystem.Reset();
 
 	// 포즈는 거두지 않는다. 대상은 마지막 자세로 남고, 다음 대사나 다음 대화가 그것을 갈아끼운다.
+	// 진행 중인 포즈 스트리밍도 접지 않는다 — 마지막 대사의 자세가 늦게 도착했을 뿐이고, 요청이 대상을 따로 들고 있어 세션 없이도 얹힌다.
 	EndDialogueCamera();
 }
 
@@ -259,19 +288,59 @@ void UWxDialogueSessionComponent::EndDialogueCamera()
 void UWxDialogueSessionComponent::ApplyCurrentPose()
 {
 	// 지목이 없는 대사는 직전 포즈를 그대로 둔다 — 한 자세로 여러 대사를 이어가는 것이 기본값이라 매 행에 같은 몽타주를 반복 기입시키지 않는다.
-	if (!CurrentRow || !CurrentRow->TargetPose)
+	// 앞 대사가 띄운 스트리밍도 그대로 둔다. 그것이 곧 이어갈 "직전 포즈"다.
+	const FWxDialogueTableRow* Row = FindCurrentRow();
+	if (!Row || Row->TargetPose.IsNull())
 	{
 		return;
 	}
-	UAnimMontage* Pose = CurrentRow->TargetPose;
 
-	const AActor* Target = CurrentTarget.Get();
+	// CancelHandle 은 지연 콜백 큐에 들어간 완료 델리게이트까지 취소하므로, 앞 대사의 포즈가 뒤늦게 발화해 이번 포즈를 덮어쓰지 않는다.
+	if (PoseLoadHandle.IsValid())
+	{
+		PoseLoadHandle->CancelHandle();
+		PoseLoadHandle.Reset();
+	}
+
+	PendingPose = Row->TargetPose;
+	PendingPoseTarget = CurrentTarget;
+
+	// 이미 로드돼 있으면(직전 대사와 같은 포즈를 다시 지목하는 등) 스트리밍을 거치지 않는다.
+	if (PendingPose.Get())
+	{
+		PlayPendingPose();
+		return;
+	}
+
+	PoseLoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+		PendingPose.ToSoftObjectPath(),
+		FStreamableDelegate::CreateUObject(this, &UWxDialogueSessionComponent::HandlePoseLoaded));
+}
+
+void UWxDialogueSessionComponent::HandlePoseLoaded()
+{
+	PlayPendingPose();
+
+	// 재생을 시작한 뒤에 놓는다 — 그 전까지 몽타주를 붙잡는 것은 이 핸들뿐이고, 재생이 걸려야 애님 인스턴스가 수명을 넘겨받는다.
+	PoseLoadHandle.Reset();
+}
+
+void UWxDialogueSessionComponent::PlayPendingPose()
+{
+	UAnimMontage* Pose = PendingPose.Get();
+	if (!Pose)
+	{
+		UE_LOG(LogWxDialogue, Warning, TEXT("PlayPendingPose: 포즈 몽타주를 로드하지 못했다(포즈 %s)."), *PendingPose.ToString());
+		return;
+	}
+
+	const AActor* Target = PendingPoseTarget.Get();
 	const USkeletalMeshComponent* Mesh = Target ? Target->FindComponentByClass<USkeletalMeshComponent>() : nullptr;
 	UAnimInstance* AnimInstance = Mesh ? Mesh->GetAnimInstance() : nullptr;
 	if (!AnimInstance)
 	{
 		// 대상이 애님 BP 없이(단일 노드 모드 등) 도는 경우다. 조용히 넘기면 "포즈를 지정했는데 아무 일도 없다"만 남는다.
-		UE_LOG(LogWxDialogue, Warning, TEXT("ApplyCurrentPose: 대상에 애님 인스턴스가 없어 포즈를 얹을 수 없다(대상 %s / 포즈 %s)."),
+		UE_LOG(LogWxDialogue, Warning, TEXT("PlayPendingPose: 대상에 애님 인스턴스가 없어 포즈를 얹을 수 없다(대상 %s / 포즈 %s)."),
 			*GetNameSafe(Target), *GetNameSafe(Pose));
 		return;
 	}

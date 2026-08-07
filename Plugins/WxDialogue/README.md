@@ -31,7 +31,7 @@
 | `FWxStateTreeTask_EnableNpcInteraction` | 지정 NPC의 상호작용을 (Target, bEnable)로 토글 | `Source/WxDialogue/Public/WxDialogueStateTreeNodes.h` |
 
 ## 확장 포인트 / 규약
-- **새 대화**: `FWxDialogueTableRow` 로우 타입 DataTable을 만들고 `NextRow`로 노드를 잇는다(대사가 비면 종료). 액터의 `UWxDialogueComponent::StartRow`에 시작 노드를 지정. 분기(선택지)는 없다 — 필요해지면 그때 설계.
+- **새 대화**: `FWxDialogueTableRow` 로우 타입 DataTable을 만들고 `NextRow`로 노드를 잇는다(종료는 `NextRow=None` 하나로 표시하며, 대사는 모든 행이 채워야 한다 — 빈 대사는 경고 대상). 액터의 `UWxDialogueComponent::StartRow`에 시작 노드를 지정. `TargetPose`는 소프트 참조라 대사를 넘길 때 비동기 스트리밍되므로, 포즈를 많이 걸어도 레벨 로드 비용이 늘지 않는다. 분기(선택지)는 없다 — 필요해지면 그때 설계.
 - **새 NPC**: `AWxNpc`(Abstract)를 상속하고 인스턴스별 `StartRow`·`NpcName`을 채운다. 상호작용 계약은 `IWxInteractable`(WxCore)로 이미 구현됨. 잠긴 시작은 별도 플래그 없이 영역 메시 콜리전을 배치 인스턴스에서 미리 꺼 둔다.
 - **대화 진입 두 경로**: 액터 기반은 상호작용 응답이 `StartDialogue(UWxDialogueComponent*)`, 액터 아닌 쪽(퀘스트 ST)은 `StartDialogueRow(RowHandle, Target)`(Target 비우면 카메라가 플레이어에 머무는 나레이션). 서버 권위 진입 → 소유 클라 `ClientStartDialogue`(Client RPC)로 세션 오픈. 세션은 표시 전용 로컬 상태(v1 싱글/리슨 호스트 전제, 서버 검증 없음).
 - **퀘스트 연동**: 완주 게이트는 `Wait Dialogue Completed`에 대화 행 지정(시작 행=대화 전체, 중간·끝 행=그 대사까지 읽은 대화). 트리가 대사를 소유해야 하면 `Play Dialogue`에 `StartRow` 지정. NPC 잠금·해제는 `Enable Npc Interaction`(되돌리지 않는 월드 변경, 완료 판정 제외). 세 노드 모두 0번 컨트롤러 세션을 폴링·관찰.

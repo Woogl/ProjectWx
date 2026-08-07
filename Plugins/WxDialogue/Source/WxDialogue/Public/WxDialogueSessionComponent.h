@@ -10,7 +10,9 @@
 class ACameraActor;
 class APlayerController;
 class UAbilitySystemComponent;
+class UAnimMontage;
 class UWxDialogueComponent;
+struct FStreamableHandle;
 struct FWxDialogueTableRow;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWxOnDialogueLineChanged, const FText&, Speaker, const FText&, Line);
@@ -113,6 +115,12 @@ private:
 	/** 이름으로 노드를 찾아 현재 노드로 전환한다. 행이 없거나 대사가 비어 있으면 실패한다. */
 	bool EnterRow(FName RowName);
 
+	/**
+	 * 진행 중인 행을 테이블에서 되찾는다. 세션 중이 아니면 null.
+	 * 행 실체를 캐시하지 않는 이유는 그 메모리가 테이블 소유라서다 — 재임포트가 행 버퍼를 통째로 갈아끼우면 붙잡아 둔 포인터는 해제된 메모리를 가리킨다.
+	 */
+	const FWxDialogueTableRow* FindCurrentRow() const;
+
 	/** 현재 대사를 OnLineChanged 로 발행한다. */
 	void PublishCurrentLine();
 
@@ -125,8 +133,17 @@ private:
 	/** 게임플레이 뷰로 되돌리고 대화 카메라를 정리한다. */
 	void EndDialogueCamera();
 
-	/** 현재 대사가 지목한 포즈를 대상 메시에 재생한다. 지목이 없으면 직전 포즈를 그대로 둔다. */
+	/**
+	 * 현재 대사가 지목한 포즈를 스트리밍해 대상 메시에 재생한다. 지목이 없으면 직전 포즈를 그대로 둔다.
+	 * 앞 대사가 띄운 스트리밍이 남아 있으면 접는다 — 늦게 도착한 포즈가 새 포즈를 덮어쓰지 않게 한다.
+	 */
 	void ApplyCurrentPose();
+
+	/** 포즈 스트리밍 완료 콜백. */
+	void HandlePoseLoaded();
+
+	/** 스트리밍을 마친 포즈를 요청 당시의 대상에 얹는다. */
+	void PlayPendingPose();
 
 	/** 오너 컨트롤러를 로컬 플레이어 컨트롤러로 얻는다. 카메라는 로컬 어포던스라 그 밖에선 null 을 답해 카메라 경로를 통째로 건너뛴다. */
 	APlayerController* GetLocalPlayerController() const;
@@ -137,16 +154,23 @@ private:
 	/** 진행 중인 대화의 대상 액터. 관찰자(GetCurrentDialogueTarget)에게 노출되며 세션 중에만 유효하다. 대상 없는 대사(나레이션)에선 비어 있다. */
 	TWeakObjectPtr<AActor> CurrentTarget;
 
-	/** 진행 중인 대화를 연 시작 행. 세션 동안 행 메모리를 붙잡는 강참조이자 진행 중 노드를 찾을 테이블의 출처다. */
+	/** 진행 중인 대화를 연 시작 행. 세션 동안 테이블 객체를 붙잡는 강참조이자 진행 중 노드를 찾을 테이블의 출처다. */
 	UPROPERTY()
 	FDataTableRowHandle CurrentStartRow;
 
-	/** 현재 노드. 시작 행이 붙잡고 있는 테이블의 행 메모리를 가리키며 세션 중에만 유효하다. */
-	const FWxDialogueTableRow* CurrentRow = nullptr;
-
-	/** 현재 노드의 행 이름. 행 구조체가 자기 이름을 모르므로 관찰자에게 노출할 신원을 세션이 따로 기억한다. */
+	/** 현재 노드의 행 이름이자 세션 자체의 상태. 비어 있으면 대화 중이 아니고, 행 실체는 여기서 매번 되찾는다(FindCurrentRow). */
 	FName CurrentRowName;
 
 	/** 세션 동안 세워 둔 대화 카메라. 종료 시 뷰를 되돌리고 만료시킨다. */
 	TWeakObjectPtr<ACameraActor> DialogueCamera;
+
+	/**
+	 * 스트리밍을 걸어 둔 포즈와 그 대상. 완료 콜백이 인자를 받지 않으므로 "무엇을 누구에게"를 요청 시점에 남긴다.
+	 * 세션이 닫힌 뒤 도착해도 제 대상에 얹히도록 CurrentTarget 과 따로 든다 — 포즈는 대화가 끝나도 거두지 않는다.
+	 */
+	TSoftObjectPtr<UAnimMontage> PendingPose;
+	TWeakObjectPtr<AActor> PendingPoseTarget;
+
+	/** 진행 중인 포즈 스트리밍. 다음 대사가 포즈를 새로 지목할 때 취소하는 용도다. */
+	TSharedPtr<FStreamableHandle> PoseLoadHandle;
 };

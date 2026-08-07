@@ -42,7 +42,7 @@
       "Name": "BP_Npc_5",
       "NextRow": "None",
       "Speaker": "생존자",
-      "TargetPose": "/Script/Engine.AnimMontage'/Game/AbilitySystem/Ability/AM_Death.AM_Death'"
+      "TargetPose": "/Game/AbilitySystem/Ability/AM_Death.AM_Death"
     },
     {
       "Line": "정체불명의 괴물을 쓰러뜨렸다!",
