@@ -2,6 +2,7 @@
 
 #include "Indicator/WxIndicatorStateTreeNodes.h"
 
+#include "Components/SceneComponent.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/PlayerController.h"
 #include "Indicator/WxIndicatorDescriptor.h"
@@ -37,7 +38,7 @@ namespace
 		RegisteredIndicator.Reset();
 	}
 
-	/** 대상마다 해석되면 등록하고, 해석되지 않으면(스트리밍 아웃·파괴) 해제한다. 이미 등록돼 있으면 그대로 둔다. */
+	/** 대상마다 해석되면 등록하고, 해석되지 않으면(스트리밍 아웃·파괴) 해제한다. 등록증과 대상이 살아 있으면 해석 없이 그대로 둔다. */
 	void RefreshIndicators(const FStateTreeExecutionContext& Context, FWxStateTreeTask_MarkIndicatorsInstanceData& Instance)
 	{
 		AActor* Owner = Cast<AActor>(Context.GetOwner());
@@ -49,14 +50,19 @@ namespace
 		for (int32 Index = 0; Index < Instance.Targets.Num(); ++Index)
 		{
 			TWeakObjectPtr<UWxIndicatorDescriptor>& RegisteredIndicator = Instance.RegisteredIndicators[Index];
-			AActor* Target = ResolveTargetActor(Instance.Targets[Index], Owner);
-			if (!Target)
+
+			// 등록증과 그 대상이 모두 살아 있으면 해석할 이유가 없다. 매니저는 대상이 파괴돼도 표시만 접고 등록증은 남기므로 대상 컴포넌트까지 본다.
+			const UWxIndicatorDescriptor* Indicator = RegisteredIndicator.Get();
+			if (Indicator && IsValid(Indicator->GetTargetComponent()))
 			{
-				UnregisterIndicator(RegisteredIndicator);
 				continue;
 			}
 
-			if (RegisteredIndicator.IsValid() || !Manager)
+			// 대상을 잃은 등록증은 먼저 걷어낸다 — 다시 해석되면 새 대상으로 발급받는다.
+			UnregisterIndicator(RegisteredIndicator);
+
+			AActor* Target = ResolveTargetActor(Instance.Targets[Index], Owner);
+			if (!Target || !Manager)
 			{
 				continue;
 			}
