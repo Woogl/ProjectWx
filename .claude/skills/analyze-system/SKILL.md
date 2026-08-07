@@ -58,7 +58,6 @@ allowed-tools: Read, Grep, Glob, Bash, Write, Agent
 - **코드 근거는 짧게** — 핵심 함수/조건만 인용하고, 파일 경로는 맨 끝 **참조 코드 표**(타입·모듈·역할)에 모은다.
 - 본문은 **한국어 평서체**(~한다/~이다). 식별자(타입·함수·경로·Gameplay Tag)는 **영문 원문 유지**.
 - 모든 파일 경로는 저장소 루트(`C:\Wx`) 기준 상대경로로 적어 클릭 가능하게 한다.
-- BP/WBP·DataTable·DataAsset·StateTree 내용이 필요하면 에디터를 띄우지 말고 `.claude/asset_dump/`의 JSON 덤프를 grep/Read로 참조한다(카테고리·범위는 `.claude/asset_dump/README.md`, 덤프가 오래됐으면 `/dump-assets`로 갱신).
 
 ---
 
