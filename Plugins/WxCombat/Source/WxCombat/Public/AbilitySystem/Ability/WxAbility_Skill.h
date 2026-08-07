@@ -35,7 +35,7 @@ public:
 
 	/**
 	 * 활성 중 재발동(콤보 진행)은 콤보 윈도우 안에서만 허용한다.
-	 * 이때 자기 차단(BlockAbilitiesWithTag=Ability)은 무시하되(직후 EndAbility가 해제) 사망/비용/쿨다운은 그대로 판정한다.
+	 * 이때 자기 차단(BlockAbilitiesWithTag=Ability.Exclusive)은 무시하되(직후 EndAbility가 해제) 사망/비용/쿨다운은 그대로 판정한다.
 	 * 신규 발동은 엔진 순정 경로(Super)를 따른다.
 	 */
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;

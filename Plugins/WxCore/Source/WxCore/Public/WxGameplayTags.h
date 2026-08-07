@@ -172,7 +172,16 @@ namespace WxGameplayTags
 
 	// ── Ability ───────────────────────────────────────────────────────────
 
+	/** 어빌리티 식별 태그의 루트. 차단·캔슬은 이 루트가 아니라 Ability.Exclusive 만 지목한다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability);
+
+	/**
+	 * 액션 슬롯 점유 표식이자 차단(BlockAbilitiesWithTag)·캔슬(CancelAbilitiesWithTag)이 지목하는 유일한 태그.
+	 * 이 태그를 가진 어빌리티끼리만 서로 막고 끊으므로, 어빌리티가 서로를 이름으로 참조하지 않는다.
+	 * 반응·상태형 어빌리티(피격·그로기·사망·처형·락온)는 이 태그를 갖지 않아 무엇에도 막히거나 끊기지 않는다.
+	 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Exclusive);
+
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Dodge);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Sprint);
@@ -185,6 +194,12 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Ultimate);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Interact);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_UseItem);
+
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_HitReact);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Groggy);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Death);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Finisher);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_LockOn);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_1);

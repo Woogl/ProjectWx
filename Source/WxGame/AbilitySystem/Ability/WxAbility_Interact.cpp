@@ -23,6 +23,7 @@ UWxAbility_Interact::UWxAbility_Interact()
 	// Ability 하위 태그이므로 GAS 순정 AreAbilityTagsBlocked(Ability) 차단(마시는 중·기믹 연출 중 등)도 함께 존중한다.
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Interact);
+	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
 	SetAssetTags(AssetTags);
 
 	// 사망 중에는 활성화 거부. 이 차단 태그가 서버 활성·클라 표시(스캐너 컴포넌트) 게이트의 단일 소스다.

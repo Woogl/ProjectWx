@@ -17,10 +17,11 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 {
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Dodge);
+	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
 	SetAssetTags(AssetTags);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
-	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 }
 
 void UWxAbility_Dodge::GetInputActions(TArray<const UInputAction*>& OutActions) const

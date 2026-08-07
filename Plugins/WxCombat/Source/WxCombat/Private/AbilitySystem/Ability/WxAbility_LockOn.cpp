@@ -16,7 +16,10 @@
 
 UWxAbility_LockOn::UWxAbility_LockOn()
 {
-	// AssetTag 의도적 미설정: Ability 태그가 없어야 HitReact/Guard 등의 CancelAbilitiesWithTag(Ability)에 의해 락온이 해제되지 않는다.
+	FGameplayTagContainer AssetTags;
+	AssetTags.AddTag(WxGameplayTags::Ability_LockOn);
+	SetAssetTags(AssetTags);
+
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	ActivationOwnedTags.AddTag(WxGameplayTags::State_LockOn);
 }

@@ -14,10 +14,11 @@ UWxAbility_Guard::UWxAbility_Guard()
 {
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Guard);
+	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
 	SetAssetTags(AssetTags);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
-	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 
 	bRetriggerInstancedAbility = true;
 }

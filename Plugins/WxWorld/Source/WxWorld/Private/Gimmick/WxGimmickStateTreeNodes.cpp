@@ -523,7 +523,7 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::EnterState(FStateTr
 
 	// 이동/응시 동안 로컬 플레이어의 입력을 막는다(카메라 look 은 별개 게이트라 유지). ExitState 에서 짝 해제한다.
 	//  - 이동: AController::SetIgnoreMoveInput 로 AddMovementInput 을 무시.
-	//  - 어빌리티+점프: ASC 의 BlockAbilitiesWithTags(Ability) — 액션 어빌리티가 연출 중 서로를 막는 것과 동일한 GAS 순정 관례이며, 캐릭터의 CanJumpInternal 이 이미 AreAbilityTagsBlocked(Ability) 로 점프를 막으므로 점프도 함께 차단된다.
+	//  - 어빌리티+점프: ASC 의 BlockAbilitiesWithTags(Ability.Exclusive) — 액션 어빌리티가 연출 중 서로를 막는 것과 동일한 GAS 순정 관례이며, 캐릭터의 CanJumpInternal 이 같은 태그로 점프를 막으므로 점프도 함께 차단된다.
 	// 입력이 실제로 생기고 예측이 발동을 게이트하는 로컬 컨트롤 인스턴스에서만 건다(소유 클라가 막으면 서버로 활성화가 전송되지 않아 서버 차단이 불필요). 스냅·이동 두 경로 모두에서 걸어 ExitState 해제와 짝을 맞춘다.
 	// 차단에 성공한 대상은 그때그때 인스턴스에 기록해 둔다 — ExitState 는 이 기록만 보고 해제하므로, 그 사이 캐릭터가 소멸·언포제스돼도 카운터가 새지 않는다.
 	if (Character->IsLocallyControlled())
@@ -535,7 +535,7 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::EnterState(FStateTr
 		}
 		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Character))
 		{
-			ASC->BlockAbilitiesWithTags(FGameplayTagContainer(WxGameplayTags::Ability));
+			ASC->BlockAbilitiesWithTags(FGameplayTagContainer(WxGameplayTags::Ability_Exclusive));
 			Instance.BlockedAbilitySystem = ASC;
 		}
 	}
@@ -631,7 +631,7 @@ void FWxStateTreeTask_MoveInteractorToTarget::ExitState(FStateTreeExecutionConte
 	}
 	if (UAbilitySystemComponent* ASC = Instance.BlockedAbilitySystem.Get())
 	{
-		ASC->UnBlockAbilitiesWithTags(FGameplayTagContainer(WxGameplayTags::Ability));
+		ASC->UnBlockAbilitiesWithTags(FGameplayTagContainer(WxGameplayTags::Ability_Exclusive));
 	}
 
 	Instance.BlockedController = nullptr;

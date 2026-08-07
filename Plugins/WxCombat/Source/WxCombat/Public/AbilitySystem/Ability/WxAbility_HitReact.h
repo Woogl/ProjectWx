@@ -17,11 +17,11 @@ class UAbilityTask_PlayMontageAndWait;
  *  2. GameplayEvent 트리거 → ActivateAbility
  *  3. 트리거 태그에 매칭되는 몽타주 재생 → 완료 시 EndAbility
  *
- * 모든 피격은 CancelAbilitiesWithTag로 진행 중인 공격(Ability.Attack)·스킬(Ability.Skill)을 캔슬한다.
- * 적의 패턴(Ability.Pattern)은 캔슬 대상이 아님.
+ * 피격은 반응이 끝날 때까지 새 액션(Ability.Exclusive)을 차단하기만 하고, 진행 중인 어빌리티를 태그로 끊지는 않는다.
+ * 적 패턴이 평타 피격에 중단되면 안 되기 때문이며, 플레이어 공격·스킬은 피격 몽타주가 같은 슬롯을 덮으면서 자연히 종료된다.
+ * 피격 중에도 새 액션을 허용하는 캐릭터는 어빌리티 BP에서 차단 컨테이너를 비운다(GA_HitReact_Custer).
  *
- * 적 패턴(Ability.Pattern) 발동 중에는 일반(Normal) 피격 반응을 발생시키지 않는다(평타 경직 무시).
- * 넉백·넉다운·넉업·패리는 패턴 중에도 그대로 반응한다.
+ * 평타로는 경직이 나지 않는다 — 대미지 행이 Event.HitReact.* 태그를 싣지 않으면 이벤트 자체가 발송되지 않기 때문이다.
  *
  * 재생 중 다른 종류의 HitReact 이벤트가 도착하면(예: Normal 재생 중 Knockback), bRetriggerInstancedAbility로 EndAbility 후 ActivateAbility가 재진입하며, CurrentMontageTask를 명시적으로 정리해 이전 태스크의 잔여 콜백이 새 재생을 즉시 종료시키는 레이스를 방지한다.
  *

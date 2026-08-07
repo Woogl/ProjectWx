@@ -8,11 +8,16 @@
 UWxAbility_Skill::UWxAbility_Skill()
 {
 	// 슬롯마다 다른 애셋 태그(Ability.Skill.1~4)와 입력 액션(ActivationInputAction = IA_Skill_1~4)은 BP 서브클래스가 지정한다.
+	// BP가 애셋 태그를 편집하면 컨테이너 값을 통째로 갖게 되므로, 여기 마커는 아직 편집하지 않은 신규 BP에만 상속된다(기존 4개는 에셋에 직접 넣어 둔다).
+	FGameplayTagContainer AssetTags;
+	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
+	SetAssetTags(AssetTags);
+
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 
 	// 스킬은 재생 중 다른 GA로 캔슬되지 않는다. (PC규격서 §5.6)
 	// 후딜 캔슬은 몽타주 StartRecovery 노티파이로 허용한다.
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 
 	// 콤보는 재발동으로 다음 단계로 넘어간다. 콤보 윈도우 판정은 CanActivateAbility가 담당한다.
 	bRetriggerInstancedAbility = true;
@@ -50,8 +55,6 @@ void UWxAbility_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-
-	StartHitStopListener();
 
 	if (SkillMontages.Num() == 0)
 	{

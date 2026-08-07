@@ -9,6 +9,7 @@ UWxAbility_Attack::UWxAbility_Attack()
 {
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Attack);
+	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
 	SetAssetTags(AssetTags);
 
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
@@ -16,7 +17,7 @@ UWxAbility_Attack::UWxAbility_Attack()
 	// 공격은 시동·타격 중 다른 GA로 캔슬되지 않는다(커밋).
 	// 즉시 회피·가드로 빠져나가는 것을 막아 공격에 리스크를 부여하려는 의도다.
 	// 후딜 캔슬은 몽타주 StartRecovery 노티파이로 허용한다.
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 
 	// 콤보는 재발동으로 다음 단계로 넘어간다. 콤보 윈도우·분기 유효성 판정은 CanActivateAbility가 담당한다.
 	bRetriggerInstancedAbility = true;
@@ -73,8 +74,6 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-
-	StartHitStopListener();
 
 	// 재발동으로 이어온 콤보면 다음 경로, 신규 발동이면 입력 종류로 첫타.
 	// CurrentPath는 재발동 사이 보존되고(그래서 여기서 이어감), 콤보 자연 종료 시 몽타주 핸들러가 비운다.

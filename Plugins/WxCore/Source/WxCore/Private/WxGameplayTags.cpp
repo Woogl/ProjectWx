@@ -67,6 +67,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Damage_ParryHitReact, "Damage.ParryHitReact");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability, "Ability");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Exclusive, "Ability.Exclusive");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack, "Ability.Attack");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Dodge, "Ability.Dodge");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Sprint, "Ability.Sprint");
@@ -79,6 +80,12 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Ultimate, "Ability.Ultimate");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Interact, "Ability.Interact");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_UseItem, "Ability.UseItem");
+
+	UE_DEFINE_GAMEPLAY_TAG(Ability_HitReact, "Ability.HitReact");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Groggy, "Ability.Groggy");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Death, "Ability.Death");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Finisher, "Ability.Finisher");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_LockOn, "Ability.LockOn");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern, "Ability.Pattern");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_1, "Ability.Pattern.1");
