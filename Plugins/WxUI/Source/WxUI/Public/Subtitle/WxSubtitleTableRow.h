@@ -19,7 +19,7 @@ struct FWxSubtitleTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|Subtitle")
 	FText Speaker;
 
-	/** 자막 본문. 비어 있으면 자막이 종료된다. */
+	/** 자막 본문. 모든 행이 채워야 한다 — 종료는 NextRow=None 으로 표시하며, 비어 있으면 잘못된 행으로 보고 경고와 함께 자막을 접는다. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|Subtitle", meta = (MultiLine = "true"))
 	FText Line;
 

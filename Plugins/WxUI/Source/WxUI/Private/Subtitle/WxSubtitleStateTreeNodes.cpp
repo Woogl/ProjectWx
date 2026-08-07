@@ -91,10 +91,17 @@ bool FWxStateTreeTask_PrintSubtitle::ShowRow(FStateTreeExecutionContext& Context
 {
 	const UDataTable* Table = Instance.StartRow.DataTable;
 	const FWxSubtitleTableRow* Row = Table ? Table->FindRow<FWxSubtitleTableRow>(RowName, TEXT("WxPrintSubtitle")) : nullptr;
-	if (!Row || Row->Line.IsEmpty())
+	if (!Row)
+	{
+		UE_LOG(LogWxUI, Warning, TEXT("Print Subtitle: 행을 찾지 못했다(테이블 %s / 행 %s). 가리키는 이름이 틀렸거나 행이 지워졌다."),
+			*GetNameSafe(Table), *RowName.ToString());
+		return false;
+	}
+
+	if (Row->Line.IsEmpty())
 	{
 		// FindRow 의 ContextString 경고는 행이 아예 없을 때만 뜬다 — 본문이 빈 행은 여기서만 드러난다.
-		UE_LOG(LogWxUI, Warning, TEXT("Print Subtitle: 행을 해석하지 못했거나 본문이 비어 있다(테이블 %s / 행 %s)."),
+		UE_LOG(LogWxUI, Warning, TEXT("Print Subtitle: 본문이 비어 있다(테이블 %s / 행 %s). 종료는 NextRow=None 으로 표시한다."),
 			*GetNameSafe(Table), *RowName.ToString());
 		return false;
 	}
