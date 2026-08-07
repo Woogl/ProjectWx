@@ -9,7 +9,8 @@
 - 게임 모듈 고유 어빌리티(`WxAbility_Interact`/`WxAbility_UseItem`)와 그 AnimNotify(`WxAnimNotify_UseItem`)
 - 프레임워크 액터를 ModularGameplay receiver로 opt-in시키고(컨트롤러·캐릭터·PlayerState·GameState), Experience 액션이 플러그인 컴포넌트(인벤토리·상호작용 스캐너·대화 세션·PlayerSpawn 등)를 데이터 주도로 주입하게 한다. 캐릭터는 전투·장비·모션워핑 컴포넌트를 직접 조립한다
 - 플러그인 데이터를 WxUI 뷰모델에 주입하는 MVVM 리졸버·브리지 뷰모델(`MVVM/`)
-- 게임 고유 프레임워크 파생물: 커스텀 이동(`UWxCharacterMovementComponent`), 개발용 콘솔 치트(`UWxCheatManager`), PIE 다중 세션 GF 활성 카운팅(`UWxExperienceManager` 엔진 서브시스템)
+- 캐릭터 외형 조립: 메타휴먼 페이스·그룸(헤어/눈썹/속눈썹/솜털/수염)·복장 에셋을 오너 바디 메시에 등록 시점 자동 부착(`UWxMetaHumanVisualComponent`)하고, 이름 문자열 대상 조회의 어긋남을 컴파일 타임에 차단하는 파생 MetaHuman 컴포넌트(`UWxMetaHumanComponent`)
+- 게임 고유 프레임워크 파생물: 커스텀 이동(`UWxCharacterMovementComponent` — 비대칭 낙하 중력 + 몽타주 중 앉기 억제), 개발용 콘솔 치트(`UWxCheatManager`), PIE 다중 세션 GF 활성 카운팅(`UWxExperienceManager` 엔진 서브시스템)
 
 **경계 (비담당)**
 - ASC/AttributeSet/무기/락온/처형 규칙·어빌리티 베이스 정의 — [[WxCombat]] (본 모듈은 컴포넌트를 조립·소유만)
@@ -56,4 +57,4 @@
 - 하위(조립 대상): [[WxCombat]] · [[WxUI]] · [[WxWorld]] · [[WxInventory]] · [[WxDialogue]] · [[WxQuest]] · [[WxAI]] · [[WxSave]] · [[WxCore]]
 
 ---
-*문서 기준 커밋 `2fdf0ab` · 생성일 2026-08-06 · 소스 62파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `bb8ee6b` · 생성일 2026-08-07 · 소스 62파일 — `/readme-writer`로 갱신*
