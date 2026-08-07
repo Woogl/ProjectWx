@@ -273,7 +273,6 @@
         "customMovementMode": 0,
         "defaultLandMovementMode": "MOVE_WALKING",
         "defaultWaterMovementMode": "MOVE_SWIMMING",
-        "fallGravityScale": 2.5,
         "fallingLateralFriction": 0.0,
         "formerBaseVelocityDecayHalfLife": 0.0,
         "gravityDirection": {
@@ -444,7 +443,6 @@
         "pushForceFactor": 750000.0,
         "pushForcePointZOffsetFactor": -0.75,
         "repulsionForce": 2.5,
-        "riseGravityScale": 2.0,
         "rotationRate": {
           "pitch": 0.0,
           "roll": 0.0,
@@ -1488,282 +1486,6 @@
       "inputConfig": "/Game/Input/DA_InputConfig.DA_InputConfig",
       "inputPriority": 0,
       "instigator": null,
-      "interactionListWidget": {
-        "__class__": "/Script/UMG.WidgetComponent",
-        "assetUserData": [],
-        "assetUserDataEditorOnly": [],
-        "bAbsoluteLocation": false,
-        "bAbsoluteRotation": false,
-        "bAbsoluteScale": false,
-        "bAffectDistanceFieldLighting": true,
-        "bAffectDynamicIndirectLighting": true,
-        "bAffectIndirectLightingWhileHidden": false,
-        "bAllowCullDistanceVolume": true,
-        "bAlwaysCreatePhysicsState": false,
-        "bApplyGammaCorrection": false,
-        "bApplyImpulseOnDamage": true,
-        "bAutoActivate": false,
-        "bCanEverAffectNavigation": true,
-        "bCastCinematicShadow": false,
-        "bCastContactShadow": true,
-        "bCastDynamicShadow": true,
-        "bCastFarShadow": false,
-        "bCastHiddenShadow": false,
-        "bCastInsetShadow": false,
-        "bCastShadowAsTwoSided": false,
-        "bCastStaticShadow": true,
-        "bCastVolumetricTranslucentShadow": false,
-        "bConsiderForActorPlacementWhenHidden": false,
-        "bDrawAtDesiredSize": true,
-        "bEditableWhenInherited": true,
-        "bEmissiveLightSource": false,
-        "bEnableAutoLODGeneration": true,
-        "bEnableMaterialParameterCaching": false,
-        "bExcludeFromLightAttachmentGroup": false,
-        "bFillCollisionUnderneathForNavmesh": false,
-        "bForceMipStreaming": false,
-        "bGenerateOverlapEvents": true,
-        "bHasPerInstanceHitProxies": false,
-        "bHiddenInGame": false,
-        "bHiddenInSceneCapture": false,
-        "bHoldout": false,
-        "bIgnoreRadialForce": false,
-        "bIgnoreRadialImpulse": false,
-        "bIsEditorOnly": false,
-        "bIsTwoSided": false,
-        "bLightAttachmentsAsGroup": false,
-        "bManuallyRedraw": false,
-        "bMultiBodyOverlap": false,
-        "bNeverDistanceCull": false,
-        "bOnlyOwnerSee": false,
-        "bOverrideRenderTargetFormat": false,
-        "bOwnerNoSee": false,
-        "bRasterizeAsFilledConvexVolume": false,
-        "bRayTracingFarField": false,
-        "bReceiveHardwareInput": false,
-        "bReceiveMobileCSMShadows": true,
-        "bReceivesDecals": true,
-        "bRenderCustomDepth": false,
-        "bRenderInDepthPass": true,
-        "bRenderInMainPass": true,
-        "bReplicatePhysicsToAutonomousProxy": true,
-        "bReplicateUsingRegisteredSubObjectList": false,
-        "bReplicates": false,
-        "bReturnMaterialOnMove": false,
-        "bSelfShadowOnly": false,
-        "bShouldUpdatePhysicsVolume": false,
-        "bSingleSampleShadowFromStationaryLights": false,
-        "bStaticWhenNotMoveable": true,
-        "bTraceComplexOnMove": false,
-        "bTreatAsBackgroundForOcclusion": false,
-        "bUseAsOccluder": true,
-        "bUseAttachParentBound": false,
-        "bUseInvalidationInWorldSpace": false,
-        "bVisible": false,
-        "bVisibleInRayTracing": true,
-        "bVisibleInRealTimeSkyCaptures": true,
-        "bVisibleInReflectionCaptures": true,
-        "bVisibleInReflections": true,
-        "bVisibleInSceneCaptureOnly": false,
-        "bWindowFocusable": true,
-        "backgroundColor": {
-          "a": 0.0,
-          "b": 0.0,
-          "g": 0.0,
-          "r": 0.0
-        },
-        "blendMode": "MASKED",
-        "bodyInstance": {
-          "angularDamping": 0.0,
-          "bAllowPartialIslandSleep": true,
-          "bAutoWeld": false,
-          "bEnableGravity": true,
-          "bGenerateWakeEvents": false,
-          "bGyroscopicTorqueEnabled": false,
-          "bIgnoreAnalyticCollisions": false,
-          "bInertiaConditioning": true,
-          "bLockRotation": true,
-          "bLockTranslation": true,
-          "bLockXRotation": false,
-          "bLockXTranslation": false,
-          "bLockYRotation": false,
-          "bLockYTranslation": false,
-          "bLockZRotation": false,
-          "bLockZTranslation": false,
-          "bNotifyRigidBodyCollision": false,
-          "bOneWayInteraction": false,
-          "bOverrideIterationCounts": false,
-          "bOverrideMass": false,
-          "bOverrideMaxAngularVelocity": false,
-          "bOverrideMaxDepenetrationVelocity": false,
-          "bOverrideSolverAsyncDeltaTime": false,
-          "bOverrideWalkableSlopeOnInstance": false,
-          "bSimulatePhysics": false,
-          "bSmoothEdgeCollisions": false,
-          "bStartAwake": true,
-          "bUpdateKinematicFromSimulation": false,
-          "bUpdateMassWhenScaleChanges": true,
-          "bUseCCD": false,
-          "bUseMACD": false,
-          "cOMNudge": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
-          },
-          "collisionEnabled": "NO_COLLISION",
-          "collisionProfileName": "Custom",
-          "collisionResponses": {
-            "responseArray": [
-              {
-                "channel": "WorldStatic",
-                "response": "ECR_OVERLAP"
-              },
-              {
-                "channel": "WorldDynamic",
-                "response": "ECR_OVERLAP"
-              },
-              {
-                "channel": "Pawn",
-                "response": "ECR_OVERLAP"
-              },
-              {
-                "channel": "Camera",
-                "response": "ECR_OVERLAP"
-              },
-              {
-                "channel": "PhysicsBody",
-                "response": "ECR_OVERLAP"
-              },
-              {
-                "channel": "Vehicle",
-                "response": "ECR_OVERLAP"
-              },
-              {
-                "channel": "Destructible",
-                "response": "ECR_OVERLAP"
-              }
-            ]
-          },
-          "customDOFPlaneNormal": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
-          },
-          "customSleepThresholdMultiplier": 1.0,
-          "dOFMode": "DEFAULT",
-          "gravityGroupIndex": 0,
-          "inertiaTensorScale": {
-            "x": 1.0,
-            "y": 1.0,
-            "z": 1.0
-          },
-          "linearDamping": 0.009999999776482582,
-          "massInKgOverride": 100.0,
-          "massScale": 1.0,
-          "maxAngularVelocity": 3600.0,
-          "maxDepenetrationVelocity": 0.0,
-          "objectType": "ECC_WORLD_DYNAMIC",
-          "physMaterialOverride": null,
-          "positionSolverIterationCount": 8,
-          "projectionSolverIterationCount": 1,
-          "sleepFamily": "NORMAL",
-          "solverAsyncDeltaTime": 0.01666666753590107,
-          "stabilizationThresholdMultiplier": 1.0,
-          "velocitySolverIterationCount": 2,
-          "walkableSlopeOverride": {
-            "walkableSlopeAngle": 0.0,
-            "walkableSlopeBehavior": "WALKABLE_SLOPE_DEFAULT"
-          }
-        },
-        "boundsScale": 1.0,
-        "cachedMaxDrawDistance": 0.0,
-        "canCharacterStepUpOn": "ECB_YES",
-        "castShadow": true,
-        "componentTags": [],
-        "customDepthStencilValue": 0,
-        "customDepthStencilWriteMask": "ERSM_DEFAULT",
-        "customPrimitiveData": {
-          "data": []
-        },
-        "cylinderArcAngle": 180.0,
-        "detailMode": "DM_LOW",
-        "drawSize": {
-          "x": 500,
-          "y": 500
-        },
-        "excludeFromHLODLevels": 0,
-        "firstPersonPrimitiveType": "NONE",
-        "geometryMode": "PLANE",
-        "hLODBatchingPolicy": "NONE",
-        "indirectLightingCacheQuality": "ILCQ_POINT",
-        "lDMaxDrawDistance": 0.0,
-        "layerZOrder": -100,
-        "lightingChannels": {
-          "bChannel0": true,
-          "bChannel1": false,
-          "bChannel2": false
-        },
-        "lightmapType": "DEFAULT",
-        "materialSlotsOverlayMaterial": [],
-        "minDrawDistance": 0.0,
-        "mobility": "MOVABLE",
-        "opacityFromTexture": 1.0,
-        "overlayMaterial": null,
-        "overlayMaterialMaxDrawDistance": 0.0,
-        "overrideMaterials": [],
-        "pivot": {
-          "x": 0.5,
-          "y": 0.5
-        },
-        "primaryComponentTick": {
-          "bAllowTickOnDedicatedServer": true,
-          "bStartWithTickEnabled": true,
-          "bTickEvenWhenPaused": false,
-          "endTickGroup": "TG_PRE_PHYSICS",
-          "tickGroup": "TG_DURING_PHYSICS",
-          "tickInterval": 0.0
-        },
-        "rayTracingGroupCullingPriority": "CP_4_DEFAULT",
-        "rayTracingGroupId": -1,
-        "redrawTime": 0.0,
-        "relativeLocation": {
-          "x": 0.0,
-          "y": 0.0,
-          "z": 0.0
-        },
-        "relativeRotation": {
-          "pitch": 0.0,
-          "roll": 0.0,
-          "yaw": 0.0
-        },
-        "relativeScale3D": {
-          "x": 1.0,
-          "y": 1.0,
-          "z": 1.0
-        },
-        "renderTargetFormatOverride": "RTF_RGBA8",
-        "runtimeVirtualTextures": [],
-        "shadowCacheInvalidationBehavior": "AUTO",
-        "sharedLayerName": "WidgetComponentScreenLayer",
-        "space": "SCREEN",
-        "tickMode": "ENABLED",
-        "tickWhenOffscreen": false,
-        "timingPolicy": "REAL_TIME",
-        "tintColorAndOpacity": {
-          "a": 1.0,
-          "b": 1.0,
-          "g": 1.0,
-          "r": 1.0
-        },
-        "translucencySortDistanceOffset": 0.0,
-        "translucencySortPriority": 0,
-        "virtualTextureCullMips": 0,
-        "virtualTextureLodBias": 0,
-        "virtualTextureMinCoverage": 0,
-        "virtualTextureRenderPassType": "EXCLUSIVE",
-        "widgetClass": "/Game/UI/Widget/WBP_InteractionList.WBP_InteractionList_C",
-        "windowVisibility": "SELF_HIT_TEST_INVISIBLE"
-      },
       "jumpCurrentCount": 0,
       "jumpCurrentCountPreJump": 0,
       "jumpForceTimeRemaining": 0.0,
@@ -1916,7 +1638,7 @@
         "bUseBoundsFromLeaderPoseComponent": false,
         "bUseRefPoseOnInitAnim": false,
         "bUseScreenRenderStateForUpdate": false,
-        "bVisible": false,
+        "bVisible": true,
         "bVisibleInRayTracing": true,
         "bVisibleInRealTimeSkyCaptures": true,
         "bVisibleInReflectionCaptures": true,
@@ -2055,7 +1777,6 @@
         "overlayMaterial": null,
         "overlayMaterialMaxDrawDistance": 0.0,
         "overrideMaterials": [
-          null,
           null
         ],
         "physicsAssetOverride": null,
@@ -2088,10 +1809,10 @@
         },
         "runtimeVirtualTextures": [],
         "shadowCacheInvalidationBehavior": "AUTO",
-        "skeletalMesh": "/Game/Mannequins/Meshes/SKM_Quinn_Simple.SKM_Quinn_Simple",
-        "skeletalMeshAsset": "/Game/Mannequins/Meshes/SKM_Quinn_Simple.SKM_Quinn_Simple",
+        "skeletalMesh": "/Game/MetaHumans/MH_Player/Body/SKM_MH_Player_BodyMesh.SKM_MH_Player_BodyMesh",
+        "skeletalMeshAsset": "/Game/MetaHumans/MH_Player/Body/SKM_MH_Player_BodyMesh.SKM_MH_Player_BodyMesh",
         "skinCacheUsage": [],
-        "skinnedAsset": "/Game/Mannequins/Meshes/SKM_Quinn_Simple.SKM_Quinn_Simple",
+        "skinnedAsset": "/Game/MetaHumans/MH_Player/Body/SKM_MH_Player_BodyMesh.SKM_MH_Player_BodyMesh",
         "streamingDistanceMultiplier": 1.0,
         "teleportDistanceThreshold": 300.0,
         "teleportRotationThreshold": 0.0,
@@ -2104,6 +1825,7 @@
         "visibilityBasedAnimTickOption": "ALWAYS_TICK_POSE_AND_REFRESH_BONES",
         "worldPositionOffsetDisableDistance": 0
       },
+      "metaHumanVisual": null,
       "minNetUpdateFrequency": 2.0,
       "motionWarpingComponent": {
         "__class__": "/Script/MotionWarping.MotionWarpingComponent",
@@ -2177,7 +1899,6 @@
         "portrait": null
       },
       "updateOverlapsMethodDuringLevelStreaming": "USE_CONFIG_DEFAULT",
-      "visualOverride": null,
       "weaponActor": {
         "__class__": "/Script/Engine.ChildActorComponent",
         "assetUserData": [],
@@ -2463,6 +2184,10 @@
                   },
                   {
                     "channel": "WxAttack",
+                    "response": "ECR_IGNORE"
+                  },
+                  {
+                    "channel": "GameTraceChannel2",
                     "response": "ECR_IGNORE"
                   },
                   {
@@ -3130,16 +2855,8 @@
     },
     "components": [
       {
-        "class": "/Script/UMG.WidgetComponent",
-        "name": "InteractionListWidget"
-      },
-      {
         "class": "/Script/Engine.CameraComponent",
         "name": "FollowCamera"
-      },
-      {
-        "class": "/Script/Engine.SpringArmComponent",
-        "name": "CameraBoom"
       },
       {
         "class": "/Script/Engine.ChildActorComponent",
@@ -3147,27 +2864,27 @@
       },
       {
         "class": "/Script/Engine.SkeletalMeshComponent",
-        "name": "VisualOverride_GEN_VARIABLE"
+        "name": "CharacterMesh0"
+      },
+      {
+        "class": "/Script/Engine.SpringArmComponent",
+        "name": "CameraBoom"
       },
       {
         "class": "/Script/Engine.CapsuleComponent",
         "name": "CollisionCylinder"
       },
       {
-        "class": "/Script/Engine.SkeletalMeshComponent",
-        "name": "CharacterMesh0"
-      },
-      {
         "class": "/Script/Engine.ArrowComponent",
         "name": "Arrow"
       },
       {
-        "class": "/Script/WxGame.WxCharacterMovementComponent",
-        "name": "CharMoveComp"
+        "class": "/Script/WxInventory.WxEquipmentComponent",
+        "name": "EquipmentComponent"
       },
       {
-        "class": "/Script/WxCombat.WxLockOnManagerComponent",
-        "name": "LockOnManagerComponent"
+        "class": "/Script/WxGame.WxCharacterMovementComponent",
+        "name": "CharMoveComp"
       },
       {
         "class": "/Script/WxCombat.WxAbilitySystemComponent",
@@ -3178,8 +2895,12 @@
         "name": "MotionWarpingComponent"
       },
       {
-        "class": "/Script/WxInventory.WxEquipmentComponent",
-        "name": "EquipmentComponent"
+        "class": "/Script/WxCombat.WxLockOnManagerComponent",
+        "name": "LockOnManagerComponent"
+      },
+      {
+        "class": "/Script/WxGame.WxMetaHumanVisualComponent",
+        "name": "MetaHumanVisual_GEN_VARIABLE"
       }
     ],
     "event_dispatchers": [],
@@ -3387,7 +3108,6 @@
       "/Script/WxGame.WxPlayerCharacter.CameraBoom",
       "/Script/WxGame.WxPlayerCharacter.FollowCamera",
       "/Script/WxGame.WxPlayerCharacter.InputConfig",
-      "/Script/WxGame.WxPlayerCharacter.InteractionListWidget",
       "/Script/WxGame.WxPlayerCharacter.LockOnManagerComponent"
     ]
   }

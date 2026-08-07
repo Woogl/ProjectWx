@@ -782,7 +782,6 @@
           "z": 1.0
         }
       },
-      "maxHearingRange": 1000.0,
       "mesh": {
         "__class__": "/Script/Engine.SkeletalMeshComponent",
         "animBlueprintGeneratedClass": null,
@@ -1482,8 +1481,6 @@
       "role": "ROLE_AUTHORITY",
       "rootComponent": "<cycle:/Game/Character/Custer/BP_Custer.Default__BP_Custer_C:CollisionCylinder>",
       "runtimeGrid": "None",
-      "sightAngle": 60.0,
-      "sightRadius": 2000.0,
       "spawnCollisionHandlingMethod": "ADJUST_IF_POSSIBLE_BUT_DONT_SPAWN_IF_COLLIDING",
       "spriteScale": 1.0,
       "tags": [],
@@ -1778,6 +1775,10 @@
                   },
                   {
                     "channel": "WxAttack",
+                    "response": "ECR_IGNORE"
+                  },
+                  {
+                    "channel": "GameTraceChannel2",
                     "response": "ECR_IGNORE"
                   },
                   {
@@ -2691,11 +2692,8 @@
       "/Script/WxGame.WxEnemyCharacter.BehaviorTreeAsset",
       "/Script/WxGame.WxEnemyCharacter.LaunchSpeed",
       "/Script/WxGame.WxEnemyCharacter.LockOnPoint",
-      "/Script/WxGame.WxEnemyCharacter.MaxHearingRange",
       "/Script/WxGame.WxEnemyCharacter.NameplateComponent",
-      "/Script/WxGame.WxEnemyCharacter.RewardRow",
-      "/Script/WxGame.WxEnemyCharacter.SightAngle",
-      "/Script/WxGame.WxEnemyCharacter.SightRadius"
+      "/Script/WxGame.WxEnemyCharacter.RewardRow"
     ]
   }
 }

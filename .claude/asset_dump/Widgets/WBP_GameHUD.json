@@ -218,6 +218,40 @@
         "name": "Overlay_0"
       },
       {
+        "children": [
+          {
+            "class": "/Game/UI/Widget/WBP_Nameplate_Player.WBP_Nameplate_Player_C",
+            "name": "WBP_Nameplate_Player"
+          },
+          {
+            "class": "/Game/UI/Widget/WBP_Subtitle.WBP_Subtitle_C",
+            "name": "WBP_Subtitle_102"
+          }
+        ],
+        "class": "/Script/UMG.Overlay",
+        "name": "Overlay_1"
+      },
+      {
+        "children": [
+          {
+            "class": "/Game/UI/Widget/WBP_InteractionList.WBP_InteractionList_C",
+            "name": "WBP_InteractionList_58"
+          },
+          {
+            "children": [
+              {
+                "class": "/Game/UI/Widget/WBP_QuestIndicator.WBP_QuestIndicator_C",
+                "name": "WBP_QuestIndicator_75"
+              }
+            ],
+            "class": "/Script/UMG.CanvasPanel",
+            "name": "CanvasPanel_0"
+          }
+        ],
+        "class": "/Script/UMG.Overlay",
+        "name": "Overlay_2"
+      },
+      {
         "class": "/Script/UMG.TextBlock",
         "name": "TextBlock_37"
       },
@@ -226,12 +260,12 @@
         "name": "WBP_AcquiredItemList_620"
       },
       {
-        "class": "/Game/UI/Widget/WBP_Nameplate_Boss.WBP_Nameplate_Boss_C",
-        "name": "WBP_Nameplate_Boss_109"
+        "class": "/Game/UI/Widget/WBP_InteractionList.WBP_InteractionList_C",
+        "name": "WBP_InteractionList_101"
       },
       {
-        "class": "/Game/UI/Widget/WBP_Nameplate_Player.WBP_Nameplate_Player_C",
-        "name": "WBP_Nameplate_Player"
+        "class": "/Game/UI/Widget/WBP_Nameplate_Boss.WBP_Nameplate_Boss_C",
+        "name": "WBP_Nameplate_Boss_109"
       },
       {
         "class": "/Game/UI/Widget/WBP_PlayerSkills.WBP_PlayerSkills_C",
@@ -244,10 +278,6 @@
       {
         "class": "/Game/UI/Widget/WBP_StaminaBar.WBP_StaminaBar_C",
         "name": "WBP_StaminaBar_90"
-      },
-      {
-        "class": "/Game/UI/Widget/WBP_Subtitle.WBP_Subtitle_C",
-        "name": "WBP_Subtitle_102"
       }
     ]
   }

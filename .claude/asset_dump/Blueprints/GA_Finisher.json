@@ -8,7 +8,11 @@
         "rowName": "None"
       },
       "abilityTags": {
-        "gameplayTags": []
+        "gameplayTags": [
+          {
+            "tagName": "Ability.Finisher"
+          }
+        ]
       },
       "abilityTriggers": [
         {
@@ -53,17 +57,14 @@
       "blockAbilitiesWithTag": {
         "gameplayTags": [
           {
-            "tagName": "Ability"
+            "tagName": "Ability.Exclusive"
           }
         ]
       },
       "cancelAbilitiesWithTag": {
         "gameplayTags": [
           {
-            "tagName": "Ability.Attack"
-          },
-          {
-            "tagName": "Ability.Skill"
+            "tagName": "Ability.Exclusive"
           }
         ]
       },

@@ -213,6 +213,10 @@
                     "name": "SpeakerText"
                   },
                   {
+                    "class": "/Script/UMG.Spacer",
+                    "name": "Spacer_149"
+                  },
+                  {
                     "class": "/Script/CommonUI.CommonTextBlock",
                     "name": "LineText"
                   }
@@ -230,8 +234,8 @@
             "name": "AdvanceButton"
           }
         ],
-        "class": "/Script/UMG.Overlay",
-        "name": "RootOverlay"
+        "class": "/Script/UMG.CanvasPanel",
+        "name": "Canvas"
       }
     ]
   }

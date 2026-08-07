@@ -1,5 +1,5 @@
 {
-  "asset": "/Game/LevelDesign/PCG/BP_RoadDecal",
+  "asset": "/Game/MetaHumans/MH_Player/BP_MH_Player",
   "class": "/Script/Engine.Blueprint",
   "data": {
     "cdo": {
@@ -43,6 +43,8 @@
       "bReplicateMovement": false,
       "bReplicateUsingRegisteredSubObjectList": false,
       "bReplicates": false,
+      "beard": null,
+      "body": null,
       "contentBundleGuid": {
         "a": 0,
         "b": 0,
@@ -53,17 +55,27 @@
       "dataLayerAssets": [],
       "defaultUpdateOverlapsMethodDuringLevelStreaming": "ONLY_UPDATE_MOVABLE",
       "externalDataLayerAsset": null,
+      "eyebrows": null,
+      "eyelashes": null,
+      "face": null,
+      "fuzz": null,
       "hLODLayer": null,
+      "hair": null,
       "initialLifeSpan": 0.0,
       "inputPriority": 0,
       "instigator": null,
+      "lODSync": null,
       "layers": [],
+      "liveLinkSubject": {
+        "name": "None"
+      },
+      "metaHuman": null,
       "minNetUpdateFrequency": 2.0,
+      "mustache": null,
       "netCullDistanceSquared": 225000000.0,
       "netDormancy": "DORM_AWAKE",
       "netPriority": 1.0,
       "netUpdateFrequency": 100.0,
-      "pCG": null,
       "physicsReplicationMode": "DEFAULT",
       "pivotOffset": {
         "x": 0.0,
@@ -85,24 +97,101 @@
         "velocityQuantizationLevel": "ROUND_WHOLE_NUMBER"
       },
       "role": "ROLE_AUTHORITY",
+      "root": null,
       "rootComponent": null,
       "runtimeGrid": "None",
+      "skeletalMesh": null,
       "spawnCollisionHandlingMethod": "ALWAYS_SPAWN",
-      "spline": null,
       "spriteScale": 1.0,
-      "tags": [
-        "Road"
-      ],
-      "updateOverlapsMethodDuringLevelStreaming": "USE_CONFIG_DEFAULT"
+      "tags": [],
+      "updateOverlapsMethodDuringLevelStreaming": "USE_CONFIG_DEFAULT",
+      "useARKit": false,
+      "useLiveLink": false
     },
     "components": [
       {
-        "class": "/Script/Engine.SplineComponent",
-        "name": "Spline_GEN_VARIABLE"
+        "class": "/Script/HairStrandsCore.GroomComponent",
+        "name": "Fuzz_GEN_VARIABLE"
       },
       {
-        "class": "/Script/PCG.PCGComponent",
-        "name": "PCG_GEN_VARIABLE"
+        "class": "/Script/HairStrandsCore.GroomComponent",
+        "name": "Fuzz_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/HairStrandsCore.GroomComponent",
+        "name": "Eyebrows_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/HairStrandsCore.GroomComponent",
+        "name": "Hair_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/HairStrandsCore.GroomComponent",
+        "name": "Eyebrows_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/HairStrandsCore.GroomComponent",
+        "name": "Hair_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/Engine.SkeletalMeshComponent",
+        "name": "Face_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/Engine.SkeletalMeshComponent",
+        "name": "Body_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/HairStrandsCore.GroomComponent",
+        "name": "Eyelashes_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/HairStrandsCore.GroomComponent",
+        "name": "Eyelashes_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/HairStrandsCore.GroomComponent",
+        "name": "Mustache_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/Engine.SceneComponent",
+        "name": "Root_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/Engine.SkeletalMeshComponent",
+        "name": "Body_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/Engine.SkeletalMeshComponent",
+        "name": "SkeletalMesh_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/Engine.SkeletalMeshComponent",
+        "name": "SkeletalMesh_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/Engine.SkeletalMeshComponent",
+        "name": "Face_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/HairStrandsCore.GroomComponent",
+        "name": "Beard_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/HairStrandsCore.GroomComponent",
+        "name": "Beard_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/HairStrandsCore.GroomComponent",
+        "name": "Mustache_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/MetaHumanSDKRuntime.MetaHumanComponentUE",
+        "name": "MetaHuman_GEN_VARIABLE"
+      },
+      {
+        "class": "/Script/Engine.LODSyncComponent",
+        "name": "LODSync_GEN_VARIABLE"
       }
     ],
     "event_dispatchers": [],
@@ -112,10 +201,16 @@
       "ReceiveTick"
     ],
     "functions": [
+      "EnableMasterPose",
+      "LiveLinkSetup",
+      "SetUpdateAnimationInEditor",
       "UserConstructionScript"
     ],
     "graphs": [
+      "EnableMasterPose",
       "EventGraph",
+      "LiveLinkSetup",
+      "SetUpdateAnimationInEditor",
       "UserConstructionScript"
     ],
     "native_parent": "/Script/Engine.Actor",
@@ -236,7 +331,10 @@
       "/Script/Engine.Actor.bReplicateMovement",
       "/Script/Engine.Actor.bReplicateUsingRegisteredSubObjectList",
       "/Script/Engine.Actor.bReplicates",
-      "/Script/Engine.Actor.bTearOff"
+      "/Script/Engine.Actor.bTearOff",
+      "LiveLinkSubject",
+      "UseARKit",
+      "UseLiveLink"
     ]
   }
 }

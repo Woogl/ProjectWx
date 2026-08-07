@@ -11,6 +11,9 @@
         "gameplayTags": [
           {
             "tagName": "Ability.Interact"
+          },
+          {
+            "tagName": "Ability.Exclusive"
           }
         ]
       },

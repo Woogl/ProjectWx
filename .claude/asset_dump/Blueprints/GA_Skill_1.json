@@ -11,6 +11,9 @@
         "gameplayTags": [
           {
             "tagName": "Ability.Skill.1"
+          },
+          {
+            "tagName": "Ability.Exclusive"
           }
         ]
       },
@@ -36,7 +39,7 @@
       "blockAbilitiesWithTag": {
         "gameplayTags": [
           {
-            "tagName": "Ability"
+            "tagName": "Ability.Exclusive"
           }
         ]
       },

@@ -11,6 +11,9 @@
         "gameplayTags": [
           {
             "tagName": "Ability.Sprint"
+          },
+          {
+            "tagName": "Ability.Exclusive"
           }
         ]
       },
@@ -72,7 +75,7 @@
       "sourceRequiredTags": {
         "gameplayTags": []
       },
-      "sprintEffectClass": "/Script/WxCombat.WxEffect_Sprint",
+      "sprintSpeedScale": 1.5,
       "targetBlockedTags": {
         "gameplayTags": []
       },
@@ -127,7 +130,7 @@
       "/Script/WxCombat.WxAbilityBase.ActivationPolicy",
       "/Script/WxCombat.WxAbilityBase.CooldownEffect",
       "/Script/WxCombat.WxAbilityBase.HitStopListenerTask",
-      "/Script/WxCombat.WxAbility_Sprint.SprintEffectClass"
+      "/Script/WxCombat.WxAbility_Sprint.SprintSpeedScale"
     ]
   }
 }

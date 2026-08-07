@@ -11,6 +11,9 @@
         "gameplayTags": [
           {
             "tagName": "Ability.Pattern.3"
+          },
+          {
+            "tagName": "Ability.Exclusive"
           }
         ]
       },

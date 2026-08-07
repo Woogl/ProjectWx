@@ -67,6 +67,7 @@
         "y": 0.5
       },
       "slot": null,
+      "speaker": null,
       "subtitleText": null,
       "tickFrequency": "AUTO",
       "toolTipText": "",
@@ -159,11 +160,19 @@
         "children": [
           {
             "class": "/Script/CommonUI.CommonTextBlock",
+            "name": "Speaker"
+          },
+          {
+            "class": "/Script/UMG.Spacer",
+            "name": "Spacer_244"
+          },
+          {
+            "class": "/Script/CommonUI.CommonTextBlock",
             "name": "SubtitleText"
           }
         ],
-        "class": "/Script/UMG.CanvasPanel",
-        "name": "RootOverlay"
+        "class": "/Script/UMG.VerticalBox",
+        "name": "VerticalBox_0"
       }
     ]
   }

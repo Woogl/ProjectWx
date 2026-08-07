@@ -8,7 +8,11 @@
         "rowName": "None"
       },
       "abilityTags": {
-        "gameplayTags": []
+        "gameplayTags": [
+          {
+            "tagName": "Ability.Groggy"
+          }
+        ]
       },
       "abilityTriggers": [
         {
@@ -39,14 +43,14 @@
       "blockAbilitiesWithTag": {
         "gameplayTags": [
           {
-            "tagName": "Ability"
+            "tagName": "Ability.Exclusive"
           }
         ]
       },
       "cancelAbilitiesWithTag": {
         "gameplayTags": [
           {
-            "tagName": "Ability"
+            "tagName": "Ability.Exclusive"
           }
         ]
       },

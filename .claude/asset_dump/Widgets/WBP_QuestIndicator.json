@@ -70,7 +70,8 @@
       "tickFrequency": "AUTO",
       "toolTipText": "",
       "toolTipWidget": null,
-      "visibility": "SELF_HIT_TEST_INVISIBLE"
+      "visibility": "SELF_HIT_TEST_INVISIBLE",
+      "wxViewModel_Indicator": null
     },
     "components": [],
     "event_dispatchers": [],
@@ -83,8 +84,8 @@
     "graphs": [
       "EventGraph"
     ],
-    "native_parent": "/Script/WxUI.WxIndicatorWidget",
-    "parent": "/Script/WxUI.WxIndicatorWidget",
+    "native_parent": "/Script/UMG.UserWidget",
+    "parent": "/Script/UMG.UserWidget",
     "variables": [
       "/Script/UMG.UserWidget.ActiveSequencePlayers",
       "/Script/UMG.UserWidget.AnimationCallbacks",

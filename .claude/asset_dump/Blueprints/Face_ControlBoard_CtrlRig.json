@@ -1,0 +1,61 @@
+{
+  "asset": "/Game/MetaHumans/Common/Face/Face_ControlBoard_CtrlRig",
+  "class": "/Script/ControlRigDeveloper.ControlRigBlueprint",
+  "data": {
+    "cdo": {
+      "assetUserData": [],
+      "assetUserDataEditorOnly": [],
+      "eyes_aim_rig": false
+    },
+    "components": [],
+    "event_dispatchers": [],
+    "events": [],
+    "functions": [
+      "Evaluate Eye Controls"
+    ],
+    "graphs": [
+      "Evaluate Eye Controls",
+      "Rig Graph"
+    ],
+    "native_parent": "/Script/ControlRig.ControlRig",
+    "parent": "/Script/ControlRig.ControlRig",
+    "variables": [
+      "/Script/ControlRig.ControlRig.ControlCustomizations",
+      "/Script/ControlRig.ControlRig.DataSourceRegistry",
+      "/Script/ControlRig.ControlRig.DynamicHierarchy",
+      "/Script/ControlRig.ControlRig.ExecutionType",
+      "/Script/ControlRig.ControlRig.ExternalVariableDataAssetLinks",
+      "/Script/ControlRig.ControlRig.GizmoLibrary",
+      "/Script/ControlRig.ControlRig.HierarchySettings",
+      "/Script/ControlRig.ControlRig.Influences",
+      "/Script/ControlRig.ControlRig.InputProperties",
+      "/Script/ControlRig.ControlRig.InteractionRig",
+      "/Script/ControlRig.ControlRig.InteractionRigClass",
+      "/Script/ControlRig.ControlRig.OnControlSelected_BP",
+      "/Script/ControlRig.ControlRig.OutputProperties",
+      "/Script/ControlRig.ControlRig.OverrideAssets",
+      "/Script/ControlRig.ControlRig.RigModuleSettings",
+      "/Script/ControlRig.ControlRig.RigVMExtendedExecuteContext",
+      "/Script/ControlRig.ControlRig.ShapeLibraries",
+      "/Script/ControlRig.ControlRig.ShapeLibraryNameMap",
+      "/Script/ControlRig.ControlRig.bControlsVisible",
+      "/Script/ControlRig.ControlRig.bIsAdditive",
+      "/Script/RigVM.RigVMHost.AssetUserData",
+      "/Script/RigVM.RigVMHost.AssetUserDataEditorOnly",
+      "/Script/RigVM.RigVMHost.DrawContainer",
+      "/Script/RigVM.RigVMHost.DrawInterface",
+      "/Script/RigVM.RigVMHost.EventQueue",
+      "/Script/RigVM.RigVMHost.ExtendedExecuteContext",
+      "/Script/RigVM.RigVMHost.GeneratedBy",
+      "/Script/RigVM.RigVMHost.RequiredPlugins",
+      "/Script/RigVM.RigVMHost.UserDefinedEnumToPathName",
+      "/Script/RigVM.RigVMHost.UserDefinedStructGuidToPathName",
+      "/Script/RigVM.RigVMHost.UserDefinedTypesInUse",
+      "/Script/RigVM.RigVMHost.VM",
+      "/Script/RigVM.RigVMHost.VMRuntimeSettings",
+      "/Script/RigVM.RigVMHost.Variables",
+      "/Script/RigVM.RigVMHost.bIsInDebugMode",
+      "eyes_aim_rig"
+    ]
+  }
+}

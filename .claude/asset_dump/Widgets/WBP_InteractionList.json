@@ -156,8 +156,20 @@
     ],
     "widget_tree": [
       {
-        "class": "/Script/CommonUI.CommonListView",
-        "name": "CommonListView_38"
+        "children": [
+          {
+            "children": [
+              {
+                "class": "/Script/CommonUI.CommonListView",
+                "name": "CommonListView_38"
+              }
+            ],
+            "class": "/Script/UMG.SizeBox",
+            "name": "SizeBox_0"
+          }
+        ],
+        "class": "/Script/UMG.CanvasPanel",
+        "name": "CanvasPanel_0"
       }
     ]
   }

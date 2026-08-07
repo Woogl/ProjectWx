@@ -11,6 +11,9 @@
         "gameplayTags": [
           {
             "tagName": "Ability.Ultimate"
+          },
+          {
+            "tagName": "Ability.Exclusive"
           }
         ]
       },
@@ -43,14 +46,14 @@
       "blockAbilitiesWithTag": {
         "gameplayTags": [
           {
-            "tagName": "Ability"
+            "tagName": "Ability.Exclusive"
           }
         ]
       },
       "cancelAbilitiesWithTag": {
         "gameplayTags": [
           {
-            "tagName": "Ability"
+            "tagName": "Ability.Exclusive"
           }
         ]
       },

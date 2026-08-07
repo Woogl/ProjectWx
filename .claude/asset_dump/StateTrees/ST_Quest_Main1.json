@@ -47,8 +47,8 @@
                     "node": "/Script/WxQuest.WxStateTreeTask_SetQuestObjective"
                   },
                   {
-                    "desc": "Mark Indicator (WxSpawner_UAID_345A6050E8ACCDF102_1126150075)",
-                    "node": "/Script/WxUI.WxStateTreeTask_MarkIndicator"
+                    "desc": "Mark Indicators (WxSpawner_UAID_345A6050E8ACCDF102_1126150075)",
+                    "node": "/Script/WxUI.WxStateTreeTask_MarkIndicators"
                   },
                   {
                     "desc": "Disable Npc Interaction (unloaded)",
@@ -85,7 +85,7 @@
                     "node": "/Script/WxWorld.WxStateTreeTask_TriggerSpawnersByLocator"
                   },
                   {
-                    "desc": "Print Subtitle (\"인간! 제거한다!\")",
+                    "desc": "Print Subtitle (ST_Quest_Main1_0)",
                     "node": "/Script/WxUI.WxStateTreeTask_PrintSubtitle"
                   },
                   {

@@ -251,7 +251,7 @@
           {
             "children": [],
             "class": "/Script/UMG.NamedSlot",
-            "name": "Overlay"
+            "name": "Screen"
           }
         ],
         "class": "/Script/UMG.CanvasPanel",

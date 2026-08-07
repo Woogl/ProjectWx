@@ -40,7 +40,7 @@
       "bOptimizeBPComponentData": false,
       "bRelevantForLevelBounds": true,
       "bReplayRewindable": false,
-      "bReplicateMovement": false,
+      "bReplicateMovement": true,
       "bReplicateUsingRegisteredSubObjectList": false,
       "bReplicates": true,
       "contentBundleGuid": {
@@ -190,10 +190,6 @@
             "responseArray": [
               {
                 "channel": "EngineTraceChannel1",
-                "response": "ECR_BLOCK"
-              },
-              {
-                "channel": "WxInteractable",
                 "response": "ECR_BLOCK"
               },
               {
