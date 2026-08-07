@@ -113,6 +113,13 @@ void UWxCombatAttributeSet::PostAttributeChange(const FGameplayAttribute& Attrib
 {
 	Super::PostAttributeChange(Attribute, OldValue, NewValue);
 
+	// 이 훅은 클라이언트의 복제 수신 경로에서도 호출된다. 아래 파생 갱신은 서버가 정해 복제하므로 권위 측에서만 실행한다.
+	UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+	if (!ASC || !ASC->IsOwnerActorAuthoritative())
+	{
+		return;
+	}
+
 	if (Attribute == GetMaxHPAttribute() && OldValue > 0.f && NewValue > 0.f)
 	{
 		const float Ratio = GetHP() / OldValue;
@@ -128,20 +135,15 @@ void UWxCombatAttributeSet::PostAttributeChange(const FGameplayAttribute& Attrib
 		const float Ratio = GetMP() / OldValue;
 		SetMP(NewValue * Ratio);
 	}
-	else if (Attribute == GetDPAttribute())
+	else if (Attribute == GetDPAttribute() && GetMaxDP() > 0.f)
 	{
-		// 이 훅은 클라이언트의 복제 수신 경로에서도 호출된다. 그로기 태그는 서버가 붙여 복제되므로 권위 측에서만 토글한다.
-		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
-		if (ASC && ASC->IsOwnerActorAuthoritative() && GetMaxDP() > 0.f)
+		if (GetDP() >= GetMaxDP() && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
 		{
-			if (GetDP() >= GetMaxDP() && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
-			{
-				ASC->AddLooseGameplayTag(WxGameplayTags::State_Groggy, 1, EGameplayTagReplicationState::TagOnly);
-			}
-			else if (GetDP() <= 0.f && ASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
-			{
-				ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Groggy, 1, EGameplayTagReplicationState::TagOnly);
-			}
+			ASC->AddLooseGameplayTag(WxGameplayTags::State_Groggy, 1, EGameplayTagReplicationState::TagOnly);
+		}
+		else if (GetDP() <= 0.f && ASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
+		{
+			ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Groggy, 1, EGameplayTagReplicationState::TagOnly);
 		}
 	}
 }
