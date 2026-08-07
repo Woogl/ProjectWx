@@ -55,13 +55,12 @@ class WXGAME_API UWxMetaHumanVisualComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:
+protected:
 	//~ Begin UActorComponent
 	virtual void OnRegister() override;
 	virtual void OnUnregister() override;
 	//~ End UActorComponent
-
-protected:
+	
 	/** 페이스 스켈레탈 메시. 비워두면 페이스와 그룸을 만들지 않는다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Visual")
 	TObjectPtr<USkeletalMesh> FaceMesh;
