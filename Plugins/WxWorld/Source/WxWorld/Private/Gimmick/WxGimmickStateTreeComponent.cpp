@@ -12,6 +12,7 @@
 #include "StructUtils/InstancedStruct.h"
 #include "StructUtils/StructView.h"
 #include "WxGameplayTags.h"
+#include "WxWorldModule.h"
 
 void FWxGimmickStateTreeExecutionExtension::ScheduleNextTick(const FContextParameters& Context, const FNextTickArguments& Args)
 {
@@ -214,6 +215,14 @@ void UWxGimmickStateTreeComponent::BeginPlay()
 
 	// 자동 시작이 끝난 시점의 상태를 한 번 기록한다. 이후 갱신은 틱이 맡는다.
 	RefreshStateTag();
+
+	// 오너가 복제되지 않으면 StateTag 도 Multicast_Interact 도 나가지 않아 클라 수렴이 통째로 죽는다.
+	// 로컬 플레이에선 정상으로 보여 발견이 늦으므로 여기서 알린다.
+	const AActor* Owner = GetOwner();
+	if (Owner && !Owner->GetIsReplicated())
+	{
+		UE_LOG(LogWxWorld, Error, TEXT("Gimmick: %s 의 Replicates 가 꺼져 있어 상태 복제·상호작용 멀티캐스트가 동작하지 않는다."), *Owner->GetName());
+	}
 }
 
 void UWxGimmickStateTreeComponent::OnRep_StateTag()

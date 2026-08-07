@@ -31,7 +31,7 @@
 | `UWxWorldDeveloperSettings` | 스포너 클래스별 에디터 아이콘 매핑 | `Source/WxWorld/Public/System/WxWorldDeveloperSettings.h` |
 
 ## 확장 포인트 / 규약
-- **새 기믹**: 전용 액터 불필요. 임의 액터에 `UWxGimmickStateTreeComponent`를 붙이고 StateTree 에셋을 지정하면 기믹이 된다. 상태 식별은 엔진 순정 상태 Tag이며, 상태 디테일의 Tag 필드에 단 값이 곧 세이브 키다(에셋 내 유일). 상태 전이는 전부 ST 에셋이 정하고, 컴포넌트는 목적지를 모른다.
+- **새 기믹**: 전용 액터 불필요. 임의 액터에 `UWxGimmickStateTreeComponent`를 붙이고 StateTree 에셋을 지정하면 기믹이 된다. 상태 식별은 엔진 순정 상태 Tag이며, 상태 디테일의 Tag 필드에 단 값이 곧 세이브 키다(에셋 내 유일). 상태 전이는 전부 ST 에셋이 정하고, 컴포넌트는 목적지를 모른다. **오너 액터의 Replicates를 반드시 켠다** — 컴포넌트는 자기 몫만 켤 수 있어 꺼져 있으면 상태 복제·상호작용 멀티캐스트가 죽는다(로컬 플레이에선 정상으로 보이므로 `BeginPlay`가 Error 로그로 알린다).
 - **새 연출**: `FWxStateTreeTask_*`를 추가한다. 노드는 소유 액터의 얇은 프리미티브만 호출하고 기믹 종류를 모른다. 초기 진입(시작/복원/레이트조인)과 라이브 전이는 `Transition.SourceStateID` 유효성으로 구분 — 발동형 액션은 라이브에서만, 상태형 포즈는 진입 경로 무관하게 수렴시킨다.
 - **새 스폰 대상**: `AActor`에 `IWxSpawnable`을 구현하고 `AWxSpawner::SpawnableActorClass`(MustImplement로 강제)에 지정한다. 보스 등 부활 금지는 `bNeverRevive`, 외부 트리거 전용은 `SpawnMode=Manual`.
 - **리플리케이션**: 기믹은 권위 측이 활성 상태 Tag를 `StateTag`(Replicated+SaveGame)에 폴링 기록하고, 클라는 멀티캐스트 이벤트로 같은 전이를 밟되 어긋난 피어는 `OnRep_StateTag`로 그 상태에서 재시작해 수렴한다. 상호작용 스캐너는 소유 클라 전용(복제 안 됨)이고 선택은 `ServerInteract`로 메시 포인터를 원자 전송한다.

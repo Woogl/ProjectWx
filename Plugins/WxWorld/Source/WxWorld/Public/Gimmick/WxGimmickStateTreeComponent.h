@@ -61,6 +61,7 @@ struct FWxGimmickInteractEvent
  *  - 권위 측은 틱마다 활성 상태의 Tag 를 StateTag 에 기록한다. 상태 변화는 전부 트리 틱 안에서 일어나므로 이 폴링이 전부를 잡는다.
  *  - 클라는 멀티캐스트 이벤트로 같은 전이를 밟아 비주얼을 따라간다. 어긋난 피어(늦은 참여·스트리밍 인)는 복제된 StateTag 로 그 상태에서 트리를 재시작해 수렴한다.
  *  - 복원·재시작 진입은 SourceStateID 가 무효인 초기 진입이라, 노드들이 별도 마커 없이 스냅·스킵으로 처리한다.
+ *  - 위 두 경로 모두 오너 액터의 Replicates 가 켜져 있어야 성립한다. 컴포넌트는 자기 몫만 켤 수 있어 오너는 배치 측 책임이며, 꺼져 있으면 BeginPlay 가 Error 로그를 남긴다.
  */
 UCLASS(ClassGroup = "Wx", meta = (BlueprintSpawnableComponent))
 class WXWORLD_API UWxGimmickStateTreeComponent : public UStateTreeComponent, public IWxSavable, public IWxInteractable
