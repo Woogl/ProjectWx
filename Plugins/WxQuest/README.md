@@ -16,7 +16,7 @@
 - 보상 지급 등 크로스모듈 부수효과 — 본 모듈 밖 ST 노드/도메인
 
 ## 의존성
-- **주요 의존**: `WxCore`(`FWxActorTarget` 레벨 액터 지정), StateTree / GameplayStateTree(러너·노드 베이스), ModularGameplay(`UGameStateComponent`), UniversalObjectLocator
+- **주요 의존**: `WxCore`(`Quest.Fail` 태그), StateTree / GameplayStateTree(러너·노드 베이스), ModularGameplay(`UGameStateComponent`), UniversalObjectLocator(레벨 액터 지정)
 - 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅
 
 ## 핵심 타입 (진입점)
@@ -27,7 +27,7 @@
 | `UWxQuestLibrary` | BP 진입점(`ActivateQuest`/`SendQuestEvent`). 시작 볼륨·레벨 스크립트→컴포넌트 위임 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestLibrary.h` |
 | `FWxStateTreeTask_SetQuestTitle` | 진입 시 저널 제목 등록. 완료를 내지 않고 상태에 상주(완료 판정 참여) | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestStateTreeNodes.h` |
 | `FWxStateTreeTask_SetQuestObjective` | 상태 수명 동안 목표 표시(진입 등록·이탈 회수). 완료 판정 미참여 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestStateTreeNodes.h` |
-| `FWxStateTreeTask_WaitMoveToTarget` | 플레이어 폰이 대상 반경 도달까지 Running 대기, 도달 시 완료 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestStateTreeNodes.h` |
+| `FWxStateTreeTask_WaitMoveToTarget` | 플레이어 폰이 지정 대상 중 하나의 반경에 닿을 때까지 Running 대기, 도달 시 완료 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestStateTreeNodes.h` |
 | `FWxStateTreeTask_ActivateNextQuest` | 다음 퀘스트 활성화를 다음 틱 예약, 즉시 완료(체인) | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestStateTreeNodes.h` |
 
 ## 확장 포인트 / 규약
@@ -36,7 +36,7 @@
 - **저널 태스크의 완료 판정 참여는 얹히는 상태로 갈린다** — SetQuestTitle 은 자식을 둔 상태에 홀로 얹혀 판정에 참여하고(빠지면 형제 완료를 물려받음), SetQuestObjective 는 Wait 태스크와 같은 상태에 얹혀 `bConsideredForCompletion=false`(끼면 그 상태가 영영 완료 안 됨). 둘 다 완료를 내지 않고 상주하며, 상태 완료는 짝이 되는 Wait 태스크가 낸다.
 - **저널 정리는 노드가 아님** — 트리 종료(완료·실패·교체 세 경로)를 컴포넌트가 러너 RunStatus 콜백 한 곳에서 감지해 자동 정리한다.
 - **러너 재시작은 다음 틱** — ST 실행 콜스택 안 재진입 금지. 콜스택 안 요청은 `RequestActivateQuest` 로 다음 틱 예약.
-- **레벨 액터 지정**: `FWxActorTarget`(내부 FUniversalObjectLocator)로 배치 액터 직접 지정, 매 틱 SyncFind(강제 로드·캐시 없음). 러너가 이미 권위 전용이니 기믹 노드의 권위/스킵 게이트를 복사하지 말 것.
+- **레벨 액터 지정**: `TArray<FUniversalObjectLocator>`로 배치 액터 직접 지정, 매 틱 SyncFind(강제 로드·캐시 없음). 배열이라 ST 에디터 값 위젯 제한(직속 UOL 멤버)에 걸리지 않는다. 러너가 이미 권위 전용이니 기믹 노드의 권위/스킵 게이트를 복사하지 말 것.
 
 ## 여기서부터 읽어라
 1. `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestComponent.h` — 러너 권위 구동·저널·수주 경로가 응축된 시스템 관문
@@ -44,7 +44,7 @@
 3. `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp` — 권위 게이트·다음 틱 시작·RunStatus 콜백 정리의 실제 흐름
 
 ## 관련
-- 상위: [[WxCore]] (`FWxActorTarget`)
+- 상위: [[WxCore]] (`Quest.Fail` 태그)
 - 소비: [[WxUI]] (저널 델리게이트 구독)
 
 ---

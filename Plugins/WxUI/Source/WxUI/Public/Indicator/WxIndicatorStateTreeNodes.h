@@ -19,7 +19,7 @@ class UWxIndicatorDescriptor;
  * 퀘스트 같은 소비 도메인이 UI 모듈을 참조하지 않고도 에셋에서 이 노드를 골라 쓸 수 있다.
  *
  * 레벨 액터 지정은 FUniversalObjectLocator 로 배치 액터를 직접 지정한다(순수 구조체라 ST 컴파일러의 레벨 액터 참조 검증에 걸리지 않고, 씬 픽커·WP·PIE 해석이 엔진에 내장).
- * 배열 원소는 값 위젯이 정상적으로 만들어진다 — 직속 UOL 멤버만 ST 에디터가 값 위젯을 만들지 못하는 엔진 제한에 걸린다(FWxActorTarget 주석 참조).
+ * 하나만 쓸 자리라도 배열로 받는다 — 인스턴스 데이터의 직속 UOL 멤버는 ST 에디터가 값 위젯을 만들지 못하는 엔진(5.8) 제한에 걸리고, 배열 원소는 그렇지 않다.
  */
 
 // ── MarkIndicators: 지정 대상들 위에 화면 인디케이터 표시 ─────────────────────
@@ -33,9 +33,9 @@ struct FWxStateTreeTask_MarkIndicatorsInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedLocators = "Actor"))
 	TArray<FUniversalObjectLocator> Targets;
 
-	/** 대상 원점에서 위로 올릴 높이(cm). 액터 원점이 보통 발밑이므로 머리 위를 가리키게 한다. 전 대상 공통이다. */
+	/** 대상 원점에서 위로 올릴 높이(cm). */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
-	float WorldZOffset = 150.f;
+	float WorldZOffset = 100.f;
 
 	/**
 	 * (런타임) 이 노드가 실제로 등록한 인디케이터. 해제는 이 기록만 근거로 한다.

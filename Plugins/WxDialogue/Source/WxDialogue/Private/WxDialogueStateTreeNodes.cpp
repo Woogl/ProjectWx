@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "StateTreeExecutionContext.h"
+#include "UniversalObjectLocators/ActorLocatorFragment.h"
 #include "WxDialogueModule.h"
 #include "WxDialogueSessionComponent.h"
 #include "WxNpc.h"
@@ -20,26 +21,34 @@ namespace
 	}
 
 	/**
-	 * 대상을 다시 해석해, 앞서 토글을 걸어 준 NPC 와 다를 때만 적용한다.
+	 * 대상마다 다시 해석해, 앞서 그 자리에 토글을 걸어 준 NPC 와 다를 때만 적용한다.
 	 * 재로드로 액터가 새로 만들어지면 콜리전이 레벨 값으로 돌아가 있으므로 그때 다시 걸어야 하고, 같은 액터면 이미 적용돼 있어 건드리지 않는다.
 	 */
 	void RefreshNpcInteraction(const FStateTreeExecutionContext& Context, FWxStateTreeTask_EnableNpcInteractionInstanceData& Instance)
 	{
-		AWxNpc* Npc = Cast<AWxNpc>(Instance.Target.Locator.SyncFind(Cast<AActor>(Context.GetOwner())));
-		if (!Npc)
-		{
-			// 미지정·NPC 아님(잘못된 조립)과 스트리밍 아웃(정상)이 여기로 함께 들어온다. 기록을 비워 다시 로드되면 그때 적용한다.
-			Instance.AppliedNpc.Reset();
-			return;
-		}
+		AActor* Owner = Cast<AActor>(Context.GetOwner());
 
-		if (Instance.AppliedNpc.Get() == Npc)
-		{
-			return;
-		}
+		// 기록은 지정과 같은 인덱스로 짝을 이룬다.
+		Instance.AppliedNpcs.SetNum(Instance.Targets.Num());
 
-		Npc->SetInteractionEnabled(Instance.bEnable);
-		Instance.AppliedNpc = Npc;
+		for (int32 Index = 0; Index < Instance.Targets.Num(); ++Index)
+		{
+			AWxNpc* Npc = Cast<AWxNpc>(Instance.Targets[Index].SyncFind(Owner));
+			if (!Npc)
+			{
+				// 미지정·NPC 아님(잘못된 조립)과 스트리밍 아웃(정상)이 여기로 함께 들어온다. 기록을 비워 다시 로드되면 그때 적용한다.
+				Instance.AppliedNpcs[Index].Reset();
+				continue;
+			}
+
+			if (Instance.AppliedNpcs[Index].Get() == Npc)
+			{
+				continue;
+			}
+
+			Npc->SetInteractionEnabled(Instance.bEnable);
+			Instance.AppliedNpcs[Index] = Npc;
+		}
 	}
 
 #if WITH_EDITOR
@@ -49,15 +58,53 @@ namespace
 		return Row.RowName.IsNone() ? INVTEXT("unset") : FText::FromName(Row.RowName);
 	}
 
-	/** 대상 액터의 표시명. 해석되면 액터 라벨(아웃라이너와 동일), 아니면 미지정과 미로드를 갈라 보여준다. */
-	FText GetTargetText(const FUniversalObjectLocator& Locator)
+	/** 로케이터의 표시명. 에디터에서 해석되면 액터 라벨(아웃라이너와 동일), 미해석이면 경로 끝 오브젝트 이름, 빈 로케이터는 unset. */
+	FString GetTargetDisplayName(const FUniversalObjectLocator& Locator)
 	{
-		if (const AActor* Actor = Cast<AActor>(Locator.SyncFind()))
+		if (Locator.IsEmpty())
 		{
-			return FText::FromString(Actor->GetActorLabel());
+			return TEXT("unset");
 		}
 
-		return Locator.IsEmpty() ? INVTEXT("unset") : INVTEXT("unloaded");
+		if (const AActor* Actor = Cast<AActor>(Locator.SyncFind()))
+		{
+			return Actor->GetActorLabel();
+		}
+
+		// 미해석(언로드 등)이면 액터 프래그먼트의 소프트 경로 끝 이름이라도 보여준다.
+		const FUniversalObjectLocatorFragment* Fragment = Locator.GetLastFragment();
+		const FActorLocatorFragment* Payload = nullptr;
+		if (Fragment && Fragment->TryGetPayloadAs(FActorLocatorFragment::FragmentType, Payload) && Payload)
+		{
+			const FString SubPath = Payload->Path.GetSubPathString();
+			int32 DotIndex = INDEX_NONE;
+			return SubPath.FindLastChar(TEXT('.'), DotIndex) ? SubPath.Mid(DotIndex + 1) : SubPath;
+		}
+
+		return TEXT("unresolved");
+	}
+
+	/** 지정 목록의 표시 텍스트. 라벨 3개까지 나열하고 초과분은 +N 로 줄인다. 빈 배열은 none. */
+	FText GetTargetsText(const TArray<FUniversalObjectLocator>& Targets)
+	{
+		if (Targets.IsEmpty())
+		{
+			return INVTEXT("none");
+		}
+
+		constexpr int32 MaxNames = 3;
+		TArray<FString> Names;
+		for (int32 Index = 0; Index < Targets.Num() && Index < MaxNames; ++Index)
+		{
+			Names.Add(GetTargetDisplayName(Targets[Index]));
+		}
+
+		FString Joined = FString::Join(Names, TEXT(", "));
+		if (Targets.Num() > MaxNames)
+		{
+			Joined += FString::Printf(TEXT(" +%d"), Targets.Num() - MaxNames);
+		}
+		return FText::FromString(Joined);
 	}
 #endif
 }
@@ -199,20 +246,29 @@ EStateTreeRunStatus FWxStateTreeTask_EnableNpcInteraction::EnterState(FStateTree
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
 	// 잘못된 조립만 여기서 한 번 가른다. 미해석(스트리밍 아웃)은 정상 상황이라 경고하지 않는다 — 매 틱 재시도하는 판이라 로그가 폭주하기도 한다.
-	if (Instance.Target.Locator.IsEmpty())
+	if (Instance.Targets.IsEmpty())
 	{
-		UE_LOG(LogWxDialogue, Warning, TEXT("Enable Npc Interaction: 대상이 지정되지 않음(Target 빈 로케이터)."));
+		UE_LOG(LogWxDialogue, Warning, TEXT("Enable Npc Interaction: 토글할 대상이 지정되지 않음."));
 	}
-	else if (const UObject* Object = Instance.Target.Locator.SyncFind(Cast<AActor>(Context.GetOwner())))
+	for (const FUniversalObjectLocator& Locator : Instance.Targets)
 	{
-		if (!Object->IsA<AWxNpc>())
+		if (Locator.IsEmpty())
 		{
-			UE_LOG(LogWxDialogue, Warning, TEXT("Enable Npc Interaction: 대상 %s 이(가) NPC 가 아님(Target)."), *GetNameSafe(Object));
+			UE_LOG(LogWxDialogue, Warning, TEXT("Enable Npc Interaction: 빈 로케이터 항목이 있음(지정 %d개)."), Instance.Targets.Num());
+			break;
+		}
+	}
+	for (const FUniversalObjectLocator& Locator : Instance.Targets)
+	{
+		const UObject* Object = Locator.SyncFind(Cast<AActor>(Context.GetOwner()));
+		if (Object && !Object->IsA<AWxNpc>())
+		{
+			UE_LOG(LogWxDialogue, Warning, TEXT("Enable Npc Interaction: 대상 %s 이(가) NPC 가 아님."), *GetNameSafe(Object));
 		}
 	}
 
 	// 이전 실행의 잔존 기록을 비우고 첫 적용을 시도한다. 대상이 아직 언로드면 Tick 이 재시도한다.
-	Instance.AppliedNpc.Reset();
+	Instance.AppliedNpcs.Reset();
 	RefreshNpcInteraction(Context, Instance);
 
 	return EStateTreeRunStatus::Running;
@@ -235,6 +291,6 @@ FText FWxStateTreeTask_EnableNpcInteraction::GetDescription(const FGuid& ID, FSt
 	// 켜기·끄기가 한눈에 갈리도록 표시명 자체를 바꾼다(노드 목록에서 값을 펼치지 않고도 읽힌다).
 	const FText Action = InstanceData->bEnable ? INVTEXT("Enable") : INVTEXT("Disable");
 
-	return FText::Format(INVTEXT("{0} Npc Interaction ({1})"), Action, GetTargetText(InstanceData->Target.Locator));
+	return FText::Format(INVTEXT("{0} Npc Interaction ({1})"), Action, GetTargetsText(InstanceData->Targets));
 }
 #endif

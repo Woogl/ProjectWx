@@ -7,7 +7,6 @@
 - 프로젝트 전역 Native Gameplay Tag의 단일 선언처 (`WxGameplayTags`)
 - 커스텀 콜리전 채널 상수 정의 (`ECC_WxAttack`)
 - 도메인 간 직접 의존을 끊는 공용 계약 인터페이스: 상호작용(`IWxInteractable`), 세이브 참여(`IWxSavable`)
-- 여러 도메인 StateTree 노드가 공유하는 값 래퍼 (`FWxActorTarget`)
 
 **경계 (비담당)**
 - 상호작용 스캐너·어빌리티 실제 구현 — 계약만 제공, 소비는 [[WxWorld]]·[[WxCombat]]
@@ -16,8 +15,8 @@
 - 콜리전 채널의 ini 등록·프로파일 응답 — 프로젝트 설정(`Config/DefaultEngine.ini`)
 
 ## 의존성
-- **주요 의존**: 없음(Wx 플러그인 무참조). 엔진 `GameplayTags`(Native Tag 매크로), `UniversalObjectLocator`(FWxActorTarget)에만 의존. GAS 등 어떤 도메인 서브시스템에도 의존하지 않는다.
-- 규칙: foundation 모듈로서 다른 Wx 플러그인을 참조하지 않아야 함 — `WxCore.Build.cs`의 `PublicDependencyModuleNames`는 `Core`/`CoreUObject`/`Engine`/`GameplayTags`/`UniversalObjectLocator`뿐, `WxCore.uplugin`에 Plugins 의존 0 → 없음 ✅
+- **주요 의존**: 없음(Wx 플러그인 무참조). 엔진 `GameplayTags`(Native Tag 매크로)에만 의존. GAS 등 어떤 도메인 서브시스템에도 의존하지 않는다.
+- 규칙: foundation 모듈로서 다른 Wx 플러그인을 참조하지 않아야 함 — `WxCore.Build.cs`의 `PublicDependencyModuleNames`는 `Core`/`CoreUObject`/`Engine`/`GameplayTags`뿐, `WxCore.uplugin`에 Plugins 의존 0 → 없음 ✅
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
@@ -26,7 +25,6 @@
 | `IWxInteractable` | 상호작용 대상 계약. 대상 액터가 직접 구현, 소비처는 `Find`로 조회 | `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h` |
 | `IWxSavable` | 세이브 라이프사이클 참여 마커 + 후크(`GetSaveId`/`OnSaveRestored`) | `Plugins/WxCore/Source/WxCore/Public/WxSavable.h` |
 | `ECC_WxAttack` | 무기·투사체 히트박스용 커스텀 Object Channel 상수(`ECC_GameTraceChannel1`) | `Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h` |
-| `FWxActorTarget` | UOL을 감싸 ST 인스턴스 데이터 픽커 제한(5.8)을 우회하는 래퍼 | `Plugins/WxCore/Source/WxCore/Public/WxActorTarget.h` |
 | `FWxCoreModule` | 모듈 진입점(Startup/Shutdown, 별도 부트스트랩 없음) | `Plugins/WxCore/Source/WxCore/Public/WxCoreModule.h` |
 
 ## Gameplay Tags

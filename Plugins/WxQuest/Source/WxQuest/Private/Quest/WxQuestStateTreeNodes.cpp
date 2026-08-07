@@ -29,16 +29,16 @@ namespace
 
 #if WITH_EDITOR
 	/** 로케이터의 표시명. 에디터에서 해석되면 액터 라벨(아웃라이너와 동일), 미해석이면 경로 끝 오브젝트 이름, 빈 로케이터는 unset. */
-	FText GetTargetText(const FUniversalObjectLocator& Locator)
+	FString GetTargetDisplayName(const FUniversalObjectLocator& Locator)
 	{
 		if (Locator.IsEmpty())
 		{
-			return INVTEXT("unset");
+			return TEXT("unset");
 		}
 
 		if (const AActor* Actor = Cast<AActor>(Locator.SyncFind()))
 		{
-			return FText::FromString(Actor->GetActorLabel());
+			return Actor->GetActorLabel();
 		}
 
 		// 미해석(언로드 등)이면 액터 프래그먼트의 소프트 경로 끝 이름이라도 보여준다.
@@ -48,10 +48,33 @@ namespace
 		{
 			const FString SubPath = Payload->Path.GetSubPathString();
 			int32 DotIndex = INDEX_NONE;
-			return FText::FromString(SubPath.FindLastChar(TEXT('.'), DotIndex) ? SubPath.Mid(DotIndex + 1) : SubPath);
+			return SubPath.FindLastChar(TEXT('.'), DotIndex) ? SubPath.Mid(DotIndex + 1) : SubPath;
 		}
 
-		return INVTEXT("unresolved");
+		return TEXT("unresolved");
+	}
+
+	/** 지정 목록의 표시 텍스트. 라벨 3개까지 나열하고 초과분은 +N 로 줄인다. 빈 배열은 none. */
+	FText GetTargetsText(const TArray<FUniversalObjectLocator>& Targets)
+	{
+		if (Targets.IsEmpty())
+		{
+			return INVTEXT("none");
+		}
+
+		constexpr int32 MaxNames = 3;
+		TArray<FString> Names;
+		for (int32 Index = 0; Index < Targets.Num() && Index < MaxNames; ++Index)
+		{
+			Names.Add(GetTargetDisplayName(Targets[Index]));
+		}
+
+		FString Joined = FString::Join(Names, TEXT(", "));
+		if (Targets.Num() > MaxNames)
+		{
+			Joined += FString::Printf(TEXT(" +%d"), Targets.Num() - MaxNames);
+		}
+		return FText::FromString(Joined);
 	}
 #endif
 }
@@ -60,9 +83,6 @@ namespace
 
 FWxStateTreeTask_SetQuestTitle::FWxStateTreeTask_SetQuestTitle()
 {
-	// 완료 없이 머무는 태스크다. 재진입은 제목을 다시 걸며 목표 목록을 비우므로, 스텝이 넘어갈 때마다 목표가 지워졌다 붙는다.
-	bShouldStateChangeOnReselect = false;
-
 	// 진입 시 1회 등록만 하므로 틱이 불필요하다.
 	bShouldCallTick = false;
 }
@@ -80,7 +100,7 @@ EStateTreeRunStatus FWxStateTreeTask_SetQuestTitle::EnterState(FStateTreeExecuti
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 	QuestComponent->SetQuestTitle(Instance.QuestTitle);
 
-	return EStateTreeRunStatus::Running;
+	return EStateTreeRunStatus::Succeeded;
 }
 
 #if WITH_EDITOR
@@ -98,16 +118,8 @@ FText FWxStateTreeTask_SetQuestTitle::GetDescription(const FGuid& ID, FStateTree
 
 FWxStateTreeTask_SetQuestObjective::FWxStateTreeTask_SetQuestObjective()
 {
-	// 완료 없이 머무는 태스크다. 재선택마다 재진입하면 ExitState 가 목표를 걷어가 표시가 깜빡인다.
-	bShouldStateChangeOnReselect = false;
-
 	// 진입·이탈에서만 저널을 건드리므로 틱이 불필요하다.
 	bShouldCallTick = false;
-
-#if WITH_EDITORONLY_DATA
-	// 대기 태스크와 같은 상태에 얹히므로 판정에서 뺀다 — 완료를 내지 않는 태스크가 판정에 끼면 그 상태가 영영 완료되지 않는다.
-	bConsideredForCompletion = false;
-#endif
 }
 
 EStateTreeRunStatus FWxStateTreeTask_SetQuestObjective::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
@@ -124,7 +136,7 @@ EStateTreeRunStatus FWxStateTreeTask_SetQuestObjective::EnterState(FStateTreeExe
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 	Instance.ObjectiveHandle = QuestComponent->AddObjective(Instance.ObjectiveText);
 
-	return EStateTreeRunStatus::Running;
+	return EStateTreeRunStatus::Succeeded;
 }
 
 void FWxStateTreeTask_SetQuestObjective::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
@@ -163,9 +175,17 @@ EStateTreeRunStatus FWxStateTreeTask_WaitMoveToTarget::EnterState(FStateTreeExec
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
 	// 대상 미지정은 완료될 수 없는 잘못된 조립이다. 침묵 대기 대신 경고를 남긴다.
-	if (Instance.Target.Locator.IsEmpty())
+	if (Instance.Targets.IsEmpty())
 	{
-		UE_LOG(LogWxQuest, Warning, TEXT("Wait Move To Target: 대상이 지정되지 않음(Target 빈 로케이터)."));
+		UE_LOG(LogWxQuest, Warning, TEXT("Wait Move To Target: 도달을 판정할 대상이 지정되지 않음."));
+	}
+	for (const FUniversalObjectLocator& Locator : Instance.Targets)
+	{
+		if (Locator.IsEmpty())
+		{
+			UE_LOG(LogWxQuest, Warning, TEXT("Wait Move To Target: 빈 로케이터 항목이 있음(지정 %d개)."), Instance.Targets.Num());
+			break;
+		}
 	}
 
 	return EStateTreeRunStatus::Running;
@@ -181,18 +201,22 @@ EStateTreeRunStatus FWxStateTreeTask_WaitMoveToTarget::Tick(FStateTreeExecutionC
 		return EStateTreeRunStatus::Running;
 	}
 
-	// 미해석(빈 로케이터·스트리밍 아웃)·폰 부재 동안은 판정 없이 대기한다.
-	const AActor* Target = ResolveTargetActor(Instance.Target.Locator, Owner);
+	// 폰 부재 동안은 판정 없이 대기한다.
 	const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(Owner, 0);
 	const APawn* Pawn = PlayerController ? PlayerController->GetPawn() : nullptr;
-	if (!Target || !Pawn)
+	if (!Pawn)
 	{
 		return EStateTreeRunStatus::Running;
 	}
 
-	if (FVector::Dist(Pawn->GetActorLocation(), Target->GetActorLocation()) <= Instance.AcceptRadius)
+	// 하나라도 반경 안이면 도달이다. 미해석(빈 로케이터·스트리밍 아웃)인 대상은 그 자리만 판정에서 빠진다.
+	for (const FUniversalObjectLocator& Locator : Instance.Targets)
 	{
-		return EStateTreeRunStatus::Succeeded;
+		const AActor* Target = ResolveTargetActor(Locator, Owner);
+		if (Target && FVector::Dist(Pawn->GetActorLocation(), Target->GetActorLocation()) <= Instance.AcceptRadius)
+		{
+			return EStateTreeRunStatus::Succeeded;
+		}
 	}
 
 	return EStateTreeRunStatus::Running;
@@ -204,7 +228,7 @@ FText FWxStateTreeTask_WaitMoveToTarget::GetDescription(const FGuid& ID, FStateT
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Wait Move To Target ({0})"), GetTargetText(InstanceData->Target.Locator));
+	return FText::Format(INVTEXT("Wait Move To Target ({0})"), GetTargetsText(InstanceData->Targets));
 }
 #endif
 

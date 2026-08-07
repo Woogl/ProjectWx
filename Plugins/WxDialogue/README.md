@@ -13,10 +13,10 @@
 **경계 (비담당)**
 - 대화 창 열고 닫기·위젯·뷰모델 — 세션은 `State.Dialogue` 태그와 대사 변경 델리게이트만 발행, 위임 [[WxUI]]
 - 대화의 의미 해석(수주·납품 판정)과 대화를 여는 퀘스트 진행 — 위임 [[WxQuest]]
-- 상호작용 스캔·발동·프롬프트 계약(`IWxInteractable`)·`FWxActorTarget`·`State.Dialogue` 태그 정의 — 위임 [[WxCore]]
+- 상호작용 스캔·발동·프롬프트 계약(`IWxInteractable`)·`State.Dialogue` 태그 정의 — 위임 [[WxCore]]
 
 ## 의존성
-- **주요 의존**: `WxCore`(`IWxInteractable`·`FWxActorTarget`·`WxGameplayTags::State_Dialogue`), `GameplayAbilities`(세션 중 ASC Loose 태그), `ModularGameplay`(컨트롤러 컴포넌트 주입), `StateTreeModule`(관찰·출력·토글 태스크)
+- **주요 의존**: `WxCore`(`IWxInteractable`·`WxGameplayTags::State_Dialogue`), `GameplayAbilities`(세션 중 ASC Loose 태그), `ModularGameplay`(컨트롤러 컴포넌트 주입), `StateTreeModule`(관찰·출력·토글 태스크), `UniversalObjectLocator`(NPC 배치 액터 지정)
 - 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅ (`.uplugin`·`Build.cs` 모두 `WxCore`만 참조. WxUI/WxQuest는 역방향 소비자로 이 모듈이 참조하지 않는다.)
 
 ## 핵심 타입 (진입점)
@@ -28,7 +28,7 @@
 | `AWxNpc` | 대화 NPC 베이스(Abstract). 메시가 상호작용 영역, 상호작용을 세션에 위임 | `Source/WxDialogue/Public/WxNpc.h` |
 | `FWxStateTreeTask_WaitDialogueCompleted` | 지정 대사를 거친 대화 완주를 관찰(퀘스트 게이트) | `Source/WxDialogue/Public/WxDialogueStateTreeNodes.h` |
 | `FWxStateTreeTask_PlayDialogue` | 트리가 대사를 열어 연출(독백·무전·처치 후) | `Source/WxDialogue/Public/WxDialogueStateTreeNodes.h` |
-| `FWxStateTreeTask_EnableNpcInteraction` | 지정 NPC의 상호작용을 (Target, bEnable)로 토글 | `Source/WxDialogue/Public/WxDialogueStateTreeNodes.h` |
+| `FWxStateTreeTask_EnableNpcInteraction` | 지정 NPC들의 상호작용을 (Targets, bEnable)로 토글 | `Source/WxDialogue/Public/WxDialogueStateTreeNodes.h` |
 
 ## 확장 포인트 / 규약
 - **새 대화**: `FWxDialogueTableRow` 로우 타입 DataTable을 만들고 `NextRow`로 노드를 잇는다(종료는 `NextRow=None` 하나로 표시하며, 대사는 모든 행이 채워야 한다 — 빈 대사는 경고 대상). 액터의 `UWxDialogueComponent::StartRow`에 시작 노드를 지정. `TargetPose`는 소프트 참조라 대사를 넘길 때 비동기 스트리밍되므로, 포즈를 많이 걸어도 레벨 로드 비용이 늘지 않는다. 분기(선택지)는 없다 — 필요해지면 그때 설계.
@@ -45,7 +45,7 @@
 
 ## 관련
 - 소비자: [[WxUI]](태그·델리게이트 구독으로 위젯 연결), [[WxQuest]](ST 노드로 대화 관찰·출력)
-- 상위 계약: [[WxCore]](`IWxInteractable`·`FWxActorTarget`·`State.Dialogue` 태그)
+- 상위 계약: [[WxCore]](`IWxInteractable`·`State.Dialogue` 태그)
 
 ---
 *문서 기준 커밋 `2fdf0ab` · 생성일 2026-08-06 · 소스 11파일 — `/readme-writer`로 갱신*
