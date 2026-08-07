@@ -285,7 +285,7 @@ const FWxAbilityTableRow* UWxAbilityBase::GetTableRow() const
 	{
 		return nullptr;
 	}
-	return AbilityDataRow.GetRow<FWxAbilityTableRow>(TEXT("WxAbilityBase::GetDataRow"));
+	return AbilityDataRow.GetRow<FWxAbilityTableRow>(TEXT("WxAbilityBase::GetTableRow"));
 }
 
 int32 UWxAbilityBase::QueryActiveCooldowns(const UAbilitySystemComponent& ASC, float& OutLongestRemaining, float& OutLongestDuration) const
