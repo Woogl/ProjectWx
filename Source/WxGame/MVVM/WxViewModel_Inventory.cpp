@@ -119,7 +119,6 @@ void UWxViewModel_Inventory::RefreshAllItems()
 {
 	UWxInventoryManagerComponent* Inventory = CachedInventory.Get();
 	TArray<TObjectPtr<UWxViewModel_Item>> NewItems;
-	TArray<TObjectPtr<UWxViewModel_Item>> Retained;
 
 	if (Inventory)
 	{
@@ -147,13 +146,12 @@ void UWxViewModel_Inventory::RefreshAllItems()
 			}
 
 			NewItems.Add(ChildVM);
-			Retained.Add(ChildVM);
 		}
 	}
 
 	for (UWxViewModel_Item* OldVM : AllItems)
 	{
-		if (OldVM && !Retained.Contains(OldVM))
+		if (OldVM && !NewItems.Contains(OldVM))
 		{
 			OldVM->Deinitialize();
 		}
