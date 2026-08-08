@@ -3,6 +3,7 @@
 #include "Character/WxCharacterBase.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
+#include "Character/WxMetaHumanVisualComponent.h"
 #include "Inventory/WxEquipmentComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/GameFrameworkComponentManager.h"
@@ -41,7 +42,9 @@ AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
 
 	WeaponActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("WeaponActor"));
 	WeaponActor->SetupAttachment(GetMesh(), TEXT("hand_r"));
-	
+
+	MetaHumanVisualComponent = CreateDefaultSubobject<UWxMetaHumanVisualComponent>(TEXT("MetaHumanVisualComponent"));
+
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw   = false;
 	bUseControllerRotationRoll  = false;

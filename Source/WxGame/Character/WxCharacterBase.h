@@ -17,6 +17,7 @@ class UMotionWarpingComponent;
 class UWxAbilitySystemComponent;
 class UWxCombatAttributeSet;
 class UWxEquipmentComponent;
+class UWxMetaHumanVisualComponent;
 class AWxWeaponBase;
 class USkeletalMesh;
 
@@ -89,6 +90,13 @@ protected:
 	 */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Equipment")
 	TObjectPtr<UChildActorComponent> WeaponActor;
+
+	/**
+	 * 메타휴먼 부착물(페이스·그룸·복장)을 바디 메시에 조립하는 컴포넌트.
+	 * BP 디폴트에서 에셋을 지정한 캐릭터만 부착물을 만들고, 비워두면 아무것도 만들지 않는다.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "Wx|Visual")
+	TObjectPtr<UWxMetaHumanVisualComponent> MetaHumanVisualComponent;
 
 	/**
 	 * ASC ActorInfo 설정, 어트리뷰트 콜백 등록, AbilitySet 부여를 수행.
