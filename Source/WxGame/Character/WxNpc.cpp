@@ -1,12 +1,11 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "WxNpc.h"
+#include "Character/WxNpc.h"
+
+#include "Character/WxMetaHumanVisualComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "GameFramework/Controller.h"
-#include "GameFramework/Pawn.h"
 #include "WxDialogueComponent.h"
-#include "WxDialogueSessionComponent.h"
 
 AWxNpc::AWxNpc()
 {
@@ -29,43 +28,14 @@ AWxNpc::AWxNpc()
 	// 캐릭터 계열은 이 정렬을 BP 에서 주지만, NPC 는 BP 마다 반복시키지 않고 여기서 준다.
 	MeshComponent->SetRelativeLocationAndRotation(FVector(0.f, 0.f, -90.f), FRotator(0.f, -90.f, 0.f));
 
-	// 이 메시가 곧 상호작용 영역이다. 대상 자격은 IsInteractionMeshActive 가 정하지만 감지·사거리를 콜리전 형상으로 재므로 쿼리 콜리전은 켜 둔다.
+	// 이 메시가 곧 상호작용 영역이다. 대상 자격은 대화 컴포넌트가 정하지만 감지·사거리를 콜리전 형상으로 재므로 쿼리 콜리전은 켜 둔다.
 	// 몸통 충돌은 캡슐이 맡으므로 응답은 전부 Ignore 다 — 스캐너의 오버랩도 사거리 판정도 오브젝트 타입만 보고 응답 매트릭스를 보지 않는다.
 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	MeshComponent->SetGenerateOverlapEvents(false);
 
 	DialogueComponent = CreateDefaultSubobject<UWxDialogueComponent>(TEXT("DialogueComponent"));
-}
+	DialogueComponent->SetAreaMesh(MeshComponent);
 
-bool AWxNpc::IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const
-{
-	// 영역은 메시 하나이고, 그것이 지금 켜져 있는지는 쿼리 콜리전이 답한다(퀘스트가 그것을 껐다 켠다).
-	// 콜리전을 여기서 함께 보는 것은 서버 검증 순서 때문이다 — 활성 검증이 사거리 판정보다 앞서므로, 잠긴 NPC 는 콜리전이 꺼진 메시를 나무라는 사거리 판정의 ensure 에 닿기 전에 걸러진다.
-	// 대화 중 차단은 여기가 아니라 상호작용 어빌리티의 State.Dialogue 차단 태그가 맡는다.
-	return Mesh == MeshComponent && MeshComponent->IsQueryCollisionEnabled();
-}
-
-void AWxNpc::OnInteracted(AActor* Interactor, const UActorComponent* Source)
-{
-	const APawn* Pawn = Cast<APawn>(Interactor);
-	AController* Controller = Pawn ? Pawn->GetController() : nullptr;
-	UWxDialogueSessionComponent* Session = Controller ? Controller->FindComponentByClass<UWxDialogueSessionComponent>() : nullptr;
-	if (!Session)
-	{
-		return;
-	}
-
-	Session->StartDialogue(DialogueComponent);
-}
-
-FText AWxNpc::GetInteractionPrompt(const UActorComponent* Source) const
-{
-	return FText::Format(NSLOCTEXT("WxNpc", "TalkPromptFormat", "Talk to {0}"), NpcName);
-}
-
-void AWxNpc::SetInteractionEnabled(bool bEnabled)
-{
-	// 켜는 쪽은 생성자가 정한 값으로 되돌린다 — 감지·사거리 판정에 필요한 것은 쿼리뿐이다.
-	MeshComponent->SetCollisionEnabled(bEnabled ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+	MetaHumanVisualComponent = CreateDefaultSubobject<UWxMetaHumanVisualComponent>(TEXT("MetaHumanVisualComponent"));
 }

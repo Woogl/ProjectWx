@@ -4,7 +4,7 @@
 
 ## 책임
 **담당**
-- 게임플레이 프레임워크 구체 클래스: `AWxGameMode`/`AWxGameState`/`AWxPlayerState`, `AWxPlayerController`/`AWxEnemyController`, `AWxCharacterBase`/`AWxPlayerCharacter`/`AWxEnemyCharacter`/`AWxBossCharacter`
+- 게임플레이 프레임워크 구체 클래스: `AWxGameMode`/`AWxGameState`/`AWxPlayerState`, `AWxPlayerController`/`AWxEnemyController`, `AWxCharacterBase`/`AWxPlayerCharacter`/`AWxEnemyCharacter`/`AWxBossCharacter`, 대화 NPC 몸통(`AWxNpc`)
 - 캐릭터에 ASC를 직접 소유시키고(리스폰 시 스탯 재초기화) 어트리뷰트→이동속도·사망·래그돌 태그 반응을 배선
 - 게임 모듈 고유 어빌리티(`WxAbility_Interact`/`WxAbility_UseItem`)와 그 AnimNotify(`WxAnimNotify_UseItem`)
 - 프레임워크 액터를 ModularGameplay receiver로 opt-in시키고(컨트롤러·캐릭터·PlayerState·GameState), Experience 액션이 플러그인 컴포넌트(인벤토리·상호작용 스캐너·대화 세션·PlayerSpawn 등)를 데이터 주도로 주입하게 한다. 캐릭터는 전투·장비·모션워핑 컴포넌트를 직접 조립한다
@@ -32,6 +32,7 @@
 | `AWxCharacterBase` | 플레이어·적 공통 Abstract 베이스. ASC/AttributeSet/장비/모션워핑 직접 소유, 팀·사망·SPD 이동 반영 | `Character/WxCharacterBase.h` |
 | `AWxPlayerCharacter` | 3인칭 카메라 + Enhanced Input + 어빌리티 입력·락온 소유 | `Character/WxPlayerCharacter.h` |
 | `AWxEnemyCharacter` | BT 구동 적(Abstract). 처형 어포던스·보상 지급·스포너 연동, `AWxBossCharacter`가 파생 | `Character/WxEnemyCharacter.h` |
+| `AWxNpc` | 대화 NPC(Abstract). 폰이 아닌 캡슐+메시 몸통에 대화([[WxDialogue]])·메타휴먼 외형 컴포넌트를 얹는 합성 전용 | `Character/WxNpc.h` |
 | `AWxPlayerController` | 순수 ModularGameplay receiver. 주입된 컨트롤러 컴포넌트(인벤토리·상호작용 스캐너·대화 세션·PlayerSpawn)를 자동 부착만 하고 중개하지 않으며, 화면 push는 [[WxUI]] `UWxUIManagerSubsystem`이 담당 | `Controller/WxPlayerController.h` |
 | `UWxInputConfig` | IMC + Move/Look/Jump/Crouch 직접 바인딩 입력 DataAsset(어빌리티 입력은 담지 않음) | `Input/WxInputConfig.h` |
 | `UWxViewModelResolver_PlayerCharacter` | 폰 ASC/표시 데이터를 WxUI 뷰모델에 주입하는 리졸버(MVVM 글루 대표) | `MVVM/WxViewModelResolver_PlayerCharacter.h` |
