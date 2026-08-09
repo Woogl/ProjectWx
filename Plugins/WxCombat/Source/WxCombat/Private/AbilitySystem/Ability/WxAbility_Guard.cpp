@@ -147,7 +147,7 @@ bool UWxAbility_Guard::PlayMontage(UAnimMontage* Montage)
 
 void UWxAbility_Guard::ListenForGuardHit()
 {
-	// 부모 태그로 등록해 자식 태그(.Normal/.Knockback/.Knockdown/.Knockup)를 모두 수신한다.
+	// 부모 태그로 등록해 자식 태그(.Normal/.KnockBack/.KnockDown/.KnockUp)를 모두 수신한다.
 	// HitReact 어빌리티는 ActivationBlockedTags=State.Guard라 가드 중엔 뜨지 않으므로 라우팅 충돌이 없다.
 	UAbilityTask_WaitGameplayEvent* HitReactTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
 		this, WxGameplayTags::Event_HitReact, nullptr, false, false);

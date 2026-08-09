@@ -12,12 +12,10 @@ UWxEffect_RegenSP::UWxEffect_RegenSP()
 	Period = FScalableFloat(RegenPeriod);
 	bExecutePeriodicEffectOnApplication = true;
 
-	// 가드 중에는 SP 회복 억제
 	UTargetTagRequirementsGameplayEffectComponent* TagReqComp = CreateDefaultSubobject<UTargetTagRequirementsGameplayEffectComponent>(TEXT("TargetTagReq"));
 	TagReqComp->OngoingTagRequirements.IgnoreTags.AddTag(WxGameplayTags::State_Guard);
 	GEComponents.Add(TagReqComp);
 
-	// 틱당 회복량 = MaxSP * (RegenPeriod / FullRegenDuration) = MaxSP / 120
 	FAttributeBasedFloat AttributeBased;
 	AttributeBased.BackingAttribute = FGameplayEffectAttributeCaptureDefinition(
 		UWxCombatAttributeSet::GetMaxSPAttribute(),

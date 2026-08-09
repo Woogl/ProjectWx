@@ -9,8 +9,6 @@
 /**
  * 대상 Max 속성을 GE Duration 동안 선형적으로 0까지 소진시키는 MMC.
  *
- * 반환값 = -(CapturedMaxAttribute / Duration) × Period
- *
  * Duration은 GE Spec에서 자동으로 읽으므로, 호출부는 SetByCaller.Duration만 세팅하면 된다.
  * GE Modifier.Attribute가 DP면 MaxDP, UP면 MaxUP를 캡처한다.
  * 캡처는 non-snapshot이라 매 틱 현재 Max 값을 재반영한다.

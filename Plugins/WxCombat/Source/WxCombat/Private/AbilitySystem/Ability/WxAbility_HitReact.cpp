@@ -75,7 +75,6 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	const FGameplayTag EventTag = TriggerEventData ? TriggerEventData->EventTag : WxGameplayTags::Event_HitReact_Normal;
 
-	// 매칭 몽타주가 없으면 NormalHitReactMontage로 폴백한다.
 	UAnimMontage* SelectedMontage = NormalHitReactMontage;
 	if (TriggerEventData)
 	{
@@ -114,7 +113,6 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		}
 		else if (EventTag == WxGameplayTags::Event_HitReact_Backstab && BackstabHitReactMontage)
 		{
-			// 뒤잡은 몬스터를 공격자 쪽으로 돌려세운 뒤 처형한다.
 			SelectedMontage = BackstabHitReactMontage;
 			FaceInstigator(ActorInfo->AvatarActor.Get(), TriggerEventData->Instigator.Get());
 		}

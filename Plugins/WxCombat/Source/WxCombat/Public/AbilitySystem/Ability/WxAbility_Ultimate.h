@@ -11,7 +11,6 @@ class ULevelSequence;
 struct FStreamableHandle;
 
 /**
- * 궁극기 어빌리티.
  * 컷신(Level Sequence)을 재생한 뒤 공격 몽타주를 실행하며, 컷신 동안 월드는 시간 정지하고 캐릭터는 무적이 된다.
  *
  * 컷신 시퀀스는 부여 시점에 비동기로 미리 잡아 둔다.

@@ -13,7 +13,6 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnCutsceneCompleted);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnCutsceneCancelled);
 
 /**
- * Level Sequence 컷신 재생 AbilityTask.
  * Global Time Dilation으로 게임 월드를 정지시키고 시퀀스만 정상 속도로 재생하며, AvatarActor의 Transform을 시퀀스 원점으로 쓴다.
  *
  * 딜레이션은 UWxTimeDilationComponent가 서버 권위로 관리하므로 클라이언트에는 복제로 도착한다.

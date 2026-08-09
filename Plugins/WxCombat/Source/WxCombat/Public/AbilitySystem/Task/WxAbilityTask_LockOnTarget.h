@@ -14,10 +14,7 @@ class UWxLockOnManagerComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnTargetLost);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnRetargetRequested, FVector2D, ScreenDirection);
 
-/**
- * 락온 대상을 매 프레임 추적하는 AbilityTask.
- * 컨트롤러 회전과 캐릭터 몸체를 각각 타겟 방향으로 보간하고, 대상이 파괴·무효화되면 OnTargetLost를 쏜다.
- */
+/** 컨트롤러 회전과 캐릭터 몸체를 각각 타겟 방향으로 보간하고, 대상이 파괴·무효화되면 OnTargetLost를 쏜다. */
 UCLASS()
 class WXCOMBAT_API UWxAbilityTask_LockOnTarget : public UAbilityTask
 {
@@ -54,7 +51,6 @@ private:
 	void DestroyReticleWidget();
 
 	TWeakObjectPtr<USceneComponent> Target;
-	/** BindTarget 시점의 소유 액터. 부위 컴포넌트만 파괴돼도 바인딩을 정확히 해제하려고 캐시한다. */
 	TWeakObjectPtr<AActor> BoundTargetActor;
 	TWeakObjectPtr<UWxLockOnManagerComponent> LockOnManagerComponent;
 	float InterpSpeed = 8.f;

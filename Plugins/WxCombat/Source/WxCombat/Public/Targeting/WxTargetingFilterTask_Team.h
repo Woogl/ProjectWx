@@ -7,8 +7,8 @@
 #include "WxTargetingFilterTask_Team.generated.h"
 
 /**
- * 팀(아군)을 기준으로 타겟 목록에서 제외하는 타겟팅 필터.
- * IGenericTeamAgentInterface를 구현한 액터에 대해 팀 태도를 비교하여 필터링한다.
+ * 소스 액터가 본 팀 태도(아군·적군·중립)별로 포함 여부를 가리는 타겟팅 필터.
+ * 소스 액터가 IGenericTeamAgentInterface 를 구현하지 않으면 아무것도 제외하지 않는다.
  */
 UCLASS()
 class WXCOMBAT_API UWxTargetingFilterTask_Team : public UTargetingFilterTask_BasicFilterTemplate
@@ -18,15 +18,12 @@ class WXCOMBAT_API UWxTargetingFilterTask_Team : public UTargetingFilterTask_Bas
 protected:
 	virtual bool ShouldFilterTarget(const FTargetingRequestHandle& TargetingHandle, const FTargetingDefaultResultData& TargetData) const override;
 
-	/** 아군을 타겟 목록에 포함할지 여부 */
 	UPROPERTY(EditAnywhere)
 	bool bIncludeFriendly = false;
 
-	/** 적군을 타겟 목록에 포함할지 여부 */
 	UPROPERTY(EditAnywhere)
 	bool bIncludeHostile = true;
 
-	/** 중립을 타겟 목록에 포함할지 여부 */
 	UPROPERTY(EditAnywhere)
 	bool bIncludeNeutral = false;
 };

@@ -79,14 +79,12 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 			InstanceData->TransformOrigin = AvatarActor->GetActorTransform();
 		}
 
-		// 시퀀스에서 Binding Tag가 "Player"인 바인딩을 AvatarActor로 교체한다.
 		static const FName PlayerBindingTag = TEXT("Player");
 		TArray<AActor*> Actors;
 		Actors.Add(AvatarActor);
 		SequenceActor->SetBindingByTag(PlayerBindingTag, Actors, true);
 	}
 
-	// Time Dilation의 역수로 보정해 시퀀스만 정상 속도로 재생한다.
 	if (GlobalTimeDilation > 0.f && GlobalTimeDilation != 1.f)
 	{
 		SequencePlayer->SetPlayRate(1.f / GlobalTimeDilation);

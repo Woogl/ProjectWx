@@ -15,7 +15,6 @@ UWxEffect_InfiniteMP::UWxEffect_InfiniteMP()
 	Period = FScalableFloat(TickPeriod);
 	bExecutePeriodicEffectOnApplication = true;
 
-	// 틱마다 MP = MaxMP로 Override
 	FAttributeBasedFloat AttributeBased;
 	AttributeBased.BackingAttribute = FGameplayEffectAttributeCaptureDefinition(
 		UWxCombatAttributeSet::GetMaxMPAttribute(),

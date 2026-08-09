@@ -26,11 +26,9 @@ public:
 	virtual void HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters) override;
 
 protected:
-	/** 임팩트 위치에 스폰할 이펙트 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TObjectPtr<UNiagaraSystem> HitNiagaraSystem;
 
-	/** 임팩트 위치에 재생할 사운드 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TObjectPtr<USoundBase> HitSound;
 };

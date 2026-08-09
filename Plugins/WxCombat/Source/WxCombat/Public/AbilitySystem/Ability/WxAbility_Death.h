@@ -9,7 +9,6 @@
 class UAnimMontage;
 
 /**
- * 사망 어빌리티.
  * HP가 0이 되어 붙는 State.Dead 태그로 발동한다.
  * DeathMontage가 있으면 그 포즈로 끝내고, 없거나 외부에 끊기면 래그돌로 폴백한다.
  *

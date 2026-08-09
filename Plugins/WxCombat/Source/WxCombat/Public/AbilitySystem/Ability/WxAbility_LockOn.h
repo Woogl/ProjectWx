@@ -11,7 +11,6 @@ class UUserWidget;
 class UWxAbilityTask_LockOnTarget;
 
 /**
- * 토글 방식 락온 어빌리티.
  * 입력으로 켜고 재입력으로 끄며, 대상을 잃으면 재탐색하거나 해제한다.
  *
  * 카메라가 타겟을 추적하고, 락온 태스크가 캐릭터를 타겟 방향으로 부드럽게 회전시킨다(그동안 OrientToMovement는 끈다).
@@ -57,7 +56,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	float RetargetMinAlignment = 0.1f;
 
-	/** 락온 대상에 표시할 조준점 위젯 클래스 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TSubclassOf<UUserWidget> ReticleWidgetClass;
 

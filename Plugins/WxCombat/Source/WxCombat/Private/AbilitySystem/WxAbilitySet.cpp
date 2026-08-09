@@ -40,7 +40,6 @@ void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC, FWxAbili
 		return;
 	}
 	
-	// 데이터테이블에서 어트리뷰트 초기값 설정
 	if (const FWxCombatAttributeInitTableRow* Row = AttributeInitRow.GetRow<FWxCombatAttributeInitTableRow>(TEXT("WxAbilitySet::GiveToAbilitySystem")))
 	{
 		// 각 쌍은 Max를 먼저 세팅한다.
@@ -61,7 +60,6 @@ void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC, FWxAbili
 		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetCritDMGAttribute(), Row->CritDMG);
 	}
 
-	// Effect 적용
 	FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
 	Context.AddSourceObject(ASC->GetOwner());
 
@@ -83,7 +81,6 @@ void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC, FWxAbili
 		}
 	}
 
-	// Ability 부여
 	for (const TSubclassOf<UWxAbilityBase>& AbilityClass : GrantedAbilities)
 	{
 		if (!AbilityClass)

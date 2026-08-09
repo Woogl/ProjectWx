@@ -13,7 +13,6 @@
  * 이 컴포넌트가 없는 액터는 락온 대상이 될 수 없다.
  *
  * C++ 디폴트 서브오브젝트나 BP 컴포넌트 트리로 추가해야 네트워크 주소가 안정적이라 복제된 대상 레퍼런스가 원격에서 해소된다.
- * 런타임에 NewObject로 만든 지점은 복제 등록을 하지 않는 한 원격에서 null로 도착하니 주의한다.
  */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent, DisplayName = "Wx Lock-On Point"))
 class WXCOMBAT_API UWxLockOnPointComponent : public USceneComponent
@@ -39,7 +38,7 @@ public:
 	static void GatherLockOnPoints(const AActor* Actor, TArray<USceneComponent*>& OutPoints);
 
 protected:
-	/** 이 지점에 락온하기 위한 대상 태그 조건. Must Have(HasAll)·Must Not Have(HasAny면 불가)·Query. 기본 Must Not Have = State.Dead. */
+	/** 이 지점에 락온하기 위한 대상 태그 조건 */
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	FGameplayTagRequirements LockOnRequirements;
 };

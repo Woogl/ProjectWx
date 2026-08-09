@@ -111,7 +111,6 @@ void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 void UWxAbility_LockOn::HandleTargetLost()
 {
-	// 재탐색이 켜져 있으면 잃은 대상을 빼고 가장 가까운 적으로 갈아타고, 후보가 없을 때만 해제한다.
 	// 타겟 결정은 활성화와 마찬가지로 소유 클라(또는 리슨 호스트)에서만 한다.
 	AActor* Avatar = GetOwningActorFromActorInfo();
 	UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(Avatar);

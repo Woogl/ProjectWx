@@ -19,7 +19,6 @@ UWxAbility_Skill::UWxAbility_Skill()
 	// 후딜 캔슬은 몽타주 StartRecovery 노티파이로 허용한다.
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 
-	// 콤보 진행이 곧 재발동이며, 윈도우 판정은 CanActivateAbility가 한다.
 	bRetriggerInstancedAbility = true;
 }
 
@@ -28,7 +27,7 @@ bool UWxAbility_Skill::CanActivateAbility(const FGameplayAbilitySpecHandle Handl
 	UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
 	const FGameplayAbilitySpec* Spec = ASC ? ASC->FindAbilitySpecFromHandle(Handle) : nullptr;
 
-	// 콤보 진행. 자기 차단은 곧 EndAbility가 푸니 무시하되, 사망·비용·쿨다운은 그대로 판정한다.
+	// 자기 차단은 곧 EndAbility가 푸니 무시한다.
 	if (Spec && Spec->IsActive())
 	{
 		if (!ASC || !ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_ComboWindow))
@@ -61,7 +60,6 @@ void UWxAbility_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		return;
 	}
 
-	// 재발동으로 이어온 콤보면 다음 인덱스, 아니면(신규 발동·터미널) 첫 인덱스부터.
 	CurrentIndex = SkillMontages.IsValidIndex(CurrentIndex + 1) ? CurrentIndex + 1 : 0;
 
 	PlayCurrentMontage();
@@ -119,7 +117,7 @@ void UWxAbility_Skill::PlayCurrentMontage()
 
 void UWxAbility_Skill::HandleMontageCompleted()
 {
-	// 콤보 미입력으로 자연 종료 — 다음 발동은 첫 인덱스부터.
+	// 콤보 미입력으로 자연 종료.
 	CurrentIndex = INDEX_NONE;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }

@@ -235,8 +235,6 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 void AWxWeaponBase::ProcessHit(AActor* OtherActor, const FHitResult& HitResult)
 {
 	// 클라와 서버가 같은 히트 판정과 GE 적용을 수행한다.
-	// 클라 쪽은 몽타주를 재생 중인 어빌리티의 활성화 예측 키로 예측되며, 서버 확정본이 도착하면 GAS가 예측본을 정리한다.
-	// 애님 중인 어빌리티가 없는 머신(복제 몽타주만 도는 시뮬 프록시)은 키가 무효라 엔진 권위 검사에서 걸러진다.
 
 	AActor* WeaponOwner = GetOwner();
 	if (!OtherActor || OtherActor == WeaponOwner || HitActorsThisSwing.Contains(OtherActor))

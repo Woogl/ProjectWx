@@ -12,7 +12,8 @@ struct FGameplayEventData;
 struct FWxDamageInfo;
 
 /**
- * 피니셔 어빌리티 — 공격자(플레이어) 측. 한 클래스가 두 변형을 트리거 EventTag로 분기한다.
+ * 피니셔 어빌리티 — 공격자(플레이어) 측.
+ * 한 클래스가 두 변형을 트리거 EventTag로 분기한다.
  *  - 앞잡(피니셔): Event.Finisher 트리거, 짝 피격 Event.HitReact.Finisher
  *  - 뒤잡(백스탭): Event.Backstab 트리거, 짝 피격 Event.HitReact.Backstab
  *

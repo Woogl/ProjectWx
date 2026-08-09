@@ -30,7 +30,7 @@ public:
 	 */
 	static void SetGlobalTimeDilationAuthoritative(const UObject* Requester, float NewDilation);
 
-	/** Requester가 현재 소유자일 때만 배율을 1로 되돌린다. 남이 소유 중이면 그 연출을 건드리지 않고 무시한다. */
+	/** Requester가 현재 소유자일 때만 배율을 1로 되돌린다. */
 	static void ClearGlobalTimeDilationAuthoritative(const UObject* Requester);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -48,7 +48,7 @@ private:
 
 	void ApplyTimeDilation(float Dilation);
 
-	/** WorldContextObject가 속한 World의 GameState에서 컴포넌트를 찾는다. 없으면 경고 후 nullptr. */
+	/** WorldContextObject가 속한 World의 GameState에서 컴포넌트를 찾는다. */
 	static UWxTimeDilationComponent* FindComponent(const UObject* WorldContextObject);
 
 	UPROPERTY(ReplicatedUsing = OnRep_ReplicatedTimeDilation, VisibleAnywhere, Category = "Wx|Time")

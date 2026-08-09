@@ -26,7 +26,6 @@ enum class EWxDodgeDirection : uint8
 };
 
 /**
- * 회피 어빌리티.
  * 입력 방향에 해당하는 8방향 섹션(이동 입력이 없으면 BackstepMontage)을 재생하고, 몽타주의 State.Invincible 구간에 피격되면 극한 회피로 이어진다.
  *
  * 회피 반격은 여기서 다루지 않는다 — State.Dodge만 발행하면 공격 어빌리티가 그 태그로 자기 반격 세트를 고른다.
@@ -58,15 +57,16 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> DodgeMontage;
 
-	/** 이동 입력 없이 회피할 때 재생할 백스텝 몽타주. 미설정 시 DodgeMontage의 Back 섹션으로 폴백한다. */
+	/**
+	 * 이동 입력 없이 회피할 때 재생할 백스텝 몽타주.
+	 * 미설정 시 DodgeMontage의 Back 섹션으로 폴백한다.
+	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> BackstepMontage;
 
-	/** 극한 회피 성공 시 재생할 몽타주 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> PerfectDodgeMontage;
 
-	/** 극한 회피 성공 시 회복하는 MP량 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	float PerfectDodgeMPRecovery = 5.f;
 
@@ -74,7 +74,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|SlowTime", meta = (ClampMin = "0.01"))
 	float PerfectDodgeSlowTimeDilation = 0.4f;
 
-	/** 극한 회피 성공 시 슬로우 타임 지속 시간 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|SlowTime", meta = (ClampMin = "0.0"))
 	float PerfectDodgeSlowTimeDuration = 0.4f;
 

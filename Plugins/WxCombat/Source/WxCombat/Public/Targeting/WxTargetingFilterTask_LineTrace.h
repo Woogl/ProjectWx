@@ -7,9 +7,7 @@
 #include "WxTargetingFilterTask_LineTrace.generated.h"
 
 /**
- * 지정된 콜리전 채널로 라인 트레이스를 수행하여 타겟을 필터링하는 타겟팅 필터.
- * 소스 액터에서 타겟 액터로의 트레이스가 차단되면 해당 타겟을 제외한다.
- * 예: ECC_Visibility 채널로 시야가 차단된 타겟을 제거.
+ * 소스 액터에서 타겟 액터로의 TraceChannel 트레이스가 차단되면 해당 타겟을 제외하는 타겟팅 필터.
  */
 UCLASS()
 class WXCOMBAT_API UWxTargetingFilterTask_LineTrace : public UTargetingFilterTask_BasicFilterTemplate
@@ -19,7 +17,6 @@ class WXCOMBAT_API UWxTargetingFilterTask_LineTrace : public UTargetingFilterTas
 protected:
 	virtual bool ShouldFilterTarget(const FTargetingRequestHandle& TargetingHandle, const FTargetingDefaultResultData& TargetData) const override;
 
-	/** 트레이스에 사용할 콜리전 채널 */
 	UPROPERTY(EditAnywhere)
 	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_Visibility;
 

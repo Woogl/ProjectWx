@@ -21,7 +21,7 @@ bool UWxTargetingFilterTask_ScreenBounds::ShouldFilterTarget(const FTargetingReq
 		return false;
 	}
 
-	// 타겟 위치를 화면 좌표로 투영한다. 실패하면(카메라 뒤) 화면 밖으로 보고 제외한다.
+	// 투영이 실패하면(카메라 뒤) 화면 밖으로 보고 제외한다.
 	FVector2D ScreenPosition;
 	if (!PlayerController->ProjectWorldLocationToScreen(TargetActor->GetActorLocation(), ScreenPosition))
 	{
@@ -36,7 +36,6 @@ bool UWxTargetingFilterTask_ScreenBounds::ShouldFilterTarget(const FTargetingReq
 		return false;
 	}
 
-	// 가장자리 여백만큼 안쪽으로 좁힌 영역을 벗어나면 제외한다.
 	const float MarginX = ViewportSizeX * ScreenEdgeMargin;
 	const float MarginY = ViewportSizeY * ScreenEdgeMargin;
 	const bool bInsideScreen =

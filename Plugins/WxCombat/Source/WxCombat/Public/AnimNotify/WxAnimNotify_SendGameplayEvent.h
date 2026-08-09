@@ -11,7 +11,8 @@
  * 지정한 GameplayTag 이벤트를 몽타주 재생 중인 아바타 ASC로 송출하는 범용 AnimNotify.
  * 어빌리티의 WaitGameplayEvent가 이 시점을 받아 타이밍 의존 처리를 수행한다.
  *
- * 몽타주가 양쪽에서 복제 재생돼 노티파이도 양쪽에서 발화하지만, 처리는 서버 어빌리티 인스턴스에서만 일어난다.
+ * 몽타주가 양쪽에서 복제 재생돼 노티파이도 양쪽에서 발화하므로, 수신 어빌리티 인스턴스도 양쪽에서 이벤트를 받는다.
+ * 권위가 필요한 처리는 수신 측이 각자 권위 게이트로 막는다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAnimNotify_SendGameplayEvent : public UAnimNotify

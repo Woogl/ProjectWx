@@ -12,7 +12,7 @@ class UNiagaraSystem;
 
 /**
  * 데미지 플로터 GameplayCue 베이스 클래스.
- * 큐를 받으면 DamageFloater 액터를 스폰하며, 지정하는 위젯 클래스는 IWxDamageFloaterInterface를 구현해야 한다.
+ * 큐를 받으면 DamageFloater 액터를 스폰한다.
  */
 UCLASS(Abstract, Blueprintable)
 class WXCOMBAT_API UWxCueNotify_Damage : public UGameplayCueNotify_Static
@@ -29,17 +29,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Damage Floater")
 	TSubclassOf<UUserWidget> FloaterWidgetClass;
 
-	/** 임팩트 위치에 스폰할 이펙트 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TObjectPtr<UNiagaraSystem> HitNiagaraSystem;
 
-	/** 임팩트 위치에 재생할 사운드 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TObjectPtr<USoundBase> HitSound;
 };
 
 /**
- * 피격 위치에 스폰돼 WidgetComponent로 데미지 수치를 표시하는 액터.
+ * 피격자 위치에 스폰돼 WidgetComponent로 데미지 수치를 표시하는 액터.
  * UWxCueNotify_Damage가 직접 스폰하므로 BP 서브클래스를 만들 필요는 없다.
  */
 UCLASS()
@@ -63,7 +61,6 @@ class UWxDamageFloaterInterface : public UInterface
 	GENERATED_BODY()
 };
 
-/** 데미지 플로터 위젯이 구현해야 하는 인터페이스 */
 class WXCOMBAT_API IWxDamageFloaterInterface
 {
 	GENERATED_BODY()

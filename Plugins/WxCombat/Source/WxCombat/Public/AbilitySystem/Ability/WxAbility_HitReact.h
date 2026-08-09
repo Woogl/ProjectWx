@@ -10,7 +10,6 @@ class UAnimMontage;
 class UAbilityTask_PlayMontageAndWait;
 
 /**
- * 피격 반응 어빌리티. (일반 / 넉백 / 넉다운 / 넉업 / 패리 / 피니셔(앞잡) / 백스탭(뒤잡))
  * 데미지 파이프라인이 보내는 Event.HitReact.* 로 트리거되어 그 태그에 매칭되는 몽타주를 재생한다.
  *
  * 평타로는 경직이 나지 않는다 — 대미지 행이 Event.HitReact.* 태그를 싣지 않으면 이벤트 자체가 발송되지 않기 때문이다.

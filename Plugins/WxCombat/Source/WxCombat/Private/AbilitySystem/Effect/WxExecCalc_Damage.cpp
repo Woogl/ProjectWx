@@ -45,10 +45,6 @@ UWxExecCalc_Damage::UWxExecCalc_Damage()
 	RelevantAttributesToCapture.Add(Statics.CritDMGDef);
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-//  Execute
-// ────────────────────────────────────────────────────────────────────────────
-
 void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
 	UAbilitySystemComponent* SourceASC = ExecutionParams.GetSourceAbilitySystemComponent();
@@ -58,13 +54,11 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		return;
 	}
 
-	// --- 1. 무적 판정 ---
 	if (HandleInvincible(SourceASC, TargetASC))
 	{
 		return;
 	}
 
-	// --- 2. 상태 판정 ---
 	const FGameplayEffectSpec& OwningSpec = ExecutionParams.GetOwningSpec();
 	const bool bIsUnblockable = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable);
 	const bool bHasPerfectGuard = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_PerfectGuard);
@@ -74,7 +68,6 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	// Unblockable 공격은 퍼펙트 가드를 포함한 모든 가드를 무시한다.
 	const bool bPerfectGuardApplied = bHasPerfectGuard && !bIsUnblockable;
 
-	// --- 3. 대미지 계산 ---
 	// 퍼펙트 가드는 반사량 산출을 위해 크리를 스킵한다.
 	FAggregatorEvaluateParameters EvalParams;
 	EvalParams.SourceTags = OwningSpec.CapturedSourceTags.GetAggregatedTags();
@@ -82,7 +75,6 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	FWxDamageResult DamageResult = CalcDamage(ExecutionParams, EvalParams, bPerfectGuardApplied);
 
-	// --- 4. 대미지 적용 ---
 	if (bPerfectGuardApplied)
 	{
 		ReflectPerfectGuard(SourceASC, DamageResult.FinalDamage);
@@ -137,7 +129,6 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		}
 	}
 
-	// --- 5. GameplayCue ---
 	FVector HitLocation = FVector::ZeroVector;
 	const FHitResult* HitResult = OwningSpec.GetEffectContext().GetHitResult();
 	if (HitResult)
@@ -158,7 +149,6 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		ExecuteGameplayCueDamage(TargetASC, DamageResult.FinalDamage, HitLocation, OwningSpec, DamageResult.bIsCritical);
 	}
 
-	// --- 6. 히트스톱 ---
 	// 무적 회피로 조기 리턴한 경우를 빼면 퍼펙트 가드까지 포함해 모든 적중에서 보낸다.
 	// 공격자 ASC가 이 이벤트를 받아, 컨텍스트의 어빌리티가 재생 중인 몽타주를 그 시간만큼 잠깐 멈춘다.
 	if (AActor* SourceActor = SourceASC ? SourceASC->GetOwnerActor() : nullptr)
@@ -175,10 +165,6 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		}
 	}
 }
-
-// ────────────────────────────────────────────────────────────────────────────
-//  방어 판정
-// ────────────────────────────────────────────────────────────────────────────
 
 bool UWxExecCalc_Damage::HandleInvincible(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC) const
 {
@@ -209,16 +195,11 @@ void UWxExecCalc_Damage::ReflectPerfectGuard(UAbilitySystemComponent* SourceASC,
 	SourceASC->SetNumericAttributeBase(DPAttribute, SourceASC->GetNumericAttributeBase(DPAttribute) + ClampedReflect);
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-//  대미지 계산
-// ────────────────────────────────────────────────────────────────────────────
-
 FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, bool bSkipCrit) const
 {
 	const FGameplayEffectSpec& OwningSpec = ExecutionParams.GetOwningSpec();
 	const FWxDamageStatics& Statics = GetDamageStatics();
 
-	// RawDamage가 양수면 ATK·DEF·계수를 우회하는 환경 대미지 모드다.
 	const float RawDamage = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_RawDamage, false, 0.f);
 	const bool bRawMode = RawDamage > 0.f;
 
@@ -244,7 +225,6 @@ FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecut
 	FWxDamageResult Result;
 	Result.FinalDamage = FMath::Max(BaseDamage, 0.f);
 
-	// Raw 모드와 외부 요청(퍼펙트 가드 등)은 크리를 건너뛴다.
 	if (bRawMode || bSkipCrit)
 	{
 		return Result;
@@ -256,7 +236,6 @@ FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecut
 	float SourceCritDMG = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.CritDMGDef, EvalParams, SourceCritDMG);
 
-	// 치명타: CritRate 1당 1%, 치명타 시 (1 + CritDMG * 0.01) 배율
 	const float CritChance = FMath::Clamp(SourceCritRate * 0.01f, 0.f, 1.f);
 	Result.bIsCritical = FMath::FRand() < CritChance;
 	if (Result.bIsCritical)
@@ -266,10 +245,6 @@ FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecut
 
 	return Result;
 }
-
-// ────────────────────────────────────────────────────────────────────────────
-//  피격 반응
-// ────────────────────────────────────────────────────────────────────────────
 
 void UWxExecCalc_Damage::ApplyHitReaction(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput, float FinalDamage) const
 {
@@ -287,14 +262,12 @@ void UWxExecCalc_Damage::ApplyHitReaction(const FGameplayEffectCustomExecutionPa
 	const bool bGuardHit = bIsGuarding && !bIsUnblockable;
 	const bool bIsGroggy = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy);
 
-	// --- 자원 차감 ---
 	// 일반 가드만 SP를 차감한다(Unblockable 가드·비가드는 차감 없음).
 	if (bGuardHit)
 	{
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.SPProperty, EGameplayModOp::Additive, -FinalDamage));
 	}
 
-	// --- 이벤트 태그 결정 ---
 	// 공격 GE가 실은 Event.HitReact.* 자식 태그를 꺼낸다(없으면 이벤트 미발송).
 	const FGameplayTagContainer HitReactMatches = OwningSpec.GetDynamicAssetTags().Filter(FGameplayTagContainer(WxGameplayTags::Event_HitReact));
 	const FGameplayTag HitReactTag = HitReactMatches.IsEmpty() ? FGameplayTag() : HitReactMatches.First();
@@ -340,7 +313,6 @@ void UWxExecCalc_Damage::ApplyHitReaction(const FGameplayEffectCustomExecutionPa
 		return;
 	}
 
-	// --- 이벤트 송출 ---
 	UAbilitySystemComponent* SourceASC = ExecutionParams.GetSourceAbilitySystemComponent();
 	AActor* TargetActor = TargetASC->GetOwnerActor();
 	FGameplayEventData EventData;
@@ -349,10 +321,6 @@ void UWxExecCalc_Damage::ApplyHitReaction(const FGameplayEffectCustomExecutionPa
 	EventData.EventMagnitude = FinalDamage;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, EventTag, EventData);
 }
-
-// ────────────────────────────────────────────────────────────────────────────
-//  GameplayCue
-// ────────────────────────────────────────────────────────────────────────────
 
 void UWxExecCalc_Damage::ExecuteGameplayCueDamage(UAbilitySystemComponent* TargetASC, float DamageAmount, FVector HitLocation, const FGameplayEffectSpec& OwningSpec, bool bIsCritical) const
 {

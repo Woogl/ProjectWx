@@ -8,8 +8,6 @@
 
 /**
  * 대미지 GameplayEffect.
- *
- * Instant 정책으로 동작하며, WxExecCalc_Damage을 통해 대미지를 계산한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxEffect_Damage : public UGameplayEffect

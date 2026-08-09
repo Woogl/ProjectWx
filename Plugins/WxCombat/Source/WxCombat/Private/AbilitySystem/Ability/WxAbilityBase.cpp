@@ -98,7 +98,6 @@ UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
 	}
 
 	// 단일 충전은 공유 CDO로 충분하다.
-	// 인스턴스는 StackLimitCount를 실어야 하는 다중 충전에서만 만든다.
 	const int32 MaxRecharges = FMath::Max(1, Row->MaxRecharges);
 	if (MaxRecharges <= 1)
 	{

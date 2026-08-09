@@ -10,7 +10,6 @@ class UStaticMesh;
 class UStaticMeshComponent;
 
 /**
- * 카메라 이동 연출 AnimNotifyState.
  * 구간 동안 로컬 플레이어의 뷰를 몽타주 재생 액터의 메시 기준 상대 위치에 스폰한 임시 카메라로 블렌드 전환하고, 끝나면 폰으로 되돌린다.
  * 플레이어 피니셔, 적 패턴처럼 그 순간을 고정 각도로 보여주는 용도.
  *
@@ -45,7 +44,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|Camera")
 	bool bAttachToOwner = true;
 
-	/** 카메라 시야각(FOV). 낮출수록 시네마틱한 압축감을 준다. */
+	/** 낮출수록 시네마틱한 압축감을 준다. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Camera", meta = (ClampMin = "5", ClampMax = "170"))
 	float FieldOfView = 90.0f;
 
@@ -62,11 +61,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|Camera")
 	bool bDrawEditorPreview = true;
 
-	/** 프리뷰에 표시할 카메라 모델 메시. 기본값은 엔진 카메라 모델(MatineeCam_SM). 런타임 동작에는 영향 없음. */
+	/** 런타임 동작에는 영향 없음. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Camera")
 	TSoftObjectPtr<UStaticMesh> PreviewCameraMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Engine/EditorMeshes/MatineeCam_SM.MatineeCam_SM")));
 
-	/** 프리뷰 카메라 모델 메시를 프리뷰 월드에 렌더하는 컴포넌트. 파괴하지 않고 재사용하며, 구간 밖·토글 오프 시 비저빌리티만 끈다(월드 교체 시 폐기). */
+	/** 파괴하지 않고 재사용하며, 구간 밖·토글 오프 시 비저빌리티만 끈다(월드 교체 시 폐기). */
 	UPROPERTY(Transient)
 	TObjectPtr<UStaticMeshComponent> PreviewCameraMeshComponent = nullptr;
 

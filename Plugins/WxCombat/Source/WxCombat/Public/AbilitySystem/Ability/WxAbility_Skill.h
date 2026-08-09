@@ -10,7 +10,6 @@ class UAbilityTask_PlayMontageAndWait;
 class UAnimMontage;
 
 /**
- * 스킬 어빌리티.
  * SkillMontages를 인덱스 0부터 재생하고, ANS_ComboWindow 구간의 재발동이 다음 단으로 넘긴다(터미널 단에서는 첫 단으로 되돌아간다).
  *
  * 콤보 진행은 엔진 순정 재발동(bRetriggerInstancedAbility)이다.
@@ -37,7 +36,6 @@ protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
-	/** 순차 재생할 스킬 몽타주 목록 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TArray<TObjectPtr<UAnimMontage>> SkillMontages;
 

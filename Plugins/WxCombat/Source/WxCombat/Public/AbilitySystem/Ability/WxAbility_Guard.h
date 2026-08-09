@@ -10,15 +10,15 @@ class UAnimMontage;
 class UAbilityTask_PlayMontageAndWait;
 
 /**
- * 가드 어빌리티.
- *
  * 페이즈 (ActiveMontage로 판별):
  *  GuardMontage          – State.Guard 활성, 루핑
  *  GuardHitReactMontage  – 일반 가드 피격(SP 여유) 후 GuardMontage 복귀
  *  GuardKnockbackMontage – Knock 계열 피격 가드 후 GuardMontage 복귀
  *  GuardBreakMontage     – SP 고갈로 State.Guard 해제 후 재생, 종료
+ *  PerfectGuardMontage   – 퍼펙트 가드 성공 후 재생, 완주하면 종료(가드 재입력 시 GuardMontage 복귀)
  *
- * Unblockable 피격은 퍼펙트 가드 윈도우 중이면 ExecCalc가 퍼펙트 가드로 처리하고, 일반 가드 중이면 이 어빌리티를 직접 Cancel한 뒤 HitReact 이벤트를 발송한다.
+ * Unblockable 피격은 퍼펙트 가드 윈도우 중이라도 가드로 막히지 않는다.
+ * ExecCalc가 이 어빌리티를 직접 Cancel한 뒤 HitReact 이벤트를 발송한다.
  *
  * 가드 반격은 여기서 다루지 않는다 — State.Guard만 발행하면 공격 어빌리티가 그 태그로 자기 반격 세트를 고른다.
  * 진입 시점은 가드 몽타주의 StartRecovery가 차단을 푸는 때다.
@@ -59,7 +59,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|PerfectGuard", meta = (ClampMin = "0", ClampMax = "1"))
 	float DamageReductionRate = 0.5f;
 
-	/** 퍼펙트 가드 성공 시 회복하는 MP량 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|PerfectGuard")
 	float PerfectGuardMPRecovery = 5.f;
 	
@@ -67,7 +66,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|SlowTime", meta = (ClampMin = "0.01"))
 	float PerfectGuardSlowTimeDilation = 0.4f;
 
-	/** 퍼펙트 가드 성공 시 슬로우 타임 지속 시간 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|SlowTime", meta = (ClampMin = "0.0"))
 	float PerfectGuardSlowTimeDuration = 0.4f;
 

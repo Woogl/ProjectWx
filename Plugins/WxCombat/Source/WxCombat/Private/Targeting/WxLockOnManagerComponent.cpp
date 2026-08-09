@@ -23,7 +23,6 @@ void UWxLockOnManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	// 서버 권위 소비처(발사체 호밍)와 시뮬프록시 소비처(몽타주 스냅)가 모두 읽으므로 전 대상에 복제한다.
 	DOREPLIFETIME(UWxLockOnManagerComponent, LockOnTarget);
 }
 
@@ -36,8 +35,6 @@ void UWxLockOnManagerComponent::SetLockOnTarget(USceneComponent* InTarget)
 	}
 	else
 	{
-		// 소유 클라는 응답성을 위해 로컬에 먼저 반영하고 서버에 권위 설정을 요청한다.
-		// 서버 복제값이 도착하면 OnRep이 정합한다.
 		ApplyLockOnTarget(InTarget);
 		ServerSetLockOnTarget(InTarget);
 	}

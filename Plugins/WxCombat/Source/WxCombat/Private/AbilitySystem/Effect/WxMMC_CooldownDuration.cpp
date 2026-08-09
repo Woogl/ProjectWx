@@ -8,7 +8,8 @@
 
 float UWxMMC_CooldownDuration::CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const
 {
-	// 컨텍스트의 소스 어빌리티 CDO는 AbilityDataRow를 그대로 가진다(EditDefaultsOnly). 정적 데이터라 서버/클라 동일.
+	// 컨텍스트의 소스 어빌리티 CDO는 AbilityDataRow를 그대로 가진다(EditDefaultsOnly).
+	// 정적 데이터라 서버/클라 동일.
 	const UGameplayAbility* SourceAbility = Spec.GetEffectContext().GetAbility();
 	const UWxAbilityBase* WxAbility = Cast<UWxAbilityBase>(SourceAbility);
 	if (!WxAbility || WxAbility->AbilityDataRow.IsNull())
@@ -22,7 +23,6 @@ float UWxMMC_CooldownDuration::CalculateBaseMagnitude_Implementation(const FGame
 		return 0.f;
 	}
 
-	// 직렬 회복 — 기존 쿨다운 중 가장 늦게 만료되는 잔여시간 뒤에 이번 CooldownTime을 이어붙인다.
 	float LongestRemaining = 0.f;
 	float LongestDuration = 0.f;
 	if (UAbilitySystemComponent* ASC = Spec.GetEffectContext().GetInstigatorAbilitySystemComponent())

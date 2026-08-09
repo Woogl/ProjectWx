@@ -70,7 +70,6 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	{
 		World->GetTimerManager().SetTimer(MontagePollingTimerHandle, this, &UWxAbility_Groggy::HandleMontagePollTick, 0.1f, true);
 
-		// 실패복구: DrainDP가 무효·외부 제거로 DP를 0까지 못 내리면 State.Groggy가 잔존해 무한 그로기가 된다.
 		World->GetTimerManager().SetTimer(GroggySafetyTimerHandle, this, &UWxAbility_Groggy::HandleGroggySafetyTimeout, GroggyDuration + 1.f, false);
 	}
 

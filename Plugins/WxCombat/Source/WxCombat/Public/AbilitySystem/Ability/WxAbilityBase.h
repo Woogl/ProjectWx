@@ -45,7 +45,7 @@ public:
 	EWxAbilityActivationPolicy ActivationPolicy = EWxAbilityActivationPolicy::OnTriggered;
 
 	/**
-	 * 이 어빌리티를 발동시키는 입력 액션. ASC가 눌린 액션을 이 값과 대조하고, AbilitySet이 모아 입력 바인딩 목록을 만든다.
+	 * ASC가 눌린 액션을 이 값과 대조하고, AbilitySet이 모아 입력 바인딩 목록을 만든다.
 	 * 입력으로 발동하지 않는 어빌리티(AI 패턴·반응형·패시브)는 비워둔다.
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
@@ -55,14 +55,20 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxAbilityTableRow"))
 	FDataTableRowHandle AbilityDataRow;
 
-	/** UI 표시 아이콘(텍스처 또는 머터리얼)의 소프트 참조. 로드하지 않으므로 소비자가 비동기로 로드한다. */
+	/**
+	 * UI 표시 아이콘(텍스처 또는 머터리얼)의 소프트 참조.
+	 * 로드하지 않으므로 소비자가 비동기로 로드한다.
+	 */
 	TSoftObjectPtr<UObject> GetIcon() const;
 
-	/** 아바타 ASPD가 반영된 몽타주 재생 속도. 각 어빌리티가 PlayMontage의 PlayRate 인자로 넘긴다. */
+	/**
+	 * 아바타 ASPD가 반영된 몽타주 재생 속도.
+	 * 각 어빌리티가 PlayMontage의 PlayRate 인자로 넘긴다.
+	 */
 	float GetMontagePlayRate() const;
 
 	/**
-	 * 후딜레이 구간 진입. 이 프로젝트에서 후딜레이 구간 = 캔슬 가능 구간이다.
+	 * 이 프로젝트에서 후딜레이 구간 = 캔슬 가능 구간이다.
 	 * 이 어빌리티가 건 하드 차단(BlockAbilitiesWithTag)을 해제해, 평소 막히던 어빌리티로 캔슬 진입할 수 있게 한다.
 	 * 진입한 어빌리티는 자신의 CancelAbilitiesWithTag(또는 동일 슬롯 몽타주 인터럽트)로 이 어빌리티를 끊는다.
 	 *
@@ -72,7 +78,8 @@ public:
 	void StartRecovery();
 
 	/**
-	 * WxAnimNotify_SpawnProjectile이 위임하는 투사체 스폰. 서버에서만 스폰해 복제로 전파한다.
+	 * WxAnimNotify_SpawnProjectile이 위임하는 투사체 스폰.
+	 * 서버에서만 스폰해 복제로 전파한다.
 	 * 아바타 SkeletalMesh의 SpawnSocketName 소켓 위치 + 아바타 회전으로 스폰하며, 대미지는 투사체 클래스가 저작한다.
 	 */
 	void SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileClass, FName SpawnSocketName) const;
@@ -89,7 +96,8 @@ public:
 	virtual void GetCooldownTimeRemainingAndDuration(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, float& TimeRemaining, float& CooldownDuration) const override;
 
 	/**
-	 * 이 어빌리티(소스 CDO 기준)가 적용한 활성 쿨다운 GE 수를 반환한다. 활성 GE 1개 = 회복 대기 중인 충전 1개.
+	 * 이 어빌리티(소스 CDO 기준)가 적용한 활성 쿨다운 GE 수를 반환한다.
+	 * 활성 GE 1개 = 회복 대기 중인 충전 1개.
 	 * 출력 인자는 가장 늦게 만료되는 GE 기준이다.
 	 */
 	int32 QueryActiveCooldowns(const UAbilitySystemComponent& ASC, float& OutLongestRemaining, float& OutLongestDuration) const;
@@ -97,7 +105,10 @@ public:
 private:
 	const FWxAbilityTableRow* GetTableRow() const;
 
-	/** 다중 충전 어빌리티에서만 만드는 GE 인스턴스. StackLimitCount에 최대 충전 수를 실어 ViewModel에 전달한다. */
+	/**
+	 * 다중 충전 어빌리티에서만 만드는 GE 인스턴스.
+	 * StackLimitCount에 최대 충전 수를 실어 ViewModel에 전달한다.
+	 */
 	UPROPERTY(Transient)
 	mutable TObjectPtr<UWxEffect_Cooldown> CooldownEffect;
 };

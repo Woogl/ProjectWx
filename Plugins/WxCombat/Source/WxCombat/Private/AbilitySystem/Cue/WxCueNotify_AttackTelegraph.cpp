@@ -32,7 +32,6 @@ bool AWxCueNotify_AttackTelegraph::OnActive_Implementation(AActor* MyTarget, con
 		AttachTarget = TargetCharacter->GetMesh();
 	}
 
-	// 재생 길이는 NS 자체 저작값(루프/고정)을 따른다.
 	SpawnedNiagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
 		NiagaraSystem,
 		AttachTarget,

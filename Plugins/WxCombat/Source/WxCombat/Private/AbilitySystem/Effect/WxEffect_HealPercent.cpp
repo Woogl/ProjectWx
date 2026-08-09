@@ -7,7 +7,6 @@ UWxEffect_HealPercent::UWxEffect_HealPercent()
 {
 	DurationPolicy = EGameplayEffectDurationType::Instant;
 
-	// MaxHP의 40%를 가산 회복. HP는 어트리뷰트 세트에서 [0, MaxHP]로 클램프되므로 오버힐은 발생하지 않는다.
 	FAttributeBasedFloat MaxHPBased;
 	MaxHPBased.BackingAttribute = FGameplayEffectAttributeCaptureDefinition(
 		UWxCombatAttributeSet::GetMaxHPAttribute(),

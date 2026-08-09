@@ -10,7 +10,7 @@ class UAbilitySystemComponent;
 
 /**
  * 공격자 자원 회복 GameplayEffect.
- * Instant 정책으로 UP/MP를 한 번에 회복하며, ExecCalc와 어빌리티가 ApplyTo 진입점을 공유한다.
+ * ExecCalc와 어빌리티가 ApplyTo 진입점을 공유한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxEffect_RecoverResource : public UGameplayEffect

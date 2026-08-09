@@ -23,7 +23,6 @@ bool UWxTargetingFilterTask_InputDirection::ShouldFilterTarget(const FTargetingR
 	FVector InputDir = SourcePawn->GetLastMovementInputVector();
 	InputDir.Z = 0.f;
 
-	// 입력이 없으면(스틱 중립) 아무것도 제외하지 않는다.
 	if (InputDir.IsNearlyZero())
 	{
 		return false;
@@ -35,7 +34,6 @@ bool UWxTargetingFilterTask_InputDirection::ShouldFilterTarget(const FTargetingR
 		return false;
 	}
 
-	// 이 옵션이 꺼져 있으면 콘 밖 타겟은 항상 제외한다.
 	if (!bKeepAllWhenNoMatch)
 	{
 		return true;
@@ -71,7 +69,6 @@ bool UWxTargetingFilterTask_InputDirection::PassesInputCone(const APawn& SourceP
 		return true;
 	}
 
-	// 입력 방향과 타겟 방향의 각이 MaxInputAngle 이내면(= Dot 가 임계 이상) 콘 안이다.
 	const float Dot = FVector::DotProduct(InputDirNormalized, ToTarget);
 	return Dot >= FMath::Cos(FMath::DegreesToRadians(MaxInputAngle));
 }

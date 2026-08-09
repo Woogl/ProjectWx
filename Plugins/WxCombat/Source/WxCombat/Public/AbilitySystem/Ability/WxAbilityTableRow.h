@@ -17,8 +17,6 @@ struct WXCOMBAT_API FWxAbilityTableRow : public FTableRowBase
 {
 	GENERATED_BODY()
 
-	// ── Cooldown ───────────────────────────────────────────────────────────
-
 	/** 쿨다운 시간(초). 0 이하이면 쿨다운 미적용 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cooldown")
 	float CooldownTime = 0.f;
@@ -26,8 +24,6 @@ struct WXCOMBAT_API FWxAbilityTableRow : public FTableRowBase
 	/** 최대 충전 수. 1이면 단일 쿨다운 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cooldown")
 	int32 MaxRecharges = 1;
-
-	// ── Cost ───────────────────────────────────────────────────────────────
 
 	/** MP 소모량. 0 이하이면 미적용 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cost")
@@ -37,9 +33,6 @@ struct WXCOMBAT_API FWxAbilityTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cost")
 	float UPCost = 0.f;
 
-	// ── Display ────────────────────────────────────────────────────────────
-
-	/** UI 표시 아이콘. 텍스처 또는 머터리얼을 지정할 수 있다. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Display", meta = (AllowedClasses = "/Script/Engine.Texture2D,/Script/Engine.MaterialInterface"))
 	TSoftObjectPtr<UObject> Icon;
 };

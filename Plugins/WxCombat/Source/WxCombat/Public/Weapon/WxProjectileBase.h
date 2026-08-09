@@ -17,7 +17,6 @@ class UNiagaraComponent;
 class UNiagaraSystem;
 
 /**
- * 투사체 베이스 클래스.
  * 스폰되면 BeginPlay에서 자기 대미지 데이터로 Spec을 만들어 두고, Pawn에 Overlap하거나 월드에 Block하면 이펙트를 재생하고 사라진다.
  *
  * 스폰과 파괴 모두 서버 권위다.
@@ -25,7 +24,6 @@ class UNiagaraSystem;
  *
  * 대미지는 이 투사체 클래스(BP 서브클래스)가 DamageDataRow로 직접 저작한다.
  * HitCollision은 루트 컴포넌트이며 "WxProjectile" 콜리전 프로파일(DefaultEngine.ini)을 사용한다.
- * 중력 없는 직선 투사체가 기본값. BP에서 ProjectileMovement 설정으로 조정 가능.
  */
 UCLASS(Abstract, Blueprintable)
 class WXCOMBAT_API AWxProjectileBase : public AActor
@@ -36,7 +34,6 @@ public:
 	AWxProjectileBase();
 
 protected:
-	/** 이 투사체의 대미지 수치 테이블 Row */
 	UPROPERTY(EditAnywhere, Category = "Wx|Projectile|Damage", meta = (RowType = "/Script/WxCombat.WxDamageTableRow"))
 	FDataTableRowHandle DamageDataRow;
 

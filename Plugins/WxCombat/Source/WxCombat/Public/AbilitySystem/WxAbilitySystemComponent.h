@@ -27,7 +27,6 @@ public:
 	 */
 	void AbilityInputActionTriggered(const UInputAction* Action);
 
-	/** 입력 액션에 매칭되는 어빌리티에 입력 해제 전달 */
 	void AbilityInputActionReleased(const UInputAction* Action);
 
 	/** AbilitySet의 어빌리티들이 요구하는 입력 액션 전체(플레이어 입력 바인딩용) */
@@ -43,13 +42,11 @@ private:
 	/** 히트스톱(역경직): 대미지를 준 어빌리티의 재생 중인 몽타주를 잠깐 얼리고 복원을 예약한다 */
 	void ApplyHitStop(const FGameplayEventData& Payload);
 
-	/** 얼렸던 그 몽타주의 재생률을 되돌린다 */
 	void HandleHitStopElapsed(TWeakObjectPtr<UAnimMontage> FrozenMontage);
 
 	FTimerHandle HitStopResumeTimer;
 
 protected:
-	/** Ability, Effect 초기 데이터 */
 	// 소유 캐릭터가 "Wx|GAS"를 쓰므로 여기서 같은 경로를 쓰면 Class Defaults 패널에 GAS 헤더가 두 번 그려진다.
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TObjectPtr<UWxAbilitySet> AbilitySet;

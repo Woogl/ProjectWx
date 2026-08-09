@@ -8,8 +8,7 @@
 
 /**
  * 화상 데미지 ExecutionCalculation.
- * TickDamage = (SourceATK × (100 / (100 + TargetDEF))) / NumTicks
- * 가드·퍼펙트 가드·치명타 판정 없이 공식 대미지를 균등 분할해 적용한다.
+ * 가드·퍼펙트 가드·치명타 판정 없이 공식 대미지를 NumTicks 로 균등 분할해 적용한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxExecCalc_Burn : public UGameplayEffectExecutionCalculation

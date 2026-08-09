@@ -38,7 +38,6 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	// 상호작용이 이 태그에 막혀, 연출 도중 재입력으로 다른 대상과 몽타주가 겹치는 것을 차단한다.
 	ActivationOwnedTags.AddTag(WxGameplayTags::State_Finisher);
 
-	// 두 변형을 한 어빌리티가 받는다.
 	FAbilityTriggerData FinisherTrigger;
 	FinisherTrigger.TriggerTag = WxGameplayTags::Event_Finisher;
 	FinisherTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;

@@ -8,14 +8,12 @@
 
 /**
  * WxCombatAttributeSet 초기값 데이터테이블 Row 구조체.
- * RowName 예시: ABS_Player, ABS_Goblin
+ * RowName 예시: Player, Enemy
  */
 USTRUCT(BlueprintType)
 struct WXCOMBAT_API FWxCombatAttributeInitTableRow : public FTableRowBase
 {
 	GENERATED_BODY()
-
-	// ── Vital ──────────────────────────────────────────────────────────────
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vital")
 	float HP = 0.f;
@@ -35,8 +33,6 @@ struct WXCOMBAT_API FWxCombatAttributeInitTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vital")
 	float MaxDP = 0.f;
 
-	// ── Resource ────────────────────────────────────────────────────────────
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Resource")
 	float MP = 0.f;
 
@@ -48,8 +44,6 @@ struct WXCOMBAT_API FWxCombatAttributeInitTableRow : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Resource")
 	float MaxUP = 0.f;
-
-	// ── Combat ─────────────────────────────────────────────────────────────
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	float ATK = 0.f;

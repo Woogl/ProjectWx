@@ -7,7 +7,6 @@
 #include "WxAnimNotifyState_ComboWindow.generated.h"
 
 /**
- * 콤보 입력 수용 구간 AnimNotifyState.
  * 구간 동안 ASC에 ANS.ComboWindow 태그를 부여하며, 이 안에서 들어온 공격 입력이 다음 콤보로 이어진다.
  */
 UCLASS()

@@ -7,7 +7,8 @@
 
 const FWxAbilityTableRow* UWxMMC_Cost::GetCostRow(const FGameplayEffectSpec& Spec) const
 {
-	// 컨텍스트의 소스 어빌리티 CDO는 AbilityDataRow를 그대로 가진다(EditDefaultsOnly). 정적 데이터라 서버/클라 동일.
+	// 컨텍스트의 소스 어빌리티 CDO는 AbilityDataRow를 그대로 가진다(EditDefaultsOnly).
+	// 정적 데이터라 서버/클라 동일.
 	const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.GetEffectContext().GetAbility());
 	if (!Ability || Ability->AbilityDataRow.IsNull())
 	{

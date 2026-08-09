@@ -48,7 +48,6 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 			LocalDodgeDirection = Character->GetActorTransform().InverseTransformVectorNoScale(WorldInput);
 		}
 
-		// 리모트 클라이언트면 서버로 방향을 보낸다.
 		if (ASC && !HasAuthority(&ActivationInfo))
 		{
 			FGameplayAbilityTargetDataHandle DataHandle;
@@ -108,13 +107,8 @@ void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-//  방향 처리
-// ────────────────────────────────────────────────────────────────────────────
-
 EWxDodgeDirection UWxAbility_Dodge::ResolveDodgeDirection(const FVector& LocalDirection) const
 {
-	// 입력은 캐릭터 로컬 공간(정면 +X, 오른쪽 +Y)이라 facing을 보지 않으므로 클라이언트/서버 결과가 같다.
 	const FVector Local = LocalDirection.GetSafeNormal2D();
 	if (Local.IsNearlyZero())
 	{
@@ -155,7 +149,6 @@ bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 {
 	const FVector Local = LocalDirection.GetSafeNormal2D();
 
-	// 백스텝 몽타주가 없으면 그대로 흘러 DodgeMontage의 Back 섹션으로 폴백한다.
 	if (Local.IsNearlyZero() && BackstepMontage)
 	{
 		if (!PlayMontage(BackstepMontage))
@@ -199,10 +192,6 @@ bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 
 	return true;
 }
-
-// ────────────────────────────────────────────────────────────────────────────
-//  극한 회피 / 반격 처리
-// ────────────────────────────────────────────────────────────────────────────
 
 void UWxAbility_Dodge::ListenForDodgeSuccess()
 {
@@ -265,10 +254,6 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 	}
 }
-
-// ────────────────────────────────────────────────────────────────────────────
-//  극한 회피 판정 캡슐
-// ────────────────────────────────────────────────────────────────────────────
 
 void UWxAbility_Dodge::ListenForInvincibleWindow()
 {
@@ -337,7 +322,6 @@ void UWxAbility_Dodge::DeactivateJudgementCapsule()
 
 void UWxAbility_Dodge::HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag)
 {
-	// 클라이언트가 로컬 공간으로 변환해 보낸 방향이라 그대로 쓰면 같은 섹션이 나온다.
 	FVector LocalDirection = FVector::ZeroVector;
 	if (const FWxAbilityTargetData_Direction* DirectionData = static_cast<const FWxAbilityTargetData_Direction*>(DataHandle.Get(0)))
 	{
@@ -361,10 +345,6 @@ void UWxAbility_Dodge::HandleInvincibleTagRemoved()
 {
 	DeactivateJudgementCapsule();
 }
-
-// ────────────────────────────────────────────────────────────────────────────
-//  몽타주 콜백
-// ────────────────────────────────────────────────────────────────────────────
 
 void UWxAbility_Dodge::HandleMontageCompleted()
 {

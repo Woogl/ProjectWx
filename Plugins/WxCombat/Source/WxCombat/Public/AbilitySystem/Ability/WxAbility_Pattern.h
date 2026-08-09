@@ -10,7 +10,6 @@ class UAbilityTask_PlayMontageAndWait;
 class UAnimMontage;
 
 /**
- * 적 공격 패턴 어빌리티.
  * BT/AI가 TryActivateAbility로 직접 발동해 단일 몽타주를 재생한다.
  * 입력·UI 아이콘은 쓰지 않으며, 쿨다운·충전은 WxAbilityBase의 AbilityDataRow로 설정한다.
  */

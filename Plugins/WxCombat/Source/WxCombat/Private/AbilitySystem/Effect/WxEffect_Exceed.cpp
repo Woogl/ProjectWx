@@ -9,7 +9,6 @@ UWxEffect_Exceed::UWxEffect_Exceed()
 	DurationPolicy = EGameplayEffectDurationType::HasDuration;
 	DurationMagnitude = FGameplayEffectModifierMagnitude(FScalableFloat(6.f));
 
-	// 중첩 불가 — 대상당 1스택만 유지하고 재적용 시 Duration을 갱신한다.
 	// StackingType은 5.7에서 deprecated지만 SetStackingType이 WITH_EDITOR 한정이라 생성자에서 못 쓰므로 직접 대입한다.
 	PRAGMA_DISABLE_DEPRECATION_WARNINGS
 	StackingType = EGameplayEffectStackingType::AggregateByTarget;

@@ -9,7 +9,6 @@
 class UTargetingPreset;
 
 /**
- * 모션 워핑 기반 타겟 스냅 AnimNotifyState.
  * UWxRootMotionModifier_SnapToTarget을 이동·회전 두 역할로 구성해 MotionWarpingComponent에 등록한다.
  * 대상 선택(락온 우선)·범위 판정·실제 루트 모션 보정은 전부 modifier가 수행한다.
  *

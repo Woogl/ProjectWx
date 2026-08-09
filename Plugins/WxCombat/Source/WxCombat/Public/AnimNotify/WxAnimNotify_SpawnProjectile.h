@@ -21,11 +21,9 @@ public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 
 protected:
-	/** 스폰할 투사체 클래스 */
 	UPROPERTY(EditAnywhere, Category = "Wx|Projectile")
 	TSubclassOf<AWxProjectileBase> ProjectileClass;
 
-	/** 투사체 스폰 위치 소켓 이름 */
 	UPROPERTY(EditAnywhere, Category = "Wx|Projectile")
 	FName SpawnSocketName = TEXT("hand_r");
 };

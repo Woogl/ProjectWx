@@ -22,7 +22,6 @@ public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 
 protected:
-	/** 앞잡·뒤잡 몽타주가 같은 행을 가리키면 두 처형의 대미지가 같아진다 */
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxDamageTableRow"))
 	FDataTableRowHandle DamageDataRow;
 };

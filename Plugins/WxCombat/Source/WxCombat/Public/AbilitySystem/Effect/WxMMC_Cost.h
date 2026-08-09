@@ -22,7 +22,6 @@ class WXCOMBAT_API UWxMMC_Cost : public UGameplayModMagnitudeCalculation
 	GENERATED_BODY()
 
 protected:
-	/** Spec 컨텍스트의 소스 어빌리티에서 코스트 Row를 해석한다 */
 	const FWxAbilityTableRow* GetCostRow(const FGameplayEffectSpec& Spec) const;
 };
 

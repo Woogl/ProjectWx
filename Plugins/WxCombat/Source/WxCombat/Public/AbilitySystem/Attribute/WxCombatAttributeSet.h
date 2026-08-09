@@ -39,14 +39,11 @@ public:
 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
-	// ── Vital ──────────────────────────────────────────────────────────────
-
 	/** 0이 되면 사망 처리 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Vital", ReplicatedUsing = OnRep_HP)
 	FGameplayAttributeData HP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, HP)
 
-	/** 최대 체력 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Vital", ReplicatedUsing = OnRep_MaxHP)
 	FGameplayAttributeData MaxHP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, MaxHP)
@@ -56,7 +53,6 @@ public:
 	FGameplayAttributeData SP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, SP)
 
-	/** 최대 스태미나 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Vital", ReplicatedUsing = OnRep_MaxSP)
 	FGameplayAttributeData MaxSP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, MaxSP)
@@ -66,19 +62,15 @@ public:
 	FGameplayAttributeData DP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, DP)
 
-	/** 최대 그로기 수치 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Vital", ReplicatedUsing = OnRep_MaxDP)
 	FGameplayAttributeData MaxDP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, MaxDP)
 
-	// ── Resource ────────────────────────────────────────────────────────────
-	
 	/** 스킬 사용 비용으로 소모하는 마나 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Resource", ReplicatedUsing = OnRep_MP)
 	FGameplayAttributeData MP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, MP)
 
-	/** 최대 마나 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Resource", ReplicatedUsing = OnRep_MaxMP)
 	FGameplayAttributeData MaxMP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, MaxMP)
@@ -88,19 +80,14 @@ public:
 	FGameplayAttributeData UP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, UP)
 
-	/** 최대 궁극기 수치 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Resource", ReplicatedUsing = OnRep_MaxUP)
 	FGameplayAttributeData MaxUP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, MaxUP)
 
-	// ── Combat ─────────────────────────────────────────────────────────────
-
-	/** 데미지 계산의 기반 수치 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Combat", ReplicatedUsing = OnRep_ATK)
 	FGameplayAttributeData ATK;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, ATK)
 
-	/** 데미지 감소 계산에 쓰는 방어력 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Combat", ReplicatedUsing = OnRep_DEF)
 	FGameplayAttributeData DEF;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, DEF)

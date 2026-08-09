@@ -28,7 +28,6 @@ public:
 	virtual bool OnRemove_Implementation(AActor* MyTarget, const FGameplayCueParameters& Parameters) override;
 
 protected:
-	/** 선딜 동안 캐릭터에 부착할 Niagara 이펙트 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Cue")
 	TObjectPtr<UNiagaraSystem> NiagaraSystem;
 

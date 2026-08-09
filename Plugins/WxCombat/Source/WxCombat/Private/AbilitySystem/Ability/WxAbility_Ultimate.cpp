@@ -26,7 +26,6 @@ void UWxAbility_Ultimate::OnGiveAbility(const FGameplayAbilityActorInfo* ActorIn
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
 
-	// 발동은 연출이 시작되는 지점이라 그때의 콜드 로드가 그대로 히치로 보인다.
 	if (!CutsceneSequence.IsNull() && !CutsceneSequence.Get())
 	{
 		CutscenePreloadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(CutsceneSequence.ToSoftObjectPath());

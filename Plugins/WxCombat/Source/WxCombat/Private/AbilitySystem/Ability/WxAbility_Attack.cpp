@@ -18,7 +18,6 @@ UWxAbility_Attack::UWxAbility_Attack()
 	// 후딜 캔슬은 몽타주 StartRecovery 노티파이가 연다.
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 
-	// 콤보 진행이 곧 재발동이다.
 	bRetriggerInstancedAbility = true;
 }
 

@@ -28,7 +28,6 @@ class WXCOMBAT_API UWxLockOnManagerComponent : public UActorComponent
 public:
 	UWxLockOnManagerComponent();
 
-	/** 액터에서 UWxLockOnManagerComponent를 찾아 반환. 없으면 nullptr */
 	static UWxLockOnManagerComponent* FindComponent(const AActor* Actor);
 
 	/** nullptr을 넘기면 해제된다 */
@@ -36,10 +35,10 @@ public:
 
 	USceneComponent* GetLockOnTarget() const;
 
-	/** 락온 중이라 시점 회전에 쓰이지 않은 시선 입력을 기록한다. 캐릭터의 Look 처리가 호출한다. */
+	/** 락온 중이라 시점 회전에 쓰이지 않은 시선 입력을 기록한다. */
 	void SetLookInput(const FVector2D& InLookInput);
 
-	/** 기록된 시선 입력을 가져가고 비운다. 입력이 없던 프레임에는 0이 반환된다. */
+	/** 입력이 없던 프레임에는 0이 반환된다. */
 	FVector2D ConsumeLookInput();
 
 	/** 락온 대상 변경 시(로컬 예측·권위 적용·복제 도착 모두) 브로드캐스트된다. */
@@ -49,14 +48,13 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
-	/** 소유 클라의 락온 선택을 서버에 권위 설정한다. */
 	UFUNCTION(Server, Reliable)
 	void ServerSetLockOnTarget(USceneComponent* InTarget);
 
 	UFUNCTION()
 	void OnRep_LockOnTarget();
 
-	/** 대상 값을 적용하고(변경 시) 델리게이트를 브로드캐스트한다. 권위/예측 양쪽의 공통 경로. */
+	/** 변경 시에만 브로드캐스트하는 권위/예측 공통 경로 */
 	void ApplyLockOnTarget(USceneComponent* InTarget);
 
 	UPROPERTY(ReplicatedUsing = OnRep_LockOnTarget)

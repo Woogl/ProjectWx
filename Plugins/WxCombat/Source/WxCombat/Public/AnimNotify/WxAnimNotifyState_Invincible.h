@@ -7,7 +7,6 @@
 #include "WxAnimNotifyState_Invincible.generated.h"
 
 /**
- * 무적 구간 AnimNotifyState.
  * 구간 동안 ASC에 State.Invincible 태그를 부여하며, 그동안 ExecCalc가 대미지를 무시한다.
  */
 UCLASS()

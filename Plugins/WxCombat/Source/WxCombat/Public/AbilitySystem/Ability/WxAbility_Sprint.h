@@ -7,7 +7,6 @@
 #include "WxAbility_Sprint.generated.h"
 
 /**
- * 스프린트 어빌리티.
  * 입력을 누르는 동안 SPD 배율 GameplayEffect를 걸어 두고, 떼면 걷어낸다.
  */
 UCLASS()
