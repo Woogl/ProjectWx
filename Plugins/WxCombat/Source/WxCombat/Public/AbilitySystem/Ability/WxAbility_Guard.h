@@ -13,20 +13,15 @@ class UAbilityTask_PlayMontageAndWait;
  * 가드 어빌리티.
  *
  * 페이즈 (ActiveMontage로 판별):
- *  GuardMontage         – State.Guard 태그 활성, 피격 시 HitReact 전환 (루핑 몽타주)
- *  GuardHitReactMontage – 일반 가드 피격(SP 여유) 시 재생 후 GuardMontage 복귀
- *  GuardKnockbackMontage – Knockback 계열 피격 가드 시 재생 후 GuardMontage 복귀
- *  GuardBreakMontage    – SP 고갈 시 State.Guard 해제 후 재생, 종료
+ *  GuardMontage          – State.Guard 활성, 루핑
+ *  GuardHitReactMontage  – 일반 가드 피격(SP 여유) 후 GuardMontage 복귀
+ *  GuardKnockbackMontage – Knock 계열 피격 가드 후 GuardMontage 복귀
+ *  GuardBreakMontage     – SP 고갈로 State.Guard 해제 후 재생, 종료
  *
- * Unblockable 피격 처리:
- *  PerfectGuard 윈도우 중이면 ExecCalc가 PerfectGuard로 처리한다.
- *  일반 Guard 중 Unblockable 피격 시 ExecCalc가 Guard 어빌리티를 직접 Cancel하고 HitReact 이벤트를 발송한다.
+ * Unblockable 피격은 퍼펙트 가드 윈도우 중이면 ExecCalc가 퍼펙트 가드로 처리하고, 일반 가드 중이면 이 어빌리티를 직접 Cancel한 뒤 HitReact 이벤트를 발송한다.
  *
- * 가드 반격은 이 어빌리티가 다루지 않는다. 활성 동안 State.Guard를 발행하면 공격 어빌리티가 그 태그로 자기 반격 콤보 세트를 고른다.
- * 반격을 언제부터 받을지는 가드 몽타주의 StartRecovery 노티파이가 차단을 푸는 시점이 정한다.
- *
- * 입력 릴리즈 시 GuardBreak/PerfectGuard 페이즈가 아니면 즉시 EndAbility.
- * PerfectGuard 페이즈 중 가드 재입력 시 후속 연출을 끊고 즉시 GuardMontage로 복귀한다.
+ * 가드 반격은 여기서 다루지 않는다 — State.Guard만 발행하면 공격 어빌리티가 그 태그로 자기 반격 세트를 고른다.
+ * 진입 시점은 가드 몽타주의 StartRecovery가 차단을 푸는 때다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Guard : public UWxAbilityBase
@@ -39,7 +34,6 @@ public:
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
-	/** 가드 중 받는 대미지 배율(0~1). ExecCalc 가 가드 피격 시 이 값을 곱한다. */
 	float GetDamageReductionRate() const;
 
 protected:
@@ -61,7 +55,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> PerfectGuardMontage;
 
-	/** 가드 중 받는 대미지 배율(0~1). 0.5 면 50% 감소. ExecCalc_Damage 가 가드 피격 분기에서 참조. */
+	/** 가드 중 받는 대미지 배율(0~1). 0.5면 50% 감소. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|PerfectGuard", meta = (ClampMin = "0", ClampMax = "1"))
 	float DamageReductionRate = 0.5f;
 

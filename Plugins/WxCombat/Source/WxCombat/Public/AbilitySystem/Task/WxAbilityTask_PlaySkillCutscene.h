@@ -14,11 +14,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnCutsceneCancelled);
 
 /**
  * Level Sequence 컷신 재생 AbilityTask.
- * Global Time Dilation으로 게임 월드를 정지시키고, 시퀀스만 정상 속도로 재생한다.
- * AvatarActor의 Transform을 TransformOrigin으로 사용하며, BindingTag로 액터를 리바인딩한다.
- * 시퀀스 종료 시 Time Dilation을 거두고 OnCompleted를 브로드캐스트한다.
+ * Global Time Dilation으로 게임 월드를 정지시키고 시퀀스만 정상 속도로 재생하며, AvatarActor의 Transform을 시퀀스 원점으로 쓴다.
  *
- * 딜레이션은 UWxTimeDilationComponent가 서버 권위로 관리하므로, 클라이언트에는 복제로 도착한다.
+ * 딜레이션은 UWxTimeDilationComponent가 서버 권위로 관리하므로 클라이언트에는 복제로 도착한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAbilityTask_PlaySkillCutscene : public UAbilityTask
@@ -26,12 +24,7 @@ class WXCOMBAT_API UWxAbilityTask_PlaySkillCutscene : public UAbilityTask
 	GENERATED_BODY()
 
 public:
-	/**
-	 * @param InLevelSequence         재생할 Level Sequence 에셋
-	 * @param InGlobalTimeDilation    컷신 재생 중 적용할 Global Time Dilation
-	 *
-	 * AvatarActor를 시퀀스에 리바인딩하려면 LevelSequence 에디터에서 Binding Tag를 "Player"로 설정해야 한다.
-	 */
+	/** AvatarActor를 시퀀스에 리바인딩하려면 LevelSequence 에디터에서 Binding Tag를 "Player"로 설정해야 한다. */
 	static UWxAbilityTask_PlaySkillCutscene* CreateTask(UGameplayAbility* OwningAbility, ULevelSequence* InLevelSequence, float InGlobalTimeDilation);
 
 	UPROPERTY()

@@ -43,8 +43,8 @@ void UWxAbility_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	ACharacter* Avatar = Cast<ACharacter>(GetAvatarActorFromActorInfo());
 	if (Avatar && Avatar->GetMesh())
 	{
-		// 시체가 계속 피격되지 않도록 공격 채널 응답만 끈다.
-		// CollisionEnabled를 내리면 ShouldCreatePhysicsState가 false가 되어 피직스 애셋 바디가 통째로 파괴되고, 래그돌 진입에서 다시 만드는 왕복이 생긴다.
+		// 공격 채널 응답만 끈다.
+		// CollisionEnabled를 내리면 ShouldCreatePhysicsState가 false가 되어 피직스 바디가 통째로 파괴되고, 래그돌 진입에서 다시 만드는 왕복이 생긴다.
 		Avatar->GetMesh()->SetCollisionResponseToChannel(ECC_WxAttack, ECR_Ignore);
 	}
 	
@@ -59,13 +59,13 @@ void UWxAbility_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 void UWxAbility_Death::HandleMontageCompleted()
 {
-	// 사망 몽타주가 의도한 포즈로 자연 종료 — 래그돌 없이 종료
+	// 의도한 사망 포즈로 끝났으므로 래그돌로 넘기지 않는다.
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UWxAbility_Death::HandleMontageInterrupted()
 {
-	// 외부 시스템이 사망 몽타주를 끊은 비정상 경로 — 래그돌로 안전 폴백
+	// 외부가 사망 몽타주를 끊은 비정상 경로 — 래그돌로 폴백한다.
 	RagdollAndEnd(true);
 }
 
@@ -78,7 +78,7 @@ void UWxAbility_Death::PlayDeathMontageOrRagdoll()
 {
 	if (!DeathMontage)
 	{
-		// 활성 HitReact 몽타주가 BlendOut될 시간을 주고 래그돌로 인계
+		// 활성 HitReact 몽타주가 BlendOut될 시간을 주고 래그돌로 인계한다.
 		UWorld* World = GetWorld();
 		if (!World)
 		{
@@ -118,7 +118,7 @@ void UWxAbility_Death::RagdollAndEnd(bool bWasCancelled)
 
 void UWxAbility_Death::EnableRagdoll()
 {
-	// 오너 클라 인스턴스도 이 경로에 들어오므로, 로컬 루스 태그가 중복 추가되지 않게 서버에서만 발행한다.
+	// 오너 클라 인스턴스도 이 경로에 들어오므로, 루스 태그가 중복 추가되지 않게 서버에서만 발행한다.
 	const AActor* Avatar = GetAvatarActorFromActorInfo();
 	if (!Avatar || !Avatar->HasAuthority())
 	{

@@ -30,13 +30,10 @@ public:
 	/** 입력 액션에 매칭되는 어빌리티에 입력 해제 전달 */
 	void AbilityInputActionReleased(const UInputAction* Action);
 
-	/** AbilitySet의 부여 대상 어빌리티들이 요구하는 입력 액션 전체를 반환한다(플레이어 입력 바인딩용). AbilitySet이 없으면 빈 배열을 반환한다. */
+	/** AbilitySet의 어빌리티들이 요구하는 입력 액션 전체(플레이어 입력 바인딩용) */
 	TArray<const UInputAction*> GetAbilityInputActions() const;
 
-	/**
-	 * 이 액터의 ASPD가 반영된 몽타주 재생 속도. AttributeSet 미가용 시 1.0
-	 * 어빌리티의 몽타주 재생과 히트스톱 복원이 공유한다.
-	 */
+	/** 이 액터의 ASPD가 반영된 몽타주 재생 속도. 어빌리티 몽타주 재생과 히트스톱 복원이 공유한다. */
 	float GetMontagePlayRate() const;
 
 	/** Event.HitStop이면 히트스톱을 적용하고, 라우팅은 순정 경로에 그대로 위임한다 */
@@ -46,7 +43,7 @@ private:
 	/** 히트스톱(역경직): 대미지를 준 어빌리티의 재생 중인 몽타주를 잠깐 얼리고 복원을 예약한다 */
 	void ApplyHitStop(const FGameplayEventData& Payload);
 
-	/** 히트스톱 복원. 얼렸던 그 몽타주의 재생률을 GetMontagePlayRate()로 되돌린다 */
+	/** 얼렸던 그 몽타주의 재생률을 되돌린다 */
 	void HandleHitStopElapsed(TWeakObjectPtr<UAnimMontage> FrozenMontage);
 
 	FTimerHandle HitStopResumeTimer;

@@ -63,7 +63,7 @@ void UWxTimeDilationComponent::ClearDilationFrom(const UObject* Requester)
 		return;
 	}
 
-	// 소유자가 살아 있는데 내가 아니면 남의 연출이므로 건드리지 않는다.
+	// 소유자가 살아 있는데 내가 아니면 남의 연출이라 건드리지 않는다.
 	// 소유자가 이미 사라졌다면 값만 남은 상태이므로 이 해제로 걷어낸다.
 	if (DilationOwner.IsValid() && DilationOwner.Get() != Requester)
 	{
@@ -93,7 +93,7 @@ UWxTimeDilationComponent* UWxTimeDilationComponent::FindComponent(const UObject*
 	UWxTimeDilationComponent* Comp = GameState->FindComponentByClass<UWxTimeDilationComponent>();
 	if (!Comp)
 	{
-		// 컴포넌트가 없으면 슬로우 연출이 통째로 사라지는데 화면상으로는 원인이 안 보인다.
+		// 컴포넌트가 없으면 슬로우 연출이 통째로 사라지는데 화면만 봐서는 원인이 안 보인다.
 		// GameMode가 고른 Experience의 컴포넌트 주입 설정을 확인해야 한다.
 		UE_LOG(LogWxCombat, Warning, TEXT("GameState '%s'에 WxTimeDilationComponent가 없어 TimeDilation 요청이 무시된다."), *GetNameSafe(GameState));
 	}
@@ -112,7 +112,7 @@ void UWxTimeDilationComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Late join 클라이언트가 진행 중인 슬로우 상태로 합류해도 즉시 동기화되도록 적용.
+	// Late join 클라이언트가 진행 중인 슬로우 상태로 합류해도 즉시 맞춘다.
 	if (!FMath::IsNearlyEqual(ReplicatedTimeDilation, 1.f))
 	{
 		ApplyTimeDilation(ReplicatedTimeDilation);
@@ -121,7 +121,7 @@ void UWxTimeDilationComponent::BeginPlay()
 
 void UWxTimeDilationComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	// 슬로우 상태로 World가 종료되면 다음 World에 잔존 영향이 가지 않도록 복원.
+	// 슬로우 상태로 World가 끝나면 다음 World까지 배율이 따라간다.
 	ApplyTimeDilation(1.f);
 
 	Super::EndPlay(EndPlayReason);

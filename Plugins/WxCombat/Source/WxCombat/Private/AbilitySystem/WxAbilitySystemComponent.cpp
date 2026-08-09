@@ -32,8 +32,7 @@ void UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* 
 	}
 
 	// 순회 중 활성화가 어빌리티 목록을 바꿀 수 있다(GE의 GrantedAbilities, RemoveAfterActivation 등).
-	// 락이 없으면 Give/Clear가 ActivatableAbilities.Items를 즉시 Add/RemoveAtSwap 해 참조와 이터레이터가 무효화된다.
-	// 엔진의 AbilityLocalInputPressed도 같은 이유로 이 락을 건다.
+	// 락이 없으면 Give/Clear가 즉시 Add/RemoveAtSwap 해 참조와 이터레이터가 무효화된다.
 	ABILITYLIST_SCOPE_LOCK();
 
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
@@ -55,7 +54,7 @@ void UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* 
 			break;
 		}
 
-		// 재발동을 받지 않는 어빌리티는 활성 인스턴스가 입력을 직접 처리한다(락온 토글 해제, 패링 중 가드 복귀).
+		// 재발동을 받지 않는 어빌리티는 활성 인스턴스가 입력을 직접 처리한다.
 		if (Spec.IsActive())
 		{
 			AbilitySpecInputPressed(Spec);
@@ -75,7 +74,7 @@ void UWxAbilitySystemComponent::AbilityInputActionReleased(const UInputAction* A
 		return;
 	}
 
-	// AbilityInputActionTriggered와 같은 이유로 락을 건다(엔진의 AbilityLocalInputReleased와 동일).
+	// AbilityInputActionTriggered와 같은 이유로 락을 건다.
 	ABILITYLIST_SCOPE_LOCK();
 
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
@@ -135,14 +134,15 @@ int32 UWxAbilitySystemComponent::HandleGameplayEvent(FGameplayTag EventTag, cons
 
 void UWxAbilitySystemComponent::ApplyHitStop(const FGameplayEventData& Payload)
 {
-	// 0 이하 지속시간은 무시한다. SetTimer가 0 이하를 예약 취소로 취급해 복원 없는 정지가 되는 것을 막는다.
+	// SetTimer가 0 이하를 예약 취소로 취급하므로, 그대로 두면 복원 없는 정지가 된다.
 	const float Duration = Payload.EventMagnitude;
 	if (Duration <= 0.f)
 	{
 		return;
 	}
 
-	// 대미지를 준 그 어빌리티가 여전히 몽타주 주인일 때만 얼린다. 같은 적중 처리에서 먼저 발동한 반응(패리 등)이 몽타주를 가로챘으면 건너뛴다.
+	// 대미지를 준 그 어빌리티가 여전히 몽타주 주인일 때만 얼린다.
+	// 같은 적중 처리에서 먼저 발동한 반응(패리 등)이 몽타주를 가로챘으면 건너뛴다.
 	if (!GetAnimatingAbility() || GetAnimatingAbility() != Payload.ContextHandle.GetAbilityInstance_NotReplicated())
 	{
 		return;
@@ -154,10 +154,11 @@ void UWxAbilitySystemComponent::ApplyHitStop(const FGameplayEventData& Payload)
 		return;
 	}
 
-	// 재생 중인 몽타주를 거의 정지시킨다. 완전한 0이 아닌 미세 값으로 두어 몽타주 진행 판정 이슈를 피한다.
+	// 완전한 0이 아닌 미세 값으로 둬 몽타주 진행 판정 이슈를 피한다.
 	CurrentMontageSetPlayRate(0.001f);
 
-	// 복원 예약이 지금 얼린 그 몽타주를 들고 간다. 연속 적중이면 재설정되어 조기 복원을 막는다.
+	// 복원 예약이 지금 얼린 그 몽타주를 들고 간다.
+	// 연속 적중이면 타이머가 재설정되어 조기 복원을 막는다.
 	GetWorld()->GetTimerManager().SetTimer(HitStopResumeTimer,
 		FTimerDelegate::CreateUObject(this, &UWxAbilitySystemComponent::HandleHitStopElapsed, TWeakObjectPtr<UAnimMontage>(Montage)),
 		Duration, false);
@@ -165,7 +166,8 @@ void UWxAbilitySystemComponent::ApplyHitStop(const FGameplayEventData& Payload)
 
 void UWxAbilitySystemComponent::HandleHitStopElapsed(TWeakObjectPtr<UAnimMontage> FrozenMontage)
 {
-	// 복원은 현재 몽타주가 아니라 얼렸던 그 몽타주에 간다. 피격 등이 현재를 가로챘어도 정확히 닿고, 인스턴스가 사라졌으면 무동작이다.
+	// 복원은 현재 몽타주가 아니라 얼렸던 그 몽타주에 간다.
+	// 피격 등이 현재를 가로챘어도 정확히 닿고, 인스턴스가 사라졌으면 무동작이다.
 	UAnimInstance* AnimInstance = AbilityActorInfo.IsValid() ? AbilityActorInfo->GetAnimInstance() : nullptr;
 	if (AnimInstance && FrozenMontage.IsValid())
 	{

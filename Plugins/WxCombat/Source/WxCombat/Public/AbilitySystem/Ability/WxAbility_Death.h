@@ -10,16 +10,11 @@ class UAnimMontage;
 
 /**
  * 사망 어빌리티.
+ * HP가 0이 되어 붙는 State.Dead 태그로 발동한다.
+ * DeathMontage가 있으면 그 포즈로 끝내고, 없거나 외부에 끊기면 래그돌로 폴백한다.
  *
- * 사용 흐름:
- *  1. HP == 0 → PostGameplayEffectExecute에서 State.Dead 태그 부여
- *  2. OwnedTagPresent 트리거 → ActivateAbility
- *  3. DeathMontage 유효 → DeathMontage 재생 → EndAbility (의도한 사망 포즈 유지, 래그돌 X)
- *     DeathMontage 무효 → 짧은 지연 후 래그돌 활성화 → EndAbility (활성 HitReact 몽타주가 잘리지 않게 인계)
- *
- * DeathMontage가 외부 시스템에 의해 중단되면 안전 폴백으로 래그돌 활성화.
- * 래그돌은 어빌리티 인스턴스가 없는 시뮬 프록시·late joiner도 커버해야 하므로, 서버가 State.Ragdoll 루스 태그를 발행(TagOnly 복제)하고 전 머신의 캐릭터가 감지해 자체 래그돌 전환을 수행한다.
- * 사망 발동 시 신규 어빌리티 차단.
+ * 래그돌은 어빌리티 인스턴스가 없는 시뮬 프록시·late joiner도 커버해야 한다.
+ * 그래서 서버가 State.Ragdoll 루스 태그만 발행(TagOnly 복제)하고, 전 머신의 캐릭터가 그 태그를 보고 스스로 전환한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAbility_Death : public UWxAbilityBase

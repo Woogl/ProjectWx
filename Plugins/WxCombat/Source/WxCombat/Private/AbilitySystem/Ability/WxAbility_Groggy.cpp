@@ -51,12 +51,11 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	GroggyTagDelegateHandle = ASC->RegisterGameplayTagEvent(WxGameplayTags::State_Groggy, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &UWxAbility_Groggy::HandleGroggyTagChanged);
 
-	// 그로기 도중 사망하면 폴러가 사망 몽타주 종료 후 시체 위에 그로기 몽타주를 덮어씌우므로, 사망 태그 부여 시 즉시 종료한다.
-	// (ActivationBlockedTags 는 활성화 시점 전용이라 실행 중 종료엔 쓸 수 없다. 활성화 시엔 State.Dead 로 차단되므로 이후 부여만 감지하면 충분하다.)
+	// 그대로 두면 폴러가 사망 몽타주 종료 후 시체 위에 그로기 몽타주를 덮어씌운다.
 	DeadTagDelegateHandle = ASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &UWxAbility_Groggy::HandleDeadTagChanged);
 
-	// 그로기 지속시간은 그로기 몽타주의 재생 길이를 따른다. (몽타주는 rate 1.0 으로 재생)
+	// 그로기 길이는 몽타주 재생 길이를 따른다(재생 rate는 1.0 고정).
 	const float GroggyDuration = GroggyMontage->GetPlayLength();
 
 	FGameplayEffectSpecHandle DrainSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_DrainDP::StaticClass(), GetAbilityLevel());
@@ -71,8 +70,7 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	{
 		World->GetTimerManager().SetTimer(MontagePollingTimerHandle, this, &UWxAbility_Groggy::HandleMontagePollTick, 0.1f, true);
 
-		// 실패복구: DrainDP가 무효/외부 제거로 DP를 0까지 못 내리면 State.Groggy가 잔존해 무한 그로기가 된다.
-		// 지속시간을 넉넉히(+1s) 넘겨도 끝나지 않으면 DP를 강제로 0으로 리셋해 종료시킨다.
+		// 실패복구: DrainDP가 무효·외부 제거로 DP를 0까지 못 내리면 State.Groggy가 잔존해 무한 그로기가 된다.
 		World->GetTimerManager().SetTimer(GroggySafetyTimerHandle, this, &UWxAbility_Groggy::HandleGroggySafetyTimeout, GroggyDuration + 1.f, false);
 	}
 
@@ -115,7 +113,7 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 		{
 			UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 
-			// ActivateAbility 가 GroggyMontage 미설정을 이유로 EndAbility 를 부르는 경로가 있어 여기서 널일 수 있다.
+			// ActivateAbility가 GroggyMontage 미설정으로 곧장 EndAbility를 부르는 경로가 있어 널일 수 있다.
 			if (GroggyMontage)
 			{
 				ASC->StopMontageIfCurrent(*GroggyMontage);
@@ -164,9 +162,8 @@ void UWxAbility_Groggy::HandleDeadTagChanged(const FGameplayTag CallbackTag, int
 
 void UWxAbility_Groggy::HandleGroggySafetyTimeout()
 {
-	// DP를 강제로 0으로 리셋한다. AttributeSet가 DP<=0에서 State.Groggy를 제거하고,
-	// 그 태그 변화가 HandleGroggyTagChanged를 통해 정상 종료 경로를 태운다.
-	// (여기서 곧장 EndAbility만 하면 DP가 MaxDP로 남아 OwnedTagPresent(State.Groggy) 트리거가 즉시 재발동한다.)
+	// DP를 리셋하면 AttributeSet가 State.Groggy를 떼고, 그 변화가 HandleGroggyTagChanged로 정상 종료 경로를 태운다.
+	// 여기서 곧장 EndAbility만 하면 DP가 MaxDP로 남아 OwnedTagPresent 트리거가 즉시 재발동한다.
 	const FGameplayEffectSpecHandle ResetSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_ResetDP::StaticClass(), GetAbilityLevel());
 	if (ResetSpecHandle.IsValid())
 	{

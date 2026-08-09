@@ -22,7 +22,7 @@ void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAn
 		return;
 	}
 
-	// 몽타주를 재생 중인 어빌리티(서버 인스턴스)가 확정 스폰한다. 클라에선 authority 게이트로 무동작.
+	// 스폰은 어빌리티에 위임한다 — 클라에선 그쪽 authority 게이트로 무동작이다.
 	if (UWxAbilityBase* Ability = Cast<UWxAbilityBase>(ASC->GetAnimatingAbility()))
 	{
 		Ability->SpawnProjectile(ProjectileClass, SpawnSocketName);

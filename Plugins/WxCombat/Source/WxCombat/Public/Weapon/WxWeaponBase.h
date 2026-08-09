@@ -14,16 +14,10 @@ class USkeletalMeshComponent;
 
 /**
  * 무기 베이스 클래스.
+ * ANS_WeaponAttack이 BeginAttack/EndAttack을 호출하면, 무기가 내부 레퍼런스 카운팅으로 히트 콜리전을 켜고 끈다.
  *
- * 사용 흐름:
- *  1. SpawnActor → SetVisualMesh(MeshAsset) → AttachToCharacter(OwnerCharacter, Socket)
- *  2. ANS_WeaponAttack이 BeginAttack / EndAttack을 호출
- *  3. 무기가 내부 레퍼런스 카운팅으로 히트 콜리전 활성/비활성 자동 전환
- *
- * GripPoint(SceneComponent)가 루트이며, 캐릭터 소켓에 부착되는 기준점.
- * 메시는 BP에서 GripPoint 하위에 원하는 타입(Static/Skeletal)으로 추가.
- * 히트 판정은 HitCollision(CapsuleComponent) Overlap 기반.
- * 한 스윙에서 동일 액터는 최대 1회만 피격 (HitActorsThisSwing으로 관리).
+ * 루트인 GripPoint가 캐릭터 소켓에 부착되는 기준점이고, 메시는 BP에서 그 하위에 원하는 타입으로 추가한다.
+ * 히트 판정은 HitCollision Overlap 기반이며, 한 스윙에서 같은 액터는 최대 1회만 피격된다.
  */
 UCLASS(Abstract, Blueprintable)
 class WXCOMBAT_API AWxWeaponBase : public AActor
@@ -36,38 +30,25 @@ public:
 	/** 소유자 액터에 부착된 AWxWeaponBase를 반환. 없으면 nullptr */
 	static AWxWeaponBase* FindWeapon(const AActor* Owner);
 
-	/**
-	 * 공격 구간을 시작한다.
-	 * 히트 목록을 초기화하고 DamageInfo를 설정한 뒤, 첫 호출 시 콜리전을 활성화한다.
-	 * 겹치는 ANS가 있으면 레퍼런스 카운트만 증가하고 콜리전은 유지된다.
-	 */
+	/** 첫 호출에서만 콜리전을 켜고, 겹치는 ANS는 레퍼런스 카운트만 올린다. */
 	void BeginAttack(const FWxDamageInfo& InDamageInfo);
 
-	/**
-	 * 공격 구간을 종료한다.
-	 * 모든 활성 구간이 종료되면 콜리전을 비활성화하고 공격 상태를 초기화한다.
-	 */
+	/** 모든 활성 구간이 닫혔을 때만 콜리전을 끈다. */
 	void EndAttack();
 
-	/**
-	 * 남은 활성 구간 수와 무관하게 공격을 즉시 전부 종료한다.
-	 * 사망처럼 ANS의 구간 종료를 기다릴 수 없는 상황에서 판정을 확실히 걷어내기 위한 경로다.
-	 */
+	/** 사망처럼 ANS의 구간 종료를 기다릴 수 없는 상황에서 판정을 즉시 걷어낸다. */
 	void CancelAttack();
 
 	/** 무기 외형 메시를 교체한다. MeshAsset이 nullptr이면 무시한다. */
 	void SetVisualMesh(USkeletalMesh* MeshAsset);
 
-	/**
-	 * 무기를 대상 캐릭터의 GetMesh() 소켓에 부착한다.
-	 * 무기의 Owner는 캐릭터로 설정된다.
-	 */
+	/** 대상 캐릭터의 GetMesh() 소켓에 부착하고 Owner도 그 캐릭터로 설정한다. */
 	void AttachToCharacter(ACharacter* OwnerCharacter, FName SocketName);
 
-	/** 캐릭터에서 분리한다. 활성 공격 구간이 있으면 강제 종료 후 메시에서 분리한다. */
+	/** 활성 공격 구간이 남아 있으면 강제 종료한 뒤 분리한다 */
 	void DetachFromCharacter();
 
-	/** 무기 외형 메시 컴포넌트를 반환. C++ 서브오브젝트로 항상 존재 (BP가 추가한 별도 메시는 포함하지 않음) */
+	/** C++ 서브오브젝트라 항상 존재한다. BP가 따로 추가한 메시는 포함하지 않는다. */
 	USkeletalMeshComponent* GetMesh() const;
 
 	/** 역경직 지속 시간 (초). 0 이하이면 역경직 미적용 */

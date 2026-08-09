@@ -8,9 +8,7 @@
 
 /**
  * 콤보 입력 수용 구간 AnimNotifyState.
- *
- * 공격 몽타주에 배치하면 NotifyBegin~NotifyEnd 구간 동안 캐릭터 ASC에 ANS.ComboWindow 태그를 부여.
- * 이 구간 내 공격 입력 시 다음 콤보 어빌리티 발동.
+ * 구간 동안 ASC에 ANS.ComboWindow 태그를 부여하며, 이 안에서 들어온 공격 입력이 다음 콤보로 이어진다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAnimNotifyState_ComboWindow : public UAnimNotifyState

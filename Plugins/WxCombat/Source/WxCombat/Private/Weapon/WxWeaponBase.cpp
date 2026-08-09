@@ -60,18 +60,16 @@ void AWxWeaponBase::BeginAttack(const FWxDamageInfo& InDamageInfo)
 		return;
 	}
 
-	// 새 공격 구간마다 히트 목록을 초기화한다.
-	// 콤보 전환 시 겹치는 ANS 사이에서도 이전 스윙의 피격 기록이 새 스윙을 막지 않는다.
+	// 공격 구간마다 비워, 콤보 전환으로 ANS가 겹쳐도 이전 스윙의 피격 기록이 새 스윙을 막지 않게 한다.
 	HitActorsThisSwing.Empty();
 
-	// DamageInfo를 콜리전 활성화보다 먼저 설정한다.
-	// SetCollisionEnabled 시 이미 겹쳐있는 액터에 대해 Overlap이 즉시 발생할 수 있으므로, 그 전에 설정이 준비되어 있어야 한다.
+	// SetCollisionEnabled는 이미 겹쳐 있는 액터에 Overlap을 즉시 발생시키므로, DamageInfo가 그보다 먼저 준비돼야 한다.
 	DamageInfo = InDamageInfo;
 
 	if (ActiveAttackCount == 0)
 	{
-		// 첫 프레임 Sweep이 0 거리가 되도록 현재 트랜스폼으로 초기화.
-		// 직전 위치를 모르는 상태에서 임의 값이 들어가면 무관한 액터까지 Sweep으로 잡힐 수 있다.
+		// 첫 프레임 Sweep이 0 거리가 되도록 현재 트랜스폼으로 초기화한다.
+		// 직전 위치를 모르는 채 임의 값이 들어가면 무관한 액터까지 Sweep에 잡힌다.
 		PrevCapsuleLocation = HitCollision->GetComponentLocation();
 
 		HitCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
@@ -142,7 +140,6 @@ void AWxWeaponBase::AttachToCharacter(ACharacter* OwnerCharacter, FName SocketNa
 
 void AWxWeaponBase::DetachFromCharacter()
 {
-	// 활성 공격 구간이 남아있으면 강제 종료
 	CancelAttack();
 
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
@@ -237,9 +234,9 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 
 void AWxWeaponBase::ProcessHit(AActor* OtherActor, const FHitResult& HitResult)
 {
-	// 클라이언트와 서버 모두 동일한 히트 판정과 GE 적용을 수행한다.
-	// 클라이언트의 GE 적용은 몽타주를 재생 중인 어빌리티의 활성화 예측 키로 예측되며(ApplyDamage가 해석), 서버 확정본이 도착하면 GAS가 예측본을 정리한다.
-	// 애님 중인 어빌리티가 없는 머신(복제 몽타주만 도는 시뮬레이티드 프록시)은 키가 무효라 엔진의 권위 검사에서 걸러진다.
+	// 클라와 서버가 같은 히트 판정과 GE 적용을 수행한다.
+	// 클라 쪽은 몽타주를 재생 중인 어빌리티의 활성화 예측 키로 예측되며, 서버 확정본이 도착하면 GAS가 예측본을 정리한다.
+	// 애님 중인 어빌리티가 없는 머신(복제 몽타주만 도는 시뮬 프록시)은 키가 무효라 엔진 권위 검사에서 걸러진다.
 
 	AActor* WeaponOwner = GetOwner();
 	if (!OtherActor || OtherActor == WeaponOwner || HitActorsThisSwing.Contains(OtherActor))

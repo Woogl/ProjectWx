@@ -22,7 +22,7 @@ float UWxMMC_CooldownDuration::CalculateBaseMagnitude_Implementation(const FGame
 		return 0.f;
 	}
 
-	// 직렬 회복: 기존 활성 쿨다운 중 가장 늦게 만료되는 잔여시간 뒤에 이번 CooldownTime을 이어붙인다.
+	// 직렬 회복 — 기존 쿨다운 중 가장 늦게 만료되는 잔여시간 뒤에 이번 CooldownTime을 이어붙인다.
 	float LongestRemaining = 0.f;
 	float LongestDuration = 0.f;
 	if (UAbilitySystemComponent* ASC = Spec.GetEffectContext().GetInstigatorAbilitySystemComponent())

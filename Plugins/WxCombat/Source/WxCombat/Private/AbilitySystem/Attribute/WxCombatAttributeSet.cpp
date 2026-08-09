@@ -8,7 +8,6 @@
 
 UWxCombatAttributeSet::UWxCombatAttributeSet()
 {
-	// Set default values
 	InitSPD(1.f);
 	InitASPD(1.f);
 }
@@ -160,7 +159,7 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 		{
 			SetHP(FMath::Max(GetHP() - Damage, 0.f));
 
-			// IncomingDamage에 의해 HP가 0 이하가 된 경우에만 사망 처리
+			// IncomingDamage 경로로 HP가 0 이하가 됐을 때만 사망 처리한다.
 			if (GetHP() <= 0.f)
 			{
 				UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
@@ -170,8 +169,8 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 				}
 			}
 
-			// 피해를 AI Perception(촉각)에 보고해 가해자를 즉시 TargetActor 로 인지하게 한다.
-			// EventLocation 으로 가해자 위치를 넘기면 그대로 Stimulus 위치가 된다.
+			// AI Perception(촉각)에 보고해 가해자를 즉시 TargetActor로 인지하게 한다.
+			// EventLocation으로 넘긴 가해자 위치가 그대로 Stimulus 위치가 된다.
 			const FGameplayEffectContextHandle Context = Data.EffectSpec.GetContext();
 			AActor* DamageInstigator = Context.GetInstigator();
 			AActor* DamagedActor = GetOwningActor();

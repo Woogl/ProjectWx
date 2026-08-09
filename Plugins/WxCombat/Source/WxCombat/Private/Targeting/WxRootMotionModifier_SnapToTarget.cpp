@@ -14,8 +14,7 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 {
 	Super::OnStateChanged(LastState);
 
-	// Active 로 막 진입한 프레임에만 스냅 타겟을 판정해 워프 타겟을 등록한다.
-	// (부모 Warp::Update 가 같은 WarpTargetName 으로 픽업해 루트 모션을 보정한다.)
+	// Active로 막 진입한 프레임에만 스냅 타겟을 판정해 워프 타겟을 등록한다.
 	if (LastState == ERootMotionModifierState::Active || GetState() != ERootMotionModifierState::Active)
 	{
 		return;
@@ -28,7 +27,7 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 		return;
 	}
 
-	// 락온 대상(우선). 부위(SceneComponent)에서 소유 액터를 환원해 쓴다.
+	// 락온 대상이 최우선이며, 부위 컴포넌트에서 소유 액터를 환원해 쓴다.
 	AActor* LockOnTarget = nullptr;
 	if (UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(Owner))
 	{
@@ -38,8 +37,8 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 		}
 	}
 
-	// TargetingPreset 쿼리 결과로 "스냅 가능한 타겟팅 범위"를 판정한다.
-	// 락온 대상이 결과에 포함되어 있으면 범위 안으로 보고 위치 스냅을 허용하고, 결과 밖이면 회전만 적용한다.
+	// TargetingPreset 쿼리 결과가 곧 스냅 가능 범위다.
+	// 락온 대상이 결과에 있으면 위치 스냅까지 허용하고, 밖이면 회전만 적용한다.
 	TArray<AActor*> TargetingResults;
 	if (TargetingPreset)
 	{
@@ -72,36 +71,31 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 		return;
 	}
 
-	// 창 도중 이 대상의 생존을 다시 보기 위해 확정된 대상을 기억한다.
 	SnapTarget = FacingTarget;
 
 	const bool bFacingTargetIsLockOn = (FacingTarget == LockOnTarget);
 
-	// TargetingPreset이 설정되어 있을 때만 범위 체크. Preset이 없으면 판정 근거가 없으므로 허용(기본 동작).
+	// Preset이 없으면 판정 근거가 없으므로 허용한다.
 	const bool bTargetInSnapRange = !TargetingPreset || TargetingResults.Contains(FacingTarget);
 
-	// 위치 워프 디싱크는 클라가 예측하는 플레이어 폰에서만 문제다.
-	// 그 경우에만 복제되는 락온 대상으로 제한하고, 서버 권위로만 도는 AI 등은 폴백 위치 스냅을 유지한다.
-	// IsPlayerControlled 는 소유 클라/서버 양쪽에서 일관된다.
+	// 위치 워프 디싱크는 클라가 예측하는 플레이어 폰에서만 문제라, 그 경우만 복제되는 락온 대상으로 제한한다.
+	// 서버 권위로만 도는 AI 등은 폴백 위치 스냅을 유지하며, IsPlayerControlled는 소유 클라·서버 양쪽에서 일관된다.
 	const APawn* OwnerPawn = Cast<APawn>(Owner);
 	const bool bRequireLockOnForTranslation = OwnerPawn && OwnerPawn->IsPlayerControlled();
 	const bool bShouldWarpTranslation = bWarpTranslation && bTargetInSnapRange && (!bRequireLockOnForTranslation || bFacingTargetIsLockOn);
 
-	// 게이팅 결과를 부모 워프 설정에 반영한다(범위 밖·플레이어 폰 락온 없음이면 회전만).
 	bWarpTranslation = bShouldWarpTranslation;
 
-	// 대상 컴포넌트 추종으로 등록해 워프 중 대상 이동을 매 프레임 추적한다.
-	// LocationOffset(X=대상→오너 앞, Y=우, Z=위)을 VectorFromTargetToOwner 프레임 오프셋으로 넘긴다.
-	// 접근/회전 모두 수평(yaw) 전용. 작은 높이차는 SkewWarp 의 bIgnoreZAxis 와 캡슐 step-up/CMC 가 흡수한다.
+	// 컴포넌트 추종으로 등록해 워프 중 대상 이동을 매 프레임 추적한다.
+	// 접근·회전 모두 수평(yaw) 전용이며, 작은 높이차는 SkewWarp의 bIgnoreZAxis와 캡슐 step-up이 흡수한다.
 	MotionWarpingComp->AddOrUpdateWarpTargetFromComponent(WarpTargetName, TargetComponent, NAME_None, true, EWarpTargetLocationOffsetDirection::VectorFromTargetToOwner, LocationOffset);
 }
 
 void UWxRootMotionModifier_SnapToTarget::Update(const FMotionWarpingUpdateContext& Context)
 {
-	// 부모 SkewWarp 는 창 끝까지 반드시 도달시키는 마감형 보정이라, 매 프레임 "남은 거리 / 남은 시간" 만큼의 속도를 요구한다(상한 없음).
-	// 대상이 죽으면 시체가 사망 몽타주 루트 모션으로 밀리고 래그돌로 캡슐 콜리전까지 사라져 워프 타겟이 크게 흔들리는데,
-	// 창 끝 몇 프레임에 그 흔들림이 겹치면 요구 속도가 그대로 튄다. 자격을 잃은 즉시 워프 타겟을 거둬 그 구간을 만들지 않는다.
-	// 제거 후 Super 가 타겟 부재를 감지해 modifier 를 끄므로, 남은 구간은 순정 루트 모션으로 재생된다.
+	// 부모 SkewWarp는 창 끝까지 반드시 도달시키는 마감형 보정이라 매 프레임 "남은 거리 / 남은 시간" 속도를 상한 없이 요구한다.
+	// 대상이 죽으면 시체가 루트 모션으로 밀리고 래그돌로 캡슐까지 사라져 워프 타겟이 흔들리는데, 창 끝 몇 프레임에 겹치면 그 요구 속도가 그대로 튄다.
+	// 자격을 잃은 즉시 타겟을 거두면 Super가 부재를 감지해 modifier를 끄므로 남은 구간은 순정 루트 모션으로 재생된다.
 	if (GetState() == ERootMotionModifierState::Active && !IsSnapTargetAlive())
 	{
 		if (UMotionWarpingComponent* MotionWarpingComp = GetOwnerComponent())

@@ -9,8 +9,7 @@
 #include "WxDamageTableRow.generated.h"
 
 /**
- * 대미지 수치 데이터테이블 Row 구조체.
- * 공격력 계수, 자원 회복, 피격 반응 등 공격별 밸런스 수치를 관리한다.
+ * 공격별 밸런스 수치(계수·자원 회복·피격 반응)를 담는 데이터테이블 Row.
  * RowName 예시: Attack_Light_1, Attack_Heavy_2, Skill_Fireball
  */
 USTRUCT(BlueprintType)
@@ -30,11 +29,7 @@ struct WXCOMBAT_API FWxDamageTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DamageInfo")
 	float RecoverUP = 0.f;
 
-	/**
-	 * 적중 시 부여할 HitReact 태그.
-	 * 비어있으면 HitReact 이벤트가 송출되지 않는다.
-	 * Event.HitReact.Normal/Knockback/Knockdown/Knockup 등을 지정하면 해당 종류의 HitReact가 발동된다.
-	 */
+	/** 적중 시 부여할 HitReact 태그. 비워 두면 HitReact 이벤트 자체가 송출되지 않는다. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DamageInfo", meta = (Categories = "Event.HitReact"))
 	FGameplayTag HitReactTag;
 

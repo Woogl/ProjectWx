@@ -13,8 +13,7 @@ struct FDataTableRowHandle;
 
 /**
  * 대미지 한 건의 설계 데이터.
- *
- * AnimNotify에서 편집되어 Weapon/Projectile로 전달되며, Damage GameplayEffect Spec 생성 시 SetByCaller 및 DynamicAssetTags로 변환된다.
+ * AnimNotify에서 편집돼 무기·투사체로 전달되며, Damage GE Spec을 만들 때 SetByCaller와 DynamicAssetTags로 변환된다.
  */
 USTRUCT(BlueprintType)
 struct WXCOMBAT_API FWxDamageInfo
@@ -26,10 +25,7 @@ struct WXCOMBAT_API FWxDamageInfo
 	/** RowHandle이 가리키는 대미지 테이블 행으로 FWxDamageInfo를 만든다. */
 	static FWxDamageInfo FromDataRow(const FDataTableRowHandle& RowHandle);
 
-	/**
-	 * 이 DamageInfo를 반영한 Spec 배열을 생성한다.
-	 * 첫 항목은 UWxEffect_Damage Spec (Context/SetByCaller/AttackTags 세팅), 이후 항목은 AdditionalEffectClasses 각각에 대한 Spec.
-	 */
+	/** 첫 항목은 UWxEffect_Damage Spec이고, 이후는 AdditionalEffectClasses 각각의 Spec이다. */
 	TArray<FGameplayEffectSpecHandle> MakeSpecs(UAbilitySystemComponent* SourceASC, const FGameplayEffectContextHandle& Context) const;
 
 	/** 공격력 계수. Damage Spec의 SetByCaller.Coeff.ATK로 반영 */

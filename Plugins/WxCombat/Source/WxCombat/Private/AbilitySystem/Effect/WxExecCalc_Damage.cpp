@@ -75,7 +75,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	const bool bPerfectGuardApplied = bHasPerfectGuard && !bIsUnblockable;
 
 	// --- 3. 대미지 계산 ---
-	// 퍼펙트 가드 시 반사량 산출을 위해 크리 스킵. CalcDamage 내부에서 Raw 모드도 자동으로 크리 스킵.
+	// 퍼펙트 가드는 반사량 산출을 위해 크리를 스킵한다.
 	FAggregatorEvaluateParameters EvalParams;
 	EvalParams.SourceTags = OwningSpec.CapturedSourceTags.GetAggregatedTags();
 	EvalParams.TargetTags = OwningSpec.CapturedTargetTags.GetAggregatedTags();
@@ -92,7 +92,6 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		EventData.Target = TargetASC->GetOwnerActor();
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetASC->GetOwnerActor(), WxGameplayTags::Event_PerfectGuard, EventData);
 
-		// 패리 피격: 공격자에게 HitReact 송출
 		if (SourceASC && OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_ParryHitReact))
 		{
 			FGameplayEventData ParryEventData;
@@ -103,7 +102,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	}
 	else
 	{
-		// 가드 감소: Unblockable이 아닌 가드 상태에서 발동 중인 Guard 어빌리티의 DamageReductionRate 만큼 감소
+		// 가드 감소율은 발동 중인 Guard 어빌리티 인스턴스가 들고 있다.
 		if (!bIsUnblockable && bIsGuarding)
 		{
 			for (const FGameplayAbilitySpec& Spec : TargetASC->GetActivatableAbilities())
@@ -139,7 +138,6 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	}
 
 	// --- 5. GameplayCue ---
-	// 퍼펙트 가드 시 PerfectGuard 큐, 그 외 대미지 발생 시 Damage 큐 발행.
 	FVector HitLocation = FVector::ZeroVector;
 	const FHitResult* HitResult = OwningSpec.GetEffectContext().GetHitResult();
 	if (HitResult)
@@ -161,8 +159,8 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	}
 
 	// --- 6. 히트스톱 ---
-	// 무적 회피(1단계 조기 리턴)를 제외한 모든 적중(퍼펙트 가드 포함)에서 공격자에게 Event.HitStop을 보낸다.
-	// 공격자의 ASC가 이 이벤트를 받아, 컨텍스트의 어빌리티가 재생 중인 몽타주를 SetByCaller.HitStop 시간만큼 잠깐 멈춘다.
+	// 무적 회피로 조기 리턴한 경우를 빼면 퍼펙트 가드까지 포함해 모든 적중에서 보낸다.
+	// 공격자 ASC가 이 이벤트를 받아, 컨텍스트의 어빌리티가 재생 중인 몽타주를 그 시간만큼 잠깐 멈춘다.
 	if (AActor* SourceActor = SourceASC ? SourceASC->GetOwnerActor() : nullptr)
 	{
 		const float HitStopDuration = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_HitStop, false, 0.f);
@@ -220,7 +218,7 @@ FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecut
 	const FGameplayEffectSpec& OwningSpec = ExecutionParams.GetOwningSpec();
 	const FWxDamageStatics& Statics = GetDamageStatics();
 
-	// SetByCaller.RawDamage 양수면 ATK/DEF/Coeff 우회 환경 대미지 모드. 그 외에는 ATK·DEF 공식 적용.
+	// RawDamage가 양수면 ATK·DEF·계수를 우회하는 환경 대미지 모드다.
 	const float RawDamage = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_RawDamage, false, 0.f);
 	const bool bRawMode = RawDamage > 0.f;
 
@@ -246,7 +244,7 @@ FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecut
 	FWxDamageResult Result;
 	Result.FinalDamage = FMath::Max(BaseDamage, 0.f);
 
-	// Raw 모드와 외부 요청(퍼펙트 가드 등)에서 크리 스킵
+	// Raw 모드와 외부 요청(퍼펙트 가드 등)은 크리를 건너뛴다.
 	if (bRawMode || bSkipCrit)
 	{
 		return Result;
@@ -290,14 +288,14 @@ void UWxExecCalc_Damage::ApplyHitReaction(const FGameplayEffectCustomExecutionPa
 	const bool bIsGroggy = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy);
 
 	// --- 자원 차감 ---
-	// 일반 가드는 SP 를 차감한다. 그 외(Unblockable 가드/비가드)는 자원 차감 없음.
+	// 일반 가드만 SP를 차감한다(Unblockable 가드·비가드는 차감 없음).
 	if (bGuardHit)
 	{
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.SPProperty, EGameplayModOp::Additive, -FinalDamage));
 	}
 
 	// --- 이벤트 태그 결정 ---
-	// 공격 GE의 Event.HitReact.* 자식 태그를 추출. 태그가 비어있으면 이벤트 미발송.
+	// 공격 GE가 실은 Event.HitReact.* 자식 태그를 꺼낸다(없으면 이벤트 미발송).
 	const FGameplayTagContainer HitReactMatches = OwningSpec.GetDynamicAssetTags().Filter(FGameplayTagContainer(WxGameplayTags::Event_HitReact));
 	const FGameplayTag HitReactTag = HitReactMatches.IsEmpty() ? FGameplayTag() : HitReactMatches.First();
 
@@ -310,7 +308,7 @@ void UWxExecCalc_Damage::ApplyHitReaction(const FGameplayEffectCustomExecutionPa
 		KnockTags.AddTagFast(WxGameplayTags::Event_HitReact_KnockUp);
 		if (HitReactTag.MatchesAny(KnockTags))
 		{
-			// 그로기 중에는 Knock 계열 HitReaction 사용하지 않고 Normal로 치환
+			// 그로기 중에는 Knock 계열을 쓰지 않고 Normal로 치환한다.
 			EventTag = WxGameplayTags::Event_HitReact_Normal;
 		}
 		else
@@ -320,20 +318,20 @@ void UWxExecCalc_Damage::ApplyHitReaction(const FGameplayEffectCustomExecutionPa
 	}
 	else if (bGuardHit)
 	{
-		// 일반 가드: HitReact 태그를 그대로 송출. Guard 어빌리티가 Knock 계열 vs Normal 분기 처리.
-		// 명시 태그가 없으면 가드 흡수 애니메이션을 위해 Normal 로 폴백.
+		// 일반 가드 — Knock 계열과 Normal 분기는 Guard 어빌리티가 하므로 태그를 그대로 넘긴다.
+		// 명시 태그가 없으면 가드 흡수 애니메이션을 위해 Normal로 폴백한다.
 		EventTag = HitReactTag.IsValid() ? HitReactTag : WxGameplayTags::Event_HitReact_Normal;
 	}
 	else if (bIsGuarding)
 	{
-		// Unblockable 가드: Guard 어빌리티 Cancel 후 명시된 HitReact 송출
+		// Unblockable 가드 — 가드를 끊고 명시된 HitReact를 보낸다.
 		const FGameplayTagContainer GuardAbilityTags(WxGameplayTags::Ability_Guard);
 		TargetASC->CancelAbilities(&GuardAbilityTags);
 		EventTag = HitReactTag;
 	}
 	else
 	{
-		// 비가드: 명시된 HitReact 송출 (태그가 없으면 이벤트 미발송)
+		// 비가드 — 명시된 태그를 그대로 쓴다.
 		EventTag = HitReactTag;
 	}
 

@@ -78,7 +78,7 @@ void AWxProjectileBase::BeginPlay()
 	{
 		if (USceneComponent* LockOnTarget = LockOnComp->GetLockOnTarget())
 		{
-			// 대상이 컴포넌트 단위이므로 부위 위치를 직접 조준하고, 호밍도 그 컴포넌트를 그대로 따라간다.
+			// 대상이 컴포넌트 단위라 부위 위치를 직접 조준하고, 호밍도 그 컴포넌트를 그대로 따라간다.
 			const FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), LockOnTarget->GetComponentLocation());
 			SetActorRotation(LookAtRotation);
 			ProjectileMovement->Velocity = LookAtRotation.Vector() * ProjectileMovement->InitialSpeed;
@@ -99,7 +99,7 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 
 	PlayImpactFX();
 
-	// 대미지 적용과 파괴는 서버 권위로만 처리한다. 클라는 복제된 파괴로 투사체가 사라진다.
+	// 대미지 적용과 파괴는 서버 권위로만 처리하고, 클라에서는 복제된 파괴로 사라진다.
 	if (!HasAuthority())
 	{
 		return;
@@ -152,7 +152,7 @@ void AWxProjectileBase::HandleHitCollisionHit(UPrimitiveComponent* HitComponent,
 
 	PlayImpactFX();
 
-	// 파괴는 서버 권위로만 처리한다. 클라는 복제된 파괴로 투사체가 사라진다.
+	// 파괴는 서버 권위로만 처리한다.
 	if (!HasAuthority())
 	{
 		return;

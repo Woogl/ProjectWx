@@ -17,12 +17,10 @@ UWxEffect_NoCooldown::UWxEffect_NoCooldown()
 	FGameplayEffectQuery CooldownQuery;
 	CooldownQuery.EffectDefinition = UWxEffect_Cooldown::StaticClass();
 
-	// 적용 시 기존 쿨다운 모두 제거
 	URemoveOtherGameplayEffectComponent* RemoveComp = CreateDefaultSubobject<URemoveOtherGameplayEffectComponent>(TEXT("RemoveCooldowns"));
 	RemoveComp->RemoveGameplayEffectQueries.Add(CooldownQuery);
 	GEComponents.Add(RemoveComp);
 
-	// 이후 새 쿨다운 적용 차단
 	UImmunityGameplayEffectComponent* ImmunityComp = CreateDefaultSubobject<UImmunityGameplayEffectComponent>(TEXT("Immunity"));
 	ImmunityComp->ImmunityQueries.Add(CooldownQuery);
 	GEComponents.Add(ImmunityComp);

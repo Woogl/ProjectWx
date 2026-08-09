@@ -12,8 +12,7 @@ class UNiagaraSystem;
 
 /**
  * 데미지 플로터 GameplayCue 베이스 클래스.
- * HandleGameplayCue에서 DamageFloater 액터를 스폰한다.
- * InitDamageInfo로 전달받는 위젯 클래스는 IWxDamageFloaterInterface를 구현해야 한다.
+ * 큐를 받으면 DamageFloater 액터를 스폰하며, 지정하는 위젯 클래스는 IWxDamageFloaterInterface를 구현해야 한다.
  */
 UCLASS(Abstract, Blueprintable)
 class WXCOMBAT_API UWxCueNotify_Damage : public UGameplayCueNotify_Static
@@ -40,9 +39,8 @@ protected:
 };
 
 /**
- * 데미지 플로터 액터.
- * 피격 위치에 스폰되어 WidgetComponent로 데미지 수치를 표시한다.
- * UWxCueNotify_Damage에서 직접 스폰하며, BP 서브클래스를 만들 필요 없다.
+ * 피격 위치에 스폰돼 WidgetComponent로 데미지 수치를 표시하는 액터.
+ * UWxCueNotify_Damage가 직접 스폰하므로 BP 서브클래스를 만들 필요는 없다.
  */
 UCLASS()
 class WXCOMBAT_API AWxDamageFloaterActor : public AActor
@@ -65,10 +63,7 @@ class UWxDamageFloaterInterface : public UInterface
 	GENERATED_BODY()
 };
 
-/**
- * 데미지 플로터 위젯이 구현해야 하는 인터페이스.
- * C++에서 위젯 생성 후 이 인터페이스를 통해 데미지 정보를 전달한다.
- */
+/** 데미지 플로터 위젯이 구현해야 하는 인터페이스 */
 class WXCOMBAT_API IWxDamageFloaterInterface
 {
 	GENERATED_BODY()

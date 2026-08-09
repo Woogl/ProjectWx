@@ -36,8 +36,7 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 		return;
 	}
 
-	// 대상이 더 이상 락온 가능 조건(LockOnRequirements)을 만족하지 않으면(사망 등) 해제한다.
-	// 거리/널 상실 감지와 같은 폴링 방식.
+	// 락온 가능 조건(사망 등)을 잃으면 해제한다 — 거리·널 상실과 같은 폴링 방식이다.
 	const UWxLockOnPointComponent* TargetPoint = Cast<UWxLockOnPointComponent>(TargetComponent);
 	if (TargetPoint && !TargetPoint->CanBeLockedOn())
 	{
@@ -53,7 +52,6 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 
 	const FVector TargetLocation = TargetComponent->GetComponentLocation();
 
-	// 거리 초과 시 락온 해제
 	const float DistanceSquared = FVector::DistSquared(AvatarPawn->GetActorLocation(), TargetLocation);
 	if (DistanceSquared > MaxDistanceSquared)
 	{
@@ -69,21 +67,19 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 
 	const FRotator LookAtRotation = (TargetLocation - AvatarPawn->GetActorLocation()).Rotation();
 
-	// 카메라(컨트롤러)를 타겟 방향으로 보간.
-	// PitchOffset만큼 살짝 내려다본다.
 	// 회피 중에도 적을 화면에 두도록 카메라 추적은 유지한다.
 	FRotator DesiredControlRotation = LookAtRotation;
 	DesiredControlRotation.Pitch += PitchOffset;
 	const FRotator NewControlRotation = FMath::RInterpTo(PC->GetControlRotation(), DesiredControlRotation, DeltaTime, InterpSpeed);
 	PC->SetControlRotation(NewControlRotation);
 
-	// 캐릭터 몸체를 타겟 방향으로 yaw만 부드럽게 보간. 현재 방향에서 출발하므로 활성화 시 튀지 않는다.
-	// 회피 중에도 추적을 유지한다. 루트모션은 몸 기준이므로 추적 회전이 사이드 회피를 타겟 중심 호 궤적으로 만든다.
+	// 현재 방향에서 출발하는 보간이라 활성화 순간에 튀지 않는다.
+	// 회피 중에도 추적을 유지한다 — 루트모션이 몸 기준이라 이 회전이 사이드 회피를 타겟 중심 호 궤적으로 만든다.
 	const FRotator DesiredActorRotation(0.f, LookAtRotation.Yaw, 0.f);
 	const FRotator NewActorRotation = FMath::RInterpTo(AvatarPawn->GetActorRotation(), DesiredActorRotation, DeltaTime, CharacterInterpSpeed);
 	AvatarPawn->SetActorRotation(FRotator(0.f, NewActorRotation.Yaw, 0.f));
 
-	// 캐릭터가 시점 회전에 쓰지 않고 넘겨 둔 시선 입력을 누적하다, 임계값을 넘으면 그 방향으로 재탐색을 요청한다.
+	// 캐릭터가 넘겨 둔 시선 입력을 누적하다 임계값을 넘으면 재탐색을 요청한다.
 	UWxLockOnManagerComponent* Comp = LockOnManagerComponent.Get();
 	if (!Comp)
 	{
@@ -122,8 +118,7 @@ void UWxAbilityTask_LockOnTarget::Activate()
 {
 	Super::Activate();
 
-	// 락온 대상은 컴포넌트가 권위·복제 소스다.
-	// 변경을 구독하고 현재 값을 초기 대상으로 채택한다(이후 재탐색/복제 정합은 델리게이트가 처리).
+	// 락온 대상은 컴포넌트가 권위·복제 소스이므로, 변경을 구독하고 현재 값을 초기 대상으로 채택한다.
 	LockOnManagerComponent = UWxLockOnManagerComponent::FindComponent(GetAvatarActor());
 	if (UWxLockOnManagerComponent* Comp = LockOnManagerComponent.Get())
 	{
@@ -131,7 +126,7 @@ void UWxAbilityTask_LockOnTarget::Activate()
 		Target = Comp->GetLockOnTarget();
 	}
 
-	// 컴포넌트가 없으면 생성 시 주입된 초기 타겟(Target)으로 폴백한다. BindTarget 은 내부에서 null 을 체크한다.
+	// 컴포넌트가 없으면 생성 시 주입된 초기 타겟으로 폴백한다.
 	BindTarget();
 }
 
@@ -159,9 +154,8 @@ void UWxAbilityTask_LockOnTarget::BindTarget()
 		return;
 	}
 
-	// 파괴 이벤트는 소유 액터 단위다.
-	// 부위 컴포넌트만 파괴되고 액터는 살아있는 경우에도 정확히 해제할 수 있도록 바인딩한 소유 액터를 캐시한다.
-	// 사망 등 태그 기반 해제는 TickTask 의 CanBeLockedOn 폴링이 담당한다.
+	// 파괴 이벤트는 소유 액터 단위라, 부위 컴포넌트만 파괴돼도 정확히 해제하려고 바인딩한 액터를 캐시한다.
+	// 사망 등 태그 기반 해제는 TickTask의 CanBeLockedOn 폴링이 담당한다.
 	AActor* TargetActor = TargetComponent->GetOwner();
 	BoundTargetActor = TargetActor;
 	if (TargetActor)
@@ -169,8 +163,8 @@ void UWxAbilityTask_LockOnTarget::BindTarget()
 		TargetActor->OnDestroyed.AddDynamic(this, &UWxAbilityTask_LockOnTarget::HandleTargetDestroyed);
 	}
 
-	// 락온 피대상 표시는 시각적·개인 UI다(네임플레이트 표시 조건).
-	// 이 태스크는 로컬 플레이어의 락온에서만 생성되므로, 레티클과 같은 수명으로 대상 ASC 에 로컬 태그를 붙인다.
+	// 피대상 표시는 네임플레이트 조건일 뿐인 개인 UI다.
+	// 이 태스크는 로컬 플레이어의 락온에서만 생성되므로 레티클과 같은 수명으로 로컬 태그를 붙인다.
 	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
 	{
 		TargetASC->AddLooseGameplayTag(WxGameplayTags::State_LockedOn);
@@ -183,7 +177,7 @@ void UWxAbilityTask_LockOnTarget::UnbindTarget()
 {
 	DestroyReticleWidget();
 
-	// Target(컴포넌트)이 이미 파괴되어 약참조가 풀렸어도 캐시한 소유 액터로 바인딩과 표시 태그를 해제한다.
+	// Target 약참조가 이미 풀렸어도 캐시한 소유 액터로 바인딩과 표시 태그를 해제한다.
 	if (AActor* TargetActor = BoundTargetActor.Get())
 	{
 		TargetActor->OnDestroyed.RemoveDynamic(this, &UWxAbilityTask_LockOnTarget::HandleTargetDestroyed);
@@ -209,7 +203,7 @@ void UWxAbilityTask_LockOnTarget::CreateReticleWidget()
 		return;
 	}
 
-	// 레티클은 추적 대상 컴포넌트에 직접 부착해 부위를 그대로 따라가게 한다(루트 컴포넌트면 액터 중심).
+	// 추적 대상 컴포넌트에 직접 부착해 부위를 그대로 따라가게 한다(루트 컴포넌트면 액터 중심).
 	ReticleWidgetComponent = NewObject<UWidgetComponent>(TargetComponent->GetOwner());
 	ReticleWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	ReticleWidgetComponent->SetWidgetClass(ReticleWidgetClass);

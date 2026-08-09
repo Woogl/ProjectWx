@@ -34,6 +34,5 @@ bool UWxTargetingFilterTask_LineTrace::ShouldFilterTarget(const FTargetingReques
 	FHitResult HitResult;
 	const bool bHit = World->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, TraceChannel, QueryParams);
 
-	// 트레이스가 차단되면 타겟을 필터링(제외)한다.
 	return bHit;
 }

@@ -26,7 +26,7 @@ void UWxAbility_Ultimate::OnGiveAbility(const FGameplayAbilityActorInfo* ActorIn
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
 
-	// 컷신을 부여 시점에 미리 잡아 둔다. 발동은 연출이 시작되는 지점이라 그때의 콜드 로드가 그대로 히치로 보인다.
+	// 발동은 연출이 시작되는 지점이라 그때의 콜드 로드가 그대로 히치로 보인다.
 	if (!CutsceneSequence.IsNull() && !CutsceneSequence.Get())
 	{
 		CutscenePreloadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(CutsceneSequence.ToSoftObjectPath());
@@ -43,8 +43,7 @@ void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		return;
 	}
 
-	// 컷신 재생. 부여 시점 프리로드가 끝나 있으면 그 포인터를 그대로 쓰고,
-	// 부여 직후 곧바로 발동한 경우처럼 아직 도착하지 않았으면 동기 로드로 폴백한다(동작 후퇴 없음).
+	// 부여 직후 곧바로 발동해 프리로드가 아직 도착하지 않았으면 동기 로드로 폴백한다.
 	ULevelSequence* Sequence = CutsceneSequence.Get();
 	if (!Sequence)
 	{
@@ -63,7 +62,7 @@ void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		}
 	}
 
-	// 컷신 에셋이 없으면 바로 몽타주 단계로 진행
+	// 컷신 에셋이 없으면 바로 몽타주 단계로 넘어간다.
 	HandleCutsceneCompleted();
 }
 

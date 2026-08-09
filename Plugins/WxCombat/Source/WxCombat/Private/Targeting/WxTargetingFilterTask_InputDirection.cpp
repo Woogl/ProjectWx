@@ -30,7 +30,6 @@ bool UWxTargetingFilterTask_InputDirection::ShouldFilterTarget(const FTargetingR
 	}
 	InputDir = InputDir.GetSafeNormal();
 
-	// 이 타겟이 콘 안이면 유지한다.
 	if (PassesInputCone(*SourcePawn, InputDir, *TargetActor))
 	{
 		return false;

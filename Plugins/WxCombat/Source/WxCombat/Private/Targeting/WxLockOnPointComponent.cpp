@@ -13,7 +13,7 @@ UWxLockOnPointComponent::UWxLockOnPointComponent()
 	// 움직이는 캐릭터/본에 부착되어 매 프레임 위치가 갱신되어야 하므로 Movable로 둔다.
 	Mobility = EComponentMobility::Movable;
 
-	// 기본값: 죽은 대상은 락온 불가. 다른 조건은 엔티티별로 BP 에서 오버라이드한다.
+	// 기본값은 죽은 대상 제외뿐이고, 다른 조건은 엔티티별로 BP에서 오버라이드한다.
 	LockOnRequirements.IgnoreTags.AddTag(WxGameplayTags::State_Dead);
 }
 
@@ -35,7 +35,6 @@ USceneComponent* UWxLockOnPointComponent::ResolveLockOnTarget(const AActor* Acto
 		return nullptr;
 	}
 
-	// 락온 가능한 첫 지점을 반환한다. 지점이 없거나 모두 불가하면 nullptr(락온 대상이 될 수 없다).
 	TArray<UWxLockOnPointComponent*> Points;
 	Actor->GetComponents<UWxLockOnPointComponent>(Points);
 	for (UWxLockOnPointComponent* Point : Points)
@@ -57,7 +56,6 @@ void UWxLockOnPointComponent::GatherLockOnPoints(const AActor* Actor, TArray<USc
 		return;
 	}
 
-	// 락온 가능한 지점만 후보로 모은다.
 	TArray<UWxLockOnPointComponent*> Points;
 	Actor->GetComponents<UWxLockOnPointComponent>(Points);
 	OutPoints.Reserve(Points.Num());

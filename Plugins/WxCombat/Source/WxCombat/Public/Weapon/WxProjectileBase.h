@@ -18,13 +18,9 @@ class UNiagaraSystem;
 
 /**
  * 투사체 베이스 클래스.
+ * 스폰되면 BeginPlay에서 자기 대미지 데이터로 Spec을 만들어 두고, Pawn에 Overlap하거나 월드에 Block하면 이펙트를 재생하고 사라진다.
  *
- * 사용 흐름:
- *  1. 어빌리티가 SpawnActor로 스폰하면, 투사체가 자신의 대미지 데이터로 BeginPlay에서 Spec을 생성한다.
- *  2. Pawn(캐릭터 메시)에 Overlap 시 ImpactFX를 재생하고, 서버에서만 캐싱된 Spec을 대상 ASC에 적용 후 Destroy
- *  3. WorldStatic/WorldDynamic에 Block 시 ImpactFX를 재생하고, 서버에서만 Destroy
- *
- * 스폰과 파괴 모두 서버 권위다(스폰은 UWxAbilityBase::SpawnProjectile에서 게이팅).
+ * 스폰과 파괴 모두 서버 권위다.
  * 반면 ImpactFX는 권위 검사 앞에서 재생하므로, 충돌을 감지한 머신이 각자 즉시 재생한다.
  *
  * 대미지는 이 투사체 클래스(BP 서브클래스)가 DamageDataRow로 직접 저작한다.
@@ -71,10 +67,9 @@ protected:
 	virtual void HandleHitCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 private:
-	/** DamageDataRow 기반 Spec 배열을 생성해 저장한다. BeginPlay에서 호출한다. */
 	void InitializeDamageSpec();
 
-	/** 현재 위치에 ImpactFX를 스폰한다. 권위와 무관하게 충돌을 감지한 머신에서 재생한다. */
+	/** 권위와 무관하게 충돌을 감지한 머신에서 재생한다 */
 	void PlayImpactFX();
 
 	FGameplayEffectContextHandle CachedEffectContext;

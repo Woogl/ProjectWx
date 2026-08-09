@@ -8,7 +8,7 @@
 
 UWxAbility_HitReact::UWxAbility_HitReact()
 {
-	// HitReact는 항상 서버의 ExecCalc에서 GameplayEvent로 트리거되므로 ServerInitiated를 사용한다.
+	// 항상 서버 ExecCalc의 GameplayEvent로 트리거된다.
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 
 	FGameplayTagContainer AssetTags;
@@ -18,9 +18,9 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	// 피격은 반응이 끝날 때까지 새 액션을 막는다.
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 
-	// 진행 중인 것은 공격·스킬만 끊는다. 마커로 끊으면 마커를 가진 적 패턴까지 끊겨 평타 피격에 패턴이 중단되기 때문이다.
-	// 차단만으로는 부족하다 — 공격·스킬의 콤보 재발동 분기는 활성 Spec을 보고 자체 판정만 하므로 ASC의 차단 태그 검사를 건너뛴다.
-	// Ability.Skill 은 부모 태그라 슬롯별 Ability.Skill.1~4 까지 함께 잡는다.
+	// 진행 중인 것은 공격·스킬만 끊는다 — 마커로 끊으면 마커를 가진 적 패턴까지 평타 피격에 중단된다.
+	// 차단만으로는 부족하다: 공격·스킬의 콤보 재발동 분기는 활성 Spec만 보고 자체 판정하므로 ASC의 차단 태그 검사를 건너뛴다.
+	// Ability.Skill은 부모 태그라 슬롯별 Ability.Skill.1~4까지 함께 잡는다.
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Attack);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Skill);
 
@@ -32,7 +32,7 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 
 	bRetriggerInstancedAbility = true;
 
-	// AbilityTriggers는 정확한 태그 매칭을 사용하므로 각 HitReact 종류를 개별 등록한다.
+	// AbilityTriggers는 정확한 태그 매칭이라 종류마다 개별 등록해야 한다.
 	FAbilityTriggerData NormalTrigger;
 	NormalTrigger.TriggerTag = WxGameplayTags::Event_HitReact_Normal;
 	NormalTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
@@ -75,7 +75,7 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	const FGameplayTag EventTag = TriggerEventData ? TriggerEventData->EventTag : WxGameplayTags::Event_HitReact_Normal;
 
-	// 트리거 태그에 따라 재생할 몽타주 선택. 매칭 몽타주가 없으면 기본 HitReactMontage로 폴백.
+	// 매칭 몽타주가 없으면 NormalHitReactMontage로 폴백한다.
 	UAnimMontage* SelectedMontage = NormalHitReactMontage;
 	if (TriggerEventData)
 	{
@@ -93,7 +93,6 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		{
 			SelectedMontage = KnockupMontage;
 
-			// 넉업 시 공중에 띄움
 			if (AActor* AvatarActor = ActorInfo->AvatarActor.Get())
 			{
 				if (ACharacter* Character = Cast<ACharacter>(AvatarActor))
@@ -110,13 +109,12 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		}
 		else if (EventTag == WxGameplayTags::Event_HitReact_Finisher && FinisherHitReactMontage)
 		{
-			// 피니셔(앞잡) 짝 피격. 공격자를 바라보게 정렬 후 피격 몽타주 재생.
 			SelectedMontage = FinisherHitReactMontage;
 			FaceInstigator(ActorInfo->AvatarActor.Get(), TriggerEventData->Instigator.Get());
 		}
 		else if (EventTag == WxGameplayTags::Event_HitReact_Backstab && BackstabHitReactMontage)
 		{
-			// 백스탭(뒤잡) 짝 피격. 몬스터가 공격자(플레이어)를 향해 회전한 뒤 피격 몽타주 재생(돌려세워 처형).
+			// 뒤잡은 몬스터를 공격자 쪽으로 돌려세운 뒤 처형한다.
 			SelectedMontage = BackstabHitReactMontage;
 			FaceInstigator(ActorInfo->AvatarActor.Get(), TriggerEventData->Instigator.Get());
 		}
@@ -152,7 +150,7 @@ void UWxAbility_HitReact::EndAbility(const FGameplayAbilitySpecHandle Handle, co
 
 bool UWxAbility_HitReact::PlayHitReactMontage(UAnimMontage* Montage)
 {
-	// 재진입(Normal → Knockback 등) 시 이전 몽타주 태스크를 명시적으로 정리해 잔여 OnInterrupted/OnCancelled 콜백이 새로 시작된 재생을 즉시 종료시키는 레이스를 차단한다.
+	// 재진입(Normal → Knockback 등)에서 구 태스크를 남겨 두면, 잔여 콜백이 새로 시작한 재생을 즉시 끝내 버린다.
 	if (CurrentMontageTask)
 	{
 		CurrentMontageTask->EndTask();

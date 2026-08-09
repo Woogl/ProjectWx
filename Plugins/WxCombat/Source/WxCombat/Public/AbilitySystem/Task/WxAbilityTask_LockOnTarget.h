@@ -16,8 +16,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnRetargetRequested, FVector2D, S
 
 /**
  * 락온 대상을 매 프레임 추적하는 AbilityTask.
- * 컨트롤러 회전과 캐릭터 몸체를 각각 타겟 방향으로 보간하여 카메라와 캐릭터가 부드럽게 적을 향하게 한다.
- * 타겟이 파괴되거나 무효화되면 OnTargetLost를 브로드캐스트.
+ * 컨트롤러 회전과 캐릭터 몸체를 각각 타겟 방향으로 보간하고, 대상이 파괴·무효화되면 OnTargetLost를 쏜다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAbilityTask_LockOnTarget : public UAbilityTask
@@ -41,7 +40,7 @@ protected:
 	virtual void Activate() override;
 
 private:
-	/** 락온 컴포넌트의 대상 변경(로컬 예측 + 서버 복제 정합)을 받아 추적 대상을 교체한다. */
+	/** 로컬 예측과 서버 복제 양쪽의 대상 변경을 여기서 받는다 */
 	UFUNCTION()
 	void HandleLockOnTargetChanged(USceneComponent* NewTarget);
 
@@ -54,9 +53,8 @@ private:
 	void CreateReticleWidget();
 	void DestroyReticleWidget();
 
-	/** 추적 대상 컴포넌트(부위). 위치는 GetComponentLocation(), 소유 액터는 GetOwner()로 얻는다. */
 	TWeakObjectPtr<USceneComponent> Target;
-	/** BindTarget 시점의 소유 액터. 부위 컴포넌트만 파괴되고 액터는 살아있는 경우에도 OnDestroyed/사망 태그 바인딩을 정확히 해제하기 위해 캐시한다. */
+	/** BindTarget 시점의 소유 액터. 부위 컴포넌트만 파괴돼도 바인딩을 정확히 해제하려고 캐시한다. */
 	TWeakObjectPtr<AActor> BoundTargetActor;
 	TWeakObjectPtr<UWxLockOnManagerComponent> LockOnManagerComponent;
 	float InterpSpeed = 8.f;

@@ -11,12 +11,8 @@ class UAnimMontage;
 
 /**
  * 적 공격 패턴 어빌리티.
- *
- * BT/AI에서 TryActivateAbility로 직접 발동한다.
- * 입력/UI 아이콘는 사용하지 않으며, 디테일 패널에서 해당 프로퍼티는 비활성화된다.
- *
- * 단일 몽타주를 재생하고 완료 또는 중단 시 EndAbility.
- * 쿨다운/충전은 WxAbilityBase의 AbilityDataRow로 설정한다.
+ * BT/AI가 TryActivateAbility로 직접 발동해 단일 몽타주를 재생한다.
+ * 입력·UI 아이콘은 쓰지 않으며, 쿨다운·충전은 WxAbilityBase의 AbilityDataRow로 설정한다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Pattern : public UWxAbilityBase

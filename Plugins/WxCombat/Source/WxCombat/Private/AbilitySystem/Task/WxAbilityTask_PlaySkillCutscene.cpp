@@ -38,19 +38,16 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 		return;
 	}
 
-	// 무적 태그 부여
 	AddInvincibleTag();
 
-	// TimeDilation으로 0, 음수 사용 방지
+	// 0·음수 TimeDilation은 시간이 아예 멈춰 복원 경로가 돌지 않는다.
 	if (GlobalTimeDilation <= 0.f)
 	{
 		GlobalTimeDilation = 0.001f;
 	}
-	
-	// Time Dilation 설정
+
 	UWxTimeDilationComponent::SetGlobalTimeDilationAuthoritative(this, GlobalTimeDilation);
 
-	// 캐릭터가 재생 중이던 애님 몽타주 정지
 	AActor* AvatarActor = GetAvatarActor();
 	if (AvatarActor)
 	{
@@ -60,7 +57,6 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 		}
 	}
 
-	// Level Sequence Actor 스폰 및 재생
 	FMovieSceneSequencePlaybackSettings PlaybackSettings;
 	ALevelSequenceActor* NewSequenceActor = nullptr;
 	ULevelSequencePlayer* SequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(World, LevelSequence, PlaybackSettings, NewSequenceActor);
@@ -75,24 +71,22 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 		return;
 	}
 
-	// AvatarActor 기준으로 TransformOrigin 및 액터 리바인딩 설정
 	if (AvatarActor && SequenceActor)
 	{
-		// TransformOrigin: AvatarActor의 Transform을 시퀀스 원점으로 사용
 		SequenceActor->bOverrideInstanceData = true;
 		if (UDefaultLevelSequenceInstanceData* InstanceData = Cast<UDefaultLevelSequenceInstanceData>(SequenceActor->DefaultInstanceData))
 		{
 			InstanceData->TransformOrigin = AvatarActor->GetActorTransform();
 		}
 
-		// 액터 리바인딩: 시퀀스에서 Binding Tag가 "Player"인 바인딩을 AvatarActor로 교체
+		// 시퀀스에서 Binding Tag가 "Player"인 바인딩을 AvatarActor로 교체한다.
 		static const FName PlayerBindingTag = TEXT("Player");
 		TArray<AActor*> Actors;
 		Actors.Add(AvatarActor);
 		SequenceActor->SetBindingByTag(PlayerBindingTag, Actors, true);
 	}
 
-	// PlayRate를 Time Dilation의 역수로 보정하여 시퀀스만 정상 속도로 재생
+	// Time Dilation의 역수로 보정해 시퀀스만 정상 속도로 재생한다.
 	if (GlobalTimeDilation > 0.f && GlobalTimeDilation != 1.f)
 	{
 		SequencePlayer->SetPlayRate(1.f / GlobalTimeDilation);
@@ -127,8 +121,8 @@ void UWxAbilityTask_PlaySkillCutscene::AddInvincibleTag()
 
 void UWxAbilityTask_PlaySkillCutscene::RemoveInvincibleTag()
 {
-	// 루즈 태그는 레퍼런스 카운트라, 부여하지 않았는데 제거하면 남이 열어 둔 무적 창(ANS_Invincible 등)을 대신 걷어낸다.
-	// Activate 가 조기 종료해 AddInvincibleTag 를 지나치지 못한 채 OnDestroy 로 흐르는 경로가 있다.
+	// 루스 태그는 레퍼런스 카운트라, 부여하지 않았는데 제거하면 남이 열어 둔 무적 창을 대신 걷어낸다.
+	// Activate가 조기 종료해 AddInvincibleTag를 지나치지 못한 채 OnDestroy로 흐르는 경로가 있다.
 	if (!bInvincibleTagAdded)
 	{
 		return;

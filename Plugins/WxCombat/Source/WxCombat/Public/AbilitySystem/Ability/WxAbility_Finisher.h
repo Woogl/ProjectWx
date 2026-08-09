@@ -13,20 +13,14 @@ struct FWxDamageInfo;
 
 /**
  * 피니셔 어빌리티 — 공격자(플레이어) 측. 한 클래스가 두 변형을 트리거 EventTag로 분기한다.
- *  - 앞잡(피니셔): Event.Finisher 트리거. 적 정렬, 짝 피격 Event.HitReact.Finisher.
- *  - 뒤잡(백스탭): Event.Backstab 트리거. 적 정렬, 짝 피격 Event.HitReact.Backstab.
+ *  - 앞잡(피니셔): Event.Finisher 트리거, 짝 피격 Event.HitReact.Finisher
+ *  - 뒤잡(백스탭): Event.Backstab 트리거, 짝 피격 Event.HitReact.Backstab
  *
- * 공통 발동 흐름:
- *  1. 상호작용(서버 권위)이 보내는 GameplayEvent 로 트리거(Target=적)
- *  2. 피해자 위치를 공유 앵커로 모션워핑 정렬, 공격자는 피해자를 바라보도록 회전(멈출 간격은 몽타주 Warp Point 가 소유)
- *  3. 적에게 변형별 짝 피격 이벤트 송출 → 적이 공격자를 향해 회전 후 짝 피격 몽타주를 동시 재생
- *  4. 변형별 공격자 몽타주 재생(몽타주의 MotionWarping 노티파이가 워프 타겟·Warp Point 로 정렬)
- *  5. 몽타주의 WxAnimNotify_FinisherDamage 가 대미지 프레임에 ApplyFinisherDamage 호출
- *  6. 몽타주 종료 시 EndAbility
+ * 상호작용(서버 권위)이 보내는 GameplayEvent로 트리거되며, 피해자 위치를 공유 앵커로 모션워핑 정렬한 뒤 양쪽 몽타주를 동시에 재생한다.
  *
- * 대미지는 변형에 따라 갈리지 않는다 — 두 변형 모두 노티파이 DamageDataRow의 계수 대미지를 쓰고, 수치도 타이밍도 노티파이가 소유한다.
  * 변형별로 다른 것은 공격 몽타주·짝 피격 태그·종료 시 DP 리셋 여부 셋뿐이다.
- * 앞잡의 그로기 해제(DP 0)는 공격자 몽타주가 정상 종료될 때 이 어빌리티가 대상에 UWxEffect_ResetDP 를 적용해 처리한다.
+ * 대미지는 두 변형 모두 노티파이 DamageDataRow의 계수를 쓰므로 수치도 타이밍도 노티파이가 소유한다.
+ * 앞잡의 그로기 해제(DP 0)는 공격자 몽타주가 정상 종료될 때 대상에 UWxEffect_ResetDP를 적용해 처리한다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Finisher : public UWxAbilityBase
@@ -36,10 +30,7 @@ class WXCOMBAT_API UWxAbility_Finisher : public UWxAbilityBase
 public:
 	UWxAbility_Finisher();
 
-	/**
-	 * 공격 몽타주의 WxAnimNotify_FinisherDamage 가 대미지 프레임에 호출한다(적용 타이밍은 노티파이가 결정).
-	 * 상호작용으로 확정한 대상에 인자 DamageInfo(대미지 테이블 행 계수)를 적용한다 — 앞잡·뒤잡이 같은 경로를 쓴다.
-	 */
+	/** 공격 몽타주의 WxAnimNotify_FinisherDamage가 대미지 프레임에 호출한다. */
 	void ApplyFinisherDamage(const FWxDamageInfo& DamageInfo) const;
 
 protected:
@@ -58,7 +49,7 @@ private:
 	UFUNCTION()
 	void HandleMontageFinished();
 
-	/** 앞잡 공격 몽타주 정상 종료 시 호출. 확정 대상의 DP를 0으로 리셋해 그로기를 해제한 뒤 EndAbility. */
+	/** 앞잡 전용 — 대상 DP를 리셋해 그로기를 해제한 뒤 종료한다. */
 	UFUNCTION()
 	void HandleFinisherMontageCompleted();
 

@@ -12,14 +12,9 @@ class UWxAbilityTask_LockOnTarget;
 
 /**
  * 토글 방식 락온 어빌리티.
+ * 입력으로 켜고 재입력으로 끄며, 대상을 잃으면 재탐색하거나 해제한다.
  *
- * 사용 흐름:
- *  1. 입력 → ActivateAbility → TargetingSubsystem으로 적 탐색 → 락온 태스크 시작
- *  2. 재입력 → InputPressed → EndAbility (토글 해제)
- *  3. 타겟 사망/소멸 → HandleTargetLost → EndAbility (자동 해제)
- *
- * 카메라가 타겟을 추적하고, 락온 태스크가 캐릭터를 타겟 방향으로 부드럽게 회전시킨다(OrientToMovement는 끔). 해제 시 복구.
- * State.Dead 시 활성화 차단. 다른 어빌리티와 공존 가능.
+ * 카메라가 타겟을 추적하고, 락온 태스크가 캐릭터를 타겟 방향으로 부드럽게 회전시킨다(그동안 OrientToMovement는 끈다).
  */
 UCLASS()
 class WXCOMBAT_API UWxAbility_LockOn : public UWxAbilityBase
@@ -50,7 +45,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	float MaxDistance = 2000.f;
 
-	/** 락온 대상을 잃었을 때(사망/파괴/거리이탈) 락온을 해제하지 않고 살아있는 가장 가까운 다른 적으로 자동 재탐색할지 여부. 끄면 즉시 해제된다. */
+	/** 대상을 잃었을 때(사망·파괴·거리이탈) 가장 가까운 다른 적으로 재탐색한다. 끄면 즉시 해제. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	bool bRetargetOnTargetLost = true;
 
@@ -70,11 +65,11 @@ private:
 	UFUNCTION()
 	void HandleTargetLost();
 
-	/** 락온 태스크의 재탐색 요청을 받아 화면상 위치가 시선 방향에 가장 정렬된 적으로 타겟을 교체한다. */
+	/** 화면상 위치가 시선 방향에 가장 정렬된 지점으로 타겟을 교체한다. */
 	UFUNCTION()
 	void HandleRetargetRequested(FVector2D ScreenDirection);
 
-	/** TargetingPreset으로 현재 락온 후보 액터들을 수집한다(거리순 정렬은 프리셋이 담당). */
+	/** 거리순 정렬은 프리셋이 담당한다. */
 	void GatherCandidates(TArray<AActor*>& OutCandidates) const;
 
 	UPROPERTY()

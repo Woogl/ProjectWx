@@ -22,11 +22,11 @@ class WXCOMBAT_API UWxMMC_Cost : public UGameplayModMagnitudeCalculation
 	GENERATED_BODY()
 
 protected:
-	/** Spec 컨텍스트의 소스 어빌리티에서 코스트 Row를 해석한다. 어빌리티/Row 미가용 시 nullptr. */
+	/** Spec 컨텍스트의 소스 어빌리티에서 코스트 Row를 해석한다 */
 	const FWxAbilityTableRow* GetCostRow(const FGameplayEffectSpec& Spec) const;
 };
 
-/** MP 코스트. AbilityDataRow의 MPCost를 음수로 반환(자원 감산). */
+/** AbilityDataRow의 MPCost를 음수로 반환(자원 감산) */
 UCLASS()
 class WXCOMBAT_API UWxMMC_MPCost : public UWxMMC_Cost
 {
@@ -36,7 +36,7 @@ public:
 	virtual float CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const override;
 };
 
-/** UP 코스트. AbilityDataRow의 UPCost를 음수로 반환(자원 감산). */
+/** AbilityDataRow의 UPCost를 음수로 반환(자원 감산) */
 UCLASS()
 class WXCOMBAT_API UWxMMC_UPCost : public UWxMMC_Cost
 {

@@ -22,7 +22,7 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 
-	// 회피 반격의 진입 조건. 공격 어빌리티가 이 태그로 자기 반격 콤보 세트를 고른다.
+	// 공격이 반격 세트를 고르는 진입 조건.
 	ActivationOwnedTags.AddTag(WxGameplayTags::State_Dodge);
 }
 
@@ -40,8 +40,7 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 	if (IsLocallyControlled())
 	{
-		// 로컬 클라이언트(또는 리슨 서버 호스트): 입력 방향을 캐릭터 로컬 공간으로 변환해 8방향 섹션 선택.
-		// 로컬 공간(정면 기준)으로 변환해 두면 서버는 자신의 facing과 무관하게 동일한 방향을 계산한다(몽타주 정합성 보장).
+		// 로컬 공간(정면 기준)으로 변환해 두면 서버가 자기 facing과 무관하게 동일한 방향을 얻는다.
 		FVector LocalDodgeDirection = FVector::ZeroVector;
 		if (const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
 		{
@@ -49,7 +48,7 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 			LocalDodgeDirection = Character->GetActorTransform().InverseTransformVectorNoScale(WorldInput);
 		}
 
-		// 리모트 클라이언트인 경우 서버에 방향 전송 (서버가 동일 방향 섹션을 선택)
+		// 리모트 클라이언트면 서버로 방향을 보낸다.
 		if (ASC && !HasAuthority(&ActivationInfo))
 		{
 			FGameplayAbilityTargetDataHandle DataHandle;
@@ -72,7 +71,7 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	}
 	else if (HasAuthority(&ActivationInfo))
 	{
-		// 서버(리모트 플레이어 처리): 클라이언트로부터 방향 데이터 수신 후 몽타주 재생(HandleTargetDataReceived)
+		// 리모트 플레이어의 서버 인스턴스는 방향 데이터를 받은 뒤에야 몽타주를 재생한다.
 		if (ASC)
 		{
 			FAbilityTargetDataSetDelegate& Delegate = ASC->AbilityTargetDataSetDelegate(
@@ -95,8 +94,8 @@ void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 	// 어빌리티가 무적 구간 도중 취소되면 태그 해제 콜백을 받지 못하므로 여기서 비활성화한다.
 	DeactivateJudgementCapsule();
 
-	// 무적 구간 도중 취소되어 ANS_Invincible의 NotifyEnd가 스킵되면 State.Invincible이 잔존해 영구 무적이 된다.
-	// 판정 캡슐과 동일하게 실패복구로 태그를 정리한다(State.Invincible은 ANS_Invincible만 부여하므로 이 시점 잔존분은 회피가 흘린 것).
+	// 취소로 ANS_Invincible의 NotifyEnd가 스킵되면 State.Invincible이 잔존해 영구 무적이 된다.
+	// 이 태그는 ANS_Invincible만 부여하므로 이 시점의 잔존분은 회피가 흘린 것이다.
 	if (ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
 	{
 		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
@@ -115,8 +114,7 @@ void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 
 EWxDodgeDirection UWxAbility_Dodge::ResolveDodgeDirection(const FVector& LocalDirection) const
 {
-	// 입력은 캐릭터 로컬 공간(정면 +X, 오른쪽 +Y). facing을 참조하지 않으므로 클라이언트/서버가 동일 결과를 낸다.
-	// 이동 입력이 없으면 후방 회피(백스텝)로 처리한다.
+	// 입력은 캐릭터 로컬 공간(정면 +X, 오른쪽 +Y)이라 facing을 보지 않으므로 클라이언트/서버 결과가 같다.
 	const FVector Local = LocalDirection.GetSafeNormal2D();
 	if (Local.IsNearlyZero())
 	{
@@ -136,7 +134,7 @@ FName UWxAbility_Dodge::SelectDodgeSection(const FVector& LocalDirection) const
 		return NAME_None;
 	}
 
-	// 섹션 이름은 EWxDodgeDirection 항목명과 동일한 규약을 사용한다.
+	// 섹션 이름은 EWxDodgeDirection 항목명과 같다는 규약이다.
 	const EWxDodgeDirection DodgeDirection = ResolveDodgeDirection(LocalDirection);
 	const FName SectionName(StaticEnum<EWxDodgeDirection>()->GetNameStringByValue(static_cast<int64>(DodgeDirection)));
 	if (DodgeMontage->IsValidSectionName(SectionName))
@@ -144,7 +142,6 @@ FName UWxAbility_Dodge::SelectDodgeSection(const FVector& LocalDirection) const
 		return SectionName;
 	}
 
-	// 구성되지 않은 방향 섹션은 전방 회피로 폴백
 	const FName ForwardSection(StaticEnum<EWxDodgeDirection>()->GetNameStringByValue(static_cast<int64>(EWxDodgeDirection::Forward)));
 	if (DodgeMontage->IsValidSectionName(ForwardSection))
 	{
@@ -158,7 +155,7 @@ bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 {
 	const FVector Local = LocalDirection.GetSafeNormal2D();
 
-	// 이동 입력이 없으면 전용 백스텝 몽타주를 재생한다. 미설정 시 아래에서 DodgeMontage의 Back 섹션으로 폴백한다.
+	// 백스텝 몽타주가 없으면 그대로 흘러 DodgeMontage의 Back 섹션으로 폴백한다.
 	if (Local.IsNearlyZero() && BackstepMontage)
 	{
 		if (!PlayMontage(BackstepMontage))
@@ -173,8 +170,7 @@ bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 	const FName SectionName = SelectDodgeSection(LocalDirection);
 
 	// 락온 중에는 락온 태스크가 회피 내내 몸을 타겟으로 추적해 호 궤적을 만들므로 잔차 보정을 하지 않는다.
-	// 비락온은 섹션 루트모션이 몸 기준 고정 방향이라, 양자화 잔차(±22.5°, 폴백 시 그 이상)만큼 시작 시 몸을 돌려 이동을 입력 방향과 일치시킨다.
-	// 클라이언트/서버가 동일한 LocalDirection과 락온 태그로 같은 분기를 타므로 결과 facing도 일치한다.
+	// 비락온은 섹션 루트모션이 몸 기준 고정 방향이라, 양자화 잔차(±22.5°, 폴백 시 그 이상)만큼 몸을 돌려 이동을 입력 방향에 맞춘다.
 	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	const bool bLockedOn = ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::State_LockOn);
 	if (!Local.IsNearlyZero() && !bLockedOn)
@@ -210,8 +206,8 @@ bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 
 void UWxAbility_Dodge::ListenForDodgeSuccess()
 {
-	// 무적 구간에 다수의 공격이 들어오면 데미지 파이프라인이 매 피격마다 Event.DodgeSuccess를 발송한다.
-	// 회피 1회당 극한 회피 보상은 한 번만 적용되어야 하므로 OnlyTriggerOnce로 바인딩한다.
+	// 무적 구간에 여러 공격이 들어오면 데미지 파이프라인이 매 피격마다 Event.DodgeSuccess를 발송한다.
+	// 보상은 회피 1회당 한 번이어야 하므로 OnlyTriggerOnce로 바인딩한다.
 	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
 		this, WxGameplayTags::Event_DodgeSuccess, nullptr, true);
 	if (EventTask)
@@ -257,10 +253,8 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 		return;
 	}
 
-	// 극한 회피 성공 보상: MP 회복
 	UWxEffect_RecoverResource::ApplyTo(GetAbilitySystemComponentFromActorInfo(), 0.f, PerfectDodgeMPRecovery);
 
-	// 극한 회피 성공 시 짧은 슬로우 타임 연출
 	if (UWxAbilityTask_SlowTime* SlowTimeTask = UWxAbilityTask_SlowTime::CreateTask(this, PerfectDodgeSlowTimeDilation, PerfectDodgeSlowTimeDuration))
 	{
 		SlowTimeTask->ReadyForActivation();
@@ -278,8 +272,8 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 
 void UWxAbility_Dodge::ListenForInvincibleWindow()
 {
-	// 무적 태그는 ANS_Invincible이 발행한다. 여기서는 관찰만 해 판정 캡슐의 수명을 태그에 일치시킨다.
-	// 두 태스크 모두 재무장하므로, PerfectDodgeMontage에 무적 구간이 또 있어도 그대로 처리된다.
+	// 무적 태그는 ANS_Invincible이 발행하고, 여기서는 관찰만 해 판정 캡슐의 수명을 태그에 맞춘다.
+	// 두 태스크 모두 재무장하므로 PerfectDodgeMontage에 무적 구간이 또 있어도 그대로 처리된다.
 	UAbilityTask_WaitGameplayTagAdded* AddedTask = UAbilityTask_WaitGameplayTagAdded::WaitGameplayTagAdd(this, WxGameplayTags::State_Invincible, nullptr, false);
 	if (AddedTask)
 	{
@@ -297,8 +291,7 @@ void UWxAbility_Dodge::ListenForInvincibleWindow()
 
 void UWxAbility_Dodge::ActivateJudgementCapsule()
 {
-	// 판정 캡슐은 첫 무적 구간에서 한 번만 만들고 이후 회피에서 재사용한다.
-	// 평상시엔 콜리전을 끈 채 몸통에 붙어 함께 움직이므로, 여기서 떼어내기만 하면 무적이 시작된 자리에 남는다.
+	// 첫 무적 구간에서 한 번만 만들고 이후 회피에서 재사용한다.
 	if (!JudgementCapsule)
 	{
 		ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
@@ -316,8 +309,8 @@ void UWxAbility_Dodge::ActivateJudgementCapsule()
 		JudgementCapsule = NewObject<UCapsuleComponent>(Character, TEXT("DodgeJudgementCapsule"));
 		JudgementCapsule->SetCapsuleSize(BodyCapsule->GetScaledCapsuleRadius(), BodyCapsule->GetScaledCapsuleHalfHeight());
 
-		// 공격은 Pawn 오브젝트 타입 오버랩으로 대상을 찾는다. 오브젝트 타입 쿼리는 채널 응답을 보지 않으므로,
-		// 모든 채널을 무시해도 공격에는 잡히면서 이동·시야·카메라 트레이스에는 전혀 걸리지 않는다.
+		// 공격은 Pawn 오브젝트 타입 오버랩으로 대상을 찾는다.
+		// 오브젝트 타입 쿼리는 채널 응답을 보지 않으므로, 모든 채널을 무시해도 공격에만 잡히고 이동·시야·카메라 트레이스에는 걸리지 않는다.
 		JudgementCapsule->SetCollisionObjectType(ECC_Pawn);
 		JudgementCapsule->SetCollisionResponseToAllChannels(ECR_Ignore);
 		JudgementCapsule->SetGenerateOverlapEvents(false);
@@ -344,7 +337,7 @@ void UWxAbility_Dodge::DeactivateJudgementCapsule()
 
 void UWxAbility_Dodge::HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag)
 {
-	// 클라이언트가 캐릭터 로컬 공간으로 변환해 보낸 방향. 서버는 그대로 사용해 동일한 8방향 섹션을 선택한다.
+	// 클라이언트가 로컬 공간으로 변환해 보낸 방향이라 그대로 쓰면 같은 섹션이 나온다.
 	FVector LocalDirection = FVector::ZeroVector;
 	if (const FWxAbilityTargetData_Direction* DirectionData = static_cast<const FWxAbilityTargetData_Direction*>(DataHandle.Get(0)))
 	{

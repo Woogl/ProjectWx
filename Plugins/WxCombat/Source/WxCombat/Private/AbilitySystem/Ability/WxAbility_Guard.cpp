@@ -26,9 +26,9 @@ void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, co
 {
 	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
 
-	// 시퀀스가 자체적으로 종료되어야 하는 페이즈는 입력 릴리즈로 끊지 않는다.
+	// 스스로 끝나야 하는 페이즈는 입력 릴리즈로 끊지 않는다.
 	// - GuardBreak: 가드 깨짐 연출 완주 보장
-	// - PerfectGuard: 반격 윈도우 보존 (가드 키를 떼도 State.Guard가 남아 공격이 반격 세트를 고를 수 있다)
+	// - PerfectGuard: 가드 키를 떼도 State.Guard를 남겨 반격 윈도우 보존
 	if (ActiveMontage == GuardBreakMontage || ActiveMontage == PerfectGuardMontage)
 	{
 		return;
@@ -41,7 +41,7 @@ void UWxAbility_Guard::InputPressed(const FGameplayAbilitySpecHandle Handle, con
 {
 	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
 
-	// 패링(PerfectGuard) 모션 중 가드를 재입력하면 후속 연출을 끊고 즉시 가드 자세로 복귀한다.
+	// 패링 연출 중 가드를 재입력하면 연출을 끊고 즉시 가드 자세로 복귀한다.
 	// State.Guard는 패링 중에도 유지되므로 GuardMontage만 다시 재생하면 가드가 이어진다.
 	if (ActiveMontage == PerfectGuardMontage && GuardMontage)
 	{
@@ -58,8 +58,8 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	// bRetriggerInstancedAbility로 인해 어빌리티가 진행 중에 재진입되면 현재 페이즈를 유지한다.
-	// 이벤트 리스너 중복 등록을 방지하고, GuardBreak 중 재진입 시 태스크를 보호한다.
+	// 재발동으로 재진입하면 현재 페이즈를 그대로 유지한다.
+	// 이벤트 리스너 중복 등록을 막고, GuardBreak 중 재진입에서 태스크를 보호한다.
 	if (ActiveMontage)
 	{
 		return;
@@ -98,8 +98,8 @@ void UWxAbility_Guard::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Guard);
 	}
 
-	// 패링 윈도우 도중 취소되어 ANS_PerfectGuard의 NotifyEnd가 스킵되면 State.PerfectGuard가 잔존해 영구 패링이 된다.
-	// State.PerfectGuard는 ANS_PerfectGuard만 부여하므로 이 시점 잔존분은 가드가 흘린 것 — 실패복구로 정리한다.
+	// 취소로 ANS_PerfectGuard의 NotifyEnd가 스킵되면 State.PerfectGuard가 잔존해 영구 패링이 된다.
+	// 이 태그는 ANS_PerfectGuard만 부여하므로 이 시점의 잔존분은 가드가 흘린 것이다.
 	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::State_PerfectGuard))
 	{
 		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_PerfectGuard);
@@ -113,14 +113,14 @@ void UWxAbility_Guard::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 
 bool UWxAbility_Guard::PlayMontage(UAnimMontage* Montage)
 {
-	// 페이즈 몽타주는 전부 선택적이다. 널이면 태스크가 즉시 OnCancelled를 쏘므로 성공으로 돌려선 안 된다.
+	// 페이즈 몽타주는 전부 선택적이다.
+	// 널이면 태스크가 즉시 OnCancelled를 쏘므로 성공으로 돌려선 안 된다.
 	if (!Montage)
 	{
 		return false;
 	}
 
-	// 페이즈 전환 시 이전 몽타주 태스크를 명시적으로 정리해 콜백 잔여 발생을 차단한다.
-	// HandleMontageBlendingOut 콜백 내에서 호출될 수 있으나, EndTask가 AnimInstance 바인딩을 해제하므로 구 태스크의 OnInterrupted 등 후속 이벤트는 발송되지 않는다.
+	// EndTask가 AnimInstance 바인딩을 해제하므로 구 태스크의 후속 이벤트는 발송되지 않는다.
 	if (CurrentMontageTask)
 	{
 		CurrentMontageTask->EndTask();
@@ -147,8 +147,8 @@ bool UWxAbility_Guard::PlayMontage(UAnimMontage* Montage)
 
 void UWxAbility_Guard::ListenForGuardHit()
 {
-	// Event.HitReact 부모 태그로 등록하여 자식 태그(.Normal/.Knockback/.Knockdown/.Knockup)를 모두 수신한다.
-	// HitReact 어빌리티는 ActivationBlockedTags=State.Guard 로 가드 중에는 활성화되지 않으므로 라우팅 충돌 없음.
+	// 부모 태그로 등록해 자식 태그(.Normal/.Knockback/.Knockdown/.Knockup)를 모두 수신한다.
+	// HitReact 어빌리티는 ActivationBlockedTags=State.Guard라 가드 중엔 뜨지 않으므로 라우팅 충돌이 없다.
 	UAbilityTask_WaitGameplayEvent* HitReactTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
 		this, WxGameplayTags::Event_HitReact, nullptr, false, false);
 	if (HitReactTask)
@@ -179,8 +179,8 @@ void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	const UWxCombatAttributeSet* AttributeSet = ASC ? ASC->GetSet<UWxCombatAttributeSet>() : nullptr;
 
-	// Payload.EventMagnitude는 ExecCalc가 전달한 SP 차감량.
-	// ExecCalc는 SP OutputModifier를 큐잉한 직후 동기적으로 이벤트를 디스패치하므로 이 시점의 GetSP()는 차감 적용 전 값이며, (GetSP() - Magnitude)가 차감 후 예상 SP다.
+	// Payload.EventMagnitude는 ExecCalc가 전달한 SP 차감량이다.
+	// ExecCalc가 SP OutputModifier를 큐잉한 직후 동기적으로 디스패치하므로, 이 시점 GetSP()는 차감 전 값이고 (GetSP() - Magnitude)가 차감 후 예상치다.
 	const bool bWillBreak = AttributeSet && (AttributeSet->GetSP() - Payload.EventMagnitude) <= 0.f;
 
 	if (bWillBreak)
@@ -197,7 +197,7 @@ void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 	}
 	else
 	{
-		// Knock 계열(Knockback/Knockdown/Knockup)이면 GuardKnockback, 그 외엔 GuardHitReact 재생.
+		// Normal이 아닌 HitReact 자식 태그는 전부 Knock 계열이다.
 		const bool bIsKnockHit = Payload.EventTag.IsValid() && Payload.EventTag != WxGameplayTags::Event_HitReact_Normal;
 
 		if (bIsKnockHit && GuardKnockbackMontage)
@@ -219,17 +219,14 @@ void UWxAbility_Guard::HandlePerfectGuard(FGameplayEventData Payload)
 		return;
 	}
 
-	// 퍼펙트 가드 성공 보상: MP 회복
 	UWxEffect_RecoverResource::ApplyTo(ASC, 0.f, PerfectGuardMPRecovery);
 
-	// 퍼펙트 가드 성공 시 짧은 슬로우 타임 연출
 	if (UWxAbilityTask_SlowTime* SlowTimeTask = UWxAbilityTask_SlowTime::CreateTask(this, PerfectGuardSlowTimeDilation, PerfectGuardSlowTimeDuration))
 	{
 		SlowTimeTask->ReadyForActivation();
 	}
 
-	// GuardMontage 페이즈에서만 GuardHitReactMontage를 재생한다.
-	// HitReact/Knockback 재생 중 퍼펙트 가드 이벤트가 오면 MP 회복만 처리하고 몽타주는 전환하지 않는다.
+	// HitReact·Knockback 재생 중에 이벤트가 오면 보상만 주고 몽타주는 전환하지 않는다.
 	if (ActiveMontage == GuardMontage && PerfectGuardMontage)
 	{
 		PlayMontage(PerfectGuardMontage);

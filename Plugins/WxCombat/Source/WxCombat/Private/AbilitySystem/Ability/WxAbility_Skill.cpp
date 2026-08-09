@@ -7,8 +7,8 @@
 
 UWxAbility_Skill::UWxAbility_Skill()
 {
-	// 슬롯마다 다른 애셋 태그(Ability.Skill.1~4)와 입력 액션(ActivationInputAction = IA_Skill_1~4)은 BP 서브클래스가 지정한다.
-	// BP가 애셋 태그를 편집하면 컨테이너 값을 통째로 갖게 되므로, 여기 마커는 아직 편집하지 않은 신규 BP에만 상속된다(기존 4개는 에셋에 직접 넣어 둔다).
+	// 슬롯마다 다른 애셋 태그(Ability.Skill.1~4)와 입력 액션은 BP 서브클래스가 지정한다.
+	// BP가 애셋 태그를 편집하면 컨테이너를 통째로 갖게 되므로, 여기 마커는 아직 편집하지 않은 신규 BP에만 상속된다.
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
 	SetAssetTags(AssetTags);
@@ -19,7 +19,7 @@ UWxAbility_Skill::UWxAbility_Skill()
 	// 후딜 캔슬은 몽타주 StartRecovery 노티파이로 허용한다.
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 
-	// 콤보는 재발동으로 다음 단계로 넘어간다. 콤보 윈도우 판정은 CanActivateAbility가 담당한다.
+	// 콤보 진행이 곧 재발동이며, 윈도우 판정은 CanActivateAbility가 한다.
 	bRetriggerInstancedAbility = true;
 }
 
@@ -28,8 +28,7 @@ bool UWxAbility_Skill::CanActivateAbility(const FGameplayAbilitySpecHandle Handl
 	UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
 	const FGameplayAbilitySpec* Spec = ASC ? ASC->FindAbilitySpecFromHandle(Handle) : nullptr;
 
-	// 활성 중 재발동 = 콤보 진행. 이 어빌리티가 건 자기 차단(Ability)은 곧 EndAbility가 해제하므로 무시하고,
-	// 콤보 윈도우 안에서만 허용하되 사망/비용/쿨다운은 그대로 판정한다.
+	// 콤보 진행. 자기 차단은 곧 EndAbility가 푸니 무시하되, 사망·비용·쿨다운은 그대로 판정한다.
 	if (Spec && Spec->IsActive())
 	{
 		if (!ASC || !ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_ComboWindow))
@@ -62,8 +61,7 @@ void UWxAbility_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		return;
 	}
 
-	// 재발동으로 이어온 콤보면 다음 인덱스, 아니면(신규 발동/터미널) 첫 인덱스부터.
-	// CurrentIndex는 재발동 사이 보존되고(INDEX_NONE이면 IsValidIndex(0)로 0에서 시작), 콤보 자연 종료 시 몽타주 핸들러가 INDEX_NONE으로 되돌린다.
+	// 재발동으로 이어온 콤보면 다음 인덱스, 아니면(신규 발동·터미널) 첫 인덱스부터.
 	CurrentIndex = SkillMontages.IsValidIndex(CurrentIndex + 1) ? CurrentIndex + 1 : 0;
 
 	PlayCurrentMontage();
@@ -71,17 +69,15 @@ void UWxAbility_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 void UWxAbility_Skill::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	// 콤보 재발동 시 엔진이 이 EndAbility를 먼저 호출한다.
-	// 몽타주 태스크를 콜백 해제(EndTask) 후 정리해, 그 종료가 Interrupted/Cancelled 핸들러를 깨워 CurrentIndex를 되돌리는 것을 막는다.
+	// 콤보 재발동 시 엔진이 이 EndAbility를 먼저 부른다 — EndTask로 콜백을 끊지 않으면 그 종료가 Interrupted 핸들러를 깨워 CurrentIndex를 되돌린다.
 	if (MontageTask)
 	{
 		MontageTask->EndTask();
 		MontageTask = nullptr;
 	}
 
-	// 외부 캔슬(HitReact/Guard/Dodge 등이 CancelAbilitiesWithTag로 취소)에서는 위 EndTask가 몽타주 핸들러를 끊어
-	// CurrentIndex를 되돌리는 Interrupted/Cancelled 핸들러가 실행되지 않는다. 여기서 직접 리셋해 다음 신규 스킬이
-	// 콤보 중간이 아니라 첫 인덱스부터 시작하게 한다. 콤보 재발동은 bWasCancelled=false로 들어오므로 진행 중 인덱스는 보존된다.
+	// 외부 캔슬은 위 EndTask 탓에 핸들러가 돌지 않으므로 여기서 직접 리셋한다.
+	// 콤보 재발동은 bWasCancelled=false라 진행 중 인덱스가 보존된다.
 	if (bWasCancelled)
 	{
 		CurrentIndex = INDEX_NONE;
@@ -123,7 +119,7 @@ void UWxAbility_Skill::PlayCurrentMontage()
 
 void UWxAbility_Skill::HandleMontageCompleted()
 {
-	// 콤보 미입력으로 자연 종료 → 콤보 리셋(다음 발동은 첫 인덱스부터).
+	// 콤보 미입력으로 자연 종료 — 다음 발동은 첫 인덱스부터.
 	CurrentIndex = INDEX_NONE;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }

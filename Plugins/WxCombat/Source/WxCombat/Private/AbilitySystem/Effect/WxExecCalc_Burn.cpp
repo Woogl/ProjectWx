@@ -40,13 +40,11 @@ void UWxExecCalc_Burn::Execute_Implementation(const FGameplayEffectCustomExecuti
 		return;
 	}
 	
-	// 사망 판정
 	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
 	{
 		return;
 	}
 
-	// 무적 판정
 	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Invincible))
 	{
 		return;
@@ -64,7 +62,6 @@ void UWxExecCalc_Burn::Execute_Implementation(const FGameplayEffectCustomExecuti
 	float TargetDEF = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.DEFDef, EvalParams, TargetDEF);
 
-	// TickDamage = (ATK * (100 / (100 + DEF))) / NumTicks
 	const float TotalDamage = FMath::Max(SourceATK * (100.f / (100.f + TargetDEF)), 0.f);
 	const float TickDamage = TotalDamage / static_cast<float>(NumTicks);
 
@@ -75,7 +72,6 @@ void UWxExecCalc_Burn::Execute_Implementation(const FGameplayEffectCustomExecuti
 
 	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, TickDamage));
 	
-	// 데미지 GameplayCue 실행
 	FGameplayCueParameters CueParams;
 	CueParams.RawMagnitude = TickDamage;
 	if (const AActor* AvatarActor = TargetASC->GetAvatarActor())

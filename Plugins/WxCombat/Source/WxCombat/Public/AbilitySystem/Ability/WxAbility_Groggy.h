@@ -12,15 +12,8 @@ class UAnimMontage;
 
 /**
  * 그로기 어빌리티.
- *
- * 사용 흐름:
- *  1. DP가 MaxDP에 도달 → State.Groggy 태그 부여
- *  2. OwnedTagPresent 트리거로 ActivateAbility
- *  3. 폴링으로 활성 몽타주가 없을 때 그로기 몽타주 재생, DP 드레인 적용
- *  4. State.Groggy 태그 제거 감지 시 EndAbility
- *
- * 그로기 발동 중 HitReact를 제외한 모든 어빌리티 차단.
- * State.Dead 시 활성화 차단.
+ * DP가 MaxDP에 도달하면 붙는 State.Groggy 태그로 발동하고, 폴링으로 빈 몽타주 슬롯에 그로기 몽타주를 밀어 넣으며 DP를 드레인한다.
+ * DP가 0이 되어 태그가 떨어지면 종료한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAbility_Groggy : public UWxAbilityBase
@@ -39,12 +32,12 @@ protected:
 private:
 	void HandleGroggyTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
-	// 그로기 도중 사망 시 즉시 종료. ActivationBlockedTags(State.Dead)는 신규 활성화만 막고 실행 중 인스턴스는 종료하지 못하므로 별도 구독한다.
+	// ActivationBlockedTags는 신규 활성화만 막고 실행 중 인스턴스는 끝내지 못하므로 별도 구독한다.
 	void HandleDeadTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
 	void HandleMontagePollTick();
 
-	// 실패복구: DrainDP가 DP를 0까지 못 내려 그로기가 끝나지 않을 때, 지속시간을 넘기면 DP를 강제 리셋해 종료시킨다.
+	// 실패복구: DrainDP가 DP를 0까지 못 내려 그로기가 끝나지 않으면 DP를 강제 리셋해 종료시킨다.
 	void HandleGroggySafetyTimeout();
 
 	FDelegateHandle GroggyTagDelegateHandle;

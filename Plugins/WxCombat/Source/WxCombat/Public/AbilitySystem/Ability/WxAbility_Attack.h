@@ -16,7 +16,7 @@ struct FWxAbilityMontageSet
 {
 	GENERATED_BODY()
 
-	/** 이 묶음의 진입 조건. 아바타 태그가 요구사항을 만족할 때 선택된다. 비우면 조건 없이 매칭(기본 콤보). */
+	/** 아바타 태그가 이 요구사항을 만족할 때 선택된다. 비우면 조건 없이 매칭(기본 콤보). */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Combo")
 	FGameplayTagRequirements EntryTagRequirements;
 
@@ -27,12 +27,7 @@ struct FWxAbilityMontageSet
 
 /**
  * 공격 어빌리티.
- *
- * 사용 흐름:
- *  1. 공격 입력 → ActivateAbility → 아바타 태그로 콤보 세트를 골라 첫 몽타주 재생
- *  2. ANS_ComboWindow 구간 재발동 → 같은 세트의 다음 인덱스 재생
- *  3. 터미널 인덱스에서 재발동 → 첫 인덱스로 재시작
- *  4. 콤보 미입력 → 몽타주 완료/중단 시 EndAbility
+ * 아바타 태그로 콤보 세트를 골라 첫 몽타주를 재생하고, ANS_ComboWindow 구간의 재발동이 같은 세트의 다음 단으로 넘긴다(터미널 단에서는 첫 단으로 되돌아간다).
  *
  * 콤보 진행은 엔진 순정 재발동(bRetriggerInstancedAbility)이라 단계마다 CommitAbility가 새로 걸린다.
  * 콤보가 끊기지 않으려면 AbilityDataRow에서 단계 간격보다 쿨다운을 짧게 잡거나 최대 충전 수를 단계 수 이상으로 둔다.
@@ -51,8 +46,7 @@ public:
 
 	/**
 	 * 차단을 넘어 발동하는 두 경로를 연다 — 콤보 윈도우 안의 재발동, 그리고 CancelAbilitiesWithTag로 지목한 어빌리티가 돌고 있을 때의 진입.
-	 * 엔진이 차단을 캔슬보다 먼저 판정하므로, 뒤 경로가 없으면 취소 선언에 닿기도 전에 거부된다. 지목은 BP 데이터라 방향이 한쪽이다.
-	 * 두 경로 모두 차단만 건너뛰고 사망·비용·쿨다운은 그대로 본다. 그 외 신규 발동은 Super를 따른다.
+	 * 엔진이 차단을 캔슬보다 먼저 판정하므로 뒤 경로가 없으면 취소 선언에 닿기도 전에 거부된다. 지목은 BP 데이터라 방향이 한쪽이다.
 	 */
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
@@ -68,10 +62,8 @@ private:
 	/** CancelAbilitiesWithTag로 지목한 어빌리티가 이 ASC에서 하나라도 활성인지 */
 	bool HasActiveCancelTarget(const UAbilitySystemComponent& ASC) const;
 
-	/** 아바타 태그로 이번 콤보가 쓸 세트를 고른다. 매칭되는 세트가 없으면 INDEX_NONE */
 	int32 ResolveMontageSetIndex() const;
 
-	/** 현재 세트의 현재 인덱스 몽타주를 재생한다 */
 	void PlayCurrentMontage();
 
 	UFUNCTION()
@@ -89,9 +81,9 @@ private:
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
 
-	/** 진행 중인 콤보가 쓰는 MontageSets 인덱스. 재발동 사이에는 보존되고, INDEX_NONE이면 다음 발동에서 태그로 새로 고른다 */
+	/** 재발동 사이에 보존되며, INDEX_NONE이면 다음 발동에서 태그로 새로 고른다 */
 	int32 CurrentSetIndex = INDEX_NONE;
 
-	/** 현재 세트에서 재생 중인 ComboMontages 인덱스. CurrentSetIndex와 함께 보존·리셋된다 */
+	/** CurrentSetIndex와 함께 보존·리셋되는 ComboMontages 인덱스 */
 	int32 CurrentMontageIndex = INDEX_NONE;
 };

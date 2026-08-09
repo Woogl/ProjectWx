@@ -17,20 +17,14 @@ struct FWxDamageResult
 /**
  * 데미지 계산 ExecutionCalculation.
  *
- * 판정 흐름:
- *  1. 무적 판정 → 대미지 무효, 회피 성공 보상
- *  2. 베이스 대미지 계산
- *     - SetByCaller.RawDamage 양수: ATK/DEF/Coeff 우회, RawDamage 값을 그대로 사용 (환경 대미지)
- *     - 그 외: SourceATK * Coeff.ATK * (100 / (100 + TargetDEF))
- *  3. 상태 판정 (퍼펙트 가드, 가드, Unblockable)
- *  4. 대미지 적용
- *     - 퍼펙트 가드: 대미지 반사, MP 회복, HitReact 이벤트 (Unblockable 공격은 퍼펙트 가드 불가)
- * *     - 일반 가드 피격: HP·DP·SP 차감, GuardHit 이벤트 → Guard 어빌리티가 GuardHitReact/GuardBreak 처리
- *     - Unblockable 가드 피격: HP·DP 차감, Guard 어빌리티 Cancel → HitReact 이벤트
- *     - 비가드 피격: HP·DP 차감, HitReactTag 명시 시 HitReact 이벤트
- *     - 크리는 Raw 모드에서 적용되지 않음
- *  5. AI 대미지 감지
- *  6. 대미지 GameplayCue
+ * 베이스 대미지는 SetByCaller.RawDamage가 양수면 그 값 그대로(환경 대미지), 아니면 SourceATK * Coeff.ATK * (100 / (100 + TargetDEF))다.
+ *
+ * 적용은 대상 상태로 갈린다.
+ *  - 무적          : 대미지 무효, 회피 성공 이벤트
+ *  - 퍼펙트 가드   : 공격자에게 DP 반사, 크리 없음
+ *  - 일반 가드     : 감소율 적용 후 HP·DP·SP 차감
+ *  - Unblockable 가드 : 가드 어빌리티를 끊고 HP·DP 차감(퍼펙트 가드도 뚫는다)
+ *  - 비가드        : HP·DP 차감
  */
 UCLASS()
 class WXCOMBAT_API UWxExecCalc_Damage : public UGameplayEffectExecutionCalculation
@@ -43,21 +37,18 @@ public:
 	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
 
 private:
-	/** 무적 상태(극한 회피) 처리. 회피 성공 시 MP 회복 및 이벤트 발송. 무적이면 true 반환 */
+	/** 무적이면 회피 성공 이벤트를 보내고 true를 반환한다 */
 	bool HandleInvincible(UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC) const;
 
 	/** 퍼펙트 가드 시 공격자에게 DP 반사 */
 	void ReflectPerfectGuard(UAbilitySystemComponent* SourceASC, float ReflectAmount) const;
 
-	/** 베이스 대미지(Raw 또는 ATK·DEF 공식) 계산 후 크리 적용. bSkipCrit 또는 Raw 모드면 크리 스킵 */
+	/** bSkipCrit 또는 Raw 모드면 크리를 건너뛴다 */
 	FWxDamageResult CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, bool bSkipCrit) const;
 
-	/** 피격 반응 적용. 일반 가드는 SP 차감, HitReactTag 명시 시 이벤트 발송 */
+	/** 일반 가드는 SP를 차감하고, 공격 GE에 HitReact 태그가 실려 있을 때만 이벤트를 보낸다 */
 	void ApplyHitReaction(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput, float FinalDamage) const;
 
-	/** 대미지 GameplayCue 실행 */
 	void ExecuteGameplayCueDamage(UAbilitySystemComponent* TargetASC, float DamageAmount, FVector HitLocation, const FGameplayEffectSpec& OwningSpec, bool bIsCritical) const;
-
-	/** 퍼펙트 가드 GameplayCue 실행 */
 	void ExecuteGameplayCuePerfectGuard(UAbilitySystemComponent* TargetASC, FVector HitLocation, const FGameplayEffectSpec& OwningSpec) const;
 };

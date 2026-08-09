@@ -39,7 +39,7 @@ void UWxAbility_Sprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	// 스프린트는 선 자세로 달린다. 몽타주를 쓰지 않아 이동 컴포넌트의 앉기 취소에 걸리지 않으므로 여기서 직접 일으켜 세운다.
+	// 몽타주를 쓰지 않아 이동 컴포넌트의 앉기 취소에 걸리지 않으므로 여기서 직접 일으켜 세운다.
 	if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
 	{
 		Character->UnCrouch();

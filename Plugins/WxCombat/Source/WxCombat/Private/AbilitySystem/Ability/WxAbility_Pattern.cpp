@@ -7,7 +7,7 @@
 UWxAbility_Pattern::UWxAbility_Pattern()
 {
 	// 슬롯마다 다른 애셋 태그(Ability.Pattern.1~)는 BP 서브클래스가 지정한다.
-	// BP가 애셋 태그를 편집하면 컨테이너 값을 통째로 갖게 되므로, 여기 마커는 아직 편집하지 않은 신규 BP에만 상속된다(기존 BP는 에셋에 직접 넣어 둔다).
+	// BP가 애셋 태그를 편집하면 컨테이너를 통째로 갖게 되므로, 여기 마커는 아직 편집하지 않은 신규 BP에만 상속된다.
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
 	SetAssetTags(AssetTags);

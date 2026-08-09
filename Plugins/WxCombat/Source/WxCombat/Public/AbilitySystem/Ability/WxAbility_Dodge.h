@@ -11,10 +11,7 @@ class UAbilityTask_PlayMontageAndWait;
 class UCapsuleComponent;
 struct FGameplayAbilityTargetDataHandle;
 
-/**
- * 캐릭터 기준 회피 방향 (전방을 기준으로 시계 방향 8분면).
- * 입력 방향과 캐릭터 정면 사이의 각도를 45° 단위로 양자화해 결정한다.
- */
+/** 캐릭터 정면을 기준으로 한 시계 방향 8분면 */
 UENUM(BlueprintType)
 enum class EWxDodgeDirection : uint8
 {
@@ -30,25 +27,16 @@ enum class EWxDodgeDirection : uint8
 
 /**
  * 회피 어빌리티.
+ * 입력 방향에 해당하는 8방향 섹션(이동 입력이 없으면 BackstepMontage)을 재생하고, 몽타주의 State.Invincible 구간에 피격되면 극한 회피로 이어진다.
  *
- * 사용 흐름:
- *  1. 입력 → ActivateAbility → 회피 몽타주를 입력 방향에 해당하는 8방향 섹션부터 재생(이동 입력이 없으면 BackstepMontage 재생), Event.DodgeSuccess 대기
- *  2. 몽타주의 State.Invincible 구간 동안 무적. 무적이 시작된 자리에 판정 캡슐을 고정해 남긴다
- *  3. 무적 중 피격(극한 회피) → PerfectDodgeMontage 재생
- *  4. 몽타주 완료/중단 → EndAbility
+ * 회피 반격은 여기서 다루지 않는다 — State.Dodge만 발행하면 공격 어빌리티가 그 태그로 자기 반격 세트를 고른다.
+ * 진입 시점은 회피 몽타주의 StartRecovery가 차단을 푸는 때다.
  *
- * 회피 반격은 이 어빌리티가 다루지 않는다. 활성 동안 State.Dodge를 발행하면 공격 어빌리티가 그 태그로 자기 반격 콤보 세트를 고른다.
- * 반격을 언제부터 받을지는 회피 몽타주의 StartRecovery 노티파이가 차단을 푸는 시점이 정한다.
+ * 극한 회피 판정은 몸통 캡슐을 그대로 둔 채 판정 캡슐이 "피하지 않았다면 맞았을 자리"를 추가로 덮는 방식이다.
+ * 둘 중 어느 쪽이 잡히든 타겟은 플레이어 액터 하나이므로, 무적을 확인한 데미지 파이프라인이 Event.DodgeSuccess를 발송한다.
  *
- * 극한 회피 판정:
- * 몸통 캡슐은 그대로 두므로 실시간 위치는 기존대로 판정되고, 판정 캡슐이 "피하지 않았다면 맞았을 자리"를 추가로 덮는다.
- * 둘 중 어느 쪽이 공격에 잡히든 타겟은 플레이어 액터 하나이므로, 무적을 확인한 데미지 파이프라인이 Event.DodgeSuccess를 발송한다.
- *
- * 회피 방향은 캐릭터 정면 기준으로 계산한다.
- * 비락온은 섹션 양자화 잔차만큼 시작 시 몸을 회전시켜 루트모션 이동을 입력 방향과 일치시킨다.
- * 락온 중에는 락온 태스크가 회피 내내 몸을 타겟으로 추적하므로 사이드 회피가 타겟 중심 호 궤적이 된다.
- * 8분면 결정은 소유 클라이언트에서 한 번만 수행하고, 입력을 캐릭터 로컬 공간으로 변환해 TargetData로 전송한다.
- * 서버는 자신의 facing과 무관하게 동일한 8분면을 계산하므로 클라이언트/서버 몽타주가 항상 일치한다.
+ * 8분면 결정은 소유 클라이언트에서 한 번만 하고, 캐릭터 로컬 공간으로 변환한 방향을 TargetData로 보낸다.
+ * 서버는 자신의 facing과 무관하게 같은 8분면을 얻으므로 클라이언트/서버 몽타주가 항상 일치한다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Dodge : public UWxAbilityBase
@@ -63,7 +51,7 @@ protected:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 	/**
-	 * 8방향 회피 섹션을 담은 몽타주. 입력 방향을 캐릭터 정면 기준 8분면으로 양자화해 섹션을 선택한다.
+	 * 8방향 회피 섹션을 담은 몽타주.
 	 * 섹션 이름은 EWxDodgeDirection 항목명(Forward, ForwardRight, ...)과 동일해야 하며, 각 섹션은 다음 섹션과의 링크를 끊어 한 방향만 재생되도록 구성한다.
 	 * 구성되지 않은 방향 섹션은 Forward 섹션으로 폴백하므로, 일부 섹션만 채워 점진적으로 구성할 수 있다.
 	 */
@@ -91,16 +79,11 @@ protected:
 	float PerfectDodgeSlowTimeDuration = 0.4f;
 
 private:
-	/** 캐릭터 로컬 공간 입력 방향(정면 +X, 오른쪽 +Y)을 8분면으로 양자화한다. 방향이 0이면 Back(백스텝). facing 무관(클라/서버 동일 결과). */
 	EWxDodgeDirection ResolveDodgeDirection(const FVector& LocalDirection) const;
-
-	/** 로컬 공간 입력 방향에 해당하는 회피 몽타주 섹션 이름을 반환한다. 미구성 섹션은 Forward로 폴백, Forward 섹션도 없으면 NAME_None(몽타주 처음부터 재생). */
 	FName SelectDodgeSection(const FVector& LocalDirection) const;
 
-	/** 로컬 공간 입력 방향에 맞는 회피 몽타주 섹션을 선택해 재생한다(비락온은 잔차만큼 몸 보정, 락온은 태스크 추적에 위임). 실패 시 EndAbility 후 false 반환. */
+	/** 실패 시 EndAbility 후 false 반환 */
 	bool StartDodge(const FVector& LocalDirection);
-
-	/** 진행 중인 몽타주 태스크를 정리하고 새 몽타주를 StartSection부터 재생한다. 재생 실패 시 false 반환. */
 	bool PlayMontage(UAnimMontage* Montage, FName StartSection = NAME_None);
 	
 	void ListenForDodgeSuccess();
@@ -137,10 +120,9 @@ private:
 
 	/**
 	 * 극한 회피 판정용 캡슐.
-	 * 평상시에는 콜리전을 끈 채 아바타에 붙어 함께 움직이고, 무적이 시작되면 콜리전을 켜고 떼어내 그 자리에 남는다.
-	 * 붙어 다니다 떼어내는 방식이라 판정 위치를 따로 계산할 필요가 없다.
-	 * 공격 쿼리는 Pawn 오브젝트 타입 오버랩으로 액터를 찾으므로, 아바타의 컴포넌트로 두어야 타겟 필터(ACharacter 요구·팀)를 그대로 통과한다.
-	 * 무장은 무적 구간에만 이뤄지며, 이때는 데미지가 어차피 무효화되므로 판정 캡슐이 실제 피해로 이어질 일은 없다.
+	 * 평상시엔 콜리전을 끈 채 아바타에 붙어 다니다 무적이 시작되면 켜고 떼어내므로, 판정 위치를 따로 계산할 필요가 없다.
+	 * 아바타의 컴포넌트여야 공격 쿼리의 타겟 필터(ACharacter 요구·팀)를 그대로 통과한다.
+	 * 무장은 무적 구간에만 이뤄지므로 이 캡슐이 실제 피해로 이어질 일은 없다.
 	 */
 	UPROPERTY()
 	TObjectPtr<UCapsuleComponent> JudgementCapsule;
