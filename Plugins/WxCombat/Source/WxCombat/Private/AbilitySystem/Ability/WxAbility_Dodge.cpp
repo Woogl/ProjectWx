@@ -4,7 +4,6 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
-#include "AbilitySystem/Task/WxAbilityTask_WaitInputActionTriggered.h"
 #include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
 #include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
@@ -22,15 +21,9 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
-}
 
-void UWxAbility_Dodge::GetInputActions(TArray<const UInputAction*>& OutActions) const
-{
-	Super::GetInputActions(OutActions);
-	if (CounterInputAction)
-	{
-		OutActions.AddUnique(CounterInputAction);
-	}
+	// 회피 반격의 진입 조건. 공격 어빌리티가 이 태그로 자기 반격 콤보 세트를 고른다.
+	ActivationOwnedTags.AddTag(WxGameplayTags::State_Dodge);
 }
 
 void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -93,12 +86,6 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		}
 	}
 
-	// 극한 회피 여부와 무관하게, 회피 중 ANS_ComboWindow 구간 공격 입력으로 반격 전환. 반격 입력 라우팅은 HandlesInput override가 선언적으로 처리한다.
-	if (DodgeCounterMontage)
-	{
-		ListenForCounterInput();
-	}
-
 	ListenForInvincibleWindow();
 	ListenForDodgeSuccess();
 }
@@ -117,12 +104,6 @@ void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 		{
 			ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Invincible);
 		}
-	}
-
-	if (WaitInputTask)
-	{
-		WaitInputTask->EndTask();
-		WaitInputTask = nullptr;
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
@@ -269,16 +250,6 @@ bool UWxAbility_Dodge::PlayMontage(UAnimMontage* Montage, FName StartSection)
 	return true;
 }
 
-void UWxAbility_Dodge::ListenForCounterInput()
-{
-	WaitInputTask = UWxAbilityTask_WaitInputActionTriggered::CreateTask(this, CounterInputAction);
-	if (WaitInputTask)
-	{
-		WaitInputTask->OnTriggered.AddDynamic(this, &UWxAbility_Dodge::HandleCounterInputTriggered);
-		WaitInputTask->ReadyForActivation();
-	}
-}
-
 void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 {
 	if (!PerfectDodgeMontage)
@@ -296,33 +267,6 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 	}
 
 	if (!PlayMontage(PerfectDodgeMontage))
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-	}
-}
-
-void UWxAbility_Dodge::HandleCounterInputTriggered()
-{
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (!ASC)
-	{
-		return;
-	}
-
-	// ANS_ComboWindow 구간 내에서만 반격 허용
-	if (!ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_ComboWindow))
-	{
-		ListenForCounterInput();
-		return;
-	}
-
-	if (WaitInputTask)
-	{
-		WaitInputTask->EndTask();
-		WaitInputTask = nullptr;
-	}
-
-	if (!PlayMontage(DodgeCounterMontage))
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 	}

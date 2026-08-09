@@ -8,8 +8,6 @@
 
 class UAnimMontage;
 class UAbilityTask_PlayMontageAndWait;
-class UWxAbilityTask_WaitInputActionTriggered;
-class UInputAction;
 
 /**
  * 가드 어빌리티.
@@ -19,13 +17,15 @@ class UInputAction;
  *  GuardHitReactMontage – 일반 가드 피격(SP 여유) 시 재생 후 GuardMontage 복귀
  *  GuardKnockbackMontage – Knockback 계열 피격 가드 시 재생 후 GuardMontage 복귀
  *  GuardBreakMontage    – SP 고갈 시 State.Guard 해제 후 재생, 종료
- *  GuardCounterMontage  – ANS_ComboWindow 구간 내 공격 입력 시 전환, 종료
  *
  * Unblockable 피격 처리:
  *  PerfectGuard 윈도우 중이면 ExecCalc가 PerfectGuard로 처리한다.
  *  일반 Guard 중 Unblockable 피격 시 ExecCalc가 Guard 어빌리티를 직접 Cancel하고 HitReact 이벤트를 발송한다.
  *
- * 입력 릴리즈 시 GuardBreak/PerfectGuard/GuardCounter 페이즈가 아니면 즉시 EndAbility.
+ * 가드 반격은 이 어빌리티가 다루지 않는다. 활성 동안 State.Guard를 발행하면 공격 어빌리티가 그 태그로 자기 반격 콤보 세트를 고른다.
+ * 반격을 언제부터 받을지는 가드 몽타주의 StartRecovery 노티파이가 차단을 푸는 시점이 정한다.
+ *
+ * 입력 릴리즈 시 GuardBreak/PerfectGuard 페이즈가 아니면 즉시 EndAbility.
  * PerfectGuard 페이즈 중 가드 재입력 시 후속 연출을 끊고 즉시 GuardMontage로 복귀한다.
  */
 UCLASS(Abstract)
@@ -41,9 +41,6 @@ public:
 
 	/** 가드 중 받는 대미지 배율(0~1). ExecCalc 가 가드 피격 시 이 값을 곱한다. */
 	float GetDamageReductionRate() const;
-
-	/** 발동 입력(ActivationInputAction)에 더해 반격 입력(CounterInputAction)도 바인딩 대상으로 열거한다. */
-	virtual void GetInputActions(TArray<const UInputAction*>& OutActions) const override;
 
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
@@ -63,14 +60,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> PerfectGuardMontage;
-
-	/** ANS_ComboWindow 구간 내 공격 입력 시 재생할 반격 몽타주 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UAnimMontage> GuardCounterMontage;
-
-	/** 가드 활성 중 이 입력을 누르면(ANS_ComboWindow 구간 내) 반격으로 전환한다. 보통 약공격 입력. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
-	TObjectPtr<UInputAction> CounterInputAction;
 
 	/** 가드 중 받는 대미지 배율(0~1). 0.5 면 50% 감소. ExecCalc_Damage 가 가드 피격 분기에서 참조. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|PerfectGuard", meta = (ClampMin = "0", ClampMax = "1"))
@@ -92,17 +81,12 @@ private:
 	bool PlayMontage(UAnimMontage* Montage);
 	void ListenForGuardHit();
 	void ListenForPerfectGuard();
-	void ListenForCounterInput();
-	void PlayGuardCounterMontage();
 
 	UFUNCTION()
 	void HandleGuardHitReact(FGameplayEventData Payload);
 
 	UFUNCTION()
 	void HandlePerfectGuard(FGameplayEventData Payload);
-
-	UFUNCTION()
-	void HandleCounterInputTriggered();
 
 	UFUNCTION()
 	void HandleMontageBlendingOut();
@@ -121,7 +105,4 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> CurrentMontageTask;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UWxAbilityTask_WaitInputActionTriggered> WaitInputTask;
 };

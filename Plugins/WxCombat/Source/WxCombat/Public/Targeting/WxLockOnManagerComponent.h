@@ -42,6 +42,12 @@ public:
 	/** 현재 락온 대상 컴포넌트 반환. 없으면 nullptr. 소유 액터는 반환값의 GetOwner()로 얻는다. */
 	USceneComponent* GetLockOnTarget() const;
 
+	/** 락온 중이라 시점 회전에 쓰이지 않은 시선 입력을 이번 프레임 값으로 기록한다. 락온 대상 전환의 입력원이며 캐릭터의 Look 처리가 호출한다. */
+	void SetLookInput(const FVector2D& InLookInput);
+
+	/** 기록된 시선 입력을 가져가고 비운다. 입력이 없던 프레임에는 0이 반환된다. */
+	FVector2D ConsumeLookInput();
+
 	/** 락온 대상 변경 시(로컬 예측·권위 적용·복제 도착 모두) 브로드캐스트된다. */
 	UPROPERTY()
 	FWxOnLockOnTargetChanged OnLockOnTargetChanged;
@@ -61,4 +67,7 @@ private:
 
 	UPROPERTY(ReplicatedUsing = OnRep_LockOnTarget)
 	TObjectPtr<USceneComponent> LockOnTarget;
+
+	/** 이번 프레임의 시선 입력. 로컬 조작 입력이라 복제하지 않는다. */
+	FVector2D LookInput = FVector2D::ZeroVector;
 };

@@ -106,9 +106,10 @@ TArray<const UInputAction*> UWxAbilitySet::GetInputActions() const
 	TArray<const UInputAction*> InputActions;
 	for (const TSubclassOf<UWxAbilityBase>& AbilityClass : GrantedAbilities)
 	{
-		if (const UWxAbilityBase* AbilityCDO = AbilityClass.GetDefaultObject())
+		const UWxAbilityBase* AbilityCDO = AbilityClass.GetDefaultObject();
+		if (AbilityCDO && AbilityCDO->ActivationInputAction)
 		{
-			AbilityCDO->GetInputActions(InputActions);
+			InputActions.AddUnique(AbilityCDO->ActivationInputAction.Get());
 		}
 	}
 	return InputActions;

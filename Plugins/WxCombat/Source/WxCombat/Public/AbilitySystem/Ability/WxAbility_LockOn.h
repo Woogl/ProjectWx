@@ -6,7 +6,6 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_LockOn.generated.h"
 
-class UInputAction;
 class UTargetingPreset;
 class UUserWidget;
 class UWxAbilityTask_LockOnTarget;
@@ -54,10 +53,6 @@ protected:
 	/** 락온 대상을 잃었을 때(사망/파괴/거리이탈) 락온을 해제하지 않고 살아있는 가장 가까운 다른 적으로 자동 재탐색할지 여부. 끄면 즉시 해제된다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	bool bRetargetOnTargetLost = true;
-
-	/** 락온 재탐색에 사용할 시선 입력 액션. 이 입력을 임계값 이상 움직이면 그 방향의 적으로 재탐색한다. (IA_Look 지정) */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UInputAction> LookAction;
 
 	/** 락온 중 이 크기 이상으로 시선 입력이 누적되면 그 방향의 적으로 재탐색한다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")

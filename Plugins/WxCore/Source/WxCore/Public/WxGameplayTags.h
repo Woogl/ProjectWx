@@ -35,7 +35,10 @@ namespace WxGameplayTags
 
 	/** 무적 상태. WxAnimNotifyState_Invincible이 부여/제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Invincible);
-	
+
+	/** 회피 상태. WxAbility_Dodge가 ActivationOwnedTags로 활성 중에만 자동 부여. 공격이 회피 반격 콤보를 고르는 진입 조건 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dodge);
+
 	/** 가드 판정 활성 상태 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Guard);
 

@@ -3,7 +3,6 @@
 #include "AbilitySystem/Ability/WxAbility_Guard.h"
 #include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
-#include "AbilitySystem/Task/WxAbilityTask_WaitInputActionTriggered.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
@@ -29,9 +28,8 @@ void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, co
 
 	// 시퀀스가 자체적으로 종료되어야 하는 페이즈는 입력 릴리즈로 끊지 않는다.
 	// - GuardBreak: 가드 깨짐 연출 완주 보장
-	// - PerfectGuard: 반격 윈도우 보존 (가드 키를 떼도 ComboWindow 내 공격 입력으로 카운터 가능)
-	// - GuardCounter: 반격 연출 완주 보장
-	if (ActiveMontage == GuardBreakMontage || ActiveMontage == PerfectGuardMontage || ActiveMontage == GuardCounterMontage)
+	// - PerfectGuard: 반격 윈도우 보존 (가드 키를 떼도 State.Guard가 남아 공격이 반격 세트를 고를 수 있다)
+	if (ActiveMontage == GuardBreakMontage || ActiveMontage == PerfectGuardMontage)
 	{
 		return;
 	}
@@ -54,15 +52,6 @@ void UWxAbility_Guard::InputPressed(const FGameplayAbilitySpecHandle Handle, con
 float UWxAbility_Guard::GetDamageReductionRate() const
 {
 	return DamageReductionRate;
-}
-
-void UWxAbility_Guard::GetInputActions(TArray<const UInputAction*>& OutActions) const
-{
-	Super::GetInputActions(OutActions);
-	if (CounterInputAction)
-	{
-		OutActions.AddUnique(CounterInputAction);
-	}
 }
 
 void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -99,22 +88,10 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 	ListenForGuardHit();
 	ListenForPerfectGuard();
-
-	// ANS_ComboWindow 구간 공격 입력으로 반격 전환. 반격 입력 감지는 WaitInputActionTriggered 태스크가 담당한다.
-	if (GuardCounterMontage)
-	{
-		ListenForCounterInput();
-	}
 }
 
 void UWxAbility_Guard::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	if (WaitInputTask)
-	{
-		WaitInputTask->EndTask();
-		WaitInputTask = nullptr;
-	}
-
 	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard))
 	{
@@ -192,39 +169,6 @@ void UWxAbility_Guard::ListenForPerfectGuard()
 	}
 }
 
-void UWxAbility_Guard::ListenForCounterInput()
-{
-	WaitInputTask = UWxAbilityTask_WaitInputActionTriggered::CreateTask(this, CounterInputAction);
-	if (WaitInputTask)
-	{
-		WaitInputTask->OnTriggered.AddDynamic(this, &UWxAbility_Guard::HandleCounterInputTriggered);
-		WaitInputTask->ReadyForActivation();
-	}
-}
-
-void UWxAbility_Guard::PlayGuardCounterMontage()
-{
-	if (WaitInputTask)
-	{
-		WaitInputTask->EndTask();
-		WaitInputTask = nullptr;
-	}
-
-	// 반격은 가드 상태가 아니므로 State.Guard 해제
-	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
-	{
-		if (ASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard))
-		{
-			ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Guard);
-		}
-	}
-
-	if (!PlayMontage(GuardCounterMontage))
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-	}
-}
-
 void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 {
 	if (ActiveMontage != GuardMontage)
@@ -290,24 +234,6 @@ void UWxAbility_Guard::HandlePerfectGuard(FGameplayEventData Payload)
 	{
 		PlayMontage(PerfectGuardMontage);
 	}
-}
-
-void UWxAbility_Guard::HandleCounterInputTriggered()
-{
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (!ASC)
-	{
-		return;
-	}
-
-	// ANS_ComboWindow 구간 내에서만 반격 허용
-	if (!ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_ComboWindow))
-	{
-		ListenForCounterInput();
-		return;
-	}
-
-	PlayGuardCounterMontage();
 }
 
 void UWxAbility_Guard::HandleMontageBlendingOut()

@@ -44,7 +44,6 @@ protected:
 	void Look(const FInputActionValue& Value);
 	void ToggleCrouch();
 
-	void AbilityInputStarted(const UInputAction* Action);
 	void AbilityInputTriggered(const UInputAction* Action);
 	void AbilityInputReleased(const UInputAction* Action);
 

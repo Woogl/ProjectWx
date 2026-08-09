@@ -53,24 +53,11 @@ public:
 
 	/**
 	 * 이 어빌리티를 발동시키는 입력 액션(플레이어 입력 라우팅 키).
-	 * ASC가 눌린 InputAction을 IsActivationInput으로 대조해 어빌리티를 활성화한다.
+	 * ASC가 눌린 InputAction을 이 값과 대조해 어빌리티를 활성화하고, AbilitySet이 이 값을 모아 입력 바인딩 목록을 만든다.
 	 * 입력으로 발동하지 않는 어빌리티(AI 패턴, 반응형, 패시브)는 비워둔다.
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TObjectPtr<UInputAction> ActivationInputAction;
-
-	/**
-	 * 눌린 InputAction이 이 어빌리티를 발동시키는 입력인지 반환한다. 기본은 ActivationInputAction 일치.
-	 * 복수 발동 입력을 갖는 어빌리티(예: 약/강 공격)가 override로 확장한다.
-	 */
-	virtual bool IsActivationInput(const UInputAction* Action) const;
-
-	/**
-	 * 이 어빌리티가 바인딩을 요구하는 입력 액션 전부를 OutActions에 더한다(중복은 AddUnique). 기본은 ActivationInputAction 하나.
-	 * 플레이어 입력 바인딩이 이 목록으로 EnhancedInput에 어떤 액션을 등록할지 결정한다(발동/관찰 판정과 별개, 바인딩 열거용).
-	 * 복수 입력을 갖는 어빌리티(예: 약/강 공격, 가드/회피의 반격)가 override로 확장한다.
-	 */
-	virtual void GetInputActions(TArray<const UInputAction*>& OutActions) const;
 
 	/** 어빌리티 데이터(쿨다운·충전·코스트·아이콘) 데이터테이블 Row 참조. 쿨다운/코스트/아이콘 접근자가 이 Row에서 값을 읽는다 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxAbilityTableRow"))

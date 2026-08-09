@@ -24,19 +24,6 @@ UWxAbilityBase::UWxAbilityBase()
 	CostGameplayEffectClass = UWxEffect_Cost::StaticClass();
 }
 
-bool UWxAbilityBase::IsActivationInput(const UInputAction* Action) const
-{
-	return Action && Action == ActivationInputAction;
-}
-
-void UWxAbilityBase::GetInputActions(TArray<const UInputAction*>& OutActions) const
-{
-	if (ActivationInputAction)
-	{
-		OutActions.AddUnique(ActivationInputAction);
-	}
-}
-
 TSoftObjectPtr<UObject> UWxAbilityBase::GetIcon() const
 {
 	const FWxAbilityTableRow* Row = GetTableRow();

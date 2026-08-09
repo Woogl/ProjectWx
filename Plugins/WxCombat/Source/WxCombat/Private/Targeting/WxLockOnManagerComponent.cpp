@@ -72,3 +72,16 @@ USceneComponent* UWxLockOnManagerComponent::GetLockOnTarget() const
 {
 	return LockOnTarget;
 }
+
+void UWxLockOnManagerComponent::SetLookInput(const FVector2D& InLookInput)
+{
+	LookInput = InLookInput;
+}
+
+FVector2D UWxLockOnManagerComponent::ConsumeLookInput()
+{
+	// 시선 입력은 있는 프레임에만 들어오므로 비우지 않으면 손을 뗀 뒤에도 마지막 값이 계속 읽힌다.
+	const FVector2D Consumed = LookInput;
+	LookInput = FVector2D::ZeroVector;
+	return Consumed;
+}

@@ -5,17 +5,12 @@
 #include "AbilitySystemComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/WidgetComponent.h"
-#include "EnhancedInputSubsystems.h"
-#include "EnhancedPlayerInput.h"
-#include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
-#include "InputAction.h"
-#include "InputActionValue.h"
 #include "Targeting/WxLockOnManagerComponent.h"
 #include "Targeting/WxLockOnPointComponent.h"
 #include "WxGameplayTags.h"
 
-UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed, float InPitchOffset, float InMaxDistance, float InCharacterInterpSpeed, TSubclassOf<UUserWidget> InReticleWidgetClass, UInputAction* InLookAction, float InRetargetLookThreshold)
+UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed, float InPitchOffset, float InMaxDistance, float InCharacterInterpSpeed, TSubclassOf<UUserWidget> InReticleWidgetClass, float InRetargetLookThreshold)
 {
 	UWxAbilityTask_LockOnTarget* Task = NewAbilityTask<UWxAbilityTask_LockOnTarget>(OwningAbility);
 	Task->Target = InTarget;
@@ -24,7 +19,6 @@ UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAb
 	Task->PitchOffset = InPitchOffset;
 	Task->MaxDistanceSquared = InMaxDistance * InMaxDistance;
 	Task->ReticleWidgetClass = InReticleWidgetClass;
-	Task->LookAction = InLookAction;
 	Task->RetargetLookThreshold = InRetargetLookThreshold;
 	Task->bTickingTask = true;
 	return Task;
@@ -89,25 +83,14 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 	const FRotator NewActorRotation = FMath::RInterpTo(AvatarPawn->GetActorRotation(), DesiredActorRotation, DeltaTime, CharacterInterpSpeed);
 	AvatarPawn->SetActorRotation(FRotator(0.f, NewActorRotation.Yaw, 0.f));
 
-	// IA_Look 입력을 폴링해 누적하다 임계값을 넘으면 그 방향으로 재탐색을 요청한다.
-	// 캐릭터의 Look 콜백은 락온 중 시점 회전을 무시하지만, Enhanced Input은 매 프레임 액션을 평가해 두므로 현재 값을 직접 읽을 수 있다.
-	if (!LookAction)
+	// 캐릭터가 시점 회전에 쓰지 않고 넘겨 둔 시선 입력을 누적하다, 임계값을 넘으면 그 방향으로 재탐색을 요청한다.
+	UWxLockOnManagerComponent* Comp = LockOnManagerComponent.Get();
+	if (!Comp)
 	{
 		return;
 	}
 
-	FVector2D LookAxis = FVector2D::ZeroVector;
-	if (ULocalPlayer* LocalPlayer = PC->GetLocalPlayer())
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer))
-		{
-			if (UEnhancedPlayerInput* PlayerInput = Subsystem->GetPlayerInput())
-			{
-				LookAxis = PlayerInput->GetActionValue(LookAction).Get<FVector2D>();
-			}
-		}
-	}
-
+	const FVector2D LookAxis = Comp->ConsumeLookInput();
 	if (LookAxis.IsNearlyZero())
 	{
 		// 입력이 없는 프레임에는 누적을 초기화해, 띄엄띄엄 들어온 입력이 아니라 한 번의 큰 시선 이동만 묶는다.

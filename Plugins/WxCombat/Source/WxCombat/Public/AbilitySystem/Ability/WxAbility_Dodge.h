@@ -9,8 +9,6 @@
 class UAnimMontage;
 class UAbilityTask_PlayMontageAndWait;
 class UCapsuleComponent;
-class UWxAbilityTask_WaitInputActionTriggered;
-class UInputAction;
 struct FGameplayAbilityTargetDataHandle;
 
 /**
@@ -37,8 +35,10 @@ enum class EWxDodgeDirection : uint8
  *  1. 입력 → ActivateAbility → 회피 몽타주를 입력 방향에 해당하는 8방향 섹션부터 재생(이동 입력이 없으면 BackstepMontage 재생), Event.DodgeSuccess 대기
  *  2. 몽타주의 State.Invincible 구간 동안 무적. 무적이 시작된 자리에 판정 캡슐을 고정해 남긴다
  *  3. 무적 중 피격(극한 회피) → PerfectDodgeMontage 재생
- *  4. ANS_ComboWindow 구간 내 공격 입력 시 DodgeCounterMontage로 전환
- *  5. 몽타주 완료/중단 → EndAbility
+ *  4. 몽타주 완료/중단 → EndAbility
+ *
+ * 회피 반격은 이 어빌리티가 다루지 않는다. 활성 동안 State.Dodge를 발행하면 공격 어빌리티가 그 태그로 자기 반격 콤보 세트를 고른다.
+ * 반격을 언제부터 받을지는 회피 몽타주의 StartRecovery 노티파이가 차단을 푸는 시점이 정한다.
  *
  * 극한 회피 판정:
  * 몸통 캡슐은 그대로 두므로 실시간 위치는 기존대로 판정되고, 판정 캡슐이 "피하지 않았다면 맞았을 자리"를 추가로 덮는다.
@@ -57,9 +57,6 @@ class WXCOMBAT_API UWxAbility_Dodge : public UWxAbilityBase
 
 public:
 	UWxAbility_Dodge();
-
-	/** 발동 입력(ActivationInputAction)에 더해 반격 입력(CounterInputAction)도 바인딩 대상으로 열거한다. */
-	virtual void GetInputActions(TArray<const UInputAction*>& OutActions) const override;
 
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
@@ -80,14 +77,6 @@ protected:
 	/** 극한 회피 성공 시 재생할 몽타주 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> PerfectDodgeMontage;
-
-	/** 극한 회피 성공 중 공격 입력 시 재생할 반격 몽타주 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UAnimMontage> DodgeCounterMontage;
-
-	/** 회피 활성 중 이 입력을 누르면(ANS_ComboWindow 구간 내) 반격으로 전환한다. 보통 약공격 입력. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
-	TObjectPtr<UInputAction> CounterInputAction;
 
 	/** 극한 회피 성공 시 회복하는 MP량 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
@@ -115,7 +104,6 @@ private:
 	bool PlayMontage(UAnimMontage* Montage, FName StartSection = NAME_None);
 	
 	void ListenForDodgeSuccess();
-	void ListenForCounterInput();
 	void ListenForInvincibleWindow();
 	
 	void ActivateJudgementCapsule();
@@ -125,9 +113,6 @@ private:
 
 	UFUNCTION()
 	void HandleDodgeSuccess(FGameplayEventData Payload);
-
-	UFUNCTION()
-	void HandleCounterInputTriggered();
 
 	UFUNCTION()
 	void HandleInvincibleTagAdded();
@@ -149,9 +134,6 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
-
-	UPROPERTY()
-	TObjectPtr<UWxAbilityTask_WaitInputActionTriggered> WaitInputTask;
 
 	/**
 	 * 극한 회피 판정용 캡슐.

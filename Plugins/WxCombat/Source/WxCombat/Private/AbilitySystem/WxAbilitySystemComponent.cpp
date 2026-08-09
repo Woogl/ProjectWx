@@ -14,11 +14,6 @@ UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 	SetIsReplicatedByDefault(true);
 }
 
-FWxInputActionTriggeredSignature& UWxAbilitySystemComponent::OnInputActionTriggered()
-{
-	return OnInputActionTriggeredDelegate;
-}
-
 void UWxAbilitySystemComponent::GiveAbilitySet()
 {
 	if (!AbilitySet)
@@ -27,20 +22,6 @@ void UWxAbilitySystemComponent::GiveAbilitySet()
 	}
 
 	AbilitySet->GiveToAbilitySystem(this, &AbilitySetGrantedHandles);
-}
-
-void UWxAbilitySystemComponent::AbilityInputActionStarted(const UInputAction* Action)
-{
-	if (!Action)
-	{
-		return;
-	}
-
-	SetLastPressedInputAction(Action);
-
-	// 활성 어빌리티의 입력 대기 태스크가 관심 입력을 스스로 필터링한다(가드/회피의 반격 등).
-	// 누른 순간에만 띄운다. 반격 윈도우는 새로 누른 입력에만 반응해야지, 윈도우가 열리기 전부터 쥐고 있던 키에 즉시 반응하면 안 된다.
-	OnInputActionTriggeredDelegate.Broadcast(Action);
 }
 
 void UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* Action)
@@ -63,7 +44,7 @@ void UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* 
 			continue;
 		}
 
-		if (!Ability->IsActivationInput(Action))
+		if (Ability->ActivationInputAction.Get() != Action)
 		{
 			continue;
 		}
@@ -105,7 +86,7 @@ void UWxAbilitySystemComponent::AbilityInputActionReleased(const UInputAction* A
 			continue;
 		}
 
-		if (!Ability->IsActivationInput(Action))
+		if (Ability->ActivationInputAction.Get() != Action)
 		{
 			continue;
 		}
@@ -131,11 +112,6 @@ TArray<const UInputAction*> UWxAbilitySystemComponent::GetAbilityInputActions() 
 	return TArray<const UInputAction*>();
 }
 
-const UInputAction* UWxAbilitySystemComponent::GetLastPressedInputAction() const
-{
-	return LastPressedInputAction;
-}
-
 float UWxAbilitySystemComponent::GetMontagePlayRate() const
 {
 	const UWxCombatAttributeSet* AttrSet = GetSet<UWxCombatAttributeSet>();
@@ -155,21 +131,6 @@ int32 UWxAbilitySystemComponent::HandleGameplayEvent(FGameplayTag EventTag, cons
 	}
 
 	return Super::HandleGameplayEvent(EventTag, Payload);
-}
-
-void UWxAbilitySystemComponent::SetLastPressedInputAction(const UInputAction* Action)
-{
-	LastPressedInputAction = Action;
-
-	if (!GetOwnerActor()->HasAuthority())
-	{
-		ServerSetLastPressedInputAction(Action);
-	}
-}
-
-void UWxAbilitySystemComponent::ServerSetLastPressedInputAction_Implementation(const UInputAction* Action)
-{
-	LastPressedInputAction = Action;
 }
 
 void UWxAbilitySystemComponent::ApplyHitStop(const FGameplayEventData& Payload)
