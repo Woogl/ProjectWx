@@ -3,38 +3,43 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayEffectTypes.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_Attack.generated.h"
 
 class UAbilityTask_PlayMontageAndWait;
 class UAnimMontage;
-class UInputAction;
+
+/** 진입 조건으로 갈리는 콤보 몽타주 묶음. */
+USTRUCT(BlueprintType)
+struct FWxAbilityMontageSet
+{
+	GENERATED_BODY()
+
+	/** 이 묶음의 진입 조건. 아바타 태그가 요구사항을 만족할 때 선택된다. 비우면 조건 없이 매칭(기본 콤보). */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Combo")
+	FGameplayTagRequirements EntryTagRequirements;
+
+	/** 인덱스 0부터 순서대로 재생할 콤보 몽타주. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Combo")
+	TArray<TObjectPtr<UAnimMontage>> ComboMontages;
+};
 
 /**
  * 공격 어빌리티.
  *
  * 사용 흐름:
- *  1. 약/강공격 입력 → ActivateAbility → 첫 콤보 몽타주 재생
- *  2. ANS_ComboWindow 구간 입력 → 경로에 L/H 추가 → 엔진 재발동으로 다음 몽타주 재생
- *  3. 터미널 노드(다음 경로 없음)의 ANS_ComboWindow 구간 입력 → 첫타로 재시작
+ *  1. 공격 입력 → ActivateAbility → 아바타 태그로 콤보 세트를 골라 첫 몽타주 재생
+ *  2. ANS_ComboWindow 구간 재발동 → 같은 세트의 다음 인덱스 재생
+ *  3. 터미널 인덱스에서 재발동 → 첫 인덱스로 재시작
  *  4. 콤보 미입력 → 몽타주 완료/중단 시 EndAbility
  *
- * 콤보 진행은 엔진 순정 재발동(bRetriggerInstancedAbility)으로 처리한다. 진행 신호는 곧 평범한 TryActivateAbility 재호출이며,
- * 콤보 윈도우 밖이거나 현재 노드를 잇지 못하는 입력은 CanActivateAbility가 재발동을 막아 현재 몽타주를 유지한다.
- * 콤보 단계마다 재발동되므로 비용/쿨다운(CommitAbility)이 단계마다 새로 적용된다.
- * 콤보가 끊김 없이 이어지려면 AbilityDataRow에서 단계 사이 간격보다 쿨다운을 짧게 잡거나 최대 충전 수를 단계 수 이상으로 둔다.
+ * 콤보 진행은 엔진 순정 재발동(bRetriggerInstancedAbility)이라 단계마다 CommitAbility가 새로 걸린다.
+ * 콤보가 끊기지 않으려면 AbilityDataRow에서 단계 간격보다 쿨다운을 짧게 잡거나 최대 충전 수를 단계 수 이상으로 둔다.
  *
- * ComboMap에 콤보 경로와 몽타주를 등록. (Key: L = 약공격, H = 강공격)
+ * MontageSets는 배열 순서가 곧 우선순위(첫 매칭 채택)이며, 진입 요구사항이 빈 세트는 조건 없이 매칭되므로 기본 콤보는 맨 아래에 둔다.
+ * 세트는 콤보 진입 시 한 번 정해 끝까지 유지한다 — 도중에 태그가 사라져도 남은 단은 같은 세트로 이어진다.
  * 타겟 방향 회전은 ANS_SnapToTarget이 담당.
- *
- * 예시 ComboMap 설정:
- *  "L"    → AM_Attack_L
- *  "H"    → AM_Attack_H
- *  "LL"   → AM_Attack_LL
- *  "LH"   → AM_Attack_LH
- *  "LLL"  → AM_Attack_LLL
- *  "LLH"  → AM_Attack_LLH
- *  "LHLH" → AM_Attack_LHLH
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Attack : public UWxAbilityBase
@@ -45,47 +50,29 @@ public:
 	UWxAbility_Attack();
 
 	/**
-	 * 활성 중 재발동(콤보 진행)은 콤보 윈도우 안에서, 눌린 입력(L/H)이 현재 경로를 잇거나 터미널 재시작이 가능할 때만 허용한다.
-	 * 이때 자기 차단(BlockAbilitiesWithTag=Ability.Exclusive)은 무시하되(직후 EndAbility가 해제) 사망/비용/쿨다운은 그대로 판정한다.
-	 * 신규 발동은 엔진 순정 경로(Super)를 따른다.
+	 * 차단을 넘어 발동하는 두 경로를 연다 — 콤보 윈도우 안의 재발동, 그리고 CancelAbilitiesWithTag로 지목한 어빌리티가 돌고 있을 때의 진입.
+	 * 엔진이 차단을 캔슬보다 먼저 판정하므로, 뒤 경로가 없으면 취소 선언에 닿기도 전에 거부된다. 지목은 BP 데이터라 방향이 한쪽이다.
+	 * 두 경로 모두 차단만 건너뛰고 사망·비용·쿨다운은 그대로 본다. 그 외 신규 발동은 Super를 따른다.
 	 */
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
-
-	/** 약공격(ActivationInputAction)에 더해 강공격(HeavyInputAction)으로도 발동한다. */
-	virtual bool IsActivationInput(const UInputAction* Action) const override;
-
-	/** 약공격(ActivationInputAction)에 더해 강공격(HeavyInputAction)도 바인딩 대상으로 열거한다. */
-	virtual void GetInputActions(TArray<const UInputAction*>& OutActions) const override;
 
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
-	/** 강공격 입력 액션. 약공격(ActivationInputAction)과 함께 발동시키며, 눌린 쪽으로 콤보 L/H를 가른다. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
-	TObjectPtr<UInputAction> HeavyInputAction;
-
-	/**
-	 * 콤보 경로-몽타주 매핑.
-	 * Key: 콤보 경로 (L = 약공격, H = 강공격. 예: "L", "LL", "LH", "LHLH")
-	 * Value: 재생할 몽타주
-	 */
+	/** 상태별 콤보 세트 목록. 위에서부터 훑어 진입 요구사항을 만족하는 첫 세트를 쓴다 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Combo")
-	TMap<FName, TObjectPtr<UAnimMontage>> ComboMap;
+	TArray<FWxAbilityMontageSet> MontageSets;
 
 private:
-	/** 현재 경로의 몽타주를 재생한다 */
-	void PlayComboMontage();
+	/** CancelAbilitiesWithTag로 지목한 어빌리티가 이 ASC에서 하나라도 활성인지 */
+	bool HasActiveCancelTarget(const UAbilitySystemComponent& ASC) const;
 
-	/** 현재 경로에서 L 또는 H를 추가했을 때 유효한 분기가 있는지 반환 */
-	bool HasNextCombo() const;
+	/** 아바타 태그로 이번 콤보가 쓸 세트를 고른다. 매칭되는 세트가 없으면 INDEX_NONE */
+	int32 ResolveMontageSetIndex() const;
 
-	/**
-	 * 눌린 입력(LastPressedInputAction의 L/H)과 CurrentPath로 이번에 재생할 콤보 경로를 계산한다.
-	 * 신규 발동이면 첫타(L/H), 콤보 진행이면 CurrentPath+입력(또는 터미널 시 첫타 재시작), 잇지 못하면 빈 문자열(무시).
-	 * CanActivateAbility(게이트)와 ActivateAbility(적용)가 공유한다.
-	 */
-	FString ResolveNextComboPath() const;
+	/** 현재 세트의 현재 인덱스 몽타주를 재생한다 */
+	void PlayCurrentMontage();
 
 	UFUNCTION()
 	void HandleMontageCompleted();
@@ -102,9 +89,9 @@ private:
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
 
-	/**
-	 * 현재 콤보 경로. 예: "L", "LL", "LLH". 비어 있으면 진행 중인 콤보가 없다(다음 발동은 첫타부터).
-	 * 재발동 사이에는 보존되고, 콤보가 자연 종료되면 몽타주 핸들러가 비운다.
-	 */
-	FString CurrentPath;
+	/** 진행 중인 콤보가 쓰는 MontageSets 인덱스. 재발동 사이에는 보존되고, INDEX_NONE이면 다음 발동에서 태그로 새로 고른다 */
+	int32 CurrentSetIndex = INDEX_NONE;
+
+	/** 현재 세트에서 재생 중인 ComboMontages 인덱스. CurrentSetIndex와 함께 보존·리셋된다 */
+	int32 CurrentMontageIndex = INDEX_NONE;
 };

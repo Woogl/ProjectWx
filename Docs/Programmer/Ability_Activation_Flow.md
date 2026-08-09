@@ -115,7 +115,7 @@ flowchart TD
 
 | 어빌리티 | 트리거 | 공통 위에 더하는 핵심 |
 | --- | --- | --- |
-| `WxAbility_Attack` | 입력(AssetTag `Ability.Attack`) | `ANS_ComboWindow` 입력 → 경로 누적 → EndAbility 후 **동일 Spec 재발동**(`Reactivate`). 단계마다 재커밋. |
+| `WxAbility_Attack` | 입력(AssetTag `Ability.Attack`) | 발동 시 아바타 태그로 콤보 세트(`MontageSets`) 선택 → `ANS_ComboWindow` 입력 → EndAbility 후 **동일 Spec 재발동**(`Reactivate`)으로 세트 내 다음 인덱스. 단계마다 재커밋. |
 | `WxAbility_Guard` | 입력(AssetTag `Ability.Guard`) | `ActiveMontage`로 페이즈 전환(가드/피격/브레이크/카운터). `InputReleased`/`InputPressed` 오버라이드, PerfectGuard 이벤트 구독. |
 | `WxAbility_HitReact` | GameplayEvent `Event.HitReact.*` | 종류별 트리거 개별 등록, `bRetriggerInstancedAbility`로 재진입. 새 액션(`Ability.Exclusive`)은 차단하고, 진행 중인 것 중에서는 공격·스킬만 캔슬한다(적 패턴은 지목 밖이라 유지). 차단만으로는 부족한데, 공격·스킬의 콤보 재발동 분기가 `Super`를 타지 않아 차단 태그 검사를 건너뛰기 때문이다. |
 | `WxAbility_Death` | OwnedTag `State.Dead` | 몽타주 유효 시 사망 포즈, 무효 시 지연 후 래그돌 — 서버가 `State.Ragdoll` 루스 태그 발행(TagOnly 복제), 전 머신의 캐릭터가 감지해 자체 `EnterRagdoll` 수행. 액션 전체 차단. |
@@ -140,8 +140,8 @@ flowchart TD
 | 설정 | 위치 | 의미 |
 | --- | --- | --- |
 | `UWxAbilitySet` | 캐릭터 BP의 ASC `AbilitySet` 프로퍼티 | 부여할 어빌리티/이펙트/어트리뷰트 초기값 묶음 |
-| `UWxAbilityBase.ActivationInputAction` (Attack `HeavyInputAction` · Guard/Dodge `CounterInputAction` 추가) | 어빌리티 BP (Wx/Input 카테고리) | 입력 라우팅 키(빈 값=비입력형) |
-| (바인딩할 어빌리티 InputAction 목록) | 별도 설정 없음 — `CollectAbilityInputActions`가 AbilitySet의 어빌리티 CDO들에서 파생 | 위 두 설정(AbilitySet 구성 + 어빌리티 IA)만 채우면 자동 |
+| `UWxAbilityBase.ActivationInputAction` | 어빌리티 BP (Wx/Input 카테고리) | 입력 라우팅 키(빈 값=비입력형). 어빌리티가 갖는 유일한 입력 필드다 |
+| (바인딩할 어빌리티 InputAction 목록) | 별도 설정 없음 — `UWxAbilitySet::GetInputActions`가 AbilitySet의 어빌리티 CDO들에서 파생 | 위 두 설정(AbilitySet 구성 + 어빌리티 IA)만 채우면 자동 |
 | `ActivationPolicy` | 어빌리티 BP(`Wx`) | `OnTriggered`/`OnGranted` |
 | `CooldownTime`/`MaxRecharges`/`MPCost`/`UPCost` | `AbilityDataRow`가 가리키는 DataTable Row(`FWxAbilityTableRow`) | 커밋 수치. 어빌리티에 `AbilityDataRow`만 지정하면 이 Row에서 읽는다 |
 | `AbilityTag` | `WxBTTask_ActivateAbility` 노드 | AI가 매칭할 AssetTag |
