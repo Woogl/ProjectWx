@@ -19,7 +19,7 @@ UWxAbilityBase::UWxAbilityBase()
 	InstancingPolicy  = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 
-	// 기본값을 공용 GE 마커로 둔다. 마커 그대로면 프로젝트 방식(AbilityDataRow 기반), 다른 GE로 바꾸면 커스텀(엔진 순정 경로).
+	// 공용 GE 마커 — 이 값 그대로면 AbilityDataRow 기반 경로다.
 	CooldownGameplayEffectClass = UWxEffect_Cooldown::StaticClass();
 	CostGameplayEffectClass = UWxEffect_Cost::StaticClass();
 }
@@ -38,9 +38,9 @@ float UWxAbilityBase::GetMontagePlayRate() const
 
 void UWxAbilityBase::StartRecovery()
 {
-	// 차단 태그를 직접 해제하면 안 된다. 엔진은 어빌리티가 차단을 쥐고 있는지 따로 기억했다가 EndAbility에서 한 번 더 해제하므로,
-	// 그 여분의 해제가 후딜에 캔슬로 진입한 어빌리티의 차단을 대신 풀어 버린다(공유 카운터라 주인을 가리지 않는다).
-	// 이 API는 해제와 소유 표시 정리를 함께 하므로 해제가 한 번만 일어난다.
+	// 차단 태그를 직접 해제하면 안 된다.
+	// 엔진이 차단 소유 여부를 따로 기억했다가 EndAbility에서 한 번 더 해제하는데, 공유 카운터라 그 여분이 캔슬로 진입한 어빌리티의 차단까지 풀어 버린다.
+	// 이 API는 소유 표시까지 정리하므로 해제가 한 번만 일어난다.
 	SetShouldBlockOtherAbilities(false);
 }
 
@@ -55,7 +55,7 @@ void UWxAbilityBase::SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileCl
 	AActor* Avatar = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
 	USkeletalMeshComponent* Mesh = ActorInfo ? ActorInfo->SkeletalMeshComponent.Get() : nullptr;
 
-	// 투사체는 서버가 스폰해 복제한다. 클라(예측 인스턴스)에선 authority 게이트로 무동작.
+	// 클라(예측 인스턴스)에선 무동작 — 서버가 스폰해 복제한다.
 	if (!Avatar || !Mesh || !Avatar->HasAuthority())
 	{
 		return;
@@ -65,7 +65,7 @@ void UWxAbilityBase::SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileCl
 	const FRotator SpawnRotation = Avatar->GetActorRotation();
 	const FTransform SpawnTransform(SpawnRotation, SpawnLocation);
 
-	// 대미지는 투사체가 자기 클래스 데이터로 BeginPlay에서 준비하므로 일반 SpawnActor로 충분하다.
+	// 대미지는 투사체가 BeginPlay에서 자기 클래스 데이터로 준비하므로 지연 스폰이 필요 없다.
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = Avatar;
 	SpawnParams.Instigator = Cast<APawn>(Avatar);
@@ -73,47 +73,6 @@ void UWxAbilityBase::SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileCl
 
 	Avatar->GetWorld()->SpawnActor<AWxProjectileBase>(ProjectileClass, SpawnTransform, SpawnParams);
 }
-
-#if WITH_EDITOR
-bool UWxAbilityBase::CanEditChange(const FProperty* InProperty) const
-{
-	if (!Super::CanEditChange(InProperty))
-	{
-		return false;
-	}
-	
-	if (InProperty)
-	{
-		const FName PropertyName = InProperty->GetFName();
-
-		// 스톡 GE 클래스 경로는 AbilityDataRow와 상호배타다. Row가 설정돼 있으면 스톡 클래스 편집을 막는다.
-		static const FName CooldownGEName = TEXT("CooldownGameplayEffectClass");
-		static const FName CostGEName = TEXT("CostGameplayEffectClass");
-		if ((PropertyName == CooldownGEName || PropertyName == CostGEName) && !AbilityDataRow.IsNull())
-		{
-			return false;
-		}
-	}
-
-	return true;
-}
-
-void UWxAbilityBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-
-	if (PropertyChangedEvent.GetMemberPropertyName() == GET_MEMBER_NAME_CHECKED(UWxAbilityBase, AbilityDataRow))
-	{
-		if (!AbilityDataRow.IsNull())
-		{
-			// Row = 프로젝트 방식이므로 커스텀 GE를 걷어내고 마커로 되돌린다("Row = 마커 표시" 불변식 유지).
-			CooldownGameplayEffectClass = UWxEffect_Cooldown::StaticClass();
-			CostGameplayEffectClass = UWxEffect_Cost::StaticClass();
-		}
-	}
-}
-
-#endif
 
 void UWxAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
@@ -138,7 +97,8 @@ UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
 		return nullptr;
 	}
 
-	// 단일 충전이면 공유 CDO로 충분하다(ViewModel이 Max(1, StackLimitCount)=1로 읽는다). per-ability 인스턴스는 다중 충전에서만 StackLimitCount 전달용으로 만든다.
+	// 단일 충전은 공유 CDO로 충분하다.
+	// 인스턴스는 StackLimitCount를 실어야 하는 다중 충전에서만 만든다.
 	const int32 MaxRecharges = FMath::Max(1, Row->MaxRecharges);
 	if (MaxRecharges <= 1)
 	{
@@ -177,7 +137,7 @@ bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, cons
 	float LongestDuration = 0.f;
 	if (QueryActiveCooldowns(*ASC, LongestRemaining, LongestDuration) >= FMath::Max(1, Row->MaxRecharges))
 	{
-		// 엔진 순정 CheckCooldown과 동일하게 실패 사유 태그를 채워 OnAbilityFailed 파이프라인(실패 피드백 UI 등)에 전달한다
+		// 순정 CheckCooldown처럼 실패 사유 태그를 채워 OnAbilityFailed 파이프라인에 전달한다
 		if (OptionalRelevantTags)
 		{
 			const FGameplayTag& FailCooldownTag = UAbilitySystemGlobals::Get().ActivateFailCooldownTag;
@@ -253,7 +213,7 @@ int32 UWxAbilityBase::QueryActiveCooldowns(const UAbilitySystemComponent& ASC, f
 			continue;
 		}
 
-		// 만료됐지만 아직 제거되지 않은 GE(클라이언트는 제거가 리플리케이션으로 도착할 때까지 지연됨)는 회복된 충전으로 취급한다
+		// 만료됐지만 아직 제거되지 않은 GE(클라는 제거 복제가 늦게 도착)는 회복된 충전으로 친다
 		const float Remaining = (ActiveGE->StartWorldTime + ActiveGE->Spec.GetDuration()) - WorldTime;
 		if (Remaining <= 0.f)
 		{
