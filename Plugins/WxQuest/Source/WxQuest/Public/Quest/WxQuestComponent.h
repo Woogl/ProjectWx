@@ -13,7 +13,6 @@ class UWxQuestStateTree;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnQuestJournalChanged);
 
 /**
- * 저널에 등록된 목표 하나.
  * 목표는 등록한 태스크가 자기 상태를 떠날 때 스스로 걷어가므로, 문구가 아니라 발급 핸들로 지목한다(같은 문구가 둘일 수 있다).
  */
 USTRUCT()
@@ -21,7 +20,6 @@ struct FWxQuestObjective
 {
 	GENERATED_BODY()
 
-	/** 등록 시 발급된 핸들. */
 	UPROPERTY()
 	int32 Handle = INDEX_NONE;
 
@@ -86,7 +84,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	/** 러너 실행 상태 변경 수신. Running 이탈(완료·실패·정지)이면 탑재 기록·저널만 정리한다 — 이 콜백 안 재시작은 엔진 재진입 가드에 막힌다. */
+	/** Running 이탈(완료·실패·정지)이면 저널을 정리한다 — 이 콜백 안 재시작은 엔진 재진입 가드에 막힌다. */
 	UFUNCTION()
 	void HandleStateTreeRunStatusChanged(EStateTreeRunStatus StateTreeRunStatus);
 
@@ -95,16 +93,15 @@ private:
 
 	void ClearJournal();
 
-	/** 퀘스트 ST 를 실행하는 러너. 권위 측 BeginPlay 에서 생성되며 비-권위 머신에선 null 이다. */
+	/** 권위 측 BeginPlay 에서 생성되며 비-권위 머신에선 null 이다. */
 	UPROPERTY()
 	TObjectPtr<UStateTreeComponent> QuestStateTree;
 
 	FText QuestTitle;
 
-	/** 현재 표시 중인 목표들. 태스크가 상태에 들고 날 때마다 늘고 준다. */
 	TArray<FWxQuestObjective> Objectives;
 
-	/** 다음 목표에 발급할 핸들. 재사용하지 않으므로 뒤늦은 제거 요청이 엉뚱한 목표를 걷어가지 않는다. */
+	/** 재사용하지 않으므로 뒤늦은 제거 요청이 엉뚱한 목표를 걷어가지 않는다. */
 	int32 NextObjectiveHandle = 0;
 
 	bool bHasActiveQuest = false;

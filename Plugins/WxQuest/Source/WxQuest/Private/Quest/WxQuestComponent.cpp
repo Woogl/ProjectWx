@@ -22,7 +22,7 @@ void UWxQuestComponent::ActivateQuest(UWxQuestStateTree* QuestAsset)
 		return;
 	}
 
-	// 정지 → 교체 → 시작. 엔진이 Running 중 SetStateTree 를 거부하므로 반드시 이 순서다.
+	// 엔진이 Running 중 SetStateTree 를 거부하므로 정지 → 교체 → 시작 순서를 지킨다.
 	// 정지가 저널 정리(HandleStateTreeRunStatusChanged)를 발화시키고, 새 퀘스트 진행이 저널을 다시 채운다.
 	QuestStateTree->StopLogic(TEXT("ActivateQuest"));
 	QuestStateTree->SetStateTree(QuestAsset);
@@ -69,7 +69,7 @@ int32 UWxQuestComponent::AddObjective(const FText& InObjectiveText)
 
 void UWxQuestComponent::RemoveObjective(int32 ObjectiveHandle)
 {
-	// 제목 교체·저널 정리가 목록을 통째로 비운 뒤라면 이미 사라진 핸들이 들어온다. 정상 경로이므로 조용히 무시한다.
+	// 제목 교체·저널 정리가 목록을 통째로 비운 뒤라면 이미 사라진 핸들이 들어온다.
 	for (int32 Index = 0; Index < Objectives.Num(); ++Index)
 	{
 		if (Objectives[Index].Handle == ObjectiveHandle)
@@ -107,14 +107,13 @@ void UWxQuestComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// 퀘스트 진행은 월드 부수효과(스폰·보상)를 동반하는 서버 권위 사건이라 러너를 권위에서만 생성한다.
 	AActor* Owner = GetOwner();
 	if (!Owner || !Owner->HasAuthority())
 	{
 		return;
 	}
 
-	// 자동 시작을 끈 순정 러너를 런타임 부착한다. 실행할 에셋은 ActivateQuest 가 그때그때 지정한다.
+	// 실행할 에셋은 ActivateQuest 가 그때그때 지정하므로 자동 시작을 끈다.
 	QuestStateTree = NewObject<UStateTreeComponent>(Owner, TEXT("QuestStateTree"));
 	QuestStateTree->SetStartLogicAutomatically(false);
 	QuestStateTree->RegisterComponent();
@@ -123,7 +122,6 @@ void UWxQuestComponent::BeginPlay()
 
 void UWxQuestComponent::HandleStateTreeRunStatusChanged(EStateTreeRunStatus StateTreeRunStatus)
 {
-	// 저널 수명을 퀘스트 실행과 일치시킨다 — 완료(Succeeded)·실패(Failed)·교체(Stopped) 세 종료 경로가 전부 여기로 수렴한다.
 	if (StateTreeRunStatus != EStateTreeRunStatus::Running)
 	{
 		ClearJournal();

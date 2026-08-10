@@ -143,7 +143,6 @@ void FWxStateTreeTask_SetQuestObjective::ExitState(FStateTreeExecutionContext& C
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 자기가 등록한 기록만 근거로 걷어간다.
 	if (UWxQuestComponent* QuestComponent = GetQuestComponent(Context))
 	{
 		QuestComponent->RemoveObjective(Instance.ObjectiveHandle);
@@ -174,7 +173,6 @@ EStateTreeRunStatus FWxStateTreeTask_WaitMoveToTarget::EnterState(FStateTreeExec
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 대상 미지정은 완료될 수 없는 잘못된 조립이다. 침묵 대기 대신 경고를 남긴다.
 	if (Instance.Targets.IsEmpty())
 	{
 		UE_LOG(LogWxQuest, Warning, TEXT("Wait Move To Target: 도달을 판정할 대상이 지정되지 않음."));
@@ -201,7 +199,6 @@ EStateTreeRunStatus FWxStateTreeTask_WaitMoveToTarget::Tick(FStateTreeExecutionC
 		return EStateTreeRunStatus::Running;
 	}
 
-	// 폰 부재 동안은 판정 없이 대기한다.
 	const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(Owner, 0);
 	const APawn* Pawn = PlayerController ? PlayerController->GetPawn() : nullptr;
 	if (!Pawn)
@@ -209,7 +206,7 @@ EStateTreeRunStatus FWxStateTreeTask_WaitMoveToTarget::Tick(FStateTreeExecutionC
 		return EStateTreeRunStatus::Running;
 	}
 
-	// 하나라도 반경 안이면 도달이다. 미해석(빈 로케이터·스트리밍 아웃)인 대상은 그 자리만 판정에서 빠진다.
+	// 미해석(빈 로케이터·스트리밍 아웃)인 대상은 그 자리만 판정에서 빠진다.
 	for (const FUniversalObjectLocator& Locator : Instance.Targets)
 	{
 		const AActor* Target = ResolveTargetActor(Locator, Owner);
