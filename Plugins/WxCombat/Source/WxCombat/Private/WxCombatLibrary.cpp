@@ -3,7 +3,7 @@
 #include "WxCombatLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
-#include "WxDamageInfo.h"
+#include "Damage/WxDamageInfo.h"
 #include "WxGameplayTags.h"
 
 bool UWxCombatLibrary::ApplyDamage(UAbilitySystemComponent* Source, UAbilitySystemComponent* Target, const FWxDamageInfo& DamageInfo, const FHitResult& HitResult, float HitStopDuration)

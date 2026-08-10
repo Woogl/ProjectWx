@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "WxDamageInfo.h"
-#include "WxDamageTableRow.h"
+#include "Damage/WxDamageInfo.h"
+#include "Damage/WxDamageTableRow.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "WxGameplayTags.h"

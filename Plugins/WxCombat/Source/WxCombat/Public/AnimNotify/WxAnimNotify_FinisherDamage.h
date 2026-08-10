@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
-#include "WxDamageInfo.h"
+#include "Damage/WxDamageInfo.h"
 #include "WxAnimNotify_FinisherDamage.generated.h"
 
 /**

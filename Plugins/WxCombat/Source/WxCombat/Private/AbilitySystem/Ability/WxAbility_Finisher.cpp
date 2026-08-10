@@ -5,9 +5,9 @@
 #include "AbilitySystem/Effect/WxEffect_ResetDP.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
+#include "Damage/WxDamageInfo.h"
 #include "MotionWarpingComponent.h"
 #include "WxCombatLibrary.h"
-#include "WxDamageInfo.h"
 #include "WxGameplayTags.h"
 
 namespace

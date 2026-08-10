@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Damage/WxDamageInfo.h"
 #include "GameFramework/Actor.h"
-#include "WxDamageInfo.h"
 #include "WxWeaponBase.generated.h"
 
 class ACharacter;

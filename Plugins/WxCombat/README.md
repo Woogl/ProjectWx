@@ -29,7 +29,7 @@
 | `UWxAbilitySet` | 어빌리티·이펙트·어트리뷰트 초기화를 묶어 ASC에 일괄 부여/회수하는 DataAsset (`FWxAbilitySetGrantedHandles`) | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySet.h` |
 | `UWxCombatAttributeSet` | 전투 스탯 전량 + `IncomingDamage` 메타(ExecCalc→HP 차감) 정산 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h` |
 | `UWxCombatLibrary` | 무기/투사체 밖 모든 대미지 경로가 공유하는 단일 진입점 `ApplyDamage` (BP Function Library) | `Plugins/WxCombat/Source/WxCombat/Public/WxCombatLibrary.h` |
-| `FWxDamageInfo` | 대미지 한 건의 설계 데이터. `MakeSpecs`로 Damage GE Spec + 부가효과 Spec 생성 | `Plugins/WxCombat/Source/WxCombat/Public/WxDamageInfo.h` |
+| `FWxDamageInfo` | 대미지 한 건의 설계 데이터. `MakeSpecs`로 Damage GE Spec + 부가효과 Spec 생성 | `Plugins/WxCombat/Source/WxCombat/Public/Damage/WxDamageInfo.h` |
 | `AWxWeaponBase` | 근접 무기 액터. ANS_WeaponAttack이 여는 레퍼런스 카운팅 오버랩 스윙, 스윙당 액터 1회 피격 | `Plugins/WxCombat/Source/WxCombat/Public/Weapon/WxWeaponBase.h` |
 | `UWxLockOnManagerComponent` | 서버 권위로 복제되는 락온 대상(SceneComponent 단위) 보관·브로드캐스트 | `Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxLockOnManagerComponent.h` |
 
@@ -37,7 +37,7 @@
 - **새 어빌리티**: `UWxAbilityBase` 상속. 쿨다운/코스트/아이콘 수치는 코드가 아니라 `AbilityDataRow`(`FWxAbilityTableRow`)에서 온디맨드로 읽는다. `CooldownGameplayEffectClass`/`CostGameplayEffectClass`를 공용 GE(`UWxEffect_Cooldown`/`UWxEffect_Cost`) 마커 그대로 두면 데이터 주도 경로, 다른 GE로 바꾸면 엔진 순정 경로(상호배타).
 - **입력 발동**: `ActivationInputAction` 지정 시 ASC가 이 값으로 라우팅하고 AbilitySet이 모아 입력 바인딩을 만든다. AI·반응·패시브는 비워두거나 `ActivationPolicy=OnGranted`.
 - **부여**: `UWxAbilitySet`에 `GrantedAbilities`/`GrantedEffects`/`AttributeInitRow`를 채우고 캐릭터에 지정 → 서버 `InitAbilitySystem` 시점 일괄 부여.
-- **대미지 튜닝**: `FWxDamageTableRow`(`Plugins/WxCombat/Source/WxCombat/Public/WxDamageTableRow.h`)에 공격별 계수·회복·HitReact 태그·가드 관통 여부를 두고, `FWxDamageInfo`로 실어 SetByCaller/DynamicAssetTags로 변환 → `UWxCombatLibrary::ApplyDamage` → `UWxExecCalc_Damage`가 최종 대미지 산출.
+- **대미지 튜닝**: `FWxDamageTableRow`(`Plugins/WxCombat/Source/WxCombat/Public/Damage/WxDamageTableRow.h`)에 공격별 계수·회복·HitReact 태그·가드 관통 여부를 두고, `FWxDamageInfo`로 실어 SetByCaller/DynamicAssetTags로 변환 → `UWxCombatLibrary::ApplyDamage` → `UWxExecCalc_Damage`가 최종 대미지 산출.
 - **새 GE/계산**: `AbilitySystem/Effect/`의 `WxEffect_*`(GE), `WxExecCalc_*`(ExecutionCalculation), `WxMMC_*`(ModMagnitudeCalculation) 패턴을 따른다. 연출은 `AbilitySystem/Cue/`의 `WxCueNotify_*`.
 - **타겟 필터**: TargetingSystem의 `UTargetingFilterTask`를 상속한 `WxTargetingFilterTask_*`(팀/화면경계/라인트레이스/입력방향/태그)로 락온 후보를 거른다.
 - **리플리케이션/권한**: 어빌리티 부여·투사체 스폰/파괴·락온 대상·전역 시간배율은 서버 권위, 표현(ImpactFX/큐)은 각 머신 로컬. 대미지 적용은 몽타주 재생 어빌리티의 활성화 키로 예측된다(상세 규약은 `WxCombatLibrary.h` 주석).
@@ -46,7 +46,7 @@
 ## 여기서부터 읽어라
 1. `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h` — 입력→어빌리티 라우팅과 히트스톱 중재. 전투 제어 흐름의 관문.
 2. `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` — 모든 어빌리티의 데이터 주도 쿨다운/코스트·후딜 규약. 어빌리티를 이해하는 기준점.
-3. `Plugins/WxCombat/Source/WxCombat/Public/WxDamageInfo.h` — 대미지가 GE Spec으로 변환되는 지점. `Private/AbilitySystem/Effect/WxExecCalc_Damage.cpp`로 이어 읽으면 데미지 계산 전모.
+3. `Plugins/WxCombat/Source/WxCombat/Public/Damage/WxDamageInfo.h` — 대미지가 GE Spec으로 변환되는 지점. `Private/AbilitySystem/Effect/WxExecCalc_Damage.cpp`로 이어 읽으면 데미지 계산 전모.
 4. `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySet.h` — 캐릭터가 무엇을 갖게 되는지(부여/회수)의 조립 뷰.
 
 ## 관련

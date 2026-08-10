@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
-#include "WxDamageInfo.h"
+#include "Damage/WxDamageInfo.h"
 #include "WxAnimNotifyState_WeaponAttack.generated.h"
 
 /**

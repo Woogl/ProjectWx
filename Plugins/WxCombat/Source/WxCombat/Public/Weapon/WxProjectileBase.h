@@ -3,10 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Damage/WxDamageInfo.h"
 #include "Engine/DataTable.h"
 #include "GameFramework/Actor.h"
 #include "GameplayEffectTypes.h"
-#include "WxDamageInfo.h"
 #include "WxProjectileBase.generated.h"
 
 class UArrowComponent;
