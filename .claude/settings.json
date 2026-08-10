@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python .claude/scripts/check-worklog.py",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/scripts/check-worklog.py\"",
             "shell": "bash",
             "statusMessage": "worklog 게이트 점검"
           }
