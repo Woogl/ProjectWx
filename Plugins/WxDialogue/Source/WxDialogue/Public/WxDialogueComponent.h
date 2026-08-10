@@ -26,10 +26,10 @@ class WXDIALOGUE_API UWxDialogueComponent : public UActorComponent, public IWxIn
 public:
 	const FDataTableRowHandle& GetStartRow() const;
 
-	/** 상호작용 영역이 될 오너의 메시를 지정한다. C++ 호스트가 생성자에서 한 번 부른다(순수 BP 호스트는 디테일 패널에서 고른다). */
+	/** C++ 호스트가 생성자에서 한 번 부른다(순수 BP 호스트는 디테일 패널에서 고른다). */
 	void SetAreaMesh(UPrimitiveComponent* Mesh);
 
-	//~ Begin IWxInteractable — 쿼리 콜리전이 켜져 있는 동안 영역 메시가 영역, 상호작용자 세션에 대화 시작 위임, "[F] Talk to {Name}" 프롬프트.
+	//~ Begin IWxInteractable — 쿼리 콜리전이 켜져 있는 동안 영역 메시가 영역, 상호작용자 세션에 대화 시작 위임, "Talk to {Name}" 프롬프트.
 	virtual bool IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const override;
 	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
 	virtual FText GetInteractionPrompt(const UActorComponent* Source) const override;
@@ -45,11 +45,11 @@ public:
 	void SetInteractionEnabled(bool bEnabled);
 
 protected:
-	/** 대화를 시작할 노드. 비우면 대화가 시작되지 않는다. */
+	/** 비우면 대화가 시작되지 않는다. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Dialogue", meta = (RowType = "/Script/WxDialogue.WxDialogueTableRow"))
 	FDataTableRowHandle StartRow;
 
-	/** 화자 표시 이름. 상호작용 프롬프트에 쓰인다. */
+	/** 상호작용 프롬프트에 쓰인다. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Dialogue")
 	FText SpeakerName;
 

@@ -17,11 +17,10 @@ struct FWxDialogueTableRow : public FTableRowBase
 {
 	GENERATED_BODY()
 
-	/** 화자 표시명. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|Dialogue")
 	FText Speaker;
 
-	/** 대사 본문. 모든 행이 채워야 한다 — 종료는 NextRow=None 으로 표시하며, 비어 있으면 잘못된 행으로 보고 경고와 함께 대화를 접는다. */
+	/** 모든 행이 채워야 한다 — 종료는 NextRow=None 으로 표시하며, 비어 있으면 잘못된 행으로 보고 경고와 함께 대화를 접는다. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|Dialogue", meta = (MultiLine = "true"))
 	FText Line;
 	
@@ -34,7 +33,7 @@ struct FWxDialogueTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|Dialogue")
 	TSoftObjectPtr<UAnimMontage> TargetPose;
 
-	/** 이 대사 다음 이어갈 행. None 이면 대화 종료. */
+	/** None 이면 대화 종료. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|Dialogue")
 	FName NextRow;
 };

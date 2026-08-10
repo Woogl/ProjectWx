@@ -13,29 +13,24 @@
 
 namespace
 {
-	/** 로컬 플레이어(0번 컨트롤러)의 대화 세션. 세션은 대화를 건 플레이어의 컨트롤러에 있다. */
 	UWxDialogueSessionComponent* FindDialogueSession(const AActor* Owner)
 	{
 		APlayerController* PlayerController = UGameplayStatics::GetPlayerController(Owner, 0);
 		return PlayerController ? PlayerController->FindComponentByClass<UWxDialogueSessionComponent>() : nullptr;
 	}
 
-	/** 대상 액터의 대화 컴포넌트. 이 컴포넌트가 상호작용 계약을 들므로 호스트 액터 타입은 보지 않는다. */
+	/** 이 컴포넌트가 상호작용 계약을 들므로 호스트 액터 타입은 보지 않는다. */
 	UWxDialogueComponent* FindTargetDialogue(const FUniversalObjectLocator& Locator, AActor* Owner)
 	{
 		const AActor* Target = Cast<AActor>(Locator.SyncFind(Owner));
 		return Target ? Target->FindComponentByClass<UWxDialogueComponent>() : nullptr;
 	}
 
-	/**
-	 * 대상마다 다시 해석해, 앞서 그 자리에 토글을 걸어 준 컴포넌트와 다를 때만 적용한다.
-	 * 재로드로 액터가 새로 만들어지면 콜리전이 레벨 값으로 돌아가 있으므로 그때 다시 걸어야 하고, 같은 액터면 이미 적용돼 있어 건드리지 않는다.
-	 */
+	/** 재로드로 액터가 새로 만들어지면 콜리전이 레벨 값으로 돌아가 있으므로 다시 걸고, 같은 액터면 이미 적용돼 있어 건드리지 않는다. */
 	void RefreshNpcInteraction(const FStateTreeExecutionContext& Context, FWxStateTreeTask_EnableNpcInteractionInstanceData& Instance)
 	{
 		AActor* Owner = Cast<AActor>(Context.GetOwner());
 
-		// 기록은 지정과 같은 인덱스로 짝을 이룬다.
 		Instance.AppliedTargets.SetNum(Instance.Targets.Num());
 
 		for (int32 Index = 0; Index < Instance.Targets.Num(); ++Index)
@@ -59,13 +54,12 @@ namespace
 	}
 
 #if WITH_EDITOR
-	/** 대화 행의 표시명. 미지정이면 unset. */
 	FText GetRowText(const FDataTableRowHandle& Row)
 	{
 		return Row.RowName.IsNone() ? INVTEXT("unset") : FText::FromName(Row.RowName);
 	}
 
-	/** 로케이터의 표시명. 에디터에서 해석되면 액터 라벨(아웃라이너와 동일), 미해석이면 경로 끝 오브젝트 이름, 빈 로케이터는 unset. */
+	/** 에디터에서 해석되면 액터 라벨(아웃라이너와 동일), 미해석이면 경로 끝 오브젝트 이름, 빈 로케이터는 unset. */
 	FString GetTargetDisplayName(const FUniversalObjectLocator& Locator)
 	{
 		if (Locator.IsEmpty())
@@ -91,7 +85,6 @@ namespace
 		return TEXT("unresolved");
 	}
 
-	/** 지정 목록의 표시 텍스트. 라벨 3개까지 나열하고 초과분은 +N 로 줄인다. 빈 배열은 none. */
 	FText GetTargetsText(const TArray<FUniversalObjectLocator>& Targets)
 	{
 		if (Targets.IsEmpty())
@@ -151,7 +144,7 @@ EStateTreeRunStatus FWxStateTreeTask_WaitDialogueCompleted::Tick(FStateTreeExecu
 		return EStateTreeRunStatus::Running;
 	}
 
-	// 지정 대사가 화면에 있으면 목격을 기록한다. 대화 중이 아닐 때의 빈 핸들이 미지정 인자와 같아 보이므로 활성 대화만 맞춰 본다.
+	// 대화 중이 아닐 때의 빈 핸들이 미지정 인자와 같아 보이므로 활성 대화만 맞춰 본다.
 	if (Session->HasActiveDialogue())
 	{
 		if (Session->GetCurrentRowHandle() == Instance.DialogueRow)
@@ -159,7 +152,7 @@ EStateTreeRunStatus FWxStateTreeTask_WaitDialogueCompleted::Tick(FStateTreeExecu
 			Instance.bObservedDialogue = true;
 		}
 	}
-	// 목격한 대화가 닫히면 완주다. 지정 행 다음 대사로 넘어간 것만으로는 아직 아니다 — 대화창이 닫힌 뒤 단계가 넘어가야 연출이 끊기지 않는다.
+	// 지정 행 다음 대사로 넘어간 것만으로는 아직 완주가 아니다 — 대화창이 닫힌 뒤 단계가 넘어가야 연출이 끊기지 않는다.
 	else if (Instance.bObservedDialogue)
 	{
 		return EStateTreeRunStatus::Succeeded;
@@ -243,7 +236,7 @@ FWxStateTreeTask_EnableNpcInteraction::FWxStateTreeTask_EnableNpcInteraction()
 	bShouldStateChangeOnReselect = false;
 
 #if WITH_EDITORONLY_DATA
-	// 부수효과일 뿐 이 상태의 완료를 내지 않는다. 완료를 내지 않는 태스크가 판정에 끼면 대기 태스크와 같은 상태가 영영 완료되지 않는다.
+	// 완료를 내지 않는 태스크가 판정에 끼면 대기 태스크와 같은 상태가 영영 완료되지 않는다.
 	bConsideredForCompletion = false;
 #endif
 }

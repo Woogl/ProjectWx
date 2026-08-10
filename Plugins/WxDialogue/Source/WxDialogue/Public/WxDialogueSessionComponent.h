@@ -20,7 +20,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWxOnDialogueLineChanged, const FTe
 /**
  * 플레이어의 대화 세션 컴포넌트. Experience 주입으로 PlayerController 에 붙는다 — 컨트롤러 컴포넌트라는 사실이 곧 주입 대상 선언이다.
  *
- * 서버의 상호작용 응답(예: AWxNpc)이 StartDialogue 로, 퀘스트 ST 처럼 액터가 아닌 쪽은 StartDialogueRow 로 진입하면 소유 클라로 넘겨 세션을 연다.
+ * 서버의 상호작용 응답(대상의 UWxDialogueComponent)이 StartDialogue 로, 퀘스트 ST 처럼 액터가 아닌 쪽은 StartDialogueRow 로 진입하면 소유 클라로 넘겨 세션을 연다.
  * 대화 대상은 비소유 액터라 Client RPC 를 쏠 수 없으므로, 클라 UI 로 가는 전달은 PC 측인 본 컴포넌트가 소유한다.
  * 그 RPC 때문에 복제 컴포넌트여야 한다 — 주입으로 만들어지는 만큼, 클라에 실체가 서 있어야 서버가 쏜 RPC 가 도착할 자리가 생긴다.
  * 세션(현재 노드·라인)은 표시 전용 로컬 상태라 소유 클라가 진행을 소유하며 서버 검증은 없다. 대화가 게임 상태를 바꾸게 되면 그때 서버측으로 옮긴다.
@@ -121,7 +121,6 @@ private:
 	 */
 	const FWxDialogueTableRow* FindCurrentRow() const;
 
-	/** 현재 대사를 OnLineChanged 로 발행한다. */
 	void PublishCurrentLine();
 
 	/** 세션을 비우고 종료를 발행한다. */
@@ -139,7 +138,6 @@ private:
 	 */
 	void ApplyCurrentPose();
 
-	/** 포즈 스트리밍 완료 콜백. */
 	void HandlePoseLoaded();
 
 	/** 스트리밍을 마친 포즈를 요청 당시의 대상에 얹는다. */
@@ -151,7 +149,7 @@ private:
 	/** 세션 동안 State.Dialogue 를 발행해 둔 폰 ASC. 종료 시 같은 ASC 에서 되돌리기 위해 기억한다(도중 폰 교체 대비). */
 	TWeakObjectPtr<UAbilitySystemComponent> TaggedAbilitySystem;
 
-	/** 진행 중인 대화의 대상 액터. 관찰자(GetCurrentDialogueTarget)에게 노출되며 세션 중에만 유효하다. 대상 없는 대사(나레이션)에선 비어 있다. */
+	/** 진행 중인 대화의 대상 액터. 세션 중에만 유효하다. */
 	TWeakObjectPtr<AActor> CurrentTarget;
 
 	/** 진행 중인 대화를 연 시작 행. 세션 동안 테이블 객체를 붙잡는 강참조이자 진행 중 노드를 찾을 테이블의 출처다. */

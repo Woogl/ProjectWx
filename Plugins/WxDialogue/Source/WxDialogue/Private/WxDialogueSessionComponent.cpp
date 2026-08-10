@@ -99,7 +99,6 @@ AActor* UWxDialogueSessionComponent::GetCurrentDialogueTarget() const
 
 FDataTableRowHandle UWxDialogueSessionComponent::GetCurrentRowHandle() const
 {
-	// 테이블은 세션이 붙잡고 있는 그것이고, 행 이름만 진행에 따라 갈아끼운다.
 	FDataTableRowHandle Handle;
 	Handle.DataTable = CurrentStartRow.DataTable;
 	Handle.RowName = CurrentRowName;
@@ -137,7 +136,7 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FData
 		return;
 	}
 
-	// 관찰자에게 노출할 대화 대상. 세션이 실제로 열린 뒤에만 기억한다. 대상 없는 대사(나레이션)면 그대로 비어 있다.
+	// 세션이 실제로 열린 뒤에만 기억한다.
 	CurrentTarget = Target;
 
 	// 대화 중 상태를 폰 ASC 에 발행한다. 상호작용 어빌리티가 이 태그로 차단되고, 스캐너 표시 게이트(프롬프트·하이라이트)와 대화 창이 함께 이 태그를 따른다.
