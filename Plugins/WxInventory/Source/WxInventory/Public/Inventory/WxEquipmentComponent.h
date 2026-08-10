@@ -14,22 +14,20 @@ class USkeletalMesh;
 class UWxItemDefinition;
 
 /**
- * 장착 외형 변경 알림. (적용할 무기 메시, 부착 소켓).
- * 메시가 nullptr 이면 외형 유지(베이스), 소켓이 NAME_None 이면 재부착을 생략한다 — 실제 반영 정책은 바인딩한 게임 측이 결정한다.
+ * 메시가 nullptr 이면 외형 유지(베이스), 소켓이 NAME_None 이면 재부착을 생략한다.
+ * 실제 반영 정책은 바인딩한 게임 측이 결정한다.
  */
 DECLARE_MULTICAST_DELEGATE_TwoParams(FWxOnEquipVisualChanged, USkeletalMesh* /*Mesh*/, FName /*Socket*/);
 
 /**
- * 장비 컴포넌트.
  * 현재 장착된 ItemDef 의 보관/복제와 EquipEffect GE 라이프사이클을 캡슐화한다.
  *
  * 무기 외형 반영(메시 스왑/소켓 재부착)은 본 컴포넌트가 직접 수행하지 않는다.
  * 무기 액터·캐릭터의 ChildActorComponent 는 게임 모듈 소유라 인벤토리 도메인에서 접근할 수 없으므로, Equippable 프래그먼트에서 뽑은 메시/소켓을 OnEquipVisualChanged 로 방송하고 게임 측이 반영한다.
  *
- * ── 미구현: 배선만 있고 트리거가 없다 ──
- * EquipItem 의 유일한 호출부는 UWxInventoryManagerComponent::EquipItemByDef 이고, 그 함수를 부르는 곳이 저장소 전체에 없다(BlueprintCallable 도 아니라 BP 진입도 불가).
- * 따라서 현재 EquippedItemDef 는 항상 null 이며 OnEquipVisualChanged 방송과 EquipEffects 적용은 한 번도 일어나지 않는다 — 구독 측(캐릭터)이 붙어 있어도 마찬가지다.
- * 장비를 실제로 쓰려면 트리거(UI 슬롯 → 어빌리티/서버 RPC → EquipItemByDef)를 붙여 경로를 닫아야 한다.
+ * 미구현: EquipItem 의 유일한 호출부인 UWxInventoryManagerComponent::EquipItemByDef 를 부르는 곳이 없어(BlueprintCallable 도 아니라 BP 진입도 불가) EquippedItemDef 는 항상 null 이다.
+ * 따라서 구독 측(캐릭터)이 붙어 있어도 OnEquipVisualChanged 방송과 EquipEffects 적용은 일어나지 않는다.
+ * 실제로 쓰려면 트리거(UI 슬롯 → 어빌리티/서버 RPC → EquipItemByDef)를 붙여 경로를 닫아야 한다.
  * 그때 함께 볼 것: 늦게 relevant 해진 클라는 초기 복제 RepNotify 가 구독보다 앞서 방송을 유실하는데, 현재 상태를 되물을 pull API 가 없다.
  */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))
@@ -46,21 +44,13 @@ public:
 	 */
 	void EquipItem(const UWxItemDefinition* ItemDef);
 
-	/**
-	 * 장착 외형 변경 방송.
-	 * 게임 측(캐릭터)이 바인딩해 무기 메시/소켓을 반영한다.
-	 * 서버 EquipItem·클라 OnRep 양쪽에서 fire 된다.
-	 */
+	/** 서버 EquipItem·클라 OnRep 양쪽에서 fire 된다. */
 	FWxOnEquipVisualChanged OnEquipVisualChanged;
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	/**
-	 * 현재 장착 중인 아이템.
-	 * 변경 시 OnEquipVisualChanged 로 외형 갱신이 방송된다.
-	 */
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_EquippedItemDef, Category = "Wx|Equipment")
 	TObjectPtr<const UWxItemDefinition> EquippedItemDef;
 
@@ -68,16 +58,11 @@ private:
 	UFUNCTION()
 	void OnRep_EquippedItemDef();
 
-	/**
-	 * EquippedItemDef 의 Equippable 프래그먼트에서 메시/소켓을 뽑아 OnEquipVisualChanged 로 방송.
-	 * 서버/클라이언트 공통.
-	 */
+	/** 서버/클라이언트 공통. */
 	void BroadcastEquipVisual();
 
-	/** 권한: 새 장비의 EquipEffects 를 소유자 ASC 에 적용하고 핸들을 보관. */
 	void ApplyEquipEffects(const UWxItemDefinition* SourceDef, const TArray<TSubclassOf<UGameplayEffect>>& Effects);
 
-	/** 권한: 현재 보관 중인 모든 EquipEffect 핸들을 제거하고 비운다. */
 	void RemoveActiveEquipEffects();
 
 	UAbilitySystemComponent* ResolveOwnerASC() const;

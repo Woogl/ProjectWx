@@ -33,16 +33,12 @@ void UWxRewardLibrary::GrantReward(AActor* SourceActor, const FDataTableRowHandl
 	TArray<FWxItemRewardEntry> ValidRewards;
 	Row->GetValidRewards(ValidRewards);
 
-	// Pickup Fragment 가 없는 보상은 월드에 띄울 외형이 없으므로 이 인벤토리에 즉시 지급한다.
 	UWxInventoryManagerComponent* DirectGrantInventory = UWxInventoryManagerComponent::FindInventory(DirectGrantTarget);
 
 	UWorld* World = SourceActor->GetWorld();
 
-	// 유효한 보상 항목마다 처리: Pickup Fragment 가 있으면 픽업을 스폰해 LaunchVelocity 방향·크기로 발사하고, 없으면 인벤토리에 직접 지급한다.
 	for (const FWxItemRewardEntry& Reward : ValidRewards)
 	{
-		// 보상 아이템 정의는 SoftObjectPtr 로 지연 로드된다.
-		// 실제 지급 시점인 지금 동기 로드한다.
 		UWxItemDefinition* ItemDef = Reward.Item.LoadSynchronous();
 		if (!ItemDef)
 		{
@@ -63,8 +59,6 @@ void UWxRewardLibrary::GrantReward(AActor* SourceActor, const FDataTableRowHandl
 			continue;
 		}
 
-		// 픽업 액터 클래스는 SoftClassPtr 로 지연 로드된다.
-		// 실제 스폰 시점인 지금 동기 로드한다.
 		UClass* ItemActorClass = PickupFragment->ItemActorClass.LoadSynchronous();
 		if (!ItemActorClass)
 		{
@@ -72,7 +66,7 @@ void UWxRewardLibrary::GrantReward(AActor* SourceActor, const FDataTableRowHandl
 			continue;
 		}
 
-		// Deferred 스폰: BeginPlay 전에 ItemDef 를 주입해야 픽업의 인터랙션 텍스트가 BeginPlay 단독으로 갱신된다.
+		// Deferred 스폰: ItemDef/Quantity 가 COND_InitialOnly 라 FinishSpawning 전에 넣어야 클라에 전달된다.
 		AWxItemPickup* SpawnedPickup = World->SpawnActorDeferred<AWxItemPickup>(ItemActorClass, SpawnTransform);
 		if (!SpawnedPickup)
 		{
@@ -82,7 +76,6 @@ void UWxRewardLibrary::GrantReward(AActor* SourceActor, const FDataTableRowHandl
 		SpawnedPickup->SetItemDef(ItemDef, Reward.Quantity);
 		SpawnedPickup->FinishSpawning(SpawnTransform);
 
-		// 트랜스폼과 무관하게 LaunchVelocity 가 가리키는 방향·크기로 발사한다(LaunchInDirection 이 내부에서 정규화 후 곱하므로 결과 선속도 = LaunchVelocity).
 		SpawnedPickup->LaunchInDirection(LaunchVelocity, LaunchVelocity.Size());
 	}
 }

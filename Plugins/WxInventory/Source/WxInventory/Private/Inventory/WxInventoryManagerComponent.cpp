@@ -68,11 +68,8 @@ void FWxInventoryList::PreReplicatedRemove(const TArrayView<int32> RemovedIndice
 		const int32 Delta = -Entry.LastObservedCount;
 
 		// PreReplicatedRemove 는 엔트리가 배열에서 실제 제거되기 "전"에 호출된다.
-		// NotifyStackChangedFromList 의 총량 재계산(GetTotalItemCountByDefinition)은 StackCount 합산이므로,
-		// 재계산 전에 이 엔트리의 StackCount 를 0 으로 내려 제거분을 합산에서 제외한다.
-		// 그래야 서버(제거 후 재계산) 경로와 동일한 사후 총량이 발행된다. 동일 배치에서 같은 Def 가
-		// 여러 슬롯 제거돼도, 이미 0 으로 내린 엔트리는 이후 재계산에서 빠져 누적이 정확히 반영된다.
-		// (엔트리는 이 콜백 직후 배열에서 실제 제거되므로 StackCount mutate 는 무해하다.)
+		// 총량 재계산에서 제거분이 빠지도록 StackCount 를 먼저 0 으로 내려야 서버(제거 후 재계산) 경로와 같은 사후 총량이 발행된다.
+		// 엔트리는 이 콜백 직후 실제 제거되므로 mutate 는 무해하다.
 		Entry.StackCount = 0;
 		Entry.LastObservedCount = 0;
 
@@ -232,7 +229,6 @@ void UWxInventoryManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// 주입으로 붙든 복제로 도착하든 등록이 끝나면 여기로 온다. 기다리던 관찰자에게 이제 쓸 수 있음을 알린다.
 	OnAnyInventoryReady.Broadcast(this);
 }
 
@@ -290,7 +286,6 @@ UWxItemInstance* UWxInventoryManagerComponent::AddItemDefinition(const UWxItemDe
 	int32 Remaining = StackCount;
 	UWxItemInstance* FirstAffected = nullptr;
 
-	// 1) 기존 엔트리에 머지 (MaxStack > 1 인 스택 가능 아이템에만 해당).
 	if (MaxStack > 1)
 	{
 		const TArray<FWxInventoryEntry>& Entries = InventoryList.GetEntries();
@@ -320,7 +315,6 @@ UWxItemInstance* UWxInventoryManagerComponent::AddItemDefinition(const UWxItemDe
 		}
 	}
 
-	// 2) 잔여분은 새 엔트리로 분할 생성. MaxStack 단위로 chunk 화.
 	while (Remaining > 0)
 	{
 		const int32 ChunkCount = FMath::Min(MaxStack, Remaining);
@@ -503,7 +497,6 @@ void UWxInventoryManagerComponent::RequestUseConsumable()
 		return;
 	}
 
-	// 입력이 타는 것과 같은 발동이다. 무엇을 어떻게 쓰는지는 전부 어빌리티 쪽 지식이라 인벤토리는 지목만 한다.
 	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(WxGameplayTags::Ability_UseItem));
 }
 

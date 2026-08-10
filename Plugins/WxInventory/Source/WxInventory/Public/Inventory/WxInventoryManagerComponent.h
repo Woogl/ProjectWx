@@ -14,12 +14,7 @@ class UWxItemInstance;
 class UWxInventoryManagerComponent;
 struct FWxInventoryList;
 
-/**
- * 인벤토리 한 슬롯의 엔트리.
- *
- * AddItemDefinition 은 ItemDef 의 Stackable Fragment(MaxStack) 를 기준으로 기존 엔트리에 머지하고, 한도를 넘는 잔여분은 새 엔트리로 분할한다.
- * Stackable Fragment 가 없으면 항상 1슬롯 = 1개로 강제된다.
- */
+/** 인벤토리 한 슬롯의 엔트리. */
 USTRUCT(BlueprintType)
 struct FWxInventoryEntry : public FFastArraySerializerItem
 {
@@ -39,15 +34,14 @@ private:
 	UPROPERTY()
 	int32 StackCount;
 
-	/** 클라이언트 델타 계산용. 레플리케이션 대상 아님. */
+	/** 클라이언트 델타 계산용. */
 	UPROPERTY(NotReplicated)
 	int32 LastObservedCount;
 };
 
 /**
  * FWxInventoryList 의 변경 메서드가 슬롯별 변경 결과를 호출자에게 돌려주는 값 객체.
- * 함수 결과 전용이며 복제 대상이 아니다(USTRUCT 아님).
- * GC 추적이 필요 없는 transient 포인터를 담는다.
+ * 함수 결과 전용이라 USTRUCT 이 아니며, 담는 포인터도 GC 추적이 필요 없는 transient 다.
  */
 struct FWxInventoryChangeResult
 {
@@ -56,9 +50,6 @@ struct FWxInventoryChangeResult
 	int32 Delta = 0;
 };
 
-/**
- * 인벤토리 엔트리 컬렉션. FastArray 로 효율 레플리케이션.
- */
 USTRUCT(BlueprintType)
 struct FWxInventoryList : public FFastArraySerializer
 {
@@ -137,10 +128,6 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnInventoryReady, UWxInventoryManagerComp
 /**
  * PlayerController 에 부착되어 아이템 인스턴스의 생성·소멸·레플리케이션을 관장하는 컴포넌트.
  *
- * AddItemDefinition 은 ItemDef 의 Stackable Fragment 한도(MaxStack) 까지 기존 엔트리에 머지하고, 초과분은 새 엔트리들로 분할한다.
- * Stackable Fragment 가 없는 ItemDef 는 항상 1슬롯 = 1개로 추가된다.
- * 정의 합계는 GetTotalItemCountByDefinition 로 조회하고, 차감은 ConsumeItemsByDefinition 로 수행한다.
- *
  * 권한(서버)에서만 Add/Consume 이 호출되어야 하며, FastArray 로 클라이언트에 동기화된다.
  *
  * 부착은 코드가 아니라 GameMode 가 고른 Experience 에셋의 주입 설정으로 한다(PlayerController 는 본 클래스를 모른다).
@@ -185,11 +172,13 @@ public:
 	/**
 	 * 권한: 보상 항목 목록을 순서대로 지급한다(기본 지급 아이템 등).
 	 * 빈(아이템 미지정) 항목은 무시되며, Item 은 지급 시점에 동기 로드된다.
-	 * 무엇을 지급할지는 호출자가 정한다 — 본 컴포넌트는 목록을 소유하지 않는다.
 	 */
 	void GrantItems(const TArray<FWxItemRewardEntry>& Items);
 
-	/** 권한: 특정 인스턴스 슬롯을 통째로 제거한다. 미구현: 현재 호출부가 0건이다(소비는 ConsumeItemsByDefinition 경로가 담당한다). */
+	/**
+	 * 권한: 특정 인스턴스 슬롯을 통째로 제거한다.
+	 * 미구현: 현재 호출부가 0건이다(소비는 ConsumeItemsByDefinition 경로가 담당한다).
+	 */
 	void RemoveItemInstance(UWxItemInstance* ItemInstance);
 
 	/**
@@ -200,10 +189,8 @@ public:
 	 */
 	bool ConsumeItemsByDefinition(const UWxItemDefinition* ItemDef, int32 NumToConsume);
 
-	/** ItemDef 의 첫 번째 인스턴스 반환. 없으면 nullptr. */
 	UWxItemInstance* FindFirstItemStackByDefinition(const UWxItemDefinition* ItemDef) const;
 
-	/** ItemDef 의 모든 엔트리 StackCount 합계. */
 	int32 GetTotalItemCountByDefinition(const UWxItemDefinition* ItemDef) const;
 
 	/** 특정 인스턴스가 속한 슬롯의 현재 StackCount. 인스턴스가 엔트리에 없으면 0. */
@@ -212,7 +199,6 @@ public:
 	TArray<UWxItemInstance*> GetAllItems() const;
 
 	/**
-	 * 소비 아이템 사용을 요청한다.
 	 * 입력이 아닌 경로(UI 클릭 등)의 진입점으로, 소유 폰의 UseItem 어빌리티를 AssetTag 로 발동한다 — 입력이 타는 것과 같은 경로다.
 	 * 사용 가능 여부 판정과 차감은 어빌리티가 수행하므로 여기서는 검사하지 않는다.
 	 *
@@ -261,19 +247,12 @@ public:
 	//~ 아래 3종은 List 복제 콜백/Instance OnRep/내부 변경 경로 전용 통지 진입점이다(외부 소비자 호출 금지, 비-BlueprintCallable).
 	//~ 서버 변경 경로와 클라이언트 복제 콜백 경로가 모두 이 진입점으로 수렴해 델리게이트를 발행한다.
 
-	/**
-	 * ItemDef 합계 변경 통지.
-	 * NewCount 는 내부에서 합계를 재계산한다.
-	 */
+	/** NewCount 는 내부에서 합계를 재계산한다. */
 	void NotifyStackChangedFromList(const UWxItemDefinition* ItemDef, int32 Delta);
 
-	/** 슬롯 단위 변경 통지. */
 	void NotifySlotChangedFromList(UWxItemInstance* Instance, int32 NewStackCount, int32 Delta);
 
-	/**
-	 * 충전량 변경 통지.
-	 * 서버(사용/리필)와 클라이언트(OnRep_CurrentCharges) 공통 진입.
-	 */
+	/** 서버(사용/리필)와 클라이언트(OnRep_CurrentCharges) 공통 진입. */
 	void NotifyChargeChangedFromSource(UWxItemInstance* Instance, int32 NewCharges, int32 Delta);
 
 private:
@@ -283,10 +262,8 @@ private:
 	 */
 	UWxItemInstance* FindUsableInstance(const UWxItemDefinition* ItemDef) const;
 
-	/** 신규 인스턴스를 SubObject 시스템에 등록한다. */
 	void RegisterReplicatedInstance(UWxItemInstance* Instance);
 
-	/** 인스턴스를 SubObject 시스템에서 해제한다. */
 	void UnregisterReplicatedInstance(UWxItemInstance* Instance);
 
 	UPROPERTY(Replicated)

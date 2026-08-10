@@ -64,7 +64,6 @@ void UWxEquipmentComponent::OnRep_EquippedItemDef()
 
 void UWxEquipmentComponent::BroadcastEquipVisual()
 {
-	// EquippedItemDef 가 없으면 무기 BP 의 기본 메시 + 기본 소켓으로 복귀(장착 해제 상태).
 	USkeletalMesh* MeshAsset = nullptr;
 	FName Socket = NAME_None;
 

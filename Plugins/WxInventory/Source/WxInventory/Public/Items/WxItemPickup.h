@@ -36,13 +36,10 @@ public:
 	 */
 	void SetItemDef(UWxItemDefinition* InItemDef, int32 InQuantity = 1);
 
-	/**
-	 * 서버 권한에서 픽업을 물리 발사한다.
-	 * MeshComponent 의 물리 시뮬레이션을 활성화하고 선속도를 부여한다.
-	 */
+	/** 서버 권한에서 픽업을 물리 발사한다. */
 	void LaunchInDirection(const FVector& Direction, float Speed);
 
-	//~ Begin IWxInteractable — 상시 활성인 메시 하나가 영역, 인벤토리 지급+파괴 응답, "[F] {DisplayName}" 프롬프트.
+	//~ Begin IWxInteractable
 	virtual bool IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const override;
 	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
 	virtual FText GetInteractionPrompt(const UActorComponent* Source) const override;
@@ -52,22 +49,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 
-	/** 픽업 외관용 나이아가라 이펙트. 시스템 에셋은 BP에서 지정. */
+	/** 픽업 외관용 나이아가라 이펙트. 시스템 에셋은 Pickup Fragment 에서 적용된다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UNiagaraComponent> NiagaraComponent;
 
-	/**
-	 * 지급할 아이템 정의.
-	 * 외부 스포너가 SetItemDef 로 주입한다.
-	 */
 	UPROPERTY(ReplicatedUsing = OnRep_ItemDef)
 	TObjectPtr<UWxItemDefinition> ItemDef;
 
-	/**
-	 * 지급 수량.
-	 * 외부 스포너가 SetItemDef 로 주입한다.
-	 * 최소 1.
-	 */
+	/** 지급 수량. 최소 1. */
 	UPROPERTY(Replicated)
 	int32 Quantity = 1;
 
