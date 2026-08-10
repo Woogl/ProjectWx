@@ -61,10 +61,10 @@ public:
 	 */
 	void SaveToFile(const FString& SlotName = FString(), int32 UserIndex = 0, const FTransform* ResumeTransform = nullptr);
 
-	/** 슬롯 파일이 디스크에 존재하는지. UI 가 로드/삭제 버튼 활성화·덮어쓰기 확인에 쓴다. */
+	/** UI 가 로드/삭제 버튼 활성화·덮어쓰기 확인에 쓴다. */
 	bool DoesSaveFileExist(const FString& SlotName, int32 UserIndex) const;
 
-	/** 슬롯 파일을 디스크에서 삭제한다. 인메모리 활성 SaveGame 은 건드리지 않으므로, 활성 슬롯을 지웠다면 다음 SaveToFile 이 그 파일을 다시 만든다.
+	/** 인메모리 활성 SaveGame 은 건드리지 않으므로, 활성 슬롯을 지웠다면 다음 SaveToFile 이 그 파일을 다시 만든다.
 	* @return 삭제 성공 여부(파일 없음 등 실패 시 false). */
 	bool DeleteSaveFile(const FString& SlotName, int32 UserIndex);
 
@@ -99,7 +99,7 @@ private:
 	/** SaveGame 을 자기 슬롯에 기록한다. SaveToFile 에서 직접(월드 서브시스템 부재) 또는 RequestSaveFlush 완료 콜백으로 호출된다. */
 	void ContinueSaveToFileToDisk();
 
-	/** 디스크 기록 요청이 걸려 있는 동안 참. SaveToFile 이 세우고 비동기 기록 콜백이 내린다. */
+	/** SaveToFile 이 세우고 비동기 기록 콜백이 내린다. */
 	bool bSaveInProgress = false;
 
 	UPROPERTY()

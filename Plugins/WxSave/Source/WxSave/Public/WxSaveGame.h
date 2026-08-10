@@ -48,19 +48,19 @@ struct WXSAVE_API FWxSaveTravelData
 {
 	GENERATED_BODY()
 
-	/** 트래블 대상 맵. PIE 접두사를 제거한 긴 패키지 경로로 구성한다(예: /Game/Level/LV_Combat). null 은 구버전 파일/미기록 — 현재 맵 리로드로 폴백. */
+	/** 트래블 대상 맵. PIE 접두사를 제거한 긴 패키지 경로로 구성한다(예: /Game/Maps/LV_DevCombat). null 은 구버전 파일/미기록 — 현재 맵 리로드로 폴백. */
 	UPROPERTY()
 	FSoftObjectPath Map;
 };
 
-/** WxSave 슬롯 데이터. 슬롯 정체성 + 트래블 데이터 + 저장 시점 플레이어 스냅샷(스탯·트랜스폼) + savable 액터 상태 맵을 보관한다. */
+/** WxSave 슬롯 데이터. */
 UCLASS()
 class WXSAVE_API UWxSaveGame : public USaveGame
 {
 	GENERATED_BODY()
 
 public:
-	/** 이 SaveGame 을 SaveGameToSlot/LoadGameFromSlot 으로 식별하는 슬롯 이름. StartNewSaveFile/LoadFromFile 이 세팅한다. */
+	/** 이 SaveGame 을 AsyncSaveGameToSlot/LoadGameFromSlot 으로 식별하는 슬롯 이름. StartNewSaveFile/LoadFromFile 이 세팅한다. */
 	UPROPERTY()
 	FString SlotName;
 
@@ -71,7 +71,7 @@ public:
 	UPROPERTY()
 	FWxSaveTravelData TravelData;
 
-	/** PlayerStats 가 유효한 저장 값인지 여부. false 면 신규 세션/미저장 — 데이터테이블 기본 스탯 유지. */
+	/** false 면 신규 세션/미저장 — 데이터테이블 기본 스탯 유지. */
 	UPROPERTY()
 	bool bHasPlayerStats = false;
 

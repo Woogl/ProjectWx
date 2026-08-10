@@ -28,7 +28,6 @@ void UWxSaveWorldSubsystem::RequestSaveFlush(FOnSaveFlushComplete::FDelegate OnC
 	// Wx 엔 Mass 같은 페이즈 지연 작업이 없어 플러시가 전부 동기다(샘플은 여기서 Mass 스냅샷을 FrameEnd 로 지연).
 	UWorld* World = GetWorld();
 
-	// 맵 트래블 데이터와 플레이어 스냅샷은 명시적 저장에서만 캡처한다 — teardown 시엔 맵 전환을 일으킨 게임 코드가 다음 시작 지점의 소유자다.
 	if (World && !World->bIsTearingDown)
 	{
 		FlushMapTravelData();
@@ -47,7 +46,7 @@ bool UWxSaveWorldSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 		return false;
 	}
 
-	// 게임 월드만 저장 대상이고, 저장은 authority 전용이라 클라이언트 월드는 제외한다.
+	// 저장은 authority 전용이라 클라이언트 월드는 제외한다.
 	UWorld* World = Cast<UWorld>(Outer);
 	return World && World->IsGameWorld() && !World->IsNetMode(NM_Client);
 }
@@ -77,7 +76,7 @@ void UWxSaveWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
 
-	// 트래블 완료를 보고해 가드를 해제한다. 복원(OnWorldInitializedActors)과 구 월드 teardown 이 모두 끝난 뒤라 안전한 해제점이다.
+	// 복원(OnWorldInitializedActors)과 구 월드 teardown 이 모두 끝난 뒤라 안전한 가드 해제점이다.
 	UGameInstance* GameInstance = InWorld.GetGameInstance();
 	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
 	if (GameSubsystem && GameSubsystem->IsTravelingFromSaveFile())
@@ -99,7 +98,6 @@ IWxSavable* UWxSaveWorldSubsystem::FindSavable(AActor* Actor)
 		return ActorImplementation;
 	}
 
-	// 아니면 컴포넌트가 계약을 든다(기믹). 액터 자체는 C++ 없이 순수 BP 일 수 있다.
 	return Cast<IWxSavable>(Actor->FindComponentByInterface(UWxSavable::StaticClass()));
 }
 
@@ -114,7 +112,7 @@ void UWxSaveWorldSubsystem::FlushMapTravelData()
 		return;
 	}
 
-	// 현재 맵 경로를 캡처한다. 재개 지점은 FlushPlayerTransform 이 SaveGame 최상위에 담으므로 TravelData 는 맵만 담는다.
+	// 재개 지점은 FlushPlayerTransform 이 SaveGame 최상위에 담으므로 TravelData 는 맵만 담는다.
 	FWxSaveTravelData TravelData;
 	TravelData.Map = FSoftObjectPath(UWxSaveGameSubsystem::GetStableMapPackageName(World).ToString());
 	GameSubsystem->SetTravelData(MoveTemp(TravelData));
@@ -132,7 +130,7 @@ void UWxSaveWorldSubsystem::FlushSavableActors()
 		return;
 	}
 
-	// 현재 월드의 IWxSavable 액터를 캡처. 스트리밍-아웃 셀의 액터는 이미 LevelRemovedFromWorld 에서 기록됨.
+	// 스트리밍-아웃 셀의 액터는 이미 LevelRemovedFromWorld 에서 기록됨.
 	int32 CapturedCount = 0;
 	for (TActorIterator<AActor> It(World); It; ++It)
 	{
@@ -185,7 +183,7 @@ void UWxSaveWorldSubsystem::FlushPlayerStats()
 		return;
 	}
 
-	// 첫 플레이어 폰의 어트리뷰트를 캡처한다(스탠드얼론 싱글 전제 — FlushMapTravelData 와 동일 대상). 폰 부재 시 이전 캡처를 보존한다.
+	// 첫 플레이어 폰의 어트리뷰트를 캡처한다(스탠드얼론 싱글 전제 — FlushPlayerTransform 과 동일 대상). 폰 부재 시 이전 캡처를 보존한다.
 	const APlayerController* PC = World->GetFirstPlayerController();
 	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
 	if (!Pawn)
@@ -208,7 +206,7 @@ void UWxSaveWorldSubsystem::CapturePlayerStats(AActor* PlayerActor, TMap<FName, 
 		return;
 	}
 
-	// ASC 에 붙은 모든 AttributeSet 을 리플렉션으로 순회한다. 구체 타입(WxCombatAttributeSet)을 참조하지 않아 WxSave 가 전투 도메인에 독립적이다.
+	// 구체 타입(WxCombatAttributeSet)을 참조하지 않고 리플렉션으로 순회해 WxSave 가 전투 도메인에 독립적이다.
 	for (const UAttributeSet* Set : ASC->GetSpawnedAttributes())
 	{
 		if (!Set)
@@ -238,10 +236,9 @@ void UWxSaveWorldSubsystem::ApplyPlayerStats(AActor* PlayerActor, const TMap<FNa
 		return;
 	}
 
-	// 어트리뷰트 간 세팅 순서 의존(current 는 PreAttributeChange 에서 현재 Max 로 클램프되고, Max 변경은
-	// PostAttributeChange 에서 current 를 비율 재조정)을 이름 규칙 없이 흡수한다. 1패스로 전량 적용하면 모든 Max 가
-	// 저장 값으로 확정되고(Max 는 다른 어트리뷰트에 의해 재조정되지 않으므로), 2패스는 아직 저장 값과 다른 것(주로
-	// 잘못된 Max 로 클램프된 current)만 재적용해 이제 정확한 Max 로 저장 값에 정확히 복원한다.
+	// 어트리뷰트 간 세팅 순서 의존(current 는 PreAttributeChange 에서 현재 Max 로 클램프되고, Max 변경은 PostAttributeChange 에서 current 를 비율 재조정)을 이름 규칙 없이 흡수한다.
+	// 1패스로 전량 적용하면 모든 Max 가 저장 값으로 확정된다(Max 는 다른 어트리뷰트에 의해 재조정되지 않으므로).
+	// 2패스는 아직 저장 값과 다른 것(주로 잘못된 Max 로 클램프된 current)만 재적용해 정확한 Max 로 복원한다.
 	for (int32 Pass = 0; Pass < 2; ++Pass)
 	{
 		for (const UAttributeSet* Set : ASC->GetSpawnedAttributes())
@@ -331,7 +328,6 @@ bool UWxSaveWorldSubsystem::CaptureActor(UWxSaveGame& SaveGame, AActor* Actor)
 		}
 	}
 
-	// 복원 시 맨 FMemoryReader 의 버전 리셋(현재 빌드 값으로 초기화) 함정을 막기 위해 [FPackageFileVersion][FCustomVersionContainer] 헤더를 별도 블롭으로 기록한다.
 	Record.VersionHeader.Reset();
 	FMemoryWriter HeaderWriter(Record.VersionHeader, true);
 	FPackageFileVersion UEVersion = GPackageFileUEVersion;
@@ -434,7 +430,7 @@ void UWxSaveWorldSubsystem::HandleWorldInitializedActors(const UWorld::FActorsIn
 		return;
 	}
 
-	// 영구 레벨 + 초기 WP 셀 액터에 메모리 레코드 자동 복원. 신규 세션이면 레코드가 비어있어 noop.
+	// 신규 세션이면 레코드가 비어있어 noop.
 	int32 SavableCount = 0;
 	int32 RestoredCount = 0;
 	for (TActorIterator<AActor> It(Params.World); It; ++It)
@@ -466,7 +462,6 @@ void UWxSaveWorldSubsystem::HandleLevelAddedToWorld(ULevel* Level, UWorld* World
 		return;
 	}
 
-	// 스트리밍-인 셀(World Partition cell 포함) 액터에 메모리 레코드 자동 복원.
 	int32 RestoredCount = 0;
 	for (AActor* Actor : Level->Actors)
 	{
@@ -497,7 +492,6 @@ void UWxSaveWorldSubsystem::HandleLevelRemovedFromWorld(ULevel* Level, UWorld* W
 		return;
 	}
 
-	// 스트리밍-아웃 직전 자동 캡처: 셀 왕복으로 인한 상태 손실 방지.
 	int32 CapturedCount = 0;
 	for (AActor* Actor : Level->Actors)
 	{
@@ -528,9 +522,8 @@ void UWxSaveWorldSubsystem::HandleWorldBeginTearDown(UWorld* World)
 		return;
 	}
 
-	// 맵 이탈 시 IWxSavable 전체를 메모리에 플러시한다(디스크 기록 없음 — 같은 세션 맵 왕복 상태 유지).
 	// teardown 은 스트리밍-아웃·EndPlay 보다 앞서 발화하므로 전체 상태를 담고, 이후 개별 스트리밍-아웃 재캡처는 동일 데이터라 무해하다.
-	// 트래블 데이터/PlayerStartTag 는 스탬프하지 않는다(디스크 영속은 명시적 SaveToFile 만, 다음 시작 지점은 맵 전환을 일으킨 게임 코드 소유).
+	// 트래블 데이터/플레이어 스냅샷은 스탬프하지 않는다(디스크 영속은 명시적 SaveToFile 만, 다음 시작 지점은 맵 전환을 일으킨 게임 코드 소유).
 	UE_LOG(LogWxSave, Log, TEXT("맵 이탈 메모리 플러시: '%s'"), *World->GetMapName());
 	FlushSavableActors();
 }

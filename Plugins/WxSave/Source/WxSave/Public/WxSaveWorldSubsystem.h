@@ -42,7 +42,7 @@ public:
 	/** 플레이어 액터의 ASC 어트리뷰트 base 값을 OutStats 에 캡처한다(복제되는 것만 — 비복제 메타 제외). ASC 부재 시 noop. GAS 만 알고 구체 AttributeSet 타입엔 무관하다. */
 	static void CapturePlayerStats(AActor* PlayerActor, TMap<FName, float>& OutStats);
 
-	/** 캡처된 어트리뷰트 base 값을 플레이어 액터의 ASC 에 적용한다. Max 접두 어트리뷰트를 먼저 세팅해 PreAttributeChange 클램프·PostAttributeChange 비율 재조정과의 충돌을 막는다. */
+	/** 캡처된 어트리뷰트 base 값을 플레이어 액터의 ASC 에 적용한다. 2패스로 적용해 PreAttributeChange 클램프·PostAttributeChange 비율 재조정과의 순서 의존을 흡수한다. */
 	static void ApplyPlayerStats(AActor* PlayerActor, const TMap<FName, float>& InStats);
 
 	//~ Begin UWorldSubsystem

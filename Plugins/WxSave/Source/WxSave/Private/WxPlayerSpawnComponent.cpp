@@ -25,7 +25,7 @@ void UWxPlayerSpawnComponent::OnRegister()
 
 	PostLoginHandle = FGameModeEvents::OnGameModePostLoginEvent().AddUObject(this, &UWxPlayerSpawnComponent::HandleGameModePostLogin);
 
-	// 부착 시점은 두 갈래다: 로드 완료 후 접속한 PC 는 초기화 중 동기 부착이라 위 구독이 PostLogin 을 잡고,
+	// 부착 시점은 두 갈래다: 로드 완료 후 접속한 PC 는 초기화 중 동기 부착이라 위 구독이 PostLogin 을 잡는다.
 	// Experience 비동기 로드가 접속보다 늦으면 액션 실행(소급 주입) 시점 부착이라 오너 PC 의 PostLogin 이 이미 지나갔다.
 	// 후자는 여기서 같은 셋업을 즉시 수행한다(캐치업) — 지연 스폰의 RestartPlayer 는 로드 완료 브로드캐스트 뒤라 항상 이보다 늦다.
 	// 로그인 경과는 PlayerState 유무로 가른다(컨트롤러 초기화 중 부착이면 아직 없고, 로그인 완료 뒤 부착이면 있다).
@@ -46,7 +46,7 @@ void UWxPlayerSpawnComponent::OnUnregister()
 
 void UWxPlayerSpawnComponent::HandleGameModePostLogin(AGameModeBase* GameMode, APlayerController* NewPlayer)
 {
-	// GameModePostLoginEvent 는 static 이라 모든 PC 의 로그인이 들어온다. 오너 PC 만 처리한다.
+	// GameModePostLoginEvent 는 static 이라 모든 PC 의 로그인이 들어온다.
 	if (!NewPlayer || NewPlayer != GetController<APlayerController>())
 	{
 		return;

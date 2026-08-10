@@ -18,7 +18,7 @@ class WXSAVE_API UWxSaveLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
-	/** 활성 SaveGame 의 슬롯 이름을 반환한다. 활성 SaveGame 이 없으면 빈 문자열. */
+	/** 활성 SaveGame 이 없으면 빈 문자열. */
 	UFUNCTION(BlueprintPure, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
 	static FString GetCurrentSaveSlotName(const UObject* WorldContextObject);
 
@@ -41,7 +41,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
 	static void TravelFromSaveFile(const UObject* WorldContextObject);
 
-	/** 슬롯 파일이 디스크에 존재하는지 반환한다. 로드/삭제 버튼 활성화·덮어쓰기 확인에 쓴다. */
+	/** 로드/삭제 버튼 활성화·덮어쓰기 확인에 쓴다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
 	static bool DoesSaveFileExist(const UObject* WorldContextObject, const FString& SlotName, int32 UserIndex);
 
