@@ -9,9 +9,7 @@
 
 UWxAbility_UseItem::UWxAbility_UseItem()
 {
-	// NetExecutionPolicy 는 베이스의 LocalPredicted 를 그대로 쓴다 — 플레이어 입력이 발동하는 어빌리티라
-	// 몽타주와 블로킹 태그가 입력 프레임에 즉시 걸려야 한다.
-	// 인벤토리 차감은 예측 대상이 아니므로 정책이 아니라 HandleConsumeEvent 의 권위 게이트로 막는다.
+	// NetExecutionPolicy 는 베이스의 LocalPredicted 를 그대로 쓴다 — 몽타주와 블로킹 태그가 입력 프레임에 즉시 걸려야 한다.
 
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_UseItem);
@@ -21,7 +19,6 @@ UWxAbility_UseItem::UWxAbility_UseItem()
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 
 	// 마시는 중에는 다른 어빌리티로 캔슬되지 않는다.
-	// 후딜 캔슬은 몽타주의 StartRecovery 노티파이로 허용한다.
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 
 	// 사용 시작 시 진행 중이던 액션을 끊는다(마시면서 스프린트 속도로 이동하는 것 등을 방지).
@@ -38,8 +35,6 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 		return;
 	}
 
-	// 보유·충전이 없으면 마시기 모션을 내지 않는다(빈 병 방지).
-	// 실제 사용 검증/차감은 노티파이 시점의 UseItemByDef 가 재수행.
 	APawn* Avatar = Cast<APawn>(ActorInfo->AvatarActor.Get());
 	UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(Avatar);
 	if (!Inventory || !Inventory->CanUseItemByDef(ConsumableDef))
@@ -48,7 +43,8 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 		return;
 	}
 
-	// 커밋은 모든 거부 조건을 통과한 뒤에 한다. GAS 는 취소로 커밋된 쿨다운·코스트를 되돌리지 않는다.
+	// 커밋은 모든 거부 조건을 통과한 뒤에 한다.
+	// GAS 는 취소로 커밋된 쿨다운·코스트를 되돌리지 않는다.
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
@@ -69,7 +65,6 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_UseItem::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
 
-	// 마시는 순간 노티파이(Event.UseItem)에 맞춰 실제 사용 처리.
 	// 1회만 수신한다.
 	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
 		this, WxGameplayTags::Event_UseItem, nullptr, true);
@@ -89,7 +84,6 @@ void UWxAbility_UseItem::HandleConsumeEvent(FGameplayEventData Payload)
 		return;
 	}
 
-	// UseItemByDef 가 충전 1 감소 + 회복 GE 적용을 원자적으로 수행한다.
 	APawn* Avatar = Cast<APawn>(GetAvatarActorFromActorInfo());
 	if (UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(Avatar))
 	{

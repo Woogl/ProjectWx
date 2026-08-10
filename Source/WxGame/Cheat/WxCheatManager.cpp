@@ -22,7 +22,7 @@ void UWxCheatManager::WxKillPlayer()
 	}
 
 	// HP 를 직접 0 으로 쓰면 클램프만 되고 사망이 발동하지 않는다 — 사망 처리는 IncomingDamage 경로에서만 State.Dead 를 붙인다.
-	// 그래서 현재 HP 를 그대로 대미지로 넣는 즉사 GE 를 태워 사망 어빌리티·사망 화면까지 실제 경로를 그대로 밟게 한다.
+	// 그래서 현재 HP 를 그대로 대미지로 넣는 즉사 GE 를 태운다.
 	// MakeEffectContext 가 자기 자신을 Instigator 로 실어 주므로 AI 보고까지 유효한 가해자를 갖는다.
 	const FGameplayEffectSpecHandle SpecHandle = AbilitySystem->MakeOutgoingSpec(UWxEffect_Kill::StaticClass(), 1.f, AbilitySystem->MakeEffectContext());
 	if (SpecHandle.IsValid())
@@ -47,9 +47,7 @@ void UWxCheatManager::WxDamagePlayer(float Amount)
 		return;
 	}
 
-	// 표준 대미지 GE 를 SetByCaller.RawDamage 모드로 태운다. 이 모드는 ATK·DEF·계수·치명타를 우회해
-	// 입력한 수치를 그대로 최종 대미지로 쓰므로, 치트가 요구한 만큼이 스탯·난수와 무관하게 들어간다.
-	// 즉사 치트와 달리 ExecCalc 를 그대로 타므로 무적·가드·퍼펙트 가드 판정도 함께 검증된다.
+	// SetByCaller.RawDamage 모드는 ATK·DEF·계수·치명타를 우회해 입력한 수치를 그대로 최종 대미지로 쓴다.
 	const FGameplayEffectSpecHandle SpecHandle = AbilitySystem->MakeOutgoingSpec(UWxEffect_Damage::StaticClass(), 1.f, AbilitySystem->MakeEffectContext());
 	if (SpecHandle.IsValid())
 	{
@@ -74,7 +72,6 @@ void UWxCheatManager::WxKillEnemies(float RadiusMeters)
 		return;
 	}
 
-	// 콘솔에서 미터로 입력받아 언리얼 단위로 환산한다.
 	const float RadiusSquared = FMath::Square(RadiusMeters * 100.f);
 	const FVector Origin = Pawn->GetActorLocation();
 	int32 KillCount = 0;
@@ -111,6 +108,6 @@ void UWxCheatManager::WxKillEnemies(float RadiusMeters)
 		}
 	}
 
-	// 화면 밖에서 벌어지는 일이라 결과가 보이지 않는다. 대상이 없었던 것과 치트가 안 먹은 것을 구분할 수 있게 남긴다.
+	// 대상이 없었던 것과 치트가 안 먹은 것을 구분할 수 있게 남긴다.
 	UE_LOG(LogWxGame, Log, TEXT("WxKillEnemies: 반경 %.0fm 안에서 %d 개 대상을 처치했다."), RadiusMeters, KillCount);
 }

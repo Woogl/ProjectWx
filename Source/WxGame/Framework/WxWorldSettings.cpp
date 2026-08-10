@@ -12,7 +12,7 @@ FPrimaryAssetId AWxWorldSettings::GetDefaultGameplayExperience() const
 		return FPrimaryAssetId();
 	}
 
-	// 스캔된 에셋만 ID 로 해석된다 — 스캔 폴더 밖의 에셋을 지정한 실수를 조기에 드러낸다.
+	// 스캔된 에셋만 ID 로 해석된다.
 	const FPrimaryAssetId Result = UAssetManager::Get().GetPrimaryAssetIdForPath(DefaultGameplayExperience.ToSoftObjectPath());
 	if (!Result.IsValid())
 	{

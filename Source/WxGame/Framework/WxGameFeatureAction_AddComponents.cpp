@@ -132,7 +132,6 @@ void UWxGameFeatureAction_AddComponents::AddToWorld(const FWorldContext& WorldCo
 		return;
 	}
 
-	// 넷모드 분기 없이 전 엔트리를 요청한다. 사이드 제한은 매니저의 authority 규칙과 컴포넌트 자기 가드가 담당한다.
 	for (const FWxGameFeatureComponentEntry& Entry : ComponentList)
 	{
 		if (Entry.ComponentClass.IsNull())

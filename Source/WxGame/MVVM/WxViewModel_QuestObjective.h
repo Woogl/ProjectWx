@@ -20,7 +20,6 @@ class WXGAME_API UWxViewModel_QuestObjective : public UWxViewModel
 public:
 	void SetObjectiveText(const FText& InObjectiveText);
 
-	/** 표시할 목표 문구. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Quest")
 	FText ObjectiveText;
 };

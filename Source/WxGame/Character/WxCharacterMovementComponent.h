@@ -9,7 +9,6 @@
 /**
  * 플레이어용 CharacterMovementComponent.
  * 상승·하강에 서로 다른 중력 스케일을 적용해(비대칭 낙하) 액션성 있는 점프 감각을 낸다.
- * 정점에서 덜 머물고 더 빠르게 떨어진다.
  */
 UCLASS()
 class WXGAME_API UWxCharacterMovementComponent : public UCharacterMovementComponent

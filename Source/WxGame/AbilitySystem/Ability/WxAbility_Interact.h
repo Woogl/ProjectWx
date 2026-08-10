@@ -15,12 +15,10 @@ class UPrimitiveComponent;
  * 이 어빌리티는 "선택된 대상에 대한 서버 권위 실행"만 책임진다.
  *
  * 실행은 Event.Interact GameplayEvent 로 발동한다(ServerOnly).
- * 입력을 받은 클라의 스캐너 컴포넌트가 선택 컴포넌트를 실어 ServerInteract RPC 를 보내고,
- * 서버가 그 페이로드로 Event.Interact 를 폰 ASC 에 송출해 이 어빌리티를 권위에서 활성화한다.
- * ServerOnly 라 클라 인스턴스는 없다 — 코스메틱 예측이 없고(상호작용 연출은 대상 StateTree 가 담당), 실행은 서버 권위에서만 일어난다.
+ * 입력을 받은 클라의 스캐너 컴포넌트가 선택 컴포넌트를 실어 ServerInteract RPC 를 보내고, 서버가 그 페이로드로 Event.Interact 를 폰 ASC 에 송출해 이 어빌리티를 권위에서 활성화한다.
+ * ServerOnly 라 클라 인스턴스는 없다 — 상호작용 연출은 대상 StateTree 가 담당하므로 코스메틱 예측이 필요 없다.
  *
- * 활성화 흐름(ActivateAbility): 사거리·활성 검증 후 대상 액터의 IWxInteractable::OnInteracted 를 호출하고 곧바로 종료한다(fire-and-forget).
- *  - 선택이 없으면 무동작. 사망(State.Dead)·처형 중(State.Finisher)에는 CanActivateAbility 가 활성화를 막는다.
+ * 활성·사거리·자격 검증을 통과하면 대상 액터의 IWxInteractable::OnInteracted 를 호출하고 곧바로 종료한다(fire-and-forget).
  */
 UCLASS(Abstract)
 class WXGAME_API UWxAbility_Interact : public UWxAbilityBase
@@ -41,9 +39,6 @@ protected:
 	float ScanRadius = 150.f;
 
 private:
-	/**
-	 * 선택 메시가 유효하고 활성이며 사거리 안이면 아바타를 instigator 로 소유 액터의 OnInteracted 를 호출한다.
-	 * 권위에서만 호출한다.
-	 */
+	/** 권위에서만 호출한다. */
 	void ExecuteInteract(const UPrimitiveComponent* Selected, const FGameplayAbilityActorInfo* ActorInfo);
 };

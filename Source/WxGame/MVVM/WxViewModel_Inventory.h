@@ -26,7 +26,7 @@ class UMVVMView;
  *   1) ItemDef 기준 총 보유량 집계 (GetCurrencyAmount)
  *   2) 가장 최근 스택 변경 알림 (LastChangedItemDef/Amount/Delta) — 단발성 Toast/팝업 이펙트 등 "방금 무엇이 얼마나 변했는지" 단일 채널
  *   3) 보유 중인 아이템 인스턴스 전체 목록 (AllItems) — 인벤토리 ListView 등 "전체 슬롯을 나열"하는 화면의 ItemSource 로 사용
- *   4) 카테고리 탭 표시용 필터링된 목록 (FilteredItems) — CurrentCategory 변경 또는 AllItems 갱신 시 자동 재계산
+ *   4) 카테고리 탭 표시용 필터링된 목록 (CategorizedItems) — CurrentCategory 변경 또는 AllItems 갱신 시 자동 재계산
  *   5) 가장 최근 획득 알림 (LastAcquiredItem) — Delta>0 마다 새로 생성된 Def 모드 UWxViewModel_Item(AcquiredCount=Delta) 으로 교체.
  *      HUD 토스트 등 즉시성 표시는 본 프로퍼티를 View Binding 으로 수신해 ListView ItemSource 에 그대로 넣는다.
  *

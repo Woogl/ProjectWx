@@ -29,7 +29,6 @@ public:
 
 #if WITH_EDITOR
 private:
-	/** PIE 세션들이 요청한 GameFeature 플러그인 URL 별 활성 요청 수. */
 	TMap<FString, int32> GameFeaturePluginRequestCountMap;
 #endif
 };

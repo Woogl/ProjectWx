@@ -83,7 +83,6 @@ void UWxMetaHumanVisualComponent::OnRegister()
 		return;
 	}
 
-	// LOD 동기화: 바디·페이스가 구동하고 나머지는 따라간다.
 	// 어셈블 BP는 이름과 매핑을 하드코딩하지만, 여기선 실제 생성된 이름과 각 메시의 LOD 수로 구성한다.
 	const int32 BodyLODCount = BodyMesh->GetSkeletalMeshAsset() ? BodyMesh->GetSkeletalMeshAsset()->GetLODNum() : 0;
 	const int32 FaceLODCount = FaceMesh ? FaceMesh->GetLODNum() : 0;
@@ -137,7 +136,7 @@ void UWxMetaHumanVisualComponent::OnRegister()
 
 	LODSyncComponent->RegisterComponent();
 
-	// 페이스 리그로직·넥 보정·바디 보정 구동. 대상 컴포넌트를 이름으로 찾으므로 실제 이름을 넘긴다.
+	// 페이스 리그로직·넥 보정·바디 보정 구동.
 	if (FaceComponent)
 	{
 		MetaHumanComponent = NewObject<UWxMetaHumanComponent>(Owner, MakeUniqueObjectName(Owner, UWxMetaHumanComponent::StaticClass(), TEXT("MetaHuman")), RF_Transient);
@@ -207,7 +206,7 @@ void UWxMetaHumanVisualComponent::CreateGroom(const FWxGroomSlot& Slot, const TC
 	UGroomComponent* GroomComponent = NewObject<UGroomComponent>(Owner, MakeUniqueObjectName(Owner, UGroomComponent::StaticClass(), BaseName), RF_Transient);
 	GroomComponent->CreationMethod = CreationMethod;
 	GroomComponent->SetGroomAsset(Slot.Groom, Slot.Binding);
-	// 메타휴먼 그룸의 표준 부착점. 페이스 스켈레톤의 얼굴 루트 본에 붙는다.
+	// 메타휴먼 그룸의 표준 부착점.
 	GroomComponent->AttachmentName = TEXT("FACIAL_C_FacialRoot");
 	GroomComponent->SetupAttachment(AttachTarget);
 	GroomComponent->RegisterComponent();

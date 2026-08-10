@@ -31,24 +31,21 @@ public:
 
 	virtual void Deinitialize() override;
 
-	/** 저널 변경 수신. 컴포넌트에서 현재 값을 pull 한다. */
 	UFUNCTION()
 	void HandleJournalChanged();
 
-	/** 추적 중인 퀘스트가 있는지. 위젯 표시 여부로 바인딩한다. */
+	/** 위젯 표시 여부로 바인딩한다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Quest")
 	bool bHasActiveQuest = false;
 
-	/** 퀘스트 제목. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Quest")
 	FText QuestTitle;
 
-	/** 현재 표시 중인 목표 항목 목록. ListView 가 본 프로퍼티에 바인딩한다. */
+	/** ListView 가 본 프로퍼티에 바인딩한다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Quest")
 	TArray<TObjectPtr<UWxViewModel_QuestObjective>> Objectives;
 
 private:
-	/** 목표 문구 목록으로 항목 VM 들을 재구성한다. */
 	void RebuildObjectives(const TArray<FText>& InObjectiveTexts);
 
 	TWeakObjectPtr<UWxQuestComponent> CachedQuestComponent;

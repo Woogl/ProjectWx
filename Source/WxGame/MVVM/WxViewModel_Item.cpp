@@ -135,7 +135,6 @@ void UWxViewModel_Item::HandleChargeChanged(UWxItemInstance* Instance, int32 New
 
 void UWxViewModel_Item::RefreshChargeIcon()
 {
-	// 슬롯 모드는 바인딩 인스턴스, Def 모드는 첫 인스턴스를 기준으로 한다(CurrentCharges 와 동일 기준).
 	const UWxItemInstance* Instance = TargetInstance.Get();
 	if (!Instance)
 	{
@@ -164,7 +163,6 @@ void UWxViewModel_Item::ApplyStaticDataFromDef(const UWxItemDefinition* InItemDe
 	RequestImageAsync(TEXT("Icon"), InItemDef->Icon);
 	UE_MVVM_SET_PROPERTY_VALUE(DisplayName, InItemDef->DisplayName);
 
-	// 등급/색상은 Grade Fragment 에서 가져온다. 부재 시 Common 등급/Common 기본색으로 폴백.
 	const UWxItemFragment_Grade* GradeFragment = InItemDef->FindFragmentByClass<UWxItemFragment_Grade>();
 	const EWxItemGrade ItemGrade = GradeFragment ? GradeFragment->Grade : EWxItemGrade::Common;
 	UE_MVVM_SET_PROPERTY_VALUE(Grade, ItemGrade);

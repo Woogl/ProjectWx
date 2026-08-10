@@ -27,7 +27,6 @@ public:
 	AWxNpc();
 
 protected:
-	/** 몸통 볼륨. 캐릭터와 동일하게 루트이며 충돌을 담당한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UCapsuleComponent> CapsuleComponent;
 

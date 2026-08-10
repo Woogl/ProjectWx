@@ -53,14 +53,12 @@ AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f);
 	GetCharacterMovement()->GetNavMovementProperties()->bUseAccelerationForPaths = true;
 
-	// 이동 속도·가감속 디폴트
 	GetCharacterMovement()->MaxAcceleration = 1500.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->bUseSeparateBrakingFriction = true;
 	GetCharacterMovement()->BrakingFrictionFactor = 1.f;
 
-	// 점프·낙하 디폴트
 	GetCharacterMovement()->AirControl = 0.35f;
 }
 
@@ -68,7 +66,6 @@ void AWxCharacterBase::PreInitializeComponents()
 {
 	Super::PreInitializeComponents();
 
-	// ModularGameplay 컴포넌트 수신 opt-in. 폰 대상 주입 요청(Experience 액션)의 컴포넌트가 여기에 자동 부착된다.
 	UGameFrameworkComponentManager::AddGameFrameworkComponentReceiver(this);
 }
 
@@ -130,7 +127,6 @@ bool AWxCharacterBase::CanJumpInternal_Implementation() const
 {
 	if (AbilitySystemComponent)
 	{
-		// 사망 상태에서는 점프 불가
 		if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
 		{
 			return false;
@@ -208,7 +204,7 @@ void AWxCharacterBase::InitAbilitySystem()
 
 	AbilitySystemComponent->RefreshAbilityActorInfo();
 
-	// InitializeAbilities보다 먼저 등록해야 초기 어트리뷰트 변경(SPD 등)이 콜백에 반영됨
+	// GiveAbilitySet보다 먼저 등록해야 초기 어트리뷰트 변경(SPD 등)이 콜백에 반영됨
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetSPDAttribute())
 		.AddUObject(this, &AWxCharacterBase::HandleSPDAttributeChanged);
 
@@ -279,7 +275,6 @@ void AWxCharacterBase::HandleEquipVisualChanged(USkeletalMesh* MeshAsset, FName 
 
 	Weapon->SetVisualMesh(MeshAsset);
 
-	// 소켓 변경은 WeaponActor(ChildActorComponent) 를 현재 부모 컴포넌트의 새 소켓으로 재부착한다.
 	if (WeaponActor && Socket != NAME_None)
 	{
 		if (USceneComponent* CurrentParent = WeaponActor->GetAttachParent())

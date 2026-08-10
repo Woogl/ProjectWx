@@ -40,11 +40,11 @@ public:
 	//~ End UPrimaryDataAsset
 #endif
 
-	/** 플레이어가 빙의할 폰 클래스. 폰 클래스의 유일한 출처다 — GameMode 의 DefaultPawnClass 는 쓰이지 않는다. */
+	/** 폰 클래스의 유일한 출처다 — GameMode 의 DefaultPawnClass 는 쓰이지 않는다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TSubclassOf<APawn> DefaultPawnClass;
 
-	/** 로드 완료 시 활성화할 GameFeature 플러그인 이름 목록. */
+	/** 활성화할 GameFeature 플러그인 이름 목록. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TArray<FString> GameFeaturesToEnable;
 
@@ -52,7 +52,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Wx")
 	TArray<TObjectPtr<UGameFeatureAction>> Actions;
 
-	/** 합성할 공용 액션 묶음. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TArray<TObjectPtr<UWxExperienceActionSet>> ActionSets;
 };

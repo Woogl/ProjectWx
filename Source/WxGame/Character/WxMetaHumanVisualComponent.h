@@ -26,11 +26,11 @@ class WXGAME_API UWxMetaHumanComponent : public UMetaHumanComponentUE
 	GENERATED_BODY()
 
 public:
-	/** 바디·페이스 조회에 쓸 실제 컴포넌트 이름을 지정한다. 컴포넌트 등록 전에 호출해야 한다. */
+	/** 컴포넌트 등록 전에 호출해야 한다. */
 	void SetTargetComponentNames(const FString& InBodyComponentName, const FString& InFaceComponentName);
 };
 
-/** 그룸 한 종을 구성하는 에셋 쌍. 그룸을 비워두면 해당 슬롯은 생성하지 않는다. */
+/** 그룸을 비워두면 해당 슬롯은 생성하지 않는다. */
 USTRUCT()
 struct FWxGroomSlot
 {
@@ -61,7 +61,7 @@ protected:
 	virtual void OnUnregister() override;
 	//~ End UActorComponent
 	
-	/** 페이스 스켈레탈 메시. 비워두면 페이스와 그룸을 만들지 않는다. */
+	/** 비워두면 페이스와 그룸을 만들지 않는다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Visual")
 	TObjectPtr<USkeletalMesh> FaceMesh;
 
@@ -87,15 +87,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Visual")
 	FWxGroomSlot Beard;
 
-	/** 복장 스켈레탈 메시. 포스트프로세스 ABP가 없는 메시는 바디 리더포즈로 따라가게 배선한다. */
+	/** 포스트프로세스 ABP가 없는 메시는 바디 리더포즈로 따라가게 배선한다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Visual")
 	TObjectPtr<USkeletalMesh> OutfitMesh;
 
 private:
-	/** 오너에서 부착 기준이 될 바디 메시를 찾는다. */
 	USkeletalMeshComponent* ResolveBodyMesh() const;
 
-	/** 슬롯이 채워져 있으면 페이스 자식으로 그룸 컴포넌트를 생성한다. */
 	void CreateGroom(const FWxGroomSlot& Slot, const TCHAR* BaseName, USkeletalMeshComponent* AttachTarget);
 
 	// 등록 시점에 생성한 부착물들. 재등록 가드이자 OnUnregister 정리 대상이다.

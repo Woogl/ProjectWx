@@ -145,7 +145,7 @@ void UWxExperienceManagerComponent::StartExperienceLoad()
 	LoadState = EWxExperienceLoadState::Loading;
 	UE_LOG(LogWxGame, Log, TEXT("Experience '%s' 로드 시작."), *GetNameSafe(CurrentExperience));
 
-	// Experience·ActionSet 의 넷모드별 번들을 로드한다. 번들엔 액션의 소프트 참조(주입 컴포넌트 클래스 등)가 실려 있다.
+	// 번들엔 액션의 소프트 참조(주입 컴포넌트 클래스 등)가 실려 있다.
 	TSet<FPrimaryAssetId> BundleAssetList;
 	BundleAssetList.Add(CurrentExperience->GetPrimaryAssetId());
 	for (const TObjectPtr<UWxExperienceActionSet>& ActionSet : CurrentExperience->ActionSets)
@@ -175,7 +175,7 @@ void UWxExperienceManagerComponent::StartExperienceLoad()
 	FStreamableDelegate OnAssetsLoadedDelegate = FStreamableDelegate::CreateUObject(this, &UWxExperienceManagerComponent::HandleExperienceAssetsLoaded);
 	if (!Handle.IsValid() || Handle->HasLoadCompleted())
 	{
-		// 로드할 것이 없거나 이미 끝났다. 지연 콜백 큐 규칙에 맞춰 즉시 실행한다.
+		// 지연 콜백 큐 규칙에 맞춰 즉시 실행한다.
 		FStreamableHandle::ExecuteDelegate(MoveTemp(OnAssetsLoadedDelegate));
 	}
 	else

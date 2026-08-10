@@ -159,7 +159,7 @@ UObject* UWxViewModelResolver_InteractionList::CreateInstance(const UClass* Expe
 		return nullptr;
 	}
 
-	// 스캐너가 아직 없을 수 있으므로 Outer 는 PC 로 잡는다. 연결은 VM 이 관찰로 스스로 처리한다.
+	// 스캐너가 아직 없을 수 있으므로 Outer 는 PC 로 잡는다.
 	UWxViewModel_InteractionList* ViewModel = NewObject<UWxViewModel_InteractionList>(PC);
 	ViewModel->StartObserving(PC);
 	return ViewModel;

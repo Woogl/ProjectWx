@@ -34,8 +34,7 @@ class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInte
 	GENERATED_BODY()
 
 public:
-	// 기본 생성자는 파생 클래스(에너미/보스)의 암시적 생성 경로 호환을 위해 유지하고,
-	// 실제 셋업은 ObjectInitializer 버전으로 위임한다.
+	// 기본 생성자는 파생 클래스(에너미/보스)의 암시적 생성 경로 호환을 위해 유지하고, 실제 셋업은 ObjectInitializer 버전으로 위임한다.
 	AWxCharacterBase();
 	AWxCharacterBase(const FObjectInitializer& ObjectInitializer);
 	virtual void PreInitializeComponents() override;
@@ -61,10 +60,10 @@ public:
 	bool IsAlive() const;
 	AWxWeaponBase* GetEquippedWeapon() const;
 
-	/** VM_Character 주입용 UI 표시 데이터(이름/초상화/설명). */
+	/** VM_Character 주입용 UI 표시 데이터(이름/초상화). */
 	const FWxCharacterUIData& GetCharacterUIData() const;
 
-	/** HP == 0 시 호출. 파생 클래스에서 override하여 사망 연출 추가 */
+	/** State.Dead 태그 부여 시 호출. 파생 클래스에서 override하여 사망 연출 추가 */
 	virtual void HandleDeath();
 
 	UPROPERTY(BlueprintAssignable, Category = "Wx|Character")
@@ -99,41 +98,29 @@ protected:
 	TObjectPtr<UWxMetaHumanVisualComponent> MetaHumanVisualComponent;
 
 	/**
-	 * ASC ActorInfo 설정, 어트리뷰트 콜백 등록, AbilitySet 부여를 수행.
 	 * 서버: PossessedBy에서 호출.
 	 * 클라이언트: 파생 클래스에서 OnRep을 통해 호출.
 	 */
 	virtual void InitAbilitySystem();
 
-	/**
-	 * SPD 어트리뷰트 변경 콜백.
-	 * MaxWalkSpeed = BaseWalkSpeed * NewSPD 로 실제 이동 속도에 반영.
-	 */
 	void HandleSPDAttributeChanged(const FOnAttributeChangeData& Data);
 
-	/** State.Dead 태그 변경 콜백. 태그 부여 시 각 머신에서 HandleDeath 호출 (구독은 PostInitializeComponents) */
+	/** State.Dead 태그 부여 시 각 머신에서 HandleDeath 호출 */
 	void HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
-	/** State.Ragdoll 태그 변경 콜백. 태그 부여 시 각 머신에서 래그돌 물리 전환 적용 */
+	/** State.Ragdoll 태그 부여 시 각 머신에서 래그돌 물리 전환 적용 */
 	void HandleRagdollTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
-	/** 자기 메시·캡슐·무브먼트를 래그돌 물리로 전환. State.Ragdoll 감지 시 각 머신에서 호출 */
+	/** State.Ragdoll 감지 시 각 머신에서 호출 */
 	void EnterRagdoll();
 
-	/**
-	 * 장비 컴포넌트의 외형 변경 방송 콜백.
-	 * 무기 메시 스왑 + WeaponActor 소켓 재부착을 반영한다.
-	 */
+	/** 장비 컴포넌트의 외형 변경 방송 콜백. */
 	void HandleEquipVisualChanged(USkeletalMesh* MeshAsset, FName Socket);
 
-	/**
-	 * 네임플레이트/HUD 등 UI 표시 데이터.
-	 * BP 디폴트에서 지정한다.
-	 */
+	/** 네임플레이트/HUD 등 UI 표시 데이터. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	FWxCharacterUIData UIData;
 
-	/** 캐릭터의 팀. 같은 팀끼리는 아군, 다른 팀끼리는 적군 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Team")
 	EWxTeam Team = EWxTeam::Player;
 

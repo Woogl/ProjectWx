@@ -16,8 +16,7 @@ void AWxGameMode::InitGameState()
 {
 	Super::InitGameState();
 
-	// Experience 확정은 모든 플레이어 로그인(SpawnPlayActor)보다 앞선다. 다만 적용(비동기 로드)은 로그인보다 늦을 수 있어,
-	// 폰 스폰과 시작 지급이 로드 완료(HandleExperienceLoaded)를 기다린다.
+	// Experience 확정은 모든 플레이어 로그인(SpawnPlayActor)보다 앞선다.
 	AWxGameState* WxGameState = Cast<AWxGameState>(GameState);
 	if (!WxGameState)
 	{
@@ -32,8 +31,8 @@ void AWxGameMode::InitGameState()
 
 UClass* AWxGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
 {
-	// 폰 클래스는 정의 에셋 자체의 데이터라 로드 완료(주입·GF 활성)를 기다리지 않는다 — 엔진이 로그인 중 시작 지점을 고르며
-	// (ChoosePlayerStart) 폰 CDO 크기로 점유 여부를 재는 시점이 로드보다 이르기 때문이다.
+	// 폰 클래스는 정의 에셋 자체의 데이터라 로드 완료(주입·GF 활성)를 기다리지 않는다.
+	// 엔진이 로그인 중 시작 지점을 고르며(ChoosePlayerStart) 폰 CDO 크기로 점유 여부를 재는 시점이 로드보다 이르기 때문이다.
 	const AWxGameState* WxGameState = Cast<AWxGameState>(GameState);
 	const UWxExperienceManagerComponent* ExperienceManager = WxGameState ? WxGameState->GetExperienceManagerComponent() : nullptr;
 	const UWxExperienceDefinition* Experience = ExperienceManager ? ExperienceManager->GetCurrentExperience() : nullptr;
@@ -55,8 +54,7 @@ UClass* AWxGameMode::GetDefaultPawnClassForController_Implementation(AController
 
 void AWxGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
 {
-	// 로드 완료 전에는 스폰을 미룬다 — 재개 지점·스탯 복원 등 프레임워크 컴포넌트가 붙기 전의 스폰을 막는다.
-	// 밀린 접속자는 HandleExperienceLoaded 가 일괄 스폰한다.
+	// 재개 지점·스탯 복원 등 프레임워크 컴포넌트가 붙기 전의 스폰을 막는다.
 	const AWxGameState* WxGameState = Cast<AWxGameState>(GameState);
 	if (WxGameState && !WxGameState->GetExperienceManagerComponent()->IsExperienceLoaded())
 	{
@@ -70,7 +68,7 @@ void AWxGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 
-	// 로드 완료 후의 접속자만 여기서 지급한다 — 완료 전 접속자는 HandleExperienceLoaded 가 일괄 지급하므로 이중 지급이 없다.
+	// 완료 전 접속자는 HandleExperienceLoaded 가 일괄 지급하므로 이중 지급이 없다.
 	const AWxGameState* WxGameState = Cast<AWxGameState>(GameState);
 	if (WxGameState && WxGameState->GetExperienceManagerComponent()->IsExperienceLoaded())
 	{
@@ -87,7 +85,6 @@ FPrimaryAssetId AWxGameMode::ResolveExperienceId() const
 		return FPrimaryAssetId(UWxExperienceDefinition::GetPrimaryAssetTypeStatic(), FName(*UrlExperienceName));
 	}
 
-	// 맵이 자기 기본 Experience 를 지정할 수 있다(월드 세팅).
 	if (const AWxWorldSettings* WxWorldSettings = Cast<AWxWorldSettings>(GetWorldSettings()))
 	{
 		const FPrimaryAssetId WorldSettingsExperienceId = WxWorldSettings->GetDefaultGameplayExperience();
@@ -117,7 +114,6 @@ void AWxGameMode::HandleExperienceLoaded(const UWxExperienceDefinition* Experien
 
 		GrantDefaultInventory(PlayerController, Experience);
 
-		// 로드 대기로 스폰이 밀렸던 접속자를 스폰한다.
 		if (!PlayerController->GetPawn() && PlayerCanRestart(PlayerController))
 		{
 			RestartPlayer(PlayerController);
@@ -127,7 +123,7 @@ void AWxGameMode::HandleExperienceLoaded(const UWxExperienceDefinition* Experien
 
 void AWxGameMode::GrantDefaultInventory(APlayerController* PlayerController, const UWxExperienceDefinition* Experience) const
 {
-	// 지급 목록은 Experience 가 참조한 액션셋들이 정의한다 — 전 묶음의 목록을 이어붙인다(매니저의 GameFeature 목록 합성과 같은 규칙).
+	// 지급 목록은 Experience 가 참조한 액션셋들이 정의한다(매니저의 GameFeature 목록 합성과 같은 규칙).
 	TArray<FWxItemRewardEntry> Items;
 	for (const TObjectPtr<UWxExperienceActionSet>& ActionSet : Experience->ActionSets)
 	{

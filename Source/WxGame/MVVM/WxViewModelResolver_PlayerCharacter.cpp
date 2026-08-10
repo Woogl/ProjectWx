@@ -32,8 +32,7 @@ UObject* UWxViewModelResolver_PlayerCharacter::CreateInstance(const UClass* Expe
 	}
 
 	// WxUI는 WxCombat(어빌리티)에 의존할 수 없어 어빌리티를 직접 순회할 수 없으므로, 어빌리티의 아이콘은 양쪽에 의존하는 본 리졸버가 주입한다.
-	// 어빌리티 VM 은 지연 생성되므로, 아이콘이 있는 어빌리티는 여기서 GetOrCreate 로 만들어 주입한다.
-	// 바인딩이 먼저 만들었다면 그 VM 을 재사용한다.
+	// 어빌리티 VM 은 지연 생성되므로 아이콘이 있는 것만 여기서 미리 만든다.
 	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
 	{
 		const UWxAbilityBase* WxAbility = Cast<UWxAbilityBase>(Spec.Ability);

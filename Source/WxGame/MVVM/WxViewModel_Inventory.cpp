@@ -217,7 +217,7 @@ UObject* UWxViewModelResolver_Inventory::CreateInstance(const UClass* ExpectedTy
 		return nullptr;
 	}
 
-	// 인벤토리가 아직 없을 수 있으므로 Outer 는 PC 로 잡는다. 연결은 VM 이 관찰로 스스로 처리한다.
+	// 인벤토리가 아직 없을 수 있으므로 Outer 는 PC 로 잡는다.
 	UWxViewModel_Inventory* ViewModel = NewObject<UWxViewModel_Inventory>(PC);
 	ViewModel->StartObserving(PC);
 	return ViewModel;

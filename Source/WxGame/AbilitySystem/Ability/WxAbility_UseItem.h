@@ -23,8 +23,6 @@ class UWxItemDefinition;
  *  4. 몽타주의 WxAnimNotify_UseItem(Event.UseItem) 시점에 UseItemByDef 호출 → 충전 1 감소 + 회복 GE 적용.
  *     차감은 예측 대상이 아니므로 이 단계만 서버 권위로 게이팅한다.
  *  5. 후딜 구간은 WxAnimNotify_StartRecovery 로 캔슬 허용, 몽타주 완료/중단 시 EndAbility
- *
- * 사용할 아이템과 회복 효과는 ConsumableDef(ItemDefinition)의 Usable/Charges Fragment 가 정의한다.
  */
 UCLASS(Abstract)
 class WXGAME_API UWxAbility_UseItem : public UWxAbilityBase
@@ -37,7 +35,7 @@ public:
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
-	/** 마시기(사용) 몽타주. 꿀꺽 지점에 WxAnimNotify_UseItem 노티파이를 배치한다. */
+	/** 꿀꺽 지점에 WxAnimNotify_UseItem 노티파이를 배치한다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> UseMontage;
 

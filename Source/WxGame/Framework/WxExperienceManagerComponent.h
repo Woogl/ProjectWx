@@ -13,7 +13,6 @@ class UWxExperienceDefinition;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnExperienceLoaded, const UWxExperienceDefinition*);
 
-/** Experience 로드 파이프라인의 진행 상태. */
 enum class EWxExperienceLoadState : uint8
 {
 	Unloaded,
@@ -50,7 +49,6 @@ public:
 	 */
 	void SetCurrentExperience(FPrimaryAssetId ExperienceId);
 
-	/** 로드가 이미 끝났으면 즉시 호출하고, 아니면 완료 시점에 호출하도록 등록한다. */
 	void CallOrRegister_OnExperienceLoaded(FWxOnExperienceLoaded::FDelegate&& Delegate);
 
 	bool IsExperienceLoaded() const;

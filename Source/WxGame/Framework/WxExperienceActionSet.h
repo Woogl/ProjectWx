@@ -33,11 +33,10 @@ public:
 	//~ End UPrimaryDataAsset
 #endif
 
-	/** 이 묶음이 실행할 액션. */
 	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Wx")
 	TArray<TObjectPtr<UGameFeatureAction>> Actions;
 
-	/** 로드 완료 시 활성화할 GameFeature 플러그인 이름 목록. */
+	/** 활성화할 GameFeature 플러그인 이름 목록. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TArray<FString> GameFeaturesToEnable;
 

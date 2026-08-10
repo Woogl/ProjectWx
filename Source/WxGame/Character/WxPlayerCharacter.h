@@ -15,8 +15,7 @@ struct FInputActionValue;
 
 /**
  * 플레이어 캐릭터.
- * - SpringArm + Camera (3인칭 뷰)
- * - PossessedBy에서 ASC InitAbilityActorInfo 호출
+ * - 클라이언트에서는 OnRep_PlayerState 로 InitAbilitySystem 호출 (서버는 베이스의 PossessedBy)
  * - 게임플레이 입력(이동/시선/어빌리티) 소유. 입력 구성은 UWxInputConfig DA에서 주입.
  */
 UCLASS()
@@ -47,7 +46,7 @@ protected:
 	void AbilityInputTriggered(const UInputAction* Action);
 	void AbilityInputReleased(const UInputAction* Action);
 
-	/** 캐릭터 입력 설정 (IMC + Move/Look + 어빌리티 바인딩) */
+	/** 캐릭터 입력 설정 (IMC + Move/Look/Jump/Crouch) */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TObjectPtr<UWxInputConfig> InputConfig;
 };

@@ -27,15 +27,10 @@ class UMVVMView;
  *     HUD 재화 등 "해당 아이템 총 보유량" 을 표시할 때 사용(Resolver 경로).
  *     합계 델리게이트에 구독한다.
  *
- * UMG 는 TotalCount/CurrentCharges/MaxCharges/Icon/DisplayName/Grade/GradeColor 에 직접 바인딩을 건다.
  * 정적 표시 데이터(DisplayName/Grade/GradeColor/MaxCharges)는 Initialize 시점 1회 세팅되며 이후 변하지 않는다.
  * Icon 은 ItemDef 의 Soft 참조를 베이스가 비동기 로드한 결과이므로, View 측은 일반 Image 의 SetBrushResourceObject 에 바인딩한다.
  * CurrentCharges 는 충전형(Charges Fragment) 아이템 전용으로, OnInventoryChargeChanged 구독으로 갱신된다(비충전형은 0 고정).
  * 충전형의 Icon 은 충전량 변경 시 ChargeIcons[CurrentCharges] 로 함께 갱신된다.
- *
- * AcquiredCount 는 토스트 등 1회용 표시를 위한 채널이다.
- * 본 VM 자체는 갱신하지 않으며, 외부(VM_Inventory) 가 broadcast 직전에 Delta 를 써넣어 OneTime 바인딩으로 소비된다.
- * FieldNotify 가 아니므로 OneWay 바인딩에는 사용하지 않는다.
  */
 UCLASS()
 class WXGAME_API UWxViewModel_Item : public UWxViewModel
@@ -64,7 +59,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx|Inventory")
 	void RequestUseConsumable();
 
-	/** 대상 ItemDef 의 현재 총 보유량. */
+	/** 슬롯 모드는 해당 슬롯의 스택 수, Def 모드는 ItemDef 의 총 보유량. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	int32 TotalCount = 0;
 
@@ -86,7 +81,7 @@ public:
 
 	/**
 	 * 토스트 등 1회용 표시 채널.
-	 * 획득 이벤트 broadcast 직전에 Delta 가 기록되며, 수신측은 OneTime 바인딩으로 읽는다.
+	 * 본 VM 이 아니라 VM_Inventory 가 획득 broadcast 직전에 Delta 를 써넣고, 수신측은 OneTime 바인딩으로 읽는다.
 	 * FieldNotify 미부착 — OneWay 바인딩 대상 아님.
 	 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Inventory")
@@ -99,7 +94,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	TObjectPtr<UObject> Icon;
 
-	/** 슬롯 표시 이름. 로컬라이즈 대상. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	FText DisplayName;
 
@@ -131,7 +125,7 @@ protected:
 	 */
 	void HandleChargeChanged(UWxItemInstance* Instance, int32 NewCharges, int32 Delta);
 
-	/** Icon/Name/Grade 세팅 및 초기 TotalCount 갱신 공통 루틴. */
+	/** 정적 표시 데이터를 ItemDef 에서 세팅하는 공통 루틴. */
 	void ApplyStaticDataFromDef(const UWxItemDefinition* InItemDef);
 
 	/** 추적 인스턴스(슬롯 모드는 바인딩 인스턴스, Def 모드는 첫 인스턴스)의 현재 충전수 기준 표시 아이콘을 요청한다. */
@@ -156,12 +150,7 @@ protected:
  * WBP 의 View Bindings 에서 Creation Type = Resolver 로 선택하면 인스펙터에서 ItemToDisplay 를 직접 지정할 수 있다.
  * 이후 WBP 는 Event Graph/베이스 클래스 없이도 슬롯이 자동 구성된다.
  *
- * 동작:
- *   1) UserWidget->GetOwningPlayer() 로 AWxPlayerController 해석
- *   2) GetInventoryManager() 로 UWxInventoryManagerComponent 획득
- *   3) UWxViewModel_Item 을 NewObject 로 생성하고 Initialize 호출
- *
- * PC 가 아직 복제되지 않았다면 Initialize 없이 Shell 상태로 반환된다 (InventoryManager 확보 후 외부에서 재초기화 필요).
+ * ItemToDisplay 가 비었거나 인벤토리를 찾지 못하면 Initialize 없이 빈 VM 으로 반환된다.
  */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXGAME_API UWxViewModelResolver_Item : public UMVVMViewModelContextResolver

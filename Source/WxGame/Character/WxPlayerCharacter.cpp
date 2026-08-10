@@ -94,7 +94,6 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EIC->BindAction(InputConfig->CrouchAction, ETriggerEvent::Started, this, &AWxPlayerCharacter::ToggleCrouch);
 	}
 	// 어빌리티 입력 바인딩: 바인딩할 InputAction 목록은 AbilitySet의 부여 대상 어빌리티 CDO들에서 파생한다.
-	// 각 InputAction을 액션 포인터를 payload로 실어 바인딩한다. 두 이벤트는 서로 다른 뜻이라 용도가 갈린다.
 	//
 	// Triggered: 트리거 조건을 만족한 시점. 같은 키에 걸린 Tap(회피)과 Hold(스프린트)를 가르므로 발동은 이쪽으로 받는다.
 	// Completed: 트리거가 풀린 시점. 홀드형에서는 키를 뗀 순간이다.

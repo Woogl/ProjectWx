@@ -21,7 +21,6 @@ struct FWxGameFeatureComponentEntry
 	GENERATED_BODY()
 
 	/**
-	 * 붙일 컴포넌트 클래스.
 	 * 대상 액터는 이 클래스가 상속한 ModularGameplay 베이스(Pawn·Controller·PlayerState·GameState 컴포넌트)에서 도출한다.
 	 * 대상은 ModularGameplay receiver 로 opt-in 돼 있어야 한다.
 	 */
@@ -56,7 +55,6 @@ public:
 	//~ End UObject
 #endif
 
-	/** 이 액션이 주입할 컴포넌트 목록. */
 	UPROPERTY(EditAnywhere, meta = (TitleProperty = "{ComponentClass}"))
 	TArray<FWxGameFeatureComponentEntry> ComponentList;
 

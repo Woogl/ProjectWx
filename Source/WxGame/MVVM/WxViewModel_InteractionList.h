@@ -41,7 +41,6 @@ public:
 	virtual void Deinitialize() override;
 	virtual void BeginDestroy() override;
 
-	/** 인-레인지 목록 변경 수신. */
 	UFUNCTION()
 	void HandleListChanged(const TArray<FText>& InPrompts);
 
@@ -57,7 +56,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx|Interaction")
 	void RequestCycle(int32 Delta);
 
-	/** 상호작용 대상 항목 목록. ListView 가 본 프로퍼티에 바인딩한다. */
+	/** ListView 가 본 프로퍼티에 바인딩한다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Interaction")
 	TArray<TObjectPtr<UWxViewModel_Interaction>> Entries;
 
@@ -72,7 +71,6 @@ private:
 	/** 도착 신호 구독을 해제한다. 연결 성공 시와 소멸 시 모두 여기로 모은다. */
 	void StopObserving();
 
-	/** 프롬프트 목록으로 항목 VM 들을 재구성한다. */
 	void RebuildEntries(const TArray<FText>& InPrompts);
 
 	/** 선택 인덱스를 클램프해 각 항목의 bSelected 와 SelectedIndex 를 갱신한다. */
