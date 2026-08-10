@@ -20,6 +20,7 @@ FWxDamageInfo FWxDamageInfo::FromDataRow(const FDataTableRowHandle& RowHandle)
 		DamageInfo.RecoverMP = Row->RecoverMP;
 		DamageInfo.RecoverUP = Row->RecoverUP;
 		DamageInfo.HitReactTag = Row->HitReactTag;
+		DamageInfo.bCanCritical = Row->bCanCritical;
 		DamageInfo.bUnblockable = Row->bUnblockable;
 		DamageInfo.bParryHitReact = Row->bParryHitReact;
 		DamageInfo.AdditionalEffects = Row->AdditionalEffects;
@@ -47,6 +48,10 @@ TArray<FGameplayEffectSpecHandle> FWxDamageInfo::MakeSpecs(UAbilitySystemCompone
 		if (HitReactTag.IsValid())
 		{
 			AttackTags.AddTag(HitReactTag);
+		}
+		if (bCanCritical)
+		{
+			AttackTags.AddTag(WxGameplayTags::Damage_CanCritical);
 		}
 		if (bUnblockable)
 		{

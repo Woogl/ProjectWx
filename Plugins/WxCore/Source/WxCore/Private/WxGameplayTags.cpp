@@ -64,6 +64,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_AttackTelegraph_Purple, "GameplayCue.AttackTelegraph.Purple");
 
 	UE_DEFINE_GAMEPLAY_TAG(Damage_Critical, "Damage.Critical");
+	UE_DEFINE_GAMEPLAY_TAG(Damage_CanCritical, "Damage.CanCritical");
 	UE_DEFINE_GAMEPLAY_TAG(Damage_Unblockable, "Damage.Unblockable");
 	UE_DEFINE_GAMEPLAY_TAG(Damage_ParryHitReact, "Damage.ParryHitReact");
 

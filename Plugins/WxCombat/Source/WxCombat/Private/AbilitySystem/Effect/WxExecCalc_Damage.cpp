@@ -61,6 +61,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	const FGameplayEffectSpec& OwningSpec = ExecutionParams.GetOwningSpec();
 	const bool bIsUnblockable = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable);
+	const bool bCanCritical = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanCritical);
 	const bool bHasPerfectGuard = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_PerfectGuard);
 	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard);
 	const bool bIsGroggy = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy);
@@ -68,12 +69,12 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	// Unblockable 공격은 퍼펙트 가드를 포함한 모든 가드를 무시한다.
 	const bool bPerfectGuardApplied = bHasPerfectGuard && !bIsUnblockable;
 
-	// 퍼펙트 가드는 반사량 산출을 위해 크리를 스킵한다.
 	FAggregatorEvaluateParameters EvalParams;
 	EvalParams.SourceTags = OwningSpec.CapturedSourceTags.GetAggregatedTags();
 	EvalParams.TargetTags = OwningSpec.CapturedTargetTags.GetAggregatedTags();
 
-	FWxDamageResult DamageResult = CalcDamage(ExecutionParams, EvalParams, bPerfectGuardApplied);
+	// 퍼펙트 가드는 반사량 산출을 위해 크리를 스킵한다.
+	FWxDamageResult DamageResult = CalcDamage(ExecutionParams, EvalParams, bPerfectGuardApplied || !bCanCritical);
 
 	if (bPerfectGuardApplied)
 	{

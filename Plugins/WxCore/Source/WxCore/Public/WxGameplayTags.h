@@ -167,6 +167,9 @@ namespace WxGameplayTags
 	/** 치명타 판정 결과 태그 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Critical);
 
+	/** 치명타 허용 공격 태그. 붙어 있지 않으면 치명타 판정 자체를 건너뛴다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_CanCritical);
+
 	/** 가드 불가 공격 태그. 가드·퍼펙트 가드를 무시하고 풀 대미지 적용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Unblockable);
 

@@ -46,6 +46,9 @@ struct WXCOMBAT_API FWxDamageInfo
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo", meta = (Categories = "Event.HitReact"))
 	FGameplayTag HitReactTag;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo")
+	bool bCanCritical = true;
+
 	/** true이면 이 공격은 가드·퍼펙트 가드를 무시 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo")
 	bool bUnblockable = false;
