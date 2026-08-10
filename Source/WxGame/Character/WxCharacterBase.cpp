@@ -3,6 +3,7 @@
 #include "Character/WxCharacterBase.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
+#include "Character/WxCharacterMovementComponent.h"
 #include "Character/WxMetaHumanVisualComponent.h"
 #include "Inventory/WxEquipmentComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -16,13 +17,8 @@
 #include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 
-AWxCharacterBase::AWxCharacterBase()
-	: AWxCharacterBase(FObjectInitializer::Get())
-{
-}
-
 AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UWxCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECC_WxAttack, ECR_Overlap);
@@ -48,18 +44,6 @@ AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw   = false;
 	bUseControllerRotationRoll  = false;
-	
-	GetCharacterMovement()->bOrientRotationToMovement = true;
-	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f);
-	GetCharacterMovement()->GetNavMovementProperties()->bUseAccelerationForPaths = true;
-
-	GetCharacterMovement()->MaxAcceleration = 1500.f;
-	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
-	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
-	GetCharacterMovement()->bUseSeparateBrakingFriction = true;
-	GetCharacterMovement()->BrakingFrictionFactor = 1.f;
-
-	GetCharacterMovement()->AirControl = 0.35f;
 }
 
 void AWxCharacterBase::PreInitializeComponents()

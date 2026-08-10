@@ -12,7 +12,8 @@
 #include "Targeting/WxLockOnPointComponent.h"
 #include "WxGameplayTags.h"
 
-AWxEnemyCharacter::AWxEnemyCharacter()
+AWxEnemyCharacter::AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	Team = EWxTeam::Enemy;
 

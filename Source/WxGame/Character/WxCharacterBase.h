@@ -34,8 +34,6 @@ class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInte
 	GENERATED_BODY()
 
 public:
-	// 기본 생성자는 파생 클래스(에너미/보스)의 암시적 생성 경로 호환을 위해 유지하고, 실제 셋업은 ObjectInitializer 버전으로 위임한다.
-	AWxCharacterBase();
 	AWxCharacterBase(const FObjectInitializer& ObjectInitializer);
 	virtual void PreInitializeComponents() override;
 	virtual void PostInitializeComponents() override;

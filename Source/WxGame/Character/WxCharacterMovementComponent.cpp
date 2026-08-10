@@ -7,12 +7,24 @@
 
 UWxCharacterMovementComponent::UWxCharacterMovementComponent()
 {
+	bOrientRotationToMovement = true;
+	RotationRate = FRotator(0.f, 500.f, 0.f);
+	NavMovementProperties.bUseAccelerationForPaths = true;
+
+	MaxAcceleration = 1500.f;
+	MinAnalogWalkSpeed = 20.f;
+	BrakingDecelerationWalking = 2000.f;
+	bUseSeparateBrakingFriction = true;
+	BrakingFrictionFactor = 1.f;
+	
 	JumpZVelocity = 640.f;
+	GravityScale = 2.f;
+	AirControl = 0.35f;
 }
 
 float UWxCharacterMovementComponent::GetGravityZ() const
 {
-	const float Multiplier = (Velocity.Z > 0.f) ? 2.f : 2.5f;
+	const float Multiplier = (Velocity.Z > 0.f) ? 1.f : 1.25f;
 
 	return Super::GetGravityZ() * Multiplier;
 }

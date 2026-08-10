@@ -27,7 +27,7 @@ class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnabl
 	GENERATED_BODY()
 
 public:
-	AWxEnemyCharacter();
+	AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer);
 
 	UBehaviorTree* GetBehaviorTree() const;
 
