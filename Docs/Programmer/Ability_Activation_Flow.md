@@ -115,7 +115,7 @@ flowchart TD
 
 | 어빌리티 | 트리거 | 공통 위에 더하는 핵심 |
 | --- | --- | --- |
-| `WxAbility_Attack` | 입력(AssetTag `Ability.Attack`) | 발동 시 아바타 태그로 콤보 세트(`MontageSets`) 선택 → `ANS_ComboWindow` 입력 → EndAbility 후 **동일 Spec 재발동**(`Reactivate`)으로 세트 내 다음 인덱스. 단계마다 재커밋. |
+| `WxAbility_Attack` | 입력(AssetTag `Ability.Attack`) | 발동 시 아바타 태그로 콤보 세트 선택(`FWxComboMontageSelector`) → `ANS_ComboWindow` 입력 → EndAbility 후 **동일 Spec 재발동**(`Reactivate`)으로 세트 내 다음 인덱스. 단계마다 재커밋. `WxAbility_Skill`도 같은 선택기를 쓴다. |
 | `WxAbility_Guard` | 입력(AssetTag `Ability.Guard`) | `ActiveMontage`로 페이즈 전환(가드/피격/브레이크/카운터). `InputReleased`/`InputPressed` 오버라이드, PerfectGuard 이벤트 구독. |
 | `WxAbility_HitReact` | GameplayEvent `Event.HitReact.*` | 종류별 트리거 개별 등록, `bRetriggerInstancedAbility`로 재진입. 새 액션(`Ability.Exclusive`)은 차단하고, 진행 중인 것 중에서는 공격·스킬만 캔슬한다(적 패턴은 지목 밖이라 유지). 차단만으로는 부족한데, 공격·스킬의 콤보 재발동 분기가 `Super`를 타지 않아 차단 태그 검사를 건너뛰기 때문이다. |
 | `WxAbility_Death` | OwnedTag `State.Dead` | 몽타주 유효 시 사망 포즈, 무효 시 지연 후 래그돌 — 서버가 `State.Ragdoll` 루스 태그 발행(TagOnly 복제), 전 머신의 캐릭터가 감지해 자체 `EnterRagdoll` 수행. 액션 전체 차단. |

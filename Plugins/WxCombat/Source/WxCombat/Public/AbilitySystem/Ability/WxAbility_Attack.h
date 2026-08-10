@@ -3,29 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayEffectTypes.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
+#include "AbilitySystem/Ability/WxComboMontageSelector.h"
 #include "WxAbility_Attack.generated.h"
 
 class UAbilityTask_PlayMontageAndWait;
 class UAnimMontage;
-
-/** 진입 조건으로 갈리는 콤보 몽타주 묶음. */
-USTRUCT(BlueprintType)
-struct FWxAbilityMontageSet
-{
-	GENERATED_BODY()
-
-	/**
-	 * 아바타 태그가 이 요구사항을 만족할 때 선택된다.
-	 * 비우면 조건 없이 매칭(기본 콤보).
-	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Combo")
-	FGameplayTagRequirements EntryTagRequirements;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Combo")
-	TArray<TObjectPtr<UAnimMontage>> ComboMontages;
-};
 
 /**
  * 아바타 태그로 콤보 세트를 골라 첫 몽타주를 재생하고, ANS_ComboWindow 구간의 재발동이 같은 세트의 다음 단으로 넘긴다(터미널 단에서는 첫 단으로 되돌아간다).
@@ -33,8 +16,7 @@ struct FWxAbilityMontageSet
  * 콤보 진행은 엔진 순정 재발동(bRetriggerInstancedAbility)이라 단계마다 CommitAbility가 새로 걸린다.
  * 콤보가 끊기지 않으려면 AbilityDataRow에서 단계 간격보다 쿨다운을 짧게 잡거나 최대 충전 수를 단계 수 이상으로 둔다.
  *
- * MontageSets는 배열 순서가 곧 우선순위(첫 매칭 채택)이며, 진입 요구사항이 빈 세트는 조건 없이 매칭되므로 기본 콤보는 맨 아래에 둔다.
- * 세트는 콤보 진입 시 한 번 정해 끝까지 유지한다 — 도중에 태그가 사라져도 남은 단은 같은 세트로 이어진다.
+ * 세트 선택과 단계 전진 규칙은 ComboSelector에 있다.
  * 타겟 방향 회전은 ANS_SnapToTarget이 담당.
  */
 UCLASS(Abstract)
@@ -56,16 +38,14 @@ protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Combo")
-	TArray<FWxAbilityMontageSet> MontageSets;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Combo", meta = (ShowOnlyInnerProperties))
+	FWxComboMontageSelector ComboSelector;
 
 private:
 	/** CancelAbilitiesWithTag로 지목한 어빌리티가 이 ASC에서 하나라도 활성인지 */
 	bool HasActiveCancelTarget(const UAbilitySystemComponent& ASC) const;
 
-	int32 ResolveMontageSetIndex() const;
-
-	void PlayCurrentMontage();
+	bool PlayMontage(UAnimMontage* Montage);
 
 	UFUNCTION()
 	void HandleMontageCompleted();
@@ -81,10 +61,4 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
-
-	/** 재발동 사이에 보존되며, INDEX_NONE이면 다음 발동에서 태그로 새로 고른다 */
-	int32 CurrentSetIndex = INDEX_NONE;
-
-	/** CurrentSetIndex와 함께 보존·리셋되는 ComboMontages 인덱스 */
-	int32 CurrentMontageIndex = INDEX_NONE;
 };

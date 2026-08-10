@@ -57,23 +57,10 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	// 세트 인덱스가 살아 있으면 재발동으로 이어온 콤보다.
-	if (!MontageSets.IsValidIndex(CurrentSetIndex))
-	{
-		CurrentSetIndex = ResolveMontageSetIndex();
-		CurrentMontageIndex = INDEX_NONE;
-	}
-
-	if (!MontageSets.IsValidIndex(CurrentSetIndex))
+	if (!PlayMontage(ComboSelector.GetNextMontage(GetAbilitySystemComponentFromActorInfo())))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
 	}
-
-	const TArray<TObjectPtr<UAnimMontage>>& ComboMontages = MontageSets[CurrentSetIndex].ComboMontages;
-	CurrentMontageIndex = ComboMontages.IsValidIndex(CurrentMontageIndex + 1) ? CurrentMontageIndex + 1 : 0;
-
-	PlayCurrentMontage();
 }
 
 void UWxAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -85,12 +72,11 @@ void UWxAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 		MontageTask = nullptr;
 	}
 
-	// 외부 캔슬은 위 EndTask 탓에 핸들러가 돌지 않으므로 여기서 직접 리셋한다.
-	// 콤보 재발동은 bWasCancelled=false라 상태가 보존된다.
+	// 캔슬 종료는 전부 여기서 되돌린다 — 외부 캔슬은 위 EndTask 탓에 몽타주 핸들러가 돌지 않는다.
+	// 콤보 재발동은 bWasCancelled=false라 진행 상태가 보존된다.
 	if (bWasCancelled)
 	{
-		CurrentSetIndex = INDEX_NONE;
-		CurrentMontageIndex = INDEX_NONE;
+		ComboSelector.Reset();
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
@@ -115,27 +101,13 @@ bool UWxAbility_Attack::HasActiveCancelTarget(const UAbilitySystemComponent& ASC
 	return false;
 }
 
-int32 UWxAbility_Attack::ResolveMontageSetIndex() const
+bool UWxAbility_Attack::PlayMontage(UAnimMontage* Montage)
 {
-	FGameplayTagContainer OwnedTags;
-	if (const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	if (!Montage)
 	{
-		ASC->GetOwnedGameplayTags(OwnedTags);
+		return false;
 	}
 
-	for (int32 Index = 0; Index < MontageSets.Num(); ++Index)
-	{
-		if (MontageSets[Index].EntryTagRequirements.RequirementsMet(OwnedTags))
-		{
-			return Index;
-		}
-	}
-
-	return INDEX_NONE;
-}
-
-void UWxAbility_Attack::PlayCurrentMontage()
-{
 	// EndTask가 AnimInstance 바인딩을 해제하므로 구 태스크의 후속 이벤트는 발송되지 않는다.
 	if (MontageTask)
 	{
@@ -143,33 +115,27 @@ void UWxAbility_Attack::PlayCurrentMontage()
 		MontageTask = nullptr;
 	}
 
-	const TArray<TObjectPtr<UAnimMontage>>& ComboMontages = MontageSets[CurrentSetIndex].ComboMontages;
-	UAnimMontage* Montage = ComboMontages.IsValidIndex(CurrentMontageIndex) ? ComboMontages[CurrentMontageIndex].Get() : nullptr;
-	if (!Montage)
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-		return;
-	}
-
-	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+	UAbilityTask_PlayMontageAndWait* NewMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this, NAME_None, Montage, GetMontagePlayRate(), NAME_None, true, 1.f, 0.f, true);
-	if (!MontageTask)
+	if (!NewMontageTask)
 	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-		return;
+		return false;
 	}
 
-	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Attack::HandleMontageCompleted);
-	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Attack::HandleMontageBlendOut);
-	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Attack::HandleMontageInterrupted);
-	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Attack::HandleMontageCancelled);
-	MontageTask->ReadyForActivation();
+	MontageTask = NewMontageTask;
+
+	NewMontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Attack::HandleMontageCompleted);
+	NewMontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Attack::HandleMontageBlendOut);
+	NewMontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Attack::HandleMontageInterrupted);
+	NewMontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Attack::HandleMontageCancelled);
+	NewMontageTask->ReadyForActivation();
+	return true;
 }
 
 void UWxAbility_Attack::HandleMontageCompleted()
 {
-	CurrentSetIndex = INDEX_NONE;
-	CurrentMontageIndex = INDEX_NONE;
+	// 캔슬이 아니라 EndAbility가 되돌려주지 않는다.
+	ComboSelector.Reset();
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
@@ -180,14 +146,10 @@ void UWxAbility_Attack::HandleMontageBlendOut()
 
 void UWxAbility_Attack::HandleMontageInterrupted()
 {
-	CurrentSetIndex = INDEX_NONE;
-	CurrentMontageIndex = INDEX_NONE;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
 
 void UWxAbility_Attack::HandleMontageCancelled()
 {
-	CurrentSetIndex = INDEX_NONE;
-	CurrentMontageIndex = INDEX_NONE;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
