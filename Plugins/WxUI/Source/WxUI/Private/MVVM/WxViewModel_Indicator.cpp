@@ -17,7 +17,6 @@ void UWxViewModel_Indicator::StartObserving(APlayerController* PC, int32 InIndic
 	ObservedController = PC;
 	IndicatorIndex = InIndicatorIndex;
 
-	// 이미 붙어 있으면 기다릴 것 없이 바로 연결한다.
 	if (UWxIndicatorManagerComponent* Manager = PC->FindComponentByClass<UWxIndicatorManagerComponent>())
 	{
 		Initialize(Manager);
@@ -66,7 +65,7 @@ void UWxViewModel_Indicator::BeginDestroy()
 
 void UWxViewModel_Indicator::HandleManagerReady(UWxIndicatorManagerComponent* Manager)
 {
-	// 신호는 클래스 차원이라 남의 매니저도 온다(PIE 다중 인스턴스 포함). 관찰 중인 컨트롤러의 것만 받는다.
+	// 신호는 클래스 차원이라 남의 매니저도 온다(PIE 다중 인스턴스 포함).
 	if (!Manager || Manager->GetOwner() != ObservedController.Get())
 	{
 		return;
@@ -142,7 +141,7 @@ UObject* UWxViewModelResolver_Indicator::CreateInstance(const UClass* ExpectedTy
 		return nullptr;
 	}
 
-	// 매니저가 아직 없을 수 있으므로 Outer 는 PC 로 잡는다. 연결은 VM 이 관찰로 스스로 처리한다.
+	// 매니저가 아직 없을 수 있으므로 Outer 는 PC 로 잡는다.
 	UWxViewModel_Indicator* ViewModel = NewObject<UWxViewModel_Indicator>(PC);
 	ViewModel->StartObserving(PC, IndicatorIndex);
 	return ViewModel;

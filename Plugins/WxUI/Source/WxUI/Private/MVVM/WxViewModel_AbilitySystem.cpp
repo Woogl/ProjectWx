@@ -118,7 +118,6 @@ UWxViewModel_Attribute* UWxViewModel_AbilitySystem::GetOrCreateAttributeViewMode
 		return Existing;
 	}
 
-	// 최대값 어트리뷰트가 유효하지 않으면 현재값 자신을 최대값으로 사용한다.
 	UWxViewModel_Attribute* AttrVM = NewObject<UWxViewModel_Attribute>(ASC);
 	AttrVM->Initialize(ASC, Current, Max.IsValid() ? Max : Current);
 	AttributeViewModels.Add(AttrVM);
@@ -168,7 +167,6 @@ void UWxViewModel_AbilitySystem::RefreshActiveEffectViewModels()
 	
 	ActiveEffectViewModels.Empty();
 	
-	// 활성화된 모든 GE 순회
 	FGameplayEffectQuery Query;
 	TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);
 	for (const FActiveGameplayEffectHandle& Handle : Handles)

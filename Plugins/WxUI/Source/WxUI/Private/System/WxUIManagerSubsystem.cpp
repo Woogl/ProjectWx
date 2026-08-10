@@ -29,7 +29,6 @@ void UWxUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		return;
 	}
 
-	// 전 위젯이 공유하는 "현재 선택" 글로벌 뷰모델을 생성해 MVVM 글로벌 컬렉션에 등록한다.
 	// 초기화 순서를 보장하기 위해 UMVVMGameSubsystem 을 먼저 확정 초기화한다.
 	Collection.InitializeDependency(UMVVMGameSubsystem::StaticClass());
 	if (UMVVMGameSubsystem* ViewModelSubsystem = GameInstance->GetSubsystem<UMVVMGameSubsystem>())
@@ -76,7 +75,6 @@ void UWxUIManagerSubsystem::Deinitialize()
 			}
 		}
 
-		// 글로벌 선택 뷰모델을 컬렉션에서 등록 해제한다.
 		if (UMVVMGameSubsystem* ViewModelSubsystem = GameInstance->GetSubsystem<UMVVMGameSubsystem>())
 		{
 			if (UMVVMViewModelCollectionObject* ViewModelCollection = ViewModelSubsystem->GetViewModelCollection())
@@ -140,7 +138,6 @@ void UWxUIManagerSubsystem::ShowConfirmation(UWxGamePopupDescriptor* Descriptor,
 		return;
 	}
 
-	// 활성화 이전에 호출되는 초기화 콜백에서 SetupPopup 를 실행해 표시 전에 내용을 채운다.
 	UWxGamePopup* PushedPopup = PrimaryGameLayout->PushWidgetToLayerStack<UWxGamePopup>(WxGameplayTags::UI_Layer_Modal, LoadedClass,
 		[Descriptor, ResultCallback](UWxGamePopup& Popup)
 		{
@@ -195,7 +192,6 @@ void UWxUIManagerSubsystem::RefreshGamePause()
 		return;
 	}
 
-	// 전 레이어의 현재 활성 위젯 중 정지를 원하는 것이 하나라도 있으면 정지한다.
 	// 스택에 위젯이 하나뿐이면 비활성화 후에도 GetActiveWidget 이 그 위젯을 반환할 수 있어 IsActivated 로 걸러낸다.
 	bool bWantsPause = false;
 	for (const TPair<FGameplayTag, TObjectPtr<UCommonActivatableWidgetStack>>& Layer : PrimaryGameLayout->GetLayerMap())
@@ -234,7 +230,6 @@ void UWxUIManagerSubsystem::HandleLocalPlayerAdded(ULocalPlayer* LocalPlayer)
 
 void UWxUIManagerSubsystem::HandlePlayerControllerSet(APlayerController* PC)
 {
-	// 이전 PC 의 빙의 구독을 끊는다. 그 폰의 상태 태그 관찰도 함께 정리한다.
 	if (APlayerController* PreviousPC = TrackedPlayerController.Get())
 	{
 		PreviousPC->OnPossessedPawnChanged.RemoveDynamic(this, &ThisClass::HandlePossessedPawnChanged);
@@ -261,7 +256,7 @@ void UWxUIManagerSubsystem::HandlePlayerControllerSet(APlayerController* PC)
 
 	CreateLayoutForPlayer(PC);
 
-	// 빈 layout 에 컨텐츠를 채우는 것은 빙의를 따라간다. 예전엔 PC 가 OnPossess/OnRep_Pawn 에서 직접 push 했다.
+	// 빈 layout 에 컨텐츠를 채우는 것은 빙의를 따라간다.
 	PC->OnPossessedPawnChanged.AddDynamic(this, &ThisClass::HandlePossessedPawnChanged);
 	TrackedPlayerController = PC;
 

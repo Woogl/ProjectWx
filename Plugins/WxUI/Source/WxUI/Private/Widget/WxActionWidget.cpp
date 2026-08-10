@@ -23,7 +23,7 @@ FSlateBrush UWxActionWidget::GetIcon() const
 		FName GamepadName;
 		FCommonInputBase::GetCurrentPlatformDefaults(InputType, GamepadName);
 
-		// EI 경로: 키는 IA가 아니라 IMC에 있고 디자인타임엔 서브시스템이 없으므로, IMC 애셋을 직접 훑어 현재 InputType에 맞는 키를 찾는다.
+		// EI 경로: 키는 IA가 아니라 IMC에 있고 디자인타임엔 서브시스템이 없어 IMC 애셋을 직접 훑는다.
 		if (const UInputAction* EnhancedAction = GetEnhancedInputAction())
 		{
 			const IAssetRegistry& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get();

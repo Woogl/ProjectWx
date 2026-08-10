@@ -22,10 +22,7 @@ public:
 
 	UCommonActivatableWidgetStack* GetLayerWidgetStack(FGameplayTag LayerTag) const;
 
-	/**
-	 * 등록된 전체 레이어 스택.
-	 * 정지 재평가 등 전 레이어 순회에 사용한다.
-	 */
+	/** 정지 재평가 등 전 레이어 순회에 사용한다. */
 	const TMap<FGameplayTag, TObjectPtr<UCommonActivatableWidgetStack>>& GetLayerMap() const;
 
 	UCommonActivatableWidget* PushWidgetToLayerStack(FGameplayTag LayerTag, TSubclassOf<UCommonActivatableWidget> WidgetClass);
@@ -47,14 +44,10 @@ public:
 protected:
 	virtual void NativeOnInitialized() override;
 
-	/** 모든 레이어 스택을 담는 루트 컨테이너. */
 	UPROPERTY(BlueprintReadOnly, Category = "UI|Layers", meta = (BindWidget))
 	TObjectPtr<UOverlay> LayerContainer;
 
-	/**
-	 * 생성할 레이어 태그 목록.
-	 * 배열 순서가 z-order다(0 = 최하단).
-	 */
+	/** 배열 순서가 z-order다(0 = 최하단). */
 	UPROPERTY(EditDefaultsOnly, Category = "UI|Layers", meta = (Categories = "UI.Layer"))
 	TArray<FGameplayTag> LayerTags;
 

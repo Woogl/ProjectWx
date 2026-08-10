@@ -32,15 +32,12 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Wx|Popup")
 	void OnSetupPopup(UWxGamePopupDescriptor* Descriptor);
 
-	/** "예/확인" 결과 버튼. */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Popup", meta = (BindWidgetOptional))
 	TObjectPtr<UCommonButtonBase> Button_Confirm;
 
-	/** "아니오" 결과 버튼. */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Popup", meta = (BindWidgetOptional))
 	TObjectPtr<UCommonButtonBase> Button_Decline;
 
-	/** "취소" 결과 버튼. */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Popup", meta = (BindWidgetOptional))
 	TObjectPtr<UCommonButtonBase> Button_Cancel;
 

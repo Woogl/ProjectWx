@@ -18,7 +18,7 @@ void UWxButtonBase::NativePreConstruct()
 
 	if (IsDesignTime() && InputActionWidget)
 	{
-		// EI 액션은 스톡 디자인타임 경로가 다루지 않으므로 여기서 직접 피드한다. DataTable(TriggeringInputAction)만 있을 땐 기존과 동일.
+		// EI 액션은 스톡 디자인타임 경로가 다루지 않으므로 여기서 직접 피드한다.
 		const bool bHasEnhancedAction = TriggeringEnhancedInputAction != nullptr;
 		if (bHideInputAction || (TriggeringInputAction.IsNull() && !bHasEnhancedAction))
 		{

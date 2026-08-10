@@ -18,8 +18,6 @@ UWxNameplateComponent::UWxNameplateComponent()
 	// 인식/락온 시 RefreshVisibility 가 노출한다.
 	SetVisibility(false);
 
-	// 기본 표시 정책: 죽지 않았고 (인식되거나 락온됨).
-	// 보스·샌드백 등 특수 엔티티는 BP 에서 오버라이드한다.
 	// 표시(둘 중 하나)는 OR 이라 TagQuery(MatchAny)로, 숨김은 IgnoreTags(HasAny면 숨김)로 둔다.
 	VisibilityRequirements.IgnoreTags.AddTag(WxGameplayTags::State_Dead);
 
@@ -65,7 +63,6 @@ void UWxNameplateComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	const float Distance = FVector::Dist(GetComponentLocation(), CameraLocation);
 	const float Scale = FMath::Clamp(ReferenceDistance / FMath::Max(Distance, 1.0f), MinScale, MaxScale);
 
-	// SetRenderScale 은 값이 같아도 위젯을 무효화하므로, 눈에 띄지 않는 미세 변화로 Slate 무효화를 쌓지 않는다.
 	if (FMath::IsNearlyEqual(Scale, LastRenderScale, KINDA_SMALL_NUMBER))
 	{
 		return;
@@ -99,7 +96,6 @@ void UWxNameplateComponent::InitializeViewModels(UAbilitySystemComponent* InASC,
 		return;
 	}
 
-	// 캐릭터 Composite VM 하나로 어트리뷰트/이펙트(자식 AbilitySystem VM)와 표시 데이터(이름/초상화/설명)를 함께 노출한다.
 	UWxViewModel_Character* CharacterViewModel = NewObject<UWxViewModel_Character>(this);
 	CharacterViewModel->Initialize(InASC, InUIData);
 	View->SetViewModelByClass(CharacterViewModel);

@@ -22,7 +22,6 @@ void UWxViewModel_Selection::SetSelection(const FText& InDisplayName, const FTex
 		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(Description);
 	}
 
-	// 로드 완료 시점에 ApplyLoadedImage 가 Icon 을 세팅하고 발화한다.
 	RequestImageAsync(TEXT("Icon"), InIcon);
 }
 

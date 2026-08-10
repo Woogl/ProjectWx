@@ -66,10 +66,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Tab List")
 	bool GetPreregisteredTabInfo(const FName TabNameId, FWxTabDescriptor& OutTabInfo);
 
-	/** 프리레지스터된 전체 탭 정보 접근용 헬퍼. */
 	const TArray<FWxTabDescriptor>& GetAllPreregisteredTabInfos();
 
-	// 특정 탭의 숨김 상태를 토글한다. 스위처와 연결되기 전에만 호출할 수 있다.
+	// 스위처와 연결되기 전에만 호출할 수 있다.
 	UFUNCTION(BlueprintCallable, Category = "Tab List")
 	void SetTabHiddenState(FName TabNameId, bool bHidden);
 
@@ -88,7 +87,6 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Tab List")
 	int32 GetVisibleTabCount();
 
-	/** 새 탭이 생성될 때 브로드캐스트. 생성 이후 후처리 훅에 쓴다. */
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnTabContentCreated, FName, TabId, UCommonUserWidget*, TabWidget);
 	DECLARE_EVENT_TwoParams(UWxTabListWidgetBase, FOnTabContentCreatedNative, FName /* TabId */, UCommonUserWidget* /* TabWidget */);
 

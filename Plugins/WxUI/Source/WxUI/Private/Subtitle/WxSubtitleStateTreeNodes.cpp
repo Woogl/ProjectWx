@@ -24,7 +24,6 @@ EStateTreeRunStatus FWxStateTreeTask_PrintSubtitle::EnterState(FStateTreeExecuti
 	Instance.ElapsedSeconds = 0.f;
 	Instance.SubtitleHandle = INDEX_NONE;
 
-	// 아래 둘은 모두 낼 자막이 없는 잘못된 조립이다 — 빈 화면으로 상태에 눌러앉는 대신 실패를 낸다.
 	if (!Instance.StartRow.DataTable || Instance.StartRow.RowName.IsNone())
 	{
 		UE_LOG(LogWxUI, Warning, TEXT("Print Subtitle: 시작 행이 지정되지 않음(StartRow)."));
@@ -43,7 +42,6 @@ EStateTreeRunStatus FWxStateTreeTask_PrintSubtitle::Tick(FStateTreeExecutionCont
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 시간으로 넘기지 않는 줄이면 상태를 떠날 때까지 머문다(완료는 같은 상태의 다른 태스크가 낸다).
 	if (Instance.CurrentDuration <= 0.f)
 	{
 		return EStateTreeRunStatus::Running;
@@ -65,7 +63,6 @@ EStateTreeRunStatus FWxStateTreeTask_PrintSubtitle::Tick(FStateTreeExecutionCont
 	}
 
 	// 마지막 줄이었거나 다음 줄을 해석하지 못했다(후자는 ShowRow 가 경고를 남긴다). 어느 쪽이든 자막은 여기서 끝난다.
-	// 상태를 떠나기 전에 여기서 걷는다 — 완료를 내도 상태는 같은 상태의 다른 대기 태스크에 붙잡힐 수 있어(TasksCompletion=All), ExitState 만 믿으면 자막이 화면에 남는다.
 	if (UWxViewModel_Subtitle* SubtitleViewModel = UWxViewModel_Subtitle::GetOrCreate(Context.GetOwner()))
 	{
 		SubtitleViewModel->HideSubtitle(Instance.SubtitleHandle);

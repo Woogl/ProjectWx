@@ -13,7 +13,6 @@
 
 namespace
 {
-	/** BP 다이나믹 결과 델리게이트를 서브시스템이 받는 네이티브 델리게이트로 브릿지한다. */
 	FWxPopupResultDelegate MakeNativeResultDelegate(const FWxPopupResultDynamicDelegate& OnResult)
 	{
 		if (!OnResult.IsBound())

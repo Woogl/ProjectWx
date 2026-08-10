@@ -35,10 +35,7 @@ public:
 
 	UCommonActivatableWidget* PushWidgetInstanceToLayer(FGameplayTag LayerTag, UCommonActivatableWidget* WidgetInstance);
 
-	/**
-	 * 확인 팝업을 Modal 레이어에 띄운다.
-	 * 결과는 ResultCallback 으로 돌려준다.
-	 */
+	/** 확인 팝업을 Modal 레이어에 띄운다. */
 	void ShowConfirmation(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback = FWxPopupResultDelegate());
 
 	UWxPrimaryGameLayout* GetPrimaryGameLayout() const;
@@ -66,13 +63,12 @@ private:
 	/** 폰 ASC 의 상태 태그(사망·대화)를 관찰하기 시작한다. 이전 관찰은 먼저 끊는다 — 폰이 null 이면 끊기만 한다. */
 	void WatchPawnTags(APawn* Pawn);
 
-	/** 사망 태그 변화 콜백. 부여되면 사망 화면을 띄운다. */
+	/** 사망 태그가 부여되면 사망 화면을 띄운다. */
 	void HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
-	/** 대화 태그 변화 콜백. 세션이 열리면 대화 창을 띄우고, 닫히면 걷는다. */
+	/** 대화 세션이 열리면 대화 창을 띄우고, 닫히면 걷는다. */
 	void HandleDialogueTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
-	/** 띄워 둔 대화 창을 닫는다. 창이 없으면 아무 것도 하지 않는다. */
 	void CloseDialogueScreen();
 
 	/**
@@ -81,7 +77,6 @@ private:
 	 */
 	void ObserveWidgetForGamePause(UCommonActivatableWidget* Widget);
 
-	/** 구독한 위젯이 활성/비활성될 때 호출된다. */
 	void HandleObservedWidgetActivationChanged();
 
 	/** 전 레이어의 활성 위젯을 순회해, 정지를 원하는 활성 위젯이 하나라도 있으면 게임을 정지(아니면 해제)한다. */

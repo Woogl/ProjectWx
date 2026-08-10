@@ -11,7 +11,6 @@ class UTexture2D;
  * 캐릭터의 UI 표시 데이터.
  * 캐릭터 BP 디폴트에서 저작하여 UWxViewModel_Character 로 주입한다.
  * Effect 의 UWxEffectComponent_UIData 에 대응하는 캐릭터 버전으로, "캐릭터가 UI 에 내놓는 데이터 모양"을 WxUI 가 소유한다.
- * 함께 저작·주입·소비되는 값 묶음이라 개별 인자로 펼치지 않고 한 단위로 전달한다.
  */
 USTRUCT(BlueprintType)
 struct FWxCharacterUIData

@@ -27,7 +27,7 @@ void UWxViewModel::RequestImageAsync(FName FieldName, const TSoftObjectPtr<UObje
 {
 	FWxImageRequest& Request = ImageRequests.FindOrAdd(FieldName);
 
-	// 같은 슬롯의 이전 스트리밍을 취소한다(충전량 변화로 아이콘이 바뀌는 등 재요청이 흔하다).
+	// 같은 슬롯의 재요청이 흔하다(충전량 변화로 아이콘 교체 등).
 	// CancelHandle 은 지연 콜백 큐에 들어간 완료 델리게이트까지 취소하므로, 취소된 요청이 뒤늦게 발화해 새 값을 덮어쓰지 않는다.
 	if (Request.Handle.IsValid())
 	{
@@ -43,7 +43,6 @@ void UWxViewModel::RequestImageAsync(FName FieldName, const TSoftObjectPtr<UObje
 		return;
 	}
 
-	// 이미 로드돼 있으면 스트리밍 없이 즉시 반영한다.
 	if (UObject* Loaded = InImage.Get())
 	{
 		ApplyLoadedImage(FieldName, Loaded);

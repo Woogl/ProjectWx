@@ -44,7 +44,6 @@ void UWxConfirmationPopup::SetupPopup(UWxGamePopupDescriptor* Descriptor, FWxPop
 		RichText_Description->SetText(Descriptor->Body);
 	}
 
-	// 서술자에 포함된 결과에 해당하는 버튼만 표시한다.
 	bool bHasConfirm = false;
 	bool bHasDecline = false;
 	bool bHasCancel = false;
@@ -87,7 +86,6 @@ void UWxConfirmationPopup::KillPopup()
 
 void UWxConfirmationPopup::HandleResultChosen(EWxPopupResult Result)
 {
-	// 결과 콜백은 최초 1회만 실행한다.
 	// 별도 플래그 대신 델리게이트 언바인딩으로 상태를 표현해 연타나 종료 후 재진입에서 중복 실행을 막는다.
 	FWxPopupResultDelegate Callback = OnResultCallback;
 	OnResultCallback.Unbind();

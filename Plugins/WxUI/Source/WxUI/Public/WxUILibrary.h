@@ -13,10 +13,8 @@ class UWidget;
 class UWxUIManagerSubsystem;
 class UWxPrimaryGameLayout;
 
-/** 팝업 결과를 Blueprint 로 돌려주는 델리게이트. */
 DECLARE_DYNAMIC_DELEGATE_OneParam(FWxPopupResultDynamicDelegate, EWxPopupResult, Result);
 
-/** BP 파사드에서 선택할 확인 팝업 버튼 구성. */
 UENUM(BlueprintType)
 enum class EWxPopupButtonLayout : uint8
 {
@@ -26,10 +24,6 @@ enum class EWxPopupButtonLayout : uint8
 	YesNoCancel
 };
 
-/**
- * WxUI 전용 Blueprint Function Library.
- * UI 매니저 및 레이어 제어 유틸리티를 제공한다.
- */
 UCLASS()
 class WXUI_API UWxUILibrary : public UBlueprintFunctionLibrary
 {
@@ -44,7 +38,8 @@ public:
 
 	/**
 	 * 소프트 위젯 클래스를 동기 로드해 지정한 레이어에 push 한다.
-	 * 클래스 미지정·로드 실패면 아무 것도 하지 않는다. 로드 지연이 문제되는 경로는 UWxAsyncAction_PushWidgetToLayer 를 쓴다.
+	 * 클래스 미지정·로드 실패면 아무 것도 하지 않는다.
+	 * 로드 지연이 문제되는 경로는 UWxAsyncAction_PushWidgetToLayer 를 쓴다.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Wx|UI", meta = (WorldContext = "WorldContextObject"))
 	static UCommonActivatableWidget* PushSoftContentToLayer(const UObject* WorldContextObject, UPARAM(meta = (Categories = "UI.Layer"))FGameplayTag LayerTag, TSoftClassPtr<UCommonActivatableWidget> WidgetClass);
@@ -57,7 +52,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx|UI", meta = (WorldContext = "WorldContextObject"))
 	static void DeactivateWidgetsInLayer(const UObject* WorldContextObject, UPARAM(meta = (Categories = "UI.Layer"))FGameplayTag LayerTag);
 
-	/** 확인 팝업을 띄운다. 버튼 클릭 결과는 OnResult 로 돌려준다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|UI|Popup", meta = (WorldContext = "WorldContextObject", AutoCreateRefTerm = "OnResult"))
 	static void ShowConfirmationPopup(const UObject* WorldContextObject, EWxPopupButtonLayout Buttons, FText Header, FText Body, const FWxPopupResultDynamicDelegate& OnResult);
 };

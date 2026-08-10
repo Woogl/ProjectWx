@@ -21,7 +21,6 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Layout")
 	TSoftClassPtr<UWxPrimaryGameLayout> LayoutClass;
 
-	/** 확인 팝업에 사용할 위젯 클래스. */
 	UPROPERTY(Config, EditAnywhere, Category = "Popup")
 	TSoftClassPtr<UWxGamePopup> ConfirmationPopupClass;
 

@@ -20,11 +20,9 @@ public:
 	void SetPrompt(const FText& InPrompt);
 	void SetSelected(bool bInSelected);
 
-	/** 표시할 프롬프트 텍스트. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Interaction")
 	FText Prompt;
 
-	/** 현재 선택된 항목인지 여부(하이라이트용). */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Interaction")
 	bool bSelected = false;
 };

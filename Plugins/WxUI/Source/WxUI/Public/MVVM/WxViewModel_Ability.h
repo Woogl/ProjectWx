@@ -19,18 +19,12 @@ struct FGameplayEffectSpec;
 
 /**
  * 어빌리티 쿨다운/발동 가능 여부 뷰모델.
- * 어빌리티의 GetCooldownGameplayEffect()를 기준으로 쿨다운/충전 상태를 UI에 제공한다.
- *
- * 사용 흐름:
- *  1. Initialize(ASC, Ability)로 초기화.
- *     어빌리티 CDO에서 CooldownGE 클래스와 StackLimitCount(=MaxRecharges)를 자동으로 읽어온다.
- *  2. 쿨다운 GE 적용 시 타이머로 매 프레임 남은 시간/남은 충전 수 갱신
- *  3. 쿨다운 만료 시 타이머 중단, 프로퍼티 초기화
+ * 쿨다운/충전 상태는 어빌리티의 GetCooldownGameplayEffect() 기준이며, MaxRecharges 는 그 GE 의 StackLimitCount 에서 읽는다.
+ * 쿨다운 GE 가 적용되면 티커로 매 프레임 남은 시간·충전 수를 갱신하고, 만료되면 티커를 멈추고 프로퍼티를 초기화한다.
  *
  * 동일 GE 클래스를 여러 어빌리티가 공유하는 경우, 소스 어빌리티 CDO로 구분한다.
  *
- * CanActivate는 엔진 CanActivateAbility(비용/쿨다운/태그 요건 종합)로 판정하며, ASC 태그 변경/비용 어트리뷰트 변경/쿨다운 진행 시점에 재평가된다.
- * CheckCost는 같은 시점에 동명의 엔진 함수(비용 검사)만으로 판정한다.
+ * CanActivate·CheckCost 는 ASC 태그 변경/비용 어트리뷰트 변경/쿨다운 진행 시점에 재평가된다.
  */
 UCLASS()
 class WXUI_API UWxViewModel_Ability : public UWxViewModel
@@ -38,14 +32,14 @@ class WXUI_API UWxViewModel_Ability : public UWxViewModel
 	GENERATED_BODY()
 
 public:
-	/**
-	 * @param InASC      소유 ASC
-	 * @param InAbility  어빌리티 CDO. GetCooldownGameplayEffect()에서 충전 정보 추출.
-	 */
+	/** @param InAbility 어빌리티 CDO */
 	void Initialize(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility);
 	virtual void Deinitialize() override;
 
-	/** 바인딩된 어빌리티의 발동을 시도한다. 위젯 OnClicked 등 MVVM 이벤트 바인딩의 대상으로 사용한다. 비용/쿨다운/태그 요건은 엔진 TryActivateAbility가 판정한다. */
+	/**
+	 * 위젯 OnClicked 등 MVVM 이벤트 바인딩의 대상으로 사용한다.
+	 * 비용/쿨다운/태그 요건은 엔진 TryActivateAbility가 판정한다.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Ability")
 	bool TryActivateAbility();
 
@@ -70,15 +64,15 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	bool HasMultipleCharges = false;
 
-	/** 발동 가능 여부. 비용/쿨다운/태그 요건을 엔진 CanActivateAbility로 종합 판정한다 */
+	/** 비용/쿨다운/태그 요건을 엔진 CanActivateAbility로 종합 판정한다 */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	bool CanActivate = false;
 
-	/** 비용 지불 가능 여부. 쿨다운/태그와 무관하게 엔진 CheckCost만으로 판정한다 */
+	/** 쿨다운/태그와 무관하게 엔진 CheckCost만으로 판정한다 */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	bool CheckCost = false;
 
-	/** UI 표시 아이콘. 텍스처 또는 머터리얼이며, 소프트 참조는 SetIconSoft 가 비동기 로드한다. */
+	/** 텍스처 또는 머터리얼이며, 소프트 참조는 SetIconSoft 가 비동기 로드한다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	TObjectPtr<UObject> Icon = nullptr;
 
@@ -116,7 +110,10 @@ public:
 	UObject* GetIcon() const;
 	void SetIcon(UObject* NewValue);
 
-	/** 소프트 아이콘을 비동기 스트리밍한다. 로드 완료 시 Icon(하드)을 세팅해 바인딩을 발화한다. null이면 즉시 Icon을 비운다. */
+	/**
+	 * 로드 완료 시 Icon(하드)을 세팅해 바인딩을 발화한다.
+	 * null이면 즉시 Icon을 비운다.
+	 */
 	void SetIconSoft(const TSoftObjectPtr<UObject>& InIcon);
 
 protected:
@@ -132,7 +129,7 @@ private:
 
 	/**
 	 * 초기화 시점에 이미 돌고 있는 쿨다운을 1회 스캔해 반영한다.
-	 * 이 VM 은 UMG 바인딩 최초 평가 시 지연 생성되므로(메뉴 최초 오픈·HUD 재생성) 쿨다운 도중에 태어날 수 있고,
+	 * 이 VM 은 UMG 바인딩 최초 평가 시 지연 생성되므로(메뉴 최초 오픈·HUD 재생성) 쿨다운 도중에 태어날 수 있다.
 	 * 그때는 GE 적용 통지를 받을 기회가 없어 다음 발동까지 "충전 만땅"으로 잘못 표시된다.
 	 */
 	void SeedActiveCooldown();

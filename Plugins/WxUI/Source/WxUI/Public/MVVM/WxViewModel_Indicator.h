@@ -19,8 +19,8 @@ class UWxIndicatorManagerComponent;
  * 위젯은 자기가 화면 어디에 놓이는지 계산하지 않는다 — 매니저가 계산한 값을 그대로 받아 위치·표시·외형 바인딩으로 소비한다.
  *
  * 인디케이터 위젯은 HUD 에 배치돼 상시 존재하고 bHasIndicator 로 표시만 갈린다.
- * 매니저는 Experience 주입이라 위젯보다 늦게 도착할 수 있고 리졸버가 돌려준 인스턴스는 뷰가 교체할 수 없으므로,
- * 인스턴스는 고정한 채 도착 신호를 받아 내부 상태(Initialize)만 갈아끼운다 — UWxViewModel_InteractionList 와 같은 구조다.
+ * 매니저는 Experience 주입이라 위젯보다 늦게 도착할 수 있고, 리졸버가 돌려준 인스턴스는 뷰가 교체할 수 없다.
+ * 그래서 인스턴스는 고정한 채 도착 신호를 받아 내부 상태(Initialize)만 갈아끼운다 — UWxViewModel_InteractionList 와 같은 구조다.
  */
 UCLASS()
 class WXUI_API UWxViewModel_Indicator : public UWxViewModel
@@ -31,17 +31,16 @@ public:
 	/** 대상 PC 의 매니저 관찰을 시작한다. 이미 붙어 있으면 즉시 연결하고, 아니면 도착 신호를 기다린다. */
 	void StartObserving(APlayerController* PC, int32 InIndicatorIndex);
 
-	/** 매니저를 물려 갱신 통지를 구독하고 현재 상태로 시드한다. */
 	void Initialize(UWxIndicatorManagerComponent* InManager);
 
 	virtual void Deinitialize() override;
 	virtual void BeginDestroy() override;
 
-	/** 표시할 인디케이터가 있는지. 위젯의 표시/숨김 바인딩용. */
+	/** 위젯의 표시/숨김 바인딩용. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Indicator")
 	bool bHasIndicator = false;
 
-	/** 위젯 중심이 놓일 화면 좌표. 전체화면 캔버스에 정렬 (0.5, 0.5) 로 둔 위젯의 렌더 트랜슬레이션에 바인딩한다. */
+	/** 전체화면 캔버스에 정렬 (0.5, 0.5) 로 둔 위젯의 렌더 트랜슬레이션에 바인딩한다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Indicator")
 	FVector2D ScreenPosition = FVector2D::ZeroVector;
 
@@ -54,10 +53,8 @@ public:
 	bool bClamped = false;
 
 private:
-	/** 매니저 도착 수신. 관찰 중인 PC 의 것이면 연결하고 관찰을 끝낸다. */
 	void HandleManagerReady(UWxIndicatorManagerComponent* Manager);
 
-	/** 투영 갱신 수신. 자기 순번의 등록증을 읽어 표시 필드에 옮긴다. */
 	void HandleIndicatorsUpdated();
 
 	/** 도착 신호 구독을 해제한다. 연결 성공 시와 소멸 시 모두 여기로 모은다. */
@@ -78,8 +75,6 @@ private:
 
 /**
  * VM_Indicator 용 View Bindings Resolver.
- *
- * 위젯을 소유한 PlayerController 로 위젯별 UWxViewModel_Indicator 를 생성하고 관찰을 시작시킨다.
  * WBP 의 View Bindings 에서 Creation Type = Resolver 로 본 클래스를 선택한다.
  */
 UCLASS(EditInlineNew, CollapseCategories)

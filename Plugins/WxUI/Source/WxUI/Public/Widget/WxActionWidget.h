@@ -7,7 +7,7 @@
 #include "WxActionWidget.generated.h"
 
 /**
- * 디자인 타임에도 InputActions(버튼의 TriggeringInputAction)로부터 인풋 아이콘을 미리 보여주는 액션 위젯.
+ * 디자인 타임에도 버튼이 지정한 인풋 액션(EnhancedInput·DataTable 양쪽)에서 아이콘을 미리 보여주는 액션 위젯.
  * 런타임 동작은 UCommonActionWidget 그대로다.
  */
 UCLASS()

@@ -18,11 +18,9 @@ class UWxViewModel_Effect;
 
 /**
  * 어빌리티 시스템 뷰모델 (Composite).
- * ASC의 어트리뷰트/어빌리티/이펙트/OwnedTags를 자식 ViewModel로 노출한다.
+ * ASC의 어트리뷰트/어빌리티/이펙트를 자식 ViewModel로 노출한다.
  *
- * 사용 흐름:
- *  1. Initialize(ASC)로 초기화
- *  2. 어트리뷰트/어빌리티 VM 은 바인딩이 요청할 때 GetOrCreate... 로 지연 생성, 이펙트 VM 은 활성 GE 추가/제거 이벤트로 관리
+ * 어트리뷰트/어빌리티 VM 은 바인딩이 요청할 때 GetOrCreate... 로 지연 생성하고, 이펙트 VM 은 활성 GE 추가/제거 이벤트로 관리한다.
  */
 UCLASS()
 class WXUI_API UWxViewModel_AbilitySystem : public UWxViewModel
@@ -38,18 +36,16 @@ public:
 	UWxViewModel_Effect* FindActiveEffectViewModel(FGameplayTag InEffectTag) const;
 
 	/**
-	 * (현재값, 최대값) 어트리뷰트 쌍에 대응하는 어트리뷰트 VM 을 반환한다.
-	 * 없으면 생성하여 캐시한다.
+	 * (현재값, 최대값) 어트리뷰트 쌍에 대응하는 VM 을 반환하고, 없으면 생성해 캐시한다.
 	 * UI 바인딩이 실제로 요청한 어트리뷰트에 대해서만 VM 이 지연 생성된다.
 	 * Max 가 유효하지 않으면 Current 자신을 최대값으로 사용한다.
 	 */
 	UWxViewModel_Attribute* GetOrCreateAttributeViewModel(FGameplayAttribute Current, FGameplayAttribute Max);
 
 	/**
-	 * Asset Tags 가 InAbilityTags 를 모두 포함하는(HasAll) 어빌리티의 VM 을 반환한다.
-	 * 없으면 부여된 스펙에서 찾아 생성하여 캐시한다.
+	 * Asset Tags 가 InAbilityTags 를 모두 포함하는(HasAll) 어빌리티의 VM 을 반환하고, 없으면 부여된 스펙에서 찾아 생성해 캐시한다.
 	 * 매칭 시멘틱은 엔진의 GetActivatableGameplayAbilitySpecsByAllMatchingTags 와 동일하며, 여러 어빌리티가 매칭되면 첫 번째 것을 사용한다.
-	 * UI 바인딩이 실제로 요청한 어빌리티에 대해서만 VM 이 지연 생성되며, 매칭되는 어빌리티가 부여되지 않았으면 nullptr 를 반환한다.
+	 * 매칭되는 어빌리티가 부여되지 않았으면 nullptr 를 반환한다.
 	 */
 	UWxViewModel_Ability* GetOrCreateAbilityViewModel(const FGameplayTagContainer& InAbilityTags);
 
@@ -60,29 +56,23 @@ public:
 	FGameplayTagContainer OwnedTags;
 
 protected:
-	/** 이펙트 목록을 재구축한다. 런타임에 이펙트가 추가/제거되었을 때 호출 */
+	/**
+	 * 초기화 시점에 이미 활성인 GE 로 목록을 구축한다.
+	 * 이후 추가/제거는 HandleActiveEffectAdded/Removed 가 증분 처리한다.
+	 */
 	void RefreshActiveEffectViewModels();
 
-	/** OwnedTags를 ASC에서 읽어 갱신한다. 태그 변경 시 호출 */
 	void RefreshOwnedTags();
 
 	void HandleActiveEffectAdded(UAbilitySystemComponent* InASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
 	void HandleActiveEffectRemoved(const FActiveGameplayEffect& ActiveEffect);
 	void HandleTagChanged(const FGameplayTag Tag, int32 NewCount);
 
-	/**
-	 * 지연 생성된 어트리뷰트 VM 캐시.
-	 * 바인딩이 요청한 어트리뷰트에 대해서만 채워진다.
-	 * GetOrCreateAttributeViewModel 참조.
-	 */
+	/** 지연 생성된 어트리뷰트 VM 캐시. GetOrCreateAttributeViewModel 참조. */
 	UPROPERTY()
 	TArray<TObjectPtr<UWxViewModel_Attribute>> AttributeViewModels;
 
-	/**
-	 * 지연 생성된 어빌리티 VM 캐시.
-	 * 바인딩이 요청한 어빌리티에 대해서만 채워진다.
-	 * GetOrCreateAbilityViewModel 참조.
-	 */
+	/** 지연 생성된 어빌리티 VM 캐시. GetOrCreateAbilityViewModel 참조. */
 	UPROPERTY()
 	TArray<TObjectPtr<UWxViewModel_Ability>> AbilityViewModels;
 

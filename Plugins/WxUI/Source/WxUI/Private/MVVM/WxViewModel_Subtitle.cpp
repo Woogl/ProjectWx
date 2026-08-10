@@ -11,7 +11,7 @@
 
 namespace
 {
-	/** 글로벌 컬렉션에서 자막 뷰모델을 지목하는 문맥. 등록·조회가 같은 값을 써야 하므로 한 곳에서 만든다. */
+	/** 등록·조회가 같은 값을 써야 하므로 문맥을 한 곳에서 만든다. */
 	FMVVMViewModelContext MakeSubtitleContext()
 	{
 		FMVVMViewModelContext Context;
@@ -72,7 +72,6 @@ int32 UWxViewModel_Subtitle::ShowSubtitle(const FText& InSpeakerText, const FTex
 
 void UWxViewModel_Subtitle::HideSubtitle(int32 InSubtitleHandle)
 {
-	// 이미 다음 자막이 올라왔거나 애초에 걸지 못한 요청이면 화면을 건드리지 않는다.
 	if (InSubtitleHandle == INDEX_NONE || InSubtitleHandle != CurrentHandle)
 	{
 		return;

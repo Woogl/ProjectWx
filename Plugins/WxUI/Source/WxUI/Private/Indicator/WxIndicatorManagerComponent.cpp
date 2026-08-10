@@ -20,7 +20,6 @@ namespace
 
 	/**
 	 * 대상의 월드 위치를 화면 좌표와 카메라 거리로 바꾼다. 대상이 무효면 false.
-	 * 카메라 뒤 대상은 투영 좌표가 화면 안으로 접혀 들어오므로 화면 밖으로 밀어내, 클램프가 올바른 가장자리를 잡게 한다.
 	 */
 	bool ProjectIndicator(const UWxIndicatorDescriptor& Indicator, const FSceneViewProjectionData& ProjectionData, const FVector2f& ScreenSize, FVector2D& OutScreenPosition, double& OutDistanceToCamera)
 	{
@@ -146,7 +145,6 @@ UWxIndicatorDescriptor* UWxIndicatorManagerComponent::AddIndicator(USceneCompone
 		return nullptr;
 	}
 
-	// 화면이 있는 쪽에서만 의미가 있으므로 원격 사본(데디 서버가 들고 있는 PC 등)은 발급하지 않는다.
 	const APlayerController* OwningController = GetController<APlayerController>();
 	if (!OwningController || !OwningController->IsLocalController())
 	{
@@ -175,7 +173,6 @@ void UWxIndicatorManagerComponent::RemoveIndicator(UWxIndicatorDescriptor* Indic
 
 	UpdateTickEnabled();
 
-	// 마지막 하나가 빠지면 틱이 멈추므로, 표시 측이 숨김으로 수렴할 마지막 통지를 여기서 낸다.
 	UpdateProjections();
 	OnIndicatorsUpdated.Broadcast();
 }
@@ -193,7 +190,6 @@ void UWxIndicatorManagerComponent::UpdateProjections()
 	FSceneViewProjectionData ProjectionData;
 	if (!LocalPlayer || !LocalPlayer->ViewportClient || !LocalPlayer->GetProjectionData(LocalPlayer->ViewportClient->Viewport, ProjectionData))
 	{
-		// 뷰를 얻지 못하는 동안(월드 전환 등) 전부 접는다.
 		for (const TObjectPtr<UWxIndicatorDescriptor>& Indicator : Indicators)
 		{
 			Indicator->ClearProjection();

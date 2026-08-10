@@ -43,7 +43,7 @@ namespace
 	{
 		AActor* Owner = Cast<AActor>(Context.GetOwner());
 
-		// 기록은 지정과 같은 인덱스로 짝을 이룬다. 매니저는 아직 없을 수 있으며(폰·컨트롤러 스폰 전) 그때는 등록만 미루고 해제는 그대로 수행한다.
+		// 매니저는 아직 없을 수 있으며(폰·컨트롤러 스폰 전) 그때는 등록만 미루고 해제는 그대로 수행한다.
 		Instance.RegisteredIndicators.SetNum(Instance.Targets.Num());
 		UWxIndicatorManagerComponent* Manager = FindIndicatorManager(Owner);
 
@@ -51,7 +51,7 @@ namespace
 		{
 			TWeakObjectPtr<UWxIndicatorDescriptor>& RegisteredIndicator = Instance.RegisteredIndicators[Index];
 
-			// 등록증과 그 대상이 모두 살아 있으면 해석할 이유가 없다. 매니저는 대상이 파괴돼도 표시만 접고 등록증은 남기므로 대상 컴포넌트까지 본다.
+			// 매니저는 대상이 파괴돼도 표시만 접고 등록증은 남기므로 대상 컴포넌트까지 본다.
 			const UWxIndicatorDescriptor* Indicator = RegisteredIndicator.Get();
 			if (Indicator && IsValid(Indicator->GetTargetComponent()))
 			{
@@ -85,7 +85,6 @@ namespace
 			return Actor->GetActorLabel();
 		}
 
-		// 미해석(언로드 등)이면 액터 프래그먼트의 소프트 경로 끝 이름이라도 보여준다.
 		const FUniversalObjectLocatorFragment* Fragment = Locator.GetLastFragment();
 		const FActorLocatorFragment* Payload = nullptr;
 		if (Fragment && Fragment->TryGetPayloadAs(FActorLocatorFragment::FragmentType, Payload) && Payload)
@@ -140,7 +139,6 @@ EStateTreeRunStatus FWxStateTreeTask_MarkIndicators::EnterState(FStateTreeExecut
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 대상 미지정·빈 로케이터는 인디케이터를 띄울 수 없는 잘못된 조립이다. 침묵 대신 경고를 남긴다.
 	if (Instance.Targets.IsEmpty())
 	{
 		UE_LOG(LogWxUI, Warning, TEXT("Mark Indicators: 가리킬 대상이 지정되지 않음."));

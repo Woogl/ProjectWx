@@ -20,8 +20,6 @@ struct FWxImageRequest
 };
 
 /**
- * 프로젝트 뷰모델 베이스.
- *
  * 표시용 이미지(아이콘/초상화 등)의 비동기 스트리밍을 공통 제공한다.
  * 이미지는 텍스처와 머터리얼 양쪽이 될 수 있어 UObject 로 다룬다 — 종착지인 UImage 의 브러시 리소스가 둘 다 받는다.
  * VM 은 소프트 참조를 UMG 에 노출하지 않고 로드된 하드 참조만 노출하므로, WBP 는 특수 위젯 없이 일반 Image 의 SetBrushResourceObject 에 바인딩하면 된다.
@@ -34,7 +32,10 @@ class WXUI_API UWxViewModel : public UMVVMViewModelBase
 public:
 	virtual void BeginDestroy() override;
 
-	/** 구독 해제·상태 초기화. 파생은 자기 정리 후 Super 를 호출하며, 진행 중인 이미지 요청은 여기서 일괄 취소된다. */
+	/**
+	 * 파생은 자기 정리 후 Super 를 호출한다.
+	 * 진행 중인 이미지 요청은 여기서 일괄 취소된다.
+	 */
 	virtual void Deinitialize();
 
 protected:
@@ -53,7 +54,6 @@ protected:
 	virtual void ApplyLoadedImage(FName FieldName, UObject* LoadedImage);
 
 private:
-	/** 스트리밍 완료 콜백. 어느 슬롯의 완료인지 페이로드 인자로 받는다. */
 	void HandleImageLoaded(FName FieldName);
 
 	TMap<FName, FWxImageRequest> ImageRequests;

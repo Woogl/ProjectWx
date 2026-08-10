@@ -36,7 +36,6 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 			.AddUObject(this, &UWxViewModel_Ability::HandleGameplayEffectApplied);
 	}
 
-	// 발동 가능 여부 재평가 트리거 등록.
 	// 태그 요건은 ASC 태그 변경으로, 비용은 비용 GE가 수정하는 어트리뷰트 값 변경으로 감지한다.
 	// 쿨다운 진행(충전 회복/만료)은 이벤트가 없어 UpdateCooldownState 티커에서 재평가한다.
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_Ability::HandleTagChanged);

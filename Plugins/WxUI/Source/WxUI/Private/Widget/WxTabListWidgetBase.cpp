@@ -11,7 +11,6 @@ void UWxTabListWidgetBase::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	// 바인딩된 스위처가 있으면 자동 링크한다(외부 배선/이벤트 그래프 불필요).
 	if (TabContentSwitcher && GetLinkedSwitcher() == nullptr)
 	{
 		SetLinkedSwitcher(TabContentSwitcher);
@@ -74,7 +73,6 @@ void UWxTabListWidgetBase::SetTabHiddenState(FName TabNameId, bool bHidden)
 
 bool UWxTabListWidgetBase::RegisterDynamicTab(const FWxTabDescriptor& TabDescriptor)
 {
-	// 숨김 탭이면 그냥 무시한다.
 	if (TabDescriptor.bHidden)
 	{
 		return true;
@@ -103,7 +101,6 @@ void UWxTabListWidgetBase::HandlePostLinkedSwitcherChanged()
 {
 	if (!IsDesignTime() && GetCachedWidget().IsValid())
 	{
-		// 디자이너거나 아직 생성 전이면 탭을 만들지 않는다.
 		SetupTabs();
 	}
 
@@ -137,7 +134,6 @@ void UWxTabListWidgetBase::HandleTabCreation_Implementation(FName TabId, UCommon
 		}
 	}
 
-	// 바인딩된 컨테이너가 있으면 생성된 탭 버튼을 붙인다(WBP 이벤트 그래프 불필요).
 	if (TabButtonContainer)
 	{
 		TabButtonContainer->AddChild(TabButton);
@@ -203,7 +199,6 @@ void UWxTabListWidgetBase::SetupTabs()
 			continue;
 		}
 
-		// 탭 콘텐츠가 아직 없으면 생성한다.
 		if (!TabInfo.CreatedTabContentWidget && TabInfo.TabContentType)
 		{
 			TabInfo.CreatedTabContentWidget = CreateWidget<UCommonUserWidget>(GetOwningPlayer(), TabInfo.TabContentType);
@@ -213,14 +208,12 @@ void UWxTabListWidgetBase::SetupTabs()
 
 		if (UCommonAnimatedSwitcher* CurrentLinkedSwitcher = GetLinkedSwitcher())
 		{
-			// 새로 연결된 스위처에 탭 콘텐츠를 추가한다.
 			if (!CurrentLinkedSwitcher->HasChild(TabInfo.CreatedTabContentWidget))
 			{
 				CurrentLinkedSwitcher->AddChild(TabInfo.CreatedTabContentWidget);
 			}
 		}
 
-		// 아직 등록되지 않은 탭이면 등록한다.
 		if (GetTabButtonBaseByID(TabInfo.TabId) == nullptr)
 		{
 			RegisterTab(TabInfo.TabId, TabInfo.TabButtonType, TabInfo.CreatedTabContentWidget);
