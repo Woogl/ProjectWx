@@ -41,7 +41,10 @@ public:
 	/** 입력이 없던 프레임에는 0이 반환된다. */
 	FVector2D ConsumeLookInput();
 
-	/** 락온 대상 변경 시(로컬 예측·권위 적용·복제 도착 모두) 브로드캐스트된다. */
+	/**
+	 * 로컬 예측·권위 적용·복제 도착에서 브로드캐스트된다.
+	 * 복제 도착은 값이 같아도 불리므로 구독자는 멱등해야 한다.
+	 */
 	UPROPERTY()
 	FWxOnLockOnTargetChanged OnLockOnTargetChanged;
 
@@ -54,12 +57,11 @@ private:
 	UFUNCTION()
 	void OnRep_LockOnTarget();
 
-	/** 변경 시에만 브로드캐스트하는 권위/예측 공통 경로 */
 	void ApplyLockOnTarget(USceneComponent* InTarget);
 
 	UPROPERTY(ReplicatedUsing = OnRep_LockOnTarget)
 	TObjectPtr<USceneComponent> LockOnTarget;
 
-	/** 이번 프레임의 시선 입력. 로컬 조작 입력이라 복제하지 않는다. */
+	/** 로컬 조작 입력이라 복제하지 않는다. */
 	FVector2D LookInput = FVector2D::ZeroVector;
 };

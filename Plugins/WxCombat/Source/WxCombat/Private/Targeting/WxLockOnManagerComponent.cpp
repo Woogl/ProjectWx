@@ -28,14 +28,10 @@ void UWxLockOnManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 
 void UWxLockOnManagerComponent::SetLockOnTarget(USceneComponent* InTarget)
 {
-	if (GetOwner() && GetOwner()->HasAuthority())
+	ApplyLockOnTarget(InTarget);
+
+	if (!GetOwner() || !GetOwner()->HasAuthority())
 	{
-		// 권위 측은 직접 반영하면 전 클라로 복제된다.
-		ApplyLockOnTarget(InTarget);
-	}
-	else
-	{
-		ApplyLockOnTarget(InTarget);
 		ServerSetLockOnTarget(InTarget);
 	}
 }
@@ -47,7 +43,6 @@ void UWxLockOnManagerComponent::ServerSetLockOnTarget_Implementation(USceneCompo
 
 void UWxLockOnManagerComponent::OnRep_LockOnTarget()
 {
-	// 복제가 값을 이미 대입한 뒤 호출되므로, 변경이 없으면 조용히 넘어가도록 idempotent하게 처리한다.
 	OnLockOnTargetChanged.Broadcast(LockOnTarget);
 }
 
