@@ -29,8 +29,6 @@ protected:
 	TObjectPtr<UAnimMontage> GroggyMontage;
 
 private:
-	void HandleGroggyTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
-
 	// ActivationBlockedTags는 신규 활성화만 막고 실행 중 인스턴스는 끝내지 못하므로 별도 구독한다.
 	void HandleDeadTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
@@ -39,7 +37,6 @@ private:
 	// 실패복구: DrainDP가 DP를 0까지 못 내려 그로기가 끝나지 않으면 DP를 강제 리셋해 종료시킨다.
 	void HandleGroggySafetyTimeout();
 
-	FDelegateHandle GroggyTagDelegateHandle;
 	FDelegateHandle DeadTagDelegateHandle;
 	FActiveGameplayEffectHandle DrainDPEffectHandle;
 	FTimerHandle MontagePollingTimerHandle;
