@@ -40,11 +40,7 @@ private:
 	
 	void PlayDeathMontageOrRagdoll();
 
-	void HandleRagdollDelayElapsed();
-
 	void RagdollAndEnd(bool bWasCancelled);
 
 	void EnableRagdoll();
-
-	FTimerHandle RagdollDelayTimerHandle;
 };

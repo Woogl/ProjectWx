@@ -5,9 +5,7 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AIController.h"
 #include "BrainComponent.h"
-#include "Engine/World.h"
 #include "GameFramework/Character.h"
-#include "TimerManager.h"
 #include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -78,15 +76,7 @@ void UWxAbility_Death::PlayDeathMontageOrRagdoll()
 {
 	if (!DeathMontage)
 	{
-		// 활성 HitReact 몽타주가 BlendOut될 시간을 주고 래그돌로 인계한다.
-		UWorld* World = GetWorld();
-		if (!World)
-		{
-			RagdollAndEnd(false);
-			return;
-		}
-		constexpr float DelayTime = 0.15f;
-		World->GetTimerManager().SetTimer(RagdollDelayTimerHandle, this, &UWxAbility_Death::HandleRagdollDelayElapsed, DelayTime, false);
+		RagdollAndEnd(false);
 		return;
 	}
 
@@ -103,11 +93,6 @@ void UWxAbility_Death::PlayDeathMontageOrRagdoll()
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Death::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Death::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
-}
-
-void UWxAbility_Death::HandleRagdollDelayElapsed()
-{
-	RagdollAndEnd(false);
 }
 
 void UWxAbility_Death::RagdollAndEnd(bool bWasCancelled)
