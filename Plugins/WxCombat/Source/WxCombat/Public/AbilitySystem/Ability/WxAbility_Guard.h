@@ -15,7 +15,8 @@ class UAbilityTask_PlayMontageAndWait;
  *  GuardHitReactMontage  – 일반 가드 피격(SP 여유) 후 GuardMontage 복귀
  *  GuardKnockbackMontage – Knock 계열 피격 가드 후 GuardMontage 복귀
  *  GuardBreakMontage     – SP 고갈로 State.Guard 해제 후 재생, 종료
- *  PerfectGuardMontage   – 퍼펙트 가드 성공 후 재생, 완주하면 종료(가드 재입력 시 GuardMontage 복귀)
+ *  PerfectGuardMontage   – 퍼펙트 가드 성공 후 재생, 완주하면 종료(가드 키를 쥐고 있으면 가드가 새로 발동해 복귀)
+ *                          완주 전에 후속 피격이 오면 리액션 페이즈로 끊긴다
  *
  * Unblockable 피격은 퍼펙트 가드 윈도우 중이라도 가드로 막히지 않는다.
  * ExecCalc가 이 어빌리티를 직접 Cancel한 뒤 HitReact 이벤트를 발송한다.
@@ -32,7 +33,6 @@ public:
 	UWxAbility_Guard();
 
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
-	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
 	float GetDamageReductionRate() const;
 

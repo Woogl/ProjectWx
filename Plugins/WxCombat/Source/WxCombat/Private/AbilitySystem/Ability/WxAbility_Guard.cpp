@@ -17,9 +17,10 @@ UWxAbility_Guard::UWxAbility_Guard()
 	SetAssetTags(AssetTags);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 
-	bRetriggerInstancedAbility = true;
+	// 자기 애셋 태그를 스스로 막는다. 엔진 블록 경로에는 취소와 달리 self-exception이 없어
+	// 활성 중 재발동이 전부 차단되며, 이것이 가드가 페이즈를 유지하는 방식이다.
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 }
 
 void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
@@ -37,18 +38,6 @@ void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, co
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
-void UWxAbility_Guard::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
-{
-	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
-
-	// 패링 연출 중 가드를 재입력하면 연출을 끊고 즉시 가드 자세로 복귀한다.
-	// State.Guard는 패링 중에도 유지되므로 GuardMontage만 다시 재생하면 가드가 이어진다.
-	if (ActiveMontage == PerfectGuardMontage && GuardMontage)
-	{
-		PlayMontage(GuardMontage);
-	}
-}
-
 float UWxAbility_Guard::GetDamageReductionRate() const
 {
 	return DamageReductionRate;
@@ -57,13 +46,6 @@ float UWxAbility_Guard::GetDamageReductionRate() const
 void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-	// 재발동으로 재진입하면 현재 페이즈를 그대로 유지한다.
-	// 이벤트 리스너 중복 등록을 막고, GuardBreak 중 재진입에서 태스크를 보호한다.
-	if (ActiveMontage)
-	{
-		return;
-	}
 
 	if (!GuardMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
