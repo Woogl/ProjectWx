@@ -73,6 +73,7 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		// 리모트 플레이어의 서버 인스턴스는 방향 데이터를 받은 뒤에야 몽타주를 재생한다.
 		if (ASC)
 		{
+			// 해제는 엔진 EndAbility의 ClearAbilityReplicatedDataCache가 맵 엔트리째 걷는다.
 			FAbilityTargetDataSetDelegate& Delegate = ASC->AbilityTargetDataSetDelegate(
 				Handle,
 				ActivationInfo.GetActivationPredictionKey());
