@@ -37,6 +37,14 @@ public:
 	/** 이 액터의 ASPD가 반영된 몽타주 재생 속도. 어빌리티 몽타주 재생과 히트스톱 복원이 공유한다. */
 	float GetMontagePlayRate() const;
 
+	/**
+	 * 히트스톱(역경직): 재생 중인 몽타주를 잠깐 얼리고 복원을 예약한다.
+	 *
+	 * 대미지를 적용한 쪽이 자기 ASC를 잡아 부른다.
+	 * SourceAbility가 아직 몽타주를 쥐고 있을 때만 걸려, 같은 적중 처리에서 먼저 발동한 반응(패리 등)에 양보한다.
+	 */
+	void ApplyHitStop(float Duration, const UGameplayAbility* SourceAbility);
+
 private:
 	/**
 	 * 대미지 GE 적용이 끝난 시점에 타격 Cue와 반응 이벤트를 발행한다.
@@ -44,19 +52,8 @@ private:
 	 * 연출은 UWxExecCalc_Damage가 FWxCombatEffectContext에 남긴 결과를 그대로 쓴다.
 	 * 어트리뷰트가 확정된 뒤라 수신자가 차감 전 값을 역산할 필요가 없다.
 	 * 판정 결과가 비어 있으면 연출을 건너뛴다 — ExecCalc를 건너뛰는 클라이언트 예측 경로, 팀 판정에 걸린 아군·중립 히트가 그렇다.
-	 *
-	 * 히트스톱만은 그 결과 대신 UWxExecCalc_Damage::CheckDamage를 직접 돌린다.
-	 * 클라이언트도 서버와 같은 결론에 이르러야 공격자 본인 화면이 함께 얼어붙기 때문이다.
 	 */
 	void HandleGameplayEffectAppliedToSelf(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
-
-	/**
-	 * 히트스톱(역경직): 재생 중인 몽타주를 잠깐 얼리고 복원을 예약한다.
-	 *
-	 * 피격자 ASC가 대미지를 준 쪽의 ASC를 잡아 직접 부른다.
-	 * SourceAbility가 아직 몽타주를 쥐고 있을 때만 걸려, 같은 적중 처리에서 먼저 발동한 반응(패리 등)에 양보한다.
-	 */
-	void ApplyHitStop(float Duration, const UGameplayAbility* SourceAbility);
 
 	void HandleHitStopElapsed(TWeakObjectPtr<UAnimMontage> FrozenMontage);
 

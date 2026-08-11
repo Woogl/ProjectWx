@@ -158,6 +158,13 @@ EWxDamageResult UWxExecCalc_Damage::CheckDamage(const UAbilitySystemComponent* S
 		return EWxDamageResult::None;
 	}
 
+	// 대미지 GE 자체가 사망 타겟을 IgnoreTags로 거르므로 대미지 경로는 여기 닿지 않는다.
+	// ExecCalc 밖에서 부르는 화상·히트스톱이 시체를 걸러내는 지점이다.
+	if (Target->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
+	{
+		return EWxDamageResult::None;
+	}
+
 	// 적대 관계에만 피해가 성립한다 — 아군·중립은 대미지도 연출도 발생하지 않는다.
 	// 자기 자신은 자해 경로라 제외하고, 팀 개념이 없는 공격자는 판정 근거가 없어 통과시킨다.
 	const AActor* SourceAvatar = Source ? Source->GetAvatarActor() : nullptr;

@@ -4,7 +4,6 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
-#include "AbilitySystem/Effect/WxExecCalc_Damage.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Damage/WxCombatEffectContext.h"
 #include "WxGameplayTags.h"
@@ -129,6 +128,35 @@ float UWxAbilitySystemComponent::GetMontagePlayRate() const
 	return FMath::Max(AttrSet->GetASPD(), 0.01f);
 }
 
+void UWxAbilitySystemComponent::ApplyHitStop(float Duration, const UGameplayAbility* SourceAbility)
+{
+	// SetTimer가 0 이하를 예약 취소로 취급하므로, 그대로 두면 복원 없는 정지가 된다.
+	if (Duration <= 0.f)
+	{
+		return;
+	}
+
+	// 같은 적중 처리에서 먼저 발동한 반응(패리 등)이 몽타주를 가로챘으면 건너뛴다.
+	if (!GetAnimatingAbility() || GetAnimatingAbility() != SourceAbility)
+	{
+		return;
+	}
+
+	UAnimMontage* Montage = GetCurrentMontage();
+	if (!Montage)
+	{
+		return;
+	}
+
+	// 완전한 0이 아닌 미세 값으로 둬 몽타주 진행 판정 이슈를 피한다.
+	CurrentMontageSetPlayRate(0.001f);
+
+	// 연속 적중이면 타이머가 재설정되어 조기 복원을 막는다.
+	GetWorld()->GetTimerManager().SetTimer(HitStopResumeTimer,
+		FTimerDelegate::CreateUObject(this, &UWxAbilitySystemComponent::HandleHitStopElapsed, TWeakObjectPtr<UAnimMontage>(Montage)),
+		Duration, false);
+}
+
 void UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle)
 {
 	// 컨텍스트가 대미지 GE와 AdditionalEffects에 공유되므로, GE 종류로 걸러야 뒤따르는 상태이상 GE마다 연출이 다시 나가지 않는다.
@@ -162,101 +190,63 @@ void UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf(UAbilitySystem
 	}
 
 	// 판정이 없으면 낼 연출이 없다 — 팀에 걸린 아군 히트, ExecCalc를 건너뛴 클라이언트 예측 경로가 그렇다.
-	// 아래 히트스톱은 판정 결과를 보지 않으므로 여기서 반환하지 않는다.
-	if (DamageResult != EWxDamageResult::None)
-	{
-		FVector HitLocation = FVector::ZeroVector;
-		if (const FHitResult* HitResult = ContextHandle.GetHitResult())
-		{
-			HitLocation = FVector(HitResult->ImpactPoint);
-		}
-		else if (const AActor* TargetAvatar = GetAvatarActor())
-		{
-			HitLocation = TargetAvatar->GetActorLocation();
-		}
-
-		FGameplayCueParameters CueParams;
-		CueParams.Location = HitLocation;
-		CueParams.EffectContext = ContextHandle;
-
-		if (DamageResult == EWxDamageResult::PerfectGuard)
-		{
-			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_PerfectGuard, EventData);
-
-			if (SourceActor && Spec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_ParryHitReact))
-			{
-				FGameplayEventData ParryEventData;
-				ParryEventData.Instigator = TargetActor;
-				ParryEventData.Target = SourceActor;
-				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(SourceActor, WxGameplayTags::Event_HitReact_Parry, ParryEventData);
-			}
-
-			ExecuteGameplayCue(WxGameplayTags::GameplayCue_PerfectGuard, CueParams);
-		}
-		else
-		{
-			const float FinalDamage = CombatContext.GetFinalDamage();
-
-			// 죽는 히트는 HP 차감이 먼저라 State.Dead가 이미 붙어 있고, HitReact 어빌리티가 그 태그로 차단된다.
-			// 히트리액트를 재생했다 사망으로 끊는 대신 곧장 사망으로 가는 쪽을 택했다.
-			if (CombatContext.GetHitReactTag().IsValid())
-			{
-				EventData.EventMagnitude = FinalDamage;
-				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, CombatContext.GetHitReactTag(), EventData);
-			}
-
-			if (FinalDamage > 0.f)
-			{
-				CueParams.RawMagnitude = FinalDamage;
-
-				if (CombatContext.IsCritical())
-				{
-					CueParams.AggregatedSourceTags.AddTag(WxGameplayTags::Damage_Critical);
-				}
-
-				ExecuteGameplayCue(WxGameplayTags::GameplayCue_Damage, CueParams);
-			}
-		}
-	}
-
-	// 히트스톱은 대미지 크기가 아니라 적중 성립 여부만 보므로 판정 결과 대신 선판정을 다시 돌린다.
-	// ExecCalc를 건너뛴 클라이언트도 같은 결론에 이르러, 데디케이티드 서버에서 공격자 본인 화면만 역경직이 빠지는 일이 없다.
-	if (UWxExecCalc_Damage::CheckDamage(SourceASC, this) == EWxDamageResult::Damaged)
-	{
-		if (UWxAbilitySystemComponent* SourceWxASC = Cast<UWxAbilitySystemComponent>(SourceASC))
-		{
-			SourceWxASC->ApplyHitStop(Spec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_HitStop, false, 0.f), ContextHandle.GetAbilityInstance_NotReplicated());
-		}
-	}
-}
-
-void UWxAbilitySystemComponent::ApplyHitStop(float Duration, const UGameplayAbility* SourceAbility)
-{
-	// SetTimer가 0 이하를 예약 취소로 취급하므로, 그대로 두면 복원 없는 정지가 된다.
-	if (Duration <= 0.f)
+	if (DamageResult == EWxDamageResult::None)
 	{
 		return;
 	}
 
-	// 같은 적중 처리에서 먼저 발동한 반응(패리 등)이 몽타주를 가로챘으면 건너뛴다.
-	if (!GetAnimatingAbility() || GetAnimatingAbility() != SourceAbility)
+	FVector HitLocation = FVector::ZeroVector;
+	if (const FHitResult* HitResult = ContextHandle.GetHitResult())
 	{
-		return;
+		HitLocation = FVector(HitResult->ImpactPoint);
+	}
+	else if (const AActor* TargetAvatar = GetAvatarActor())
+	{
+		HitLocation = TargetAvatar->GetActorLocation();
 	}
 
-	UAnimMontage* Montage = GetCurrentMontage();
-	if (!Montage)
+	FGameplayCueParameters CueParams;
+	CueParams.Location = HitLocation;
+	CueParams.EffectContext = ContextHandle;
+
+	if (DamageResult == EWxDamageResult::PerfectGuard)
 	{
-		return;
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_PerfectGuard, EventData);
+
+		if (SourceActor && Spec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_ParryHitReact))
+		{
+			FGameplayEventData ParryEventData;
+			ParryEventData.Instigator = TargetActor;
+			ParryEventData.Target = SourceActor;
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(SourceActor, WxGameplayTags::Event_HitReact_Parry, ParryEventData);
+		}
+
+		ExecuteGameplayCue(WxGameplayTags::GameplayCue_PerfectGuard, CueParams);
 	}
+	else
+	{
+		const float FinalDamage = CombatContext.GetFinalDamage();
 
-	// 완전한 0이 아닌 미세 값으로 둬 몽타주 진행 판정 이슈를 피한다.
-	CurrentMontageSetPlayRate(0.001f);
+		// 죽는 히트는 HP 차감이 먼저라 State.Dead가 이미 붙어 있고, HitReact 어빌리티가 그 태그로 차단된다.
+		// 히트리액트를 재생했다 사망으로 끊는 대신 곧장 사망으로 가는 쪽을 택했다.
+		if (CombatContext.GetHitReactTag().IsValid())
+		{
+			EventData.EventMagnitude = FinalDamage;
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, CombatContext.GetHitReactTag(), EventData);
+		}
 
-	// 연속 적중이면 타이머가 재설정되어 조기 복원을 막는다.
-	GetWorld()->GetTimerManager().SetTimer(HitStopResumeTimer,
-		FTimerDelegate::CreateUObject(this, &UWxAbilitySystemComponent::HandleHitStopElapsed, TWeakObjectPtr<UAnimMontage>(Montage)),
-		Duration, false);
+		if (FinalDamage > 0.f)
+		{
+			CueParams.RawMagnitude = FinalDamage;
+
+			if (CombatContext.IsCritical())
+			{
+				CueParams.AggregatedSourceTags.AddTag(WxGameplayTags::Damage_Critical);
+			}
+
+			ExecuteGameplayCue(WxGameplayTags::GameplayCue_Damage, CueParams);
+		}
+	}
 }
 
 void UWxAbilitySystemComponent::HandleHitStopElapsed(TWeakObjectPtr<UAnimMontage> FrozenMontage)

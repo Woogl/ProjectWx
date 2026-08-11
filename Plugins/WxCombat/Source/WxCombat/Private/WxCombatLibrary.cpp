@@ -1,10 +1,11 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "WxCombatLibrary.h"
+#include "AbilitySystem/Effect/WxExecCalc_Damage.h"
+#include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
 #include "Damage/WxDamageInfo.h"
-#include "WxGameplayTags.h"
 
 bool UWxCombatLibrary::ApplyDamage(UAbilitySystemComponent* Source, UAbilitySystemComponent* Target, const FWxDamageInfo& DamageInfo, const FHitResult& HitResult, float HitStopDuration)
 {
@@ -28,19 +29,27 @@ bool UWxCombatLibrary::ApplyDamage(UAbilitySystemComponent* Source, UAbilitySyst
 		PredictionKey = AnimatingAbility->GetCurrentActivationInfo().GetActivationPredictionKey();
 	}
 
+	// 적중 성립 여부는 대미지가 들어가기 전 상태로 가른다 — 이 히트로 죽은 대상은 아직 살아 있던 것으로 쳐야 마무리 일격에도 역경직이 걸린다.
+	const bool bHitLands = HitStopDuration > 0.f && UWxExecCalc_Damage::CheckDamage(Source, Target) == EWxDamageResult::Damaged;
+
 	bool bAppliedAny = false;
 	const TArray<FGameplayEffectSpecHandle> Specs = DamageInfo.MakeSpecs(Source, Context);
 	for (const FGameplayEffectSpecHandle& Spec : Specs)
 	{
 		if (Spec.IsValid())
 		{
-			if (HitStopDuration > 0.f)
-			{
-				Spec.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_HitStop, HitStopDuration);
-			}
-
 			const FActiveGameplayEffectHandle AppliedHandle = Source->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), Target, PredictionKey);
 			bAppliedAny |= AppliedHandle.WasSuccessfullyApplied();
+		}
+	}
+
+	// 발동만은 적용 뒤다.
+	// GE 적용이 동기라 이 시점엔 피격자가 보낸 반응 이벤트(패리 등)가 도착해 있어, ApplyHitStop이 그 반응에 몽타주를 양보할 수 있다.
+	if (bHitLands)
+	{
+		if (UWxAbilitySystemComponent* SourceWxASC = Cast<UWxAbilitySystemComponent>(Source))
+		{
+			SourceWxASC->ApplyHitStop(HitStopDuration, AnimatingAbility);
 		}
 	}
 
