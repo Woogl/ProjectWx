@@ -1,6 +1,8 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
+#include "AbilitySystem/Effect/WxEffect_Exhaust.h"
+#include "AbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
 #include "Perception/AISense_Damage.h"
@@ -192,6 +194,15 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 	else if (Data.EvaluatedData.Attribute == GetSPAttribute())
 	{
 		SetSP(FMath::Clamp(GetSP(), 0.f, GetMaxSP()));
+
+		// SP를 깎는 GE는 질주 소모든 회피 코스트든 가드 피격이든 모두 이 지점을 지난다.
+		// 남은 양이 아니라 소모 후 결과로 지속시간을 고르므로, 0에서 또 깎여도 짧은 쪽으로 갱신되지 않는다.
+		// MaxSP가 없는 아바타는 스태미나를 쓰지 않으므로 제외한다.
+		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+		if (Data.EvaluatedData.Magnitude < 0.f && GetMaxSP() > 0.f && ASC && ASC->IsOwnerActorAuthoritative())
+		{
+			UWxEffect_Exhaust::ApplyTo(ASC, GetSP() <= 0.f ? UWxEffect_Exhaust::ExhaustDuration : UWxEffect_Exhaust::ConsumeDelay);
+		}
 	}
 	else if (Data.EvaluatedData.Attribute == GetUPAttribute())
 	{
