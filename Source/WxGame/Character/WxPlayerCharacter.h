@@ -8,6 +8,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
+class UWidgetComponent;
 class UWxInputConfig;
 class UWxLockOnManagerComponent;
 class UInputAction;
@@ -30,6 +31,9 @@ public:
 	virtual bool CanCrouch() const override;
 
 protected:
+	/** 스태미나 바 위젯에 어트리뷰트 뷰모델을 주입한다. */
+	virtual void BeginPlay() override;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Camera")
 	TObjectPtr<USpringArmComponent> CameraBoom;
 
@@ -38,6 +42,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")
 	TObjectPtr<UWxLockOnManagerComponent> LockOnManagerComponent;
+
+	/** 스태미나 바를 캐릭터 위치에 띄우는 화면 위젯. 위젯 클래스는 BP 에서 지정한다. */
+	UPROPERTY(VisibleAnywhere, Category = "Wx|UI")
+	TObjectPtr<UWidgetComponent> StaminaWidget;
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
