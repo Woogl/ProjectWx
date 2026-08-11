@@ -37,7 +37,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_Interact, "Event.Interact");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Finisher, "Event.Finisher");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Backstab, "Event.Backstab");
-	UE_DEFINE_GAMEPLAY_TAG(Event_HitStop, "Event.HitStop");
 
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Door_Close, "Gimmick.Door.Close");
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Door_Open, "Gimmick.Door.Open");

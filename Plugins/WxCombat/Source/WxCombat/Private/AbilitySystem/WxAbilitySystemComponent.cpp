@@ -4,6 +4,7 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
+#include "AbilitySystem/Effect/WxExecCalc_Damage.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Damage/WxCombatEffectContext.h"
 #include "WxGameplayTags.h"
@@ -128,16 +129,6 @@ float UWxAbilitySystemComponent::GetMontagePlayRate() const
 	return FMath::Max(AttrSet->GetASPD(), 0.01f);
 }
 
-int32 UWxAbilitySystemComponent::HandleGameplayEvent(FGameplayTag EventTag, const FGameplayEventData* Payload)
-{
-	if (EventTag == WxGameplayTags::Event_HitStop && Payload)
-	{
-		ApplyHitStop(*Payload);
-	}
-
-	return Super::HandleGameplayEvent(EventTag, Payload);
-}
-
 void UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle)
 {
 	// 컨텍스트가 대미지 GE와 AdditionalEffects에 공유되므로, GE 종류로 걸러야 뒤따르는 상태이상 GE마다 연출이 다시 나가지 않는다.
@@ -155,10 +146,6 @@ void UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf(UAbilitySystem
 
 	const FWxCombatEffectContext& CombatContext = static_cast<const FWxCombatEffectContext&>(*RawContext);
 	const EWxDamageResult DamageResult = CombatContext.GetDamageResult();
-	if (DamageResult == EWxDamageResult::None)
-	{
-		return;
-	}
 
 	AActor* TargetActor = GetOwnerActor();
 	AActor* SourceActor = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
@@ -174,86 +161,85 @@ void UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf(UAbilitySystem
 		return;
 	}
 
-	FVector HitLocation = FVector::ZeroVector;
-	if (const FHitResult* HitResult = ContextHandle.GetHitResult())
+	// 판정이 없으면 낼 연출이 없다 — 팀에 걸린 아군 히트, ExecCalc를 건너뛴 클라이언트 예측 경로가 그렇다.
+	// 아래 히트스톱은 판정 결과를 보지 않으므로 여기서 반환하지 않는다.
+	if (DamageResult != EWxDamageResult::None)
 	{
-		HitLocation = FVector(HitResult->ImpactPoint);
-	}
-	else if (const AActor* TargetAvatar = GetAvatarActor())
-	{
-		HitLocation = TargetAvatar->GetActorLocation();
-	}
-
-	FGameplayCueParameters CueParams;
-	CueParams.Location = HitLocation;
-	CueParams.EffectContext = ContextHandle;
-
-	if (DamageResult == EWxDamageResult::PerfectGuard)
-	{
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_PerfectGuard, EventData);
-
-		if (SourceActor && Spec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_ParryHitReact))
+		FVector HitLocation = FVector::ZeroVector;
+		if (const FHitResult* HitResult = ContextHandle.GetHitResult())
 		{
-			FGameplayEventData ParryEventData;
-			ParryEventData.Instigator = TargetActor;
-			ParryEventData.Target = SourceActor;
-			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(SourceActor, WxGameplayTags::Event_HitReact_Parry, ParryEventData);
+			HitLocation = FVector(HitResult->ImpactPoint);
+		}
+		else if (const AActor* TargetAvatar = GetAvatarActor())
+		{
+			HitLocation = TargetAvatar->GetActorLocation();
 		}
 
-		ExecuteGameplayCue(WxGameplayTags::GameplayCue_PerfectGuard, CueParams);
-	}
-	else
-	{
-		const float FinalDamage = CombatContext.GetFinalDamage();
+		FGameplayCueParameters CueParams;
+		CueParams.Location = HitLocation;
+		CueParams.EffectContext = ContextHandle;
 
-		// 죽는 히트는 HP 차감이 먼저라 State.Dead가 이미 붙어 있고, HitReact 어빌리티가 그 태그로 차단된다.
-		// 히트리액트를 재생했다 사망으로 끊는 대신 곧장 사망으로 가는 쪽을 택했다.
-		if (CombatContext.GetHitReactTag().IsValid())
+		if (DamageResult == EWxDamageResult::PerfectGuard)
 		{
-			EventData.EventMagnitude = FinalDamage;
-			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, CombatContext.GetHitReactTag(), EventData);
-		}
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_PerfectGuard, EventData);
 
-		if (FinalDamage > 0.f)
-		{
-			CueParams.RawMagnitude = FinalDamage;
-
-			if (CombatContext.IsCritical())
+			if (SourceActor && Spec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_ParryHitReact))
 			{
-				CueParams.AggregatedSourceTags.AddTag(WxGameplayTags::Damage_Critical);
+				FGameplayEventData ParryEventData;
+				ParryEventData.Instigator = TargetActor;
+				ParryEventData.Target = SourceActor;
+				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(SourceActor, WxGameplayTags::Event_HitReact_Parry, ParryEventData);
 			}
 
-			ExecuteGameplayCue(WxGameplayTags::GameplayCue_Damage, CueParams);
+			ExecuteGameplayCue(WxGameplayTags::GameplayCue_PerfectGuard, CueParams);
+		}
+		else
+		{
+			const float FinalDamage = CombatContext.GetFinalDamage();
+
+			// 죽는 히트는 HP 차감이 먼저라 State.Dead가 이미 붙어 있고, HitReact 어빌리티가 그 태그로 차단된다.
+			// 히트리액트를 재생했다 사망으로 끊는 대신 곧장 사망으로 가는 쪽을 택했다.
+			if (CombatContext.GetHitReactTag().IsValid())
+			{
+				EventData.EventMagnitude = FinalDamage;
+				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, CombatContext.GetHitReactTag(), EventData);
+			}
+
+			if (FinalDamage > 0.f)
+			{
+				CueParams.RawMagnitude = FinalDamage;
+
+				if (CombatContext.IsCritical())
+				{
+					CueParams.AggregatedSourceTags.AddTag(WxGameplayTags::Damage_Critical);
+				}
+
+				ExecuteGameplayCue(WxGameplayTags::GameplayCue_Damage, CueParams);
+			}
 		}
 	}
 
-	// 무적 회피로 빠져나간 경우를 빼면 퍼펙트 가드까지 포함해 모든 적중에서 보낸다.
-	if (SourceActor)
+	// 히트스톱은 대미지 크기가 아니라 적중 성립 여부만 보므로 판정 결과 대신 선판정을 다시 돌린다.
+	// ExecCalc를 건너뛴 클라이언트도 같은 결론에 이르러, 데디케이티드 서버에서 공격자 본인 화면만 역경직이 빠지는 일이 없다.
+	if (UWxExecCalc_Damage::CheckDamage(SourceASC, this) == EWxDamageResult::Damaged)
 	{
-		const float HitStopDuration = Spec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_HitStop, false, 0.f);
-		if (HitStopDuration > 0.f)
+		if (UWxAbilitySystemComponent* SourceWxASC = Cast<UWxAbilitySystemComponent>(SourceASC))
 		{
-			FGameplayEventData HitStopEvent;
-			HitStopEvent.Instigator = SourceActor;
-			HitStopEvent.Target = TargetActor;
-			HitStopEvent.EventMagnitude = HitStopDuration;
-			HitStopEvent.ContextHandle = ContextHandle;
-			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(SourceActor, WxGameplayTags::Event_HitStop, HitStopEvent);
+			SourceWxASC->ApplyHitStop(Spec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_HitStop, false, 0.f), ContextHandle.GetAbilityInstance_NotReplicated());
 		}
 	}
 }
 
-void UWxAbilitySystemComponent::ApplyHitStop(const FGameplayEventData& Payload)
+void UWxAbilitySystemComponent::ApplyHitStop(float Duration, const UGameplayAbility* SourceAbility)
 {
 	// SetTimer가 0 이하를 예약 취소로 취급하므로, 그대로 두면 복원 없는 정지가 된다.
-	const float Duration = Payload.EventMagnitude;
 	if (Duration <= 0.f)
 	{
 		return;
 	}
 
 	// 같은 적중 처리에서 먼저 발동한 반응(패리 등)이 몽타주를 가로챘으면 건너뛴다.
-	if (!GetAnimatingAbility() || GetAnimatingAbility() != Payload.ContextHandle.GetAbilityInstance_NotReplicated())
+	if (!GetAnimatingAbility() || GetAnimatingAbility() != SourceAbility)
 	{
 		return;
 	}

@@ -111,9 +111,6 @@ namespace WxGameplayTags
 	/** 백스탭(뒤잡) 발동 이벤트. 미인지 적 후방 상호작용 시 플레이어 ASC로 송출(Target=적), WxAbility_Finisher가 트리거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Backstab);
 
-	/** 역경직(히트 스톱) 이벤트. 피격자 ASC가 대미지 GE 적용 후 무적 회피가 아닌 적중에 공격자 ASC로 송출(EventMagnitude=정지 시간), 공격자 ASC가 재생 중인 몽타주를 잠깐 정지 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitStop);
-
 	// ── Gimmick ───────────────────────────────────────────────────────────
 	// 각 태그는 ST 에셋의 상태에 붙는 라벨(상태 디테일의 Tag 필드)이며, 그 값이 곧
 	// 세이브 슬롯에 담기는 기믹의 상태다. 코드가 읽거나 쓰는 값이 아니다.
@@ -245,7 +242,7 @@ namespace WxGameplayTags
 	/** 원시 대미지 SetByCaller 키. 양수일 때 ATK/DEF/Coeff/크리를 우회하고 평탄 값으로 대미지 처리 (환경 대미지). 가드/퍼펙트 가드/HitReact는 정상 동작 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_RawDamage);
 
-	/** 역경직(히트 스톱) 지속시간 SetByCaller 키. 피격자 ASC가 대미지 GE 적용 후 이 값을 읽어 공격자에게 Event.HitStop을 발동한다 */
+	/** 역경직(히트 스톱) 지속시간 SetByCaller 키. 피격자 ASC가 대미지 GE 적용 후 이 값을 읽어 공격자 ASC의 히트스톱을 발동한다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_HitStop);
 
 	/** 이동 속도 배율 SetByCaller 키. WxEffect_MoveSpeedScale이 SPD 어트리뷰트에 곱하는 배율 */

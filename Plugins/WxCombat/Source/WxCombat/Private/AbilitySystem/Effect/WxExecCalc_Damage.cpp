@@ -72,22 +72,10 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		CombatContext->ClearDamageResult();
 	}
 
-	// 적대 관계에만 피해가 성립한다 — 아군·중립은 대미지도 연출도 발생하지 않는다.
-	// 자기 자신은 자해 경로라 제외하고, 팀 개념이 없는 공격자는 판정 근거가 없어 통과시킨다.
-	AActor* SourceAvatar = SourceASC ? SourceASC->GetAvatarActor() : nullptr;
-	AActor* TargetAvatar = TargetASC->GetAvatarActor();
-	if (SourceAvatar && TargetAvatar && SourceAvatar != TargetAvatar)
+	const EWxDamageResult DamageCheck = CheckDamage(SourceASC, TargetASC);
+	if (DamageCheck != EWxDamageResult::Damaged)
 	{
-		const IGenericTeamAgentInterface* SourceTeamAgent = Cast<IGenericTeamAgentInterface>(SourceAvatar);
-		if (SourceTeamAgent && SourceTeamAgent->GetTeamAttitudeTowards(*TargetAvatar) != ETeamAttitude::Hostile)
-		{
-			return;
-		}
-	}
-
-	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Invincible))
-	{
-		if (CombatContext)
+		if (CombatContext && DamageCheck == EWxDamageResult::Evaded)
 		{
 			CombatContext->SetEvaded();
 		}
@@ -161,6 +149,34 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	{
 		CombatContext->SetDamaged(DamageResult.FinalDamage, DamageResult.bIsCritical, HitReactTag);
 	}
+}
+
+EWxDamageResult UWxExecCalc_Damage::CheckDamage(const UAbilitySystemComponent* Source, const UAbilitySystemComponent* Target)
+{
+	if (!Target)
+	{
+		return EWxDamageResult::None;
+	}
+
+	// 적대 관계에만 피해가 성립한다 — 아군·중립은 대미지도 연출도 발생하지 않는다.
+	// 자기 자신은 자해 경로라 제외하고, 팀 개념이 없는 공격자는 판정 근거가 없어 통과시킨다.
+	const AActor* SourceAvatar = Source ? Source->GetAvatarActor() : nullptr;
+	const AActor* TargetAvatar = Target->GetAvatarActor();
+	if (SourceAvatar && TargetAvatar && SourceAvatar != TargetAvatar)
+	{
+		const IGenericTeamAgentInterface* SourceTeamAgent = Cast<IGenericTeamAgentInterface>(SourceAvatar);
+		if (SourceTeamAgent && SourceTeamAgent->GetTeamAttitudeTowards(*TargetAvatar) != ETeamAttitude::Hostile)
+		{
+			return EWxDamageResult::None;
+		}
+	}
+
+	if (Target->HasMatchingGameplayTag(WxGameplayTags::State_Invincible))
+	{
+		return EWxDamageResult::Evaded;
+	}
+
+	return EWxDamageResult::Damaged;
 }
 
 void UWxExecCalc_Damage::ReflectPerfectGuard(UAbilitySystemComponent* SourceASC, float ReflectAmount) const

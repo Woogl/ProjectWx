@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayEffectExecutionCalculation.h"
+#include "Damage/WxCombatEffectContext.h"
 #include "WxExecCalc_Damage.generated.h"
 
 class UAbilitySystemComponent;
@@ -39,6 +40,16 @@ public:
 	UWxExecCalc_Damage();
 
 	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
+
+	/**
+	 * 대미지 계산에 앞서 적중 자체가 성립하는지 가른다.
+	 *
+	 * 어트리뷰트를 보지 않아 ExecCalc 밖에서도 돌릴 수 있다.
+	 * ExecCalc를 건너뛰는 클라이언트 예측 경로가 서버와 같은 결론에 이르는 통로이며, 화상과 히트스톱도 이 선판정을 그대로 쓴다.
+	 *
+	 * @return	팀에서 걸리면 None, 무적이면 Evaded, 성립하면 Damaged. 성립이라도 대미지 값은 아직 산출 전이다.
+	 */
+	static EWxDamageResult CheckDamage(const UAbilitySystemComponent* Source, const UAbilitySystemComponent* Target);
 
 private:
 	void ReflectPerfectGuard(UAbilitySystemComponent* SourceASC, float ReflectAmount) const;

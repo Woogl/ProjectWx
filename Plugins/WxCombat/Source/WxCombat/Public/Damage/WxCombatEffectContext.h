@@ -11,7 +11,7 @@
 UENUM()
 enum class EWxDamageResult : uint8
 {
-	/** ExecCalc가 돌지 않았거나 판정 전에 빠져나갔다(팀 등) — 발행 대상이 아니다 */
+	/** ExecCalc가 돌지 않았거나 판정 전에 빠져나갔다(팀 등) — 연출 대상이 아니다 */
 	None,
 
 	/** 무적으로 무효화 */
@@ -29,7 +29,8 @@ enum class EWxDamageResult : uint8
  * UWxExecCalc_Damage가 계산 중에 쓰고, UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf가 GE 적용이 끝난 뒤 읽어 Cue·이벤트를 발행한다.
  * 둘 사이의 유일한 연결 통로다.
  *
- * 클라이언트 예측 경로는 ExecCalc를 건너뛰므로 DamageResult가 None으로 남고, 발행 측이 그대로 무시한다.
+ * 클라이언트 예측 경로는 ExecCalc를 건너뛰므로 DamageResult가 None으로 남고, 발행 측이 연출을 건너뛴다.
+ * 히트스톱만은 이 결과를 쓰지 않고 UWxExecCalc_Damage::CheckDamage를 직접 돌려, 클라이언트도 서버와 같은 결론에 이른다.
  *
  * 하나의 컨텍스트가 대미지 GE와 AdditionalEffects 전체에 공유된다(FWxDamageInfo::MakeSpecs).
  * 판정 결과는 대미지 GE 한 발의 것이므로, 발행 측은 GE 종류로 한 번 더 거른다.
