@@ -33,6 +33,10 @@ struct WXCOMBAT_API FWxAbilityTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cost")
 	float UPCost = 0.f;
 
+	/** SP 소모량. 0 이하이면 미적용. 질주처럼 지속 소모하는 어빌리티에서는 진입 비용이다 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cost")
+	float SPCost = 0.f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Display", meta = (AllowedClasses = "/Script/Engine.Texture2D,/Script/Engine.MaterialInterface"))
 	TSoftObjectPtr<UObject> Icon;
 };

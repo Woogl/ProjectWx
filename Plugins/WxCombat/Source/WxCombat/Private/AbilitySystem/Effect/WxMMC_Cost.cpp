@@ -28,3 +28,9 @@ float UWxMMC_UPCost::CalculateBaseMagnitude_Implementation(const FGameplayEffect
 	const FWxAbilityTableRow* Row = GetCostRow(Spec);
 	return Row ? -Row->UPCost : 0.f;
 }
+
+float UWxMMC_SPCost::CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const
+{
+	const FWxAbilityTableRow* Row = GetCostRow(Spec);
+	return Row ? -Row->SPCost : 0.f;
+}

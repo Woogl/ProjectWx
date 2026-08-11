@@ -24,4 +24,12 @@ UWxEffect_Cost::UWxEffect_Cost()
 	UPCalc.CalculationClassMagnitude = UWxMMC_UPCost::StaticClass();
 	UPModifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(UPCalc);
 	Modifiers.Add(UPModifier);
+
+	FGameplayModifierInfo SPModifier;
+	SPModifier.Attribute = UWxCombatAttributeSet::GetSPAttribute();
+	SPModifier.ModifierOp = EGameplayModOp::Additive;
+	FCustomCalculationBasedFloat SPCalc;
+	SPCalc.CalculationClassMagnitude = UWxMMC_SPCost::StaticClass();
+	SPModifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(SPCalc);
+	Modifiers.Add(SPModifier);
 }

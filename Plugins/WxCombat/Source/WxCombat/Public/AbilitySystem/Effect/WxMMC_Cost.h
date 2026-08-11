@@ -14,7 +14,7 @@ struct FWxAbilityTableRow;
  * 소스 어빌리티(UWxAbilityBase)의 AbilityDataRow를 계산 시점에 조회해 코스트 값을 만든다.
  * 어트리뷰트는 캡처하지 않는다(RelevantAttributesToCapture 비움).
  *
- * MMC API가 평가 중인 Modifier 인덱스를 주지 않아, MP/UP는 파생 클래스로 분리한다(UWxMMC_MPCost/UWxMMC_UPCost).
+ * MMC API가 평가 중인 Modifier 인덱스를 주지 않아, 자원별로 파생 클래스를 분리한다(UWxMMC_MPCost/UWxMMC_UPCost/UWxMMC_SPCost).
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxMMC_Cost : public UGameplayModMagnitudeCalculation
@@ -38,6 +38,16 @@ public:
 /** AbilityDataRow의 UPCost를 음수로 반환(자원 감산) */
 UCLASS()
 class WXCOMBAT_API UWxMMC_UPCost : public UWxMMC_Cost
+{
+	GENERATED_BODY()
+
+public:
+	virtual float CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const override;
+};
+
+/** AbilityDataRow의 SPCost를 음수로 반환(자원 감산) */
+UCLASS()
+class WXCOMBAT_API UWxMMC_SPCost : public UWxMMC_Cost
 {
 	GENERATED_BODY()
 
