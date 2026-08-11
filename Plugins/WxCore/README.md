@@ -29,7 +29,7 @@ C++ Native Tag가 이 모듈의 본체다. 태그 추가는 `WxGameplayTags.h` +
 - 선언: `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h`
 - 주요 네임스페이스:
   - `State.*` — 캐릭터 상태(Dead, Ragdoll, Groggy, LockOn, InCombat, Guard, Dodge 등)
-  - `Event.*` — GAS 이벤트(HitReact 계열, Finisher/Backstab, DodgeSuccess, HitStop, Interact 등)
+  - `Event.*` — GAS 이벤트(HitReact 계열, Finisher/Backstab, DodgeSuccess, Interact 등)
   - `Ability.*` — 어빌리티 식별 태그. 차단·캔슬은 `Ability.Exclusive`만 지목
   - `SetByCaller.*` — GameplayEffect 값 주입 키(Duration, Coeff.ATK, RawDamage 등)
   - `GameplayCue.*` — 큐(Damage, PerfectGuard, AttackTelegraph 색상별 등)

@@ -22,7 +22,7 @@
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxAbilitySystemComponent` | 전투용 ASC. 입력 액션을 어빌리티로 라우팅하고 `Event.HitStop`을 히트스톱으로 처리 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h` |
+| `UWxAbilitySystemComponent` | 전투용 ASC. 입력 액션을 어빌리티로 라우팅하고, 대미지 적용 연출 발행과 히트스톱을 담당 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h` |
 | `UWxAbilityBase` | 모든 어빌리티의 베이스. Row 기반 쿨다운/코스트, 후딜(캔슬)·투사체 스폰 규약 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` |
 | `UWxAbilitySet` | 캐릭터가 지정하는 부여 묶음(어빌리티·이펙트·어트리뷰트 초기 Row) | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySet.h` |
 | `UWxCombatAttributeSet` | 전투 스탯 어트리뷰트 세트와 복제/파생 처리 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h` |
