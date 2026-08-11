@@ -74,7 +74,7 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 void UWxAbility_Guard::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+	UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
 	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard))
 	{
 		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Guard);
