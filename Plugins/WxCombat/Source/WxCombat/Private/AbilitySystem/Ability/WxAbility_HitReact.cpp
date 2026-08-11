@@ -76,88 +76,70 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+	// 회전·띄우기보다 먼저 판정한다 — 커밋이 막힌 뒤에 연출만 남으면 캐릭터가 어빌리티 없이 공중에 뜬다.
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
 	const FGameplayTag EventTag = TriggerEventData ? TriggerEventData->EventTag : WxGameplayTags::Event_HitReact_Normal;
+	const AActor* Instigator = TriggerEventData ? TriggerEventData->Instigator.Get() : nullptr;
+	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
 
-	UAnimMontage* SelectedMontage = NormalHitReactMontage;
-	if (TriggerEventData)
+	UAnimMontage* SelectedMontage = nullptr;
+	if (EventTag == WxGameplayTags::Event_HitReact_KnockBack)
 	{
-		if (EventTag == WxGameplayTags::Event_HitReact_KnockBack && KnockbackMontage)
-		{
-			SelectedMontage = KnockbackMontage;
-			FaceInstigator(ActorInfo->AvatarActor.Get(), TriggerEventData->Instigator.Get());
-		}
-		else if (EventTag == WxGameplayTags::Event_HitReact_KnockDown && KnockdownMontage)
-		{
-			SelectedMontage = KnockdownMontage;
-			FaceInstigator(ActorInfo->AvatarActor.Get(), TriggerEventData->Instigator.Get());
-		}
-		else if (EventTag == WxGameplayTags::Event_HitReact_KnockUp && KnockupMontage)
-		{
-			SelectedMontage = KnockupMontage;
+		SelectedMontage = KnockbackMontage;
+		FaceInstigator(AvatarActor, Instigator);
+	}
+	else if (EventTag == WxGameplayTags::Event_HitReact_KnockDown)
+	{
+		SelectedMontage = KnockdownMontage;
+		FaceInstigator(AvatarActor, Instigator);
+	}
+	else if (EventTag == WxGameplayTags::Event_HitReact_KnockUp)
+	{
+		SelectedMontage = KnockupMontage;
 
-			if (AActor* AvatarActor = ActorInfo->AvatarActor.Get())
-			{
-				if (ACharacter* Character = Cast<ACharacter>(AvatarActor))
-				{
-					FVector LaunchVelocity = FVector(0.f, 0.f, Character->GetCharacterMovement()->JumpZVelocity);
-					Character->LaunchCharacter(LaunchVelocity, false, true);
-				}
-			}
-		}
-		else if (EventTag == WxGameplayTags::Event_HitReact_Parry && ParryReactMontage)
+		if (ACharacter* Character = Cast<ACharacter>(AvatarActor))
 		{
-			SelectedMontage = ParryReactMontage;
-			FaceInstigator(ActorInfo->AvatarActor.Get(), TriggerEventData->Instigator.Get());
-		}
-		else if (EventTag == WxGameplayTags::Event_HitReact_Finisher && FinisherHitReactMontage)
-		{
-			SelectedMontage = FinisherHitReactMontage;
-			FaceInstigator(ActorInfo->AvatarActor.Get(), TriggerEventData->Instigator.Get());
-		}
-		else if (EventTag == WxGameplayTags::Event_HitReact_Backstab && BackstabHitReactMontage)
-		{
-			SelectedMontage = BackstabHitReactMontage;
-			FaceInstigator(ActorInfo->AvatarActor.Get(), TriggerEventData->Instigator.Get());
+			const FVector LaunchVelocity(0.f, 0.f, Character->GetCharacterMovement()->JumpZVelocity);
+			Character->LaunchCharacter(LaunchVelocity, false, true);
 		}
 	}
-
-	if (!SelectedMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	else if (EventTag == WxGameplayTags::Event_HitReact_Parry)
 	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
+		SelectedMontage = ParryReactMontage;
+		FaceInstigator(AvatarActor, Instigator);
+	}
+	else if (EventTag == WxGameplayTags::Event_HitReact_Finisher)
+	{
+		SelectedMontage = FinisherHitReactMontage;
+		FaceInstigator(AvatarActor, Instigator);
+	}
+	else if (EventTag == WxGameplayTags::Event_HitReact_Backstab)
+	{
+		SelectedMontage = BackstabHitReactMontage;
+		FaceInstigator(AvatarActor, Instigator);
 	}
 
-	if (!PlayHitReactMontage(SelectedMontage))
+	// 종류별 몽타주를 지정하지 않았으면 일반 피격으로 대체한다 — 반응 자체는 이벤트가 정하므로 위에서 이미 적용됐다.
+	if (!SelectedMontage)
+	{
+		SelectedMontage = NormalHitReactMontage;
+	}
+
+	if (!SelectedMontage || !PlayHitReactMontage(SelectedMontage))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-}
-
-void UWxAbility_HitReact::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
-{
-	if (ActorInfo)
-	{
-		if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
-		{
-			Character->MovementModeChangedDelegate.RemoveAll(this);
-		}
-	}
-
-	CurrentMontageTask = nullptr;
-
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 bool UWxAbility_HitReact::PlayHitReactMontage(UAnimMontage* Montage)
 {
-	// 재진입(Normal → Knockback 등)에서 구 태스크를 남겨 두면, 잔여 콜백이 새로 시작한 재생을 즉시 끝내 버린다.
-	if (CurrentMontageTask)
-	{
-		CurrentMontageTask->EndTask();
-		CurrentMontageTask = nullptr;
-	}
-
+	// ASPD를 반영하지 않는다 — 처형 짝 피격이 공격자 몽타주와 프레임 싱크돼야 한다.
 	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this, NAME_None, Montage, 1.f, NAME_None, true, 1.f, 0.f, true);
 	if (!MontageTask)
@@ -165,20 +147,10 @@ bool UWxAbility_HitReact::PlayHitReactMontage(UAnimMontage* Montage)
 		return false;
 	}
 
-	CurrentMontageTask = MontageTask;
-
 	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_HitReact::HandleMontageCompleted);
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_HitReact::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_HitReact::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
-
-	if (Montage == KnockupMontage)
-	{
-		if (ACharacter* Character = Cast<ACharacter>(CurrentActorInfo->AvatarActor.Get()))
-		{
-			Character->MovementModeChangedDelegate.AddDynamic(this, &UWxAbility_HitReact::HandleMovementModeChanged);
-		}
-	}
 
 	return true;
 }
@@ -196,22 +168,6 @@ void UWxAbility_HitReact::HandleMontageInterrupted()
 void UWxAbility_HitReact::HandleMontageCancelled()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-}
-
-void UWxAbility_HitReact::HandleMovementModeChanged(ACharacter* Character, EMovementMode PrevMovementMode, uint8 PreviousCustomMode)
-{
-	if (PrevMovementMode == MOVE_Falling)
-	{
-		Character->MovementModeChangedDelegate.RemoveAll(this);
-
-		if (UAnimInstance* AnimInstance = CurrentActorInfo->GetAnimInstance())
-		{
-			if (AnimInstance->Montage_IsPlaying(KnockupMontage))
-			{
-				AnimInstance->Montage_JumpToSection(FName(TEXT("Grounded")), KnockupMontage);
-			}
-		}
-	}
 }
 
 void UWxAbility_HitReact::FaceInstigator(AActor* AvatarActor, const AActor* Instigator)

@@ -7,7 +7,6 @@
 #include "WxAbility_HitReact.generated.h"
 
 class UAnimMontage;
-class UAbilityTask_PlayMontageAndWait;
 
 /**
  * 데미지 파이프라인이 보내는 Event.HitReact.* 로 트리거되어 그 태그에 매칭되는 몽타주를 재생한다.
@@ -27,8 +26,7 @@ public:
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
-	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-	/** 매칭되는 몽타주가 없을 때의 폴백이기도 하다 */
+	/** 종류별 몽타주를 지정하지 않았을 때의 폴백이기도 하다 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> NormalHitReactMontage;
 
@@ -65,11 +63,5 @@ private:
 	UFUNCTION()
 	void HandleMontageCancelled();
 
-	UFUNCTION()
-	void HandleMovementModeChanged(ACharacter* Character, EMovementMode PrevMovementMode, uint8 PreviousCustomMode);
-
-	UPROPERTY(Transient)
-	TObjectPtr<UAbilityTask_PlayMontageAndWait> CurrentMontageTask;
-	
 	void FaceInstigator(AActor* AvatarActor, const AActor* Instigator);
 };
