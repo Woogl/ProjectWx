@@ -1,20 +1,19 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Effect/WxEffect_RegenSP.h"
+#include "AbilitySystem/Effect/WxEffect_DrainSP.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "GameplayEffectComponents/TargetTagRequirementsGameplayEffectComponent.h"
 #include "WxGameplayTags.h"
 
-UWxEffect_RegenSP::UWxEffect_RegenSP()
+UWxEffect_DrainSP::UWxEffect_DrainSP()
 {
 	DurationPolicy = EGameplayEffectDurationType::Infinite;
 
-	Period = FScalableFloat(RegenPeriod);
+	Period = FScalableFloat(DrainPeriod);
 	bExecutePeriodicEffectOnApplication = true;
 
 	UTargetTagRequirementsGameplayEffectComponent* TagReqComp = CreateDefaultSubobject<UTargetTagRequirementsGameplayEffectComponent>(TEXT("TargetTagReq"));
-	TagReqComp->OngoingTagRequirements.IgnoreTags.AddTag(WxGameplayTags::State_Guard);
-	TagReqComp->OngoingTagRequirements.IgnoreTags.AddTag(WxGameplayTags::State_Sprint);
+	TagReqComp->OngoingTagRequirements.RequireTags.AddTag(WxGameplayTags::State_Sprint);
 	GEComponents.Add(TagReqComp);
 
 	FAttributeBasedFloat AttributeBased;
@@ -22,7 +21,7 @@ UWxEffect_RegenSP::UWxEffect_RegenSP()
 		UWxCombatAttributeSet::GetMaxSPAttribute(),
 		EGameplayEffectAttributeCaptureSource::Target,
 		false);
-	AttributeBased.Coefficient = FScalableFloat(RegenPeriod / FullRegenDuration);
+	AttributeBased.Coefficient = FScalableFloat(-DrainPeriod / FullDrainDuration);
 
 	FGameplayModifierInfo Modifier;
 	Modifier.Attribute = UWxCombatAttributeSet::GetSPAttribute();

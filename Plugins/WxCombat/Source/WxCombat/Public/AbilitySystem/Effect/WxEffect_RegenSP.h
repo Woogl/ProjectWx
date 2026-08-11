@@ -8,7 +8,7 @@
 
 /**
  * SP 자연 회복 GameplayEffect.
- * 가드 중에는 회복이 억제된다.
+ * 가드 중과 질주 중에는 회복이 억제된다.
  */
 UCLASS()
 class WXCOMBAT_API UWxEffect_RegenSP : public UGameplayEffect

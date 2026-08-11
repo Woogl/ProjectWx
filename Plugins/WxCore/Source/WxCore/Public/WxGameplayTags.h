@@ -42,6 +42,9 @@ namespace WxGameplayTags
 	/** 가드 판정 활성 상태 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Guard);
 
+	/** 질주 상태. WxAbility_Sprint가 활성 중 실제로 이동할 때만 부여. SP 소모 GE의 발동 조건이자 SP 자연 회복의 억제 조건 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Sprint);
+
 	/** 퍼펙트 가드 판정 구간. ANS_PerfectGuard가 부여/제거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_PerfectGuard);
 

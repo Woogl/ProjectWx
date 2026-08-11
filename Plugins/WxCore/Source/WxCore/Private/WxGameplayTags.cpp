@@ -13,6 +13,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_Invincible, "State.Invincible");
 	UE_DEFINE_GAMEPLAY_TAG(State_Dodge, "State.Dodge");
 	UE_DEFINE_GAMEPLAY_TAG(State_Guard, "State.Guard");
+	UE_DEFINE_GAMEPLAY_TAG(State_Sprint, "State.Sprint");
 	UE_DEFINE_GAMEPLAY_TAG(State_PerfectGuard, "State.PerfectGuard");
 	UE_DEFINE_GAMEPLAY_TAG(State_HitReact, "State.HitReact");
 	UE_DEFINE_GAMEPLAY_TAG(State_SuperArmor, "State.SuperArmor");
