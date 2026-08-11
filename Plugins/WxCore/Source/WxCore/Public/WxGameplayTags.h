@@ -62,6 +62,11 @@ namespace WxGameplayTags
 	/** 대화 세션 진행 상태. 대화 세션 컴포넌트가 시작·종료에 맞춰 폰 ASC에 loose 태그로 발행. WxAbility_Interact가 ActivationBlockedTags로 사용해 대화 중 프롬프트 표시·상호작용을 닫는다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dialogue);
 
+	// ── Movement ──────────────────────────────────────────────────────────
+
+	/** 공중 체공 상태. WxCharacterMovementComponent가 낙하 모드 진입·이탈에 맞춰 각 머신에서 부여/제거. 점프 공격의 콤보 세트 진입 조건 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_InAir);
+
 	// ── Event ─────────────────────────────────────────────────────────────
 
 	/** 피격 이벤트 부모 카테고리. ExecCalc 필터링용. Guard 어빌리티가 자식 태그를 모두 수신하기 위해 부모로도 구독 (직접 dispatch 금지) */

@@ -21,6 +21,8 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_Finisher, "State.Finisher");
 	UE_DEFINE_GAMEPLAY_TAG(State_Dialogue, "State.Dialogue");
 
+	UE_DEFINE_GAMEPLAY_TAG(Movement_InAir, "Movement.InAir");
+
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact, "Event.HitReact");
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Normal, "Event.HitReact.Normal");
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_KnockBack, "Event.HitReact.KnockBack");
