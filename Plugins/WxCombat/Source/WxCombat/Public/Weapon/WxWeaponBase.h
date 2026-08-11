@@ -76,7 +76,7 @@ private:
 	/**
 	 * 소유자와 한 스윙 내 중복 히트만 걸러 GE 적용과 HitStop을 수행한다.
 	 * Overlap 이벤트와 Tick Sweep이 공통으로 호출한다.
-	 * 팀 판정은 하지 않는다 — 맞은 대상은 아군·중립 여부와 무관하게 피해를 받는다.
+	 * 팀 판정은 대미지 ExecCalc가 하므로 아군에게도 GE는 적용된다.
 	 */
 	void ProcessHit(AActor* OtherActor, const FHitResult& HitResult);
 

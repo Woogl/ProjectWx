@@ -7,6 +7,7 @@
 #include "AbilitySystemComponent.h"
 #include "Damage/WxCombatEffectContext.h"
 #include "GameplayEffect.h"
+#include "GenericTeamAgentInterface.h"
 #include "WxGameplayTags.h"
 
 struct FWxDamageStatics
@@ -69,6 +70,19 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	if (CombatContext)
 	{
 		CombatContext->ClearDamageResult();
+	}
+
+	// 적대 관계에만 피해가 성립한다 — 아군·중립은 대미지도 연출도 발생하지 않는다.
+	// 자기 자신은 자해 경로라 제외하고, 팀 개념이 없는 공격자는 판정 근거가 없어 통과시킨다.
+	AActor* SourceAvatar = SourceASC ? SourceASC->GetAvatarActor() : nullptr;
+	AActor* TargetAvatar = TargetASC->GetAvatarActor();
+	if (SourceAvatar && TargetAvatar && SourceAvatar != TargetAvatar)
+	{
+		const IGenericTeamAgentInterface* SourceTeamAgent = Cast<IGenericTeamAgentInterface>(SourceAvatar);
+		if (SourceTeamAgent && SourceTeamAgent->GetTeamAttitudeTowards(*TargetAvatar) != ETeamAttitude::Hostile)
+		{
+			return;
+		}
 	}
 
 	if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Invincible))

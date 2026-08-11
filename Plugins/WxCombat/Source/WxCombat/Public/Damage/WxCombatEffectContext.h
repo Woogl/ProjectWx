@@ -11,7 +11,7 @@
 UENUM()
 enum class EWxDamageResult : uint8
 {
-	/** ExecCalc가 돌지 않았다 — 발행 대상이 아니다 */
+	/** ExecCalc가 돌지 않았거나 판정 전에 빠져나갔다(팀 등) — 발행 대상이 아니다 */
 	None,
 
 	/** 무적으로 무효화 */
