@@ -12,9 +12,9 @@ UENUM(BlueprintType)
 enum class EWxAbilityCostResource : uint8
 {
 	None,
+	SP,
 	MP,
 	UP,
-	SP,
 };
 
 /**
