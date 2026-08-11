@@ -3,6 +3,9 @@
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
+#include "AbilitySystem/Effect/WxEffect_Damage.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "Damage/WxCombatEffectContext.h"
 #include "WxGameplayTags.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
@@ -12,6 +15,9 @@
 UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 {
 	SetIsReplicatedByDefault(true);
+
+	// InitAbilityActorInfo는 여러 번 불려 중복 바인딩이 되므로 생성자에서 한 번만 건다.
+	OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf);
 }
 
 void UWxAbilitySystemComponent::GiveAbilitySet()
@@ -130,6 +136,113 @@ int32 UWxAbilitySystemComponent::HandleGameplayEvent(FGameplayTag EventTag, cons
 	}
 
 	return Super::HandleGameplayEvent(EventTag, Payload);
+}
+
+void UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle)
+{
+	// 대미지 GE와 AdditionalEffects가 컨텍스트를 공유하므로(FWxDamageInfo::MakeSpecs),
+	// GE 종류를 가리지 않으면 뒤따르는 상태이상 GE마다 같은 판정으로 연출이 다시 나간다.
+	if (!Spec.Def || !Spec.Def->IsA<UWxEffect_Damage>())
+	{
+		return;
+	}
+
+	const FGameplayEffectContextHandle ContextHandle = Spec.GetContext();
+	const FGameplayEffectContext* RawContext = ContextHandle.Get();
+	if (!RawContext || RawContext->GetScriptStruct() != FWxCombatEffectContext::StaticStruct())
+	{
+		return;
+	}
+
+	const FWxCombatEffectContext& CombatContext = static_cast<const FWxCombatEffectContext&>(*RawContext);
+	const EWxDamageResult DamageResult = CombatContext.GetDamageResult();
+	if (DamageResult == EWxDamageResult::None)
+	{
+		return;
+	}
+
+	AActor* TargetActor = GetOwnerActor();
+	AActor* SourceActor = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
+
+	FGameplayEventData EventData;
+	EventData.Instigator = SourceActor;
+	EventData.Target = TargetActor;
+
+	// 무적 회피는 대미지도 히트스톱도 없다 — 회피 성공만 알린다.
+	if (DamageResult == EWxDamageResult::Evaded)
+	{
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_DodgeSuccess, EventData);
+		return;
+	}
+
+	FVector HitLocation = FVector::ZeroVector;
+	if (const FHitResult* HitResult = ContextHandle.GetHitResult())
+	{
+		HitLocation = FVector(HitResult->ImpactPoint);
+	}
+	else if (const AActor* TargetAvatar = GetAvatarActor())
+	{
+		HitLocation = TargetAvatar->GetActorLocation();
+	}
+
+	FGameplayCueParameters CueParams;
+	CueParams.Location = HitLocation;
+	CueParams.EffectContext = ContextHandle;
+
+	if (DamageResult == EWxDamageResult::PerfectGuard)
+	{
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_PerfectGuard, EventData);
+
+		if (SourceActor && Spec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_ParryHitReact))
+		{
+			FGameplayEventData ParryEventData;
+			ParryEventData.Instigator = TargetActor;
+			ParryEventData.Target = SourceActor;
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(SourceActor, WxGameplayTags::Event_HitReact_Parry, ParryEventData);
+		}
+
+		ExecuteGameplayCue(WxGameplayTags::GameplayCue_PerfectGuard, CueParams);
+	}
+	else
+	{
+		const float FinalDamage = CombatContext.GetFinalDamage();
+
+		// 죽는 히트는 HP 차감이 먼저라 State.Dead가 이미 붙어 있고, HitReact 어빌리티가 그 태그로 차단된다.
+		// 히트리액트를 재생했다 사망으로 끊는 대신 곧장 사망으로 가는 쪽을 택했다.
+		if (CombatContext.GetHitReactTag().IsValid())
+		{
+			EventData.EventMagnitude = FinalDamage;
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, CombatContext.GetHitReactTag(), EventData);
+		}
+
+		if (FinalDamage > 0.f)
+		{
+			CueParams.RawMagnitude = FinalDamage;
+
+			if (CombatContext.IsCritical())
+			{
+				CueParams.AggregatedSourceTags.AddTag(WxGameplayTags::Damage_Critical);
+			}
+
+			ExecuteGameplayCue(WxGameplayTags::GameplayCue_Damage, CueParams);
+		}
+	}
+
+	// 무적 회피로 빠져나간 경우를 빼면 퍼펙트 가드까지 포함해 모든 적중에서 보낸다.
+	// 공격자 ASC가 이 이벤트를 받아, 컨텍스트의 어빌리티가 재생 중인 몽타주를 그 시간만큼 잠깐 멈춘다.
+	if (SourceActor)
+	{
+		const float HitStopDuration = Spec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_HitStop, false, 0.f);
+		if (HitStopDuration > 0.f)
+		{
+			FGameplayEventData HitStopEvent;
+			HitStopEvent.Instigator = SourceActor;
+			HitStopEvent.Target = TargetActor;
+			HitStopEvent.EventMagnitude = HitStopDuration;
+			HitStopEvent.ContextHandle = ContextHandle;
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(SourceActor, WxGameplayTags::Event_HitStop, HitStopEvent);
+		}
+	}
 }
 
 void UWxAbilitySystemComponent::ApplyHitStop(const FGameplayEventData& Payload)

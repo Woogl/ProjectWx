@@ -39,6 +39,15 @@ public:
 	virtual int32 HandleGameplayEvent(FGameplayTag EventTag, const FGameplayEventData* Payload) override;
 
 private:
+	/**
+	 * 대미지 GE 적용이 끝난 시점에 타격 Cue와 반응 이벤트를 발행한다.
+	 *
+	 * 판정은 여기서 하지 않는다 — UWxExecCalc_Damage가 FWxCombatEffectContext에 남긴 결과를 그대로 쓴다.
+	 * 어트리뷰트가 확정된 뒤라 수신자가 차감 전 값을 역산할 필요가 없다.
+	 * ExecCalc를 건너뛰는 클라이언트 예측 경로에서도 불리지만, 그때는 판정 결과가 비어 있어 그대로 빠져나간다.
+	 */
+	void HandleGameplayEffectAppliedToSelf(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
+
 	/** 히트스톱(역경직): 대미지를 준 어빌리티의 재생 중인 몽타주를 잠깐 얼리고 복원을 예약한다 */
 	void ApplyHitStop(const FGameplayEventData& Payload);
 

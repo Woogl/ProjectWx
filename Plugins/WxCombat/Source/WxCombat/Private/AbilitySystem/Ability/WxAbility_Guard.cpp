@@ -179,11 +179,10 @@ void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	const UWxCombatAttributeSet* AttributeSet = ASC ? ASC->GetSet<UWxCombatAttributeSet>() : nullptr;
 
-	// Payload.EventMagnitude는 ExecCalc가 전달한 SP 차감량이다.
-	// ExecCalc가 SP OutputModifier를 큐잉한 직후 동기적으로 디스패치하므로, 이 시점 GetSP()는 차감 전 값이고 (GetSP() - Magnitude)가 차감 후 예상치다.
-	const bool bWillBreak = AttributeSet && (AttributeSet->GetSP() - Payload.EventMagnitude) <= 0.f;
+	// 이벤트는 대미지 GE 적용이 끝난 뒤에 오므로 GetSP()가 이미 차감된 실제 값이다.
+	const bool bGuardBroken = AttributeSet && AttributeSet->GetSP() <= 0.f;
 
-	if (bWillBreak)
+	if (bGuardBroken)
 	{
 		if (ASC)
 		{
