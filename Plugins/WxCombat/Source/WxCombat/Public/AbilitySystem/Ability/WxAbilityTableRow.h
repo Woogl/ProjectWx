@@ -8,6 +8,17 @@
 
 class UTexture2D;
 
+/** 어빌리티가 소모하는 자원 */
+UENUM(BlueprintType)
+enum class EWxAbilityCostResource : uint8
+{
+	/** 코스트 없음 */
+	None,
+	MP,
+	UP,
+	SP,
+};
+
 /**
  * 어빌리티별 밸런스 수치(쿨다운·충전·코스트)와 UI 표시 데이터를 담는 데이터테이블 Row.
  * RowName 예시: GA_Skill_1, GA_Dodge
@@ -25,17 +36,13 @@ struct WXCOMBAT_API FWxAbilityTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cooldown")
 	int32 MaxRecharges = 1;
 
-	/** MP 소모량. 0 이하이면 미적용 */
+	/** 소모할 자원. None이면 코스트 미적용 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cost")
-	float MPCost = 0.f;
+	EWxAbilityCostResource CostResource = EWxAbilityCostResource::None;
 
-	/** UP 소모량. 0 이하이면 미적용 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cost")
-	float UPCost = 0.f;
-
-	/** SP 소모량. 0 이하이면 미적용. 질주처럼 지속 소모하는 어빌리티에서는 진입 비용이다 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cost")
-	float SPCost = 0.f;
+	/** CostResource 자원의 소모량. 질주처럼 지속 소모하는 어빌리티에서는 진입 비용이다 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cost", meta = (ClampMin = "0.0"))
+	float CostAmount = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Display", meta = (AllowedClasses = "/Script/Engine.Texture2D,/Script/Engine.MaterialInterface"))
 	TSoftObjectPtr<UObject> Icon;

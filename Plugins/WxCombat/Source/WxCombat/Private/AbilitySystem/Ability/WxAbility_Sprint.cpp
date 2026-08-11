@@ -23,7 +23,7 @@ bool UWxAbility_Sprint::CanActivateAbility(const FGameplayAbilitySpecHandle Hand
 	const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
 	const UWxCombatAttributeSet* AttributeSet = ASC ? ASC->GetSet<UWxCombatAttributeSet>() : nullptr;
 
-	// 진입 비용(SPCost)은 순정 CheckCost가 보므로, 여기서는 코스트가 0이어도 성립해야 하는 조건만 본다.
+	// 진입 비용은 순정 CheckCost가 보므로, 여기서는 코스트가 0이어도 성립해야 하는 조건만 본다.
 	// 고갈 상태에서 발동하면 소모 없이 달리면서 회복까지 막는 상태가 된다.
 	// MaxSP가 없는 아바타는 스태미나를 쓰지 않는다 — 소모량도 0이라 제한 없이 달린다.
 	if (AttributeSet && AttributeSet->GetMaxSP() > 0.f && AttributeSet->GetSP() <= 0.f)

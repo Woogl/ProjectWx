@@ -28,7 +28,7 @@ enum class EWxAbilityActivationPolicy : uint8
 /**
  * 쿨다운·코스트 수치는 AbilityDataRow에서만 읽는다.
  * 쿨다운은 공용 UWxEffect_Cooldown GE를 소스 어빌리티 CDO로 구분하며, 소모된 충전 1개당 GE 1개가 붙어 자연 만료로 회복된다.
- * Duration과 MP·UP 모디파이어는 각 MMC가 Row에서 조회하므로 적용 경로는 엔진 순정 그대로다.
+ * Duration과 자원 모디파이어는 각 MMC가 Row에서 조회하므로 적용 경로는 엔진 순정 그대로다.
  *
  * CooldownGameplayEffectClass/CostGameplayEffectClass의 기본값은 그 공용 GE를 가리키는 "마커"다.
  * 마커 그대로면 Row 기반, 다른 GE로 바꾸면 엔진 순정 GE 경로를 쓴다(Row와 상호배타).

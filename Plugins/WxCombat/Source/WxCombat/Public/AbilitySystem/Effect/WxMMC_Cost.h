@@ -3,10 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystem/Ability/WxAbilityTableRow.h"
 #include "GameplayModMagnitudeCalculation.h"
 #include "WxMMC_Cost.generated.h"
-
-struct FWxAbilityTableRow;
 
 /**
  * 어빌리티 코스트 MMC 공용 베이스.
@@ -15,6 +14,7 @@ struct FWxAbilityTableRow;
  * 어트리뷰트는 캡처하지 않는다(RelevantAttributesToCapture 비움).
  *
  * MMC API가 평가 중인 Modifier 인덱스를 주지 않아, 자원별로 파생 클래스를 분리한다(UWxMMC_MPCost/UWxMMC_UPCost/UWxMMC_SPCost).
+ * Row가 고른 자원과 일치하는 파생 클래스만 값을 내고 나머지는 0이다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxMMC_Cost : public UGameplayModMagnitudeCalculation
@@ -22,10 +22,11 @@ class WXCOMBAT_API UWxMMC_Cost : public UGameplayModMagnitudeCalculation
 	GENERATED_BODY()
 
 protected:
-	const FWxAbilityTableRow* GetCostRow(const FGameplayEffectSpec& Spec) const;
+	/** Row의 CostResource가 Resource와 같을 때만 CostAmount를 음수로(자원 감산) 반환한다 */
+	float GetCostMagnitude(const FGameplayEffectSpec& Spec, EWxAbilityCostResource Resource) const;
 };
 
-/** AbilityDataRow의 MPCost를 음수로 반환(자원 감산) */
+/** Row가 MP를 고른 경우의 소모량 */
 UCLASS()
 class WXCOMBAT_API UWxMMC_MPCost : public UWxMMC_Cost
 {
@@ -35,7 +36,7 @@ public:
 	virtual float CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const override;
 };
 
-/** AbilityDataRow의 UPCost를 음수로 반환(자원 감산) */
+/** Row가 UP를 고른 경우의 소모량 */
 UCLASS()
 class WXCOMBAT_API UWxMMC_UPCost : public UWxMMC_Cost
 {
@@ -45,7 +46,7 @@ public:
 	virtual float CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const override;
 };
 
-/** AbilityDataRow의 SPCost를 음수로 반환(자원 감산) */
+/** Row가 SP를 고른 경우의 소모량 */
 UCLASS()
 class WXCOMBAT_API UWxMMC_SPCost : public UWxMMC_Cost
 {
