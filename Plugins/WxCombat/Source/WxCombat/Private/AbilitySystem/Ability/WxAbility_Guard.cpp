@@ -153,7 +153,8 @@ void UWxAbility_Guard::ListenForPerfectGuard()
 
 void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 {
-	if (ActiveMontage != GuardMontage)
+	// 깨지는 중에 또 맞아도 브레이크 연출을 처음부터 다시 틀지 않는다.
+	if (ActiveMontage == GuardBreakMontage)
 	{
 		return;
 	}
@@ -162,9 +163,8 @@ void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 	const UWxCombatAttributeSet* AttributeSet = ASC ? ASC->GetSet<UWxCombatAttributeSet>() : nullptr;
 
 	// 이벤트는 대미지 GE 적용이 끝난 뒤에 오므로 GetSP()가 이미 차감된 실제 값이다.
-	const bool bGuardBroken = AttributeSet && AttributeSet->GetSP() <= 0.f;
-
-	if (bGuardBroken)
+	// SP 고갈은 페이즈를 가리지 않는다 — 리액션·패링 재생 중에 0이 되어도 그 자리에서 깨진다.
+	if (AttributeSet && AttributeSet->GetSP() <= 0.f)
 	{
 		if (ASC)
 		{
@@ -175,20 +175,19 @@ void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 		{
 			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 		}
+		return;
 	}
-	else
-	{
-		// Normal 외의 자식 태그는 Knock 계열로 취급한다.
-		const bool bIsKnockHit = Payload.EventTag.IsValid() && Payload.EventTag != WxGameplayTags::Event_HitReact_Normal;
 
-		if (bIsKnockHit && GuardKnockbackMontage)
-		{
-			PlayMontage(GuardKnockbackMontage);
-		}
-		else if (GuardHitReactMontage)
-		{
-			PlayMontage(GuardHitReactMontage);
-		}
+	// Normal 외의 자식 태그는 Knock 계열로 취급한다.
+	const bool bIsKnockHit = Payload.EventTag.IsValid() && Payload.EventTag != WxGameplayTags::Event_HitReact_Normal;
+
+	if (bIsKnockHit && GuardKnockbackMontage)
+	{
+		PlayMontage(GuardKnockbackMontage);
+	}
+	else if (GuardHitReactMontage)
+	{
+		PlayMontage(GuardHitReactMontage);
 	}
 }
 
