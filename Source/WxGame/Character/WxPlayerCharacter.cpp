@@ -49,8 +49,16 @@ AWxPlayerCharacter::AWxPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	StaminaWidget->SetupAttachment(RootComponent);
 	StaminaWidget->SetWidgetSpace(EWidgetSpace::Screen);
 	StaminaWidget->SetDrawAtDesiredSize(true);
+	StaminaWidget->SetVisibility(false);
 
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+}
+
+void AWxPlayerCharacter::NotifyControllerChanged()
+{
+	Super::NotifyControllerChanged();
+	
+	StaminaWidget->SetVisibility(IsLocallyControlled());
 }
 
 void AWxPlayerCharacter::OnRep_PlayerState()
