@@ -52,7 +52,6 @@ struct FWxComboMontageSelector
 	void Reset();
 
 private:
-	/** 아바타 태그가 진입 요구사항을 만족하는 첫 세트 */
 	int32 FindMontageSetIndex(const UAbilitySystemComponent* ASC) const;
 
 	/** 재발동 사이에 보존되며, INDEX_NONE이면 진행 중인 콤보가 없다 */

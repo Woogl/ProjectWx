@@ -20,10 +20,12 @@ public:
 	void GiveAbilitySet();
 
 	/**
-	 * 입력 액션이 트리거 조건을 만족하고 있다(레벨). 홀드형 트리거는 눌려 있는 동안 매 프레임 들어온다.
-	 * 어빌리티 라우팅의 유일한 진입점이다. 매칭된 어빌리티에 발동을 시도하고, 재발동을 받지 않는 어빌리티에는 입력을 그대로 전달한다(락온 토글 해제, 패링 중 가드 복귀).
+	 * 입력 액션이 트리거 조건을 만족하고 있다(레벨).
+	 * 홀드형 트리거는 눌려 있는 동안 매 프레임 들어온다.
+	 *
+	 * 어빌리티 라우팅의 유일한 진입점이다.
+	 * 매칭된 어빌리티에 발동을 시도하고, 재발동을 받지 않는 어빌리티에는 입력을 그대로 전달한다(락온 토글 해제, 패링 중 가드 복귀).
 	 * 발동은 조건이 유지되는 동안 계속 시도하므로, 다른 어빌리티가 걸어 둔 차단이 풀리면 쥐고 있던 입력이 그 시점에 발동한다.
-	 * 반대로 이미 돌고 있는 어빌리티에는 홀드 반복분을 넘기지 않는다.
 	 */
 	void AbilityInputActionTriggered(const UInputAction* Action);
 
@@ -44,7 +46,7 @@ private:
 	 *
 	 * 판정은 여기서 하지 않는다 — UWxExecCalc_Damage가 FWxCombatEffectContext에 남긴 결과를 그대로 쓴다.
 	 * 어트리뷰트가 확정된 뒤라 수신자가 차감 전 값을 역산할 필요가 없다.
-	 * ExecCalc를 건너뛰는 클라이언트 예측 경로에서도 불리지만, 그때는 판정 결과가 비어 있어 그대로 빠져나간다.
+	 * 판정 결과가 비어 있으면 그대로 빠져나간다 — ExecCalc를 건너뛰는 클라이언트 예측 경로, 팀 판정에 걸린 아군·중립 히트가 그렇다.
 	 */
 	void HandleGameplayEffectAppliedToSelf(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
 

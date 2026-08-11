@@ -51,7 +51,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TObjectPtr<UInputAction> ActivationInputAction;
 
-	/** 쿨다운·충전·코스트·아이콘 수치를 담은 데이터테이블 Row 참조 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxAbilityTableRow"))
 	FDataTableRowHandle AbilityDataRow;
 
@@ -61,10 +60,7 @@ public:
 	 */
 	TSoftObjectPtr<UObject> GetIcon() const;
 
-	/**
-	 * 아바타 ASPD가 반영된 몽타주 재생 속도.
-	 * 각 어빌리티가 PlayMontage의 PlayRate 인자로 넘긴다.
-	 */
+	/** 아바타 ASPD가 반영된 몽타주 재생 속도 */
 	float GetMontagePlayRate() const;
 
 	/**

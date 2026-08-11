@@ -100,7 +100,6 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard);
 	const bool bIsGroggy = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy);
 
-	// Unblockable 공격은 퍼펙트 가드를 포함한 모든 가드를 무시한다.
 	const bool bPerfectGuardApplied = bHasPerfectGuard && !bIsUnblockable;
 
 	FAggregatorEvaluateParameters EvalParams;
@@ -245,7 +244,6 @@ FGameplayTag UWxExecCalc_Damage::ResolveHitReaction(const FGameplayEffectCustomE
 	const bool bGuardHit = bIsGuarding && !bIsUnblockable;
 	const bool bIsGroggy = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy);
 
-	// 일반 가드만 SP를 차감한다(Unblockable 가드·비가드는 차감 없음).
 	if (bGuardHit)
 	{
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.SPProperty, EGameplayModOp::Additive, -FinalDamage));
@@ -263,7 +261,6 @@ FGameplayTag UWxExecCalc_Damage::ResolveHitReaction(const FGameplayEffectCustomE
 		KnockTags.AddTagFast(WxGameplayTags::Event_HitReact_KnockUp);
 		if (HitReactTag.MatchesAny(KnockTags))
 		{
-			// 그로기 중에는 Knock 계열을 쓰지 않고 Normal로 치환한다.
 			return WxGameplayTags::Event_HitReact_Normal;
 		}
 
@@ -284,6 +281,5 @@ FGameplayTag UWxExecCalc_Damage::ResolveHitReaction(const FGameplayEffectCustomE
 		TargetASC->CancelAbilities(&GuardAbilityTags);
 	}
 
-	// 비가드와 Unblockable 가드는 명시된 태그를 그대로 쓴다.
 	return HitReactTag;
 }

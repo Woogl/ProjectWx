@@ -8,7 +8,7 @@
 
 UWxAbility_HitReact::UWxAbility_HitReact()
 {
-	// 항상 서버 ExecCalc의 GameplayEvent로 트리거된다.
+	// 항상 서버에서 발행된 GameplayEvent로 트리거된다.
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 
 	FGameplayTagContainer AssetTags;
@@ -26,7 +26,7 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 
 	ActivationOwnedTags.AddTag(WxGameplayTags::State_HitReact);
 
-	// State.Dead 차단이 사망 몽타주를 지킨다 — 대미지 연출은 사망 처리 뒤에 발행되므로,
+	// State.Dead 차단이 사망 몽타주를 지킨다 — 대미지 연출은 사망 처리 뒤에 발행된다.
 	// 풀면 히트리액트가 사망 몽타주를 끊어 래그돌 폴백으로 떨어뜨린다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Invincible);

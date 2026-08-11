@@ -14,7 +14,6 @@
  * CDO가 완전 자기완결이라 엔진 순정 CheckCost(CanApplyAttributeModifiers)/ApplyCost/GetCostGameplayEffect를 그대로 사용한다(어빌리티 오버라이드 불필요).
  *
  * 아울러 어빌리티 CostGameplayEffectClass의 "프로젝트 방식(테이블 기반)" 기본 클래스를 겸한다.
- * 이 클래스면 테이블 기반, 다른 GE면 그 GE를 순정 경로로 사용한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxEffect_Cost : public UGameplayEffect

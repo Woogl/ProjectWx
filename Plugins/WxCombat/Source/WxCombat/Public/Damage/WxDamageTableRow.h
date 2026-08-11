@@ -10,7 +10,7 @@
 
 /**
  * 공격별 밸런스 수치(계수·자원 회복·피격 반응)를 담는 데이터테이블 Row.
- * RowName 예시: Attack_Light_1, Attack_Heavy_2, Skill_Fireball
+ * RowName 예시: AM_Attack_L, AM_Attack_HH, AM_Finisher, BP_Projectile
  */
 USTRUCT(BlueprintType)
 struct WXCOMBAT_API FWxDamageTableRow : public FTableRowBase

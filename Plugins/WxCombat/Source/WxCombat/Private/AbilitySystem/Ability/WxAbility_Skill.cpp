@@ -15,7 +15,7 @@ UWxAbility_Skill::UWxAbility_Skill()
 
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
 
-	// 스킬은 재생 중 다른 GA로 캔슬되지 않는다. (PC규격서 §5.6)
+	// 스킬은 재생 중 다른 GA로 캔슬되지 않는다. (PC규격서 §5.2)
 	// 후딜 캔슬은 몽타주 StartRecovery 노티파이로 허용한다.
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 

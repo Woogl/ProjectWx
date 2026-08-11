@@ -26,8 +26,8 @@ struct FWxDamageResult
  *  - Unblockable 가드 : 가드 어빌리티를 끊고 HP·DP 차감(퍼펙트 가드도 뚫는다)
  *  - 비가드        : HP·DP 차감
  *
- * 여기서는 GameplayCue도 GameplayEvent도 발행하지 않는다. 판정 결과를 FWxCombatEffectContext에 남기면,
- * GE 적용이 끝난 뒤 UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf가 그걸 읽어 발행한다.
+ * 여기서는 GameplayCue도 GameplayEvent도 발행하지 않는다.
+ * 판정 결과를 FWxCombatEffectContext에 남기면, GE 적용이 끝난 뒤 UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf가 그걸 읽어 발행한다.
  * 어트리뷰트가 확정되기 전에 발행하면 수신자가 "차감 전 값"을 역산해야 하기 때문이다.
  */
 UCLASS()
@@ -41,7 +41,6 @@ public:
 	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
 
 private:
-	/** 퍼펙트 가드 시 공격자에게 DP 반사 */
 	void ReflectPerfectGuard(UAbilitySystemComponent* SourceASC, float ReflectAmount) const;
 
 	/** bSkipCrit 또는 Raw 모드면 크리를 건너뛴다 */

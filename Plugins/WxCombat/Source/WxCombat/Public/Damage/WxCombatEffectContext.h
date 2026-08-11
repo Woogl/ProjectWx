@@ -26,8 +26,8 @@ enum class EWxDamageResult : uint8
 /**
  * 대미지 판정 결과를 실어 나르는 EffectContext.
  *
- * UWxExecCalc_Damage가 계산 중에 쓰고, UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf가
- * GE 적용이 끝난 뒤 읽어 Cue·이벤트를 발행한다. 둘 사이의 유일한 연결 통로다.
+ * UWxExecCalc_Damage가 계산 중에 쓰고, UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf가 GE 적용이 끝난 뒤 읽어 Cue·이벤트를 발행한다.
+ * 둘 사이의 유일한 연결 통로다.
  *
  * 클라이언트 예측 경로는 ExecCalc를 건너뛰므로 DamageResult가 None으로 남고, 발행 측이 그대로 무시한다.
  *

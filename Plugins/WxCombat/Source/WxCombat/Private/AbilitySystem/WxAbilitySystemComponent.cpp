@@ -140,8 +140,7 @@ int32 UWxAbilitySystemComponent::HandleGameplayEvent(FGameplayTag EventTag, cons
 
 void UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle)
 {
-	// 대미지 GE와 AdditionalEffects가 컨텍스트를 공유하므로(FWxDamageInfo::MakeSpecs),
-	// GE 종류를 가리지 않으면 뒤따르는 상태이상 GE마다 같은 판정으로 연출이 다시 나간다.
+	// 컨텍스트가 대미지 GE와 AdditionalEffects에 공유되므로, GE 종류로 걸러야 뒤따르는 상태이상 GE마다 연출이 다시 나가지 않는다.
 	if (!Spec.Def || !Spec.Def->IsA<UWxEffect_Damage>())
 	{
 		return;
@@ -229,7 +228,6 @@ void UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf(UAbilitySystem
 	}
 
 	// 무적 회피로 빠져나간 경우를 빼면 퍼펙트 가드까지 포함해 모든 적중에서 보낸다.
-	// 공격자 ASC가 이 이벤트를 받아, 컨텍스트의 어빌리티가 재생 중인 몽타주를 그 시간만큼 잠깐 멈춘다.
 	if (SourceActor)
 	{
 		const float HitStopDuration = Spec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_HitStop, false, 0.f);
@@ -254,7 +252,6 @@ void UWxAbilitySystemComponent::ApplyHitStop(const FGameplayEventData& Payload)
 		return;
 	}
 
-	// 대미지를 준 그 어빌리티가 여전히 몽타주 주인일 때만 얼린다.
 	// 같은 적중 처리에서 먼저 발동한 반응(패리 등)이 몽타주를 가로챘으면 건너뛴다.
 	if (!GetAnimatingAbility() || GetAnimatingAbility() != Payload.ContextHandle.GetAbilityInstance_NotReplicated())
 	{
@@ -270,7 +267,6 @@ void UWxAbilitySystemComponent::ApplyHitStop(const FGameplayEventData& Payload)
 	// 완전한 0이 아닌 미세 값으로 둬 몽타주 진행 판정 이슈를 피한다.
 	CurrentMontageSetPlayRate(0.001f);
 
-	// 복원 예약이 지금 얼린 그 몽타주를 들고 간다.
 	// 연속 적중이면 타이머가 재설정되어 조기 복원을 막는다.
 	GetWorld()->GetTimerManager().SetTimer(HitStopResumeTimer,
 		FTimerDelegate::CreateUObject(this, &UWxAbilitySystemComponent::HandleHitStopElapsed, TWeakObjectPtr<UAnimMontage>(Montage)),
@@ -279,8 +275,7 @@ void UWxAbilitySystemComponent::ApplyHitStop(const FGameplayEventData& Payload)
 
 void UWxAbilitySystemComponent::HandleHitStopElapsed(TWeakObjectPtr<UAnimMontage> FrozenMontage)
 {
-	// 복원은 현재 몽타주가 아니라 얼렸던 그 몽타주에 간다.
-	// 피격 등이 현재를 가로챘어도 정확히 닿고, 인스턴스가 사라졌으면 무동작이다.
+	// 피격 등이 현재 몽타주를 가로챘어도 얼렸던 그 몽타주에 정확히 닿는다.
 	UAnimInstance* AnimInstance = AbilityActorInfo.IsValid() ? AbilityActorInfo->GetAnimInstance() : nullptr;
 	if (AnimInstance && FrozenMontage.IsValid())
 	{

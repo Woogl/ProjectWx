@@ -26,7 +26,6 @@ class WXCOMBAT_API AWxWeaponBase : public AActor
 public:
 	AWxWeaponBase();
 
-	/** 소유자 액터에 부착된 AWxWeaponBase를 반환 */
 	static AWxWeaponBase* FindWeapon(const AActor* Owner);
 
 	/** 첫 호출에서만 콜리전을 켜고, 겹치는 ANS는 레퍼런스 카운트만 올린다. */
@@ -59,7 +58,6 @@ public:
 protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	/** 캐릭터 소켓에 부착되는 기준점 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Weapon")
 	TObjectPtr<USceneComponent> GripPoint;
 
@@ -89,6 +87,5 @@ private:
 	UPROPERTY()
 	TSet<TObjectPtr<AActor>> HitActorsThisSwing;
 
-	/** 직전 프레임 HitCollision 위치 */
 	FVector PrevCapsuleLocation = FVector::ZeroVector;
 };

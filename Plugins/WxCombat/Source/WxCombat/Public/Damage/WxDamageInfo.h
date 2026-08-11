@@ -39,10 +39,7 @@ struct WXCOMBAT_API FWxDamageInfo
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo")
 	float RecoverUP = 0.f;
 
-	/**
-	 * 적중 시 부여할 HitReact 태그.
-	 * 비어있으면 HitReact 이벤트가 송출되지 않는다.
-	 */
+	/** 비어있으면 HitReact 이벤트가 송출되지 않는다 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo", meta = (Categories = "Event.HitReact"))
 	FGameplayTag HitReactTag;
 

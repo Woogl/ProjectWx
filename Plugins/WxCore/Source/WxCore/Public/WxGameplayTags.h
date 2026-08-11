@@ -39,7 +39,6 @@ namespace WxGameplayTags
 	/** 회피 상태. WxAbility_Dodge가 ActivationOwnedTags로 활성 중에만 자동 부여. 공격이 회피 반격 콤보를 고르는 진입 조건 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dodge);
 
-	/** 가드 판정 활성 상태 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Guard);
 
 	/** 질주 상태. WxAbility_Sprint가 활성 중 실제로 이동할 때만 부여. SP 소모 GE의 발동 조건이자 SP 자연 회복의 억제 조건 */
@@ -65,7 +64,7 @@ namespace WxGameplayTags
 	/** 피격 이벤트 부모 카테고리. ExecCalc 필터링용. Guard 어빌리티가 자식 태그를 모두 수신하기 위해 부모로도 구독 (직접 dispatch 금지) */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact);
 
-	/** 일반 피격 이벤트. HitReact 어빌리티가 기본 HitReactMontage 재생 */
+	/** 일반 피격 이벤트. HitReact 어빌리티가 NormalHitReactMontage 재생 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Normal);
 
 	/** 넉백 피격 이벤트. HitReact 어빌리티가 Knockback 몽타주 재생 */
@@ -80,16 +79,16 @@ namespace WxGameplayTags
 	/** 패리 피격 이벤트. 공격이 퍼펙트 가드로 막힌 공격자에게 송출, HitReact 어빌리티가 ParryReactMontage 재생 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Parry);
 
-	/** 피니셔(앞잡) 짝 피격 이벤트. 피니셔 대상 적에게 송출, HitReact 어빌리티가 FinisherMontage 재생 */
+	/** 피니셔(앞잡) 짝 피격 이벤트. 피니셔 대상 적에게 송출, HitReact 어빌리티가 FinisherHitReactMontage 재생 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Finisher);
 
-	/** 백스탭(뒤잡) 짝 피격 이벤트. 백스탭 대상 적에게 송출, HitReact 어빌리티가 BackstabMontage 재생 */
+	/** 백스탭(뒤잡) 짝 피격 이벤트. 백스탭 대상 적에게 송출, HitReact 어빌리티가 BackstabHitReactMontage 재생 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Backstab);
 
 	/** 회피 성공 시 발생하는 이벤트. 무적 구간에서 대미지를 회피했을 때 발송 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_DodgeSuccess);
 
-	/** 퍼펙트 가드 성공 시 발생하는 이벤트. Guard 어빌리티가 MP 회복 및 HitReact를 처리 */
+	/** 퍼펙트 가드 성공 시 발생하는 이벤트. Guard 어빌리티가 MP 회복·슬로우 타임·퍼펙트 가드 몽타주를 처리 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_PerfectGuard);
 
 	/** 소비 아이템 사용 이벤트. 마시기 몽타주의 노티파이가 송출, UseItem 어빌리티가 수신해 아이템을 실제 사용 */
@@ -104,7 +103,7 @@ namespace WxGameplayTags
 	/** 백스탭(뒤잡) 발동 이벤트. 미인지 적 후방 상호작용 시 플레이어 ASC로 송출(Target=적), WxAbility_Finisher가 트리거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Backstab);
 
-	/** 역경직(히트 스톱) 이벤트. WxExecCalc_Damage가 무적 회피가 아닌 적중에 공격자 ASC로 송출(EventMagnitude=정지 시간), 재생 중인 공격 어빌리티가 자기 몽타주를 잠깐 정지 */
+	/** 역경직(히트 스톱) 이벤트. 피격자 ASC가 대미지 GE 적용 후 무적 회피가 아닌 적중에 공격자 ASC로 송출(EventMagnitude=정지 시간), 공격자 ASC가 재생 중인 몽타주를 잠깐 정지 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitStop);
 
 	// ── Gimmick ───────────────────────────────────────────────────────────
@@ -159,7 +158,7 @@ namespace WxGameplayTags
 	/** 화상 지속 Cue */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Burn);
 
-	/** 공격 텔레그래프(선딜 표시) Cue. 색상별로 나뉘며, AttackTelegraph 노티파이가 권위에서 발행. RawMagnitude에 차징 길이를 실어 전달 */
+	/** 공격 텔레그래프(선딜 표시) Cue. 색상별로 나뉘며, 순정 GameplayCue (Looping) 노티파이가 몽타주 구간에서 로컬 발행 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_AttackTelegraph_Red);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_AttackTelegraph_Yellow);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_AttackTelegraph_Blue);
@@ -223,7 +222,7 @@ namespace WxGameplayTags
 
 	// ── SetByCaller ──────────────────────────────────────────────────────
 
-	/** 지속시간 Duration SetByCaller 키. Cooldown/NoCooldown/InfiniteMP/DrainDP, Groggy 등 Duration 모디파이어에서 공용으로 사용 */
+	/** 지속시간 Duration SetByCaller 키. NoCooldown/InfiniteMP/DrainDP 등 Duration 모디파이어에서 공용으로 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Duration);
 
 	/** UP 회복량 SetByCaller 키. WxEffect_RecoverResource의 UP 모디파이어에서 사용 */
@@ -238,7 +237,7 @@ namespace WxGameplayTags
 	/** 원시 대미지 SetByCaller 키. 양수일 때 ATK/DEF/Coeff/크리를 우회하고 평탄 값으로 대미지 처리 (환경 대미지). 가드/퍼펙트 가드/HitReact는 정상 동작 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_RawDamage);
 
-	/** 역경직(히트 스톱) 지속시간 SetByCaller 키. WxExecCalc_Damage가 적중 시 이 값을 실어 공격자에게 Event.HitStop을 발동한다 */
+	/** 역경직(히트 스톱) 지속시간 SetByCaller 키. 피격자 ASC가 대미지 GE 적용 후 이 값을 읽어 공격자에게 Event.HitStop을 발동한다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_HitStop);
 
 	/** 이동 속도 배율 SetByCaller 키. WxEffect_MoveSpeedScale이 SPD 어트리뷰트에 곱하는 배율 */

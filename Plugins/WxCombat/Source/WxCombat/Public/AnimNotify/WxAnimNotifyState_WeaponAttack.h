@@ -8,10 +8,7 @@
 #include "Damage/WxDamageInfo.h"
 #include "WxAnimNotifyState_WeaponAttack.generated.h"
 
-/**
- * 무기 공격 구간 AnimNotifyState.
- * 히트 콜리전을 켜고 끄는 것은 무기 자신이다.
- */
+/** 히트 콜리전을 켜고 끄는 것은 무기 자신이다. */
 UCLASS()
 class WXCOMBAT_API UWxAnimNotifyState_WeaponAttack : public UAnimNotifyState
 {

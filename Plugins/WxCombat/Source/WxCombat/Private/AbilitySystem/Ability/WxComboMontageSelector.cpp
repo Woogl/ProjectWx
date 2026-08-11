@@ -6,7 +6,6 @@
 
 UAnimMontage* FWxComboMontageSelector::GetNextMontage(const UAbilitySystemComponent* ASC)
 {
-	// 세트 인덱스가 살아 있으면 재발동으로 이어온 콤보다.
 	if (!MontageSets.IsValidIndex(CurrentSetIndex))
 	{
 		CurrentSetIndex = FindMontageSetIndex(ASC);

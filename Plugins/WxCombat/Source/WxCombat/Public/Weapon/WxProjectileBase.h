@@ -66,7 +66,6 @@ protected:
 private:
 	void InitializeDamageSpec();
 
-	/** 권위와 무관하게 충돌을 감지한 머신에서 재생한다 */
 	void PlayImpactFX();
 
 	FGameplayEffectContextHandle CachedEffectContext;

@@ -26,7 +26,6 @@ protected:
 	float GetCostMagnitude(const FGameplayEffectSpec& Spec, EWxAbilityCostResource Resource) const;
 };
 
-/** Row가 MP를 고른 경우의 소모량 */
 UCLASS()
 class WXCOMBAT_API UWxMMC_MPCost : public UWxMMC_Cost
 {
@@ -36,7 +35,6 @@ public:
 	virtual float CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const override;
 };
 
-/** Row가 UP를 고른 경우의 소모량 */
 UCLASS()
 class WXCOMBAT_API UWxMMC_UPCost : public UWxMMC_Cost
 {
@@ -46,7 +44,6 @@ public:
 	virtual float CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const override;
 };
 
-/** Row가 SP를 고른 경우의 소모량 */
 UCLASS()
 class WXCOMBAT_API UWxMMC_SPCost : public UWxMMC_Cost
 {
