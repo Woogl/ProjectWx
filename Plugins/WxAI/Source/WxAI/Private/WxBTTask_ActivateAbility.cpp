@@ -31,7 +31,16 @@ EBTNodeResult::Type UWxBTTask_ActivateAbility::ExecuteTask(UBehaviorTreeComponen
 		return EBTNodeResult::Failed;
 	}
 
-	FGameplayAbilitySpecHandle ActivatedSpecHandle;
+	CachedASC = ASC;
+	CachedOwnerComp = &OwnerComp;
+
+	// TryActivateAbility 안에서 어빌리티가 동기 종료될 수 있으므로(즉발 어빌리티, CommitAbility 실패 등),
+	// 그 종료 통지를 받으려면 발동 전에 바인드해야 한다.
+	AbilityEndedDelegateHandle = ASC->OnAbilityEnded.AddUObject(
+		this, &UWxBTTask_ActivateAbility::HandleAbilityEnded);
+
+	ActivationResult = EBTNodeResult::InProgress;
+	bIsActivating = true;
 	{
 		// 순회 중 활성화도 실패 통지도 어빌리티 목록을 바꿀 수 있다(GE의 GrantedAbilities, 실패 콜백의 Give/Clear 등).
 		// 락이 없으면 Add/RemoveAtSwap 이 즉시 반영돼 순회 중인 참조가 무효화된다. 엔진 입력 경로도 같은 이유로 이 락을 건다.
@@ -43,36 +52,39 @@ EBTNodeResult::Type UWxBTTask_ActivateAbility::ExecuteTask(UBehaviorTreeComponen
 		{
 			if (IterSpec.Ability && IterSpec.Ability->GetAssetTags().HasTag(AbilityTag))
 			{
+				// 종료 콜백이 발동 도중 도착하므로 판별용 핸들을 미리 세운다.
+				ActivatedHandle = IterSpec.Handle;
 				if (ASC->TryActivateAbility(IterSpec.Handle))
 				{
-					ActivatedSpecHandle = IterSpec.Handle;
 					break;
 				}
+				ActivatedHandle = FGameplayAbilitySpecHandle();
 			}
 		}
 	}
+	bIsActivating = false;
 
-	if (!ActivatedSpecHandle.IsValid())
+	// 발동 구간 안에서 끝났으면 그 결과가 결론이다(정리는 콜백이 이미 마쳤다).
+	if (ActivationResult != EBTNodeResult::InProgress)
 	{
+		return ActivationResult;
+	}
+
+	if (!ActivatedHandle.IsValid())
+	{
+		CleanUp();
 		return EBTNodeResult::Failed;
 	}
 
 	// TryActivateAbility 는 활성화 도중 어빌리티 부여/제거로 ActivatableAbilities 배열을 재할당할 수 있어,
 	// 활성화 이전에 잡아둔 Spec 포인터는 무효가 될 수 있다. 반드시 핸들로 다시 조회한다.
-	// 또한 TryActivateAbility 내부에서 어빌리티가 동기적으로 종료될 수 있다 (CommitAbility 실패 등).
-	// 이 경우 OnAbilityEnded가 이미 브로드캐스트된 후이므로, 델리게이트를 등록해도 콜백이 발생하지 않아 BT가 InProgress 상태로 영구 정지한다.
-	const FGameplayAbilitySpec* ActiveSpec = ASC->FindAbilitySpecFromHandle(ActivatedSpecHandle);
+	// 종료 통지 없이 비활성이면(스펙 제거 등) 콜백이 오지 않아 BT 가 InProgress 로 영구 정지하므로 실패로 마감한다.
+	const FGameplayAbilitySpec* ActiveSpec = ASC->FindAbilitySpecFromHandle(ActivatedHandle);
 	if (!ActiveSpec || !ActiveSpec->IsActive())
 	{
+		CleanUp();
 		return EBTNodeResult::Failed;
 	}
-
-	CachedASC = ASC;
-	CachedOwnerComp = &OwnerComp;
-	ActivatedHandle = ActivatedSpecHandle;
-
-	AbilityEndedDelegateHandle = ASC->OnAbilityEnded.AddUObject(
-		this, &UWxBTTask_ActivateAbility::HandleAbilityEnded);
 
 	return EBTNodeResult::InProgress;
 }
@@ -107,15 +119,23 @@ void UWxBTTask_ActivateAbility::HandleAbilityEnded(const FAbilityEndedData& Abil
 
 	CleanUp();
 
+	const EBTNodeResult::Type Result = AbilityEndedData.bWasCancelled
+		? EBTNodeResult::Failed
+		: EBTNodeResult::Succeeded;
+
+	// 발동 구간 안이면 아직 InProgress 를 반환하기 전이라 FinishLatentTask 를 부를 수 없다. ExecuteTask 가 대신 반환한다.
+	if (bIsActivating)
+	{
+		ActivationResult = Result;
+		return;
+	}
+
 	UBehaviorTreeComponent* BTComp = CachedOwnerComp.Get();
 	if (!BTComp)
 	{
 		return;
 	}
 
-	const EBTNodeResult::Type Result = AbilityEndedData.bWasCancelled
-		? EBTNodeResult::Failed
-		: EBTNodeResult::Succeeded;
 	FinishLatentTask(*BTComp, Result);
 }
 
