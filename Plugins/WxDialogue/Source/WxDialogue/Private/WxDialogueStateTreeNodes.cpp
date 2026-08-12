@@ -19,15 +19,11 @@ namespace
 		return PlayerController ? PlayerController->FindComponentByClass<UWxDialogueSessionComponent>() : nullptr;
 	}
 
-	/** 이 컴포넌트가 상호작용 계약을 들므로 호스트 액터 타입은 보지 않는다. */
-	UWxDialogueComponent* FindTargetDialogue(const FUniversalObjectLocator& Locator, AActor* Owner)
-	{
-		const AActor* Target = Cast<AActor>(Locator.SyncFind(Owner));
-		return Target ? Target->FindComponentByClass<UWxDialogueComponent>() : nullptr;
-	}
-
-	/** 재로드로 액터가 새로 만들어지면 콜리전이 레벨 값으로 돌아가 있으므로 다시 걸고, 같은 액터면 이미 적용돼 있어 건드리지 않는다. */
-	void RefreshNpcInteraction(const FStateTreeExecutionContext& Context, FWxStateTreeTask_EnableNpcInteractionInstanceData& Instance)
+	/**
+	 * 재로드로 액터가 새로 만들어지면 콜리전이 레벨 값으로 돌아가 있으므로 다시 걸고, 같은 액터면 이미 적용돼 있어 건드리지 않는다.
+	 * bWarnNotDialogueTarget 은 진입 1회 경고용이다 — 매 틱 도는 자리라 켜 두면 로그가 폭주한다.
+	 */
+	void RefreshNpcInteraction(const FStateTreeExecutionContext& Context, FWxStateTreeTask_EnableNpcInteractionInstanceData& Instance, bool bWarnNotDialogueTarget)
 	{
 		AActor* Owner = Cast<AActor>(Context.GetOwner());
 
@@ -35,10 +31,19 @@ namespace
 
 		for (int32 Index = 0; Index < Instance.Targets.Num(); ++Index)
 		{
-			UWxDialogueComponent* Dialogue = FindTargetDialogue(Instance.Targets[Index], Owner);
+			// 이 컴포넌트가 상호작용 계약을 들므로 호스트 액터 타입은 보지 않는다.
+			UObject* Object = Instance.Targets[Index].SyncFind(Owner);
+			const AActor* Target = Cast<AActor>(Object);
+			UWxDialogueComponent* Dialogue = Target ? Target->FindComponentByClass<UWxDialogueComponent>() : nullptr;
 			if (!Dialogue)
 			{
-				// 미지정·대화 상대 아님(잘못된 조립)과 스트리밍 아웃(정상)이 여기로 함께 들어온다. 기록을 비워 다시 로드되면 그때 적용한다.
+				// 미지정·대화 상대 아님(잘못된 조립)과 스트리밍 아웃(정상)이 여기로 함께 들어온다. 해석은 됐는데 컴포넌트가 없을 때만 잘못된 조립이다.
+				if (bWarnNotDialogueTarget && Object)
+				{
+					UE_LOG(LogWxDialogue, Warning, TEXT("Enable Npc Interaction: 대상 %s 에 대화 컴포넌트가 없어 말을 걸 수 있는 대상이 아님."), *GetNameSafe(Object));
+				}
+
+				// 기록을 비워 다시 로드되면 그때 적용한다.
 				Instance.AppliedTargets[Index].Reset();
 				continue;
 			}
@@ -258,19 +263,11 @@ EStateTreeRunStatus FWxStateTreeTask_EnableNpcInteraction::EnterState(FStateTree
 			break;
 		}
 	}
-	AActor* Owner = Cast<AActor>(Context.GetOwner());
-	for (const FUniversalObjectLocator& Locator : Instance.Targets)
-	{
-		const UObject* Object = Locator.SyncFind(Owner);
-		if (Object && !FindTargetDialogue(Locator, Owner))
-		{
-			UE_LOG(LogWxDialogue, Warning, TEXT("Enable Npc Interaction: 대상 %s 에 대화 컴포넌트가 없어 말을 걸 수 있는 대상이 아님."), *GetNameSafe(Object));
-		}
-	}
 
 	// 이전 실행의 잔존 기록을 비우고 첫 적용을 시도한다. 대상이 아직 언로드면 Tick 이 재시도한다.
+	// 대상 해석은 여기서 한 번만 하고, 대화 상대가 아닌 대상 경고도 그 해석 결과로 함께 낸다.
 	Instance.AppliedTargets.Reset();
-	RefreshNpcInteraction(Context, Instance);
+	RefreshNpcInteraction(Context, Instance, /*bWarnNotDialogueTarget=*/true);
 
 	return EStateTreeRunStatus::Running;
 }
@@ -278,7 +275,7 @@ EStateTreeRunStatus FWxStateTreeTask_EnableNpcInteraction::EnterState(FStateTree
 EStateTreeRunStatus FWxStateTreeTask_EnableNpcInteraction::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
-	RefreshNpcInteraction(Context, Instance);
+	RefreshNpcInteraction(Context, Instance, /*bWarnNotDialogueTarget=*/false);
 
 	return EStateTreeRunStatus::Running;
 }
