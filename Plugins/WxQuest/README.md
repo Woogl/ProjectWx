@@ -1,50 +1,50 @@
 # WxQuest — 퀘스트 시스템
 
-> 퀘스트 1개를 StateTree 에셋 1개로 표현하고, GameState 에 부착된 컴포넌트가 서버 권위로 실행·저널(제목·목표)을 관리하는 데이터 주도 퀘스트 플러그인.
+> StateTree 에셋 1개 = 퀘스트 1개로 삼아, GameState 에 붙은 서버 권위 컴포넌트가 러너를 돌리고 저널(제목·목표)을 관리한다. 컴포넌트는 어떤 퀘스트 에셋도 알지 않으며 무엇을 실행할지는 전부 데이터가 지정한다.
 
 ## 책임
 **담당**
-- 퀘스트 StateTree 러너 소유·실행: `UWxQuestComponent` 가 권위 측에서 순정 `UStateTreeComponent` 를 런타임 생성해 실행을 위임. 활성 퀘스트는 동시 1개(새 시작은 교체).
-- 저널 상태 관리: 제목 등록·목표 추가/제거를 발급 핸들로 관리하고, 러너 종료(완료·실패·교체)를 감지해 자동 정리. 변경 시 `OnJournalChanged` 발화.
-- 퀘스트 진행 노드 제공: `SetQuestTitle` / `SetQuestObjective` / `WaitMoveToTarget` / `ActivateNextQuest` StateTree 태스크.
-- 외부 진입점: `UWxQuestLibrary` 가 월드 GameState 의 컴포넌트를 찾아 활성화·이벤트 전송을 위임(트리거 볼륨 등 레벨 배치 액터에서 호출).
-- 퀘스트 전용 에셋 타입 `UWxQuestStateTree` — 지정 필드·컴포넌트 API 가 이 타입만 받아 일반 ST 오지정을 픽커·컴파일 단계에서 차단.
+- 퀘스트 실행 수명주기: 활성 퀘스트 1개를 권위에서 실행, 시작/교체/이벤트 전달, 완료·실패·교체의 저널 정리 수렴
+- 저널 상태: 제목 1개 + 목표 N개(발급 핸들로 지목)를 권위에서 보관하고 변경 통지(`OnJournalChanged`) 발화
+- 퀘스트 저작 프리미티브: 퀘스트 전용 StateTree 에셋 타입과 저작용 StateTree Task 세트(제목·목표·체인·도착 대기)
+- 레벨 진입점: 배치 트리거에서 호출하는 Blueprint 라이브러리(활성화·이벤트 전송)
 
 **경계 (비담당)**
-- 퀘스트 에셋 신규 생성 팩토리(WxEditor 담당) — 본 런타임 모듈은 에셋 불가지.
-- HUD 표시: 저널 값은 뷰모델이 `OnJournalChanged` 구독 후 pull 하며, 위젯은 UI 모듈 소관.
-- 컴포넌트 부착: GameMode 가 고른 Experience 에셋의 주입 목록이 담당(GameState 는 본 클래스를 모름).
+- 저널의 시각화(HUD·저널 위젯) — 뷰모델이 컴포넌트를 구독해 pull
+- 컴포넌트 부착 자체 — GameMode 가 고른 Experience 에셋의 주입 목록이 담당(GameState 는 본 클래스를 모름)
+- 퀘스트 에셋 신규 생성 팩토리 — [[WxToolset]] / WxEditor 측
+- 보상 지급 등 도메인 부수효과 노드 — 각 도메인 모듈이 제공하는 별도 ST 노드
 
 ## 의존성
-- **주요 의존**: `WxCore`. 엔진 서브시스템으로 StateTree(`StateTreeModule`) / GameplayStateTree(`GameplayStateTreeModule`) / `ModularGameplay`(GameState 컴포넌트) / `UniversalObjectLocator`(레벨 액터 지정).
-- 규칙: 「WxCore 외 Wx 플러그인 참조」 없음 ✅
+- **주요 의존**: `WxCore`. 엔진 서브시스템으로 StateTree / GameplayStateTree(컴포넌트 러너·태스크 베이스), ModularGameplay(`UGameStateComponent`), UniversalObjectLocator(도착 대상 지정)
+- 규칙: 「WxCore 외 Wx 플러그인 참조」 — 없음 ✅
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxQuestComponent` | GameState 부착, 권위 측 러너 소유·실행·저널 관리 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestComponent.h` |
-| `UWxQuestLibrary` | 레벨/BP 진입점 — 컴포넌트를 찾아 활성화·이벤트 위임 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestLibrary.h` |
-| `UWxQuestStateTree` | 퀘스트 1개를 담는 전용 StateTree 에셋 타입 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestStateTree.h` |
-| `FWxStateTreeTask_SetQuestTitle` | 저널을 제목으로 등록(진행 시작 상태에 1회) | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestTitle.h` |
-| `FWxStateTreeTask_SetQuestObjective` | 진입 시 목표 등록·이탈 시 제거(상태 수명 = 표시 수명) | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestObjective.h` |
-| `FWxStateTreeTask_WaitMoveToTarget` | 플레이어 폰이 대상 반경 도달까지 대기, 도달 시 완료 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_WaitMoveToTarget.h` |
-| `FWxStateTreeTask_ActivateNextQuest` | 다음 퀘스트 시작을 예약하고 즉시 완료(체인) | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_ActivateNextQuest.h` |
+| `UWxQuestComponent` | GameState 부착. 권위 러너 소유·저널 관리의 중심. 모든 태스크가 여기로 위임 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestComponent.h` |
+| `UWxQuestStateTree` | 퀘스트 1개를 담는 전용 ST 에셋 타입. 지정 필드·API 가 이 타입만 받아 오지정 차단 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestStateTree.h` |
+| `UWxQuestLibrary` | 배치 트리거용 BP 진입점(`ActivateQuest`·`SendQuestEvent`), GameState 컴포넌트로 위임 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestLibrary.h` |
+| `FWxStateTreeTask_SetQuestTitle` | 진입 상태에 한 번 걸어 저널 제목 등록, 완료 없이 머묾 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestTitle.h` |
+| `FWxStateTreeTask_SetQuestObjective` | 상태 수명 = 목표 수명. 진입 시 걸고 이탈 시 걷어감(핸들 기반) | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestObjective.h` |
+| `FWxStateTreeTask_WaitMoveToTarget` | 플레이어 폰이 지정 대상 반경 도달까지 대기 후 완료. 대상은 UOL 배열 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_WaitMoveToTarget.h` |
+| `FWxStateTreeTask_ActivateNextQuest` | 다음 퀘스트를 다음 틱 예약하고 즉시 Succeeded. 소프트 참조로 체인 구성 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_ActivateNextQuest.h` |
 
 ## 확장 포인트 / 규약
-- 새 퀘스트 태스크는 `FStateTreeTaskCommonBase` 를 상속해 태스크당 헤더/소스 한 쌍(`Public|Private/Quest/WxStateTreeTask_<이름>.{h,cpp}`)으로 추가. 인스턴스 데이터는 별도 `USTRUCT`(`FInstanceDataType`)로 두고 `GetInstanceDataType()` 을 오버라이드.
-- 노드는 컨텍스트 오너(GameState)에서 `UWxQuestComponent` 를 찾아 저널·체인을 위임한다. 러너가 권위에만 존재하므로 권위 게이트가 없고, 세이브 미도입이라 초기 진입 스킵 게이트도 없다 — 첫 선택이 곧 정상 실행 경로다(기믹 노드의 두 게이트를 복사하지 말 것).
-- 완료 판정 규약: 저널 태스크는 완료를 내지 않고 상태에 머물며(표시의 수명 = 그 상태의 수명), 완료는 짝이 되는 Wait 태스크가 낸다. 판정 참여 여부는 그 태스크가 어떤 상태에 얹히는지로 갈린다 — `SetQuestTitle` 은 자식을 둔 상태에 홀로 얹혀 참여하고, `SetQuestObjective` 는 대기 태스크와 같은 상태(TasksCompletion=All)에 얹히므로 빠진다(끼면 그 상태가 영영 완료되지 않는다).
-- 어떤 상태든 완료 판정 태스크를 최소 하나 가져야 한다. 하나도 없으면 엔진이 "상태 자신" 비트를 덧붙이는데, 형제 상태끼리 완료 비트 범위를 공유하는 데다 진입 시 비트를 씻는 `ResetStatus` 가 태스크 개수만큼만 지워 이 덧붙은 비트를 남긴다. 그러면 형제가 앞서 세운 완료를 그대로 물려받아 진입하자마자 완료로 읽히고, 완료 전이 탐색이 가장 얕은 상태부터 도므로 자식의 전이는 검토조차 되지 않은 채 루트 재선택으로 떨어진다.
-- 레벨 액터 지정은 `FUniversalObjectLocator` 를 배열로 받는다(엔진 5.8 의 직속 UOL 값 위젯 제한 회피). 해석은 매 틱 `SyncFind`(강제 로드 없음)로 캐시 없이 수행.
-- 새 퀘스트 에셋은 스키마가 `StateTreeComponentSchema` 로 고정된 `UWxQuestStateTree` 로 만든다.
+- **퀘스트 저작 = ST 그래프 조립**: 퀘스트는 코드가 아니라 `UWxQuestStateTree` 에셋 하나로 저작한다. 스키마는 `StateTreeComponentSchema` 로 고정(컴포넌트 러너 전제).
+- **저널 표시 규약**: 제목은 진행이 시작되는 상태에 한 번만(`SetQuestTitle`), 목표는 그 상태의 자식들이 각자 `SetQuestObjective` 로 건다. 병렬 상태가 없어도 부모·자식이 각각 걸면 다중 목표가 동시에 표시된다.
+- **완료 판정 함정**: `SetQuestTitle`/`SetQuestObjective` 는 상태에 머무는 Running 태스크이며, 실제 상태 완료는 짝이 되는 대기 태스크(`WaitMoveToTarget` 등)가 낸다. `SetQuestObjective` 는 `bConsideredForCompletion=false` 라 오조립 시에도 트리 진행을 막지 않고 경고 로그만 남긴다.
+- **새 목표 조건 태스크 추가**: `FStateTreeTaskCommonBase` 를 상속해 `EnterState`/`Tick` 에서 조건을 판정, 컨텍스트 오너(GameState)에서 `UWxQuestComponent` 를 찾아 위임하는 패턴을 따른다(`WaitMoveToTarget` 참고).
+- **레벨 참조는 UOL 로**: 배치 액터 지정은 `FUniversalObjectLocator`(순수 구조체) 배열을 쓴다 — ST 컴파일러의 레벨 액터 참조 검증을 우회하고 WP/PIE 해석이 내장된다. 5.8 에디터 제한으로 단일 대상도 배열로 받는다.
+- **권위 전제**: 러너는 권위(싱글/리슨 호스트)에만 존재한다. 비-권위 GameState 에도 컴포넌트 사본이 붙으므로 러너를 권위에서만 띄우는 것이 컴포넌트 책임이다. 태스크의 0번 컨트롤러 사용도 v1 싱글/리슨 호스트 전제.
 
 ## 여기서부터 읽어라
-1. `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestComponent.h` — 러너 소유·저널·권위 모델 등 시스템 전체 설계가 클래스 주석에 응축.
-2. `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_*.h` — 태스크당 파일 하나이고 각 헤더 주석이 그 노드의 계약을 담는다(완료 판정 규약은 위 「확장 포인트」 참조).
-3. `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp` — 다음 틱 예약·러너 상태 변경 처리 등 실제 제어 흐름.
+1. `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestComponent.h` — 클래스 doc-comment 가 시스템 전체 설계(러너 위임·저널 정리 수렴·에셋 불가지)를 담은 지도다
+2. `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp` — 활성화·재진입 방어(다음 틱 예약)·러너 상태 콜백의 실제 구현
+3. `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestObjective.h` — 목표=상태 수명 규약과 완료 판정 함정을 이해하는 출발점
 
 ## 관련
-- 상위: [[WxGame]] (Experience 주입), [[WxCore]] (foundation)
+- 상위: `WxGame` Experience 에셋이 컴포넌트 주입을 결정 · 에셋 팩토리는 [[WxToolset]] / WxEditor
 
 ---
-*문서 기준 커밋 `1ec70f2` · 생성일 2026-08-10 · 소스 9파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `dfd2174` · 생성일 2026-08-12 · 소스 15파일 — `/readme-writer`로 갱신*
