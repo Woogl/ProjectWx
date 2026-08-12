@@ -24,10 +24,7 @@ EStateTreeRunStatus FWxStateTreeTask_EnableNpcInteraction::EnterState(FStateTree
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
 	// 잘못된 조립만 여기서 한 번 가른다. 미해석(스트리밍 아웃)은 정상 상황이라 경고하지 않는다 — 매 틱 재시도하는 판이라 로그가 폭주하기도 한다.
-	if (Instance.Targets.IsEmpty())
-	{
-		UE_LOG(LogWxDialogue, Warning, TEXT("Enable Npc Interaction: 토글할 대상이 지정되지 않음."));
-	}
+	// 빈 배열은 기능 미사용(재사용 스텝의 옵션 파라미터)이라 경고하지 않고, 항목이 있는데 빈 로케이터인 것만 오조립으로 본다.
 	for (const FUniversalObjectLocator& Locator : Instance.Targets)
 	{
 		if (Locator.IsEmpty())

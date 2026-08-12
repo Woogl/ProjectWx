@@ -24,10 +24,10 @@ EStateTreeRunStatus FWxStateTreeTask_PrintSubtitle::EnterState(FStateTreeExecuti
 	Instance.ElapsedSeconds = 0.f;
 	Instance.SubtitleHandle = INDEX_NONE;
 
+	// 미지정은 기능 미사용이다 — 스텝 템플릿의 옵션 파라미터 자리라 경고 없이 즉시 완료한다.
 	if (!Instance.StartRow.DataTable || Instance.StartRow.RowName.IsNone())
 	{
-		UE_LOG(LogWxUI, Warning, TEXT("Print Subtitle: 시작 행이 지정되지 않음(StartRow)."));
-		return EStateTreeRunStatus::Failed;
+		return EStateTreeRunStatus::Succeeded;
 	}
 
 	if (!ShowRow(Context, Instance, Instance.StartRow.RowName))
