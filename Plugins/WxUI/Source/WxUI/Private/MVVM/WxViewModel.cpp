@@ -37,6 +37,8 @@ void UWxViewModel::RequestImageAsync(FName FieldName, const TSoftObjectPtr<UObje
 
 	Request.Pending = InImage;
 
+	// 아래부터 Request 참조를 쓰지 않는다 — ApplyLoadedImage·RequestAsyncLoad 가 재진입해 다른 슬롯을 추가하면 맵이 재해시돼 무효가 된다.
+
 	if (InImage.IsNull())
 	{
 		ApplyLoadedImage(FieldName, nullptr);
@@ -49,9 +51,22 @@ void UWxViewModel::RequestImageAsync(FName FieldName, const TSoftObjectPtr<UObje
 		return;
 	}
 
-	Request.Handle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+	const TSharedPtr<FStreamableHandle> NewHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
 		InImage.ToSoftObjectPath(),
 		FStreamableDelegate::CreateUObject(this, &UWxViewModel::HandleImageLoaded, FieldName));
+
+	// 요청한 에셋이 이미 메모리에 있으면 RequestAsyncLoad 안에서 완료 콜백이 바로 돌 수 있다.
+	// 그 사이 슬롯이 다른 대상으로 재요청됐을 수 있으므로, 대상이 그대로일 때만 핸들을 보관한다.
+	// (보관은 생략할 수 없다 — 로드 완료와 지연 콜백 사이에 에셋을 붙잡아 두는 유일한 참조다.)
+	FWxImageRequest* CurrentRequest = ImageRequests.Find(FieldName);
+	if (CurrentRequest && CurrentRequest->Pending == InImage)
+	{
+		CurrentRequest->Handle = NewHandle;
+	}
+	else if (NewHandle.IsValid())
+	{
+		NewHandle->CancelHandle();
+	}
 }
 
 void UWxViewModel::ApplyLoadedImage(FName FieldName, UObject* LoadedImage)
@@ -66,6 +81,11 @@ void UWxViewModel::HandleImageLoaded(FName FieldName)
 		return;
 	}
 
-	ApplyLoadedImage(FieldName, Request->Pending.Get());
+	// ApplyLoadedImage 재진입이 맵을 재해시하면 Request 가 무효가 되므로 맵 접근을 먼저 끝낸다.
+	// 여기서 keep-alive 를 놓아도 파생 VM 이 곧바로 하드 참조로 받으므로 그 사이 GC 가 돌 여지는 없다.
+	// 반대로 Pending 해석은 Reset 전이어야 한다.
+	UObject* LoadedImage = Request->Pending.Get();
 	Request->Handle.Reset();
+
+	ApplyLoadedImage(FieldName, LoadedImage);
 }
