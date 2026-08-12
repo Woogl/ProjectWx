@@ -48,6 +48,9 @@
 ### 계획 대비 달라진 점
 - 계획에 없던 IDE 프로젝트 파일 재생성을 추가했다. 기존 `Wx.vcxproj`가 옛 플러그인 경로를 가리키고 있어 재생성하지 않으면 IDE에 없는 파일로 남는다. `Wx.sln` 자체는 프로젝트 목록이 그대로라 갱신되지 않았다(정상).
 
+### 검증
+- 빌드: WxEditor(Development) 성공, `UnrealEditor-WxToolset.dll` 생성.
+- 등록: 에디터 실행 시 `LogToolsetRegistry: Display: Registering Toolset WxToolset.WxStateTreeToolset` 출력 확인.
+
 ### 후속 과제
-- 에디터 실행 후 `list_toolsets`로 `WxToolset.WxStateTreeToolset` 등록을 실증하지 않았다. 빌드·링크까지만 확인한 상태다.
 - `LogWxToolset` 로그 카테고리는 선언·정의만 있고 사용처가 없다. 리네이밍 범위 밖이라 그대로 두었다.
