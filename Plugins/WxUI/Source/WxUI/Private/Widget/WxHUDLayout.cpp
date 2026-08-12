@@ -51,7 +51,9 @@ void UWxHUDLayout::HandleMainMenuAction()
 void UWxHUDLayout::HandleFreeCursorPressed()
 {
 	UCommonUIActionRouterBase* ActionRouter = UCommonUIActionRouterBase::Get(*this);
-	if (!ActionRouter)
+
+	// 희망 설정이 없으면 뗄 때 되돌릴 곳도 없으므로 아예 켜지 않는다.
+	if (!ActionRouter || !GetDesiredInputConfig().IsSet())
 	{
 		return;
 	}
@@ -70,8 +72,12 @@ void UWxHUDLayout::HandleFreeCursorReleased()
 		return;
 	}
 
-	// HUD 의 게임 입력 설정으로 복원.
-	ActionRouter->SetActiveUIInputConfig(FUIInputConfig(ECommonInputMode::Game, EMouseCaptureMode::CapturePermanently), this);
+	// 복원 값은 HUD 자신의 희망 설정을 단일 출처로 삼는다.
+	const TOptional<FUIInputConfig> DesiredConfig = GetDesiredInputConfig();
+	if (DesiredConfig.IsSet())
+	{
+		ActionRouter->SetActiveUIInputConfig(DesiredConfig.GetValue(), this);
+	}
 }
 
 void UWxHUDLayout::PushMenuWidget(TSoftClassPtr<UWxActivatableWidget> WidgetClass)
