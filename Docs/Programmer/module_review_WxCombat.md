@@ -1,78 +1,77 @@
 # WxCombat — 코드 리뷰
 
-> GAS 위에 올린 전투 모듈로서 권한 게이트·태그 수명·엔진 순정 경로 위임이 전반적으로 잘 지켜져 있고, 위험한 지점마다 근거 주석이 붙어 있어 건강한 편이다. 이번 리뷰는 ASC·어빌리티 전체·대미지 파이프라인(ExecCalc/AttributeSet/EffectContext)·무기/투사체·어빌리티 태스크·AnimNotify를 cpp까지 읽었고, GE 생성자·GameplayCue·타게팅 필터·MMC는 훑는 수준으로 확인했다.
+> GAS 규약을 정확히 지키며 서버/클라 권위 분리와 태그 누수 방지까지 의식적으로 다룬 모듈이다 — 코딩 규칙 위반은 한 건도 없고, 위험 지점 대부분에 이미 근거 주석이 달려 있다. 이번 리뷰는 대미지 파이프라인(ExecCalc·EffectContext·AttributeSet·CombatLibrary), ASC 허브, 어빌리티 13종, 무기·투사체·락온·타임딜레이션을 cpp까지 읽었고 GE/MMC/Cue/타게팅 필터는 훑는 수준으로 확인했다.
 
 ## 요약
 | 심각도 | 개수 |
 | --- | --- |
 | 🔴 심각 | 0 |
-| 🟡 개선 | 3 |
+| 🟡 개선 | 4 |
 | 🟢 사소 | 4 |
-| ⚪ 철회(검증 후 오탐) | 1 |
-
-`CLAUDE.md` 규칙 위반은 발견하지 못했다. 소스 153개 전부 저작권 첫 줄을 갖췄고, 람다·`FORCEINLINE`·헤더 인라인 정의가 없으며, 델리게이트 콜백은 전부 `Handle` prefix를 쓴다. `BlueprintCallable`은 `UWxCombatLibrary`(Blueprint Function Library) 한 곳뿐이고, Build.cs·uplugin이 참조하는 Wx 플러그인은 `WxCore`가 유일하다.
 
 ## 결과
 
-### 1. 🟡 다중 충전 쿨다운이 런타임 생성 GE를 Spec.Def로 쓴다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbilityBase.cpp:107`
+### 1. 🟡 가드 페이즈 상태가 서버에만 존재해, 원격 클라의 입력 릴리즈가 GuardBreak·PerfectGuard를 끊는다
+- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Guard.cpp:26-39`, `:154-214`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemComponent.cpp:160-249`
 - **범주**: 버그/정확성
-- **문제**: `MaxRecharges > 1`이면 어빌리티 인스턴스를 Outer로 `NewObject<UWxEffect_Cooldown>`을 만들어 쿨다운 GE 정의로 넘긴다. 이 오브젝트는 네트워크 주소가 없어(복제 서브오브젝트도, 이름이 안정적인 디폴트 서브오브젝트도 아님) 복제 대상이 아니다. `FGameplayEffectSpec::Def`는 복제되는 `UPROPERTY` 오브젝트 참조라, 서버가 적용한 충전 쿨다운이 소유 클라에 도착하면 `Def`가 널로 풀린다. 엔진은 이때 `FActiveGameplayEffect::PostReplicatedAdd`에서 에러 로그만 남기고 그 GE를 등록하지 않으므로(UE 5.8 `GameplayEffect.cpp:2811`), 클라의 예측분이 키 확정과 함께 걷힌 뒤에는 쿨다운이 사라져 `CheckCooldown`이 통과한다 — 재입력이 로컬에선 나가고 서버에선 거부되는 디싱크가 된다. 단일 충전(공유 CDO) 경로와 스탠드얼론/리슨 호스트는 영향이 없다.
-- **제안**: 충전 수를 GE 인스턴스로 나르지 말고, 최대 충전 수는 `AbilityDataRow`에서 소비 측(ViewModel)이 직접 읽게 한다. GE는 공용 CDO 하나로 유지하면 복제 문제가 사라진다.
-- **확신도**: 중간
+- **문제**: `InputReleased`는 `ActiveMontage`가 GuardBreak/PerfectGuard일 때만 종료를 보류한다(`WxAbility_Guard.cpp:33`). 그런데 `ActiveMontage`를 그 값으로 바꾸는 `HandleGuardHitReact`/`HandlePerfectGuard`는 `Event.HitReact`·`Event.PerfectGuard` 수신으로만 호출되고, 그 이벤트는 `HandleGameplayEffectAppliedToSelf`에서 `SendGameplayEventToActor`로 발행된다(`WxAbilitySystemComponent.cpp:214`, `:235`). 이 핸들러는 판정 결과가 실린 서버에서만 통과하고(`:193` DamageResult::None 조기 반환), `SendGameplayEventToActor`는 복제되지 않는다. 결과적으로 LocalPredicted 가드의 **클라 인스턴스는 영원히 `ActiveMontage == GuardMontage`** 상태다. 원격 클라가 브레이크·패링 연출 도중 가드 키를 떼면 클라 인스턴스가 게이트를 통과해 `EndAbility(..., bReplicateEndAbility=true)`를 부르고, 이는 ServerEndAbility로 서버 인스턴스까지 끝낸다 — "스스로 끝나야 하는 페이즈는 입력 릴리즈로 끊지 않는다"는 의도가 원격 클라에서만 깨진다. 스탠드얼론·리슨 호스트에서는 두 인스턴스가 같은 객체라 재현되지 않는다.
+- **제안**: 페이즈를 클라도 아는 상태로 올린다 — 브레이크/패링 진입 시 서버가 복제 루스 태그(예: `State.Guard.Break`)를 붙이고 `InputReleased` 게이트를 그 태그로 판정하거나, 종료 판단 자체를 서버 인스턴스로 옮긴다(클라 릴리즈는 서버에 의사만 전달).
+- **확신도**: 중간 (이벤트 발행이 서버 전용인 것은 코드로 확정. 실제 체감 여부는 데디케이티드 구성에서만 확인 가능)
 
-### 2. 🟡 히트스톱이 서버에서만 적용돼 공격 소유 클라에는 보이지 않는다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemComponent.cpp:230`, 같은 파일 `:268`
+### 2. 🟡 `OnGiveAbility`가 ActorInfo의 ASC를 검증 없이 역참조하고, 아바타 준비 전에 패시브를 발동시킨다
+- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbilityBase.cpp:77-85`
+- **범주**: 버그/정확성
+- **문제**: `ActorInfo->AbilitySystemComponent->TryActivateAbility(Spec.Handle)`에 널 검사가 없다. `AbilitySystemComponent`는 `TWeakObjectPtr`이며 `InitAbilityActorInfo` 전에는 비어 있다. 서버 경로는 `AWxCharacterBase::InitAbilitySystem`이 `RefreshAbilityActorInfo` 후에 부여하므로 안전하지만(`Source/WxGame/Character/WxCharacterBase.cpp:185-200`), 클라이언트는 스펙 복제(`OnRep_ActivateAbilities`)로 `OnGiveAbility`가 불리므로 캐릭터의 액터 정보 초기화보다 먼저 도달할 수 있다. 그 경우 `ActivationPolicy == OnGranted`인 어빌리티에서 널 역참조가 된다. 아바타가 아직 없는 시점의 발동이라는 문제도 함께 있다(몽타주·캐릭터를 쓰는 패시브는 조용히 실패).
+- **제안**: `ActorInfo`와 `ActorInfo->AbilitySystemComponent.IsValid()`를 검사하고, 자동 발동 시점을 `OnAvatarSet`(아바타 확정 시 호출)으로 옮긴다.
+- **확신도**: 중간 (현재 `OnGranted`을 쓰는 어빌리티가 있는지는 BP 에셋이라 확인하지 못했다. 쓰이지 않는다면 잠재 결함)
+
+### 3. 🟡 EndAbility 오버라이드가 `Super` 판정 전에 부수효과를 무조건 실행한다
+- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Guard.cpp:75-94`, `WxAbility_Dodge.cpp:92-109`, `WxAbility_Sprint.cpp:92-123`, `WxAbility_Finisher.cpp:117-137`
 - **범주**: 설계/구조
-- **문제**: `HandleGameplayEffectAppliedToSelf`는 `EWxDamageResult::None`이면 곧장 빠져나가는데, 클라 예측 경로는 ExecCalc를 건너뛰어 항상 None이다. 따라서 `Event.HitStop` 발행도 `ApplyHitStop`도 권위 머신에서만 일어난다. `ApplyHitStop`이 부르는 `CurrentMontageSetPlayRate`는 권위 측에서 `AnimMontage_UpdateReplicatedData`로 시뮬 프록시에만 전파되고, 엔진의 `OnRep_ReplicatedAnimMontage`는 locally controlled 액터를 건너뛴다. 결과적으로 데디케이티드 서버에서는 정작 때린 플레이어 본인 화면만 역경직이 빠진다(리슨 호스트·스탠드얼론은 정상).
-- **제안**: 타격 판정이 이미 서버 권위이므로, 히트스톱만 공격자에게 별도로 알리는 경로를 두거나(클라 전용 Cue 또는 공격자 대상 RPC), 멀티 미지원을 의도로 확정한다면 그 범위를 README/코드에 명시한다.
-- **확신도**: 중간(현재 개발 형태가 단일 플레이·리슨 호스트라면 의도된 범위일 수 있음)
+- **문제**: 이 오버라이드들은 태그 제거·GE 제거·타이머 해제를 `Super::EndAbility` **앞에서** 무조건 수행한다. 엔진의 `UGameplayAbility::EndAbility`는 (a) `IsEndAbilityValid`가 거짓이면 아무 것도 하지 않고, (b) `ScopeLockCount > 0`이면 실제 종료를 뒤로 미룬다. 즉 "종료되지 않았는데 정리만 끝난" 상태가 만들어질 수 있다 — 스코프 락 중 종료 요청이 들어오면 가드는 `State.Guard`를 즉시 잃은 채로 잠시 더 활성이고, 그 사이 들어온 피격은 ExecCalc에서 무방비로 판정된다. `UWxAbility_Sprint`는 반대로 GE 제거만 `Super` 뒤에 두어(`:109-122`) 같은 함수 안에서 순서가 엇갈린다.
+- **제안**: 정리 블록을 `if (IsEndAbilityValid(Handle, ActorInfo))`로 감싸거나, `Super::EndAbility` 호출 이후 실제 종료 여부를 확인하고 정리한다. Sprint는 정리 위치를 한쪽으로 통일한다.
+- **확신도**: 낮음 (의도된 설계일 수 있음 — 현재 알려진 호출 경로에서는 재현 사례를 특정하지 못했고, 태그 제거는 `HasMatchingGameplayTag` 가드로 대부분 멱등하다)
 
-### 3. ⚪ (철회) 회피의 TargetData 델리게이트가 해제되지 않는다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Dodge.cpp:76`, 같은 파일 `:323`
-- **최초 주장**: 서버가 리모트 플레이어의 방향 데이터를 받으려고 `AbilityTargetDataSetDelegate`에 붙인 `HandleTargetDataReceived`를 `EndAbility`에서 떼지 않아, (1) 종료된 인스턴스에서 `StartDodge`가 돌고 (2) `AbilityTargetDataMap` 엔트리가 누적된다.
-- **판정**: 오탐(2026-08-12 엔진 소스로 검증). 엔진 `UGameplayAbility::EndAbility`가 `ClearAbilityReplicatedDataCache(Handle, CurrentActivationInfo)`를 직접 호출하고(UE 5.8 `GameplayAbility.cpp:891`), 이 함수는 (Spec, PredictionKey) 엔트리를 통째로 제거한다. 델리게이트는 그 엔트리 안에 살므로 함께 걷힌다. 바인딩에 쓴 키와 엔진이 지우는 키도 같은 값이다 — `PreActivate`가 `CurrentActivationInfo`에 인자를 그대로 복사한다. 제거된 엔트리는 free 풀로 가고 `FindOrAdd`가 재사용 직전에 `ResetAll()`로 델리게이트를 비우므로, 재활용 엔트리가 옛 핸들러를 부르는 교차 호출도 없다.
-- **잔여**: 서버 어빌리티가 이미 끝났거나 활성 자체가 거부된 뒤에 클라의 TargetData RPC가 도착하면 `ServerSetReplicatedTargetData`가 엔트리를 새로 만들고 아무도 지우지 않는다. GAS TargetData를 쓰는 모든 코드에 공통이고, 활성과 데이터 두 RPC가 신뢰 순서로 붙어 도착하므로 실제로 벌어질 여지는 사실상 없다.
-
-### 4. 🟡 Attack과 Skill이 거의 통째로 중복된다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Attack.cpp:66`~`:155`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Skill.cpp:63`~`:133`
+### 4. 🟡 `UWxAbility_Attack`과 `UWxAbility_Skill`의 콤보 로직이 통째로 중복이다
+- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Attack.cpp:24-155`, `WxAbility_Skill.cpp:25-133`
 - **범주**: 중복/복잡도
-- **문제**: `ComboSelector`·`MontageTask` 멤버, `EndAbility`의 EndTask+Reset 처리, `PlayMontage`, 몽타주 핸들러 4개, `CanActivateAbility`의 콤보 분기까지 주석 문구를 포함해 사실상 동일하다. 헤더까지 합치면 네 파일에 걸친 반복이라, 콤보 재발동 규칙을 바꿀 때 한쪽만 고치면 두 어빌리티의 동작이 조용히 갈린다. 실제로 `CanActivateAbility`는 이미 형태가 미세하게 달라져 있다(Attack은 `HasActiveCancelTarget` 경로가 추가되고 반환 표현식이 다름).
-- **제안**: 콤보 몽타주 재생 규약만 담은 중간 베이스(예: `UWxAbility_ComboMontage`)로 올리고, Attack은 캔슬 진입 분기만 얹는다. 다만 이 프로젝트는 구조 추출보다 인플레이스 반복을 선호하는 방침이 있으므로, 유지하기로 한다면 두 파일이 짝이라는 사실을 주석으로 못박아 동시 수정 대상임을 남긴다.
-- **확신도**: 높음(중복 자체는 사실이며, 처방 선택은 방침 문제)
-
-### 5. 🟢 AbilitySet 회수 경로가 호출자 없는 데드 코드다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySet.cpp:9`, `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h:65`
-- **범주**: 중복/복잡도
-- **문제**: `FWxAbilitySetGrantedHandles::RemoveFromAbilitySystem`은 저장소 전체에 호출자가 없고, ASC가 들고 있는 `AbilitySetGrantedHandles`도 채워지기만 할 뿐 아무도 읽지 않는다. 호출자 없는 방어적 선언을 두지 않는다는 프로젝트 방침과 어긋나고, 읽는 사람에게 "부여를 되돌리는 경로가 있다"는 잘못된 인상을 준다.
-- **제안**: 회수 요구가 실제로 생길 때 다시 추가하고 지금은 제거한다.
+- **문제**: 두 클래스의 `CanActivateAbility`(콤보 재발동 분기), `EndAbility`(MontageTask EndTask + bWasCancelled 시 ComboSelector.Reset), `PlayMontage`, 몽타주 핸들러 4종, 그리고 멤버(`ComboSelector`, `MontageTask`)가 사실상 동일하다. 실질적 차이는 Attack에만 있는 `HasActiveCancelTarget` 분기 하나뿐이다. 콤보 재발동은 이 모듈에서 가장 미묘한 제어 흐름(EndTask로 콜백을 끊어야 진행 상태가 보존된다)인데, 그 규약이 두 곳에 복제돼 있어 한쪽만 고치면 조용히 갈라진다.
+- **제안**: `ComboSelector`+`MontageTask`+재발동 규약을 담은 중간 베이스(예: `UWxAbility_ComboBase : UWxAbilityBase`)로 올리고, Attack은 캔슬 진입 분기만 오버라이드한다.
 - **확신도**: 높음
 
-### 6. 🟢 그로기의 State.Groggy 구독이 엔진 동작과 중복이다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Groggy.cpp:51`, 같은 파일 `:146`
+### 5. 🟢 접촉점 산출 블록이 무기와 투사체에 그대로 복제돼 있다
+- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxWeaponBase.cpp:210-233`, `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxProjectileBase.cpp:108-130`
 - **범주**: 중복/복잡도
-- **문제**: 이 어빌리티는 `EGameplayAbilityTriggerSource::OwnedTagPresent`로 등록돼 있는데(`:28`), 엔진은 태그 카운트가 0이 되면 해당 스펙을 스스로 취소한다(UE 5.8 `AbilitySystemComponent_Abilities.cpp:2687`). 어빌리티가 부여 시점에 걸리는 엔진 콜백이 먼저 돌기 때문에 `HandleGroggyTagChanged`는 이미 종료된 어빌리티에서 호출돼 무효 처리된다. 즉 `bWasCancelled=false`로 끝내려던 의도는 실제로 적용되지 않고, 코드만 남아 오해를 만든다. `State.Dead` 구독은 태그가 달라 여전히 필요하다.
-- **제안**: `GroggyTagDelegateHandle`과 `HandleGroggyTagChanged`를 제거하고, 종료가 엔진 취소로 이뤄진다는 사실을 주석으로 남긴다.
-- **확신도**: 중간
+- **문제**: `bFromSweep`이면 SweepResult를 쓰고 아니면 `GetClosestPointOnCollision`으로 ImpactPoint/Location을 채우는 15줄이 두 파일에 문자 단위로 동일하게 존재한다. 한쪽만 개선하면 히트 위치 기준이 갈라져 Cue 위치가 어긋난다.
+- **제안**: `UWxCombatLibrary`에 오버랩 → FHitResult 변환 헬퍼를 하나 두고 양쪽이 부른다.
+- **확신도**: 높음
 
-### 7. 🟢 락온 종료가 회전 모드를 하드코드 true로 되돌린다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_LockOn.cpp:46`, 같은 파일 `:101`
-- **범주**: 설계/구조
-- **문제**: 진입 시 `bOrientRotationToMovement = false`, 종료 시 무조건 `true`다. 진입 전 값을 복원하는 게 아니라 특정 값을 가정하는 구조라, 이 플래그를 쓰는 다른 주체와 겹치면 조용히 덮어쓴다. 현재 `WxAI`의 `WxAIPerceptionComponent`도 같은 플래그를 직접 토글하고 있어(적 전용이라 지금은 대상이 겹치지 않는다) 쓰기 주체가 이미 둘이다. 또 `GetCharacterMovement()` 반환값을 널 검사 없이 역참조한다.
-- **제안**: 진입 시점 값을 저장했다 복원하거나, 회전 모드를 계산 원천이 발행하는 상태로 일원화한다.
-- **확신도**: 낮음(현재 기본값이 true라 동작상 문제는 없음)
+### 6. 🟢 아바타를 잃은 상태로 회피가 끝나면 판정 캡슐이 켜진 채 남는다
+- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Dodge.cpp:312-322`
+- **범주**: 버그/정확성
+- **문제**: `DeactivateJudgementCapsule`은 아바타를 `ACharacter`로 캐스팅하지 못하면 콜리전을 끄기 전에 조기 반환한다. 사망·언포제스 등으로 아바타가 사라진 뒤 `EndAbility`가 이 경로를 타면, `ECC_Pawn` 오브젝트 타입의 판정 캡슐이 회피 시작 지점에 분리된 채 QueryOnly로 남는다. 이후 무기 스윕(`WxWeaponBase.cpp:189-198`, ECC_Pawn 오브젝트 쿼리)이 그 유령 콜라이더를 맞히고 `HitActorsThisSwing`의 1회 판정을 소모한다(대미지는 `State.Dead`로 막히므로 피해는 없다).
+- **제안**: 콜리전 비활성화를 캐릭터 유효성 검사보다 먼저 수행하고, 재부착만 캐릭터가 있을 때 한다.
+- **확신도**: 높음 (영향 범위는 작음)
 
-### 8. 🟢 SetLockOnTarget의 두 분기가 같은 일을 한다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxLockOnManagerComponent.cpp:29`
-- **범주**: 중복/복잡도
-- **문제**: `if (HasAuthority())`와 `else`가 둘 다 `ApplyLockOnTarget(InTarget)`을 부르고, else만 서버 RPC를 덧붙인다. 분기가 갈리는 것처럼 보여 읽는 쪽이 차이를 찾게 만든다.
-- **제안**: `ApplyLockOnTarget`을 앞으로 빼고, 권위가 아닐 때만 `ServerSetLockOnTarget`을 호출한다.
+### 7. 🟢 일부 AnimNotifyState가 `MeshComp`를 검증 없이 역참조한다
+- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_ComboWindow.cpp:12`, `:25`, `WxAnimNotifyState_Invincible.cpp:12`, `:25`, `WxAnimNotifyState_PerfectGuard.cpp:12`, `:25`, `WxAnimNotifyState_WeaponAttack.cpp:16`, `:32`
+- **범주**: 성능/안전
+- **문제**: 같은 폴더의 `WxAnimNotify_StartRecovery.cpp:12`, `WxAnimNotifyState_SnapToTarget.cpp:19`, `WxAnimNotifyState_CameraMove.cpp:22`는 `MeshComp` 널 검사를 하는데 위 네 파일은 하지 않는다. 이들은 무적·퍼펙트가드 같은 루스 태그를 여닫는 노티파이라, 여기서 예외가 나면 태그가 열린 채로 남는다. 같은 부류의 `GetWorld()` 미검증 역참조가 `WxAbilitySystemComponent.cpp:155`, `WxAbilityBase.cpp:201`, `WxAbilityTask_SlowTime.cpp:21`, `:41`에도 있다.
+- **제안**: 널 가드를 붙여 파일 간 규약을 통일한다.
+- **확신도**: 중간 (현재 호출 경로에서 널이 오는 사례는 확인되지 않았다 — 일관성·방어 목적)
+
+### 8. 🟢 투사체가 클라이언트에서도 쓰지 않을 대미지 Spec을 만든다
+- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxProjectileBase.cpp:71-91`, `:46-61`
+- **범주**: 성능/안전
+- **문제**: `BeginPlay`가 무조건 `InitializeDamageSpec`을 호출해 EffectContext와 GE Spec 배열을 만들지만, 소비처인 `HandleHitCollisionOverlap`은 `HasAuthority()` 뒤에서만 쓴다(`:103-141`). 클라이언트에서는 투사체 1발마다 DataTable 조회 + Spec 힙 할당이 버려진다. 탄막형 패턴에서 누적된다.
+- **제안**: `InitializeDamageSpec` 호출을 `HasAuthority()` 안으로 옮긴다.
 - **확신도**: 높음
 
 ## 검토 범위
-- **깊게 본 파일**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbilityBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxExecCalc_Damage.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Attribute/WxCombatAttributeSet.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Damage/WxCombatEffectContext.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Damage/WxDamageInfo.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Dodge.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Guard.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Finisher.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_HitReact.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Groggy.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Attack.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Skill.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_LockOn.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Sprint.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxWeaponBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxProjectileBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_LockOnTarget.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Time/WxTimeDilationComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxRootMotionModifier_SnapToTarget.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_CameraMove.cpp`
-- **훑은 파일**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/` 아래 GE·MMC 전체, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Cue/` 전체, `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxTargetingFilterTask_*.cpp`, 나머지 `Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/*.cpp`, 대응 Public 헤더 전반
-- **미검토 / 한계**: 어빌리티·GE·데이터테이블의 실제 에셋 값과 BP 서브클래스 설정은 범위 밖이라 코드 계약만 봤다. 발견 1·2는 UE 5.8 엔진 소스를 읽어 메커니즘을 확인했을 뿐 PIE 멀티(데디케이티드 서버) 실측은 하지 않았다. GameplayCue·타게팅 필터·소형 GE 생성자는 수치 타당성까지 파고들지 않았다.
+- **깊게 본 파일**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxExecCalc_Damage.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Attribute/WxCombatAttributeSet.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Damage/WxDamageInfo.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Damage/WxCombatEffectContext.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbilityBase.cpp`, `WxAbility_Guard.cpp`, `WxAbility_Dodge.cpp`, `WxAbility_Attack.cpp`, `WxAbility_Skill.cpp`, `WxAbility_Finisher.cpp`, `WxAbility_HitReact.cpp`, `WxAbility_Groggy.cpp`, `WxAbility_Sprint.cpp`, `WxAbility_LockOn.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxWeaponBase.cpp`, `WxProjectileBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxLockOnManagerComponent.cpp`, `WxRootMotionModifier_SnapToTarget.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Time/WxTimeDilationComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_LockOnTarget.cpp`, `WxAbilityTask_PlaySkillCutscene.cpp`
+- **훑은 파일**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/` 전체(GE·MMC·ExecCalc_Burn), `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Cue/` 전체, `Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/` 전체, `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxTargetingFilterTask_*.cpp`, `Plugins/WxCombat/Source/WxCombat/Public/` 헤더 전반, `Plugins/WxCombat/Source/WxCombat/WxCombat.Build.cs`, `Plugins/WxCombat/WxCombat.uplugin`
+- **규칙 점검 결과**: CLAUDE.md 코딩·모듈 규칙 위반 없음 — 소스 153개 전부 `// Copyright Woogle. All Rights Reserved.`로 시작하고, `FORCEINLINE`·인라인 정의 0건, 람다 0건, `BlueprintCallable`은 `UWxCombatLibrary::ApplyDamage` 한 곳(Blueprint Function Library)뿐이며, 델리게이트 콜백은 전부 `Handle` prefix다. `Build.cs`·`.uplugin` 모두 Wx 의존은 `WxCore`만이고 타 Wx 플러그인 헤더 include도 없다.
+- **미검토 / 한계**: 어빌리티·GE·무기의 실제 데이터(BP 파생 클래스, DataTable 행, 몽타주 섹션·노티파이 배치)는 범위 밖이라 "몽타주 섹션 이름이 `EWxDodgeDirection`과 일치하는가", "`ActivationPolicy=OnGranted`를 쓰는 BP가 있는가" 같은 데이터 의존 규약은 확인하지 못했다(BP 스냅샷 디렉터리가 비어 있다). 발견 1·3의 네트워크 시나리오는 데디케이티드 서버 + 원격 클라 구성에서만 재현되므로 실측하지 않았다. `WxAnimNotifyState_CameraMove`의 에디터 프리뷰 경로(`#if WITH_EDITOR`)는 훑기만 했다.
 
 ---
-*문서 기준 커밋 `5c81cd70` · 리뷰일 2026-08-12 · 소스 153파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `ebe6cffd` · 리뷰일 2026-08-12 · 소스 153파일 — `/module-review`로 갱신*
