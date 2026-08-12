@@ -1,3 +1,4 @@
+
 ## 1. 던전 개요
 
 | 항목 | 내용 |
@@ -22,9 +23,7 @@
 
 ### 구조도
 
-> 전체 평면도, 단면도 또는 블록아웃 이미지를 삽입한다.
-
-![전체 구조도](이미지_경로)
+<img width="1280" height="720" alt="공성포 진지" src="https://github.com/user-attachments/assets/e8290c04-f8cb-455d-a1fa-fddcde1bcff4" />
 
 ### 진행 흐름 요약
 
