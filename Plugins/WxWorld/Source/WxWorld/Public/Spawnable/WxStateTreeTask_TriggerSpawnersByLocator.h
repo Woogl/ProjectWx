@@ -1,0 +1,53 @@
+// Copyright Woogle. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "StateTreeTaskBase.h"
+#include "UniversalObjectLocator.h"
+#include "WxStateTreeTask_TriggerSpawnersByLocator.generated.h"
+
+struct FStateTreeExecutionContext;
+struct FStateTreeTransitionResult;
+
+// GetInstanceDataType() 의 헤더 정의는 코딩 규칙 6 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
+
+USTRUCT()
+struct FWxStateTreeTask_TriggerSpawnersByLocatorInstanceData
+{
+	GENERATED_BODY()
+
+	/** 라이브 진입 시 Respawn() 을 호출할 배치 스포너 지정. 픽커는 모든 액터를 나열하고, 스포너가 아닌 액터를 고르면 ST 컴파일에서 에러가 난다(Compile 참조). */
+	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedLocators = "Actor"))
+	TArray<FUniversalObjectLocator> Spawners;
+};
+
+/**
+ * 라이브 전이로 진입할 때 권위 측에서만 지정 스포너 전부의 Respawn() 을 호출하고 Succeeded 로 완료한다(1회성 스폰 트리거).
+ * 초기 진입(StateTree 시작·세이브 복원·레이트조인: SourceStateID 무효)이면 호출하지 않는다 — 스폰은 발동 순간에만 일어난다.
+ * 대상 스포너는 SpawnMode=Manual 로 두어야 BeginPlay 자동 스폰·일괄 리스폰과 겹치지 않는다.
+ * 미해석(스트리밍 아웃) 스포너는 강제 로드 없이 스킵한다.
+ * 배열이 비었거나 전부 미해석이면 조립·배치 실수일 수 있어 경고를 남긴다.
+ * 틱하지 않으므로 비용이 없다.
+ *
+ * 대상은 FUniversalObjectLocator 로 배치 액터를 직접 지정한다 — 순수 구조체라 ST 컴파일러의 레벨 액터 참조 검증에 걸리지 않고, 씬 픽커와 WP 런타임 셀·PIE 픽스업 해석이 엔진에 내장돼 있어 레벨 밖 호스트(퀘스트 ST)에서도 조립할 수 있다.
+ * 하나만 쓸 자리라도 배열로 받는다 — 인스턴스 데이터의 직속 UOL 멤버는 ST 에디터가 값 위젯을 만들지 못하는 엔진(5.8) 제한에 걸리고, 배열 원소는 그렇지 않다.
+ * 공유 에셋 하나를 여러 배치 인스턴스가 쓰는 기믹 ST 는 리터럴 지정이 불가능하므로 바인딩형 'Trigger Spawners' 를 그대로 쓴다.
+ */
+USTRUCT(meta = (DisplayName = "Trigger Spawners By Locator", Category = "Wx"))
+struct FWxStateTreeTask_TriggerSpawnersByLocator : public FStateTreeTaskCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType = FWxStateTreeTask_TriggerSpawnersByLocatorInstanceData;
+
+	FWxStateTreeTask_TriggerSpawnersByLocator();
+
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+
+#if WITH_EDITOR
+	virtual EDataValidationResult Compile(UE::StateTree::ICompileNodeContext& CompileContext) override;
+	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
+#endif
+};

@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Inventory/WxInventoryStateTreeNodes.h"
+#include "Inventory/WxStateTreeTask_RefillItemCharges.h"
 
 #include "GameFramework/Actor.h"
 #include "GameFramework/PlayerController.h"

@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "StateTreeTaskBase.h"
-#include "WxSubtitleStateTreeNodes.generated.h"
+#include "WxStateTreeTask_PrintSubtitle.generated.h"
 
 struct FStateTreeExecutionContext;
 struct FStateTreeTransitionResult;

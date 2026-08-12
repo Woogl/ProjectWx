@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "StateTreeTaskBase.h"
 #include "UniversalObjectLocator.h"
-#include "WxIndicatorStateTreeNodes.generated.h"
+#include "WxStateTreeTask_MarkIndicators.generated.h"
 
 struct FStateTreeExecutionContext;
 struct FStateTreeTransitionResult;
