@@ -79,7 +79,7 @@ protected:
 	UPROPERTY(SaveGame)
 	bool bIsKilled = false;
 
-	/** WxSave 슬롯 레코드의 안정적 키. 에디터에서 부여되어 에셋에 직렬화되고, 런타임/세션 간 불변이다. */
+	/** WxSave 슬롯 레코드의 안정적 키. 에디터에서 저장 직전에 ActorGuid 로 확정되어 에셋에 직렬화되고, 런타임/세션 간 불변이다. */
 	UPROPERTY()
 	FGuid SaveId;
 
@@ -87,8 +87,9 @@ protected:
 
 #if WITH_EDITOR
 public:
-	virtual void PostActorCreated() override;
-	virtual void PostDuplicate(EDuplicateMode::Type DuplicateMode) override;
+	/** 저장 직전에 SaveId 를 ActorGuid 로 확정한다 — 생성 훅은 T3D 붙여넣기가 원본 값으로 덮는 것을 막지 못한다. */
+	virtual void PreSave(FObjectPreSaveContext ObjectSaveContext) override;
+
 	virtual void PostRegisterAllComponents() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 

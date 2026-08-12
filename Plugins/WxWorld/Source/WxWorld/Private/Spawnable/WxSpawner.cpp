@@ -13,6 +13,7 @@
 
 #if WITH_EDITOR
 #include "Editor/EditorEngine.h"
+#include "UObject/ObjectSaveContext.h"
 #endif
 
 namespace WxSpawnerLabel
@@ -189,18 +190,22 @@ void AWxSpawner::SpawnTarget()
 #if WITH_EDITOR
 // 에디터 전용 GetActorGuid() 를 런타임 가용 UPROPERTY 로 복사한다.
 // ActorGuid 는 에디터에서 액터별로 안정·고유하고, 부여된 WxSaveId 는 에셋 저장 시 직렬화되어 쿠커가 그대로 읽으므로 런타임 키가 보장된다.
-void AWxSpawner::PostActorCreated()
+//
+// 생성 훅이 아니라 직렬화 직전에 심는 것이 핵심이다. 에디터의 액터 복제(Ctrl+W·Alt-드래그)와 붙여넣기는 StaticDuplicateObject 가 아니라 T3D 텍스트 경로라,
+// SpawnActor(새 ActorGuid) 뒤에 오는 ImportObjectProperties 가 원본의 WxSaveId 를 그대로 덮어쓰고 PostDuplicate 는 아예 불리지 않는다.
+// 그러면 두 스포너의 ActorGuid 는 다른데 WxSaveId 만 같아져 WxSave 슬롯 레코드를 공유한다.
+// 저장 직전에 이 액터의 값으로 재확정하면 생성 경로가 무엇이든 상관없어진다.
+void AWxSpawner::PreSave(FObjectPreSaveContext ObjectSaveContext)
 {
-	Super::PostActorCreated();
+	Super::PreSave(ObjectSaveContext);
 
-	SaveId = GetActorGuid();
-}
+	// 쿠킹·EditorDomain 등 사용자 편집이 개입할 수 없는 저장은 건드리지 않는다. 값은 맵 저장 때 이미 확정되어 패키지에 실려 있다.
+	if (ObjectSaveContext.IsProceduralSave())
+	{
+		return;
+	}
 
-void AWxSpawner::PostDuplicate(EDuplicateMode::Type DuplicateMode)
-{
-	Super::PostDuplicate(DuplicateMode);
-
-	// 복제 시 엔진이 새 ActorGuid 를 부여하므로 그대로 따라가면 원본과 충돌하지 않는다.
+	// Modify() 는 부르지 않는다. 이미 저장 중이라 트랜잭션에 남길 이유가 없고, 오히려 저장 직후 패키지가 dirty 로 남는다.
 	SaveId = GetActorGuid();
 }
 

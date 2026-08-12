@@ -14,6 +14,10 @@
 #include "WxGameplayTags.h"
 #include "WxWorldModule.h"
 
+#if WITH_EDITOR
+#include "UObject/ObjectSaveContext.h"
+#endif
+
 void FWxGimmickStateTreeExecutionExtension::ScheduleNextTick(const FContextParameters& Context, const FNextTickArguments& Args)
 {
 	if (ensure(Component))
@@ -58,31 +62,32 @@ void UWxGimmickStateTreeComponent::TickComponent(float DeltaTime, ELevelTick Tic
 	}
 }
 
-void UWxGimmickStateTreeComponent::OnRegister()
-{
-	Super::OnRegister();
-
 #if WITH_EDITOR
-	// 런타임엔 안정적인 액터 식별자가 없다(ActorGuid 는 에디터 전용 데이터). 그래서 에디터 월드에서 값을 심어 에셋에 직렬화하고, 런타임은 그것을 읽기만 한다.
-	const UWorld* World = GetWorld();
-	if (!World || World->IsGameWorld())
+// 런타임엔 안정적인 액터 식별자가 없다(ActorGuid 는 에디터 전용 데이터). 그래서 에디터에서 값을 심어 에셋에 직렬화하고, 런타임은 그것을 읽기만 한다.
+//
+// 생성·등록 훅이 아니라 직렬화 직전에 심는 것이 핵심이다. 에디터의 액터 복제(Ctrl+W·Alt-드래그)와 붙여넣기는 T3D 텍스트 경로라 ImportObjectProperties 가 원본의 SaveId 를 그대로 덮어쓰는데,
+// 저장 직전에 오너의 ActorGuid 로 재확정하면 생성 경로가 무엇이든 상관없어진다.
+void UWxGimmickStateTreeComponent::PreSave(FObjectPreSaveContext ObjectSaveContext)
+{
+	Super::PreSave(ObjectSaveContext);
+
+	// 쿠킹·EditorDomain 등 사용자 편집이 개입할 수 없는 저장은 건드리지 않는다. 값은 맵 저장 때 이미 확정되어 패키지에 실려 있다.
+	if (ObjectSaveContext.IsProceduralSave())
 	{
 		return;
 	}
 
-	// 등록할 때마다 오너와 대조한다 — 신규 배치·복제(붙여넣은 액터는 새 ActorGuid 를 받는다)·기존 배치 마이그레이션이 이 한 경로로 처리되고, 값이 같아지면 노옵이다.
-	// 액터 단위 사전 등록 훅은 쓸 수 없다. 월드파티션 셀 스트리밍이 타는 증분 등록 경로가 그 함수를 호출하지 않는다.
+	// 오너 없이 저장되는 것은 블루프린트 클래스의 컴포넌트 템플릿이다. 배치 인스턴스가 아니라 키를 심을 대상이 아니고, 심으면 기존 값만 지운다.
 	const AActor* Owner = GetOwner();
-	const FGuid OwnerGuid = Owner ? Owner->GetActorGuid() : FGuid();
-	if (!OwnerGuid.IsValid() || SaveId == OwnerGuid)
+	if (!Owner)
 	{
 		return;
 	}
 
-	Modify();
-	SaveId = OwnerGuid;
-#endif
+	// Modify() 는 부르지 않는다. 이미 저장 중이라 트랜잭션에 남길 이유가 없고, 오히려 저장 직후 패키지가 dirty 로 남는다.
+	SaveId = Owner->GetActorGuid();
 }
+#endif
 
 void UWxGimmickStateTreeComponent::StartLogic()
 {

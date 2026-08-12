@@ -76,10 +76,12 @@ public:
 
 	//~ Begin UActorComponent
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-	/** 에디터 월드에서 오너의 ActorGuid 를 SaveId 에 심는다(런타임은 심긴 값을 읽기만 한다). 게임 월드에서는 순정 동작 그대로다. */
-	virtual void OnRegister() override;
 	//~ End UActorComponent
+
+#if WITH_EDITOR
+	/** 저장 직전에 SaveId 를 오너의 ActorGuid 로 확정한다(런타임은 심긴 값을 읽기만 한다). */
+	virtual void PreSave(FObjectPreSaveContext ObjectSaveContext) override;
+#endif
 
 	//~ Begin UBrainComponent — 저장된 상태가 있으면 그 상태를 시작점으로 트리를 연다.
 	virtual void StartLogic() override;
@@ -182,7 +184,7 @@ private:
 	/** StateTag 가 가리키는 상태로 라이브 전이를 요청한다. 재시작과 달리 인스턴스 데이터·이벤트 큐를 보존하고 진입이 초기 진입으로 취급되지 않는다. */
 	void EnterReplicatedState();
 
-	/** WxSave 슬롯 레코드의 안정적 키. 에디터에서 부여되어 에셋에 직렬화되고, 런타임/세션 간 불변이다. */
+	/** WxSave 슬롯 레코드의 안정적 키. 에디터에서 저장 직전에 오너의 ActorGuid 로 확정되어 에셋에 직렬화되고, 런타임/세션 간 불변이다. */
 	UPROPERTY()
 	FGuid SaveId;
 
