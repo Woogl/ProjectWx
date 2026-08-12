@@ -77,4 +77,8 @@ protected:
 	TArray<TObjectPtr<UWxViewModel_Ability>> AbilityViewModels;
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
+
+private:
+	/** 각 자식의 Deinitialize 후 배열을 비운다. 통째로 비우는 두 지점(Deinitialize·RefreshActiveEffectViewModels)이 공유한다. */
+	void ClearActiveEffectViewModels();
 };

@@ -51,6 +51,18 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 			AbilityVM->Deinitialize();
 		}
 	}
+	ClearActiveEffectViewModels();
+
+	CachedASC.Reset();
+	AttributeViewModels.Empty();
+	AbilityViewModels.Empty();
+	OwnedTags.Reset();
+
+	Super::Deinitialize();
+}
+
+void UWxViewModel_AbilitySystem::ClearActiveEffectViewModels()
+{
 	for (UWxViewModel_Effect* EffectVM : ActiveEffectViewModels)
 	{
 		if (EffectVM)
@@ -58,14 +70,7 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 			EffectVM->Deinitialize();
 		}
 	}
-
-	CachedASC.Reset();
-	AttributeViewModels.Empty();
-	AbilityViewModels.Empty();
 	ActiveEffectViewModels.Empty();
-	OwnedTags.Reset();
-
-	Super::Deinitialize();
 }
 
 UWxViewModel_Attribute* UWxViewModel_AbilitySystem::FindAttributeViewModel(FGameplayAttribute InAttribute) const
@@ -165,8 +170,8 @@ void UWxViewModel_AbilitySystem::RefreshActiveEffectViewModels()
 		return;
 	}
 	
-	ActiveEffectViewModels.Empty();
-	
+	ClearActiveEffectViewModels();
+
 	FGameplayEffectQuery Query;
 	TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);
 	for (const FActiveGameplayEffectHandle& Handle : Handles)
@@ -233,8 +238,10 @@ void UWxViewModel_AbilitySystem::HandleActiveEffectRemoved(const FActiveGameplay
 {
 	for (int32 i = 0; i < ActiveEffectViewModels.Num(); ++i)
 	{
-		if (ActiveEffectViewModels[i] && ActiveEffectViewModels[i]->GetBoundHandle() == ActiveEffect.Handle)
+		UWxViewModel_Effect* EffectVM = ActiveEffectViewModels[i];
+		if (EffectVM && EffectVM->GetBoundHandle() == ActiveEffect.Handle)
 		{
+			EffectVM->Deinitialize();
 			ActiveEffectViewModels.RemoveAt(i);
 			UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(ActiveEffectViewModels);
 			break;

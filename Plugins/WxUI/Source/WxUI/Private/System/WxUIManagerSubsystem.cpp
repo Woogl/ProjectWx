@@ -87,7 +87,11 @@ void UWxUIManagerSubsystem::Deinitialize()
 		}
 	}
 
-	SelectionViewModel = nullptr;
+	if (SelectionViewModel)
+	{
+		SelectionViewModel->Deinitialize();
+		SelectionViewModel = nullptr;
+	}
 
 	Super::Deinitialize();
 }
