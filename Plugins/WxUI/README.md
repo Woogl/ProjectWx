@@ -42,7 +42,7 @@
 1. `Plugins/WxUI/Source/WxUI/Public/System/WxUIManagerSubsystem.h` — 이 모듈의 제어 흐름 중심. 레이어 push, 플레이어·폰·상태 태그 추적, 정지 재평가가 여기 모인다.
 2. `Plugins/WxUI/Source/WxUI/Public/System/WxPrimaryGameLayout.h` — 레이어/스택 구조와 z-order 규약.
 3. `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h` — MVVM 베이스와 이미지 스트리밍 규약(모든 파생 VM의 공통 계약).
-4. `Plugins/WxUI/Source/WxUI/Public/Indicator/WxIndicatorStateTreeNodes.h` — 소비 도메인이 역참조 없이 UI를 켜는 패턴의 대표 예.
+4. `Plugins/WxUI/Source/WxUI/Public/Indicator/WxStateTreeTask_MarkIndicators.h` — 소비 도메인이 역참조 없이 UI를 켜는 패턴의 대표 예.
 
 ## 관련
 - 상위: [[WxCore]] (공용 정의)

@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Inventory/WxRewardStateTreeNodes.h"
+#include "Inventory/WxStateTreeTask_GiveRewards.h"
 
 #include "GameFramework/Actor.h"
 #include "GameFramework/PlayerController.h"

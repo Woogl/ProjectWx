@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "StateTreeTaskBase.h"
-#include "WxInventoryStateTreeNodes.generated.h"
+#include "WxStateTreeTask_RefillItemCharges.generated.h"
 
 struct FStateTreeExecutionContext;
 struct FStateTreeTransitionResult;

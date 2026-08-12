@@ -5,6 +5,8 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "Spawnable/WxSpawner.h"
+#include "UniversalObjectLocator.h"
+#include "UniversalObjectLocators/ActorLocatorFragment.h"
 
 void UWxSpawnerLibrary::TryRespawnAll(const UObject* WorldContextObject)
 {
@@ -36,3 +38,52 @@ void UWxSpawnerLibrary::TryRespawnAll(const UObject* WorldContextObject)
 		Spawner->Respawn();
 	}
 }
+
+#if WITH_EDITOR
+FString UWxSpawnerLibrary::GetSpawnerLocatorDisplayName(const FUniversalObjectLocator& Locator)
+{
+	if (Locator.IsEmpty())
+	{
+		return TEXT("none");
+	}
+
+	if (const AActor* Actor = Cast<AActor>(Locator.SyncFind()))
+	{
+		return Actor->GetActorLabel();
+	}
+
+	// 미해석(언로드 등)이면 액터 프래그먼트의 소프트 경로 끝 이름이라도 보여준다.
+	const FUniversalObjectLocatorFragment* Fragment = Locator.GetLastFragment();
+	const FActorLocatorFragment* Payload = nullptr;
+	if (Fragment && Fragment->TryGetPayloadAs(FActorLocatorFragment::FragmentType, Payload) && Payload)
+	{
+		const FString SubPath = Payload->Path.GetSubPathString();
+		int32 DotIndex = INDEX_NONE;
+		return SubPath.FindLastChar(TEXT('.'), DotIndex) ? SubPath.Mid(DotIndex + 1) : SubPath;
+	}
+
+	return TEXT("unresolved");
+}
+
+FText UWxSpawnerLibrary::GetSpawnerLocatorsText(const TArray<FUniversalObjectLocator>& Spawners)
+{
+	if (Spawners.IsEmpty())
+	{
+		return INVTEXT("none");
+	}
+
+	constexpr int32 MaxNames = 3;
+	TArray<FString> Names;
+	for (int32 Index = 0; Index < Spawners.Num() && Index < MaxNames; ++Index)
+	{
+		Names.Add(GetSpawnerLocatorDisplayName(Spawners[Index]));
+	}
+
+	FString Joined = FString::Join(Names, TEXT(", "));
+	if (Spawners.Num() > MaxNames)
+	{
+		Joined += FString::Printf(TEXT(" +%d"), Spawners.Num() - MaxNames);
+	}
+	return FText::FromString(Joined);
+}
+#endif

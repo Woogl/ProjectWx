@@ -168,7 +168,7 @@ sequenceDiagram
 | [`AWxSpawner` (cpp)](../../Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawner.cpp) | WxWorld | SpawnTarget(Deferred 3단), Respawn 의미론, OnSaveRestored 정리 |
 | [`IWxSpawnable`](../../Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawnable.h) | WxWorld | OnSpawnedBy 컨텍스트 주입 훅(도메인이 정의) |
 | [`UWxSpawnerLibrary`](../../Plugins/WxWorld/Source/WxWorld/Public/System/WxSpawnerLibrary.h) | WxWorld | TryRespawnAll — collect-first 일괄 리스폰(Manual 제외) |
-| [`FWxStateTreeTask_TriggerSpawners`](../../Plugins/WxWorld/Source/WxWorld/Private/Gimmick/WxGimmickStateTreeNodes.cpp) | WxWorld | 명시 리스트 기반 기믹 리스폰(약 537행~) |
+| [`FWxStateTreeTask_TriggerSpawners`](../../Plugins/WxWorld/Source/WxWorld/Private/Gimmick/WxStateTreeTask_TriggerSpawners.cpp) | WxWorld | 명시 리스트 기반 기믹 리스폰 |
 | [`AWxEnemyCharacter`](../../Source/WxGame/Character/WxEnemyCharacter.h) | WxGame | IWxSpawnable 구현, OwningSpawner 보유, HandleDeath 부작용 |
 | [`AWxCharacterBase`](../../Source/WxGame/Character/WxCharacterBase.cpp) | WxGame | State_Dead 태그 → HandleDeathTagChanged → HandleDeath 경로 |
 | [`AWxEnemyController`](../../Source/WxGame/Controller/WxEnemyController.cpp) | WxGame | OnPossess — Perception 주입 + RunBehaviorTree |
