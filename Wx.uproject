@@ -88,6 +88,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "WxToolset",
+			"Enabled": true
+		},
+		{
 			"Name": "StateTree",
 			"Enabled": true
 		},
