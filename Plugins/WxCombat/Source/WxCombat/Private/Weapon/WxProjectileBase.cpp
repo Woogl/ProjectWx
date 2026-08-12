@@ -72,7 +72,11 @@ void AWxProjectileBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	InitializeDamageSpec();
+	// 서버 스폰 복제 액터라 클라에는 예측 키가 없어, 만들어 둬도 GAS 가 적용을 막는다.
+	if (HasAuthority())
+	{
+		InitializeDamageSpec();
+	}
 
 	if (UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(GetInstigator()))
 	{
