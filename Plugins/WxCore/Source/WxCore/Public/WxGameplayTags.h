@@ -147,8 +147,11 @@ namespace WxGameplayTags
 
 	// ── GameplayCue ──────────────────────────────────────────────────────
 
-	/** 데미지 Cue. 임팩트 위치에 스파크/사운드 재생, 데미지 플로터 출력 */
+	/** 데미지 플로터 Cue. 수치·크리 여부가 서버 판정이라 대미지 확정 후 서버가 발행 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Damage);
+
+	/** 타격 임팩트 Cue. 대미지 GE가 들고 다녀 공격자 클라에서 예측 재생된다. GameplayCue.Damage의 자식으로 두면 플로터까지 딸려 오므로 형제로 유지 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Hit);
 
 	/** 퍼펙트 가드 성공 Cue. 임팩트 위치에 스파크/사운드 재생 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_PerfectGuard);

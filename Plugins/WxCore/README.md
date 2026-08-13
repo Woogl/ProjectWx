@@ -36,7 +36,7 @@
   - `StateTree.*` — 기믹 ST로 발행되는 상호작용 신호(`StateTree.Interact`).
   - `Quest.*` — 퀘스트 실패 이벤트.
   - `ANS.*` — 애님노티파이 구간 태그(`ComboWindow`).
-  - `GameplayCue.*` — 연출 큐(데미지·퍼펙트가드·화상·텔레그래프 색상 등).
+  - `GameplayCue.*` — 연출 큐(데미지 플로터·타격 임팩트·퍼펙트가드·화상·텔레그래프 색상 등). 타격은 플로터(`Damage`, 서버 권위)와 임팩트(`Hit`, 대미지 GE가 들고 다녀 공격자 클라에서 예측)로 나뉜다.
   - `Damage.*` — 대미지 판정 플래그(치명타·가드불가·패리유발).
   - `Ability.*` — 어빌리티 식별. `Ability.Exclusive`가 차단/캔슬이 지목하는 유일 태그(액션 슬롯 상호배제).
   - `SetByCaller.*` — GameplayEffect SetByCaller 키(Duration·회복량·계수·이동배율 등).

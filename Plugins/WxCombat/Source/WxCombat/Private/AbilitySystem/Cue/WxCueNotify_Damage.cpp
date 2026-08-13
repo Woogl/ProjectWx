@@ -1,10 +1,8 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Cue/WxCueNotify_Damage.h"
-#include "NiagaraFunctionLibrary.h"
 #include "WxGameplayTags.h"
 #include "Components/WidgetComponent.h"
-#include "Kismet/GameplayStatics.h"
 
 UWxCueNotify_Damage::UWxCueNotify_Damage()
 {
@@ -38,16 +36,6 @@ void UWxCueNotify_Damage::HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent:
 		const float Damage = Parameters.RawMagnitude;
 		const bool bIsCritical = Parameters.AggregatedSourceTags.HasTag(WxGameplayTags::Damage_Critical);
 		FloaterActor->InitDamageInfo(FloaterWidgetClass, Damage, bIsCritical);
-	}
-
-	if (HitNiagaraSystem)
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(World, HitNiagaraSystem, Parameters.Location);
-	}
-	
-	if (HitSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(World, HitSound, Parameters.Location);
 	}
 }
 

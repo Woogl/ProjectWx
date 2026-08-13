@@ -13,6 +13,12 @@ UWxEffect_Damage::UWxEffect_Damage()
 	ExecDef.CalculationClass = UWxExecCalc_Damage::StaticClass();
 	Executions.Add(ExecDef);
 
+	// GE가 Cue를 들고 있으면 예측 적용한 클라에서도 엔진이 발행해준다 — 임팩트 연출이 서버 왕복을 기다리지 않는다.
+	// 플로터는 크리 판정이 서버에 있어 여기 얹지 않는다.
+	FGameplayEffectCue Cue;
+	Cue.GameplayCueTags.AddTag(WxGameplayTags::GameplayCue_Hit);
+	GameplayCues.Add(Cue);
+
 	// 사망 타겟에는 적용 자체를 차단
 	UTargetTagRequirementsGameplayEffectComponent* TagReqComp = CreateDefaultSubobject<UTargetTagRequirementsGameplayEffectComponent>(TEXT("TargetTagReq"));
 	TagReqComp->ApplicationTagRequirements.IgnoreTags.AddTag(WxGameplayTags::Ability_Death);
