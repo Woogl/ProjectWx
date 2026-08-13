@@ -19,7 +19,6 @@ UWxAbilityBase::UWxAbilityBase()
 	InstancingPolicy  = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 
-	// 공용 GE 마커 — 이 값 그대로면 AbilityDataRow 기반 경로다.
 	CooldownGameplayEffectClass = UWxEffect_Cooldown::StaticClass();
 	CostGameplayEffectClass = UWxEffect_Cost::StaticClass();
 }
@@ -55,7 +54,6 @@ void UWxAbilityBase::SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileCl
 	AActor* Avatar = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
 	USkeletalMeshComponent* Mesh = ActorInfo ? ActorInfo->SkeletalMeshComponent.Get() : nullptr;
 
-	// 클라(예측 인스턴스)에선 무동작 — 서버가 스폰해 복제한다.
 	if (!Avatar || !Mesh || !Avatar->HasAuthority())
 	{
 		return;
