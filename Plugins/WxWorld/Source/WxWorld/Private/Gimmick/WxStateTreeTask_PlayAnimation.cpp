@@ -17,7 +17,6 @@ EStateTreeRunStatus FWxStateTreeTask_PlayAnimation::EnterState(FStateTreeExecuti
 		return EStateTreeRunStatus::Failed;
 	}
 
-	// 진입 경로를 가리지 않고 처음부터 재생하고, Tick 이 종료를 감지해 완료한다.
 	Mesh->PlayAnimation(Instance.Animation, false);
 
 	return EStateTreeRunStatus::Running;
@@ -45,7 +44,7 @@ FText FWxStateTreeTask_PlayAnimation::GetDescription(const FGuid& ID, FStateTree
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Play Animation ({0})"),
+	return FText::Format(INVTEXT("애니메이션 재생 ({0})"),
 		InstanceData->Animation ? FText::FromString(InstanceData->Animation->GetName()) : INVTEXT("none"));
 }
 #endif

@@ -34,7 +34,7 @@ struct FWxStateTreeTask_TriggerSpawnersByLocatorInstanceData
  * 배열인 것은 한 전투의 스포너가 여럿일 수 있어서다 — 단일 UOL 멤버도 같은 픽커가 뜬다.
  * 공유 에셋 하나를 여러 배치 인스턴스가 쓰는 기믹 ST 는 리터럴 지정이 불가능하므로 바인딩형 'Trigger Spawners' 를 그대로 쓴다.
  */
-USTRUCT(meta = (DisplayName = "Trigger Spawners By Locator", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "스포너 발동", Category = "Wx"))
 struct FWxStateTreeTask_TriggerSpawnersByLocator : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

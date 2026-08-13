@@ -38,6 +38,6 @@ FText FWxStateTreeTask_SetQuestTitle::GetDescription(const FGuid& ID, FStateTree
 	check(InstanceData);
 
 	const FText QuestTitle = InstanceData->QuestTitle.IsEmpty() ? INVTEXT("none") : InstanceData->QuestTitle;
-	return FText::Format(INVTEXT("Set Quest Title (\"{0}\")"), QuestTitle);
+	return FText::Format(INVTEXT("퀘스트 제목 설정 (\"{0}\")"), QuestTitle);
 }
 #endif

@@ -22,7 +22,7 @@ struct FWxStateTreeTask_RespawnSpawnersInstanceData
  * 대상을 지정하지 않고 월드 전체를 훑는다는 점에서 'Trigger Spawners'(지정 스포너 트리거)와 갈린다.
  * 초기 진입(StateTree 시작/복원/레이트조인)이면 호출하지 않는다 — 리스폰은 발동 순간의 효과다.
  */
-USTRUCT(meta = (DisplayName = "Respawn Spawners", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "스포너 리스폰", Category = "Wx"))
 struct FWxStateTreeTask_RespawnSpawners : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

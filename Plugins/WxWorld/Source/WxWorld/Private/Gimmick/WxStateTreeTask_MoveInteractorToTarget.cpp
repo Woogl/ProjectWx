@@ -177,6 +177,6 @@ FText FWxStateTreeTask_MoveInteractorToTarget::GetDescription(const FGuid& ID, F
 		AnchorText = InstanceData->AnchorComponent ? FText::FromString(InstanceData->AnchorComponent->GetName()) : INVTEXT("owner");
 	}
 
-	return FText::Format(INVTEXT("Move Interactor To Target ({0})"), AnchorText);
+	return FText::Format(INVTEXT("상호작용자 이동 ({0})"), AnchorText);
 }
 #endif

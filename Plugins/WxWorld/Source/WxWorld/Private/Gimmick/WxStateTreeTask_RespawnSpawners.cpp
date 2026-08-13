@@ -33,6 +33,6 @@ EStateTreeRunStatus FWxStateTreeTask_RespawnSpawners::EnterState(FStateTreeExecu
 #if WITH_EDITOR
 FText FWxStateTreeTask_RespawnSpawners::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
 {
-	return INVTEXT("Respawn Spawners");
+	return INVTEXT("스포너 리스폰");
 }
 #endif

@@ -61,7 +61,7 @@ struct FWxStateTreeTask_PrintSubtitleInstanceData
  *
  * 문구는 글로벌 컬렉션의 자막 뷰모델에 걸며, 그것을 보는 것은 같은 게임 인스턴스의 화면이다(v1 싱글/리슨 호스트 전제).
  */
-USTRUCT(meta = (DisplayName = "Print Subtitle", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "자막 출력", Category = "Wx"))
 struct FWxStateTreeTask_PrintSubtitle : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

@@ -80,6 +80,6 @@ FText FWxStateTreeTask_TriggerSpawnersByLocator::GetDescription(const FGuid& ID,
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Trigger Spawners By Locator ({0})"), UWxSpawnerLibrary::GetSpawnerLocatorsText(InstanceData->Spawners));
+	return FText::Format(INVTEXT("스포너 발동 ({0})"), UWxSpawnerLibrary::GetSpawnerLocatorsText(InstanceData->Spawners));
 }
 #endif

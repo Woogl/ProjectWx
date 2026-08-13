@@ -37,6 +37,6 @@ FText FWxStateTreeTask_StartNextQuest::GetDescription(const FGuid& ID, FStateTre
 	check(InstanceData);
 
 	const FText NextQuestText = InstanceData->Quest.IsNull() ? INVTEXT("none") : FText::FromString(InstanceData->Quest.GetAssetName());
-	return FText::Format(INVTEXT("Activate Next Quest ({0})"), NextQuestText);
+	return FText::Format(INVTEXT("다음 퀘스트 시작 ({0})"), NextQuestText);
 }
 #endif

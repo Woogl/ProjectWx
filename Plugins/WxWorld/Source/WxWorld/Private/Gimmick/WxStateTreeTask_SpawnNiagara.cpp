@@ -53,7 +53,7 @@ FText FWxStateTreeTask_SpawnNiagara::GetDescription(const FGuid& ID, FStateTreeD
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Spawn Niagara ({0})"),
+	return FText::Format(INVTEXT("나이아가라 스폰 ({0})"),
 		InstanceData->Niagara ? FText::FromString(InstanceData->Niagara->GetName()) : INVTEXT("none"));
 }
 #endif

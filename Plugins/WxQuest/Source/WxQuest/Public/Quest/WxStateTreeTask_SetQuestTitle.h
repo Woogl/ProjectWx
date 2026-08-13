@@ -31,7 +31,7 @@ struct FWxStateTreeTask_SetQuestTitleInstanceData
  *
  * 퀘스트 컴포넌트가 없으면 잘못된 조립(퀘스트 러너 밖 사용)이므로 Failed 로 그 상태를 실패시킨다.
  */
-USTRUCT(meta = (DisplayName = "Set Quest Title", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "퀘스트 제목 설정", Category = "Wx"))
 struct FWxStateTreeTask_SetQuestTitle : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

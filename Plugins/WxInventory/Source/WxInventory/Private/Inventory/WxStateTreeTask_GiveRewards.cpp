@@ -45,7 +45,7 @@ FText FWxStateTreeTask_GiveRewards::GetDescription(const FGuid& ID, FStateTreeDa
 	check(InstanceData);
 
 	const FName RewardName = InstanceData->RewardRow.RowName;
-	return FText::Format(INVTEXT("Give Rewards ({0})"),
+	return FText::Format(INVTEXT("보상 지급 ({0})"),
 		RewardName.IsNone() ? INVTEXT("none") : FText::FromName(RewardName));
 }
 #endif

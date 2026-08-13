@@ -51,7 +51,7 @@ struct FWxStateTreeTask_SpawnNiagaraInstanceData
  * 반대로 일회성 FX 는 재생이 끝난 뒤 다시 진입하면 다시 터지므로, 복원 시 침묵해야 하는 순간 연출에는 맞지 않는다.
  * 모든 피어(서버+클라)가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다. 틱하지 않으므로 비용이 없다.
  */
-USTRUCT(meta = (DisplayName = "Spawn Niagara", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "나이아가라 스폰", Category = "Wx"))
 struct FWxStateTreeTask_SpawnNiagara : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

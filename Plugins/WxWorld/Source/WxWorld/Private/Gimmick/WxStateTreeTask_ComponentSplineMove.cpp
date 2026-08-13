@@ -93,6 +93,6 @@ FText FWxStateTreeTask_ComponentSplineMove::GetDescription(const FGuid& ID, FSta
 		SplineText = InstanceData->Spline ? FText::FromString(InstanceData->Spline->GetName()) : INVTEXT("none");
 	}
 
-	return FText::Format(INVTEXT("Component Spline Move ({0} → point {1})"), SplineText, FText::AsNumber(InstanceData->TargetPointIndex));
+	return FText::Format(INVTEXT("컴포넌트 스플라인 이동 ({0} → {1}번 지점)"), SplineText, FText::AsNumber(InstanceData->TargetPointIndex));
 }
 #endif

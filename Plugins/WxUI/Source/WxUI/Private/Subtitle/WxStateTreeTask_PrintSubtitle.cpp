@@ -125,6 +125,6 @@ FText FWxStateTreeTask_PrintSubtitle::GetDescription(const FGuid& ID, FStateTree
 	check(InstanceData);
 
 	const FText RowText = InstanceData->StartRow.RowName.IsNone() ? INVTEXT("unset") : FText::FromName(InstanceData->StartRow.RowName);
-	return FText::Format(INVTEXT("Print Subtitle ({0})"), RowText);
+	return FText::Format(INVTEXT("자막 출력 ({0})"), RowText);
 }
 #endif

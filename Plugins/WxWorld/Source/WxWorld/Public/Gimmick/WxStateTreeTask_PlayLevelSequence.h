@@ -39,7 +39,7 @@ struct FWxStateTreeTask_PlayLevelSequenceInstanceData
  * Tick 이 ULevelSequencePlayer::IsPlaying 로 종료를 폴링하다, 종료되면 시퀀스를 정리하고 완료한다 — 다음 상태로 넘기는 것은 이 상태의 완료 전이(On State Completed)다. OnFinished 콜백 중 시퀀스 액터 파괴를 피하려고 폴링→다음 틱 정리를 쓴다.
  * 중도 이탈·액터 파괴 시엔 ExitState 가 시퀀스를 정지·정리한다(멱등). 모든 피어가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다.
  */
-USTRUCT(meta = (DisplayName = "Play Level Sequence", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "레벨 시퀀스 재생", Category = "Wx"))
 struct FWxStateTreeTask_PlayLevelSequence : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

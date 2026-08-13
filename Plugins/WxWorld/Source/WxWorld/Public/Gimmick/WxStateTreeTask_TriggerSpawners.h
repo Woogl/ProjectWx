@@ -28,7 +28,7 @@ struct FWxStateTreeTask_TriggerSpawnersInstanceData
  * 스트리밍 아웃된 스포너는 강제 로드하지 않고 스킵한다. 틱하지 않으므로 비용이 없다.
  * 대상을 바인딩으로 받으므로 공유 ST 에셋을 여러 배치 인스턴스가 쓰는 기믹에서도 쓸 수 있다(리터럴 지정형은 'Trigger Spawners By Locator').
  */
-USTRUCT(meta = (DisplayName = "Trigger Spawners", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "스포너 발동", Category = "Wx"))
 struct FWxStateTreeTask_TriggerSpawners : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

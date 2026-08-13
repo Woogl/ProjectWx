@@ -34,7 +34,7 @@ struct FWxStateTreeTask_SetQuestObjectiveInstanceData
  * 퀘스트 컴포넌트가 없으면 잘못된 조립(퀘스트 러너 밖 사용)이다.
  * Failed 를 돌려주긴 하지만 이 태스크는 bConsideredForCompletion=false 라 엔진이 그 반환 상태를 결과에 반영하지 않는다 — 트리는 그대로 진행하며, 오조립은 경고 로그로만 드러난다.
  */
-USTRUCT(meta = (DisplayName = "Set Quest Objective", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "퀘스트 목표 설정", Category = "Wx"))
 struct FWxStateTreeTask_SetQuestObjective : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

@@ -32,7 +32,7 @@ struct FWxStateTreeTask_PlaySoundInstanceData
  * bPlayOnRestore 면 복원/시작 진입에서도 재생한다 — 상태에 묶인 지속 사운드용(트리거가 아니라 상태가 켜져 있는 동안 울려야 하는 경우).
  * 모든 피어(서버+클라)가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다. 틱하지 않으므로 비용이 없다.
  */
-USTRUCT(meta = (DisplayName = "Play Sound", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "사운드 재생", Category = "Wx"))
 struct FWxStateTreeTask_PlaySound : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

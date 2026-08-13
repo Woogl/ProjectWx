@@ -39,7 +39,7 @@ struct FWxStateTreeTask_GiveRewardsInstanceData
  * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 호출하지 않는다 — 보상은 발동 순간에만 지급하고 복원/조인 시 중복 지급하지 않는다.
  * 보상 스폰/지급은 서버 권위 사건이라 클라 진입은 노옵(클라는 복제로 픽업/인벤토리를 추종).
  */
-USTRUCT(meta = (DisplayName = "Give Rewards", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "보상 지급", Category = "Wx"))
 struct FWxStateTreeTask_GiveRewards : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

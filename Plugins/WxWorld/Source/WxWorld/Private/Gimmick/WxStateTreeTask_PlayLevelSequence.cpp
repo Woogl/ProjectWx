@@ -94,7 +94,7 @@ FText FWxStateTreeTask_PlayLevelSequence::GetDescription(const FGuid& ID, FState
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Play Level Sequence ({0})"),
+	return FText::Format(INVTEXT("레벨 시퀀스 재생 ({0})"),
 		InstanceData->LevelSequence ? FText::FromString(InstanceData->LevelSequence->GetName()) : INVTEXT("none"));
 }
 #endif

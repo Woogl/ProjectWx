@@ -51,6 +51,6 @@ FText FWxStateTreeTask_SetQuestObjective::GetDescription(const FGuid& ID, FState
 	check(InstanceData);
 
 	const FText ObjectiveText = InstanceData->ObjectiveText.IsEmpty() ? INVTEXT("none") : InstanceData->ObjectiveText;
-	return FText::Format(INVTEXT("Set Quest Objective (\"{0}\")"), ObjectiveText);
+	return FText::Format(INVTEXT("퀘스트 목표 설정 (\"{0}\")"), ObjectiveText);
 }
 #endif

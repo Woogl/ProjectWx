@@ -43,7 +43,7 @@ FText FWxStateTreeTask_PlaySound::GetDescription(const FGuid& ID, FStateTreeData
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Play Sound ({0})"),
+	return FText::Format(INVTEXT("사운드 재생 ({0})"),
 		InstanceData->Sound ? FText::FromString(InstanceData->Sound->GetName()) : INVTEXT("none"));
 }
 #endif

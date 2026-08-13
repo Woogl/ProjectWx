@@ -35,7 +35,7 @@ struct FWxStateTreeTask_WaitMoveToTargetInstanceData
  * 대상은 FUniversalObjectLocator 로 배치 액터를 직접 지정한다 — 순수 구조체라 ST 컴파일러의 레벨 액터 참조 검증에 걸리지 않고, 씬 픽커·WP·PIE 해석이 엔진에 내장돼 있다.
  * 해석은 SyncFind(강제 로드 없음)를 캐시 없이 매 틱 수행한다 — 경로 조회라 비용이 무시되고 WP 언로드/재로드를 자연 처리한다.
  */
-USTRUCT(meta = (DisplayName = "Wait Move To Target", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "목표 지점 도달 대기", Category = "Wx"))
 struct FWxStateTreeTask_WaitMoveToTarget : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

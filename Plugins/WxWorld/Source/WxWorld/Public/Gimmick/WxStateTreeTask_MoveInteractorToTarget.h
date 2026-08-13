@@ -68,7 +68,7 @@ struct FWxStateTreeTask_MoveInteractorToTargetInstanceData
  * 초기 진입(StateTree 시작/복원/레이트조인)이면 이동 없이 곧바로 완료한다(발동 순간에만 동작; InteractingCharacter 는 비영속이라 복원 시 비어 있음). 대상이 없어도(비캐릭터 상호작용 등) 상태가 갇히지 않게 곧바로 완료한다.
  * 도착 후 몽타주 연출이 필요하면 다음 상태에 'Play Interactor Montage' 를 둔다(단일 책임 분리).
  */
-USTRUCT(meta = (DisplayName = "Move Interactor To Target", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "상호작용자 이동", Category = "Wx"))
 struct FWxStateTreeTask_MoveInteractorToTarget : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

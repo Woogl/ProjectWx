@@ -44,7 +44,7 @@ struct FWxStateTreeTask_ComponentMoveInstanceData
  * 속도는 시작→목표 실제 거리/Duration 으로 EnterState 에서 1회 산출하므로, 목표가 아키타입(offset 0)인 '닫기' 방향도 일정 속도로 슬라이드한다.
  * 이미 목표거나 길이가 0이면 움직임 없이 즉시 스냅해 곧바로 완료하고, 아니면 슬라이드 후 도달 시 완료한다(진입 경로 무관).
  */
-USTRUCT(meta = (DisplayName = "Component Move", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "컴포넌트 이동", Category = "Wx"))
 struct FWxStateTreeTask_ComponentMove : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
