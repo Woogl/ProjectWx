@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Components/StateTreeComponent.h"
 #include "GameplayTagContainer.h"
+#include "StateTreeAsyncExecutionContext.h"
+#include "StateTreeDelegate.h"
 #include "StateTreeExecutionExtension.h"
 #include "WxInteractable.h"
 #include "WxSavable.h"
@@ -30,20 +32,24 @@ struct FWxGimmickStateTreeExecutionExtension : public FStateTreeExecutionExtensi
 };
 
 /**
- * 상호작용 이벤트의 페이로드. 어느 영역이 눌렸는지는 이벤트 태그가 이미 가르므로 전이는 보통 이걸 볼 필요가 없고, 더 세밀한 전이 조건이 필요할 때 바인딩해 쓴다.
+ * 상호작용이 켜져 있는 영역 하나 — 그 영역의 HUD 프롬프트와, 눌렸을 때 트리에 알릴 자리.
+ * 발행자는 'Enable Interaction' 태스크가 자기 대상 메시 몫으로 하나씩 소유한다. 어느 영역이 눌렸는지를 발행자 자체가 가르므로 전이에 페이로드 비교 조건이 필요 없다.
  */
 USTRUCT()
-struct FWxGimmickInteractEvent
+struct FWxGimmickInteractionRegion
 {
 	GENERATED_BODY()
 
-	/** 이번 상호작용이 일어난 영역 메시. */
-	UPROPERTY(EditAnywhere, Category = "Wx")
-	TObjectPtr<UPrimitiveComponent> Source;
+	/** 이 영역이 켜져 있는 동안 표시할 HUD 프롬프트. */
+	UPROPERTY()
+	FText Prompt;
 
-	/** 상호작용을 일으킨 주체(플레이어 캐릭터). */
-	UPROPERTY(EditAnywhere, Category = "Wx")
-	TObjectPtr<AActor> Interactor;
+	/** 이 영역이 눌렸을 때 발행할 ST 델리게이트. 어느 상태로 갈지는 이것을 듣는 전이가 정한다. */
+	UPROPERTY()
+	FStateTreeDelegateDispatcher Dispatcher;
+
+	/** 위 발행에 쓰는 실행 컨텍스트. 발행이 트리 틱 밖에서 일어나므로 태스크가 진입 시 자기 것을 넘겨 둔다. */
+	FStateTreeWeakExecutionContext Context;
 };
 
 /**
@@ -51,16 +57,16 @@ struct FWxGimmickInteractEvent
  * 이 컴포넌트를 붙이면 어떤 액터든(순수 BP 포함) 기믹이 된다 — 전용 C++ 액터 클래스가 필요 없다.
  *
  * 세 가지 책임이 있다.
- *  - 상호작용 계약(IWxInteractable): 어느 메시가 지금 켜진 영역인지, 그 영역의 프롬프트가 무엇인지 답하고, 상호작용을 ST 이벤트로 올린다.
+ *  - 상호작용 계약(IWxInteractable): 어느 메시가 지금 켜진 영역인지, 그 영역의 프롬프트가 무엇인지 답하고, 눌린 영역의 ST 델리게이트를 발행한다.
  *  - 상태 영속(IWxSavable): 지금 활성인 ST 상태의 Tag 를 저장·복제하고, 복원 시 그 상태에서 트리를 연다.
  *  - StateTree 구동: 자동 시작하며, 저장된 상태가 있으면 그 상태를 시작점으로 지정해 시작한다.
  *
  * 상태 구동 패턴 — 상태는 서버 권위다. 권위 트리만 상태를 정하고 클라 트리는 복제된 상태를 추종하기만 한다.
- *  - 전이는 전부 ST 에셋이 정한다. 권위 측이 상호작용을 받으면 자기 트리에 StateTree.Interact 를 발행하고, 어느 상태로 갈지는 각 상태의 전이(On Event)가 지목한다.
+ *  - 전이는 전부 ST 에셋이 정한다. 권위 측이 상호작용을 받으면 눌린 영역의 발행자를 자기 트리에 발행하고, 어느 상태로 갈지는 그 발행자를 지목한 전이(On Delegate)가 정한다.
  *  - 상태 식별은 엔진 순정 상태 Tag 다. 상태 디테일의 Tag 필드에 태그를 달면 그 값이 곧 저장 키가 된다(에셋 안에서 유일해야 한다).
  *  - 권위 측은 틱마다 활성 상태의 Tag 를 StateTag 에 기록한다. 상태 변화는 전부 트리 틱 안에서 일어나므로 이 폴링이 전부를 잡는다.
  *  - 클라는 틱 말미에 자기 활성 태그를 StateTag 와 대조해, 어긋나 있으면 그 상태로 전이를 요청한다(라이브 전이라 트리거형 태스크가 정상 발동한다).
- *    지연·이벤트 유실·전이 조건 불일치를 가리지 않고 같은 자리에서 수렴하며, 클라가 로컬 완료로 먼저 넘어가더라도 권위 값이 언제나 이긴다.
+ *    지연·발행 유실·전이 조건 불일치를 가리지 않고 같은 자리에서 수렴하며, 클라가 로컬 완료로 먼저 넘어가더라도 권위 값이 언제나 이긴다.
  *  - 복원·재시작 진입은 SourceStateID 가 무효인 초기 진입이라, 노드들이 별도 마커 없이 스냅·스킵으로 처리한다. 트리 재시작은 세이브 복원·레이트조인·스트리밍 인 전용이다.
  *  - 위 경로는 오너 액터의 Replicates 가 켜져 있어야 성립한다. 컴포넌트는 자기 몫만 켤 수 있어 오너는 배치 측 책임이며, 꺼져 있으면 BeginPlay 가 Error 로그를 남긴다.
  */
@@ -94,7 +100,7 @@ public:
 	//~ Begin IWxInteractable
 	virtual bool IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const override;
 
-	/** 권위 측에서 상호작용을 받아 자기 트리에 이벤트로 올린다. 어느 상태로 갈지는 ST 에셋의 전이가 정하고, 그 결과가 복제되어 클라에 전해진다. */
+	/** 권위 측에서 상호작용을 받아 눌린 영역의 발행자를 자기 트리에 발행한다. 어느 상태로 갈지는 ST 에셋의 전이가 정하고, 그 결과가 복제되어 클라에 전해진다. */
 	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
 
 	virtual FText GetInteractionPrompt(const UActorComponent* Source) const override;
@@ -111,11 +117,12 @@ public:
 	//~ End IWxSavable
 
 	/**
-	 * Mesh 영역의 상호작용을 켜고 끄며, 켤 때는 그 영역의 프롬프트도 함께 담는다. 'Enable Interaction' 태스크가 상태 진입 시 자기 대상 메시로 호출한다.
+	 * Mesh 영역의 상호작용을 켜고 끄며, 켤 때는 그 영역의 프롬프트와 발행 자리(Region)도 함께 담는다 — 끌 때 Region 은 쓰이지 않는다.
+	 * 'Enable Interaction' 태스크가 상태 진입 시 자기 대상 메시로 호출한다.
 	 * 꺼진 영역은 IsInteractionMeshActive 가 false 를 답해 다음 스캔에서 후보에서 빠지고, 어빌리티의 서버 활성 검증에도 걸린다.
 	 * 복제하지 않는다 — ST 가 각 피어에서 실행되어 같은 값에 수렴한다.
 	 */
-	void SetInteractionEnabled(UPrimitiveComponent* Mesh, bool bEnabled, const FText& Prompt);
+	void SetInteractionEnabled(UPrimitiveComponent* Mesh, bool bEnabled, const FWxGimmickInteractionRegion& Region);
 
 	/** 이번 상호작용의 당사자(플레이어 캐릭터). 상호작용 이동/몽타주 태스크가 읽는다. 상호작용이 없었으면 null. */
 	ACharacter* GetInteractingCharacter() const;
@@ -131,7 +138,7 @@ protected:
 
 	/**
 	 * 도착 시점엔 판정하지 않고 잠들어 있던 컴포넌트 틱만 깨운다. 추종 판정은 트리 틱 뒤(FollowAuthorityState)가 맡는다.
-	 * 도착 즉시 비교하면 아직 대기 중인 이벤트를 소화하지 못한 트리를 「어긋났다」고 오판하게 된다.
+	 * 도착 즉시 비교하면 아직 대기 중인 발행을 소화하지 못한 트리를 「어긋났다」고 오판하게 된다.
 	 */
 	UFUNCTION()
 	void OnRep_StateTag();
@@ -144,11 +151,11 @@ protected:
 	FGameplayTag StateTag;
 
 	/**
-	 * 지금 상호작용이 켜져 있는 영역들과 각자의 HUD 프롬프트. 멤버십 자체가 활성 상태라 따로 담는 bool 이 없다.
+	 * 지금 상호작용이 켜져 있는 영역들. 멤버십 자체가 활성 상태라 따로 담는 bool 이 없다.
 	 * 'Enable Interaction' 태스크가 상태 진입 시 넣고 뺀다. 로컬 전용(복제·SaveGame 아님) — 각 피어의 ST 가 같은 값으로 수렴시킨다.
 	 */
 	UPROPERTY(Transient)
-	TMap<TObjectPtr<UPrimitiveComponent>, FText> InteractionRegions;
+	TMap<TObjectPtr<UPrimitiveComponent>, FWxGimmickInteractionRegion> InteractionRegions;
 
 	/**
 	 * 이번 상호작용의 당사자(플레이어 캐릭터). 권위가 쓰고 복제로 각 피어에 전해진다 — StateTag 와 같은 번치에 실리므로 추종 전이 시점에 언제나 짝이 맞는다.
@@ -178,10 +185,10 @@ private:
 	/** 권위 측에서 활성 상태의 Tag 를 StateTag 에 반영하고, 상태가 그대로인 재진입이면 대신 전 피어에 알린다. 트리가 상태를 바꾸는 지점(시작·틱) 뒤에서 호출한다. */
 	void PublishAuthorityState();
 
-	/** 비권위 측에서 복제된 StateTag 를 추종한다. 어긋나 있으면 그 상태로 전이를 요청한다. 트리 틱 뒤에서 호출해야 대기 이벤트를 소화한 결과를 본다. */
+	/** 비권위 측에서 복제된 StateTag 를 추종한다. 어긋나 있으면 그 상태로 전이를 요청한다. 트리 틱 뒤에서 호출해야 대기 중인 발행을 소화한 결과를 본다. */
 	void FollowAuthorityState();
 
-	/** StateTag 가 가리키는 상태로 라이브 전이를 요청한다. 재시작과 달리 인스턴스 데이터·이벤트 큐를 보존하고 진입이 초기 진입으로 취급되지 않는다. */
+	/** StateTag 가 가리키는 상태로 라이브 전이를 요청한다. 재시작과 달리 인스턴스 데이터·대기 중인 발행을 보존하고 진입이 초기 진입으로 취급되지 않는다. */
 	void EnterReplicatedState();
 
 	/** WxSave 슬롯 레코드의 안정적 키. 에디터에서 저장 직전에 오너의 ActorGuid 로 확정되어 에셋에 직렬화되고, 런타임/세션 간 불변이다. */

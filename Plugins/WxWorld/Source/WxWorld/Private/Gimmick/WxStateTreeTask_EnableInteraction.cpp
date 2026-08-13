@@ -27,14 +27,20 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExe
 		return EStateTreeRunStatus::Failed;
 	}
 
-	// 활성 여부와 프롬프트를 함께 오너 기믹에 세팅한다 — 콜리전은 관여하지 않으므로 대상 메시의 콜리전 설정은 그대로 보존된다.
+	// 활성 여부·프롬프트와 함께 발행 자리를 오너 기믹에 세팅한다 — 콜리전은 관여하지 않으므로 대상 메시의 콜리전 설정은 그대로 보존된다.
 	// 꺼진 영역은 기믹의 활성 목록에서 빠져 스캐너의 다음 스캔에서 자연 탈락하고, 외곽선도 그때 스캐너가 끈다.
-	// 프롬프트는 영역별로 담기므로 한 상태가 여러 영역을 켜도 서로 덮어쓰지 않는다.
+	// 영역별로 담기므로 한 상태가 여러 영역을 켜도 프롬프트도 발행자도 서로 덮어쓰지 않는다.
 	// 오너에 기믹 컴포넌트가 없으면(비기믹 ST) 세팅할 대상이 없으므로 노옵이다.
 	const AActor* Owner = Cast<AActor>(Context.GetOwner());
 	if (UWxGimmickStateTreeComponent* Gimmick = Owner ? Owner->FindComponentByClass<UWxGimmickStateTreeComponent>() : nullptr)
 	{
-		Gimmick->SetInteractionEnabled(TargetMesh, Instance.bEnable, Instance.Prompt);
+		// 발행은 상호작용을 받은 그 순간, 즉 트리 틱 밖에서 일어난다. 그래서 발행자만이 아니라 지금의 실행 컨텍스트를 약참조로 함께 남긴다.
+		FWxGimmickInteractionRegion Region;
+		Region.Prompt = Instance.Prompt;
+		Region.Dispatcher = Instance.OnInteracted;
+		Region.Context = Context.MakeWeakExecutionContext();
+
+		Gimmick->SetInteractionEnabled(TargetMesh, Instance.bEnable, Region);
 	}
 
 	// 토글은 즉시 끝나므로 곧바로 완료한다.

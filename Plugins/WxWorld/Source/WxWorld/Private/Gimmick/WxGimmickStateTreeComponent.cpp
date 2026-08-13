@@ -10,8 +10,6 @@
 #include "StateTree.h"
 #include "StateTreeExecutionContext.h"
 #include "StructUtils/InstancedStruct.h"
-#include "StructUtils/StructView.h"
-#include "WxGameplayTags.h"
 #include "WxWorldModule.h"
 
 #if WITH_EDITOR
@@ -50,7 +48,7 @@ void UWxGimmickStateTreeComponent::TickComponent(float DeltaTime, ELevelTick Tic
 
 	// 상태 전이는 전부 트리 틱 안에서 일어나므로, 틱 직후 한 번 보면 모든 변화를 잡는다.
 	// 권위와 클라가 같은 자리에서 방향만 반대로 움직인다 — 권위는 트리 → 복제 값, 클라는 복제 값 → 트리.
-	// 클라 쪽을 OnRep 이 아니라 여기에 둔 것이 핵심이다. 도착 즉시 대조하면 대기 이벤트를 아직 소화하지 못한 트리를 어긋난 것으로 오판한다.
+	// 클라 쪽을 OnRep 이 아니라 여기에 둔 것이 핵심이다. 도착 즉시 대조하면 대기 중인 발행을 아직 소화하지 못한 트리를 어긋난 것으로 오판한다.
 	const AActor* Owner = GetOwner();
 	if (Owner && Owner->HasAuthority())
 	{
@@ -128,8 +126,18 @@ void UWxGimmickStateTreeComponent::OnInteracted(AActor* Interactor, const UActor
 		return;
 	}
 
-	// 멈춘 트리엔 이벤트가 큐에 들어가지 않는다. 소화될 일 없는 재진입 판정을 예약해 두면 다음 시작 때 헛재진입으로 새어 나간다.
+	// 멈춘 트리엔 발행이 닿지 않는다. 소화될 일 없는 재진입 판정을 예약해 두면 다음 시작 때 헛재진입으로 새어 나간다.
 	if (!IsRunning())
+	{
+		return;
+	}
+
+	// 맵 키가 비const 포인터라 조회용으로만 const 를 벗긴다(맵을 통해 대상을 수정하지 않는다).
+	UPrimitiveComponent* Mesh = const_cast<UPrimitiveComponent*>(Cast<UPrimitiveComponent>(Source));
+
+	// 지금 켜져 있는 영역만 발행할 자리를 가진다. 꺼진 영역은 애초에 스캔 후보에서 빠지지만, 여기서도 같은 기준으로 걸러 상태를 건드리지 않는다.
+	const FWxGimmickInteractionRegion* Region = InteractionRegions.Find(Mesh);
+	if (!Region)
 	{
 		return;
 	}
@@ -137,15 +145,12 @@ void UWxGimmickStateTreeComponent::OnInteracted(AActor* Interactor, const UActor
 	// 당사자는 복제로 각 피어에 전해진다 — 이동·몽타주 태스크가 모든 머신에서 같은 대상을 본다.
 	InteractingCharacter = Cast<ACharacter>(Interactor);
 
-	// 이 상호작용이 상태를 바꾸는지 아닌지는 트리가 이벤트를 소화해 봐야 안다. PublishAuthorityState 가 그 결과를 보고 판정한다.
+	// 이 상호작용이 상태를 바꾸는지 아닌지는 트리가 발행을 소화해 봐야 안다. PublishAuthorityState 가 그 결과를 보고 판정한다.
 	bPendingInteractResolve = true;
 
-	FWxGimmickInteractEvent Payload;
-	Payload.Source = const_cast<UPrimitiveComponent*>(Cast<UPrimitiveComponent>(Source));
-	Payload.Interactor = Interactor;
-
-	// 발행 태그는 언제나 공용 태그다. 영역마다 갈 곳이 다른 기믹은 전이 조건이 페이로드의 눌린 메시로 가른다.
-	SendStateTreeEvent(WxGameplayTags::StateTree_Interact, FConstStructView::Make(Payload));
+	// 눌린 영역의 발행자를 그대로 발행한다 — 영역마다 발행자가 달라 어느 상태로 갈지는 그 발행자를 지목한 전이가 혼자 정한다.
+	// 트리 틱 밖에서 부르는 경로라 태스크가 남긴 약참조 컨텍스트를 쓴다. 잠든 트리는 이 발행이 깨우고, 발행 표식은 다음 전이 처리까지 보존된다.
+	Region->Context.BroadcastDelegate(Region->Dispatcher);
 }
 
 FText UWxGimmickStateTreeComponent::GetInteractionPrompt(const UActorComponent* Source) const
@@ -154,8 +159,8 @@ FText UWxGimmickStateTreeComponent::GetInteractionPrompt(const UActorComponent* 
 	UPrimitiveComponent* Mesh = const_cast<UPrimitiveComponent*>(Cast<UPrimitiveComponent>(Source));
 
 	// ST 가 이 영역에 세팅한 상태별 프롬프트가 전부다. 태스크에서 문구를 지정하지 않았으면 표시할 것이 없으므로 공백을 답한다.
-	const FText* Prompt = InteractionRegions.Find(Mesh);
-	return Prompt ? *Prompt : FText::GetEmpty();
+	const FWxGimmickInteractionRegion* Region = InteractionRegions.Find(Mesh);
+	return Region ? Region->Prompt : FText::GetEmpty();
 }
 
 FGuid UWxGimmickStateTreeComponent::GetSaveId() const
@@ -173,7 +178,7 @@ void UWxGimmickStateTreeComponent::OnSaveRestored()
 	}
 }
 
-void UWxGimmickStateTreeComponent::SetInteractionEnabled(UPrimitiveComponent* Mesh, bool bEnabled, const FText& Prompt)
+void UWxGimmickStateTreeComponent::SetInteractionEnabled(UPrimitiveComponent* Mesh, bool bEnabled, const FWxGimmickInteractionRegion& Region)
 {
 	if (!Mesh)
 	{
@@ -187,7 +192,7 @@ void UWxGimmickStateTreeComponent::SetInteractionEnabled(UPrimitiveComponent* Me
 		return;
 	}
 
-	InteractionRegions.Add(Mesh, Prompt);
+	InteractionRegions.Add(Mesh, Region);
 }
 
 ACharacter* UWxGimmickStateTreeComponent::GetInteractingCharacter() const
@@ -268,7 +273,7 @@ void UWxGimmickStateTreeComponent::OnRep_StateTag()
 		return;
 	}
 
-	// 여기서 대조하지 않는다 — 대기 중인 이벤트를 아직 소화하지 못한 트리를 어긋난 것으로 오판하게 된다.
+	// 여기서 대조하지 않는다 — 대기 중인 발행을 아직 소화하지 못한 트리를 어긋난 것으로 오판하게 된다.
 	// 잠들어 틱이 꺼져 있으면 추종 판정이 돌 자리가 없으므로 깨우기만 하고, 대조는 트리 틱 뒤 FollowAuthorityState 에 맡긴다.
 	ConditionalEnableTick();
 }
@@ -412,7 +417,7 @@ void UWxGimmickStateTreeComponent::FollowAuthorityState()
 		return;
 	}
 
-	// 어긋난 원인(지연·이벤트 유실·전이 조건 불일치)을 가리지 않고 권위 값으로 끌어온다.
+	// 어긋난 원인(지연·발행 유실·전이 조건 불일치)을 가리지 않고 권위 값으로 끌어온다.
 	UE_LOG(LogWxWorld, Verbose, TEXT("Gimmick(%s): [클라] 로컬 %s ≠ 권위 %s — 추종 전이 요청"), *GetNameSafe(GetOwner()), *ActiveTag.ToString(), *StateTag.ToString());
 	EnterReplicatedState();
 }
@@ -433,7 +438,7 @@ void UWxGimmickStateTreeComponent::EnterReplicatedState()
 		return;
 	}
 
-	// 재시작이 아니라 전이 요청이다 — 인스턴스 데이터·대기 이벤트가 보존되고, 진입이 초기 진입이 아니라 라이브 전이로 잡혀 트리거형 태스크가 정상 발동한다.
+	// 재시작이 아니라 전이 요청이다 — 인스턴스 데이터·대기 중인 발행이 보존되고, 진입이 초기 진입이 아니라 라이브 전이로 잡혀 트리거형 태스크가 정상 발동한다.
 	// 요청은 다음 트리 틱의 전이 처리 맨 앞에서 소비되며, 잠들어 있으면 엔진이 실행 확장을 통해 틱을 깨운다.
 	// 권위 값이므로 에셋이 저작한 어떤 전이보다 우선한다.
 	FStateTreeExecutionContext Context(*Owner, *Asset, InstanceData);
