@@ -15,7 +15,9 @@ UWxAbility_Guard::UWxAbility_Guard()
 	AssetTags.AddTag(WxGameplayTags::Ability_Guard);
 	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
 	SetAssetTags(AssetTags);
-	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Guard);
+
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 
 	// 자기 애셋 태그를 스스로 막는다. 엔진 블록 경로에는 취소와 달리 self-exception이 없어

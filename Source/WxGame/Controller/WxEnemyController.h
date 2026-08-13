@@ -28,7 +28,7 @@ protected:
 	virtual void OnUnPossess() override;
 
 private:
-	/** 시체는 어빌리티가 State.Dead 에 막히고 이동은 래그돌이 막으므로, 트리를 계속 돌리면 실패할 브랜치만 매 틱 다시 고른다. */
+	/** 시체는 어빌리티가 Ability.Death 에 막히고 이동은 래그돌이 막으므로, 트리를 계속 돌리면 실패할 브랜치만 매 틱 다시 고른다. */
 	UFUNCTION()
 	void HandlePawnDeath(AWxCharacterBase* DeadCharacter);
 

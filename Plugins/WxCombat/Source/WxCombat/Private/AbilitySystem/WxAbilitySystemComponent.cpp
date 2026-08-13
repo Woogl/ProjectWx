@@ -227,7 +227,7 @@ void UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf(UAbilitySystem
 	{
 		const float FinalDamage = CombatContext.GetFinalDamage();
 
-		// 죽는 히트는 HP 차감이 먼저라 State.Dead가 이미 붙어 있고, HitReact 어빌리티가 그 태그로 차단된다.
+		// 죽는 히트는 HP 차감이 먼저라 Ability.Death가 이미 붙어 있고, HitReact 어빌리티가 그 태그로 차단된다.
 		// 히트리액트를 재생했다 사망으로 끊는 대신 곧장 사망으로 가는 쪽을 택했다.
 		if (CombatContext.GetHitReactTag().IsValid())
 		{

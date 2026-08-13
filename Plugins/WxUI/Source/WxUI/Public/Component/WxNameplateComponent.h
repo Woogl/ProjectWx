@@ -44,6 +44,8 @@ protected:
 	 * ASC 보유 태그로 평가한다: Must Have(HasAll)·Must Not Have(HasAny면 숨김)·Query Must Match(복합).
 	 * 기본값은 생성자에서 저작한다(Dead 면 숨김, InCombat 또는 LockedOn 이면 표시).
 	 * 엔티티별로 BP 에서 오버라이드한다.
+	 *
+	 * 여기 등장하는 태그가 곧 ASC 구독 목록이므로 런타임에 바꾸면 구독이 어긋난다 — 바꾸려면 재구독이 필요하다.
 	 */
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	FGameplayTagRequirements VisibilityRequirements;
@@ -66,7 +68,13 @@ private:
 	 */
 	void RefreshVisibility();
 
-	/** 어떤 태그가 바뀌었는지는 보지 않는다. */
+	/**
+	 * VisibilityRequirements 가 참조하는 태그를 전부 모은다 — 이 목록이 곧 ASC 구독 대상이다.
+	 * 요건에 없는 태그는 RequirementsMet 결과를 바꿀 수 없으므로 이 목록만 구독해도 동작이 등가다.
+	 */
+	void CollectVisibilityTags(FGameplayTagContainer& OutTags) const;
+
+	/** 구독 자체가 요건 태그로 좁혀져 있으므로 어떤 태그가 바뀌었는지는 보지 않는다. */
 	void HandleOwnedTagsChanged(const FGameplayTag Tag, int32 NewCount);
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;

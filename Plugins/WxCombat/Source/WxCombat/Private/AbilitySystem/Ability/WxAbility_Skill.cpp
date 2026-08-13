@@ -13,7 +13,10 @@ UWxAbility_Skill::UWxAbility_Skill()
 	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
 	SetAssetTags(AssetTags);
 
-	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
+	// 슬롯 태그는 BP 소관이라 코드가 알 수 없으므로 부모 태그로 활성 표식을 보장한다.
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Skill);
+
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 
 	// 스킬은 재생 중 다른 GA로 캔슬되지 않는다. (PC규격서 §5.2)
 	// 후딜 캔슬은 몽타주 StartRecovery 노티파이로 허용한다.
@@ -30,7 +33,7 @@ bool UWxAbility_Skill::CanActivateAbility(const FGameplayAbilitySpecHandle Handl
 	// 자기 차단은 곧 EndAbility가 푸니 무시한다.
 	if (Spec && Spec->IsActive())
 	{
-		if (!ASC || !ASC->HasMatchingGameplayTag(WxGameplayTags::ANS_ComboWindow))
+		if (!ASC || !ASC->HasMatchingGameplayTag(WxGameplayTags::State_ComboWindow))
 		{
 			return false;
 		}

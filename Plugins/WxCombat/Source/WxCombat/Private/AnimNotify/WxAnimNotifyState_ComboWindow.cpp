@@ -13,7 +13,7 @@ void UWxAnimNotifyState_ComboWindow::NotifyBegin(USkeletalMeshComponent* MeshCom
 	{
 		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
 		{
-			ASC->AddLooseGameplayTag(WxGameplayTags::ANS_ComboWindow);
+			ASC->AddLooseGameplayTag(WxGameplayTags::State_ComboWindow);
 		}
 	}
 }
@@ -26,7 +26,7 @@ void UWxAnimNotifyState_ComboWindow::NotifyEnd(USkeletalMeshComponent* MeshComp,
 	{
 		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
 		{
-			ASC->RemoveLooseGameplayTag(WxGameplayTags::ANS_ComboWindow);
+			ASC->RemoveLooseGameplayTag(WxGameplayTags::State_ComboWindow);
 		}
 	}
 }

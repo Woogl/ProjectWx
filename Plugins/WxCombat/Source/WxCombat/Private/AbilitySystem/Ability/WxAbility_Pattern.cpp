@@ -12,7 +12,10 @@ UWxAbility_Pattern::UWxAbility_Pattern()
 	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
 	SetAssetTags(AssetTags);
 
-	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
+	// 슬롯 태그는 BP 소관이라 코드가 알 수 없으므로 부모 태그로 활성 표식을 보장한다.
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Pattern);
+
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 }
 
 void UWxAbility_Pattern::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

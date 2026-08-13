@@ -17,9 +17,10 @@ UWxAbility_Ultimate::UWxAbility_Ultimate()
 
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Ultimate);
 	ActivationOwnedTags.AddTag(WxGameplayTags::State_SuperArmor);
-	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
-	ActivationBlockedTags.AddTag(WxGameplayTags::State_Groggy);
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Groggy);
 }
 
 void UWxAbility_Ultimate::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)

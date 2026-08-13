@@ -115,5 +115,5 @@ bool UWxRootMotionModifier_SnapToTarget::IsSnapTargetAlive() const
 		return true;
 	}
 
-	return !TargetAbilitySystem->HasMatchingGameplayTag(WxGameplayTags::State_Dead);
+	return !TargetAbilitySystem->HasMatchingGameplayTag(WxGameplayTags::Ability_Death);
 }

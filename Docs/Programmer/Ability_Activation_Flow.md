@@ -83,7 +83,7 @@ flowchart TD
 반응형 어빌리티는 생성자에서 `AbilityTriggers`를 등록해 입력 없이 활성화된다.
 
 - **`GameplayEvent`** (`WxAbility_HitReact`): 데미지 계산(`WxExecCalc_Damage`)이 `Event.HitReact.*` 이벤트를 대상에게 보내면, 매칭 트리거가 `TryActivateAbility`를 발화하고 `TriggerEventData`로 페이로드를 전달. HitReact는 종류별(Normal/Knockback/...) 트리거를 개별 등록한다(정확 매칭).
-- **`OwnedTagPresent`** (`WxAbility_Death`, `WxAbility_Groggy`): 캐릭터에 `State.Dead`/`State.Groggy` 태그가 붙는 순간 자동 활성화. 사망은 `PostGameplayEffectExecute`에서 HP==0 시 `State.Dead`를 부여하는 경로로 들어온다.
+- **`GameplayEvent`** (`WxAbility_Death`, `WxAbility_Groggy`): `WxCombatAttributeSet`이 HP==0에서 `Event.Death`를, DP==MaxDP에서 `Event.Groggy`를 송출한다. 두 어빌리티의 활성 태그(`Ability.Death`/`Ability.Groggy`)가 곧 사망·그로기 상태이며, 재송출을 막는 가드도 그 태그를 본다.
 
 ---
 
@@ -92,8 +92,8 @@ flowchart TD
 활성화 게이트와 커밋은 엔진 GAS가 돌리되, Base가 코스트/쿨다운 구현을 갈아끼운다.
 
 **1. 활성화 게이트 (`CanActivateAbility`, 엔진)** — Spec/태그/`CanActivate` 조건을 본다. Base는 다음 태그 컨테이너로 거른다(각 구체 어빌리티 생성자에서 설정):
-- `ActivationBlockedTags` — 이 태그가 소유돼 있으면 활성화 거부. 거의 모든 어빌리티가 `State.Dead`를 넣는다.
-- `ActivationOwnedTags` — 활성 동안 부여되는 상태 태그(예: HitReact의 `State.HitReact`).
+- `ActivationBlockedTags` — 이 태그가 소유돼 있으면 활성화 거부. 거의 모든 어빌리티가 `Ability.Death`를 넣는다.
+- `ActivationOwnedTags` — 활성 동안 소유자에게 부여되는 태그. **모든 어빌리티가 자기 식별 태그(`Ability.X`)를 여기 넣는다** — 곧 「`Ability.X`가 소유돼 있다 = 그 어빌리티가 지금 돌고 있다」가 성립한다. 분류 마커 `Ability.Exclusive`는 넣지 않는다(후딜 진입이 차단만 풀고 이 컨테이너는 `EndAbility`까지 남아 두 진실이 어긋난다). 어빌리티 활성과 어긋날 수 있는 조건만 `State.X`로 따로 발행한다(궁극의 `State.SuperArmor`, 처형의 `State.Invincible` 등).
 - `BlockAbilitiesWithTag` / `CancelAbilitiesWithTag` — 활성 동안 다른 어빌리티를 하드 차단/캔슬. **기본은 `Ability.Exclusive` 하나만 지목한다.** 이 태그는 「액션 슬롯을 점유한다」는 표식이고, 붙은 어빌리티끼리만 서로 막고 끊으므로 어빌리티가 서로를 이름으로 지목하지 않는다. 공격·스킬·회피·가드·궁극·아이템·스프린트·상호작용·AI 패턴이 표식을 갖고, 반응·상태형(피격·그로기·사망·처형·락온)은 갖지 않아 무엇에도 막히거나 끊기지 않는다. 루트 `Ability`는 식별 태그의 부모일 뿐 차단·캔슬에 쓰이지 않는다. **예외는 피격의 캔슬 하나뿐이다** — 마커로 끊으면 마커를 가진 적 패턴이 평타 피격에 중단되므로, 피격만 `Ability.Attack`\`Ability.Skill`을 좁게 지목해 플레이어 액션만 끊는다(차단은 마커 그대로). 캐릭터별 차이는 규칙의 예외가 아니라 BP 데이터로 표현한다 — `GA_HitReact_Custer`는 두 컨테이너가 비어 있어 피격에도 패턴이 이어진다.
 
 **2. 커밋 (`CommitAbility` → CheckCost/CheckCooldown → ApplyCost/ApplyCooldown)** — Base가 4개 함수를 모두 오버라이드한다. 핵심은 **공용 GE를 CDO 단위로 구분**하는 설계:
@@ -118,7 +118,7 @@ flowchart TD
 | `WxAbility_Attack` | 입력(AssetTag `Ability.Attack`) | 발동 시 아바타 태그로 콤보 세트 선택(`FWxComboMontageSelector`) → `ANS_ComboWindow` 입력 → EndAbility 후 **동일 Spec 재발동**(`Reactivate`)으로 세트 내 다음 인덱스. 단계마다 재커밋. `WxAbility_Skill`도 같은 선택기를 쓴다. |
 | `WxAbility_Guard` | 입력(AssetTag `Ability.Guard`) | `ActiveMontage`로 페이즈 전환(가드/피격/브레이크/카운터). `InputReleased`/`InputPressed` 오버라이드, PerfectGuard 이벤트 구독. |
 | `WxAbility_HitReact` | GameplayEvent `Event.HitReact.*` | 종류별 트리거 개별 등록, `bRetriggerInstancedAbility`로 재진입. 새 액션(`Ability.Exclusive`)은 차단하고, 진행 중인 것 중에서는 공격·스킬만 캔슬한다(적 패턴은 지목 밖이라 유지). 차단만으로는 부족한데, 공격·스킬의 콤보 재발동 분기가 `Super`를 타지 않아 차단 태그 검사를 건너뛰기 때문이다. |
-| `WxAbility_Death` | OwnedTag `State.Dead` | 몽타주 유효 시 사망 포즈, 무효 시 지연 후 래그돌 — 서버가 `State.Ragdoll` 루스 태그 발행(TagOnly 복제), 전 머신의 캐릭터가 감지해 자체 `EnterRagdoll` 수행. 액션 전체 차단. |
+| `WxAbility_Death` | Event `Event.Death` | 몽타주 유효 시 사망 포즈, 무효 시 지연 후 래그돌 — 서버가 `State.Ragdoll` 루스 태그 발행(TagOnly 복제), 전 머신의 캐릭터가 감지해 자체 `EnterRagdoll` 수행. 액션 전체 차단. **연출이 끝나도 종료하지 않는다** — 활성 태그 `Ability.Death`가 곧 사망 상태다. |
 | `WxAbility_Pattern` | AI BT(AssetTag) | 단일 몽타주 재생→종료. 입력/UI 미사용. 쿨다운/충전은 Base 프로퍼티로만. |
 
 > WxGame 측 `UWxAbility_UseItem`/`UWxAbility_Interact`도 `UWxAbilityBase`를 상속해 동일 파이프라인을 탄다(WxGame→WxCombat 의존 방향 예시).

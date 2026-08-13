@@ -24,11 +24,11 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Attack);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Skill);
 
-	ActivationOwnedTags.AddTag(WxGameplayTags::State_HitReact);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_HitReact);
 
-	// State.Dead 차단이 사망 몽타주를 지킨다 — 대미지 연출은 사망 처리 뒤에 발행된다.
+	// Ability.Death 차단이 사망 몽타주를 지킨다 — 대미지 연출은 사망 처리 뒤에 발행된다.
 	// 풀면 히트리액트가 사망 몽타주를 끊어 래그돌 폴백으로 떨어뜨린다.
-	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Invincible);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Guard);
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_SuperArmor);

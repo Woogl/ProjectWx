@@ -19,7 +19,7 @@ UWxNameplateComponent::UWxNameplateComponent()
 	SetVisibility(false);
 
 	// 표시(둘 중 하나)는 OR 이라 TagQuery(MatchAny)로, 숨김은 IgnoreTags(HasAny면 숨김)로 둔다.
-	VisibilityRequirements.IgnoreTags.AddTag(WxGameplayTags::State_Dead);
+	VisibilityRequirements.IgnoreTags.AddTag(WxGameplayTags::Ability_Death);
 
 	FGameplayTagContainer ShowAnyTags;
 	ShowAnyTags.AddTag(WxGameplayTags::State_InCombat);
@@ -76,7 +76,12 @@ void UWxNameplateComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (UAbilitySystemComponent* ASC = CachedASC.Get())
 	{
-		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
+		FGameplayTagContainer WatchedTags;
+		CollectVisibilityTags(WatchedTags);
+		for (const FGameplayTag& WatchedTag : WatchedTags)
+		{
+			ASC->RegisterGameplayTagEvent(WatchedTag, EGameplayTagEventType::NewOrRemoved).RemoveAll(this);
+		}
 	}
 
 	Super::EndPlay(EndPlayReason);
@@ -103,10 +108,30 @@ void UWxNameplateComponent::InitializeViewModels(UAbilitySystemComponent* InASC,
 	CachedASC = InASC;
 
 	// 표시 여부는 ASC 태그가 바뀔 때만 갱신하면 충분하다(매 틱 재계산 불필요).
-	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxNameplateComponent::HandleOwnedTagsChanged);
+	// 요건에 등장하는 태그만 구독한다 — 제네릭 구독은 결과와 무관한 태그(어빌리티 활성 표식 등)에도 깨어난다.
+	// 표시는 태그 유무로만 갈리므로 카운트 변화까지 볼 필요가 없다.
+	FGameplayTagContainer WatchedTags;
+	CollectVisibilityTags(WatchedTags);
+	for (const FGameplayTag& WatchedTag : WatchedTags)
+	{
+		InASC->RegisterGameplayTagEvent(WatchedTag, EGameplayTagEventType::NewOrRemoved)
+			.AddUObject(this, &UWxNameplateComponent::HandleOwnedTagsChanged);
+	}
 
 	// 이벤트는 변화 시에만 발화하므로 초기 표시 상태는 여기서 한 번 확정한다.
 	RefreshVisibility();
+}
+
+void UWxNameplateComponent::CollectVisibilityTags(FGameplayTagContainer& OutTags) const
+{
+	OutTags.AppendTags(VisibilityRequirements.RequireTags);
+	OutTags.AppendTags(VisibilityRequirements.IgnoreTags);
+
+	// 기본값처럼 조건이 TagQuery 에 들어 있어도 참조 태그를 전부 돌려준다.
+	for (const FGameplayTag& QueryTag : VisibilityRequirements.TagQuery.GetGameplayTagArray())
+	{
+		OutTags.AddTag(QueryTag);
+	}
 }
 
 void UWxNameplateComponent::RefreshVisibility()

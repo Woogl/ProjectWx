@@ -18,12 +18,13 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 	AssetTags.AddTag(WxGameplayTags::Ability_Dodge);
 	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
 	SetAssetTags(AssetTags);
-	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
+
+	// 공격이 반격 세트를 고르는 진입 조건이기도 하다.
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Dodge);
+
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
-
-	// 공격이 반격 세트를 고르는 진입 조건.
-	ActivationOwnedTags.AddTag(WxGameplayTags::State_Dodge);
 }
 
 void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -166,7 +167,7 @@ bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 	// 락온 중에는 락온 태스크가 회피 내내 몸을 타겟으로 추적해 호 궤적을 만들므로 잔차 보정을 하지 않는다.
 	// 비락온은 섹션 루트모션이 몸 기준 고정 방향이라, 양자화 잔차(±22.5°, 폴백 시 그 이상)만큼 몸을 돌려 이동을 입력 방향에 맞춘다.
 	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	const bool bLockedOn = ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::State_LockOn);
+	const bool bLockedOn = ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_LockOn);
 	if (!Local.IsNearlyZero() && !bLockedOn)
 	{
 		// NAME_None(섹션 없는 몽타주)은 전방 이동 몽타주로 간주한다.

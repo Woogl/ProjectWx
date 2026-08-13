@@ -15,8 +15,9 @@ UWxAbility_UseItem::UWxAbility_UseItem()
 	AssetTags.AddTag(WxGameplayTags::Ability_UseItem);
 	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
 	SetAssetTags(AssetTags);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_UseItem);
 
-	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 
 	// 마시는 중에는 다른 어빌리티로 캔슬되지 않는다.
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);

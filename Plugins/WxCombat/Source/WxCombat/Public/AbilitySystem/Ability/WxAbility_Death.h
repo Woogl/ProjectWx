@@ -9,8 +9,11 @@
 class UAnimMontage;
 
 /**
- * HP가 0이 되어 붙는 State.Dead 태그로 발동한다.
- * DeathMontage가 있으면 그 포즈로 끝내고, 없거나 외부에 끊기면 래그돌로 폴백한다.
+ * HP가 0에 닿을 때 AttributeSet이 송출하는 Event.Death로 발동한다.
+ * DeathMontage가 있으면 그 포즈로 두고, 없거나 외부에 끊기면 래그돌로 폴백한다.
+ *
+ * 연출이 끝나도 종료하지 않는다 — 활성 동안 부여되는 Ability.Death가 곧 사망 상태이며,
+ * 어빌리티 차단·피해 차단·락온 제외·AI 추적 중단이 전부 그 태그에 걸려 있다. 시체는 액터가 파괴될 때 ASC가 정리한다.
  *
  * 래그돌은 어빌리티 인스턴스가 없는 시뮬 프록시·late joiner도 커버해야 한다.
  * 그래서 서버가 State.Ragdoll 루스 태그만 발행(TagOnly 복제)하고, 전 머신의 캐릭터가 그 태그를 보고 스스로 전환한다.
@@ -39,8 +42,6 @@ private:
 	void HandleMontageCancelled();
 	
 	void PlayDeathMontageOrRagdoll();
-
-	void RagdollAndEnd(bool bWasCancelled);
 
 	void EnableRagdoll();
 };

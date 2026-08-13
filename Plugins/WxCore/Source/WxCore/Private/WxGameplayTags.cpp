@@ -4,21 +4,17 @@
 
 namespace WxGameplayTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(State_Dead, "State.Dead");
 	UE_DEFINE_GAMEPLAY_TAG(State_Ragdoll, "State.Ragdoll");
-	UE_DEFINE_GAMEPLAY_TAG(State_Groggy, "State.Groggy");
-	UE_DEFINE_GAMEPLAY_TAG(State_LockOn, "State.LockOn");
 	UE_DEFINE_GAMEPLAY_TAG(State_LockedOn, "State.LockedOn");
 	UE_DEFINE_GAMEPLAY_TAG(State_InCombat, "State.InCombat");
 	UE_DEFINE_GAMEPLAY_TAG(State_Invincible, "State.Invincible");
-	UE_DEFINE_GAMEPLAY_TAG(State_Dodge, "State.Dodge");
 	UE_DEFINE_GAMEPLAY_TAG(State_Guard, "State.Guard");
 	UE_DEFINE_GAMEPLAY_TAG(State_Sprint, "State.Sprint");
 	UE_DEFINE_GAMEPLAY_TAG(State_Exhausted, "State.Exhausted");
 	UE_DEFINE_GAMEPLAY_TAG(State_PerfectGuard, "State.PerfectGuard");
-	UE_DEFINE_GAMEPLAY_TAG(State_HitReact, "State.HitReact");
 	UE_DEFINE_GAMEPLAY_TAG(State_SuperArmor, "State.SuperArmor");
-	UE_DEFINE_GAMEPLAY_TAG(State_Finisher, "State.Finisher");
+	UE_DEFINE_GAMEPLAY_TAG(State_BeingFinished, "State.BeingFinished");
+	UE_DEFINE_GAMEPLAY_TAG(State_ComboWindow, "State.ComboWindow");
 	UE_DEFINE_GAMEPLAY_TAG(State_Dialogue, "State.Dialogue");
 
 	UE_DEFINE_GAMEPLAY_TAG(Movement_InAir, "Movement.InAir");
@@ -37,6 +33,8 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_Interact, "Event.Interact");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Finisher, "Event.Finisher");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Backstab, "Event.Backstab");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Death, "Event.Death");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Groggy, "Event.Groggy");
 
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Door_Close, "Gimmick.Door.Close");
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Door_Open, "Gimmick.Door.Open");
@@ -54,8 +52,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(StateTree_Interact, "StateTree.Interact");
 
 	UE_DEFINE_GAMEPLAY_TAG(Quest_Fail, "Quest.Fail");
-
-	UE_DEFINE_GAMEPLAY_TAG(ANS_ComboWindow, "ANS.ComboWindow");
 
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Damage, "GameplayCue.Damage");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_PerfectGuard, "GameplayCue.PerfectGuard");

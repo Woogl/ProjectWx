@@ -44,7 +44,7 @@ protected:
 
 	/**
 	 * 그로기면 앞잡(Event.Finisher, 방향 무관), 미인지·후방이면 뒤잡(Event.Backstab), 불가면 빈 태그.
-	 * 이미 처형 연출 중(State.Finisher)이면 무조건 빈 태그다.
+	 * 이미 처형 연출 중(State.BeingFinished)이면 무조건 빈 태그다.
 	 *
 	 * 자격 판정의 단일 소스다 — 표시(CanBeInteractedBy, 클라가 로컬 폰으로)와 발동(OnInteracted, 서버가 실제 instigator 로)이 같은 주체 인자로 이 함수를 지난다.
 	 * 판정 입력(HP·상태 태그·트랜스폼)이 전부 복제되므로 어느 머신에서 불러도 같은 주체엔 같은 답이 나온다.

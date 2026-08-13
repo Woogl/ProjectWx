@@ -7,7 +7,7 @@
 #include "WxAnimNotifyState_ComboWindow.generated.h"
 
 /**
- * 구간 동안 ASC에 ANS.ComboWindow 태그를 부여하며, 이 안에서 들어온 공격 입력이 다음 콤보로 이어진다.
+ * 구간 동안 ASC에 State.ComboWindow 태그를 부여하며, 이 안에서 들어온 공격 입력이 다음 콤보로 이어진다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAnimNotifyState_ComboWindow : public UAnimNotifyState

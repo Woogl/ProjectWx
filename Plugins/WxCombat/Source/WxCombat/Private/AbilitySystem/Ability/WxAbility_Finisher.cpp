@@ -32,11 +32,11 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 
-	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 	ActivationOwnedTags.AddTag(WxGameplayTags::State_Invincible);
 
 	// 상호작용이 이 태그에 막혀, 연출 도중 재입력으로 다른 대상과 몽타주가 겹치는 것을 차단한다.
-	ActivationOwnedTags.AddTag(WxGameplayTags::State_Finisher);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Finisher);
 
 	FAbilityTriggerData FinisherTrigger;
 	FinisherTrigger.TriggerTag = WxGameplayTags::Event_Finisher;
@@ -76,7 +76,7 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	{
 		if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target))
 		{
-			TargetASC->AddLooseGameplayTag(WxGameplayTags::State_Finisher, 1, EGameplayTagReplicationState::TagOnly);
+			TargetASC->AddLooseGameplayTag(WxGameplayTags::State_BeingFinished, 1, EGameplayTagReplicationState::TagOnly);
 		}
 	}
 
@@ -100,15 +100,7 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		return;
 	}
 
-	// 뒤잡은 그로기를 전제하지 않으므로 앞잡만 종료 시 DP를 리셋한다.
-	if (bBackstab)
-	{
-		MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Finisher::HandleMontageFinished);
-	}
-	else
-	{
-		MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Finisher::HandleFinisherMontageCompleted);
-	}
+	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Finisher::HandleMontageFinished);
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Finisher::HandleMontageFinished);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Finisher::HandleMontageFinished);
 	MontageTask->ReadyForActivation();
@@ -122,13 +114,24 @@ void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, co
 		MontageTask = nullptr;
 	}
 
-	// 중단·캔슬도 이 경로를 지나므로 대상에 걸어둔 연출 태그가 새지 않는다.
+	// 중단·캔슬도 이 경로를 지나므로 대상에 걸어둔 연출 태그가 새지 않고, 그로기 해제도 몽타주 종료 방식과 무관하게 한 번 일어난다.
 	// 대상이 대미지를 견뎌 살아남으면 여기서 어포던스가 복구된다.
 	if (ActorInfo && ActorInfo->IsNetAuthority())
 	{
 		if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(TargetActor.Get()))
 		{
-			TargetASC->RemoveLooseGameplayTag(WxGameplayTags::State_Finisher, 1, EGameplayTagReplicationState::TagOnly);
+			// 피해자 짝 피격 몽타주 완료에 의존하지 않고 공격자가 권위적으로 그로기를 해제한다.
+			if (UAbilitySystemComponent* SourceASC = ActorInfo->AbilitySystemComponent.Get())
+			{
+				FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
+				const FGameplayEffectSpecHandle ResetSpec = SourceASC->MakeOutgoingSpec(UWxEffect_ResetDP::StaticClass(), GetAbilityLevel(), Context);
+				if (ResetSpec.IsValid())
+				{
+					SourceASC->ApplyGameplayEffectSpecToTarget(*ResetSpec.Data.Get(), TargetASC);
+				}
+			}
+
+			TargetASC->RemoveLooseGameplayTag(WxGameplayTags::State_BeingFinished, 1, EGameplayTagReplicationState::TagOnly);
 		}
 	}
 	TargetActor = nullptr;
@@ -138,27 +141,6 @@ void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, co
 
 void UWxAbility_Finisher::HandleMontageFinished()
 {
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-}
-
-void UWxAbility_Finisher::HandleFinisherMontageCompleted()
-{
-	// 피해자 짝 피격 몽타주 완료에 의존하지 않고 공격자가 권위적으로 그로기를 해제한다.
-	if (const AActor* Target = TargetActor.Get())
-	{
-		UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
-		UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
-		if (SourceASC && TargetASC)
-		{
-			FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
-			const FGameplayEffectSpecHandle ResetSpec = SourceASC->MakeOutgoingSpec(UWxEffect_ResetDP::StaticClass(), GetAbilityLevel(), Context);
-			if (ResetSpec.IsValid())
-			{
-				SourceASC->ApplyGameplayEffectSpecToTarget(*ResetSpec.Data.Get(), TargetASC);
-			}
-		}
-	}
-
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 

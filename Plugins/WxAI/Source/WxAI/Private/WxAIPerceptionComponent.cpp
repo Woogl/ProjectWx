@@ -181,7 +181,7 @@ void UWxAIPerceptionComponent::BindTargetLoss(AActor* NewTarget)
 
 	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(NewTarget))
 	{
-		TargetDeathTagDelegateHandle = ASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
+		TargetDeathTagDelegateHandle = ASC->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death, EGameplayTagEventType::NewOrRemoved)
 			.AddUObject(this, &UWxAIPerceptionComponent::HandleTargetDeathTagChanged);
 	}
 }
@@ -197,7 +197,7 @@ void UWxAIPerceptionComponent::UnbindTargetLoss()
 		{
 			if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Target))
 			{
-				ASC->UnregisterGameplayTagEvent(TargetDeathTagDelegateHandle, WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved);
+				ASC->UnregisterGameplayTagEvent(TargetDeathTagDelegateHandle, WxGameplayTags::Ability_Death, EGameplayTagEventType::NewOrRemoved);
 			}
 		}
 	}
@@ -259,7 +259,7 @@ void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)
 bool UWxAIPerceptionComponent::IsActorDead(AActor* Actor)
 {
 	const UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor);
-	return ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead);
+	return ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death);
 }
 
 APawn* UWxAIPerceptionComponent::GetOwnerPawn() const

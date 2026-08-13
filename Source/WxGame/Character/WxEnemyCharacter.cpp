@@ -84,14 +84,14 @@ FGameplayTag AWxEnemyCharacter::GetEligibleFinisherEventTag(const AActor* Intera
 		return FGameplayTag();
 	}
 
-	// 이미 처형 연출 중이면 자격 없음 — 공격자 어빌리티(WxAbility_Finisher)가 연출 동안 대상에 State.Finisher 를 걸어 둔다.
+	// 이미 처형 연출 중이면 자격 없음 — 공격자 어빌리티(WxAbility_Finisher)가 연출 동안 대상에 State.BeingFinished 를 걸어 둔다.
 	// 노출과 발동 검증이 같은 함수를 지나므로, 연출 중 재노출도 다른 플레이어의 중복 발동도 여기서 함께 막힌다.
-	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Finisher))
+	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_BeingFinished))
 	{
 		return FGameplayTag();
 	}
 
-	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
+	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
 	{
 		return WxGameplayTags::Event_Finisher;
 	}
@@ -134,7 +134,7 @@ void AWxEnemyCharacter::OnInteracted(AActor* Interactor, const UActorComponent* 
 	EventData.Instigator = Interactor;
 	EventData.Target = this;
 	EventData.EventTag = EventTag;
-	// 이 호출로 처형 어빌리티가 동기 트리거되어 대상(this)에 State.Finisher 가 붙는다 — 재노출·중복 발동 차단에 별도 래치가 필요 없다.
+	// 이 호출로 처형 어빌리티가 동기 트리거되어 대상(this)에 State.BeingFinished 가 붙는다 — 재노출·중복 발동 차단에 별도 래치가 필요 없다.
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Interactor, EventTag, EventData);
 }
 

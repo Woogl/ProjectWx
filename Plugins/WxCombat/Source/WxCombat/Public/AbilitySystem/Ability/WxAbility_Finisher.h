@@ -19,9 +19,9 @@ struct FWxDamageInfo;
  *
  * 상호작용(서버 권위)이 보내는 GameplayEvent로 트리거되며, 피해자 위치를 공유 앵커로 모션워핑 정렬한 뒤 양쪽 몽타주를 동시에 재생한다.
  *
- * 변형별로 다른 것은 공격 몽타주·짝 피격 태그·종료 시 DP 리셋 여부 셋뿐이다.
+ * 변형별로 다른 것은 공격 몽타주와 짝 피격 태그 둘뿐이다.
  * 대미지는 두 변형 모두 노티파이 DamageDataRow의 계수를 쓰므로 수치도 타이밍도 노티파이가 소유한다.
- * 앞잡의 그로기 해제(DP 0)는 공격자 몽타주가 정상 종료될 때 대상에 UWxEffect_ResetDP를 적용해 처리한다.
+ * 그로기 해제(DP 0)는 종료 시 대상에 UWxEffect_ResetDP를 적용해 처리한다 — 몽타주가 어떻게 끝나든 한 번 적용된다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Finisher : public UWxAbilityBase
@@ -49,10 +49,6 @@ protected:
 private:
 	UFUNCTION()
 	void HandleMontageFinished();
-
-	/** 앞잡 전용 — 대상 DP를 리셋해 그로기를 해제한 뒤 종료한다. */
-	UFUNCTION()
-	void HandleFinisherMontageCompleted();
 
 	void RegisterWarpTarget(AActor* AvatarActor, const AActor* Target) const;
 

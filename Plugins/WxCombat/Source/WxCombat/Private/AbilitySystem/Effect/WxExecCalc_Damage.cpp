@@ -86,7 +86,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	const bool bCanCritical = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanCritical);
 	const bool bHasPerfectGuard = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_PerfectGuard);
 	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard);
-	const bool bIsGroggy = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy);
+	const bool bIsGroggy = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy);
 
 	const bool bPerfectGuardApplied = bHasPerfectGuard && !bIsUnblockable;
 
@@ -160,7 +160,7 @@ EWxDamageResult UWxExecCalc_Damage::CheckDamage(const UAbilitySystemComponent* S
 
 	// 대미지 GE 자체가 사망 타겟을 IgnoreTags로 거르므로 대미지 경로는 여기 닿지 않는다.
 	// ExecCalc 밖에서 부르는 화상·히트스톱이 시체를 걸러내는 지점이다.
-	if (Target->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
+	if (Target->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
 	{
 		return EWxDamageResult::None;
 	}
@@ -265,7 +265,7 @@ FGameplayTag UWxExecCalc_Damage::ResolveHitReaction(const FGameplayEffectCustomE
 	const bool bIsUnblockable = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable);
 	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard);
 	const bool bGuardHit = bIsGuarding && !bIsUnblockable;
-	const bool bIsGroggy = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy);
+	const bool bIsGroggy = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy);
 
 	if (bGuardHit)
 	{

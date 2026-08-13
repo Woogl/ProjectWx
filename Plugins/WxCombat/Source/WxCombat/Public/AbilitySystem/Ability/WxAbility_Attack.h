@@ -11,7 +11,7 @@ class UAbilityTask_PlayMontageAndWait;
 class UAnimMontage;
 
 /**
- * 아바타 태그로 콤보 세트를 골라 첫 몽타주를 재생하고, ANS_ComboWindow 구간의 재발동이 같은 세트의 다음 단으로 넘긴다(터미널 단에서는 첫 단으로 되돌아간다).
+ * 아바타 태그로 콤보 세트를 골라 첫 몽타주를 재생하고, State.ComboWindow 구간의 재발동이 같은 세트의 다음 단으로 넘긴다(터미널 단에서는 첫 단으로 되돌아간다).
  *
  * 콤보 진행은 엔진 순정 재발동(bRetriggerInstancedAbility)이라 단계마다 CommitAbility가 새로 걸린다.
  * 콤보가 끊기지 않으려면 AbilityDataRow에서 단계 간격보다 쿨다운을 짧게 잡거나 최대 충전 수를 단계 수 이상으로 둔다.

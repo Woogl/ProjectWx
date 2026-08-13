@@ -14,7 +14,7 @@ UWxLockOnPointComponent::UWxLockOnPointComponent()
 	Mobility = EComponentMobility::Movable;
 
 	// 기본값은 죽은 대상 제외뿐이고, 다른 조건은 엔티티별로 BP에서 오버라이드한다.
-	LockOnRequirements.IgnoreTags.AddTag(WxGameplayTags::State_Dead);
+	LockOnRequirements.IgnoreTags.AddTag(WxGameplayTags::Ability_Death);
 }
 
 bool UWxLockOnPointComponent::CanBeLockedOn() const

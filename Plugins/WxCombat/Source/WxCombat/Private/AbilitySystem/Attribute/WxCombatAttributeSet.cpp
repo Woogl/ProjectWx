@@ -138,13 +138,14 @@ void UWxCombatAttributeSet::PostAttributeChange(const FGameplayAttribute& Attrib
 	}
 	else if (Attribute == GetDPAttribute() && GetMaxDP() > 0.f)
 	{
-		if (GetDP() >= GetMaxDP() && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
+		// 그로기 진입만 알리고 해제는 관여하지 않는다 — 어빌리티가 DP를 직접 보고 스스로 끝낸다.
+		if (GetDP() >= GetMaxDP() && !ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
 		{
-			ASC->AddLooseGameplayTag(WxGameplayTags::State_Groggy, 1, EGameplayTagReplicationState::TagOnly);
-		}
-		else if (GetDP() <= 0.f && ASC->HasMatchingGameplayTag(WxGameplayTags::State_Groggy))
-		{
-			ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Groggy, 1, EGameplayTagReplicationState::TagOnly);
+			FGameplayEventData EventData;
+			EventData.EventTag = WxGameplayTags::Event_Groggy;
+			EventData.Instigator = GetOwningActor();
+			EventData.Target = EventData.Instigator;
+			ASC->HandleGameplayEvent(WxGameplayTags::Event_Groggy, &EventData);
 		}
 	}
 }
@@ -162,12 +163,17 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 			SetHP(FMath::Max(GetHP() - Damage, 0.f));
 
 			// IncomingDamage 경로로 HP가 0 이하가 됐을 때만 사망 처리한다.
+			// 사망 표식(Ability.Death)은 사망 어빌리티가 활성 동안 들고 있으므로, 여기서는 발동만 알린다.
 			if (GetHP() <= 0.f)
 			{
 				UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
-				if (ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
+				if (ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
 				{
-					ASC->AddLooseGameplayTag(WxGameplayTags::State_Dead, 1, EGameplayTagReplicationState::TagOnly);
+					FGameplayEventData EventData;
+					EventData.EventTag = WxGameplayTags::Event_Death;
+					EventData.Instigator = GetOwningActor();
+					EventData.Target = EventData.Instigator;
+					ASC->HandleGameplayEvent(WxGameplayTags::Event_Death, &EventData);
 				}
 			}
 

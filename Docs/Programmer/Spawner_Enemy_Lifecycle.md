@@ -36,7 +36,7 @@ sequenceDiagram
     Note over Enemy,AICtrl: PossessedBy 가 Owner 를 AIController 로 재할당<br/>(그래서 역조회는 GetOwner 가 아닌 OwningSpawner)
     AICtrl->>AICtrl: Perception 주입 + RunBehaviorTree
     Note over Enemy: 생존·행동
-    Enemy->>Enemy: State_Dead 태그 부여 → HandleDeathTagChanged → HandleDeath
+    Enemy->>Enemy: Ability.Death 태그 부여 → HandleDeathTagChanged → HandleDeath
     Enemy->>Spawner: OwningSpawner->MarkKilled() — bIsKilled=true
     Enemy->>Enemy: UWxRewardLibrary::GrantReward(...) (종착 효과)
     Trigger->>Save: 체크포인트 상호작용 → Save Game 태스크
@@ -79,7 +79,7 @@ sequenceDiagram
 
 ### 사망 경로 (HandleDeath)
 
-사망은 GAS 태그로 트리거된다. `AWxCharacterBase::InitAbilitySystem` 이 `State_Dead`(`WxGameplayTags::State_Dead`) 태그 이벤트를 구독하고, 태그가 부여되면 `HandleDeathTagChanged(NewCount > 0)` → `HandleDeath()` 가 불린다.
+사망은 GAS 태그로 트리거된다. `AWxCharacterBase::InitAbilitySystem` 이 `Ability.Death`(`WxGameplayTags::Ability_Death`) 태그 이벤트를 구독하고, 태그가 부여되면 `HandleDeathTagChanged(NewCount > 0)` → `HandleDeath()` 가 불린다.
 
 - 베이스 `AWxCharacterBase::HandleDeath()` 는 `OnDeath` 델리게이트만 방송한다.
 - 오버라이드 `AWxEnemyCharacter::HandleDeath()` 는 `Super::HandleDeath()` 후 `HasAuthority()` 게이트 안에서 두 부작용을 실행한다:
@@ -170,11 +170,11 @@ sequenceDiagram
 | [`UWxSpawnerLibrary`](../../Plugins/WxWorld/Source/WxWorld/Public/System/WxSpawnerLibrary.h) | WxWorld | TryRespawnAll — collect-first 일괄 리스폰(Manual 제외) |
 | [`FWxStateTreeTask_TriggerSpawners`](../../Plugins/WxWorld/Source/WxWorld/Private/Gimmick/WxStateTreeTask_TriggerSpawners.cpp) | WxWorld | 명시 리스트 기반 기믹 리스폰 |
 | [`AWxEnemyCharacter`](../../Source/WxGame/Character/WxEnemyCharacter.h) | WxGame | IWxSpawnable 구현, OwningSpawner 보유, HandleDeath 부작용 |
-| [`AWxCharacterBase`](../../Source/WxGame/Character/WxCharacterBase.cpp) | WxGame | State_Dead 태그 → HandleDeathTagChanged → HandleDeath 경로 |
+| [`AWxCharacterBase`](../../Source/WxGame/Character/WxCharacterBase.cpp) | WxGame | Ability.Death 태그 → HandleDeathTagChanged → HandleDeath 경로 |
 | [`AWxEnemyController`](../../Source/WxGame/Controller/WxEnemyController.cpp) | WxGame | OnPossess — Perception 주입 + RunBehaviorTree |
 | `ST_CheckPoint` (`/Game/WorldObject/Gimmick/`) | 콘텐츠 | Lit 상태의 태스크 넷 — 회복 → 리필 → Respawn Spawners → Save Game 순서 |
 | [`IWxSavable`](../../Plugins/WxCore/Source/WxCore/Public/WxSavable.h) | WxCore | 저장/복원 계약(GetSaveId/OnSaveRestored) |
 | [`UWxSaveGameSubsystem`](../../Plugins/WxSave/Source/WxSave/Private/WxSaveGameSubsystem.cpp) | WxSave | CaptureActor/RestoreActor, World/Level 훅으로 자동 캡처·복원 |
 | [`FWxActorRecord`](../../Plugins/WxSave/Source/WxSave/Public/WxSaveGame.h) | WxSave | bIsKilled(SaveGame) 직렬화 레코드 |
 | [`UWxRewardLibrary`](../../Plugins/WxInventory/Source/WxInventory/Public/WxRewardLibrary.h) | WxInventory | GrantReward — 라이프사이클 종착 효과(범위 밖) |
-| `WxGameplayTags::State_Dead` | WxCore | 사망 트리거 태그 |
+| `WxGameplayTags::Ability_Death` | WxCore | 사망 어빌리티 활성 태그 = 사망 상태 |

@@ -17,14 +17,15 @@ UWxAbility_Death::UWxAbility_Death()
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Death);
 	SetAssetTags(AssetTags);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Death);
 
 	// 사망하면 진행 중이던 액션(적 패턴 포함)을 끊고 이후 액션도 막는다.
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 
 	FAbilityTriggerData TriggerData;
-	TriggerData.TriggerTag = WxGameplayTags::State_Dead;
-	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::OwnedTagPresent;
+	TriggerData.TriggerTag = WxGameplayTags::Event_Death;
+	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	AbilityTriggers.Add(TriggerData);
 }
 
@@ -32,12 +33,8 @@ void UWxAbility_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-	
+	// 커밋하지 않는다 — 사망은 코스트·쿨다운이 없는 강제 전이이고, 커밋 실패가 곧 사망 미성립(Ability.Death 미부여)이 된다.
+
 	ACharacter* Avatar = Cast<ACharacter>(GetAvatarActorFromActorInfo());
 	if (Avatar && Avatar->GetMesh())
 	{
@@ -57,25 +54,25 @@ void UWxAbility_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 void UWxAbility_Death::HandleMontageCompleted()
 {
 	// 의도한 사망 포즈로 끝났으므로 래그돌로 넘기지 않는다.
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	// 여기서 종료하지 않는 것이 핵심이다 — 어빌리티가 끝나면 Ability.Death가 걷혀 시체가 다시 살아있는 것으로 판정된다.
 }
 
 void UWxAbility_Death::HandleMontageInterrupted()
 {
 	// 외부가 사망 몽타주를 끊은 비정상 경로 — 래그돌로 폴백한다.
-	RagdollAndEnd(true);
+	EnableRagdoll();
 }
 
 void UWxAbility_Death::HandleMontageCancelled()
 {
-	RagdollAndEnd(true);
+	EnableRagdoll();
 }
 
 void UWxAbility_Death::PlayDeathMontageOrRagdoll()
 {
 	if (!DeathMontage)
 	{
-		RagdollAndEnd(false);
+		EnableRagdoll();
 		return;
 	}
 
@@ -84,7 +81,7 @@ void UWxAbility_Death::PlayDeathMontageOrRagdoll()
 		this, NAME_None, DeathMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
 	if (!MontageTask)
 	{
-		RagdollAndEnd(true);
+		EnableRagdoll();
 		return;
 	}
 
@@ -92,12 +89,6 @@ void UWxAbility_Death::PlayDeathMontageOrRagdoll()
 	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Death::HandleMontageInterrupted);
 	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Death::HandleMontageCancelled);
 	MontageTask->ReadyForActivation();
-}
-
-void UWxAbility_Death::RagdollAndEnd(bool bWasCancelled)
-{
-	EnableRagdoll();
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, bWasCancelled);
 }
 
 void UWxAbility_Death::EnableRagdoll()

@@ -20,8 +20,8 @@ UWxAbility_LockOn::UWxAbility_LockOn()
 	AssetTags.AddTag(WxGameplayTags::Ability_LockOn);
 	SetAssetTags(AssetTags);
 
-	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
-	ActivationOwnedTags.AddTag(WxGameplayTags::State_LockOn);
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_LockOn);
 }
 
 void UWxAbility_LockOn::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)

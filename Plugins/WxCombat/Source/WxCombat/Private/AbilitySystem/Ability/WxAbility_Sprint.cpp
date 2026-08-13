@@ -15,7 +15,9 @@ UWxAbility_Sprint::UWxAbility_Sprint()
 	AssetTags.AddTag(WxGameplayTags::Ability_Sprint);
 	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
 	SetAssetTags(AssetTags);
-	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Sprint);
+
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 }
 
 bool UWxAbility_Sprint::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const

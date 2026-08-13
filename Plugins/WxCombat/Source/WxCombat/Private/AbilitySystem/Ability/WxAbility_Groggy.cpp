@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/Ability/WxAbility_Groggy.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystem/Effect/WxEffect_DrainDP.h"
 #include "AbilitySystem/Effect/WxEffect_ResetDP.h"
 #include "AIController.h"
@@ -19,16 +20,17 @@ UWxAbility_Groggy::UWxAbility_Groggy()
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Groggy);
 	SetAssetTags(AssetTags);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Groggy);
 
 	// 그로기에 빠지면 진행 중이던 액션(적 패턴 포함)을 끊고 그로기 동안 새 액션도 막는다.
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
-	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 
-	// 태그가 떨어지면 엔진이 이 스펙을 취소하므로 종료를 따로 구독하지 않는다.
+	// 발동만 이벤트로 받고, 종료는 DP 구독이 판정한다(HandleDPChanged).
 	FAbilityTriggerData TriggerData;
-	TriggerData.TriggerTag = WxGameplayTags::State_Groggy;
-	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::OwnedTagPresent;
+	TriggerData.TriggerTag = WxGameplayTags::Event_Groggy;
+	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	AbilityTriggers.Add(TriggerData);
 }
 
@@ -50,8 +52,12 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 
 	// 그대로 두면 폴러가 사망 몽타주 종료 후 시체 위에 그로기 몽타주를 덮어씌운다.
-	DeadTagDelegateHandle = ASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
+	DeadTagDelegateHandle = ASC->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &UWxAbility_Groggy::HandleDeadTagChanged);
+
+	// DrainDP가 DP를 0까지 내리면 종료한다.
+	DPDelegateHandle = ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetDPAttribute())
+		.AddUObject(this, &UWxAbility_Groggy::HandleDPChanged);
 
 	// 재생 rate를 1.0으로 고정하므로 몽타주 길이가 곧 그로기 길이다.
 	const float GroggyDuration = GroggyMontage->GetPlayLength();
@@ -124,9 +130,16 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 			if (DeadTagDelegateHandle.IsValid())
 			{
-				ASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
+				ASC->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death, EGameplayTagEventType::NewOrRemoved)
 					.Remove(DeadTagDelegateHandle);
 				DeadTagDelegateHandle.Reset();
+			}
+
+			if (DPDelegateHandle.IsValid())
+			{
+				ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetDPAttribute())
+					.Remove(DPDelegateHandle);
+				DPDelegateHandle.Reset();
 			}
 		}
 	}
@@ -142,10 +155,18 @@ void UWxAbility_Groggy::HandleDeadTagChanged(const FGameplayTag CallbackTag, int
 	}
 }
 
+void UWxAbility_Groggy::HandleDPChanged(const FOnAttributeChangeData& Data)
+{
+	if (Data.NewValue <= 0.f)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
+}
+
 void UWxAbility_Groggy::HandleGroggySafetyTimeout()
 {
-	// DP를 리셋하면 AttributeSet가 State.Groggy를 떼고, 그 제거를 감지한 엔진이 이 어빌리티를 취소한다.
-	// 여기서 곧장 EndAbility만 하면 DP가 MaxDP로 남아 OwnedTagPresent 트리거가 즉시 재발동한다.
+	// DP를 리셋하면 HandleDPChanged가 종료시킨다.
+	// 여기서 곧장 EndAbility만 하면 DP가 MaxDP로 남아, 다음 DP 변동에서 AttributeSet이 Event.Groggy를 다시 송출한다.
 	const FGameplayEffectSpecHandle ResetSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_ResetDP::StaticClass(), GetAbilityLevel());
 	if (ResetSpecHandle.IsValid())
 	{

@@ -22,12 +22,13 @@ UWxAbility_Interact::UWxAbility_Interact()
 	AssetTags.AddTag(WxGameplayTags::Ability_Interact);
 	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
 	SetAssetTags(AssetTags);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Interact);
 
 	// 이 차단 태그들이 서버 활성·클라 표시(스캐너 컴포넌트) 게이트의 단일 소스다.
-	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dead);
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 
-	// 처형 연출 도중 근처 다른 대상과 상호작용해 처형 흐름에 개입하는 것을 차단한다(WxAbility_Finisher가 State.Finisher를 발행).
-	ActivationBlockedTags.AddTag(WxGameplayTags::State_Finisher);
+	// 처형 연출 도중 근처 다른 대상과 상호작용해 처형 흐름에 개입하는 것을 차단한다.
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Finisher);
 
 	// 대화 중에는 상호작용을 막는다(PC의 WxDialogueSessionComponent가 세션 시작·종료에 맞춰 State.Dialogue를 발행).
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dialogue);

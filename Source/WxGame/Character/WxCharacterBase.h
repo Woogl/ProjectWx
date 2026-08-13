@@ -61,7 +61,7 @@ public:
 	/** VM_Character 주입용 UI 표시 데이터(이름/초상화). */
 	const FWxCharacterUIData& GetCharacterUIData() const;
 
-	/** State.Dead 태그 부여 시 호출. 파생 클래스에서 override하여 사망 연출 추가 */
+	/** Ability.Death 태그 부여 시 호출. 파생 클래스에서 override하여 사망 연출 추가 */
 	virtual void HandleDeath();
 
 	UPROPERTY(BlueprintAssignable, Category = "Wx|Character")
@@ -103,7 +103,7 @@ protected:
 
 	void HandleSPDAttributeChanged(const FOnAttributeChangeData& Data);
 
-	/** State.Dead 태그 부여 시 각 머신에서 HandleDeath 호출 */
+	/** Ability.Death 태그 부여 시 각 머신에서 HandleDeath 호출 */
 	void HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
 	/** State.Ragdoll 태그 부여 시 각 머신에서 래그돌 물리 전환 적용 */

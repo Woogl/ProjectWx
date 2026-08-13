@@ -21,7 +21,7 @@ void UWxCheatManager::WxKillPlayer()
 		return;
 	}
 
-	// HP 를 직접 0 으로 쓰면 클램프만 되고 사망이 발동하지 않는다 — 사망 처리는 IncomingDamage 경로에서만 State.Dead 를 붙인다.
+	// HP 를 직접 0 으로 쓰면 클램프만 되고 사망이 발동하지 않는다 — 사망 처리는 IncomingDamage 경로에서만 Event.Death 를 송출한다.
 	// 그래서 현재 HP 를 그대로 대미지로 넣는 즉사 GE 를 태운다.
 	// MakeEffectContext 가 자기 자신을 Instigator 로 실어 주므로 AI 보고까지 유효한 가해자를 갖는다.
 	const FGameplayEffectSpecHandle SpecHandle = AbilitySystem->MakeOutgoingSpec(UWxEffect_Kill::StaticClass(), 1.f, AbilitySystem->MakeEffectContext());
@@ -93,7 +93,7 @@ void UWxCheatManager::WxKillEnemies(float RadiusMeters)
 		}
 
 		// 이미 죽은 대상은 HP 가 0 이라 어차피 아무 일도 없지만, 헛도는 GE 를 막고 처치 수를 정확히 세기 위해 거른다.
-		if (TargetAbilitySystem->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
+		if (TargetAbilitySystem->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
 		{
 			continue;
 		}

@@ -290,7 +290,7 @@ void UWxUIManagerSubsystem::WatchPawnTags(APawn* Pawn)
 {
 	if (UAbilitySystemComponent* PreviousASC = WatchedAbilitySystem.Get())
 	{
-		PreviousASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved).Remove(DeathTagHandle);
+		PreviousASC->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death, EGameplayTagEventType::NewOrRemoved).Remove(DeathTagHandle);
 		PreviousASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dialogue, EGameplayTagEventType::NewOrRemoved).Remove(DialogueTagHandle);
 	}
 	WatchedAbilitySystem.Reset();
@@ -308,7 +308,7 @@ void UWxUIManagerSubsystem::WatchPawnTags(APawn* Pawn)
 		return;
 	}
 
-	DeathTagHandle = AbilitySystem->RegisterGameplayTagEvent(WxGameplayTags::State_Dead, EGameplayTagEventType::NewOrRemoved)
+	DeathTagHandle = AbilitySystem->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &ThisClass::HandleDeathTagChanged);
 	DialogueTagHandle = AbilitySystem->RegisterGameplayTagEvent(WxGameplayTags::State_Dialogue, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &ThisClass::HandleDialogueTagChanged);

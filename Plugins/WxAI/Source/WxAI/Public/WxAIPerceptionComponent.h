@@ -29,7 +29,7 @@ class UBlackboardComponent;
  * 인식(State.InCombat)도 같은 수명을 따른다 — 추적 중이면 on, 복귀(억제)·타겟 소실 시 off 이며, 서버에서 폰 ASC 에 MinimalReplication 태그로 발행되어 네임플레이트 표시에 소비된다.
  *
  * 자기 폰의 사망은 다루지 않는다. 이 태그의 소비자(네임플레이트의 표시 정책, 뒤잡 자격 판정)가 저마다 사망을 먼저 걸러내므로 시체 위에 태그가 남아도 관측되지 않는다 — 어빌리티들이 활성 차단 태그로 각자 막는 것과 같은 방식이다.
- * 죽음과 무관하게 이 태그를 읽는 소비자가 생기면 폰 ASC 의 State.Dead 를 구독해 되살린다(타겟 쪽과 같은 형태라 비용이 작다).
+ * 죽음과 무관하게 이 태그를 읽는 소비자가 생기면 폰 ASC 의 Ability.Death 를 구독해 되살린다(타겟 쪽과 같은 형태라 비용이 작다).
  */
 UCLASS(ClassGroup=(AI), meta=(BlueprintSpawnableComponent))
 class WXAI_API UWxAIPerceptionComponent : public UAIPerceptionComponent
@@ -83,7 +83,7 @@ private:
 	 */
 	void SetTargetActor(AActor* NewTarget);
 
-	/** 액터가 사망 상태(State.Dead)인지. ASC 가 없는 액터는 사망 개념이 없으므로 false. */
+	/** 액터가 사망 상태(Ability.Death)인지. ASC 가 없는 액터는 사망 개념이 없으므로 false. */
 	static bool IsActorDead(AActor* Actor);
 
 	APawn* GetOwnerPawn() const;

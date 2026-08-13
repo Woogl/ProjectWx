@@ -9,8 +9,8 @@
 /**
  * DP를 0으로 즉시 리셋하는 GameplayEffect.
  *
- * 적용 시 PostAttributeChange의 캐스케이드가 State.Groggy를 제거하므로, DP 직접 set이 아니라 이 GE로 적용해야 그로기가 정상 해제된다.
- * 앞잡 몽타주가 정상 완료되면 UWxAbility_Finisher가 대상에 적용한다.
+ * 적용 시 DP가 0으로 떨어지고 그 어트리뷰트 변경을 구독하는 그로기 어빌리티가 스스로 종료하므로, DP 직접 set이 아니라 이 GE로 적용해야 그로기가 정상 해제된다.
+ * UWxAbility_Finisher가 종료 시 대상에 적용한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxEffect_ResetDP : public UGameplayEffect
