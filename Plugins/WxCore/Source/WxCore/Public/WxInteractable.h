@@ -28,10 +28,13 @@ class WXCORE_API IWxInteractable
 
 public:
 	/**
-	 * 영역 메시의 계약 구현체를 찾는다. 소유 액터가 직접 구현했으면 그것을, 아니면 그 액터의 컴포넌트를 답한다.
+	 * 액터의 계약 구현체를 찾는다. 액터가 직접 구현했으면 그것을, 아니면 그 액터의 컴포넌트를 답한다.
 	 * 컴포넌트 갈래 덕에 호스트 액터를 순수 BP 로 둘 수 있다 — 이 인터페이스는 BP 에서 구현할 수 없으므로, C++ 없는 액터는 컴포넌트로만 상호작용 대상이 된다.
 	 * 소비처(스캐너·상호작용 어빌리티)가 전부 이 조회를 거치므로 구현체를 어디에 두든 바뀌는 곳은 여기 하나다.
 	 */
+	static IWxInteractable* Find(AActor* Actor);
+
+	/** 영역 메시의 계약 구현체를 찾는다 — 그 메시의 소유 액터에서 위와 같은 순서로 찾는다. */
 	static IWxInteractable* Find(const UActorComponent* Mesh);
 
 	/**
@@ -55,6 +58,14 @@ public:
 	 * 양쪽이 같은 답에 수렴하도록 켜고 끄는 근거는 전 머신에서 동일해야 한다(기믹은 각 피어에서 같은 전이를 밟는 StateTree 가 토글하고, 어긋난 피어는 복제된 상태 Tag 로 수렴한다).
 	 */
 	virtual bool IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const = 0;
+
+	/**
+	 * 이 대상의 상호작용 가용성을 켜고 끈다. 'Enable Interaction' 태스크가 액터를 지목했을 때 부른다.
+	 * 켜고 끄는 수단은 구현체가 정한다 — IsInteractionMeshActive 의 답이 그에 맞게 바뀌기만 하면 된다(대화 상대는 영역 메시의 쿼리 콜리전을 내린다).
+	 * 상태에 따라 영역이 갈리는 대상(기믹)은 영역마다 프롬프트·발행자가 달라 이 진입점으로 다루지 않는다.
+	 * 여닫을 일이 없는 대상(픽업·적)은 구현하지 않는다 — 기본은 무동작이다.
+	 */
+	virtual void SetInteractionEnabled(bool bEnabled);
 
 	/**
 	 * 상호작용 응답. 서버 권위에서 상호작용 어빌리티가 호출한다(비권위 호출 없음).

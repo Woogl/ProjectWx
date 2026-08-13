@@ -48,11 +48,11 @@ struct FWxStateTreeTask_MarkIndicatorInstanceData
  * 대상 해석은 매 틱 수행해 월드 파티션 언로드/재로드를 그대로 따라간다. 해석되면 등록하고 해석되지 않으면(스트리밍 아웃·파괴) 해제하므로,
  * 표시 수명의 단일 소유자는 이 노드다.
  * 빈 로케이터는 표시될 수 없는 잘못된 조립이므로 진입 시 경고를 남긴다.
- * 완료 없는 머무는 태스크라 항상 Running 이다 — 상태 완료 판정에서 기본으로 빠져 있다(완료는 짝이 되는 Wait 태스크가 낸다).
+ * 완료 없는 머무는 태스크라 항상 Running 이다 — 완료는 짝이 되는 Wait 태스크가 내므로, 이 노드를 완료 판정에 끼우면 그 상태가 끝나지 않는다.
  * 표시는 보는 사람의 사건이라 매니저는 로컬 플레이어(0번 컨트롤러)에서 찾는다(v1 싱글/리슨 호스트 전제).
  * 한 상태에서 여럿을 가리켜야 하면 노드를 여럿 얹는다 — 대상마다 등록·해제가 독립적이어야 하는데, 그 독립성은 노드 단위로 이미 보장된다.
  */
-USTRUCT(meta = (DisplayName = "Mark Indicator", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "인디케이터 표시", Category = "Wx"))
 struct FWxStateTreeTask_MarkIndicator : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

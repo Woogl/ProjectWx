@@ -7,12 +7,13 @@
 - 대화 데이터 스키마: `FWxDialogueTableRow`(화자·대사·포즈·NextRow) 로 대화 1편 = 테이블 1개.
 - 대화 상대 정의: `UWxDialogueComponent` 를 붙인 액터를 말 걸 수 있는 대상으로 만들고(`IWxInteractable` 구현), 상호작용 활성 토글.
 - 세션 진행: `UWxDialogueSessionComponent`(PlayerController 주입)가 현재 노드·라인을 소유하고 대사 넘기기, 대화 전용 카메라 구도, 대상 포즈 스트리밍/재생.
-- StateTree 태스크: 퀘스트가 대화를 여는 `Play Dialogue`, 대화 완주를 관찰하는 `Wait Dialogue Completed`, NPC 상호작용을 여닫는 `Enable Npc Interaction`.
+- StateTree 태스크: 퀘스트가 대화를 여는 `Play Dialogue`.
 
 **경계 (비담당)**
 - 대사 의미 판정(수주·납품 등) — 대화는 뜻을 해석하지 않고, 관찰하는 [[WxQuest]] 데이터가 판정한다.
 - 대화창 UI 표시 — 델리게이트/`State.Dialogue` 태그만 발행하고 창 여닫기는 [[WxUI]] 가 맡는다.
 - 상호작용 감지·프롬프트 표시 스캐너 — `IWxInteractable` 계약만 구현하고 감지 파이프라인은 [[WxWorld]] 측이다.
+- 상호작용 여닫기 태스크 — 잠금/해제는 계약의 `SetInteractionEnabled` 로 받기만 하고, 그것을 부르는 `Enable Interaction` 태스크는 [[WxWorld]] 소유다.
 
 ## 의존성
 - **주요 의존**: `WxCore`(`IWxInteractable`, `WxGameplayTags`). 엔진: StateTree, GameplayAbilities(ASC 루즈 태그), ModularGameplay(컨트롤러 주입), UniversalObjectLocator.
@@ -25,8 +26,6 @@
 | `UWxDialogueComponent` | 대화 상대 컴포넌트, `IWxInteractable` 구현·상호작용 토글 | `Plugins\WxDialogue\Source\WxDialogue\Public\WxDialogueComponent.h` |
 | `UWxDialogueSessionComponent` | PC 주입 세션, 진행·카메라·포즈 소유 | `Plugins\WxDialogue\Source\WxDialogue\Public\WxDialogueSessionComponent.h` |
 | `FWxStateTreeTask_PlayDialogue` | 세션에 지정 대사를 열고 완료까지 대기 | `Plugins\WxDialogue\Source\WxDialogue\Public\WxStateTreeTask_PlayDialogue.h` |
-| `FWxStateTreeTask_WaitDialogueCompleted` | 세션을 관찰해 지정 대사 완주를 게이트 | `Plugins\WxDialogue\Source\WxDialogue\Public\WxStateTreeTask_WaitDialogueCompleted.h` |
-| `FWxStateTreeTask_EnableNpcInteraction` | 배치 NPC 의 상호작용을 여닫는 월드 변경 | `Plugins\WxDialogue\Source\WxDialogue\Public\WxStateTreeTask_EnableNpcInteraction.h` |
 
 ## 확장 포인트 / 규약
 - 대화 저작: `FWxDialogueTableRow` 로 DataTable 생성 → `UWxDialogueComponent::StartRow` 또는 태스크의 `StartRow` 로 시작 노드 지정. NextRow=None 이 종료.
@@ -41,7 +40,7 @@
 3. `Plugins\WxDialogue\Source\WxDialogue\Public\WxDialogueComponent.h` — 상호작용 계약을 컴포넌트가 드는 이유와 액터 진입 경로.
 
 ## 관련
-- 상위: [[WxQuest]](태스크로 대화를 열고 완주를 관찰), [[WxWorld]](상호작용 감지), [[WxUI]](대화창 표시)
+- 상위: [[WxQuest]](태스크로 대화를 연다), [[WxWorld]](상호작용 감지·상호작용 대기 게이트), [[WxUI]](대화창 표시)
 
 ---
 *문서 기준 커밋 `dfd2174` · 생성일 2026-08-12 · 소스 13파일 — `/readme-writer`로 갱신*

@@ -102,11 +102,6 @@ FWxStateTreeTask_MarkIndicator::FWxStateTreeTask_MarkIndicator()
 {
 	// 완료 없이 머무는 태스크다. 재선택마다 재진입하면 ExitState 가 인디케이터를 해제해 표시가 깜빡인다.
 	bShouldStateChangeOnReselect = false;
-
-#if WITH_EDITORONLY_DATA
-	// 대기 태스크와 같은 상태에 얹히므로 판정에서 뺀다 — 완료를 내지 않는 태스크가 판정에 끼면 그 상태가 영영 완료되지 않는다.
-	bConsideredForCompletion = false;
-#endif
 }
 
 EStateTreeRunStatus FWxStateTreeTask_MarkIndicator::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
@@ -145,6 +140,6 @@ FText FWxStateTreeTask_MarkIndicator::GetDescription(const FGuid& ID, FStateTree
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Mark Indicator ({0})"), FText::FromString(GetTargetDisplayName(InstanceData->Target)));
+	return FText::Format(INVTEXT("인디케이터 표시 ({0})"), FText::FromString(GetTargetDisplayName(InstanceData->Target)));
 }
 #endif

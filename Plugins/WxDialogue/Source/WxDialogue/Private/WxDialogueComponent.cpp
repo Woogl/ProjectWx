@@ -24,6 +24,17 @@ bool UWxDialogueComponent::IsInteractionMeshActive(const UPrimitiveComponent* Me
 	return AreaMesh && Mesh == AreaMesh && AreaMesh->IsQueryCollisionEnabled();
 }
 
+void UWxDialogueComponent::SetInteractionEnabled(bool bEnabled)
+{
+	if (!AreaMesh)
+	{
+		return;
+	}
+
+	// 켜는 쪽은 QueryOnly 로 되돌린다 — 감지·사거리 판정에 필요한 것은 쿼리뿐이다.
+	AreaMesh->SetCollisionEnabled(bEnabled ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+}
+
 void UWxDialogueComponent::OnInteracted(AActor* Interactor, const UActorComponent* Source)
 {
 	const APawn* Pawn = Cast<APawn>(Interactor);
@@ -40,15 +51,4 @@ void UWxDialogueComponent::OnInteracted(AActor* Interactor, const UActorComponen
 FText UWxDialogueComponent::GetInteractionPrompt(const UActorComponent* Source) const
 {
 	return FText::Format(NSLOCTEXT("WxDialogueComponent", "TalkPromptFormat", "Talk to {0}"), SpeakerName);
-}
-
-void UWxDialogueComponent::SetInteractionEnabled(bool bEnabled)
-{
-	if (!AreaMesh)
-	{
-		return;
-	}
-
-	// 켜는 쪽은 QueryOnly 로 되돌린다 — 감지·사거리 판정에 필요한 것은 쿼리뿐이다.
-	AreaMesh->SetCollisionEnabled(bEnabled ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 }

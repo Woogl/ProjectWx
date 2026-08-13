@@ -118,11 +118,11 @@ public:
 
 	/**
 	 * Mesh 영역의 상호작용을 켜고 끄며, 켤 때는 그 영역의 프롬프트와 발행 자리(Region)도 함께 담는다 — 끌 때 Region 은 쓰이지 않는다.
-	 * 'Enable Interaction' 태스크가 상태 진입 시 자기 대상 메시로 호출한다.
+	 * 'Enable Interaction' 태스크가 상태 진입 시 자기 대상 메시로 호출한다. 계약의 대상 단위 토글(IWxInteractable::SetInteractionEnabled)과 달리 영역 단위라 이름을 가른다.
 	 * 꺼진 영역은 IsInteractionMeshActive 가 false 를 답해 다음 스캔에서 후보에서 빠지고, 어빌리티의 서버 활성 검증에도 걸린다.
 	 * 복제하지 않는다 — ST 가 각 피어에서 실행되어 같은 값에 수렴한다.
 	 */
-	void SetInteractionEnabled(UPrimitiveComponent* Mesh, bool bEnabled, const FWxGimmickInteractionRegion& Region);
+	void SetInteractionRegionEnabled(UPrimitiveComponent* Mesh, bool bEnabled, const FWxGimmickInteractionRegion& Region);
 
 	/** 이번 상호작용의 당사자(플레이어 캐릭터). 상호작용 이동/몽타주 태스크가 읽는다. 상호작용이 없었으면 null. */
 	ACharacter* GetInteractingCharacter() const;

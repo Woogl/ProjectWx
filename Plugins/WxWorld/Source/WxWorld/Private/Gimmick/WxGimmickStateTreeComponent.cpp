@@ -178,7 +178,7 @@ void UWxGimmickStateTreeComponent::OnSaveRestored()
 	}
 }
 
-void UWxGimmickStateTreeComponent::SetInteractionEnabled(UPrimitiveComponent* Mesh, bool bEnabled, const FWxGimmickInteractionRegion& Region)
+void UWxGimmickStateTreeComponent::SetInteractionRegionEnabled(UPrimitiveComponent* Mesh, bool bEnabled, const FWxGimmickInteractionRegion& Region)
 {
 	if (!Mesh)
 	{
