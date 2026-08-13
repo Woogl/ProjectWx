@@ -100,9 +100,9 @@ void UWxAbility_Sprint::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 		SPChangedHandle.Reset();
 
 		// 정지 상태로 끝났으면 이미 빠져 있다.
-		if (ASC->HasMatchingGameplayTag(WxGameplayTags::State_Sprint))
+		if (ASC->HasMatchingGameplayTag(WxGameplayTags::Movement_Sprint))
 		{
-			ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Sprint);
+			ASC->RemoveLooseGameplayTag(WxGameplayTags::Movement_Sprint);
 		}
 	}
 
@@ -134,11 +134,11 @@ void UWxAbility_Sprint::HandleMovingChanged(bool bIsMoving)
 
 	if (bIsMoving)
 	{
-		ASC->AddLooseGameplayTag(WxGameplayTags::State_Sprint);
+		ASC->AddLooseGameplayTag(WxGameplayTags::Movement_Sprint);
 	}
-	else if (ASC->HasMatchingGameplayTag(WxGameplayTags::State_Sprint))
+	else if (ASC->HasMatchingGameplayTag(WxGameplayTags::Movement_Sprint))
 	{
-		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Sprint);
+		ASC->RemoveLooseGameplayTag(WxGameplayTags::Movement_Sprint);
 	}
 }
 

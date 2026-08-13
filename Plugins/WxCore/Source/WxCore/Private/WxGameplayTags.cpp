@@ -9,7 +9,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_InCombat, "State.InCombat");
 	UE_DEFINE_GAMEPLAY_TAG(State_Invincible, "State.Invincible");
 	UE_DEFINE_GAMEPLAY_TAG(State_Guard, "State.Guard");
-	UE_DEFINE_GAMEPLAY_TAG(State_Sprint, "State.Sprint");
 	UE_DEFINE_GAMEPLAY_TAG(State_Exhausted, "State.Exhausted");
 	UE_DEFINE_GAMEPLAY_TAG(State_PerfectGuard, "State.PerfectGuard");
 	UE_DEFINE_GAMEPLAY_TAG(State_SuperArmor, "State.SuperArmor");
@@ -18,6 +17,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_Dialogue, "State.Dialogue");
 
 	UE_DEFINE_GAMEPLAY_TAG(Movement_InAir, "Movement.InAir");
+	UE_DEFINE_GAMEPLAY_TAG(Movement_Sprint, "Movement.Sprint");
 
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact, "Event.HitReact");
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Normal, "Event.HitReact.Normal");
@@ -48,10 +48,6 @@ namespace WxGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_CheckPoint_Unlit, "Gimmick.CheckPoint.Unlit");
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_CheckPoint_Lit, "Gimmick.CheckPoint.Lit");
-
-	UE_DEFINE_GAMEPLAY_TAG(StateTree_Interact, "StateTree.Interact");
-
-	UE_DEFINE_GAMEPLAY_TAG(Quest_Fail, "Quest.Fail");
 
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Damage, "GameplayCue.Damage");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Hit, "GameplayCue.Hit");

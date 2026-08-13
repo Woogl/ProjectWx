@@ -13,7 +13,7 @@ UWxEffect_DrainSP::UWxEffect_DrainSP()
 	bExecutePeriodicEffectOnApplication = true;
 
 	UTargetTagRequirementsGameplayEffectComponent* TagReqComp = CreateDefaultSubobject<UTargetTagRequirementsGameplayEffectComponent>(TEXT("TargetTagReq"));
-	TagReqComp->OngoingTagRequirements.RequireTags.AddTag(WxGameplayTags::State_Sprint);
+	TagReqComp->OngoingTagRequirements.RequireTags.AddTag(WxGameplayTags::Movement_Sprint);
 	GEComponents.Add(TagReqComp);
 
 	FAttributeBasedFloat AttributeBased;

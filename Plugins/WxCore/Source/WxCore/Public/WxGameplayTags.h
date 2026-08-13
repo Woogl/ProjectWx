@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
@@ -36,9 +36,6 @@ namespace WxGameplayTags
 	/** 방어 유효 상태. 가드 어빌리티가 활성 중 부여하되, SP 고갈로 가드가 깨지면 어빌리티가 도는 중에도 뗀다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Guard);
 
-	/** 질주 상태. WxAbility_Sprint가 활성 중 실제로 이동할 때만 부여. SP 소모 GE의 발동 조건이자 SP 자연 회복의 억제 조건 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Sprint);
-
 	/** 탈진 상태. SP를 소모하면 WxEffect_Exhaust가 일정 시간 부여한다. SP 자연 회복의 억제 조건 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Exhausted);
 
@@ -61,6 +58,9 @@ namespace WxGameplayTags
 
 	/** 공중 체공 상태. WxCharacterMovementComponent가 낙하 모드 진입·이탈에 맞춰 각 머신에서 부여/제거. 점프 공격의 콤보 세트 진입 조건 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_InAir);
+	
+	/** 질주 상태. WxAbility_Sprint가 활성 중 실제로 이동할 때만 부여. SP 소모 GE의 발동 조건이자 SP 자연 회복의 억제 조건 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Sprint);
 
 	// ── Event ─────────────────────────────────────────────────────────────
 
@@ -130,20 +130,6 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_CheckPoint_Unlit);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_CheckPoint_Lit);
-
-	// ── StateTree ─────────────────────────────────────────────────────────
-
-	/**
-	 * 상호작용 발동 이벤트. 기믹 컴포넌트가 권위 측에서 상호작용을 받아 전 피어의 ST 에 발행하며, 페이로드로 눌린 영역 메시와 주체를 나른다.
-	 * 어느 상태로 갈지는 이 이벤트를 받는 각 상태의 전이가 정한다 — 영역이 여럿이면 전이 조건에서 페이로드의 Source 를 대상 메시와 비교해 가른다.
-	 * 상태가 아니라 발동 신호라 Gimmick 계층 밖에 둔다.
-	 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(StateTree_Interact);
-
-	// ── Quest ─────────────────────────────────────────────────────────────
-
-	/** 퀘스트 실패 이벤트. 퀘스트 ST의 InProgress 전이(On Event → Failure)가 수신. 송출은 UWxQuestLibrary::SendQuestEvent 경유 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Quest_Fail);
 
 	// ── GameplayCue ──────────────────────────────────────────────────────
 
