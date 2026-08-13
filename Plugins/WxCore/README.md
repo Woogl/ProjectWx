@@ -31,7 +31,7 @@
 - 주요 네임스페이스:
   - `State.*` — 캐릭터 상태(사망·래그돌·그로기·락온·무적·회피·질주·탈진·피격·슈퍼아머·처형·대화 등). ASC에 부여되는 런타임 상태.
   - `Movement.*` — 이동 상태(`InAir` 체공). CMC가 각 머신에서 토글.
-  - `Event.*` — 어빌리티 트리거용 GameplayEvent(피격 반응·회피/퍼펙트가드 성공·아이템 사용·상호작용·처형/백스탭). `Event.HitReact`는 필터링용 부모 카테고리.
+  - `Event.*` — 어빌리티 트리거용 GameplayEvent(피격 반응·회피/퍼펙트가드 성공·아이템 사용·상호작용·처형/백스탭). `Event.HitReact`는 부모 카테고리로, ExecCalc 필터링과 HitReact·Guard 어빌리티의 자식 전체 수신에 쓰인다.
   - `Gimmick.*` — StateTree 기믹 상태 라벨(문·엘리베이터·상자·체크포인트). 코드가 읽지 않고 세이브 슬롯에 담기는 상태 이름.
   - `StateTree.*` — 기믹 ST로 발행되는 상호작용 신호(`StateTree.Interact`).
   - `Quest.*` — 퀘스트 실패 이벤트.

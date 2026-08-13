@@ -35,41 +35,12 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 
 	bRetriggerInstancedAbility = true;
 
-	// AbilityTriggers는 정확한 태그 매칭이라 종류마다 개별 등록해야 한다.
-	FAbilityTriggerData NormalTrigger;
-	NormalTrigger.TriggerTag = WxGameplayTags::Event_HitReact_Normal;
-	NormalTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
-	AbilityTriggers.Add(NormalTrigger);
-
-	FAbilityTriggerData KnockbackTrigger;
-	KnockbackTrigger.TriggerTag = WxGameplayTags::Event_HitReact_KnockBack;
-	KnockbackTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
-	AbilityTriggers.Add(KnockbackTrigger);
-
-	FAbilityTriggerData KnockdownTrigger;
-	KnockdownTrigger.TriggerTag = WxGameplayTags::Event_HitReact_KnockDown;
-	KnockdownTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
-	AbilityTriggers.Add(KnockdownTrigger);
-
-	FAbilityTriggerData KnockupTrigger;
-	KnockupTrigger.TriggerTag = WxGameplayTags::Event_HitReact_KnockUp;
-	KnockupTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
-	AbilityTriggers.Add(KnockupTrigger);
-
-	FAbilityTriggerData ParryTrigger;
-	ParryTrigger.TriggerTag = WxGameplayTags::Event_HitReact_Parry;
-	ParryTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
-	AbilityTriggers.Add(ParryTrigger);
-
-	FAbilityTriggerData FinisherTrigger;
-	FinisherTrigger.TriggerTag = WxGameplayTags::Event_HitReact_Finisher;
-	FinisherTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
-	AbilityTriggers.Add(FinisherTrigger);
-
-	FAbilityTriggerData BackstabTrigger;
-	BackstabTrigger.TriggerTag = WxGameplayTags::Event_HitReact_Backstab;
-	BackstabTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
-	AbilityTriggers.Add(BackstabTrigger);
+	// GameplayEvent 트리거는 부모 체인을 거슬러 조회되므로 부모 하나로 Event.HitReact.* 전부를 받는다.
+	// 자식을 함께 등록하면 조상마다 한 번씩 발화해 같은 피격에 몽타주가 재시작한다.
+	FAbilityTriggerData TriggerData;
+	TriggerData.TriggerTag = WxGameplayTags::Event_HitReact;
+	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
+	AbilityTriggers.Add(TriggerData);
 }
 
 void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

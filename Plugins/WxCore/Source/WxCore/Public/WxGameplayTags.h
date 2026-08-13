@@ -64,7 +64,7 @@ namespace WxGameplayTags
 
 	// ── Event ─────────────────────────────────────────────────────────────
 
-	/** 피격 이벤트 부모 카테고리. ExecCalc 필터링용. Guard 어빌리티가 자식 태그를 모두 수신하기 위해 부모로도 구독 (직접 dispatch 금지) */
+	/** 피격 이벤트 부모 카테고리. ExecCalc 필터링용이자 HitReact·Guard 어빌리티가 자식 태그를 모두 수신하기 위해 구독하는 태그 (직접 dispatch 금지 — 자식 없이 오면 일반 피격으로 폴백된다) */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact);
 
 	/** 일반 피격 이벤트. HitReact 어빌리티가 NormalHitReactMontage 재생 */

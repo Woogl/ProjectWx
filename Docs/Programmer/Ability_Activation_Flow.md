@@ -82,7 +82,7 @@ flowchart TD
 
 반응형 어빌리티는 생성자에서 `AbilityTriggers`를 등록해 입력 없이 활성화된다.
 
-- **`GameplayEvent`** (`WxAbility_HitReact`): 데미지 계산(`WxExecCalc_Damage`)이 `Event.HitReact.*` 이벤트를 대상에게 보내면, 매칭 트리거가 `TryActivateAbility`를 발화하고 `TriggerEventData`로 페이로드를 전달. HitReact는 종류별(Normal/Knockback/...) 트리거를 개별 등록한다(정확 매칭).
+- **`GameplayEvent`** (`WxAbility_HitReact`): 데미지 계산(`WxExecCalc_Damage`)이 `Event.HitReact.*` 이벤트를 대상에게 보내면, 매칭 트리거가 `TryActivateAbility`를 발화하고 `TriggerEventData`로 페이로드를 전달. HitReact는 부모 태그 `Event.HitReact` 하나만 등록한다 — ASC가 이벤트 태그의 부모 체인을 거슬러 트리거를 조회하므로 자식 종류가 전부 걸린다.
 - **`GameplayEvent`** (`WxAbility_Death`, `WxAbility_Groggy`): `WxCombatAttributeSet`이 HP==0에서 `Event.Death`를, DP==MaxDP에서 `Event.Groggy`를 송출한다. 두 어빌리티의 활성 태그(`Ability.Death`/`Ability.Groggy`)가 곧 사망·그로기 상태이며, 재송출을 막는 가드도 그 태그를 본다.
 
 ---
@@ -117,7 +117,7 @@ flowchart TD
 | --- | --- | --- |
 | `WxAbility_Attack` | 입력(AssetTag `Ability.Attack`) | 발동 시 아바타 태그로 콤보 세트 선택(`FWxComboMontageSelector`) → `ANS_ComboWindow` 입력 → EndAbility 후 **동일 Spec 재발동**(`Reactivate`)으로 세트 내 다음 인덱스. 단계마다 재커밋. `WxAbility_Skill`도 같은 선택기를 쓴다. |
 | `WxAbility_Guard` | 입력(AssetTag `Ability.Guard`) | `ActiveMontage`로 페이즈 전환(가드/피격/브레이크/카운터). `InputReleased`/`InputPressed` 오버라이드, PerfectGuard 이벤트 구독. |
-| `WxAbility_HitReact` | GameplayEvent `Event.HitReact.*` | 종류별 트리거 개별 등록, `bRetriggerInstancedAbility`로 재진입. 새 액션(`Ability.Exclusive`)은 차단하고, 진행 중인 것 중에서는 공격·스킬만 캔슬한다(적 패턴은 지목 밖이라 유지). 차단만으로는 부족한데, 공격·스킬의 콤보 재발동 분기가 `Super`를 타지 않아 차단 태그 검사를 건너뛰기 때문이다. |
+| `WxAbility_HitReact` | GameplayEvent `Event.HitReact.*` | 부모 태그 `Event.HitReact` 단일 등록으로 자식 전체 수신, 종류 분기는 페이로드의 리프 태그로. `bRetriggerInstancedAbility`로 재진입. 새 액션(`Ability.Exclusive`)은 차단하고, 진행 중인 것 중에서는 공격·스킬만 캔슬한다(적 패턴은 지목 밖이라 유지). 차단만으로는 부족한데, 공격·스킬의 콤보 재발동 분기가 `Super`를 타지 않아 차단 태그 검사를 건너뛰기 때문이다. |
 | `WxAbility_Death` | Event `Event.Death` | 몽타주 유효 시 사망 포즈, 무효 시 지연 후 래그돌 — 서버가 `State.Ragdoll` 루스 태그 발행(TagOnly 복제), 전 머신의 캐릭터가 감지해 자체 `EnterRagdoll` 수행. 액션 전체 차단. **연출이 끝나도 종료하지 않는다** — 활성 태그 `Ability.Death`가 곧 사망 상태다. |
 | `WxAbility_Pattern` | AI BT(AssetTag) | 단일 몽타주 재생→종료. 입력/UI 미사용. 쿨다운/충전은 Base 프로퍼티로만. |
 
