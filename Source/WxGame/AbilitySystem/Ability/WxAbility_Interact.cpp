@@ -3,6 +3,7 @@
 #include "AbilitySystem/Ability/WxAbility_Interact.h"
 #include "Components/PrimitiveComponent.h"
 #include "GameFramework/Actor.h"
+#include "Interaction/WxStateTreeTask_WaitForInteraction.h"
 #include "WxGameplayTags.h"
 #include "WxInteractable.h"
 
@@ -89,4 +90,7 @@ void UWxAbility_Interact::ExecuteInteract(const UPrimitiveComponent* Selected, c
 	}
 
 	Target->OnInteracted(Avatar, Selected);
+
+	// 이 대상을 기다리던 퀘스트 스텝('Wait For Interaction')이 있으면 여기서 완료된다. 기다리는 쪽이 없으면 무동작이다.
+	FWxStateTreeTask_WaitForInteraction::NotifyInteracted(Selected->GetOwner());
 }
