@@ -47,14 +47,11 @@ EStateTreeRunStatus FWxStateTreeTask_EnablePlayerInput::EnterState(FStateTreeExe
 		Instance.DisabledController = PC;
 	}
 
-	// 토글은 즉시 끝나므로 곧바로 완료한다.
 	return EStateTreeRunStatus::Succeeded;
 }
 
 void FWxStateTreeTask_EnablePlayerInput::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// EnterState 에서 끈 입력을 되돌린다. 복구를 "다음 상태에 Enable Player Input(true) 가 배선되어 있을 것"이라는 에셋 규약에만 맡기면,
-	// 연출 중 기믹 액터/셀이 사라져 ST 가 멈추거나 디자이너가 다음 상태에 토글을 빠뜨렸을 때 입력이 꺼진 채 남아 소프트락이 된다.
 	// 켜는 노드(bEnable)는 기록을 남기지 않으므로 여기서 되돌릴 것도 없다.
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 	APawn* Pawn = Instance.DisabledPawn.Get();

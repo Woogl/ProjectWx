@@ -21,16 +21,16 @@ struct FWxStateTreeTask_PlaySoundInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<USoundBase> Sound;
 
-	/** 초기·복원 진입에서도 재생할지. false(기본)면 라이브 발동에서만 1회 재생(트리거 사운드), true 면 로드/복원 시에도 재생한다(상태에 묶인 지속 사운드용). */
+	/** false(기본)면 라이브 발동에서만 1회 재생(트리거 사운드), true 면 로드/복원 시에도 재생한다(상태에 묶인 지속 사운드용). */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	bool bPlayOnRestore = false;
 };
 
 /**
- * 라이브 전이로 진입할 때 사운드를 액터 위치에서 1회 재생하고 Succeeded 로 완료한다(트리거 사운드). State 를 읽지 않아 어떤 기믹이든 재사용한다.
+ * State 를 읽지 않아 어떤 기믹이든 재사용한다.
  * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 기본적으로 재생하지 않는다 — 발동 사운드는 발동 순간에만 울리고 복원 시엔 침묵한다.
  * bPlayOnRestore 면 복원/시작 진입에서도 재생한다 — 상태에 묶인 지속 사운드용(트리거가 아니라 상태가 켜져 있는 동안 울려야 하는 경우).
- * 모든 피어(서버+클라)가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다. 틱하지 않으므로 비용이 없다.
+ * 모든 피어(서버+클라)가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다.
  */
 USTRUCT(meta = (DisplayName = "사운드 재생", Category = "Wx"))
 struct FWxStateTreeTask_PlaySound : public FStateTreeTaskCommonBase

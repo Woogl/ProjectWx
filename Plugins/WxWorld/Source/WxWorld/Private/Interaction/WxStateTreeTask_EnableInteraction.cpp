@@ -13,7 +13,7 @@
 
 FWxStateTreeTask_EnableInteraction::FWxStateTreeTask_EnableInteraction()
 {
-	// 그 상태의 상호작용 가용성·문구를 선언하는 상태형 태스크라, 같은 상태가 재선택돼도 이미 적용된 값이라 다시 쓸 것이 없다.
+	// 같은 상태가 재선택돼도 이미 적용된 값이라 다시 쓸 것이 없다.
 	bShouldStateChangeOnReselect = false;
 }
 
@@ -66,7 +66,7 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::ApplyTargetInteraction(c
 		return EStateTreeRunStatus::Running;
 	}
 
-	// 켜고 끄는 수단은 대상이 정한다(대화 상대는 영역 메시의 쿼리 콜리전).
+	// 켜고 끄는 수단은 대상이 정한다.
 	IWxInteractable* Interactable = IWxInteractable::Find(Target);
 	if (!Interactable)
 	{
@@ -86,7 +86,7 @@ FText FWxStateTreeTask_EnableInteraction::GetDescription(const FGuid& ID, FState
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	// 대상 메시는 보통 바인딩이라 런타임 포인터가 비어 있다. 바인딩 소스명을 우선 보이고, 직접 지정 시 그 이름으로 폴백.
+	// 대상 메시는 보통 바인딩이라 런타임 포인터가 비어 있다.
 	FText TargetText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, TargetMesh)), Formatting);
 	if (TargetText.IsEmpty() && InstanceData->TargetMesh)
 	{
@@ -103,7 +103,6 @@ FText FWxStateTreeTask_EnableInteraction::GetDescription(const FGuid& ID, FState
 		TargetText = FText::FromString(GetTargetDisplayName(InstanceData->Target));
 	}
 
-	// 상호작용을 켜고 프롬프트가 있으면 함께 보여, 상태별 프롬프트를 노드 설명에서 바로 확인할 수 있게 한다.
 	if (InstanceData->bEnable && !InstanceData->Prompt.IsEmpty())
 	{
 		return FText::Format(INVTEXT("\"{1}\" 상호작용 켜기 ({0})"), TargetText, InstanceData->Prompt);

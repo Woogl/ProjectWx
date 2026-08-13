@@ -17,7 +17,7 @@ struct FWxStateTreeTask_WaitSpawnersKilledInstanceData
 {
 	GENERATED_BODY()
 
-	/** 처치를 판정할 배치 스포너 지정. 전원이 로드되고 처치여야 완료된다. AllowedClasses 는 픽커 후보 제한이고, 우회 지정은 ST 컴파일 에러가 잡는다(Compile 참조). */
+	/** AllowedClasses 는 픽커 후보 제한이고, 우회 지정은 ST 컴파일 에러가 잡는다(Compile 참조). */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedLocators = "Actor", AllowedClasses = "/Script/WxWorld.WxSpawner"))
 	TArray<FUniversalObjectLocator> Spawners;
 
@@ -30,8 +30,6 @@ struct FWxStateTreeTask_WaitSpawnersKilledInstanceData
  * 지정 스포너 전원이 처치 상태(IsKilled)가 될 때까지 Running 으로 대기하다 완료 시 Succeeded 를 반환한다.
  * 처치 상태(bIsKilled)는 복제되지 않으므로 권위에서 구동되는 ST 전용이다.
  * 전원이 해석(로드)되고 처치여야 통과한다 — 미해석은 판정 불가라 강제 로드 없이 대기한다.
- * 배열이 비었거나 빈 로케이터 항목이 있으면 잘못된 조립이므로 진입 시 경고를 남기고 계속 대기한다(침묵 완료 방지).
- * 같은 상태의 'Trigger Spawners By Locator' 가 스폰한 대상을 그대로 판정하는 짝으로 쓴다.
  *
  * 폴링하지 않는다 — 진입할 때 한 번 보고, 그 뒤로는 스포너가 처치될 때마다(MarkKilled) 오는 통보에서만 다시 본다(틱 없음).
  * 대상 해석도 그 순간에만 하므로, 진입 시점에 스포너가 언로드여도 되고 대기 중에는 아무 비용이 없다.

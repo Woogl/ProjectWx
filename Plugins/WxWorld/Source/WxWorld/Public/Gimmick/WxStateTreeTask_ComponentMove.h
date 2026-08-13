@@ -17,7 +17,7 @@ struct FWxStateTreeTask_ComponentMoveInstanceData
 {
 	GENERATED_BODY()
 
-	/** 옮길 씬 컴포넌트. ST 에셋에서 Context 액터의 컴포넌트(예: DoorLeft)로 바인딩한다. */
+	/** ST 에셋에서 Context 액터의 컴포넌트(예: DoorLeft)로 바인딩한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<USceneComponent> TargetComponent;
 
@@ -25,15 +25,15 @@ struct FWxStateTreeTask_ComponentMoveInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	FVector LocalOffset = FVector::ZeroVector;
 
-	/** 목표까지 슬라이드 시간(초). 0 이하면 즉시 스냅. 속도는 시작→목표 실제 거리/Duration 으로 EnterState 에서 1회 산출한다. */
+	/** 목표까지 슬라이드 시간(초). 0 이하면 즉시 스냅. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
 	float Duration = 1.f;
 
-	/** (런타임) 시작→목표 구간의 일정 속도(초당 로컬 거리). EnterState 에서 1회 산출한다(LocalOffset 크기가 아니라 실제 시작 위치 기준 거리라, 목표가 아키타입인 닫기도 0 이 아니다). */
+	/** (런타임) 시작→목표 구간의 일정 속도(초당 로컬 거리). EnterState 에서 1회 산출한다. */
 	UPROPERTY()
 	float MoveSpeed = 0.f;
 
-	/** (런타임) 기준(아키타입)+LocalOffset 으로 산출한 목표 상대 위치. 아키타입 조회가 상수 시간이 아니라 EnterState 에서 1회만 구하고 Tick 은 이 값을 읽는다. */
+	/** (런타임) 기준(아키타입)+LocalOffset 으로 산출한 목표 상대 위치. */
 	UPROPERTY()
 	FVector TargetLocation = FVector::ZeroVector;
 };

@@ -18,19 +18,19 @@ struct FWxStateTreeTask_ComponentSplineMoveInstanceData
 {
 	GENERATED_BODY()
 
-	/** 스플라인 위를 움직일 씬 컴포넌트. ST 에셋에서 Context 액터의 컴포넌트로 바인딩한다. */
+	/** ST 에셋에서 Context 액터의 컴포넌트로 바인딩한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<USceneComponent> TargetComponent;
 
-	/** 경로를 정의하는 스플라인. 컴포넌트는 이 경로 위를 탄다고 가정한다. ST 에셋에서 Context 액터의 스플라인으로 바인딩한다. */
+	/** 컴포넌트는 이 경로 위를 탄다고 가정한다. ST 에셋에서 Context 액터의 스플라인으로 바인딩한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<USplineComponent> Spline;
 
-	/** 이 상태가 목표하는 스플라인 포인트 인덱스. 각 상태가 자기 끝점을 직접 선언한다(초기 진입 스냅·라이브 슬라이드의 목적지). 범위를 벗어나면 클램프. */
+	/** 각 상태가 자기 끝점을 직접 선언한다(초기 진입 스냅·라이브 슬라이드의 목적지). 범위를 벗어나면 클램프. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
 	int32 TargetPointIndex = 0;
 
-	/** 목표 포인트까지 주파 시간(초). 0 이하면 즉시 스냅. 속도는 시작→목표 남은 거리/Duration 이라, 이동 중 재진입 시엔 남은 거리를 이 시간에 주파한다. */
+	/** 목표 포인트까지 주파 시간(초). 0 이하면 즉시 스냅. 이동 중 재진입 시엔 남은 거리를 이 시간에 주파한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
 	float Duration = 1.f;
 

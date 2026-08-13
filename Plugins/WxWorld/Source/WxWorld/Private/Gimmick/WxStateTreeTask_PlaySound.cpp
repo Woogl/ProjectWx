@@ -16,7 +16,7 @@ EStateTreeRunStatus FWxStateTreeTask_PlaySound::EnterState(FStateTreeExecutionCo
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 전이로 들어온 것이 아니면(StateTree 시작·세이브 복원·레이트조인) 기본적으로 재생하지 않고 곧바로 완료한다(발동 순간에만 울림). bPlayOnRestore 면 복원/시작 진입에서도 재생한다(지속 사운드용).
+	// 전이로 들어온 것이 아니면(StateTree 시작·세이브 복원·레이트조인) 기본적으로 재생하지 않고 곧바로 완료한다.
 	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
 	if (bInitialEntry && !Instance.bPlayOnRestore)
 	{

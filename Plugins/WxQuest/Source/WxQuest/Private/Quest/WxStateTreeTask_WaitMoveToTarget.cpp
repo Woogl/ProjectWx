@@ -45,7 +45,6 @@ EStateTreeRunStatus FWxStateTreeTask_WaitMoveToTarget::Tick(FStateTreeExecutionC
 		return EStateTreeRunStatus::Running;
 	}
 
-	// 미해석(빈 로케이터·스트리밍 아웃)이면 판정하지 않고 대기한다.
 	const AActor* Target = Cast<AActor>(Instance.Target.SyncFind(Owner));
 	if (Target && FVector::Dist(Pawn->GetActorLocation(), Target->GetActorLocation()) <= Instance.AcceptRadius)
 	{
@@ -76,7 +75,6 @@ FString FWxStateTreeTask_WaitMoveToTarget::GetTargetDisplayName(const FUniversal
 		return Actor->GetActorLabel();
 	}
 
-	// 미해석(언로드 등)이면 액터 프래그먼트의 소프트 경로 끝 이름이라도 보여준다.
 	const FUniversalObjectLocatorFragment* Fragment = Locator.GetLastFragment();
 	const FActorLocatorFragment* Payload = nullptr;
 	if (Fragment && Fragment->TryGetPayloadAs(FActorLocatorFragment::FragmentType, Payload) && Payload)

@@ -17,7 +17,7 @@ struct FWxStateTreeTask_TriggerSpawnersInstanceData
 {
 	GENERATED_BODY()
 
-	/** 라이브 진입 시 Respawn() 을 호출할 스포너들. ST 에셋에서 Context 액터의 프로퍼티(예: TargetSpawners)로 바인딩한다. */
+	/** ST 에셋에서 Context 액터의 프로퍼티로 바인딩한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TArray<TSoftObjectPtr<AWxSpawner>> Spawners;
 };
@@ -25,7 +25,7 @@ struct FWxStateTreeTask_TriggerSpawnersInstanceData
 /**
  * 라이브 전이로 진입할 때 권위 측에서만 지정 스포너들의 Respawn() 을 호출하고 Succeeded 로 완료한다(1회성 스폰 트리거).
  * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 호출하지 않는다 — 스폰은 발동 순간에만 일어나고 복원 시엔 재실행하지 않는다.
- * 스트리밍 아웃된 스포너는 강제 로드하지 않고 스킵한다. 틱하지 않으므로 비용이 없다.
+ * 스트리밍 아웃된 스포너는 강제 로드하지 않고 스킵한다.
  * 대상을 바인딩으로 받으므로 공유 ST 에셋을 여러 배치 인스턴스가 쓰는 기믹에서도 쓸 수 있다(리터럴 지정형은 'Trigger Spawners By Locator').
  */
 USTRUCT(meta = (DisplayName = "스포너 발동", Category = "Wx"))

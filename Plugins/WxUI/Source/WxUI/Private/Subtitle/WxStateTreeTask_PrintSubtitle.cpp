@@ -7,8 +7,6 @@
 #include "Subtitle/WxSubtitleTableRow.h"
 #include "WxUIModule.h"
 
-// ── PrintSubtitle ─────────────────────────────────────────────────────────────
-
 FWxStateTreeTask_PrintSubtitle::FWxStateTreeTask_PrintSubtitle()
 {
 	// 재선택마다 재진입하면 ExitState 가 자막을 걷어가 표시가 깜빡이고 진행도 첫 줄로 되돌아간다.
@@ -24,7 +22,6 @@ EStateTreeRunStatus FWxStateTreeTask_PrintSubtitle::EnterState(FStateTreeExecuti
 	Instance.ElapsedSeconds = 0.f;
 	Instance.SubtitleHandle = INDEX_NONE;
 
-	// 미지정은 기능 미사용이다 — 스텝 템플릿의 옵션 파라미터 자리라 경고 없이 즉시 완료한다.
 	if (!Instance.StartRow.DataTable || Instance.StartRow.RowName.IsNone())
 	{
 		return EStateTreeRunStatus::Succeeded;
@@ -53,7 +50,7 @@ EStateTreeRunStatus FWxStateTreeTask_PrintSubtitle::Tick(FStateTreeExecutionCont
 		return EStateTreeRunStatus::Running;
 	}
 
-	// 다음 줄로 이어간다. 슬롯이 하나라 새 줄이 앞 줄을 덮으므로 넘어가는 자리에선 걷지 않는다.
+	// 슬롯이 하나라 새 줄이 앞 줄을 덮으므로 넘어가는 자리에선 걷지 않는다.
 	const UDataTable* Table = Instance.StartRow.DataTable;
 	const FWxSubtitleTableRow* Row = Table ? Table->FindRow<FWxSubtitleTableRow>(Instance.CurrentRowName, TEXT("WxPrintSubtitle")) : nullptr;
 	const FName NextRowName = Row ? Row->NextRow : NAME_None;
@@ -62,7 +59,8 @@ EStateTreeRunStatus FWxStateTreeTask_PrintSubtitle::Tick(FStateTreeExecutionCont
 		return EStateTreeRunStatus::Running;
 	}
 
-	// 마지막 줄이었거나 다음 줄을 해석하지 못했다(후자는 ShowRow 가 경고를 남긴다). 어느 쪽이든 자막은 여기서 끝난다.
+	// 마지막 줄이었거나 다음 줄을 해석하지 못했다(후자는 ShowRow 가 경고를 남긴다).
+	// 어느 쪽이든 자막은 여기서 끝난다.
 	if (UWxViewModel_Subtitle* SubtitleViewModel = UWxViewModel_Subtitle::GetOrCreate(Context.GetOwner()))
 	{
 		SubtitleViewModel->HideSubtitle(Instance.SubtitleHandle);
@@ -76,7 +74,8 @@ void FWxStateTreeTask_PrintSubtitle::ExitState(FStateTreeExecutionContext& Conte
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 마지막 줄을 다 채우기 전에 상태를 떠나는 경로. 이미 걷었으면 기록이 비어 있어 회수가 무시된다.
+	// 마지막 줄을 다 채우기 전에 상태를 떠나는 경로.
+	// 이미 걷었으면 기록이 비어 있어 회수가 무시된다.
 	if (UWxViewModel_Subtitle* SubtitleViewModel = UWxViewModel_Subtitle::GetOrCreate(Context.GetOwner()))
 	{
 		SubtitleViewModel->HideSubtitle(Instance.SubtitleHandle);

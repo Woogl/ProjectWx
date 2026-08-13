@@ -28,7 +28,6 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentMove::EnterState(FStateTreeExecuti
 	const FVector Anchor = Archetype ? Archetype->GetRelativeLocation() : Component->GetRelativeLocation();
 	Instance.TargetLocation = Anchor + Instance.LocalOffset;
 
-	// 길이 0 이거나 이미 목표면 애니 없이 즉시 스냅하고 곧바로 완료한다.
 	const bool bReachNow = Instance.Duration <= 0.f || Component->GetRelativeLocation().Equals(Instance.TargetLocation);
 	if (bReachNow)
 	{
@@ -36,10 +35,8 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentMove::EnterState(FStateTreeExecuti
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	// 속도를 시작(현재)→목표 실제 거리/Duration 으로 1회 산출한다(LocalOffset 크기가 아니라 실제 거리라, 목표가 아키타입인 닫기도 0 이 아니다).
 	Instance.MoveSpeed = (Instance.TargetLocation - Component->GetRelativeLocation()).Size() / Instance.Duration;
 
-	// Tick 이 고정 속도로 슬라이드하다 도달 시 완료한다.
 	return EStateTreeRunStatus::Running;
 }
 
@@ -53,18 +50,15 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentMove::Tick(FStateTreeExecutionCont
 		return EStateTreeRunStatus::Failed;
 	}
 
-	// 목표는 EnterState 에서 캐시한 값을 쓴다(아키타입 조회를 매 틱 반복하지 않는다).
 	const FVector& Target = Instance.TargetLocation;
 	FVector NewLocation = Component->GetRelativeLocation();
 
-	// 도달 전까지 EnterState 에서 산출한 고정 속도로 슬라이드한다.
 	if (!NewLocation.Equals(Target))
 	{
 		NewLocation = FMath::VInterpConstantTo(NewLocation, Target, DeltaTime, Instance.MoveSpeed);
 		Component->SetRelativeLocation(NewLocation);
 	}
 
-	// 도달하면 상태를 완료시킨다.
 	return NewLocation.Equals(Target) ? EStateTreeRunStatus::Succeeded : EStateTreeRunStatus::Running;
 }
 
@@ -74,7 +68,7 @@ FText FWxStateTreeTask_ComponentMove::GetDescription(const FGuid& ID, FStateTree
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	// 움직일 컴포넌트는 보통 바인딩이라 런타임 포인터가 비어 있다. 바인딩 소스명을 우선 보이고, 직접 지정 시 그 이름으로 폴백.
+	// 움직일 컴포넌트는 보통 바인딩이라 런타임 포인터가 비어 있다.
 	FText ComponentText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, TargetComponent)), Formatting);
 	if (ComponentText.IsEmpty())
 	{

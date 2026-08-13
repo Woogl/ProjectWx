@@ -14,21 +14,19 @@
 
 namespace
 {
-	/** 로케이터를 ST 오너 컨텍스트로 대상 액터로 해석한다. 빈 로케이터·미로드(스트리밍 아웃)·파괴 대기는 nullptr. */
+	/** 빈 로케이터·미로드(스트리밍 아웃)·파괴 대기는 nullptr. */
 	AActor* ResolveTargetActor(const FUniversalObjectLocator& Locator, AActor* Owner)
 	{
 		AActor* Target = Cast<AActor>(Locator.SyncFind(Owner));
 		return IsValid(Target) ? Target : nullptr;
 	}
 
-	/** 로컬 플레이어(0번 컨트롤러)의 인디케이터 매니저. 표시는 보는 사람의 사건이라 권위 러너가 아니라 로컬 컨트롤러에서 찾는다. */
 	UWxIndicatorManagerComponent* FindIndicatorManager(const AActor* Owner)
 	{
 		APlayerController* PlayerController = UGameplayStatics::GetPlayerController(Owner, 0);
 		return PlayerController ? PlayerController->FindComponentByClass<UWxIndicatorManagerComponent>() : nullptr;
 	}
 
-	/** 자기가 등록한 기록만 근거로 해제한다. */
 	void UnregisterIndicator(TWeakObjectPtr<UWxIndicatorDescriptor>& RegisteredIndicator)
 	{
 		if (UWxIndicatorDescriptor* Indicator = RegisteredIndicator.Get())
@@ -58,7 +56,8 @@ namespace
 			return;
 		}
 
-		// 매니저는 아직 없을 수 있다(폰·컨트롤러 스폰 전). 그때는 등록만 미루고 다음 틱이 재시도한다.
+		// 매니저는 아직 없을 수 있다(폰·컨트롤러 스폰 전).
+		// 그때는 등록만 미루고 다음 틱이 재시도한다.
 		UWxIndicatorManagerComponent* Manager = FindIndicatorManager(Owner);
 		if (!Manager)
 		{
@@ -69,7 +68,7 @@ namespace
 	}
 
 #if WITH_EDITOR
-	/** 로케이터의 표시명. 에디터에서 해석되면 액터 라벨(아웃라이너와 동일), 미해석이면 경로 끝 오브젝트 이름, 빈 로케이터는 unset. */
+	/** 에디터에서 해석되면 액터 라벨(아웃라이너와 동일), 미해석이면 경로 끝 오브젝트 이름, 빈 로케이터는 unset. */
 	FString GetTargetDisplayName(const FUniversalObjectLocator& Locator)
 	{
 		if (Locator.IsEmpty())
@@ -96,11 +95,9 @@ namespace
 #endif
 }
 
-// ── MarkIndicator ─────────────────────────────────────────────────────────────
-
 FWxStateTreeTask_MarkIndicator::FWxStateTreeTask_MarkIndicator()
 {
-	// 완료 없이 머무는 태스크다. 재선택마다 재진입하면 ExitState 가 인디케이터를 해제해 표시가 깜빡인다.
+	// 재선택마다 재진입하면 ExitState 가 인디케이터를 해제해 표시가 깜빡인다.
 	bShouldStateChangeOnReselect = false;
 }
 
@@ -113,7 +110,7 @@ EStateTreeRunStatus FWxStateTreeTask_MarkIndicator::EnterState(FStateTreeExecuti
 		UE_LOG(LogWxUI, Warning, TEXT("Mark Indicator: 가리킬 대상이 지정되지 않음."));
 	}
 
-	// 이전 실행의 잔존 기록을 비우고 첫 해석·등록을 시도한다. 실패(대상 언로드·매니저 미부착)면 Tick 이 재시도한다.
+	// 첫 해석·등록이 실패(대상 언로드·매니저 미부착)해도 Tick 이 재시도한다.
 	Instance.RegisteredIndicator.Reset();
 	RefreshIndicator(Context, Instance);
 

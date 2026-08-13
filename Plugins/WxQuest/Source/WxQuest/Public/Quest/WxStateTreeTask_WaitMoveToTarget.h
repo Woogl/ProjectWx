@@ -17,7 +17,6 @@ struct FWxStateTreeTask_WaitMoveToTargetInstanceData
 {
 	GENERATED_BODY()
 
-	/** 도달을 판정할 대상 배치 액터 지정. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedLocators = "Actor"))
 	FUniversalObjectLocator Target;
 

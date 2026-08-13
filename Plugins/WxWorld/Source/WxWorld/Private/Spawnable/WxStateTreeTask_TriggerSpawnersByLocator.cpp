@@ -10,7 +10,6 @@
 
 FWxStateTreeTask_TriggerSpawnersByLocator::FWxStateTreeTask_TriggerSpawnersByLocator()
 {
-	// 진입 시 1회 트리거만 하므로 틱이 불필요하다.
 	bShouldCallTick = false;
 }
 

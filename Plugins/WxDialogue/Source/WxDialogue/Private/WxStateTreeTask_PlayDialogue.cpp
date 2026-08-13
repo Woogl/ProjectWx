@@ -23,7 +23,6 @@ EStateTreeRunStatus FWxStateTreeTask_PlayDialogue::EnterState(FStateTreeExecutio
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 아래 셋은 모두 완주할 수 없는 잘못된 조립이다 — 대사 없이 상태에 눌러앉는 대신 실패를 낸다.
 	if (!Instance.StartRow.DataTable || Instance.StartRow.RowName.IsNone())
 	{
 		UE_LOG(LogWxDialogue, Warning, TEXT("Play Dialogue: 시작 행이 지정되지 않음(StartRow)."));
@@ -38,17 +37,18 @@ EStateTreeRunStatus FWxStateTreeTask_PlayDialogue::EnterState(FStateTreeExecutio
 		return EStateTreeRunStatus::Failed;
 	}
 
-	// 대상 없는 대사다 — 카메라는 플레이어에 머문다.
 	Session->StartDialogueRow(Instance.StartRow, nullptr);
 
-	// 소유 클라와 권위가 같은 머신이라 세션은 위 호출 안에서 열린다. 열리지 않았다면 행이 없거나 대사가 빈 것이다.
+	// 소유 클라와 권위가 같은 머신이라 세션은 위 호출 안에서 열린다.
+	// 열리지 않았다면 행이 없거나 대사가 빈 것이다.
 	if (!Session->HasActiveDialogue())
 	{
 		UE_LOG(LogWxDialogue, Warning, TEXT("Play Dialogue: 대화를 열지 못함(행 없음·대사 빔): %s"), *Instance.StartRow.RowName.ToString());
 		return EStateTreeRunStatus::Failed;
 	}
 
-	// 열린 대화가 닫히는 순간 완료된다. 약한 실행 컨텍스트를 넘기는 것이 엔진이 제시하는 방식이라 여기선 람다를 쓴다.
+	// 열린 대화가 닫히는 순간 완료된다.
+	// 약한 실행 컨텍스트를 넘기는 것이 엔진이 제시하는 방식이라 여기선 람다를 쓴다.
 	// 신호는 발화와 함께 비워지므로 상태를 먼저 떠난 노드의 등록도 남지 않는다(그 경우 이 컨텍스트가 무효라 무시된다).
 	Session->OnDialogueEnded.AddLambda([WeakContext = Context.MakeWeakExecutionContext()]()
 	{

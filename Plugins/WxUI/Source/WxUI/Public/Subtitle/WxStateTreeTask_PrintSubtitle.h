@@ -13,20 +13,17 @@ struct FStateTreeTransitionResult;
 // GetInstanceDataType() 의 헤더 정의는 코딩 규칙 6 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
 
 /**
- * 화면 자막을 StateTree 로 띄우는 노드.
- * 자막 시스템을 소유한 본 모듈이 노드까지 함께 제공한다 — 인디케이터 노드와 같은 모양이라, 퀘스트 같은 소비 도메인이 UI 모듈을 참조하지 않고도 에셋에서 이 노드를 골라 쓸 수 있다.
+ * 자막 시스템을 소유한 본 모듈이 노드까지 함께 제공한다 — 퀘스트 같은 소비 도메인이 UI 모듈을 참조하지 않고도 에셋에서 이 노드를 골라 쓸 수 있다.
  *
- * 자막은 보는 사람의 사건이라 대상 액터가 없다. 그래서 로케이터 계열 파라미터도 없다.
+ * 자막은 보는 사람의 사건이라 대상 액터도, 로케이터 계열 파라미터도 없다.
  */
-
-// ── PrintSubtitle: 화면 자막 표시 ─────────────────────────────────────────────
 
 USTRUCT()
 struct FWxStateTreeTask_PrintSubtitleInstanceData
 {
 	GENERATED_BODY()
 
-	/** 출력할 자막의 시작 행. 이후 진행(유지 시간·다음 줄)은 자막 데이터가 정한다. */
+	/** 이후 진행(유지 시간·다음 줄)은 자막 데이터가 정한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (RowType = "/Script/WxUI.WxSubtitleTableRow"))
 	FDataTableRowHandle StartRow;
 
@@ -54,7 +51,7 @@ struct FWxStateTreeTask_PrintSubtitleInstanceData
  *
  * 자막을 걷는 것과 완료를 내는 것은 분리해야 한다 — 같은 상태의 다른 대기 태스크가 상태를 붙잡고 있으면(TasksCompletion=All) 완료를 내고도 한참 뒤에야 상태를 떠나므로, 회수를 ExitState 에만 맡기면 자막이 그동안 화면에 남는다.
  *
- * 행의 Duration 이 0 이하면 그 줄에서 넘어가지 않고 계속 머문다 — "자막을 띄운 채 목적지까지 이동" 같은 조합은 같은 상태에 Wait 계열 태스크를 나란히 얹어 그쪽이 완료를 내게 한다.
+ * 행의 Duration 이 0 이하면 그 줄에서 넘어가지 않고 계속 머문다.
  * 시작 행 미지정은 기능 미사용(재사용 스텝의 옵션 파라미터)이라 경고 없이 Succeeded 로 즉시 완료한다.
  * 지정했는데 열지 못하면(행 없음·본문 빔) 낼 자막이 없으므로 경고를 남기고 Failed 다.
  * 반면 중간에 다음 행이 끊기면 경고만 남기고 거기서 끝낸다 — 데이터 오타로 트리까지 세우지는 않는다.

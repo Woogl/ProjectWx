@@ -9,13 +9,12 @@
 
 FWxStateTreeTask_StartNextQuest::FWxStateTreeTask_StartNextQuest()
 {
-	// 진입 시 1회 예약만 하므로 틱이 불필요하다.
 	bShouldCallTick = false;
 }
 
 EStateTreeRunStatus FWxStateTreeTask_StartNextQuest::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// 컨텍스트 오너(GameState)에서 퀘스트 컴포넌트를 찾는다. 퀘스트 러너 밖 조립이면 null.
+	// 컨텍스트 오너(GameState)에서 퀘스트 컴포넌트를 찾는다.
 	const AActor* Owner = Cast<AActor>(Context.GetOwner());
 	UWxQuestComponent* QuestComponent = Owner ? Owner->FindComponentByClass<UWxQuestComponent>() : nullptr;
 	if (!QuestComponent)

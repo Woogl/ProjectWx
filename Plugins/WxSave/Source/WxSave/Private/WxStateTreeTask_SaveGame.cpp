@@ -38,7 +38,6 @@ EStateTreeRunStatus FWxStateTreeTask_SaveGame::EnterState(FStateTreeExecutionCon
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	// 비었으면 넘기지 않아 세이브 기본대로 저장 시점 플레이어 위치가 재개 지점이 된다.
 	const USceneComponent* ResumePoint = Context.GetInstanceData(*this).ResumePoint;
 	const FTransform ResumeTransform = ResumePoint ? ResumePoint->GetComponentTransform() : FTransform::Identity;
 
@@ -51,7 +50,7 @@ EStateTreeRunStatus FWxStateTreeTask_SaveGame::EnterState(FStateTreeExecutionCon
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	// 기록이 끝나는 순간 완료된다. 약한 실행 컨텍스트를 넘기는 것이 엔진이 제시하는 방식이라 여기선 람다를 쓴다.
+	// 약한 실행 컨텍스트를 넘기는 것이 엔진이 제시하는 방식이라 여기선 람다를 쓴다.
 	// 신호는 발화와 함께 비워지므로 상태를 먼저 떠난 노드의 등록도 남지 않는다(그 경우 이 컨텍스트가 무효라 무시된다).
 	SaveSubsystem->OnSaveCompleted.AddLambda([WeakContext = Context.MakeWeakExecutionContext()]()
 	{
@@ -67,8 +66,9 @@ FText FWxStateTreeTask_SaveGame::GetDescription(const FGuid& ID, FStateTreeDataV
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	// 슬롯은 언제나 활성 슬롯이라 갈리는 건 재개 지점뿐이다. 그것을 보여 배선을 빠뜨린 노드가 눈에 띄게 한다.
-	// 재개 지점은 보통 바인딩이라 런타임 포인터가 비어 있다. 그래서 바인딩 소스명을 우선 보인다.
+	// 슬롯은 언제나 활성 슬롯이라 갈리는 건 재개 지점뿐이다.
+	// 그것을 보여 배선을 빠뜨린 노드가 눈에 띄게 한다.
+	// 재개 지점은 보통 바인딩이라 런타임 포인터가 비어 있다.
 	FText ResumeText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, ResumePoint)), Formatting);
 	if (ResumeText.IsEmpty())
 	{

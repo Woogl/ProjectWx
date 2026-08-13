@@ -17,7 +17,7 @@ struct FWxStateTreeTask_ApplyGameplayEffectToInteractorInstanceData
 {
 	GENERATED_BODY()
 
-	/** 당사자에게 적용할 GameplayEffect. 비우면 노옵. */
+	/** 비우면 노옵. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TSubclassOf<UGameplayEffect> EffectClass;
 };
