@@ -1,49 +1,50 @@
 # WxAI — AI 시스템
 
-> 적 NPC의 지각(Perception)·행동트리(BehaviorTree) 실행·정찰 경로를 담당한다. 엔진 AIModule 위에 커스텀 BT 노드와 퍼셉션/블랙보드 규약을 얹어, 감지 → 추격 → 전투 → 리시 복귀의 AI 루프를 구성한다.
+> 적 AI의 지각(Perception)과 BehaviorTree 노드 라이브러리. 감지→타겟 확정→전투/복귀/정찰의 흐름을 구동하는 커스텀 Task/Decorator/Service/Composite와 Blackboard 규약을 제공한다.
 
 ## 책임
 **담당**
-- AIController에 붙는 지각 컴포넌트(`UWxAIPerceptionComponent`): Sight/Hearing/Damage 감지를 Blackboard `TargetActor`에 동기화하고, 타겟 유무에 따라 회전 모드와 `State.InCombat` 인식 태그를 발행한다.
-- 커스텀 BT 노드 팔레트: Task(어빌리티 발동/정찰/배회/복귀), Service(타겟 거리 기록), Decorator(리시 이탈·어트리뷰트 비율·랜덤 가중치), Composite(가중 랜덤 선택).
-- 정찰 경로 데이터(`UWxPatrolComponent`, 스플라인 기반)와 Blackboard 키 이름·타입드 accessor 규약(`WxBlackboardKeys`).
-- 소음 이벤트 발생 AnimNotify(`UWxAnimNotify_ReportNoise`)로 청각 감지 자극 공급.
+- Perception 셋업과 타겟 수명 관리: Sight/Hearing/Damage 감지 → Blackboard `TargetActor` 동기화, 인식(`State.InCombat`) 발행, 타겟 사망/소실 정리, 전투 시 회전 모드(strafe) 전환 (`UWxAIPerceptionComponent`)
+- 리시(leash) 이탈 판정과 배치 지점 복귀 (`UWxBTDecorator_BeyondLeash` + `UWxBTTask_ReturnHome`)
+- 데이터 주도 전투 패턴 분기: 유효 후보 중 가중 무작위 선택 (`UWxBTComposite_RandomChoice` + `UWxBTDecorator_RandomWeight` + `UWxBTService_TargetDistance` + `UWxBTDecorator_AttributeRatio`)
+- 정찰/배회 이동: 스플라인 경로 데이터와 순회 규칙(`UWxPatrolComponent`), 경로 추종(`UWxBTTask_Patrol`), 방향 배회(`UWxBTTask_Wander`)
+- GAS 어빌리티 발동 Task (`UWxBTTask_ActivateAbility`), 소음 발생 AnimNotify (`UWxAnimNotify_ReportNoise`)
+- Blackboard 키 이름·타입드 accessor 규약 (`WxBlackboardKeys`), 팀 구분 열거형 (`EWxTeam`)
 
 **경계 (비담당)**
-- 어빌리티 정의·어트리뷰트 셋 자체는 [[WxCombat]]에 있다. WxAI는 GAS ASC를 발동·조회만 하며, `WxBTDecorator_AttributeRatio`가 참조할 Attribute는 디자이너가 BT 에디터에서 지정한다(코드 의존 없음).
-- 스폰·스포너(`AWxSpawner`)는 이 모듈이 아니며, 정찰 컴포넌트는 스포너가 Owner로 지정한 액터에서 조회된다.
-- 리시 이탈 "판정 로직"은 BT(Decorator+Task)로 이관되어 있고, 지각 컴포넌트는 억제 지시만 받는다.
+- AIController/캐릭터 실체, 폰 스폰·생명주기는 [[WxGame]]에 위임 (여기의 컴포넌트를 부착·소유하는 쪽)
+- 어트리뷰트/GameplayEffect 정의는 [[WxCombat]]에 위임 — WxAI는 의존하지 않고, 디자이너가 BT 에디터에서 `FGameplayAttribute`/`TSubclassOf<UGameplayEffect>`를 직접 지정한다
 
 ## 의존성
-- **주요 의존**: `WxCore`, `AIModule`, `GameplayAbilities`(GAS ASC 발동/조회), `GameplayTags`, `GameplayTasks`, `NavigationSystem`.
-- 규칙: WxCore 외 다른 Wx 플러그인 참조 — 없음 ✅ (uplugin는 `GameplayAbilities`, `WxCore`만 활성화)
+- **주요 의존**: `WxCore`, 엔진 `AIModule`, `GameplayAbilities`(GAS), `GameplayTasks`, `NavigationSystem`
+- 규칙: 「WxCore 외 Wx 플러그인 참조」 — 없음 ✅ (`WxAI.Build.cs`·`WxAI.uplugin` 모두 Wx 의존은 `WxCore`뿐. WxCombat 미의존은 의도적이며, 어트리뷰트/GE는 BT 에디터에서 주입)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxAIPerceptionComponent` | 지각 → `TargetActor`/인식/회전 동기화의 단일 지점, 타겟 소실·억제 처리 | `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h` |
-| `WxBlackboardKeys` | BT ↔ 지각이 공유하는 Blackboard 키 이름·타입드 accessor 규약(namespace) | `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` |
-| `UWxPatrolComponent` | 스플라인 정찰 경로 데이터 + MoveMode 순회 규칙(상태 없음) | `Plugins/WxAI/Source/WxAI/Public/WxPatrolComponent.h` |
-| `UWxBTTask_ActivateAbility` | `AbilityTag`로 GAS 어빌리티를 발동하고 종료를 기다리는 BT Task | `Plugins/WxAI/Source/WxAI/Public/WxBTTask_ActivateAbility.h` |
-| `UWxBTComposite_RandomChoice` | 유효 후보 중 가중 랜덤 1개 선택(폴백 없음), `RandomWeight` Decorator 소비 | `Plugins/WxAI/Source/WxAI/Public/WxBTComposite_RandomChoice.h` |
-| `UWxBTDecorator_BeyondLeash` | 홈 반경 이탈을 매 틱 폴링해 복귀 브랜치를 게이팅(실시간 abort) | `Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_BeyondLeash.h` |
-| `UWxBTTask_ReturnHome` | 복귀 진입 시 지각 억제 지시, 홈으로 MoveTo | `Plugins/WxAI/Source/WxAI/Public/WxBTTask_ReturnHome.h` |
+| `UWxAIPerceptionComponent` | 감지→`TargetActor`/인식 동기화, 회전 모드·억제 발행 | `Source/WxAI/Public/WxAIPerceptionComponent.h` |
+| `WxBlackboardKeys` | BB 키 이름 + 타입드 accessor 규약 (namespace) | `Source/WxAI/Public/WxBlackboardKeys.h` |
+| `UWxBTComposite_RandomChoice` | 유효 후보 중 가중 무작위 1개 실행 (패턴 분기) | `Source/WxAI/Public/WxBTComposite_RandomChoice.h` |
+| `UWxBTTask_ActivateAbility` | 태그로 GAS 어빌리티 발동, 종료까지 대기 | `Source/WxAI/Public/WxBTTask_ActivateAbility.h` |
+| `UWxBTDecorator_BeyondLeash` | 배치 지점 이탈 판정, 실시간 abort로 복귀 게이팅 | `Source/WxAI/Public/WxBTDecorator_BeyondLeash.h` |
+| `UWxBTTask_ReturnHome` | 추격 포기·홈 복귀, 진입 시 타겟 억제 지시 | `Source/WxAI/Public/WxBTTask_ReturnHome.h` |
+| `UWxPatrolComponent` | 스플라인 정찰 경로 데이터 + 순회 규칙(무상태) | `Source/WxAI/Public/WxPatrolComponent.h` |
+| `EWxTeam` | 팀 구분(Player/Enemy/Neutral) | `Source/WxAI/Public/WxTeamTypes.h` |
 
 ## 확장 포인트 / 규약
-- **새 BT 노드**: 엔진 베이스(`UBTTaskNode`/`UBTService`/`UBTDecorator`/`UBTCompositeNode`)를 상속해 `Wx` prefix로 추가한다. Blackboard 접근은 반드시 `WxBlackboardKeys` accessor를 거쳐 키 이름·값 타입 오용을 막는다.
-- **Blackboard 키 추가**: `WxBlackboardKeys` namespace에 `FName`과 타입드 accessor를 함께 선언·정의하고, 대상 Blackboard 에셋에 동일 이름·타입 키를 등록한다(불일치 시 accessor가 경고 로그).
-- **리시(leash) 브랜치 배치**: `BeyondLeash` Decorator의 `FlowAbortMode`를 반드시 `LowerPriority`로 지정(Self/Both 금지). 복귀 브랜치가 전투 브랜치보다 상위 우선순위여야 실시간 abort가 성립한다.
-- **가중 랜덤 패턴**: `RandomChoice` Composite 아래 자식에 `RandomWeight` Decorator로 가중치를, `AttributeRatio` 등 조건 Decorator로 후보 필터를 건다(Weight 0 또는 조건 실패 시 추첨 제외).
-- **정찰**: 정찰 진행 커서는 `UWxBTTask_Patrol`이 폰별로 소유하고, 경로 데이터는 `UWxPatrolComponent`가 무상태로 제공해 다중 폰·리스폰에 안전하다.
-- **인식 태그**: `State.InCombat`은 서버에서 폰 ASC에 MinimalReplication으로 발행되어 네임플레이트가 소비한다(C++ Native Tag 선언은 없음).
+- **새 BT 노드**: 엔진 베이스(`UBTTaskNode`/`UBTDecorator`/`UBTService`/`UBTCompositeNode`)를 상속하고 `WXAI_API`로 노출한다. 노드별 상태는 Blackboard가 아니라 노드 인스턴스에 두는 패턴을 따른다(`UWxBTTask_Patrol`은 `bCreateNodeInstance`로 폰별 커서 보관 → 경로 공유·리스폰 안전).
+- **Blackboard 규약**: 키는 이름 직접 참조 대신 `WxBlackboardKeys`의 accessor로 읽고 쓴다(타입 오용·stale 값 방지). 키 SET/CLEAR는 AIController 또는 `UWxAIPerceptionComponent`가, 참조는 Task/Service/관찰자가 담당. Blackboard 에셋에 동일 이름 키가 등록돼 있어야 한다.
+- **WxCombat 비의존 데이터 주입**: 감속 GE(`MoveSpeedEffect`)·어트리뷰트 쌍(`AttributeRatio`)은 코드가 아니라 BT 에디터에서 디자이너가 지정한다. 새 노드도 이 규약을 지켜 WxCombat 링크를 만들지 말 것.
+- **가중 추첨 관례**: `RandomChoice`의 자식은 `RandomWeight` Decorator로 가중치를 실어 나른다(조건 아님, 항상 true). 조건 Decorator(`AttributeRatio` 등)는 후보 필터로, `RandomWeight`는 확률로 동작.
+- **리시 협업**: 타겟 유지·정리는 Perception이, 이탈 판정·복귀는 BT가 담당하는 분업. `BeyondLeash`는 반드시 FlowAbortMode=Lower Priority로 설정(Self/Both 금지 — 경계 왕복 유발).
 
 ## 여기서부터 읽어라
-1. `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` — BT와 지각이 공유하는 데이터 계약. 이 키들을 알아야 나머지 노드가 읽힌다.
-2. `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h` — 감지→타겟→인식의 상태 흐름과 타겟 소실·억제 규칙(헤더 doc-comment가 설계 근거를 담음).
-3. `Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_BeyondLeash.h` + `WxBTTask_ReturnHome.h` — 리시 이탈 판정이 BT로 이관된 이유와 지각의 억제 연계.
+1. `Source/WxAI/Public/WxAIPerceptionComponent.h` — 감지부터 타겟 확정·인식·회전·복귀 억제까지 전 흐름의 허브. 헤더 주석이 수명·협업 관계를 상세히 설명한다.
+2. `Source/WxAI/Public/WxBlackboardKeys.h` — 노드들이 공유하는 데이터 계약. 어떤 키를 누가 쓰고 읽는지 파악하면 나머지 노드가 이어진다.
+3. `Source/WxAI/Public/WxBTComposite_RandomChoice.h` — 전투 패턴 분기의 핵심. RandomWeight/AttributeRatio/TargetDistance가 이 컴포지트를 중심으로 맞물린다.
 
 ## 관련
-- 상위: 적 캐릭터/스포너와 BehaviorTree·Blackboard 에셋이 이 노드들을 조립해 사용. GAS 어빌리티·어트리뷰트는 [[WxCombat]], 공용 정의는 [[WxCore]].
+- 상위: [[WxGame]] — `WxEnemyController`가 `UWxAIPerceptionComponent`를 부착하고, `WxEnemyCharacter`/`WxCharacterBase`가 이 노드들이 구동하는 폰. 스폰·정찰 경로 연결은 `AWxSpawner`.
 
 ---
-*문서 기준 커밋 `dfd2174` · 생성일 2026-08-12 · 소스 29파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `1ae8d2f` · 생성일 2026-08-13 · 소스 29파일 — `/readme-writer`로 갱신*
