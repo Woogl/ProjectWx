@@ -5,6 +5,7 @@
 #include "Components/StateTreeComponent.h"
 #include "Engine/World.h"
 #include "Quest/WxQuestStateTree.h"
+#include "StateTreeReference.h"
 #include "TimerManager.h"
 
 UWxQuestComponent::UWxQuestComponent(const FObjectInitializer& ObjectInitializer)
@@ -16,16 +17,23 @@ UWxQuestComponent::UWxQuestComponent(const FObjectInitializer& ObjectInitializer
 
 void UWxQuestComponent::ActivateQuest(UWxQuestStateTree* QuestAsset)
 {
-	// 러너는 권위에서만 생성되므로 비-권위 머신의 호출은 자연히 노옵이다.
-	if (!QuestStateTree || !QuestAsset)
+	if (!QuestAsset)
 	{
 		return;
 	}
 
-	// 엔진이 Running 중 SetStateTree 를 거부하므로 정지 → 교체 → 시작 순서를 지킨다.
+	// 러너는 권위에서만 생성되므로 비-권위 머신의 호출은 자연히 노옵이다.
+	if (!QuestStateTree)
+	{
+		return;
+	}
+
+	// 엔진이 Running 중 에셋 교체를 거부하므로 정지 → 교체 → 시작 순서를 지킨다.
 	// 정지가 저널 정리(HandleStateTreeRunStatusChanged)를 발화시키고, 새 퀘스트 진행이 저널을 다시 채운다.
+	FStateTreeReference Quest;
+	Quest.SetStateTree(QuestAsset);
 	QuestStateTree->StopLogic(TEXT("ActivateQuest"));
-	QuestStateTree->SetStateTree(QuestAsset);
+	QuestStateTree->SetStateTreeReference(Quest);
 	QuestStateTree->StartLogic();
 }
 
@@ -38,14 +46,6 @@ void UWxQuestComponent::RequestActivateQuest(TSoftObjectPtr<UWxQuestStateTree> Q
 
 	// 타이머 대기 중 GC 로 로드가 풀릴 수 있어 포인터가 아닌 소프트 참조를 넘기고 실행 시점에 로드한다.
 	GetWorld()->GetTimerManager().SetTimerForNextTick(FTimerDelegate::CreateUObject(this, &UWxQuestComponent::HandleDeferredActivateQuest, QuestAsset));
-}
-
-void UWxQuestComponent::SendQuestEvent(FGameplayTag EventTag)
-{
-	if (QuestStateTree)
-	{
-		QuestStateTree->SendStateTreeEvent(EventTag);
-	}
 }
 
 void UWxQuestComponent::SetQuestTitle(const FText& InQuestTitle)

@@ -7,28 +7,12 @@
 #include "GameFramework/GameStateBase.h"
 #include "Quest/WxQuestComponent.h"
 
-namespace
+void UWxQuestLibrary::StartQuest(const UObject* WorldContextObject, UWxQuestStateTree* QuestAsset)
 {
-	UWxQuestComponent* ResolveQuestComponent(const UObject* WorldContextObject)
-	{
-		const UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-		const AGameStateBase* GameState = World ? World->GetGameState() : nullptr;
-		return GameState ? GameState->FindComponentByClass<UWxQuestComponent>() : nullptr;
-	}
-}
-
-void UWxQuestLibrary::ActivateQuest(const UObject* WorldContextObject, UWxQuestStateTree* QuestAsset)
-{
-	if (UWxQuestComponent* QuestComponent = ResolveQuestComponent(WorldContextObject))
+	const UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	const AGameStateBase* GameState = World ? World->GetGameState() : nullptr;
+	if (UWxQuestComponent* QuestComponent = GameState ? GameState->FindComponentByClass<UWxQuestComponent>() : nullptr)
 	{
 		QuestComponent->ActivateQuest(QuestAsset);
-	}
-}
-
-void UWxQuestLibrary::SendQuestEvent(const UObject* WorldContextObject, FGameplayTag EventTag)
-{
-	if (UWxQuestComponent* QuestComponent = ResolveQuestComponent(WorldContextObject))
-	{
-		QuestComponent->SendQuestEvent(EventTag);
 	}
 }

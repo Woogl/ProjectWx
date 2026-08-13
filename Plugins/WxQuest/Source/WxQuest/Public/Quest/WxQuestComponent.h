@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/GameStateComponent.h"
-#include "GameplayTagContainer.h"
+#include "StateTreeExecutionTypes.h"
 #include "WxQuestComponent.generated.h"
 
 class UStateTreeComponent;
@@ -38,8 +38,8 @@ struct FWxQuestObjective
  * 저널 정리는 태스크가 아니라 러너의 실행 상태 변경 통지로 한다 — 완료·실패·교체 세 종료 경로가 전부 한 곳으로 수렴한다.
  *
  * 본 컴포넌트는 어떤 퀘스트 에셋도 알지 않는다(에셋 불가지). 무엇을 실행할지는 전부 데이터가 지정한다:
- *  - 수주(탑재): 레벨에 배치한 시작 볼륨 등이 UWxQuestLibrary::ActivateQuest 로 지정 (진행 개시는 퀘스트 자신의 Start 게이트 태스크가 판정)
- *  - 체인: ActivateNextQuest 태스크의 NextQuest 소프트 참조
+ *  - 수주: 레벨에 배치한 트리거 볼륨이 UWxQuestLibrary::StartQuest 로 넘기는 에셋
+ *  - 체인: StartNextQuest 태스크의 NextQuest 소프트 참조
  *
  * 부착은 코드가 아니라 GameMode 가 고른 Experience 에셋의 주입 목록으로 한다(GameState 는 본 클래스를 모른다).
  * 목록에는 사이드 구분이 없어 클라 GameState 에도 사본이 붙으므로, 러너를 권위에서만 띄우는 것은 본 클래스의 책임이다.
@@ -57,9 +57,6 @@ public:
 
 	/** ST 태스크 등 러너 실행 콜스택 안에서의 활성화 요청. 재진입이 막히므로 다음 틱에 로드·활성화한다. */
 	void RequestActivateQuest(TSoftObjectPtr<UWxQuestStateTree> QuestAsset);
-
-	/** 실행 중인 퀘스트 ST 로 이벤트를 보낸다(Quest.Fail 등 전이 트리거). */
-	void SendQuestEvent(FGameplayTag EventTag);
 
 	/** SetQuestTitle 태스크 진입점. 저널을 새 퀘스트 제목으로 등록한다(목표는 비움). */
 	void SetQuestTitle(const FText& InQuestTitle);
@@ -80,7 +77,6 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Wx|Quest")
 	FWxOnQuestJournalChanged OnJournalChanged;
 
-protected:
 	virtual void BeginPlay() override;
 
 private:
