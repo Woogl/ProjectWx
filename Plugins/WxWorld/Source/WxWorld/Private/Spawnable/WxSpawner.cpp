@@ -3,6 +3,7 @@
 #include "Spawnable/WxSpawner.h"
 
 #include "Spawnable/WxSpawnable.h"
+#include "Spawnable/WxStateTreeTask_WaitSpawnersKilled.h"
 #include "Components/BillboardComponent.h"
 #include "Components/ChildActorComponent.h"
 #include "Components/PrimitiveComponent.h"
@@ -91,6 +92,9 @@ void AWxSpawner::MarkKilled()
 	}
 
 	bIsKilled = true;
+
+	// 이 스포너를 기다리던 ST 노드('Wait Spawners Killed')가 있으면 여기서 완료된다. 기다리는 쪽이 없으면 무동작이다.
+	FWxStateTreeTask_WaitSpawnersKilled::NotifySpawnerKilled();
 }
 
 FGuid AWxSpawner::GetSaveId() const

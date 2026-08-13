@@ -5,13 +5,15 @@
 #include "Components/SceneComponent.h"
 #include "Engine/GameInstance.h"
 #include "GameFramework/Actor.h"
+#include "StateTreeAsyncExecutionContext.h"
 #include "StateTreeExecutionContext.h"
 #include "StateTreePropertyBindings.h"
 #include "WxSaveGameSubsystem.h"
 
 FWxStateTreeTask_SaveGame::FWxStateTreeTask_SaveGame()
 {
-	// 디스크 기록이 끝나기를 기다려야 하므로 틱한다(직렬화는 동기지만 쓰기는 비동기다).
+	// 기록 완료를 서브시스템의 신호로 받으므로 볼 것이 없다.
+	bShouldCallTick = false;
 }
 
 EStateTreeRunStatus FWxStateTreeTask_SaveGame::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
@@ -43,22 +45,20 @@ EStateTreeRunStatus FWxStateTreeTask_SaveGame::EnterState(FStateTreeExecutionCon
 	// 실제 디스크 기록은 월드 플러시 완료 후 이어진다.
 	SaveSubsystem->SaveToFile(FString(), 0, ResumePoint ? &ResumeTransform : nullptr);
 
-	// 기록이 끝날 때까지 머문다(요청 즉시 끝났으면 첫 틱에 바로 빠진다).
-	return EStateTreeRunStatus::Running;
-}
-
-EStateTreeRunStatus FWxStateTreeTask_SaveGame::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
-{
-	// 저장을 건 주체가 사라졌으면(레벨 전환 등) 상태가 갇히지 않게 완료로 빠진다.
-	const AActor* Owner = Cast<AActor>(Context.GetOwner());
-	UGameInstance* GameInstance = Owner ? Owner->GetGameInstance() : nullptr;
-	const UWxSaveGameSubsystem* SaveSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
-	if (!SaveSubsystem)
+	// 요청 안에서 이미 끝났으면 기다릴 신호가 없다.
+	if (!SaveSubsystem->IsSaveInProgress())
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	return SaveSubsystem->IsSaveInProgress() ? EStateTreeRunStatus::Running : EStateTreeRunStatus::Succeeded;
+	// 기록이 끝나는 순간 완료된다. 약한 실행 컨텍스트를 넘기는 것이 엔진이 제시하는 방식이라 여기선 람다를 쓴다.
+	// 신호는 발화와 함께 비워지므로 상태를 먼저 떠난 노드의 등록도 남지 않는다(그 경우 이 컨텍스트가 무효라 무시된다).
+	SaveSubsystem->OnSaveCompleted.AddLambda([WeakContext = Context.MakeWeakExecutionContext()]()
+	{
+		WeakContext.FinishTask(EStateTreeFinishTaskType::Succeeded);
+	});
+
+	return EStateTreeRunStatus::Running;
 }
 
 #if WITH_EDITOR
@@ -75,6 +75,6 @@ FText FWxStateTreeTask_SaveGame::GetDescription(const FGuid& ID, FStateTreeDataV
 		ResumeText = InstanceData->ResumePoint ? FText::FromString(InstanceData->ResumePoint->GetName()) : INVTEXT("player");
 	}
 
-	return FText::Format(INVTEXT("Save Game ({0})"), ResumeText);
+	return FText::Format(INVTEXT("게임 저장 ({0})"), ResumeText);
 }
 #endif

@@ -5,12 +5,16 @@
 #include "GameFramework/Actor.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
+#include "StateTreeAsyncExecutionContext.h"
 #include "StateTreeExecutionContext.h"
 #include "WxDialogueModule.h"
 #include "WxDialogueSessionComponent.h"
 
 FWxStateTreeTask_PlayDialogue::FWxStateTreeTask_PlayDialogue()
 {
+	// 완료를 세션의 종료 신호로 받으므로 볼 것이 없다.
+	bShouldCallTick = false;
+
 	// 진행 중인 대사를 같은 상태의 재선택으로 처음부터 다시 열지 않는다.
 	bShouldStateChangeOnReselect = false;
 }
@@ -34,7 +38,7 @@ EStateTreeRunStatus FWxStateTreeTask_PlayDialogue::EnterState(FStateTreeExecutio
 		return EStateTreeRunStatus::Failed;
 	}
 
-	// 대상 없는 대사다 — 카메라는 플레이어에 머문다. 관찰자(Wait Dialogue Completed)는 대상이 아니라 행으로 판정하므로 이 대화도 게이트로 쓸 수 있다.
+	// 대상 없는 대사다 — 카메라는 플레이어에 머문다.
 	Session->StartDialogueRow(Instance.StartRow, nullptr);
 
 	// 소유 클라와 권위가 같은 머신이라 세션은 위 호출 안에서 열린다. 열리지 않았다면 행이 없거나 대사가 빈 것이다.
@@ -44,16 +48,14 @@ EStateTreeRunStatus FWxStateTreeTask_PlayDialogue::EnterState(FStateTreeExecutio
 		return EStateTreeRunStatus::Failed;
 	}
 
+	// 열린 대화가 닫히는 순간 완료된다. 약한 실행 컨텍스트를 넘기는 것이 엔진이 제시하는 방식이라 여기선 람다를 쓴다.
+	// 신호는 발화와 함께 비워지므로 상태를 먼저 떠난 노드의 등록도 남지 않는다(그 경우 이 컨텍스트가 무효라 무시된다).
+	Session->OnDialogueEnded.AddLambda([WeakContext = Context.MakeWeakExecutionContext()]()
+	{
+		WeakContext.FinishTask(EStateTreeFinishTaskType::Succeeded);
+	});
+
 	return EStateTreeRunStatus::Running;
-}
-
-EStateTreeRunStatus FWxStateTreeTask_PlayDialogue::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
-{
-	// 세션이 사라졌다면(컨트롤러 교체 등) 더 기다릴 대화가 없으므로 종료와 같이 본다.
-	const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(Cast<AActor>(Context.GetOwner()), 0);
-	const UWxDialogueSessionComponent* Session = PlayerController ? PlayerController->FindComponentByClass<UWxDialogueSessionComponent>() : nullptr;
-
-	return Session && Session->HasActiveDialogue() ? EStateTreeRunStatus::Running : EStateTreeRunStatus::Succeeded;
 }
 
 #if WITH_EDITOR
@@ -63,6 +65,6 @@ FText FWxStateTreeTask_PlayDialogue::GetDescription(const FGuid& ID, FStateTreeD
 	check(InstanceData);
 
 	const FText RowText = InstanceData->StartRow.RowName.IsNone() ? INVTEXT("unset") : FText::FromName(InstanceData->StartRow.RowName);
-	return FText::Format(INVTEXT("Play Dialogue ({0})"), RowText);
+	return FText::Format(INVTEXT("대화 재생 ({0})"), RowText);
 }
 #endif

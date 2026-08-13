@@ -27,9 +27,10 @@ struct FWxStateTreeTask_SaveGameInstanceData
  * 슬롯을 지정하지 않으므로 언제나 활성 슬롯에 그대로 덮어쓴다 — 명명 슬롯 저장은 UI 몫이다.
  * ResumePoint 를 물리면 그 컴포넌트 자리로 재개 지점이 확정돼, 플레이어가 어디에 서서 상호작용했든 같은 자리에서 재개한다(체크포인트).
  * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)에는 저장하지 않는다 — 막 로드한 세이브를 로드 직후 되쓰지 않게 한다.
- * 저장 파일은 서버가 소유하므로 클라 진입은 노옵이다. 틱하지 않으므로 비용이 없다.
+ * 저장 파일은 서버가 소유하므로 클라 진입은 노옵이다.
+ * 디스크 기록은 비동기라 요청 직후엔 아직 끝나지 않았을 수 있다. 그때는 세이브 서브시스템의 일회성 완료 신호에 붙어 기록이 끝나는 순간 완료한다(폴링 없음).
  */
-USTRUCT(meta = (DisplayName = "Save Game", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "게임 저장", Category = "Wx"))
 struct FWxStateTreeTask_SaveGame : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
@@ -40,7 +41,6 @@ struct FWxStateTreeTask_SaveGame : public FStateTreeTaskCommonBase
 
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
-	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
 
 #if WITH_EDITOR
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;

@@ -20,6 +20,10 @@ struct FWxStateTreeTask_WaitSpawnersKilledInstanceData
 	/** 처치를 판정할 배치 스포너 지정. 전원이 로드되고 처치여야 완료된다. AllowedClasses 는 픽커 후보 제한이고, 우회 지정은 ST 컴파일 에러가 잡는다(Compile 참조). */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedLocators = "Actor", AllowedClasses = "/Script/WxWorld.WxSpawner"))
 	TArray<FUniversalObjectLocator> Spawners;
+
+	/** (런타임) 대기 등록 번호. 상태를 떠날 때 자기 등록만 골라 걷어내는 데 쓴다. */
+	UPROPERTY()
+	int32 WaitHandle = INDEX_NONE;
 };
 
 /**
@@ -27,13 +31,16 @@ struct FWxStateTreeTask_WaitSpawnersKilledInstanceData
  * 처치 상태(bIsKilled)는 복제되지 않으므로 권위에서 구동되는 ST 전용이다.
  * 전원이 해석(로드)되고 처치여야 통과한다 — 미해석은 판정 불가라 강제 로드 없이 대기한다.
  * 배열이 비었거나 빈 로케이터 항목이 있으면 잘못된 조립이므로 진입 시 경고를 남기고 계속 대기한다(침묵 완료 방지).
- * 해석은 캐시 없이 매 틱 수행한다 — 경로 조회 기반이라 소수 항목에선 비용이 무시되고 WP 언로드/재로드를 자연 처리한다.
  * 같은 상태의 'Trigger Spawners By Locator' 가 스폰한 대상을 그대로 판정하는 짝으로 쓴다.
+ *
+ * 폴링하지 않는다 — 진입할 때 한 번 보고, 그 뒤로는 스포너가 처치될 때마다(MarkKilled) 오는 통보에서만 다시 본다(틱 없음).
+ * 대상 해석도 그 순간에만 하므로, 진입 시점에 스포너가 언로드여도 되고 대기 중에는 아무 비용이 없다.
+ * 진입 시 1회 평가가 필요한 것은 이미 전원 처치인 채로 들어오는 조립(퀘스트 재수주 등) 때문이다 — 그땐 새로 올 통보가 없다.
  *
  * 대상은 FUniversalObjectLocator 로 배치 액터를 직접 지정한다 — 순수 구조체라 ST 컴파일러의 레벨 액터 참조 검증에 걸리지 않고, 씬 픽커와 WP 런타임 셀·PIE 픽스업 해석이 엔진에 내장돼 있어 레벨 밖 호스트(퀘스트 ST)에서도 조립할 수 있다.
  * 배열인 것은 한 전투의 스포너가 여럿일 수 있어서다 — 단일 UOL 멤버도 같은 픽커가 뜬다.
  */
-USTRUCT(meta = (DisplayName = "Wait Spawners Killed", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "스포너 처치 대기", Category = "Wx"))
 struct FWxStateTreeTask_WaitSpawnersKilled : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
@@ -42,9 +49,12 @@ struct FWxStateTreeTask_WaitSpawnersKilled : public FStateTreeTaskCommonBase
 
 	FWxStateTreeTask_WaitSpawnersKilled();
 
+	/** 스포너가 처치된 순간 AWxSpawner::MarkKilled 가 부른다. 기다리던 노드들이 자기 지정 전원이 처치됐는지 다시 본다. */
+	static void NotifySpawnerKilled();
+
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
-	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
+	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 
 #if WITH_EDITOR
 	virtual EDataValidationResult Compile(UE::StateTree::ICompileNodeContext& CompileContext) override;

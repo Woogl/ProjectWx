@@ -26,7 +26,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWxOnDialogueLineChanged, const FTe
  * 세션(현재 노드·라인)은 표시 전용 로컬 상태라 소유 클라가 진행을 소유하며 서버 검증은 없다. 대화가 게임 상태를 바꾸게 되면 그때 서버측으로 옮긴다.
  *
  * 대화는 뜻을 해석하지도 기록을 남기지도 않는다 — 진행 중인 대사의 신원(현재 행)과 대상만 노출하고,
- * 그 의미(퀘스트 수주 등)는 소비자(Wait Dialogue Completed 태스크)가 관찰로 판정한다.
+ * 그 의미(퀘스트 수주 등)는 소비자가 관찰로 판정한다.
  * 세션 상태는 소유 클라에 있다 — v1 싱글/리슨 호스트(소유 클라=권위 동일 머신) 전제로 권위 측 소비자가 직접 읽는다.
  *
  * UI 는 모른다 — 대사가 바뀌면 델리게이트로 발행해 뷰모델이 받아 가고, 세션이 열리고 닫힌 사실은 폰 ASC 의 State.Dialogue 태그가 알린다.
@@ -76,6 +76,12 @@ public:
 	/** 표시할 대사가 바뀌었다. */
 	UPROPERTY(BlueprintAssignable, Category = "Wx")
 	FWxOnDialogueLineChanged OnLineChanged;
+
+	/**
+	 * 대화가 끝나면 한 번 발화하고 스스로 비워진다. 종료를 기다리는 쪽('Play Dialogue' 태스크)이 대화를 연 직후 붙인다.
+	 * 발화와 함께 비워지므로 붙인 쪽이 떼어낼 필요가 없다 — 대화 한 번에 대한 일회성 약속이다.
+	 */
+	FSimpleMulticastDelegate OnDialogueEnded;
 
 protected:
 	/**

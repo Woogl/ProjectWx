@@ -91,13 +91,22 @@ public:
 
 	/**
 	 * SaveToFile 이 요청한 기록이 아직 끝나지 않았는가. 직렬화는 동기지만 디스크 쓰기는 비동기라, 요청 직후엔 아직 파일이 없다.
-	 * 저장이 끝나기를 기다려야 하는 쪽(예: 'Save Game' ST 태스크)이 이것을 폴링한다.
+	 * 기다려야 하는 쪽('Save Game' ST 태스크)은 요청 직후 이것으로 이미 끝났는지 가르고, 아니면 OnSaveCompleted 를 기다린다.
 	 */
 	bool IsSaveInProgress() const;
+
+	/**
+	 * 진행 중이던 기록이 끝나면 한 번 발화하고 스스로 비워진다. 기다리는 쪽이 요청 직후 붙인다.
+	 * 발화와 함께 비워지므로 붙인 쪽이 떼어낼 필요가 없다 — 기록 한 번에 대한 일회성 약속이다.
+	 */
+	FSimpleMulticastDelegate OnSaveCompleted;
 
 private:
 	/** SaveGame 을 자기 슬롯에 기록한다. SaveToFile 에서 직접(월드 서브시스템 부재) 또는 RequestSaveFlush 완료 콜백으로 호출된다. */
 	void ContinueSaveToFileToDisk();
+
+	/** 기록 종료를 한 자리에서 선언한다 — 진행 플래그를 내리고 기다리던 쪽에 알린다. 성공·실패·중단 어느 경로든 여기로 모인다. */
+	void FinishSaveInProgress();
 
 	/** SaveToFile 이 세우고 비동기 기록 콜백이 내린다. */
 	bool bSaveInProgress = false;

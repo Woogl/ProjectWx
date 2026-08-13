@@ -213,6 +213,10 @@ void UWxDialogueSessionComponent::EndDialogue()
 	// 포즈는 거두지 않는다. 대상은 마지막 자세로 남고, 다음 대사나 다음 대화가 그것을 갈아끼운다.
 	// 진행 중인 포즈 스트리밍도 접지 않는다 — 마지막 대사의 자세가 늦게 도착했을 뿐이고, 요청이 대상을 따로 들고 있어 세션 없이도 얹힌다.
 	EndDialogueCamera();
+
+	// 이 대화의 종료를 기다리던 쪽에 알리고 약속을 비운다. 다음 대화는 자기 청자를 새로 받는다.
+	OnDialogueEnded.Broadcast();
+	OnDialogueEnded.Clear();
 }
 
 void UWxDialogueSessionComponent::BeginDialogueCamera()

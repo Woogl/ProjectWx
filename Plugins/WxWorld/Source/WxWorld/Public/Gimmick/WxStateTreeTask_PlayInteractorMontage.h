@@ -17,19 +17,19 @@ struct FWxStateTreeTask_PlayInteractorMontageInstanceData
 {
 	GENERATED_BODY()
 
-	/** 재생할 몽타주. 비면 재생 없이 곧바로 완료한다. */
+	/** 비면 재생 없이 곧바로 완료한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<UAnimMontage> Montage;
 };
 
 /**
- * 상호작용한 플레이어 캐릭터의 메시에 몽타주를 재생하고, 재생이 끝나면 Succeeded 로 상태를 완료시킨다.
  * 대상은 오너 기믹의 InteractingCharacter 를 직접 읽는다(바인딩 입력 없음) — 'Move Interactor To Target' 과 동일.
  * 복제형 PlayAnimMontage 가 아니라 각 머신이 메시 AnimInstance 로 로컬 재생·폴링한다('Play Animation' 과 동형) — 모든 피어가 InteractingCharacter 를 복제로 알아 중복 재생이 없다.
- * 초기 진입(StateTree 시작/복원/레이트조인)이면 재생 없이 곧바로 완료한다(발동 순간에만 재생; InteractingCharacter 는 비영속이라 복원 시 비어 있음). 대상/몽타주가 없어도 상태가 갇히지 않게 곧바로 완료한다.
- * 이동 후 재생하려면 'Move Interactor To Target' 상태 다음 상태에 둔다(단일 책임 분리).
+ * 초기 진입(StateTree 시작/복원/레이트조인)이면 재생 없이 곧바로 완료한다 — 발동 순간에만 재생하며, InteractingCharacter 는 비영속이라 복원 시 비어 있다.
+ * 대상/몽타주가 없어도 상태가 갇히지 않게 곧바로 완료한다.
+ * 종료 판정을 몽타주 종료 델리게이트로 바꾸지 않는 이유는 당사자가 도중에 사라지는 경우(사망·리스폰) 그 통보가 오지 않아 기믹이 그 상태에 갇히기 때문이다 — 폴링은 대상이 사라진 것까지 종료로 본다.
  */
-USTRUCT(meta = (DisplayName = "Play Interactor Montage", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "상호작용자 몽타주 재생", Category = "Wx"))
 struct FWxStateTreeTask_PlayInteractorMontage : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

@@ -285,7 +285,7 @@ void UWxSaveGameSubsystem::ContinueSaveToFileToDisk()
 	if (!SaveGame)
 	{
 		UE_LOG(LogWxSave, Warning, TEXT("ContinueSaveToFileToDisk: 활성 SaveGame 없음 — 기록 중단"));
-		bSaveInProgress = false;
+		FinishSaveInProgress();
 		return;
 	}
 
@@ -295,7 +295,7 @@ void UWxSaveGameSubsystem::ContinueSaveToFileToDisk()
 		{
 			if (UWxSaveGameSubsystem* Subsystem = WeakThis.Get())
 			{
-				Subsystem->bSaveInProgress = false;
+				Subsystem->FinishSaveInProgress();
 			}
 
 			if (bSuccess)
@@ -307,4 +307,13 @@ void UWxSaveGameSubsystem::ContinueSaveToFileToDisk()
 				UE_LOG(LogWxSave, Warning, TEXT("SaveToFile 실패: 슬롯 '%s' 디스크 기록 실패"), *Slot);
 			}
 		}));
+}
+
+void UWxSaveGameSubsystem::FinishSaveInProgress()
+{
+	bSaveInProgress = false;
+
+	// 이 기록의 완료를 기다리던 쪽에 알리고 약속을 비운다. 다음 기록은 자기 청자를 새로 받는다.
+	OnSaveCompleted.Broadcast();
+	OnSaveCompleted.Clear();
 }

@@ -4,19 +4,82 @@
 
 #include "GameFramework/Actor.h"
 #include "Spawnable/WxSpawner.h"
+#include "StateTreeAsyncExecutionContext.h"
 #include "StateTreeExecutionContext.h"
 #include "System/WxSpawnerLibrary.h"
 #include "WxWorldModule.h"
 
+namespace
+{
+	/** 처치를 기다리는 노드 하나. 완료 통보는 상태가 살아 있는 동안에만 유효한 약한 실행 컨텍스트로 보낸다. */
+	struct FWxSpawnersKilledWait
+	{
+		int32 Handle = INDEX_NONE;
+		TArray<FUniversalObjectLocator> Spawners;
+		FStateTreeWeakExecutionContext Context;
+	};
+
+	/** 지금 기다리는 노드들. 비어 있으면 스포너가 처치돼도 하는 일이 없다. */
+	TArray<FWxSpawnersKilledWait> SpawnersKilledWaits;
+
+	/** 재사용하지 않으므로 뒤늦은 해제 요청이 엉뚱한 등록을 걷어가지 않는다. */
+	int32 NextWaitHandle = 0;
+
+	/** 전원이 해석(로드)되고 처치 상태인가. 미해석은 판정 불가라 통과시키지 않는다. 지정이 없으면 완료할 근거도 없다. */
+	bool AreAllSpawnersKilled(const TArray<FUniversalObjectLocator>& Spawners, UObject* ResolveContext)
+	{
+		if (Spawners.IsEmpty())
+		{
+			return false;
+		}
+
+		for (const FUniversalObjectLocator& Locator : Spawners)
+		{
+			const AWxSpawner* Spawner = Cast<AWxSpawner>(Locator.SyncFind(ResolveContext));
+			if (!Spawner || !Spawner->IsKilled())
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+}
+
 FWxStateTreeTask_WaitSpawnersKilled::FWxStateTreeTask_WaitSpawnersKilled()
 {
-	// 처치 대기 중 같은 상태가 재선택되어도 진행을 끊을 이유가 없다.
+	// 완료를 통보로 받으므로 볼 것이 없다.
+	bShouldCallTick = false;
+
+	// 처치 대기 중 같은 상태가 재선택되어도 등록을 다시 할 이유가 없다.
 	bShouldStateChangeOnReselect = false;
+}
+
+void FWxStateTreeTask_WaitSpawnersKilled::NotifySpawnerKilled()
+{
+	for (int32 Index = SpawnersKilledWaits.Num() - 1; Index >= 0; --Index)
+	{
+		const FWxSpawnersKilledWait& Wait = SpawnersKilledWaits[Index];
+
+		// 트리째 사라진(오너 파괴) 등록은 통보할 곳이 없으므로 이 참에 걷어낸다.
+		TStrongObjectPtr<UObject> Owner = Wait.Context.GetOwner();
+		if (!Owner)
+		{
+			SpawnersKilledWaits.RemoveAt(Index);
+			continue;
+		}
+
+		// 완료한 노드는 상태를 떠나면서 ExitState 에서 스스로 등록을 걷어간다.
+		if (AreAllSpawnersKilled(Wait.Spawners, Owner.Get()))
+		{
+			Wait.Context.FinishTask(EStateTreeFinishTaskType::Succeeded);
+		}
+	}
 }
 
 EStateTreeRunStatus FWxStateTreeTask_WaitSpawnersKilled::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
+	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
 	// 지정이 없거나 빈 로케이터가 섞이면 완료될 수 없는 잘못된 조립이다. 침묵 대기 대신 경고를 남긴다.
 	if (Instance.Spawners.IsEmpty())
@@ -32,36 +95,34 @@ EStateTreeRunStatus FWxStateTreeTask_WaitSpawnersKilled::EnterState(FStateTreeEx
 		}
 	}
 
+	// 이미 전원 처치인 채로 들어왔으면 앞으로 올 통보가 없다. 그 경우만 여기서 가른다.
+	if (AreAllSpawnersKilled(Instance.Spawners, Context.GetOwner()))
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	Instance.WaitHandle = NextWaitHandle++;
+
+	FWxSpawnersKilledWait& Wait = SpawnersKilledWaits.AddDefaulted_GetRef();
+	Wait.Handle = Instance.WaitHandle;
+	Wait.Spawners = Instance.Spawners;
+	Wait.Context = Context.MakeWeakExecutionContext();
+
 	return EStateTreeRunStatus::Running;
 }
 
-EStateTreeRunStatus FWxStateTreeTask_WaitSpawnersKilled::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
+void FWxStateTreeTask_WaitSpawnersKilled::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 지정이 없으면 판정 대상이 없어 완료할 수 없다(진입 시 이미 경고를 남겼다).
-	if (Instance.Spawners.IsEmpty())
+	for (int32 Index = 0; Index < SpawnersKilledWaits.Num(); ++Index)
 	{
-		return EStateTreeRunStatus::Running;
-	}
-
-	AActor* Owner = Cast<AActor>(Context.GetOwner());
-	if (!Owner)
-	{
-		return EStateTreeRunStatus::Running;
-	}
-
-	// 전원이 해석(로드)되고 처치여야 통과한다. 미해석은 판정 불가라 강제 로드 없이 대기한다.
-	for (const FUniversalObjectLocator& Locator : Instance.Spawners)
-	{
-		const AWxSpawner* Spawner = Cast<AWxSpawner>(Locator.SyncFind(Owner));
-		if (!Spawner || !Spawner->IsKilled())
+		if (SpawnersKilledWaits[Index].Handle == Instance.WaitHandle)
 		{
-			return EStateTreeRunStatus::Running;
+			SpawnersKilledWaits.RemoveAt(Index);
+			break;
 		}
 	}
-
-	return EStateTreeRunStatus::Succeeded;
 }
 
 #if WITH_EDITOR
@@ -92,6 +153,6 @@ FText FWxStateTreeTask_WaitSpawnersKilled::GetDescription(const FGuid& ID, FStat
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Wait Spawners Killed ({0})"), UWxSpawnerLibrary::GetSpawnerLocatorsText(InstanceData->Spawners));
+	return FText::Format(INVTEXT("스포너 처치 대기 ({0})"), UWxSpawnerLibrary::GetSpawnerLocatorsText(InstanceData->Spawners));
 }
 #endif
