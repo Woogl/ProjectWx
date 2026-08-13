@@ -17,4 +17,6 @@ class WXCOMBAT_API UWxAbilitySystemGlobals : public UAbilitySystemGlobals
 
 public:
 	virtual FGameplayEffectContext* AllocGameplayEffectContext() const override;
+
+	virtual void InitGameplayCueParameters(FGameplayCueParameters& CueParameters, const FGameplayEffectContextHandle& EffectContext) override;
 };
