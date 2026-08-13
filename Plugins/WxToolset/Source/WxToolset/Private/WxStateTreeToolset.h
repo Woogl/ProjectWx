@@ -40,18 +40,37 @@ public:
 	/**
 	 * 루트 파라미터 백에 파라미터를 추가한다.
 	 * @param Name 파라미터 이름.
-	 * @param Type EPropertyBagPropertyType 이름. 예: "Text", "Float", "Bool", "Int32", "Struct"
-	 * @param StructPath Type 이 "Struct" 일 때 값 구조체 경로. 예: "/Script/UniversalObjectLocator.UniversalObjectLocator"
+	 * @param Type EPropertyBagPropertyType 이름. 예: "Text", "Float", "Bool", "Int32", "Struct", "Object", "SoftObject"
+	 * @param ValueTypePath Type 이 "Struct" 면 값 구조체 경로(예: "/Script/Engine.DataTableRowHandle"),
+	 *   Object/SoftObject/Class/SoftClass 면 값 클래스 경로(예: "/Script/Engine.Actor").
 	 * @param bArray true 면 배열 컨테이너로 추가한다.
+	 * @param MetaJson 선택. 생성 프로퍼티에 붙일 메타 {"키":"값", ...}. 예: {"AllowedLocators":"Actor"} 는 UOL 파라미터에 전용 액터 픽커를 띄우며, 링크 상태 오버라이드 행까지 전파된다. 빈 문자열이면 메타 없음.
 	 * @return 추가된 파라미터의 ID(GUID 문자열).
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
-	static FString AddRootParameter(UStateTree* StateTree, FName Name, const FString& Type, const FString& StructPath, bool bArray);
+	static FString AddRootParameter(UStateTree* StateTree, FName Name, const FString& Type, const FString& ValueTypePath, bool bArray, const FString& MetaJson);
+
+	/**
+	 * 기존 루트 파라미터의 메타를 갈아 끼운다. 파라미터를 지웠다 다시 만들지 않으므로 ID·값·바인딩이 유지된다.
+	 * @param Name 대상 파라미터 이름.
+	 * @param MetaJson 기입할 메타 {"키":"값", ...}. 기존 메타는 이것으로 교체되며, 빈 문자열이면 메타를 모두 지운다.
+	 *   예: {"RowType":"/Script/WxDialogue.WxDialogueTableRow"} 는 DataTableRowHandle 파라미터의 테이블 픽커를 그 행 구조체를 쓰는 테이블로 제한한다.
+	 */
+	UFUNCTION(meta = (AICallable), Category = "Wx")
+	static bool SetRootParameterMeta(UStateTree* StateTree, FName Name, const FString& MetaJson);
+
+	/**
+	 * 루트 파라미터 백에서 파라미터를 제거한다.
+	 * 그 파라미터를 소스로 쓰던 바인딩은 함께 지워지지 않으므로 RemoveBinding 으로 별도 정리한다.
+	 * @param Name 제거할 파라미터 이름.
+	 */
+	UFUNCTION(meta = (AICallable), Category = "Wx")
+	static bool RemoveRootParameter(UStateTree* StateTree, FName Name);
 
 	/**
 	 * 루트 파라미터 백의 값(기본값)을 JSON 으로 기입한다.
 	 * @param ValuesJson {"파라미터명": 값, ...}. 값 규약 — Text/숫자/bool 은 JSON 원시값,
-	 *   UOL 은 문자열 리터럴 "(uobj://actor?payload0=...)", UOL 배열은 그 문자열의 JSON 배열,
+	 *   오브젝트·소프트 참조는 경로 문자열(레벨 액터 예: "/Game/Maps/LV_X.LV_X:PersistentLevel.액터명"), 배열은 그 값들의 JSON 배열,
 	 *   DataTableRowHandle 은 {"DataTable":"/Game/...경로","RowName":"행이름"}.
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
@@ -98,6 +117,29 @@ public:
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static bool SetStateParameterValues(UStateTreeState* State, const FString& ValuesJson);
+
+	/**
+	 * 링크 상태의 파라미터 오버라이드를 해제하고 값을 링크 에셋 기본값으로 되돌린다(바인딩으로 값을 받는 파라미터의 리터럴 잔재 제거용).
+	 * @param Name 해제할 파라미터 이름.
+	 */
+	UFUNCTION(meta = (AICallable), Category = "Wx")
+	static bool ClearStateParameterOverride(UStateTreeState* State, FName Name);
+
+	/**
+	 * 임의 오브젝트(컴포넌트·액터 등)의 FStateTreeReference 프로퍼티에 ST 에셋을 지정하고 파라미터 레이아웃을 동기화한다.
+	 * @param PropertyName 대상 FStateTreeReference UPROPERTY 이름. 예: "Quest"
+	 */
+	UFUNCTION(meta = (AICallable), Category = "Wx")
+	static bool SetReferenceStateTree(UObject* Object, FName PropertyName, UStateTree* StateTree);
+
+	/**
+	 * 임의 오브젝트(컴포넌트·액터 등)의 FStateTreeReference 프로퍼티에 파라미터 값을 기입하고 오버라이드로 마킹한다.
+	 * 레퍼런스에 에셋이 먼저 지정돼 있어야 하며(SetReferenceStateTree), 레이아웃이 어긋나 있으면 기입 전에 에셋 기준으로 동기화한다.
+	 * @param PropertyName 대상 FStateTreeReference UPROPERTY 이름. 예: "Quest"
+	 * @param ValuesJson SetRootParameterValues 와 같은 값 규약의 {"파라미터명": 값, ...}.
+	 */
+	UFUNCTION(meta = (AICallable), Category = "Wx")
+	static bool SetReferenceParameterValues(UObject* Object, FName PropertyName, const FString& ValuesJson);
 
 	/**
 	 * StateTree 를 컴파일하고 결과와 컴파일러 로그를 돌려준다. 더티 상태와 무관하게 항상 컴파일한다.

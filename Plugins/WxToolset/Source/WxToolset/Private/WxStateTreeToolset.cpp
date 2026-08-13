@@ -19,6 +19,7 @@
 #include "StateTreeEditorData.h"
 #include "StateTreeEditorPropertyBindings.h"
 #include "StateTreeFactory.h"
+#include "StateTreeReference.h"
 #include "StateTreeState.h"
 #include "StructUtils/PropertyBag.h"
 
@@ -89,12 +90,57 @@ namespace
 		return Desc;
 	}
 
+	/** MetaJson({"키":"값"}) 을 서술자에 얹는다. 빈 문자열은 아무것도 하지 않는다. 실패 시 스크립트 에러 후 false. */
+	bool ApplyMetaJson(FPropertyBagPropertyDesc& Desc, const FString& MetaJson)
+	{
+		if (MetaJson.IsEmpty())
+		{
+			return true;
+		}
+
+		const TSharedPtr<FJsonObject> MetaObject = ParseJsonObject(MetaJson);
+		if (!MetaObject)
+		{
+			return false;
+		}
+
+		for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : MetaObject->Values)
+		{
+			FString MetaValue;
+			if (!Pair.Value->TryGetString(MetaValue))
+			{
+				UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("메타 '%s' 값은 문자열이어야 한다."), *Pair.Key));
+				return false;
+			}
+			Desc.SetMetaData(FName(*Pair.Key), MetaValue);
+		}
+		return true;
+	}
+
 	FString SerializeJson(const TSharedRef<FJsonObject>& JsonObject)
 	{
 		FString Result;
 		const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Result);
 		FJsonSerializer::Serialize(JsonObject, Writer);
 		return Result;
+	}
+
+	/** 오브젝트의 FStateTreeReference UPROPERTY 를 찾는다. 실패 시 스크립트 에러를 올리고 null 을 돌려준다. */
+	FStateTreeReference* GetMutableReference(UObject* Object, const FName PropertyName)
+	{
+		if (!Object)
+		{
+			UKismetSystemLibrary::RaiseScriptError(TEXT("Object 가 null 이다."));
+			return nullptr;
+		}
+
+		const FStructProperty* ReferenceProperty = FindFProperty<FStructProperty>(Object->GetClass(), PropertyName);
+		if (!ReferenceProperty || ReferenceProperty->Struct != FStateTreeReference::StaticStruct())
+		{
+			UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("'%s' 에서 FStateTreeReference 프로퍼티 '%s' 를 찾지 못했다."), *Object->GetPathName(), *PropertyName.ToString()));
+			return nullptr;
+		}
+		return ReferenceProperty->ContainerPtrToValuePtr<FStateTreeReference>(Object);
 	}
 
 	/** 컴파일러 로그의 메시지 목록이 protected 라 파생으로 읽기 접근만 연다. */
@@ -173,7 +219,7 @@ FString UWxStateTreeToolset::GetRootParameters(UStateTree* StateTree)
 	return SerializeJson(Root);
 }
 
-FString UWxStateTreeToolset::AddRootParameter(UStateTree* StateTree, FName Name, const FString& Type, const FString& StructPath, bool bArray)
+FString UWxStateTreeToolset::AddRootParameter(UStateTree* StateTree, FName Name, const FString& Type, const FString& ValueTypePath, bool bArray, const FString& MetaJson)
 {
 	UStateTreeEditorData* EditorData = GetEditorData(StateTree);
 	if (!EditorData)
@@ -195,21 +241,39 @@ FString UWxStateTreeToolset::AddRootParameter(UStateTree* StateTree, FName Name,
 	}
 	const EPropertyBagPropertyType ValueType = static_cast<EPropertyBagPropertyType>(TypeValue);
 
-	const UScriptStruct* ValueStruct = nullptr;
+	// 값 타입 오브젝트가 필요한 타입은 경로 로드에 실패하면 여기서 끊는다 — 백에 타입 불명 파라미터가 생기는 것을 막는다.
+	const UObject* ValueTypeObject = nullptr;
 	if (ValueType == EPropertyBagPropertyType::Struct)
 	{
-		ValueStruct = LoadObject<UScriptStruct>(nullptr, *StructPath);
-		if (!ValueStruct)
-		{
-			UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("값 구조체 로드 실패: %s"), *StructPath));
-			return FString();
-		}
+		ValueTypeObject = LoadObject<UScriptStruct>(nullptr, *ValueTypePath);
+	}
+	else if (ValueType == EPropertyBagPropertyType::Object || ValueType == EPropertyBagPropertyType::SoftObject
+		|| ValueType == EPropertyBagPropertyType::Class || ValueType == EPropertyBagPropertyType::SoftClass)
+	{
+		ValueTypeObject = LoadObject<UClass>(nullptr, *ValueTypePath);
+	}
+	else if (!ValueTypePath.IsEmpty())
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("타입 %s 은 값 타입 오브젝트를 받지 않는다: %s"), *Type, *ValueTypePath));
+		return FString();
+	}
+	if (!ValueTypePath.IsEmpty() && !ValueTypeObject)
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("값 타입 로드 실패: %s"), *ValueTypePath));
+		return FString();
+	}
+
+	// 메타는 서술자 단위로 실려 백 생성 시 FProperty 에 전파된다 — AddProperty 계열엔 메타 인자가 없어 서술자 직접 구성으로 통일한다.
+	FPropertyBagPropertyDesc Desc = bArray
+		? FPropertyBagPropertyDesc(Name, EPropertyBagContainerType::Array, ValueType, ValueTypeObject)
+		: FPropertyBagPropertyDesc(Name, ValueType, ValueTypeObject);
+	if (!ApplyMetaJson(Desc, MetaJson))
+	{
+		return FString();
 	}
 
 	EditorData->Modify();
-	const EPropertyBagAlterationResult Result = bArray
-		? Bag->AddContainerProperty(Name, EPropertyBagContainerType::Array, ValueType, ValueStruct)
-		: Bag->AddProperty(Name, ValueType, ValueStruct);
+	const EPropertyBagAlterationResult Result = Bag->AddProperties({Desc});
 	if (Result != EPropertyBagAlterationResult::Success)
 	{
 		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("파라미터 '%s' 추가 실패(결과 코드 %d)."), *Name.ToString(), static_cast<int32>(Result)));
@@ -220,6 +284,80 @@ FString UWxStateTreeToolset::AddRootParameter(UStateTree* StateTree, FName Name,
 
 	const FPropertyBagPropertyDesc* NewDesc = Bag->FindPropertyDescByName(Name);
 	return NewDesc ? NewDesc->ID.ToString(EGuidFormats::DigitsWithHyphens) : FString();
+}
+
+bool UWxStateTreeToolset::SetRootParameterMeta(UStateTree* StateTree, FName Name, const FString& MetaJson)
+{
+	UStateTreeEditorData* EditorData = GetEditorData(StateTree);
+	if (!EditorData)
+	{
+		return false;
+	}
+
+	FInstancedPropertyBag* Bag = GetMutableRootParameterBag(*EditorData);
+	if (!Bag)
+	{
+		return false;
+	}
+
+	const FPropertyBagPropertyDesc* ExistingDesc = Bag->FindPropertyDescByName(Name);
+	if (!ExistingDesc)
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("파라미터 '%s' 가 백에 없다."), *Name.ToString()));
+		return false;
+	}
+
+	FPropertyBagPropertyDesc Desc = *ExistingDesc;
+	Desc.MetaData.Reset();
+	if (!ApplyMetaJson(Desc, MetaJson))
+	{
+		return false;
+	}
+
+	EditorData->Modify();
+
+	// 덮어쓰기 경로가 기존 ID 를 보존하므로 바인딩이 유지되고, 백 교체 시 값도 ID 매칭으로 따라온다.
+	const EPropertyBagAlterationResult Result = Bag->AddProperties({Desc}, /*bOverwrite*/ true);
+	if (Result != EPropertyBagAlterationResult::Success)
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("파라미터 '%s' 메타 기입 실패(결과 코드 %d)."), *Name.ToString(), static_cast<int32>(Result)));
+		return false;
+	}
+
+	UStateTreeEditingSubsystem::MarkAsModified(StateTree);
+	return true;
+}
+
+bool UWxStateTreeToolset::RemoveRootParameter(UStateTree* StateTree, FName Name)
+{
+	UStateTreeEditorData* EditorData = GetEditorData(StateTree);
+	if (!EditorData)
+	{
+		return false;
+	}
+
+	FInstancedPropertyBag* Bag = GetMutableRootParameterBag(*EditorData);
+	if (!Bag)
+	{
+		return false;
+	}
+
+	if (!Bag->FindPropertyDescByName(Name))
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("파라미터 '%s' 가 백에 없다."), *Name.ToString()));
+		return false;
+	}
+
+	EditorData->Modify();
+	const EPropertyBagAlterationResult Result = Bag->RemovePropertyByName(Name);
+	if (Result != EPropertyBagAlterationResult::Success)
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("파라미터 '%s' 제거 실패(결과 코드 %d)."), *Name.ToString(), static_cast<int32>(Result)));
+		return false;
+	}
+
+	UStateTreeEditingSubsystem::MarkAsModified(StateTree);
+	return true;
 }
 
 bool UWxStateTreeToolset::SetRootParameterValues(UStateTree* StateTree, const FString& ValuesJson)
@@ -359,6 +497,77 @@ bool UWxStateTreeToolset::SetStateParameterValues(UStateTreeState* State, const 
 	if (UStateTree* StateTree = State->GetTypedOuter<UStateTree>())
 	{
 		UStateTreeEditingSubsystem::MarkAsModified(StateTree);
+	}
+	return true;
+}
+
+bool UWxStateTreeToolset::ClearStateParameterOverride(UStateTreeState* State, FName Name)
+{
+	if (!State)
+	{
+		UKismetSystemLibrary::RaiseScriptError(TEXT("State 가 null 이다."));
+		return false;
+	}
+
+	const FPropertyBagPropertyDesc* Desc = State->Parameters.Parameters.FindPropertyDescByName(Name);
+	if (!Desc)
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("파라미터 '%s' 가 상태에 없다."), *Name.ToString()));
+		return false;
+	}
+
+	State->Modify();
+	State->Parameters.PropertyOverrides.Remove(Desc->ID);
+	// 오버라이드가 풀린 값은 링크 재동기화가 링크 에셋 기본값으로 되돌린다.
+	State->UpdateParametersFromLinkedSubtree();
+
+	if (UStateTree* StateTree = State->GetTypedOuter<UStateTree>())
+	{
+		UStateTreeEditingSubsystem::MarkAsModified(StateTree);
+	}
+	return true;
+}
+
+bool UWxStateTreeToolset::SetReferenceStateTree(UObject* Object, FName PropertyName, UStateTree* StateTree)
+{
+	FStateTreeReference* Reference = GetMutableReference(Object, PropertyName);
+	if (!Reference)
+	{
+		return false;
+	}
+
+	Object->Modify();
+	// SetStateTree 가 파라미터 레이아웃을 에셋 기준으로 동기화한다.
+	Reference->SetStateTree(StateTree);
+	return true;
+}
+
+bool UWxStateTreeToolset::SetReferenceParameterValues(UObject* Object, FName PropertyName, const FString& ValuesJson)
+{
+	FStateTreeReference* Reference = GetMutableReference(Object, PropertyName);
+	if (!Reference)
+	{
+		return false;
+	}
+
+	const TSharedPtr<FJsonObject> Values = ParseJsonObject(ValuesJson);
+	if (!Values)
+	{
+		return false;
+	}
+
+	Object->Modify();
+	Reference->SyncParameters();
+	FInstancedPropertyBag& Bag = Reference->GetMutableParameters();
+	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : Values->Values)
+	{
+		const FPropertyBagPropertyDesc* Desc = SetBagValueFromJson(Bag, Pair.Key, Pair.Value);
+		if (!Desc)
+		{
+			return false;
+		}
+		// 오버라이드 마킹이 없으면 이후 레이아웃 동기화가 값을 에셋 기본값으로 되돌린다.
+		Reference->SetPropertyOverridden(Desc->ID, true);
 	}
 	return true;
 }
