@@ -55,6 +55,13 @@ private:
 	 */
 	void HandleGameplayEffectAppliedToSelf(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
 
+	/**
+	 * 주기형 GE가 틱을 실행한 시점에 그 틱의 대미지 플로터를 발행한다.
+	 *
+	 * 적용 훅과 같은 이유로 실행 뒤에 받는다 — 엔진이 어트리뷰트를 확정한 다음 브로드캐스트한다.
+	 */
+	void HandlePeriodicGameplayEffectExecuted(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
+
 	void HandleHitStopElapsed(TWeakObjectPtr<UAnimMontage> FrozenMontage);
 
 	FTimerHandle HitStopResumeTimer;

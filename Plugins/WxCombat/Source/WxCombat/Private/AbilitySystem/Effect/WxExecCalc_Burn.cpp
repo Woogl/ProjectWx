@@ -4,6 +4,7 @@
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystem/Effect/WxExecCalc_Damage.h"
 #include "AbilitySystemComponent.h"
+#include "Damage/WxCombatEffectContext.h"
 #include "WxGameplayTags.h"
 
 struct FWxBurnStatics
@@ -41,6 +42,18 @@ void UWxExecCalc_Burn::Execute_Implementation(const FGameplayEffectCustomExecuti
 		return;
 	}
 
+	FGameplayEffectContextHandle ContextHandle = ExecutionParams.GetOwningSpec().GetContext();
+	FGameplayEffectContext* RawContext = ContextHandle.Get();
+	FWxCombatEffectContext* CombatContext = (RawContext && RawContext->GetScriptStruct() == FWxCombatEffectContext::StaticStruct())
+		? static_cast<FWxCombatEffectContext*>(RawContext)
+		: nullptr;
+
+	// 컨텍스트가 원본 대미지 GE와 공유되고 틱마다 재사용되므로, 어느 경로로 빠져나가든 이전 판정이 남지 않게 먼저 지운다.
+	if (CombatContext)
+	{
+		CombatContext->ClearDamageResult();
+	}
+
 	// 화상은 대미지 GE의 AdditionalEffects로 붙으므로, 대미지 쪽만 막으면 아군이 지속 피해를 계속 받는다.
 	// 시전자가 사라진 뒤의 틱은 아바타가 없어 통과하므로 화상이 시전자 사망으로 멈추지는 않는다.
 	if (UWxExecCalc_Damage::CheckDamage(ExecutionParams.GetSourceAbilitySystemComponent(), TargetASC) != EWxDamageResult::Damaged)
@@ -69,13 +82,10 @@ void UWxExecCalc_Burn::Execute_Implementation(const FGameplayEffectCustomExecuti
 	}
 
 	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, TickDamage));
-	
-	FGameplayCueParameters CueParams;
-	CueParams.RawMagnitude = TickDamage;
-	if (const AActor* AvatarActor = TargetASC->GetAvatarActor())
+
+	// 화상은 크리도 경직도 없다 — 플로터 수치만 남긴다.
+	if (CombatContext)
 	{
-		CueParams.Location = AvatarActor->GetActorLocation();
+		CombatContext->SetDamaged(TickDamage, false, FGameplayTag());
 	}
-	CueParams.EffectContext = ExecutionParams.GetOwningSpec().GetEffectContext();
-	TargetASC->ExecuteGameplayCue(WxGameplayTags::GameplayCue_Damage, CueParams);
 }

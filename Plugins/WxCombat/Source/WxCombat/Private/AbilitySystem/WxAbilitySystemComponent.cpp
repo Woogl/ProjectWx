@@ -3,6 +3,7 @@
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
+#include "AbilitySystem/Effect/WxEffect_Burn.h"
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Damage/WxCombatEffectContext.h"
@@ -18,6 +19,7 @@ UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 
 	// InitAbilityActorInfo는 여러 번 불려 중복 바인딩이 되므로 생성자에서 한 번만 건다.
 	OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf);
+	OnPeriodicGameplayEffectExecuteDelegateOnSelf.AddUObject(this, &UWxAbilitySystemComponent::HandlePeriodicGameplayEffectExecuted);
 }
 
 void UWxAbilitySystemComponent::GiveAbilitySet()
@@ -247,6 +249,38 @@ void UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf(UAbilitySystem
 			ExecuteGameplayCue(WxGameplayTags::GameplayCue_Damage, CueParams);
 		}
 	}
+}
+
+void UWxAbilitySystemComponent::HandlePeriodicGameplayEffectExecuted(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle)
+{
+	// 화상 컨텍스트는 원본 대미지 GE와 공유되므로, GE 종류로 걸러야 같은 컨텍스트를 쓰는 다른 주기형 GE의 틱에 남의 판정이 새어 나간다.
+	if (!Spec.Def || !Spec.Def->IsA<UWxEffect_Burn>())
+	{
+		return;
+	}
+
+	const FGameplayEffectContextHandle ContextHandle = Spec.GetContext();
+	const FGameplayEffectContext* RawContext = ContextHandle.Get();
+	if (!RawContext || RawContext->GetScriptStruct() != FWxCombatEffectContext::StaticStruct())
+	{
+		return;
+	}
+
+	const FWxCombatEffectContext& CombatContext = static_cast<const FWxCombatEffectContext&>(*RawContext);
+	if (CombatContext.GetDamageResult() != EWxDamageResult::Damaged)
+	{
+		return;
+	}
+
+	FGameplayCueParameters CueParams;
+	CueParams.RawMagnitude = CombatContext.GetFinalDamage();
+	CueParams.EffectContext = ContextHandle;
+	if (const AActor* TargetAvatar = GetAvatarActor())
+	{
+		CueParams.Location = TargetAvatar->GetActorLocation();
+	}
+
+	ExecuteGameplayCue(WxGameplayTags::GameplayCue_Damage, CueParams);
 }
 
 void UWxAbilitySystemComponent::HandleHitStopElapsed(TWeakObjectPtr<UAnimMontage> FrozenMontage)
