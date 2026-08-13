@@ -24,6 +24,7 @@ public class WxEditor : ModuleRules
 			"SlateCore",
 			"PropertyEditor",
 			"StateTreeEditorModule",
+			"UniversalObjectLocator",
 			"UnrealEd",
 			"WxCombat",
 			"WxCore",

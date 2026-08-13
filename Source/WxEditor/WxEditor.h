@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleInterface.h"
 
+class IPropertyTypeIdentifier;
+
 class FWxEditorModule : public IModuleInterface
 {
 public:
@@ -17,4 +19,7 @@ private:
 	void HandleBeginPIE(bool bIsSimulating);
 
 	FDelegateHandle BeginPIEHandle;
+
+	/** 액터 지정 UOL 픽커의 조건부 등록 식별자. 해제 시 같은 인스턴스를 넘겨야 하므로 들고 있는다. */
+	TSharedPtr<IPropertyTypeIdentifier> ActorLocatorIdentifier;
 };
