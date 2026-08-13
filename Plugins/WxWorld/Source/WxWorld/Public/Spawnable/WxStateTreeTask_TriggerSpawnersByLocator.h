@@ -17,8 +17,8 @@ struct FWxStateTreeTask_TriggerSpawnersByLocatorInstanceData
 {
 	GENERATED_BODY()
 
-	/** 라이브 진입 시 Respawn() 을 호출할 배치 스포너 지정. 픽커는 모든 액터를 나열하고, 스포너가 아닌 액터를 고르면 ST 컴파일에서 에러가 난다(Compile 참조). */
-	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedLocators = "Actor"))
+	/** 라이브 진입 시 Respawn() 을 호출할 배치 스포너 지정. AllowedClasses 는 픽커 후보 제한이고, 우회 지정은 ST 컴파일 에러가 잡는다(Compile 참조). */
+	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedLocators = "Actor", AllowedClasses = "/Script/WxWorld.WxSpawner"))
 	TArray<FUniversalObjectLocator> Spawners;
 };
 
@@ -31,7 +31,7 @@ struct FWxStateTreeTask_TriggerSpawnersByLocatorInstanceData
  * 틱하지 않으므로 비용이 없다.
  *
  * 대상은 FUniversalObjectLocator 로 배치 액터를 직접 지정한다 — 순수 구조체라 ST 컴파일러의 레벨 액터 참조 검증에 걸리지 않고, 씬 픽커와 WP 런타임 셀·PIE 픽스업 해석이 엔진에 내장돼 있어 레벨 밖 호스트(퀘스트 ST)에서도 조립할 수 있다.
- * 하나만 쓸 자리라도 배열로 받는다 — 인스턴스 데이터의 직속 UOL 멤버는 ST 에디터가 값 위젯을 만들지 못하는 엔진(5.8) 제한에 걸리고, 배열 원소는 그렇지 않다.
+ * 배열인 것은 한 전투의 스포너가 여럿일 수 있어서다 — 단일 UOL 멤버도 같은 픽커가 뜬다.
  * 공유 에셋 하나를 여러 배치 인스턴스가 쓰는 기믹 ST 는 리터럴 지정이 불가능하므로 바인딩형 'Trigger Spawners' 를 그대로 쓴다.
  */
 USTRUCT(meta = (DisplayName = "Trigger Spawners By Locator", Category = "Wx"))

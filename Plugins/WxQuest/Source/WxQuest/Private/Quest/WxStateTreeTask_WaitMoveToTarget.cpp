@@ -20,17 +20,9 @@ EStateTreeRunStatus FWxStateTreeTask_WaitMoveToTarget::EnterState(FStateTreeExec
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	if (Instance.Targets.IsEmpty())
+	if (Instance.Target.IsEmpty())
 	{
 		UE_LOG(LogWxQuest, Warning, TEXT("Wait Move To Target: 도달을 판정할 대상이 지정되지 않음."));
-	}
-	for (const FUniversalObjectLocator& Locator : Instance.Targets)
-	{
-		if (Locator.IsEmpty())
-		{
-			UE_LOG(LogWxQuest, Warning, TEXT("Wait Move To Target: 빈 로케이터 항목이 있음(지정 %d개)."), Instance.Targets.Num());
-			break;
-		}
 	}
 
 	return EStateTreeRunStatus::Running;
@@ -53,14 +45,11 @@ EStateTreeRunStatus FWxStateTreeTask_WaitMoveToTarget::Tick(FStateTreeExecutionC
 		return EStateTreeRunStatus::Running;
 	}
 
-	// 미해석(빈 로케이터·스트리밍 아웃)인 대상은 그 자리만 판정에서 빠진다.
-	for (const FUniversalObjectLocator& Locator : Instance.Targets)
+	// 미해석(빈 로케이터·스트리밍 아웃)이면 판정하지 않고 대기한다.
+	const AActor* Target = Cast<AActor>(Instance.Target.SyncFind(Owner));
+	if (Target && FVector::Dist(Pawn->GetActorLocation(), Target->GetActorLocation()) <= Instance.AcceptRadius)
 	{
-		const AActor* Target = Cast<AActor>(Locator.SyncFind(Owner));
-		if (Target && FVector::Dist(Pawn->GetActorLocation(), Target->GetActorLocation()) <= Instance.AcceptRadius)
-		{
-			return EStateTreeRunStatus::Succeeded;
-		}
+		return EStateTreeRunStatus::Succeeded;
 	}
 
 	return EStateTreeRunStatus::Running;
@@ -72,7 +61,7 @@ FText FWxStateTreeTask_WaitMoveToTarget::GetDescription(const FGuid& ID, FStateT
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("Wait Move To Target ({0})"), GetTargetsText(InstanceData->Targets));
+	return FText::Format(INVTEXT("Wait Move To Target ({0})"), FText::FromString(GetTargetDisplayName(InstanceData->Target)));
 }
 
 FString FWxStateTreeTask_WaitMoveToTarget::GetTargetDisplayName(const FUniversalObjectLocator& Locator) const
@@ -98,27 +87,5 @@ FString FWxStateTreeTask_WaitMoveToTarget::GetTargetDisplayName(const FUniversal
 	}
 
 	return TEXT("unresolved");
-}
-
-FText FWxStateTreeTask_WaitMoveToTarget::GetTargetsText(const TArray<FUniversalObjectLocator>& Targets) const
-{
-	if (Targets.IsEmpty())
-	{
-		return INVTEXT("none");
-	}
-
-	constexpr int32 MaxNames = 3;
-	TArray<FString> Names;
-	for (int32 Index = 0; Index < Targets.Num() && Index < MaxNames; ++Index)
-	{
-		Names.Add(GetTargetDisplayName(Targets[Index]));
-	}
-
-	FString Joined = FString::Join(Names, TEXT(", "));
-	if (Targets.Num() > MaxNames)
-	{
-		Joined += FString::Printf(TEXT(" +%d"), Targets.Num() - MaxNames);
-	}
-	return FText::FromString(Joined);
 }
 #endif

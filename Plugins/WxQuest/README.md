@@ -35,7 +35,7 @@
 - **저널 표시 규약**: 제목은 진행이 시작되는 상태에 한 번만(`SetQuestTitle`), 목표는 그 상태의 자식들이 각자 `SetQuestObjective` 로 건다. 병렬 상태가 없어도 부모·자식이 각각 걸면 다중 목표가 동시에 표시된다.
 - **완료 판정 함정**: `SetQuestTitle`/`SetQuestObjective` 는 상태에 머무는 Running 태스크이며, 실제 상태 완료는 짝이 되는 대기 태스크(`WaitMoveToTarget` 등)가 낸다. `SetQuestObjective` 는 `bConsideredForCompletion=false` 라 오조립 시에도 트리 진행을 막지 않고 경고 로그만 남긴다.
 - **새 목표 조건 태스크 추가**: `FStateTreeTaskCommonBase` 를 상속해 `EnterState`/`Tick` 에서 조건을 판정, 컨텍스트 오너(GameState)에서 `UWxQuestComponent` 를 찾아 위임하는 패턴을 따른다(`WaitMoveToTarget` 참고).
-- **레벨 참조는 UOL 로**: 배치 액터 지정은 `FUniversalObjectLocator`(순수 구조체) 배열을 쓴다 — ST 컴파일러의 레벨 액터 참조 검증을 우회하고 WP/PIE 해석이 내장된다. 5.8 에디터 제한으로 단일 대상도 배열로 받는다.
+- **레벨 참조는 UOL 로**: 배치 액터 지정은 `FUniversalObjectLocator`(순수 구조체)를 쓴다 — ST 컴파일러의 레벨 액터 참조 검증을 우회하고 WP/PIE 해석이 내장된다. 단일 멤버와 배열 모두 `WxEditor` 의 한 줄 액터 픽커가 뜨므로, 대상 수는 의미대로 고른다(이동 목표는 단일, 스포너 목록은 배열).
 - **권위 전제**: 러너는 권위(싱글/리슨 호스트)에만 존재한다. 비-권위 GameState 에도 컴포넌트 사본이 붙으므로 러너를 권위에서만 띄우는 것이 컴포넌트 책임이다. 태스크의 0번 컨트롤러 사용도 v1 싱글/리슨 호스트 전제.
 
 ## 여기서부터 읽어라
