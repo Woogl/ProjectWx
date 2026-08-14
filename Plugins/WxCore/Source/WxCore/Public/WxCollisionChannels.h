@@ -5,7 +5,6 @@
 #include "Engine/EngineTypes.h"
 
 /**
- * 프로젝트 커스텀 콜리전 채널 정의.
  * DefaultEngine.ini의 채널 등록 순서와 일치해야 한다.
  *
  * ECC_WxAttack: 무기·투사체 히트박스의 Object Type으로 사용하는 Object Channel.
