@@ -21,3 +21,8 @@ UWxEffect_Guard::UWxEffect_Guard()
 	AssetTagsComp->SetAndApplyAssetTagChanges(AssetTags);
 	GEComponents.Add(AssetTagsComp);
 }
+
+float UWxEffect_Guard::GetDamageReductionRate()
+{
+	return GetDefault<UWxEffect_Guard>()->DamageReductionRate;
+}

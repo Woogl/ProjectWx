@@ -42,11 +42,6 @@ void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, co
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
-float UWxAbility_Guard::GetDamageReductionRate() const
-{
-	return DamageReductionRate;
-}
-
 float UWxAbility_Guard::GetMontagePlayRate() const
 {
 	return 1.f;

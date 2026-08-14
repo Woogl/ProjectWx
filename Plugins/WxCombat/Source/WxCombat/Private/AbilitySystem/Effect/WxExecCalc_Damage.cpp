@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Effect/WxExecCalc_Damage.h"
-#include "AbilitySystem/Ability/WxAbility_Guard.h"
+#include "AbilitySystem/Effect/WxEffect_Guard.h"
 #include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
@@ -107,21 +107,9 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		return;
 	}
 
-	// 가드 감소율은 발동 중인 Guard 어빌리티 인스턴스가 들고 있다.
 	if (!bIsUnblockable && bIsGuarding)
 	{
-		for (const FGameplayAbilitySpec& Spec : TargetASC->GetActivatableAbilities())
-		{
-			if (!Spec.IsActive())
-			{
-				continue;
-			}
-			if (const UWxAbility_Guard* Guard = Cast<UWxAbility_Guard>(Spec.GetPrimaryInstance()))
-			{
-				DamageResult.FinalDamage *= Guard->GetDamageReductionRate();
-				break;
-			}
-		}
+		DamageResult.FinalDamage *= UWxEffect_Guard::GetDamageReductionRate();
 	}
 
 	if (DamageResult.FinalDamage <= 0.f)

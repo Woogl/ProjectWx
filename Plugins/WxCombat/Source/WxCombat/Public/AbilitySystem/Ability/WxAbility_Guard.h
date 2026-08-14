@@ -33,8 +33,6 @@ public:
 
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
-	float GetDamageReductionRate() const;
-
 	/** 페이즈 몽타주는 길이가 곧 연출 규칙이므로 ASPD를 반영하지 않는다. */
 	virtual float GetMontagePlayRate() const override;
 
@@ -62,10 +60,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> PerfectGuardMontage;
-
-	/** 가드 중 받는 대미지 배율(0~1). 0.5면 50% 감소. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|PerfectGuard", meta = (ClampMin = "0", ClampMax = "1"))
-	float DamageReductionRate = 0.5f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|PerfectGuard")
 	float PerfectGuardMPRecovery = 5.f;
