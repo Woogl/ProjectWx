@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "WxCombatLibrary.h"
-#include "AbilitySystem/Effect/WxExecCalc_Damage.h"
+#include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
