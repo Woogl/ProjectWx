@@ -92,18 +92,8 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	// 어빌리티가 무적 구간 도중 취소되면 태그 해제 콜백을 받지 못하므로 여기서 비활성화한다.
+	// 무적 태그 자체는 ANS가 건 지속시간 GE라 회피가 끊겨도 스스로 만료된다.
 	DeactivateJudgementCapsule();
-
-	// 취소로 ANS_Invincible의 NotifyEnd가 스킵되면 State.Invincible이 잔존해 영구 무적이 된다.
-	// 이 태그는 ANS_Invincible만 부여하므로 이 시점의 잔존분은 회피가 흘린 것이다.
-	if (ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
-	{
-		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-		if (ASC->HasMatchingGameplayTag(WxGameplayTags::State_Invincible))
-		{
-			ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Invincible);
-		}
-	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
@@ -259,14 +249,14 @@ void UWxAbility_Dodge::ListenForInvincibleWindow()
 {
 	// 무적 태그는 ANS_Invincible이 발행하고, 여기서는 관찰만 해 판정 캡슐의 수명을 태그에 맞춘다.
 	// 두 태스크 모두 재무장하므로 PerfectDodgeMontage에 무적 구간이 또 있어도 그대로 처리된다.
-	UAbilityTask_WaitGameplayTagAdded* AddedTask = UAbilityTask_WaitGameplayTagAdded::WaitGameplayTagAdd(this, WxGameplayTags::State_Invincible, nullptr, false);
+	UAbilityTask_WaitGameplayTagAdded* AddedTask = UAbilityTask_WaitGameplayTagAdded::WaitGameplayTagAdd(this, WxGameplayTags::Effect_Invincible, nullptr, false);
 	if (AddedTask)
 	{
 		AddedTask->Added.AddDynamic(this, &UWxAbility_Dodge::HandleInvincibleTagAdded);
 		AddedTask->ReadyForActivation();
 	}
 
-	UAbilityTask_WaitGameplayTagRemoved* RemovedTask = UAbilityTask_WaitGameplayTagRemoved::WaitGameplayTagRemove(this, WxGameplayTags::State_Invincible, nullptr, false);
+	UAbilityTask_WaitGameplayTagRemoved* RemovedTask = UAbilityTask_WaitGameplayTagRemoved::WaitGameplayTagRemove(this, WxGameplayTags::Effect_Invincible, nullptr, false);
 	if (RemovedTask)
 	{
 		RemovedTask->Removed.AddDynamic(this, &UWxAbility_Dodge::HandleInvincibleTagRemoved);

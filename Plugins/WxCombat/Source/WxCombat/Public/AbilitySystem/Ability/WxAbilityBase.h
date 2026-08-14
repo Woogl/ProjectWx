@@ -55,6 +55,19 @@ public:
 	FDataTableRowHandle AbilityDataRow;
 
 	/**
+	 * 활성 구간 동안 소유자에게 유지되는 효과. ActivationOwnedTags의 GE판으로, 활성화에서 걸고 종료에서 걷는다.
+	 * 수명이 어빌리티에 묶이므로 각 GE는 지속시간을 두지 않는다(Infinite).
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
+	TArray<TSubclassOf<UGameplayEffect>> ActivationOwnedEffects;
+
+	/**
+	 * 활성 구간이 끝나기 전에 특정 효과만 먼저 걷는다(가드 브레이크 등).
+	 * 엔진이 제거를 권위로 게이팅하므로 서버에서만 실제로 벗겨지고, 클라는 복제로 받는다.
+	 */
+	void RemoveActivationOwnedEffect(TSubclassOf<UGameplayEffect> EffectClass) const;
+
+	/**
 	 * UI 표시 아이콘(텍스처 또는 머터리얼)의 소프트 참조.
 	 * 로드하지 않으므로 소비자가 비동기로 로드한다.
 	 */
@@ -96,6 +109,10 @@ public:
 	 * 출력 인자는 가장 늦게 만료되는 GE 기준이다.
 	 */
 	int32 QueryActiveCooldowns(const UAbilitySystemComponent& ASC, float& OutLongestRemaining, float& OutLongestDuration) const;
+
+protected:
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 private:
 	const FWxAbilityTableRow* GetTableRow() const;

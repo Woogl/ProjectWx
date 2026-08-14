@@ -72,6 +72,46 @@ void UWxAbilityBase::SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileCl
 	Avatar->GetWorld()->SpawnActor<AWxProjectileBase>(ProjectileClass, SpawnTransform, SpawnParams);
 }
 
+void UWxAbilityBase::RemoveActivationOwnedEffect(TSubclassOf<UGameplayEffect> EffectClass) const
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (!ASC || !EffectClass)
+	{
+		return;
+	}
+
+	// 예측으로 건 GE의 핸들은 서버본이 도착하면 무효해지므로 들고 있어도 쓸 수 없다.
+	// 정의로 찾으면 그 문제가 없고, 부여 태그로 찾는 것과 달리 같은 태그를 발행하는 다른 GE를 건드리지 않는다.
+	FGameplayEffectQuery Query;
+	Query.EffectDefinition = EffectClass;
+	ASC->RemoveActiveEffects(Query);
+}
+
+void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+{
+	// 구체 어빌리티가 Super를 먼저 부르므로, 커밋 실패로 곧장 종료하는 경우엔 EndAbility가 같은 프레임에 다시 걷는다.
+	for (const TSubclassOf<UGameplayEffect>& EffectClass : ActivationOwnedEffects)
+	{
+		if (EffectClass)
+		{
+			ApplyGameplayEffectToOwner(Handle, ActorInfo, ActivationInfo, EffectClass.GetDefaultObject(), GetAbilityLevel());
+		}
+	}
+
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+}
+
+void UWxAbilityBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	// 캔슬·중단도 이 경로를 지나므로 효과가 새지 않는다. 활성 중에 이미 걷힌 것은 조회에 걸리지 않아 무해하다.
+	for (const TSubclassOf<UGameplayEffect>& EffectClass : ActivationOwnedEffects)
+	{
+		RemoveActivationOwnedEffect(EffectClass);
+	}
+
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
 void UWxAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
 	Super::OnGiveAbility(ActorInfo, Spec);

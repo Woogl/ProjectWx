@@ -9,41 +9,27 @@
  * 태그 추가 시 이 파일과 WxGameplayTags.cpp에만 작성.
  *
  * 네이밍: 점(.) 구분자를 언더스코어(_)로 치환하여 변수명 사용.
- * 예) "State.Guard" → State_Guard
+ * 예) "Effect.Guard" → Effect_Guard
  *
- * 어빌리티 태그 규칙:
+ * 어빌리티·이펙트 태그 규칙:
  * 1. 어빌리티는 자신을 가리키는 식별 태그 Ability.X를 정확히 하나 갖고, AssetTags와 ActivationOwnedTags 양쪽에 넣는다. 곧 "Ability.X = 그 어빌리티가 지금 돌고 있다"가 성립한다.
  * 2. 분류 마커(Ability.Exclusive)는 AssetTags에만 넣는다. 후딜 진입(StartRecovery)이 차단만 풀고 ActivationOwnedTags는 EndAbility까지 남으므로, owner로 올리면 두 진실이 어긋난다.
  * 3. State.X는 어빌리티 활성과 어긋날 수 있는 조건에만 쓴다. 활성과 1:1인 State는 만들지 않는다.
- * 4. 네임스페이스는 발행 주체가 아니라 의미가 정한다. 어빌리티·ANS·GE 중 무엇이 부여하든 조건이면 State.X다.
+ * 4. 조건 태그의 네임스페이스는 그 조건의 수명을 누가 쥐느냐가 가른다. GE가 쥐면 Effect.X, 코드가 루스 태그·ActivationOwnedTags로 직접 켜고 끄면 State.X다.
+ *    여러 발행자가 같은 조건을 얹는 것은 무방하다 — Effect.Invincible은 노티파이·컷신이 구간 길이만큼, 처형이 활성 구간만큼 각각 건다.
+ *    어빌리티 활성 구간에 묶이는 효과는 어빌리티가 직접 걸고 걷지 말고 WxAbilityBase의 ActivationOwnedEffects에 등록한다.
+ * 5. GE도 어빌리티와 같이 자기가 부여하는 Effect.X를 애셋 태그에 함께 넣는다. 부여 태그가 억제로 사라져도 GE 자체를 태그로 조회·제거할 수 있다.
+ * 6. Event.X는 조건이 아니라 사건이다. 대개 SendGameplayEventToActor로 그 순간에만 전달되지만,
+ *    어빌리티 인스턴스가 없는 머신(시뮬 프록시·late joiner)까지 닿아야 하는 사건은 복제 루스 태그로 래치한다(Event.Ragdoll).
+ *    래치된 것도 조건은 아니므로 소유 여부가 아니라 0→1 전이만 소비한다.
  */
 namespace WxGameplayTags
 {
-	// ── State ──────────────────────────────────────────────────────────────
-
-	/** 래그돌 상태. 사망 어빌리티가 서버에서 부여하며, 전 머신의 캐릭터가 감지해 물리 전환. 해제 없이 시체에 유지 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Ragdoll);
-
 	/** 락온 피대상 표시. 로컬 플레이어가 이 액터를 락온 중일 때 로컬로만 부여(복제 안 함). 네임플레이트 표시 조건으로 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_LockedOn);
 
 	/** 전투 상태. 적 AI가 플레이어를 인식하면 서버에서 부여, 추적 종료 시 제거. 네임플레이트 표시 조건으로 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_InCombat);
-
-	/** 무적 상태. WxAnimNotifyState_Invincible이 부여/제거 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Invincible);
-
-	/** 방어 유효 상태. 가드 어빌리티가 활성 중 부여하되, SP 고갈로 가드가 깨지면 어빌리티가 도는 중에도 뗀다 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Guard);
-
-	/** 탈진 상태. SP를 소모하면 WxEffect_Exhaust가 일정 시간 부여한다. SP 자연 회복의 억제 조건 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Exhausted);
-
-	/** 퍼펙트 가드 판정 구간. ANS_PerfectGuard가 부여/제거 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_PerfectGuard);
-
-	/** 슈퍼 아머 상태. 소유 중인 어빌리티는 HitReact로 캔슬되지 않음 (HitReact의 ActivationBlockedTags) */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_SuperArmor);
 
 	/** 처형(앞잡·뒤잡) 피대상 표시. 연출 동안 WxAbility_Finisher가 대상 ASC에 권위 발행하며, 대상이 이 태그로 자기 처형 어포던스를 닫는다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_BeingFinished);
@@ -54,15 +40,28 @@ namespace WxGameplayTags
 	/** 대화 세션 진행 상태. 대화 세션 컴포넌트가 시작·종료에 맞춰 폰 ASC에 loose 태그로 발행. WxAbility_Interact가 ActivationBlockedTags로 사용해 대화 중 프롬프트 표시·상호작용을 닫는다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dialogue);
 
-	// ── Movement ──────────────────────────────────────────────────────────
+	// GE가 부여하는 조건 태그. 각 GE가 같은 태그를 애셋 태그로도 갖는다.
+
+	/** 무적 상태. WxEffect_Invincible이 부여하며, 노티파이·컷신은 구간 길이를 스펙에 실어 스스로 만료되게 하고 처형은 활성 구간에 묶는다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Invincible);
+
+	/** 방어 유효 상태. 가드 어빌리티가 WxEffect_Guard로 부여하되, SP 고갈로 가드가 깨지면 어빌리티가 도는 중에도 뗀다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Guard);
+
+	/** 퍼펙트 가드 판정 구간. WxAnimNotifyState_PerfectGuard가 WxEffect_PerfectGuard로 구간 길이만큼 부여한다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_PerfectGuard);
+
+	/** 탈진 상태. SP를 소모하면 WxEffect_Exhaust가 일정 시간 부여한다. SP 자연 회복의 억제 조건 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Exhausted);
+
+	/** 슈퍼 아머 상태. 궁극기가 WxEffect_SuperArmor로 활성 구간만큼 부여한다. 대미지는 그대로 들어오고 경직(HitReact)만 막힌다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_SuperArmor);
 
 	/** 공중 체공 상태. WxCharacterMovementComponent가 낙하 모드 진입·이탈에 맞춰 각 머신에서 부여/제거. 점프 공격의 콤보 세트 진입 조건 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_InAir);
 	
 	/** 질주 상태. WxAbility_Sprint가 활성 중 실제로 이동할 때만 부여. SP 소모 GE의 발동 조건이자 SP 자연 회복의 억제 조건 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Sprint);
-
-	// ── Event ─────────────────────────────────────────────────────────────
 
 	/** 피격 이벤트 부모 카테고리. ExecCalc 필터링용이자 HitReact·Guard 어빌리티가 자식 태그를 모두 수신하기 위해 구독하는 태그 (직접 dispatch 금지 — 자식 없이 오면 일반 피격으로 폴백된다) */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact);
@@ -88,7 +87,7 @@ namespace WxGameplayTags
 	/** 백스탭(뒤잡) 짝 피격 이벤트. 백스탭 대상 적에게 송출, HitReact 어빌리티가 BackstabHitReactMontage 재생 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Backstab);
 
-	/** 회피 성공 시 발생하는 이벤트. 무적 구간에서 대미지를 회피했을 때 발송 */
+	/** 무적 구간에서 대미지를 회피했을 때 발송 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_DodgeSuccess);
 
 	/** 퍼펙트 가드 성공 시 발생하는 이벤트. Guard 어빌리티가 MP 회복·슬로우 타임·퍼펙트 가드 몽타주를 처리 */
@@ -112,11 +111,14 @@ namespace WxGameplayTags
 	/** 그로기 발동 이벤트. DP가 MaxDP에 닿을 때 AttributeSet이 송출, WxAbility_Groggy가 트리거 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Groggy);
 
-	// ── Gimmick ───────────────────────────────────────────────────────────
-	// 각 태그는 ST 에셋의 상태에 붙는 라벨(상태 디테일의 Tag 필드)이며, 그 값이 곧
-	// 세이브 슬롯에 담기는 기믹의 상태다. 코드가 읽거나 쓰는 값이 아니다.
-	//
-	// 코드가 안 읽어도 태그는 여기서만 만든다 — 신규 기믹의 상태 이름도 이 파일에 추가한다.
+	/**
+	 * 래그돌 전환 사건. 사망 어빌리티가 물리 전환 시점에 서버에서 루스 태그로 발행하고(TagOnly 복제), 전 머신의 캐릭터가 전이를 보고 스스로 전환한다.
+	 * 늦게 관측하는 머신이 시체를 선 채로 보지 않도록 해제 없이 남는다. 사망 몽타주가 정상 완료되면 발행되지 않으므로 사망 상태(Ability.Death)와 같지 않다.
+	 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Ragdoll);
+
+	// 각 태그는 ST 에셋의 상태에 붙는 라벨(상태 디테일의 Tag 필드)이며, 그 값이 곧 세이브 슬롯에 담기는 기믹의 상태다.
+	// 코드가 읽거나 쓰는 값은 아니지만 태그는 여기서만 만든다 — 신규 기믹의 상태 이름도 이 파일에 추가한다.
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_Door_Close);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_Door_Open);
@@ -131,8 +133,6 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_CheckPoint_Unlit);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gimmick_CheckPoint_Lit);
 
-	// ── GameplayCue ──────────────────────────────────────────────────────
-
 	/** 데미지 플로터 Cue. 수치·크리 여부가 서버 판정이라 대미지 확정 후 서버가 발행 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Damage);
 
@@ -145,7 +145,6 @@ namespace WxGameplayTags
 	/** Exceed 버프 지속 Cue. 활성 동안 캐릭터의 무기에 Niagara 이펙트를 부착 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Exceed);
 
-	/** 화상 지속 Cue */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Burn);
 
 	/** 공격 텔레그래프(선딜 표시) Cue. 색상별로 나뉘며, 순정 GameplayCue (Looping) 노티파이가 몽타주 구간에서 로컬 발행 */
@@ -154,9 +153,6 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_AttackTelegraph_Blue);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_AttackTelegraph_Purple);
 
-	// ── Damage ────────────────────────────────────────────────────────────
-
-	/** 치명타 판정 결과 태그 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Critical);
 
 	/** 치명타 허용 공격 태그. 붙어 있지 않으면 치명타 판정 자체를 건너뛴다 */
@@ -167,8 +163,6 @@ namespace WxGameplayTags
 
 	/** 패리 피격 유발 공격 태그. 이 공격이 퍼펙트 가드로 막히면 공격자에게 Event.HitReact.Parry 송출 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_ParryHitReact);
-
-	// ── Ability ───────────────────────────────────────────────────────────
 
 	/**
 	 * 어빌리티 식별 태그의 루트. 차단·캔슬은 이 루트가 아니라 Ability.Exclusive 만 지목한다.
@@ -186,6 +180,8 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Exclusive);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Light);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Heavy);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Dodge);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Sprint);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Guard);
@@ -199,16 +195,8 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_UseItem);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_HitReact);
-
-	/** 그로기 상태를 겸한다 — DP가 MaxDP에 닿아 발동하고 DP가 0이 되면 어빌리티가 스스로 끝난다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Groggy);
-
-	/**
-	 * 사망 상태를 겸한다 — 사망 어빌리티는 종료하지 않으므로 이 태그가 시체에 그대로 남는다.
-	 * 사망 판정(어빌리티 차단·피해 차단·락온 제외·AI 추적 중단 등) 전부가 이 수명에 기대므로 어빌리티를 끝내면 안 된다.
-	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Death);
-
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Finisher);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_LockOn);
 
@@ -222,8 +210,6 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_7);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_8);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_9);
-
-	// ── SetByCaller ──────────────────────────────────────────────────────
 
 	/** 지속시간 Duration SetByCaller 키. NoCooldown/InfiniteMP/DrainDP 등 Duration 모디파이어에서 공용으로 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Duration);
@@ -242,8 +228,6 @@ namespace WxGameplayTags
 
 	/** 이동 속도 배율 SetByCaller 키. WxEffect_MoveSpeedScale이 SPD 어트리뷰트에 곱하는 배율 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_MoveSpeedScale);
-
-	// ── UI ────────────────────────────────────────────────────────────────
 
 	/** HUD 레이어 (플레이어 체력 바 등) */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_Game);

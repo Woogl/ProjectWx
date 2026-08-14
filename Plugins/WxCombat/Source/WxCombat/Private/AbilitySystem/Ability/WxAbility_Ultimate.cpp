@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Ultimate.h"
+#include "AbilitySystem/Effect/WxEffect_SuperArmor.h"
 #include "AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Engine/AssetManager.h"
@@ -18,7 +19,7 @@ UWxAbility_Ultimate::UWxAbility_Ultimate()
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Ultimate);
-	ActivationOwnedTags.AddTag(WxGameplayTags::State_SuperArmor);
+	ActivationOwnedEffects.Add(UWxEffect_SuperArmor::StaticClass());
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Groggy);
 }

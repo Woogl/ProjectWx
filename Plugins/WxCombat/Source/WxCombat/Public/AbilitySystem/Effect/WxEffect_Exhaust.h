@@ -9,7 +9,7 @@
 class UAbilitySystemComponent;
 
 /**
- * 지속시간 동안 State.Exhausted를 부여해 SP 자연 회복을 멈춘다. 지속시간은 호출자가 정한다.
+ * 지속시간 동안 Effect.Exhausted를 부여해 SP 자연 회복을 멈춘다. 지속시간은 호출자가 정한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxEffect_Exhaust : public UGameplayEffect

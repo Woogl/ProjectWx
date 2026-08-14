@@ -26,9 +26,9 @@ enum class EWxDodgeDirection : uint8
 };
 
 /**
- * 입력 방향에 해당하는 8방향 섹션(이동 입력이 없으면 BackstepMontage)을 재생하고, 몽타주의 State.Invincible 구간에 피격되면 극한 회피로 이어진다.
+ * 입력 방향에 해당하는 8방향 섹션(이동 입력이 없으면 BackstepMontage)을 재생하고, 몽타주의 Effect.Invincible 구간에 피격되면 극한 회피로 이어진다.
  *
- * 회피 반격은 여기서 다루지 않는다 — State.Dodge만 발행하면 공격 어빌리티가 그 태그로 자기 반격 세트를 고른다.
+ * 회피 반격은 여기서 다루지 않는다 — Ability.Dodge만 발행하면 공격 어빌리티가 그 태그로 자기 반격 세트를 고른다.
  * 진입 시점은 회피 몽타주의 StartRecovery가 차단을 푸는 때다.
  *
  * 극한 회피 판정은 몸통 캡슐을 그대로 둔 채 판정 캡슐이 "피하지 않았다면 맞았을 자리"를 추가로 덮는 방식이다.

@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/Ability/WxAbility_Finisher.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "AbilitySystem/Effect/WxEffect_Invincible.h"
 #include "AbilitySystem/Effect/WxEffect_ResetDP.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
@@ -32,7 +33,7 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
-	ActivationOwnedTags.AddTag(WxGameplayTags::State_Invincible);
+	ActivationOwnedEffects.Add(UWxEffect_Invincible::StaticClass());
 
 	// 상호작용이 이 태그에 막혀, 연출 도중 재입력으로 다른 대상과 몽타주가 겹치는 것을 차단한다.
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Finisher);

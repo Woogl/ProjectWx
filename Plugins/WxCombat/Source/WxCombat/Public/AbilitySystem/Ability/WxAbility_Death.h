@@ -16,7 +16,7 @@ class UAnimMontage;
  * 어빌리티 차단·피해 차단·락온 제외·AI 추적 중단이 전부 그 태그에 걸려 있다. 시체는 액터가 파괴될 때 ASC가 정리한다.
  *
  * 래그돌은 어빌리티 인스턴스가 없는 시뮬 프록시·late joiner도 커버해야 한다.
- * 그래서 서버가 State.Ragdoll 루스 태그만 발행(TagOnly 복제)하고, 전 머신의 캐릭터가 그 태그를 보고 스스로 전환한다.
+ * 그래서 서버가 Event.Ragdoll 루스 태그만 발행(TagOnly 복제)하고, 전 머신의 캐릭터가 그 태그를 보고 스스로 전환한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAbility_Death : public UWxAbilityBase

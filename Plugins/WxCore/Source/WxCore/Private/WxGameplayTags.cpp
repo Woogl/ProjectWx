@@ -4,17 +4,17 @@
 
 namespace WxGameplayTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(State_Ragdoll, "State.Ragdoll");
 	UE_DEFINE_GAMEPLAY_TAG(State_LockedOn, "State.LockedOn");
 	UE_DEFINE_GAMEPLAY_TAG(State_InCombat, "State.InCombat");
-	UE_DEFINE_GAMEPLAY_TAG(State_Invincible, "State.Invincible");
-	UE_DEFINE_GAMEPLAY_TAG(State_Guard, "State.Guard");
-	UE_DEFINE_GAMEPLAY_TAG(State_Exhausted, "State.Exhausted");
-	UE_DEFINE_GAMEPLAY_TAG(State_PerfectGuard, "State.PerfectGuard");
-	UE_DEFINE_GAMEPLAY_TAG(State_SuperArmor, "State.SuperArmor");
 	UE_DEFINE_GAMEPLAY_TAG(State_BeingFinished, "State.BeingFinished");
 	UE_DEFINE_GAMEPLAY_TAG(State_ComboWindow, "State.ComboWindow");
 	UE_DEFINE_GAMEPLAY_TAG(State_Dialogue, "State.Dialogue");
+
+	UE_DEFINE_GAMEPLAY_TAG(Effect_Invincible, "Effect.Invincible");
+	UE_DEFINE_GAMEPLAY_TAG(Effect_Guard, "Effect.Guard");
+	UE_DEFINE_GAMEPLAY_TAG(Effect_PerfectGuard, "Effect.PerfectGuard");
+	UE_DEFINE_GAMEPLAY_TAG(Effect_Exhausted, "Effect.Exhausted");
+	UE_DEFINE_GAMEPLAY_TAG(Effect_SuperArmor, "Effect.SuperArmor");
 
 	UE_DEFINE_GAMEPLAY_TAG(Movement_InAir, "Movement.InAir");
 	UE_DEFINE_GAMEPLAY_TAG(Movement_Sprint, "Movement.Sprint");
@@ -35,6 +35,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_Backstab, "Event.Backstab");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Death, "Event.Death");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Groggy, "Event.Groggy");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Ragdoll, "Event.Ragdoll");
 
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Door_Close, "Gimmick.Door.Close");
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Door_Open, "Gimmick.Door.Open");
@@ -67,6 +68,8 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability, "Ability");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Exclusive, "Ability.Exclusive");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack, "Ability.Attack");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_Light, "Ability.Attack.Light");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_Heavy, "Ability.Attack.Heavy");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Dodge, "Ability.Dodge");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Sprint, "Ability.Sprint");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Guard, "Ability.Guard");

@@ -83,8 +83,8 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	const bool bIsUnblockable = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable);
 	const bool bCanCritical = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanCritical);
-	const bool bHasPerfectGuard = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_PerfectGuard);
-	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard);
+	const bool bHasPerfectGuard = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_PerfectGuard);
+	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_Guard);
 	const bool bIsGroggy = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy);
 
 	const bool bPerfectGuardApplied = bHasPerfectGuard && !bIsUnblockable;
@@ -177,7 +177,7 @@ EWxDamageResult UWxExecCalc_Damage::CheckDamage(const UAbilitySystemComponent* S
 		}
 	}
 
-	if (Target->HasMatchingGameplayTag(WxGameplayTags::State_Invincible))
+	if (Target->HasMatchingGameplayTag(WxGameplayTags::Effect_Invincible))
 	{
 		return EWxDamageResult::Evaded;
 	}
@@ -262,7 +262,7 @@ FGameplayTag UWxExecCalc_Damage::ResolveHitReaction(const FGameplayEffectCustomE
 
 	const FWxDamageStatics& Statics = GetDamageStatics();
 	const bool bIsUnblockable = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable);
-	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard);
+	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_Guard);
 	const bool bGuardHit = bIsGuarding && !bIsUnblockable;
 	const bool bIsGroggy = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy);
 

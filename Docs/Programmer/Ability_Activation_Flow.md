@@ -93,7 +93,8 @@ flowchart TD
 
 **1. 활성화 게이트 (`CanActivateAbility`, 엔진)** — Spec/태그/`CanActivate` 조건을 본다. Base는 다음 태그 컨테이너로 거른다(각 구체 어빌리티 생성자에서 설정):
 - `ActivationBlockedTags` — 이 태그가 소유돼 있으면 활성화 거부. 거의 모든 어빌리티가 `Ability.Death`를 넣는다.
-- `ActivationOwnedTags` — 활성 동안 소유자에게 부여되는 태그. **모든 어빌리티가 자기 식별 태그(`Ability.X`)를 여기 넣는다** — 곧 「`Ability.X`가 소유돼 있다 = 그 어빌리티가 지금 돌고 있다」가 성립한다. 분류 마커 `Ability.Exclusive`는 넣지 않는다(후딜 진입이 차단만 풀고 이 컨테이너는 `EndAbility`까지 남아 두 진실이 어긋난다). 어빌리티 활성과 어긋날 수 있는 조건만 `State.X`로 따로 발행한다(궁극의 `State.SuperArmor`, 처형의 `State.Invincible` 등).
+- `ActivationOwnedTags` — 활성 동안 소유자에게 부여되는 태그. **모든 어빌리티가 자기 식별 태그(`Ability.X`)를 여기 넣는다** — 곧 「`Ability.X`가 소유돼 있다 = 그 어빌리티가 지금 돌고 있다」가 성립한다. 분류 마커 `Ability.Exclusive`는 넣지 않는다(후딜 진입이 차단만 풀고 이 컨테이너는 `EndAbility`까지 남아 두 진실이 어긋난다). 조건 태그는 여기 넣지 않는다 — 활성 구간에 묶이는 조건은 아래 `ActivationOwnedEffects`가 GE로 발행한다.
+- `ActivationOwnedEffects` — 활성 동안 소유자에게 유지되는 GE 목록. Base가 `ActivateAbility`에서 걸고 `EndAbility`에서 걷으므로 구체 어빌리티는 클래스만 나열한다. 가드(`Effect.Guard`)·궁극(`Effect.SuperArmor`)·처형(`Effect.Invincible`)이 쓴다. 제거는 부여 태그가 아니라 GE 정의로 조회하므로 같은 태그를 발행하는 다른 GE를 건드리지 않는다(같은 GE를 구간 길이로 건 노티파이 인스턴스는 함께 걷히지만, 자기 연출의 잔여 구간을 정리하는 방향이라 무해하다). 구간 도중에 조건만 먼저 떼야 하면 `RemoveActivationOwnedEffect()`를 쓴다(가드 브레이크가 유일한 사례 — 브레이크 연출은 완주해야 하므로 어빌리티는 살려 두고 방어 판정만 걷는다).
 - `BlockAbilitiesWithTag` / `CancelAbilitiesWithTag` — 활성 동안 다른 어빌리티를 하드 차단/캔슬. **기본은 `Ability.Exclusive` 하나만 지목한다.** 이 태그는 「액션 슬롯을 점유한다」는 표식이고, 붙은 어빌리티끼리만 서로 막고 끊으므로 어빌리티가 서로를 이름으로 지목하지 않는다. 공격·스킬·회피·가드·궁극·아이템·스프린트·상호작용·AI 패턴이 표식을 갖고, 반응·상태형(피격·그로기·사망·처형·락온)은 갖지 않아 무엇에도 막히거나 끊기지 않는다. 루트 `Ability`는 식별 태그의 부모일 뿐 차단·캔슬에 쓰이지 않는다. **예외는 피격의 캔슬 하나뿐이다** — 마커로 끊으면 마커를 가진 적 패턴이 평타 피격에 중단되므로, 피격만 `Ability.Attack`\`Ability.Skill`을 좁게 지목해 플레이어 액션만 끊는다(차단은 마커 그대로). 캐릭터별 차이는 규칙의 예외가 아니라 BP 데이터로 표현한다 — `GA_HitReact_Custer`는 두 컨테이너가 비어 있어 피격에도 패턴이 이어진다.
 
 **2. 커밋 (`CommitAbility` → CheckCost/CheckCooldown → ApplyCost/ApplyCooldown)** — Base가 4개 함수를 모두 오버라이드한다. 핵심은 **공용 GE를 CDO 단위로 구분**하는 설계:
@@ -103,11 +104,11 @@ flowchart TD
 
 > 커밋은 각 구체 어빌리티의 `ActivateAbility`에서 명시 호출하는 패턴이다(예: `WxAbility_Attack`은 `if (!CommitAbility(...)) { EndAbility(...); return; }`). 실패 시 즉시 종료. 콤보는 단계마다 재발동되므로 단계마다 커밋이 새로 걸린다.
 
-**3. 활성화 본체 (`ActivateAbility`)** — Base는 오버라이드하지 않는다. 구체 어빌리티가 `Super::ActivateAbility`(엔진 순정, BP 이벤트 포함) 위에 몽타주 재생/입력 대기/이벤트 구독을 얹고, 발동 시 걸 버프 GE가 있으면 그 어빌리티가 자기 멤버로 들고 직접 적용한다(예: `UWxAbility_Sprint`의 `SprintEffectClass`).
+**3. 활성화 본체 (`ActivateAbility`)** — Base는 `ActivationOwnedEffects`를 걸고 엔진 순정 구현(BP 이벤트 포함)으로 넘긴다. 구체 어빌리티가 그 위에 몽타주 재생/입력 대기/이벤트 구독을 얹는다. 크기를 스펙에 실어야 하는 GE는 클래스 목록으로 표현할 수 없으므로 그 어빌리티가 직접 적용·제거한다(스프린트의 이동 속도 배율·SP 소모).
 
 **4. 네트워크** — Base 생성자: `InstancingPolicy = InstancedPerActor`, `NetExecutionPolicy = LocalPredicted`(입력형). 반응형(`WxAbility_HitReact/Death/Groggy`)은 생성자에서 `ServerInitiated`로 덮어쓴다(서버가 권위적으로 발화). 플레이어 ASC는 `Mixed` 리플리케이션 모드.
 
-**5. 종료 (`EndAbility` / `CancelAbility`)** — 엔진이 `ActivationOwnedTags` 제거, `BlockAbilitiesWithTag` 차단 해제를 자연 복원. 구체 어빌리티는 `EndAbility` 오버라이드에서 자기 태스크 정리. `StartRecovery()`(후딜=캔슬 가능 구간)는 자기가 건 `BlockAbilitiesWithTag`만 풀어 다른 어빌리티로 캔슬 진입을 허용하되, 비용/쿨다운/`ActivationBlockedTags`는 여전히 검사된다.
+**5. 종료 (`EndAbility` / `CancelAbility`)** — 엔진이 `ActivationOwnedTags` 제거, `BlockAbilitiesWithTag` 차단 해제를 자연 복원하고, Base가 `ActivationOwnedEffects`를 걷는다. 구체 어빌리티는 `EndAbility` 오버라이드에서 자기 태스크 정리. `StartRecovery()`(후딜=캔슬 가능 구간)는 자기가 건 `BlockAbilitiesWithTag`만 풀어 다른 어빌리티로 캔슬 진입을 허용하되, 비용/쿨다운/`ActivationBlockedTags`는 여전히 검사된다.
 
 ---
 
@@ -118,7 +119,7 @@ flowchart TD
 | `WxAbility_Attack` | 입력(AssetTag `Ability.Attack`) | 발동 시 아바타 태그로 콤보 세트 선택(`FWxComboMontageSelector`) → `ANS_ComboWindow` 입력 → EndAbility 후 **동일 Spec 재발동**(`Reactivate`)으로 세트 내 다음 인덱스. 단계마다 재커밋. `WxAbility_Skill`도 같은 선택기를 쓴다. |
 | `WxAbility_Guard` | 입력(AssetTag `Ability.Guard`) | `ActiveMontage`로 페이즈 전환(가드/피격/브레이크/카운터). `InputReleased`/`InputPressed` 오버라이드, PerfectGuard 이벤트 구독. |
 | `WxAbility_HitReact` | GameplayEvent `Event.HitReact.*` | 부모 태그 `Event.HitReact` 단일 등록으로 자식 전체 수신, 종류 분기는 페이로드의 리프 태그로. `bRetriggerInstancedAbility`로 재진입. 새 액션(`Ability.Exclusive`)은 차단하고, 진행 중인 것 중에서는 공격·스킬만 캔슬한다(적 패턴은 지목 밖이라 유지). 차단만으로는 부족한데, 공격·스킬의 콤보 재발동 분기가 `Super`를 타지 않아 차단 태그 검사를 건너뛰기 때문이다. |
-| `WxAbility_Death` | Event `Event.Death` | 몽타주 유효 시 사망 포즈, 무효 시 지연 후 래그돌 — 서버가 `State.Ragdoll` 루스 태그 발행(TagOnly 복제), 전 머신의 캐릭터가 감지해 자체 `EnterRagdoll` 수행. 액션 전체 차단. **연출이 끝나도 종료하지 않는다** — 활성 태그 `Ability.Death`가 곧 사망 상태다. |
+| `WxAbility_Death` | Event `Event.Death` | 몽타주 유효 시 사망 포즈, 무효 시 지연 후 래그돌 — 서버가 `Event.Ragdoll` 루스 태그 발행(TagOnly 복제), 전 머신의 캐릭터가 감지해 자체 `EnterRagdoll` 수행. 액션 전체 차단. **연출이 끝나도 종료하지 않는다** — 활성 태그 `Ability.Death`가 곧 사망 상태다. |
 | `WxAbility_Pattern` | AI BT(AssetTag) | 단일 몽타주 재생→종료. 입력/UI 미사용. 쿨다운/충전은 Base 프로퍼티로만. |
 
 > WxGame 측 `UWxAbility_UseItem`/`UWxAbility_Interact`도 `UWxAbilityBase`를 상속해 동일 파이프라인을 탄다(WxGame→WxCombat 의존 방향 예시).

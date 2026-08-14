@@ -100,6 +100,6 @@ void UWxAbility_Death::EnableRagdoll()
 
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 	{
-		ASC->AddLooseGameplayTag(WxGameplayTags::State_Ragdoll, 1, EGameplayTagReplicationState::TagOnly);
+		ASC->AddLooseGameplayTag(WxGameplayTags::Event_Ragdoll, 1, EGameplayTagReplicationState::TagOnly);
 	}
 }

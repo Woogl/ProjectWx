@@ -13,9 +13,9 @@ UWxEffect_RegenSP::UWxEffect_RegenSP()
 	bExecutePeriodicEffectOnApplication = true;
 
 	UTargetTagRequirementsGameplayEffectComponent* TagReqComp = CreateDefaultSubobject<UTargetTagRequirementsGameplayEffectComponent>(TEXT("TargetTagReq"));
-	TagReqComp->OngoingTagRequirements.IgnoreTags.AddTag(WxGameplayTags::State_Guard);
+	TagReqComp->OngoingTagRequirements.IgnoreTags.AddTag(WxGameplayTags::Effect_Guard);
 	TagReqComp->OngoingTagRequirements.IgnoreTags.AddTag(WxGameplayTags::Movement_Sprint);
-	TagReqComp->OngoingTagRequirements.IgnoreTags.AddTag(WxGameplayTags::State_Exhausted);
+	TagReqComp->OngoingTagRequirements.IgnoreTags.AddTag(WxGameplayTags::Effect_Exhausted);
 	GEComponents.Add(TagReqComp);
 
 	FAttributeBasedFloat AttributeBased;

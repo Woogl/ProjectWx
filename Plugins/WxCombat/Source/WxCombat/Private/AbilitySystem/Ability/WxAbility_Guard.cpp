@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Guard.h"
+#include "AbilitySystem/Effect/WxEffect_Guard.h"
 #include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
@@ -16,6 +17,7 @@ UWxAbility_Guard::UWxAbility_Guard()
 	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Guard);
+	ActivationOwnedEffects.Add(UWxEffect_Guard::StaticClass());
 
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
@@ -31,7 +33,7 @@ void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, co
 
 	// 스스로 끝나야 하는 페이즈는 입력 릴리즈로 끊지 않는다.
 	// - GuardBreak: 가드 깨짐 연출 완주 보장
-	// - PerfectGuard: 가드 키를 떼도 State.Guard를 남겨 반격 윈도우 보존
+	// - PerfectGuard: 가드 키를 떼도 Effect.Guard를 남겨 반격 윈도우 보존
 	if (ActiveMontage == GuardBreakMontage || ActiveMontage == PerfectGuardMontage)
 	{
 		return;
@@ -55,15 +57,6 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		return;
 	}
 
-	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-	if (!ASC)
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
-	ASC->AddLooseGameplayTag(WxGameplayTags::State_Guard);
-
 	if (!PlayMontage(GuardMontage))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
@@ -76,19 +69,6 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 void UWxAbility_Guard::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::State_Guard))
-	{
-		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Guard);
-	}
-
-	// 취소로 ANS_PerfectGuard의 NotifyEnd가 스킵되면 State.PerfectGuard가 잔존해 영구 패링이 된다.
-	// 이 태그는 ANS_PerfectGuard만 부여하므로 이 시점의 잔존분은 가드가 흘린 것이다.
-	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::State_PerfectGuard))
-	{
-		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_PerfectGuard);
-	}
-
 	ActiveMontage = nullptr;
 	CurrentMontageTask = nullptr;
 
@@ -132,7 +112,7 @@ bool UWxAbility_Guard::PlayMontage(UAnimMontage* Montage)
 void UWxAbility_Guard::ListenForGuardHit()
 {
 	// 부모 태그로 등록해 자식 태그를 모두 수신한다.
-	// HitReact 어빌리티는 ActivationBlockedTags=State.Guard라 가드 중엔 뜨지 않으므로 라우팅 충돌이 없다.
+	// HitReact 어빌리티는 ActivationBlockedTags=Effect.Guard라 가드 중엔 뜨지 않으므로 라우팅 충돌이 없다.
 	UAbilityTask_WaitGameplayEvent* HitReactTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
 		this, WxGameplayTags::Event_HitReact, nullptr, false, false);
 	if (HitReactTask)
@@ -168,10 +148,8 @@ void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 	// SP 고갈은 페이즈를 가리지 않는다 — 리액션·패링 재생 중에 0이 되어도 그 자리에서 깨진다.
 	if (AttributeSet && AttributeSet->GetSP() <= 0.f)
 	{
-		if (ASC)
-		{
-			ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Guard);
-		}
+		// 브레이크 연출은 완주해야 하므로 어빌리티는 살려 두고 방어 판정만 먼저 걷는다.
+		RemoveActivationOwnedEffect(UWxEffect_Guard::StaticClass());
 
 		if (!PlayMontage(GuardBreakMontage))
 		{

@@ -58,11 +58,11 @@ void AWxCharacterBase::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	// 래그돌 감지는 시뮬 프록시를 포함한 전 머신에서 필요하므로, 서버·오너 클라에서만 도는 InitAbilitySystem이 아니라 여기서 구독한다.
-	AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::State_Ragdoll, EGameplayTagEventType::NewOrRemoved)
+	AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::Event_Ragdoll, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &AWxCharacterBase::HandleRagdollTagChanged);
 
 	// late join 시 구독보다 먼저 초기 복제로 태그가 실려 왔을 수 있어 1회 즉시 확인한다.
-	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Ragdoll))
+	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Event_Ragdoll))
 	{
 		EnterRagdoll();
 	}

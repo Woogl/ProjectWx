@@ -1,12 +1,12 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.h"
+#include "AbilitySystem/Effect/WxEffect_Invincible.h"
 #include "AbilitySystemComponent.h"
 #include "DefaultLevelSequenceInstanceData.h"
 #include "LevelSequenceActor.h"
 #include "LevelSequencePlayer.h"
 #include "Time/WxTimeDilationComponent.h"
-#include "WxGameplayTags.h"
 #include "GameFramework/Character.h"
 
 UWxAbilityTask_PlaySkillCutscene* UWxAbilityTask_PlaySkillCutscene::CreateTask(UGameplayAbility* OwningAbility, ULevelSequence* InLevelSequence, float InGlobalTimeDilation)
@@ -19,7 +19,11 @@ UWxAbilityTask_PlaySkillCutscene* UWxAbilityTask_PlaySkillCutscene::CreateTask(U
 
 void UWxAbilityTask_PlaySkillCutscene::OnDestroy(bool bInOwnerFinished)
 {
-	RemoveInvincibleTag();
+	if (UAbilitySystemComponent* ASC = AbilitySystemComponent.Get())
+	{
+		ASC->RemoveActiveGameplayEffect(InvincibleHandle);
+	}
+
 	UWxTimeDilationComponent::ClearGlobalTimeDilationAuthoritative(this);
 	CleanupSequenceActor();
 
@@ -37,8 +41,6 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 		EndTask();
 		return;
 	}
-
-	AddInvincibleTag();
 
 	// 0·음수 TimeDilation은 시간이 아예 멈춰 복원 경로가 돌지 않는다.
 	if (GlobalTimeDilation <= 0.f)
@@ -90,6 +92,13 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 		SequencePlayer->SetPlayRate(1.f / GlobalTimeDilation);
 	}
 
+	// 시퀀스는 딜레이션을 상쇄한 배속으로 돌아 실시간 기준 GetDuration()만큼 걸리지만,
+	// GE 지속시간은 딜레이션이 걸린 월드 시간으로 세므로 그만큼 줄여 준다.
+	InvincibleHandle = UWxEffect_Invincible::ApplyTo(
+		AbilitySystemComponent.Get(),
+		SequencePlayer->GetDuration().AsSeconds() * GlobalTimeDilation,
+		Ability);
+
 	SequencePlayer->OnFinished.AddDynamic(this, &UWxAbilityTask_PlaySkillCutscene::HandleSequenceFinished);
 	SequencePlayer->Play();
 }
@@ -105,33 +114,6 @@ void UWxAbilityTask_PlaySkillCutscene::HandleSequenceFinished()
 	}
 
 	EndTask();
-}
-
-void UWxAbilityTask_PlaySkillCutscene::AddInvincibleTag()
-{
-	UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
-	if (ASC)
-	{
-		ASC->AddLooseGameplayTag(WxGameplayTags::State_Invincible);
-		bInvincibleTagAdded = true;
-	}
-}
-
-void UWxAbilityTask_PlaySkillCutscene::RemoveInvincibleTag()
-{
-	// 루스 태그는 레퍼런스 카운트라, 부여하지 않았는데 제거하면 남이 열어 둔 무적 창을 대신 걷어낸다.
-	// Activate가 조기 종료해 AddInvincibleTag를 지나치지 못한 채 OnDestroy로 흐르는 경로가 있다.
-	if (!bInvincibleTagAdded)
-	{
-		return;
-	}
-	bInvincibleTagAdded = false;
-
-	UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
-	if (ASC)
-	{
-		ASC->RemoveLooseGameplayTag(WxGameplayTags::State_Invincible);
-	}
 }
 
 void UWxAbilityTask_PlaySkillCutscene::CleanupSequenceActor()

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/Tasks/AbilityTask.h"
+#include "GameplayEffectTypes.h"
 #include "WxAbilityTask_PlaySkillCutscene.generated.h"
 
 class ALevelSequenceActor;
@@ -41,8 +42,6 @@ private:
 	UFUNCTION()
 	void HandleSequenceFinished();
 
-	void AddInvincibleTag();
-	void RemoveInvincibleTag();
 	void CleanupSequenceActor();
 
 	UPROPERTY()
@@ -52,5 +51,7 @@ private:
 	TObjectPtr<ALevelSequenceActor> SequenceActor;
 
 	float GlobalTimeDilation = 1.f;
-	bool bInvincibleTagAdded = false;
+
+	/** 컷신 무적 GE. 시퀀스 길이가 지속시간이지만 정확한 종료는 이 핸들이 맡고, 지속시간은 안전망이다. */
+	FActiveGameplayEffectHandle InvincibleHandle;
 };

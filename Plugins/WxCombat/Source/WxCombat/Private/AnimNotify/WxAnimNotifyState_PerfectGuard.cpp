@@ -1,32 +1,34 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AnimNotify/WxAnimNotifyState_PerfectGuard.h"
+#include "AbilitySystem/Effect/WxEffect_PerfectGuard.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "WxGameplayTags.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
 
 void UWxAnimNotifyState_PerfectGuard::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
-	if (AActor* Owner = MeshComp->GetOwner())
+	AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr;
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner);
+	if (!ASC)
 	{
-		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
+		return;
+	}
+
+	// TotalDuration은 애니메이션 시간이라, ASPD로 재생 속도가 바뀐 몽타주에서는 GE의 실시간 지속시간과 어긋난다.
+	float PlayRate = 1.f;
+	if (const UAnimMontage* Montage = Cast<UAnimMontage>(Animation))
+	{
+		const UAnimInstance* AnimInstance = MeshComp->GetAnimInstance();
+		const float EffectiveRate = AnimInstance ? FMath::Abs(AnimInstance->Montage_GetEffectivePlayRate(Montage)) : 0.f;
+		if (EffectiveRate > UE_KINDA_SMALL_NUMBER)
 		{
-			ASC->AddLooseGameplayTag(WxGameplayTags::State_PerfectGuard);
+			PlayRate = EffectiveRate;
 		}
 	}
-}
 
-void UWxAnimNotifyState_PerfectGuard::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
-{
-	Super::NotifyEnd(MeshComp, Animation, EventReference);
-
-	if (AActor* Owner = MeshComp->GetOwner())
-	{
-		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
-		{
-			ASC->RemoveLooseGameplayTag(WxGameplayTags::State_PerfectGuard);
-		}
-	}
+	UWxEffect_PerfectGuard::ApplyTo(ASC, TotalDuration / PlayRate, ASC->GetAnimatingAbility());
 }

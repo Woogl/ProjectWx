@@ -11,17 +11,17 @@ class UAbilityTask_PlayMontageAndWait;
 
 /**
  * 페이즈 (ActiveMontage로 판별):
- *  GuardMontage          – State.Guard 활성, 루핑
+ *  GuardMontage          – Effect.Guard 활성, 루핑
  *  GuardHitReactMontage  – 일반 가드 피격(SP 여유) 후 GuardMontage 복귀
  *  GuardKnockbackMontage – Knock 계열 피격 가드 후 GuardMontage 복귀
- *  GuardBreakMontage     – SP 고갈로 State.Guard 해제 후 재생, 종료
+ *  GuardBreakMontage     – SP 고갈로 Effect.Guard 해제 후 재생, 종료
  *  PerfectGuardMontage   – 퍼펙트 가드 성공 후 재생, 완주하면 종료(가드 키를 쥐고 있으면 가드가 새로 발동해 복귀)
  *                          완주 전에 후속 피격이 오면 리액션 페이즈로 끊긴다
  *
  * Unblockable 피격은 퍼펙트 가드 윈도우 중이라도 가드로 막히지 않는다.
  * ExecCalc가 이 어빌리티를 직접 Cancel한 뒤 HitReact 이벤트를 발송한다.
  *
- * 가드 반격은 여기서 다루지 않는다 — State.Guard만 발행하면 공격 어빌리티가 그 태그로 자기 반격 세트를 고른다.
+ * 가드 반격은 여기서 다루지 않는다 — Effect.Guard만 발행하면 공격 어빌리티가 그 태그로 자기 반격 세트를 고른다.
  * 진입 시점은 가드 몽타주의 StartRecovery가 차단을 푸는 때다.
  */
 UCLASS(Abstract)
