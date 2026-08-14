@@ -243,7 +243,7 @@ void UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf(UAbilitySystem
 				CueParams.AggregatedSourceTags.AddTag(WxGameplayTags::Damage_Critical);
 			}
 
-			ExecuteGameplayCue(WxGameplayTags::GameplayCue_Damage, CueParams);
+			ExecuteGameplayCue(WxGameplayTags::GameplayCue_DamageFloater, CueParams);
 		}
 	}
 }
@@ -277,7 +277,7 @@ void UWxAbilitySystemComponent::HandlePeriodicGameplayEffectExecuted(UAbilitySys
 		CueParams.Location = TargetAvatar->GetActorLocation();
 	}
 
-	ExecuteGameplayCue(WxGameplayTags::GameplayCue_Damage, CueParams);
+	ExecuteGameplayCue(WxGameplayTags::GameplayCue_DamageFloater, CueParams);
 }
 
 void UWxAbilitySystemComponent::HandleHitStopElapsed(TWeakObjectPtr<UAnimMontage> FrozenMontage)

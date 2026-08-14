@@ -50,7 +50,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_CheckPoint_Unlit, "Gimmick.CheckPoint.Unlit");
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_CheckPoint_Lit, "Gimmick.CheckPoint.Lit");
 
-	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Damage, "GameplayCue.Damage");
+	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_DamageFloater, "GameplayCue.DamageFloater");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Hit, "GameplayCue.Hit");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_PerfectGuard, "GameplayCue.PerfectGuard");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Exceed, "GameplayCue.Exceed");
@@ -81,12 +81,12 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Ultimate, "Ability.Ultimate");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Interact, "Ability.Interact");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_UseItem, "Ability.UseItem");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Finisher, "Ability.Finisher");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_LockOn, "Ability.LockOn");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability_HitReact, "Ability.HitReact");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Groggy, "Ability.Groggy");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Death, "Ability.Death");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Finisher, "Ability.Finisher");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_LockOn, "Ability.LockOn");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern, "Ability.Pattern");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_1, "Ability.Pattern.1");
