@@ -124,6 +124,13 @@ bool AWxCharacterBase::CanJumpInternal_Implementation() const
 		}
 	}
 
+	// 점프 입력이 앉기를 먼저 풀어도 실제 기립은 다음 이동 갱신이라 이 시점엔 아직 앉은 것으로 보인다.
+	// 기립 의사가 선 상태면 엔진의 앉음 금지만 건너뛰고 나머지 조건은 그대로 본다.
+	if (IsCrouched() && !GetCharacterMovement()->bWantsToCrouch)
+	{
+		return JumpIsAllowedInternal();
+	}
+
 	return Super::CanJumpInternal_Implementation();
 }
 

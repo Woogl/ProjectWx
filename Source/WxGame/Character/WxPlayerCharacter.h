@@ -29,6 +29,7 @@ public:
 	virtual void NotifyControllerChanged() override;
 	virtual void OnRep_PlayerState() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	virtual void Jump() override;
 	virtual bool CanCrouch() const override;
 
 protected:

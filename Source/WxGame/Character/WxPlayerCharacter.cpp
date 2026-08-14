@@ -103,7 +103,7 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	}
 	if (InputConfig->JumpAction)
 	{
-		EIC->BindAction(InputConfig->JumpAction, ETriggerEvent::Started,   this, &ACharacter::Jump);
+		EIC->BindAction(InputConfig->JumpAction, ETriggerEvent::Started,   this, &AWxPlayerCharacter::Jump);
 		EIC->BindAction(InputConfig->JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	}
 	if (InputConfig->CrouchAction)
@@ -124,6 +124,14 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EIC->BindAction(Action, ETriggerEvent::Triggered, this, &AWxPlayerCharacter::AbilityInputTriggered, Action);
 		EIC->BindAction(Action, ETriggerEvent::Completed, this, &AWxPlayerCharacter::AbilityInputReleased,  Action);
 	}
+}
+
+void AWxPlayerCharacter::Jump()
+{
+	// 앉은 채로는 엔진이 점프를 막으므로 점프 입력을 기립 의사로 먼저 옮긴다.
+	UnCrouch();
+
+	Super::Jump();
 }
 
 bool AWxPlayerCharacter::CanCrouch() const
