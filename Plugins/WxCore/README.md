@@ -1,59 +1,58 @@
-# WxCore — 공용 정의 파운데이션
+# WxCore — 공용 정의 foundation
 
-> 모든 Wx 도메인 플러그인이 공유하는 최하단(foundation) 정의를 담는다. 프로젝트 전역 Gameplay Tag, 커스텀 콜리전 채널, 그리고 도메인 간 직접 의존을 끊어 주는 경량 인터페이스(계약)를 제공한다.
+> 모든 Wx 플러그인이 함께 참조하는 공용 어휘를 한곳에 모은다. Gameplay Tag, Collision Channel, 그리고 도메인 간 결합을 끊는 마커 인터페이스가 여기 산다.
 
 ## 책임
-
 **담당**
-- 프로젝트 전역 Native Gameplay Tag 단일 선언소 (State/Movement/Event/Gimmick/GameplayCue/Damage/Ability/SetByCaller/UI).
-- 커스텀 콜리전 채널 상수(`ECC_WxAttack`) — `DefaultEngine.ini` 등록 순서와 짝을 이룸.
-- 도메인 간 결합을 끊는 계약 인터페이스: `IWxInteractable`(상호작용), `IWxSavable`(세이브 참여).
-- 계약 인터페이스의 구현체 조회 헬퍼(`IWxInteractable::Find`, `IsMeshInRange`)와 무동작 기본 구현.
+- 프로젝트 전역 Gameplay Tag의 C++ Native 선언·정의 (State / Effect / Movement / Event / Gimmick / GameplayCue / Damage / Ability / SetByCaller / UI)
+- 커스텀 Collision Channel 상수 (`ECC_WxAttack`)
+- 도메인 경계용 마커 인터페이스 (`IWxInteractable`, `IWxSavable`) — 계약과 그 공용 헬퍼·기본 구현
 
 **경계 (비담당)**
-- 상호작용의 실제 스캔·입력·어빌리티 흐름 — 계약만 정의하고 실행은 [[WxWorld]]·[[WxCombat]] 등 소비 도메인에 위임.
-- 세이브 슬롯의 직렬화·저장/로드 라이프사이클 — 마커 인터페이스만 두고 실행은 [[WxSave]]가 담당.
-- Tag를 발행/소비하는 로직(어빌리티·AttributeSet·ANS 등)은 각 도메인 소유. 여기서는 이름만 만든다.
+- 태그를 실제로 부여/소비하는 로직 — [[WxCombat]], [[WxUI]], [[WxAI]] 등 각 도메인
+- 상호작용 스캔·어빌리티 실행, 상호작용 대상 구현 — [[WxWorld]] (인터페이스만 여기 두고 구현은 소비 도메인)
+- 세이브 슬롯 직렬화·라이프사이클 — [[WxSave]]
+- Collision Channel의 실제 등록값·프로파일 — `Config/DefaultEngine.ini`
 
 ## 의존성
-- **주요 의존**: 없음(Wx 모듈). 엔진: `GameplayTags`(Native Tag 선언).
-- 규칙: WxCore는 DAG 최하단 foundation이며 다른 Wx 플러그인을 참조하지 않는다 — 위반 없음 ✅
+- **주요 의존**: `GameplayTags` (Native Tag 매크로), `Engine`/`CoreUObject` (인터페이스·Collision 타입). Wx 플러그인 의존 없음.
+- 규칙: WxCore 외 Wx 플러그인 참조 — 없음 ✅ (`WxCore.Build.cs`는 Core/CoreUObject/Engine/GameplayTags만 의존)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `WxGameplayTags` (네임스페이스) | 전역 Native Tag 선언 — 다른 모듈은 여기서만 참조 | `Source/WxCore/Public/WxGameplayTags.h` |
-| `IWxInteractable` | 상호작용 대상 계약. 소비 도메인이 [[WxWorld]] 의존 없이 자기 액터를 상호작용 대상으로 만들게 함 | `Source/WxCore/Public/WxInteractable.h` |
-| `IWxSavable` | 세이브 참여 마커+후크. [[WxSave]]와 소비 도메인의 상호 직접 의존을 끊음 | `Source/WxCore/Public/WxSavable.h` |
-| `ECC_WxAttack` | 무기·투사체 히트박스 Object Channel 상수 | `Source/WxCore/Public/WxCollisionChannels.h` |
-| `FWxCoreModule` | 모듈 진입점(StartupModule/ShutdownModule) | `Source/WxCore/Public/WxCoreModule.h` |
+| `WxGameplayTags` (namespace) | 전역 Native Tag 선언부. 태그 추가는 이 헤더 + 짝 cpp에만 | `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h` |
+| `ECC_WxAttack` | 무기·투사체 히트박스 Object Channel 상수. `.ini` 등록 순서와 일치 필요 | `Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h` |
+| `IWxInteractable` | 상호작용 대상 계약. `Find`/`IsMeshInRange` 등 static 헬퍼 포함, BP 구현 불가 | `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h` |
+| `IWxSavable` | 세이브 참여 마커 + 후크(`GetSaveId`/`OnSaveRestored`). BP 구현 불가 | `Plugins/WxCore/Source/WxCore/Public/WxSavable.h` |
 
 ## Gameplay Tags
-- 선언: `Source/WxCore/Public/WxGameplayTags.h` / 정의: `Source/WxCore/Private/WxGameplayTags.cpp`
-- 주요 네임스페이스:
-  - `State.*` — 어빌리티 활성과 어긋날 수 있는 조건 상태(Guard/Invincible/InCombat 등)
-  - `Movement.*` — 이동 상태(InAir/Sprint)
-  - `Event.*` — GAS 이벤트 트리거(HitReact 계열, Interact/Finisher/Death/Groggy 등)
-  - `Gimmick.*` — StateTree 상태 라벨이자 세이브에 담기는 기믹 상태(코드가 직접 읽지 않음)
-  - `GameplayCue.*` — 큐 태그(Damage/Hit/PerfectGuard/AttackTelegraph 등)
-  - `Damage.*` — 대미지 판정 플래그(Critical/Unblockable 등)
-  - `Ability.*` — 어빌리티 식별·차단 태그(`Ability.Exclusive`가 차단·캔슬의 유일 지목 대상)
-  - `SetByCaller.*` — GE SetByCaller 키
-  - `UI.*` — CommonUI 레이어·액션 태그
+`WxGameplayTags.h`(선언) + `WxGameplayTags.cpp`(`UE_DEFINE_GAMEPLAY_TAG` 정의)에서 전량 관리한다. 태그 추가/변경은 반드시 이 두 파일에서만.
+
+네임스페이스별 의미:
+- `State.*` — 락온·전투·처형·콤보윈도우·대화 등 복제/loose 상태 표식
+- `Effect.*` — GE가 부여하는 상태(무적·가드·퍼펙트가드·탈진·슈퍼아머). 애셋 태그로도 사용
+- `Movement.*` — 체공·질주 (WxCharacterMovementComponent / Sprint 어빌리티가 토글)
+- `Event.*` — HitReact 계열 및 처형/사망/그로기 등 Gameplay Event 라우팅 키
+- `Gimmick.*` — 기믹 StateTree 상태값. 코드가 읽지 않고 세이브 슬롯에 저장되는 값
+- `GameplayCue.*` — 연출 큐 (데미지 플로터·임팩트·텔레그래프)
+- `Damage.*` — 대미지 분류(크리티컬·가드불가·패리유발)
+- `Ability.*` — 어빌리티 식별/분류 태그. 규약은 헤더 주석 참조 (`Ability.X` = 활성 중)
+- `SetByCaller.*` — GE SetByCaller 매그니튜드 키
+- `UI.*` — CommonUI 레이어(`UI.Layer.*`) 및 액션(`UI.Action.*`) 태그
 
 ## 확장 포인트 / 규약
-- **새 Tag 추가**: `WxGameplayTags.h`에 `WXCORE_API UE_DECLARE_...`, `.cpp`에 `UE_DEFINE_...`를 짝으로 추가한다. 점(.)은 언더스코어(_)로 치환한 변수명을 쓴다. 어빌리티 태그 규칙(식별 태그 1개를 AssetTags·ActivationOwnedTags 양쪽에, 분류 마커 `Ability.Exclusive`는 AssetTags에만)은 헤더 상단 주석이 규정.
-- **상호작용 대상 추가**: 액터가 직접 `IWxInteractable`를 구현하거나(픽업·적), 컴포넌트가 구현한다(기믹·대화 — 호스트 액터를 순수 BP로 둘 때). BP에서는 구현 불가(`CannotImplementInterfaceInBlueprint`). 소비처는 전부 `IWxInteractable::Find`를 거치므로 구현체 위치가 바뀌어도 조회는 한 곳.
-- **세이브 참여**: `IWxSavable`을 구현하고 `GetSaveId()`로 안정 GUID를 반환, 보존 필드에 `UPROPERTY(SaveGame)`을 표시한다. 복원 후처리는 `OnSaveRestored()`.
-- **콜리전 채널 추가**: 상수는 여기에, 실제 채널 번호(`ECC_GameTraceChannelN`)와 등록은 `DefaultEngine.ini`와 반드시 순서 일치.
+- **태그 추가**: `WxGameplayTags.h`에 `UE_DECLARE_GAMEPLAY_TAG_EXTERN`, `WxGameplayTags.cpp`에 `UE_DEFINE_GAMEPLAY_TAG` 짝으로. 소비는 각 도메인 모듈.
+- **Collision Channel 추가**: 상수는 여기, 실제 채널/프로파일 등록은 `DefaultEngine.ini`. 둘의 순서·이름이 어긋나면 히트 판정이 조용히 깨진다.
+- **인터페이스 계약을 WxCore에 두는 이유**: 소비 도메인(예: WxInventory 픽업, WxWorld 기믹)이 서로/제공 모듈(WxWorld, WxSave)에 직접 의존하지 않고도 자기 액터를 상호작용/세이브 대상으로 만들 수 있게 한다. 두 인터페이스 모두 액터 또는 그 컴포넌트가 구현하며(순수 BP 호스트 액터 지원), C++ 없이는 구현 불가.
 
 ## 여기서부터 읽어라
-1. `Source/WxCore/Public/WxGameplayTags.h` — 전투/상호작용/UI 전반의 어휘. 다른 모듈을 읽기 전 태그 의미를 먼저 잡는다.
-2. `Source/WxCore/Public/WxInteractable.h` — 상호작용 계약과 클라 스캐너/서버 어빌리티가 수렴하는 방식(주석에 상세).
-3. `Source/WxCore/Private/WxInteractable.cpp` — `Find`의 액터/컴포넌트 갈래와 `IsMeshInRange`의 쿼리 콜리전 전제.
+1. `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h` — 프로젝트의 전역 어휘. 어떤 상태·이벤트·어빌리티가 존재하는지 한눈에.
+2. `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h` — 상호작용의 클라 스캔↔서버 권위 검증 규약이 헤더 주석에 상세.
+3. `Plugins/WxCore/Source/WxCore/Public/WxSavable.h` — 세이브 참여 계약과 `WxSaveId` 키 규칙.
 
 ## 관련
-- 상위(소비처): 사실상 모든 Wx 도메인 — 상호작용은 [[WxWorld]]·[[WxCombat]]·[[WxInventory]]·[[WxDialogue]], 세이브는 [[WxSave]], Tag는 [[WxCombat]]·[[WxAI]]·[[WxUI]] 등이 참조.
+- 상위: 사실상 모든 Wx 도메인 플러그인이 소비 — [[WxCombat]](Effect/Event/Damage/Ability/SetByCaller 태그, `ECC_WxAttack`), [[WxUI]](UI 태그), [[WxWorld]]([[IWxInteractable]]·Gimmick 태그·[[IWxSavable]]), [[WxSave]]([[IWxSavable]]), [[WxAI]]/[[WxInventory]]/[[WxDialogue]] 등.
 
 ---
-*문서 기준 커밋 `1ae8d2f` · 생성일 2026-08-13 · 소스 9파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `6f60b14` · 생성일 2026-08-14 · 소스 9파일 — `/readme-writer`로 갱신*
