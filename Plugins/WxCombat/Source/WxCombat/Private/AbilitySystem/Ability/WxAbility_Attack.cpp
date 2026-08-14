@@ -65,7 +65,11 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UWxAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	// 캔슬 종료는 전부 여기서 되돌린다 — 외부 캔슬은 베이스가 태스크를 끊는 탓에 몽타주 핸들러가 돌지 않는다.
+	// 콤보 재발동은 이 종료 직후 다음 단을 재생하므로 몽타주를 끊지 않고 그대로 넘긴다.
+	// 이 호출이 구 태스크의 후속 이벤트도 막아, 뒤따르는 종료가 Interrupted 핸들러를 깨워 진행 상태를 되돌리는 일이 없다.
+	KeepMontagePlayingAfterEnd();
+
+	// 캔슬 종료는 전부 여기서 되돌린다 — 위 호출 탓에 몽타주 핸들러가 돌지 않는다.
 	// 콤보 재발동은 bWasCancelled=false라 진행 상태가 보존된다.
 	if (bWasCancelled)
 	{
