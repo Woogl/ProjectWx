@@ -1,8 +1,8 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Character/WxCharacterMovementComponent.h"
-#include "Character/WxCharacterBase.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -34,22 +34,29 @@ UWxCharacterMovementComponent::UWxCharacterMovementComponent()
 
 float UWxCharacterMovementComponent::GetGravityZ() const
 {
-	const float Multiplier = (Velocity.Z > 0.f) ? 1.f : 1.25f;
-
-	return Super::GetGravityZ() * Multiplier;
+	if (Velocity.Z >= 0.f)
+	{
+		return Super::GetGravityZ();
+	}
+	else
+	{
+		return Super::GetGravityZ() * 1.25f;
+	}
 }
 
 void UWxCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float DeltaSeconds)
 {
-	const AWxCharacterBase* WxCharacter = bWantsToCrouch ? Cast<AWxCharacterBase>(CharacterOwner) : nullptr;
-	const UAbilitySystemComponent* ASC = WxCharacter ? WxCharacter->GetAbilitySystemComponent() : nullptr;
-
-	// 차단이 풀리는 후딜 구간에도 몽타주는 이어지므로 재생 도중 자세가 바뀌지 않는다.
-	if (ASC && ASC->GetAnimatingAbility())
+	if (CharacterOwner)
 	{
-		bWantsToCrouch = false;
+		if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(CharacterOwner))
+		{
+			if (ASC->GetAnimatingAbility())
+			{
+				bWantsToCrouch = false;
+			}
+		}
 	}
-
+	
 	Super::UpdateCharacterStateBeforeMovement(DeltaSeconds);
 }
 
@@ -57,13 +64,19 @@ void UWxCharacterMovementComponent::OnMovementModeChanged(EMovementMode Previous
 {
 	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
 
-	const AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(CharacterOwner);
-	UAbilitySystemComponent* ASC = WxCharacter ? WxCharacter->GetAbilitySystemComponent() : nullptr;
-
-	// 부여/제거 짝이 아니라 절대값이라 전이가 겹치거나 어긋나도 카운트가 새지 않는다.
-	if (ASC)
+	if (CharacterOwner)
 	{
-		ASC->SetLooseGameplayTagCount(WxGameplayTags::Movement_InAir, IsFalling() ? 1 : 0);
+		if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(CharacterOwner))
+		{
+			if (IsFalling())
+			{
+				ASC->SetLooseGameplayTagCount(WxGameplayTags::Movement_InAir, 1);
+			}
+			else
+			{
+				ASC->SetLooseGameplayTagCount(WxGameplayTags::Movement_InAir, 0);
+			}
+		}
 	}
 
 	if (PreviousMovementMode == MOVE_Falling)
@@ -74,11 +87,24 @@ void UWxCharacterMovementComponent::OnMovementModeChanged(EMovementMode Previous
 
 void UWxCharacterMovementComponent::JumpToLandingSection()
 {
-	const USkeletalMeshComponent* Mesh = CharacterOwner ? CharacterOwner->GetMesh() : nullptr;
-	UAnimInstance* AnimInstance = Mesh ? Mesh->GetAnimInstance() : nullptr;
-	UAnimMontage* Montage = AnimInstance ? AnimInstance->GetCurrentActiveMontage() : nullptr;
+	if (!CharacterOwner)
+	{
+		return;
+	}
+	const USkeletalMeshComponent* Mesh = CharacterOwner->GetMesh();
+	if (!Mesh)
+	{
+		return;
+	}
+	
+	UAnimInstance* AnimInstance = Mesh->GetAnimInstance();
+	if (!AnimInstance)
+	{
+		return;
+	}
+	
+	UAnimMontage* Montage = AnimInstance->GetCurrentActiveMontage();
 
-	// 섹션이 없는 몽타주에 점프하면 엔진이 경고를 남기므로, 이 검사가 경고를 막으면서 착지 반응 여부도 가른다.
 	if (Montage && Montage->GetSectionIndex(LandingSectionName) != INDEX_NONE)
 	{
 		AnimInstance->Montage_JumpToSection(LandingSectionName, Montage);
