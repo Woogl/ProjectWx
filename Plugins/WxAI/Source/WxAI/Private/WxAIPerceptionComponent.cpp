@@ -68,13 +68,11 @@ void UWxAIPerceptionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UWxAIPerceptionComponent::HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-	// 억제(복귀) 중에는 어떤 감지 자극도 무시한다(복귀 중 재-어그로 방지).
 	if (bTargetingSuppressed)
 	{
 		return;
 	}
 
-	// 시각·청각·피해 모두 동일한 획득 경로를 탄다. 감지 성공이면 그 액터(소리 발생원 포함)를 TargetActor 로 확정한다.
 	// 죽은 액터는 잡지 않는다 — 시체는 파괴되지 않고 남아 시야에 다시 들어오면 성공 자극을 또 만들므로, 이 가드가 없으면 사망 정리가 다음 자극에 되돌려진다.
 	// 감지 실패(시야/소리 상실)에는 TargetActor 를 건드리지 않아 그대로 유지된다 — 실제 해제는 BT 의 리시 복귀(UWxBTTask_ReturnHome → SetTargetingSuppressed)가 담당한다.
 	if (Stimulus.WasSuccessfullySensed() && !IsActorDead(Actor))
@@ -82,28 +80,25 @@ void UWxAIPerceptionComponent::HandleTargetPerceptionUpdated(AActor* Actor, FAIS
 		SetTargetActor(Actor);
 	}
 
-	// 인식/추적 판정은 UpdateRecognition 한 곳에서만 한다. 여기서는 TargetActor 만 갱신하고 판정을 위임한다.
 	UpdateRecognition();
 }
 
 void UWxAIPerceptionComponent::UpdateRecognition()
 {
-	// 억제(복귀) 중이면 인식을 끈 채로 둔다. 리시 이탈 판정·복귀는 BT 로 이관됐다.
 	if (bTargetingSuppressed)
 	{
 		SetRecognized(false);
 		return;
 	}
 
-	// 추적 대상이 있으면 인식 on, 없으면 off. 타겟은 살아있는 액터만 담기므로(획득 가드 + 소실 구독) 유무만 봐도 된다. 복귀(Home)는 BT 가 처리한다.
-	// 블랙보드는 여기서만 필요하다 — 없으면 추적 대상도 없는 것이므로 off 로 본다.
+	// 타겟은 살아있는 액터만 담기므로(획득 가드 + 소실 구독) 유무만 봐도 된다.
+	// 블랙보드가 없으면 추적 대상도 없는 것이므로 off 로 본다.
 	const UBlackboardComponent* BB = GetBlackboard();
 	SetRecognized(BB && WxBlackboardKeys::GetTargetActor(BB) != nullptr);
 }
 
 void UWxAIPerceptionComponent::SetRecognized(bool bNewRecognized)
 {
-	// 인식 상태를 폰의 ASC 태그로 발행한다.
 	// MinimalReplication 태그는 GE 없이 서버→클라이언트로 복제(COND_SkipOwner)되어, 각 클라이언트의 네임플레이트가 이 태그를 읽어 표시를 결정한다.
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwnerPawn());
 	if (!ASC)
@@ -136,8 +131,7 @@ void UWxAIPerceptionComponent::SetTargetingSuppressed(bool bSuppressed)
 
 	bTargetingSuppressed = bSuppressed;
 
-	// 억제를 켜는 순간, 현재 타겟을 비운다(회전 모드 원복은 SetTargetActor(nullptr)가 담당). 인식은 판정에 맡기면 억제 중이라 자연히 꺼진다.
-	// 억제를 끌 때는 상태를 건드리지 않는다 — 다음 감지 자극에서 정상적으로 재획득한다.
+	// 인식은 판정에 맡기면 억제 중이라 자연히 꺼진다.
 	if (bSuppressed)
 	{
 		SetTargetActor(nullptr);
@@ -166,7 +160,6 @@ void UWxAIPerceptionComponent::HandleTargetEndPlay(AActor* Actor, EEndPlayReason
 
 void UWxAIPerceptionComponent::BindTargetLoss(AActor* NewTarget)
 {
-	// 타겟이 바뀔 때마다 교체되므로 이전 타겟 구독을 먼저 정리한다.
 	UnbindTargetLoss();
 
 	if (!NewTarget)
@@ -176,7 +169,6 @@ void UWxAIPerceptionComponent::BindTargetLoss(AActor* NewTarget)
 
 	AppliedTarget = NewTarget;
 
-	// 파괴는 ASC 도 함께 없애 사망 태그로 잡을 수 없고, 엔진은 소스가 무효해진 뒤엔 감지 갱신을 방송하지 않는다. 그래서 액터 소멸을 따로 받는다.
 	NewTarget->OnEndPlay.AddDynamic(this, &UWxAIPerceptionComponent::HandleTargetEndPlay);
 
 	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(NewTarget))
@@ -221,12 +213,8 @@ void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)
 
 	WxBlackboardKeys::SetTargetActor(BB, NewTarget);
 
-	// 타겟 소실 감시와 적용 기록을 새 타겟으로 옮긴다. 사망(시체 잔존)·파괴 어느 쪽도 감지 자극으로는 재판정이 오지 않아 타겟을 직접 구독해야 한다.
 	BindTargetLoss(NewTarget);
 
-	// 타겟 유무에 따라 회전 모드를 발행한다(상태는 원천이 발행).
-	// 타겟이 있으면 그 액터를 포커스로 두고 bUseControllerDesiredRotation 으로 전환해 타겟을 바라본 채 이동(strafe).
-	// 타겟이 없으면 이동 방향으로 회전하는 평상시 로코모션으로 되돌린다.
 	AAIController* AIC = Cast<AAIController>(GetOwner());
 	ACharacter* Character = AIC ? Cast<ACharacter>(AIC->GetPawn()) : nullptr;
 	if (!Character)
@@ -234,7 +222,6 @@ void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)
 		return;
 	}
 
-	// 포커스는 MovementComponent 가 없어도 발행하고, 회전 모드 플래그 쓰기만 Movement 유효할 때로 가드한다(Patrol 과 동일한 방어).
 	UCharacterMovementComponent* Movement = Character->GetCharacterMovement();
 	if (NewTarget)
 	{

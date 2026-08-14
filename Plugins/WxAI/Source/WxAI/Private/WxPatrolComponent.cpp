@@ -8,7 +8,7 @@
 UWxPatrolComponent::UWxPatrolComponent()
 {
 #if WITH_EDITORONLY_DATA
-	// 최초 진행 방향을 보여주는 에디터 전용 화살표. 게임/쿡 빌드에는 포함되지 않는다.
+	// 게임/쿡 빌드에는 포함되지 않는다.
 	DirectionArrow = CreateEditorOnlyDefaultSubobject<UArrowComponent>(TEXT("DirectionArrow"));
 	if (DirectionArrow)
 	{
@@ -60,7 +60,6 @@ bool UWxPatrolComponent::GetNextIndex(int32 CurrentIndex, int32& InOutDirection,
 {
 	const int32 NumPoints = GetNumberOfSplinePoints();
 
-	// 빈 경로 또는 단일 지점: 진행할 다음 지점이 없다.
 	if (NumPoints <= 1)
 	{
 		OutNextIndex = CurrentIndex;
@@ -114,7 +113,6 @@ void UWxPatrolComponent::OnRegister()
 
 void UWxPatrolComponent::ConfigureSpline()
 {
-	// Loop 모드면 마지막 포인트가 첫 포인트로 이어지도록 스플라인을 닫는다.
 	SetClosedLoop(MoveMode == EWxPatrolMoveMode::Loop, /*bUpdateSpline*/ false);
 
 	// 정찰은 지점 사이를 내비게이션으로 직선 이동하므로, 곡선 보간을 끄고 포인트를 직선으로 잇는다(에디터 표시도 실제 경로와 일치).

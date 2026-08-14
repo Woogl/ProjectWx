@@ -15,7 +15,7 @@ UWxBTTask_Patrol::UWxBTTask_Patrol()
 {
 	NodeName = TEXT("Patrol");
 
-	// 기본 이동 목표 키를 PatrolTargetLocation 으로 지정한다(에디터에서 별도 선택 없이 동작). 실제 키 해석은 InitializeFromAsset 가 한다.
+	// 에디터에서 별도 선택 없이 동작하도록 기본 키를 채워 둔다. 실제 키 해석은 InitializeFromAsset 가 한다.
 	BlackboardKey.SelectedKeyName = WxBlackboardKeys::PatrolTargetLocation;
 
 	// 도착 후 커서를 진행시키기 위해 종료 콜백을 받는다.
@@ -44,13 +44,11 @@ EBTNodeResult::Type UWxBTTask_Patrol::ExecuteTask(UBehaviorTreeComponent& OwnerC
 		return EBTNodeResult::Succeeded;
 	}
 
-	// 현재 정찰 지점을 MoveTo 목표(PatrolTargetLocation)로 발행한 뒤 엔진 MoveTo 에 위임한다.
 	if (UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent())
 	{
 		WxBlackboardKeys::SetPatrolTargetLocation(Blackboard, Patrol->GetPointLocation(PatrolCursor));
 	}
 
-	// 정찰 이동 동안만 이동 속도를 배율만큼 낮춘다. GE 는 OnTaskFinished 에서 제거한다.
 	// MaxWalkSpeed 를 직접 쓰면 SPD 어트리뷰트 콜백과 주인이 겹쳐, 정찰 중 버프가 걸리거나 정찰이 끝날 때 서로의 값을 덮어쓴다.
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
 	if (ASC && MoveSpeedEffect)
@@ -80,14 +78,14 @@ void UWxBTTask_Patrol::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* 
 {
 	Super::OnTaskFinished(OwnerComp, NodeMemory, TaskResult);
 
-	// 이동 동안 걸어 뒀던 감속 GE 를 제거한다. 도착·중단·실패 등 어떤 종료 경로에서도 호출된다.
+	// 도착·중단·실패 등 어떤 종료 경로에서도 호출되므로, 감속 GE 제거는 여기서 한다.
 	if (UAbilitySystemComponent* ASC = MoveSpeedEffectHandle.GetOwningAbilitySystemComponent())
 	{
 		ASC->RemoveActiveGameplayEffect(MoveSpeedEffectHandle);
 	}
 	MoveSpeedEffectHandle = FActiveGameplayEffectHandle();
 
-	// 도착(성공)했을 때만 커서를 다음 지점으로 진행한다. 중단·실패 시엔 커서를 보존해 재개 시 이어서 정찰한다.
+	// 중단·실패 시엔 커서를 보존해 재개 시 이어서 정찰한다.
 	if (TaskResult != EBTNodeResult::Succeeded)
 	{
 		return;

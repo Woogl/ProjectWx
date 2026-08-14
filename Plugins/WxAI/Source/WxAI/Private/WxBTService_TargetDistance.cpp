@@ -33,7 +33,6 @@ void UWxBTService_TargetDistance::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 	const AActor* Target = WxBlackboardKeys::GetTargetActor(Blackboard);
 	if (!Self || !Target)
 	{
-		// 타겟이 없으면 거리 키를 비워 stale 값을 남기지 않는다(데코레이터의 IsSet 게이팅 가능).
 		WxBlackboardKeys::ClearTargetDistance(Blackboard);
 		return;
 	}

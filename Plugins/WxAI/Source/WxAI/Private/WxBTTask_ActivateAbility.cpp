@@ -34,8 +34,7 @@ EBTNodeResult::Type UWxBTTask_ActivateAbility::ExecuteTask(UBehaviorTreeComponen
 	CachedASC = ASC;
 	CachedOwnerComp = &OwnerComp;
 
-	// TryActivateAbility 안에서 어빌리티가 동기 종료될 수 있으므로(즉발 어빌리티, CommitAbility 실패 등),
-	// 그 종료 통지를 받으려면 발동 전에 바인드해야 한다.
+	// TryActivateAbility 안에서 어빌리티가 동기 종료될 수 있으므로(즉발 어빌리티, CommitAbility 실패 등), 그 종료 통지를 받으려면 발동 전에 바인드해야 한다.
 	AbilityEndedDelegateHandle = ASC->OnAbilityEnded.AddUObject(
 		this, &UWxBTTask_ActivateAbility::HandleAbilityEnded);
 
@@ -43,7 +42,7 @@ EBTNodeResult::Type UWxBTTask_ActivateAbility::ExecuteTask(UBehaviorTreeComponen
 	bIsActivating = true;
 	{
 		// 순회 중 활성화도 실패 통지도 어빌리티 목록을 바꿀 수 있다(GE의 GrantedAbilities, 실패 콜백의 Give/Clear 등).
-		// 락이 없으면 Add/RemoveAtSwap 이 즉시 반영돼 순회 중인 참조가 무효화된다. 엔진 입력 경로도 같은 이유로 이 락을 건다.
+		// 락이 없으면 Add/RemoveAtSwap 이 즉시 반영돼 순회 중인 참조가 무효화된다.
 		// 락은 루프에만 걸어, 뒤따르는 재조회가 부여/제거까지 반영된 목록을 보게 한다.
 		FScopedAbilityListLock ActiveScopeLock(*ASC);
 
@@ -76,8 +75,7 @@ EBTNodeResult::Type UWxBTTask_ActivateAbility::ExecuteTask(UBehaviorTreeComponen
 		return EBTNodeResult::Failed;
 	}
 
-	// TryActivateAbility 는 활성화 도중 어빌리티 부여/제거로 ActivatableAbilities 배열을 재할당할 수 있어,
-	// 활성화 이전에 잡아둔 Spec 포인터는 무효가 될 수 있다. 반드시 핸들로 다시 조회한다.
+	// TryActivateAbility 는 활성화 도중 어빌리티 부여/제거로 ActivatableAbilities 배열을 재할당할 수 있어, 활성화 이전에 잡아둔 Spec 포인터는 무효가 될 수 있다. 반드시 핸들로 다시 조회한다.
 	// 종료 통지 없이 비활성이면(스펙 제거 등) 콜백이 오지 않아 BT 가 InProgress 로 영구 정지하므로 실패로 마감한다.
 	const FGameplayAbilitySpec* ActiveSpec = ASC->FindAbilitySpecFromHandle(ActivatedHandle);
 	if (!ActiveSpec || !ActiveSpec->IsActive())

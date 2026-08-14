@@ -56,14 +56,12 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 	// 회피는 여기서 보지 않는다. 회피를 풀지 말지는 조건을 통과한 후보가 몇 개인지에 달렸으므로, 수집을 끝낸 뒤에 판단해야 한다.
 	for (int32 Index = 0; Index < ChildrenNum; ++Index)
 	{
-		// 자식의 조건 Decorator가 실행을 막으면 후보에서 제외한다 — 유효 후보 중에서만 가중 추첨.
-		// 엔진이 선택 직후 FindChildToExecute 에서 이 자식에 대해 동일하게 호출하는 검사이므로, 미리 걸러도 선택 결과가 엔진 판정과 어긋나지 않는다. Weight Decorator 는 항상 true 라 여기 걸리지 않는다.
+		// 엔진이 선택 직후 FindChildToExecute 에서 이 자식에 대해 동일하게 호출하는 검사이므로, 미리 걸러도 선택 결과가 엔진 판정과 어긋나지 않는다.
 		if (!DoDecoratorsAllowExecution(SearchData.OwnerComp, SearchData.OwnerComp.GetActiveInstanceIdx(), Index))
 		{
 			continue;
 		}
 
-		// 자식에 붙은 Weight Decorator 중 첫 번째 것의 가중치를 사용한다. 없으면 기본 1.0.
 		float Weight = 1.0f;
 		for (const UBTDecorator* Decorator : Children[Index].Decorators)
 		{
@@ -85,7 +83,6 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 		Weights.Add(Weight);
 	}
 
-	// 조건을 통과한 후보가 하나도 없으면 실행할 자식이 없으므로 부모에 실패를 반환한다. 회피와 무관하다.
 	if (Candidates.Num() == 0)
 	{
 		return BTSpecialChild::ReturnToParent;
@@ -108,7 +105,6 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 		TotalWeight += Weight;
 	}
 
-	// 누적 가중치 룰렛: [0, TotalWeight) 난수를 뽑아 누적합이 처음으로 이를 넘는 후보를 고른다.
 	const float Roll = FMath::FRandRange(0.0f, TotalWeight);
 	float Accumulated = 0.0f;
 	int32 Chosen = Candidates.Last(); // 부동소수 경계로 루프가 못 고를 때의 폴백

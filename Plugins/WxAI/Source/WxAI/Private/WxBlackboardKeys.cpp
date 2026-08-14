@@ -11,8 +11,6 @@
 
 namespace
 {
-	// 키가 Blackboard 에셋에 등록돼 있고 기대한 타입과 일치하는지 확인하고, 어긋나면 경고를 남긴다.
-	// 어긋난 키 접근은 엔진이 조용히 기본값을 돌려주거나 무시해 원인 추적이 어려우므로 진단 로그로 드러낸다.
 	// 매 accessor 호출마다 도는 진단이라 Shipping 빌드에서는 검사를 통째로 비운다.
 	void VerifyBlackboardKey(const UBlackboardComponent* Blackboard, const FName& KeyName, TSubclassOf<UBlackboardKeyType> ExpectedType)
 	{

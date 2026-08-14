@@ -26,7 +26,7 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 		return EBTNodeResult::Failed;
 	}
 
-	// 선택된 방향들을 모아 그중 하나를 무작위로 고른다. 8 = EWxWanderDirection 의 방향 개수.
+	// 8 = EWxWanderDirection 의 방향 개수.
 	TArray<int32, TInlineAllocator<8>> AllowedIndices;
 	for (int32 Index = 0; Index < 8; ++Index)
 	{
@@ -39,13 +39,12 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	float Yaw;
 	if (AllowedIndices.Num() > 0)
 	{
-		// 폰 정면(ControlRotation) 기준 시계 방향 45도 간격. 45 = 360 / 8방향.
+		// 45 = 360 / 8방향.
 		const int32 ChosenIndex = AllowedIndices[FMath::RandRange(0, AllowedIndices.Num() - 1)];
 		Yaw = AIController->GetControlRotation().Yaw + ChosenIndex * 45.f;
 	}
 	else
 	{
-		// 아무 방향도 선택되지 않았으면 완전 무작위 방향으로 폴백한다.
 		Yaw = FMath::FRandRange(0.f, 360.f);
 	}
 	MoveDirection = FRotator(0.f, Yaw, 0.f).Vector();
@@ -53,7 +52,7 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	TotalTime = Duration;
 	ElapsedTime = 0.f;
 
-	// 배회 이동 동안만 이동 속도를 배율만큼 낮춘다. GE 는 OnTaskFinished 에서 제거한다(Patrol 과 동일).
+	// 감속 GE 부여·제거는 Patrol 과 동일하다.
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
 	if (ASC && MoveSpeedEffect)
 	{
@@ -105,7 +104,7 @@ void UWxBTTask_Wander::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* 
 {
 	Super::OnTaskFinished(OwnerComp, NodeMemory, TaskResult);
 
-	// 이동 동안 걸어 뒀던 감속 GE 를 제거한다. 도착·중단·실패 등 어떤 종료 경로에서도 호출된다(Patrol 과 동일).
+	// 도착·중단·실패 등 어떤 종료 경로에서도 호출되므로, 감속 GE 제거는 여기서 한다.
 	if (UAbilitySystemComponent* ASC = MoveSpeedEffectHandle.GetOwningAbilitySystemComponent())
 	{
 		ASC->RemoveActiveGameplayEffect(MoveSpeedEffectHandle);

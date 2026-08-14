@@ -19,6 +19,5 @@ float UWxBTDecorator_RandomWeight::GetWeight() const
 
 bool UWxBTDecorator_RandomWeight::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
 {
-	// 조건이 아니라 RandomChoice 가중치 데이터를 운반하는 Decorator 이므로 실행을 절대 막지 않는다.
 	return true;
 }

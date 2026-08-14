@@ -14,7 +14,6 @@ class UGameplayEffect;
  *
  * UBTTask_MoveTo 를 상속해 이동/도착 판정/경로 실패·중단 처리는 엔진에 맡기고, 도착(성공)했을 때만 정찰 커서를 한 칸 진행한다.
  * 이동 목표는 Blackboard 의 PatrolTargetLocation(BlackboardKey)에서 읽고, 도착 시 폰의 UWxPatrolComponent(FindPatrolComponent 로 조회)에 커서 진행을 위임한다.
- * 보통 정찰 시퀀스에 [Patrol -> Wait] 형태로 배치해, 한 지점 도착·대기 후 다음 지점으로 넘긴다.
  */
 UCLASS()
 class WXAI_API UWxBTTask_Patrol : public UBTTask_MoveTo

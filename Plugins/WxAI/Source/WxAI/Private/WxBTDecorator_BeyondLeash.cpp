@@ -16,7 +16,6 @@ UWxBTDecorator_BeyondLeash::UWxBTDecorator_BeyondLeash()
 	INIT_DECORATOR_NODE_NOTIFY_FLAGS();
 
 	// 새 배치의 기본 FlowAbortMode 다.
-	// 이탈 시 하위 전투만 선점하고 복귀 중엔 자기중단하지 않도록 Lower Priority 로 둔다(Self/Both 는 경계 왕복 유발).
 	FlowAbortMode = EBTFlowAbortMode::LowerPriority;
 }
 
@@ -52,7 +51,6 @@ void UWxBTDecorator_BeyondLeash::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
-	// 이탈 여부가 바뀌는 순간에만 플로우 재평가를 요청한다.
 	// 실제 abort 여부·방향은 엔진이 FlowAbortMode 로 판단한다(Lower Priority 면 하위 전투만 중단).
 	FWxBeyondLeashMemory* Memory = CastInstanceNodeMemory<FWxBeyondLeashMemory>(NodeMemory);
 	const bool bBeyond = CalculateRawConditionValue(OwnerComp, NodeMemory);

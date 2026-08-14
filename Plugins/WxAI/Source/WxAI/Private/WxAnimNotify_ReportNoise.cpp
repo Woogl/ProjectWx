@@ -17,7 +17,7 @@ void UWxAnimNotify_ReportNoise::Notify(USkeletalMeshComponent* MeshComp, UAnimSe
 	}
 
 	// AI Perception 은 서버에서 동작하므로 서버에서만 보고한다.
-	// fire-and-forget 스티뮬러스다. Loudness 1 고정, MaxRange 에 절대 거리(cm) 지정, Instigator=소유 액터(청취자-소음원 팀 소속 판정).
+	// Loudness 1 고정이라 MaxRange 가 곧 절대 거리(cm)이고, Instigator=소유 액터로 청취자-소음원 팀 소속을 판정한다.
 	if (Owner->HasAuthority())
 	{
 		UAISense_Hearing::ReportNoiseEvent(Owner, Owner->GetActorLocation(), 1.f, Owner, HearingDistance);

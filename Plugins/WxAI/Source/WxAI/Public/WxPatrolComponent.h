@@ -9,7 +9,6 @@
 class AActor;
 class UArrowComponent;
 
-/** 정찰 경로의 순회 방식. */
 UENUM(BlueprintType)
 enum class EWxPatrolMoveMode : uint8
 {
@@ -38,10 +37,9 @@ class WXAI_API UWxPatrolComponent : public USplineComponent
 public:
 	UWxPatrolComponent();
 
-	/** 액터의 Owner(또는 부착 부모)에 붙은 정찰 컴포넌트를 찾는다. 없으면 null. 스포너가 스폰 시 Owner 로 자신을 지정한다. */
+	/** 액터의 Owner(또는 부착 부모)에 붙은 정찰 컴포넌트를 찾는다. */
 	static UWxPatrolComponent* FindPatrolComponent(const AActor* Actor);
 
-	/** 정찰 지점 개수. */
 	int32 GetNumPoints() const;
 
 	/** Index 정찰 지점의 월드 좌표. */
@@ -55,20 +53,16 @@ public:
 	bool GetNextIndex(int32 CurrentIndex, int32& InOutDirection, int32& OutNextIndex) const;
 
 #if WITH_EDITOR
-	/** 에디터에서 MoveMode 를 바꾸면 스플라인 닫힘 상태도 즉시 따라가게 한다. */
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
 protected:
-	/** 등록 시 MoveMode 에 맞춘 스플라인 설정을 적용한다. */
 	virtual void OnRegister() override;
 
-	/** 정찰 지점 순회 방식. */
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	EWxPatrolMoveMode MoveMode = EWxPatrolMoveMode::PingPong;
 
 private:
-	/** MoveMode 에 맞춰 스플라인 닫힘 상태를 맞추고, 모든 포인트를 직선으로 이어 곡선 보간을 제거한다. 에디터에선 최초 진행 방향 화살표도 갱신한다. */
 	void ConfigureSpline();
 
 #if WITH_EDITORONLY_DATA
