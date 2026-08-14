@@ -4,10 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
+#include "AbilitySystem/Ability/WxMontageSelector.h"
 #include "WxAbility_Finisher.generated.h"
 
-class UAnimMontage;
-class UAbilityTask_PlayMontageAndWait;
 struct FGameplayEventData;
 struct FWxDamageInfo;
 
@@ -34,24 +33,19 @@ public:
 	/** 공격 몽타주의 WxAnimNotify_FinisherDamage가 대미지 프레임에 호출한다. */
 	void ApplyFinisherDamage(const FWxDamageInfo& DamageInfo) const;
 
+	/** 피해자 짝 피격이 고정 1.0으로 재생되므로 공격자도 ASPD를 반영하지 않는다. */
+	virtual float GetMontagePlayRate() const override;
+
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UAnimMontage> FinisherMontage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UAnimMontage> BackstabMontage;
+	/** 트리거 태그(Event.Finisher·Event.Backstab)로 변형이 갈린다. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx", meta = (ShowOnlyInnerProperties))
+	FWxMontageSelector MontageSelector;
 
 private:
-	UFUNCTION()
-	void HandleMontageFinished();
-
 	void RegisterWarpTarget(AActor* AvatarActor, const AActor* Target) const;
 
 	TWeakObjectPtr<const AActor> TargetActor;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
 };

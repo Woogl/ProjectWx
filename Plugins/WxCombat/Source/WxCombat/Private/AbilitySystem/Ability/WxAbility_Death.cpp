@@ -2,7 +2,6 @@
 
 #include "AbilitySystem/Ability/WxAbility_Death.h"
 #include "AbilitySystemComponent.h"
-#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AIController.h"
 #include "BrainComponent.h"
 #include "GameFramework/Character.h"
@@ -26,6 +25,11 @@ UWxAbility_Death::UWxAbility_Death()
 	TriggerData.TriggerTag = WxGameplayTags::Event_Death;
 	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	AbilityTriggers.Add(TriggerData);
+}
+
+float UWxAbility_Death::GetMontagePlayRate() const
+{
+	return 1.f;
 }
 
 void UWxAbility_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -68,25 +72,11 @@ void UWxAbility_Death::HandleMontageCancelled()
 
 void UWxAbility_Death::PlayDeathMontageOrRagdoll()
 {
-	if (!DeathMontage)
-	{
-		EnableRagdoll();
-		return;
-	}
-
 	// HitReact 등 활성 몽타주는 PlayMontageAndWait가 BlendOut으로 인계받는다.
-	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, DeathMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
-	if (!MontageTask)
+	if (!PlayMontage(DeathMontage))
 	{
 		EnableRagdoll();
-		return;
 	}
-
-	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Death::HandleMontageCompleted);
-	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Death::HandleMontageInterrupted);
-	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Death::HandleMontageCancelled);
-	MontageTask->ReadyForActivation();
 }
 
 void UWxAbility_Death::EnableRagdoll()

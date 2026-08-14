@@ -1,7 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Dodge.h"
-#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
 #include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
@@ -25,6 +24,11 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
+}
+
+float UWxAbility_Dodge::GetMontagePlayRate() const
+{
+	return 1.f;
 }
 
 void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -196,35 +200,6 @@ void UWxAbility_Dodge::ListenForDodgeSuccess()
 	}
 }
 
-bool UWxAbility_Dodge::PlayMontage(UAnimMontage* Montage, FName StartSection)
-{
-	// EndTask가 AnimInstance 바인딩을 해제하므로 구 태스크의 후속 이벤트는 발송되지 않는다.
-	if (MontageTask)
-	{
-		MontageTask->EndTask();
-		MontageTask = nullptr;
-	}
-
-	if (!Montage)
-	{
-		return false;
-	}
-
-	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, Montage, 1.f, StartSection, true, 1.f, 0.f, true);
-	if (!MontageTask)
-	{
-		return false;
-	}
-
-	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Dodge::HandleMontageCompleted);
-	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Dodge::HandleMontageBlendOut);
-	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Dodge::HandleMontageInterrupted);
-	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Dodge::HandleMontageCancelled);
-	MontageTask->ReadyForActivation();
-	return true;
-}
-
 void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 {
 	if (!PerfectDodgeMontage)
@@ -333,24 +308,4 @@ void UWxAbility_Dodge::HandleInvincibleTagAdded()
 void UWxAbility_Dodge::HandleInvincibleTagRemoved()
 {
 	DeactivateJudgementCapsule();
-}
-
-void UWxAbility_Dodge::HandleMontageCompleted()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-}
-
-void UWxAbility_Dodge::HandleMontageBlendOut()
-{
-	// OnCompleted가 후속 발동하므로 여기서는 처리하지 않음
-}
-
-void UWxAbility_Dodge::HandleMontageInterrupted()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-}
-
-void UWxAbility_Dodge::HandleMontageCancelled()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }

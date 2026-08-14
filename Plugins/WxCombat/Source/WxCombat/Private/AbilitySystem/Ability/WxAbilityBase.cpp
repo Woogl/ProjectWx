@@ -5,6 +5,7 @@
 #include "AbilitySystem/Effect/WxEffect_Cost.h"
 #include "AbilitySystem/Ability/WxAbilityTableRow.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "GameplayEffect.h"
@@ -103,6 +104,14 @@ void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 
 void UWxAbilityBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	// 콤보 재발동 시 엔진이 이 EndAbility를 먼저 부른다 — 여기서 콜백을 끊지 않으면 그 종료가 Interrupted 핸들러를 깨워 진행 상태를 되돌린다.
+	if (MontageTask)
+	{
+		MontageTask->EndTask();
+		MontageTask = nullptr;
+	}
+	ActiveMontage = nullptr;
+
 	// 캔슬·중단도 이 경로를 지나므로 효과가 새지 않는다. 활성 중에 이미 걷힌 것은 조회에 걸리지 않아 무해하다.
 	for (const TSubclassOf<UGameplayEffect>& EffectClass : ActivationOwnedEffects)
 	{
@@ -110,6 +119,62 @@ void UWxAbilityBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const F
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+bool UWxAbilityBase::PlayMontage(UAnimMontage* Montage, FName StartSection)
+{
+	if (!Montage)
+	{
+		return false;
+	}
+
+	// EndTask가 AnimInstance 바인딩을 해제하므로 구 태스크의 후속 이벤트는 발송되지 않는다.
+	if (MontageTask)
+	{
+		MontageTask->EndTask();
+		MontageTask = nullptr;
+	}
+
+	UAbilityTask_PlayMontageAndWait* NewMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+		this, NAME_None, Montage, GetMontagePlayRate(), StartSection, true, 1.f, 0.f, true);
+	if (!NewMontageTask)
+	{
+		return false;
+	}
+
+	MontageTask = NewMontageTask;
+	ActiveMontage = Montage;
+
+	NewMontageTask->OnCompleted.AddDynamic(this, &UWxAbilityBase::HandleMontageCompleted);
+	NewMontageTask->OnBlendOut.AddDynamic(this, &UWxAbilityBase::HandleMontageBlendOut);
+	NewMontageTask->OnInterrupted.AddDynamic(this, &UWxAbilityBase::HandleMontageInterrupted);
+	NewMontageTask->OnCancelled.AddDynamic(this, &UWxAbilityBase::HandleMontageCancelled);
+	NewMontageTask->ReadyForActivation();
+	return true;
+}
+
+UAnimMontage* UWxAbilityBase::GetActiveMontage() const
+{
+	return ActiveMontage;
+}
+
+void UWxAbilityBase::HandleMontageCompleted()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+}
+
+void UWxAbilityBase::HandleMontageBlendOut()
+{
+}
+
+void UWxAbilityBase::HandleMontageInterrupted()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+}
+
+void UWxAbilityBase::HandleMontageCancelled()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
 
 void UWxAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)

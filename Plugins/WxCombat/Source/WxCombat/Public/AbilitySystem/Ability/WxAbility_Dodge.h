@@ -7,7 +7,6 @@
 #include "WxAbility_Dodge.generated.h"
 
 class UAnimMontage;
-class UAbilityTask_PlayMontageAndWait;
 class UCapsuleComponent;
 struct FGameplayAbilityTargetDataHandle;
 
@@ -44,6 +43,9 @@ class WXCOMBAT_API UWxAbility_Dodge : public UWxAbilityBase
 
 public:
 	UWxAbility_Dodge();
+
+	/** 섹션 루트모션이 이동 거리를 정하므로 ASPD를 반영하지 않는다. */
+	virtual float GetMontagePlayRate() const override;
 
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
@@ -83,8 +85,7 @@ private:
 
 	/** 실패 시 EndAbility 후 false 반환 */
 	bool StartDodge(const FVector& LocalDirection);
-	bool PlayMontage(UAnimMontage* Montage, FName StartSection = NAME_None);
-	
+
 	void ListenForDodgeSuccess();
 	void ListenForInvincibleWindow();
 	
@@ -101,21 +102,6 @@ private:
 
 	UFUNCTION()
 	void HandleInvincibleTagRemoved();
-
-	UFUNCTION()
-	void HandleMontageCompleted();
-
-	UFUNCTION()
-	void HandleMontageBlendOut();
-
-	UFUNCTION()
-	void HandleMontageInterrupted();
-
-	UFUNCTION()
-	void HandleMontageCancelled();
-
-	UPROPERTY()
-	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
 
 	/**
 	 * 극한 회피 판정용 캡슐.

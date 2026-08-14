@@ -9,6 +9,8 @@
 #include "WxAbilityBase.generated.h"
 
 class UAbilitySystemComponent;
+class UAbilityTask_PlayMontageAndWait;
+class UAnimMontage;
 class UGameplayEffect;
 class UWxEffect_Cooldown;
 class AWxProjectileBase;
@@ -73,8 +75,11 @@ public:
 	 */
 	TSoftObjectPtr<UObject> GetIcon() const;
 
-	/** 아바타 ASPD가 반영된 몽타주 재생 속도 */
-	float GetMontagePlayRate() const;
+	/**
+	 * 아바타 ASPD가 반영된 몽타주 재생 속도.
+	 * 짝 몽타주와 프레임을 맞추거나 몽타주 길이 자체가 규칙인 어빌리티는 1을 반환하도록 오버라이드한다.
+	 */
+	virtual float GetMontagePlayRate() const;
 
 	/**
 	 * 이 프로젝트에서 후딜레이 구간 = 캔슬 가능 구간이다.
@@ -114,6 +119,32 @@ protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
+	/**
+	 * 몽타주를 재생하고 그 태스크를 소유한다.
+	 * 앞선 재생이 있으면 태스크를 끊어 후속 콜백을 막고 새로 건다 — 콤보 진행도 페이즈 전환도 이 경로다.
+	 * 널 몽타주와 태스크 생성 실패가 모두 false로 모이므로 호출자는 실패를 한 지점에서 처리하면 된다.
+	 */
+	bool PlayMontage(UAnimMontage* Montage, FName StartSection = NAME_None);
+
+	/** 이 어빌리티가 재생 중인 몽타주. 재생 중인 것으로 페이즈를 가르는 어빌리티가 읽는다. */
+	UAnimMontage* GetActiveMontage() const;
+
+	/** 몽타주가 끝까지 재생됐다. */
+	UFUNCTION()
+	virtual void HandleMontageCompleted();
+
+	/** 블렌드 아웃이 시작됐다. OnCompleted가 뒤따르므로 기본은 아무것도 하지 않는다. */
+	UFUNCTION()
+	virtual void HandleMontageBlendOut();
+
+	/** 다른 몽타주가 끼어들었다. */
+	UFUNCTION()
+	virtual void HandleMontageInterrupted();
+
+	/** 어빌리티가 끊겨 재생이 취소됐다. */
+	UFUNCTION()
+	virtual void HandleMontageCancelled();
+
 private:
 	const FWxAbilityTableRow* GetTableRow() const;
 
@@ -123,4 +154,10 @@ private:
 	 */
 	UPROPERTY(Transient)
 	mutable TObjectPtr<UWxEffect_Cooldown> CooldownEffect;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAnimMontage> ActiveMontage;
 };

@@ -1,7 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Finisher.h"
-#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystem/Effect/WxEffect_Invincible.h"
 #include "AbilitySystem/Effect/WxEffect_ResetDP.h"
 #include "AbilitySystemComponent.h"
@@ -49,6 +48,11 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	AbilityTriggers.Add(BackstabTrigger);
 }
 
+float UWxAbility_Finisher::GetMontagePlayRate() const
+{
+	return 1.f;
+}
+
 void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
@@ -59,7 +63,7 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	const FGameplayTag TriggerTag = TriggerEventData ? TriggerEventData->EventTag : FGameplayTag();
 
 	const bool bBackstab = (TriggerTag == WxGameplayTags::Event_Backstab);
-	UAnimMontage* AttackerMontage = bBackstab ? BackstabMontage : FinisherMontage;
+	UAnimMontage* AttackerMontage = MontageSelector.SelectMontage(GetAbilitySystemComponentFromActorInfo(), TriggerTag);
 	const FGameplayTag VictimHitReactTag = bBackstab ? WxGameplayTags::Event_HitReact_Backstab : WxGameplayTags::Event_HitReact_Finisher;
 
 	if (!AttackerMontage || !AvatarActor || !Target || !CommitAbility(Handle, ActorInfo, ActivationInfo))
@@ -92,28 +96,14 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		TargetASC->HandleGameplayEvent(VictimHitReactTag, &VictimEvent);
 	}
 
-	// 피해자 짝 피격이 고정 1.0으로 재생되므로, 프레임 싱크를 위해 공격자도 ASPD를 무시하고 1.0으로 재생한다.
-	MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, AttackerMontage, 1.f, NAME_None, true, 1.f, 0.f, true);
-	if (!MontageTask)
+	if (!PlayMontage(AttackerMontage))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
 	}
-
-	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Finisher::HandleMontageFinished);
-	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Finisher::HandleMontageFinished);
-	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Finisher::HandleMontageFinished);
-	MontageTask->ReadyForActivation();
 }
 
 void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	if (MontageTask)
-	{
-		MontageTask->EndTask();
-		MontageTask = nullptr;
-	}
-
 	// 중단·캔슬도 이 경로를 지나므로 대상에 걸어둔 연출 태그가 새지 않고, 그로기 해제도 몽타주 종료 방식과 무관하게 한 번 일어난다.
 	// 대상이 대미지를 견뎌 살아남으면 여기서 어포던스가 복구된다.
 	if (ActorInfo && ActorInfo->IsNetAuthority())
@@ -136,11 +126,6 @@ void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, co
 	TargetActor = nullptr;
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-}
-
-void UWxAbility_Finisher::HandleMontageFinished()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UWxAbility_Finisher::RegisterWarpTarget(AActor* AvatarActor, const AActor* Target) const

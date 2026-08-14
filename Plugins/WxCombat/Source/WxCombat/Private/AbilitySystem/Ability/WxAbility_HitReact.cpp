@@ -1,7 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_HitReact.h"
-#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "WxGameplayTags.h"
@@ -42,6 +41,11 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	AbilityTriggers.Add(TriggerData);
 }
 
+float UWxAbility_HitReact::GetMontagePlayRate() const
+{
+	return 1.f;
+}
+
 void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
@@ -57,87 +61,29 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	const AActor* Instigator = TriggerEventData ? TriggerEventData->Instigator.Get() : nullptr;
 	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
 
-	UAnimMontage* SelectedMontage = nullptr;
-	if (EventTag == WxGameplayTags::Event_HitReact_KnockBack)
+	// 몽타주 선택과 달리 이쪽은 종류마다 코드가 다르므로 태그를 명시로 가른다.
+	// 알 수 없는 하위 태그는 어느 갈래도 타지 않고 폴백 몽타주만 재생된다.
+	if (EventTag == WxGameplayTags::Event_HitReact_KnockUp)
 	{
-		SelectedMontage = KnockbackMontage;
-		FaceInstigator(AvatarActor, Instigator);
-	}
-	else if (EventTag == WxGameplayTags::Event_HitReact_KnockDown)
-	{
-		SelectedMontage = KnockdownMontage;
-		FaceInstigator(AvatarActor, Instigator);
-	}
-	else if (EventTag == WxGameplayTags::Event_HitReact_KnockUp)
-	{
-		SelectedMontage = KnockupMontage;
-
 		if (ACharacter* Character = Cast<ACharacter>(AvatarActor))
 		{
 			const FVector LaunchVelocity(0.f, 0.f, Character->GetCharacterMovement()->JumpZVelocity);
 			Character->LaunchCharacter(LaunchVelocity, false, true);
 		}
 	}
-	else if (EventTag == WxGameplayTags::Event_HitReact_Parry)
+	else if (EventTag == WxGameplayTags::Event_HitReact_KnockBack
+		|| EventTag == WxGameplayTags::Event_HitReact_KnockDown
+		|| EventTag == WxGameplayTags::Event_HitReact_Parry
+		|| EventTag == WxGameplayTags::Event_HitReact_Finisher
+		|| EventTag == WxGameplayTags::Event_HitReact_Backstab)
 	{
-		SelectedMontage = ParryReactMontage;
-		FaceInstigator(AvatarActor, Instigator);
-	}
-	else if (EventTag == WxGameplayTags::Event_HitReact_Finisher)
-	{
-		SelectedMontage = FinisherHitReactMontage;
-		FaceInstigator(AvatarActor, Instigator);
-	}
-	else if (EventTag == WxGameplayTags::Event_HitReact_Backstab)
-	{
-		SelectedMontage = BackstabHitReactMontage;
 		FaceInstigator(AvatarActor, Instigator);
 	}
 
-	// 회전·띄우기 같은 반응은 위에서 이미 적용됐으므로 몽타주만 폴백한다.
-	if (!SelectedMontage)
-	{
-		SelectedMontage = NormalHitReactMontage;
-	}
-
-	if (!SelectedMontage || !PlayHitReactMontage(SelectedMontage))
+	if (!PlayMontage(MontageSelector.SelectMontage(GetAbilitySystemComponentFromActorInfo(), EventTag)))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
 	}
-}
-
-bool UWxAbility_HitReact::PlayHitReactMontage(UAnimMontage* Montage)
-{
-	// ASPD를 반영하지 않는다 — 처형 짝 피격이 공격자 몽타주와 프레임 싱크돼야 한다.
-	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, Montage, 1.f, NAME_None, true, 1.f, 0.f, true);
-	if (!MontageTask)
-	{
-		return false;
-	}
-
-	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_HitReact::HandleMontageCompleted);
-	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_HitReact::HandleMontageInterrupted);
-	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_HitReact::HandleMontageCancelled);
-	MontageTask->ReadyForActivation();
-
-	return true;
-}
-
-void UWxAbility_HitReact::HandleMontageCompleted()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-}
-
-void UWxAbility_HitReact::HandleMontageInterrupted()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-}
-
-void UWxAbility_HitReact::HandleMontageCancelled()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
 
 void UWxAbility_HitReact::FaceInstigator(AActor* AvatarActor, const AActor* Instigator)

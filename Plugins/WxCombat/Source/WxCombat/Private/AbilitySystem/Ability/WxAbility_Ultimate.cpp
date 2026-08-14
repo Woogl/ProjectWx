@@ -3,7 +3,6 @@
 #include "AbilitySystem/Ability/WxAbility_Ultimate.h"
 #include "AbilitySystem/Effect/WxEffect_SuperArmor.h"
 #include "AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.h"
-#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
 #include "LevelSequence.h"
@@ -69,47 +68,20 @@ void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 void UWxAbility_Ultimate::HandleCutsceneCompleted()
 {
+	// 몽타주 없이 컷신만으로 끝나는 구성도 정상이다.
 	if (!UltimateMontage)
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 		return;
 	}
 
-	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, UltimateMontage, GetMontagePlayRate(), NAME_None, true, 1.f, 0.f, true);
-	if (!MontageTask)
+	if (!PlayMontage(UltimateMontage))
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-		return;
 	}
-
-	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Ultimate::HandleMontageCompleted);
-	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Ultimate::HandleMontageBlendOut);
-	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Ultimate::HandleMontageInterrupted);
-	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Ultimate::HandleMontageCancelled);
-	MontageTask->ReadyForActivation();
 }
 
 void UWxAbility_Ultimate::HandleCutsceneCancelled()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-}
-
-void UWxAbility_Ultimate::HandleMontageCompleted()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-}
-
-void UWxAbility_Ultimate::HandleMontageBlendOut()
-{
-}
-
-void UWxAbility_Ultimate::HandleMontageInterrupted()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-}
-
-void UWxAbility_Ultimate::HandleMontageCancelled()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }

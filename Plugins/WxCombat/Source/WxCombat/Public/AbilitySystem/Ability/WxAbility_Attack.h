@@ -4,19 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
-#include "AbilitySystem/Ability/WxComboMontageSelector.h"
+#include "AbilitySystem/Ability/WxMontageSelector.h"
 #include "WxAbility_Attack.generated.h"
 
-class UAbilityTask_PlayMontageAndWait;
-class UAnimMontage;
-
 /**
- * 아바타 태그로 콤보 세트를 골라 첫 몽타주를 재생하고, State.ComboWindow 구간의 재발동이 같은 세트의 다음 단으로 넘긴다(터미널 단에서는 첫 단으로 되돌아간다).
+ * 아바타 태그로 몽타주 세트를 골라 첫 몽타주를 재생하고, State.ComboWindow 구간의 재발동이 같은 세트의 다음 단으로 넘긴다(터미널 단에서는 첫 단으로 되돌아간다).
  *
  * 콤보 진행은 엔진 순정 재발동(bRetriggerInstancedAbility)이라 단계마다 CommitAbility가 새로 걸린다.
  * 콤보가 끊기지 않으려면 AbilityDataRow에서 단계 간격보다 쿨다운을 짧게 잡거나 최대 충전 수를 단계 수 이상으로 둔다.
  *
- * 세트 선택과 단계 전진 규칙은 ComboSelector에 있다.
+ * 세트 선택과 단계 전진 규칙은 MontageSelector에 있다.
  * 타겟 방향 회전은 ANS_SnapToTarget이 담당.
  */
 UCLASS(Abstract)
@@ -38,27 +35,13 @@ protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Combo", meta = (ShowOnlyInnerProperties))
-	FWxComboMontageSelector ComboSelector;
+	/** 콤보 미입력으로 끝났으므로 다음 발동은 첫 단부터 시작한다. */
+	virtual void HandleMontageCompleted() override;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx", meta = (ShowOnlyInnerProperties))
+	FWxMontageSelector MontageSelector;
 
 private:
 	/** CancelAbilitiesWithTag로 지목한 어빌리티가 이 ASC에서 하나라도 활성인지 */
 	bool HasActiveCancelTarget(const UAbilitySystemComponent& ASC) const;
-
-	bool PlayMontage(UAnimMontage* Montage);
-
-	UFUNCTION()
-	void HandleMontageCompleted();
-
-	UFUNCTION()
-	void HandleMontageBlendOut();
-
-	UFUNCTION()
-	void HandleMontageInterrupted();
-
-	UFUNCTION()
-	void HandleMontageCancelled();
-
-	UPROPERTY()
-	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
 };

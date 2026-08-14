@@ -6,7 +6,6 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_Pattern.generated.h"
 
-class UAbilityTask_PlayMontageAndWait;
 class UAnimMontage;
 
 /**
@@ -26,17 +25,4 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> Montage;
-
-private:
-	UFUNCTION()
-	void HandleMontageCompleted();
-
-	UFUNCTION()
-	void HandleMontageBlendOut();
-
-	UFUNCTION()
-	void HandleMontageInterrupted();
-
-	UFUNCTION()
-	void HandleMontageCancelled();
 };

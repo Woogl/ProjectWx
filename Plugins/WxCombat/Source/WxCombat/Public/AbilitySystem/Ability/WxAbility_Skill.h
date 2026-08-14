@@ -4,14 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
-#include "AbilitySystem/Ability/WxComboMontageSelector.h"
+#include "AbilitySystem/Ability/WxMontageSelector.h"
 #include "WxAbility_Skill.generated.h"
 
-class UAbilityTask_PlayMontageAndWait;
-class UAnimMontage;
-
 /**
- * 아바타 태그로 콤보 세트를 골라 첫 몽타주를 재생하고, State.ComboWindow 구간의 재발동이 같은 세트의 다음 단으로 넘긴다(터미널 단에서는 첫 단으로 되돌아간다).
+ * 아바타 태그로 몽타주 세트를 골라 첫 몽타주를 재생하고, State.ComboWindow 구간의 재발동이 같은 세트의 다음 단으로 넘긴다(터미널 단에서는 첫 단으로 되돌아간다).
  *
  * 콤보 진행은 엔진 순정 재발동(bRetriggerInstancedAbility)이다.
  * 진행 신호가 평범한 TryActivateAbility 재호출이라 하드웨어 입력과 UI 버튼이 같은 경로를 쓰고, 단계마다 CommitAbility가 새로 걸린다.
@@ -37,24 +34,9 @@ protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Combo", meta = (ShowOnlyInnerProperties))
-	FWxComboMontageSelector ComboSelector;
+	/** 콤보 미입력으로 끝났으므로 다음 발동은 첫 단부터 시작한다. */
+	virtual void HandleMontageCompleted() override;
 
-private:
-	bool PlayMontage(UAnimMontage* Montage);
-
-	UFUNCTION()
-	void HandleMontageCompleted();
-
-	UFUNCTION()
-	void HandleMontageBlendOut();
-
-	UFUNCTION()
-	void HandleMontageInterrupted();
-
-	UFUNCTION()
-	void HandleMontageCancelled();
-
-	UPROPERTY()
-	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx", meta = (ShowOnlyInnerProperties))
+	FWxMontageSelector MontageSelector;
 };

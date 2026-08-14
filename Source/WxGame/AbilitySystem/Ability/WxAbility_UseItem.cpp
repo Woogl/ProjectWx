@@ -1,7 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_UseItem.h"
-#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "GameFramework/Pawn.h"
 #include "Inventory/WxInventoryManagerComponent.h"
@@ -52,19 +51,11 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 		return;
 	}
 
-	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, UseMontage, GetMontagePlayRate(), NAME_None, true, 1.f, 0.f, true);
-	if (!MontageTask)
+	if (!PlayMontage(UseMontage))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-
-	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_UseItem::HandleMontageCompleted);
-	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_UseItem::HandleMontageBlendOut);
-	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_UseItem::HandleMontageInterrupted);
-	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_UseItem::HandleMontageCancelled);
-	MontageTask->ReadyForActivation();
 
 	// 1회만 수신한다.
 	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
@@ -90,24 +81,4 @@ void UWxAbility_UseItem::HandleConsumeEvent(FGameplayEventData Payload)
 	{
 		Inventory->UseItemByDef(ConsumableDef);
 	}
-}
-
-void UWxAbility_UseItem::HandleMontageCompleted()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-}
-
-void UWxAbility_UseItem::HandleMontageBlendOut()
-{
-	// OnCompleted 가 후속 발동하므로 여기서는 처리하지 않는다.
-}
-
-void UWxAbility_UseItem::HandleMontageInterrupted()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-}
-
-void UWxAbility_UseItem::HandleMontageCancelled()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }

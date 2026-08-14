@@ -26,21 +26,23 @@ class WXCOMBAT_API UWxAbility_Death : public UWxAbilityBase
 public:
 	UWxAbility_Death();
 
+	/** 사망 연출은 공격 속도를 타지 않는다. */
+	virtual float GetMontagePlayRate() const override;
+
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
+	/** 의도한 사망 포즈로 끝났으므로 래그돌로도, 종료로도 넘기지 않는다. */
+	virtual void HandleMontageCompleted() override;
+
+	/** 외부가 사망 몽타주를 끊은 비정상 경로 — 래그돌로 폴백한다. */
+	virtual void HandleMontageInterrupted() override;
+	virtual void HandleMontageCancelled() override;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> DeathMontage;
 
 private:
-	UFUNCTION()
-	void HandleMontageCompleted();
-
-	UFUNCTION()
-	void HandleMontageInterrupted();
-
-	UFUNCTION()
-	void HandleMontageCancelled();
-	
 	void PlayDeathMontageOrRagdoll();
 
 	void EnableRagdoll();

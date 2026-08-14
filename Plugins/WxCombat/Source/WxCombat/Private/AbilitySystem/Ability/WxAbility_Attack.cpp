@@ -1,7 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Attack.h"
-#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystemComponent.h"
 #include "WxGameplayTags.h"
 
@@ -58,7 +57,7 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	if (!PlayMontage(ComboSelector.GetNextMontage(GetAbilitySystemComponentFromActorInfo())))
+	if (!PlayMontage(MontageSelector.AdvanceMontage(GetAbilitySystemComponentFromActorInfo())))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	}
@@ -66,21 +65,22 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UWxAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	// 콤보 재발동 시 엔진이 이 EndAbility를 먼저 부른다 — EndTask로 콜백을 끊지 않으면 그 종료가 Interrupted 핸들러를 깨워 진행 상태를 되돌린다.
-	if (MontageTask)
-	{
-		MontageTask->EndTask();
-		MontageTask = nullptr;
-	}
-
-	// 캔슬 종료는 전부 여기서 되돌린다 — 외부 캔슬은 위 EndTask 탓에 몽타주 핸들러가 돌지 않는다.
+	// 캔슬 종료는 전부 여기서 되돌린다 — 외부 캔슬은 베이스가 태스크를 끊는 탓에 몽타주 핸들러가 돌지 않는다.
 	// 콤보 재발동은 bWasCancelled=false라 진행 상태가 보존된다.
 	if (bWasCancelled)
 	{
-		ComboSelector.Reset();
+		MontageSelector.Reset();
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UWxAbility_Attack::HandleMontageCompleted()
+{
+	// 캔슬이 아니라 EndAbility가 되돌려주지 않는다.
+	MontageSelector.Reset();
+
+	Super::HandleMontageCompleted();
 }
 
 bool UWxAbility_Attack::HasActiveCancelTarget(const UAbilitySystemComponent& ASC) const
@@ -100,57 +100,4 @@ bool UWxAbility_Attack::HasActiveCancelTarget(const UAbilitySystemComponent& ASC
 	}
 
 	return false;
-}
-
-bool UWxAbility_Attack::PlayMontage(UAnimMontage* Montage)
-{
-	if (!Montage)
-	{
-		return false;
-	}
-
-	// EndTask가 AnimInstance 바인딩을 해제하므로 구 태스크의 후속 이벤트는 발송되지 않는다.
-	if (MontageTask)
-	{
-		MontageTask->EndTask();
-		MontageTask = nullptr;
-	}
-
-	UAbilityTask_PlayMontageAndWait* NewMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, Montage, GetMontagePlayRate(), NAME_None, true, 1.f, 0.f, true);
-	if (!NewMontageTask)
-	{
-		return false;
-	}
-
-	MontageTask = NewMontageTask;
-
-	NewMontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Attack::HandleMontageCompleted);
-	NewMontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Attack::HandleMontageBlendOut);
-	NewMontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Attack::HandleMontageInterrupted);
-	NewMontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Attack::HandleMontageCancelled);
-	NewMontageTask->ReadyForActivation();
-	return true;
-}
-
-void UWxAbility_Attack::HandleMontageCompleted()
-{
-	// 캔슬이 아니라 EndAbility가 되돌려주지 않는다.
-	ComboSelector.Reset();
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-}
-
-void UWxAbility_Attack::HandleMontageBlendOut()
-{
-	// OnCompleted가 후속 발동하므로 여기서는 처리하지 않음
-}
-
-void UWxAbility_Attack::HandleMontageInterrupted()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-}
-
-void UWxAbility_Attack::HandleMontageCancelled()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }

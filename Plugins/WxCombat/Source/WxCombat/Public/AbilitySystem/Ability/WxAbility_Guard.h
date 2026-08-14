@@ -7,10 +7,9 @@
 #include "WxAbility_Guard.generated.h"
 
 class UAnimMontage;
-class UAbilityTask_PlayMontageAndWait;
 
 /**
- * 페이즈 (ActiveMontage로 판별):
+ * 페이즈 (재생 중인 몽타주로 판별):
  *  GuardMontage          – Effect.Guard 활성, 루핑
  *  GuardHitReactMontage  – 일반 가드 피격(SP 여유) 후 GuardMontage 복귀
  *  GuardKnockbackMontage – Knock 계열 피격 가드 후 GuardMontage 복귀
@@ -36,9 +35,18 @@ public:
 
 	float GetDamageReductionRate() const;
 
+	/** 페이즈 몽타주는 길이가 곧 연출 규칙이므로 ASPD를 반영하지 않는다. */
+	virtual float GetMontagePlayRate() const override;
+
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+
+	/** 리액션 페이즈가 끝나면 가드 페이즈로 되돌아간다. */
+	virtual void HandleMontageBlendOut() override;
+
+	/** 루핑하는 가드 페이즈에서는 종료하지 않는다. */
+	virtual void HandleMontageCompleted() override;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> GuardMontage;
 
@@ -70,7 +78,6 @@ protected:
 	float PerfectGuardSlowTimeDuration = 0.4f;
 
 private:
-	bool PlayMontage(UAnimMontage* Montage);
 	void ListenForGuardHit();
 	void ListenForPerfectGuard();
 
@@ -79,22 +86,4 @@ private:
 
 	UFUNCTION()
 	void HandlePerfectGuard(FGameplayEventData Payload);
-
-	UFUNCTION()
-	void HandleMontageBlendingOut();
-
-	UFUNCTION()
-	void HandleMontageCompleted();
-
-	UFUNCTION()
-	void HandleMontageInterrupted();
-
-	UFUNCTION()
-	void HandleMontageCancelled();
-
-	UPROPERTY(Transient)
-	TObjectPtr<UAnimMontage> ActiveMontage;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UAbilityTask_PlayMontageAndWait> CurrentMontageTask;
 };

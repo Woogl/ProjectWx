@@ -46,16 +46,4 @@ protected:
 private:
 	UFUNCTION()
 	void HandleConsumeEvent(FGameplayEventData Payload);
-
-	UFUNCTION()
-	void HandleMontageCompleted();
-
-	UFUNCTION()
-	void HandleMontageBlendOut();
-
-	UFUNCTION()
-	void HandleMontageInterrupted();
-
-	UFUNCTION()
-	void HandleMontageCancelled();
 };

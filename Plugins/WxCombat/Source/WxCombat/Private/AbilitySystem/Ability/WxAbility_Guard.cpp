@@ -6,7 +6,6 @@
 #include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
-#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "WxGameplayTags.h"
 
@@ -34,7 +33,8 @@ void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, co
 	// 스스로 끝나야 하는 페이즈는 입력 릴리즈로 끊지 않는다.
 	// - GuardBreak: 가드 깨짐 연출 완주 보장
 	// - PerfectGuard: 가드 키를 떼도 Effect.Guard를 남겨 반격 윈도우 보존
-	if (ActiveMontage == GuardBreakMontage || ActiveMontage == PerfectGuardMontage)
+	UAnimMontage* PhaseMontage = GetActiveMontage();
+	if (PhaseMontage == GuardBreakMontage || PhaseMontage == PerfectGuardMontage)
 	{
 		return;
 	}
@@ -45,6 +45,11 @@ void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, co
 float UWxAbility_Guard::GetDamageReductionRate() const
 {
 	return DamageReductionRate;
+}
+
+float UWxAbility_Guard::GetMontagePlayRate() const
+{
+	return 1.f;
 }
 
 void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -67,46 +72,24 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	ListenForPerfectGuard();
 }
 
-void UWxAbility_Guard::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+void UWxAbility_Guard::HandleMontageBlendOut()
 {
-	ActiveMontage = nullptr;
-	CurrentMontageTask = nullptr;
-
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+	UAnimMontage* PhaseMontage = GetActiveMontage();
+	if (PhaseMontage == GuardHitReactMontage || PhaseMontage == GuardKnockbackMontage)
+	{
+		PlayMontage(GuardMontage);
+	}
 }
 
-bool UWxAbility_Guard::PlayMontage(UAnimMontage* Montage)
+void UWxAbility_Guard::HandleMontageCompleted()
 {
-	// 페이즈 몽타주는 전부 선택적이다.
-	// 널이면 태스크가 즉시 OnCancelled를 쏘므로 성공으로 돌려선 안 된다.
-	if (!Montage)
+	// GuardMontage는 루핑 몽타주이므로 OnCompleted가 발생하지 않는다.
+	if (GetActiveMontage() == GuardMontage)
 	{
-		return false;
+		return;
 	}
 
-	// EndTask가 AnimInstance 바인딩을 해제하므로 구 태스크의 후속 이벤트는 발송되지 않는다.
-	if (CurrentMontageTask)
-	{
-		CurrentMontageTask->EndTask();
-		CurrentMontageTask = nullptr;
-	}
-
-	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, Montage, 1.f, NAME_None, true, 1.f, 0.f, true);
-	if (!MontageTask)
-	{
-		return false;
-	}
-
-	CurrentMontageTask = MontageTask;
-	ActiveMontage = Montage;
-
-	MontageTask->OnBlendOut.AddDynamic(this, &UWxAbility_Guard::HandleMontageBlendingOut);
-	MontageTask->OnCompleted.AddDynamic(this, &UWxAbility_Guard::HandleMontageCompleted);
-	MontageTask->OnInterrupted.AddDynamic(this, &UWxAbility_Guard::HandleMontageInterrupted);
-	MontageTask->OnCancelled.AddDynamic(this, &UWxAbility_Guard::HandleMontageCancelled);
-	MontageTask->ReadyForActivation();
-	return true;
+	Super::HandleMontageCompleted();
 }
 
 void UWxAbility_Guard::ListenForGuardHit()
@@ -136,7 +119,7 @@ void UWxAbility_Guard::ListenForPerfectGuard()
 void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 {
 	// 깨지는 중에 또 맞아도 브레이크 연출을 처음부터 다시 틀지 않는다.
-	if (ActiveMontage == GuardBreakMontage)
+	if (GetActiveMontage() == GuardBreakMontage)
 	{
 		return;
 	}
@@ -186,37 +169,8 @@ void UWxAbility_Guard::HandlePerfectGuard(FGameplayEventData Payload)
 	}
 
 	// HitReact·Knockback 재생 중에 이벤트가 오면 보상만 주고 몽타주는 전환하지 않는다.
-	if (ActiveMontage == GuardMontage && PerfectGuardMontage)
+	if (GetActiveMontage() == GuardMontage && PerfectGuardMontage)
 	{
 		PlayMontage(PerfectGuardMontage);
 	}
-}
-
-void UWxAbility_Guard::HandleMontageBlendingOut()
-{
-	if (ActiveMontage == GuardHitReactMontage || ActiveMontage == GuardKnockbackMontage)
-	{
-		PlayMontage(GuardMontage);
-	}
-}
-
-void UWxAbility_Guard::HandleMontageCompleted()
-{
-	// GuardMontage는 루핑 몽타주이므로 OnCompleted가 발생하지 않는다.
-	if (ActiveMontage == GuardMontage)
-	{
-		return;
-	}
-
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-}
-
-void UWxAbility_Guard::HandleMontageInterrupted()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-}
-
-void UWxAbility_Guard::HandleMontageCancelled()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
