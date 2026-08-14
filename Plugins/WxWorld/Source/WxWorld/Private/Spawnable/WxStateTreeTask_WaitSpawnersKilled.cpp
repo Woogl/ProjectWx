@@ -23,7 +23,7 @@ namespace
 	TArray<FWxSpawnersKilledWait> SpawnersKilledWaits;
 
 	/** 재사용하지 않으므로 뒤늦은 해제 요청이 엉뚱한 등록을 걷어가지 않는다. */
-	int32 NextWaitHandle = 0;
+	int32 NextSpawnersKilledWaitHandle = 0;
 
 	/** 미해석은 판정 불가라 통과시키지 않는다. 지정이 없으면 완료할 근거도 없다. */
 	bool AreAllSpawnersKilled(const TArray<FUniversalObjectLocator>& Spawners, UObject* ResolveContext)
@@ -100,7 +100,7 @@ EStateTreeRunStatus FWxStateTreeTask_WaitSpawnersKilled::EnterState(FStateTreeEx
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	Instance.WaitHandle = NextWaitHandle++;
+	Instance.WaitHandle = NextSpawnersKilledWaitHandle++;
 
 	FWxSpawnersKilledWait& Wait = SpawnersKilledWaits.AddDefaulted_GetRef();
 	Wait.Handle = Instance.WaitHandle;

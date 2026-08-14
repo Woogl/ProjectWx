@@ -21,7 +21,7 @@ namespace
 	TArray<FWxInteractionWait> InteractionWaits;
 
 	/** 재사용하지 않으므로 뒤늦은 해제 요청이 엉뚱한 등록을 걷어가지 않는다. */
-	int32 NextWaitHandle = 0;
+	int32 NextInteractionWaitHandle = 0;
 }
 
 FWxStateTreeTask_WaitForInteraction::FWxStateTreeTask_WaitForInteraction()
@@ -70,7 +70,7 @@ EStateTreeRunStatus FWxStateTreeTask_WaitForInteraction::EnterState(FStateTreeEx
 		UE_LOG(LogWxWorld, Warning, TEXT("Wait For Interaction: 상호작용을 기다릴 대상이 지정되지 않음."));
 	}
 
-	Instance.WaitHandle = NextWaitHandle++;
+	Instance.WaitHandle = NextInteractionWaitHandle++;
 
 	FWxInteractionWait& Wait = InteractionWaits.AddDefaulted_GetRef();
 	Wait.Handle = Instance.WaitHandle;
