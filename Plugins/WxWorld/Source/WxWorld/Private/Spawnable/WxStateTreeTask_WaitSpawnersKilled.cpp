@@ -19,13 +19,13 @@ namespace
 		FStateTreeWeakExecutionContext Context;
 	};
 
-	/** 지금 기다리는 노드들. 비어 있으면 스포너가 처치돼도 하는 일이 없다. */
+	/** 비어 있으면 스포너가 처치돼도 하는 일이 없다. */
 	TArray<FWxSpawnersKilledWait> SpawnersKilledWaits;
 
 	/** 재사용하지 않으므로 뒤늦은 해제 요청이 엉뚱한 등록을 걷어가지 않는다. */
 	int32 NextWaitHandle = 0;
 
-	/** 전원이 해석(로드)되고 처치 상태인가. 미해석은 판정 불가라 통과시키지 않는다. 지정이 없으면 완료할 근거도 없다. */
+	/** 미해석은 판정 불가라 통과시키지 않는다. 지정이 없으면 완료할 근거도 없다. */
 	bool AreAllSpawnersKilled(const TArray<FUniversalObjectLocator>& Spawners, UObject* ResolveContext)
 	{
 		if (Spawners.IsEmpty())
@@ -95,7 +95,6 @@ EStateTreeRunStatus FWxStateTreeTask_WaitSpawnersKilled::EnterState(FStateTreeEx
 		}
 	}
 
-	// 이미 전원 처치인 채로 들어왔으면 앞으로 올 통보가 없다. 그 경우만 여기서 가른다.
 	if (AreAllSpawnersKilled(Instance.Spawners, Context.GetOwner()))
 	{
 		return EStateTreeRunStatus::Succeeded;

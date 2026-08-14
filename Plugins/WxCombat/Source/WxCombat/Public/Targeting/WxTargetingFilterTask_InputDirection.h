@@ -13,7 +13,6 @@ class APawn;
  * 소스 폰의 이동 입력 방향(수평)에서 타겟 방향이 MaxInputAngle 을 넘으면 제외하는 타겟팅 필터.
  * 락온에서 미는 방향의 대상만 추리는 데 쓴다.
  * 입력이 없으면(스틱 중립) 아무것도 제외하지 않는다.
- * 콘 안에 드는 후보가 하나도 없을 때는 bKeepAllWhenNoMatch 에 따라 전체를 유지하거나 전부 제외한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxTargetingFilterTask_InputDirection : public UTargetingFilterTask_BasicFilterTemplate

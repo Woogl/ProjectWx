@@ -14,7 +14,6 @@ EStateTreeRunStatus FWxStateTreeTask_PlayInteractorMontage::EnterState(FStateTre
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 전이로 들어온 것이 아니면(StateTree 시작·세이브 복원·레이트조인) 재생 없이 곧바로 완료한다.
 	if (!Transition.SourceStateID.IsValid())
 	{
 		return EStateTreeRunStatus::Succeeded;
@@ -55,7 +54,6 @@ EStateTreeRunStatus FWxStateTreeTask_PlayInteractorMontage::Tick(FStateTreeExecu
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	// 재생이 끝나면(또는 다른 몽타주로 교체되면) 상태를 완료시킨다.
 	return AnimInstance->Montage_IsPlaying(Instance.Montage) ? EStateTreeRunStatus::Running : EStateTreeRunStatus::Succeeded;
 }
 

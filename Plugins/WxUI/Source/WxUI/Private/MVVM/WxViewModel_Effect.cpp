@@ -25,7 +25,7 @@ void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGame
 
 	SetEffectName(InUIData->DisplayName);
 
-	// 아이콘은 비동기 스트리밍한다(전투 중 동기 로드 히치 회피).
+	// 전투 중 동기 로드 히치를 피한다.
 	RequestImageAsync(TEXT("Icon"), InUIData->Icon);
 
 	SetStackCount(ActiveEffect->Spec.GetStackCount());

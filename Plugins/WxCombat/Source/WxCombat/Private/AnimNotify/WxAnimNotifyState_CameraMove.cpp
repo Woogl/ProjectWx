@@ -104,7 +104,6 @@ void UWxAnimNotifyState_CameraMove::NotifyTick(USkeletalMeshComponent* MeshComp,
 		PreviewCameraMeshComponent = nullptr;
 	}
 
-	// 컴포넌트는 파괴하지 않고 재사용하며, 구간 진입·이탈은 비저빌리티로만 토글한다.
 	// 에디터 프리뷰 전용이라 로드 비용은 신경 쓰지 않고 생성 시점에 동기 로드한다.
 	if (!PreviewCameraMeshComponent)
 	{
@@ -125,7 +124,6 @@ void UWxAnimNotifyState_CameraMove::NotifyTick(USkeletalMeshComponent* MeshComp,
 
 	PreviewCameraMeshComponent->SetVisibility(true);
 
-	// 부착 모드는 실시간 몸체 트랜스폼을 따라가고, 고정 모드는 구간 첫 진입 시점을 붙든다.
 	// 이 기준 트랜스폼은 정지 중 프로퍼티 편집을 즉시 반영할 때도 재사용한다.
 	if (bAttachToOwner || !PreviewCameraTransform.IsSet())
 	{
@@ -189,7 +187,7 @@ void UWxAnimNotifyState_CameraMove::PostEditChangeProperty(FPropertyChangedEvent
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	// 구간 안에서 정지한 채 오프셋·회전을 편집해도 바로 보이도록, 다음 틱을 기다리지 않고 마지막 기준 트랜스폼으로 즉시 재배치한다.
+	// 다음 틱을 기다리지 않고 마지막 기준 트랜스폼으로 즉시 재배치한다.
 	if (PreviewCameraMeshComponent && PreviewCameraTransform.IsSet())
 	{
 		const FTransform CameraTransform = FTransform(CameraRelativeRotation, CameraRelativeLocation) * PreviewCameraTransform.GetValue();

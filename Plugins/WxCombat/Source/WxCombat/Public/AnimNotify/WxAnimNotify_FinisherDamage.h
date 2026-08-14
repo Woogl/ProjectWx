@@ -9,7 +9,6 @@
 #include "WxAnimNotify_FinisherDamage.generated.h"
 
 /**
- * 처형(앞잡·뒤잡) 대미지 AnimNotify.
  * 몽타주를 재생 중인 피니셔 어빌리티가 상호작용으로 확정해 둔 대상에 이 프레임의 대미지를 적용한다.
  * 앞잡·뒤잡 구분 없이 DamageDataRow의 계수를 쓰므로, 타이밍도 수치도 이 노티파이가 소유한다.
  */

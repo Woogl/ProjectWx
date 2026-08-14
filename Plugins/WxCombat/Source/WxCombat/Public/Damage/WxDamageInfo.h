@@ -27,7 +27,7 @@ struct WXCOMBAT_API FWxDamageInfo
 	/** 첫 항목은 UWxEffect_Damage Spec이고, 이후는 AdditionalEffects 각각의 Spec이다. */
 	TArray<FGameplayEffectSpecHandle> MakeSpecs(UAbilitySystemComponent* SourceASC, const FGameplayEffectContextHandle& Context) const;
 
-	/** 공격력 계수. Damage Spec의 SetByCaller.Coeff.ATK로 반영 */
+	/** Damage Spec의 SetByCaller.Coeff.ATK로 반영 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo")
 	float CoeffATK = 1.f;
 
@@ -54,7 +54,7 @@ struct WXCOMBAT_API FWxDamageInfo
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo")
 	bool bParryHitReact = true;
 
-	/** Damage GE와 함께 타겟에 적용할 추가 GameplayEffect 목록 (상태이상, 디버프 등) */
+	/** Damage GE와 함께 타겟에 적용된다 (상태이상, 디버프 등) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo", meta = (AllowAbstract = "false"))
 	TArray<TSubclassOf<UGameplayEffect>> AdditionalEffects;
 };

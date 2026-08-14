@@ -13,11 +13,6 @@ class UAbilitySystemComponent;
 /**
  * WidgetComponent를 확장하여 ASC 기반 MVVM ViewModel 초기화를 캡슐화한다.
  * 카메라 거리에 따라 위젯 스케일을 자동 조절하여 원근 효과를 적용한다.
- *
- * 사용 흐름:
- *  1. 오너 액터의 생성자에서 서브오브젝트로 생성
- *  2. BP에서 Widget Class에 네임플레이트 위젯을 지정
- *  3. BeginPlay 이후 InitializeViewModels()로 ViewModel 바인딩
  */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))
 class WXUI_API UWxNameplateComponent : public UWidgetComponent
@@ -42,8 +37,7 @@ public:
 protected:
 	/**
 	 * ASC 보유 태그로 평가한다: Must Have(HasAll)·Must Not Have(HasAny면 숨김)·Query Must Match(복합).
-	 * 기본값은 생성자에서 저작한다(Dead 면 숨김, InCombat 또는 LockedOn 이면 표시).
-	 * 엔티티별로 BP 에서 오버라이드한다.
+	 * 기본값은 생성자에서 저작한다(Ability.Death 면 숨김, State.InCombat 또는 State.LockedOn 이면 표시).
 	 *
 	 * 여기 등장하는 태그가 곧 ASC 구독 목록이므로 런타임에 바꾸면 구독이 어긋난다 — 바꾸려면 재구독이 필요하다.
 	 */
@@ -61,17 +55,10 @@ protected:
 	float MaxScale = 1.f;
 
 private:
-	/**
-	 * 표시 조건을 ASC 진실로부터 재계산한다.
-	 * ASC 태그가 바뀔 때(HandleOwnedTagsChanged) 및 최초 바인딩 직후에만 호출한다.
-	 * 어떤 게임플레이 상태가 조건인지는 VisibilityRequirements 가 정하며, 본 함수는 구체 태그를 알지 않는다.
-	 */
+	/** ASC 태그가 바뀔 때(HandleOwnedTagsChanged) 및 최초 바인딩 직후에만 호출한다. */
 	void RefreshVisibility();
 
-	/**
-	 * VisibilityRequirements 가 참조하는 태그를 전부 모은다 — 이 목록이 곧 ASC 구독 대상이다.
-	 * 요건에 없는 태그는 RequirementsMet 결과를 바꿀 수 없으므로 이 목록만 구독해도 동작이 등가다.
-	 */
+	/** 이 목록이 곧 ASC 구독 대상이다 — 요건에 없는 태그는 RequirementsMet 결과를 바꿀 수 없으므로 이 목록만 구독해도 동작이 등가다. */
 	void CollectVisibilityTags(FGameplayTagContainer& OutTags) const;
 
 	/** 구독 자체가 요건 태그로 좁혀져 있으므로 어떤 태그가 바뀌었는지는 보지 않는다. */

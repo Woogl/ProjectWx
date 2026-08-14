@@ -13,11 +13,10 @@ class UAbilitySystemComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionListChanged, const TArray<FText>&, Prompts);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionSelectionChanged, int32, SelectedIndex);
 
-/** 스캐너가 쓸 수 있게 됐다는 브로드캐스트. 소유 액터는 인자로 준 컴포넌트에서 얻는다. */
+/** 소유 액터는 인자로 준 컴포넌트에서 얻는다. */
 DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnScannerReady, UWxInteractionScannerComponent* /*Scanner*/);
 
 /**
- * 상호작용 스캐너 컴포넌트.
  * AWxPlayerController 에 붙어, 소유 클라(리슨호스트 포함)에서 주변 상호작용 메시를 주기 스캔해 in-range 집합을 모은다.
  * HUD 리스트 뷰모델(UWxViewModel_InteractionList)이 이 목록과 선택 인덱스를 함께 표시한다.
  *
@@ -45,28 +44,25 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	/**
-	 * 상호작용 실행 진입점. 로컬 선택을 읽어 ServerInteract 로 전송한다.
-	 * 선택이 없으면 무동작. 리슨호스트에선 ServerInteract 가 로컬 권위 호출이 된다.
+	 * 로컬 선택을 읽어 ServerInteract 로 전송한다. 선택이 없으면 무동작.
+	 * 리슨호스트에선 ServerInteract 가 로컬 권위 호출이 된다.
 	 */
 	void TryInteractSelected();
 
-	/** 현재 인-레인지 메시들의 프롬프트 텍스트를 순서대로 반환한다. 리졸버가 초기 시드로 읽는다. */
+	/** 현재 인-레인지 메시들의 프롬프트 텍스트를 순서대로 반환한다. 뷰모델이 초기 시드로 읽는다. */
 	TArray<FText> GetPrompts() const;
 
-	/** 현재 선택 인덱스(없으면 INDEX_NONE). 리졸버가 초기 시드로 읽는다. */
+	/** 현재 선택 인덱스(없으면 INDEX_NONE). 뷰모델이 초기 시드로 읽는다. */
 	int32 GetSelectedIndex() const;
 
-	/** 현재 선택된 인-레인지 메시(없으면 nullptr). */
 	UPrimitiveComponent* GetSelectedMesh() const;
 
 	/** 선택을 Delta 만큼 순환 이동한다(휠/방향키). 목록이 비면 무시. */
 	void CycleSelection(int32 Delta);
 
-	/** 인-레인지 목록 변경 시 발사. */
 	UPROPERTY(BlueprintAssignable, Category = "Wx")
 	FWxOnInteractionListChanged OnListChanged;
 
-	/** 선택 인덱스 변경 시 발사. */
 	UPROPERTY(BlueprintAssignable, Category = "Wx")
 	FWxOnInteractionSelectionChanged OnSelectionChanged;
 
@@ -95,25 +91,22 @@ private:
 	void ServerInteract(UPrimitiveComponent* Selected);
 
 	/**
-	 * 소유 클라에서만 주기 스캔 타이머를 건다. 폰 주위 ScanRadius 구를 오버랩해 겹친 컴포넌트 중 IWxInteractable 의 활성 영역인 것만 남기고 거리순으로 UpdateInRange 한다.
-	 * 겹쳤다는 사실이 곧 사거리 판정이라 메시별 사거리 재측정은 하지 않는다(오버랩 구가 IsMeshInRange 와 같은 원점·반경·형상이다).
-	 * 상호작용 불가(사망·처형 중)면 후보를 비워 프롬프트·하이라이트를 정리한다.
+	 * 소유 클라에서 주기 타이머로 호출된다.
+	 * 상호작용 불가면 후보를 비워 프롬프트·하이라이트를 정리한다.
 	 */
 	void ScanAndPush();
 
 	/**
 	 * 후보 집합으로 in-range 멤버십을 갱신한다. 기존 순서 보존·신규만 뒤에 추가·이탈은 제거.
-	 * 멤버십이 실제로 바뀐 경우에만 강조·선택을 갱신·발화하고, 목록(프롬프트)은 문구 스냅샷이 달라졌을 때 발화한다 — 멤버십이 그대로여도 대상이 상태별로 문구를 바꾸면 그것도 갱신이다.
+	 * 멤버십이 실제로 바뀐 경우에만 강조·선택을 갱신·발화하고, 목록(프롬프트)은 문구 스냅샷이 달라졌을 때 발화한다.
 	 */
 	void UpdateInRange(const TArray<UPrimitiveComponent*>& InCandidates);
 
-	/** 선택 인덱스를 갱신하고(변경 시) 강조 갱신 + 선택 변경을 알린다. */
 	void UpdateSelection(int32 NewIndex);
 
 	/** 선택된 메시만 외곽선 강조 ON, 나머지는 OFF. 외곽선을 쓰는 유일한 주체다(선택을 소유하므로). */
 	void ApplyHighlight();
 
-	/** 지정 메시의 외곽선을 켜고 끈다. */
 	void SetMeshHighlighted(UPrimitiveComponent* Mesh, bool bHighlighted) const;
 
 	/**
@@ -133,6 +126,5 @@ private:
 
 	int32 SelectedIndex = INDEX_NONE;
 
-	/** 주기 스캔 타이머 핸들. BeginPlay(로컬)에서 설정, EndPlay 에서 해제. */
 	FTimerHandle ScanTimerHandle;
 };

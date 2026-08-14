@@ -60,7 +60,6 @@ EStateTreeRunStatus FWxStateTreeTask_PrintSubtitle::Tick(FStateTreeExecutionCont
 	}
 
 	// 마지막 줄이었거나 다음 줄을 해석하지 못했다(후자는 ShowRow 가 경고를 남긴다).
-	// 어느 쪽이든 자막은 여기서 끝난다.
 	if (UWxViewModel_Subtitle* SubtitleViewModel = UWxViewModel_Subtitle::GetOrCreate(Context.GetOwner()))
 	{
 		SubtitleViewModel->HideSubtitle(Instance.SubtitleHandle);

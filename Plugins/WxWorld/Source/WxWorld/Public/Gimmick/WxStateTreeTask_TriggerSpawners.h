@@ -17,7 +17,6 @@ struct FWxStateTreeTask_TriggerSpawnersInstanceData
 {
 	GENERATED_BODY()
 
-	/** ST 에셋에서 Context 액터의 프로퍼티로 바인딩한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TArray<TSoftObjectPtr<AWxSpawner>> Spawners;
 };

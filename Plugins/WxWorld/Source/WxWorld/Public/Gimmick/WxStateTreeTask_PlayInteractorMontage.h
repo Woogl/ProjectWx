@@ -17,7 +17,6 @@ struct FWxStateTreeTask_PlayInteractorMontageInstanceData
 {
 	GENERATED_BODY()
 
-	/** 비면 재생 없이 곧바로 완료한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<UAnimMontage> Montage;
 };

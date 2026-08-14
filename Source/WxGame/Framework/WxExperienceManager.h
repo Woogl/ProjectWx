@@ -17,7 +17,7 @@ class WXGAME_API UWxExperienceManager : public UEngineSubsystem
 
 public:
 #if WITH_EDITOR
-	/** PIE 시작 시 카운터를 리셋한다. WxEditor 모듈이 BeginPIE 델리게이트에서 호출한다. */
+	/** WxEditor 모듈이 BeginPIE 델리게이트에서 호출한다. */
 	void OnPlayInEditorBegun();
 #endif
 

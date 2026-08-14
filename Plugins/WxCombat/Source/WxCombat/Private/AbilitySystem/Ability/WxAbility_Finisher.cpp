@@ -28,7 +28,6 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	// 앞잡은 플레이어의 공격으로 만들어지므로, 그로기 직후 F를 누르면 아직 활성인 공격의 차단에 걸릴 수 있다(막힌 발동은 재시도 없이 소모).
 	// 액션 마커(Ability.Exclusive)를 달지 않아 그 차단을 타지 않는다.
 
-	// 연출을 시작하면서 진행 중이던 액션을 끊고, 연출 중에는 새 액션을 막는다.
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 
@@ -120,7 +119,6 @@ void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, co
 	{
 		if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(TargetActor.Get()))
 		{
-			// 피해자 짝 피격 몽타주 완료에 의존하지 않고 공격자가 권위적으로 그로기를 해제한다.
 			if (UAbilitySystemComponent* SourceASC = ActorInfo->AbilitySystemComponent.Get())
 			{
 				FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();

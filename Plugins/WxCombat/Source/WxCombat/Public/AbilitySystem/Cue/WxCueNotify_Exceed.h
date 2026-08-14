@@ -30,7 +30,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Cue")
 	TObjectPtr<UNiagaraSystem> NiagaraSystem;
 
-	/** 무기 메시의 부착 소켓 이름. 비워두면 메시 원점에 부착 */
+	/** 비워두면 무기 메시 원점에 부착 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Cue")
 	FName WeaponAttachSocket = NAME_None;
 

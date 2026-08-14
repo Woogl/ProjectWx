@@ -28,17 +28,12 @@ public:
 	 */
 	bool CanBeLockedOn() const;
 
-	/**
-	 * 락온 가능한 첫 지점을 반환한다.
-	 * 초기 락온·타겟 상실 재탐색처럼 액터당 지점 하나면 충분한 경로에서 쓴다.
-	 */
+	/** 락온 가능한 첫 지점을 반환한다 */
 	static USceneComponent* ResolveLockOnTarget(const AActor* Actor);
 
-	/** 같은 액터의 여러 부위를 후보로 비교해야 하는 경로(시선 재탐색)에서 쓴다 */
 	static void GatherLockOnPoints(const AActor* Actor, TArray<USceneComponent*>& OutPoints);
 
 protected:
-	/** 이 지점에 락온하기 위한 대상 태그 조건 */
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	FGameplayTagRequirements LockOnRequirements;
 };

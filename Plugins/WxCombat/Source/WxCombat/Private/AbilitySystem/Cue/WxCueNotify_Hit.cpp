@@ -23,7 +23,8 @@ void UWxCueNotify_Hit::HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent::Ty
 	}
 
 	// 서버는 회피 히트에 출력 모디파이어가 없어 애초에 발행하지 않지만, 예측 클라는 ExecCalc을 건너뛰고 낙관 발행한다.
-	// 이 검사가 없으면 회피에 성공해도 공격자 화면에만 스파크가 튄다. 무적 태그는 ANS가 각 머신에 로컬로 붙인다.
+	// 이 검사가 없으면 회피에 성공해도 공격자 화면에만 스파크가 튄다.
+	// 무적 태그는 ANS가 각 머신에 로컬로 붙인다.
 	const UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(MyTarget);
 	if (TargetASC && TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Invincible))
 	{

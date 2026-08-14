@@ -22,13 +22,6 @@ class UMVVMView;
  * UWxViewModelResolver_Inventory 가 위젯별로 생성하며, 인벤토리 연결은 본 VM 이 스스로 관찰해 처리한다.
  * 인벤토리는 GameMode 주입(서버) 또는 복제(클라)로 붙어 위젯보다 늦게 도착할 수 있고, 리졸버가 돌려준 인스턴스는 뷰가 교체할 수 없다.
  * 그래서 인스턴스는 고정한 채 도착 신호를 받아 내부 상태(Initialize)만 갈아끼운다 — UWxViewModel_BossCharacter 와 같은 구조다.
- * 역할은 다섯 가지로 한정한다:
- *   1) ItemDef 기준 총 보유량 집계 (GetCurrencyAmount)
- *   2) 가장 최근 스택 변경 알림 (LastChangedItemDef/Amount/Delta) — 단발성 Toast/팝업 이펙트 등 "방금 무엇이 얼마나 변했는지" 단일 채널
- *   3) 보유 중인 아이템 인스턴스 전체 목록 (AllItems) — 인벤토리 ListView 등 "전체 슬롯을 나열"하는 화면의 ItemSource 로 사용
- *   4) 카테고리 탭 표시용 필터링된 목록 (CategorizedItems) — CurrentCategory 변경 또는 AllItems 갱신 시 자동 재계산
- *   5) 가장 최근 획득 알림 (LastAcquiredItem) — Delta>0 마다 새로 생성된 Def 모드 UWxViewModel_Item(AcquiredCount=Delta) 으로 교체.
- *      HUD 토스트 등 즉시성 표시는 본 프로퍼티를 View Binding 으로 수신해 ListView ItemSource 에 그대로 넣는다.
  *
  * 특정 ItemDef 의 수량/아이콘/이름 등 슬롯 단위 표시 데이터는 본 VM을 쓰지 말고 UWxViewModel_Item 을 위젯 인스턴스별로 생성해 사용한다.
  */
@@ -38,7 +31,7 @@ class WXGAME_API UWxViewModel_Inventory : public UWxViewModel
 	GENERATED_BODY()
 
 public:
-	/** 대상 PC 의 인벤토리 관찰을 시작한다. 이미 붙어 있으면 즉시 연결하고, 아니면 도착 신호를 기다린다. */
+	/** 인벤토리가 이미 붙어 있으면 즉시 연결하고, 아니면 도착 신호를 기다린다. */
 	void StartObserving(APlayerController* PC);
 
 	void Initialize(UWxInventoryManagerComponent* InInventory);
@@ -74,7 +67,6 @@ public:
 	TArray<TObjectPtr<UWxViewModel_Item>> AllItems;
 
 	/**
-	 * 현재 화면이 표시 중인 카테고리.
 	 * 탭 위젯이 BlueprintSetter 를 통해 갱신한다.
 	 * Setter 가 CategorizedItems 재계산을 함께 트리거하므로, 직접 멤버를 쓰지 말고 SetCurrentCategory 로만 변경한다.
 	 */
@@ -90,7 +82,6 @@ public:
 	TArray<TObjectPtr<UWxViewModel_Item>> CategorizedItems;
 
 	/**
-	 * 가장 최근 획득 알림용 ViewModel.
 	 * HandleStackChanged 에서 Delta>0 일 때 교체된다.
 	 * 매번 새로 생성된 Def 모드 UWxViewModel_Item(AcquiredCount=Delta) 이므로 같은 ItemDef 를 연속 획득해도 FieldNotify 가 항상 발생하고, 토스트 위젯 간 표시 데이터가 서로 영향을 주지 않는다.
 	 * View 는 본 프로퍼티를 토스트 추가 함수에 OneWay 바인딩한다.
@@ -114,7 +105,7 @@ protected:
 	FDelegateHandle StackChangedHandle;
 
 private:
-	/** 인벤토리 도착 수신. 관찰 중인 PC 의 것이면 연결하고 관찰을 끝낸다. */
+	/** 관찰 중인 PC 의 것이면 연결하고 관찰을 끝낸다. */
 	void HandleInventoryReady(UWxInventoryManagerComponent* Inventory);
 
 	/** 도착 신호 구독을 해제한다. 연결 성공 시와 소멸 시 모두 여기로 모은다. */
@@ -126,8 +117,6 @@ private:
 };
 
 /**
- * VM_Inventory 용 View Bindings Resolver.
- *
  * 위젯별로 관찰형 인벤토리 뷰모델(UWxViewModel_Inventory)을 생성해 돌려준다.
  * 인벤토리 탐색/연결은 뷰모델이 스스로 수행하므로, 인벤토리가 아직 없어도 VM 은 만들어지고 도착 시점에 채워진다.
  * WBP 의 View Bindings 에서 Creation Type = Resolver 로 본 클래스를 선택한다.

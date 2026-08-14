@@ -11,7 +11,7 @@
 UWxQuestComponent::UWxQuestComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	// 틱은 러너가 스스로 돌린다. 본 컴포넌트는 위임·저널만 담당한다.
+	// 틱은 러너가 스스로 돌린다.
 	PrimaryComponentTick.bCanEverTick = false;
 }
 

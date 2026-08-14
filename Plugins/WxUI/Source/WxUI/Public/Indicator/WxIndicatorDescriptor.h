@@ -47,7 +47,7 @@ public:
 	void Unregister();
 
 private:
-	/** 가리킬 대상. 이 컴포넌트의 월드 위치가 투영 원점이다. */
+	/** 이 컴포넌트의 월드 위치가 투영 원점이다. */
 	UPROPERTY()
 	TObjectPtr<USceneComponent> TargetComponent;
 

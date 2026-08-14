@@ -40,7 +40,6 @@ struct FWxGimmickInteractionRegion
 {
 	GENERATED_BODY()
 
-	/** 이 영역이 켜져 있는 동안 표시할 HUD 프롬프트. */
 	UPROPERTY()
 	FText Prompt;
 
@@ -124,13 +123,13 @@ public:
 	 */
 	void SetInteractionRegionEnabled(UPrimitiveComponent* Mesh, bool bEnabled, const FWxGimmickInteractionRegion& Region);
 
-	/** 이번 상호작용의 당사자(플레이어 캐릭터). 상호작용 이동/몽타주 태스크가 읽는다. 상호작용이 없었으면 null. */
+	/** 이번 상호작용의 당사자(플레이어 캐릭터). 상호작용이 없었으면 null. */
 	ACharacter* GetInteractingCharacter() const;
 
 	/** 지금 활성인 상태의 Tag. 활성 leaf 에서 위로 올라가며 처음 만나는 유효 태그를 답한다(태그 없는 중간 상태는 건너뛴다). */
 	FGameplayTag GetActiveStateTag();
 
-	/** 실행 컨텍스트 확장이 트리의 깨우기 요청을 전달하는 진입점. 잠들어 꺼둔 컴포넌트 틱을 다시 켠다. */
+	/** 실행 컨텍스트 확장이 트리의 깨우기 요청을 전달하는 진입점. */
 	void NotifyTickRequested();
 
 protected:

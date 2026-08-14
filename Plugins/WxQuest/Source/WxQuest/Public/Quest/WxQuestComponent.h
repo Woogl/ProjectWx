@@ -23,7 +23,6 @@ struct FWxQuestObjective
 	UPROPERTY()
 	int32 Handle = INDEX_NONE;
 
-	/** 저널·HUD 에 표시할 목표 문구. */
 	UPROPERTY()
 	FText Text;
 };
@@ -39,7 +38,7 @@ struct FWxQuestObjective
  *
  * 본 컴포넌트는 어떤 퀘스트 에셋도 알지 않는다(에셋 불가지). 무엇을 실행할지는 전부 데이터가 지정한다:
  *  - 수주: 레벨에 배치한 트리거 볼륨이 UWxQuestLibrary::StartQuest 로 넘기는 에셋
- *  - 체인: StartNextQuest 태스크의 NextQuest 소프트 참조
+ *  - 체인: StartNextQuest 태스크의 Quest 소프트 참조
  *
  * 부착은 코드가 아니라 GameMode 가 고른 Experience 에셋의 주입 목록으로 한다(GameState 는 본 클래스를 모른다).
  * 목록에는 사이드 구분이 없어 클라 GameState 에도 사본이 붙으므로, 러너를 권위에서만 띄우는 것은 본 클래스의 책임이다.
@@ -61,16 +60,16 @@ public:
 	/** SetQuestTitle 태스크 진입점. 저널을 새 퀘스트 제목으로 등록한다(목표는 비움). */
 	void SetQuestTitle(const FText& InQuestTitle);
 
-	/** SetQuestObjective 태스크 진입점. 목표를 추가하고 나중에 걷어갈 핸들을 돌려준다. */
+	/** SetQuestObjective 태스크 진입점. 나중에 걷어갈 핸들을 돌려준다. */
 	int32 AddObjective(const FText& InObjectiveText);
 
-	/** SetQuestObjective 태스크 이탈점. 지정 핸들의 목표를 걷어간다. 이미 없는 핸들은 무시한다. */
+	/** SetQuestObjective 태스크 이탈점. 이미 없는 핸들은 무시한다. */
 	void RemoveObjective(int32 ObjectiveHandle);
 
 	bool HasActiveQuest() const;
 	FText GetQuestTitle() const;
 
-	/** 현재 표시 중인 목표 문구들을 등록 순서대로 돌려준다. */
+	/** 등록 순서대로 돌려준다. */
 	TArray<FText> GetObjectiveTexts() const;
 
 	/** 저널 등록·목표 갱신·정리 시 발화. HUD 뷰모델이 구독해 현재 값을 pull 한다. */

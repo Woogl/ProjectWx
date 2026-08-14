@@ -103,7 +103,6 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 
 	PlayImpactFX();
 
-	// 대미지 적용과 파괴는 서버 권위로만 처리하고, 클라에서는 복제된 파괴로 사라진다.
 	if (!HasAuthority())
 	{
 		return;
@@ -156,7 +155,6 @@ void AWxProjectileBase::HandleHitCollisionHit(UPrimitiveComponent* HitComponent,
 
 	PlayImpactFX();
 
-	// 파괴는 서버 권위로만 처리한다.
 	if (!HasAuthority())
 	{
 		return;

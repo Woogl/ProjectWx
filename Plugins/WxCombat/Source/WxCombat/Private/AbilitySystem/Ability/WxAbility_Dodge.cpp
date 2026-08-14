@@ -41,7 +41,6 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 	if (IsLocallyControlled())
 	{
-		// 로컬 공간(정면 기준)으로 변환해 두면 서버가 자기 facing과 무관하게 동일한 방향을 얻는다.
 		FVector LocalDodgeDirection = FVector::ZeroVector;
 		if (const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
 		{
@@ -130,7 +129,6 @@ FName UWxAbility_Dodge::SelectDodgeSection(const FVector& LocalDirection) const
 		return NAME_None;
 	}
 
-	// 섹션 이름은 EWxDodgeDirection 항목명과 같다는 규약이다.
 	const EWxDodgeDirection DodgeDirection = ResolveDodgeDirection(LocalDirection);
 	const FName SectionName(StaticEnum<EWxDodgeDirection>()->GetNameStringByValue(static_cast<int64>(DodgeDirection)));
 	if (DodgeMontage->IsValidSectionName(SectionName))
@@ -305,7 +303,6 @@ void UWxAbility_Dodge::ActivateJudgementCapsule()
 		JudgementCapsule->RegisterComponent();
 	}
 
-	// 콜리전을 켜고 아바타에서 떼어내 무적이 시작된 자리에 남긴다.
 	JudgementCapsule->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	JudgementCapsule->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 }

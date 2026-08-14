@@ -61,7 +61,7 @@ public:
 	/** VM_Character 주입용 UI 표시 데이터(이름/초상화). */
 	const FWxCharacterUIData& GetCharacterUIData() const;
 
-	/** Ability.Death 태그 부여 시 호출. 파생 클래스에서 override하여 사망 연출 추가 */
+	/** Ability.Death 태그 부여 시 호출. */
 	virtual void HandleDeath();
 
 	UPROPERTY(BlueprintAssignable, Category = "Wx|Character")
@@ -81,7 +81,6 @@ protected:
 	TObjectPtr<UWxEquipmentComponent> EquipmentComponent;
 
 	/**
-	 * 캐릭터가 항상 소유하는 무기 액터를 호스팅하는 ChildActor 컴포넌트.
 	 * BP 의 ChildActorClass 에 구체 무기 BP 를 지정한다.
 	 * 장착 변경 시 메시 스왑/소켓 재부착의 대상이 된다.
 	 */
@@ -89,7 +88,6 @@ protected:
 	TObjectPtr<UChildActorComponent> WeaponActor;
 
 	/**
-	 * 메타휴먼 부착물(페이스·그룸·복장)을 바디 메시에 조립하는 컴포넌트.
 	 * BP 디폴트에서 에셋을 지정한 캐릭터만 부착물을 만들고, 비워두면 아무것도 만들지 않는다.
 	 */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Visual")
@@ -103,19 +101,14 @@ protected:
 
 	void HandleSPDAttributeChanged(const FOnAttributeChangeData& Data);
 
-	/** Ability.Death 태그 부여 시 각 머신에서 HandleDeath 호출 */
 	void HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
-	/** State.Ragdoll 태그 부여 시 각 머신에서 래그돌 물리 전환 적용 */
 	void HandleRagdollTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
-	/** State.Ragdoll 감지 시 각 머신에서 호출 */
 	void EnterRagdoll();
 
-	/** 장비 컴포넌트의 외형 변경 방송 콜백. */
 	void HandleEquipVisualChanged(USkeletalMesh* MeshAsset, FName Socket);
 
-	/** 네임플레이트/HUD 등 UI 표시 데이터. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	FWxCharacterUIData UIData;
 

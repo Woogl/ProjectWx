@@ -16,10 +16,6 @@ struct FWxDamageResult
 };
 
 /**
- * 데미지 계산 ExecutionCalculation.
- *
- * 베이스 대미지는 SetByCaller.RawDamage가 양수면 그 값 그대로(환경 대미지), 아니면 SourceATK * Coeff.ATK * (100 / (100 + TargetDEF))다.
- *
  * 적용은 대상 상태로 갈린다.
  *  - 무적          : 대미지 무효
  *  - 퍼펙트 가드   : 공격자에게 DP 반사, 크리 없음
@@ -54,7 +50,7 @@ public:
 private:
 	void ReflectPerfectGuard(UAbilitySystemComponent* SourceASC, float ReflectAmount) const;
 
-	/** bSkipCrit 또는 Raw 모드면 크리를 건너뛴다 */
+	/** Raw 모드면 bSkipCrit과 무관하게 크리를 건너뛴다 */
 	FWxDamageResult CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, bool bSkipCrit) const;
 
 	/** 가드 반응(일반 가드의 SP 차감, Unblockable의 가드 해제)을 적용하고 피격자에게 보낼 반응 이벤트 태그를 정한다 */

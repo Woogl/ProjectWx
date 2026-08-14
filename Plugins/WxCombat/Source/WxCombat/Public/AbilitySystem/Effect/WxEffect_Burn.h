@@ -7,8 +7,6 @@
 #include "WxEffect_Burn.generated.h"
 
 /**
- * 화상 GameplayEffect.
- *
  * 지속시간·주기 상수와 틱 대미지 공식은 UWxExecCalc_Burn이 소유한다.
  */
 UCLASS(Abstract)

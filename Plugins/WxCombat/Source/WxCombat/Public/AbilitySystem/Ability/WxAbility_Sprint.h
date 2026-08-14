@@ -10,7 +10,7 @@ struct FOnAttributeChangeData;
 
 /**
  * 입력을 누르는 동안 SPD 배율 GameplayEffect를 걸어 두고, 떼면 걷어낸다.
- * 실제로 이동하는 동안에는 State.Sprint를 부여해 SP를 소모시키고 자연 회복을 멈추며, SP가 바닥나면 스스로 종료한다.
+ * 실제로 이동하는 동안에는 Movement.Sprint를 부여해 SP를 소모시키고 자연 회복을 멈추며, SP가 바닥나면 스스로 종료한다.
  *
  * 진입 비용은 AbilityDataRow의 코스트(SP)이고 순정 CheckCost가 발동을 막는다. 고갈 직후 재발동에 필요한 회복량은 MinStartSPRatio가 정한다.
  */

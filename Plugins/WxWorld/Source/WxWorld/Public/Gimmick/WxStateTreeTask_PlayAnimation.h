@@ -22,7 +22,6 @@ struct FWxStateTreeTask_PlayAnimationInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<USkeletalMeshComponent> TargetMesh;
 
-	/** 진입 경로를 가리지 않고 처음부터 재생한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<UAnimSequenceBase> Animation;
 };

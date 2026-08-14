@@ -9,8 +9,6 @@
 class UPrimitiveComponent;
 
 /**
- * 상호작용 실행 어빌리티(권위 실행 전용).
- *
  * 감지(주변 스캔)·선택·프롬프트는 이 어빌리티가 아니라 PlayerController 의 UWxInteractionScannerComponent 가 담당한다.
  * 이 어빌리티는 "선택된 대상에 대한 서버 권위 실행"만 책임진다.
  *

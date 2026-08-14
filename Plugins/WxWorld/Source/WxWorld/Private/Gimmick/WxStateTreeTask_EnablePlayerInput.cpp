@@ -10,7 +10,6 @@
 
 FWxStateTreeTask_EnablePlayerInput::FWxStateTreeTask_EnablePlayerInput()
 {
-	// 입력을 진입 시 1회 토글만 하므로 틱이 불필요하다.
 	bShouldCallTick = false;
 
 	// 그 상태의 입력 가용성을 선언하는 상태형 태스크다. 재선택 시 EnterState/ExitState 가 함께 스킵되므로 아래 차단 기록과 해제의 짝도 그대로 유지된다.
@@ -25,7 +24,7 @@ EStateTreeRunStatus FWxStateTreeTask_EnablePlayerInput::EnterState(FStateTreeExe
 	Instance.DisabledPawn = nullptr;
 	Instance.DisabledController = nullptr;
 
-	// 입력은 로컬에만 존재하므로 이 머신의 로컬 플레이어를 토글한다. PC/Pawn 이 없으면(예: 데디 서버) 노옵.
+	// 입력은 로컬에만 존재하므로 이 머신의 로컬 플레이어를 토글한다.
 	const AActor* Owner = Cast<AActor>(Context.GetOwner());
 	APlayerController* PC = GEngine ? GEngine->GetFirstLocalPlayerController(Owner ? Owner->GetWorld() : nullptr) : nullptr;
 	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
@@ -42,7 +41,6 @@ EStateTreeRunStatus FWxStateTreeTask_EnablePlayerInput::EnterState(FStateTreeExe
 	{
 		Pawn->DisableInput(PC);
 
-		// 실제로 끈 대상을 그때그때 기록해 둔다 — ExitState 는 이 기록만 보고 되돌리므로, 그 사이 폰이 소멸·언포제스돼도 엉뚱한 대상을 켜지 않는다.
 		Instance.DisabledPawn = Pawn;
 		Instance.DisabledController = PC;
 	}

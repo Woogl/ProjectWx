@@ -19,7 +19,7 @@
 
 namespace WxSpawnerLabel
 {
-	/** 자동 생성 라벨의 접두사. 아웃라이너 정렬에서 스포너를 한 덩어리로 모으고, 디자이너가 지은 이름과 구분하는 표식도 겸한다. */
+	/** 아웃라이너 정렬에서 스포너를 한 덩어리로 모으고, 디자이너가 지은 이름과 구분하는 표식도 겸한다. */
 	static const TCHAR* Prefix = TEXT("Spawner");
 }
 
@@ -56,20 +56,18 @@ void AWxSpawner::Respawn()
 		return;
 	}
 
-	// 기존 액터 정리. 시체면 청소, 살아있으면 위치/상태 원복을 위한 destroy.
+	// 시체면 청소, 살아있으면 위치/상태 원복을 위한 destroy.
 	if (AActor* Existing = SpawnedActor.Get())
 	{
 		Existing->Destroy();
 	}
 	SpawnedActor.Reset();
 
-	// 부활 금지 Spawner (보스 등) 는 죽은 뒤 새 인스턴스를 spawn 하지 않는다.
 	if (bIsKilled && bNeverRevive)
 	{
 		return;
 	}
 
-	// 부활 가능 Spawner 는 처치 기록 리셋 후 새 인스턴스 생성.
 	bIsKilled = false;
 	SpawnTarget();
 }
@@ -93,7 +91,6 @@ void AWxSpawner::MarkKilled()
 
 	bIsKilled = true;
 
-	// 이 스포너를 기다리던 ST 노드('Wait Spawners Killed')가 있으면 여기서 완료된다. 기다리는 쪽이 없으면 무동작이다.
 	FWxStateTreeTask_WaitSpawnersKilled::NotifySpawnerKilled();
 }
 
@@ -121,9 +118,7 @@ void AWxSpawner::BeginPlay()
 
 	if (HasAuthority())
 	{
-		// 정상 흐름에선 BeginPlay 시점에 bIsKilled=false.
-		// 슬롯 복원으로 true 가 들어왔다면 OnSaveRestored 가 SpawnedActor 정리를 담당.
-		// 본 가드는 에디터 디폴트 등으로 true 가 들어오는 경우의 안전망.
+		// 슬롯 복원으로 true 가 들어온 경우는 OnSaveRestored 가 정리를 담당한다. 이 가드는 에디터 디폴트 등으로 true 인 채 시작하는 경우의 안전망.
 		if (bIsKilled)
 		{
 			return;
@@ -192,13 +187,8 @@ void AWxSpawner::SpawnTarget()
 }
 
 #if WITH_EDITOR
-// 에디터 전용 GetActorGuid() 를 런타임 가용 UPROPERTY 로 복사한다.
-// ActorGuid 는 에디터에서 액터별로 안정·고유하고, 부여된 WxSaveId 는 에셋 저장 시 직렬화되어 쿠커가 그대로 읽으므로 런타임 키가 보장된다.
-//
-// 생성 훅이 아니라 직렬화 직전에 심는 것이 핵심이다. 에디터의 액터 복제(Ctrl+W·Alt-드래그)와 붙여넣기는 StaticDuplicateObject 가 아니라 T3D 텍스트 경로라,
-// SpawnActor(새 ActorGuid) 뒤에 오는 ImportObjectProperties 가 원본의 WxSaveId 를 그대로 덮어쓰고 PostDuplicate 는 아예 불리지 않는다.
-// 그러면 두 스포너의 ActorGuid 는 다른데 WxSaveId 만 같아져 WxSave 슬롯 레코드를 공유한다.
-// 저장 직전에 이 액터의 값으로 재확정하면 생성 경로가 무엇이든 상관없어진다.
+// 에디터의 액터 복제(Ctrl+W·Alt-드래그)와 붙여넣기는 StaticDuplicateObject 가 아니라 T3D 텍스트 경로라, SpawnActor(새 ActorGuid) 뒤에 오는 ImportObjectProperties 가 원본의 SaveId 를 덮어쓰고 PostDuplicate 는 아예 불리지 않는다.
+// 그래서 생성 훅이 아니라 직렬화 직전에 이 액터의 ActorGuid 로 재확정한다 — 생성 경로가 무엇이든 상관없어진다.
 void AWxSpawner::PreSave(FObjectPreSaveContext ObjectSaveContext)
 {
 	Super::PreSave(ObjectSaveContext);
@@ -255,7 +245,7 @@ void AWxSpawner::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 		// 접두사로 시작하는 자동 라벨일 때만 갱신해, 손수 지은 이름은 대상 클래스를 바꿔도 남긴다.
 		if (GetActorLabel().StartsWith(WxSpawnerLabel::Prefix))
 		{
-			// 엔진이 액터를 배치할 때와 같은 경로다. 중복 라벨에 번호를 붙여 같은 클래스를 여러 기 놓아도 Spawner_Enemy2, Spawner_Enemy3 으로 갈린다.
+			// 엔진이 액터를 배치할 때와 같은 경로다.
 			FActorLabelUtilities::SetActorLabelUnique(this, GetDefaultActorLabel());
 		}
 	}
@@ -268,7 +258,6 @@ FString AWxSpawner::GetDefaultActorLabel() const
 		return WxSpawnerLabel::Prefix;
 	}
 
-	// 블루프린트 클래스의 _C 접미만 떼어 에셋 이름 그대로 붙인다. BP_Enemy 는 Spawner_BP_Enemy 가 된다.
 	FString TargetName = SpawnableActorClass->GetName();
 	TargetName.RemoveFromEnd(TEXT("_C"), ESearchCase::CaseSensitive);
 
@@ -277,7 +266,6 @@ FString AWxSpawner::GetDefaultActorLabel() const
 
 void AWxSpawner::UpdateEditorPreviewFromSpawnableClass()
 {
-	// 프리뷰 루트의 상단 높이. 스프라이트를 그 위에 띄우는 데 쓴다.
 	float PreviewTopZ = 0.f;
 
 	if (PreviewChildActorComponent)

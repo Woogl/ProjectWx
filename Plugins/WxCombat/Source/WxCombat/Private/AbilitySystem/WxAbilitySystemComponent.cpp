@@ -62,7 +62,6 @@ void UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* 
 			break;
 		}
 
-		// 재발동을 받지 않는 어빌리티는 활성 인스턴스가 입력을 직접 처리한다.
 		if (Spec.IsActive())
 		{
 			AbilitySpecInputPressed(Spec);
@@ -138,7 +137,6 @@ void UWxAbilitySystemComponent::ApplyHitStop(float Duration, const UGameplayAbil
 		return;
 	}
 
-	// 같은 적중 처리에서 먼저 발동한 반응(패리 등)이 몽타주를 가로챘으면 건너뛴다.
 	if (!GetAnimatingAbility() || GetAnimatingAbility() != SourceAbility)
 	{
 		return;
@@ -191,7 +189,6 @@ void UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf(UAbilitySystem
 		return;
 	}
 
-	// 판정이 없으면 낼 연출이 없다 — 팀에 걸린 아군 히트, ExecCalc를 건너뛴 클라이언트 예측 경로가 그렇다.
 	if (DamageResult == EWxDamageResult::None)
 	{
 		return;
@@ -253,7 +250,7 @@ void UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf(UAbilitySystem
 
 void UWxAbilitySystemComponent::HandlePeriodicGameplayEffectExecuted(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle)
 {
-	// 화상 컨텍스트는 원본 대미지 GE와 공유되므로, GE 종류로 걸러야 같은 컨텍스트를 쓰는 다른 주기형 GE의 틱에 남의 판정이 새어 나간다.
+	// 화상 컨텍스트는 원본 대미지 GE와 공유되므로, GE 종류로 걸러야 같은 컨텍스트를 쓰는 다른 주기형 GE의 틱에 남의 판정이 새어 나가지 않는다.
 	if (!Spec.Def || !Spec.Def->IsA<UWxEffect_Burn>())
 	{
 		return;

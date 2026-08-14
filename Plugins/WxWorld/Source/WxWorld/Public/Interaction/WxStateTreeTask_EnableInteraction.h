@@ -20,7 +20,6 @@ struct FWxStateTreeTask_EnableInteractionInstanceData
 {
 	GENERATED_BODY()
 
-	/** 상태에 따라 영역이 갈리는 기믹이 자기 트리에서 Context 액터의 메시로 바인딩한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<UPrimitiveComponent> TargetMesh;
 

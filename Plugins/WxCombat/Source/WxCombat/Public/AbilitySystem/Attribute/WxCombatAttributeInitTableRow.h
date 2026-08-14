@@ -6,10 +6,6 @@
 #include "Engine/DataTable.h"
 #include "WxCombatAttributeInitTableRow.generated.h"
 
-/**
- * WxCombatAttributeSet 초기값 데이터테이블 Row 구조체.
- * RowName 예시: Player, Enemy
- */
 USTRUCT(BlueprintType)
 struct WXCOMBAT_API FWxCombatAttributeInitTableRow : public FTableRowBase
 {

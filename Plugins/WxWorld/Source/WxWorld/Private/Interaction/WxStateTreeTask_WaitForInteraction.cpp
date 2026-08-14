@@ -18,7 +18,6 @@ namespace
 		FStateTreeWeakExecutionContext Context;
 	};
 
-	/** 지금 기다리는 노드들. 비어 있으면 상호작용이 성립해도 하는 일이 없다. */
 	TArray<FWxInteractionWait> InteractionWaits;
 
 	/** 재사용하지 않으므로 뒤늦은 해제 요청이 엉뚱한 등록을 걷어가지 않는다. */
@@ -65,7 +64,7 @@ EStateTreeRunStatus FWxStateTreeTask_WaitForInteraction::EnterState(FStateTreeEx
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 빈 지정은 어떤 대상과도 맞지 않아 완료될 수 없는 잘못된 조립이다. 침묵 대기 대신 경고를 남긴다.
+	// 빈 지정은 어떤 대상과도 맞지 않아 완료될 수 없는 잘못된 조립이다.
 	if (Instance.Target.IsEmpty())
 	{
 		UE_LOG(LogWxWorld, Warning, TEXT("Wait For Interaction: 상호작용을 기다릴 대상이 지정되지 않음."));
@@ -116,7 +115,6 @@ FString FWxStateTreeTask_WaitForInteraction::GetTargetDisplayName(const FUnivers
 		return Actor->GetActorLabel();
 	}
 
-	// 미해석(언로드 등)이면 액터 프래그먼트의 소프트 경로 끝 이름이라도 보여준다.
 	const FUniversalObjectLocatorFragment* Fragment = Locator.GetLastFragment();
 	const FActorLocatorFragment* Payload = nullptr;
 	if (Fragment && Fragment->TryGetPayloadAs(FActorLocatorFragment::FragmentType, Payload) && Payload)

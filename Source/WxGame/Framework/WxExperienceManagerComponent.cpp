@@ -27,7 +27,7 @@ UWxExperienceManagerComponent::UWxExperienceManagerComponent(const FObjectInitia
 
 void UWxExperienceManagerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	// 이 컴포넌트가 활성화를 요청했던 GameFeature 플러그인을 내린다. PIE 다중 세션에선 마지막 요청자일 때만 실제로 내린다.
+	// PIE 다중 세션에선 마지막 요청자일 때만 실제로 내린다.
 	for (const FString& PluginURL : GameFeaturePluginURLs)
 	{
 		if (UWxExperienceManager::RequestToDeactivatePlugin(PluginURL))

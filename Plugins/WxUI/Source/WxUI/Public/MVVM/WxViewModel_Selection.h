@@ -32,7 +32,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Selection")
 	FText DisplayName;
 
-	/** 소스가 제공하지 않으면 빈 텍스트. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Selection")
 	FText Description;
 

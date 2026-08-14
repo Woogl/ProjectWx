@@ -32,7 +32,7 @@ EStateTreeRunStatus FWxStateTreeTask_PlayAnimation::Tick(FStateTreeExecutionCont
 		return EStateTreeRunStatus::Failed;
 	}
 
-	// 논루프 재생이 끝나면 싱글노드가 멈추므로(또는 애니가 교체되면) 그 시점에 완료한다.
+	// 다른 애니로 교체된 경우도 종료로 본다.
 	const UAnimSingleNodeInstance* SingleNode = Mesh->GetSingleNodeInstance();
 	const bool bStillPlaying = SingleNode && SingleNode->GetAnimationAsset() == Instance.Animation && SingleNode->IsPlaying();
 	return bStillPlaying ? EStateTreeRunStatus::Running : EStateTreeRunStatus::Succeeded;

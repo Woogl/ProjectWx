@@ -29,7 +29,6 @@ class UMVVMView;
  *
  * 정적 표시 데이터(DisplayName/Grade/GradeColor/MaxCharges)는 Initialize 시점 1회 세팅되며 이후 변하지 않는다.
  * Icon 은 ItemDef 의 Soft 참조를 베이스가 비동기 로드한 결과이므로, View 측은 일반 Image 의 SetBrushResourceObject 에 바인딩한다.
- * CurrentCharges 는 충전형(Charges Fragment) 아이템 전용으로, OnInventoryChargeChanged 구독으로 갱신된다(비충전형은 0 고정).
  * 충전형의 Icon 은 충전량 변경 시 ChargeIcons[CurrentCharges] 로 함께 갱신된다.
  */
 UCLASS()
@@ -38,10 +37,8 @@ class WXGAME_API UWxViewModel_Item : public UWxViewModel
 	GENERATED_BODY()
 
 public:
-	/** 슬롯 단위 바인딩. ListView 엔트리처럼 특정 인스턴스를 표현할 때 사용. */
 	void Initialize(UWxInventoryManagerComponent* InInventory, UWxItemInstance* InInstance);
 
-	/** ItemDef 합계 바인딩. HUD 재화 등 정적 경로에서 사용. */
 	void Initialize(UWxInventoryManagerComponent* InInventory, const UWxItemDefinition* InItemDef);
 
 	virtual void Deinitialize() override;
@@ -50,7 +47,6 @@ public:
 	UWxItemInstance* GetTargetInstance() const;
 
 	/**
-	 * 뷰(WBP)의 소비 아이템 사용 요청.
 	 * 인벤토리의 사용 요청 진입점을 그대로 부르며, 사용 가능 여부는 요청을 받은 어빌리티가 판정한다.
 	 *
 	 * 소비 아이템이 하나뿐이라 바인딩된 아이템과 무관하게 그 하나를 사용한다.
@@ -73,7 +69,6 @@ public:
 
 	/**
 	 * 충전형 아이템의 최대 충전 횟수(Charges Fragment 의 MaxCharges).
-	 * 정적값으로 Initialize 시 1회 세팅된다.
 	 * 충전형이 아니면 0.
 	 */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
@@ -87,24 +82,18 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Inventory")
 	int32 AcquiredCount = 0;
 
-	/**
-	 * 슬롯 아이콘.
-	 * ItemDef(충전형이면 ChargeIcons)의 Soft 참조를 베이스가 비동기 스트리밍해 세팅한다.
-	 */
+	/** ItemDef(충전형이면 ChargeIcons)의 Soft 참조를 베이스가 비동기 스트리밍해 세팅한다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	TObjectPtr<UObject> Icon;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	FText DisplayName;
 
-	/** 슬롯 아이템 등급. 색상/이펙트 분기 키. */
+	/** 색상/이펙트 분기 키. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	EWxItemGrade Grade = EWxItemGrade::Common;
 
-	/**
-	 * 슬롯 아이템 등급의 표시 색상.
-	 * Grade Fragment 의 Color 에서 가져온다(Fragment 부재 시 Common 기본색).
-	 */
+	/** Grade Fragment 의 Color 에서 가져온다(Fragment 부재 시 Common 기본색). */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	FLinearColor GradeColor = FLinearColor::White;
 
@@ -119,13 +108,9 @@ protected:
 	/** 슬롯 모드 핸들러. */
 	void HandleSlotChanged(UWxItemInstance* Instance, int32 NewStackCount, int32 Delta);
 
-	/**
-	 * 충전량 변경 핸들러(슬롯/Def 모드 공통).
-	 * 추적 대상 인스턴스의 변경을 CurrentCharges 와 표시 Icon 에 반영한다.
-	 */
+	/** 슬롯/Def 모드 공통. */
 	void HandleChargeChanged(UWxItemInstance* Instance, int32 NewCharges, int32 Delta);
 
-	/** 정적 표시 데이터를 ItemDef 에서 세팅하는 공통 루틴. */
 	void ApplyStaticDataFromDef(const UWxItemDefinition* InItemDef);
 
 	/** 추적 인스턴스(슬롯 모드는 바인딩 인스턴스, Def 모드는 첫 인스턴스)의 현재 충전수 기준 표시 아이콘을 요청한다. */
@@ -145,8 +130,6 @@ protected:
 };
 
 /**
- * UWxViewModel_Item 전용 View Bindings Resolver.
- *
  * WBP 의 View Bindings 에서 Creation Type = Resolver 로 선택하면 인스펙터에서 ItemToDisplay 를 직접 지정할 수 있다.
  * 이후 WBP 는 Event Graph/베이스 클래스 없이도 슬롯이 자동 구성된다.
  *
@@ -158,7 +141,6 @@ class WXGAME_API UWxViewModelResolver_Item : public UMVVMViewModelContextResolve
 	GENERATED_BODY()
 
 public:
-	/** 이 슬롯이 표시할 아이템 정의. WBP View Bindings 인스펙터에서 지정. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Inventory")
 	TObjectPtr<UWxItemDefinition> ItemToDisplay;
 

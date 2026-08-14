@@ -19,7 +19,6 @@ UWxAbility_Death::UWxAbility_Death()
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Death);
 
-	// 사망하면 진행 중이던 액션(적 패턴 포함)을 끊고 이후 액션도 막는다.
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 
@@ -54,7 +53,6 @@ void UWxAbility_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 void UWxAbility_Death::HandleMontageCompleted()
 {
 	// 의도한 사망 포즈로 끝났으므로 래그돌로 넘기지 않는다.
-	// 여기서 종료하지 않는 것이 핵심이다 — 어빌리티가 끝나면 Ability.Death가 걷혀 시체가 다시 살아있는 것으로 판정된다.
 }
 
 void UWxAbility_Death::HandleMontageInterrupted()

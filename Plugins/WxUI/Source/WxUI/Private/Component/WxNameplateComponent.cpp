@@ -15,7 +15,6 @@ UWxNameplateComponent::UWxNameplateComponent()
 	SetDrawAtDesiredSize(true);
 
 	// 기본 숨김: 적의 존재를 미리 노출하지 않는다.
-	// 인식/락온 시 RefreshVisibility 가 노출한다.
 	SetVisibility(false);
 
 	// 표시(둘 중 하나)는 OR 이라 TagQuery(MatchAny)로, 숨김은 IgnoreTags(HasAny면 숨김)로 둔다.
@@ -108,7 +107,6 @@ void UWxNameplateComponent::InitializeViewModels(UAbilitySystemComponent* InASC,
 	CachedASC = InASC;
 
 	// 표시 여부는 ASC 태그가 바뀔 때만 갱신하면 충분하다(매 틱 재계산 불필요).
-	// 요건에 등장하는 태그만 구독한다 — 제네릭 구독은 결과와 무관한 태그(어빌리티 활성 표식 등)에도 깨어난다.
 	// 표시는 태그 유무로만 갈리므로 카운트 변화까지 볼 필요가 없다.
 	FGameplayTagContainer WatchedTags;
 	CollectVisibilityTags(WatchedTags);
@@ -146,7 +144,7 @@ void UWxNameplateComponent::RefreshVisibility()
 	FGameplayTagContainer OwnedTags;
 	ASC->GetOwnedGameplayTags(OwnedTags);
 
-	// 숨김은 컴포넌트를 화면 위젯 레이어에서 빼내므로, 거리 스케일 계산뿐 아니라 레이어의 매 프레임 투영 비용까지 함께 사라진다.
+	// 숨김은 컴포넌트를 화면 위젯 레이어에서 빼내 매 프레임 투영 비용까지 없앤다.
 	// 월드의 적 대부분이 기본 숨김이라 이 차이가 곧 전체 비용이다.
 	SetVisibility(VisibilityRequirements.RequirementsMet(OwnedTags));
 }

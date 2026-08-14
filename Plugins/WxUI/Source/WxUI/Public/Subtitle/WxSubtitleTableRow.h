@@ -15,11 +15,11 @@ struct FWxSubtitleTableRow : public FTableRowBase
 {
 	GENERATED_BODY()
 
-	/** 화자 표시명. 비우면 화자 없는 나레이션이다. */
+	/** 비우면 화자 없는 나레이션이다. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|Subtitle")
 	FText Speaker;
 
-	/** 자막 본문. 모든 행이 채워야 한다 — 종료는 NextRow=None 으로 표시하며, 비어 있으면 잘못된 행으로 보고 경고와 함께 자막을 접는다. */
+	/** 모든 행이 채워야 한다 — 종료는 NextRow=None 으로 표시하며, 비어 있으면 잘못된 행으로 보고 경고와 함께 자막을 접는다. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|Subtitle", meta = (MultiLine = "true"))
 	FText Line;
 
@@ -27,7 +27,7 @@ struct FWxSubtitleTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|Subtitle")
 	float Duration = 3.f;
 
-	/** 이 줄 다음 이어갈 행. None 이면 자막 종료. */
+	/** None 이면 자막 종료. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wx|Subtitle")
 	FName NextRow;
 };

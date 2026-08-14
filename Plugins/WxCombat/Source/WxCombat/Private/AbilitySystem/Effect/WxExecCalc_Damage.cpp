@@ -58,7 +58,6 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	const FGameplayEffectSpec& OwningSpec = ExecutionParams.GetOwningSpec();
 
 	// GetContext는 핸들을 값으로 주므로 const 스펙에서도 쓰기가 열린다.
-	// 여기 남긴 판정 결과가 GE 적용 후 발행 단계의 유일한 입력이다.
 	FGameplayEffectContextHandle ContextHandle = OwningSpec.GetContext();
 	FGameplayEffectContext* RawContext = ContextHandle.Get();
 	FWxCombatEffectContext* CombatContext = (RawContext && RawContext->GetScriptStruct() == FWxCombatEffectContext::StaticStruct())

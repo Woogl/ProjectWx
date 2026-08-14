@@ -15,7 +15,6 @@ FWxStateTreeTask_TriggerSpawnersByLocator::FWxStateTreeTask_TriggerSpawnersByLoc
 
 EStateTreeRunStatus FWxStateTreeTask_TriggerSpawnersByLocator::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// 전이로 들어온 것이 아니면(StateTree 시작·세이브 복원·레이트조인) 스폰을 재실행하지 않고 곧바로 완료한다(발동 순간에만 스폰).
 	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
 	if (bInitialEntry)
 	{
@@ -31,7 +30,6 @@ EStateTreeRunStatus FWxStateTreeTask_TriggerSpawnersByLocator::EnterState(FState
 
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 미해석(빈 로케이터·스트리밍 아웃)은 강제 로드 없이 스킵한다.
 	int32 TriggeredCount = 0;
 	for (const FUniversalObjectLocator& Locator : Instance.Spawners)
 	{

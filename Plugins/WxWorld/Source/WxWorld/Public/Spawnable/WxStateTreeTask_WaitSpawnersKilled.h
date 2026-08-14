@@ -21,7 +21,7 @@ struct FWxStateTreeTask_WaitSpawnersKilledInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedLocators = "Actor", AllowedClasses = "/Script/WxWorld.WxSpawner"))
 	TArray<FUniversalObjectLocator> Spawners;
 
-	/** (런타임) 대기 등록 번호. 상태를 떠날 때 자기 등록만 골라 걷어내는 데 쓴다. */
+	/** (런타임) 상태를 떠날 때 자기 등록만 골라 걷어내는 데 쓴다. */
 	UPROPERTY()
 	int32 WaitHandle = INDEX_NONE;
 };

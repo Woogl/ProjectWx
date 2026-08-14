@@ -35,7 +35,6 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
 	}
 	
-	// 자식 VM 의 티커·ASC 구독을 즉시 정리한다.
 	// Empty() 로 배열에서만 떼면 자식은 GC 의 BeginDestroy→Deinitialize 까지 티킹·구독을 유지한다(Character VM 패턴과 동일).
 	for (UWxViewModel_Attribute* AttributeVM : AttributeViewModels)
 	{

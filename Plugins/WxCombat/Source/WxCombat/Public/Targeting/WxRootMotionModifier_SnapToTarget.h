@@ -9,7 +9,6 @@
 class UTargetingPreset;
 
 /**
- * 타겟 스냅용 SkewWarp RootMotionModifier.
  * Active 진입 시 락온 대상(우선)이나 TargetingPreset 쿼리로 스냅 타겟을 정하고 워프 타겟을 등록하면, 부모 SkewWarp가 그 타겟으로 루트 모션을 보정한다.
  * 노티파이가 이동 역할과 회전 역할로 각각 인스턴스화한다.
  *

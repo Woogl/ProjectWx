@@ -18,9 +18,7 @@ namespace
 	 */
 	constexpr float WxIndicatorScreenMargin = 48.f;
 
-	/**
-	 * 대상의 월드 위치를 화면 좌표와 카메라 거리로 바꾼다. 대상이 무효면 false.
-	 */
+	/** 대상의 월드 위치를 화면 좌표와 카메라 거리로 바꾼다. 대상이 무효면 false. */
 	bool ProjectIndicator(const UWxIndicatorDescriptor& Indicator, const FSceneViewProjectionData& ProjectionData, const FVector2f& ScreenSize, FVector2D& OutScreenPosition, double& OutDistanceToCamera)
 	{
 		const USceneComponent* TargetComponent = Indicator.GetTargetComponent();
@@ -34,8 +32,8 @@ namespace
 		FVector2D ScreenPosition;
 		const bool bIsInFrontOfCamera = ULocalPlayer::GetPixelPoint(ProjectionData, WorldLocation, ScreenPosition, &ScreenSize);
 
-		// 카메라 뒤 대상은 투영 좌표가 화면 안으로 접혀 들어온다. 화면 중심에서 그 방향으로 화면 밖까지 밀어내
-		// 클램프가 등 뒤를 가리키는 가장자리를 잡게 한다(밀어내지 않으면 뒤쪽 목표가 화면 중앙에 뜬다).
+		// 카메라 뒤 대상은 투영 좌표가 화면 안으로 접혀 들어온다.
+		// 화면 중심에서 그 방향으로 화면 밖까지 밀어내 클램프가 등 뒤를 가리키는 가장자리를 잡게 한다(밀어내지 않으면 뒤쪽 목표가 화면 중앙에 뜬다).
 		if (!bIsInFrontOfCamera && FBox2f(FVector2f::Zero(), ScreenSize).IsInside(FVector2f(ScreenPosition)))
 		{
 			const FVector2f ScreenCenter = ScreenSize * 0.5f;

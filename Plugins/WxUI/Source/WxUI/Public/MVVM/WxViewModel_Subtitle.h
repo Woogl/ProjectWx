@@ -36,7 +36,7 @@ public:
 	/** 자막을 이 화자·문구로 바꾸고, 나중에 회수할 때 쓸 핸들을 발급한다. */
 	int32 ShowSubtitle(const FText& InSpeakerText, const FText& InSubtitleText);
 
-	/** 발급 핸들이 지금 걸린 자막의 것일 때만 화면에서 걷어간다. 어긋나면 무시한다. */
+	/** 발급 핸들이 지금 걸린 자막의 것일 때만 화면에서 걷어간다. */
 	void HideSubtitle(int32 InSubtitleHandle);
 
 	/** 자막 위젯의 표시/숨김 바인딩용. */
@@ -60,7 +60,6 @@ private:
 
 /**
  * 위젯별로 만들지 않고 글로벌 컬렉션의 자막 뷰모델을 그대로 돌려준다 — ST 노드가 거는 자막이 곧 이 위젯에 뜬다.
- * WBP 의 View Bindings 에서 Creation Type = Resolver 로 본 클래스를 선택한다.
  */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXUI_API UWxViewModelResolver_Subtitle : public UMVVMViewModelContextResolver

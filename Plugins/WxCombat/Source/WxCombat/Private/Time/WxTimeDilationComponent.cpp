@@ -94,7 +94,6 @@ UWxTimeDilationComponent* UWxTimeDilationComponent::FindComponent(const UObject*
 	if (!Comp)
 	{
 		// 컴포넌트가 없으면 슬로우 연출이 통째로 사라지는데 화면만 봐서는 원인이 안 보인다.
-		// GameMode가 고른 Experience의 컴포넌트 주입 설정을 확인해야 한다.
 		UE_LOG(LogWxCombat, Warning, TEXT("GameState '%s'에 WxTimeDilationComponent가 없어 TimeDilation 요청이 무시된다."), *GetNameSafe(GameState));
 	}
 

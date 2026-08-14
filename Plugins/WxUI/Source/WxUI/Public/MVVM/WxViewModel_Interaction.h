@@ -9,7 +9,6 @@
 /**
  * 상호작용 하나를 나타내는 뷰모델.
  * UWxViewModel_InteractionList 가 인-레인지 대상 하나당 하나씩 생성/소유한다.
- * ListView 엔트리 위젯이 Prompt(표시 텍스트)와 bSelected(현재 선택 여부)에 바인딩한다.
  */
 UCLASS()
 class WXUI_API UWxViewModel_Interaction : public UWxViewModel

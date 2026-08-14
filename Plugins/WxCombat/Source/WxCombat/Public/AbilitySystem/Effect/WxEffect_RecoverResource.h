@@ -9,7 +9,7 @@
 class UAbilitySystemComponent;
 
 /**
- * 공격자 자원 회복 GameplayEffect.
+ * UP·MP를 즉시 회복시키는 GameplayEffect.
  * ExecCalc와 어빌리티가 ApplyTo 진입점을 공유한다.
  */
 UCLASS()

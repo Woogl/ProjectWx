@@ -7,7 +7,6 @@
 #include "WxEffect_RegenSP.generated.h"
 
 /**
- * SP 자연 회복 GameplayEffect.
  * 가드 중, 질주 중, 탈진 중에는 회복이 억제된다.
  */
 UCLASS()

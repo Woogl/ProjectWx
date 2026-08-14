@@ -61,10 +61,10 @@ void UWxGimmickStateTreeComponent::TickComponent(float DeltaTime, ELevelTick Tic
 }
 
 #if WITH_EDITOR
-// 런타임엔 안정적인 액터 식별자가 없다(ActorGuid 는 에디터 전용 데이터). 그래서 에디터에서 값을 심어 에셋에 직렬화하고, 런타임은 그것을 읽기만 한다.
+// 런타임엔 안정적인 액터 식별자가 없다(ActorGuid 는 에디터 전용 데이터).
 //
-// 생성·등록 훅이 아니라 직렬화 직전에 심는 것이 핵심이다. 에디터의 액터 복제(Ctrl+W·Alt-드래그)와 붙여넣기는 T3D 텍스트 경로라 ImportObjectProperties 가 원본의 SaveId 를 그대로 덮어쓰는데,
-// 저장 직전에 오너의 ActorGuid 로 재확정하면 생성 경로가 무엇이든 상관없어진다.
+// 생성·등록 훅이 아니라 직렬화 직전에 심는 것이 핵심이다.
+// 에디터의 액터 복제(Ctrl+W·Alt-드래그)와 붙여넣기는 T3D 텍스트 경로라 ImportObjectProperties 가 원본의 SaveId 를 그대로 덮어쓰는데, 저장 직전에 오너의 ActorGuid 로 재확정하면 생성 경로가 무엇이든 상관없어진다.
 void UWxGimmickStateTreeComponent::PreSave(FObjectPreSaveContext ObjectSaveContext)
 {
 	Super::PreSave(ObjectSaveContext);
@@ -99,7 +99,7 @@ void UWxGimmickStateTreeComponent::RestartLogic()
 
 void UWxGimmickStateTreeComponent::StopLogic(const FString& Reason)
 {
-	// 정지하면 활성 상태가 비어 더는 읽을 수 없다. 종착 상태에 들어간 그 틱에 트리가 멈추는 경우까지 잡으려면 여기서 한 번 더 기록해야 한다.
+	// 종착 상태에 들어간 그 틱에 트리가 멈추는 경우까지 잡으려면 여기서 한 번 더 기록해야 한다.
 	PublishAuthorityState();
 
 	Super::StopLogic(Reason);
@@ -148,7 +148,6 @@ void UWxGimmickStateTreeComponent::OnInteracted(AActor* Interactor, const UActor
 	// 이 상호작용이 상태를 바꾸는지 아닌지는 트리가 발행을 소화해 봐야 안다. PublishAuthorityState 가 그 결과를 보고 판정한다.
 	bPendingInteractResolve = true;
 
-	// 눌린 영역의 발행자를 그대로 발행한다 — 영역마다 발행자가 달라 어느 상태로 갈지는 그 발행자를 지목한 전이가 혼자 정한다.
 	// 트리 틱 밖에서 부르는 경로라 태스크가 남긴 약참조 컨텍스트를 쓴다. 잠든 트리는 이 발행이 깨우고, 발행 표식은 다음 전이 처리까지 보존된다.
 	Region->Context.BroadcastDelegate(Region->Dispatcher);
 }
@@ -185,7 +184,6 @@ void UWxGimmickStateTreeComponent::SetInteractionRegionEnabled(UPrimitiveCompone
 		return;
 	}
 
-	// 맵의 멤버십이 곧 활성 상태다. 꺼진 영역은 스캐너의 후보 수집에서 빠져 다음 스캔에 프롬프트·외곽선이 정리된다.
 	if (!bEnabled)
 	{
 		InteractionRegions.Remove(Mesh);
@@ -216,7 +214,6 @@ FGameplayTag UWxGimmickStateTreeComponent::GetActiveStateTag()
 
 	FStateTreeReadOnlyExecutionContext Context(Owner, Asset, InstanceData);
 
-	// 가장 깊은 활성 상태에서 위로 올라가며 처음 만나는 태그를 답한다.
 	// 시퀀스를 자식 상태로 쪼갠 기믹(엘리베이터)은 태그가 그 시퀀스를 감싼 상위 상태에 붙으므로, leaf 만 보면 놓친다.
 	const TConstArrayView<FStateTreeExecutionFrame> Frames = Context.GetActiveFrames();
 	for (int32 FrameIndex = Frames.Num() - 1; FrameIndex >= 0; --FrameIndex)
@@ -273,8 +270,6 @@ void UWxGimmickStateTreeComponent::OnRep_StateTag()
 		return;
 	}
 
-	// 여기서 대조하지 않는다 — 대기 중인 발행을 아직 소화하지 못한 트리를 어긋난 것으로 오판하게 된다.
-	// 잠들어 틱이 꺼져 있으면 추종 판정이 돌 자리가 없으므로 깨우기만 하고, 대조는 트리 틱 뒤 FollowAuthorityState 에 맡긴다.
 	ConditionalEnableTick();
 }
 
@@ -299,7 +294,6 @@ void UWxGimmickStateTreeComponent::Multicast_ReenterState_Implementation(FGamepl
 
 void UWxGimmickStateTreeComponent::StartTreeAtSavedState()
 {
-	// 저장된 상태가 없거나 에셋에서 그 태그를 찾지 못하면 순정 시작(루트 선택)에 맡긴다.
 	const UStateTree* Asset = StateTreeRef.GetStateTree();
 	if (!ResolveStateTag().IsValid())
 	{
@@ -364,7 +358,6 @@ FStateTreeStateHandle UWxGimmickStateTreeComponent::ResolveStateTag() const
 
 void UWxGimmickStateTreeComponent::PublishAuthorityState()
 {
-	// 상태 값은 서버 권위다. 클라는 복제된 StateTag 를 추종하기만 한다.
 	const AActor* Owner = GetOwner();
 	if (!Owner || !Owner->HasAuthority())
 	{
@@ -386,7 +379,6 @@ void UWxGimmickStateTreeComponent::PublishAuthorityState()
 	}
 	else if (bPendingInteractResolve)
 	{
-		// 상호작용을 받고도 태그가 그대로 = 자기 자신으로 가는 전이. 값 복제로는 안 보이는 유일한 경우라 여기서만 따로 알린다.
 		UE_LOG(LogWxWorld, Verbose, TEXT("Gimmick(%s): [권위] 상태 %s 재진입"), *GetNameSafe(Owner), *StateTag.ToString());
 		Multicast_ReenterState(StateTag);
 	}
@@ -411,7 +403,6 @@ void UWxGimmickStateTreeComponent::FollowAuthorityState()
 		return;
 	}
 
-	// 이미 권위와 같은 상태면 할 일이 없다(정상 경로).
 	if (ActiveTag == StateTag)
 	{
 		return;
@@ -438,7 +429,6 @@ void UWxGimmickStateTreeComponent::EnterReplicatedState()
 		return;
 	}
 
-	// 재시작이 아니라 전이 요청이다 — 인스턴스 데이터·대기 중인 발행이 보존되고, 진입이 초기 진입이 아니라 라이브 전이로 잡혀 트리거형 태스크가 정상 발동한다.
 	// 요청은 다음 트리 틱의 전이 처리 맨 앞에서 소비되며, 잠들어 있으면 엔진이 실행 확장을 통해 틱을 깨운다.
 	// 권위 값이므로 에셋이 저작한 어떤 전이보다 우선한다.
 	FStateTreeExecutionContext Context(*Owner, *Asset, InstanceData);

@@ -22,9 +22,7 @@ AWxEnemyCharacter::AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer
 
 	GetCharacterMovement()->MaxWalkSpeed = 400.f;
 
-	// Full 모드: 모든 GE를 모든 클라이언트에 복제한다.
 	// 네임플레이트 UI(아이콘, 남은 시간 비율)에 필요.
-	// 적·GE 수가 늘면 대역폭 비용을 재고 UI 표시용 최소 데이터만 복제하도록 줄이는 것을 고려할 것.
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Full);
 
 	NameplateComponent = CreateDefaultSubobject<UWxNameplateComponent>(TEXT("NameplateComponent"));
@@ -84,8 +82,7 @@ FGameplayTag AWxEnemyCharacter::GetEligibleFinisherEventTag(const AActor* Intera
 		return FGameplayTag();
 	}
 
-	// 이미 처형 연출 중이면 자격 없음 — 공격자 어빌리티(WxAbility_Finisher)가 연출 동안 대상에 State.BeingFinished 를 걸어 둔다.
-	// 노출과 발동 검증이 같은 함수를 지나므로, 연출 중 재노출도 다른 플레이어의 중복 발동도 여기서 함께 막힌다.
+	// 공격자 어빌리티(WxAbility_Finisher)가 연출 동안 대상에 State.BeingFinished 를 걸어 둔다.
 	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_BeingFinished))
 	{
 		return FGameplayTag();

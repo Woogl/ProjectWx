@@ -15,7 +15,6 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	AssetTags.AddTag(WxGameplayTags::Ability_HitReact);
 	SetAssetTags(AssetTags);
 
-	// 피격은 반응이 끝날 때까지 새 액션을 막는다.
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
 
 	// 진행 중인 것은 공격·스킬만 끊는다 — 마커로 끊으면 마커를 가진 적 패턴까지 평타 피격에 중단된다.
@@ -95,7 +94,7 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		FaceInstigator(AvatarActor, Instigator);
 	}
 
-	// 종류별 몽타주를 지정하지 않았으면 일반 피격으로 대체한다 — 반응 자체는 이벤트가 정하므로 위에서 이미 적용됐다.
+	// 회전·띄우기 같은 반응은 위에서 이미 적용됐으므로 몽타주만 폴백한다.
 	if (!SelectedMontage)
 	{
 		SelectedMontage = NormalHitReactMontage;

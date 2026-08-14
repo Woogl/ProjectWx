@@ -120,10 +120,7 @@ private:
 	UPROPERTY(EditAnywhere, meta = (TitleProperty = "TabId"))
 	TArray<FWxTabDescriptor> PreregisteredTabInfoArray;
 
-	/**
-	 * 런타임에 등록됐지만 아직 생성되지 않은 탭의 라벨 정보를 보관한다.
-	 * 탭이 생성되면 해당 항목은 제거된다.
-	 */
+	/** 런타임에 등록됐지만 아직 생성되지 않은 탭의 라벨 정보를 보관한다. 탭이 생성되면 제거된다. */
 	UPROPERTY()
 	TMap<FName, FWxTabDescriptor> PendingTabLabelInfoMap;
 };

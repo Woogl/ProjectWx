@@ -30,11 +30,11 @@ struct WXCOMBAT_API FWxAbilityTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cooldown")
 	float CooldownTime = 0.f;
 
-	/** 최대 충전 수. 1이면 단일 쿨다운 */
+	/** 1이면 단일 쿨다운 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cooldown")
 	int32 MaxRecharges = 1;
 
-	/** 소모할 자원. None이면 코스트 미적용 */
+	/** None이면 코스트 미적용 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cost")
 	EWxAbilityCostResource CostResource = EWxAbilityCostResource::None;
 

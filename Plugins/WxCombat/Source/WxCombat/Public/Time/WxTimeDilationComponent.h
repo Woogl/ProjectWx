@@ -26,7 +26,7 @@ public:
 	 * 서버에서 호출한다 — 비권위 머신에서는 무시되고, 클라이언트에는 복제로 도착한다.
 	 *
 	 * 소유자는 하나뿐이라 나중 요청이 앞선 요청을 밀어낸다.
-	 * Set을 부른 쪽이 Clear도 책임진다 — AbilityTask라면 OnDestroy에 두면 엔진이 종료·취소 양쪽에서 불러 준다.
+	 * Set을 부른 쪽이 Clear도 책임진다.
 	 */
 	static void SetGlobalTimeDilationAuthoritative(const UObject* Requester, float NewDilation);
 
@@ -48,7 +48,6 @@ private:
 
 	void ApplyTimeDilation(float Dilation);
 
-	/** WorldContextObject가 속한 World의 GameState에서 컴포넌트를 찾는다. */
 	static UWxTimeDilationComponent* FindComponent(const UObject* WorldContextObject);
 
 	UPROPERTY(ReplicatedUsing = OnRep_ReplicatedTimeDilation, VisibleAnywhere, Category = "Wx|Time")

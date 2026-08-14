@@ -8,7 +8,6 @@
 
 FWxStateTreeTask_RespawnSpawners::FWxStateTreeTask_RespawnSpawners()
 {
-	// 진입 시 1회 호출하고 끝난다.
 	bShouldCallTick = false;
 }
 

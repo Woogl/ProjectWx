@@ -22,7 +22,7 @@ void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAn
 		return;
 	}
 
-	// 스폰은 어빌리티에 위임한다 — 클라에선 그쪽 authority 게이트로 무동작이다.
+	// 클라에선 어빌리티 쪽 authority 게이트로 무동작이다.
 	if (UWxAbilityBase* Ability = Cast<UWxAbilityBase>(ASC->GetAnimatingAbility()))
 	{
 		Ability->SpawnProjectile(ProjectileClass, SpawnSocketName);

@@ -21,7 +21,6 @@ void UWxAnimNotify_StartRecovery::Notify(USkeletalMeshComponent* MeshComp, UAnim
 		return;
 	}
 
-	// 이 몽타주를 재생 중인 어빌리티가 후딜레이 구간의 주체다.
 	if (UWxAbilityBase* Ability = Cast<UWxAbilityBase>(ASC->GetAnimatingAbility()))
 	{
 		Ability->StartRecovery();

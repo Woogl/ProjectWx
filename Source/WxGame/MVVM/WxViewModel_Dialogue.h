@@ -39,7 +39,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx|Dialogue")
 	void RequestAdvance();
 
-	/** 뷰가 화자 영역 Visibility 바인딩에 쓴다. */
 	UFUNCTION(BlueprintPure, FieldNotify, Category = "Wx|Dialogue")
 	bool HasSpeaker() const;
 
@@ -56,7 +55,6 @@ private:
 /**
  * VM_Dialogue 용 View Bindings Resolver.
  *
- * 위젯을 소유한 PlayerController 에 주입된 대화 세션을 끌어와 위젯별 UWxViewModel_Dialogue 를 생성/초기화한다.
  * 대화 위젯은 세션이 열린 뒤에만 푸시되므로 생성 시점엔 항상 활성 세션이 있다 — 늦은 도착을 기다릴 필요가 없다.
  * WBP 의 View Bindings 에서 Creation Type = Resolver 로 본 클래스를 선택한다.
  */

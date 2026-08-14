@@ -8,10 +8,7 @@
 
 class UCommonTextBlock;
 
-/**
- * WxUI 공용 버튼 베이스.
- * 버튼 텍스트가 비면 입력 액션 표시 텍스트로 폴백한다.
- */
+/** 버튼 텍스트가 비면 입력 액션 표시 텍스트로 폴백한다. */
 UCLASS(Abstract, BlueprintType, Blueprintable, meta = (DisableNativeTick))
 class WXUI_API UWxButtonBase : public UCommonButtonBase
 {

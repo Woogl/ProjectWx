@@ -41,13 +41,12 @@ public:
 	/** 현재 스폰된 액터를 파괴하고 SpawnableActorClass로 새로 스폰한다. 서버 권한 필요. 영구 처치는 스킵. */
 	void Respawn();
 
-	/** 스폰 트리거 방식. Manual 은 일괄 리스폰(TryRespawnAll) 대상에서 제외되고 개별 트리거로만 스폰된다. */
+	/** Manual 은 일괄 리스폰(TryRespawnAll) 대상에서 제외되고 개별 트리거로만 스폰된다. */
 	EWxSpawnerMode GetSpawnMode() const;
 
-	/** 본 Spawner 가 처치 상태인지. */
 	bool IsKilled() const;
 
-	/** 서버 권위 호출. 처치 상태로 마킹. 인스턴스 destroy 는 호출자(또는 spawnable 자체) 가 별도 처리. */
+	/** 서버 권위 호출. 인스턴스 destroy 는 호출자(또는 spawnable 자체) 가 별도 처리. */
 	void MarkKilled();
 
 	//~ Begin IWxSavable
@@ -67,7 +66,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (MustImplement = "/Script/WxWorld.WxSpawnable", AllowAbstract = "false"))
 	TSubclassOf<AActor> SpawnableActorClass;
 
-	/** 스폰 트리거 방식. Auto 면 BeginPlay 에서 자동 스폰, Manual 이면 외부 트리거(Respawn) 로만 스폰. */
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	EWxSpawnerMode SpawnMode = EWxSpawnerMode::Auto;
 	
@@ -75,7 +73,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (EditCondition = "SpawnMode == EWxSpawnerMode::Auto", EditConditionHides))
 	bool bNeverRevive = false;
 
-	/** 본 Spawner 가 처치 상태인지. WxSave 슬롯에 보존되어 셀 리로드/세션 간에 유지된다. */
+	/** WxSave 슬롯에 보존되어 셀 리로드/세션 간에 유지된다. */
 	UPROPERTY(SaveGame)
 	bool bIsKilled = false;
 
@@ -93,7 +91,7 @@ public:
 	virtual void PostRegisterAllComponents() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
-	/** 아웃라이너 기본 라벨. 스폰 대상 클래스를 밝힌 "Spawner_Enemy" 형태로, 엔진이 중복 시 번호를 덧붙인다. */
+	/** 아웃라이너 기본 라벨. 스폰 대상 클래스를 밝힌 "Spawner_BP_Enemy" 형태로, 엔진이 중복 시 번호를 덧붙인다. */
 	virtual FString GetDefaultActorLabel() const override;
 
 	void UpdateEditorPreviewFromSpawnableClass();

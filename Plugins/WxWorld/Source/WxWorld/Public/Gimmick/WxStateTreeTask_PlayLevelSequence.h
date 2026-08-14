@@ -23,11 +23,9 @@ struct FWxStateTreeTask_PlayLevelSequenceInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<ULevelSequence> LevelSequence;
 
-	/** (런타임) 생성한 시퀀스 플레이어. 정리 시 정지·해제한다. */
 	UPROPERTY()
 	TObjectPtr<ULevelSequencePlayer> Player;
 
-	/** (런타임) CreateLevelSequencePlayer 가 만든 액터. 정리 시 Destroy 한다. */
 	UPROPERTY()
 	TObjectPtr<ALevelSequenceActor> SequenceActor;
 };
@@ -36,8 +34,7 @@ struct FWxStateTreeTask_PlayLevelSequenceInstanceData
  * 상태를 읽지 않아 어떤 기믹이든 재사용한다.
  * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 재생 없이 곧바로 완료한다 — 컷신은 발동 순간에만 재생하고 복원 시엔 침묵한다.
  * 라이브 진입인데 재생할 게 없으면(시퀀스/월드 부재·플레이어 생성 실패) 상태가 갇히지 않게 곧장 완료한다.
- * 입력 차단은 직교 태스크(EnablePlayerInput)가 맡고, 이 노드는 재생만 다룬다.
- * 종료를 폴링하다 끝나면 시퀀스를 정리하고 완료한다 — 다음 상태로 넘기는 것은 이 상태의 완료 전이(On State Completed)다.
+ * 종료를 폴링하다 끝나면 시퀀스를 정리하고 완료한다.
  * OnFinished 콜백 중 시퀀스 액터 파괴를 피하려고 폴링→다음 틱 정리를 쓴다.
  * 중도 이탈·액터 파괴 시엔 ExitState 가 시퀀스를 정지·정리한다(멱등).
  * 모든 피어가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다.

@@ -36,7 +36,7 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 		return;
 	}
 
-	// 락온 가능 조건(사망 등)을 잃으면 해제한다 — 거리·널 상실과 같은 폴링 방식이다.
+	// 사망 등 태그 조건 상실도 거리·널 상실과 같이 폴링으로 감지한다.
 	const UWxLockOnPointComponent* TargetPoint = Cast<UWxLockOnPointComponent>(TargetComponent);
 	if (TargetPoint && !TargetPoint->CanBeLockedOn())
 	{
@@ -79,7 +79,6 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 	const FRotator NewActorRotation = FMath::RInterpTo(AvatarPawn->GetActorRotation(), DesiredActorRotation, DeltaTime, CharacterInterpSpeed);
 	AvatarPawn->SetActorRotation(FRotator(0.f, NewActorRotation.Yaw, 0.f));
 
-	// 캐릭터가 넘겨 둔 시선 입력을 누적하다 임계값을 넘으면 재탐색을 요청한다.
 	UWxLockOnManagerComponent* Comp = LockOnManagerComponent.Get();
 	if (!Comp)
 	{
@@ -118,7 +117,7 @@ void UWxAbilityTask_LockOnTarget::Activate()
 {
 	Super::Activate();
 
-	// 락온 대상은 컴포넌트가 권위·복제 소스이므로, 변경을 구독하고 현재 값을 초기 대상으로 채택한다.
+	// 락온 대상의 권위·복제 소스는 컴포넌트다.
 	LockOnManagerComponent = UWxLockOnManagerComponent::FindComponent(GetAvatarActor());
 	if (UWxLockOnManagerComponent* Comp = LockOnManagerComponent.Get())
 	{

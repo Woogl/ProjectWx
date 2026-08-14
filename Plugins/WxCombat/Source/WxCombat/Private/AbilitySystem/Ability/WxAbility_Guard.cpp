@@ -180,7 +180,6 @@ void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 		return;
 	}
 
-	// Normal 외의 자식 태그는 Knock 계열로 취급한다.
 	const bool bIsKnockHit = Payload.EventTag.IsValid() && Payload.EventTag != WxGameplayTags::Event_HitReact_Normal;
 
 	if (bIsKnockHit && GuardKnockbackMontage)

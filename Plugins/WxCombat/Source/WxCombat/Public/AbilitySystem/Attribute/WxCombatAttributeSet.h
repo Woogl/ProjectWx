@@ -14,8 +14,6 @@
 	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
 /**
- * 캐릭터 스탯 어트리뷰트 세트.
- *
  * 약어 정의 (Max~ 는 각각의 상한값)
  *   HP                 - Health Points
  *   SP                 - Stamina Points
@@ -66,7 +64,6 @@ public:
 	FGameplayAttributeData MaxDP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, MaxDP)
 
-	/** 스킬 사용 비용으로 소모하는 마나 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Resource", ReplicatedUsing = OnRep_MP)
 	FGameplayAttributeData MP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, MP)
@@ -75,7 +72,6 @@ public:
 	FGameplayAttributeData MaxMP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, MaxMP)
 	
-	/** 궁극기 사용 비용으로 소모하는 수치 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Resource", ReplicatedUsing = OnRep_UP)
 	FGameplayAttributeData UP;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, UP)

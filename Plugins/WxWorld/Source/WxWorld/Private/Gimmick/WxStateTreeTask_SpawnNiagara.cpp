@@ -16,7 +16,6 @@ EStateTreeRunStatus FWxStateTreeTask_SpawnNiagara::EnterState(FStateTreeExecutio
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 진입 경로(라이브 전이/초기 시작/복원/레이트조인)를 가리지 않고, 이 노드가 띄운 FX 가 아직 재생 중이면 그대로 두고 통과한다.
 	if (IsValid(Instance.SpawnedComponent) && !Instance.SpawnedComponent->IsComplete())
 	{
 		return EStateTreeRunStatus::Succeeded;

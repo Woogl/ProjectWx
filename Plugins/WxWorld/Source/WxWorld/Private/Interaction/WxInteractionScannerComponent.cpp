@@ -30,10 +30,8 @@ void UWxInteractionScannerComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// 주입으로 붙든 복제로 도착하든 등록이 끝나면 여기로 온다. 기다리던 관찰자에게 이제 쓸 수 있음을 알린다.
 	OnAnyScannerReady.Broadcast(this);
 
-	// 감지는 로컬 어포던스. 소유 클라(리슨호스트 포함)에서만 주기 스캔한다. 데디 서버 PC 는 스캔하지 않는다.
 	if (!IsLocalController())
 	{
 		return;
@@ -63,7 +61,6 @@ void UWxInteractionScannerComponent::EndPlay(const EEndPlayReason::Type EndPlayR
 
 void UWxInteractionScannerComponent::TryInteractSelected()
 {
-	// 로컬 선택을 읽어 서버로 전송한다. 선택이 없으면 무동작.
 	UPrimitiveComponent* Selected = GetSelectedMesh();
 	if (!Selected)
 	{
@@ -119,7 +116,6 @@ void UWxInteractionScannerComponent::CycleSelection(int32 Delta)
 
 void UWxInteractionScannerComponent::ServerInteract_Implementation(UPrimitiveComponent* Selected)
 {
-	// 선택 대상을 이벤트 페이로드에 실어 폰 ASC 로 송출한다.
 	// ServerOnly WxAbility_Interact 가 권위에서 트리거되어 차단태그 게이트·사거리·활성 검증 후 대상 인터페이스를 호출한다.
 	APawn* Pawn = GetOwnerPawn();
 	if (!Pawn)
@@ -145,7 +141,6 @@ void UWxInteractionScannerComponent::ScanAndPush()
 		return;
 	}
 
-	// 상호작용 불가면 스캔하지 않고 후보를 비워 프롬프트·하이라이트를 정리한다.
 	// 게이트는 어빌리티의 CanActivateAbility 에 위임한다(차단 태그를 컴포넌트가 하드코딩하지 않는 단일 소스).
 	if (const UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn))
 	{
@@ -158,7 +153,6 @@ void UWxInteractionScannerComponent::ScanAndPush()
 
 	const FVector ScanOrigin = Pawn->GetActorLocation();
 
-	// 반경 구를 전 오브젝트 채널로 던져 겹친 컴포넌트를 받는다.
 	// 오브젝트 쿼리는 셰이프의 오브젝트 타입만 보고 채널 응답 매트릭스를 보지 않으므로, 누가 대상인가가 콜리전 프리셋·응답과 무관하다는 설계가 유지된다.
 	TArray<FOverlapResult> Overlaps;
 	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(WxInteractionScan), /*bTraceComplex*/ false);
@@ -180,7 +174,7 @@ void UWxInteractionScannerComponent::ScanAndPush()
 		}
 		Examined.Add(Mesh);
 
-		// 소유 액터가 계약 구현체가 아니면(바닥·벽·소품 등) 여기서 탈락한다.
+		// 소유 액터도 그 컴포넌트도 계약 구현체가 아니면(바닥·벽·소품 등) 여기서 탈락한다.
 		const IWxInteractable* Target = IWxInteractable::Find(Mesh);
 		if (!Target)
 		{
@@ -214,7 +208,6 @@ void UWxInteractionScannerComponent::UpdateInRange(const TArray<UPrimitiveCompon
 
 	bool bChanged = false;
 
-	// 이탈/파괴 제거: 새 후보 집합에 없는 기존 항목을 떼고 강조를 끈다.
 	for (int32 Index = InRangeMeshes.Num() - 1; Index >= 0; --Index)
 	{
 		UPrimitiveComponent* Existing = InRangeMeshes[Index].Get();
@@ -226,7 +219,6 @@ void UWxInteractionScannerComponent::UpdateInRange(const TArray<UPrimitiveCompon
 		}
 	}
 
-	// 신규 추가: 기존에 없던 후보를 뒤에 붙인다(후보는 거리순이라 가까운 것부터 들어온다).
 	for (UPrimitiveComponent* Candidate : InCandidates)
 	{
 		if (Candidate && !InRangeMeshes.Contains(Candidate))
@@ -244,7 +236,6 @@ void UWxInteractionScannerComponent::UpdateInRange(const TArray<UPrimitiveCompon
 
 	if (bChanged)
 	{
-		// 선택 복원: 캐시한 메시가 남아 있으면 그 인덱스로, 없으면 비었을 때 INDEX_NONE / 아니면 0.
 		const int32 RestoredIndex = PreviousSelected ? InRangeMeshes.IndexOfByKey(PreviousSelected) : INDEX_NONE;
 		SelectedIndex = InRangeMeshes.IsEmpty() ? INDEX_NONE : (RestoredIndex != INDEX_NONE ? RestoredIndex : 0);
 
@@ -309,8 +300,7 @@ void UWxInteractionScannerComponent::SetMeshHighlighted(UPrimitiveComponent* Mes
 
 bool UWxInteractionScannerComponent::CanInteractNow(const UAbilitySystemComponent* ASC) const
 {
-	// 상호작용 어빌리티를 Ability.Interact 애셋 태그로 찾아(클래스 의존 회피, UWxBTTask_ActivateAbility 와 동일 관례)
-	// 그 CanActivateAbility 를 표시 게이트로 위임한다. 차단 조건의 단일 소스는 어빌리티다.
+	// 클래스 의존을 피해 Ability.Interact 애셋 태그로 찾는다(UWxBTTask_ActivateAbility 와 동일 관례).
 	const FGameplayAbilityActorInfo* ActorInfo = ASC->AbilityActorInfo.Get();
 	if (!ActorInfo)
 	{
@@ -325,7 +315,6 @@ bool UWxInteractionScannerComponent::CanInteractNow(const UAbilitySystemComponen
 		}
 	}
 
-	// 어빌리티가 아직 부여되지 않았으면 게이트하지 않는다(표시를 열어둔다).
 	return true;
 }
 

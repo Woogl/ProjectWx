@@ -99,7 +99,7 @@ void UWxAbility_UseItem::HandleMontageCompleted()
 
 void UWxAbility_UseItem::HandleMontageBlendOut()
 {
-	// OnCompleted 가 후속 발동하므로 여기서는 처리하지 않음
+	// OnCompleted 가 후속 발동하므로 여기서는 처리하지 않는다.
 }
 
 void UWxAbility_UseItem::HandleMontageInterrupted()

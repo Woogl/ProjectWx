@@ -14,7 +14,6 @@ FWxStateTreeTask_TriggerSpawners::FWxStateTreeTask_TriggerSpawners()
 
 EStateTreeRunStatus FWxStateTreeTask_TriggerSpawners::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// 전이로 들어온 것이 아니면(StateTree 시작·세이브 복원·레이트조인) 스폰을 재실행하지 않고 곧바로 완료한다(발동 순간에만 스폰).
 	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
 	if (bInitialEntry)
 	{

@@ -13,10 +13,10 @@ class USkeletalMesh;
 class USkeletalMeshComponent;
 
 /**
- * ANS_WeaponAttack이 BeginAttack/EndAttack을 호출하면, 무기가 내부 레퍼런스 카운팅으로 히트 콜리전을 켜고 끈다.
+ * WxAnimNotifyState_WeaponAttack이 BeginAttack/EndAttack을 호출하면, 무기가 내부 레퍼런스 카운팅으로 히트 콜리전을 켜고 끈다.
  *
- * 루트인 GripPoint가 캐릭터 소켓에 부착되는 기준점이고, 메시는 BP에서 그 하위에 원하는 타입으로 추가한다.
- * 히트 판정은 HitCollision Overlap 기반이며, 한 스윙에서 같은 액터는 최대 1회만 피격된다.
+ * 루트인 GripPoint가 캐릭터 소켓에 부착되는 기준점이고, 외형은 SetVisualMesh로 Mesh 서브오브젝트에 얹는다.
+ * 히트 판정은 HitCollision Overlap과 매 틱 캡슐 Sweep을 함께 쓰며, 한 스윙에서 같은 액터는 최대 1회만 피격된다.
  */
 UCLASS(Abstract, Blueprintable)
 class WXCOMBAT_API AWxWeaponBase : public AActor
@@ -72,7 +72,6 @@ protected:
 
 private:
 	/**
-	 * 소유자와 한 스윙 내 중복 히트만 걸러 GE 적용과 HitStop을 수행한다.
 	 * Overlap 이벤트와 Tick Sweep이 공통으로 호출한다.
 	 * 팀 판정은 대미지 ExecCalc가 하므로 아군에게도 GE는 적용된다.
 	 */

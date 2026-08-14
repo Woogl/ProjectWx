@@ -52,7 +52,7 @@ protected:
 	/**
 	 * 8방향 회피 섹션을 담은 몽타주.
 	 * 섹션 이름은 EWxDodgeDirection 항목명(Forward, ForwardRight, ...)과 동일해야 하며, 각 섹션은 다음 섹션과의 링크를 끊어 한 방향만 재생되도록 구성한다.
-	 * 구성되지 않은 방향 섹션은 Forward 섹션으로 폴백하므로, 일부 섹션만 채워 점진적으로 구성할 수 있다.
+	 * 구성되지 않은 방향 섹션은 Forward 섹션으로 폴백한다.
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> DodgeMontage;

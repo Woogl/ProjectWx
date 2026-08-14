@@ -28,7 +28,7 @@ class WXUI_API UWxViewModel_Indicator : public UWxViewModel
 	GENERATED_BODY()
 
 public:
-	/** 대상 PC 의 매니저 관찰을 시작한다. 이미 붙어 있으면 즉시 연결하고, 아니면 도착 신호를 기다린다. */
+	/** 매니저가 이미 붙어 있으면 즉시 연결하고, 아니면 도착 신호를 기다린다. */
 	void StartObserving(APlayerController* PC, int32 InIndicatorIndex);
 
 	void Initialize(UWxIndicatorManagerComponent* InManager);
@@ -36,7 +36,6 @@ public:
 	virtual void Deinitialize() override;
 	virtual void BeginDestroy() override;
 
-	/** 위젯의 표시/숨김 바인딩용. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Indicator")
 	bool bHasIndicator = false;
 
@@ -85,10 +84,7 @@ class WXUI_API UWxViewModelResolver_Indicator : public UMVVMViewModelContextReso
 public:
 	virtual UObject* CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const override;
 
-	/**
-	 * 이 위젯이 표시할 인디케이터의 등록 순번.
-	 * 동시에 여럿을 띄우려면 순번이 다른 위젯을 HUD 에 더 배치한다 — 배치한 수가 곧 동시 표시 상한이다.
-	 */
+	/** 이 위젯이 표시할 인디케이터의 등록 순번. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Indicator")
 	int32 IndicatorIndex = 0;
 };

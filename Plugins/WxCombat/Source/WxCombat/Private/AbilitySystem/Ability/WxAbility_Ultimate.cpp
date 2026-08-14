@@ -43,7 +43,7 @@ void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		return;
 	}
 
-	// 부여 직후 곧바로 발동해 프리로드가 아직 도착하지 않았으면 동기 로드로 폴백한다.
+	// 부여 직후 곧바로 발동하면 프리로드가 아직 도착하지 않았을 수 있다.
 	ULevelSequence* Sequence = CutsceneSequence.Get();
 	if (!Sequence)
 	{

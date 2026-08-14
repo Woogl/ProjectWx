@@ -7,7 +7,6 @@
 #include "WxExecCalc_Burn.generated.h"
 
 /**
- * 화상 데미지 ExecutionCalculation.
  * 가드·퍼펙트 가드·치명타 판정 없이 공식 대미지를 NumTicks 로 균등 분할해 적용한다.
  *
  * 대미지 ExecCalc과 같이 여기서는 Cue를 발행하지 않는다.

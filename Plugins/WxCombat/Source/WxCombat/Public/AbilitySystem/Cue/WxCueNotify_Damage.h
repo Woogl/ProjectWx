@@ -33,7 +33,6 @@ protected:
 
 /**
  * 피격자 위치에 스폰돼 WidgetComponent로 데미지 수치를 표시하는 액터.
- * UWxCueNotify_Damage가 직접 스폰하므로 BP 서브클래스를 만들 필요는 없다.
  */
 UCLASS()
 class WXCOMBAT_API AWxDamageFloaterActor : public AActor

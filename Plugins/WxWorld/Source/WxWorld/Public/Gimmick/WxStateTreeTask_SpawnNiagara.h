@@ -27,7 +27,7 @@ struct FWxStateTreeTask_SpawnNiagaraInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	FName AttachSocketName;
 
-	/** 소켓이 없는 메시에서 불꽃 높이 같은 것을 잡을 때 쓴다(부착 대상이 없으면 액터 기준). */
+	/** 부착 대상이 없으면 액터 기준. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	FVector RelativeLocation = FVector::ZeroVector;
 

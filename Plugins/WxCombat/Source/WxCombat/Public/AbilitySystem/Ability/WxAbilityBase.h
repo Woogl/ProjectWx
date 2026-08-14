@@ -93,7 +93,6 @@ public:
 
 	/**
 	 * 이 어빌리티(소스 CDO 기준)가 적용한 활성 쿨다운 GE 수를 반환한다.
-	 * 활성 GE 1개 = 회복 대기 중인 충전 1개.
 	 * 출력 인자는 가장 늦게 만료되는 GE 기준이다.
 	 */
 	int32 QueryActiveCooldowns(const UAbilitySystemComponent& ASC, float& OutLongestRemaining, float& OutLongestDuration) const;

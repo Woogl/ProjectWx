@@ -66,7 +66,6 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::ApplyTargetInteraction(c
 		return EStateTreeRunStatus::Running;
 	}
 
-	// 켜고 끄는 수단은 대상이 정한다.
 	IWxInteractable* Interactable = IWxInteractable::Find(Target);
 	if (!Interactable)
 	{
@@ -123,7 +122,6 @@ FString FWxStateTreeTask_EnableInteraction::GetTargetDisplayName(const FUniversa
 		return Actor->GetActorLabel();
 	}
 
-	// 미해석(언로드 등)이면 액터 프래그먼트의 소프트 경로 끝 이름이라도 보여준다.
 	const FUniversalObjectLocatorFragment* Fragment = Locator.GetLastFragment();
 	const FActorLocatorFragment* Payload = nullptr;
 	if (Fragment && Fragment->TryGetPayloadAs(FActorLocatorFragment::FragmentType, Payload) && Payload)

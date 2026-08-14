@@ -48,10 +48,8 @@ void UWxAnimNotifyState_SnapToTarget::NotifyBegin(USkeletalMeshComponent* MeshCo
 	const float WarpEndTime = NotifyEvent->GetEndTriggerTime();
 
 	// 엔진은 한 워프 타겟 안에서 이동과 응시가 같은 위치를 공유하므로, LocationOffset을 쓰려면 modifier를 둘로 쪼개야 한다.
-	// 두 채널이 직교해 ProcessRootMotion에서 순차 합성되며, 게임 로직은 각 modifier가 소유한다.
 	// bSubtractRemainingRootMotion은 종료 시점 잔여 루트 모션이 타겟 너머로 미는 것을 막는다.
 
-	// 이동 — 범위·락온 게이팅은 modifier가 판정한다.
 	if (bSnapLocation)
 	{
 		UWxRootMotionModifier_SnapToTarget* LocationModifier = NewObject<UWxRootMotionModifier_SnapToTarget>(MotionWarpingComp);
@@ -68,7 +66,7 @@ void UWxAnimNotifyState_SnapToTarget::NotifyBegin(USkeletalMeshComponent* MeshCo
 		MotionWarpingComp->AddModifier(LocationModifier);
 	}
 
-	// 회전 — 오프셋 없이 대상 중심을 응시하므로 오너가 응시점에 겹치는 특이점이 없다.
+	// 오프셋 없이 대상 중심을 응시하므로 오너가 응시점에 겹치는 특이점이 없다.
 	if (bSnapRotation)
 	{
 		UWxRootMotionModifier_SnapToTarget* RotationModifier = NewObject<UWxRootMotionModifier_SnapToTarget>(MotionWarpingComp);

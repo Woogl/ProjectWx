@@ -55,7 +55,6 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	DeadTagDelegateHandle = ASC->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &UWxAbility_Groggy::HandleDeadTagChanged);
 
-	// DrainDP가 DP를 0까지 내리면 종료한다.
 	DPDelegateHandle = ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetDPAttribute())
 		.AddUObject(this, &UWxAbility_Groggy::HandleDPChanged);
 
@@ -165,7 +164,6 @@ void UWxAbility_Groggy::HandleDPChanged(const FOnAttributeChangeData& Data)
 
 void UWxAbility_Groggy::HandleGroggySafetyTimeout()
 {
-	// DP를 리셋하면 HandleDPChanged가 종료시킨다.
 	// 여기서 곧장 EndAbility만 하면 DP가 MaxDP로 남아, 다음 DP 변동에서 AttributeSet이 Event.Groggy를 다시 송출한다.
 	const FGameplayEffectSpecHandle ResetSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_ResetDP::StaticClass(), GetAbilityLevel());
 	if (ResetSpecHandle.IsValid())

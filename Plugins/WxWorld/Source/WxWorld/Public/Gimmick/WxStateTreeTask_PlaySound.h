@@ -17,7 +17,7 @@ struct FWxStateTreeTask_PlaySoundInstanceData
 {
 	GENERATED_BODY()
 
-	/** 라이브 진입 시 재생할 사운드(액터 위치). */
+	/** 액터 위치에서 재생한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<USoundBase> Sound;
 

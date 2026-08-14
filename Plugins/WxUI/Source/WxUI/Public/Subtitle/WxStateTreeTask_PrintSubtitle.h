@@ -27,7 +27,7 @@ struct FWxStateTreeTask_PrintSubtitleInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (RowType = "/Script/WxUI.WxSubtitleTableRow"))
 	FDataTableRowHandle StartRow;
 
-	/** (런타임) 지금 띄운 줄의 행 이름. 다음 줄을 찾을 출발점이다. */
+	/** (런타임) 다음 줄을 찾을 출발점이다. */
 	UPROPERTY()
 	FName CurrentRowName;
 
@@ -51,7 +51,6 @@ struct FWxStateTreeTask_PrintSubtitleInstanceData
  *
  * 자막을 걷는 것과 완료를 내는 것은 분리해야 한다 — 같은 상태의 다른 대기 태스크가 상태를 붙잡고 있으면(TasksCompletion=All) 완료를 내고도 한참 뒤에야 상태를 떠나므로, 회수를 ExitState 에만 맡기면 자막이 그동안 화면에 남는다.
  *
- * 행의 Duration 이 0 이하면 그 줄에서 넘어가지 않고 계속 머문다.
  * 시작 행 미지정은 기능 미사용(재사용 스텝의 옵션 파라미터)이라 경고 없이 Succeeded 로 즉시 완료한다.
  * 지정했는데 열지 못하면(행 없음·본문 빔) 낼 자막이 없으므로 경고를 남기고 Failed 다.
  * 반면 중간에 다음 행이 끊기면 경고만 남기고 거기서 끝낸다 — 데이터 오타로 트리까지 세우지는 않는다.

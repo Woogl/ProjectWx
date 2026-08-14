@@ -19,7 +19,6 @@ EStateTreeRunStatus FWxStateTreeTask_PlayLevelSequence::EnterState(FStateTreeExe
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 전이로 들어온 것이 아니면(StateTree 시작·세이브 복원·레이트조인) 재생하지 않고 침묵 완료한다.
 	if (!Transition.SourceStateID.IsValid())
 	{
 		return EStateTreeRunStatus::Succeeded;

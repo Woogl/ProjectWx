@@ -14,7 +14,6 @@ FWxStateTreeTask_SetQuestTitle::FWxStateTreeTask_SetQuestTitle()
 
 EStateTreeRunStatus FWxStateTreeTask_SetQuestTitle::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// 컨텍스트 오너(GameState)에서 퀘스트 컴포넌트를 찾는다.
 	const AActor* Owner = Cast<AActor>(Context.GetOwner());
 	UWxQuestComponent* QuestComponent = Owner ? Owner->FindComponentByClass<UWxQuestComponent>() : nullptr;
 	if (!QuestComponent)

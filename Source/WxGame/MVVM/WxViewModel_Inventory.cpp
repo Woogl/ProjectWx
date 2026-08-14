@@ -190,7 +190,7 @@ void UWxViewModel_Inventory::RefreshCategorizedItems()
 
 void UWxViewModel_Inventory::HandleInventoryReady(UWxInventoryManagerComponent* Inventory)
 {
-	// 신호는 클래스 차원이라 남의 인벤토리도 온다. 관찰 중인 컨트롤러의 것만 받는다.
+	// 신호는 클래스 차원이라 남의 인벤토리도 온다.
 	if (!Inventory || Inventory->GetOwner() != ObservedController.Get())
 	{
 		return;

@@ -7,7 +7,6 @@
 #include "GameplayTagContainer.h"
 #include "WxCombatEffectContext.generated.h"
 
-/** 대미지 한 발의 판정 결과 */
 UENUM()
 enum class EWxDamageResult : uint8
 {
@@ -56,7 +55,7 @@ public:
 	/** Damaged일 때 피격자에게 보낼 반응 이벤트 태그. 무효면 미발송. */
 	const FGameplayTag& GetHitReactTag() const;
 
-	/** 판정을 새로 시작할 때 이전 결과를 지운다 — 컨텍스트가 여러 스펙에 재사용되기 때문이다 */
+	/** 컨텍스트가 여러 스펙에 재사용되므로 판정을 새로 시작하기 전에 호출해야 한다 */
 	void ClearDamageResult();
 
 	void SetEvaded();

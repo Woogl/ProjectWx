@@ -22,7 +22,6 @@
 UWxDialogueSessionComponent::UWxDialogueSessionComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	// 진행 상태는 복제하지 않지만, 서버가 쏘는 ClientStartDialogue 가 클라의 이 컴포넌트에 도착하려면 복제 대상이어야 한다.
 	// 주입으로 붙는 동적 컴포넌트라 기본 서브오브젝트의 안정된 이름이 없다 — 원격에서 이 객체를 해소하는 수단이 복제뿐이다.
 	SetIsReplicatedByDefault(true);
 }
@@ -35,7 +34,6 @@ void UWxDialogueSessionComponent::StartDialogue(UWxDialogueComponent* Dialogue)
 		return;
 	}
 
-	// 정의 컴포넌트는 행과 대상을 꺼내기 위한 껍데기다 — 세션은 행만 안다.
 	StartDialogueRow(Dialogue->GetStartRow(), Dialogue->GetOwner());
 }
 
@@ -145,8 +143,8 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FData
 	APawn* Pawn = Controller ? Controller->GetPawn() : nullptr;
 	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn))
 	{
-		// 카운트 가감이 아니라 절대값으로 지정한다. 이 태그를 loose 로 쓰는 곳은 이 컴포넌트뿐이고,
-		// 소비자(UI 매니저)는 0↔비0 전이만 듣기 때문에 카운트가 1 이라도 남으면 대화 창이 영영 닫히지 않는다.
+		// 카운트 가감이 아니라 절대값으로 지정한다.
+		// 이 태그를 loose 로 쓰는 곳은 이 컴포넌트뿐이고, 소비자(UI 매니저)는 0↔비0 전이만 듣기 때문에 카운트가 1 이라도 남으면 대화 창이 영영 닫히지 않는다.
 		ASC->SetLooseGameplayTagCount(WxGameplayTags::State_Dialogue, 1);
 		TaggedAbilitySystem = ASC;
 	}
@@ -202,7 +200,6 @@ void UWxDialogueSessionComponent::EndDialogue()
 	CurrentRowName = NAME_None;
 	CurrentTarget.Reset();
 
-	// 시작 때 발행한 대화 상태 태그를 같은 ASC 에서 되돌려 대화 창·프롬프트 표시·상호작용을 복귀시킨다.
 	// 발행과 대칭으로 절대값 0 을 지정한다 — 감산이면 겹침 이력에 따라 잔량이 남을 수 있다.
 	if (UAbilitySystemComponent* ASC = TaggedAbilitySystem.Get())
 	{
@@ -210,18 +207,15 @@ void UWxDialogueSessionComponent::EndDialogue()
 	}
 	TaggedAbilitySystem.Reset();
 
-	// 포즈는 거두지 않는다. 대상은 마지막 자세로 남고, 다음 대사나 다음 대화가 그것을 갈아끼운다.
-	// 진행 중인 포즈 스트리밍도 접지 않는다 — 마지막 대사의 자세가 늦게 도착했을 뿐이고, 요청이 대상을 따로 들고 있어 세션 없이도 얹힌다.
+	// 포즈는 거두지 않고, 진행 중인 스트리밍도 접지 않는다 — 마지막 대사의 자세가 늦게 도착했을 뿐이고, 요청이 대상을 따로 들고 있어 세션 없이도 얹힌다.
 	EndDialogueCamera();
 
-	// 이 대화의 종료를 기다리던 쪽에 알리고 약속을 비운다. 다음 대화는 자기 청자를 새로 받는다.
 	OnDialogueEnded.Broadcast();
 	OnDialogueEnded.Clear();
 }
 
 void UWxDialogueSessionComponent::BeginDialogueCamera()
 {
-	// 대상 없는 대사(나레이션)면 잡을 구도가 없다. 카메라를 평소 그대로 둔다.
 	APlayerController* PlayerController = GetLocalPlayerController();
 	const APawn* Pawn = PlayerController ? PlayerController->GetPawn() : nullptr;
 	if (!Pawn || !CurrentTarget.IsValid())
@@ -243,7 +237,7 @@ void UWxDialogueSessionComponent::BeginDialogueCamera()
 	const FVector ViewLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
 	const float Side = (FVector::DotProduct(AxisRight, ViewLocation - AimLocation) >= 0.f) ? 1.f : -1.f;
 
-	// 시선은 대화 축을 그만큼 돌린 방향이고, 카메라는 그 반대로 물러선 자리에 선다. 수평 방향이라 회전이 그대로 카메라 회전이 된다.
+	// 시선이 수평 방향이라 회전이 그대로 카메라 회전이 된다.
 	const FVector ViewDirection = TalkAxis.RotateAngleAxis(-Side * CameraOffAxisAngle, FVector::UpVector);
 	const FTransform CameraTransform(ViewDirection.Rotation(), AimLocation - ViewDirection * CameraDistance);
 
@@ -290,7 +284,7 @@ void UWxDialogueSessionComponent::EndDialogueCamera()
 
 void UWxDialogueSessionComponent::ApplyCurrentPose()
 {
-	// 지목이 없는 대사는 직전 포즈를 그대로 둔다 — 한 자세로 여러 대사를 이어가는 것이 기본값이라 매 행에 같은 몽타주를 반복 기입시키지 않는다.
+	// 한 자세로 여러 대사를 이어가는 것이 기본값이라 매 행에 같은 몽타주를 반복 기입시키지 않는다.
 	// 앞 대사가 띄운 스트리밍도 그대로 둔다. 그것이 곧 이어갈 "직전 포즈"다.
 	const FWxDialogueTableRow* Row = FindCurrentRow();
 	if (!Row || Row->TargetPose.IsNull())
@@ -298,7 +292,7 @@ void UWxDialogueSessionComponent::ApplyCurrentPose()
 		return;
 	}
 
-	// CancelHandle 은 지연 콜백 큐에 들어간 완료 델리게이트까지 취소하므로, 앞 대사의 포즈가 뒤늦게 발화해 이번 포즈를 덮어쓰지 않는다.
+	// CancelHandle 은 지연 콜백 큐에 들어간 완료 델리게이트까지 취소한다.
 	if (PoseLoadHandle.IsValid())
 	{
 		PoseLoadHandle->CancelHandle();

@@ -39,7 +39,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> UseMontage;
 
-	/** 사용할 소비 아이템 정의. Usable Fragment(회복 GE)와 Charges Fragment(충전)를 갖는다. */
+	/** Usable Fragment(회복 GE)와 Charges Fragment(충전)를 갖는 아이템이어야 한다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UWxItemDefinition> ConsumableDef;
 

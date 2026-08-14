@@ -27,10 +27,7 @@ public:
 
 	UCommonActivatableWidget* PushContentToLayer(FGameplayTag LayerTag, TSubclassOf<UCommonActivatableWidget> WidgetClass);
 
-	/**
-	 * 소프트 클래스를 동기 로드해 레이어에 push 한다.
-	 * 클래스 미지정·로드 실패면 아무 것도 하지 않는다. 로드 지연이 문제되는 경로는 UWxAsyncAction_PushWidgetToLayer 를 쓴다.
-	 */
+	/** 소프트 클래스를 동기 로드해 레이어에 push 한다. */
 	UCommonActivatableWidget* PushSoftContentToLayer(FGameplayTag LayerTag, const TSoftClassPtr<UCommonActivatableWidget>& WidgetClass);
 
 	UCommonActivatableWidget* PushWidgetInstanceToLayer(FGameplayTag LayerTag, UCommonActivatableWidget* WidgetInstance);
@@ -53,10 +50,7 @@ private:
 
 	void CreateLayoutForPlayer(APlayerController* PC);
 
-	/**
-	 * 추적 중인 PC 가 빙의한 폰을 갈아탔다. 그 폰 기준으로 HUD 를 세우고 상태 태그 관찰을 옮긴다.
-	 * 이 신호는 빙의가 끝난 뒤에 오므로, HUD 뷰모델 리졸버가 생성 시점에 빙의 폰의 ASC 를 읽는다는 전제가 지켜진다.
-	 */
+	/** 이 신호는 빙의가 끝난 뒤에 오므로, HUD 뷰모델 리졸버가 생성 시점에 빙의 폰의 ASC 를 읽는다는 전제가 지켜진다. */
 	UFUNCTION()
 	void HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn);
 
@@ -71,10 +65,7 @@ private:
 
 	void CloseDialogueScreen();
 
-	/**
-	 * push 된 위젯의 활성/비활성 델리게이트를 구독해, 상태가 바뀔 때 정지 재평가가 돌게 한다.
-	 * 위젯은 서브시스템을 알지 못한다.
-	 */
+	/** 위젯은 서브시스템을 알지 못하므로, 활성/비활성 델리게이트를 이쪽에서 구독한다. */
 	void ObserveWidgetForGamePause(UCommonActivatableWidget* Widget);
 
 	void HandleObservedWidgetActivationChanged();
@@ -85,10 +76,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<UWxPrimaryGameLayout> PrimaryGameLayout;
 
-	/**
-	 * 글로벌 컬렉션(UMVVMGameSubsystem)에 "VM_Selection" 으로 등록되는 공유 선택 뷰모델.
-	 * Initialize 생성, Deinitialize 해제.
-	 */
+	/** 글로벌 컬렉션(UMVVMGameSubsystem)에 "VM_Selection" 으로 등록되는 공유 선택 뷰모델. */
 	UPROPERTY()
 	TObjectPtr<UWxViewModel_Selection> SelectionViewModel;
 

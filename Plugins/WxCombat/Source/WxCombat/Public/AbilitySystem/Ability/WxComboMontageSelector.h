@@ -29,7 +29,7 @@ struct FWxComboMontageSet
 /**
  * 아바타 태그로 콤보 세트를 하나 골라, 그 안에서 단계를 전진시키는 몽타주 선택기.
  *
- * MontageSets는 배열 순서가 곧 우선순위(첫 매칭 채택)이며, 진입 요구사항이 빈 세트는 조건 없이 매칭되므로 기본 콤보는 맨 아래에 둔다.
+ * MontageSets는 배열 순서가 곧 우선순위이며, 첫 매칭 세트를 채택한다.
  * 세트는 콤보 진입 시 한 번 정해 끝까지 유지한다 — 도중에 태그가 사라져도 남은 단은 같은 세트로 이어진다.
  *
  * 진행 상태를 들고 있으므로 어빌리티가 인스턴스 멤버로 소유하며, 콤보를 끊을 때 Reset을 불러줘야 다음 발동이 세트부터 새로 고른다.
@@ -57,6 +57,5 @@ private:
 	/** 재발동 사이에 보존되며, INDEX_NONE이면 진행 중인 콤보가 없다 */
 	int32 CurrentSetIndex = INDEX_NONE;
 
-	/** CurrentSetIndex와 함께 보존·리셋되는 ComboMontages 인덱스 */
 	int32 CurrentMontageIndex = INDEX_NONE;
 };

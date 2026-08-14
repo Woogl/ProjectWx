@@ -87,7 +87,6 @@ void UWxTabListWidgetBase::HandlePreLinkedSwitcherChanged()
 {
 	for (const FWxTabDescriptor& TabInfo : PreregisteredTabInfoArray)
 	{
-		// 연결이 해제되는 스위처에서 탭 콘텐츠 위젯을 떼어낸다.
 		if (TabInfo.CreatedTabContentWidget)
 		{
 			TabInfo.CreatedTabContentWidget->RemoveFromParent();

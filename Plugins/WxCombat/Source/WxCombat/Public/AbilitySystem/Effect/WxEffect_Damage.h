@@ -6,9 +6,6 @@
 #include "GameplayEffect.h"
 #include "WxEffect_Damage.generated.h"
 
-/**
- * 대미지 GameplayEffect.
- */
 UCLASS()
 class WXCOMBAT_API UWxEffect_Damage : public UGameplayEffect
 {

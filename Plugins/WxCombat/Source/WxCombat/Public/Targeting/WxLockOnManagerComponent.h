@@ -43,7 +43,7 @@ public:
 
 	/**
 	 * 로컬 예측·권위 적용·복제 도착에서 브로드캐스트된다.
-	 * 복제 도착은 값이 같아도 불리므로 구독자는 멱등해야 한다.
+	 * 셋 다 값이 실제로 바뀔 때만 불린다 — 복제 도착도 REPNOTIFY_OnChanged라 로컬 값과 같으면 RepNotify가 생략된다.
 	 */
 	UPROPERTY()
 	FWxOnLockOnTargetChanged OnLockOnTargetChanged;

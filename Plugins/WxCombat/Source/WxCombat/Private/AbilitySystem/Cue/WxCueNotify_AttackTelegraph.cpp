@@ -7,7 +7,6 @@
 
 AWxCueNotify_AttackTelegraph::AWxCueNotify_AttackTelegraph()
 {
-	// GameplayCueTag는 색상별 BP 서브클래스가 각자 지정한다.
 	bAutoDestroyOnRemove = true;
 }
 

@@ -19,7 +19,6 @@ UWxEffect_Damage::UWxEffect_Damage()
 	Cue.GameplayCueTags.AddTag(WxGameplayTags::GameplayCue_Hit);
 	GameplayCues.Add(Cue);
 
-	// 사망 타겟에는 적용 자체를 차단
 	UTargetTagRequirementsGameplayEffectComponent* TagReqComp = CreateDefaultSubobject<UTargetTagRequirementsGameplayEffectComponent>(TEXT("TargetTagReq"));
 	TagReqComp->ApplicationTagRequirements.IgnoreTags.AddTag(WxGameplayTags::Ability_Death);
 	GEComponents.Add(TagReqComp);

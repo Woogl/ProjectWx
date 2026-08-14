@@ -39,7 +39,6 @@ bool UWxTargetingFilterTask_InputDirection::ShouldFilterTarget(const FTargetingR
 		return true;
 	}
 
-	// 콘 안에 드는 후보가 하나라도 있으면 이 콘 밖 타겟을 제외하고, 하나도 없으면(전부 콘 밖) 전체를 유지한다.
 	const FTargetingDefaultResultsSet* ResultData = FTargetingDefaultResultsSet::Find(TargetingHandle);
 	if (!ResultData)
 	{

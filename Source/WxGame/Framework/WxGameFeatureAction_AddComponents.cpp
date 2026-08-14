@@ -21,11 +21,7 @@
 #include "Misc/DataValidation.h"
 #endif
 
-/**
- * 프레임워크 컴포넌트가 상속한 ModularGameplay 베이스로 컴포넌트를 받을 액터 클래스를 정한다.
- * 네 베이스는 UGameFrameworkComponent 아래 형제라 서로 겹치지 않으므로 검사 순서는 무관하다.
- * 어느 베이스에도 속하지 않으면 대상을 정할 수 없다는 뜻으로 nullptr 을 준다.
- */
+/** 네 베이스는 UGameFrameworkComponent 아래 형제라 서로 겹치지 않으므로 검사 순서는 무관하다. */
 static UClass* WxResolveReceiverClass(const UClass* ComponentClass)
 {
 	if (ComponentClass->IsChildOf(UPawnComponent::StaticClass()))

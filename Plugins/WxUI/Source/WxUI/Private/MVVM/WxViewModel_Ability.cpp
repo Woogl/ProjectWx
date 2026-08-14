@@ -37,7 +37,6 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 	}
 
 	// 태그 요건은 ASC 태그 변경으로, 비용은 비용 GE가 수정하는 어트리뷰트 값 변경으로 감지한다.
-	// 쿨다운 진행(충전 회복/만료)은 이벤트가 없어 UpdateCooldownState 티커에서 재평가한다.
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_Ability::HandleTagChanged);
 
 	if (const UGameplayEffect* CostGE = InAbility->GetCostGameplayEffect())
@@ -72,7 +71,7 @@ void UWxViewModel_Ability::SeedActiveCooldown()
 	Query.EffectDefinition = CachedCooldownClass;
 
 	// UpdateCooldownState 는 CooldownDuration 을 기준으로 진행률을 내는데, 그 값은 GE 적용 통지에서만 채워진다.
-	// 통지를 놓친 채 태어난 VM 을 위해 활성 GE 에서 기준 지속시간을 먼저 심는다(판별식은 UpdateCooldownState 와 동일).
+	// 판별식은 UpdateCooldownState 와 동일하다.
 	for (const FActiveGameplayEffectHandle& ActiveHandle : ASC->GetActiveEffects(Query))
 	{
 		const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(ActiveHandle);
@@ -97,7 +96,6 @@ void UWxViewModel_Ability::SeedActiveCooldown()
 
 	SetIsOnCooldown(true);
 
-	// 남은 시간·소모 충전 수 계산과 만료 판정은 평시 갱신 경로에 그대로 맡긴다.
 	if (UpdateCooldownState(0.f) && !TickerHandle.IsValid())
 	{
 		TickerHandle = FTSTicker::GetCoreTicker().AddTicker(

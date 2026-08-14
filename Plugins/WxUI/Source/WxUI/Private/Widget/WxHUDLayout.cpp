@@ -15,7 +15,6 @@ void UWxHUDLayout::NativeOnInitialized()
 
 	// CommonUI 매칭 규칙: 액션은 현재 ActiveInputMode가 All이거나 바인딩 InputMode와 정확히 일치할 때만 발동한다.
 	// HUD는 GetDesiredInputConfig로 Game 모드를 적용하므로(게임 입력 유지), 바인딩도 Game이어야 게임 플레이 중 매칭된다.
-	// (InputMode=All은 'ActiveMode가 정확히 All일 때만' 매칭되어 Game 모드에선 무시된다.)
 	// Menu 모드(메뉴 열림)에선 자동으로 매칭되지 않으므로 중첩 열기도 방지된다.
 	FBindUIActionArgs InventoryArgs(FUIActionTag::ConvertChecked(WxGameplayTags::UI_Action_Inventory), FSimpleDelegate::CreateUObject(this, &UWxHUDLayout::HandleInventoryAction));
 	InventoryArgs.InputMode = ECommonInputMode::Game;
@@ -25,7 +24,6 @@ void UWxHUDLayout::NativeOnInitialized()
 	MainMenuArgs.InputMode = ECommonInputMode::Game;
 	RegisterUIActionBinding(MainMenuArgs);
 
-	// 자유 커서: 누르는 동안(Pressed~Released)만 커서 표시 + 게임 포커스 부분 해제.
 	// 홀드 중 입력모드는 All 이라 Released 는 All 와일드카드로 매칭된다.
 	FBindUIActionArgs FreeCursorPressedArgs(FUIActionTag::ConvertChecked(WxGameplayTags::UI_Action_FreeCursor), FSimpleDelegate::CreateUObject(this, &UWxHUDLayout::HandleFreeCursorPressed));
 	FreeCursorPressedArgs.InputMode = ECommonInputMode::Game;

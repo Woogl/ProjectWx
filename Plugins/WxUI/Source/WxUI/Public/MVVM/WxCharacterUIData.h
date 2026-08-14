@@ -17,11 +17,10 @@ struct FWxCharacterUIData
 {
 	GENERATED_BODY()
 
-	/** 네임플레이트/HUD 등에 출력되는 표시 이름. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	FText CharacterName;
 
-	/** 초상화(텍스처 또는 머터리얼). UI 측에서 Soft 참조로 비동기 로드한다. */
+	/** UI 측에서 비동기 로드한다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI", meta = (AllowedClasses = "/Script/Engine.Texture2D,/Script/Engine.MaterialInterface"))
 	TSoftObjectPtr<UObject> Portrait;
 };

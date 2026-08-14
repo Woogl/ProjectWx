@@ -22,7 +22,7 @@ struct FWxImageRequest
 /**
  * 표시용 이미지(아이콘/초상화 등)의 비동기 스트리밍을 공통 제공한다.
  * 이미지는 텍스처와 머터리얼 양쪽이 될 수 있어 UObject 로 다룬다 — 종착지인 UImage 의 브러시 리소스가 둘 다 받는다.
- * VM 은 소프트 참조를 UMG 에 노출하지 않고 로드된 하드 참조만 노출하므로, WBP 는 특수 위젯 없이 일반 Image 의 SetBrushResourceObject 에 바인딩하면 된다.
+ * VM 은 소프트 참조를 UMG 에 노출하지 않고 로드된 하드 참조만 노출한다.
  */
 UCLASS(Abstract, BlueprintType)
 class WXUI_API UWxViewModel : public UMVVMViewModelBase
@@ -49,7 +49,6 @@ protected:
 	/**
 	 * RequestImageAsync 의 결과 수신점.
 	 * 파생 VM 이 FieldName 에 해당하는 자기 표시 필드에 세팅한다.
-	 * 이미지를 하나만 쓰는 VM 은 FieldName 을 무시하면 된다.
 	 */
 	virtual void ApplyLoadedImage(FName FieldName, UObject* LoadedImage);
 

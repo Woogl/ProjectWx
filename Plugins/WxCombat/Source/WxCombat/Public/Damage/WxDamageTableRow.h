@@ -17,7 +17,7 @@ struct WXCOMBAT_API FWxDamageTableRow : public FTableRowBase
 {
 	GENERATED_BODY()
 
-	/** 공격력 계수. Damage Spec의 SetByCaller.Coeff.ATK로 반영 */
+	/** Damage Spec의 SetByCaller.Coeff.ATK로 반영 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DamageInfo")
 	float CoeffATK = 1.f;
 
@@ -29,7 +29,7 @@ struct WXCOMBAT_API FWxDamageTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DamageInfo")
 	float RecoverUP = 0.f;
 
-	/** 적중 시 부여할 HitReact 태그. 비워 두면 HitReact 이벤트 자체가 송출되지 않는다. */
+	/** 비워 두면 HitReact 이벤트가 송출되지 않는다 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DamageInfo", meta = (Categories = "Event.HitReact"))
 	FGameplayTag HitReactTag;
 
@@ -44,7 +44,7 @@ struct WXCOMBAT_API FWxDamageTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DamageInfo")
 	bool bParryHitReact = true;
 
-	/** Damage GE와 함께 타겟에 적용할 추가 GameplayEffect 목록 (상태이상, 디버프 등) */
+	/** Damage GE와 함께 타겟에 적용된다 (상태이상, 디버프 등) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DamageInfo", meta = (AllowAbstract = "false"))
 	TArray<TSubclassOf<UGameplayEffect>> AdditionalEffects;
 };

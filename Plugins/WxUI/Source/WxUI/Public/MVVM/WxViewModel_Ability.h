@@ -36,10 +36,7 @@ public:
 	void Initialize(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility);
 	virtual void Deinitialize() override;
 
-	/**
-	 * 위젯 OnClicked 등 MVVM 이벤트 바인딩의 대상으로 사용한다.
-	 * 비용/쿨다운/태그 요건은 엔진 TryActivateAbility가 판정한다.
-	 */
+	/** 비용/쿨다운/태그 요건은 엔진 TryActivateAbility가 판정한다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Ability")
 	bool TryActivateAbility();
 
@@ -76,7 +73,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	TObjectPtr<UObject> Icon = nullptr;
 
-	/** 바인딩된 어빌리티의 Asset Tags. 어빌리티 식별/매칭에 사용 */
+	/** 바인딩된 어빌리티의 Asset Tags */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Ability")
 	FGameplayTagContainer AbilityTags;
 
@@ -129,12 +126,10 @@ private:
 
 	/**
 	 * 초기화 시점에 이미 돌고 있는 쿨다운을 1회 스캔해 반영한다.
-	 * 이 VM 은 UMG 바인딩 최초 평가 시 지연 생성되므로(메뉴 최초 오픈·HUD 재생성) 쿨다운 도중에 태어날 수 있다.
-	 * 그때는 GE 적용 통지를 받을 기회가 없어 다음 발동까지 "충전 만땅"으로 잘못 표시된다.
+	 * 이 VM 은 UMG 바인딩 최초 평가 시 지연 생성되므로 쿨다운 도중에 태어나면 GE 적용 통지를 놓쳐 "충전 만땅"으로 잘못 표시된다.
 	 */
 	void SeedActiveCooldown();
 
-	/** 부여된 스펙을 찾아 발동 가능 여부(CanActivateAbility)와 비용 지불 가능 여부(CheckCost)를 재평가한다 */
 	void RefreshActivationState();
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;

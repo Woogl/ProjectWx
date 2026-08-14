@@ -13,8 +13,7 @@ class UWxExperienceActionSet;
 
 /**
  * 게임 모드 하나의 게임플레이 구성을 정의하는 프라이머리 데이터 에셋 (Lyra Experience 이식).
- * GameMode(서버 전용)가 선택해 GameState 의 Experience 매니저에 넘기면, 매니저가 참조를 복제해 서버·클라가 각자
- * 에셋 번들 로드 → GameFeature 플러그인 활성 → 액션 실행의 로드 파이프라인을 주행한다.
+ * GameMode(서버 전용)가 선택해 GameState 의 Experience 매니저에 넘기면, 매니저가 참조를 복제해 서버·클라가 각자 로드 파이프라인을 주행한다.
  * 어느 사이드에 붙을지는 여기서 지정하지 않는다 — 복제 컴포넌트는 엔진이 authority 로 제한하고, 그 밖의 사이드 제한은 컴포넌트가 스스로 한다.
  *
  * 에셋은 네이티브 클래스 인스턴스로만 만든다 — BP 서브클래스 인스턴스는 PrimaryAssetType 이 달라져 스캔·URL 해석에서 빠진다.
@@ -48,7 +47,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TArray<FString> GameFeaturesToEnable;
 
-	/** 이 Experience 전용 액션. 여러 Experience 가 공유하는 묶음은 ActionSets 로 합성한다. */
+	/** 이 Experience 전용 액션. */
 	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Wx")
 	TArray<TObjectPtr<UGameFeatureAction>> Actions;
 

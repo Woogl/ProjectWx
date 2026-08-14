@@ -27,7 +27,6 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 		return;
 	}
 
-	// 락온 대상이 최우선이며, 부위 컴포넌트에서 소유 액터를 환원해 쓴다.
 	AActor* LockOnTarget = nullptr;
 	if (UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(Owner))
 	{
@@ -37,8 +36,7 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 		}
 	}
 
-	// TargetingPreset 쿼리 결과가 곧 스냅 가능 범위다.
-	// 락온 대상이 결과에 있으면 위치 스냅까지 허용하고, 밖이면 회전만 적용한다.
+	// TargetingPreset 쿼리 결과가 곧 스냅 가능 범위이며, 대상이 그 밖이면 위치 스냅 없이 회전만 적용한다.
 	TArray<AActor*> TargetingResults;
 	if (TargetingPreset)
 	{
@@ -95,7 +93,6 @@ void UWxRootMotionModifier_SnapToTarget::Update(const FMotionWarpingUpdateContex
 {
 	// 부모 SkewWarp는 창 끝까지 반드시 도달시키는 마감형 보정이라 매 프레임 "남은 거리 / 남은 시간" 속도를 상한 없이 요구한다.
 	// 대상이 죽으면 시체가 루트 모션으로 밀리고 래그돌로 캡슐까지 사라져 워프 타겟이 흔들리는데, 창 끝 몇 프레임에 겹치면 그 요구 속도가 그대로 튄다.
-	// 자격을 잃은 즉시 타겟을 거두면 Super가 부재를 감지해 modifier를 끄므로 남은 구간은 순정 루트 모션으로 재생된다.
 	if (GetState() == ERootMotionModifierState::Active && !IsSnapTargetAlive())
 	{
 		if (UMotionWarpingComponent* MotionWarpingComp = GetOwnerComponent())

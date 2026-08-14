@@ -11,7 +11,7 @@
 
 namespace
 {
-	/** 착지 시 넘어갈 몽타주 섹션. 이 섹션을 가진 몽타주만 착지에 반응하므로 이름이 곧 프로젝트 공통 규약이다 */
+	/** 이 섹션을 가진 몽타주만 착지에 반응하므로 이름이 곧 프로젝트 공통 규약이다 */
 	const FName LandingSectionName = TEXT("Grounded");
 }
 

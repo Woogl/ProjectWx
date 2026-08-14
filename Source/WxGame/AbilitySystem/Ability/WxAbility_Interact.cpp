@@ -31,7 +31,7 @@ UWxAbility_Interact::UWxAbility_Interact()
 	// 처형 연출 도중 근처 다른 대상과 상호작용해 처형 흐름에 개입하는 것을 차단한다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Finisher);
 
-	// 대화 중에는 상호작용을 막는다(PC의 WxDialogueSessionComponent가 세션 시작·종료에 맞춰 State.Dialogue를 발행).
+	// State.Dialogue는 PC의 WxDialogueSessionComponent가 세션 시작·종료에 맞춰 폰 ASC에 발행한다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dialogue);
 }
 
@@ -91,6 +91,6 @@ void UWxAbility_Interact::ExecuteInteract(const UPrimitiveComponent* Selected, c
 
 	Target->OnInteracted(Avatar, Selected);
 
-	// 이 대상을 기다리던 퀘스트 스텝('Wait For Interaction')이 있으면 여기서 완료된다. 기다리는 쪽이 없으면 무동작이다.
+	// 이 대상을 기다리던 퀘스트 스텝('상호작용 대기')이 있으면 여기서 완료된다. 기다리는 쪽이 없으면 무동작이다.
 	FWxStateTreeTask_WaitForInteraction::NotifyInteracted(Selected->GetOwner());
 }

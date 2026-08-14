@@ -44,7 +44,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")
 	TObjectPtr<UWxLockOnManagerComponent> LockOnManagerComponent;
 
-	/** 스태미나 바를 캐릭터 위치에 띄우는 화면 위젯. 위젯 클래스는 BP 에서 지정한다. */
+	/** 위젯 클래스는 BP 에서 지정한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|UI")
 	TObjectPtr<UWidgetComponent> StaminaWidget;
 
@@ -55,7 +55,6 @@ protected:
 	void AbilityInputTriggered(const UInputAction* Action);
 	void AbilityInputReleased(const UInputAction* Action);
 
-	/** 캐릭터 입력 설정 (IMC + Move/Look/Jump/Crouch) */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TObjectPtr<UWxInputConfig> InputConfig;
 };

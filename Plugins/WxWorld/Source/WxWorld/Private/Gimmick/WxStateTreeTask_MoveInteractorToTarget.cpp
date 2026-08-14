@@ -22,7 +22,7 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::EnterState(FStateTr
 	Instance.BlockedController = nullptr;
 	Instance.BlockedAbilitySystem = nullptr;
 
-	// 전이로 들어온 것이 아니면(StateTree 시작·세이브 복원·레이트조인) 이동 없이 곧바로 완료한다.
+	// 전이로 들어온 것이 아니면 StateTree 시작·세이브 복원·레이트조인이다.
 	if (!Transition.SourceStateID.IsValid())
 	{
 		return EStateTreeRunStatus::Succeeded;
@@ -43,7 +43,6 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::EnterState(FStateTr
 		Movement->StopMovementImmediately();
 	}
 
-	// 이동/응시 동안 로컬 플레이어의 입력을 막는다(카메라 look 은 별개 게이트라 유지). ExitState 에서 짝 해제한다.
 	// 입력이 실제로 생기고 예측이 발동을 게이트하는 로컬 컨트롤 인스턴스에서만 건다(소유 클라가 막으면 서버로 활성화가 전송되지 않아 서버 차단이 불필요). 스냅·이동 두 경로 모두에서 걸어 ExitState 해제와 짝을 맞춘다.
 	if (Character->IsLocallyControlled())
 	{
@@ -123,7 +122,6 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::Tick(FStateTreeExec
 		return EStateTreeRunStatus::Running;
 	}
 
-	// 도달: yaw 를 목표로 스냅해 마무리한다.
 	if (Instance.bAlignRotation)
 	{
 		FRotator Rotation = Character->GetActorRotation();
@@ -135,8 +133,7 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::Tick(FStateTreeExec
 
 void FWxStateTreeTask_MoveInteractorToTarget::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// EnterState 에서 건 입력 차단을 해제한다. SetIgnoreMoveInput·BlockAbilitiesWithTags 모두 스택 카운터라 진입 시의 +1 과 짝을 맞춰야 한다.
-	// 진입 때 차단에 성공한 대상 자체를 기록해 두고, 여기서는 그 기록만 근거로 해제한다(기록이 비어 있으면 애초에 걸지 않은 것이다).
+	// SetIgnoreMoveInput·BlockAbilitiesWithTags 모두 스택 카운터라 진입 시의 +1 과 짝을 맞춰야 한다.
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 	if (AController* Controller = Instance.BlockedController.Get())
 	{
@@ -158,7 +155,7 @@ FText FWxStateTreeTask_MoveInteractorToTarget::GetDescription(const FGuid& ID, F
 	check(InstanceData);
 
 	// 이동 대상은 오너 기믹에서 읽으므로 표시할 것이 없다. 상태마다 갈리는 건 목표 앵커라 그것을 보인다.
-	// 앵커는 보통 바인딩이라 런타임 포인터가 비어 있다. 비우면 오너 트랜스폼 기준이므로 owner 로 폴백.
+	// 앵커는 보통 바인딩이라 런타임 포인터가 비어 있다.
 	FText AnchorText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, AnchorComponent)), Formatting);
 	if (AnchorText.IsEmpty())
 	{

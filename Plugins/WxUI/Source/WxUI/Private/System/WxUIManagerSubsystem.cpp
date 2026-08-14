@@ -29,7 +29,6 @@ void UWxUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		return;
 	}
 
-	// 초기화 순서를 보장하기 위해 UMVVMGameSubsystem 을 먼저 확정 초기화한다.
 	Collection.InitializeDependency(UMVVMGameSubsystem::StaticClass());
 	if (UMVVMGameSubsystem* ViewModelSubsystem = GameInstance->GetSubsystem<UMVVMGameSubsystem>())
 	{
@@ -242,8 +241,7 @@ void UWxUIManagerSubsystem::HandlePlayerControllerSet(APlayerController* PC)
 	WatchPawnTags(nullptr);
 
 	// PC 가 들어올 때마다 layout 을 무조건 재생성한다.
-	// stale 식별을 시도하지 않는 이유: widget 의 GetOwningPlayer/GetWorld/GetOuter 가 모두 유지되는 LocalPlayer/GameInstance 를 따라 자동으로 새 값을 반환하므로, widget 만 보고는 stale 여부를 알 수 없다.
-	// layout 은 빈 컨테이너이고 컨텐츠는 아래에서 다시 push 되므로 매번 재생성해도 비용이 작다.
+	// widget 의 GetOwningPlayer/GetWorld/GetOuter 가 유지되는 LocalPlayer/GameInstance 를 따라 새 값을 반환해 stale 여부를 알 수 없고, layout 은 빈 컨테이너라 매번 재생성해도 비용이 작다.
 	if (PrimaryGameLayout)
 	{
 		PrimaryGameLayout->RemoveFromParent();
@@ -301,7 +299,7 @@ void UWxUIManagerSubsystem::WatchPawnTags(APawn* Pawn)
 	CloseDialogueScreen();
 
 	// 캐릭터의 ASC 는 기본 서브오브젝트라 폰이 있으면 곧바로 잡힌다 — 늦은 도착을 기다릴 필요가 없다.
-	// 사망·대화를 도메인 델리게이트가 아니라 태그로 듣는 이유: 그 신호들의 출처가 결국 이 태그들이고, 태그는 WxCore 라 WxUI 가 게임 모듈·다른 플러그인 타입을 알지 않아도 된다.
+	// 태그는 WxCore 라 WxUI 가 다른 플러그인 타입을 알지 않아도 되므로, 사망·대화를 도메인 델리게이트가 아니라 태그로 듣는다.
 	UAbilitySystemComponent* AbilitySystem = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
 	if (!AbilitySystem)
 	{

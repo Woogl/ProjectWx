@@ -8,8 +8,6 @@
 #include "WxMMC_Cost.generated.h"
 
 /**
- * 어빌리티 코스트 MMC 공용 베이스.
- *
  * 소스 어빌리티(UWxAbilityBase)의 AbilityDataRow를 계산 시점에 조회해 코스트 값을 만든다.
  * 어트리뷰트는 캡처하지 않는다(RelevantAttributesToCapture 비움).
  *
@@ -22,7 +20,7 @@ class WXCOMBAT_API UWxMMC_Cost : public UGameplayModMagnitudeCalculation
 	GENERATED_BODY()
 
 protected:
-	/** Row의 CostResource가 Resource와 같을 때만 CostAmount를 음수로(자원 감산) 반환한다 */
+	/** 자원 감산이라 CostAmount를 음수로 반환한다 */
 	float GetCostMagnitude(const FGameplayEffectSpec& Spec, EWxAbilityCostResource Resource) const;
 };
 

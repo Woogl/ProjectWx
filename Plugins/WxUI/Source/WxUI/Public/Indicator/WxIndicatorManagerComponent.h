@@ -37,7 +37,7 @@ public:
 	 */
 	UWxIndicatorDescriptor* AddIndicator(USceneComponent* InTargetComponent, const FVector& InWorldOffset);
 
-	/** 등록증을 목록에서 뺀다. 목록에 없는 등록증은 무시한다. */
+	/** 목록에 없는 등록증은 무시한다. */
 	void RemoveIndicator(UWxIndicatorDescriptor* Indicator);
 
 	const TArray<TObjectPtr<UWxIndicatorDescriptor>>& GetIndicators() const;
@@ -55,10 +55,9 @@ public:
 	static FWxOnIndicatorManagerReady OnAnyManagerReady;
 
 private:
-	/** 모든 등록증을 화면 좌표로 투영한다. 뷰를 얻지 못하면(월드 전환 등) 전부 투영 없음으로 되돌린다. */
+	/** 뷰를 얻지 못하면(월드 전환 등) 전부 투영 없음으로 되돌린다. */
 	void UpdateProjections();
 
-	/** 등록 여부에 맞춰 틱을 켜고 끈다. 표시할 것이 없으면 투영할 것도 없다. */
 	void UpdateTickEnabled();
 
 	UPROPERTY()

@@ -73,7 +73,7 @@ void UWxViewModel_InteractionList::HandleListChanged(const TArray<FText>& InProm
 {
 	RebuildEntries(InPrompts);
 
-	// 목록이 새 항목으로 교체되었으므로 현재 선택을 다시 적용해 bSelected 를 반영한다(정확한 값은 곧 HandleSelectionChanged 가 덮는다).
+	// 목록이 새 항목으로 교체되었으므로 현재 선택을 다시 적용해 bSelected 를 반영한다(멤버십까지 바뀌었다면 곧 HandleSelectionChanged 가 정확한 값으로 덮는다).
 	ApplySelection(SelectedIndex);
 }
 
@@ -100,7 +100,7 @@ void UWxViewModel_InteractionList::RequestCycle(int32 Delta)
 
 void UWxViewModel_InteractionList::HandleScannerReady(UWxInteractionScannerComponent* Scanner)
 {
-	// 신호는 클래스 차원이라 남의 스캐너도 온다(PIE 다중 인스턴스 포함). 관찰 중인 컨트롤러의 것만 받는다.
+	// 신호는 클래스 차원이라 남의 스캐너도 온다(PIE 다중 인스턴스 포함).
 	if (!Scanner || Scanner->GetOwner() != ObservedController.Get())
 	{
 		return;
