@@ -9,7 +9,7 @@
 class UCapsuleComponent;
 class USkeletalMeshComponent;
 class UWxDialogueComponent;
-class UWxMetaHumanVisualComponent;
+class UWxMetaHumanComponent;
 
 /**
  * 대화 NPC.
@@ -40,5 +40,5 @@ protected:
 
 	/** 메타휴먼 부착물(페이스·그룸·복장)을 바디 메시에 조립하는 컴포넌트. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Visual")
-	TObjectPtr<UWxMetaHumanVisualComponent> MetaHumanVisualComponent;
+	TObjectPtr<UWxMetaHumanComponent> MetaHumanComponent;
 };

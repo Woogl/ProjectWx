@@ -2,7 +2,7 @@
 
 #include "Character/WxNpc.h"
 
-#include "Character/WxMetaHumanVisualComponent.h"
+#include "Character/WxMetaHumanComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "WxDialogueComponent.h"
@@ -38,5 +38,5 @@ AWxNpc::AWxNpc()
 	DialogueComponent = CreateDefaultSubobject<UWxDialogueComponent>(TEXT("DialogueComponent"));
 	DialogueComponent->SetAreaMesh(MeshComponent);
 
-	MetaHumanVisualComponent = CreateDefaultSubobject<UWxMetaHumanVisualComponent>(TEXT("MetaHumanVisualComponent"));
+	MetaHumanComponent = CreateDefaultSubobject<UWxMetaHumanComponent>(TEXT("MetaHumanComponent"));
 }
