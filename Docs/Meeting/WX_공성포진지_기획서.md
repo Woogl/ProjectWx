@@ -23,7 +23,11 @@
 
 ### 구조도
 
-<img width="1280" height="720" alt="공성포 진지" src="https://github.com/user-attachments/assets/e8290c04-f8cb-455d-a1fa-fddcde1bcff4" />
+<img width="1280" height="720" alt="슬라이드4" src="https://github.com/user-attachments/assets/f6ce0d56-bfaa-4e34-a379-f6593f2d94ff" />
+<img width="1280" height="720" alt="슬라이드3" src="https://github.com/user-attachments/assets/b0bcc642-d6a1-457f-be1b-b25eb0746451" />
+<img width="1280" height="720" alt="슬라이드2" src="https://github.com/user-attachments/assets/75768313-450c-4b5d-b274-6f9fbf45ce60" />
+<img width="1280" height="720" alt="슬라이드1" src="https://github.com/user-attachments/assets/d89a741e-a14d-409b-9bd4-57272beb8f88" />
+
 
 ### 진행 흐름 요약
 
