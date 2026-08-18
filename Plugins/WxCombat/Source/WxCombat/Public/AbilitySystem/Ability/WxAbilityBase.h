@@ -30,10 +30,11 @@ enum class EWxAbilityActivationPolicy : uint8
 /**
  * 쿨다운·코스트 수치는 AbilityDataRow에서만 읽는다.
  * 쿨다운은 공용 UWxEffect_Cooldown GE를 소스 어빌리티 CDO로 구분하며, 소모된 충전 1개당 GE 1개가 붙어 자연 만료로 회복된다.
- * Duration과 자원 모디파이어는 각 MMC가 Row에서 조회하므로 적용 경로는 엔진 순정 그대로다.
+ * 자원 모디파이어는 MMC가 Row에서 조회하고, 쿨다운 Duration은 ApplyCooldown이 계산해 SetByCaller로 실으므로 적용 경로는 엔진 순정 그대로다.
  *
  * CooldownGameplayEffectClass/CostGameplayEffectClass의 기본값은 그 공용 GE를 가리키는 "마커"다.
  * 마커 그대로면 Row 기반, 다른 GE로 바꾸면 엔진 순정 GE 경로를 쓴다(Row와 상호배타).
+ * 커스텀 GE는 지속시간·모디파이어를 스스로 정의해야 하며, 공용 GE를 상속해선 안 된다 — 공용 GE의 지속시간은 SetByCaller로 받는데 순정 경로는 그 값을 싣지 않아 조용히 1초가 된다.
  */
 UCLASS(Abstract, BlueprintType, Blueprintable)
 class WXCOMBAT_API UWxAbilityBase : public UGameplayAbility
@@ -100,6 +101,13 @@ public:
 
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual UGameplayEffect* GetCooldownGameplayEffect() const override;
+
+	/**
+	 * 충전이 직렬로 회복되도록 이미 도는 쿨다운의 최장 잔여시간을 더한 값을 SetByCaller로 실어 적용한다.
+	 * 엔진은 적용 도중 지속시간을 여러 번 다시 계산하는데 그 중 한 번은 새 GE가 활성 목록에 들어간 뒤라, 라이브 조회로 계산하면 자기 자신을 세어 쿨다운이 두 배가 된다.
+	 */
+	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
+
 	virtual bool CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
 	/**

@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameplayEffect.h"
-#include "GameplayModMagnitudeCalculation.h"
 #include "WxEffect_Cooldown.generated.h"
 
 /**
- * Duration은 UWxMMC_CooldownDuration MMC가 소스 어빌리티의 AbilityDataRow에서 CooldownTime을 조회하고 직렬 회복분을 더해 계산한다.
+ * Duration은 어빌리티가 SetByCaller.Duration으로 실어 보낸다 — 직렬 회복분까지 더한 최종값이다.
+ * 엔진이 적용 도중 지속시간을 여러 번 다시 계산하므로, 그때마다 같은 값을 되읽도록 라이브 상태에 기대지 않는다.
  * 소스 어빌리티 CDO로 개별 어빌리티의 쿨다운을 구분한다.
  * 소모된 충전 1개당 GE 1개가 활성 상태가 되며, GE 만료 = 충전 1개 회복이다.
  *
@@ -22,17 +22,4 @@ class WXCOMBAT_API UWxEffect_Cooldown : public UGameplayEffect
 
 public:
 	UWxEffect_Cooldown();
-};
-
-/**
- * 충전이 직렬로 회복되도록 이 어빌리티의 활성 쿨다운 GE 중 최장 잔여시간을 더한다.
- * 신규 GE는 이 시점에 아직 미적용이라 기존 것만 집계된다.
- */
-UCLASS()
-class WXCOMBAT_API UWxMMC_CooldownDuration : public UGameplayModMagnitudeCalculation
-{
-	GENERATED_BODY()
-
-public:
-	virtual float CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const override;
 };

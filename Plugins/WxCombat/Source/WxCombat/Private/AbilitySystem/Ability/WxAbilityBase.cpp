@@ -14,6 +14,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Pawn.h"
 #include "Engine/World.h"
+#include "WxGameplayTags.h"
 
 UWxAbilityBase::UWxAbilityBase()
 {
@@ -223,6 +224,40 @@ UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
 
 	CooldownEffect->StackLimitCount = MaxRecharges;
 	return CooldownEffect;
+}
+
+void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
+{
+	if (CooldownGameplayEffectClass && CooldownGameplayEffectClass != UWxEffect_Cooldown::StaticClass())
+	{
+		Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
+		return;
+	}
+
+	// Row가 없거나 쿨다운이 0 이하면 GetCooldownGameplayEffect가 널을 돌려준다.
+	const UGameplayEffect* CooldownGE = GetCooldownGameplayEffect();
+	const FWxAbilityTableRow* Row = GetTableRow();
+	if (!CooldownGE || !Row)
+	{
+		return;
+	}
+
+	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, CooldownGE->GetClass(), GetAbilityLevel(Handle, ActorInfo));
+	if (!SpecHandle.IsValid())
+	{
+		return;
+	}
+
+	// 이 조회는 GE 적용 전이라 방금 거는 쿨다운이 섞이지 않는다.
+	float LongestRemaining = 0.f;
+	float LongestDuration = 0.f;
+	if (const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr)
+	{
+		QueryActiveCooldowns(*ASC, LongestRemaining, LongestDuration);
+	}
+
+	SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, LongestRemaining + Row->CooldownTime);
+	ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
 }
 
 bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
