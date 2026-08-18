@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "MVVM/WxViewModel_Ability.h"
 #include "AbilitySystemComponent.h"
@@ -39,18 +39,7 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 	// 태그 요건은 ASC 태그 변경으로, 비용은 비용 GE가 수정하는 어트리뷰트 값 변경으로 감지한다.
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_Ability::HandleTagChanged);
 
-	if (const UGameplayEffect* CostGE = InAbility->GetCostGameplayEffect())
-	{
-		for (const FGameplayModifierInfo& Modifier : CostGE->Modifiers)
-		{
-			if (Modifier.Attribute.IsValid() && !CostAttributes.Contains(Modifier.Attribute))
-			{
-				CostAttributes.Add(Modifier.Attribute);
-				InASC->GetGameplayAttributeValueChangeDelegate(Modifier.Attribute)
-					.AddUObject(this, &UWxViewModel_Ability::HandleCostAttributeChanged);
-			}
-		}
-	}
+	GetCost(InASC, InAbility);
 
 	RefreshActivationState();
 
@@ -110,9 +99,14 @@ void UWxViewModel_Ability::Deinitialize()
 	{
 		ASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
 		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
-		for (const FGameplayAttribute& CostAttribute : CostAttributes)
+
+		if (CostAttribute.IsValid())
 		{
 			ASC->GetGameplayAttributeValueChangeDelegate(CostAttribute).RemoveAll(this);
+		}
+		if (CostMaxAttribute.IsValid())
+		{
+			ASC->GetGameplayAttributeValueChangeDelegate(CostMaxAttribute).RemoveAll(this);
 		}
 	}
 
@@ -125,7 +119,8 @@ void UWxViewModel_Ability::Deinitialize()
 	CachedASC.Reset();
 	CachedAbility.Reset();
 	CachedCooldownClass = nullptr;
-	CostAttributes.Reset();
+	CostAttribute = FGameplayAttribute();
+	CostMaxAttribute = FGameplayAttribute();
 
 	Super::Deinitialize();
 }
@@ -240,6 +235,46 @@ void UWxViewModel_Ability::SetCheckCost(bool NewValue)
 	UE_MVVM_SET_PROPERTY_VALUE(CheckCost, NewValue);
 }
 
+float UWxViewModel_Ability::GetCostAmount() const
+{
+	return CostAmount;
+}
+
+void UWxViewModel_Ability::SetCostAmount(float NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(CostAmount, NewValue);
+}
+
+float UWxViewModel_Ability::GetCostCurrent() const
+{
+	return CostCurrent;
+}
+
+void UWxViewModel_Ability::SetCostCurrent(float NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(CostCurrent, NewValue);
+}
+
+float UWxViewModel_Ability::GetCostMax() const
+{
+	return CostMax;
+}
+
+void UWxViewModel_Ability::SetCostMax(float NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(CostMax, NewValue);
+}
+
+float UWxViewModel_Ability::GetCostRemainingPercent() const
+{
+	return CostRemainingPercent;
+}
+
+void UWxViewModel_Ability::SetCostRemainingPercent(float NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(CostRemainingPercent, NewValue);
+}
+
 UObject* UWxViewModel_Ability::GetIcon() const
 {
 	return Icon;
@@ -299,6 +334,7 @@ void UWxViewModel_Ability::HandleTagChanged(const FGameplayTag Tag, int32 NewCou
 
 void UWxViewModel_Ability::HandleCostAttributeChanged(const FOnAttributeChangeData& Data)
 {
+	RefreshCostValues();
 	RefreshActivationState();
 }
 
@@ -401,4 +437,85 @@ void UWxViewModel_Ability::RefreshActivationState()
 
 	SetCanActivate(false);
 	SetCheckCost(false);
+}
+
+void UWxViewModel_Ability::GetCost(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility)
+{
+	const UGameplayEffect* CostGE = InAbility->GetCostGameplayEffect();
+	if (!CostGE)
+	{
+		return;
+	}
+
+	float AbilityLevel = 1.f;
+	for (const FGameplayAbilitySpec& Spec : InASC->GetActivatableAbilities())
+	{
+		if (Spec.Ability.Get() == InAbility)
+		{
+			AbilityLevel = Spec.Level;
+			break;
+		}
+	}
+
+	// 비용 계산은 소스 어빌리티에서 수치를 읽으므로 컨텍스트에 어빌리티를 실어야 한다.
+	FGameplayEffectContextHandle CostContext = InASC->MakeEffectContext();
+	CostContext.SetAbility(InAbility);
+
+	FGameplayEffectSpec CostSpec(CostGE, CostContext, AbilityLevel);
+	CostSpec.CalculateModifierMagnitudes();
+
+	for (int32 ModifierIndex = 0; ModifierIndex < CostGE->Modifiers.Num(); ++ModifierIndex)
+	{
+		const FGameplayAttribute& ModifierAttribute = CostGE->Modifiers[ModifierIndex].Attribute;
+		const float Magnitude = CostSpec.GetModifierMagnitude(ModifierIndex, true);
+		if (!ModifierAttribute.IsValid() || FMath::IsNearlyZero(Magnitude))
+		{
+			continue;
+		}
+
+		CostAttribute = ModifierAttribute;
+
+		// 자원 감산이라 음수로 나온다.
+		SetCostAmount(FMath::Abs(Magnitude));
+		break;
+	}
+
+	if (!CostAttribute.IsValid())
+	{
+		return;
+	}
+
+	// 어트리뷰트 셋은 현재값과 최대값을 Max 접두 이름으로 짝지어 둔다.
+	if (const UClass* AttributeSetClass = CostAttribute.GetAttributeSetClass())
+	{
+		const FName MaxAttributeName(*(TEXT("Max") + CostAttribute.GetName()));
+		if (FProperty* MaxAttributeProperty = FindFProperty<FProperty>(AttributeSetClass, MaxAttributeName))
+		{
+			CostMaxAttribute = FGameplayAttribute(MaxAttributeProperty);
+		}
+	}
+
+	InASC->GetGameplayAttributeValueChangeDelegate(CostAttribute)
+		.AddUObject(this, &UWxViewModel_Ability::HandleCostAttributeChanged);
+
+	if (CostMaxAttribute.IsValid())
+	{
+		InASC->GetGameplayAttributeValueChangeDelegate(CostMaxAttribute)
+			.AddUObject(this, &UWxViewModel_Ability::HandleCostAttributeChanged);
+	}
+
+	RefreshCostValues();
+}
+
+void UWxViewModel_Ability::RefreshCostValues()
+{
+	const UAbilitySystemComponent* ASC = CachedASC.Get();
+	if (!ASC || !CostAttribute.IsValid())
+	{
+		return;
+	}
+
+	SetCostCurrent(ASC->GetNumericAttribute(CostAttribute));
+	SetCostMax(CostMaxAttribute.IsValid() ? ASC->GetNumericAttribute(CostMaxAttribute) : 0.f);
+	SetCostRemainingPercent(CostMax > 0.f ? CostCurrent / CostMax : 0.f);
 }

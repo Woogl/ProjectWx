@@ -25,6 +25,8 @@ struct FGameplayEffectSpec;
  * 동일 GE 클래스를 여러 어빌리티가 공유하는 경우, 소스 어빌리티 CDO로 구분한다.
  *
  * CanActivate·CheckCost 는 ASC 태그 변경/비용 어트리뷰트 변경/쿨다운 진행 시점에 재평가된다.
+ *
+ * 코스트 수치는 초기화 때 비용 GE 를 한 번 평가해 자원과 양을 정하고, 이후 그 자원의 현재/최대 어트리뷰트를 따라간다.
  */
 UCLASS()
 class WXUI_API UWxViewModel_Ability : public UWxViewModel
@@ -69,6 +71,22 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	bool CheckCost = false;
 
+	/** 이 어빌리티가 소모하는 자원의 양. 코스트가 없으면 0 */
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	float CostAmount = 0.f;
+
+	/** 코스트 자원의 현재값 */
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	float CostCurrent = 0.f;
+
+	/** 코스트 자원의 최대값 */
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	float CostMax = 0.f;
+
+	/** 코스트 자원이 얼마나 남았는지의 비율 */
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	float CostRemainingPercent = 0.f;
+
 	/** 텍스처 또는 머터리얼이며, 소프트 참조는 SetIconSoft 가 비동기 로드한다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	TObjectPtr<UObject> Icon = nullptr;
@@ -104,6 +122,18 @@ public:
 	bool GetCheckCost() const;
 	void SetCheckCost(bool NewValue);
 
+	float GetCostAmount() const;
+	void SetCostAmount(float NewValue);
+
+	float GetCostCurrent() const;
+	void SetCostCurrent(float NewValue);
+
+	float GetCostMax() const;
+	void SetCostMax(float NewValue);
+
+	float GetCostRemainingPercent() const;
+	void SetCostRemainingPercent(float NewValue);
+
 	UObject* GetIcon() const;
 	void SetIcon(UObject* NewValue);
 
@@ -132,12 +162,21 @@ private:
 
 	void RefreshActivationState();
 
+	/**
+	 * 비용 GE 가 실제로 깎는 자원과 그 양을 정한다.
+	 * 비용 GE 는 자원별 모디파이어를 모두 선언해 두고 값은 적용 시점에 계산하므로, 정의만 읽어서는 알 수 없어 스펙을 한 번 평가한다.
+	 */
+	void GetCost(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility);
+
+	void RefreshCostValues();
+
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	TWeakObjectPtr<const UGameplayAbility> CachedAbility;
 	TSubclassOf<UGameplayEffect> CachedCooldownClass;
 
-	/** 비용 GE가 수정하는 어트리뷰트. 값 변경 델리게이트 등록/해제용 */
-	TArray<FGameplayAttribute> CostAttributes;
+	/** 비용 GE가 깎는 자원 어트리뷰트와 그 최대치. 값 변경 델리게이트 등록/해제용 */
+	FGameplayAttribute CostAttribute;
+	FGameplayAttribute CostMaxAttribute;
 
 	FTSTicker::FDelegateHandle TickerHandle;
 };
