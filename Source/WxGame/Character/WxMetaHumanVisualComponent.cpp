@@ -27,36 +27,49 @@ void UWxMetaHumanVisualComponent::OnRegister()
 	}
 
 	// BP 리컴파일·레벨 스트리밍으로 등록이 반복돼도 조립은 한 번만 한다. (해제 시 전부 파괴되므로 포인터가 곧 가드)
-	if (FaceComponent || OutfitComponent || LODSyncComponent || MetaHumanComponent || GroomComponents.Num() > 0)
+	if (BodyComponent || FaceComponent || OutfitComponent || LODSyncComponent || MetaHumanComponent || GroomComponents.Num() > 0)
 	{
 		return;
 	}
 
-	USkeletalMeshComponent* BodyMesh = ResolveBodyMesh();
-	if (!BodyMesh)
+	// 오너 캐릭터의 메시가 포즈를 만드는 리더다.
+	ACharacter* Owner = Cast<ACharacter>(GetOwner());
+	USkeletalMeshComponent* LeaderMesh = Owner ? Owner->GetMesh() : nullptr;
+	if (!LeaderMesh)
 	{
 		return;
 	}
 
-	AActor* Owner = GetOwner();
+	if (BodyMesh)
+	{
+		BodyComponent = NewObject<USkeletalMeshComponent>(Owner, MakeUniqueObjectName(Owner, USkeletalMeshComponent::StaticClass(), TEXT("Body")), RF_Transient);
+		// 부착물이 생성 주체와 같은 수명 분류로 취급되도록 CreationMethod를 물려준다. (이하 모든 부착물 동일)
+		BodyComponent->CreationMethod = CreationMethod;
+		BodyComponent->SetSkeletalMeshAsset(BodyMesh);
+		BodyComponent->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+		BodyComponent->SetupAttachment(LeaderMesh);
+		BodyComponent->RegisterComponent();
+		BodyComponent->SetLeaderPoseComponent(LeaderMesh);
+
+		// 표시를 바디가 넘겨받았으므로 리더는 포즈만 만든다. 물리·피격 판정·무기 소켓은 그대로 리더에 남는다.
+		LeaderMesh->SetVisibility(false);
+	}
 
 	if (FaceMesh)
 	{
 		FaceComponent = NewObject<USkeletalMeshComponent>(Owner, MakeUniqueObjectName(Owner, USkeletalMeshComponent::StaticClass(), TEXT("Face")), RF_Transient);
-		// 부착물이 생성 주체와 같은 수명 분류로 취급되도록 CreationMethod를 물려준다. (이하 모든 부착물 동일)
 		FaceComponent->CreationMethod = CreationMethod;
 		FaceComponent->SetSkeletalMeshAsset(FaceMesh);
 		FaceComponent->SetAnimInstanceClass(FaceAnimClass);
 		FaceComponent->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
 		FaceComponent->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
-		FaceComponent->SetupAttachment(BodyMesh);
+		FaceComponent->SetupAttachment(LeaderMesh);
 		FaceComponent->RegisterComponent();
 
 		// 그룸은 페이스 스켈레톤에 바인딩되므로 페이스가 있을 때만 의미가 있다.
 		CreateGroom(Hair, TEXT("Hair"), FaceComponent);
 		CreateGroom(Eyebrows, TEXT("Eyebrows"), FaceComponent);
 		CreateGroom(Eyelashes, TEXT("Eyelashes"), FaceComponent);
-		CreateGroom(Peachfuzz, TEXT("Peachfuzz"), FaceComponent);
 		CreateGroom(Mustache, TEXT("Mustache"), FaceComponent);
 		CreateGroom(Beard, TEXT("Beard"), FaceComponent);
 	}
@@ -68,13 +81,13 @@ void UWxMetaHumanVisualComponent::OnRegister()
 		OutfitComponent->SetSkeletalMeshAsset(OutfitMesh);
 		OutfitComponent->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
 		OutfitComponent->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
-		OutfitComponent->SetupAttachment(BodyMesh);
+		OutfitComponent->SetupAttachment(LeaderMesh);
 		OutfitComponent->RegisterComponent();
 
-		// 어셈블 BP의 EnableMasterPose 판정과 동일: 스스로 포즈를 만들 수단(PP-ABP·AnimClass)이 없는 메시만 바디를 따라간다.
+		// 어셈블 BP의 EnableMasterPose 판정과 동일: 스스로 포즈를 만들 수단(PP-ABP·AnimClass)이 없는 메시만 리더를 따라간다.
 		if (!OutfitMesh->GetPostProcessAnimBlueprint() && !OutfitComponent->GetAnimClass())
 		{
-			OutfitComponent->SetLeaderPoseComponent(BodyMesh);
+			OutfitComponent->SetLeaderPoseComponent(LeaderMesh);
 		}
 	}
 
@@ -84,7 +97,8 @@ void UWxMetaHumanVisualComponent::OnRegister()
 	}
 
 	// 어셈블 BP는 이름과 매핑을 하드코딩하지만, 여기선 실제 생성된 이름과 각 메시의 LOD 수로 구성한다.
-	const int32 BodyLODCount = BodyMesh->GetSkeletalMeshAsset() ? BodyMesh->GetSkeletalMeshAsset()->GetLODNum() : 0;
+	// 오너 메시는 구동·리더 포즈 전용이라 동기 대상이 아니고, 여기서 만든 표시용 메시끼리만 묶는다.
+	const int32 BodyLODCount = BodyMesh ? BodyMesh->GetLODNum() : 0;
 	const int32 FaceLODCount = FaceMesh ? FaceMesh->GetLODNum() : 0;
 	const int32 OutfitLODCount = OutfitMesh ? OutfitMesh->GetLODNum() : 0;
 	const int32 NumSyncLODs = FMath::Max3(BodyLODCount, FaceLODCount, OutfitLODCount);
@@ -93,15 +107,18 @@ void UWxMetaHumanVisualComponent::OnRegister()
 	LODSyncComponent->CreationMethod = CreationMethod;
 	LODSyncComponent->NumLODs = NumSyncLODs;
 
-	FComponentSync& BodySync = LODSyncComponent->ComponentsToSync.AddDefaulted_GetRef();
-	BodySync.Name = BodyMesh->GetFName();
-	BodySync.SyncOption = ESyncOption::Drive;
-	if (BodyLODCount > 0 && BodyLODCount < NumSyncLODs)
+	if (BodyComponent)
 	{
-		FLODMappingData& Mapping = LODSyncComponent->CustomLODMapping.Add(BodyMesh->GetFName());
-		for (int32 Index = 0; Index < NumSyncLODs; ++Index)
+		FComponentSync& BodySync = LODSyncComponent->ComponentsToSync.AddDefaulted_GetRef();
+		BodySync.Name = BodyComponent->GetFName();
+		BodySync.SyncOption = ESyncOption::Drive;
+		if (BodyLODCount > 0 && BodyLODCount < NumSyncLODs)
 		{
-			Mapping.Mapping.Add(Index * BodyLODCount / NumSyncLODs);
+			FLODMappingData& Mapping = LODSyncComponent->CustomLODMapping.Add(BodyComponent->GetFName());
+			for (int32 Index = 0; Index < NumSyncLODs; ++Index)
+			{
+				Mapping.Mapping.Add(Index * BodyLODCount / NumSyncLODs);
+			}
 		}
 	}
 
@@ -136,12 +153,13 @@ void UWxMetaHumanVisualComponent::OnRegister()
 
 	LODSyncComponent->RegisterComponent();
 
-	// 페이스 리그로직·넥 보정·바디 보정 구동.
+	// 페이스 리그로직·넥 보정 구동.
+	// 바디 보정은 바디가 리더 포즈 팔로워면 자기 그래프를 돌리지 않아 평가되지 않는다.
 	if (FaceComponent)
 	{
 		MetaHumanComponent = NewObject<UWxMetaHumanComponent>(Owner, MakeUniqueObjectName(Owner, UWxMetaHumanComponent::StaticClass(), TEXT("MetaHuman")), RF_Transient);
 		MetaHumanComponent->CreationMethod = CreationMethod;
-		MetaHumanComponent->SetTargetComponentNames(BodyMesh->GetName(), FaceComponent->GetName());
+		MetaHumanComponent->SetTargetComponentNames(BodyComponent ? BodyComponent->GetName() : LeaderMesh->GetName(), FaceComponent->GetName());
 		MetaHumanComponent->RegisterComponent();
 	}
 }
@@ -176,23 +194,13 @@ void UWxMetaHumanVisualComponent::OnUnregister()
 		FaceComponent->DestroyComponent();
 		FaceComponent = nullptr;
 	}
+	if (BodyComponent)
+	{
+		BodyComponent->DestroyComponent();
+		BodyComponent = nullptr;
+	}
 
 	Super::OnUnregister();
-}
-
-USkeletalMeshComponent* UWxMetaHumanVisualComponent::ResolveBodyMesh() const
-{
-	AActor* Owner = GetOwner();
-	if (!Owner)
-	{
-		return nullptr;
-	}
-
-	if (const ACharacter* Character = Cast<ACharacter>(Owner))
-	{
-		return Character->GetMesh();
-	}
-	return Owner->FindComponentByClass<USkeletalMeshComponent>();
 }
 
 void UWxMetaHumanVisualComponent::CreateGroom(const FWxGroomSlot& Slot, const TCHAR* BaseName, USkeletalMeshComponent* AttachTarget)

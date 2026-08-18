@@ -45,10 +45,10 @@ struct FWxGroomSlot
 };
 
 /**
- * 메타휴먼 어셈블 산출물(페이스·그룸·복장)을 오너의 바디 메시에 조립하는 컴포넌트.
+ * 메타휴먼 어셈블 산출물(바디·페이스·그룸·복장)을 오너의 스켈레탈 메시에 조립하는 컴포넌트.
  * 캐릭터 BP마다 어셈블 BP 구성을 수작업으로 복제하는 대신, 에셋만 지정하면 등록 시점에 부착물 일체를 생성·배선한다.
  * LODSync·MetaHuman 컴포넌트가 이름 문자열로 대상을 찾는 구조라, 실제 생성된 컴포넌트 이름을 그대로 채워 이름 어긋남을 차단한다.
- * 오너가 ACharacter면 GetMesh(), 아니면(NPC 등 AActor 계열) 첫 SkeletalMeshComponent를 바디로 삼는다.
+ * 오너 캐릭터의 메시가 포즈를 만드는 리더이고, 여기서 만드는 메시는 전부 표시 전용이다.
  */
 UCLASS(ClassGroup = "Wx", meta = (BlueprintSpawnableComponent))
 class WXGAME_API UWxMetaHumanVisualComponent : public UActorComponent
@@ -61,6 +61,10 @@ protected:
 	virtual void OnUnregister() override;
 	//~ End UActorComponent
 	
+	/** 비워두면 바디를 만들지 않는다. 지정하면 표시를 이 메시가 맡고 오너 메시는 숨긴 구동 전용이 된다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Visual")
+	TObjectPtr<USkeletalMesh> BodyMesh;
+
 	/** 비워두면 페이스와 그룸을 만들지 않는다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Visual")
 	TObjectPtr<USkeletalMesh> FaceMesh;
@@ -79,24 +83,22 @@ protected:
 	FWxGroomSlot Eyelashes;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Visual")
-	FWxGroomSlot Peachfuzz;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Visual")
 	FWxGroomSlot Mustache;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Visual")
 	FWxGroomSlot Beard;
 
-	/** 포스트프로세스 ABP가 없는 메시는 바디 리더포즈로 따라가게 배선한다. */
+	/** 포스트프로세스 ABP가 없는 메시는 리더 포즈로 따라가게 배선한다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Visual")
 	TObjectPtr<USkeletalMesh> OutfitMesh;
 
 private:
-	USkeletalMeshComponent* ResolveBodyMesh() const;
-
 	void CreateGroom(const FWxGroomSlot& Slot, const TCHAR* BaseName, USkeletalMeshComponent* AttachTarget);
 
 	// 등록 시점에 생성한 부착물들. 재등록 가드이자 OnUnregister 정리 대상이다.
+	UPROPERTY(Transient)
+	TObjectPtr<USkeletalMeshComponent> BodyComponent;
+
 	UPROPERTY(Transient)
 	TObjectPtr<USkeletalMeshComponent> FaceComponent;
 

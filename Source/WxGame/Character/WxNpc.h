@@ -38,10 +38,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UWxDialogueComponent> DialogueComponent;
 
-	/**
-	 * 메타휴먼 부착물(페이스·그룸·복장)을 바디 메시에 조립하는 컴포넌트.
-	 * BP 디폴트에서 에셋을 지정한 NPC 만 부착물을 만들고, 비워두면 아무것도 만들지 않는다.
-	 */
+	/** 메타휴먼 부착물(페이스·그룸·복장)을 바디 메시에 조립하는 컴포넌트. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Visual")
 	TObjectPtr<UWxMetaHumanVisualComponent> MetaHumanVisualComponent;
 };
