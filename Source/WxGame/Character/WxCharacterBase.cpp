@@ -4,7 +4,7 @@
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "Character/WxCharacterMovementComponent.h"
-#include "Character/WxMetaHumanVisualComponent.h"
+#include "Character/WxMetaHumanComponent.h"
 #include "Inventory/WxEquipmentComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/GameFrameworkComponentManager.h"
@@ -39,7 +39,7 @@ AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
 	WeaponActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("WeaponActor"));
 	WeaponActor->SetupAttachment(GetMesh(), TEXT("hand_r"));
 
-	MetaHumanVisualComponent = CreateDefaultSubobject<UWxMetaHumanVisualComponent>(TEXT("MetaHumanVisualComponent"));
+	MetaHumanComponent = CreateDefaultSubobject<UWxMetaHumanComponent>(TEXT("MetaHumanComponent"));
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw   = false;
@@ -152,9 +152,14 @@ AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const
 	return WeaponActor ? Cast<AWxWeaponBase>(WeaponActor->GetChildActor()) : nullptr;
 }
 
-const FWxCharacterUIData& AWxCharacterBase::GetCharacterUIData() const
+const FText& AWxCharacterBase::GetCharacterName() const
 {
-	return UIData;
+	return CharacterName;
+}
+
+const TSoftObjectPtr<UObject>& AWxCharacterBase::GetPortrait() const
+{
+	return Portrait;
 }
 
 void AWxCharacterBase::SetGenericTeamId(const FGenericTeamId& InTeamId)

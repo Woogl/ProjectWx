@@ -37,7 +37,7 @@ void AWxEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	NameplateComponent->InitializeViewModels(AbilitySystemComponent, GetCharacterUIData());
+	NameplateComponent->InitializeViewModels(AbilitySystemComponent, CharacterName, Portrait);
 }
 
 void AWxEnemyCharacter::HandleDeath()

@@ -8,7 +8,6 @@
 #include "GameplayTagAssetInterface.h"
 #include "GenericTeamAgentInterface.h"
 #include "GameplayEffectTypes.h"
-#include "MVVM/WxCharacterUIData.h"
 #include "WxTeamTypes.h"
 #include "WxCharacterBase.generated.h"
 
@@ -17,7 +16,7 @@ class UMotionWarpingComponent;
 class UWxAbilitySystemComponent;
 class UWxCombatAttributeSet;
 class UWxEquipmentComponent;
-class UWxMetaHumanVisualComponent;
+class UWxMetaHumanComponent;
 class AWxWeaponBase;
 class USkeletalMesh;
 
@@ -58,8 +57,9 @@ public:
 	bool IsAlive() const;
 	AWxWeaponBase* GetEquippedWeapon() const;
 
-	/** VM_Character 주입용 UI 표시 데이터(이름/초상화). */
-	const FWxCharacterUIData& GetCharacterUIData() const;
+	const FText& GetCharacterName() const;
+
+	const TSoftObjectPtr<UObject>& GetPortrait() const;
 
 	/** Ability.Death 태그 부여 시 호출. */
 	virtual void HandleDeath();
@@ -91,7 +91,7 @@ protected:
 	 * BP 디폴트에서 에셋을 지정한 캐릭터만 부착물을 만들고, 비워두면 아무것도 만들지 않는다.
 	 */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Visual")
-	TObjectPtr<UWxMetaHumanVisualComponent> MetaHumanVisualComponent;
+	TObjectPtr<UWxMetaHumanComponent> MetaHumanComponent;
 
 	/**
 	 * 서버: PossessedBy에서 호출.
@@ -109,8 +109,12 @@ protected:
 
 	void HandleEquipVisualChanged(USkeletalMesh* MeshAsset, FName Socket);
 
-	UPROPERTY(EditDefaultsOnly, Category = "Wx")
-	FWxCharacterUIData UIData;
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|UI")
+	FText CharacterName;
+
+	/** UI 측에서 비동기 로드한다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|UI", meta = (AllowedClasses = "/Script/Engine.Texture2D,/Script/Engine.MaterialInterface"))
+	TSoftObjectPtr<UObject> Portrait;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Team")
 	EWxTeam Team = EWxTeam::Player;

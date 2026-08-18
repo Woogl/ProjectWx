@@ -5,7 +5,7 @@
 
 #include "Engine/Texture2D.h"
 
-void UWxViewModel_Character::Initialize(UAbilitySystemComponent* InASC, const FWxCharacterUIData& InUIData)
+void UWxViewModel_Character::Initialize(UAbilitySystemComponent* InASC, const FText& InCharacterName, const TSoftObjectPtr<UObject>& InPortrait)
 {
 	if (!InASC)
 	{
@@ -18,8 +18,8 @@ void UWxViewModel_Character::Initialize(UAbilitySystemComponent* InASC, const FW
 	AbilitySystemViewModel->Initialize(InASC);
 	UE_MVVM_SET_PROPERTY_VALUE(AbilitySystem, AbilitySystemViewModel);
 
-	UE_MVVM_SET_PROPERTY_VALUE(CharacterName, InUIData.CharacterName);
-	RequestImageAsync(TEXT("Portrait"), InUIData.Portrait);
+	UE_MVVM_SET_PROPERTY_VALUE(CharacterName, InCharacterName);
+	RequestImageAsync(TEXT("Portrait"), InPortrait);
 }
 
 void UWxViewModel_Character::ApplyLoadedImage(FName FieldName, UObject* LoadedImage)

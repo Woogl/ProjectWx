@@ -70,7 +70,7 @@ void UWxViewModel_BossCharacter::SetBoss(AWxBossCharacter* Boss)
 	}
 
 	Boss->OnEndPlay.AddDynamic(this, &UWxViewModel_BossCharacter::HandleBossEndPlay);
-	Initialize(Boss->GetAbilitySystemComponent(), Boss->GetCharacterUIData());
+	Initialize(Boss->GetAbilitySystemComponent(), Boss->GetCharacterName(), Boss->GetPortrait());
 }
 
 UObject* UWxViewModelResolver_BossCharacter::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const

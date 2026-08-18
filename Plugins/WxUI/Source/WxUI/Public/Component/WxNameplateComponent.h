@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameplayEffectTypes.h"
 #include "Components/WidgetComponent.h"
-#include "MVVM/WxCharacterUIData.h"
 #include "WxNameplateComponent.generated.h"
 
 class UAbilitySystemComponent;
@@ -27,12 +26,12 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	/**
-	 * 주입받은 표시 데이터(InUIData)와 ASC 를 묶은 UWxViewModel_Character 를 생성해 MVVM View 에 바인딩한다.
+	 * 주입받은 표시 데이터와 ASC 를 묶은 UWxViewModel_Character 를 생성해 MVVM View 에 바인딩한다.
 	 * (자식 AbilitySystem VM 이 어트리뷰트/이펙트를, 본체가 이름/초상화를 노출한다.)
 	 * WxUI 는 구체 캐릭터 타입을 알지 못하므로 표시 데이터는 소비 측이 주입한다.
 	 * Widget 이 유효하고 UMVVMView Extension 이 존재해야 동작한다.
 	 */
-	void InitializeViewModels(UAbilitySystemComponent* InASC, const FWxCharacterUIData& InUIData);
+	void InitializeViewModels(UAbilitySystemComponent* InASC, const FText& InCharacterName, const TSoftObjectPtr<UObject>& InPortrait);
 
 protected:
 	/**

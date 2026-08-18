@@ -86,7 +86,7 @@ void UWxNameplateComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void UWxNameplateComponent::InitializeViewModels(UAbilitySystemComponent* InASC, const FWxCharacterUIData& InUIData)
+void UWxNameplateComponent::InitializeViewModels(UAbilitySystemComponent* InASC, const FText& InCharacterName, const TSoftObjectPtr<UObject>& InPortrait)
 {
 	UUserWidget* NameplateWidget = GetWidget();
 	if (!NameplateWidget)
@@ -101,7 +101,7 @@ void UWxNameplateComponent::InitializeViewModels(UAbilitySystemComponent* InASC,
 	}
 
 	UWxViewModel_Character* CharacterViewModel = NewObject<UWxViewModel_Character>(this);
-	CharacterViewModel->Initialize(InASC, InUIData);
+	CharacterViewModel->Initialize(InASC, InCharacterName, InPortrait);
 	View->SetViewModelByClass(CharacterViewModel);
 
 	CachedASC = InASC;

@@ -31,11 +31,9 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void Jump() override;
 	virtual bool CanCrouch() const override;
-
-protected:
-	/** 스태미나 바 위젯에 어트리뷰트 뷰모델을 주입한다. */
 	virtual void BeginPlay() override;
-
+	
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Camera")
 	TObjectPtr<USpringArmComponent> CameraBoom;
 
