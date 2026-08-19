@@ -27,8 +27,7 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FWxOnEquipVisualChanged, USkeletalMesh* /*M
  *
  * 미구현: EquipItem 의 유일한 호출부인 UWxInventoryManagerComponent::EquipItemByDef 를 부르는 곳이 없어(BlueprintCallable 도 아니라 BP 진입도 불가) EquippedItemDef 는 항상 null 이다.
  * 따라서 구독 측(캐릭터)이 붙어 있어도 OnEquipVisualChanged 방송과 EquipEffects 적용은 일어나지 않는다.
- * 실제로 쓰려면 트리거(UI 슬롯 → 어빌리티/서버 RPC → EquipItemByDef)를 붙여 경로를 닫아야 한다.
- * 그때 함께 볼 것: 늦게 relevant 해진 클라는 초기 복제 RepNotify 가 구독보다 앞서 방송을 유실하는데, 현재 상태를 되물을 pull API 가 없다.
+ * 경로를 닫을 때 함께 볼 것: 늦게 relevant 해진 클라는 초기 복제 RepNotify 가 구독보다 앞서면 방송을 유실하는데, 현재 상태를 되물을 pull API 가 없다.
  */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))
 class WXINVENTORY_API UWxEquipmentComponent : public UActorComponent
@@ -58,7 +57,6 @@ private:
 	UFUNCTION()
 	void OnRep_EquippedItemDef();
 
-	/** 서버/클라이언트 공통. */
 	void BroadcastEquipVisual();
 
 	void ApplyEquipEffects(const UWxItemDefinition* SourceDef, const TArray<TSubclassOf<UGameplayEffect>>& Effects);

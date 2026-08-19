@@ -34,9 +34,8 @@ struct FWxStateTreeTask_GiveRewardsInstanceData
 };
 
 /**
- * 라이브 전이로 진입할 때 권위 측에서만 UWxRewardLibrary::GrantReward 로 인스턴스 데이터(RewardRow)의 보상을 지급하고 Succeeded 로 완료한다(1회성 보상 지급).
- * 아이템 타입별 분기(Pickup Fragment 있으면 월드 드랍, 없으면 로컬 플레이어(0번 컨트롤러) 인벤토리 직접 지급)는 GrantReward 가 처리하므로 여기선 트리거만 한다.
- * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 호출하지 않는다 — 보상은 발동 순간에만 지급하고 복원/조인 시 중복 지급하지 않는다.
+ * 라이브 전이로 진입할 때 권위 측에서만 UWxRewardLibrary::GrantReward 로 RewardRow 의 보상을 지급한다.
+ * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 호출하지 않는다 — 복원·조인 시 중복 지급을 막는다.
  */
 USTRUCT(meta = (DisplayName = "보상 지급", Category = "Wx"))
 struct FWxStateTreeTask_GiveRewards : public FStateTreeTaskCommonBase

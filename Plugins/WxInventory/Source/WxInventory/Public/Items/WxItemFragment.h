@@ -42,8 +42,6 @@ public:
 };
 
 /**
- * 장착 시 무기 액터의 스켈레탈 메시를 교체하는 Fragment.
- *
  * 무기 액터 자체는 캐릭터가 ChildActor(AWxCharacterBase::WeaponActor) 로 항상 소유하므로, 장비 변경은 액터 스폰/디스트로이가 아닌 메시 스왑과 부착 소켓 변경으로만 수행한다.
  */
 UCLASS(DisplayName = "Equippable")

@@ -35,7 +35,7 @@ public:
 	 */
 	void SetItemDef(UWxItemDefinition* InItemDef, int32 InQuantity = 1);
 
-	/** 서버 권한에서 픽업을 물리 발사한다. */
+	/** 서버 권한에서만 동작한다. */
 	void LaunchInDirection(const FVector& Direction, float Speed);
 
 	//~ Begin IWxInteractable
@@ -63,6 +63,5 @@ private:
 	UFUNCTION()
 	void OnRep_ItemDef();
 
-	/** ItemDef 의 Pickup Fragment 데이터를 메시/나이아가라 컴포넌트에 동기 로드 후 적용한다. */
 	void ApplyPickupVisual();
 };

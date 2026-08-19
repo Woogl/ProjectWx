@@ -34,7 +34,6 @@ public:
 
 	const UWxItemDefinition* GetItemDef() const;
 
-	/** Definition 의 Fragment 조회를 위임. */
 	const UWxItemFragment* FindFragmentByClass(TSubclassOf<UWxItemFragment> FragmentClass) const;
 
 	template <typename T>

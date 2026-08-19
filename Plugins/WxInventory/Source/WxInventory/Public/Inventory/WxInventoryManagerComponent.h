@@ -153,7 +153,6 @@ public:
 	static FWxOnInventoryReady OnAnyInventoryReady;
 
 	/**
-	 * 임의 액터에서 인벤토리 매니저를 찾아 반환한다.
 	 * 인벤토리는 PlayerController 에 부착되므로, 액터가 Pawn 이면 소유 컨트롤러를 거쳐 조회한다.
 	 * PlayerController 가 아닌 액터(또는 컨트롤러 미할당 폰) 는 nullptr.
 	 */
@@ -192,7 +191,7 @@ public:
 
 	int32 GetTotalItemCountByDefinition(const UWxItemDefinition* ItemDef) const;
 
-	/** 특정 인스턴스가 속한 슬롯의 현재 StackCount. 인스턴스가 엔트리에 없으면 0. */
+	/** 인스턴스가 엔트리에 없으면 0. */
 	int32 GetStackCountByInstance(const UWxItemInstance* Instance) const;
 
 	TArray<UWxItemInstance*> GetAllItems() const;
@@ -207,7 +206,6 @@ public:
 	void RequestUseConsumable();
 
 	/**
-	 * ItemDef 를 지금 사용할 수 있는지 질의한다.
 	 * Usable Fragment 보유 + (충전형이면 충전이 남은 인스턴스 존재) 이면 true.
 	 * UseItemByDef 와 동일한 인스턴스 선택 기준을 공유하므로, 빈 병으로 사용 모션이 나가는 것을 사전 차단하는 데 쓸 수 있다.
 	 */

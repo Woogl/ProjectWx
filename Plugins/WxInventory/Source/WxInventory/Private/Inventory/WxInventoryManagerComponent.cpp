@@ -528,7 +528,6 @@ bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef
 		return false;
 	}
 
-	// GE가 지정된 경우, ASC와 Spec 유효성을 차감 전에 검증한다.
 	UAbilitySystemComponent* TargetASC = nullptr;
 	FGameplayEffectSpecHandle Spec;
 	if (Usable->Effect)
@@ -662,7 +661,7 @@ UWxItemInstance* UWxInventoryManagerComponent::FindUsableInstance(const UWxItemD
 
 	const UWxItemFragment_Charges* Charges = ItemDef->FindFragmentByClass<UWxItemFragment_Charges>();
 
-	// 충전형은 충전이 남은 첫 인스턴스를 선택한다 — 빈 인스턴스가 앞 슬롯에 있어도 뒤의 충전 보유 인스턴스를 사용할 수 있다.
+	// 빈 인스턴스가 앞 슬롯에 있어도 뒤의 충전 보유 인스턴스를 사용한다.
 	for (const FWxInventoryEntry& Entry : InventoryList.GetEntries())
 	{
 		UWxItemInstance* SlotInstance = Entry.GetInstance();
