@@ -2,6 +2,10 @@
 
 #include "MVVM/WxViewModel_Attribute.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemInterface.h"
+#include "Blueprint/UserWidget.h"
+#include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
 
 void UWxViewModel_Attribute::Initialize(UAbilitySystemComponent* InASC, FGameplayAttribute InAttribute, FGameplayAttribute InMaxAttribute)
 {
@@ -112,6 +116,11 @@ FGameplayAttribute UWxViewModel_Attribute::GetBoundAttribute() const
 	return BoundAttribute;
 }
 
+FGameplayAttribute UWxViewModel_Attribute::GetBoundMaxAttribute() const
+{
+	return BoundMaxAttribute;
+}
+
 void UWxViewModel_Attribute::HandleAttributeChanged(const FOnAttributeChangeData& Data)
 {
 	SetCurrentAttribute(Data.NewValue);
@@ -131,4 +140,23 @@ void UWxViewModel_Attribute::RecalculateAttributePercent()
 {
 	const float Percent = (MaxAttribute > 0.f) ? (CurrentAttribute / MaxAttribute) : 0.f;
 	SetAttributePercent(Percent);
+}
+
+UObject* UWxViewModelResolver_Attribute::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
+{
+	const APlayerController* PC = UserWidget ? UserWidget->GetOwningPlayer() : nullptr;
+	const IAbilitySystemInterface* AbilitySystemPawn = PC ? Cast<IAbilitySystemInterface>(PC->GetPawn()) : nullptr;
+	UAbilitySystemComponent* ASC = AbilitySystemPawn ? AbilitySystemPawn->GetAbilitySystemComponent() : nullptr;
+
+	if (!ASC || !CurrentAttribute.IsValid())
+	{
+		return nullptr;
+	}
+
+	// 위젯이 아닌 데이터 소스(ASC)를 Outer 로 생성한다.
+	// 수명은 뷰의 강참조와 BeginDestroy 의 Deinitialize 가 관리한다.
+	UWxViewModel_Attribute* ViewModel = NewObject<UWxViewModel_Attribute>(ASC);
+	ViewModel->Initialize(ASC, CurrentAttribute, MaxAttribute.IsValid() ? MaxAttribute : CurrentAttribute);
+
+	return ViewModel;
 }

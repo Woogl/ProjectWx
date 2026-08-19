@@ -5,10 +5,13 @@
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
 #include "MVVM/WxViewModel.h"
+#include "View/MVVMViewModelContextResolver.h"
 #include "WxViewModel_Attribute.generated.h"
 
 struct FOnAttributeChangeData;
 class UAbilitySystemComponent;
+class UMVVMView;
+class UUserWidget;
 
 /**
  * 범용 어트리뷰트 뷰모델.
@@ -55,6 +58,8 @@ public:
 
 	FGameplayAttribute GetBoundAttribute() const;
 
+	FGameplayAttribute GetBoundMaxAttribute() const;
+
 private:
 	void HandleAttributeChanged(const FOnAttributeChangeData& Data);
 	void HandleMaxAttributeChanged(const FOnAttributeChangeData& Data);
@@ -63,4 +68,24 @@ private:
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	FGameplayAttribute BoundAttribute;
 	FGameplayAttribute BoundMaxAttribute;
+};
+
+/**
+ * 위젯을 소유한 PlayerController 의 빙의 Pawn 에서 ASC 를 끌어와 지정한 어트리뷰트 쌍의 UWxViewModel_Attribute 를 생성/초기화한다.
+ * WBP 의 View Bindings 에서 Creation Type = Resolver 로 본 클래스를 선택하고, 위젯마다 표시할 어트리뷰트를 지정한다.
+ */
+UCLASS(EditInlineNew, CollapseCategories)
+class WXUI_API UWxViewModelResolver_Attribute : public UMVVMViewModelContextResolver
+{
+	GENERATED_BODY()
+
+public:
+	virtual UObject* CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const override;
+
+	UPROPERTY(EditAnywhere, Category = "Wx")
+	FGameplayAttribute CurrentAttribute;
+
+	/** 지정하지 않으면 CurrentAttribute 를 최대값으로 쓴다 */
+	UPROPERTY(EditAnywhere, Category = "Wx")
+	FGameplayAttribute MaxAttribute;
 };
