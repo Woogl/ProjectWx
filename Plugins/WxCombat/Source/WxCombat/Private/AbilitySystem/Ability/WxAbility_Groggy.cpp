@@ -23,8 +23,8 @@ UWxAbility_Groggy::UWxAbility_Groggy()
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Groggy);
 
 	// 그로기에 빠지면 진행 중이던 액션(적 패턴 포함)을 끊고 그로기 동안 새 액션도 막는다.
-	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 
 	// 발동만 이벤트로 받고, 종료는 DP 구독이 판정한다(HandleDPChanged).

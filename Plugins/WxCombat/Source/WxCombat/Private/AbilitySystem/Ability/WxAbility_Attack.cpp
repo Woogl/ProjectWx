@@ -8,7 +8,7 @@ UWxAbility_Attack::UWxAbility_Attack()
 {
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Attack);
-	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
+	AssetTags.AddTag(WxGameplayTags::Trait_Exclusive);
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Attack);
 
@@ -16,7 +16,7 @@ UWxAbility_Attack::UWxAbility_Attack()
 
 	// 즉시 회피·가드로 빠져나가는 것을 막아 공격에 리스크를 부여한다.
 	// 후딜 캔슬은 몽타주 StartRecovery 노티파이가 연다.
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
 
 	bRetriggerInstancedAbility = true;
 }

@@ -13,7 +13,7 @@ UWxAbility_Sprint::UWxAbility_Sprint()
 {
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Sprint);
-	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
+	AssetTags.AddTag(WxGameplayTags::Trait_Exclusive);
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Sprint);
 

@@ -53,7 +53,7 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::EnterState(FStateTr
 		}
 		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Character))
 		{
-			ASC->BlockAbilitiesWithTags(FGameplayTagContainer(WxGameplayTags::Ability_Exclusive));
+			ASC->BlockAbilitiesWithTags(FGameplayTagContainer(WxGameplayTags::Trait_Exclusive));
 			Instance.BlockedAbilitySystem = ASC;
 		}
 	}
@@ -141,7 +141,7 @@ void FWxStateTreeTask_MoveInteractorToTarget::ExitState(FStateTreeExecutionConte
 	}
 	if (UAbilitySystemComponent* ASC = Instance.BlockedAbilitySystem.Get())
 	{
-		ASC->UnBlockAbilitiesWithTags(FGameplayTagContainer(WxGameplayTags::Ability_Exclusive));
+		ASC->UnBlockAbilitiesWithTags(FGameplayTagContainer(WxGameplayTags::Trait_Exclusive));
 	}
 
 	Instance.BlockedController = nullptr;

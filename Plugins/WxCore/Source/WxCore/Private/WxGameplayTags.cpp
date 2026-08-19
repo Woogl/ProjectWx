@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "WxGameplayTags.h"
 
@@ -66,7 +66,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Damage_ParryHitReact, "Damage.ParryHitReact");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability, "Ability");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Exclusive, "Ability.Exclusive");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack, "Ability.Attack");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_Light, "Ability.Attack.Light");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_Heavy, "Ability.Attack.Heavy");
@@ -98,6 +97,8 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_7, "Ability.Pattern.7");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_8, "Ability.Pattern.8");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_9, "Ability.Pattern.9");
+
+	UE_DEFINE_GAMEPLAY_TAG(Trait_Exclusive, "Trait.Exclusive");
 
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Duration, "SetByCaller.Duration");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Recovery_UP, "SetByCaller.Recovery.UP");

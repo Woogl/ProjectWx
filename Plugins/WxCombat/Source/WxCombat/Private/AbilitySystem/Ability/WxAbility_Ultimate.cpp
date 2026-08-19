@@ -12,11 +12,11 @@ UWxAbility_Ultimate::UWxAbility_Ultimate()
 {
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Ultimate);
-	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
+	AssetTags.AddTag(WxGameplayTags::Trait_Exclusive);
 	SetAssetTags(AssetTags);
 
-	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Ultimate);
 	ActivationOwnedEffects.Add(UWxEffect_SuperArmor::StaticClass());
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);

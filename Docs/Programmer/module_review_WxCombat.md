@@ -15,7 +15,7 @@
 - **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Attack.cpp:70`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Skill.cpp:69`
 - **범주**: 버그/정확성
 - **문제**: `EndAbility`가 `bWasCancelled`와 무관하게 `KeepMontagePlayingAfterEnd()`를 먼저 부른다. 이 함수는 `MontageTask->EndTask()`로 태스크를 엔진의 ActiveTasks에서 떼어내므로(`WxAbilityBase.cpp:159-168`), 이후 `UGameplayAbility::EndAbility`가 `TaskOwnerEnded()`로 몽타주를 멈추는 경로가 사라진다. 콤보 재발동(`bWasCancelled=false`)에는 의도된 동작이지만, 진짜 취소에서는 몽타주가 고아로 남아 계속 재생된다. 취소자가 같은 슬롯 몽타주를 곧바로 틀면 가려지지만, 그렇지 않은 경로가 실제로 존재한다.
-  - **그로기**: `UWxAbility_Groggy`는 `Ability.Exclusive`를 취소한 뒤 `HandleMontagePollTick`을 도는데, 이 폴러는 `ASC->GetCurrentMontage() != nullptr`이면 아무것도 하지 않는다(`WxAbility_Groggy.cpp:188-191`). 고아가 된 공격 몽타주가 남아 있으므로 그로기 몽타주는 그 공격이 끝날 때까지 시작되지 않고, 그동안 `WxAnimNotifyState_WeaponAttack`이 살아 있어 그로기 상태의 캐릭터가 스윙을 마저 끝내며 대미지를 넣는다.
+  - **그로기**: `UWxAbility_Groggy`는 `Trait.Exclusive`를 취소한 뒤 `HandleMontagePollTick`을 도는데, 이 폴러는 `ASC->GetCurrentMontage() != nullptr`이면 아무것도 하지 않는다(`WxAbility_Groggy.cpp:188-191`). 고아가 된 공격 몽타주가 남아 있으므로 그로기 몽타주는 그 공격이 끝날 때까지 시작되지 않고, 그동안 `WxAnimNotifyState_WeaponAttack`이 살아 있어 그로기 상태의 캐릭터가 스윙을 마저 끝내며 대미지를 넣는다.
   - **원격 플레이어의 회피(서버)**: `UWxAbility_Dodge`의 서버 인스턴스는 방향 TargetData가 도착할 때까지 몽타주를 재생하지 않는다(`WxAbility_Dodge.cpp:75-90`). 그 왕복 지연 동안 서버에서는 취소된 공격 몽타주가 계속 돌아 무기 히트 판정이 유지된다.
 - **제안**: `KeepMontagePlayingAfterEnd()`를 `if (!bWasCancelled)`로 감싸 콤보 재발동 경로에서만 호출한다. Attack/Skill 둘 다 동일하게 고친다(아래 7번의 공통화와 함께 처리하면 한 곳으로 끝난다).
 - **확신도**: 중간

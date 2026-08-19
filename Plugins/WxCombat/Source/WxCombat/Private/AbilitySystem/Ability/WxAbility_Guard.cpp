@@ -13,17 +13,17 @@ UWxAbility_Guard::UWxAbility_Guard()
 {
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Guard);
-	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
+	AssetTags.AddTag(WxGameplayTags::Trait_Exclusive);
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Guard);
 	ActivationOwnedEffects.Add(UWxEffect_Guard::StaticClass());
 
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
-	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
 
 	// 자기 애셋 태그를 스스로 막는다. 엔진 블록 경로에는 취소와 달리 self-exception이 없어
 	// 활성 중 재발동이 전부 차단되며, 이것이 가드가 페이즈를 유지하는 방식이다.
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
 }
 
 void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)

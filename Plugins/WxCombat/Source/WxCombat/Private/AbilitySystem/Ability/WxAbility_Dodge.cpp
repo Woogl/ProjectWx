@@ -15,15 +15,15 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 {
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Dodge);
-	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
+	AssetTags.AddTag(WxGameplayTags::Trait_Exclusive);
 	SetAssetTags(AssetTags);
 
 	// 공격이 반격 세트를 고르는 진입 조건이기도 하다.
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Dodge);
 
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
-	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
 }
 
 float UWxAbility_Dodge::GetMontagePlayRate() const

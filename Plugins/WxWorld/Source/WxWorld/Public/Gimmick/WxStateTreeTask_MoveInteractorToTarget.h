@@ -65,7 +65,7 @@ struct FWxStateTreeTask_MoveInteractorToTargetInstanceData
  * 대상은 오너 기믹의 InteractingCharacter 를 직접 읽는다(바인딩 입력 없음) — 값이 이미 복제되어 모든 피어가 같은 대상을 보므로 에셋에서 배선할 것이 없다.
  * 목표 = 앵커(또는 오너) 트랜스폼 ∘ 상대오프셋 이라 모든 머신에서 동일하게 계산돼, 각 피어가 자기 캐릭터 사본을 로컬 보간해도 수렴한다(별도 복제 미러 불필요, 'Component Move' 철학). 진입 시 StopMovementImmediately 로 CMC 잔여 속도를 제거한다.
  * 이동 중에는 로컬 플레이어의 입력을 막고, ExitState 가 차단을 건 대상 자체(BlockedController/BlockedAbilitySystem 기록)로 해제해 캐릭터가 소멸·언포제스돼도 스택 카운터의 짝이 맞는다.
- * 이동은 AController::SetIgnoreMoveInput, 어빌리티+점프는 ASC 의 BlockAbilitiesWithTags(Ability.Exclusive) — 액션 어빌리티가 연출 중 서로를 막는 GAS 순정 관례 그대로이며 캐릭터 CanJumpInternal 이 AreAbilityTagsBlocked(Ability.Exclusive) 로 점프를 이미 게이트하므로 점프도 함께 막힌다.
+ * 이동은 AController::SetIgnoreMoveInput, 어빌리티+점프는 ASC 의 BlockAbilitiesWithTags(Trait.Exclusive) — 액션 어빌리티가 연출 중 서로를 막는 GAS 순정 관례 그대로이며 캐릭터 CanJumpInternal 이 AreAbilityTagsBlocked(Trait.Exclusive) 로 점프를 이미 게이트하므로 점프도 함께 막힌다.
  * 카메라(look) 입력은 별개 게이트라 유지된다.
  * 예측이 발동을 게이트하므로 소유 클라(IsLocallyControlled)에서만 걸어도 충분하다.
  * 초기 진입(StateTree 시작/복원/레이트조인)이면 이동 없이 곧바로 완료한다(발동 순간에만 동작; InteractingCharacter 는 비영속이라 복원 시 비어 있음). 대상이 없어도(비캐릭터 상호작용 등) 상태가 갇히지 않게 곧바로 완료한다.

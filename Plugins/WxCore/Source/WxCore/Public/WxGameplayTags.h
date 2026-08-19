@@ -164,14 +164,12 @@ namespace WxGameplayTags
 	// ── Ability ──────────────────────────────────────────────────────────────
 	
 	/**
-	 * 1. 어빌리티는 자신을 가리키는 식별 태그 Ability.X를 정확히 하나 갖고, AssetTags와 ActivationOwnedTags 양쪽에 넣는다. 곧 "Ability.X = 그 어빌리티가 지금 활성화 중이다"가 성립한다.
-	 * 2. 분류 마커(Ability.Exclusive)는 AssetTags에만 넣는다. 후딜 진입(StartRecovery)이 차단만 풀고 ActivationOwnedTags는 EndAbility까지 남으므로, owner로 올리면 두 진실이 어긋난다.
+	 * 어빌리티는 자신을 가리키는 식별 태그 Ability.X를 정확히 하나 갖고, AssetTags와 ActivationOwnedTags 양쪽에 넣는다.
+	 * 곧 "Ability.X = 그 어빌리티가 지금 활성화 중이다"가 성립한다.
+	 * 어빌리티의 성질을 나타내는 분류 마커는 이 루트가 아니라 Trait.*에 있다.
 	*/
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability);
-
-	/** 액션 슬롯 점유하는 어빌리티. 이 태그를 가진 어빌리티끼리는 배타적으로 서로 차단한다. */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Exclusive);
 
 	/** 플레이어 캐릭터용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack);
@@ -207,7 +205,31 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_7);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_8);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_9);
-	
+
+	// ── Trait ──────────────────────────────────────────────────────────────
+
+	// 어빌리티의 성질을 나타내는 분류 마커. 식별 태그와 달리 AssetTags에만 넣는다.
+
+	/**
+	 * 액션 슬롯을 점유하는 어빌리티.
+	 *
+	 * 이 태그는 어디에 넣느냐로 뜻이 갈리고, 두 쓰임은 서로 독립이라 조합이 셋 다 실재한다.
+	 * AssetTags에 넣으면 "나는 액션 슬롯을 쓴다" — 남이 건 잠금에 막힌다.
+	 * BlockAbilitiesWithTag에 넣으면 "액션 슬롯을 쓰는 것들을 막는다" — 활성 동안 잠금을 건다.
+	 *
+	 *   표식 O·잠금 O : Attack, Dodge, Guard, Skill, Ultimate, UseItem
+	 *   표식 O·잠금 X : Sprint, Pattern, Interact   (액션이지만 남을 막지 않는다)
+	 *   표식 X·잠금 O : HitReact, Death, Groggy, Finisher   (반응이라 남의 잠금을 넘어 들어간다)
+	 *
+	 * 잠금은 후딜 진입(StartRecovery)에 풀리고 EndAbility에서 엔진이 마저 정리한다.
+	 * 어빌리티 밖에서도 건다 — 기믹 연출은 ASC에 직접 걸어 그 동안의 액션과 점프를 함께 막는다.
+	 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Trait_Exclusive);
+
+	// 「액션 중」을 묻는 두 판정이 서로 다른 신호를 쓰는 것은 의도다(2026-08-07).
+	// 점프는 이 태그의 차단 여부를 보므로 후딜에 열린다 — 캔슬 액션과 같은 취급.
+	// 앉기는 몽타주 재생 여부를 보므로 후딜에도 닫혀 있다 — 몽타주가 도는데 캡슐만 줄어드는 그림을 막는다.
+
 	// ── SetByCaller ──────────────────────────────────────────────────────────────
 
 	/** 지속시간 Duration SetByCaller 키. NoCooldown/InfiniteMP/DrainDP 등 Duration 모디파이어에서 공용으로 사용 */

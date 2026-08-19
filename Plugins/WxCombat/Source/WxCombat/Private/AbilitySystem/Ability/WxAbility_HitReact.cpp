@@ -14,7 +14,7 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	AssetTags.AddTag(WxGameplayTags::Ability_HitReact);
 	SetAssetTags(AssetTags);
 
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
 
 	// 진행 중인 것은 공격·스킬만 끊는다 — 마커로 끊으면 마커를 가진 적 패턴까지 평타 피격에 중단된다.
 	// 차단만으로는 부족하다: 공격·스킬의 콤보 재발동 분기는 활성 Spec만 보고 자체 판정하므로 ASC의 차단 태그 검사를 건너뛴다.

@@ -18,10 +18,10 @@ UWxAbility_Interact::UWxAbility_Interact()
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
 
 	// 상호작용 스캐너 컴포넌트(WxWorld)가 이 태그로 스펙을 찾아 CanActivateAbility 로 클라 표시 게이트를 삼는다.
-	// Ability 하위 태그이므로 GAS 순정 AreAbilityTagsBlocked(Ability) 차단(마시는 중·기믹 연출 중 등)도 함께 존중한다.
+	// 액션 마커를 함께 달아 다른 액션이 걸어 둔 차단(마시는 중·기믹 연출 중 등)도 그 판정에 반영된다.
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Interact);
-	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
+	AssetTags.AddTag(WxGameplayTags::Trait_Exclusive);
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Interact);
 

@@ -26,10 +26,10 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	SetAssetTags(AssetTags);
 
 	// 앞잡은 플레이어의 공격으로 만들어지므로, 그로기 직후 F를 누르면 아직 활성인 공격의 차단에 걸릴 수 있다(막힌 발동은 재시도 없이 소모).
-	// 액션 마커(Ability.Exclusive)를 달지 않아 그 차단을 타지 않는다.
+	// 액션 마커(Trait.Exclusive)를 달지 않아 그 차단을 타지 않는다.
 
-	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
 
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 	ActivationOwnedEffects.Add(UWxEffect_Invincible::StaticClass());

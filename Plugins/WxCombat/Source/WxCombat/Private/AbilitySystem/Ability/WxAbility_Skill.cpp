@@ -9,7 +9,7 @@ UWxAbility_Skill::UWxAbility_Skill()
 	// 슬롯마다 다른 애셋 태그(Ability.Skill.1~4)와 입력 액션은 BP 서브클래스가 지정한다.
 	// BP가 애셋 태그를 편집하면 컨테이너를 통째로 갖게 되므로, 여기 마커는 아직 편집하지 않은 신규 BP에만 상속된다.
 	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(WxGameplayTags::Ability_Exclusive);
+	AssetTags.AddTag(WxGameplayTags::Trait_Exclusive);
 	SetAssetTags(AssetTags);
 
 	// 슬롯 태그는 BP 소관이라 코드가 알 수 없으므로 부모 태그로 활성 표식을 보장한다.
@@ -19,7 +19,7 @@ UWxAbility_Skill::UWxAbility_Skill()
 
 	// 스킬은 재생 중 다른 GA로 캔슬되지 않는다. (PC규격서 §5.2)
 	// 후딜 캔슬은 몽타주 StartRecovery 노티파이로 허용한다.
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Exclusive);
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
 
 	bRetriggerInstancedAbility = true;
 }
