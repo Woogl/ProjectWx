@@ -18,8 +18,6 @@ class WXCOMBAT_API UWxCombatLibrary : public UBlueprintFunctionLibrary
 
 public:
 	/**
-	 * 한 건의 대미지를 단일 타겟에 즉시 적용한다.
-	 *
 	 * 무기 스윙·피니셔를 비롯한 대미지 경로가 공유하는 단일 진입점이다.
 	 *
 	 * 예측 키는 몽타주를 재생 중인 어빌리티의 활성화 키를 쓴다.

@@ -13,7 +13,6 @@
  * 소모된 충전 1개당 GE 1개가 활성 상태가 되며, GE 만료 = 충전 1개 회복이다.
  *
  * 아울러 어빌리티 CooldownGameplayEffectClass의 "프로젝트 방식(테이블 기반)" 기본 마커를 겸한다.
- * 이 클래스면 프로젝트 경로, 다른 GE면 커스텀 경로다.
  */
 UCLASS()
 class WXCOMBAT_API UWxEffect_Cooldown : public UGameplayEffect

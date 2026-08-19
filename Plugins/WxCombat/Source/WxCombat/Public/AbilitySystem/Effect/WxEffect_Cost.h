@@ -10,8 +10,8 @@
 
 /**
  * Instant 정책이며, MP·UP·SP 세 모디파이어를 정적으로 선언한다.
- * 값은 각 MMC가 계산 시점에 소스 어빌리티(UWxAbilityBase)의 AbilityDataRow를 조회해 만들며, Row가 CostResource로 고른 자원만 음수를 내고 나머지는 0이다.
- * CDO가 완전 자기완결이라 엔진 순정 CheckCost(CanApplyAttributeModifiers)/ApplyCost/GetCostGameplayEffect를 그대로 사용한다(어빌리티 오버라이드 불필요).
+ * 값은 각 MMC가 계산 시점에 소스 어빌리티(UWxAbilityBase)의 AbilityDataRow를 조회해 만든다.
+ * CDO가 완전 자기완결이라 엔진 순정 CheckCost(CanApplyAttributeModifiers)/ApplyCost/GetCostGameplayEffect를 그대로 사용한다.
  *
  * 아울러 어빌리티 CostGameplayEffectClass의 "프로젝트 방식(테이블 기반)" 기본 클래스를 겸한다.
  */
@@ -26,7 +26,6 @@ public:
 
 /**
  * 소스 어빌리티(UWxAbilityBase)의 AbilityDataRow를 계산 시점에 조회해 코스트 값을 만든다.
- * 어트리뷰트는 캡처하지 않는다(RelevantAttributesToCapture 비움).
  *
  * MMC API가 평가 중인 Modifier 인덱스를 주지 않아, 자원별로 파생 클래스를 분리한다(UWxMMC_MPCost/UWxMMC_UPCost/UWxMMC_SPCost).
  * Row가 고른 자원과 일치하는 파생 클래스만 값을 내고 나머지는 0이다.

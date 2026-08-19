@@ -76,7 +76,6 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 	// Preset이 없으면 판정 근거가 없으므로 허용한다.
 	const bool bTargetInSnapRange = !TargetingPreset || TargetingResults.Contains(FacingTarget);
 
-	// 위치 워프 디싱크는 클라가 예측하는 플레이어 폰에서만 문제라, 그 경우만 복제되는 락온 대상으로 제한한다.
 	// 서버 권위로만 도는 AI 등은 폴백 위치 스냅을 유지하며, IsPlayerControlled는 소유 클라·서버 양쪽에서 일관된다.
 	const APawn* OwnerPawn = Cast<APawn>(Owner);
 	const bool bRequireLockOnForTranslation = OwnerPawn && OwnerPawn->IsPlayerControlled();

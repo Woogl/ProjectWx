@@ -92,8 +92,7 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 		SequencePlayer->SetPlayRate(1.f / GlobalTimeDilation);
 	}
 
-	// 시퀀스는 딜레이션을 상쇄한 배속으로 돌아 실시간 기준 GetDuration()만큼 걸리지만,
-	// GE 지속시간은 딜레이션이 걸린 월드 시간으로 세므로 그만큼 줄여 준다.
+	// 시퀀스는 딜레이션을 상쇄한 배속으로 돌아 실시간 기준 GetDuration()만큼 걸리지만, GE 지속시간은 딜레이션이 걸린 월드 시간으로 세므로 그만큼 줄여 준다.
 	InvincibleHandle = UWxEffect_Invincible::ApplyTo(
 		AbilitySystemComponent.Get(),
 		SequencePlayer->GetDuration().AsSeconds() * GlobalTimeDilation,

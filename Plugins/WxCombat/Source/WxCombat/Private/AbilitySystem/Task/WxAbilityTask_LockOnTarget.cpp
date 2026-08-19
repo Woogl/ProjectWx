@@ -74,7 +74,7 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 	PC->SetControlRotation(NewControlRotation);
 
 	// 현재 방향에서 출발하는 보간이라 활성화 순간에 튀지 않는다.
-	// 회피 중에도 추적을 유지한다 — 루트모션이 몸 기준이라 이 회전이 사이드 회피를 타겟 중심 호 궤적으로 만든다.
+	// 루트모션이 몸 기준이라 이 회전이 사이드 회피를 타겟 중심 호 궤적으로 만든다.
 	const FRotator DesiredActorRotation(0.f, LookAtRotation.Yaw, 0.f);
 	const FRotator NewActorRotation = FMath::RInterpTo(AvatarPawn->GetActorRotation(), DesiredActorRotation, DeltaTime, CharacterInterpSpeed);
 	AvatarPawn->SetActorRotation(FRotator(0.f, NewActorRotation.Yaw, 0.f));
@@ -142,7 +142,7 @@ void UWxAbilityTask_LockOnTarget::HandleLockOnTargetChanged(USceneComponent* New
 	{
 		BindTarget();
 	}
-	// NewTarget 이 null 이면 다음 TickTask 가 무효 Target 을 감지해 OnTargetLost 를 발생시킨다(기존 로직 재사용).
+	// NewTarget 이 null 이면 다음 TickTask 가 무효 Target 을 감지해 OnTargetLost 를 발생시킨다.
 }
 
 void UWxAbilityTask_LockOnTarget::BindTarget()
@@ -154,7 +154,6 @@ void UWxAbilityTask_LockOnTarget::BindTarget()
 	}
 
 	// 파괴 이벤트는 소유 액터 단위라, 부위 컴포넌트만 파괴돼도 정확히 해제하려고 바인딩한 액터를 캐시한다.
-	// 사망 등 태그 기반 해제는 TickTask의 CanBeLockedOn 폴링이 담당한다.
 	AActor* TargetActor = TargetComponent->GetOwner();
 	BoundTargetActor = TargetActor;
 	if (TargetActor)

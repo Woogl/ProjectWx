@@ -17,7 +17,6 @@ struct WXCOMBAT_API FWxDamageTableRow : public FTableRowBase
 {
 	GENERATED_BODY()
 
-	/** Damage Spec의 SetByCaller.Coeff.ATK로 반영 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DamageInfo")
 	float CoeffATK = 1.f;
 

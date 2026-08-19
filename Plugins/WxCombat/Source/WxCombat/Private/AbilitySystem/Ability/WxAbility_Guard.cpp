@@ -21,8 +21,8 @@ UWxAbility_Guard::UWxAbility_Guard()
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
 
-	// 자기 애셋 태그를 스스로 막는다. 엔진 블록 경로에는 취소와 달리 self-exception이 없어
-	// 활성 중 재발동이 전부 차단되며, 이것이 가드가 페이즈를 유지하는 방식이다.
+	// 자기 애셋 태그를 스스로 막는다.
+	// 엔진 블록 경로에는 취소와 달리 self-exception이 없어 활성 중 재발동이 전부 차단되며, 이것이 가드가 페이즈를 유지하는 방식이다.
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
 }
 

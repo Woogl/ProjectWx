@@ -10,9 +10,7 @@ class UNiagaraComponent;
 class UNiagaraSystem;
 
 /**
- * Exceed 버프 지속 GameplayCue.
- *
- * WxEffect_Exceed가 활성 상태인 동안 대상의 무기(AWxWeaponBase) 메시의 지정 소켓에 Niagara 컴포넌트를 자식으로 생성/부착한다.
+ * WxEffect_Exceed가 활성 상태인 동안 대상의 무기(AWxWeaponBase) 메시에 Niagara를 부착한다.
  * Niagara 컴포넌트의 Outer가 무기 액터이므로 무기와 함께 라이프사이클이 묶이며, 무기가 파괴되거나 Cue가 제거되면 자동으로 정리된다.
  */
 UCLASS(Abstract, Blueprintable)

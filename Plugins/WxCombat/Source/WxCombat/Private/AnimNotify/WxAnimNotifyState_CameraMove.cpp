@@ -176,7 +176,6 @@ void UWxAnimNotifyState_CameraMove::NotifyEnd(USkeletalMeshComponent* MeshComp, 
 		return;
 	}
 
-	// 적 패턴이 끝나도 적이 아니라 로컬 플레이어의 폰 시점으로 돌아온다.
 	// 임시 카메라 액터는 lifespan으로 스스로 정리된다.
 	// bLockOutgoing은 블렌드 시작 시점의 출발 POV를 고정한다 — 부착 카메라가 캐릭터를 따라 움직이거나 파괴돼도 출발점이 튀지 않는다.
 	PC->SetViewTargetWithBlend(PC->GetPawn(), BlendOutTime, EViewTargetBlendFunction::VTBlend_Cubic, 0.0f, true);
@@ -187,7 +186,6 @@ void UWxAnimNotifyState_CameraMove::PostEditChangeProperty(FPropertyChangedEvent
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	// 다음 틱을 기다리지 않고 마지막 기준 트랜스폼으로 즉시 재배치한다.
 	if (PreviewCameraMeshComponent && PreviewCameraTransform.IsSet())
 	{
 		const FTransform CameraTransform = FTransform(CameraRelativeRotation, CameraRelativeLocation) * PreviewCameraTransform.GetValue();

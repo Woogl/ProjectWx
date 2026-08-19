@@ -40,7 +40,6 @@ struct FWxMontageSet
  * 조건을 비운 세트는 무조건 매칭되므로 배열 마지막에 두면 그것이 폴백이다.
  *
  * 진행 상태를 들고 있으므로 어빌리티가 인스턴스 멤버로 소유한다.
- * 콤보로 이어가는 어빌리티는 AdvanceMontage를 쓰고 콤보를 끊을 때 Reset을 불러줘야 하며, 발동마다 독립인 어빌리티는 SelectMontage를 쓴다.
  */
 USTRUCT(BlueprintType)
 struct FWxMontageSelector

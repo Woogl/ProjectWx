@@ -70,10 +70,7 @@ public:
 	 */
 	void RemoveActivationOwnedEffect(TSubclassOf<UGameplayEffect> EffectClass) const;
 
-	/**
-	 * UI 표시 아이콘(텍스처 또는 머터리얼)의 소프트 참조.
-	 * 로드하지 않으므로 소비자가 비동기로 로드한다.
-	 */
+	/** UI 표시 아이콘(텍스처 또는 머터리얼)의 소프트 참조. */
 	TSoftObjectPtr<UObject> GetIcon() const;
 
 	/**
@@ -129,7 +126,6 @@ protected:
 	
 	bool PlayMontage(UAnimMontage* Montage, FName StartSection = NAME_None);
 
-	/** 이 어빌리티가 재생 중인 몽타주. 재생 중인 것으로 페이즈를 가르는 어빌리티가 읽는다. */
 	UAnimMontage* GetActiveMontage() const;
 
 	/**

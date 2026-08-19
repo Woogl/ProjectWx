@@ -9,12 +9,7 @@
 
 class UWidgetComponent;
 
-/**
- * 데미지 플로터 GameplayCue 베이스 클래스.
- * 큐를 받으면 DamageFloater 액터를 스폰한다.
- *
- * 타격 임팩트 연출은 UWxCueNotify_Hit이 맡는다 — 그쪽은 예측되고 이쪽은 서버 권위다.
- */
+/** 타격 임팩트 연출은 UWxCueNotify_Hit이 맡는다 — 그쪽은 예측되고 이쪽은 서버 권위다. */
 UCLASS(Abstract, Blueprintable)
 class WXCOMBAT_API UWxCueNotify_DamageFloater : public UGameplayCueNotify_Static
 {
@@ -31,9 +26,6 @@ protected:
 	TSubclassOf<UUserWidget> FloaterWidgetClass;
 };
 
-/**
- * 피격자 위치에 스폰돼 WidgetComponent로 데미지 수치를 표시하는 액터.
- */
 UCLASS()
 class WXCOMBAT_API AWxDamageFloaterActor : public AActor
 {

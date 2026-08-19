@@ -56,12 +56,10 @@ void UWxAbility_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 void UWxAbility_Death::HandleMontageCompleted()
 {
-	// 의도한 사망 포즈로 끝났으므로 래그돌로 넘기지 않는다.
 }
 
 void UWxAbility_Death::HandleMontageInterrupted()
 {
-	// 외부가 사망 몽타주를 끊은 비정상 경로 — 래그돌로 폴백한다.
 	EnableRagdoll();
 }
 

@@ -11,7 +11,6 @@ class UStaticMeshComponent;
 
 /**
  * 구간 동안 로컬 플레이어의 뷰를 몽타주 재생 액터의 메시 기준 상대 위치에 스폰한 임시 카메라로 블렌드 전환하고, 끝나면 폰으로 되돌린다.
- * 플레이어 피니셔, 적 패턴처럼 그 순간을 고정 각도로 보여주는 용도.
  *
  * 순수 로컬 연출이라 이 클라이언트의 로컬 플레이어 뷰에만 적용되고, 데디서버·원격 클라에선 아무 것도 하지 않는다.
  */
@@ -61,7 +60,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|Camera")
 	bool bDrawEditorPreview = true;
 
-	/** 런타임 동작에는 영향 없음. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Camera")
 	TSoftObjectPtr<UStaticMesh> PreviewCameraMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Engine/EditorMeshes/MatineeCam_SM.MatineeCam_SM")));
 

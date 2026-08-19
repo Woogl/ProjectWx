@@ -11,7 +11,6 @@ class USceneComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnLockOnTargetChanged, USceneComponent*, NewTarget);
 
 /**
- * 락온 대상을 관리하는 복제 컴포넌트.
  * 대상을 액터가 아닌 SceneComponent 단위로 들고 있어 부위별 락온으로 확장할 수 있고, 액터 전체를 가리키려면 루트 컴포넌트를 넘기면 된다.
  *
  * 발사체 방향·몽타주 스냅 등 서버와 시뮬프록시 소비처가 일관된 값을 읽어야 하므로 서버 권위로 전 머신에 복제한다.

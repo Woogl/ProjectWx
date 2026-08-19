@@ -17,10 +17,7 @@ enum class EWxAbilityCostResource : uint8
 	UP,
 };
 
-/**
- * 어빌리티별 밸런스 수치(쿨다운·충전·코스트)와 UI 표시 데이터를 담는 데이터테이블 Row.
- * RowName 예시: GA_Skill_1, GA_Ultimate
- */
+/** RowName 예시: GA_Skill_E, GA_Ultimate */
 USTRUCT(BlueprintType)
 struct WXCOMBAT_API FWxAbilityTableRow : public FTableRowBase
 {

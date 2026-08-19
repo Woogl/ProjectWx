@@ -105,9 +105,7 @@ void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 
 void UWxAbilityBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	// 태스크를 여기서 끝내면 안 된다 — 엔진 EndAbility가 소유자 종료로 끝내는 경로만 재생 중인 몽타주를 멈추기 때문에,
-	// 미리 끊으면 루핑 가드 몽타주처럼 스스로 끝나지 않는 것이 종료 후에도 계속 돈다.
-	// 참조만 버리고 정리는 엔진에 맡긴다.
+	// 태스크를 여기서 끝내면 안 된다 — 엔진 EndAbility가 소유자 종료로 끝내는 경로만 재생 중인 몽타주를 멈추므로, 미리 끊으면 루핑 가드 몽타주처럼 스스로 끝나지 않는 것이 종료 후에도 계속 돈다.
 	MontageTask = nullptr;
 	ActiveMontage = nullptr;
 
@@ -159,8 +157,7 @@ UAnimMontage* UWxAbilityBase::GetActiveMontage() const
 
 void UWxAbilityBase::KeepMontagePlayingAfterEnd()
 {
-	// EndTask는 소유자 종료가 아닌 사유로 태스크를 끝내므로 엔진이 몽타주를 멈추지 않는다.
-	// 동시에 AnimInstance 바인딩이 풀려, 뒤따르는 종료가 이 태스크의 Interrupted 핸들러를 깨우지도 않는다.
+	// EndTask가 AnimInstance 바인딩을 풀어, 뒤따르는 종료가 이 태스크의 Interrupted 핸들러를 깨우지도 않는다.
 	if (MontageTask)
 	{
 		MontageTask->EndTask();

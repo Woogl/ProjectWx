@@ -22,11 +22,8 @@ public:
 	UWxTimeDilationComponent(const FObjectInitializer& ObjectInitializer);
 
 	/**
-	 * Requester를 소유자로 삼아 전역 배율을 설정한다.
 	 * 서버에서 호출한다 — 비권위 머신에서는 무시되고, 클라이언트에는 복제로 도착한다.
-	 *
-	 * 소유자는 하나뿐이라 나중 요청이 앞선 요청을 밀어낸다.
-	 * Set을 부른 쪽이 Clear도 책임진다.
+	 * 소유자는 Requester 하나뿐이라 나중 요청이 앞선 요청을 밀어내며, Set을 부른 쪽이 Clear도 책임진다.
 	 */
 	static void SetGlobalTimeDilationAuthoritative(const UObject* Requester, float NewDilation);
 
@@ -53,6 +50,6 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_ReplicatedTimeDilation, VisibleAnywhere, Category = "Wx|Time")
 	float ReplicatedTimeDilation = 1.f;
 
-	/** 현재 배율을 건 요청자. 서버에만 존재하며 복제하지 않는다. */
+	/** 서버에만 존재하며 복제하지 않는다. */
 	TWeakObjectPtr<const UObject> DilationOwner;
 };

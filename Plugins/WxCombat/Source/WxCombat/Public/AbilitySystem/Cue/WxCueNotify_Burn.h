@@ -9,11 +9,7 @@
 class UNiagaraComponent;
 class UNiagaraSystem;
 
-/**
- * 화상 지속 GameplayCue.
- *
- * WxEffect_Burn이 활성 상태인 동안 시각 효과(Niagara)를 표시한다.
- */
+/** WxEffect_Burn이 활성 상태인 동안 시각 효과(Niagara)를 표시한다. */
 UCLASS(Abstract, Blueprintable)
 class WXCOMBAT_API AWxCueNotify_Burn : public AGameplayCueNotify_Actor
 {

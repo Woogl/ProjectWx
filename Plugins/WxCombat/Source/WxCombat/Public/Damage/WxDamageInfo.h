@@ -27,15 +27,14 @@ struct WXCOMBAT_API FWxDamageInfo
 	/** 첫 항목은 UWxEffect_Damage Spec이고, 이후는 AdditionalEffects 각각의 Spec이다. */
 	TArray<FGameplayEffectSpecHandle> MakeSpecs(UAbilitySystemComponent* SourceASC, const FGameplayEffectContextHandle& Context) const;
 
-	/** Damage Spec의 SetByCaller.Coeff.ATK로 반영 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo")
 	float CoeffATK = 1.f;
 
-	/** 적중 시 공격자 MP 회복량. Damage Spec의 SetByCaller.Recovery.MP로 반영 */
+	/** 적중 시 공격자 MP 회복량 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo")
 	float RecoverMP = 0.f;
 
-	/** 적중 시 공격자 UP 회복량. Damage Spec의 SetByCaller.Recovery.UP로 반영 */
+	/** 적중 시 공격자 UP 회복량 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wx|DamageInfo")
 	float RecoverUP = 0.f;
 

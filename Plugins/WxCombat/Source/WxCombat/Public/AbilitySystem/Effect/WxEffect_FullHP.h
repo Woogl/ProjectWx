@@ -6,9 +6,6 @@
 #include "GameplayEffect.h"
 #include "WxEffect_FullHP.generated.h"
 
-/**
- * HP를 MaxHP로 즉시 회복시키는 GameplayEffect.
- */
 UCLASS()
 class WXCOMBAT_API UWxEffect_FullHP : public UGameplayEffect
 {
