@@ -26,6 +26,7 @@ public:
 
 	virtual void Deinitialize() override;
 
+	/** ASC 가 소유하는 공유본이다 — 같은 캐릭터를 보는 다른 뷰모델·위젯과 같은 인스턴스를 가리킨다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Character")
 	TObjectPtr<UWxViewModel_AbilitySystem> AbilitySystem;
 

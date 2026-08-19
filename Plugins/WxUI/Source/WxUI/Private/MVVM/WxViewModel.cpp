@@ -4,6 +4,29 @@
 
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
+#include "UObject/UObjectHash.h"
+
+UWxViewModel* UWxViewModel::FindSharedViewModel(const UObject* Source, TSubclassOf<UWxViewModel> ViewModelClass)
+{
+	if (!Source || !ViewModelClass)
+	{
+		return nullptr;
+	}
+
+	// 참조가 끊겨 수거를 기다리는 것을 주워 쓰면 죽은 뷰모델을 되살리는 셈이 된다(언리처블은 기본으로 빠진다).
+	TArray<UObject*> Subobjects;
+	GetObjectsWithOuter(Source, Subobjects, EGetObjectsFlags::None, RF_NoFlags, EInternalObjectFlags::Garbage);
+
+	for (UObject* Subobject : Subobjects)
+	{
+		if (Subobject->GetClass() == ViewModelClass)
+		{
+			return CastChecked<UWxViewModel>(Subobject);
+		}
+	}
+
+	return nullptr;
+}
 
 void UWxViewModel::BeginDestroy()
 {

@@ -71,7 +71,7 @@ private:
 };
 
 /**
- * 위젯을 소유한 PlayerController 의 빙의 Pawn 에서 ASC 를 끌어와 지정한 어트리뷰트 쌍의 UWxViewModel_Attribute 를 생성/초기화한다.
+ * 위젯을 소유한 PlayerController 의 빙의 Pawn 에서 ASC 를 끌어와, 지정한 어트리뷰트 쌍의 UWxViewModel_Attribute 를 그 ASC 의 어빌리티시스템 VM 에서 얻는다.
  * WBP 의 View Bindings 에서 Creation Type = Resolver 로 본 클래스를 선택하고, 위젯마다 표시할 어트리뷰트를 지정한다.
  */
 UCLASS(EditInlineNew, CollapseCategories)

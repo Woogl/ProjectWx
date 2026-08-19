@@ -43,9 +43,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx|Ability")
 	bool TryActivateAbility();
 
+	/** 아이콘처럼 UI 플러그인이 읽지 못하는 표시 데이터를 게임 모듈이 채울 때 쓴다. */
+	const UGameplayAbility* GetBoundAbility() const;
+
 	/**
 	 * 코스트 자원의 현재/최대를 노출하는 VM 을 돌려준다.
-	 * 같은 자원의 VM 이 ASC 에 이미 있으면 그걸 쓰고, 없을 때만 만든다.
+	 * 실제 인스턴스는 ASC 의 어빌리티시스템 VM 이 자원 단위로 소유하므로, 같은 자원을 쓰는 어빌리티끼리 하나를 공유한다.
 	 * 코스트가 없는 어빌리티는 nullptr 를 돌려준다.
 	 */
 	UWxViewModel_Attribute* GetOrCreateCostViewModel();
@@ -155,7 +158,7 @@ private:
 	 */
 	void GetCost(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility);
 
-	/** GetOrCreateCostViewModel 이 처음 불릴 때 채운다 */
+	/** GetOrCreateCostViewModel 이 처음 불릴 때 채운다. 소유는 어빌리티시스템 VM 에 있다. */
 	UPROPERTY()
 	TObjectPtr<UWxViewModel_Attribute> CostViewModel;
 

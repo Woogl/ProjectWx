@@ -27,6 +27,12 @@ class WXUI_API UWxViewModel_AbilitySystem : public UWxViewModel
 	GENERATED_BODY()
 
 public:
+	/**
+	 * ASC 하나당 하나. 없으면 ASC 를 Outer 로 만들어 초기화한다.
+	 * 폰이 바뀌면 ASC 도 바뀌므로 새 인스턴스가 생기고, 옛 것은 옛 ASC 와 함께 수거된다.
+	 */
+	static UWxViewModel_AbilitySystem* GetOrCreate(UAbilitySystemComponent* InASC);
+
 	void Initialize(UAbilitySystemComponent* InASC);
 	virtual void Deinitialize() override;
 

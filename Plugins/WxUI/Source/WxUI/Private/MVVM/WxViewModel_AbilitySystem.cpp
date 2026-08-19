@@ -8,6 +8,24 @@
 #include "Component/WxEffectComponent_UIData.h"
 #include "MVVM/WxViewModel_Effect.h"
 
+UWxViewModel_AbilitySystem* UWxViewModel_AbilitySystem::GetOrCreate(UAbilitySystemComponent* InASC)
+{
+	if (!InASC)
+	{
+		return nullptr;
+	}
+
+	if (UWxViewModel* Existing = FindSharedViewModel(InASC, StaticClass()))
+	{
+		return CastChecked<UWxViewModel_AbilitySystem>(Existing);
+	}
+
+	UWxViewModel_AbilitySystem* ViewModel = NewObject<UWxViewModel_AbilitySystem>(InASC);
+	ViewModel->Initialize(InASC);
+
+	return ViewModel;
+}
+
 void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 {
 	if (!InASC)
@@ -35,26 +53,12 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
 	}
 	
-	// Empty() 로 배열에서만 떼면 자식은 GC 의 BeginDestroy→Deinitialize 까지 티킹·구독을 유지한다(Character VM 패턴과 동일).
-	for (UWxViewModel_Attribute* AttributeVM : AttributeViewModels)
-	{
-		if (AttributeVM)
-		{
-			AttributeVM->Deinitialize();
-		}
-	}
-	for (UWxViewModel_Ability* AbilityVM : AbilityViewModels)
-	{
-		if (AbilityVM)
-		{
-			AbilityVM->Deinitialize();
-		}
-	}
-	ClearActiveEffectViewModels();
-
+	// 자식은 배열에서 떼기만 한다 — 위젯이 아직 붙들고 있는 공유본을 끊으면 그 표시가 언다.
+	// 여기는 BeginDestroy 에서만 도달하고, 그때 각 자식도 자기 BeginDestroy 로 구독·티커를 정리한다.
 	CachedASC.Reset();
 	AttributeViewModels.Empty();
 	AbilityViewModels.Empty();
+	ActiveEffectViewModels.Empty();
 	OwnedTags.Reset();
 
 	Super::Deinitialize();

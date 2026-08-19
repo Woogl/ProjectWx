@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "MVVM/WxViewModel_Attribute.h"
+#include "MVVM/WxViewModel_AbilitySystem.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "Blueprint/UserWidget.h"
@@ -153,10 +154,8 @@ UObject* UWxViewModelResolver_Attribute::CreateInstance(const UClass* ExpectedTy
 		return nullptr;
 	}
 
-	// 위젯이 아닌 데이터 소스(ASC)를 Outer 로 생성한다.
-	// 수명은 뷰의 강참조와 BeginDestroy 의 Deinitialize 가 관리한다.
-	UWxViewModel_Attribute* ViewModel = NewObject<UWxViewModel_Attribute>(ASC);
-	ViewModel->Initialize(ASC, CurrentAttribute, MaxAttribute.IsValid() ? MaxAttribute : CurrentAttribute);
+	// 인스턴스는 ASC 의 어빌리티시스템 VM 이 어트리뷰트 단위로 소유한다 — 같은 어트리뷰트를 보는 위젯끼리 하나를 나눠 쓴다.
+	UWxViewModel_AbilitySystem* AbilitySystemViewModel = UWxViewModel_AbilitySystem::GetOrCreate(ASC);
 
-	return ViewModel;
+	return AbilitySystemViewModel ? AbilitySystemViewModel->GetOrCreateAttributeViewModel(CurrentAttribute, MaxAttribute) : nullptr;
 }

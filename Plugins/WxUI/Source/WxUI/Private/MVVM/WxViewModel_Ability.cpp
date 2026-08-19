@@ -1,12 +1,12 @@
 ﻿// Copyright Woogle. All Rights Reserved.
 
 #include "MVVM/WxViewModel_Ability.h"
+#include "MVVM/WxViewModel_AbilitySystem.h"
 #include "MVVM/WxViewModel_Attribute.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
 #include "Engine/Texture2D.h"
 #include "GameplayEffect.h"
-#include "UObject/UObjectHash.h"
 
 void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility)
 {
@@ -118,10 +118,7 @@ void UWxViewModel_Ability::Deinitialize()
 		TickerHandle.Reset();
 	}
 
-	if (CostViewModel && CostViewModel->GetOuter() == this)
-	{
-		CostViewModel->Deinitialize();
-	}
+	// 코스트 VM 은 어빌리티시스템 VM 소유의 공유본이라 놓기만 한다.
 	CostViewModel = nullptr;
 
 	CachedASC.Reset();
@@ -153,6 +150,11 @@ bool UWxViewModel_Ability::TryActivateAbility()
 	return false;
 }
 
+const UGameplayAbility* UWxViewModel_Ability::GetBoundAbility() const
+{
+	return CachedAbility.Get();
+}
+
 UWxViewModel_Attribute* UWxViewModel_Ability::GetOrCreateCostViewModel()
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
@@ -161,29 +163,12 @@ UWxViewModel_Attribute* UWxViewModel_Ability::GetOrCreateCostViewModel()
 		return nullptr;
 	}
 
-	if (CostViewModel)
+	if (!CostViewModel)
 	{
-		return CostViewModel;
+		// 자원 단위 인스턴스는 어빌리티시스템 VM 이 들고 있다 — 같은 자원을 쓰는 어빌리티끼리 하나를 나눠 쓴다.
+		UWxViewModel_AbilitySystem* AbilitySystemViewModel = UWxViewModel_AbilitySystem::GetOrCreate(ASC);
+		CostViewModel = AbilitySystemViewModel ? AbilitySystemViewModel->GetOrCreateAttributeViewModel(CostAttribute, CostMaxAttribute) : nullptr;
 	}
-
-	// 같은 자원의 VM 을 이미 누가 ASC 에 만들어 뒀으면(어빌리티시스템 VM 이 만드는 어트리뷰트 VM) 그걸 쓴다.
-	TArray<UObject*> ASCSubobjects;
-	GetObjectsWithOuter(ASC, ASCSubobjects, false);
-	for (UObject* Subobject : ASCSubobjects)
-	{
-		UWxViewModel_Attribute* AttributeViewModel = Cast<UWxViewModel_Attribute>(Subobject);
-		if (AttributeViewModel
-			&& AttributeViewModel->GetBoundAttribute() == CostAttribute
-			&& AttributeViewModel->GetBoundMaxAttribute() == CostMaxAttribute)
-		{
-			CostViewModel = AttributeViewModel;
-			return CostViewModel;
-		}
-	}
-
-	// 내가 만든 것은 Outer 로 구분된다 — 남의 VM 을 해제하지 않기 위해서다.
-	CostViewModel = NewObject<UWxViewModel_Attribute>(this);
-	CostViewModel->Initialize(ASC, CostAttribute, CostMaxAttribute);
 
 	return CostViewModel;
 }
