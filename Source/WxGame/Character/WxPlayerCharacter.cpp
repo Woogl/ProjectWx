@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "Character/WxPlayerCharacter.h"
 #include "Camera/CameraComponent.h"
@@ -8,15 +8,11 @@
 #include "InputAction.h"
 #include "InputActionValue.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
-#include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
-#include "Blueprint/UserWidget.h"
 #include "Components/WidgetComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "Input/WxInputConfig.h"
-#include "MVVM/WxViewModel_Attribute.h"
 #include "Targeting/WxLockOnManagerComponent.h"
-#include "View/MVVMView.h"
 #include "WxGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -139,29 +135,6 @@ bool AWxPlayerCharacter::CanCrouch() const
 	const bool bParent = Super::CanCrouch();
 	const bool bIsFalling = GetCharacterMovement()->IsFalling();
 	return bParent && !bIsFalling;
-}
-
-void AWxPlayerCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-
-	UUserWidget* StaminaBarWidget = StaminaWidget->GetWidget();
-	if (!StaminaBarWidget)
-	{
-		return;
-	}
-
-	UMVVMView* View = StaminaBarWidget->GetExtension<UMVVMView>();
-	if (!View)
-	{
-		return;
-	}
-
-	// 위젯 컴포넌트의 위젯은 오너를 역참조할 수 없어 리졸버가 대상 캐릭터를 특정하지 못하므로, 컴포넌트를 소유한 쪽이 뷰모델을 직접 넣는다.
-	// 이 시점의 어트리뷰트는 아직 0이지만, 뒤이은 어빌리티 세트 부여로 값이 채워지면 뷰모델이 걸어 둔 변경 델리게이트가 표시를 따라온다.
-	UWxViewModel_Attribute* StaminaViewModel = NewObject<UWxViewModel_Attribute>(this);
-	StaminaViewModel->Initialize(AbilitySystemComponent, UWxCombatAttributeSet::GetSPAttribute(), UWxCombatAttributeSet::GetMaxSPAttribute());
-	View->SetViewModelByClass(StaminaViewModel);
 }
 
 void AWxPlayerCharacter::Move(const FInputActionValue& Value)
