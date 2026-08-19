@@ -11,10 +11,6 @@
 #include "Widgets/CommonActivatableWidgetContainer.h"
 #include "Kismet/GameplayStatics.h"
 #include "WxGameplayTags.h"
-#include "MVVM/WxViewModel_Selection.h"
-#include "MVVMGameSubsystem.h"
-#include "Types/MVVMViewModelCollection.h"
-#include "Types/MVVMViewModelContext.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/GameInstance.h"
 #include "GameFramework/PlayerController.h"
@@ -27,20 +23,6 @@ void UWxUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	if (!GameInstance)
 	{
 		return;
-	}
-
-	Collection.InitializeDependency(UMVVMGameSubsystem::StaticClass());
-	if (UMVVMGameSubsystem* ViewModelSubsystem = GameInstance->GetSubsystem<UMVVMGameSubsystem>())
-	{
-		if (UMVVMViewModelCollectionObject* ViewModelCollection = ViewModelSubsystem->GetViewModelCollection())
-		{
-			SelectionViewModel = NewObject<UWxViewModel_Selection>(this);
-
-			FMVVMViewModelContext Context;
-			Context.ContextClass = UWxViewModel_Selection::StaticClass();
-			Context.ContextName = TEXT("VM_Selection");
-			ViewModelCollection->AddViewModelInstance(Context, SelectionViewModel);
-		}
 	}
 
 	for (ULocalPlayer* LocalPlayer : GameInstance->GetLocalPlayers())
@@ -74,22 +56,6 @@ void UWxUIManagerSubsystem::Deinitialize()
 			}
 		}
 
-		if (UMVVMGameSubsystem* ViewModelSubsystem = GameInstance->GetSubsystem<UMVVMGameSubsystem>())
-		{
-			if (UMVVMViewModelCollectionObject* ViewModelCollection = ViewModelSubsystem->GetViewModelCollection())
-			{
-				FMVVMViewModelContext Context;
-				Context.ContextClass = UWxViewModel_Selection::StaticClass();
-				Context.ContextName = TEXT("VM_Selection");
-				ViewModelCollection->RemoveViewModel(Context);
-			}
-		}
-	}
-
-	if (SelectionViewModel)
-	{
-		SelectionViewModel->Deinitialize();
-		SelectionViewModel = nullptr;
 	}
 
 	Super::Deinitialize();
@@ -152,11 +118,6 @@ void UWxUIManagerSubsystem::ShowConfirmation(UWxGamePopupDescriptor* Descriptor,
 UWxPrimaryGameLayout* UWxUIManagerSubsystem::GetPrimaryGameLayout() const
 {
 	return PrimaryGameLayout;
-}
-
-UWxViewModel_Selection* UWxUIManagerSubsystem::GetSelectionViewModel() const
-{
-	return SelectionViewModel;
 }
 
 void UWxUIManagerSubsystem::ObserveWidgetForGamePause(UCommonActivatableWidget* Widget)

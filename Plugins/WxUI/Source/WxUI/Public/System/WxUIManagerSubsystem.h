@@ -12,7 +12,6 @@ class APawn;
 class UAbilitySystemComponent;
 class UWxPrimaryGameLayout;
 class UCommonActivatableWidget;
-class UWxViewModel_Selection;
 class UWxGamePopupDescriptor;
 
 UCLASS()
@@ -36,12 +35,6 @@ public:
 	void ShowConfirmation(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback = FWxPopupResultDelegate());
 
 	UWxPrimaryGameLayout* GetPrimaryGameLayout() const;
-
-	/**
-	 * 전 위젯이 공유하는 범용 "현재 선택" 글로벌 뷰모델.
-	 * 도메인 소스(상호작용/인벤토리 등)가 표시 데이터를 push 한다.
-	 */
-	UWxViewModel_Selection* GetSelectionViewModel() const;
 
 private:
 	void HandleLocalPlayerAdded(ULocalPlayer* LocalPlayer);
@@ -75,10 +68,6 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UWxPrimaryGameLayout> PrimaryGameLayout;
-
-	/** 글로벌 컬렉션(UMVVMGameSubsystem)에 "VM_Selection" 으로 등록되는 공유 선택 뷰모델. */
-	UPROPERTY()
-	TObjectPtr<UWxViewModel_Selection> SelectionViewModel;
 
 	/** 빙의를 구독해 둔 로컬 PC. 교체·종료 때 같은 PC 에서 끊기 위해 기억한다. */
 	TWeakObjectPtr<APlayerController> TrackedPlayerController;
