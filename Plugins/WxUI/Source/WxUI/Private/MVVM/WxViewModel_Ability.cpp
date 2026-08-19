@@ -1,10 +1,12 @@
 ﻿// Copyright Woogle. All Rights Reserved.
 
 #include "MVVM/WxViewModel_Ability.h"
+#include "MVVM/WxViewModel_Attribute.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
 #include "Engine/Texture2D.h"
 #include "GameplayEffect.h"
+#include "UObject/UObjectHash.h"
 
 void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility)
 {
@@ -116,6 +118,12 @@ void UWxViewModel_Ability::Deinitialize()
 		TickerHandle.Reset();
 	}
 
+	if (CostViewModel && CostViewModel->GetOuter() == this)
+	{
+		CostViewModel->Deinitialize();
+	}
+	CostViewModel = nullptr;
+
 	CachedASC.Reset();
 	CachedAbility.Reset();
 	CachedCooldownClass = nullptr;
@@ -143,6 +151,41 @@ bool UWxViewModel_Ability::TryActivateAbility()
 	}
 
 	return false;
+}
+
+UWxViewModel_Attribute* UWxViewModel_Ability::GetOrCreateCostViewModel()
+{
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	if (!ASC || !CostAttribute.IsValid())
+	{
+		return nullptr;
+	}
+
+	if (CostViewModel)
+	{
+		return CostViewModel;
+	}
+
+	// 같은 자원의 VM 을 이미 누가 ASC 에 만들어 뒀으면(어빌리티시스템 VM 이 만드는 어트리뷰트 VM) 그걸 쓴다.
+	TArray<UObject*> ASCSubobjects;
+	GetObjectsWithOuter(ASC, ASCSubobjects, false);
+	for (UObject* Subobject : ASCSubobjects)
+	{
+		UWxViewModel_Attribute* AttributeViewModel = Cast<UWxViewModel_Attribute>(Subobject);
+		if (AttributeViewModel
+			&& AttributeViewModel->GetBoundAttribute() == CostAttribute
+			&& AttributeViewModel->GetBoundMaxAttribute() == CostMaxAttribute)
+		{
+			CostViewModel = AttributeViewModel;
+			return CostViewModel;
+		}
+	}
+
+	// 내가 만든 것은 Outer 로 구분된다 — 남의 VM 을 해제하지 않기 위해서다.
+	CostViewModel = NewObject<UWxViewModel_Attribute>(this);
+	CostViewModel->Initialize(ASC, CostAttribute, CostMaxAttribute);
+
+	return CostViewModel;
 }
 
 float UWxViewModel_Ability::GetCooldownRemaining() const
@@ -245,36 +288,6 @@ void UWxViewModel_Ability::SetCostAmount(float NewValue)
 	UE_MVVM_SET_PROPERTY_VALUE(CostAmount, NewValue);
 }
 
-float UWxViewModel_Ability::GetCostCurrent() const
-{
-	return CostCurrent;
-}
-
-void UWxViewModel_Ability::SetCostCurrent(float NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(CostCurrent, NewValue);
-}
-
-float UWxViewModel_Ability::GetCostMax() const
-{
-	return CostMax;
-}
-
-void UWxViewModel_Ability::SetCostMax(float NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(CostMax, NewValue);
-}
-
-float UWxViewModel_Ability::GetCostRemainingPercent() const
-{
-	return CostRemainingPercent;
-}
-
-void UWxViewModel_Ability::SetCostRemainingPercent(float NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(CostRemainingPercent, NewValue);
-}
-
 UObject* UWxViewModel_Ability::GetIcon() const
 {
 	return Icon;
@@ -334,7 +347,7 @@ void UWxViewModel_Ability::HandleTagChanged(const FGameplayTag Tag, int32 NewCou
 
 void UWxViewModel_Ability::HandleCostAttributeChanged(const FOnAttributeChangeData& Data)
 {
-	RefreshCostValues();
+	// 자원 값 자체는 자식 VM 이 같은 어트리뷰트를 구독해 갱신한다. 여기서는 발동 가능 여부만 다시 본다.
 	RefreshActivationState();
 }
 
@@ -503,19 +516,4 @@ void UWxViewModel_Ability::GetCost(UAbilitySystemComponent* InASC, const UGamepl
 		InASC->GetGameplayAttributeValueChangeDelegate(CostMaxAttribute)
 			.AddUObject(this, &UWxViewModel_Ability::HandleCostAttributeChanged);
 	}
-
-	RefreshCostValues();
-}
-
-void UWxViewModel_Ability::RefreshCostValues()
-{
-	const UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (!ASC || !CostAttribute.IsValid())
-	{
-		return;
-	}
-
-	SetCostCurrent(ASC->GetNumericAttribute(CostAttribute));
-	SetCostMax(CostMaxAttribute.IsValid() ? ASC->GetNumericAttribute(CostMaxAttribute) : 0.f);
-	SetCostRemainingPercent(CostMax > 0.f ? CostCurrent / CostMax : 0.f);
 }

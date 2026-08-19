@@ -15,6 +15,7 @@ class UAbilitySystemComponent;
 class UGameplayAbility;
 class UGameplayEffect;
 class UTexture2D;
+class UWxViewModel_Attribute;
 struct FGameplayEffectSpec;
 
 /**
@@ -26,7 +27,7 @@ struct FGameplayEffectSpec;
  *
  * CanActivate·CheckCost 는 ASC 태그 변경/비용 어트리뷰트 변경/쿨다운 진행 시점에 재평가된다.
  *
- * 코스트 수치는 초기화 때 비용 GE 를 한 번 평가해 자원과 양을 정하고, 이후 그 자원의 현재/최대 어트리뷰트를 따라간다.
+ * 코스트 수치는 초기화 때 비용 GE 를 한 번 평가해 자원과 양을 정하고, 그 자원의 현재/최대는 자식 어트리뷰트 VM 이 따라간다.
  */
 UCLASS()
 class WXUI_API UWxViewModel_Ability : public UWxViewModel
@@ -41,6 +42,13 @@ public:
 	/** 비용/쿨다운/태그 요건은 엔진 TryActivateAbility가 판정한다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Ability")
 	bool TryActivateAbility();
+
+	/**
+	 * 코스트 자원의 현재/최대를 노출하는 VM 을 돌려준다.
+	 * 같은 자원의 VM 이 ASC 에 이미 있으면 그걸 쓰고, 없을 때만 만든다.
+	 * 코스트가 없는 어빌리티는 nullptr 를 돌려준다.
+	 */
+	UWxViewModel_Attribute* GetOrCreateCostViewModel();
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	float CooldownRemaining = 0.f;
@@ -74,18 +82,6 @@ public:
 	/** 이 어빌리티가 소모하는 자원의 양. 코스트가 없으면 0 */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	float CostAmount = 0.f;
-
-	/** 코스트 자원의 현재값 */
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
-	float CostCurrent = 0.f;
-
-	/** 코스트 자원의 최대값 */
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
-	float CostMax = 0.f;
-
-	/** 코스트 자원이 얼마나 남았는지의 비율 */
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
-	float CostRemainingPercent = 0.f;
 
 	/** 텍스처 또는 머터리얼이며, 소프트 참조는 SetIconSoft 가 비동기 로드한다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
@@ -125,15 +121,6 @@ public:
 	float GetCostAmount() const;
 	void SetCostAmount(float NewValue);
 
-	float GetCostCurrent() const;
-	void SetCostCurrent(float NewValue);
-
-	float GetCostMax() const;
-	void SetCostMax(float NewValue);
-
-	float GetCostRemainingPercent() const;
-	void SetCostRemainingPercent(float NewValue);
-
 	UObject* GetIcon() const;
 	void SetIcon(UObject* NewValue);
 
@@ -168,7 +155,9 @@ private:
 	 */
 	void GetCost(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility);
 
-	void RefreshCostValues();
+	/** GetOrCreateCostViewModel 이 처음 불릴 때 채운다 */
+	UPROPERTY()
+	TObjectPtr<UWxViewModel_Attribute> CostViewModel;
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	TWeakObjectPtr<const UGameplayAbility> CachedAbility;
