@@ -67,8 +67,7 @@ void FWxInventoryList::PreReplicatedRemove(const TArrayView<int32> RemovedIndice
 
 		const int32 Delta = -Entry.LastObservedCount;
 
-		// PreReplicatedRemove 는 엔트리가 배열에서 실제 제거되기 "전"에 호출된다.
-		// 총량 재계산에서 제거분이 빠지도록 StackCount 를 먼저 0 으로 내려야 서버(제거 후 재계산) 경로와 같은 사후 총량이 발행된다.
+		// PreReplicatedRemove 는 엔트리가 실제 제거되기 "전"에 호출되므로, StackCount 를 먼저 0 으로 내려야 서버(제거 후 재계산) 경로와 같은 사후 총량이 발행된다.
 		// 엔트리는 이 콜백 직후 실제 제거되므로 mutate 는 무해하다.
 		Entry.StackCount = 0;
 		Entry.LastObservedCount = 0;
@@ -406,7 +405,7 @@ bool UWxInventoryManagerComponent::ConsumeItemsByDefinition(const UWxItemDefinit
 	const TArray<FWxInventoryChangeResult> Changes = InventoryList.ConsumeByDefinition(ItemDef, NumToConsume);
 	for (const FWxInventoryChangeResult& Change : Changes)
 	{
-		// NewStackCount 가 0 이면 슬롯이 비어 제거된 것이므로 SubObject 등록을 해제한다(해제는 등록 리스트에만 영향이라 제거 순서와 무관).
+		// SubObject 등록 해제는 등록 리스트에만 영향이라 엔트리 제거 순서와 무관하다.
 		if (Change.NewStackCount <= 0)
 		{
 			UnregisterReplicatedInstance(Change.Instance);
@@ -522,7 +521,6 @@ bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef
 		return false;
 	}
 
-	// 사용 대상 인스턴스.
 	// GE SourceObject 이자 충전형 아이템의 충전량 보유 주체다.
 	UWxItemInstance* SourceInstance = FindUsableInstance(ItemDef);
 	if (!SourceInstance)
@@ -531,7 +529,6 @@ bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef
 	}
 
 	// GE가 지정된 경우, ASC와 Spec 유효성을 차감 전에 검증한다.
-	// 검증 실패 시 차감하지 않고 false 반환.
 	UAbilitySystemComponent* TargetASC = nullptr;
 	FGameplayEffectSpecHandle Spec;
 	if (Usable->Effect)
@@ -554,7 +551,6 @@ bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef
 		}
 	}
 
-	// 차감 — 충전형(Charges Fragment)은 인스턴스 충전량 1 감소(인벤토리 스택/슬롯 유지), 그 외는 스택 1 차감.
 	const UWxItemFragment_Charges* Charges = ItemDef->FindFragmentByClass<UWxItemFragment_Charges>();
 	if (Charges)
 	{
@@ -585,7 +581,6 @@ bool UWxInventoryManagerComponent::RefillItemCharges(UWxItemInstance* Instance)
 
 	check(GetOwner() && GetOwner()->HasAuthority());
 
-	// 충전형 아이템이 아니면(MaxCharges 0) 리필 대상이 아니다.
 	const int32 MaxCharges = Instance->GetMaxCharges();
 	if (MaxCharges <= 0)
 	{
@@ -603,8 +598,6 @@ bool UWxInventoryManagerComponent::EquipItemByDef(const UWxItemDefinition* ItemD
 {
 	check(GetOwner() && GetOwner()->HasAuthority());
 
-	// 장착 해제(nullptr)는 그대로 전달한다.
-	// 장착일 경우에만 Fragment 유효성과 실제 소유 여부를 검증한다.
 	if (ItemDef)
 	{
 		if (!ItemDef->FindFragmentByClass<UWxItemFragment_Equippable>())
@@ -667,7 +660,6 @@ UWxItemInstance* UWxInventoryManagerComponent::FindUsableInstance(const UWxItemD
 		return nullptr;
 	}
 
-	// 충전형(Charges Fragment)은 인벤토리 스택이 아니라 인스턴스 충전량으로 가용 여부를 판단한다.
 	const UWxItemFragment_Charges* Charges = ItemDef->FindFragmentByClass<UWxItemFragment_Charges>();
 
 	// 충전형은 충전이 남은 첫 인스턴스를 선택한다 — 빈 인스턴스가 앞 슬롯에 있어도 뒤의 충전 보유 인스턴스를 사용할 수 있다.

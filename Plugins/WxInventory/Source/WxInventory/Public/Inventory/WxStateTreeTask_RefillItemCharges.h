@@ -21,7 +21,6 @@ struct FWxStateTreeTask_RefillItemChargesInstanceData
  * 라이브 전이로 진입할 때 권위 측에서만 로컬 플레이어(0번 컨트롤러) 인벤토리의 충전형(Charges Fragment) 아이템을 MaxCharges 까지 채우고 Succeeded 로 완료한다(체크포인트 에스트병 리필).
  * 충전형이 아닌 아이템은 UWxInventoryManagerComponent::RefillItemCharges 내부에서 걸러지므로 여기선 전 아이템을 훑기만 한다.
  * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 호출하지 않는다 — 리필은 발동 순간의 사건이라 복원/조인 시 다시 채우지 않는다.
- * 인벤토리 쓰기는 서버 권위 사건이라 클라 진입은 노옵(클라는 복제로 충전량을 추종).
  */
 USTRUCT(meta = (DisplayName = "아이템 충전 리필", Category = "Wx"))
 struct FWxStateTreeTask_RefillItemCharges : public FStateTreeTaskCommonBase

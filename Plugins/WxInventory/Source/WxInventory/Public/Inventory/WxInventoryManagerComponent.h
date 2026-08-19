@@ -14,7 +14,6 @@ class UWxItemInstance;
 class UWxInventoryManagerComponent;
 struct FWxInventoryList;
 
-/** 인벤토리 한 슬롯의 엔트리. */
 USTRUCT(BlueprintType)
 struct FWxInventoryEntry : public FFastArraySerializerItem
 {

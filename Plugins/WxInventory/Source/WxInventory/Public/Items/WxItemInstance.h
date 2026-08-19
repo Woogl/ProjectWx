@@ -13,8 +13,6 @@ class UWxItemDefinition;
 class UWxItemFragment;
 
 /**
- * 아이템 한 자루의 런타임 인스턴스.
- *
  * UWxItemDefinition 이 정적 정의(데이터 자산)라면, 본 인스턴스는 개별 아이템의 수명/식별 단위다.
  * 인벤토리 매니저가 생성·소멸을 관리하며, 슬롯 단위 델리게이트의 안정 식별자 역할을 한다.
  *
@@ -46,10 +44,10 @@ public:
 		return Cast<T>(FindFragmentByClass(T::StaticClass()));
 	}
 
-	/** 현재 충전 횟수. Charges Fragment 가 없는 아이템은 항상 0(미사용). */
+	/** Charges Fragment 가 없는 아이템은 항상 0(미사용). */
 	int32 GetCurrentCharges() const;
 
-	/** Charges Fragment 의 MaxCharges. Fragment 가 없으면 0. */
+	/** Charges Fragment 가 없으면 0. */
 	int32 GetMaxCharges() const;
 
 	/**
@@ -59,8 +57,7 @@ public:
 	TSoftObjectPtr<UObject> GetDisplayIcon() const;
 
 	/**
-	 * 권한: 충전 횟수를 설정한다.
-	 * [0, MaxCharges] 로 클램프된다.
+	 * 권한: 충전 횟수는 [0, MaxCharges] 로 클램프된다.
 	 * 변경 브로드캐스트(OnInventoryChargeChanged)는 호출자(인벤토리 매니저) 책임이다.
 	 */
 	void SetCurrentCharges(int32 InCharges);
@@ -68,7 +65,6 @@ public:
 	/**
 	 * 권한: 정의를 1회 바인딩한다.
 	 * 인스턴스 생성 직후 FWxInventoryList::AddEntry 가 호출한다.
-	 * 재바인딩은 금지되며 check(ItemDef == nullptr) 로 가드된다.
 	 */
 	void SetItemDef(const UWxItemDefinition* InItemDef);
 

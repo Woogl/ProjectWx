@@ -70,7 +70,7 @@ void AWxItemPickup::LaunchInDirection(const FVector& Direction, float Speed)
 
 bool AWxItemPickup::IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const
 {
-	// 픽업은 존재하는 동안 항상 상호작용 가능하다(지급 후엔 액터가 파괴되므로 끌 상태가 없다).
+	// 지급 후엔 액터가 파괴되므로 끌 상태가 없다.
 	return Mesh == MeshComponent;
 }
 
