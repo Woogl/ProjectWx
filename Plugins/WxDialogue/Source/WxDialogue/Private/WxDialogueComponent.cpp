@@ -31,7 +31,6 @@ void UWxDialogueComponent::SetInteractionEnabled(bool bEnabled)
 		return;
 	}
 
-	// 감지·사거리 판정에 필요한 것은 쿼리뿐이다.
 	AreaMesh->SetCollisionEnabled(bEnabled ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 }
 

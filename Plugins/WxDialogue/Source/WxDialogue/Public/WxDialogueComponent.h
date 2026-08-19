@@ -29,7 +29,7 @@ public:
 	/** C++ 호스트가 생성자에서 한 번 부른다(순수 BP 호스트는 디테일 패널에서 고른다). */
 	void SetAreaMesh(UPrimitiveComponent* Mesh);
 
-	//~ Begin IWxInteractable — 쿼리 콜리전이 켜져 있는 동안 영역 메시가 영역, 상호작용자 세션에 대화 시작 위임, "Talk to {Name}" 프롬프트.
+	//~ Begin IWxInteractable
 	virtual bool IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const override;
 
 	/**

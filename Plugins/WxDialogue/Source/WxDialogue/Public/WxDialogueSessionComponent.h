@@ -59,7 +59,7 @@ public:
 
 	bool HasActiveDialogue() const;
 
-	/** 진행 중인 대화의 대상 액터. 대화 중이 아니거나 대상 없는 대사(나레이션)면 null. */
+	/** 대화 중이 아니거나 대상 없는 대사(나레이션)면 null. */
 	AActor* GetCurrentDialogueTarget() const;
 
 	/**
@@ -83,8 +83,7 @@ public:
 
 protected:
 	/**
-	 * 대화 카메라 구도 파라미터.
-	 * 대상이 아니라 대화 연출 전반의 정책이라 여기 모아 둔다.
+	 * 카메라 구도는 대상이 아니라 대화 연출 전반의 정책이라 여기 모아 둔다.
 	 * 주입 컴포넌트라 여기 적힌 기본값이 곧 실제 값이다.
 	 */
 
@@ -116,7 +115,7 @@ private:
 	UFUNCTION(Client, Reliable)
 	void ClientStartDialogue(const FDataTableRowHandle& StartRow, AActor* Target);
 
-	/** 이름으로 노드를 찾아 현재 노드로 전환한다. 행이 없거나 대사가 비어 있으면 실패한다. */
+	/** 행이 없거나 대사가 비어 있으면 실패한다. */
 	bool EnterRow(FName RowName);
 
 	/**
