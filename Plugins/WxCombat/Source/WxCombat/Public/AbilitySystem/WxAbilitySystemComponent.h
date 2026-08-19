@@ -45,6 +45,9 @@ public:
 	 */
 	void ApplyHitStop(float Duration, const UGameplayAbility* SourceAbility);
 
+	/** 발동이 거부된 어빌리티와 그 사유(차단·쿨다운·코스트 등)를 남긴다. */
+	virtual void NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason) override;
+
 private:
 	/**
 	 * 대미지 GE 적용이 끝난 시점에 타격 Cue와 반응 이벤트를 발행한다.

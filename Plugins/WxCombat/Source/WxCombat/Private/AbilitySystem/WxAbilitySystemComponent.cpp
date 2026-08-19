@@ -7,6 +7,7 @@
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Damage/WxCombatEffectContext.h"
+#include "WxCombatModule.h"
 #include "WxGameplayTags.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
@@ -155,6 +156,13 @@ void UWxAbilitySystemComponent::ApplyHitStop(float Duration, const UGameplayAbil
 	GetWorld()->GetTimerManager().SetTimer(HitStopResumeTimer,
 		FTimerDelegate::CreateUObject(this, &UWxAbilitySystemComponent::HandleHitStopElapsed, TWeakObjectPtr<UAnimMontage>(Montage)),
 		Duration, false);
+}
+
+void UWxAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason)
+{
+	Super::NotifyAbilityFailed(Handle, Ability, FailureReason);
+
+	UE_LOG(LogWxCombat, Verbose, TEXT("어빌리티 발동 거부: %s — 사유 %s"), *GetNameSafe(Ability), *FailureReason.ToStringSimple());
 }
 
 void UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle)
