@@ -33,14 +33,14 @@ def decide(decision, reason):
     sys.exit(0)
 
 
-def code_residue(text):
-    # 주석을 걷어낸 코드 잔여물을 줄 목록으로 돌려준다.
+def scan(text, in_block=False, in_line=False):
+    # 주석을 걷어낸 코드 잔여물과, 텍스트 끝에서의 주석 상태를 함께 돌려준다.
     # 문자열·문자 리터럴을 추적하므로 TEXT("http://a") 속 //를 주석으로 오인하지 않는다.
+    # 시작 상태를 받는 이유는 편집 조각이 주석 한가운데서 시작할 수 있기 때문이다.
     lines = []
     cur = []
     i = 0
     n = len(text)
-    in_block = False
     in_str = False
     in_char = False
     while i < n:
@@ -49,9 +49,13 @@ def code_residue(text):
         if c == "\n":
             lines.append("".join(cur).rstrip())
             cur = []
-            # 리터럴은 줄을 넘지 않는다고 본다. 블록 주석 상태는 줄을 넘겨 유지한다.
+            # 리터럴과 줄 주석은 줄을 넘지 않는다. 블록 주석 상태는 줄을 넘겨 유지한다.
             in_str = False
             in_char = False
+            in_line = False
+            i += 1
+            continue
+        if in_line:
             i += 1
             continue
         if in_block:
@@ -74,8 +78,8 @@ def code_residue(text):
             i += 1
             continue
         if c == "/" and nxt == "/":
-            nl = text.find("\n", i)
-            i = n if nl < 0 else nl
+            in_line = True
+            i += 2
             continue
         if c == "/" and nxt == "*":
             in_block = True
@@ -89,7 +93,42 @@ def code_residue(text):
         i += 1
     lines.append("".join(cur).rstrip())
     # 주석 줄을 지우면 잔여물이 빈 줄로 남으므로 빈 줄은 비교에서 뺀다.
-    return [ln for ln in lines if ln.strip()]
+    return [ln for ln in lines if ln.strip()], in_block, in_line
+
+
+def edit_start_state(file_path, old_string, replace_all):
+    # 편집이 시작되는 지점의 주석 상태를 파일 원본에서 확정해 돌려준다.
+    # 조각만 보면 블록 주석 내부인지 알 수 없어, 주석 본문 편집이 코드 변경으로 오인된다.
+    # 확정하지 못하면 (False, False)를 돌려 조각만 보던 기존 판정을 그대로 따른다.
+    if not old_string:
+        return False, False
+
+    try:
+        with open(file_path, encoding="utf-8") as f:
+            content = f.read()
+    except Exception:
+        return False, False
+
+    # 줄바꿈 방식이 달라 위치를 놓치는 일이 없도록 양쪽을 맞춘다. 주석 상태와는 무관한 차이다.
+    content = content.replace("\r\n", "\n")
+    needle = old_string.replace("\r\n", "\n")
+
+    state = None
+    at = content.find(needle)
+    while at >= 0:
+        here = scan(content[:at])[1:]
+        if state is None:
+            state = here
+        elif state != here:
+            # replace_all이 상태가 엇갈리는 지점들을 함께 잡으면 판정을 포기한다.
+            return False, False
+        if not replace_all:
+            break
+        at = content.find(needle, at + len(needle))
+
+    if state is None:
+        return False, False
+    return state
 
 
 def main():
@@ -116,9 +155,10 @@ def main():
     # 주석만 바뀌는 편집은 worklog 없이 통과시킨다.
     # Edit만 가른다 — Write는 편집 전 내용이 페이로드에 없어 비교할 수 없다.
     if (data.get("tool_name") or "") == "Edit":
-        old_residue = code_residue(tool_input.get("old_string") or "")
-        new_residue = code_residue(tool_input.get("new_string") or "")
-        if old_residue == new_residue:
+        old_string = tool_input.get("old_string") or ""
+        new_string = tool_input.get("new_string") or ""
+        in_block, in_line = edit_start_state(file_path, old_string, bool(tool_input.get("replace_all")))
+        if scan(old_string, in_block, in_line)[0] == scan(new_string, in_block, in_line)[0]:
             decide("allow", "주석만 바뀌는 편집이라 worklog 게이트를 통과시킵니다(사소 작업 예외).")
 
     # 편집 파일의 basename(확장자 제거)을 오늘자 worklog 본문과 매칭한다.
