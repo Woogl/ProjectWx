@@ -29,15 +29,6 @@ void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGame
 	RequestImageAsync(TEXT("Icon"), InUIData->Icon);
 
 	SetStackCount(ActiveEffect->Spec.GetStackCount());
-	
-	if (const UGameplayEffect* EffectCDO = InASC->GetGameplayEffectCDO(InHandle))
-	{
-		const FGameplayTagContainer& AssetTags = EffectCDO->GetAssetTags();
-		if (!AssetTags.IsEmpty())
-		{
-			EffectTag = AssetTags.First();
-		}
-	}
 
 	CachedDuration = ActiveEffect->GetDuration();
 	if (CachedDuration > 0.f)

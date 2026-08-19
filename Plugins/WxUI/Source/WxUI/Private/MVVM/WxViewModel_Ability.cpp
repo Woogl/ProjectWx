@@ -1,8 +1,6 @@
 ﻿// Copyright Woogle. All Rights Reserved.
 
 #include "MVVM/WxViewModel_Ability.h"
-#include "MVVM/WxViewModel_AbilitySystem.h"
-#include "MVVM/WxViewModel_Attribute.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
 #include "Engine/Texture2D.h"
@@ -18,8 +16,6 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 	Deinitialize();
 	CachedASC = InASC;
 	CachedAbility = InAbility;
-
-	AbilityTags = InAbility->GetAssetTags();
 
 	int32 AbilityMaxRecharges = 1;
 	if (const UGameplayEffect* CooldownGE = InAbility->GetCooldownGameplayEffect())
@@ -118,9 +114,6 @@ void UWxViewModel_Ability::Deinitialize()
 		TickerHandle.Reset();
 	}
 
-	// 코스트 VM 은 어빌리티시스템 VM 소유의 공유본이라 놓기만 한다.
-	CostViewModel = nullptr;
-
 	CachedASC.Reset();
 	CachedAbility.Reset();
 	CachedCooldownClass = nullptr;
@@ -153,24 +146,6 @@ bool UWxViewModel_Ability::TryActivateAbility()
 const UGameplayAbility* UWxViewModel_Ability::GetBoundAbility() const
 {
 	return CachedAbility.Get();
-}
-
-UWxViewModel_Attribute* UWxViewModel_Ability::GetOrCreateCostViewModel()
-{
-	UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (!ASC || !CostAttribute.IsValid())
-	{
-		return nullptr;
-	}
-
-	if (!CostViewModel)
-	{
-		// 자원 단위 인스턴스는 어빌리티시스템 VM 이 들고 있다 — 같은 자원을 쓰는 어빌리티끼리 하나를 나눠 쓴다.
-		UWxViewModel_AbilitySystem* AbilitySystemViewModel = UWxViewModel_AbilitySystem::GetOrCreate(ASC);
-		CostViewModel = AbilitySystemViewModel ? AbilitySystemViewModel->GetOrCreateAttributeViewModel(CostAttribute, CostMaxAttribute) : nullptr;
-	}
-
-	return CostViewModel;
 }
 
 float UWxViewModel_Ability::GetCooldownRemaining() const

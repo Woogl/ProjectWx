@@ -36,11 +36,10 @@ public:
 	void Initialize(UAbilitySystemComponent* InASC);
 	virtual void Deinitialize() override;
 
-	UWxViewModel_Attribute* FindAttributeViewModel(FGameplayAttribute InAttribute) const;
-	UWxViewModel_Ability* FindAbilityViewModel(const FGameplayTagContainer& InAbilityTags) const;
-	UWxViewModel_Effect* FindActiveEffectViewModel(FGameplayTag InEffectTag) const;
-
-	/** Max 가 유효하지 않으면 Current 자신을 최대값으로 사용한다. */
+	/**
+	 * 현재값과 최대치 쌍이 같아야 같은 뷰모델이다 — 최대치가 비율과 가득참 여부를 결정한다.
+	 * Max 가 유효하지 않으면 Current 자신을 최대값으로 사용한다.
+	 */
 	UWxViewModel_Attribute* GetOrCreateAttributeViewModel(FGameplayAttribute Current, FGameplayAttribute Max);
 
 	/**
@@ -61,7 +60,7 @@ protected:
 	 * 초기화 시점에 이미 활성인 GE 로 목록을 구축한다.
 	 * 이후 추가/제거는 HandleActiveEffectAdded/Removed 가 증분 처리한다.
 	 */
-	void RefreshActiveEffectViewModels();
+	void BuildActiveEffectViewModels();
 
 	void RefreshOwnedTags();
 
@@ -76,7 +75,4 @@ protected:
 	TArray<TObjectPtr<UWxViewModel_Ability>> AbilityViewModels;
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
-
-private:
-	void ClearActiveEffectViewModels();
 };

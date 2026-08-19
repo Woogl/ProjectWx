@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "ActiveGameplayEffectHandle.h"
-#include "GameplayTagContainer.h"
 #include "Containers/Ticker.h"
 #include "MVVM/WxViewModel.h"
 #include "WxViewModel_Effect.generated.h"
@@ -47,9 +46,6 @@ public:
 	/** UIData 의 소프트 참조를 베이스가 비동기 로드해 세팅한다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Effect")
 	TObjectPtr<UObject> Icon = nullptr;
-	
-	UPROPERTY(BlueprintReadOnly, Category = "Wx|Effect")
-	FGameplayTag EffectTag;
 
 	FText GetEffectName() const;
 	void SetEffectName(const FText& NewValue);

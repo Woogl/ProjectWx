@@ -40,7 +40,7 @@ void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 	InASC->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectRemoved);
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_AbilitySystem::HandleTagChanged);
 
-	RefreshActiveEffectViewModels();
+	BuildActiveEffectViewModels();
 	RefreshOwnedTags();
 }
 
@@ -64,54 +64,6 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 	Super::Deinitialize();
 }
 
-void UWxViewModel_AbilitySystem::ClearActiveEffectViewModels()
-{
-	for (UWxViewModel_Effect* EffectVM : ActiveEffectViewModels)
-	{
-		if (EffectVM)
-		{
-			EffectVM->Deinitialize();
-		}
-	}
-	ActiveEffectViewModels.Empty();
-}
-
-UWxViewModel_Attribute* UWxViewModel_AbilitySystem::FindAttributeViewModel(FGameplayAttribute InAttribute) const
-{
-	for (UWxViewModel_Attribute* VM : AttributeViewModels)
-	{
-		if (VM && VM->GetBoundAttribute() == InAttribute)
-		{
-			return VM;
-		}
-	}
-	return nullptr;
-}
-
-UWxViewModel_Ability* UWxViewModel_AbilitySystem::FindAbilityViewModel(const FGameplayTagContainer& InAbilityTags) const
-{
-	for (UWxViewModel_Ability* VM : AbilityViewModels)
-	{
-		if (VM && VM->AbilityTags.HasAll(InAbilityTags))
-		{
-			return VM;
-		}
-	}
-	return nullptr;
-}
-
-UWxViewModel_Effect* UWxViewModel_AbilitySystem::FindActiveEffectViewModel(FGameplayTag InEffectTag) const
-{
-	for (UWxViewModel_Effect* VM : ActiveEffectViewModels)
-	{
-		if (VM && VM->EffectTag == InEffectTag)
-		{
-			return VM;
-		}
-	}
-	return nullptr;
-}
-
 UWxViewModel_Attribute* UWxViewModel_AbilitySystem::GetOrCreateAttributeViewModel(FGameplayAttribute Current, FGameplayAttribute Max)
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
@@ -120,14 +72,20 @@ UWxViewModel_Attribute* UWxViewModel_AbilitySystem::GetOrCreateAttributeViewMode
 		return nullptr;
 	}
 
+	// 조회와 생성이 같은 값을 봐야 최대치 생략 요청과 명시 요청이 같은 것으로 판별된다.
+	const FGameplayAttribute MaxAttribute = Max.IsValid() ? Max : Current;
+
 	// 컨버전 함수는 소스 갱신마다 재실행될 수 있으므로, 이미 만든 VM 이 있으면 재사용한다.
-	if (UWxViewModel_Attribute* Existing = FindAttributeViewModel(Current))
+	for (UWxViewModel_Attribute* Existing : AttributeViewModels)
 	{
-		return Existing;
+		if (Existing && Existing->GetBoundAttribute() == Current && Existing->GetBoundMaxAttribute() == MaxAttribute)
+		{
+			return Existing;
+		}
 	}
 
 	UWxViewModel_Attribute* AttrVM = NewObject<UWxViewModel_Attribute>(ASC);
-	AttrVM->Initialize(ASC, Current, Max.IsValid() ? Max : Current);
+	AttrVM->Initialize(ASC, Current, MaxAttribute);
 	AttributeViewModels.Add(AttrVM);
 	return AttrVM;
 }
@@ -142,38 +100,44 @@ UWxViewModel_Ability* UWxViewModel_AbilitySystem::GetOrCreateAbilityViewModel(co
 		return nullptr;
 	}
 
-	// 컨버전 함수는 소스 갱신마다 재실행될 수 있으므로, 이미 만든 VM 이 있으면 재사용한다.
-	if (UWxViewModel_Ability* Existing = FindAbilityViewModel(InAbilityTags))
-	{
-		return Existing;
-	}
-
-	// FindAbilityViewModel 과 동일한 HasAll 술어로 매칭해야 재평가 시 중복 생성되지 않는다.
+	// 어떤 어빌리티인지를 부여된 스펙에서 먼저 정하고, 그 어빌리티로 기존 VM 을 찾는다.
+	// 요청 태그를 판별에 그대로 쓰면 포함 관계라, 넓은 질의가 먼저 만들어진 VM 을 잡아 생성 순서에 따라 결과가 갈린다.
+	const UGameplayAbility* AbilityCDO = nullptr;
 	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
 	{
-		const UGameplayAbility* AbilityCDO = Spec.Ability;
-		if (!AbilityCDO || !AbilityCDO->GetAssetTags().HasAll(InAbilityTags))
+		if (Spec.Ability && Spec.Ability->GetAssetTags().HasAll(InAbilityTags))
 		{
-			continue;
+			AbilityCDO = Spec.Ability;
+			break;
 		}
-
-		UWxViewModel_Ability* AbilityVM = NewObject<UWxViewModel_Ability>(ASC);
-		AbilityVM->Initialize(ASC, AbilityCDO);
-		AbilityViewModels.Add(AbilityVM);
-		return AbilityVM;
 	}
-	return nullptr;
+
+	if (!AbilityCDO)
+	{
+		return nullptr;
+	}
+
+	for (UWxViewModel_Ability* Existing : AbilityViewModels)
+	{
+		if (Existing && Existing->GetBoundAbility() == AbilityCDO)
+		{
+			return Existing;
+		}
+	}
+
+	UWxViewModel_Ability* AbilityVM = NewObject<UWxViewModel_Ability>(ASC);
+	AbilityVM->Initialize(ASC, AbilityCDO);
+	AbilityViewModels.Add(AbilityVM);
+	return AbilityVM;
 }
 
-void UWxViewModel_AbilitySystem::RefreshActiveEffectViewModels()
+void UWxViewModel_AbilitySystem::BuildActiveEffectViewModels()
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
 	if (!ASC)
 	{
 		return;
 	}
-	
-	ClearActiveEffectViewModels();
 
 	FGameplayEffectQuery Query;
 	TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);

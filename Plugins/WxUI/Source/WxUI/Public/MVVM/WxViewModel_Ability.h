@@ -15,7 +15,6 @@ class UAbilitySystemComponent;
 class UGameplayAbility;
 class UGameplayEffect;
 class UTexture2D;
-class UWxViewModel_Attribute;
 struct FGameplayEffectSpec;
 
 /**
@@ -27,7 +26,7 @@ struct FGameplayEffectSpec;
  *
  * CanActivate·CheckCost 는 ASC 태그 변경/비용 어트리뷰트 변경/쿨다운 진행 시점에 재평가된다.
  *
- * 코스트 수치는 초기화 때 비용 GE 를 한 번 평가해 자원과 양을 정하고, 그 자원의 현재/최대는 자식 어트리뷰트 VM 이 따라간다.
+ * 소모량은 초기화 때 비용 GE 를 한 번 평가해 정한다.
  */
 UCLASS()
 class WXUI_API UWxViewModel_Ability : public UWxViewModel
@@ -45,13 +44,6 @@ public:
 
 	/** 아이콘처럼 UI 플러그인이 읽지 못하는 표시 데이터를 게임 모듈이 채울 때 쓴다. */
 	const UGameplayAbility* GetBoundAbility() const;
-
-	/**
-	 * 코스트 자원의 현재/최대를 노출하는 VM 을 돌려준다.
-	 * 실제 인스턴스는 ASC 의 어빌리티시스템 VM 이 자원 단위로 소유하므로, 같은 자원을 쓰는 어빌리티끼리 하나를 공유한다.
-	 * 코스트가 없는 어빌리티는 nullptr 를 돌려준다.
-	 */
-	UWxViewModel_Attribute* GetOrCreateCostViewModel();
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	float CooldownRemaining = 0.f;
@@ -89,10 +81,6 @@ public:
 	/** 텍스처 또는 머터리얼이며, 소프트 참조는 SetIconSoft 가 비동기 로드한다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	TObjectPtr<UObject> Icon = nullptr;
-
-	/** 바인딩된 어빌리티의 Asset Tags */
-	UPROPERTY(BlueprintReadOnly, Category = "Wx|Ability")
-	FGameplayTagContainer AbilityTags;
 
 	float GetCooldownRemaining() const;
 	void SetCooldownRemaining(float NewValue);
@@ -157,10 +145,6 @@ private:
 	 * 비용 GE 는 자원별 모디파이어를 모두 선언해 두고 값은 적용 시점에 계산하므로, 정의만 읽어서는 알 수 없어 스펙을 한 번 평가한다.
 	 */
 	void GetCost(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility);
-
-	/** GetOrCreateCostViewModel 이 처음 불릴 때 채운다. 소유는 어빌리티시스템 VM 에 있다. */
-	UPROPERTY()
-	TObjectPtr<UWxViewModel_Attribute> CostViewModel;
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	TWeakObjectPtr<const UGameplayAbility> CachedAbility;
