@@ -51,13 +51,14 @@ void UWxMetaHumanComponent::OnRegister()
 
 		// 표시를 바디가 넘겨받았으므로 리더는 포즈만 만든다. 물리·피격 판정·무기 소켓은 그대로 리더에 남는다.
 		LeaderMesh->SetVisibility(false);
+		// 숨긴 메시는 렌더 기록이 갱신되지 않아 캐릭터 기본값으로는 본 리프레시가 멎고, 리더 포즈를 받는 부착물이 통째로 굳는다.
+		LeaderMesh->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 	}
 
 	if (FaceMesh)
 	{
 		FaceComponent = CreateAttachedMesh(FaceMesh, TEXT("Face"), LeaderMesh);
 		FaceComponent->SetAnimInstanceClass(FaceAnimClass);
-		FaceComponent->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
 
 		// 그룸은 페이스 스켈레톤에 바인딩되므로 페이스가 있을 때만 의미가 있다.
 		CreateGroom(Hair, TEXT("Hair"), FaceComponent);
@@ -70,7 +71,6 @@ void UWxMetaHumanComponent::OnRegister()
 	if (OutfitMesh)
 	{
 		OutfitComponent = CreateAttachedMesh(OutfitMesh, TEXT("Outfit"), LeaderMesh);
-		OutfitComponent->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 
 		// 어셈블 BP의 EnableMasterPose 판정과 동일: 스스로 포즈를 만들 수단(PP-ABP·AnimClass)이 없는 메시만 리더를 따라간다.
 		if (!OutfitMesh->GetPostProcessAnimBlueprint() && !OutfitComponent->GetAnimClass())
@@ -175,6 +175,8 @@ USkeletalMeshComponent* UWxMetaHumanComponent::CreateAttachedMesh(USkeletalMesh*
 	MeshComponent->CreationMethod = CreationMethod;
 	MeshComponent->SetSkeletalMeshAsset(Mesh);
 	MeshComponent->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+	// 여기서 만드는 메시는 전부 표시 전용이라 화면에 없으면 갱신할 이유가 없다.
+	MeshComponent->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
 	MeshComponent->SetupAttachment(AttachTarget);
 	MeshComponent->RegisterComponent();
 
