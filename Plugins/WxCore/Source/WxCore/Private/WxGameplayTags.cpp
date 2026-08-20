@@ -69,6 +69,8 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack, "Ability.Attack");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_Light, "Ability.Attack.Light");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_Heavy, "Ability.Attack.Heavy");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_Air, "Ability.Attack.Air");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_DodgeCounter, "Ability.Attack.DodgeCounter");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Dodge, "Ability.Dodge");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Sprint, "Ability.Sprint");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Guard, "Ability.Guard");
