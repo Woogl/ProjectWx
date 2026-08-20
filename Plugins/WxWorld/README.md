@@ -36,6 +36,7 @@ Native Tag 선언은 이 모듈에 없다. 상호작용 경로는 `WxCore`가 �
 - **새 기믹**: C++ 액터를 만들지 않는다. 아무 액터에 `UWxGimmickStateTreeComponent`를 붙이고 ST 에셋으로 전이·연출을 정의한다. 영속이 필요한 상태에는 상태 디테일에 Tag를 달아야 저장된다. 오너 액터의 `Replicates`가 켜져 있어야 상태 복제가 성립한다(꺼지면 BeginPlay가 Error 로그).
 - **새 ST 태스크**: `FStateTreeTaskCommonBase` 파생 `USTRUCT`로 만든다. 인스턴스 데이터를 짝 구조체로 두고 `using FInstanceDataType`·`GetInstanceDataType()`을 헤더에 표기(코딩 규칙 6의 유일 예외, 각 헤더 주석 참조). 태스크 분류: `Gimmick/`(연출·이동 — 재생/컴포넌트 이동/이펙트 적용/스포너 발동·리스폰), `Interaction/`(상호작용 켜기·대기), `Spawnable/`(로케이터 지정 스포너 발동·처치 대기).
 - **레벨 밖 호스트에서 배치 액터 지정**: 퀘스트 ST 등에서 특정 배치 스포너/대상을 겨눌 땐 `FUniversalObjectLocator`(순수 구조체)를 쓴다 — ST 컴파일러의 레벨 액터 참조 검증을 우회하고 WP/PIE 해석이 엔진에 내장돼 있다.
+- **장치(레버) 연결과 Role 어휘**: 상호작용 장치는 `AWxLeverDevice`를 배치하고 기믹 컴포넌트의 `DeviceLinks`(Role+장치, 레벨 인스턴스 저작)로 잇는다 — 공유 ST 에셋은 Role 이름만 알고, ST의 '장치 상호작용 켜기' 태스크가 같은 Role로 발행 자리와 장치 켜짐을 토글한다. Role 이름은 UEFN 디바이스 함수 어휘를 따라 **수신자 관점의 명령형 동사**로 짓는다 — 기본값 `Activate`, 예: 문 `Open`, 엘리베이터 `CallToA`/`CallToB`, 증기 `Toggle`. BP 아키타입이 `DeviceLinks` 행으로 어휘를 미리 깔아 ST 에셋과 공유한다.
 - **스포너 부활 정책**: `EWxSpawnerMode`(Auto/Manual)와 `bNeverRevive`(보스). 일괄 리스폰은 `UWxSpawnerLibrary::TryRespawnAll`(Auto만), 지정 트리거는 로케이터 태스크.
 
 ## 여기서부터 읽어라

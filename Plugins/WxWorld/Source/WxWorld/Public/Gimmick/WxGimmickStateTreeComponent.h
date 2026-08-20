@@ -13,6 +13,7 @@
 #include "WxGimmickStateTreeComponent.generated.h"
 
 class ACharacter;
+class AWxLeverDevice;
 class UPrimitiveComponent;
 class UWxGimmickStateTreeComponent;
 
@@ -48,6 +49,37 @@ struct FWxGimmickInteractionRegion
 	FStateTreeDelegateDispatcher Dispatcher;
 
 	/** 위 발행에 쓰는 실행 컨텍스트. 발행이 트리 틱 밖에서 일어나므로 태스크가 진입 시 자기 것을 넘겨 둔다. */
+	FStateTreeWeakExecutionContext Context;
+};
+
+/**
+ * 이 기믹에 연결된 레버 장치 하나. 공유 ST 에셋은 역할 이름만 알고, 그 역할이 어느 장치인지는 이 배선이 정한다.
+ */
+USTRUCT()
+struct FWxGimmickDeviceLink
+{
+	GENERATED_BODY()
+
+	/** ST 태스크가 장치를 지목하는 키. 수신자 관점의 명령형 동사로 짓고(예: 문 Open, 엘리베이터 CallToA/CallToB), BP 아키타입이 행으로 미리 깔아 어휘를 중앙화한다. */
+	UPROPERTY(EditAnywhere, Category = "Wx")
+	FName Role = TEXT("Activate");
+
+	/** 레벨 액터 참조라 인스턴스 전용이다. 비워 두면 그 역할의 기능을 쓰지 않는 것으로 본다. */
+	UPROPERTY(EditInstanceOnly, Category = "Wx")
+	TObjectPtr<AWxLeverDevice> Device;
+};
+
+/**
+ * 역할 하나의 발행 자리 — 그 역할의 장치가 눌렸을 때 트리에 알릴 곳. 수명 규약은 FWxGimmickInteractionRegion 과 같다.
+ */
+USTRUCT()
+struct FWxGimmickDeviceBinding
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FStateTreeDelegateDispatcher Dispatcher;
+
 	FStateTreeWeakExecutionContext Context;
 };
 
@@ -123,6 +155,16 @@ public:
 	 */
 	void SetInteractionRegionEnabled(UPrimitiveComponent* Mesh, bool bEnabled, const FWxGimmickInteractionRegion& Region);
 
+	/**
+	 * Role 역할의 발행 자리를 여닫고, 그 역할로 링크된 레버 장치들을 같은 상태로 켜고 끈다 — 끌 때 Binding 은 쓰이지 않는다.
+	 * '장치 상호작용 켜기' 태스크가 상태 진입 시 호출한다. 영역 토글과 같은 규약이며, 대상이 자기 메시가 아니라 링크된 장치라는 점만 다르다.
+	 * 복제하지 않는다 — ST 가 각 피어에서 실행되어 같은 값에 수렴한다.
+	 */
+	void SetDeviceInteractionEnabled(FName Role, bool bEnabled, const FText& Prompt, const FWxGimmickDeviceBinding& Binding);
+
+	/** 링크된 레버 장치가 눌렸을 때 장치가 서버 권위에서 부른다. 장치의 역할을 역조회해 열린 발행 자리에 알리며, 이후는 영역 상호작용과 같은 경로다. */
+	void NotifyDeviceInteracted(AWxLeverDevice* Device, AActor* Interactor);
+
 	ACharacter* GetInteractingCharacter() const;
 
 	/** 지금 활성인 상태의 Tag. 활성 leaf 에서 위로 올라가며 처음 만나는 유효 태그를 답한다(태그 없는 중간 상태는 건너뛴다). */
@@ -133,6 +175,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	/**
 	 * 도착 시점엔 판정하지 않고 잠들어 있던 컴포넌트 틱만 깨운다. 추종 판정은 트리 틱 뒤(FollowAuthorityState)가 맡는다.
@@ -156,6 +199,17 @@ protected:
 	TMap<TObjectPtr<UPrimitiveComponent>, FWxGimmickInteractionRegion> InteractionRegions;
 
 	/**
+	 * 이 기믹에 연결된 레버 장치 배선. 역할 행은 BP 아키타입이 미리 깔고(ST 에셋과 어휘 공유), 어느 장치인지는 레벨 인스턴스가 채운다.
+	 * 하드 참조라 장치와 기믹은 World Partition 에서 함께 로드된다 — 늦은 등록을 따로 다루지 않는 근거다.
+	 */
+	UPROPERTY(EditAnywhere, Category = "Wx")
+	TArray<FWxGimmickDeviceLink> DeviceLinks;
+
+	/** 지금 발행 자리가 열린 역할들. 멤버십 자체가 활성 상태라 따로 담는 bool 이 없다 — InteractionRegions 와 같은 규약, 키만 역할. */
+	UPROPERTY(Transient)
+	TMap<FName, FWxGimmickDeviceBinding> DeviceBindings;
+
+	/**
 	 * 이번 상호작용의 당사자(플레이어 캐릭터). 권위가 쓰고 복제로 각 피어에 전해진다 — StateTag 와 같은 번치에 실리므로 추종 전이 시점에 언제나 짝이 맞는다.
 	 * 비영속이라 복원 시엔 비어 있고, 그때는 이동/몽타주 태스크가 초기 진입으로 보아 건너뛴다.
 	 */
@@ -170,6 +224,9 @@ private:
 	 */
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_ReenterState(FGameplayTag ReenteredTag);
+
+	/** 트리 재시작 직전에 영역·장치의 켜짐 잔재를 걷는다 — 직후 시작이 전 상태를 초기 진입으로 다시 밟으며 필요한 것만 재등록한다. */
+	void ResetInteractions();
 
 	/**
 	 * 저장된 StateTag 가 가리키는 상태에서 트리를 시작한다. 태그가 없거나 에셋에서 찾지 못하면 순정 시작(루트 선택)에 맡긴다.

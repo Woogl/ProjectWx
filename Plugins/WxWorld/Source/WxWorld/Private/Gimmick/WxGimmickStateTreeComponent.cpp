@@ -6,6 +6,7 @@
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/Character.h"
+#include "Interaction/WxLeverDevice.h"
 #include "Net/UnrealNetwork.h"
 #include "StateTree.h"
 #include "StateTreeExecutionContext.h"
@@ -192,6 +193,79 @@ void UWxGimmickStateTreeComponent::SetInteractionRegionEnabled(UPrimitiveCompone
 	InteractionRegions.Add(Mesh, Region);
 }
 
+void UWxGimmickStateTreeComponent::SetDeviceInteractionEnabled(FName Role, bool bEnabled, const FText& Prompt, const FWxGimmickDeviceBinding& Binding)
+{
+	if (bEnabled)
+	{
+		DeviceBindings.Add(Role, Binding);
+	}
+	else
+	{
+		DeviceBindings.Remove(Role);
+	}
+
+	// 같은 역할에 장치가 여럿이면(N:1) 전부 같은 상태로 움직인다.
+	for (const FWxGimmickDeviceLink& Link : DeviceLinks)
+	{
+		if (Link.Role == Role && IsValid(Link.Device))
+		{
+			Link.Device->SetDeviceActive(bEnabled, Prompt);
+		}
+	}
+}
+
+void UWxGimmickStateTreeComponent::NotifyDeviceInteracted(AWxLeverDevice* Device, AActor* Interactor)
+{
+	// 장치가 서버 권위에서만 부르지만, 상태를 움직이는 것은 권위 트리뿐이므로 한 번 더 가른다.
+	const AActor* Owner = GetOwner();
+	if (!Owner || !Owner->HasAuthority())
+	{
+		return;
+	}
+
+	// 멈춘 트리엔 발행이 닿지 않는다. 소화될 일 없는 재진입 판정을 예약해 두면 다음 시작 때 헛재진입으로 새어 나간다.
+	if (!IsRunning())
+	{
+		return;
+	}
+
+	// 지금 발행 자리가 열린 역할만 알릴 수 있다. 열린 자리가 하나도 없으면 상태를 건드리지 않는다.
+	TArray<const FWxGimmickDeviceBinding*> Bindings;
+	for (const FWxGimmickDeviceLink& Link : DeviceLinks)
+	{
+		if (Link.Device == Device)
+		{
+			if (const FWxGimmickDeviceBinding* Binding = DeviceBindings.Find(Link.Role))
+			{
+				Bindings.Add(Binding);
+			}
+		}
+	}
+
+	if (Bindings.IsEmpty())
+	{
+		return;
+	}
+
+	// 당사자는 복제로 각 피어에 전해진다 — 이동·몽타주 태스크가 모든 머신에서 같은 대상을 본다.
+	InteractingCharacter = Cast<ACharacter>(Interactor);
+
+	// 이 상호작용이 상태를 바꾸는지 아닌지는 트리가 발행을 소화해 봐야 안다. PublishAuthorityState 가 그 결과를 보고 판정한다.
+	bPendingInteractResolve = true;
+
+	bool bAnyDelivered = false;
+	for (const FWxGimmickDeviceBinding* Binding : Bindings)
+	{
+		bAnyDelivered |= Binding->Context.BroadcastDelegate(Binding->Dispatcher);
+	}
+
+	// 발행이 전부 stale 로 실패하면 소화될 것이 없다 — 플래그를 남기면 다음 기록 지점이 헛 재진입으로 오판한다.
+	if (!bAnyDelivered)
+	{
+		bPendingInteractResolve = false;
+	}
+}
+
 ACharacter* UWxGimmickStateTreeComponent::GetInteractingCharacter() const
 {
 	return InteractingCharacter;
@@ -252,6 +326,30 @@ void UWxGimmickStateTreeComponent::BeginPlay()
 	{
 		UE_LOG(LogWxWorld, Error, TEXT("Gimmick: %s 의 Replicates 가 꺼져 있어 상태 복제가 동작하지 않는다 — 클라 기믹이 서버를 따라가지 못한다."), *Owner->GetName());
 	}
+
+	// 배선은 기믹 → 레버 단방향 저작이라, 눌림 통지의 역경로만 여기서 런타임 구독으로 잇는다.
+	for (const FWxGimmickDeviceLink& Link : DeviceLinks)
+	{
+		if (Link.Device)
+		{
+			Link.Device->RegisterSubscriber(this);
+		}
+	}
+}
+
+void UWxGimmickStateTreeComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// 장치와는 함께 스트림 아웃되는 것이 보통이지만, 순서가 어긋나도 남은 쪽이 stale 켜짐·구독을 들지 않게 여기서 정리한다.
+	for (const FWxGimmickDeviceLink& Link : DeviceLinks)
+	{
+		if (IsValid(Link.Device))
+		{
+			Link.Device->SetDeviceActive(false, FText::GetEmpty());
+			Link.Device->UnregisterSubscriber(this);
+		}
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void UWxGimmickStateTreeComponent::OnRep_StateTag()
@@ -291,8 +389,25 @@ void UWxGimmickStateTreeComponent::Multicast_ReenterState_Implementation(FGamepl
 	EnterReplicatedState();
 }
 
+void UWxGimmickStateTreeComponent::ResetInteractions()
+{
+	InteractionRegions.Empty();
+	DeviceBindings.Empty();
+
+	for (const FWxGimmickDeviceLink& Link : DeviceLinks)
+	{
+		if (IsValid(Link.Device))
+		{
+			Link.Device->SetDeviceActive(false, FText::GetEmpty());
+		}
+	}
+}
+
 void UWxGimmickStateTreeComponent::StartTreeAtSavedState()
 {
+	// 재시작(세이브 복원·스트리밍 인)이 다른 상태로 점프하면 이전 상태가 켠 것들이 잔재로 남는다 — 걷어낸 뒤 시작이 필요한 것만 재등록한다.
+	ResetInteractions();
+
 	const UStateTree* Asset = StateTreeRef.GetStateTree();
 	if (!ResolveStateTag().IsValid())
 	{
