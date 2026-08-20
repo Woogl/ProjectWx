@@ -1,6 +1,6 @@
 ---
 name: design-checklist
-description: 지정한 기획서(Docs/CombatDesign·Docs/Leveldesign)를 읽고 예상 구현 작업 목록을 Docs/Programmer/에 체크리스트 문서로 만든다.
+description: 지정한 기획서(Docs/CombatDesign·Docs/LevelDesign)를 읽고 예상 구현 작업 목록을 Docs/Programmer/에 체크리스트 문서로 만든다.
 argument-hint: "<기획서 파일명>"
 user-invocable: true
 allowed-tools: Read, Glob, Write
@@ -23,7 +23,7 @@ allowed-tools: Read, Glob, Write
 인자 = 변환할 **기획서 파일명**(경로·부분명 가능, 확장자 생략 허용).
 
 - **인자 없음**: 무엇을 변환할지 추측하지 말고 한국어로 되묻는다(이 스킬은 인자 없이 진행하지 않는다).
-- **인자 있음**: `Glob`으로 `Docs/CombatDesign/**`·`Docs/Leveldesign/**`에서 매칭한다(이 두 폴더가 기획서의 위치다).
+- **인자 있음**: `Glob`으로 `Docs/CombatDesign/**`·`Docs/LevelDesign/**`에서 매칭한다(이 두 폴더가 기획서의 위치다).
   - **정확히 1개** → 그 파일로 진행.
   - **0개** → 두 폴더의 `.md` 목록을 제시하며 어느 기획서인지 되묻는다.
   - **2개 이상** → 매칭된 후보를 나열하며 어느 것인지 되묻는다.
