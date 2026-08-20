@@ -1,31 +1,27 @@
 # WxCombat — 코드 리뷰
 
-> 프로젝트 규칙 준수는 전수 검사 기준 위반 0건이고(Copyright 첫 줄·`Wx` prefix·`Handle` 콜백·람다/인라인 금지·`BlueprintCallable` 제한·`WxCore` 외 Wx 의존 없음), GAS 위에 얹은 구조와 주석 밀도도 모듈 전반에서 높다. 남은 위험은 어빌리티 종료 시 몽타주 수명 관리, 어트리뷰트 base 클램프 누락, 그리고 GE·어빌리티 사이의 정의 기준 일괄 조작 몇 군데에 몰려 있다. 이번 리뷰는 어빌리티 파이프라인(`WxAbilityBase` + 구체 어빌리티 13종), 대미지 판정(`WxExecCalc_Damage`·`WxExecCalc_Burn`·`FWxCombatEffectContext`·`WxCombatAttributeSet`), 무기·투사체 히트 경로, 락온/타게팅, AnimNotify·GE·MMC·AbilityTask 전량을 cpp까지 읽었고, Cue 연출과 데이터 Row 헤더는 훑는 수준으로 봤다. 판단이 갈리는 지점은 UE 5.8 GameplayAbilities 엔진 소스를 직접 확인해 근거를 달았다.
+> 프로젝트 규칙 준수는 전수 검사 기준 위반 0건이고(Copyright 첫 줄·`Wx` prefix·`Handle` 콜백·람다/인라인 금지·`BlueprintCallable` 제한·`WxCore` 외 Wx 의존 없음), GAS 위에 얹은 구조와 주석 밀도도 모듈 전반에서 높다. 남은 위험은 어트리뷰트 base 클램프 누락과 GE·어빌리티 사이의 정의 기준 일괄 조작 몇 군데에 몰려 있다. 이번 리뷰는 어빌리티 파이프라인(`WxAbilityBase` + 구체 어빌리티 13종), 대미지 판정(`WxExecCalc_Damage`·`WxExecCalc_Burn`·`FWxCombatEffectContext`·`WxCombatAttributeSet`), 무기·투사체 히트 경로, 락온/타게팅, AnimNotify·GE·MMC·AbilityTask 전량을 cpp까지 읽었고, Cue 연출과 데이터 Row 헤더는 훑는 수준으로 봤다. 판단이 갈리는 지점은 UE 5.8 GameplayAbilities 엔진 소스를 직접 확인해 근거를 달았다.
 
 ## 요약
 | 심각도 | 개수 |
 | --- | --- |
-| 🔴 심각 | 1 |
-| 🟡 개선 | 6 |
-| 🟢 사소 | 5 |
+| 🔴 심각 | 0 (1번은 오탐으로 정정) |
+| 🟡 개선 | 6 (2번은 조치 완료) |
+| 🟢 사소 | 5 (8번은 조치 완료) |
 
 ## 결과
 
-### 1. 🔴 캔슬로 끝난 공격·스킬이 몽타주를 놓아줘, 취소된 어빌리티의 히트 판정이 계속 돈다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Attack.cpp:70`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Skill.cpp:69`
-- **범주**: 버그/정확성
-- **문제**: 두 `EndAbility`가 `bWasCancelled`를 보기 전에 `KeepMontagePlayingAfterEnd()`를 무조건 부른다. 이 함수는 `MontageTask->EndTask()`로 태스크를 어빌리티의 ActiveTasks에서 떼어낸다(`WxAbilityBase.cpp:158-166`). 엔진에서 `UGameplayTask::EndTask()`는 `OnDestroy(false)`를 부르고, `UAbilityTask_PlayMontageAndWait::OnDestroy`는 `AbilityEnded == true`일 때만 `StopPlayingMontage()`를 호출한다(UE 5.8 `AbilityTask_PlayMontageAndWait.cpp:198-215`). 즉 이 시점 이후 `UGameplayAbility::EndAbility`가 몽타주를 멈추는 경로가 사라진다. 콤보 재발동(`bWasCancelled=false`)에는 의도된 동작이지만, 실제 취소에서는 몽타주가 고아로 남아 끝까지 재생된다. 취소자가 같은 슬롯 몽타주를 즉시 틀면 가려지지만 그렇지 않은 경로가 있다.
-  - **그로기**: `UWxAbility_Groggy`는 `Trait.Exclusive`를 취소한 뒤 폴러를 도는데, 폴러는 `ASC->GetCurrentMontage() != nullptr`이면 아무것도 하지 않는다(`WxAbility_Groggy.cpp:188-191`). 고아 공격 몽타주가 남아 있으면 그로기 몽타주가 시작되지 않고, 그동안 `WxAnimNotifyState_WeaponAttack`의 구간이 살아 있어 그로기에 빠진 캐릭터가 스윙을 마저 끝내며 대미지를 넣는다.
-  - **원격 플레이어 회피(서버)**: `UWxAbility_Dodge`의 서버 인스턴스는 방향 TargetData가 도착해야 몽타주를 재생한다(`WxAbility_Dodge.cpp:75-90`). 그 왕복 동안 서버에서는 취소된 공격 몽타주가 계속 돌아 무기 판정이 유지된다.
-- **제안**: `KeepMontagePlayingAfterEnd()` 호출을 `if (!bWasCancelled)`로 감싼다. 8번의 공통화와 함께 처리하면 한 곳만 고치면 된다.
-- **확신도**: 높음(엔진 소스로 태스크 종료 의미 확인)
+### 1. ✅ (정정) 캔슬로 끝난 공격·스킬이 몽타주를 놓아준다 — 오탐, 2026-08-20 조치 완료
+- **판정**: 오탐. 원래 이 항목은 취소된 공격의 몽타주가 고아로 남아 히트 판정이 계속 돈다고 봤고, 그로기와 원격 회피(서버)를 근거 시나리오로 들었다. 둘 다 재현되지 않는다.
+- **근거**: `UGameplayAbility::CancelAbility`는 `EndAbility`보다 **먼저** `OnGameplayAbilityCancelled`를 브로드캐스트하고, `UAbilityTask_PlayMontageAndWait`가 그 델리게이트에서 `StopPlayingMontage()`로 몽타주를 멈춘다(UE 5.8 `GameplayAbility.cpp`, `AbilityTask_PlayMontageAndWait.cpp`). 그로기의 `CancelAbilitiesWithTag`도, 회피가 공격을 미는 것도 모두 `CancelAbility` 경로라 `EndAbility`에 도달할 때는 이미 몽타주가 멈춰 있다.
+- **조치**: 제안(`if (!bWasCancelled)`로 감싸기)은 재현되지 않는 위험에 대한 방어 코드가 되므로 채택하지 않고, `KeepMontagePlayingAfterEnd()` 자체를 제거해 몽타주 수명을 엔진 순정(=그것을 튼 어빌리티의 수명)으로 되돌렸다. 그 함수가 대신하던 두 가지(콤보 단 전환, 구 태스크 콜백 차단)는 엔진 종료 경로가 이미 처리한다. 상세는 `.claude/worklog/2026-08-20-몽타주-수명-엔진-순정화.md`.
 
-### 2. 🟡 DP만 base 값 클램프가 없어 MaxDP를 넘어 쌓이고, 그로기가 안전 타이머로만 끝난다
+### 2. ✅ DP만 base 값 클램프가 없어 MaxDP를 넘어 쌓이고, 그로기가 안전 타이머로만 끝난다 — 2026-08-20 조치 완료
 - **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Attribute/WxCombatAttributeSet.cpp:153-217`
 - **범주**: 버그/정확성
 - **문제**: `PreAttributeChange`의 DP 클램프(`:83-90`)는 CurrentValue만 자른다 — 엔진 `FGameplayAttribute::SetNumericValueChecked`가 CurrentValue를 쓰기 직전에만 이 훅을 부르고, base는 `PreAttributeBaseChange`(미오버라이드)를 지나 그대로 들어간다. HP·MP·SP·UP는 `PostGameplayEffectExecute`에서 `Set*`(base 기록)로 한 번 더 클램프해 base가 범위 안에 남지만(`:192-216`), DP만 그 분기가 없다. 유입 경로는 두 곳이다 — ExecCalc의 DP 가산(`WxEffect_Damage.cpp:144`)과 퍼펙트 가드 반사(`WxEffect_Damage.cpp:206`). 그로기 직전 DP 95에 대미지 30이 들어오면 base는 125, 표시값만 100이 된다. `UWxMMC_DrainDP`는 지속시간 동안 정확히 MaxDP만큼만 빼도록 계산하므로(`WxEffect_DrainDP.cpp:39-55`) 드레인이 끝나도 base가 25 남아 DP가 0에 닿지 않고, 종료 판정인 `HandleDPChanged`가 발화하지 않는다. 결국 매번 `GroggySafetyTimerHandle`(`WxAbility_Groggy.cpp:76`)의 `GroggyDuration + 1초` 폴백으로 끝나며, 헤더가 "실패복구"로 적어 둔 경로(`WxAbility_Groggy.h:41`)가 상시 경로가 된다. 부수적으로 그로기 앞부분에서 DP 게이지가 만렙에 붙어 움직이지 않는다.
-- **제안**: `PostGameplayEffectExecute`에 다른 vital과 같은 DP 분기(`SetDP(FMath::Clamp(GetDP(), 0.f, GetMaxDP()))`)를 추가한다. `ReflectPerfectGuard`의 `SetNumericAttributeBase`도 같은 이유로 `FMath::Min(..., GetMaxDP())`가 필요하다.
-- **확신도**: 높음(엔진 `SetAttributeBaseValue`/`SetNumericValueChecked` 확인)
+- **조치**: 제안대로 두 유입 경로를 각각 막았다. `PostGameplayEffectExecute`에 다른 vital과 같은 형태의 DP 분기를 넣어 ExecCalc의 DP 가산이 base를 범위 안에 남기게 하고, GE 모디파이어를 거치지 않아 그 되밀기가 닿지 않는 `ReflectPerfectGuard`는 기록 전에 MaxDP로 잘랐다. 그 함수의 주석이 상한까지 훅이 맡는다고 적혀 있던 것이 이번 버그의 씨앗이라 함께 정정했다. 덧붙여 반사 경로에는 대상 쪽 `!bIsGroggy`에 해당하는 공격자 게이트가 없어, 클램프 이후엔 그로기 중인 공격자에게 반사가 들어가면 같은 증상이 재발한다. 대칭을 맞춰 그로기 중이면 반사를 생략한다(연출·패링 이벤트는 그대로). 안전 타이머는 이제 예외 경로로 돌아가므로 폴백으로 남겼다. 상세는 `.claude/worklog/2026-08-20-DP-base-클램프.md`.
+- **미검증**: 그로기가 몽타주 종료와 함께 끝나는지, 퍼펙트 가드 반사로 들어간 그로기도 같은지는 다음 PIE 세션에서 확인한다.
 
 ### 3. 🟡 `RemoveActivationOwnedEffect`가 정의 기준 전량 제거라 다른 출처의 같은 GE까지 벗긴다
 - **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbilityBase.cpp:77-90`, 호출부 `:112-116`
@@ -58,16 +54,16 @@
 ### 7. 🟡 Attack과 Skill의 콤보 제어 로직이 통째로 중복된다
 - **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Attack.cpp:24-88` ↔ `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Skill.cpp:27-87`
 - **범주**: 중복/복잡도
-- **문제**: `CanActivateAbility`의 콤보 재발동 분기, `EndAbility`(`KeepMontagePlayingAfterEnd` + `bWasCancelled` 시 `MontageSelector.Reset()`), `HandleMontageCompleted`가 주석까지 포함해 사실상 동일하다. 1번 결함이 두 파일에 똑같이 복제돼 있어 한쪽만 고치면 다른 쪽이 남는다.
-- **제안**: 콤보 규약만 담은 공통 중간 베이스를 두고 Attack은 차이나는 부분(`HasActiveCancelTarget` 분기)만 남긴다. 구조 변경을 피하려면 최소한 1번 수정은 두 파일에 동시에 적용해야 한다.
+- **문제**: `CanActivateAbility`의 콤보 재발동 분기, `EndAbility`(`bWasCancelled` 시 `MontageSelector.Reset()`), `HandleMontageCompleted`가 주석까지 포함해 사실상 동일하다. 한쪽만 고치면 다른 쪽이 남는 구조라, 1번 조치도 두 파일에 나란히 적용해야 했다.
+- **제안**: 콤보 규약만 담은 공통 중간 베이스를 두고 Attack은 차이나는 부분(`HasActiveCancelTarget` 분기)만 남긴다.
 - **확신도**: 높음
 
-### 8. 🟢 널 가드가 파일마다 들쭉날쭉하다
+### 8. ✅ 널 가드가 파일마다 들쭉날쭉하다 — 2026-08-20 조치 완료
 - **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_ComboWindow.cpp:12`, `:25`; `Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_WeaponAttack.cpp:16`, `:32`; `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_LockOn.cpp:48`, `:103`; `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_HitReact.cpp:70`; `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemComponent.cpp:156`; `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbilityBase.cpp:193`, `:345`
 - **범주**: 성능/안전
 - **문제**: 같은 폴더의 다른 노티파이가 전부 `MeshComp`를 검사하는데 ComboWindow와 WeaponAttack만 곧장 `MeshComp->GetOwner()`를 부른다. 락온·히트리액트는 `GetCharacterMovement()`를, `ApplyHitStop`과 `QueryActiveCooldowns`는 `GetWorld()`를 검사 없이 역참조한다. `WxAbilityBase.cpp:193`의 `ActorInfo->AbilitySystemComponent->TryActivateAbility`도 약참조를 그대로 `operator->` 한다(현재 호출부는 안전하지만 계약이 명시돼 있지 않다). 크래시를 관측한 곳은 없고 전부 실무상 유효할 가능성이 높지만, 모듈 내 다른 코드가 지키는 규칙과 어긋나 읽는 쪽이 어느 쪽이 의도인지 판단할 수 없다.
-- **제안**: 주변 코드와 같은 형태의 조기 반환 가드를 채운다.
-- **확신도**: 중간
+- **조치**: 판단 기준을 하나로 세우고 어긋난 6곳만 이웃 코드와 같은 형태로 맞췄다. 출처가 호출자에 달린 값 — 외부에서 넘어오는 함수 인자(`MeshComp`), 캐스트 결과에서 다시 꺼내는 하위 객체(`GetCharacterMovement()`), 약참조(`ActorInfo->AbilitySystemComponent`) — 은 가드하고, 유효 확인을 마친 액터·등록된 컴포넌트의 `GetWorld()`는 가드하지 않는다.
+- **가드하지 않기로 한 곳**: 그 기준에서 `ApplyHitStop`(`WxAbilitySystemComponent.cpp:156`)과 `QueryActiveCooldowns`(`WxAbilityBase.cpp:344`)의 `GetWorld()` 무가드는 누락이 아니라 의도다. 전자는 바로 위에서 `GetAnimatingAbility()`·`GetCurrentMontage()`를 통과한 시점이고 후자는 활성 GE를 들고 있는 등록된 ASC라, 둘 다 호출 시점에 살아있는 월드가 보장된다. 같은 이유로 `WxAbilityBase.cpp:74`의 `Avatar->GetWorld()`도 유지했다. 상세는 `.claude/worklog/2026-08-20-WxCombat-널가드-일관화.md`.
 
 ### 9. 🟢 회피 판정 캡슐이 아바타를 못 찾으면 콜리전을 켠 채 남는다
 - **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Dodge.cpp:275-285`
