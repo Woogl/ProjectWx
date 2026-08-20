@@ -49,7 +49,6 @@ void FWxEditorModule::StartupModule()
 
 	PropertyModule.NotifyCustomizationModuleChanged();
 
-	// UWxItemDefinition 의 에디터 썸네일을 아이템 아이콘으로 렌더링한다.
 	UThumbnailManager::Get().RegisterCustomRenderer(
 		UWxItemDefinition::StaticClass(),
 		UWxItemDefinitionThumbnailRenderer::StaticClass());
@@ -82,12 +81,10 @@ void FWxEditorModule::ShutdownModule()
 		PropertyModule.NotifyCustomizationModuleChanged();
 	}
 
-	// UObject 시스템이 아직 살아있을 때만 썸네일 렌더러 등록을 해제한다.
 	if (UObjectInitialized())
 	{
 		UThumbnailManager::Get().UnregisterCustomRenderer(UWxItemDefinition::StaticClass());
 
-		// 가로챘던 Blueprint 렌더러를 엔진 기본 렌더러로 복원한다.
 		UThumbnailManager::Get().UnregisterCustomRenderer(UBlueprint::StaticClass());
 		UThumbnailManager::Get().RegisterCustomRenderer(
 			UBlueprint::StaticClass(),

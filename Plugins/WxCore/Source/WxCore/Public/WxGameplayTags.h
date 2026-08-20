@@ -4,10 +4,7 @@
 
 #include "NativeGameplayTags.h"
 
-/**
- * 프로젝트 전체에서 사용하는 Gameplay Tag 선언부.
- * 태그 추가 시 이 파일과 WxGameplayTags.cpp에만 작성.
- */
+/** 태그 추가 시 이 파일과 WxGameplayTags.cpp에만 작성. */
 namespace WxGameplayTags
 {
 	// ── State ──────────────────────────────────────────────────────────────
@@ -78,10 +75,8 @@ namespace WxGameplayTags
 	/** 무적 구간에서 대미지를 회피했을 때 발송 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_DodgeSuccess);
 
-	/** 퍼펙트 가드 성공 시 발생하는 이벤트 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_PerfectGuard);
 
-	/** Consumable 아이템 소비 이벤트 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_UseItem);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Interact);
@@ -210,9 +205,7 @@ namespace WxGameplayTags
 	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Trait_Exclusive);
 
-	// 「액션 중」을 묻는 두 판정이 서로 다른 신호를 쓰는 것은 의도다(2026-08-07).
 	// 점프는 이 태그의 차단 여부를 보므로 후딜에 열린다 — 캔슬 액션과 같은 취급.
-	// 앉기는 몽타주 재생 여부를 보므로 후딜에도 닫혀 있다 — 몽타주가 도는데 캡슐만 줄어드는 그림을 막는다.
 
 	// ── SetByCaller ──────────────────────────────────────────────────────────────
 

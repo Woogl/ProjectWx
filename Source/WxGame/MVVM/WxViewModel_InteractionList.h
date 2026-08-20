@@ -51,7 +51,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx|Interaction")
 	void RequestInteract();
 
-	/** 뷰(WBP)의 선택 이동 요청(휠 등). */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Interaction")
 	void RequestCycle(int32 Delta);
 

@@ -69,7 +69,7 @@ void UWxItemDefinitionThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y,
 		return;
 	}
 
-	// 머터리얼 아이콘은 렌더 프록시로 그린다(블렌드 모드는 머터리얼 자신이 정한다).
+	// 머터리얼 아이콘의 블렌드 모드는 머터리얼 자신이 정한다.
 	if (const UMaterialInterface* IconMaterial = Cast<UMaterialInterface>(IconAsset))
 	{
 		FCanvasTileItem TileItem(

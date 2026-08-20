@@ -18,7 +18,6 @@ struct FWxStateTreeTask_PlayAnimationInstanceData
 {
 	GENERATED_BODY()
 
-	/** ST 에셋에서 Context 액터의 컴포넌트로 바인딩한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<USkeletalMeshComponent> TargetMesh;
 

@@ -19,7 +19,6 @@ namespace
 		FStateTreeWeakExecutionContext Context;
 	};
 
-	/** 비어 있으면 스포너가 처치돼도 하는 일이 없다. */
 	TArray<FWxSpawnersKilledWait> SpawnersKilledWaits;
 
 	/** 재사용하지 않으므로 뒤늦은 해제 요청이 엉뚱한 등록을 걷어가지 않는다. */

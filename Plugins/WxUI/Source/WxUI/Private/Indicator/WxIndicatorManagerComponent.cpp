@@ -18,7 +18,7 @@ namespace
 	 */
 	constexpr float WxIndicatorScreenMargin = 48.f;
 
-	/** 대상의 월드 위치를 화면 좌표와 카메라 거리로 바꾼다. 대상이 무효면 false. */
+	/** 대상이 무효면 false. */
 	bool ProjectIndicator(const UWxIndicatorDescriptor& Indicator, const FSceneViewProjectionData& ProjectionData, const FVector2f& ScreenSize, FVector2D& OutScreenPosition, double& OutDistanceToCamera)
 	{
 		const USceneComponent* TargetComponent = Indicator.GetTargetComponent();
@@ -47,7 +47,7 @@ namespace
 		return true;
 	}
 
-	/** 화면 밖 좌표를 화면 가장자리로 당긴다. 당겼으면 true — 위젯이 화면 밖임을 알 수 있다. */
+	/** 당겼으면 true — 위젯이 화면 밖임을 알 수 있다. */
 	bool ClampToScreen(const FVector2D& ScreenSize, FVector2D& InOutScreenPosition)
 	{
 		const FVector2D ClampRectMin(WxIndicatorScreenMargin, WxIndicatorScreenMargin);
@@ -212,7 +212,7 @@ void UWxIndicatorManagerComponent::UpdateProjections()
 
 		const bool bClamped = ClampToScreen(ScreenSize, ScreenPosition);
 
-		// 거리는 1m 단위로만 발행한다. 미세한 변화까지 흘리면 매 프레임 바인딩이 돈다.
+		// 미세한 거리 변화까지 흘리면 매 프레임 바인딩이 돈다.
 		const float DistanceMeters = FMath::RoundToFloat(static_cast<float>(DistanceToCamera) / 100.f);
 
 		Indicator->SetProjection(ScreenPosition, DistanceMeters, bClamped);

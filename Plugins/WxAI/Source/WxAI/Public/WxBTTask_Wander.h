@@ -9,7 +9,7 @@
 
 class UGameplayEffect;
 
-/** 배회 이동 방향. 폰의 정면(ControlRotation)을 기준으로 시계 방향 45도 간격의 8방향. */
+/** 폰의 정면(ControlRotation)을 기준으로 시계 방향 45도 간격의 8방향. */
 UENUM()
 enum class EWxWanderDirection : uint8
 {
@@ -24,8 +24,6 @@ enum class EWxWanderDirection : uint8
 };
 
 /**
- * BT Task: 지정한 방향들 중 하나로 일정 시간 동안 이동한다.
- *
  * 타겟을 바라본 채 이동(strafe)할지는 이 태스크가 아니라 타겟의 원천인 UWxAIPerceptionComponent 가 회전 모드를 발행해 결정한다.
  */
 UCLASS()
@@ -53,12 +51,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (Bitmask, BitmaskEnum = "/Script/WxAI.EWxWanderDirection"))
 	int32 Directions = 0xFF;
 
-	/** 배회 중 이동 속도 배율. 최대 이동 속도가 이 비율로 제한된다. (1.0 = 평상시 속도) */
+	/** 최대 이동 속도가 이 비율로 제한된다. (1.0 = 평상시 속도) */
 	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
 	float MoveSpeedMultiplier = 0.3f;
 
 	/**
-	 * 감속에 사용할 GameplayEffect. MoveSpeedMultiplier 를 SetByCaller 로 실어 부여하고 종료 시 제거한다.
+	 * MoveSpeedMultiplier 를 SetByCaller 로 실어 부여하고 종료 시 제거한다.
 	 *
 	 * WxAI 는 WxCombat 에 의존하지 않으므로, 디자이너가 BT 에디터에서 직접 지정한다 (WxEffect_MoveSpeedScale).
 	 * 지정하지 않으면 감속 없이 평상시 속도로 배회한다.

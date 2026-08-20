@@ -14,7 +14,7 @@
  * 진행 신호가 평범한 TryActivateAbility 재호출이라 하드웨어 입력과 UI 버튼이 같은 경로를 쓰고, 단계마다 CommitAbility가 새로 걸린다.
  *
  * 몽타주가 1개인 세트는 ComboWindow를 배치하지 않는 한 그 하나만 재생하고 종료한다.
- * 타겟 방향 회전은 ANS_SnapToTarget이 담당.
+ * 타겟 방향 회전은 WxAnimNotifyState_SnapToTarget이 담당.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Skill : public UWxAbilityBase

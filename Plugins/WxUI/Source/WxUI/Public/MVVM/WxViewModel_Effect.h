@@ -11,9 +11,6 @@
 class UWxEffectComponent_UIData;
 class UAbilitySystemComponent;
 
-/**
- * 활성 GameplayEffect의 남은 시간, 스택 수, 아이콘을 UI에 제공한다.
- */
 UCLASS()
 class WXUI_API UWxViewModel_Effect : public UWxViewModel
 {

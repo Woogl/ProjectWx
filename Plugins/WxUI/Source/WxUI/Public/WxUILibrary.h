@@ -43,7 +43,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx|UI")
 	static void DeactivateOwningActivatable(UWidget* StartingWidget);
 
-	/** 지정한 레이어 스택의 모든 위젯을 비활성화/제거한다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|UI", meta = (WorldContext = "WorldContextObject"))
 	static void DeactivateWidgetsInLayer(const UObject* WorldContextObject, UPARAM(meta = (Categories = "UI.Layer"))FGameplayTag LayerTag);
 

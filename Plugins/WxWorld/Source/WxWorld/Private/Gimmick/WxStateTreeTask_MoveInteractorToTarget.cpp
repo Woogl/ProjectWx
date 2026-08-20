@@ -18,7 +18,7 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::EnterState(FStateTr
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 차단 기록을 비운 상태로 시작한다. 아래 어느 조기 완료 경로로 빠지든 ExitState 가 걸지도 않은 차단을 해제하는 일이 없어야 한다.
+	// 아래 어느 조기 완료 경로로 빠지든 ExitState 가 걸지도 않은 차단을 해제하는 일이 없어야 한다.
 	Instance.BlockedController = nullptr;
 	Instance.BlockedAbilitySystem = nullptr;
 
@@ -43,7 +43,8 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::EnterState(FStateTr
 		Movement->StopMovementImmediately();
 	}
 
-	// 입력이 실제로 생기고 예측이 발동을 게이트하는 로컬 컨트롤 인스턴스에서만 건다(소유 클라가 막으면 서버로 활성화가 전송되지 않아 서버 차단이 불필요). 스냅·이동 두 경로 모두에서 걸어 ExitState 해제와 짝을 맞춘다.
+	// 입력이 실제로 생기고 예측이 발동을 게이트하는 로컬 컨트롤 인스턴스에서만 건다 — 소유 클라가 막으면 서버로 활성화가 전송되지 않아 서버 차단이 불필요하다.
+	// 스냅·이동 두 경로 모두에서 걸어 ExitState 해제와 짝을 맞춘다.
 	if (Character->IsLocallyControlled())
 	{
 		if (AController* Controller = Character->GetController())

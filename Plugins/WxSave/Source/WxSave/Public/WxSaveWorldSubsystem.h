@@ -39,7 +39,7 @@ public:
 	 */
 	void RequestSaveFlush(FOnSaveFlushComplete::FDelegate OnComplete, const FTransform* ResumeTransform = nullptr);
 
-	/** 플레이어 액터의 ASC 어트리뷰트 base 값을 OutStats 에 캡처한다(복제되는 것만 — 비복제 메타 제외). ASC 부재 시 noop. GAS 만 알고 구체 AttributeSet 타입엔 무관하다. */
+	/** 플레이어 액터의 ASC 어트리뷰트 base 값을 OutStats 에 캡처한다(복제되는 것만 — 비복제 메타 제외). GAS 만 알고 구체 AttributeSet 타입엔 무관하다. */
 	static void CapturePlayerStats(AActor* PlayerActor, TMap<FName, float>& OutStats);
 
 	/** 캡처된 어트리뷰트 base 값을 플레이어 액터의 ASC 에 적용한다. 2패스로 적용해 PreAttributeChange 클램프·PostAttributeChange 비율 재조정과의 순서 의존을 흡수한다. */
@@ -63,7 +63,6 @@ private:
 	/** 현재 맵을 캡처해 게임 서브시스템의 TravelData 로 푸시한다. */
 	void FlushMapTravelData();
 
-	/** 현재 월드의 IWxSavable 액터 전체를 SaveGame 레코드로 캡처한다. */
 	void FlushSavableActors();
 
 	/**

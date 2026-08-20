@@ -123,7 +123,6 @@ public:
 	 */
 	void SetInteractionRegionEnabled(UPrimitiveComponent* Mesh, bool bEnabled, const FWxGimmickInteractionRegion& Region);
 
-	/** 이번 상호작용의 당사자(플레이어 캐릭터). 상호작용이 없었으면 null. */
 	ACharacter* GetInteractingCharacter() const;
 
 	/** 지금 활성인 상태의 Tag. 활성 leaf 에서 위로 올라가며 처음 만나는 유효 태그를 답한다(태그 없는 중간 상태는 건너뛴다). */
@@ -190,7 +189,6 @@ private:
 	/** StateTag 가 가리키는 상태로 라이브 전이를 요청한다. 재시작과 달리 인스턴스 데이터·대기 중인 발행을 보존하고 진입이 초기 진입으로 취급되지 않는다. */
 	void EnterReplicatedState();
 
-	/** WxSave 슬롯 레코드의 안정적 키. 에디터에서 저장 직전에 오너의 ActorGuid 로 확정되어 에셋에 직렬화되고, 런타임/세션 간 불변이다. */
 	UPROPERTY()
 	FGuid SaveId;
 

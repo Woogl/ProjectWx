@@ -41,7 +41,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
 	static void TravelFromSaveFile(const UObject* WorldContextObject);
 
-	/** 로드/삭제 버튼 활성화·덮어쓰기 확인에 쓴다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
 	static bool DoesSaveFileExist(const UObject* WorldContextObject, const FString& SlotName, int32 UserIndex);
 

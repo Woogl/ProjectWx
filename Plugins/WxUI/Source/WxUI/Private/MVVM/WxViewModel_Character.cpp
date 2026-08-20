@@ -14,7 +14,6 @@ void UWxViewModel_Character::Initialize(UAbilitySystemComponent* InASC, const FT
 
 	Deinitialize();
 
-	// 자식은 ASC 가 소유하는 공유본이다 — 같은 캐릭터를 보는 다른 위젯과 같은 인스턴스를 쓴다.
 	UE_MVVM_SET_PROPERTY_VALUE(AbilitySystem, UWxViewModel_AbilitySystem::GetOrCreate(InASC));
 
 	UE_MVVM_SET_PROPERTY_VALUE(CharacterName, InCharacterName);

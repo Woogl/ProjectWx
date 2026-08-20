@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "WxTeamTypes.generated.h"
 
-/** 캐릭터의 팀 구분 */
 UENUM(BlueprintType)
 enum class EWxTeam : uint8
 {

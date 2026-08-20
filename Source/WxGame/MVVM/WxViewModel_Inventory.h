@@ -22,8 +22,6 @@ class UMVVMView;
  * UWxViewModelResolver_Inventory 가 위젯별로 생성하며, 인벤토리 연결은 본 VM 이 스스로 관찰해 처리한다.
  * 인벤토리는 GameMode 주입(서버) 또는 복제(클라)로 붙어 위젯보다 늦게 도착할 수 있고, 리졸버가 돌려준 인스턴스는 뷰가 교체할 수 없다.
  * 그래서 인스턴스는 고정한 채 도착 신호를 받아 내부 상태(Initialize)만 갈아끼운다 — UWxViewModel_BossCharacter 와 같은 구조다.
- *
- * 특정 ItemDef 의 수량/아이콘/이름 등 슬롯 단위 표시 데이터는 본 VM을 쓰지 말고 UWxViewModel_Item 을 위젯 인스턴스별로 생성해 사용한다.
  */
 UCLASS()
 class WXGAME_API UWxViewModel_Inventory : public UWxViewModel
@@ -59,7 +57,6 @@ public:
 	int32 LastChangedDelta = 0;
 
 	/**
-	 * 슬롯별 UWxViewModel_Item 배열.
 	 * WBP_ItemSlot 이 ListView 엔트리로 이 VM 을 직접 받아 Manual 바인딩하는 것을 전제로 한다.
 	 * 동일 ItemDef 가 복수 슬롯으로 분할되어 있어도 각 VM 이 자기 슬롯 인스턴스에 바인딩되어 독립적으로 수량을 표시한다.
 	 */

@@ -47,7 +47,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Indicator")
 	float DistanceMeters = 0.f;
 
-	/** 대상이 화면 밖이라 가장자리에 붙었는지. 화면 밖 외형(화살표 등) 전환용. */
+	/** 대상이 화면 밖이라 가장자리에 붙었는지. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Indicator")
 	bool bClamped = false;
 
@@ -72,10 +72,6 @@ private:
 	int32 IndicatorIndex = 0;
 };
 
-/**
- * VM_Indicator 용 View Bindings Resolver.
- * WBP 의 View Bindings 에서 Creation Type = Resolver 로 본 클래스를 선택한다.
- */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXUI_API UWxViewModelResolver_Indicator : public UMVVMViewModelContextResolver
 {
@@ -84,7 +80,6 @@ class WXUI_API UWxViewModelResolver_Indicator : public UMVVMViewModelContextReso
 public:
 	virtual UObject* CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const override;
 
-	/** 이 위젯이 표시할 인디케이터의 등록 순번. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Indicator")
 	int32 IndicatorIndex = 0;
 };

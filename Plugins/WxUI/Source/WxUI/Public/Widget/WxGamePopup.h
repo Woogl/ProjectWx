@@ -25,7 +25,6 @@ struct FWxConfirmationPopupAction
 	GENERATED_BODY()
 
 public:
-	/** 이 버튼을 눌렀을 때 돌려줄 결과. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EWxPopupResult Result = EWxPopupResult::Unknown;
 
@@ -58,7 +57,6 @@ public:
 	TArray<FWxConfirmationPopupAction> ButtonActions;
 };
 
-/** 팝업 위젯 베이스. 실제 표시 로직은 서브클래스에서 구현한다. */
 UCLASS(Abstract, meta = (DisableNativeTick))
 class WXUI_API UWxGamePopup : public UWxActivatableWidget
 {

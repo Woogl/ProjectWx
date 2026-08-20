@@ -86,7 +86,7 @@ UWxSaveGame* UWxSaveGameSubsystem::LoadFromFile(const FString& SlotName, int32 U
 	}
 	else
 	{
-		// 파일 부재/손상: 같은 슬롯의 빈 SaveGame 으로 리셋한다(이전 세션 잔여 상태 차단).
+		// 이전 세션의 잔여 상태가 남지 않도록 빈 슬롯으로 리셋한다.
 		StartNewSaveFile(TargetSlot, TargetUserIndex, UWxSaveGame::StaticClass());
 		UE_LOG(LogWxSave, Log, TEXT("LoadFromFile: 슬롯 '%s' 파일 없음/손상 — 빈 슬롯으로 시작"), *TargetSlot);
 	}
@@ -125,7 +125,7 @@ void UWxSaveGameSubsystem::TravelFromSaveFile()
 	UE_LOG(LogWxSave, Log, TEXT("TravelFromSaveFile: '%s' 로 트래블(ServerTravel)"), *TravelMap);
 	if (!World->ServerTravel(TravelMap, true))
 	{
-		// 트래블 시작 실패(맵 이름 무효 등): 가드를 즉시 해제해 자동 캡처 경로를 복구한다.
+		// 가드를 즉시 해제해 자동 캡처 경로를 복구한다.
 		bTravelingFromSaveFile = false;
 		UE_LOG(LogWxSave, Warning, TEXT("TravelFromSaveFile: ServerTravel 시작 실패 — '%s'"), *TravelMap);
 	}
@@ -207,7 +207,7 @@ bool UWxSaveGameSubsystem::TryGetPlayerTransform(const UWorld* World, FTransform
 		return false;
 	}
 
-	// 좌표는 맵 종속이라 저장 맵이 현재 월드와 일치할 때만 유효하다(ReportTravelFromSaveFileComplete 와 동일 비교).
+	// 맵 일치 판정은 ReportTravelFromSaveFileComplete 와 같은 비교다.
 	const FName SavedMap = SaveGame->TravelData.Map.IsNull() ? NAME_None : SaveGame->TravelData.Map.GetAssetPath().GetPackageName();
 	const FName CurrentMap = GetStableMapPackageName(World);
 	if (SaveGame->PlayerTransform.Equals(FTransform::Identity) || SavedMap != CurrentMap)
@@ -313,7 +313,6 @@ void UWxSaveGameSubsystem::FinishSaveInProgress()
 {
 	bSaveInProgress = false;
 
-	// 이 기록의 완료를 기다리던 쪽에 알리고 약속을 비운다. 다음 기록은 자기 청자를 새로 받는다.
 	OnSaveCompleted.Broadcast();
 	OnSaveCompleted.Clear();
 }

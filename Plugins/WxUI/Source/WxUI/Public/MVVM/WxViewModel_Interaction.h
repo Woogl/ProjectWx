@@ -7,7 +7,6 @@
 #include "WxViewModel_Interaction.generated.h"
 
 /**
- * 상호작용 하나를 나타내는 뷰모델.
  * UWxViewModel_InteractionList 가 인-레인지 대상 하나당 하나씩 생성/소유한다.
  */
 UCLASS()

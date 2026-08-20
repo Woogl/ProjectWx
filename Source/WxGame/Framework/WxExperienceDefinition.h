@@ -43,7 +43,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TSubclassOf<APawn> DefaultPawnClass;
 
-	/** 활성화할 GameFeature 플러그인 이름 목록. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TArray<FString> GameFeaturesToEnable;
 

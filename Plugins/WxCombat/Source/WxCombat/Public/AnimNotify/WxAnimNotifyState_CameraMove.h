@@ -43,7 +43,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|Camera")
 	bool bAttachToOwner = true;
 
-	/** 낮출수록 시네마틱한 압축감을 준다. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Camera", meta = (ClampMin = "5", ClampMax = "170"))
 	float FieldOfView = 90.0f;
 

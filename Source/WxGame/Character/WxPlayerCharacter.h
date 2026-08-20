@@ -15,7 +15,6 @@ class UInputAction;
 struct FInputActionValue;
 
 /**
- * 플레이어 캐릭터.
  * - 클라이언트에서는 OnRep_PlayerState 로 InitAbilitySystem 호출 (서버는 베이스의 PossessedBy)
  * - 게임플레이 입력(이동/시선/어빌리티) 소유. 입력 구성은 UWxInputConfig DA에서 주입.
  */

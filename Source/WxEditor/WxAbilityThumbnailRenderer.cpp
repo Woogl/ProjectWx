@@ -11,7 +11,6 @@
 
 namespace WxAbilityThumbnailRenderer
 {
-	/** Blueprint 가 UWxAbilityBase 파생이면 그 어빌리티 아이콘 소프트 참조를 반환한다. 아니면 Null 참조. */
 	static TSoftObjectPtr<UObject> GetAbilityIcon(UObject* Object)
 	{
 		const UBlueprint* Blueprint = Cast<UBlueprint>(Object);
@@ -42,7 +41,7 @@ bool UWxAbilityThumbnailRenderer::CanVisualizeAsset(UObject* Object)
 
 void UWxAbilityThumbnailRenderer::GetThumbnailSize(UObject* Object, float Zoom, uint32& OutWidth, uint32& OutHeight) const
 {
-	// 텍스처만 고유 해상도를 갖는다. 머터리얼 아이콘과 아이콘 미설정은 엔진 기본 크기로 위임한다.
+	// 텍스처만 고유 해상도를 갖는다.
 	if (const UTexture2D* IconTexture = Cast<UTexture2D>(WxAbilityThumbnailRenderer::GetAbilityIcon(Object).LoadSynchronous()))
 	{
 		OutWidth = FMath::TruncToInt(Zoom * static_cast<float>(IconTexture->GetSizeX()));
@@ -72,7 +71,7 @@ void UWxAbilityThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint32
 			return;
 		}
 	}
-	// 머터리얼 아이콘은 렌더 프록시로 그린다(블렌드 모드는 머터리얼 자신이 정한다).
+	// 머터리얼 아이콘의 블렌드 모드는 머터리얼 자신이 정한다.
 	else if (const UMaterialInterface* IconMaterial = Cast<UMaterialInterface>(IconAsset))
 	{
 		FCanvasTileItem TileItem(

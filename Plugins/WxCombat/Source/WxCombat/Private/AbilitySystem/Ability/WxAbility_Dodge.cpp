@@ -18,7 +18,6 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 	AssetTags.AddTag(WxGameplayTags::Trait_Exclusive);
 	SetAssetTags(AssetTags);
 
-	// 공격이 반격 세트를 고르는 진입 조건이기도 하다.
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Dodge);
 
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);

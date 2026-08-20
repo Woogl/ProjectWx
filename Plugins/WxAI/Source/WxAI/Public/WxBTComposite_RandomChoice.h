@@ -12,7 +12,7 @@
  */
 struct FWxBTRandomChoiceMemory : public FBTCompositeMemory
 {
-	// 직전 진입에서 선택된 자식 인덱스. 회피 비교 기준. INDEX_NONE = 미설정.
+	// 회피 비교 기준. INDEX_NONE = 미설정.
 	int32 LastChosenChild;
 };
 
@@ -24,7 +24,6 @@ struct FWxBTRandomChoiceMemory : public FBTCompositeMemory
  * 유효 후보가 하나도 없으면 아무 자식도 실행하지 않고 실패를 반환한다.
  *
  * Selector 시멘틱과 다르다 — 일단 선택된 자식이 실행 후 실패해도 다른 자식으로 폴백하지 않고 그대로 실패를 반환한다.
- * 한 진입에서 실행되는 자식은 정확히 1개.
  *
  * 베이스 클래스로 UBTComposite_Selector 를 사용하는 것은 시멘틱 일치가 아니라 BT 시스템 호환성 때문이며, 실제 동작은 GetNextChildHandler 오버라이드 한 곳에서 결정된다.
  */

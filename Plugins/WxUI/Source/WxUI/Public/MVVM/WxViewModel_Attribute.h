@@ -14,7 +14,6 @@ class UMVVMView;
 class UUserWidget;
 
 /**
- * 범용 어트리뷰트 뷰모델.
  * ASC의 임의의 어트리뷰트 쌍(현재값, 최대값)의 변경을 감지하여 UI 바인딩용 프로퍼티를 갱신한다.
  */
 UCLASS()
@@ -72,7 +71,6 @@ private:
 
 /**
  * 위젯을 소유한 PlayerController 의 빙의 Pawn 에서 ASC 를 끌어와, 지정한 어트리뷰트 쌍의 UWxViewModel_Attribute 를 그 ASC 의 어빌리티시스템 VM 에서 얻는다.
- * WBP 의 View Bindings 에서 Creation Type = Resolver 로 본 클래스를 선택하고, 위젯마다 표시할 어트리뷰트를 지정한다.
  */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXUI_API UWxViewModelResolver_Attribute : public UMVVMViewModelContextResolver

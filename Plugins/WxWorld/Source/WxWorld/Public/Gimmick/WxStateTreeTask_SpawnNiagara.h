@@ -19,7 +19,7 @@ struct FWxStateTreeTask_SpawnNiagaraInstanceData
 {
 	GENERATED_BODY()
 
-	/** ST 에셋에서 Context 액터의 컴포넌트로 바인딩한다. 비우면 액터 위치에 재생. */
+	/** 비우면 액터 위치에 재생한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<USceneComponent> AttachComponent;
 

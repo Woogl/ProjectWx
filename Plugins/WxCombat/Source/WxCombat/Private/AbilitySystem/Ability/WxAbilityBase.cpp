@@ -231,7 +231,6 @@ void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, cons
 		return;
 	}
 
-	// Row가 없거나 쿨다운이 0 이하면 GetCooldownGameplayEffect가 널을 돌려준다.
 	const UGameplayEffect* CooldownGE = GetCooldownGameplayEffect();
 	const FWxAbilityTableRow* Row = GetTableRow();
 	if (!CooldownGE || !Row)

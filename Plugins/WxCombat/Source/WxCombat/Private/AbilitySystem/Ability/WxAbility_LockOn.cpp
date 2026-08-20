@@ -111,7 +111,6 @@ void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 void UWxAbility_LockOn::HandleTargetLost()
 {
-	// 타겟 결정은 활성화와 마찬가지로 소유 클라(또는 리슨 호스트)에서만 한다.
 	AActor* Avatar = GetOwningActorFromActorInfo();
 	UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(Avatar);
 	if (bRetargetOnTargetLost && IsLocallyControlled() && Avatar && LockOnComp)

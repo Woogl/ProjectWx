@@ -52,7 +52,6 @@ protected:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 	/**
-	 * 8방향 회피 섹션을 담은 몽타주.
 	 * 섹션 이름은 EWxDodgeDirection 항목명(Forward, ForwardRight, ...)과 동일해야 하며, 각 섹션은 다음 섹션과의 링크를 끊어 한 방향만 재생되도록 구성한다.
 	 * 구성되지 않은 방향 섹션은 Forward 섹션으로 폴백한다.
 	 */
@@ -60,7 +59,7 @@ protected:
 	TObjectPtr<UAnimMontage> DodgeMontage;
 
 	/**
-	 * 이동 입력 없이 회피할 때 재생할 백스텝 몽타주.
+	 * 이동 입력이 없을 때 재생한다.
 	 * 미설정 시 DodgeMontage의 Back 섹션으로 폴백한다.
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")

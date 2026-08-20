@@ -99,7 +99,7 @@ FGameplayTag AWxEnemyCharacter::GetEligibleFinisherEventTag(const AActor* Intera
 		ToInteractor.Z = 0.0;
 		if (ToInteractor.Normalize())
 		{
-			// 정면 내적이 후방 임계 이하 = 주체가 후방 원뿔 안. (반각 90° → 임계 0 → 후방 반구)
+			// 정면 내적이 후방 임계 이하 = 주체가 후방 원뿔 안.
 			const float ForwardDot = FVector::DotProduct(GetActorForwardVector(), ToInteractor);
 			const float RearThreshold = -FMath::Cos(FMath::DegreesToRadians(BackstabRearHalfAngle));
 			if (ForwardDot <= RearThreshold)

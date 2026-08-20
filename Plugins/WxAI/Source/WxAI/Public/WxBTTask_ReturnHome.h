@@ -7,8 +7,6 @@
 #include "WxBTTask_ReturnHome.generated.h"
 
 /**
- * BT Task: 추격을 포기하고 배치 지점(HomeLocation)으로 복귀한다.
- *
  * UWxBTDecorator_BeyondLeash 로 게이팅한 리시 복귀 브랜치의 실행 노드다.
  * UBTTask_MoveTo 를 상속해 이동/도착/경로 실패는 엔진에 맡기고, 진입 시 퍼셉션에 "타겟 억제(disengage)"를 지시한다.
  * 억제는 현재 타겟을 비우고 인식(State.InCombat)을 끄며 회전 모드를 원복하고, 복귀 중 재감지를 막는다(리시 밖에선 재-어그로하지 않는 기존 거동 보존).

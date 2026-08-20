@@ -99,7 +99,7 @@ void UWxAIPerceptionComponent::UpdateRecognition()
 
 void UWxAIPerceptionComponent::SetRecognized(bool bNewRecognized)
 {
-	// MinimalReplication 태그는 GE 없이 서버→클라이언트로 복제(COND_SkipOwner)되어, 각 클라이언트의 네임플레이트가 이 태그를 읽어 표시를 결정한다.
+	// MinimalReplication 태그는 GE 없이 서버→클라이언트로 복제된다(COND_SkipOwner).
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwnerPawn());
 	if (!ASC)
 	{

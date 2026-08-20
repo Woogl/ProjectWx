@@ -27,10 +27,7 @@ class WXUI_API UWxViewModel_Subtitle : public UWxViewModel
 	GENERATED_BODY()
 
 public:
-	/**
-	 * 글로벌 컬렉션에 보관된 자막 뷰모델을 돌려준다.
-	 * 표시(리졸버)와 요청(ST 노드) 중 어느 쪽이 먼저 와도 같은 인스턴스가 잡힌다.
-	 */
+	/** 표시(리졸버)와 요청(ST 노드) 중 어느 쪽이 먼저 와도 같은 인스턴스가 잡힌다. */
 	static UWxViewModel_Subtitle* GetOrCreate(const UObject* WorldContextObject);
 
 	/** 자막을 이 화자·문구로 바꾸고, 나중에 회수할 때 쓸 핸들을 발급한다. */
@@ -39,7 +36,6 @@ public:
 	/** 발급 핸들이 지금 걸린 자막의 것일 때만 화면에서 걷어간다. */
 	void HideSubtitle(int32 InSubtitleHandle);
 
-	/** 자막 위젯의 표시/숨김 바인딩용. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Subtitle")
 	bool bHasSubtitle = false;
 
@@ -58,9 +54,6 @@ private:
 	int32 NextHandle = 0;
 };
 
-/**
- * 위젯별로 만들지 않고 글로벌 컬렉션의 자막 뷰모델을 그대로 돌려준다 — ST 노드가 거는 자막이 곧 이 위젯에 뜬다.
- */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXUI_API UWxViewModelResolver_Subtitle : public UMVVMViewModelContextResolver
 {

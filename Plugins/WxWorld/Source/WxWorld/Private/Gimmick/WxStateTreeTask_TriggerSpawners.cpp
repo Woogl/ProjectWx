@@ -30,7 +30,7 @@ EStateTreeRunStatus FWxStateTreeTask_TriggerSpawners::EnterState(FStateTreeExecu
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 	for (const TSoftObjectPtr<AWxSpawner>& SoftSpawner : Instance.Spawners)
 	{
-		// 스트리밍 아웃된 스포너는 강제 로드하지 않고 스킵. 디자이너가 콘솔과 같은 영역에 배치되도록 보장해야 함.
+		// 디자이너가 콘솔과 같은 영역에 배치되도록 보장해야 함.
 		if (AWxSpawner* Spawner = SoftSpawner.Get())
 		{
 			Spawner->Respawn();

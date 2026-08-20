@@ -27,7 +27,6 @@ UWxAbility_Groggy::UWxAbility_Groggy()
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 
-	// 발동만 이벤트로 받고, 종료는 DP 구독이 판정한다(HandleDPChanged).
 	FAbilityTriggerData TriggerData;
 	TriggerData.TriggerTag = WxGameplayTags::Event_Groggy;
 	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;

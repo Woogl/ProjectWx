@@ -48,7 +48,6 @@ void UWxGimmickStateTreeComponent::TickComponent(float DeltaTime, ELevelTick Tic
 
 	// 상태 전이는 전부 트리 틱 안에서 일어나므로, 틱 직후 한 번 보면 모든 변화를 잡는다.
 	// 권위와 클라가 같은 자리에서 방향만 반대로 움직인다 — 권위는 트리 → 복제 값, 클라는 복제 값 → 트리.
-	// 클라 쪽을 OnRep 이 아니라 여기에 둔 것이 핵심이다. 도착 즉시 대조하면 대기 중인 발행을 아직 소화하지 못한 트리를 어긋난 것으로 오판한다.
 	const AActor* Owner = GetOwner();
 	if (Owner && Owner->HasAuthority())
 	{

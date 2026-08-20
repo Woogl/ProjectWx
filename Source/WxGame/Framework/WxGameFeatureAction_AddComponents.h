@@ -19,10 +19,7 @@ struct FWxGameFeatureComponentEntry
 {
 	GENERATED_BODY()
 
-	/**
-	 * 대상 액터는 이 클래스가 상속한 ModularGameplay 베이스(Pawn·Controller·PlayerState·GameState 컴포넌트)에서 도출한다.
-	 * 대상은 ModularGameplay receiver 로 opt-in 돼 있어야 한다.
-	 */
+	/** 대상 액터는 ModularGameplay receiver 로 opt-in 돼 있어야 한다. */
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	TSoftClassPtr<UGameFrameworkComponent> ComponentClass;
 };
@@ -66,7 +63,7 @@ private:
 
 	void AddToWorld(const FWorldContext& WorldContext, FContextHandles& Handles);
 
-	/** 활성 이후 시작되는 게임 인스턴스 콜백: 컨텍스트가 적용되는 월드면 거기에도 요청한다. */
+	/** 활성 이후 시작된 게임 인스턴스의 월드에도 요청을 건다. */
 	void HandleGameInstanceStart(UGameInstance* GameInstance, FGameFeatureStateChangeContext ChangeContext);
 
 	TMap<FGameFeatureStateChangeContext, FContextHandles> ContextHandles;

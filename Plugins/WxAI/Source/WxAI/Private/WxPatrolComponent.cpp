@@ -8,7 +8,6 @@
 UWxPatrolComponent::UWxPatrolComponent()
 {
 #if WITH_EDITORONLY_DATA
-	// 게임/쿡 빌드에는 포함되지 않는다.
 	DirectionArrow = CreateEditorOnlyDefaultSubobject<UArrowComponent>(TEXT("DirectionArrow"));
 	if (DirectionArrow)
 	{
@@ -99,7 +98,6 @@ void UWxPatrolComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyC
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	// 에디터에서 포인트를 추가/수정하거나 MoveMode 를 바꿔도 닫힘 상태와 직선 보간을 다시 맞춘다.
 	ConfigureSpline();
 }
 #endif

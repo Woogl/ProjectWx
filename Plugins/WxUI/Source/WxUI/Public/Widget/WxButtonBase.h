@@ -34,7 +34,6 @@ protected:
 
 	void UpdateButtonText(const FText& InText);
 	
-	/** 바인딩되면 버튼 텍스트가 여기에 세팅된다. */
 	UPROPERTY(BlueprintReadOnly, Category = "Button", meta = (BindWidgetOptional))
 	TObjectPtr<UCommonTextBlock> TextBlock;
 

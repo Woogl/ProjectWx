@@ -19,16 +19,10 @@ class UMVVMView;
 /**
  * 단일 슬롯(또는 ItemDef 합계) 표시 데이터를 노출하는 ViewModel.
  *
- * 두 가지 초기화 모드를 지원한다:
- *   - Initialize(Inventory, ItemInstance) : 특정 슬롯에 바인딩.
- *     ListView 엔트리처럼 동일 ItemDef 가 분할된 슬롯을 각자 표현해야 할 때 사용.
- *     슬롯 단위 델리게이트에 구독한다.
- *   - Initialize(Inventory, ItemDef) : ItemDef 합계에 바인딩.
- *     HUD 재화 등 "해당 아이템 총 보유량" 을 표시할 때 사용(Resolver 경로).
- *     합계 델리게이트에 구독한다.
+ * Initialize(Inventory, ItemInstance) 는 특정 슬롯에 바인딩해 슬롯 단위 델리게이트를 구독한다.
+ * Initialize(Inventory, ItemDef) 는 ItemDef 합계에 바인딩해 합계 델리게이트를 구독한다.
  *
  * 정적 표시 데이터(DisplayName/Grade/GradeColor/MaxCharges)는 Initialize 시점 1회 세팅되며 이후 변하지 않는다.
- * Icon 은 ItemDef 의 Soft 참조를 베이스가 비동기 로드한 결과이므로, View 측은 일반 Image 의 SetBrushResourceObject 에 바인딩한다.
  * 충전형의 Icon 은 충전량 변경 시 ChargeIcons[CurrentCharges] 로 함께 갱신된다.
  */
 UCLASS()
@@ -67,10 +61,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	int32 CurrentCharges = 0;
 
-	/**
-	 * 충전형 아이템의 최대 충전 횟수(Charges Fragment 의 MaxCharges).
-	 * 충전형이 아니면 0.
-	 */
+	/** Charges Fragment 의 MaxCharges. 충전형이 아니면 0. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	int32 MaxCharges = 0;
 
@@ -130,9 +121,6 @@ protected:
 };
 
 /**
- * WBP 의 View Bindings 에서 Creation Type = Resolver 로 선택하면 인스펙터에서 ItemToDisplay 를 직접 지정할 수 있다.
- * 이후 WBP 는 Event Graph/베이스 클래스 없이도 슬롯이 자동 구성된다.
- *
  * ItemToDisplay 가 비었거나 인벤토리를 찾지 못하면 Initialize 없이 빈 VM 으로 반환된다.
  */
 UCLASS(EditInlineNew, CollapseCategories)

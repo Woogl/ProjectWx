@@ -44,8 +44,8 @@ AWxSpawner::AWxSpawner()
 		}
 	}
 
-	// 프리뷰 컴포넌트는 여기서 만들지 않는다. CDO 서브오브젝트로 두면 게임 월드에도 딸려오고 RF_Transient 도 붙지 않으므로,
-	// 에디터 월드에서만 PostRegisterAllComponents 가 NewObject 로 생성한다.
+	// 프리뷰 컴포넌트는 여기서 만들지 않는다.
+	// CDO 서브오브젝트로 두면 게임 월드에도 딸려오고 RF_Transient 도 붙지 않으므로, 에디터 월드에서만 PostRegisterAllComponents 가 NewObject 로 생성한다.
 #endif
 }
 
@@ -181,7 +181,8 @@ void AWxSpawner::SpawnTarget()
 
 	Spawned->FinishSpawning(SpawnTransform);
 
-	// 스포너에 attach 하지 않는다. 스폰 대상은 CMC 로 돌아다니는 캐릭터라, 루트가 붙어 있으면 이동 복제가 ReplicatedMovement 대신 AttachmentReplication(부모 상대 오프셋) 경로를 타 원격 스무딩에서 벗어나고 스포너를 옮기면 딸려 온다.
+	// 스포너에 attach 하지 않는다.
+	// 스폰 대상은 CMC 로 돌아다니는 캐릭터라, 루트가 붙어 있으면 이동 복제가 ReplicatedMovement 대신 AttachmentReplication(부모 상대 오프셋) 경로를 타 원격 스무딩에서 벗어나고 스포너를 옮기면 딸려 온다.
 	// 수명은 이 약참조와 Respawn/EndPlay/OnSaveRestored 의 명시 Destroy 가 관리하므로 부착이 필요 없다.
 	SpawnedActor = Spawned;
 }
@@ -203,7 +204,6 @@ void AWxSpawner::PreSave(FObjectPreSaveContext ObjectSaveContext)
 	SaveId = GetActorGuid();
 }
 
-// 프리뷰 컴포넌트를 에디터 월드에서만 만들어 게임 월드로 새지 않게 한다.
 // 생성 훅으로 PreRegisterAllComponents 는 쓸 수 없다. 월드파티션 셀 스트리밍이 타는 증분 등록 경로가 그 함수를 호출하지 않는다.
 void AWxSpawner::PostRegisterAllComponents()
 {

@@ -23,9 +23,8 @@ void FWxCategoryDetailCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	TArray<FName> CategoryNames;
 	DetailBuilder.GetCategoryNames(CategoryNames);
 
-	// 서브카테고리(예: "Wx|Input") 에 EditCategory 를 호출하면 디테일 패널이 해당 항목을
-	// 자연 중첩 렌더링과 별도로 평면 카테고리로 한 번 더 그려 중복이 발생한다.
-	// 따라서 최상위 세그먼트만 추출하여 정렬 대상으로 삼는다.
+	// 서브카테고리(예: "Wx|Input") 에 EditCategory 를 호출하면 중첩 렌더링과 별도로 평면 카테고리가 한 번 더 그려져 중복된다.
+	// 그래서 최상위 세그먼트만 정렬 대상으로 삼는다.
 	TSet<FName> TopLevelCategories;
 	for (const FName& CategoryName : CategoryNames)
 	{

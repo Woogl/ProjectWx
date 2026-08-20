@@ -15,7 +15,6 @@ UWxBTDecorator_BeyondLeash::UWxBTDecorator_BeyondLeash()
 	// TickNode/OnBecomeRelevant 오버라이드를 감지해 알림 플래그(bNotifyTick 등)를 자동 설정한다(엔진 데코 관용).
 	INIT_DECORATOR_NODE_NOTIFY_FLAGS();
 
-	// 새 배치의 기본 FlowAbortMode 다.
 	FlowAbortMode = EBTFlowAbortMode::LowerPriority;
 }
 

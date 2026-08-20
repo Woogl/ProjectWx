@@ -81,17 +81,17 @@ private:
 	/** Experience 본체와 ActionSet 의 액션을 실행 순서대로 평탄화한다. */
 	void CollectActions(TArray<UGameFeatureAction*>& OutActions) const;
 
-	/** 이 판의 게임플레이 구성. 서버가 InitGameState 에서 설정하고 클라는 복제로 받는다. */
+	/** 서버가 InitGameState 에서 설정하고 클라는 복제로 받는다. */
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentExperience)
 	TObjectPtr<const UWxExperienceDefinition> CurrentExperience;
 
 	EWxExperienceLoadState LoadState = EWxExperienceLoadState::Unloaded;
 
-	/** 활성화를 요청한 GameFeature 플러그인 URL. EndPlay 비활성의 대상이다. */
+	/** EndPlay 비활성의 대상이다. */
 	TArray<FString> GameFeaturePluginURLs;
 
 	int32 NumGameFeaturePluginsLoading = 0;
 
-	/** 로드 완료 1회성 통지. 브로드캐스트 후 비운다. */
+	/** 브로드캐스트 후 비운다. */
 	FWxOnExperienceLoaded OnExperienceLoaded;
 };

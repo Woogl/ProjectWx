@@ -13,8 +13,7 @@
  * 콤보 진행은 엔진 순정 재발동(bRetriggerInstancedAbility)이라 단계마다 CommitAbility가 새로 걸린다.
  * 콤보가 끊기지 않으려면 AbilityDataRow에서 단계 간격보다 쿨다운을 짧게 잡거나 최대 충전 수를 단계 수 이상으로 둔다.
  *
- * 세트 선택과 단계 전진 규칙은 MontageSelector에 있다.
- * 타겟 방향 회전은 ANS_SnapToTarget이 담당.
+ * 타겟 방향 회전은 WxAnimNotifyState_SnapToTarget이 담당.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Attack : public UWxAbilityBase

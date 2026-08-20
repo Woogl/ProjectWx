@@ -27,16 +27,13 @@ public:
 
 	/**
 	 * 주입받은 표시 데이터와 ASC 를 묶은 UWxViewModel_Character 를 생성해 MVVM View 에 바인딩한다.
-	 * (자식 AbilitySystem VM 이 어트리뷰트/이펙트를, 본체가 이름/초상화를 노출한다.)
 	 * WxUI 는 구체 캐릭터 타입을 알지 못하므로 표시 데이터는 소비 측이 주입한다.
-	 * Widget 이 유효하고 UMVVMView Extension 이 존재해야 동작한다.
 	 */
 	void InitializeViewModels(UAbilitySystemComponent* InASC, const FText& InCharacterName, const TSoftObjectPtr<UObject>& InPortrait);
 
 protected:
 	/**
-	 * ASC 보유 태그로 평가한다: Must Have(HasAll)·Must Not Have(HasAny면 숨김)·Query Must Match(복합).
-	 * 기본값은 생성자에서 저작한다(Ability.Death 면 숨김, State.InCombat 또는 State.LockedOn 이면 표시).
+	 * 기본값은 생성자에서 저작한다.
 	 *
 	 * 여기 등장하는 태그가 곧 ASC 구독 목록이므로 런타임에 바꾸면 구독이 어긋난다 — 바꾸려면 재구독이 필요하다.
 	 */

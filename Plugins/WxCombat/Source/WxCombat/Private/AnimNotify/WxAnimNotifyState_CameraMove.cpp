@@ -77,7 +77,6 @@ void UWxAnimNotifyState_CameraMove::NotifyTick(USkeletalMeshComponent* MeshComp,
 
 #if WITH_EDITOR
 	// 애님 에디터 프리뷰에는 PlayerController·뷰타겟이 없어 실제 뷰 전환을 재현할 수 없다.
-	// 대신 프리뷰 월드에 카메라 모델 메시를 놓아 놓일 위치·각도를 형상으로 보여준다.
 	if (!MeshComp)
 	{
 		return;

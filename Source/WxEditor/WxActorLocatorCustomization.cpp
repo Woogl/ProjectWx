@@ -21,7 +21,6 @@ namespace WxActorLocatorCustomization
 	static const FName AllowedLocatorsName(TEXT("AllowedLocators"));
 	static const FName AllowedClassesName(TEXT("AllowedClasses"));
 
-	// 메타는 필드(배열이면 배열 프로퍼티)에 붙으므로, 원소 프로퍼티에서 시작하면 소유자로 한 단계 올라가 찾는다.
 	const FProperty* FindMetaCarrier(const FProperty* Property, FName MetaName)
 	{
 		if (!Property)

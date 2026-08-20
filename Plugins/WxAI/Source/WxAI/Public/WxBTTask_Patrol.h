@@ -10,8 +10,6 @@
 class UGameplayEffect;
 
 /**
- * BT Task: 현재 정찰 지점으로 이동하고, 도착하면 커서를 다음 지점으로 진행시킨다.
- *
  * UBTTask_MoveTo 를 상속해 이동/도착 판정/경로 실패·중단 처리는 엔진에 맡기고, 도착(성공)했을 때만 정찰 커서를 한 칸 진행한다.
  * 이동 목표는 Blackboard 의 PatrolTargetLocation(BlackboardKey)에서 읽고, 도착 시 폰의 UWxPatrolComponent(FindPatrolComponent 로 조회)에 커서 진행을 위임한다.
  */
@@ -30,12 +28,12 @@ public:
 	virtual void OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult) override;
 
 private:
-	/** 정찰 중 이동 속도 배율. 최대 이동 속도가 이 비율로 제한된다. (1.0 = 평상시 속도) */
+	/** 최대 이동 속도가 이 비율로 제한된다. (1.0 = 평상시 속도) */
 	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
 	float MoveSpeedMultiplier = 0.5f;
 
 	/**
-	 * 감속에 사용할 GameplayEffect. MoveSpeedMultiplier 를 SetByCaller 로 실어 부여하고 종료 시 제거한다.
+	 * MoveSpeedMultiplier 를 SetByCaller 로 실어 부여하고 종료 시 제거한다.
 	 *
 	 * WxAI 는 WxCombat 에 의존하지 않으므로, 디자이너가 BT 에디터에서 직접 지정한다 (WxEffect_MoveSpeedScale).
 	 * 지정하지 않으면 감속 없이 평상시 속도로 정찰한다.

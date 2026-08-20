@@ -13,13 +13,13 @@ class UWorld;
 
 namespace WxSave
 {
-	/** 부트스트랩 기본 슬롯 이름(=디스크 파일명). Initialize 가 UI 의 LoadFromFile/StartNewSaveFile 이 슬롯을 재지정하기 전까지 쓰는 활성 슬롯이다. UI 의 명명 세이브 슬롯과는 분리된 전용 기본 슬롯. */
+	/** 부트스트랩 기본 슬롯 이름(=디스크 파일명). UI 의 명명 세이브 슬롯과 분리된 전용 슬롯으로, LoadFromFile/StartNewSaveFile 이 재지정하기 전까지 활성 슬롯이다. */
 	inline const TCHAR* DefaultSaveSlotName = TEXT("Default");
 }
 
 /**
  * 메모리 SaveGame 의 수명·디스크 I/O·맵 트래블을 담당하는 GameInstance 서브시스템 (샘플 UPersistenceGameSubsystem 골격 이식).
- * 슬롯 정체성(SlotName/UserIndex)은 SaveGame 이 보유하므로 SaveToFile 은 무인자다.
+ * 슬롯 정체성(SlotName/UserIndex)은 SaveGame 이 보유하므로 SaveToFile 은 슬롯 인자를 생략하면 활성 슬롯에 기록한다.
  * GameInstanceSubsystem 이라 SaveGame 이 맵 트래블을 가로질러 유지되고, 월드 단위 플러시/복원 오케스트레이션은 UWxSaveWorldSubsystem 이 맡는다.
  * Initialize 가 활성 SaveGame 을 항상 보장한다: 모드(PIE/스탠드얼론/패키지) 무관하게 항상 빈 새 파일로 시작하고, 이후 로드는 UI 의 LoadFromFile 몫이다.
  */
@@ -61,7 +61,6 @@ public:
 	 */
 	void SaveToFile(const FString& SlotName = FString(), int32 UserIndex = 0, const FTransform* ResumeTransform = nullptr);
 
-	/** UI 가 로드/삭제 버튼 활성화·덮어쓰기 확인에 쓴다. */
 	bool DoesSaveFileExist(const FString& SlotName, int32 UserIndex) const;
 
 	/** 인메모리 활성 SaveGame 은 건드리지 않으므로, 활성 슬롯을 지웠다면 다음 SaveToFile 이 그 파일을 다시 만든다.
@@ -102,10 +101,10 @@ public:
 	FSimpleMulticastDelegate OnSaveCompleted;
 
 private:
-	/** SaveGame 을 자기 슬롯에 기록한다. SaveToFile 에서 직접(월드 서브시스템 부재) 또는 RequestSaveFlush 완료 콜백으로 호출된다. */
+	/** SaveToFile 에서 직접(월드 서브시스템 부재) 또는 RequestSaveFlush 완료 콜백으로 호출된다. */
 	void ContinueSaveToFileToDisk();
 
-	/** 기록 종료를 한 자리에서 선언한다 — 진행 플래그를 내리고 기다리던 쪽에 알린다. 성공·실패·중단 어느 경로든 여기로 모인다. */
+	/** 기록 종료를 한 자리에서 선언한다 — 성공·실패·중단 어느 경로든 여기로 모인다. */
 	void FinishSaveInProgress();
 
 	/** SaveToFile 이 세우고 비동기 기록 콜백이 내린다. */

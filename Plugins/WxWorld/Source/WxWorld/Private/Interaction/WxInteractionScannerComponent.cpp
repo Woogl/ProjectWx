@@ -116,7 +116,6 @@ void UWxInteractionScannerComponent::CycleSelection(int32 Delta)
 
 void UWxInteractionScannerComponent::ServerInteract_Implementation(UPrimitiveComponent* Selected)
 {
-	// ServerOnly WxAbility_Interact 가 권위에서 트리거되어 차단태그 게이트·사거리·활성 검증 후 대상 인터페이스를 호출한다.
 	APawn* Pawn = GetOwnerPawn();
 	if (!Pawn)
 	{
@@ -141,7 +140,6 @@ void UWxInteractionScannerComponent::ScanAndPush()
 		return;
 	}
 
-	// 게이트는 어빌리티의 CanActivateAbility 에 위임한다(차단 태그를 컴포넌트가 하드코딩하지 않는 단일 소스).
 	if (const UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn))
 	{
 		if (!CanInteractNow(ASC))
@@ -182,7 +180,6 @@ void UWxInteractionScannerComponent::ScanAndPush()
 		}
 
 		// 겹쳤다는 것이 곧 사거리 판정이다 — 오버랩 구가 IsMeshInRange 와 같은 원점·반경·형상이라 다시 재지 않는다.
-		// 남은 건 이 메시가 지금 켜져 있는 영역인가(서버 권위 검증과 같은 판정)와, 이 주체에게 자격이 있는가다.
 		// 주체별로 자격이 갈리는 대상(예: 처형은 주체가 후방이어야 뒤잡)은 활성 판정만으론 걸러지지 않으므로 소유 폰을 주체로 물어 표시를 거른다.
 		// 서버는 같은 두 함수를 실제 instigator 로 다시 물어 권위 판정한다.
 		if (Target->IsInteractionMeshActive(Mesh) && Target->CanBeInteractedBy(Pawn, Mesh))
@@ -243,7 +240,6 @@ void UWxInteractionScannerComponent::UpdateInRange(const TArray<UPrimitiveCompon
 	}
 
 	// 프롬프트는 대상에서 pull 하는 값이라 멤버십이 그대로여도 문구만 바뀔 수 있다(상태가 바뀌어도 그 영역을 끄지 않는 기믹).
-	// 멤버십 변화만 보고 발화하면 플레이어가 영역 안에 서 있는 동안 HUD 문구가 이전 상태 값으로 굳으므로, 직전 스냅샷과 비교해 실제로 달라졌을 때 내보낸다.
 	TArray<FText> Prompts = GetPrompts();
 	bool bPromptsChanged = Prompts.Num() != LastPrompts.Num();
 	for (int32 Index = 0; !bPromptsChanged && Index < Prompts.Num(); ++Index)

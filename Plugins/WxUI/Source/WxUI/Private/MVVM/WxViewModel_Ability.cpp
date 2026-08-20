@@ -58,7 +58,6 @@ void UWxViewModel_Ability::SeedActiveCooldown()
 	Query.EffectDefinition = CachedCooldownClass;
 
 	// UpdateCooldownState 는 CooldownDuration 을 기준으로 진행률을 내는데, 그 값은 GE 적용 통지에서만 채워진다.
-	// 판별식은 UpdateCooldownState 와 동일하다.
 	for (const FActiveGameplayEffectHandle& ActiveHandle : ASC->GetActiveEffects(Query))
 	{
 		const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(ActiveHandle);

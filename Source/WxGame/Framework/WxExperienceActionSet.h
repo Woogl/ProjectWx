@@ -36,11 +36,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Wx")
 	TArray<TObjectPtr<UGameFeatureAction>> Actions;
 
-	/** 활성화할 GameFeature 플러그인 이름 목록. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TArray<FString> GameFeaturesToEnable;
 
-	/** 이 묶음이 지급할 시작 아이템. Experience 가 참조한 전체 묶음의 목록이 합산된다. */
+	/** Experience 가 참조한 전체 묶음의 목록이 합산된다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TArray<FWxItemRewardEntry> DefaultInventoryItems;
 };

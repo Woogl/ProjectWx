@@ -35,7 +35,7 @@ struct WXCOMBAT_API FWxAbilityTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cost")
 	EWxAbilityCostResource CostResource = EWxAbilityCostResource::None;
 
-	/** CostResource 자원의 소모량. 질주처럼 지속 소모하는 어빌리티에서는 진입 비용이다 */
+	/** 질주처럼 지속 소모하는 어빌리티에서는 진입 비용이다 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cost", meta = (ClampMin = "0.0"))
 	float CostAmount = 0.f;
 

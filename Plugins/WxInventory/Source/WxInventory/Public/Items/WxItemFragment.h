@@ -141,7 +141,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Pickup")
 	TSoftObjectPtr<UStaticMesh> Mesh;
 
-	/** 픽업 액터의 나이아가라 컴포넌트에 적용할 시스템. 비어있으면 이펙트 비활성. */
+	/** 비어있으면 이펙트 비활성. */
 	UPROPERTY(EditDefaultsOnly, Category = "Pickup")
 	TSoftObjectPtr<UNiagaraSystem> NiagaraSystem;
 };

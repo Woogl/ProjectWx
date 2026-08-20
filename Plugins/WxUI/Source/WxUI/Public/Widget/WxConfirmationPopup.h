@@ -9,10 +9,7 @@ class UCommonTextBlock;
 class UCommonRichTextBlock;
 class UCommonButtonBase;
 
-/**
- * 헤더/본문 + 확인/거절/취소 버튼을 갖춘 확인 팝업 위젯.
- * 결과 3종(Confirmed/Declined/Cancelled)에 1:1 대응하는 고정 버튼을 사용하며, 서술자의 버튼 구성에 따라 필요한 버튼만 표시한다.
- */
+/** 결과 3종(Confirmed/Declined/Cancelled)에 1:1 대응하는 고정 버튼을 사용하며, 서술자의 버튼 구성에 따라 필요한 버튼만 표시한다. */
 UCLASS(Abstract, Blueprintable, meta = (DisableNativeTick))
 class WXUI_API UWxConfirmationPopup : public UWxGamePopup
 {

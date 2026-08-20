@@ -39,7 +39,6 @@ struct FWxStateTreeTask_PrintSubtitleInstanceData
 	UPROPERTY()
 	int32 SubtitleHandle = INDEX_NONE;
 
-	/** (런타임) 지금 띄운 줄을 건 뒤 경과 시간(초). */
 	UPROPERTY()
 	float ElapsedSeconds = 0.f;
 };

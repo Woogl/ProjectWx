@@ -9,7 +9,6 @@
 /**
  * 게임 플레이 중 항상 활성화되는 HUD 루트 위젯 (UI.Layer.Game).
  * 메뉴 토글 입력을 CommonUI 액션으로 수신해 해당 메뉴를 Menu 레이어에 푸시한다.
- * Lyra의 ULyraHUDLayout 대응.
  */
 UCLASS(Abstract, meta = (DisableNativeTick))
 class WXUI_API UWxHUDLayout : public UWxActivatableWidget

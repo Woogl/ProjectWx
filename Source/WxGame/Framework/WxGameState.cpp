@@ -14,7 +14,6 @@ void AWxGameState::PreInitializeComponents()
 {
 	Super::PreInitializeComponents();
 
-	// 활성 주입 요청의 컴포넌트가 여기에 자동 부착된다.
 	UGameFrameworkComponentManager::AddGameFrameworkComponentReceiver(this);
 }
 

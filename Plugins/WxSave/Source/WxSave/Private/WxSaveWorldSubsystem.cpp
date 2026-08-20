@@ -92,7 +92,7 @@ IWxSavable* UWxSaveWorldSubsystem::FindSavable(AActor* Actor)
 		return nullptr;
 	}
 
-	// 액터가 직접 구현했으면 그것이 답이다(스포너 등 영속이 액터 고유 상태인 경우).
+	// 액터 직접 구현은 영속이 액터 고유 상태인 경우다(스포너 등).
 	if (IWxSavable* ActorImplementation = Cast<IWxSavable>(Actor))
 	{
 		return ActorImplementation;
@@ -153,12 +153,11 @@ void UWxSaveWorldSubsystem::FlushPlayerTransform(const FTransform* ResumeTransfo
 
 	if (ResumeTransform)
 	{
-		// 저장 요청자가 재개 지점을 지정했다(체크포인트 오토세이브). 폰이 어디에 서 있었든 그 자리로 확정한다.
 		SaveGame->PlayerTransform = *ResumeTransform;
 	}
 	else
 	{
-		// 첫 플레이어 폰의 위치를 재개 지점으로 캡처한다(스탠드얼론 싱글 전제 — FlushPlayerStats 와 동일 대상). 폰 부재 시 이전 캡처를 보존한다.
+		// 첫 플레이어 폰만 본다 — 스탠드얼론 싱글 전제이고 FlushPlayerStats 와 동일 대상이다.
 		const APlayerController* PC = World->GetFirstPlayerController();
 		const APawn* Pawn = PC ? PC->GetPawn() : nullptr;
 		if (!Pawn)
@@ -183,7 +182,7 @@ void UWxSaveWorldSubsystem::FlushPlayerStats()
 		return;
 	}
 
-	// 첫 플레이어 폰의 어트리뷰트를 캡처한다(스탠드얼론 싱글 전제 — FlushPlayerTransform 과 동일 대상). 폰 부재 시 이전 캡처를 보존한다.
+	// 첫 플레이어 폰만 본다 — 스탠드얼론 싱글 전제이고 FlushPlayerTransform 과 동일 대상이다.
 	const APlayerController* PC = World->GetFirstPlayerController();
 	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
 	if (!Pawn)
@@ -236,7 +235,6 @@ void UWxSaveWorldSubsystem::ApplyPlayerStats(AActor* PlayerActor, const TMap<FNa
 		return;
 	}
 
-	// 어트리뷰트 간 세팅 순서 의존(current 는 PreAttributeChange 에서 현재 Max 로 클램프되고, Max 변경은 PostAttributeChange 에서 current 를 비율 재조정)을 이름 규칙 없이 흡수한다.
 	// 1패스로 전량 적용하면 모든 Max 가 저장 값으로 확정된다(Max 는 다른 어트리뷰트에 의해 재조정되지 않으므로).
 	// 2패스는 아직 저장 값과 다른 것(주로 잘못된 Max 로 클램프된 current)만 재적용해 정확한 Max 로 복원한다.
 	for (int32 Pass = 0; Pass < 2; ++Pass)
@@ -263,7 +261,7 @@ void UWxSaveWorldSubsystem::ApplyPlayerStats(AActor* PlayerActor, const TMap<FNa
 
 				const FGameplayAttribute Attribute(*It);
 
-				// 이미 저장 값이면(주로 1패스에서 확정된 Max) 재적용을 건너뛴다. 불필요한 재조정에 의한 미세 드리프트를 막는다.
+				// 이미 저장 값이면 재적용이 부르는 미세 드리프트를 막는다.
 				if (Pass == 1 && ASC->GetNumericAttributeBase(Attribute) == *SavedValue)
 				{
 					continue;
@@ -361,7 +359,7 @@ bool UWxSaveWorldSubsystem::RestoreActor(const UWxSaveGame& SaveGame, AActor* Ac
 
 	Actor->SetActorTransform(Record->Transform);
 
-	// 레코드의 버전 헤더를 1회 파싱한다. 구버전 레코드(헤더 없음)는 기존과 동일하게 현재 빌드 버전으로 읽는다.
+	// 헤더가 없는 구버전 레코드는 현재 빌드 버전으로 읽는다.
 	const bool bHasVersionHeader = Record->VersionHeader.Num() > 0;
 	FPackageFileVersion SavedUEVersion = GPackageFileUEVersion;
 	FCustomVersionContainer SavedCustomVersions;

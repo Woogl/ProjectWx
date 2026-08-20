@@ -15,10 +15,8 @@ enum class EWxPatrolMoveMode : uint8
 	/** 끝에 도달하면 진행 방향을 뒤집어 되짚어 온다(왕복). */
 	PingPong,
 
-	/** 마지막 지점에 도달하면 첫 지점으로 돌아가 순환한다. */
 	Loop,
 
-	/** 마지막 지점에 도달하면 정찰을 종료한다. */
 	Once
 };
 
@@ -66,7 +64,6 @@ private:
 	void ConfigureSpline();
 
 #if WITH_EDITORONLY_DATA
-	/** 에디터에서 최초 정찰 진행 방향(0→1 지점)을 보여주는 화살표. */
 	UPROPERTY()
 	TObjectPtr<UArrowComponent> DirectionArrow;
 #endif

@@ -14,10 +14,6 @@
 #include "Net/UnrealNetwork.h"
 #include "WxGameplayTags.h"
 
-// ─────────────────────────────────────────────────────────────────────────────
-// FWxInventoryEntry
-// ─────────────────────────────────────────────────────────────────────────────
-
 FWxInventoryEntry::FWxInventoryEntry()
 	: Instance(nullptr)
 	, StackCount(0)
@@ -34,10 +30,6 @@ int32 FWxInventoryEntry::GetStackCount() const
 {
 	return StackCount;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// FWxInventoryList
-// ─────────────────────────────────────────────────────────────────────────────
 
 FWxInventoryList::FWxInventoryList()
 	: OwnerComponent(nullptr)
@@ -209,10 +201,6 @@ const TArray<FWxInventoryEntry>& FWxInventoryList::GetEntries() const
 {
 	return Entries;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// UWxInventoryManagerComponent
-// ─────────────────────────────────────────────────────────────────────────────
 
 FWxOnInventoryReady UWxInventoryManagerComponent::OnAnyInventoryReady;
 

@@ -31,10 +31,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	/**
-	 * 등록증을 발급해 목록에 넣는다.
-	 * 대상이 비었거나 오너가 로컬 컨트롤러가 아니면 표시될 수 없으므로 발급하지 않는다(null 반환).
-	 */
+	/** 대상이 비었거나 오너가 로컬 컨트롤러가 아니면 표시될 수 없으므로 발급하지 않는다(null 반환). */
 	UWxIndicatorDescriptor* AddIndicator(USceneComponent* InTargetComponent, const FVector& InWorldOffset);
 
 	/** 목록에 없는 등록증은 무시한다. */

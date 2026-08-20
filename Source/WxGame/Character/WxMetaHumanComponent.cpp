@@ -14,7 +14,7 @@ void UWxMetaHumanComponent::OnRegister()
 {
 	Super::OnRegister();
 
-	// 커맨드릿(에셋 덤프 등)에선 시각 부착물이 불필요하므로 조립하지 않는다.
+	// 커맨드릿에선 시각 부착물이 불필요하므로 조립하지 않는다.
 	if (IsRunningCommandlet())
 	{
 		return;
@@ -33,7 +33,6 @@ void UWxMetaHumanComponent::OnRegister()
 		return;
 	}
 
-	// 오너 캐릭터의 메시가 포즈를 만드는 리더다.
 	ACharacter* Owner = Cast<ACharacter>(GetOwner());
 	USkeletalMeshComponent* LeaderMesh = Owner ? Owner->GetMesh() : nullptr;
 	if (!LeaderMesh)

@@ -21,7 +21,6 @@ UWxBTTask_Patrol::UWxBTTask_Patrol()
 	// 도착 후 커서를 진행시키기 위해 종료 콜백을 받는다.
 	bNotifyTaskFinished = true;
 
-	// 정찰 커서·감속 GE 핸들을 폰별로 보관하기 위해 노드를 인스턴싱한다.
 	bCreateNodeInstance = true;
 }
 

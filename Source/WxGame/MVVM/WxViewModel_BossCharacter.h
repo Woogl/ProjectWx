@@ -45,10 +45,7 @@ private:
 };
 
 /**
- * VM_BossCharacter 용 View Bindings Resolver.
- *
  * 보스 탐색/연결은 뷰모델이 스스로 수행한다.
- * WBP 의 View Bindings 에서 Creation Type = Resolver 로 본 클래스를 선택한다.
  */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXGAME_API UWxViewModelResolver_BossCharacter : public UMVVMViewModelContextResolver

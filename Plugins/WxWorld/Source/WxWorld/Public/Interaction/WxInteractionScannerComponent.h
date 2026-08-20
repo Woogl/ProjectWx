@@ -116,7 +116,7 @@ private:
 	 */
 	bool CanInteractNow(const UAbilitySystemComponent* ASC) const;
 
-	/** 소유 PC 의 현재 폰(없으면 nullptr). 스캔 원점·이벤트 instigator 로 쓴다. */
+	/** 스캔 원점·이벤트 instigator 로 쓴다. */
 	APawn* GetOwnerPawn() const;
 
 	TArray<TWeakObjectPtr<UPrimitiveComponent>> InRangeMeshes;

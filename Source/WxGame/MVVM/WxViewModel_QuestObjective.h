@@ -8,7 +8,6 @@
 #include "WxViewModel_QuestObjective.generated.h"
 
 /**
- * 퀘스트 목표 하나를 나타내는 뷰모델.
  * UWxViewModel_Quest 가 표시 중인 목표 하나당 하나씩 생성/소유한다.
  */
 UCLASS()

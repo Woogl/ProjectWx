@@ -121,7 +121,6 @@ void UWxViewModel_Item::HandleChargeChanged(UWxItemInstance* Instance, int32 New
 		return;
 	}
 
-	// 슬롯 모드는 바인딩된 인스턴스, Def 모드는 동일 ItemDef 의 인스턴스 충전 변경만 반영한다.
 	const UWxItemInstance* TrackedInstance = TargetInstance.Get();
 	const bool bMatches = TrackedInstance ? (Instance == TrackedInstance) : (Instance->GetItemDef() == TargetItemDef.Get());
 	if (!bMatches)

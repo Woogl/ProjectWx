@@ -26,7 +26,6 @@ class WXGAME_API UWxViewModel_Quest : public UWxViewModel
 	GENERATED_BODY()
 
 public:
-	/** 퀘스트 컴포넌트를 물려 저널 변경을 구독하고 현재 상태로 시드한다. */
 	void Initialize(UWxQuestComponent* InQuestComponent);
 
 	virtual void Deinitialize() override;
@@ -50,10 +49,7 @@ private:
 };
 
 /**
- * VM_Quest 용 View Bindings Resolver.
- *
  * 퀘스트 컴포넌트는 Experience 에셋 주입으로 부착되므로, 미등록 게임모드에선 null 을 반환한다(WBP 에서 뷰모델을 optional 로 둔다).
- * WBP 의 View Bindings 에서 Creation Type = Resolver 로 본 클래스를 선택한다.
  */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXGAME_API UWxViewModelResolver_Quest : public UMVVMViewModelContextResolver

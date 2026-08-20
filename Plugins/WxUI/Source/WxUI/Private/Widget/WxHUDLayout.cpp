@@ -13,9 +13,8 @@ void UWxHUDLayout::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	// CommonUI 매칭 규칙: 액션은 현재 ActiveInputMode가 All이거나 바인딩 InputMode와 정확히 일치할 때만 발동한다.
-	// HUD는 GetDesiredInputConfig로 Game 모드를 적용하므로(게임 입력 유지), 바인딩도 Game이어야 게임 플레이 중 매칭된다.
-	// Menu 모드(메뉴 열림)에선 자동으로 매칭되지 않으므로 중첩 열기도 방지된다.
+	// CommonUI 액션은 ActiveInputMode가 All이거나 바인딩 InputMode와 정확히 일치할 때만 발동한다.
+	// HUD의 희망 입력 모드가 Game이므로 바인딩도 Game이어야 하고, 덕분에 메뉴가 열린 상태에선 매칭되지 않는다.
 	FBindUIActionArgs InventoryArgs(FUIActionTag::ConvertChecked(WxGameplayTags::UI_Action_Inventory), FSimpleDelegate::CreateUObject(this, &UWxHUDLayout::HandleInventoryAction));
 	InventoryArgs.InputMode = ECommonInputMode::Game;
 	RegisterUIActionBinding(InventoryArgs);

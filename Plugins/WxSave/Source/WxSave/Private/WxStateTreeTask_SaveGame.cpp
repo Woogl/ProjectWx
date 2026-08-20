@@ -66,8 +66,7 @@ FText FWxStateTreeTask_SaveGame::GetDescription(const FGuid& ID, FStateTreeDataV
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	// 슬롯은 언제나 활성 슬롯이라 갈리는 건 재개 지점뿐이다.
-	// 그것을 보여 배선을 빠뜨린 노드가 눈에 띄게 한다.
+	// 슬롯은 언제나 활성 슬롯이라 갈리는 건 재개 지점뿐이고, 그것을 보여 배선을 빠뜨린 노드가 눈에 띄게 한다.
 	// 재개 지점은 보통 바인딩이라 런타임 포인터가 비어 있다.
 	FText ResumeText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, ResumePoint)), Formatting);
 	if (ResumeText.IsEmpty())

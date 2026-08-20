@@ -22,14 +22,7 @@ enum class EWxSpawnerMode : uint8
 	Manual
 };
 
-/**
- * SpawnableActorClass 인스턴스를 스폰하는 레벨 배치 액터.
- *
- * 처치 상태(bIsKilled) 를 자체적으로 보유한다:
- *  - 처치 시 MarkKilled() → bIsKilled=true. 셀 언로드/리로드 사이엔 GUID 키로 보존 (WxSave 슬롯).
- *  - bNeverRevive=false (일반): Respawn 호출 시 bIsKilled=false 로 리셋 후 새 인스턴스 생성.
- *  - bNeverRevive=true (보스 등): 죽은 뒤 Respawn 이 호출돼도 부활하지 않음(bIsKilled 유지, 생성 스킵). 살아있을 땐 일반 대상처럼 리셋됨.
- */
+/** SpawnableActorClass 인스턴스를 스폰하고, 그 처치 상태를 자체적으로 보유하는 레벨 배치 액터. */
 UCLASS(NotBlueprintable)
 class WXWORLD_API AWxSpawner : public AActor, public IWxSavable
 {
@@ -38,7 +31,7 @@ class WXWORLD_API AWxSpawner : public AActor, public IWxSavable
 public:
 	AWxSpawner();
 
-	/** 현재 스폰된 액터를 파괴하고 SpawnableActorClass로 새로 스폰한다. 서버 권한 필요. 영구 처치는 스킵. */
+	/** 서버 권한 필요. 영구 처치(bNeverRevive) 대상은 스킵. */
 	void Respawn();
 
 	/** Manual 은 일괄 리스폰(TryRespawnAll) 대상에서 제외되고 개별 트리거로만 스폰된다. */

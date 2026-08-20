@@ -88,7 +88,7 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 		return BTSpecialChild::ReturnToParent;
 	}
 
-	// 회피는 유효 후보가 2개 이상일 때만 적용한다. 유효 후보가 직전 선택 자식 하나뿐이면 회피가 무의미하므로 그대로 다시 고른다.
+	// 유효 후보가 직전 선택 자식 하나뿐이면 회피가 무의미하므로 그대로 다시 고른다.
 	if (bAvoidRepeat && Candidates.Num() > 1)
 	{
 		const int32 RepeatIndex = Candidates.Find(LastChosenChild);

@@ -25,8 +25,6 @@ public:
 };
 
 /**
- * 소스 어빌리티(UWxAbilityBase)의 AbilityDataRow를 계산 시점에 조회해 코스트 값을 만든다.
- *
  * MMC API가 평가 중인 Modifier 인덱스를 주지 않아, 자원별로 파생 클래스를 분리한다(UWxMMC_MPCost/UWxMMC_UPCost/UWxMMC_SPCost).
  * Row가 고른 자원과 일치하는 파생 클래스만 값을 내고 나머지는 0이다.
  */
