@@ -14,9 +14,23 @@ void UWxIndicatorDescriptor::Initialize(UWxIndicatorManagerComponent* InOwningMa
 	WorldOffset = InWorldOffset;
 }
 
+void UWxIndicatorDescriptor::Initialize(UWxIndicatorManagerComponent* InOwningManager, const FVector& InWorldLocation, const FVector& InWorldOffset)
+{
+	check(!OwningManager.IsValid());
+
+	OwningManager = InOwningManager;
+	WorldLocation = InWorldLocation;
+	WorldOffset = InWorldOffset;
+}
+
 USceneComponent* UWxIndicatorDescriptor::GetTargetComponent() const
 {
 	return TargetComponent;
+}
+
+FVector UWxIndicatorDescriptor::GetWorldLocation() const
+{
+	return WorldLocation;
 }
 
 FVector UWxIndicatorDescriptor::GetWorldOffset() const

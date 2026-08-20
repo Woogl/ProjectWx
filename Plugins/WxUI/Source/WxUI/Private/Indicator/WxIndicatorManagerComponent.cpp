@@ -21,13 +21,15 @@ namespace
 	/** 대상이 무효면 false. */
 	bool ProjectIndicator(const UWxIndicatorDescriptor& Indicator, const FSceneViewProjectionData& ProjectionData, const FVector2f& ScreenSize, FVector2D& OutScreenPosition, double& OutDistanceToCamera)
 	{
+		// 컴포넌트를 붙이지 않은 등록증은 고정 좌표를 가리킨다. 붙였는데 무효해졌으면 대상이 파괴된 것이라 표시를 접는다.
 		const USceneComponent* TargetComponent = Indicator.GetTargetComponent();
-		if (!IsValid(TargetComponent))
+		if (TargetComponent && !IsValid(TargetComponent))
 		{
 			return false;
 		}
 
-		const FVector WorldLocation = TargetComponent->GetComponentLocation() + Indicator.GetWorldOffset();
+		const FVector OriginLocation = TargetComponent ? TargetComponent->GetComponentLocation() : Indicator.GetWorldLocation();
+		const FVector WorldLocation = OriginLocation + Indicator.GetWorldOffset();
 
 		FVector2D ScreenPosition;
 		const bool bIsInFrontOfCamera = ULocalPlayer::GetPixelPoint(ProjectionData, WorldLocation, ScreenPosition, &ScreenSize);
@@ -156,6 +158,26 @@ UWxIndicatorDescriptor* UWxIndicatorManagerComponent::AddIndicator(USceneCompone
 	UpdateTickEnabled();
 
 	// 첫 틱을 기다리면 한 프레임 동안 좌표 없이 뜬다. 등록 즉시 한 번 계산해 곧바로 제자리에 뜨게 한다.
+	UpdateProjections();
+	OnIndicatorsUpdated.Broadcast();
+
+	return Indicator;
+}
+
+UWxIndicatorDescriptor* UWxIndicatorManagerComponent::AddIndicator(const FVector& InWorldLocation, const FVector& InWorldOffset)
+{
+	const APlayerController* OwningController = GetController<APlayerController>();
+	if (!OwningController || !OwningController->IsLocalController())
+	{
+		return nullptr;
+	}
+
+	UWxIndicatorDescriptor* Indicator = NewObject<UWxIndicatorDescriptor>(this);
+	Indicator->Initialize(this, InWorldLocation, InWorldOffset);
+
+	Indicators.Add(Indicator);
+	UpdateTickEnabled();
+
 	UpdateProjections();
 	OnIndicatorsUpdated.Broadcast();
 

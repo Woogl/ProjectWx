@@ -36,25 +36,31 @@ namespace
 		RegisteredIndicator.Reset();
 	}
 
-	/** 대상이 해석되면 등록하고, 해석되지 않으면(스트리밍 아웃·파괴) 해제한다. 등록증과 대상이 살아 있으면 해석 없이 그대로 둔다. */
+	/** 대상이 해석되면 그 컴포넌트에, 해석되지 않으면(스트리밍 아웃·파괴) 기록 좌표에 건다. 이미 원하는 곳에 걸려 있으면 그대로 둔다. */
 	void RefreshIndicator(const FStateTreeExecutionContext& Context, FWxStateTreeTask_MarkIndicatorInstanceData& Instance)
 	{
-		// 매니저는 대상이 파괴돼도 표시만 접고 등록증은 남기므로 대상 컴포넌트까지 본다.
-		const UWxIndicatorDescriptor* Indicator = Instance.RegisteredIndicator.Get();
-		if (Indicator && IsValid(Indicator->GetTargetComponent()))
+		// 빈 로케이터는 좌표도 기록되지 않았으므로 대역으로 갈 곳이 없다.
+		if (Instance.Target.IsEmpty())
 		{
 			return;
 		}
-
-		// 대상을 잃은 등록증은 먼저 걷어낸다 — 다시 해석되면 새 대상으로 발급받는다.
-		UnregisterIndicator(Instance.RegisteredIndicator);
 
 		AActor* Owner = Cast<AActor>(Context.GetOwner());
 		AActor* Target = ResolveTargetActor(Instance.Target, Owner);
-		if (!Target)
+		USceneComponent* TargetComponent = Target ? Target->GetRootComponent() : nullptr;
+
+		// 매니저는 대상이 파괴돼도 표시만 접고 등록증은 남기므로, 등록증이 지금 무엇에 걸려 있는지까지 본다.
+		// 둘 다 비었으면 이미 좌표 대역으로 걸린 것이라 그대로 둔다 — 매 틱 갈아 끼우면 등록증만 버려진다.
+		if (const UWxIndicatorDescriptor* Indicator = Instance.RegisteredIndicator.Get())
 		{
-			return;
+			if (Indicator->GetTargetComponent() == TargetComponent)
+			{
+				return;
+			}
 		}
+
+		// 걸 곳이 바뀐 등록증은 먼저 걷어낸다.
+		UnregisterIndicator(Instance.RegisteredIndicator);
 
 		// 매니저는 아직 없을 수 있다(폰·컨트롤러 스폰 전).
 		// 그때는 등록만 미루고 다음 틱이 재시도한다.
@@ -64,7 +70,15 @@ namespace
 			return;
 		}
 
-		Instance.RegisteredIndicator = Manager->AddIndicator(Target->GetRootComponent(), FVector(0.f, 0.f, Instance.WorldZOffset));
+		const FVector WorldOffset(0.f, 0.f, Instance.WorldZOffset);
+		if (TargetComponent)
+		{
+			Instance.RegisteredIndicator = Manager->AddIndicator(TargetComponent, WorldOffset);
+		}
+		else
+		{
+			Instance.RegisteredIndicator = Manager->AddIndicator(Instance.TargetLocation, WorldOffset);
+		}
 	}
 
 #if WITH_EDITOR
@@ -140,6 +154,20 @@ void FWxStateTreeTask_MarkIndicator::ExitState(FStateTreeExecutionContext& Conte
 }
 
 #if WITH_EDITOR
+void FWxStateTreeTask_MarkIndicator::PostEditInstanceDataChangeChainProperty(const FPropertyChangedChainEvent& PropertyChangedEvent, FStateTreeDataView InstanceDataView)
+{
+	if (PropertyChangedEvent.GetMemberPropertyName() != GET_MEMBER_NAME_CHECKED(FInstanceDataType, Target))
+	{
+		return;
+	}
+
+	FInstanceDataType& Instance = InstanceDataView.GetMutable<FInstanceDataType>();
+
+	// 지정을 지우거나 해석되지 않는 대상으로 바꾸면 앞 대상의 좌표가 남아선 안 된다.
+	const AActor* Target = Cast<AActor>(Instance.Target.SyncFind());
+	Instance.TargetLocation = Target ? Target->GetActorLocation() : FVector::ZeroVector;
+}
+
 FText FWxStateTreeTask_MarkIndicator::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
 {
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();

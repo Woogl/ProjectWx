@@ -31,6 +31,13 @@ struct FWxStateTreeTask_MarkIndicatorInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	float WorldZOffset = 100.f;
 
+	/**
+	 * 대상이 언로드돼 해석되지 않는 동안 가리킬 월드 좌표.
+	 * 위 로케이터를 지정하면 그 액터 위치로 자동 기록된다 — 액터를 옮긴 뒤에는 다시 지정하거나 이 값을 직접 고쳐야 한다.
+	 */
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	FVector TargetLocation = FVector::ZeroVector;
+
 	/** (런타임) 이 노드가 실제로 등록한 인디케이터. 해제는 이 기록만 근거로 한다. */
 	UPROPERTY()
 	TWeakObjectPtr<UWxIndicatorDescriptor> RegisteredIndicator;
@@ -40,7 +47,8 @@ struct FWxStateTreeTask_MarkIndicatorInstanceData
  * 진입 시 지정 대상 위에 화면 인디케이터를 등록하고, 상태에 머무는 동안 유지하다 떠날 때 해제한다.
  * 인디케이터는 월드가 아니라 화면에 있으므로 대상이 화면 밖이면 화면 가장자리에 붙어 방향을 가리킨다 — 마커 액터로는 줄 수 없는 정보다.
  *
- * 대상 해석은 등록이 끊긴 동안 매 틱 재시도해 월드 파티션 언로드/재로드를 그대로 따라간다.
+ * 대상 해석은 매 틱 재시도해 월드 파티션 언로드/재로드를 그대로 따라간다.
+ * 해석되지 않는 동안에는 기록해 둔 좌표를 대신 가리킨다 — 마커가 가장 필요한 때가 목표가 멀어 아직 스트리밍되지 않은 때다. 파괴된 대상도 해석 실패라는 점이 같아 함께 이 대역으로 간다.
  * 빈 로케이터는 표시될 수 없는 잘못된 조립이므로 진입 시 경고를 남긴다.
  * 완료 없는 머무는 태스크라 항상 Running 이다.
  * 표시는 보는 사람의 사건이라 매니저는 로컬 플레이어(0번 컨트롤러)에서 찾는다(v1 싱글/리슨 호스트 전제).
@@ -60,6 +68,7 @@ struct FWxStateTreeTask_MarkIndicator : public FStateTreeTaskCommonBase
 	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 
 #if WITH_EDITOR
+	virtual void PostEditInstanceDataChangeChainProperty(const FPropertyChangedChainEvent& PropertyChangedEvent, FStateTreeDataView InstanceDataView) override;
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
 #endif
 };

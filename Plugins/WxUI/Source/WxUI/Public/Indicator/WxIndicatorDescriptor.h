@@ -24,7 +24,12 @@ public:
 	/** 매니저가 발급 직후 1회 호출한다. */
 	void Initialize(UWxIndicatorManagerComponent* InOwningManager, USceneComponent* InTargetComponent, const FVector& InWorldOffset);
 
+	/** 따라다닐 컴포넌트 없이 고정 좌표를 가리키는 등록증을 만든다. */
+	void Initialize(UWxIndicatorManagerComponent* InOwningManager, const FVector& InWorldLocation, const FVector& InWorldOffset);
+
 	USceneComponent* GetTargetComponent() const;
+
+	FVector GetWorldLocation() const;
 
 	FVector GetWorldOffset() const;
 
@@ -46,9 +51,13 @@ public:
 	void Unregister();
 
 private:
-	/** 이 컴포넌트의 월드 위치가 투영 원점이다. */
+	/** 이 컴포넌트의 월드 위치가 투영 원점이다. 비어 있으면 아래 고정 좌표를 쓰는 등록증이다. */
 	UPROPERTY()
 	TObjectPtr<USceneComponent> TargetComponent;
+
+	/** 따라다닐 컴포넌트가 없을 때의 투영 원점. */
+	UPROPERTY()
+	FVector WorldLocation = FVector::ZeroVector;
 
 	/** 투영 원점에 더할 월드 오프셋. 대상 발밑이 아니라 머리 위를 가리키게 한다. */
 	UPROPERTY()
