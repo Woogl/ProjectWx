@@ -1,12 +1,10 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Damage/WxDamageInfo.h"
 #include "Engine/DataTable.h"
 #include "GameFramework/Actor.h"
-#include "GameplayEffectTypes.h"
 #include "WxProjectileBase.generated.h"
 
 class UArrowComponent;
@@ -17,9 +15,9 @@ class UNiagaraComponent;
 class UNiagaraSystem;
 
 /**
- * 스폰되면 BeginPlay에서 자기 대미지 데이터로 Spec을 만들어 두고, Pawn에 Overlap하거나 월드에 Block하면 이펙트를 재생하고 사라진다.
+ * Pawn에 Overlap하거나 월드에 Block하면 이펙트를 재생하고 사라진다.
  *
- * 스폰과 파괴 모두 서버 권위이며, 대미지 Spec도 그 서버에서만 만들어 쓴다.
+ * 스폰과 파괴 모두 서버 권위이며, 대미지도 그 서버에서만 적용한다 — 클라에는 예측 키가 없어 어차피 GAS가 적용을 막는다.
  * 반면 ImpactFX는 권위 검사 앞에서 재생하므로, 충돌을 감지한 머신이 각자 즉시 재생한다.
  *
  * 대미지는 이 투사체 클래스(BP 서브클래스)가 DamageDataRow로 직접 저작한다.
@@ -64,10 +62,5 @@ protected:
 	virtual void HandleHitCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 private:
-	void InitializeDamageSpec();
-
 	void PlayImpactFX();
-
-	FGameplayEffectContextHandle CachedEffectContext;
-	TArray<FGameplayEffectSpecHandle> CachedSpecHandles;
 };

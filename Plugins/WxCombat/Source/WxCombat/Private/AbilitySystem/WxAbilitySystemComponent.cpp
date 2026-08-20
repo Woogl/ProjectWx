@@ -1,14 +1,9 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
-#include "AbilitySystem/Effect/WxEffect_Burn.h"
-#include "AbilitySystem/Effect/WxEffect_Damage.h"
-#include "AbilitySystemBlueprintLibrary.h"
-#include "Damage/WxCombatEffectContext.h"
 #include "WxCombatModule.h"
-#include "WxGameplayTags.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "Engine/World.h"
@@ -17,10 +12,6 @@
 UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 {
 	SetIsReplicatedByDefault(true);
-
-	// InitAbilityActorInfo는 여러 번 불려 중복 바인딩이 되므로 생성자에서 한 번만 건다.
-	OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf);
-	OnPeriodicGameplayEffectExecuteDelegateOnSelf.AddUObject(this, &UWxAbilitySystemComponent::HandlePeriodicGameplayEffectExecuted);
 }
 
 void UWxAbilitySystemComponent::GiveAbilitySet()
@@ -163,129 +154,6 @@ void UWxAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecHa
 	Super::NotifyAbilityFailed(Handle, Ability, FailureReason);
 
 	UE_LOG(LogWxCombat, Verbose, TEXT("어빌리티 발동 거부: %s — 사유 %s"), *GetNameSafe(Ability), *FailureReason.ToStringSimple());
-}
-
-void UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle)
-{
-	// 컨텍스트가 대미지 GE와 AdditionalEffects에 공유되므로, GE 종류로 걸러야 뒤따르는 상태이상 GE마다 연출이 다시 나가지 않는다.
-	if (!Spec.Def || !Spec.Def->IsA<UWxEffect_Damage>())
-	{
-		return;
-	}
-
-	const FGameplayEffectContextHandle ContextHandle = Spec.GetContext();
-	const FGameplayEffectContext* RawContext = ContextHandle.Get();
-	if (!RawContext || RawContext->GetScriptStruct() != FWxCombatEffectContext::StaticStruct())
-	{
-		return;
-	}
-
-	const FWxCombatEffectContext& CombatContext = static_cast<const FWxCombatEffectContext&>(*RawContext);
-	const EWxDamageResult DamageResult = CombatContext.GetDamageResult();
-
-	AActor* TargetActor = GetOwnerActor();
-	AActor* SourceActor = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
-
-	FGameplayEventData EventData;
-	EventData.Instigator = SourceActor;
-	EventData.Target = TargetActor;
-
-	// 무적 회피는 대미지도 히트스톱도 없다 — 회피 성공만 알린다.
-	if (DamageResult == EWxDamageResult::Evaded)
-	{
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_DodgeSuccess, EventData);
-		return;
-	}
-
-	if (DamageResult == EWxDamageResult::None)
-	{
-		return;
-	}
-
-	FVector HitLocation = FVector::ZeroVector;
-	if (const FHitResult* HitResult = ContextHandle.GetHitResult())
-	{
-		HitLocation = FVector(HitResult->ImpactPoint);
-	}
-	else if (const AActor* TargetAvatar = GetAvatarActor())
-	{
-		HitLocation = TargetAvatar->GetActorLocation();
-	}
-
-	FGameplayCueParameters CueParams;
-	CueParams.Location = HitLocation;
-	CueParams.EffectContext = ContextHandle;
-
-	if (DamageResult == EWxDamageResult::PerfectGuard)
-	{
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_PerfectGuard, EventData);
-
-		if (SourceActor && Spec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_ParryHitReact))
-		{
-			FGameplayEventData ParryEventData;
-			ParryEventData.Instigator = TargetActor;
-			ParryEventData.Target = SourceActor;
-			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(SourceActor, WxGameplayTags::Event_HitReact_Parry, ParryEventData);
-		}
-
-		ExecuteGameplayCue(WxGameplayTags::GameplayCue_PerfectGuard, CueParams);
-	}
-	else
-	{
-		const float FinalDamage = CombatContext.GetFinalDamage();
-
-		// 죽는 히트는 HP 차감이 먼저라 Ability.Death가 이미 붙어 있고, HitReact 어빌리티가 그 태그로 차단된다.
-		// 히트리액트를 재생했다 사망으로 끊는 대신 곧장 사망으로 가는 쪽을 택했다.
-		if (CombatContext.GetHitReactTag().IsValid())
-		{
-			EventData.EventMagnitude = FinalDamage;
-			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, CombatContext.GetHitReactTag(), EventData);
-		}
-
-		if (FinalDamage > 0.f)
-		{
-			CueParams.RawMagnitude = FinalDamage;
-
-			if (CombatContext.IsCritical())
-			{
-				CueParams.AggregatedSourceTags.AddTag(WxGameplayTags::Damage_Critical);
-			}
-
-			ExecuteGameplayCue(WxGameplayTags::GameplayCue_DamageFloater, CueParams);
-		}
-	}
-}
-
-void UWxAbilitySystemComponent::HandlePeriodicGameplayEffectExecuted(UAbilitySystemComponent* SourceASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle)
-{
-	// 화상 컨텍스트는 원본 대미지 GE와 공유되므로, GE 종류로 걸러야 같은 컨텍스트를 쓰는 다른 주기형 GE의 틱에 남의 판정이 새어 나가지 않는다.
-	if (!Spec.Def || !Spec.Def->IsA<UWxEffect_Burn>())
-	{
-		return;
-	}
-
-	const FGameplayEffectContextHandle ContextHandle = Spec.GetContext();
-	const FGameplayEffectContext* RawContext = ContextHandle.Get();
-	if (!RawContext || RawContext->GetScriptStruct() != FWxCombatEffectContext::StaticStruct())
-	{
-		return;
-	}
-
-	const FWxCombatEffectContext& CombatContext = static_cast<const FWxCombatEffectContext&>(*RawContext);
-	if (CombatContext.GetDamageResult() != EWxDamageResult::Damaged)
-	{
-		return;
-	}
-
-	FGameplayCueParameters CueParams;
-	CueParams.RawMagnitude = CombatContext.GetFinalDamage();
-	CueParams.EffectContext = ContextHandle;
-	if (const AActor* TargetAvatar = GetAvatarActor())
-	{
-		CueParams.Location = TargetAvatar->GetActorLocation();
-	}
-
-	ExecuteGameplayCue(WxGameplayTags::GameplayCue_DamageFloater, CueParams);
 }
 
 void UWxAbilitySystemComponent::HandleHitStopElapsed(TWeakObjectPtr<UAnimMontage> FrozenMontage)

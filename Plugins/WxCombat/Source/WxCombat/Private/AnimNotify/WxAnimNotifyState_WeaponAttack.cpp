@@ -13,7 +13,7 @@ void UWxAnimNotifyState_WeaponAttack::NotifyBegin(USkeletalMeshComponent* MeshCo
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
-	AActor* Owner = MeshComp->GetOwner();
+	AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr;
 	if (!Owner)
 	{
 		return;
@@ -29,7 +29,7 @@ void UWxAnimNotifyState_WeaponAttack::NotifyEnd(USkeletalMeshComponent* MeshComp
 {
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
 
-	AActor* Owner = MeshComp->GetOwner();
+	AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr;
 	if (!Owner)
 	{
 		return;

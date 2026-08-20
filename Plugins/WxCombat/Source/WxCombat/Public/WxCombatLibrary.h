@@ -25,7 +25,7 @@ public:
 	 * 애님 중인 어빌리티가 없으면(시뮬 프록시 등) 키가 무효라 권위 머신에서만 적용된다.
 	 *
 	 * 다만 대미지 GE는 Instant+Execution이라 엔진이 예측 시 execution을 건너뛴다.
-	 * 어트리뷰트와 ExecCalc 부수효과는 서버 권위로 남고, 실제로 예측되는 것은 DamageInfo의 지속형 AdditionalEffects뿐이다.
+	 * 어트리뷰트는 서버 권위로 남고, 실제로 예측되는 것은 DamageInfo의 지속형 AdditionalEffects뿐이다.
 	 *
 	 * @param HitStopDuration	0보다 크고 적중이 성립하면 공격자 ASC의 히트스톱을 이 길이만큼 발동한다.
 	 * @return					Spec 중 하나라도 권위 또는 예측으로 적용됐으면 true.

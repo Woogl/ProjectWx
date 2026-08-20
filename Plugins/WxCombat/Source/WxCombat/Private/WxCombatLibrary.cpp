@@ -3,9 +3,11 @@
 #include "WxCombatLibrary.h"
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
 #include "Damage/WxDamageInfo.h"
+#include "WxGameplayTags.h"
 
 bool UWxCombatLibrary::ApplyDamage(UAbilitySystemComponent* Source, UAbilitySystemComponent* Target, const FWxDamageInfo& DamageInfo, const FHitResult& HitResult, float HitStopDuration)
 {
@@ -30,7 +32,20 @@ bool UWxCombatLibrary::ApplyDamage(UAbilitySystemComponent* Source, UAbilitySyst
 	}
 
 	// 적중 성립 여부는 대미지가 들어가기 전 상태로 가른다 — 이 히트로 죽은 대상은 아직 살아 있던 것으로 쳐야 마무리 일격에도 역경직이 걸린다.
-	const bool bHitLands = HitStopDuration > 0.f && UWxExecCalc_Damage::CheckDamage(Source, Target) == EWxDamageResult::Damaged;
+	const EWxDamageResult DamageCheck = UWxExecCalc_Damage::CheckDamage(Source, Target);
+	const bool bHitLands = HitStopDuration > 0.f && DamageCheck == EWxDamageResult::Damaged;
+
+	// 무적 회피는 어트리뷰트를 하나도 바꾸지 않아 적용 뒤에는 알아낼 방법이 없다. 같은 선판정을 쓰는 여기서 알린다.
+	// 대미지 GE와 AdditionalEffects 적용은 그대로 이어간다 — 회피해도 상태이상은 걸린다.
+	if (DamageCheck == EWxDamageResult::Evaded)
+	{
+		AActor* TargetActor = Target->GetOwnerActor();
+
+		FGameplayEventData EventData;
+		EventData.Instigator = SourceActor;
+		EventData.Target = TargetActor;
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_DodgeSuccess, EventData);
+	}
 
 	bool bAppliedAny = false;
 	const TArray<FGameplayEffectSpecHandle> Specs = DamageInfo.MakeSpecs(Source, Context);

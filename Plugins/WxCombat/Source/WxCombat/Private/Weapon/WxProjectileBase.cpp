@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "Weapon/WxProjectileBase.h"
 #include "Components/SphereComponent.h"
@@ -7,10 +7,11 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
-#include "AbilitySystemComponent.h"
+#include "Damage/WxDamageInfo.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Targeting/WxLockOnManagerComponent.h"
+#include "WxCombatLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 
 AWxProjectileBase::AWxProjectileBase()
@@ -43,23 +44,6 @@ AWxProjectileBase::AWxProjectileBase()
 	InitialLifeSpan = 10.f;
 }
 
-void AWxProjectileBase::InitializeDamageSpec()
-{
-	UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator());
-	if (!SourceASC)
-	{
-		return;
-	}
-
-	CachedEffectContext = SourceASC->MakeEffectContext();
-	CachedEffectContext.AddSourceObject(this);
-	CachedEffectContext.AddInstigator(GetOwner(), GetInstigator());
-	CachedEffectContext.SetAbility(SourceASC->GetAnimatingAbility());
-
-	FWxDamageInfo DamageInfo = FWxDamageInfo::FromDataRow(DamageDataRow);
-	CachedSpecHandles = DamageInfo.MakeSpecs(SourceASC, CachedEffectContext);
-}
-
 void AWxProjectileBase::PlayImpactFX()
 {
 	if (ImpactFX)
@@ -71,12 +55,6 @@ void AWxProjectileBase::PlayImpactFX()
 void AWxProjectileBase::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// 서버 스폰 복제 액터라 클라에는 예측 키가 없어, 만들어 둬도 GAS 가 적용을 막는다.
-	if (HasAuthority())
-	{
-		InitializeDamageSpec();
-	}
 
 	if (UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(GetInstigator()))
 	{
@@ -108,40 +86,29 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 		return;
 	}
 
-	if (CachedEffectContext.IsValid())
+	FHitResult HitResult;
+	if (bFromSweep)
 	{
-		FHitResult HitResult;
-		if (bFromSweep)
+		HitResult = SweepResult;
+	}
+	else if (OtherComp)
+	{
+		FVector ClosestPoint;
+		if (OtherComp->GetClosestPointOnCollision(HitCollision->GetComponentLocation(), ClosestPoint) >= 0.f)
 		{
-			HitResult = SweepResult;
+			HitResult.ImpactPoint = ClosestPoint;
+			HitResult.Location = ClosestPoint;
 		}
-		else if (OtherComp)
+		else
 		{
-			FVector ClosestPoint;
-			if (OtherComp->GetClosestPointOnCollision(HitCollision->GetComponentLocation(), ClosestPoint) >= 0.f)
-			{
-				HitResult.ImpactPoint = ClosestPoint;
-				HitResult.Location = ClosestPoint;
-			}
-			else
-			{
-				HitResult.ImpactPoint = OtherComp->GetComponentLocation();
-				HitResult.Location = OtherComp->GetComponentLocation();
-			}
+			HitResult.ImpactPoint = OtherComp->GetComponentLocation();
+			HitResult.Location = OtherComp->GetComponentLocation();
 		}
-		CachedEffectContext.AddHitResult(HitResult, true);
 	}
 
-	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
-	{
-		for (const FGameplayEffectSpecHandle& SpecHandle : CachedSpecHandles)
-		{
-			if (SpecHandle.IsValid())
-			{
-				TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-			}
-		}
-	}
+	UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator());
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
+	UWxCombatLibrary::ApplyDamage(SourceASC, TargetASC, FWxDamageInfo::FromDataRow(DamageDataRow), HitResult);
 
 	Destroy();
 }

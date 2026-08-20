@@ -1,11 +1,15 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
+#include "AbilitySystem/Effect/WxEffect_AddDP.h"
+#include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "AbilitySystem/Effect/WxEffect_Exhaust.h"
+#include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "Damage/WxCombatEffectContext.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
-#include "Perception/AISense_Damage.h"
 #include "WxGameplayTags.h"
 
 UWxCombatAttributeSet::UWxCombatAttributeSet()
@@ -40,20 +44,14 @@ void UWxCombatAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribu
 {
 	Super::PreAttributeChange(Attribute, NewValue);
 
-	if (Attribute == GetMaxHPAttribute())
-	{
-		NewValue = FMath::Max(NewValue, 1.f);
-	}
-	else if (Attribute == GetMaxMPAttribute())
-	{
-		NewValue = FMath::Max(NewValue, 0.f);
-	}
-	else if (Attribute == GetHPAttribute())
+	NewValue = FMath::Max(NewValue, 0.f);
+
+	if (Attribute == GetHPAttribute())
 	{
 		const float CurrentMaxHP = GetMaxHP();
 		if (CurrentMaxHP > 0.f)
 		{
-			NewValue = FMath::Clamp(NewValue, 0.f, CurrentMaxHP);
+			NewValue = FMath::Min(NewValue, CurrentMaxHP);
 		}
 	}
 	else if (Attribute == GetMPAttribute())
@@ -61,53 +59,40 @@ void UWxCombatAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribu
 		const float CurrentMaxMP = GetMaxMP();
 		if (CurrentMaxMP > 0.f)
 		{
-			NewValue = FMath::Clamp(NewValue, 0.f, CurrentMaxMP);
+			NewValue = FMath::Min(NewValue, CurrentMaxMP);
 		}
-	}
-	else if (Attribute == GetMaxSPAttribute())
-	{
-		NewValue = FMath::Max(NewValue, 0.f);
 	}
 	else if (Attribute == GetSPAttribute())
 	{
 		const float CurrentMaxSP = GetMaxSP();
 		if (CurrentMaxSP > 0.f)
 		{
-			NewValue = FMath::Clamp(NewValue, 0.f, CurrentMaxSP);
+			NewValue = FMath::Min(NewValue, CurrentMaxSP);
 		}
-	}
-	else if (Attribute == GetMaxDPAttribute())
-	{
-		NewValue = FMath::Max(NewValue, 0.f);
 	}
 	else if (Attribute == GetDPAttribute())
 	{
 		const float CurrentMaxDP = GetMaxDP();
 		if (CurrentMaxDP > 0.f)
 		{
-			NewValue = FMath::Clamp(NewValue, 0.f, CurrentMaxDP);
+			NewValue = FMath::Min(NewValue, CurrentMaxDP);
 		}
-	}
-	else if (Attribute == GetMaxUPAttribute())
-	{
-		NewValue = FMath::Max(NewValue, 0.f);
 	}
 	else if (Attribute == GetUPAttribute())
 	{
 		const float CurrentMaxUP = GetMaxUP();
 		if (CurrentMaxUP > 0.f)
 		{
-			NewValue = FMath::Clamp(NewValue, 0.f, CurrentMaxUP);
+			NewValue = FMath::Min(NewValue, CurrentMaxUP);
 		}
 	}
-	else if (Attribute == GetSPDAttribute())
-	{
-		NewValue = FMath::Max(NewValue, 0.f);
-	}
-	else if (Attribute == GetASPDAttribute())
-	{
-		NewValue = FMath::Max(NewValue, 0.f);
-	}
+}
+
+void UWxCombatAttributeSet::PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const
+{
+	Super::PreAttributeBaseChange(Attribute, NewValue);
+
+	NewValue = FMath::Max(NewValue, 0.f);
 }
 
 void UWxCombatAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
@@ -177,17 +162,21 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 				}
 			}
 
-			// AI Perception(촉각)에 보고해 가해자를 즉시 TargetActor로 인지하게 한다.
-			// EventLocation으로 넘긴 가해자 위치가 그대로 Stimulus 위치가 된다.
-			const FGameplayEffectContextHandle Context = Data.EffectSpec.GetContext();
-			AActor* DamageInstigator = Context.GetInstigator();
-			AActor* DamagedActor = GetOwningActor();
-			if (DamageInstigator && DamagedActor)
+			// 화상도 IncomingDamage를 지나므로 GE 종류로 걸러야 틱마다 반응과 연출이 다시 나가지 않는다.
+			// 사망 처리 뒤라야 Ability.Death가 붙은 상태가 되어 히트리액트가 그 태그로 차단된다.
+			if (Data.EffectSpec.Def && Data.EffectSpec.Def->IsA<UWxEffect_Damage>())
 			{
-				const FVector HitLocation = Context.GetHitResult() ? FVector(Context.GetHitResult()->ImpactPoint) : DamagedActor->GetActorLocation();
-				UAISense_Damage::ReportDamageEvent(DamagedActor, DamagedActor, DamageInstigator, Damage, DamageInstigator->GetActorLocation(), HitLocation);
+				ProcessDamageTaken(Data, Damage);
 			}
 		}
+	}
+	else if (Data.EvaluatedData.Attribute == GetIncomingReflectAttribute())
+	{
+		const float ReflectAmount = GetIncomingReflect();
+		SetIncomingReflect(0.f);
+
+		// 반사량이 0이어도 퍼펙트 가드 성공 자체는 알려야 한다.
+		ProcessPerfectGuard(Data, ReflectAmount);
 	}
 	else if (Data.EvaluatedData.Attribute == GetHPAttribute())
 	{
@@ -209,6 +198,10 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 		{
 			UWxEffect_Exhaust::ApplyTo(ASC, GetSP() <= 0.f ? UWxEffect_Exhaust::ExhaustDuration : UWxEffect_Exhaust::ConsumeDelay);
 		}
+	}
+	else if (Data.EvaluatedData.Attribute == GetDPAttribute())
+	{
+		SetDP(FMath::Clamp(GetDP(), 0.f, GetMaxDP()));
 	}
 	else if (Data.EvaluatedData.Attribute == GetUPAttribute())
 	{
@@ -294,4 +287,102 @@ void UWxCombatAttributeSet::OnRep_SPD(const FGameplayAttributeData& OldSPD)
 void UWxCombatAttributeSet::OnRep_ASPD(const FGameplayAttributeData& OldASPD)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, ASPD, OldASPD);
+}
+
+void UWxCombatAttributeSet::ProcessDamageTaken(const FGameplayEffectModCallbackData& Data, float Damage)
+{
+	UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+	const FGameplayEffectContextHandle ContextHandle = Data.EffectSpec.GetContext();
+	const FGameplayEffectContext* RawContext = ContextHandle.Get();
+	if (!ASC || !RawContext || RawContext->GetScriptStruct() != FWxCombatEffectContext::StaticStruct())
+	{
+		return;
+	}
+
+	const FWxCombatEffectContext& CombatContext = static_cast<const FWxCombatEffectContext&>(*RawContext);
+
+	AActor* TargetActor = GetOwningActor();
+	UAbilitySystemComponent* SourceASC = ContextHandle.GetInstigatorAbilitySystemComponent();
+
+	UWxEffect_RecoverResource::ApplyTo(SourceASC,
+		Data.EffectSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_UP, false, 0.f),
+		Data.EffectSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_MP, false, 0.f));
+
+	// 공격이 요청한 반응 태그는 스펙에 실려 온다 — 바로 아래 Damage.Unblockable을 읽는 것과 같은 자리다.
+	FGameplayTag HitReactTag = Data.EffectSpec.GetDynamicAssetTags().Filter(FGameplayTagContainer(WxGameplayTags::Event_HitReact)).First();
+
+	if (ASC->HasMatchingGameplayTag(WxGameplayTags::Effect_Guard))
+	{
+		if (Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable))
+		{
+			// HitReact 어빌리티가 Effect.Guard로 차단되므로 반응 이벤트보다 먼저 가드를 끊어야 한다.
+			const FGameplayTagContainer GuardAbilityTags(WxGameplayTags::Ability_Guard);
+			ASC->CancelAbilities(&GuardAbilityTags);
+		}
+		else if (!HitReactTag.IsValid())
+		{
+			// 명시 태그가 없는 평타 피격에도 가드 흡수 애니메이션은 나와야 한다.
+			HitReactTag = WxGameplayTags::Event_HitReact_Normal;
+		}
+	}
+
+	// 죽는 히트는 Ability.Death가 이미 붙어 있어 히트리액트가 그 태그로 차단된다.
+	// 히트리액트를 재생했다 사망으로 끊는 대신 곧장 사망으로 가는 쪽을 택했다.
+	if (HitReactTag.IsValid())
+	{
+		FGameplayEventData EventData;
+		EventData.Instigator = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
+		EventData.Target = TargetActor;
+		EventData.EventMagnitude = Damage;
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, HitReactTag, EventData);
+	}
+
+	// 플로터는 큐 노티파이가 대상 액터 위치에서 직접 띄우므로 Location을 채우지 않는다.
+	FGameplayCueParameters CueParams;
+	CueParams.EffectContext = ContextHandle;
+	CueParams.RawMagnitude = Damage;
+	if (CombatContext.IsCritical())
+	{
+		CueParams.AggregatedSourceTags.AddTag(WxGameplayTags::Damage_Critical);
+	}
+
+	ASC->ExecuteGameplayCue(WxGameplayTags::GameplayCue_DamageFloater, CueParams);
+}
+
+void UWxCombatAttributeSet::ProcessPerfectGuard(const FGameplayEffectModCallbackData& Data, float ReflectAmount)
+{
+	UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+	if (!ASC)
+	{
+		return;
+	}
+
+	const FGameplayEffectContextHandle ContextHandle = Data.EffectSpec.GetContext();
+
+	AActor* TargetActor = GetOwningActor();
+	UAbilitySystemComponent* SourceASC = ContextHandle.GetInstigatorAbilitySystemComponent();
+	AActor* SourceActor = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
+
+	// 대상의 DP 가산과 같은 이유로 이미 그로기인 공격자에겐 반사하지 않는다.
+	// DP를 MaxDP로 되돌리면 남은 드레인 시간으로는 0에 닿지 못해 그로기가 안전 타이머까지 늘어진다.
+	if (SourceASC && !SourceASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
+	{
+		UWxEffect_AddDP::ApplyTo(SourceASC, ReflectAmount);
+	}
+
+	FGameplayEventData EventData;
+	EventData.Instigator = SourceActor;
+	EventData.Target = TargetActor;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_PerfectGuard, EventData);
+
+	if (SourceActor && Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_ParryHitReact))
+	{
+		FGameplayEventData ParryEventData;
+		ParryEventData.Instigator = TargetActor;
+		ParryEventData.Target = SourceActor;
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(SourceActor, WxGameplayTags::Event_HitReact_Parry, ParryEventData);
+	}
+
+	// 컨텍스트만 넘기면 UWxAbilitySystemGlobals가 ImpactPoint를 Location으로 채운다 — 이 큐는 그 자리에서 나이아가라와 사운드를 낸다.
+	ASC->ExecuteGameplayCue(WxGameplayTags::GameplayCue_PerfectGuard, ContextHandle);
 }

@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
@@ -16,23 +16,17 @@ enum class EWxDamageResult : uint8
 	/** 무적으로 무효화 */
 	Evaded,
 
-	PerfectGuard,
-
 	/** 일반 가드로 감소된 경우를 포함 */
 	Damaged
 };
 
 /**
- * 대미지 판정 결과를 실어 나르는 EffectContext.
+ * 치명타 여부를 실어 나르는 EffectContext.
  *
- * UWxExecCalc_Damage가 계산 중에 쓰고, UWxAbilitySystemComponent::HandleGameplayEffectAppliedToSelf가 GE 적용이 끝난 뒤 읽어 Cue·이벤트를 발행한다.
- * 둘 사이의 유일한 연결 통로다.
+ * UWxExecCalc_Damage가 판정 중에 적고, 어트리뷰트가 확정된 뒤 UWxCombatAttributeSet::ProcessDamageTaken가 읽어 플로터에 넘긴다.
+ * 나머지 판정 결과는 스펙 태그와 IncomingDamage로 복원되지만 크리 여부만은 남는 흔적이 없어 이 통로가 필요하다.
  *
- * 클라이언트 예측 경로는 ExecCalc를 건너뛰므로 DamageResult가 None으로 남고, 발행 측이 연출을 건너뛴다.
- * 히트스톱만은 이 결과를 쓰지 않고 UWxExecCalc_Damage::CheckDamage를 직접 돌려, 클라이언트도 서버와 같은 결론에 이른다.
- *
- * 하나의 컨텍스트가 대미지 GE와 AdditionalEffects 전체에 공유된다(FWxDamageInfo::MakeSpecs).
- * 판정 결과는 대미지 GE 한 발의 것이므로, 발행 측은 GE 종류로 한 번 더 거른다.
+ * 하나의 컨텍스트가 대미지 GE와 AdditionalEffects 전체에 공유되므로(FWxDamageInfo::MakeSpecs), 판정을 새로 시작할 때 먼저 지워야 한다.
  *
  * 할당은 UWxAbilitySystemGlobals가 맡으므로 MakeEffectContext를 타는 모든 GE가 이 타입을 갖는다.
  */
@@ -46,34 +40,14 @@ public:
 	virtual FGameplayEffectContext* Duplicate() const override;
 	virtual bool NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess) override;
 
-	EWxDamageResult GetDamageResult() const;
 	bool IsCritical() const;
 
-	/** Damaged면 대상이 받은 최종 대미지, PerfectGuard면 공격자에게 반사한 양 */
-	float GetFinalDamage() const;
-
-	/** Damaged일 때 피격자에게 보낼 반응 이벤트 태그. 무효면 미발송. */
-	const FGameplayTag& GetHitReactTag() const;
-
-	/** 컨텍스트가 여러 스펙에 재사용되므로 판정을 새로 시작하기 전에 호출해야 한다 */
-	void ClearDamageResult();
-
-	void SetEvaded();
-	void SetPerfectGuard(float ReflectAmount);
-	void SetDamaged(float InFinalDamage, bool bIsCritical, const FGameplayTag& InHitReactTag);
+	/** 컨텍스트가 여러 스펙에 재사용되므로, 판정을 새로 시작할 때도 false로 한 번 불러 이전 결과를 지운다 */
+	void SetCritical(bool bInCritical);
 
 protected:
 	UPROPERTY()
-	EWxDamageResult DamageResult = EWxDamageResult::None;
-
-	UPROPERTY()
 	bool bCritical = false;
-
-	UPROPERTY()
-	float FinalDamage = 0.f;
-
-	UPROPERTY()
-	FGameplayTag HitReactTag;
 };
 
 template<>

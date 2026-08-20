@@ -1,9 +1,8 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystem/Effect/WxEffect_Guard.h"
-#include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystemComponent.h"
 #include "Damage/WxCombatEffectContext.h"
 #include "GameplayEffectComponents/TargetTagRequirementsGameplayEffectComponent.h"
@@ -36,6 +35,7 @@ struct FWxDamageStatics
 	DECLARE_ATTRIBUTE_CAPTUREDEF(CritRate);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(CritDMG);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(IncomingDamage);
+	DECLARE_ATTRIBUTE_CAPTUREDEF(IncomingReflect);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(SP);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(DP);
 	FWxDamageStatics()
@@ -45,6 +45,7 @@ struct FWxDamageStatics
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, CritRate, Source, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, CritDMG, Source, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, IncomingDamage, Target, false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, IncomingReflect, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, SP, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, DP, Target, false);
 	}
@@ -87,16 +88,12 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	// 같은 컨텍스트를 여러 스펙이 공유하므로, 어느 경로로 빠져나가든 이전 판정이 남지 않게 먼저 지운다.
 	if (CombatContext)
 	{
-		CombatContext->ClearDamageResult();
+		CombatContext->SetCritical(false);
 	}
 
-	const EWxDamageResult DamageCheck = CheckDamage(SourceASC, TargetASC);
-	if (DamageCheck != EWxDamageResult::Damaged)
+	// 회피 성공 발행은 적용 전에 같은 판정을 돌리는 UWxCombatLibrary::ApplyDamage가 맡는다.
+	if (CheckDamage(SourceASC, TargetASC) != EWxDamageResult::Damaged)
 	{
-		if (CombatContext && DamageCheck == EWxDamageResult::Evaded)
-		{
-			CombatContext->SetEvaded();
-		}
 		return;
 	}
 
@@ -115,18 +112,18 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	// 퍼펙트 가드는 반사량 산출을 위해 크리를 스킵한다.
 	FWxDamageResult DamageResult = CalcDamage(ExecutionParams, EvalParams, bPerfectGuardApplied || !bCanCritical);
 
+	const FWxDamageStatics& Statics = GetDamageStatics();
+
 	if (bPerfectGuardApplied)
 	{
-		ReflectPerfectGuard(SourceASC, DamageResult.FinalDamage);
-
-		if (CombatContext)
-		{
-			CombatContext->SetPerfectGuard(DamageResult.FinalDamage);
-		}
+		// 대상 어트리뷰트는 하나도 바뀌지 않으므로, 반사량을 메타 어트리뷰트로 실어야 PostGameplayEffectExecute가 돈다.
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingReflectProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
 		return;
 	}
 
-	if (!bIsUnblockable && bIsGuarding)
+	const bool bGuardHit = bIsGuarding && !bIsUnblockable;
+
+	if (bGuardHit)
 	{
 		DamageResult.FinalDamage *= UWxEffect_Guard::GetDamageReductionRate();
 	}
@@ -136,25 +133,26 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		return;
 	}
 
-	const FWxDamageStatics& Statics = GetDamageStatics();
-	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
+	// 컨텍스트에는 어트리뷰트로 복원할 수 없는 것만 싣는다 — 수치는 IncomingDamage로, 반응 태그는 스펙으로 소비 지점에 닿는다.
+	if (CombatContext)
+	{
+		CombatContext->SetCritical(DamageResult.bIsCritical);
+	}
+
+	// 출력 순서가 곧 계약이다. 엔진이 모디파이어를 하나씩 적용하며 그때마다 PostGameplayEffectExecute를 부르므로,
+	// IncomingDamage를 맨 뒤에 둬야 반응을 발행하는 시점에 SP·DP가 이미 확정돼 있다.
+	// SP: 가드가 이 히트로 깨졌는지 판정하고, DP: 그로기 진입이 HitReact 어빌리티에 보인다.
+	if (bGuardHit)
+	{
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.SPProperty, EGameplayModOp::Additive, -DamageResult.FinalDamage));
+	}
 
 	if (!bIsGroggy)
 	{
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.DPProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
 	}
 
-	// 그로기 진입 히트의 Knock 치환은 DP가 적용되기 전인 지금 상태로 판정해야 하므로, 태그를 여기서 확정해 컨텍스트에 싣는다.
-	const FGameplayTag HitReactTag = ResolveHitReaction(ExecutionParams, OutExecutionOutput, DamageResult.FinalDamage);
-
-	const float RecoveryUP = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_UP, false, 0.f);
-	const float RecoveryMP = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_MP, false, 0.f);
-	UWxEffect_RecoverResource::ApplyTo(SourceASC, RecoveryUP, RecoveryMP);
-
-	if (CombatContext)
-	{
-		CombatContext->SetDamaged(DamageResult.FinalDamage, DamageResult.bIsCritical, HitReactTag);
-	}
+	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
 }
 
 EWxDamageResult UWxExecCalc_Damage::CheckDamage(const UAbilitySystemComponent* Source, const UAbilitySystemComponent* Target)
@@ -190,20 +188,6 @@ EWxDamageResult UWxExecCalc_Damage::CheckDamage(const UAbilitySystemComponent* S
 	}
 
 	return EWxDamageResult::Damaged;
-}
-
-void UWxExecCalc_Damage::ReflectPerfectGuard(UAbilitySystemComponent* SourceASC, float ReflectAmount) const
-{
-	if (!SourceASC)
-	{
-		return;
-	}
-
-	const float ClampedReflect = FMath::Max(ReflectAmount, 0.f);
-	const FGameplayAttribute DPAttribute = UWxCombatAttributeSet::GetDPAttribute();
-
-	// 상한 클램프와 그로기 판정은 어트리뷰트 셋의 변경 훅이 맡으므로 여기서는 가산만 한다.
-	SourceASC->SetNumericAttributeBase(DPAttribute, SourceASC->GetNumericAttributeBase(DPAttribute) + ClampedReflect);
 }
 
 FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, bool bSkipCrit) const
@@ -255,60 +239,4 @@ FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecut
 	}
 
 	return Result;
-}
-
-FGameplayTag UWxExecCalc_Damage::ResolveHitReaction(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput, float FinalDamage) const
-{
-	UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent();
-	const FGameplayEffectSpec& OwningSpec = ExecutionParams.GetOwningSpec();
-
-	if (!TargetASC)
-	{
-		return FGameplayTag();
-	}
-
-	const FWxDamageStatics& Statics = GetDamageStatics();
-	const bool bIsUnblockable = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable);
-	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_Guard);
-	const bool bGuardHit = bIsGuarding && !bIsUnblockable;
-	const bool bIsGroggy = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy);
-
-	if (bGuardHit)
-	{
-		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.SPProperty, EGameplayModOp::Additive, -FinalDamage));
-	}
-
-	// 공격 GE가 실은 Event.HitReact.* 자식 태그를 꺼낸다(없으면 이벤트 미발송).
-	const FGameplayTagContainer HitReactMatches = OwningSpec.GetDynamicAssetTags().Filter(FGameplayTagContainer(WxGameplayTags::Event_HitReact));
-	const FGameplayTag HitReactTag = HitReactMatches.IsEmpty() ? FGameplayTag() : HitReactMatches.First();
-
-	if (bIsGroggy)
-	{
-		FGameplayTagContainer KnockTags;
-		KnockTags.AddTagFast(WxGameplayTags::Event_HitReact_KnockBack);
-		KnockTags.AddTagFast(WxGameplayTags::Event_HitReact_KnockDown);
-		KnockTags.AddTagFast(WxGameplayTags::Event_HitReact_KnockUp);
-		if (HitReactTag.MatchesAny(KnockTags))
-		{
-			return WxGameplayTags::Event_HitReact_Normal;
-		}
-
-		return HitReactTag;
-	}
-
-	if (bGuardHit)
-	{
-		// 일반 가드 — Knock 계열과 Normal 분기는 Guard 어빌리티가 하므로 태그를 그대로 넘긴다.
-		// 명시 태그가 없으면 가드 흡수 애니메이션을 위해 Normal로 폴백한다.
-		return HitReactTag.IsValid() ? HitReactTag : WxGameplayTags::Event_HitReact_Normal;
-	}
-
-	if (bIsGuarding)
-	{
-		// Unblockable 가드 — 가드를 끊고 명시된 HitReact를 보낸다.
-		const FGameplayTagContainer GuardAbilityTags(WxGameplayTags::Ability_Guard);
-		TargetASC->CancelAbilities(&GuardAbilityTags);
-	}
-
-	return HitReactTag;
 }

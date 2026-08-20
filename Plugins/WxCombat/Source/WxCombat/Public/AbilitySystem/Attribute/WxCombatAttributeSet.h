@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
@@ -34,6 +34,7 @@ public:
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+	virtual void PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const override;
 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
@@ -115,6 +116,15 @@ public:
 	FGameplayAttributeData IncomingDamage;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, IncomingDamage)
 
+	/**
+	 * 퍼펙트 가드로 막아낸 히트에서 공격자에게 되돌려줄 양. 직접 수정 금지.
+	 *
+	 * 퍼펙트 가드는 대상 어트리뷰트를 하나도 바꾸지 않아 이 통로가 없으면 PostGameplayEffectExecute가 아예 돌지 않는다.
+	 */
+	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Meta")
+	FGameplayAttributeData IncomingReflect;
+	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, IncomingReflect)
+
 protected:
 	UFUNCTION()
 	void OnRep_HP(const FGameplayAttributeData& OldHP);
@@ -163,4 +173,16 @@ protected:
 
 	UFUNCTION()
 	void OnRep_ASPD(const FGameplayAttributeData& OldASPD);
+
+private:
+	/**
+	 * 적중이 확정된 뒤 그 히트의 판정 결과를 소비한다 — 공격자 자원 회복, 가드 해제, 반응 이벤트, 대미지 플로터.
+	 *
+	 * 판정은 UWxExecCalc_Damage가 FWxCombatEffectContext에 남긴 것을 그대로 쓴다.
+	 * IncomingDamage가 ExecCalc 출력의 맨 뒤라서, 여기 닿을 때는 SP·DP까지 확정돼 있다.
+	 */
+	void ProcessDamageTaken(const FGameplayEffectModCallbackData& Data, float Damage);
+
+	/** 퍼펙트 가드로 막아낸 히트의 후속 — 공격자에게 반사 DP, 양쪽 반응 이벤트, 큐 */
+	void ProcessPerfectGuard(const FGameplayEffectModCallbackData& Data, float ReflectAmount);
 };

@@ -9,7 +9,7 @@ void UWxAnimNotifyState_ComboWindow::NotifyBegin(USkeletalMeshComponent* MeshCom
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
-	if (AActor* Owner = MeshComp->GetOwner())
+	if (AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr)
 	{
 		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
 		{
@@ -22,7 +22,7 @@ void UWxAnimNotifyState_ComboWindow::NotifyEnd(USkeletalMeshComponent* MeshComp,
 {
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
 
-	if (AActor* Owner = MeshComp->GetOwner())
+	if (AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr)
 	{
 		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
 		{
