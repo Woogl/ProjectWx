@@ -5,9 +5,12 @@
 #include "Component/WxNameplateComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "WxRewardLibrary.h"
+#include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "GameplayEffectExtension.h"
 #include "Kismet/GameplayStatics.h"
+#include "Perception/AISense_Damage.h"
 #include "Spawnable/WxSpawner.h"
 #include "Targeting/WxLockOnPointComponent.h"
 #include "WxGameplayTags.h"
@@ -38,6 +41,36 @@ void AWxEnemyCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	NameplateComponent->InitializeViewModels(AbilitySystemComponent, CharacterName, Portrait);
+}
+
+void AWxEnemyCharacter::InitAbilitySystem()
+{
+	Super::InitAbilitySystem();
+
+	// AI 폰의 빙의는 서버에서만 일어나므로 이 구독도 서버 전용이다 — AI Perception 이 도는 곳과 같다.
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetIncomingDamageAttribute())
+		.AddUObject(this, &AWxEnemyCharacter::HandleIncomingDamageChanged);
+}
+
+void AWxEnemyCharacter::HandleIncomingDamageChanged(const FOnAttributeChangeData& Data)
+{
+	// 메타 어트리뷰트가 GE 실행으로 바뀔 때만 가해자·적중 지점이 실린 콜백 데이터가 함께 온다.
+	// 어트리뷰트셋이 소비하며 되돌리는 0 쓰기에는 실리지 않는다.
+	if (Data.NewValue <= 0.f || !Data.GEModData)
+	{
+		return;
+	}
+
+	const FGameplayEffectContextHandle Context = Data.GEModData->EffectSpec.GetContext();
+	AActor* DamageInstigator = Context.GetInstigator();
+	if (!DamageInstigator)
+	{
+		return;
+	}
+
+	// EventLocation 으로 넘긴 가해자 위치가 그대로 Stimulus 위치가 된다.
+	const FVector HitLocation = Context.GetHitResult() ? FVector(Context.GetHitResult()->ImpactPoint) : GetActorLocation();
+	UAISense_Damage::ReportDamageEvent(this, this, DamageInstigator, Data.NewValue, DamageInstigator->GetActorLocation(), HitLocation);
 }
 
 void AWxEnemyCharacter::HandleDeath()
