@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
-#include "AbilitySystem/Ability/WxMontageSelector.h"
 #include "WxAbility_Finisher.generated.h"
 
+class UAnimMontage;
 struct FGameplayEventData;
 struct FWxDamageInfo;
 
@@ -40,9 +40,13 @@ protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
-	/** 트리거 태그(Event.Finisher·Event.Backstab)로 변형이 갈린다. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx", meta = (ShowOnlyInnerProperties))
-	FWxMontageSelector MontageSelector;
+	/** 앞잡(Event.Finisher) 공격 몽타주. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TObjectPtr<UAnimMontage> FinisherMontage;
+
+	/** 뒤잡(Event.Backstab) 공격 몽타주. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TObjectPtr<UAnimMontage> BackstabMontage;
 
 private:
 	void RegisterWarpTarget(AActor* AvatarActor, const AActor* Target) const;

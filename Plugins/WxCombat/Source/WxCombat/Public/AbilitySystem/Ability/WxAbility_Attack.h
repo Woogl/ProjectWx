@@ -4,11 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
-#include "AbilitySystem/Ability/WxMontageSelector.h"
 #include "WxAbility_Attack.generated.h"
 
+class UAnimMontage;
+
 /**
- * 아바타 태그로 몽타주 세트를 골라 첫 몽타주를 재생하고, State.ComboWindow 구간의 재발동이 같은 세트의 다음 단으로 넘긴다(터미널 단에서는 첫 단으로 되돌아간다).
+ * ComboMontages의 첫 몽타주를 재생하고, State.ComboWindow 구간의 재발동이 다음 단으로 넘긴다(터미널 단에서는 첫 단으로 되돌아간다).
  *
  * 콤보 진행은 엔진 순정 재발동(bRetriggerInstancedAbility)이라 단계마다 CommitAbility가 새로 걸린다.
  * 콤보가 끊기지 않으려면 AbilityDataRow에서 단계 간격보다 쿨다운을 짧게 잡거나 최대 충전 수를 단계 수 이상으로 둔다.
@@ -37,8 +38,9 @@ protected:
 	/** 콤보 미입력으로 끝났으므로 다음 발동은 첫 단부터 시작한다. */
 	virtual void HandleMontageCompleted() override;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx", meta = (ShowOnlyInnerProperties))
-	FWxMontageSelector MontageSelector;
+	/** 배열 순서가 곧 콤보 단계다. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TArray<TObjectPtr<UAnimMontage>> ComboMontages;
 
 private:
 	/**
@@ -46,4 +48,7 @@ private:
 	 * 이 목록은 끊을 대상이자 차단을 뚫고 들어갈 대상을 겸하므로, 액션 마커를 넣으면 어떤 액션 도중에도 공격이 발동한다.
 	 */
 	bool HasActiveCancelTarget(const UAbilitySystemComponent& ASC) const;
+
+	/** 재발동 사이에 보존되며, INDEX_NONE이면 진행 중인 콤보가 없다. */
+	int32 ComboIndex = INDEX_NONE;
 };

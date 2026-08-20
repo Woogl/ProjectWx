@@ -78,7 +78,7 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		}
 	}
 
-	// 몽타주 선택과 달리 이쪽은 종류마다 코드가 다르므로 태그를 명시로 가른다.
+	// 몽타주 선택과 달리 부수 효과는 여러 종류가 한 갈래를 공유하므로 따로 가른다.
 	// 알 수 없는 하위 태그는 어느 갈래도 타지 않고 폴백 몽타주만 재생된다.
 	if (EventTag == WxGameplayTags::Event_HitReact_KnockUp)
 	{
@@ -98,10 +98,42 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		FaceInstigator(AvatarActor, Instigator);
 	}
 
-	if (!PlayMontage(MontageSelector.SelectMontage(ASC, EventTag)))
+	if (!PlayMontage(SelectMontage(EventTag)))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	}
+}
+
+UAnimMontage* UWxAbility_HitReact::SelectMontage(FGameplayTag EventTag) const
+{
+	UAnimMontage* Montage = nullptr;
+
+	if (EventTag == WxGameplayTags::Event_HitReact_KnockBack)
+	{
+		Montage = KnockbackMontage;
+	}
+	else if (EventTag == WxGameplayTags::Event_HitReact_KnockDown)
+	{
+		Montage = KnockdownMontage;
+	}
+	else if (EventTag == WxGameplayTags::Event_HitReact_KnockUp)
+	{
+		Montage = KnockupMontage;
+	}
+	else if (EventTag == WxGameplayTags::Event_HitReact_Parry)
+	{
+		Montage = ParryReactMontage;
+	}
+	else if (EventTag == WxGameplayTags::Event_HitReact_Finisher)
+	{
+		Montage = FinisherHitReactMontage;
+	}
+	else if (EventTag == WxGameplayTags::Event_HitReact_Backstab)
+	{
+		Montage = BackstabHitReactMontage;
+	}
+
+	return Montage ? Montage : NormalHitReactMontage.Get();
 }
 
 void UWxAbility_HitReact::FaceInstigator(AActor* AvatarActor, const AActor* Instigator)

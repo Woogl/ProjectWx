@@ -4,8 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
-#include "AbilitySystem/Ability/WxMontageSelector.h"
 #include "WxAbility_HitReact.generated.h"
+
+class UAnimMontage;
 
 /**
  * 데미지 파이프라인이 보내는 Event.HitReact.* 로 트리거되어 그 태그에 매칭되는 몽타주를 재생한다.
@@ -30,10 +31,34 @@ public:
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
-	/** 피격 종류(Event.HitReact.*)로 세트가 갈린다. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx", meta = (ShowOnlyInnerProperties))
-	FWxMontageSelector MontageSelector;
+	/** 종류별 몽타주를 지정하지 않았을 때의 폴백이기도 하다. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TObjectPtr<UAnimMontage> NormalHitReactMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TObjectPtr<UAnimMontage> KnockbackMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TObjectPtr<UAnimMontage> KnockdownMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TObjectPtr<UAnimMontage> KnockupMontage;
+
+	/** 공격이 퍼펙트 가드로 막혀 공격자가 경직될 때 재생. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TObjectPtr<UAnimMontage> ParryReactMontage;
+
+	/** 피니셔(앞잡) 짝 피격 몽타주. 공격자 몽타주와 프레임 싱크되도록 같은 길이로 제작한다. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TObjectPtr<UAnimMontage> FinisherHitReactMontage;
+
+	/** 백스탭(뒤잡) 짝 피격 몽타주. 공격자를 향해 회전한 뒤 재생한다. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	TObjectPtr<UAnimMontage> BackstabHitReactMontage;
 
 private:
+	/** 지정하지 않은 종류와 알 수 없는 하위 태그는 폴백으로 떨어진다. */
+	UAnimMontage* SelectMontage(FGameplayTag EventTag) const;
+
 	void FaceInstigator(AActor* AvatarActor, const AActor* Instigator);
 };

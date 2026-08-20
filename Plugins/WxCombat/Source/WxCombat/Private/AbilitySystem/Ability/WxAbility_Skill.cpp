@@ -56,7 +56,11 @@ void UWxAbility_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		return;
 	}
 
-	if (!PlayMontage(MontageSelector.AdvanceMontage(GetAbilitySystemComponentFromActorInfo())))
+	// 터미널 단에서는 첫 단으로 되감긴다.
+	ComboIndex = ComboMontages.IsValidIndex(ComboIndex + 1) ? ComboIndex + 1 : 0;
+
+	UAnimMontage* ComboMontage = ComboMontages.IsValidIndex(ComboIndex) ? ComboMontages[ComboIndex].Get() : nullptr;
+	if (!PlayMontage(ComboMontage))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	}
@@ -67,7 +71,7 @@ void UWxAbility_Skill::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 	// 캔슬 종료만 되돌린다 — 콤보 재발동도 이 종료를 지나가는데, 그쪽은 bWasCancelled=false라 진행 단이 보존된다.
 	if (bWasCancelled)
 	{
-		MontageSelector.Reset();
+		ComboIndex = INDEX_NONE;
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
@@ -76,7 +80,7 @@ void UWxAbility_Skill::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 void UWxAbility_Skill::HandleMontageCompleted()
 {
 	// 캔슬이 아니라 EndAbility가 되돌려주지 않는다.
-	MontageSelector.Reset();
+	ComboIndex = INDEX_NONE;
 
 	Super::HandleMontageCompleted();
 }

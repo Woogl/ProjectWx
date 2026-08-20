@@ -62,7 +62,7 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	const FGameplayTag TriggerTag = TriggerEventData ? TriggerEventData->EventTag : FGameplayTag();
 
 	const bool bBackstab = (TriggerTag == WxGameplayTags::Event_Backstab);
-	UAnimMontage* AttackerMontage = MontageSelector.SelectMontage(GetAbilitySystemComponentFromActorInfo(), TriggerTag);
+	UAnimMontage* AttackerMontage = bBackstab ? BackstabMontage.Get() : FinisherMontage.Get();
 	const FGameplayTag VictimHitReactTag = bBackstab ? WxGameplayTags::Event_HitReact_Backstab : WxGameplayTags::Event_HitReact_Finisher;
 
 	if (!AttackerMontage || !AvatarActor || !Target || !CommitAbility(Handle, ActorInfo, ActivationInfo))
