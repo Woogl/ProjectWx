@@ -8,7 +8,7 @@ UWxAbility_Attack::UWxAbility_Attack()
 {
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Attack);
-	AssetTags.AddTag(WxGameplayTags::Trait_Exclusive);
+	AssetTags.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Attack);
 
@@ -16,7 +16,7 @@ UWxAbility_Attack::UWxAbility_Attack()
 
 	// 즉시 회피·가드로 빠져나가는 것을 막아 공격에 리스크를 부여한다.
 	// 후딜 캔슬은 몽타주 StartRecovery 노티파이가 연다.
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
 
 	bRetriggerInstancedAbility = true;
 }
@@ -65,12 +65,7 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UWxAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	// 콤보 재발동은 이 종료 직후 다음 단을 재생하므로 몽타주를 끊지 않고 그대로 넘긴다.
-	// 이 호출이 구 태스크의 후속 이벤트도 막아, 뒤따르는 종료가 Interrupted 핸들러를 깨워 진행 상태를 되돌리는 일이 없다.
-	KeepMontagePlayingAfterEnd();
-
-	// 캔슬 종료는 전부 여기서 되돌린다 — 위 호출 탓에 몽타주 핸들러가 돌지 않는다.
-	// 콤보 재발동은 bWasCancelled=false라 진행 상태가 보존된다.
+	// 캔슬 종료만 되돌린다 — 콤보 재발동도 이 종료를 지나가는데, 그쪽은 bWasCancelled=false라 진행 단이 보존된다.
 	if (bWasCancelled)
 	{
 		MontageSelector.Reset();

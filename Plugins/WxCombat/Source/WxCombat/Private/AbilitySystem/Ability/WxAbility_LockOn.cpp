@@ -43,9 +43,10 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 	// 이동 방향 회전을 끄고 타겟 방향 회전은 태스크의 보간에 맡긴다(EndAbility에서 복구).
 	// autonomous proxy의 회전 정합을 위해 서버에서도 꺼야 하므로 IsLocallyControlled 게이트 앞에서 처리한다.
-	if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
+	const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
+	if (UCharacterMovementComponent* Movement = Character ? Character->GetCharacterMovement() : nullptr)
 	{
-		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Movement->bOrientRotationToMovement = false;
 	}
 
 	// 타겟 결정과 추적 태스크는 소유 클라(또는 리슨 서버 호스트)에서만 처리한다 — 태스크는 카메라·몸체 추적, 재탐색 입력 폴링, 레티클의 로컬 어포던스다.
@@ -98,9 +99,10 @@ void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 			LockOnComp->SetLockOnTarget(nullptr);
 		}
 
-		if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
+		const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
+		if (UCharacterMovementComponent* Movement = Character ? Character->GetCharacterMovement() : nullptr)
 		{
-			Character->GetCharacterMovement()->bOrientRotationToMovement = true;
+			Movement->bOrientRotationToMovement = true;
 		}
 	}
 

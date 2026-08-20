@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystem/Effect/WxEffect_Cooldown.h"
@@ -65,7 +65,6 @@ void UWxAbilityBase::SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileCl
 	const FRotator SpawnRotation = Avatar->GetActorRotation();
 	const FTransform SpawnTransform(SpawnRotation, SpawnLocation);
 
-	// 대미지는 투사체가 BeginPlay에서 자기 클래스 데이터로 준비하므로 지연 스폰이 필요 없다.
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = Avatar;
 	SpawnParams.Instigator = Cast<APawn>(Avatar);
@@ -155,16 +154,6 @@ UAnimMontage* UWxAbilityBase::GetActiveMontage() const
 	return ActiveMontage;
 }
 
-void UWxAbilityBase::KeepMontagePlayingAfterEnd()
-{
-	// EndTask가 AnimInstance 바인딩을 풀어, 뒤따르는 종료가 이 태스크의 Interrupted 핸들러를 깨우지도 않는다.
-	if (MontageTask)
-	{
-		MontageTask->EndTask();
-		MontageTask = nullptr;
-	}
-}
-
 void UWxAbilityBase::HandleMontageCompleted()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
@@ -190,7 +179,10 @@ void UWxAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, c
 
 	if (ActivationPolicy == EWxAbilityActivationPolicy::OnGranted)
 	{
-		ActorInfo->AbilitySystemComponent->TryActivateAbility(Spec.Handle);
+		if (UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr)
+		{
+			ASC->TryActivateAbility(Spec.Handle);
+		}
 	}
 }
 

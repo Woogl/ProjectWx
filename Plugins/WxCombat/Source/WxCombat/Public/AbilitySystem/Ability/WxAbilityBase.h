@@ -85,7 +85,7 @@ public:
 	 * 진입한 어빌리티는 자신의 CancelAbilitiesWithTag(또는 동일 슬롯 몽타주 인터럽트)로 이 어빌리티를 끊는다.
 	 *
 	 * 복원하지 않는다 — 후딜은 몽타주의 마지막 구간이므로 한 번 진입하면 종료까지 캔슬 가능 상태로 둔다.
-	 * 코스트·쿨다운·ActivationBlockedTags는 그대로 검사되고, 차단을 걸지 않는 어빌리티(스프린트·상호작용 등)에서는 무효과.
+	 * 코스트·쿨다운·ActivationBlockedTags는 그대로 검사되고, 차단을 걸지 않는 어빌리티(스프린트·락온)에서는 무효과.
 	 */
 	void StartRecovery();
 
@@ -127,13 +127,6 @@ protected:
 	bool PlayMontage(UAnimMontage* Montage, FName StartSection = NAME_None);
 
 	UAnimMontage* GetActiveMontage() const;
-
-	/**
-	 * 재생 중인 몽타주를 종료 전에 태스크에서 떼어내, 어빌리티가 끝나도 계속 재생되게 한다.
-	 * 엔진은 소유자 종료로 끝난 태스크만 몽타주를 멈추므로, 이걸 부르면 그 정리가 일어나지 않는다.
-	 * 종료 직후 같은 어빌리티가 다음 몽타주를 이어받는 콤보 재발동에서만 쓴다.
-	 */
-	void KeepMontagePlayingAfterEnd();
 
 	UFUNCTION()
 	virtual void HandleMontageCompleted();

@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_HitReact.h"
+#include "AbilitySystemComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "WxGameplayTags.h"
@@ -14,7 +15,7 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	AssetTags.AddTag(WxGameplayTags::Ability_HitReact);
 	SetAssetTags(AssetTags);
 
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
 
 	// 진행 중인 것은 공격·스킬만 끊는다 — 마커로 끊으면 마커를 가진 적 패턴까지 평타 피격에 중단된다.
 	// 차단만으로는 부족하다: 공격·스킬의 콤보 재발동 분기는 활성 Spec만 보고 자체 판정하므로 ASC의 차단 태그 검사를 건너뛴다.
@@ -57,17 +58,34 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		return;
 	}
 
-	const FGameplayTag EventTag = TriggerEventData ? TriggerEventData->EventTag : WxGameplayTags::Event_HitReact_Normal;
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+
+	FGameplayTag EventTag = TriggerEventData ? TriggerEventData->EventTag : WxGameplayTags::Event_HitReact_Normal;
 	const AActor* Instigator = TriggerEventData ? TriggerEventData->Instigator.Get() : nullptr;
 	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
+
+	// 그로기 중엔 날아가지 않는다 — 긴 넉 몽타주가 그로기 몽타주를 밀어내는 동안에도 DP 드레인은 돌아 그로기 창이 잘려나간다.
+	// 그로기를 유발한 히트도 여기 걸린다. DP 적용이 그로기를 먼저 띄우고 반응 이벤트가 그 뒤에 오기 때문이다.
+	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
+	{
+		FGameplayTagContainer KnockTags;
+		KnockTags.AddTagFast(WxGameplayTags::Event_HitReact_KnockBack);
+		KnockTags.AddTagFast(WxGameplayTags::Event_HitReact_KnockDown);
+		KnockTags.AddTagFast(WxGameplayTags::Event_HitReact_KnockUp);
+		if (EventTag.MatchesAny(KnockTags))
+		{
+			EventTag = WxGameplayTags::Event_HitReact_Normal;
+		}
+	}
 
 	// 몽타주 선택과 달리 이쪽은 종류마다 코드가 다르므로 태그를 명시로 가른다.
 	// 알 수 없는 하위 태그는 어느 갈래도 타지 않고 폴백 몽타주만 재생된다.
 	if (EventTag == WxGameplayTags::Event_HitReact_KnockUp)
 	{
-		if (ACharacter* Character = Cast<ACharacter>(AvatarActor))
+		ACharacter* Character = Cast<ACharacter>(AvatarActor);
+		if (const UCharacterMovementComponent* Movement = Character ? Character->GetCharacterMovement() : nullptr)
 		{
-			const FVector LaunchVelocity(0.f, 0.f, Character->GetCharacterMovement()->JumpZVelocity);
+			const FVector LaunchVelocity(0.f, 0.f, Movement->JumpZVelocity);
 			Character->LaunchCharacter(LaunchVelocity, false, true);
 		}
 	}
@@ -80,7 +98,7 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		FaceInstigator(AvatarActor, Instigator);
 	}
 
-	if (!PlayMontage(MontageSelector.SelectMontage(GetAbilitySystemComponentFromActorInfo(), EventTag)))
+	if (!PlayMontage(MontageSelector.SelectMontage(ASC, EventTag)))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	}

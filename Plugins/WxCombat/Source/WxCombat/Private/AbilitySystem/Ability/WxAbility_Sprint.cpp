@@ -11,9 +11,9 @@
 
 UWxAbility_Sprint::UWxAbility_Sprint()
 {
+	// 액션 마커를 달지 않는다 — 속도 배율 GE의 운반체일 뿐이라 액션 슬롯을 점유하지 않는다.
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Sprint);
-	AssetTags.AddTag(WxGameplayTags::Trait_Exclusive);
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Sprint);
 

@@ -18,7 +18,7 @@ class UAnimMontage;
  *                          완주 전에 후속 피격이 오면 리액션 페이즈로 끊긴다
  *
  * Unblockable 피격은 퍼펙트 가드 윈도우 중이라도 가드로 막히지 않는다.
- * ExecCalc가 이 어빌리티를 직접 Cancel한 뒤 HitReact 이벤트를 발송한다.
+ * UWxCombatAttributeSet::PostGameplayEffectExecute가 이 어빌리티를 Cancel한 뒤 HitReact 이벤트를 발송한다.
  *
  * 가드 반격은 여기서 다루지 않는다 — Effect.Guard만 발행하면 공격 어빌리티가 그 태그로 자기 반격 세트를 고른다.
  * 진입 시점은 가드 몽타주의 StartRecovery가 차단을 푸는 때다.

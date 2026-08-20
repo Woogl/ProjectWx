@@ -41,6 +41,9 @@ protected:
 	FWxMontageSelector MontageSelector;
 
 private:
-	/** CancelAbilitiesWithTag로 지목한 어빌리티가 이 ASC에서 하나라도 활성인지 */
+	/**
+	 * CancelAbilitiesWithTag로 지목한 어빌리티가 이 ASC에서 하나라도 활성인지.
+	 * 이 목록은 끊을 대상이자 차단을 뚫고 들어갈 대상을 겸하므로, 액션 마커를 넣으면 어떤 액션 도중에도 공격이 발동한다.
+	 */
 	bool HasActiveCancelTarget(const UAbilitySystemComponent& ASC) const;
 };

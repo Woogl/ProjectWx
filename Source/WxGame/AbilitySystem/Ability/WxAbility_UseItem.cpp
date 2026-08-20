@@ -12,17 +12,17 @@ UWxAbility_UseItem::UWxAbility_UseItem()
 
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_UseItem);
-	AssetTags.AddTag(WxGameplayTags::Trait_Exclusive);
+	AssetTags.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_UseItem);
 
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 
 	// 마시는 중에는 다른 어빌리티로 캔슬되지 않는다.
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
 
-	// 사용 시작 시 진행 중이던 액션을 끊는다(마시면서 스프린트 속도로 이동하는 것 등을 방지).
-	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Exclusive);
+	// 후딜 캔슬로 비집고 들어왔을 때 아직 도는 앞 액션을 끊는다.
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
 }
 
 void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
