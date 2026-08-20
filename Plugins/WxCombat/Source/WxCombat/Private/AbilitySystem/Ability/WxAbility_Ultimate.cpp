@@ -12,10 +12,8 @@ UWxAbility_Ultimate::UWxAbility_Ultimate()
 {
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Ultimate);
-	AssetTags.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
 	SetAssetTags(AssetTags);
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
-	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
+	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Blocking;
 
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Ultimate);
 	ActivationOwnedEffects.Add(UWxEffect_SuperArmor::StaticClass());

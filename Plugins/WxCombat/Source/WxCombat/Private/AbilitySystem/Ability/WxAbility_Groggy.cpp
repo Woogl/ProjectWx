@@ -23,8 +23,8 @@ UWxAbility_Groggy::UWxAbility_Groggy()
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Groggy);
 
 	// 그로기에 빠지면 진행 중이던 액션(적 패턴 포함)을 끊고 그로기 동안 새 액션도 막는다.
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
-	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
+	ActivationGroup = EWxAbilityActivationGroup::Reaction;
+	bCancelsRunningActions = true;
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 
 	FAbilityTriggerData TriggerData;

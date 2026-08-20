@@ -15,14 +15,12 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 {
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Dodge);
-	AssetTags.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
 	SetAssetTags(AssetTags);
 
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Dodge);
 
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
-	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
+	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Blocking;
 }
 
 float UWxAbility_Dodge::GetMontagePlayRate() const

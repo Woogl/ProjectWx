@@ -9,7 +9,6 @@
 struct FStateTreeExecutionContext;
 struct FStateTreeTransitionResult;
 class AController;
-class UAbilitySystemComponent;
 class USceneComponent;
 
 // GetInstanceDataType() 의 헤더 정의는 코딩 규칙 6 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
@@ -53,19 +52,13 @@ struct FWxStateTreeTask_MoveInteractorToTargetInstanceData
 	 */
 	UPROPERTY()
 	TWeakObjectPtr<AController> BlockedController;
-
-	/** (런타임) EnterState 에서 어빌리티를 실제로 막은 ASC. 캐릭터가 아니라 PlayerState 에 살 수 있어 별도로 기록한다(BlockedController 와 동일한 이유). */
-	UPROPERTY()
-	TWeakObjectPtr<UAbilitySystemComponent> BlockedAbilitySystem;
 };
 
 /**
  * 상호작용한 플레이어 캐릭터를 앵커(또는 오너) 기준 상대 위치/방향으로 일정 시간 이동·응시시키고, 도착하면 Succeeded 로 상태를 완료시킨다.
  * 대상은 오너 기믹의 InteractingCharacter 를 직접 읽는다(바인딩 입력 없음) — 값이 이미 복제되어 모든 피어가 같은 대상을 보므로 에셋에서 배선할 것이 없다.
  * 목표 = 앵커(또는 오너) 트랜스폼 ∘ 상대오프셋 이라 모든 머신에서 동일하게 계산돼, 각 피어가 자기 캐릭터 사본을 로컬 보간해도 수렴한다(별도 복제 미러 불필요).
- * 이동 중에는 로컬 플레이어의 입력을 막고, ExitState 가 차단을 건 대상 자체(BlockedController/BlockedAbilitySystem 기록)로 해제해 캐릭터가 소멸·언포제스돼도 스택 카운터의 짝이 맞는다.
- * 이동은 AController::SetIgnoreMoveInput, 어빌리티+점프는 ASC 의 BlockAbilitiesWithTags(Trait.Ability.Exclusive) 로 막는다.
- * Trait.Ability.Exclusive 는 액션 어빌리티가 연출 중 서로를 막는 GAS 순정 관례 그대로이고, 캐릭터 CanJumpInternal 이 AreAbilityTagsBlocked(Trait.Ability.Exclusive) 로 점프를 이미 게이트하므로 점프도 함께 막힌다.
+ * 이동 중에는 로컬 플레이어의 이동 입력을 AController::SetIgnoreMoveInput 으로 막고, ExitState 가 차단을 건 대상 자체(BlockedController 기록)로 해제해 캐릭터가 소멸·언포제스돼도 스택 카운터의 짝이 맞는다.
  * 카메라(look) 입력은 별개 게이트라 유지된다.
  * 초기 진입(StateTree 시작/복원/레이트조인)이면 이동 없이 곧바로 완료한다 — InteractingCharacter 는 비영속이라 복원 시 비어 있다.
  * 대상이 없어도(비캐릭터 상호작용 등) 상태가 갇히지 않게 곧바로 완료한다.

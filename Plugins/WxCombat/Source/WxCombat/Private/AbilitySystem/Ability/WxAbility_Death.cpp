@@ -18,8 +18,8 @@ UWxAbility_Death::UWxAbility_Death()
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Death);
 
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
-	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
+	ActivationGroup = EWxAbilityActivationGroup::Reaction;
+	bCancelsRunningActions = true;
 
 	FAbilityTriggerData TriggerData;
 	TriggerData.TriggerTag = WxGameplayTags::Event_Death;

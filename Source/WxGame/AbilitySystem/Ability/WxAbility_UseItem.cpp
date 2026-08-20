@@ -8,21 +8,17 @@
 
 UWxAbility_UseItem::UWxAbility_UseItem()
 {
-	// NetExecutionPolicy 는 베이스의 LocalPredicted 를 그대로 쓴다 — 몽타주와 블로킹 태그가 입력 프레임에 즉시 걸려야 한다.
+	// NetExecutionPolicy 는 베이스의 LocalPredicted 를 그대로 쓴다 — 몽타주와 배타 점유가 입력 프레임에 즉시 걸려야 한다.
 
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_UseItem);
-	AssetTags.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_UseItem);
 
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 
-	// 마시는 중에는 다른 어빌리티로 캔슬되지 않는다.
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
-
-	// 후딜 캔슬로 비집고 들어왔을 때 아직 도는 앞 액션을 끊는다.
-	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
+	// 마시는 중에는 다른 어빌리티로 캔슬되지 않고, 후딜 캔슬로 비집고 들어왔을 때는 발동이 앞 액션을 끊는다.
+	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Blocking;
 }
 
 void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

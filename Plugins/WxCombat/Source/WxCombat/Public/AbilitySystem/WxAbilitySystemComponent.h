@@ -8,6 +8,7 @@
 #include "WxAbilitySystemComponent.generated.h"
 
 class UInputAction;
+enum class EWxAbilityActivationGroup : uint8;
 
 UCLASS()
 class WXCOMBAT_API UWxAbilitySystemComponent : public UAbilitySystemComponent
@@ -47,6 +48,15 @@ public:
 
 	/** 발동이 거부된 어빌리티와 그 사유(차단·쿨다운·코스트 등)를 남긴다. */
 	virtual void NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason) override;
+
+	/**
+	 * Group이 지금 발동할 수 있는지 배타 판정.
+	 * Exclusive_*는 활성 인스턴스 중 본동작(Exclusive_Blocking·Reaction)이 있으면 막히고, Independent·Reaction은 막히지 않는다.
+	 */
+	bool IsActivationGroupBlocked(EWxAbilityActivationGroup Group) const;
+
+	/** 현재 그룹이 Group인 활성 어빌리티를 전부 취소한다. */
+	void CancelActivationGroupAbilities(EWxAbilityActivationGroup Group, UGameplayAbility* IgnoreAbility);
 
 private:
 	void HandleHitStopElapsed(TWeakObjectPtr<UAnimMontage> FrozenMontage);

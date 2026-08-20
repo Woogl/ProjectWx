@@ -39,10 +39,23 @@ float UWxAbilityBase::GetMontagePlayRate() const
 
 void UWxAbilityBase::StartRecovery()
 {
-	// 차단 태그를 직접 해제하면 안 된다.
-	// 엔진이 차단 소유 여부를 따로 기억했다가 EndAbility에서 한 번 더 해제하는데, 공유 카운터라 그 여분이 캔슬로 진입한 어빌리티의 차단까지 풀어 버린다.
-	// 이 API는 소유 표시까지 정리하므로 해제가 한 번만 일어난다.
-	SetShouldBlockOtherAbilities(false);
+	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Replaceable;
+}
+
+EWxAbilityActivationGroup UWxAbilityBase::GetActivationGroup() const
+{
+	return ActivationGroup;
+}
+
+bool UWxAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
+	{
+		return false;
+	}
+
+	const UWxAbilitySystemComponent* WxASC = ActorInfo ? Cast<UWxAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get()) : nullptr;
+	return !WxASC || !WxASC->IsActivationGroupBlocked(ActivationGroup);
 }
 
 void UWxAbilityBase::SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileClass, FName SpawnSocketName) const
@@ -90,6 +103,24 @@ void UWxAbilityBase::RemoveActivationOwnedEffect(TSubclassOf<UGameplayEffect> Ef
 
 void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
+	// 직전 활성화의 후딜 전이가 재사용 인스턴스에 남긴 그룹을 선언값으로 되돌린다.
+	ActivationGroup = GetClass()->GetDefaultObject<UWxAbilityBase>()->ActivationGroup;
+
+	if (ActivationGroup != EWxAbilityActivationGroup::Independent)
+	{
+		if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr))
+		{
+			// 후딜에 든 앞 액션은 들어온 배타 발동이 끊는다.
+			WxASC->CancelActivationGroupAbilities(EWxAbilityActivationGroup::Exclusive_Replaceable, this);
+
+			if (bCancelsRunningActions)
+			{
+				WxASC->CancelActivationGroupAbilities(EWxAbilityActivationGroup::Exclusive_Blocking, this);
+				WxASC->CancelActivationGroupAbilities(EWxAbilityActivationGroup::Reaction, this);
+			}
+		}
+	}
+
 	// 구체 어빌리티가 Super를 먼저 부르므로, 커밋 실패로 곧장 종료하는 경우엔 EndAbility가 같은 프레임에 다시 걷는다.
 	for (const TSubclassOf<UGameplayEffect>& EffectClass : ActivationOwnedEffects)
 	{

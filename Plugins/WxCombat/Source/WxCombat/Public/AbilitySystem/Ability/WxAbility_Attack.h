@@ -24,11 +24,7 @@ class WXCOMBAT_API UWxAbility_Attack : public UWxAbilityBase
 public:
 	UWxAbility_Attack();
 
-	/**
-	 * 차단을 넘어 발동하는 두 경로를 연다 — 콤보 윈도우 안의 재발동, 그리고 CancelAbilitiesWithTag로 지목한 어빌리티가 돌고 있을 때의 진입.
-	 * 엔진이 차단을 캔슬보다 먼저 판정하므로 뒤 경로가 없으면 취소 선언에 닿기도 전에 거부된다.
-	 * 지목은 BP 데이터라 방향이 한쪽이다.
-	 */
+	/** 콤보 윈도우 안의 재발동은 배타 판정을 건너뛴다 — 점유자가 자기 자신이고, 엔진 재발동이 곧 그 점유를 풀었다 다시 쥔다. */
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
 protected:
@@ -43,12 +39,6 @@ protected:
 	TArray<TObjectPtr<UAnimMontage>> ComboMontages;
 
 private:
-	/**
-	 * CancelAbilitiesWithTag로 지목한 어빌리티가 이 ASC에서 하나라도 활성인지.
-	 * 이 목록은 끊을 대상이자 차단을 뚫고 들어갈 대상을 겸하므로, 액션 마커를 넣으면 어떤 액션 도중에도 공격이 발동한다.
-	 */
-	bool HasActiveCancelTarget(const UAbilitySystemComponent& ASC) const;
-
 	/** 재발동 사이에 보존되며, INDEX_NONE이면 진행 중인 콤보가 없다. */
 	int32 ComboIndex = INDEX_NONE;
 };

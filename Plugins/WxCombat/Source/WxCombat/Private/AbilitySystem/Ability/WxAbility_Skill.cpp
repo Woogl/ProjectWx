@@ -7,11 +7,6 @@
 UWxAbility_Skill::UWxAbility_Skill()
 {
 	// 슬롯마다 다른 애셋 태그(Ability.Skill.1~4)와 입력 액션은 BP 서브클래스가 지정한다.
-	// 애셋 태그를 편집한 BP는 컨테이너를 통째로 갖게 되므로 여기서 단 마커가 그 BP에는 닿지 않는다.
-	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
-	SetAssetTags(AssetTags);
-
 	// 슬롯 태그는 BP 소관이라 코드가 알 수 없으므로 부모 태그로 활성 표식을 보장한다.
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Skill);
 
@@ -19,7 +14,7 @@ UWxAbility_Skill::UWxAbility_Skill()
 
 	// 스킬은 재생 중 다른 GA로 캔슬되지 않는다. (PC규격서 §5.2)
 	// 후딜 캔슬은 몽타주 StartRecovery 노티파이로 허용한다.
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
+	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Blocking;
 
 	bRetriggerInstancedAbility = true;
 }
@@ -29,7 +24,7 @@ bool UWxAbility_Skill::CanActivateAbility(const FGameplayAbilitySpecHandle Handl
 	UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
 	const FGameplayAbilitySpec* Spec = ASC ? ASC->FindAbilitySpecFromHandle(Handle) : nullptr;
 
-	// 자기 차단은 곧 EndAbility가 푸니 무시한다.
+	// 콤보 진행. 점유자가 자기 자신이고 엔진 재발동이 풀었다 다시 쥐므로 배타 판정을 건너뛴다.
 	if (Spec && Spec->IsActive())
 	{
 		if (!ASC || !ASC->HasMatchingGameplayTag(WxGameplayTags::State_ComboWindow))

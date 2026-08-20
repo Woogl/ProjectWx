@@ -2,8 +2,6 @@
 
 #include "Gimmick/WxStateTreeTask_MoveInteractorToTarget.h"
 
-#include "AbilitySystemBlueprintLibrary.h"
-#include "AbilitySystemComponent.h"
 #include "Components/SceneComponent.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/Character.h"
@@ -11,7 +9,6 @@
 #include "Gimmick/WxGimmickStateTreeComponent.h"
 #include "StateTreeExecutionContext.h"
 #include "StateTreePropertyBindings.h"
-#include "WxGameplayTags.h"
 #include "WxWorldModule.h"
 
 EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
@@ -20,7 +17,6 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::EnterState(FStateTr
 
 	// 아래 어느 조기 완료 경로로 빠지든 ExitState 가 걸지도 않은 차단을 해제하는 일이 없어야 한다.
 	Instance.BlockedController = nullptr;
-	Instance.BlockedAbilitySystem = nullptr;
 
 	// 전이로 들어온 것이 아니면 StateTree 시작·세이브 복원·레이트조인이다.
 	if (!Transition.SourceStateID.IsValid())
@@ -43,7 +39,7 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::EnterState(FStateTr
 		Movement->StopMovementImmediately();
 	}
 
-	// 입력이 실제로 생기고 예측이 발동을 게이트하는 로컬 컨트롤 인스턴스에서만 건다 — 소유 클라가 막으면 서버로 활성화가 전송되지 않아 서버 차단이 불필요하다.
+	// 이동 입력이 실제로 생기는 로컬 컨트롤 인스턴스에서만 건다.
 	// 스냅·이동 두 경로 모두에서 걸어 ExitState 해제와 짝을 맞춘다.
 	if (Character->IsLocallyControlled())
 	{
@@ -51,11 +47,6 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::EnterState(FStateTr
 		{
 			Controller->SetIgnoreMoveInput(true);
 			Instance.BlockedController = Controller;
-		}
-		if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Character))
-		{
-			ASC->BlockAbilitiesWithTags(FGameplayTagContainer(WxGameplayTags::Trait_Ability_Exclusive));
-			Instance.BlockedAbilitySystem = ASC;
 		}
 	}
 
@@ -134,19 +125,14 @@ EStateTreeRunStatus FWxStateTreeTask_MoveInteractorToTarget::Tick(FStateTreeExec
 
 void FWxStateTreeTask_MoveInteractorToTarget::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// SetIgnoreMoveInput·BlockAbilitiesWithTags 모두 스택 카운터라 진입 시의 +1 과 짝을 맞춰야 한다.
+	// SetIgnoreMoveInput 은 스택 카운터라 진입 시의 +1 과 짝을 맞춰야 한다.
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 	if (AController* Controller = Instance.BlockedController.Get())
 	{
 		Controller->SetIgnoreMoveInput(false);
 	}
-	if (UAbilitySystemComponent* ASC = Instance.BlockedAbilitySystem.Get())
-	{
-		ASC->UnBlockAbilitiesWithTags(FGameplayTagContainer(WxGameplayTags::Trait_Ability_Exclusive));
-	}
 
 	Instance.BlockedController = nullptr;
-	Instance.BlockedAbilitySystem = nullptr;
 }
 
 #if WITH_EDITOR

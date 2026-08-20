@@ -187,37 +187,6 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_8);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_9);
 
-	// ── Trait ──────────────────────────────────────────────────────────────
-
-	// 어빌리티의 성질을 나타내는 분류 마커. 식별 태그와 달리 ActivationOwnedTags에는 넣지 않는다 — 활성 신호가 아니라 분류다.
-
-	/**
-	 * 액션 슬롯을 점유하는 어빌리티.
-	 *
-	 * 이 태그는 어디에 넣느냐로 뜻이 갈리고, 세 쓰임은 서로 독립이다.
-	 * AssetTags에 넣으면 "나는 액션이다" — 남이 건 잠금에 막히고 남의 취소에 끊긴다.
-	 * BlockAbilitiesWithTag에 넣으면 "액션을 막는다" — 활성 동안 새 액션의 발동을 막는다.
-	 * CancelAbilitiesWithTag에 넣으면 "액션을 끊는다" — 발동 시점에 돌던 액션을 끝낸다.
-	 *
-	 * 세 줄 모두 어빌리티 생성자가 필요한 것만 직접 선언한다.
-	 *
-	 *                                      표식  잠금  취소
-	 *   Attack, Skill, Pattern, Interact     O    O    -
-	 *   Dodge, Guard, Ultimate, UseItem      O    O    O      후딜 캔슬로 들어가 앞 액션을 끊는다
-	 *   Death, Groggy, Finisher              -    O    O      반응이라 남의 잠금을 넘어 들어간다
-	 *   HitReact                             -    O    ※      마커 대신 Ability.Attack·Skill로 좁혀 건다(적 패턴을 살린다)
-	 *   Sprint, LockOn                       -    -    -      액션 슬롯을 쓰지 않는 이동·카메라 보조
-	 *
-	 * 취소는 후딜 캔슬 창에서 뜻이 생긴다 — 잠금이 풀린 뒤 비집고 들어온 어빌리티가 아직 도는 앞 액션을 끝낸다.
-	 * 부류가 취소까지 정하게 만들 수는 없다 — 공격이 이 목록을 차단 우회 판정에도 쓰므로(HasActiveCancelTarget), 액션에 마커를 넣으면 어떤 액션 도중에도 공격이 발동한다.
-	 *
-	 * 잠금은 후딜 진입(StartRecovery)에 풀리고 EndAbility에서 엔진이 마저 정리한다.
-	 * 어빌리티 밖에서도 건다 — 기믹 연출은 ASC에 직접 걸어 그 동안의 액션과 점프를 함께 막는다.
-	 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Trait_Ability_Exclusive);
-
-	// 점프는 이 태그의 차단 여부를 보므로 후딜에 열린다 — 캔슬 액션과 같은 취급.
-
 	// ── SetByCaller ──────────────────────────────────────────────────────────────
 
 	/** 지속시간 Duration SetByCaller 키. NoCooldown/InfiniteMP/DrainDP 등 Duration 모디파이어에서 공용으로 사용 */

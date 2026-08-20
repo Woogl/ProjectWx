@@ -28,6 +28,25 @@ enum class EWxAbilityActivationPolicy : uint8
 };
 
 /**
+ * 배타 발동 그룹. Lyra의 ActivationGroup 세 값에 Reaction을 더했다.
+ * 판정은 UWxAbilitySystemComponent가 활성 인스턴스에서 파생하며, 어빌리티끼리의 태그 차단·취소 배선을 대체한다.
+ */
+enum class EWxAbilityActivationGroup : uint8
+{
+	/** 배타 판정 밖. 막지도 막히지도 않는다 (스프린트·락온). */
+	Independent,
+
+	/** 배타지만 다른 배타 발동에 교체(취소)된다 — 액션의 후딜 상태. */
+	Exclusive_Replaceable,
+
+	/** 배타이고 다른 배타 발동을 막는다 — 액션의 본동작. */
+	Exclusive_Blocking,
+
+	/** Exclusive_Blocking이 돌아도 비집고 들어가 점유를 빼앗는다 (피격·그로기·사망·처형). */
+	Reaction,
+};
+
+/**
  * 쿨다운·코스트 수치는 AbilityDataRow에서만 읽는다.
  * 쿨다운은 공용 UWxEffect_Cooldown GE를 소스 어빌리티 CDO로 구분하며, 소모된 충전 1개당 GE 1개가 붙어 자연 만료로 회복된다.
  * 자원 모디파이어는 MMC가 Row에서 조회하고, 쿨다운 Duration은 ApplyCooldown이 계산해 SetByCaller로 실으므로 적용 경로는 엔진 순정 그대로다.
@@ -81,13 +100,17 @@ public:
 
 	/**
 	 * 이 프로젝트에서 후딜레이 구간 = 캔슬 가능 구간이다.
-	 * 이 어빌리티가 건 하드 차단(BlockAbilitiesWithTag)을 해제해, 평소 막히던 어빌리티로 캔슬 진입할 수 있게 한다.
-	 * 진입한 어빌리티는 자신의 CancelAbilitiesWithTag(또는 동일 슬롯 몽타주 인터럽트)로 이 어빌리티를 끊는다.
+	 * 그룹을 Exclusive_Replaceable로 전이해 배타 잠금을 풀고, 그 순간부터 이후 발동하는 배타 어빌리티의 취소 대상이 된다.
 	 *
-	 * 복원하지 않는다 — 후딜은 몽타주의 마지막 구간이므로 한 번 진입하면 종료까지 캔슬 가능 상태로 둔다.
-	 * 코스트·쿨다운·ActivationBlockedTags는 그대로 검사되고, 차단을 걸지 않는 어빌리티(스프린트·락온)에서는 무효과.
+	 * 복원하지 않는다 — 후딜은 몽타주의 마지막 구간이므로 한 번 진입하면 종료까지 캔슬 가능 상태로 두고, 다음 활성화가 선언값으로 되돌린다.
+	 * 코스트·쿨다운·ActivationBlockedTags는 그대로 검사된다.
 	 */
 	void StartRecovery();
+
+	EWxAbilityActivationGroup GetActivationGroup() const;
+
+	/** 순정 검사에 배타 그룹 판정(IsActivationGroupBlocked)을 더한다. */
+	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
 	/**
 	 * WxAnimNotify_SpawnProjectile이 위임하는 투사체 스폰.
@@ -139,6 +162,12 @@ protected:
 
 	UFUNCTION()
 	virtual void HandleMontageCancelled();
+
+	/** 생성자에서 선언한다. 후딜 전이(StartRecovery)가 Exclusive_Replaceable로 바꾸고, 다음 활성화가 선언값으로 되돌린다. */
+	EWxAbilityActivationGroup ActivationGroup = EWxAbilityActivationGroup::Independent;
+
+	/** Reaction 전용. 발동할 때 후딜에 든 것뿐 아니라 본동작(Exclusive_Blocking·Reaction)까지 끊는다. */
+	bool bCancelsRunningActions = false;
 
 private:
 	const FWxAbilityTableRow* GetTableRow() const;

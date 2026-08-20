@@ -8,7 +8,6 @@ UWxAbility_Attack::UWxAbility_Attack()
 {
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Attack);
-	AssetTags.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Attack);
 
@@ -16,7 +15,7 @@ UWxAbility_Attack::UWxAbility_Attack()
 
 	// 즉시 회피·가드로 빠져나가는 것을 막아 공격에 리스크를 부여한다.
 	// 후딜 캔슬은 몽타주 StartRecovery 노티파이가 연다.
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
+	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Blocking;
 
 	bRetriggerInstancedAbility = true;
 }
@@ -26,20 +25,12 @@ bool UWxAbility_Attack::CanActivateAbility(const FGameplayAbilitySpecHandle Hand
 	UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
 	const FGameplayAbilitySpec* Spec = ASC ? ASC->FindAbilitySpecFromHandle(Handle) : nullptr;
 
-	// 콤보 진행. 자기 차단은 곧 EndAbility가 푸니 무시한다.
+	// 콤보 진행. 점유자가 자기 자신이고 엔진 재발동이 풀었다 다시 쥐므로 배타 판정을 건너뛴다.
 	if (Spec && Spec->IsActive())
 	{
 		return ASC
 			&& ASC->HasMatchingGameplayTag(WxGameplayTags::State_ComboWindow)
 			&& !ASC->HasAnyMatchingGameplayTags(ActivationBlockedTags)
-			&& CheckCooldown(Handle, ActorInfo, OptionalRelevantTags)
-			&& CheckCost(Handle, ActorInfo, OptionalRelevantTags);
-	}
-
-	// 끊고 들어가는 발동. 취소 대상이 건 차단을 넘긴다.
-	if (ASC && HasActiveCancelTarget(*ASC))
-	{
-		return !ASC->HasAnyMatchingGameplayTags(ActivationBlockedTags)
 			&& CheckCooldown(Handle, ActorInfo, OptionalRelevantTags)
 			&& CheckCost(Handle, ActorInfo, OptionalRelevantTags);
 	}
@@ -84,23 +75,4 @@ void UWxAbility_Attack::HandleMontageCompleted()
 	ComboIndex = INDEX_NONE;
 
 	Super::HandleMontageCompleted();
-}
-
-bool UWxAbility_Attack::HasActiveCancelTarget(const UAbilitySystemComponent& ASC) const
-{
-	if (CancelAbilitiesWithTag.IsEmpty())
-	{
-		return false;
-	}
-
-	// 자기 스펙이 활성이면 호출자가 콤보 재발동으로 먼저 처리하므로, 여기 걸리는 건 전부 남의 것이다.
-	for (const FGameplayAbilitySpec& Spec : ASC.GetActivatableAbilities())
-	{
-		if (Spec.IsActive() && Spec.Ability && Spec.Ability->GetAssetTags().HasAny(CancelAbilitiesWithTag))
-		{
-			return true;
-		}
-	}
-
-	return false;
 }

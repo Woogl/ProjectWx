@@ -156,6 +156,63 @@ void UWxAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecHa
 	UE_LOG(LogWxCombat, Verbose, TEXT("어빌리티 발동 거부: %s — 사유 %s"), *GetNameSafe(Ability), *FailureReason.ToStringSimple());
 }
 
+bool UWxAbilitySystemComponent::IsActivationGroupBlocked(EWxAbilityActivationGroup Group) const
+{
+	if (Group == EWxAbilityActivationGroup::Independent || Group == EWxAbilityActivationGroup::Reaction)
+	{
+		return false;
+	}
+
+	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
+	{
+		if (!Spec.IsActive())
+		{
+			continue;
+		}
+
+		for (const UGameplayAbility* Instance : Spec.GetAbilityInstances())
+		{
+			const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Instance);
+			if (!Ability || !Ability->IsActive())
+			{
+				continue;
+			}
+
+			const EWxAbilityActivationGroup ActiveGroup = Ability->GetActivationGroup();
+			if (ActiveGroup == EWxAbilityActivationGroup::Exclusive_Blocking || ActiveGroup == EWxAbilityActivationGroup::Reaction)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+void UWxAbilitySystemComponent::CancelActivationGroupAbilities(EWxAbilityActivationGroup Group, UGameplayAbility* IgnoreAbility)
+{
+	// 취소가 어빌리티 목록을 바꿀 수 있으므로 순회를 잠근다.
+	ABILITYLIST_SCOPE_LOCK();
+
+	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
+	{
+		if (!Spec.IsActive())
+		{
+			continue;
+		}
+
+		for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
+		{
+			const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Instance);
+			if (Ability && Ability != IgnoreAbility && Ability->IsActive() && Ability->GetActivationGroup() == Group)
+			{
+				CancelAbilitySpec(Spec, IgnoreAbility);
+				break;
+			}
+		}
+	}
+}
+
 void UWxAbilitySystemComponent::HandleHitStopElapsed(TWeakObjectPtr<UAnimMontage> FrozenMontage)
 {
 	// 피격 등이 현재 몽타주를 가로챘어도 얼렸던 그 몽타주에 정확히 닿는다.

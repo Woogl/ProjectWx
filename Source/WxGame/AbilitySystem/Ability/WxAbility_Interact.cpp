@@ -18,12 +18,13 @@ UWxAbility_Interact::UWxAbility_Interact()
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
 
 	// 상호작용 스캐너 컴포넌트(WxWorld)가 이 태그로 스펙을 찾아 CanActivateAbility 로 클라 표시 게이트를 삼는다.
-	// 마커를 함께 달아 다른 액션이 걸어 둔 차단(마시는 중·기믹 연출 중 등)이 그 표시 게이트에 반영되게 한다.
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Interact);
-	AssetTags.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Interact);
+
+	// 배타 그룹 판정이 그 표시 게이트에 반영되어, 다른 액션 중(마시는 중·기믹 연출 중 등)에는 표시가 사라진다.
+	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Blocking;
 
 	// 이 차단 태그들이 서버 활성·클라 표시(스캐너 컴포넌트) 게이트의 단일 소스다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
@@ -33,9 +34,6 @@ UWxAbility_Interact::UWxAbility_Interact()
 
 	// State.Dialogue는 PC의 WxDialogueSessionComponent가 세션 시작·종료에 맞춰 폰 ASC에 발행한다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dialogue);
-
-	// 이 차단은 사실상 무효다 — 활성화 함수 안에서 곧바로 끝나고, 상호작용 연출 중의 차단은 대상 StateTree가 ASC에 직접 건다.
-	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Trait_Ability_Exclusive);
 }
 
 void UWxAbility_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

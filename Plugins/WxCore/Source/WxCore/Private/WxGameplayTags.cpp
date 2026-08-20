@@ -100,8 +100,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_8, "Ability.Pattern.8");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_9, "Ability.Pattern.9");
 
-	UE_DEFINE_GAMEPLAY_TAG(Trait_Ability_Exclusive, "Trait.Ability.Exclusive");
-
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Duration, "SetByCaller.Duration");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Recovery_UP, "SetByCaller.Recovery.UP");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Recovery_MP, "SetByCaller.Recovery.MP");
