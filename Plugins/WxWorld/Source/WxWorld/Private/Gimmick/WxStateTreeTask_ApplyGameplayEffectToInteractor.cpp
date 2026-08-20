@@ -12,6 +12,11 @@
 FWxStateTreeTask_ApplyGameplayEffectToInteractor::FWxStateTreeTask_ApplyGameplayEffectToInteractor()
 {
 	bShouldCallTick = false;
+
+#if WITH_EDITORONLY_DATA
+	bConsideredForCompletion = false;
+	bCanEditConsideredForCompletion = false;
+#endif
 }
 
 EStateTreeRunStatus FWxStateTreeTask_ApplyGameplayEffectToInteractor::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const

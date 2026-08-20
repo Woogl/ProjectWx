@@ -14,6 +14,11 @@ FWxStateTreeTask_EnablePlayerInput::FWxStateTreeTask_EnablePlayerInput()
 
 	// 그 상태의 입력 가용성을 선언하는 상태형 태스크다. 재선택 시 EnterState/ExitState 가 함께 스킵되므로 아래 차단 기록과 해제의 짝도 그대로 유지된다.
 	bShouldStateChangeOnReselect = false;
+
+#if WITH_EDITORONLY_DATA
+	bConsideredForCompletion = false;
+	bCanEditConsideredForCompletion = false;
+#endif
 }
 
 EStateTreeRunStatus FWxStateTreeTask_EnablePlayerInput::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const

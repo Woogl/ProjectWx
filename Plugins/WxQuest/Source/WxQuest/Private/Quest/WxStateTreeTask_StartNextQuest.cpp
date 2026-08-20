@@ -10,6 +10,11 @@
 FWxStateTreeTask_StartNextQuest::FWxStateTreeTask_StartNextQuest()
 {
 	bShouldCallTick = false;
+
+#if WITH_EDITORONLY_DATA
+	bConsideredForCompletion = false;
+	bCanEditConsideredForCompletion = false;
+#endif
 }
 
 EStateTreeRunStatus FWxStateTreeTask_StartNextQuest::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const

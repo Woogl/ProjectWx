@@ -10,6 +10,11 @@
 FWxStateTreeTask_SpawnNiagara::FWxStateTreeTask_SpawnNiagara()
 {
 	bShouldCallTick = false;
+
+#if WITH_EDITORONLY_DATA
+	bConsideredForCompletion = false;
+	bCanEditConsideredForCompletion = false;
+#endif
 }
 
 EStateTreeRunStatus FWxStateTreeTask_SpawnNiagara::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const

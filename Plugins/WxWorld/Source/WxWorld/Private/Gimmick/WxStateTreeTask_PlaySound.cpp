@@ -10,6 +10,11 @@ FWxStateTreeTask_PlaySound::FWxStateTreeTask_PlaySound()
 {
 	// 진입 시 1회 재생만 하므로 틱이 불필요하다.
 	bShouldCallTick = false;
+
+#if WITH_EDITORONLY_DATA
+	bConsideredForCompletion = false;
+	bCanEditConsideredForCompletion = false;
+#endif
 }
 
 EStateTreeRunStatus FWxStateTreeTask_PlaySound::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const

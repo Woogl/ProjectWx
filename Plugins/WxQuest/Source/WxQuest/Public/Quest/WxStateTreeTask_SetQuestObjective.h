@@ -27,9 +27,9 @@ struct FWxStateTreeTask_SetQuestObjectiveInstanceData
 /**
  * 진입 시 저널에 목표를 하나 걸고, 상태에 머무는 동안 유지하다 떠날 때 걷어간다.
  * 목표의 수명이 곧 그 상태의 수명이라 정리 태스크가 따로 필요 없다.
- * 진입 즉시 Succeeded 로 끝나며, 상태 완료는 짝이 되는 Wait 태스크가 낸다.
+ * 완료 판정에서 빠져 있어 진입 즉시 Succeeded 로 끝나도 그 상태를 끝내지 않는다. 상태 완료는 짝이 되는 Wait 태스크가 낸다.
  *
- * 퀘스트 컴포넌트가 없으면 잘못된 조립(퀘스트 러너 밖 사용)이므로 Failed 로 그 상태를 실패시킨다.
+ * 퀘스트 컴포넌트가 없으면 잘못된 조립(퀘스트 러너 밖 사용)이라 경고를 남기고 목표를 걸지 않는다.
  */
 USTRUCT(meta = (DisplayName = "퀘스트 목표 설정", Category = "Wx"))
 struct FWxStateTreeTask_SetQuestObjective : public FStateTreeTaskCommonBase

@@ -15,6 +15,11 @@ FWxStateTreeTask_EnableInteraction::FWxStateTreeTask_EnableInteraction()
 {
 	// 같은 상태가 재선택돼도 이미 적용된 값이라 다시 쓸 것이 없다.
 	bShouldStateChangeOnReselect = false;
+
+#if WITH_EDITORONLY_DATA
+	bConsideredForCompletion = false;
+	bCanEditConsideredForCompletion = false;
+#endif
 }
 
 EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const

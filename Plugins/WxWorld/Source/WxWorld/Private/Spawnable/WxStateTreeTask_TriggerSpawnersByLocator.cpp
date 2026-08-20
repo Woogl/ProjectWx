@@ -11,6 +11,11 @@
 FWxStateTreeTask_TriggerSpawnersByLocator::FWxStateTreeTask_TriggerSpawnersByLocator()
 {
 	bShouldCallTick = false;
+
+#if WITH_EDITORONLY_DATA
+	bConsideredForCompletion = false;
+	bCanEditConsideredForCompletion = false;
+#endif
 }
 
 EStateTreeRunStatus FWxStateTreeTask_TriggerSpawnersByLocator::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const

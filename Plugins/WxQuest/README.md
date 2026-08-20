@@ -31,7 +31,7 @@
 
 ## 확장 포인트 / 규약
 - **새 진행 태스크**: `FStateTreeTaskCommonBase` 를 상속한 `FWxStateTreeTask_*` USTRUCT 을 추가한다. 오너(GameState)에서 `UWxQuestComponent` 를 `FindComponentByClass` 로 찾아 위임하고, 없으면 잘못된 조립이므로 `Failed` 를 낸다. `GetInstanceDataType()` 헤더 정의는 코딩 규칙 6 의 명시적 예외(엔진 StateTree 관례).
-- **완료 판정 규약**: 즉시 끝나는 태스크(제목·목표·체인)는 진입 즉시 `Succeeded`, 상태의 실제 완료는 짝이 되는 대기 태스크(`WaitMoveToTarget` 등)가 낸다. 한 상태에 판정 태스크가 하나도 없으면 형제 상태의 완료를 물려받는 함정이 있다 — 판정에 참여할 태스크를 반드시 하나 둔다.
+- **완료 판정 규약**: 즉시 끝나는 태스크(제목·목표·체인)는 코드에서 완료 판정에 빠져 있어(`bConsideredForCompletion=false`) 진입 즉시 `Succeeded` 를 내도 상태를 끝내지 않는다. 상태의 실제 완료는 짝이 되는 대기 태스크(`WaitMoveToTarget` 등)가 낸다 — 스스로 끝나야 하는 상태에는 대기 태스크를 반드시 하나 둔다.
 - **데이터 주도 설정**: 퀘스트 = `UWxQuestStateTree` 에셋. 수주는 레벨 배치 트리거가 `UWxQuestLibrary::StartQuest` 호출, 체인은 `StartNextQuest` 태스크의 `Quest` 소프트 참조, 도달 대상은 `WaitMoveToTarget` 의 `FUniversalObjectLocator`(배치 액터 직접 지정). 코드는 어떤 에셋도 알지 않는다.
 - **권위 규약**: 러너는 권위(BeginPlay `HasAuthority`)에서만 생성 → 비-권위 호출은 자연 노옵. 러너 콜스택 안에서의 활성화는 `RequestActivateQuest`(다음 틱), 밖에서는 `ActivateQuest`(정지→교체→시작).
 
