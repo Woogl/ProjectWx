@@ -147,7 +147,6 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 		{
 			SetHP(FMath::Max(GetHP() - Damage, 0.f));
 
-			// IncomingDamage 경로로 HP가 0 이하가 됐을 때만 사망 처리한다.
 			// 사망 표식(Ability.Death)은 사망 어빌리티가 활성 동안 들고 있으므로, 여기서는 발동만 알린다.
 			if (GetHP() <= 0.f)
 			{

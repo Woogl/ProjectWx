@@ -17,7 +17,6 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnLockOnTargetChanged, USceneComp
  * 컴포넌트 레퍼런스 복제는 대상이 네트워크 주소를 가질 때만 원격에서 해소된다 — 디폴트 서브오브젝트는 안전하지만 동적 생성한 비복제 컴포넌트는 null로 도착할 수 있다.
  *
  * 소유 클라이언트는 응답성을 위해 로컬에 먼저 반영하고 서버에 권위 설정을 요청한 뒤, 복제값이 도착하면 정합한다.
- * 대상이 바뀌면 OnLockOnTargetChanged를 쏘므로 락온 태스크가 이를 구독해 추적 대상을 맞춘다.
  */
 UCLASS()
 class WXCOMBAT_API UWxLockOnManagerComponent : public UActorComponent

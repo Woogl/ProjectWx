@@ -9,7 +9,7 @@
 class UNiagaraSystem;
 class USoundBase;
 
-/** 퍼펙트 가드로 판정된 피격에서 UWxAbilitySystemComponent 가 발행한다. */
+/** 퍼펙트 가드로 판정된 피격에서 UWxCombatAttributeSet 이 발행한다. */
 UCLASS(Abstract, Blueprintable)
 class WXCOMBAT_API UWxCueNotify_PerfectGuard : public UGameplayCueNotify_Static
 {

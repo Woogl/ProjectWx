@@ -79,7 +79,6 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	}
 
 	// 몽타주 선택과 달리 부수 효과는 여러 종류가 한 갈래를 공유하므로 따로 가른다.
-	// 알 수 없는 하위 태그는 어느 갈래도 타지 않고 폴백 몽타주만 재생된다.
 	if (EventTag == WxGameplayTags::Event_HitReact_KnockUp)
 	{
 		ACharacter* Character = Cast<ACharacter>(AvatarActor);

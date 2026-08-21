@@ -13,7 +13,6 @@ UWxLockOnPointComponent::UWxLockOnPointComponent()
 	// 움직이는 캐릭터/본에 부착되어 매 프레임 위치가 갱신되어야 하므로 Movable로 둔다.
 	Mobility = EComponentMobility::Movable;
 
-	// 기본값은 죽은 대상 제외뿐이고, 다른 조건은 엔티티별로 BP에서 오버라이드한다.
 	LockOnRequirements.IgnoreTags.AddTag(WxGameplayTags::Ability_Death);
 }
 

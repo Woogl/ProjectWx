@@ -63,7 +63,6 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	FGameplayEffectSpecHandle DrainSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_DrainDP::StaticClass(), GetAbilityLevel());
 	if (DrainSpecHandle.IsValid())
 	{
-		// 이 시간 동안 DP가 0까지 내려가야 그로기가 끝난다.
 		DrainSpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, GroggyDuration);
 		DrainDPEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, DrainSpecHandle);
 	}

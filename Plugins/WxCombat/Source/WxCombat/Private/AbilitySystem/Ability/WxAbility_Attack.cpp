@@ -25,7 +25,6 @@ bool UWxAbility_Attack::CanActivateAbility(const FGameplayAbilitySpecHandle Hand
 	UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
 	const FGameplayAbilitySpec* Spec = ASC ? ASC->FindAbilitySpecFromHandle(Handle) : nullptr;
 
-	// 콤보 진행. 점유자가 자기 자신이고 엔진 재발동이 풀었다 다시 쥐므로 배타 판정을 건너뛴다.
 	if (Spec && Spec->IsActive())
 	{
 		return ASC
@@ -48,7 +47,6 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	// 터미널 단에서는 첫 단으로 되감긴다.
 	ComboIndex = ComboMontages.IsValidIndex(ComboIndex + 1) ? ComboIndex + 1 : 0;
 
 	UAnimMontage* ComboMontage = ComboMontages.IsValidIndex(ComboIndex) ? ComboMontages[ComboIndex].Get() : nullptr;

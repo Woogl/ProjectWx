@@ -32,7 +32,6 @@ public:
 
 	void AbilityInputActionReleased(const UInputAction* Action);
 
-	/** AbilitySet의 어빌리티들이 요구하는 입력 액션 전체(플레이어 입력 바인딩용) */
 	TArray<const UInputAction*> GetAbilityInputActions() const;
 
 	/** 이 액터의 ASPD가 반영된 몽타주 재생 속도. 어빌리티 몽타주 재생과 히트스톱 복원이 공유한다. */
@@ -55,7 +54,6 @@ public:
 	 */
 	bool IsActivationGroupBlocked(EWxAbilityActivationGroup Group) const;
 
-	/** 현재 그룹이 Group인 활성 어빌리티를 전부 취소한다. */
 	void CancelActivationGroupAbilities(EWxAbilityActivationGroup Group, UGameplayAbility* IgnoreAbility);
 
 private:

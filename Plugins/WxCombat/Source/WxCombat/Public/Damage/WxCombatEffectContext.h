@@ -42,7 +42,6 @@ public:
 
 	bool IsCritical() const;
 
-	/** 컨텍스트가 여러 스펙에 재사용되므로, 판정을 새로 시작할 때도 false로 한 번 불러 이전 결과를 지운다 */
 	void SetCritical(bool bInCritical);
 
 protected:

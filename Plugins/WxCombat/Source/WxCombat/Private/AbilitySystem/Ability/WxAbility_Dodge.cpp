@@ -238,7 +238,6 @@ void UWxAbility_Dodge::ListenForInvincibleWindow()
 
 void UWxAbility_Dodge::ActivateJudgementCapsule()
 {
-	// 첫 무적 구간에서 한 번만 만들고 이후 회피에서 재사용한다.
 	if (!JudgementCapsule)
 	{
 		ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());

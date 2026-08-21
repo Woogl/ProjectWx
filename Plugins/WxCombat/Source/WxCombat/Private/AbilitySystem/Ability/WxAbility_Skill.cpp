@@ -6,8 +6,7 @@
 
 UWxAbility_Skill::UWxAbility_Skill()
 {
-	// 슬롯마다 다른 애셋 태그(Ability.Skill.1~4)와 입력 액션은 BP 서브클래스가 지정한다.
-	// 슬롯 태그는 BP 소관이라 코드가 알 수 없으므로 부모 태그로 활성 표식을 보장한다.
+	// 슬롯마다 다른 애셋 태그(Ability.Skill.1~4)와 입력 액션은 BP 소관이라 코드가 알 수 없으므로, 부모 태그로 활성 표식을 보장한다.
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Skill);
 
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
@@ -51,7 +50,6 @@ void UWxAbility_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		return;
 	}
 
-	// 터미널 단에서는 첫 단으로 되감긴다.
 	ComboIndex = ComboMontages.IsValidIndex(ComboIndex + 1) ? ComboIndex + 1 : 0;
 
 	UAnimMontage* ComboMontage = ComboMontages.IsValidIndex(ComboIndex) ? ComboMontages[ComboIndex].Get() : nullptr;

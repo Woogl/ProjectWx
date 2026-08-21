@@ -59,8 +59,7 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 		FacingTarget = TargetingResults[0];
 	}
 
-	// 워프 타겟은 이름으로 컴포넌트에 남고 대상 컴포넌트를 계속 추종한다. 몽타주가 끝나도 엔진은 지우지 않는다.
-	// 따라서 대상을 못 찾아 새로 등록하지 않으면 직전 공격이 남긴 타겟을 그대로 집어 써, 이미 죽은 대상을 계속 응시한다.
+	// 워프 타겟은 이름으로 컴포넌트에 남고 몽타주가 끝나도 엔진이 지우지 않으므로, 새로 등록하지 않으면 직전 공격이 남긴 타겟을 그대로 집어 쓴다.
 	// 여기서 자기 워프 타겟을 지우면 부모 Warp::Update 가 타겟 부재를 감지해 modifier 를 끄고 순정 루트 모션으로 재생한다.
 	USceneComponent* TargetComponent = FacingTarget ? FacingTarget->GetRootComponent() : nullptr;
 	if (!TargetComponent)
@@ -83,7 +82,6 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 
 	bWarpTranslation = bShouldWarpTranslation;
 
-	// 컴포넌트 추종으로 등록해 워프 중 대상 이동을 매 프레임 추적한다.
 	// 접근·회전 모두 수평(yaw) 전용이며, 작은 높이차는 SkewWarp의 bIgnoreZAxis와 캡슐 step-up이 흡수한다.
 	MotionWarpingComp->AddOrUpdateWarpTargetFromComponent(WarpTargetName, TargetComponent, NAME_None, true, EWarpTargetLocationOffsetDirection::VectorFromTargetToOwner, LocationOffset);
 }

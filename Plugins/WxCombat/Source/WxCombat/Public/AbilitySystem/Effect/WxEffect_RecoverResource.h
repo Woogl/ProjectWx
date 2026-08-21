@@ -10,7 +10,7 @@ class UAbilitySystemComponent;
 
 /**
  * UP·MP를 즉시 회복시키는 GameplayEffect.
- * ExecCalc와 어빌리티가 ApplyTo 진입점을 공유한다.
+ * AttributeSet의 대미지 처리와 어빌리티가 ApplyTo 진입점을 공유한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxEffect_RecoverResource : public UGameplayEffect

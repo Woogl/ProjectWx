@@ -57,7 +57,6 @@ protected:
 	TObjectPtr<UAnimMontage> BackstabHitReactMontage;
 
 private:
-	/** 지정하지 않은 종류와 알 수 없는 하위 태그는 폴백으로 떨어진다. */
 	UAnimMontage* SelectMontage(FGameplayTag EventTag) const;
 
 	void FaceInstigator(AActor* AvatarActor, const AActor* Instigator);

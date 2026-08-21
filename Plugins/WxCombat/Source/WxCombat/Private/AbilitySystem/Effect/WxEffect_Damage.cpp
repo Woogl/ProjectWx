@@ -139,8 +139,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		CombatContext->SetCritical(DamageResult.bIsCritical);
 	}
 
-	// 출력 순서가 곧 계약이다. 엔진이 모디파이어를 하나씩 적용하며 그때마다 PostGameplayEffectExecute를 부르므로,
-	// IncomingDamage를 맨 뒤에 둬야 반응을 발행하는 시점에 SP·DP가 이미 확정돼 있다.
+	// 출력 순서가 곧 계약이라 IncomingDamage가 맨 뒤다.
 	// SP: 가드가 이 히트로 깨졌는지 판정하고, DP: 그로기 진입이 HitReact 어빌리티에 보인다.
 	if (bGuardHit)
 	{
