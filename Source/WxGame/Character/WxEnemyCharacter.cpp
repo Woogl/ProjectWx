@@ -110,7 +110,7 @@ bool AWxEnemyCharacter::CanBeInteractedBy(const AActor* Interactor) const
 
 FGameplayTag AWxEnemyCharacter::GetEligibleFinisherEventTag(const AActor* Interactor) const
 {
-	if (!IsAlive() || !AbilitySystemComponent)
+	if (!IsAlive())
 	{
 		return FGameplayTag();
 	}

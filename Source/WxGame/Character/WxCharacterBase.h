@@ -68,6 +68,7 @@ public:
 	FWxOnDeathSignature OnDeath;
 
 protected:
+	/** 생성자 서브오브젝트라 수명 내내 널이 아니다 — 파생 전부가 널 검사 없이 역참조한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|GAS")
 	TObjectPtr<UWxAbilitySystemComponent> AbilitySystemComponent;
 	

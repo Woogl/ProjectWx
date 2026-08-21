@@ -110,19 +110,16 @@ void AWxCharacterBase::PossessedBy(AController* NewController)
 
 bool AWxCharacterBase::CanJumpInternal_Implementation() const
 {
-	if (AbilitySystemComponent)
+	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
 	{
-		if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
-		{
-			return false;
-		}
+		return false;
+	}
 
-		// 액션 어빌리티(Attack/Dodge/Skill/Ultimate/Guard 등)는 본동작 동안 배타 점유를 쥐므로, 그 판정으로 어빌리티 발동 중인지 판별해 점프를 막는다.
-		// 후딜 전이로 점유가 풀리면 다른 캔슬 액션과 동일하게 점프도 허용된다.
-		if (AbilitySystemComponent->IsActivationGroupBlocked(EWxAbilityActivationGroup::Exclusive_Blocking))
-		{
-			return false;
-		}
+	// 액션 어빌리티(Attack/Dodge/Skill/Ultimate/Guard 등)는 본동작 동안 배타 점유를 쥐므로, 그 판정으로 어빌리티 발동 중인지 판별해 점프를 막는다.
+	// 후딜 전이로 점유가 풀리면 다른 캔슬 액션과 동일하게 점프도 허용된다.
+	if (AbilitySystemComponent->IsActivationGroupBlocked(EWxAbilityActivationGroup::Exclusive_Blocking))
+	{
+		return false;
 	}
 
 	// 점프 입력이 앉기를 먼저 풀어도 실제 기립은 다음 이동 갱신이라 이 시점엔 아직 앉은 것으로 보인다.
@@ -142,10 +139,7 @@ UAbilitySystemComponent* AWxCharacterBase::GetAbilitySystemComponent() const
 
 void AWxCharacterBase::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
 {
-	if (AbilitySystemComponent)
-	{
-		AbilitySystemComponent->GetOwnedGameplayTags(TagContainer);
-	}
+	AbilitySystemComponent->GetOwnedGameplayTags(TagContainer);
 }
 
 AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const

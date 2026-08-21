@@ -6,6 +6,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "WxCharacterMovementComponent.generated.h"
 
+class UAbilitySystemComponent;
+
 /**
  * 전 캐릭터 공용 CharacterMovementComponent — AWxCharacterBase 가 클래스를 교체해 파생 전부가 이걸 받는다.
  * 상승·하강에 서로 다른 중력 스케일을 적용해(비대칭 낙하) 액션성 있는 점프 감각을 낸다.
@@ -38,4 +40,13 @@ protected:
 
 private:
 	void JumpToLandingSection();
+
+	/**
+	 * 첫 호출에만 오너에서 해석하고 이후엔 기억해 둔 값을 준다 — 이동 갱신마다 도는 탐색을 없앤다.
+	 * 오너가 아직 없으면 널이다.
+	 */
+	UAbilitySystemComponent* GetAbilitySystemComponent();
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 };

@@ -44,19 +44,28 @@ float UWxCharacterMovementComponent::GetGravityZ() const
 	}
 }
 
+UAbilitySystemComponent* UWxCharacterMovementComponent::GetAbilitySystemComponent()
+{
+	// 오너의 ASC 는 생성자 서브오브젝트라 한 번 잡으면 바뀌지 않는다.
+	// 오너가 정해지는 시점(등록)과 첫 호출 시점(PostInitializeComponents 의 초기 이동 모드 설정)이 엇갈릴 수 있어 초기화 훅 대신 지연 해석한다.
+	if (!AbilitySystemComponent && CharacterOwner)
+	{
+		AbilitySystemComponent = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(CharacterOwner);
+	}
+
+	return AbilitySystemComponent;
+}
+
 void UWxCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float DeltaSeconds)
 {
-	if (CharacterOwner)
+	if (const UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
 	{
-		if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(CharacterOwner))
+		if (ASC->GetAnimatingAbility())
 		{
-			if (ASC->GetAnimatingAbility())
-			{
-				bWantsToCrouch = false;
-			}
+			bWantsToCrouch = false;
 		}
 	}
-	
+
 	Super::UpdateCharacterStateBeforeMovement(DeltaSeconds);
 }
 
@@ -64,18 +73,15 @@ void UWxCharacterMovementComponent::OnMovementModeChanged(EMovementMode Previous
 {
 	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
 
-	if (CharacterOwner)
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
 	{
-		if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(CharacterOwner))
+		if (IsFalling())
 		{
-			if (IsFalling())
-			{
-				ASC->SetLooseGameplayTagCount(WxGameplayTags::Movement_InAir, 1);
-			}
-			else
-			{
-				ASC->SetLooseGameplayTagCount(WxGameplayTags::Movement_InAir, 0);
-			}
+			ASC->SetLooseGameplayTagCount(WxGameplayTags::Movement_InAir, 1);
+		}
+		else
+		{
+			ASC->SetLooseGameplayTagCount(WxGameplayTags::Movement_InAir, 0);
 		}
 	}
 
