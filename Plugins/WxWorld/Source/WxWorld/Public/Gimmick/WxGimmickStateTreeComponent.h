@@ -137,6 +137,12 @@ public:
 	/** 지금 활성인 상태의 Tag. 활성 leaf 에서 위로 올라가며 처음 만나는 유효 태그를 답한다(태그 없는 중간 상태는 건너뛴다). */
 	FGameplayTag GetActiveStateTag();
 
+	/**
+	 * 권위가 정한 상태의 Tag. 밖에서 기믹 상태를 조건으로 삼는 쪽(층별 호출 레버 등)이 읽는 값이다.
+	 * 트리를 훑는 GetActiveStateTag 와 달리 복제된 필드를 그대로 답하므로 매 틱 게이트로 써도 되고, 모든 피어가 같은 권위 값을 본다.
+	 */
+	FGameplayTag GetStateTag() const;
+
 	/** 실행 컨텍스트 확장이 트리의 깨우기 요청을 전달하는 진입점. */
 	void NotifyTickRequested();
 

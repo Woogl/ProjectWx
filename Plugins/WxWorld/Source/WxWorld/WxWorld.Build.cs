@@ -16,6 +16,8 @@ public class WxWorld : ModuleRules
 			"CoreUObject",
 			"DeveloperSettings",
 			"Engine",
+			// 레버의 공개 헤더가 태그 요건(FGameplayTagRequirements) 을 저작 필드로 노출한다.
+			"GameplayAbilities",
 			"GameplayStateTreeModule",
 			"GameplayTags",
 			"ModularGameplay",
@@ -26,7 +28,6 @@ public class WxWorld : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
-			"GameplayAbilities",
 			"LevelSequence",
 			"MovieScene",
 			"Niagara",

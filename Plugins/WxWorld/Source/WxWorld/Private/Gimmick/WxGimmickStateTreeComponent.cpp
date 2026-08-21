@@ -243,6 +243,11 @@ FGameplayTag UWxGimmickStateTreeComponent::GetActiveStateTag()
 	return FGameplayTag();
 }
 
+FGameplayTag UWxGimmickStateTreeComponent::GetStateTag() const
+{
+	return StateTag;
+}
+
 void UWxGimmickStateTreeComponent::NotifyTickRequested()
 {
 	ConditionalEnableTick();

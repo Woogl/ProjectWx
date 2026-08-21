@@ -40,9 +40,9 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Door_Close, "Gimmick.Door.Close");
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Door_Open, "Gimmick.Door.Open");
 
-	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Elevator_Closed, "Gimmick.Elevator.Closed");
-	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Elevator_AtStart, "Gimmick.Elevator.AtStart");
-	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Elevator_AtEnd, "Gimmick.Elevator.AtEnd");
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Elevator_1F, "Gimmick.Elevator.1F");
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Elevator_2F, "Gimmick.Elevator.2F");
+	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Elevator_Moving, "Gimmick.Elevator.Moving");
 
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_TreasureChest_Closed, "Gimmick.TreasureChest.Closed");
 	UE_DEFINE_GAMEPLAY_TAG(Gimmick_TreasureChest_Open, "Gimmick.TreasureChest.Open");

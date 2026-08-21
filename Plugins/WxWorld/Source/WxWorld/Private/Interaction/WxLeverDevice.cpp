@@ -59,7 +59,27 @@ bool AWxLeverDevice::IsInteractionEnabled() const
 {
 	// 잠금 상태를 따로 들지 않고 몸체 메시의 쿼리 콜리전이 곧 그 값이다.
 	// 당김 중 게이트도 여기에 흡수한다 — 어빌리티의 서버 활성 검증이 연출 중 재조작을 자연 차단한다.
-	return BodyMesh->IsQueryCollisionEnabled() && !IsPulling();
+	if (!BodyMesh->IsQueryCollisionEnabled() || IsPulling())
+	{
+		return false;
+	}
+
+	if (GimmickStateRequirements.IsEmpty())
+	{
+		return true;
+	}
+
+	// 지목한 기믹이 하나라도 요건을 벗어난 상태면 잠긴다. 읽는 값이 복제된 권위 상태라 서버의 활성 검증과 클라의 프롬프트가 같은 답을 낸다.
+	for (const AActor* Target : Gimmicks)
+	{
+		const UWxGimmickStateTreeComponent* Gimmick = IsValid(Target) ? Target->FindComponentByClass<UWxGimmickStateTreeComponent>() : nullptr;
+		if (Gimmick && !GimmickStateRequirements.RequirementsMet(Gimmick->GetStateTag().GetSingleTagContainer()))
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 void AWxLeverDevice::SetInteractionEnabled(bool bEnabled)
