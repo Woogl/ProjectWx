@@ -38,7 +38,6 @@ public class WxUI : ModuleRules
 
 		if (Target.bBuildEditor)
 		{
-			// 디자인타임 EI 아이콘 프리뷰(WxActionWidget::GetIcon)에서만 사용한다.
 			PrivateDependencyModuleNames.AddRange(
 				new string[]
 				{

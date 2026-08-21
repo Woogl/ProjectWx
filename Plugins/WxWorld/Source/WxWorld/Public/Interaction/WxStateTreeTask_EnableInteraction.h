@@ -19,7 +19,7 @@ struct FWxStateTreeTask_EnableInteractionInstanceData
 {
 	GENERATED_BODY()
 
-	/** 남의 트리(퀘스트 스텝 등)에서 배치 대상을 지목하는 갈래. 비우면 오너 기믹 자신이 대상이다. */
+	/** 남의 트리(퀘스트 스텝 등)에서 배치 대상을 지목하는 갈래. 비우면 오너 장치 자신이 대상이다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedLocators = "Actor"))
 	FUniversalObjectLocator Target;
 
@@ -30,7 +30,7 @@ struct FWxStateTreeTask_EnableInteractionInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (EditCondition = "bEnable"))
 	FText Prompt;
 
-	/** 자기 갈래에서 눌렸을 때 오너 기믹이 발행하는 델리게이트. 전이의 Delegate 칸에서 이것을 골라 목적지를 잇는다(끄는 노드의 것은 발행될 일이 없다). */
+	/** 자기 갈래에서 눌렸을 때 오너 장치가 발행하는 델리게이트. 전이의 Delegate 칸에서 이것을 골라 목적지를 잇는다(끄는 노드의 것은 발행될 일이 없다). */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	FStateTreeDelegateDispatcher OnInteracted;
 };
@@ -39,7 +39,7 @@ struct FWxStateTreeTask_EnableInteractionInstanceData
  * 진입 시 지정 대상의 상호작용 활성/비활성을 bEnable 로 토글하고 완료한다.
  * 상태를 떠나도 되돌리지 않으므로, 다시 열 시점은 여는 상태에 이 태스크를 한 번 더 두어 에셋이 정한다.
  *
- * Target 을 비운 자기 갈래는 오너 기믹을 대상으로 삼고, 프롬프트와 발행 자리까지 그 기믹에 함께 담는다(오너에 기믹 컴포넌트가 없으면 무동작이라 옵션 파라미터로 비워 두는 재사용 스텝에도 안전하다).
+ * Target 을 비운 자기 갈래는 오너 장치를 대상으로 삼고, 프롬프트와 발행 자리까지 그 장치에 함께 담는다(오너가 AWxDevice 가 아니면 무동작이라 옵션 파라미터로 비워 두는 재사용 스텝에도 안전하다).
  * 이 노드의 OnInteracted 를 지목하는 전이는 이 노드가 있는 상태나 그 하위 상태에 두어야 한다 — 바인딩이 볼 수 있는 범위가 루트에서 전이가 달린 상태까지의 경로뿐이라, 부모 상태의 전이는 자식의 발행자를 지목하지 못한다.
  *
  * 액터(Target) 갈래는 토글을 대상이 계약(IWxInteractable)으로 스스로 수행하므로 대상 타입을 알 필요가 없다.

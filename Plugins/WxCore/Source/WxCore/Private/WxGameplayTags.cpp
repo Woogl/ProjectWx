@@ -37,18 +37,18 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_Groggy, "Event.Groggy");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Ragdoll, "Event.Ragdoll");
 
-	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Door_Close, "Gimmick.Door.Close");
-	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Door_Open, "Gimmick.Door.Open");
+	UE_DEFINE_GAMEPLAY_TAG(Device_Door_Close, "Device.Door.Close");
+	UE_DEFINE_GAMEPLAY_TAG(Device_Door_Open, "Device.Door.Open");
 
-	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Elevator_1F, "Gimmick.Elevator.1F");
-	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Elevator_2F, "Gimmick.Elevator.2F");
-	UE_DEFINE_GAMEPLAY_TAG(Gimmick_Elevator_Moving, "Gimmick.Elevator.Moving");
+	UE_DEFINE_GAMEPLAY_TAG(Device_Elevator_1F, "Device.Elevator.1F");
+	UE_DEFINE_GAMEPLAY_TAG(Device_Elevator_2F, "Device.Elevator.2F");
+	UE_DEFINE_GAMEPLAY_TAG(Device_Elevator_Moving, "Device.Elevator.Moving");
 
-	UE_DEFINE_GAMEPLAY_TAG(Gimmick_TreasureChest_Closed, "Gimmick.TreasureChest.Closed");
-	UE_DEFINE_GAMEPLAY_TAG(Gimmick_TreasureChest_Open, "Gimmick.TreasureChest.Open");
+	UE_DEFINE_GAMEPLAY_TAG(Device_TreasureChest_Closed, "Device.TreasureChest.Closed");
+	UE_DEFINE_GAMEPLAY_TAG(Device_TreasureChest_Open, "Device.TreasureChest.Open");
 
-	UE_DEFINE_GAMEPLAY_TAG(Gimmick_CheckPoint_Unlit, "Gimmick.CheckPoint.Unlit");
-	UE_DEFINE_GAMEPLAY_TAG(Gimmick_CheckPoint_Lit, "Gimmick.CheckPoint.Lit");
+	UE_DEFINE_GAMEPLAY_TAG(Device_CheckPoint_Unlit, "Device.CheckPoint.Unlit");
+	UE_DEFINE_GAMEPLAY_TAG(Device_CheckPoint_Lit, "Device.CheckPoint.Lit");
 
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_DamageFloater, "GameplayCue.DamageFloater");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Hit, "GameplayCue.Hit");

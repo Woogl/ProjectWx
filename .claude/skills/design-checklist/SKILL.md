@@ -55,7 +55,7 @@ allowed-tools: Read, Glob, Write
 | InputAction(입력) | `Content/Input/Actions/IA_*` + IMC | `IA_X` | 어빌리티 CDO가 IA를 직접 참조. 필요 IA가 있으면 배선만 |
 | 애니메이션(몽타주+타이밍) | 몽타주 `Content/…/AM_*` · 노티파이 WxCombat `AnimNotify` | `AM_X` / `WxAnimNotify(State)_X` | 기존 타이밍 훅이면 몽타주에 배치만 |
 | UI(위젯+뷰모델) | 베이스 WxUI · 게임 VM은 WxGame `MVVM` · 에셋 `Content/UI/Widget/WBP_*` | `WBP_X` / `UWxViewModel_X` | ASC 순수 표시=WxUI, 빙의 Pawn 등 게임 상태 의존=WxGame |
-| 월드 오브젝트/기믹 | WxWorld(`UWxGimmickStateTreeComponent` + ST 노드) · 에셋 `Content/WorldObject/Gimmick/` | `BP_X` / `ST_X` | 기믹은 C++ 없이 BP+ST 에셋으로. 상호작용·스포너블/기믹 구분, 상태 Tag 권위 + 세이브 복원 |
+| 월드 오브젝트/장치 | WxWorld(`AWxDevice` + ST 노드) · 에셋 `Content/WorldObject/Gimmick/` | `BP_X` / `ST_X` | 장치는 C++ 없이 BP+ST 에셋으로. 상호작용·스포너블/장치 구분, 상태 Tag 권위 + 세이브 복원 |
 | 크로스 도메인 배선 | 계약·태그는 WxCore · 실제 배선은 WxGame(Resolver/GameMode) | `WxViewModelResolver_X` 등 | 여러 도메인이 얽히면 태그/인터페이스로 발행, 배선은 WxGame |
 
 ---

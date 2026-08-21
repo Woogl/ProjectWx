@@ -2,8 +2,8 @@
 
 #include "Interaction/WxStateTreeTask_EnableInteraction.h"
 
+#include "Device/WxDevice.h"
 #include "GameFramework/Actor.h"
-#include "Gimmick/WxGimmickStateTreeComponent.h"
 #include "StateTreeExecutionContext.h"
 #include "StateTreePropertyBindings.h"
 #include "UniversalObjectLocators/ActorLocatorFragment.h"
@@ -27,18 +27,17 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExe
 
 	if (Instance.Target.IsEmpty())
 	{
-		// 프롬프트·발행 자리까지 담아야 해서 계약이 아니라 기믹 컴포넌트로 직접 부른다 — 그러지 않으면 공용 계약이 StateTree 를 떠안는다.
-		// 꺼지면 기믹이 활성 판정에 false 를 답해 다음 스캔에서 탈락한다. 콜리전은 건드리지 않으므로 대상 메시의 설정은 보존된다.
-		const AActor* Owner = Cast<AActor>(Context.GetOwner());
-		if (UWxGimmickStateTreeComponent* Gimmick = Owner ? Owner->FindComponentByClass<UWxGimmickStateTreeComponent>() : nullptr)
+		// 프롬프트·발행 자리까지 담아야 해서 계약이 아니라 장치로 직접 부른다 — 그러지 않으면 공용 계약이 StateTree 를 떠안는다.
+		// 꺼지면 장치가 활성 판정에 false 를 답해 다음 스캔에서 탈락한다. 콜리전은 건드리지 않으므로 대상 메시의 설정은 보존된다.
+		if (AWxDevice* Device = Cast<AWxDevice>(Context.GetOwner()))
 		{
 			// 발행은 상호작용을 받은 그 순간, 즉 트리 틱 밖에서 일어난다. 그래서 발행자만이 아니라 지금의 실행 컨텍스트를 약참조로 함께 남긴다.
-			FWxGimmickInteractionBinding Binding;
+			FWxDeviceInteractionBinding Binding;
 			Binding.Prompt = Instance.Prompt;
 			Binding.Dispatcher = Instance.OnInteracted;
 			Binding.Context = Context.MakeWeakExecutionContext();
 
-			Gimmick->SetInteractionBinding(Instance.bEnable, Binding);
+			Device->SetInteractionBinding(Instance.bEnable, Binding);
 		}
 
 		return EStateTreeRunStatus::Succeeded;
@@ -70,7 +69,7 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::ApplyTargetInteraction(c
 		return EStateTreeRunStatus::Running;
 	}
 
-	IWxInteractable* Interactable = IWxInteractable::Find(Target);
+	IWxInteractable* Interactable = Cast<IWxInteractable>(Target);
 	if (!Interactable)
 	{
 		UE_LOG(LogWxWorld, Warning, TEXT("Enable Interaction: 대상 %s 는 상호작용 대상이 아니라 여닫을 것이 없음."), *GetNameSafe(Target));
