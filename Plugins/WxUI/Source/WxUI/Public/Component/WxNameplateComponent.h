@@ -25,6 +25,9 @@ public:
 	/**
 	 * 주입받은 표시 데이터와 ASC 를 묶은 UWxViewModel_Character 를 생성해 MVVM View 에 바인딩한다.
 	 * WxUI 는 구체 캐릭터 타입을 알지 못하므로 표시 데이터는 소비 측이 주입한다.
+	 *
+	 * InASC 는 필수다 — 없으면 경고만 남기고 아무것도 하지 않는다.
+	 * 데디케이티드 서버나 Slate 없는 실행에서는 표시할 위젯 자체가 없으므로 조용히 무시한다.
 	 */
 	void InitializeViewModels(UAbilitySystemComponent* InASC, const FText& InCharacterName, const TSoftObjectPtr<UObject>& InPortrait);
 

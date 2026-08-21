@@ -4,7 +4,10 @@
 #include "AbilitySystemComponent.h"
 #include "View/MVVMView.h"
 #include "MVVM/WxViewModel_Character.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Misc/CoreMisc.h"
 #include "WxGameplayTags.h"
+#include "WxUIModule.h"
 #include "GameFramework/PlayerController.h"
 
 UWxNameplateComponent::UWxNameplateComponent()
@@ -88,15 +91,31 @@ void UWxNameplateComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UWxNameplateComponent::InitializeViewModels(UAbilitySystemComponent* InASC, const FText& InCharacterName, const TSoftObjectPtr<UObject>& InPortrait)
 {
+	// 호출 계약 위반은 빌드를 가리지 않고 알린다 — 그래서 데디 서버 판별보다 앞에 둔다.
+	if (!InASC)
+	{
+		UE_LOG(LogWxUI, Warning, TEXT("Nameplate: ASC 없이 초기화를 요청받아 네임플레이트를 띄울 수 없다(%s)."), *GetNameSafe(GetOwner()));
+		return;
+	}
+
+	// 엔진은 데디 서버이거나 Slate 가 없으면 위젯을 만들지 않는다(UWidgetComponent::InitWidget).
+	// 둘 다 위젯이 없는 게 정상인 환경이라, 아래 위젯 부재 경고가 오경보로 울리지 않도록 그 앞에서 빠진다.
+	if (IsRunningDedicatedServer() || !FSlateApplication::IsInitialized())
+	{
+		return;
+	}
+
 	UUserWidget* NameplateWidget = GetWidget();
 	if (!NameplateWidget)
 	{
+		UE_LOG(LogWxUI, Warning, TEXT("Nameplate: 위젯이 없어 네임플레이트가 영영 숨김에 머문다(%s). WidgetClass 지정을 확인한다."), *GetNameSafe(GetOwner()));
 		return;
 	}
 
 	UMVVMView* View = NameplateWidget->GetExtension<UMVVMView>();
 	if (!View)
 	{
+		UE_LOG(LogWxUI, Warning, TEXT("Nameplate: 위젯에 MVVM View 확장이 없어 뷰모델을 묶을 수 없다(%s)."), *GetNameSafe(NameplateWidget->GetClass()));
 		return;
 	}
 
