@@ -77,12 +77,42 @@ void UWxSaveWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	Super::OnWorldBeginPlay(InWorld);
 
 	// 복원(OnWorldInitializedActors)과 구 월드 teardown 이 모두 끝난 뒤라 안전한 가드 해제점이다.
-	UGameInstance* GameInstance = InWorld.GetGameInstance();
-	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
+	UWxSaveGameSubsystem* GameSubsystem = GetGameSubsystem();
 	if (GameSubsystem && GameSubsystem->IsTravelingFromSaveFile())
 	{
 		GameSubsystem->ReportTravelFromSaveFileComplete(&InWorld);
 	}
+}
+
+UWxSaveGameSubsystem* UWxSaveWorldSubsystem::GetGameSubsystem() const
+{
+	const UWorld* World = GetWorld();
+	const UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
+	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
+	if (!GameSubsystem)
+	{
+		UE_LOG(LogWxSave, Warning, TEXT("WxSaveGameSubsystem 을 찾을 수 없음 — 이 월드의 세이브 요청은 무시된다."));
+	}
+
+	return GameSubsystem;
+}
+
+UWxSaveGame* UWxSaveWorldSubsystem::GetActiveSaveGame() const
+{
+	// 서브시스템 부재는 GetGameSubsystem 이 이미 알렸으므로 여기선 슬롯 부재만 알린다 — 실패 1건당 로그 1줄.
+	const UWxSaveGameSubsystem* GameSubsystem = GetGameSubsystem();
+	if (!GameSubsystem)
+	{
+		return nullptr;
+	}
+
+	UWxSaveGame* SaveGame = GameSubsystem->GetSaveGame();
+	if (!SaveGame)
+	{
+		UE_LOG(LogWxSave, Warning, TEXT("활성 SaveGame 없음 — 세이브 요청 무시"));
+	}
+
+	return SaveGame;
 }
 
 IWxSavable* UWxSaveWorldSubsystem::FindSavable(AActor* Actor)
@@ -103,36 +133,29 @@ IWxSavable* UWxSaveWorldSubsystem::FindSavable(AActor* Actor)
 
 void UWxSaveWorldSubsystem::FlushMapTravelData()
 {
-	UWorld* World = GetWorld();
-	UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
-	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
+	UWxSaveGameSubsystem* GameSubsystem = GetGameSubsystem();
 	if (!GameSubsystem)
 	{
-		UE_LOG(LogWxSave, Warning, TEXT("FlushMapTravelData: WxSaveGameSubsystem 을 찾을 수 없음 — 트래블 데이터 미갱신"));
 		return;
 	}
 
 	// 재개 지점은 FlushPlayerTransform 이 SaveGame 최상위에 담으므로 TravelData 는 맵만 담는다.
 	FWxSaveTravelData TravelData;
-	TravelData.Map = FSoftObjectPath(UWxSaveGameSubsystem::GetStableMapPackageName(World).ToString());
+	TravelData.Map = FSoftObjectPath(UWxSaveGameSubsystem::GetStableMapPackageName(GetWorld()).ToString());
 	GameSubsystem->SetTravelData(MoveTemp(TravelData));
 }
 
 void UWxSaveWorldSubsystem::FlushSavableActors()
 {
-	UWorld* World = GetWorld();
-	UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
-	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
-	UWxSaveGame* SaveGame = GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
+	UWxSaveGame* SaveGame = GetActiveSaveGame();
 	if (!SaveGame)
 	{
-		UE_LOG(LogWxSave, Warning, TEXT("FlushSavableActors: 활성 SaveGame 없음 — 캡처 중단"));
 		return;
 	}
 
 	// 스트리밍-아웃 셀의 액터는 이미 LevelRemovedFromWorld 에서 기록됨.
 	int32 CapturedCount = 0;
-	for (TActorIterator<AActor> It(World); It; ++It)
+	for (TActorIterator<AActor> It(GetWorld()); It; ++It)
 	{
 		CapturedCount += CaptureActor(*SaveGame, *It) ? 1 : 0;
 	}
@@ -142,10 +165,7 @@ void UWxSaveWorldSubsystem::FlushSavableActors()
 
 void UWxSaveWorldSubsystem::FlushPlayerTransform(const FTransform* ResumeTransform)
 {
-	UWorld* World = GetWorld();
-	UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
-	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
-	UWxSaveGame* SaveGame = GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
+	UWxSaveGame* SaveGame = GetActiveSaveGame();
 	if (!SaveGame)
 	{
 		return;
@@ -158,7 +178,7 @@ void UWxSaveWorldSubsystem::FlushPlayerTransform(const FTransform* ResumeTransfo
 	else
 	{
 		// 첫 플레이어 폰만 본다 — 스탠드얼론 싱글 전제이고 FlushPlayerStats 와 동일 대상이다.
-		const APlayerController* PC = World->GetFirstPlayerController();
+		const APlayerController* PC = GetWorld()->GetFirstPlayerController();
 		const APawn* Pawn = PC ? PC->GetPawn() : nullptr;
 		if (!Pawn)
 		{
@@ -173,17 +193,14 @@ void UWxSaveWorldSubsystem::FlushPlayerTransform(const FTransform* ResumeTransfo
 
 void UWxSaveWorldSubsystem::FlushPlayerStats()
 {
-	UWorld* World = GetWorld();
-	UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
-	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
-	UWxSaveGame* SaveGame = GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
+	UWxSaveGame* SaveGame = GetActiveSaveGame();
 	if (!SaveGame)
 	{
 		return;
 	}
 
 	// 첫 플레이어 폰만 본다 — 스탠드얼론 싱글 전제이고 FlushPlayerTransform 과 동일 대상이다.
-	const APlayerController* PC = World->GetFirstPlayerController();
+	const APlayerController* PC = GetWorld()->GetFirstPlayerController();
 	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
 	if (!Pawn)
 	{
@@ -335,9 +352,14 @@ bool UWxSaveWorldSubsystem::CaptureActor(UWxSaveGame& SaveGame, AActor* Actor)
 	return true;
 }
 
-bool UWxSaveWorldSubsystem::RestoreActor(const UWxSaveGame& SaveGame, AActor* Actor)
+bool UWxSaveWorldSubsystem::RestoreActor(const UWxSaveGame& SaveGame, AActor* Actor, bool* bOutIsSavable)
 {
 	IWxSavable* Savable = FindSavable(Actor);
+	if (bOutIsSavable)
+	{
+		*bOutIsSavable = Savable != nullptr;
+	}
+
 	if (!Savable)
 	{
 		return false;
@@ -420,9 +442,7 @@ void UWxSaveWorldSubsystem::HandleWorldInitializedActors(const UWorld::FActorsIn
 		return;
 	}
 
-	UGameInstance* GameInstance = Params.World->GetGameInstance();
-	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
-	const UWxSaveGame* SaveGame = GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
+	const UWxSaveGame* SaveGame = GetActiveSaveGame();
 	if (!SaveGame)
 	{
 		return;
@@ -433,12 +453,9 @@ void UWxSaveWorldSubsystem::HandleWorldInitializedActors(const UWorld::FActorsIn
 	int32 RestoredCount = 0;
 	for (TActorIterator<AActor> It(Params.World); It; ++It)
 	{
-		AActor* Actor = *It;
-		if (FindSavable(Actor))
-		{
-			++SavableCount;
-			RestoredCount += RestoreActor(*SaveGame, Actor) ? 1 : 0;
-		}
+		bool bIsSavable = false;
+		RestoredCount += RestoreActor(*SaveGame, *It, &bIsSavable) ? 1 : 0;
+		SavableCount += bIsSavable ? 1 : 0;
 	}
 
 	UE_LOG(LogWxSave, Log, TEXT("월드 초기화 복원: IWxSavable %d개 중 %d개에 슬롯 적용 (슬롯 레코드 %d개)"),
@@ -452,9 +469,7 @@ void UWxSaveWorldSubsystem::HandleLevelAddedToWorld(ULevel* Level, UWorld* World
 		return;
 	}
 
-	UGameInstance* GameInstance = World->GetGameInstance();
-	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
-	const UWxSaveGame* SaveGame = GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
+	const UWxSaveGame* SaveGame = GetActiveSaveGame();
 	if (!SaveGame)
 	{
 		return;
@@ -476,16 +491,15 @@ void UWxSaveWorldSubsystem::HandleLevelRemovedFromWorld(ULevel* Level, UWorld* W
 		return;
 	}
 
-	UGameInstance* GameInstance = World->GetGameInstance();
-	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
-	UWxSaveGame* SaveGame = GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
-	if (!SaveGame)
+	// 로드 직후 트래블 중이면 구 월드의 라이브 상태가 방금 로드한 세이브를 덮어쓰므로 캡처하지 않는다.
+	const UWxSaveGameSubsystem* GameSubsystem = GetGameSubsystem();
+	if (!GameSubsystem || GameSubsystem->IsTravelingFromSaveFile())
 	{
 		return;
 	}
 
-	// 로드 직후 트래블 중이면 구 월드의 라이브 상태가 방금 로드한 세이브를 덮어쓰므로 캡처하지 않는다.
-	if (GameSubsystem->IsTravelingFromSaveFile())
+	UWxSaveGame* SaveGame = GetActiveSaveGame();
+	if (!SaveGame)
 	{
 		return;
 	}
@@ -506,8 +520,7 @@ void UWxSaveWorldSubsystem::HandleWorldBeginTearDown(UWorld* World)
 		return;
 	}
 
-	UGameInstance* GameInstance = World->GetGameInstance();
-	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
+	const UWxSaveGameSubsystem* GameSubsystem = GetGameSubsystem();
 	if (!GameSubsystem)
 	{
 		return;
