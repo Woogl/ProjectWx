@@ -18,7 +18,6 @@ class UWxNameplateComponent;
 
 /**
  * - AWxEnemyController에 의해 제어
- * - BehaviorTree를 BP에서 지정하여 적 종류별 행동 패턴 분리
  * - 처치 시 UWxRewardLibrary::GrantReward 로 RewardRow 의 보상을 지급한다(픽업은 사망 위치에서 수직 발사, 재화는 직접 지급)
  */
 UCLASS(Abstract)
@@ -79,8 +78,7 @@ protected:
 	TObjectPtr<UWxLockOnPointComponent> LockOnPoint;
 
 	/**
-	 * 백스탭 후방 판정 반각(도).
-	 * 정면 기준 이 각도 바깥(후방 원뿔)에 플레이어가 있어야 백스탭이 노출된다.
+	 * 정면 기준 이 각도(도) 바깥의 후방 원뿔에 플레이어가 있어야 백스탭이 노출된다.
 	 * 기본 90 = 후방 반구.
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Interaction", meta = (ClampMin = "0", ClampMax = "180"))

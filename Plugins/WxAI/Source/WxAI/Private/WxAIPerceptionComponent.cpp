@@ -74,7 +74,6 @@ void UWxAIPerceptionComponent::HandleTargetPerceptionUpdated(AActor* Actor, FAIS
 	}
 
 	// 죽은 액터는 잡지 않는다 — 시체는 파괴되지 않고 남아 시야에 다시 들어오면 성공 자극을 또 만들므로, 이 가드가 없으면 사망 정리가 다음 자극에 되돌려진다.
-	// 감지 실패(시야/소리 상실)에는 TargetActor 를 건드리지 않아 그대로 유지된다 — 실제 해제는 BT 의 리시 복귀(UWxBTTask_ReturnHome → SetTargetingSuppressed)가 담당한다.
 	if (Stimulus.WasSuccessfullySensed() && !IsActorDead(Actor))
 	{
 		SetTargetActor(Actor);

@@ -39,8 +39,7 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 		return;
 	}
 
-	// 커밋은 모든 거부 조건을 통과한 뒤에 한다.
-	// GAS 는 취소로 커밋된 쿨다운·코스트를 되돌리지 않는다.
+	// GAS 는 취소로 커밋된 쿨다운·코스트를 되돌리지 않으므로, 모든 거부 조건을 통과한 뒤에 커밋한다.
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);

@@ -12,7 +12,6 @@ FPrimaryAssetId AWxWorldSettings::GetDefaultGameplayExperience() const
 		return FPrimaryAssetId();
 	}
 
-	// 스캔된 에셋만 ID 로 해석된다.
 	const FPrimaryAssetId Result = UAssetManager::Get().GetPrimaryAssetIdForPath(DefaultGameplayExperience.ToSoftObjectPath());
 	if (!Result.IsValid())
 	{

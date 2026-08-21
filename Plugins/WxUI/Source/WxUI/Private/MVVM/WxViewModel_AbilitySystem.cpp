@@ -84,7 +84,6 @@ UWxViewModel_Attribute* UWxViewModel_AbilitySystem::GetOrCreateAttributeViewMode
 		}
 	}
 
-	// Outer 를 this 로 둬 위젯이 자식만 붙들어도 부모가 수거되지 않게 한다.
 	UWxViewModel_Attribute* AttrVM = NewObject<UWxViewModel_Attribute>(this);
 	AttrVM->Initialize(ASC, Current, MaxAttribute);
 	AttributeViewModels.Add(AttrVM);
@@ -101,7 +100,6 @@ UWxViewModel_Ability* UWxViewModel_AbilitySystem::GetOrCreateAbilityViewModel(co
 		return nullptr;
 	}
 
-	// 어떤 어빌리티인지를 부여된 스펙에서 먼저 정하고, 그 어빌리티로 기존 VM 을 찾는다.
 	// 요청 태그를 판별에 그대로 쓰면 포함 관계라, 넓은 질의가 먼저 만들어진 VM 을 잡아 생성 순서에 따라 결과가 갈린다.
 	const UGameplayAbility* AbilityCDO = nullptr;
 	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())

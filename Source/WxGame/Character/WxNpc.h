@@ -38,7 +38,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UWxDialogueComponent> DialogueComponent;
 
-	/** 메타휴먼 부착물(페이스·그룸·복장)을 바디 메시에 조립하는 컴포넌트. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Visual")
 	TObjectPtr<UWxMetaHumanComponent> MetaHumanComponent;
 };

@@ -19,7 +19,7 @@ class UMVVMView;
  *
  * 값은 외부 소스(퀘스트·기믹의 ST 노드 등)가 push 하며, 본 VM 은 누가 왜 띄웠는지 알지 못한다(순수 표시 계약).
  * 슬롯이 하나라 나중 요청이 이긴다.
- * 회수는 발급 핸들이 지금 걸린 자막의 것일 때만 성립한다 — 이 검사가 없으면 앞 자막이 뒤늦게 걷어가며 이미 올라온 뒤 자막을 지운다.
+ * 회수 시 핸들 검사가 없으면 앞 자막이 뒤늦게 걷어가며 이미 올라온 뒤 자막을 지운다.
  */
 UCLASS()
 class WXUI_API UWxViewModel_Subtitle : public UWxViewModel

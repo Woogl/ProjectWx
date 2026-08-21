@@ -54,7 +54,6 @@ FSlateBrush UWxActionWidget::GetIcon() const
 				}
 			}
 		}
-		// DataTable 경로.
 		else if (const FCommonInputActionDataBase* InputActionData = GetInputActionData())
 		{
 			const FKey Key = InputActionData->GetInputTypeInfo(InputType, GamepadName).GetKey();

@@ -34,7 +34,6 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 			.AddUObject(this, &UWxViewModel_Ability::HandleGameplayEffectApplied);
 	}
 
-	// 태그 요건은 ASC 태그 변경으로, 비용은 비용 GE가 수정하는 어트리뷰트 값 변경으로 감지한다.
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_Ability::HandleTagChanged);
 
 	GetCost(InASC, InAbility);
@@ -259,7 +258,6 @@ void UWxViewModel_Ability::SetIcon(UObject* NewValue)
 
 void UWxViewModel_Ability::SetIconSoft(const TSoftObjectPtr<UObject>& InIcon)
 {
-	// 콤보 재바인딩 등으로 아이콘이 바뀔 수 있다. 이전 요청 취소는 베이스가 처리한다.
 	RequestImageAsync(TEXT("Icon"), InIcon);
 }
 
@@ -306,7 +304,7 @@ void UWxViewModel_Ability::HandleTagChanged(const FGameplayTag Tag, int32 NewCou
 
 void UWxViewModel_Ability::HandleCostAttributeChanged(const FOnAttributeChangeData& Data)
 {
-	// 자원 값 자체는 자식 VM 이 같은 어트리뷰트를 구독해 갱신한다. 여기서는 발동 가능 여부만 다시 본다.
+	// 자원 값 자체는 UWxViewModel_Attribute 가 같은 어트리뷰트를 구독해 갱신한다. 여기서는 발동 가능 여부만 다시 본다.
 	RefreshActivationState();
 }
 

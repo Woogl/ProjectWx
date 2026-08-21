@@ -13,7 +13,7 @@ UWxBTTask_Wander::UWxBTTask_Wander()
 	bCreateNodeInstance = true;
 	bNotifyTick = true;
 
-	// 배회 종료(도착·중단·실패)에서 낮췄던 이동 속도를 복원하기 위해 종료 콜백을 받는다.
+	// 배회 종료(완료·중단·실패)에서 낮췄던 이동 속도를 복원하기 위해 종료 콜백을 받는다.
 	bNotifyTaskFinished = true;
 }
 
@@ -39,7 +39,6 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	float Yaw;
 	if (AllowedIndices.Num() > 0)
 	{
-		// 45 = 360 / 8방향.
 		const int32 ChosenIndex = AllowedIndices[FMath::RandRange(0, AllowedIndices.Num() - 1)];
 		Yaw = AIController->GetControlRotation().Yaw + ChosenIndex * 45.f;
 	}
@@ -104,7 +103,7 @@ void UWxBTTask_Wander::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* 
 {
 	Super::OnTaskFinished(OwnerComp, NodeMemory, TaskResult);
 
-	// 도착·중단·실패 등 어떤 종료 경로에서도 호출되므로, 감속 GE 제거는 여기서 한다.
+	// 완료·중단·실패 등 어떤 종료 경로에서도 호출되므로, 감속 GE 제거는 여기서 한다.
 	if (UAbilitySystemComponent* ASC = MoveSpeedEffectHandle.GetOwningAbilitySystemComponent())
 	{
 		ASC->RemoveActiveGameplayEffect(MoveSpeedEffectHandle);

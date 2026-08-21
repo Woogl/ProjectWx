@@ -75,6 +75,5 @@ private:
 	/** 대상이 화면 밖이라 가장자리에 붙었는지. */
 	bool bClamped = false;
 
-	/** 이번 틱에 투영이 성립했는지. */
 	bool bProjected = false;
 };

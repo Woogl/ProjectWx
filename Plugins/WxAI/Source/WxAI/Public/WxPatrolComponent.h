@@ -12,7 +12,6 @@ class UArrowComponent;
 UENUM(BlueprintType)
 enum class EWxPatrolMoveMode : uint8
 {
-	/** 끝에 도달하면 진행 방향을 뒤집어 되짚어 온다(왕복). */
 	PingPong,
 
 	Loop,

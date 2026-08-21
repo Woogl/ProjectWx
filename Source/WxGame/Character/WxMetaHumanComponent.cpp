@@ -78,7 +78,7 @@ void UWxMetaHumanComponent::OnRegister()
 		}
 	}
 
-	// 엔진 메타휴먼 구현은 이름 문자열로 대상을 찾으므로 실제 생성된 이름을 그대로 채운다. (바디가 없으면 오너 메시가 곧 메타휴먼 바디다)
+	// 바디가 없으면 오너 메시가 곧 메타휴먼 바디다.
 	// 이 이름으로 페이스 리그로직·넥 보정이 구동된다. 바디 보정은 팔로워가 자기 그래프를 돌리지 않아 평가되지 않는다.
 	BodyComponentName = BodyComponent ? BodyComponent->GetName() : LeaderMesh->GetName();
 	FaceComponentName = FaceComponent ? FaceComponent->GetName() : FString();

@@ -23,7 +23,7 @@ class UMVVMView;
  * 스캐너는 주입(서버) 또는 복제(클라)로 붙어 위젯보다 늦게 도착할 수 있고, 리졸버가 돌려준 인스턴스는 뷰가 교체할 수 없다.
  * 그래서 인스턴스는 고정한 채 도착 신호를 받아 내부 상태(Initialize)만 갈아끼운다 — UWxViewModel_Inventory 와 같은 구조다.
  *
- * 표시에 더해, WBP 가 Enhanced Input 으로 받은 실행·선택이동을 Request 함수로 호출하면 스캐너 진입점을 그대로 부른다.
+ * 표시에 더해 뷰의 실행·선택이동 요청을 스캐너 진입점으로 그대로 넘긴다.
  */
 UCLASS()
 class WXGAME_API UWxViewModel_InteractionList : public UWxViewModel
@@ -54,11 +54,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx|Interaction")
 	void RequestCycle(int32 Delta);
 
-	/** ListView 가 본 프로퍼티에 바인딩한다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Interaction")
 	TArray<TObjectPtr<UWxViewModel_Interaction>> Entries;
 
-	/** 현재 선택된 항목 인덱스(없으면 INDEX_NONE). */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Interaction")
 	int32 SelectedIndex = INDEX_NONE;
 
@@ -66,12 +64,11 @@ private:
 	/** 관찰 중인 PC 의 것이면 연결하고 관찰을 끝낸다. */
 	void HandleScannerReady(UWxInteractionScannerComponent* Scanner);
 
-	/** 도착 신호 구독을 해제한다. 연결 성공 시와 소멸 시 모두 여기로 모은다. */
+	/** 연결 성공 시와 소멸 시 모두 여기로 모은다. */
 	void StopObserving();
 
 	void RebuildEntries(const TArray<FText>& InPrompts);
 
-	/** 선택 인덱스를 클램프해 각 항목의 bSelected 와 SelectedIndex 를 갱신한다. */
 	void ApplySelection(int32 InSelectedIndex);
 
 	TWeakObjectPtr<APlayerController> ObservedController;
@@ -84,7 +81,6 @@ private:
 /**
  * 위젯을 소유한 PlayerController 로 위젯별 UWxViewModel_InteractionList 를 생성하고 관찰을 시작시킨다.
  * 스캐너가 아직 없어도(클라 복제 도착 전, 미등록 모드) VM 은 만들어지며, 연결은 VM 이 도착 신호 관찰로 스스로 처리한다.
- * WBP 의 View Bindings 에서 Creation Type = Resolver 로 본 클래스를 선택한다.
  */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXGAME_API UWxViewModelResolver_InteractionList : public UMVVMViewModelContextResolver

@@ -25,7 +25,7 @@ public:
 
 	/**
 	 * Asset Tags 가 이 태그들을 모두 포함하는(HasAll) 어빌리티를 부여된 스펙에서 찾는다.
-	 * 매칭 시멘틱은 엔진의 GetActivatableGameplayAbilitySpecsByAllMatchingTags 와 동일하며, 여러 어빌리티가 매칭되면 첫 번째 것을 사용한다.
+	 * 여러 어빌리티가 매칭되면 첫 번째 것을 사용한다.
 	 */
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	FGameplayTagContainer AbilityTags;

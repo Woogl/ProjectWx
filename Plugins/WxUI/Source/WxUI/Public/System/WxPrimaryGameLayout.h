@@ -22,7 +22,6 @@ public:
 
 	UCommonActivatableWidgetStack* GetLayerWidgetStack(FGameplayTag LayerTag) const;
 
-	/** 정지 재평가 등 전 레이어 순회에 사용한다. */
 	const TMap<FGameplayTag, TObjectPtr<UCommonActivatableWidgetStack>>& GetLayerMap() const;
 
 	UCommonActivatableWidget* PushWidgetToLayerStack(FGameplayTag LayerTag, TSubclassOf<UCommonActivatableWidget> WidgetClass);

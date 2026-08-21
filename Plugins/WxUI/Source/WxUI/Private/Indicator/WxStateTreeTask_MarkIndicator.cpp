@@ -36,7 +36,6 @@ namespace
 		RegisteredIndicator.Reset();
 	}
 
-	/** 대상이 해석되면 그 컴포넌트에, 해석되지 않으면(스트리밍 아웃·파괴) 기록 좌표에 건다. 이미 원하는 곳에 걸려 있으면 그대로 둔다. */
 	void RefreshIndicator(const FStateTreeExecutionContext& Context, FWxStateTreeTask_MarkIndicatorInstanceData& Instance)
 	{
 		// 빈 로케이터는 좌표도 기록되지 않았으므로 대역으로 갈 곳이 없다.
@@ -59,11 +58,9 @@ namespace
 			}
 		}
 
-		// 걸 곳이 바뀐 등록증은 먼저 걷어낸다.
 		UnregisterIndicator(Instance.RegisteredIndicator);
 
 		// 매니저는 아직 없을 수 있다(폰·컨트롤러 스폰 전).
-		// 그때는 등록만 미루고 다음 틱이 재시도한다.
 		UWxIndicatorManagerComponent* Manager = FindIndicatorManager(Owner);
 		if (!Manager)
 		{

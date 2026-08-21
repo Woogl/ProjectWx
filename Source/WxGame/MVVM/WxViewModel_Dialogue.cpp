@@ -63,7 +63,6 @@ UObject* UWxViewModelResolver_Dialogue::CreateInstance(const UClass* ExpectedTyp
 		return nullptr;
 	}
 
-	// 위젯이 아닌 데이터 소스(세션 컴포넌트)를 Outer 로 생성한다.
 	// 세션은 PC 소유라 폰 리스폰에도 생존하며, 수명은 뷰의 강참조와 BeginDestroy 의 Deinitialize 가 관리한다.
 	UWxViewModel_Dialogue* ViewModel = NewObject<UWxViewModel_Dialogue>(Session);
 	ViewModel->Initialize(Session);

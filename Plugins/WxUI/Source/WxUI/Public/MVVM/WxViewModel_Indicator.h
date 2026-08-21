@@ -59,7 +59,6 @@ private:
 	/** 도착 신호 구독을 해제한다. 연결 성공 시와 소멸 시 모두 여기로 모은다. */
 	void StopObserving();
 
-	/** 등록증(없으면 null)의 값을 표시 필드로 옮긴다. */
 	void ApplyIndicator(const UWxIndicatorDescriptor* Indicator);
 
 	TWeakObjectPtr<APlayerController> ObservedController;
@@ -68,7 +67,7 @@ private:
 
 	TWeakObjectPtr<UWxIndicatorManagerComponent> CachedManager;
 
-	/** 이 뷰모델이 표시할 등록 순번. 리졸버가 주입한다. */
+	/** 리졸버가 주입하는 등록 순번. */
 	int32 IndicatorIndex = 0;
 };
 

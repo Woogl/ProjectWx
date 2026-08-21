@@ -27,8 +27,7 @@ UWxPatrolComponent* UWxPatrolComponent::FindPatrolComponent(const AActor* Actor)
 		return nullptr;
 	}
 
-	// 스포너가 스폰 시 Owner 로 자신을 지정하고(빙의 전 보장) 자신에게 부착한다. 그 액터에서 정찰 컴포넌트를 찾는다.
-	// Owner 를 먼저 보는 이유: 부착은 FinishSpawning 이후라 빙의 시점엔 아직 없지만, Owner 는 그 전에 세팅돼 있다.
+	// 스포너는 스폰 대상을 부착하지 않고 Owner 로만 자신을 지정하므로, Owner 를 먼저 본다.
 	if (const AActor* Owner = Actor->GetOwner())
 	{
 		if (UWxPatrolComponent* Found = Owner->FindComponentByClass<UWxPatrolComponent>())

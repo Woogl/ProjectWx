@@ -201,7 +201,6 @@ void UWxUIManagerSubsystem::HandlePlayerControllerSet(APlayerController* PC)
 	TrackedPlayerController.Reset();
 	WatchPawnTags(nullptr);
 
-	// PC 가 들어올 때마다 layout 을 무조건 재생성한다.
 	// widget 의 GetOwningPlayer/GetWorld/GetOuter 가 유지되는 LocalPlayer/GameInstance 를 따라 새 값을 반환해 stale 여부를 알 수 없고, layout 은 빈 컨테이너라 매번 재생성해도 비용이 작다.
 	if (PrimaryGameLayout)
 	{

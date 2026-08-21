@@ -41,10 +41,8 @@ public:
 	UWxItemInstance* GetTargetInstance() const;
 
 	/**
-	 * 인벤토리의 사용 요청 진입점을 그대로 부르며, 사용 가능 여부는 요청을 받은 어빌리티가 판정한다.
-	 *
 	 * 소비 아이템이 하나뿐이라 바인딩된 아이템과 무관하게 그 하나를 사용한다.
-	 * 종류가 늘면 인벤토리 진입점이 대상을 받도록 바뀌므로 여기서 TargetItemDef 를 넘기게 된다.
+	 * 사용 가능 여부는 요청을 받은 어빌리티가 판정한다.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Inventory")
 	void RequestUseConsumable();
@@ -54,9 +52,8 @@ public:
 	int32 TotalCount = 0;
 
 	/**
-	 * 충전형(Charges Fragment) 아이템의 현재 충전 횟수.
 	 * 슬롯 모드는 바인딩 인스턴스, Def 모드는 첫 인스턴스 기준.
-	 * 충전형이 아니면 0.
+	 * 충전형(Charges Fragment)이 아니면 0.
 	 */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	int32 CurrentCharges = 0;
@@ -93,10 +90,8 @@ protected:
 	virtual void ApplyLoadedImage(FName FieldName, UObject* LoadedImage) override;
 	//~ End UWxViewModel
 
-	/** ItemDef 합계 모드 핸들러. */
 	void HandleStackChanged(const UWxItemDefinition* ItemDef, int32 NewCount, int32 Delta);
 
-	/** 슬롯 모드 핸들러. */
 	void HandleSlotChanged(UWxItemInstance* Instance, int32 NewStackCount, int32 Delta);
 
 	/** 슬롯/Def 모드 공통. */

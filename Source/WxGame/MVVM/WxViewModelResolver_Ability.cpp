@@ -28,7 +28,6 @@ UObject* UWxViewModelResolver_Ability::CreateInstance(const UClass* ExpectedType
 	{
 		if (const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(ViewModel->GetBoundAbility()))
 		{
-			// 소프트 참조를 그대로 넘겨 VM이 비동기 스트리밍한다(동기 로드하지 않는다).
 			ViewModel->SetIconSoft(Ability->GetIcon());
 		}
 	}

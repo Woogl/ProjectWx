@@ -74,7 +74,6 @@ void UWxGameFeatureAction_AddComponents::OnGameFeatureDeactivating(FGameFeatureD
 
 	FWorldDelegates::OnStartGameInstance.Remove(Handles->GameInstanceStartHandle);
 
-	// 컨텍스트 제거로 요청 핸들이 해제되면 매니저가 등록된 액터들에서 컴포넌트를 회수한다.
 	ContextHandles.Remove(Context);
 }
 

@@ -9,10 +9,7 @@
 
 class UAbilitySystemComponent;
 
-/**
- * WidgetComponent를 확장하여 ASC 기반 MVVM ViewModel 초기화를 캡슐화한다.
- * 카메라 거리에 따라 위젯 스케일을 자동 조절하여 원근 효과를 적용한다.
- */
+/** 카메라 거리에 따라 위젯 스케일을 자동 조절하여 원근 효과를 적용한다. */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))
 class WXUI_API UWxNameplateComponent : public UWidgetComponent
 {

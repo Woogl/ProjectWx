@@ -10,7 +10,6 @@
 /**
  * ModularGameplay 컴포넌트 receiver 다 — PlayerState 대상 주입 요청(Experience 액션)의 컴포넌트가 자동 부착된다.
  * 인벤토리는 PlayerController 로 이동했다(소유 클라이언트 단위 복제 + UE 표준 정렬).
- * 여기에는 모든 클라이언트에 공유되는 세션 상태(스코어/팀 등)만 둔다.
  */
 UCLASS()
 class WXGAME_API AWxPlayerState : public APlayerState

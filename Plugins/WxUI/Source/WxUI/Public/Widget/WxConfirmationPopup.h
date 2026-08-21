@@ -44,7 +44,7 @@ protected:
 	TObjectPtr<UCommonRichTextBlock> RichText_Description;
 
 private:
-	/** 버튼 클릭/강제 종료 공통 진입점. 결과 콜백은 최초 1회만 실행하고 위젯을 닫는다. */
+	/** 버튼 클릭/강제 종료 공통 진입점. 위젯을 닫은 뒤 결과 콜백을 최초 1회만 실행한다. */
 	void HandleResultChosen(EWxPopupResult Result);
 
 	FWxPopupResultDelegate OnResultCallback;

@@ -46,7 +46,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TArray<FString> GameFeaturesToEnable;
 
-	/** 이 Experience 전용 액션. */
 	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Wx")
 	TArray<TObjectPtr<UGameFeatureAction>> Actions;
 

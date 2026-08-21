@@ -73,7 +73,7 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 			}
 		}
 
-		// 가중치 0 은 뽑히지 않겠다는 뜻이므로 후보로 세지 않는다. 회피를 풀지 말지도 이 후보 수를 기준으로 하므로, 뽑힐 수 없는 자식이 그 수에 끼면 안 된다.
+		// 회피를 풀지 말지가 후보 수 기준이므로, 뽑힐 수 없는 자식이 그 수에 끼면 안 된다.
 		if (Weight <= 0.0f)
 		{
 			continue;
@@ -88,7 +88,6 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 		return BTSpecialChild::ReturnToParent;
 	}
 
-	// 유효 후보가 직전 선택 자식 하나뿐이면 회피가 무의미하므로 그대로 다시 고른다.
 	if (bAvoidRepeat && Candidates.Num() > 1)
 	{
 		const int32 RepeatIndex = Candidates.Find(LastChosenChild);

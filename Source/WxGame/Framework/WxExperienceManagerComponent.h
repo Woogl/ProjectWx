@@ -26,8 +26,7 @@ enum class EWxExperienceLoadState : uint8
 /**
  * Experience 로드·적용의 주체 (Lyra ExperienceManagerComponent 이식).
  *
- * GameMode(서버 전용)가 고른 Experience 참조를 복제해, 서버는 직접 호출·클라는 OnRep 으로 각자 같은 로드 파이프라인을 주행한다:
- * 에셋 번들 비동기 로드 → GameFeature 플러그인 활성 → 자기 월드 한정 컨텍스트로 액션 실행 → 로드 완료 브로드캐스트.
+ * GameMode(서버 전용)가 고른 Experience 참조를 복제해, 서버는 직접 호출·클라는 OnRep 으로 각자 같은 로드 파이프라인을 주행한다.
  * 로드 완료 이전의 폰 스폰·시작 지급을 막는 것은 GameMode 의 책임이다(CallOrRegister_OnExperienceLoaded 로 대기).
  */
 UCLASS()
@@ -56,7 +55,7 @@ public:
 	/** 로드 완료를 전제로 현재 Experience 를 반환한다. 완료 전 호출은 프로그래밍 오류다. */
 	const UWxExperienceDefinition* GetCurrentExperienceChecked() const;
 
-	/** 확정됐으나 아직 로드 중일 수 있는 Experience 를 반환한다(미확정이면 널). 로드 상태와 무관한 정의 데이터 조회용. */
+	/** 확정됐으나 아직 로드 중일 수 있는 Experience 를 반환한다(미확정이면 널). */
 	const UWxExperienceDefinition* GetCurrentExperience() const;
 
 private:
