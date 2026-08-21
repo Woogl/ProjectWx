@@ -29,7 +29,8 @@ class WXUI_API UWxViewModel_AbilitySystem : public UWxViewModel
 public:
 	/**
 	 * ASC 하나당 하나. 없으면 ASC 를 Outer 로 만들어 초기화한다.
-	 * 폰이 바뀌면 ASC 도 바뀌므로 새 인스턴스가 생기고, 옛 것은 옛 ASC 와 함께 수거된다.
+	 * 폰이 바뀌면 ASC 도 바뀌므로 새 인스턴스가 생긴다.
+	 * GC 는 객체 → Outer 방향만 수집하므로 Outer 인 ASC 는 이 VM 을 살려 두지 않는다 — 수명은 이 VM 을 Outer 로 삼는 자식 VM 이 쥔다.
 	 */
 	static UWxViewModel_AbilitySystem* GetOrCreate(UAbilitySystemComponent* InASC);
 

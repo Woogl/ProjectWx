@@ -84,7 +84,8 @@ UWxViewModel_Attribute* UWxViewModel_AbilitySystem::GetOrCreateAttributeViewMode
 		}
 	}
 
-	UWxViewModel_Attribute* AttrVM = NewObject<UWxViewModel_Attribute>(ASC);
+	// Outer 를 this 로 둬 위젯이 자식만 붙들어도 부모가 수거되지 않게 한다.
+	UWxViewModel_Attribute* AttrVM = NewObject<UWxViewModel_Attribute>(this);
 	AttrVM->Initialize(ASC, Current, MaxAttribute);
 	AttributeViewModels.Add(AttrVM);
 	return AttrVM;
@@ -125,7 +126,7 @@ UWxViewModel_Ability* UWxViewModel_AbilitySystem::GetOrCreateAbilityViewModel(co
 		}
 	}
 
-	UWxViewModel_Ability* AbilityVM = NewObject<UWxViewModel_Ability>(ASC);
+	UWxViewModel_Ability* AbilityVM = NewObject<UWxViewModel_Ability>(this);
 	AbilityVM->Initialize(ASC, AbilityCDO);
 	AbilityViewModels.Add(AbilityVM);
 	return AbilityVM;
@@ -155,7 +156,7 @@ void UWxViewModel_AbilitySystem::BuildActiveEffectViewModels()
 		}
 		if (const UWxEffectComponent_UIData* UIData = GE->FindComponent<UWxEffectComponent_UIData>())
 		{
-			UWxViewModel_Effect* EffectVM = NewObject<UWxViewModel_Effect>(ASC);
+			UWxViewModel_Effect* EffectVM = NewObject<UWxViewModel_Effect>(this);
 			EffectVM->Initialize(ASC, Handle, UIData);
 			ActiveEffectViewModels.Add(EffectVM);
 		}
@@ -195,7 +196,7 @@ void UWxViewModel_AbilitySystem::HandleActiveEffectAdded(UAbilitySystemComponent
 		return;
 	}
 
-	UWxViewModel_Effect* EffectVM = NewObject<UWxViewModel_Effect>(InASC);
+	UWxViewModel_Effect* EffectVM = NewObject<UWxViewModel_Effect>(this);
 	EffectVM->Initialize(InASC, Handle, UIData);
 	ActiveEffectViewModels.Add(EffectVM);
 	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(ActiveEffectViewModels);
