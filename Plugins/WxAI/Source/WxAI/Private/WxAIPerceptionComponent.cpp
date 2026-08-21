@@ -130,12 +130,26 @@ void UWxAIPerceptionComponent::SetTargetingSuppressed(bool bSuppressed)
 
 	bTargetingSuppressed = bSuppressed;
 
-	// 인식은 판정에 맡기면 억제 중이라 자연히 꺼진다.
 	if (bSuppressed)
 	{
 		SetTargetActor(nullptr);
-		UpdateRecognition();
 	}
+	else
+	{
+		// Sight 는 감지 여부가 바뀔 때만 갱신을 방송하므로, 억제 중 계속 보이던 대상은 해제 후 새 자극이 오지 않는다. 현재 감지 상태를 직접 읽어 재획득한다.
+		for (FActorPerceptionContainer::TConstIterator It = GetPerceptualDataConstIterator(); It; ++It)
+		{
+			AActor* Target = It->Value.HasAnyCurrentStimulus() ? It->Value.Target.Get() : nullptr;
+			if (Target && !IsActorDead(Target))
+			{
+				SetTargetActor(Target);
+				break;
+			}
+		}
+	}
+
+	// 인식은 판정에 맡긴다 — 억제 중이면 자연히 꺼지고, 해제 후엔 재획득 결과를 따른다.
+	UpdateRecognition();
 }
 
 void UWxAIPerceptionComponent::HandleTargetDeathTagChanged(const FGameplayTag Tag, int32 NewCount)

@@ -45,7 +45,7 @@ public:
 	/**
 	 * 타겟팅 억제(disengage)를 켜고 끈다. 리시 복귀 Task(UWxBTTask_ReturnHome)가 복귀 진입/종료에 호출한다.
 	 *  - true: 현재 TargetActor 를 비우고 인식을 끄며 회전 모드를 원복하고, 이후 감지 자극을 무시해 복귀 중 재-어그로를 막는다.
-	 *  - false: 억제만 풀어 다음 자극에서 정상 재감지하게 한다.
+	 *  - false: 억제를 풀고, 그 시점의 감지 상태를 직접 읽어 타겟을 재획득한다. Sight 는 감지 여부가 바뀔 때만 갱신을 방송하므로, 억제 중 계속 보이던 대상은 자극을 기다려선 영영 다시 잡히지 않는다.
 	 */
 	void SetTargetingSuppressed(bool bSuppressed);
 
