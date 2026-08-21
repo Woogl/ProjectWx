@@ -427,7 +427,7 @@ void UWxViewModel_Ability::GetCost(UAbilitySystemComponent* InASC, const UGamepl
 	for (int32 ModifierIndex = 0; ModifierIndex < CostGE->Modifiers.Num(); ++ModifierIndex)
 	{
 		const FGameplayAttribute& ModifierAttribute = CostGE->Modifiers[ModifierIndex].Attribute;
-		const float Magnitude = CostSpec.GetModifierMagnitude(ModifierIndex, true);
+		const float Magnitude = CostSpec.GetModifierMagnitude(ModifierIndex);
 		if (!ModifierAttribute.IsValid() || FMath::IsNearlyZero(Magnitude))
 		{
 			continue;
