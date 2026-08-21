@@ -1,7 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Interact.h"
-#include "Components/PrimitiveComponent.h"
 #include "GameFramework/Actor.h"
 #include "Interaction/WxStateTreeTask_WaitForInteraction.h"
 #include "WxGameplayTags.h"
@@ -40,9 +39,9 @@ void UWxAbility_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	// 실행 경로가 선택 메시를 읽기만 하므로 OptionalObject 의 const 를 그대로 들고 간다(const_cast 불필요).
-	const UPrimitiveComponent* Selected = TriggerEventData
-		? Cast<UPrimitiveComponent>(TriggerEventData->OptionalObject.Get())
+	// OptionalObject 는 const 라, 대상에 응답을 시켜야 하는 실행 경로를 위해 여기서 벗긴다.
+	AActor* Selected = TriggerEventData
+		? const_cast<AActor*>(Cast<AActor>(TriggerEventData->OptionalObject.Get()))
 		: nullptr;
 
 	// ServerOnly 라 항상 권위지만, 방어적으로 게이트한다.
@@ -55,7 +54,7 @@ void UWxAbility_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
-void UWxAbility_Interact::ExecuteInteract(const UPrimitiveComponent* Selected, const FGameplayAbilityActorInfo* ActorInfo)
+void UWxAbility_Interact::ExecuteInteract(AActor* Selected, const FGameplayAbilityActorInfo* ActorInfo)
 {
 	AActor* Avatar = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
 	if (!Selected || !Avatar)
@@ -64,7 +63,6 @@ void UWxAbility_Interact::ExecuteInteract(const UPrimitiveComponent* Selected, c
 	}
 
 	// 클라 비주얼은 각 대상의 복제 상태로 수렴하므로 여기서 따로 호출하지 않는다.
-	// Source 로 선택 메시를 넘겨, 한 액터에 영역이 여럿이면(예: 엘리베이터) 어느 영역이었는지 가를 수 있게 한다.
 	IWxInteractable* Target = IWxInteractable::Find(Selected);
 	if (!Target)
 	{
@@ -72,26 +70,26 @@ void UWxAbility_Interact::ExecuteInteract(const UPrimitiveComponent* Selected, c
 	}
 
 	// 서버 권위 활성 검증: 클라가 비활성 대상을(또는 비활성 직후에) 보내도 여기서 걸린다.
-	if (!Target->IsInteractionMeshActive(Selected))
+	if (!Target->IsInteractionEnabled())
 	{
 		return;
 	}
 
-	// 서버 권위 거리 검증: 감지·선택은 클라 로컬이라, 변조 클라가 임의의 원거리 메시를 보내 상호작용하는 것을 막는다.
-	if (!IWxInteractable::IsMeshInRange(Selected, Avatar->GetActorLocation(), ScanRadius))
+	// 서버 권위 거리 검증: 감지·선택은 클라 로컬이라, 변조 클라가 임의의 원거리 대상을 보내 상호작용하는 것을 막는다.
+	if (!IWxInteractable::IsActorInRange(Selected, Avatar->GetActorLocation(), ScanRadius))
 	{
 		return;
 	}
 
-	// 서버 권위 자격 검증: 주체별로 자격이 갈리는 대상(처형 등)은 활성 목록으로 표현할 수 없으므로 실제 아바타를 주체로 대상에 묻는다.
+	// 서버 권위 자격 검증: 주체별로 자격이 갈리는 대상(처형 등)은 활성 판정으로 표현할 수 없으므로 실제 아바타를 주체로 대상에 묻는다.
 	// 기본 구현이 true 라 기믹 등은 영향이 없다.
-	if (!Target->CanBeInteractedBy(Avatar, Selected))
+	if (!Target->CanBeInteractedBy(Avatar))
 	{
 		return;
 	}
 
-	Target->OnInteracted(Avatar, Selected);
+	Target->OnInteracted(Avatar);
 
 	// 이 대상을 기다리던 퀘스트 스텝('상호작용 대기')이 있으면 여기서 완료된다. 기다리는 쪽이 없으면 무동작이다.
-	FWxStateTreeTask_WaitForInteraction::NotifyInteracted(Selected->GetOwner());
+	FWxStateTreeTask_WaitForInteraction::NotifyInteracted(Selected);
 }

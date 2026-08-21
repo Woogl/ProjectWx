@@ -39,9 +39,9 @@ public:
 	void LaunchInDirection(const FVector& Direction, float Speed);
 
 	//~ Begin IWxInteractable
-	virtual bool IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const override;
-	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
-	virtual FText GetInteractionPrompt(const UActorComponent* Source) const override;
+	virtual bool IsInteractionEnabled() const override;
+	virtual void OnInteracted(AActor* Interactor) override;
+	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
 
 protected:

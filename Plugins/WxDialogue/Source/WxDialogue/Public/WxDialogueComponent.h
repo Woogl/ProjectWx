@@ -30,18 +30,18 @@ public:
 	void SetAreaMesh(UPrimitiveComponent* Mesh);
 
 	//~ Begin IWxInteractable
-	virtual bool IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const override;
+	virtual bool IsInteractionEnabled() const override;
 
 	/**
-	 * 별도의 상태 플래그를 두지 않는 이유는 콜리전이 이미 그 상태이기 때문이다 — 감지(스캐너의 구 오버랩)도 사거리 판정도 이 형상에 걸리므로, 끄면 후보에서 통째로 빠진다.
+	 * 별도의 상태 플래그를 두지 않는 이유는 영역 메시의 콜리전이 이미 그 상태이기 때문이다 — 위 활성 판정이 그 값을 그대로 답한다.
 	 * 영역 메시는 몸통 충돌(캡슐)과 무관한 상호작용 감지 전용이라 꺼도 이동·물리에 영향이 없다.
 	 * 잠긴 채로 시작해야 하는 대상(퀘스트가 탑재되기 전까지 말을 걸 수 없는 NPC)은 BP·배치 인스턴스에서 그 메시의 콜리전을 미리 꺼 둔다 — 시작 값을 담는 별도 프로퍼티는 두지 않는다.
 	 * 복제하지 않는다 — 권위 측 퀘스트 러너만 이 값을 정하므로, 서버가 곧 클라인 싱글/리슨 호스트가 전제다(다른 퀘스트·대화 노드와 같은 전제).
 	 */
 	virtual void SetInteractionEnabled(bool bEnabled) override;
 
-	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
-	virtual FText GetInteractionPrompt(const UActorComponent* Source) const override;
+	virtual void OnInteracted(AActor* Interactor) override;
+	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
 
 protected:

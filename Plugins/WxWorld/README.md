@@ -5,7 +5,7 @@
 ## 책임
 **담당**
 - **기믹(Gimmick)**: `UWxGimmickStateTreeComponent` 하나로 어떤 액터든(순수 BP 포함) StateTree 구동·상호작용·상태 영속을 가진 기믹으로 만든다. 상태는 서버 권위이며 복제된 상태 Tag를 클라가 추종한다.
-- **상호작용(Interaction)**: `UWxInteractionScannerComponent`가 소유 클라에서 주변 상호작용 메시를 주기 스캔·선택·하이라이트하고, 선택을 서버로 보내 어빌리티가 권위 검증 후 대상 인터페이스를 호출한다.
+- **상호작용(Interaction)**: `UWxInteractionScannerComponent`가 소유 클라에서 주변 상호작용 액터를 주기 스캔·선택·하이라이트하고, 선택을 서버로 보내 어빌리티가 권위 검증 후 대상 인터페이스를 호출한다. 대상은 액터 단위이며 액터 안의 특정 메시만 영역이 되는 개념은 없다.
 - **스폰(Spawnable)**: `AWxSpawner`가 배치 액터로서 대상을 스폰하고 처치/부활 상태를 자체 보유하며 WxSave 슬롯으로 영속한다. `IWxSpawnable`은 스폰 직후 훅.
 - **StateTree 태스크 스위트**: 기믹/퀘스트 ST 에셋이 조립해 쓰는 재생·이동·상호작용·스포너 태스크 노드 모음(아래 확장 포인트).
 
@@ -36,7 +36,7 @@ Native Tag 선언은 이 모듈에 없다. 상호작용 경로는 `WxCore`가 �
 - **새 기믹**: C++ 액터를 만들지 않는다. 아무 액터에 `UWxGimmickStateTreeComponent`를 붙이고 ST 에셋으로 전이·연출을 정의한다. 영속이 필요한 상태에는 상태 디테일에 Tag를 달아야 저장된다. 오너 액터의 `Replicates`가 켜져 있어야 상태 복제가 성립한다(꺼지면 BeginPlay가 Error 로그).
 - **새 ST 태스크**: `FStateTreeTaskCommonBase` 파생 `USTRUCT`로 만든다. 인스턴스 데이터를 짝 구조체로 두고 `using FInstanceDataType`·`GetInstanceDataType()`을 헤더에 표기(코딩 규칙 6의 유일 예외, 각 헤더 주석 참조). 태스크 분류: `Gimmick/`(연출·이동 — 재생/컴포넌트 이동/이펙트 적용/스포너 발동·리스폰), `Interaction/`(상호작용 켜기·대기), `Spawnable/`(로케이터 지정 스포너 발동·처치 대기).
 - **레벨 밖 호스트에서 배치 액터 지정**: 퀘스트 ST 등에서 특정 배치 스포너/대상을 겨눌 땐 `FUniversalObjectLocator`(순수 구조체)를 쓴다 — ST 컴파일러의 레벨 액터 참조 검증을 우회하고 WP/PIE 해석이 엔진에 내장돼 있다.
-- **장치(레버) 연결과 Role 어휘**: 상호작용 장치는 `AWxLeverDevice`를 배치하고 기믹 컴포넌트의 `DeviceLinks`(Role+장치, 레벨 인스턴스 저작)로 잇는다 — 공유 ST 에셋은 Role 이름만 알고, ST의 '장치 상호작용 켜기' 태스크가 같은 Role로 발행 자리와 장치 켜짐을 토글한다. Role 이름은 UEFN 디바이스 함수 어휘를 따라 **수신자 관점의 명령형 동사**로 짓는다 — 기본값 `Activate`, 예: 문 `Open`, 엘리베이터 `CallToA`/`CallToB`, 증기 `Toggle`. BP 아키타입이 `DeviceLinks` 행으로 어휘를 미리 깔아 ST 에셋과 공유한다.
+- **장치(레버) 연결**: 상호작용 장치는 `AWxLeverDevice`를 배치하고 **레버 쪽** `Gimmicks` 배열(레벨 인스턴스 저작)로 움직일 기믹 액터를 지목한다 — 한 레버가 여럿을(1:N), 한 기믹이 여러 레버에(N:1) 걸린다. 눌리면 각 기믹 트리에 `Event.Interact`가 나가고, ST 에셋은 `On Event`로 받아 전이를 정한다. 레버는 상시 활성이며 상태를 들지 않는다 — 상태별로 잠가야 하면 '상호작용 켜기' 태스크의 Target(액터) 갈래로 여닫는다.
 - **스포너 부활 정책**: `EWxSpawnerMode`(Auto/Manual)와 `bNeverRevive`(보스). 일괄 리스폰은 `UWxSpawnerLibrary::TryRespawnAll`(Auto만), 지정 트리거는 로케이터 태스크.
 
 ## 여기서부터 읽어라

@@ -17,11 +17,11 @@ void UWxDialogueComponent::SetAreaMesh(UPrimitiveComponent* Mesh)
 	AreaMesh = Mesh;
 }
 
-bool UWxDialogueComponent::IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const
+bool UWxDialogueComponent::IsInteractionEnabled() const
 {
-	// 콜리전을 여기서 함께 보는 것은 서버 검증 순서 때문이다 — 활성 검증이 사거리 판정보다 앞서므로, 잠긴 대상은 콜리전이 꺼진 메시를 나무라는 사거리 판정의 ensure 에 닿기 전에 걸러진다.
+	// 감지가 액터 단위라 영역 메시를 꺼도 호스트의 다른 형상(캡슐 등)이 계속 스캔에 걸린다 — 잠금의 실질은 이 명시 판정이다.
 	// 대화 중 차단은 여기가 아니라 상호작용 어빌리티의 State.Dialogue 차단 태그가 맡는다.
-	return AreaMesh && Mesh == AreaMesh && AreaMesh->IsQueryCollisionEnabled();
+	return AreaMesh && AreaMesh->IsQueryCollisionEnabled();
 }
 
 void UWxDialogueComponent::SetInteractionEnabled(bool bEnabled)
@@ -34,7 +34,7 @@ void UWxDialogueComponent::SetInteractionEnabled(bool bEnabled)
 	AreaMesh->SetCollisionEnabled(bEnabled ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 }
 
-void UWxDialogueComponent::OnInteracted(AActor* Interactor, const UActorComponent* Source)
+void UWxDialogueComponent::OnInteracted(AActor* Interactor)
 {
 	const APawn* Pawn = Cast<APawn>(Interactor);
 	AController* Controller = Pawn ? Pawn->GetController() : nullptr;
@@ -47,7 +47,7 @@ void UWxDialogueComponent::OnInteracted(AActor* Interactor, const UActorComponen
 	Session->StartDialogue(this);
 }
 
-FText UWxDialogueComponent::GetInteractionPrompt(const UActorComponent* Source) const
+FText UWxDialogueComponent::GetInteractionPrompt() const
 {
 	return FText::Format(NSLOCTEXT("WxDialogueComponent", "TalkPromptFormat", "Talk to {0}"), SpeakerName);
 }

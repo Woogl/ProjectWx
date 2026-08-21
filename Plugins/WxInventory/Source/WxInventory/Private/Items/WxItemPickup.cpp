@@ -26,7 +26,7 @@ AWxItemPickup::AWxItemPickup()
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	SetRootComponent(MeshComponent);
 
-	// 이 메시가 곧 상호작용 영역이지만 대상 자격은 콜리전 프리셋·응답과 무관하다(IsInteractionMeshActive 로 답한다).
+	// 쿼리 콜리전이 켜져 있어야 스캔·사거리 판정에 걸리지만, 대상 자격 자체는 콜리전 프리셋·응답과 무관하다(IsInteractionEnabled 로 답한다).
 	// 아래 콜리전은 순전히 LaunchInDirection 의 물리 발사와 월드 충돌을 위한 것이다.
 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	MeshComponent->SetCollisionObjectType(ECC_WorldDynamic);
@@ -68,13 +68,13 @@ void AWxItemPickup::LaunchInDirection(const FVector& Direction, float Speed)
 	MeshComponent->SetPhysicsLinearVelocity(Direction.GetSafeNormal() * Speed);
 }
 
-bool AWxItemPickup::IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const
+bool AWxItemPickup::IsInteractionEnabled() const
 {
 	// 지급 후엔 액터가 파괴되므로 끌 상태가 없다.
-	return Mesh == MeshComponent;
+	return true;
 }
 
-void AWxItemPickup::OnInteracted(AActor* Interactor, const UActorComponent* Source)
+void AWxItemPickup::OnInteracted(AActor* Interactor)
 {
 	// 서버 권위에서만 호출된다.
 	if (!Interactor)
@@ -102,7 +102,7 @@ void AWxItemPickup::OnInteracted(AActor* Interactor, const UActorComponent* Sour
 	Destroy();
 }
 
-FText AWxItemPickup::GetInteractionPrompt(const UActorComponent* Source) const
+FText AWxItemPickup::GetInteractionPrompt() const
 {
 	if (!ItemDef)
 	{

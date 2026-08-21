@@ -9,12 +9,11 @@
 
 class USoundBase;
 class UStaticMeshComponent;
-class UWxGimmickStateTreeComponent;
 
 /**
- * 상호작용하면 연결된 기믹에 신호를 보내는 레버 장치 액터.
- * 배선은 기믹 → 레버 단방향 저작이다 — 기믹 컴포넌트가 역할별 링크로 이 액터를 지목하고, 여기는 눌림 통지의 역경로 구독만 런타임에 든다.
- * 활성/잠금은 몸체 메시의 쿼리 콜리전이 전부이며 기본은 꺼짐이다 — 켜는 시점은 구독 기믹의 StateTree 가 정하므로, 세이브 복원도 그 트리의 재적용으로 정합된다(자체 세이브 없음).
+ * 상호작용하면 연결된 기믹들에 Event.Interact 를 보내는 레버 장치 액터.
+ * 배선은 레버 → 기믹 단방향 저작이다 — 이 액터가 움직일 기믹을 직접 지목하므로 한 레버가 여럿을(1:N), 한 기믹이 여러 레버에(N:1) 걸린다.
+ * 상시 활성이며 자체 세이브가 없다 — 상태를 드는 쪽은 기믹의 StateTree 다. 상태별로 잠가야 하면 그 트리의 '상호작용 켜기'(Target 갈래)가 계약으로 여닫는다.
  */
 UCLASS()
 class WXWORLD_API AWxLeverDevice : public AActor, public IWxInteractable
@@ -27,20 +26,18 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	//~ Begin IWxInteractable
-	virtual bool IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const override;
+	virtual bool IsInteractionEnabled() const override;
 	virtual void SetInteractionEnabled(bool bEnabled) override;
-	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
-	virtual FText GetInteractionPrompt(const UActorComponent* Source) const override;
+	virtual void OnInteracted(AActor* Interactor) override;
+	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
-
-	/** 기믹이 역할 상태를 밀어 넣는 진입점. 켤 때 프롬프트를 비워 두면 저작 기본 문구가 쓰인다. */
-	void SetDeviceActive(bool bActive, const FText& InPrompt);
-
-	void RegisterSubscriber(UWxGimmickStateTreeComponent* Gimmick);
-	void UnregisterSubscriber(UWxGimmickStateTreeComponent* Gimmick);
 
 protected:
 	virtual void BeginPlay() override;
+
+	/** 이 레버가 움직일 기믹 액터들. 눌리면 각 액터의 기믹 컴포넌트에 눌림을 통지한다. 하드 참조라 기믹과 함께 로드된다 — 늦은 등록을 따로 다루지 않는 근거다. */
+	UPROPERTY(EditInstanceOnly, Category = "Wx")
+	TArray<TObjectPtr<AActor>> Gimmicks;
 
 	/** 루트이자 상호작용 영역. 쿼리 콜리전이 곧 활성이고, 꺼도 물리 차단은 유지한다(실체 프롭이라 뚫리면 안 된다). */
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
@@ -50,7 +47,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> HandleMesh;
 
-	/** 기믹이 프롬프트를 밀어 주지 않을 때 표시할 기본 문구. */
+	/** HUD 에 표시할 문구. */
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	FText Prompt;
 
@@ -73,13 +70,6 @@ private:
 	void Multicast_PlayPull();
 
 	bool IsPulling() const;
-
-	/** 눌림을 통지받을 기믹 컴포넌트들. 기믹이 BeginPlay 에 걸고 EndPlay 에 푼다 — 어긋난 해제는 약참조가 흡수한다. */
-	TArray<TWeakObjectPtr<UWxGimmickStateTreeComponent>> Subscribers;
-
-	/** 기믹이 밀어 넣은 상태별 프롬프트. 각 피어의 ST 가 같은 값으로 수렴시키므로 복제하지 않는다. */
-	UPROPERTY(Transient)
-	FText PushedPrompt;
 
 	FRotator HandleRestRotation = FRotator::ZeroRotator;
 

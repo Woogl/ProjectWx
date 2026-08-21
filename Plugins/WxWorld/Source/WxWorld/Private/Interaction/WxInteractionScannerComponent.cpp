@@ -61,7 +61,7 @@ void UWxInteractionScannerComponent::EndPlay(const EEndPlayReason::Type EndPlayR
 
 void UWxInteractionScannerComponent::TryInteractSelected()
 {
-	UPrimitiveComponent* Selected = GetSelectedMesh();
+	AActor* Selected = GetSelectedActor();
 	if (!Selected)
 	{
 		return;
@@ -73,15 +73,15 @@ void UWxInteractionScannerComponent::TryInteractSelected()
 TArray<FText> UWxInteractionScannerComponent::GetPrompts() const
 {
 	TArray<FText> Prompts;
-	Prompts.Reserve(InRangeMeshes.Num());
-	for (const TWeakObjectPtr<UPrimitiveComponent>& Weak : InRangeMeshes)
+	Prompts.Reserve(InRangeActors.Num());
+	for (const TWeakObjectPtr<AActor>& Weak : InRangeActors)
 	{
-		if (const UPrimitiveComponent* Mesh = Weak.Get())
+		if (AActor* Actor = Weak.Get())
 		{
-			// 프롬프트는 대상이 IWxInteractable 로 제공한다(pull). 어느 영역의 문구인지는 이 메시가 정하므로 함께 넘긴다.
+			// 프롬프트는 대상이 IWxInteractable 로 제공한다(pull).
 			// 인덱스 정합을 위해 대상이 없으면 빈 텍스트로 자리를 채운다.
-			const IWxInteractable* Target = IWxInteractable::Find(Mesh);
-			Prompts.Add(Target ? Target->GetInteractionPrompt(Mesh) : FText::GetEmpty());
+			const IWxInteractable* Target = IWxInteractable::Find(Actor);
+			Prompts.Add(Target ? Target->GetInteractionPrompt() : FText::GetEmpty());
 		}
 	}
 	return Prompts;
@@ -92,18 +92,18 @@ int32 UWxInteractionScannerComponent::GetSelectedIndex() const
 	return SelectedIndex;
 }
 
-UPrimitiveComponent* UWxInteractionScannerComponent::GetSelectedMesh() const
+AActor* UWxInteractionScannerComponent::GetSelectedActor() const
 {
-	if (!InRangeMeshes.IsValidIndex(SelectedIndex))
+	if (!InRangeActors.IsValidIndex(SelectedIndex))
 	{
 		return nullptr;
 	}
-	return InRangeMeshes[SelectedIndex].Get();
+	return InRangeActors[SelectedIndex].Get();
 }
 
 void UWxInteractionScannerComponent::CycleSelection(int32 Delta)
 {
-	const int32 Count = InRangeMeshes.Num();
+	const int32 Count = InRangeActors.Num();
 	if (Count == 0 || Delta == 0)
 	{
 		return;
@@ -114,7 +114,7 @@ void UWxInteractionScannerComponent::CycleSelection(int32 Delta)
 	UpdateSelection(NewIndex);
 }
 
-void UWxInteractionScannerComponent::ServerInteract_Implementation(UPrimitiveComponent* Selected)
+void UWxInteractionScannerComponent::ServerInteract_Implementation(AActor* Selected)
 {
 	APawn* Pawn = GetOwnerPawn();
 	if (!Pawn)
@@ -157,89 +157,88 @@ void UWxInteractionScannerComponent::ScanAndPush()
 	QueryParams.AddIgnoredActor(Pawn);
 	World->OverlapMultiByObjectType(Overlaps, ScanOrigin, FQuat::Identity, FCollisionObjectQueryParams(FCollisionObjectQueryParams::AllObjects), FCollisionShape::MakeSphere(ScanRadius), QueryParams);
 
-	// 스켈레탈은 피직스 애셋 바디마다 결과가 따로 오므로 컴포넌트 단위로 한 번만 검사한다.
-	// 채택 여부가 아니라 검사 여부로 걸어야, 자격 미달로 탈락하는 대상(정면을 본 적 등)의 판정이 바디 수만큼 반복되지 않는다.
-	TArray<const UPrimitiveComponent*> Examined;
+	// 한 액터의 컴포넌트·스켈레탈 바디마다 결과가 따로 오므로 액터 단위로 한 번만 검사한다.
+	// 채택 여부가 아니라 검사 여부로 걸어야, 자격 미달로 탈락하는 대상(정면을 본 적 등)의 판정이 결과 수만큼 반복되지 않는다.
+	TArray<const AActor*> Examined;
 	Examined.Reserve(Overlaps.Num());
 
-	TArray<UPrimitiveComponent*> Candidates;
+	TArray<AActor*> Candidates;
 	for (const FOverlapResult& Overlap : Overlaps)
 	{
-		UPrimitiveComponent* Mesh = Overlap.GetComponent();
-		if (!Mesh || Examined.Contains(Mesh))
+		AActor* Actor = Overlap.GetActor();
+		if (!Actor || Examined.Contains(Actor))
 		{
 			continue;
 		}
-		Examined.Add(Mesh);
+		Examined.Add(Actor);
 
-		// 소유 액터도 그 컴포넌트도 계약 구현체가 아니면(바닥·벽·소품 등) 여기서 탈락한다.
-		const IWxInteractable* Target = IWxInteractable::Find(Mesh);
+		// 액터도 그 컴포넌트도 계약 구현체가 아니면(바닥·벽·소품 등) 여기서 탈락한다.
+		const IWxInteractable* Target = IWxInteractable::Find(Actor);
 		if (!Target)
 		{
 			continue;
 		}
 
-		// 겹쳤다는 것이 곧 사거리 판정이다 — 오버랩 구가 IsMeshInRange 와 같은 원점·반경·형상이라 다시 재지 않는다.
+		// 겹쳤다는 것이 곧 사거리 판정이다 — 오버랩 구가 IsActorInRange 와 같은 원점·반경·형상이라 다시 재지 않는다.
 		// 주체별로 자격이 갈리는 대상(예: 처형은 주체가 후방이어야 뒤잡)은 활성 판정만으론 걸러지지 않으므로 소유 폰을 주체로 물어 표시를 거른다.
 		// 서버는 같은 두 함수를 실제 instigator 로 다시 물어 권위 판정한다.
-		if (Target->IsInteractionMeshActive(Mesh) && Target->CanBeInteractedBy(Pawn, Mesh))
+		if (Target->IsInteractionEnabled() && Target->CanBeInteractedBy(Pawn))
 		{
-			// 한 액터에 여러 영역이 있으면(예: 엘리베이터) 메시 단위로 각각 잡힌다.
-			Candidates.Add(Mesh);
+			Candidates.Add(Actor);
 		}
 	}
 
-	// 가까운 영역이 먼저 오도록 거리순 정렬한다(스캐너가 신규를 이 순서로 append).
-	Candidates.Sort([ScanOrigin](const UPrimitiveComponent& A, const UPrimitiveComponent& B)
+	// 가까운 대상이 먼저 오도록 거리순 정렬한다(스캐너가 신규를 이 순서로 append).
+	Candidates.Sort([ScanOrigin](const AActor& A, const AActor& B)
 	{
-		return FVector::DistSquared(ScanOrigin, A.GetComponentLocation()) < FVector::DistSquared(ScanOrigin, B.GetComponentLocation());
+		return FVector::DistSquared(ScanOrigin, A.GetActorLocation()) < FVector::DistSquared(ScanOrigin, B.GetActorLocation());
 	});
 
 	UpdateInRange(Candidates);
 }
 
-void UWxInteractionScannerComponent::UpdateInRange(const TArray<UPrimitiveComponent*>& InCandidates)
+void UWxInteractionScannerComponent::UpdateInRange(const TArray<AActor*>& InCandidates)
 {
-	// 선택 안정성을 위해 갱신 전 선택 메시를 포인터로 캐시한다. 순서가 바뀌어도 동일 메시를 다시 찾아 선택을 잇는다.
-	UPrimitiveComponent* PreviousSelected = GetSelectedMesh();
+	// 선택 안정성을 위해 갱신 전 선택 액터를 포인터로 캐시한다. 순서가 바뀌어도 동일 액터를 다시 찾아 선택을 잇는다.
+	AActor* PreviousSelected = GetSelectedActor();
 
 	bool bChanged = false;
 
-	for (int32 Index = InRangeMeshes.Num() - 1; Index >= 0; --Index)
+	for (int32 Index = InRangeActors.Num() - 1; Index >= 0; --Index)
 	{
-		UPrimitiveComponent* Existing = InRangeMeshes[Index].Get();
+		AActor* Existing = InRangeActors[Index].Get();
 		if (!Existing || !InCandidates.Contains(Existing))
 		{
-			SetMeshHighlighted(Existing, false);
-			InRangeMeshes.RemoveAt(Index);
+			SetActorHighlighted(Existing, false);
+			InRangeActors.RemoveAt(Index);
 			bChanged = true;
 		}
 	}
 
-	for (UPrimitiveComponent* Candidate : InCandidates)
+	for (AActor* Candidate : InCandidates)
 	{
-		if (Candidate && !InRangeMeshes.Contains(Candidate))
+		if (Candidate && !InRangeActors.Contains(Candidate))
 		{
-			InRangeMeshes.Add(Candidate);
+			InRangeActors.Add(Candidate);
 			bChanged = true;
 		}
 	}
 
 	// 멤버십도 그대로고 볼 대상도 없으면 비교할 문구조차 없다 — 주변에 아무것도 없는 대부분의 스캔이 여기서 끝나 아래 프롬프트 수집 비용이 들지 않는다.
-	if (!bChanged && InRangeMeshes.IsEmpty())
+	if (!bChanged && InRangeActors.IsEmpty())
 	{
 		return;
 	}
 
 	if (bChanged)
 	{
-		const int32 RestoredIndex = PreviousSelected ? InRangeMeshes.IndexOfByKey(PreviousSelected) : INDEX_NONE;
-		SelectedIndex = InRangeMeshes.IsEmpty() ? INDEX_NONE : (RestoredIndex != INDEX_NONE ? RestoredIndex : 0);
+		const int32 RestoredIndex = PreviousSelected ? InRangeActors.IndexOfByKey(PreviousSelected) : INDEX_NONE;
+		SelectedIndex = InRangeActors.IsEmpty() ? INDEX_NONE : (RestoredIndex != INDEX_NONE ? RestoredIndex : 0);
 
 		ApplyHighlight();
 	}
 
-	// 프롬프트는 대상에서 pull 하는 값이라 멤버십이 그대로여도 문구만 바뀔 수 있다(상태가 바뀌어도 그 영역을 끄지 않는 기믹).
+	// 프롬프트는 대상에서 pull 하는 값이라 멤버십이 그대로여도 문구만 바뀔 수 있다(상태가 바뀌어도 상호작용을 끄지 않는 기믹).
 	TArray<FText> Prompts = GetPrompts();
 	bool bPromptsChanged = Prompts.Num() != LastPrompts.Num();
 	for (int32 Index = 0; !bPromptsChanged && Index < Prompts.Num(); ++Index)
@@ -261,7 +260,7 @@ void UWxInteractionScannerComponent::UpdateInRange(const TArray<UPrimitiveCompon
 
 void UWxInteractionScannerComponent::UpdateSelection(int32 NewIndex)
 {
-	const int32 Clamped = InRangeMeshes.IsEmpty() ? INDEX_NONE : FMath::Clamp(NewIndex, 0, InRangeMeshes.Num() - 1);
+	const int32 Clamped = InRangeActors.IsEmpty() ? INDEX_NONE : FMath::Clamp(NewIndex, 0, InRangeActors.Num() - 1);
 	if (Clamped == SelectedIndex)
 	{
 		return;
@@ -274,23 +273,33 @@ void UWxInteractionScannerComponent::UpdateSelection(int32 NewIndex)
 
 void UWxInteractionScannerComponent::ApplyHighlight()
 {
-	for (int32 Index = 0; Index < InRangeMeshes.Num(); ++Index)
+	for (int32 Index = 0; Index < InRangeActors.Num(); ++Index)
 	{
-		SetMeshHighlighted(InRangeMeshes[Index].Get(), Index == SelectedIndex);
+		SetActorHighlighted(InRangeActors[Index].Get(), Index == SelectedIndex);
 	}
 }
 
-void UWxInteractionScannerComponent::SetMeshHighlighted(UPrimitiveComponent* Mesh, bool bHighlighted) const
+void UWxInteractionScannerComponent::SetActorHighlighted(AActor* Actor, bool bHighlighted) const
 {
-	if (!Mesh)
+	if (!Actor)
 	{
 		return;
 	}
 
-	Mesh->SetRenderCustomDepth(bHighlighted);
-	if (bHighlighted)
+	// 보이지 않는 것은 건너뛴다 — 캡슐·트리거처럼 렌더링되지 않는 형상까지 켜 봐야 외곽선에 기여하지 않는다.
+	for (UActorComponent* Component : Actor->GetComponents())
 	{
-		Mesh->SetCustomDepthStencilValue(HighlightStencilValue);
+		UPrimitiveComponent* Primitive = Cast<UPrimitiveComponent>(Component);
+		if (!Primitive || !Primitive->IsVisible())
+		{
+			continue;
+		}
+
+		Primitive->SetRenderCustomDepth(bHighlighted);
+		if (bHighlighted)
+		{
+			Primitive->SetCustomDepthStencilValue(HighlightStencilValue);
+		}
 	}
 }
 

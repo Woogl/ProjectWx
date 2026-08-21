@@ -6,11 +6,11 @@
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/Character.h"
-#include "Interaction/WxLeverDevice.h"
 #include "Net/UnrealNetwork.h"
 #include "StateTree.h"
 #include "StateTreeExecutionContext.h"
 #include "StructUtils/InstancedStruct.h"
+#include "WxGameplayTags.h"
 #include "WxWorldModule.h"
 
 #if WITH_EDITOR
@@ -105,19 +105,17 @@ void UWxGimmickStateTreeComponent::StopLogic(const FString& Reason)
 	Super::StopLogic(Reason);
 }
 
-bool UWxGimmickStateTreeComponent::IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const
+bool UWxGimmickStateTreeComponent::IsInteractionEnabled() const
 {
-	// 맵에 파괴된 항목이 남아 있을 수 있으므로 null 끼리 맞아떨어지지 않게 막는다.
-	if (!Mesh)
-	{
-		return false;
-	}
-
-	// 맵 키가 비const 포인터라 조회용으로만 const 를 벗긴다(맵을 통해 대상을 수정하지 않는다).
-	return InteractionRegions.Contains(const_cast<UPrimitiveComponent*>(Mesh));
+	return bInteractionEnabled;
 }
 
-void UWxGimmickStateTreeComponent::OnInteracted(AActor* Interactor, const UActorComponent* Source)
+void UWxGimmickStateTreeComponent::SetInteractionEnabled(bool bEnabled)
+{
+	SetInteractionBinding(bEnabled, FWxGimmickInteractionBinding());
+}
+
+void UWxGimmickStateTreeComponent::OnInteracted(AActor* Interactor)
 {
 	// 상호작용 어빌리티가 서버 권위에서만 부르지만, 상태를 움직이는 것은 권위 트리뿐이므로 한 번 더 가른다.
 	AActor* Owner = GetOwner();
@@ -132,12 +130,8 @@ void UWxGimmickStateTreeComponent::OnInteracted(AActor* Interactor, const UActor
 		return;
 	}
 
-	// 맵 키가 비const 포인터라 조회용으로만 const 를 벗긴다(맵을 통해 대상을 수정하지 않는다).
-	UPrimitiveComponent* Mesh = const_cast<UPrimitiveComponent*>(Cast<UPrimitiveComponent>(Source));
-
-	// 지금 켜져 있는 영역만 발행할 자리를 가진다. 꺼진 영역은 애초에 스캔 후보에서 빠지지만, 여기서도 같은 기준으로 걸러 상태를 건드리지 않는다.
-	const FWxGimmickInteractionRegion* Region = InteractionRegions.Find(Mesh);
-	if (!Region)
+	// 꺼져 있으면 애초에 스캔 후보에서 빠지지만, 여기서도 같은 기준으로 걸러 상태를 건드리지 않는다.
+	if (!bInteractionEnabled)
 	{
 		return;
 	}
@@ -149,17 +143,13 @@ void UWxGimmickStateTreeComponent::OnInteracted(AActor* Interactor, const UActor
 	bPendingInteractResolve = true;
 
 	// 트리 틱 밖에서 부르는 경로라 태스크가 남긴 약참조 컨텍스트를 쓴다. 잠든 트리는 이 발행이 깨우고, 발행 표식은 다음 전이 처리까지 보존된다.
-	Region->Context.BroadcastDelegate(Region->Dispatcher);
+	InteractionBinding.Context.BroadcastDelegate(InteractionBinding.Dispatcher);
 }
 
-FText UWxGimmickStateTreeComponent::GetInteractionPrompt(const UActorComponent* Source) const
+FText UWxGimmickStateTreeComponent::GetInteractionPrompt() const
 {
-	// 맵 키가 비const 포인터라 조회용으로만 const 를 벗긴다(맵을 통해 대상을 수정하지 않는다).
-	UPrimitiveComponent* Mesh = const_cast<UPrimitiveComponent*>(Cast<UPrimitiveComponent>(Source));
-
-	// ST 가 이 영역에 세팅한 상태별 프롬프트가 전부다. 태스크에서 문구를 지정하지 않았으면 표시할 것이 없으므로 공백을 답한다.
-	const FWxGimmickInteractionRegion* Region = InteractionRegions.Find(Mesh);
-	return Region ? Region->Prompt : FText::GetEmpty();
+	// ST 가 이 상태에 세팅한 프롬프트가 전부다. 태스크에서 문구를 지정하지 않았으면 표시할 것이 없으므로 공백을 답한다.
+	return InteractionBinding.Prompt;
 }
 
 FGuid UWxGimmickStateTreeComponent::GetSaveId() const
@@ -177,44 +167,15 @@ void UWxGimmickStateTreeComponent::OnSaveRestored()
 	}
 }
 
-void UWxGimmickStateTreeComponent::SetInteractionRegionEnabled(UPrimitiveComponent* Mesh, bool bEnabled, const FWxGimmickInteractionRegion& Region)
+void UWxGimmickStateTreeComponent::SetInteractionBinding(bool bEnabled, const FWxGimmickInteractionBinding& Binding)
 {
-	if (!Mesh)
-	{
-		return;
-	}
+	bInteractionEnabled = bEnabled;
 
-	if (!bEnabled)
-	{
-		InteractionRegions.Remove(Mesh);
-		return;
-	}
-
-	InteractionRegions.Add(Mesh, Region);
+	// 끌 때는 다음 켜짐이 자기 값을 다시 담도록 비운다 — 남겨 두면 꺼진 상태의 문구가 프롬프트로 새어 나간다.
+	InteractionBinding = bEnabled ? Binding : FWxGimmickInteractionBinding();
 }
 
-void UWxGimmickStateTreeComponent::SetDeviceInteractionEnabled(FName Role, bool bEnabled, const FText& Prompt, const FWxGimmickDeviceBinding& Binding)
-{
-	if (bEnabled)
-	{
-		DeviceBindings.Add(Role, Binding);
-	}
-	else
-	{
-		DeviceBindings.Remove(Role);
-	}
-
-	// 같은 역할에 장치가 여럿이면(N:1) 전부 같은 상태로 움직인다.
-	for (const FWxGimmickDeviceLink& Link : DeviceLinks)
-	{
-		if (Link.Role == Role && IsValid(Link.Device))
-		{
-			Link.Device->SetDeviceActive(bEnabled, Prompt);
-		}
-	}
-}
-
-void UWxGimmickStateTreeComponent::NotifyDeviceInteracted(AWxLeverDevice* Device, AActor* Interactor)
+void UWxGimmickStateTreeComponent::NotifyDeviceInteracted(AActor* Interactor)
 {
 	// 장치가 서버 권위에서만 부르지만, 상태를 움직이는 것은 권위 트리뿐이므로 한 번 더 가른다.
 	const AActor* Owner = GetOwner();
@@ -223,26 +184,8 @@ void UWxGimmickStateTreeComponent::NotifyDeviceInteracted(AWxLeverDevice* Device
 		return;
 	}
 
-	// 멈춘 트리엔 발행이 닿지 않는다. 소화될 일 없는 재진입 판정을 예약해 두면 다음 시작 때 헛재진입으로 새어 나간다.
+	// 멈춘 트리엔 이벤트가 닿지 않는다.
 	if (!IsRunning())
-	{
-		return;
-	}
-
-	// 지금 발행 자리가 열린 역할만 알릴 수 있다. 열린 자리가 하나도 없으면 상태를 건드리지 않는다.
-	TArray<const FWxGimmickDeviceBinding*> Bindings;
-	for (const FWxGimmickDeviceLink& Link : DeviceLinks)
-	{
-		if (Link.Device == Device)
-		{
-			if (const FWxGimmickDeviceBinding* Binding = DeviceBindings.Find(Link.Role))
-			{
-				Bindings.Add(Binding);
-			}
-		}
-	}
-
-	if (Bindings.IsEmpty())
 	{
 		return;
 	}
@@ -250,20 +193,10 @@ void UWxGimmickStateTreeComponent::NotifyDeviceInteracted(AWxLeverDevice* Device
 	// 당사자는 복제로 각 피어에 전해진다 — 이동·몽타주 태스크가 모든 머신에서 같은 대상을 본다.
 	InteractingCharacter = Cast<ACharacter>(Interactor);
 
-	// 이 상호작용이 상태를 바꾸는지 아닌지는 트리가 발행을 소화해 봐야 안다. PublishAuthorityState 가 그 결과를 보고 판정한다.
-	bPendingInteractResolve = true;
-
-	bool bAnyDelivered = false;
-	for (const FWxGimmickDeviceBinding* Binding : Bindings)
-	{
-		bAnyDelivered |= Binding->Context.BroadcastDelegate(Binding->Dispatcher);
-	}
-
-	// 발행이 전부 stale 로 실패하면 소화될 것이 없다 — 플래그를 남기면 다음 기록 지점이 헛 재진입으로 오판한다.
-	if (!bAnyDelivered)
-	{
-		bPendingInteractResolve = false;
-	}
+	// 잠든 트리는 이 발송이 예약하는 다음 틱이 깨운다.
+	// 영역 상호작용과 달리 재진입 판정(bPendingInteractResolve)은 걸지 않는다 — 이벤트엔 「지금 듣고 있는가」를 가릴 자리가 없어,
+	// 반응하지 않는 상태에서 당길 때마다 클라만 현재 상태를 재진입해 연출을 헛재생하게 된다.
+	SendStateTreeEvent(WxGameplayTags::Event_Interact);
 }
 
 ACharacter* UWxGimmickStateTreeComponent::GetInteractingCharacter() const
@@ -326,30 +259,6 @@ void UWxGimmickStateTreeComponent::BeginPlay()
 	{
 		UE_LOG(LogWxWorld, Error, TEXT("Gimmick: %s 의 Replicates 가 꺼져 있어 상태 복제가 동작하지 않는다 — 클라 기믹이 서버를 따라가지 못한다."), *Owner->GetName());
 	}
-
-	// 배선은 기믹 → 레버 단방향 저작이라, 눌림 통지의 역경로만 여기서 런타임 구독으로 잇는다.
-	for (const FWxGimmickDeviceLink& Link : DeviceLinks)
-	{
-		if (Link.Device)
-		{
-			Link.Device->RegisterSubscriber(this);
-		}
-	}
-}
-
-void UWxGimmickStateTreeComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	// 장치와는 함께 스트림 아웃되는 것이 보통이지만, 순서가 어긋나도 남은 쪽이 stale 켜짐·구독을 들지 않게 여기서 정리한다.
-	for (const FWxGimmickDeviceLink& Link : DeviceLinks)
-	{
-		if (IsValid(Link.Device))
-		{
-			Link.Device->SetDeviceActive(false, FText::GetEmpty());
-			Link.Device->UnregisterSubscriber(this);
-		}
-	}
-
-	Super::EndPlay(EndPlayReason);
 }
 
 void UWxGimmickStateTreeComponent::OnRep_StateTag()
@@ -391,16 +300,7 @@ void UWxGimmickStateTreeComponent::Multicast_ReenterState_Implementation(FGamepl
 
 void UWxGimmickStateTreeComponent::ResetInteractions()
 {
-	InteractionRegions.Empty();
-	DeviceBindings.Empty();
-
-	for (const FWxGimmickDeviceLink& Link : DeviceLinks)
-	{
-		if (IsValid(Link.Device))
-		{
-			Link.Device->SetDeviceActive(false, FText::GetEmpty());
-		}
-	}
+	SetInteractionBinding(false, FWxGimmickInteractionBinding());
 }
 
 void UWxGimmickStateTreeComponent::StartTreeAtSavedState()

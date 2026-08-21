@@ -2,7 +2,6 @@
 
 #include "Interaction/WxStateTreeTask_EnableInteraction.h"
 
-#include "Components/PrimitiveComponent.h"
 #include "GameFramework/Actor.h"
 #include "Gimmick/WxGimmickStateTreeComponent.h"
 #include "StateTreeExecutionContext.h"
@@ -26,20 +25,20 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExe
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	if (Instance.TargetMesh)
+	if (Instance.Target.IsEmpty())
 	{
 		// 프롬프트·발행 자리까지 담아야 해서 계약이 아니라 기믹 컴포넌트로 직접 부른다 — 그러지 않으면 공용 계약이 StateTree 를 떠안는다.
-		// 꺼진 영역은 기믹의 활성 목록에서 빠져 다음 스캔에서 탈락한다. 콜리전은 건드리지 않으므로 대상 메시의 설정은 보존된다.
+		// 꺼지면 기믹이 활성 판정에 false 를 답해 다음 스캔에서 탈락한다. 콜리전은 건드리지 않으므로 대상 메시의 설정은 보존된다.
 		const AActor* Owner = Cast<AActor>(Context.GetOwner());
 		if (UWxGimmickStateTreeComponent* Gimmick = Owner ? Owner->FindComponentByClass<UWxGimmickStateTreeComponent>() : nullptr)
 		{
 			// 발행은 상호작용을 받은 그 순간, 즉 트리 틱 밖에서 일어난다. 그래서 발행자만이 아니라 지금의 실행 컨텍스트를 약참조로 함께 남긴다.
-			FWxGimmickInteractionRegion Region;
-			Region.Prompt = Instance.Prompt;
-			Region.Dispatcher = Instance.OnInteracted;
-			Region.Context = Context.MakeWeakExecutionContext();
+			FWxGimmickInteractionBinding Binding;
+			Binding.Prompt = Instance.Prompt;
+			Binding.Dispatcher = Instance.OnInteracted;
+			Binding.Context = Context.MakeWeakExecutionContext();
 
-			Gimmick->SetInteractionRegionEnabled(Instance.TargetMesh, Instance.bEnable, Region);
+			Gimmick->SetInteractionBinding(Instance.bEnable, Binding);
 		}
 
 		return EStateTreeRunStatus::Succeeded;
@@ -57,7 +56,7 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::Tick(FStateTreeExecution
 
 EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::ApplyTargetInteraction(const FStateTreeExecutionContext& Context, const FInstanceDataType& Instance) const
 {
-	// 빈 지정은 기능 미사용(재사용 스텝의 옵션 파라미터)이라 걸 것이 없다.
+	// 빈 지정은 EnterState 에서 자기 갈래로 이미 처리됐다 — Tick 이 남은 것은 대상을 기다리는 액터 갈래뿐이다.
 	if (Instance.Target.IsEmpty())
 	{
 		return EStateTreeRunStatus::Succeeded;
@@ -90,21 +89,11 @@ FText FWxStateTreeTask_EnableInteraction::GetDescription(const FGuid& ID, FState
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	// 대상 메시는 보통 바인딩이라 런타임 포인터가 비어 있다.
-	FText TargetText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, TargetMesh)), Formatting);
-	if (TargetText.IsEmpty() && InstanceData->TargetMesh)
-	{
-		TargetText = FText::FromString(InstanceData->TargetMesh->GetName());
-	}
-
-	// 메시를 지목하지 않았으면 액터 갈래다. 로케이터도 보통 바인딩이라 같은 순서로 본다.
+	// 로케이터는 보통 바인딩이라 런타임 값이 비어 있다.
+	FText TargetText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, Target)), Formatting);
 	if (TargetText.IsEmpty())
 	{
-		TargetText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, Target)), Formatting);
-	}
-	if (TargetText.IsEmpty())
-	{
-		TargetText = FText::FromString(GetTargetDisplayName(InstanceData->Target));
+		TargetText = InstanceData->Target.IsEmpty() ? INVTEXT("자신") : FText::FromString(GetTargetDisplayName(InstanceData->Target));
 	}
 
 	if (InstanceData->bEnable && !InstanceData->Prompt.IsEmpty())

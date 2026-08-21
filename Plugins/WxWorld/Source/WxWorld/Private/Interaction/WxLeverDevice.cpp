@@ -7,6 +7,7 @@
 #include "Gimmick/WxGimmickStateTreeComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
+#include "WxWorldModule.h"
 
 AWxLeverDevice::AWxLeverDevice()
 {
@@ -18,8 +19,9 @@ AWxLeverDevice::AWxLeverDevice()
 	bReplicates = true;
 	NetDormancy = DORM_Initial;
 
+	// 상시 활성으로 시작한다 — 상태별로 잠글 일이 있으면 기믹 트리의 '상호작용 켜기'(Target 갈래)가 계약으로 내린다.
 	BodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
-	BodyMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	BodyMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	BodyMesh->SetGenerateOverlapEvents(false);
 	SetRootComponent(BodyMesh);
 
@@ -53,11 +55,11 @@ void AWxLeverDevice::Tick(float DeltaSeconds)
 	}
 }
 
-bool AWxLeverDevice::IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const
+bool AWxLeverDevice::IsInteractionEnabled() const
 {
-	// 콜리전을 함께 봐야 서버 검증(활성 → 사거리 순)이 잠긴 레버를 사거리 ensure 앞에서 거른다.
+	// 잠금 상태를 따로 들지 않고 몸체 메시의 쿼리 콜리전이 곧 그 값이다.
 	// 당김 중 게이트도 여기에 흡수한다 — 어빌리티의 서버 활성 검증이 연출 중 재조작을 자연 차단한다.
-	return Mesh == BodyMesh && BodyMesh->IsQueryCollisionEnabled() && !IsPulling();
+	return BodyMesh->IsQueryCollisionEnabled() && !IsPulling();
 }
 
 void AWxLeverDevice::SetInteractionEnabled(bool bEnabled)
@@ -66,7 +68,7 @@ void AWxLeverDevice::SetInteractionEnabled(bool bEnabled)
 	BodyMesh->SetCollisionEnabled(bEnabled ? ECollisionEnabled::QueryAndPhysics : ECollisionEnabled::PhysicsOnly);
 }
 
-void AWxLeverDevice::OnInteracted(AActor* Interactor, const UActorComponent* Source)
+void AWxLeverDevice::OnInteracted(AActor* Interactor)
 {
 	// 상호작용 어빌리티가 서버 권위에서만 부르지만, 멀티캐스트·통지 모두 권위 전용이므로 한 번 더 가른다.
 	if (!HasAuthority())
@@ -83,37 +85,19 @@ void AWxLeverDevice::OnInteracted(AActor* Interactor, const UActorComponent* Sou
 	FlushNetDormancy();
 	Multicast_PlayPull();
 
-	// 구독 기믹이 이 장치의 역할을 역조회해 자기 트리에 발행한다. 구독자가 없어도(독립 레버) 연출은 그대로 성립한다.
-	for (const TWeakObjectPtr<UWxGimmickStateTreeComponent>& Subscriber : Subscribers)
+	// 지목한 기믹이 없어도(독립 레버) 연출은 그대로 성립한다.
+	for (AActor* Target : Gimmicks)
 	{
-		if (UWxGimmickStateTreeComponent* Gimmick = Subscriber.Get())
+		if (UWxGimmickStateTreeComponent* Gimmick = IsValid(Target) ? Target->FindComponentByClass<UWxGimmickStateTreeComponent>() : nullptr)
 		{
-			Gimmick->NotifyDeviceInteracted(this, Interactor);
+			Gimmick->NotifyDeviceInteracted(Interactor);
 		}
 	}
 }
 
-FText AWxLeverDevice::GetInteractionPrompt(const UActorComponent* Source) const
+FText AWxLeverDevice::GetInteractionPrompt() const
 {
-	return PushedPrompt.IsEmpty() ? Prompt : PushedPrompt;
-}
-
-void AWxLeverDevice::SetDeviceActive(bool bActive, const FText& InPrompt)
-{
-	SetInteractionEnabled(bActive);
-
-	// 켜면서 밀어 준 문구만 남긴다 — 비워 켜면 저작 기본 문구로 폴백하고, 끄면 다음 켜짐을 위해 지운다.
-	PushedPrompt = bActive ? InPrompt : FText::GetEmpty();
-}
-
-void AWxLeverDevice::RegisterSubscriber(UWxGimmickStateTreeComponent* Gimmick)
-{
-	Subscribers.AddUnique(Gimmick);
-}
-
-void AWxLeverDevice::UnregisterSubscriber(UWxGimmickStateTreeComponent* Gimmick)
-{
-	Subscribers.Remove(Gimmick);
+	return Prompt;
 }
 
 void AWxLeverDevice::BeginPlay()
@@ -121,6 +105,15 @@ void AWxLeverDevice::BeginPlay()
 	Super::BeginPlay();
 
 	HandleRestRotation = HandleMesh->GetRelativeRotation();
+
+	// 기믹 컴포넌트가 없는 액터를 지목하면 당겨도 아무 일이 없어 배선 실수를 알아채기 어렵다.
+	for (const AActor* Target : Gimmicks)
+	{
+		if (Target && !Target->FindComponentByClass<UWxGimmickStateTreeComponent>())
+		{
+			UE_LOG(LogWxWorld, Error, TEXT("Lever(%s): 지목한 %s 에 기믹 컴포넌트가 없어 눌림이 전달되지 않는다."), *GetName(), *Target->GetName());
+		}
+	}
 }
 
 void AWxLeverDevice::Multicast_PlayPull_Implementation()

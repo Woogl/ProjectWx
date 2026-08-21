@@ -13,7 +13,6 @@
 #include "WxGimmickStateTreeComponent.generated.h"
 
 class ACharacter;
-class AWxLeverDevice;
 class UPrimitiveComponent;
 class UWxGimmickStateTreeComponent;
 
@@ -33,18 +32,18 @@ struct FWxGimmickStateTreeExecutionExtension : public FStateTreeExecutionExtensi
 };
 
 /**
- * 상호작용이 켜져 있는 영역 하나 — 그 영역의 HUD 프롬프트와, 눌렸을 때 트리에 알릴 자리.
- * 발행자는 'Enable Interaction' 태스크가 자기 대상 메시 몫으로 하나씩 소유한다. 어느 영역이 눌렸는지를 발행자 자체가 가르므로 전이에 페이로드 비교 조건이 필요 없다.
+ * 상호작용이 켜져 있는 동안의 HUD 프롬프트와, 눌렸을 때 트리에 알릴 자리.
+ * '상호작용 켜기' 태스크가 상태 진입 시 자기 몫을 하나 넘긴다 — 상태마다 발행자가 다르므로 전이에 페이로드 비교 조건이 필요 없다.
  */
 USTRUCT()
-struct FWxGimmickInteractionRegion
+struct FWxGimmickInteractionBinding
 {
 	GENERATED_BODY()
 
 	UPROPERTY()
 	FText Prompt;
 
-	/** 이 영역이 눌렸을 때 발행할 ST 델리게이트. 어느 상태로 갈지는 이것을 듣는 전이가 정한다. */
+	/** 눌렸을 때 발행할 ST 델리게이트. 어느 상태로 갈지는 이것을 듣는 전이가 정한다. */
 	UPROPERTY()
 	FStateTreeDelegateDispatcher Dispatcher;
 
@@ -53,47 +52,17 @@ struct FWxGimmickInteractionRegion
 };
 
 /**
- * 이 기믹에 연결된 레버 장치 하나. 공유 ST 에셋은 역할 이름만 알고, 그 역할이 어느 장치인지는 이 배선이 정한다.
- */
-USTRUCT()
-struct FWxGimmickDeviceLink
-{
-	GENERATED_BODY()
-
-	/** ST 태스크가 장치를 지목하는 키. 수신자 관점의 명령형 동사로 짓고(예: 문 Open, 엘리베이터 CallToA/CallToB), BP 아키타입이 행으로 미리 깔아 어휘를 중앙화한다. */
-	UPROPERTY(EditAnywhere, Category = "Wx")
-	FName Role = TEXT("Activate");
-
-	/** 레벨 액터 참조라 인스턴스 전용이다. 비워 두면 그 역할의 기능을 쓰지 않는 것으로 본다. */
-	UPROPERTY(EditInstanceOnly, Category = "Wx")
-	TObjectPtr<AWxLeverDevice> Device;
-};
-
-/**
- * 역할 하나의 발행 자리 — 그 역할의 장치가 눌렸을 때 트리에 알릴 곳. 수명 규약은 FWxGimmickInteractionRegion 과 같다.
- */
-USTRUCT()
-struct FWxGimmickDeviceBinding
-{
-	GENERATED_BODY()
-
-	UPROPERTY()
-	FStateTreeDelegateDispatcher Dispatcher;
-
-	FStateTreeWeakExecutionContext Context;
-};
-
-/**
  * 기믹의 상태머신·상호작용·영속을 한 몸에 담는 StateTree 컴포넌트.
  * 이 컴포넌트를 붙이면 어떤 액터든(순수 BP 포함) 기믹이 된다 — 전용 C++ 액터 클래스가 필요 없다.
  *
  * 세 가지 책임이 있다.
- *  - 상호작용 계약(IWxInteractable): 어느 메시가 지금 켜진 영역인지, 그 영역의 프롬프트가 무엇인지 답하고, 눌린 영역의 ST 델리게이트를 발행한다.
+ *  - 상호작용 계약(IWxInteractable): 지금 상호작용이 켜져 있는지, 그 프롬프트가 무엇인지 답하고, 눌리면 지금 상태의 ST 델리게이트를 발행한다.
  *  - 상태 영속(IWxSavable): 지금 활성인 ST 상태의 Tag 를 저장·복제하고, 복원 시 그 상태에서 트리를 연다.
  *  - StateTree 구동: 자동 시작하며, 저장된 상태가 있으면 그 상태를 시작점으로 지정해 시작한다.
  *
  * 상태 구동 패턴 — 상태는 서버 권위다. 권위 트리만 상태를 정하고 클라 트리는 복제된 상태를 추종하기만 한다.
- *  - 전이는 전부 ST 에셋이 정한다. 권위 측이 상호작용을 받으면 눌린 영역의 발행자를 자기 트리에 발행하고, 어느 상태로 갈지는 그 발행자를 지목한 전이(On Delegate)가 정한다.
+ *  - 전이는 전부 ST 에셋이 정한다. 권위 측이 상호작용을 받으면 지금 상태의 발행자를 자기 트리에 발행하고, 어느 상태로 갈지는 그 발행자를 지목한 전이(On Delegate)가 정한다.
+ *    자신이 아니라 이 기믹을 지목한 레버가 눌린 것이면 발행자 대신 Event.Interact 이벤트가 나가고, 전이는 On Event 로 받는다.
  *  - 상태 식별은 엔진 순정 상태 Tag 다. 상태 디테일의 Tag 필드에 태그를 달면 그 값이 곧 저장 키가 된다(에셋 안에서 유일해야 한다).
  *  - 권위 측은 틱마다 활성 상태의 Tag 를 StateTag 에 기록한다. 상태 변화는 전부 트리 틱 안에서 일어나므로 이 폴링이 전부를 잡는다.
  *  - 클라는 틱 말미에 자기 활성 태그를 StateTag 와 대조해, 어긋나 있으면 그 상태로 전이를 요청한다(라이브 전이라 트리거형 태스크가 정상 발동한다).
@@ -129,12 +98,15 @@ public:
 	//~ End UBrainComponent
 
 	//~ Begin IWxInteractable
-	virtual bool IsInteractionMeshActive(const UPrimitiveComponent* Mesh) const override;
+	virtual bool IsInteractionEnabled() const override;
 
-	/** 권위 측에서 상호작용을 받아 눌린 영역의 발행자를 자기 트리에 발행한다. 어느 상태로 갈지는 ST 에셋의 전이가 정하고, 그 결과가 복제되어 클라에 전해진다. */
-	virtual void OnInteracted(AActor* Interactor, const UActorComponent* Source) override;
+	/** 남의 트리('상호작용 켜기' Target 갈래)가 이 기믹을 잠그고 여는 진입점. 프롬프트·발행자가 없는 토글이라 켜도 눌림이 트리에 닿지 않는다. */
+	virtual void SetInteractionEnabled(bool bEnabled) override;
 
-	virtual FText GetInteractionPrompt(const UActorComponent* Source) const override;
+	/** 권위 측에서 상호작용을 받아 지금 상태의 발행자를 자기 트리에 발행한다. 어느 상태로 갈지는 ST 에셋의 전이가 정하고, 그 결과가 복제되어 클라에 전해진다. */
+	virtual void OnInteracted(AActor* Interactor) override;
+
+	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
 
 	//~ Begin IWxSavable
@@ -148,22 +120,17 @@ public:
 	//~ End IWxSavable
 
 	/**
-	 * Mesh 영역의 상호작용을 켜고 끄며, 켤 때는 그 영역의 프롬프트와 발행 자리(Region)도 함께 담는다 — 끌 때 Region 은 쓰이지 않는다.
-	 * 'Enable Interaction' 태스크가 상태 진입 시 자기 대상 메시로 호출한다. 계약의 대상 단위 토글(IWxInteractable::SetInteractionEnabled)과 달리 영역 단위라 이름을 가른다.
-	 * 꺼진 영역은 IsInteractionMeshActive 가 false 를 답해 다음 스캔에서 후보에서 빠지고, 어빌리티의 서버 활성 검증에도 걸린다.
+	 * 상호작용을 켜고 끄며, 켤 때는 그 상태의 프롬프트와 발행 자리(Binding)도 함께 담는다 — 끌 때 Binding 은 쓰이지 않는다.
+	 * '상호작용 켜기' 태스크가 상태 진입 시 호출한다. 꺼져 있으면 IsInteractionEnabled 가 false 를 답해 다음 스캔에서 후보에서 빠지고, 어빌리티의 서버 활성 검증에도 걸린다.
 	 * 복제하지 않는다 — ST 가 각 피어에서 실행되어 같은 값에 수렴한다.
 	 */
-	void SetInteractionRegionEnabled(UPrimitiveComponent* Mesh, bool bEnabled, const FWxGimmickInteractionRegion& Region);
+	void SetInteractionBinding(bool bEnabled, const FWxGimmickInteractionBinding& Binding);
 
 	/**
-	 * Role 역할의 발행 자리를 여닫고, 그 역할로 링크된 레버 장치들을 같은 상태로 켜고 끈다 — 끌 때 Binding 은 쓰이지 않는다.
-	 * '장치 상호작용 켜기' 태스크가 상태 진입 시 호출한다. 영역 토글과 같은 규약이며, 대상이 자기 메시가 아니라 링크된 장치라는 점만 다르다.
-	 * 복제하지 않는다 — ST 가 각 피어에서 실행되어 같은 값에 수렴한다.
+	 * 이 기믹을 지목한 레버 장치가 눌렸을 때 장치가 서버 권위에서 부른다. 당사자를 기록하고 트리에 Event.Interact 를 보낸다.
+	 * 어느 상태로 갈지는 그 이벤트를 듣는 ST 에셋의 전이가 정하며, 결과는 자기 상호작용과 같이 StateTag 복제로 클라에 전해진다.
 	 */
-	void SetDeviceInteractionEnabled(FName Role, bool bEnabled, const FText& Prompt, const FWxGimmickDeviceBinding& Binding);
-
-	/** 링크된 레버 장치가 눌렸을 때 장치가 서버 권위에서 부른다. 장치의 역할을 역조회해 열린 발행 자리에 알리며, 이후는 영역 상호작용과 같은 경로다. */
-	void NotifyDeviceInteracted(AWxLeverDevice* Device, AActor* Interactor);
+	void NotifyDeviceInteracted(AActor* Interactor);
 
 	ACharacter* GetInteractingCharacter() const;
 
@@ -175,7 +142,6 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	/**
 	 * 도착 시점엔 판정하지 않고 잠들어 있던 컴포넌트 틱만 깨운다. 추종 판정은 트리 틱 뒤(FollowAuthorityState)가 맡는다.
@@ -192,22 +158,15 @@ protected:
 	FGameplayTag StateTag;
 
 	/**
-	 * 지금 상호작용이 켜져 있는 영역들. 멤버십 자체가 활성 상태라 따로 담는 bool 이 없다.
-	 * 'Enable Interaction' 태스크가 상태 진입 시 넣고 뺀다. 로컬 전용(복제·SaveGame 아님) — 각 피어의 ST 가 같은 값으로 수렴시킨다.
+	 * 지금 상호작용이 켜져 있는가. '상호작용 켜기' 태스크가 상태 진입 시 정한다.
+	 * 로컬 전용(복제·SaveGame 아님) — 각 피어의 ST 가 같은 값으로 수렴시킨다.
 	 */
 	UPROPERTY(Transient)
-	TMap<TObjectPtr<UPrimitiveComponent>, FWxGimmickInteractionRegion> InteractionRegions;
+	bool bInteractionEnabled = false;
 
-	/**
-	 * 이 기믹에 연결된 레버 장치 배선. 역할 행은 BP 아키타입이 미리 깔고(ST 에셋과 어휘 공유), 어느 장치인지는 레벨 인스턴스가 채운다.
-	 * 하드 참조라 장치와 기믹은 World Partition 에서 함께 로드된다 — 늦은 등록을 따로 다루지 않는 근거다.
-	 */
-	UPROPERTY(EditAnywhere, Category = "Wx")
-	TArray<FWxGimmickDeviceLink> DeviceLinks;
-
-	/** 지금 발행 자리가 열린 역할들. 멤버십 자체가 활성 상태라 따로 담는 bool 이 없다 — InteractionRegions 와 같은 규약, 키만 역할. */
+	/** 켜져 있는 동안의 프롬프트와 발행 자리. 끄면 다음 켜짐을 위해 비운다. */
 	UPROPERTY(Transient)
-	TMap<FName, FWxGimmickDeviceBinding> DeviceBindings;
+	FWxGimmickInteractionBinding InteractionBinding;
 
 	/**
 	 * 이번 상호작용의 당사자(플레이어 캐릭터). 권위가 쓰고 복제로 각 피어에 전해진다 — StateTag 와 같은 번치에 실리므로 추종 전이 시점에 언제나 짝이 맞는다.
@@ -225,7 +184,7 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_ReenterState(FGameplayTag ReenteredTag);
 
-	/** 트리 재시작 직전에 영역·장치의 켜짐 잔재를 걷는다 — 직후 시작이 전 상태를 초기 진입으로 다시 밟으며 필요한 것만 재등록한다. */
+	/** 트리 재시작 직전에 켜짐 잔재를 걷는다 — 직후 시작이 전 상태를 초기 진입으로 다시 밟으며 필요한 것만 재등록한다. */
 	void ResetInteractions();
 
 	/**

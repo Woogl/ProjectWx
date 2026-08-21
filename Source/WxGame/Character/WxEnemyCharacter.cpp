@@ -94,14 +94,14 @@ void AWxEnemyCharacter::HandleDeath()
 	}
 }
 
-bool AWxEnemyCharacter::IsInteractionMeshActive(const UPrimitiveComponent* InMesh) const
+bool AWxEnemyCharacter::IsInteractionEnabled() const
 {
-	// 영역은 늘 열어 두고, 실제 자격은 CanBeInteractedBy 가 주체별로 판정한다.
+	// 늘 열어 두고, 실제 자격은 CanBeInteractedBy 가 주체별로 판정한다.
 	// 이 판정은 머신당 답이 하나뿐이라 특정 플레이어에 종속시킬 수 없다 — 그렇게 하면 서버 답이 한 플레이어 기준이 되어 다른 플레이어의 정당한 처형이 거부된다.
-	return InMesh == GetMesh();
+	return true;
 }
 
-bool AWxEnemyCharacter::CanBeInteractedBy(const AActor* Interactor, const UActorComponent* Source) const
+bool AWxEnemyCharacter::CanBeInteractedBy(const AActor* Interactor) const
 {
 	// 처형 자격은 주체별로 갈린다(뒤잡은 주체가 후방 원뿔 안에 있어야 한다) — 채널로는 표현할 수 없어 여기서 판정한다.
 	// 외곽선은 스캐너가 선택 대상에만 켠다.
@@ -145,7 +145,7 @@ FGameplayTag AWxEnemyCharacter::GetEligibleFinisherEventTag(const AActor* Intera
 	return FGameplayTag();
 }
 
-void AWxEnemyCharacter::OnInteracted(AActor* Interactor, const UActorComponent* Source)
+void AWxEnemyCharacter::OnInteracted(AActor* Interactor)
 {
 	// 서버 권위에서만 호출된다.
 	if (!Interactor)
@@ -168,7 +168,7 @@ void AWxEnemyCharacter::OnInteracted(AActor* Interactor, const UActorComponent* 
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Interactor, EventTag, EventData);
 }
 
-FText AWxEnemyCharacter::GetInteractionPrompt(const UActorComponent* Source) const
+FText AWxEnemyCharacter::GetInteractionPrompt() const
 {
 	return FText::FromString(TEXT("Finisher"));
 }
