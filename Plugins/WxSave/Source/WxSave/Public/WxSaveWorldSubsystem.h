@@ -74,7 +74,17 @@ private:
 	/** 첫 플레이어 폰의 어트리뷰트를 SaveGame 최상위 PlayerStats 로 캡처한다(명시적 저장 경로 공통 — 체크포인트·메뉴 모두). */
 	void FlushPlayerStats();
 
-	/** 액터+컴포넌트의 UPROPERTY(SaveGame) 를 레코드로 직렬화하고 버전 헤더를 갱신한다. @return 레코드를 기록했으면 true (구현체 없음/미설정 키는 false). */
+	/**
+	 * 이 오브젝트를 저장할 필요가 있는가 — UPROPERTY(SaveGame) 중 아키타입 기본값과 다른 것이 하나라도 있으면 true.
+	 * 태그 직렬화가 기본값과 같은 프로퍼티를 어차피 쓰지 않으므로, 같은 기준(아키타입 대비 Identical)을 직렬화 전에 미리 묻는 것이다.
+	 */
+	static bool ShouldSave(const UObject* Object);
+
+	/**
+	 * 액터+컴포넌트의 UPROPERTY(SaveGame) 를 레코드로 직렬화하고 버전 헤더를 갱신한다. 기본값과 다른 것을 가진 대상만 담으므로 컴포넌트 엔트리도 그런 컴포넌트에만 생긴다.
+	 * 액터도 컴포넌트도 전부 기본값이면 기록하지 않고 기존 레코드까지 지운다 — 복원해봐야 레벨이 세워 둔 값을 다시 쓰는 것이라 결과가 같다.
+	 * @return 레코드를 기록했으면 true (구현체 없음/미설정 키/전부 기본값은 false).
+	 */
 	bool CaptureActor(UWxSaveGame& SaveGame, AActor* Actor);
 
 	/**

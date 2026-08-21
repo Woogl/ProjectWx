@@ -105,9 +105,6 @@ public:
 	 */
 	void SetInteractionBinding(bool bEnabled, const FWxDeviceInteractionBinding& Binding);
 
-protected:
-	virtual void BeginPlay() override;
-
 	/**
 	 * 이번 상호작용의 당사자(플레이어 캐릭터). 권위가 쓰고 복제로 각 피어에 전해진다 — StateTag 와 같은 액터 채널 갱신에 실리므로 추종 전이 시점에 짝이 맞는다.
 	 * 비영속이라 복원 시엔 비어 있고, 그때는 당사자 태스크들이 스스로 스킵한다.

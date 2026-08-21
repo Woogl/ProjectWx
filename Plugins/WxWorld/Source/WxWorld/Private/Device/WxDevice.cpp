@@ -144,18 +144,6 @@ void AWxDevice::SetInteractionBinding(bool bEnabled, const FWxDeviceInteractionB
 	InteractionBinding = bEnabled ? Binding : FWxDeviceInteractionBinding();
 }
 
-void AWxDevice::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// 복제가 꺼지면 StateTag 도 당사자도 나가지 않아 클라 수렴이 통째로 죽는다. 생성자에서 켜 두지만 파생 BP 가 되돌릴 수 있다.
-	// 로컬 플레이에선 정상으로 보여 발견이 늦으므로 여기서 알린다.
-	if (!GetIsReplicated())
-	{
-		UE_LOG(LogWxWorld, Error, TEXT("Device: %s 의 Replicates 가 꺼져 있어 상태 복제가 동작하지 않는다 — 클라 장치가 서버를 따라가지 못한다."), *GetName());
-	}
-}
-
 void AWxDevice::BroadcastInteractionDelegate()
 {
 	InteractionBinding.Context.BroadcastDelegate(InteractionBinding.Dispatcher);

@@ -15,7 +15,7 @@ class UStaticMeshComponent;
  * 상호작용하면 연결된 장치들에 Event.Interact 를 보내는 발동 장치 액터(레버·버튼·페달 등).
  * 배선은 발동 장치 → 장치 단방향 저작이다 — 이 액터가 움직일 장치를 직접 지목하므로 하나가 여럿을(1:N), 한 장치가 여러 발동 장치에(N:1) 걸린다.
  * 자체 상태머신도 세이브도 없다 — 상태를 드는 쪽은 대상 장치의 StateTree 다(AWxDevice).
- * 상태별 잠금은 두 갈래다. 지목한 장치의 상태로 갈리면 GimmickStateRequirements 로 스스로 판정하고, 남이 여닫아야 하면 그 트리의 '상호작용 켜기'(Target 갈래)가 계약으로 토글한다.
+ * 상태별 잠금은 두 갈래다. 지목한 장치의 상태로 갈리면 StateTagRequirements 로 스스로 판정하고, 남이 여닫아야 하면 그 트리의 '상호작용 켜기'(Target 갈래)가 계약으로 토글한다.
  *
  * 생김새와 연출은 이 클래스가 알지 않는다 — 눌리면 전 피어에서 OnTriggered 가 불리고, 파생 BP 가 거기서 손잡이 회전·사운드 같은 것을 재생한다.
  */
@@ -53,7 +53,7 @@ protected:
 	 * 층별 엘리베이터 호출 레버가 이것으로 잠긴다 — 1F 레버는 반대 층 태그를 Must Have 로 두어, 엘리베이터가 이미 1F 에 있거나 이동 중이면 후보에서 빠진다.
 	 */
 	UPROPERTY(EditAnywhere, Category = "Wx")
-	FGameplayTagRequirements GimmickStateRequirements;
+	FGameplayTagRequirements StateTagRequirements;
 
 	/** 루트이자 상호작용 영역. 쿼리 콜리전이 곧 활성이고, 꺼도 물리 차단은 유지한다(실체 프롭이라 뚫리면 안 된다). */
 	UPROPERTY(VisibleAnywhere, Category = "Wx")

@@ -12,7 +12,8 @@
  * 영속 상태를 컴포넌트가 들더라도 계약은 호스트 액터가 든다(예: 장치 상태 Tag 는 StateTree 컴포넌트의 SaveGame 필드지만 IWxSavable 은 AWxDevice 가 든다). 직렬화 대상은 어느 쪽이든 액터와 그 컴포넌트 전체다.
  *
  * 본 인터페이스를 구현한 액터는:
- *  - 체크포인트 저장 시: UPROPERTY(SaveGame) 필드가 GetSaveId() 의 WxSaveId 키로 슬롯에 기록된다.
+ *  - 체크포인트 저장 시: UPROPERTY(SaveGame) 필드가 GetSaveId() 의 WxSaveId 키로 슬롯에 기록된다. 액터도 컴포넌트도 전부 기본값이면 기록하지 않는다 — 복원해도 레벨이 세워 둔 값 그대로라 결과가 같다.
+ *    이때는 액터 트랜스폼도 함께 빠지므로, SaveGame 필드 변화 없이 위치만 움직이는 액터는 그 변화를 SaveGame 필드로 들어야 한다.
  *  - 슬롯 로드 시: 동일 WxSaveId 의 기록을 찾으면 SaveGame 필드가 복원된 뒤 OnSaveRestored() 가 호출된다.
  *
  * 인터페이스 정의는 WxCore 에 위치하여, WxSave 와 WxSave 소비 도메인 (예: WxWorld) 이 서로 직접 의존하지 않게 한다.

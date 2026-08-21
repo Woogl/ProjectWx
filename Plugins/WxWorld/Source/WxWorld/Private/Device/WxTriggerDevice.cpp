@@ -2,6 +2,7 @@
 
 #include "Device/WxTriggerDevice.h"
 
+#include "Components/ChildActorComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Device/WxDevice.h"
 #include "Engine/World.h"
@@ -31,7 +32,7 @@ bool AWxTriggerDevice::IsInteractionEnabled() const
 		return false;
 	}
 
-	if (GimmickStateRequirements.IsEmpty())
+	if (StateTagRequirements.IsEmpty())
 	{
 		return true;
 	}
@@ -40,7 +41,7 @@ bool AWxTriggerDevice::IsInteractionEnabled() const
 	for (const AActor* Target : LinkedDevices)
 	{
 		const AWxDevice* Device = IsValid(Target) ? Cast<AWxDevice>(Target) : nullptr;
-		if (Device && !GimmickStateRequirements.RequirementsMet(Device->GetStateTag().GetSingleTagContainer()))
+		if (Device && !StateTagRequirements.RequirementsMet(Device->GetStateTag().GetSingleTagContainer()))
 		{
 			return false;
 		}
@@ -91,12 +92,13 @@ void AWxTriggerDevice::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// 장치가 아닌 액터를 지목하면 발동해도 아무 일이 없어 배선 실수를 알아채기 어렵다.
-	for (const AActor* Target : LinkedDevices)
+	// 장치의 ChildActorComponent 로 심긴 발동 장치는 그 장치를 스스로 지목한다 — 문+레버처럼 한 몸으로 저작되는 쌍은 인스턴스 배선이 필요 없다.
+	// ParentComponent 는 비복제라 리모트 클라에선 이 배선이 빈다 — 눌림 전달은 권위 전용이라 무관하고, 어긋날 수 있는 것은 StateTagRequirements 프롬프트 게이트뿐이라 싱글/리슨 호스트 전제로 수용한다.
+	if (const UChildActorComponent* SpawningComponent = GetParentComponent())
 	{
-		if (Target && !Target->IsA<AWxDevice>())
+		if (AWxDevice* OwnerDevice = Cast<AWxDevice>(SpawningComponent->GetOwner()))
 		{
-			UE_LOG(LogWxWorld, Error, TEXT("TriggerDevice(%s): 지목한 %s 가 장치(AWxDevice)가 아니라 눌림이 전달되지 않는다."), *GetName(), *Target->GetName());
+			LinkedDevices.AddUnique(OwnerDevice);
 		}
 	}
 }

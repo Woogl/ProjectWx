@@ -144,7 +144,7 @@ void UWxSaveWorldSubsystem::FlushSavableActors()
 		CapturedCount += CaptureActor(*SaveGame, *It) ? 1 : 0;
 	}
 
-	UE_LOG(LogWxSave, Log, TEXT("FlushSavableActors: IWxSavable %d개 캡처, 누적 레코드 %d개"), CapturedCount, SaveGame->ActorRecords.Num());
+	UE_LOG(LogWxSave, Log, TEXT("FlushSavableActors: %d개 캡처(기본값 그대로면 스킵), 누적 레코드 %d개"), CapturedCount, SaveGame->ActorRecords.Num());
 }
 
 void UWxSaveWorldSubsystem::FlushPlayerTransform(const FTransform* ResumeTransform)
@@ -274,6 +274,34 @@ void UWxSaveWorldSubsystem::ApplyPlayerStats(AActor* PlayerActor, const TMap<FNa
 	}
 }
 
+bool UWxSaveWorldSubsystem::ShouldSave(const UObject* Object)
+{
+	// 태그 직렬화가 쓰는 diff 기준(아키타입)을 그대로 본다 — 판정과 직렬화 결과가 어긋날 수 없다.
+	const UObject* Archetype = Object->GetArchetype();
+	if (!Archetype)
+	{
+		return true;
+	}
+
+	for (TFieldIterator<FProperty> It(Object->GetClass()); It; ++It)
+	{
+		if (!It->HasAnyPropertyFlags(CPF_SaveGame))
+		{
+			continue;
+		}
+
+		for (int32 Index = 0; Index < It->ArrayDim; ++Index)
+		{
+			if (!It->Identical_InContainer(Object, Archetype, Index))
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 bool UWxSaveWorldSubsystem::CaptureActor(UWxSaveGame& SaveGame, AActor* Actor)
 {
 	const IWxSavable* Savable = Cast<IWxSavable>(Actor);
@@ -289,14 +317,11 @@ bool UWxSaveWorldSubsystem::CaptureActor(UWxSaveGame& SaveGame, AActor* Actor)
 		return false;
 	}
 
-	FWxActorRecord& Record = SaveGame.ActorRecords.FindOrAdd(ActorId);
-	Record.Transform = Actor->GetActorTransform();
-	Record.ByteData.Reset();
-	Record.ComponentData.Reset();
-
 	// 이 레코드의 블롭들(액터+컴포넌트)이 사용한 커스텀 버전의 합집합. archive 별로 컨테이너가 분리되므로 병합한다(같은 빌드라 GUID 당 버전이 같아 충돌 없음).
 	FCustomVersionContainer UsedCustomVersions;
+	FWxActorRecord Record;
 
+	if (ShouldSave(Actor))
 	{
 		FMemoryWriter MemWriter(Record.ByteData, true);
 		FObjectAndNameAsStringProxyArchive Ar(MemWriter, false);
@@ -308,13 +333,12 @@ bool UWxSaveWorldSubsystem::CaptureActor(UWxSaveGame& SaveGame, AActor* Actor)
 	// 컴포넌트의 UPROPERTY(SaveGame) 필드는 Actor::Serialize 가 자동으로 끌고 가지 않으므로 컴포넌트 FName 으로 별도 캡처.
 	for (UActorComponent* Component : Actor->GetComponents())
 	{
-		if (!Component)
+		if (!Component || !ShouldSave(Component))
 		{
 			continue;
 		}
 
-		FWxComponentRecord& ComponentRecord = Record.ComponentData.FindOrAdd(Component->GetFName());
-		ComponentRecord.ByteData.Reset();
+		FWxComponentRecord& ComponentRecord = Record.ComponentData.Add(Component->GetFName());
 
 		FMemoryWriter MemWriter(ComponentRecord.ByteData, true);
 		FObjectAndNameAsStringProxyArchive Ar(MemWriter, false);
@@ -327,12 +351,23 @@ bool UWxSaveWorldSubsystem::CaptureActor(UWxSaveGame& SaveGame, AActor* Actor)
 		}
 	}
 
-	Record.VersionHeader.Reset();
-	FMemoryWriter HeaderWriter(Record.VersionHeader, true);
-	FPackageFileVersion UEVersion = GPackageFileUEVersion;
-	HeaderWriter << UEVersion;
-	UsedCustomVersions.Serialize(HeaderWriter);
+	// 담을 것이 하나도 없다 — 옛 레코드까지 걷어 기본값으로 되돌아온 액터가 옛 상태로 복원되지 않게 한다.
+	if (Record.ByteData.IsEmpty() && Record.ComponentData.IsEmpty())
+	{
+		SaveGame.ActorRecords.Remove(ActorId);
+		return false;
+	}
 
+	Record.Transform = Actor->GetActorTransform();
+
+	{
+		FMemoryWriter HeaderWriter(Record.VersionHeader, true);
+		FPackageFileVersion UEVersion = GPackageFileUEVersion;
+		HeaderWriter << UEVersion;
+		UsedCustomVersions.Serialize(HeaderWriter);
+	}
+
+	SaveGame.ActorRecords.Add(ActorId, MoveTemp(Record));
 	return true;
 }
 
@@ -376,6 +411,8 @@ bool UWxSaveWorldSubsystem::RestoreActor(const UWxSaveGame& SaveGame, AActor* Ac
 		SavedCustomVersions.Serialize(HeaderReader);
 	}
 
+	// 액터 본체는 기본값과 다른 것이 있을 때만 담기므로, 컴포넌트만 바뀐 레코드에선 비어 있다.
+	if (!Record->ByteData.IsEmpty())
 	{
 		FMemoryReader MemReader(Record->ByteData, true);
 		// 맨 FMemoryReader 는 커스텀 버전을 현재 빌드 값으로 리셋하므로, 역직렬화 전에 저장 시점 버전을 적용한다.
@@ -494,7 +531,7 @@ void UWxSaveWorldSubsystem::HandleLevelRemovedFromWorld(ULevel* Level, UWorld* W
 		CapturedCount += CaptureActor(*SaveGame, Actor) ? 1 : 0;
 	}
 
-	UE_LOG(LogWxSave, Verbose, TEXT("스트리밍-아웃 캡처: 레벨 '%s' — IWxSavable %d개"), *Level->GetOutermost()->GetName(), CapturedCount);
+	UE_LOG(LogWxSave, Verbose, TEXT("스트리밍-아웃 캡처: 레벨 '%s' — %d개"), *Level->GetOutermost()->GetName(), CapturedCount);
 }
 
 void UWxSaveWorldSubsystem::HandleWorldBeginTearDown(UWorld* World)
