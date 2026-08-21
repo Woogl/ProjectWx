@@ -4,7 +4,7 @@
 
 ## 책임
 **담당**
-- 프로젝트 전역 Native Gameplay Tag 선언 (`WxGameplayTags`) — State/Effect/Movement/Event/Gimmick/GameplayCue/Damage/Ability/Trait/SetByCaller/UI 네임스페이스.
+- 프로젝트 전역 Native Gameplay Tag 선언 (`WxGameplayTags`) — State/Effect/Movement/Event/Device/GameplayCue/Damage/Ability/Trait/SetByCaller/UI 네임스페이스.
 - 도메인 간 공용 인터페이스 계약: `IWxInteractable`(상호작용 대상), `IWxSavable`(세이브 참여).
 - 공용 상수: `ECC_WxAttack` 콜리전 채널.
 
@@ -36,12 +36,14 @@
   - `SetByCaller.*` — GE 계산용 키(Duration/Recovery/Coeff/RawDamage/MoveSpeedScale)
   - `GameplayCue.*` — 히트·가드·텔레그래프 등 연출 큐
   - `Damage.*` — Critical/Unblockable/ParryHitReact 등 대미지 특성
-  - `Gimmick.*` — 문/엘리베이터/보물상자/체크포인트 StateTree 상태값(세이브 대상), 코드 비참조
+  - `Device.*` — 문/엘리베이터/보물상자/체크포인트 StateTree 상태값(세이브 대상), 코드 비참조
   - `UI.*` — CommonUI 레이어(`UI.Layer.*`) 및 액션(`UI.Action.*`)
 
 ## 확장 포인트 / 규약
 - **태그 추가**는 반드시 `WxGameplayTags.h`(선언)와 `WxGameplayTags.cpp`(정의) 두 파일에만. 소비 모듈은 `WXCORE_API`로 노출된 extern 태그를 참조한다.
-- **인터페이스 정합의 이유**: `IWxInteractable`/`IWxSavable`는 `NotBlueprintable`(BP 구현 불가)이라 순수 BP 액터는 컴포넌트 갈래로 계약을 구현한다 — `IWxInteractable::Find(AActor*)`/`Find(UActorComponent*)`가 액터→컴포넌트 순으로 구현체를 찾는다.
+- **인터페이스 정합의 이유**: `IWxInteractable`/`IWxSavable`는 둘 다 `NotBlueprintable`(BP 구현 불가)이지만 구현 위치가 갈린다.
+  - `IWxInteractable`은 **액터 전용**이다 — 능력이 컴포넌트에 담겨도(대화·장치) 계약은 호스트 액터(`AWxDialogueActor`·`AWxDevice`)가 들고 그 컴포넌트로 넘긴다. 대상 하나당 구현체도 하나라 조회는 `Cast<IWxInteractable>` 한 번이다.
+  - `IWxSavable`도 **액터 전용**이다. 영속 상태를 컴포넌트가 만들어도 계약은 호스트 액터가 든다(`AWxDevice`가 자기 StateTree의 상태 Tag를 자기 필드로 소유). 직렬화 대상은 어느 쪽이든 액터와 그 컴포넌트 전체다.
 - **콜리전**: `ECC_WxAttack` 상수는 `DefaultEngine.ini`의 채널 등록 순서와 일치해야 하며, 히트박스는 이 Object Type을, 투사체는 "WxProjectile" 프리셋을 쓴다.
 
 ## 여기서부터 읽어라

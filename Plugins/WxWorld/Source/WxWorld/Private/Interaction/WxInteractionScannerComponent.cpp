@@ -80,7 +80,7 @@ TArray<FText> UWxInteractionScannerComponent::GetPrompts() const
 		{
 			// 프롬프트는 대상이 IWxInteractable 로 제공한다(pull).
 			// 인덱스 정합을 위해 대상이 없으면 빈 텍스트로 자리를 채운다.
-			const IWxInteractable* Target = IWxInteractable::Find(Actor);
+			const IWxInteractable* Target = Cast<IWxInteractable>(Actor);
 			Prompts.Add(Target ? Target->GetInteractionPrompt() : FText::GetEmpty());
 		}
 	}
@@ -172,14 +172,14 @@ void UWxInteractionScannerComponent::ScanAndPush()
 		}
 		Examined.Add(Actor);
 
-		// 액터도 그 컴포넌트도 계약 구현체가 아니면(바닥·벽·소품 등) 여기서 탈락한다.
-		const IWxInteractable* Target = IWxInteractable::Find(Actor);
+		// 계약 구현체가 아닌 액터(바닥·벽·소품 등)는 여기서 탈락한다.
+		const IWxInteractable* Target = Cast<IWxInteractable>(Actor);
 		if (!Target)
 		{
 			continue;
 		}
 
-		// 겹쳤다는 것이 곧 사거리 판정이다 — 오버랩 구가 IsActorInRange 와 같은 원점·반경·형상이라 다시 재지 않는다.
+		// 겹쳤다는 것이 곧 사거리 판정이다 — 오버랩 구가 서버 사거리 검증과 같은 원점·반경·형상이라 다시 재지 않는다.
 		// 주체별로 자격이 갈리는 대상(예: 처형은 주체가 후방이어야 뒤잡)은 활성 판정만으론 걸러지지 않으므로 소유 폰을 주체로 물어 표시를 거른다.
 		// 서버는 같은 두 함수를 실제 instigator 로 다시 물어 권위 판정한다.
 		if (Target->IsInteractionEnabled() && Target->CanBeInteractedBy(Pawn))
@@ -238,7 +238,7 @@ void UWxInteractionScannerComponent::UpdateInRange(const TArray<AActor*>& InCand
 		ApplyHighlight();
 	}
 
-	// 프롬프트는 대상에서 pull 하는 값이라 멤버십이 그대로여도 문구만 바뀔 수 있다(상태가 바뀌어도 상호작용을 끄지 않는 기믹).
+	// 프롬프트는 대상에서 pull 하는 값이라 멤버십이 그대로여도 문구만 바뀔 수 있다(상태가 바뀌어도 상호작용을 끄지 않는 장치).
 	TArray<FText> Prompts = GetPrompts();
 	bool bPromptsChanged = Prompts.Num() != LastPrompts.Num();
 	for (int32 Index = 0; !bPromptsChanged && Index < Prompts.Num(); ++Index)

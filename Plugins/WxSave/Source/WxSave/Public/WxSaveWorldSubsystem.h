@@ -60,13 +60,6 @@ private:
 	/** 게임 서브시스템이 들고 있는 활성 SaveGame. 없으면 Warning 을 남기고 null 을 답한다. */
 	UWxSaveGame* GetActiveSaveGame() const;
 
-	/**
-	 * 액터의 IWxSavable 구현체를 찾는다. 액터가 직접 구현했으면 그것을, 아니면 그 액터의 컴포넌트를 답한다.
-	 * 컴포넌트 갈래 덕에 호스트 액터를 순수 BP 로 둘 수 있다(기믹) — 이 인터페이스는 BP 에서 구현할 수 없다.
-	 * 레코드 키는 찾은 구현체의 WxSaveId 이고, 직렬화 대상은 어느 쪽이든 액터와 그 컴포넌트 전체다.
-	 */
-	static IWxSavable* FindSavable(AActor* Actor);
-
 	/** 현재 맵을 캡처해 게임 서브시스템의 TravelData 로 푸시한다. */
 	void FlushMapTravelData();
 
@@ -86,7 +79,7 @@ private:
 
 	/**
 	 * @return 슬롯에서 일치 레코드를 찾아 복원했으면 true (신규 세션 등 레코드 없음/미설정 키는 false).
-	 * @param bOutIsSavable 액터가 IWxSavable 이었는지. 호출부가 집계하려고 FindSavable 을 다시 돌지 않게 답한다.
+	 * @param bOutIsSavable 액터가 IWxSavable 이었는지. 호출부가 집계하려고 다시 캐스팅하지 않게 답한다.
 	 */
 	bool RestoreActor(const UWxSaveGame& SaveGame, AActor* Actor, bool* bOutIsSavable = nullptr);
 

@@ -8,8 +8,8 @@
 #include "WxSavable.generated.h"
 
 /**
- * 액터(또는 그 컴포넌트)가 WxSave 의 슬롯 저장/로드 라이프사이클에 참여한다는 마커 + 후크.
- * 컴포넌트가 구현해도 되며, 그때도 직렬화 대상은 액터와 그 컴포넌트 전체다 — 호스트 액터를 순수 BP 로 두려면(이 인터페이스는 BP 에서 구현 불가) 이 갈래를 쓴다.
+ * 액터가 WxSave 의 슬롯 저장/로드 라이프사이클에 참여한다는 마커 + 후크. IWxInteractable 과 마찬가지로 액터만 구현한다.
+ * 영속 상태를 컴포넌트가 들더라도 계약은 호스트 액터가 든다(예: 장치 상태 Tag 는 StateTree 컴포넌트의 SaveGame 필드지만 IWxSavable 은 AWxDevice 가 든다). 직렬화 대상은 어느 쪽이든 액터와 그 컴포넌트 전체다.
  *
  * 본 인터페이스를 구현한 액터는:
  *  - 체크포인트 저장 시: UPROPERTY(SaveGame) 필드가 GetSaveId() 의 WxSaveId 키로 슬롯에 기록된다.

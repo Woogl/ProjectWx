@@ -115,22 +115,6 @@ UWxSaveGame* UWxSaveWorldSubsystem::GetActiveSaveGame() const
 	return SaveGame;
 }
 
-IWxSavable* UWxSaveWorldSubsystem::FindSavable(AActor* Actor)
-{
-	if (!Actor)
-	{
-		return nullptr;
-	}
-
-	// 액터 직접 구현은 영속이 액터 고유 상태인 경우다(스포너 등).
-	if (IWxSavable* ActorImplementation = Cast<IWxSavable>(Actor))
-	{
-		return ActorImplementation;
-	}
-
-	return Cast<IWxSavable>(Actor->FindComponentByInterface(UWxSavable::StaticClass()));
-}
-
 void UWxSaveWorldSubsystem::FlushMapTravelData()
 {
 	UWxSaveGameSubsystem* GameSubsystem = GetGameSubsystem();
@@ -292,7 +276,7 @@ void UWxSaveWorldSubsystem::ApplyPlayerStats(AActor* PlayerActor, const TMap<FNa
 
 bool UWxSaveWorldSubsystem::CaptureActor(UWxSaveGame& SaveGame, AActor* Actor)
 {
-	const IWxSavable* Savable = FindSavable(Actor);
+	const IWxSavable* Savable = Cast<IWxSavable>(Actor);
 	if (!Savable)
 	{
 		return false;
@@ -354,7 +338,7 @@ bool UWxSaveWorldSubsystem::CaptureActor(UWxSaveGame& SaveGame, AActor* Actor)
 
 bool UWxSaveWorldSubsystem::RestoreActor(const UWxSaveGame& SaveGame, AActor* Actor, bool* bOutIsSavable)
 {
-	IWxSavable* Savable = FindSavable(Actor);
+	IWxSavable* Savable = Cast<IWxSavable>(Actor);
 	if (bOutIsSavable)
 	{
 		*bOutIsSavable = Savable != nullptr;
