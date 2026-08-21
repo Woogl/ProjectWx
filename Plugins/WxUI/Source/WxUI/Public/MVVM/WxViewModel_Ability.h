@@ -24,7 +24,7 @@ struct FGameplayEffectSpec;
  *
  * 동일 GE 클래스를 여러 어빌리티가 공유하는 경우, 소스 어빌리티 CDO로 구분한다.
  *
- * CanActivate·CheckCost 는 ASC 태그 변경/비용 어트리뷰트 변경/쿨다운 진행 시점에 재평가된다.
+ * CanActivate·CheckCost 는 ASC 태그 변경/비용 어트리뷰트 변경/쿨다운 적용·충전 수 변화 시점에 재평가된다.
  *
  * 소모량은 초기화 때 비용 GE 를 한 번 평가해 정한다.
  */
@@ -137,6 +137,14 @@ private:
 	 * 이 VM 은 UMG 바인딩 최초 평가 시 지연 생성되므로 쿨다운 도중에 태어나면 GE 적용 통지를 놓쳐 "충전 만땅"으로 잘못 표시된다.
 	 */
 	void SeedActiveCooldown();
+
+	void EnsureCooldownTicker();
+
+	/**
+	 * 이 어빌리티가 건 활성 쿨다운 GE 를 훑어 소모된 충전 수를 반환하고, 가장 먼저 만료될 GE 의 잔여·지속시간을 낸다.
+	 * FGameplayEffectQuery 경로는 핸들 배열을 새로 할당한 뒤 핸들마다 컨테이너를 다시 선형 탐색하므로, 매 프레임 도는 이 경로에서는 컨테이너를 직접 한 번만 훑는다.
+	 */
+	int32 QueryActiveCooldowns(const UAbilitySystemComponent& ASC, float WorldTime, float& OutNextRemaining, float& OutNextDuration) const;
 
 	void RefreshActivationState();
 

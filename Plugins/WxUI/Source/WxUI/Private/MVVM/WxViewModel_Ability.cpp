@@ -34,6 +34,8 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 			.AddUObject(this, &UWxViewModel_Ability::HandleGameplayEffectApplied);
 	}
 
+	// 어빌리티의 블록/필요 태그로 좁힐 수 없다 — 발동 판정에는 배타 그룹 점유도 걸리는데, 그건 태그가 아니라 ASC 내부 상태라
+	// 다른 어빌리티의 ActivationOwnedTags 변화로만 감지된다.
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_Ability::HandleTagChanged);
 
 	GetCost(InASC, InAbility);
@@ -45,48 +47,63 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 
 void UWxViewModel_Ability::SeedActiveCooldown()
 {
-	UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (!ASC || !CachedCooldownClass)
+	// 돌고 있는 쿨다운이 없으면 UpdateCooldownState 가 false 를 내고, Initialize 가 세운 만충 상태가 그대로 남는다.
+	if (UpdateCooldownState(0.f))
+	{
+		EnsureCooldownTicker();
+	}
+}
+
+void UWxViewModel_Ability::EnsureCooldownTicker()
+{
+	if (TickerHandle.IsValid())
 	{
 		return;
 	}
 
+	TickerHandle = FTSTicker::GetCoreTicker().AddTicker(
+		FTickerDelegate::CreateUObject(this, &UWxViewModel_Ability::UpdateCooldownState)
+	);
+}
+
+int32 UWxViewModel_Ability::QueryActiveCooldowns(const UAbilitySystemComponent& ASC, float WorldTime, float& OutNextRemaining, float& OutNextDuration) const
+{
+	OutNextRemaining = 0.f;
+	OutNextDuration = 0.f;
+
 	const UGameplayAbility* AbilityCDO = CachedAbility.Get();
 
-	FGameplayEffectQuery Query;
-	Query.EffectDefinition = CachedCooldownClass;
-
-	// UpdateCooldownState 는 CooldownDuration 을 기준으로 진행률을 내는데, 그 값은 GE 적용 통지에서만 채워진다.
-	for (const FActiveGameplayEffectHandle& ActiveHandle : ASC->GetActiveEffects(Query))
+	int32 ActiveCount = 0;
+	for (auto It = ASC.GetActiveGameplayEffects().CreateConstIterator(); It; ++It)
 	{
-		const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(ActiveHandle);
-		if (!ActiveGE || ActiveGE->Spec.GetEffectContext().GetAbility() != AbilityCDO)
+		const FActiveGameplayEffect& ActiveGE = *It;
+		if (!ActiveGE.Spec.Def || ActiveGE.Spec.Def->GetClass() != CachedCooldownClass)
 		{
 			continue;
 		}
 
-		const float SpecDuration = ActiveGE->Spec.GetDuration();
-		if (SpecDuration > 0.f)
+		if (ActiveGE.Spec.GetEffectContext().GetAbility() != AbilityCDO)
 		{
-			SetCooldownDuration(SpecDuration);
-			break;
+			continue;
 		}
+
+		// 만료됐지만 아직 제거되지 않은 GE(클라이언트는 제거가 리플리케이션으로 도착할 때까지 지연됨)는 회복된 충전으로 취급한다
+		const float SpecDuration = ActiveGE.Spec.GetDuration();
+		const float Remaining = (ActiveGE.StartWorldTime + SpecDuration) - WorldTime;
+		if (SpecDuration <= 0.f || Remaining <= 0.f)
+		{
+			continue;
+		}
+
+		if (ActiveCount == 0 || Remaining < OutNextRemaining)
+		{
+			OutNextRemaining = Remaining;
+			OutNextDuration = SpecDuration;
+		}
+		++ActiveCount;
 	}
 
-	if (CooldownDuration <= 0.f)
-	{
-		// 돌고 있는 쿨다운이 없다 — Initialize 가 세운 만충 상태가 그대로 옳다.
-		return;
-	}
-
-	SetIsOnCooldown(true);
-
-	if (UpdateCooldownState(0.f) && !TickerHandle.IsValid())
-	{
-		TickerHandle = FTSTicker::GetCoreTicker().AddTicker(
-			FTickerDelegate::CreateUObject(this, &UWxViewModel_Ability::UpdateCooldownState)
-		);
-	}
+	return ActiveCount;
 }
 
 void UWxViewModel_Ability::Deinitialize()
@@ -278,20 +295,9 @@ void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* 
 		return;
 	}
 
-	const float SpecDuration = SpecApplied.GetDuration();
-	if (SpecDuration > 0.f && CooldownDuration <= 0.f)
-	{
-		SetCooldownDuration(SpecDuration);
-	}
-
+	// 남은 시간·충전 수·진행률 분모는 첫 틱이 채운다 — 방금 적용된 GE 가 활성 목록에 보이는 시점에 기대지 않기 위해서다.
 	SetIsOnCooldown(true);
-
-	if (!TickerHandle.IsValid())
-	{
-		TickerHandle = FTSTicker::GetCoreTicker().AddTicker(
-			FTickerDelegate::CreateUObject(this, &UWxViewModel_Ability::UpdateCooldownState)
-		);
-	}
+	EnsureCooldownTicker();
 
 	// 쿨다운 GE는 태그를 부여하지 않아 태그 이벤트로 감지되지 않으므로 여기서 재평가한다
 	RefreshActivationState();
@@ -311,7 +317,8 @@ void UWxViewModel_Ability::HandleCostAttributeChanged(const FOnAttributeChangeDa
 bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (!ASC || !CachedCooldownClass || CooldownDuration <= 0.f)
+	const UWorld* World = ASC ? ASC->GetWorld() : nullptr;
+	if (!World || !CachedCooldownClass)
 	{
 		// false 반환은 티커를 제거하므로 핸들도 함께 비운다.
 		// 남겨 두면 재등록 게이트(!TickerHandle.IsValid())가 닫힌 채로 굳어 쿨다운 갱신이 영구 정지한다.
@@ -319,43 +326,10 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 		return false;
 	}
 
-	const UGameplayAbility* AbilityCDO = CachedAbility.Get();
-	const UWorld* World = ASC->GetWorld();
-	if (!World)
-	{
-		TickerHandle.Reset();
-		return false;
-	}
-	const float WorldTime = World->GetTimeSeconds();
-
-	FGameplayEffectQuery Query;
-	Query.EffectDefinition = CachedCooldownClass;
-
 	// 활성 쿨다운 GE 1개 = 회복 대기 중인 충전 1개.
-	// 가장 먼저 만료될 GE가 다음 충전 회복 시점이다.
-	int32 ConsumedCharges = 0;
 	float NextChargeRemaining = 0.f;
-	for (const FActiveGameplayEffectHandle& ActiveHandle : ASC->GetActiveEffects(Query))
-	{
-		if (const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(ActiveHandle))
-		{
-			if (ActiveGE->Spec.GetEffectContext().GetAbility() == AbilityCDO)
-			{
-				// 만료됐지만 아직 제거되지 않은 GE(클라이언트는 제거가 리플리케이션으로 도착할 때까지 지연됨)는 회복된 충전으로 취급한다
-				const float Remaining = (ActiveGE->StartWorldTime + ActiveGE->Spec.GetDuration()) - WorldTime;
-				if (Remaining <= 0.f)
-				{
-					continue;
-				}
-
-				if (ConsumedCharges == 0 || Remaining < NextChargeRemaining)
-				{
-					NextChargeRemaining = Remaining;
-				}
-				++ConsumedCharges;
-			}
-		}
-	}
+	float NextChargeDuration = 0.f;
+	const int32 ConsumedCharges = QueryActiveCooldowns(*ASC, World->GetTimeSeconds(), NextChargeRemaining, NextChargeDuration);
 
 	if (ConsumedCharges == 0)
 	{
@@ -369,12 +343,25 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 		return false;
 	}
 
+	// 진행률 분모는 충전 1개의 회복 주기다. 회복이 직렬이라 나중에 걸린 GE 일수록 지속시간이 길어지므로, 처음 관측한 값을 쿨다운이 끝날 때까지 유지한다.
+	if (CooldownDuration <= 0.f)
+	{
+		SetCooldownDuration(NextChargeDuration);
+	}
+
+	SetIsOnCooldown(true);
 	SetCooldownRemaining(NextChargeRemaining);
 	SetCooldownPercent(NextChargeRemaining / CooldownDuration);
-	SetCurrentCharges(FMath::Max(0, MaxRecharges - ConsumedCharges));
 
-	// 충전 회복은 별도 이벤트가 없으므로 쿨다운 진행 중에는 매 틱 재평가한다
-	RefreshActivationState();
+	// 충전 회복은 별도 이벤트가 없다. 남은 시간과 달리 발동 가능 여부는 충전 수가 실제로 바뀔 때만 달라지므로 그때만 재평가한다.
+	const int32 NewCharges = FMath::Max(0, MaxRecharges - ConsumedCharges);
+	const bool bChargesChanged = NewCharges != CurrentCharges;
+	SetCurrentCharges(NewCharges);
+
+	if (bChargesChanged)
+	{
+		RefreshActivationState();
+	}
 
 	return true;
 }
@@ -400,8 +387,11 @@ void UWxViewModel_Ability::RefreshActivationState()
 		// 엔진 InternalTryActivateAbility와 동일하게, 인스턴스가 있으면 인스턴스 기준으로 판정한다
 		const UGameplayAbility* PrimaryInstance = Spec.GetPrimaryInstance();
 		const UGameplayAbility* CanActivateSource = PrimaryInstance ? PrimaryInstance : AbilityCDO;
-		SetCanActivate(CanActivateSource->CanActivateAbility(Spec.Handle, ASC->AbilityActorInfo.Get()));
-		SetCheckCost(CanActivateSource->CheckCost(Spec.Handle, ASC->AbilityActorInfo.Get()));
+
+		// 발동 가능이면 엔진이 그 안에서 비용도 이미 통과시켰다. 막혔을 때만 원인이 비용인지 따로 묻는다.
+		const bool bCanActivate = CanActivateSource->CanActivateAbility(Spec.Handle, ASC->AbilityActorInfo.Get());
+		SetCanActivate(bCanActivate);
+		SetCheckCost(bCanActivate || CanActivateSource->CheckCost(Spec.Handle, ASC->AbilityActorInfo.Get()));
 		return;
 	}
 
