@@ -20,7 +20,6 @@ UWxAbility_LockOn::UWxAbility_LockOn()
 	AssetTags.AddTag(WxGameplayTags::Ability_LockOn);
 	SetAssetTags(AssetTags);
 
-	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_LockOn);
 }
 

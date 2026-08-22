@@ -8,36 +8,12 @@ UWxAbility_Skill::UWxAbility_Skill()
 {
 	// 슬롯마다 다른 애셋 태그(Ability.Skill.1~4)와 입력 액션은 BP 소관이라 코드가 알 수 없으므로, 부모 태그로 활성 표식을 보장한다.
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Skill);
-
-	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
-
+	
 	// 스킬은 재생 중 다른 GA로 캔슬되지 않는다. (PC규격서 §5.2)
 	// 후딜 캔슬은 몽타주 StartRecovery 노티파이로 허용한다.
 	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Blocking;
 
 	bRetriggerInstancedAbility = true;
-}
-
-bool UWxAbility_Skill::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
-{
-	UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-	const FGameplayAbilitySpec* Spec = ASC ? ASC->FindAbilitySpecFromHandle(Handle) : nullptr;
-
-	// 콤보 진행. 점유자가 자기 자신이고 엔진 재발동이 풀었다 다시 쥐므로 배타 판정을 건너뛴다.
-	if (Spec && Spec->IsActive())
-	{
-		if (!ASC || !ASC->HasMatchingGameplayTag(WxGameplayTags::State_ComboWindow))
-		{
-			return false;
-		}
-		if (ASC->HasAnyMatchingGameplayTags(ActivationBlockedTags))
-		{
-			return false;
-		}
-		return CheckCooldown(Handle, ActorInfo, OptionalRelevantTags) && CheckCost(Handle, ActorInfo, OptionalRelevantTags);
-	}
-
-	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 }
 
 void UWxAbility_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

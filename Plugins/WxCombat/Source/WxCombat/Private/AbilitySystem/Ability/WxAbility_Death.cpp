@@ -17,7 +17,11 @@ UWxAbility_Death::UWxAbility_Death()
 	AssetTags.AddTag(WxGameplayTags::Ability_Death);
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Death);
-
+	
+	// 모든 어빌리티 발동 불가 및 캔슬
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
+	
 	ActivationGroup = EWxAbilityActivationGroup::Reaction;
 	bCancelsRunningActions = true;
 

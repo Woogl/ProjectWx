@@ -9,7 +9,7 @@ AWxDialogueActor::AWxDialogueActor()
 	DialogueComponent = CreateDefaultSubobject<UWxDialogueComponent>(TEXT("DialogueComponent"));
 }
 
-bool AWxDialogueActor::IsInteractionEnabled() const
+bool AWxDialogueActor::CanInteract() const
 {
 	return bInteractionEnabled;
 }

@@ -61,9 +61,6 @@ public:
 
 	const TSoftObjectPtr<UObject>& GetPortrait() const;
 
-	/** Ability.Death 태그 부여 시 호출. */
-	virtual void HandleDeath();
-
 	UPROPERTY(BlueprintAssignable, Category = "Wx|Character")
 	FWxOnDeathSignature OnDeath;
 
@@ -110,6 +107,8 @@ protected:
 
 	void HandleEquipVisualChanged(USkeletalMesh* MeshAsset, FName Socket);
 
+	virtual void HandleDeath();
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|UI")
 	FText CharacterName;
 

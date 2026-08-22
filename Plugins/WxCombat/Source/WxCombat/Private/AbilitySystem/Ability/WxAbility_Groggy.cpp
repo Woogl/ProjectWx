@@ -21,11 +21,12 @@ UWxAbility_Groggy::UWxAbility_Groggy()
 	AssetTags.AddTag(WxGameplayTags::Ability_Groggy);
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Groggy);
+	
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability);
 
 	// 그로기에 빠지면 진행 중이던 액션(적 패턴 포함)을 끊고 그로기 동안 새 액션도 막는다.
 	ActivationGroup = EWxAbilityActivationGroup::Reaction;
 	bCancelsRunningActions = true;
-	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 
 	FAbilityTriggerData TriggerData;
 	TriggerData.TriggerTag = WxGameplayTags::Event_Groggy;

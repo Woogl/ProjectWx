@@ -23,7 +23,7 @@ AWxTriggerDevice::AWxTriggerDevice()
 	Prompt = FText::FromString(TEXT("Interact"));
 }
 
-bool AWxTriggerDevice::IsInteractionEnabled() const
+bool AWxTriggerDevice::CanInteract() const
 {
 	// 잠금 상태를 따로 들지 않고 몸체 메시의 쿼리 콜리전이 곧 그 값이다.
 	// 쿨다운 게이트도 여기에 흡수한다 — 어빌리티의 서버 활성 검증이 연출 중 재조작을 자연 차단한다.
@@ -91,12 +91,12 @@ FText AWxTriggerDevice::GetInteractionPrompt() const
 void AWxTriggerDevice::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// 장치의 ChildActorComponent 로 심긴 발동 장치는 그 장치를 스스로 지목한다 — 문+레버처럼 한 몸으로 저작되는 쌍은 인스턴스 배선이 필요 없다.
-	// ParentComponent 는 비복제라 리모트 클라에선 이 배선이 빈다 — 눌림 전달은 권위 전용이라 무관하고, 어긋날 수 있는 것은 StateTagRequirements 프롬프트 게이트뿐이라 싱글/리슨 호스트 전제로 수용한다.
-	if (const UChildActorComponent* SpawningComponent = GetParentComponent())
+	
+	// 내장된 TriggerDevice는 자동 연결된다.
+	// 예시: 문+레버처럼 한 몸으로 저작되는 쌍
+	if (AActor* AttachParentActor = GetAttachParentActor())
 	{
-		if (AWxDevice* OwnerDevice = Cast<AWxDevice>(SpawningComponent->GetOwner()))
+		if (AWxDevice* OwnerDevice = Cast<AWxDevice>(AttachParentActor))
 		{
 			LinkedDevices.AddUnique(OwnerDevice);
 		}

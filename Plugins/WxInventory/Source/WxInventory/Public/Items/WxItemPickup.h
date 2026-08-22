@@ -39,7 +39,6 @@ public:
 	void LaunchInDirection(const FVector& Direction, float Speed);
 
 	//~ Begin IWxInteractable
-	virtual bool IsInteractionEnabled() const override;
 	virtual void OnInteracted(AActor* Interactor) override;
 	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable

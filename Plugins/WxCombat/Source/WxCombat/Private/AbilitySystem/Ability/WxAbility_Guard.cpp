@@ -17,7 +17,6 @@ UWxAbility_Guard::UWxAbility_Guard()
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Guard);
 	ActivationOwnedEffects.Add(UWxEffect_Guard::StaticClass());
 
-	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 
 	// 배타 판정에는 자기 예외가 없어 활성 중 자기 재발동까지 막히는데, 가드는 그 성질에 기대어 페이즈를 유지한다.
 	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Blocking;

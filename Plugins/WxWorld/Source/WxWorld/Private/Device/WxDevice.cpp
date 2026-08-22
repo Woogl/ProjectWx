@@ -47,7 +47,7 @@ void AWxDevice::PreSave(FObjectPreSaveContext ObjectSaveContext)
 }
 #endif
 
-bool AWxDevice::IsInteractionEnabled() const
+bool AWxDevice::CanInteract() const
 {
 	return bInteractionEnabled;
 }

@@ -28,7 +28,7 @@ public:
 	AWxTriggerDevice();
 
 	//~ Begin IWxInteractable
-	virtual bool IsInteractionEnabled() const override;
+	virtual bool CanInteract() const override;
 	virtual void SetInteractionEnabled(bool bEnabled) override;
 	virtual void OnInteracted(AActor* Interactor) override;
 	virtual FText GetInteractionPrompt() const override;

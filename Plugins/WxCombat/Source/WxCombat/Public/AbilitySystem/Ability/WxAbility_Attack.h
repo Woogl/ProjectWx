@@ -24,9 +24,6 @@ class WXCOMBAT_API UWxAbility_Attack : public UWxAbilityBase
 public:
 	UWxAbility_Attack();
 
-	/** 콤보 윈도우 안의 재발동은 배타 판정을 건너뛴다 — 점유자가 자기 자신이고, 엔진 재발동이 곧 그 점유를 풀었다 다시 쥔다. */
-	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
-
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
@@ -35,7 +32,7 @@ protected:
 	virtual void HandleMontageCompleted() override;
 
 	/** 배열 순서가 곧 콤보 단계다. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	TArray<TObjectPtr<UAnimMontage>> ComboMontages;
 
 private:

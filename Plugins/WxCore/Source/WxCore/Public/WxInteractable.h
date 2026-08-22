@@ -28,34 +28,16 @@ class WXCORE_API IWxInteractable
 	GENERATED_BODY()
 
 public:
-	/**
-	 * 이 대상이 지금 상호작용을 받을 수 있는가.
-	 * 켜고 끄는 방식은 구현체가 정한다 — 상시 활성이면 true 만 답하고, 상태별로 갈리면(장치) 그 상태가 켠 값을 답한다.
-	 *
-	 * 스캐너가 클라에서 주변 후보를 거를 때 묻고, 상호작용 어빌리티가 서버에서 선택 액터로 활성을 권위 검증한다.
-	 * 양쪽이 같은 답에 수렴하도록 켜고 끄는 근거는 전 머신에서 동일해야 한다(장치는 각 피어에서 같은 전이를 밟는 StateTree 가 토글하고, 어긋난 피어는 복제된 상태 Tag 로 수렴한다).
-	 */
-	virtual bool IsInteractionEnabled() const = 0;
-
+	virtual bool CanInteract() const;
+	
+	virtual void OnInteracted(AActor* Interactor) = 0;
+	
+	virtual FText GetInteractionPrompt() const = 0;
+	
 	/**
 	 * '상호작용 켜기' 태스크가 액터를 지목했을 때 부른다.
 	 * 켜고 끄는 수단은 구현체가 정한다 — IsInteractionEnabled 의 답이 그에 맞게 바뀌기만 하면 된다(대화 상대는 영역 메시의 쿼리 콜리전을 내린다).
 	 * 여닫을 일이 없는 대상(픽업·적)은 구현하지 않는다 — 기본은 무동작이다.
 	 */
 	virtual void SetInteractionEnabled(bool bEnabled);
-
-	/** 상호작용 응답. 서버 권위에서 상호작용 어빌리티가 호출한다(비권위 호출 없음). */
-	virtual void OnInteracted(AActor* Interactor) = 0;
-
-	/**
-	 * 주체별로 자격이 갈리는 대상(예: 처형 — 주체가 후방에 있어야 뒤잡)만 오버라이드한다. 기본은 항상 허용이다.
-	 * 활성 판정은 머신당 값이 하나뿐이라 "주체 A 에겐 가능, 주체 B 에겐 불가"를 표현할 수 없으므로, 그런 자격은 거기가 아니라 여기서 판정한다.
-	 *
-	 * 스캐너가 클라에서 로컬 폰을 주체로 호출해 표시를 거르고, 상호작용 어빌리티가 서버에서 실제 instigator 를 주체로 호출해 권위 검증한다.
-	 * 판정 입력이 전부 복제돼야 양쪽이 같은 답에 수렴한다.
-	 */
-	virtual bool CanBeInteractedBy(const AActor* Interactor) const;
-
-	/** HUD 리스트에 표시할 프롬프트 텍스트. 스캐너가 스캔 때 대상에서 읽는다(pull). */
-	virtual FText GetInteractionPrompt() const = 0;
 };

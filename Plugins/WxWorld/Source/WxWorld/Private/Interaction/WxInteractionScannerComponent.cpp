@@ -178,11 +178,8 @@ void UWxInteractionScannerComponent::ScanAndPush()
 		{
 			continue;
 		}
-
-		// 겹쳤다는 것이 곧 사거리 판정이다 — 오버랩 구가 서버 사거리 검증과 같은 원점·반경·형상이라 다시 재지 않는다.
-		// 주체별로 자격이 갈리는 대상(예: 처형은 주체가 후방이어야 뒤잡)은 활성 판정만으론 걸러지지 않으므로 소유 폰을 주체로 물어 표시를 거른다.
-		// 서버는 같은 두 함수를 실제 instigator 로 다시 물어 권위 판정한다.
-		if (Target->IsInteractionEnabled() && Target->CanBeInteractedBy(Pawn))
+		
+		if (Target->CanInteract())
 		{
 			Candidates.Add(Actor);
 		}

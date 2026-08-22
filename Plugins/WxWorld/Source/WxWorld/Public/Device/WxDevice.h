@@ -60,7 +60,7 @@ public:
 #endif
 
 	//~ Begin IWxInteractable — 활성·프롬프트는 ST 가 상태마다 세팅한 값이다.
-	virtual bool IsInteractionEnabled() const override;
+	virtual bool CanInteract() const override;
 
 	/** 남의 트리('상호작용 켜기' Target 갈래)가 이 장치를 잠그고 여는 진입점. 프롬프트·발행자가 없는 토글이라 켜도 눌림이 트리에 닿지 않는다. */
 	virtual void SetInteractionEnabled(bool bEnabled) override;

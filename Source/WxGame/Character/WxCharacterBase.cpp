@@ -115,8 +115,7 @@ bool AWxCharacterBase::CanJumpInternal_Implementation() const
 		return false;
 	}
 
-	// 액션 어빌리티(Attack/Dodge/Skill/Ultimate/Guard 등)는 본동작 동안 배타 점유를 쥐므로, 그 판정으로 어빌리티 발동 중인지 판별해 점프를 막는다.
-	// 후딜 전이로 점유가 풀리면 다른 캔슬 액션과 동일하게 점프도 허용된다.
+	// 액션 어빌리티 발동 중인지 판별해 점프를 막는다.
 	if (AbilitySystemComponent->IsActivationGroupBlocked(EWxAbilityActivationGroup::Exclusive_Blocking))
 	{
 		return false;

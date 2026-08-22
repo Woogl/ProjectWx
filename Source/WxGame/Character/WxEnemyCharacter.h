@@ -29,18 +29,21 @@ public:
 	AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer);
 
 	UBehaviorTree* GetBehaviorTree() const;
-
-	/** 사망 시 자신을 스폰한 Spawner 에 처치 기록을 남긴다. */
-	virtual void HandleDeath() override;
-
+	
 	//~ Begin IWxSpawnable
 	/** 사망 시 순회 없이 처치 기록을 남기기 위해 스폰 주체를 기억한다. */
 	virtual void OnSpawnedBy(AWxSpawner* Spawner) override;
 	//~ End IWxSpawnable
+	
+	//~ Begin IWxInteractable — 처형 상호작용.
+	virtual bool CanInteract() const override;
+	virtual void OnInteracted(AActor* Interactor) override;
+	virtual FText GetInteractionPrompt() const override;
+	//~ End IWxInteractable
 
-protected:
 	virtual void BeginPlay() override;
 
+protected:
 	/** 피격을 촉각으로 보고하기 위해 대미지 어트리뷰트를 구독한다. */
 	virtual void InitAbilitySystem() override;
 
@@ -59,13 +62,9 @@ protected:
 	 * 판정 입력(HP·상태 태그·트랜스폼)이 전부 복제되므로 어느 머신에서 불러도 같은 주체엔 같은 답이 나온다.
 	 */
 	FGameplayTag GetEligibleFinisherEventTag(const AActor* Interactor) const;
-
-	//~ Begin IWxInteractable — 처형 상호작용.
-	virtual bool IsInteractionEnabled() const override;
-	virtual bool CanBeInteractedBy(const AActor* Interactor) const override;
-	virtual void OnInteracted(AActor* Interactor) override;
-	virtual FText GetInteractionPrompt() const override;
-	//~ End IWxInteractable
+	
+	/** 사망 시 자신을 스폰한 Spawner 에 처치 기록을 남긴다. */
+	virtual void HandleDeath() override;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
 	TObjectPtr<UBehaviorTree> BehaviorTreeAsset;

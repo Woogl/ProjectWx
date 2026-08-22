@@ -19,7 +19,6 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Dodge);
 
-	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Blocking;
 }
 

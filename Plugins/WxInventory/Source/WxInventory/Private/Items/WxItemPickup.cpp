@@ -68,12 +68,6 @@ void AWxItemPickup::LaunchInDirection(const FVector& Direction, float Speed)
 	MeshComponent->SetPhysicsLinearVelocity(Direction.GetSafeNormal() * Speed);
 }
 
-bool AWxItemPickup::IsInteractionEnabled() const
-{
-	// 지급 후엔 액터가 파괴되므로 끌 상태가 없다.
-	return true;
-}
-
 void AWxItemPickup::OnInteracted(AActor* Interactor)
 {
 	// 서버 권위에서만 호출된다.

@@ -72,7 +72,7 @@ void UWxAbility_Interact::ExecuteInteract(AActor* Selected, const FGameplayAbili
 	}
 
 	// 서버 권위 활성 검증: 클라가 비활성 대상을(또는 비활성 직후에) 보내도 여기서 걸린다.
-	if (!Target->IsInteractionEnabled())
+	if (!Target->CanInteract())
 	{
 		return;
 	}
@@ -85,7 +85,7 @@ void UWxAbility_Interact::ExecuteInteract(AActor* Selected, const FGameplayAbili
 
 	// 서버 권위 자격 검증: 주체별로 자격이 갈리는 대상(처형 등)은 활성 판정으로 표현할 수 없으므로 실제 아바타를 주체로 대상에 묻는다.
 	// 기본 구현이 true 라 장치 등은 영향이 없다.
-	if (!Target->CanBeInteractedBy(Avatar))
+	if (!Target->CanInteract())
 	{
 		return;
 	}

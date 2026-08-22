@@ -6,7 +6,7 @@ void IWxInteractable::SetInteractionEnabled(bool bEnabled)
 {
 }
 
-bool IWxInteractable::CanBeInteractedBy(const AActor* Interactor) const
+bool IWxInteractable::CanInteract() const
 {
 	return true;
 }

@@ -31,18 +31,19 @@ enum class EWxAbilityActivationPolicy : uint8
  * 배타 발동 그룹. Lyra의 ActivationGroup 세 값에 Reaction을 더했다.
  * 판정은 UWxAbilitySystemComponent가 활성 인스턴스에서 파생하며, 어빌리티끼리의 태그 차단·취소 배선을 대체한다.
  */
+UENUM()
 enum class EWxAbilityActivationGroup : uint8
 {
-	/** 배타 판정 밖. 막지도 막히지도 않는다 (스프린트·락온). */
+	/** 막지도 막히지도 않는다. */
 	Independent,
 
-	/** 배타지만 다른 배타 발동에 교체(취소)된다 — 액션의 후딜 상태. */
-	Exclusive_Replaceable,
-
-	/** 배타이고 다른 배타 발동을 막는다 — 액션의 본동작. */
+	/** 배타적으로 다른 Exclusive 어빌리티 발동을 막는다. */
 	Exclusive_Blocking,
 
-	/** Exclusive_Blocking이 돌아도 비집고 들어가 점유를 빼앗는다 (피격·그로기·사망·처형). */
+	/** 다른 Exclusive 어빌리티 발동에 의해 취소될 수 있다. 액션의 후딜 상태. */
+	Exclusive_Replaceable,
+	
+	/** Exclusive 어빌리티 발동 중이더라도 강제로 점유를 빼앗는다. */
 	Reaction,
 };
 
@@ -70,7 +71,7 @@ public:
 	 * ASC가 눌린 액션을 이 값과 대조하고, AbilitySet이 모아 입력 바인딩 목록을 만든다.
 	 * 입력으로 발동하지 않는 어빌리티(AI 패턴·반응형·패시브)는 비워둔다.
 	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	TObjectPtr<UInputAction> ActivationInputAction;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxAbilityTableRow"))
@@ -164,6 +165,7 @@ protected:
 	virtual void HandleMontageCancelled();
 
 	/** 생성자에서 선언한다. 후딜 전이(StartRecovery)가 Exclusive_Replaceable로 바꾸고, 다음 활성화가 선언값으로 되돌린다. */
+	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	EWxAbilityActivationGroup ActivationGroup = EWxAbilityActivationGroup::Independent;
 
 	/** Reaction 전용. 발동할 때 후딜에 든 것뿐 아니라 본동작(Exclusive_Blocking·Reaction)까지 끊는다. */

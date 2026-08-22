@@ -73,41 +73,6 @@ void AWxEnemyCharacter::HandleIncomingDamageChanged(const FOnAttributeChangeData
 	UAISense_Damage::ReportDamageEvent(this, this, DamageInstigator, Data.NewValue, DamageInstigator->GetActorLocation(), HitLocation);
 }
 
-void AWxEnemyCharacter::HandleDeath()
-{
-	Super::HandleDeath();
-
-	if (!HasAuthority())
-	{
-		return;
-	}
-
-	if (AWxSpawner* Spawner = OwningSpawner.Get())
-	{
-		Spawner->MarkKilled();
-	}
-
-	// 외형 없는 재화(골드 등)는 로컬 플레이어 인벤토리에 즉시 지급한다.
-	if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0))
-	{
-		UWxRewardLibrary::GrantReward(this, RewardRow, PlayerController, GetActorTransform(), FVector::UpVector * LaunchSpeed);
-	}
-}
-
-bool AWxEnemyCharacter::IsInteractionEnabled() const
-{
-	// 늘 열어 두고, 실제 자격은 CanBeInteractedBy 가 주체별로 판정한다.
-	// 이 판정은 머신당 답이 하나뿐이라 특정 플레이어에 종속시킬 수 없다 — 그렇게 하면 서버 답이 한 플레이어 기준이 되어 다른 플레이어의 정당한 처형이 거부된다.
-	return true;
-}
-
-bool AWxEnemyCharacter::CanBeInteractedBy(const AActor* Interactor) const
-{
-	// 처형 자격은 주체별로 갈린다(뒤잡은 주체가 후방 원뿔 안에 있어야 한다) — 채널로는 표현할 수 없어 여기서 판정한다.
-	// 외곽선은 스캐너가 선택 대상에만 켠다.
-	return GetEligibleFinisherEventTag(Interactor).IsValid();
-}
-
 FGameplayTag AWxEnemyCharacter::GetEligibleFinisherEventTag(const AActor* Interactor) const
 {
 	if (!IsAlive())
@@ -144,6 +109,27 @@ FGameplayTag AWxEnemyCharacter::GetEligibleFinisherEventTag(const AActor* Intera
 	return FGameplayTag();
 }
 
+void AWxEnemyCharacter::HandleDeath()
+{
+	Super::HandleDeath();
+
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	if (AWxSpawner* Spawner = OwningSpawner.Get())
+	{
+		Spawner->MarkKilled();
+	}
+
+	// 외형 없는 재화(골드 등)는 로컬 플레이어 인벤토리에 즉시 지급한다.
+	if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0))
+	{
+		UWxRewardLibrary::GrantReward(this, RewardRow, PlayerController, GetActorTransform(), FVector::UpVector * LaunchSpeed);
+	}
+}
+
 void AWxEnemyCharacter::OnInteracted(AActor* Interactor)
 {
 	// 서버 권위에서만 호출된다.
@@ -175,6 +161,12 @@ FText AWxEnemyCharacter::GetInteractionPrompt() const
 void AWxEnemyCharacter::OnSpawnedBy(AWxSpawner* Spawner)
 {
 	OwningSpawner = Spawner;
+}
+
+bool AWxEnemyCharacter::CanInteract() const
+{
+	// TODO: PlayerCharacter가 뒤에서 접근해서 백스탭 가능해야함. GetEligibleFinisherEventTag 함수도 제거해야함.
+	return HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy);
 }
 
 UBehaviorTree* AWxEnemyCharacter::GetBehaviorTree() const

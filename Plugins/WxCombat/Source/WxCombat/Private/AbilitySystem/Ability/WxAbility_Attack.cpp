@@ -10,31 +10,12 @@ UWxAbility_Attack::UWxAbility_Attack()
 	AssetTags.AddTag(WxGameplayTags::Ability_Attack);
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Attack);
-
-	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
-
+	
 	// 즉시 회피·가드로 빠져나가는 것을 막아 공격에 리스크를 부여한다.
 	// 후딜 캔슬은 몽타주 StartRecovery 노티파이가 연다.
 	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Blocking;
 
 	bRetriggerInstancedAbility = true;
-}
-
-bool UWxAbility_Attack::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
-{
-	UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-	const FGameplayAbilitySpec* Spec = ASC ? ASC->FindAbilitySpecFromHandle(Handle) : nullptr;
-
-	if (Spec && Spec->IsActive())
-	{
-		return ASC
-			&& ASC->HasMatchingGameplayTag(WxGameplayTags::State_ComboWindow)
-			&& !ASC->HasAnyMatchingGameplayTags(ActivationBlockedTags)
-			&& CheckCooldown(Handle, ActorInfo, OptionalRelevantTags)
-			&& CheckCost(Handle, ActorInfo, OptionalRelevantTags);
-	}
-
-	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 }
 
 void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

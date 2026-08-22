@@ -24,7 +24,7 @@ public:
 	AWxDialogueActor();
 
 	//~ Begin IWxInteractable
-	virtual bool IsInteractionEnabled() const override;
+	virtual bool CanInteract() const override;
 
 	/**
 	 * 복제하지 않는다 — 권위 측 퀘스트 러너만 이 값을 정하므로, 서버가 곧 클라인 싱글/리슨 호스트가 전제다(다른 퀘스트·대화 노드와 같은 전제).
