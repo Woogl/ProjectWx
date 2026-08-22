@@ -31,7 +31,7 @@ enum class EWxAbilityActivationPolicy : uint8
  * 배타 발동 그룹. Lyra의 ActivationGroup 세 값(Replaceable은 후딜 어휘를 따라 Recovery로 부른다)에 Reaction을 더했다.
  * 판정은 UWxAbilitySystemComponent가 활성 인스턴스에서 파생하므로, 어빌리티마다 차단 태그를 배선하지 않아도 된다.
  * 단 CancelAbilitiesWithTag로 상대를 지목한 어빌리티는 이 판정보다 우선해 발동한다.
- * 이 값이 정하는 것은 발동 가부까지고, 진행 중이던 것을 무엇까지 끊을지는 그 지목이 정한다(후딜 취소만 그룹으로 처리한다).
+ * 이 값은 발동 가부와 취소 가능 여부를 정하고, 끊을 수 있는 것 중 무엇을 끊을지는 지목이 고른다(후딜 취소만 그룹으로 처리한다).
  */
 UENUM()
 enum class EWxAbilityActivationGroup : uint8
@@ -45,7 +45,10 @@ enum class EWxAbilityActivationGroup : uint8
 	/** 액션이 후딜에 든 상태. 막지 않는 것은 Independent와 같고, 다음 배타 발동·점프가 이 값을 지목해 끊는다. */
 	Exclusive_Recovery,
 
-	/** 점유 중인 Exclusive 어빌리티에 막히지 않고 발동한다. 서로를 막지도 않으므로 반응형끼리는 겹칠 수 있다. */
+	/**
+	 * 점유 중인 Exclusive 어빌리티에 막히지 않고 발동한다.
+	 * 서로를 막지도 않고 취소되지도 않으므로 반응형끼리는 겹치며, 끝나는 것은 스스로거나 다음 몽타주에 밀려서다.
+	 */
 	Reaction,
 };
 
@@ -112,6 +115,9 @@ public:
 	
 	/** 순정 검사에 배타 그룹 판정을 더하되, CancelAbilitiesWithTag로 지목한 어빌리티가 점유 중이면 통과시킨다. */
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+
+	/** 반응은 취소되지 않는다 — 반응끼리 겹쳐야 그로기 위에 피격 반응이 얹히는 그림이 성립한다. */
+	virtual bool CanBeCanceled() const override;
 
 	/**
 	 * WxAnimNotify_SpawnProjectile이 위임하는 투사체 스폰.

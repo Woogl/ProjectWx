@@ -25,8 +25,7 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_HitReact);
 
-	// Ability.Death 차단이 사망 몽타주를 지킨다 — 대미지 연출은 사망 처리 뒤에 발행된다.
-	// 풀면 히트리액트가 사망 몽타주를 끊어 래그돌 폴백으로 떨어뜨린다.
+	// 사망 몽타주는 사망 쪽 BlockAbilitiesWithTag가 지키므로 여기에 Ability.Death를 더하지 않는다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::Effect_Invincible);
 	ActivationBlockedTags.AddTag(WxGameplayTags::Effect_Guard);
 	ActivationBlockedTags.AddTag(WxGameplayTags::Effect_SuperArmor);

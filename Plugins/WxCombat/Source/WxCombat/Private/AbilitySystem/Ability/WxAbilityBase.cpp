@@ -9,7 +9,6 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "GameplayEffect.h"
-#include "InputAction.h"
 #include "Weapon/WxProjectileBase.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Pawn.h"
@@ -59,6 +58,11 @@ bool UWxAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 	// 끊겠다고 지목한 어빌리티는 나를 막지 못한다. 취소 자체는 발동 직후 순정 PreActivate가 수행한다.
 	return !Blocker || Blocker->GetAssetTags().HasAny(CancelAbilitiesWithTag);
+}
+
+bool UWxAbilityBase::CanBeCanceled() const
+{
+	return ActivationGroup != EWxAbilityActivationGroup::Reaction && Super::CanBeCanceled();
 }
 
 void UWxAbilityBase::SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileClass, FName SpawnSocketName) const

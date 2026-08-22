@@ -28,6 +28,7 @@ UWxAbility_Groggy::UWxAbility_Groggy()
 	ActivationGroup = EWxAbilityActivationGroup::Reaction;
 
 	// 그로기에 빠지면 진행 중이던 액션(적 패턴 포함)을 끊는다.
+	// 전부를 지목해도 반응은 끊기지 않아, 처형 짝 피격처럼 겹쳐 있어야 할 것이 살아남는다.
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 
 	FAbilityTriggerData TriggerData;

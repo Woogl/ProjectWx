@@ -18,7 +18,8 @@ UWxAbility_Death::UWxAbility_Death()
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Death);
 	
-	// 모든 어빌리티 발동 불가 및 캔슬
+	// 이후 발동은 전부 막고, 진행 중인 것은 액션만 끊는다 — 반응은 취소되지 않는다.
+	// 활성 반응은 사망 몽타주가 밀어내며 끝나고, 그로기는 Ability.Death를 직접 보고 스스로 끝난다.
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	
