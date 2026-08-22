@@ -1,49 +1,63 @@
 ﻿// Copyright Woogle. All Rights Reserved.
 
-#include "Damage/WxCombatEffectContext.h"
+#include "Damage/WxDamageTableRow.h"
 
-UScriptStruct* FWxCombatEffectContext::GetScriptStruct() const
+#include "AbilitySystemComponent.h"
+#include "WxGameplayTags.h"
+#include "AbilitySystem/Effect/WxEffect_Damage.h"
+
+TArray<FGameplayEffectSpecHandle> FWxDamageTableRow::MakeSpecs(UAbilitySystemComponent* SourceASC, const FGameplayEffectContextHandle& Context) const
 {
-	return StaticStruct();
-}
-
-FGameplayEffectContext* FWxCombatEffectContext::Duplicate() const
-{
-	FWxCombatEffectContext* NewContext = new FWxCombatEffectContext();
-	*NewContext = *this;
-
-	// 순정 구현과 동일하게 히트 결과만 깊은 복사한다.
-	if (GetHitResult())
+	TArray<FGameplayEffectSpecHandle> Specs;
+	if (!SourceASC)
 	{
-		NewContext->AddHitResult(*GetHitResult(), true);
+		return Specs;
 	}
 
-	return NewContext;
-}
-
-bool FWxCombatEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess)
-{
-	FGameplayEffectContext::NetSerialize(Ar, Map, bOutSuccess);
-
-	// 이 컨텍스트는 Cue 파라미터에 실려 클라이언트까지 간다.
-	uint8 SerializedCritical = bCritical ? 1 : 0;
-	Ar << SerializedCritical;
-
-	if (Ar.IsLoading())
+	const FGameplayEffectSpecHandle DamageSpecHandle = SourceASC->MakeOutgoingSpec(UWxEffect_Damage::StaticClass(), 1.f, Context);
+	if (DamageSpecHandle.IsValid())
 	{
-		bCritical = SerializedCritical != 0;
+		FGameplayEffectSpec* Spec = DamageSpecHandle.Data.Get();
+		Spec->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, CoeffATK);
+
+		FGameplayTagContainer AttackTags;
+		if (HitReactTag.IsValid())
+		{
+			AttackTags.AddTag(HitReactTag);
+		}
+		if (bCanCritical)
+		{
+			AttackTags.AddTag(WxGameplayTags::Damage_CanCritical);
+		}
+		if (bUnblockable)
+		{
+			AttackTags.AddTag(WxGameplayTags::Damage_Unblockable);
+		}
+		if (bParryHitReact)
+		{
+			AttackTags.AddTag(WxGameplayTags::Damage_ParryHitReact);
+		}
+		if (!AttackTags.IsEmpty())
+		{
+			Spec->AppendDynamicAssetTags(AttackTags);
+		}
+
+		Specs.Add(DamageSpecHandle);
 	}
 
-	bOutSuccess = true;
-	return true;
-}
+	for (const TSubclassOf<UGameplayEffect>& EffectClass : AdditionalEffects)
+	{
+		if (!EffectClass)
+		{
+			continue;
+		}
 
-bool FWxCombatEffectContext::IsCritical() const
-{
-	return bCritical;
-}
+		const FGameplayEffectSpecHandle AdditionalSpecHandle = SourceASC->MakeOutgoingSpec(EffectClass, 1.f, Context);
+		if (AdditionalSpecHandle.IsValid())
+		{
+			Specs.Add(AdditionalSpecHandle);
+		}
+	}
 
-void FWxCombatEffectContext::SetCritical(bool bInCritical)
-{
-	bCritical = bInCritical;
+	return Specs;
 }

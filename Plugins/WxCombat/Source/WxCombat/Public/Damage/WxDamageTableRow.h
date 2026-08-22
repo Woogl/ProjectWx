@@ -17,33 +17,28 @@ struct WXCOMBAT_API FWxDamageTableRow : public FTableRowBase
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DamageInfo")
+public:
+	UPROPERTY(EditAnywhere)
 	float CoeffATK = 1.f;
 
-	/** 적중 시 공격자 MP 회복량 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DamageInfo")
-	float RecoverMP = 0.f;
-
-	/** 적중 시 공격자 UP 회복량 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DamageInfo")
-	float RecoverUP = 0.f;
-
 	/** 비워 두면 HitReact 이벤트가 송출되지 않는다 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DamageInfo", meta = (Categories = "Event.HitReact"))
+	UPROPERTY(EditAnywhere, meta = (Categories = "Event.HitReact"))
 	FGameplayTag HitReactTag;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DamageInfo")
+	UPROPERTY(EditAnywhere)
 	bool bCanCritical = true;
 
 	/** true이면 이 공격은 가드·퍼펙트 가드를 무시 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DamageInfo")
+	UPROPERTY(EditAnywhere)
 	bool bUnblockable = false;
 
 	/** true이면 퍼펙트 가드 성공 시 공격자에게 HitReact를 발동시킨다 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DamageInfo")
+	UPROPERTY(EditAnywhere)
 	bool bParryHitReact = true;
 
 	/** Damage GE와 함께 타겟에 적용된다 (상태이상, 디버프 등) */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DamageInfo", meta = (AllowAbstract = "false"))
+	UPROPERTY(EditAnywhere, meta = (AllowAbstract = "false"))
 	TArray<TSubclassOf<UGameplayEffect>> AdditionalEffects;
+
+    TArray<FGameplayEffectSpecHandle> MakeSpecs(UAbilitySystemComponent* SourceASC, const FGameplayEffectContextHandle& Context) const;
 };

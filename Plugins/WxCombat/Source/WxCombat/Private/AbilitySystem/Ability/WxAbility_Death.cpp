@@ -23,7 +23,6 @@ UWxAbility_Death::UWxAbility_Death()
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	
 	ActivationGroup = EWxAbilityActivationGroup::Reaction;
-	bCancelsRunningActions = true;
 
 	FAbilityTriggerData TriggerData;
 	TriggerData.TriggerTag = WxGameplayTags::Event_Death;

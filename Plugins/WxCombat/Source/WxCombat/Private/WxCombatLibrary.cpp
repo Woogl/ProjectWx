@@ -6,10 +6,10 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
-#include "Damage/WxDamageInfo.h"
 #include "WxGameplayTags.h"
+#include "Damage/WxDamageTableRow.h"
 
-bool UWxCombatLibrary::ApplyDamage(UAbilitySystemComponent* Source, UAbilitySystemComponent* Target, const FWxDamageInfo& DamageInfo, const FHitResult& HitResult, float HitStopDuration)
+bool UWxCombatLibrary::ApplyDamage(UAbilitySystemComponent* Source, UAbilitySystemComponent* Target, const FDataTableRowHandle& DamageTableRow, const FHitResult& HitResult, float HitStopDuration)
 {
 	if (!Source || !Target)
 	{
@@ -46,9 +46,15 @@ bool UWxCombatLibrary::ApplyDamage(UAbilitySystemComponent* Source, UAbilitySyst
 		EventData.Target = TargetActor;
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_DodgeSuccess, EventData);
 	}
-
+	
+	FWxDamageTableRow* DamageRow = DamageTableRow.GetRow<FWxDamageTableRow>(TEXT("GetDamageTableRow"));
+	if (!DamageRow)
+	{
+		return false;
+	}
+	
 	bool bAppliedAny = false;
-	const TArray<FGameplayEffectSpecHandle> Specs = DamageInfo.MakeSpecs(Source, Context);
+	const TArray<FGameplayEffectSpecHandle> Specs = DamageRow->MakeSpecs(Source, Context);
 	for (const FGameplayEffectSpecHandle& Spec : Specs)
 	{
 		if (Spec.IsValid())

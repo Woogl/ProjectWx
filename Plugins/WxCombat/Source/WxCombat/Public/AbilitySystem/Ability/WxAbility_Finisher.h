@@ -8,7 +8,6 @@
 
 class UAnimMontage;
 struct FGameplayEventData;
-struct FWxDamageInfo;
 
 /**
  * 피니셔 어빌리티 — 공격자(플레이어) 측.
@@ -31,7 +30,7 @@ public:
 	UWxAbility_Finisher();
 
 	/** 공격 몽타주의 WxAnimNotify_FinisherDamage가 대미지 프레임에 호출한다. */
-	void ApplyFinisherDamage(const FWxDamageInfo& DamageInfo) const;
+	void ApplyFinisherDamage(const FDataTableRowHandle& DamageInfo) const;
 
 	/** 피해자 짝 피격이 고정 1.0으로 재생되므로 공격자도 ASPD를 반영하지 않는다. */
 	virtual float GetMontagePlayRate() const override;

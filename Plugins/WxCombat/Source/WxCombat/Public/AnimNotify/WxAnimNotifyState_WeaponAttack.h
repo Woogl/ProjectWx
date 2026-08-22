@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
-#include "Damage/WxDamageInfo.h"
 #include "WxAnimNotifyState_WeaponAttack.generated.h"
 
 /** 히트 콜리전을 켜고 끄는 것은 무기 자신이다. */

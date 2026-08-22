@@ -30,5 +30,5 @@ public:
 	 * @return					Spec 중 하나라도 권위 또는 예측으로 적용됐으면 true.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Combat")
-	static bool ApplyDamage(UAbilitySystemComponent* Source, UAbilitySystemComponent* Target, const FWxDamageInfo& DamageInfo, const FHitResult& HitResult, float HitStopDuration = 0.f);
+	static bool ApplyDamage(UAbilitySystemComponent* Source, UAbilitySystemComponent* Target, const FDataTableRowHandle& DamageTableRow, const FHitResult& HitResult, float HitStopDuration = 0.f);
 };

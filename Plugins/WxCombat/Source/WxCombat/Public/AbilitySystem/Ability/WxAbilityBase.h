@@ -164,12 +164,9 @@ protected:
 	UFUNCTION()
 	virtual void HandleMontageCancelled();
 
-	/** 생성자에서 선언한다. 후딜 전이(StartRecovery)가 Exclusive_Replaceable로 바꾸고, 다음 활성화가 선언값으로 되돌린다. */
-	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	/** 후딜 전이(StartRecovery)가 Exclusive_Replaceable로 바꾸고, 다음 활성화가 선언값으로 되돌린다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	EWxAbilityActivationGroup ActivationGroup = EWxAbilityActivationGroup::Independent;
-
-	/** Reaction 전용. 발동할 때 후딜에 든 것뿐 아니라 본동작(Exclusive_Blocking·Reaction)까지 끊는다. */
-	bool bCancelsRunningActions = false;
 
 private:
 	const FWxAbilityTableRow* GetTableRow() const;

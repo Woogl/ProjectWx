@@ -21,7 +21,7 @@ void UWxAnimNotifyState_WeaponAttack::NotifyBegin(USkeletalMeshComponent* MeshCo
 
 	if (AWxWeaponBase* Weapon = AWxWeaponBase::FindWeapon(Owner))
 	{
-		Weapon->BeginAttack(FWxDamageInfo::FromDataRow(DamageDataRow));
+		Weapon->BeginAttack(DamageDataRow);
 	}
 }
 

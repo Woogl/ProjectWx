@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Damage/WxDamageInfo.h"
 #include "GameFramework/Actor.h"
 #include "WxWeaponBase.generated.h"
 
@@ -29,7 +28,7 @@ public:
 	static AWxWeaponBase* FindWeapon(const AActor* Owner);
 
 	/** 첫 호출에서만 콜리전을 켜고, 겹치는 ANS는 레퍼런스 카운트만 올린다. */
-	void BeginAttack(const FWxDamageInfo& InDamageInfo);
+	void BeginAttack(const FDataTableRowHandle& InDamageInfo);
 
 	/** 모든 활성 구간이 닫혔을 때만 콜리전을 끈다. */
 	void EndAttack();
@@ -81,7 +80,7 @@ private:
 	int32 ActiveAttackCount = 0;
 
 	UPROPERTY()
-	FWxDamageInfo DamageInfo;
+	FDataTableRowHandle DamageInfo;
 
 	UPROPERTY()
 	TSet<TObjectPtr<AActor>> HitActorsThisSwing;

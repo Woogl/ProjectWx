@@ -7,7 +7,6 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
-#include "Damage/WxDamageInfo.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Targeting/WxLockOnManagerComponent.h"
@@ -108,7 +107,7 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 
 	UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator());
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
-	UWxCombatLibrary::ApplyDamage(SourceASC, TargetASC, FWxDamageInfo::FromDataRow(DamageDataRow), HitResult);
+	UWxCombatLibrary::ApplyDamage(SourceASC, TargetASC, DamageDataRow, HitResult);
 
 	Destroy();
 }

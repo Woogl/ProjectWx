@@ -52,7 +52,7 @@ AWxWeaponBase* AWxWeaponBase::FindWeapon(const AActor* Owner)
 	return nullptr;
 }
 
-void AWxWeaponBase::BeginAttack(const FWxDamageInfo& InDamageInfo)
+void AWxWeaponBase::BeginAttack(const FDataTableRowHandle& InDamageInfo)
 {
 	AActor* OwnerActor = GetOwner();
 	if (!OwnerActor)
@@ -93,7 +93,6 @@ void AWxWeaponBase::EndAttack()
 		HitCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		SetActorTickEnabled(false);
 		HitActorsThisSwing.Empty();
-		DamageInfo = FWxDamageInfo();
 	}
 }
 
@@ -108,7 +107,6 @@ void AWxWeaponBase::CancelAttack()
 	HitCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SetActorTickEnabled(false);
 	HitActorsThisSwing.Empty();
-	DamageInfo = FWxDamageInfo();
 }
 
 void AWxWeaponBase::SetVisualMesh(USkeletalMesh* MeshAsset)

@@ -4,7 +4,6 @@
 #include "AbilitySystem/Effect/WxEffect_AddDP.h"
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "AbilitySystem/Effect/WxEffect_Exhaust.h"
-#include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Damage/WxCombatEffectContext.h"
@@ -302,10 +301,6 @@ void UWxCombatAttributeSet::ProcessDamageTaken(const FGameplayEffectModCallbackD
 
 	AActor* TargetActor = GetOwningActor();
 	UAbilitySystemComponent* SourceASC = ContextHandle.GetInstigatorAbilitySystemComponent();
-
-	UWxEffect_RecoverResource::ApplyTo(SourceASC,
-		Data.EffectSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_UP, false, 0.f),
-		Data.EffectSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Recovery_MP, false, 0.f));
 
 	// 공격이 요청한 반응 태그는 스펙에 실려 온다 — 바로 아래 Damage.Unblockable을 읽는 것과 같은 자리다.
 	FGameplayTag HitReactTag = Data.EffectSpec.GetDynamicAssetTags().Filter(FGameplayTagContainer(WxGameplayTags::Event_HitReact)).First();

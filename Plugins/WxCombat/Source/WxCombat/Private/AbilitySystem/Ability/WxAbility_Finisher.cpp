@@ -5,7 +5,6 @@
 #include "AbilitySystem/Effect/WxEffect_ResetDP.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
-#include "Damage/WxDamageInfo.h"
 #include "MotionWarpingComponent.h"
 #include "WxCombatLibrary.h"
 #include "WxGameplayTags.h"
@@ -28,7 +27,6 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	// 앞잡은 플레이어의 공격으로 만들어지므로, 그로기 직후 F를 누르면 그 공격이 아직 본동작일 수 있다(막힌 발동은 재시도 없이 소모).
 	// Reaction은 그 점유에 막히지 않고, 발동하며 진행 중이던 액션을 끊는다.
 	ActivationGroup = EWxAbilityActivationGroup::Reaction;
-	bCancelsRunningActions = true;
 
 	ActivationOwnedEffects.Add(UWxEffect_Invincible::StaticClass());
 
@@ -148,7 +146,7 @@ void UWxAbility_Finisher::RegisterWarpTarget(AActor* AvatarActor, const AActor* 
 	MotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(WarpTargetName, TargetLocation, WarpRotation);
 }
 
-void UWxAbility_Finisher::ApplyFinisherDamage(const FWxDamageInfo& DamageInfo) const
+void UWxAbility_Finisher::ApplyFinisherDamage(const FDataTableRowHandle& DamageInfo) const
 {
 	const AActor* Target = TargetActor.Get();
 	if (!Target)

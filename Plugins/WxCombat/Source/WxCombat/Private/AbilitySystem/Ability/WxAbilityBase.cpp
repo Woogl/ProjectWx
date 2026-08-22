@@ -112,12 +112,8 @@ void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 		{
 			// 후딜에 든 앞 액션은 들어온 배타 발동이 끊는다.
 			WxASC->CancelActivationGroupAbilities(EWxAbilityActivationGroup::Exclusive_Replaceable, this);
-
-			if (bCancelsRunningActions)
-			{
-				WxASC->CancelActivationGroupAbilities(EWxAbilityActivationGroup::Exclusive_Blocking, this);
-				WxASC->CancelActivationGroupAbilities(EWxAbilityActivationGroup::Reaction, this);
-			}
+			WxASC->CancelActivationGroupAbilities(EWxAbilityActivationGroup::Exclusive_Blocking, this);
+			WxASC->CancelActivationGroupAbilities(EWxAbilityActivationGroup::Reaction, this);
 		}
 	}
 
