@@ -2,6 +2,7 @@
 
 #include "Interaction/WxStateTreeTask_EnableInteraction.h"
 
+#include "Components/ChildActorComponent.h"
 #include "Device/WxDevice.h"
 #include "GameFramework/Actor.h"
 #include "StateTreeExecutionContext.h"
@@ -27,6 +28,22 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExe
 
 	if (Instance.Target.IsEmpty())
 	{
+		// 내장 장치 갈래: 프롬프트·발행자는 그 장치의 트리가 들고 있으므로 여기선 계약으로 잠금만 건드린다.
+		if (!Instance.ChildDevice.Name.IsNone())
+		{
+			const AActor* Owner = Cast<AActor>(Context.GetOwner());
+			const UChildActorComponent* ChildActorComponent = Cast<UChildActorComponent>(Instance.ChildDevice.Resolve(Owner));
+			IWxInteractable* ChildInteractable = ChildActorComponent ? Cast<IWxInteractable>(ChildActorComponent->GetChildActor()) : nullptr;
+			if (!ChildInteractable)
+			{
+				UE_LOG(LogWxWorld, Error, TEXT("Enable Interaction: %s 에서 내장 장치 '%s' 를 찾지 못했다."), *GetNameSafe(Owner), *Instance.ChildDevice.Name.ToString());
+				return EStateTreeRunStatus::Failed;
+			}
+
+			ChildInteractable->SetInteractionEnabled(Instance.bEnable);
+			return EStateTreeRunStatus::Succeeded;
+		}
+
 		// 프롬프트·발행 자리까지 담아야 해서 계약이 아니라 장치로 직접 부른다 — 그러지 않으면 공용 계약이 StateTree 를 떠안는다.
 		// 꺼지면 장치가 활성 판정에 false 를 답해 다음 스캔에서 탈락한다. 콜리전은 건드리지 않으므로 대상 메시의 설정은 보존된다.
 		if (AWxDevice* Device = Cast<AWxDevice>(Context.GetOwner()))
@@ -92,7 +109,14 @@ FText FWxStateTreeTask_EnableInteraction::GetDescription(const FGuid& ID, FState
 	FText TargetText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, Target)), Formatting);
 	if (TargetText.IsEmpty())
 	{
-		TargetText = InstanceData->Target.IsEmpty() ? INVTEXT("자신") : FText::FromString(GetTargetDisplayName(InstanceData->Target));
+		if (!InstanceData->Target.IsEmpty())
+		{
+			TargetText = FText::FromString(GetTargetDisplayName(InstanceData->Target));
+		}
+		else
+		{
+			TargetText = InstanceData->ChildDevice.Name.IsNone() ? INVTEXT("self") : FText::FromName(InstanceData->ChildDevice.Name);
+		}
 	}
 
 	if (InstanceData->bEnable && !InstanceData->Prompt.IsEmpty())

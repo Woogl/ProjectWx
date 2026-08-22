@@ -31,12 +31,12 @@
   - `State.*` — 락온/전투/처형/콤보/대화 등 액터 상태 마커
   - `Effect.*` — GE가 부여하는 상태(무적/가드/탈진/슈퍼아머 등), 애셋 태그 겸용
   - `Movement.*` — InAir/Sprint 이동 상태
-  - `Event.*` — HitReact 계열, 처형·백스탭·사망·그로기 등 게임플레이 이벤트
+  - `Event.*` — HitReact 계열, 처형·백스탭·사망·그로기 등 게임플레이 이벤트. `Event.Device.Triggered`는 발동 장치가 연결 장치 트리에 보내는 기본 "눌렸다" 이벤트(`AWxDevice::TriggerEvent` 기본값); 상태가 아닌 동작 요청이 생기면 `Event.Device.<장치>.<동사>`로 그때 만든다
   - `Ability.*` — 어빌리티 식별 태그(정확히 하나, `Ability.X` 활성 = 그 어빌리티 활성). `Trait.*`는 성질 분류 마커(`Trait.Exclusive` 액션 슬롯 점유)
   - `SetByCaller.*` — GE 계산용 키(Duration/Recovery/Coeff/RawDamage/MoveSpeedScale)
   - `GameplayCue.*` — 히트·가드·텔레그래프 등 연출 큐
   - `Damage.*` — Critical/Unblockable/ParryHitReact 등 대미지 특성
-  - `Device.*` — 문/엘리베이터/보물상자/체크포인트 StateTree 상태값(세이브 대상), 코드 비참조
+  - `Device.*` — 문/엘리베이터/보물상자/체크포인트/버튼 StateTree 상태값(세이브 대상), 코드 비참조. 발동 장치가 이 태그를 `TriggerEvent`로 보내면 뜻은 언제나 "그 상태로 가 달라"는 요청 하나뿐이다(엘리베이터 버튼 = `Device.Elevator.1F`/`2F`, 받는 ST는 `On Event(그 태그) → 그 상태`); 그 외 용도로 상태 태그를 이벤트에 쓰지 않는다
   - `UI.*` — CommonUI 레이어(`UI.Layer.*`) 및 액션(`UI.Action.*`)
 
 ## 확장 포인트 / 규약

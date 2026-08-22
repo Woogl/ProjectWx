@@ -49,12 +49,13 @@ void AWxDevice::PreSave(FObjectPreSaveContext ObjectSaveContext)
 
 bool AWxDevice::CanInteract() const
 {
-	return bInteractionEnabled;
+	return bInteractionEnabled && !bInteractionLocked;
 }
 
 void AWxDevice::SetInteractionEnabled(bool bEnabled)
 {
-	SetInteractionBinding(bEnabled, FWxDeviceInteractionBinding());
+	// 자기 바인딩은 건드리지 않는다 — 버튼처럼 자기 트리가 프롬프트·발행자를 든 장치를 남이 껐다 켜도 원래대로 눌려야 한다.
+	bInteractionLocked = !bEnabled;
 }
 
 void AWxDevice::OnInteracted(AActor* Interactor)
@@ -71,8 +72,8 @@ void AWxDevice::OnInteracted(AActor* Interactor)
 		return;
 	}
 
-	// 꺼져 있으면 애초에 스캔 후보에서 빠지지만, 여기서도 같은 기준으로 걸러 상태를 건드리지 않는다.
-	if (!bInteractionEnabled)
+	// 꺼져 있거나 잠겨 있으면 애초에 스캔 후보에서 빠지지만, 여기서도 같은 기준으로 걸러 상태를 건드리지 않는다.
+	if (!CanInteract())
 	{
 		return;
 	}
@@ -103,7 +104,7 @@ void AWxDevice::OnSaveRestored()
 	StateTreeComponent->NotifySaveRestored();
 }
 
-void AWxDevice::NotifyDeviceInteracted(AActor* Interactor)
+void AWxDevice::NotifyDeviceInteracted(AActor* Interactor, FGameplayTag EventTag)
 {
 	// 발동 장치가 서버 권위에서만 부르지만, 상태를 움직이는 것은 권위 트리뿐이므로 한 번 더 가른다.
 	if (!HasAuthority())
@@ -123,7 +124,7 @@ void AWxDevice::NotifyDeviceInteracted(AActor* Interactor)
 	// 잠든 트리는 이 발송이 예약하는 다음 틱이 깨운다.
 	// 자기 상호작용과 달리 재진입 판정은 걸지 않는다 — 이벤트엔 「지금 듣고 있는가」를 가릴 자리가 없어,
 	// 반응하지 않는 상태에서 당길 때마다 클라만 현재 상태를 재진입해 연출을 헛재생하게 된다.
-	StateTreeComponent->SendStateTreeEvent(WxGameplayTags::Event_Interact);
+	StateTreeComponent->SendStateTreeEvent(EventTag);
 }
 
 FGameplayTag AWxDevice::GetStateTag() const
@@ -142,6 +143,20 @@ void AWxDevice::SetInteractionBinding(bool bEnabled, const FWxDeviceInteractionB
 
 	// 끌 때는 다음 켜짐이 자기 값을 다시 담도록 비운다 — 남겨 두면 꺼진 상태의 문구가 프롬프트로 새어 나간다.
 	InteractionBinding = bEnabled ? Binding : FWxDeviceInteractionBinding();
+}
+
+void AWxDevice::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// 리모트 클라에선 복제 child 의 ParentComponent 가 비복제라 배선이 비지만, 눌림 전달은 권위 전용이라 무관하다.
+	if (AActor* AttachParentActor = GetAttachParentActor())
+	{
+		if (AWxDevice* ParentDevice = Cast<AWxDevice>(AttachParentActor))
+		{
+			LinkedDevices.AddUnique(ParentDevice);
+		}
+	}
 }
 
 void AWxDevice::BroadcastInteractionDelegate()

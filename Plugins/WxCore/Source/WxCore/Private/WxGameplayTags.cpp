@@ -31,24 +31,31 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_PerfectGuard, "Event.PerfectGuard");
 	UE_DEFINE_GAMEPLAY_TAG(Event_UseItem, "Event.UseItem");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Interact, "Event.Interact");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Device_Triggered, "Event.Device.Triggered");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Finisher, "Event.Finisher");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Backstab, "Event.Backstab");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Death, "Event.Death");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Groggy, "Event.Groggy");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Ragdoll, "Event.Ragdoll");
+	
+	UE_DEFINE_GAMEPLAY_TAG(Device_Button_Idle, "Device.Button.Idle");
+	UE_DEFINE_GAMEPLAY_TAG(Device_Button_Pressed, "Device.Button.Pressed");
 
 	UE_DEFINE_GAMEPLAY_TAG(Device_Door_Close, "Device.Door.Close");
 	UE_DEFINE_GAMEPLAY_TAG(Device_Door_Open, "Device.Door.Open");
 
+	UE_DEFINE_GAMEPLAY_TAG(Device_Elevator_Inactive, "Device.Elevator.Inactive");
 	UE_DEFINE_GAMEPLAY_TAG(Device_Elevator_1F, "Device.Elevator.1F");
 	UE_DEFINE_GAMEPLAY_TAG(Device_Elevator_2F, "Device.Elevator.2F");
-	UE_DEFINE_GAMEPLAY_TAG(Device_Elevator_Moving, "Device.Elevator.Moving");
 
 	UE_DEFINE_GAMEPLAY_TAG(Device_TreasureChest_Closed, "Device.TreasureChest.Closed");
 	UE_DEFINE_GAMEPLAY_TAG(Device_TreasureChest_Open, "Device.TreasureChest.Open");
 
 	UE_DEFINE_GAMEPLAY_TAG(Device_CheckPoint_Unlit, "Device.CheckPoint.Unlit");
 	UE_DEFINE_GAMEPLAY_TAG(Device_CheckPoint_Lit, "Device.CheckPoint.Lit");
+
+	UE_DEFINE_GAMEPLAY_TAG(Device_Piston_On, "Device.Piston.On");
+	UE_DEFINE_GAMEPLAY_TAG(Device_Piston_Off, "Device.Piston.Off");
 
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_DamageFloater, "GameplayCue.DamageFloater");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Hit, "GameplayCue.Hit");

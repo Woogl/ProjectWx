@@ -38,7 +38,7 @@ struct FWxDeviceInteractionBinding
  * StateTree 로 자기 상태를 구동하는 월드 장치(문·상자·체크포인트·엘리베이터)의 공통 호스트.
  *
  * 루트를 만들지 않는다 — 파생 BP 가 저마다 다른 몸통을 세운다.
- * 상호작용을 받아 남의 장치를 미는 AWxTriggerDevice 와 이름 계열을 이루되 상속 관계는 없다 — 발동 장치는 상태를 들지 않아 트리가 없다.
+ * 버튼·레버 같은 발동 장치도 이 클래스다 — 누른 상태를 자기 트리로 몰면서 '연결 장치 발동' 태스크로 LinkedDevices 를 민다.
  *
  * 상태의 실행·소유(복제·SaveGame StateTag)·ST 에셋 저작은 전부 UWxDeviceStateTreeComponent 가 맡는다 — 상태 구동 패턴은 그 클래스 doc-comment 참조.
  * 이 액터에 남는 것은 상호작용 표면(IWxInteractable·프롬프트·당사자)과 세이브 신원(IWxSavable·SaveId)뿐이다.
@@ -62,7 +62,7 @@ public:
 	//~ Begin IWxInteractable — 활성·프롬프트는 ST 가 상태마다 세팅한 값이다.
 	virtual bool CanInteract() const override;
 
-	/** 남의 트리('상호작용 켜기' Target 갈래)가 이 장치를 잠그고 여는 진입점. 프롬프트·발행자가 없는 토글이라 켜도 눌림이 트리에 닿지 않는다. */
+	/** 남의 트리('상호작용 켜기' Target·내장 장치 갈래)가 이 장치를 잠그고 푸는 진입점. 자기 트리가 든 켜짐·프롬프트·발행자와는 별개의 잠금이라, 풀면 자기 바인딩 그대로 다시 눌린다. */
 	virtual void SetInteractionEnabled(bool bEnabled) override;
 
 	/** 권위 측에서 상호작용을 받아 당사자를 기록하고 지금 상태의 발행자를 트리에 발행한다. 어느 상태로 갈지는 ST 에셋의 전이가 정하고, 그 결과가 복제되어 클라에 전해진다. */
@@ -84,10 +84,10 @@ public:
 	//~ End IWxSavable
 
 	/**
-	 * 이 장치를 지목한 발동 장치가 눌렸을 때 그 장치가 서버 권위에서 부른다. 당사자를 기록하고 트리에 Event.Interact 를 보낸다.
+	 * 이 장치를 지목한 발동 장치의 '연결 장치 발동' 태스크가 권위 측에서 부른다. 당사자를 기록하고 트리에 EventTag(발동 장치의 TriggerEvent)를 보낸다.
 	 * 어느 상태로 갈지는 그 이벤트를 듣는 ST 에셋의 전이가 정하며, 결과는 자기 상호작용과 같이 StateTag 복제로 클라에 전해진다.
 	 */
-	void NotifyDeviceInteracted(AActor* Interactor);
+	void NotifyDeviceInteracted(AActor* Interactor, FGameplayTag EventTag);
 
 	/**
 	 * 권위가 정한 상태의 Tag. 밖에서 장치 상태를 조건으로 삼는 쪽(층별 호출 레버 등)이 읽는 값이다.
@@ -106,11 +106,30 @@ public:
 	void SetInteractionBinding(bool bEnabled, const FWxDeviceInteractionBinding& Binding);
 
 	/**
+	 * 이 장치가 발동할 다른 장치들. '연결 장치 발동' 태스크가 진입한 상태에서 각각에 눌림을 통지한다.
+	 * 배선은 미는 쪽 → 밀리는 쪽 단방향 저작이라 하나가 여럿을(1:N), 한 장치가 여러 발동 장치에(N:1) 걸린다.
+	 * 하드 참조라 대상과 함께 로드된다 — 늦은 등록을 따로 다루지 않는 근거다.
+	 */
+	UPROPERTY(EditInstanceOnly, Category = "Wx")
+	TArray<TObjectPtr<AWxDevice>> LinkedDevices;
+
+	/**
+	 * 연결 장치에 보내는 이벤트.
+	 * 목적지가 여럿인 장치(엘리베이터)의 버튼은 상태 태그를 보내, 받는 트리가 On Event(그 태그)로 가른다.
+	 */
+	UPROPERTY(EditAnywhere, Category = "Wx")
+	FGameplayTag TriggerEvent;
+
+	/**
 	 * 이번 상호작용의 당사자(플레이어 캐릭터). 권위가 쓰고 복제로 각 피어에 전해진다 — StateTag 와 같은 액터 채널 갱신에 실리므로 추종 전이 시점에 짝이 맞는다.
 	 * 비영속이라 복원 시엔 비어 있고, 그때는 당사자 태스크들이 스스로 스킵한다.
 	 */
 	UPROPERTY(Replicated, Transient)
 	TObjectPtr<ACharacter> InteractingCharacter;
+
+protected:
+	/** 장치 BP 에 ChildActor 로 심긴 발동 장치가 자기를 품은 장치를 스스로 지목한다 — 문+버튼처럼 한 몸으로 저작되는 쌍은 배선이 필요 없다. */
+	virtual void BeginPlay() override;
 
 private:
 	/**
@@ -132,6 +151,13 @@ private:
 	 */
 	UPROPERTY(Transient)
 	bool bInteractionEnabled = false;
+
+	/**
+	 * 남의 트리가 건 잠금. 자기 트리의 켜짐(bInteractionEnabled)과 별개라 풀어도 바인딩이 살아 있다.
+	 * 로컬 전용 — 잠그는 트리가 각 피어에서 실행되어 같은 값으로 수렴한다.
+	 */
+	UPROPERTY(Transient)
+	bool bInteractionLocked = false;
 
 	/** 켜져 있는 동안의 프롬프트와 발행 자리. 끄면 다음 켜짐을 위해 비운다. */
 	UPROPERTY(Transient)
