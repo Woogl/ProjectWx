@@ -1,26 +1,33 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Device/WxStateTreeTask_ComponentSplineMove.h"
+#include "Device/WxStateTreeTask_SplineMove.h"
 
 #include "Components/SceneComponent.h"
 #include "Components/SplineComponent.h"
+#include "GameFramework/Actor.h"
 #include "StateTreeExecutionContext.h"
 #include "StateTreePropertyBindings.h"
+#include "WxWorldModule.h"
 
-FWxStateTreeTask_ComponentSplineMove::FWxStateTreeTask_ComponentSplineMove()
+FWxStateTreeTask_SplineMove::FWxStateTreeTask_SplineMove()
 {
 	// ComponentMove 와 같은 이유 — 목표 끝점을 선언하는 상태형이라, 재선택으로 다시 진입하면 주파 중이던 구간이 끊긴다.
 	bShouldStateChangeOnReselect = false;
 }
 
-EStateTreeRunStatus FWxStateTreeTask_ComponentSplineMove::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+EStateTreeRunStatus FWxStateTreeTask_SplineMove::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	USceneComponent* Component = Instance.TargetComponent;
-	const USplineComponent* Spline = Instance.Spline;
+	const AActor* Owner = Cast<AActor>(Context.GetOwner());
+	Instance.Component = Instance.TargetComponent.Resolve(Owner);
+	Instance.SplineComponent = Cast<USplineComponent>(Instance.Spline.Resolve(Owner));
+
+	USceneComponent* Component = Instance.Component;
+	const USplineComponent* Spline = Instance.SplineComponent;
 	if (!Component || !Spline)
 	{
+		UE_LOG(LogWxWorld, Error, TEXT("Spline Move: %s 에서 컴포넌트 '%s' 또는 스플라인 '%s' 를 찾지 못했다."), *GetNameSafe(Owner), *Instance.TargetComponent.Name.ToString(), *Instance.Spline.Name.ToString());
 		return EStateTreeRunStatus::Failed;
 	}
 
@@ -53,12 +60,12 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentSplineMove::EnterState(FStateTreeE
 	return EStateTreeRunStatus::Running;
 }
 
-EStateTreeRunStatus FWxStateTreeTask_ComponentSplineMove::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
+EStateTreeRunStatus FWxStateTreeTask_SplineMove::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	USceneComponent* Component = Instance.TargetComponent;
-	const USplineComponent* Spline = Instance.Spline;
+	USceneComponent* Component = Instance.Component;
+	const USplineComponent* Spline = Instance.SplineComponent;
 	if (!Component || !Spline)
 	{
 		return EStateTreeRunStatus::Failed;
@@ -75,18 +82,13 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentSplineMove::Tick(FStateTreeExecuti
 }
 
 #if WITH_EDITOR
-FText FWxStateTreeTask_ComponentSplineMove::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
+FText FWxStateTreeTask_SplineMove::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
 {
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	// 스플라인은 보통 바인딩이라 런타임 포인터가 비어 있다.
-	FText SplineText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, Spline)), Formatting);
-	if (SplineText.IsEmpty())
-	{
-		SplineText = InstanceData->Spline ? FText::FromString(InstanceData->Spline->GetName()) : INVTEXT("none");
-	}
-
-	return FText::Format(INVTEXT("컴포넌트 스플라인 이동 ({0} → {1}번 지점)"), SplineText, FText::AsNumber(InstanceData->TargetPointIndex));
+	const FName SplineName = InstanceData->Spline.Name;
+	return FText::Format(INVTEXT("스플라인 이동 ({0})"),
+		SplineName.IsNone() ? INVTEXT("none") : FText::FromName(SplineName));
 }
 #endif

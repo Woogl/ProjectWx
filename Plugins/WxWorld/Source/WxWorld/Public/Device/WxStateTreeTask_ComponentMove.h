@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Device/WxComponentName.h"
 #include "StateTreeTaskBase.h"
 #include "WxStateTreeTask_ComponentMove.generated.h"
 
@@ -17,11 +18,11 @@ struct FWxStateTreeTask_ComponentMoveInstanceData
 {
 	GENERATED_BODY()
 
-	/** ST 에셋에서 Context 액터의 컴포넌트(예: DoorLeft)로 바인딩한다. */
+	/** 옮길 컴포넌트. 트리가 붙은 액터가 가진 것 중에서 고른다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
-	TObjectPtr<USceneComponent> TargetComponent;
+	FWxComponentName TargetComponent;
 
-	/** 기준(아키타입) 포즈 대비 목표 변위(로컬). 각 상태가 자기 목표를 직접 지정한다(머무를 위치는 0). */
+	/** 아키타입 대비 목표 상대 좌표 */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	FVector LocalOffset = FVector::ZeroVector;
 
@@ -29,11 +30,15 @@ struct FWxStateTreeTask_ComponentMoveInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
 	float Duration = 1.f;
 
+	/** (런타임) 지목이 가리키는 컴포넌트. EnterState 에서 1회 해석해 담고 Tick 은 이 값을 읽기만 한다. */
+	UPROPERTY()
+	TObjectPtr<USceneComponent> Component;
+
 	/** (런타임) 시작→목표 구간의 일정 속도(초당 로컬 거리). EnterState 에서 1회 산출한다. */
 	UPROPERTY()
 	float MoveSpeed = 0.f;
 
-	/** (런타임) 기준(아키타입)+LocalOffset 으로 산출한 목표 상대 위치. */
+	/** (런타임) 계산된 목표 상대 위치. */
 	UPROPERTY()
 	FVector TargetLocation = FVector::ZeroVector;
 };

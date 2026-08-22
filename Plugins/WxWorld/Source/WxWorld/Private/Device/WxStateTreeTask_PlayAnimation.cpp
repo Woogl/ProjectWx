@@ -5,15 +5,21 @@
 #include "Animation/AnimSequenceBase.h"
 #include "Animation/AnimSingleNodeInstance.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "GameFramework/Actor.h"
 #include "StateTreeExecutionContext.h"
+#include "WxWorldModule.h"
 
 EStateTreeRunStatus FWxStateTreeTask_PlayAnimation::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
+	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	USkeletalMeshComponent* Mesh = Instance.TargetMesh;
+	const AActor* Owner = Cast<AActor>(Context.GetOwner());
+	Instance.Mesh = Cast<USkeletalMeshComponent>(Instance.TargetMesh.Resolve(Owner));
+
+	USkeletalMeshComponent* Mesh = Instance.Mesh;
 	if (!Mesh || !Instance.Animation)
 	{
+		UE_LOG(LogWxWorld, Error, TEXT("Play Animation: %s 에서 메시 '%s' 를 찾지 못했거나 애니메이션이 비었다."), *GetNameSafe(Owner), *Instance.TargetMesh.Name.ToString());
 		return EStateTreeRunStatus::Failed;
 	}
 
@@ -26,7 +32,7 @@ EStateTreeRunStatus FWxStateTreeTask_PlayAnimation::Tick(FStateTreeExecutionCont
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	USkeletalMeshComponent* Mesh = Instance.TargetMesh;
+	USkeletalMeshComponent* Mesh = Instance.Mesh;
 	if (!Mesh || !Instance.Animation)
 	{
 		return EStateTreeRunStatus::Failed;

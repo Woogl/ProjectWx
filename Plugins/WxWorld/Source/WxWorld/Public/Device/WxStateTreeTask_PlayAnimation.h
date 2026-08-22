@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Device/WxComponentName.h"
 #include "StateTreeTaskBase.h"
 #include "WxStateTreeTask_PlayAnimation.generated.h"
 
@@ -18,11 +19,16 @@ struct FWxStateTreeTask_PlayAnimationInstanceData
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, Category = "Parameter")
-	TObjectPtr<USkeletalMeshComponent> TargetMesh;
+	/** 재생시킬 메시. 트리가 붙은 액터가 가진 것 중에서 고른다. */
+	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedClasses = "/Script/Engine.SkeletalMeshComponent"))
+	FWxComponentName TargetMesh;
 
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<UAnimSequenceBase> Animation;
+
+	/** (런타임) 지목이 가리키는 메시. EnterState 에서 1회 해석해 담고 Tick 은 이 값을 읽기만 한다. */
+	UPROPERTY()
+	TObjectPtr<USkeletalMeshComponent> Mesh;
 };
 
 /**

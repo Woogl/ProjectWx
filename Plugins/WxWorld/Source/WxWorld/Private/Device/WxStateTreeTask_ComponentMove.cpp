@@ -3,8 +3,10 @@
 #include "Device/WxStateTreeTask_ComponentMove.h"
 
 #include "Components/SceneComponent.h"
+#include "GameFramework/Actor.h"
 #include "StateTreeExecutionContext.h"
 #include "StateTreePropertyBindings.h"
+#include "WxWorldModule.h"
 
 FWxStateTreeTask_ComponentMove::FWxStateTreeTask_ComponentMove()
 {
@@ -16,9 +18,13 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentMove::EnterState(FStateTreeExecuti
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	USceneComponent* Component = Instance.TargetComponent;
+	const AActor* Owner = Cast<AActor>(Context.GetOwner());
+	Instance.Component = Instance.TargetComponent.Resolve(Owner);
+
+	USceneComponent* Component = Instance.Component;
 	if (!Component)
 	{
+		UE_LOG(LogWxWorld, Error, TEXT("Component Move: %s 에서 컴포넌트 '%s' 를 찾지 못했다."), *GetNameSafe(Owner), *Instance.TargetComponent.Name.ToString());
 		return EStateTreeRunStatus::Failed;
 	}
 
@@ -44,7 +50,7 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentMove::Tick(FStateTreeExecutionCont
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	USceneComponent* Component = Instance.TargetComponent;
+	USceneComponent* Component = Instance.Component;
 	if (!Component)
 	{
 		return EStateTreeRunStatus::Failed;
@@ -68,13 +74,7 @@ FText FWxStateTreeTask_ComponentMove::GetDescription(const FGuid& ID, FStateTree
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	// 움직일 컴포넌트는 보통 바인딩이라 런타임 포인터가 비어 있다.
-	FText ComponentText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, TargetComponent)), Formatting);
-	if (ComponentText.IsEmpty())
-	{
-		ComponentText = InstanceData->TargetComponent ? FText::FromString(InstanceData->TargetComponent->GetName()) : INVTEXT("none");
-	}
-
-	return FText::Format(INVTEXT("컴포넌트 이동 ({0})"), ComponentText);
+	const FName ComponentName = InstanceData->TargetComponent.Name;
+	return FText::Format(INVTEXT("컴포넌트 이동 ({0})"), ComponentName.IsNone() ? INVTEXT("none") : FText::FromName(ComponentName));
 }
 #endif

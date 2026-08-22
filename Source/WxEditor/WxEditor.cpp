@@ -6,6 +6,7 @@
 #include "Engine/Blueprint.h"
 #include "Engine/DataTable.h"
 #include "Framework/WxExperienceManager.h"
+#include "Device/WxComponentName.h"
 #include "Items/WxItemDefinition.h"
 #include "Modules/ModuleManager.h"
 #include "PropertyEditorModule.h"
@@ -17,6 +18,7 @@
 #include "WxAbilityThumbnailRenderer.h"
 #include "WxActorLocatorCustomization.h"
 #include "WxCategoryDetailCustomization.h"
+#include "WxStateTreeComponentNameCustomization.h"
 #include "WxDataTableRowHandleCustomization.h"
 #include "WxItemDefinitionThumbnailRenderer.h"
 
@@ -46,6 +48,11 @@ void FWxEditorModule::StartupModule()
 	PropertyModule.RegisterCustomPropertyTypeLayout(
 		FDataTableRowHandle::StaticStruct()->GetFName(),
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FWxDataTableRowHandleCustomization::MakeInstance));
+
+	// 장치 컴포넌트 지정 필드 — Context 액터 클래스에서 뽑은 컴포넌트 이름 콤보.
+	PropertyModule.RegisterCustomPropertyTypeLayout(
+		FWxComponentName::StaticStruct()->GetFName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FWxStateTreeComponentNameCustomization::MakeInstance));
 
 	PropertyModule.NotifyCustomizationModuleChanged();
 
@@ -78,6 +85,7 @@ void FWxEditorModule::ShutdownModule()
 			ActorLocatorIdentifier.Reset();
 		}
 		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("DataTableRowHandle"));
+		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("WxComponentName"));
 		PropertyModule.NotifyCustomizationModuleChanged();
 	}
 

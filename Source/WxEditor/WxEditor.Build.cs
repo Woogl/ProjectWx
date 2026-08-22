@@ -32,6 +32,7 @@ public class WxEditor : ModuleRules
 			"WxInventory",
 			"WxQuest",
 			"WxUI",
+			"WxWorld",
 		});
 	}
 }

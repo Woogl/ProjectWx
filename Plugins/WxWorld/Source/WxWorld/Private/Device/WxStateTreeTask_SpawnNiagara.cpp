@@ -2,6 +2,7 @@
 
 #include "Device/WxStateTreeTask_SpawnNiagara.h"
 
+#include "Components/SceneComponent.h"
 #include "GameFramework/Actor.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
@@ -34,9 +35,9 @@ EStateTreeRunStatus FWxStateTreeTask_SpawnNiagara::EnterState(FStateTreeExecutio
 
 	if (Instance.Niagara)
 	{
-		if (Instance.AttachComponent)
+		if (USceneComponent* AttachComponent = Instance.AttachComponent.Resolve(Owner))
 		{
-			Instance.SpawnedComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(Instance.Niagara, Instance.AttachComponent, Instance.AttachSocketName, Instance.RelativeLocation, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, true);
+			Instance.SpawnedComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(Instance.Niagara, AttachComponent, Instance.AttachSocketName, Instance.RelativeLocation, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, true);
 		}
 		else
 		{
