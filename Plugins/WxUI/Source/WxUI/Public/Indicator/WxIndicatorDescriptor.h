@@ -33,7 +33,6 @@ public:
 
 	FVector GetWorldOffset() const;
 
-	/** 매니저가 매 틱 투영 결과를 기록한다. */
 	void SetProjection(const FVector2D& InScreenPosition, float InDistanceMeters, bool bInClamped);
 
 	/** 대상이 무효하거나 투영을 얻지 못했음을 기록한다. 표시 측은 이 상태를 숨김으로 읽는다. */

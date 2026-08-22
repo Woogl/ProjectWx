@@ -85,7 +85,7 @@ public:
 	/** PIE 접두사를 제거한 월드의 긴 패키지 이름. 세이브의 맵 키 표현을 한 곳에서 강제한다(트래블 데이터 스탬프·일치 판정 공유). */
 	static FName GetStableMapPackageName(const UWorld* World);
 
-	/** 현재 메모리 슬롯 상태(슬롯·맵·폰·레코드 목록)를 LogWxSave 로 덤프한다. 콘솔 명령 Wx.Save.Dump 의 구현. */
+	/** 콘솔 명령 Wx.Save.Dump 의 구현. */
 	void LogSaveState() const;
 
 	/**
@@ -104,7 +104,7 @@ private:
 	/** SaveToFile 에서 직접(월드 서브시스템 부재) 또는 RequestSaveFlush 완료 콜백으로 호출된다. */
 	void ContinueSaveToFileToDisk();
 
-	/** 기록 종료를 한 자리에서 선언한다 — 성공·실패·중단 어느 경로든 여기로 모인다. */
+	/** 성공·실패·중단 어느 경로든 여기로 모인다. */
 	void FinishSaveInProgress();
 
 	/** SaveToFile 이 세우고 비동기 기록 콜백이 내린다. */

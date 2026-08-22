@@ -78,7 +78,6 @@ TArray<FText> UWxInteractionScannerComponent::GetPrompts() const
 	{
 		if (AActor* Actor = Weak.Get())
 		{
-			// 프롬프트는 대상이 IWxInteractable 로 제공한다(pull).
 			// 인덱스 정합을 위해 대상이 없으면 빈 텍스트로 자리를 채운다.
 			const IWxInteractable* Target = Cast<IWxInteractable>(Actor);
 			Prompts.Add(Target ? Target->GetInteractionPrompt() : FText::GetEmpty());
@@ -172,7 +171,6 @@ void UWxInteractionScannerComponent::ScanAndPush()
 		}
 		Examined.Add(Actor);
 
-		// 계약 구현체가 아닌 액터(바닥·벽·소품 등)는 여기서 탈락한다.
 		const IWxInteractable* Target = Cast<IWxInteractable>(Actor);
 		if (!Target)
 		{
@@ -185,7 +183,7 @@ void UWxInteractionScannerComponent::ScanAndPush()
 		}
 	}
 
-	// 가까운 대상이 먼저 오도록 거리순 정렬한다(스캐너가 신규를 이 순서로 append).
+	// 신규 후보는 이 순서 그대로 목록 뒤에 붙는다.
 	Candidates.Sort([ScanOrigin](const AActor& A, const AActor& B)
 	{
 		return FVector::DistSquared(ScanOrigin, A.GetActorLocation()) < FVector::DistSquared(ScanOrigin, B.GetActorLocation());
@@ -302,7 +300,7 @@ void UWxInteractionScannerComponent::SetActorHighlighted(AActor* Actor, bool bHi
 
 bool UWxInteractionScannerComponent::CanActivateInteract(const UAbilitySystemComponent* ASC) const
 {
-	// 클래스 의존을 피해 Ability.Interact 애셋 태그로 찾는다(UWxBTTask_ActivateAbility 와 동일 관례).
+	// 애셋 태그로 어빌리티를 지목하는 것은 UWxBTTask_ActivateAbility 와 동일한 관례다.
 	const FGameplayAbilityActorInfo* ActorInfo = ASC->AbilityActorInfo.Get();
 	if (!ActorInfo)
 	{

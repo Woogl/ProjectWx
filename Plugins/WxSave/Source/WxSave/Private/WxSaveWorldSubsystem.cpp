@@ -216,7 +216,6 @@ void UWxSaveWorldSubsystem::CapturePlayerStats(AActor* PlayerActor, TMap<FName, 
 
 		for (TFieldIterator<FStructProperty> It(Set->GetClass()); It; ++It)
 		{
-			// 복제되는 어트리뷰트의 base 값만 담는다(CPF_Net 이 비복제 메타를 자동 제외).
 			if (It->Struct != FGameplayAttributeData::StaticStruct() || !It->HasAnyPropertyFlags(CPF_Net))
 			{
 				continue;
@@ -276,7 +275,6 @@ void UWxSaveWorldSubsystem::ApplyPlayerStats(AActor* PlayerActor, const TMap<FNa
 
 bool UWxSaveWorldSubsystem::ShouldSave(const UObject* Object)
 {
-	// 태그 직렬화가 쓰는 diff 기준(아키타입)을 그대로 본다 — 판정과 직렬화 결과가 어긋날 수 없다.
 	const UObject* Archetype = Object->GetArchetype();
 	if (!Archetype)
 	{
@@ -394,7 +392,6 @@ bool UWxSaveWorldSubsystem::RestoreActor(const UWxSaveGame& SaveGame, AActor* Ac
 	const FWxActorRecord* Record = SaveGame.ActorRecords.Find(ActorId);
 	if (!Record)
 	{
-		// 일치 레코드 없음 — 신규 세션/미저장 액터의 정상 경로.
 		return false;
 	}
 
@@ -555,7 +552,6 @@ void UWxSaveWorldSubsystem::HandleWorldBeginTearDown(UWorld* World)
 	}
 
 	// teardown 은 스트리밍-아웃·EndPlay 보다 앞서 발화하므로 전체 상태를 담고, 이후 개별 스트리밍-아웃 재캡처는 동일 데이터라 무해하다.
-	// 트래블 데이터/플레이어 스냅샷은 스탬프하지 않는다(디스크 영속은 명시적 SaveToFile 만, 다음 시작 지점은 맵 전환을 일으킨 게임 코드 소유).
 	UE_LOG(LogWxSave, Log, TEXT("맵 이탈 메모리 플러시: '%s'"), *World->GetMapName());
 	FlushSavableActors();
 }

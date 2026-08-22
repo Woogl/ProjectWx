@@ -56,6 +56,6 @@ struct FWxStateTreeTask_PlayLevelSequence : public FStateTreeTaskCommonBase
 #endif
 
 private:
-	/** 핸들이 비어 있으면 멱등하게 노옵이라 종료·이탈 양쪽에서 호출한다. */
+	/** Player·SequenceActor 가 비어 있으면 멱등하게 노옵이라 종료·이탈 양쪽에서 호출한다. */
 	void FinishSequencePlayback(FInstanceDataType& Instance) const;
 };

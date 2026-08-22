@@ -14,9 +14,6 @@ class UMVVMView;
 
 /**
  * 보스 존재를 스스로 관찰하는 보스 네임플레이트용 뷰모델.
- *
- * 네임플레이트 위젯은 상시 HUD 에 살고 보스는 월드에 늦게 스폰되거나 사라질 수 있어 두 수명이 어긋난다.
- * 리졸버가 돌려준 인스턴스는 뷰가 교체할 수 없으므로, 인스턴스는 고정한 채 월드의 보스 스폰/EndPlay 를 직접 관찰해 내부 상태(Initialize/Deinitialize)만 갈아끼운다.
  */
 UCLASS()
 class WXGAME_API UWxViewModel_BossCharacter : public UWxViewModel_Character

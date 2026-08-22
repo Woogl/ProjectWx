@@ -16,8 +16,6 @@ class UWxLockOnPointComponent;
 class UWxNameplateComponent;
 
 /**
- * - AWxEnemyController에 의해 제어
- * - 처치 시 UWxRewardLibrary::GrantReward 로 RewardRow 의 보상을 지급한다(픽업은 사망 위치에서 수직 발사, 재화는 직접 지급)
  */
 UCLASS(Abstract)
 class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnable, public IWxInteractable

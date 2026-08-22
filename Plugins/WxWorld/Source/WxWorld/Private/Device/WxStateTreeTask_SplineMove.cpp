@@ -37,12 +37,11 @@ EStateTreeRunStatus FWxStateTreeTask_SplineMove::EnterState(FStateTreeExecutionC
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	// State 가 끝점을 직접 가리키므로 초기 진입에서도 목적지를 안다.
 	const int32 TargetIndex = FMath::Clamp(Instance.TargetPointIndex, 0, NumPoints - 1);
 	const float TargetDistance = Spline->GetDistanceAlongSplineAtSplinePoint(TargetIndex);
 	Instance.TargetDistance = TargetDistance;
 
-	// 플랫폼의 실제 현재 위치에 해당하는 스플라인 거리를 시작점으로 잡는다(vertex 로 양자화하지 않아 이동 중 반전도 스냅 없이 현재 지점에서 출발).
+	// vertex 로 양자화하지 않아야 이동 중 반전도 스냅 없이 현재 지점에서 출발한다.
 	const float StartDistance = Spline->GetDistanceAlongSplineAtLocation(Component->GetComponentLocation(), ESplineCoordinateSpace::World);
 
 	const float SegmentLength = FMath::Abs(TargetDistance - StartDistance);

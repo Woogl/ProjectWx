@@ -19,7 +19,7 @@ struct FWxStateTreeTask_SplineMoveInstanceData
 {
 	GENERATED_BODY()
 
-	/** 옮길 컴포넌트. 트리가 붙은 액터가 가진 것 중에서 고른다. */
+	/** 트리가 붙은 액터가 가진 컴포넌트 중에서 고른다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	FWxComponentName TargetComponent;
 
@@ -35,30 +35,29 @@ struct FWxStateTreeTask_SplineMoveInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
 	float Duration = 1.f;
 
-	/** (런타임) 지목이 가리키는 컴포넌트. EnterState 에서 1회 해석해 담고 Tick 은 이 값을 읽기만 한다. */
+	/** (런타임) 지목이 가리키는 컴포넌트. */
 	UPROPERTY()
 	TObjectPtr<USceneComponent> Component;
 
-	/** (런타임) 지목이 가리키는 스플라인. 위와 같은 자리에서 해석한다. */
+	/** (런타임) 지목이 가리키는 스플라인. */
 	UPROPERTY()
 	TObjectPtr<USplineComponent> SplineComponent;
 
-	/** (런타임) Tick 이 보간하는 현재 스플라인 거리. EnterState 에서 시작 거리(현재 위치의 스플라인 거리)로 초기화한다. */
+	/** (런타임) Tick 이 보간하는 현재 스플라인 거리. */
 	UPROPERTY()
 	float CurrentDistance = 0.f;
 
-	/** (런타임) 목표 포인트(TargetPointIndex)의 스플라인 거리. EnterState 에서 캡처한다. */
+	/** (런타임) 목표 포인트(TargetPointIndex)의 스플라인 거리. */
 	UPROPERTY()
 	float TargetDistance = 0.f;
 
-	/** (런타임) 시작→목표 구간의 일정 속도(초당 스플라인 거리). EnterState 에서 1회 산출한다(시작점은 동적이라 Tick 이 고정 저자값에서 재계산 불가). */
+	/** (런타임) 시작→목표 구간의 일정 속도(초당 스플라인 거리). 시작점이 동적이라 Tick 이 고정 저자값에서 재계산할 수 없어 EnterState 에서 1회 산출한다. */
 	UPROPERTY()
 	float MoveSpeed = 0.f;
 };
 
 /**
  * 지정 컴포넌트를 TargetPointIndex 가 가리키는 스플라인 포인트로 옮기고, 도달하면 Succeeded 를 반환해 상태를 완료시킨다.
- * 각 상태가 자기 목표 끝점을 직접 선언하는 순수 비주얼 태스크라 어떤 장치든 경로 이동에 재사용한다.
  * 진입 경로를 가리지 않고 플랫폼의 실제 현재 위치에서 목표 포인트까지 곡선을 따라 슬라이드한다.
  * 이동 중 재진입해도 vertex 로 스냅하지 않고 현재 지점에서 반전한다.
  */

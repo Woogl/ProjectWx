@@ -29,7 +29,7 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentMove::EnterState(FStateTreeExecuti
 	}
 
 	// 기준 포즈 = 컴포넌트 아키타입(BP/CDO 오서링)의 상대 위치. 런타임 위치가 어디든 안정적 앵커다.
-	// 아키타입 조회가 상수 시간이 아니라 여기서 1회만 구해 인스턴스 데이터에 캐시하고, Tick 은 이 값을 읽기만 한다.
+	// 아키타입 조회가 상수 시간이 아니라 여기서 1회만 구해 인스턴스 데이터에 캐시한다.
 	const USceneComponent* Archetype = Cast<USceneComponent>(Component->GetArchetype());
 	const FVector Anchor = Archetype ? Archetype->GetRelativeLocation() : Component->GetRelativeLocation();
 	Instance.TargetLocation = Anchor + Instance.LocalOffset;

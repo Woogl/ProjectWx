@@ -7,7 +7,6 @@
 AWxPlayerController::AWxPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	// 클래스만 지정해 두면 엔진이 Standalone·에디터에서만 실제로 생성한다.
 	CheatClass = UWxCheatManager::StaticClass();
 }
 

@@ -11,7 +11,7 @@
 
 namespace
 {
-	/** 이 섹션을 가진 몽타주만 착지에 반응하므로 이름이 곧 프로젝트 공통 규약이다 */
+	/** 착지 몽타주 Section */
 	const FName LandingSectionName = TEXT("Grounded");
 }
 
@@ -46,8 +46,6 @@ float UWxCharacterMovementComponent::GetGravityZ() const
 
 UAbilitySystemComponent* UWxCharacterMovementComponent::GetAbilitySystemComponent()
 {
-	// 오너의 ASC 는 생성자 서브오브젝트라 한 번 잡으면 바뀌지 않는다.
-	// 오너가 정해지는 시점(등록)과 첫 호출 시점(PostInitializeComponents 의 초기 이동 모드 설정)이 엇갈릴 수 있어 초기화 훅 대신 지연 해석한다.
 	if (!AbilitySystemComponent && CharacterOwner)
 	{
 		AbilitySystemComponent = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(CharacterOwner);
@@ -58,6 +56,8 @@ UAbilitySystemComponent* UWxCharacterMovementComponent::GetAbilitySystemComponen
 
 void UWxCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float DeltaSeconds)
 {
+	// 몽타주를 쓰는 어빌리티 발동 중이면 앉기 의사를 지운다.
+	// 몽타주를 쓰지 않는 어빌리티는 앉은 자세와 공존한다.
 	if (const UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
 	{
 		if (ASC->GetAnimatingAbility())

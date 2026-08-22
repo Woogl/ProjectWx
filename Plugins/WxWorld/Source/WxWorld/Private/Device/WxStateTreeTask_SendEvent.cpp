@@ -43,7 +43,7 @@ EStateTreeRunStatus FWxStateTreeTask_SendEvent::EnterState(FStateTreeExecutionCo
 
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 당사자를 그대로 넘겨 받는 장치의 이동·몽타주 태스크가 같은 캐릭터를 대상으로 삼게 한다.
+	// 당사자를 그대로 넘겨 받는 장치의 몽타주·GE 태스크가 같은 캐릭터를 대상으로 삼게 한다.
 	ACharacter* Interactor = Owner->GetInteractingCharacter();
 
 	for (AWxDevice* TargetDevice : Instance.TargetDevices)

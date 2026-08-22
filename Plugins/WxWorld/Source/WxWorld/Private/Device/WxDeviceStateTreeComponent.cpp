@@ -64,7 +64,6 @@ void UWxDeviceStateTreeComponent::StopLogic(const FString& Reason)
 
 void UWxDeviceStateTreeComponent::BeginPlay()
 {
-	// 트리는 순정 자동 시작(bStartLogicAutomatically)이 연다.
 	Super::BeginPlay();
 
 	if (!bIsRunning)
@@ -73,7 +72,6 @@ void UWxDeviceStateTreeComponent::BeginPlay()
 		return;
 	}
 
-	// 시작 직후의 상태를 한 번 알린다. 이후 갱신은 틱이 맡는다.
 	SyncStateWithTree();
 }
 
@@ -170,7 +168,6 @@ void UWxDeviceStateTreeComponent::FollowStateTag()
 
 	if (ActiveTag == StateTag)
 	{
-		// 복원 추종은 수렴한 순간 끝난다 — 다음 동기화부터 다시 트리가 진실이 되어 발행으로 복귀한다.
 		bFollowRestoredState = false;
 		return;
 	}

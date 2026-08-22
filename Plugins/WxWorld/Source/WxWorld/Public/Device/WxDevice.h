@@ -78,7 +78,7 @@ public:
 
 	/**
 	 * 상호작용을 켜고 끄며, 켤 때는 그 상태의 프롬프트와 발행 자리(Binding)도 함께 담는다 — 끌 때 Binding 은 쓰이지 않고 담겨 있던 것도 지우지 않는다.
-	 * '상호작용 켜기' 태스크가 상태 진입 시 호출한다. 꺼져 있으면 IsInteractionEnabled 가 false 를 답해 다음 스캔에서 후보에서 빠지고, 어빌리티의 서버 활성 검증에도 걸린다.
+	 * '상호작용 켜기' 태스크가 상태 진입 시 호출한다. 꺼져 있으면 CanInteract 가 false 를 답해 다음 스캔에서 후보에서 빠지고, 어빌리티의 서버 활성 검증에도 걸린다.
 	 * 복제하지 않는다 — ST 가 각 피어에서 실행되어 같은 값에 수렴한다.
 	 */
 	void SetInteractionBinding(bool bEnabled, const FWxDeviceInteractionBinding& Binding);
@@ -87,7 +87,6 @@ public:
 	UPROPERTY(EditInstanceOnly, Category = "Wx")
 	TArray<TObjectPtr<AWxDevice>> LinkedDevices;
 
-	/** 이번 상호작용의 당사자 (플레이어 캐릭터) */
 	UPROPERTY(Replicated, Transient)
 	TObjectPtr<ACharacter> InteractingCharacter;
 
@@ -97,7 +96,6 @@ protected:
 private:
 	void BroadcastInteractionDelegate();
 
-	/** 이 액터는 상호작용·복원 신호를 여기로 전달한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UWxDeviceStateTreeComponent> StateTreeComponent;
 

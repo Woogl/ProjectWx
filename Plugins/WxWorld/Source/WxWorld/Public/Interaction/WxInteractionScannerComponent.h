@@ -43,13 +43,10 @@ public:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	/**
-	 * 로컬 선택을 읽어 ServerInteract 로 전송한다. 선택이 없으면 무동작.
-	 * 리슨호스트에선 ServerInteract 가 로컬 권위 호출이 된다.
-	 */
+	/** 리슨호스트에선 ServerInteract 가 로컬 권위 호출이 된다. */
 	void TryInteractSelected();
 
-	/** 현재 인-레인지 액터들의 프롬프트 텍스트를 순서대로 반환한다. 뷰모델이 초기 시드로 읽는다. */
+	/** 뷰모델이 초기 시드로 읽는다. */
 	TArray<FText> GetPrompts() const;
 
 	/** 현재 선택 인덱스(없으면 INDEX_NONE). 뷰모델이 초기 시드로 읽는다. */
@@ -57,7 +54,6 @@ public:
 
 	AActor* GetSelectedActor() const;
 
-	/** 선택을 Delta 만큼 순환 이동한다(휠/방향키). 목록이 비면 무시. */
 	void CycleSelection(int32 Delta);
 
 	UPROPERTY(BlueprintAssignable, Category = "Wx")
@@ -86,7 +82,7 @@ protected:
 	int32 HighlightStencilValue = 1;
 
 private:
-	/** 선택을 서버로 전송한다. 서버가 Event.Interact 를 폰 ASC 로 송출해 권위 실행을 시작한다. */
+	/** 서버가 Event.Interact 를 폰 ASC 로 송출해 권위 실행을 시작한다. */
 	UFUNCTION(Server, Reliable)
 	void ServerInteract(AActor* Selected);
 
@@ -104,7 +100,7 @@ private:
 
 	void UpdateSelection(int32 NewIndex);
 
-	/** 선택된 액터만 외곽선 강조 ON, 나머지는 OFF. 외곽선을 쓰는 유일한 주체다(선택을 소유하므로). */
+	/** 외곽선을 쓰는 유일한 주체다(선택을 소유하므로). */
 	void ApplyHighlight();
 
 	/** 액터의 보이는 프리미티브에 모두 건다 — 어느 메시가 대상인지 가리지 않는 것이 액터 단위 계약이다. */

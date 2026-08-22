@@ -23,6 +23,6 @@ struct FWxComponentName
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	FName Name;
 
-	/** 액터에서 이 이름의 씬 컴포넌트를 찾는다. 지목이 비었거나 그런 컴포넌트가 없으면 nullptr. */
+	/** 지목이 비었거나 그런 컴포넌트가 없으면 nullptr. */
 	USceneComponent* Resolve(const AActor* Actor) const;
 };

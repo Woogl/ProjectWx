@@ -29,7 +29,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	/**
-	 * 권위가 정한 상태의 Tag. 밖에서 장치 상태를 조건으로 삼는 쪽이 호스트 액터를 거쳐 읽는 값이다.
+	 * 권위가 정한 상태의 Tag.
 	 * 트리를 훑는 것이 아니라 복제된 필드를 그대로 답하므로 매 틱 게이트로 써도 되고, 모든 피어가 같은 권위 값을 본다.
 	 */
 	FGameplayTag GetStateTag() const;
@@ -61,7 +61,7 @@ protected:
 	void OnRep_StateTag();
 
 	/**
-	 * 지금 활성인 상태의 Tag(복제 + SaveGame). 권위 측이 트리 틱마다 갱신하며, 이 값이 곧 세이브 슬롯에 담기는 장치의 상태다.
+	 * 지금 활성인 상태의 Tag. 권위 측이 트리 틱마다 갱신하며, 이 값이 곧 세이브 슬롯에 담기는 장치의 상태다.
 	 * 상태에 Tag 를 달지 않으면 저장되지 않으므로, 영속이 필요한 상태에는 반드시 Tag 를 지정한다.
 	 */
 	UPROPERTY(ReplicatedUsing = OnRep_StateTag, SaveGame)

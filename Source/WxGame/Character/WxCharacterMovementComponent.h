@@ -25,10 +25,6 @@ public:
 	//~ End UMovementComponent Interface
 
 	//~ Begin UCharacterMovementComponent Interface
-	/**
-	 * 어빌리티 몽타주가 재생 중인 동안에는 앉기 의사를 지운다.
-	 * 락온처럼 몽타주를 쓰지 않는 어빌리티는 앉은 자세와 공존한다.
-	 */
 	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
 	//~ End UCharacterMovementComponent Interface
 

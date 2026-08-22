@@ -70,7 +70,7 @@ void AWxDevice::OnInteracted(AActor* Interactor)
 		return;
 	}
 
-	// 당사자는 복제로 각 피어에 전해진다 — 이동·몽타주 태스크가 모든 머신에서 같은 대상을 본다.
+	// 당사자는 복제로 각 피어에 전해진다 — 몽타주·GE 태스크가 모든 머신에서 같은 대상을 본다.
 	InteractingCharacter = Cast<ACharacter>(Interactor);
 
 	// 이 상호작용이 상태를 바꾸는지 아닌지는 트리가 발행을 소화해 봐야 안다 — 컴포넌트가 그 결과를 보고 재진입을 가려낸다.
@@ -110,12 +110,11 @@ void AWxDevice::NotifyDeviceInteracted(AActor* Interactor, FGameplayTag EventTag
 		return;
 	}
 
-	// 당사자는 복제로 각 피어에 전해진다 — 이동·몽타주 태스크가 모든 머신에서 같은 대상을 본다.
+	// 당사자는 복제로 각 피어에 전해진다 — 몽타주·GE 태스크가 모든 머신에서 같은 대상을 본다.
 	InteractingCharacter = Cast<ACharacter>(Interactor);
 
 	// 잠든 트리는 이 발송이 예약하는 다음 틱이 깨운다.
-	// 자기 상호작용과 달리 재진입 판정은 걸지 않는다 — 이벤트엔 「지금 듣고 있는가」를 가릴 자리가 없어,
-	// 반응하지 않는 상태에서 당길 때마다 클라만 현재 상태를 재진입해 연출을 헛재생하게 된다.
+	// 자기 상호작용과 달리 재진입 판정은 걸지 않는다 — 이벤트엔 「지금 듣고 있는가」를 가릴 자리가 없어, 반응하지 않는 상태에서 당길 때마다 클라만 현재 상태를 재진입해 연출을 헛재생하게 된다.
 	StateTreeComponent->SendStateTreeEvent(EventTag, Payload);
 }
 
@@ -128,7 +127,8 @@ void AWxDevice::SetInteractionBinding(bool bEnabled, const FWxDeviceInteractionB
 {
 	bInteractionEnabled = bEnabled;
 
-	// 끌 때 비우지 않는다 — 남이 껐다 켜도 이 상태의 문구·발행자로 돌아와야 한다. 꺼진 장치는 스캔 후보에서 빠지므로 담아 둔 문구가 새어 나갈 일도 없다.
+	// 끌 때 비우지 않는다 — 남이 껐다 켜도 이 상태의 문구·발행자로 돌아와야 한다.
+	// 꺼진 장치는 스캔 후보에서 빠지므로 담아 둔 문구가 새어 나갈 일도 없다.
 	if (bEnabled)
 	{
 		InteractionBinding = Binding;

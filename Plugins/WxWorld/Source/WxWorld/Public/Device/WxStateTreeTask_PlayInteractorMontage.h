@@ -22,7 +22,7 @@ struct FWxStateTreeTask_PlayInteractorMontageInstanceData
 };
 
 /**
- * 대상은 오너 장치의 InteractingCharacter 를 직접 읽는다(바인딩 입력 없음) — 'Move Interactor To Target' 과 동일.
+ * 대상은 오너 장치의 InteractingCharacter 를 직접 읽는다(바인딩 입력 없음).
  * 복제형 PlayAnimMontage 가 아니라 각 머신이 메시 AnimInstance 로 로컬 재생·폴링한다('Play Animation' 과 동형) — 모든 피어가 InteractingCharacter 를 복제로 알아 중복 재생이 없다.
  * 초기 진입(StateTree 시작/복원/레이트조인)이면 재생 없이 곧바로 완료한다 — 발동 순간에만 재생하며, InteractingCharacter 는 비영속이라 복원 시 비어 있다.
  * 대상/몽타주가 없어도 상태가 갇히지 않게 곧바로 완료한다.

@@ -47,15 +47,13 @@ void AWxEnemyCharacter::InitAbilitySystem()
 {
 	Super::InitAbilitySystem();
 
-	// AI 폰의 빙의는 서버에서만 일어나므로 이 구독도 서버 전용이다 — AI Perception 이 도는 곳과 같다.
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetIncomingDamageAttribute())
 		.AddUObject(this, &AWxEnemyCharacter::HandleIncomingDamageChanged);
 }
 
 void AWxEnemyCharacter::HandleIncomingDamageChanged(const FOnAttributeChangeData& Data)
 {
-	// 메타 어트리뷰트가 GE 실행으로 바뀔 때만 가해자·적중 지점이 실린 콜백 데이터가 함께 온다.
-	// 어트리뷰트셋이 소비하며 되돌리는 0 쓰기에는 실리지 않는다.
+	// IncomingDamage 메타 어트리뷰트로 피해를 받을 때만 적용
 	if (Data.NewValue <= 0.f || !Data.GEModData)
 	{
 		return;
@@ -68,7 +66,7 @@ void AWxEnemyCharacter::HandleIncomingDamageChanged(const FOnAttributeChangeData
 		return;
 	}
 
-	// EventLocation 으로 넘긴 가해자 위치가 그대로 Stimulus 위치가 된다.
+	// 가해자 위치가 Stimulus 위치
 	const FVector HitLocation = Context.GetHitResult() ? FVector(Context.GetHitResult()->ImpactPoint) : GetActorLocation();
 	UAISense_Damage::ReportDamageEvent(this, this, DamageInstigator, Data.NewValue, DamageInstigator->GetActorLocation(), HitLocation);
 }
@@ -107,9 +105,10 @@ void AWxEnemyCharacter::HandleDeath()
 		Spawner->MarkKilled();
 	}
 
-	// 외형 없는 재화(골드 등)는 로컬 플레이어 인벤토리에 즉시 지급한다.
+
 	if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0))
 	{
+		// 처치 보상 지급
 		UWxRewardLibrary::GrantReward(this, RewardRow, PlayerController, GetActorTransform(), FVector::UpVector * LaunchSpeed);
 	}
 }
@@ -122,7 +121,7 @@ void AWxEnemyCharacter::OnInteracted(AActor* Interactor)
 		return;
 	}
 
-	// 자격은 상호작용 어빌리티가 CanInteract 로 이미 검증했으므로 여기선 변형만 고른다.
+	// 그로기 앞잡(Finisher) 인지, 뒤잡(Backstab)인지 판별
 	const FGameplayTag EventTag = AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy)
 		? WxGameplayTags::Event_Finisher
 		: WxGameplayTags::Event_Backstab;
@@ -131,7 +130,7 @@ void AWxEnemyCharacter::OnInteracted(AActor* Interactor)
 	EventData.Instigator = Interactor;
 	EventData.Target = this;
 	EventData.EventTag = EventTag;
-	// 이 호출로 처형 어빌리티가 동기 트리거되어 대상(this)에 State.BeingFinished 가 붙는다 — 재노출·중복 발동 차단에 별도 래치가 필요 없다.
+
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Interactor, EventTag, EventData);
 }
 

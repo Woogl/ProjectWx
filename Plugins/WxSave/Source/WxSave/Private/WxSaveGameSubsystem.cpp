@@ -125,7 +125,6 @@ void UWxSaveGameSubsystem::TravelFromSaveFile()
 	UE_LOG(LogWxSave, Log, TEXT("TravelFromSaveFile: '%s' 로 트래블(ServerTravel)"), *TravelMap);
 	if (!World->ServerTravel(TravelMap, true))
 	{
-		// 가드를 즉시 해제해 자동 캡처 경로를 복구한다.
 		bTravelingFromSaveFile = false;
 		UE_LOG(LogWxSave, Warning, TEXT("TravelFromSaveFile: ServerTravel 시작 실패 — '%s'"), *TravelMap);
 	}
