@@ -13,6 +13,7 @@ class UAbilitySystemComponent;
 class UWxPrimaryGameLayout;
 class UCommonActivatableWidget;
 class UWxGamePopupDescriptor;
+class UWxHUDLayout;
 
 UCLASS()
 class WXUI_API UWxUIManagerSubsystem : public UGameInstanceSubsystem
@@ -36,6 +37,11 @@ public:
 
 	UWxPrimaryGameLayout* GetPrimaryGameLayout() const;
 
+	/** 어떤 HUD 를 띄울지는 UI 밖(Experience)이 정하므로, 정해진 값을 여기에 실어 둔다. 미지정이면 HUD 를 띄우지 않는다. */
+	void SetGameHUDClass(const TSoftClassPtr<UWxHUDLayout>& InGameHUDClass);
+
+	const TSoftClassPtr<UWxHUDLayout>& GetGameHUDClass() const;
+
 private:
 	void HandleLocalPlayerAdded(ULocalPlayer* LocalPlayer);
 
@@ -43,7 +49,6 @@ private:
 
 	void CreateLayoutForPlayer(APlayerController* PC);
 
-	/** 이 신호는 빙의가 끝난 뒤에 오므로, HUD 뷰모델 리졸버가 생성 시점에 빙의 폰의 ASC 를 읽는다는 전제가 지켜진다. */
 	UFUNCTION()
 	void HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn);
 
@@ -79,9 +84,9 @@ private:
 
 	FDelegateHandle DialogueTagHandle;
 
+	/** Experience 가 발행한 HUD 지정. 세계가 바뀌면 다시 발행되며, 발행이 없으면 비어 있다. */
+	TSoftClassPtr<UWxHUDLayout> GameHUDClass;
+
 	/** 대화 중 띄워 둔 대화 창. 세션이 끝날 때 이 창을 닫기 위해 기억한다. */
 	TWeakObjectPtr<UCommonActivatableWidget> DialogueScreen;
-
-	/** Game 레이어에 띄워 둔 HUD. 폰이 갈아탈 때마다 다시 push 하지 않고 이 인스턴스를 그대로 쓰기 위해 기억한다. */
-	TWeakObjectPtr<UCommonActivatableWidget> GameHUD;
 };

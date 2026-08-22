@@ -120,6 +120,16 @@ UWxPrimaryGameLayout* UWxUIManagerSubsystem::GetPrimaryGameLayout() const
 	return PrimaryGameLayout;
 }
 
+void UWxUIManagerSubsystem::SetGameHUDClass(const TSoftClassPtr<UWxHUDLayout>& InGameHUDClass)
+{
+	GameHUDClass = InGameHUDClass;
+}
+
+const TSoftClassPtr<UWxHUDLayout>& UWxUIManagerSubsystem::GetGameHUDClass() const
+{
+	return GameHUDClass;
+}
+
 void UWxUIManagerSubsystem::ObserveWidgetForGamePause(UCommonActivatableWidget* Widget)
 {
 	if (!Widget)
@@ -208,9 +218,6 @@ void UWxUIManagerSubsystem::HandlePlayerControllerSet(APlayerController* PC)
 		PrimaryGameLayout = nullptr;
 	}
 
-	// layout 과 함께 사라질 HUD 다. 약참조가 GC 전까지 유효한 채로 남으면 새 layout 에 HUD 를 push 하지 않아 HUD 가 통째로 빠진다.
-	GameHUD.Reset();
-
 	if (!PC)
 	{
 		return;
@@ -218,7 +225,7 @@ void UWxUIManagerSubsystem::HandlePlayerControllerSet(APlayerController* PC)
 
 	CreateLayoutForPlayer(PC);
 
-	// 빈 layout 에 컨텐츠를 채우는 것은 빙의를 따라간다.
+	// 빈 layout 을 채우는 컨텐츠(HUD)는 주입된 컴포넌트가 띄우고, 여기서는 폰 상태 태그 관찰만 빙의를 따라간다.
 	PC->OnPossessedPawnChanged.AddDynamic(this, &ThisClass::HandlePossessedPawnChanged);
 	TrackedPlayerController = PC;
 
@@ -229,19 +236,6 @@ void UWxUIManagerSubsystem::HandlePlayerControllerSet(APlayerController* PC)
 void UWxUIManagerSubsystem::HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 {
 	WatchPawnTags(NewPawn);
-
-	if (!NewPawn)
-	{
-		return;
-	}
-
-	// 폰만 갈아타는 흐름(탈것·연출 폰)에서는 이미 떠 있는 HUD 를 그대로 쓴다. 다시 push 하면 스택에 인스턴스가 쌓인다.
-	if (GameHUD.IsValid())
-	{
-		return;
-	}
-
-	GameHUD = PushSoftContentToLayer(WxGameplayTags::UI_Layer_Game, GetDefault<UWxUIDeveloperSettings>()->GameHUDClass);
 }
 
 void UWxUIManagerSubsystem::WatchPawnTags(APawn* Pawn)

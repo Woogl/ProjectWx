@@ -9,6 +9,7 @@
 
 class FDataValidationContext;
 class UGameFeatureAction;
+class UWxHUDLayout;
 
 /**
  * 여러 Experience 가 공유하는 액션·GameFeature 묶음.
@@ -39,7 +40,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TArray<FString> GameFeaturesToEnable;
 
-	/** Experience 가 참조한 전체 묶음의 목록이 합산된다. */
+	/** 기본 지급 아이템 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TArray<FWxItemRewardEntry> DefaultInventoryItems;
+
+	/** 빙의한 로컬 플레이어에게 띄울 HUD */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx")
+	TSoftClassPtr<UWxHUDLayout> GameHUDClass;
 };

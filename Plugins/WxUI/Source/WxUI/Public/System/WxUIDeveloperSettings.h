@@ -24,10 +24,6 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Popup")
 	TSoftClassPtr<UWxGamePopup> ConfirmationPopupClass;
 
-	/** 플레이어 캐릭터에 빙의하면 Game 레이어에 띄울 HUD. 미지정이면 동작 없음. */
-	UPROPERTY(Config, EditAnywhere, Category = "Screen")
-	TSoftClassPtr<UWxActivatableWidget> GameHUDClass;
-
 	/** 빙의된 캐릭터 사망 시 Menu 레이어에 띄울 위젯. 미지정이면 동작 없음. */
 	UPROPERTY(Config, EditAnywhere, Category = "Screen")
 	TSoftClassPtr<UWxActivatableWidget> DeathScreenClass;

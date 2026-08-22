@@ -22,9 +22,9 @@
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxUIManagerSubsystem` | GameInstance 서브시스템. 레이어 push, 확인 팝업, 빙의/사망/대화 태그 관찰, 게임 정지 재평가의 오케스트레이터 | `Source/WxUI/Public/System/WxUIManagerSubsystem.h` |
+| `UWxUIManagerSubsystem` | GameInstance 서브시스템. 레이어 push, 확인 팝업, 빙의/사망/대화 태그 관찰, 게임 정지 재평가의 오케스트레이터. Experience 가 발행한 HUD 지정도 여기 실린다 | `Source/WxUI/Public/System/WxUIManagerSubsystem.h` |
 | `UWxPrimaryGameLayout` | 레이어 태그마다 `UCommonActivatableWidgetStack`을 두는 화면 루트. 배열 순서가 z-order | `Source/WxUI/Public/System/WxPrimaryGameLayout.h` |
-| `UWxUIDeveloperSettings` | Layout/Popup/HUD/Death/Dialogue 위젯 클래스를 config로 지정 | `Source/WxUI/Public/System/WxUIDeveloperSettings.h` |
+| `UWxUIDeveloperSettings` | Layout/Popup/Death/Dialogue 위젯 클래스를 config로 지정 | `Source/WxUI/Public/System/WxUIDeveloperSettings.h` |
 | `UWxUILibrary` | BP 진입점: 레이어 push, 위젯 비활성화, 확인 팝업 | `Source/WxUI/Public/WxUILibrary.h` |
 | `UWxViewModel` | MVVM 베이스. 아이콘/초상화 소프트 참조의 비동기 스트리밍을 공통 제공 | `Source/WxUI/Public/MVVM/WxViewModel.h` |
 | `UWxViewModel_Character` | 캐릭터 단위 Composite VM(이름·초상화 + 자식 AbilitySystem VM) | `Source/WxUI/Public/MVVM/WxViewModel_Character.h` |
@@ -33,6 +33,7 @@
 | `UWxActivatableWidget` | CommonUI 위젯 베이스(입력 모드, 게임 정지 요청) | `Source/WxUI/Public/Widget/WxActivatableWidget.h` |
 | `UWxGamePopup` / `UWxGamePopupDescriptor` | 확인 팝업 베이스와 그 서술자(버튼 구성·결과 enum) | `Source/WxUI/Public/Widget/WxGamePopup.h` |
 | `UWxNameplateComponent` | WidgetComponent 확장. ASC 태그 기반 표시 판정 + 거리 스케일 | `Source/WxUI/Public/Component/WxNameplateComponent.h` |
+| `UWxHUDComponent` | 컨트롤러 컴포넌트. Experience 가 주입하면 빙의 뒤 Game 레이어에 HUD 를 띄운다 | `Source/WxUI/Public/Component/WxHUDComponent.h` |
 | `UWxIndicatorManagerComponent` | 컨트롤러 컴포넌트. 화면 인디케이터 목록·투영 계산·발행 | `Source/WxUI/Public/Indicator/WxIndicatorManagerComponent.h` |
 | `FWxStateTreeTask_PrintSubtitle` | 자막 출력 ST 태스크(DataTable 행 체인) | `Source/WxUI/Public/Subtitle/WxStateTreeTask_PrintSubtitle.h` |
 | `FWxStateTreeTask_MarkIndicator` | 인디케이터 표시 ST 태스크(로케이터 대상) | `Source/WxUI/Public/Indicator/WxStateTreeTask_MarkIndicator.h` |
@@ -41,7 +42,7 @@
 - **새 위젯**: `UWxActivatableWidget`(전체화면·모달) 또는 `UWxButtonBase`/`UWxTabListWidgetBase` 등 CommonUI 베이스를 상속. `InputMode`·`bPauseGame`으로 입력/정지 성향 지정. 실제 정지 적용은 매니저가 전 레이어를 재평가해 결정.
 - **새 뷰모델**: `UWxViewModel`을 상속. 아이콘/초상화는 소프트 참조로 받아 `RequestImageAsync`에 맡기고 `ApplyLoadedImage`로 수신 — 로드된 하드 참조만 UMG에 노출한다. Composite는 `FindSharedViewModel`/`GetOrCreate...`로 데이터 소스를 공유 키 삼아 인스턴스를 공유.
 - **View Bindings Resolver**: `UMVVMViewModelContextResolver` 파생(`UWxViewModelResolver_Attribute`/`_Indicator`/`_Subtitle`)을 WBP의 Creation Type=Resolver로 선택. 매니저·ASC가 위젯보다 늦게 도착할 수 있어, 리졸버가 준 인스턴스는 고정한 채 도착 신호로 내부 상태만 교체한다.
-- **데이터 주도 설정**: 화면 클래스(레이아웃/HUD/사망/대화/팝업)는 전부 `UWxUIDeveloperSettings`의 소프트 클래스 config. 자막은 `FWxSubtitleTableRow` DataTable로 한 편을 정의.
+- **데이터 주도 설정**: 화면 클래스(레이아웃/사망/대화/팝업)는 `UWxUIDeveloperSettings`의 소프트 클래스 config. HUD 만 예외로 Experience 액션셋이 정해 UI 매니저에 발행하고, 주입된 `UWxHUDComponent`가 그 값을 띄운다(콘텐츠마다 교체). 자막은 `FWxSubtitleTableRow` DataTable로 한 편을 정의.
 - **레이어 태그**: `UI.Layer.*` (config·`LayerTags` 배열에서 참조). 태그 원천은 WxCore/프로젝트 태그 — WxUI에는 Native Tag 선언이 없다.
 
 ## 여기서부터 읽어라
