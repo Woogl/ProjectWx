@@ -131,6 +131,15 @@ bool AWxCharacterBase::CanJumpInternal_Implementation() const
 	return Super::CanJumpInternal_Implementation();
 }
 
+void AWxCharacterBase::OnJumped_Implementation()
+{
+	Super::OnJumped_Implementation();
+
+	// 후딜에 든 앞 액션은 배타 어빌리티가 그러듯 점프도 끊는다.
+	// 본동작·반응형은 CanJumpInternal이 점프 자체를 막으므로 여기 올 수 있는 배타 어빌리티는 후딜뿐이다.
+	AbilitySystemComponent->CancelActivationGroupAbilities(EWxAbilityActivationGroup::Exclusive_Recovery, nullptr);
+}
+
 UAbilitySystemComponent* AWxCharacterBase::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
