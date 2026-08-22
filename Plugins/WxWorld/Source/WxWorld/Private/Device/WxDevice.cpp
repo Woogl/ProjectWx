@@ -49,13 +49,13 @@ void AWxDevice::PreSave(FObjectPreSaveContext ObjectSaveContext)
 
 bool AWxDevice::CanInteract() const
 {
-	return bInteractionEnabled && !bInteractionLocked;
+	return bInteractionEnabled;
 }
 
 void AWxDevice::SetInteractionEnabled(bool bEnabled)
 {
-	// 자기 바인딩은 건드리지 않는다 — 버튼처럼 자기 트리가 프롬프트·발행자를 든 장치를 남이 껐다 켜도 원래대로 눌려야 한다.
-	bInteractionLocked = !bEnabled;
+	// 바인딩은 건드리지 않는다 — 자기 트리가 프롬프트·발행자를 담아 둔 장치를 남이 껐다 켜도 원래대로 눌려야 한다.
+	bInteractionEnabled = bEnabled;
 }
 
 void AWxDevice::OnInteracted(AActor* Interactor)
@@ -72,7 +72,7 @@ void AWxDevice::OnInteracted(AActor* Interactor)
 		return;
 	}
 
-	// 꺼져 있거나 잠겨 있으면 애초에 스캔 후보에서 빠지지만, 여기서도 같은 기준으로 걸러 상태를 건드리지 않는다.
+	// 꺼져 있으면 애초에 스캔 후보에서 빠지지만, 여기서도 같은 기준으로 걸러 상태를 건드리지 않는다.
 	if (!CanInteract())
 	{
 		return;
@@ -141,8 +141,11 @@ void AWxDevice::SetInteractionBinding(bool bEnabled, const FWxDeviceInteractionB
 {
 	bInteractionEnabled = bEnabled;
 
-	// 끌 때는 다음 켜짐이 자기 값을 다시 담도록 비운다 — 남겨 두면 꺼진 상태의 문구가 프롬프트로 새어 나간다.
-	InteractionBinding = bEnabled ? Binding : FWxDeviceInteractionBinding();
+	// 끌 때 비우지 않는다 — 남이 껐다 켜도 이 상태의 문구·발행자로 돌아와야 한다. 꺼진 장치는 스캔 후보에서 빠지므로 담아 둔 문구가 새어 나갈 일도 없다.
+	if (bEnabled)
+	{
+		InteractionBinding = Binding;
+	}
 }
 
 void AWxDevice::BeginPlay()

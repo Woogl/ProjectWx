@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Device/WxComponentName.h"
 #include "StateTreeDelegate.h"
 #include "StateTreeTaskBase.h"
 #include "UniversalObjectLocator.h"
@@ -23,10 +22,6 @@ struct FWxStateTreeTask_EnableInteractionInstanceData
 	/** 남의 트리(퀘스트 스텝 등)에서 배치 대상을 지목하는 갈래. 비우면 오너 장치 자신이 대상이다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedLocators = "Actor"))
 	FUniversalObjectLocator Target;
-
-	/** 오너 BP 에 ChildActor 로 심긴 내장 장치(버튼 등)를 잠그고 푸는 갈래. 비우면 오너 장치 자신이 대상이다. */
-	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedClasses = "/Script/Engine.ChildActorComponent"))
-	FWxComponentName ChildDevice;
 
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	bool bEnable = false;
@@ -48,7 +43,7 @@ struct FWxStateTreeTask_EnableInteractionInstanceData
  * 이 노드의 OnInteracted 를 지목하는 전이는 이 노드가 있는 상태나 그 하위 상태에 두어야 한다 — 바인딩이 볼 수 있는 범위가 루트에서 전이가 달린 상태까지의 경로뿐이라, 부모 상태의 전이는 자식의 발행자를 지목하지 못한다.
  *
  * 액터(Target) 갈래는 토글을 대상이 계약(IWxInteractable)으로 스스로 수행하므로 대상 타입을 알 필요가 없다.
- * 내장 장치(ChildDevice) 갈래도 같은 계약으로 잠그고 푼다 — 공유 에셋이 레벨 액터를 지목할 수 없는 자리(엘리베이터가 자기 층 버튼을 잠그는 것)를 컴포넌트 이름으로 메운다.
+ * 다만 대상이 자기 트리로 상태마다 켜고 끄는 장치(버튼)라면 나중에 쓴 쪽이 이겨 다투므로, 그런 잠금은 '내장 장치에 이벤트 보내기' 로 대상 트리에 상태를 요청한다.
  * 대상이 아직 스트리밍 인 되지 않았으면 그때까지만 Running 으로 남는다.
  * 값을 복제하지 않으므로 서버가 곧 클라인 싱글/리슨 호스트가 전제다.
  * 걸어 둔 토글이 대상의 재로드로 되돌아가는 것까지는 지키지 않는다.

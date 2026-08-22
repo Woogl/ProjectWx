@@ -40,6 +40,7 @@ namespace WxGameplayTags
 	
 	UE_DEFINE_GAMEPLAY_TAG(Device_Button_Idle, "Device.Button.Idle");
 	UE_DEFINE_GAMEPLAY_TAG(Device_Button_Pressed, "Device.Button.Pressed");
+	UE_DEFINE_GAMEPLAY_TAG(Device_Button_Locked, "Device.Button.Locked");
 
 	UE_DEFINE_GAMEPLAY_TAG(Device_Door_Close, "Device.Door.Close");
 	UE_DEFINE_GAMEPLAY_TAG(Device_Door_Open, "Device.Door.Open");

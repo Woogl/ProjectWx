@@ -49,10 +49,10 @@ public:
 	/** 정지 후엔 활성 상태가 비어 읽을 수 없으므로, 멈추기 전에 마지막 상태를 한 번 알린다. */
 	virtual void StopLogic(const FString& Reason) override;
 
-protected:
 	/** 순정 자동 시작(Super)이 트리를 연 직후 상태를 한 번 동기화한다(복원 추종이 열려 있으면 여기서 수렴 요청이 나간다). */
 	virtual void BeginPlay() override;
-
+	
+protected:
 	/**
 	 * 도착 시점엔 판정하지 않고 잠들어 있던 틱만 깨운다. 추종 판정은 트리 틱 뒤(SyncStateWithTree)가 맡는다.
 	 * 도착 즉시 비교하면 아직 대기 중인 발행을 소화하지 못한 트리를 「어긋났다」고 오판하게 된다.
@@ -67,7 +67,7 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_StateTag, SaveGame)
 	FGameplayTag StateTag;
 	
-	// TODO: 초기 상태를 InstanceEditable하게 편집할 수 있게 제공할 예정. 아예 SaveGame과 Replication까지 StateTag 대신에 이것을 사용할지는 고민 중...
+	// TODO: 저장된 데이터 없을 때 쓰는 초기 상태를 InstanceEditable하게 편집할 수 있게 제공할 예정. 아예 SaveGame과 Replication까지 StateTag 대신에 이것을 사용할지는 고민 중...
 	// UPROPERTY(EditAnywhere, Category = "Wx")
 	// FName InitialState;
 

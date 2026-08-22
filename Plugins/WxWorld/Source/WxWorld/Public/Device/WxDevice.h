@@ -62,7 +62,10 @@ public:
 	//~ Begin IWxInteractable — 활성·프롬프트는 ST 가 상태마다 세팅한 값이다.
 	virtual bool CanInteract() const override;
 
-	/** 남의 트리('상호작용 켜기' Target·내장 장치 갈래)가 이 장치를 잠그고 푸는 진입점. 자기 트리가 든 켜짐·프롬프트·발행자와는 별개의 잠금이라, 풀면 자기 바인딩 그대로 다시 눌린다. */
+	/**
+	 * 남의 트리('상호작용 켜기' Target 갈래)가 이 장치의 활성을 끄고 켜는 진입점. 자기 트리가 담아 둔 프롬프트·발행자는 남아 있어 다시 켜면 원래대로 눌린다.
+	 * 자기 트리와 같은 값을 쓰므로 나중에 쓴 쪽이 이긴다 — 상태마다 스스로 켜고 끄는 장치(버튼)를 밖에서 잠글 때는 이 진입점이 아니라 그 트리에 잠금 상태를 이벤트로 요청한다.
+	 */
 	virtual void SetInteractionEnabled(bool bEnabled) override;
 
 	/** 권위 측에서 상호작용을 받아 당사자를 기록하고 지금 상태의 발행자를 트리에 발행한다. 어느 상태로 갈지는 ST 에셋의 전이가 정하고, 그 결과가 복제되어 클라에 전해진다. */
@@ -99,7 +102,7 @@ public:
 	ACharacter* GetInteractingCharacter() const;
 
 	/**
-	 * 상호작용을 켜고 끄며, 켤 때는 그 상태의 프롬프트와 발행 자리(Binding)도 함께 담는다 — 끌 때 Binding 은 쓰이지 않는다.
+	 * 상호작용을 켜고 끄며, 켤 때는 그 상태의 프롬프트와 발행 자리(Binding)도 함께 담는다 — 끌 때 Binding 은 쓰이지 않고 담겨 있던 것도 지우지 않는다.
 	 * '상호작용 켜기' 태스크가 상태 진입 시 호출한다. 꺼져 있으면 IsInteractionEnabled 가 false 를 답해 다음 스캔에서 후보에서 빠지고, 어빌리티의 서버 활성 검증에도 걸린다.
 	 * 복제하지 않는다 — ST 가 각 피어에서 실행되어 같은 값에 수렴한다.
 	 */
@@ -152,14 +155,7 @@ private:
 	UPROPERTY(Transient)
 	bool bInteractionEnabled = false;
 
-	/**
-	 * 남의 트리가 건 잠금. 자기 트리의 켜짐(bInteractionEnabled)과 별개라 풀어도 바인딩이 살아 있다.
-	 * 로컬 전용 — 잠그는 트리가 각 피어에서 실행되어 같은 값으로 수렴한다.
-	 */
-	UPROPERTY(Transient)
-	bool bInteractionLocked = false;
-
-	/** 켜져 있는 동안의 프롬프트와 발행 자리. 끄면 다음 켜짐을 위해 비운다. */
+	/** 켜져 있는 동안의 프롬프트와 발행 자리. 꺼도 남겨 둔다 — 다시 켤 때 그 자리로 돌아온다. */
 	UPROPERTY(Transient)
 	FWxDeviceInteractionBinding InteractionBinding;
 };
