@@ -22,8 +22,38 @@ void UWxAbility_Pattern::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 		return;
 	}
 
-	if (!PlayMontage(Montage))
+	ComboIndex = ComboMontages.IsValidIndex(ComboIndex + 1) ? ComboIndex + 1 : 0;
+
+	UAnimMontage* ComboMontage = ComboMontages.IsValidIndex(ComboIndex) ? ComboMontages[ComboIndex].Get() : nullptr;
+	if (!PlayMontage(ComboMontage))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+	}
+}
+
+void UWxAbility_Pattern::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	if (bWasCancelled)
+	{
+		ComboIndex = INDEX_NONE;
+	}
+	
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UWxAbility_Pattern::HandleMontageCompleted()
+{
+	// 다음 ComboMontage를 재생해서 모든 몽타주가 끝나면 그제서야 EndAbility 한다.
+	if (!ComboMontages.IsValidIndex(ComboIndex + 1))
+	{
+		EndAbility(CurrentSpecHandle, GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
+		return;
+	}
+	
+	ComboIndex = ComboIndex + 1;
+	UAnimMontage* ComboMontage = ComboMontages.IsValidIndex(ComboIndex) ? ComboMontages[ComboIndex].Get() : nullptr;
+	if (!PlayMontage(ComboMontage))
+	{
+		EndAbility(CurrentSpecHandle, GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
 	}
 }

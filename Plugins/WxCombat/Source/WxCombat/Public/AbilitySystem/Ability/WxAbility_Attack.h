@@ -28,10 +28,8 @@ protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
-	/** 콤보 미입력으로 끝났으므로 다음 발동은 첫 단부터 시작한다. */
 	virtual void HandleMontageCompleted() override;
 
-	/** 배열 순서가 곧 콤보 단계다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	TArray<TObjectPtr<UAnimMontage>> ComboMontages;
 
