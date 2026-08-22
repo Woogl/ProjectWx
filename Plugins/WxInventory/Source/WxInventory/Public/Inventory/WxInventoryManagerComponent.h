@@ -203,7 +203,7 @@ public:
 	 * 소비 아이템은 에스트병 하나뿐이라 대상을 지목하지 않는다.
 	 * 종류가 늘면 대상을 받아 어느 어빌리티를 발동할지 가려야 한다.
 	 */
-	void RequestUseConsumable();
+	bool RequestUseConsumable();
 
 	/**
 	 * Usable Fragment 보유 + (충전형이면 충전이 남은 인스턴스 존재) 이면 true.

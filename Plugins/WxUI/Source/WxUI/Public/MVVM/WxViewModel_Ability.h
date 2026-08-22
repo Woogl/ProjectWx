@@ -38,7 +38,6 @@ public:
 	void Initialize(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility);
 	virtual void Deinitialize() override;
 
-	/** 비용/쿨다운/태그 요건은 엔진 TryActivateAbility가 판정한다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Ability")
 	bool TryActivateAbility();
 

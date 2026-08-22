@@ -475,16 +475,16 @@ TArray<UWxItemInstance*> UWxInventoryManagerComponent::GetAllItems() const
 	return Result;
 }
 
-void UWxInventoryManagerComponent::RequestUseConsumable()
+bool UWxInventoryManagerComponent::RequestUseConsumable()
 {
 	const APlayerController* PC = GetOwner<APlayerController>();
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(PC ? PC->GetPawn() : nullptr);
 	if (!ASC)
 	{
-		return;
+		return false;
 	}
 
-	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(WxGameplayTags::Ability_UseItem));
+	return ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(WxGameplayTags::Ability_UseItem));
 }
 
 bool UWxInventoryManagerComponent::CanUseItemByDef(const UWxItemDefinition* ItemDef) const

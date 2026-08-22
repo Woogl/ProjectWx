@@ -86,12 +86,13 @@ UWxItemInstance* UWxViewModel_Item::GetTargetInstance() const
 	return TargetInstance.Get();
 }
 
-void UWxViewModel_Item::RequestUseConsumable()
+bool UWxViewModel_Item::RequestUseConsumable()
 {
 	if (UWxInventoryManagerComponent* Inventory = CachedInventory.Get())
 	{
-		Inventory->RequestUseConsumable();
+		return Inventory->RequestUseConsumable();
 	}
+	return false;
 }
 
 void UWxViewModel_Item::HandleStackChanged(const UWxItemDefinition* ItemDef, int32 NewCount, int32 Delta)
