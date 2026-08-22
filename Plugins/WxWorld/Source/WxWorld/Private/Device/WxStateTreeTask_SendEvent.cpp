@@ -6,6 +6,7 @@
 #include "Device/WxDevice.h"
 #include "GameFramework/Character.h"
 #include "StateTreeExecutionContext.h"
+#include "StateTreePropertyBindings.h"
 #include "WxWorldModule.h"
 
 FWxStateTreeTask_SendEvent::FWxStateTreeTask_SendEvent()
@@ -29,7 +30,7 @@ EStateTreeRunStatus FWxStateTreeTask_SendEvent::EnterState(FStateTreeExecutionCo
 	AWxDevice* Owner = Cast<AWxDevice>(Context.GetOwner());
 	if (!Owner)
 	{
-		UE_LOG(LogWxWorld, Warning, TEXT("Send Event: 오너 %s 가 장치가 아니라 대상도 당사자도 읽을 곳이 없음."), *GetNameSafe(Cast<AActor>(Context.GetOwner())));
+		UE_LOG(LogWxWorld, Warning, TEXT("Send Event: 오너 %s 가 장치가 아니라 당사자를 읽을 곳이 없음."), *GetNameSafe(Cast<AActor>(Context.GetOwner())));
 
 		return EStateTreeRunStatus::Succeeded;
 	}
@@ -42,24 +43,23 @@ EStateTreeRunStatus FWxStateTreeTask_SendEvent::EnterState(FStateTreeExecutionCo
 
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 비운 칸은 오너가 든 값으로 채운다 — 배치마다 달라지는 값은 액터에, 에셋이 정하는 값은 태스크에 실린다.
-	const FGameplayTag EventTag = Instance.Event.IsValid() ? Instance.Event : Owner->TriggerEvent;
-
 	// 당사자를 그대로 넘겨 받는 장치의 이동·몽타주 태스크가 같은 캐릭터를 대상으로 삼게 한다.
 	ACharacter* Interactor = Owner->GetInteractingCharacter();
 
+	for (AWxDevice* TargetDevice : Instance.TargetDevices)
+	{
+		if (IsValid(TargetDevice))
+		{
+			TargetDevice->NotifyDeviceInteracted(Interactor, Instance.Event, Instance.Payload);
+		}
+	}
+
 	if (Instance.ChildDevice.Name.IsNone())
 	{
-		// 오너가 아는 상대 전부. 지목한 장치도 민 장치도 없으면 무동작으로 통과한다 — 아무것도 밀지 않는 발동 장치도 성립한다.
-		TArray<AWxDevice*, TInlineAllocator<4>> Targets(Owner->LinkedDevices);
-		Targets.AddUnique(Owner->GetInstigatorDevice());
-
-		for (AWxDevice* Device : Targets)
+		// 유추하는 갈래가 없으므로 아무 칸도 채우지 않은 노드는 보낼 곳이 없다 — 조용히 통과하면 저작 실수가 드러나지 않는다.
+		if (Instance.TargetDevices.IsEmpty())
 		{
-			if (IsValid(Device))
-			{
-				Device->NotifyDeviceInteracted(Interactor, EventTag, Instance.Payload, Owner);
-			}
+			UE_LOG(LogWxWorld, Warning, TEXT("Send Event: %s 가 대상을 하나도 지목하지 않아 보낼 곳이 없음."), *GetNameSafe(Owner));
 		}
 
 		return EStateTreeRunStatus::Succeeded;
@@ -74,7 +74,7 @@ EStateTreeRunStatus FWxStateTreeTask_SendEvent::EnterState(FStateTreeExecutionCo
 		return EStateTreeRunStatus::Failed;
 	}
 
-	ChildDevice->NotifyDeviceInteracted(Interactor, EventTag, Instance.Payload, Owner);
+	ChildDevice->NotifyDeviceInteracted(Interactor, Instance.Event, Instance.Payload);
 
 	return EStateTreeRunStatus::Succeeded;
 }
@@ -85,8 +85,22 @@ FText FWxStateTreeTask_SendEvent::GetDescription(const FGuid& ID, FStateTreeData
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	const FText TargetText = InstanceData->ChildDevice.Name.IsNone() ? INVTEXT("연결 장치") : FText::FromName(InstanceData->ChildDevice.Name);
-	const FText EventText = InstanceData->Event.IsValid() ? FText::FromName(InstanceData->Event.GetTagName()) : INVTEXT("Trigger Event");
+	// 배치 대상은 바인딩이라 편집 중엔 배열이 비어 있다 — 무엇에 걸었는지를 보여야 배선을 빠뜨린 노드가 눈에 띈다.
+	FText TargetText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, TargetDevices)), Formatting);
+	if (TargetText.IsEmpty())
+	{
+		TargetText = InstanceData->ChildDevice.Name.IsNone() ? INVTEXT("대상 없음") : FText::FromName(InstanceData->ChildDevice.Name);
+	}
+	else if (!InstanceData->ChildDevice.Name.IsNone())
+	{
+		TargetText = FText::Format(INVTEXT("{0} · {1}"), TargetText, FText::FromName(InstanceData->ChildDevice.Name));
+	}
+
+	FText EventText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, Event)), Formatting);
+	if (EventText.IsEmpty())
+	{
+		EventText = InstanceData->Event.IsValid() ? FText::FromName(InstanceData->Event.GetTagName()) : INVTEXT("태그 없음");
+	}
 
 	return FText::Format(INVTEXT("{0} 에 이벤트 보내기 ({1})"), TargetText, EventText);
 }

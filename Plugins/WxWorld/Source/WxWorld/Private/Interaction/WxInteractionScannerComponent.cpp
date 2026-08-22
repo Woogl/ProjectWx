@@ -142,7 +142,7 @@ void UWxInteractionScannerComponent::ScanAndPush()
 
 	if (const UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn))
 	{
-		if (!CanInteractNow(ASC))
+		if (!CanActivateInteract(ASC))
 		{
 			UpdateInRange({});
 			return;
@@ -300,13 +300,13 @@ void UWxInteractionScannerComponent::SetActorHighlighted(AActor* Actor, bool bHi
 	}
 }
 
-bool UWxInteractionScannerComponent::CanInteractNow(const UAbilitySystemComponent* ASC) const
+bool UWxInteractionScannerComponent::CanActivateInteract(const UAbilitySystemComponent* ASC) const
 {
 	// 클래스 의존을 피해 Ability.Interact 애셋 태그로 찾는다(UWxBTTask_ActivateAbility 와 동일 관례).
 	const FGameplayAbilityActorInfo* ActorInfo = ASC->AbilityActorInfo.Get();
 	if (!ActorInfo)
 	{
-		return true;
+		return false;
 	}
 
 	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
@@ -317,7 +317,7 @@ bool UWxInteractionScannerComponent::CanInteractNow(const UAbilitySystemComponen
 		}
 	}
 
-	return true;
+	return false;
 }
 
 APawn* UWxInteractionScannerComponent::GetOwnerPawn() const

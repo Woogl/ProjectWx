@@ -5,8 +5,6 @@
 #include "Device/WxDeviceStateTreeComponent.h"
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
-#include "WxGameplayTags.h"
-#include "WxWorldModule.h"
 
 #if WITH_EDITOR
 #include "UObject/ObjectSaveContext.h"
@@ -14,7 +12,7 @@
 
 AWxDevice::AWxDevice()
 {
-	// 상태는 서버 권위이고 클라는 복제 값만 보고 따라간다 — 꺼지면 클라 장치가 통째로 멈추므로 배치 측에 맡기지 않는다.
+	// 상태는 서버 권위이고 클라는 복제 값만 보고 따라간다.
 	bReplicates = true;
 
 	StateTreeComponent = CreateDefaultSubobject<UWxDeviceStateTreeComponent>(TEXT("StateTree"));
@@ -28,21 +26,15 @@ void AWxDevice::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetim
 }
 
 #if WITH_EDITOR
-// 런타임엔 안정적인 액터 식별자가 없다(ActorGuid 는 에디터 전용 데이터).
-//
-// 생성·등록 훅이 아니라 직렬화 직전에 심는 것이 핵심이다.
-// 에디터의 액터 복제(Ctrl+W·Alt-드래그)와 붙여넣기는 T3D 텍스트 경로라 ImportObjectProperties 가 원본의 SaveId 를 그대로 덮어쓰는데, 저장 직전에 자기 ActorGuid 로 재확정하면 생성 경로가 무엇이든 상관없어진다.
 void AWxDevice::PreSave(FObjectPreSaveContext ObjectSaveContext)
 {
 	Super::PreSave(ObjectSaveContext);
 
-	// 쿠킹·EditorDomain 등 사용자 편집이 개입할 수 없는 저장은 건드리지 않는다. 값은 맵 저장 때 이미 확정되어 패키지에 실려 있다.
 	if (ObjectSaveContext.IsProceduralSave())
 	{
 		return;
 	}
 
-	// Modify() 는 부르지 않는다. 이미 저장 중이라 트랜잭션에 남길 이유가 없고, 오히려 저장 직후 패키지가 dirty 로 남는다.
 	SaveId = GetActorGuid();
 }
 #endif
@@ -104,7 +96,7 @@ void AWxDevice::OnSaveRestored()
 	StateTreeComponent->NotifySaveRestored();
 }
 
-void AWxDevice::NotifyDeviceInteracted(AActor* Interactor, FGameplayTag EventTag, FConstStructView Payload, AWxDevice* FromDevice)
+void AWxDevice::NotifyDeviceInteracted(AActor* Interactor, FGameplayTag EventTag, FConstStructView Payload)
 {
 	// 보내는 쪽이 서버 권위에서만 부르지만, 상태를 움직이는 것은 권위 트리뿐이므로 한 번 더 가른다.
 	if (!HasAuthority())
@@ -121,28 +113,15 @@ void AWxDevice::NotifyDeviceInteracted(AActor* Interactor, FGameplayTag EventTag
 	// 당사자는 복제로 각 피어에 전해진다 — 이동·몽타주 태스크가 모든 머신에서 같은 대상을 본다.
 	InteractingCharacter = Cast<ACharacter>(Interactor);
 
-	// 동작을 마친 뒤 되돌려 풀 상대다. 자기 자신을 담아 두면 자기 이벤트를 자기에게 되돌리는 고리가 된다.
-	InstigatorDevice = (FromDevice != this) ? FromDevice : nullptr;
-
 	// 잠든 트리는 이 발송이 예약하는 다음 틱이 깨운다.
 	// 자기 상호작용과 달리 재진입 판정은 걸지 않는다 — 이벤트엔 「지금 듣고 있는가」를 가릴 자리가 없어,
 	// 반응하지 않는 상태에서 당길 때마다 클라만 현재 상태를 재진입해 연출을 헛재생하게 된다.
 	StateTreeComponent->SendStateTreeEvent(EventTag, Payload);
 }
 
-FGameplayTag AWxDevice::GetStateTag() const
-{
-	return StateTreeComponent->GetStateTag();
-}
-
 ACharacter* AWxDevice::GetInteractingCharacter() const
 {
 	return InteractingCharacter;
-}
-
-AWxDevice* AWxDevice::GetInstigatorDevice() const
-{
-	return InstigatorDevice;
 }
 
 void AWxDevice::SetInteractionBinding(bool bEnabled, const FWxDeviceInteractionBinding& Binding)
@@ -160,7 +139,7 @@ void AWxDevice::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// 리모트 클라에선 복제 child 의 ParentComponent 가 비복제라 배선이 비지만, 눌림 전달은 권위 전용이라 무관하다.
+	/** ChildActor나 Attach되어 포함된 Device가 Owner 장치를 찾는다. */
 	if (AActor* AttachParentActor = GetAttachParentActor())
 	{
 		if (AWxDevice* ParentDevice = Cast<AWxDevice>(AttachParentActor))
