@@ -64,8 +64,12 @@ protected:
 	 * 지금 활성인 상태의 Tag(복제 + SaveGame). 권위 측이 트리 틱마다 갱신하며, 이 값이 곧 세이브 슬롯에 담기는 장치의 상태다.
 	 * 상태에 Tag 를 달지 않으면 저장되지 않으므로, 영속이 필요한 상태에는 반드시 Tag 를 지정한다.
 	 */
-	UPROPERTY(ReplicatedUsing = OnRep_StateTag, SaveGame, VisibleAnywhere, Category = "Wx")
+	UPROPERTY(ReplicatedUsing = OnRep_StateTag, SaveGame)
 	FGameplayTag StateTag;
+	
+	// TODO: 초기 상태를 InstanceEditable하게 편집할 수 있게 제공할 예정. 아예 SaveGame과 Replication까지 StateTag 대신에 이것을 사용할지는 고민 중...
+	// UPROPERTY(EditAnywhere, Category = "Wx")
+	// FName InitialState;
 
 private:
 	/**
