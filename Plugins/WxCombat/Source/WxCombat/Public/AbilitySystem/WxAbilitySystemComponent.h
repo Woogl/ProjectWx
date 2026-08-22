@@ -8,6 +8,7 @@
 #include "WxAbilitySystemComponent.generated.h"
 
 class UInputAction;
+class UWxAbilityBase;
 enum class EWxAbilityActivationGroup : uint8;
 
 UCLASS()
@@ -49,10 +50,10 @@ public:
 	virtual void NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason) override;
 
 	/**
-	 * Group이 지금 발동할 수 있는지 배타 판정.
-	 * Exclusive_*는 활성 인스턴스 중 본동작(Exclusive_Blocking·Reaction)이 있으면 막히고, Independent·Reaction은 막히지 않는다.
+	 * 지금 배타 점유 중인(Exclusive_Blocking·Reaction) 어빌리티. 없으면 nullptr.
+	 * 반응형은 서로를 끊지 않으므로 점유가 둘 이상일 수 있고, 그때는 먼저 찾은 하나만 돌려준다.
 	 */
-	bool IsActivationGroupBlocked(EWxAbilityActivationGroup Group) const;
+	const UWxAbilityBase* FindActivationGroupBlocker() const;
 
 	void CancelActivationGroupAbilities(EWxAbilityActivationGroup Group, UGameplayAbility* IgnoreAbility);
 

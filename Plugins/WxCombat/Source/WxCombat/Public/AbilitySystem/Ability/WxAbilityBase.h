@@ -28,8 +28,10 @@ enum class EWxAbilityActivationPolicy : uint8
 };
 
 /**
- * 배타 발동 그룹. Lyra의 ActivationGroup 세 값에 Reaction을 더했다.
- * 판정은 UWxAbilitySystemComponent가 활성 인스턴스에서 파생하며, 어빌리티끼리의 태그 차단·취소 배선을 대체한다.
+ * 배타 발동 그룹. Lyra의 ActivationGroup 세 값(Replaceable은 후딜 어휘를 따라 Recovery로 부른다)에 Reaction을 더했다.
+ * 판정은 UWxAbilitySystemComponent가 활성 인스턴스에서 파생하므로, 어빌리티마다 차단 태그를 배선하지 않아도 된다.
+ * 단 CancelAbilitiesWithTag로 상대를 지목한 어빌리티는 이 판정보다 우선해 발동한다.
+ * 이 값이 정하는 것은 발동 가부까지고, 진행 중이던 것을 무엇까지 끊을지는 그 지목이 정한다(후딜 취소만 그룹으로 처리한다).
  */
 UENUM()
 enum class EWxAbilityActivationGroup : uint8
@@ -40,10 +42,10 @@ enum class EWxAbilityActivationGroup : uint8
 	/** 배타적으로 다른 Exclusive 어빌리티 발동을 막는다. */
 	Exclusive_Blocking,
 
-	/** 다른 Exclusive 어빌리티 발동에 의해 취소될 수 있다. 액션의 후딜 상태. */
-	Exclusive_Replaceable,
-	
-	/** Exclusive 어빌리티 발동 중이더라도 강제로 점유를 빼앗는다. */
+	/** 액션이 후딜에 든 상태. 막지 않는 것은 Independent와 같고, 다음 배타 발동·점프가 이 값을 지목해 끊는다. */
+	Exclusive_Recovery,
+
+	/** 점유 중인 Exclusive 어빌리티에 막히지 않고 발동한다. 서로를 막지도 않으므로 반응형끼리는 겹칠 수 있다. */
 	Reaction,
 };
 
@@ -64,19 +66,19 @@ class WXCOMBAT_API UWxAbilityBase : public UGameplayAbility
 public:
 	UWxAbilityBase();
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
-	EWxAbilityActivationPolicy ActivationPolicy = EWxAbilityActivationPolicy::OnTriggered;
-
-	/**
-	 * ASC가 눌린 액션을 이 값과 대조하고, AbilitySet이 모아 입력 바인딩 목록을 만든다.
-	 * 입력으로 발동하지 않는 어빌리티(AI 패턴·반응형·패시브)는 비워둔다.
-	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
-	TObjectPtr<UInputAction> ActivationInputAction;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxAbilityTableRow"))
 	FDataTableRowHandle AbilityDataRow;
-
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
+	EWxAbilityActivationPolicy ActivationPolicy = EWxAbilityActivationPolicy::OnTriggered;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
+	TObjectPtr<UInputAction> ActivationInputAction;
+	
+	/** 후딜 전이(StartRecovery)가 Exclusive_Recovery로 바꾸고, 다음 활성화가 선언값으로 되돌린다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx")
+	EWxAbilityActivationGroup ActivationGroup = EWxAbilityActivationGroup::Independent;
+	
 	/**
 	 * 활성 구간 동안 소유자에게 유지되는 효과. ActivationOwnedTags의 GE판으로, 활성화에서 걸고 종료에서 걷는다.
 	 * 수명이 어빌리티에 묶이므로 각 GE는 지속시간을 두지 않는다(Infinite).
@@ -101,16 +103,14 @@ public:
 
 	/**
 	 * 이 프로젝트에서 후딜레이 구간 = 캔슬 가능 구간이다.
-	 * 그룹을 Exclusive_Replaceable로 전이해 배타 잠금을 풀고, 그 순간부터 이후 발동하는 배타 어빌리티의 취소 대상이 된다.
+	 * 그룹을 Exclusive_Recovery로 전이해 배타 잠금을 풀고, 그 순간부터 이후 발동하는 배타 어빌리티의 취소 대상이 된다.
 	 *
 	 * 복원하지 않는다 — 후딜은 몽타주의 마지막 구간이므로 한 번 진입하면 종료까지 캔슬 가능 상태로 두고, 다음 활성화가 선언값으로 되돌린다.
 	 * 코스트·쿨다운·ActivationBlockedTags는 그대로 검사된다.
 	 */
 	void StartRecovery();
-
-	EWxAbilityActivationGroup GetActivationGroup() const;
-
-	/** 순정 검사에 배타 그룹 판정(IsActivationGroupBlocked)을 더한다. */
+	
+	/** 순정 검사에 배타 그룹 판정을 더하되, CancelAbilitiesWithTag로 지목한 어빌리티가 점유 중이면 통과시킨다. */
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
 	/**
@@ -163,10 +163,6 @@ protected:
 
 	UFUNCTION()
 	virtual void HandleMontageCancelled();
-
-	/** 후딜 전이(StartRecovery)가 Exclusive_Replaceable로 바꾸고, 다음 활성화가 선언값으로 되돌린다. */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx")
-	EWxAbilityActivationGroup ActivationGroup = EWxAbilityActivationGroup::Independent;
 
 private:
 	const FWxAbilityTableRow* GetTableRow() const;

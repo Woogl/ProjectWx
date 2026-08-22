@@ -24,8 +24,8 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	AssetTags.AddTag(WxGameplayTags::Ability_Finisher);
 	SetAssetTags(AssetTags);
 
-	// 앞잡은 플레이어의 공격으로 만들어지므로, 그로기 직후 F를 누르면 그 공격이 아직 본동작일 수 있다(막힌 발동은 재시도 없이 소모).
-	// Reaction은 그 점유에 막히지 않고, 발동하며 진행 중이던 액션을 끊는다.
+	// 처형은 상호작용 어빌리티가 대상에게 넘긴 이벤트로 동기 발동하므로, 그 상호작용이 아직 점유 중일 때 뜬다.
+	// Reaction이라 그 점유에 막히지 않는다 — 상호작용은 곧바로 스스로 끝나므로 끊어 줄 필요는 없다.
 	ActivationGroup = EWxAbilityActivationGroup::Reaction;
 
 	ActivationOwnedEffects.Add(UWxEffect_Invincible::StaticClass());

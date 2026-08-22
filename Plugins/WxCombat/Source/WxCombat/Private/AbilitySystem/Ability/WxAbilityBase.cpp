@@ -39,12 +39,7 @@ float UWxAbilityBase::GetMontagePlayRate() const
 
 void UWxAbilityBase::StartRecovery()
 {
-	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Replaceable;
-}
-
-EWxAbilityActivationGroup UWxAbilityBase::GetActivationGroup() const
-{
-	return ActivationGroup;
+	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Recovery;
 }
 
 bool UWxAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
@@ -54,8 +49,16 @@ bool UWxAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return false;
 	}
 
+	if (ActivationGroup == EWxAbilityActivationGroup::Independent || ActivationGroup == EWxAbilityActivationGroup::Reaction)
+	{
+		return true;
+	}
+
 	const UWxAbilitySystemComponent* WxASC = ActorInfo ? Cast<UWxAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get()) : nullptr;
-	return !WxASC || !WxASC->IsActivationGroupBlocked(ActivationGroup);
+	const UWxAbilityBase* Blocker = WxASC ? WxASC->FindActivationGroupBlocker() : nullptr;
+
+	// 끊겠다고 지목한 어빌리티는 나를 막지 못한다. 취소 자체는 발동 직후 순정 PreActivate가 수행한다.
+	return !Blocker || Blocker->GetAssetTags().HasAny(CancelAbilitiesWithTag);
 }
 
 void UWxAbilityBase::SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileClass, FName SpawnSocketName) const
@@ -110,10 +113,9 @@ void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 	{
 		if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr))
 		{
-			// 후딜에 든 앞 액션은 들어온 배타 발동이 끊는다.
-			WxASC->CancelActivationGroupAbilities(EWxAbilityActivationGroup::Exclusive_Replaceable, this);
-			WxASC->CancelActivationGroupAbilities(EWxAbilityActivationGroup::Exclusive_Blocking, this);
-			WxASC->CancelActivationGroupAbilities(EWxAbilityActivationGroup::Reaction, this);
+			// 후딜에 든 앞 액션은 들어온 배타 발동이 끊는다 — 후딜은 지목할 태그가 없어 여기서만 그룹으로 가른다.
+			// 본동작 점유를 무엇까지 끊을지는 CancelAbilitiesWithTag 선언이 정하고 순정 PreActivate가 수행한다.
+			WxASC->CancelActivationGroupAbilities(EWxAbilityActivationGroup::Exclusive_Recovery, this);
 		}
 	}
 

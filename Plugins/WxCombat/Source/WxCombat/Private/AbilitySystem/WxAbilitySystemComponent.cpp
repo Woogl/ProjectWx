@@ -153,16 +153,11 @@ void UWxAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecHa
 {
 	Super::NotifyAbilityFailed(Handle, Ability, FailureReason);
 
-	UE_LOG(LogWxCombat, Verbose, TEXT("어빌리티 발동 거부: %s — 사유 %s"), *GetNameSafe(Ability), *FailureReason.ToStringSimple());
+	UE_LOG(LogWxCombat, Verbose, TEXT("Ability Failed: %s — 사유 %s"), *GetNameSafe(Ability), *FailureReason.ToStringSimple());
 }
 
-bool UWxAbilitySystemComponent::IsActivationGroupBlocked(EWxAbilityActivationGroup Group) const
+const UWxAbilityBase* UWxAbilitySystemComponent::FindActivationGroupBlocker() const
 {
-	if (Group == EWxAbilityActivationGroup::Independent || Group == EWxAbilityActivationGroup::Reaction)
-	{
-		return false;
-	}
-
 	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
 		if (!Spec.IsActive())
@@ -172,21 +167,25 @@ bool UWxAbilitySystemComponent::IsActivationGroupBlocked(EWxAbilityActivationGro
 
 		for (const UGameplayAbility* Instance : Spec.GetAbilityInstances())
 		{
-			const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Instance);
-			if (!Ability || !Ability->IsActive())
+			if (!Instance->IsActive())
 			{
 				continue;
 			}
 
-			const EWxAbilityActivationGroup ActiveGroup = Ability->GetActivationGroup();
-			if (ActiveGroup == EWxAbilityActivationGroup::Exclusive_Blocking || ActiveGroup == EWxAbilityActivationGroup::Reaction)
+			const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Instance);
+			if (!Ability)
 			{
-				return true;
+				continue;
+			}
+
+			if (Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive_Blocking || Ability->ActivationGroup == EWxAbilityActivationGroup::Reaction)
+			{
+				return Ability;
 			}
 		}
 	}
 
-	return false;
+	return nullptr;
 }
 
 void UWxAbilitySystemComponent::CancelActivationGroupAbilities(EWxAbilityActivationGroup Group, UGameplayAbility* IgnoreAbility)
@@ -204,7 +203,7 @@ void UWxAbilitySystemComponent::CancelActivationGroupAbilities(EWxAbilityActivat
 		for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
 		{
 			const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Instance);
-			if (Ability && Ability != IgnoreAbility && Ability->IsActive() && Ability->GetActivationGroup() == Group)
+			if (Ability && Ability != IgnoreAbility && Ability->IsActive() && Ability->ActivationGroup == Group)
 			{
 				CancelAbilitySpec(Spec, IgnoreAbility);
 				break;
