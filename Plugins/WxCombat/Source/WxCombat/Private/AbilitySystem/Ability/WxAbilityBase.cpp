@@ -43,6 +43,7 @@ void UWxAbilityBase::StartRecovery()
 
 bool UWxAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
+	/** 순정 검사에 배타 그룹 판정을 더하되, CancelAbilitiesWithTag로 지목한 어빌리티가 점유 중이면 통과시킨다. */
 	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
 		return false;
@@ -210,7 +211,7 @@ void UWxAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, c
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
 
-	if (ActivationPolicy == EWxAbilityActivationPolicy::OnGranted)
+	if (ActivationPolicy == EWxAbilityActivationPolicy::OnGiven)
 	{
 		if (UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr)
 		{
@@ -252,6 +253,7 @@ void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, cons
 {
 	if (CooldownGameplayEffectClass && CooldownGameplayEffectClass != UWxEffect_Cooldown::StaticClass())
 	{
+		// 커스텀 쿨다운 클래스를 적용하는 경우
 		Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
 		return;
 	}
@@ -269,6 +271,7 @@ void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, cons
 		return;
 	}
 
+	// 충전이 직렬로 회복되도록 이미 도는 쿨다운의 최장 잔여시간을 더한 값을 SetByCaller로 실어 적용한다.
 	// 이 조회는 GE 적용 전이라 방금 거는 쿨다운이 섞이지 않는다.
 	float LongestRemaining = 0.f;
 	float LongestDuration = 0.f;
@@ -321,6 +324,10 @@ bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, cons
 
 float UWxAbilityBase::GetCooldownTimeRemaining(const FGameplayAbilityActorInfo* ActorInfo) const
 {
+	/**
+	 * 엔진 순정 구현은 쿨다운 GE의 GrantedTags 쿼리 기반이라, 태그를 부여하지 않는 공용 쿨다운 GE에서는 항상 0을 반환한다.
+	 * CDO 기반 쿼리로 대체해 순정 API(BP 노드 포함) 호출자가 올바른 값을 받게 한다.
+	 */
 	if (CooldownGameplayEffectClass && CooldownGameplayEffectClass != UWxEffect_Cooldown::StaticClass())
 	{
 		return Super::GetCooldownTimeRemaining(ActorInfo);
