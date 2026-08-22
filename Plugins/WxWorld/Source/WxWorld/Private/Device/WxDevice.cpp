@@ -104,9 +104,9 @@ void AWxDevice::OnSaveRestored()
 	StateTreeComponent->NotifySaveRestored();
 }
 
-void AWxDevice::NotifyDeviceInteracted(AActor* Interactor, FGameplayTag EventTag)
+void AWxDevice::NotifyDeviceInteracted(AActor* Interactor, FGameplayTag EventTag, FConstStructView Payload, AWxDevice* FromDevice)
 {
-	// 발동 장치가 서버 권위에서만 부르지만, 상태를 움직이는 것은 권위 트리뿐이므로 한 번 더 가른다.
+	// 보내는 쪽이 서버 권위에서만 부르지만, 상태를 움직이는 것은 권위 트리뿐이므로 한 번 더 가른다.
 	if (!HasAuthority())
 	{
 		return;
@@ -121,10 +121,13 @@ void AWxDevice::NotifyDeviceInteracted(AActor* Interactor, FGameplayTag EventTag
 	// 당사자는 복제로 각 피어에 전해진다 — 이동·몽타주 태스크가 모든 머신에서 같은 대상을 본다.
 	InteractingCharacter = Cast<ACharacter>(Interactor);
 
+	// 동작을 마친 뒤 되돌려 풀 상대다. 자기 자신을 담아 두면 자기 이벤트를 자기에게 되돌리는 고리가 된다.
+	InstigatorDevice = (FromDevice != this) ? FromDevice : nullptr;
+
 	// 잠든 트리는 이 발송이 예약하는 다음 틱이 깨운다.
 	// 자기 상호작용과 달리 재진입 판정은 걸지 않는다 — 이벤트엔 「지금 듣고 있는가」를 가릴 자리가 없어,
 	// 반응하지 않는 상태에서 당길 때마다 클라만 현재 상태를 재진입해 연출을 헛재생하게 된다.
-	StateTreeComponent->SendStateTreeEvent(EventTag);
+	StateTreeComponent->SendStateTreeEvent(EventTag, Payload);
 }
 
 FGameplayTag AWxDevice::GetStateTag() const
@@ -135,6 +138,11 @@ FGameplayTag AWxDevice::GetStateTag() const
 ACharacter* AWxDevice::GetInteractingCharacter() const
 {
 	return InteractingCharacter;
+}
+
+AWxDevice* AWxDevice::GetInstigatorDevice() const
+{
+	return InstigatorDevice;
 }
 
 void AWxDevice::SetInteractionBinding(bool bEnabled, const FWxDeviceInteractionBinding& Binding)
