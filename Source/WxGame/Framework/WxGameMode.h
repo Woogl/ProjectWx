@@ -32,11 +32,6 @@ public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	//~ End AGameModeBase
 
-protected:
-	/** 진입 URL·WorldSettings 로 정해지지 않았을 때 쓸 이 모드의 기본 Experience. */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx")
-	TObjectPtr<const UWxExperienceDefinition> DefaultExperience;
-
 private:
 	/** 진입 URL 옵션(?Experience=이름) → WorldSettings → DefaultExperience 순으로 이 판의 Experience 를 확정한다. 실패 시 무효 ID. */
 	FPrimaryAssetId ResolveExperienceId() const;

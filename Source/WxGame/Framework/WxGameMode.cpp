@@ -94,11 +94,6 @@ FPrimaryAssetId AWxGameMode::ResolveExperienceId() const
 		}
 	}
 
-	if (DefaultExperience)
-	{
-		return DefaultExperience->GetPrimaryAssetId();
-	}
-
 	return FPrimaryAssetId();
 }
 

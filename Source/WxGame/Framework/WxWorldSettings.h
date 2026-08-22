@@ -22,5 +22,5 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "GameMode")
-	TSoftObjectPtr<UWxExperienceDefinition> DefaultGameplayExperience;
+	TSoftObjectPtr<UWxExperienceDefinition> GameplayExperience;
 };
