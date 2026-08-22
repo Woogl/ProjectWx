@@ -30,7 +30,7 @@ EStateTreeRunStatus FWxStateTreeTask_SendEvent::EnterState(FStateTreeExecutionCo
 	AWxDevice* Owner = Cast<AWxDevice>(Context.GetOwner());
 	if (!Owner)
 	{
-		UE_LOG(LogWxWorld, Warning, TEXT("Send Event: 오너 %s 가 장치가 아니라 당사자를 읽을 곳이 없음."), *GetNameSafe(Cast<AActor>(Context.GetOwner())));
+		UE_LOG(LogWxWorld, Warning, TEXT("Send Event: 오너 %s 가 장치가 아님."), *GetNameSafe(Cast<AActor>(Context.GetOwner())));
 
 		return EStateTreeRunStatus::Succeeded;
 	}
