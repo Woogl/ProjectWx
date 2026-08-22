@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "Engine/TimerHandle.h"
-#include "GameplayTagContainer.h"
 #include "WxInteractable.h"
 #include "Spawnable/WxSpawnable.h"
 #include "Character/WxCharacterBase.h"
@@ -35,7 +34,7 @@ public:
 	virtual void OnSpawnedBy(AWxSpawner* Spawner) override;
 	//~ End IWxSpawnable
 	
-	//~ Begin IWxInteractable — 처형 상호작용.
+	//~ Begin IWxInteractable — Finisher 상호작용
 	virtual bool CanInteract() const override;
 	virtual void OnInteracted(AActor* Interactor) override;
 	virtual FText GetInteractionPrompt() const override;
@@ -55,14 +54,13 @@ protected:
 	void HandleIncomingDamageChanged(const FOnAttributeChangeData& Data);
 
 	/**
-	 * 그로기면 앞잡(Event.Finisher, 방향 무관), 미인지·후방이면 뒤잡(Event.Backstab), 불가면 빈 태그.
-	 * 이미 처형 연출 중(State.BeingFinished)이면 무조건 빈 태그다.
+	 * 로컬 플레이어 폰이 후방 원뿔 안에 있는가.
 	 *
-	 * 자격 판정의 단일 소스다 — 표시(CanBeInteractedBy, 클라가 로컬 폰으로)와 발동(OnInteracted, 서버가 실제 instigator 로)이 같은 주체 인자로 이 함수를 지난다.
-	 * 판정 입력(HP·상태 태그·트랜스폼)이 전부 복제되므로 어느 머신에서 불러도 같은 주체엔 같은 답이 나온다.
+	 * 계약이 주체를 넘겨주지 않으므로 대상이 직접 찾는다 — 클라 표시에선 로컬 플레이어라 정확하고, 서버 검증에선 싱글·리슨호스트 호스트 기준으로 정확하다.
+	 * 데디케이티드 멀티에서 2번째 이후 플레이어의 뒤잡은 0번 플레이어 위치로 판정된다.
 	 */
-	FGameplayTag GetEligibleFinisherEventTag(const AActor* Interactor) const;
-	
+	bool IsLocalPlayerInRearCone() const;
+
 	/** 사망 시 자신을 스폰한 Spawner 에 처치 기록을 남긴다. */
 	virtual void HandleDeath() override;
 

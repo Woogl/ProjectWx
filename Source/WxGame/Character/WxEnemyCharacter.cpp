@@ -73,40 +73,24 @@ void AWxEnemyCharacter::HandleIncomingDamageChanged(const FOnAttributeChangeData
 	UAISense_Damage::ReportDamageEvent(this, this, DamageInstigator, Data.NewValue, DamageInstigator->GetActorLocation(), HitLocation);
 }
 
-FGameplayTag AWxEnemyCharacter::GetEligibleFinisherEventTag(const AActor* Interactor) const
+bool AWxEnemyCharacter::IsLocalPlayerInRearCone() const
 {
-	if (!IsAlive())
+	const APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (!PlayerPawn)
 	{
-		return FGameplayTag();
+		return false;
 	}
 
-	// 공격자 어빌리티(WxAbility_Finisher)가 연출 동안 대상에 State.BeingFinished 를 걸어 둔다.
-	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_BeingFinished))
+	FVector ToPlayer = PlayerPawn->GetActorLocation() - GetActorLocation();
+	ToPlayer.Z = 0.0;
+	if (!ToPlayer.Normalize())
 	{
-		return FGameplayTag();
+		return false;
 	}
 
-	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
-	{
-		return WxGameplayTags::Event_Finisher;
-	}
-
-	if (!AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_InCombat) && Interactor)
-	{
-		FVector ToInteractor = Interactor->GetActorLocation() - GetActorLocation();
-		ToInteractor.Z = 0.0;
-		if (ToInteractor.Normalize())
-		{
-			const float ForwardDot = FVector::DotProduct(GetActorForwardVector(), ToInteractor);
-			const float RearThreshold = -FMath::Cos(FMath::DegreesToRadians(BackstabRearHalfAngle));
-			if (ForwardDot <= RearThreshold)
-			{
-				return WxGameplayTags::Event_Backstab;
-			}
-		}
-	}
-
-	return FGameplayTag();
+	const float ForwardDot = FVector::DotProduct(GetActorForwardVector(), ToPlayer);
+	const float RearThreshold = -FMath::Cos(FMath::DegreesToRadians(BackstabRearHalfAngle));
+	return ForwardDot <= RearThreshold;
 }
 
 void AWxEnemyCharacter::HandleDeath()
@@ -138,12 +122,10 @@ void AWxEnemyCharacter::OnInteracted(AActor* Interactor)
 		return;
 	}
 
-	// 발동 변형은 실제 상호작용 주체(Interactor) 기준으로 발동 시점에 다시 정한다(노출~발동 사이 상태·위치 변화를 흡수, 서버 권위 검증).
-	const FGameplayTag EventTag = GetEligibleFinisherEventTag(Interactor);
-	if (!EventTag.IsValid())
-	{
-		return;
-	}
+	// 자격은 상호작용 어빌리티가 CanInteract 로 이미 검증했으므로 여기선 변형만 고른다.
+	const FGameplayTag EventTag = AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy)
+		? WxGameplayTags::Event_Finisher
+		: WxGameplayTags::Event_Backstab;
 
 	FGameplayEventData EventData;
 	EventData.Instigator = Interactor;
@@ -165,8 +147,25 @@ void AWxEnemyCharacter::OnSpawnedBy(AWxSpawner* Spawner)
 
 bool AWxEnemyCharacter::CanInteract() const
 {
-	// TODO: PlayerCharacter가 뒤에서 접근해서 백스탭 가능해야함. GetEligibleFinisherEventTag 함수도 제거해야함.
-	return HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy);
+	if (!IsAlive())
+	{
+		return false;
+	}
+
+	// 공격자 어빌리티(WxAbility_Finisher)가 연출 동안 대상에 State.BeingFinished 를 걸어 둔다.
+	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_BeingFinished))
+	{
+		return false;
+	}
+
+	// 그로기는 이미 무방비라 방향을 묻지 않는다(앞잡).
+	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
+	{
+		return true;
+	}
+
+	// 뒤잡은 적이 아직 나를 인지하지 못했을 때만 성립한다.
+	return !AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_InCombat) && IsLocalPlayerInRearCone();
 }
 
 UBehaviorTree* AWxEnemyCharacter::GetBehaviorTree() const

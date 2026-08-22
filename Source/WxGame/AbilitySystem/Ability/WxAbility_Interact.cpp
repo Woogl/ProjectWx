@@ -71,7 +71,7 @@ void UWxAbility_Interact::ExecuteInteract(AActor* Selected, const FGameplayAbili
 		return;
 	}
 
-	// 서버 권위 활성 검증: 클라가 비활성 대상을(또는 비활성 직후에) 보내도 여기서 걸린다.
+	// 서버 권위 자격 검증: 클라가 자격 없는 대상을(또는 자격을 잃은 직후에) 보내도 여기서 걸린다.
 	if (!Target->CanInteract())
 	{
 		return;
@@ -79,13 +79,6 @@ void UWxAbility_Interact::ExecuteInteract(AActor* Selected, const FGameplayAbili
 
 	// 서버 권위 거리 검증: 감지·선택은 클라 로컬이라, 변조 클라가 임의의 원거리 대상을 보내 상호작용하는 것을 막는다.
 	if (!IsInRange(Selected, Avatar->GetActorLocation()))
-	{
-		return;
-	}
-
-	// 서버 권위 자격 검증: 주체별로 자격이 갈리는 대상(처형 등)은 활성 판정으로 표현할 수 없으므로 실제 아바타를 주체로 대상에 묻는다.
-	// 기본 구현이 true 라 장치 등은 영향이 없다.
-	if (!Target->CanInteract())
 	{
 		return;
 	}
