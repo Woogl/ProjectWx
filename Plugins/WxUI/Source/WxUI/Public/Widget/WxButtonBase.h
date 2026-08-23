@@ -38,6 +38,6 @@ protected:
 	TObjectPtr<UCommonTextBlock> TextBlock;
 
 private:
-	UPROPERTY(EditAnywhere, Category = "Button")
+	UPROPERTY(EditAnywhere, Category = "Wx")
 	FText ButtonText;
 };
