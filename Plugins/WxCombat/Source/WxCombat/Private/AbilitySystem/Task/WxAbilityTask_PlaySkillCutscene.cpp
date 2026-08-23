@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.h"
 #include "AbilitySystem/Effect/WxEffect_Invincible.h"
+#include "WxCombatLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "DefaultLevelSequenceInstanceData.h"
 #include "LevelSequenceActor.h"
@@ -93,8 +94,9 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 	}
 
 	// 시퀀스는 딜레이션을 상쇄한 배속으로 돌아 실시간 기준 GetDuration()만큼 걸리지만, GE 지속시간은 딜레이션이 걸린 월드 시간으로 세므로 그만큼 줄여 준다.
-	InvincibleHandle = UWxEffect_Invincible::ApplyTo(
+	InvincibleHandle = UWxCombatLibrary::ApplyEffectForDuration(
 		AbilitySystemComponent.Get(),
+		UWxEffect_Invincible::StaticClass(),
 		SequencePlayer->GetDuration().AsSeconds() * GlobalTimeDilation,
 		Ability);
 

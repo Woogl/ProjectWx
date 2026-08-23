@@ -178,7 +178,7 @@ const UWxAbilityBase* UWxAbilitySystemComponent::FindActivationGroupBlocker() co
 				continue;
 			}
 
-			if (Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive_Blocking || Ability->ActivationGroup == EWxAbilityActivationGroup::Reaction)
+			if (Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive_Blocking || Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive_ComboWindow || Ability->ActivationGroup == EWxAbilityActivationGroup::Reaction)
 			{
 				return Ability;
 			}

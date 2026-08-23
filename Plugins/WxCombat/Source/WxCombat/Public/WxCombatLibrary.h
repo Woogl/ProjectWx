@@ -3,10 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayEffectTypes.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "WxCombatLibrary.generated.h"
 
 class UAbilitySystemComponent;
+class UGameplayAbility;
+class UGameplayEffect;
 struct FWxDamageInfo;
 struct FHitResult;
 
@@ -31,4 +34,14 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Combat")
 	static bool ApplyDamage(UAbilitySystemComponent* Source, UAbilitySystemComponent* Target, const FDataTableRowHandle& DamageTableRow, const FHitResult& HitResult, float HitStopDuration = 0.f);
+
+	/**
+	 * 구간이 정해진 상태 GE(무적·퍼펙트가드 등)를 그 길이만큼 걸어 스스로 만료되게 한다.
+	 *
+	 * 정의의 지속시간 대신 Duration을 스펙에 잠가 싣는다.
+	 * 잠그지 않으면 적용 단계에서 정의값이 다시 실려 구간이 닫히지 않는다.
+	 *
+	 * @param PredictingAbility	이 어빌리티의 활성화 예측 키로 적용해 소유 클라이언트도 같은 프레임에 태그를 갖는다. 널이면 서버에서만 걸리고 클라는 복제로 받는다.
+	 */
+	static FActiveGameplayEffectHandle ApplyEffectForDuration(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass, float Duration, const UGameplayAbility* PredictingAbility);
 };

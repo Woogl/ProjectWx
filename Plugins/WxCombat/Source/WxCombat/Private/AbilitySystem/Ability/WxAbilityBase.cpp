@@ -36,6 +36,23 @@ float UWxAbilityBase::GetMontagePlayRate() const
 	return ASC ? ASC->GetMontagePlayRate() : 1.f;
 }
 
+void UWxAbilityBase::OpenComboWindow()
+{
+	// 본동작에서만 연다 — 콤보가 없는 어빌리티의 몽타주에 노티파이가 섞여도 Independent를 점유자로 승격시키지 않는다.
+	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive_Blocking)
+	{
+		ActivationGroup = EWxAbilityActivationGroup::Exclusive_ComboWindow;
+	}
+}
+
+void UWxAbilityBase::CloseComboWindow()
+{
+	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive_ComboWindow)
+	{
+		ActivationGroup = EWxAbilityActivationGroup::Exclusive_Blocking;
+	}
+}
+
 void UWxAbilityBase::StartRecovery()
 {
 	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Recovery;
@@ -43,7 +60,7 @@ void UWxAbilityBase::StartRecovery()
 
 bool UWxAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	/** 순정 검사에 배타 그룹 판정을 더하되, CancelAbilitiesWithTag로 지목한 어빌리티가 점유 중이면 통과시킨다. */
+	/** 순정 검사에 배타 그룹 판정을 더한다. 점유자가 자기 자신이면 콤보 창으로, 남이면 CancelAbilitiesWithTag 지목으로 가른다. */
 	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
 		return false;
@@ -56,9 +73,19 @@ bool UWxAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 	const UWxAbilitySystemComponent* WxASC = ActorInfo ? Cast<UWxAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get()) : nullptr;
 	const UWxAbilityBase* Blocker = WxASC ? WxASC->FindActivationGroupBlocker() : nullptr;
+	if (!Blocker)
+	{
+		return true;
+	}
+
+	// 점유자가 나 자신이면 엔진 재발동으로 들어온 콤보 진행이다. 콤보 창은 후딜보다 이르므로 여기서 갈라야 두 창이 분리된다.
+	if (Blocker == this)
+	{
+		return ActivationGroup == EWxAbilityActivationGroup::Exclusive_ComboWindow;
+	}
 
 	// 끊겠다고 지목한 어빌리티는 나를 막지 못한다. 취소 자체는 발동 직후 순정 PreActivate가 수행한다.
-	return !Blocker || Blocker->GetAssetTags().HasAny(CancelAbilitiesWithTag);
+	return Blocker->GetAssetTags().HasAny(CancelAbilitiesWithTag);
 }
 
 bool UWxAbilityBase::CanBeCanceled() const

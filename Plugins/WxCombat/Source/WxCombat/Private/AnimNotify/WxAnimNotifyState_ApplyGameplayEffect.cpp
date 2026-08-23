@@ -1,13 +1,13 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AnimNotify/WxAnimNotifyState_PerfectGuard.h"
-#include "AbilitySystem/Effect/WxEffect_PerfectGuard.h"
+#include "AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
+#include "WxCombatLibrary.h"
 
-void UWxAnimNotifyState_PerfectGuard::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
+void UWxAnimNotifyState_ApplyGameplayEffect::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
@@ -30,5 +30,15 @@ void UWxAnimNotifyState_PerfectGuard::NotifyBegin(USkeletalMeshComponent* MeshCo
 		}
 	}
 
-	UWxEffect_PerfectGuard::ApplyTo(ASC, TotalDuration / PlayRate, ASC->GetAnimatingAbility());
+	UWxCombatLibrary::ApplyEffectForDuration(ASC, EffectClass, TotalDuration / PlayRate, ASC->GetAnimatingAbility());
+}
+
+FString UWxAnimNotifyState_ApplyGameplayEffect::GetNotifyName_Implementation() const
+{
+	if (EffectClass)
+	{
+		return EffectClass->GetName();
+	}
+
+	return Super::GetNotifyName_Implementation();
 }

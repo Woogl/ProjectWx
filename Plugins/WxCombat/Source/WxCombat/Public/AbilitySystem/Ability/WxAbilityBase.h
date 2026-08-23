@@ -29,6 +29,8 @@ enum class EWxAbilityActivationPolicy : uint8
 /**
  * 어빌리티 발동을 그룹 단위로 묶어서 배타적으로 점유할 수 있다.
  * CancelAbilitiesWithTag로 상대를 지목한 어빌리티는 이 판정보다 우선해 발동할 수 있다.
+ *
+ * Exclusive_ 세 값은 몽타주 노티파이가 순서대로 밟는 하나의 축이다 — 닫힘에서 열림으로 Blocking → ComboWindow → Recovery.
  */
 UENUM()
 enum class EWxAbilityActivationGroup : uint8
@@ -38,6 +40,9 @@ enum class EWxAbilityActivationGroup : uint8
 
 	/** 배타적으로 다른 Exclusive 어빌리티 발동을 막는다. */
 	Exclusive_Blocking,
+
+	/** (런타임 전환) 콤보 창. 자기 재발동만 통과시키고, 남의 발동은 Exclusive_Blocking처럼 막는다. */
+	Exclusive_ComboWindow,
 
 	/** (런타임 전환) 액션을 캔슬할 수 있게 된 후딜레이 상태. 막지 않는 것은 Independent와 같다. */
 	Exclusive_Recovery,
@@ -92,12 +97,21 @@ public:
 	virtual float GetMontagePlayRate() const;
 
 	/**
+	 * 콤보 창 구간. 자기 재발동만 열어주므로 회피·가드 같은 남의 캔슬은 여전히 막힌다.
+	 * 콤보를 후딜보다 이르게 잇되 공격에 리스크를 남기기 위한 구분이다.
+	 */
+	void OpenComboWindow();
+
+	/** 후딜이 이미 열렸으면(창이 후딜보다 늦게 닫히는 배치) 그대로 둔다. */
+	void CloseComboWindow();
+
+	/**
 	 * 후딜레이 구간.
 	 * Exclusive_Blocking으로 막혀있던 발동 그룹 잠금을 풀어서 그 순간부터 이후 발동하는 Exclusive 어빌리티에 의한 캔슬을 허용한다.
 	 * 코스트·쿨다운·ActivationBlockedTags는 그대로 검사한다.
 	 */
 	void StartRecovery();
-	
+
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 	virtual bool CanBeCanceled() const override;
 
