@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "WxComponentName.generated.h"
+#include "WxStateTreeComponentName.generated.h"
 
 class AActor;
 class USceneComponent;
@@ -15,7 +15,7 @@ class USceneComponent;
  * NoBinding: 고르는 길을 이 드롭다운 하나로 둔다.
  */
 USTRUCT(meta = (NoBinding))
-struct FWxComponentName
+struct FWxStateTreeComponentName
 {
 	GENERATED_BODY()
 

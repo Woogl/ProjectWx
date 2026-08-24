@@ -1,12 +1,12 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Device/WxComponentName.h"
+#include "Device/WxStateTreeComponentName.h"
 
 #include "Components/SceneComponent.h"
 #include "GameFramework/Actor.h"
 #include "UObject/UnrealType.h"
 
-USceneComponent* FWxComponentName::Resolve(const AActor* Actor) const
+USceneComponent* FWxStateTreeComponentName::Resolve(const AActor* Actor) const
 {
 	if (!Actor || Name.IsNone())
 	{

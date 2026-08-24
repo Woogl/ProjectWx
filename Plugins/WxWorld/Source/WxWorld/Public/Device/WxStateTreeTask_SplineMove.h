@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Device/WxComponentName.h"
+#include "Device/WxStateTreeComponentName.h"
 #include "StateTreeTaskBase.h"
 #include "WxStateTreeTask_SplineMove.generated.h"
 
@@ -21,11 +21,11 @@ struct FWxStateTreeTask_SplineMoveInstanceData
 
 	/** 트리가 붙은 액터가 가진 컴포넌트 중에서 고른다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
-	FWxComponentName TargetComponent;
+	FWxStateTreeComponentName TargetComponent;
 
 	/** 컴포넌트는 이 경로 위를 탄다고 가정한다. 같은 액터의 스플라인 중에서 고른다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedClasses = "/Script/Engine.SplineComponent"))
-	FWxComponentName Spline;
+	FWxStateTreeComponentName Spline;
 
 	/** 각 상태가 자기 끝점을 직접 선언한다(초기 진입 스냅·라이브 슬라이드의 목적지). 범위를 벗어나면 클램프. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))

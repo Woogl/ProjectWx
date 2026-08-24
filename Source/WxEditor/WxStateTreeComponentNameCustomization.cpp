@@ -4,7 +4,7 @@
 
 #include "Components/SceneComponent.h"
 #include "DetailWidgetRow.h"
-#include "Device/WxComponentName.h"
+#include "Device/WxStateTreeComponentName.h"
 #include "GameFramework/Actor.h"
 #include "PropertyCustomizationHelpers.h"
 #include "PropertyHandle.h"
@@ -40,7 +40,7 @@ void FWxStateTreeComponentNameCustomization::CustomizeHeader(TSharedRef<IPropert
 		}
 	}
 
-	NamePropertyHandle = InPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FWxComponentName, Name));
+	NamePropertyHandle = InPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FWxStateTreeComponentName, Name));
 	if (!NamePropertyHandle.IsValid() || !NamePropertyHandle->IsValidHandle())
 	{
 		return;

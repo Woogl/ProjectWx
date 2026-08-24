@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Device/WxComponentName.h"
+#include "Device/WxStateTreeComponentName.h"
 #include "GameplayTagContainer.h"
 #include "StateTreeTaskBase.h"
 #include "StructUtils/InstancedStruct.h"
@@ -29,7 +29,7 @@ struct FWxStateTreeTask_SendEventInstanceData
 
 	/** 저작이 정하는 대상. 오너 BP 에 ChildActor 로 심긴 내장 장치 하나를 이름으로 지목한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedClasses = "/Script/Engine.ChildActorComponent"))
-	FWxComponentName ChildDevice;
+	FWxStateTreeComponentName ChildDevice;
 
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	FGameplayTag Event;

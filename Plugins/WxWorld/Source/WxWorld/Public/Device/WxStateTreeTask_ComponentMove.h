@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Device/WxComponentName.h"
+#include "Device/WxStateTreeComponentName.h"
 #include "StateTreeTaskBase.h"
 #include "WxStateTreeTask_ComponentMove.generated.h"
 
@@ -20,7 +20,7 @@ struct FWxStateTreeTask_ComponentMoveInstanceData
 
 	/** 트리가 붙은 액터가 가진 컴포넌트 중에서 고른다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
-	FWxComponentName TargetComponent;
+	FWxStateTreeComponentName TargetComponent;
 
 	/** 아키타입 대비 목표 상대 좌표 */
 	UPROPERTY(EditAnywhere, Category = "Parameter")

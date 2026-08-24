@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Device/WxComponentName.h"
+#include "Device/WxStateTreeComponentName.h"
 #include "StateTreeTaskBase.h"
 #include "WxStateTreeTask_SpawnNiagara.generated.h"
 
@@ -22,7 +22,7 @@ struct FWxStateTreeTask_SpawnNiagaraInstanceData
 
 	/** 붙일 컴포넌트. 트리가 붙은 액터가 가진 것 중에서 고르며, 비우면 액터 위치에 재생한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
-	FWxComponentName AttachComponent;
+	FWxStateTreeComponentName AttachComponent;
 
 	/** 비우면 컴포넌트 원점에 붙는다. AttachComponent 를 지정했을 때만 의미가 있다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
