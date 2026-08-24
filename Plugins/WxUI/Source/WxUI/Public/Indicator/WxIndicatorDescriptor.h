@@ -22,11 +22,9 @@ class WXUI_API UWxIndicatorDescriptor : public UObject
 
 public:
 	/** 매니저가 발급 직후 1회 호출한다. */
-	void Initialize(UWxIndicatorManagerComponent* InOwningManager, USceneComponent* InTargetComponent, const FVector& InWorldOffset);
+	void Initialize(UWxIndicatorManagerComponent* InOwningManager, USceneComponent* InTargetComponent, const FVector& InWorldLocation, const FVector& InWorldOffset);
 
-	/** 따라다닐 컴포넌트 없이 고정 좌표를 가리키는 등록증을 만든다. */
-	void Initialize(UWxIndicatorManagerComponent* InOwningManager, const FVector& InWorldLocation, const FVector& InWorldOffset);
-
+	/** 추종 대상이 없거나 이미 사라졌으면 nullptr — 그때는 폴백 좌표가 투영 원점이다. */
 	USceneComponent* GetTargetComponent() const;
 
 	FVector GetWorldLocation() const;
@@ -35,7 +33,7 @@ public:
 
 	void SetProjection(const FVector2D& InScreenPosition, float InDistanceMeters, bool bInClamped);
 
-	/** 대상이 무효하거나 투영을 얻지 못했음을 기록한다. 표시 측은 이 상태를 숨김으로 읽는다. */
+	/** 뷰를 얻지 못해 투영할 수 없음을 기록한다. 표시 측은 이 상태를 숨김으로 읽는다. */
 	void ClearProjection();
 
 	bool IsProjected() const;
@@ -50,11 +48,11 @@ public:
 	void Unregister();
 
 private:
-	/** 이 컴포넌트의 월드 위치가 투영 원점이다. 비어 있으면 아래 고정 좌표를 쓰는 등록증이다. */
+	/** 이 컴포넌트의 월드 위치가 투영 원점이다. 대상을 소유하지 않으므로 약참조이고, 언로드·파괴되면 비어 아래 좌표로 내려앉는다. */
 	UPROPERTY()
-	TObjectPtr<USceneComponent> TargetComponent;
+	TWeakObjectPtr<USceneComponent> TargetComponent;
 
-	/** 따라다닐 컴포넌트가 없을 때의 투영 원점. */
+	/** 추종 대상이 없거나 사라진 동안의 투영 원점. 컴포넌트를 따라다니는 등록증에도 항상 채워 둔다. */
 	UPROPERTY()
 	FVector WorldLocation = FVector::ZeroVector;
 

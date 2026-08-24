@@ -18,16 +18,10 @@ namespace
 	 */
 	constexpr float WxIndicatorScreenMargin = 48.f;
 
-	/** 대상이 무효면 false. */
-	bool ProjectIndicator(const UWxIndicatorDescriptor& Indicator, const FSceneViewProjectionData& ProjectionData, const FVector2f& ScreenSize, FVector2D& OutScreenPosition, double& OutDistanceToCamera)
+	void ProjectIndicator(const UWxIndicatorDescriptor& Indicator, const FSceneViewProjectionData& ProjectionData, const FVector2f& ScreenSize, FVector2D& OutScreenPosition, double& OutDistanceToCamera)
 	{
-		// 컴포넌트를 붙이지 않은 등록증은 고정 좌표를 가리킨다. 붙였는데 무효해졌으면 대상이 파괴된 것이라 표시를 접는다.
+		// 컴포넌트를 따라다니되, 붙이지 않았거나 언로드·파괴로 사라졌으면 등록증에 적힌 좌표를 원점으로 쓴다.
 		const USceneComponent* TargetComponent = Indicator.GetTargetComponent();
-		if (TargetComponent && !IsValid(TargetComponent))
-		{
-			return false;
-		}
-
 		const FVector OriginLocation = TargetComponent ? TargetComponent->GetComponentLocation() : Indicator.GetWorldLocation();
 		const FVector WorldLocation = OriginLocation + Indicator.GetWorldOffset();
 
@@ -45,8 +39,6 @@ namespace
 
 		OutScreenPosition = ScreenPosition;
 		OutDistanceToCamera = FVector::Dist(ProjectionData.ViewOrigin, WorldLocation);
-
-		return true;
 	}
 
 	/** 당겼으면 true — 위젯이 화면 밖임을 알 수 있다. */
@@ -138,33 +130,7 @@ void UWxIndicatorManagerComponent::TickComponent(float DeltaTime, ELevelTick Tic
 	OnIndicatorsUpdated.Broadcast();
 }
 
-UWxIndicatorDescriptor* UWxIndicatorManagerComponent::AddIndicator(USceneComponent* InTargetComponent, const FVector& InWorldOffset)
-{
-	if (!IsValid(InTargetComponent))
-	{
-		return nullptr;
-	}
-
-	const APlayerController* OwningController = GetController<APlayerController>();
-	if (!OwningController || !OwningController->IsLocalController())
-	{
-		return nullptr;
-	}
-
-	UWxIndicatorDescriptor* Indicator = NewObject<UWxIndicatorDescriptor>(this);
-	Indicator->Initialize(this, InTargetComponent, InWorldOffset);
-
-	Indicators.Add(Indicator);
-	UpdateTickEnabled();
-
-	// 첫 틱을 기다리면 한 프레임 동안 좌표 없이 뜬다. 등록 즉시 한 번 계산해 곧바로 제자리에 뜨게 한다.
-	UpdateProjections();
-	OnIndicatorsUpdated.Broadcast();
-
-	return Indicator;
-}
-
-UWxIndicatorDescriptor* UWxIndicatorManagerComponent::AddIndicator(const FVector& InWorldLocation, const FVector& InWorldOffset)
+UWxIndicatorDescriptor* UWxIndicatorManagerComponent::AddIndicator(USceneComponent* InTargetComponent, const FVector& InWorldLocation, const FVector& InWorldOffset)
 {
 	const APlayerController* OwningController = GetController<APlayerController>();
 	if (!OwningController || !OwningController->IsLocalController())
@@ -173,11 +139,13 @@ UWxIndicatorDescriptor* UWxIndicatorManagerComponent::AddIndicator(const FVector
 	}
 
 	UWxIndicatorDescriptor* Indicator = NewObject<UWxIndicatorDescriptor>(this);
-	Indicator->Initialize(this, InWorldLocation, InWorldOffset);
+	Indicator->Initialize(this, InTargetComponent, InWorldLocation, InWorldOffset);
 
 	Indicators.Add(Indicator);
 	UpdateTickEnabled();
 
+	// 첫 틱을 기다리면 한 프레임 동안 좌표 없이 뜬다.
+	// 등록 즉시 한 번 계산해 곧바로 제자리에 뜨게 한다.
 	UpdateProjections();
 	OnIndicatorsUpdated.Broadcast();
 
@@ -225,12 +193,7 @@ void UWxIndicatorManagerComponent::UpdateProjections()
 	{
 		FVector2D ScreenPosition;
 		double DistanceToCamera = 0.0;
-		if (!ProjectIndicator(*Indicator, ProjectionData, FVector2f(ScreenSize), ScreenPosition, DistanceToCamera))
-		{
-			// 대상이 파괴되면 표시만 접는다 — 등록증 제거는 등록한 쪽의 몫이다.
-			Indicator->ClearProjection();
-			continue;
-		}
+		ProjectIndicator(*Indicator, ProjectionData, FVector2f(ScreenSize), ScreenPosition, DistanceToCamera);
 
 		const bool bClamped = ClampToScreen(ScreenSize, ScreenPosition);
 
