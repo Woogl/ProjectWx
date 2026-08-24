@@ -20,10 +20,7 @@ UWxAbilityTask_PlaySkillCutscene* UWxAbilityTask_PlaySkillCutscene::CreateTask(U
 
 void UWxAbilityTask_PlaySkillCutscene::OnDestroy(bool bInOwnerFinished)
 {
-	if (UAbilitySystemComponent* ASC = AbilitySystemComponent.Get())
-	{
-		ASC->RemoveActiveGameplayEffect(InvincibleHandle);
-	}
+	UWxCombatLibrary::RemoveEffect(AbilitySystemComponent.Get(), UWxEffect_Invincible::StaticClass());
 
 	UWxTimeDilationComponent::ClearGlobalTimeDilationAuthoritative(this);
 	CleanupSequenceActor();
@@ -93,12 +90,8 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 		SequencePlayer->SetPlayRate(1.f / GlobalTimeDilation);
 	}
 
-	// 시퀀스는 딜레이션을 상쇄한 배속으로 돌아 실시간 기준 GetDuration()만큼 걸리지만, GE 지속시간은 딜레이션이 걸린 월드 시간으로 세므로 그만큼 줄여 준다.
-	InvincibleHandle = UWxCombatLibrary::ApplyEffectForDuration(
-		AbilitySystemComponent.Get(),
-		UWxEffect_Invincible::StaticClass(),
-		SequencePlayer->GetDuration().AsSeconds() * GlobalTimeDilation,
-		Ability);
+	// 무적의 수명은 이 태스크가 쥔다 — 시퀀스가 끝나든 어빌리티가 캔슬되든 OnDestroy에서 걷힌다.
+	UWxCombatLibrary::ApplyEffect(AbilitySystemComponent.Get(), UWxEffect_Invincible::StaticClass(), Ability);
 
 	SequencePlayer->OnFinished.AddDynamic(this, &UWxAbilityTask_PlaySkillCutscene::HandleSequenceFinished);
 	SequencePlayer->Play();

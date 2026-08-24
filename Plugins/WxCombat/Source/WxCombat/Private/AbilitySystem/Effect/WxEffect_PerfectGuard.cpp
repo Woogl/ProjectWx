@@ -8,7 +8,7 @@
 
 UWxEffect_PerfectGuard::UWxEffect_PerfectGuard()
 {
-	DurationPolicy = EGameplayEffectDurationType::HasDuration;
+	DurationPolicy = EGameplayEffectDurationType::Infinite;
 
 	UTargetTagsGameplayEffectComponent* TargetTagsComp = CreateDefaultSubobject<UTargetTagsGameplayEffectComponent>(TEXT("TargetTags"));
 	FInheritedTagContainer GrantedTags;

@@ -25,13 +25,13 @@ namespace WxGameplayTags
 	
 	// GE가 부여하는 태그. 애셋 태그로도 사용한다.
 
-	/** WxEffect_Invincible이 부여하며, 노티파이·컷신은 구간 길이를 스펙에 실어 스스로 만료되게 하고 처형은 활성 구간에 묶는다 */
+	/** WxEffect_Invincible이 부여하며, 구간을 연 쪽(노티파이 구간·컷신 태스크·처형의 활성 구간)이 수명을 쥔다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Invincible);
 
 	/** 가드 어빌리티가 WxEffect_Guard로 부여하되, SP 고갈로 가드가 깨지면 어빌리티가 도는 중에도 뗀다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Guard);
 
-	/** 가드 몽타주의 노티파이 구간이 WxEffect_PerfectGuard로 그 길이만큼 부여한다 */
+	/** 가드 몽타주의 노티파이 구간이 WxEffect_PerfectGuard로 부여하고 구간 끝에서 걷어낸다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_PerfectGuard);
 
 	/** SP를 소모하면 WxEffect_Exhaust가 일정 시간 부여한다. SP 자연 회복의 억제 조건 */

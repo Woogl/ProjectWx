@@ -36,12 +36,17 @@ public:
 	static bool ApplyDamage(UAbilitySystemComponent* Source, UAbilitySystemComponent* Target, const FDataTableRowHandle& DamageTableRow, const FHitResult& HitResult, float HitStopDuration = 0.f);
 
 	/**
-	 * 구간이 정해진 상태 GE(무적·퍼펙트가드 등)를 그 길이만큼 걸어 스스로 만료되게 한다.
-	 *
-	 * 정의의 지속시간 대신 Duration을 스펙에 잠가 싣는다.
-	 * 잠그지 않으면 적용 단계에서 정의값이 다시 실려 구간이 닫히지 않는다.
+	 * 구간을 여는 쪽이 수명을 소유하는 상태 GE(무적·퍼펙트가드 등)를 건다. 구간을 닫을 때 RemoveEffect와 짝으로 쓴다.
 	 *
 	 * @param PredictingAbility	이 어빌리티의 활성화 예측 키로 적용해 소유 클라이언트도 같은 프레임에 태그를 갖는다. 널이면 서버에서만 걸리고 클라는 복제로 받는다.
 	 */
-	static FActiveGameplayEffectHandle ApplyEffectForDuration(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass, float Duration, const UGameplayAbility* PredictingAbility);
+	static void ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass, const UGameplayAbility* PredictingAbility);
+
+	/**
+	 * ApplyEffect로 연 구간을 닫는다.
+	 *
+	 * 예측으로 건 GE의 핸들은 서버본이 도착하면 무효해지므로 정의로 조회해 지운다.
+	 * 다만 하나만 걷어낸다 — 같은 GE를 건 다른 출처(처형의 활성 구간, 궁극기 컷신)가 겹쳐 있어도 그쪽 무적까지 벗기지 않기 위해서다.
+	 */
+	static void RemoveEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass);
 };

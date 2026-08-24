@@ -77,18 +77,15 @@ bool UWxCombatLibrary::ApplyDamage(UAbilitySystemComponent* Source, UAbilitySyst
 	return bAppliedAny;
 }
 
-FActiveGameplayEffectHandle UWxCombatLibrary::ApplyEffectForDuration(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass, float Duration, const UGameplayAbility* PredictingAbility)
+void UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass, const UGameplayAbility* PredictingAbility)
 {
-	if (!TargetASC || !EffectClass || Duration <= 0.f)
+	if (!TargetASC || !EffectClass)
 	{
-		return FActiveGameplayEffectHandle();
+		return;
 	}
 
 	const UGameplayEffect* CDO = EffectClass->GetDefaultObject<UGameplayEffect>();
 	FGameplayEffectSpec Spec(CDO, TargetASC->MakeEffectContext(), 1.f);
-
-	// 잠그지 않으면 적용 단계에서 정의의 지속시간이 다시 실려 구간이 닫히지 않는다.
-	Spec.SetDuration(Duration, true);
 
 	// 애님 노티파이는 어빌리티 활성화 스코프 밖이라 ASC의 ScopedPredictionKey가 무효다.
 	FPredictionKey PredictionKey;
@@ -97,5 +94,15 @@ FActiveGameplayEffectHandle UWxCombatLibrary::ApplyEffectForDuration(UAbilitySys
 		PredictionKey = PredictingAbility->GetCurrentActivationInfo().GetActivationPredictionKey();
 	}
 
-	return TargetASC->ApplyGameplayEffectSpecToSelf(Spec, PredictionKey);
+	TargetASC->ApplyGameplayEffectSpecToSelf(Spec, PredictionKey);
+}
+
+void UWxCombatLibrary::RemoveEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass)
+{
+	if (!TargetASC || !EffectClass)
+	{
+		return;
+	}
+
+	TargetASC->RemoveActiveGameplayEffectBySourceEffect(EffectClass, nullptr, 1);
 }

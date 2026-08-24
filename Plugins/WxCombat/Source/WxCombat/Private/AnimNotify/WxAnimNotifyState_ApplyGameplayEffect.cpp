@@ -3,8 +3,6 @@
 #include "AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "Animation/AnimInstance.h"
-#include "Animation/AnimMontage.h"
 #include "WxCombatLibrary.h"
 
 void UWxAnimNotifyState_ApplyGameplayEffect::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
@@ -18,19 +16,18 @@ void UWxAnimNotifyState_ApplyGameplayEffect::NotifyBegin(USkeletalMeshComponent*
 		return;
 	}
 
-	// TotalDuration은 애니메이션 시간이라, ASPD로 재생 속도가 바뀐 몽타주에서는 GE의 실시간 지속시간과 어긋난다.
-	float PlayRate = 1.f;
-	if (const UAnimMontage* Montage = Cast<UAnimMontage>(Animation))
-	{
-		const UAnimInstance* AnimInstance = MeshComp->GetAnimInstance();
-		const float EffectiveRate = AnimInstance ? FMath::Abs(AnimInstance->Montage_GetEffectivePlayRate(Montage)) : 0.f;
-		if (EffectiveRate > UE_KINDA_SMALL_NUMBER)
-		{
-			PlayRate = EffectiveRate;
-		}
-	}
+	UWxCombatLibrary::ApplyEffect(ASC, EffectClass, ASC->GetAnimatingAbility());
+}
 
-	UWxCombatLibrary::ApplyEffectForDuration(ASC, EffectClass, TotalDuration / PlayRate, ASC->GetAnimatingAbility());
+void UWxAnimNotifyState_ApplyGameplayEffect::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
+{
+	Super::NotifyEnd(MeshComp, Animation, EventReference);
+
+	AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr;
+	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
+	{
+		UWxCombatLibrary::RemoveEffect(ASC, EffectClass);
+	}
 }
 
 FString UWxAnimNotifyState_ApplyGameplayEffect::GetNotifyName_Implementation() const

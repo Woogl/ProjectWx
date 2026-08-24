@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/Tasks/AbilityTask.h"
-#include "GameplayEffectTypes.h"
 #include "WxAbilityTask_PlaySkillCutscene.generated.h"
 
 class ALevelSequenceActor;
@@ -51,7 +50,4 @@ private:
 	TObjectPtr<ALevelSequenceActor> SequenceActor;
 
 	float GlobalTimeDilation = 1.f;
-
-	/** 시퀀스 길이가 지속시간이지만 정확한 종료는 이 핸들이 맡고, 지속시간은 안전망이다. */
-	FActiveGameplayEffectHandle InvincibleHandle;
 };
