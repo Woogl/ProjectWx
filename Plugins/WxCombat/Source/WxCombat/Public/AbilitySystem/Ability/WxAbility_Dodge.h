@@ -68,9 +68,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> PerfectDodgeMontage;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	float PerfectDodgeMPRecovery = 5.f;
-
 	/** 극한 회피 성공 시 적용할 GlobalTimeDilation 값 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|SlowTime", meta = (ClampMin = "0.01"))
 	float PerfectDodgeSlowTimeDilation = 0.4f;
