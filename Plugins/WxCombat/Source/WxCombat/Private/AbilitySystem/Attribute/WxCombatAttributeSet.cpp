@@ -43,55 +43,14 @@ void UWxCombatAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribu
 {
 	Super::PreAttributeChange(Attribute, NewValue);
 
-	NewValue = FMath::Max(NewValue, 0.f);
-
-	if (Attribute == GetHPAttribute())
-	{
-		const float CurrentMaxHP = GetMaxHP();
-		if (CurrentMaxHP > 0.f)
-		{
-			NewValue = FMath::Min(NewValue, CurrentMaxHP);
-		}
-	}
-	else if (Attribute == GetMPAttribute())
-	{
-		const float CurrentMaxMP = GetMaxMP();
-		if (CurrentMaxMP > 0.f)
-		{
-			NewValue = FMath::Min(NewValue, CurrentMaxMP);
-		}
-	}
-	else if (Attribute == GetSPAttribute())
-	{
-		const float CurrentMaxSP = GetMaxSP();
-		if (CurrentMaxSP > 0.f)
-		{
-			NewValue = FMath::Min(NewValue, CurrentMaxSP);
-		}
-	}
-	else if (Attribute == GetDPAttribute())
-	{
-		const float CurrentMaxDP = GetMaxDP();
-		if (CurrentMaxDP > 0.f)
-		{
-			NewValue = FMath::Min(NewValue, CurrentMaxDP);
-		}
-	}
-	else if (Attribute == GetUPAttribute())
-	{
-		const float CurrentMaxUP = GetMaxUP();
-		if (CurrentMaxUP > 0.f)
-		{
-			NewValue = FMath::Min(NewValue, CurrentMaxUP);
-		}
-	}
+	ClampAttribute(Attribute, NewValue);
 }
 
 void UWxCombatAttributeSet::PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const
 {
 	Super::PreAttributeBaseChange(Attribute, NewValue);
 
-	NewValue = FMath::Max(NewValue, 0.f);
+	ClampAttribute(Attribute, NewValue);
 }
 
 void UWxCombatAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
@@ -160,7 +119,7 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 				}
 			}
 
-			// 화상도 IncomingDamage를 지나므로 GE 종류로 걸러야 틱마다 반응과 연출이 다시 나가지 않는다.
+			// 즉사 치트도 IncomingDamage를 지나므로 GE 종류로 걸러야 타격 반응과 연출이 딸려 나가지 않는다.
 			// 사망 처리 뒤라야 Ability.Death가 붙은 상태가 되어 히트리액트가 그 태그로 차단된다.
 			if (Data.EffectSpec.Def && Data.EffectSpec.Def->IsA<UWxEffect_Damage>())
 			{
@@ -176,18 +135,8 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 		// 반사량이 0이어도 퍼펙트 가드 성공 자체는 알려야 한다.
 		ProcessPerfectGuard(Data, ReflectAmount);
 	}
-	else if (Data.EvaluatedData.Attribute == GetHPAttribute())
-	{
-		SetHP(FMath::Clamp(GetHP(), 0.f, GetMaxHP()));
-	}
-	else if (Data.EvaluatedData.Attribute == GetMPAttribute())
-	{
-		SetMP(FMath::Clamp(GetMP(), 0.f, GetMaxMP()));
-	}
 	else if (Data.EvaluatedData.Attribute == GetSPAttribute())
 	{
-		SetSP(FMath::Clamp(GetSP(), 0.f, GetMaxSP()));
-
 		// SP를 깎는 GE는 질주 소모든 회피 코스트든 가드 피격이든 모두 이 지점을 지난다.
 		// 남은 양이 아니라 소모 후 결과로 지속시간을 고르므로, 0에서 또 깎여도 짧은 쪽으로 갱신되지 않는다.
 		// MaxSP가 없는 아바타는 스태미나를 쓰지 않으므로 제외한다.
@@ -196,14 +145,6 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 		{
 			UWxEffect_Exhaust::ApplyTo(ASC, GetSP() <= 0.f ? UWxEffect_Exhaust::ExhaustDuration : UWxEffect_Exhaust::ConsumeDelay);
 		}
-	}
-	else if (Data.EvaluatedData.Attribute == GetDPAttribute())
-	{
-		SetDP(FMath::Clamp(GetDP(), 0.f, GetMaxDP()));
-	}
-	else if (Data.EvaluatedData.Attribute == GetUPAttribute())
-	{
-		SetUP(FMath::Clamp(GetUP(), 0.f, GetMaxUP()));
 	}
 }
 
@@ -285,6 +226,38 @@ void UWxCombatAttributeSet::OnRep_SPD(const FGameplayAttributeData& OldSPD)
 void UWxCombatAttributeSet::OnRep_ASPD(const FGameplayAttributeData& OldASPD)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, ASPD, OldASPD);
+}
+
+void UWxCombatAttributeSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const
+{
+	NewValue = FMath::Max(NewValue, 0.f);
+
+	float MaxValue = 0.f;
+	if (Attribute == GetHPAttribute())
+	{
+		MaxValue = GetMaxHP();
+	}
+	else if (Attribute == GetMPAttribute())
+	{
+		MaxValue = GetMaxMP();
+	}
+	else if (Attribute == GetSPAttribute())
+	{
+		MaxValue = GetMaxSP();
+	}
+	else if (Attribute == GetDPAttribute())
+	{
+		MaxValue = GetMaxDP();
+	}
+	else if (Attribute == GetUPAttribute())
+	{
+		MaxValue = GetMaxUP();
+	}
+
+	if (MaxValue > 0.f)
+	{
+		NewValue = FMath::Min(NewValue, MaxValue);
+	}
 }
 
 void UWxCombatAttributeSet::ProcessDamageTaken(const FGameplayEffectModCallbackData& Data, float Damage)

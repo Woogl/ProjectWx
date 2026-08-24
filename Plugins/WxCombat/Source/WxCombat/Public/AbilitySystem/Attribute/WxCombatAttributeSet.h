@@ -176,6 +176,14 @@ protected:
 
 private:
 	/**
+	 * 어트리뷰트 값의 허용 범위를 강제한다 — 하한 0, 짝 최대치가 있는 자원은 그 값이 상한.
+	 *
+	 * Current와 Base 양쪽 Pre 훅이 같은 규칙을 쓰도록 한 곳에 모았다.
+	 * 최대치가 아직 0인 초기화 도중에는 상한을 걸지 않는다 — 짝이 채워지기 전에 자원이 0으로 눌린다.
+	 */
+	void ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const;
+
+	/**
 	 * 적중이 확정된 뒤 그 히트의 판정 결과를 소비한다 — 공격자 자원 회복, 가드 해제, 반응 이벤트, 대미지 플로터.
 	 *
 	 * 판정은 UWxExecCalc_Damage가 FWxCombatEffectContext에 남긴 것을 그대로 쓴다.
