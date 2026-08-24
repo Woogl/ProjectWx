@@ -123,7 +123,8 @@ void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 	if (AttributeSet && AttributeSet->GetSP() <= 0.f)
 	{
 		// 브레이크 연출은 완주해야 하므로 어빌리티는 살려 두고 방어 판정만 먼저 걷는다.
-		RemoveActivationOwnedEffect(UWxEffect_Guard::StaticClass());
+		const FGameplayTagContainer GuardTags = WxGameplayTags::Effect_Guard.GetTag().GetSingleTagContainer();
+		ASC->RemoveActiveEffectsWithTags(GuardTags);
 
 		if (!PlayMontage(GuardBreakMontage))
 		{

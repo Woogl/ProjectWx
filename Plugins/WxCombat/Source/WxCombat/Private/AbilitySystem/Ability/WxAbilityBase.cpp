@@ -135,21 +135,6 @@ void UWxAbilityBase::SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileCl
 	Avatar->GetWorld()->SpawnActor<AWxProjectileBase>(ProjectileClass, SpawnTransform, SpawnParams);
 }
 
-void UWxAbilityBase::RemoveActivationOwnedEffect(TSubclassOf<UGameplayEffect> EffectClass) const
-{
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (!ASC || !EffectClass)
-	{
-		return;
-	}
-
-	// 예측으로 건 GE의 핸들은 서버본이 도착하면 무효해지므로 들고 있어도 쓸 수 없다.
-	// 정의로 찾으면 그 문제가 없고, 부여 태그로 찾는 것과 달리 같은 태그를 발행하는 다른 GE를 건드리지 않는다.
-	FGameplayEffectQuery Query;
-	Query.EffectDefinition = EffectClass;
-	ASC->RemoveActiveEffects(Query);
-}
-
 void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	// 직전 활성화의 후딜 전이가 재사용 인스턴스에 남긴 그룹을 선언값으로 되돌린다.
@@ -170,7 +155,8 @@ void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 	{
 		if (EffectClass)
 		{
-			ApplyGameplayEffectToOwner(Handle, ActorInfo, ActivationInfo, EffectClass.GetDefaultObject(), GetAbilityLevel());
+			FActiveGameplayEffectHandle EffectHandle = ApplyGameplayEffectToOwner(Handle, ActorInfo, ActivationInfo, EffectClass.GetDefaultObject(), GetAbilityLevel());
+			ActivationOwnedEffectHandles.Add(EffectHandle);
 		}
 	}
 
@@ -184,10 +170,14 @@ void UWxAbilityBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const F
 	ActiveMontage = nullptr;
 
 	// 캔슬·중단도 이 경로를 지나므로 효과가 새지 않는다. 활성 중에 이미 걷힌 것은 조회에 걸리지 않아 무해하다.
-	for (const TSubclassOf<UGameplayEffect>& EffectClass : ActivationOwnedEffects)
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 	{
-		RemoveActivationOwnedEffect(EffectClass);
+		for (FActiveGameplayEffectHandle EffectHandle : ActivationOwnedEffectHandles)
+		{
+			ASC->RemoveActiveGameplayEffect(EffectHandle);
+		}
 	}
+	ActivationOwnedEffectHandles.Reset();
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }

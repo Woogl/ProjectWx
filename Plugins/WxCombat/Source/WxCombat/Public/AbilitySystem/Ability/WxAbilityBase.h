@@ -85,31 +85,22 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	TArray<TSubclassOf<UGameplayEffect>> ActivationOwnedEffects;
 	
-	// TODO: GE Handle 기록해두어서 정확하게 자기가 부여했던 GE만 걷어야함
-	void RemoveActivationOwnedEffect(TSubclassOf<UGameplayEffect> EffectClass) const;
-	
 	TSoftObjectPtr<UObject> GetIcon() const;
 
 	/**
-	 * 일반적으로는 아바타 ASPD가 반영된 몽타주 재생 속도 사용.
+	 * 일반적으로는 ASPD가 반영된 몽타주 재생 속도 사용.
 	 * 고정된 시간을 맞춰야하는 등 특수한 경우에는 1을 반환하도록 오버라이드한다.
 	 */
 	virtual float GetMontagePlayRate() const;
 
-	/**
-	 * 콤보 창 구간. 자기 재발동만 열어주므로 회피·가드 같은 남의 캔슬은 여전히 막힌다.
-	 * 콤보를 후딜보다 이르게 잇되 공격에 리스크를 남기기 위한 구분이다.
-	 */
+	/** 콤보 창 구간. 자기 재발동만 열어주므로 다른 어빌리티는 여전히 막힌다. */
 	void OpenComboWindow();
-
-	/** 후딜이 이미 열렸으면(창이 후딜보다 늦게 닫히는 배치) 그대로 둔다. */
 	void CloseComboWindow();
 
 	/**
 	 * 후딜레이 구간.
 	 * Exclusive_Blocking으로 막혀있던 발동 그룹 잠금을 풀어서 그 순간부터 이후 발동하는 Exclusive 어빌리티에 의한 캔슬을 허용한다.
 	 * 코스트·쿨다운·ActivationBlockedTags는 그대로 검사한다.
-	 * 배타 본동작·콤보 창에서만 전이하며, Independent·Reaction 몽타주에 붙은 노티파이는 no-op이다.
 	 */
 	void StartRecovery();
 
@@ -166,4 +157,6 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UAnimMontage> ActiveMontage;
+	
+	TArray<FActiveGameplayEffectHandle> ActivationOwnedEffectHandles;
 };

@@ -118,7 +118,7 @@ float UWxAbilitySystemComponent::GetMontagePlayRate() const
 		return 1.f;
 	}
 
-	return FMath::Max(AttrSet->GetASPD(), 0.01f);
+	return FMath::Max(AttrSet->GetASPD(), 0.001f);
 }
 
 void UWxAbilitySystemComponent::ApplyHitStop(float Duration, const UGameplayAbility* SourceAbility)
