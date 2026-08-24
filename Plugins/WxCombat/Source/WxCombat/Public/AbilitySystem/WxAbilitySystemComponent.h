@@ -50,10 +50,10 @@ public:
 	virtual void NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason) override;
 
 	/**
-	 * 지금 배타 점유 중인(Exclusive_Blocking·Reaction) 어빌리티. 없으면 nullptr.
-	 * 반응형은 서로를 끊지 않으므로 점유가 둘 이상일 수 있고, 그때는 먼저 찾은 하나만 돌려준다.
+	 * 지금 배타 점유 중인(Exclusive_Blocking·Exclusive_ComboWindow·Reaction) 어빌리티 전원.
+	 * 반응형은 서로를 끊지 않으므로 점유가 둘 이상일 수 있다. 태그 뚫기 판정은 어빌리티가 조립한다.
 	 */
-	const UWxAbilityBase* FindActivationGroupBlocker() const;
+	TArray<const UWxAbilityBase*> FindActivationGroupBlockers() const;
 
 	void CancelActivationGroupAbilities(EWxAbilityActivationGroup Group, UGameplayAbility* IgnoreAbility);
 

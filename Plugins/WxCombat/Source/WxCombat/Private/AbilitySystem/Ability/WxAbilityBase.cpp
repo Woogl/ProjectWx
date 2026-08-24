@@ -55,7 +55,11 @@ void UWxAbilityBase::CloseComboWindow()
 
 void UWxAbilityBase::StartRecovery()
 {
-	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Recovery;
+	// 배타 본동작·콤보 창에서만 후딜로 — 엉뚱한 노티파이가 Independent를 점유자로 승격시키거나 Reaction의 캔슬 면역을 벗기지 않게 한다.
+	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive_Blocking || ActivationGroup == EWxAbilityActivationGroup::Exclusive_ComboWindow)
+	{
+		ActivationGroup = EWxAbilityActivationGroup::Exclusive_Recovery;
+	}
 }
 
 bool UWxAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
@@ -72,20 +76,30 @@ bool UWxAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 
 	const UWxAbilitySystemComponent* WxASC = ActorInfo ? Cast<UWxAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get()) : nullptr;
-	const UWxAbilityBase* Blocker = WxASC ? WxASC->FindActivationGroupBlocker() : nullptr;
-	if (!Blocker)
+	if (!WxASC)
 	{
 		return true;
 	}
 
-	// 점유자가 나 자신이면 엔진 재발동으로 들어온 콤보 진행이다. 콤보 창은 후딜보다 이르므로 여기서 갈라야 두 창이 분리된다.
-	if (Blocker == this)
+	// 반응형은 배타를 뚫고 공존할 수 있으므로 점유자 전원을 각각 통과해야 한다.
+	for (const UWxAbilityBase* Blocker : WxASC->FindActivationGroupBlockers())
 	{
-		return ActivationGroup == EWxAbilityActivationGroup::Exclusive_ComboWindow;
+		// 점유자가 나 자신이면 엔진 재발동으로 들어온 콤보 진행이다. 콤보 창은 후딜보다 이르므로 여기서 갈라야 두 창이 분리된다.
+		if (Blocker == this)
+		{
+			if (ActivationGroup != EWxAbilityActivationGroup::Exclusive_ComboWindow)
+			{
+				return false;
+			}
+		}
+		// 끊겠다고 지목한 어빌리티는 나를 막지 못한다. 취소 자체는 발동 직후 순정 PreActivate가 수행한다.
+		else if (!Blocker->GetAssetTags().HasAny(CancelAbilitiesWithTag))
+		{
+			return false;
+		}
 	}
 
-	// 끊겠다고 지목한 어빌리티는 나를 막지 못한다. 취소 자체는 발동 직후 순정 PreActivate가 수행한다.
-	return Blocker->GetAssetTags().HasAny(CancelAbilitiesWithTag);
+	return true;
 }
 
 bool UWxAbilityBase::CanBeCanceled() const

@@ -156,8 +156,10 @@ void UWxAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecHa
 	UE_LOG(LogWxCombat, Verbose, TEXT("Ability Failed: %s — 사유 %s"), *GetNameSafe(Ability), *FailureReason.ToStringSimple());
 }
 
-const UWxAbilityBase* UWxAbilitySystemComponent::FindActivationGroupBlocker() const
+TArray<const UWxAbilityBase*> UWxAbilitySystemComponent::FindActivationGroupBlockers() const
 {
+	TArray<const UWxAbilityBase*> Blockers;
+
 	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
 		if (!Spec.IsActive())
@@ -180,12 +182,12 @@ const UWxAbilityBase* UWxAbilitySystemComponent::FindActivationGroupBlocker() co
 
 			if (Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive_Blocking || Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive_ComboWindow || Ability->ActivationGroup == EWxAbilityActivationGroup::Reaction)
 			{
-				return Ability;
+				Blockers.Add(Ability);
 			}
 		}
 	}
 
-	return nullptr;
+	return Blockers;
 }
 
 void UWxAbilitySystemComponent::CancelActivationGroupAbilities(EWxAbilityActivationGroup Group, UGameplayAbility* IgnoreAbility)
