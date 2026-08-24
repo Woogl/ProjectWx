@@ -29,4 +29,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TObjectPtr<USoundBase> HitSound;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Wx")
+	TSubclassOf<UCameraShakeBase> CameraShake;
 };

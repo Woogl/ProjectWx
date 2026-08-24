@@ -44,4 +44,33 @@ void UWxCueNotify_Hit::HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent::Ty
 	{
 		UGameplayStatics::PlaySoundAtLocation(World, HitSound, Parameters.Location);
 	}
+
+	if (CameraShake)
+	{
+		if (const AActor* EffectCauser = Parameters.EffectContext.GetEffectCauser())
+		{
+			if (const APawn* Attacker = Cast<APawn>(EffectCauser))
+			{
+				if (AController* Controller = Attacker->GetController())
+				{
+					if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+					{
+						PlayerController->ClientStartCameraShake(CameraShake);
+						return;
+					}
+				}
+			}
+		}
+		
+		if (const APawn* Victim = Cast<APawn>(MyTarget))
+		{
+			if (AController* Controller = Victim->GetController())
+			{
+				if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+				{
+					PlayerController->ClientStartCameraShake(CameraShake);
+				}
+			}
+		}	
+	}
 }
