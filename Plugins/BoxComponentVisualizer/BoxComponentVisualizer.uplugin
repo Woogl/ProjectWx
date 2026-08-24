@@ -1,0 +1,19 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "Box Component Visualizer",
+	"Description": "Box component corner handles. Drag a corner in the viewport to resize while the opposite faces stay put.",
+	"Category": "Editor",
+	"CreatedBy": "Woogle",
+	"EditorOnly": true,
+	"CanContainContent": false,
+	"Modules": [
+		{
+			"Name": "BoxComponentVisualizerEditor",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit",
+			"TargetAllowList": [ "Editor" ]
+		}
+	]
+}
