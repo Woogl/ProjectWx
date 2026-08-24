@@ -22,9 +22,6 @@ protected:
 	
 	UPROPERTY(VisibleDefaultsOnly, Category = "Wx")
 	TObjectPtr<UPoseableMeshComponent> PoseableMesh;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Wx")
-	TObjectPtr<UMaterialInstance> MaterialOverride;
 };
 
 UCLASS(Abstract, Blueprintable)
@@ -42,7 +39,7 @@ protected:
 	TSubclassOf<AWxGhostTrail> GhostTrailClass;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
-	float LifeSpan = 5.f; 
+	float LifeSpan = 1.f; 
 	
 private:
 	UPROPERTY(Transient)

@@ -13,6 +13,8 @@ AWxGhostTrail::AWxGhostTrail()
 	PrimaryActorTick.bCanEverTick = false;
 	
 	PoseableMesh = CreateDefaultSubobject<UPoseableMeshComponent>("PoseableMesh");
+	PoseableMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SetRootComponent(PoseableMesh);
 }
 
 void AWxGhostTrail::BeginPlay()
@@ -25,27 +27,13 @@ void AWxGhostTrail::BeginPlay()
 	}
 
 	const ACharacter* OwnerCharacter = Cast<ACharacter>(Owner);
-	if (!OwnerCharacter)
-	{
-		return;
-	}
+	const float Height = OwnerCharacter ? OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() : 0.f;
 	
-	PoseableMesh->SetSkeletalMesh(OwnerCharacter->GetMesh()->SkeletalMesh);
-	PoseableMesh->CopyPoseFromSkeletalComponent(OwnerCharacter->GetMesh());
-	PoseableMesh->SetRelativeScale3D(OwnerCharacter->GetActorScale3D());
-
-	if (MaterialOverride)
-	{
-		for (int32 i = 0; i < OwnerCharacter->GetMesh()->SkeletalMesh->Materials.Num(); i++)
-		{
-			PoseableMesh->SetMaterial(i, MaterialOverride);
-		}
-	}
- 
-	const float Height = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 	SetActorLocation(OwnerCharacter->GetActorLocation() + FVector(0.f, 0.f, -Height));
 	SetActorRotation(OwnerCharacter->GetActorRotation() + FRotator(0.f, -90.f, 0.f));
- 
+	SetActorScale3D(OwnerCharacter->GetActorScale3D());
+	
+	PoseableMesh->SetSkinnedAsset(OwnerCharacter->GetMesh()->GetSkeletalMeshAsset());
 	PoseableMesh->CopyPoseFromSkeletalComponent(OwnerCharacter->GetMesh());
 }
 
