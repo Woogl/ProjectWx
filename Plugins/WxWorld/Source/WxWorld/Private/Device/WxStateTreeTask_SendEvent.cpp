@@ -46,21 +46,30 @@ EStateTreeRunStatus FWxStateTreeTask_SendEvent::EnterState(FStateTreeExecutionCo
 	// 당사자를 그대로 넘겨 받는 장치의 몽타주·GE 태스크가 같은 캐릭터를 대상으로 삼게 한다.
 	ACharacter* Interactor = Owner->GetInteractingCharacter();
 
-	for (AWxDevice* TargetDevice : Instance.TargetDevices)
+	if (Instance.TargetKind == EWxDeviceEventTarget::Linked)
 	{
-		if (IsValid(TargetDevice))
+		// 선언해 놓고 배선이 비면 보낼 곳이 없다 — 조용히 통과하면 저작 실수가 드러나지 않는다.
+		if (Instance.LinkedDevices.IsEmpty())
 		{
-			TargetDevice->NotifyDeviceInteracted(Interactor, Instance.Event, Instance.Payload);
+			UE_LOG(LogWxWorld, Warning, TEXT("Send Event: %s 의 연결 장치가 비어 보낼 곳이 없음."), *GetNameSafe(Owner));
+
+			return EStateTreeRunStatus::Succeeded;
 		}
+
+		for (AWxDevice* LinkedDevice : Instance.LinkedDevices)
+		{
+			if (IsValid(LinkedDevice))
+			{
+				LinkedDevice->NotifyDeviceInteracted(Interactor, Instance.Event, Instance.Payload);
+			}
+		}
+
+		return EStateTreeRunStatus::Succeeded;
 	}
 
 	if (Instance.ChildDevice.Name.IsNone())
 	{
-		// 유추하는 갈래가 없으므로 아무 칸도 채우지 않은 노드는 보낼 곳이 없다 — 조용히 통과하면 저작 실수가 드러나지 않는다.
-		if (Instance.TargetDevices.IsEmpty())
-		{
-			UE_LOG(LogWxWorld, Warning, TEXT("Send Event: %s 가 대상을 하나도 지목하지 않아 보낼 곳이 없음."), *GetNameSafe(Owner));
-		}
+		UE_LOG(LogWxWorld, Warning, TEXT("Send Event: %s 가 내장 장치를 지목하지 않아 보낼 곳이 없음."), *GetNameSafe(Owner));
 
 		return EStateTreeRunStatus::Succeeded;
 	}
@@ -85,15 +94,15 @@ FText FWxStateTreeTask_SendEvent::GetDescription(const FGuid& ID, FStateTreeData
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	// 배치 대상은 바인딩이라 편집 중엔 배열이 비어 있다 — 무엇에 걸었는지를 보여야 배선을 빠뜨린 노드가 눈에 띈다.
-	FText TargetText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, TargetDevices)), Formatting);
-	if (TargetText.IsEmpty())
+	FText TargetText = InstanceData->ChildDevice.Name.IsNone() ? INVTEXT("대상 없음") : FText::FromName(InstanceData->ChildDevice.Name);
+	if (InstanceData->TargetKind == EWxDeviceEventTarget::Linked)
 	{
-		TargetText = InstanceData->ChildDevice.Name.IsNone() ? INVTEXT("대상 없음") : FText::FromName(InstanceData->ChildDevice.Name);
-	}
-	else if (!InstanceData->ChildDevice.Name.IsNone())
-	{
-		TargetText = FText::Format(INVTEXT("{0} · {1}"), TargetText, FText::FromName(InstanceData->ChildDevice.Name));
+		// 배치 대상은 바인딩이라 편집 중엔 배열이 비어 있다 — 무엇에 걸었는지를 보여야 배선을 빠뜨린 노드가 눈에 띈다.
+		TargetText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, LinkedDevices)), Formatting);
+		if (TargetText.IsEmpty())
+		{
+			TargetText = INVTEXT("대상 없음");
+		}
 	}
 
 	FText EventText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, Event)), Formatting);

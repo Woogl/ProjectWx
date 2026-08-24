@@ -25,20 +25,25 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExe
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	if (Instance.Target.IsEmpty())
+	if (Instance.TargetKind == EWxInteractionToggleTarget::Self)
 	{
 		// 프롬프트·발행 자리까지 담아야 해서 계약이 아니라 장치로 직접 부른다 — 그러지 않으면 공용 계약이 StateTree 를 떠안는다.
-		// 꺼지면 장치가 활성 판정에 false 를 답해 다음 스캔에서 탈락한다. 콜리전은 건드리지 않으므로 대상 메시의 설정은 보존된다.
-		if (AWxDevice* Device = Cast<AWxDevice>(Context.GetOwner()))
+		AWxDevice* Device = Cast<AWxDevice>(Context.GetOwner());
+		if (!Device)
 		{
-			// 발행은 상호작용을 받은 그 순간, 즉 트리 틱 밖에서 일어난다. 그래서 발행자만이 아니라 지금의 실행 컨텍스트를 약참조로 함께 남긴다.
-			FWxDeviceInteractionBinding Binding;
-			Binding.Prompt = Instance.Prompt;
-			Binding.Dispatcher = Instance.OnInteracted;
-			Binding.Context = Context.MakeWeakExecutionContext();
+			UE_LOG(LogWxWorld, Warning, TEXT("Enable Interaction: 오너 %s 가 장치가 아니라 자기 상호작용을 여닫을 수 없음."), *GetNameSafe(Cast<AActor>(Context.GetOwner())));
 
-			Device->SetInteractionBinding(Instance.bEnable, Binding);
+			return EStateTreeRunStatus::Succeeded;
 		}
+
+		// 발행은 상호작용을 받은 그 순간, 즉 트리 틱 밖에서 일어난다. 그래서 발행자만이 아니라 지금의 실행 컨텍스트를 약참조로 함께 남긴다.
+		FWxDeviceInteractionBinding Binding;
+		Binding.Prompt = Instance.Prompt;
+		Binding.Dispatcher = Instance.OnInteracted;
+		Binding.Context = Context.MakeWeakExecutionContext();
+
+		// 꺼지면 장치가 활성 판정에 false 를 답해 다음 스캔에서 탈락한다. 콜리전은 건드리지 않으므로 대상 메시의 설정은 보존된다.
+		Device->SetInteractionBinding(Instance.bEnable, Binding);
 
 		return EStateTreeRunStatus::Succeeded;
 	}
@@ -55,7 +60,7 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::Tick(FStateTreeExecution
 
 EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::ApplyTargetInteraction(const FStateTreeExecutionContext& Context, const FInstanceDataType& Instance) const
 {
-	// 빈 지정은 EnterState 에서 자기 갈래로 이미 처리됐다 — Tick 이 남은 것은 대상을 기다리는 액터 갈래뿐이다.
+	// 지목을 비운 것은 옵션 파라미터를 쓰지 않는 재사용 스텝이라 여닫을 대상이 없다.
 	if (Instance.Target.IsEmpty())
 	{
 		return EStateTreeRunStatus::Succeeded;
@@ -88,21 +93,18 @@ FText FWxStateTreeTask_EnableInteraction::GetDescription(const FGuid& ID, FState
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	// 로케이터는 보통 바인딩이라 런타임 값이 비어 있다.
-	FText TargetText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, Target)), Formatting);
-	if (TargetText.IsEmpty())
+	FText TargetText = INVTEXT("self");
+	if (InstanceData->TargetKind == EWxInteractionToggleTarget::Actor)
 	{
-		if (!InstanceData->Target.IsEmpty())
+		// 로케이터는 보통 바인딩이라 런타임 값이 비어 있다.
+		TargetText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, Target)), Formatting);
+		if (TargetText.IsEmpty())
 		{
 			TargetText = FText::FromString(GetTargetDisplayName(InstanceData->Target));
 		}
-		else
-		{
-			TargetText = INVTEXT("self");
-		}
 	}
 
-	if (InstanceData->bEnable && !InstanceData->Prompt.IsEmpty())
+	if (InstanceData->TargetKind == EWxInteractionToggleTarget::Self && InstanceData->bEnable && !InstanceData->Prompt.IsEmpty())
 	{
 		return FText::Format(INVTEXT("\"{1}\" 상호작용 켜기 ({0})"), TargetText, InstanceData->Prompt);
 	}
