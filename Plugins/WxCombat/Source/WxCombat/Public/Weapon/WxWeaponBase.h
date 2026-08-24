@@ -7,7 +7,7 @@
 #include "WxWeaponBase.generated.h"
 
 class ACharacter;
-class UCapsuleComponent;
+class UShapeComponent;
 class USkeletalMesh;
 class USkeletalMeshComponent;
 
@@ -15,7 +15,8 @@ class USkeletalMeshComponent;
  * WxAnimNotifyState_WeaponAttack이 BeginAttack/EndAttack을 호출하면, 무기가 내부 레퍼런스 카운팅으로 히트 콜리전을 켜고 끈다.
  *
  * 루트인 GripPoint가 캐릭터 소켓에 부착되는 기준점이고, 외형은 SetVisualMesh로 Mesh 서브오브젝트에 얹는다.
- * 히트 판정은 HitCollision Overlap과 매 틱 캡슐 Sweep을 함께 쓰며, 한 스윙에서 같은 액터는 최대 1회만 피격된다.
+ * 히트박스는 BP가 무기에 부착한 ShapeComponent(박스·캡슐·구) 전부이며, 콜리전 구성은 코드가 강제하므로 BP는 형상과 트랜스폼만 저작한다.
+ * 히트 판정은 Overlap과 매 틱 형상별 Sweep을 함께 쓰며, 한 스윙에서 같은 액터는 최대 1회만 피격된다.
  */
 UCLASS(Abstract, Blueprintable)
 class WXCOMBAT_API AWxWeaponBase : public AActor
@@ -52,6 +53,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
 	float HitStopDuration = 0.15f;
 
+	virtual void PostInitializeComponents() override;
 	virtual void Tick(float DeltaSeconds) override;
 
 protected:
@@ -63,11 +65,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Weapon")
 	TObjectPtr<USkeletalMeshComponent> Mesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Weapon")
-	TObjectPtr<UCapsuleComponent> HitCollision;
-
 	UFUNCTION()
-	virtual void HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	virtual void HandleHitShapeOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 private:
 	/**
@@ -75,6 +74,10 @@ private:
 	 * 팀 판정은 대미지 ExecCalc가 하므로 아군에게도 GE는 적용된다.
 	 */
 	void ProcessHit(AActor* OtherActor, const FHitResult& HitResult);
+
+	/** 무기에 부착된 모든 ShapeComponent가 히트박스라는 계약이며, PostInitializeComponents에서 수집한다. */
+	UPROPERTY()
+	TArray<TObjectPtr<UShapeComponent>> HitShapes;
 
 	/** 0이면 콜리전 비활성 상태 */
 	int32 ActiveAttackCount = 0;
@@ -85,5 +88,6 @@ private:
 	UPROPERTY()
 	TSet<TObjectPtr<AActor>> HitActorsThisSwing;
 
-	FVector PrevCapsuleLocation = FVector::ZeroVector;
+	/** HitShapes와 평행한 직전 프레임 위치. 틱 Sweep의 시작점 */
+	TArray<FVector> PrevShapeLocations;
 };
