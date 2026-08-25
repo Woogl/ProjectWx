@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTDecorator.h"
+#include "BehaviorTree/BehaviorTreeTypes.h"
 #include "WxBTDecorator_BeyondLeash.generated.h"
 
 struct FWxBeyondLeashMemory
@@ -12,16 +13,17 @@ struct FWxBeyondLeashMemory
 };
 
 /**
- * BT Decorator: 폰이 배치 지점(HomeLocation)에서 LeashRadius 이상 벗어났는지(리시 이탈) 판정한다.
+ * BT Decorator: 폰이 앵커(기본 HomeLocation)에서 LeashRadius 이상 벗어났는지(리시 이탈) 판정한다.
  *
  * 참(이탈)이면 상위에 배치한 복귀 브랜치(UWxBTTask_ReturnHome)가 전투를 선점하도록 게이팅한다.
- * 홈-폰 거리는 Blackboard 키가 아니라 폰 위치에서 직접 계산하므로, 값 변화를 관찰해 재평가를 촉발할 키가 없다.
+ * 앵커-폰 거리는 Blackboard 키가 아니라 폰 위치에서 직접 계산하므로, 값 변화를 관찰해 재평가를 촉발할 키가 없다.
  * 그래서 관찰자(aux)로 등록된 동안 TickNode 에서 이탈 여부를 매 프레임 폴링하다가, 값이 바뀌는 순간 RequestExecution 으로 플로우 재평가를 요청한다(엔진 UBTDecorator_ConeCheck 와 같은 방식).
  *
- * 이 실시간 abort 는 FlowAbortMode 가 Lower Priority 일 때만 일어나며, 생성자에서 그 값을 기본으로 지정한다(전투 브랜치가 이 브랜치보다 하위 우선순위여야 함).
- * Self/Both 는 금지한다 — 복귀가 시작되면 폰이 곧 반경 안으로 재진입하는데, 그때 자기중단이 걸려 복귀가 경계에서 끊기고 재-어그로가 나 경계에서 왕복하게 된다.
+ * 복귀가 이미 진행 중이면 거리와 무관하게 참을 유지한다 — 완료 판정은 홈 도착을 아는 복귀 Task 가 단독으로 소유한다.
+ * 이 규칙이 없으면 폰이 반경 안으로 재진입하는 순간 조건이 뒤집혀, FlowAbortMode 가 Self·Both 일 땐 자기중단이 걸리고 그 외에도 복귀 중 재탐색이 오면 브랜치가 떨어져 경계에서 왕복이 난다.
  *
- * HomeLocation 은 Blackboard 의 고정 키(WxBlackboardKeys::HomeLocation)에서 읽는다.
+ * FlowAbortMode 는 Lower Priority 를 기본으로 지정한다(전투 브랜치가 이 브랜치보다 하위 우선순위여야 함).
+ * 어떤 값을 골라도 복귀가 끊기지는 않지만, None 이면 관찰자로 등록되지 않아 폴링이 없고 트리 탐색 시점에만 이탈이 걸린다.
  */
 UCLASS()
 class WXAI_API UWxBTDecorator_BeyondLeash : public UBTDecorator
@@ -30,6 +32,8 @@ class WXAI_API UWxBTDecorator_BeyondLeash : public UBTDecorator
 
 public:
 	UWxBTDecorator_BeyondLeash();
+
+	virtual void InitializeFromAsset(UBehaviorTree& Asset) override;
 
 	virtual FString GetStaticDescription() const override;
 
@@ -41,6 +45,10 @@ protected:
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
 	virtual uint16 GetInstanceMemorySize() const override;
+
+	/** 거리를 재는 기준점. Vector 키는 그 위치를, Actor 키는 그 액터의 위치를 쓴다. 미설정이면 이탈로 보지 않는다. */
+	UPROPERTY(EditAnywhere, Category = "Wx|AI")
+	FBlackboardKeySelector Anchor;
 
 	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (ClampMin = "0.0", UIMin = "0.0"))
 	float LeashRadius = 3000.f;

@@ -57,12 +57,6 @@ namespace WxBlackboardKeys
 		Blackboard->SetValueAsObject(TargetActor, Value);
 	}
 
-	FVector GetHomeLocation(const UBlackboardComponent* Blackboard)
-	{
-		VerifyBlackboardKey(Blackboard, HomeLocation, UBlackboardKeyType_Vector::StaticClass());
-		return Blackboard->GetValueAsVector(HomeLocation);
-	}
-
 	void SetHomeLocation(UBlackboardComponent* Blackboard, const FVector& Value)
 	{
 		VerifyBlackboardKey(Blackboard, HomeLocation, UBlackboardKeyType_Vector::StaticClass());
