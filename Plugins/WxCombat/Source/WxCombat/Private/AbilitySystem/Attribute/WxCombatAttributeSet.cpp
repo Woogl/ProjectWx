@@ -275,34 +275,29 @@ void UWxCombatAttributeSet::ProcessDamageTaken(const FGameplayEffectModCallbackD
 	AActor* TargetActor = GetOwningActor();
 	UAbilitySystemComponent* SourceASC = ContextHandle.GetInstigatorAbilitySystemComponent();
 
-	// 공격이 요청한 반응 태그는 스펙에 실려 온다 — 바로 아래 Damage.Unblockable을 읽는 것과 같은 자리다.
-	FGameplayTag HitReactTag = Data.EffectSpec.GetDynamicAssetTags().Filter(FGameplayTagContainer(WxGameplayTags::Event_HitReact)).First();
+	// 공격이 요청한 반응 종류는 스펙에 실려 온다 — 바로 아래 Damage.Unblockable을 읽는 것과 같은 자리다.
+	const FGameplayTag ReactionTag = Data.EffectSpec.GetDynamicAssetTags().Filter(FGameplayTagContainer(WxGameplayTags::HitReact)).First();
 
-	if (ASC->HasMatchingGameplayTag(WxGameplayTags::Effect_Guard))
+	// Guard가 같은 피격 이벤트로 흡수 몽타주를 틀므로, 가드로 막히지 않는 히트는 이벤트보다 먼저 가드를 끊어야 한다.
+	if (ASC->HasMatchingGameplayTag(WxGameplayTags::Effect_Guard) && Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable))
 	{
-		if (Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable))
-		{
-			// HitReact 어빌리티가 Effect.Guard로 차단되므로 반응 이벤트보다 먼저 가드를 끊어야 한다.
-			const FGameplayTagContainer GuardAbilityTags(WxGameplayTags::Ability_Guard);
-			ASC->CancelAbilities(&GuardAbilityTags);
-		}
-		else if (!HitReactTag.IsValid())
-		{
-			// 명시 태그가 없는 평타 피격에도 가드 흡수 애니메이션은 나와야 한다.
-			HitReactTag = WxGameplayTags::Event_HitReact_Normal;
-		}
+		const FGameplayTagContainer GuardAbilityTags(WxGameplayTags::Ability_Guard);
+		ASC->CancelAbilities(&GuardAbilityTags);
 	}
 
 	// 죽는 히트는 Ability.Death가 이미 붙어 있어 히트리액트가 그 태그로 차단된다.
 	// 히트리액트를 재생했다 사망으로 끊는 대신 곧장 사망으로 가는 쪽을 택했다.
-	if (HitReactTag.IsValid())
+	FGameplayEventData HitEventData;
+	HitEventData.EventTag = WxGameplayTags::Event_Hit;
+	HitEventData.Instigator = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
+	HitEventData.Target = TargetActor;
+	HitEventData.EventMagnitude = Damage;
+	HitEventData.ContextHandle = ContextHandle;
+	if (ReactionTag.IsValid())
 	{
-		FGameplayEventData EventData;
-		EventData.Instigator = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
-		EventData.Target = TargetActor;
-		EventData.EventMagnitude = Damage;
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, HitReactTag, EventData);
+		HitEventData.TargetTags.AddTag(ReactionTag);
 	}
+	ASC->HandleGameplayEvent(WxGameplayTags::Event_Hit, &HitEventData);
 
 	// 플로터는 큐 노티파이가 대상 액터 위치에서 직접 띄우므로 Location을 채우지 않는다.
 	FGameplayCueParameters CueParams;
@@ -342,12 +337,15 @@ void UWxCombatAttributeSet::ProcessPerfectGuard(const FGameplayEffectModCallback
 	EventData.Target = TargetActor;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_PerfectGuard, EventData);
 
+	// 공격자에게 패리 반동을 요청한다. 대미지는 없으므로 EventMagnitude는 0이다.
 	if (SourceActor && Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_ParryHitReact))
 	{
 		FGameplayEventData ParryEventData;
+		ParryEventData.EventTag = WxGameplayTags::Event_Hit;
 		ParryEventData.Instigator = TargetActor;
 		ParryEventData.Target = SourceActor;
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(SourceActor, WxGameplayTags::Event_HitReact_Parry, ParryEventData);
+		ParryEventData.TargetTags.AddTag(WxGameplayTags::HitReact_Parry);
+		SourceASC->HandleGameplayEvent(WxGameplayTags::Event_Hit, &ParryEventData);
 	}
 
 	// 컨텍스트만 넘기면 UWxAbilitySystemGlobals가 ImpactPoint를 Location으로 채운다 — 이 큐는 그 자리에서 나이아가라와 사운드를 낸다.

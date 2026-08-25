@@ -53,8 +53,8 @@ void UWxCheatManager::WxDamagePlayer(float Amount)
 		FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
 		Spec->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_RawDamage, Amount);
 
-		// 피격 리액션 태그가 없으면 비가드 상태에서 HitReact 이벤트가 발송되지 않아 HP 만 깎인다.
-		Spec->AddDynamicAssetTag(WxGameplayTags::Event_HitReact_Normal);
+		// 반응 종류가 없으면 비가드 상태에서 HitReact가 뜨지 않아 HP 만 깎인다.
+		Spec->AddDynamicAssetTag(WxGameplayTags::HitReact_Normal);
 
 		AbilitySystem->ApplyGameplayEffectSpecToSelf(*Spec);
 	}

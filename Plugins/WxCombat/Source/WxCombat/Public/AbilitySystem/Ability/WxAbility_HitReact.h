@@ -9,12 +9,12 @@
 class UAnimMontage;
 
 /**
- * 데미지 파이프라인이 보내는 Event.HitReact.* 로 트리거되어 그 태그에 매칭되는 몽타주를 재생한다.
+ * 데미지 파이프라인이 보내는 Event.Hit으로 트리거되어 페이로드의 반응 종류(HitReact.*)에 매칭되는 몽타주를 재생한다.
  *
- * 대미지 파이프라인은 공격이 요청한 태그를 가공 없이 넘기고, 그 태그로 무엇을 할지는 여기서 정한다 — 그로기 중이면 넉 계열을 Normal로 낮춘다.
+ * 대미지 파이프라인은 공격이 요청한 반응 종류를 가공 없이 넘기고, 그걸로 무엇을 할지는 여기서 정한다 — 그로기 중이면 넉 계열을 Normal로 낮춘다.
  *
- * 평타로는 경직이 나지 않는다 — 대미지 행이 Event.HitReact.* 태그를 싣지 않으면 이벤트 자체가 발송되지 않기 때문이다.
- * 가드 중 피격 반응은 WxAbility_Guard가 직접 처리하므로 Effect.Guard 중에는 이 어빌리티가 뜨지 않는다.
+ * 평타로는 경직이 나지 않는다 — 대미지 행이 반응 종류를 싣지 않으면 ShouldAbilityRespondToEvent가 활성화 전에 거절한다.
+ * 가드 중 피격 반응은 WxAbility_Guard가 같은 이벤트로 직접 처리하므로 Effect.Guard 중에는 이 어빌리티가 뜨지 않는다.
  * 피격 중에도 새 액션을 허용하는 캐릭터는 어빌리티 BP에서 차단·캔슬 컨테이너를 비운다.
  */
 UCLASS(Abstract)
@@ -27,6 +27,9 @@ public:
 
 	/** 처형 짝 피격이 공격자 몽타주와 프레임 싱크돼야 하므로 ASPD를 반영하지 않는다. */
 	virtual float GetMontagePlayRate() const override;
+
+	/** 반응 종류가 실리지 않은 히트는 활성화 전에 거절한다 — 캔슬 태그도 클라 활성 RPC도 새지 않는다. */
+	virtual bool ShouldAbilityRespondToEvent(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayEventData* Payload) const override;
 
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
@@ -57,7 +60,7 @@ protected:
 	TObjectPtr<UAnimMontage> BackstabHitReactMontage;
 
 private:
-	UAnimMontage* SelectMontage(FGameplayTag EventTag) const;
+	UAnimMontage* SelectMontage(FGameplayTag ReactionTag) const;
 
 	void FaceInstigator(AActor* AvatarActor, const AActor* Instigator);
 };
