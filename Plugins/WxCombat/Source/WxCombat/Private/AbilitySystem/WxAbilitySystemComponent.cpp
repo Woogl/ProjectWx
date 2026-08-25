@@ -16,12 +16,16 @@ UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 
 void UWxAbilitySystemComponent::GiveAbilitySet()
 {
-	if (!AbilitySet)
+	// ASC는 캐릭터 서브오브젝트라 재빙의 후에도 앞서 부여한 어빌리티를 그대로 쥐고 있다.
+	// 다시 부여하면 어빌리티·GE가 중복되고 어트리뷰트 초기화가 HP/SP를 초기값으로 되돌린다.
+	if (!AbilitySet || bAbilitySetGranted)
 	{
 		return;
 	}
 
-	AbilitySet->GiveToAbilitySystem(this, &AbilitySetGrantedHandles);
+	bAbilitySetGranted = true;
+
+	AbilitySet->GiveToAbilitySystem(this);
 }
 
 void UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* Action)

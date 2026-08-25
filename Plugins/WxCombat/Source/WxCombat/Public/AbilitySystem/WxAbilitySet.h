@@ -5,25 +5,12 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "Engine/DataTable.h"
-#include "GameplayAbilitySpecHandle.h"
-#include "ActiveGameplayEffectHandle.h"
 #include "WxAbilitySet.generated.h"
 
 class UWxAbilityBase;
 class UGameplayEffect;
 class UWxAbilitySystemComponent;
 class UInputAction;
-
-USTRUCT(BlueprintType)
-struct WXCOMBAT_API FWxAbilitySetGrantedHandles
-{
-	GENERATED_BODY()
-
-	void RemoveFromAbilitySystem(UWxAbilitySystemComponent* ASC);
-
-	TArray<FGameplayAbilitySpecHandle> AbilitySpecHandles;
-	TArray<FActiveGameplayEffectHandle> EffectHandles;
-};
 
 /** 캐릭터 BP가 이 에셋을 지정하면 InitAbilitySystem 시점에 서버에서 모든 항목이 ASC에 일괄 부여된다. */
 UCLASS(BlueprintType, Const)
@@ -32,7 +19,7 @@ class WXCOMBAT_API UWxAbilitySet : public UPrimaryDataAsset
 	GENERATED_BODY()
 
 public:
-	void GiveToAbilitySystem(UWxAbilitySystemComponent* ASC, FWxAbilitySetGrantedHandles* OutHandles) const;
+	void GiveToAbilitySystem(UWxAbilitySystemComponent* ASC) const;
 
 	/** 각 어빌리티 CDO가 요구하는 입력 액션 전체(중복 제거) */
 	TArray<const UInputAction*> GetInputActions() const;

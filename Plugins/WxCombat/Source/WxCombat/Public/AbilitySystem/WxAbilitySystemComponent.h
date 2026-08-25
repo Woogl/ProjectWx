@@ -67,6 +67,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TObjectPtr<UWxAbilitySet> AbilitySet;
 
-	FWxAbilitySetGrantedHandles AbilitySetGrantedHandles;
+	bool bAbilitySetGranted = false;
 
 };
