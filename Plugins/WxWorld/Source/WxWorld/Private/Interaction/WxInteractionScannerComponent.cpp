@@ -39,11 +39,11 @@ void UWxInteractionScannerComponent::BeginPlay()
 
 	if (UWorld* World = GetWorld())
 	{
-		World->GetTimerManager().SetTimer(ScanTimerHandle, this, &UWxInteractionScannerComponent::ScanAndPush, FMath::Max(ScanInterval, 0.01f), true);
+		World->GetTimerManager().SetTimer(ScanTimerHandle, this, &UWxInteractionScannerComponent::HandleScanTimer, FMath::Max(ScanInterval, 0.01f), true);
 	}
 
 	// 설정 즉시 1회 스캔해 진입 시점의 주변 상호작용을 바로 반영한다.
-	ScanAndPush();
+	HandleScanTimer();
 }
 
 void UWxInteractionScannerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -128,7 +128,7 @@ void UWxInteractionScannerComponent::ServerInteract_Implementation(AActor* Selec
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Pawn, WxGameplayTags::Event_Interact, EventData);
 }
 
-void UWxInteractionScannerComponent::ScanAndPush()
+void UWxInteractionScannerComponent::HandleScanTimer()
 {
 	APawn* Pawn = GetOwnerPawn();
 	UWorld* World = Pawn ? Pawn->GetWorld() : nullptr;
