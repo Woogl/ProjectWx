@@ -4,6 +4,9 @@
 
 UWxBTDecorator_RandomWeight::UWxBTDecorator_RandomWeight()
 {
+	bAllowAbortLowerPri = false;
+	bAllowAbortChildNodes = false;
+	
 	NodeName = TEXT("Random Weight");
 }
 
