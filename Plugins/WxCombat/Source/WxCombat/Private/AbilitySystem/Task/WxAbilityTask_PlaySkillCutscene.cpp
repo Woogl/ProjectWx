@@ -35,7 +35,11 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 	UWorld* World = GetWorld();
 	if (!World || !LevelSequence)
 	{
-		OnCancelled.Broadcast();
+		if (ShouldBroadcastAbilityTaskDelegates())
+		{
+			OnCancelled.Broadcast();
+		}
+
 		EndTask();
 		return;
 	}
@@ -66,7 +70,12 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 	{
 		UWxTimeDilationComponent::ClearGlobalTimeDilationAuthoritative(this);
 		CleanupSequenceActor();
-		OnCancelled.Broadcast();
+
+		if (ShouldBroadcastAbilityTaskDelegates())
+		{
+			OnCancelled.Broadcast();
+		}
+
 		EndTask();
 		return;
 	}

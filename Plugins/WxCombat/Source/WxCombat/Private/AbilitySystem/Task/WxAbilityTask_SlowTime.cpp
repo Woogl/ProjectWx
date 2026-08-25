@@ -18,9 +18,20 @@ void UWxAbilityTask_SlowTime::TickTask(float DeltaTime)
 {
 	Super::TickTask(DeltaTime);
 
-	if (GetWorld()->GetRealTimeSeconds() - StartRealTimeSeconds >= Duration)
+	const UWorld* World = GetWorld();
+	if (!World)
 	{
-		OnFinished.Broadcast();
+		EndTask();
+		return;
+	}
+
+	if (World->GetRealTimeSeconds() - StartRealTimeSeconds >= Duration)
+	{
+		if (ShouldBroadcastAbilityTaskDelegates())
+		{
+			OnFinished.Broadcast();
+		}
+
 		EndTask();
 	}
 }
@@ -36,7 +47,15 @@ void UWxAbilityTask_SlowTime::Activate()
 {
 	Super::Activate();
 
+	// TasksComponent 약참조가 풀리면 World가 널이다. 경과 시간을 못 재면 딜레이션을 걷을 수도 없으므로 걸기 전에 접는다.
+	const UWorld* World = GetWorld();
+	if (!World)
+	{
+		EndTask();
+		return;
+	}
+
 	UWxTimeDilationComponent::SetGlobalTimeDilationAuthoritative(this, TimeDilation);
 
-	StartRealTimeSeconds = GetWorld()->GetRealTimeSeconds();
+	StartRealTimeSeconds = World->GetRealTimeSeconds();
 }

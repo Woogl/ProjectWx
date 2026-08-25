@@ -22,7 +22,11 @@ void UWxAbilityTask_WaitMoving::TickTask(float DeltaTime)
 	}
 
 	bIsMoving = bNowMoving;
-	OnMovingChanged.Broadcast(bIsMoving);
+
+	if (ShouldBroadcastAbilityTaskDelegates())
+	{
+		OnMovingChanged.Broadcast(bIsMoving);
+	}
 }
 
 void UWxAbilityTask_WaitMoving::Activate()
@@ -31,7 +35,11 @@ void UWxAbilityTask_WaitMoving::Activate()
 
 	// 이미 달리는 중에 발동했을 수 있으므로 첫 통지는 전환을 기다리지 않는다.
 	bIsMoving = IsAvatarMoving();
-	OnMovingChanged.Broadcast(bIsMoving);
+
+	if (ShouldBroadcastAbilityTaskDelegates())
+	{
+		OnMovingChanged.Broadcast(bIsMoving);
+	}
 }
 
 bool UWxAbilityTask_WaitMoving::IsAvatarMoving() const

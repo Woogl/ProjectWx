@@ -32,7 +32,11 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 	if (!TargetComponent)
 	{
 		// 대상 액터 또는 추적 중인 부위 컴포넌트가 파괴되면 약참조가 풀려 여기서 락온이 해제된다.
-		OnTargetLost.Broadcast();
+		if (ShouldBroadcastAbilityTaskDelegates())
+		{
+			OnTargetLost.Broadcast();
+		}
+
 		return;
 	}
 
@@ -40,7 +44,11 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 	const UWxLockOnPointComponent* TargetPoint = Cast<UWxLockOnPointComponent>(TargetComponent);
 	if (TargetPoint && !TargetPoint->CanBeLockedOn())
 	{
-		OnTargetLost.Broadcast();
+		if (ShouldBroadcastAbilityTaskDelegates())
+		{
+			OnTargetLost.Broadcast();
+		}
+
 		return;
 	}
 
@@ -55,7 +63,11 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 	const float DistanceSquared = FVector::DistSquared(AvatarPawn->GetActorLocation(), TargetLocation);
 	if (DistanceSquared > MaxDistanceSquared)
 	{
-		OnTargetLost.Broadcast();
+		if (ShouldBroadcastAbilityTaskDelegates())
+		{
+			OnTargetLost.Broadcast();
+		}
+
 		return;
 	}
 
@@ -96,7 +108,11 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 	AccumulatedLook += LookAxis;
 	if (AccumulatedLook.Size() >= RetargetLookThreshold)
 	{
-		OnRetargetRequested.Broadcast(AccumulatedLook.GetSafeNormal());
+		if (ShouldBroadcastAbilityTaskDelegates())
+		{
+			OnRetargetRequested.Broadcast(AccumulatedLook.GetSafeNormal());
+		}
+
 		AccumulatedLook = FVector2D::ZeroVector;
 	}
 }
@@ -190,7 +206,10 @@ void UWxAbilityTask_LockOnTarget::UnbindTarget()
 
 void UWxAbilityTask_LockOnTarget::HandleTargetDestroyed(AActor* DestroyedActor)
 {
-	OnTargetLost.Broadcast();
+	if (ShouldBroadcastAbilityTaskDelegates())
+	{
+		OnTargetLost.Broadcast();
+	}
 }
 
 void UWxAbilityTask_LockOnTarget::CreateReticleWidget()
