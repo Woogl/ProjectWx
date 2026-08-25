@@ -8,6 +8,7 @@
 #include "Framework/WxGameState.h"
 #include "Framework/WxWorldSettings.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/SpectatorPawn.h"
 #include "Inventory/WxInventoryManagerComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "WxGame.h"
@@ -43,10 +44,10 @@ UClass* AWxGameMode::GetDefaultPawnClassForController_Implementation(AController
 	}
 
 	// Super 를 부르지 않는다 — GameMode 의 DefaultPawnClass 로 폴백하면 폰 클래스의 출처가 둘이 된다.
-	// 엔진은 nullptr 을 받으면 스폰을 건너뛰고 FailedToRestartPlayer 로 빠지므로, 폰 없이 뜨고 이 로그가 원인을 지목한다.
+	// 비어 있으면 폰 없는 Experience(프론트엔드)다 — 엔진 스펙테이터 폰으로 빙의시켜 HUD 가 빙의 경로 그대로 뜨게 한다.
 	if (!Experience->DefaultPawnClass)
 	{
-		UE_LOG(LogWxGame, Error, TEXT("GetDefaultPawnClassForController: Experience 에 DefaultPawnClass 미설정. 폰을 스폰할 수 없다."));
+		return SpectatorClass;
 	}
 
 	return Experience->DefaultPawnClass;
