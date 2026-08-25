@@ -148,7 +148,7 @@ namespace WxGameplayTags
 	/**
 	 * 어빌리티는 자신을 가리키는 식별 태그 Ability.X를 정확히 하나 갖고, AssetTags와 ActivationOwnedTags 양쪽에 넣는다.
 	 * 곧 "Ability.X = 그 어빌리티가 지금 활성화 중이다"가 성립한다.
-	 * 어빌리티의 성질을 나타내는 분류 마커는 이 루트가 아니라 Trait.*에 있다.
+	 * 어빌리티의 성질(배타 그룹 등)은 태그가 아니라 EWxAbilityActivationGroup(WxCombat)으로 선언한다.
 	*/
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability);

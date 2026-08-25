@@ -32,7 +32,7 @@
   - `Device.*` — 장치 StateTree 상태값. 코드가 읽지 않고 세이브 슬롯에 저장되는 값
   - `GameplayCue.*` — 큐 태그(Hit·DamageFloater·AttackTelegraph 색상별 등)
   - `Damage.*` — 대미지 성질 마커(Critical·CanCritical·Unblockable·ParryHitReact)
-  - `Ability.*` — 어빌리티 식별 태그. 하나당 정확히 하나, 활성 여부와 동치(성질 분류는 별도 `Trait.*`)
+  - `Ability.*` — 어빌리티 식별 태그. 하나당 정확히 하나, 활성 여부와 동치(성질 분류는 태그가 아니라 `EWxAbilityActivationGroup`)
   - `SetByCaller.*` — GE SetByCaller 키(Duration·Recovery·DP·Coeff.ATK·RawDamage·MoveSpeedScale)
   - `UI.*` — CommonUI 레이어(`Layer.*`) 및 액션(`Action.*`)
 
