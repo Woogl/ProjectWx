@@ -38,6 +38,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TSubclassOf<AWxGhostTrail> GhostTrailClass;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Wx")
+	// SetLifeSpan(0)은 "수명 없음"이라 0을 넣으면 잔상이 영구히 남는다.
+	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (ClampMin = "0.01"))
 	float LifeSpan = 1.f;
 };

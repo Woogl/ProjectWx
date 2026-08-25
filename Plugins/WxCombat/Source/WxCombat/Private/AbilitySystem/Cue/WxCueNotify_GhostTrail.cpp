@@ -5,7 +5,6 @@
 
 #include "WxCombatModule.h"
 #include "WxGameplayTags.h"
-#include "Components/CapsuleComponent.h"
 #include "Components/PoseableMeshComponent.h"
 #include "GameFramework/Character.h"
 
@@ -37,11 +36,8 @@ void AWxGhostTrail::BeginPlay()
 		return;
 	}
 
-	const float Height = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
-
-	SetActorLocation(OwnerCharacter->GetActorLocation() + FVector(0.f, 0.f, -Height));
-	SetActorRotation(OwnerCharacter->GetActorRotation() + FRotator(0.f, -90.f, 0.f));
-	SetActorScale3D(OwnerCharacter->GetActorScale3D());
+	// 포즈를 메시 기준 컴포넌트 스페이스로 복사하므로 배치 기준도 메시 트랜스폼이어야 한다 — 메시 상대 트랜스폼이 기본값이 아니면 어긋난다.
+	SetActorTransform(OwnerMesh->GetComponentTransform());
 
 	PoseableMesh->SetSkinnedAsset(OwnerMesh->GetSkeletalMeshAsset());
 	PoseableMesh->CopyPoseFromSkeletalComponent(OwnerMesh);
