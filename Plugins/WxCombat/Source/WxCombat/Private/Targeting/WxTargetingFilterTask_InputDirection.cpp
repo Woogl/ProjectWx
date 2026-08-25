@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Targeting/WxTargetingFilterTask_InputDirection.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Pawn.h"
 #include "Types/TargetingSystemTypes.h"
 
@@ -19,8 +20,16 @@ bool UWxTargetingFilterTask_InputDirection::ShouldFilterTarget(const FTargetingR
 		return false;
 	}
 
+	// GetLastMovementInputVector는 AddMovementInput을 부른 머신에서만 채워져 서버에서는 원격 폰이 항상 0이 된다.
+	// CMC의 Acceleration은 서버가 ServerMove로 받은 클라이언트 값을 그대로 넣으므로, 같은 프리셋을 도는 모든 머신이 같은 판정을 낸다.
+	const UCharacterMovementComponent* MovementComponent = Cast<UCharacterMovementComponent>(SourcePawn->GetMovementComponent());
+	if (!MovementComponent)
+	{
+		return false;
+	}
+
 	// 이동 입력은 평면적이라 수평(XY)으로 평탄화해 yaw 기준으로 비교한다.
-	FVector InputDir = SourcePawn->GetLastMovementInputVector();
+	FVector InputDir = MovementComponent->GetCurrentAcceleration();
 	InputDir.Z = 0.f;
 
 	if (InputDir.IsNearlyZero())

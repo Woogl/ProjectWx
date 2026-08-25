@@ -12,6 +12,8 @@ class APawn;
 /**
  * 소스 폰의 이동 입력 방향(수평)에서 타겟 방향이 MaxInputAngle 을 넘으면 제외하는 타겟팅 필터.
  * 입력이 없으면(스틱 중립) 아무것도 제외하지 않는다.
+ *
+ * 입력 방향은 CharacterMovementComponent의 Acceleration에서 읽는다 — 서버가 ServerMove로 받은 클라이언트 값을 그대로 넣어 주므로 머신 간 판정이 일치한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxTargetingFilterTask_InputDirection : public UTargetingFilterTask_BasicFilterTemplate
