@@ -410,22 +410,21 @@ int32 UWxAbilityBase::QueryActiveCooldowns(const UAbilitySystemComponent& ASC, f
 	}
 
 	const UGameplayAbility* AbilityCDO = GetClass()->GetDefaultObject<UGameplayAbility>();
+	const UGameplayEffect* CooldownDef = GetDefault<UWxEffect_Cooldown>();
 	const float WorldTime = World->GetTimeSeconds();
 
-	FGameplayEffectQuery Query;
-	Query.EffectDefinition = UWxEffect_Cooldown::StaticClass();
-
+	// 홀드 입력이면 매 프레임 도는 경로다. GetActiveEffects는 핸들 배열을 새로 할당하고 핸들마다 컨테이너를 다시 찾게 만들어 직접 순회한다.
 	int32 ActiveCount = 0;
-	for (const FActiveGameplayEffectHandle& ActiveHandle : ASC.GetActiveEffects(Query))
+	for (const FActiveGameplayEffect& ActiveGE : &ASC.GetActiveGameplayEffects())
 	{
-		const FActiveGameplayEffect* ActiveGE = ASC.GetActiveGameplayEffect(ActiveHandle);
-		if (!ActiveGE || ActiveGE->Spec.GetEffectContext().GetAbility() != AbilityCDO)
+		// 엔진 쿼리의 정의 비교와 같은 규칙 — 하위 클래스가 아니라 CDO 일치다.
+		if (ActiveGE.Spec.Def != CooldownDef || ActiveGE.Spec.GetEffectContext().GetAbility() != AbilityCDO)
 		{
 			continue;
 		}
 
 		// 만료됐지만 아직 제거되지 않은 GE(클라는 제거 복제가 늦게 도착)는 회복된 충전으로 친다
-		const float Remaining = (ActiveGE->StartWorldTime + ActiveGE->Spec.GetDuration()) - WorldTime;
+		const float Remaining = (ActiveGE.StartWorldTime + ActiveGE.Spec.GetDuration()) - WorldTime;
 		if (Remaining <= 0.f)
 		{
 			continue;
@@ -435,7 +434,7 @@ int32 UWxAbilityBase::QueryActiveCooldowns(const UAbilitySystemComponent& ASC, f
 		if (Remaining > OutLongestRemaining)
 		{
 			OutLongestRemaining = Remaining;
-			OutLongestDuration = ActiveGE->Spec.GetDuration();
+			OutLongestDuration = ActiveGE.Spec.GetDuration();
 		}
 	}
 

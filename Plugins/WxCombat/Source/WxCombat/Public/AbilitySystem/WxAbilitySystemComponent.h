@@ -52,12 +52,17 @@ public:
 	/**
 	 * 지금 배타 점유 중인(Exclusive_Blocking·Exclusive_ComboWindow·Reaction) 어빌리티 전원.
 	 * 반응형은 서로를 끊지 않으므로 점유가 둘 이상일 수 있다. 태그 뚫기 판정은 어빌리티가 조립한다.
+	 *
+	 * 발동 시도마다 불리고 홀드 입력이면 매 프레임이라, 통상 개수는 인라인 저장으로 받아 힙 할당을 피한다.
 	 */
-	TArray<const UWxAbilityBase*> FindActivationGroupBlockers() const;
+	TArray<const UWxAbilityBase*, TInlineAllocator<4>> FindActivationGroupBlockers() const;
 
 	void CancelActivationGroupAbilities(EWxAbilityActivationGroup Group, UGameplayAbility* IgnoreAbility);
 
 private:
+	/** 인스턴스가 배타 점유자면 그 어빌리티를, 아니면 nullptr을 준다. */
+	const UWxAbilityBase* AsActivationGroupBlocker(const UGameplayAbility* Instance) const;
+
 	void HandleHitStopElapsed(TWeakObjectPtr<UAnimMontage> FrozenMontage);
 
 	FTimerHandle HitStopResumeTimer;

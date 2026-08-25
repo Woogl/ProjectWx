@@ -62,7 +62,13 @@ void UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* 
 		{
 			AbilitySpecInputPressed(Spec);
 
-			for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
+			// 홀드 입력은 매 프레임 여기까지 오므로 사본을 만드는 GetAbilityInstances 대신 두 배열을 직접 훑는다.
+			for (const UGameplayAbility* Instance : Spec.ReplicatedInstances)
+			{
+				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
+			}
+
+			for (const UGameplayAbility* Instance : Spec.NonReplicatedInstances)
 			{
 				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
 			}
@@ -97,7 +103,12 @@ void UWxAbilitySystemComponent::AbilityInputActionReleased(const UInputAction* A
 		{
 			AbilitySpecInputReleased(Spec);
 
-			for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
+			for (const UGameplayAbility* Instance : Spec.ReplicatedInstances)
+			{
+				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
+			}
+
+			for (const UGameplayAbility* Instance : Spec.NonReplicatedInstances)
 			{
 				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
 			}
@@ -160,9 +171,9 @@ void UWxAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecHa
 	UE_LOG(LogWxCombat, Verbose, TEXT("Ability Failed: %s — 사유 %s"), *GetNameSafe(Ability), *FailureReason.ToStringSimple());
 }
 
-TArray<const UWxAbilityBase*> UWxAbilitySystemComponent::FindActivationGroupBlockers() const
+TArray<const UWxAbilityBase*, TInlineAllocator<4>> UWxAbilitySystemComponent::FindActivationGroupBlockers() const
 {
-	TArray<const UWxAbilityBase*> Blockers;
+	TArray<const UWxAbilityBase*, TInlineAllocator<4>> Blockers;
 
 	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
@@ -171,27 +182,41 @@ TArray<const UWxAbilityBase*> UWxAbilitySystemComponent::FindActivationGroupBloc
 			continue;
 		}
 
-		for (const UGameplayAbility* Instance : Spec.GetAbilityInstances())
+		// GetAbilityInstances는 호출마다 두 배열을 합친 사본을 만든다. 인스턴스는 복제 여부로만 갈리므로 각각 훑는다.
+		for (const UGameplayAbility* Instance : Spec.ReplicatedInstances)
 		{
-			if (!Instance->IsActive())
+			if (const UWxAbilityBase* Blocker = AsActivationGroupBlocker(Instance))
 			{
-				continue;
+				Blockers.Add(Blocker);
 			}
+		}
 
-			const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Instance);
-			if (!Ability)
+		for (const UGameplayAbility* Instance : Spec.NonReplicatedInstances)
+		{
+			if (const UWxAbilityBase* Blocker = AsActivationGroupBlocker(Instance))
 			{
-				continue;
-			}
-
-			if (Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive_Blocking || Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive_ComboWindow || Ability->ActivationGroup == EWxAbilityActivationGroup::Reaction)
-			{
-				Blockers.Add(Ability);
+				Blockers.Add(Blocker);
 			}
 		}
 	}
 
 	return Blockers;
+}
+
+const UWxAbilityBase* UWxAbilitySystemComponent::AsActivationGroupBlocker(const UGameplayAbility* Instance) const
+{
+	const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Instance);
+	if (!Ability || !Ability->IsActive())
+	{
+		return nullptr;
+	}
+
+	if (Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive_Blocking || Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive_ComboWindow || Ability->ActivationGroup == EWxAbilityActivationGroup::Reaction)
+	{
+		return Ability;
+	}
+
+	return nullptr;
 }
 
 void UWxAbilitySystemComponent::CancelActivationGroupAbilities(EWxAbilityActivationGroup Group, UGameplayAbility* IgnoreAbility)
