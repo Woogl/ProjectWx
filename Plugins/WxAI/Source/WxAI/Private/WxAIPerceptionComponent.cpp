@@ -248,10 +248,13 @@ void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)
 	else
 	{
 		AIC->ClearFocus(EAIFocusPriority::Gameplay);
-		if (Movement)
+
+		// 평상시 회전 모드는 폰마다 다를 수 있으므로, 상수 대신 컴포넌트 아키타입(폰 BP·C++ 생성자 기본값)에서 읽어 되돌린다.
+		const UCharacterMovementComponent* MovementDefaults = Movement ? Cast<UCharacterMovementComponent>(Movement->GetArchetype()) : nullptr;
+		if (MovementDefaults)
 		{
-			Movement->bUseControllerDesiredRotation = false;
-			Movement->bOrientRotationToMovement = true;
+			Movement->bUseControllerDesiredRotation = MovementDefaults->bUseControllerDesiredRotation;
+			Movement->bOrientRotationToMovement = MovementDefaults->bOrientRotationToMovement;
 		}
 	}
 }
