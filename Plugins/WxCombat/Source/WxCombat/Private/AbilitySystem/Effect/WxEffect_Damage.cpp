@@ -125,7 +125,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	if (bGuardHit)
 	{
-		DamageResult.FinalDamage *= UWxEffect_Guard::GetDamageReductionRate();
+		DamageResult.FinalDamage *= UWxEffect_Guard::DamageMultiplier;
 	}
 
 	if (DamageResult.FinalDamage <= 0.f)
