@@ -26,7 +26,7 @@ enum class EWxDamageResult : uint8
  * UWxExecCalc_Damage가 판정 중에 적고, 어트리뷰트가 확정된 뒤 UWxCombatAttributeSet::ProcessDamageTaken가 읽어 플로터에 넘긴다.
  * 나머지 판정 결과는 스펙 태그와 IncomingDamage로 복원되지만 크리 여부만은 남는 흔적이 없어 이 통로가 필요하다.
  *
- * 하나의 컨텍스트가 대미지 GE와 AdditionalEffects 전체에 공유되므로(FWxDamageInfo::MakeSpecs), 판정을 새로 시작할 때 먼저 지워야 한다.
+ * 하나의 컨텍스트가 대미지 GE와 AdditionalEffects 전체에 공유되므로(FWxDamageTableRow::MakeSpecs), 판정을 새로 시작할 때 먼저 지워야 한다.
  *
  * 할당은 UWxAbilitySystemGlobals가 맡으므로 MakeEffectContext를 타는 모든 GE가 이 타입을 갖는다.
  */
