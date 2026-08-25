@@ -278,10 +278,12 @@ void UWxAbility_Dodge::DeactivateJudgementCapsule()
 
 void UWxAbility_Dodge::HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag)
 {
+	// CallServerSetReplicatedTargetData는 등록된 어떤 파생 타입도 실어 보낼 수 있으므로, 구조체를 확인하고 캐스트한다.
 	FVector LocalDirection = FVector::ZeroVector;
-	if (const FWxAbilityTargetData_Direction* DirectionData = static_cast<const FWxAbilityTargetData_Direction*>(DataHandle.Get(0)))
+	const FGameplayAbilityTargetData* ReceivedData = DataHandle.Get(0);
+	if (ReceivedData && ReceivedData->GetScriptStruct() == FWxAbilityTargetData_Direction::StaticStruct())
 	{
-		LocalDirection = DirectionData->Direction;
+		LocalDirection = static_cast<const FWxAbilityTargetData_Direction*>(ReceivedData)->Direction;
 	}
 
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
