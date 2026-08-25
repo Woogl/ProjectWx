@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "WxBTComposite_RandomChoice.h"
 
@@ -59,6 +59,10 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 		// 엔진이 선택 직후 FindChildToExecute 에서 이 자식에 대해 동일하게 호출하는 검사이므로, 미리 걸러도 선택 결과가 엔진 판정과 어긋나지 않는다.
 		if (!DoDecoratorsAllowExecution(SearchData.OwnerComp, SearchData.OwnerComp.GetActiveInstanceIdx(), Index))
 		{
+			// 엔진은 FindChildToExecute 에서 조건 실패 자식을 지나칠 때 이 알림으로 LowerPriority·Both 데코레이터를 관찰자로 등록한다.
+			// 사전 필터가 그 경로를 건너뛰므로 여기서 대신 보낸다.
+			EBTNodeResult::Type FailedResult = EBTNodeResult::Failed;
+			NotifyDecoratorsOnFailedActivation(SearchData, Index, FailedResult);
 			continue;
 		}
 
@@ -74,6 +78,7 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 		}
 
 		// 회피를 풀지 말지가 후보 수 기준이므로, 뽑힐 수 없는 자식이 그 수에 끼면 안 된다.
+		// 조건은 통과한 자식이라 활성화 실패로 알리지 않는다 — 뽑힐 수 없는데 관찰자로 등록하면 선점만 하고 정작 실행되지 못한다.
 		if (Weight <= 0.0f)
 		{
 			continue;
