@@ -328,7 +328,7 @@ bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, cons
 		return true;
 	}
 
-	const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+	const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
 	if (!ASC)
 	{
 		return true;
@@ -403,8 +403,14 @@ int32 UWxAbilityBase::QueryActiveCooldowns(const UAbilitySystemComponent& ASC, f
 	OutLongestRemaining = 0.f;
 	OutLongestDuration = 0.f;
 
+	const UWorld* World = ASC.GetWorld();
+	if (!World)
+	{
+		return 0;
+	}
+
 	const UGameplayAbility* AbilityCDO = GetClass()->GetDefaultObject<UGameplayAbility>();
-	const float WorldTime = ASC.GetWorld()->GetTimeSeconds();
+	const float WorldTime = World->GetTimeSeconds();
 
 	FGameplayEffectQuery Query;
 	Query.EffectDefinition = UWxEffect_Cooldown::StaticClass();
