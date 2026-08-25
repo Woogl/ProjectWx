@@ -62,12 +62,6 @@ EBTNodeResult::Type UWxBTTask_ActivateAbility::ExecuteTask(UBehaviorTreeComponen
 	}
 	bIsActivating = false;
 
-	// 발동 구간 안에서 끝났으면 그 결과가 결론이다(정리는 콜백이 이미 마쳤다).
-	if (ActivationResult != EBTNodeResult::InProgress)
-	{
-		return ActivationResult;
-	}
-
 	if (!ActivatedHandle.IsValid())
 	{
 		CleanUp();
@@ -75,15 +69,23 @@ EBTNodeResult::Type UWxBTTask_ActivateAbility::ExecuteTask(UBehaviorTreeComponen
 	}
 
 	// TryActivateAbility 는 활성화 도중 어빌리티 부여/제거로 ActivatableAbilities 배열을 재할당할 수 있어, 활성화 이전에 잡아둔 Spec 포인터는 무효가 될 수 있다.
-	// 종료 통지 없이 비활성이면(스펙 제거 등) 콜백이 오지 않아 BT 가 InProgress 로 영구 정지하므로 실패로 마감한다.
 	const FGameplayAbilitySpec* ActiveSpec = ASC->FindAbilitySpecFromHandle(ActivatedHandle);
-	if (!ActiveSpec || !ActiveSpec->IsActive())
+
+	// 발동 구간에 도착한 종료 통지가 방금 시작한 실행의 것이라는 보장은 없다.
+	// 엔진은 재발동(bRetriggerInstancedAbility)에서 같은 핸들로 기존 실행을 먼저 끝낸 뒤 재활성화하므로, 통지 대신 "지금 도는 실행이 있는가" 를 결론으로 삼는다.
+	if (ActiveSpec && ActiveSpec->IsActive())
 	{
-		CleanUp();
-		return EBTNodeResult::Failed;
+		return EBTNodeResult::InProgress;
 	}
 
-	return EBTNodeResult::InProgress;
+	// 비활성이면 발동 구간 안에서 끝난 것이므로 그때 받은 통지가 결론이다.
+	// 통지 없이 비활성이면(스펙 제거 등) 콜백이 오지 않아 BT 가 InProgress 로 영구 정지하므로 실패로 마감한다.
+	const EBTNodeResult::Type Result = ActivationResult != EBTNodeResult::InProgress
+		? ActivationResult
+		: EBTNodeResult::Failed;
+
+	CleanUp();
+	return Result;
 }
 
 FString UWxBTTask_ActivateAbility::GetStaticDescription() const
@@ -114,18 +116,19 @@ void UWxBTTask_ActivateAbility::HandleAbilityEnded(const FAbilityEndedData& Abil
 		return;
 	}
 
-	CleanUp();
-
 	const EBTNodeResult::Type Result = AbilityEndedData.bWasCancelled
 		? EBTNodeResult::Failed
 		: EBTNodeResult::Succeeded;
 
-	// 발동 구간 안이면 아직 InProgress 를 반환하기 전이라 FinishLatentTask 를 부를 수 없다. ExecuteTask 가 대신 반환한다.
+	// 발동 구간의 통지는 재발동으로 끝난 이전 실행의 것일 수 있어 그 자체로는 결론이 되지 못한다.
+	// 결과만 남기고 구독 해제와 판단은 ExecuteTask 에 맡긴다.
 	if (bIsActivating)
 	{
 		ActivationResult = Result;
 		return;
 	}
+
+	CleanUp();
 
 	UBehaviorTreeComponent* BTComp = CachedOwnerComp.Get();
 	if (!BTComp)
