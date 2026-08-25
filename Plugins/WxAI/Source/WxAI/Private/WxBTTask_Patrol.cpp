@@ -37,10 +37,11 @@ EBTNodeResult::Type UWxBTTask_Patrol::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	}
 
 	// Once 로 경로를 마쳤으면 마지막 지점에 그대로 정지한다.
-	// Failed 를 반환하면 하위 폴백 분기가 폰을 집/배회로 끌고 가므로, 이동 없이 Succeeded 로 정찰 분기를 점유해 그 자리에 머물게 한다.
+	// Failed 를 반환하면 하위 폴백 분기가 폰을 집/배회로 끌고 가고, 즉시 Succeeded 는 브랜치를 놓아 주어 상위가 되감기며 재탐색을 되풀이한다.
+	// 이동 없이 InProgress 로 정찰 분기를 점유한 채, 상위 우선순위 abort(타겟 확보·리시 이탈)만 기다린다.
 	if (bPatrolFinished)
 	{
-		return EBTNodeResult::Succeeded;
+		return EBTNodeResult::InProgress;
 	}
 
 	if (UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent())
@@ -101,7 +102,7 @@ void UWxBTTask_Patrol::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* 
 		}
 		else
 		{
-			// Once 로 경로 끝에 도달: 이후 ExecuteTask 가 마지막 지점에 정지(Succeeded)하도록 표시한다.
+			// Once 로 경로 끝에 도달: 이후 ExecuteTask 가 마지막 지점에 정지(브랜치 점유)하도록 표시한다.
 			bPatrolFinished = true;
 		}
 	}
