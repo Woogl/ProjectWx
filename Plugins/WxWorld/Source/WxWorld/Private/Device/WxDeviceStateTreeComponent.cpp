@@ -7,10 +7,18 @@
 #include "StateTreeExecutionContext.h"
 #include "WxWorldModule.h"
 
+namespace
+{
+	/** InitialState 의 예약어 — 에셋의 루트 기본 상태에서 시작한다는 뜻. 상태 Tag 는 계층 이름(Device.x.y)이라 이 한 단어와 겹치지 않는다. */
+	const FName RootInitialStateName = TEXT("Root");
+}
+
 UWxDeviceStateTreeComponent::UWxDeviceStateTreeComponent()
 {
 	// StateTag 복제와 재진입 멀티캐스트가 이 컴포넌트를 타므로 복제 서브오브젝트로 등록한다.
 	SetIsReplicatedByDefault(true);
+
+	InitialState = RootInitialStateName;
 }
 
 void UWxDeviceStateTreeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -64,6 +72,23 @@ void UWxDeviceStateTreeComponent::StopLogic(const FString& Reason)
 
 void UWxDeviceStateTreeComponent::BeginPlay()
 {
+	// 저장된 상태가 없으면 초기 상태를 권위 값으로 삼는다 — 이후는 세이브 복원과 같은 수렴 경로다.
+	// 월드 초기 로드 복원은 BeginPlay 전에 끝나므로 여기서 비어 있으면 저장이 없는 것이다.
+	// 스트리밍-인 복원은 이보다 늦게 와 StateTag 를 덮고 같은 추종으로 갈아탄다.
+	if (GetOwnerRole() == ROLE_Authority && !StateTag.IsValid() && InitialState != RootInitialStateName)
+	{
+		const FGameplayTag InitialTag = FGameplayTag::RequestGameplayTag(InitialState, false);
+		if (HasState(InitialTag))
+		{
+			StateTag = InitialTag;
+			bFollowRestoredState = true;
+		}
+		else
+		{
+			UE_LOG(LogWxWorld, Warning, TEXT("Device(%s): 초기 상태 %s 를 에셋에서 찾지 못했다 — 에셋을 바꿨거나 상태 Tag 가 지워졌다. 루트 기본 상태로 시작한다."), *GetNameSafe(GetOwner()), *InitialState.ToString());
+		}
+	}
+
 	Super::BeginPlay();
 
 	if (!bIsRunning)
@@ -242,3 +267,28 @@ bool UWxDeviceStateTreeComponent::HasState(FGameplayTag InStateTag) const
 
 	return Asset->GetStateHandleFromGameplayTag(InStateTag, UStateTree::EStateGameplayTagQueryMethod::MatchesExact).IsValid();
 }
+
+#if WITH_EDITOR
+TArray<FPropertyTextFName> UWxDeviceStateTreeComponent::GetInitialStateOptions() const
+{
+	TArray<FPropertyTextFName> Options;
+	Options.Add({ .ValueString = RootInitialStateName, .DisplayName = FText::FromName(RootInitialStateName) });
+
+	// 컴파일된 상태 목록을 읽으므로 에셋이 미지정이거나 컴파일 전이면 Root 만 남는다.
+	const UStateTree* Asset = StateTreeRef.GetStateTree();
+	if (!Asset)
+	{
+		return Options;
+	}
+
+	for (const FCompactStateTreeState& State : Asset->GetStates())
+	{
+		if (State.Tag.IsValid())
+		{
+			Options.Add({ .ValueString = State.Tag.GetTagName(), .DisplayName = FText::FromName(State.Name) });
+		}
+	}
+
+	return Options;
+}
+#endif
