@@ -71,7 +71,7 @@ protected:
 private:
 	/**
 	 * Overlap 이벤트와 Tick Sweep이 공통으로 호출한다.
-	 * 팀 판정은 대미지 ExecCalc가 하므로 아군에게도 GE는 적용된다.
+	 * 적대 대상에만 판정이 성립한다 — 아군·중립은 피격 기록에도 남지 않고 GE도 적용되지 않는다.
 	 */
 	void ProcessHit(AActor* OtherActor, const FHitResult& HitResult);
 

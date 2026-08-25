@@ -9,6 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "GenericTeamAgentInterface.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/AISenseConfig_Damage.h"
@@ -245,6 +246,12 @@ void UWxAIPerceptionComponent::HandlePawnHit(FGameplayTag MatchingTag, const FGa
 	APawn* Pawn = GetOwnerPawn();
 	AActor* DamageInstigator = Payload->ContextHandle.GetInstigator();
 	if (!Pawn || !DamageInstigator)
+	{
+		return;
+	}
+
+	// Sight·Hearing 과 달리 Damage 센스에는 DetectionByAffiliation 이 없어 엔진이 가해자를 가려 주지 않는다. 여기서 막지 않으면 아군 오사 한 번에 서로를 타겟으로 확정한다.
+	if (FGenericTeamId::GetAttitude(Pawn, DamageInstigator) != ETeamAttitude::Hostile)
 	{
 		return;
 	}

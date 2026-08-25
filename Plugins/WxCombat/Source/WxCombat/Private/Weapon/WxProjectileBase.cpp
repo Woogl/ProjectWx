@@ -7,6 +7,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Targeting/WxLockOnManagerComponent.h"
@@ -78,7 +79,21 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 		return;
 	}
 
-	PlayImpactFX();
+	// 판정이 성립하지 않는 대상은 충돌 자체를 없던 것으로 본다 — 이펙트도 파괴도 없이 그대로 날아간다.
+	if (!UWxCombatLibrary::IsHostile(GetInstigator(), OtherActor))
+	{
+		return;
+	}
+
+	UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator());
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
+
+	// 회피 무적으로 흘려낸 히트도 마찬가지로 없던 것으로 본다. 판정은 각 머신이 로컬로 내는데, 이펙트가 권위 검사 앞에서 재생되기 때문이다.
+	const bool bEvaded = UWxExecCalc_Damage::CheckDamage(SourceASC, TargetASC) == EWxDamageResult::Evaded;
+	if (!bEvaded)
+	{
+		PlayImpactFX();
+	}
 
 	if (!HasAuthority())
 	{
@@ -105,11 +120,13 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 		}
 	}
 
-	UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator());
-	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
+	// 회피여도 호출은 그대로다 — 회피 성공 판정이 여기서 나가고, 대미지와 상태이상은 그쪽이 알아서 거른다.
 	UWxCombatLibrary::ApplyDamage(SourceASC, TargetASC, DamageDataRow, HitResult);
 
-	Destroy();
+	if (!bEvaded)
+	{
+		Destroy();
+	}
 }
 
 void AWxProjectileBase::HandleHitCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)

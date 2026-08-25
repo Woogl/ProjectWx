@@ -2,8 +2,6 @@
 
 #include "AbilitySystem/Cue/WxCueNotify_Hit.h"
 
-#include "AbilitySystemBlueprintLibrary.h"
-#include "AbilitySystemComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraFunctionLibrary.h"
 #include "WxGameplayTags.h"
@@ -18,13 +16,6 @@ void UWxCueNotify_Hit::HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent::Ty
 	Super::HandleGameplayCue(MyTarget, EventType, Parameters);
 
 	if (EventType != EGameplayCueEvent::Executed || !MyTarget)
-	{
-		return;
-	}
-
-	// 대상이 남이면 무적 태그는 GE 복제로 도착하므로, 대상이 방금 무적에 들어간 순간에는 놓칠 수 있다.
-	const UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(MyTarget);
-	if (TargetASC && TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_Invincible))
 	{
 		return;
 	}

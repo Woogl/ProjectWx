@@ -262,6 +262,12 @@ void AWxWeaponBase::ProcessHit(AActor* OtherActor, const FHitResult& HitResult)
 		return;
 	}
 
+	// 대미지 ExecCalc의 팀 판정만으로는 대미지 행의 AdditionalEffects가 아군에게 그대로 걸리므로, 적용 앞에서 막는다.
+	if (!UWxCombatLibrary::IsHostile(WeaponOwner, OtherActor))
+	{
+		return;
+	}
+
 	HitActorsThisSwing.Add(OtherActor);
 	UAbilitySystemComponent* OwnerASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(WeaponOwner);
 	UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);

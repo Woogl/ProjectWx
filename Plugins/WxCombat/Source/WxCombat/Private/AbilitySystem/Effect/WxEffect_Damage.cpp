@@ -6,7 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "Damage/WxCombatEffectContext.h"
 #include "GameplayEffectComponents/TargetTagRequirementsGameplayEffectComponent.h"
-#include "GenericTeamAgentInterface.h"
+#include "WxCombatLibrary.h"
 #include "WxGameplayTags.h"
 
 UWxEffect_Damage::UWxEffect_Damage()
@@ -68,7 +68,6 @@ UWxExecCalc_Damage::UWxExecCalc_Damage()
 
 void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
-	UAbilitySystemComponent* SourceASC = ExecutionParams.GetSourceAbilitySystemComponent();
 	UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent();
 	if (!TargetASC)
 	{
@@ -89,12 +88,6 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	if (CombatContext)
 	{
 		CombatContext->SetCritical(false);
-	}
-
-	// 회피 성공 발행은 적용 전에 같은 판정을 돌리는 UWxCombatLibrary::ApplyDamage가 맡는다.
-	if (CheckDamage(SourceASC, TargetASC) != EWxDamageResult::Damaged)
-	{
-		return;
 	}
 
 	const bool bCanGuard = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanGuard);
@@ -168,17 +161,12 @@ EWxDamageResult UWxExecCalc_Damage::CheckDamage(const UAbilitySystemComponent* S
 		return EWxDamageResult::None;
 	}
 
-	// 적대 관계에만 피해가 성립한다 — 아군·중립은 대미지도 연출도 발생하지 않는다.
-	// 자기 자신은 자해 경로라 제외하고, 팀 개념이 없는 공격자는 판정 근거가 없어 통과시킨다.
+	// 자기 자신은 자해 경로라 팀 판정에서 제외한다.
 	const AActor* SourceAvatar = Source ? Source->GetAvatarActor() : nullptr;
 	const AActor* TargetAvatar = Target->GetAvatarActor();
-	if (SourceAvatar && TargetAvatar && SourceAvatar != TargetAvatar)
+	if (SourceAvatar != TargetAvatar && !UWxCombatLibrary::IsHostile(SourceAvatar, TargetAvatar))
 	{
-		const IGenericTeamAgentInterface* SourceTeamAgent = Cast<IGenericTeamAgentInterface>(SourceAvatar);
-		if (SourceTeamAgent && SourceTeamAgent->GetTeamAttitudeTowards(*TargetAvatar) != ETeamAttitude::Hostile)
-		{
-			return EWxDamageResult::None;
-		}
+		return EWxDamageResult::None;
 	}
 
 	if (Target->HasMatchingGameplayTag(WxGameplayTags::Effect_Invincible))

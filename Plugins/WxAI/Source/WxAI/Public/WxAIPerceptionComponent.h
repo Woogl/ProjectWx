@@ -31,6 +31,7 @@ struct FGameplayEventData;
  * 인식(State.InCombat)도 같은 수명을 따른다 — 추적 중이면 on, 복귀(억제)·타겟 소실 시 off 이며, 서버에서 폰 ASC 에 MinimalReplication 태그로 발행되어 네임플레이트 표시에 소비된다.
  *
  * 폰이 받은 피격(Event.Hit)은 이 컴포넌트가 폰 ASC 를 구독해 촉각(Damage 센스)으로 보고한다 — 빙의가 바뀌면 구독을 새 폰으로 옮긴다.
+ * 보고 대상은 적대 가해자로 한정한다. Sight·Hearing 은 엔진의 DetectionByAffiliation 이 피아를 가르지만 Damage 센스에는 그 설정이 없어, 이 컴포넌트가 보고 시점에 직접 가른다.
  *
  * 자기 폰의 사망은 다루지 않는다. 이 태그의 소비자(네임플레이트의 표시 정책, 뒤잡 자격 판정)가 저마다 사망을 먼저 걸러내므로 시체 위에 태그가 남아도 관측되지 않는다.
  */
@@ -76,7 +77,7 @@ private:
 	void HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn);
 
 	/**
-	 * 폰이 받은 대미지를 촉각(Damage 센스)으로 보고해 가해자를 즉시 TargetActor 로 인지하게 한다.
+	 * 폰이 받은 적대 대미지를 촉각(Damage 센스)으로 보고해 가해자를 즉시 TargetActor 로 인지하게 한다.
 	 * 자극은 피격 액터(폰)로 리스너를 역추적해 이 컴포넌트에 닿는다.
 	 */
 	void HandlePawnHit(FGameplayTag MatchingTag, const FGameplayEventData* Payload);

@@ -7,6 +7,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "WxCombatLibrary.generated.h"
 
+class AActor;
 class UAbilitySystemComponent;
 class UGameplayAbility;
 class UGameplayEffect;
@@ -20,7 +21,16 @@ class WXCOMBAT_API UWxCombatLibrary : public UBlueprintFunctionLibrary
 
 public:
 	/**
-	 * 무기 스윙·피니셔를 비롯한 대미지 경로가 공유하는 단일 진입점이다.
+	 * 판정이 성립하는 관계인지 가른다 — 적대에만 성립하며 아군·중립에는 대미지도 연출도 발생하지 않는다.
+	 * 무기·투사체가 히트를 채택할지 정하는 기준이자 대미지 ExecCalc의 선판정이다.
+	 * 판정 근거가 없으면(둘 중 하나가 널이거나 공격자에게 팀 개념이 없으면) 성립으로 본다.
+	 */
+	static bool IsHostile(const AActor* Source, const AActor* Target);
+
+	/**
+	 * 무기 스윙·피니셔를 비롯한 대미지 경로가 공유하는 단일 진입점이자, 적중 성립 판정을 소비하는 유일한 자리다.
+	 * 성립하지 않는 히트(아군·중립·시체·회피 무적)는 GE를 하나도 걸지 않으므로, 대미지 GE에 얹힌 히트 큐도 상태이상도 발생하지 않는다.
+	 * 회피만은 어트리뷰트에 흔적이 남지 않아 사후 판별이 불가능하므로, 여기서 회피 성공 이벤트를 대신 발행한다.
 	 *
 	 * 예측 키는 몽타주를 재생 중인 어빌리티의 활성화 키를 쓴다.
 	 * 애님 중인 어빌리티가 없으면(시뮬 프록시 등) 키가 무효라 권위 머신에서만 적용된다.
