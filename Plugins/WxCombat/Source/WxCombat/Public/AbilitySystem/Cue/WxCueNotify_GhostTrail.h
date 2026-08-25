@@ -39,9 +39,5 @@ protected:
 	TSubclassOf<AWxGhostTrail> GhostTrailClass;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
-	float LifeSpan = 1.f; 
-	
-private:
-	UPROPERTY(Transient)
-	TObjectPtr<AWxGhostTrail> SpawnedGhostTrail;
+	float LifeSpan = 1.f;
 };
