@@ -29,13 +29,13 @@ TArray<FGameplayEffectSpecHandle> FWxDamageTableRow::MakeSpecs(UAbilitySystemCom
 		{
 			AttackTags.AddTag(WxGameplayTags::Damage_CanCritical);
 		}
-		if (bUnblockable)
+		if (bCanGuard)
 		{
-			AttackTags.AddTag(WxGameplayTags::Damage_Unblockable);
+			AttackTags.AddTag(WxGameplayTags::Damage_CanGuard);
 		}
-		if (bParryHitReact)
+		if (bCanParry)
 		{
-			AttackTags.AddTag(WxGameplayTags::Damage_ParryHitReact);
+			AttackTags.AddTag(WxGameplayTags::Damage_CanParry);
 		}
 		if (!AttackTags.IsEmpty())
 		{

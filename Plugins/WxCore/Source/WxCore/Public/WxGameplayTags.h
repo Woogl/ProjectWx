@@ -134,10 +134,11 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_CanCritical);
 
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Unblockable);
+	/** 가드로 막을 수 있는 공격. 이 태그가 없으면 일반 가드도 퍼펙트 가드도 뚫는다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_CanGuard);
 
-	/** 패리 피격 유발 공격. 이 공격이 퍼펙트 가드로 막히면 공격자에게 Event.Hit.Parry 송출 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_ParryHitReact);
+	/** 패리가 성립하는 공격. 이 공격이 퍼펙트 가드로 막히면 공격자가 DP를 반사받고 Event.Hit.Parry로 역경직에 걸린다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_CanParry);
 	
 	// ── Ability ──────────────────────────────────────────────────────────────
 	

@@ -275,11 +275,11 @@ void UWxCombatAttributeSet::ProcessDamageTaken(const FGameplayEffectModCallbackD
 	AActor* TargetActor = GetOwningActor();
 	UAbilitySystemComponent* SourceASC = ContextHandle.GetInstigatorAbilitySystemComponent();
 
-	// 공격이 요청한 반응 종류는 스펙에 Event.Hit 자식 태그로 실려 온다 — 바로 아래 Damage.Unblockable을 읽는 것과 같은 자리다.
+	// 공격이 요청한 반응 종류는 스펙에 Event.Hit 자식 태그로 실려 온다 — 바로 아래 Damage.CanGuard를 읽는 것과 같은 자리다.
 	const FGameplayTag ReactionTag = Data.EffectSpec.GetDynamicAssetTags().Filter(FGameplayTagContainer(WxGameplayTags::Event_Hit)).First();
 
 	// Guard가 같은 피격 이벤트로 흡수 몽타주를 틀므로, 가드로 막히지 않는 히트는 이벤트보다 먼저 가드를 끊어야 한다.
-	if (ASC->HasMatchingGameplayTag(WxGameplayTags::Effect_Guard) && Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable))
+	if (ASC->HasMatchingGameplayTag(WxGameplayTags::Effect_Guard) && !Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanGuard))
 	{
 		const FGameplayTagContainer GuardAbilityTags(WxGameplayTags::Ability_Guard);
 		ASC->CancelAbilities(&GuardAbilityTags);
@@ -323,9 +323,12 @@ void UWxCombatAttributeSet::ProcessPerfectGuard(const FGameplayEffectModCallback
 	UAbilitySystemComponent* SourceASC = ContextHandle.GetInstigatorAbilitySystemComponent();
 	AActor* SourceActor = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
 
+	// 공격자에게 돌아가는 반동 두 갈래는 한 스위치를 따른다 — 패리가 성립하지 않는 공격은 DP도 역경직도 돌려주지 않는다.
+	const bool bCanParry = Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanParry);
+
 	// 대상의 DP 가산과 같은 이유로 이미 그로기인 공격자에겐 반사하지 않는다.
 	// DP를 MaxDP로 되돌리면 남은 드레인 시간으로는 0에 닿지 못해 그로기가 안전 타이머까지 늘어진다.
-	if (SourceASC && !SourceASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
+	if (bCanParry && SourceASC && !SourceASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
 	{
 		UWxEffect_AddDP::ApplyTo(SourceASC, ReflectAmount);
 	}
@@ -336,7 +339,7 @@ void UWxCombatAttributeSet::ProcessPerfectGuard(const FGameplayEffectModCallback
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_PerfectGuard, EventData);
 
 	// 공격자에게 패리 반동을 요청한다. 대미지는 없으므로 EventMagnitude는 0이다.
-	if (SourceActor && Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_ParryHitReact))
+	if (bCanParry && SourceActor)
 	{
 		FGameplayEventData ParryEventData;
 		ParryEventData.EventTag = WxGameplayTags::Event_Hit_Parry;

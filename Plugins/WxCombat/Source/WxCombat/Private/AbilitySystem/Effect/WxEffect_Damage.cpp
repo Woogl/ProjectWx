@@ -97,13 +97,13 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		return;
 	}
 
-	const bool bIsUnblockable = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable);
+	const bool bCanGuard = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanGuard);
 	const bool bCanCritical = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanCritical);
 	const bool bHasPerfectGuard = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_PerfectGuard);
 	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_Guard);
 	const bool bIsGroggy = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy);
 
-	const bool bPerfectGuardApplied = bHasPerfectGuard && !bIsUnblockable;
+	const bool bPerfectGuardApplied = bHasPerfectGuard && bCanGuard;
 
 	FAggregatorEvaluateParameters EvalParams;
 	EvalParams.SourceTags = OwningSpec.CapturedSourceTags.GetAggregatedTags();
@@ -121,7 +121,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		return;
 	}
 
-	const bool bGuardHit = bIsGuarding && !bIsUnblockable;
+	const bool bGuardHit = bIsGuarding && bCanGuard;
 
 	if (bGuardHit)
 	{

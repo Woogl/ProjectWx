@@ -69,8 +69,8 @@ namespace WxGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(Damage_Critical, "Damage.Critical");
 	UE_DEFINE_GAMEPLAY_TAG(Damage_CanCritical, "Damage.CanCritical");
-	UE_DEFINE_GAMEPLAY_TAG(Damage_Unblockable, "Damage.Unblockable");
-	UE_DEFINE_GAMEPLAY_TAG(Damage_ParryHitReact, "Damage.ParryHitReact");
+	UE_DEFINE_GAMEPLAY_TAG(Damage_CanGuard, "Damage.CanGuard");
+	UE_DEFINE_GAMEPLAY_TAG(Damage_CanParry, "Damage.CanParry");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability, "Ability");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack, "Ability.Attack");

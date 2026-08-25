@@ -191,6 +191,11 @@ private:
 	 */
 	void ProcessDamageTaken(const FGameplayEffectModCallbackData& Data, float Damage);
 
-	/** 퍼펙트 가드로 막아낸 히트의 후속 — 공격자에게 반사 DP, 가드자에 퍼펙트 가드 이벤트, 공격자에 패리 반동 피격 이벤트, 큐 */
+	/**
+	 * 퍼펙트 가드로 막아낸 히트의 후속 — 공격자에게 반사 DP, 가드자에 퍼펙트 가드 이벤트, 공격자에 패리 반동 피격 이벤트, 큐.
+	 *
+	 * 공격자에게 돌아가는 두 갈래(반사 DP·패리 반동)는 공격이 Damage.CanParry를 달았을 때만 나간다.
+	 * 가드자가 보는 이벤트와 큐는 반사량이 0이어도 나간다 — 막아낸 사실 자체는 늘 알려야 한다.
+	 */
 	void ProcessPerfectGuard(const FGameplayEffectModCallbackData& Data, float ReflectAmount);
 };

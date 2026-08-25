@@ -30,7 +30,7 @@ struct FWxDamageResult
  *  - 무적          : 대미지 무효
  *  - 퍼펙트 가드   : 반사량을 IncomingReflect로 내보내고 종료, 크리 없음
  *  - 일반 가드     : 감소율 적용 후 HP·DP·SP 차감
- *  - Unblockable 가드 : 가드를 무시하고 HP·DP 차감(퍼펙트 가드도 뚫는다)
+ *  - 가드 불가     : 가드를 무시하고 HP·DP 차감(퍼펙트 가드도 뚫는다)
  *  - 비가드        : HP·DP 차감
  *
  * 계산해서 출력 모디파이어와 FWxCombatEffectContext에 싣는 것이 전부다 — 어트리뷰트 직접 기록도, GE 적용도, 어빌리티 취소도 하지 않는다.
