@@ -14,6 +14,8 @@ class UAISenseConfig_Sight;
 class UAISenseConfig_Hearing;
 class UAISenseConfig_Damage;
 class UBlackboardComponent;
+class UAbilitySystemComponent;
+struct FGameplayEventData;
 
 /**
  * AIController 에 부착해 사용하는 Perception 컴포넌트.
@@ -28,6 +30,8 @@ class UBlackboardComponent;
  * 다만 타겟이 죽거나 파괴되면 즉시 비운다. 시체는 파괴되지 않고 시야에 남고 파괴는 감지 이벤트를 남기지 않으므로, 자극이 아니라 타겟의 사망 태그·EndPlay 를 구독해 그 시점을 잡는다.
  * 인식(State.InCombat)도 같은 수명을 따른다 — 추적 중이면 on, 복귀(억제)·타겟 소실 시 off 이며, 서버에서 폰 ASC 에 MinimalReplication 태그로 발행되어 네임플레이트 표시에 소비된다.
  *
+ * 폰이 받은 피격(Event.Hit)은 이 컴포넌트가 폰 ASC 를 구독해 촉각(Damage 센스)으로 보고한다 — 빙의가 바뀌면 구독을 새 폰으로 옮긴다.
+ *
  * 자기 폰의 사망은 다루지 않는다. 이 태그의 소비자(네임플레이트의 표시 정책, 뒤잡 자격 판정)가 저마다 사망을 먼저 걸러내므로 시체 위에 태그가 남아도 관측되지 않는다.
  */
 UCLASS(ClassGroup=(AI), meta=(BlueprintSpawnableComponent))
@@ -39,6 +43,9 @@ public:
 	UWxAIPerceptionComponent();
 
 	virtual void PostInitProperties() override;
+
+	/** 빙의 변경을 구독하고, 배치된 폰처럼 BeginPlay 전에 이미 빙의된 폰은 그 자리에서 바인드한다. */
+	virtual void BeginPlay() override;
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
@@ -63,6 +70,20 @@ private:
 	/** 현재 타겟의 사망 태그와 EndPlay 에 정리 콜백을 바인드/언바인드하고, 적용 기록(AppliedTarget)을 함께 옮긴다. 타겟이 바뀔 때마다 SetTargetActor 가 교체한다. */
 	void BindTargetLoss(AActor* NewTarget);
 	void UnbindTargetLoss();
+
+	/** 빙의가 바뀌면 피격 구독을 새 폰의 ASC 로 옮긴다. */
+	UFUNCTION()
+	void HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn);
+
+	/**
+	 * 폰이 받은 대미지를 촉각(Damage 센스)으로 보고해 가해자를 즉시 TargetActor 로 인지하게 한다.
+	 * 자극은 피격 액터(폰)로 리스너를 역추적해 이 컴포넌트에 닿는다.
+	 */
+	void HandlePawnHit(const FGameplayEventData* Payload);
+
+	/** 폰 ASC 의 Event.Hit 구독을 걸고 푼다. */
+	void BindPawnHit(APawn* Pawn);
+	void UnbindPawnHit();
 
 	/**
 	 * 인식/추적 상태를 판정하는 단일 지점.
@@ -93,6 +114,9 @@ private:
 	// 블랙보드 Object 키와 약참조는 대상이 파괴되면 비교에서 nullptr 과 같아져 "이미 해제됨" 으로 오판하므로, 유효성과 무관하게 식별자만 비교하는 오브젝트 키로 든다.
 	TObjectKey<AActor> AppliedTarget;
 	FDelegateHandle TargetDeathTagDelegateHandle;
+
+	TWeakObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+	FDelegateHandle PawnHitDelegateHandle;
 
 	UPROPERTY()
 	TObjectPtr<UAISenseConfig_Sight> SightConfig;

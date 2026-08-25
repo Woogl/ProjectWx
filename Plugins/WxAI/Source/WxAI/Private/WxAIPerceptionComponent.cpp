@@ -12,6 +12,7 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/AISenseConfig_Damage.h"
+#include "Perception/AISense_Damage.h"
 
 UWxAIPerceptionComponent::UWxAIPerceptionComponent()
 {
@@ -58,10 +59,28 @@ void UWxAIPerceptionComponent::PostInitProperties()
 	}
 }
 
+void UWxAIPerceptionComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// 배치된 폰은 컨트롤러 BeginPlay 전에 빙의되므로 델리게이트만으로는 첫 폰을 놓친다. 그 사이엔 게임플레이가 돌지 않아 여기서 따라잡으면 된다.
+	if (AController* Controller = Cast<AController>(GetOwner()))
+	{
+		Controller->OnPossessedPawnChanged.AddDynamic(this, &UWxAIPerceptionComponent::HandlePossessedPawnChanged);
+		BindPawnHit(Controller->GetPawn());
+	}
+}
+
 void UWxAIPerceptionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	// 타겟이 살아 있는 채로 컨트롤러째 사라지는 종료 경로에서도 구독을 안전하게 해제한다.
 	UnbindTargetLoss();
+	UnbindPawnHit();
+
+	if (AController* Controller = Cast<AController>(GetOwner()))
+	{
+		Controller->OnPossessedPawnChanged.RemoveDynamic(this, &UWxAIPerceptionComponent::HandlePossessedPawnChanged);
+	}
 
 	Super::EndPlay(EndPlayReason);
 }
@@ -208,6 +227,59 @@ void UWxAIPerceptionComponent::UnbindTargetLoss()
 	}
 	AppliedTarget = nullptr;
 	TargetDeathTagDelegateHandle.Reset();
+}
+
+void UWxAIPerceptionComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
+{
+	BindPawnHit(NewPawn);
+}
+
+void UWxAIPerceptionComponent::HandlePawnHit(const FGameplayEventData* Payload)
+{
+	// 패리 반동·처형 짝 피격은 대미지 없이 같은 이벤트를 쓰므로 자극에서 뺀다.
+	if (!Payload || Payload->EventMagnitude <= 0.f)
+	{
+		return;
+	}
+
+	APawn* Pawn = GetOwnerPawn();
+	AActor* DamageInstigator = Payload->ContextHandle.GetInstigator();
+	if (!Pawn || !DamageInstigator)
+	{
+		return;
+	}
+
+	// 가해자 위치가 자극 위치이고, 타격점이 있으면 그 지점을 함께 넘긴다.
+	const FHitResult* HitResult = Payload->ContextHandle.GetHitResult();
+	const FVector HitLocation = HitResult ? FVector(HitResult->ImpactPoint) : Pawn->GetActorLocation();
+	UAISense_Damage::ReportDamageEvent(this, Pawn, DamageInstigator, Payload->EventMagnitude, DamageInstigator->GetActorLocation(), HitLocation);
+}
+
+void UWxAIPerceptionComponent::BindPawnHit(APawn* Pawn)
+{
+	UnbindPawnHit();
+
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
+	if (!ASC)
+	{
+		return;
+	}
+
+	AbilitySystemComponent = ASC;
+	PawnHitDelegateHandle = ASC->GenericGameplayEventCallbacks.FindOrAdd(WxGameplayTags::Event_Hit).AddUObject(this, &UWxAIPerceptionComponent::HandlePawnHit);
+}
+
+void UWxAIPerceptionComponent::UnbindPawnHit()
+{
+	if (UAbilitySystemComponent* ASC = AbilitySystemComponent.Get())
+	{
+		if (FGameplayEventMulticastDelegate* Delegate = ASC->GenericGameplayEventCallbacks.Find(WxGameplayTags::Event_Hit))
+		{
+			Delegate->Remove(PawnHitDelegateHandle);
+		}
+	}
+	AbilitySystemComponent = nullptr;
+	PawnHitDelegateHandle.Reset();
 }
 
 void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)

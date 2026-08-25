@@ -41,16 +41,6 @@ public:
 	virtual void BeginPlay() override;
 
 protected:
-	/** 피격을 촉각으로 보고하기 위해 대미지 어트리뷰트를 구독한다. */
-	virtual void InitAbilitySystem() override;
-
-	/**
-	 * 받은 대미지를 AI Perception(촉각)에 보고해 가해자를 즉시 TargetActor 로 인지하게 한다.
-	 *
-	 * 이 자극은 피격 액터로 리스너를 역추적해 그 컨트롤러의 퍼셉션 컴포넌트에게만 가므로, 보고 주체는 피격자 자신이다.
-	 */
-	void HandleIncomingDamageChanged(const FOnAttributeChangeData& Data);
-
 	/**
 	 * 로컬 플레이어 폰이 후방 원뿔 안에 있는가.
 	 *

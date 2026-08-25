@@ -5,12 +5,9 @@
 #include "Component/WxNameplateComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "WxRewardLibrary.h"
-#include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
-#include "GameplayEffectExtension.h"
 #include "Kismet/GameplayStatics.h"
-#include "Perception/AISense_Damage.h"
 #include "Spawnable/WxSpawner.h"
 #include "Targeting/WxLockOnPointComponent.h"
 #include "WxGameplayTags.h"
@@ -41,34 +38,6 @@ void AWxEnemyCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	NameplateComponent->InitializeViewModels(AbilitySystemComponent, CharacterName, Portrait);
-}
-
-void AWxEnemyCharacter::InitAbilitySystem()
-{
-	Super::InitAbilitySystem();
-
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetIncomingDamageAttribute())
-		.AddUObject(this, &AWxEnemyCharacter::HandleIncomingDamageChanged);
-}
-
-void AWxEnemyCharacter::HandleIncomingDamageChanged(const FOnAttributeChangeData& Data)
-{
-	// IncomingDamage 메타 어트리뷰트로 피해를 받을 때만 적용
-	if (Data.NewValue <= 0.f || !Data.GEModData)
-	{
-		return;
-	}
-
-	const FGameplayEffectContextHandle Context = Data.GEModData->EffectSpec.GetContext();
-	AActor* DamageInstigator = Context.GetInstigator();
-	if (!DamageInstigator)
-	{
-		return;
-	}
-
-	// 가해자 위치가 Stimulus 위치
-	const FVector HitLocation = Context.GetHitResult() ? FVector(Context.GetHitResult()->ImpactPoint) : GetActorLocation();
-	UAISense_Damage::ReportDamageEvent(this, this, DamageInstigator, Data.NewValue, DamageInstigator->GetActorLocation(), HitLocation);
 }
 
 bool AWxEnemyCharacter::IsLocalPlayerInRearCone() const
