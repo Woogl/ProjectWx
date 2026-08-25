@@ -297,6 +297,18 @@ void UWxCombatAttributeSet::ProcessDamageTaken(const FGameplayEffectModCallbackD
 	HitEventData.ContextHandle = ContextHandle;
 	ASC->HandleGameplayEvent(HitEventTag, &HitEventData);
 
+	// 같은 히트의 공격자 몫. 적중 보상 패시브가 이걸 듣고, 몇 번까지 줄지는 그쪽이 정한다.
+	if (SourceASC)
+	{
+		FGameplayEventData DamageDealtEventData;
+		DamageDealtEventData.EventTag = WxGameplayTags::Event_DamageDealt;
+		DamageDealtEventData.Instigator = SourceASC->GetOwnerActor();
+		DamageDealtEventData.Target = TargetActor;
+		DamageDealtEventData.EventMagnitude = Damage;
+		DamageDealtEventData.ContextHandle = ContextHandle;
+		SourceASC->HandleGameplayEvent(WxGameplayTags::Event_DamageDealt, &DamageDealtEventData);
+	}
+
 	// 플로터는 큐 노티파이가 대상 액터 위치에서 직접 띄우므로 Location을 채우지 않는다.
 	FGameplayCueParameters CueParams;
 	CueParams.EffectContext = ContextHandle;

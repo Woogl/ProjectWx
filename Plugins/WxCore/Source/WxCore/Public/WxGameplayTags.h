@@ -65,6 +65,12 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Finisher);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Backstab);
 
+	/**
+	 * 적중 이벤트의 공격자 몫. 대미지 파이프라인이 서버에서 공격자 ASC에 히트마다 한 번 보낸다.
+	 * EventMagnitude는 최종 대미지이고, ContextHandle에 그 히트를 낸 어빌리티가 실려 있다.
+	 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_DamageDealt);
+
 	/** 무적 구간에서 대미지를 회피했을 때 발송 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_DodgeSuccess);
 
@@ -169,7 +175,10 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_UseItem);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Finisher);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_LockOn);
-	
+
+	/** 조립형 패시브(UWxAbility_Passive) 전원이 공유한다. 개별 패시브를 지목할 일이 생기면 그때 자식을 판다. */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Passive);
+
 	/** 플레이어 캐릭터, 적 공용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_HitReact);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Groggy);
@@ -191,12 +200,6 @@ namespace WxGameplayTags
 
 	/** 지속시간 Duration SetByCaller 키. NoCooldown/InfiniteMP/DrainDP 등 Duration 모디파이어에서 공용으로 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Duration);
-
-	/** UP 회복량 SetByCaller 키. WxEffect_RecoverResource의 UP 모디파이어에서 사용 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Recovery_UP);
-
-	/** MP 회복량 SetByCaller 키. WxEffect_RecoverResource의 MP 모디파이어에서 사용 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Recovery_MP);
 
 	/** DP 가산량 SetByCaller 키. WxEffect_AddDP의 DP 모디파이어에서 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_DP);
