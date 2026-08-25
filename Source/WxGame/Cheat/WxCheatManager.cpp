@@ -54,7 +54,7 @@ void UWxCheatManager::WxDamagePlayer(float Amount)
 		Spec->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_RawDamage, Amount);
 
 		// 반응 종류가 없으면 비가드 상태에서 HitReact가 뜨지 않아 HP 만 깎인다.
-		Spec->AddDynamicAssetTag(WxGameplayTags::HitReact_Normal);
+		Spec->AddDynamicAssetTag(WxGameplayTags::Event_Hit_Normal);
 
 		AbilitySystem->ApplyGameplayEffectSpecToSelf(*Spec);
 	}

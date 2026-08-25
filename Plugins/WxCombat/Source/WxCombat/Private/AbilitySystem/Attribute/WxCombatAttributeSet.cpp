@@ -275,8 +275,8 @@ void UWxCombatAttributeSet::ProcessDamageTaken(const FGameplayEffectModCallbackD
 	AActor* TargetActor = GetOwningActor();
 	UAbilitySystemComponent* SourceASC = ContextHandle.GetInstigatorAbilitySystemComponent();
 
-	// 공격이 요청한 반응 종류는 스펙에 실려 온다 — 바로 아래 Damage.Unblockable을 읽는 것과 같은 자리다.
-	const FGameplayTag ReactionTag = Data.EffectSpec.GetDynamicAssetTags().Filter(FGameplayTagContainer(WxGameplayTags::HitReact)).First();
+	// 공격이 요청한 반응 종류는 스펙에 Event.Hit 자식 태그로 실려 온다 — 바로 아래 Damage.Unblockable을 읽는 것과 같은 자리다.
+	const FGameplayTag ReactionTag = Data.EffectSpec.GetDynamicAssetTags().Filter(FGameplayTagContainer(WxGameplayTags::Event_Hit)).First();
 
 	// Guard가 같은 피격 이벤트로 흡수 몽타주를 틀므로, 가드로 막히지 않는 히트는 이벤트보다 먼저 가드를 끊어야 한다.
 	if (ASC->HasMatchingGameplayTag(WxGameplayTags::Effect_Guard) && Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable))
@@ -287,17 +287,15 @@ void UWxCombatAttributeSet::ProcessDamageTaken(const FGameplayEffectModCallbackD
 
 	// 죽는 히트는 Ability.Death가 이미 붙어 있어 히트리액트가 그 태그로 차단된다.
 	// 히트리액트를 재생했다 사망으로 끊는 대신 곧장 사망으로 가는 쪽을 택했다.
+	// 반응이 있으면 그 자식이 이벤트 태그다. 평타는 부모 그대로라, 자식만 트리거로 등록한 HitReact엔 닿지 않는다.
+	const FGameplayTag HitEventTag = ReactionTag.IsValid() ? ReactionTag : WxGameplayTags::Event_Hit;
 	FGameplayEventData HitEventData;
-	HitEventData.EventTag = WxGameplayTags::Event_Hit;
+	HitEventData.EventTag = HitEventTag;
 	HitEventData.Instigator = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
 	HitEventData.Target = TargetActor;
 	HitEventData.EventMagnitude = Damage;
 	HitEventData.ContextHandle = ContextHandle;
-	if (ReactionTag.IsValid())
-	{
-		HitEventData.TargetTags.AddTag(ReactionTag);
-	}
-	ASC->HandleGameplayEvent(WxGameplayTags::Event_Hit, &HitEventData);
+	ASC->HandleGameplayEvent(HitEventTag, &HitEventData);
 
 	// 플로터는 큐 노티파이가 대상 액터 위치에서 직접 띄우므로 Location을 채우지 않는다.
 	FGameplayCueParameters CueParams;
@@ -341,11 +339,10 @@ void UWxCombatAttributeSet::ProcessPerfectGuard(const FGameplayEffectModCallback
 	if (SourceActor && Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_ParryHitReact))
 	{
 		FGameplayEventData ParryEventData;
-		ParryEventData.EventTag = WxGameplayTags::Event_Hit;
+		ParryEventData.EventTag = WxGameplayTags::Event_Hit_Parry;
 		ParryEventData.Instigator = TargetActor;
 		ParryEventData.Target = SourceActor;
-		ParryEventData.TargetTags.AddTag(WxGameplayTags::HitReact_Parry);
-		SourceASC->HandleGameplayEvent(WxGameplayTags::Event_Hit, &ParryEventData);
+		SourceASC->HandleGameplayEvent(WxGameplayTags::Event_Hit_Parry, &ParryEventData);
 	}
 
 	// 컨텍스트만 넘기면 UWxAbilitySystemGlobals가 ImpactPoint를 Location으로 채운다 — 이 큐는 그 자리에서 나이아가라와 사운드를 낸다.

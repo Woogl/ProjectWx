@@ -79,9 +79,9 @@ private:
 	 * 폰이 받은 대미지를 촉각(Damage 센스)으로 보고해 가해자를 즉시 TargetActor 로 인지하게 한다.
 	 * 자극은 피격 액터(폰)로 리스너를 역추적해 이 컴포넌트에 닿는다.
 	 */
-	void HandlePawnHit(const FGameplayEventData* Payload);
+	void HandlePawnHit(FGameplayTag MatchingTag, const FGameplayEventData* Payload);
 
-	/** 폰 ASC 의 Event.Hit 구독을 걸고 푼다. */
+	/** 폰 ASC 의 Event.Hit(자식 포함) 구독을 걸고 푼다. */
 	void BindPawnHit(APawn* Pawn);
 	void UnbindPawnHit();
 

@@ -234,7 +234,7 @@ void UWxAIPerceptionComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn*
 	BindPawnHit(NewPawn);
 }
 
-void UWxAIPerceptionComponent::HandlePawnHit(const FGameplayEventData* Payload)
+void UWxAIPerceptionComponent::HandlePawnHit(FGameplayTag MatchingTag, const FGameplayEventData* Payload)
 {
 	// 패리 반동·처형 짝 피격은 대미지 없이 같은 이벤트를 쓰므로 자극에서 뺀다.
 	if (!Payload || Payload->EventMagnitude <= 0.f)
@@ -265,18 +265,17 @@ void UWxAIPerceptionComponent::BindPawnHit(APawn* Pawn)
 		return;
 	}
 
+	// 반응 히트는 Event.Hit 자식으로 나가므로 정확 매칭 구독은 놓친다. 컨테이너 델리게이트로 부모 매칭한다.
 	AbilitySystemComponent = ASC;
-	PawnHitDelegateHandle = ASC->GenericGameplayEventCallbacks.FindOrAdd(WxGameplayTags::Event_Hit).AddUObject(this, &UWxAIPerceptionComponent::HandlePawnHit);
+	PawnHitDelegateHandle = ASC->AddGameplayEventTagContainerDelegate(FGameplayTagContainer(WxGameplayTags::Event_Hit),
+		FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &UWxAIPerceptionComponent::HandlePawnHit));
 }
 
 void UWxAIPerceptionComponent::UnbindPawnHit()
 {
 	if (UAbilitySystemComponent* ASC = AbilitySystemComponent.Get())
 	{
-		if (FGameplayEventMulticastDelegate* Delegate = ASC->GenericGameplayEventCallbacks.Find(WxGameplayTags::Event_Hit))
-		{
-			Delegate->Remove(PawnHitDelegateHandle);
-		}
+		ASC->RemoveGameplayEventTagContainerDelegate(FGameplayTagContainer(WxGameplayTags::Event_Hit), PawnHitDelegateHandle);
 	}
 	AbilitySystemComponent = nullptr;
 	PawnHitDelegateHandle.Reset();

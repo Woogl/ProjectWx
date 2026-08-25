@@ -19,6 +19,13 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Movement_Sprint, "Movement.Sprint");
 
 	UE_DEFINE_GAMEPLAY_TAG(Event_Hit, "Event.Hit");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_Normal, "Event.Hit.Normal");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_KnockBack, "Event.Hit.KnockBack");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_KnockDown, "Event.Hit.KnockDown");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_KnockUp, "Event.Hit.KnockUp");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_Parry, "Event.Hit.Parry");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_Finisher, "Event.Hit.Finisher");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_Backstab, "Event.Hit.Backstab");
 	UE_DEFINE_GAMEPLAY_TAG(Event_DodgeSuccess, "Event.DodgeSuccess");
 	UE_DEFINE_GAMEPLAY_TAG(Event_PerfectGuard, "Event.PerfectGuard");
 	UE_DEFINE_GAMEPLAY_TAG(Event_UseItem, "Event.UseItem");
@@ -64,15 +71,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Damage_CanCritical, "Damage.CanCritical");
 	UE_DEFINE_GAMEPLAY_TAG(Damage_Unblockable, "Damage.Unblockable");
 	UE_DEFINE_GAMEPLAY_TAG(Damage_ParryHitReact, "Damage.ParryHitReact");
-
-	UE_DEFINE_GAMEPLAY_TAG(HitReact, "HitReact");
-	UE_DEFINE_GAMEPLAY_TAG(HitReact_Normal, "HitReact.Normal");
-	UE_DEFINE_GAMEPLAY_TAG(HitReact_KnockBack, "HitReact.KnockBack");
-	UE_DEFINE_GAMEPLAY_TAG(HitReact_KnockDown, "HitReact.KnockDown");
-	UE_DEFINE_GAMEPLAY_TAG(HitReact_KnockUp, "HitReact.KnockUp");
-	UE_DEFINE_GAMEPLAY_TAG(HitReact_Parry, "HitReact.Parry");
-	UE_DEFINE_GAMEPLAY_TAG(HitReact_Finisher, "HitReact.Finisher");
-	UE_DEFINE_GAMEPLAY_TAG(HitReact_Backstab, "HitReact.Backstab");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability, "Ability");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack, "Ability.Attack");

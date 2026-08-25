@@ -32,21 +32,28 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 
 	bRetriggerInstancedAbility = true;
 
-	// 반응 종류는 트리거 태그가 아니라 페이로드에 실려 오므로 트리거는 피격 이벤트 하나다.
-	FAbilityTriggerData TriggerData;
-	TriggerData.TriggerTag = WxGameplayTags::Event_Hit;
-	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
-	AbilityTriggers.Add(TriggerData);
+	// 반응 종류(자식)만 트리거로 등록한다. 부모 Event.Hit은 반응 없는 평타라 여기 닿지 않아야 하고, 부모까지 등록하면 조상마다 한 번씩 발화해 같은 피격에 몽타주가 재시작한다.
+	const FGameplayTag ReactionTags[] = {
+		WxGameplayTags::Event_Hit_Normal,
+		WxGameplayTags::Event_Hit_KnockBack,
+		WxGameplayTags::Event_Hit_KnockDown,
+		WxGameplayTags::Event_Hit_KnockUp,
+		WxGameplayTags::Event_Hit_Parry,
+		WxGameplayTags::Event_Hit_Finisher,
+		WxGameplayTags::Event_Hit_Backstab,
+	};
+	for (const FGameplayTag& ReactionTag : ReactionTags)
+	{
+		FAbilityTriggerData TriggerData;
+		TriggerData.TriggerTag = ReactionTag;
+		TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
+		AbilityTriggers.Add(TriggerData);
+	}
 }
 
 float UWxAbility_HitReact::GetMontagePlayRate() const
 {
 	return 1.f;
-}
-
-bool UWxAbility_HitReact::ShouldAbilityRespondToEvent(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayEventData* Payload) const
-{
-	return Super::ShouldAbilityRespondToEvent(ActorInfo, Payload) && Payload->TargetTags.HasTag(WxGameplayTags::HitReact);
 }
 
 void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -62,7 +69,7 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 
-	FGameplayTag ReactionTag = TriggerEventData ? TriggerEventData->TargetTags.Filter(FGameplayTagContainer(WxGameplayTags::HitReact)).First() : WxGameplayTags::HitReact_Normal;
+	FGameplayTag ReactionTag = TriggerEventData ? TriggerEventData->EventTag : WxGameplayTags::Event_Hit_Normal;
 	const AActor* Instigator = TriggerEventData ? TriggerEventData->Instigator.Get() : nullptr;
 	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
 
@@ -71,17 +78,17 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
 	{
 		FGameplayTagContainer KnockTags;
-		KnockTags.AddTagFast(WxGameplayTags::HitReact_KnockBack);
-		KnockTags.AddTagFast(WxGameplayTags::HitReact_KnockDown);
-		KnockTags.AddTagFast(WxGameplayTags::HitReact_KnockUp);
+		KnockTags.AddTagFast(WxGameplayTags::Event_Hit_KnockBack);
+		KnockTags.AddTagFast(WxGameplayTags::Event_Hit_KnockDown);
+		KnockTags.AddTagFast(WxGameplayTags::Event_Hit_KnockUp);
 		if (ReactionTag.MatchesAny(KnockTags))
 		{
-			ReactionTag = WxGameplayTags::HitReact_Normal;
+			ReactionTag = WxGameplayTags::Event_Hit_Normal;
 		}
 	}
 
 	// 몽타주 선택과 달리 부수 효과는 여러 종류가 한 갈래를 공유하므로 따로 가른다.
-	if (ReactionTag == WxGameplayTags::HitReact_KnockUp)
+	if (ReactionTag == WxGameplayTags::Event_Hit_KnockUp)
 	{
 		ACharacter* Character = Cast<ACharacter>(AvatarActor);
 		if (const UCharacterMovementComponent* Movement = Character ? Character->GetCharacterMovement() : nullptr)
@@ -90,11 +97,11 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 			Character->LaunchCharacter(LaunchVelocity, false, true);
 		}
 	}
-	else if (ReactionTag == WxGameplayTags::HitReact_KnockBack
-		|| ReactionTag == WxGameplayTags::HitReact_KnockDown
-		|| ReactionTag == WxGameplayTags::HitReact_Parry
-		|| ReactionTag == WxGameplayTags::HitReact_Finisher
-		|| ReactionTag == WxGameplayTags::HitReact_Backstab)
+	else if (ReactionTag == WxGameplayTags::Event_Hit_KnockBack
+		|| ReactionTag == WxGameplayTags::Event_Hit_KnockDown
+		|| ReactionTag == WxGameplayTags::Event_Hit_Parry
+		|| ReactionTag == WxGameplayTags::Event_Hit_Finisher
+		|| ReactionTag == WxGameplayTags::Event_Hit_Backstab)
 	{
 		FaceInstigator(AvatarActor, Instigator);
 	}
@@ -109,27 +116,27 @@ UAnimMontage* UWxAbility_HitReact::SelectMontage(FGameplayTag ReactionTag) const
 {
 	UAnimMontage* Montage = nullptr;
 
-	if (ReactionTag == WxGameplayTags::HitReact_KnockBack)
+	if (ReactionTag == WxGameplayTags::Event_Hit_KnockBack)
 	{
 		Montage = KnockbackMontage;
 	}
-	else if (ReactionTag == WxGameplayTags::HitReact_KnockDown)
+	else if (ReactionTag == WxGameplayTags::Event_Hit_KnockDown)
 	{
 		Montage = KnockdownMontage;
 	}
-	else if (ReactionTag == WxGameplayTags::HitReact_KnockUp)
+	else if (ReactionTag == WxGameplayTags::Event_Hit_KnockUp)
 	{
 		Montage = KnockupMontage;
 	}
-	else if (ReactionTag == WxGameplayTags::HitReact_Parry)
+	else if (ReactionTag == WxGameplayTags::Event_Hit_Parry)
 	{
 		Montage = ParryReactMontage;
 	}
-	else if (ReactionTag == WxGameplayTags::HitReact_Finisher)
+	else if (ReactionTag == WxGameplayTags::Event_Hit_Finisher)
 	{
 		Montage = FinisherHitReactMontage;
 	}
-	else if (ReactionTag == WxGameplayTags::HitReact_Backstab)
+	else if (ReactionTag == WxGameplayTags::Event_Hit_Backstab)
 	{
 		Montage = BackstabHitReactMontage;
 	}

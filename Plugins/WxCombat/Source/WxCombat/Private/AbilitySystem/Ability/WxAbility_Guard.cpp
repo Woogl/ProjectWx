@@ -85,7 +85,8 @@ void UWxAbility_Guard::HandleMontageCompleted()
 void UWxAbility_Guard::ListenForGuardHit()
 {
 	// HitReact 어빌리티는 ActivationBlockedTags=Effect.Guard라 가드 중엔 뜨지 않으므로, 같은 피격 이벤트를 여기서 받아도 라우팅 충돌이 없다.
-	UAbilityTask_WaitGameplayEvent* HitTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, WxGameplayTags::Event_Hit);
+	// 반응 히트는 Event.Hit 자식으로 나가므로 정확 매칭을 끄고 부모로 받는다.
+	UAbilityTask_WaitGameplayEvent* HitTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, WxGameplayTags::Event_Hit, nullptr, false, false);
 	if (HitTask)
 	{
 		HitTask->EventReceived.AddDynamic(this, &UWxAbility_Guard::HandleHit);
@@ -130,8 +131,8 @@ void UWxAbility_Guard::HandleHit(FGameplayEventData Payload)
 		return;
 	}
 
-	// 반응 종류는 페이로드에 실려 온다. 평타는 비어 있고, Normal 이외는 전부 넉 계열로 본다.
-	const bool bIsKnockHit = Payload.TargetTags.HasTag(WxGameplayTags::HitReact) && !Payload.TargetTags.HasTagExact(WxGameplayTags::HitReact_Normal);
+	// 반응 종류는 이벤트 태그(Event.Hit 자식)로 온다. 평타는 부모 그대로이고, Normal 이외는 전부 넉 계열로 본다.
+	const bool bIsKnockHit = Payload.EventTag != WxGameplayTags::Event_Hit && Payload.EventTag != WxGameplayTags::Event_Hit_Normal;
 
 	if (bIsKnockHit && GuardKnockbackMontage)
 	{

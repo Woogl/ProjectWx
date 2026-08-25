@@ -52,10 +52,18 @@ namespace WxGameplayTags
 	
 	/**
 	 * 피격 이벤트. 대미지 파이프라인이 서버에서 피격자 ASC에 히트마다 한 번 보낸다.
-	 * TargetTags에 그 히트가 요청한 반응 종류(HitReact.*)를 싣고, 반응 없는 평타는 비워 보낸다 — HitReact 어빌리티는 그 유무로 응답을 가른다.
-	 * 패리 반동·처형 짝 피격처럼 대미지 없는 반응 요청도 같은 이벤트에 EventMagnitude 0으로 싣는다.
+	 * 자식이 그 히트가 요청한 반응 종류다 — 반응이 있으면 자식을, 반응 없는 평타는 부모를 이벤트 태그로 보낸다.
+	 * 패리 반동·처형 짝 피격처럼 대미지 없는 반응 요청도 같은 계층에 EventMagnitude 0으로 싣는다.
+	 * 구독은 부모 매칭 API로 한다 — 정확 매칭(GenericGameplayEventCallbacks, WaitGameplayEvent 기본값)은 자식으로 나가는 반응 히트를 놓친다.
 	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Normal);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_KnockBack);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_KnockDown);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_KnockUp);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Parry);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Finisher);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Backstab);
 
 	/** 무적 구간에서 대미지를 회피했을 때 발송 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_DodgeSuccess);
@@ -128,22 +136,8 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Unblockable);
 
-	/** 패리 피격 유발 공격. 이 공격이 퍼펙트 가드로 막히면 공격자에게 HitReact.Parry 반응을 실은 Event.Hit 송출 */
+	/** 패리 피격 유발 공격. 이 공격이 퍼펙트 가드로 막히면 공격자에게 Event.Hit.Parry 송출 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_ParryHitReact);
-
-	// ── HitReact ──────────────────────────────────────────────────────────────
-
-	// 반응 종류. Event.Hit의 TargetTags에 실리는 데이터이며 이벤트로 보내지 않는다.
-	// 대미지 행이 고르는 것은 Normal·Knock 계열이고, Parry·Finisher·Backstab은 코드가 직접 싣는다.
-
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitReact);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitReact_Normal);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitReact_KnockBack);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitReact_KnockDown);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitReact_KnockUp);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitReact_Parry);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitReact_Finisher);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitReact_Backstab);
 	
 	// ── Ability ──────────────────────────────────────────────────────────────
 	

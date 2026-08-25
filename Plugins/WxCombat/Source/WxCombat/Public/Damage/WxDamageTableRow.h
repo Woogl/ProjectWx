@@ -21,8 +21,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	float CoeffATK = 1.f;
 
-	/** 비워 두면 Event.Hit에 반응 종류가 실리지 않아 HitReact가 뜨지 않는다 */
-	UPROPERTY(EditAnywhere, meta = (Categories = "HitReact"))
+	/** 비워 두면 부모 Event.Hit 평타로 나가 HitReact가 뜨지 않는다 */
+	UPROPERTY(EditAnywhere, meta = (Categories = "Event.Hit"))
 	FGameplayTag HitReactTag;
 
 	UPROPERTY(EditAnywhere)
