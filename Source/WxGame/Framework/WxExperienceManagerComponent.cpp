@@ -114,7 +114,7 @@ void UWxExperienceManagerComponent::SetCurrentExperience(FPrimaryAssetId Experie
 
 	if (!ExperienceId.IsValid())
 	{
-		UE_LOG(LogWxGame, Warning, TEXT("SetCurrentExperience: Experience 미설정. 프레임워크 컴포넌트가 주입되지 않음."));
+		UE_LOG(LogWxGame, Error, TEXT("SetCurrentExperience: Experience 미확정. 프레임워크 컴포넌트 주입과 폰 스폰이 진행되지 않는다. 맵 WorldSettings 의 GameplayExperience 를 지정하거나 진입 URL 에 ?Experience=이름 을 넘겨야 한다."));
 		return;
 	}
 

@@ -33,7 +33,7 @@ public:
 	//~ End AGameModeBase
 
 private:
-	/** 진입 URL 옵션(?Experience=이름) → WorldSettings → DefaultExperience 순으로 이 판의 Experience 를 확정한다. 실패 시 무효 ID. */
+	/** 진입 URL 옵션(?Experience=이름) → WorldSettings 순으로 이 판의 Experience 를 확정한다. 그 뒤의 폴백은 없다 — 둘 다 비면 무효 ID 를 돌려주고 매니저가 에러로 드러낸다. */
 	FPrimaryAssetId ResolveExperienceId() const;
 
 	void HandleExperienceLoaded(const UWxExperienceDefinition* Experience);

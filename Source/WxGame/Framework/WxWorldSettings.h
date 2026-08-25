@@ -9,7 +9,7 @@
 class UWxExperienceDefinition;
 
 /**
- * 맵이 자기 기본 Experience 를 지정하는 자리다 — GameMode 는 진입 URL 다음, 자체 폴백 이전에 이 값을 본다.
+ * 맵이 자기 기본 Experience 를 지정하는 자리다 — GameMode 는 진입 URL 다음으로 이 값을 보며, 확정의 마지막 단계다.
  */
 UCLASS()
 class AWxWorldSettings : public AWorldSettings
@@ -17,7 +17,7 @@ class AWxWorldSettings : public AWorldSettings
 	GENERATED_BODY()
 
 public:
-	/** 미지정·미스캔이면 무효 ID 를 반환해 GameMode 가 다음 폴백으로 넘어간다. */
+	/** 미지정·미스캔이면 무효 ID 를 반환한다. 진입 URL 도 비어 있었다면 그대로 Experience 미확정이 된다. */
 	FPrimaryAssetId GetDefaultGameplayExperience() const;
 
 protected:

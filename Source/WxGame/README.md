@@ -22,14 +22,14 @@
 | `UWxExperienceDefinition` | 한 판의 게임플레이 구성을 정의하는 프라이머리 데이터 에셋(폰 클래스·GameFeature·액션) | `Framework/WxExperienceDefinition.h` |
 | `UWxExperienceManagerComponent` | GameState에 붙어 Experience를 복제·비동기 로드·적용하는 실제 주체 | `Framework/WxExperienceManagerComponent.h` |
 | `AWxGameState` | ModularGameplay receiver이자 Experience 매니저 컴포넌트의 거주처 | `Framework/WxGameState.h` |
-| `AWxWorldSettings` | 맵이 자기 기본 Experience를 지정하는 자리(URL 다음, 폴백 이전) | `Framework/WxWorldSettings.h` |
+| `AWxWorldSettings` | 맵이 자기 기본 Experience를 지정하는 자리(URL 다음, 확정의 마지막 단계) | `Framework/WxWorldSettings.h` |
 | `AWxPlayerController` | Experience가 요청한 컨트롤러 컴포넌트(인벤토리·상호작용·대화·PlayerSpawn 등) 주입 대상 | `Controller/WxPlayerController.h` |
 | `AWxCharacterBase` | ASC를 직접 소유하는 플레이어/에너미 공통 베이스, 폰 대상 컴포넌트 receiver | `Character/WxCharacterBase.h` |
 | `AWxPlayerCharacter` | 게임플레이 입력(이동/시선/어빌리티) 소유. `UWxInputConfig`로 입력 주입 | `Character/WxPlayerCharacter.h` |
 
 ## 확장 포인트 / 규약
 - 게임플레이 구성은 코드가 아니라 **Experience 에셋**이 정한다: 폰 클래스(`DefaultPawnClass`), 켤 GameFeature 이름 목록(`GameFeaturesToEnable`), 실행 액션(`Actions`/`ActionSets`). GameMode의 상속 `DefaultPawnClass`는 읽지 않는다.
-- Experience 확정 우선순위: 진입 URL `?Experience=이름` → `AWxWorldSettings.GameplayExperience` → 폴백.
+- Experience 확정 우선순위: 진입 URL `?Experience=이름` → `AWxWorldSettings.GameplayExperience`. 그 뒤의 폴백은 없다 — 둘 다 비면 로드가 시작되지 않아 폰이 스폰되지 않으며, 매니저가 `Error` 로그로 원인을 지목한다.
 - 컴포넌트 주입은 `UWxGameFeatureAction_AddComponents`(사이드 플래그 없는 스톡 대체)로 요청하며, 대상 액터는 ModularGameplay receiver로 opt-in돼 있어야 한다(GameState·PlayerController·PlayerState·Character 계열).
 - 도메인 상태의 UI 연결은 `MVVM/` ViewModel + Resolver로 한다(예: `WxViewModel_Inventory`, `WxViewModel_Quest`, `WxViewModelResolver_*`).
 - 로드는 비동기라 접속보다 늦을 수 있다 — GameMode가 로드 완료까지 폰 스폰을 미루고 대기 접속자를 일괄 처리한다.

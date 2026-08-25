@@ -38,7 +38,7 @@ UClass* AWxGameMode::GetDefaultPawnClassForController_Implementation(AController
 	const UWxExperienceDefinition* Experience = ExperienceManager ? ExperienceManager->GetCurrentExperience() : nullptr;
 	if (!Experience)
 	{
-		// Experience 미확정은 InitGameState 가 이미 경고한 상태다.
+		// Experience 미확정은 InitGameState 가 이미 에러로 남긴 상태다.
 		return nullptr;
 	}
 
