@@ -6,6 +6,7 @@
 #include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
 #include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
 #include "AbilitySystemComponent.h"
+#include "WxCollisionChannels.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "WxGameplayTags.h"
@@ -111,22 +112,22 @@ EWxDodgeDirection UWxAbility_Dodge::ResolveDodgeDirection(const FVector& LocalDi
 	return static_cast<EWxDodgeDirection>(Octant);
 }
 
-FName UWxAbility_Dodge::SelectDodgeSection(const FVector& LocalDirection) const
+FName UWxAbility_Dodge::SelectDodgeSection(const UAnimMontage* Montage, const FVector& LocalDirection) const
 {
-	if (!DodgeMontage)
+	if (!Montage)
 	{
 		return NAME_None;
 	}
 
 	const EWxDodgeDirection DodgeDirection = ResolveDodgeDirection(LocalDirection);
 	const FName SectionName(StaticEnum<EWxDodgeDirection>()->GetNameStringByValue(static_cast<int64>(DodgeDirection)));
-	if (DodgeMontage->IsValidSectionName(SectionName))
+	if (Montage->IsValidSectionName(SectionName))
 	{
 		return SectionName;
 	}
 
 	const FName ForwardSection(StaticEnum<EWxDodgeDirection>()->GetNameStringByValue(static_cast<int64>(EWxDodgeDirection::Forward)));
-	if (DodgeMontage->IsValidSectionName(ForwardSection))
+	if (Montage->IsValidSectionName(ForwardSection))
 	{
 		return ForwardSection;
 	}
@@ -149,7 +150,7 @@ bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 		return true;
 	}
 
-	const FName SectionName = SelectDodgeSection(LocalDirection);
+	const FName SectionName = SelectDodgeSection(DodgeMontage, LocalDirection);
 
 	// 락온 중에는 락온 태스크가 회피 내내 몸을 타겟으로 추적해 호 궤적을 만들므로 잔차 보정을 하지 않는다.
 	// 비락온은 섹션 루트모션이 몸 기준 고정 방향이라, 양자화 잔차(±22.5°, 폴백 시 그 이상)만큼 몸을 돌려 이동을 입력 방향에 맞춘다.
@@ -207,21 +208,16 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 		SlowTimeTask->ReadyForActivation();
 	}
 
-	// 회피 섹션은 몸을 돌리지 않고 몸 기준 루트모션으로만 흐르므로, 그대로 두면 극한 회피 몽타주의 루트모션이 다시 몸 정면으로 나가 이동이 꺾인다.
-	// 루트모션 중 속도가 곧 진행 방향이라, 여기 맞춰 몸을 돌려 이동을 잇는다.
-	// 락온 중에는 락온 태스크가 매 틱 몸을 타겟으로 되돌리므로 돌리지 않는다.
-	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	AActor* Avatar = GetAvatarActorFromActorInfo();
-	if (Avatar && ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_LockOn))
+	// 회피 섹션은 몸을 돌리지 않고 몸 기준 루트모션으로만 흐르므로, 극한 회피도 같은 방향 섹션으로 이어야 이동이 꺾이지 않는다.
+	// 루트모션 중 속도가 곧 진행 방향이라, 8방향 양자화·잔차 보정·백스텝이 이 값 하나로 수렴한다.
+	FName SectionName = NAME_None;
+	if (const AActor* Avatar = GetAvatarActorFromActorInfo())
 	{
-		const FVector MoveDirection = Avatar->GetVelocity().GetSafeNormal2D();
-		if (!MoveDirection.IsNearlyZero())
-		{
-			Avatar->SetActorRotation(MoveDirection.ToOrientationRotator());
-		}
+		const FVector LocalDirection = Avatar->GetActorTransform().InverseTransformVectorNoScale(Avatar->GetVelocity());
+		SectionName = SelectDodgeSection(PerfectDodgeMontage, LocalDirection);
 	}
 
-	if (!PlayMontage(PerfectDodgeMontage))
+	if (!PlayMontage(PerfectDodgeMontage, SectionName))
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 	}
@@ -265,9 +261,7 @@ void UWxAbility_Dodge::ActivateJudgementCapsule()
 		JudgementCapsule = NewObject<UCapsuleComponent>(Character, TEXT("DodgeJudgementCapsule"));
 		JudgementCapsule->SetCapsuleSize(BodyCapsule->GetScaledCapsuleRadius(), BodyCapsule->GetScaledCapsuleHalfHeight());
 
-		// 공격은 Pawn 오브젝트 타입 오버랩으로 대상을 찾는다.
-		// 오브젝트 타입 쿼리는 채널 응답을 보지 않으므로, 모든 채널을 무시해도 공격에만 잡히고 이동·시야·카메라 트레이스에는 걸리지 않는다.
-		JudgementCapsule->SetCollisionObjectType(ECC_Pawn);
+		JudgementCapsule->SetCollisionObjectType(ECC_WxAttack);
 		JudgementCapsule->SetCollisionResponseToAllChannels(ECR_Ignore);
 		JudgementCapsule->SetGenerateOverlapEvents(false);
 		JudgementCapsule->SetupAttachment(BodyCapsule);
