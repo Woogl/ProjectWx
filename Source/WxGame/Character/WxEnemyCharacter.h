@@ -26,9 +26,11 @@ public:
 	AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer);
 
 	UBehaviorTree* GetBehaviorTree() const;
+
+	AWxSpawner* GetOwningSpawner() const;
 	
 	//~ Begin IWxSpawnable
-	/** 사망 시 순회 없이 처치 기록을 남기기 위해 스폰 주체를 기억한다. */
+	/** 처치 기록과 정찰 경로 조회에 쓰려고 스폰 주체를 기억한다. 빙의가 Owner 를 덮어쓴 뒤엔 이 값이 유일한 링크다. */
 	virtual void OnSpawnedBy(AWxSpawner* Spawner) override;
 	//~ End IWxSpawnable
 	

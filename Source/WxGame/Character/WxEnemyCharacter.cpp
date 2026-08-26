@@ -108,6 +108,11 @@ FText AWxEnemyCharacter::GetInteractionPrompt() const
 	return FText::FromString(TEXT("Finisher"));
 }
 
+AWxSpawner* AWxEnemyCharacter::GetOwningSpawner() const
+{
+	return OwningSpawner.Get();
+}
+
 void AWxEnemyCharacter::OnSpawnedBy(AWxSpawner* Spawner)
 {
 	OwningSpawner = Spawner;
