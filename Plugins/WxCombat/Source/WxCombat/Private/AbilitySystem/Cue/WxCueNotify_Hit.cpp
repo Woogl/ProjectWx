@@ -2,8 +2,6 @@
 
 #include "AbilitySystem/Cue/WxCueNotify_Hit.h"
 
-#include "AbilitySystemBlueprintLibrary.h"
-#include "AbilitySystemComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraFunctionLibrary.h"
 #include "WxGameplayTags.h"
@@ -22,13 +20,6 @@ void UWxCueNotify_Hit::HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent::Ty
 		return;
 	}
 
-	// 대상이 남이면 무적 태그는 GE 복제로 도착하므로, 대상이 방금 무적에 들어간 순간에는 놓칠 수 있다.
-	const UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(MyTarget);
-	if (TargetASC && TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_Invincible))
-	{
-		return;
-	}
-
 	UWorld* World = MyTarget->GetWorld();
 	if (!World)
 	{
@@ -43,5 +34,32 @@ void UWxCueNotify_Hit::HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent::Ty
 	if (HitSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(World, HitSound, Parameters.Location);
+	}
+
+	if (CameraShake)
+	{
+		// 큐는 서버·클라 양쪽에서 실행되므로 각 머신은 자기 로컬 컨트롤러만 흔든다. 리슨 서버가 원격 클라에 RPC까지 쏘면 셰이크가 두 번 걸린다.
+		if (const APawn* Attacker = Cast<APawn>(Parameters.EffectContext.GetEffectCauser()))
+		{
+			if (APlayerController* PlayerController = Cast<APlayerController>(Attacker->GetController()))
+			{
+				if (PlayerController->IsLocalController())
+				{
+					PlayerController->ClientStartCameraShake(CameraShake);
+					return;
+				}
+			}
+		}
+
+		if (const APawn* Victim = Cast<APawn>(MyTarget))
+		{
+			if (APlayerController* PlayerController = Cast<APlayerController>(Victim->GetController()))
+			{
+				if (PlayerController->IsLocalController())
+				{
+					PlayerController->ClientStartCameraShake(CameraShake);
+				}
+			}
+		}
 	}
 }

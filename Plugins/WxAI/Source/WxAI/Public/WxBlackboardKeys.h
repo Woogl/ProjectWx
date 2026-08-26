@@ -31,7 +31,6 @@ namespace WxBlackboardKeys
 	WXAI_API AActor* GetSelfActor(const UBlackboardComponent* Blackboard);
 	WXAI_API void SetSelfActor(UBlackboardComponent* Blackboard, AActor* Value);
 
-	WXAI_API FVector GetHomeLocation(const UBlackboardComponent* Blackboard);
 	WXAI_API void SetHomeLocation(UBlackboardComponent* Blackboard, const FVector& Value);
 
 	WXAI_API void SetPatrolTargetLocation(UBlackboardComponent* Blackboard, const FVector& Value);

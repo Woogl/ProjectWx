@@ -11,7 +11,7 @@
 
 namespace
 {
-	/** 처치를 기다리는 노드 하나. 완료 통보는 상태가 살아 있는 동안에만 유효한 약한 실행 컨텍스트로 보낸다. */
+	/** 완료 통보는 상태가 살아 있는 동안에만 유효한 약한 실행 컨텍스트로 보낸다. */
 	struct FWxSpawnersKilledWait
 	{
 		int32 Handle = INDEX_NONE;

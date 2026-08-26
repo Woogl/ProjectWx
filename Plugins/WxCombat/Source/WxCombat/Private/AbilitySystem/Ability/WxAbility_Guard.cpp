@@ -2,7 +2,6 @@
 
 #include "AbilitySystem/Ability/WxAbility_Guard.h"
 #include "AbilitySystem/Effect/WxEffect_Guard.h"
-#include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
@@ -85,14 +84,13 @@ void UWxAbility_Guard::HandleMontageCompleted()
 
 void UWxAbility_Guard::ListenForGuardHit()
 {
-	// 부모 태그로 등록해 자식 태그를 모두 수신한다.
-	// HitReact 어빌리티는 ActivationBlockedTags=Effect.Guard라 가드 중엔 뜨지 않으므로 라우팅 충돌이 없다.
-	UAbilityTask_WaitGameplayEvent* HitReactTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-		this, WxGameplayTags::Event_HitReact, nullptr, false, false);
-	if (HitReactTask)
+	// HitReact 어빌리티는 ActivationBlockedTags=Effect.Guard라 가드 중엔 뜨지 않으므로, 같은 피격 이벤트를 여기서 받아도 라우팅 충돌이 없다.
+	// 반응 히트는 Event.Hit 자식으로 나가므로 정확 매칭을 끄고 부모로 받는다.
+	UAbilityTask_WaitGameplayEvent* HitTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, WxGameplayTags::Event_Hit, nullptr, false, false);
+	if (HitTask)
 	{
-		HitReactTask->EventReceived.AddDynamic(this, &UWxAbility_Guard::HandleGuardHitReact);
-		HitReactTask->ReadyForActivation();
+		HitTask->EventReceived.AddDynamic(this, &UWxAbility_Guard::HandleHit);
+		HitTask->ReadyForActivation();
 	}
 }
 
@@ -107,7 +105,7 @@ void UWxAbility_Guard::ListenForPerfectGuard()
 	}
 }
 
-void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
+void UWxAbility_Guard::HandleHit(FGameplayEventData Payload)
 {
 	// 깨지는 중에 또 맞아도 브레이크 연출을 처음부터 다시 틀지 않는다.
 	if (GetActiveMontage() == GuardBreakMontage)
@@ -123,7 +121,8 @@ void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 	if (AttributeSet && AttributeSet->GetSP() <= 0.f)
 	{
 		// 브레이크 연출은 완주해야 하므로 어빌리티는 살려 두고 방어 판정만 먼저 걷는다.
-		RemoveActivationOwnedEffect(UWxEffect_Guard::StaticClass());
+		const FGameplayTagContainer GuardTags = WxGameplayTags::Effect_Guard.GetTag().GetSingleTagContainer();
+		ASC->RemoveActiveEffectsWithTags(GuardTags);
 
 		if (!PlayMontage(GuardBreakMontage))
 		{
@@ -132,7 +131,8 @@ void UWxAbility_Guard::HandleGuardHitReact(FGameplayEventData Payload)
 		return;
 	}
 
-	const bool bIsKnockHit = Payload.EventTag.IsValid() && Payload.EventTag != WxGameplayTags::Event_HitReact_Normal;
+	// 반응 종류는 이벤트 태그(Event.Hit 자식)로 온다. 평타는 부모 그대로이고, Normal 이외는 전부 넉 계열로 본다.
+	const bool bIsKnockHit = Payload.EventTag != WxGameplayTags::Event_Hit && Payload.EventTag != WxGameplayTags::Event_Hit_Normal;
 
 	if (bIsKnockHit && GuardKnockbackMontage)
 	{
@@ -151,9 +151,7 @@ void UWxAbility_Guard::HandlePerfectGuard(FGameplayEventData Payload)
 	{
 		return;
 	}
-
-	UWxEffect_RecoverResource::ApplyTo(ASC, 0.f, PerfectGuardMPRecovery);
-
+	
 	if (UWxAbilityTask_SlowTime* SlowTimeTask = UWxAbilityTask_SlowTime::CreateTask(this, PerfectGuardSlowTimeDilation, PerfectGuardSlowTimeDuration))
 	{
 		SlowTimeTask->ReadyForActivation();

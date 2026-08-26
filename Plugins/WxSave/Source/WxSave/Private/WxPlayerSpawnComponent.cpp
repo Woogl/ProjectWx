@@ -24,7 +24,6 @@ void UWxPlayerSpawnComponent::OnRegister()
 
 	PostLoginHandle = FGameModeEvents::OnGameModePostLoginEvent().AddUObject(this, &UWxPlayerSpawnComponent::HandleGameModePostLogin);
 
-	// Experience 비동기 로드가 접속보다 늦으면 부착 시점에 오너 PC 의 PostLogin 이 이미 지나갔으므로 여기서 같은 셋업을 수행한다(캐치업).
 	// 지연 스폰의 RestartPlayer 는 로드 완료 브로드캐스트 뒤라 항상 이 캐치업보다 늦다.
 	// 로그인 경과는 PlayerState 유무로 가른다(컨트롤러 초기화 중 부착이면 아직 없고, 로그인 완료 뒤 부착이면 있다).
 	APlayerController* OwnerPC = GetController<APlayerController>();

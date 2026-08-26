@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Weapon/WxWeaponBase.h"
-#include "Components/CapsuleComponent.h"
+#include "Components/ShapeComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemComponent.h"
@@ -22,14 +22,6 @@ AWxWeaponBase::AWxWeaponBase()
 	Mesh->SetupAttachment(GripPoint);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Mesh->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
-
-	HitCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("HitCollision"));
-	HitCollision->SetupAttachment(GripPoint);
-	HitCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	HitCollision->SetCollisionObjectType(ECC_WxAttack);
-	HitCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
-	HitCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	HitCollision->OnComponentBeginOverlap.AddDynamic(this, &AWxWeaponBase::HandleHitCollisionOverlap);
 }
 
 AWxWeaponBase* AWxWeaponBase::FindWeapon(const AActor* Owner)
@@ -68,11 +60,15 @@ void AWxWeaponBase::BeginAttack(const FDataTableRowHandle& InDamageInfo)
 
 	if (ActiveAttackCount == 0)
 	{
-		// 첫 프레임 Sweep이 0 거리가 되도록 현재 트랜스폼으로 초기화한다.
+		// 첫 프레임 Sweep이 0 거리가 되도록 현재 위치로 초기화한다.
 		// 직전 위치를 모르는 채 임의 값이 들어가면 무관한 액터까지 Sweep에 잡힌다.
-		PrevCapsuleLocation = HitCollision->GetComponentLocation();
+		PrevShapeLocations.SetNum(HitShapes.Num());
+		for (int32 Index = 0; Index < HitShapes.Num(); ++Index)
+		{
+			PrevShapeLocations[Index] = HitShapes[Index]->GetComponentLocation();
+			HitShapes[Index]->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		}
 
-		HitCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		SetActorTickEnabled(true);
 	}
 
@@ -90,7 +86,11 @@ void AWxWeaponBase::EndAttack()
 
 	if (ActiveAttackCount == 0)
 	{
-		HitCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		for (UShapeComponent* Shape : HitShapes)
+		{
+			Shape->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
+
 		SetActorTickEnabled(false);
 		HitActorsThisSwing.Empty();
 	}
@@ -104,7 +104,12 @@ void AWxWeaponBase::CancelAttack()
 	}
 
 	ActiveAttackCount = 0;
-	HitCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	for (UShapeComponent* Shape : HitShapes)
+	{
+		Shape->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
 	SetActorTickEnabled(false);
 	HitActorsThisSwing.Empty();
 }
@@ -149,6 +154,22 @@ USkeletalMeshComponent* AWxWeaponBase::GetMesh() const
 	return Mesh;
 }
 
+void AWxWeaponBase::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	// BP가 부착한 형상 컴포넌트를 전부 히트박스로 수집하고, 콜리전 구성은 코드가 강제해 저작 실수를 차단한다.
+	GetComponents<UShapeComponent>(HitShapes);
+	for (UShapeComponent* Shape : HitShapes)
+	{
+		Shape->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Shape->SetCollisionObjectType(ECC_WxAttack);
+		Shape->SetCollisionResponseToAllChannels(ECR_Ignore);
+		Shape->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+		Shape->OnComponentBeginOverlap.AddDynamic(this, &AWxWeaponBase::HandleHitShapeOverlap);
+	}
+}
+
 void AWxWeaponBase::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -164,12 +185,6 @@ void AWxWeaponBase::Tick(float DeltaSeconds)
 		return;
 	}
 
-	const FVector CurrLocation = HitCollision->GetComponentLocation();
-	const FQuat CurrRotation = HitCollision->GetComponentQuat();
-
-	// 직전 프레임 위치 → 현재 위치 사이를 캡슐 모양으로 Sweep해서, Overlap 이벤트가 한 틱에 캡슐을 지나친 액터를 놓치는 터널링을 보완한다.
-	const FCollisionShape Shape = FCollisionShape::MakeCapsule(HitCollision->GetScaledCapsuleRadius(), HitCollision->GetScaledCapsuleHalfHeight());
-
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(WxWeaponSweep), false);
 	Params.AddIgnoredActor(this);
 	if (AActor* OwnerActor = GetOwner())
@@ -184,18 +199,25 @@ void AWxWeaponBase::Tick(float DeltaSeconds)
 		}
 	}
 
-	FCollisionObjectQueryParams ObjectParams;
-	ObjectParams.AddObjectTypesToQuery(ECC_Pawn);
-
-	TArray<FHitResult> Hits;
-	World->SweepMultiByObjectType(Hits, PrevCapsuleLocation, CurrLocation, CurrRotation, ObjectParams, Shape, Params);
-
-	for (const FHitResult& Hit : Hits)
+	// 직전 프레임 위치 → 현재 위치 사이를 형상별로 Sweep해서, Overlap 이벤트가 한 틱에 형상을 지나친 액터를 놓치는 터널링을 보완한다.
+	for (int32 Index = 0; Index < HitShapes.Num(); ++Index)
 	{
-		ProcessHit(Hit.GetActor(), Hit);
-	}
+		UShapeComponent* Shape = HitShapes[Index];
+		const FVector CurrLocation = Shape->GetComponentLocation();
 
-	PrevCapsuleLocation = CurrLocation;
+		// 형상 자신의 응답을 넘겨야 Overlap 경로와 판정이 일치한다. 기본값은 전 채널 Block이라 지형에서 Sweep이 잘리고 한 틱 다중 타격도 끊긴다.
+		const FCollisionResponseParams ResponseParams(Shape->GetCollisionResponseToChannels());
+
+		TArray<FHitResult> Hits;
+		World->SweepMultiByChannel(Hits, PrevShapeLocations[Index], CurrLocation, Shape->GetComponentQuat(), ECC_WxAttack, Shape->GetCollisionShape(), Params, ResponseParams);
+
+		for (const FHitResult& Hit : Hits)
+		{
+			ProcessHit(Hit.GetActor(), Hit);
+		}
+
+		PrevShapeLocations[Index] = CurrLocation;
+	}
 }
 
 void AWxWeaponBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -205,7 +227,7 @@ void AWxWeaponBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AWxWeaponBase::HandleHitShapeOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	FHitResult HitResult;
 	if (bFromSweep)
@@ -215,7 +237,7 @@ void AWxWeaponBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedCom
 	else if (OtherComp)
 	{
 		FVector ClosestPoint;
-		if (OtherComp->GetClosestPointOnCollision(HitCollision->GetComponentLocation(), ClosestPoint) >= 0.f)
+		if (OtherComp->GetClosestPointOnCollision(OverlappedComponent->GetComponentLocation(), ClosestPoint) >= 0.f)
 		{
 			HitResult.ImpactPoint = ClosestPoint;
 			HitResult.Location = ClosestPoint;
@@ -236,6 +258,12 @@ void AWxWeaponBase::ProcessHit(AActor* OtherActor, const FHitResult& HitResult)
 
 	AActor* WeaponOwner = GetOwner();
 	if (!OtherActor || OtherActor == WeaponOwner || HitActorsThisSwing.Contains(OtherActor))
+	{
+		return;
+	}
+
+	// 대미지 ExecCalc의 팀 판정만으로는 대미지 행의 AdditionalEffects가 아군에게 그대로 걸리므로, 적용 앞에서 막는다.
+	if (!UWxCombatLibrary::IsHostile(WeaponOwner, OtherActor))
 	{
 		return;
 	}

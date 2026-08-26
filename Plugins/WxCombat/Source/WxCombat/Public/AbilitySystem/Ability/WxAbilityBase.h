@@ -15,7 +15,6 @@ class UGameplayEffect;
 class UWxEffect_Cooldown;
 class AWxProjectileBase;
 class UInputAction;
-class UTexture2D;
 struct FWxAbilityTableRow;
 
 UENUM(BlueprintType)
@@ -23,15 +22,15 @@ enum class EWxAbilityActivationPolicy : uint8
 {
 	/** 트리거(입력·이벤트·AI)를 기다려 활성화 */
 	OnTriggered,
-	/** 부여(Grant)될 때 즉시 자동 활성화 (패시브, 상시 버프 등) */
-	OnGranted,
+	/** 부여될 때 즉시 자동 활성화 (패시브, 상시 버프 등) */
+	OnGiven,
 };
 
 /**
- * 배타 발동 그룹. Lyra의 ActivationGroup 세 값(Replaceable은 후딜 어휘를 따라 Recovery로 부른다)에 Reaction을 더했다.
- * 판정은 UWxAbilitySystemComponent가 활성 인스턴스에서 파생하므로, 어빌리티마다 차단 태그를 배선하지 않아도 된다.
- * 단 CancelAbilitiesWithTag로 상대를 지목한 어빌리티는 이 판정보다 우선해 발동한다.
- * 이 값이 정하는 것은 발동 가부까지고, 진행 중이던 것을 무엇까지 끊을지는 그 지목이 정한다(후딜 취소만 그룹으로 처리한다).
+ * 어빌리티 발동을 그룹 단위로 묶어서 배타적으로 점유할 수 있다.
+ * CancelAbilitiesWithTag로 상대를 지목한 어빌리티는 이 판정보다 우선해 발동할 수 있다.
+ *
+ * Exclusive_ 세 값은 몽타주 노티파이가 순서대로 밟는 하나의 축이다 — 닫힘에서 열림으로 Blocking → ComboWindow → Recovery.
  */
 UENUM()
 enum class EWxAbilityActivationGroup : uint8
@@ -42,21 +41,17 @@ enum class EWxAbilityActivationGroup : uint8
 	/** 배타적으로 다른 Exclusive 어빌리티 발동을 막는다. */
 	Exclusive_Blocking,
 
-	/** 액션이 후딜에 든 상태. 막지 않는 것은 Independent와 같고, 다음 배타 발동·점프가 이 값을 지목해 끊는다. */
+	/** (런타임 전환) 콤보 창. 자기 재발동만 통과시키고, 남의 발동은 Exclusive_Blocking처럼 막는다. */
+	Exclusive_ComboWindow,
+
+	/** (런타임 전환) 액션을 캔슬할 수 있게 된 후딜레이 상태. 막지 않는 것은 Independent와 같다. */
 	Exclusive_Recovery,
 
-	/** 점유 중인 Exclusive 어빌리티에 막히지 않고 발동한다. 서로를 막지도 않으므로 반응형끼리는 겹칠 수 있다. */
-	Reaction,
+	/** Exclusive 어빌리티에 막히지 않고 발동한다. 주로 HitReaction, Groggy, Death에서 사용. */
+	Reaction, // Override 같은 이름으로 바꿀까???
 };
 
 /**
- * 쿨다운·코스트 수치는 AbilityDataRow에서만 읽는다.
- * 쿨다운은 공용 UWxEffect_Cooldown GE를 소스 어빌리티 CDO로 구분하며, 소모된 충전 1개당 GE 1개가 붙어 자연 만료로 회복된다.
- * 자원 모디파이어는 MMC가 Row에서 조회하고, 쿨다운 Duration은 ApplyCooldown이 계산해 SetByCaller로 실으므로 적용 경로는 엔진 순정 그대로다.
- *
- * CooldownGameplayEffectClass/CostGameplayEffectClass의 기본값은 그 공용 GE를 가리키는 "마커"다.
- * 마커 그대로면 Row 기반, 다른 GE로 바꾸면 엔진 순정 GE 경로를 쓴다(Row와 상호배타).
- * 커스텀 GE는 지속시간·모디파이어를 스스로 정의해야 하며, 공용 GE를 상속해선 안 된다 — 공용 GE의 지속시간은 SetByCaller로 받는데 순정 경로는 그 값을 싣지 않아 조용히 1초가 된다.
  */
 UCLASS(Abstract, BlueprintType, Blueprintable)
 class WXCOMBAT_API UWxAbilityBase : public UGameplayAbility
@@ -66,6 +61,10 @@ class WXCOMBAT_API UWxAbilityBase : public UGameplayAbility
 public:
 	UWxAbilityBase();
 
+	/**
+	 * 기본적으로 쿨다운·코스트 수치는 AbilityDataRow에서 읽어서 공용 GE를 쓴다.
+	 * 나중에 필요하다면 커스텀 쿨다운·코스트 GE를 만들 수 있음.
+	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxAbilityTableRow"))
 	FDataTableRowHandle AbilityDataRow;
 	
@@ -85,63 +84,42 @@ public:
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	TArray<TSubclassOf<UGameplayEffect>> ActivationOwnedEffects;
-
-	/**
-	 * 활성 구간이 끝나기 전에 특정 효과만 먼저 걷는다(가드 브레이크 등).
-	 * 엔진이 제거를 권위로 게이팅하므로 서버에서만 실제로 벗겨지고, 클라는 복제로 받는다.
-	 */
-	void RemoveActivationOwnedEffect(TSubclassOf<UGameplayEffect> EffectClass) const;
-
-	/** UI 표시 아이콘(텍스처 또는 머터리얼)의 소프트 참조. */
+	
 	TSoftObjectPtr<UObject> GetIcon() const;
 
 	/**
-	 * 아바타 ASPD가 반영된 몽타주 재생 속도.
-	 * 짝 몽타주와 프레임을 맞추거나 몽타주 길이 자체가 규칙인 어빌리티는 1을 반환하도록 오버라이드한다.
+	 * 일반적으로는 ASPD가 반영된 몽타주 재생 속도 사용.
+	 * 고정된 시간을 맞춰야하는 등 특수한 경우에는 1을 반환하도록 오버라이드한다.
 	 */
 	virtual float GetMontagePlayRate() const;
 
-	/**
-	 * 이 프로젝트에서 후딜레이 구간 = 캔슬 가능 구간이다.
-	 * 그룹을 Exclusive_Recovery로 전이해 배타 잠금을 풀고, 그 순간부터 이후 발동하는 배타 어빌리티의 취소 대상이 된다.
-	 *
-	 * 복원하지 않는다 — 후딜은 몽타주의 마지막 구간이므로 한 번 진입하면 종료까지 캔슬 가능 상태로 두고, 다음 활성화가 선언값으로 되돌린다.
-	 * 코스트·쿨다운·ActivationBlockedTags는 그대로 검사된다.
-	 */
-	void StartRecovery();
-	
-	/** 순정 검사에 배타 그룹 판정을 더하되, CancelAbilitiesWithTag로 지목한 어빌리티가 점유 중이면 통과시킨다. */
-	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+	/** 콤보 창 구간. 자기 재발동만 열어주므로 다른 어빌리티는 여전히 막힌다. */
+	void OpenComboWindow();
+	void CloseComboWindow();
 
 	/**
-	 * WxAnimNotify_SpawnProjectile이 위임하는 투사체 스폰.
-	 * 서버에서만 스폰해 복제로 전파한다.
-	 * 아바타 SkeletalMesh의 SpawnSocketName 소켓 위치 + 아바타 회전으로 스폰하며, 대미지는 투사체 클래스가 저작한다.
+	 * 후딜레이 구간.
+	 * Exclusive_Blocking으로 막혀있던 발동 그룹 잠금을 풀어서 그 순간부터 이후 발동하는 Exclusive 어빌리티에 의한 캔슬을 허용한다.
+	 * 코스트·쿨다운·ActivationBlockedTags는 그대로 검사한다.
 	 */
+	void StartRecovery();
+
+	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+	virtual bool CanBeCanceled() const override;
+
+	/// WxAnimNotify_SpawnProjectile이 위임하는 투사체 스폰
 	void SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileClass, FName SpawnSocketName) const;
 
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual UGameplayEffect* GetCooldownGameplayEffect() const override;
-
-	/**
-	 * 충전이 직렬로 회복되도록 이미 도는 쿨다운의 최장 잔여시간을 더한 값을 SetByCaller로 실어 적용한다.
-	 * 엔진은 적용 도중 지속시간을 여러 번 다시 계산하는데 그 중 한 번은 새 GE가 활성 목록에 들어간 뒤라, 라이브 조회로 계산하면 자기 자신을 세어 쿨다운이 두 배가 된다.
-	 */
+	
 	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
-
 	virtual bool CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
-
-	/**
-	 * 엔진 순정 구현은 쿨다운 GE의 GrantedTags 쿼리 기반이라, 태그를 부여하지 않는 공용 쿨다운 GE에서는 항상 0을 반환한다.
-	 * CDO 기반 쿼리로 대체해 순정 API(BP 노드 포함) 호출자가 올바른 값을 받게 한다.
-	 */
+	
 	virtual float GetCooldownTimeRemaining(const FGameplayAbilityActorInfo* ActorInfo) const override;
 	virtual void GetCooldownTimeRemainingAndDuration(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, float& TimeRemaining, float& CooldownDuration) const override;
 
-	/**
-	 * 이 어빌리티(소스 CDO 기준)가 적용한 활성 쿨다운 GE 수를 반환한다.
-	 * 출력 인자는 가장 늦게 만료되는 GE 기준이다.
-	 */
+	// 발동 횟수 스택을 여러개 충전해두었다가 연속 발동할 수 있는 어빌리티도 있다. (Recharages)
 	int32 QueryActiveCooldowns(const UAbilitySystemComponent& ASC, float& OutLongestRemaining, float& OutLongestDuration) const;
 
 protected:
@@ -179,4 +157,6 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UAnimMontage> ActiveMontage;
+	
+	TArray<FActiveGameplayEffectHandle> ActivationOwnedEffectHandles;
 };

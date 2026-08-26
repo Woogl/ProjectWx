@@ -5,12 +5,9 @@
 #include "Component/WxNameplateComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "WxRewardLibrary.h"
-#include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
-#include "GameplayEffectExtension.h"
 #include "Kismet/GameplayStatics.h"
-#include "Perception/AISense_Damage.h"
 #include "Spawnable/WxSpawner.h"
 #include "Targeting/WxLockOnPointComponent.h"
 #include "WxGameplayTags.h"
@@ -43,52 +40,21 @@ void AWxEnemyCharacter::BeginPlay()
 	NameplateComponent->InitializeViewModels(AbilitySystemComponent, CharacterName, Portrait);
 }
 
-void AWxEnemyCharacter::InitAbilitySystem()
+bool AWxEnemyCharacter::IsInRearCone(const AActor* Interactor) const
 {
-	Super::InitAbilitySystem();
-
-	// AI 폰의 빙의는 서버에서만 일어나므로 이 구독도 서버 전용이다 — AI Perception 이 도는 곳과 같다.
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetIncomingDamageAttribute())
-		.AddUObject(this, &AWxEnemyCharacter::HandleIncomingDamageChanged);
-}
-
-void AWxEnemyCharacter::HandleIncomingDamageChanged(const FOnAttributeChangeData& Data)
-{
-	// 메타 어트리뷰트가 GE 실행으로 바뀔 때만 가해자·적중 지점이 실린 콜백 데이터가 함께 온다.
-	// 어트리뷰트셋이 소비하며 되돌리는 0 쓰기에는 실리지 않는다.
-	if (Data.NewValue <= 0.f || !Data.GEModData)
-	{
-		return;
-	}
-
-	const FGameplayEffectContextHandle Context = Data.GEModData->EffectSpec.GetContext();
-	AActor* DamageInstigator = Context.GetInstigator();
-	if (!DamageInstigator)
-	{
-		return;
-	}
-
-	// EventLocation 으로 넘긴 가해자 위치가 그대로 Stimulus 위치가 된다.
-	const FVector HitLocation = Context.GetHitResult() ? FVector(Context.GetHitResult()->ImpactPoint) : GetActorLocation();
-	UAISense_Damage::ReportDamageEvent(this, this, DamageInstigator, Data.NewValue, DamageInstigator->GetActorLocation(), HitLocation);
-}
-
-bool AWxEnemyCharacter::IsLocalPlayerInRearCone() const
-{
-	const APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
-	if (!PlayerPawn)
+	if (!Interactor)
 	{
 		return false;
 	}
 
-	FVector ToPlayer = PlayerPawn->GetActorLocation() - GetActorLocation();
-	ToPlayer.Z = 0.0;
-	if (!ToPlayer.Normalize())
+	FVector ToInteractor = Interactor->GetActorLocation() - GetActorLocation();
+	ToInteractor.Z = 0.0;
+	if (!ToInteractor.Normalize())
 	{
 		return false;
 	}
 
-	const float ForwardDot = FVector::DotProduct(GetActorForwardVector(), ToPlayer);
+	const float ForwardDot = FVector::DotProduct(GetActorForwardVector(), ToInteractor);
 	const float RearThreshold = -FMath::Cos(FMath::DegreesToRadians(BackstabRearHalfAngle));
 	return ForwardDot <= RearThreshold;
 }
@@ -107,9 +73,10 @@ void AWxEnemyCharacter::HandleDeath()
 		Spawner->MarkKilled();
 	}
 
-	// 외형 없는 재화(골드 등)는 로컬 플레이어 인벤토리에 즉시 지급한다.
+
 	if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0))
 	{
+		// 처치 보상 지급
 		UWxRewardLibrary::GrantReward(this, RewardRow, PlayerController, GetActorTransform(), FVector::UpVector * LaunchSpeed);
 	}
 }
@@ -122,7 +89,7 @@ void AWxEnemyCharacter::OnInteracted(AActor* Interactor)
 		return;
 	}
 
-	// 자격은 상호작용 어빌리티가 CanInteract 로 이미 검증했으므로 여기선 변형만 고른다.
+	// 그로기 앞잡(Finisher) 인지, 뒤잡(Backstab)인지 판별
 	const FGameplayTag EventTag = AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy)
 		? WxGameplayTags::Event_Finisher
 		: WxGameplayTags::Event_Backstab;
@@ -131,7 +98,7 @@ void AWxEnemyCharacter::OnInteracted(AActor* Interactor)
 	EventData.Instigator = Interactor;
 	EventData.Target = this;
 	EventData.EventTag = EventTag;
-	// 이 호출로 처형 어빌리티가 동기 트리거되어 대상(this)에 State.BeingFinished 가 붙는다 — 재노출·중복 발동 차단에 별도 래치가 필요 없다.
+
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Interactor, EventTag, EventData);
 }
 
@@ -140,12 +107,17 @@ FText AWxEnemyCharacter::GetInteractionPrompt() const
 	return FText::FromString(TEXT("Finisher"));
 }
 
+AWxSpawner* AWxEnemyCharacter::GetOwningSpawner() const
+{
+	return OwningSpawner.Get();
+}
+
 void AWxEnemyCharacter::OnSpawnedBy(AWxSpawner* Spawner)
 {
 	OwningSpawner = Spawner;
 }
 
-bool AWxEnemyCharacter::CanInteract() const
+bool AWxEnemyCharacter::CanInteract(const AActor* Interactor) const
 {
 	if (!IsAlive())
 	{
@@ -165,7 +137,7 @@ bool AWxEnemyCharacter::CanInteract() const
 	}
 
 	// 뒤잡은 적이 아직 나를 인지하지 못했을 때만 성립한다.
-	return !AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_InCombat) && IsLocalPlayerInRearCone();
+	return !AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_InCombat) && IsInRearCone(Interactor);
 }
 
 UBehaviorTree* AWxEnemyCharacter::GetBehaviorTree() const

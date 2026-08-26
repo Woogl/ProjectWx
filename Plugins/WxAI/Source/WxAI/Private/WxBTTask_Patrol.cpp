@@ -15,13 +15,19 @@ UWxBTTask_Patrol::UWxBTTask_Patrol()
 {
 	NodeName = TEXT("Patrol");
 
-	// 에디터에서 별도 선택 없이 동작하도록 기본 키를 채워 둔다. 실제 키 해석은 InitializeFromAsset 가 한다.
-	BlackboardKey.SelectedKeyName = WxBlackboardKeys::PatrolTargetLocation;
-
 	// 도착 후 커서를 진행시키기 위해 종료 콜백을 받는다.
 	bNotifyTaskFinished = true;
 
 	bCreateNodeInstance = true;
+}
+
+void UWxBTTask_Patrol::InitializeFromAsset(UBehaviorTree& Asset)
+{
+	// ExecuteTask 가 쓰는 키와 Super 가 읽는 키는 반드시 같아야 한다.
+	// Super 가 이 이름으로 키를 해석하므로, 에셋에 다른 값이 남아 있어도 여기서 덮어써 고정한다.
+	BlackboardKey.SelectedKeyName = WxBlackboardKeys::PatrolTargetLocation;
+
+	Super::InitializeFromAsset(Asset);
 }
 
 EBTNodeResult::Type UWxBTTask_Patrol::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -30,17 +36,18 @@ EBTNodeResult::Type UWxBTTask_Patrol::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	APawn* Pawn = AIController ? AIController->GetPawn() : nullptr;
 
 	// 정찰 경로가 없는 적(정찰 안 함)은 실패시켜 Selector 가 다음 행동(배회 등)으로 넘어가게 한다.
-	const UWxPatrolComponent* Patrol = UWxPatrolComponent::FindPatrolComponent(Pawn);
+	const UWxPatrolComponent* Patrol = UWxPatrolComponent::FindPatrolComponent(AIController);
 	if (!Patrol || Patrol->GetNumPoints() == 0)
 	{
 		return EBTNodeResult::Failed;
 	}
 
-	// Once 로 경로를 마쳤으면 마지막 지점에 그대로 정지한다.
-	// Failed 를 반환하면 하위 폴백 분기가 폰을 집/배회로 끌고 가므로, 이동 없이 Succeeded 로 정찰 분기를 점유해 그 자리에 머물게 한다.
+	// Once 로 경로를 마쳤으면 더 이상 움직이지 않는다(전투 뒤 재진입이면 마지막 지점이 아니라 지금 서 있는 자리다).
+	// Failed 를 반환하면 하위 폴백 분기가 폰을 집/배회로 끌고 가고, 즉시 Succeeded 는 브랜치를 놓아 주어 상위가 되감기며 재탐색을 되풀이한다.
+	// 이동 없이 InProgress 로 정찰 분기를 점유한 채, 상위 우선순위 abort(타겟 확보·리시 이탈)만 기다린다.
 	if (bPatrolFinished)
 	{
-		return EBTNodeResult::Succeeded;
+		return EBTNodeResult::InProgress;
 	}
 
 	if (UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent())
@@ -91,8 +98,7 @@ void UWxBTTask_Patrol::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* 
 	}
 
 	const AAIController* AIController = OwnerComp.GetAIOwner();
-	APawn* Pawn = AIController ? AIController->GetPawn() : nullptr;
-	if (const UWxPatrolComponent* Patrol = UWxPatrolComponent::FindPatrolComponent(Pawn))
+	if (const UWxPatrolComponent* Patrol = UWxPatrolComponent::FindPatrolComponent(AIController))
 	{
 		int32 NextIndex = PatrolCursor;
 		if (Patrol->GetNextIndex(PatrolCursor, PatrolDirection, NextIndex))
@@ -101,7 +107,7 @@ void UWxBTTask_Patrol::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* 
 		}
 		else
 		{
-			// Once 로 경로 끝에 도달: 이후 ExecuteTask 가 마지막 지점에 정지(Succeeded)하도록 표시한다.
+			// Once 로 경로 끝에 도달: 이후 ExecuteTask 가 이동 없이 브랜치만 점유하도록 표시한다.
 			bPatrolFinished = true;
 		}
 	}

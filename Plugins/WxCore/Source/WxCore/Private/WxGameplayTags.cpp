@@ -7,7 +7,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_LockedOn, "State.LockedOn");
 	UE_DEFINE_GAMEPLAY_TAG(State_InCombat, "State.InCombat");
 	UE_DEFINE_GAMEPLAY_TAG(State_BeingFinished, "State.BeingFinished");
-	UE_DEFINE_GAMEPLAY_TAG(State_ComboWindow, "State.ComboWindow");
 	UE_DEFINE_GAMEPLAY_TAG(State_Dialogue, "State.Dialogue");
 
 	UE_DEFINE_GAMEPLAY_TAG(Effect_Invincible, "Effect.Invincible");
@@ -19,14 +18,15 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Movement_InAir, "Movement.InAir");
 	UE_DEFINE_GAMEPLAY_TAG(Movement_Sprint, "Movement.Sprint");
 
-	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact, "Event.HitReact");
-	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Normal, "Event.HitReact.Normal");
-	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_KnockBack, "Event.HitReact.KnockBack");
-	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_KnockDown, "Event.HitReact.KnockDown");
-	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_KnockUp, "Event.HitReact.KnockUp");
-	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Parry, "Event.HitReact.Parry");
-	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Finisher, "Event.HitReact.Finisher");
-	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact_Backstab, "Event.HitReact.Backstab");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Hit, "Event.Hit");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_Normal, "Event.Hit.Normal");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_KnockBack, "Event.Hit.KnockBack");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_KnockDown, "Event.Hit.KnockDown");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_KnockUp, "Event.Hit.KnockUp");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_Parry, "Event.Hit.Parry");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_Finisher, "Event.Hit.Finisher");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_Backstab, "Event.Hit.Backstab");
+	UE_DEFINE_GAMEPLAY_TAG(Event_DamageDealt, "Event.DamageDealt");
 	UE_DEFINE_GAMEPLAY_TAG(Event_DodgeSuccess, "Event.DodgeSuccess");
 	UE_DEFINE_GAMEPLAY_TAG(Event_PerfectGuard, "Event.PerfectGuard");
 	UE_DEFINE_GAMEPLAY_TAG(Event_UseItem, "Event.UseItem");
@@ -40,6 +40,7 @@ namespace WxGameplayTags
 	
 	UE_DEFINE_GAMEPLAY_TAG(Device_Button_Idle, "Device.Button.Idle");
 	UE_DEFINE_GAMEPLAY_TAG(Device_Button_Pressed, "Device.Button.Pressed");
+	UE_DEFINE_GAMEPLAY_TAG(Device_Button_Locked, "Device.Button.Locked");
 
 	UE_DEFINE_GAMEPLAY_TAG(Device_Door_Close, "Device.Door.Close");
 	UE_DEFINE_GAMEPLAY_TAG(Device_Door_Open, "Device.Door.Open");
@@ -60,8 +61,8 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_DamageFloater, "GameplayCue.DamageFloater");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Hit, "GameplayCue.Hit");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_PerfectGuard, "GameplayCue.PerfectGuard");
+	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_GhostTrail, "GameplayCue.GhostTrail");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Exceed, "GameplayCue.Exceed");
-	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Burn, "GameplayCue.Burn");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_AttackTelegraph_Red, "GameplayCue.AttackTelegraph.Red");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_AttackTelegraph_Yellow, "GameplayCue.AttackTelegraph.Yellow");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_AttackTelegraph_Blue, "GameplayCue.AttackTelegraph.Blue");
@@ -69,8 +70,8 @@ namespace WxGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(Damage_Critical, "Damage.Critical");
 	UE_DEFINE_GAMEPLAY_TAG(Damage_CanCritical, "Damage.CanCritical");
-	UE_DEFINE_GAMEPLAY_TAG(Damage_Unblockable, "Damage.Unblockable");
-	UE_DEFINE_GAMEPLAY_TAG(Damage_ParryHitReact, "Damage.ParryHitReact");
+	UE_DEFINE_GAMEPLAY_TAG(Damage_CanGuard, "Damage.CanGuard");
+	UE_DEFINE_GAMEPLAY_TAG(Damage_CanParry, "Damage.CanParry");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability, "Ability");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack, "Ability.Attack");
@@ -91,6 +92,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_UseItem, "Ability.UseItem");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Finisher, "Ability.Finisher");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_LockOn, "Ability.LockOn");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Passive, "Ability.Passive");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability_HitReact, "Ability.HitReact");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Groggy, "Ability.Groggy");
@@ -108,8 +110,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_9, "Ability.Pattern.9");
 
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Duration, "SetByCaller.Duration");
-	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Recovery_UP, "SetByCaller.Recovery.UP");
-	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Recovery_MP, "SetByCaller.Recovery.MP");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_DP, "SetByCaller.DP");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Coeff_ATK, "SetByCaller.Coeff.ATK");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_RawDamage, "SetByCaller.RawDamage");

@@ -60,15 +60,11 @@ private:
 	/** 게임 서브시스템이 들고 있는 활성 SaveGame. 없으면 Warning 을 남기고 null 을 답한다. */
 	UWxSaveGame* GetActiveSaveGame() const;
 
-	/** 현재 맵을 캡처해 게임 서브시스템의 TravelData 로 푸시한다. */
 	void FlushMapTravelData();
 
 	void FlushSavableActors();
 
-	/**
-	 * SaveGame 최상위 PlayerTransform(재개 지점)을 채운다.
-	 * ResumeTransform 이 주어지면 폰을 보지 않고 그 값을 그대로 쓴다. null 이면 첫 플레이어 폰의 트랜스폼을 캡처하고, 폰 부재 시 이전 캡처를 보존한다.
-	 */
+	/** ResumeTransform 이 null 이면 첫 플레이어 폰의 트랜스폼을 캡처하고, 폰 부재 시 이전 캡처를 보존한다. */
 	void FlushPlayerTransform(const FTransform* ResumeTransform);
 
 	/** 첫 플레이어 폰의 어트리뷰트를 SaveGame 최상위 PlayerStats 로 캡처한다(명시적 저장 경로 공통 — 체크포인트·메뉴 모두). */

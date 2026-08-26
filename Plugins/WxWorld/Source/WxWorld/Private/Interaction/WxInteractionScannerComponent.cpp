@@ -39,11 +39,11 @@ void UWxInteractionScannerComponent::BeginPlay()
 
 	if (UWorld* World = GetWorld())
 	{
-		World->GetTimerManager().SetTimer(ScanTimerHandle, this, &UWxInteractionScannerComponent::ScanAndPush, FMath::Max(ScanInterval, 0.01f), true);
+		World->GetTimerManager().SetTimer(ScanTimerHandle, this, &UWxInteractionScannerComponent::HandleScanTimer, FMath::Max(ScanInterval, 0.01f), true);
 	}
 
 	// 설정 즉시 1회 스캔해 진입 시점의 주변 상호작용을 바로 반영한다.
-	ScanAndPush();
+	HandleScanTimer();
 }
 
 void UWxInteractionScannerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -78,7 +78,6 @@ TArray<FText> UWxInteractionScannerComponent::GetPrompts() const
 	{
 		if (AActor* Actor = Weak.Get())
 		{
-			// 프롬프트는 대상이 IWxInteractable 로 제공한다(pull).
 			// 인덱스 정합을 위해 대상이 없으면 빈 텍스트로 자리를 채운다.
 			const IWxInteractable* Target = Cast<IWxInteractable>(Actor);
 			Prompts.Add(Target ? Target->GetInteractionPrompt() : FText::GetEmpty());
@@ -129,7 +128,7 @@ void UWxInteractionScannerComponent::ServerInteract_Implementation(AActor* Selec
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Pawn, WxGameplayTags::Event_Interact, EventData);
 }
 
-void UWxInteractionScannerComponent::ScanAndPush()
+void UWxInteractionScannerComponent::HandleScanTimer()
 {
 	APawn* Pawn = GetOwnerPawn();
 	UWorld* World = Pawn ? Pawn->GetWorld() : nullptr;
@@ -142,7 +141,7 @@ void UWxInteractionScannerComponent::ScanAndPush()
 
 	if (const UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn))
 	{
-		if (!CanInteractNow(ASC))
+		if (!CanActivateInteract(ASC))
 		{
 			UpdateInRange({});
 			return;
@@ -172,20 +171,19 @@ void UWxInteractionScannerComponent::ScanAndPush()
 		}
 		Examined.Add(Actor);
 
-		// 계약 구현체가 아닌 액터(바닥·벽·소품 등)는 여기서 탈락한다.
 		const IWxInteractable* Target = Cast<IWxInteractable>(Actor);
 		if (!Target)
 		{
 			continue;
 		}
 		
-		if (Target->CanInteract())
+		if (Target->CanInteract(Pawn))
 		{
 			Candidates.Add(Actor);
 		}
 	}
 
-	// 가까운 대상이 먼저 오도록 거리순 정렬한다(스캐너가 신규를 이 순서로 append).
+	// 신규 후보는 이 순서 그대로 목록 뒤에 붙는다.
 	Candidates.Sort([ScanOrigin](const AActor& A, const AActor& B)
 	{
 		return FVector::DistSquared(ScanOrigin, A.GetActorLocation()) < FVector::DistSquared(ScanOrigin, B.GetActorLocation());
@@ -300,13 +298,13 @@ void UWxInteractionScannerComponent::SetActorHighlighted(AActor* Actor, bool bHi
 	}
 }
 
-bool UWxInteractionScannerComponent::CanInteractNow(const UAbilitySystemComponent* ASC) const
+bool UWxInteractionScannerComponent::CanActivateInteract(const UAbilitySystemComponent* ASC) const
 {
-	// 클래스 의존을 피해 Ability.Interact 애셋 태그로 찾는다(UWxBTTask_ActivateAbility 와 동일 관례).
+	// 애셋 태그로 어빌리티를 지목하는 것은 UWxBTTask_ActivateAbility 와 동일한 관례다.
 	const FGameplayAbilityActorInfo* ActorInfo = ASC->AbilityActorInfo.Get();
 	if (!ActorInfo)
 	{
-		return true;
+		return false;
 	}
 
 	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
@@ -317,7 +315,7 @@ bool UWxInteractionScannerComponent::CanInteractNow(const UAbilitySystemComponen
 		}
 	}
 
-	return true;
+	return false;
 }
 
 APawn* UWxInteractionScannerComponent::GetOwnerPawn() const

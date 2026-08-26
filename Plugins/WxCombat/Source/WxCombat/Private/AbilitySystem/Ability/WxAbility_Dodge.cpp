@@ -3,7 +3,6 @@
 #include "AbilitySystem/Ability/WxAbility_Dodge.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
-#include "AbilitySystem/Effect/WxEffect_RecoverResource.h"
 #include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
 #include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
 #include "AbilitySystemComponent.h"
@@ -202,12 +201,24 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 	{
 		return;
 	}
-
-	UWxEffect_RecoverResource::ApplyTo(GetAbilitySystemComponentFromActorInfo(), 0.f, PerfectDodgeMPRecovery);
-
+	
 	if (UWxAbilityTask_SlowTime* SlowTimeTask = UWxAbilityTask_SlowTime::CreateTask(this, PerfectDodgeSlowTimeDilation, PerfectDodgeSlowTimeDuration))
 	{
 		SlowTimeTask->ReadyForActivation();
+	}
+
+	// 회피 섹션은 몸을 돌리지 않고 몸 기준 루트모션으로만 흐르므로, 그대로 두면 극한 회피 몽타주의 루트모션이 다시 몸 정면으로 나가 이동이 꺾인다.
+	// 루트모션 중 속도가 곧 진행 방향이라, 여기 맞춰 몸을 돌려 이동을 잇는다.
+	// 락온 중에는 락온 태스크가 매 틱 몸을 타겟으로 되돌리므로 돌리지 않는다.
+	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	AActor* Avatar = GetAvatarActorFromActorInfo();
+	if (Avatar && ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_LockOn))
+	{
+		const FVector MoveDirection = Avatar->GetVelocity().GetSafeNormal2D();
+		if (!MoveDirection.IsNearlyZero())
+		{
+			Avatar->SetActorRotation(MoveDirection.ToOrientationRotator());
+		}
 	}
 
 	if (!PlayMontage(PerfectDodgeMontage))
@@ -281,10 +292,12 @@ void UWxAbility_Dodge::DeactivateJudgementCapsule()
 
 void UWxAbility_Dodge::HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag)
 {
+	// CallServerSetReplicatedTargetData는 등록된 어떤 파생 타입도 실어 보낼 수 있으므로, 구조체를 확인하고 캐스트한다.
 	FVector LocalDirection = FVector::ZeroVector;
-	if (const FWxAbilityTargetData_Direction* DirectionData = static_cast<const FWxAbilityTargetData_Direction*>(DataHandle.Get(0)))
+	const FGameplayAbilityTargetData* ReceivedData = DataHandle.Get(0);
+	if (ReceivedData && ReceivedData->GetScriptStruct() == FWxAbilityTargetData_Direction::StaticStruct())
 	{
-		LocalDirection = DirectionData->Direction;
+		LocalDirection = static_cast<const FWxAbilityTargetData_Direction*>(ReceivedData)->Direction;
 	}
 
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())

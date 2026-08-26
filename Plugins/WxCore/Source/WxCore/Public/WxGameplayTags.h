@@ -18,9 +18,6 @@ namespace WxGameplayTags
 	/** 처형(앞잡·뒤잡) 피대상 표시. 연출 동안 WxAbility_Finisher가 대상 ASC에 권위 발행하며, 대상이 이 태그로 자기 처형 어포던스를 닫는다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_BeingFinished);
 
-	/** WxAnimNotifyState_ComboWindow가 부여/제거 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_ComboWindow);
-
 	/** 대화 세션 컴포넌트가 시작·종료에 맞춰 폰 ASC에 loose 태그로 발행. WxAbility_Interact가 ActivationBlockedTags로 사용해 대화 중 프롬프트 표시·상호작용을 닫는다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dialogue);
 
@@ -28,13 +25,13 @@ namespace WxGameplayTags
 	
 	// GE가 부여하는 태그. 애셋 태그로도 사용한다.
 
-	/** WxEffect_Invincible이 부여하며, 노티파이·컷신은 구간 길이를 스펙에 실어 스스로 만료되게 하고 처형은 활성 구간에 묶는다 */
+	/** WxEffect_Invincible이 부여하며, 구간을 연 쪽(노티파이 구간·컷신 태스크·처형의 활성 구간)이 수명을 쥔다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Invincible);
 
 	/** 가드 어빌리티가 WxEffect_Guard로 부여하되, SP 고갈로 가드가 깨지면 어빌리티가 도는 중에도 뗀다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Guard);
 
-	/** WxAnimNotifyState_PerfectGuard가 WxEffect_PerfectGuard로 구간 길이만큼 부여한다 */
+	/** 가드 몽타주의 노티파이 구간이 WxEffect_PerfectGuard로 부여하고 구간 끝에서 걷어낸다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_PerfectGuard);
 
 	/** SP를 소모하면 WxEffect_Exhaust가 일정 시간 부여한다. SP 자연 회복의 억제 조건 */
@@ -53,24 +50,26 @@ namespace WxGameplayTags
 
 	// ── Event ──────────────────────────────────────────────────────────────
 	
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact);
+	/**
+	 * 피격 이벤트. 대미지 파이프라인이 서버에서 피격자 ASC에 히트마다 한 번 보낸다.
+	 * 자식이 그 히트가 요청한 반응 종류다 — 반응이 있으면 자식을, 반응 없는 평타는 부모를 이벤트 태그로 보낸다.
+	 * 패리 반동·처형 짝 피격처럼 대미지 없는 반응 요청도 같은 계층에 EventMagnitude 0으로 싣는다.
+	 * 구독은 부모 매칭 API로 한다 — 정확 매칭(GenericGameplayEventCallbacks, WaitGameplayEvent 기본값)은 자식으로 나가는 반응 히트를 놓친다.
+	 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Normal);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_KnockBack);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_KnockDown);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_KnockUp);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Parry);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Finisher);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Backstab);
 
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Normal);
-
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_KnockBack);
-
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_KnockDown);
-
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_KnockUp);
-
-	/** 공격이 퍼펙트 가드로 막힌 공격자에게 송출 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Parry);
-
-	/** 피니셔(앞잡) 짝 피격 이벤트 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Finisher);
-
-	/** 백스탭(뒤잡) 피격 이벤트 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitReact_Backstab);
+	/**
+	 * 적중 이벤트의 공격자 몫. 대미지 파이프라인이 서버에서 공격자 ASC에 히트마다 한 번 보낸다.
+	 * EventMagnitude는 최종 대미지이고, ContextHandle에 그 히트를 낸 어빌리티가 실려 있다.
+	 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_DamageDealt);
 
 	/** 무적 구간에서 대미지를 회피했을 때 발송 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_DodgeSuccess);
@@ -103,6 +102,7 @@ namespace WxGameplayTags
 	
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Button_Idle);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Button_Pressed);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Button_Locked);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Door_Close);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Door_Open);
@@ -123,14 +123,10 @@ namespace WxGameplayTags
 	// ── GameplayCue ──────────────────────────────────────────────────────────────
 	
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_DamageFloater);
-
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Hit);
-
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_PerfectGuard);
-
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_GhostTrail);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Exceed);
-
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Burn);
 
 	/** 공격 경고(선딜 표시) */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_AttackTelegraph_Red);
@@ -144,17 +140,18 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_CanCritical);
 
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Unblockable);
+	/** 가드로 막을 수 있는 공격. 이 태그가 없으면 일반 가드도 퍼펙트 가드도 뚫는다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_CanGuard);
 
-	/** 패리 피격 유발 공격. 이 공격이 퍼펙트 가드로 막히면 공격자에게 Event.HitReact.Parry 송출 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_ParryHitReact);
+	/** 패리가 성립하는 공격. 이 공격이 퍼펙트 가드로 막히면 공격자가 DP를 반사받고 Event.Hit.Parry로 역경직에 걸린다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_CanParry);
 	
 	// ── Ability ──────────────────────────────────────────────────────────────
 	
 	/**
 	 * 어빌리티는 자신을 가리키는 식별 태그 Ability.X를 정확히 하나 갖고, AssetTags와 ActivationOwnedTags 양쪽에 넣는다.
 	 * 곧 "Ability.X = 그 어빌리티가 지금 활성화 중이다"가 성립한다.
-	 * 어빌리티의 성질을 나타내는 분류 마커는 이 루트가 아니라 Trait.*에 있다.
+	 * 어빌리티의 성질(배타 그룹 등)은 태그가 아니라 EWxAbilityActivationGroup(WxCombat)으로 선언한다.
 	*/
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability);
@@ -178,7 +175,10 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_UseItem);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Finisher);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_LockOn);
-	
+
+	/** 조립형 패시브(UWxAbility_Passive) 전원이 공유한다. 개별 패시브를 지목할 일이 생기면 그때 자식을 판다. */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Passive);
+
 	/** 플레이어 캐릭터, 적 공용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_HitReact);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Groggy);
@@ -200,12 +200,6 @@ namespace WxGameplayTags
 
 	/** 지속시간 Duration SetByCaller 키. NoCooldown/InfiniteMP/DrainDP 등 Duration 모디파이어에서 공용으로 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Duration);
-
-	/** UP 회복량 SetByCaller 키. WxEffect_RecoverResource의 UP 모디파이어에서 사용 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Recovery_UP);
-
-	/** MP 회복량 SetByCaller 키. WxEffect_RecoverResource의 MP 모디파이어에서 사용 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Recovery_MP);
 
 	/** DP 가산량 SetByCaller 키. WxEffect_AddDP의 DP 모디파이어에서 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_DP);

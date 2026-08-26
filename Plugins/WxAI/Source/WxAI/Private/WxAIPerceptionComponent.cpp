@@ -9,9 +9,12 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "GenericTeamAgentInterface.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/AISenseConfig_Damage.h"
+#include "Perception/AISense_Damage.h"
+#include "Perception/AISense_Sight.h"
 
 UWxAIPerceptionComponent::UWxAIPerceptionComponent()
 {
@@ -32,6 +35,11 @@ UWxAIPerceptionComponent::UWxAIPerceptionComponent()
 	HearingConfig->HearingRange = 1000.0f;
 
 	DamageConfig = CreateDefaultSubobject<UAISenseConfig_Damage>(TEXT("DamageConfig"));
+
+	// Sight 와 달리 이 둘은 성공 자극만 등록하는 일회성 센스라 해제 이벤트가 없다.
+	// MaxAge 를 비워 두면 GetMaxAge 가 NeverHappenedAge 를 돌려줘 자극이 영영 "감지 중" 으로 남으므로, 유한한 수명을 준다.
+	HearingConfig->SetMaxAge(5.0f);
+	DamageConfig->SetMaxAge(5.0f);
 
 	SetDominantSense(UAISense_Sight::StaticClass());
 	OnTargetPerceptionUpdated.AddDynamic(this, &UWxAIPerceptionComponent::HandleTargetPerceptionUpdated);
@@ -58,10 +66,28 @@ void UWxAIPerceptionComponent::PostInitProperties()
 	}
 }
 
+void UWxAIPerceptionComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// 배치된 폰은 컨트롤러 BeginPlay 전에 빙의되므로 델리게이트만으로는 첫 폰을 놓친다. 그 사이엔 게임플레이가 돌지 않아 여기서 따라잡으면 된다.
+	if (AController* Controller = Cast<AController>(GetOwner()))
+	{
+		Controller->OnPossessedPawnChanged.AddDynamic(this, &UWxAIPerceptionComponent::HandlePossessedPawnChanged);
+		BindPawnHit(Controller->GetPawn());
+	}
+}
+
 void UWxAIPerceptionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	// 타겟이 살아 있는 채로 컨트롤러째 사라지는 종료 경로에서도 구독을 안전하게 해제한다.
 	UnbindTargetLoss();
+	UnbindPawnHit();
+
+	if (AController* Controller = Cast<AController>(GetOwner()))
+	{
+		Controller->OnPossessedPawnChanged.RemoveDynamic(this, &UWxAIPerceptionComponent::HandlePossessedPawnChanged);
+	}
 
 	Super::EndPlay(EndPlayReason);
 }
@@ -137,15 +163,31 @@ void UWxAIPerceptionComponent::SetTargetingSuppressed(bool bSuppressed)
 	else
 	{
 		// Sight 는 감지 여부가 바뀔 때만 갱신을 방송하므로, 억제 중 계속 보이던 대상은 해제 후 새 자극이 오지 않는다. 현재 감지 상태를 직접 읽어 재획득한다.
+		// 판정을 Sight 로 좁히는 것이 핵심이다. 모든 센스를 함께 보면 만료되지 않는 청각·촉각 자극 때문에 한 번 싸운 상대를 시야 밖에서도 다시 집어, 리시 복귀가 곧바로 재추격으로 되돌아간다.
+		const FAISenseID SightID = UAISense::GetSenseID<UAISense_Sight>();
+		const APawn* Pawn = GetOwnerPawn();
+		const FVector PawnLocation = Pawn ? Pawn->GetActorLocation() : FVector::ZeroVector;
+
+		AActor* Nearest = nullptr;
+		float NearestDistanceSquared = TNumericLimits<float>::Max();
 		for (FActorPerceptionContainer::TConstIterator It = GetPerceptualDataConstIterator(); It; ++It)
 		{
-			AActor* Target = It->Value.HasAnyCurrentStimulus() ? It->Value.Target.Get() : nullptr;
-			if (Target && !IsActorDead(Target))
+			AActor* Target = It->Value.Target.Get();
+			if (!Target || IsActorDead(Target) || !HasActiveStimulus(*Target, SightID))
 			{
-				SetTargetActor(Target);
-				break;
+				continue;
+			}
+
+			// TMap 순회 순서는 보장되지 않으므로, 보이는 적이 여럿이면 가장 가까운 쪽으로 확정한다.
+			const float DistanceSquared = FVector::DistSquared(PawnLocation, Target->GetActorLocation());
+			if (DistanceSquared < NearestDistanceSquared)
+			{
+				NearestDistanceSquared = DistanceSquared;
+				Nearest = Target;
 			}
 		}
+
+		SetTargetActor(Nearest);
 	}
 
 	// 인식은 판정에 맡긴다 — 억제 중이면 자연히 꺼지고, 해제 후엔 재획득 결과를 따른다.
@@ -210,6 +252,64 @@ void UWxAIPerceptionComponent::UnbindTargetLoss()
 	TargetDeathTagDelegateHandle.Reset();
 }
 
+void UWxAIPerceptionComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
+{
+	BindPawnHit(NewPawn);
+}
+
+void UWxAIPerceptionComponent::HandlePawnHit(FGameplayTag MatchingTag, const FGameplayEventData* Payload)
+{
+	// 패리 반동·처형 짝 피격은 대미지 없이 같은 이벤트를 쓰므로 자극에서 뺀다.
+	if (!Payload || Payload->EventMagnitude <= 0.f)
+	{
+		return;
+	}
+
+	APawn* Pawn = GetOwnerPawn();
+	AActor* DamageInstigator = Payload->ContextHandle.GetInstigator();
+	if (!Pawn || !DamageInstigator)
+	{
+		return;
+	}
+
+	// Sight·Hearing 과 달리 Damage 센스에는 DetectionByAffiliation 이 없어 엔진이 가해자를 가려 주지 않는다. 여기서 막지 않으면 아군 오사 한 번에 서로를 타겟으로 확정한다.
+	if (FGenericTeamId::GetAttitude(Pawn, DamageInstigator) != ETeamAttitude::Hostile)
+	{
+		return;
+	}
+
+	// 가해자 위치가 자극 위치이고, 타격점이 있으면 그 지점을 함께 넘긴다.
+	const FHitResult* HitResult = Payload->ContextHandle.GetHitResult();
+	const FVector HitLocation = HitResult ? FVector(HitResult->ImpactPoint) : Pawn->GetActorLocation();
+	UAISense_Damage::ReportDamageEvent(this, Pawn, DamageInstigator, Payload->EventMagnitude, DamageInstigator->GetActorLocation(), HitLocation);
+}
+
+void UWxAIPerceptionComponent::BindPawnHit(APawn* Pawn)
+{
+	UnbindPawnHit();
+
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
+	if (!ASC)
+	{
+		return;
+	}
+
+	// 반응 히트는 Event.Hit 자식으로 나가므로 정확 매칭 구독은 놓친다. 컨테이너 델리게이트로 부모 매칭한다.
+	AbilitySystemComponent = ASC;
+	PawnHitDelegateHandle = ASC->AddGameplayEventTagContainerDelegate(FGameplayTagContainer(WxGameplayTags::Event_Hit),
+		FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &UWxAIPerceptionComponent::HandlePawnHit));
+}
+
+void UWxAIPerceptionComponent::UnbindPawnHit()
+{
+	if (UAbilitySystemComponent* ASC = AbilitySystemComponent.Get())
+	{
+		ASC->RemoveGameplayEventTagContainerDelegate(FGameplayTagContainer(WxGameplayTags::Event_Hit), PawnHitDelegateHandle);
+	}
+	AbilitySystemComponent = nullptr;
+	PawnHitDelegateHandle.Reset();
+}
+
 void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)
 {
 	UBlackboardComponent* BB = GetBlackboard();
@@ -248,10 +348,13 @@ void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)
 	else
 	{
 		AIC->ClearFocus(EAIFocusPriority::Gameplay);
-		if (Movement)
+
+		// 평상시 회전 모드는 폰마다 다를 수 있으므로, 상수 대신 컴포넌트 아키타입(폰 BP·C++ 생성자 기본값)에서 읽어 되돌린다.
+		const UCharacterMovementComponent* MovementDefaults = Movement ? Cast<UCharacterMovementComponent>(Movement->GetArchetype()) : nullptr;
+		if (MovementDefaults)
 		{
-			Movement->bUseControllerDesiredRotation = false;
-			Movement->bOrientRotationToMovement = true;
+			Movement->bUseControllerDesiredRotation = MovementDefaults->bUseControllerDesiredRotation;
+			Movement->bOrientRotationToMovement = MovementDefaults->bOrientRotationToMovement;
 		}
 	}
 }

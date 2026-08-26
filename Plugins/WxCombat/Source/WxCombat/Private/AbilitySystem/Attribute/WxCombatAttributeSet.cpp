@@ -43,55 +43,14 @@ void UWxCombatAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribu
 {
 	Super::PreAttributeChange(Attribute, NewValue);
 
-	NewValue = FMath::Max(NewValue, 0.f);
-
-	if (Attribute == GetHPAttribute())
-	{
-		const float CurrentMaxHP = GetMaxHP();
-		if (CurrentMaxHP > 0.f)
-		{
-			NewValue = FMath::Min(NewValue, CurrentMaxHP);
-		}
-	}
-	else if (Attribute == GetMPAttribute())
-	{
-		const float CurrentMaxMP = GetMaxMP();
-		if (CurrentMaxMP > 0.f)
-		{
-			NewValue = FMath::Min(NewValue, CurrentMaxMP);
-		}
-	}
-	else if (Attribute == GetSPAttribute())
-	{
-		const float CurrentMaxSP = GetMaxSP();
-		if (CurrentMaxSP > 0.f)
-		{
-			NewValue = FMath::Min(NewValue, CurrentMaxSP);
-		}
-	}
-	else if (Attribute == GetDPAttribute())
-	{
-		const float CurrentMaxDP = GetMaxDP();
-		if (CurrentMaxDP > 0.f)
-		{
-			NewValue = FMath::Min(NewValue, CurrentMaxDP);
-		}
-	}
-	else if (Attribute == GetUPAttribute())
-	{
-		const float CurrentMaxUP = GetMaxUP();
-		if (CurrentMaxUP > 0.f)
-		{
-			NewValue = FMath::Min(NewValue, CurrentMaxUP);
-		}
-	}
+	ClampAttribute(Attribute, NewValue);
 }
 
 void UWxCombatAttributeSet::PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const
 {
 	Super::PreAttributeBaseChange(Attribute, NewValue);
 
-	NewValue = FMath::Max(NewValue, 0.f);
+	ClampAttribute(Attribute, NewValue);
 }
 
 void UWxCombatAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
@@ -160,7 +119,7 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 				}
 			}
 
-			// 화상도 IncomingDamage를 지나므로 GE 종류로 걸러야 틱마다 반응과 연출이 다시 나가지 않는다.
+			// 즉사 치트도 IncomingDamage를 지나므로 GE 종류로 걸러야 타격 반응과 연출이 딸려 나가지 않는다.
 			// 사망 처리 뒤라야 Ability.Death가 붙은 상태가 되어 히트리액트가 그 태그로 차단된다.
 			if (Data.EffectSpec.Def && Data.EffectSpec.Def->IsA<UWxEffect_Damage>())
 			{
@@ -176,18 +135,8 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 		// 반사량이 0이어도 퍼펙트 가드 성공 자체는 알려야 한다.
 		ProcessPerfectGuard(Data, ReflectAmount);
 	}
-	else if (Data.EvaluatedData.Attribute == GetHPAttribute())
-	{
-		SetHP(FMath::Clamp(GetHP(), 0.f, GetMaxHP()));
-	}
-	else if (Data.EvaluatedData.Attribute == GetMPAttribute())
-	{
-		SetMP(FMath::Clamp(GetMP(), 0.f, GetMaxMP()));
-	}
 	else if (Data.EvaluatedData.Attribute == GetSPAttribute())
 	{
-		SetSP(FMath::Clamp(GetSP(), 0.f, GetMaxSP()));
-
 		// SP를 깎는 GE는 질주 소모든 회피 코스트든 가드 피격이든 모두 이 지점을 지난다.
 		// 남은 양이 아니라 소모 후 결과로 지속시간을 고르므로, 0에서 또 깎여도 짧은 쪽으로 갱신되지 않는다.
 		// MaxSP가 없는 아바타는 스태미나를 쓰지 않으므로 제외한다.
@@ -196,14 +145,6 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 		{
 			UWxEffect_Exhaust::ApplyTo(ASC, GetSP() <= 0.f ? UWxEffect_Exhaust::ExhaustDuration : UWxEffect_Exhaust::ConsumeDelay);
 		}
-	}
-	else if (Data.EvaluatedData.Attribute == GetDPAttribute())
-	{
-		SetDP(FMath::Clamp(GetDP(), 0.f, GetMaxDP()));
-	}
-	else if (Data.EvaluatedData.Attribute == GetUPAttribute())
-	{
-		SetUP(FMath::Clamp(GetUP(), 0.f, GetMaxUP()));
 	}
 }
 
@@ -287,6 +228,38 @@ void UWxCombatAttributeSet::OnRep_ASPD(const FGameplayAttributeData& OldASPD)
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, ASPD, OldASPD);
 }
 
+void UWxCombatAttributeSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const
+{
+	NewValue = FMath::Max(NewValue, 0.f);
+
+	float MaxValue = 0.f;
+	if (Attribute == GetHPAttribute())
+	{
+		MaxValue = GetMaxHP();
+	}
+	else if (Attribute == GetMPAttribute())
+	{
+		MaxValue = GetMaxMP();
+	}
+	else if (Attribute == GetSPAttribute())
+	{
+		MaxValue = GetMaxSP();
+	}
+	else if (Attribute == GetDPAttribute())
+	{
+		MaxValue = GetMaxDP();
+	}
+	else if (Attribute == GetUPAttribute())
+	{
+		MaxValue = GetMaxUP();
+	}
+
+	if (MaxValue > 0.f)
+	{
+		NewValue = FMath::Min(NewValue, MaxValue);
+	}
+}
+
 void UWxCombatAttributeSet::ProcessDamageTaken(const FGameplayEffectModCallbackData& Data, float Damage)
 {
 	UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
@@ -302,33 +275,38 @@ void UWxCombatAttributeSet::ProcessDamageTaken(const FGameplayEffectModCallbackD
 	AActor* TargetActor = GetOwningActor();
 	UAbilitySystemComponent* SourceASC = ContextHandle.GetInstigatorAbilitySystemComponent();
 
-	// 공격이 요청한 반응 태그는 스펙에 실려 온다 — 바로 아래 Damage.Unblockable을 읽는 것과 같은 자리다.
-	FGameplayTag HitReactTag = Data.EffectSpec.GetDynamicAssetTags().Filter(FGameplayTagContainer(WxGameplayTags::Event_HitReact)).First();
+	// 공격이 요청한 반응 종류는 스펙에 Event.Hit 자식 태그로 실려 온다 — 바로 아래 Damage.CanGuard를 읽는 것과 같은 자리다.
+	const FGameplayTag ReactionTag = Data.EffectSpec.GetDynamicAssetTags().Filter(FGameplayTagContainer(WxGameplayTags::Event_Hit)).First();
 
-	if (ASC->HasMatchingGameplayTag(WxGameplayTags::Effect_Guard))
+	// Guard가 같은 피격 이벤트로 흡수 몽타주를 틀므로, 가드로 막히지 않는 히트는 이벤트보다 먼저 가드를 끊어야 한다.
+	if (ASC->HasMatchingGameplayTag(WxGameplayTags::Effect_Guard) && !Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanGuard))
 	{
-		if (Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Unblockable))
-		{
-			// HitReact 어빌리티가 Effect.Guard로 차단되므로 반응 이벤트보다 먼저 가드를 끊어야 한다.
-			const FGameplayTagContainer GuardAbilityTags(WxGameplayTags::Ability_Guard);
-			ASC->CancelAbilities(&GuardAbilityTags);
-		}
-		else if (!HitReactTag.IsValid())
-		{
-			// 명시 태그가 없는 평타 피격에도 가드 흡수 애니메이션은 나와야 한다.
-			HitReactTag = WxGameplayTags::Event_HitReact_Normal;
-		}
+		const FGameplayTagContainer GuardAbilityTags(WxGameplayTags::Ability_Guard);
+		ASC->CancelAbilities(&GuardAbilityTags);
 	}
 
 	// 죽는 히트는 Ability.Death가 이미 붙어 있어 히트리액트가 그 태그로 차단된다.
 	// 히트리액트를 재생했다 사망으로 끊는 대신 곧장 사망으로 가는 쪽을 택했다.
-	if (HitReactTag.IsValid())
+	// 반응이 있으면 그 자식이 이벤트 태그다. 평타는 부모 그대로라, 자식만 트리거로 등록한 HitReact엔 닿지 않는다.
+	const FGameplayTag HitEventTag = ReactionTag.IsValid() ? ReactionTag : WxGameplayTags::Event_Hit;
+	FGameplayEventData HitEventData;
+	HitEventData.EventTag = HitEventTag;
+	HitEventData.Instigator = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
+	HitEventData.Target = TargetActor;
+	HitEventData.EventMagnitude = Damage;
+	HitEventData.ContextHandle = ContextHandle;
+	ASC->HandleGameplayEvent(HitEventTag, &HitEventData);
+
+	// 같은 히트의 공격자 몫. 적중 보상 패시브가 이걸 듣고, 몇 번까지 줄지는 그쪽이 정한다.
+	if (SourceASC)
 	{
-		FGameplayEventData EventData;
-		EventData.Instigator = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
-		EventData.Target = TargetActor;
-		EventData.EventMagnitude = Damage;
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, HitReactTag, EventData);
+		FGameplayEventData DamageDealtEventData;
+		DamageDealtEventData.EventTag = WxGameplayTags::Event_DamageDealt;
+		DamageDealtEventData.Instigator = SourceASC->GetOwnerActor();
+		DamageDealtEventData.Target = TargetActor;
+		DamageDealtEventData.EventMagnitude = Damage;
+		DamageDealtEventData.ContextHandle = ContextHandle;
+		SourceASC->HandleGameplayEvent(WxGameplayTags::Event_DamageDealt, &DamageDealtEventData);
 	}
 
 	// 플로터는 큐 노티파이가 대상 액터 위치에서 직접 띄우므로 Location을 채우지 않는다.
@@ -357,9 +335,12 @@ void UWxCombatAttributeSet::ProcessPerfectGuard(const FGameplayEffectModCallback
 	UAbilitySystemComponent* SourceASC = ContextHandle.GetInstigatorAbilitySystemComponent();
 	AActor* SourceActor = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
 
+	// 공격자에게 돌아가는 반동 두 갈래는 한 스위치를 따른다 — 패리가 성립하지 않는 공격은 DP도 역경직도 돌려주지 않는다.
+	const bool bCanParry = Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanParry);
+
 	// 대상의 DP 가산과 같은 이유로 이미 그로기인 공격자에겐 반사하지 않는다.
 	// DP를 MaxDP로 되돌리면 남은 드레인 시간으로는 0에 닿지 못해 그로기가 안전 타이머까지 늘어진다.
-	if (SourceASC && !SourceASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
+	if (bCanParry && SourceASC && !SourceASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
 	{
 		UWxEffect_AddDP::ApplyTo(SourceASC, ReflectAmount);
 	}
@@ -369,12 +350,14 @@ void UWxCombatAttributeSet::ProcessPerfectGuard(const FGameplayEffectModCallback
 	EventData.Target = TargetActor;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_PerfectGuard, EventData);
 
-	if (SourceActor && Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_ParryHitReact))
+	// 공격자에게 패리 반동을 요청한다. 대미지는 없으므로 EventMagnitude는 0이다.
+	if (bCanParry && SourceActor)
 	{
 		FGameplayEventData ParryEventData;
+		ParryEventData.EventTag = WxGameplayTags::Event_Hit_Parry;
 		ParryEventData.Instigator = TargetActor;
 		ParryEventData.Target = SourceActor;
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(SourceActor, WxGameplayTags::Event_HitReact_Parry, ParryEventData);
+		SourceASC->HandleGameplayEvent(WxGameplayTags::Event_Hit_Parry, &ParryEventData);
 	}
 
 	// 컨텍스트만 넘기면 UWxAbilitySystemGlobals가 ImpactPoint를 Location으로 채운다 — 이 큐는 그 자리에서 나이아가라와 사운드를 낸다.

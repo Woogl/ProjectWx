@@ -7,7 +7,8 @@
 #include "WxAnimNotifyState_ComboWindow.generated.h"
 
 /**
- * 구간 동안 ASC에 State.ComboWindow 태그를 부여하며, 이 안에서 들어온 공격 입력이 다음 콤보로 이어진다.
+ * 구간 동안 이 몽타주를 재생 중인 어빌리티의 자기 재발동을 열어 다음 콤보 단으로 넘어갈 수 있게 한다.
+ * 회피·가드 같은 남의 캔슬은 열지 않는다 — 그쪽은 더 늦게 WxAnimNotify_StartRecovery가 연다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAnimNotifyState_ComboWindow : public UAnimNotifyState

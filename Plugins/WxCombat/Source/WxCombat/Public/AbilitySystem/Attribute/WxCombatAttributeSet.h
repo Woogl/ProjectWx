@@ -176,13 +176,26 @@ protected:
 
 private:
 	/**
-	 * 적중이 확정된 뒤 그 히트의 판정 결과를 소비한다 — 공격자 자원 회복, 가드 해제, 반응 이벤트, 대미지 플로터.
+	 * 어트리뷰트 값의 허용 범위를 강제한다 — 하한 0, 짝 최대치가 있는 자원은 그 값이 상한.
+	 *
+	 * Current와 Base 양쪽 Pre 훅이 같은 규칙을 쓰도록 한 곳에 모았다.
+	 * 최대치가 아직 0인 초기화 도중에는 상한을 걸지 않는다 — 짝이 채워지기 전에 자원이 0으로 눌린다.
+	 */
+	void ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const;
+
+	/**
+	 * 적중이 확정된 뒤 그 히트의 판정 결과를 소비한다 — 가드 해제, 피격 이벤트(반응 종류 동봉), 대미지 플로터.
 	 *
 	 * 판정은 UWxExecCalc_Damage가 FWxCombatEffectContext에 남긴 것을 그대로 쓴다.
 	 * IncomingDamage가 ExecCalc 출력의 맨 뒤라서, 여기 닿을 때는 SP·DP까지 확정돼 있다.
 	 */
 	void ProcessDamageTaken(const FGameplayEffectModCallbackData& Data, float Damage);
 
-	/** 퍼펙트 가드로 막아낸 히트의 후속 — 공격자에게 반사 DP, 양쪽 반응 이벤트, 큐 */
+	/**
+	 * 퍼펙트 가드로 막아낸 히트의 후속 — 공격자에게 반사 DP, 가드자에 퍼펙트 가드 이벤트, 공격자에 패리 반동 피격 이벤트, 큐.
+	 *
+	 * 공격자에게 돌아가는 두 갈래(반사 DP·패리 반동)는 공격이 Damage.CanParry를 달았을 때만 나간다.
+	 * 가드자가 보는 이벤트와 큐는 반사량이 0이어도 나간다 — 막아낸 사실 자체는 늘 알려야 한다.
+	 */
 	void ProcessPerfectGuard(const FGameplayEffectModCallbackData& Data, float ReflectAmount);
 };

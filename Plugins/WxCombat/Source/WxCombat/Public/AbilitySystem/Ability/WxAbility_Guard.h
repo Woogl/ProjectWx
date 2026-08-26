@@ -17,8 +17,8 @@ class UAnimMontage;
  *  PerfectGuardMontage   – 퍼펙트 가드 성공 후 재생, 완주하면 종료(가드 키를 쥐고 있으면 가드가 새로 발동해 복귀)
  *                          완주 전에 후속 피격이 오면 리액션 페이즈로 끊긴다
  *
- * Unblockable 피격은 퍼펙트 가드 윈도우 중이라도 가드로 막히지 않는다.
- * UWxCombatAttributeSet::PostGameplayEffectExecute가 이 어빌리티를 Cancel한 뒤 HitReact 이벤트를 발송한다.
+ * Damage.CanGuard가 없는 피격은 퍼펙트 가드 윈도우 중이라도 가드로 막히지 않는다.
+ * UWxCombatAttributeSet::PostGameplayEffectExecute가 이 어빌리티를 Cancel한 뒤 Event.Hit을 보낸다.
  *
  * 가드 반격은 여기서 다루지 않는다 — Effect.Guard만 발행하면 공격 어빌리티가 그 태그로 자기 반격 세트를 고른다.
  * 진입 시점은 가드 몽타주의 StartRecovery가 차단을 푸는 때다.
@@ -60,9 +60,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> PerfectGuardMontage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|PerfectGuard")
-	float PerfectGuardMPRecovery = 5.f;
 	
 	/** 퍼펙트 가드 성공 시 적용할 GlobalTimeDilation 값 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|SlowTime", meta = (ClampMin = "0.01"))
@@ -76,7 +73,7 @@ private:
 	void ListenForPerfectGuard();
 
 	UFUNCTION()
-	void HandleGuardHitReact(FGameplayEventData Payload);
+	void HandleHit(FGameplayEventData Payload);
 
 	UFUNCTION()
 	void HandlePerfectGuard(FGameplayEventData Payload);

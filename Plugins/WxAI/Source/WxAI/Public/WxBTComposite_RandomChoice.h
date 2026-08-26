@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
@@ -22,6 +22,8 @@ struct FWxBTRandomChoiceMemory : public FBTCompositeMemory
  * 후보 수집 시 각 자식의 조건 Decorator 를 평가해, 실행이 막힌 자식은 추첨에서 제외한다.
  * RandomWeight Decorator 는 조건이 아니므로 이 필터에 걸리지 않지만, 가중치가 0 인 자식은 뽑힐 수 없으므로 후보에서 제외한다.
  * 유효 후보가 하나도 없으면 아무 자식도 실행하지 않고 실패를 반환한다.
+ * 조건으로 막힌 자식은 엔진이 FindChildToExecute 에서 하듯 활성화 실패로 알려, 그 자식의 LowerPriority·Both Decorator 가 관찰자로 등록되고 실행 중인 형제를 선점할 수 있게 한다.
+ * 가중치 0 이나 회피로 빠진 자식은 조건이 통과한 자식이므로 이 알림 대상이 아니다.
  *
  * Selector 시멘틱과 다르다 — 일단 선택된 자식이 실행 후 실패해도 다른 자식으로 폴백하지 않고 그대로 실패를 반환한다.
  *

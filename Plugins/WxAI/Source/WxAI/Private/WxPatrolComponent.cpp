@@ -3,7 +3,7 @@
 #include "WxPatrolComponent.h"
 
 #include "Components/ArrowComponent.h"
-#include "GameFramework/Actor.h"
+#include "GameFramework/Controller.h"
 
 UWxPatrolComponent::UWxPatrolComponent()
 {
@@ -20,28 +20,12 @@ UWxPatrolComponent::UWxPatrolComponent()
 #endif
 }
 
-UWxPatrolComponent* UWxPatrolComponent::FindPatrolComponent(const AActor* Actor)
+UWxPatrolComponent* UWxPatrolComponent::FindPatrolComponent(const AController* Controller)
 {
-	if (!Actor)
-	{
-		return nullptr;
-	}
+	// 정찰 경로는 항상 스폰 주체(AWxSpawner)에 붙고, 그 스폰 주체는 AWxEnemyController 가 자기 Owner 로 물고 있다.
+	const AActor* Spawner = Controller ? Controller->GetOwner() : nullptr;
 
-	// 스포너는 스폰 대상을 부착하지 않고 Owner 로만 자신을 지정하므로, Owner 를 먼저 본다.
-	if (const AActor* Owner = Actor->GetOwner())
-	{
-		if (UWxPatrolComponent* Found = Owner->FindComponentByClass<UWxPatrolComponent>())
-		{
-			return Found;
-		}
-	}
-
-	if (const AActor* AttachParent = Actor->GetAttachParentActor())
-	{
-		return AttachParent->FindComponentByClass<UWxPatrolComponent>();
-	}
-
-	return nullptr;
+	return Spawner ? Spawner->FindComponentByClass<UWxPatrolComponent>() : nullptr;
 }
 
 int32 UWxPatrolComponent::GetNumPoints() const

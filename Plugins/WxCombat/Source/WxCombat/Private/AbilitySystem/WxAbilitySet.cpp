@@ -6,34 +6,7 @@
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeInitTableRow.h"
 
-void FWxAbilitySetGrantedHandles::RemoveFromAbilitySystem(UWxAbilitySystemComponent* ASC)
-{
-	if (!ASC)
-	{
-		return;
-	}
-
-	for (const FGameplayAbilitySpecHandle& Handle : AbilitySpecHandles)
-	{
-		if (Handle.IsValid())
-		{
-			ASC->ClearAbility(Handle);
-		}
-	}
-
-	for (const FActiveGameplayEffectHandle& Handle : EffectHandles)
-	{
-		if (Handle.IsValid())
-		{
-			ASC->RemoveActiveGameplayEffect(Handle);
-		}
-	}
-
-	AbilitySpecHandles.Reset();
-	EffectHandles.Reset();
-}
-
-void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC, FWxAbilitySetGrantedHandles* OutHandles) const
+void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC) const
 {
 	if (!ASC)
 	{
@@ -72,11 +45,7 @@ void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC, FWxAbili
 		const FGameplayEffectSpecHandle Spec = ASC->MakeOutgoingSpec(Effect, 1, Context);
 		if (Spec.IsValid())
 		{
-			const FActiveGameplayEffectHandle Handle = ASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
-			if (OutHandles)
-			{
-				OutHandles->EffectHandles.Add(Handle);
-			}
+			ASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
 		}
 	}
 
@@ -89,11 +58,7 @@ void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC, FWxAbili
 
 		FGameplayAbilitySpec Spec(AbilityClass, 1);
 
-		const FGameplayAbilitySpecHandle Handle = ASC->GiveAbility(Spec);
-		if (OutHandles)
-		{
-			OutHandles->AbilitySpecHandles.Add(Handle);
-		}
+		ASC->GiveAbility(Spec);
 	}
 }
 

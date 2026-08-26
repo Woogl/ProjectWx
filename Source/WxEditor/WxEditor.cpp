@@ -2,17 +2,20 @@
 
 #include "WxEditor.h"
 
+#include "Components/StateTreeComponent.h"
 #include "Editor.h"
+#include "Editor/UnrealEdEngine.h"
 #include "Engine/Blueprint.h"
 #include "Engine/DataTable.h"
 #include "Framework/WxExperienceManager.h"
-#include "Device/WxComponentName.h"
+#include "Device/WxStateTreeComponentName.h"
 #include "Items/WxItemDefinition.h"
 #include "Modules/ModuleManager.h"
 #include "PropertyEditorModule.h"
 #include "ThumbnailRendering/BlueprintThumbnailRenderer.h"
 #include "ThumbnailRendering/ThumbnailManager.h"
 #include "UniversalObjectLocator.h"
+#include "UnrealEdGlobals.h"
 #include "UObject/Object.h"
 #include "UObject/UObjectGlobals.h"
 #include "WxAbilityThumbnailRenderer.h"
@@ -20,6 +23,7 @@
 #include "WxCategoryDetailCustomization.h"
 #include "WxStateTreeComponentNameCustomization.h"
 #include "WxDataTableRowHandleCustomization.h"
+#include "WxDeviceLinkVisualizer.h"
 #include "WxItemDefinitionThumbnailRenderer.h"
 
 IMPLEMENT_MODULE(FWxEditorModule, WxEditor)
@@ -51,7 +55,7 @@ void FWxEditorModule::StartupModule()
 
 	// 장치 컴포넌트 지정 필드 — Context 액터 클래스에서 뽑은 컴포넌트 이름 콤보.
 	PropertyModule.RegisterCustomPropertyTypeLayout(
-		FWxComponentName::StaticStruct()->GetFName(),
+		FWxStateTreeComponentName::StaticStruct()->GetFName(),
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FWxStateTreeComponentNameCustomization::MakeInstance));
 
 	PropertyModule.NotifyCustomizationModuleChanged();
@@ -68,10 +72,21 @@ void FWxEditorModule::StartupModule()
 		UWxAbilityThumbnailRenderer::StaticClass());
 
 	BeginPIEHandle = FEditorDelegates::BeginPIE.AddRaw(this, &FWxEditorModule::HandleBeginPIE);
+
+	// 엔진은 UStateTreeComponent 자리를 비워 두었고, 에디터가 클래스 사슬을 거슬러 찾으므로 장치의 파생 컴포넌트까지 덮인다.
+	if (GUnrealEd)
+	{
+		GUnrealEd->RegisterComponentVisualizer(UStateTreeComponent::StaticClass()->GetFName(), MakeShared<FWxDeviceLinkVisualizer>());
+	}
 }
 
 void FWxEditorModule::ShutdownModule()
 {
+	if (GUnrealEd)
+	{
+		GUnrealEd->UnregisterComponentVisualizer(UStateTreeComponent::StaticClass()->GetFName());
+	}
+
 	FEditorDelegates::BeginPIE.Remove(BeginPIEHandle);
 	BeginPIEHandle.Reset();
 
@@ -85,7 +100,7 @@ void FWxEditorModule::ShutdownModule()
 			ActorLocatorIdentifier.Reset();
 		}
 		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("DataTableRowHandle"));
-		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("WxComponentName"));
+		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("WxStateTreeComponentName"));
 		PropertyModule.NotifyCustomizationModuleChanged();
 	}
 

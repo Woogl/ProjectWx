@@ -26,7 +26,7 @@ AWxItemPickup::AWxItemPickup()
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	SetRootComponent(MeshComponent);
 
-	// 쿼리 콜리전이 켜져 있어야 스캔·사거리 판정에 걸리지만, 대상 자격 자체는 콜리전 프리셋·응답과 무관하다(IsInteractionEnabled 로 답한다).
+	// 쿼리 콜리전이 켜져 있어야 스캔·사거리 판정에 걸리지만, 대상 자격 자체는 콜리전 프리셋·응답과 무관하다(CanInteract 로 답한다).
 	// 아래 콜리전은 순전히 LaunchInDirection 의 물리 발사와 월드 충돌을 위한 것이다.
 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	MeshComponent->SetCollisionObjectType(ECC_WorldDynamic);

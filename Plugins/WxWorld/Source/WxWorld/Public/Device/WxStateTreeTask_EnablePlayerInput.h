@@ -35,7 +35,7 @@ struct FWxStateTreeTask_EnablePlayerInputInstanceData
 
 /**
  * 진입 시 로컬 플레이어 폰의 입력 전체를 bEnable 로 토글한 뒤 Succeeded 로 완료한다('Enable Interaction' 과 동형의 토글 태스크).
- * 각 상태가 자기 입력 가용 여부를 선언하도록 상태마다 둔다(예: 컷신 Playing 은 false, Idle 은 true). 직접 복원/레이트조인 시에도 일관되게 적용된다.
+ * 진입 경로를 가리지 않으므로 직접 복원/레이트조인 시에도 일관되게 적용된다.
  * 끈 경우에는 그 대상(폰/컨트롤러)을 기록해 두고 ExitState 가 그 기록만 근거로 되돌린다 — 다음 상태에 Enable Player Input(true) 를 배선하지 않았거나 연출 중 장치 액터/셀이 사라져 ST 가 멈춰도 입력이 꺼진 채 남지 않는다.
  * 로컬 플레이어 컨트롤러/폰이 없으면(예: 데디 서버) 노옵.
  *

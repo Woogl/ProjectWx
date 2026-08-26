@@ -16,12 +16,16 @@ UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 
 void UWxAbilitySystemComponent::GiveAbilitySet()
 {
-	if (!AbilitySet)
+	// ASC는 캐릭터 서브오브젝트라 재빙의 후에도 앞서 부여한 어빌리티를 그대로 쥐고 있다.
+	// 다시 부여하면 어빌리티·GE가 중복되고 어트리뷰트 초기화가 HP/SP를 초기값으로 되돌린다.
+	if (!AbilitySet || bAbilitySetGranted)
 	{
 		return;
 	}
 
-	AbilitySet->GiveToAbilitySystem(this, &AbilitySetGrantedHandles);
+	bAbilitySetGranted = true;
+
+	AbilitySet->GiveToAbilitySystem(this);
 }
 
 void UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* Action)
@@ -58,7 +62,13 @@ void UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* 
 		{
 			AbilitySpecInputPressed(Spec);
 
-			for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
+			// 홀드 입력은 매 프레임 여기까지 오므로 사본을 만드는 GetAbilityInstances 대신 두 배열을 직접 훑는다.
+			for (const UGameplayAbility* Instance : Spec.ReplicatedInstances)
+			{
+				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
+			}
+
+			for (const UGameplayAbility* Instance : Spec.NonReplicatedInstances)
 			{
 				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
 			}
@@ -93,7 +103,12 @@ void UWxAbilitySystemComponent::AbilityInputActionReleased(const UInputAction* A
 		{
 			AbilitySpecInputReleased(Spec);
 
-			for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
+			for (const UGameplayAbility* Instance : Spec.ReplicatedInstances)
+			{
+				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
+			}
+
+			for (const UGameplayAbility* Instance : Spec.NonReplicatedInstances)
 			{
 				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
 			}
@@ -118,7 +133,7 @@ float UWxAbilitySystemComponent::GetMontagePlayRate() const
 		return 1.f;
 	}
 
-	return FMath::Max(AttrSet->GetASPD(), 0.01f);
+	return FMath::Max(AttrSet->GetASPD(), 0.001f);
 }
 
 void UWxAbilitySystemComponent::ApplyHitStop(float Duration, const UGameplayAbility* SourceAbility)
@@ -156,8 +171,10 @@ void UWxAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecHa
 	UE_LOG(LogWxCombat, Verbose, TEXT("Ability Failed: %s — 사유 %s"), *GetNameSafe(Ability), *FailureReason.ToStringSimple());
 }
 
-const UWxAbilityBase* UWxAbilitySystemComponent::FindActivationGroupBlocker() const
+TArray<const UWxAbilityBase*, TInlineAllocator<4>> UWxAbilitySystemComponent::FindActivationGroupBlockers() const
 {
+	TArray<const UWxAbilityBase*, TInlineAllocator<4>> Blockers;
+
 	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
 		if (!Spec.IsActive())
@@ -165,24 +182,38 @@ const UWxAbilityBase* UWxAbilitySystemComponent::FindActivationGroupBlocker() co
 			continue;
 		}
 
-		for (const UGameplayAbility* Instance : Spec.GetAbilityInstances())
+		// GetAbilityInstances는 호출마다 두 배열을 합친 사본을 만든다. 인스턴스는 복제 여부로만 갈리므로 각각 훑는다.
+		for (const UGameplayAbility* Instance : Spec.ReplicatedInstances)
 		{
-			if (!Instance->IsActive())
+			if (const UWxAbilityBase* Blocker = AsActivationGroupBlocker(Instance))
 			{
-				continue;
-			}
-
-			const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Instance);
-			if (!Ability)
-			{
-				continue;
-			}
-
-			if (Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive_Blocking || Ability->ActivationGroup == EWxAbilityActivationGroup::Reaction)
-			{
-				return Ability;
+				Blockers.Add(Blocker);
 			}
 		}
+
+		for (const UGameplayAbility* Instance : Spec.NonReplicatedInstances)
+		{
+			if (const UWxAbilityBase* Blocker = AsActivationGroupBlocker(Instance))
+			{
+				Blockers.Add(Blocker);
+			}
+		}
+	}
+
+	return Blockers;
+}
+
+const UWxAbilityBase* UWxAbilitySystemComponent::AsActivationGroupBlocker(const UGameplayAbility* Instance) const
+{
+	const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Instance);
+	if (!Ability || !Ability->IsActive())
+	{
+		return nullptr;
+	}
+
+	if (Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive_Blocking || Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive_ComboWindow || Ability->ActivationGroup == EWxAbilityActivationGroup::Reaction)
+	{
+		return Ability;
 	}
 
 	return nullptr;

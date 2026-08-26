@@ -18,7 +18,6 @@ FWxStateTreeTask_SaveGame::FWxStateTreeTask_SaveGame()
 
 EStateTreeRunStatus FWxStateTreeTask_SaveGame::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// 막 로드한 세이브를 로드 직후 되쓰면 그 사이 라이브 상태로 파일이 오염된다.
 	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
 	if (bInitialEntry)
 	{

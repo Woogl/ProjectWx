@@ -20,11 +20,6 @@ class WXCOMBAT_API UWxEffect_Guard : public UGameplayEffect
 public:
 	UWxEffect_Guard();
 
-	/** 어빌리티가 이 클래스를 그대로 부여하므로 적용된 인스턴스와 값이 같아 CDO에서 읽는다. */
-	static float GetDamageReductionRate();
-
-protected:
-	/** 가드 중 받는 대미지 배율(0~1). 0.5면 50% 감소. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Guard", meta = (ClampMin = "0", ClampMax = "1"))
-	float DamageReductionRate = 0.5f;
+	/** 가드 중 받는 대미지 배율. 0.5면 50% 감소. 저작 대상이 아니라 코드 고정값이다. */
+	static constexpr float DamageMultiplier = 0.5f;
 };

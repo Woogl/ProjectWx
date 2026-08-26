@@ -38,7 +38,7 @@
 
 5. `BlueprintCallable` 지정자는 Blueprint Function Library, Blueprint Async Action의 팩토리 함수에서만 사용한다.
 
-6. 인라인 함수 정의를 금지한다. (`FORCEINLINE` 등)
+6. 인라인 함수 정의를 금지한다. (`FORCEINLINE` 등) 단, cpp 로 내릴 수 없는 템플릿 함수와 StateTree 노드의 `GetInstanceDataType()` 은 예외이며, 해당 지점에 예외 사유를 주석으로 남긴다.
 
 ---
 
@@ -63,3 +63,4 @@
 | `WxQuest`    | 도메인            | 퀘스트 시스템                     |
 | `WxSave`     | 도메인            | 세이브/로드 시스템                |
 | `WxToolset` | 에디터 도구 | 에셋 저작 MCP 툴셋 (에디터 전용) |
+| `BoxComponentVisualizer` | 에디터 도구 | 박스 컴포넌트 모서리 핸들 (에디터 전용). 다른 프로젝트로 폴더째 복사해 쓰려고 만든 것이라 `Wx` 접두사를 붙이지 않으며, Wx 모듈을 하나도 참조하지 않는다. |

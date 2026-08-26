@@ -45,6 +45,7 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
 	if (UCharacterMovementComponent* Movement = Character ? Character->GetCharacterMovement() : nullptr)
 	{
+		SavedOrientRotationToMovement = Movement->bOrientRotationToMovement;
 		Movement->bOrientRotationToMovement = false;
 	}
 
@@ -98,10 +99,15 @@ void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 			LockOnComp->SetLockOnTarget(nullptr);
 		}
 
-		const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
-		if (UCharacterMovementComponent* Movement = Character ? Character->GetCharacterMovement() : nullptr)
+		if (SavedOrientRotationToMovement.IsSet())
 		{
-			Movement->bOrientRotationToMovement = true;
+			const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
+			if (UCharacterMovementComponent* Movement = Character ? Character->GetCharacterMovement() : nullptr)
+			{
+				Movement->bOrientRotationToMovement = SavedOrientRotationToMovement.GetValue();
+			}
+
+			SavedOrientRotationToMovement.Reset();
 		}
 	}
 

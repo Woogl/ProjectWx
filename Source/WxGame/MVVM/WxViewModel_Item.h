@@ -45,7 +45,7 @@ public:
 	 * 사용 가능 여부는 요청을 받은 어빌리티가 판정한다.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Inventory")
-	void RequestUseConsumable();
+	bool RequestUseConsumable();
 
 	/** 슬롯 모드는 해당 슬롯의 스택 수, Def 모드는 ItemDef 의 총 보유량. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")

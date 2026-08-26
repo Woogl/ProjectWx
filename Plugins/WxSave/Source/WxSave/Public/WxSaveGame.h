@@ -17,7 +17,6 @@ struct WXSAVE_API FWxComponentRecord
 	TArray<uint8> ByteData;
 };
 
-/** 한 액터의 상태 스냅샷. */
 USTRUCT()
 struct WXSAVE_API FWxActorRecord
 {
@@ -42,7 +41,7 @@ struct WXSAVE_API FWxActorRecord
 	TArray<uint8> VersionHeader;
 };
 
-/** 맵 트래블에 필요한 데이터. 저장 시 SaveToFile 플러시가 대상 맵을 채우고, 로드 시 TravelFromSaveFile 이 그 맵으로 트래블한다. */
+/** 저장 시 SaveToFile 플러시가 대상 맵을 채우고, 로드 시 TravelFromSaveFile 이 그 맵으로 트래블한다. */
 USTRUCT()
 struct WXSAVE_API FWxSaveTravelData
 {
@@ -66,7 +65,7 @@ public:
 	UPROPERTY()
 	int32 UserIndex = 0;
 
-	/** 로드 시 트래블할 맵. PlayerTransform 유효성의 맵 일치 게이트 기준이기도 하다. */
+	/** PlayerTransform 유효성의 맵 일치 게이트 기준이기도 하다. */
 	UPROPERTY()
 	FWxSaveTravelData TravelData;
 

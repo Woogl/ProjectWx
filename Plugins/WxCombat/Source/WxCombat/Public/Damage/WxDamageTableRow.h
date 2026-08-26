@@ -21,20 +21,20 @@ public:
 	UPROPERTY(EditAnywhere)
 	float CoeffATK = 1.f;
 
-	/** 비워 두면 HitReact 이벤트가 송출되지 않는다 */
-	UPROPERTY(EditAnywhere, meta = (Categories = "Event.HitReact"))
+	/** 비워 두면 부모 Event.Hit 평타로 나가 HitReact가 뜨지 않는다 */
+	UPROPERTY(EditAnywhere, meta = (Categories = "Event.Hit"))
 	FGameplayTag HitReactTag;
 
 	UPROPERTY(EditAnywhere)
 	bool bCanCritical = true;
 
-	/** true이면 이 공격은 가드·퍼펙트 가드를 무시 */
+	/** false이면 이 공격은 가드·퍼펙트 가드를 무시 */
 	UPROPERTY(EditAnywhere)
-	bool bUnblockable = false;
+	bool bCanGuard = true;
 
-	/** true이면 퍼펙트 가드 성공 시 공격자에게 HitReact를 발동시킨다 */
+	/** false이면 퍼펙트 가드로 막아도 패리가 성립하지 않아 공격자가 DP 반사도 역경직도 받지 않는다 */
 	UPROPERTY(EditAnywhere)
-	bool bParryHitReact = true;
+	bool bCanParry = true;
 
 	/** Damage GE와 함께 타겟에 적용된다 (상태이상, 디버프 등) */
 	UPROPERTY(EditAnywhere, meta = (AllowAbstract = "false"))

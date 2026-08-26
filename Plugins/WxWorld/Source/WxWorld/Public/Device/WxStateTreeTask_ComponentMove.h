@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Device/WxComponentName.h"
+#include "Device/WxStateTreeComponentName.h"
 #include "StateTreeTaskBase.h"
 #include "WxStateTreeTask_ComponentMove.generated.h"
 
@@ -18,9 +18,9 @@ struct FWxStateTreeTask_ComponentMoveInstanceData
 {
 	GENERATED_BODY()
 
-	/** 옮길 컴포넌트. 트리가 붙은 액터가 가진 것 중에서 고른다. */
+	/** 트리가 붙은 액터가 가진 컴포넌트 중에서 고른다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
-	FWxComponentName TargetComponent;
+	FWxStateTreeComponentName TargetComponent;
 
 	/** 아키타입 대비 목표 상대 좌표 */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
@@ -30,11 +30,11 @@ struct FWxStateTreeTask_ComponentMoveInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
 	float Duration = 1.f;
 
-	/** (런타임) 지목이 가리키는 컴포넌트. EnterState 에서 1회 해석해 담고 Tick 은 이 값을 읽기만 한다. */
+	/** (런타임) 지목이 가리키는 컴포넌트. */
 	UPROPERTY()
 	TObjectPtr<USceneComponent> Component;
 
-	/** (런타임) 시작→목표 구간의 일정 속도(초당 로컬 거리). EnterState 에서 1회 산출한다. */
+	/** (런타임) 시작→목표 구간의 일정 속도(초당 로컬 거리). */
 	UPROPERTY()
 	float MoveSpeed = 0.f;
 
@@ -45,9 +45,7 @@ struct FWxStateTreeTask_ComponentMoveInstanceData
 
 /**
  * 지정 컴포넌트를 현재 상대 위치에서 기준(아키타입)+LocalOffset 으로 일정 속도 슬라이드하고, 도달하면 Succeeded 를 반환해 상태를 완료시킨다.
- * State 를 읽지 않는 순수 비주얼 태스크라 어떤 장치든 메시 이동에 재사용한다.
- * 속도는 시작→목표 실제 거리/Duration 으로 EnterState 에서 1회 산출하므로, 목표가 아키타입(offset 0)인 '닫기' 방향도 일정 속도로 슬라이드한다.
- * 이미 목표거나 길이가 0이면 움직임 없이 즉시 스냅해 곧바로 완료하고, 아니면 슬라이드 후 도달 시 완료한다(진입 경로 무관).
+ * 속도를 시작→목표 실제 거리에서 산출하므로 목표가 아키타입(offset 0)인 '닫기' 방향도 일정 속도가 된다.
  */
 USTRUCT(meta = (DisplayName = "컴포넌트 이동", Category = "Wx"))
 struct FWxStateTreeTask_ComponentMove : public FStateTreeTaskCommonBase

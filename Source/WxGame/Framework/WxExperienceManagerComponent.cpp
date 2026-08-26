@@ -4,7 +4,9 @@
 
 #include "Engine/AssetManager.h"
 #include "Engine/Engine.h"
+#include "Engine/GameInstance.h"
 #include "Engine/StreamableManager.h"
+#include "Engine/World.h"
 #include "Framework/WxExperienceActionSet.h"
 #include "Framework/WxExperienceDefinition.h"
 #include "Framework/WxExperienceManager.h"
@@ -12,11 +14,40 @@
 #include "GameFeaturesSubsystem.h"
 #include "GameFeaturesSubsystemSettings.h"
 #include "Net/UnrealNetwork.h"
+#include "System/WxUIManagerSubsystem.h"
+#include "Widget/WxHUDLayout.h"
 #include "WxGame.h"
 
 // FGameFeatureDeactivatingContext 의 pauser 완료 콜백. 비동기 비활성은 지원하지 않으므로 할 일이 없다.
 static void WxHandleDeactivationPauserCompleted(FStringView PauserTag)
 {
+}
+
+/** 지급 목록과 같은 규칙으로 액션셋에서 찾는다. Experience 가 없거나 지정이 없으면 빈 값을 발행해 이전 세계의 지정을 지운다. */
+static void WxPublishGameHUDClass(const UObject* WorldContextObject, const UWxExperienceDefinition* Experience)
+{
+	const UWorld* World = WorldContextObject ? WorldContextObject->GetWorld() : nullptr;
+	UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
+	UWxUIManagerSubsystem* UIManager = GameInstance ? GameInstance->GetSubsystem<UWxUIManagerSubsystem>() : nullptr;
+	if (!UIManager)
+	{
+		return;
+	}
+
+	TSoftClassPtr<UWxHUDLayout> GameHUDClass;
+	if (Experience)
+	{
+		for (const TObjectPtr<UWxExperienceActionSet>& ActionSet : Experience->ActionSets)
+		{
+			if (ActionSet && !ActionSet->GameHUDClass.IsNull())
+			{
+				GameHUDClass = ActionSet->GameHUDClass;
+				break;
+			}
+		}
+	}
+
+	UIManager->SetGameHUDClass(GameHUDClass);
 }
 
 UWxExperienceManagerComponent::UWxExperienceManagerComponent(const FObjectInitializer& ObjectInitializer)
@@ -35,6 +66,8 @@ void UWxExperienceManagerComponent::EndPlay(const EEndPlayReason::Type EndPlayRe
 			UGameFeaturesSubsystem::Get().DeactivateGameFeaturePlugin(PluginURL);
 		}
 	}
+
+	WxPublishGameHUDClass(this, nullptr);
 
 	if (LoadState == EWxExperienceLoadState::Loaded)
 	{
@@ -81,7 +114,7 @@ void UWxExperienceManagerComponent::SetCurrentExperience(FPrimaryAssetId Experie
 
 	if (!ExperienceId.IsValid())
 	{
-		UE_LOG(LogWxGame, Warning, TEXT("SetCurrentExperience: Experience 미설정. 프레임워크 컴포넌트가 주입되지 않음."));
+		UE_LOG(LogWxGame, Error, TEXT("SetCurrentExperience: Experience 미확정. 프레임워크 컴포넌트 주입과 폰 스폰이 진행되지 않는다. 맵 WorldSettings 의 GameplayExperience 를 지정하거나 진입 URL 에 ?Experience=이름 을 넘겨야 한다."));
 		return;
 	}
 
@@ -252,6 +285,9 @@ void UWxExperienceManagerComponent::FinishExperienceLoad()
 		Action->OnGameFeatureLoading();
 		Action->OnGameFeatureActivating(Context);
 	}
+
+	// 화면을 띄우는 쪽은 Experience 를 알지 못하므로, 정해진 HUD 를 UI 매니저에 실어 준다(서버·클라 각자 주행한다).
+	WxPublishGameHUDClass(this, CurrentExperience);
 
 	LoadState = EWxExperienceLoadState::Loaded;
 	UE_LOG(LogWxGame, Log, TEXT("Experience '%s' 로드 완료."), *GetNameSafe(CurrentExperience));

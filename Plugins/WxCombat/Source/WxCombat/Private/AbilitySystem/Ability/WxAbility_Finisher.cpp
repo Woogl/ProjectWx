@@ -60,7 +60,7 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	const bool bBackstab = (TriggerTag == WxGameplayTags::Event_Backstab);
 	UAnimMontage* AttackerMontage = bBackstab ? BackstabMontage.Get() : FinisherMontage.Get();
-	const FGameplayTag VictimHitReactTag = bBackstab ? WxGameplayTags::Event_HitReact_Backstab : WxGameplayTags::Event_HitReact_Finisher;
+	const FGameplayTag VictimReactionTag = bBackstab ? WxGameplayTags::Event_Hit_Backstab : WxGameplayTags::Event_Hit_Finisher;
 
 	if (!AttackerMontage || !AvatarActor || !Target || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
@@ -82,14 +82,14 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	RegisterWarpTarget(AvatarActor, Target);
 
-	// 짝 피격 이벤트를 받은 HitReact가 피격 몽타주를 공격 몽타주와 동시에 재생한다.
+	// 짝 피격 이벤트를 받은 HitReact가 피격 몽타주를 공격 몽타주와 동시에 재생한다. 대미지는 노티파이 몫이라 EventMagnitude는 0이다.
 	if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target))
 	{
 		FGameplayEventData VictimEvent;
+		VictimEvent.EventTag = VictimReactionTag;
 		VictimEvent.Instigator = AvatarActor;
 		VictimEvent.Target = Target;
-		VictimEvent.EventTag = VictimHitReactTag;
-		TargetASC->HandleGameplayEvent(VictimHitReactTag, &VictimEvent);
+		TargetASC->HandleGameplayEvent(VictimReactionTag, &VictimEvent);
 	}
 
 	if (!PlayMontage(AttackerMontage))

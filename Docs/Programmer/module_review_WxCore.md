@@ -1,6 +1,6 @@
 # WxCore — 코드 리뷰
 
-> 9파일·400줄 남짓의 얇은 foundation 모듈이며 코드 자체는 깨끗하다. 태그 97개가 `.h` 선언 ↔ `.cpp` 정의로 완전히 짝을 이루고, `IWxInteractable`/`IWxSavable`가 액터 전용으로 정리되면서 이전 리뷰의 컴포넌트 `Find` 비결정성·중복 발견은 소멸했다. 남은 것은 지난 ActivationGroup 전환이 남긴 `Trait.*` 잔재(헤더 주석·README·GA 에셋 12개)뿐이다. 이번 리뷰는 `*.Build.cs`·`.uplugin`·전 헤더·전 cpp를 모두 읽었고, 두 인터페이스의 실제 소비처(WxWorld 스캐너, WxGame 상호작용 어빌리티, WxSave 서브시스템)까지 따라가 헤더가 약속한 계약이 지켜지는지 확인했다.
+> 9파일·500줄의 얇은 foundation 모듈이고 상태는 매우 건강하다. 직전 리뷰의 두 지적 중 `State.Groggy` 미선언 소비는 해소됐고(`WBP_Nameplate_Enemy`가 이제 `Ability.Groggy`를 든다), 직전 커밋 `cf3a7a0`의 `HitReact.*` → `Event.Hit.*` 계층 이관도 코드·에셋 잔재 0건으로 깨끗하게 끝났다. 이번 리뷰는 `*.Build.cs`·`.uplugin`·전 헤더·전 cpp를 통독했고, 네이티브 태그 102개를 선언↔정의·심볼↔문자열로 기계 대조한 뒤 C++ 참조와 `Content/`·`Plugins/*/Content/` 패키지 문자열로 양방향 교차 검증했으며, 두 계약 인터페이스의 구현체 4종과 소비처(WxWorld 스캐너·ST 태스크, WxGame 상호작용 어빌리티)를 따라가 계약 준수를 확인했다.
 
 ## 요약
 | 심각도 | 개수 |
@@ -11,32 +11,38 @@
 
 ## 결과
 
-### 1. 🟡 선언 소스가 사라진 `Trait.Ability.Exclusive`를 GA 에셋 12개가 아직 들고 있다
-- **위치**: `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h:143-189`(Ability 섹션 — `Trait` 선언 없음), `Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp:68-101`, `Config/DefaultGameplayTags.ini:3-11`(리다이렉트는 `Gimmick.*→Device.*`뿐); 잔재 에셋 `Content/AbilitySystem/Ability/GA_Attack_Light`, `GA_Attack_Heavy`, `GA_Attack_Air`, `GA_Attack_DodgeCounter`, `GA_Pattern_1`~`4`, `GA_Skill_2`~`4`, `GA_Skill_E` (.uasset 12개)
-- **범주**: 중복/복잡도
-- **문제**: 배타 액션을 ActivationGroup(`Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h:34`)으로 옮기며 `Trait_Ability_Exclusive` 네이티브 선언을 WxCore에서 지웠는데, 프로젝트에 `Trait.*`를 선언하는 곳이 코드·ini 어디에도 없어진 반면 위 12개 GA 에셋은 여전히 `Trait.Ability.Exclusive` 문자열을 태그 컨테이너에 보관한다. 엔진은 이런 미등록 태그를 에디터 로드 때 `Invalid GameplayTag ... found in property` 경고만 내고 컨테이너에 그대로 둔다(`Engine/Source/Runtime/GameplayTags/Private/GameplayTagsManager.cpp:1064-1080`, 제거는 리다이렉트 대상만 `1085-1089`). 쿠킹 빌드에서는 경고조차 없다("too late to fix it in cooked builds"). 태그 노드가 없어 계층 매칭에는 걸리지 않으므로 동작 버그는 아니지만, 에셋을 여는 사람마다 경고를 보고 "아직 Trait 마커가 의미 있나"를 의심하게 되는 죽은 데이터다. 워크로그 `2026-08-21-배타-액션-ActivationGroup-전환.md:53`이 이미 "별건, 우선순위 상향"으로 남겨 둔 항목이다.
-- **제안**: (a) 12개 GA를 에디터에서 열어 AssetTags/CancelAbilitiesWithTag 잔재를 비우고 재저장한다. (b) 손으로 열기 싫으면 `Config/DefaultGameplayTags.ini`에 `+GameplayTagRedirects=(OldTagName="Trait.Ability.Exclusive",NewTagName="")` 한 줄을 넣는다 — `NewTagName`이 비면 `FGameplayTag(NAME_None)`으로 등록되고(`GameplayTagRedirectors.cpp:120,149`) 컨테이너 로드 시 "제거 + 추가 없음" 경로를 타므로(`GameplayTagsManager.cpp:1056-1062`) 자동으로 걷힌다. 이 경우 에셋을 한 번 재저장한 뒤 리다이렉트 줄을 지운다.
-- **확신도**: 높음 (잔재 존재는 바이너리 문자열 검색으로 확인, 어느 컨테이너에 남았는지는 에디터로 열어보지 않음)
+### 1. 🟡 `IWxInteractable::CanInteract()`에 주체 인자가 없어 서버 권위 검증이 주체별로 정확하지 않다
+- **위치**: `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h:31`
+- **범주**: 설계/구조
+- **문제**: `CanInteract()`는 인자가 없어 "누가" 상호작용하려는지를 계약이 전달하지 못한다. 그런데 이 함수는 클라 표시 게이트(`Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxInteractionScannerComponent.cpp:180`)이자 **서버 권위 자격 검증**(`Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp:75`)의 단일 소스다. 주체 상대 자격이 필요한 구현체는 주체를 스스로 추측할 수밖에 없어, `AWxEnemyCharacter::CanInteract()`의 뒤잡 후방 원뿔 판정이 `UGameplayStatics::GetPlayerPawn(this, 0)`으로 0번 플레이어를 조회한다(`Source/WxGame/Character/WxEnemyCharacter.cpp:136` → `:43-61`, 조회는 `:45`). 싱글·리슨호스트에서는 정확하지만 데디케이티드 멀티에서는 2번째 이후 플레이어의 뒤잡을 서버가 0번 플레이어 위치로 판정한다 — 자기 뒤에 아무도 없는 적을 뒤잡하거나, 정당한 뒤잡이 거부될 수 있다.
+- **제안**: 계약을 `CanInteract(const AActor* Interactor) const`로 되돌린다. 발동 경로는 이미 같은 함수 스코프에 아바타를 들고 있고(`WxAbility_Interact.cpp:61`의 `Avatar`, `:86`에서 `OnInteracted`에 넘기는 그 값), 표시 경로는 로컬 폰을 넘기면 되어 두 머신의 답이 같아진다. 데디케이티드 멀티를 목표로 하지 않기로 확정했다면 반대로 헤더에 "주체 상대 자격은 계약이 지원하지 않는다"를 명시해 다음 구현체가 같은 추측을 되풀이하지 않게 한다.
+- **확신도**: 낮음(의도된 설계일 수 있음) — 인터페이스 단순화의 대가로 `.claude/worklog/2026-08-22-적-후방-백스탭-복원.md`의 「후속 과제」에 이미 남겨 둔 항목이다. 여기 다시 적는 이유는 그 후속 과제가 사실상 WxCore 계약 변경이라 WxCore 쪽 결정 없이는 움직이지 않기 때문이다.
 
-### 2. 🟢 Ability 섹션 머리주석과 README가 삭제된 `Trait.*` 네임스페이스로 독자를 보낸다
-- **위치**: `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h:148`, `Plugins/WxCore/README.md:7`, `Plugins/WxCore/README.md:35`
+### 2. 🟢 `SetByCaller.Recovery.UP`/`.MP`는 소비처가 0인 데드 태그이고, 주석이 존재하지 않는 GE를 지목한다
+- **위치**: `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h:194-198`, 정의 `Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp:111-112`
 - **범주**: 중복/복잡도
-- **문제**: 헤더 주석은 "어빌리티의 성질을 나타내는 분류 마커는 이 루트가 아니라 Trait.*에 있다"고 안내하고, README는 네임스페이스 목록에 `Trait`를 넣고 "`Trait.Exclusive` 액션 슬롯 점유"까지 설명한다. 그러나 현재 이 헤더에는 `Trait` 태그가 하나도 없다(발견 1). 이 헤더는 README가 "다른 모듈을 이해하는 색인"으로 지목한 프로젝트 유일의 태그 어휘 원본이라, 존재하지 않는 네임스페이스를 가리키는 비용이 일반 주석보다 크다. 워크로그 `2026-08-21-배타-액션-ActivationGroup-전환.md:36`은 "주석표 포함 삭제"라고 적었지만 148행은 남았다.
-- **제안**: 148행을 "어빌리티 성질(배타 그룹 등)은 태그가 아니라 `EWxAbilityActivationGroup`(WxCombat)으로 선언한다"로 바꾸고, README는 `/readme-writer`로 재생성해 `Trait` 항목을 걷어낸다.
+- **문제**: 이 두 태그는 C++ 참조 0건, 패키지 문자열 0건으로 프로젝트 전체에서 소비처가 없다. C++ 미참조 태그 38개 중 36개는 전부 에셋이 소비하는 Device·Cue·Ability 식별 태그임을 확인했고, 코드·에셋 모두 0건인 것은 이 둘과 슬롯 번호 예약인 `Ability.Pattern.6`~`9`뿐이다. 게다가 두 주석이 지목하는 `WxEffect_RecoverResource`는 클래스로도 에셋으로도 존재하지 않는다 — `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/`에 GE 20종이 있으나 회복 계열은 `WxEffect_HealPercent`(HP)·`WxEffect_RegenSP`(SP)뿐이고, 리포지터리 전체에서 `RecoverResource` 문자열의 유일한 히트가 이 헤더 자신이다. 이 헤더는 도메인 간 프로토콜의 사전이라 "쓰이는 키"와 "예약 키"가 섞이면 다음 사람이 없는 GE를 찾아 헤맨다.
+- **제안**: 두 선언·정의를 지우고 UP/MP 회복 GE를 실제로 만들 때 다시 넣는다. 예약으로 남길 거라면 주석을 "아직 소비처 없음(회복 GE 미구현)"으로 바꿔 없는 클래스를 지목하지 않게 한다.
 - **확신도**: 높음
 
 ## 검토 범위
-- **깊게 본 파일**: `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h`, `Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp`, `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h`, `Plugins/WxCore/Source/WxCore/Public/WxSavable.h`, `Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h`
-- **훑은 파일**: `Plugins/WxCore/Source/WxCore/WxCore.Build.cs`, `Plugins/WxCore/WxCore.uplugin`, `Plugins/WxCore/Source/WxCore/Public/WxCoreModule.h`, `Plugins/WxCore/Source/WxCore/Private/WxCoreModule.cpp`, `Plugins/WxCore/Source/WxCore/Private/WxInteractable.cpp`, `Plugins/WxCore/Source/WxCore/Private/WxSavable.cpp`
+- **깊게 본 파일**: `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h`, `Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp`, `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h`, `Plugins/WxCore/Source/WxCore/Private/WxInteractable.cpp`, `Plugins/WxCore/Source/WxCore/Public/WxSavable.h`, `Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h`
+- **훑은 파일**: `Plugins/WxCore/Source/WxCore/WxCore.Build.cs`, `Plugins/WxCore/WxCore.uplugin`, `Plugins/WxCore/Source/WxCore/Public/WxCoreModule.h`, `Plugins/WxCore/Source/WxCore/Private/WxCoreModule.cpp`, `Plugins/WxCore/Source/WxCore/Private/WxSavable.cpp`, `Plugins/WxCore/README.md`, `Config/DefaultGameplayTags.ini`, `Config/DefaultEngine.ini`, `Config/DefaultGame.ini`, `Wx.uproject`
 - **확인했으나 문제 없던 항목**:
-  - 플러그인 경계: `WxCore.Build.cs:11-17`은 Core/CoreUObject/Engine/GameplayTags만, `.uplugin`은 `Plugins` 의존 목록 자체가 없고, 소스에 다른 Wx 모듈 `#include`가 없다. 모든 소비 플러그인의 `LoadingPhase`가 `Default`라 네이티브 태그 등록 순서 문제도 없다.
-  - 코딩 규칙: 전 파일 첫 줄 Copyright 준수(`WxGameplayTags.h/.cpp`만 UTF-8 BOM이 앞에 붙지만 UBT가 `/utf-8`을 넘겨 무해), 람다·델리게이트·`BlueprintCallable`·인라인 함수 정의 없음. `WxCollisionChannels.h:15`의 `inline constexpr`은 변수라 규칙 6 대상이 아니다.
-  - `IWxInteractable` 계약이 소비처에서 실제로 지켜진다: 클라 스캐너가 `IsInteractionEnabled && CanBeInteractedBy`로 후보를 거르고(`Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxInteractionScannerComponent.cpp:185`), 서버 어빌리티가 `HasAuthority` 뒤에서 같은 두 함수 + 사거리로 재검증한 뒤에만 `OnInteracted`를 부른다(`Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp:50,75,81,88,93`). `OnInteracted`의 비권위 호출처는 없다.
-  - `IWxSavable` 계약도 구현과 일치한다: `GetSaveId()` 무효 시 저장·복원 제외(`Plugins/WxSave/Source/WxSave/Private/WxSaveWorldSubsystem.cpp:313-318,387-392`), 액터·컴포넌트 전부 기본값이면 레코드를 쓰지 않을 뿐 아니라 옛 레코드까지 지워 "기본값으로 되돌아온 액터가 옛 상태로 복원"되지 않게 하고(`:354-359`), 그 경우 트랜스폼도 함께 빠지며(`:361`), 필드 복원 직후 `OnSaveRestored()`가 호출된다(`:453`).
-  - `ECC_WxAttack = ECC_GameTraceChannel1`이 `Config/DefaultEngine.ini:39`(`Name="WxAttack"`, `DefaultResponse=ECR_Block`, `bTraceType=False`)와 일치하고, 헤더 주석의 "메시 Overlap·캡슐 Ignore 명시 override"도 `Source/WxGame/Character/WxCharacterBase.cpp:25,29`와 맞는다.
-  - 태그 주석이 지목하는 타 모듈 클래스 14종(`WxAbility_Finisher`, `WxAnimNotifyState_ComboWindow`, `WxEffect_*`, `WxExecCalc_Damage`, `WxCharacterMovementComponent` 등)과 GE 에셋(NoCooldown/InfiniteMP/DrainDP)이 모두 실존하고, `State_Dialogue`는 주석대로 `WxAbility_Interact.cpp:37`에서 `ActivationBlockedTags`로 쓰인다.
-  - C++ 무참조 태그 30개(`Device.*`, `GameplayCue.AttackTelegraph.*`, `Ability.Attack.*`/`Skill.N`/`Pattern.N`)는 설계상 에셋 소비 태그다. 그중 `Device.Elevator.*` 3개와 `Ability.Pattern.6`~`9`는 에셋 참조도 0이지만, 엘리베이터는 `Docs/SystemDesign/Object_Design.md:93`에 구현 예정으로 적힌 장치이고 Pattern 슬롯은 번호 예약이라 데드로 보지 않았다.
-- **미검토 / 한계**: 발견 1의 잔재가 12개 에셋의 어느 컨테이너(AssetTags / BlockAbilitiesWithTag / CancelAbilitiesWithTag)에 남았는지는 바이너리 문자열 검색까지만 확인했고 에디터로 열어보지 않았다. 제안 (b)의 빈 `NewTagName` 리다이렉트는 엔진 소스 경로로 확인했을 뿐 이 프로젝트에서 실제 실행해 보지는 않았다.
+  - **`HitReact.*` → `Event.Hit.*` 이관(직전 커밋 `cf3a7a0`)의 완결성**: 제거된 8개 `HitReact.*` 태그를 코드·전 패키지에서 역방향 검색한 결과 잔재 0건이다(히트는 `GA_HitReact_C`·`WxAbility_HitReact.h` 같은 클래스명뿐). `DT_Damage`의 `HitReactTag` 열도 `Event.Hit.Normal`/`.KnockBack`/`.KnockUp`으로 이미 이관됐고, `FWxDamageTableRow::HitReactTag`의 `meta=(Categories="Event.Hit")`가 새 계층을 가리킨다. `Config/DefaultGameplayTags.ini`에 리다이렉트 없이 지웠지만 소비처가 없어 무해하다.
+  - **부모 매칭 규약의 실제 준수**: `WxGameplayTags.h:57`이 요구하는 "부모 매칭 API로 구독"이 지켜진다 — `WxAbility_Guard.cpp:89`은 `WaitGameplayEvent(..., bOnlyMatchExact=false)`, `WxAIPerceptionComponent.cpp:270`은 `AddGameplayEventTagContainerDelegate({Event.Hit})`로 둘 다 자식 이벤트를 받는 경로다. 반대로 `WxAbility_HitReact`는 트리거를 자식 7개에만 등록해(`:37-43`) 반응 없는 평타(`Event.Hit` 부모)에는 뜨지 않는다 — 헤더가 설명한 의도와 일치한다.
+  - **태그 정합**: 선언 102개 ↔ 정의 102개 완전 일치(양쪽 차집합 0). 심볼명의 `_`를 `.`로 바꾼 값이 태그 문자열과 102건 모두 일치하고, 중복 심볼·중복 문자열 0건. `WxGameplayTags::` 접두 참조를 기계 수집해 대조한 결과 **C++에서 쓰이나 선언되지 않은 태그는 0건**이다.
+  - **미선언 태그 역방향 대조**: 전 패키지에서 프로젝트 루트 네임스페이스(`State|Effect|Movement|Event|Device|GameplayCue|Damage|Ability|SetByCaller|UI`) 모양의 문자열을 뽑아 카탈로그와 차집합을 냈고, 남은 항목은 전부 Niagara 파라미터(`State.Lifetime`·`Movement.PositionDelta` 등)·클래스명(`UI.WxHUDLayout` 등)·바이너리 노이즈였다. **실제 미선언 소비 0건.**
+  - **직전 리뷰 지적의 해소**: `State.Groggy`는 더 이상 어디에도 없다 — `Content/UI/Widget/WBP_Nameplate_Enemy.uasset`이 `(TagName="Ability.Groggy")`를 들고 있어 코드(`WxEnemyCharacter.cpp:94`·`:130`이 `Ability_Groggy`로 앞잡/뒤잡을 가름)와 일치한다.
+  - **어빌리티 식별 태그 규약**: `WxGameplayTags.h:144-148`이 선언한 "AssetTags와 ActivationOwnedTags 양쪽에 정확히 하나"를 GA 14종 전부가 지킨다(`WxAbility_*.cpp` 기계 대조).
+  - **GameplayCue 커버리지**: 큐 태그 9개가 전부 소비처를 갖는다 — C++ 노티파이 5종(`WxCueNotify_Hit`·`_PerfectGuard`·`_Exceed`·`_GhostTrail`·`_DamageFloater`)과 BP 큐 에셋이 모두 `/Game/AbilitySystem/Cue` 아래에 있고, `Config/DefaultGame.ini:21`의 `GameplayCueNotifyPaths`·`:25`의 `DirectoriesToAlwaysCook`가 그 경로를 덮는다.
+  - **플러그인 경계**: `WxCore.Build.cs:11-17`은 Core/CoreUObject/Engine/GameplayTags만 참조하고, `WxCore.uplugin`에는 `Plugins` 의존 목록 자체가 없으며, 소스에 다른 Wx 모듈 `#include`가 하나도 없다. `Wx.uproject:39-40`에서 정상 활성. DAG 최하단 규칙 준수.
+  - **코딩 규칙**: 10파일(cs 포함) 전부 첫 줄 Copyright 준수(`WxGameplayTags.h/.cpp`만 UTF-8 BOM이 앞서지만 UBT가 `/utf-8`을 넘겨 무해). 람다·델리게이트 콜백·`BlueprintCallable`·`FORCEINLINE`/인라인 함수 정의가 모듈 전체에 0건이고, `WxCollisionChannels.h:15`의 `inline constexpr`은 변수라 규칙 6 대상이 아니다. `Wx` prefix도 전 타입 준수.
+  - **`IWxInteractable` 계약 준수**: 순수 가상 2개(`OnInteracted`/`GetInteractionPrompt`)를 구현체 4종(`AWxDialogueActor`·`AWxDevice`·`AWxItemPickup`·`AWxEnemyCharacter`)이 모두 채우고, 기본 구현 2개는 필요한 쪽만 override한다. `OnInteracted`의 유일한 호출처는 `CanInteract()` + 사거리 재검증을 지난 `WxAbility_Interact.cpp:86`이고, ST 태스크는 대상이 계약 미구현일 때 경고를 남긴다(`WxStateTreeTask_EnableInteraction.cpp:80`).
+  - **`IWxSavable` 계약**: 액터 전용 규약이 지켜지고(구현체는 `AWxDevice`·`AWxSpawner`), 헤더가 약속한 무효 `GetSaveId()` 제외·전부 기본값이면 미기록·복원 직후 `OnSaveRestored()` 호출이 `WxSaveWorldSubsystem`에 그대로 구현돼 있다.
+  - **콜리전 상수**: `ECC_WxAttack = ECC_GameTraceChannel1`이 `Config/DefaultEngine.ini:39`(`Name="WxAttack"`)와 일치하고 — 등록된 `DefaultChannelResponses`가 이 한 줄뿐이라 순서 어긋남이 성립하지 않는다 — 헤더가 말하는 "메시 Overlap·캡슐 Ignore" 오버라이드가 `Source/WxGame/Character/WxCharacterBase.cpp:25`·`:29`에 실존하고, "투사체는 WxProjectile 프리셋"도 `DefaultEngine.ini:40`과 일치한다.
+  - **모듈 진입점**: `FWxCoreModule`의 Startup/Shutdown이 빈 구현인 것은 정상이다 — 네이티브 태그는 `UE_DEFINE_GAMEPLAY_TAG`의 정적 초기화가 등록하므로 모듈이 할 일이 없다.
+- **미검토 / 한계**: 발견 1의 데디케이티드 멀티 오판정은 코드 경로 추적으로만 확인했고 실제 멀티 세션에서 재현해 보지 않았다. 에셋 대조는 UTF-8 리터럴 문자열 검색 기준이라, 태그를 런타임에 조립하는 BP 노드가 있다면 놓칠 수 있다(C++ 쪽에는 그런 조립이 없음을 확인했다). BP/WBP 내부 그래프 구조는 리뷰 범위 밖이다. 이 환경에는 엔진이 없어 컴파일 검증은 하지 않았다.
 
 ---
-*문서 기준 커밋 `bd689a19` · 리뷰일 2026-08-22 · 소스 9파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `cf3a7a0` · 리뷰일 2026-08-25 · 소스 9파일 — `/module-review`로 갱신*

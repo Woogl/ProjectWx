@@ -27,6 +27,7 @@ public:
 	UCommonActivatableWidget* PushWidgetToLayerStack(FGameplayTag LayerTag, TSubclassOf<UCommonActivatableWidget> WidgetClass);
 
 	/** 위젯을 스택에 push 하되, 활성화되기 전에 InitInstanceFunc 로 인스턴스를 초기화한다. */
+	// 헤더 정의는 코딩 규칙 6 의 예외다 — 템플릿이라 cpp 로 내릴 수 없다.
 	template <typename ActivatableWidgetT = UCommonActivatableWidget>
 	ActivatableWidgetT* PushWidgetToLayerStack(FGameplayTag LayerTag, TSubclassOf<UCommonActivatableWidget> WidgetClass, TFunctionRef<void(ActivatableWidgetT&)> InitInstanceFunc)
 	{

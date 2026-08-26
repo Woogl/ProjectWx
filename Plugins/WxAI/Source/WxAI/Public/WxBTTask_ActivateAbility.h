@@ -45,9 +45,15 @@ private:
 
 	FDelegateHandle AbilityEndedDelegateHandle;
 
-	/** ExecuteTask 의 발동 구간 동안 true. 이 구간의 종료 통지는 FinishLatentTask 대신 ActivationResult 로 받는다. */
+	/**
+	 * ExecuteTask 의 발동 구간 동안 true.
+	 * 이 구간의 종료 통지는 FinishLatentTask 대신 ActivationResult 로 받는다.
+	 */
 	bool bIsActivating = false;
 
-	/** 발동 구간 안에서 어빌리티가 끝났을 때의 결과. InProgress 면 아직 끝나지 않은 것. */
+	/**
+	 * 발동 구간에 마지막으로 받은 종료 통지의 결과.
+	 * InProgress 면 그 구간에 통지가 없었다는 뜻이다.
+	 */
 	EBTNodeResult::Type ActivationResult = EBTNodeResult::InProgress;
 };

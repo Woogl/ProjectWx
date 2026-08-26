@@ -6,6 +6,8 @@
 #include "AIController.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "BehaviorTree/BlackboardData.h"
+#include "GameFramework/Actor.h"
 #include "GameFramework/Pawn.h"
 
 UWxBTDecorator_BeyondLeash::UWxBTDecorator_BeyondLeash()
@@ -15,16 +17,40 @@ UWxBTDecorator_BeyondLeash::UWxBTDecorator_BeyondLeash()
 	// TickNode/OnBecomeRelevant 오버라이드를 감지해 알림 플래그(bNotifyTick 등)를 자동 설정한다(엔진 데코 관용).
 	INIT_DECORATOR_NODE_NOTIFY_FLAGS();
 
+	Anchor.AddObjectFilter(this, GET_MEMBER_NAME_CHECKED(UWxBTDecorator_BeyondLeash, Anchor), AActor::StaticClass());
+	Anchor.AddVectorFilter(this, GET_MEMBER_NAME_CHECKED(UWxBTDecorator_BeyondLeash, Anchor));
+	Anchor.SelectedKeyName = WxBlackboardKeys::HomeLocation;
+
 	FlowAbortMode = EBTFlowAbortMode::LowerPriority;
+}
+
+void UWxBTDecorator_BeyondLeash::InitializeFromAsset(UBehaviorTree& Asset)
+{
+	Super::InitializeFromAsset(Asset);
+
+	if (const UBlackboardData* BlackboardAsset = GetBlackboardAsset())
+	{
+		Anchor.ResolveSelectedKey(*BlackboardAsset);
+	}
+	else
+	{
+		Anchor.InvalidateResolvedKey();
+	}
 }
 
 FString UWxBTDecorator_BeyondLeash::GetStaticDescription() const
 {
-	return FString::Printf(TEXT("HomeLocation에서 %.0f 이상 이탈 시 true"), LeashRadius);
+	return FString::Printf(TEXT("%s에서 %.0f 이상 이탈 시 true"), *Anchor.SelectedKeyName.ToString(), LeashRadius);
 }
 
 bool UWxBTDecorator_BeyondLeash::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
 {
+	// 복귀가 이미 진행 중이면 완료 판정은 복귀 Task 가 소유한다. 여기서 거리로 되돌리면 반경 재진입 순간 브랜치가 떨어져 경계에서 왕복이 난다.
+	if (OwnerComp.IsExecutingBranch(this, GetChildIndex()))
+	{
+		return true;
+	}
+
 	const AAIController* AIController = OwnerComp.GetAIOwner();
 	const APawn* Pawn = AIController ? AIController->GetPawn() : nullptr;
 	const UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();
@@ -33,7 +59,14 @@ bool UWxBTDecorator_BeyondLeash::CalculateRawConditionValue(UBehaviorTreeCompone
 		return false;
 	}
 
-	const float DistSquared = FVector::DistSquared(Pawn->GetActorLocation(), WxBlackboardKeys::GetHomeLocation(Blackboard));
+	// 미설정 Vector 키는 FAISystem::InvalidLocation 이라 거리로 재면 무조건 이탈이 된다. 엔진 조회가 그 검사까지 해 주므로 실패를 그대로 "이탈 아님" 으로 쓴다.
+	FVector AnchorLocation;
+	if (!Blackboard->GetLocationFromEntry(Anchor.GetSelectedKeyID(), AnchorLocation))
+	{
+		return false;
+	}
+
+	const float DistSquared = FVector::DistSquared(Pawn->GetActorLocation(), AnchorLocation);
 	return DistSquared > LeashRadius * LeashRadius;
 }
 

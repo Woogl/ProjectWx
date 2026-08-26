@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Device/WxComponentName.h"
+#include "Device/WxStateTreeComponentName.h"
 #include "StateTreeTaskBase.h"
 #include "WxStateTreeTask_PlayAnimation.generated.h"
 
@@ -19,20 +19,19 @@ struct FWxStateTreeTask_PlayAnimationInstanceData
 {
 	GENERATED_BODY()
 
-	/** 재생시킬 메시. 트리가 붙은 액터가 가진 것 중에서 고른다. */
+	/** 트리가 붙은 액터가 가진 메시 중에서 고른다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedClasses = "/Script/Engine.SkeletalMeshComponent"))
-	FWxComponentName TargetMesh;
+	FWxStateTreeComponentName TargetMesh;
 
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<UAnimSequenceBase> Animation;
 
-	/** (런타임) 지목이 가리키는 메시. EnterState 에서 1회 해석해 담고 Tick 은 이 값을 읽기만 한다. */
+	/** (런타임) 지목이 가리키는 메시. */
 	UPROPERTY()
 	TObjectPtr<USkeletalMeshComponent> Mesh;
 };
 
 /**
- * State 를 읽지 않는 순수 비주얼 태스크라 어떤 장치든 재사용한다.
  * 진입 경로(라이브 전이/초기 시작/복원/레이트조인)를 가리지 않고 처음부터 재생한다 — 복원 직후에도 그 연출이 한 번 다시 보인다('Component Move' 와 동일한 방침).
  * 재생 종료를 감지하려고 틱한다 — 싱글노드 인스턴스가 멈추면 완료로 본다.
  */

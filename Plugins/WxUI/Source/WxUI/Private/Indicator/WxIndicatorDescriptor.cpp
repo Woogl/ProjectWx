@@ -5,27 +5,19 @@
 #include "Components/SceneComponent.h"
 #include "Indicator/WxIndicatorManagerComponent.h"
 
-void UWxIndicatorDescriptor::Initialize(UWxIndicatorManagerComponent* InOwningManager, USceneComponent* InTargetComponent, const FVector& InWorldOffset)
+void UWxIndicatorDescriptor::Initialize(UWxIndicatorManagerComponent* InOwningManager, USceneComponent* InTargetComponent, const FVector& InWorldLocation, const FVector& InWorldOffset)
 {
 	check(!OwningManager.IsValid());
 
 	OwningManager = InOwningManager;
 	TargetComponent = InTargetComponent;
-	WorldOffset = InWorldOffset;
-}
-
-void UWxIndicatorDescriptor::Initialize(UWxIndicatorManagerComponent* InOwningManager, const FVector& InWorldLocation, const FVector& InWorldOffset)
-{
-	check(!OwningManager.IsValid());
-
-	OwningManager = InOwningManager;
 	WorldLocation = InWorldLocation;
 	WorldOffset = InWorldOffset;
 }
 
 USceneComponent* UWxIndicatorDescriptor::GetTargetComponent() const
 {
-	return TargetComponent;
+	return TargetComponent.Get();
 }
 
 FVector UWxIndicatorDescriptor::GetWorldLocation() const

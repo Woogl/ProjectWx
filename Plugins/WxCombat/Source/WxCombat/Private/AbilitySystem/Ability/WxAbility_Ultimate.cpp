@@ -17,7 +17,6 @@ UWxAbility_Ultimate::UWxAbility_Ultimate()
 
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Ultimate);
 	ActivationOwnedEffects.Add(UWxEffect_SuperArmor::StaticClass());
-	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Groggy);
 }
 
 void UWxAbility_Ultimate::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)

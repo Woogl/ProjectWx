@@ -16,8 +16,6 @@ class UWxLockOnPointComponent;
 class UWxNameplateComponent;
 
 /**
- * - AWxEnemyController에 의해 제어
- * - 처치 시 UWxRewardLibrary::GrantReward 로 RewardRow 의 보상을 지급한다(픽업은 사망 위치에서 수직 발사, 재화는 직접 지급)
  */
 UCLASS(Abstract)
 class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnable, public IWxInteractable
@@ -28,14 +26,16 @@ public:
 	AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer);
 
 	UBehaviorTree* GetBehaviorTree() const;
+
+	AWxSpawner* GetOwningSpawner() const;
 	
 	//~ Begin IWxSpawnable
-	/** 사망 시 순회 없이 처치 기록을 남기기 위해 스폰 주체를 기억한다. */
+	/** 처치 기록과 정찰 경로 조회에 쓰려고 스폰 주체를 기억한다. 빙의가 Owner 를 덮어쓴 뒤엔 이 값이 유일한 링크다. */
 	virtual void OnSpawnedBy(AWxSpawner* Spawner) override;
 	//~ End IWxSpawnable
 	
 	//~ Begin IWxInteractable — Finisher 상호작용
-	virtual bool CanInteract() const override;
+	virtual bool CanInteract(const AActor* Interactor) const override;
 	virtual void OnInteracted(AActor* Interactor) override;
 	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
@@ -43,23 +43,8 @@ public:
 	virtual void BeginPlay() override;
 
 protected:
-	/** 피격을 촉각으로 보고하기 위해 대미지 어트리뷰트를 구독한다. */
-	virtual void InitAbilitySystem() override;
-
-	/**
-	 * 받은 대미지를 AI Perception(촉각)에 보고해 가해자를 즉시 TargetActor 로 인지하게 한다.
-	 *
-	 * 이 자극은 피격 액터로 리스너를 역추적해 그 컨트롤러의 퍼셉션 컴포넌트에게만 가므로, 보고 주체는 피격자 자신이다.
-	 */
-	void HandleIncomingDamageChanged(const FOnAttributeChangeData& Data);
-
-	/**
-	 * 로컬 플레이어 폰이 후방 원뿔 안에 있는가.
-	 *
-	 * 계약이 주체를 넘겨주지 않으므로 대상이 직접 찾는다 — 클라 표시에선 로컬 플레이어라 정확하고, 서버 검증에선 싱글·리슨호스트 호스트 기준으로 정확하다.
-	 * 데디케이티드 멀티에서 2번째 이후 플레이어의 뒤잡은 0번 플레이어 위치로 판정된다.
-	 */
-	bool IsLocalPlayerInRearCone() const;
+	/** 상호작용 주체가 후방 원뿔 안에 있는가. */
+	bool IsInRearCone(const AActor* Interactor) const;
 
 	/** 사망 시 자신을 스폰한 Spawner 에 처치 기록을 남긴다. */
 	virtual void HandleDeath() override;

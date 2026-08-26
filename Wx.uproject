@@ -92,6 +92,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "BoxComponentVisualizer",
+			"Enabled": true
+		},
+		{
 			"Name": "StateTree",
 			"Enabled": true
 		},

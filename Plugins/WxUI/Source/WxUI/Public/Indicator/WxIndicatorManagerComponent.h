@@ -31,11 +31,11 @@ public:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	/** 대상이 비었거나 오너가 로컬 컨트롤러가 아니면 표시될 수 없으므로 발급하지 않는다(null 반환). */
-	UWxIndicatorDescriptor* AddIndicator(USceneComponent* InTargetComponent, const FVector& InWorldOffset);
-
-	/** 따라다닐 컴포넌트가 없는 고정 좌표를 가리킨다 — 대상이 언로드된 동안의 대역이다. */
-	UWxIndicatorDescriptor* AddIndicator(const FVector& InWorldLocation, const FVector& InWorldOffset);
+	/**
+	 * 오너가 로컬 컨트롤러가 아니면 표시될 수 없으므로 발급하지 않는다(null 반환).
+	 * 컴포넌트가 비었거나 언로드·파괴로 사라지면 좌표를 대신 가리킨다 — 컴포넌트를 줄 때도 좌표를 함께 받는 이유다.
+	 */
+	UWxIndicatorDescriptor* AddIndicator(USceneComponent* InTargetComponent, const FVector& InWorldLocation, const FVector& InWorldOffset);
 
 	/** 목록에 없는 등록증은 무시한다. */
 	void RemoveIndicator(UWxIndicatorDescriptor* Indicator);

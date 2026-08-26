@@ -35,7 +35,7 @@ protected:
 
 private:
 	/**
-	 * GameModePostLoginEvent 핸들러: 오너 PC 의 빙의를 구독하고, 저장된 재개 지점이 있으면 그 좌표에 마커를 스폰해 StartSpot 으로 등록한다.
+	 * 오너 PC 의 빙의를 구독하고, 저장된 재개 지점이 있으면 그 좌표에 마커를 스폰해 StartSpot 으로 등록한다.
 	 * PostLogin 이 InitNewPlayer(StartSpot 확정)보다 뒤, RestartPlayer 보다 앞이라 이 시점 주입이 성립한다.
 	 */
 	void HandleGameModePostLogin(AGameModeBase* GameMode, APlayerController* NewPlayer);

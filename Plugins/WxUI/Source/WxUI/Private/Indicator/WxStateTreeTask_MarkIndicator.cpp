@@ -48,8 +48,8 @@ namespace
 		AActor* Target = ResolveTargetActor(Instance.Target, Owner);
 		USceneComponent* TargetComponent = Target ? Target->GetRootComponent() : nullptr;
 
-		// 매니저는 대상이 파괴돼도 표시만 접고 등록증은 남기므로, 등록증이 지금 무엇에 걸려 있는지까지 본다.
-		// 둘 다 비었으면 이미 좌표 대역으로 걸린 것이라 그대로 둔다 — 매 틱 갈아 끼우면 등록증만 버려진다.
+		// 등록증은 대상이 사라지면 스스로 좌표로 내려앉으므로, 여기선 걸 컴포넌트가 바뀐 때만 갈아 끼운다.
+		// 언로드 중에는 양쪽이 비어 같다고 나와 그대로 두고, 스트리밍 인 되는 순간 달라져 컴포넌트 추종으로 승격된다.
 		if (const UWxIndicatorDescriptor* Indicator = Instance.RegisteredIndicator.Get())
 		{
 			if (Indicator->GetTargetComponent() == TargetComponent)
@@ -68,14 +68,7 @@ namespace
 		}
 
 		const FVector WorldOffset(0.f, 0.f, Instance.WorldZOffset);
-		if (TargetComponent)
-		{
-			Instance.RegisteredIndicator = Manager->AddIndicator(TargetComponent, WorldOffset);
-		}
-		else
-		{
-			Instance.RegisteredIndicator = Manager->AddIndicator(Instance.TargetLocation, WorldOffset);
-		}
+		Instance.RegisteredIndicator = Manager->AddIndicator(TargetComponent, Instance.TargetLocation, WorldOffset);
 	}
 
 #if WITH_EDITOR

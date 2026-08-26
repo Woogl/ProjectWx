@@ -4,6 +4,7 @@
 #include "WxBlackboardKeys.h"
 #include "WxAIPerceptionComponent.h"
 #include "Character/WxEnemyCharacter.h"
+#include "Spawnable/WxSpawner.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BrainComponent.h"
@@ -27,6 +28,10 @@ void AWxEnemyController::OnPossess(APawn* InPawn)
 	if (AWxEnemyCharacter* Enemy = Cast<AWxEnemyCharacter>(InPawn))
 	{
 		Enemy->OnDeath.AddDynamic(this, &AWxEnemyController::HandlePawnDeath);
+
+		// Super 의 APawn::PossessedBy 가 폰의 Owner 를 이 컨트롤러로 덮어써 폰→스포너 링크가 끊긴다.
+		// 컨트롤러의 Owner 는 엔진이 쓰지 않는 자리라, 여기에 스폰 주체를 걸어 UWxPatrolComponent::FindPatrolComponent 가 정찰 경로를 찾게 한다.
+		SetOwner(Enemy->GetOwningSpawner());
 
 		if (UBehaviorTree* BT = Enemy->GetBehaviorTree())
 		{

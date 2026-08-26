@@ -1,55 +1,48 @@
-# WxGame — 기본 게임 모듈 (부트스트랩·조립)
+# WxGame — 게임 조립 모듈
 
-> 도메인 플러그인(WxCombat·WxInventory·WxUI·WxAI·WxDialogue·WxQuest·WxSave·WxWorld)과 엔진 프레임워크를 하나의 플레이 가능한 게임으로 조립하는 최상위 게임 모듈. GameMode·GameState·Character·Controller 등 프레임워크 구현과 Lyra식 Experience/GameFeature 부트스트랩을 담는다.
+> 도메인 플러그인(WxCombat·WxInventory·WxUI 등)을 하나의 플레이 세션으로 엮는 최상위 게임 모듈. GameMode·GameState·Controller·Character 등 프레임워크 골격과 Lyra식 Experience/GameFeature 부트스트랩을 제공한다.
 
 ## 책임
 **담당**
-- 게임 프레임워크 구현체: `AWxGameMode`, `AWxGameState`, `AWxPlayerController`, `AWxPlayerState`, `AWxWorldSettings`
-- 캐릭터 계층: `AWxCharacterBase`(ASC 소유·팀·죽음) → `AWxPlayerCharacter`(카메라·입력)·`AWxEnemyCharacter`(BT·처형)·`AWxBossCharacter`·`AWxNpc`
-- Experience/GameFeature 부트스트랩: 어느 Experience를 켤지 확정 → 비동기 로드 → GameFeature 플러그인 활성 → 액션 실행 → 폰 스폰·시작 지급
-- 도메인 플러그인 간 접착: 양쪽에 의존해야 성립하는 조립 코드(MVVM 리졸버/뷰모델, Interact/UseItem 어빌리티, AnimNotify)를 이 모듈에 둔다
+- 프레임워크 골격: GameMode·GameState·PlayerController·PlayerState·Character 계층 및 팀/입력 배선.
+- Experience 부트스트랩: 이 판의 Experience 확정 → 비동기 로드 → GameFeature 플러그인 활성 → 액션 실행 → 폰 스폰·시작 지급까지의 파이프라인.
+- 도메인 시스템의 조립점: ModularGameplay receiver로 각 도메인이 요청한 컴포넌트를 폰/컨트롤러/스테이트에 주입받게 하고, MVVM ViewModel/Resolver로 도메인 상태를 UI에 연결.
 
 **경계 (비담당)**
-- 전투/인벤토리/대화/퀘스트/세이브/AI/월드/UI의 실제 규칙과 데이터 — 각 도메인 플러그인 소유. 이 모듈은 진입점만 잇는다
-- HUD·사망 화면·대화 창 표시 — `UWxUIManagerSubsystem`([[WxUI]])이 컨트롤러 빙의·폰 상태 태그를 따라가며 처리
-- 플레이어 스폰 위치·스탯 복원 — `UWxPlayerSpawnComponent`([[WxSave]])가 StartSpot·빙의 시 담당
-
-## 의존성
-- **주요 의존**: `WxCore` · `WxCombat` · `WxInventory` · `WxUI` · `WxAI` · `WxDialogue` · `WxQuest` · `WxSave` · `WxWorld` (도메인 플러그인 전부). 엔진: `GameFeatures`·`ModularGameplay`·`GameplayAbilities`·`ModelViewViewModel`(MVVM)·`EnhancedInput`·`MotionWarping`·`MetaHumanSDKRuntime`
-- 규칙: 기본 게임 모듈로 여러 플러그인을 조립하는 정상 역할(규칙 무관)
+- 전투/스탯 로직 — [[WxCombat]] (ASC·AttributeSet·무기·락온).
+- 인벤토리·상호작용 — [[WxInventory]] · [[WxWorld]].
+- 위젯·HUD 레이아웃 — [[WxUI]] (CommonUI 액션).
+- 대화·퀘스트·세이브·AI — [[WxDialogue]] · [[WxQuest]] · [[WxSave]] · [[WxAI]].
+- 콘텐츠 활성 단위 — `Plugins/GameFeatures/` (Experience가 이름으로 지목).
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `AWxGameMode` | Experience 확정·로드 완료까지 폰 스폰 보류·시작 인벤토리 지급 | `Source/WxGame/Framework/WxGameMode.h` |
-| `AWxGameState` | ModularGameplay receiver, Experience 매니저 컴포넌트 거주처 | `Source/WxGame/Framework/WxGameState.h` |
-| `UWxExperienceDefinition` | 한 판의 게임플레이 구성(폰·GameFeature·액션) PrimaryDataAsset | `Source/WxGame/Framework/WxExperienceDefinition.h` |
-| `UWxExperienceManagerComponent` | 로드 파이프라인 주체(번들→GameFeature→액션→브로드캐스트), 서버 확정·클라 OnRep | `Source/WxGame/Framework/WxExperienceManagerComponent.h` |
-| `UWxExperienceManager` | PIE 다중 세션용 GameFeature 활성 참조 카운팅 엔진 서브시스템 | `Source/WxGame/Framework/WxExperienceManager.h` |
-| `UWxGameFeatureAction_AddComponents` | 사이드 플래그 없는 컴포넌트 주입 액션(스톡 대체) | `Source/WxGame/Framework/WxGameFeatureAction_AddComponents.h` |
-| `AWxWorldSettings` | 맵별 기본 Experience 지정처 | `Source/WxGame/Framework/WxWorldSettings.h` |
-| `AWxCharacterBase` | ASC 직접 소유 공통 캐릭터, ModularGameplay receiver | `Source/WxGame/Character/WxCharacterBase.h` |
-| `AWxPlayerController` | ModularGameplay receiver(인벤토리·스캐너·대화·PlayerSpawn 주입 대상) | `Source/WxGame/Controller/WxPlayerController.h` |
+| `AWxGameMode` | 서버 전용. Experience 확정·로드 대기·폰 스폰·시작 인벤토리 지급의 조율자 | `Framework/WxGameMode.h` |
+| `UWxExperienceDefinition` | 한 판의 게임플레이 구성을 정의하는 프라이머리 데이터 에셋(폰 클래스·GameFeature·액션) | `Framework/WxExperienceDefinition.h` |
+| `UWxExperienceManagerComponent` | GameState에 붙어 Experience를 복제·비동기 로드·적용하는 실제 주체 | `Framework/WxExperienceManagerComponent.h` |
+| `AWxGameState` | ModularGameplay receiver이자 Experience 매니저 컴포넌트의 거주처 | `Framework/WxGameState.h` |
+| `AWxWorldSettings` | 맵이 자기 기본 Experience를 지정하는 자리(URL 다음, 확정의 마지막 단계) | `Framework/WxWorldSettings.h` |
+| `AWxPlayerController` | Experience가 요청한 컨트롤러 컴포넌트(인벤토리·상호작용·대화·PlayerSpawn 등) 주입 대상 | `Controller/WxPlayerController.h` |
+| `AWxCharacterBase` | ASC를 직접 소유하는 플레이어/에너미 공통 베이스, 폰 대상 컴포넌트 receiver | `Character/WxCharacterBase.h` |
+| `AWxPlayerCharacter` | 게임플레이 입력(이동/시선/어빌리티) 소유. `UWxInputConfig`로 입력 주입 | `Character/WxPlayerCharacter.h` |
 
 ## 확장 포인트 / 규약
-- **Experience 확정 순서** (`AWxGameMode::ResolveExperienceId`): 진입 URL `?Experience=이름` → `AWxWorldSettings::GetDefaultGameplayExperience` → GameMode의 `DefaultExperience`. 실패 시 무효 ID
-- **로드 파이프라인** (`UWxExperienceManagerComponent`): `Unloaded → Loading`(에셋 번들 비동기) `→ LoadingGameFeatures`(플러그인 URL 활성) `→ ExecutingActions`(자기 월드 한정 컨텍스트로 액션 실행) `→ Loaded`(브로드캐스트). GameMode가 `CallOrRegister_OnExperienceLoaded`로 대기했다가 폰 스폰·시작 지급
-- **서버/클라 대칭**: GameMode는 서버 전용. `CurrentExperience`가 GameState 서브오브젝트로 복제돼 클라는 `OnRep`으로 같은 파이프라인을 독립 주행 — GameMode가 서버에만 있어도 클라 적용 성립
-- **GameFeature 조립**: Experience/ActionSet의 `GameFeaturesToEnable`(이름 문자열)로 플러그인 활성. GameFeature 플러그인 → WxGame·도메인 참조는 허용, 역방향 금지(CLAUDE.md 규칙)
-- **컴포넌트 주입**: `UWxGameFeatureAction_AddComponents`가 대상 액터를 컴포넌트 클래스의 프레임워크 베이스에서 도출. 대상은 ModularGameplay receiver로 opt-in돼야 함(`AWxGameState`·`AWxPlayerController`·`AWxPlayerState`·`AWxCharacterBase`). 사이드 제한은 컴포넌트 자신이 가드
-- **ActionSet 합성**: `UWxExperienceActionSet`으로 여러 Experience가 액션·GameFeature·시작 아이템(`DefaultInventoryItems`)을 공유. Experience 본체 액션과 평탄화돼 함께 실행
-- **에셋 규약**: Experience/ActionSet은 네이티브 클래스 인스턴스로만 생성(BP 서브클래스는 PrimaryAssetType이 달라져 스캔·URL 해석에서 누락)
+- 게임플레이 구성은 코드가 아니라 **Experience 에셋**이 정한다: 폰 클래스(`DefaultPawnClass`), 켤 GameFeature 이름 목록(`GameFeaturesToEnable`), 실행 액션(`Actions`/`ActionSets`). GameMode의 상속 `DefaultPawnClass`는 읽지 않으며, 폰 클래스가 비면 프론트엔드로 보아 스펙테이터 폰으로 빙의한다.
+- Experience 확정 우선순위: 진입 URL `?Experience=이름` → `AWxWorldSettings.GameplayExperience`. 그 뒤의 폴백은 없다 — 둘 다 비면 무효 ID가 매니저에서 `Error` 로그로 드러나고 폰이 스폰되지 않는다.
+- 여러 Experience가 공유하는 액션·GameFeature·시작 지급·HUD는 `UWxExperienceActionSet`으로 묶어 `ActionSets`에 합성한다. Experience/ActionSet 에셋은 네이티브 클래스 인스턴스로만 만든다(BP 서브클래스는 스캔에서 빠짐).
+- 컴포넌트 주입은 `UWxGameFeatureAction_AddComponents`(사이드 플래그 없는 스톡 대체)로 요청하며, 대상 액터는 ModularGameplay receiver로 opt-in돼 있어야 한다(GameState·PlayerController·PlayerState·Character 계열).
+- 도메인 상태의 UI 연결은 `MVVM/` ViewModel + Resolver로 한다. Resolver는 게임 모듈과 WxUI 양쪽에 의존해, WxUI 소속 ViewModel이 게임 모듈을 참조하지 못하는 경계를 메운다(예: `WxViewModelResolver_PlayerCharacter`, `WxViewModelResolver_Ability`).
+- 로드는 비동기라 접속(PostLogin)보다 늦을 수 있다 — GameMode가 로드 완료까지 폰 스폰을 미루고 대기 접속자를 일괄 처리한다.
 
 ## 여기서부터 읽어라
-1. `Source/WxGame/Framework/WxGameMode.h` — 전체 부트스트랩의 지휘자. Experience 확정·폰 스폰 보류·시작 지급의 시점 규약이 여기 doc-comment에 정리돼 있다
-2. `Source/WxGame/Framework/WxExperienceManagerComponent.h` — 로드 파이프라인의 실제 주체. 상태 머신(`EWxExperienceLoadState`)과 서버/클라 대칭 로드를 이해하는 핵심
-3. `Source/WxGame/Framework/WxExperienceDefinition.h` — "한 판의 게임플레이 구성"이 무엇으로 이뤄지는지(폰·GameFeature·액션·ActionSet)의 데이터 스키마
-4. `Source/WxGame/Character/WxCharacterBase.h` — 캐릭터 계층의 뿌리. ASC 소유 방식·팀·ModularGameplay 주입 대상 규약
-5. `Source/WxGame/WxGame.Build.cs` — 이 모듈이 어떤 도메인 플러그인·엔진 서브시스템을 조립하는지의 전체 의존 목록
+1. `Framework/WxGameMode.h` — 세션 부트스트랩의 전체 흐름(확정→대기→스폰→지급)이 클래스 주석에 요약돼 있다.
+2. `Framework/WxExperienceManagerComponent.h` — Experience 로드 상태 머신(`EWxExperienceLoadState`)과 서버/클라 복제 파이프라인.
+3. `Character/WxCharacterBase.h` — 캐릭터가 ASC·장비·팀·주입 컴포넌트를 어떻게 물고 있는지.
 
 ## 관련
-- 상위: 도메인 플러그인 전부 — [[WxCore]] · [[WxCombat]] · [[WxInventory]] · [[WxUI]] · [[WxAI]] · [[WxDialogue]] · [[WxQuest]] · [[WxSave]] · [[WxWorld]]
-- GameFeature 콘텐츠 플러그인(`Plugins/GameFeatures/`)이 Experience의 `GameFeaturesToEnable`로 이 모듈의 부트스트랩에 얹힌다
+- 하위 도메인: [[WxCore]](foundation) 및 [[WxCombat]] · [[WxInventory]] · [[WxUI]] · [[WxWorld]] · [[WxAI]] · [[WxDialogue]] · [[WxQuest]] · [[WxSave]].
+- 콘텐츠 상위: `Plugins/GameFeatures/`의 GameFeature 플러그인(Experience가 이름으로 활성).
 
 ---
-*문서 기준 커밋 `e355c65` · 생성일 2026-08-19 · 소스 66파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `c4db6c0` · 생성일 2026-08-25 · 소스 66파일 — `/readme-writer`로 갱신*

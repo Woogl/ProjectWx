@@ -11,7 +11,6 @@ class UBillboardComponent;
 class UChildActorComponent;
 class USceneComponent;
 
-/** Spawner 의 스폰 트리거 방식. */
 UENUM(BlueprintType)
 enum class EWxSpawnerMode : uint8
 {

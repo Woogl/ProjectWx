@@ -37,14 +37,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
 	static void SaveToFile(const UObject* WorldContextObject, const FString& SlotName, int32 UserIndex);
 
-	/** 활성 SaveGame 의 트래블 데이터에 저장된 맵으로 트래블한다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
 	static void TravelFromSaveFile(const UObject* WorldContextObject);
 
 	UFUNCTION(BlueprintCallable, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
 	static bool DoesSaveFileExist(const UObject* WorldContextObject, const FString& SlotName, int32 UserIndex);
 
-	/** 슬롯 파일을 디스크에서 삭제한다(인메모리 활성 SaveGame 은 불변). @return 삭제 성공 여부(파일 없음 등 실패 시 false). */
+	/** 디스크의 슬롯 파일만 지우고 인메모리 활성 SaveGame 은 건드리지 않는다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
 	static bool DeleteSaveFile(const UObject* WorldContextObject, const FString& SlotName, int32 UserIndex);
 };

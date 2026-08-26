@@ -9,7 +9,6 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "GameplayEffect.h"
-#include "InputAction.h"
 #include "Weapon/WxProjectileBase.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Pawn.h"
@@ -37,13 +36,35 @@ float UWxAbilityBase::GetMontagePlayRate() const
 	return ASC ? ASC->GetMontagePlayRate() : 1.f;
 }
 
+void UWxAbilityBase::OpenComboWindow()
+{
+	// 본동작에서만 연다 — 콤보가 없는 어빌리티의 몽타주에 노티파이가 섞여도 Independent를 점유자로 승격시키지 않는다.
+	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive_Blocking)
+	{
+		ActivationGroup = EWxAbilityActivationGroup::Exclusive_ComboWindow;
+	}
+}
+
+void UWxAbilityBase::CloseComboWindow()
+{
+	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive_ComboWindow)
+	{
+		ActivationGroup = EWxAbilityActivationGroup::Exclusive_Blocking;
+	}
+}
+
 void UWxAbilityBase::StartRecovery()
 {
-	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Recovery;
+	// 배타 본동작·콤보 창에서만 후딜로 — 엉뚱한 노티파이가 Independent를 점유자로 승격시키거나 Reaction의 캔슬 면역을 벗기지 않게 한다.
+	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive_Blocking || ActivationGroup == EWxAbilityActivationGroup::Exclusive_ComboWindow)
+	{
+		ActivationGroup = EWxAbilityActivationGroup::Exclusive_Recovery;
+	}
 }
 
 bool UWxAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
+	/** 순정 검사에 배타 그룹 판정을 더한다. 점유자가 자기 자신이면 콤보 창으로, 남이면 CancelAbilitiesWithTag 지목으로 가른다. */
 	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
 		return false;
@@ -55,10 +76,35 @@ bool UWxAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 
 	const UWxAbilitySystemComponent* WxASC = ActorInfo ? Cast<UWxAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get()) : nullptr;
-	const UWxAbilityBase* Blocker = WxASC ? WxASC->FindActivationGroupBlocker() : nullptr;
+	if (!WxASC)
+	{
+		return true;
+	}
 
-	// 끊겠다고 지목한 어빌리티는 나를 막지 못한다. 취소 자체는 발동 직후 순정 PreActivate가 수행한다.
-	return !Blocker || Blocker->GetAssetTags().HasAny(CancelAbilitiesWithTag);
+	// 반응형은 배타를 뚫고 공존할 수 있으므로 점유자 전원을 각각 통과해야 한다.
+	for (const UWxAbilityBase* Blocker : WxASC->FindActivationGroupBlockers())
+	{
+		// 점유자가 나 자신이면 엔진 재발동으로 들어온 콤보 진행이다. 콤보 창은 후딜보다 이르므로 여기서 갈라야 두 창이 분리된다.
+		if (Blocker == this)
+		{
+			if (ActivationGroup != EWxAbilityActivationGroup::Exclusive_ComboWindow)
+			{
+				return false;
+			}
+		}
+		// 끊겠다고 지목한 어빌리티는 나를 막지 못한다. 취소 자체는 발동 직후 순정 PreActivate가 수행한다.
+		else if (!Blocker->GetAssetTags().HasAny(CancelAbilitiesWithTag))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool UWxAbilityBase::CanBeCanceled() const
+{
+	return ActivationGroup != EWxAbilityActivationGroup::Reaction && Super::CanBeCanceled();
 }
 
 void UWxAbilityBase::SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileClass, FName SpawnSocketName) const
@@ -89,21 +135,6 @@ void UWxAbilityBase::SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileCl
 	Avatar->GetWorld()->SpawnActor<AWxProjectileBase>(ProjectileClass, SpawnTransform, SpawnParams);
 }
 
-void UWxAbilityBase::RemoveActivationOwnedEffect(TSubclassOf<UGameplayEffect> EffectClass) const
-{
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (!ASC || !EffectClass)
-	{
-		return;
-	}
-
-	// 예측으로 건 GE의 핸들은 서버본이 도착하면 무효해지므로 들고 있어도 쓸 수 없다.
-	// 정의로 찾으면 그 문제가 없고, 부여 태그로 찾는 것과 달리 같은 태그를 발행하는 다른 GE를 건드리지 않는다.
-	FGameplayEffectQuery Query;
-	Query.EffectDefinition = EffectClass;
-	ASC->RemoveActiveEffects(Query);
-}
-
 void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	// 직전 활성화의 후딜 전이가 재사용 인스턴스에 남긴 그룹을 선언값으로 되돌린다.
@@ -124,7 +155,8 @@ void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 	{
 		if (EffectClass)
 		{
-			ApplyGameplayEffectToOwner(Handle, ActorInfo, ActivationInfo, EffectClass.GetDefaultObject(), GetAbilityLevel());
+			FActiveGameplayEffectHandle EffectHandle = ApplyGameplayEffectToOwner(Handle, ActorInfo, ActivationInfo, EffectClass.GetDefaultObject(), GetAbilityLevel());
+			ActivationOwnedEffectHandles.Add(EffectHandle);
 		}
 	}
 
@@ -138,10 +170,14 @@ void UWxAbilityBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const F
 	ActiveMontage = nullptr;
 
 	// 캔슬·중단도 이 경로를 지나므로 효과가 새지 않는다. 활성 중에 이미 걷힌 것은 조회에 걸리지 않아 무해하다.
-	for (const TSubclassOf<UGameplayEffect>& EffectClass : ActivationOwnedEffects)
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 	{
-		RemoveActivationOwnedEffect(EffectClass);
+		for (FActiveGameplayEffectHandle EffectHandle : ActivationOwnedEffectHandles)
+		{
+			ASC->RemoveActiveGameplayEffect(EffectHandle);
+		}
 	}
+	ActivationOwnedEffectHandles.Reset();
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
@@ -206,7 +242,7 @@ void UWxAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, c
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
 
-	if (ActivationPolicy == EWxAbilityActivationPolicy::OnGranted)
+	if (ActivationPolicy == EWxAbilityActivationPolicy::OnGiven)
 	{
 		if (UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr)
 		{
@@ -248,6 +284,7 @@ void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, cons
 {
 	if (CooldownGameplayEffectClass && CooldownGameplayEffectClass != UWxEffect_Cooldown::StaticClass())
 	{
+		// 커스텀 쿨다운 클래스를 적용하는 경우
 		Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
 		return;
 	}
@@ -265,6 +302,7 @@ void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, cons
 		return;
 	}
 
+	// 충전이 직렬로 회복되도록 이미 도는 쿨다운의 최장 잔여시간을 더한 값을 SetByCaller로 실어 적용한다.
 	// 이 조회는 GE 적용 전이라 방금 거는 쿨다운이 섞이지 않는다.
 	float LongestRemaining = 0.f;
 	float LongestDuration = 0.f;
@@ -290,7 +328,7 @@ bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, cons
 		return true;
 	}
 
-	const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+	const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
 	if (!ASC)
 	{
 		return true;
@@ -317,6 +355,10 @@ bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, cons
 
 float UWxAbilityBase::GetCooldownTimeRemaining(const FGameplayAbilityActorInfo* ActorInfo) const
 {
+	/**
+	 * 엔진 순정 구현은 쿨다운 GE의 GrantedTags 쿼리 기반이라, 태그를 부여하지 않는 공용 쿨다운 GE에서는 항상 0을 반환한다.
+	 * CDO 기반 쿼리로 대체해 순정 API(BP 노드 포함) 호출자가 올바른 값을 받게 한다.
+	 */
 	if (CooldownGameplayEffectClass && CooldownGameplayEffectClass != UWxEffect_Cooldown::StaticClass())
 	{
 		return Super::GetCooldownTimeRemaining(ActorInfo);
@@ -361,23 +403,28 @@ int32 UWxAbilityBase::QueryActiveCooldowns(const UAbilitySystemComponent& ASC, f
 	OutLongestRemaining = 0.f;
 	OutLongestDuration = 0.f;
 
-	const UGameplayAbility* AbilityCDO = GetClass()->GetDefaultObject<UGameplayAbility>();
-	const float WorldTime = ASC.GetWorld()->GetTimeSeconds();
-
-	FGameplayEffectQuery Query;
-	Query.EffectDefinition = UWxEffect_Cooldown::StaticClass();
-
-	int32 ActiveCount = 0;
-	for (const FActiveGameplayEffectHandle& ActiveHandle : ASC.GetActiveEffects(Query))
+	const UWorld* World = ASC.GetWorld();
+	if (!World)
 	{
-		const FActiveGameplayEffect* ActiveGE = ASC.GetActiveGameplayEffect(ActiveHandle);
-		if (!ActiveGE || ActiveGE->Spec.GetEffectContext().GetAbility() != AbilityCDO)
+		return 0;
+	}
+
+	const UGameplayAbility* AbilityCDO = GetClass()->GetDefaultObject<UGameplayAbility>();
+	const UGameplayEffect* CooldownDef = GetDefault<UWxEffect_Cooldown>();
+	const float WorldTime = World->GetTimeSeconds();
+
+	// 홀드 입력이면 매 프레임 도는 경로다. GetActiveEffects는 핸들 배열을 새로 할당하고 핸들마다 컨테이너를 다시 찾게 만들어 직접 순회한다.
+	int32 ActiveCount = 0;
+	for (const FActiveGameplayEffect& ActiveGE : &ASC.GetActiveGameplayEffects())
+	{
+		// 엔진 쿼리의 정의 비교와 같은 규칙 — 하위 클래스가 아니라 CDO 일치다.
+		if (ActiveGE.Spec.Def != CooldownDef || ActiveGE.Spec.GetEffectContext().GetAbility() != AbilityCDO)
 		{
 			continue;
 		}
 
 		// 만료됐지만 아직 제거되지 않은 GE(클라는 제거 복제가 늦게 도착)는 회복된 충전으로 친다
-		const float Remaining = (ActiveGE->StartWorldTime + ActiveGE->Spec.GetDuration()) - WorldTime;
+		const float Remaining = (ActiveGE.StartWorldTime + ActiveGE.Spec.GetDuration()) - WorldTime;
 		if (Remaining <= 0.f)
 		{
 			continue;
@@ -387,7 +434,7 @@ int32 UWxAbilityBase::QueryActiveCooldowns(const UAbilitySystemComponent& ASC, f
 		if (Remaining > OutLongestRemaining)
 		{
 			OutLongestRemaining = Remaining;
-			OutLongestDuration = ActiveGE->Spec.GetDuration();
+			OutLongestDuration = ActiveGE.Spec.GetDuration();
 		}
 	}
 

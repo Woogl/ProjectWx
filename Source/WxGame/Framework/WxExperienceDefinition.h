@@ -39,7 +39,10 @@ public:
 	//~ End UPrimaryDataAsset
 #endif
 
-	/** 폰 클래스의 유일한 출처다 — GameMode 의 DefaultPawnClass 는 쓰이지 않는다. */
+	/**
+	 * 폰 클래스의 유일한 출처다 — GameMode 의 DefaultPawnClass 는 쓰이지 않는다.
+	 * 비우면 플레이어 폰 없이 도는 Experience(프론트엔드)다 — GameMode 의 SpectatorClass 로 빙의한다.
+	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TSubclassOf<APawn> DefaultPawnClass;
 

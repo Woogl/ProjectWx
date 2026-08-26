@@ -8,6 +8,9 @@
 
 UWxBTDecorator_AttributeRatio::UWxBTDecorator_AttributeRatio()
 {
+	bAllowAbortLowerPri = false;
+	bAllowAbortChildNodes = false;
+	
 	ArithmeticOperation = EArithmeticKeyOperation::LessOrEqual;
 	Ratio = 0.5f;
 }

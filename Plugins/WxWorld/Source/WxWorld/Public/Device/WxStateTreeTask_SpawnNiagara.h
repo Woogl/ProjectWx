@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Device/WxComponentName.h"
+#include "Device/WxStateTreeComponentName.h"
 #include "StateTreeTaskBase.h"
 #include "WxStateTreeTask_SpawnNiagara.generated.h"
 
@@ -22,7 +22,7 @@ struct FWxStateTreeTask_SpawnNiagaraInstanceData
 
 	/** 붙일 컴포넌트. 트리가 붙은 액터가 가진 것 중에서 고르며, 비우면 액터 위치에 재생한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
-	FWxComponentName AttachComponent;
+	FWxStateTreeComponentName AttachComponent;
 
 	/** 비우면 컴포넌트 원점에 붙는다. AttachComponent 를 지정했을 때만 의미가 있다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
@@ -46,8 +46,6 @@ struct FWxStateTreeTask_SpawnNiagaraInstanceData
 /**
  * 진입할 때 이 노드가 띄운 Niagara 가 재생 중이 아니면 재생하고 Succeeded 로 완료한다. State 를 읽지 않아 어떤 장치든 재사용한다.
  * 진입 경로(라이브 전이/초기 시작/복원/레이트조인)를 가리지 않고 판단 기준은 그 하나다.
- * 그래서 루프 Niagara 를 지정하면 상태에 묶인 지속 FX 가 되어 배선 없이 로드·복원·스트리밍 인에서 알아서 살아나고(예: 체크포인트 모닥불), 진입이 반복돼도 이미터가 겹쳐 쌓이지 않는다.
- * 반대로 일회성 FX 는 재생이 끝난 뒤 다시 진입하면 다시 터지므로, 복원 시 침묵해야 하는 순간 연출에는 맞지 않는다.
  * 모든 피어(서버+클라)가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다.
  */
 USTRUCT(meta = (DisplayName = "나이아가라 스폰", Category = "Wx"))
