@@ -21,6 +21,23 @@ UWxAbility_Guard::UWxAbility_Guard()
 	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Blocking;
 }
 
+bool UWxAbility_Guard::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	// 홀드 어빌리티 — 키가 눌려 있지 않으면 시작하지 않는다. 뗀 뒤 버퍼 재생으로 뒤늦게 올라가면 다음 누름까지 가드가 고정된다.
+	// 서버 스펙의 키 상태는 발동 RPC가 도착해야 채워지므로 소유 클라에서만 본다.
+	if (ActorInfo && ActorInfo->IsLocallyControlled())
+	{
+		const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+		const FGameplayAbilitySpec* Spec = ASC ? ASC->FindAbilitySpecFromHandle(Handle) : nullptr;
+		if (Spec && !Spec->InputPressed)
+		{
+			return false;
+		}
+	}
+
+	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
+}
+
 void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	Super::InputReleased(Handle, ActorInfo, ActivationInfo);

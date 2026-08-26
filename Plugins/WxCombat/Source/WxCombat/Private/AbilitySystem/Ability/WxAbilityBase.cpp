@@ -42,6 +42,12 @@ void UWxAbilityBase::OpenComboWindow()
 	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive_Blocking)
 	{
 		ActivationGroup = EWxAbilityActivationGroup::Exclusive_ComboWindow;
+
+		// 창이 열린 순간 쌓인 입력을 재생한다. 재발동이 이 인스턴스를 그대로 되살리므로 전이 뒤에는 아무것도 쓰지 않는다.
+		if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo()))
+		{
+			WxASC->FlushBufferedInputs();
+		}
 	}
 }
 
@@ -59,6 +65,12 @@ void UWxAbilityBase::StartRecovery()
 	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive_Blocking || ActivationGroup == EWxAbilityActivationGroup::Exclusive_ComboWindow)
 	{
 		ActivationGroup = EWxAbilityActivationGroup::Exclusive_Recovery;
+
+		// 후딜이 열린 순간 쌓인 입력을 재생한다. 성립한 어빌리티가 이 인스턴스를 끊으므로 전이 뒤에는 아무것도 쓰지 않는다.
+		if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo()))
+		{
+			WxASC->FlushBufferedInputs();
+		}
 	}
 }
 
