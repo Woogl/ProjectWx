@@ -261,9 +261,13 @@ void UWxAbility_Dodge::ActivateJudgementCapsule()
 		JudgementCapsule = NewObject<UCapsuleComponent>(Character, TEXT("DodgeJudgementCapsule"));
 		JudgementCapsule->SetCapsuleSize(BodyCapsule->GetScaledCapsuleRadius(), BodyCapsule->GetScaledCapsuleHalfHeight());
 
-		JudgementCapsule->SetCollisionObjectType(ECC_WxAttack);
+		// 캐릭터 메시와 같은 방식으로 피격에 참여한다 — 무기·투사체가 Pawn을 Overlap으로 열어 두었고, 채널 판정은 양방향 최솟값이라 WxAttack 응답도 함께 열어야 한다.
+		JudgementCapsule->SetCollisionObjectType(ECC_Pawn);
 		JudgementCapsule->SetCollisionResponseToAllChannels(ECR_Ignore);
-		JudgementCapsule->SetGenerateOverlapEvents(false);
+		JudgementCapsule->SetCollisionResponseToChannel(ECC_WxAttack, ECR_Overlap);
+
+		// 무기의 틱 Sweep은 터널링 보완용이라 위치가 거의 안 변하는 스윙을 놓친다. 주 경로인 오버랩과 투사체가 닿으려면 이벤트가 필요하다.
+		JudgementCapsule->SetGenerateOverlapEvents(true);
 		JudgementCapsule->SetupAttachment(BodyCapsule);
 		JudgementCapsule->RegisterComponent();
 	}
