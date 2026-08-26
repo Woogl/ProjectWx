@@ -205,13 +205,16 @@ void UWxAbilitySystemComponent::ApplyHitStop(float Duration, const UGameplayAbil
 		return;
 	}
 
+	// 얼리기 전에 되돌릴 값을 잡아 둔다. 복원 시점엔 몽타주 주인이 바뀌어 있을 수 있어 다시 물으면 남의 배속을 얻는다.
+	const UWxAbilityBase* SourceWxAbility = Cast<UWxAbilityBase>(SourceAbility);
+	HitStopResumePlayRate = SourceWxAbility ? SourceWxAbility->GetMontagePlayRate() : GetMontagePlayRate();
+	HitStopMontage = Montage;
+
 	// 완전한 0이 아닌 미세 값으로 둬 몽타주 진행 판정 이슈를 피한다.
 	CurrentMontageSetPlayRate(0.001f);
 
 	// 연속 적중이면 타이머가 재설정되어 조기 복원을 막는다.
-	GetWorld()->GetTimerManager().SetTimer(HitStopResumeTimer,
-		FTimerDelegate::CreateUObject(this, &UWxAbilitySystemComponent::HandleHitStopElapsed, TWeakObjectPtr<UAnimMontage>(Montage)),
-		Duration, false);
+	GetWorld()->GetTimerManager().SetTimer(HitStopResumeTimer, this, &UWxAbilitySystemComponent::HandleHitStopElapsed, Duration, false);
 }
 
 void UWxAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason)
@@ -317,12 +320,12 @@ void UWxAbilitySystemComponent::CancelActivationGroupAbilities(EWxAbilityActivat
 	}
 }
 
-void UWxAbilitySystemComponent::HandleHitStopElapsed(TWeakObjectPtr<UAnimMontage> FrozenMontage)
+void UWxAbilitySystemComponent::HandleHitStopElapsed()
 {
 	// 피격 등이 현재 몽타주를 가로챘어도 얼렸던 그 몽타주에 정확히 닿는다.
 	UAnimInstance* AnimInstance = AbilityActorInfo.IsValid() ? AbilityActorInfo->GetAnimInstance() : nullptr;
-	if (AnimInstance && FrozenMontage.IsValid())
+	if (AnimInstance && HitStopMontage.IsValid())
 	{
-		AnimInstance->Montage_SetPlayRate(FrozenMontage.Get(), GetMontagePlayRate());
+		AnimInstance->Montage_SetPlayRate(HitStopMontage.Get(), HitStopResumePlayRate);
 	}
 }

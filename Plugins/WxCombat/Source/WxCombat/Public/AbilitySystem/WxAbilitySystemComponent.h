@@ -49,7 +49,7 @@ public:
 
 	TArray<const UInputAction*> GetAbilityInputActions() const;
 
-	/** 이 액터의 ASPD가 반영된 몽타주 재생 속도. 어빌리티 몽타주 재생과 히트스톱 복원이 공유한다. */
+	/** 이 액터의 ASPD가 반영된 몽타주 재생 속도. 어빌리티가 오버라이드하지 않으면 그 어빌리티의 몽타주 재생 속도가 된다. */
 	float GetMontagePlayRate() const;
 
 	/**
@@ -80,9 +80,13 @@ private:
 	/** 버퍼 재생: Action에 매칭된 어빌리티들에 발동을 시도해 하나라도 성립하면 true. 뗀 뒤의 재생이라 스펙의 키 상태는 세우지 않는다. */
 	bool TryActivateByInputAction(const UInputAction* Action);
 
-	void HandleHitStopElapsed(TWeakObjectPtr<UAnimMontage> FrozenMontage);
+	void HandleHitStopElapsed();
 
 	TArray<FWxBufferedInput> BufferedInputs;
+
+	/** 히트스톱이 얼린 몽타주와 얼리기 직전의 재생 속도. 복원 예약이 살아 있는 동안에만 읽는다. */
+	TWeakObjectPtr<UAnimMontage> HitStopMontage;
+	float HitStopResumePlayRate = 1.f;
 
 	FTimerHandle HitStopResumeTimer;
 
