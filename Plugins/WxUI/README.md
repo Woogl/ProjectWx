@@ -1,45 +1,47 @@
 # WxUI — UI 시스템
 
-> CommonUI 기반의 레이어 스택 UI를 오케스트레이션하고, ASC·표시 데이터를 MVVM 뷰모델로 화면에 잇는 도메인 플러그인. C++는 위젯·뷰모델·컴포넌트의 베이스와 배관을 제공하고, 실제 외형은 BP/WBP 콘텐츠가 저작한다.
+> CommonUI 레이어 스택과 MVVM 뷰모델을 축으로 한 게임 UI 기반. 위젯을 레이어에 push 하고, 게임플레이 상태(ASC 태그·어트리뷰트·인디케이터·자막)를 뷰모델로 옮겨 UMG에 노출한다. 실제 화면(WBP)은 콘텐츠가 저작하고, 이 모듈은 그 뼈대와 데이터 흐름만 제공한다.
 
 ## 책임
 **담당**
-- CommonUI ActivatableWidget을 태그로 구분된 레이어 스택에 push/pop 하는 화면 전환 배관 (`UWxUIManagerSubsystem`, `UWxPrimaryGameLayout`)
-- MVVM 뷰모델 계층 — ASC(어트리뷰트/어빌리티/이펙트)·캐릭터·상호작용·자막·인디케이터를 표시 필드로 노출, 이미지 비동기 스트리밍 공통 처리
-- HUD·네임플레이트·화면공간 인디케이터·확인 팝업의 C++ 베이스 위젯과 부착용 컨트롤러/위젯 컴포넌트
-- 자막 시스템 소유 및 StateTree 태스크 노드 제공(소비 도메인이 UI를 참조하지 않고 에셋에서 골라 쓰도록)
+- 레이어드 UI 호스트: `UWxPrimaryGameLayout`(레이어별 `UCommonActivatableWidgetStack`)와 `UWxUIManagerSubsystem`(push/pop, 입력 모드, 게임 정지 재평가).
+- MVVM 뷰모델 계층: `UWxViewModel` 파생들이 ASC·인디케이터·상호작용·자막 등 소스를 표시 필드로 변환. 소프트 이미지 비동기 스트리밍 공통 제공.
+- HUD·컴포넌트 주입점: `UWxHUDComponent`, `UWxNameplateComponent`, `UWxIndicatorManagerComponent`(컨트롤러/위젯 컴포넌트, Experience가 주입).
+- 공용 팝업·확인창(`UWxGamePopup`/`UWxGamePopupDescriptor`), BP 진입 라이브러리(`UWxUILibrary`).
+- 소비 도메인이 UI를 참조하지 않고 쓰도록 StateTree 노드 제공(자막 출력·인디케이터 표시).
 
 **경계 (비담당)**
-- 위젯 외형·계층·바인딩(WBP)은 콘텐츠 저작물이며 여기서 나열하지 않는다
-- HUD/사망/대화 화면으로 "어떤 위젯을 띄울지"와 컴포넌트 부착은 Experience 에셋(GameFeature)이 정한다 — 본 모듈은 정해진 값을 실어 두고 띄우기만 한다
-- 어트리뷰트·어빌리티·대화 세션 등 원천 데이터는 소비만 하고 소유하지 않는다(ASC/GAS는 엔진, 도메인 로직은 각 도메인 플러그인)
+- 어트리뷰트·GameplayEffect·능력 등 뷰모델이 미러링하는 원천 상태 → [[WxCombat]](ASC는 GameplayAbilities).
+- 대화 세션 상태·자막 내용 저작 → [[WxDialogue]](자막 노드는 여기서 제공, 진행은 대화/퀘스트가 소비).
+- 상호작용 대상 탐지 → [[WxWorld]].
+- 어떤 HUD/위젯 WBP를 언제 띄울지의 결정과 컴포넌트 주입 목록 → Experience(GameFeature) 계층.
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxUIManagerSubsystem` | UI 중앙 오케스트레이터(GameInstanceSubsystem). 레이어 push, 확인 팝업, HUD·사망·대화 화면 관리, 게임 정지 재평가 | `Source/WxUI/Public/System/WxUIManagerSubsystem.h` |
-| `UWxPrimaryGameLayout` | 화면 루트 위젯. `UI.Layer` 태그로 키된 ActivatableWidgetStack 들을 z-order 순으로 보유 | `Source/WxUI/Public/System/WxPrimaryGameLayout.h` |
-| `UWxActivatableWidget` | 모든 화면 위젯의 베이스. 입력 모드·게임 정지 의사(`ShouldPauseGame`) 표명 | `Source/WxUI/Public/Widget/WxActivatableWidget.h` |
-| `UWxViewModel` | MVVM 뷰모델 베이스. 공유 VM 조회(`FindSharedViewModel`)·이미지 비동기 스트리밍 제공 | `Source/WxUI/Public/MVVM/WxViewModel.h` |
-| `UWxViewModel_AbilitySystem` | ASC를 어트리뷰트/어빌리티/이펙트 자식 VM으로 노출하는 Composite. ASC당 하나 지연 생성 | `Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h` |
-| `UWxUILibrary` | Blueprint 진입점(BFL). 서브시스템·레이아웃 조회, 레이어 push, 확인 팝업 | `Source/WxUI/Public/WxUILibrary.h` |
-| `UWxUIDeveloperSettings` | 프로젝트 전역 레이아웃·팝업·사망/대화 화면 클래스 지정(Config) | `Source/WxUI/Public/System/WxUIDeveloperSettings.h` |
-| `UWxIndicatorManagerComponent` | 로컬 PC의 화면공간 인디케이터 목록을 들고 매 틱 화면 좌표를 투영·발행 | `Source/WxUI/Public/Indicator/WxIndicatorManagerComponent.h` |
+| `UWxUIManagerSubsystem` | GameInstance 서브시스템. 레이어 push/팝업/HUD, 사망·대화 태그 관찰, 정지 재평가 | `Plugins/WxUI/Source/WxUI/Public/System/WxUIManagerSubsystem.h` |
+| `UWxPrimaryGameLayout` | 레이어 태그 → 위젯 스택 맵. z-order 관리, push 구현 | `Plugins/WxUI/Source/WxUI/Public/System/WxPrimaryGameLayout.h` |
+| `UWxActivatableWidget` | 입력 모드·게임 정지 의사를 가진 활성 위젯 베이스 | `Plugins/WxUI/Source/WxUI/Public/Widget/WxActivatableWidget.h` |
+| `UWxViewModel` | MVVM 베이스. 공유 VM 조회·소프트 이미지 비동기 스트리밍 | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h` |
+| `UWxHUDComponent` | 로컬 플레이어 HUD를 Game 레이어에 띄우는 컨트롤러 컴포넌트 | `Plugins/WxUI/Source/WxUI/Public/Component/WxHUDComponent.h` |
+| `UWxIndicatorManagerComponent` | 화면 좌표 인디케이터 목록 보유·매 틱 투영·발행 | `Plugins/WxUI/Source/WxUI/Public/Indicator/WxIndicatorManagerComponent.h` |
+| `UWxUILibrary` | BP 진입점(레이어 push, 팝업, 활성 위젯 제어) | `Plugins/WxUI/Source/WxUI/Public/WxUILibrary.h` |
+| `UWxUIDeveloperSettings` | 레이아웃·팝업·사망/대화 화면 소프트 클래스 설정 | `Plugins/WxUI/Source/WxUI/Public/System/WxUIDeveloperSettings.h` |
 
 ## 확장 포인트 / 규약
-- 새 화면 위젯: `UWxActivatableWidget`(또는 `UWxGamePopup`)을 상속한 WBP를 만들고, `UWxUIManagerSubsystem::PushContentToLayer` 계열이나 `UWxUILibrary`/`UWxAsyncAction_PushWidgetToLayer`로 `UI.Layer` 태그를 지정해 push 한다.
-- 새 레이어: `UWxPrimaryGameLayout`의 `LayerTags`(z-order = 배열 순서)에 `UI.Layer.*` 태그를 추가하고 LayerContainer에 대응 Stack을 배치한다.
-- 새 뷰모델: `UWxViewModel`을 상속하고, 이미지 필드는 `RequestImageAsync`/`ApplyLoadedImage`로 소프트 참조를 로드해 노출한다. ASC 파생 데이터는 `UWxViewModel_AbilitySystem`의 `GetOrCreate...` 지연 생성 경로를 쓴다.
-- 데이터 주도 설정: 전역 클래스는 `UWxUIDeveloperSettings`, 콘텐츠별 HUD·화면 지정은 Experience 에셋이 서브시스템/컴포넌트에 주입한다. 팝업 구성은 `UWxGamePopupDescriptor`.
-- 자막 노드는 `FWxStateTreeTask_PrintSubtitle`(StateTree 태스크)로 소비 도메인 에셋에서 직접 배치한다.
+- 새 화면 위젯: `UWxActivatableWidget`(또는 `UWxGamePopup`) 파생 WBP → `UWxUIManagerSubsystem::PushContentToLayer`/`UWxUILibrary::PushSoftContentToLayer`로 레이어 태그(`UI.Layer.*`) 지정해 push. 정지·입력 모드는 위젯의 `bPauseGame`/`InputMode`가 선언하고 매니저가 전 레이어를 재평가해 실제 적용.
+- 새 표시 데이터: `UWxViewModel` 파생 VM 추가 → 소스를 Outer로 `FindSharedViewModel`로 공유. 위젯은 VM 존재를 알 뿐 소스 컴포넌트를 직접 참조하지 않음(예: 인디케이터/캐릭터 VM은 컴포넌트 델리게이트를 구독).
+- 컴포넌트 주입은 코드가 아니라 Experience 에셋의 주입 목록으로 함(`UWxHUDComponent`/`UWxIndicatorManagerComponent`/`UWxNameplateComponent`는 부착 주체를 모름). 원격 사본 거부는 각 컴포넌트 책임.
+- 소비 도메인용 StateTree 노드: `FWxStateTreeTask_PrintSubtitle`(자막), `FWxStateTreeTask_MarkIndicator`(인디케이터) — 도메인이 WxUI를 코드 참조하지 않고 에셋에서 선택.
+- 레이어 태그·화면 클래스 등 설정은 `UWxUIDeveloperSettings`(Config=Game)에서 데이터 주도.
 
 ## 여기서부터 읽어라
-1. `Source/WxUI/Public/System/WxUIManagerSubsystem.h` — 화면 흐름의 중심. 레이어 push·팝업·HUD/사망/대화 처리와 정지 로직이 모여 있다.
-2. `Source/WxUI/Public/System/WxPrimaryGameLayout.h` — 레이어 스택 구조와 태그→스택 매핑의 골격.
-3. `Source/WxUI/Public/MVVM/WxViewModel.h` → `WxViewModel_AbilitySystem.h` — 뷰모델 배관과 ASC 노출 구조.
+1. `Plugins/WxUI/Source/WxUI/Public/System/WxUIManagerSubsystem.h` — UI의 중심 오케스트레이터. 레이어·팝업·HUD·정지·상태 태그 관찰이 모두 여기로 모임.
+2. `Plugins/WxUI/Source/WxUI/Public/System/WxPrimaryGameLayout.h` — 레이어 태그가 실제 위젯 스택으로 어떻게 매핑되는지.
+3. `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h` — 게임플레이 상태가 UMG로 넘어가는 MVVM 관문(공유·이미지 스트리밍 규약).
 
 ## 관련
-- 상위: Experience(GameFeature)가 HUD·컴포넌트 주입과 화면 클래스 지정으로 이 모듈을 구동한다. GAS·CommonUI·ModelViewViewModel·StateTree(엔진), 공용 정의는 [[WxCore]].
+- 상위: <[[WxGame]] / Experience(GameFeature) 계층이 HUD·컴포넌트 주입을 결정>
 
 ---
-*문서 기준 커밋 `c4db6c0` · 생성일 2026-08-25 · 소스 63파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `718b827` · 생성일 2026-08-26 · 소스 63파일 — `/readme-writer`로 갱신*
