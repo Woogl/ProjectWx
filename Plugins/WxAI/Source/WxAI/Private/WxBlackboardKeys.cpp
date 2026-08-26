@@ -81,15 +81,11 @@ namespace WxBlackboardKeys
 		Blackboard->SetValueAsVector(PatrolTargetLocation, Value);
 	}
 
+	const float NoTargetDistance = TNumericLimits<float>::Max();
+
 	void SetTargetDistance(UBlackboardComponent* Blackboard, float Value)
 	{
 		VerifyBlackboardKey(Blackboard, TargetDistance, UBlackboardKeyType_Float::StaticClass());
 		Blackboard->SetValueAsFloat(TargetDistance, Value);
-	}
-
-	void ClearTargetDistance(UBlackboardComponent* Blackboard)
-	{
-		VerifyBlackboardKey(Blackboard, TargetDistance, UBlackboardKeyType_Float::StaticClass());
-		Blackboard->ClearValue(TargetDistance);
 	}
 }

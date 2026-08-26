@@ -35,7 +35,8 @@ namespace WxBlackboardKeys
 
 	WXAI_API void SetPatrolTargetLocation(UBlackboardComponent* Blackboard, const FVector& Value);
 
-	// Float 키: 모든 float 가 유효값이라 "값 없음"을 Set 으로 표현할 수 없어, 타겟이 없을 때를 위한 Clear 를 별도로 둔다.
+	// Float 키: Clear 가 0(=코앞)을 써 근거리 비교를 통과시키므로, 타겟이 없을 때는 대신 이 값을 기록해 "무한히 멀다"로 읽히게 한다.
+	WXAI_API extern const float NoTargetDistance;
+
 	WXAI_API void SetTargetDistance(UBlackboardComponent* Blackboard, float Value);
-	WXAI_API void ClearTargetDistance(UBlackboardComponent* Blackboard);
 }

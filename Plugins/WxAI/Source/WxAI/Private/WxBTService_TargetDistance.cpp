@@ -33,7 +33,7 @@ void UWxBTService_TargetDistance::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 	const AActor* Target = WxBlackboardKeys::GetTargetActor(Blackboard);
 	if (!Self || !Target)
 	{
-		WxBlackboardKeys::ClearTargetDistance(Blackboard);
+		WxBlackboardKeys::SetTargetDistance(Blackboard, WxBlackboardKeys::NoTargetDistance);
 		return;
 	}
 
