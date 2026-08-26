@@ -207,6 +207,20 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 		SlowTimeTask->ReadyForActivation();
 	}
 
+	// 회피 섹션은 몸을 돌리지 않고 몸 기준 루트모션으로만 흐르므로, 그대로 두면 극한 회피 몽타주의 루트모션이 다시 몸 정면으로 나가 이동이 꺾인다.
+	// 루트모션 중 속도가 곧 진행 방향이라, 여기 맞춰 몸을 돌려 이동을 잇는다.
+	// 락온 중에는 락온 태스크가 매 틱 몸을 타겟으로 되돌리므로 돌리지 않는다.
+	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	AActor* Avatar = GetAvatarActorFromActorInfo();
+	if (Avatar && ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_LockOn))
+	{
+		const FVector MoveDirection = Avatar->GetVelocity().GetSafeNormal2D();
+		if (!MoveDirection.IsNearlyZero())
+		{
+			Avatar->SetActorRotation(MoveDirection.ToOrientationRotator());
+		}
+	}
+
 	if (!PlayMontage(PerfectDodgeMontage))
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
