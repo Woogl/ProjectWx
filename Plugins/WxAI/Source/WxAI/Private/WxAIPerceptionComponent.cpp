@@ -14,6 +14,7 @@
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/AISenseConfig_Damage.h"
 #include "Perception/AISense_Damage.h"
+#include "Perception/AISense_Sight.h"
 
 UWxAIPerceptionComponent::UWxAIPerceptionComponent()
 {
@@ -34,6 +35,11 @@ UWxAIPerceptionComponent::UWxAIPerceptionComponent()
 	HearingConfig->HearingRange = 1000.0f;
 
 	DamageConfig = CreateDefaultSubobject<UAISenseConfig_Damage>(TEXT("DamageConfig"));
+
+	// Sight 와 달리 이 둘은 성공 자극만 등록하는 일회성 센스라 해제 이벤트가 없다.
+	// MaxAge 를 비워 두면 GetMaxAge 가 NeverHappenedAge 를 돌려줘 자극이 영영 "감지 중" 으로 남으므로, 유한한 수명을 준다.
+	HearingConfig->SetMaxAge(5.0f);
+	DamageConfig->SetMaxAge(5.0f);
 
 	SetDominantSense(UAISense_Sight::StaticClass());
 	OnTargetPerceptionUpdated.AddDynamic(this, &UWxAIPerceptionComponent::HandleTargetPerceptionUpdated);
@@ -157,15 +163,31 @@ void UWxAIPerceptionComponent::SetTargetingSuppressed(bool bSuppressed)
 	else
 	{
 		// Sight 는 감지 여부가 바뀔 때만 갱신을 방송하므로, 억제 중 계속 보이던 대상은 해제 후 새 자극이 오지 않는다. 현재 감지 상태를 직접 읽어 재획득한다.
+		// 판정을 Sight 로 좁히는 것이 핵심이다. 모든 센스를 함께 보면 만료되지 않는 청각·촉각 자극 때문에 한 번 싸운 상대를 시야 밖에서도 다시 집어, 리시 복귀가 곧바로 재추격으로 되돌아간다.
+		const FAISenseID SightID = UAISense::GetSenseID<UAISense_Sight>();
+		const APawn* Pawn = GetOwnerPawn();
+		const FVector PawnLocation = Pawn ? Pawn->GetActorLocation() : FVector::ZeroVector;
+
+		AActor* Nearest = nullptr;
+		float NearestDistanceSquared = TNumericLimits<float>::Max();
 		for (FActorPerceptionContainer::TConstIterator It = GetPerceptualDataConstIterator(); It; ++It)
 		{
-			AActor* Target = It->Value.HasAnyCurrentStimulus() ? It->Value.Target.Get() : nullptr;
-			if (Target && !IsActorDead(Target))
+			AActor* Target = It->Value.Target.Get();
+			if (!Target || IsActorDead(Target) || !HasActiveStimulus(*Target, SightID))
 			{
-				SetTargetActor(Target);
-				break;
+				continue;
+			}
+
+			// TMap 순회 순서는 보장되지 않으므로, 보이는 적이 여럿이면 가장 가까운 쪽으로 확정한다.
+			const float DistanceSquared = FVector::DistSquared(PawnLocation, Target->GetActorLocation());
+			if (DistanceSquared < NearestDistanceSquared)
+			{
+				NearestDistanceSquared = DistanceSquared;
+				Nearest = Target;
 			}
 		}
+
+		SetTargetActor(Nearest);
 	}
 
 	// 인식은 판정에 맡긴다 — 억제 중이면 자연히 꺼지고, 해제 후엔 재획득 결과를 따른다.
