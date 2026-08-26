@@ -6,8 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "StateTreeExecutionContext.h"
 #include "StateTreePropertyBindings.h"
-#include "UniversalObjectLocators/ActorLocatorFragment.h"
 #include "WxInteractable.h"
+#include "WxLocatorUtils.h"
 #include "WxWorldModule.h"
 
 FWxStateTreeTask_EnableInteraction::FWxStateTreeTask_EnableInteraction()
@@ -100,7 +100,7 @@ FText FWxStateTreeTask_EnableInteraction::GetDescription(const FGuid& ID, FState
 		TargetText = BindingLookup.GetBindingSourceDisplayName(FPropertyBindingPath(ID, GET_MEMBER_NAME_CHECKED(FInstanceDataType, Target)), Formatting);
 		if (TargetText.IsEmpty())
 		{
-			TargetText = FText::FromString(GetTargetDisplayName(InstanceData->Target));
+			TargetText = FText::FromString(FWxLocatorUtils::GetDisplayName(InstanceData->Target));
 		}
 	}
 
@@ -110,29 +110,5 @@ FText FWxStateTreeTask_EnableInteraction::GetDescription(const FGuid& ID, FState
 	}
 
 	return FText::Format(INVTEXT("{0} ({1})"), InstanceData->bEnable ? INVTEXT("상호작용 켜기") : INVTEXT("상호작용 끄기"), TargetText);
-}
-
-FString FWxStateTreeTask_EnableInteraction::GetTargetDisplayName(const FUniversalObjectLocator& Locator) const
-{
-	if (Locator.IsEmpty())
-	{
-		return TEXT("unset");
-	}
-
-	if (const AActor* Actor = Cast<AActor>(Locator.SyncFind()))
-	{
-		return Actor->GetActorLabel();
-	}
-
-	const FUniversalObjectLocatorFragment* Fragment = Locator.GetLastFragment();
-	const FActorLocatorFragment* Payload = nullptr;
-	if (Fragment && Fragment->TryGetPayloadAs(FActorLocatorFragment::FragmentType, Payload) && Payload)
-	{
-		const FString SubPath = Payload->Path.GetSubPathString();
-		int32 DotIndex = INDEX_NONE;
-		return SubPath.FindLastChar(TEXT('.'), DotIndex) ? SubPath.Mid(DotIndex + 1) : SubPath;
-	}
-
-	return TEXT("unresolved");
 }
 #endif

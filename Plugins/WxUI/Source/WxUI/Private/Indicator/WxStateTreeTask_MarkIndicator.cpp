@@ -9,7 +9,7 @@
 #include "Indicator/WxIndicatorManagerComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "StateTreeExecutionContext.h"
-#include "UniversalObjectLocators/ActorLocatorFragment.h"
+#include "WxLocatorUtils.h"
 #include "WxUIModule.h"
 
 namespace
@@ -70,33 +70,6 @@ namespace
 		const FVector WorldOffset(0.f, 0.f, Instance.WorldZOffset);
 		Instance.RegisteredIndicator = Manager->AddIndicator(TargetComponent, Instance.TargetLocation, WorldOffset);
 	}
-
-#if WITH_EDITOR
-	/** 에디터에서 해석되면 액터 라벨(아웃라이너와 동일), 미해석이면 경로 끝 오브젝트 이름, 빈 로케이터는 unset. */
-	FString GetTargetDisplayName(const FUniversalObjectLocator& Locator)
-	{
-		if (Locator.IsEmpty())
-		{
-			return TEXT("unset");
-		}
-
-		if (const AActor* Actor = Cast<AActor>(Locator.SyncFind()))
-		{
-			return Actor->GetActorLabel();
-		}
-
-		const FUniversalObjectLocatorFragment* Fragment = Locator.GetLastFragment();
-		const FActorLocatorFragment* Payload = nullptr;
-		if (Fragment && Fragment->TryGetPayloadAs(FActorLocatorFragment::FragmentType, Payload) && Payload)
-		{
-			const FString SubPath = Payload->Path.GetSubPathString();
-			int32 DotIndex = INDEX_NONE;
-			return SubPath.FindLastChar(TEXT('.'), DotIndex) ? SubPath.Mid(DotIndex + 1) : SubPath;
-		}
-
-		return TEXT("unresolved");
-	}
-#endif
 }
 
 FWxStateTreeTask_MarkIndicator::FWxStateTreeTask_MarkIndicator()
@@ -163,6 +136,6 @@ FText FWxStateTreeTask_MarkIndicator::GetDescription(const FGuid& ID, FStateTree
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("인디케이터 표시 ({0})"), FText::FromString(GetTargetDisplayName(InstanceData->Target)));
+	return FText::Format(INVTEXT("인디케이터 표시 ({0})"), FText::FromString(FWxLocatorUtils::GetDisplayName(InstanceData->Target)));
 }
 #endif

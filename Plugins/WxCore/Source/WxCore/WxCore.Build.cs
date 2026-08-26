@@ -14,6 +14,7 @@ public class WxCore : ModuleRules
 			"CoreUObject",
 			"Engine",
 			"GameplayTags",
+			"UniversalObjectLocator",
 		});
 	}
 }
