@@ -65,6 +65,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> BackstepMontage;
 
+	/** DodgeMontage와 같은 섹션 규약을 따르며, 끼어드는 시점의 진행 방향 섹션으로 재생한다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> PerfectDodgeMontage;
 
@@ -77,7 +78,7 @@ protected:
 
 private:
 	EWxDodgeDirection ResolveDodgeDirection(const FVector& LocalDirection) const;
-	FName SelectDodgeSection(const FVector& LocalDirection) const;
+	FName SelectDodgeSection(const UAnimMontage* Montage, const FVector& LocalDirection) const;
 
 	/** 실패 시 EndAbility 후 false 반환 */
 	bool StartDodge(const FVector& LocalDirection);

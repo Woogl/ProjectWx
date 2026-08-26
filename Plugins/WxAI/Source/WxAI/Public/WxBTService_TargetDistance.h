@@ -12,7 +12,7 @@
  * 거리 비교 자체는 엔진 기본 Blackboard 데코레이터(arithmetic 비교: Less/Greater 등) 가 TargetDistance 키를 읽어 처리한다.
  *
  * Self/Target 은 Blackboard 의 SelfActor/TargetActor 키에서 읽는다(WxBlackboardKeys 규약).
- * TargetActor 가 없으면 TargetDistance 를 비워(Clear) stale 값이 남지 않게 한다.
+ * TargetActor 가 없으면 stale 거리 대신 NoTargetDistance 를 기록해, 근거리 비교가 타겟 부재 시 통과하지 않게 한다.
  */
 UCLASS()
 class WXAI_API UWxBTService_TargetDistance : public UBTService

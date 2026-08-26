@@ -39,23 +39,25 @@ void UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* 
 	// 락이 없으면 Give/Clear가 즉시 Add/RemoveAtSwap 해 참조와 이터레이터가 무효화된다.
 	ABILITYLIST_SCOPE_LOCK();
 
+	bool bBuffer = false;
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
 		const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.Ability);
-		if (!Ability)
+		if (!Ability || Ability->ActivationInputAction.Get() != Action)
 		{
 			continue;
 		}
 
-		if (Ability->ActivationInputAction.Get() != Action)
-		{
-			continue;
-		}
+		// 순정 AbilityLocalInputPressed처럼 활성 여부와 무관하게 키 상태를 스펙에 남긴다.
+		// 홀드 어빌리티가 발동 조건으로 읽으며, 버퍼 재생은 뗀 뒤라 이 값을 세우지 않는다.
+		Spec.InputPressed = true;
 
 		// 신규 발동과 콤보 재발동은 엔진이 bRetriggerInstancedAbility로 가르므로 호출이 같다.
 		if (TryActivateAbility(Spec.Handle))
 		{
-			break;
+			// 발동이 성립했으면 쌓아 둔 입력은 전부 낡은 것이다 — 남겨 두면 같은 입력이 라이브와 재생으로 두 번 나간다.
+			BufferedInputs.Reset();
+			return;
 		}
 
 		if (Spec.IsActive())
@@ -73,7 +75,29 @@ void UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* 
 				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
 			}
 		}
+
+		// 배타 게이트의 대상이 아닌 Independent(질주·락온)는 거절 주체가 액션이 아니므로 기억하지 않는다 — 락온 해제 입력이 뒤늦게 다시 켜지는 것도 여기서 막힌다.
+		bBuffer = bBuffer || Ability->ActivationGroup != EWxAbilityActivationGroup::Independent;
 	}
+
+	// 입력을 거절한 것이 진행 중인 액션(배타 점유자)일 때만 기억한다. 유휴 중 실패(쿨다운·코스트)는 기억할 가치가 없다.
+	if (!bBuffer || FindActivationGroupBlockers().IsEmpty())
+	{
+		return;
+	}
+
+	const double Now = GetWorld()->GetRealTimeSeconds();
+	for (FWxBufferedInput& Buffered : BufferedInputs)
+	{
+		// 홀드 중엔 매 프레임 갱신되므로 나이는 사실상 뗀 뒤부터 센다.
+		if (Buffered.Action == Action)
+		{
+			Buffered.TriggeredTime = Now;
+			return;
+		}
+	}
+
+	BufferedInputs.Add({Action, Now});
 }
 
 void UWxAbilitySystemComponent::AbilityInputActionReleased(const UInputAction* Action)
@@ -99,6 +123,9 @@ void UWxAbilitySystemComponent::AbilityInputActionReleased(const UInputAction* A
 			continue;
 		}
 
+		// 눌림과 대칭으로 활성 여부와 무관하게 내린다.
+		Spec.InputPressed = false;
+
 		if (Spec.IsActive())
 		{
 			AbilitySpecInputReleased(Spec);
@@ -113,6 +140,29 @@ void UWxAbilitySystemComponent::AbilityInputActionReleased(const UInputAction* A
 				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
 			}
 		}
+	}
+}
+
+void UWxAbilitySystemComponent::FlushBufferedInputs()
+{
+	const double Now = GetWorld()->GetRealTimeSeconds();
+	for (int32 Index = 0; Index < BufferedInputs.Num();)
+	{
+		if (Now - BufferedInputs[Index].TriggeredTime > InputBufferDuration)
+		{
+			BufferedInputs.RemoveAt(Index);
+			continue;
+		}
+
+		// 전이점당 하나만 — 하나가 성립하면 나머지는 낡은 것이다.
+		// 실패한 항목은 남긴다. 콤보 창은 자기 재발동만 열리므로, 거기서 버리면 같이 쌓인 회피가 후딜에 못 나간다.
+		if (TryActivateByInputAction(BufferedInputs[Index].Action))
+		{
+			BufferedInputs.Reset();
+			return;
+		}
+
+		++Index;
 	}
 }
 
@@ -155,13 +205,16 @@ void UWxAbilitySystemComponent::ApplyHitStop(float Duration, const UGameplayAbil
 		return;
 	}
 
+	// 얼리기 전에 되돌릴 값을 잡아 둔다. 복원 시점엔 몽타주 주인이 바뀌어 있을 수 있어 다시 물으면 남의 배속을 얻는다.
+	const UWxAbilityBase* SourceWxAbility = Cast<UWxAbilityBase>(SourceAbility);
+	HitStopResumePlayRate = SourceWxAbility ? SourceWxAbility->GetMontagePlayRate() : GetMontagePlayRate();
+	HitStopMontage = Montage;
+
 	// 완전한 0이 아닌 미세 값으로 둬 몽타주 진행 판정 이슈를 피한다.
 	CurrentMontageSetPlayRate(0.001f);
 
 	// 연속 적중이면 타이머가 재설정되어 조기 복원을 막는다.
-	GetWorld()->GetTimerManager().SetTimer(HitStopResumeTimer,
-		FTimerDelegate::CreateUObject(this, &UWxAbilitySystemComponent::HandleHitStopElapsed, TWeakObjectPtr<UAnimMontage>(Montage)),
-		Duration, false);
+	GetWorld()->GetTimerManager().SetTimer(HitStopResumeTimer, this, &UWxAbilitySystemComponent::HandleHitStopElapsed, Duration, false);
 }
 
 void UWxAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason)
@@ -219,6 +272,30 @@ const UWxAbilityBase* UWxAbilitySystemComponent::AsActivationGroupBlocker(const 
 	return nullptr;
 }
 
+bool UWxAbilitySystemComponent::TryActivateByInputAction(const UInputAction* Action)
+{
+	// 순회 중 활성화가 어빌리티 목록을 바꿀 수 있다(GE의 GrantedAbilities, RemoveAfterActivation 등).
+	// 락이 없으면 Give/Clear가 즉시 Add/RemoveAtSwap 해 참조와 이터레이터가 무효화된다.
+	ABILITYLIST_SCOPE_LOCK();
+
+	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
+	{
+		const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.Ability);
+		if (!Ability || Ability->ActivationInputAction.Get() != Action)
+		{
+			continue;
+		}
+
+		// 신규 발동과 콤보 재발동은 엔진이 bRetriggerInstancedAbility로 가르므로 호출이 같다.
+		if (TryActivateAbility(Spec.Handle))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void UWxAbilitySystemComponent::CancelActivationGroupAbilities(EWxAbilityActivationGroup Group, UGameplayAbility* IgnoreAbility)
 {
 	// 취소가 어빌리티 목록을 바꿀 수 있으므로 순회를 잠근다.
@@ -243,12 +320,12 @@ void UWxAbilitySystemComponent::CancelActivationGroupAbilities(EWxAbilityActivat
 	}
 }
 
-void UWxAbilitySystemComponent::HandleHitStopElapsed(TWeakObjectPtr<UAnimMontage> FrozenMontage)
+void UWxAbilitySystemComponent::HandleHitStopElapsed()
 {
 	// 피격 등이 현재 몽타주를 가로챘어도 얼렸던 그 몽타주에 정확히 닿는다.
 	UAnimInstance* AnimInstance = AbilityActorInfo.IsValid() ? AbilityActorInfo->GetAnimInstance() : nullptr;
-	if (AnimInstance && FrozenMontage.IsValid())
+	if (AnimInstance && HitStopMontage.IsValid())
 	{
-		AnimInstance->Montage_SetPlayRate(FrozenMontage.Get(), GetMontagePlayRate());
+		AnimInstance->Montage_SetPlayRate(HitStopMontage.Get(), HitStopResumePlayRate);
 	}
 }

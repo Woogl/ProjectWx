@@ -16,7 +16,7 @@ FString FWxLocatorUtils::GetDisplayName(const FUniversalObjectLocator& Locator)
 
 	if (const AActor* Actor = Cast<AActor>(Locator.SyncFind()))
 	{
-		return Actor->GetActorLabel();
+		return Actor->GetActorNameOrLabel();
 	}
 
 	const FUniversalObjectLocatorFragment* Fragment = Locator.GetLastFragment();

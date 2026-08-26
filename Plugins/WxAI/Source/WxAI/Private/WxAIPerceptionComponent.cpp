@@ -312,6 +312,13 @@ void UWxAIPerceptionComponent::UnbindPawnHit()
 
 void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)
 {
+	// 엔진 청각은 소리를 낸 본인의 리스너를 제외하지 않아, 자기 발소리가 그대로 자기 자극으로 돌아온다.
+	// 유효한 타겟일 때만 가른다 — 폰이 없는 순간의 해제 요청(nullptr)이 여기 걸리면 포커스가 영영 풀리지 않는다.
+	if (NewTarget && NewTarget == GetOwnerPawn())
+	{
+		return;
+	}
+
 	UBlackboardComponent* BB = GetBlackboard();
 	if (!BB)
 	{

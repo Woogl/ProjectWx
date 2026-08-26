@@ -14,7 +14,14 @@ public class WxCore : ModuleRules
 			"CoreUObject",
 			"Engine",
 			"GameplayTags",
-			"UniversalObjectLocator",
 		});
+
+		if (Target.bBuildEditor)
+		{
+			PrivateDependencyModuleNames.AddRange(new string[]
+			{
+				"UniversalObjectLocator",
+			});
+		}
 	}
 }
