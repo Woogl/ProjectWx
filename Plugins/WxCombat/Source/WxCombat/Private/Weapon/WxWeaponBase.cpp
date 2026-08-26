@@ -199,17 +199,17 @@ void AWxWeaponBase::Tick(float DeltaSeconds)
 		}
 	}
 
-	FCollisionObjectQueryParams ObjectParams;
-	ObjectParams.AddObjectTypesToQuery(ECC_Pawn);
-
 	// 직전 프레임 위치 → 현재 위치 사이를 형상별로 Sweep해서, Overlap 이벤트가 한 틱에 형상을 지나친 액터를 놓치는 터널링을 보완한다.
 	for (int32 Index = 0; Index < HitShapes.Num(); ++Index)
 	{
 		UShapeComponent* Shape = HitShapes[Index];
 		const FVector CurrLocation = Shape->GetComponentLocation();
 
+		// 형상 자신의 응답을 넘겨야 Overlap 경로와 판정이 일치한다. 기본값은 전 채널 Block이라 지형에서 Sweep이 잘리고 한 틱 다중 타격도 끊긴다.
+		const FCollisionResponseParams ResponseParams(Shape->GetCollisionResponseToChannels());
+
 		TArray<FHitResult> Hits;
-		World->SweepMultiByObjectType(Hits, PrevShapeLocations[Index], CurrLocation, Shape->GetComponentQuat(), ObjectParams, Shape->GetCollisionShape(), Params);
+		World->SweepMultiByChannel(Hits, PrevShapeLocations[Index], CurrLocation, Shape->GetComponentQuat(), ECC_WxAttack, Shape->GetCollisionShape(), Params, ResponseParams);
 
 		for (const FHitResult& Hit : Hits)
 		{
