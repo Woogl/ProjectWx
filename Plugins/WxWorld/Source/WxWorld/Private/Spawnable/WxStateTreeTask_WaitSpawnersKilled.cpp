@@ -4,46 +4,15 @@
 
 #include "GameFramework/Actor.h"
 #include "Spawnable/WxSpawner.h"
-#include "StateTreeAsyncExecutionContext.h"
 #include "StateTreeExecutionContext.h"
 #include "WxLocatorUtils.h"
 #include "WxSpawnerLocatorUtils.h"
+#include "WxStateTreeWaitRegistry.h"
 #include "WxWorldModule.h"
 
 namespace
 {
-	/** 완료 통보는 상태가 살아 있는 동안에만 유효한 약한 실행 컨텍스트로 보낸다. */
-	struct FWxSpawnersKilledWait
-	{
-		int32 Handle = INDEX_NONE;
-		TArray<FUniversalObjectLocator> Spawners;
-		FStateTreeWeakExecutionContext Context;
-	};
-
-	TArray<FWxSpawnersKilledWait> SpawnersKilledWaits;
-
-	/** 재사용하지 않으므로 뒤늦은 해제 요청이 엉뚱한 등록을 걷어가지 않는다. */
-	int32 NextSpawnersKilledWaitHandle = 0;
-
-	/** 미해석은 판정 불가라 통과시키지 않는다. 지정이 없으면 완료할 근거도 없다. */
-	bool AreAllSpawnersKilled(const TArray<FUniversalObjectLocator>& Spawners, UObject* ResolveContext)
-	{
-		if (Spawners.IsEmpty())
-		{
-			return false;
-		}
-
-		for (const FUniversalObjectLocator& Locator : Spawners)
-		{
-			const AWxSpawner* Spawner = Cast<AWxSpawner>(Locator.SyncFind(ResolveContext));
-			if (!Spawner || !Spawner->IsKilled())
-			{
-				return false;
-			}
-		}
-
-		return true;
-	}
+	TWxStateTreeWaitRegistry<TArray<FUniversalObjectLocator>> SpawnersKilledWaits;
 }
 
 FWxStateTreeTask_WaitSpawnersKilled::FWxStateTreeTask_WaitSpawnersKilled()
@@ -55,26 +24,14 @@ FWxStateTreeTask_WaitSpawnersKilled::FWxStateTreeTask_WaitSpawnersKilled()
 	bShouldStateChangeOnReselect = false;
 }
 
-void FWxStateTreeTask_WaitSpawnersKilled::NotifySpawnerKilled()
+void FWxStateTreeTask_WaitSpawnersKilled::NotifySpawnerKilled(const AWxSpawner* Spawner)
 {
-	for (int32 Index = SpawnersKilledWaits.Num() - 1; Index >= 0; --Index)
+	if (!Spawner)
 	{
-		const FWxSpawnersKilledWait& Wait = SpawnersKilledWaits[Index];
-
-		// 트리째 사라진(오너 파괴) 등록은 통보할 곳이 없으므로 이 참에 걷어낸다.
-		TStrongObjectPtr<UObject> Owner = Wait.Context.GetOwner();
-		if (!Owner)
-		{
-			SpawnersKilledWaits.RemoveAt(Index);
-			continue;
-		}
-
-		// 완료한 노드는 상태를 떠나면서 ExitState 에서 스스로 등록을 걷어간다.
-		if (AreAllSpawnersKilled(Wait.Spawners, Owner.Get()))
-		{
-			Wait.Context.FinishTask(EStateTreeFinishTaskType::Succeeded);
-		}
+		return;
 	}
+
+	SpawnersKilledWaits.FinishMatching(Spawner->GetWorld(), &FWxStateTreeTask_WaitSpawnersKilled::AreAllSpawnersKilled);
 }
 
 EStateTreeRunStatus FWxStateTreeTask_WaitSpawnersKilled::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
@@ -100,12 +57,23 @@ EStateTreeRunStatus FWxStateTreeTask_WaitSpawnersKilled::EnterState(FStateTreeEx
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	Instance.WaitHandle = NextSpawnersKilledWaitHandle++;
+	// 하나도 해석되지 않은 채 대기에 들어가면, 뒤에 스텝이 안 끝나도 증상만 남고 원인이 안 보인다.
+	bool bAnyResolved = false;
+	for (const FUniversalObjectLocator& Locator : Instance.Spawners)
+	{
+		if (Locator.SyncFind(Context.GetOwner()))
+		{
+			bAnyResolved = true;
+			break;
+		}
+	}
 
-	FWxSpawnersKilledWait& Wait = SpawnersKilledWaits.AddDefaulted_GetRef();
-	Wait.Handle = Instance.WaitHandle;
-	Wait.Spawners = Instance.Spawners;
-	Wait.Context = Context.MakeWeakExecutionContext();
+	if (!bAnyResolved)
+	{
+		UE_LOG(LogWxWorld, Warning, TEXT("Wait Spawners Killed: 해석된 스포너가 없음(지정 %d개)."), Instance.Spawners.Num());
+	}
+
+	Instance.WaitHandle = SpawnersKilledWaits.Add(Context, Instance.Spawners);
 
 	return EStateTreeRunStatus::Running;
 }
@@ -114,14 +82,7 @@ void FWxStateTreeTask_WaitSpawnersKilled::ExitState(FStateTreeExecutionContext& 
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	for (int32 Index = 0; Index < SpawnersKilledWaits.Num(); ++Index)
-	{
-		if (SpawnersKilledWaits[Index].Handle == Instance.WaitHandle)
-		{
-			SpawnersKilledWaits.RemoveAt(Index);
-			break;
-		}
-	}
+	SpawnersKilledWaits.Remove(Instance.WaitHandle);
 }
 
 #if WITH_EDITOR
@@ -141,3 +102,22 @@ FText FWxStateTreeTask_WaitSpawnersKilled::GetDescription(const FGuid& ID, FStat
 	return FText::Format(INVTEXT("스포너 처치 대기 ({0})"), FWxLocatorUtils::GetDisplayNamesText(InstanceData->Spawners));
 }
 #endif
+
+bool FWxStateTreeTask_WaitSpawnersKilled::AreAllSpawnersKilled(const TArray<FUniversalObjectLocator>& Spawners, UObject* Owner)
+{
+	if (Spawners.IsEmpty())
+	{
+		return false;
+	}
+
+	for (const FUniversalObjectLocator& Locator : Spawners)
+	{
+		const AWxSpawner* Spawner = Cast<AWxSpawner>(Locator.SyncFind(Owner));
+		if (!Spawner || !Spawner->IsKilled())
+		{
+			return false;
+		}
+	}
+
+	return true;
+}

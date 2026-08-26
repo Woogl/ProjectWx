@@ -91,7 +91,7 @@ void AWxSpawner::MarkKilled()
 
 	bIsKilled = true;
 
-	FWxStateTreeTask_WaitSpawnersKilled::NotifySpawnerKilled();
+	FWxStateTreeTask_WaitSpawnersKilled::NotifySpawnerKilled(this);
 }
 
 FGuid AWxSpawner::GetSaveId() const

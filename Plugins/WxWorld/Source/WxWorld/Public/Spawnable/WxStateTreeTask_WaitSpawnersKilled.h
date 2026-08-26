@@ -7,6 +7,7 @@
 #include "UniversalObjectLocator.h"
 #include "WxStateTreeTask_WaitSpawnersKilled.generated.h"
 
+class AWxSpawner;
 struct FStateTreeExecutionContext;
 struct FStateTreeTransitionResult;
 
@@ -47,8 +48,8 @@ struct FWxStateTreeTask_WaitSpawnersKilled : public FStateTreeTaskCommonBase
 
 	FWxStateTreeTask_WaitSpawnersKilled();
 
-	/** 스포너가 처치된 순간 AWxSpawner::MarkKilled 가 부른다. 기다리던 노드들이 자기 지정 전원이 처치됐는지 다시 본다. */
-	static void NotifySpawnerKilled();
+	/** 스포너가 처치된 순간 AWxSpawner::MarkKilled 가 부른다. 같은 월드에서 기다리던 노드들이 자기 지정 전원이 처치됐는지 다시 본다. */
+	static void NotifySpawnerKilled(const AWxSpawner* Spawner);
 
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
@@ -58,4 +59,8 @@ struct FWxStateTreeTask_WaitSpawnersKilled : public FStateTreeTaskCommonBase
 	virtual EDataValidationResult Compile(UE::StateTree::ICompileNodeContext& CompileContext) override;
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
 #endif
+
+private:
+	/** 미해석은 판정 불가라 통과시키지 않는다. 지정이 없으면 완료할 근거도 없다. */
+	static bool AreAllSpawnersKilled(const TArray<FUniversalObjectLocator>& Spawners, UObject* Owner);
 };

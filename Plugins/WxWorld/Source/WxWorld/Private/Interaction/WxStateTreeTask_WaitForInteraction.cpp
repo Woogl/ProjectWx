@@ -3,25 +3,14 @@
 #include "Interaction/WxStateTreeTask_WaitForInteraction.h"
 
 #include "GameFramework/Actor.h"
-#include "StateTreeAsyncExecutionContext.h"
 #include "StateTreeExecutionContext.h"
 #include "WxLocatorUtils.h"
+#include "WxStateTreeWaitRegistry.h"
 #include "WxWorldModule.h"
 
 namespace
 {
-	/** 상호작용을 기다리는 노드 하나. 완료 통보는 상태가 살아 있는 동안에만 유효한 약한 실행 컨텍스트로 보낸다. */
-	struct FWxInteractionWait
-	{
-		int32 Handle = INDEX_NONE;
-		FUniversalObjectLocator Target;
-		FStateTreeWeakExecutionContext Context;
-	};
-
-	TArray<FWxInteractionWait> InteractionWaits;
-
-	/** 재사용하지 않으므로 뒤늦은 해제 요청이 엉뚱한 등록을 걷어가지 않는다. */
-	int32 NextInteractionWaitHandle = 0;
+	TWxStateTreeWaitRegistry<FUniversalObjectLocator> InteractionWaits;
 }
 
 FWxStateTreeTask_WaitForInteraction::FWxStateTreeTask_WaitForInteraction()
@@ -40,24 +29,11 @@ void FWxStateTreeTask_WaitForInteraction::NotifyInteracted(AActor* Target)
 		return;
 	}
 
-	for (int32 Index = InteractionWaits.Num() - 1; Index >= 0; --Index)
-	{
-		const FWxInteractionWait& Wait = InteractionWaits[Index];
-
-		// 트리째 사라진(오너 파괴) 등록은 통보할 곳이 없으므로 이 참에 걷어낸다.
-		if (!Wait.Context.GetOwner())
-		{
-			InteractionWaits.RemoveAt(Index);
-			continue;
-		}
-
-		// 대상 해석을 지금 한다 — 기다리는 동안 스트리밍으로 액터가 새로 만들어졌어도 이 순간의 것과 맞춰 본다.
-		if (Wait.Target.SyncFind(Target) == Target)
-		{
-			// 완료한 노드는 상태를 떠나면서 ExitState 에서 스스로 등록을 걷어간다.
-			Wait.Context.FinishTask(EStateTreeFinishTaskType::Succeeded);
-		}
-	}
+	// 대상 해석을 지금 한다 — 기다리는 동안 스트리밍으로 액터가 새로 만들어졌어도 이 순간의 것과 맞춰 본다.
+	// 해석 컨텍스트는 대기 노드의 오너가 아니라 통보 액터다. 그래야 WP 런타임 셀 안의 대상도 해석되고(오너인 GameState 는 PersistentLevel 이라 셀 해석 경로를 못 탄다),
+	// 항등 비교라 엉뚱한 액터가 걸릴 여지도 없다. 남의 월드에서 온 통보는 아래 FinishMatching 이 월드로 걸러낸다.
+	InteractionWaits.FinishMatching(Target->GetWorld(),
+		[Target](const FUniversalObjectLocator& Wanted, UObject* Owner) { return Wanted.SyncFind(Target) == Target; });
 }
 
 EStateTreeRunStatus FWxStateTreeTask_WaitForInteraction::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
@@ -70,12 +46,7 @@ EStateTreeRunStatus FWxStateTreeTask_WaitForInteraction::EnterState(FStateTreeEx
 		UE_LOG(LogWxWorld, Warning, TEXT("Wait For Interaction: 상호작용을 기다릴 대상이 지정되지 않음."));
 	}
 
-	Instance.WaitHandle = NextInteractionWaitHandle++;
-
-	FWxInteractionWait& Wait = InteractionWaits.AddDefaulted_GetRef();
-	Wait.Handle = Instance.WaitHandle;
-	Wait.Target = Instance.Target;
-	Wait.Context = Context.MakeWeakExecutionContext();
+	Instance.WaitHandle = InteractionWaits.Add(Context, Instance.Target);
 
 	return EStateTreeRunStatus::Running;
 }
@@ -84,14 +55,7 @@ void FWxStateTreeTask_WaitForInteraction::ExitState(FStateTreeExecutionContext& 
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	for (int32 Index = 0; Index < InteractionWaits.Num(); ++Index)
-	{
-		if (InteractionWaits[Index].Handle == Instance.WaitHandle)
-		{
-			InteractionWaits.RemoveAt(Index);
-			break;
-		}
-	}
+	InteractionWaits.Remove(Instance.WaitHandle);
 }
 
 #if WITH_EDITOR
