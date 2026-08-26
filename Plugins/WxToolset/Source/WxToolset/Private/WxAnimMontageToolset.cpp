@@ -305,6 +305,67 @@ int32 UWxAnimMontageToolset::ReplicateNotifiesToSections(UAnimMontage* Montage, 
 	return AddedCount;
 }
 
+bool UWxAnimMontageToolset::AddNotify(UAnimMontage* Montage, TSubclassOf<UAnimNotify> NotifyClass, FName SectionName, float OffsetInSection, int32 TrackIndex)
+{
+	if (!ValidateMontage(Montage, TEXT("대상")))
+	{
+		return false;
+	}
+
+	if (!NotifyClass)
+	{
+		UKismetSystemLibrary::RaiseScriptError(TEXT("노티파이 클래스가 비었다."));
+		return false;
+	}
+
+	const int32 SectionIndex = Montage->GetSectionIndex(SectionName);
+	if (!Montage->IsValidSectionIndex(SectionIndex))
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("섹션 '%s' 가 없다."), *SectionName.ToString()));
+		return false;
+	}
+
+	float SectionStart = 0.f;
+	float SectionEnd = 0.f;
+	Montage->GetSectionStartAndEndTime(SectionIndex, SectionStart, SectionEnd);
+	const float TriggerTime = SectionStart + OffsetInSection;
+	if (OffsetInSection < 0.f || TriggerTime >= SectionEnd)
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("오프셋 %.3f 이 섹션 '%s' 밖이다."), OffsetInSection, *SectionName.ToString()));
+		return false;
+	}
+
+	if (TrackIndex < 0)
+	{
+		UKismetSystemLibrary::RaiseScriptError(TEXT("트랙 인덱스가 음수다."));
+		return false;
+	}
+
+	Montage->Modify();
+
+	// 에디터 트랙 표시는 AnimNotifyTracks 를 따르므로 지목한 인덱스까지 채운다.
+	while (!Montage->AnimNotifyTracks.IsValidIndex(TrackIndex))
+	{
+		FAnimNotifyTrack NewTrack;
+		NewTrack.TrackName = *FString::FromInt(Montage->AnimNotifyTracks.Num() + 1);
+		NewTrack.TrackColor = FLinearColor::White;
+		Montage->AnimNotifyTracks.Add(NewTrack);
+	}
+
+	FAnimNotifyEvent& NewEvent = Montage->Notifies.AddDefaulted_GetRef();
+	NewEvent.Guid = FGuid::NewGuid();
+	NewEvent.TrackIndex = TrackIndex;
+	NewEvent.Notify = NewObject<UAnimNotify>(Montage, NotifyClass, NAME_None, RF_Transactional);
+	NewEvent.NotifyName = FName(*NewEvent.Notify->GetNotifyName());
+	NewEvent.Link(Montage, TriggerTime);
+	NewEvent.TriggerTimeOffset = GetTriggerTimeOffsetForType(Montage->CalculateOffsetForNotify(TriggerTime));
+
+	Montage->RefreshCacheData();
+	Montage->PostEditChange();
+	Montage->MarkPackageDirty();
+	return true;
+}
+
 bool UWxAnimMontageToolset::SaveMontage(UAnimMontage* Montage)
 {
 	if (!ValidateMontage(Montage, TEXT("대상")))
