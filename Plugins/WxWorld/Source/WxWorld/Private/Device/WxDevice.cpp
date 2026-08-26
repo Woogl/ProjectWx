@@ -5,6 +5,7 @@
 #include "Device/WxDeviceStateTreeComponent.h"
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
+#include "WxWorldModule.h"
 
 #if WITH_EDITOR
 #include "UObject/ObjectSaveContext.h"
@@ -76,10 +77,17 @@ void AWxDevice::OnInteracted(AActor* Interactor)
 	// 당사자는 복제로 각 피어에 전해진다 — 몽타주·GE 태스크가 모든 머신에서 같은 대상을 본다.
 	InteractingCharacter = Cast<ACharacter>(Interactor);
 
+	// 닿지 않은 발행은 트리를 움직일 수 없다.
+	// 그런데도 재진입 판정을 예약하면 다음 권위 틱이 「상태가 안 바뀐 재진입」으로 오판해 클라 전원이 연출을 헛재생한다.
+	if (!BroadcastInteractionDelegate())
+	{
+		UE_LOG(LogWxWorld, Verbose, TEXT("Device(%s): 상호작용이 트리에 닿지 않았다 — 이 상태에 발행 자리가 없거나, 자리를 연 상태를 이미 떠났다."), *GetName());
+
+		return;
+	}
+
 	// 이 상호작용이 상태를 바꾸는지 아닌지는 트리가 발행을 소화해 봐야 안다 — 컴포넌트가 그 결과를 보고 재진입을 가려낸다.
 	StateTreeComponent->NotifyInteractionPending();
-
-	BroadcastInteractionDelegate();
 }
 
 FText AWxDevice::GetInteractionPrompt() const
@@ -152,7 +160,15 @@ void AWxDevice::BeginPlay()
 	}
 }
 
-void AWxDevice::BroadcastInteractionDelegate()
+bool AWxDevice::BroadcastInteractionDelegate()
 {
-	InteractionBinding.Context.BroadcastDelegate(InteractionBinding.Dispatcher);
+	// 엔진은 빈 발행자를 「듣는 이가 없으니 오류 아님」으로 보아 참을 답하므로, 그 참이 「닿았다」로 새기 전에 먼저 가른다.
+	// 발행자는 그것을 지목하는 전이가 있을 때만 컴파일이 ID 를 부여하니, 이 판정이 곧 「이 상태가 상호작용을 듣는가」다.
+	if (!InteractionBinding.Dispatcher.IsValid())
+	{
+		return false;
+	}
+
+	// 자리를 연 상태를 이미 떠났으면 약참조 컨텍스트가 그 상태를 못 찾아 발행이 조용히 버려지고, 엔진이 거짓을 답한다.
+	return InteractionBinding.Context.BroadcastDelegate(InteractionBinding.Dispatcher);
 }

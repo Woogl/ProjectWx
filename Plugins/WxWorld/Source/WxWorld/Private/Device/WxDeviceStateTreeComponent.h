@@ -39,8 +39,9 @@ public:
 	FGameplayTag GetStateTag() const;
 
 	/**
-	 * 권위 상호작용이 접수되어 트리가 소화할 발행이 대기 중임을 알린다.
-	 * 상호작용이 상태를 바꾸는지는 트리가 발행을 소화해 봐야 알므로, 발행 직전에 걸어 두면 PublishAuthorityState 가 소비해 「상태가 안 바뀐 재진입」을 가려낸다.
+	 * 권위 상호작용의 발행이 트리에 닿아, 트리가 소화할 것이 대기 중임을 알린다.
+	 * 상호작용이 상태를 바꾸는지는 트리가 발행을 소화해 봐야 알므로, PublishAuthorityState 가 이 예약을 소비해 「상태가 안 바뀐 재진입」을 가려낸다.
+	 * 닿지 않은 발행에 걸면 소화할 것이 없어 누를 때마다 헛재진입이 되므로, 호출자가 발행 결과로 가르고 나서 부른다.
 	 */
 	void NotifyInteractionPending();
 
@@ -126,6 +127,9 @@ private:
 	 */
 	bool bFollowRestoredState = false;
 
-	/** 권위 전용. 상호작용을 받았지만 트리가 아직 그것을 소화하지 않은 상태. PublishAuthorityState 가 소비해 「상태가 안 바뀐 재진입」을 가려낸다. */
+	/**
+	 * 권위 전용. 상호작용 발행이 트리에 닿았지만 트리가 아직 그것을 소화하지 않은 구간.
+	 * PublishAuthorityState 가 소비해 「상태가 안 바뀐 재진입」을 가려낸다.
+	 */
 	bool bPendingInteractResolve = false;
 };
