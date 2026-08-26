@@ -5,7 +5,7 @@
 #include "GameFramework/Actor.h"
 #include "StateTreeAsyncExecutionContext.h"
 #include "StateTreeExecutionContext.h"
-#include "UniversalObjectLocators/ActorLocatorFragment.h"
+#include "WxLocatorUtils.h"
 #include "WxWorldModule.h"
 
 namespace
@@ -100,30 +100,6 @@ FText FWxStateTreeTask_WaitForInteraction::GetDescription(const FGuid& ID, FStat
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("상호작용 대기 ({0})"), FText::FromString(GetTargetDisplayName(InstanceData->Target)));
-}
-
-FString FWxStateTreeTask_WaitForInteraction::GetTargetDisplayName(const FUniversalObjectLocator& Locator) const
-{
-	if (Locator.IsEmpty())
-	{
-		return TEXT("unset");
-	}
-
-	if (const AActor* Actor = Cast<AActor>(Locator.SyncFind()))
-	{
-		return Actor->GetActorLabel();
-	}
-
-	const FUniversalObjectLocatorFragment* Fragment = Locator.GetLastFragment();
-	const FActorLocatorFragment* Payload = nullptr;
-	if (Fragment && Fragment->TryGetPayloadAs(FActorLocatorFragment::FragmentType, Payload) && Payload)
-	{
-		const FString SubPath = Payload->Path.GetSubPathString();
-		int32 DotIndex = INDEX_NONE;
-		return SubPath.FindLastChar(TEXT('.'), DotIndex) ? SubPath.Mid(DotIndex + 1) : SubPath;
-	}
-
-	return TEXT("unresolved");
+	return FText::Format(INVTEXT("상호작용 대기 ({0})"), FText::FromString(FWxLocatorUtils::GetDisplayName(InstanceData->Target)));
 }
 #endif

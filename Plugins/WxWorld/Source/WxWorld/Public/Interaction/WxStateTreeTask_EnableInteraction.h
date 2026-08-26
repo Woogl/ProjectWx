@@ -82,9 +82,4 @@ struct FWxStateTreeTask_EnableInteraction : public FStateTreeTaskCommonBase
 
 private:
 	EStateTreeRunStatus ApplyTargetInteraction(const FStateTreeExecutionContext& Context, const FInstanceDataType& Instance) const;
-
-#if WITH_EDITOR
-	/** 로케이터의 표시명. 에디터에서 해석되면 액터 라벨(아웃라이너와 동일), 미해석이면 경로 끝 오브젝트 이름, 빈 로케이터는 unset. */
-	FString GetTargetDisplayName(const FUniversalObjectLocator& Locator) const;
-#endif
 };

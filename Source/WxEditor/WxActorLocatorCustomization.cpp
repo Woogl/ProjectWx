@@ -10,8 +10,8 @@
 #include "ScopedTransaction.h"
 #include "Selection.h"
 #include "UniversalObjectLocator.h"
-#include "UniversalObjectLocators/ActorLocatorFragment.h"
 #include "UObject/SoftObjectPath.h"
+#include "WxLocatorUtils.h"
 #include "Widgets/Input/SComboButton.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Text/STextBlock.h"
@@ -125,29 +125,22 @@ TSharedRef<SWidget> FWxActorLocatorCustomization::HandleGetPickerMenu()
 
 FText FWxActorLocatorCustomization::HandleGetCurrentActorText() const
 {
-	if (const AActor* Actor = GetCurrentActor())
+	TArray<const void*> RawData;
+	PropertyHandle->AccessRawData(RawData);
+	if (RawData.IsEmpty() || !RawData[0])
 	{
-		return FText::FromString(Actor->GetActorLabel());
+		return NSLOCTEXT("WxActorLocator", "None", "None");
+	}
+
+	// 빈 값은 표준 액터 픽커와 같은 None 으로 보이게 한다 — 헬퍼의 unset 은 ST 노드 설명용 문구다.
+	const FUniversalObjectLocator* Locator = static_cast<const FUniversalObjectLocator*>(RawData[0]);
+	if (Locator->IsEmpty())
+	{
+		return NSLOCTEXT("WxActorLocator", "None", "None");
 	}
 
 	// 미해석(언로드 등)이면 액터 프래그먼트의 소프트 경로 끝 이름이라도 보여준다.
-	TArray<const void*> RawData;
-	PropertyHandle->AccessRawData(RawData);
-	if (!RawData.IsEmpty() && RawData[0])
-	{
-		const FUniversalObjectLocator* Locator = static_cast<const FUniversalObjectLocator*>(RawData[0]);
-		const FUniversalObjectLocatorFragment* Fragment = Locator->GetLastFragment();
-		const FActorLocatorFragment* Payload = nullptr;
-		if (Fragment && Fragment->TryGetPayloadAs(FActorLocatorFragment::FragmentType, Payload) && Payload)
-		{
-			const FString SubPath = Payload->Path.GetSubPathString();
-			int32 DotIndex = INDEX_NONE;
-			SubPath.FindLastChar(TEXT('.'), DotIndex);
-			return FText::FromString(DotIndex != INDEX_NONE ? SubPath.Mid(DotIndex + 1) : SubPath);
-		}
-	}
-
-	return NSLOCTEXT("WxActorLocator", "None", "None");
+	return FText::FromString(FWxLocatorUtils::GetDisplayName(*Locator));
 }
 
 bool FWxActorLocatorCustomization::HandleShouldFilterActor(const AActor* Actor) const

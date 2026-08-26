@@ -49,9 +49,5 @@ struct FWxStateTreeTask_WaitMoveToTarget : public FStateTreeTaskCommonBase
 
 #if WITH_EDITOR
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
-
-private:
-	/** 로케이터의 표시명. 에디터에서 해석되면 액터 라벨(아웃라이너와 동일), 미해석이면 경로 끝 오브젝트 이름, 빈 로케이터는 unset. */
-	FString GetTargetDisplayName(const FUniversalObjectLocator& Locator) const;
 #endif
 };
