@@ -72,7 +72,7 @@ void UWxAbility_Interact::ExecuteInteract(AActor* Selected, const FGameplayAbili
 	}
 
 	// 서버 권위 자격 검증: 클라가 자격 없는 대상을(또는 자격을 잃은 직후에) 보내도 여기서 걸린다.
-	if (!Target->CanInteract())
+	if (!Target->CanInteract(Avatar))
 	{
 		return;
 	}

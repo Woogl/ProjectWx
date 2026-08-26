@@ -28,8 +28,13 @@ class WXCORE_API IWxInteractable
 	GENERATED_BODY()
 
 public:
-	virtual bool CanInteract() const;
-	
+	/**
+	 * 이 주체가 지금 상호작용할 자격이 있는가. 클라 표시 게이트와 서버 권위 검증이 함께 지나는 단일 소스다.
+	 * 주체를 받으므로 상대 자격(방향·소유·진영 등)도 여기서 답할 수 있다 — 구현체가 주체를 따로 추측하지 않는다.
+	 * 호출부가 유효한 주체를 보장한다(표시 경로는 로컬 폰, 발동 경로는 어빌리티 아바타).
+	 */
+	virtual bool CanInteract(const AActor* Interactor) const;
+
 	virtual void OnInteracted(AActor* Interactor) = 0;
 	
 	virtual FText GetInteractionPrompt() const = 0;

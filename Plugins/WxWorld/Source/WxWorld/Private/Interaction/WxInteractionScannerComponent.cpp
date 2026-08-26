@@ -177,7 +177,7 @@ void UWxInteractionScannerComponent::HandleScanTimer()
 			continue;
 		}
 		
-		if (Target->CanInteract())
+		if (Target->CanInteract(Pawn))
 		{
 			Candidates.Add(Actor);
 		}

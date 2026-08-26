@@ -39,7 +39,7 @@ void AWxDevice::PreSave(FObjectPreSaveContext ObjectSaveContext)
 }
 #endif
 
-bool AWxDevice::CanInteract() const
+bool AWxDevice::CanInteract(const AActor* Interactor) const
 {
 	return bInteractionEnabled;
 }
@@ -65,7 +65,7 @@ void AWxDevice::OnInteracted(AActor* Interactor)
 	}
 
 	// 꺼져 있으면 애초에 스캔 후보에서 빠지지만, 여기서도 같은 기준으로 걸러 상태를 건드리지 않는다.
-	if (!CanInteract())
+	if (!CanInteract(Interactor))
 	{
 		return;
 	}

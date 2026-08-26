@@ -35,7 +35,7 @@ public:
 	//~ End IWxSpawnable
 	
 	//~ Begin IWxInteractable — Finisher 상호작용
-	virtual bool CanInteract() const override;
+	virtual bool CanInteract(const AActor* Interactor) const override;
 	virtual void OnInteracted(AActor* Interactor) override;
 	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
@@ -43,13 +43,8 @@ public:
 	virtual void BeginPlay() override;
 
 protected:
-	/**
-	 * 로컬 플레이어 폰이 후방 원뿔 안에 있는가.
-	 *
-	 * 계약이 주체를 넘겨주지 않으므로 대상이 직접 찾는다 — 클라 표시에선 로컬 플레이어라 정확하고, 서버 검증에선 싱글·리슨호스트 호스트 기준으로 정확하다.
-	 * 데디케이티드 멀티에서 2번째 이후 플레이어의 뒤잡은 0번 플레이어 위치로 판정된다.
-	 */
-	bool IsLocalPlayerInRearCone() const;
+	/** 상호작용 주체가 후방 원뿔 안에 있는가. */
+	bool IsInRearCone(const AActor* Interactor) const;
 
 	/** 사망 시 자신을 스폰한 Spawner 에 처치 기록을 남긴다. */
 	virtual void HandleDeath() override;

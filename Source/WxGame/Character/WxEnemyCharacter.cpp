@@ -40,22 +40,21 @@ void AWxEnemyCharacter::BeginPlay()
 	NameplateComponent->InitializeViewModels(AbilitySystemComponent, CharacterName, Portrait);
 }
 
-bool AWxEnemyCharacter::IsLocalPlayerInRearCone() const
+bool AWxEnemyCharacter::IsInRearCone(const AActor* Interactor) const
 {
-	const APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
-	if (!PlayerPawn)
+	if (!Interactor)
 	{
 		return false;
 	}
 
-	FVector ToPlayer = PlayerPawn->GetActorLocation() - GetActorLocation();
-	ToPlayer.Z = 0.0;
-	if (!ToPlayer.Normalize())
+	FVector ToInteractor = Interactor->GetActorLocation() - GetActorLocation();
+	ToInteractor.Z = 0.0;
+	if (!ToInteractor.Normalize())
 	{
 		return false;
 	}
 
-	const float ForwardDot = FVector::DotProduct(GetActorForwardVector(), ToPlayer);
+	const float ForwardDot = FVector::DotProduct(GetActorForwardVector(), ToInteractor);
 	const float RearThreshold = -FMath::Cos(FMath::DegreesToRadians(BackstabRearHalfAngle));
 	return ForwardDot <= RearThreshold;
 }
@@ -118,7 +117,7 @@ void AWxEnemyCharacter::OnSpawnedBy(AWxSpawner* Spawner)
 	OwningSpawner = Spawner;
 }
 
-bool AWxEnemyCharacter::CanInteract() const
+bool AWxEnemyCharacter::CanInteract(const AActor* Interactor) const
 {
 	if (!IsAlive())
 	{
@@ -138,7 +137,7 @@ bool AWxEnemyCharacter::CanInteract() const
 	}
 
 	// 뒤잡은 적이 아직 나를 인지하지 못했을 때만 성립한다.
-	return !AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_InCombat) && IsLocalPlayerInRearCone();
+	return !AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_InCombat) && IsInRearCone(Interactor);
 }
 
 UBehaviorTree* AWxEnemyCharacter::GetBehaviorTree() const
