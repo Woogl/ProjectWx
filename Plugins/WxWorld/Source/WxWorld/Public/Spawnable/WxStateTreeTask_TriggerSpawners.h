@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "StateTreeTaskBase.h"
 #include "UniversalObjectLocator.h"
-#include "WxStateTreeTask_TriggerSpawnersByLocator.generated.h"
+#include "WxStateTreeTask_TriggerSpawners.generated.h"
 
 struct FStateTreeExecutionContext;
 struct FStateTreeTransitionResult;
@@ -13,7 +13,7 @@ struct FStateTreeTransitionResult;
 // GetInstanceDataType() 의 헤더 정의는 코딩 규칙 6 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
 
 USTRUCT()
-struct FWxStateTreeTask_TriggerSpawnersByLocatorInstanceData
+struct FWxStateTreeTask_TriggerSpawnersInstanceData
 {
 	GENERATED_BODY()
 
@@ -29,16 +29,15 @@ struct FWxStateTreeTask_TriggerSpawnersByLocatorInstanceData
  *
  * 대상은 FUniversalObjectLocator 로 배치 액터를 직접 지정한다 — 순수 구조체라 ST 컴파일러의 레벨 액터 참조 검증에 걸리지 않고, 씬 픽커와 WP 런타임 셀·PIE 픽스업 해석이 엔진에 내장돼 있어 레벨 밖 호스트(퀘스트 ST)에서도 조립할 수 있다.
  * 배열인 것은 한 전투의 스포너가 여럿일 수 있어서다 — 단일 UOL 멤버도 같은 픽커가 뜬다.
- * 공유 에셋 하나를 여러 배치 인스턴스가 쓰는 장치 ST 는 리터럴 지정이 불가능하므로 바인딩형 'Trigger Spawners' 를 그대로 쓴다.
  */
 USTRUCT(meta = (DisplayName = "스포너 발동", Category = "Wx"))
-struct FWxStateTreeTask_TriggerSpawnersByLocator : public FStateTreeTaskCommonBase
+struct FWxStateTreeTask_TriggerSpawners : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()
 
-	using FInstanceDataType = FWxStateTreeTask_TriggerSpawnersByLocatorInstanceData;
+	using FInstanceDataType = FWxStateTreeTask_TriggerSpawnersInstanceData;
 
-	FWxStateTreeTask_TriggerSpawnersByLocator();
+	FWxStateTreeTask_TriggerSpawners();
 
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;

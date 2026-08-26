@@ -1,10 +1,12 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Device/WxStateTreeTask_TriggerSpawners.h"
+#include "Spawnable/WxStateTreeTask_TriggerSpawners.h"
 
 #include "GameFramework/Actor.h"
 #include "Spawnable/WxSpawner.h"
 #include "StateTreeExecutionContext.h"
+#include "WxLocatorUtils.h"
+#include "WxSpawnerLocatorUtils.h"
 #include "WxWorldModule.h"
 
 FWxStateTreeTask_TriggerSpawners::FWxStateTreeTask_TriggerSpawners()
@@ -26,35 +28,47 @@ EStateTreeRunStatus FWxStateTreeTask_TriggerSpawners::EnterState(FStateTreeExecu
 	}
 
 	// 스폰은 서버 권위 사건이라 클라 진입은 노옵.
-	const AActor* Owner = Cast<AActor>(Context.GetOwner());
+	AActor* Owner = Cast<AActor>(Context.GetOwner());
 	if (!Owner || !Owner->HasAuthority())
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}
 
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
-	for (const TSoftObjectPtr<AWxSpawner>& SoftSpawner : Instance.Spawners)
+
+	int32 TriggeredCount = 0;
+	for (const FUniversalObjectLocator& Locator : Instance.Spawners)
 	{
-		// 디자이너가 콘솔과 같은 영역에 배치되도록 보장해야 함.
-		if (AWxSpawner* Spawner = SoftSpawner.Get())
+		if (AWxSpawner* Spawner = Cast<AWxSpawner>(Locator.SyncFind(Owner)))
 		{
 			Spawner->Respawn();
+			++TriggeredCount;
 		}
-		else
-		{
-			UE_LOG(LogWxWorld, Warning, TEXT("Trigger Spawners: TargetSpawner is null or not loaded."));
-		}
+	}
+
+	// 지정 누락이거나 전부 미해석이면 조립·배치 실수일 수 있다.
+	if (TriggeredCount == 0)
+	{
+		UE_LOG(LogWxWorld, Warning, TEXT("Trigger Spawners: 해석된 스포너가 없음(지정 %d개)."), Instance.Spawners.Num());
 	}
 
 	return EStateTreeRunStatus::Succeeded;
 }
 
 #if WITH_EDITOR
+EDataValidationResult FWxStateTreeTask_TriggerSpawners::Compile(UE::StateTree::ICompileNodeContext& CompileContext)
+{
+	const FInstanceDataType* InstanceData = CompileContext.GetInstanceDataView().GetPtr<FInstanceDataType>();
+	check(InstanceData);
+
+	return FWxSpawnerLocatorUtils::ValidateSpawners(CompileContext, InstanceData->Spawners);
+}
+
 FText FWxStateTreeTask_TriggerSpawners::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
 {
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("스포너 발동 ({0}개)"), FText::AsNumber(InstanceData->Spawners.Num()));
+	return FText::Format(INVTEXT("스포너 발동 ({0})"), FWxLocatorUtils::GetDisplayNamesText(InstanceData->Spawners));
 }
 #endif
