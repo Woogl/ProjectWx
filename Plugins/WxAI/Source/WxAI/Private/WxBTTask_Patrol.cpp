@@ -15,13 +15,19 @@ UWxBTTask_Patrol::UWxBTTask_Patrol()
 {
 	NodeName = TEXT("Patrol");
 
-	// 에디터에서 별도 선택 없이 동작하도록 기본 키를 채워 둔다. 실제 키 해석은 InitializeFromAsset 가 한다.
-	BlackboardKey.SelectedKeyName = WxBlackboardKeys::PatrolTargetLocation;
-
 	// 도착 후 커서를 진행시키기 위해 종료 콜백을 받는다.
 	bNotifyTaskFinished = true;
 
 	bCreateNodeInstance = true;
+}
+
+void UWxBTTask_Patrol::InitializeFromAsset(UBehaviorTree& Asset)
+{
+	// ExecuteTask 가 쓰는 키와 Super 가 읽는 키는 반드시 같아야 한다.
+	// Super 가 이 이름으로 키를 해석하므로, 에셋에 다른 값이 남아 있어도 여기서 덮어써 고정한다.
+	BlackboardKey.SelectedKeyName = WxBlackboardKeys::PatrolTargetLocation;
+
+	Super::InitializeFromAsset(Asset);
 }
 
 EBTNodeResult::Type UWxBTTask_Patrol::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
