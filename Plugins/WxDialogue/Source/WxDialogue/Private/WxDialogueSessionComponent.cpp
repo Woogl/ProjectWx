@@ -14,6 +14,7 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
+#include "WxDialogueActor.h"
 #include "WxDialogueComponent.h"
 #include "WxDialogueModule.h"
 #include "WxDialogueTableRow.h"
@@ -331,8 +332,9 @@ void UWxDialogueSessionComponent::PlayPendingPose()
 		return;
 	}
 
-	const AActor* Target = PendingPoseTarget.Get();
-	const USkeletalMeshComponent* Mesh = Target ? Target->FindComponentByClass<USkeletalMeshComponent>() : nullptr;
+	// 포즈 대상은 대화 액터뿐이다 — 상호작용은 대화 정의의 오너로, 퀘스트 트리는 대상 없이 들어온다.
+	const AWxDialogueActor* Target = Cast<AWxDialogueActor>(PendingPoseTarget.Get());
+	const USkeletalMeshComponent* Mesh = Target ? Target->GetPoseMesh() : nullptr;
 	UAnimInstance* AnimInstance = Mesh ? Mesh->GetAnimInstance() : nullptr;
 	if (!AnimInstance)
 	{

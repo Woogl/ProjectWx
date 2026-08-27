@@ -28,3 +28,8 @@ FText AWxDialogueActor::GetInteractionPrompt() const
 {
 	return DialogueComponent->GetTalkPrompt();
 }
+
+USkeletalMeshComponent* AWxDialogueActor::GetPoseMesh() const
+{
+	return nullptr;
+}

@@ -25,7 +25,7 @@
 
 ## 확장 포인트 / 규약
 - 새 대화 편: DataTable 에셋을 `FWxDialogueTableRow` 로우 타입으로 만들고, 행끼리 `NextRow` 로 잇는다(종료는 `NextRow=None`). 모든 행은 `Line`을 채워야 하며 비면 경고 후 접힌다.
-- 새 대화 대상: `AWxDialogueActor` 를 상속해 몸통을 세우고 `UWxDialogueComponent` 에 시작 행을 지정한다. 컴포넌트만 붙여선 말을 걸 수 없다(계약은 액터 전용).
+- 새 대화 대상: `AWxDialogueActor` 를 상속해 몸통을 세우고 `UWxDialogueComponent` 에 시작 행을 지정한다. 컴포넌트만 붙여선 말을 걸 수 없다(계약은 액터 전용). 포즈를 취할 대상은 `GetPoseMesh()` 로 자기 메시를 답한다.
 - 퀘스트 대사: `FWxStateTreeTask_PlayDialogue` 의 `StartRow` 를 지정. 대상 없이 열려 카메라는 플레이어에 머문다.
 - NPC 포즈: 각 행의 `TargetPose`(소프트) 지정 시 세션이 대사 넘길 때 비동기 스트리밍. 비우면 직전 포즈 유지, 대화 종료 후에도 되돌리지 않는다.
 - 카메라 구도는 세션의 `EditDefaultsOnly` 값(FOV·오프축각·거리·높이·블렌드)으로 조정 — 주입 컴포넌트라 기본값이 곧 실제값.

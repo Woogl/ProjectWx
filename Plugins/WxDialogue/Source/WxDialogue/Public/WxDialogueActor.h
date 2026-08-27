@@ -7,6 +7,7 @@
 #include "WxInteractable.h"
 #include "WxDialogueActor.generated.h"
 
+class USkeletalMeshComponent;
 class UWxDialogueComponent;
 
 /**
@@ -35,6 +36,9 @@ public:
 	virtual void OnInteracted(AActor* Interactor) override;
 	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
+
+	/** 대사 포즈를 얹을 메시. 스켈레탈 메시가 없는 대상은 비운다. */
+	virtual USkeletalMeshComponent* GetPoseMesh() const;
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Dialogue")
