@@ -25,6 +25,7 @@ struct FGameplayEffectSpec;
  * 동일 GE 클래스를 여러 어빌리티가 공유하는 경우, 소스 어빌리티 CDO로 구분한다.
  *
  * CanActivate·CheckCost 는 ASC 태그 변경/비용 어트리뷰트 변경/쿨다운 적용·충전 수 변화 시점에 재평가된다.
+ * 태그 변경만은 한 프레임 분을 모아 다음 틱에 한 번 판정한다.
  *
  * 소모량은 초기화 때 비용 GE 를 한 번 평가해 정한다.
  */
@@ -131,6 +132,8 @@ private:
 	void HandleCostAttributeChanged(const FOnAttributeChangeData& Data);
 	bool UpdateCooldownState(float DeltaTime);
 
+	bool FlushActivationRefresh(float DeltaTime);
+
 	/**
 	 * 초기화 시점에 이미 돌고 있는 쿨다운을 1회 스캔해 반영한다.
 	 * 이 VM 은 UMG 바인딩 최초 평가 시 지연 생성되므로 쿨다운 도중에 태어나면 GE 적용 통지를 놓쳐 "충전 만땅"으로 잘못 표시된다.
@@ -162,4 +165,7 @@ private:
 	FGameplayAttribute CostMaxAttribute;
 
 	FTSTicker::FDelegateHandle TickerHandle;
+
+	/** 유효하면 이번 프레임의 재평가가 이미 예약돼 있다는 뜻이다. */
+	FTSTicker::FDelegateHandle ActivationRefreshHandle;
 };

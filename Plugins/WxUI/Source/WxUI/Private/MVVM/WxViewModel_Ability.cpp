@@ -129,6 +129,12 @@ void UWxViewModel_Ability::Deinitialize()
 		TickerHandle.Reset();
 	}
 
+	if (ActivationRefreshHandle.IsValid())
+	{
+		FTSTicker::GetCoreTicker().RemoveTicker(ActivationRefreshHandle);
+		ActivationRefreshHandle.Reset();
+	}
+
 	CachedASC.Reset();
 	CachedAbility.Reset();
 	CachedCooldownClass = nullptr;
@@ -305,7 +311,15 @@ void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* 
 
 void UWxViewModel_Ability::HandleTagChanged(const FGameplayTag Tag, int32 NewCount)
 {
-	RefreshActivationState();
+	// 통지는 바뀐 태그의 부모까지 오고 GE 하나가 태그를 여럿 부여하므로, 한 프레임에 열댓 번이 몰려도 판정 결과는 마지막 한 번과 같다.
+	if (ActivationRefreshHandle.IsValid())
+	{
+		return;
+	}
+
+	ActivationRefreshHandle = FTSTicker::GetCoreTicker().AddTicker(
+		FTickerDelegate::CreateUObject(this, &UWxViewModel_Ability::FlushActivationRefresh)
+	);
 }
 
 void UWxViewModel_Ability::HandleCostAttributeChanged(const FOnAttributeChangeData& Data)
@@ -364,6 +378,14 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 	}
 
 	return true;
+}
+
+bool UWxViewModel_Ability::FlushActivationRefresh(float DeltaTime)
+{
+	ActivationRefreshHandle.Reset();
+	RefreshActivationState();
+
+	return false;
 }
 
 void UWxViewModel_Ability::RefreshActivationState()

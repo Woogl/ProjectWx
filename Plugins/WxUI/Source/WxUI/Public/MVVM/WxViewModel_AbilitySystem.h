@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Containers/Ticker.h"
 #include "GameplayTagContainer.h"
 #include "MVVM/WxViewModel.h"
 #include "WxViewModel_AbilitySystem.generated.h"
@@ -66,6 +67,8 @@ protected:
 	void HandleActiveEffectRemoved(const FActiveGameplayEffect& ActiveEffect);
 	void HandleTagChanged(const FGameplayTag Tag, int32 NewCount);
 
+	bool FlushOwnedTagsRefresh(float DeltaTime);
+
 	UPROPERTY()
 	TArray<TObjectPtr<UWxViewModel_Attribute>> AttributeViewModels;
 
@@ -73,4 +76,7 @@ protected:
 	TArray<TObjectPtr<UWxViewModel_Ability>> AbilityViewModels;
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
+
+	/** 유효하면 이번 프레임의 갱신이 이미 예약돼 있다는 뜻이다. */
+	FTSTicker::FDelegateHandle OwnedTagsRefreshHandle;
 };

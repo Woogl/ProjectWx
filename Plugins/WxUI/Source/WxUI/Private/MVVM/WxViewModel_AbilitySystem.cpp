@@ -52,6 +52,13 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 		ASC->OnAnyGameplayEffectRemovedDelegate().RemoveAll(this);
 		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
 	}
+
+	if (OwnedTagsRefreshHandle.IsValid())
+	{
+		FTSTicker::GetCoreTicker().RemoveTicker(OwnedTagsRefreshHandle);
+		OwnedTagsRefreshHandle.Reset();
+	}
+
 	
 	// 자식은 배열에서 떼기만 한다 — 위젯이 아직 붙들고 있는 공유본을 끊으면 그 표시가 언다.
 	// 여기는 BeginDestroy 에서만 도달하고, 그때 각 자식도 자기 BeginDestroy 로 구독·티커를 정리한다.
@@ -211,5 +218,21 @@ void UWxViewModel_AbilitySystem::HandleActiveEffectRemoved(const FActiveGameplay
 
 void UWxViewModel_AbilitySystem::HandleTagChanged(const FGameplayTag Tag, int32 NewCount)
 {
+	// 통지는 바뀐 태그의 부모까지 오고 GE 하나가 태그를 여럿 부여하므로, 한 프레임에 열댓 번이 몰려도 결과는 마지막 한 번과 같다.
+	if (OwnedTagsRefreshHandle.IsValid())
+	{
+		return;
+	}
+
+	OwnedTagsRefreshHandle = FTSTicker::GetCoreTicker().AddTicker(
+		FTickerDelegate::CreateUObject(this, &UWxViewModel_AbilitySystem::FlushOwnedTagsRefresh)
+	);
+}
+
+bool UWxViewModel_AbilitySystem::FlushOwnedTagsRefresh(float DeltaTime)
+{
+	OwnedTagsRefreshHandle.Reset();
 	RefreshOwnedTags();
+
+	return false;
 }
