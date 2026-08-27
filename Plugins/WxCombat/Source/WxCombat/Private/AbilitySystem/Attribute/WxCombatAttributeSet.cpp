@@ -277,16 +277,26 @@ void UWxCombatAttributeSet::ProcessDamageTaken(const FGameplayEffectModCallbackD
 	// 공격이 요청한 반응 종류는 스펙에 Event.Hit 자식 태그로 실려 온다.
 	const FGameplayTag ReactionTag = Data.EffectSpec.GetDynamicAssetTags().Filter(FGameplayTagContainer(WxGameplayTags::Event_Hit)).First();
 
-	// Guard가 같은 피격 이벤트로 흡수 몽타주를 틀므로, 가드로 막히지 않는 히트는 이벤트보다 먼저 가드를 끊어야 한다.
-	if (ASC->HasMatchingGameplayTag(WxGameplayTags::Effect_Guard) && !Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanGuard))
+	// GuardReact가 같은 피격 이벤트로 흡수 몽타주를 틀므로, 가드로 막히지 않는 히트는 이벤트보다 먼저 가드를 끊어야 한다.
+	// 반응 라우팅은 전부 Ability.Guard로 판정한다 — 여기만 Effect.Guard를 보면 둘이 어긋난 상태에서 취소를 건너뛴 채 흡수 연출이 나간다.
+	if (ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Guard) && !Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanGuard))
 	{
 		const FGameplayTagContainer GuardAbilityTags(WxGameplayTags::Ability_Guard);
 		ASC->CancelAbilities(&GuardAbilityTags);
 	}
 
 	// 히트리액트를 재생했다 사망으로 끊는 대신 곧장 사망으로 가는 쪽을 택했다.
-	// 반응이 있으면 그 자식이 이벤트 태그다. 평타는 부모 그대로라, 자식만 트리거로 등록한 HitReact엔 닿지 않는다.
-	const FGameplayTag HitEventTag = ReactionTag.IsValid() ? ReactionTag : WxGameplayTags::Event_Hit;
+	// 반응이 있으면 그 자식이 이벤트 태그다. 평타는 부모 그대로라, 자식만 트리거로 등록한 HitReact엔 닿지 않고 부모를 등록한 GuardReact에만 닿는다.
+	//
+	// 이 히트로 가드가 깨졌는지도 여기서 판정해 반응 종류에 실어 보낸다 — 어빌리티 트리거는 RPC라 어트리뷰트 복제보다 먼저 도착해,
+	// 소유 클라가 SP를 다시 읽으면 차감 전 값을 본다. 조건은 브레이크를 받아 줄 GuardReact의 요구 태그와 같은 것을 봐야 어긋나지 않는다.
+	//
+	// GetSP()가 차감된 값인 것은 WxExecCalc_Damage가 SP 모디파이어를 IncomingDamage보다 앞에 싣기 때문이다 — 이 훅은 모디파이어마다 한 번씩 불린다.
+	// 두 AddOutputModifier의 순서를 뒤집으면 여기서 차감 전 값을 읽어 가드가 영영 깨지지 않는다.
+	const bool bGuardBroken = ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Guard) && GetSP() <= 0.f;
+	const FGameplayTag HitEventTag = bGuardBroken
+		? WxGameplayTags::Event_Hit_GuardBreak
+		: (ReactionTag.IsValid() ? ReactionTag : WxGameplayTags::Event_Hit);
 	FGameplayEventData HitEventData;
 	HitEventData.EventTag = HitEventTag;
 	HitEventData.Instigator = SourceASC ? SourceASC->GetOwnerActor() : nullptr;

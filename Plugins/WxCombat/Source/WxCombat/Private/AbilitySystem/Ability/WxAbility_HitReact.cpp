@@ -27,8 +27,10 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 
 	// 사망 몽타주는 사망 쪽 BlockAbilitiesWithTag가 지키므로 여기에 Ability.Death를 더하지 않는다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::Effect_Invincible);
-	ActivationBlockedTags.AddTag(WxGameplayTags::Effect_Guard);
 	ActivationBlockedTags.AddTag(WxGameplayTags::Effect_SuperArmor);
+
+	// 가드는 방어 판정(Effect.Guard)이 아니라 어빌리티로 막는다 — GuardReact의 요구 태그와 같은 것을 봐야 한 히트에 둘 다 거부되는 상태가 없다.
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Guard);
 
 	bRetriggerInstancedAbility = true;
 
