@@ -5,6 +5,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Weapon/WxProjectileBase.h"
 
 void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
@@ -27,4 +28,14 @@ void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAn
 	{
 		Ability->SpawnProjectile(ProjectileClass, SpawnSocketName);
 	}
+}
+
+FString UWxAnimNotify_SpawnProjectile::GetNotifyName_Implementation() const
+{
+	if (const UClass* TargetClass = ProjectileClass.Get())
+	{
+		return TargetClass->GetName();
+	}
+	
+	return Super::GetNotifyName_Implementation();
 }
