@@ -4,6 +4,7 @@
 
 #include "CommonActivatableWidget.h"
 #include "GameFramework/PlayerController.h"
+#include "System/WxPrimaryGameLayout.h"
 #include "System/WxUIManagerSubsystem.h"
 #include "Widget/WxHUDLayout.h"
 #include "WxGameplayTags.h"
@@ -49,14 +50,17 @@ void UWxHUDComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 		return;
 	}
 
-	// 폰만 갈아타는 흐름(탈것·연출 폰)에서 다시 push 하면 스택에 인스턴스가 쌓인다.
-	if (HUDWidget.IsValid())
+	UWxUIManagerSubsystem* UIManager = UWxUILibrary::GetUIManagerSubsystem(this);
+	UWxPrimaryGameLayout* Layout = UIManager ? UIManager->GetPrimaryGameLayout() : nullptr;
+	if (!Layout)
 	{
 		return;
 	}
 
-	UWxUIManagerSubsystem* UIManager = UWxUILibrary::GetUIManagerSubsystem(this);
-	if (!UIManager)
+	// 폰만 갈아타는 흐름(탈것·연출 폰)에서 다시 push 하면 스택에 인스턴스가 쌓인다.
+	// 걷힌 위젯도 CommonUI 풀이 살려 두므로 참조 생존으로는 가릴 수 없다.
+	const UCommonActivatableWidgetStack* GameStack = Layout->GetLayerWidgetStack(WxGameplayTags::UI_Layer_Game);
+	if (GameStack && GameStack->GetWidgetList().Contains(HUDWidget.Get()))
 	{
 		return;
 	}
