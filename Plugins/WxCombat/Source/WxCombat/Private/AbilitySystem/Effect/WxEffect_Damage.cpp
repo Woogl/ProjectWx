@@ -156,18 +156,18 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
 }
 
-EWxDamageResult UWxExecCalc_Damage::CheckDamage(const UAbilitySystemComponent* Source, const UAbilitySystemComponent* Target)
+EWxDamageCheck UWxExecCalc_Damage::CheckDamage(const UAbilitySystemComponent* Source, const UAbilitySystemComponent* Target)
 {
 	if (!Target)
 	{
-		return EWxDamageResult::None;
+		return EWxDamageCheck::None;
 	}
 
 	// 대미지 GE 자체가 사망 타겟을 IgnoreTags로 거르므로 대미지 경로는 여기 닿지 않는다.
 	// ExecCalc 밖에서 부르는 히트스톱이 시체를 걸러내는 지점이다.
 	if (Target->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
 	{
-		return EWxDamageResult::None;
+		return EWxDamageCheck::None;
 	}
 
 	// 자기 자신은 자해 경로라 팀 판정에서 제외한다.
@@ -175,15 +175,15 @@ EWxDamageResult UWxExecCalc_Damage::CheckDamage(const UAbilitySystemComponent* S
 	const AActor* TargetAvatar = Target->GetAvatarActor();
 	if (SourceAvatar != TargetAvatar && !UWxCombatLibrary::IsHostile(SourceAvatar, TargetAvatar))
 	{
-		return EWxDamageResult::None;
+		return EWxDamageCheck::None;
 	}
 
 	if (Target->HasMatchingGameplayTag(WxGameplayTags::Effect_Invincible))
 	{
-		return EWxDamageResult::Evaded;
+		return EWxDamageCheck::Evaded;
 	}
 
-	return EWxDamageResult::Damaged;
+	return EWxDamageCheck::Damaged;
 }
 
 FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, bool bSkipCrit) const

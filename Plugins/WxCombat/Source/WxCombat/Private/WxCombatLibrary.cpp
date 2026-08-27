@@ -58,10 +58,10 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 		PredictionKey = AnimatingAbility->GetCurrentActivationInfo().GetActivationPredictionKey();
 	}
 
-	// 적중 성립 여부는 대미지가 들어가기 전 상태로 가른다 — 이 히트로 죽은 대상은 아직 살아 있던 것으로 쳐야 마무리 일격에도 역경직이 걸린다.
-	const EWxDamageResult DamageCheck = UWxExecCalc_Damage::CheckDamage(Source, TargetASC);
+	// 적용 전에 판정한다 — 이 히트로 죽는 대상에도 히트스톱이 걸려야 한다.
+	const EWxDamageCheck DamageCheck = UWxExecCalc_Damage::CheckDamage(Source, TargetASC);
 
-	if (DamageCheck == EWxDamageResult::Evaded)
+	if (DamageCheck == EWxDamageCheck::Evaded)
 	{
 		AActor* TargetActor = TargetASC->GetOwnerActor();
 
@@ -71,8 +71,8 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_DodgeSuccess, EventData);
 	}
 
-	// 대미지 GE를 걸면 값을 하나도 내지 못하면서 자기에게 얹힌 히트 큐만 발행하고, 상태이상 역시 흘려낸 히트에서는 걸리지 않아야 한다.
-	if (DamageCheck != EWxDamageResult::Damaged)
+	// 흘려낸 히트에 GE를 걸면 히트 큐와 상태이상만 새어 나간다.
+	if (DamageCheck != EWxDamageCheck::Damaged)
 	{
 		return false;
 	}

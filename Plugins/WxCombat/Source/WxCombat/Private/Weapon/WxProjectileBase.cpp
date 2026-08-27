@@ -88,7 +88,7 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
 
 	// 회피 무적으로 흘려낸 히트도 마찬가지로 없던 것으로 본다. 판정은 각 머신이 로컬로 내는데, 이펙트가 권위 검사 앞에서 재생되기 때문이다.
-	const bool bEvaded = UWxExecCalc_Damage::CheckDamage(SourceASC, TargetASC) == EWxDamageResult::Evaded;
+	const bool bEvaded = UWxExecCalc_Damage::CheckDamage(SourceASC, TargetASC) == EWxDamageCheck::Evaded;
 	if (!bEvaded)
 	{
 		PlayImpactFX();
