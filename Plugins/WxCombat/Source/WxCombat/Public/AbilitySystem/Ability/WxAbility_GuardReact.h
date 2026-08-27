@@ -11,13 +11,8 @@ class UAnimMontage;
 /**
  * 가드가 흡수한 히트의 연출을 맡는다 — 가드 피격·넉 계열 가드·가드 브레이크·퍼펙트 가드.
  *
- * 가드 어빌리티가 직접 이벤트를 받지 않고 이쪽으로 뗀 이유는 복제다.
- * 대미지 GE는 피격자 클라에서 예측 키가 없어 적용되지 않으므로 그 이벤트도 서버에만 남는데,
- * ServerInitiated 트리거는 엔진이 페이로드째 소유 클라에 복제해 준다.
- * 그래서 가드한 본인 화면에서도 서버와 같은 연출이 재생된다.
- *
- * 트리거는 부모 Event.Hit 하나만 등록한다 — 조상마다 등록하면 HandleGameplayEvent가 사슬을 훑으며 같은 히트에 두 번 발화한다.
- * 자식만 등록한 WxAbility_HitReact와는 Ability.Guard 요구 ↔ 같은 태그 차단으로 갈려, 한 히트에 둘 중 하나만 성립한다.
+ * 가드 어빌리티에서 떼어낸 이유는 복제다.
+ * 대미지 GE가 피격자 클라에서는 예측 키가 없어 적용되지 않으니 그 이벤트도 서버에만 남는데, ServerInitiated 트리거는 엔진이 페이로드째 소유 클라에 복제해 준다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_GuardReact : public UWxAbilityBase
