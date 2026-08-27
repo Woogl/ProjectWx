@@ -76,15 +76,7 @@ void UWxNameplateComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 
 void UWxNameplateComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if (UAbilitySystemComponent* ASC = CachedASC.Get())
-	{
-		FGameplayTagContainer WatchedTags;
-		CollectVisibilityTags(WatchedTags);
-		for (const FGameplayTag& WatchedTag : WatchedTags)
-		{
-			ASC->RegisterGameplayTagEvent(WatchedTag, EGameplayTagEventType::NewOrRemoved).RemoveAll(this);
-		}
-	}
+	StopWatchingVisibilityTags();
 
 	Super::EndPlay(EndPlayReason);
 }
@@ -123,6 +115,9 @@ void UWxNameplateComponent::InitializeViewModels(UAbilitySystemComponent* InASC,
 	CharacterViewModel->Initialize(InASC, InCharacterName, InPortrait);
 	View->SetViewModelByClass(CharacterViewModel);
 
+	// 조기 반환을 모두 지난 자리라, 초기화가 실패했을 때 이미 서 있던 표시를 끊지 않는다.
+	StopWatchingVisibilityTags();
+
 	CachedASC = InASC;
 
 	// 표시 여부는 ASC 태그가 바뀔 때만 갱신하면 충분하다(매 틱 재계산 불필요).
@@ -149,6 +144,21 @@ void UWxNameplateComponent::CollectVisibilityTags(FGameplayTagContainer& OutTags
 	{
 		OutTags.AddTag(QueryTag);
 	}
+}
+
+void UWxNameplateComponent::StopWatchingVisibilityTags()
+{
+	if (UAbilitySystemComponent* ASC = CachedASC.Get())
+	{
+		FGameplayTagContainer WatchedTags;
+		CollectVisibilityTags(WatchedTags);
+		for (const FGameplayTag& WatchedTag : WatchedTags)
+		{
+			ASC->RegisterGameplayTagEvent(WatchedTag, EGameplayTagEventType::NewOrRemoved).RemoveAll(this);
+		}
+	}
+
+	CachedASC.Reset();
 }
 
 void UWxNameplateComponent::RefreshVisibility()

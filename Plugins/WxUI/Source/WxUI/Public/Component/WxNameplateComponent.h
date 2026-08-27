@@ -57,6 +57,9 @@ private:
 	/** 이 목록이 곧 ASC 구독 대상이다 — 요건에 없는 태그는 RequirementsMet 결과를 바꿀 수 없으므로 이 목록만 구독해도 동작이 등가다. */
 	void CollectVisibilityTags(FGameplayTagContainer& OutTags) const;
 
+	/** 구독을 끊고 캐시된 ASC 도 비운다. */
+	void StopWatchingVisibilityTags();
+
 	/** 구독 자체가 요건 태그로 좁혀져 있으므로 어떤 태그가 바뀌었는지는 보지 않는다. */
 	void HandleOwnedTagsChanged(const FGameplayTag Tag, int32 NewCount);
 
