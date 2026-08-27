@@ -212,7 +212,7 @@ bool UWxAbilityBase::PlayMontage(UAnimMontage* Montage, FName StartSection)
 		return false;
 	}
 
-	// EndTask가 AnimInstance 바인딩을 해제하므로 구 태스크의 후속 이벤트는 발송되지 않는다.
+	// EndTask가 구 태스크를 가비지로 표시하므로, 바인딩은 남아도 약참조가 끊겨 후속 이벤트는 발송되지 않는다.
 	if (MontageTask)
 	{
 		MontageTask->EndTask();
