@@ -41,6 +41,7 @@ AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
 	WeaponActor->SetupAttachment(GetMesh(), TEXT("hand_r"));
 
 	MetaHumanComponent = CreateDefaultSubobject<UWxMetaHumanComponent>(TEXT("MetaHumanComponent"));
+	MetaHumanComponent->SetLeaderMesh(GetMesh());
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw   = false;

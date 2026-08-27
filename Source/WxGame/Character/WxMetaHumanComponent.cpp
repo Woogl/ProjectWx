@@ -7,8 +7,12 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/CollisionProfile.h"
 #include "Engine/SkeletalMesh.h"
-#include "GameFramework/Character.h"
 #include "GroomComponent.h"
+
+void UWxMetaHumanComponent::SetLeaderMesh(USkeletalMeshComponent* InLeaderMesh)
+{
+	LeaderMesh = InLeaderMesh;
+}
 
 void UWxMetaHumanComponent::OnRegister()
 {
@@ -33,8 +37,6 @@ void UWxMetaHumanComponent::OnRegister()
 		return;
 	}
 
-	ACharacter* Owner = Cast<ACharacter>(GetOwner());
-	USkeletalMeshComponent* LeaderMesh = Owner ? Owner->GetMesh() : nullptr;
 	if (!LeaderMesh)
 	{
 		return;
@@ -87,12 +89,13 @@ void UWxMetaHumanComponent::OnRegister()
 		return;
 	}
 
-	// 오너 메시는 구동·리더 포즈 전용이라 동기 대상이 아니고, 여기서 만든 표시용 메시끼리만 묶는다.
+	// 리더는 구동·리더 포즈 전용이라 동기 대상이 아니고, 여기서 만든 표시용 메시끼리만 묶는다.
 	const int32 BodyLODCount = BodyMesh ? BodyMesh->GetLODNum() : 0;
 	const int32 FaceLODCount = FaceMesh ? FaceMesh->GetLODNum() : 0;
 	const int32 OutfitLODCount = OutfitMesh ? OutfitMesh->GetLODNum() : 0;
 	const int32 NumSyncLODs = FMath::Max3(BodyLODCount, FaceLODCount, OutfitLODCount);
 
+	AActor* Owner = GetOwner();
 	LODSyncComponent = NewObject<ULODSyncComponent>(Owner, MakeUniqueObjectName(Owner, ULODSyncComponent::StaticClass(), TEXT("LODSync")), RF_Transient);
 	LODSyncComponent->CreationMethod = CreationMethod;
 	LODSyncComponent->NumLODs = NumSyncLODs;
@@ -122,14 +125,10 @@ void UWxMetaHumanComponent::OnRegister()
 
 void UWxMetaHumanComponent::OnUnregister()
 {
-	// 바디를 만들었다는 것은 우리가 오너 메시를 숨겼다는 뜻이다 — 부착물을 걷어내면서 표시 책임도 돌려준다.
-	if (BodyComponent)
+	// 바디를 만들었다는 것은 우리가 리더를 숨겼다는 뜻이다 — 부착물을 걷어내면서 표시 책임도 돌려준다.
+	if (BodyComponent && LeaderMesh)
 	{
-		const ACharacter* Owner = Cast<ACharacter>(GetOwner());
-		if (USkeletalMeshComponent* LeaderMesh = Owner ? Owner->GetMesh() : nullptr)
-		{
-			LeaderMesh->SetVisibility(true);
-		}
+		LeaderMesh->SetVisibility(true);
 	}
 
 	if (LODSyncComponent)

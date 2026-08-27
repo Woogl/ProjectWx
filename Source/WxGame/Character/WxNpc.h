@@ -25,6 +25,10 @@ class WXGAME_API AWxNpc : public AWxDialogueActor
 public:
 	AWxNpc();
 
+	//~ Begin AWxDialogueActor
+	virtual USkeletalMeshComponent* GetPoseMesh() const override;
+	//~ End AWxDialogueActor
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UCapsuleComponent> CapsuleComponent;

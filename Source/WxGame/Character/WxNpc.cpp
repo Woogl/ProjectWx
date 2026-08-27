@@ -34,4 +34,10 @@ AWxNpc::AWxNpc()
 	MeshComponent->SetGenerateOverlapEvents(false);
 
 	MetaHumanComponent = CreateDefaultSubobject<UWxMetaHumanComponent>(TEXT("MetaHumanComponent"));
+	MetaHumanComponent->SetLeaderMesh(MeshComponent);
+}
+
+USkeletalMeshComponent* AWxNpc::GetPoseMesh() const
+{
+	return MeshComponent;
 }
