@@ -3,7 +3,6 @@
 #include "AbilitySystem/Ability/WxAbility_HitReact.h"
 #include "AbilitySystemComponent.h"
 #include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_HitReact::UWxAbility_HitReact()
@@ -62,7 +61,7 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	// 회전·띄우기보다 먼저 판정한다 — 커밋이 막힌 뒤에 연출만 남으면 캐릭터가 어빌리티 없이 공중에 뜬다.
+	// 회전·띄우기는 커밋과 몽타주가 모두 성립한 뒤에 낸다 — 어느 하나라도 실패해 곧장 종료하면 캐릭터가 어빌리티 없이 공중에 뜬다.
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
@@ -77,26 +76,26 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	// 그로기 중엔 날아가지 않는다 — 긴 넉 몽타주가 그로기 몽타주를 밀어내는 동안에도 DP 드레인은 돌아 그로기 창이 잘려나간다.
 	// 그로기를 유발한 히트도 여기 걸린다. DP 적용이 그로기를 먼저 띄우고 피격 이벤트가 그 뒤에 오기 때문이다.
-	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
+	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy)
+		&& (ReactionTag == WxGameplayTags::Event_Hit_KnockBack
+			|| ReactionTag == WxGameplayTags::Event_Hit_KnockDown
+			|| ReactionTag == WxGameplayTags::Event_Hit_KnockUp))
 	{
-		FGameplayTagContainer KnockTags;
-		KnockTags.AddTagFast(WxGameplayTags::Event_Hit_KnockBack);
-		KnockTags.AddTagFast(WxGameplayTags::Event_Hit_KnockDown);
-		KnockTags.AddTagFast(WxGameplayTags::Event_Hit_KnockUp);
-		if (ReactionTag.MatchesAny(KnockTags))
-		{
-			ReactionTag = WxGameplayTags::Event_Hit_Normal;
-		}
+		ReactionTag = WxGameplayTags::Event_Hit_Normal;
+	}
+
+	if (!PlayMontage(SelectMontage(ReactionTag)))
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
 	}
 
 	// 몽타주 선택과 달리 부수 효과는 여러 종류가 한 갈래를 공유하므로 따로 가른다.
 	if (ReactionTag == WxGameplayTags::Event_Hit_KnockUp)
 	{
-		ACharacter* Character = Cast<ACharacter>(AvatarActor);
-		if (const UCharacterMovementComponent* Movement = Character ? Character->GetCharacterMovement() : nullptr)
+		if (ACharacter* Character = Cast<ACharacter>(AvatarActor))
 		{
-			const FVector LaunchVelocity(0.f, 0.f, Movement->JumpZVelocity);
-			Character->LaunchCharacter(LaunchVelocity, false, true);
+			Character->LaunchCharacter(FVector(0.f, 0.f, KnockupZVelocity), false, true);
 		}
 	}
 	else if (ReactionTag == WxGameplayTags::Event_Hit_KnockBack
@@ -106,11 +105,6 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		|| ReactionTag == WxGameplayTags::Event_Hit_Backstab)
 	{
 		FaceInstigator(AvatarActor, Instigator);
-	}
-
-	if (!PlayMontage(SelectMontage(ReactionTag)))
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	}
 }
 

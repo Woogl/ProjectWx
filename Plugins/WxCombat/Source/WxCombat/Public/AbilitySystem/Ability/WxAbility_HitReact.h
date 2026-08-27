@@ -24,7 +24,10 @@ class WXCOMBAT_API UWxAbility_HitReact : public UWxAbilityBase
 public:
 	UWxAbility_HitReact();
 
-	/** 처형 짝 피격이 공격자 몽타주와 프레임 싱크돼야 하므로 ASPD를 반영하지 않는다. */
+	/**
+	 * 피격 몽타주는 길이가 곧 경직 시간이므로 ASPD를 반영하지 않는다.
+	 * 처형 짝 피격은 여기에 더해 공격자 몽타주와 프레임 싱크까지 맞춰야 한다.
+	 */
 	virtual float GetMontagePlayRate() const override;
 
 protected:
@@ -42,6 +45,10 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> KnockupMontage;
+
+	/** 넉업이 띄우는 속도. 이동 튜닝(JumpZVelocity)과 분리해 전투 쪽에서 정한다. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability", meta = (ClampMin = "0.0"))
+	float KnockupZVelocity = 640.f;
 
 	/** 공격이 퍼펙트 가드로 막혀 공격자가 경직될 때 재생. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
