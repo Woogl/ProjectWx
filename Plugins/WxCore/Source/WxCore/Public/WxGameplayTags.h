@@ -28,7 +28,7 @@ namespace WxGameplayTags
 	/** WxEffect_Invincible이 부여하며, 구간을 연 쪽(노티파이 구간·컷신 태스크·처형의 활성 구간)이 수명을 쥔다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Invincible);
 
-	/** 가드 어빌리티가 WxEffect_Guard로 부여하되, SP 고갈로 가드가 깨지면 어빌리티가 도는 중에도 뗀다 */
+	/** 가드 어빌리티가 WxEffect_Guard로 부여하고 종료에서 걷는다. SP 고갈로 가드가 깨질 때는 리액션 어빌리티가 가드를 끊어 같은 경로로 걷힌다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Guard);
 
 	/** 가드 몽타주의 노티파이 구간이 WxEffect_PerfectGuard로 부여하고 구간 끝에서 걷어낸다 */
@@ -64,6 +64,14 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Parry);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Finisher);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Backstab);
+
+	/**
+	 * 이 히트로 SP가 바닥나 가드가 깨졌다. 대미지 파이프라인이 서버에서 판정해 반응 태그 대신 이것을 보낸다.
+	 * 클라의 복제 SP는 트리거보다 늦게 도착하므로 판정을 클라에서 다시 하면 서버와 갈린다.
+	 *
+	 * 파이프라인이 만들어 내는 결과값이라 공격의 반응 종류로 저작하면 안 된다 — 가드하지 않은 대상에게는 받아 줄 어빌리티가 없어 반응 없이 지나간다.
+	 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_GuardBreak);
 
 	/**
 	 * 적중 이벤트의 공격자 몫. 대미지 파이프라인이 서버에서 공격자 ASC에 히트마다 한 번 보낸다.
@@ -163,6 +171,13 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Dodge);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Sprint);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Guard);
+
+	/**
+	 * 가드가 피격·퍼펙트 가드에 내놓는 리액션. 가드는 이 태그가 붙어 있는 동안 몽타주 슬롯을 양보한다.
+	 * 배타 점유자라 가드 반격을 만들 때는 Ability.Guard와 함께 이 태그도 지목해야 뚫린다 — 브레이크 뒤에는 이쪽만 남는다.
+	 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_GuardReact);
+
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_1);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_2);

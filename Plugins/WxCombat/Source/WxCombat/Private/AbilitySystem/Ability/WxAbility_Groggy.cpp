@@ -15,7 +15,11 @@
 
 UWxAbility_Groggy::UWxAbility_Groggy()
 {
+	// 소유 클라도 활성화돼야 그로기 자세가 그 화면에 뜬다 — 엔진은 로컬 조종 액터에 복제 몽타주를 적용하지 않는다.
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
+
+	// 그 클라 인스턴스는 연출만 맡는다. 실행·종료 요청을 서버가 무시하게 해 판정을 서버에 묶는다.
+	NetSecurityPolicy = EGameplayAbilityNetSecurityPolicy::ServerOnly;
 
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Groggy);
@@ -55,27 +59,37 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 
 	// 그대로 두면 폴러가 사망 몽타주 종료 후 시체 위에 그로기 몽타주를 덮어씌운다.
+	// Reaction 그룹이라 사망이 이 어빌리티를 취소하지 못하므로, 자세를 로컬로 미는 클라 인스턴스에도 필요하다.
 	DeadTagDelegateHandle = ASC->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &UWxAbility_Groggy::HandleDeadTagChanged);
 
-	DPDelegateHandle = ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetDPAttribute())
-		.AddUObject(this, &UWxAbility_Groggy::HandleDPChanged);
-
-	// 재생 rate를 1.0으로 고정하므로 몽타주 길이가 곧 그로기 길이다.
-	const float GroggyDuration = GroggyMontage->GetPlayLength();
-
-	FGameplayEffectSpecHandle DrainSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_DrainDP::StaticClass(), GetAbilityLevel());
-	if (DrainSpecHandle.IsValid())
-	{
-		DrainSpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, GroggyDuration);
-		DrainDPEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, DrainSpecHandle);
-	}
-
-	if (UWorld* World = ActorInfo->AvatarActor.IsValid() ? ActorInfo->AvatarActor->GetWorld() : nullptr)
+	UWorld* World = ActorInfo->AvatarActor.IsValid() ? ActorInfo->AvatarActor->GetWorld() : nullptr;
+	if (World)
 	{
 		World->GetTimerManager().SetTimer(MontagePollingTimerHandle, this, &UWxAbility_Groggy::HandleMontagePollTick, 0.1f, true);
+	}
 
-		World->GetTimerManager().SetTimer(GroggySafetyTimerHandle, this, &UWxAbility_Groggy::HandleGroggySafetyTimeout, GroggyDuration + 1.f, false);
+	// 드레인과 종료 판정은 서버만 한다.
+	// 클라가 복제된 DP로 다시 판정하면 종료 시점이 어긋나, 그 창의 히트에서 HitReact의 넉 강등이 갈리고 LaunchCharacter가 한쪽에서만 실행된다.
+	if (ActorInfo->IsNetAuthority())
+	{
+		DPDelegateHandle = ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetDPAttribute())
+			.AddUObject(this, &UWxAbility_Groggy::HandleDPChanged);
+
+		// 재생 rate를 1.0으로 고정하므로 몽타주 길이가 곧 그로기 길이다.
+		const float GroggyDuration = GroggyMontage->GetPlayLength();
+
+		FGameplayEffectSpecHandle DrainSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_DrainDP::StaticClass(), GetAbilityLevel());
+		if (DrainSpecHandle.IsValid())
+		{
+			DrainSpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, GroggyDuration);
+			DrainDPEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, DrainSpecHandle);
+		}
+
+		if (World)
+		{
+			World->GetTimerManager().SetTimer(GroggySafetyTimerHandle, this, &UWxAbility_Groggy::HandleGroggySafetyTimeout, GroggyDuration + 1.f, false);
+		}
 	}
 
 	if (APawn* AvatarPawn = Cast<APawn>(ActorInfo->AvatarActor.Get()))

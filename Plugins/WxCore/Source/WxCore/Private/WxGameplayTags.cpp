@@ -26,6 +26,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_Parry, "Event.Hit.Parry");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_Finisher, "Event.Hit.Finisher");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_Backstab, "Event.Hit.Backstab");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_GuardBreak, "Event.Hit.GuardBreak");
 	UE_DEFINE_GAMEPLAY_TAG(Event_DamageDealt, "Event.DamageDealt");
 	UE_DEFINE_GAMEPLAY_TAG(Event_DodgeSuccess, "Event.DodgeSuccess");
 	UE_DEFINE_GAMEPLAY_TAG(Event_PerfectGuard, "Event.PerfectGuard");
@@ -82,6 +83,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Dodge, "Ability.Dodge");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Sprint, "Ability.Sprint");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Guard, "Ability.Guard");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_GuardReact, "Ability.GuardReact");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill, "Ability.Skill");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_1, "Ability.Skill.1");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_2, "Ability.Skill.2");

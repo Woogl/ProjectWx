@@ -14,7 +14,7 @@ class UAnimMontage;
  * 대미지 파이프라인은 공격이 요청한 반응 종류를 가공 없이 넘기고, 그걸로 무엇을 할지는 여기서 정한다.
  *
  * 평타로는 경직이 나지 않는다 — 반응 없는 히트는 부모 Event.Hit으로 나가고, 트리거는 자식만 등록해 부모엔 이 어빌리티가 아예 호출되지 않는다.
- * 가드 중 피격 반응은 WxAbility_Guard가 같은 이벤트로 직접 처리하므로 Effect.Guard 중에는 이 어빌리티가 뜨지 않는다.
+ * 가드 중 피격 반응은 WxAbility_GuardReact가 맡는다 — 그쪽이 Ability.Guard를 요구하고 이쪽이 같은 태그에 막히므로 한 히트에 둘 중 하나만 뜬다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_HitReact : public UWxAbilityBase
@@ -24,7 +24,10 @@ class WXCOMBAT_API UWxAbility_HitReact : public UWxAbilityBase
 public:
 	UWxAbility_HitReact();
 
-	/** 처형 짝 피격이 공격자 몽타주와 프레임 싱크돼야 하므로 ASPD를 반영하지 않는다. */
+	/**
+	 * 피격 몽타주는 길이가 곧 경직 시간이므로 ASPD를 반영하지 않는다.
+	 * 처형 짝 피격은 여기에 더해 공격자 몽타주와 프레임 싱크까지 맞춰야 한다.
+	 */
 	virtual float GetMontagePlayRate() const override;
 
 protected:
@@ -42,6 +45,10 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> KnockupMontage;
+
+	/** 넉업이 띄우는 속도. 이동 튜닝(JumpZVelocity)과 분리해 전투 쪽에서 정한다. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability", meta = (ClampMin = "0.0"))
+	float KnockupZVelocity = 640.f;
 
 	/** 공격이 퍼펙트 가드로 막혀 공격자가 경직될 때 재생. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
