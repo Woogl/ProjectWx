@@ -49,7 +49,6 @@ void UWxAbility_Skill::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 
 void UWxAbility_Skill::HandleMontageCompleted()
 {
-	/** 콤보 미입력으로 끝났으므로 다음 발동은 첫 단부터 시작한다. */
 	ComboIndex = INDEX_NONE;
 
 	Super::HandleMontageCompleted();

@@ -12,8 +12,7 @@ class AActor;
  * 감지(주변 스캔)·선택·프롬프트는 이 어빌리티가 아니라 PlayerController 의 UWxInteractionScannerComponent 가 담당한다.
  * 이 어빌리티는 "선택된 대상에 대한 서버 권위 실행"만 책임진다.
  *
- * 실행은 Event.Interact GameplayEvent 로 발동한다(ServerOnly).
- * 입력을 받은 클라의 스캐너 컴포넌트가 선택 액터를 실어 ServerInteract RPC 를 보내고, 서버가 그 페이로드로 Event.Interact 를 폰 ASC 에 송출해 이 어빌리티를 권위에서 활성화한다.
+ * 입력을 받은 클라의 스캐너 컴포넌트가 선택 액터를 실어 ServerInteract RPC 를 보내고, 서버가 그 페이로드로 Event.Interact 를 폰 ASC 에 송출해 이 어빌리티를 활성화한다.
  * ServerOnly 라 클라 인스턴스는 없다 — 상호작용 연출은 대상 StateTree 가 담당하므로 코스메틱 예측이 필요 없다.
  */
 UCLASS(Abstract)
@@ -39,8 +38,6 @@ private:
 	void ExecuteInteract(AActor* Selected, const FGameplayAbilityActorInfo* ActorInfo);
 
 	/**
-	 * 대상의 프리미티브 중 하나라도 ScanRadius 구에 겹치면 사거리 안이다.
-	 *
 	 * 프리미티브엔 쿼리 콜리전이 켜져 있어야 한다(스켈레탈이면 피직스 애셋도 필요) — 이것이 이 판정의 전제다.
 	 * 하나도 켜져 있지 않으면 이 함수가 항상 false 를 돌려주고 클라 스캐너의 구 오버랩에도 잡히지 않아 프롬프트조차 뜨지 않는다.
 	 *

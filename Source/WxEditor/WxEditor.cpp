@@ -53,7 +53,6 @@ void FWxEditorModule::StartupModule()
 		FDataTableRowHandle::StaticStruct()->GetFName(),
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FWxDataTableRowHandleCustomization::MakeInstance));
 
-	// 장치 컴포넌트 지정 필드 — Context 액터 클래스에서 뽑은 컴포넌트 이름 콤보.
 	PropertyModule.RegisterCustomPropertyTypeLayout(
 		FWxStateTreeComponentName::StaticStruct()->GetFName(),
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FWxStateTreeComponentNameCustomization::MakeInstance));
@@ -64,7 +63,7 @@ void FWxEditorModule::StartupModule()
 		UWxItemDefinition::StaticClass(),
 		UWxItemDefinitionThumbnailRenderer::StaticClass());
 
-	// 어빌리티 BP 썸네일을 UIData 아이콘으로 렌더링하기 위해, 엔진이 ini 로 등록한 기본 Blueprint 렌더러를 파생 렌더러로 교체한다.
+	// 어빌리티 BP 썸네일을 FWxAbilityTableRow 의 아이콘으로 렌더링하기 위해, 엔진이 ini 로 등록한 기본 Blueprint 렌더러를 파생 렌더러로 교체한다.
 	// RegisterCustomRenderer 는 동일 클래스 중복 등록을 거부하므로 기존 등록을 먼저 해제해야 한다.
 	UThumbnailManager::Get().UnregisterCustomRenderer(UBlueprint::StaticClass());
 	UThumbnailManager::Get().RegisterCustomRenderer(

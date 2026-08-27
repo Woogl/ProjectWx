@@ -14,12 +14,8 @@ class UMVVMView;
 /**
  * 화면 자막 한 줄을 노출하는 범용 뷰모델.
  *
- * 자막은 화면당 하나뿐이라 위젯별로 만들지 않고 MVVM 글로벌 컬렉션에 하나를 보관한다 — 표시하는 위젯과 문구를 거는 ST 노드가 같은 인스턴스를 찾아가야 하기 때문이다.
- * 컬렉션은 엔진의 UMVVMGameSubsystem 이 소유하므로 별도 보관처나 변경 통지 델리게이트가 필요 없다.
- *
- * 값은 외부 소스(퀘스트·장치의 ST 노드 등)가 push 하며, 본 VM 은 누가 왜 띄웠는지 알지 못한다(순수 표시 계약).
- * 슬롯이 하나라 나중 요청이 이긴다.
- * 회수 시 핸들 검사가 없으면 앞 자막이 뒤늦게 걷어가며 이미 올라온 뒤 자막을 지운다.
+ * 자막은 화면당 하나뿐이라 위젯별로 만들지 않고 MVVM 글로벌 컬렉션(UMVVMGameSubsystem 소유)에 하나만 둔다 — 표시하는 위젯과 문구를 거는 ST 노드가 같은 인스턴스를 찾아가야 하기 때문이다.
+ * 값은 외부 소스(퀘스트·장치의 ST 노드 등)가 push 하며, 슬롯이 하나라 나중 요청이 이긴다.
  */
 UCLASS()
 class WXUI_API UWxViewModel_Subtitle : public UWxViewModel
@@ -27,7 +23,6 @@ class WXUI_API UWxViewModel_Subtitle : public UWxViewModel
 	GENERATED_BODY()
 
 public:
-	/** 표시(리졸버)와 요청(ST 노드) 중 어느 쪽이 먼저 와도 같은 인스턴스가 잡힌다. */
 	static UWxViewModel_Subtitle* GetOrCreate(const UObject* WorldContextObject);
 
 	/** 자막을 이 화자·문구로 바꾸고, 나중에 회수할 때 쓸 핸들을 발급한다. */

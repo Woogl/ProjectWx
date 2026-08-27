@@ -30,8 +30,7 @@ void FWxStateTreeTask_WaitForInteraction::NotifyInteracted(AActor* Target)
 	}
 
 	// 대상 해석을 지금 한다 — 기다리는 동안 스트리밍으로 액터가 새로 만들어졌어도 이 순간의 것과 맞춰 본다.
-	// 해석 컨텍스트는 대기 노드의 오너가 아니라 통보 액터다. 그래야 WP 런타임 셀 안의 대상도 해석되고(오너인 GameState 는 PersistentLevel 이라 셀 해석 경로를 못 탄다),
-	// 항등 비교라 엉뚱한 액터가 걸릴 여지도 없다. 남의 월드에서 온 통보는 아래 FinishMatching 이 월드로 걸러낸다.
+	// 해석 컨텍스트는 대기 노드의 오너가 아니라 통보 액터다 — 오너인 GameState 는 PersistentLevel 이라 WP 런타임 셀 안의 대상을 해석하지 못한다.
 	InteractionWaits.FinishMatching(Target->GetWorld(),
 		[Target](const FUniversalObjectLocator& Wanted, UObject* Owner) { return Wanted.SyncFind(Target) == Target; });
 }

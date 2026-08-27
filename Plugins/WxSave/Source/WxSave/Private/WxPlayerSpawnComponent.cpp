@@ -83,7 +83,7 @@ void UWxPlayerSpawnComponent::HandleGameModePostLogin(AGameModeBase* GameMode, A
 
 	NewPlayer->StartSpot = Marker;
 
-	// PC 를 마커 자리로 옮겨둔다. PC 는 그 자체로 월드파티션 스트리밍 소스이고 빙의 전 ViewTarget 이 자기 자신이라, 폰이 스폰되기 전에 그 셀의 로딩이 시작된다.
+	// PC 는 그 자체로 월드파티션 스트리밍 소스이고 빙의 전 ViewTarget 이 자기 자신이라, 폰이 스폰되기 전에 그 셀의 로딩이 시작된다.
 	NewPlayer->SetInitialLocationAndRotation(SpawnLocation, SpawnRotation);
 }
 

@@ -21,7 +21,6 @@ bool UWxTargetingFilterTask_InputDirection::ShouldFilterTarget(const FTargetingR
 	}
 
 	// GetLastMovementInputVector는 AddMovementInput을 부른 머신에서만 채워져 서버에서는 원격 폰이 항상 0이 된다.
-	// CMC의 Acceleration은 서버가 ServerMove로 받은 클라이언트 값을 그대로 넣으므로, 같은 프리셋을 도는 모든 머신이 같은 판정을 낸다.
 	const UCharacterMovementComponent* MovementComponent = Cast<UCharacterMovementComponent>(SourcePawn->GetMovementComponent());
 	if (!MovementComponent)
 	{

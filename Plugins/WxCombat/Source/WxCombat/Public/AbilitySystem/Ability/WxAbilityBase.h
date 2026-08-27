@@ -51,8 +51,6 @@ enum class EWxAbilityActivationGroup : uint8
 	Reaction, // Override 같은 이름으로 바꿀까???
 };
 
-/**
- */
 UCLASS(Abstract, BlueprintType, Blueprintable)
 class WXCOMBAT_API UWxAbilityBase : public UGameplayAbility
 {
@@ -63,7 +61,6 @@ public:
 
 	/**
 	 * 기본적으로 쿨다운·코스트 수치는 AbilityDataRow에서 읽어서 공용 GE를 쓴다.
-	 * 나중에 필요하다면 커스텀 쿨다운·코스트 GE를 만들 수 있음.
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxAbilityTableRow"))
 	FDataTableRowHandle AbilityDataRow;
@@ -93,7 +90,6 @@ public:
 	 */
 	virtual float GetMontagePlayRate() const;
 
-	/** 콤보 창 구간. 자기 재발동만 열어주므로 다른 어빌리티는 여전히 막힌다. */
 	void OpenComboWindow();
 	void CloseComboWindow();
 
@@ -119,7 +115,7 @@ public:
 	virtual float GetCooldownTimeRemaining(const FGameplayAbilityActorInfo* ActorInfo) const override;
 	virtual void GetCooldownTimeRemainingAndDuration(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, float& TimeRemaining, float& CooldownDuration) const override;
 
-	// 발동 횟수 스택을 여러개 충전해두었다가 연속 발동할 수 있는 어빌리티도 있다. (Recharages)
+	// 발동 횟수 스택을 여러개 충전해두었다가 연속 발동할 수 있는 어빌리티도 있다. (MaxRecharges)
 	int32 QueryActiveCooldowns(const UAbilitySystemComponent& ASC, float& OutLongestRemaining, float& OutLongestDuration) const;
 
 protected:

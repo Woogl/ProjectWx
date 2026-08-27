@@ -77,7 +77,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	FText DisplayName;
 
-	/** 색상/이펙트 분기 키. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	EWxItemGrade Grade = EWxItemGrade::Common;
 

@@ -76,7 +76,6 @@ void AWxEnemyCharacter::HandleDeath()
 
 	if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0))
 	{
-		// 처치 보상 지급
 		UWxRewardLibrary::GrantReward(this, RewardRow, PlayerController, GetActorTransform(), FVector::UpVector * LaunchSpeed);
 	}
 }
@@ -89,7 +88,6 @@ void AWxEnemyCharacter::OnInteracted(AActor* Interactor)
 		return;
 	}
 
-	// 그로기 앞잡(Finisher) 인지, 뒤잡(Backstab)인지 판별
 	const FGameplayTag EventTag = AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy)
 		? WxGameplayTags::Event_Finisher
 		: WxGameplayTags::Event_Backstab;

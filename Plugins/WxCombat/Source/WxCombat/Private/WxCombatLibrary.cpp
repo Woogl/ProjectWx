@@ -46,7 +46,6 @@ bool UWxCombatLibrary::ApplyDamage(UAbilitySystemComponent* Source, UAbilitySyst
 	// 적중 성립 여부는 대미지가 들어가기 전 상태로 가른다 — 이 히트로 죽은 대상은 아직 살아 있던 것으로 쳐야 마무리 일격에도 역경직이 걸린다.
 	const EWxDamageResult DamageCheck = UWxExecCalc_Damage::CheckDamage(Source, Target);
 
-	// 무적 회피는 어트리뷰트를 하나도 바꾸지 않아 적용 뒤에는 알아낼 방법이 없다. 같은 선판정을 쓰는 여기서 알린다.
 	if (DamageCheck == EWxDamageResult::Evaded)
 	{
 		AActor* TargetActor = Target->GetOwnerActor();
@@ -57,7 +56,7 @@ bool UWxCombatLibrary::ApplyDamage(UAbilitySystemComponent* Source, UAbilitySyst
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_DodgeSuccess, EventData);
 	}
 
-	// 성립하지 않는 히트는 GE를 하나도 걸지 않는다. 대미지 GE는 값을 하나도 내지 못하면서 자기에게 얹힌 히트 큐만 발행하고, 상태이상 역시 흘려낸 히트에서는 걸리지 않아야 한다.
+	// 대미지 GE를 걸면 값을 하나도 내지 못하면서 자기에게 얹힌 히트 큐만 발행하고, 상태이상 역시 흘려낸 히트에서는 걸리지 않아야 한다.
 	if (DamageCheck != EWxDamageResult::Damaged)
 	{
 		return false;

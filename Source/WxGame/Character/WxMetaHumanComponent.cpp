@@ -71,14 +71,13 @@ void UWxMetaHumanComponent::OnRegister()
 	{
 		OutfitComponent = CreateAttachedMesh(OutfitMesh, TEXT("Outfit"), LeaderMesh);
 
-		// 어셈블 BP의 EnableMasterPose 판정과 동일: 스스로 포즈를 만들 수단(PP-ABP·AnimClass)이 없는 메시만 리더를 따라간다.
+		// 어셈블 BP의 EnableMasterPose 판정과 동일하다.
 		if (!OutfitMesh->GetPostProcessAnimBlueprint() && !OutfitComponent->GetAnimClass())
 		{
 			OutfitComponent->SetLeaderPoseComponent(LeaderMesh);
 		}
 	}
 
-	// 바디가 없으면 오너 메시가 곧 메타휴먼 바디다.
 	// 이 이름으로 페이스 리그로직·넥 보정이 구동된다. 바디 보정은 팔로워가 자기 그래프를 돌리지 않아 평가되지 않는다.
 	BodyComponentName = BodyComponent ? BodyComponent->GetName() : LeaderMesh->GetName();
 	FaceComponentName = FaceComponent ? FaceComponent->GetName() : FString();
@@ -88,7 +87,6 @@ void UWxMetaHumanComponent::OnRegister()
 		return;
 	}
 
-	// 어셈블 BP는 이름과 매핑을 하드코딩하지만, 여기선 실제 생성된 이름과 각 메시의 LOD 수로 구성한다.
 	// 오너 메시는 구동·리더 포즈 전용이라 동기 대상이 아니고, 여기서 만든 표시용 메시끼리만 묶는다.
 	const int32 BodyLODCount = BodyMesh ? BodyMesh->GetLODNum() : 0;
 	const int32 FaceLODCount = FaceMesh ? FaceMesh->GetLODNum() : 0;

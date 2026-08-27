@@ -6,8 +6,8 @@
 #include "ThumbnailRendering/ThumbnailRenderer.h"
 #include "WxItemDefinitionThumbnailRenderer.generated.h"
 
-// UWxItemDefinition 의 에디터 썸네일을 해당 아이템의 아이콘 텍스처로 렌더링한다.
-// 아이콘이 지정되지 않은 경우 CanVisualizeAsset 이 false 를 반환하여 기본 썸네일로 폴백한다.
+// UWxItemDefinition 의 에디터 썸네일을 해당 아이템의 아이콘(텍스처 또는 머터리얼)으로 렌더링한다.
+// 아이콘이 지정되지 않으면 엔진 기본 썸네일로 폴백한다.
 UCLASS()
 class UWxItemDefinitionThumbnailRenderer : public UThumbnailRenderer
 {

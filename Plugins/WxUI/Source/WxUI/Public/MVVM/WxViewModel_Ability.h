@@ -20,7 +20,7 @@ struct FGameplayEffectSpec;
 /**
  * 어빌리티 쿨다운/발동 가능 여부 뷰모델.
  * 쿨다운/충전 상태는 어빌리티의 GetCooldownGameplayEffect() 기준이며, MaxRecharges 는 그 GE 의 StackLimitCount 에서 읽는다.
- * 쿨다운 GE 가 적용되면 티커로 매 프레임 남은 시간·충전 수를 갱신하고, 만료되면 티커를 멈추고 프로퍼티를 초기화한다.
+ * 쿨다운 중에는 티커로 매 프레임 남은 시간·충전 수를 갱신한다.
  *
  * 동일 GE 클래스를 여러 어빌리티가 공유하는 경우, 소스 어빌리티 CDO로 구분한다.
  *

@@ -14,8 +14,8 @@ class APlayerController;
  * 저장된 플레이어 상태(재개 지점·스탯)를 새 세션에 세우는 컨트롤러 컴포넌트.
  *
  * GameMode 와 PlayerController 를 건드리지 않고 엔진 기본 스폰 경로에 올라탄다: PostLogin 에서 저장 좌표에 APlayerStart 를 스폰해 AController::StartSpot 에 꽂아둔다.
- * 이후 RestartPlayer -> FindPlayerStart 가 ShouldSpawnAtStartSpot 을 통해 ChoosePlayerStart 대신 그 액터를 고르고, 폰 스폰 위치와 컨트롤 로테이션까지 엔진이 처리한다.
- * 로드도 사망 부활도 맵 리로드를 거쳐 이 경로를 다시 타므로 재개 지점 하나로 둘 다 처리된다 — 세이브가 단일 원천이고 마커는 월드 수명의 파생물이다.
+ * 이후 엔진이 ChoosePlayerStart 대신 그 마커를 골라 폰 스폰 위치와 컨트롤 로테이션까지 처리한다.
+ * 로드도 사망 부활도 맵 리로드를 거쳐 이 경로를 다시 타므로 재개 지점 하나로 둘 다 처리된다.
  * 월드파티션을 위해 PC 도 마커 자리로 함께 옮긴다 — 스트리밍 소스인 PC 가 폰보다 먼저 그 셀을 끌어온다.
  *
  * Experience 의 컴포넌트 주입 액션에 등록해야 부착된다 — 등록하지 않으면 재개 지점과 스탯 복원이 조용히 동작하지 않는다.

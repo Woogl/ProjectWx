@@ -9,7 +9,6 @@ void UWxConfirmationPopup::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	// 버튼→결과는 고정이므로 최초 초기화 시 1회만 바인딩한다.
 	if (Button_Confirm)
 	{
 		Button_Confirm->OnClicked().AddUObject(this, &ThisClass::HandleResultChosen, EWxPopupResult::Confirmed);

@@ -71,6 +71,5 @@ private:
 
 	float ElapsedTime = 0.f;
 
-	/** ExecuteTask 에서 부여한 감속 GE. OnTaskFinished 에서 이 핸들로 제거한다. */
 	FActiveGameplayEffectHandle MoveSpeedEffectHandle;
 };

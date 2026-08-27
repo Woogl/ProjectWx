@@ -25,7 +25,6 @@
 
 void UWxSaveWorldSubsystem::RequestSaveFlush(FOnSaveFlushComplete::FDelegate OnComplete, const FTransform* ResumeTransform)
 {
-	// Wx 엔 Mass 같은 페이즈 지연 작업이 없어 플러시가 전부 동기다(샘플은 여기서 Mass 스냅샷을 FrameEnd 로 지연).
 	UWorld* World = GetWorld();
 
 	if (World && !World->bIsTearingDown)
@@ -206,7 +205,6 @@ void UWxSaveWorldSubsystem::CapturePlayerStats(AActor* PlayerActor, TMap<FName, 
 		return;
 	}
 
-	// 구체 타입(WxCombatAttributeSet)을 참조하지 않고 리플렉션으로 순회해 WxSave 가 전투 도메인에 독립적이다.
 	for (const UAttributeSet* Set : ASC->GetSpawnedAttributes())
 	{
 		if (!Set)

@@ -310,7 +310,7 @@ void UWxViewModel_Ability::HandleTagChanged(const FGameplayTag Tag, int32 NewCou
 
 void UWxViewModel_Ability::HandleCostAttributeChanged(const FOnAttributeChangeData& Data)
 {
-	// 자원 값 자체는 UWxViewModel_Attribute 가 같은 어트리뷰트를 구독해 갱신한다. 여기서는 발동 가능 여부만 다시 본다.
+	// 자원 값 자체는 UWxViewModel_Attribute 가 같은 어트리뷰트를 구독해 갱신한다.
 	RefreshActivationState();
 }
 

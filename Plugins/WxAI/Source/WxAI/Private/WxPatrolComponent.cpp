@@ -22,7 +22,6 @@ UWxPatrolComponent::UWxPatrolComponent()
 
 UWxPatrolComponent* UWxPatrolComponent::FindPatrolComponent(const AController* Controller)
 {
-	// 정찰 경로는 항상 스폰 주체(AWxSpawner)에 붙고, 그 스폰 주체는 AWxEnemyController 가 자기 Owner 로 물고 있다.
 	const AActor* Spawner = Controller ? Controller->GetOwner() : nullptr;
 
 	return Spawner ? Spawner->FindComponentByClass<UWxPatrolComponent>() : nullptr;

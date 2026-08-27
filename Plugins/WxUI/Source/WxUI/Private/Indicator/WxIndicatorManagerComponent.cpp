@@ -145,7 +145,6 @@ UWxIndicatorDescriptor* UWxIndicatorManagerComponent::AddIndicator(USceneCompone
 	UpdateTickEnabled();
 
 	// 첫 틱을 기다리면 한 프레임 동안 좌표 없이 뜬다.
-	// 등록 즉시 한 번 계산해 곧바로 제자리에 뜨게 한다.
 	UpdateProjections();
 	OnIndicatorsUpdated.Broadcast();
 

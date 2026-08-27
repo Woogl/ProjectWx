@@ -132,7 +132,6 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		CombatContext->SetCritical(DamageResult.bIsCritical);
 	}
 
-	// 출력 순서가 곧 계약이라 IncomingDamage가 맨 뒤다.
 	// SP: 가드가 이 히트로 깨졌는지 판정하고, DP: 그로기 진입이 HitReact 어빌리티에 보인다.
 	if (bGuardHit)
 	{
@@ -155,7 +154,7 @@ EWxDamageResult UWxExecCalc_Damage::CheckDamage(const UAbilitySystemComponent* S
 	}
 
 	// 대미지 GE 자체가 사망 타겟을 IgnoreTags로 거르므로 대미지 경로는 여기 닿지 않는다.
-	// ExecCalc 밖에서 부르는 화상·히트스톱이 시체를 걸러내는 지점이다.
+	// ExecCalc 밖에서 부르는 히트스톱이 시체를 걸러내는 지점이다.
 	if (Target->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
 	{
 		return EWxDamageResult::None;

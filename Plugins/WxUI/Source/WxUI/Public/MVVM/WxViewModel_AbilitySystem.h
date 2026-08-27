@@ -57,10 +57,7 @@ public:
 	FGameplayTagContainer OwnedTags;
 
 protected:
-	/**
-	 * 초기화 시점에 이미 활성인 GE 로 목록을 구축한다.
-	 * 이후 추가/제거는 HandleActiveEffectAdded/Removed 가 증분 처리한다.
-	 */
+	/** 초기화 시점에 이미 활성인 GE 로 목록을 구축한다. */
 	void BuildActiveEffectViewModels();
 
 	void RefreshOwnedTags();

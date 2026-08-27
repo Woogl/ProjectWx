@@ -15,7 +15,7 @@ void UWxViewModel_InteractionList::StartObserving(APlayerController* PC)
 
 	ObservedController = PC;
 
-	// 이미 붙어 있으면(호스트에선 위젯보다 항상 먼저다) 기다릴 것 없이 바로 연결한다.
+	// 호스트에선 스캐너가 위젯보다 항상 먼저 붙는다.
 	if (UWxInteractionScannerComponent* Scanner = PC->FindComponentByClass<UWxInteractionScannerComponent>())
 	{
 		Initialize(Scanner);

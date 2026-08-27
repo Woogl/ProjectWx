@@ -90,7 +90,7 @@ class WXINVENTORY_API UWxItemFragment_Charges : public UWxItemFragment
 	GENERATED_BODY()
 
 public:
-	/** 인스턴스 생성 시 이 값으로 가득 채워지며, 리필의 상한이다. */
+	/** 인스턴스 생성 시 이 값으로 가득 채워진다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Charges", meta = (ClampMin = "1"))
 	int32 MaxCharges = 3;
 
@@ -166,7 +166,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Grade")
 	EWxItemGrade Grade = EWxItemGrade::Common;
 
-	/** Grade 의 기본 팔레트로 시드되며 아이템별로 오버라이드 가능. */
 	UPROPERTY(EditDefaultsOnly, Category = "Grade")
 	FLinearColor Color = FLinearColor::White;
 

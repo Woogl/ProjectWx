@@ -20,7 +20,6 @@ namespace
 			return FWxPopupResultDelegate();
 		}
 
-		// 바인딩 대상 UObject 수명에 묶어, 대상이 사라지면 호출되지 않도록 한다.
 		return FWxPopupResultDelegate::CreateWeakLambda(OnResult.GetUObject(), [OnResult](EWxPopupResult Result)
 		{
 			OnResult.ExecuteIfBound(Result);

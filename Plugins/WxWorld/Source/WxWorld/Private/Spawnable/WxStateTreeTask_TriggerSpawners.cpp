@@ -46,7 +46,6 @@ EStateTreeRunStatus FWxStateTreeTask_TriggerSpawners::EnterState(FStateTreeExecu
 		}
 	}
 
-	// 지정 누락이거나 전부 미해석이면 조립·배치 실수일 수 있다.
 	if (TriggeredCount == 0)
 	{
 		UE_LOG(LogWxWorld, Warning, TEXT("Trigger Spawners: 해석된 스포너가 없음(지정 %d개)."), Instance.Spawners.Num());

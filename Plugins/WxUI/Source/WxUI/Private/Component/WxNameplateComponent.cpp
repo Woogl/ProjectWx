@@ -12,7 +12,7 @@
 
 UWxNameplateComponent::UWxNameplateComponent()
 {
-	// 틱은 늘 켜 둔다. 스크린 스페이스 위젯의 화면 부착·해제를 엔진이 이 틱에서만 처리하므로, 틱을 끄면 숨김이 화면에 반영되지 않는다.
+	// 스크린 스페이스 위젯의 화면 부착·해제를 엔진이 이 틱에서만 처리하므로, 틱을 끄면 숨김이 화면에 반영되지 않는다.
 	PrimaryComponentTick.bCanEverTick = true;
 	SetWidgetSpace(EWidgetSpace::Screen);
 	SetDrawAtDesiredSize(true);

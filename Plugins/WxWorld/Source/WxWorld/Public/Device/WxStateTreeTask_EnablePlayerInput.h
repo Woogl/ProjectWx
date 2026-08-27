@@ -40,7 +40,6 @@ struct FWxStateTreeTask_EnablePlayerInputInstanceData
  * 로컬 플레이어 컨트롤러/폰이 없으면(예: 데디 서버) 노옵.
  *
  * 한계: 대상이 "이 머신의 첫 로컬 플레이어"라 상호작용 당사자를 가리지 않는다. 장치 ST 는 모든 피어에서 각자 도므로, 멀티플레이에서는 연출을 유발하지 않은 플레이어의 조작까지 막힌다(스플릿스크린 2P 이상은 반대로 토글에서 빠진다).
- * 당사자로 좁히려면 오너 장치가 복제로 전 피어에 채워 두는 AWxDevice::GetInteractingCharacter 를 읽으면 된다.
  */
 USTRUCT(meta = (DisplayName = "플레이어 입력 켜기", Category = "Wx"))
 struct FWxStateTreeTask_EnablePlayerInput : public FStateTreeTaskCommonBase

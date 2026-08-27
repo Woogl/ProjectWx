@@ -107,7 +107,6 @@ private:
 };
 
 /**
- * 위젯별로 관찰형 인벤토리 뷰모델(UWxViewModel_Inventory)을 생성해 돌려준다.
  * 인벤토리 탐색/연결은 뷰모델이 스스로 수행하므로, 인벤토리가 아직 없어도 VM 은 만들어지고 도착 시점에 채워진다.
  */
 UCLASS(EditInlineNew, CollapseCategories)

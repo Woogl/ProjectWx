@@ -20,6 +20,6 @@ class WXCOMBAT_API UWxEffect_Guard : public UGameplayEffect
 public:
 	UWxEffect_Guard();
 
-	/** 가드 중 받는 대미지 배율. 0.5면 50% 감소. 저작 대상이 아니라 코드 고정값이다. */
+	/** 가드 중 받는 대미지 배율 */
 	static constexpr float DamageMultiplier = 0.5f;
 };

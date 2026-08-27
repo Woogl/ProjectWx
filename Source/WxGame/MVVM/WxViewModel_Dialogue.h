@@ -12,9 +12,6 @@ class UWxDialogueSessionComponent;
 class UUserWidget;
 class UMVVMView;
 
-/**
- * 대화 창 뷰모델. 현재 대사(화자·본문)를 노출한다.
- */
 UCLASS()
 class WXGAME_API UWxViewModel_Dialogue : public UWxViewModel
 {
@@ -45,8 +42,6 @@ private:
 	TWeakObjectPtr<UWxDialogueSessionComponent> CachedSession;
 };
 
-/**
- */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXGAME_API UWxViewModelResolver_Dialogue : public UMVVMViewModelContextResolver
 {

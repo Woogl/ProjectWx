@@ -30,7 +30,6 @@ struct FWxStateTreeTask_ComponentMoveInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
 	float Duration = 1.f;
 
-	/** (런타임) 지목이 가리키는 컴포넌트. */
 	UPROPERTY()
 	TObjectPtr<USceneComponent> Component;
 

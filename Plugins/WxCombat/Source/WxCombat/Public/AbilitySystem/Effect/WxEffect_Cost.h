@@ -9,7 +9,6 @@
 #include "WxEffect_Cost.generated.h"
 
 /**
- * Instant 정책이며, MP·UP·SP 세 모디파이어를 정적으로 선언한다.
  * 값은 각 MMC가 계산 시점에 소스 어빌리티(UWxAbilityBase)의 AbilityDataRow를 조회해 만든다.
  * CDO가 완전 자기완결이라 엔진 순정 CheckCost(CanApplyAttributeModifiers)/ApplyCost/GetCostGameplayEffect를 그대로 사용한다.
  *

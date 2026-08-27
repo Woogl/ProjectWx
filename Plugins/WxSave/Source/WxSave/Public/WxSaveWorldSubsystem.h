@@ -15,13 +15,6 @@ class UWxSaveGameSubsystem;
 /**
  * 월드 단위 플러시/복원 오케스트레이션을 담당하는 World 서브시스템 (샘플 UPersistenceWorldSubsystem 골격 이식).
  * 메모리 SaveGame 의 소유는 UWxSaveGameSubsystem 이고, 이 서브시스템은 월드 수명 이벤트에 맞춰 그 SaveGame 을 읽고 쓴다.
- *
- * 자동 처리:
- *  - 영구 레벨 초기화 (OnWorldInitializedActors) / 스트리밍-인 (LevelAddedToWorld): IWxSavable 액터에 레코드 자동 복원.
- *  - 스트리밍-아웃 (LevelRemovedFromWorld): 셀의 IWxSavable 상태를 메모리에 자동 캡처해 셀 왕복으로 인한 손실 방지.
- *  - 맵 이탈 (OnWorldBeginTearDown): 현재 월드 IWxSavable 전체를 메모리에 플러시해 같은 세션 맵 왕복 상태 유지(디스크 기록 없음).
- *  - IsTravelingFromSaveFile 동안 위 자동 캡처를 전부 스킵해, 막 로드한 세이브가 라이브 상태로 오염되는 것을 방지.
- *  - OnWorldBeginPlay 에서 트래블 완료를 게임 서브시스템에 보고해 가드를 해제한다.
  */
 UCLASS()
 class WXSAVE_API UWxSaveWorldSubsystem : public UWorldSubsystem
@@ -36,7 +29,6 @@ public:
 	 * 디스크 기록 전, 라이브 상태를 SaveGame 에 플러시한다: 맵 트래블 데이터 + 플레이어 스냅샷(트랜스폼·스탯) + IWxSavable 액터 전체.
 	 * 앞의 셋은 teardown 중엔 스킵한다 — 맵 전환을 일으킨 게임 코드가 다음 시작 지점의 소유자이고, 그 시점 폰은 이미 사라졌거나 사망 상태일 수 있다.
 	 * ResumeTransform 이 주어지면 재개 지점을 그 값으로 확정한다(체크포인트 오토세이브 — 상호작용 위치와 무관하게 체크포인트 자리로 고정). null 이면 폰 위치를 캡처한다.
-	 * OnComplete 는 플러시 완료 후 발화한다(현재 동기라 반환 전 즉시).
 	 */
 	void RequestSaveFlush(FOnSaveFlushComplete::FDelegate OnComplete, const FTransform* ResumeTransform = nullptr);
 

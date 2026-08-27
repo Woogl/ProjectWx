@@ -60,7 +60,6 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::Tick(FStateTreeExecution
 
 EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::ApplyTargetInteraction(const FStateTreeExecutionContext& Context, const FInstanceDataType& Instance) const
 {
-	// 지목을 비운 것은 옵션 파라미터를 쓰지 않는 재사용 스텝이라 여닫을 대상이 없다.
 	if (Instance.Target.IsEmpty())
 	{
 		return EStateTreeRunStatus::Succeeded;

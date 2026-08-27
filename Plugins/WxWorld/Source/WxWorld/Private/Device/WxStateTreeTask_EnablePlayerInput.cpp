@@ -25,7 +25,7 @@ EStateTreeRunStatus FWxStateTreeTask_EnablePlayerInput::EnterState(FStateTreeExe
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 차단 기록을 비운 상태로 시작한다. 아래 어느 조기 완료 경로로 빠지든 ExitState 가 끄지도 않은 입력을 되돌리는 일이 없어야 한다.
+	// 아래 어느 조기 완료 경로로 빠지든 ExitState 가 끄지도 않은 입력을 되돌리는 일이 없어야 한다.
 	Instance.DisabledPawn = nullptr;
 	Instance.DisabledController = nullptr;
 

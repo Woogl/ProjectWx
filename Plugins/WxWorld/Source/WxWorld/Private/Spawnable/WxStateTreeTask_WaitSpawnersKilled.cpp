@@ -38,7 +38,7 @@ EStateTreeRunStatus FWxStateTreeTask_WaitSpawnersKilled::EnterState(FStateTreeEx
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 지정이 없거나 빈 로케이터가 섞이면 완료될 수 없는 잘못된 조립이다. 침묵 대기 대신 경고를 남긴다.
+	// 지정이 없거나 빈 로케이터가 섞이면 완료될 수 없는 잘못된 조립이다.
 	if (Instance.Spawners.IsEmpty())
 	{
 		UE_LOG(LogWxWorld, Warning, TEXT("Wait Spawners Killed: 판정할 스포너가 지정되지 않음."));

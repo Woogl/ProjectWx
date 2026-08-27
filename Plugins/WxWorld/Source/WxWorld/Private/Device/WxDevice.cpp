@@ -92,7 +92,7 @@ void AWxDevice::OnInteracted(AActor* Interactor)
 
 FText AWxDevice::GetInteractionPrompt() const
 {
-	// ST 가 이 상태에 세팅한 프롬프트가 전부다. 태스크에서 문구를 지정하지 않았으면 표시할 것이 없으므로 공백을 답한다.
+	// ST 가 이 상태에 세팅한 프롬프트가 전부다.
 	return InteractionBinding.Prompt;
 }
 
@@ -150,7 +150,6 @@ void AWxDevice::BeginPlay()
 {
 	Super::BeginPlay();
 
-	/** ChildActor나 Attach되어 포함된 Device가 Owner 장치를 찾는다. */
 	if (AActor* AttachParentActor = GetAttachParentActor())
 	{
 		if (AWxDevice* ParentDevice = Cast<AWxDevice>(AttachParentActor))

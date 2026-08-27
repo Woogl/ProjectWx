@@ -35,15 +35,12 @@ struct FWxStateTreeTask_SplineMoveInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
 	float Duration = 1.f;
 
-	/** (런타임) 지목이 가리키는 컴포넌트. */
 	UPROPERTY()
 	TObjectPtr<USceneComponent> Component;
 
-	/** (런타임) 지목이 가리키는 스플라인. */
 	UPROPERTY()
 	TObjectPtr<USplineComponent> SplineComponent;
 
-	/** (런타임) Tick 이 보간하는 현재 스플라인 거리. */
 	UPROPERTY()
 	float CurrentDistance = 0.f;
 

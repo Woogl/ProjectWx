@@ -181,15 +181,12 @@ void AWxSpawner::SpawnTarget()
 
 	Spawned->FinishSpawning(SpawnTransform);
 
-	// 스포너에 attach 하지 않는다.
-	// 스폰 대상은 CMC 로 돌아다니는 캐릭터라, 루트가 붙어 있으면 이동 복제가 ReplicatedMovement 대신 AttachmentReplication(부모 상대 오프셋) 경로를 타 원격 스무딩에서 벗어나고 스포너를 옮기면 딸려 온다.
+	// 스포너에 attach 하지 않는다 — 스폰 대상은 CMC 로 돌아다니는 캐릭터라, 루트가 붙어 있으면 이동 복제가 ReplicatedMovement 대신 AttachmentReplication(부모 상대 오프셋) 경로를 타 원격 스무딩에서 벗어나고 스포너를 옮기면 딸려 온다.
 	// 수명은 이 약참조와 Respawn/EndPlay/OnSaveRestored 의 명시 Destroy 가 관리하므로 부착이 필요 없다.
 	SpawnedActor = Spawned;
 }
 
 #if WITH_EDITOR
-// 에디터의 액터 복제(Ctrl+W·Alt-드래그)와 붙여넣기는 StaticDuplicateObject 가 아니라 T3D 텍스트 경로라, SpawnActor(새 ActorGuid) 뒤에 오는 ImportObjectProperties 가 원본의 SaveId 를 덮어쓰고 PostDuplicate 는 아예 불리지 않는다.
-// 그래서 생성 훅이 아니라 직렬화 직전에 이 액터의 ActorGuid 로 재확정한다 — 생성 경로가 무엇이든 상관없어진다.
 void AWxSpawner::PreSave(FObjectPreSaveContext ObjectSaveContext)
 {
 	Super::PreSave(ObjectSaveContext);

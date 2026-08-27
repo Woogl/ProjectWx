@@ -115,7 +115,6 @@ bool AWxCharacterBase::CanJumpInternal_Implementation() const
 		return false;
 	}
 
-	// 액션 어빌리티 발동 중인지 판별해 점프를 막는다.
 	if (!AbilitySystemComponent->FindActivationGroupBlockers().IsEmpty())
 	{
 		return false;

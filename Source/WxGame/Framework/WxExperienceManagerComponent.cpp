@@ -23,7 +23,7 @@ static void WxHandleDeactivationPauserCompleted(FStringView PauserTag)
 {
 }
 
-/** 지급 목록과 같은 규칙으로 액션셋에서 찾는다. Experience 가 없거나 지정이 없으면 빈 값을 발행해 이전 세계의 지정을 지운다. */
+/** Experience 가 없거나 지정이 없으면 빈 값을 발행해 이전 세계의 지정을 지운다. */
 static void WxPublishGameHUDClass(const UObject* WorldContextObject, const UWxExperienceDefinition* Experience)
 {
 	const UWorld* World = WorldContextObject ? WorldContextObject->GetWorld() : nullptr;
@@ -58,7 +58,6 @@ UWxExperienceManagerComponent::UWxExperienceManagerComponent(const FObjectInitia
 
 void UWxExperienceManagerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	// PIE 다중 세션에선 마지막 요청자일 때만 실제로 내린다.
 	for (const FString& PluginURL : GameFeaturePluginURLs)
 	{
 		if (UWxExperienceManager::RequestToDeactivatePlugin(PluginURL))

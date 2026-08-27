@@ -13,7 +13,6 @@ class UAbilitySystemComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionListChanged, const TArray<FText>&, Prompts);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionSelectionChanged, int32, SelectedIndex);
 
-/** 소유 액터는 인자로 준 컴포넌트에서 얻는다. */
 DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnScannerReady, UWxInteractionScannerComponent* /*Scanner*/);
 
 /**
@@ -92,10 +91,7 @@ private:
 	 */
 	void HandleScanTimer();
 
-	/**
-	 * 후보 집합으로 in-range 멤버십을 갱신한다. 기존 순서 보존·신규만 뒤에 추가·이탈은 제거.
-	 * 멤버십이 실제로 바뀐 경우에만 강조·선택을 갱신·발화하고, 목록(프롬프트)은 문구 스냅샷이 달라졌을 때 발화한다.
-	 */
+	/** 후보 집합으로 in-range 멤버십을 갱신한다. 기존 순서 보존·신규만 뒤에 추가·이탈은 제거. */
 	void UpdateInRange(const TArray<AActor*>& InCandidates);
 
 	void UpdateSelection(int32 NewIndex);

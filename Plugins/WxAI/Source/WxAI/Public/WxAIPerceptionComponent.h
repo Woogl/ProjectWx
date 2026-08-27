@@ -45,7 +45,6 @@ public:
 
 	virtual void PostInitProperties() override;
 
-	/** 빙의 변경을 구독하고, 배치된 폰처럼 BeginPlay 전에 이미 빙의된 폰은 그 자리에서 바인드한다. */
 	virtual void BeginPlay() override;
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -53,8 +52,7 @@ public:
 	/**
 	 * 타겟팅 억제(disengage)를 켜고 끈다. 리시 복귀 Task(UWxBTTask_ReturnHome)가 복귀 진입/종료에 호출한다.
 	 *  - true: 현재 TargetActor 를 비우고 인식을 끄며 회전 모드를 원복하고, 이후 감지 자극을 무시해 복귀 중 재-어그로를 막는다.
-	 *  - false: 억제를 풀고, 그 시점에 보이는(Sight) 대상 중 가장 가까운 쪽을 재획득한다. Sight 는 감지 여부가 바뀔 때만 갱신을 방송하므로, 억제 중 계속 보이던 대상은 자극을 기다려선 영영 다시 잡히지 않는다.
-	 *    청각·촉각은 판정에서 뺀다 — 해제 이벤트가 없어 한 번 싸운 상대가 시야 밖에서도 계속 잡히면 복귀가 곧바로 재추격으로 되돌아간다.
+	 *  - false: 억제를 풀고, 그 시점에 보이는(Sight) 대상 중 가장 가까운 쪽을 재획득한다.
 	 */
 	void SetTargetingSuppressed(bool bSuppressed);
 
@@ -73,7 +71,6 @@ private:
 	void BindTargetLoss(AActor* NewTarget);
 	void UnbindTargetLoss();
 
-	/** 빙의가 바뀌면 피격 구독을 새 폰의 ASC 로 옮긴다. */
 	UFUNCTION()
 	void HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn);
 
@@ -88,8 +85,8 @@ private:
 	void UnbindPawnHit();
 
 	/**
-	 * 인식/추적 상태를 판정하는 단일 지점.
-	 * 인식을 바꿀 수 있는 모든 경로(감지 갱신, 억제 진입, 타겟 소실)가 여기로만 들어온다. 리시 이탈 판정은 BT 로 이관되어 여기서 다루지 않는다.
+	 * 인식을 바꿀 수 있는 모든 경로(감지 갱신, 억제 진입, 타겟 소실)가 여기로만 들어온다.
+	 * 리시 이탈 판정은 BT 로 이관되어 여기서 다루지 않는다.
 	 */
 	void UpdateRecognition();
 
@@ -99,7 +96,7 @@ private:
 	/**
 	 * TargetActor 를 설정/해제하는 단일 지점. BB 키 쓰기와 함께 회전 모드(전투 시 strafe)를 발행하고, 타겟 소실 감시를 새 타겟으로 옮긴다.
 	 * 값이 바뀔 때만 동작한다.
-	 * 자기 폰은 타겟이 될 수 없다 — 엔진 청각이 소리를 낸 본인의 리스너를 제외하지 않아 자기 발소리가 자극으로 되돌아온다.
+	 * 자기 폰은 타겟이 될 수 없다.
 	 */
 	void SetTargetActor(AActor* NewTarget);
 

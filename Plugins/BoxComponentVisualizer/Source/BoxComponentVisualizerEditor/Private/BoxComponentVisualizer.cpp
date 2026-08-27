@@ -40,7 +40,7 @@ void FBoxComponentVisualizer::DrawVisualization(const UActorComponent* Component
 				const FVector CornerSign(SignX, SignY, SignZ);
 				const FVector Corner = Transform.TransformPosition(CornerSign * Extent);
 
-				// 모서리마다 프록시를 갈아 끼운다. 사이를 비우지 않으면 뒤에 그리는 것까지 직전 프록시에 묶여 클릭이 엉킨다.
+				// 사이를 비우지 않으면 뒤에 그리는 것까지 직전 프록시에 묶여 클릭이 엉킨다.
 				PDI->SetHitProxy(new HBoxComponentVisProxy(BoxComponent, CornerSign));
 				PDI->DrawPoint(Corner, HandleColor, HandleSize, SDPG_Foreground);
 				PDI->SetHitProxy(nullptr);
@@ -131,7 +131,6 @@ bool FBoxComponentVisualizer::HandleInputDelta(FEditorViewportClient* ViewportCl
 
 		for (int32 Axis = 0; Axis < 3; ++Axis)
 		{
-			// 잡은 모서리를 바깥으로 민 양의 절반만 익스텐트에 얹는다. 나머지 절반은 위치가 받아 반대쪽 면이 제자리에 남는다.
 			NewExtent[Axis] = FMath::Max(OldExtent[Axis] + LocalDelta[Axis] * SelectedCornerSign[Axis] * 0.5, 0.0);
 
 			// 이동량은 델타가 아니라 익스텐트 변화에서 되뽑는다. 0 에서 잘린 뒤로도 고정된 면이 끌려가지 않는다.

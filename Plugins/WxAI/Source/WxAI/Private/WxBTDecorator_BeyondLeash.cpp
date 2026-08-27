@@ -45,7 +45,6 @@ FString UWxBTDecorator_BeyondLeash::GetStaticDescription() const
 
 bool UWxBTDecorator_BeyondLeash::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
 {
-	// 복귀가 이미 진행 중이면 완료 판정은 복귀 Task 가 소유한다. 여기서 거리로 되돌리면 반경 재진입 순간 브랜치가 떨어져 경계에서 왕복이 난다.
 	if (OwnerComp.IsExecutingBranch(this, GetChildIndex()))
 	{
 		return true;
