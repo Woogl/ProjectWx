@@ -138,29 +138,16 @@ void UWxViewModel_AbilitySystem::BuildActiveEffectViewModels()
 		return;
 	}
 
+	// 이미 활성인 GE 는 추가 통지가 다시 오지 않으므로, 지금 목록으로 그 통지를 대신 태운다.
 	FGameplayEffectQuery Query;
 	TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);
 	for (const FActiveGameplayEffectHandle& Handle : Handles)
 	{
-		const FActiveGameplayEffect* Effect = ASC->GetActiveGameplayEffect(Handle);
-		if (!Effect)
+		if (const FActiveGameplayEffect* Effect = ASC->GetActiveGameplayEffect(Handle))
 		{
-			continue;
-		}
-		const UGameplayEffect* GE = Effect->Spec.Def;
-		if (!GE)
-		{
-			continue;
-		}
-		if (const UWxEffectComponent_UIData* UIData = GE->FindComponent<UWxEffectComponent_UIData>())
-		{
-			UWxViewModel_Effect* EffectVM = NewObject<UWxViewModel_Effect>(this);
-			EffectVM->Initialize(ASC, Handle, UIData);
-			ActiveEffectViewModels.Add(EffectVM);
+			HandleActiveEffectAdded(ASC, Effect->Spec, Handle);
 		}
 	}
-	
-	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(ActiveEffectViewModels);
 }
 
 void UWxViewModel_AbilitySystem::RefreshOwnedTags()
@@ -196,6 +183,13 @@ void UWxViewModel_AbilitySystem::HandleActiveEffectAdded(UAbilitySystemComponent
 
 	UWxViewModel_Effect* EffectVM = NewObject<UWxViewModel_Effect>(this);
 	EffectVM->Initialize(InASC, Handle, UIData);
+
+	// 초기화가 핸들을 잡지 못했으면 제거 통지와 영영 매칭되지 않아 목록에 유령으로 남는다.
+	if (!EffectVM->GetBoundHandle().IsValid())
+	{
+		return;
+	}
+
 	ActiveEffectViewModels.Add(EffectVM);
 	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(ActiveEffectViewModels);
 }
