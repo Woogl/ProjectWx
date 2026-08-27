@@ -33,11 +33,11 @@ struct FWxDamageResult
  *  - 가드 불가     : 가드를 무시하고 HP 차감, DP 가산(퍼펙트 가드도 뚫는다)
  *  - 비가드        : HP 차감, DP 가산
  *
- * 계산해서 출력 모디파이어와 FWxCombatEffectContext에 싣는 것이 전부다 — 어트리뷰트 직접 기록도, GE 적용도, 어빌리티 취소도 하지 않는다.
+ * 계산해서 출력 모디파이어·스펙 태그·FWxCombatEffectContext에 싣는 것이 전부다 — 어트리뷰트 직접 기록도, GE 적용도, 어빌리티 취소도 하지 않는다.
  * 그렇게 나간 부수효과는 GE가 거부되거나 예측 롤백돼도 되돌아가지 않는다.
  * 결과를 실제 상태 변화와 연출로 옮기는 일은 UWxCombatAttributeSet::PostGameplayEffectExecute가 맡는다.
  * 어트리뷰트가 확정되기 전에 발행하면 수신자가 "차감 전 값"을 역산해야 하기 때문이다.
- * 출력 모디파이어가 하나씩 적용되며 그때마다 그 훅이 불리므로, IncomingDamage를 맨 뒤에 둬 SP·DP가 먼저 확정되게 한다.
+ * 출력 모디파이어가 하나씩 적용되며 그때마다 그 훅이 불리므로, IncomingDamage를 맨 뒤에 둬 DP가 먼저 확정되게 한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxExecCalc_Damage : public UGameplayEffectExecutionCalculation

@@ -64,6 +64,7 @@ UWxExecCalc_Damage::UWxExecCalc_Damage()
 	RelevantAttributesToCapture.Add(Statics.DEFDef);
 	RelevantAttributesToCapture.Add(Statics.CritRateDef);
 	RelevantAttributesToCapture.Add(Statics.CritDMGDef);
+	RelevantAttributesToCapture.Add(Statics.SPDef);
 }
 
 void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
@@ -126,18 +127,27 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		return;
 	}
 
-	// 컨텍스트에는 어트리뷰트로 복원할 수 없는 것만 싣는다 — 수치는 IncomingDamage로, 반응 태그는 스펙으로 소비 지점에 닿는다.
+	// 컨텍스트에는 어트리뷰트로 복원할 수 없는 것만 싣는다 — 수치는 IncomingDamage로, 반응 태그와 가드 브레이크 판정은 스펙 태그로 소비 지점에 닿는다.
 	if (CombatContext)
 	{
 		CombatContext->SetCritical(DamageResult.bIsCritical);
 	}
 
-	// SP: 가드가 이 히트로 깨졌는지 판정하고, DP: 그로기 진입이 HitReact 어빌리티에 보인다.
 	if (bGuardHit)
 	{
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.SPProperty, EGameplayModOp::Additive, -DamageResult.FinalDamage));
+
+		// 이 차감으로 가드가 깨졌는지는 차감 전 SP가 있어야 알 수 있어 여기서 판정한다 — 소비 지점은 차감 후 값만 본다.
+		// SP는 0 아래로 눌리므로 차감량이 남은 SP 이상이면 바닥에 닿는다.
+		float TargetSP = 0.f;
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.SPDef, EvalParams, TargetSP);
+		if (TargetSP <= DamageResult.FinalDamage)
+		{
+			ExecutionParams.GetOwningSpecForPreExecuteMod()->AddDynamicAssetTag(WxGameplayTags::Damage_GuardBreak);
+		}
 	}
 
+	// 그로기 진입이 피격 이벤트보다 먼저 서야 반응이 그 상태를 보므로 IncomingDamage보다 앞에 둔다.
 	if (!bIsGroggy)
 	{
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.DPProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));

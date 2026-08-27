@@ -186,8 +186,8 @@ private:
 	/**
 	 * 적중이 확정된 뒤 그 히트의 판정 결과를 소비한다 — 가드 해제, 피격 이벤트(반응 종류 동봉), 대미지 플로터.
 	 *
-	 * 판정은 UWxExecCalc_Damage가 FWxCombatEffectContext에 남긴 것을 그대로 쓴다.
-	 * IncomingDamage가 ExecCalc 출력의 맨 뒤라서, 여기 닿을 때는 SP·DP까지 확정돼 있다.
+	 * 판정은 UWxExecCalc_Damage가 스펙 태그와 FWxCombatEffectContext에 남긴 것을 그대로 쓴다.
+	 * IncomingDamage가 ExecCalc 출력의 맨 뒤라서, 여기 닿을 때는 DP까지 확정돼 그로기 진입이 반응 라우팅에 보인다.
 	 */
 	void ProcessDamageTaken(const FGameplayEffectModCallbackData& Data, float Damage);
 
