@@ -29,6 +29,7 @@ struct FWxStateTreeTask_SaveGameInstanceData
  * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)에는 저장하지 않는다 — 막 로드한 세이브를 로드 직후 되쓰지 않게 한다.
  * 저장 파일은 서버가 소유하므로 클라 진입은 노옵이다.
  * 디스크 기록은 비동기라 요청 직후엔 아직 끝나지 않았을 수 있고, 그때는 세이브 서브시스템의 일회성 완료 신호에 붙어 기록이 끝나는 순간 완료한다(폴링 없음).
+ * 앞선 기록과 겹친 진입은 거절되며, 그때는 기다리지 않고 곧바로 완료한다 — 몇 ms 전에 시작된 저장이 대신 남는다.
  */
 USTRUCT(meta = (DisplayName = "게임 저장", Category = "Wx"))
 struct FWxStateTreeTask_SaveGame : public FStateTreeTaskCommonBase

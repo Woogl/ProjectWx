@@ -58,8 +58,10 @@ public:
 	 * 월드 서브시스템이 없으면(트랜지션 등) 플러시 없이 바로 기록한다. 활성 SaveGame 이 없으면 경고 후 중단.
 	 * SlotName 이 비면 활성 슬롯에 그대로 기록하고(체크포인트 오토세이브 경로), 지정되면 활성 슬롯을 그 이름으로 재지정한 뒤 기록한다(이후 저장도 그 슬롯을 이어감).
 	 * ResumeTransform 이 주어지면 재개 지점을 그 값으로 확정한다(체크포인트가 자기 자리를 넘기는 경로). null 이면 플러시가 저장 시점 폰 위치를 캡처한다.
+	 * 앞선 기록이 아직 끝나지 않았으면 거절한다 — 겹친 기록은 엔진이 순서를 보장하지 않아 더 오래된 스냅샷이 최종 파일로 남을 수 있다.
+	 * @return 요청을 접수했는가. 거절이면 완료를 기다려선 안 된다 — 그 신호는 남의 기록을 가리킨다.
 	 */
-	void SaveToFile(const FString& SlotName = FString(), int32 UserIndex = 0, const FTransform* ResumeTransform = nullptr);
+	bool SaveToFile(const FString& SlotName = FString(), int32 UserIndex = 0, const FTransform* ResumeTransform = nullptr);
 
 	bool DoesSaveFileExist(const FString& SlotName, int32 UserIndex) const;
 

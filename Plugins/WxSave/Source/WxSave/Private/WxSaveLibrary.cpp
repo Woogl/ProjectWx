@@ -65,12 +65,14 @@ UWxSaveGame* UWxSaveLibrary::LoadFromFile(const UObject* WorldContextObject, con
 	return nullptr;
 }
 
-void UWxSaveLibrary::SaveToFile(const UObject* WorldContextObject, const FString& SlotName, int32 UserIndex)
+bool UWxSaveLibrary::SaveToFile(const UObject* WorldContextObject, const FString& SlotName, int32 UserIndex)
 {
 	if (UWxSaveGameSubsystem* Subsystem = GetSubsystem(WorldContextObject))
 	{
-		Subsystem->SaveToFile(SlotName, UserIndex);
+		return Subsystem->SaveToFile(SlotName, UserIndex);
 	}
+
+	return false;
 }
 
 void UWxSaveLibrary::TravelFromSaveFile(const UObject* WorldContextObject)

@@ -41,7 +41,10 @@ EStateTreeRunStatus FWxStateTreeTask_SaveGame::EnterState(FStateTreeExecutionCon
 	const FTransform ResumeTransform = ResumePoint ? ResumePoint->GetComponentTransform() : FTransform::Identity;
 
 	// 실제 디스크 기록은 월드 플러시 완료 후 이어진다.
-	SaveSubsystem->SaveToFile(FString(), 0, ResumePoint ? &ResumeTransform : nullptr);
+	if (!SaveSubsystem->SaveToFile(FString(), 0, ResumePoint ? &ResumeTransform : nullptr))
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
 
 	// 요청 안에서 이미 끝났으면 기다릴 신호가 없다.
 	if (!SaveSubsystem->IsSaveInProgress())

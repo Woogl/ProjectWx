@@ -129,12 +129,19 @@ void UWxSaveGameSubsystem::TravelFromSaveFile()
 	}
 }
 
-void UWxSaveGameSubsystem::SaveToFile(const FString& SlotName, int32 UserIndex, const FTransform* ResumeTransform)
+bool UWxSaveGameSubsystem::SaveToFile(const FString& SlotName, int32 UserIndex, const FTransform* ResumeTransform)
 {
 	if (!SaveGame)
 	{
 		UE_LOG(LogWxSave, Warning, TEXT("SaveToFile: 활성 SaveGame 없음 — StartNewSaveFile 을 먼저 호출하라."));
-		return;
+		return false;
+	}
+
+	// 엔진의 세이브 파이프는 병렬 실행만 막고 순서는 보장하지 않아, 겹치면 먼저 뜬 스냅샷이 나중에 디스크에 닿을 수 있다.
+	if (bSaveInProgress)
+	{
+		UE_LOG(LogWxSave, Warning, TEXT("SaveToFile: 앞선 기록이 아직 끝나지 않음 — 이번 요청 무시"));
+		return false;
 	}
 
 	// 재지정은 플러시(FlushMapTravelData 등 — 슬롯 정체성 무관)와 디스크 기록(SaveGame->SlotName 사용) 사이에서 안전하다.
@@ -166,6 +173,8 @@ void UWxSaveGameSubsystem::SaveToFile(const FString& SlotName, int32 UserIndex, 
 	{
 		ContinueSaveToFileToDisk();
 	}
+
+	return true;
 }
 
 bool UWxSaveGameSubsystem::DoesSaveFileExist(const FString& SlotName, int32 UserIndex) const

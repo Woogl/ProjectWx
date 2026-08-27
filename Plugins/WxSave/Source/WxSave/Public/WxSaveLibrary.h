@@ -33,9 +33,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
 	static UWxSaveGame* LoadFromFile(const UObject* WorldContextObject, const FString& SlotName, int32 UserIndex);
 
-	/** 라이브 상태를 활성 SaveGame 에 플러시하고 디스크 기록한다. SlotName 이 비면 활성 슬롯에, 지정되면 활성 슬롯을 그 이름으로 재지정한 뒤 기록한다. */
+	/**
+	 * 라이브 상태를 활성 SaveGame 에 플러시하고 디스크 기록한다. SlotName 이 비면 활성 슬롯에, 지정되면 활성 슬롯을 그 이름으로 재지정한 뒤 기록한다.
+	 * @return 요청을 접수했는가. 앞선 기록이 아직 끝나지 않았으면 거절돼 false 다.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
-	static void SaveToFile(const UObject* WorldContextObject, const FString& SlotName, int32 UserIndex);
+	static bool SaveToFile(const UObject* WorldContextObject, const FString& SlotName, int32 UserIndex);
 
 	UFUNCTION(BlueprintCallable, Category = "Wx|Save", meta = (WorldContext = "WorldContextObject"))
 	static void TravelFromSaveFile(const UObject* WorldContextObject);
