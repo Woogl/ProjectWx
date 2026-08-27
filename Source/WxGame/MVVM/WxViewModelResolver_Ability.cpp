@@ -23,13 +23,15 @@ UObject* UWxViewModelResolver_Ability::CreateInstance(const UClass* ExpectedType
 		return nullptr;
 	}
 
-	// 공유본이라 앞서 채워졌으면 다시 스트리밍하지 않는다.
-	if (!ViewModel->GetIcon())
+	if (const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(ViewModel->GetBoundAbility()))
 	{
-		if (const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(ViewModel->GetBoundAbility()))
+		// 공유본이라 앞서 채워졌으면 다시 스트리밍하지 않는다.
+		if (!ViewModel->GetIcon())
 		{
 			ViewModel->SetIconSoft(Ability->GetIcon());
 		}
+
+		ViewModel->SetMaxRecharges(Ability->GetMaxRecharges());
 	}
 
 	return ViewModel;

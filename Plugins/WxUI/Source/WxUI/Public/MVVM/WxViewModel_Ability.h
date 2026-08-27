@@ -19,7 +19,7 @@ struct FGameplayEffectSpec;
 
 /**
  * 어빌리티 쿨다운/발동 가능 여부 뷰모델.
- * 쿨다운/충전 상태는 어빌리티의 GetCooldownGameplayEffect() 기준이며, MaxRecharges 는 그 GE 의 StackLimitCount 에서 읽는다.
+ * 쿨다운/충전 상태는 어빌리티의 GetCooldownGameplayEffect() 기준이며, 최대 충전 수만은 아이콘처럼 게임 모듈이 채워 준다.
  * 쿨다운 중에는 티커로 매 프레임 남은 시간·충전 수를 갱신한다.
  *
  * 동일 GE 클래스를 여러 어빌리티가 공유하는 경우, 소스 어빌리티 CDO로 구분한다.
@@ -98,6 +98,8 @@ public:
 	void SetCurrentCharges(int32 NewValue);
 
 	int32 GetMaxRecharges() const;
+
+	/** 충전 표시가 이 값에서 파생되므로 함께 갱신된다. */
 	void SetMaxRecharges(int32 NewValue);
 
 	bool GetHasMultipleCharges() const;
@@ -134,13 +136,7 @@ private:
 
 	bool FlushActivationRefresh(float DeltaTime);
 
-	/**
-	 * 초기화 시점에 이미 돌고 있는 쿨다운을 1회 스캔해 반영한다.
-	 * 이 VM 은 UMG 바인딩 최초 평가 시 지연 생성되므로 쿨다운 도중에 태어나면 GE 적용 통지를 놓쳐 "충전 만땅"으로 잘못 표시된다.
-	 */
-	void SeedActiveCooldown();
-
-	void EnsureCooldownTicker();
+	void StartCooldownTicker();
 
 	/**
 	 * 이 어빌리티가 건 활성 쿨다운 GE 를 훑어 소모된 충전 수를 반환하고, 가장 먼저 만료될 GE 의 잔여·지속시간을 낸다.

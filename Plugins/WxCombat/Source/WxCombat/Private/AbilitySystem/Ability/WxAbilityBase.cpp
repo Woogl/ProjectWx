@@ -30,6 +30,18 @@ TSoftObjectPtr<UObject> UWxAbilityBase::GetIcon() const
 	return Row ? Row->Icon : nullptr;
 }
 
+int32 UWxAbilityBase::GetMaxRecharges() const
+{
+	// 커스텀 쿨다운 GE는 엔진 순정 판정(태그 기반 단일 쿨다운)으로 도니 충전을 여러 개 쌓을 수 없다.
+	if (CooldownGameplayEffectClass && CooldownGameplayEffectClass != UWxEffect_Cooldown::StaticClass())
+	{
+		return 1;
+	}
+
+	const FWxAbilityTableRow* Row = GetTableRow();
+	return Row ? FMath::Max(1, Row->MaxRecharges) : 1;
+}
+
 float UWxAbilityBase::GetMontagePlayRate() const
 {
 	const UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
@@ -267,23 +279,11 @@ UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
 	const FWxAbilityTableRow* Row = GetTableRow();
 	if (!Row || Row->CooldownTime <= 0.f)
 	{
+		// 호출자들이 이 nullptr을 "쿨다운 없음" 게이트로 쓴다.
 		return nullptr;
 	}
 
-	// 단일 충전은 공유 CDO로 충분하다.
-	const int32 MaxRecharges = FMath::Max(1, Row->MaxRecharges);
-	if (MaxRecharges <= 1)
-	{
-		return Super::GetCooldownGameplayEffect();
-	}
-
-	if (!CooldownEffect)
-	{
-		CooldownEffect = NewObject<UWxEffect_Cooldown>(const_cast<UWxAbilityBase*>(this), TEXT("CooldownEffect"));
-	}
-
-	CooldownEffect->StackLimitCount = MaxRecharges;
-	return CooldownEffect;
+	return Super::GetCooldownGameplayEffect();
 }
 
 void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
@@ -341,7 +341,7 @@ bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, cons
 
 	float LongestRemaining = 0.f;
 	float LongestDuration = 0.f;
-	if (QueryActiveCooldowns(*ASC, LongestRemaining, LongestDuration) >= FMath::Max(1, Row->MaxRecharges))
+	if (QueryActiveCooldowns(*ASC, LongestRemaining, LongestDuration) >= GetMaxRecharges())
 	{
 		// 순정 CheckCooldown처럼 실패 사유 태그를 채워 OnAbilityFailed 파이프라인에 전달한다
 		if (OptionalRelevantTags)
