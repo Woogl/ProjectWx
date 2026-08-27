@@ -158,7 +158,6 @@ void AWxWeaponBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	// BP가 부착한 형상 컴포넌트를 전부 히트박스로 수집하고, 콜리전 구성은 코드가 강제해 저작 실수를 차단한다.
 	GetComponents<UShapeComponent>(HitShapes);
 	for (UShapeComponent* Shape : HitShapes)
 	{

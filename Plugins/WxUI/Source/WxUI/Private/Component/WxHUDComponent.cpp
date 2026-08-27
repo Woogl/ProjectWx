@@ -33,7 +33,6 @@ void UWxHUDComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		OwningController->OnPossessedPawnChanged.RemoveDynamic(this, &ThisClass::HandlePossessedPawnChanged);
 	}
 
-	// 띄운 쪽이 걷는다 — Experience 가 컴포넌트를 회수하면 HUD 도 따라 사라진다.
 	if (UCommonActivatableWidget* Widget = HUDWidget.Get())
 	{
 		Widget->DeactivateWidget();
@@ -50,7 +49,7 @@ void UWxHUDComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 		return;
 	}
 
-	// 폰만 갈아타는 흐름(탈것·연출 폰)에서는 이미 떠 있는 HUD 를 그대로 쓴다. 다시 push 하면 스택에 인스턴스가 쌓인다.
+	// 폰만 갈아타는 흐름(탈것·연출 폰)에서 다시 push 하면 스택에 인스턴스가 쌓인다.
 	if (HUDWidget.IsValid())
 	{
 		return;

@@ -11,7 +11,6 @@
 
 namespace
 {
-	/** 착지 몽타주 Section */
 	const FName LandingSectionName = TEXT("Grounded");
 }
 
@@ -56,7 +55,6 @@ UAbilitySystemComponent* UWxCharacterMovementComponent::GetAbilitySystemComponen
 
 void UWxCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float DeltaSeconds)
 {
-	// 몽타주를 쓰는 어빌리티 발동 중이면 앉기 의사를 지운다.
 	// 몽타주를 쓰지 않는 어빌리티는 앉은 자세와 공존한다.
 	if (const UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
 	{

@@ -9,7 +9,7 @@ class IPropertyHandle;
 class SToolTip;
 class UClass;
 
-// StateTree 노드의 컴포넌트 지정 필드(FWxComponentName) 한 줄 편집기 — 그 트리가 붙을 액터가 가진 컴포넌트 이름 콤보.
+// StateTree 노드의 컴포넌트 지정 필드(FWxStateTreeComponentName) 한 줄 편집기 — 그 트리가 붙을 액터가 가진 컴포넌트 이름 콤보.
 // 후보는 ST 에셋 스키마가 정한 Context 액터 클래스의 컴포넌트 프로퍼티에서 뽑으므로 네이티브 컴포넌트와 BP 컴포넌트가 같이 잡힌다.
 // 엔진 바인딩 피커를 쓰지 못해 이 편집기가 필요하다 — 그쪽은 소스 프로퍼티에 CPF_Edit 를 요구하고 BP 컴포넌트의 클래스 변수엔 그 플래그가 없다.
 // AllowedClasses 메타(클래스 경로 1개)가 있으면 후보를 그 컴포넌트 클래스로 제한한다.

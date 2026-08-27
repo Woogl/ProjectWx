@@ -43,7 +43,7 @@ public:
 	//~ End UActorComponent
 
 	/**
-	 * 서버 전용. ID 를 에셋으로 해석(정의 에셋 자체는 소형이라 동기 로드)하고 로드 파이프라인을 시작한다.
+	 * 서버 전용. 정의 에셋 자체는 소형이라 동기 로드한다.
 	 * 이미 설정돼 있으면 무시한다 — 엔진 Reset() 이 InitGameState 를 재호출하는 경로에 대한 멱등 처리.
 	 */
 	void SetCurrentExperience(FPrimaryAssetId ExperienceId);
@@ -52,7 +52,6 @@ public:
 
 	bool IsExperienceLoaded() const;
 
-	/** 로드 완료를 전제로 현재 Experience 를 반환한다. 완료 전 호출은 프로그래밍 오류다. */
 	const UWxExperienceDefinition* GetCurrentExperienceChecked() const;
 
 	/** 확정됐으나 아직 로드 중일 수 있는 Experience 를 반환한다(미확정이면 널). */
@@ -80,7 +79,7 @@ private:
 	/** Experience 본체와 ActionSet 의 액션을 실행 순서대로 평탄화한다. */
 	void CollectActions(TArray<UGameFeatureAction*>& OutActions) const;
 
-	/** 서버가 InitGameState 에서 설정하고 클라는 복제로 받는다. */
+	/** 서버가 InitGameState 에서 설정한다. */
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentExperience)
 	TObjectPtr<const UWxExperienceDefinition> CurrentExperience;
 

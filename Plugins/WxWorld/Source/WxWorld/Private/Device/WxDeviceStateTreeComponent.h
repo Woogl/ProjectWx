@@ -48,7 +48,7 @@ public:
 	/** SaveGame 복원 직후 호스트 액터가 부른다. 복원된 StateTag 를 진실로 삼는 수렴 추종을 열고 잠든 틱을 깨운다. */
 	void NotifySaveRestored();
 
-	/** 트리를 한 번 틱한 직후 상태를 동기화한다. 상태 전이는 전부 트리 틱 안에서 일어나므로 이 자리가 모든 변화를 잡는다. */
+	/** 트리를 한 번 틱한 직후 상태를 동기화한다. */
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	/** 정지 후엔 활성 상태가 비어 읽을 수 없으므로, 멈추기 전에 마지막 상태를 한 번 알린다. */

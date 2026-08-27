@@ -44,7 +44,6 @@ EBTNodeResult::Type UWxBTTask_Patrol::ExecuteTask(UBehaviorTreeComponent& OwnerC
 
 	// Once 로 경로를 마쳤으면 더 이상 움직이지 않는다(전투 뒤 재진입이면 마지막 지점이 아니라 지금 서 있는 자리다).
 	// Failed 를 반환하면 하위 폴백 분기가 폰을 집/배회로 끌고 가고, 즉시 Succeeded 는 브랜치를 놓아 주어 상위가 되감기며 재탐색을 되풀이한다.
-	// 이동 없이 InProgress 로 정찰 분기를 점유한 채, 상위 우선순위 abort(타겟 확보·리시 이탈)만 기다린다.
 	if (bPatrolFinished)
 	{
 		return EBTNodeResult::InProgress;
@@ -107,7 +106,7 @@ void UWxBTTask_Patrol::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* 
 		}
 		else
 		{
-			// Once 로 경로 끝에 도달: 이후 ExecuteTask 가 이동 없이 브랜치만 점유하도록 표시한다.
+			// 다음 지점이 없다는 건 Once 로 경로 끝에 도달했다는 뜻이다.
 			bPatrolFinished = true;
 		}
 	}

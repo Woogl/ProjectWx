@@ -60,7 +60,6 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	GatherCandidates(Candidates);
 
 	// 락온 지점(UWxLockOnPointComponent)이 있는 액터만 대상이 되며, 후보가 거리순이라 첫 지점이 가장 가깝다.
-	// 시선·레티클·호밍이 모두 이 컴포넌트 위치를 따라가므로 조준 부위는 지점 배치만 옮기면 바뀐다.
 	USceneComponent* TargetComponent = nullptr;
 	for (AActor* Candidate : Candidates)
 	{

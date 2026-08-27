@@ -118,7 +118,6 @@ void UWxSaveGameSubsystem::TravelFromSaveFile()
 	const FString TravelMap = Map.IsNull()
 		? GetStableMapPackageName(World).ToString() : Map.GetAssetPath().GetPackageName().ToString();
 
-	// 트래블/teardown 동안의 자동 캡처(teardown 플러시·스트리밍-아웃)가 방금 로드한 세이브를 라이브 상태로 덮어쓰지 않도록 가드를 건다.
 	bTravelingFromSaveFile = true;
 
 	// 트래블은 스탠드얼론 전제의 기존 검증 경로인 ServerTravel(bAbsolute)을 유지한다(샘플의 OpenLevel 은 클라 트래블 의미론일 뿐 기술적 우위 없음).

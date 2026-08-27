@@ -32,7 +32,7 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 
 	bRetriggerInstancedAbility = true;
 
-	// 반응 종류(자식)만 트리거로 등록한다. 부모 Event.Hit은 반응 없는 평타라 여기 닿지 않아야 하고, 부모까지 등록하면 조상마다 한 번씩 발화해 같은 피격에 몽타주가 재시작한다.
+	// 부모 Event.Hit은 반응 없는 평타라 여기 닿지 않아야 하고, 부모까지 등록하면 조상마다 한 번씩 발화해 같은 피격에 몽타주가 재시작한다.
 	const FGameplayTag ReactionTags[] = {
 		WxGameplayTags::Event_Hit_Normal,
 		WxGameplayTags::Event_Hit_KnockBack,

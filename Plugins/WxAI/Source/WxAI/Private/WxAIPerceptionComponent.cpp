@@ -278,7 +278,6 @@ void UWxAIPerceptionComponent::HandlePawnHit(FGameplayTag MatchingTag, const FGa
 		return;
 	}
 
-	// 가해자 위치가 자극 위치이고, 타격점이 있으면 그 지점을 함께 넘긴다.
 	const FHitResult* HitResult = Payload->ContextHandle.GetHitResult();
 	const FVector HitLocation = HitResult ? FVector(HitResult->ImpactPoint) : Pawn->GetActorLocation();
 	UAISense_Damage::ReportDamageEvent(this, Pawn, DamageInstigator, Payload->EventMagnitude, DamageInstigator->GetActorLocation(), HitLocation);

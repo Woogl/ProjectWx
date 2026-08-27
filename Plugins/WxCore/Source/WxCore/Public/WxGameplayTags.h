@@ -83,10 +83,8 @@ namespace WxGameplayTags
 	/** 발동 장치가 연결 장치의 트리에 보내는 기본 이벤트. 목적지가 여럿인 장치는 버튼마다 다른 태그를 저작한다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Device_Triggered);
 
-	/** 피니셔(앞잡) 발동 이벤트*/
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Finisher);
 
-	/** 백스탭(뒤잡) 발동 이벤트 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Backstab);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Death);
@@ -221,10 +219,8 @@ namespace WxGameplayTags
 	/** 게임 메뉴 레이어 (아이템 획득 알림 등, 메뉴 아래) */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_GameMenu);
 
-	/** 메뉴 레이어 (인벤토리, 설정 등) */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_Menu);
 
-	/** 모달 레이어 (확인 창 등) */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_Modal);
 
 	/** CommonUI 액션: 인벤토리 토글. HUD가 FUIActionTag로 변환해 RegisterUIActionBinding으로 수신, 키 매핑은 CommonUI Input Settings에서 지정 */

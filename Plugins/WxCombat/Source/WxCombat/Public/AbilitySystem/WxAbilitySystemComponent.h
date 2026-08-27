@@ -74,7 +74,6 @@ public:
 	void CancelActivationGroupAbilities(EWxAbilityActivationGroup Group, UGameplayAbility* IgnoreAbility);
 
 private:
-	/** 인스턴스가 배타 점유자면 그 어빌리티를, 아니면 nullptr을 준다. */
 	const UWxAbilityBase* AsActivationGroupBlocker(const UGameplayAbility* Instance) const;
 
 	/** 버퍼 재생: Action에 매칭된 어빌리티들에 발동을 시도해 하나라도 성립하면 true. 뗀 뒤의 재생이라 스펙의 키 상태는 세우지 않는다. */

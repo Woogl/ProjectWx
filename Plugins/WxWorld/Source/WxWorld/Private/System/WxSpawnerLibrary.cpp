@@ -20,7 +20,6 @@ void UWxSpawnerLibrary::TryRespawnAll(const UObject* WorldContextObject)
 	}
 
 	// Respawn() 이 액터를 Destroy/Spawn 하므로, 순회 도중 월드 액터 배열이 바뀌지 않도록 먼저 모은 뒤 일괄 호출한다.
-	// Manual 스포너는 외부 개별 트리거 전용이라 일괄 리스폰에서 제외한다.
 	TArray<AWxSpawner*> Spawners;
 	for (TActorIterator<AWxSpawner> It(World); It; ++It)
 	{

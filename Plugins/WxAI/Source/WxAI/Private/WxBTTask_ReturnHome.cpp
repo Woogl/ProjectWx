@@ -14,7 +14,6 @@ UWxBTTask_ReturnHome::UWxBTTask_ReturnHome()
 	// 에디터에서 별도 선택 없이 동작하도록 기본 키를 채워 둔다. 실제 키 해석은 InitializeFromAsset 가 한다.
 	BlackboardKey.SelectedKeyName = WxBlackboardKeys::HomeLocation;
 
-	// 종료 시 억제를 해제하기 위해 종료 콜백을 받는다.
 	bNotifyTaskFinished = true;
 }
 

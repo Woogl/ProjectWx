@@ -10,8 +10,7 @@ class UWxExperienceDefinition;
 
 /**
  * 게임플레이 구성은 Experience 가 정의한다.
- * 본 클래스는 이 판의 Experience 를 확정해 GameState 의 Experience 매니저에 넘기고, 매니저가 참조를 복제해 서버·클라 각자 로드·적용한다.
- * GameMode 가 서버에만 있어도 클라 적용이 성립한다.
+ * 본 클래스는 이 판의 Experience 를 확정해 GameState 의 Experience 매니저에 넘긴다 — 매니저가 참조를 복제하므로 GameMode 가 서버에만 있어도 클라 적용이 성립한다.
  * 로드는 비동기라 접속(PostLogin)보다 늦을 수 있다 — 폰 스폰(HandleStartingNewPlayer)을 로드 완료까지 미루고, 완료 시점에 대기 접속자를 일괄 스폰·지급한다.
  * 플레이어 폰 클래스도 Experience 가 정한다 — 상속받은 DefaultPawnClass 는 읽지 않는다.
  * 폰 클래스가 비어 있으면 폰 없는 Experience(프론트엔드)라 엔진 스펙테이터 폰(SpectatorClass)으로 빙의시킨다.

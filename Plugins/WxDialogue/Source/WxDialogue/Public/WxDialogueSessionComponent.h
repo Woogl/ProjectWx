@@ -18,7 +18,7 @@ struct FWxDialogueTableRow;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWxOnDialogueLineChanged, const FText&, Speaker, const FText&, Line);
 
 /**
- * 플레이어의 대화 세션 컴포넌트. Experience 주입으로 PlayerController 에 붙는다 — 컨트롤러 컴포넌트라는 사실이 곧 주입 대상 선언이다.
+ * Experience 주입으로 PlayerController 에 붙는다 — 컨트롤러 컴포넌트라는 사실이 곧 주입 대상 선언이다.
  *
  * 서버의 상호작용 응답(대상의 UWxDialogueComponent)이 StartDialogue 로, 퀘스트 ST 처럼 액터가 아닌 쪽은 StartDialogueRow 로 진입하면 소유 클라로 넘겨 세션을 연다.
  * 대화 대상은 비소유 액터라 Client RPC 를 쏠 수 없으므로, 클라 UI 로 가는 전달은 PC 측인 본 컴포넌트가 소유한다.
@@ -29,7 +29,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWxOnDialogueLineChanged, const FTe
  * v1 싱글/리슨 호스트(소유 클라=권위 동일 머신) 전제라 권위 측 소비자가 이 로컬 상태를 직접 읽는다.
  *
  * UI 는 모른다 — 대사가 바뀌면 델리게이트로 발행해 뷰모델이 받아 가고, 세션이 열리고 닫힌 사실은 폰 ASC 의 State.Dialogue 태그가 알린다.
- * 대화 창을 여닫는 것은 그 태그를 보는 쪽(UI 매니저)의 몫이라 여기엔 시작·종료 델리게이트를 두지 않는다.
+ * 대화 창을 여닫는 것은 그 태그를 보는 쪽(UI 매니저)의 몫이라 UI 를 위한 시작·종료 델리게이트는 두지 않는다.
  *
  * 반면 대화 카메라는 여기서 직접 든다. 컨트롤러에 붙어 있어 뷰 타겟에 손이 닿고, 구도의 재료인 대상·시작·종료를 이미 다 알기 때문이다.
  * 대화 동안에는 전용 카메라를 세워 뷰 타겟을 그리로 넘긴다 — 게임플레이 카메라는 플레이어 등 뒤에 매여 있어, 두 사람을 잇는 선에서 크게 비껴선 구도를 잡을 수 없다.

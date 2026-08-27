@@ -121,7 +121,6 @@ DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventorySlotChanged, UWxItemInstanc
  */
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventoryChargeChanged, UWxItemInstance* /*Instance*/, int32 /*NewCharges*/, int32 /*Delta*/);
 
-/** 인벤토리가 쓸 수 있게 됐다는 브로드캐스트. 소유 액터는 인자로 준 컴포넌트에서 얻는다. */
 DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnInventoryReady, UWxInventoryManagerComponent* /*Inventory*/);
 
 /**
@@ -201,7 +200,6 @@ public:
 	 * 사용 가능 여부 판정과 차감은 어빌리티가 수행하므로 여기서는 검사하지 않는다.
 	 *
 	 * 소비 아이템은 에스트병 하나뿐이라 대상을 지목하지 않는다.
-	 * 종류가 늘면 대상을 받아 어느 어빌리티를 발동할지 가려야 한다.
 	 */
 	bool RequestUseConsumable();
 
@@ -242,7 +240,6 @@ public:
 	FWxOnInventoryChargeChanged OnInventoryChargeChanged;
 
 	//~ 아래 3종은 List 복제 콜백/Instance OnRep/내부 변경 경로 전용 통지 진입점이다(외부 소비자 호출 금지, 비-BlueprintCallable).
-	//~ 서버 변경 경로와 클라이언트 복제 콜백 경로가 모두 이 진입점으로 수렴해 델리게이트를 발행한다.
 
 	/** NewCount 는 내부에서 합계를 재계산한다. */
 	void NotifyStackChangedFromList(const UWxItemDefinition* ItemDef, int32 Delta);

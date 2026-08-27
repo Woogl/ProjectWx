@@ -15,12 +15,8 @@ class UUserWidget;
 class UMVVMView;
 
 /**
- * 현재 범위 안에 있는 상호작용 대상들을 항목 VM 목록으로 노출하고, 그중 선택된 인덱스를 표시한다.
- *
  * 스캐너 컴포넌트(WxWorld)를 직접 들고 목록·선택 변경을 구독한다. 그래서 WxUI 가 아니라 양쪽에 의존할 수 있는 본 모듈에 있다.
  * 선택의 소유자는 어디까지나 스캐너이며, 본 VM 은 받은 값을 표시한다.
- *
- * 표시에 더해 뷰의 실행·선택이동 요청을 스캐너 진입점으로 그대로 넘긴다.
  */
 UCLASS()
 class WXGAME_API UWxViewModel_InteractionList : public UWxViewModel

@@ -48,7 +48,7 @@ public:
 	void Unregister();
 
 private:
-	/** 이 컴포넌트의 월드 위치가 투영 원점이다. 대상을 소유하지 않으므로 약참조이고, 언로드·파괴되면 비어 아래 좌표로 내려앉는다. */
+	/** 이 컴포넌트의 월드 위치가 투영 원점이다. 언로드·파괴되면 비어 아래 좌표로 내려앉는다. */
 	UPROPERTY()
 	TWeakObjectPtr<USceneComponent> TargetComponent;
 

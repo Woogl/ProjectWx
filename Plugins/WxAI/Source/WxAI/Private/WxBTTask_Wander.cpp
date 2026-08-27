@@ -13,7 +13,6 @@ UWxBTTask_Wander::UWxBTTask_Wander()
 	bCreateNodeInstance = true;
 	bNotifyTick = true;
 
-	// 배회 종료(완료·중단·실패)에서 낮췄던 이동 속도를 복원하기 위해 종료 콜백을 받는다.
 	bNotifyTaskFinished = true;
 }
 

@@ -20,7 +20,6 @@ class UWxAnimMontageToolset : public UToolsetDefinition
 public:
 	/**
 	 * 슬롯 세그먼트·섹션·노티파이를 JSON으로 돌려준다.
-	 * 저작 전 원본 파악과 저작 후 검증에 모두 쓴다.
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static FString DescribeMontage(UAnimMontage* Montage);

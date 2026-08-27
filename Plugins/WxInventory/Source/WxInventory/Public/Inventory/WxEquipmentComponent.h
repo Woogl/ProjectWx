@@ -26,7 +26,6 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FWxOnEquipVisualChanged, USkeletalMesh* /*M
  * 무기 액터·캐릭터의 ChildActorComponent 는 게임 모듈 소유라 인벤토리 도메인에서 접근할 수 없으므로, Equippable 프래그먼트에서 뽑은 메시/소켓을 OnEquipVisualChanged 로 방송하고 게임 측이 반영한다.
  *
  * 미구현: EquipItem 의 유일한 호출부인 UWxInventoryManagerComponent::EquipItemByDef 를 부르는 곳이 없어(BlueprintCallable 도 아니라 BP 진입도 불가) EquippedItemDef 는 항상 null 이다.
- * 따라서 구독 측(캐릭터)이 붙어 있어도 OnEquipVisualChanged 방송과 EquipEffects 적용은 일어나지 않는다.
  * 경로를 닫을 때 함께 볼 것: 늦게 relevant 해진 클라는 초기 복제 RepNotify 가 구독보다 앞서면 방송을 유실하는데, 현재 상태를 되물을 pull API 가 없다.
  */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))

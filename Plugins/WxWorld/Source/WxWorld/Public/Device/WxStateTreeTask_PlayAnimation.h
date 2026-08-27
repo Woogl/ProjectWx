@@ -26,7 +26,6 @@ struct FWxStateTreeTask_PlayAnimationInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<UAnimSequenceBase> Animation;
 
-	/** (런타임) 지목이 가리키는 메시. */
 	UPROPERTY()
 	TObjectPtr<USkeletalMeshComponent> Mesh;
 };

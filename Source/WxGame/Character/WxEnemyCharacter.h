@@ -15,8 +15,6 @@ class UBehaviorTree;
 class UWxLockOnPointComponent;
 class UWxNameplateComponent;
 
-/**
- */
 UCLASS(Abstract)
 class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnable, public IWxInteractable
 {
@@ -43,7 +41,6 @@ public:
 	virtual void BeginPlay() override;
 
 protected:
-	/** 상호작용 주체가 후방 원뿔 안에 있는가. */
 	bool IsInRearCone(const AActor* Interactor) const;
 
 	/** 사망 시 자신을 스폰한 Spawner 에 처치 기록을 남긴다. */

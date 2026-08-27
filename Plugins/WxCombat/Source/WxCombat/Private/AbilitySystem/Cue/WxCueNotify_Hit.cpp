@@ -38,7 +38,8 @@ void UWxCueNotify_Hit::HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent::Ty
 
 	if (CameraShake)
 	{
-		// 큐는 서버·클라 양쪽에서 실행되므로 각 머신은 자기 로컬 컨트롤러만 흔든다. 리슨 서버가 원격 클라에 RPC까지 쏘면 셰이크가 두 번 걸린다.
+		// 큐는 서버·클라 양쪽에서 실행되므로 각 머신은 자기 로컬 컨트롤러만 흔든다.
+		// 리슨 서버가 원격 클라에 RPC까지 쏘면 셰이크가 두 번 걸린다.
 		if (const APawn* Attacker = Cast<APawn>(Parameters.EffectContext.GetEffectCauser()))
 		{
 			if (APlayerController* PlayerController = Cast<APlayerController>(Attacker->GetController()))

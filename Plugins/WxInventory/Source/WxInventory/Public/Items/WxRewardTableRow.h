@@ -10,8 +10,6 @@
 class UWxItemDefinition;
 
 /**
- * 단일 보상 항목.
- *
  * Item 이 TSoftObjectPtr 라 보상 테이블을 로드해도 아이템 자산까지 끌어오지 않고, 실제 지급 시점에 로드한다.
  */
 USTRUCT(BlueprintType)

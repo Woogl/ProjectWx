@@ -27,7 +27,7 @@ public:
 	 */
 	static void SetGlobalTimeDilationAuthoritative(const UObject* Requester, float NewDilation);
 
-	/** Requester가 현재 소유자일 때만 배율을 1로 되돌린다. */
+	/** Requester가 현재 소유자이거나 소유자가 이미 사라졌을 때만 배율을 1로 되돌린다. */
 	static void ClearGlobalTimeDilationAuthoritative(const UObject* Requester);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

@@ -45,7 +45,6 @@ struct FWxStateTreeTask_PrintSubtitleInstanceData
 
 /**
  * 진입 시 시작 행의 줄을 걸고, 그 줄의 Duration 이 다 차면 NextRow 로 이어간다.
- * 다음 줄이 없으면 그 자리에서 자막을 걷으며 Succeeded 로 완료하고, 시간을 채우기 전에 상태를 떠나면 그때 걷는다.
  * 넘기는 사람이 있는 대화와 달리 전진도 표시 수명도 이 노드가 소유하므로 시간을 직접 센다.
  *
  * 자막을 걷는 것과 완료를 내는 것은 분리해야 한다 — 같은 상태의 다른 대기 태스크가 상태를 붙잡고 있으면(TasksCompletion=All) 완료를 내고도 한참 뒤에야 상태를 떠나므로, 회수를 ExitState 에만 맡기면 자막이 그동안 화면에 남는다.

@@ -47,7 +47,6 @@ void UWxAbility_Pattern::EndAbility(const FGameplayAbilitySpecHandle Handle, con
 
 void UWxAbility_Pattern::HandleMontageCompleted()
 {
-	// 다음 ComboMontage를 재생해서 모든 몽타주가 끝나면 그제서야 EndAbility 한다.
 	if (!ComboMontages.IsValidIndex(ComboIndex + 1))
 	{
 		EndAbility(CurrentSpecHandle, GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);

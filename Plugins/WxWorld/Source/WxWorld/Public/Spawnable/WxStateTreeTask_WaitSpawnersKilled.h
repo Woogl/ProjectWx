@@ -37,7 +37,6 @@ struct FWxStateTreeTask_WaitSpawnersKilledInstanceData
  * 진입 시 1회 평가가 필요한 것은 이미 전원 처치인 채로 들어오는 조립(퀘스트 재수주 등) 때문이다 — 그땐 새로 올 통보가 없다.
  *
  * 대상은 FUniversalObjectLocator 로 배치 액터를 직접 지정한다 — 순수 구조체라 ST 컴파일러의 레벨 액터 참조 검증에 걸리지 않고, 씬 픽커와 WP 런타임 셀·PIE 픽스업 해석이 엔진에 내장돼 있어 레벨 밖 호스트(퀘스트 ST)에서도 조립할 수 있다.
- * 배열인 것은 한 전투의 스포너가 여럿일 수 있어서다 — 단일 UOL 멤버도 같은 픽커가 뜬다.
  */
 USTRUCT(meta = (DisplayName = "스포너 처치 대기", Category = "Wx"))
 struct FWxStateTreeTask_WaitSpawnersKilled : public FStateTreeTaskCommonBase

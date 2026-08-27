@@ -132,7 +132,6 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 		const float ReflectAmount = GetIncomingReflect();
 		SetIncomingReflect(0.f);
 
-		// 반사량이 0이어도 퍼펙트 가드 성공 자체는 알려야 한다.
 		ProcessPerfectGuard(Data, ReflectAmount);
 	}
 	else if (Data.EvaluatedData.Attribute == GetSPAttribute())
@@ -275,7 +274,7 @@ void UWxCombatAttributeSet::ProcessDamageTaken(const FGameplayEffectModCallbackD
 	AActor* TargetActor = GetOwningActor();
 	UAbilitySystemComponent* SourceASC = ContextHandle.GetInstigatorAbilitySystemComponent();
 
-	// 공격이 요청한 반응 종류는 스펙에 Event.Hit 자식 태그로 실려 온다 — 바로 아래 Damage.CanGuard를 읽는 것과 같은 자리다.
+	// 공격이 요청한 반응 종류는 스펙에 Event.Hit 자식 태그로 실려 온다.
 	const FGameplayTag ReactionTag = Data.EffectSpec.GetDynamicAssetTags().Filter(FGameplayTagContainer(WxGameplayTags::Event_Hit)).First();
 
 	// Guard가 같은 피격 이벤트로 흡수 몽타주를 틀므로, 가드로 막히지 않는 히트는 이벤트보다 먼저 가드를 끊어야 한다.
@@ -285,7 +284,6 @@ void UWxCombatAttributeSet::ProcessDamageTaken(const FGameplayEffectModCallbackD
 		ASC->CancelAbilities(&GuardAbilityTags);
 	}
 
-	// 죽는 히트는 Ability.Death가 이미 붙어 있어 히트리액트가 그 태그로 차단된다.
 	// 히트리액트를 재생했다 사망으로 끊는 대신 곧장 사망으로 가는 쪽을 택했다.
 	// 반응이 있으면 그 자식이 이벤트 태그다. 평타는 부모 그대로라, 자식만 트리거로 등록한 HitReact엔 닿지 않는다.
 	const FGameplayTag HitEventTag = ReactionTag.IsValid() ? ReactionTag : WxGameplayTags::Event_Hit;
@@ -335,7 +333,6 @@ void UWxCombatAttributeSet::ProcessPerfectGuard(const FGameplayEffectModCallback
 	UAbilitySystemComponent* SourceASC = ContextHandle.GetInstigatorAbilitySystemComponent();
 	AActor* SourceActor = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
 
-	// 공격자에게 돌아가는 반동 두 갈래는 한 스위치를 따른다 — 패리가 성립하지 않는 공격은 DP도 역경직도 돌려주지 않는다.
 	const bool bCanParry = Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanParry);
 
 	// 대상의 DP 가산과 같은 이유로 이미 그로기인 공격자에겐 반사하지 않는다.
@@ -350,7 +347,6 @@ void UWxCombatAttributeSet::ProcessPerfectGuard(const FGameplayEffectModCallback
 	EventData.Target = TargetActor;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_PerfectGuard, EventData);
 
-	// 공격자에게 패리 반동을 요청한다. 대미지는 없으므로 EventMagnitude는 0이다.
 	if (bCanParry && SourceActor)
 	{
 		FGameplayEventData ParryEventData;

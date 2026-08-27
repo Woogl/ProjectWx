@@ -96,7 +96,7 @@ public:
 
 	/**
 	 * 진행 중이던 기록이 끝나면 한 번 발화하고 스스로 비워진다. 기다리는 쪽이 요청 직후 붙인다.
-	 * 발화와 함께 비워지므로 붙인 쪽이 떼어낼 필요가 없다 — 기록 한 번에 대한 일회성 약속이다.
+	 * 발화와 함께 비워지므로 붙인 쪽이 떼어낼 필요가 없다.
 	 */
 	FSimpleMulticastDelegate OnSaveCompleted;
 
@@ -113,6 +113,5 @@ private:
 	UPROPERTY()
 	TObjectPtr<UWxSaveGame> SaveGame;
 
-	/** 프레임을 넘는 수명 상태(트래블 시작~새 월드 복원 완료)라 멤버로 둔다. */
 	bool bTravelingFromSaveFile = false;
 };

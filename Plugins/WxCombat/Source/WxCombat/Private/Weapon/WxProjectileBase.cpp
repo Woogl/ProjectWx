@@ -79,7 +79,6 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 		return;
 	}
 
-	// 판정이 성립하지 않는 대상은 충돌 자체를 없던 것으로 본다 — 이펙트도 파괴도 없이 그대로 날아간다.
 	if (!UWxCombatLibrary::IsHostile(GetInstigator(), OtherActor))
 	{
 		return;

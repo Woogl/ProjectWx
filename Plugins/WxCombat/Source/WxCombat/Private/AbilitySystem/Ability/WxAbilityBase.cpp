@@ -76,7 +76,6 @@ void UWxAbilityBase::StartRecovery()
 
 bool UWxAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	/** 순정 검사에 배타 그룹 판정을 더한다. 점유자가 자기 자신이면 콤보 창으로, 남이면 CancelAbilitiesWithTag 지목으로 가른다. */
 	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
 		return false;
@@ -296,7 +295,6 @@ void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, cons
 {
 	if (CooldownGameplayEffectClass && CooldownGameplayEffectClass != UWxEffect_Cooldown::StaticClass())
 	{
-		// 커스텀 쿨다운 클래스를 적용하는 경우
 		Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
 		return;
 	}

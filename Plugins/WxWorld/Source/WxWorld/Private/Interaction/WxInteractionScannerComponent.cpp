@@ -150,7 +150,6 @@ void UWxInteractionScannerComponent::HandleScanTimer()
 
 	const FVector ScanOrigin = Pawn->GetActorLocation();
 
-	// 오브젝트 쿼리는 셰이프의 오브젝트 타입만 보고 채널 응답 매트릭스를 보지 않으므로, 누가 대상인가가 콜리전 프리셋·응답과 무관하다는 설계가 유지된다.
 	TArray<FOverlapResult> Overlaps;
 	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(WxInteractionScan), /*bTraceComplex*/ false);
 	QueryParams.AddIgnoredActor(Pawn);

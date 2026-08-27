@@ -72,7 +72,6 @@ void UWxDeviceStateTreeComponent::StopLogic(const FString& Reason)
 
 void UWxDeviceStateTreeComponent::BeginPlay()
 {
-	// 저장된 상태가 없으면 초기 상태를 권위 값으로 삼는다 — 이후는 세이브 복원과 같은 수렴 경로다.
 	// 월드 초기 로드 복원은 BeginPlay 전에 끝나므로 여기서 비어 있으면 저장이 없는 것이다.
 	// 스트리밍-인 복원은 이보다 늦게 와 StateTag 를 덮고 같은 추종으로 갈아탄다.
 	if (GetOwnerRole() == ROLE_Authority && !StateTag.IsValid() && InitialState != RootInitialStateName)

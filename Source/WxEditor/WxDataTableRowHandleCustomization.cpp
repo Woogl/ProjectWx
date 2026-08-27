@@ -91,7 +91,6 @@ void FWxDataTableRowHandleCustomization::CustomizeHeader(TSharedRef<IPropertyHan
 
 void FWxDataTableRowHandleCustomization::CustomizeChildren(TSharedRef<IPropertyHandle> InPropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
-	// 자식을 비워야 확장 화살표가 사라져 접힘 자체가 없어진다.
 }
 
 void FWxDataTableRowHandleCustomization::HandleDataTableChanged()

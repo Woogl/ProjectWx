@@ -40,7 +40,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TArray<FString> GameFeaturesToEnable;
 
-	/** 기본 지급 아이템 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TArray<FWxItemRewardEntry> DefaultInventoryItems;
 

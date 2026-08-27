@@ -154,7 +154,6 @@ void UWxAbilitySystemComponent::FlushBufferedInputs()
 			continue;
 		}
 
-		// 전이점당 하나만 — 하나가 성립하면 나머지는 낡은 것이다.
 		// 실패한 항목은 남긴다. 콤보 창은 자기 재발동만 열리므로, 거기서 버리면 같이 쌓인 회피가 후딜에 못 나간다.
 		if (TryActivateByInputAction(BufferedInputs[Index].Action))
 		{

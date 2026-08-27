@@ -92,7 +92,7 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	// 어빌리티가 무적 구간 도중 취소되면 태그 해제 콜백을 받지 못하므로 여기서 비활성화한다.
-	// 무적 태그 자체는 ANS가 건 지속시간 GE라 회피가 끊겨도 스스로 만료된다.
+	// 무적 태그 자체는 구간을 소유한 ANS가 걷어낸다.
 	DeactivateJudgementCapsule();
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
@@ -106,7 +106,6 @@ EWxDodgeDirection UWxAbility_Dodge::ResolveDodgeDirection(const FVector& LocalDi
 		return EWxDodgeDirection::Back;
 	}
 
-	// 정면 기준 부호 있는 각도(+Y=오른쪽=시계 방향 +)를 45° 단위로 양자화해 8분면 인덱스(0=Forward)로 매핑.
 	const float AngleDeg = FMath::RadiansToDegrees(FMath::Atan2(Local.Y, Local.X));
 	const int32 Octant = ((FMath::RoundToInt(AngleDeg / 45.f) % 8) + 8) % 8;
 	return static_cast<EWxDodgeDirection>(Octant);
@@ -225,7 +224,7 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 
 void UWxAbility_Dodge::ListenForInvincibleWindow()
 {
-	// 무적 태그는 ANS_Invincible이 발행하고, 여기서는 관찰만 해 판정 캡슐의 수명을 태그에 맞춘다.
+	// 무적 태그는 WxAnimNotifyState_ApplyGameplayEffect가 발행하고, 여기서는 관찰만 해 판정 캡슐의 수명을 태그에 맞춘다.
 	// 두 태스크 모두 재무장하므로 PerfectDodgeMontage에 무적 구간이 또 있어도 그대로 처리된다.
 	UAbilityTask_WaitGameplayTagAdded* AddedTask = UAbilityTask_WaitGameplayTagAdded::WaitGameplayTagAdd(this, WxGameplayTags::Effect_Invincible, nullptr, false);
 	if (AddedTask)
