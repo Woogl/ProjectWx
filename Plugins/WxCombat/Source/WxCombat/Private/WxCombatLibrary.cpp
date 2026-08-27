@@ -13,13 +13,9 @@
 
 bool UWxCombatLibrary::IsHostile(const AActor* Source, const AActor* Target)
 {
-	if (!Source || !Target)
-	{
-		return true;
-	}
-
 	const IGenericTeamAgentInterface* SourceTeamAgent = Cast<IGenericTeamAgentInterface>(Source);
-	return !SourceTeamAgent || SourceTeamAgent->GetTeamAttitudeTowards(*Target) == ETeamAttitude::Hostile;
+	const IGenericTeamAgentInterface* TargetTeamAgent = Cast<IGenericTeamAgentInterface>(Target);
+	return SourceTeamAgent && TargetTeamAgent && SourceTeamAgent->GetTeamAttitudeTowards(*Target) == ETeamAttitude::Hostile;
 }
 
 bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const FDataTableRowHandle& DamageTableRow, const FHitResult& HitResult, float HitStopDuration)

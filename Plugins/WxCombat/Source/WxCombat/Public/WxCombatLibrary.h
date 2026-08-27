@@ -19,10 +19,7 @@ class WXCOMBAT_API UWxCombatLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
-	/**
-	 * 판정이 성립하는 관계인지 가른다 — 적대에만 성립하며 아군·중립에는 대미지도 연출도 발생하지 않는다.
-	 * 판정 근거가 없으면(둘 중 하나가 널이거나 공격자에게 팀 개념이 없으면) 성립으로 본다.
-	 */
+	/** 적대 관계일 때만 true. 어느 쪽이든 팀이 없으면 적대가 아니다. */
 	static bool IsHostile(const AActor* Source, const AActor* Target);
 
 	/**
