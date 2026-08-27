@@ -44,18 +44,20 @@ namespace
 			return;
 		}
 
+		// 언로드·파괴로 대상을 놓치면 등록증이 스스로 좌표로 내려앉아 다시 여기로 온다.
+		const UWxIndicatorDescriptor* Indicator = Instance.RegisteredIndicator.Get();
+		if (Indicator && Indicator->GetTargetComponent())
+		{
+			return;
+		}
+
 		AActor* Owner = Cast<AActor>(Context.GetOwner());
 		AActor* Target = ResolveTargetActor(Instance.Target, Owner);
 		USceneComponent* TargetComponent = Target ? Target->GetRootComponent() : nullptr;
 
-		// 등록증은 대상이 사라지면 스스로 좌표로 내려앉으므로, 여기선 걸 컴포넌트가 바뀐 때만 갈아 끼운다.
-		// 언로드 중에는 양쪽이 비어 같다고 나와 그대로 두고, 스트리밍 인 되는 순간 달라져 컴포넌트 추종으로 승격된다.
-		if (const UWxIndicatorDescriptor* Indicator = Instance.RegisteredIndicator.Get())
+		if (Indicator && !TargetComponent)
 		{
-			if (Indicator->GetTargetComponent() == TargetComponent)
-			{
-				return;
-			}
+			return;
 		}
 
 		UnregisterIndicator(Instance.RegisteredIndicator);
