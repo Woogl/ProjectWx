@@ -23,9 +23,8 @@ FGameplayEffectContext* FWxCombatEffectContext::Duplicate() const
 
 bool FWxCombatEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess)
 {
-	FGameplayEffectContext::NetSerialize(Ar, Map, bOutSuccess);
-
-	// 이 컨텍스트는 Cue 파라미터에 실려 클라이언트까지 간다.
+	const bool bParentSucceeded = FGameplayEffectContext::NetSerialize(Ar, Map, bOutSuccess);
+	
 	uint8 SerializedCritical = bCritical ? 1 : 0;
 	Ar << SerializedCritical;
 
@@ -34,8 +33,7 @@ bool FWxCombatEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& 
 		bCritical = SerializedCritical != 0;
 	}
 
-	bOutSuccess = true;
-	return true;
+	return bParentSucceeded;
 }
 
 bool FWxCombatEffectContext::IsCritical() const
