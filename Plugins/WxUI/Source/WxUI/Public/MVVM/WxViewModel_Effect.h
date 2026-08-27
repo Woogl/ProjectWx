@@ -71,10 +71,12 @@ protected:
 	//~ End UWxViewModel
 
 private:
+	void HandleStackCountChanged(FActiveGameplayEffectHandle Handle, int32 NewStackCount, int32 PreviousStackCount);
+
 	bool UpdateEffectState(float DeltaTime);
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	FActiveGameplayEffectHandle BoundHandle;
-	float CachedDuration = 0.f;
+	FDelegateHandle StackChangeHandle;
 	FTSTicker::FDelegateHandle TickerHandle;
 };

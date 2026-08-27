@@ -30,8 +30,14 @@ void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGame
 
 	SetStackCount(ActiveEffect->Spec.GetStackCount());
 
-	CachedDuration = ActiveEffect->GetDuration();
-	if (CachedDuration > 0.f)
+	// 스택이 쌓여도 적용 통지는 다시 오지 않는다 — GAS 가 기존 스택 분기에서 추가 경로를 건너뛴다.
+	if (FOnActiveGameplayEffectStackChange* StackChanged = InASC->OnGameplayEffectStackChangeDelegate(InHandle))
+	{
+		StackChangeHandle = StackChanged->AddUObject(this, &UWxViewModel_Effect::HandleStackCountChanged);
+	}
+
+	const float EffectDuration = ActiveEffect->GetDuration();
+	if (EffectDuration > 0.f)
 	{
 		const UWorld* World = InASC->GetWorld();
 		if (!World)
@@ -40,11 +46,11 @@ void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGame
 		}
 
 		const float CurrentTime = World->GetTimeSeconds();
-		const float Remaining = FMath::Max((ActiveEffect->StartWorldTime + CachedDuration) - CurrentTime, 0.f);
+		const float Remaining = FMath::Max((ActiveEffect->StartWorldTime + EffectDuration) - CurrentTime, 0.f);
 
-		SetDuration(CachedDuration);
+		SetDuration(EffectDuration);
 		SetTimeRemaining(Remaining);
-		SetTimeRemainingPercent(Remaining / CachedDuration);
+		SetTimeRemainingPercent(Remaining / EffectDuration);
 
 		TickerHandle = FTSTicker::GetCoreTicker().AddTicker(
 			FTickerDelegate::CreateUObject(this, &UWxViewModel_Effect::UpdateEffectState)
@@ -59,6 +65,16 @@ void UWxViewModel_Effect::Deinitialize()
 		FTSTicker::GetCoreTicker().RemoveTicker(TickerHandle);
 		TickerHandle.Reset();
 	}
+
+	// 통지는 활성 효과가 들고 있으므로, 효과가 이미 걷혔으면 조회가 비고 뗄 것도 없다.
+	if (UAbilitySystemComponent* ASC = CachedASC.Get())
+	{
+		if (FOnActiveGameplayEffectStackChange* StackChanged = ASC->OnGameplayEffectStackChangeDelegate(BoundHandle))
+		{
+			StackChanged->Remove(StackChangeHandle);
+		}
+	}
+	StackChangeHandle.Reset();
 
 	CachedASC.Reset();
 	BoundHandle.Invalidate();
@@ -142,6 +158,11 @@ void UWxViewModel_Effect::SetIcon(UObject* NewValue)
 	UE_MVVM_SET_PROPERTY_VALUE(Icon, NewValue);
 }
 
+void UWxViewModel_Effect::HandleStackCountChanged(FActiveGameplayEffectHandle Handle, int32 NewStackCount, int32 PreviousStackCount)
+{
+	SetStackCount(NewStackCount);
+}
+
 bool UWxViewModel_Effect::UpdateEffectState(float DeltaTime)
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
@@ -159,9 +180,9 @@ bool UWxViewModel_Effect::UpdateEffectState(float DeltaTime)
 		return false;
 	}
 
-	SetStackCount(ActiveEffect->Spec.GetStackCount());
-
-	if (CachedDuration > 0.f)
+	// 스택 재적용이 지속시간을 새로 고친다.
+	const float EffectDuration = ActiveEffect->GetDuration();
+	if (EffectDuration > 0.f)
 	{
 		const UWorld* World = ASC->GetWorld();
 		if (!World)
@@ -170,9 +191,10 @@ bool UWxViewModel_Effect::UpdateEffectState(float DeltaTime)
 		}
 
 		const float CurrentTime = World->GetTimeSeconds();
-		const float Remaining = FMath::Max(ActiveEffect->StartWorldTime + CachedDuration - CurrentTime, 0.f);
+		const float Remaining = FMath::Max(ActiveEffect->StartWorldTime + EffectDuration - CurrentTime, 0.f);
+		SetDuration(EffectDuration);
 		SetTimeRemaining(Remaining);
-		SetTimeRemainingPercent(FMath::Min(Remaining / CachedDuration, 1.f));
+		SetTimeRemainingPercent(FMath::Min(Remaining / EffectDuration, 1.f));
 	}
 
 	return true;
