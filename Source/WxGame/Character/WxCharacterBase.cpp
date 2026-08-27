@@ -198,13 +198,18 @@ bool AWxCharacterBase::IsAlive() const
 
 void AWxCharacterBase::InitAbilitySystem()
 {
-	BaseWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
-
+	// 재빙의·PlayerState 재복제로 다시 들어온다. 바뀐 컨트롤러를 다시 물리는 이 갱신은 매번 필요하다.
 	AbilitySystemComponent->RefreshAbilityActorInfo();
 
-	// GiveAbilitySet보다 먼저 등록해야 초기 어트리뷰트 변경(SPD 등)이 콜백에 반영됨
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetSPDAttribute())
-		.AddUObject(this, &AWxCharacterBase::HandleSPDAttributeChanged);
+	// GiveAbilitySet보다 먼저 등록해야 초기 어트리뷰트 변경(SPD 등)이 콜백에 반영된다.
+	// 재진입 때 기준값을 다시 잡으면 이미 SPD가 곱해진 MaxWalkSpeed가 기준이 돼 배율이 누적된다.
+	FOnGameplayAttributeValueChange& SPDChanged =
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetSPDAttribute());
+	if (!SPDChanged.IsBoundToObject(this))
+	{
+		BaseWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
+		SPDChanged.AddUObject(this, &AWxCharacterBase::HandleSPDAttributeChanged);
+	}
 
 	// GiveAbility는 서버에서만 허용. 클라이언트에는 서버로부터 복제됨
 	if (HasAuthority())
