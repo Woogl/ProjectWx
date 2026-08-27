@@ -1,73 +1,64 @@
 # WxWorld — 코드 리뷰
 
-> 전반적으로 건강한 모듈이다. 서버 권위·복제 추종·복원 수렴의 경계가 코드와 doc-comment 양쪽에서 일관되게 지켜지고, 프로젝트 코딩·모듈 규칙 위반은 이번 전수 확인에서 하나도 나오지 않았다(Copyright 첫 줄·`Wx` prefix·`Handle` prefix·`BlueprintCallable`·인라인 정의·람다·`WxCore` 외 Wx 의존 전부 통과). 이번 리뷰는 README 지도를 따라 `AWxDevice`·`UWxDeviceStateTreeComponent`·`UWxInteractionScannerComponent`·`AWxSpawner`의 헤더+cpp를 깊게 보고, `Device`/`Interaction`/`Spawnable`의 StateTree Task 16종과 라이브러리·세팅·모듈·Build.cs 를 훑었으며, 스캐너·스포너의 모듈 밖 호출부(`Source/WxGame`)까지 따라가 실제 도달 가능성을 확인했다.
+> 상태 소유·복제·복원 수렴 패턴이 한 곳(`UWxDeviceStateTreeComponent`)에 모여 있고 태스크들도 진입 경로(라이브/복원)와 권위를 일관되게 가르는, 전반적으로 건강한 모듈이다. 이번 리뷰는 `*.Build.cs`·`*.uplugin`과 51개 소스를 훑고 장치 상태머신·상호작용 스캐너·스포너·대기 등록부 등 핵심 로직 cpp를 정독했다(BP/ST 에셋 내부는 범위 밖).
 
 ## 요약
 | 심각도 | 개수 |
 | --- | --- |
 | 🔴 심각 | 0 |
-| 🟡 개선 | 4 |
-| 🟢 사소 | 2 |
+| 🟡 개선 | 3 |
+| 🟢 사소 | 3 |
 
 ## 결과
 
-### 1. 🟡 트리에 닿지 않는 상호작용이 클라 전원에 헛재진입 연출을 일으킨다
-- **위치**: `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDevice.cpp:77`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDevice.cpp:152`
+### 1. 🟡 `GetPrompts()`가 죽은 약참조를 건너뛰어 선택 인덱스와 어긋난다
+- **위치**: `Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxInteractionScannerComponent.cpp:77-85`
 - **범주**: 버그/정확성
-- **문제**: `OnInteracted`가 `NotifyInteractionPending()`을 먼저 세우고(`:77`) 그다음 `BroadcastInteractionDelegate()`를 부르는데(`:79`), 후자가 실제로 트리에 닿았는지를 보지 않는다. 닿지 않으면 서버 트리는 아무 일도 하지 않은 채 다음 권위 틱의 `PublishAuthorityState`가 「상태가 안 바뀐 재진입」으로 오판해 `Multicast_ReenterState`를 쏘고(`Private/Device/WxDeviceStateTreeComponent.cpp:165-169`), 클라 전원이 현재 상태를 재선택해 몽타주·사운드·나이아가라·레벨시퀀스를 헛재생한다. 누를 때마다 반복된다.
-  가장 확실한 도달 경로는 **빈 바인딩**이다. 남의 트리가 `EnableInteraction`(TargetKind=Actor)로 이 장치를 켜면 `SetInteractionEnabled(true)`만 불려 `bInteractionEnabled`가 서고(`WxDevice.cpp:47-51`), `InteractionBinding`은 기본값(빈 `Dispatcher`·무효 `Context`) 그대로다. 그런데 `CanInteract()`는 `bInteractionEnabled`만 보므로(`:42-45`) 스캔 후보에 오르고, 눌리면 위 경로를 그대로 탄다. 자기 트리가 '상호작용 켜기'를 한 번도 진입한 적 없는 장치가 정확히 이 상태다.
-  두 번째 경로는 **떠난 상태의 컨텍스트**다. `InteractionBinding.Context`는 '상호작용 켜기' 태스크가 진입할 때 캡처한 약한 실행 컨텍스트라(`Private/Interaction/WxStateTreeTask_EnableInteraction.cpp:43`), 그 상태를 이미 떠났으면 발행이 조용히 버려진다. 끌 때 바인딩을 비우지 않는 설계(`WxDevice.cpp:130-135`)라 상태가 바뀌어도 낡은 컨텍스트가 남는다.
-  같은 함정을 `NotifyDeviceInteracted`는 이미 인지해 이벤트 경로에서는 플래그를 걸지 않기로 했다(`WxDevice.cpp:117` 주석). 상호작용 경로에만 그 방어가 없다.
-- **제안**: 발행이 성립했는지 확인한 뒤에만 `NotifyInteractionPending()`을 걸도록 순서를 뒤집는다 — `BroadcastInteractionDelegate()`가 「유효한 컨텍스트 + 유효한 Dispatcher 로 실제 발행했는가」를 bool 로 답하게 하고 그 값으로 가른다. 최소 조치만 하려면 `OnInteracted` 초입의 게이트(`:62`, `:68`)에 바인딩 유효성 검사를 하나 더 붙여 빈 바인딩 장치를 상호작용 후보에서 빼는 방법도 있다.
+- **문제**: 루프가 `if (AActor* Actor = Weak.Get())`로 죽은 항목을 통째로 건너뛰므로 결과 배열이 `InRangeActors`보다 짧아진다. 바로 아랫줄 주석(`:81`)이 선언한 "인덱스 정합" 계약과 어긋나며, `GetSelectedIndex()`(`:89-92`)·`GetSelectedActor()`(`:94-101`)는 여전히 `InRangeActors` 기준 인덱스를 답한다. `UpdateInRange` 안에서는 직전에 죽은 항목을 걷어내므로 드러나지 않지만, 외부 시드 경로가 그대로 맞는다 — `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp:43-44`가 `GetPrompts()`와 `GetSelectedIndex()`를 짝으로 읽는다. 후보 액터가 스캔 사이에 파괴된 순간(적 처치·픽업 습득) HUD가 열리면 엉뚱한 행이 선택으로 표시되거나 목록 범위를 넘는 인덱스가 들어간다.
+- **제안**: 죽은 항목도 `FText::GetEmpty()`로 자리를 채우거나(주석이 말하는 그 처리), `GetPrompts()` 진입에서 `InRangeActors`의 무효 항목을 먼저 걷어낸다.
 - **확신도**: 높음
 
-### 2. 🟡 `GetPrompts()`가 선언한 인덱스 정합을 실제로는 지키지 않는다
-- **위치**: `Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxInteractionScannerComponent.cpp:79`
-- **범주**: 버그/정확성
-- **문제**: 주석(`:81`)은 "인덱스 정합을 위해 대상이 없으면 빈 텍스트로 자리를 채운다"고 선언하는데, 코드는 `if (AActor* Actor = Weak.Get())`로 죽은 약참조를 **건너뛴다** — 자리를 채우는 것이 아니라 항목 자체가 빠진다. `SelectedIndex`는 `InRangeActors` 기준 인덱스인데 뷰모델은 이 프롬프트 배열 기준으로 하이라이트하므로, `InRangeActors`에 죽은 항목이 하나라도 섞이면 HUD가 엉뚱한 줄을 선택 표시한다.
-  `UpdateInRange` 내부 호출(`:237`)은 바로 앞 루프(`:202-211`)가 죽은 항목을 걷어낸 뒤라 안전하지만, `GetPrompts()`는 public 이고 뷰모델이 임의 시점에 초기 시드로 직접 읽는다(`Source/WxGame/MVVM/WxViewModel_InteractionList.cpp:43-44`가 `GetPrompts()`와 `GetSelectedIndex()`를 나란히 읽는다). 스캔 간격(0.1s) 사이에 in-range 액터가 파괴되면 그 창에 걸린다.
-- **제안**: 주석대로 `Prompts.Add(FText::GetEmpty())`로 자리를 채우거나, 정합이 필요 없다면 주석을 코드에 맞춘다. 호출부 계약(프롬프트 배열 인덱스 = 선택 인덱스)과 맞는 것은 전자다.
-- **확신도**: 높음
-
-### 3. 🟡 두 대기 태스크가 레지스트리 인프라를 통째로 중복 구현하고, 이미 한 지점이 갈라졌다
-- **위치**: `Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxStateTreeTask_WaitForInteraction.cpp:11-95`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxStateTreeTask_WaitSpawnersKilled.cpp:12-124`
-- **범주**: 중복/복잡도
-- **문제**: 익명 namespace 의 전역 대기 배열 + 재사용하지 않는 핸들 카운터 + 통보 시 역순 순회·죽은 오너 청소·`FinishTask` + `ExitState`의 선형 제거까지, 두 파일이 구조·주석 문구·변수 명명까지 사실상 같은 코드다. 대기형 태스크가 하나 늘 때마다 같은 40여 줄이 복제되고, 한쪽만 고치면 조용히 갈라진다.
-  실제로 이미 갈라졌다: 로케이터 해석 컨텍스트를 `WaitSpawnersKilled`는 **자기 오너**로(`:72` `AreAllSpawnersKilled(Wait.Spawners, Owner.Get())`), `WaitForInteraction`은 **통보를 보낸 액터**로(`:55` `Wait.Target.SyncFind(Target)`) 잡는다. 후자는 자기 월드가 아닌 곳에서 온 통보로도 해석이 성립하므로, 서버·클라 월드가 한 프로세스에 공존하는 PIE 에서 서버 월드의 상호작용 통보가 클라 월드에 등록된 대기를 완료시킬 수 있다(전역 배열이 월드로 나뉘지 않는다). 실제 빌드에선 통보가 ServerOnly 어빌리티에서만 오고 추종이 상태를 되끌어와 가려지지만, 해석 기준이 다르다는 것 자체가 갈라짐의 증거다.
-- **제안**: 「약한 실행 컨텍스트 + 핸들」 등록/해제/스윕을 `Private/`의 공용 헬퍼(struct 또는 템플릿) 한 곳으로 뽑고 두 태스크는 조건 판정만 넘긴다. 그 참에 해석 컨텍스트를 자기 오너로 통일하고, 등록 시 오너의 월드를 함께 담아 통보를 같은 월드로 좁힌다.
-- **확신도**: 높음
-
-### 4. 🟡 UOL 표시명 헬퍼가 3중, `Compile()` 검증이 2중으로 복제돼 있다
-- **위치**: `Plugins/WxWorld/Source/WxWorld/Private/System/WxSpawnerLibrary.cpp:43-65`, `Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxStateTreeTask_EnableInteraction.cpp:115-137`, `Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxStateTreeTask_WaitForInteraction.cpp:106-128`
-- **범주**: 중복/복잡도
-- **문제**: 세 함수(`GetSpawnerLocatorDisplayName`·`GetTargetDisplayName`×2)의 본문이 빈 로케이터 문구("none"/"unset")만 빼고 줄 단위로 같다 — 액터 라벨 → 마지막 프래그먼트 payload → SubPath 뒤쪽 잘라내기 → "unresolved" 폴백. `UWxSpawnerLibrary::GetSpawnerLocatorDisplayName`은 같은 모듈의 `WITH_EDITOR` public static 이라 두 태스크가 그대로 부를 수 있는데도(`WaitSpawnersKilled`·`TriggerSpawnersByLocator`는 실제로 그렇게 쓴다) 각자 다시 썼다.
-  `Compile()` 본문도 주석까지 포함해 완전히 동일하다 — `Private/Spawnable/WxStateTreeTask_TriggerSpawnersByLocator.cpp:58-78`과 `Private/Spawnable/WxStateTreeTask_WaitSpawnersKilled.cpp:127-147`. 부수적으로 `AWxDevice::PreSave`(`Private/Device/WxDevice.cpp:29-39`)와 `AWxSpawner::PreSave`(`Private/Spawnable/WxSpawner.cpp:193-205`)의 SaveId 확정 로직도 같은 패턴의 2중 복제인데, 후자에만 「왜 PreSave 인가」를 설명하는 주석이 붙어 있다.
-- **제안**: 표시명은 `UWxSpawnerLibrary::GetSpawnerLocatorDisplayName` 하나로 모으고(빈 로케이터 문구는 인자나 호출부에서 처리), UOL 배열의 클래스 검증도 같은 라이브러리에 `ValidateLocatorsAre<T>` 형태로 한 번만 둔다. SaveId 확정은 두 액터가 공유할 자리가 마땅치 않으면 최소한 주석을 한쪽에 맞춘다.
-- **확신도**: 높음
-
-### 5. 🟢 서로 다른 두 Task 가 같은 `DisplayName`("스포너 발동")을 쓴다
-- **위치**: `Plugins/WxWorld/Source/WxWorld/Public/Device/WxStateTreeTask_TriggerSpawners.h:30`, `Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxStateTreeTask_TriggerSpawnersByLocator.h:34`
+### 2. 🟡 `bPendingInteractResolve`가 복원 수렴 구간을 넘어 남는다
+- **위치**: `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceStateTreeComponent.cpp:140-148`, `:165-172`
 - **범주**: 설계/구조
-- **문제**: `meta = (DisplayName = "스포너 발동", Category = "Wx")`가 두 USTRUCT 에 동일하게 걸려 있다(모듈의 다른 14개 Task 는 전부 고유하다). 노드 픽커에 같은 이름이 둘 뜨고, 저작자는 어느 쪽이 바인딩형(`TSoftObjectPtr` 배열)이고 어느 쪽이 리터럴 지정형(UOL)인지 이름만으로 구분할 수 없다. 런타임 `GetDescription`도 둘 다 "스포너 발동 (…)"으로 시작해 노드 목록에서도 갈라지지 않는다.
-- **제안**: 한쪽을 `"스포너 발동 (지정)"`처럼 갈라 놓는다. doc-comment 가 서로를 지목할 때 쓰는 영문 이름(`Trigger Spawners` / `Trigger Spawners By Locator`)과 대응되게 맞추면 더 좋다.
+- **문제**: 이 플래그를 지우는 곳은 `PublishAuthorityState` 하나뿐인데, `SyncStateWithTree`는 `bFollowRestoredState`가 서 있는 동안 발행 경로 자체를 건너뛰고 `FollowStateTag`로 간다. 복원·초기 상태 수렴 중에도 상호작용은 성립할 수 있으므로(수렴하며 지나가는 상태의 '상호작용 켜기'가 켠다 → `WxDevice.cpp:90`이 `NotifyInteractionPending` 호출) 플래그가 그대로 남아, 수렴이 끝난 뒤 처음 도는 발행 틱에서 그때의 상태를 근거로 `Multicast_ReenterState`가 나갈 수 있다. 그 시점의 재진입 통지는 원래의 상호작용과 무관한 상태를 가리킬 수 있고, 받은 클라 전원이 그 상태의 진입 연출을 다시 재생한다.
+- **제안**: 추종 구간에 들어갈 때(`NotifySaveRestored`·BeginPlay의 InitialState 경로) 또는 `FollowStateTag` 진입에서 플래그를 함께 내린다.
+- **확신도**: 중간
+
+### 3. 🟡 연출 태스크에 데디케이티드 서버 게이트가 없다
+- **위치**: `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_PlayLevelSequence.cpp:36`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_PlayAnimation.cpp:26`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_PlayInteractorMontage.cpp:32`
+- **범주**: 성능/안전
+- **문제**: 장치 ST는 모든 피어에서 도는데 이 세 태스크는 넷모드를 보지 않는다. 데디 서버에서도 `ULevelSequencePlayer::CreateLevelSequencePlayer`가 상태 진입마다 `ALevelSequenceActor`를 스폰·평가하고(진입/이탈마다 스폰·Destroy), 싱글노드 애님·몽타주가 서버에서 재생된다 — 볼 사람이 없는 자원 소모다. 더 문제는 이들이 **완료 폴링으로 상태 진행을 게이트한다**는 점이다(`PlayAnimation.cpp:42-44`, `PlayInteractorMontage.cpp:55`). 대상 메시가 서버에서 포즈를 틱하지 않는 설정(`OnlyTickPoseWhenRendered` 등, 프로젝트에도 선례가 있다 — `Source/WxGame/Character/WxMetaHumanComponent.cpp:178`)이면 권위 트리가 그 상태에서 영영 빠져나오지 못하고, 상태가 서버 권위이므로 클라 전원이 함께 멈춘다. 같은 모듈의 `WxStateTreeTask_EnablePlayerInput.cpp:34-39`는 데디 서버를 명시적으로 노옵 처리하고 있어 방침이 일관되지 않다.
+- **제안**: 세 태스크의 `EnterState`에서 `World->IsNetMode(NM_DedicatedServer)`이면 재생을 건너뛰고 곧바로 `Succeeded`를 답한다(상태 진행은 서버가 끌고, 연출은 각 클라가 로컬로 맞춘다).
+- **확신도**: 중간 (자원 소모는 확실, 게이트 정지는 메시 틱 설정에 달린 조건부)
+
+### 4. 🟢 `AWxSpawner`의 인스턴스 파기가 세 곳에 그대로 복제되어 있다
+- **위치**: `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawner.cpp:60-64`, `:107-111`, `:138-144`
+- **범주**: 중복/복잡도
+- **문제**: `Respawn`·`OnSaveRestored`·`EndPlay`가 "`SpawnedActor`가 살아 있으면 Destroy 하고 약참조를 리셋"하는 동일 블록을 각각 들고 있다. 의미 차이가 없는 순수 복제라, 파기 규칙이 바뀌면 세 곳을 같이 고쳐야 한다.
+- **제안**: `DestroySpawnedActor()` 같은 private 헬퍼 하나로 모은다.
 - **확신도**: 높음
 
-### 6. 🟢 스포너 셀이 스트리밍 아웃되면 멀리 있는 스폰 대상까지 파괴된다
-- **위치**: `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawner.cpp:134`
+### 5. 🟢 내장(ChildActor) 장치는 세이브 신원을 얻지 못한다
+- **위치**: `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDevice.cpp:29-44`, `Plugins/WxWorld/Source/WxWorld/Public/Device/WxStateTreeTask_SendEvent.h:43-45`
 - **범주**: 설계/구조
-- **문제**: `EndPlay`가 이유를 가리지 않고 권위에서 `SpawnedActor`를 `Destroy()` 한다. `SpawnTarget`은 복제 스무딩 때문에 의도적으로 스폰 대상을 스포너에 attach 하지 않으므로(`:184-187` 주석), 스폰된 적은 플레이어를 따라 다른 셀로 이동할 수 있다. 그 상태에서 스포너가 놓인 WP 셀이 언로드되면 `EEndPlayReason::RemovedFromWorld`로 `EndPlay`가 돌아 전투 중인 적이 사라진다.
-- **제안**: `EndPlayReason`으로 갈라 `Destroyed`/`LevelTransition`/`Quit` 등에서만 정리하고, 스트리밍 언로드에서는 소유권을 놓아주거나(또는 대상 액터를 `bIsSpatiallyLoaded=false`로 저작) 리스폰 경로가 다시 붙잡게 한다. 의도된 동작이라면 그 이유를 `EndPlay` 자리에 주석으로 남긴다 — 같은 파일의 다른 미묘한 결정들은 전부 주석이 붙어 있어 이 자리만 비어 있다.
+- **문제**: `SaveId`를 확정하는 유일한 자리가 `WITH_EDITOR`의 `PreSave`이고 값의 출처가 `GetActorGuid()`라, 레벨에 배치된 장치만 안정된 신원을 갖는다. 하지만 'Send Event'의 `Child` 갈래는 "오너 BP에 ChildActor로 심긴 내장 장치"를 1급 패턴으로 지원하는데, 그런 장치는 런타임에 템플릿에서 스폰되므로 두 결말 중 하나가 된다 — (a) `SaveId`가 무효라 `Plugins/WxSave/Source/WxSave/Private/WxSaveWorldSubsystem.cpp:311-316`이 매 저장마다 경고를 남기고 그 장치를 통째로 제외하거나, (b) BP 패키지 저장 때 ChildActorTemplate에 GUID가 한 번 구워지면 그 BP의 모든 인스턴스가 같은 레코드를 공유해 서로의 상태를 덮어쓴다. 현재 `Content/WorldObject/Gimmick/` 장치 BP 중 ChildActorComponent를 쓰는 것은 없어 아직 드러나지 않았다.
+- **제안**: 이 패턴을 쓰기 전에 (a)/(b) 중 어느 쪽인지 먼저 확인하고, 내장 장치가 상태를 보존해야 한다면 "오너 SaveId + 컴포넌트 이름"처럼 부모에서 파생한 안정 키를 준다. 보존이 필요 없다면 내장 장치는 저장 대상이 아님을 doc-comment에 명시한다.
+- **확신도**: 낮음(의도된 설계일 수 있음)
+
+### 6. 🟢 `BeginPlay`가 저작 데이터인 `LinkedDevices`를 말없이 늘린다
+- **위치**: `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDevice.cpp:149-161`
+- **범주**: 설계/구조
+- **문제**: 부착 부모가 장치면 조건 없이 `LinkedDevices`에 `AddUnique` 한다. 이 배열은 'Send Event(Linked)'가 그대로 순회하는 대상 목록이므로(`Private/Device/WxStateTreeTask_SendEvent.cpp:59-65`), 아웃라이너에서 다른 장치에 붙여 놓은 장치는 디자이너가 지정한 대상 외에 부모에게도 모든 이벤트를 보낸다. `EditInstanceOnly` 프로퍼티에 코드가 항목을 끼워 넣는 것이라 디테일 패널 값과 런타임 값이 달라 원인 추적도 어렵다.
+- **제안**: 부모 지목이 필요하면 `EWxDeviceEventTarget`에 `Parent` 갈래를 두어 저작에서 명시하게 하고, 자동 추가는 걷어낸다. 자동 추가를 유지한다면 최소한 헤더의 `LinkedDevices` 주석에 "런타임에 부착 부모가 자동으로 더해진다"를 남긴다.
 - **확신도**: 낮음(의도된 설계일 수 있음)
 
 ## 검토 범위
-- **깊게 본 파일**: `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceStateTreeComponent.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceStateTreeComponent.h`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDevice.cpp`, `Plugins/WxWorld/Source/WxWorld/Public/Device/WxDevice.h`, `Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxInteractionScannerComponent.cpp`, `Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxInteractionScannerComponent.h`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawner.cpp`, `Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawner.h`, `Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxStateTreeTask_WaitForInteraction.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxStateTreeTask_WaitSpawnersKilled.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxStateTreeTask_EnableInteraction.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_SendEvent.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/System/WxSpawnerLibrary.cpp`
-- **훑은 파일**: `Plugins/WxWorld/WxWorld.uplugin`, `Plugins/WxWorld/Source/WxWorld/WxWorld.Build.cs`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_ComponentMove.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_SplineMove.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_PlayAnimation.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_PlayInteractorMontage.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_PlayLevelSequence.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_PlaySound.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_SpawnNiagara.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_ApplyGameplayEffectToInteractor.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_EnablePlayerInput.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_TriggerSpawners.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_RespawnSpawners.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxStateTreeTask_TriggerSpawnersByLocator.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeComponentName.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawnable.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/System/WxWorldDeveloperSettings.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/WxWorldModule.cpp` 및 대응 Public 헤더 전부, 모듈 밖 호출부 `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp`
-- **미검토 / 한계**:
-  - 이 환경엔 언리얼 엔진이 없어 빌드·PIE 실측을 하지 않았다. 특히 finding 1 의 「발행이 닿지 않는다」와 finding 3 의 PIE 월드 교차는 엔진 `FStateTreeWeakExecutionContext`의 내부 동작에 기대므로 코드 독해로만 판단했다(빈 바인딩으로 도달하는 경로는 이 모듈 코드만으로 성립한다).
-  - `AWxSpawner`의 `#if WITH_EDITOR` 프리뷰·라벨 경로(`PostRegisterAllComponents`·`PostEditChangeProperty`·`UpdateEditorPreviewFromSpawnableClass`)는 읽었으나 실제 에디터 동작(T3D 붙여넣기·WP 셀 재열기 시 SaveId·라벨 거동)을 재현 검증하지는 않았다.
-  - 장치 StateTree 에셋·BP(`Plugins/WxWorld/Content/`, `Content/Quest/Steps/`)의 내부 저작은 리뷰 범위 밖이라, finding 1 의 「어떤 배선이 빈 바인딩 장치를 켜는가」는 코드 가능성만 확인했고 실제 에셋에서 그 조합이 쓰이는지는 확인하지 않았다.
-  - `FWxStateTreeComponentName`의 짝인 에디터 커스터마이제이션(`FWxStateTreeComponentNameCustomization`)은 `Source/WxEditor`에 있어 이번 모듈 범위 밖이다.
-  - 멀티플레이 실측(늦은 조인·패킷 유실 하의 `StateTag` 수렴, `Multicast_ReenterState` 타이밍, `InteractingCharacter`와 `StateTag`의 도착 순서)은 코드 독해로만 판단했다.
+- **깊게 본 파일**: `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceStateTreeComponent.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceStateTreeComponent.h`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDevice.cpp`, `Plugins/WxWorld/Source/WxWorld/Public/Device/WxDevice.h`, `Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxInteractionScannerComponent.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawner.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/WxStateTreeWaitRegistry.h`, `Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxStateTreeTask_EnableInteraction.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxStateTreeTask_WaitForInteraction.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxStateTreeTask_WaitSpawnersKilled.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_SendEvent.cpp`
+- **훑은 파일**: `Plugins/WxWorld/Source/WxWorld/WxWorld.Build.cs`, `Plugins/WxWorld/WxWorld.uplugin`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_ComponentMove.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_SplineMove.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_PlayAnimation.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_PlayLevelSequence.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_PlaySound.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_SpawnNiagara.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_PlayInteractorMontage.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_ApplyGameplayEffectToInteractor.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_EnablePlayerInput.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_RespawnSpawners.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxStateTreeTask_TriggerSpawners.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawnerLocatorUtils.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeComponentName.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/System/WxSpawnerLibrary.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/System/WxWorldDeveloperSettings.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/WxWorldModule.cpp`, 그리고 대응 Public 헤더 전부
+- **참고로 함께 읽은 모듈 밖 파일**: `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h`, `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp`(서버 권위 검증 확인), `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp`(스캐너 소비자), `Plugins/WxSave/Source/WxSave/Private/WxSaveWorldSubsystem.cpp`(SaveId·컴포넌트 직렬화 경로)
+- **규칙 점검 결과**: `CLAUDE.md` 위반 없음 — 51개 소스 전부 첫 줄 저작권 표기, `BlueprintCallable`은 `UWxSpawnerLibrary::TryRespawnAll`(BP Function Library) 한 곳뿐, 헤더 인라인 정의는 StateTree `GetInstanceDataType()` 15곳과 템플릿 `TWxStateTreeWaitRegistry`뿐이며 모두 예외 사유 주석이 붙어 있다. 람다는 2곳(정렬 술어·등록부 술어)으로 모두 필요한 자리다. 의존은 `WxCore`만 참조해 플러그인 규칙을 지킨다. 오버라이드의 `Super::` 호출 누락도 없다.
+- **미검토 / 한계**: ST 에셋(`ST_Door`·`ST_Elevator` 등)의 상태 Tag 배선·전이 조건은 리뷰 범위 밖이라, 태스크가 상태를 어떻게 조립해 쓰는지에서 오는 문제는 못 본다. 발견 3의 "메시 포즈 틱" 전제와 발견 5의 ChildActorTemplate GUID 굽기 여부는 엔진 cpp 소스가 없어 헤더·문서 수준까지만 확인했고 실행 검증은 하지 않았다. `TWxStateTreeWaitRegistry::FinishMatching` 도중 `FinishTask`가 즉시 완료를 일으켜 ExitState가 스윕 중인 배열을 건드리는 이론적 경로는(엔진 doc-comment 상 ST 틱 안에서 통보가 올 때만 성립) 현 호출부(`MarkKilled`는 사망 처리, `NotifyInteracted`는 어빌리티 실행)에서 도달 경로를 찾지 못해 발견으로 올리지 않았다.
 
 ---
-*문서 기준 커밋 `cf3a7a0` · 리뷰일 2026-08-25 · 소스 50파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `e54feda9` · 리뷰일 2026-08-27 · 소스 51파일 — `/module-review`로 갱신*
