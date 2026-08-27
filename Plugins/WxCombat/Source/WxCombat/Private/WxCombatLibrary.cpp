@@ -29,7 +29,6 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 		return false;
 	}
 
-	// 무기·투사체는 자기 ASC가 없으므로 Owner가 공격자다. 캐릭터가 직접 낸 히트(처형·맨손)는 자기 자신이 공격자다.
 	AActor* SourceActor = Causer;
 	UAbilitySystemComponent* Source = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Causer);
 	if (!Source)
@@ -51,7 +50,7 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 	Context.SetAbility(AnimatingAbility);
 	Context.AddHitResult(HitResult);
 
-	// 애님 노티파이는 어빌리티 활성화 스코프 밖이라 ASC의 ScopedPredictionKey가 무효다.
+	// 노티파이는 활성화 스코프 밖이라 ASC의 ScopedPredictionKey가 무효다.
 	FPredictionKey PredictionKey;
 	if (AnimatingAbility)
 	{
@@ -94,8 +93,7 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 		}
 	}
 
-	// 발동만은 적용 뒤다.
-	// GE 적용이 동기라 이 시점엔 피격자가 보낸 반응 이벤트(패리 등)가 도착해 있어, ApplyHitStop이 그 반응에 몽타주를 양보할 수 있다.
+	// 적용 뒤라야 동기로 도착한 반응(패리 등)에 히트스톱이 몽타주를 양보한다.
 	if (HitStopDuration > 0.f)
 	{
 		if (UWxAbilitySystemComponent* SourceWxASC = Cast<UWxAbilitySystemComponent>(Source))
@@ -117,7 +115,6 @@ void UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclass
 	const UGameplayEffect* CDO = EffectClass->GetDefaultObject<UGameplayEffect>();
 	FGameplayEffectSpec Spec(CDO, TargetASC->MakeEffectContext(), 1.f);
 
-	// 애님 노티파이는 어빌리티 활성화 스코프 밖이라 ASC의 ScopedPredictionKey가 무효다.
 	FPredictionKey PredictionKey;
 	if (PredictingAbility)
 	{

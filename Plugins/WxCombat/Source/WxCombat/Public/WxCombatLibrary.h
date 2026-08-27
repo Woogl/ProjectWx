@@ -13,7 +13,6 @@ class UGameplayAbility;
 class UGameplayEffect;
 struct FHitResult;
 
-/** 무기·투사체에 종속되지 않는 공용 전투 유틸리티 */
 UCLASS()
 class WXCOMBAT_API UWxCombatLibrary : public UBlueprintFunctionLibrary
 {
@@ -27,12 +26,8 @@ public:
 	static bool IsHostile(const AActor* Source, const AActor* Target);
 
 	/**
-	 * 무기 스윙·투사체·피니셔를 비롯한 대미지 경로가 공유하는 단일 진입점이다.
-	 * 성립하지 않는 히트(아군·중립·시체·회피 무적)는 GE를 하나도 걸지 않으므로, 대미지 GE에 얹힌 히트 큐도 상태이상도 발생하지 않는다.
-	 * 회피만은 어트리뷰트에 흔적이 남지 않아 사후 판별이 불가능하므로, 여기서 회피 성공 이벤트를 대신 발행한다.
-	 *
-	 * 예측 키는 몽타주를 재생 중인 어빌리티의 활성화 키를 쓴다.
-	 * 애님 중인 어빌리티가 없으면(시뮬 프록시 등) 키가 무효라 권위 머신에서만 적용된다.
+	 * 모든 대미지 경로의 단일 진입점.
+	 * 성립하지 않는 히트(아군·시체·회피)는 GE를 걸지 않고, 회피만 여기서 DodgeSuccess 이벤트를 낸다.
 	 *
 	 * 다만 대미지 GE는 Instant+Execution이라 엔진이 예측 시 execution을 건너뛴다.
 	 * 어트리뷰트는 서버 권위로 남고, 실제로 예측되는 것은 DamageTableRow의 지속형 AdditionalEffects뿐이다.
@@ -47,9 +42,8 @@ public:
 	static bool ApplyDamage(AActor* Causer, const AActor* Target, const FDataTableRowHandle& DamageTableRow, const FHitResult& HitResult, float HitStopDuration = 0.f);
 
 	/**
-	 * 구간을 여는 쪽이 수명을 소유하는 상태 GE(무적·퍼펙트가드 등)를 건다. 구간을 닫을 때 RemoveEffect와 짝으로 쓴다.
-	 *
-	 * @param PredictingAbility	이 어빌리티의 활성화 예측 키로 적용해 소유 클라이언트도 같은 프레임에 태그를 갖는다. 널이면 서버에서만 걸리고 클라는 복제로 받는다.
+	 * 구간형 상태 GE(무적·퍼펙트가드 등)를 건다.
+	 * @param PredictingAbility	이 어빌리티의 예측 키로 걸어 소유 클라도 같은 프레임에 태그를 갖는다.
 	 */
 	static void ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass, const UGameplayAbility* PredictingAbility);
 };
