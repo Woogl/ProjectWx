@@ -12,7 +12,11 @@
 UWxAbility_Death::UWxAbility_Death()
 {
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
-	
+
+	// 사망은 되돌릴 수 없다 — 클라가 보내는 실행·종료 요청을 서버가 무시한다.
+	// Reaction 그룹이라 취소는 이미 거부되지만, 종료 요청은 CanBeCanceled를 거치지 않아 그대로 통과한다.
+	NetSecurityPolicy = EGameplayAbilityNetSecurityPolicy::ServerOnly;
+
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Death);
 	SetAssetTags(AssetTags);
