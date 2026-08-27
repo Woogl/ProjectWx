@@ -7,7 +7,7 @@
 #include "Indicator/WxIndicatorDescriptor.h"
 #include "Indicator/WxIndicatorManagerComponent.h"
 
-void UWxViewModel_Indicator::StartObserving(APlayerController* PC, int32 InIndicatorIndex)
+void UWxViewModel_Indicator::StartObserving(APlayerController* PC, int32 InSlotIndex)
 {
 	if (!PC)
 	{
@@ -15,7 +15,7 @@ void UWxViewModel_Indicator::StartObserving(APlayerController* PC, int32 InIndic
 	}
 
 	ObservedController = PC;
-	IndicatorIndex = InIndicatorIndex;
+	SlotIndex = InSlotIndex;
 
 	if (UWxIndicatorManagerComponent* Manager = PC->FindComponentByClass<UWxIndicatorManagerComponent>())
 	{
@@ -77,18 +77,8 @@ void UWxViewModel_Indicator::HandleManagerReady(UWxIndicatorManagerComponent* Ma
 
 void UWxViewModel_Indicator::HandleIndicatorsUpdated()
 {
-	const UWxIndicatorDescriptor* Indicator = nullptr;
-
-	if (const UWxIndicatorManagerComponent* Manager = CachedManager.Get())
-	{
-		const TArray<TObjectPtr<UWxIndicatorDescriptor>>& Registered = Manager->GetIndicators();
-		if (Registered.IsValidIndex(IndicatorIndex))
-		{
-			Indicator = Registered[IndicatorIndex];
-		}
-	}
-
-	ApplyIndicator(Indicator);
+	const UWxIndicatorManagerComponent* Manager = CachedManager.Get();
+	ApplyIndicator(Manager ? Manager->GetIndicatorAtSlot(SlotIndex) : nullptr);
 }
 
 void UWxViewModel_Indicator::StopObserving()
@@ -143,6 +133,6 @@ UObject* UWxViewModelResolver_Indicator::CreateInstance(const UClass* ExpectedTy
 
 	// 매니저가 아직 없을 수 있으므로 Outer 는 PC 로 잡는다.
 	UWxViewModel_Indicator* ViewModel = NewObject<UWxViewModel_Indicator>(PC);
-	ViewModel->StartObserving(PC, IndicatorIndex);
+	ViewModel->StartObserving(PC, SlotIndex);
 	return ViewModel;
 }

@@ -28,7 +28,7 @@ class WXUI_API UWxViewModel_Indicator : public UWxViewModel
 
 public:
 	/** 매니저가 이미 붙어 있으면 즉시 연결하고, 아니면 도착 신호를 기다린다. */
-	void StartObserving(APlayerController* PC, int32 InIndicatorIndex);
+	void StartObserving(APlayerController* PC, int32 InSlotIndex);
 
 	void Initialize(UWxIndicatorManagerComponent* InManager);
 
@@ -66,8 +66,8 @@ private:
 
 	TWeakObjectPtr<UWxIndicatorManagerComponent> CachedManager;
 
-	/** 리졸버가 주입하는 등록 순번. */
-	int32 IndicatorIndex = 0;
+	/** 리졸버가 주입하는 슬롯 번호. */
+	int32 SlotIndex = 0;
 };
 
 UCLASS(EditInlineNew, CollapseCategories)
@@ -78,6 +78,7 @@ class WXUI_API UWxViewModelResolver_Indicator : public UMVVMViewModelContextReso
 public:
 	virtual UObject* CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const override;
 
+	/** 동시 표시는 슬롯 번호가 다른 위젯을 HUD 에 더 배치해 늘린다. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Indicator")
-	int32 IndicatorIndex = 0;
+	int32 SlotIndex = 0;
 };

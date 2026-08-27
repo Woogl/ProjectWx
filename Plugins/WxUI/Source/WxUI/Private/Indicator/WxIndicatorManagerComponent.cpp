@@ -141,7 +141,17 @@ UWxIndicatorDescriptor* UWxIndicatorManagerComponent::AddIndicator(USceneCompone
 	UWxIndicatorDescriptor* Indicator = NewObject<UWxIndicatorDescriptor>(this);
 	Indicator->Initialize(this, InTargetComponent, InWorldLocation, InWorldOffset);
 
-	Indicators.Add(Indicator);
+	// 뒤로만 붙이면 해제로 생긴 앞자리를 보는 위젯이 영영 빈 채로 남는다.
+	const int32 EmptySlot = Indicators.Find(nullptr);
+	if (EmptySlot != INDEX_NONE)
+	{
+		Indicators[EmptySlot] = Indicator;
+	}
+	else
+	{
+		Indicators.Add(Indicator);
+	}
+
 	UpdateTickEnabled();
 
 	// 첫 틱을 기다리면 한 프레임 동안 좌표 없이 뜬다.
@@ -153,9 +163,18 @@ UWxIndicatorDescriptor* UWxIndicatorManagerComponent::AddIndicator(USceneCompone
 
 void UWxIndicatorManagerComponent::RemoveIndicator(UWxIndicatorDescriptor* Indicator)
 {
-	if (Indicators.Remove(Indicator) == 0)
+	const int32 SlotIndex = Indicators.IndexOfByKey(Indicator);
+	if (SlotIndex == INDEX_NONE)
 	{
 		return;
+	}
+
+	Indicators[SlotIndex] = nullptr;
+
+	// 뒤쪽 빈 자리를 남기면 목록이 비지 않아 틱이 계속 돈다.
+	while (!Indicators.IsEmpty() && !Indicators.Last())
+	{
+		Indicators.Pop();
 	}
 
 	UpdateTickEnabled();
@@ -164,9 +183,9 @@ void UWxIndicatorManagerComponent::RemoveIndicator(UWxIndicatorDescriptor* Indic
 	OnIndicatorsUpdated.Broadcast();
 }
 
-const TArray<TObjectPtr<UWxIndicatorDescriptor>>& UWxIndicatorManagerComponent::GetIndicators() const
+UWxIndicatorDescriptor* UWxIndicatorManagerComponent::GetIndicatorAtSlot(int32 SlotIndex) const
 {
-	return Indicators;
+	return Indicators.IsValidIndex(SlotIndex) ? Indicators[SlotIndex] : nullptr;
 }
 
 void UWxIndicatorManagerComponent::UpdateProjections()
@@ -179,7 +198,10 @@ void UWxIndicatorManagerComponent::UpdateProjections()
 	{
 		for (const TObjectPtr<UWxIndicatorDescriptor>& Indicator : Indicators)
 		{
-			Indicator->ClearProjection();
+			if (Indicator)
+			{
+				Indicator->ClearProjection();
+			}
 		}
 		return;
 	}
@@ -190,6 +212,11 @@ void UWxIndicatorManagerComponent::UpdateProjections()
 
 	for (const TObjectPtr<UWxIndicatorDescriptor>& Indicator : Indicators)
 	{
+		if (!Indicator)
+		{
+			continue;
+		}
+
 		FVector2D ScreenPosition;
 		double DistanceToCamera = 0.0;
 		ProjectIndicator(*Indicator, ProjectionData, FVector2f(ScreenSize), ScreenPosition, DistanceToCamera);

@@ -40,7 +40,7 @@ public:
 	/** 목록에 없는 등록증은 무시한다. */
 	void RemoveIndicator(UWxIndicatorDescriptor* Indicator);
 
-	const TArray<TObjectPtr<UWxIndicatorDescriptor>>& GetIndicators() const;
+	UWxIndicatorDescriptor* GetIndicatorAtSlot(int32 SlotIndex) const;
 
 	/**
 	 * 등록증의 투영 결과가 갱신되었다는 통지. 매 틱과 등록·해제 시점에 발행된다.
@@ -60,6 +60,7 @@ private:
 
 	void UpdateTickEnabled();
 
+	/** 인덱스가 곧 표시 위젯의 자리라 해제된 칸은 당기지 않고 비워 둔다 — 당기면 뒤의 인디케이터가 앞 위젯으로 옮겨 붙는다. */
 	UPROPERTY()
 	TArray<TObjectPtr<UWxIndicatorDescriptor>> Indicators;
 };
