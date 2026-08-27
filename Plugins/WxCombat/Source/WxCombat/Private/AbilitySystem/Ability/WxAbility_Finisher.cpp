@@ -149,14 +149,10 @@ void UWxAbility_Finisher::RegisterWarpTarget(AActor* AvatarActor, const AActor* 
 void UWxAbility_Finisher::ApplyFinisherDamage(const FDataTableRowHandle& DamageInfo) const
 {
 	const AActor* Target = TargetActor.Get();
-	if (!Target)
-	{
-		return;
-	}
 
-	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
-	UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
-	if (!SourceASC || !TargetASC)
+	// 처형은 무기 액터를 거치지 않고 노티파이가 직접 넣으므로 공격자 자신이 원인 액터다.
+	AActor* Avatar = GetAvatarActorFromActorInfo();
+	if (!Target || !Avatar)
 	{
 		return;
 	}
@@ -165,5 +161,5 @@ void UWxAbility_Finisher::ApplyFinisherDamage(const FDataTableRowHandle& DamageI
 	HitResult.ImpactPoint = Target->GetActorLocation();
 	HitResult.Location = Target->GetActorLocation();
 
-	UWxCombatLibrary::ApplyDamage(SourceASC, TargetASC, DamageInfo, HitResult, 0.f);
+	UWxCombatLibrary::ApplyDamage(Avatar, Target, DamageInfo, HitResult, 0.f);
 }

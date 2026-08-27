@@ -5,6 +5,7 @@
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
 #include "Abilities/GameplayAbility.h"
 #include "GenericTeamAgentInterface.h"
 #include "WxGameplayTags.h"
@@ -21,18 +22,32 @@ bool UWxCombatLibrary::IsHostile(const AActor* Source, const AActor* Target)
 	return !SourceTeamAgent || SourceTeamAgent->GetTeamAttitudeTowards(*Target) == ETeamAttitude::Hostile;
 }
 
-bool UWxCombatLibrary::ApplyDamage(UAbilitySystemComponent* Source, UAbilitySystemComponent* Target, const FDataTableRowHandle& DamageTableRow, const FHitResult& HitResult, float HitStopDuration)
+bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const FDataTableRowHandle& DamageTableRow, const FHitResult& HitResult, float HitStopDuration)
 {
-	if (!Source || !Target)
+	if (!Causer || !Target)
 	{
 		return false;
 	}
 
-	AActor* SourceActor = Source->GetOwnerActor();
+	// 무기·투사체는 자기 ASC가 없으므로 Owner가 공격자다. 캐릭터가 직접 낸 히트(처형·맨손)는 자기 자신이 공격자다.
+	AActor* SourceActor = Causer;
+	UAbilitySystemComponent* Source = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Causer);
+	if (!Source)
+	{
+		SourceActor = Causer->GetOwner();
+		Source = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(SourceActor);
+	}
+
+	UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
+	if (!Source || !TargetASC)
+	{
+		return false;
+	}
+
 	const UGameplayAbility* AnimatingAbility = Source->GetAnimatingAbility();
 
 	FGameplayEffectContextHandle Context = Source->MakeEffectContext();
-	Context.AddInstigator(SourceActor, SourceActor);
+	Context.AddInstigator(SourceActor, Causer);
 	Context.SetAbility(AnimatingAbility);
 	Context.AddHitResult(HitResult);
 
@@ -44,11 +59,11 @@ bool UWxCombatLibrary::ApplyDamage(UAbilitySystemComponent* Source, UAbilitySyst
 	}
 
 	// 적중 성립 여부는 대미지가 들어가기 전 상태로 가른다 — 이 히트로 죽은 대상은 아직 살아 있던 것으로 쳐야 마무리 일격에도 역경직이 걸린다.
-	const EWxDamageResult DamageCheck = UWxExecCalc_Damage::CheckDamage(Source, Target);
+	const EWxDamageResult DamageCheck = UWxExecCalc_Damage::CheckDamage(Source, TargetASC);
 
 	if (DamageCheck == EWxDamageResult::Evaded)
 	{
-		AActor* TargetActor = Target->GetOwnerActor();
+		AActor* TargetActor = TargetASC->GetOwnerActor();
 
 		FGameplayEventData EventData;
 		EventData.Instigator = SourceActor;
@@ -74,7 +89,7 @@ bool UWxCombatLibrary::ApplyDamage(UAbilitySystemComponent* Source, UAbilitySyst
 	{
 		if (Spec.IsValid())
 		{
-			const FActiveGameplayEffectHandle AppliedHandle = Source->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), Target, PredictionKey);
+			const FActiveGameplayEffectHandle AppliedHandle = Source->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC, PredictionKey);
 			bAppliedAny |= AppliedHandle.WasSuccessfullyApplied();
 		}
 	}

@@ -4,8 +4,6 @@
 #include "Components/ShapeComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Character.h"
-#include "AbilitySystemComponent.h"
-#include "AbilitySystemGlobals.h"
 #include "WxCollisionChannels.h"
 #include "WxCombatLibrary.h"
 
@@ -268,7 +266,5 @@ void AWxWeaponBase::ProcessHit(AActor* OtherActor, const FHitResult& HitResult)
 	}
 
 	HitActorsThisSwing.Add(OtherActor);
-	UAbilitySystemComponent* OwnerASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(WeaponOwner);
-	UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
-	UWxCombatLibrary::ApplyDamage(OwnerASC, TargetASC, DamageInfo, HitResult, HitStopDuration);
+	UWxCombatLibrary::ApplyDamage(this, OtherActor, DamageInfo, HitResult, HitStopDuration);
 }
