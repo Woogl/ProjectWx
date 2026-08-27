@@ -352,9 +352,11 @@ void UWxCombatAttributeSet::ProcessPerfectGuard(const FGameplayEffectModCallback
 		UWxEffect_AddDP::ApplyTo(SourceASC, ReflectAmount);
 	}
 
+	// 컨텍스트를 함께 실어야 가드 리액션이 피격 이벤트와 같은 방식으로 원인 액터를 집는다.
 	FGameplayEventData EventData;
 	EventData.Instigator = SourceActor;
 	EventData.Target = TargetActor;
+	EventData.ContextHandle = ContextHandle;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_PerfectGuard, EventData);
 
 	if (bCanParry && SourceActor)

@@ -3,6 +3,7 @@
 #include "AbilitySystem/Ability/WxAbility_GuardReact.h"
 #include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
 #include "AbilitySystemComponent.h"
+#include "GameFramework/Actor.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_GuardReact::UWxAbility_GuardReact()
@@ -65,6 +66,26 @@ void UWxAbility_GuardReact::ActivateAbility(const FGameplayAbilitySpecHandle Han
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
+	}
+
+	// 흡수 자세는 공격이 온 쪽을 봐야 성립하므로, 몽타주가 실제로 걸린 뒤에 방향을 맞춘다.
+	// 공격자에게 부착된 원인 액터(근접 무기)는 위치가 스윙의 산물이라, 떨어져 날아온 것(투사체)만 자기 위치를 방향으로 쓴다.
+	// 투사체는 히트 직후 파괴되므로 트리거 RPC가 늦게 닿는 소유 클라에서는 널로 풀려, 그때도 공격자로 떨어진다.
+	const AActor* Attacker = TriggerEventData ? TriggerEventData->Instigator.Get() : nullptr;
+	const AActor* Causer = TriggerEventData ? TriggerEventData->ContextHandle.GetEffectCauser() : nullptr;
+	const AActor* AttackSource = (Causer && Causer->GetAttachParentActor() != Attacker) ? Causer : Attacker;
+
+	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
+	if (AttackSource && AvatarActor)
+	{
+		FVector Direction = AttackSource->GetActorLocation() - AvatarActor->GetActorLocation();
+		Direction.Z = 0.0;
+		if (!Direction.IsNearlyZero())
+		{
+			FRotator NewRotation = AvatarActor->GetActorRotation();
+			NewRotation.Yaw = Direction.ToOrientationRotator().Yaw;
+			AvatarActor->SetActorRotation(NewRotation);
+		}
 	}
 
 	// 몽타주가 실제로 걸린 뒤에 건다 — 실패 경로에서 걸면 태스크가 같은 프레임에 파괴되며 복제된 딜레이션만 한 번 튄다.
