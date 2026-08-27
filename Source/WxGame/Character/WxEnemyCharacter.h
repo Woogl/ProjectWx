@@ -57,7 +57,7 @@ protected:
 	TObjectPtr<UWxLockOnPointComponent> LockOnPoint;
 
 	/**
-	 * 정면 기준 이 각도(도) 바깥의 후방 원뿔에 플레이어가 있어야 백스탭이 노출된다.
+	 * 정면 반대 축 기준 이 반각(도) 이내의 후방 원뿔에 플레이어가 있어야 백스탭이 노출된다.
 	 * 기본 90 = 후방 반구.
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Interaction", meta = (ClampMin = "0", ClampMax = "180"))

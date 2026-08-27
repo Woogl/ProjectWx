@@ -73,7 +73,7 @@ void AWxEnemyCharacter::HandleDeath()
 		Spawner->MarkKilled();
 	}
 
-
+	// 처치자를 가리지 않고 항상 0번 플레이어에게 지급하는 것이 의도다.
 	if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0))
 	{
 		UWxRewardLibrary::GrantReward(this, RewardRow, PlayerController, GetActorTransform(), FVector::UpVector * LaunchSpeed);
