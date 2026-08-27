@@ -8,6 +8,7 @@
 #include "LevelSequenceActor.h"
 #include "LevelSequencePlayer.h"
 #include "Time/WxTimeDilationComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Character.h"
 
 UWxAbilityTask_PlaySkillCutscene* UWxAbilityTask_PlaySkillCutscene::CreateTask(UGameplayAbility* OwningAbility, ULevelSequence* InLevelSequence, float InGlobalTimeDilation)
@@ -53,12 +54,10 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 	UWxTimeDilationComponent::SetGlobalTimeDilationAuthoritative(this, GlobalTimeDilation);
 
 	AActor* AvatarActor = GetAvatarActor();
-	if (AvatarActor)
+	ACharacter* AvatarCharacter = Cast<ACharacter>(AvatarActor);
+	if (AvatarCharacter)
 	{
-		if (ACharacter* AvatarCharacter = Cast<ACharacter>(AvatarActor))
-		{
-			AvatarCharacter->StopAnimMontage();
-		}
+		AvatarCharacter->StopAnimMontage();
 	}
 
 	FMovieSceneSequencePlaybackSettings PlaybackSettings;
@@ -85,13 +84,15 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 		SequenceActor->bOverrideInstanceData = true;
 		if (UDefaultLevelSequenceInstanceData* InstanceData = Cast<UDefaultLevelSequenceInstanceData>(SequenceActor->DefaultInstanceData))
 		{
-			InstanceData->TransformOrigin = AvatarActor->GetActorTransform();
+			// 시퀀스는 레퍼런스 스켈레탈 메시를 원점에 두고 저작하므로, 아바타 쪽 대응물도 액터가 아니라 메시가 놓인 자리다.
+			InstanceData->TransformOrigin = AvatarCharacter ? AvatarCharacter->GetMesh()->GetComponentTransform() : AvatarActor->GetActorTransform();
 		}
 
 		static const FName PlayerBindingTag = TEXT("Player");
 		TArray<AActor*> Actors;
 		Actors.Add(AvatarActor);
-		SequenceActor->SetBindingByTag(PlayerBindingTag, Actors, true);
+		// 에셋의 자체 바인딩을 함께 허용하면 저작용 레퍼런스 액터가 게임에서도 스폰된다.
+		SequenceActor->SetBindingByTag(PlayerBindingTag, Actors, false);
 	}
 
 	if (GlobalTimeDilation > 0.f && GlobalTimeDilation != 1.f)
