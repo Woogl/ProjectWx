@@ -31,7 +31,6 @@ UWxAbility_Groggy::UWxAbility_Groggy()
 	// 그로기 동안 새 액션을 막는다.
 	ActivationGroup = EWxAbilityActivationGroup::Reaction;
 
-	// 그로기에 빠지면 진행 중이던 액션(적 패턴 포함)을 끊는다.
 	// 전부를 지목해도 반응은 끊기지 않아, 처형 짝 피격처럼 겹쳐 있어야 할 것이 살아남는다.
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 
@@ -63,13 +62,12 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	DeadTagDelegateHandle = ASC->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &UWxAbility_Groggy::HandleDeadTagChanged);
 
-	UWorld* World = ActorInfo->AvatarActor.IsValid() ? ActorInfo->AvatarActor->GetWorld() : nullptr;
+	UWorld* World = GetWorld();
 	if (World)
 	{
 		World->GetTimerManager().SetTimer(MontagePollingTimerHandle, this, &UWxAbility_Groggy::HandleMontagePollTick, 0.1f, true);
 	}
 
-	// 드레인과 종료 판정은 서버만 한다.
 	// 클라가 복제된 DP로 다시 판정하면 종료 시점이 어긋나, 그 창의 히트에서 HitReact의 넉 강등이 갈리고 LaunchCharacter가 한쪽에서만 실행된다.
 	if (ActorInfo->IsNetAuthority())
 	{
@@ -110,7 +108,7 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 {
 	if (ActorInfo)
 	{
-		if (UWorld* World = ActorInfo->AvatarActor.IsValid() ? ActorInfo->AvatarActor->GetWorld() : nullptr)
+		if (UWorld* World = GetWorld())
 		{
 			World->GetTimerManager().ClearTimer(MontagePollingTimerHandle);
 			World->GetTimerManager().ClearTimer(GroggySafetyTimerHandle);
