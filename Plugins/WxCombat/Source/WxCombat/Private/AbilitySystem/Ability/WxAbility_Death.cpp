@@ -4,10 +4,8 @@
 #include "AbilitySystemComponent.h"
 #include "AIController.h"
 #include "BrainComponent.h"
-#include "GameFramework/Character.h"
-#include "WxCollisionChannels.h"
+#include "GameFramework/Pawn.h"
 #include "WxGameplayTags.h"
-#include "Components/SkeletalMeshComponent.h"
 
 UWxAbility_Death::UWxAbility_Death()
 {
@@ -46,13 +44,8 @@ void UWxAbility_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 	// 커밋하지 않는다 — 사망은 코스트·쿨다운이 없는 강제 전이이고, 커밋 실패가 곧 사망 미성립(Ability.Death 미부여)이 된다.
 
-	ACharacter* Avatar = Cast<ACharacter>(GetAvatarActorFromActorInfo());
-	if (Avatar && Avatar->GetMesh())
-	{
-		// CollisionEnabled를 내리면 ShouldCreatePhysicsState가 false가 되어 피직스 바디가 통째로 파괴되고, 래그돌 진입에서 다시 만드는 왕복이 생긴다.
-		Avatar->GetMesh()->SetCollisionResponseToChannel(ECC_WxAttack, ECR_Ignore);
-	}
-	
+	// 시체의 피격 판정 해제는 AWxCharacterBase::HandleDeath가 맡는다 — 콜리전 응답은 복제되지 않아 시뮬 프록시도 각자 걷어야 한다.
+	const APawn* Avatar = Cast<APawn>(GetAvatarActorFromActorInfo());
 	AAIController* AIController = Avatar ? Cast<AAIController>(Avatar->GetController()) : nullptr;
 	if (UBrainComponent* Brain = AIController ? AIController->GetBrainComponent() : nullptr)
 	{

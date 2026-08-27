@@ -296,5 +296,9 @@ void AWxCharacterBase::HandleDeath()
 		Weapon->CancelAttack();
 	}
 
+	// 시체가 더 맞지도 않게 한다. 콜리전 응답은 복제되지 않으므로, 어빌리티가 아니라 여기서 걷어야 시뮬 프록시까지 닿는다.
+	// CollisionEnabled를 내리면 ShouldCreatePhysicsState가 false가 되어 피직스 바디가 통째로 파괴되고, 래그돌 진입에서 다시 만드는 왕복이 생긴다.
+	GetMesh()->SetCollisionResponseToChannel(ECC_WxAttack, ECR_Ignore);
+
 	OnDeath.Broadcast(this);
 }
