@@ -209,11 +209,6 @@ bool UWxAbilityBase::PlayMontage(UAnimMontage* Montage, FName StartSection)
 
 	UAbilityTask_PlayMontageAndWait* NewMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this, NAME_None, Montage, GetMontagePlayRate(), StartSection, true, 1.f, 0.f, true);
-	if (!NewMontageTask)
-	{
-		return false;
-	}
-
 	MontageTask = NewMontageTask;
 	ActiveMontage = Montage;
 

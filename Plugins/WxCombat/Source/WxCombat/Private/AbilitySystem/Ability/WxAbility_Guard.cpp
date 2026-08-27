@@ -97,11 +97,8 @@ void UWxAbility_Guard::ListenForGuardReactEnded()
 	// 연속 피격은 리액션이 스스로 재발동하며 자세 밀어내기를 되풀이하므로, 한 번 쓰고 그 지점에서 다시 건다.
 	// 두 진입점에서 겹쳐 걸릴 수 있으나 핸들러가 같은 프레임에 두 번 도는 것뿐이라 무해하다.
 	UAbilityTask_WaitGameplayTagRemoved* RemovedTask = UAbilityTask_WaitGameplayTagRemoved::WaitGameplayTagRemove(this, WxGameplayTags::Ability_GuardReact, nullptr, true);
-	if (RemovedTask)
-	{
-		RemovedTask->Removed.AddDynamic(this, &UWxAbility_Guard::HandleGuardReactEnded);
-		RemovedTask->ReadyForActivation();
-	}
+	RemovedTask->Removed.AddDynamic(this, &UWxAbility_Guard::HandleGuardReactEnded);
+	RemovedTask->ReadyForActivation();
 }
 
 void UWxAbility_Guard::HandleGuardReactEnded()

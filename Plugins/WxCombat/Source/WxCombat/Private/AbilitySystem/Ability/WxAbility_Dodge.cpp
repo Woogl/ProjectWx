@@ -188,11 +188,8 @@ void UWxAbility_Dodge::ListenForDodgeSuccess()
 	// 보상은 회피 1회당 한 번이어야 하므로 OnlyTriggerOnce로 바인딩한다.
 	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
 		this, WxGameplayTags::Event_DodgeSuccess, nullptr, true);
-	if (EventTask)
-	{
-		EventTask->EventReceived.AddDynamic(this, &UWxAbility_Dodge::HandleDodgeSuccess);
-		EventTask->ReadyForActivation();
-	}
+	EventTask->EventReceived.AddDynamic(this, &UWxAbility_Dodge::HandleDodgeSuccess);
+	EventTask->ReadyForActivation();
 }
 
 void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
@@ -202,10 +199,8 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 		return;
 	}
 	
-	if (UWxAbilityTask_SlowTime* SlowTimeTask = UWxAbilityTask_SlowTime::CreateTask(this, PerfectDodgeSlowTimeDilation, PerfectDodgeSlowTimeDuration))
-	{
-		SlowTimeTask->ReadyForActivation();
-	}
+	UWxAbilityTask_SlowTime* SlowTimeTask = UWxAbilityTask_SlowTime::CreateTask(this, PerfectDodgeSlowTimeDilation, PerfectDodgeSlowTimeDuration);
+	SlowTimeTask->ReadyForActivation();
 
 	// 회피 섹션은 몸을 돌리지 않고 몸 기준 루트모션으로만 흐르므로, 극한 회피도 같은 방향 섹션으로 이어야 이동이 꺾이지 않는다.
 	// 루트모션 중 속도가 곧 진행 방향이라, 8방향 양자화·잔차 보정·백스텝이 이 값 하나로 수렴한다.
@@ -227,18 +222,12 @@ void UWxAbility_Dodge::ListenForInvincibleWindow()
 	// 무적 태그는 WxAnimNotifyState_ApplyGameplayEffect가 발행하고, 여기서는 관찰만 해 판정 캡슐의 수명을 태그에 맞춘다.
 	// 두 태스크 모두 재무장하므로 PerfectDodgeMontage에 무적 구간이 또 있어도 그대로 처리된다.
 	UAbilityTask_WaitGameplayTagAdded* AddedTask = UAbilityTask_WaitGameplayTagAdded::WaitGameplayTagAdd(this, WxGameplayTags::Effect_Invincible, nullptr, false);
-	if (AddedTask)
-	{
-		AddedTask->Added.AddDynamic(this, &UWxAbility_Dodge::HandleInvincibleTagAdded);
-		AddedTask->ReadyForActivation();
-	}
+	AddedTask->Added.AddDynamic(this, &UWxAbility_Dodge::HandleInvincibleTagAdded);
+	AddedTask->ReadyForActivation();
 
 	UAbilityTask_WaitGameplayTagRemoved* RemovedTask = UAbilityTask_WaitGameplayTagRemoved::WaitGameplayTagRemove(this, WxGameplayTags::Effect_Invincible, nullptr, false);
-	if (RemovedTask)
-	{
-		RemovedTask->Removed.AddDynamic(this, &UWxAbility_Dodge::HandleInvincibleTagRemoved);
-		RemovedTask->ReadyForActivation();
-	}
+	RemovedTask->Removed.AddDynamic(this, &UWxAbility_Dodge::HandleInvincibleTagRemoved);
+	RemovedTask->ReadyForActivation();
 }
 
 void UWxAbility_Dodge::ActivateJudgementCapsule()

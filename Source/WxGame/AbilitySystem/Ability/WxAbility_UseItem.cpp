@@ -55,11 +55,8 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 	// 1회만 수신한다.
 	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
 		this, WxGameplayTags::Event_UseItem, nullptr, true);
-	if (EventTask)
-	{
-		EventTask->EventReceived.AddDynamic(this, &UWxAbility_UseItem::HandleConsumeEvent);
-		EventTask->ReadyForActivation();
-	}
+	EventTask->EventReceived.AddDynamic(this, &UWxAbility_UseItem::HandleConsumeEvent);
+	EventTask->ReadyForActivation();
 }
 
 void UWxAbility_UseItem::HandleConsumeEvent(FGameplayEventData Payload)

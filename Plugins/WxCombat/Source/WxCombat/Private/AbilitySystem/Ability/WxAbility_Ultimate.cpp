@@ -49,13 +49,10 @@ void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	if (Sequence)
 	{
 		UWxAbilityTask_PlaySkillCutscene* CutsceneTask = UWxAbilityTask_PlaySkillCutscene::CreateTask(this, Sequence, 0.001f);
-		if (CutsceneTask)
-		{
-			CutsceneTask->OnCompleted.AddDynamic(this, &UWxAbility_Ultimate::HandleCutsceneCompleted);
-			CutsceneTask->OnCancelled.AddDynamic(this, &UWxAbility_Ultimate::HandleCutsceneCancelled);
-			CutsceneTask->ReadyForActivation();
-			return;
-		}
+		CutsceneTask->OnCompleted.AddDynamic(this, &UWxAbility_Ultimate::HandleCutsceneCompleted);
+		CutsceneTask->OnCancelled.AddDynamic(this, &UWxAbility_Ultimate::HandleCutsceneCancelled);
+		CutsceneTask->ReadyForActivation();
+		return;
 	}
 
 	// 컷신 에셋이 없으면 바로 몽타주 단계로 넘어간다.

@@ -78,11 +78,9 @@ void UWxAbility_Sprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		DrainEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, DrainSpecHandle);
 	}
 
-	if (UWxAbilityTask_WaitMoving* MovingTask = UWxAbilityTask_WaitMoving::CreateTask(this))
-	{
-		MovingTask->OnMovingChanged.AddDynamic(this, &UWxAbility_Sprint::HandleMovingChanged);
-		MovingTask->ReadyForActivation();
-	}
+	UWxAbilityTask_WaitMoving* MovingTask = UWxAbilityTask_WaitMoving::CreateTask(this);
+	MovingTask->OnMovingChanged.AddDynamic(this, &UWxAbility_Sprint::HandleMovingChanged);
+	MovingTask->ReadyForActivation();
 
 	SPChangedHandle = ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetSPAttribute())
 		.AddUObject(this, &UWxAbility_Sprint::HandleSPChanged);
