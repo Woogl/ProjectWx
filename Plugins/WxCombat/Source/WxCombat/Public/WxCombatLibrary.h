@@ -29,14 +29,9 @@ public:
 	 * 모든 대미지 경로의 단일 진입점.
 	 * 성립하지 않는 히트(아군·시체·회피)는 GE를 걸지 않고, 회피만 여기서 DodgeSuccess 이벤트를 낸다.
 	 *
-	 * 다만 대미지 GE는 Instant+Execution이라 엔진이 예측 시 execution을 건너뛴다.
-	 * 어트리뷰트는 서버 권위로 남고, 실제로 예측되는 것은 DamageTableRow의 지속형 AdditionalEffects뿐이다.
-	 *
-	 * @param Causer			히트를 낸 액터. 컨텍스트의 원인 액터(EffectCauser)로 실려, 피격 반응이 이 액터를 공격이 온 방향으로 삼는다.
-	 *							공격자는 여기서 역추적한다 — 이 액터가 ASC를 가지면 그것이 공격자이고(처형·맨손), 없으면 Owner가 공격자다(무기·투사체).
-	 *							둘 다 아니면 공격자를 찾지 못해 아무것도 걸지 않는다.
-	 * @param HitStopDuration	0보다 크고 적중이 성립하면 공격자 ASC의 히트스톱을 이 길이만큼 발동한다.
-	 * @return					Spec 중 하나라도 권위 또는 예측으로 적용됐으면 true.
+	 * @param Causer			히트를 낸 액터. ASC가 없으면 Owner가 공격자다.
+	 * @param HitStopDuration	0보다 크면 적중 시 공격자에 히트스톱.
+	 * @return					대미지 GE가 적용됐으면 true. 회피(DodgeSuccess)·적용 실패는 false.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Combat")
 	static bool ApplyDamage(AActor* Causer, const AActor* Target, const FDataTableRowHandle& DamageTableRow, const FHitResult& HitResult, float HitStopDuration = 0.f);

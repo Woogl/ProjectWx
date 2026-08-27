@@ -82,14 +82,17 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 		return false;
 	}
 	
-	bool bAppliedAny = false;
+	bool bDamageApplied = false;
 	const TArray<FGameplayEffectSpecHandle> Specs = DamageRow->MakeSpecs(Source, Context);
 	for (const FGameplayEffectSpecHandle& Spec : Specs)
 	{
 		if (Spec.IsValid())
 		{
 			const FActiveGameplayEffectHandle AppliedHandle = Source->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC, PredictionKey);
-			bAppliedAny |= AppliedHandle.WasSuccessfullyApplied();
+			if (Spec.Data->Def->IsA<UWxEffect_Damage>())
+			{
+				bDamageApplied = AppliedHandle.WasSuccessfullyApplied();
+			}
 		}
 	}
 
@@ -102,7 +105,7 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 		}
 	}
 
-	return bAppliedAny;
+	return bDamageApplied;
 }
 
 void UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass, const UGameplayAbility* PredictingAbility)
