@@ -52,12 +52,4 @@ public:
 	 * @param PredictingAbility	이 어빌리티의 활성화 예측 키로 적용해 소유 클라이언트도 같은 프레임에 태그를 갖는다. 널이면 서버에서만 걸리고 클라는 복제로 받는다.
 	 */
 	static void ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass, const UGameplayAbility* PredictingAbility);
-
-	/**
-	 * ApplyEffect로 연 구간을 닫는다.
-	 *
-	 * 예측으로 건 GE의 핸들은 서버본이 도착하면 무효해지므로 정의로 조회해 지운다.
-	 * 다만 하나만 걷어낸다 — 같은 GE를 건 다른 출처(처형의 활성 구간, 궁극기 컷신)가 겹쳐 있어도 그쪽 무적까지 벗기지 않기 위해서다.
-	 */
-	static void RemoveEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass);
 };

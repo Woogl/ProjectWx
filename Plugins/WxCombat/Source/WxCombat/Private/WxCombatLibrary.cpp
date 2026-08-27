@@ -126,13 +126,3 @@ void UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclass
 
 	TargetASC->ApplyGameplayEffectSpecToSelf(Spec, PredictionKey);
 }
-
-void UWxCombatLibrary::RemoveEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass)
-{
-	if (!TargetASC || !EffectClass)
-	{
-		return;
-	}
-
-	TargetASC->RemoveActiveGameplayEffectBySourceEffect(EffectClass, nullptr, 1);
-}

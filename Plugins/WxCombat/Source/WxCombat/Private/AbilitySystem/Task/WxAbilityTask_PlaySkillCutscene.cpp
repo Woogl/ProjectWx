@@ -21,7 +21,11 @@ UWxAbilityTask_PlaySkillCutscene* UWxAbilityTask_PlaySkillCutscene::CreateTask(U
 
 void UWxAbilityTask_PlaySkillCutscene::OnDestroy(bool bInOwnerFinished)
 {
-	UWxCombatLibrary::RemoveEffect(AbilitySystemComponent.Get(), UWxEffect_Invincible::StaticClass());
+	if (UAbilitySystemComponent* ASC = AbilitySystemComponent.Get())
+	{
+		// 예측으로 건 GE의 핸들은 서버본이 도착하면 무효해져 쓰지 못하므로 정의로 찾는다.
+		ASC->RemoveActiveGameplayEffectBySourceEffect(UWxEffect_Invincible::StaticClass(), nullptr, 1);
+	}
 
 	UWxTimeDilationComponent::ClearGlobalTimeDilationAuthoritative(this);
 	CleanupSequenceActor();
