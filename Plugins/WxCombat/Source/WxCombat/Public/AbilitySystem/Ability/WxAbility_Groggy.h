@@ -17,6 +17,7 @@ struct FOnAttributeChangeData;
  *
  * 드레인과 종료 판정은 서버만 한다. 소유 클라 인스턴스는 자세 몽타주만 맡고, 종료는 서버가 보내는 ClientEndAbility로 따라간다.
  */
+// TODO: 단순하게 몽타주 길이로만 판정하자
 UCLASS()
 class WXCOMBAT_API UWxAbility_Groggy : public UWxAbilityBase
 {
@@ -28,23 +29,16 @@ public:
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	TObjectPtr<UAnimMontage> GroggyMontage;
 
 private:
-	// ActivationBlockedTags는 신규 활성화만 막고 실행 중 인스턴스는 끝내지 못하므로 별도 구독한다.
-	void HandleDeadTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
-
 	void HandleGPChanged(const FOnAttributeChangeData& Data);
 
 	void HandleMontagePollTick();
 
-	// 실패복구: DrainGP가 GP를 0까지 못 내려 그로기가 끝나지 않으면 GP를 강제 리셋해 종료시킨다. 드레인과 같이 서버에서만 건다.
-	void HandleGroggySafetyTimeout();
-
-	FDelegateHandle DeadTagDelegateHandle;
 	FDelegateHandle GPDelegateHandle;
 	FActiveGameplayEffectHandle DrainGPEffectHandle;
 	FTimerHandle MontagePollingTimerHandle;
-	FTimerHandle GroggySafetyTimerHandle;
 };

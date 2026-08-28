@@ -43,14 +43,68 @@ void UWxCombatAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribu
 {
 	Super::PreAttributeChange(Attribute, NewValue);
 
-	ClampAttribute(Attribute, NewValue);
+	NewValue = FMath::Max(NewValue, 0.f);
+
+	float MaxValue = 0.f;
+	if (Attribute == GetHPAttribute())
+	{
+		MaxValue = GetMaxHP();
+	}
+	else if (Attribute == GetMPAttribute())
+	{
+		MaxValue = GetMaxMP();
+	}
+	else if (Attribute == GetSPAttribute())
+	{
+		MaxValue = GetMaxSP();
+	}
+	else if (Attribute == GetGPAttribute())
+	{
+		MaxValue = GetMaxGP();
+	}
+	else if (Attribute == GetUPAttribute())
+	{
+		MaxValue = GetMaxUP();
+	}
+
+	if (MaxValue > 0.f)
+	{
+		NewValue = FMath::Min(NewValue, MaxValue);
+	}
 }
 
 void UWxCombatAttributeSet::PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const
 {
 	Super::PreAttributeBaseChange(Attribute, NewValue);
 
-	ClampAttribute(Attribute, NewValue);
+	NewValue = FMath::Max(NewValue, 0.f);
+
+	float MaxValue = 0.f;
+	if (Attribute == GetHPAttribute())
+	{
+		MaxValue = GetMaxHP();
+	}
+	else if (Attribute == GetMPAttribute())
+	{
+		MaxValue = GetMaxMP();
+	}
+	else if (Attribute == GetSPAttribute())
+	{
+		MaxValue = GetMaxSP();
+	}
+	else if (Attribute == GetGPAttribute())
+	{
+		MaxValue = GetMaxGP();
+	}
+	else if (Attribute == GetUPAttribute())
+	{
+		MaxValue = GetMaxUP();
+	}
+
+	if (MaxValue > 0.f)
+	{
+		NewValue = FMath::Min(NewValue, MaxValue);
+	}
 }
 
 void UWxCombatAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
@@ -79,17 +133,10 @@ void UWxCombatAttributeSet::PostAttributeChange(const FGameplayAttribute& Attrib
 		const float Ratio = GetMP() / OldValue;
 		SetMP(NewValue * Ratio);
 	}
-	else if (Attribute == GetGPAttribute() && GetMaxGP() > 0.f)
+	else if (Attribute == GetMaxGPAttribute() && OldValue > 0.f && NewValue > 0.f)
 	{
-		// 그로기 진입만 알리고 해제는 관여하지 않는다 — 어빌리티가 DP를 직접 보고 스스로 끝낸다.
-		if (GetGP() >= GetMaxGP() && !ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
-		{
-			FGameplayEventData EventData;
-			EventData.EventTag = WxGameplayTags::Event_Groggy;
-			EventData.Instigator = GetOwningActor();
-			EventData.Target = EventData.Instigator;
-			ASC->HandleGameplayEvent(WxGameplayTags::Event_Groggy, &EventData);
-		}
+		const float Ratio = GetGP() / OldValue;
+		SetGP(NewValue * Ratio);
 	}
 }
 
@@ -143,6 +190,19 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 		if (Data.EvaluatedData.Magnitude < 0.f && GetMaxSP() > 0.f && ASC && ASC->IsOwnerActorAuthoritative())
 		{
 			UWxEffect_Exhaust::ApplyTo(ASC, GetSP() <= 0.f ? UWxEffect_Exhaust::ExhaustDuration : UWxEffect_Exhaust::ConsumeDelay);
+		}
+	}
+	else if (Data.EvaluatedData.Attribute == GetGPAttribute() && GetMaxGP() > 0.f)
+	{
+		// 그로기 진입만 알리고 해제는 관여하지 않는다 — 어빌리티가 DP를 직접 보고 스스로 끝낸다.
+		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+		if (GetGP() >= GetMaxGP() && ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
+		{
+			FGameplayEventData EventData;
+			EventData.EventTag = WxGameplayTags::Event_Groggy;
+			EventData.Instigator = Data.EffectSpec.GetEffectContext().GetInstigator();
+			EventData.Target = GetOwningActor();
+			ASC->HandleGameplayEvent(WxGameplayTags::Event_Groggy, &EventData);
 		}
 	}
 }
@@ -225,38 +285,6 @@ void UWxCombatAttributeSet::OnRep_SPD(const FGameplayAttributeData& OldSPD)
 void UWxCombatAttributeSet::OnRep_ASPD(const FGameplayAttributeData& OldASPD)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, ASPD, OldASPD);
-}
-
-void UWxCombatAttributeSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const
-{
-	NewValue = FMath::Max(NewValue, 0.f);
-
-	float MaxValue = 0.f;
-	if (Attribute == GetHPAttribute())
-	{
-		MaxValue = GetMaxHP();
-	}
-	else if (Attribute == GetMPAttribute())
-	{
-		MaxValue = GetMaxMP();
-	}
-	else if (Attribute == GetSPAttribute())
-	{
-		MaxValue = GetMaxSP();
-	}
-	else if (Attribute == GetGPAttribute())
-	{
-		MaxValue = GetMaxGP();
-	}
-	else if (Attribute == GetUPAttribute())
-	{
-		MaxValue = GetMaxUP();
-	}
-
-	if (MaxValue > 0.f)
-	{
-		NewValue = FMath::Min(NewValue, MaxValue);
-	}
 }
 
 void UWxCombatAttributeSet::ProcessDamageTaken(const FGameplayEffectModCallbackData& Data, float Damage)

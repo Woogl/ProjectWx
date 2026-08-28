@@ -174,9 +174,6 @@ protected:
 	void OnRep_ASPD(const FGameplayAttributeData& OldASPD);
 
 private:
-	// TODO: Attribute, Min, Max 값으로 인자 바꾸자
-	void ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const;
-
 	void ProcessDamageTaken(const FGameplayEffectModCallbackData& Data, float Damage);
 	void ProcessPerfectGuard(const FGameplayEffectModCallbackData& Data, float ReflectAmount);
 };

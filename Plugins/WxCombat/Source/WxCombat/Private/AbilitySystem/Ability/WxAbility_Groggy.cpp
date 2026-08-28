@@ -4,7 +4,6 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystem/Effect/WxEffect_DrainGP.h"
-#include "AbilitySystem/Effect/WxEffect_ResetGP.h"
 #include "AIController.h"
 #include "Animation/AnimInstance.h"
 #include "BrainComponent.h"
@@ -57,11 +56,6 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	// 그대로 두면 폴러가 사망 몽타주 종료 후 시체 위에 그로기 몽타주를 덮어씌운다.
-	// Reaction 그룹이라 사망이 이 어빌리티를 취소하지 못하므로, 자세를 로컬로 미는 클라 인스턴스에도 필요하다.
-	DeadTagDelegateHandle = ASC->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death, EGameplayTagEventType::NewOrRemoved)
-		.AddUObject(this, &UWxAbility_Groggy::HandleDeadTagChanged);
-
 	UWorld* World = GetWorld();
 	if (World)
 	{
@@ -82,11 +76,6 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		{
 			DrainSpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, GroggyDuration);
 			DrainGPEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, DrainSpecHandle);
-		}
-
-		if (World)
-		{
-			World->GetTimerManager().SetTimer(GroggySafetyTimerHandle, this, &UWxAbility_Groggy::HandleGroggySafetyTimeout, GroggyDuration + 1.f, false);
 		}
 	}
 
@@ -111,7 +100,6 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 		if (UWorld* World = GetWorld())
 		{
 			World->GetTimerManager().ClearTimer(MontagePollingTimerHandle);
-			World->GetTimerManager().ClearTimer(GroggySafetyTimerHandle);
 		}
 
 		if (APawn* AvatarPawn = Cast<APawn>(ActorInfo->AvatarActor.Get()))
@@ -141,13 +129,6 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 				DrainGPEffectHandle.Invalidate();
 			}
 
-			if (DeadTagDelegateHandle.IsValid())
-			{
-				ASC->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death, EGameplayTagEventType::NewOrRemoved)
-					.Remove(DeadTagDelegateHandle);
-				DeadTagDelegateHandle.Reset();
-			}
-
 			if (GPDelegateHandle.IsValid())
 			{
 				ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetGPAttribute())
@@ -160,29 +141,11 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UWxAbility_Groggy::HandleDeadTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
-{
-	if (NewCount > 0)
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-	}
-}
-
 void UWxAbility_Groggy::HandleGPChanged(const FOnAttributeChangeData& Data)
 {
 	if (Data.NewValue <= 0.f)
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-	}
-}
-
-void UWxAbility_Groggy::HandleGroggySafetyTimeout()
-{
-	// 여기서 곧장 EndAbility만 하면 GP가 MaxGP로 남아, 다음 GP 변동에서 AttributeSet이 Event.Groggy를 다시 송출한다.
-	const FGameplayEffectSpecHandle ResetSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_ResetGP::StaticClass(), GetAbilityLevel());
-	if (ResetSpecHandle.IsValid())
-	{
-		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, ResetSpecHandle);
 	}
 }
 
@@ -203,6 +166,6 @@ void UWxAbility_Groggy::HandleMontagePollTick()
 	{
 		return;
 	}
-
+	
 	ASC->PlayMontage(this, CurrentActivationInfo, GroggyMontage, 1.f);
 }
