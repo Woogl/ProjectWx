@@ -38,4 +38,9 @@ public:
 	 * @param PredictingAbility	이 어빌리티의 예측 키로 걸어 소유 클라도 같은 프레임에 태그를 갖는다.
 	 */
 	static void ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass, const UGameplayAbility* PredictingAbility);
+	
+	/**
+	 * 런타임에 Instant Gameplay Effect를 동적 생성하여 어트리뷰트 변경을 적용한다.
+	 */
+	static void ModifyAttribute(UAbilitySystemComponent* TargetASC, const FGameplayAttribute& Attribute, float Delta);
 };

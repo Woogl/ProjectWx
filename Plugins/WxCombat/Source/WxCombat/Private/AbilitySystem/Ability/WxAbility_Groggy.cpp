@@ -3,7 +3,7 @@
 #include "AbilitySystem/Ability/WxAbility_Groggy.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
-#include "AbilitySystem/Effect/WxEffect_DrainDP.h"
+#include "AbilitySystem/Effect/WxEffect_DrainGP.h"
 #include "AbilitySystem/Effect/WxEffect_ResetGP.h"
 #include "AIController.h"
 #include "Animation/AnimInstance.h"
@@ -68,20 +68,20 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		World->GetTimerManager().SetTimer(MontagePollingTimerHandle, this, &UWxAbility_Groggy::HandleMontagePollTick, 0.1f, true);
 	}
 
-	// 클라가 복제된 DP로 다시 판정하면 종료 시점이 어긋나, 그 창의 히트에서 HitReact의 넉 강등이 갈리고 LaunchCharacter가 한쪽에서만 실행된다.
+	// 클라가 복제된 GP로 다시 판정하면 종료 시점이 어긋나, 그 창의 히트에서 HitReact의 넉 강등이 갈리고 LaunchCharacter가 한쪽에서만 실행된다.
 	if (ActorInfo->IsNetAuthority())
 	{
-		DPDelegateHandle = ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetGPAttribute())
-			.AddUObject(this, &UWxAbility_Groggy::HandleDPChanged);
+		GPDelegateHandle = ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetGPAttribute())
+			.AddUObject(this, &UWxAbility_Groggy::HandleGPChanged);
 
 		// 재생 rate를 1.0으로 고정하므로 몽타주 길이가 곧 그로기 길이다.
 		const float GroggyDuration = GroggyMontage->GetPlayLength();
 
-		FGameplayEffectSpecHandle DrainSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_DrainDP::StaticClass(), GetAbilityLevel());
+		FGameplayEffectSpecHandle DrainSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_DrainGP::StaticClass(), GetAbilityLevel());
 		if (DrainSpecHandle.IsValid())
 		{
 			DrainSpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, GroggyDuration);
-			DrainDPEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, DrainSpecHandle);
+			DrainGPEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, DrainSpecHandle);
 		}
 
 		if (World)
@@ -135,10 +135,10 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 				ASC->StopMontageIfCurrent(*GroggyMontage);
 			}
 
-			if (DrainDPEffectHandle.IsValid())
+			if (DrainGPEffectHandle.IsValid())
 			{
-				ASC->RemoveActiveGameplayEffect(DrainDPEffectHandle);
-				DrainDPEffectHandle.Invalidate();
+				ASC->RemoveActiveGameplayEffect(DrainGPEffectHandle);
+				DrainGPEffectHandle.Invalidate();
 			}
 
 			if (DeadTagDelegateHandle.IsValid())
@@ -148,11 +148,11 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 				DeadTagDelegateHandle.Reset();
 			}
 
-			if (DPDelegateHandle.IsValid())
+			if (GPDelegateHandle.IsValid())
 			{
 				ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetGPAttribute())
-					.Remove(DPDelegateHandle);
-				DPDelegateHandle.Reset();
+					.Remove(GPDelegateHandle);
+				GPDelegateHandle.Reset();
 			}
 		}
 	}
@@ -168,7 +168,7 @@ void UWxAbility_Groggy::HandleDeadTagChanged(const FGameplayTag CallbackTag, int
 	}
 }
 
-void UWxAbility_Groggy::HandleDPChanged(const FOnAttributeChangeData& Data)
+void UWxAbility_Groggy::HandleGPChanged(const FOnAttributeChangeData& Data)
 {
 	if (Data.NewValue <= 0.f)
 	{
@@ -178,7 +178,7 @@ void UWxAbility_Groggy::HandleDPChanged(const FOnAttributeChangeData& Data)
 
 void UWxAbility_Groggy::HandleGroggySafetyTimeout()
 {
-	// 여기서 곧장 EndAbility만 하면 DP가 MaxDP로 남아, 다음 DP 변동에서 AttributeSet이 Event.Groggy를 다시 송출한다.
+	// 여기서 곧장 EndAbility만 하면 GP가 MaxGP로 남아, 다음 GP 변동에서 AttributeSet이 Event.Groggy를 다시 송출한다.
 	const FGameplayEffectSpecHandle ResetSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_ResetGP::StaticClass(), GetAbilityLevel());
 	if (ResetSpecHandle.IsValid())
 	{

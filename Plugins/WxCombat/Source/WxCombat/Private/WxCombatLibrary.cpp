@@ -122,3 +122,19 @@ void UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclass
 
 	TargetASC->ApplyGameplayEffectSpecToSelf(Spec, PredictionKey);
 }
+
+void UWxCombatLibrary::ModifyAttribute(UAbilitySystemComponent* TargetASC, const FGameplayAttribute& Attribute, float Delta)
+{
+	UGameplayEffect* DynamicGE = NewObject<UGameplayEffect>(GetTransientPackage(), FName(TEXT("ModifyAttribute")));
+	DynamicGE->DurationPolicy = EGameplayEffectDurationType::Instant;
+
+	int32 Idx = DynamicGE->Modifiers.Num();
+	DynamicGE->Modifiers.SetNum(Idx + 1);
+
+	FGameplayModifierInfo& InfoXP = DynamicGE->Modifiers[Idx];
+	InfoXP.ModifierMagnitude = FScalableFloat(Delta);
+	InfoXP.ModifierOp = EGameplayModOp::Additive;
+	InfoXP.Attribute = Attribute;
+
+	TargetASC->ApplyGameplayEffectToSelf(DynamicGE, 1.0f, TargetASC->MakeEffectContext());
+}

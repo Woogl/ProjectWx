@@ -1,7 +1,6 @@
 ﻿// Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
-#include "AbilitySystem/Effect/WxEffect_AddGP.h"
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "AbilitySystem/Effect/WxEffect_Exhaust.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -9,8 +8,8 @@
 #include "Damage/WxCombatEffectContext.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
+#include "WxCombatLibrary.h"
 #include "WxGameplayTags.h"
-#include "AbilitySystem/Effect/WxEffect_AddGP.h"
 
 UWxCombatAttributeSet::UWxCombatAttributeSet()
 {
@@ -347,7 +346,7 @@ void UWxCombatAttributeSet::ProcessPerfectGuard(const FGameplayEffectModCallback
 	// GP를 MaxGP로 되돌리면 남은 드레인 시간으로는 0에 닿지 못해 그로기가 안전 타이머까지 늘어진다.
 	if (bCanParry && SourceASC && !SourceASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
 	{
-		UWxEffect_AddGP::ApplyTo(SourceASC, ReflectAmount);
+		UWxCombatLibrary::ModifyAttribute(SourceASC, GetGPAttribute(), ReflectAmount);
 	}
 
 	// 컨텍스트를 함께 실어야 가드 리액션이 피격 이벤트와 같은 방식으로 원인 액터를 집는다.

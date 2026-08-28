@@ -1,10 +1,10 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Effect/WxEffect_DrainDP.h"
+#include "AbilitySystem/Effect/WxEffect_DrainGP.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "WxGameplayTags.h"
 
-UWxEffect_DrainDP::UWxEffect_DrainDP()
+UWxEffect_DrainGP::UWxEffect_DrainGP()
 {
 	DurationPolicy = EGameplayEffectDurationType::HasDuration;
 
@@ -16,7 +16,7 @@ UWxEffect_DrainDP::UWxEffect_DrainDP()
 	bExecutePeriodicEffectOnApplication = true;
 
 	FCustomCalculationBasedFloat CustomMagnitude;
-	CustomMagnitude.CalculationClassMagnitude = UWxMMC_DrainDP::StaticClass();
+	CustomMagnitude.CalculationClassMagnitude = UWxMMC_DrainGP::StaticClass();
 	CustomMagnitude.Coefficient = FScalableFloat(1.0f);
 
 	FGameplayModifierInfo Modifier;
@@ -26,17 +26,17 @@ UWxEffect_DrainDP::UWxEffect_DrainDP()
 	Modifiers.Add(Modifier);
 }
 
-UWxMMC_DrainDP::UWxMMC_DrainDP()
+UWxMMC_DrainGP::UWxMMC_DrainGP()
 {
-	MaxDPCaptureDef = FGameplayEffectAttributeCaptureDefinition(
+	MaxGPCaptureDef = FGameplayEffectAttributeCaptureDefinition(
 		UWxCombatAttributeSet::GetMaxGPAttribute(),
 		EGameplayEffectAttributeCaptureSource::Target,
 		false);
 
-	RelevantAttributesToCapture.Add(MaxDPCaptureDef);
+	RelevantAttributesToCapture.Add(MaxGPCaptureDef);
 }
 
-float UWxMMC_DrainDP::CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const
+float UWxMMC_DrainGP::CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const
 {
 	const float Duration = Spec.GetDuration();
 	if (Duration <= 0.f)
@@ -48,8 +48,8 @@ float UWxMMC_DrainDP::CalculateBaseMagnitude_Implementation(const FGameplayEffec
 	EvalParams.SourceTags = Spec.CapturedSourceTags.GetAggregatedTags();
 	EvalParams.TargetTags = Spec.CapturedTargetTags.GetAggregatedTags();
 
-	float MaxDP = 0.f;
-	GetCapturedAttributeMagnitude(MaxDPCaptureDef, Spec, EvalParams, MaxDP);
+	float MaxGP = 0.f;
+	GetCapturedAttributeMagnitude(MaxGPCaptureDef, Spec, EvalParams, MaxGP);
 
-	return -(MaxDP / Duration) * Spec.GetPeriod();
+	return -(MaxGP / Duration) * Spec.GetPeriod();
 }
