@@ -13,7 +13,7 @@
 namespace
 {
 	// 공격 몽타주 MotionWarping 노티파이 Warp Target Name을 이 값으로 맞춘다.
-	const FName WarpTargetName = TEXT("Finisher");
+	const FName FinisherWarpTargetName = TEXT("Finisher");
 }
 
 UWxAbility_Finisher::UWxAbility_Finisher()
@@ -130,7 +130,7 @@ void UWxAbility_Finisher::RegisterWarpTarget(AActor* AvatarActor, const AActor* 
 	}
 
 	const FRotator WarpRotation = Direction.Rotation();
-	MotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(WarpTargetName, TargetLocation, WarpRotation);
+	MotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(FinisherWarpTargetName, TargetLocation, WarpRotation);
 }
 
 void UWxAbility_Finisher::ApplyFinisherDamage(const FDataTableRowHandle& DamageInfo) const

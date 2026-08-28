@@ -20,7 +20,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	float CoeffATK = 1.f;
 
-	/** 비워 두면 부모 Event.Hit 평타로 나가 HitReact가 뜨지 않는다 */
+	// TODO: 다시 Event.HitReact로 카테고리 원복
 	UPROPERTY(EditAnywhere, meta = (Categories = "Event.Hit"))
 	FGameplayTag HitReactTag;
 

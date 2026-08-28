@@ -201,11 +201,13 @@ FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecut
 	}
 	else
 	{
+		// TODO: 이부분을 ATK Coeff 계산하는 MMC로 대체해야함
 		float SourceATK = 0.f;
 		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.ATKDef, EvalParams, SourceATK);
 		const float ATKCoeff = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, false, 0.f);
 		SourceATK *= ATKCoeff;
-
+		
+		// TODO: 이부분은 Def 계산하는 MMC로 대체해야함
 		float TargetDEF = 0.f;
 		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.DEFDef, EvalParams, TargetDEF);
 		const float DefenseMultiplier = 100.f / (100.f + TargetDEF);
@@ -220,7 +222,7 @@ FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecut
 	{
 		return Result;
 	}
-
+	
 	float SourceCritRate = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.CritRateDef, EvalParams, SourceCritRate);
 
