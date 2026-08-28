@@ -7,7 +7,7 @@
 #include "GameFramework/GameStateBase.h"
 #include "Quest/WxQuestComponent.h"
 
-void UWxQuestLibrary::StartQuest(const UObject* WorldContextObject, UWxQuestStateTree* QuestAsset)
+void UWxQuestLibrary::StartQuest(const UObject* WorldContextObject, UStateTree* QuestAsset)
 {
 	const UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
 	const AGameStateBase* GameState = World ? World->GetGameState() : nullptr;

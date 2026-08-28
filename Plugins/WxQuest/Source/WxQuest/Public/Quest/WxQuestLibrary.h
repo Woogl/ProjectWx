@@ -6,7 +6,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "WxQuestLibrary.generated.h"
 
-class UWxQuestStateTree;
+class UStateTree;
 
 /**
  * 월드 GameState 의 퀘스트 컴포넌트를 찾아 위임한다(레벨에 배치한 트리거 볼륨 등에서 호출).
@@ -21,5 +21,5 @@ class WXQUEST_API UWxQuestLibrary : public UBlueprintFunctionLibrary
 public:
 	/** 진행 중인 퀘스트를 정지하고 지정 퀘스트를 시작한다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Quest", meta = (WorldContext = "WorldContextObject"))
-	static void StartQuest(const UObject* WorldContextObject, UWxQuestStateTree* QuestAsset);
+	static void StartQuest(const UObject* WorldContextObject, UStateTree* QuestAsset);
 };

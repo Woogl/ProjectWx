@@ -7,8 +7,8 @@
 #include "StateTreeExecutionTypes.h"
 #include "WxQuestComponent.generated.h"
 
+class UStateTree;
 class UStateTreeComponent;
-class UWxQuestStateTree;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnQuestJournalChanged);
 
@@ -30,7 +30,7 @@ struct FWxQuestObjective
 /**
  * GameState 에 부착되어 퀘스트 StateTree 실행과 저널(제목·목표)을 서버 권위로 관리하는 컴포넌트.
  *
- * 퀘스트 1개 = UWxQuestStateTree 에셋 1개이며, 활성 퀘스트는 동시 1개다(새 시작은 교체).
+ * 퀘스트 1개 = UStateTree 에셋 1개이며, 활성 퀘스트는 동시 1개다(새 시작은 교체).
  * UStateTreeComponent 와는 다중상속이 불가하므로, 권위 측 BeginPlay 에서 순정 러너를 런타임 생성해 소유하고 실행을 위임한다.
  * 퀘스트 태스크는 컨텍스트 오너(GameState)에서 본 컴포넌트를 찾아 저널 갱신·다음 퀘스트 시작을 요청한다.
  * 러너가 권위에만 존재하므로 월드 부수효과(스폰·보상)는 단일 구동이 보장되고, 저널도 권위(싱글/리슨 호스트)에서만 채워진다.
@@ -52,10 +52,10 @@ public:
 	UWxQuestComponent(const FObjectInitializer& ObjectInitializer);
 
 	/** 진행 중인 퀘스트를 정지하고 지정 퀘스트를 활성화한다. 러너가 Running 중엔 에셋 교체가 거부되므로 ST 실행 콜스택 밖에서만 호출한다. */
-	void ActivateQuest(UWxQuestStateTree* QuestAsset);
+	void ActivateQuest(UStateTree* QuestAsset);
 
 	/** ST 태스크 등 러너 실행 콜스택 안에서의 활성화 요청. 재진입이 막히므로 다음 틱에 로드·활성화한다. */
-	void RequestActivateQuest(TSoftObjectPtr<UWxQuestStateTree> QuestAsset);
+	void RequestActivateQuest(TSoftObjectPtr<UStateTree> QuestAsset);
 
 	/** SetQuestTitle 태스크 진입점. 저널을 새 퀘스트 제목으로 등록한다(목표는 비움). */
 	void SetQuestTitle(const FText& InQuestTitle);
@@ -84,7 +84,7 @@ private:
 	void HandleStateTreeRunStatusChanged(EStateTreeRunStatus StateTreeRunStatus);
 
 	/** RequestActivateQuest 의 다음 틱 타이머 콜백. 이 시점엔 러너가 실행 콜스택 밖이라 활성화가 안전하다. */
-	void HandleDeferredActivateQuest(TSoftObjectPtr<UWxQuestStateTree> QuestAsset);
+	void HandleDeferredActivateQuest(TSoftObjectPtr<UStateTree> QuestAsset);
 
 	void ClearJournal();
 

@@ -4,7 +4,6 @@
 
 #include "GameFramework/Actor.h"
 #include "Quest/WxQuestComponent.h"
-#include "Quest/WxQuestStateTree.h"
 #include "StateTreeExecutionContext.h"
 
 FWxStateTreeTask_StartNextQuest::FWxStateTreeTask_StartNextQuest()

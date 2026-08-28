@@ -18,7 +18,6 @@
 | --- | --- | --- |
 | `UWxQuestComponent` | GameState 부착, 러너 소유·저널 관리의 본체 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestComponent.h` |
 | `UWxQuestLibrary` | 월드 GameState 의 퀘스트 컴포넌트를 찾아 `StartQuest` 위임 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestLibrary.h` |
-| `UWxQuestStateTree` | 퀘스트 1개를 정의하는 `UStateTree` 파생 에셋 타입 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestStateTree.h` |
 | `FWxStateTreeTask_SetQuestTitle` | 진입 시 저널을 새 제목으로 등록(목표 비움) | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestTitle.h` |
 | `FWxStateTreeTask_SetQuestObjective` | 상태 수명 동안 목표 하나를 걸고 이탈 시 걷어감 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestObjective.h` |
 | `FWxStateTreeTask_WaitMoveToTarget` | 플레이어 폰이 로케이터 대상 반경 도달까지 Running 대기 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_WaitMoveToTarget.h` |

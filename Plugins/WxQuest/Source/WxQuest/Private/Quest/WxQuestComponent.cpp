@@ -4,7 +4,7 @@
 
 #include "Components/StateTreeComponent.h"
 #include "Engine/World.h"
-#include "Quest/WxQuestStateTree.h"
+#include "StateTree.h"
 #include "StateTreeReference.h"
 #include "TimerManager.h"
 
@@ -15,7 +15,7 @@ UWxQuestComponent::UWxQuestComponent(const FObjectInitializer& ObjectInitializer
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UWxQuestComponent::ActivateQuest(UWxQuestStateTree* QuestAsset)
+void UWxQuestComponent::ActivateQuest(UStateTree* QuestAsset)
 {
 	if (!QuestAsset)
 	{
@@ -37,7 +37,7 @@ void UWxQuestComponent::ActivateQuest(UWxQuestStateTree* QuestAsset)
 	QuestStateTree->StartLogic();
 }
 
-void UWxQuestComponent::RequestActivateQuest(TSoftObjectPtr<UWxQuestStateTree> QuestAsset)
+void UWxQuestComponent::RequestActivateQuest(TSoftObjectPtr<UStateTree> QuestAsset)
 {
 	if (QuestAsset.IsNull())
 	{
@@ -128,7 +128,7 @@ void UWxQuestComponent::HandleStateTreeRunStatusChanged(EStateTreeRunStatus Stat
 	}
 }
 
-void UWxQuestComponent::HandleDeferredActivateQuest(TSoftObjectPtr<UWxQuestStateTree> QuestAsset)
+void UWxQuestComponent::HandleDeferredActivateQuest(TSoftObjectPtr<UStateTree> QuestAsset)
 {
 	ActivateQuest(QuestAsset.LoadSynchronous());
 }
