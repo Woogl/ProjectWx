@@ -26,7 +26,8 @@ void UWxAnimNotifyState_ApplyGameplayEffect::NotifyEnd(USkeletalMeshComponent* M
 	AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr;
 	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
 	{
-		UWxCombatLibrary::RemoveEffect(ASC, EffectClass);
+		// 수량을 1로 잡아야 회피가 캔슬되며 늦게 도착한 이 호출이 이미 걸린 처형 무적까지 벗기지 않는다.
+		ASC->RemoveActiveGameplayEffectBySourceEffect(EffectClass, nullptr, 1);
 	}
 }
 

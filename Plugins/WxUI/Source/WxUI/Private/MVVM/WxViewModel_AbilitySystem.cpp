@@ -33,9 +33,8 @@ void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 		return;
 	}
 
-	Deinitialize();
 	CachedASC = InASC;
-	
+
 	InASC->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectAdded);
 	InASC->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectRemoved);
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_AbilitySystem::HandleTagChanged);
@@ -59,9 +58,8 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 		OwnedTagsRefreshHandle.Reset();
 	}
 
-	
 	// 자식은 배열에서 떼기만 한다 — 위젯이 아직 붙들고 있는 공유본을 끊으면 그 표시가 언다.
-	// 여기는 BeginDestroy 에서만 도달하고, 그때 각 자식도 자기 BeginDestroy 로 구독·티커를 정리한다.
+	// 자식이 이 VM 을 Outer 로 삼아 살려 두므로, 파괴로 여기 닿았다면 자식을 붙든 위젯도 없고 각 자식은 자기 BeginDestroy 로 구독·티커를 정리한다.
 	CachedASC.Reset();
 	AttributeViewModels.Empty();
 	AbilityViewModels.Empty();

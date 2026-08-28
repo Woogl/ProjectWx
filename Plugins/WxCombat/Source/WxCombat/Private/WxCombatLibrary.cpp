@@ -13,13 +13,9 @@
 
 bool UWxCombatLibrary::IsHostile(const AActor* Source, const AActor* Target)
 {
-	if (!Source || !Target)
-	{
-		return true;
-	}
-
 	const IGenericTeamAgentInterface* SourceTeamAgent = Cast<IGenericTeamAgentInterface>(Source);
-	return !SourceTeamAgent || SourceTeamAgent->GetTeamAttitudeTowards(*Target) == ETeamAttitude::Hostile;
+	const IGenericTeamAgentInterface* TargetTeamAgent = Cast<IGenericTeamAgentInterface>(Target);
+	return SourceTeamAgent && TargetTeamAgent && SourceTeamAgent->GetTeamAttitudeTowards(*Target) == ETeamAttitude::Hostile;
 }
 
 bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const FDataTableRowHandle& DamageTableRow, const FHitResult& HitResult, float HitStopDuration)
@@ -29,7 +25,6 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 		return false;
 	}
 
-	// 무기·투사체는 자기 ASC가 없으므로 Owner가 공격자다. 캐릭터가 직접 낸 히트(처형·맨손)는 자기 자신이 공격자다.
 	AActor* SourceActor = Causer;
 	UAbilitySystemComponent* Source = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Causer);
 	if (!Source)
@@ -51,17 +46,17 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 	Context.SetAbility(AnimatingAbility);
 	Context.AddHitResult(HitResult);
 
-	// 애님 노티파이는 어빌리티 활성화 스코프 밖이라 ASC의 ScopedPredictionKey가 무효다.
+	// 노티파이는 활성화 스코프 밖이라 ASC의 ScopedPredictionKey가 무효다.
 	FPredictionKey PredictionKey;
 	if (AnimatingAbility)
 	{
 		PredictionKey = AnimatingAbility->GetCurrentActivationInfo().GetActivationPredictionKey();
 	}
 
-	// 적중 성립 여부는 대미지가 들어가기 전 상태로 가른다 — 이 히트로 죽은 대상은 아직 살아 있던 것으로 쳐야 마무리 일격에도 역경직이 걸린다.
-	const EWxDamageResult DamageCheck = UWxExecCalc_Damage::CheckDamage(Source, TargetASC);
+	// 적용 전에 판정한다 — 이 히트로 죽는 대상에도 히트스톱이 걸려야 한다.
+	const EWxDamageCheck DamageCheck = UWxExecCalc_Damage::CheckDamage(Source, TargetASC);
 
-	if (DamageCheck == EWxDamageResult::Evaded)
+	if (DamageCheck == EWxDamageCheck::Evaded)
 	{
 		AActor* TargetActor = TargetASC->GetOwnerActor();
 
@@ -71,8 +66,8 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(TargetActor, WxGameplayTags::Event_DodgeSuccess, EventData);
 	}
 
-	// 대미지 GE를 걸면 값을 하나도 내지 못하면서 자기에게 얹힌 히트 큐만 발행하고, 상태이상 역시 흘려낸 히트에서는 걸리지 않아야 한다.
-	if (DamageCheck != EWxDamageResult::Damaged)
+	// 흘려낸 히트에 GE를 걸면 히트 큐와 상태이상만 새어 나간다.
+	if (DamageCheck != EWxDamageCheck::Damaged)
 	{
 		return false;
 	}
@@ -83,19 +78,21 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 		return false;
 	}
 	
-	bool bAppliedAny = false;
+	bool bDamageApplied = false;
 	const TArray<FGameplayEffectSpecHandle> Specs = DamageRow->MakeSpecs(Source, Context);
 	for (const FGameplayEffectSpecHandle& Spec : Specs)
 	{
 		if (Spec.IsValid())
 		{
 			const FActiveGameplayEffectHandle AppliedHandle = Source->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC, PredictionKey);
-			bAppliedAny |= AppliedHandle.WasSuccessfullyApplied();
+			if (Spec.Data->Def->IsA<UWxEffect_Damage>())
+			{
+				bDamageApplied = AppliedHandle.WasSuccessfullyApplied();
+			}
 		}
 	}
 
-	// 발동만은 적용 뒤다.
-	// GE 적용이 동기라 이 시점엔 피격자가 보낸 반응 이벤트(패리 등)가 도착해 있어, ApplyHitStop이 그 반응에 몽타주를 양보할 수 있다.
+	// 적용 뒤라야 동기로 도착한 반응(패리 등)에 히트스톱이 몽타주를 양보한다.
 	if (HitStopDuration > 0.f)
 	{
 		if (UWxAbilitySystemComponent* SourceWxASC = Cast<UWxAbilitySystemComponent>(Source))
@@ -104,7 +101,7 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 		}
 	}
 
-	return bAppliedAny;
+	return bDamageApplied;
 }
 
 void UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass, const UGameplayAbility* PredictingAbility)
@@ -117,7 +114,6 @@ void UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclass
 	const UGameplayEffect* CDO = EffectClass->GetDefaultObject<UGameplayEffect>();
 	FGameplayEffectSpec Spec(CDO, TargetASC->MakeEffectContext(), 1.f);
 
-	// 애님 노티파이는 어빌리티 활성화 스코프 밖이라 ASC의 ScopedPredictionKey가 무효다.
 	FPredictionKey PredictionKey;
 	if (PredictingAbility)
 	{
@@ -125,14 +121,4 @@ void UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclass
 	}
 
 	TargetASC->ApplyGameplayEffectSpecToSelf(Spec, PredictionKey);
-}
-
-void UWxCombatLibrary::RemoveEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass)
-{
-	if (!TargetASC || !EffectClass)
-	{
-		return;
-	}
-
-	TargetASC->RemoveActiveGameplayEffectBySourceEffect(EffectClass, nullptr, 1);
 }

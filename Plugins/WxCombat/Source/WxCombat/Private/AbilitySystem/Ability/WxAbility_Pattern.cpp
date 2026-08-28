@@ -45,17 +45,15 @@ void UWxAbility_Pattern::EndAbility(const FGameplayAbilitySpecHandle Handle, con
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UWxAbility_Pattern::HandleMontageCompleted()
+void UWxAbility_Pattern::HandleMontageBlendOut()
 {
 	if (!ComboMontages.IsValidIndex(ComboIndex + 1))
 	{
-		EndAbility(CurrentSpecHandle, GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
 		return;
 	}
-	
+
 	ComboIndex = ComboIndex + 1;
-	UAnimMontage* ComboMontage = ComboMontages.IsValidIndex(ComboIndex) ? ComboMontages[ComboIndex].Get() : nullptr;
-	if (!PlayMontage(ComboMontage))
+	if (!PlayMontage(ComboMontages[ComboIndex].Get()))
 	{
 		EndAbility(CurrentSpecHandle, GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
 	}

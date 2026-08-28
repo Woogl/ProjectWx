@@ -25,7 +25,6 @@ public:
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 
-	/** 트랙에 클래스 이름이 뜨지 않으면 한 몽타주에 놓인 구간들을 눈으로 구분할 수 없다. */
 	virtual FString GetNotifyName_Implementation() const override;
 
 protected:

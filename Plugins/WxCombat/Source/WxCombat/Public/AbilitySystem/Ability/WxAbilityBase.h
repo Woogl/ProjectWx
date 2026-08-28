@@ -12,7 +12,6 @@ class UAbilitySystemComponent;
 class UAbilityTask_PlayMontageAndWait;
 class UAnimMontage;
 class UGameplayEffect;
-class UWxEffect_Cooldown;
 class AWxProjectileBase;
 class UInputAction;
 struct FWxAbilityTableRow;
@@ -47,7 +46,7 @@ enum class EWxAbilityActivationGroup : uint8
 	/** (런타임 전환) 액션을 캔슬할 수 있게 된 후딜레이 상태. 막지 않는 것은 Independent와 같다. */
 	Exclusive_Recovery,
 
-	/** Exclusive 어빌리티에 막히지 않고 발동한다. 주로 HitReaction, Groggy, Death에서 사용. */
+	/** Exclusive 어빌리티에 막히지 않고 발동한다. 주로 HitReact, Groggy, Death에서 사용. */
 	Reaction, // Override 같은 이름으로 바꿀까???
 };
 
@@ -83,6 +82,8 @@ public:
 	TArray<TSubclassOf<UGameplayEffect>> ActivationOwnedEffects;
 	
 	TSoftObjectPtr<UObject> GetIcon() const;
+
+	int32 GetMaxRecharges() const;
 
 	/**
 	 * 일반적으로는 ASPD가 반영된 몽타주 재생 속도 사용.
@@ -140,13 +141,6 @@ protected:
 
 private:
 	const FWxAbilityTableRow* GetTableRow() const;
-
-	/**
-	 * 다중 충전 어빌리티에서만 만드는 GE 인스턴스.
-	 * StackLimitCount에 최대 충전 수를 실어 ViewModel에 전달한다.
-	 */
-	UPROPERTY(Transient)
-	mutable TObjectPtr<UWxEffect_Cooldown> CooldownEffect;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;

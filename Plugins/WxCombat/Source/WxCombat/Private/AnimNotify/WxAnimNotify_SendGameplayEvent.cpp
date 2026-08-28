@@ -24,3 +24,13 @@ void UWxAnimNotify_SendGameplayEvent::Notify(USkeletalMeshComponent* MeshComp, U
 	Payload.EventTag = EventTag;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Owner, EventTag, Payload);
 }
+
+FString UWxAnimNotify_SendGameplayEvent::GetNotifyName_Implementation() const
+{
+	if (EventTag.IsValid())
+	{
+		return EventTag.ToString();
+	}
+	
+	return Super::GetNotifyName_Implementation();
+}

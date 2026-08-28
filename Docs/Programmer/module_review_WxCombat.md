@@ -7,7 +7,7 @@
 | --- | --- |
 | 🔴 심각 | 0 |
 | 🟡 개선 | 5 |
-| 🟢 사소 | 3 |
+| 🟢 사소 | 2 |
 
 ## 결과
 
@@ -53,14 +53,7 @@
 - **제안**: 다른 호출부와 동일하게 널 가드를 씌운다.
 - **확신도**: 높음
 
-### 7. 🟢 그로기의 반복 타이머 해제가 아바타 액터 유효성에 매달려 있다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Groggy.cpp:113`
-- **범주**: 버그/정확성
-- **문제**: `EndAbility`가 `ActorInfo->AvatarActor.IsValid() ? ... GetWorld() : nullptr`로 얻은 World를 통해서만 `MontagePollingTimerHandle`(0.1초 반복, `:69`)과 안전 타이머를 지운다. 아바타가 먼저 파괴되고 ASC·어빌리티 인스턴스가 남는 구성(ASC가 PlayerState에 있는 경우 등)에서는 World가 널로 떨어져 반복 타이머가 그대로 살아남는다. 타이머 델리게이트가 약참조라 최종적으로는 정리되지만, 그때까지 매 0.1초 `HandleMontagePollTick`이 계속 돈다.
-- **제안**: 타이머 해제는 `ActorInfo`가 아니라 어빌리티 자신의 `GetWorld()`(또는 `ActivateAbility`에서 캐시한 World)로 수행한다.
-- **확신도**: 중간
-
-### 8. 🟢 커스텀 EffectContext의 NetSerialize가 부모의 실패를 덮어쓴다
+### 7. 🟢 커스텀 EffectContext의 NetSerialize가 부모의 실패를 덮어쓴다
 - **위치**: `Plugins/WxCombat/Source/WxCombat/Private/Damage/WxCombatEffectContext.cpp:26`
 - **범주**: 버그/정확성
 - **문제**: `FGameplayEffectContext::NetSerialize(Ar, Map, bOutSuccess)`의 결과를 무시하고 마지막에 `bOutSuccess = true;`를 무조건 대입한다. 부모가 인스티게이터·이펙트 코저 등 오브젝트 레퍼런스 매핑에 실패해 `false`를 냈어도 호출자에게는 성공으로 보고되어, 컨텍스트가 부분적으로 비어 있는 채로 큐 파라미터에 실려 나간다.
@@ -75,6 +68,7 @@
   - 입력 버퍼/발동 그룹 전이(`AbilityInputActionTriggered` → `FlushBufferedInputs` → `OpenComboWindow`/`StartRecovery`)는 애님 노티파이 실행 중에 어빌리티 목록을 건드리는 재진입 경로다. 정적 읽기로는 `ABILITYLIST_SCOPE_LOCK` 적용이 타당해 보이나, 실제 재진입 안전성은 런타임 검증이 필요해 판단을 보류했다.
   - `UWxExecCalc_Damage`의 밸런스 공식(방어 계수 `100/(100+DEF)`, 크리 배율)과 데이터테이블 실제 수치의 타당성은 기획 영역이라 보지 않았다.
   - BP/WBP 자산 내부 구조(몽타주 노티파이 배치, 어빌리티 BP 파생의 오버라이드 여부)는 이 리뷰 범위 밖이다 — 발동 그룹·콤보 창 규약이 실제 몽타주에 제대로 깔렸는지는 확인하지 못했다.
+  - **철회된 지적(2026-08-28)**: 이전 판에 `UWxAbility_Groggy`의 타이머 해제가 아바타 파괴 시 누락된다는 항목이 있었으나 사실이 아니다. ASC는 캐릭터의 서브오브젝트라 소유자와 아바타가 같은 액터이고(PlayerState 소유 구성이 아니다), 액터 파괴는 컴포넌트 해제 → 가비지 표시 순서라 ASC가 어빌리티를 취소하는 시점의 아바타 약참조는 아직 유효하다. 남은 실익이 표현 중복뿐이어서 해당 코드는 어빌리티 자신의 `GetWorld()`를 쓰도록 정리했고 항목은 삭제했다. 같은 지적을 다시 올리지 말 것.
 
 ---
 *문서 기준 커밋 `49cc6a81` · 리뷰일 2026-08-27 · 소스 150파일 — `/module-review`로 갱신*

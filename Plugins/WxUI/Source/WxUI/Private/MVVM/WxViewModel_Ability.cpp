@@ -17,16 +17,10 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 	CachedASC = InASC;
 	CachedAbility = InAbility;
 
-	int32 AbilityMaxRecharges = 1;
 	if (const UGameplayEffect* CooldownGE = InAbility->GetCooldownGameplayEffect())
 	{
 		CachedCooldownClass = CooldownGE->GetClass();
-		AbilityMaxRecharges = FMath::Max(1, CooldownGE->StackLimitCount);
 	}
-
-	SetMaxRecharges(AbilityMaxRecharges);
-	SetHasMultipleCharges(AbilityMaxRecharges > 1);
-	SetCurrentCharges(AbilityMaxRecharges);
 
 	if (CachedCooldownClass)
 	{
@@ -42,19 +36,11 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 
 	RefreshActivationState();
 
-	SeedActiveCooldown();
+	// 최대 충전 수는 게임 모듈이 뒤늦게 채우므로 그전까지는 단일 충전으로 본다.
+	SetMaxRecharges(1);
 }
 
-void UWxViewModel_Ability::SeedActiveCooldown()
-{
-	// 돌고 있는 쿨다운이 없으면 UpdateCooldownState 가 false 를 내고, Initialize 가 세운 만충 상태가 그대로 남는다.
-	if (UpdateCooldownState(0.f))
-	{
-		EnsureCooldownTicker();
-	}
-}
-
-void UWxViewModel_Ability::EnsureCooldownTicker()
+void UWxViewModel_Ability::StartCooldownTicker()
 {
 	if (TickerHandle.IsValid())
 	{
@@ -227,6 +213,14 @@ int32 UWxViewModel_Ability::GetMaxRecharges() const
 void UWxViewModel_Ability::SetMaxRecharges(int32 NewValue)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(MaxRecharges, NewValue);
+	SetHasMultipleCharges(NewValue > 1);
+	SetCurrentCharges(NewValue);
+
+	// 이 VM 은 UMG 바인딩 최초 평가 시 지연 생성되므로, 쿨다운 도중에 태어나면 GE 적용 통지를 놓쳐 만충으로 굳는다.
+	if (UpdateCooldownState(0.f))
+	{
+		StartCooldownTicker();
+	}
 }
 
 bool UWxViewModel_Ability::GetHasMultipleCharges() const
@@ -303,7 +297,7 @@ void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* 
 
 	// 남은 시간·충전 수·진행률 분모는 첫 틱이 채운다 — 방금 적용된 GE 가 활성 목록에 보이는 시점에 기대지 않기 위해서다.
 	SetIsOnCooldown(true);
-	EnsureCooldownTicker();
+	StartCooldownTicker();
 
 	// 쿨다운 GE는 태그를 부여하지 않아 태그 이벤트로 감지되지 않으므로 여기서 재평가한다
 	RefreshActivationState();

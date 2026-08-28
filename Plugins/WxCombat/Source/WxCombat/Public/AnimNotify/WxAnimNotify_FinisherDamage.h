@@ -7,6 +7,7 @@
 #include "Animation/AnimNotifies/AnimNotify.h"
 #include "WxAnimNotify_FinisherDamage.generated.h"
 
+// TODO : 다른 AnimNotify에 흡수시키거나 어빌리티 내부 처리 방식 등으로 제거할 예정
 /**
  * 몽타주를 재생 중인 피니셔 어빌리티가 상호작용으로 확정해 둔 대상에 이 프레임의 대미지를 적용한다.
  * 앞잡·뒤잡 구분 없이 DamageDataRow의 계수를 쓴다.
