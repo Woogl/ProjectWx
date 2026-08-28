@@ -92,6 +92,8 @@ void AWxWeaponBase::EndAttack()
 		SetActorTickEnabled(false);
 		HitActorsThisSwing.Empty();
 	}
+	
+	// DamageInfo을 비워야할까???
 }
 
 void AWxWeaponBase::CancelAttack()
@@ -152,6 +154,7 @@ USkeletalMeshComponent* AWxWeaponBase::GetMesh() const
 	return Mesh;
 }
 
+// 이 시점이 최선인가?
 void AWxWeaponBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();

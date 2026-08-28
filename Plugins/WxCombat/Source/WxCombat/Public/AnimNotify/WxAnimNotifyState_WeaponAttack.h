@@ -7,7 +7,7 @@
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "WxAnimNotifyState_WeaponAttack.generated.h"
 
-/** 히트 콜리전을 켜고 끄는 것은 무기 자신이다. */
+/** 무기 히트 콜리전을 켜고 끈다. */
 UCLASS()
 class WXCOMBAT_API UWxAnimNotifyState_WeaponAttack : public UAnimNotifyState
 {

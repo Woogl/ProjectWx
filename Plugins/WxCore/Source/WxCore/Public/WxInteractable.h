@@ -36,6 +36,7 @@ public:
 	
 	/**
 	 * '상호작용 켜기' 태스크가 액터를 지목했을 때 부른다.
+	 * // TODO: 제거하고 CanInteract로 쉽게 처리하길 희망함.
 	 */
 	virtual void SetInteractionEnabled(bool bEnabled);
 };

@@ -9,13 +9,13 @@ namespace WxGameplayTags
 {
 	// ── State ──────────────────────────────────────────────────────────────
 	
-	/** 로컬 플레이어가 이 액터를 락온 중일 때 로컬로만 부여(복제 안 함). 네임플레이트 표시 조건으로 사용 */
+	/** 로컬 플레이어가 이 액터를 락온 중일 때 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_LockedOn);
 
-	/** 적 AI가 플레이어를 인식하면 서버에서 부여, 추적 종료 시 제거. 네임플레이트 표시 조건으로 사용 */
+	/** 적 AI가 플레이어를 인식하고 있을 때 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_InCombat);
 
-	/** 처형(앞잡·뒤잡) 피대상 표시. 연출 동안 WxAbility_Finisher가 대상 ASC에 권위 발행하며, 대상이 이 태그로 자기 처형 어포던스를 닫는다 */
+	/** 처형(앞잡·뒤잡) 당하는 중일 때 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_BeingFinished);
 
 	/** 대화 세션 컴포넌트가 시작·종료에 맞춰 폰 ASC에 loose 태그로 발행. WxAbility_Interact가 ActivationBlockedTags로 사용해 대화 중 프롬프트 표시·상호작용을 닫는다 */
@@ -42,10 +42,7 @@ namespace WxGameplayTags
 
 	// ── Movement ──────────────────────────────────────────────────────────────
 	
-	/** WxCharacterMovementComponent가 낙하 모드 진입·이탈에 맞춰 각 머신에서 부여/제거. 점프 공격의 콤보 세트 진입 조건 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_InAir);
-	
-	/** WxAbility_Sprint가 활성 중 실제로 이동할 때만 부여. SP 소모 GE의 발동 조건이자 SP 자연 회복의 억제 조건 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Sprint);
 
 	// ── Event ──────────────────────────────────────────────────────────────
@@ -160,12 +157,11 @@ namespace WxGameplayTags
 	/**
 	 * 어빌리티는 자신을 가리키는 식별 태그 Ability.X를 정확히 하나 갖고, AssetTags와 ActivationOwnedTags 양쪽에 넣는다.
 	 * 곧 "Ability.X = 그 어빌리티가 지금 활성화 중이다"가 성립한다.
-	 * 어빌리티의 성질(배타 그룹 등)은 태그가 아니라 EWxAbilityActivationGroup(WxCombat)으로 선언한다.
 	*/
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability);
 
-	/** 플레이어 캐릭터용 */
+	/** 플레이어 캐릭터 전용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Light);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Heavy);
@@ -174,13 +170,7 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Dodge);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Sprint);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Guard);
-
-	/**
-	 * 가드가 피격·퍼펙트 가드에 내놓는 리액션. 가드는 이 태그가 붙어 있는 동안 몽타주 슬롯을 양보한다.
-	 * 배타 점유자라 가드 반격을 만들 때는 Ability.Guard와 함께 이 태그도 지목해야 뚫린다 — 브레이크 뒤에는 이쪽만 남는다.
-	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_GuardReact);
-
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_1);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Skill_2);
@@ -191,8 +181,6 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_UseItem);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Finisher);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_LockOn);
-
-	/** 조립형 패시브(UWxAbility_Passive) 전원이 공유한다. 개별 패시브를 지목할 일이 생기면 그때 자식을 판다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Passive);
 
 	/** 플레이어 캐릭터, 적 공용 */
@@ -200,7 +188,7 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Groggy);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Death);
 
-	/** 적 캐릭터용 */
+	/** 적 캐릭터 전용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_1);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_2);

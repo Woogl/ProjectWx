@@ -12,9 +12,6 @@ class USkeletalMesh;
 class USkeletalMeshComponent;
 
 /**
- * WxAnimNotifyState_WeaponAttack이 BeginAttack/EndAttack을 호출하면, 무기가 내부 레퍼런스 카운팅으로 히트 콜리전을 켜고 끈다.
- *
- * 루트인 GripPoint가 캐릭터 소켓에 부착되는 기준점이고, 외형은 SetVisualMesh로 Mesh 서브오브젝트에 얹는다.
  * 히트박스는 BP가 무기에 부착한 ShapeComponent(박스·캡슐·구) 전부이며, 콜리전 구성은 코드가 강제하므로 BP는 형상과 트랜스폼만 저작한다.
  * 히트 판정은 Overlap과 매 틱 형상별 Sweep을 함께 쓰며, 한 스윙에서 같은 액터는 최대 1회만 피격된다.
  */
@@ -46,7 +43,6 @@ public:
 	/** 활성 공격 구간이 남아 있으면 강제 종료한 뒤 분리한다 */
 	void DetachFromCharacter();
 
-	/** C++ 서브오브젝트라 항상 존재한다. BP가 따로 추가한 메시는 포함하지 않는다. */
 	USkeletalMeshComponent* GetMesh() const;
 
 	/** 역경직 지속 시간 (초). 0 이하이면 역경직 미적용 */
@@ -59,9 +55,11 @@ public:
 protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+	// 캐릭터 소켓에 부착되는 기준점
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Weapon")
 	TObjectPtr<USceneComponent> GripPoint;
 
+	// 무기의 외형
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Weapon")
 	TObjectPtr<USkeletalMeshComponent> Mesh;
 
@@ -75,7 +73,7 @@ private:
 	 */
 	void ProcessHit(AActor* OtherActor, const FHitResult& HitResult);
 
-	/** 무기에 부착된 모든 ShapeComponent가 히트박스라는 계약이며, PostInitializeComponents에서 수집한다. */
+	/** 무기에 부착된 모든 ShapeComponent가 히트박스다. */
 	UPROPERTY()
 	TArray<TObjectPtr<UShapeComponent>> HitShapes;
 
