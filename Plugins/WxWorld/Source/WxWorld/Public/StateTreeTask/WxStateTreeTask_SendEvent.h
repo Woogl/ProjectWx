@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Device/WxStateTreeComponentName.h"
+#include "Device/WxDeviceComponentName.h"
 #include "GameplayTagContainer.h"
 #include "StateTreeTaskBase.h"
 #include "StructUtils/InstancedStruct.h"

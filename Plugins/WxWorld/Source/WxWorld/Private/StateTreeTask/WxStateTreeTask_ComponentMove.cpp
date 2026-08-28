@@ -1,11 +1,10 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Device/WxStateTreeTask_ComponentMove.h"
+#include "StateTreeTask/WxStateTreeTask_ComponentMove.h"
 
 #include "Components/SceneComponent.h"
 #include "GameFramework/Actor.h"
 #include "StateTreeExecutionContext.h"
-#include "StateTreePropertyBindings.h"
 #include "WxWorldModule.h"
 
 FWxStateTreeTask_ComponentMove::FWxStateTreeTask_ComponentMove()

@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Device/WxStateTreeTask_PlayInteractorMontage.h"
+#include "StateTreeTask/WxStateTreeTask_PlayInteractorMontage.h"
 
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"

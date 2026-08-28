@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Device/WxStateTreeTask_PlayAnimation.h"
+#include "StateTreeTask/WxStateTreeTask_PlayAnimation.h"
 
 #include "Animation/AnimSequenceBase.h"
 #include "Animation/AnimSingleNodeInstance.h"

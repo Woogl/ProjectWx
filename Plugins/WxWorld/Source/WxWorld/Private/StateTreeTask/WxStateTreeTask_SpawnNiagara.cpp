@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Device/WxStateTreeTask_SpawnNiagara.h"
+#include "StateTreeTask/WxStateTreeTask_SpawnNiagara.h"
 
 #include "Components/SceneComponent.h"
 #include "GameFramework/Actor.h"

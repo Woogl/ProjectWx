@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Device/WxStateTreeComponentName.h"
+#include "Device/WxDeviceComponentName.h"
 
 #include "Components/SceneComponent.h"
 #include "GameFramework/Actor.h"

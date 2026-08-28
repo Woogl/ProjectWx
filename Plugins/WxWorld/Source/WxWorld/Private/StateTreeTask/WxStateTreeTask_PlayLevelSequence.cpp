@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Device/WxStateTreeTask_PlayLevelSequence.h"
+#include "StateTreeTask/WxStateTreeTask_PlayLevelSequence.h"
 
 #include "GameFramework/Actor.h"
 #include "LevelSequence.h"

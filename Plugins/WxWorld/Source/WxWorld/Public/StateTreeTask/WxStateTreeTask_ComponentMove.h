@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Device/WxStateTreeComponentName.h"
+#include "Device/WxDeviceComponentName.h"
 #include "StateTreeTaskBase.h"
 #include "WxStateTreeTask_ComponentMove.generated.h"
 

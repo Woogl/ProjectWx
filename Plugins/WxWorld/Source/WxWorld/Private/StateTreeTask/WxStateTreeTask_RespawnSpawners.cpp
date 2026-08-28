@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Device/WxStateTreeTask_RespawnSpawners.h"
+#include "StateTreeTask/WxStateTreeTask_RespawnSpawners.h"
 
 #include "GameFramework/Actor.h"
 #include "StateTreeExecutionContext.h"

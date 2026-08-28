@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "WxStateTreeComponentName.generated.h"
+#include "WxDeviceComponentName.generated.h"
 
 class AActor;
 class USceneComponent;

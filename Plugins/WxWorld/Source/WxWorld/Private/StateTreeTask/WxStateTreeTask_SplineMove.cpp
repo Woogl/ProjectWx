@@ -1,12 +1,11 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Device/WxStateTreeTask_SplineMove.h"
+#include "StateTreeTask/WxStateTreeTask_SplineMove.h"
 
 #include "Components/SceneComponent.h"
 #include "Components/SplineComponent.h"
 #include "GameFramework/Actor.h"
 #include "StateTreeExecutionContext.h"
-#include "StateTreePropertyBindings.h"
 #include "WxWorldModule.h"
 
 FWxStateTreeTask_SplineMove::FWxStateTreeTask_SplineMove()

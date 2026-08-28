@@ -7,8 +7,8 @@
 #include "StateTreeExecutionContext.h"
 #include "WxLocatorUtils.h"
 #include "WxSpawnerLocatorUtils.h"
-#include "WxStateTreeWaitRegistry.h"
 #include "WxWorldModule.h"
+#include "StateTreeTask/WxStateTreeWaitRegistry.h"
 
 namespace
 {

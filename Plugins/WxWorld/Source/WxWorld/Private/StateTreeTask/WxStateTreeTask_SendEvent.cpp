@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Device/WxStateTreeTask_SendEvent.h"
+#include "StateTreeTask/WxStateTreeTask_SendEvent.h"
 
 #include "Components/ChildActorComponent.h"
 #include "Device/WxDevice.h"

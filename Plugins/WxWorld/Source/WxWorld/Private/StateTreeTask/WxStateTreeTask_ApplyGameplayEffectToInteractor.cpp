@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Device/WxStateTreeTask_ApplyGameplayEffectToInteractor.h"
+#include "StateTreeTask/WxStateTreeTask_ApplyGameplayEffectToInteractor.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"

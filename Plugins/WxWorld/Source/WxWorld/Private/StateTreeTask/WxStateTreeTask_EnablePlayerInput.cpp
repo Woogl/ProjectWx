@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Device/WxStateTreeTask_EnablePlayerInput.h"
+#include "StateTreeTask/WxStateTreeTask_EnablePlayerInput.h"
 
 #include "Engine/Engine.h"
 #include "GameFramework/Actor.h"

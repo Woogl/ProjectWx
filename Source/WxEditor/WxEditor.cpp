@@ -8,7 +8,6 @@
 #include "Engine/Blueprint.h"
 #include "Engine/DataTable.h"
 #include "Framework/WxExperienceManager.h"
-#include "Device/WxStateTreeComponentName.h"
 #include "Items/WxItemDefinition.h"
 #include "Modules/ModuleManager.h"
 #include "PropertyEditorModule.h"
@@ -25,6 +24,7 @@
 #include "WxDataTableRowHandleCustomization.h"
 #include "WxDeviceLinkVisualizer.h"
 #include "WxItemDefinitionThumbnailRenderer.h"
+#include "Device/WxDeviceComponentName.h"
 
 IMPLEMENT_MODULE(FWxEditorModule, WxEditor)
 

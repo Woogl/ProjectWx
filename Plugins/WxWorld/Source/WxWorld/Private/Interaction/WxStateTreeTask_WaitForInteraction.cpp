@@ -5,8 +5,8 @@
 #include "GameFramework/Actor.h"
 #include "StateTreeExecutionContext.h"
 #include "WxLocatorUtils.h"
-#include "WxStateTreeWaitRegistry.h"
 #include "WxWorldModule.h"
+#include "StateTreeTask/WxStateTreeWaitRegistry.h"
 
 namespace
 {
