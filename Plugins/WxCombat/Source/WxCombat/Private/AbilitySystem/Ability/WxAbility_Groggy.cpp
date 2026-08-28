@@ -4,7 +4,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystem/Effect/WxEffect_DrainDP.h"
-#include "AbilitySystem/Effect/WxEffect_ResetDP.h"
+#include "AbilitySystem/Effect/WxEffect_ResetGP.h"
 #include "AIController.h"
 #include "Animation/AnimInstance.h"
 #include "BrainComponent.h"
@@ -71,7 +71,7 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	// 클라가 복제된 DP로 다시 판정하면 종료 시점이 어긋나, 그 창의 히트에서 HitReact의 넉 강등이 갈리고 LaunchCharacter가 한쪽에서만 실행된다.
 	if (ActorInfo->IsNetAuthority())
 	{
-		DPDelegateHandle = ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetDPAttribute())
+		DPDelegateHandle = ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetGPAttribute())
 			.AddUObject(this, &UWxAbility_Groggy::HandleDPChanged);
 
 		// 재생 rate를 1.0으로 고정하므로 몽타주 길이가 곧 그로기 길이다.
@@ -150,7 +150,7 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 			if (DPDelegateHandle.IsValid())
 			{
-				ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetDPAttribute())
+				ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetGPAttribute())
 					.Remove(DPDelegateHandle);
 				DPDelegateHandle.Reset();
 			}
@@ -179,7 +179,7 @@ void UWxAbility_Groggy::HandleDPChanged(const FOnAttributeChangeData& Data)
 void UWxAbility_Groggy::HandleGroggySafetyTimeout()
 {
 	// 여기서 곧장 EndAbility만 하면 DP가 MaxDP로 남아, 다음 DP 변동에서 AttributeSet이 Event.Groggy를 다시 송출한다.
-	const FGameplayEffectSpecHandle ResetSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_ResetDP::StaticClass(), GetAbilityLevel());
+	const FGameplayEffectSpecHandle ResetSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_ResetGP::StaticClass(), GetAbilityLevel());
 	if (ResetSpecHandle.IsValid())
 	{
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, ResetSpecHandle);

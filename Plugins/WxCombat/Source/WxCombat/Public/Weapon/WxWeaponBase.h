@@ -25,22 +25,13 @@ public:
 
 	static AWxWeaponBase* FindWeapon(const AActor* Owner);
 
-	/** 첫 호출에서만 콜리전을 켜고, 겹치는 ANS는 레퍼런스 카운트만 올린다. */
 	void BeginAttack(const FDataTableRowHandle& InDamageInfo);
-
-	/** 모든 활성 구간이 닫혔을 때만 콜리전을 끈다. */
 	void EndAttack();
-
-	/** 사망처럼 ANS의 구간 종료를 기다릴 수 없는 상황에서 판정을 즉시 걷어낸다. */
 	void CancelAttack();
 
-	/** MeshAsset이 nullptr이면 무시한다. */
 	void SetVisualMesh(USkeletalMesh* MeshAsset);
 
-	/** 대상 캐릭터의 GetMesh() 소켓에 부착하고 Owner도 그 캐릭터로 설정한다. */
 	void AttachToCharacter(ACharacter* OwnerCharacter, FName SocketName);
-
-	/** 활성 공격 구간이 남아 있으면 강제 종료한 뒤 분리한다 */
 	void DetachFromCharacter();
 
 	USkeletalMeshComponent* GetMesh() const;

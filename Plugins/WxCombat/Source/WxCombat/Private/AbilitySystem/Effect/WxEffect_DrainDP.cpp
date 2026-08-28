@@ -20,7 +20,7 @@ UWxEffect_DrainDP::UWxEffect_DrainDP()
 	CustomMagnitude.Coefficient = FScalableFloat(1.0f);
 
 	FGameplayModifierInfo Modifier;
-	Modifier.Attribute = UWxCombatAttributeSet::GetDPAttribute();
+	Modifier.Attribute = UWxCombatAttributeSet::GetGPAttribute();
 	Modifier.ModifierOp = EGameplayModOp::Additive;
 	Modifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(CustomMagnitude);
 	Modifiers.Add(Modifier);
@@ -29,7 +29,7 @@ UWxEffect_DrainDP::UWxEffect_DrainDP()
 UWxMMC_DrainDP::UWxMMC_DrainDP()
 {
 	MaxDPCaptureDef = FGameplayEffectAttributeCaptureDefinition(
-		UWxCombatAttributeSet::GetMaxDPAttribute(),
+		UWxCombatAttributeSet::GetMaxGPAttribute(),
 		EGameplayEffectAttributeCaptureSource::Target,
 		false);
 

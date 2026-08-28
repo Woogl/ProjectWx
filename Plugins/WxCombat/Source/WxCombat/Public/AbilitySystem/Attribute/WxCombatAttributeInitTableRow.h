@@ -24,10 +24,10 @@ struct WXCOMBAT_API FWxCombatAttributeInitTableRow : public FTableRowBase
 	float MaxSP = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vital", meta = (ClampMin = "0.0"))
-	float DP = 0.f;
+	float GP = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vital", meta = (ClampMin = "0.0"))
-	float MaxDP = 0.f;
+	float MaxGP = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Resource", meta = (ClampMin = "0.0"))
 	float MP = 0.f;

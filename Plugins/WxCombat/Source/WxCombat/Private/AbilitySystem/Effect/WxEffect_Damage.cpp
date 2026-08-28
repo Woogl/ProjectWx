@@ -37,7 +37,7 @@ struct FWxDamageStatics
 	DECLARE_ATTRIBUTE_CAPTUREDEF(IncomingDamage);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(IncomingReflect);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(SP);
-	DECLARE_ATTRIBUTE_CAPTUREDEF(DP);
+	DECLARE_ATTRIBUTE_CAPTUREDEF(GP);
 	FWxDamageStatics()
 	{
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, ATK, Source, false);
@@ -47,7 +47,7 @@ struct FWxDamageStatics
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, IncomingDamage, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, IncomingReflect, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, SP, Target, false);
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, DP, Target, false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, GP, Target, false);
 	}
 };
 
@@ -150,7 +150,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	// 그로기 진입이 피격 이벤트보다 먼저 서야 반응이 그 상태를 보므로 IncomingDamage보다 앞에 둔다.
 	if (!bIsGroggy)
 	{
-		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.DPProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.GPProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
 	}
 
 	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));

@@ -1,11 +1,11 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Effect/WxEffect_AddDP.h"
+#include "AbilitySystem/Effect/WxEffect_AddGP.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "WxGameplayTags.h"
 
-UWxEffect_AddDP::UWxEffect_AddDP()
+UWxEffect_AddGP::UWxEffect_AddGP()
 {
 	DurationPolicy = EGameplayEffectDurationType::Instant;
 
@@ -13,13 +13,13 @@ UWxEffect_AddDP::UWxEffect_AddDP()
 	DPSetByCaller.DataTag = WxGameplayTags::SetByCaller_DP;
 
 	FGameplayModifierInfo DPModifier;
-	DPModifier.Attribute = UWxCombatAttributeSet::GetDPAttribute();
+	DPModifier.Attribute = UWxCombatAttributeSet::GetGPAttribute();
 	DPModifier.ModifierOp = EGameplayModOp::Additive;
 	DPModifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(DPSetByCaller);
 	Modifiers.Add(DPModifier);
 }
 
-void UWxEffect_AddDP::ApplyTo(UAbilitySystemComponent* TargetASC, float Amount)
+void UWxEffect_AddGP::ApplyTo(UAbilitySystemComponent* TargetASC, float Amount)
 {
 	if (!TargetASC || Amount <= 0.f)
 	{

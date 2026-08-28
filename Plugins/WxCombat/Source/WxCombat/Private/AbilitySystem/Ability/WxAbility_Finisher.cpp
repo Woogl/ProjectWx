@@ -2,7 +2,7 @@
 
 #include "AbilitySystem/Ability/WxAbility_Finisher.h"
 #include "AbilitySystem/Effect/WxEffect_Invincible.h"
-#include "AbilitySystem/Effect/WxEffect_ResetDP.h"
+#include "AbilitySystem/Effect/WxEffect_ResetGP.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "MotionWarpingComponent.h"
@@ -109,7 +109,7 @@ void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, co
 			if (UAbilitySystemComponent* SourceASC = ActorInfo->AbilitySystemComponent.Get())
 			{
 				FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
-				const FGameplayEffectSpecHandle ResetSpec = SourceASC->MakeOutgoingSpec(UWxEffect_ResetDP::StaticClass(), GetAbilityLevel(), Context);
+				const FGameplayEffectSpecHandle ResetSpec = SourceASC->MakeOutgoingSpec(UWxEffect_ResetGP::StaticClass(), GetAbilityLevel(), Context);
 				if (ResetSpec.IsValid())
 				{
 					SourceASC->ApplyGameplayEffectSpecToTarget(*ResetSpec.Data.Get(), TargetASC);

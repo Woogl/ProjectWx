@@ -1,7 +1,7 @@
 ﻿// Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
-#include "AbilitySystem/Effect/WxEffect_AddDP.h"
+#include "AbilitySystem/Effect/WxEffect_AddGP.h"
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "AbilitySystem/Effect/WxEffect_Exhaust.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -10,6 +10,7 @@
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
 #include "WxGameplayTags.h"
+#include "AbilitySystem/Effect/WxEffect_AddGP.h"
 
 UWxCombatAttributeSet::UWxCombatAttributeSet()
 {
@@ -25,8 +26,8 @@ void UWxCombatAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, MaxHP,	COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, SP,		COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, MaxSP,	COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, DP,		COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, MaxDP,	COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, GP,		COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, MaxGP,	COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, MP,		COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, MaxMP,	COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, UP,		COND_None, REPNOTIFY_Always);
@@ -79,10 +80,10 @@ void UWxCombatAttributeSet::PostAttributeChange(const FGameplayAttribute& Attrib
 		const float Ratio = GetMP() / OldValue;
 		SetMP(NewValue * Ratio);
 	}
-	else if (Attribute == GetDPAttribute() && GetMaxDP() > 0.f)
+	else if (Attribute == GetGPAttribute() && GetMaxGP() > 0.f)
 	{
 		// 그로기 진입만 알리고 해제는 관여하지 않는다 — 어빌리티가 DP를 직접 보고 스스로 끝낸다.
-		if (GetDP() >= GetMaxDP() && !ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
+		if (GetGP() >= GetMaxGP() && !ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
 		{
 			FGameplayEventData EventData;
 			EventData.EventTag = WxGameplayTags::Event_Groggy;
@@ -167,14 +168,14 @@ void UWxCombatAttributeSet::OnRep_MaxSP(const FGameplayAttributeData& OldMaxSP)
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, MaxSP, OldMaxSP);
 }
 
-void UWxCombatAttributeSet::OnRep_DP(const FGameplayAttributeData& OldDP)
+void UWxCombatAttributeSet::OnRep_GP(const FGameplayAttributeData& OldGP)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, DP, OldDP);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, GP, OldGP);
 }
 
-void UWxCombatAttributeSet::OnRep_MaxDP(const FGameplayAttributeData& OldMaxDP)
+void UWxCombatAttributeSet::OnRep_MaxGP(const FGameplayAttributeData& OldMaxGP)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, MaxDP, OldMaxDP);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, MaxGP, OldMaxGP);
 }
 
 void UWxCombatAttributeSet::OnRep_MP(const FGameplayAttributeData& OldMP)
@@ -244,9 +245,9 @@ void UWxCombatAttributeSet::ClampAttribute(const FGameplayAttribute& Attribute, 
 	{
 		MaxValue = GetMaxSP();
 	}
-	else if (Attribute == GetDPAttribute())
+	else if (Attribute == GetGPAttribute())
 	{
-		MaxValue = GetMaxDP();
+		MaxValue = GetMaxGP();
 	}
 	else if (Attribute == GetUPAttribute())
 	{
@@ -342,11 +343,11 @@ void UWxCombatAttributeSet::ProcessPerfectGuard(const FGameplayEffectModCallback
 
 	const bool bCanParry = Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanParry);
 
-	// 대상의 DP 가산과 같은 이유로 이미 그로기인 공격자에겐 반사하지 않는다.
-	// DP를 MaxDP로 되돌리면 남은 드레인 시간으로는 0에 닿지 못해 그로기가 안전 타이머까지 늘어진다.
+	// 대상의 GP 가산과 같은 이유로 이미 그로기인 공격자에겐 반사하지 않는다.
+	// GP를 MaxGP로 되돌리면 남은 드레인 시간으로는 0에 닿지 못해 그로기가 안전 타이머까지 늘어진다.
 	if (bCanParry && SourceASC && !SourceASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
 	{
-		UWxEffect_AddDP::ApplyTo(SourceASC, ReflectAmount);
+		UWxEffect_AddGP::ApplyTo(SourceASC, ReflectAmount);
 	}
 
 	// 컨텍스트를 함께 실어야 가드 리액션이 피격 이벤트와 같은 방식으로 원인 액터를 집는다.
