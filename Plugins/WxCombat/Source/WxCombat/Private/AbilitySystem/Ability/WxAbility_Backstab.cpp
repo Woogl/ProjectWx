@@ -1,9 +1,8 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Ability/WxAbility_Finisher.h"
+#include "AbilitySystem/Ability/WxAbility_Backstab.h"
 #include "AbilitySystem/Ability/WxAbility_BeingFinished.h"
 #include "AbilitySystem/Effect/WxEffect_Invincible.h"
-#include "AbilitySystem/Effect/WxEffect_ResetGP.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "MotionWarpingComponent.h"
@@ -16,39 +15,38 @@ namespace
 	const FName WarpTargetName = TEXT("Finisher");
 }
 
-UWxAbility_Finisher::UWxAbility_Finisher()
+UWxAbility_Backstab::UWxAbility_Backstab()
 {
 	// 발동도 대미지 적용도 서버 권위이므로 ServerInitiated.
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 
 	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(WxGameplayTags::Ability_Finisher);
+	AssetTags.AddTag(WxGameplayTags::Ability_Backstab);
 	SetAssetTags(AssetTags);
 
-	// 처형은 상호작용 어빌리티가 대상에게 넘긴 이벤트로 동기 발동하므로, 그 상호작용이 아직 점유 중일 때 뜬다.
-	// Reaction이라 그 점유에 막히지 않는다 — 상호작용은 곧바로 스스로 끝나므로 끊어 줄 필요는 없다.
+	// 상호작용 어빌리티가 아직 점유 중일 때 동기 발동하므로 그 점유에 막히지 않아야 한다.
 	ActivationGroup = EWxAbilityActivationGroup::Reaction;
 
 	ActivationOwnedEffects.Add(UWxEffect_Invincible::StaticClass());
 
 	// 상호작용이 이 태그에 막혀, 연출 도중 재입력으로 다른 대상과 몽타주가 겹치는 것을 차단한다.
-	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Finisher);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Backstab);
 
-	// 앞잡·뒤잡이 같은 상호작용 이벤트를 받고, 페이로드에 실린 대상 소유 태그로 하나만 성립한다.
+	// 앞잡과 같은 상호작용 이벤트를 받고, 페이로드에 실린 대상 소유 태그로 하나만 성립한다.
 	FAbilityTriggerData TriggerData;
 	TriggerData.TriggerTag = WxGameplayTags::Event_Finisher;
 	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	AbilityTriggers.Add(TriggerData);
 
-	TargetRequiredTags.AddTag(WxGameplayTags::Ability_Groggy);
+	TargetBlockedTags.AddTag(WxGameplayTags::Ability_Groggy);
 }
 
-float UWxAbility_Finisher::GetMontagePlayRate() const
+float UWxAbility_Backstab::GetMontagePlayRate() const
 {
 	return 1.f;
 }
 
-void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+void UWxAbility_Backstab::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
@@ -88,30 +86,7 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	}
 }
 
-void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
-{
-	// 중단·캔슬도 이 경로를 지나므로 그로기 해제가 몽타주 종료 방식과 무관하게 한 번 일어난다.
-	if (ActorInfo && ActorInfo->IsNetAuthority())
-	{
-		if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(TargetActor.Get()))
-		{
-			if (UAbilitySystemComponent* SourceASC = ActorInfo->AbilitySystemComponent.Get())
-			{
-				FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
-				const FGameplayEffectSpecHandle ResetSpec = SourceASC->MakeOutgoingSpec(UWxEffect_ResetGP::StaticClass(), GetAbilityLevel(), Context);
-				if (ResetSpec.IsValid())
-				{
-					SourceASC->ApplyGameplayEffectSpecToTarget(*ResetSpec.Data.Get(), TargetASC);
-				}
-			}
-		}
-	}
-	TargetActor = nullptr;
-
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-}
-
-void UWxAbility_Finisher::RegisterWarpTarget(AActor* AvatarActor, const AActor* Target) const
+void UWxAbility_Backstab::RegisterWarpTarget(AActor* AvatarActor, const AActor* Target) const
 {
 	UMotionWarpingComponent* MotionWarping = AvatarActor ? AvatarActor->FindComponentByClass<UMotionWarpingComponent>() : nullptr;
 	if (!MotionWarping || !Target)
@@ -133,11 +108,11 @@ void UWxAbility_Finisher::RegisterWarpTarget(AActor* AvatarActor, const AActor* 
 	MotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(WarpTargetName, TargetLocation, WarpRotation);
 }
 
-void UWxAbility_Finisher::ApplyFinisherDamage(const FDataTableRowHandle& DamageInfo) const
+void UWxAbility_Backstab::ApplyBackstabDamage(const FDataTableRowHandle& DamageInfo) const
 {
 	const AActor* Target = TargetActor.Get();
 
-	// 처형은 무기 액터를 거치지 않고 노티파이가 직접 넣으므로 공격자 자신이 원인 액터다.
+	// 뒤잡은 무기 액터를 거치지 않고 노티파이가 직접 넣으므로 공격자 자신이 원인 액터다.
 	AActor* Avatar = GetAvatarActorFromActorInfo();
 	if (!Target || !Avatar)
 	{

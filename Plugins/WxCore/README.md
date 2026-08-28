@@ -25,7 +25,7 @@
 ## Gameplay Tags
 - 선언: `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h` / 정의: `Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp`
 - 주요 네임스페이스:
-  - `State.*` — 락온/전투/처형/대화 등 액터 상태 (네임플레이트·어빌리티 차단 조건)
+  - `State.*` — 락온/전투/대화 등 액터 상태 (네임플레이트·어빌리티 차단 조건)
   - `Effect.*` — GE가 부여하는 상태(무적·가드·탈진·슈퍼아머 등), 애셋 태그 겸용
   - `Event.Hit.*` / `Event.DamageDealt` — 대미지 파이프라인이 서버에서 ASC에 보내는 이벤트. `Event.Hit` 부모 매칭으로 구독할 것(정확 매칭은 반응 자식 히트를 놓침)
   - `Movement.*` / `Damage.*` — 공중·질주 상태, 크리·가드·패리 가능 여부 플래그

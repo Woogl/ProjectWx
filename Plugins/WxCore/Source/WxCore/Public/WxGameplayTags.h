@@ -15,9 +15,6 @@ namespace WxGameplayTags
 	/** 적 AI가 플레이어를 인식하고 있을 때 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_InCombat);
 
-	/** 처형(앞잡·뒤잡) 당하는 중일 때 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_BeingFinished);
-
 	/** 대화 세션 컴포넌트가 시작·종료에 맞춰 폰 ASC에 loose 태그로 발행. WxAbility_Interact가 ActivationBlockedTags로 사용해 대화 중 프롬프트 표시·상호작용을 닫는다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dialogue);
 
@@ -50,7 +47,7 @@ namespace WxGameplayTags
 	/**
 	 * 피격 이벤트. 대미지 파이프라인이 서버에서 피격자 ASC에 히트마다 한 번 보낸다.
 	 * 자식이 그 히트가 요청한 반응 종류다 — 반응이 있으면 자식을, 반응 없는 평타는 부모를 이벤트 태그로 보낸다.
-	 * 패리 반동·처형 짝 피격처럼 대미지 없는 반응 요청도 같은 계층에 EventMagnitude 0으로 싣는다.
+	 * 패리 반동처럼 대미지 없는 반응 요청도 같은 계층에 EventMagnitude 0으로 싣는다.
 	 * 구독은 부모 매칭 API로 한다 — 정확 매칭(GenericGameplayEventCallbacks, WaitGameplayEvent 기본값)은 자식으로 나가는 반응 히트를 놓친다.
 	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit);
@@ -59,8 +56,6 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_KnockDown);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_KnockUp);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Parry);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Finisher);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Backstab);
 
 	/**
 	 * 이 히트로 SP가 바닥나 가드가 깨졌다. 대미지 파이프라인이 서버에서 판정해 반응 태그 대신 이것을 보낸다.
@@ -88,9 +83,8 @@ namespace WxGameplayTags
 	/** 발동 장치가 연결 장치의 트리에 보내는 기본 이벤트. 목적지가 여럿인 장치는 버튼마다 다른 태그를 저작한다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Device_Triggered);
 
+	/** 적 상호작용이 서버에서 플레이어 ASC에 보내는 처형 트리거. 앞잡·뒤잡 어빌리티가 함께 받고, 페이로드 TargetTags(대상 소유 태그)에 대한 각자의 TargetRequired/BlockedTags로 하나만 성립한다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Finisher);
-
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Backstab);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Death);
 
@@ -180,6 +174,7 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Interact);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_UseItem);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Finisher);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Backstab);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_LockOn);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Passive);
 
@@ -187,6 +182,9 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_HitReact);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Groggy);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Death);
+
+	/** 처형 당하는 중. 피해자 어빌리티가 활성 구간(기상까지) 동안 발행하고, 적의 처형 어포던스가 이걸로 닫힌다. */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_BeingFinished);
 
 	/** 적 캐릭터 전용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern);

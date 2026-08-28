@@ -40,8 +40,6 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 		WxGameplayTags::Event_Hit_KnockDown,
 		WxGameplayTags::Event_Hit_KnockUp,
 		WxGameplayTags::Event_Hit_Parry,
-		WxGameplayTags::Event_Hit_Finisher,
-		WxGameplayTags::Event_Hit_Backstab,
 	};
 	for (const FGameplayTag& ReactionTag : ReactionTags)
 	{
@@ -100,9 +98,7 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	}
 	else if (ReactionTag == WxGameplayTags::Event_Hit_KnockBack
 		|| ReactionTag == WxGameplayTags::Event_Hit_KnockDown
-		|| ReactionTag == WxGameplayTags::Event_Hit_Parry
-		|| ReactionTag == WxGameplayTags::Event_Hit_Finisher
-		|| ReactionTag == WxGameplayTags::Event_Hit_Backstab)
+		|| ReactionTag == WxGameplayTags::Event_Hit_Parry)
 	{
 		FaceInstigator(AvatarActor, Instigator);
 	}
@@ -127,14 +123,6 @@ UAnimMontage* UWxAbility_HitReact::SelectMontage(FGameplayTag ReactionTag) const
 	else if (ReactionTag == WxGameplayTags::Event_Hit_Parry)
 	{
 		Montage = ParryReactMontage;
-	}
-	else if (ReactionTag == WxGameplayTags::Event_Hit_Finisher)
-	{
-		Montage = FinisherHitReactMontage;
-	}
-	else if (ReactionTag == WxGameplayTags::Event_Hit_Backstab)
-	{
-		Montage = BackstabHitReactMontage;
 	}
 
 	return Montage ? Montage : NormalHitReactMontage.Get();

@@ -6,7 +6,6 @@ namespace WxGameplayTags
 {
 	UE_DEFINE_GAMEPLAY_TAG(State_LockedOn, "State.LockedOn");
 	UE_DEFINE_GAMEPLAY_TAG(State_InCombat, "State.InCombat");
-	UE_DEFINE_GAMEPLAY_TAG(State_BeingFinished, "State.BeingFinished");
 	UE_DEFINE_GAMEPLAY_TAG(State_Dialogue, "State.Dialogue");
 
 	UE_DEFINE_GAMEPLAY_TAG(Effect_Invincible, "Effect.Invincible");
@@ -24,8 +23,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_KnockDown, "Event.Hit.KnockDown");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_KnockUp, "Event.Hit.KnockUp");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_Parry, "Event.Hit.Parry");
-	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_Finisher, "Event.Hit.Finisher");
-	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_Backstab, "Event.Hit.Backstab");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_GuardBreak, "Event.Hit.GuardBreak");
 	UE_DEFINE_GAMEPLAY_TAG(Event_DamageDealt, "Event.DamageDealt");
 	UE_DEFINE_GAMEPLAY_TAG(Event_DodgeSuccess, "Event.DodgeSuccess");
@@ -34,7 +31,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_Interact, "Event.Interact");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Device_Triggered, "Event.Device.Triggered");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Finisher, "Event.Finisher");
-	UE_DEFINE_GAMEPLAY_TAG(Event_Backstab, "Event.Backstab");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Death, "Event.Death");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Groggy, "Event.Groggy");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Ragdoll, "Event.Ragdoll");
@@ -94,12 +90,14 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Interact, "Ability.Interact");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_UseItem, "Ability.UseItem");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Finisher, "Ability.Finisher");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Backstab, "Ability.Backstab");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_LockOn, "Ability.LockOn");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Passive, "Ability.Passive");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability_HitReact, "Ability.HitReact");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Groggy, "Ability.Groggy");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Death, "Ability.Death");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_BeingFinished, "Ability.BeingFinished");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern, "Ability.Pattern");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_1, "Ability.Pattern.1");

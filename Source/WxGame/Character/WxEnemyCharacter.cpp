@@ -88,16 +88,14 @@ void AWxEnemyCharacter::OnInteracted(AActor* Interactor)
 		return;
 	}
 
-	const FGameplayTag EventTag = AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy)
-		? WxGameplayTags::Event_Finisher
-		: WxGameplayTags::Event_Backstab;
-
+	// 앞잡·뒤잡 어빌리티가 같은 이벤트를 받고, 내 소유 태그(그로기 여부)에 대한 각자의 TargetTags 요건으로 하나만 성립한다.
 	FGameplayEventData EventData;
 	EventData.Instigator = Interactor;
 	EventData.Target = this;
-	EventData.EventTag = EventTag;
+	EventData.EventTag = WxGameplayTags::Event_Finisher;
+	AbilitySystemComponent->GetOwnedGameplayTags(EventData.TargetTags);
 
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Interactor, EventTag, EventData);
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Interactor, WxGameplayTags::Event_Finisher, EventData);
 }
 
 FText AWxEnemyCharacter::GetInteractionPrompt() const
@@ -122,8 +120,8 @@ bool AWxEnemyCharacter::CanInteract(const AActor* Interactor) const
 		return false;
 	}
 
-	// 공격자 어빌리티(WxAbility_Finisher)가 연출 동안 대상에 State.BeingFinished 를 걸어 둔다.
-	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_BeingFinished))
+	// 처형 당하기 어빌리티가 활성 구간(기상까지) 동안 발행한다.
+	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_BeingFinished))
 	{
 		return false;
 	}
