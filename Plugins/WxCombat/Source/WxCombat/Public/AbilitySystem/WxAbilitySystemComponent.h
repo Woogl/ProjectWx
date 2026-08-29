@@ -9,6 +9,7 @@
 
 class UInputAction;
 class UWxAbilityBase;
+class USkeletalMeshComponent;
 enum class EWxAbilityActivationGroup : uint8;
 
 /** 액션 중에 막힌 채 떼어진 발동 입력. IA는 어빌리티 CDO가 쥐고 있어 ASC보다 오래 살므로 생 포인터로 둔다. */
@@ -25,6 +26,12 @@ class WXCOMBAT_API UWxAbilitySystemComponent : public UAbilitySystemComponent
 
 public:
 	UWxAbilitySystemComponent();
+
+	/** 몽타주를 시작한 엔진의 AnimatingAbility 전이에 맞춰 메시 본 갱신 정책을 승격한다. */
+	virtual float PlayMontage(UGameplayAbility* AnimatingAbility, FGameplayAbilityActivationInfo ActivationInfo, UAnimMontage* Montage, float InPlayRate, FName StartSectionName = NAME_None, float StartTimeSeconds = 0.0f) override;
+
+	/** 마지막 AnimatingAbility가 해제될 때 몽타주 전의 메시 본 갱신 정책을 복원한다. */
+	virtual void ClearAnimatingAbility(UGameplayAbility* Ability) override;
 
 	void GiveAbilitySet();
 
@@ -81,6 +88,9 @@ private:
 
 	void HandleHitStopElapsed();
 
+	void EnableAnimatingMontageMeshTick();
+	void RestoreAnimatingMontageMeshTick();
+
 	TArray<FWxBufferedInput> BufferedInputs;
 
 	/** 히트스톱이 얼린 몽타주와 얼리기 직전의 재생 속도. 복원 예약이 살아 있는 동안에만 읽는다. */
@@ -88,6 +98,10 @@ private:
 	float HitStopResumePlayRate = 1.f;
 
 	FTimerHandle HitStopResumeTimer;
+
+	/** AnimatingAbility가 존재하는 동안에만 강제한 메시와 원래 옵션. 단일 소유자라 별도 참조 수가 필요 없다. */
+	TWeakObjectPtr<USkeletalMeshComponent> MontageTickMesh;
+	EVisibilityBasedAnimTickOption PreviousMontageTickOption;
 
 protected:
 	// 소유 캐릭터가 "Wx|GAS"를 쓰므로 여기서 같은 경로를 쓰면 Class Defaults 패널에 GAS 헤더가 두 번 그려진다.

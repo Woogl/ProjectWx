@@ -6,12 +6,35 @@
 #include "WxCombatModule.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
 
 UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 {
 	SetIsReplicatedByDefault(true);
+}
+
+float UWxAbilitySystemComponent::PlayMontage(UGameplayAbility* AnimatingAbility, FGameplayAbilityActivationInfo ActivationInfo, UAnimMontage* Montage, float InPlayRate, FName StartSectionName, float StartTimeSeconds)
+{
+	const float Duration = Super::PlayMontage(AnimatingAbility, ActivationInfo, Montage, InPlayRate, StartSectionName, StartTimeSeconds);
+	if (Duration > 0.f && AnimatingAbility != nullptr)
+	{
+		EnableAnimatingMontageMeshTick();
+	}
+
+	return Duration;
+}
+
+void UWxAbilitySystemComponent::ClearAnimatingAbility(UGameplayAbility* Ability)
+{
+	const bool bClearingCurrentAbility = IsAnimatingAbility(Ability);
+	Super::ClearAnimatingAbility(Ability);
+
+	if (bClearingCurrentAbility && GetAnimatingAbility() == nullptr)
+	{
+		RestoreAnimatingMontageMeshTick();
+	}
 }
 
 void UWxAbilitySystemComponent::GiveAbilitySet()
@@ -26,6 +49,39 @@ void UWxAbilitySystemComponent::GiveAbilitySet()
 	bAbilitySetGranted = true;
 
 	AbilitySet->GiveToAbilitySystem(this);
+}
+
+void UWxAbilitySystemComponent::EnableAnimatingMontageMeshTick()
+{
+	if (MontageTickMesh.IsValid())
+	{
+		return;
+	}
+
+	USkeletalMeshComponent* Mesh = AbilityActorInfo.IsValid() ? AbilityActorInfo->SkeletalMeshComponent.Get() : nullptr;
+	if (Mesh == nullptr)
+	{
+		return;
+	}
+
+	PreviousMontageTickOption = Mesh->VisibilityBasedAnimTickOption;
+	MontageTickMesh = Mesh;
+	Mesh->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+
+	UE_LOG(LogWxCombat, Verbose, TEXT("Montage mesh tick enabled: Mesh=%s, Ability=%s"), *GetNameSafe(Mesh), *GetNameSafe(GetAnimatingAbility()));
+}
+
+void UWxAbilitySystemComponent::RestoreAnimatingMontageMeshTick()
+{
+	USkeletalMeshComponent* Mesh = MontageTickMesh.Get();
+	MontageTickMesh.Reset();
+	if (Mesh == nullptr)
+	{
+		return;
+	}
+
+	Mesh->VisibilityBasedAnimTickOption = PreviousMontageTickOption;
+	UE_LOG(LogWxCombat, Verbose, TEXT("Montage mesh tick restored: Mesh=%s"), *GetNameSafe(Mesh));
 }
 
 void UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* Action)
