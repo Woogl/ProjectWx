@@ -70,6 +70,7 @@ static const FWxDamageExecutionStatics& GetDamageExecutionStatics()
 
 static float CalculateDefenseMultiplier(float TargetDEF)
 {
+	// 방어 저항 = 100 / (100 × 방어력)
 	static constexpr float DefenseConstant = 100.f;
 	return DefenseConstant / (DefenseConstant + TargetDEF);
 }
@@ -84,6 +85,7 @@ static float CalculateCriticalMultiplier(float SourceCritDMG, bool bIsCritical)
 {
 	if (bIsCritical)
 	{
+		// 1 + 치명피해(%)
 		return 1.f + SourceCritDMG * 0.01f;
 	}
 	return 1.f;	
@@ -93,6 +95,7 @@ static float CalculateGuardMultiplier(bool bGuardHit)
 {
 	if (bGuardHit)
 	{
+		// 50% 차감
 		return UWxEffect_Guard::DamageMultiplier;
 	}
 	return 1.f;
