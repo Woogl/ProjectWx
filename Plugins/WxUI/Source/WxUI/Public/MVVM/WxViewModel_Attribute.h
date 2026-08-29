@@ -26,10 +26,10 @@ public:
 	virtual void Deinitialize() override;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Attribute")
-	float CurrentAttribute = 0.f;
+	float AttributeAmount = 0.f;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Attribute")
-	float MaxAttribute = 0.f;
+	float MaxAttributeAmount = 0.f;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Attribute")
 	float AttributePercent = 0.f;
@@ -40,11 +40,11 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Attribute")
 	bool IsAttributeFull = false;
 
-	float GetCurrentAttribute() const;
-	void SetCurrentAttribute(float NewValue);
+	float GetAttributeAmount() const;
+	void SetAttributeAmount(float NewValue);
 
-	float GetMaxAttribute() const;
-	void SetMaxAttribute(float NewValue);
+	float GetMaxAttributeAmount() const;
+	void SetMaxAttributeAmount(float NewValue);
 
 	float GetAttributePercent() const;
 	void SetAttributePercent(float NewValue);
@@ -56,7 +56,6 @@ public:
 	void SetIsAttributeFull(bool bNewValue);
 
 	FGameplayAttribute GetBoundAttribute() const;
-
 	FGameplayAttribute GetBoundMaxAttribute() const;
 
 private:
@@ -81,7 +80,7 @@ public:
 	virtual UObject* CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const override;
 
 	UPROPERTY(EditAnywhere, Category = "Wx")
-	FGameplayAttribute CurrentAttribute;
+	FGameplayAttribute Attribute;
 
 	/** 지정하지 않으면 CurrentAttribute 를 최대값으로 쓴다 */
 	UPROPERTY(EditAnywhere, Category = "Wx")

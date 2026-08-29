@@ -22,7 +22,7 @@ void UWxViewModel_Attribute::Initialize(UAbilitySystemComponent* InASC, FGamepla
 	{
 		BoundAttribute = InAttribute;
 		const float InitialValue = InASC->GetNumericAttribute(InAttribute);
-		SetCurrentAttribute(InitialValue);
+		SetAttributeAmount(InitialValue);
 		SetIsAttributeEmpty(InitialValue <= 0.f);
 		SetIsAttributeFull(InMaxAttribute.IsValid() && InitialValue >= InASC->GetNumericAttribute(InMaxAttribute));
 		InASC->GetGameplayAttributeValueChangeDelegate(InAttribute)
@@ -32,7 +32,7 @@ void UWxViewModel_Attribute::Initialize(UAbilitySystemComponent* InASC, FGamepla
 	if (InMaxAttribute.IsValid())
 	{
 		BoundMaxAttribute = InMaxAttribute;
-		SetMaxAttribute(InASC->GetNumericAttribute(InMaxAttribute));
+		SetMaxAttributeAmount(InASC->GetNumericAttribute(InMaxAttribute));
 		InASC->GetGameplayAttributeValueChangeDelegate(InMaxAttribute)
 			.AddUObject(this, &UWxViewModel_Attribute::HandleMaxAttributeChanged);
 	}
@@ -62,24 +62,24 @@ void UWxViewModel_Attribute::Deinitialize()
 	Super::Deinitialize();
 }
 
-float UWxViewModel_Attribute::GetCurrentAttribute() const
+float UWxViewModel_Attribute::GetAttributeAmount() const
 {
-	return CurrentAttribute;
+	return AttributeAmount;
 }
 
-void UWxViewModel_Attribute::SetCurrentAttribute(float NewValue)
+void UWxViewModel_Attribute::SetAttributeAmount(float NewValue)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(CurrentAttribute, NewValue);
+	UE_MVVM_SET_PROPERTY_VALUE(AttributeAmount, NewValue);
 }
 
-float UWxViewModel_Attribute::GetMaxAttribute() const
+float UWxViewModel_Attribute::GetMaxAttributeAmount() const
 {
-	return MaxAttribute;
+	return MaxAttributeAmount;
 }
 
-void UWxViewModel_Attribute::SetMaxAttribute(float NewValue)
+void UWxViewModel_Attribute::SetMaxAttributeAmount(float NewValue)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(MaxAttribute, NewValue);
+	UE_MVVM_SET_PROPERTY_VALUE(MaxAttributeAmount, NewValue);
 }
 
 float UWxViewModel_Attribute::GetAttributePercent() const
@@ -124,22 +124,22 @@ FGameplayAttribute UWxViewModel_Attribute::GetBoundMaxAttribute() const
 
 void UWxViewModel_Attribute::HandleAttributeChanged(const FOnAttributeChangeData& Data)
 {
-	SetCurrentAttribute(Data.NewValue);
+	SetAttributeAmount(Data.NewValue);
 	SetIsAttributeEmpty(Data.NewValue <= 0.f);
-	SetIsAttributeFull(Data.NewValue >= MaxAttribute);
+	SetIsAttributeFull(Data.NewValue >= MaxAttributeAmount);
 	RecalculateAttributePercent();
 }
 
 void UWxViewModel_Attribute::HandleMaxAttributeChanged(const FOnAttributeChangeData& Data)
 {
-	SetMaxAttribute(Data.NewValue);
-	SetIsAttributeFull(CurrentAttribute >= Data.NewValue);
+	SetMaxAttributeAmount(Data.NewValue);
+	SetIsAttributeFull(AttributeAmount >= Data.NewValue);
 	RecalculateAttributePercent();
 }
 
 void UWxViewModel_Attribute::RecalculateAttributePercent()
 {
-	const float Percent = (MaxAttribute > 0.f) ? (CurrentAttribute / MaxAttribute) : 0.f;
+	const float Percent = (MaxAttributeAmount > 0.f) ? (AttributeAmount / MaxAttributeAmount) : 0.f;
 	SetAttributePercent(Percent);
 }
 
@@ -149,7 +149,7 @@ UObject* UWxViewModelResolver_Attribute::CreateInstance(const UClass* ExpectedTy
 	const IAbilitySystemInterface* AbilitySystemPawn = PC ? Cast<IAbilitySystemInterface>(PC->GetPawn()) : nullptr;
 	UAbilitySystemComponent* ASC = AbilitySystemPawn ? AbilitySystemPawn->GetAbilitySystemComponent() : nullptr;
 
-	if (!ASC || !CurrentAttribute.IsValid())
+	if (!ASC || !Attribute.IsValid())
 	{
 		return nullptr;
 	}
@@ -157,5 +157,5 @@ UObject* UWxViewModelResolver_Attribute::CreateInstance(const UClass* ExpectedTy
 	// 인스턴스는 ASC 의 어빌리티시스템 VM 이 어트리뷰트 단위로 소유한다 — 같은 어트리뷰트를 보는 위젯끼리 하나를 나눠 쓴다.
 	UWxViewModel_AbilitySystem* AbilitySystemViewModel = UWxViewModel_AbilitySystem::GetOrCreate(ASC);
 
-	return AbilitySystemViewModel ? AbilitySystemViewModel->GetOrCreateAttributeViewModel(CurrentAttribute, MaxAttribute) : nullptr;
+	return AbilitySystemViewModel ? AbilitySystemViewModel->GetOrCreateAttributeViewModel(Attribute, MaxAttribute) : nullptr;
 }
