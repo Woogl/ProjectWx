@@ -6,12 +6,17 @@
 #include "AbilitySystem/Ability/WxAbilityTableRow.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Abilities/Tasks/AbilityTask_SpawnActor.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "Abilities/GameplayAbilityTargetTypes.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "GameplayEffect.h"
 #include "Weapon/WxProjectileBase.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Pawn.h"
+#include "GenericTeamAgentInterface.h"
+#include "Summon/WxSummonComponent.h"
 #include "Engine/World.h"
 #include "WxGameplayTags.h"
 
@@ -130,7 +135,7 @@ bool UWxAbilityBase::CanBeCanceled() const
 	return ActivationGroup != EWxAbilityActivationGroup::Reaction && Super::CanBeCanceled();
 }
 
-void UWxAbilityBase::SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileClass, FName SpawnSocketName) const
+void UWxAbilityBase::SpawnProjectile() const
 {
 	if (!ProjectileClass)
 	{
@@ -146,7 +151,7 @@ void UWxAbilityBase::SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileCl
 		return;
 	}
 
-	const FVector SpawnLocation = Mesh->GetSocketLocation(SpawnSocketName);
+	const FVector SpawnLocation = Mesh->GetSocketLocation(ProjectileSpawnSocketName);
 	const FRotator SpawnRotation = Avatar->GetActorRotation();
 	const FTransform SpawnTransform(SpawnRotation, SpawnLocation);
 
@@ -156,6 +161,120 @@ void UWxAbilityBase::SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileCl
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 	Avatar->GetWorld()->SpawnActor<AWxProjectileBase>(ProjectileClass, SpawnTransform, SpawnParams);
+}
+
+void UWxAbilityBase::SpawnSummon()
+{
+	AActor* Avatar = GetAvatarActorFromActorInfo();
+	if (!Avatar || !Avatar->HasAuthority() || !SummonClass)
+	{
+		return;
+	}
+
+	UWxSummonComponent* SummonComponent = UWxSummonComponent::FindComponent(Avatar);
+	if (!SummonComponent)
+	{
+		return;
+	}
+
+	FGameplayAbilityTargetDataHandle TargetData;
+	FGameplayAbilityTargetData_LocationInfo* LocationData = new FGameplayAbilityTargetData_LocationInfo();
+	LocationData->SourceLocation.LiteralTransform = Avatar->GetActorTransform();
+	LocationData->TargetLocation.LiteralTransform = GetSummonSpawnTransform();
+	TargetData.Add(LocationData);
+
+	TSubclassOf<AActor> ActorClass = SummonClass;
+	UAbilityTask_SpawnActor* SpawnTask = UAbilityTask_SpawnActor::SpawnActor(this, TargetData, ActorClass);
+	AActor* SpawnedActor = nullptr;
+	if (!SpawnTask->BeginSpawningActor(this, TargetData, ActorClass, SpawnedActor))
+	{
+		return;
+	}
+
+	SpawnedActor->SetOwner(Avatar);
+	SpawnedActor->SetInstigator(Cast<APawn>(Avatar));
+	if (const IGenericTeamAgentInterface* AvatarTeam = Cast<IGenericTeamAgentInterface>(Avatar))
+	{
+		if (IGenericTeamAgentInterface* SummonTeam = Cast<IGenericTeamAgentInterface>(SpawnedActor))
+		{
+			SummonTeam->SetGenericTeamId(AvatarTeam->GetGenericTeamId());
+		}
+	}
+
+	SpawnTask->FinishSpawningActor(this, TargetData, SpawnedActor);
+
+	APawn* Summon = Cast<APawn>(SpawnedActor);
+	if (!Summon || !SummonComponent->RegisterSummon(Summon))
+	{
+		SpawnedActor->Destroy();
+	}
+}
+
+FTransform UWxAbilityBase::GetSummonSpawnTransform() const
+{
+	AActor* Avatar = GetAvatarActorFromActorInfo();
+	if (!Avatar)
+	{
+		return SummonRelativeSpawnTransform;
+	}
+
+	FTransform BaseTransform = Avatar->GetActorTransform();
+	if (SummonSpawnSocketName != NAME_None)
+	{
+		if (USkeletalMeshComponent* Mesh = Avatar->FindComponentByClass<USkeletalMeshComponent>())
+		{
+			if (Mesh->DoesSocketExist(SummonSpawnSocketName))
+			{
+				BaseTransform = Mesh->GetSocketTransform(SummonSpawnSocketName);
+			}
+		}
+	}
+
+	return SummonRelativeSpawnTransform * BaseTransform;
+}
+
+void UWxAbilityBase::RegisterConfiguredMontageEvents()
+{
+	UnregisterConfiguredMontageEvents();
+
+	if (ProjectileClass)
+	{
+		ProjectileEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, WxGameplayTags::Event_AbilityAction_SpawnProjectile, nullptr, true);
+		ProjectileEventTask->EventReceived.AddDynamic(this, &UWxAbilityBase::HandleProjectileEvent);
+		ProjectileEventTask->ReadyForActivation();
+	}
+
+	if (SummonClass)
+	{
+		SummonEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, WxGameplayTags::Event_AbilityAction_SummonActor, nullptr, true);
+		SummonEventTask->EventReceived.AddDynamic(this, &UWxAbilityBase::HandleSummonEvent);
+		SummonEventTask->ReadyForActivation();
+	}
+}
+
+void UWxAbilityBase::UnregisterConfiguredMontageEvents()
+{
+	if (ProjectileEventTask)
+	{
+		ProjectileEventTask->EndTask();
+		ProjectileEventTask = nullptr;
+	}
+
+	if (SummonEventTask)
+	{
+		SummonEventTask->EndTask();
+		SummonEventTask = nullptr;
+	}
+}
+
+void UWxAbilityBase::HandleProjectileEvent(FGameplayEventData Payload)
+{
+	SpawnProjectile();
+}
+
+void UWxAbilityBase::HandleSummonEvent(FGameplayEventData Payload)
+{
+	SpawnSummon();
 }
 
 void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -184,6 +303,9 @@ void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 	}
 
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+
+	RegisterConfiguredMontageEvents();
 }
 
 void UWxAbilityBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -191,6 +313,9 @@ void UWxAbilityBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const F
 	// 태스크를 여기서 끝내면 안 된다 — 엔진 EndAbility가 소유자 종료로 끝내는 경로만 재생 중인 몽타주를 멈추므로, 미리 끊으면 루핑 가드 몽타주처럼 스스로 끝나지 않는 것이 종료 후에도 계속 돈다.
 	MontageTask = nullptr;
 	ActiveMontage = nullptr;
+
+
+	UnregisterConfiguredMontageEvents();
 
 	// 캔슬·중단도 이 경로를 지나므로 효과가 새지 않는다. 활성 중에 이미 걷힌 것은 조회에 걸리지 않아 무해하다.
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())

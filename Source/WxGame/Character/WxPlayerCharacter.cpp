@@ -13,6 +13,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Input/WxInputConfig.h"
 #include "Targeting/WxLockOnManagerComponent.h"
+#include "Summon/WxSummonComponent.h"
 #include "WxGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -40,6 +41,7 @@ AWxPlayerCharacter::AWxPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	FollowCamera->bUsePawnControlRotation = false;
 
 	LockOnManagerComponent = CreateDefaultSubobject<UWxLockOnManagerComponent>(TEXT("LockOnManagerComponent"));
+	SummonComponent = CreateDefaultSubobject<UWxSummonComponent>(TEXT("SummonComponent"));
 
 	StaminaWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("StaminaWidget"));
 	StaminaWidget->SetupAttachment(RootComponent);

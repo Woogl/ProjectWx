@@ -11,6 +11,7 @@ class UCameraComponent;
 class UWidgetComponent;
 class UWxInputConfig;
 class UWxLockOnManagerComponent;
+class UWxSummonComponent;
 class UInputAction;
 struct FInputActionValue;
 
@@ -37,6 +38,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")
 	TObjectPtr<UWxLockOnManagerComponent> LockOnManagerComponent;
+
+	/** 플레이어 스킬이 생성한 소환수의 슬롯·수명을 서버에서 관리한다. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")
+	TObjectPtr<UWxSummonComponent> SummonComponent;
 
 	/** 위젯 클래스는 BP 에서 지정한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|UI")

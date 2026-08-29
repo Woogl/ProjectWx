@@ -46,20 +46,35 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 		return;
 	}
 
+	UseItemEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, WxGameplayTags::Event_AbilityAction_UseItem, nullptr, true);
+	UseItemEventTask->EventReceived.AddDynamic(this, &UWxAbility_UseItem::HandleUseItemEvent);
+	UseItemEventTask->ReadyForActivation();
+
 	if (!PlayMontage(UseMontage))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
-	// 1회만 수신한다.
-	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-		this, WxGameplayTags::Event_UseItem, nullptr, true);
-	EventTask->EventReceived.AddDynamic(this, &UWxAbility_UseItem::HandleConsumeEvent);
-	EventTask->ReadyForActivation();
 }
 
-void UWxAbility_UseItem::HandleConsumeEvent(FGameplayEventData Payload)
+void UWxAbility_UseItem::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	if (UseItemEventTask)
+	{
+		UseItemEventTask->EndTask();
+		UseItemEventTask = nullptr;
+	}
+
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UWxAbility_UseItem::HandleUseItemEvent(FGameplayEventData Payload)
+{
+	UseConsumable();
+}
+
+void UWxAbility_UseItem::UseConsumable()
 {
 	// 몽타주가 클라에서도 재생되어 노티파이가 양쪽에서 발화하므로, 이 경로는 클라 인스턴스에서도 도달한다.
 	// 인벤토리 차감은 롤백 장치가 없어 예측 대상이 아니다(UseItemByDef 는 권한을 check 한다).

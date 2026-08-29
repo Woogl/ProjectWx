@@ -10,9 +10,11 @@
 
 class UAbilitySystemComponent;
 class UAbilityTask_PlayMontageAndWait;
+class UAbilityTask_WaitGameplayEvent;
 class UAnimMontage;
 class UGameplayEffect;
 class AWxProjectileBase;
+class APawn;
 class UInputAction;
 struct FWxAbilityTableRow;
 
@@ -50,7 +52,7 @@ enum class EWxAbilityActivationGroup : uint8
 	Reaction, // Override 같은 이름으로 바꿀까???
 };
 
-UCLASS(Abstract, BlueprintType, Blueprintable)
+UCLASS(Abstract, BlueprintType, Blueprintable, PrioritizeCategories = ("Wx"))
 class WXCOMBAT_API UWxAbilityBase : public UGameplayAbility
 {
 	GENERATED_BODY()
@@ -80,7 +82,7 @@ public:
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	TArray<TSubclassOf<UGameplayEffect>> ActivationOwnedEffects;
-	
+
 	TSoftObjectPtr<UObject> GetIcon() const;
 
 	int32 GetMaxRecharges() const;
@@ -103,9 +105,6 @@ public:
 
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 	virtual bool CanBeCanceled() const override;
-
-	/// WxAnimNotify_SpawnProjectile이 위임하는 투사체 스폰
-	void SpawnProjectile(TSubclassOf<AWxProjectileBase> ProjectileClass, FName SpawnSocketName) const;
 
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual UGameplayEffect* GetCooldownGameplayEffect() const override;
@@ -139,7 +138,36 @@ protected:
 	UFUNCTION()
 	virtual void HandleMontageCancelled();
 
+	/** 몽타주의 Event.AbilityAction.SpawnProjectile 시점에 서버 권위로 생성할 투사체. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Projectile")
+	TSubclassOf<AWxProjectileBase> ProjectileClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Projectile")
+	FName ProjectileSpawnSocketName = TEXT("hand_r");
+
+	/** 몽타주의 Event.AbilityAction.SummonActor 시점에 서버 권위로 생성할 소환수. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Summon")
+	TSubclassOf<APawn> SummonClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Summon")
+	FName SummonSpawnSocketName = NAME_None;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Summon")
+	FTransform SummonRelativeSpawnTransform = FTransform(FVector(150.f, 0.f, 0.f));
+
 private:
+	void RegisterConfiguredMontageEvents();
+	void UnregisterConfiguredMontageEvents();
+	void SpawnProjectile() const;
+	void SpawnSummon();
+	FTransform GetSummonSpawnTransform() const;
+
+	UFUNCTION()
+	void HandleProjectileEvent(FGameplayEventData Payload);
+
+	UFUNCTION()
+	void HandleSummonEvent(FGameplayEventData Payload);
+
 	const FWxAbilityTableRow* GetTableRow() const;
 
 	UPROPERTY(Transient)
@@ -147,6 +175,12 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UAnimMontage> ActiveMontage;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAbilityTask_WaitGameplayEvent> ProjectileEventTask;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAbilityTask_WaitGameplayEvent> SummonEventTask;
 	
 	TArray<FActiveGameplayEffectHandle> ActivationOwnedEffectHandles;
 };

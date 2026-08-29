@@ -88,7 +88,7 @@ void AWxEnemyCharacter::OnInteracted(AActor* Interactor)
 		return;
 	}
 
-	// 앞잡·뒤잡 어빌리티가 같은 이벤트를 받고, 내 소유 태그(그로기 여부)에 대한 각자의 TargetTags 요건으로 하나만 성립한다.
+	// CanInteract가 서버에서 검증한 앞잡·뒤잡 자격을 통합 피니셔 어빌리티의 연출 선택에 전달한다.
 	FGameplayEventData EventData;
 	EventData.Instigator = Interactor;
 	EventData.Target = this;

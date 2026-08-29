@@ -8,7 +8,7 @@
 
 /**
  * 처형 당하기 — 피해자 측.
- * 상시 부여되지 않는다. 공격자의 처형 어빌리티(UWxAbility_Finisher·UWxAbility_Backstab)가 GiveAbilityAndActivateOnce로 부여하며 곧바로 발동시키고, 몽타주가 끝나 종료되면 스펙도 걷힌다.
+ * 상시 부여되지 않는다. 공격자의 통합 피니셔 어빌리티(UWxAbility_Finisher)가 GiveAbilityAndActivateOnce로 부여하며 곧바로 발동시키고, 몽타주가 끝나 종료되면 스펙도 걷힌다.
  * 재생할 몽타주는 트리거 이벤트의 OptionalObject로 받는다 — 짝 몽타주는 공격자 에셋이 쌍으로 소유한다.
  * 활성 구간 동안 Ability.BeingFinished를 발행해 재처형 프롬프트를 닫는다 — 기상까지 포함한 피해자 몽타주 길이가 곧 그 수명이다.
  */

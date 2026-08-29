@@ -6,6 +6,7 @@
 #include "AbilitySystem/Effect/WxEffect_ResetGP.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "MotionWarpingComponent.h"
 #include "WxCombatLibrary.h"
 #include "WxGameplayTags.h"
@@ -34,18 +35,26 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	// 상호작용이 이 태그에 막혀, 연출 도중 재입력으로 다른 대상과 몽타주가 겹치는 것을 차단한다.
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Finisher);
 
-	// 앞잡·뒤잡이 같은 상호작용 이벤트를 받고, 페이로드에 실린 대상 소유 태그로 하나만 성립한다.
+	// 적 상호작용이 자격(그로기 또는 비전투 후방)을 서버에서 검증한 뒤 같은 이벤트로 발동시킨다.
 	FAbilityTriggerData TriggerData;
 	TriggerData.TriggerTag = WxGameplayTags::Event_Finisher;
 	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	AbilityTriggers.Add(TriggerData);
-
-	TargetRequiredTags.AddTag(WxGameplayTags::Ability_Groggy);
 }
 
 float UWxAbility_Finisher::GetMontagePlayRate() const
 {
 	return 1.f;
+}
+
+bool UWxAbility_Finisher::IsBackstab() const
+{
+	return bBackstab;
+}
+
+const FWxFinisherVariant& UWxAbility_Finisher::GetCurrentVariant() const
+{
+	return bBackstab ? BackstabVariant : FinisherVariant;
 }
 
 void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -55,8 +64,12 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	AActor* AvatarActor = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
 	// 대상에 가하는 변경은 전부 대상 ASC 를 거치고 액터 자체는 위치만 읽으므로 const 로 다룬다.
 	const AActor* Target = TriggerEventData ? TriggerEventData->Target.Get() : nullptr;
+	bBackstab = TriggerEventData && !TriggerEventData->TargetTags.HasTag(WxGameplayTags::Ability_Groggy);
+	const FWxFinisherVariant& Variant = GetCurrentVariant();
+	UAnimMontage* SelectedAttackerMontage = Variant.AttackerMontage;
+	UAnimMontage* SelectedVictimMontage = Variant.VictimMontage;
 
-	if (!AttackerMontage || !AvatarActor || !Target || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	if (!SelectedAttackerMontage || !AvatarActor || !Target || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -73,7 +86,7 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 			FGameplayEventData VictimEvent;
 			VictimEvent.Instigator = AvatarActor;
 			VictimEvent.Target = Target;
-			VictimEvent.OptionalObject = VictimMontage;
+			VictimEvent.OptionalObject = SelectedVictimMontage;
 
 			FGameplayAbilitySpec VictimSpec(UWxAbility_BeingFinished::StaticClass(), 1);
 			TargetASC->GiveAbilityAndActivateOnce(VictimSpec, &VictimEvent);
@@ -82,7 +95,11 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	RegisterWarpTarget(AvatarActor, Target);
 
-	if (!PlayMontage(AttackerMontage))
+	DamageEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, WxGameplayTags::Event_AbilityAction_ApplyFinisherDamage, nullptr, true);
+	DamageEventTask->EventReceived.AddDynamic(this, &UWxAbility_Finisher::HandleDamageEvent);
+	DamageEventTask->ReadyForActivation();
+
+	if (!PlayMontage(SelectedAttackerMontage))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	}
@@ -90,7 +107,13 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	// 중단·캔슬도 이 경로를 지나므로 그로기 해제가 몽타주 종료 방식과 무관하게 한 번 일어난다.
+	if (DamageEventTask)
+	{
+		DamageEventTask->EndTask();
+		DamageEventTask = nullptr;
+	}
+
+	// 중단·캔슬도 이 경로를 지나므로 앞잡·뒤잡 모두 GP 초기화가 몽타주 종료 방식과 무관하게 한 번 일어난다.
 	if (ActorInfo && ActorInfo->IsNetAuthority())
 	{
 		if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(TargetActor.Get()))
@@ -107,6 +130,7 @@ void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, co
 		}
 	}
 	TargetActor = nullptr;
+	bBackstab = false;
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
@@ -133,7 +157,7 @@ void UWxAbility_Finisher::RegisterWarpTarget(AActor* AvatarActor, const AActor* 
 	MotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(FinisherWarpTargetName, TargetLocation, WarpRotation);
 }
 
-void UWxAbility_Finisher::ApplyFinisherDamage(const FDataTableRowHandle& DamageInfo) const
+void UWxAbility_Finisher::ApplyFinisherDamage() const
 {
 	const AActor* Target = TargetActor.Get();
 
@@ -148,5 +172,10 @@ void UWxAbility_Finisher::ApplyFinisherDamage(const FDataTableRowHandle& DamageI
 	HitResult.ImpactPoint = Target->GetActorLocation();
 	HitResult.Location = Target->GetActorLocation();
 
-	UWxCombatLibrary::ApplyDamage(Avatar, Target, DamageInfo, HitResult, 0.f);
+	UWxCombatLibrary::ApplyDamage(Avatar, Target, GetCurrentVariant().DamageDataRow, HitResult, 0.f);
+}
+
+void UWxAbility_Finisher::HandleDamageEvent(FGameplayEventData Payload)
+{
+	ApplyFinisherDamage();
 }

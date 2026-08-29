@@ -81,8 +81,6 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_PerfectGuard);
 
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_UseItem);
-
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Interact);
 
 	/** 발동 장치가 연결 장치의 트리에 보내는 기본 이벤트. 목적지가 여럿인 장치는 버튼마다 다른 태그를 저작한다. */
@@ -97,6 +95,21 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Ragdoll);
 	
+	/** 어빌리티에 인라인으로 설정한 Action 실행 이벤트의 루트 태그. */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_AbilityAction);
+
+	/** 인라인 Action 중 전투 소환수 생성 Action을 실행한다. */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_AbilityAction_SummonActor);
+
+	/** 소비 아이템 차감과 사용 효과 적용 Action을 실행한다. */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_AbilityAction_UseItem);
+
+	/** 앞잡·뒤잡 대상에게 대미지를 적용하는 Action을 실행한다. */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_AbilityAction_ApplyFinisherDamage);
+
+	/** 투사체를 생성하는 Action을 실행한다. */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_AbilityAction_SpawnProjectile);
+
 	// ── Device ──────────────────────────────────────────────────────────────
 
 	// 장치의 State Tree 상태값이며 곧 세이브 슬롯에 저장된다.
@@ -179,7 +192,6 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Interact);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_UseItem);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Finisher);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Backstab);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_LockOn);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Passive);
 

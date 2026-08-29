@@ -29,13 +29,17 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_DamageDealt, "Event.DamageDealt");
 	UE_DEFINE_GAMEPLAY_TAG(Event_DodgeSuccess, "Event.DodgeSuccess");
 	UE_DEFINE_GAMEPLAY_TAG(Event_PerfectGuard, "Event.PerfectGuard");
-	UE_DEFINE_GAMEPLAY_TAG(Event_UseItem, "Event.UseItem");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Interact, "Event.Interact");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Device_Triggered, "Event.Device.Triggered");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Finisher, "Event.Finisher");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Death, "Event.Death");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Groggy, "Event.Groggy");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Ragdoll, "Event.Ragdoll");
+	UE_DEFINE_GAMEPLAY_TAG(Event_AbilityAction, "Event.AbilityAction");
+	UE_DEFINE_GAMEPLAY_TAG(Event_AbilityAction_SummonActor, "Event.AbilityAction.SummonActor");
+	UE_DEFINE_GAMEPLAY_TAG(Event_AbilityAction_UseItem, "Event.AbilityAction.UseItem");
+	UE_DEFINE_GAMEPLAY_TAG(Event_AbilityAction_ApplyFinisherDamage, "Event.AbilityAction.ApplyFinisherDamage");
+	UE_DEFINE_GAMEPLAY_TAG(Event_AbilityAction_SpawnProjectile, "Event.AbilityAction.SpawnProjectile");
 	
 	UE_DEFINE_GAMEPLAY_TAG(Device_Button_Idle, "Device.Button.Idle");
 	UE_DEFINE_GAMEPLAY_TAG(Device_Button_Pressed, "Device.Button.Pressed");
@@ -92,7 +96,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Interact, "Ability.Interact");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_UseItem, "Ability.UseItem");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Finisher, "Ability.Finisher");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Backstab, "Ability.Backstab");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_LockOn, "Ability.LockOn");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Passive, "Ability.Passive");
 
