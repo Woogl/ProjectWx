@@ -115,8 +115,7 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 				}
 			}
 
-			// 즉사 치트도 IncomingDamage를 지나므로 GE 종류로 걸러야 타격 반응과 연출이 딸려 나가지 않는다.
-			// 사망 처리 뒤라야 Ability.Death가 붙은 상태가 되어 히트리액트가 그 태그로 차단된다.
+			// 즉사 GE가 타격 반응을 내지 않게 Damage GE만 처리하고, 사망 처리 뒤에 호출해 Ability.Death 태그로 히트리액트를 막는다.
 			if (Data.EffectSpec.Def && Data.EffectSpec.Def->IsA<UWxEffect_Damage>())
 			{
 				ProcessDamageTaken(Data, Damage);
@@ -288,7 +287,6 @@ void UWxCombatAttributeSet::ProcessDamageTaken(const FGameplayEffectModCallbackD
 	AActor* TargetActor = GetOwningActor();
 	UAbilitySystemComponent* SourceASC = ContextHandle.GetInstigatorAbilitySystemComponent();
 
-	// 공격이 요청한 반응 종류는 스펙에 HitReact 태그로 실려 온다.
 	const FGameplayTag ReactionTag = Data.EffectSpec.GetDynamicAssetTags().Filter(FGameplayTagContainer(WxGameplayTags::HitReact)).First();
 
 	// GuardReact가 같은 피격 이벤트로 흡수 몽타주를 틀므로, 가드로 막히지 않는 히트는 이벤트보다 먼저 가드를 끊어야 한다.

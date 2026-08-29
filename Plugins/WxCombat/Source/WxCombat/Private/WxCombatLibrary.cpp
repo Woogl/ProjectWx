@@ -28,6 +28,35 @@ bool UWxCombatLibrary::IsHostile(const AActor* Source, const AActor* Target)
 	return SourceTeamAgent->GetTeamAttitudeTowards(*Target) == ETeamAttitude::Hostile;
 }
 
+EWxDamageCheck UWxCombatLibrary::CheckDamage(const UAbilitySystemComponent* Source, const UAbilitySystemComponent* Target)
+{
+	if (!Target)
+	{
+		return EWxDamageCheck::None;
+	}
+
+	// 대미지 GE가 사망 대상을 거르기 전, 히트스톱·투사체 연출도 시체를 제외해야 한다.
+	if (Target->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
+	{
+		return EWxDamageCheck::None;
+	}
+
+	// 팀킬 방지
+	const AActor* SourceAvatar = Source ? Source->GetAvatarActor() : nullptr;
+	const AActor* TargetAvatar = Target->GetAvatarActor();
+	if (!IsHostile(SourceAvatar, TargetAvatar))
+	{
+		return EWxDamageCheck::None;
+	}
+
+	if (Target->HasMatchingGameplayTag(WxGameplayTags::Effect_Invincible))
+	{
+		return EWxDamageCheck::Evaded;
+	}
+
+	return EWxDamageCheck::Damaged;
+}
+
 bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const FDataTableRowHandle& DamageTableRow, const FHitResult& HitResult, float HitStopDuration)
 {
 	if (!Causer || !Target)
@@ -64,7 +93,7 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 	}
 
 	// 적용 전에 판정한다 — 이 히트로 죽는 대상에도 히트스톱이 걸려야 한다.
-	const EWxDamageCheck DamageCheck = UWxExecCalc_Damage::CheckDamage(Source, TargetASC);
+	const EWxDamageCheck DamageCheck = CheckDamage(Source, TargetASC);
 
 	if (DamageCheck == EWxDamageCheck::Evaded)
 	{
@@ -94,13 +123,25 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 	for (const FGameplayEffectSpecHandle& Spec : Specs)
 	{
 		const bool bIsDamageSpec = Spec.IsValid() && Spec.Data->Def->IsA<UWxEffect_Damage>();
-		// 퍼펙트 가드에서는 Damage GE만 반사·이벤트를 처리하고, 상태이상 등의 부가효과는 적용하지 않는다.
-		if (Spec.IsValid() && (!bPerfectGuardApplied || bIsDamageSpec))
+		if (!bIsDamageSpec)
 		{
-			const FActiveGameplayEffectHandle AppliedHandle = Source->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC, PredictionKey);
-			if (bIsDamageSpec)
+			continue;
+		}
+
+		const FActiveGameplayEffectHandle AppliedHandle = Source->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC, PredictionKey);
+		bDamageApplied = AppliedHandle.WasSuccessfullyApplied();
+		break;
+	}
+
+	// Damage GE가 거부되거나 퍼펙트 가드가 성립하면 부가 효과를 적용하지 않는다.
+	if (bDamageApplied && !bPerfectGuardApplied)
+	{
+		for (const FGameplayEffectSpecHandle& Spec : Specs)
+		{
+			const bool bIsDamageSpec = Spec.IsValid() && Spec.Data->Def->IsA<UWxEffect_Damage>();
+			if (Spec.IsValid() && !bIsDamageSpec)
 			{
-				bDamageApplied = AppliedHandle.WasSuccessfullyApplied();
+				Source->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC, PredictionKey);
 			}
 		}
 	}

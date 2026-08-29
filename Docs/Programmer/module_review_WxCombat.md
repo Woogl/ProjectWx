@@ -1,34 +1,30 @@
 # WxCombat — 코드 리뷰
 
-> GAS 전투 경로와 모듈 경계는 전반적으로 잘 정리되어 있고, 확인한 범위에서는 `AGENTS.md`의 Copyright·접두사·콜백 명명·`BlueprintCallable`·플러그인 의존성 규칙 위반이 없었다. 이번 리뷰는 README를 출발점으로 Build 설정, 공개 계약, 대미지·어빌리티·무기·락온·시간 조작의 위험 경로를 중심으로 확인했다.
+> 대미지의 단일 진입점, `UWxEffect_Damage` 실행 계산, 메타 어트리뷰트의 HP/사망 전이, GameplayCue와 근접·투사체·처형 호출 경계를 추적했다. 권위 적용은 투사체와 처형 경로에서 명시적으로 분리되어 있고, `IncomingDamage`→HP→사망 이벤트 순서도 일관되지만, 치명타로 사망한 대상에 부가 GE가 새는 경로가 남아 있다.
 
 ## 요약
+
 | 심각도 | 개수 |
 | --- | --- |
-| 🔴 심각 | 1 |
+| 🔴 심각 | 0 |
 | 🟡 개선 | 1 |
 | 🟢 사소 | 0 |
 
 ## 결과
 
-### 1. 🔴 락온 대상 Server RPC가 클라이언트 값을 무검증으로 권위 상태에 반영한다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxLockOnManagerComponent.cpp:38`
-- **범주**: 설계/구조
-- **문제**: `ServerSetLockOnTarget_Implementation`은 호출자가 넘긴 `USceneComponent`를 사거리·적대 팀·`UWxLockOnPointComponent`·생존/락온 가능 상태를 검증하지 않고 그대로 복제 상태에 저장한다. 악의적 또는 변조된 소유 클라이언트는 자신이 네트워크 참조를 가진 임의 컴포넌트를 보내 서버의 락온 대상으로 만들 수 있으며, 이 값은 투사체 호밍과 모션 워핑에서 서버 권위 소비처가 사용한다. 정상 경로의 `UWxAbility_LockOn` 로컬 후보 검증만으로는 RPC 직접 호출을 막지 못한다.
-- **제안**: 서버에서 null 해제만 예외로 허용하고, 대상 컴포넌트의 타입·소유 액터·적대성·거리·`CanBeLockedOn()`을 재검증한 뒤 반영한다. 검증 규칙을 컴포넌트 또는 공용 서버 측 선택 함수로 모아 락온 어빌리티와 동일한 기준을 사용한다.
-- **확신도**: 높음
-
-### 2. 🟡 상태 GE 종료가 적용 인스턴스를 식별하지 못한다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.cpp:31`
+### 1. 🟡 치명타로 사망한 대상에도 `AdditionalEffects`가 적용된다
+- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp:137`
 - **범주**: 버그/정확성
-- **문제**: 노티파이는 시작 시 적용된 `FActiveGameplayEffectHandle`을 보관하지 않고, 종료 때 `EffectClass`와 null source object만으로 한 건을 제거한다. 같은 효과 정의가 겹쳐 적용되면(예: `UWxEffect_Invincible`을 회피 노티파이와 컷신 태스크가 동시에 적용) 종료한 노티파이의 효과가 아닌 다른 인스턴스가 먼저 제거될 수 있다. 이후 종료 순서에 따라 무적이 조기 해제되거나 반대로 남는다.
-- **제안**: 적용 API가 핸들을 반환하게 하고, 노티파이 실행별 `(MeshComp, NotifyEvent)` 상태 또는 별도 런타임 객체에 보관한 정확한 핸들만 제거한다. 같은 패턴의 `UWxAbilityTask_PlaySkillCutscene`도 이 식별 방식을 함께 사용한다.
+- **문제**: `ApplyDamage`는 `UWxEffect_Damage`를 먼저 동기 적용한 뒤, 성공 여부와 퍼펙트 가드만 보고 같은 행의 `AdditionalEffects`를 순회한다. 그 사이 `UWxCombatAttributeSet::PostGameplayEffectExecute`가 `IncomingDamage`를 HP에 반영하고(`Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Attribute/WxCombatAttributeSet.cpp:102`), HP가 0 이하이면 `Event.Death`를 즉시 발행한다(`Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Attribute/WxCombatAttributeSet.cpp:114`). 그러나 부가 GE 적용 전에는 사망 태그/HP를 다시 검사하지 않으며, `UWxEffect_Damage`에만 `Ability.Death` 대상 제외 조건이 있다(`Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Damage.cpp:24`). 따라서 피해 행에 지속 디버프·상태이상 등 `AdditionalEffects`가 있고 해당 한 방이 대상을 죽이면, 사망 전이 후에도 그 효과가 시체 ASC에 적용된다. 효과 자체가 사망 제외 조건을 갖지 않으면 태그·주기 처리·큐가 남을 수 있다.
+- **재현 시나리오**: HP가 작은 적에게 `AdditionalEffects`로 지속 GE를 가진 대미지 행을 적중시킨다. 첫 `UWxEffect_Damage`가 HP를 0으로 만들고 사망 어빌리티를 발동한 다음, 같은 `ApplyDamage` 호출이 그 지속 GE를 대상에게 적용한다.
+- **제안**: `UWxEffect_Damage` 적용 직후 대상이 사망 태그를 얻었거나 HP가 0 이하이면 부가 GE 루프를 건너뛴다. 사망 뒤에도 허용해야 하는 효과가 있다면 행 수준의 명시적 플래그로 예외를 선언하고, 각 지속 GE에는 `Ability.Death` 대상 제외 조건을 기본으로 둔다.
 - **확신도**: 높음
 
 ## 검토 범위
-- **깊게 본 파일**: `Plugins/WxCombat/README.md`, `Plugins/WxCombat/Source/WxCombat/WxCombat.Build.cs`, `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbilityBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Damage.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Attribute/WxCombatAttributeSet.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxWeaponBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxProjectileBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxLockOnManagerComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_LockOn.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_LockOnTarget.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Time/WxTimeDilationComponent.cpp`
-- **훑은 파일**: `Plugins/WxCombat/Source/WxCombat/Public/` 헤더 전반과 나머지 `AbilitySystem/Ability/`, `AbilitySystem/Effect/`, `AbilitySystem/Cue/`, `AnimNotify/`, `Targeting/`, `Damage/`의 대응 cpp
-- **미검토 / 한계**: BP/WBP·몬타주·DataTable 자산 내부와 실제 멀티플레이 런타임은 검토하지 않았다. 대미지 수치식과 타게팅 프리셋의 밸런스 타당성은 기획 범위로 보류했다.
+
+- **깊게 본 파일**: `Plugins/WxCombat/README.md`, `Plugins/WxCombat/Source/WxCombat/Public/WxCombatLibrary.h`, `Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Damage/WxDamageTableRow.cpp`, `Plugins/WxCombat/Source/WxCombat/Public/Damage/WxCombatEffectContext.h`, `Plugins/WxCombat/Source/WxCombat/Private/Damage/WxCombatEffectContext.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Damage.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Attribute/WxCombatAttributeSet.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemGlobals.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxWeaponBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxProjectileBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Finisher.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Backstab.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Death.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Cue/WxCueNotify_Hit.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Cue/WxCueNotify_DamageFloater.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Cue/WxCueNotify_PerfectGuard.cpp`
+- **훑은 파일**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/`, `AbilitySystem/Effect/`, `AbilitySystem/Cue/`, `AnimNotify/`, `Weapon/`의 나머지 대미지 연관 구현과 대응 공개 헤더
+- **미검토 / 한계**: BP/WBP·몬타주·DataTable 자산의 실제 행 구성과 멀티플레이 런타임은 검토하지 않았다. `Source/WxGame`은 치트·캐릭터 맥락만 읽었으며 대미지 파이프라인의 직접 호출자는 찾지 못했다.
 
 ---
-*문서 기준 커밋 `b48c1930` · 리뷰일 2026-08-29 · 소스 152파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `973c9c07` · 리뷰일 2026-08-29 · 소스 152파일 — `/module-review`로 갱신*

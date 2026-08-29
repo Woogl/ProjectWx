@@ -8,11 +8,8 @@
 #include "WxCombatEffectContext.generated.h"
 
 /**
- * 치명타 여부를 실어 나르는 EffectContext.
- * UWxAbilitySystemGlobals가 할당하므로 MakeEffectContext를 타는 모든 GE가 이 타입을 갖는다.
- *
- * UWxExecCalc_Damage가 판정 중에 적고, 어트리뷰트가 확정된 뒤 UWxCombatAttributeSet::ProcessDamageTaken가 읽어 플로터에 넘긴다.
- * 나머지 판정 결과는 스펙 태그와 IncomingDamage로 복원되지만 크리 여부만은 남는 흔적이 없어 이 통로가 필요하다.
+ * UWxAbilitySystemGlobals가 할당해 MakeEffectContext 경로의 GE가 이 타입을 사용한다.
+ * 어트리뷰트로 전달할 수 없는 크리 판정은 UWxExecCalc_Damage가 기록하고 UWxCombatAttributeSet::ProcessDamageTaken이 플로터에 전달한다.
  */
 USTRUCT()
 struct WXCOMBAT_API FWxCombatEffectContext : public FGameplayEffectContext

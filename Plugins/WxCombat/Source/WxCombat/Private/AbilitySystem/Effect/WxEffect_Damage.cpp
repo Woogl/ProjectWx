@@ -6,7 +6,6 @@
 #include "AbilitySystemComponent.h"
 #include "Damage/WxCombatEffectContext.h"
 #include "GameplayEffectComponents/TargetTagRequirementsGameplayEffectComponent.h"
-#include "WxCombatLibrary.h"
 #include "WxGameplayTags.h"
 
 UWxEffect_Damage::UWxEffect_Damage()
@@ -17,8 +16,7 @@ UWxEffect_Damage::UWxEffect_Damage()
 	ExecDef.CalculationClass = UWxExecCalc_Damage::StaticClass();
 	Executions.Add(ExecDef);
 
-	// GE가 Cue를 들고 있으면 예측 적용한 클라에서도 엔진이 발행해준다 — 임팩트 연출이 서버 왕복을 기다리지 않는다.
-	// 플로터는 크리 판정이 서버에 있어 여기 얹지 않는다.
+	// 예측 Cue는 타격 연출만 처리하고, 서버 크리 판정이 필요한 플로터는 AttributeSet에서 처리한다.
 	FGameplayEffectCue Cue;
 	Cue.GameplayCueTags.AddTag(WxGameplayTags::GameplayCue_Hit);
 	GameplayCues.Add(Cue);
@@ -28,20 +26,33 @@ UWxEffect_Damage::UWxEffect_Damage()
 	GEComponents.Add(TagReqComp);
 }
 
-struct FWxDamageStatics
+struct FWxDamageBaseStatics
 {
 	DECLARE_ATTRIBUTE_CAPTUREDEF(ATK);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(DEF);
+	FWxDamageBaseStatics()
+	{
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, ATK, Source, false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, DEF, Target, false);
+	}
+};
+
+static const FWxDamageBaseStatics& GetDamageBaseStatics()
+{
+	static FWxDamageBaseStatics DamageBaseStatics;
+	return DamageBaseStatics;
+}
+
+struct FWxDamageExecutionStatics
+{
 	DECLARE_ATTRIBUTE_CAPTUREDEF(CritRate);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(CritDMG);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(IncomingDamage);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(IncomingReflect);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(SP);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(GP);
-	FWxDamageStatics()
+	FWxDamageExecutionStatics()
 	{
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, ATK, Source, false);
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, DEF, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, CritRate, Source, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, CritDMG, Source, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, IncomingDamage, Target, false);
@@ -51,22 +62,22 @@ struct FWxDamageStatics
 	}
 };
 
-static const FWxDamageStatics& GetDamageStatics()
+static const FWxDamageExecutionStatics& GetDamageExecutionStatics()
 {
-	static FWxDamageStatics DamageStatics;
-	return DamageStatics;
+	static FWxDamageExecutionStatics DamageExecutionStatics;
+	return DamageExecutionStatics;
 }
 
 UWxExecCalc_Damage::UWxExecCalc_Damage()
 {
-	const FWxDamageStatics& Statics = GetDamageStatics();
-	RelevantAttributesToCapture.Add(Statics.ATKDef);
-	RelevantAttributesToCapture.Add(Statics.DEFDef);
-	RelevantAttributesToCapture.Add(Statics.CritRateDef);
-	RelevantAttributesToCapture.Add(Statics.CritDMGDef);
-	RelevantAttributesToCapture.Add(Statics.SPDef);
+	const FWxDamageBaseStatics& BaseStatics = GetDamageBaseStatics();
+	const FWxDamageExecutionStatics& ExecutionStatics = GetDamageExecutionStatics();
+	RelevantAttributesToCapture.Add(BaseStatics.ATKDef);
+	RelevantAttributesToCapture.Add(BaseStatics.DEFDef);
+	RelevantAttributesToCapture.Add(ExecutionStatics.CritRateDef);
+	RelevantAttributesToCapture.Add(ExecutionStatics.CritDMGDef);
+	RelevantAttributesToCapture.Add(ExecutionStatics.SPDef);
 }
-
 void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
 	UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent();
@@ -85,34 +96,54 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		: nullptr;
 	ensureMsgf(CombatContext, TEXT("대미지 컨텍스트가 FWxCombatEffectContext가 아니다. DefaultGame.ini의 AbilitySystemGlobalsClassName 등록을 확인할 것."));
 
-	// 같은 컨텍스트를 여러 스펙이 공유하므로, 어느 경로로 빠져나가든 이전 판정이 남지 않게 먼저 지운다.
-	if (CombatContext)
-	{
-		CombatContext->SetCritical(false);
-	}
-
 	const bool bCanGuard = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanGuard);
 	const bool bCanCritical = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanCritical);
-	const bool bHasPerfectGuard = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_PerfectGuard);
 	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_Guard);
 	const bool bIsGroggy = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy);
-
-	const bool bPerfectGuardApplied = bHasPerfectGuard && bCanGuard;
+	const bool bPerfectGuardApplied = bCanGuard && TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_PerfectGuard);
 
 	FAggregatorEvaluateParameters EvalParams;
 	EvalParams.SourceTags = OwningSpec.CapturedSourceTags.GetAggregatedTags();
 	EvalParams.TargetTags = OwningSpec.CapturedTargetTags.GetAggregatedTags();
 
 	// 퍼펙트 가드는 반사량 산출을 위해 크리를 스킵한다.
-	// TODO: CalcDamage 함수에서 뭉뚱그리지 말고, MMC로 명확하게 처리하자
-	FWxDamageResult DamageResult = CalcDamage(ExecutionParams, EvalParams, bPerfectGuardApplied || !bCanCritical);
+	const FWxDamageBaseStatics& BaseStatics = GetDamageBaseStatics();
+	float SourceATK = 0.f;
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(BaseStatics.ATKDef, EvalParams, SourceATK);
 
-	const FWxDamageStatics& Statics = GetDamageStatics();
+	float TargetDEF = 0.f;
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(BaseStatics.DEFDef, EvalParams, TargetDEF);
+
+	const float ATKCoeff = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, false, 0.f);
+	// 방어력 보정 상수
+	static constexpr float DefenseConstant = 100.f;
+	const float DefenseMultiplier = DefenseConstant / (DefenseConstant + TargetDEF);
+	float FinalDamage = FMath::Max(SourceATK * ATKCoeff * DefenseMultiplier, 0.f);
+	bool bIsCritical = false;
+	if (!bPerfectGuardApplied && bCanCritical)
+	{
+		const FWxDamageExecutionStatics& ExecutionStatics = GetDamageExecutionStatics();
+
+		float SourceCritRate = 0.f;
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(ExecutionStatics.CritRateDef, EvalParams, SourceCritRate);
+
+		float SourceCritDMG = 0.f;
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(ExecutionStatics.CritDMGDef, EvalParams, SourceCritDMG);
+
+		const float CritChance = FMath::Clamp(SourceCritRate * 0.01f, 0.f, 1.f);
+		bIsCritical = FMath::FRand() < CritChance;
+		if (bIsCritical)
+		{
+			FinalDamage *= (1.f + SourceCritDMG * 0.01f);
+		}
+	}
+
+	const FWxDamageExecutionStatics& ExecutionStatics = GetDamageExecutionStatics();
 
 	if (bPerfectGuardApplied)
 	{
 		// 대상 어트리뷰트는 하나도 바뀌지 않으므로, 반사량을 메타 어트리뷰트로 실어야 PostGameplayEffectExecute가 돈다.
-		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingReflectProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(ExecutionStatics.IncomingReflectProperty, EGameplayModOp::Additive, FinalDamage));
 		return;
 	}
 
@@ -120,111 +151,37 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	if (bGuardHit)
 	{
-		DamageResult.FinalDamage *= UWxEffect_Guard::DamageMultiplier;
+		FinalDamage *= UWxEffect_Guard::DamageMultiplier;
 	}
 
-	if (DamageResult.FinalDamage <= 0.f)
+	if (FinalDamage <= 0.f)
 	{
 		return;
 	}
 
-	// 컨텍스트에는 어트리뷰트로 복원할 수 없는 것만 싣는다 — 수치는 IncomingDamage로, 반응 태그와 가드 브레이크 판정은 스펙 태그로 소비 지점에 닿는다.
+	// 컨텍스트에는 어트리뷰트로 전달할 수 없는 크리 결과만 기록한다.
 	if (CombatContext)
 	{
-		CombatContext->SetCritical(DamageResult.bIsCritical);
+		CombatContext->SetCritical(bIsCritical);
 	}
 
 	if (bGuardHit)
 	{
-		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.SPProperty, EGameplayModOp::Additive, -DamageResult.FinalDamage));
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(ExecutionStatics.SPProperty, EGameplayModOp::Additive, -FinalDamage));
 
-		// 이 차감으로 가드가 깨졌는지는 차감 전 SP가 있어야 알 수 있어 여기서 판정한다 — 소비 지점은 차감 후 값만 본다.
-		// SP는 0 아래로 눌리므로 차감량이 남은 SP 이상이면 바닥에 닿는다.
+		// 가드 브레이크는 차감 전 SP가 있어야 판정할 수 있다.
 		float TargetSP = 0.f;
-		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.SPDef, EvalParams, TargetSP);
-		if (TargetSP <= DamageResult.FinalDamage)
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(ExecutionStatics.SPDef, EvalParams, TargetSP);
+		if (TargetSP <= FinalDamage)
 		{
 			ExecutionParams.GetOwningSpecForPreExecuteMod()->AddDynamicAssetTag(WxGameplayTags::Damage_GuardBreak);
 		}
 	}
 
-	// 그로기 진입이 피격 이벤트보다 먼저 서야 반응이 그 상태를 보므로 IncomingDamage보다 앞에 둔다.
 	if (!bIsGroggy)
 	{
-		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.GPProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(ExecutionStatics.GPProperty, EGameplayModOp::Additive, FinalDamage));
 	}
 
-	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, DamageResult.FinalDamage));
-}
-
-EWxDamageCheck UWxExecCalc_Damage::CheckDamage(const UAbilitySystemComponent* Source, const UAbilitySystemComponent* Target)
-{
-	if (!Target)
-	{
-		return EWxDamageCheck::None;
-	}
-
-	// 대미지 GE 자체가 사망 타겟을 IgnoreTags로 거르므로 대미지 경로는 여기 닿지 않는다.
-	// ExecCalc 밖에서 부르는 히트스톱이 시체를 걸러내는 지점이다.
-	if (Target->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
-	{
-		return EWxDamageCheck::None;
-	}
-
-	// 자기 자신은 자해 경로라 팀 판정에서 제외한다.
-	const AActor* SourceAvatar = Source ? Source->GetAvatarActor() : nullptr;
-	const AActor* TargetAvatar = Target->GetAvatarActor();
-	if (SourceAvatar != TargetAvatar && !UWxCombatLibrary::IsHostile(SourceAvatar, TargetAvatar))
-	{
-		return EWxDamageCheck::None;
-	}
-
-	if (Target->HasMatchingGameplayTag(WxGameplayTags::Effect_Invincible))
-	{
-		return EWxDamageCheck::Evaded;
-	}
-
-	return EWxDamageCheck::Damaged;
-}
-
-FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, bool bSkipCrit) const
-{
-	const FGameplayEffectSpec& OwningSpec = ExecutionParams.GetOwningSpec();
-	const FWxDamageStatics& Statics = GetDamageStatics();
-	
-	// TODO: 이부분을 ATK Coeff 계산하는 MMC로 대체해야함
-	float SourceATK = 0.f;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.ATKDef, EvalParams, SourceATK);
-	const float ATKCoeff = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, false, 0.f);
-	SourceATK *= ATKCoeff;
-	
-	// TODO: 이부분은 Def 계산하는 MMC로 대체해야함
-	float TargetDEF = 0.f;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.DEFDef, EvalParams, TargetDEF);
-	const float DefenseMultiplier = 100.f / (100.f + TargetDEF);
-
-	float BaseDamage = SourceATK * DefenseMultiplier;
-
-	FWxDamageResult Result;
-	Result.FinalDamage = FMath::Max(BaseDamage, 0.f);
-
-	if (bSkipCrit)
-	{
-		return Result;
-	}
-	
-	float SourceCritRate = 0.f;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.CritRateDef, EvalParams, SourceCritRate);
-
-	float SourceCritDMG = 0.f;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.CritDMGDef, EvalParams, SourceCritDMG);
-
-	const float CritChance = FMath::Clamp(SourceCritRate * 0.01f, 0.f, 1.f);
-	Result.bIsCritical = FMath::FRand() < CritChance;
-	if (Result.bIsCritical)
-	{
-		Result.FinalDamage *= (1.f + SourceCritDMG * 0.01f);
-	}
-
-	return Result;
+	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(ExecutionStatics.IncomingDamageProperty, EGameplayModOp::Additive, FinalDamage));
 }

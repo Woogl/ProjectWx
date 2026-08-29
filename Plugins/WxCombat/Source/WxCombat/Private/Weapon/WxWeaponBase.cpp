@@ -58,8 +58,7 @@ void AWxWeaponBase::BeginAttack(const FDataTableRowHandle& InDamageInfo)
 
 	if (ActiveAttackCount == 0)
 	{
-		// 첫 프레임 Sweep이 0 거리가 되도록 현재 위치로 초기화한다.
-		// 직전 위치를 모르는 채 임의 값이 들어가면 무관한 액터까지 Sweep에 잡힌다.
+		// 첫 프레임 Sweep이 0 거리가 되도록 현재 위치로 초기화해 임의 위치 Sweep을 막는다.
 		PrevShapeLocations.SetNum(HitShapes.Num());
 		for (int32 Index = 0; Index < HitShapes.Num(); ++Index)
 		{
@@ -93,7 +92,6 @@ void AWxWeaponBase::EndAttack()
 		HitActorsThisSwing.Empty();
 	}
 	
-	// DamageInfo을 비워야할까???
 }
 
 void AWxWeaponBase::CancelAttack()
@@ -154,7 +152,6 @@ USkeletalMeshComponent* AWxWeaponBase::GetMesh() const
 	return Mesh;
 }
 
-// 이 시점이 최선인가?
 void AWxWeaponBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();

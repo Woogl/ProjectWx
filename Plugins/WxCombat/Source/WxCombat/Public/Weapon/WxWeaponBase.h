@@ -46,11 +46,9 @@ public:
 protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	// 캐릭터 소켓에 부착되는 기준점
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Weapon")
 	TObjectPtr<USceneComponent> GripPoint;
 
-	// 무기의 외형
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Weapon")
 	TObjectPtr<USkeletalMeshComponent> Mesh;
 
@@ -58,13 +56,8 @@ protected:
 	virtual void HandleHitShapeOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 private:
-	/**
-	 * Overlap 이벤트와 Tick Sweep이 공통으로 호출한다.
-	 * 적대 대상에만 판정이 성립한다 — 아군·중립은 피격 기록에도 남지 않고 GE도 적용되지 않는다.
-	 */
 	void ProcessHit(AActor* OtherActor, const FHitResult& HitResult);
 
-	/** 무기에 부착된 모든 ShapeComponent가 히트박스다. */
 	UPROPERTY()
 	TArray<TObjectPtr<UShapeComponent>> HitShapes;
 

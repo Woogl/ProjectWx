@@ -8,9 +8,6 @@
 #include "GameplayTagContainer.h"
 #include "WxDamageTableRow.generated.h"
 
-/**
- * 공격별 밸런스 수치(계수·피격 반응·판정 플래그)를 담는 데이터테이블 Row.
- */
 USTRUCT(BlueprintType)
 struct WXCOMBAT_API FWxDamageTableRow : public FTableRowBase
 {
@@ -31,11 +28,11 @@ public:
 	UPROPERTY(EditAnywhere)
 	bool bCanGuard = true;
 
-	/** false이면 퍼펙트 가드로 막아도 패리가 성립하지 않아 공격자가 DP 반사도 역경직도 받지 않는다 */
+	/** false이면 퍼펙트 가드로 막아도 패리가 성립하지 않아 공격자가 GP 반사도 역경직도 받지 않는다 */
 	UPROPERTY(EditAnywhere)
 	bool bCanParry = true;
 
-	/** Damage GE와 함께 타겟에 적용된다 (상태이상, 디버프 등) */
+	/** Damage GE가 적용되고 퍼펙트 가드가 아니면 타겟에 추가 적용된다. */
 	UPROPERTY(EditAnywhere, meta = (AllowAbstract = "false"))
 	TArray<TSubclassOf<UGameplayEffect>> AdditionalEffects;
 
