@@ -42,21 +42,23 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_InAir);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Sprint);
 
+	// ── HitReact ────────────────────────────────────────────────────────────
+
+	/** 대미지 테이블이 저작하는 피격 반응 종류. Event.Hit의 TargetTags 페이로드로 전달한다. */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitReact);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitReact_Normal);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitReact_KnockBack);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitReact_KnockDown);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitReact_KnockUp);
+
 	// ── Event ──────────────────────────────────────────────────────────────
 	
 	/**
 	 * 피격 이벤트. 대미지 파이프라인이 서버에서 피격자 ASC에 히트마다 한 번 보낸다.
-	 * 자식이 그 히트가 요청한 반응 종류다 — 반응이 있으면 자식을, 반응 없는 평타는 부모를 이벤트 태그로 보낸다.
-	 * 패리 반동처럼 대미지 없는 반응 요청도 같은 계층에 EventMagnitude 0으로 싣는다.
-	 * 구독은 부모 매칭 API로 한다 — 정확 매칭(GenericGameplayEventCallbacks, WaitGameplayEvent 기본값)은 자식으로 나가는 반응 히트를 놓친다.
+	 * 공격이 요청한 반응 종류는 TargetTags의 HitReact.* 페이로드로 전달한다.
+	 * 패리 반동과 가드 브레이크는 전투 시스템이 생성하는 별도 이벤트 자식으로 유지한다.
 	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit);
-	
-	// TODO: 다시 HitReact.XXX 계열로 원복하고 GameplayEvent Payload로만 사용하자.
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Normal);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_KnockBack);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_KnockDown);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_KnockUp);
 	
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Parry);
 

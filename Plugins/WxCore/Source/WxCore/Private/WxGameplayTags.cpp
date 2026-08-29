@@ -17,11 +17,13 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Movement_InAir, "Movement.InAir");
 	UE_DEFINE_GAMEPLAY_TAG(Movement_Sprint, "Movement.Sprint");
 
+	UE_DEFINE_GAMEPLAY_TAG(HitReact, "HitReact");
+	UE_DEFINE_GAMEPLAY_TAG(HitReact_Normal, "HitReact.Normal");
+	UE_DEFINE_GAMEPLAY_TAG(HitReact_KnockBack, "HitReact.KnockBack");
+	UE_DEFINE_GAMEPLAY_TAG(HitReact_KnockDown, "HitReact.KnockDown");
+	UE_DEFINE_GAMEPLAY_TAG(HitReact_KnockUp, "HitReact.KnockUp");
+
 	UE_DEFINE_GAMEPLAY_TAG(Event_Hit, "Event.Hit");
-	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_Normal, "Event.Hit.Normal");
-	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_KnockBack, "Event.Hit.KnockBack");
-	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_KnockDown, "Event.Hit.KnockDown");
-	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_KnockUp, "Event.Hit.KnockUp");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_Parry, "Event.Hit.Parry");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_GuardBreak, "Event.Hit.GuardBreak");
 	UE_DEFINE_GAMEPLAY_TAG(Event_DamageDealt, "Event.DamageDealt");
