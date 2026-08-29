@@ -1,9 +1,9 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "WxPatrolComponent.h"
 
 #include "Components/ArrowComponent.h"
-#include "GameFramework/Controller.h"
+#include "GameFramework/Pawn.h"
 
 UWxPatrolComponent::UWxPatrolComponent()
 {
@@ -20,11 +20,11 @@ UWxPatrolComponent::UWxPatrolComponent()
 #endif
 }
 
-UWxPatrolComponent* UWxPatrolComponent::FindPatrolComponent(const AController* Controller)
+UWxPatrolComponent* UWxPatrolComponent::FindPatrolComponent(const APawn* Pawn)
 {
-	const AActor* Spawner = Controller ? Controller->GetOwner() : nullptr;
+	const AActor* PathOwner = Pawn ? Pawn->GetAttachParentActor() : nullptr;
 
-	return Spawner ? Spawner->FindComponentByClass<UWxPatrolComponent>() : nullptr;
+	return PathOwner ? PathOwner->FindComponentByClass<UWxPatrolComponent>() : nullptr;
 }
 
 int32 UWxPatrolComponent::GetNumPoints() const

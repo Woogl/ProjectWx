@@ -7,13 +7,10 @@
 #include "WxEnemyController.generated.h"
 
 class AWxCharacterBase;
-class AWxEnemyCharacter;
-class UBehaviorTree;
 class UWxAIPerceptionComponent;
 
 /**
  * Perception/감지 → Blackboard 동기화 책임은 UWxAIPerceptionComponent 에 위임한다.
- * 정찰은 UWxBTTask_Patrol 과 UWxPatrolComponent 가 폰별로 전담하므로, 컨트롤러는 정찰에 관여하지 않는다.
  */
 UCLASS()
 class WXGAME_API AWxEnemyController : public AAIController

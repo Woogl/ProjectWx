@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "Character/WxEnemyCharacter.h"
 #include "Controller/WxEnemyController.h"
@@ -111,6 +111,11 @@ AWxSpawner* AWxEnemyCharacter::GetOwningSpawner() const
 void AWxEnemyCharacter::OnSpawnedBy(AWxSpawner* Spawner)
 {
 	OwningSpawner = Spawner;
+
+	// 정찰 경로를 스포너에 그려 두므로 폰에서 거슬러 올라갈 링크가 필요하다(UWxPatrolComponent::FindPatrolComponent).
+	// 부착을 고른 건 아웃라이너에서 어느 스포너 소속인지 그대로 보이기 때문이다.
+	// 대가로 이동 복제가 ReplicatedMovement 가 아니라 AttachmentReplication 경로를 탄다 — 멀티 검증 때 재확인할 것.
+	AttachToActor(Spawner, FAttachmentTransformRules::KeepWorldTransform);
 }
 
 bool AWxEnemyCharacter::CanInteract(const AActor* Interactor) const

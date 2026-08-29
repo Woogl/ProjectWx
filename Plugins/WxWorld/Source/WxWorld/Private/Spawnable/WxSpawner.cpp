@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "Spawnable/WxSpawner.h"
 
@@ -181,8 +181,9 @@ void AWxSpawner::SpawnTarget()
 
 	Spawned->FinishSpawning(SpawnTransform);
 
-	// 스포너에 attach 하지 않는다 — 스폰 대상은 CMC 로 돌아다니는 캐릭터라, 루트가 붙어 있으면 이동 복제가 ReplicatedMovement 대신 AttachmentReplication(부모 상대 오프셋) 경로를 타 원격 스무딩에서 벗어나고 스포너를 옮기면 딸려 온다.
+	// 스포너가 먼저 attach 하지는 않는다 — 스폰 대상은 CMC 로 돌아다니는 캐릭터라, 루트가 붙어 있으면 이동 복제가 ReplicatedMovement 대신 AttachmentReplication(부모 상대 오프셋) 경로를 타 원격 스무딩에서 벗어나고 스포너를 옮기면 딸려 온다.
 	// 수명은 이 약참조와 Respawn/EndPlay/OnSaveRestored 의 명시 Destroy 가 관리하므로 부착이 필요 없다.
+	// 예외로 적(AWxEnemyCharacter)은 OnSpawnedBy 에서 스스로 부착한다 — 정찰 경로를 스포너에서 찾아야 해서, 위 대가를 알고 받아들인 선택이다.
 	SpawnedActor = Spawned;
 }
 

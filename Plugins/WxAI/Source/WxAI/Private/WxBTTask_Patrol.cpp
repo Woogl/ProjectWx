@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "WxBTTask_Patrol.h"
 
@@ -36,7 +36,7 @@ EBTNodeResult::Type UWxBTTask_Patrol::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	APawn* Pawn = AIController ? AIController->GetPawn() : nullptr;
 
 	// 정찰 경로가 없는 적(정찰 안 함)은 실패시켜 Selector 가 다음 행동(배회 등)으로 넘어가게 한다.
-	const UWxPatrolComponent* Patrol = UWxPatrolComponent::FindPatrolComponent(AIController);
+	const UWxPatrolComponent* Patrol = UWxPatrolComponent::FindPatrolComponent(Pawn);
 	if (!Patrol || Patrol->GetNumPoints() == 0)
 	{
 		return EBTNodeResult::Failed;
@@ -97,7 +97,7 @@ void UWxBTTask_Patrol::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* 
 	}
 
 	const AAIController* AIController = OwnerComp.GetAIOwner();
-	if (const UWxPatrolComponent* Patrol = UWxPatrolComponent::FindPatrolComponent(AIController))
+	if (const UWxPatrolComponent* Patrol = UWxPatrolComponent::FindPatrolComponent(AIController ? AIController->GetPawn() : nullptr))
 	{
 		int32 NextIndex = PatrolCursor;
 		if (Patrol->GetNextIndex(PatrolCursor, PatrolDirection, NextIndex))

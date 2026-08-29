@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
@@ -11,7 +11,8 @@ class UGameplayEffect;
 
 /**
  * UBTTask_MoveTo 를 상속해 이동/도착 판정/경로 실패·중단 처리는 엔진에 맡기고, 도착(성공)했을 때만 정찰 커서를 한 칸 진행한다.
- * 이동 목표는 Blackboard 의 PatrolTargetLocation 에서 읽고, 도착 시 컨트롤러 소유자(스포너)의 UWxPatrolComponent 에 커서 진행을 위임한다.
+ * 이동 목표는 Blackboard 의 PatrolTargetLocation 에서 읽고, 도착 시 UWxPatrolComponent 에 커서 진행을 위임한다.
+ * 그 경로는 폰이 부착된 액터(스포너 등)의 것이다.
  * Once 로 경로를 마친 뒤에는 이동 없이 브랜치를 점유한 채 머무르므로, 같은 시퀀스에서 뒤따르는 형제 노드는 더 이상 실행되지 않는다.
  *
  * 이동 목표 키는 UWxPatrolComponent 와의 고정 계약이라 저작 대상이 아니다.

@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
@@ -28,7 +28,7 @@ public:
 	AWxSpawner* GetOwningSpawner() const;
 	
 	//~ Begin IWxSpawnable
-	/** 처치 기록과 정찰 경로 조회에 쓰려고 스폰 주체를 기억한다. 빙의가 Owner 를 덮어쓴 뒤엔 이 값이 유일한 링크다. */
+	/** 처치 기록에 쓰려고 스폰 주체를 기억하고, 정찰 경로 조회를 위해 스폰 주체에 부착한다. */
 	virtual void OnSpawnedBy(AWxSpawner* Spawner) override;
 	//~ End IWxSpawnable
 	

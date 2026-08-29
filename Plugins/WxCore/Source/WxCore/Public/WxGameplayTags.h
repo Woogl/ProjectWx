@@ -52,7 +52,7 @@ namespace WxGameplayTags
 	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit);
 	
-	// TODO: 다시 Event_HitReact 계열로 원복
+	// TODO: 다시 HitReact.XXX 계열로 원복하고 GameplayEvent Payload로만 사용하자.
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Normal);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_KnockBack);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_KnockDown);

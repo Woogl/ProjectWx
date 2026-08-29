@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
@@ -6,7 +6,7 @@
 #include "Components/SplineComponent.h"
 #include "WxPatrolComponent.generated.h"
 
-class AController;
+class APawn;
 class UArrowComponent;
 
 UENUM(BlueprintType)
@@ -24,7 +24,9 @@ enum class EWxPatrolMoveMode : uint8
  *
  * 순수 경로 데이터( + MoveMode 순회 규칙)만 제공하고 상태를 갖지 않는다.
  * 진행 커서는 BT 태스크(UWxBTTask_Patrol)가 폰별로 소유하므로, 같은 경로를 여러 폰이 재사용하거나 적이 리스폰돼도 안전하다.
- * 본 컴포넌트는 항상 AWxSpawner 인스턴스에 추가한다 — 스폰된 적이 FindPatrolComponent 로 찾아 이 경로를 따라 정찰한다.
+ *
+ * 적이 부착된 액터에 추가한다 — 스포너로 스폰된 적은 그 스포너에, 직접 배치한 적은 레벨에서 부착해 둔 액터에 붙은 경로를 따른다.
+ * 경로를 든 액터가 런타임에 움직이는 경우는 지원하지 않는다(정찰 지점이 함께 끌려간다).
  */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))
 class WXAI_API UWxPatrolComponent : public USplineComponent
@@ -34,13 +36,8 @@ class WXAI_API UWxPatrolComponent : public USplineComponent
 public:
 	UWxPatrolComponent();
 
-	/**
-	 * AI 컨트롤러가 물고 있는 스폰 주체에서 정찰 컴포넌트를 찾는다.
-	 *
-	 * 빙의(APawn::PossessedBy)가 폰의 Owner 를 컨트롤러로 덮어써 폰에는 스폰 주체로 가는 링크가 남지 않는다.
-	 * 그래서 AWxEnemyController 가 빙의 시 자기 Owner 에 스폰 주체를 걸어 두고, 여기서 그 한 단계만 거슬러 올라간다.
-	 */
-	static UWxPatrolComponent* FindPatrolComponent(const AController* Controller);
+	/** Pawn 이 따를 정찰 경로. 부착 부모의 것을 쓰며, 없으면 그 적은 정찰하지 않는다. */
+	static UWxPatrolComponent* FindPatrolComponent(const APawn* Pawn);
 
 	int32 GetNumPoints() const;
 
