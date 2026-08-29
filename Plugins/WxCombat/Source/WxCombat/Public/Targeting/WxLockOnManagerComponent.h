@@ -49,7 +49,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
-	/** 대상 유효성(사거리·팀·CanBeLockedOn)은 호출부인 UWxAbility_LockOn이 판정한다 — PvE 코옵 전제라 서버에서 재검증하지 않는다. */
+	/** 서버는 락온 지점과 락온 가능 상태를 확인한 뒤에만 반영한다. */
 	UFUNCTION(Server, Reliable)
 	void ServerSetLockOnTarget(USceneComponent* InTarget);
 

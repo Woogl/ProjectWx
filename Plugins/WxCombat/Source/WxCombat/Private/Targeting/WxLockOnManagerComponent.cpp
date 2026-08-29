@@ -3,6 +3,7 @@
 #include "Targeting/WxLockOnManagerComponent.h"
 #include "Components/SceneComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Targeting/WxLockOnPointComponent.h"
 
 UWxLockOnManagerComponent::UWxLockOnManagerComponent()
 {
@@ -38,7 +39,18 @@ void UWxLockOnManagerComponent::SetLockOnTarget(USceneComponent* InTarget)
 
 void UWxLockOnManagerComponent::ServerSetLockOnTarget_Implementation(USceneComponent* InTarget)
 {
-	ApplyLockOnTarget(InTarget);
+	if (!InTarget)
+	{
+		ApplyLockOnTarget(InTarget);
+		return;
+	}
+
+	const UWxLockOnPointComponent* TargetPoint = Cast<UWxLockOnPointComponent>(InTarget);
+	const AActor* TargetActor = InTarget->GetOwner();
+	if (TargetPoint && TargetActor && TargetPoint->CanBeLockedOn())
+	{
+		ApplyLockOnTarget(InTarget);
+	}
 }
 
 void UWxLockOnManagerComponent::OnRep_LockOnTarget()
