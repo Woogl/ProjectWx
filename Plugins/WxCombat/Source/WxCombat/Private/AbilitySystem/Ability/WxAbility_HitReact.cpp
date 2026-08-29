@@ -33,21 +33,10 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 
 	bRetriggerInstancedAbility = true;
 
-	// 부모 Event.Hit은 반응 없는 평타라 여기 닿지 않아야 하고, 부모까지 등록하면 조상마다 한 번씩 발화해 같은 피격에 몽타주가 재시작한다.
-	const FGameplayTag ReactionTags[] = {
-		WxGameplayTags::Event_Hit_Normal,
-		WxGameplayTags::Event_Hit_KnockBack,
-		WxGameplayTags::Event_Hit_KnockDown,
-		WxGameplayTags::Event_Hit_KnockUp,
-		WxGameplayTags::Event_Hit_Parry,
-	};
-	for (const FGameplayTag& ReactionTag : ReactionTags)
-	{
-		FAbilityTriggerData TriggerData;
-		TriggerData.TriggerTag = ReactionTag;
-		TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
-		AbilityTriggers.Add(TriggerData);
-	}
+	FAbilityTriggerData HitTrigger;
+	HitTrigger.TriggerTag = WxGameplayTags::Event_Hit;
+	HitTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
+	AbilityTriggers.Add(HitTrigger);
 }
 
 float UWxAbility_HitReact::GetMontagePlayRate() const
@@ -59,6 +48,13 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+	// 가드 브레이크는 GuardReact가 전담한다. 부모 Event.Hit 트리거로 여기에도 닿을 수 있으므로 먼저 제외한다.
+	if (TriggerEventData && TriggerEventData->EventTag == WxGameplayTags::Event_Hit_GuardBreak)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		return;
+	}
+
 	// 회전·띄우기는 커밋과 몽타주가 모두 성립한 뒤에 낸다 — 어느 하나라도 실패해 곧장 종료하면 캐릭터가 어빌리티 없이 공중에 뜬다.
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
@@ -68,18 +64,33 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 
-	FGameplayTag ReactionTag = TriggerEventData ? TriggerEventData->EventTag : WxGameplayTags::Event_Hit_Normal;
+	FGameplayTag ReactionTag = WxGameplayTags::HitReact_Normal;
+	if (TriggerEventData)
+	{
+		ReactionTag = TriggerEventData->TargetTags.Filter(FGameplayTagContainer(WxGameplayTags::HitReact)).First();
+		if (!ReactionTag.IsValid() && TriggerEventData->EventTag == WxGameplayTags::Event_Hit_Parry)
+		{
+			ReactionTag = WxGameplayTags::Event_Hit_Parry;
+		}
+	}
+
+	// 반응 태그 없이 Event.Hit만 온 평타는 가드 리액션만 처리한다.
+	if (!ReactionTag.IsValid())
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		return;
+	}
 	const AActor* Instigator = TriggerEventData ? TriggerEventData->Instigator.Get() : nullptr;
 	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
 
 	// 그로기 중엔 날아가지 않는다 — 긴 넉 몽타주가 그로기 몽타주를 밀어내는 동안에도 DP 드레인은 돌아 그로기 창이 잘려나간다.
 	// 그로기를 유발한 히트도 여기 걸린다. DP 적용이 그로기를 먼저 띄우고 피격 이벤트가 그 뒤에 오기 때문이다.
 	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy)
-		&& (ReactionTag == WxGameplayTags::Event_Hit_KnockBack
-			|| ReactionTag == WxGameplayTags::Event_Hit_KnockDown
-			|| ReactionTag == WxGameplayTags::Event_Hit_KnockUp))
+		&& (ReactionTag == WxGameplayTags::HitReact_KnockBack
+			|| ReactionTag == WxGameplayTags::HitReact_KnockDown
+			|| ReactionTag == WxGameplayTags::HitReact_KnockUp))
 	{
-		ReactionTag = WxGameplayTags::Event_Hit_Normal;
+		ReactionTag = WxGameplayTags::HitReact_Normal;
 	}
 
 	if (!PlayMontage(SelectMontage(ReactionTag)))
@@ -89,15 +100,15 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	}
 
 	// 몽타주 선택과 달리 부수 효과는 여러 종류가 한 갈래를 공유하므로 따로 가른다.
-	if (ReactionTag == WxGameplayTags::Event_Hit_KnockUp)
+	if (ReactionTag == WxGameplayTags::HitReact_KnockUp)
 	{
 		if (ACharacter* Character = Cast<ACharacter>(AvatarActor))
 		{
 			Character->LaunchCharacter(FVector(0.f, 0.f, KnockupZVelocity), false, true);
 		}
 	}
-	else if (ReactionTag == WxGameplayTags::Event_Hit_KnockBack
-		|| ReactionTag == WxGameplayTags::Event_Hit_KnockDown
+	else if (ReactionTag == WxGameplayTags::HitReact_KnockBack
+		|| ReactionTag == WxGameplayTags::HitReact_KnockDown
 		|| ReactionTag == WxGameplayTags::Event_Hit_Parry)
 	{
 		FaceInstigator(AvatarActor, Instigator);
@@ -108,15 +119,15 @@ UAnimMontage* UWxAbility_HitReact::SelectMontage(FGameplayTag ReactionTag) const
 {
 	UAnimMontage* Montage = nullptr;
 
-	if (ReactionTag == WxGameplayTags::Event_Hit_KnockBack)
+	if (ReactionTag == WxGameplayTags::HitReact_KnockBack)
 	{
 		Montage = KnockbackMontage;
 	}
-	else if (ReactionTag == WxGameplayTags::Event_Hit_KnockDown)
+	else if (ReactionTag == WxGameplayTags::HitReact_KnockDown)
 	{
 		Montage = KnockdownMontage;
 	}
-	else if (ReactionTag == WxGameplayTags::Event_Hit_KnockUp)
+	else if (ReactionTag == WxGameplayTags::HitReact_KnockUp)
 	{
 		Montage = KnockupMontage;
 	}
