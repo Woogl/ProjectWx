@@ -66,6 +66,5 @@ public:
 	static EWxDamageCheck CheckDamage(const UAbilitySystemComponent* Source, const UAbilitySystemComponent* Target);
 
 private:
-	/** Raw 모드면 bSkipCrit과 무관하게 크리를 건너뛴다 */
 	FWxDamageResult CalcDamage(const FGameplayEffectCustomExecutionParameters& ExecutionParams, const FAggregatorEvaluateParameters& EvalParams, bool bSkipCrit) const;
 };

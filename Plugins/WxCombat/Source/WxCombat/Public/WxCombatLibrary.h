@@ -42,5 +42,5 @@ public:
 	/**
 	 * 런타임에 Instant Gameplay Effect를 동적 생성하여 어트리뷰트 변경을 적용한다.
 	 */
-	static void ModifyAttribute(UAbilitySystemComponent* TargetASC, const FGameplayAttribute& Attribute, float Delta);
+	static void ApplyAttributeChange(UAbilitySystemComponent* TargetASC, const FGameplayAttribute& Attribute, float Delta);
 };

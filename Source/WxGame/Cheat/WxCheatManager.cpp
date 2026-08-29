@@ -3,13 +3,14 @@
 #include "Cheat/WxCheatManager.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
-#include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "AbilitySystem/Effect/WxEffect_Kill.h"
 #include "EngineUtils.h"
+#include "WxCombatLibrary.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "WxGame.h"
 #include "WxGameplayTags.h"
+#include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 
 void UWxCheatManager::WxKillPlayer()
 {
@@ -45,19 +46,8 @@ void UWxCheatManager::WxDamagePlayer(float Amount)
 	{
 		return;
 	}
-
-	// SetByCaller.RawDamage 모드는 ATK·DEF·계수·치명타를 우회해 입력한 수치를 그대로 최종 대미지로 쓴다.
-	const FGameplayEffectSpecHandle SpecHandle = AbilitySystem->MakeOutgoingSpec(UWxEffect_Damage::StaticClass(), 1.f, AbilitySystem->MakeEffectContext());
-	if (SpecHandle.IsValid())
-	{
-		FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
-		Spec->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_RawDamage, Amount);
-
-		// 반응 종류가 없으면 비가드 상태에서 HitReact가 뜨지 않아 HP 만 깎인다.
-		Spec->AddDynamicAssetTag(WxGameplayTags::Event_Hit_Normal);
-
-		AbilitySystem->ApplyGameplayEffectSpecToSelf(*Spec);
-	}
+	
+	UWxCombatLibrary::ApplyAttributeChange(AbilitySystem, UWxCombatAttributeSet::GetIncomingDamageAttribute(), Amount);
 }
 
 void UWxCheatManager::WxKillEnemies(float RadiusMeters)

@@ -112,7 +112,6 @@ namespace WxGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Duration, "SetByCaller.Duration");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Coeff_ATK, "SetByCaller.Coeff.ATK");
-	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_RawDamage, "SetByCaller.RawDamage");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_MoveSpeedScale, "SetByCaller.MoveSpeedScale");
 	
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Game, "UI.Layer.Game");

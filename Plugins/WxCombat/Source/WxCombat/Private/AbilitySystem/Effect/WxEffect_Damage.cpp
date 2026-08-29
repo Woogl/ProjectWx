@@ -104,6 +104,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	EvalParams.TargetTags = OwningSpec.CapturedTargetTags.GetAggregatedTags();
 
 	// 퍼펙트 가드는 반사량 산출을 위해 크리를 스킵한다.
+	// TODO: CalcDamage 함수에서 뭉뚱그리지 말고, MMC로 명확하게 처리하자
 	FWxDamageResult DamageResult = CalcDamage(ExecutionParams, EvalParams, bPerfectGuardApplied || !bCanCritical);
 
 	const FWxDamageStatics& Statics = GetDamageStatics();
@@ -190,35 +191,24 @@ FWxDamageResult UWxExecCalc_Damage::CalcDamage(const FGameplayEffectCustomExecut
 {
 	const FGameplayEffectSpec& OwningSpec = ExecutionParams.GetOwningSpec();
 	const FWxDamageStatics& Statics = GetDamageStatics();
+	
+	// TODO: 이부분을 ATK Coeff 계산하는 MMC로 대체해야함
+	float SourceATK = 0.f;
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.ATKDef, EvalParams, SourceATK);
+	const float ATKCoeff = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, false, 0.f);
+	SourceATK *= ATKCoeff;
+	
+	// TODO: 이부분은 Def 계산하는 MMC로 대체해야함
+	float TargetDEF = 0.f;
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.DEFDef, EvalParams, TargetDEF);
+	const float DefenseMultiplier = 100.f / (100.f + TargetDEF);
 
-	const float RawDamage = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_RawDamage, false, 0.f);
-	const bool bRawMode = RawDamage > 0.f;
-
-	float BaseDamage;
-	if (bRawMode)
-	{
-		BaseDamage = RawDamage;
-	}
-	else
-	{
-		// TODO: 이부분을 ATK Coeff 계산하는 MMC로 대체해야함
-		float SourceATK = 0.f;
-		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.ATKDef, EvalParams, SourceATK);
-		const float ATKCoeff = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, false, 0.f);
-		SourceATK *= ATKCoeff;
-		
-		// TODO: 이부분은 Def 계산하는 MMC로 대체해야함
-		float TargetDEF = 0.f;
-		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.DEFDef, EvalParams, TargetDEF);
-		const float DefenseMultiplier = 100.f / (100.f + TargetDEF);
-
-		BaseDamage = SourceATK * DefenseMultiplier;
-	}
+	float BaseDamage = SourceATK * DefenseMultiplier;
 
 	FWxDamageResult Result;
 	Result.FinalDamage = FMath::Max(BaseDamage, 0.f);
 
-	if (bRawMode || bSkipCrit)
+	if (bSkipCrit)
 	{
 		return Result;
 	}

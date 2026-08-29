@@ -374,7 +374,7 @@ void UWxCombatAttributeSet::ProcessPerfectGuard(const FGameplayEffectModCallback
 	// GP를 MaxGP로 되돌리면 남은 드레인 시간으로는 0에 닿지 못해 그로기가 안전 타이머까지 늘어진다.
 	if (bCanParry && SourceASC && !SourceASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
 	{
-		UWxCombatLibrary::ModifyAttribute(SourceASC, GetGPAttribute(), ReflectAmount);
+		UWxCombatLibrary::ApplyAttributeChange(SourceASC, GetGPAttribute(), ReflectAmount);
 	}
 
 	// 컨텍스트를 함께 실어야 가드 리액션이 피격 이벤트와 같은 방식으로 원인 액터를 집는다.

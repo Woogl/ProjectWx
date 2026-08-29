@@ -14,8 +14,18 @@
 bool UWxCombatLibrary::IsHostile(const AActor* Source, const AActor* Target)
 {
 	const IGenericTeamAgentInterface* SourceTeamAgent = Cast<IGenericTeamAgentInterface>(Source);
+	if (!SourceTeamAgent)
+	{
+		return false;
+	}
+	
 	const IGenericTeamAgentInterface* TargetTeamAgent = Cast<IGenericTeamAgentInterface>(Target);
-	return SourceTeamAgent && TargetTeamAgent && SourceTeamAgent->GetTeamAttitudeTowards(*Target) == ETeamAttitude::Hostile;
+	if (!TargetTeamAgent)
+	{
+		return false;
+	}
+	
+	return SourceTeamAgent->GetTeamAttitudeTowards(*Target) == ETeamAttitude::Hostile;
 }
 
 bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const FDataTableRowHandle& DamageTableRow, const FHitResult& HitResult, float HitStopDuration)
@@ -112,7 +122,7 @@ void UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclass
 	}
 
 	const UGameplayEffect* CDO = EffectClass->GetDefaultObject<UGameplayEffect>();
-	FGameplayEffectSpec Spec(CDO, TargetASC->MakeEffectContext(), 1.f);
+	FGameplayEffectSpec Spec(CDO, TargetASC->MakeEffectContext(), PredictingAbility->GetAbilityLevel());
 
 	FPredictionKey PredictionKey;
 	if (PredictingAbility)
@@ -123,9 +133,9 @@ void UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclass
 	TargetASC->ApplyGameplayEffectSpecToSelf(Spec, PredictionKey);
 }
 
-void UWxCombatLibrary::ModifyAttribute(UAbilitySystemComponent* TargetASC, const FGameplayAttribute& Attribute, float Delta)
+void UWxCombatLibrary::ApplyAttributeChange(UAbilitySystemComponent* TargetASC, const FGameplayAttribute& Attribute, float Delta)
 {
-	UGameplayEffect* DynamicGE = NewObject<UGameplayEffect>(GetTransientPackage(), FName(TEXT("ModifyAttribute")));
+	UGameplayEffect* DynamicGE = NewObject<UGameplayEffect>(GetTransientPackage(), FName(TEXT("ApplyAttributeChange")));
 	DynamicGE->DurationPolicy = EGameplayEffectDurationType::Instant;
 
 	int32 Idx = DynamicGE->Modifiers.Num();
@@ -136,5 +146,5 @@ void UWxCombatLibrary::ModifyAttribute(UAbilitySystemComponent* TargetASC, const
 	InfoXP.ModifierOp = EGameplayModOp::Additive;
 	InfoXP.Attribute = Attribute;
 
-	TargetASC->ApplyGameplayEffectToSelf(DynamicGE, 1.0f, TargetASC->MakeEffectContext());
+	TargetASC->ApplyGameplayEffectToSelf(DynamicGE, 0.f, TargetASC->MakeEffectContext());
 }
