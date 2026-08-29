@@ -1,47 +1,33 @@
 # WxCombat — 코드 리뷰
 
-> GAS 전투 흐름과 서버 권위 경계가 대체로 명확하고, 확인한 범위에서는 `AGENTS.md`의 prefix·Copyright·콜백 명명·인라인·`BlueprintCallable`·플러그인 의존성 규칙 위반이 없었다. 이번 리뷰는 README를 출발점으로 Build 설정, 공개 계약, 대미지·어빌리티·무기·락온·시간 조작의 위험 경로를 중심으로 확인했다.
+> GAS 전투 경로와 모듈 경계는 전반적으로 잘 정리되어 있고, 확인한 범위에서는 `AGENTS.md`의 Copyright·접두사·콜백 명명·`BlueprintCallable`·플러그인 의존성 규칙 위반이 없었다. 이번 리뷰는 README를 출발점으로 Build 설정, 공개 계약, 대미지·어빌리티·무기·락온·시간 조작의 위험 경로를 중심으로 확인했다.
 
 ## 요약
 | 심각도 | 개수 |
 | --- | --- |
-| 🔴 심각 | 0 |
-| 🟡 개선 | 4 |
+| 🔴 심각 | 1 |
+| 🟡 개선 | 1 |
 | 🟢 사소 | 0 |
 
 ## 결과
 
-### 1. 🟡 컷신 종료가 자기 무적 GE를 식별하지 못한다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.cpp:27`
-- **범주**: 버그/정확성
-- **문제**: 태스크는 108행에서 `UWxEffect_Invincible`을 적용하지만 그 핸들을 보관하지 않고, 종료 시 같은 정의의 활성 GE 중 한 건을 `RemoveActiveGameplayEffectBySourceEffect(..., nullptr, 1)`로 제거한다. 컷신 무적과 회피·애님 노티파이 무적 또는 다른 컷신 무적이 겹치면 먼저 찾아진 다른 무적을 지우거나 자기 무적을 남길 수 있어, 의도와 다른 피격 허용 또는 무적 잔류가 발생한다.
-- **제안**: 이 태스크가 적용한 GE의 핸들을 수명과 함께 보관해 그 핸들만 제거하거나, 태스크별 식별 가능한 source object/태그를 넣어 정확히 조회·제거한다.
+### 1. 🔴 락온 대상 Server RPC가 클라이언트 값을 무검증으로 권위 상태에 반영한다
+- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxLockOnManagerComponent.cpp:38`
+- **범주**: 설계/구조
+- **문제**: `ServerSetLockOnTarget_Implementation`은 호출자가 넘긴 `USceneComponent`를 사거리·적대 팀·`UWxLockOnPointComponent`·생존/락온 가능 상태를 검증하지 않고 그대로 복제 상태에 저장한다. 악의적 또는 변조된 소유 클라이언트는 자신이 네트워크 참조를 가진 임의 컴포넌트를 보내 서버의 락온 대상으로 만들 수 있으며, 이 값은 투사체 호밍과 모션 워핑에서 서버 권위 소비처가 사용한다. 정상 경로의 `UWxAbility_LockOn` 로컬 후보 검증만으로는 RPC 직접 호출을 막지 못한다.
+- **제안**: 서버에서 null 해제만 예외로 허용하고, 대상 컴포넌트의 타입·소유 액터·적대성·거리·`CanBeLockedOn()`을 재검증한 뒤 반영한다. 검증 규칙을 컴포넌트 또는 공용 서버 측 선택 함수로 모아 락온 어빌리티와 동일한 기준을 사용한다.
 - **확신도**: 높음
 
-### 2. 🟡 퍼펙트 가드 뒤에도 `AdditionalEffects`가 그대로 적용된다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp:92`
+### 2. 🟡 상태 GE 종료가 적용 인스턴스를 식별하지 못한다
+- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.cpp:31`
 - **범주**: 버그/정확성
-- **문제**: `MakeSpecs`가 대미지 GE와 `AdditionalEffects`를 차례로 만들고, 이 루프는 대미지 GE의 실제 결과를 확인하지 않은 채 모든 스펙을 대상에게 적용한다. 퍼펙트 가드는 `UWxExecCalc_Damage`에서 HP 피해 대신 반사만 출력하고 반환하지만, 같은 공격의 상태 이상·디버프는 계속 적용된다. 따라서 퍼펙트 가드가 피해를 막아도 공격 부가효과에 피격될 수 있다.
-- **제안**: 대미지 판정 결과를 먼저 확정한 뒤 부가효과 적용 여부를 분기한다. 퍼펙트 가드에서도 남겨야 하는 효과가 있다면 데이터 행에 별도 정책을 두어 의도를 명시한다.
-- **확신도**: 중간
-
-### 3. 🟡 애님 노티파이의 상태 GE 적용 경로가 활성 어빌리티 부재에서 널을 역참조한다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp:125`
-- **범주**: 버그/정확성
-- **문제**: `ApplyEffect`는 `PredictingAbility->GetAbilityLevel()`을 먼저 호출하면서도 128행부터는 `PredictingAbility`가 null일 수 있음을 전제로 처리한다. 호출부 `WxAnimNotifyState_ApplyGameplayEffect`는 `ASC->GetAnimatingAbility()`를 그대로 넘기므로, GAS 어빌리티가 아닌 몽타주·시퀀스에서 이 노티파이가 실행되거나 활성 어빌리티가 이미 끝난 프레임에는 널 역참조로 크래시한다.
-- **제안**: `PredictingAbility`가 없을 때 안전한 기본 레벨(예: 1)을 사용하고, 예측 키는 현재처럼 유효한 어빌리티가 있을 때만 설정한다. 노티파이를 GAS 어빌리티 전용으로 제한할 의도라면 호출부에서 이를 검증·로그로 드러낸다.
-- **확신도**: 높음
-
-### 4. 🟡 컷신 원점 계산이 없는 스켈레탈 메시를 역참조한다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.cpp:88`
-- **범주**: 버그/정확성
-- **문제**: `AvatarCharacter` 존재만 확인한 뒤 `AvatarCharacter->GetMesh()->GetComponentTransform()`을 호출한다. `ACharacter`가 존재해도 메시 컴포넌트가 없거나 초기화 전이면 널 역참조가 되어 컷신 시작 시 크래시한다.
-- **제안**: `GetMesh()` 결과를 별도로 검사하고, 없을 때는 이미 준비된 `AvatarActor->GetActorTransform()` 폴백을 사용한다.
+- **문제**: 노티파이는 시작 시 적용된 `FActiveGameplayEffectHandle`을 보관하지 않고, 종료 때 `EffectClass`와 null source object만으로 한 건을 제거한다. 같은 효과 정의가 겹쳐 적용되면(예: `UWxEffect_Invincible`을 회피 노티파이와 컷신 태스크가 동시에 적용) 종료한 노티파이의 효과가 아닌 다른 인스턴스가 먼저 제거될 수 있다. 이후 종료 순서에 따라 무적이 조기 해제되거나 반대로 남는다.
+- **제안**: 적용 API가 핸들을 반환하게 하고, 노티파이 실행별 `(MeshComp, NotifyEvent)` 상태 또는 별도 런타임 객체에 보관한 정확한 핸들만 제거한다. 같은 패턴의 `UWxAbilityTask_PlaySkillCutscene`도 이 식별 방식을 함께 사용한다.
 - **확신도**: 높음
 
 ## 검토 범위
-- **깊게 본 파일**: `Plugins/WxCombat/Source/WxCombat/WxCombat.Build.cs`, `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Damage.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Attribute/WxCombatAttributeSet.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbilityBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Dodge.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxWeaponBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxProjectileBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_SlowTime.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Time/WxTimeDilationComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxLockOnManagerComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_LockOnTarget.cpp`
-- **훑은 파일**: `Plugins/WxCombat/Source/WxCombat/Public/` 헤더 전반, 나머지 `AbilitySystem/Ability/`, `AbilitySystem/Effect/`, `AbilitySystem/Cue/`, `AnimNotify/`, `Targeting/`, `Damage/`의 cpp 및 대응 헤더
+- **깊게 본 파일**: `Plugins/WxCombat/README.md`, `Plugins/WxCombat/Source/WxCombat/WxCombat.Build.cs`, `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbilityBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Damage.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Attribute/WxCombatAttributeSet.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxWeaponBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxProjectileBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxLockOnManagerComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_LockOn.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_LockOnTarget.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Time/WxTimeDilationComponent.cpp`
+- **훑은 파일**: `Plugins/WxCombat/Source/WxCombat/Public/` 헤더 전반과 나머지 `AbilitySystem/Ability/`, `AbilitySystem/Effect/`, `AbilitySystem/Cue/`, `AnimNotify/`, `Targeting/`, `Damage/`의 대응 cpp
 - **미검토 / 한계**: BP/WBP·몬타주·DataTable 자산 내부와 실제 멀티플레이 런타임은 검토하지 않았다. 대미지 수치식과 타게팅 프리셋의 밸런스 타당성은 기획 범위로 보류했다.
 
 ---
