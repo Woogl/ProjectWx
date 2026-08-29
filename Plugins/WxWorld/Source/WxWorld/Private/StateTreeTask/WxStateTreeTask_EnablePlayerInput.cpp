@@ -2,8 +2,8 @@
 
 #include "StateTreeTask/WxStateTreeTask_EnablePlayerInput.h"
 
-#include "Engine/Engine.h"
-#include "GameFramework/Actor.h"
+#include "Device/WxDevice.h"
+#include "GameFramework/Character.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "StateTreeExecutionContext.h"
@@ -29,14 +29,16 @@ EStateTreeRunStatus FWxStateTreeTask_EnablePlayerInput::EnterState(FStateTreeExe
 	Instance.DisabledPawn = nullptr;
 	Instance.DisabledController = nullptr;
 
-	// 입력은 로컬에만 존재하므로 이 머신의 로컬 플레이어를 토글한다.
-	const AActor* Owner = Cast<AActor>(Context.GetOwner());
-	APlayerController* PC = GEngine ? GEngine->GetFirstLocalPlayerController(Owner ? Owner->GetWorld() : nullptr) : nullptr;
-	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
-	if (!Pawn)
+	// 장치 상태는 모든 피어에서 실행되므로, 이 장치의 상호작용 당사자만 입력 대상으로 삼는다.
+	AWxDevice* Device = Cast<AWxDevice>(Context.GetOwner());
+	ACharacter* InteractingCharacter = Device ? Device->GetInteractingCharacter() : nullptr;
+	APlayerController* PC = InteractingCharacter ? Cast<APlayerController>(InteractingCharacter->GetController()) : nullptr;
+	if (!PC || !PC->IsLocalController() || PC->GetPawn() != InteractingCharacter)
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}
+
+	APawn* Pawn = InteractingCharacter;
 
 	if (Instance.bEnable)
 	{

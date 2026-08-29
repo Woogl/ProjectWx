@@ -34,12 +34,10 @@ struct FWxStateTreeTask_EnablePlayerInputInstanceData
 };
 
 /**
- * 진입 시 로컬 플레이어 폰의 입력 전체를 bEnable 로 토글한 뒤 Succeeded 로 완료한다('Enable Interaction' 과 동형의 토글 태스크).
+ * 진입 시 장치 상호작용 당사자의 로컬 폰 입력 전체를 bEnable 로 토글한 뒤 Succeeded 로 완료한다('Enable Interaction' 과 동형의 토글 태스크).
  * 진입 경로를 가리지 않으므로 직접 복원/레이트조인 시에도 일관되게 적용된다.
  * 끈 경우에는 그 대상(폰/컨트롤러)을 기록해 두고 ExitState 가 그 기록만 근거로 되돌린다 — 다음 상태에 Enable Player Input(true) 를 배선하지 않았거나 연출 중 장치 액터/셀이 사라져 ST 가 멈춰도 입력이 꺼진 채 남지 않는다.
- * 로컬 플레이어 컨트롤러/폰이 없으면(예: 데디 서버) 노옵.
- *
- * 한계: 대상이 "이 머신의 첫 로컬 플레이어"라 상호작용 당사자를 가리지 않는다. 장치 ST 는 모든 피어에서 각자 도므로, 멀티플레이에서는 연출을 유발하지 않은 플레이어의 조작까지 막힌다(스플릿스크린 2P 이상은 반대로 토글에서 빠진다).
+ * 상호작용 당사자를 소유한 로컬 컨트롤러/폰이 없으면(예: 데디 서버·원격 플레이어 상태) 노옵한다. 상호작용 캐릭터의 컨트롤러를 직접 사용하므로 스플릿스크린에서도 당사자만 토글한다.
  */
 USTRUCT(meta = (DisplayName = "플레이어 입력 켜기", Category = "Wx"))
 struct FWxStateTreeTask_EnablePlayerInput : public FStateTreeTaskCommonBase
