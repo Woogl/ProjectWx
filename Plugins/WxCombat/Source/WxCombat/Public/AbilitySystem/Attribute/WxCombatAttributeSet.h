@@ -110,16 +110,12 @@ public:
 
 	// ── Meta (복제 안 함) ──────────────────────────────────────────────────
 
-	/** ExecCalc가 최종 데미지를 실어 보내면 PostGameplayEffectExecute가 HP로 옮긴다. 직접 수정 금지. */
+	/** ExecCalc가 최종 데미지를 실어 보내면 PostGameplayEffectExecute가 HP로 옮긴다. */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Meta")
 	FGameplayAttributeData IncomingDamage;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, IncomingDamage)
 
-	/**
-	 * 퍼펙트 가드로 막아낸 히트에서 공격자에게 되돌려줄 양. 직접 수정 금지.
-	 *
-	 * 퍼펙트 가드는 대상 어트리뷰트를 하나도 바꾸지 않아 이 통로가 없으면 PostGameplayEffectExecute가 아예 돌지 않는다.
-	 */
+	/** 퍼펙트 가드는 대상 어트리뷰트를 바꾸지 않아, PostGameplayEffectExecute 실행을 위해 반사량을 이 통로로 전달한다. */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Meta")
 	FGameplayAttributeData IncomingReflect;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, IncomingReflect)
@@ -174,6 +170,16 @@ protected:
 	void OnRep_ASPD(const FGameplayAttributeData& OldASPD);
 
 private:
+	struct FMaxAttributePair
+	{
+		FGameplayAttribute Attribute;
+		FGameplayAttribute MaxAttribute;
+	};
+
+	static const FMaxAttributePair* FindAttributeMaxPair(const FGameplayAttribute& Attribute);
+	float ClampAttributeValue(const FGameplayAttribute& Attribute, float NewValue) const;
+	void AdjustCurrentAttributeForMaxChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue);
+	
 	void ProcessDamageTaken(const FGameplayEffectModCallbackData& Data, float Damage);
 	void ProcessPerfectGuard(const FGameplayEffectModCallbackData& Data, float ReflectAmount);
 };

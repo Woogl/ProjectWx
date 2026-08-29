@@ -11,6 +11,28 @@
 #include "WxCombatLibrary.h"
 #include "WxGameplayTags.h"
 
+const UWxCombatAttributeSet::FMaxAttributePair* UWxCombatAttributeSet::FindAttributeMaxPair(const FGameplayAttribute& Attribute)
+{
+	static const FMaxAttributePair Pairs[] =
+	{
+		{GetHPAttribute(), GetMaxHPAttribute()},
+		{GetSPAttribute(), GetMaxSPAttribute()},
+		{GetGPAttribute(), GetMaxGPAttribute()},
+		{GetMPAttribute(), GetMaxMPAttribute()},
+		{GetUPAttribute(), GetMaxUPAttribute()}
+	};
+
+	for (const FMaxAttributePair& Pair : Pairs)
+	{
+		if (Pair.Attribute == Attribute || Pair.MaxAttribute == Attribute)
+		{
+			return &Pair;
+		}
+	}
+
+	return nullptr;
+}
+
 UWxCombatAttributeSet::UWxCombatAttributeSet()
 {
 	InitSPD(1.f);
@@ -43,68 +65,14 @@ void UWxCombatAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribu
 {
 	Super::PreAttributeChange(Attribute, NewValue);
 
-	NewValue = FMath::Max(NewValue, 0.f);
-
-	float MaxValue = 0.f;
-	if (Attribute == GetHPAttribute())
-	{
-		MaxValue = GetMaxHP();
-	}
-	else if (Attribute == GetMPAttribute())
-	{
-		MaxValue = GetMaxMP();
-	}
-	else if (Attribute == GetSPAttribute())
-	{
-		MaxValue = GetMaxSP();
-	}
-	else if (Attribute == GetGPAttribute())
-	{
-		MaxValue = GetMaxGP();
-	}
-	else if (Attribute == GetUPAttribute())
-	{
-		MaxValue = GetMaxUP();
-	}
-
-	if (MaxValue > 0.f)
-	{
-		NewValue = FMath::Min(NewValue, MaxValue);
-	}
+	NewValue = ClampAttributeValue(Attribute, NewValue);
 }
 
 void UWxCombatAttributeSet::PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const
 {
 	Super::PreAttributeBaseChange(Attribute, NewValue);
 
-	NewValue = FMath::Max(NewValue, 0.f);
-
-	float MaxValue = 0.f;
-	if (Attribute == GetHPAttribute())
-	{
-		MaxValue = GetMaxHP();
-	}
-	else if (Attribute == GetMPAttribute())
-	{
-		MaxValue = GetMaxMP();
-	}
-	else if (Attribute == GetSPAttribute())
-	{
-		MaxValue = GetMaxSP();
-	}
-	else if (Attribute == GetGPAttribute())
-	{
-		MaxValue = GetMaxGP();
-	}
-	else if (Attribute == GetUPAttribute())
-	{
-		MaxValue = GetMaxUP();
-	}
-
-	if (MaxValue > 0.f)
-	{
-		NewValue = FMath::Min(NewValue, MaxValue);
-	}
+	NewValue = ClampAttributeValue(Attribute, NewValue);
 }
 
 void UWxCombatAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
@@ -118,26 +86,7 @@ void UWxCombatAttributeSet::PostAttributeChange(const FGameplayAttribute& Attrib
 		return;
 	}
 
-	if (Attribute == GetMaxHPAttribute() && OldValue > 0.f && NewValue > 0.f)
-	{
-		const float Ratio = GetHP() / OldValue;
-		SetHP(NewValue * Ratio);
-	}
-	else if (Attribute == GetMaxSPAttribute() && OldValue > 0.f && NewValue > 0.f)
-	{
-		const float Ratio = GetSP() / OldValue;
-		SetSP(NewValue * Ratio);
-	}
-	else if (Attribute == GetMaxMPAttribute() && OldValue > 0.f && NewValue > 0.f)
-	{
-		const float Ratio = GetMP() / OldValue;
-		SetMP(NewValue * Ratio);
-	}
-	else if (Attribute == GetMaxGPAttribute() && OldValue > 0.f && NewValue > 0.f)
-	{
-		const float Ratio = GetGP() / OldValue;
-		SetGP(NewValue * Ratio);
-	}
+	AdjustCurrentAttributeForMaxChange(Attribute, OldValue, NewValue);
 }
 
 void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -150,7 +99,7 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 		SetIncomingDamage(0.f);
 		if (Damage > 0.f)
 		{
-			SetHP(FMath::Max(GetHP() - Damage, 0.f));
+			SetHP(GetHP() - Damage);
 
 			// 사망 표식(Ability.Death)은 사망 어빌리티가 활성 동안 들고 있으므로, 여기서는 발동만 알린다.
 			if (GetHP() <= 0.f)
@@ -160,8 +109,8 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 				{
 					FGameplayEventData EventData;
 					EventData.EventTag = WxGameplayTags::Event_Death;
-					EventData.Instigator = GetOwningActor();
-					EventData.Target = EventData.Instigator;
+					EventData.Instigator = Data.EffectSpec.GetEffectContext().GetInstigator();
+					EventData.Target = GetOwningActor();
 					ASC->HandleGameplayEvent(WxGameplayTags::Event_Death, &EventData);
 				}
 			}
@@ -183,7 +132,6 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 	}
 	else if (Data.EvaluatedData.Attribute == GetSPAttribute())
 	{
-		// SP를 깎는 GE는 질주 소모든 회피 코스트든 가드 피격이든 모두 이 지점을 지난다.
 		// 남은 양이 아니라 소모 후 결과로 지속시간을 고르므로, 0에서 또 깎여도 짧은 쪽으로 갱신되지 않는다.
 		// MaxSP가 없는 아바타는 스태미나를 쓰지 않으므로 제외한다.
 		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
@@ -194,7 +142,7 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 	}
 	else if (Data.EvaluatedData.Attribute == GetGPAttribute() && GetMaxGP() > 0.f)
 	{
-		// 그로기 진입만 알리고 해제는 관여하지 않는다 — 어빌리티가 DP를 직접 보고 스스로 끝낸다.
+		// 그로기 진입만 알리고 해제는 관여하지 않는다 — 어빌리티가 GP를 직접 보고 스스로 끝낸다.
 		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
 		if (GetGP() >= GetMaxGP() && ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
 		{
@@ -205,6 +153,44 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 			ASC->HandleGameplayEvent(WxGameplayTags::Event_Groggy, &EventData);
 		}
 	}
+}
+
+float UWxCombatAttributeSet::ClampAttributeValue(const FGameplayAttribute& Attribute, float NewValue) const
+{
+	const float MinimumValue = Attribute == GetASPDAttribute() ? 0.001f : 0.f;
+	NewValue = FMath::Max(NewValue, MinimumValue);
+
+	const FMaxAttributePair* Pair = FindAttributeMaxPair(Attribute);
+	const UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+	if (Pair && Pair->Attribute == Attribute && ASC)
+	{
+		NewValue = FMath::Min(NewValue, ASC->GetNumericAttribute(Pair->MaxAttribute));
+	}
+
+	return NewValue;
+}
+
+void UWxCombatAttributeSet::AdjustCurrentAttributeForMaxChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
+{
+	const FMaxAttributePair* Pair = FindAttributeMaxPair(Attribute);
+	if (!Pair || Pair->MaxAttribute != Attribute)
+	{
+		return;
+	}
+
+	UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+	if (!ASC)
+	{
+		return;
+	}
+
+	float AdjustedValue = ASC->GetNumericAttribute(Pair->Attribute);
+	if (OldValue > 0.f)
+	{
+		AdjustedValue *= NewValue / OldValue;
+	}
+
+	ASC->SetNumericAttributeBase(Pair->Attribute, AdjustedValue);
 }
 
 void UWxCombatAttributeSet::OnRep_HP(const FGameplayAttributeData& OldHP)
@@ -302,8 +288,8 @@ void UWxCombatAttributeSet::ProcessDamageTaken(const FGameplayEffectModCallbackD
 	AActor* TargetActor = GetOwningActor();
 	UAbilitySystemComponent* SourceASC = ContextHandle.GetInstigatorAbilitySystemComponent();
 
-	// 공격이 요청한 반응 종류는 스펙에 Event.Hit 자식 태그로 실려 온다.
-	const FGameplayTag ReactionTag = Data.EffectSpec.GetDynamicAssetTags().Filter(FGameplayTagContainer(WxGameplayTags::Event_Hit)).First();
+	// 공격이 요청한 반응 종류는 스펙에 HitReact 태그로 실려 온다.
+	const FGameplayTag ReactionTag = Data.EffectSpec.GetDynamicAssetTags().Filter(FGameplayTagContainer(WxGameplayTags::HitReact)).First();
 
 	// GuardReact가 같은 피격 이벤트로 흡수 몽타주를 틀므로, 가드로 막히지 않는 히트는 이벤트보다 먼저 가드를 끊어야 한다.
 	// 반응 라우팅은 전부 Ability.Guard로 판정한다 — 여기만 Effect.Guard를 보면 둘이 어긋난 상태에서 취소를 건너뛴 채 흡수 연출이 나간다.
@@ -314,16 +300,18 @@ void UWxCombatAttributeSet::ProcessDamageTaken(const FGameplayEffectModCallbackD
 	}
 
 	// 히트리액트를 재생했다 사망으로 끊는 대신 곧장 사망으로 가는 쪽을 택했다.
-	// 반응이 있으면 그 자식이 이벤트 태그다. 평타는 부모 그대로라, 자식만 트리거로 등록한 HitReact엔 닿지 않고 부모를 등록한 GuardReact에만 닿는다.
-	//
 	// 브레이크 여부를 반응 종류에 실어 보내는 이유: 어빌리티 트리거는 RPC라 어트리뷰트 복제보다 먼저 도착해, 소유 클라가 SP를 다시 읽으면 차감 전 값을 본다.
-	// 받아 줄 GuardReact가 Ability.Guard를 요구하므로, 같은 히트의 DP로 뜬 그로기가 가드를 먼저 끊었으면 일반 반응으로 보낸다.
+	// 받아 줄 GuardReact가 Ability.Guard를 요구하므로, 같은 히트의 GP로 뜬 그로기가 가드를 먼저 끊었으면 일반 반응으로 보낸다.
 	const bool bGuardBroken = Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_GuardBreak) && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Guard);
 	const FGameplayTag HitEventTag = bGuardBroken
 		? WxGameplayTags::Event_Hit_GuardBreak
-		: (ReactionTag.IsValid() ? ReactionTag : WxGameplayTags::Event_Hit);
+		: WxGameplayTags::Event_Hit;
 	FGameplayEventData HitEventData;
 	HitEventData.EventTag = HitEventTag;
+	if (ReactionTag.IsValid())
+	{
+		HitEventData.TargetTags.AddTag(ReactionTag);
+	}
 	HitEventData.Instigator = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
 	HitEventData.Target = TargetActor;
 	HitEventData.EventMagnitude = Damage;
@@ -370,8 +358,7 @@ void UWxCombatAttributeSet::ProcessPerfectGuard(const FGameplayEffectModCallback
 
 	const bool bCanParry = Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanParry);
 
-	// 대상의 GP 가산과 같은 이유로 이미 그로기인 공격자에겐 반사하지 않는다.
-	// GP를 MaxGP로 되돌리면 남은 드레인 시간으로는 0에 닿지 못해 그로기가 안전 타이머까지 늘어진다.
+	// GP를 MaxGP로 되돌리면 남은 드레인 시간에 0에 닿지 않아 그로기가 안전 타이머까지 늘어진다.
 	if (bCanParry && SourceASC && !SourceASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
 	{
 		UWxCombatLibrary::ApplyAttributeChange(SourceASC, GetGPAttribute(), ReflectAmount);
