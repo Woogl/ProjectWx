@@ -52,5 +52,5 @@ protected:
 	float PerfectGuardSlowTimeDuration = 0.4f;
 
 private:
-	UAnimMontage* SelectMontage(FGameplayTag TriggerTag) const;
+	UAnimMontage* SelectMontage(FGameplayTag TriggerTag, FGameplayTag ReactionTag) const;
 };

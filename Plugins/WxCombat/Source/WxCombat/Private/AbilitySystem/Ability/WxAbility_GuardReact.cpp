@@ -25,9 +25,8 @@ UWxAbility_GuardReact::UWxAbility_GuardReact()
 	// 가드 중 연속 피격은 앞 연출을 끊고 새로 튼다.
 	bRetriggerInstancedAbility = true;
 
-	// 반응 없는 평타는 부모 그대로 오므로 부모를 등록한다.
+	// 일반 피격은 부모 Event.Hit으로 오고, 반응 종류는 TargetTags의 HitReact 페이로드로 받는다.
 	// 자식까지 등록하면 조상마다 한 번씩 발화해 같은 히트에 두 번 뜬다.
-	// 반응 종류는 TriggerEventData의 EventTag에 원래 자식 태그로 실려 온다.
 	FAbilityTriggerData HitTrigger;
 	HitTrigger.TriggerTag = WxGameplayTags::Event_Hit;
 	HitTrigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
@@ -49,6 +48,9 @@ void UWxAbility_GuardReact::ActivateAbility(const FGameplayAbilitySpecHandle Han
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	const FGameplayTag TriggerTag = TriggerEventData ? TriggerEventData->EventTag : WxGameplayTags::Event_Hit;
+	const FGameplayTag ReactionTag = TriggerEventData
+		? TriggerEventData->TargetTags.Filter(FGameplayTagContainer(WxGameplayTags::HitReact)).First()
+		: FGameplayTag();
 
 	if (TriggerTag == WxGameplayTags::Event_Hit_GuardBreak)
 	{
@@ -61,7 +63,7 @@ void UWxAbility_GuardReact::ActivateAbility(const FGameplayAbilitySpecHandle Han
 		}
 	}
 
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || !PlayMontage(SelectMontage(TriggerTag)))
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || !PlayMontage(SelectMontage(TriggerTag, ReactionTag)))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -100,7 +102,7 @@ void UWxAbility_GuardReact::HandleMontageBlendOut()
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
-UAnimMontage* UWxAbility_GuardReact::SelectMontage(FGameplayTag TriggerTag) const
+UAnimMontage* UWxAbility_GuardReact::SelectMontage(FGameplayTag TriggerTag, FGameplayTag ReactionTag) const
 {
 	if (TriggerTag == WxGameplayTags::Event_Hit_GuardBreak)
 	{
@@ -112,8 +114,9 @@ UAnimMontage* UWxAbility_GuardReact::SelectMontage(FGameplayTag TriggerTag) cons
 		return PerfectGuardMontage;
 	}
 
-	// 평타는 반응 태그 없이 부모 그대로 오거나 Normal로 온다 — 그 밖의 자식은 전부 넉 계열로 본다.
-	const bool bIsKnockHit = TriggerTag != WxGameplayTags::Event_Hit && TriggerTag != WxGameplayTags::Event_Hit_Normal;
+	const bool bIsKnockHit = ReactionTag == WxGameplayTags::HitReact_KnockBack
+		|| ReactionTag == WxGameplayTags::HitReact_KnockDown
+		|| ReactionTag == WxGameplayTags::HitReact_KnockUp;
 
 	return (bIsKnockHit && GuardKnockbackMontage) ? GuardKnockbackMontage.Get() : GuardHitReactMontage.Get();
 }
