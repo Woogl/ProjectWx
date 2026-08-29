@@ -89,13 +89,16 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 	}
 	
 	bool bDamageApplied = false;
+	const bool bPerfectGuardApplied = DamageRow->bCanGuard && TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_PerfectGuard);
 	const TArray<FGameplayEffectSpecHandle> Specs = DamageRow->MakeSpecs(Source, Context);
 	for (const FGameplayEffectSpecHandle& Spec : Specs)
 	{
-		if (Spec.IsValid())
+		const bool bIsDamageSpec = Spec.IsValid() && Spec.Data->Def->IsA<UWxEffect_Damage>();
+		// 퍼펙트 가드에서는 Damage GE만 반사·이벤트를 처리하고, 상태이상 등의 부가효과는 적용하지 않는다.
+		if (Spec.IsValid() && (!bPerfectGuardApplied || bIsDamageSpec))
 		{
 			const FActiveGameplayEffectHandle AppliedHandle = Source->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC, PredictionKey);
-			if (Spec.Data->Def->IsA<UWxEffect_Damage>())
+			if (bIsDamageSpec)
 			{
 				bDamageApplied = AppliedHandle.WasSuccessfullyApplied();
 			}
@@ -122,7 +125,8 @@ void UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclass
 	}
 
 	const UGameplayEffect* CDO = EffectClass->GetDefaultObject<UGameplayEffect>();
-	FGameplayEffectSpec Spec(CDO, TargetASC->MakeEffectContext(), PredictingAbility->GetAbilityLevel());
+	const float Level = PredictingAbility ? PredictingAbility->GetAbilityLevel() : 0.f;
+	FGameplayEffectSpec Spec(CDO, TargetASC->MakeEffectContext(), Level);
 
 	FPredictionKey PredictionKey;
 	if (PredictingAbility)
