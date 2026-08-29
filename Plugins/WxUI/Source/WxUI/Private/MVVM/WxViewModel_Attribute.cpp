@@ -154,7 +154,7 @@ UObject* UWxViewModelResolver_Attribute::CreateInstance(const UClass* ExpectedTy
 		return nullptr;
 	}
 
-	// 인스턴스는 ASC 의 어빌리티시스템 VM 이 어트리뷰트 단위로 소유한다 — 같은 어트리뷰트를 보는 위젯끼리 하나를 나눠 쓴다.
+	// ASC의 어빌리티시스템 VM이 어트리뷰트 조합별 인스턴스를 소유하므로 같은 조합을 보는 위젯이 공유한다.
 	UWxViewModel_AbilitySystem* AbilitySystemViewModel = UWxViewModel_AbilitySystem::GetOrCreate(ASC);
 
 	return AbilitySystemViewModel ? AbilitySystemViewModel->GetOrCreateAttributeViewModel(Attribute, MaxAttribute) : nullptr;

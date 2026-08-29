@@ -23,8 +23,8 @@ public:
 
 	/**
 	 * 없으면 생성한다 — 바인딩이 요청한 어트리뷰트에 대해서만 VM 이 지연 생성된다.
-	 * MaxAttribute 미지정 시 CurrentAttribute 를 최대값으로 사용한다.
+	 * MaxAttribute 미지정 시 Attribute 를 최대값으로 사용한다.
 	 */
 	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "Get Attribute ViewModel"))
-	static UWxViewModel_Attribute* GetAttributeViewModel(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayAttribute CurrentAttribute, FGameplayAttribute MaxAttribute);
+	static UWxViewModel_Attribute* GetAttributeViewModel(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayAttribute Attribute, FGameplayAttribute MaxAttribute);
 };

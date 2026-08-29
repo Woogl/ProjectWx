@@ -68,9 +68,6 @@ private:
 	FGameplayAttribute BoundMaxAttribute;
 };
 
-/**
- * 위젯을 소유한 PlayerController 의 빙의 Pawn 에서 ASC 를 끌어와, 지정한 어트리뷰트 쌍의 UWxViewModel_Attribute 를 그 ASC 의 어빌리티시스템 VM 에서 얻는다.
- */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXUI_API UWxViewModelResolver_Attribute : public UMVVMViewModelContextResolver
 {

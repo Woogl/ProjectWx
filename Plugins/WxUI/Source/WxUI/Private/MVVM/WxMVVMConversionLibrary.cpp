@@ -10,12 +10,12 @@ ESlateVisibility UWxMVVMConversionLibrary::Conv_GameplayTagToSlateVisibility(con
 	return TagContainer.HasTag(Tag) ? TrueVisibility : FalseVisibility;
 }
 
-UWxViewModel_Attribute* UWxMVVMConversionLibrary::GetAttributeViewModel(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayAttribute CurrentAttribute, FGameplayAttribute MaxAttribute)
+UWxViewModel_Attribute* UWxMVVMConversionLibrary::GetAttributeViewModel(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayAttribute Attribute, FGameplayAttribute MaxAttribute)
 {
 	if (!AbilitySystem)
 	{
 		return nullptr;
 	}
-	return AbilitySystem->GetOrCreateAttributeViewModel(CurrentAttribute, MaxAttribute);
+	return AbilitySystem->GetOrCreateAttributeViewModel(Attribute, MaxAttribute);
 }
 
