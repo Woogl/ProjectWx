@@ -68,6 +68,45 @@ static const FWxDamageExecutionStatics& GetDamageExecutionStatics()
 	return DamageExecutionStatics;
 }
 
+static float CalculateDefenseMultiplier(float TargetDEF)
+{
+	static constexpr float DefenseConstant = 100.f;
+	return DefenseConstant / (DefenseConstant + TargetDEF);
+}
+
+static float CalculateBaseDamage(float SourceATK, float ATKCoeff, float DefenseMultiplier)
+{
+	// 기본 피해 = 공격력 × 공격 계수 × 방어 보정
+	return FMath::Max(SourceATK * ATKCoeff * DefenseMultiplier, 0.f);
+}
+
+static float CalculateCriticalMultiplier(float SourceCritDMG, bool bIsCritical)
+{
+	if (bIsCritical)
+	{
+		return 1.f + SourceCritDMG * 0.01f;
+	}
+	return 1.f;	
+}
+
+static float CalculateGuardMultiplier(bool bGuardHit)
+{
+	if (bGuardHit)
+	{
+		return UWxEffect_Guard::DamageMultiplier;
+	}
+	return 1.f;
+}
+
+static float CalculateFinalDamage(float SourceATK, float TargetDEF, float ATKCoeff, float SourceCritDMG, bool bIsCritical, bool bGuardHit)
+{
+	const float DefenseMultiplier = CalculateDefenseMultiplier(TargetDEF);
+	const float BaseDamage = CalculateBaseDamage(SourceATK, ATKCoeff, DefenseMultiplier);
+	const float CriticalMultiplier = CalculateCriticalMultiplier(SourceCritDMG, bIsCritical);
+	const float GuardMultiplier = CalculateGuardMultiplier(bGuardHit);
+	return BaseDamage * CriticalMultiplier * GuardMultiplier;
+}
+
 UWxExecCalc_Damage::UWxExecCalc_Damage()
 {
 	const FWxDamageBaseStatics& BaseStatics = GetDamageBaseStatics();
@@ -115,28 +154,23 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(BaseStatics.DEFDef, EvalParams, TargetDEF);
 
 	const float ATKCoeff = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, false, 0.f);
-	// 방어력 보정 상수
-	static constexpr float DefenseConstant = 100.f;
-	const float DefenseMultiplier = DefenseConstant / (DefenseConstant + TargetDEF);
-	float FinalDamage = FMath::Max(SourceATK * ATKCoeff * DefenseMultiplier, 0.f);
+	const bool bCanApplyCritical = !bPerfectGuardApplied && bCanCritical;
+	const bool bGuardHit = !bPerfectGuardApplied && bIsGuarding && bCanGuard;
+
+	float SourceCritRate = 0.f;
+	float SourceCritDMG = 0.f;
 	bool bIsCritical = false;
-	if (!bPerfectGuardApplied && bCanCritical)
+	if (bCanApplyCritical)
 	{
 		const FWxDamageExecutionStatics& ExecutionStatics = GetDamageExecutionStatics();
-
-		float SourceCritRate = 0.f;
 		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(ExecutionStatics.CritRateDef, EvalParams, SourceCritRate);
-
-		float SourceCritDMG = 0.f;
 		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(ExecutionStatics.CritDMGDef, EvalParams, SourceCritDMG);
 
 		const float CritChance = FMath::Clamp(SourceCritRate * 0.01f, 0.f, 1.f);
 		bIsCritical = FMath::FRand() < CritChance;
-		if (bIsCritical)
-		{
-			FinalDamage *= (1.f + SourceCritDMG * 0.01f);
-		}
 	}
+
+	const float FinalDamage = CalculateFinalDamage(SourceATK, TargetDEF, ATKCoeff, SourceCritDMG, bIsCritical, bGuardHit);
 
 	const FWxDamageExecutionStatics& ExecutionStatics = GetDamageExecutionStatics();
 
@@ -145,13 +179,6 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		// 대상 어트리뷰트는 하나도 바뀌지 않으므로, 반사량을 메타 어트리뷰트로 실어야 PostGameplayEffectExecute가 돈다.
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(ExecutionStatics.IncomingReflectProperty, EGameplayModOp::Additive, FinalDamage));
 		return;
-	}
-
-	const bool bGuardHit = bIsGuarding && bCanGuard;
-
-	if (bGuardHit)
-	{
-		FinalDamage *= UWxEffect_Guard::DamageMultiplier;
 	}
 
 	if (FinalDamage <= 0.f)
