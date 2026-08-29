@@ -19,9 +19,7 @@
 #include "UObject/UObjectGlobals.h"
 #include "WxAbilityThumbnailRenderer.h"
 #include "WxActorLocatorCustomization.h"
-#include "WxCategoryDetailCustomization.h"
 #include "WxStateTreeComponentNameCustomization.h"
-#include "WxDataTableRowHandleCustomization.h"
 #include "WxDeviceLinkVisualizer.h"
 #include "WxItemDefinitionThumbnailRenderer.h"
 #include "Device/WxDeviceComponentName.h"
@@ -37,21 +35,12 @@ void FWxEditorModule::StartupModule()
 {
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>(WxEditorModule::PropertyEditorModuleName);
 
-	PropertyModule.RegisterCustomClassLayout(
-		UObject::StaticClass()->GetFName(),
-		FOnGetDetailCustomizationInstance::CreateStatic(&FWxCategoryDetailCustomization::MakeInstance));
-
 	// 액터 지정(AllowedLocators="Actor" 메타) UOL 필드에만 한 줄 픽커를 적용한다. 메타 없는 UOL 은 엔진 기본 편집기 유지.
 	ActorLocatorIdentifier = MakeShared<FWxActorLocatorTypeIdentifier>();
 	PropertyModule.RegisterCustomPropertyTypeLayout(
 		FUniversalObjectLocator::StaticStruct()->GetFName(),
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FWxActorLocatorCustomization::MakeInstance),
 		ActorLocatorIdentifier);
-
-	// 식별자 없이 등록해 엔진 기본 레이아웃을 대체한다 — 그쪽은 편집 위젯을 자식 행에 두어 파라미터 백 패널에서 접으면 빈칸이 된다.
-	PropertyModule.RegisterCustomPropertyTypeLayout(
-		FDataTableRowHandle::StaticStruct()->GetFName(),
-		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FWxDataTableRowHandleCustomization::MakeInstance));
 
 	PropertyModule.RegisterCustomPropertyTypeLayout(
 		FWxStateTreeComponentName::StaticStruct()->GetFName(),
@@ -92,13 +81,11 @@ void FWxEditorModule::ShutdownModule()
 	if (FModuleManager::Get().IsModuleLoaded(WxEditorModule::PropertyEditorModuleName))
 	{
 		FPropertyEditorModule& PropertyModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>(WxEditorModule::PropertyEditorModuleName);
-		PropertyModule.UnregisterCustomClassLayout(UObject::StaticClass()->GetFName());
 		if (ActorLocatorIdentifier.IsValid())
 		{
 			PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("UniversalObjectLocator"), ActorLocatorIdentifier);
 			ActorLocatorIdentifier.Reset();
 		}
-		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("DataTableRowHandle"));
 		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("WxStateTreeComponentName"));
 		PropertyModule.NotifyCustomizationModuleChanged();
 	}
