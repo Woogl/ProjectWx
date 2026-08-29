@@ -20,6 +20,7 @@ enum class EWxExperienceLoadState : uint8
 	LoadingGameFeatures,
 	ExecutingActions,
 	Loaded,
+	Failed,
 	Deactivating,
 };
 
@@ -67,14 +68,17 @@ private:
 	/** 번들 로드 완료 콜백: GameFeature 플러그인 URL 을 수집해 활성화를 요청한다. 없으면 즉시 마무리로 넘어간다. */
 	void HandleExperienceAssetsLoaded();
 
-	/** GameFeature 플러그인 1개 활성 완료 콜백: 전부 끝나면 마무리로 넘어간다. */
-	void HandleGameFeaturePluginLoaded(const UE::GameFeatures::FResult& Result);
+	/** GameFeature 플러그인 1개 활성 완료 콜백: 전부 끝나면 성공 시에만 마무리로 넘어간다. */
+	void HandleGameFeaturePluginLoaded(const UE::GameFeatures::FResult& Result, FString PluginURL);
 
 	/** ExecutingActions: 자기 월드 한정 컨텍스트로 전체 액션을 활성화하고 Loaded 를 브로드캐스트한다. */
 	void FinishExperienceLoad();
 
-	/** 플러그인 이름 목록을 URL 로 해석해 GameFeaturePluginURLs 에 누적한다. 미발견은 에러 로그 후 건너뛴다. */
-	void CollectGameFeaturePluginURLs(const TArray<FString>& FeaturePluginList);
+	/** 이 Experience 가 요청한 GameFeature 활성 참조를 해제한다. 로드 도중 종료할 때만 아직 콜백이 오지 않은 요청도 비활성화를 시도한다. */
+	void ReleaseGameFeaturePluginRequests(bool bDeactivateAllRequestedPlugins);
+
+	/** 플러그인 이름 목록을 URL 로 해석해 GameFeaturePluginURLs 에 누적한다. 하나라도 미발견이면 false 를 반환한다. */
+	bool CollectGameFeaturePluginURLs(const TArray<FString>& FeaturePluginList);
 
 	/** Experience 본체와 ActionSet 의 액션을 실행 순서대로 평탄화한다. */
 	void CollectActions(TArray<UGameFeatureAction*>& OutActions) const;
@@ -88,7 +92,13 @@ private:
 	/** EndPlay 비활성의 대상이다. */
 	TArray<FString> GameFeaturePluginURLs;
 
+	/** 활성 콜백이 성공한 플러그인만 기록한다. 실패 Experience 의 정리에서 비활성화 대상을 구분한다. */
+	TArray<FString> ActivatedGameFeaturePluginURLs;
+
 	int32 NumGameFeaturePluginsLoading = 0;
+
+	/** 병렬 GameFeature 활성 중 하나라도 실패하면, 모든 콜백을 회수한 뒤 Experience 완료를 발행하지 않는다. */
+	bool bGameFeaturePluginLoadFailed = false;
 
 	/** 브로드캐스트 후 비운다. */
 	FWxOnExperienceLoaded OnExperienceLoaded;

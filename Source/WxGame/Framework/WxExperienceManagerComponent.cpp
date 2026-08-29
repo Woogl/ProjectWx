@@ -58,20 +58,15 @@ UWxExperienceManagerComponent::UWxExperienceManagerComponent(const FObjectInitia
 
 void UWxExperienceManagerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	for (const FString& PluginURL : GameFeaturePluginURLs)
-	{
-		if (UWxExperienceManager::RequestToDeactivatePlugin(PluginURL))
-		{
-			UGameFeaturesSubsystem::Get().DeactivateGameFeaturePlugin(PluginURL);
-		}
-	}
+	const bool bWasExperienceLoaded = LoadState == EWxExperienceLoadState::Loaded;
+	LoadState = EWxExperienceLoadState::Deactivating;
+
+	ReleaseGameFeaturePluginRequests(true);
 
 	WxPublishGameHUDClass(this, nullptr);
 
-	if (LoadState == EWxExperienceLoadState::Loaded)
+	if (bWasExperienceLoaded)
 	{
-		LoadState = EWxExperienceLoadState::Deactivating;
-
 		// 액션 비활성화를 자기 월드로 한정한다 — PIE 다중 세션에서 남의 월드를 건드리지 않는다.
 		FGameFeatureDeactivatingContext Context(TEXT(""), &WxHandleDeactivationPauserCompleted);
 		const FWorldContext* ExistingWorldContext = GEngine->GetWorldContextFromWorld(GetWorld());
@@ -220,16 +215,32 @@ void UWxExperienceManagerComponent::StartExperienceLoad()
 
 void UWxExperienceManagerComponent::HandleExperienceAssetsLoaded()
 {
+	if (LoadState == EWxExperienceLoadState::Deactivating)
+	{
+		return;
+	}
+
 	check(LoadState == EWxExperienceLoadState::Loading);
 
 	GameFeaturePluginURLs.Reset();
-	CollectGameFeaturePluginURLs(CurrentExperience->GameFeaturesToEnable);
+	ActivatedGameFeaturePluginURLs.Reset();
+	bGameFeaturePluginLoadFailed = false;
+	bool bAllGameFeaturePluginNamesResolved = CollectGameFeaturePluginURLs(CurrentExperience->GameFeaturesToEnable);
 	for (const TObjectPtr<UWxExperienceActionSet>& ActionSet : CurrentExperience->ActionSets)
 	{
 		if (ActionSet)
 		{
-			CollectGameFeaturePluginURLs(ActionSet->GameFeaturesToEnable);
+			bAllGameFeaturePluginNamesResolved &= CollectGameFeaturePluginURLs(ActionSet->GameFeaturesToEnable);
 		}
+	}
+
+	if (!bAllGameFeaturePluginNamesResolved)
+	{
+		GameFeaturePluginURLs.Reset();
+		LoadState = EWxExperienceLoadState::Failed;
+		UE_LOG(LogWxGame, Error, TEXT("Experience '%s' 로드 실패: 필수 GameFeature 플러그인을 찾지 못해 Experience 완료를 발행하지 않는다."), *GetNameSafe(CurrentExperience));
+		OnExperienceLoaded.Clear();
+		return;
 	}
 
 	NumGameFeaturePluginsLoading = GameFeaturePluginURLs.Num();
@@ -244,22 +255,59 @@ void UWxExperienceManagerComponent::HandleExperienceAssetsLoaded()
 	{
 		UWxExperienceManager::NotifyOfPluginActivation(PluginURL);
 		UGameFeaturesSubsystem::Get().LoadAndActivateGameFeaturePlugin(
-			PluginURL, FGameFeaturePluginLoadComplete::CreateUObject(this, &UWxExperienceManagerComponent::HandleGameFeaturePluginLoaded));
+			PluginURL, FGameFeaturePluginLoadComplete::CreateUObject(this, &UWxExperienceManagerComponent::HandleGameFeaturePluginLoaded, PluginURL));
 	}
 }
 
-void UWxExperienceManagerComponent::HandleGameFeaturePluginLoaded(const UE::GameFeatures::FResult& Result)
+void UWxExperienceManagerComponent::HandleGameFeaturePluginLoaded(const UE::GameFeatures::FResult& Result, FString PluginURL)
 {
+	if (LoadState == EWxExperienceLoadState::Deactivating)
+	{
+		return;
+	}
+
+	check(LoadState == EWxExperienceLoadState::LoadingGameFeatures);
+	check(NumGameFeaturePluginsLoading > 0);
+
 	if (Result.HasError())
 	{
 		UE_LOG(LogWxGame, Error, TEXT("HandleGameFeaturePluginLoaded: GameFeature 플러그인 활성 실패: %s"), *UE::GameFeatures::ToString(Result));
+		bGameFeaturePluginLoadFailed = true;
+	}
+	else
+	{
+		ActivatedGameFeaturePluginURLs.Add(PluginURL);
 	}
 
 	--NumGameFeaturePluginsLoading;
 	if (NumGameFeaturePluginsLoading == 0)
 	{
+		if (bGameFeaturePluginLoadFailed)
+		{
+			LoadState = EWxExperienceLoadState::Failed;
+			UE_LOG(LogWxGame, Error, TEXT("Experience '%s' 로드 실패: GameFeature 플러그인 활성화가 완료되지 않아 Experience 완료를 발행하지 않는다."), *GetNameSafe(CurrentExperience));
+			ReleaseGameFeaturePluginRequests(false);
+			OnExperienceLoaded.Clear();
+			return;
+		}
+
 		FinishExperienceLoad();
 	}
+}
+
+void UWxExperienceManagerComponent::ReleaseGameFeaturePluginRequests(bool bDeactivateAllRequestedPlugins)
+{
+	for (const FString& PluginURL : GameFeaturePluginURLs)
+	{
+		const bool bWasActivated = ActivatedGameFeaturePluginURLs.Contains(PluginURL);
+		if (UWxExperienceManager::RequestToDeactivatePlugin(PluginURL) && (bDeactivateAllRequestedPlugins || bWasActivated))
+		{
+			UGameFeaturesSubsystem::Get().DeactivateGameFeaturePlugin(PluginURL);
+		}
+	}
+
+	GameFeaturePluginURLs.Reset();
+	ActivatedGameFeaturePluginURLs.Reset();
 }
 
 void UWxExperienceManagerComponent::FinishExperienceLoad()
@@ -295,8 +343,9 @@ void UWxExperienceManagerComponent::FinishExperienceLoad()
 	OnExperienceLoaded.Clear();
 }
 
-void UWxExperienceManagerComponent::CollectGameFeaturePluginURLs(const TArray<FString>& FeaturePluginList)
+bool UWxExperienceManagerComponent::CollectGameFeaturePluginURLs(const TArray<FString>& FeaturePluginList)
 {
+	bool bAllPluginNamesResolved = true;
 	for (const FString& PluginName : FeaturePluginList)
 	{
 		FString PluginURL;
@@ -306,9 +355,12 @@ void UWxExperienceManagerComponent::CollectGameFeaturePluginURLs(const TArray<FS
 		}
 		else
 		{
-			UE_LOG(LogWxGame, Error, TEXT("CollectGameFeaturePluginURLs: GameFeature 플러그인 '%s' 을 찾지 못함. 건너뜀."), *PluginName);
+			UE_LOG(LogWxGame, Error, TEXT("CollectGameFeaturePluginURLs: GameFeature 플러그인 '%s' 을 찾지 못함."), *PluginName);
+			bAllPluginNamesResolved = false;
 		}
 	}
+
+	return bAllPluginNamesResolved;
 }
 
 void UWxExperienceManagerComponent::CollectActions(TArray<UGameFeatureAction*>& OutActions) const
