@@ -14,10 +14,10 @@
 
 UWxAbility_Groggy::UWxAbility_Groggy()
 {
-	// 소유 클라도 활성화돼야 그로기 자세가 그 화면에 뜬다 — 엔진은 로컬 조종 액터에 복제 몽타주를 적용하지 않는다.
+	// 로컬 조종 액터에는 복제 몽타주가 적용되지 않아 소유 클라도 활성화해야 한다.
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 
-	// 그 클라 인스턴스는 연출만 맡는다. 실행·종료 요청을 서버가 무시하게 해 판정을 서버에 묶는다.
+	// 실행과 종료 판정은 서버만 한다.
 	NetSecurityPolicy = EGameplayAbilityNetSecurityPolicy::ServerOnly;
 
 	FGameplayTagContainer AssetTags;
@@ -27,10 +27,9 @@ UWxAbility_Groggy::UWxAbility_Groggy()
 	
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 
-	// 그로기 동안 새 액션을 막는다.
 	ActivationGroup = EWxAbilityActivationGroup::Reaction;
 
-	// 전부를 지목해도 반응은 끊기지 않아, 처형 짝 피격처럼 겹쳐 있어야 할 것이 살아남는다.
+	// 반응형 어빌리티는 유지해 처형 짝 피격처럼 겹쳐야 할 반응을 보존한다.
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 
 	FAbilityTriggerData TriggerData;
@@ -56,85 +55,38 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	UWorld* World = GetWorld();
-	if (World)
-	{
-		World->GetTimerManager().SetTimer(MontagePollingTimerHandle, this, &UWxAbility_Groggy::HandleMontagePollTick, 0.1f, true);
-	}
+	StartMontagePolling();
 
-	// 클라가 복제된 GP로 다시 판정하면 종료 시점이 어긋나, 그 창의 히트에서 HitReact의 넉 강등이 갈리고 LaunchCharacter가 한쪽에서만 실행된다.
+	// 클라의 복제 GP로 종료를 판정하면 서버와 종료 시점이 어긋난다.
 	if (ActorInfo->IsNetAuthority())
 	{
-		GPDelegateHandle = ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetGPAttribute())
-			.AddUObject(this, &UWxAbility_Groggy::HandleGPChanged);
-
-		// 재생 rate를 1.0으로 고정하므로 몽타주 길이가 곧 그로기 길이다.
-		const float GroggyDuration = GroggyMontage->GetPlayLength();
-
-		FGameplayEffectSpecHandle DrainSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_DrainGP::StaticClass(), GetAbilityLevel());
-		if (DrainSpecHandle.IsValid())
-		{
-			DrainSpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, GroggyDuration);
-			DrainGPEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, DrainSpecHandle);
-		}
+		StartGroggyDrain(Handle, ActorInfo, ActivationInfo);
 	}
 
-	if (APawn* AvatarPawn = Cast<APawn>(ActorInfo->AvatarActor.Get()))
-	{
-		if (AAIController* AIController = Cast<AAIController>(AvatarPawn->GetController()))
-		{
-			if (UBrainComponent* Brain = AIController->GetBrainComponent())
-			{
-				Brain->PauseLogic(TEXT("Groggy"));
-			}
-		}
-	}
+	SetAILogicPaused(ActorInfo, true);
 
 	HandleMontagePollTick();
 }
 
 void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	StopMontagePolling();
+
 	if (ActorInfo)
 	{
-		if (UWorld* World = GetWorld())
-		{
-			World->GetTimerManager().ClearTimer(MontagePollingTimerHandle);
-		}
-
-		if (APawn* AvatarPawn = Cast<APawn>(ActorInfo->AvatarActor.Get()))
-		{
-			if (AAIController* AIController = Cast<AAIController>(AvatarPawn->GetController()))
-			{
-				if (UBrainComponent* Brain = AIController->GetBrainComponent())
-				{
-					Brain->ResumeLogic(TEXT("Groggy"));
-				}
-			}
-		}
+		SetAILogicPaused(ActorInfo, false);
 
 		if (ActorInfo->AbilitySystemComponent.IsValid())
 		{
 			UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 
-			// ActivateAbility가 GroggyMontage 미설정으로 곧장 EndAbility를 부르는 경로가 있어 널일 수 있다.
+			// GroggyMontage 미설정 경로에서는 즉시 종료될 수 있다.
 			if (GroggyMontage)
 			{
 				ASC->StopMontageIfCurrent(*GroggyMontage);
 			}
 
-			if (DrainGPEffectHandle.IsValid())
-			{
-				ASC->RemoveActiveGameplayEffect(DrainGPEffectHandle);
-				DrainGPEffectHandle.Invalidate();
-			}
-
-			if (GPDelegateHandle.IsValid())
-			{
-				ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetGPAttribute())
-					.Remove(GPDelegateHandle);
-				GPDelegateHandle.Reset();
-			}
+			StopGroggyDrain(*ASC);
 		}
 	}
 
@@ -151,14 +103,11 @@ void UWxAbility_Groggy::HandleGPChanged(const FOnAttributeChangeData& Data)
 
 void UWxAbility_Groggy::HandleMontagePollTick()
 {
-	if (!CurrentActorInfo)
+	UAbilitySystemComponent* ASC = CurrentActorInfo ? CurrentActorInfo->AbilitySystemComponent.Get() : nullptr;
+	if (!ASC || ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
 	{
-		return;
-	}
-
-	UAbilitySystemComponent* ASC = CurrentActorInfo->AbilitySystemComponent.Get();
-	if (!ASC)
-	{
+		// 사망 어빌리티가 반응형 그로기를 취소하지 않아 여기서 종료하고, ASC가 없을 때도 같은 경로로 정리한다.
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 		return;
 	}
 
@@ -166,6 +115,77 @@ void UWxAbility_Groggy::HandleMontagePollTick()
 	{
 		return;
 	}
-	
+
 	ASC->PlayMontage(this, CurrentActivationInfo, GroggyMontage, 1.f);
+}
+
+void UWxAbility_Groggy::StartMontagePolling()
+{
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().SetTimer(MontagePollingTimerHandle, this, &UWxAbility_Groggy::HandleMontagePollTick, 0.1f, true);
+	}
+}
+
+void UWxAbility_Groggy::StopMontagePolling()
+{
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(MontagePollingTimerHandle);
+	}
+}
+
+void UWxAbility_Groggy::StartGroggyDrain(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+	if (!ASC)
+	{
+		return;
+	}
+
+	GPDelegateHandle = ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetGPAttribute())
+		.AddUObject(this, &UWxAbility_Groggy::HandleGPChanged);
+
+	const float GroggyDuration = GroggyMontage->GetPlayLength();
+	FGameplayEffectSpecHandle DrainSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_DrainGP::StaticClass(), GetAbilityLevel());
+	if (DrainSpecHandle.IsValid())
+	{
+		DrainSpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, GroggyDuration);
+		DrainGPEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, DrainSpecHandle);
+	}
+}
+
+void UWxAbility_Groggy::StopGroggyDrain(UAbilitySystemComponent& ASC)
+{
+	if (DrainGPEffectHandle.IsValid())
+	{
+		ASC.RemoveActiveGameplayEffect(DrainGPEffectHandle);
+		DrainGPEffectHandle.Invalidate();
+	}
+
+	if (GPDelegateHandle.IsValid())
+	{
+		ASC.GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetGPAttribute()).Remove(GPDelegateHandle);
+		GPDelegateHandle.Reset();
+	}
+}
+
+void UWxAbility_Groggy::SetAILogicPaused(const FGameplayAbilityActorInfo* ActorInfo, bool bPaused) const
+{
+	APawn* AvatarPawn = ActorInfo ? Cast<APawn>(ActorInfo->AvatarActor.Get()) : nullptr;
+	AAIController* AIController = AvatarPawn ? Cast<AAIController>(AvatarPawn->GetController()) : nullptr;
+	UBrainComponent* Brain = AIController ? AIController->GetBrainComponent() : nullptr;
+	if (!Brain)
+	{
+		return;
+	}
+
+	if (bPaused)
+	{
+		Brain->PauseLogic(TEXT("Groggy"));
+	}
+	else
+	{
+		Brain->ResumeLogic(TEXT("Groggy"));
+	}
 }
