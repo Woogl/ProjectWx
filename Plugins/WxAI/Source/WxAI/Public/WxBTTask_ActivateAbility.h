@@ -29,6 +29,7 @@ public:
 
 protected:
 	virtual EBTNodeResult::Type AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+	virtual void OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult) override;
 	
 	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (Categories = "Ability"))
 	FGameplayTag AbilityTag;
@@ -50,6 +51,9 @@ private:
 	 * 이 구간의 종료 통지는 FinishLatentTask 대신 ActivationResult 로 받는다.
 	 */
 	bool bIsActivating = false;
+
+	/** CancelAbilityHandle 호출 중 동기 종료 콜백이 일반 완료로 처리되지 않게 보호한다. */
+	bool bIsRequestingAbort = false;
 
 	/**
 	 * 발동 구간에 마지막으로 받은 종료 통지의 결과.

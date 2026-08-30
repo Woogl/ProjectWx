@@ -13,6 +13,8 @@ UWxBTTask_ActivateAbility::UWxBTTask_ActivateAbility()
 
 EBTNodeResult::Type UWxBTTask_ActivateAbility::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
+	bIsRequestingAbort = false;
+
 	AAIController* AIController = OwnerComp.GetAIOwner();
 	if (!AIController)
 	{
@@ -95,18 +97,27 @@ FString UWxBTTask_ActivateAbility::GetStaticDescription() const
 
 EBTNodeResult::Type UWxBTTask_ActivateAbility::AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	// CleanUp 이 ActivatedHandle 을 리셋하므로 취소할 핸들을 먼저 캡처한다.
-	const FGameplayAbilitySpecHandle HandleToCancel = ActivatedHandle;
-
-	// 델리게이트를 먼저 해제하여, CancelAbilityHandle이 트리거하는 OnAbilityEnded 콜백이 FinishLatentTask를 호출하지 않도록 한다.
-	CleanUp();
-
-	if (UAbilitySystemComponent* ASC = CachedASC.Get())
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	if (!ASC || !ActivatedHandle.IsValid())
 	{
-		ASC->CancelAbilityHandle(HandleToCancel);
+		CleanUp();
+		return EBTNodeResult::Aborted;
 	}
 
-	return Super::AbortTask(OwnerComp, NodeMemory);
+	// 취소 요청은 실제 종료를 보장하지 않는다. 종료 통지를 받을 때까지 구독을 유지한다.
+	bIsRequestingAbort = true;
+	ASC->CancelAbilityHandle(ActivatedHandle);
+	bIsRequestingAbort = false;
+
+	const FGameplayAbilitySpec* ActiveSpec = ASC->FindAbilitySpecFromHandle(ActivatedHandle);
+	if (!ActiveSpec || !ActiveSpec->IsActive())
+	{
+		// CancelAbilityHandle이 동기적으로 끝낸 경우에는 AbortTask 안의 콜백을 마감하지 않는다.
+		CleanUp();
+		return EBTNodeResult::Aborted;
+	}
+
+	return EBTNodeResult::InProgress;
 }
 
 void UWxBTTask_ActivateAbility::HandleAbilityEnded(const FAbilityEndedData& AbilityEndedData)
@@ -128,15 +139,34 @@ void UWxBTTask_ActivateAbility::HandleAbilityEnded(const FAbilityEndedData& Abil
 		return;
 	}
 
-	CleanUp();
+	// CancelAbilityHandle은 동기적으로 OnAbilityEnded를 브로드캐스트할 수 있다.
+	// 이때 엔진은 아직 이 태스크를 Aborting으로 기록하지 않았으므로 AbortTask가 직접 Aborted를 반환한다.
+	if (bIsRequestingAbort)
+	{
+		return;
+	}
 
 	UBehaviorTreeComponent* BTComp = CachedOwnerComp.Get();
+	CleanUp();
 	if (!BTComp)
 	{
 		return;
 	}
 
+	if (BTComp->GetTaskStatus(this) == EBTTaskStatus::Aborting)
+	{
+		FinishLatentAbort(*BTComp);
+		return;
+	}
+
 	FinishLatentTask(*BTComp, Result);
+}
+
+void UWxBTTask_ActivateAbility::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult)
+{
+	CleanUp();
+
+	Super::OnTaskFinished(OwnerComp, NodeMemory, TaskResult);
 }
 
 void UWxBTTask_ActivateAbility::CleanUp()
@@ -147,4 +177,5 @@ void UWxBTTask_ActivateAbility::CleanUp()
 	}
 	AbilityEndedDelegateHandle.Reset();
 	ActivatedHandle = FGameplayAbilitySpecHandle();
+	bIsRequestingAbort = false;
 }
