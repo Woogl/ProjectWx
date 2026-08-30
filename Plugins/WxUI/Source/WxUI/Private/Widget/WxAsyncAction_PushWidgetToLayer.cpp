@@ -21,9 +21,18 @@ UWxAsyncAction_PushWidgetToLayer* UWxAsyncAction_PushWidgetToLayer::PushWidgetTo
 
 void UWxAsyncAction_PushWidgetToLayer::Activate()
 {
-	if (!WorldContextObject || WidgetClass.IsNull())
+	if (bFinished || !WorldContextObject || WidgetClass.IsNull())
 	{
-		SetReadyToDestroy();
+		Finish(nullptr);
+		return;
+	}
+
+	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(WorldContextObject);
+	UWxUIManagerSubsystem* UIManager = GameInstance ? GameInstance->GetSubsystem<UWxUIManagerSubsystem>() : nullptr;
+	TargetLayout = UIManager ? UIManager->GetPrimaryGameLayout() : nullptr;
+	if (!TargetLayout.IsValid())
+	{
+		Finish(nullptr);
 		return;
 	}
 
@@ -34,71 +43,118 @@ void UWxAsyncAction_PushWidgetToLayer::Activate()
 	}
 
 	FStreamableManager& StreamableManager = UAssetManager::GetStreamableManager();
-	StreamableHandle = StreamableManager.RequestAsyncLoad(
+	const TSharedPtr<FStreamableHandle> NewHandle = StreamableManager.RequestAsyncLoad(
 		WidgetClass.ToSoftObjectPath(),
 		FStreamableDelegate::CreateUObject(this, &ThisClass::HandleWidgetClassLoaded)
 	);
+	if (bFinished)
+	{
+		return;
+	}
+
+	StreamableHandle = NewHandle;
+	if (!StreamableHandle.IsValid())
+	{
+		Finish(nullptr);
+	}
+}
+
+void UWxAsyncAction_PushWidgetToLayer::SetCompletionCallback(FWxPushWidgetToLayerNativeDelegate InCompletionCallback)
+{
+	CompletionCallback = MoveTemp(InCompletionCallback);
+}
+
+void UWxAsyncAction_PushWidgetToLayer::Cancel()
+{
+	Finish(nullptr, true);
 }
 
 void UWxAsyncAction_PushWidgetToLayer::HandleWidgetClassLoaded()
 {
-	if (!IsValid(WorldContextObject) || !WidgetClass.IsValid())
+	if (bFinished)
 	{
-		SetReadyToDestroy();
-		return;
-	}
-
-	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(WorldContextObject);
-	if (!GameInstance)
-	{
-		SetReadyToDestroy();
-		return;
-	}
-
-	UWxUIManagerSubsystem* UIManager = GameInstance->GetSubsystem<UWxUIManagerSubsystem>();
-	if (!UIManager)
-	{
-		SetReadyToDestroy();
-		return;
-	}
-
-	UWxPrimaryGameLayout* Layout = UIManager->GetPrimaryGameLayout();
-	if (!Layout)
-	{
-		SetReadyToDestroy();
 		return;
 	}
 
 	TSubclassOf<UCommonActivatableWidget> LoadedClass = WidgetClass.Get();
 	if (!LoadedClass)
 	{
-		SetReadyToDestroy();
+		Finish(nullptr);
+		return;
+	}
+
+	UWxPrimaryGameLayout* Layout = TargetLayout.Get();
+	if (!Layout)
+	{
+		Finish(nullptr);
+		return;
+	}
+
+	UGameInstance* GameInstance = IsValid(WorldContextObject) ? UGameplayStatics::GetGameInstance(WorldContextObject) : nullptr;
+	UWxUIManagerSubsystem* UIManager = GameInstance ? GameInstance->GetSubsystem<UWxUIManagerSubsystem>() : nullptr;
+	if (!UIManager || UIManager->GetPrimaryGameLayout() != Layout)
+	{
+		Finish(nullptr);
 		return;
 	}
 
 	APlayerController* OwningPlayer = Layout->GetOwningPlayer();
 	if (!OwningPlayer)
 	{
-		SetReadyToDestroy();
+		Finish(nullptr);
 		return;
 	}
 
 	UCommonActivatableWidget* WidgetInstance = CreateWidget<UCommonActivatableWidget>(OwningPlayer, LoadedClass);
 	if (!WidgetInstance)
 	{
-		SetReadyToDestroy();
+		Finish(nullptr);
 		return;
 	}
 
 	BeforePush.Broadcast(WidgetInstance);
+	if (bFinished)
+	{
+		return;
+	}
 
 	if (!UIManager->PushWidgetInstanceToLayer(LayerTag, WidgetInstance))
 	{
-		SetReadyToDestroy();
+		Finish(nullptr);
+		return;
+	}
+	if (bFinished)
+	{
+		WidgetInstance->DeactivateWidget();
 		return;
 	}
 
 	AfterPush.Broadcast(WidgetInstance);
+	if (bFinished)
+	{
+		WidgetInstance->DeactivateWidget();
+		return;
+	}
+	Finish(WidgetInstance);
+}
 
+void UWxAsyncAction_PushWidgetToLayer::Finish(UCommonActivatableWidget* Widget, bool bCancelLoad)
+{
+	if (bFinished)
+	{
+		return;
+	}
+
+	bFinished = true;
+	if (bCancelLoad && StreamableHandle.IsValid())
+	{
+		StreamableHandle->CancelHandle();
+	}
+	StreamableHandle.Reset();
+
+	CompletionCallback.ExecuteIfBound(Widget);
+	CompletionCallback.Unbind();
+	TargetLayout.Reset();
+	WorldContextObject = nullptr;
 	SetReadyToDestroy();
 }

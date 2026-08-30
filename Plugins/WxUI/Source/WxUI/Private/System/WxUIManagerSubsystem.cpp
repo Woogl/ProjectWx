@@ -8,6 +8,7 @@
 #include "System/WxUIDeveloperSettings.h"
 #include "Widget/WxGamePopup.h"
 #include "Widget/WxActivatableWidget.h"
+#include "Widget/WxAsyncAction_PushWidgetToLayer.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 #include "Kismet/GameplayStatics.h"
 #include "WxGameplayTags.h"
@@ -70,16 +71,6 @@ UCommonActivatableWidget* UWxUIManagerSubsystem::PushContentToLayer(FGameplayTag
 	UCommonActivatableWidget* Widget = PrimaryGameLayout->PushWidgetToLayerStack(LayerTag, WidgetClass);
 	ObserveWidgetForGamePause(Widget);
 	return Widget;
-}
-
-UCommonActivatableWidget* UWxUIManagerSubsystem::PushSoftContentToLayer(FGameplayTag LayerTag, const TSoftClassPtr<UCommonActivatableWidget>& WidgetClass)
-{
-	if (WidgetClass.IsNull())
-	{
-		return nullptr;
-	}
-
-	return PushContentToLayer(LayerTag, WidgetClass.LoadSynchronous());
 }
 
 UCommonActivatableWidget* UWxUIManagerSubsystem::PushWidgetInstanceToLayer(FGameplayTag LayerTag, UCommonActivatableWidget* WidgetInstance)
@@ -275,7 +266,9 @@ void UWxUIManagerSubsystem::HandleDeathTagChanged(const FGameplayTag CallbackTag
 	}
 
 	// 사망 화면은 걷어내지 않는다. 부활은 월드 리로드(TravelFromSaveFile)이고, 그때 layout 이 통째로 재생성된다.
-	PushSoftContentToLayer(WxGameplayTags::UI_Layer_Menu, GetDefault<UWxUIDeveloperSettings>()->DeathScreenClass);
+	UWxAsyncAction_PushWidgetToLayer* PushAction = UWxAsyncAction_PushWidgetToLayer::PushWidgetToLayer(
+		this, WxGameplayTags::UI_Layer_Menu, GetDefault<UWxUIDeveloperSettings>()->DeathScreenClass);
+	PushAction->Activate();
 }
 
 void UWxUIManagerSubsystem::HandleDialogueTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
@@ -288,11 +281,39 @@ void UWxUIManagerSubsystem::HandleDialogueTagChanged(const FGameplayTag Callback
 
 	// 대화 위젯은 Game 레이어 스택 top 에 얹혀 HUD 를 잠시 가리고, 닫히면 HUD 가 복귀한다.
 	// 위젯의 뷰모델이 생성 시점에 세션의 현재 대사를 pull 하므로, 세션이 다 채워진 뒤에 오는 이 신호로 띄운다.
-	DialogueScreen = PushSoftContentToLayer(WxGameplayTags::UI_Layer_Game, GetDefault<UWxUIDeveloperSettings>()->DialogueScreenClass);
+	PendingDialogueScreenPush = UWxAsyncAction_PushWidgetToLayer::PushWidgetToLayer(
+		this, WxGameplayTags::UI_Layer_Game, GetDefault<UWxUIDeveloperSettings>()->DialogueScreenClass);
+	PendingDialogueScreenPush->SetCompletionCallback(
+		FWxPushWidgetToLayerNativeDelegate::CreateUObject(this, &ThisClass::HandleDialogueScreenPushCompleted));
+	PendingDialogueScreenPush->Activate();
+}
+
+void UWxUIManagerSubsystem::HandleDialogueScreenPushCompleted(UCommonActivatableWidget* Widget)
+{
+	PendingDialogueScreenPush = nullptr;
+	if (!Widget)
+	{
+		return;
+	}
+
+	UAbilitySystemComponent* AbilitySystem = WatchedAbilitySystem.Get();
+	if (!AbilitySystem || !AbilitySystem->HasMatchingGameplayTag(WxGameplayTags::State_Dialogue))
+	{
+		Widget->DeactivateWidget();
+		return;
+	}
+
+	DialogueScreen = Widget;
 }
 
 void UWxUIManagerSubsystem::CloseDialogueScreen()
 {
+	if (PendingDialogueScreenPush)
+	{
+		PendingDialogueScreenPush->Cancel();
+		PendingDialogueScreenPush = nullptr;
+	}
+
 	// 띄운 쪽에서 닫는다. 태그가 걷히는 어느 경로로 끝나든 창이 남지 않는다.
 	if (UCommonActivatableWidget* Screen = DialogueScreen.Get())
 	{

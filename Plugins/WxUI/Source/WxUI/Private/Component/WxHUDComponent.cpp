@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "System/WxPrimaryGameLayout.h"
 #include "System/WxUIManagerSubsystem.h"
+#include "Widget/WxAsyncAction_PushWidgetToLayer.h"
 #include "Widget/WxHUDLayout.h"
 #include "WxGameplayTags.h"
 #include "WxUILibrary.h"
@@ -32,6 +33,12 @@ void UWxHUDComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (APlayerController* OwningController = GetController<APlayerController>())
 	{
 		OwningController->OnPossessedPawnChanged.RemoveDynamic(this, &ThisClass::HandlePossessedPawnChanged);
+	}
+
+	if (PendingHUDPush)
+	{
+		PendingHUDPush->Cancel();
+		PendingHUDPush = nullptr;
 	}
 
 	if (UCommonActivatableWidget* Widget = HUDWidget.Get())
@@ -64,7 +71,21 @@ void UWxHUDComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 	{
 		return;
 	}
+	if (PendingHUDPush)
+	{
+		return;
+	}
 
 	// 빙의는 Experience 로드 완료 뒤라, 이 시점엔 발행된 지정을 읽을 수 있다.
-	HUDWidget = UIManager->PushSoftContentToLayer(WxGameplayTags::UI_Layer_Game, UIManager->GetGameHUDClass());
+	PendingHUDPush = UWxAsyncAction_PushWidgetToLayer::PushWidgetToLayer(
+		this, WxGameplayTags::UI_Layer_Game, UIManager->GetGameHUDClass());
+	PendingHUDPush->SetCompletionCallback(
+		FWxPushWidgetToLayerNativeDelegate::CreateUObject(this, &ThisClass::HandleHUDPushCompleted));
+	PendingHUDPush->Activate();
+}
+
+void UWxHUDComponent::HandleHUDPushCompleted(UCommonActivatableWidget* Widget)
+{
+	PendingHUDPush = nullptr;
+	HUDWidget = Widget;
 }

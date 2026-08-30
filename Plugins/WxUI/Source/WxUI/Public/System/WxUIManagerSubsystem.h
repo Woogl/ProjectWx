@@ -14,6 +14,7 @@ class UWxPrimaryGameLayout;
 class UCommonActivatableWidget;
 class UWxGamePopupDescriptor;
 class UWxHUDLayout;
+class UWxAsyncAction_PushWidgetToLayer;
 
 UCLASS()
 class WXUI_API UWxUIManagerSubsystem : public UGameInstanceSubsystem
@@ -26,9 +27,6 @@ public:
 	virtual void Deinitialize() override;
 
 	UCommonActivatableWidget* PushContentToLayer(FGameplayTag LayerTag, TSubclassOf<UCommonActivatableWidget> WidgetClass);
-
-	/** 소프트 클래스를 동기 로드해 레이어에 push 한다. */
-	UCommonActivatableWidget* PushSoftContentToLayer(FGameplayTag LayerTag, const TSoftClassPtr<UCommonActivatableWidget>& WidgetClass);
 
 	UCommonActivatableWidget* PushWidgetInstanceToLayer(FGameplayTag LayerTag, UCommonActivatableWidget* WidgetInstance);
 
@@ -61,6 +59,8 @@ private:
 	/** 대화 세션이 열리면 대화 창을 띄우고, 닫히면 걷는다. */
 	void HandleDialogueTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
+	void HandleDialogueScreenPushCompleted(UCommonActivatableWidget* Widget);
+
 	void CloseDialogueScreen();
 
 	/** 위젯은 서브시스템을 알지 못하므로, 활성/비활성 델리게이트를 이쪽에서 구독한다. */
@@ -89,4 +89,8 @@ private:
 
 	/** 대화 중 띄워 둔 대화 창. 세션이 끝날 때 이 창을 닫기 위해 기억한다. */
 	TWeakObjectPtr<UCommonActivatableWidget> DialogueScreen;
+
+	/** 대화 태그가 먼저 걷히면 화면이 뒤늦게 나타나지 않도록 취소할 진행 중인 요청. */
+	UPROPERTY()
+	TObjectPtr<UWxAsyncAction_PushWidgetToLayer> PendingDialogueScreenPush;
 };

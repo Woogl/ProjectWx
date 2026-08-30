@@ -29,7 +29,7 @@
 | `UWxUIDeveloperSettings` | 레이아웃·팝업·사망/대화 화면 소프트 클래스 설정 | `Plugins/WxUI/Source/WxUI/Public/System/WxUIDeveloperSettings.h` |
 
 ## 확장 포인트 / 규약
-- 새 화면 위젯: `UWxActivatableWidget`(또는 `UWxGamePopup`) 파생 WBP → `UWxUIManagerSubsystem::PushContentToLayer`/`UWxUILibrary::PushSoftContentToLayer`로 레이어 태그(`UI.Layer.*`) 지정해 push. 정지·입력 모드는 위젯의 `bPauseGame`/`InputMode`가 선언하고 매니저가 전 레이어를 재평가해 실제 적용.
+- 새 화면 위젯: `UWxActivatableWidget`(또는 `UWxGamePopup`) 파생 WBP → 로드된 클래스는 `UWxUIManagerSubsystem::PushContentToLayer`, 소프트 클래스는 `UWxAsyncAction_PushWidgetToLayer`로 레이어 태그(`UI.Layer.*`)를 지정해 push. 정지·입력 모드는 위젯의 `bPauseGame`/`InputMode`가 선언하고 매니저가 전 레이어를 재평가해 실제 적용.
 - 새 표시 데이터: `UWxViewModel` 파생 VM 추가 → 소스를 Outer로 `FindSharedViewModel`로 공유. 위젯은 VM 존재를 알 뿐 소스 컴포넌트를 직접 참조하지 않음(예: 인디케이터/캐릭터 VM은 컴포넌트 델리게이트를 구독).
 - 컴포넌트 주입은 코드가 아니라 Experience 에셋의 주입 목록으로 함(`UWxHUDComponent`/`UWxIndicatorManagerComponent`/`UWxNameplateComponent`는 부착 주체를 모름). 원격 사본 거부는 각 컴포넌트 책임.
 - 소비 도메인용 StateTree 노드: `FWxStateTreeTask_PrintSubtitle`(자막), `FWxStateTreeTask_MarkIndicator`(인디케이터) — 도메인이 WxUI를 코드 참조하지 않고 에셋에서 선택.

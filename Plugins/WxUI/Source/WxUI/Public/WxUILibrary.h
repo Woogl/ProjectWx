@@ -8,7 +8,6 @@
 #include "Widget/WxGamePopup.h"
 #include "WxUILibrary.generated.h"
 
-class UCommonActivatableWidget;
 class UWidget;
 class UWxUIManagerSubsystem;
 class UWxPrimaryGameLayout;
@@ -35,10 +34,6 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Wx|UI", meta = (WorldContext = "WorldContextObject"))
 	static UWxPrimaryGameLayout* GetPrimaryGameLayout(const UObject* WorldContextObject);
-
-	/** 소프트 위젯 클래스를 동기 로드해 push 한다. 클래스 미지정·로드 실패면 아무 것도 하지 않는다. */
-	UFUNCTION(BlueprintCallable, Category = "Wx|UI", meta = (WorldContext = "WorldContextObject"))
-	static UCommonActivatableWidget* PushSoftContentToLayer(const UObject* WorldContextObject, UPARAM(meta = (Categories = "UI.Layer"))FGameplayTag LayerTag, TSoftClassPtr<UCommonActivatableWidget> WidgetClass);
 
 	UFUNCTION(BlueprintCallable, Category = "Wx|UI")
 	static void DeactivateOwningActivatable(UWidget* StartingWidget);

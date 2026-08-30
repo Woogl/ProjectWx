@@ -8,6 +8,7 @@
 
 class APawn;
 class UCommonActivatableWidget;
+class UWxAsyncAction_PushWidgetToLayer;
 
 /**
  * 로컬 플레이어의 HUD 를 Game 레이어에 띄우고, 컴포넌트가 걷힐 때 함께 걷는 컨트롤러 컴포넌트.
@@ -27,6 +28,12 @@ private:
 	UFUNCTION()
 	void HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn);
 
+	void HandleHUDPushCompleted(UCommonActivatableWidget* Widget);
+
 	/** 폰이 갈아탈 때마다 다시 push 하지 않고 이 인스턴스를 그대로 쓴다. */
 	TWeakObjectPtr<UCommonActivatableWidget> HUDWidget;
+
+	/** 컴포넌트가 먼저 걷히면 HUD 가 뒤늦게 나타나지 않도록 취소할 진행 중인 요청. */
+	UPROPERTY()
+	TObjectPtr<UWxAsyncAction_PushWidgetToLayer> PendingHUDPush;
 };
