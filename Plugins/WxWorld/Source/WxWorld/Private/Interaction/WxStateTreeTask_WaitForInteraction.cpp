@@ -22,17 +22,19 @@ FWxStateTreeTask_WaitForInteraction::FWxStateTreeTask_WaitForInteraction()
 	bShouldStateChangeOnReselect = false;
 }
 
-void FWxStateTreeTask_WaitForInteraction::NotifyInteracted(AActor* Target)
+void FWxStateTreeTask_WaitForInteraction::NotifyInteracted(const AActor* Target)
 {
 	if (!Target)
 	{
 		return;
 	}
 
-	// 대상 해석을 지금 한다 — 기다리는 동안 스트리밍으로 액터가 새로 만들어졌어도 이 순간의 것과 맞춰 본다.
-	// 해석 컨텍스트는 대기 노드의 오너가 아니라 통보 액터다 — 오너인 GameState 는 PersistentLevel 이라 WP 런타임 셀 안의 대상을 해석하지 못한다.
-	InteractionWaits.FinishMatching(Target->GetWorld(),
-		[Target](const FUniversalObjectLocator& Wanted, UObject* Owner) { return Wanted.SyncFind(Target) == Target; });
+	InteractionWaits.FinishMatching(Target->GetWorld(), Target, &IsWaitingFor);
+}
+
+bool FWxStateTreeTask_WaitForInteraction::IsAwaited(const AActor* Target)
+{
+	return InteractionWaits.AnyMatching(Target->GetWorld(), Target, &IsWaitingFor);
 }
 
 EStateTreeRunStatus FWxStateTreeTask_WaitForInteraction::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
@@ -66,3 +68,10 @@ FText FWxStateTreeTask_WaitForInteraction::GetDescription(const FGuid& ID, FStat
 	return FText::Format(INVTEXT("상호작용 대기 ({0})"), FText::FromString(FWxLocatorUtils::GetDisplayName(InstanceData->Target)));
 }
 #endif
+
+bool FWxStateTreeTask_WaitForInteraction::IsWaitingFor(const FUniversalObjectLocator& Wanted, const AActor* Target)
+{
+	// 대상 해석을 지금 한다 — 기다리는 동안 스트리밍으로 액터가 새로 만들어졌어도 이 순간의 것과 맞춰 본다.
+	// 해석 컨텍스트는 대기 노드의 오너가 아니라 대상이 놓인 레벨이다 — 오너인 GameState 는 PersistentLevel 이라 WP 런타임 셀 안의 대상을 해석하지 못한다.
+	return Wanted.SyncFind(Target->GetLevel()) == Target;
+}

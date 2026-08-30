@@ -50,10 +50,10 @@ struct TWxStateTreeWaitRegistry
 
 	/**
 	 * NotifyWorld 의 살아 있는 등록만 술어에 넘기고, true 를 답한 노드를 Succeeded 로 완료시킨다.
-	 * 술어는 bool(const PayloadType&, UObject* Owner) 이며, 로케이터 해석 등 오너가 필요한 판정에 그 오너를 쓴다.
+	 * 술어는 bool(const PayloadType&, SubjectType) 이며, Subject 는 통보의 주인공(상호작용된 액터 등)이다.
 	 */
-	template<typename PredicateType>
-	void FinishMatching(const UWorld* NotifyWorld, PredicateType&& Predicate)
+	template<typename SubjectType, typename PredicateType>
+	void FinishMatching(const UWorld* NotifyWorld, SubjectType Subject, PredicateType&& Predicate)
 	{
 		// 오너가 사라진 등록을 이 자리에서 걷어내므로 역순으로 돈다 — 아직 보지 않은 낮은 인덱스는 밀리지 않는다.
 		// FinishTask 는 완료 상태만 세우므로 완료가 스윕 도중 등록을 걷어가지는 않는다.
@@ -76,11 +76,35 @@ struct TWxStateTreeWaitRegistry
 				continue;
 			}
 
-			if (Predicate(Wait.Payload, Owner.Get()))
+			if (Predicate(Wait.Payload, Subject))
 			{
 				Wait.Context.FinishTask(EStateTreeFinishTaskType::Succeeded);
 			}
 		}
+	}
+
+	/**
+	 * NotifyWorld 의 살아 있는 등록 중 술어가 true 를 답하는 것이 있는가. 술어는 FinishMatching 과 같은 꼴이다.
+	 * 조회라 오너가 사라진 등록을 걷어내지는 않는다 — 다음 통보가 치운다.
+	 */
+	template<typename SubjectType, typename PredicateType>
+	bool AnyMatching(const UWorld* NotifyWorld, SubjectType Subject, PredicateType&& Predicate) const
+	{
+		for (const FWait& Wait : Waits)
+		{
+			TStrongObjectPtr<UObject> Owner = Wait.Context.GetOwner();
+			if (!Owner || Owner->GetWorld() != NotifyWorld)
+			{
+				continue;
+			}
+
+			if (Predicate(Wait.Payload, Subject))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 private:

@@ -26,13 +26,6 @@ public:
 	AWxDialogueActor();
 
 	//~ Begin IWxInteractable
-	virtual bool CanInteract(const AActor* Interactor) const override;
-
-	/**
-	 * 복제하지 않는다 — 권위 측 퀘스트 러너만 이 값을 정하므로, 서버가 곧 클라인 싱글/리슨 호스트가 전제다(다른 퀘스트·대화 노드와 같은 전제).
-	 */
-	virtual void SetInteractionEnabled(bool bEnabled) override;
-
 	virtual void OnInteracted(AActor* Interactor) override;
 	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
@@ -43,11 +36,4 @@ public:
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Dialogue")
 	TObjectPtr<UWxDialogueComponent> DialogueComponent;
-
-	/**
-	 * 잠긴 채로 시작해야 하는 대상(퀘스트가 탑재되기 전까지 말을 걸 수 없는 NPC)은 BP·배치 인스턴스에서 미리 끈다.
-	 * 감지·사거리는 몸통 형상이 재므로 이 값과 무관하다 — 꺼도 스캔에는 걸리고 활성 판정에서 탈락한다.
-	 */
-	UPROPERTY(EditAnywhere, Category = "Wx|Dialogue")
-	bool bInteractionEnabled = true;
 };

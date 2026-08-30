@@ -5,6 +5,7 @@
 #include "Character/WxMetaHumanComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Interaction/WxStateTreeTask_WaitForInteraction.h"
 
 AWxNpc::AWxNpc()
 {
@@ -34,6 +35,12 @@ AWxNpc::AWxNpc()
 
 	MetaHumanComponent = CreateDefaultSubobject<UWxMetaHumanComponent>(TEXT("MetaHumanComponent"));
 	MetaHumanComponent->SetLeaderMesh(MeshComponent);
+}
+
+bool AWxNpc::CanInteract(const AActor* Interactor) const
+{
+	// 등록부는 권위 측에만 있다 — 서버가 곧 클라인 전제(다른 퀘스트·대화 노드와 동일).
+	return FWxStateTreeTask_WaitForInteraction::IsAwaited(this);
 }
 
 USkeletalMeshComponent* AWxNpc::GetPoseMesh() const

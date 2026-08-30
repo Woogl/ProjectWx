@@ -32,6 +32,7 @@ struct FWxStateTreeTask_WaitForInteractionInstanceData
  * 한 액터에 상호작용 영역이 여럿이면(예: 엘리베이터) 어느 영역이든 성립으로 본다. 주체도 가리지 않는다(상호작용 어빌리티를 가진 것은 플레이어뿐).
  * 진입 이전의 상호작용은 세지 않는다 — 앞 상태를 끝낸 그 상호작용이 다음 상태까지 관통하지 못한다.
  * 통보가 서버 권위 경로(상호작용 어빌리티)에서만 오므로 권위에서 구동되는 ST 전용이다.
+ * NPC 에겐 이 대기가 곧 열기다 — 기다리는 동안만 대상 자격(CanInteract)이 참이 된다(IsAwaited).
  *
  * 폴링하지 않는다 — 진입할 때 자신을 대기 목록에 올려 두고, 상호작용이 성립하는 순간 엔진의 약한 실행 컨텍스트로 완료를 통보받는다(틱 없음).
  * 대상 해석도 그 순간에 한 번만 하므로 진입 시점에 대상이 스트리밍 아웃이어도 상관없다.
@@ -51,7 +52,10 @@ struct FWxStateTreeTask_WaitForInteraction : public FStateTreeTaskCommonBase
 	 * 상호작용이 성립한 순간 서버 권위 경로(상호작용 어빌리티)가 부른다.
 	 * 그 대상을 기다리던 노드가 있으면 완료시키고, 없으면 아무 일도 하지 않는다 — 남는 기록이 없다.
 	 */
-	static WXWORLD_API void NotifyInteracted(AActor* Target);
+	static WXWORLD_API void NotifyInteracted(const AActor* Target);
+
+	/** 이 대상의 상호작용을 기다리는 노드가 있는가. 대상 자격을 대기 여부에서 파생하는 쪽이 스캔마다 묻는다. */
+	static WXWORLD_API bool IsAwaited(const AActor* Target);
 
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
@@ -60,4 +64,8 @@ struct FWxStateTreeTask_WaitForInteraction : public FStateTreeTaskCommonBase
 #if WITH_EDITOR
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
 #endif
+
+private:
+	/** 등록 하나가 이 대상을 지목하는가. 통보와 조회가 같은 술어를 쓴다. */
+	static bool IsWaitingFor(const FUniversalObjectLocator& Wanted, const AActor* Target);
 };

@@ -25,7 +25,7 @@
 | `AWxSpawner` | 스폰 대상 배치·처치·리스폰 및 처치 상태 보존 | `Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawner.h` |
 | `IWxSpawnable` | 스폰 직후(FinishSpawning 전) 초기화 훅 | `Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawnable.h` |
 | `FWxStateTreeTask_SendEvent` | 라이브 전이 시 다른 장치 트리로 이벤트 전달 | `Plugins/WxWorld/Source/WxWorld/Public/Device/WxStateTreeTask_SendEvent.h` |
-| `FWxStateTreeTask_EnableInteraction` | 상호작용 활성 토글 + 프롬프트·발행 자리 등록 | `Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxStateTreeTask_EnableInteraction.h` |
+| `FWxStateTreeTask_EnableInteraction` | 오너 장치 자신의 상호작용 토글 + 프롬프트·발행 자리 등록 | `Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxStateTreeTask_EnableInteraction.h` |
 | `FWxStateTreeComponentName` | ST 에셋이 장치 컴포넌트를 이름으로 지목하는 구조체 | `Plugins/WxWorld/Source/WxWorld/Public/Device/WxStateTreeComponentName.h` |
 
 ## 확장 포인트 / 규약

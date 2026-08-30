@@ -27,15 +27,10 @@ class WXCORE_API IWxInteractable
 	GENERATED_BODY()
 
 public:
+	/** 켜짐은 구현체가 자기 상태에서 파생한다 — 밖에서 켜고 끄는 진입점은 두지 않는다. 클라 표시 게이트와 서버 발동 검증이 같은 답을 받는다. */
 	virtual bool CanInteract(const AActor* Interactor) const;
 
 	virtual void OnInteracted(AActor* Interactor) = 0;
-	
+
 	virtual FText GetInteractionPrompt() const = 0;
-	
-	/**
-	 * '상호작용 켜기' 태스크가 액터를 지목했을 때 부른다.
-	 * // TODO: 제거하고 CanInteract로 쉽게 처리하길 희망함.
-	 */
-	virtual void SetInteractionEnabled(bool bEnabled);
 };
