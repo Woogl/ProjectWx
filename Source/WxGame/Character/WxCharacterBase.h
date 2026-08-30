@@ -38,6 +38,7 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void PossessedBy(AController* NewController) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool CanJumpInternal_Implementation() const override;
 	virtual void OnJumped_Implementation() override;
 
@@ -109,6 +110,9 @@ protected:
 	void HandleEquipVisualChanged(USkeletalMesh* MeshAsset, FName Socket);
 
 	virtual void HandleDeath();
+
+	UFUNCTION()
+	void OnRep_Team(EWxTeam PreviousTeam);
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|UI")
 	FText CharacterName;
@@ -117,7 +121,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|UI", meta = (AllowedClasses = "/Script/Engine.Texture2D,/Script/Engine.MaterialInterface"))
 	TSoftObjectPtr<UObject> Portrait;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Team")
+	UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_Team, Category = "Wx|Team")
 	EWxTeam Team = EWxTeam::Player;
 
 	/** 기본 이동 속도 (cm/s). SPD Multiplier의 기준값 */
