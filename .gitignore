@@ -75,8 +75,9 @@ Plugins/**/Intermediate/*
 # Cache files for the editor to use
 DerivedDataCache/*
 
-# Claude
+# Agemts
 .claude/**/*.local.json
+.codex/skills/build-doctor/logs/
 
 # Python
 __pycache__/
