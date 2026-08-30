@@ -32,10 +32,7 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	/**
-	 * 권위가 정한 상태의 Tag.
-	 * 트리를 훑는 것이 아니라 복제된 필드를 그대로 답하므로 매 틱 게이트로 써도 되고, 모든 피어가 같은 권위 값을 본다.
-	 */
+	/** 권위가 정한 상태의 Tag. 트리를 훑는 것이 아니라 복제된 필드를 그대로 답하므로 모든 피어가 같은 값을 본다. */
 	FGameplayTag GetStateTag() const;
 
 	/**
@@ -68,10 +65,7 @@ protected:
 	UFUNCTION()
 	void OnRep_StateTag();
 
-	/**
-	 * 지금 활성인 상태의 Tag. 권위 측이 트리 틱마다 갱신하며, 이 값이 곧 세이브 슬롯에 담기는 장치의 상태다.
-	 * 상태에 Tag 를 달지 않으면 저장되지 않으므로, 영속이 필요한 상태에는 반드시 Tag 를 지정한다.
-	 */
+	/** 지금 활성인 상태의 Tag. 권위 측이 트리 틱마다 갱신하며, 이 값이 곧 세이브 슬롯에 담기는 장치의 상태다. */
 	UPROPERTY(ReplicatedUsing = OnRep_StateTag, SaveGame)
 	FGameplayTag StateTag;
 
@@ -127,9 +121,6 @@ private:
 	 */
 	bool bFollowRestoredState = false;
 
-	/**
-	 * 권위 전용. 상호작용 발행이 트리에 닿았지만 트리가 아직 그것을 소화하지 않은 구간.
-	 * PublishAuthorityState 가 소비해 「상태가 안 바뀐 재진입」을 가려낸다.
-	 */
+	/** 권위 전용. 상호작용 발행이 트리에 닿았지만 트리가 아직 그것을 소화하지 않은 구간. */
 	bool bPendingInteractResolve = false;
 };

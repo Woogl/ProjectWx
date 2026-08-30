@@ -19,8 +19,7 @@ AWxNpc::AWxNpc()
 	CapsuleComponent->bDynamicObstacle = true;
 	CapsuleComponent->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
-	// 레벨에 끌어다 놓을 때 캡슐 바닥이 지면에 맞도록.
-	// 폰(APawn)이 켜는 플래그이며, 이게 꺼져 있으면 배치 범위가 0 이라 원점이 지면에 붙어 발이 묻힌다.
+	// 폰(APawn)이 켜는 플래그다 — 꺼져 있으면 배치 범위가 0 이라 원점이 지면에 붙어 발이 묻힌다.
 	bCollideWhenPlacing = true;
 
 	MeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MeshComponent"));

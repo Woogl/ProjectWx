@@ -40,7 +40,6 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	// 이동 방향 회전을 끄고 타겟 방향 회전은 태스크의 보간에 맡긴다(EndAbility에서 복구).
 	// autonomous proxy의 회전 정합을 위해 서버에서도 꺼야 하므로 IsLocallyControlled 게이트 앞에서 처리한다.
 	const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
 	if (UCharacterMovementComponent* Movement = Character ? Character->GetCharacterMovement() : nullptr)
@@ -175,7 +174,7 @@ void UWxAbility_LockOn::HandleRetargetRequested(FVector2D ScreenDirection)
 	UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(Avatar);
 	const USceneComponent* CurrentComponent = LockOnComp ? LockOnComp->GetLockOnTarget() : nullptr;
 
-	// 비교 원점은 현재 락온 지점의 화면 좌표(유저가 보고 있는 레티클 위치). 투영 실패 시 화면 중앙으로 대체한다.
+	// 비교 원점은 현재 락온 지점의 화면 좌표(유저가 보고 있는 레티클 위치).
 	int32 ViewportX = 0;
 	int32 ViewportY = 0;
 	PC->GetViewportSize(ViewportX, ViewportY);

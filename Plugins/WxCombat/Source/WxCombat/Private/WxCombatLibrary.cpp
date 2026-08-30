@@ -41,7 +41,6 @@ EWxDamageCheck UWxCombatLibrary::CheckDamage(const UAbilitySystemComponent* Sour
 		return EWxDamageCheck::None;
 	}
 
-	// 팀킬 방지
 	const AActor* SourceAvatar = Source ? Source->GetAvatarActor() : nullptr;
 	const AActor* TargetAvatar = Target->GetAvatarActor();
 	if (!IsHostile(SourceAvatar, TargetAvatar))
@@ -133,7 +132,6 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 		break;
 	}
 
-	// Damage GE가 거부되거나 퍼펙트 가드가 성립하면 부가 효과를 적용하지 않는다.
 	if (bDamageApplied && !bPerfectGuardApplied)
 	{
 		for (const FGameplayEffectSpecHandle& Spec : Specs)
@@ -180,6 +178,11 @@ void UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclass
 
 void UWxCombatLibrary::ApplyAttributeChange(UAbilitySystemComponent* TargetASC, const FGameplayAttribute& Attribute, float Delta)
 {
+	if (!TargetASC)
+	{
+		return;
+	}
+
 	UGameplayEffect* DynamicGE = NewObject<UGameplayEffect>(GetTransientPackage(), FName(TEXT("ApplyAttributeChange")));
 	DynamicGE->DurationPolicy = EGameplayEffectDurationType::Instant;
 

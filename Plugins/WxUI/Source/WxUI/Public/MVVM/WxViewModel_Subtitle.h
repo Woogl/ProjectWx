@@ -42,7 +42,6 @@ public:
 	FText SubtitleText;
 
 private:
-	/** 자막이 없으면 INDEX_NONE. */
 	int32 CurrentHandle = INDEX_NONE;
 
 	/** 재사용하지 않으므로 뒤늦은 회수 요청이 엉뚱한 자막을 걷어가지 않는다. */

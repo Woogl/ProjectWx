@@ -17,7 +17,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	float CoeffATK = 1.f;
 
-	/** 공격이 요청하는 피격 반응. 패리·가드 브레이크는 전투 시스템이 별도 이벤트로 생성하므로 저작하지 않는다. */
+	/** 패리·가드 브레이크는 전투 시스템이 별도 이벤트로 생성하므로 저작하지 않는다. */
 	UPROPERTY(EditAnywhere, meta = (Categories = "HitReact"))
 	FGameplayTag HitReactTag;
 

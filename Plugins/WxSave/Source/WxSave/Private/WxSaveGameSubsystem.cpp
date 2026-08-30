@@ -137,7 +137,6 @@ bool UWxSaveGameSubsystem::SaveToFile(const FString& SlotName, int32 UserIndex, 
 		return false;
 	}
 
-	// 엔진의 세이브 파이프는 병렬 실행만 막고 순서는 보장하지 않아, 겹치면 먼저 뜬 스냅샷이 나중에 디스크에 닿을 수 있다.
 	if (bSaveInProgress)
 	{
 		UE_LOG(LogWxSave, Warning, TEXT("SaveToFile: 앞선 기록이 아직 끝나지 않음 — 이번 요청 무시"));

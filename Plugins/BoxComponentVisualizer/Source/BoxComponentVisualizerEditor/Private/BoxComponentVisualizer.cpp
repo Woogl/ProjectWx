@@ -133,7 +133,7 @@ bool FBoxComponentVisualizer::HandleInputDelta(FEditorViewportClient* ViewportCl
 		{
 			NewExtent[Axis] = FMath::Max(OldExtent[Axis] + LocalDelta[Axis] * SelectedCornerSign[Axis] * 0.5, 0.0);
 
-			// 이동량은 델타가 아니라 익스텐트 변화에서 되뽑는다. 0 에서 잘린 뒤로도 고정된 면이 끌려가지 않는다.
+			// 이동량을 익스텐트 변화에서 되뽑아야 0 에서 잘린 뒤로도 고정된 면이 끌려가지 않는다.
 			LocalShift[Axis] = SelectedCornerSign[Axis] * (NewExtent[Axis] - OldExtent[Axis]);
 		}
 

@@ -18,7 +18,7 @@ class UWxBlueprintToolset : public UToolsetDefinition
 
 public:
 	/**
-	 * 블루프린트 변수에 메타를 기입한다. 넘긴 키만 덮어쓰므로 카테고리·툴팁 같은 기존 메타는 남는다.
+	 * 넘긴 키만 덮어쓰므로 카테고리·툴팁 같은 기존 메타는 남는다.
 	 * 변수 서술자에 저장되며 컴파일 때 프로퍼티로 전달된다 — 생성자에서 프로퍼티에 직접 넣는 방식은 컴파일마다 지워지므로 쓸 수 없다.
 	 * @param MetaJson 기입할 메타 {"키":"값", ...}.
 	 *   예: {"RowType":"/Script/WxInventory.WxRewardTableRow"} 는 DataTableRowHandle 변수의 테이블 픽커를 그 행 구조체를 쓰는 테이블로 제한한다.

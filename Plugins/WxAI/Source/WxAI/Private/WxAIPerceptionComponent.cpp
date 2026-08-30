@@ -94,13 +94,9 @@ void UWxAIPerceptionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UWxAIPerceptionComponent::HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-	if (bTargetingSuppressed)
-	{
-		return;
-	}
-
 	// 죽은 액터는 잡지 않는다 — 시체는 파괴되지 않고 남아 시야에 다시 들어오면 성공 자극을 또 만들므로, 이 가드가 없으면 사망 정리가 다음 자극에 되돌려진다.
-	if (Stimulus.WasSuccessfullySensed() && !IsActorDead(Actor))
+	// 자극은 빈 슬롯만 채운다.
+	if (Stimulus.WasSuccessfullySensed() && !IsActorDead(Actor) && !AppliedTarget.ResolveObjectPtr())
 	{
 		SetTargetActor(Actor);
 	}
@@ -254,12 +250,16 @@ void UWxAIPerceptionComponent::UnbindTargetLoss()
 
 void UWxAIPerceptionComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 {
+	// 타겟·포커스·소실 구독은 폰이 아니라 컨트롤러에 남는다. 새 폰이 이전 타겟을 물려받지 않도록 먼저 되돌린다.
+	SetTargetActor(nullptr);
+	UpdateRecognition();
+
 	BindPawnHit(NewPawn);
 }
 
 void UWxAIPerceptionComponent::HandlePawnHit(FGameplayTag MatchingTag, const FGameplayEventData* Payload)
 {
-	// 패리 반동·처형 짝 피격은 대미지 없이 같은 이벤트를 쓰므로 자극에서 뺀다.
+	// 패리 반동은 대미지 없이 같은 이벤트를 쓰므로 자극에서 뺀다.
 	if (!Payload || Payload->EventMagnitude <= 0.f)
 	{
 		return;

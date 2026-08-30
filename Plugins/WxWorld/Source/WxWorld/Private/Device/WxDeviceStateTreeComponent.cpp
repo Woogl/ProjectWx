@@ -9,7 +9,7 @@
 
 namespace
 {
-	/** InitialState 의 예약어 — 에셋의 루트 기본 상태에서 시작한다는 뜻. 상태 Tag 는 계층 이름(Device.x.y)이라 이 한 단어와 겹치지 않는다. */
+	/** InitialState 의 예약어. 상태 Tag 는 계층 이름(Device.x.y)이라 이 한 단어와 겹치지 않는다. */
 	const FName RootInitialStateName = TEXT("Root");
 }
 
@@ -101,7 +101,8 @@ void UWxDeviceStateTreeComponent::BeginPlay()
 
 void UWxDeviceStateTreeComponent::OnRep_StateTag()
 {
-	// 권위가 있다고 말하는 상태가 내 에셋에 없다 — 이 장치는 여기서부터 영영 어긋난 채로 남는다. 값이 바뀐 이 한 번에만 알린다(추종은 매 틱이라 거기서 알리면 로그가 잠긴다).
+	// 권위가 있다고 말하는 상태가 내 에셋에 없다 — 이 장치는 여기서부터 영영 어긋난 채로 남는다.
+	// 값이 바뀐 이 한 번에만 알린다(추종은 매 틱이라 거기서 알리면 로그가 잠긴다).
 	if (StateTag.IsValid() && !HasState(StateTag))
 	{
 		UE_LOG(LogWxWorld, Warning, TEXT("Device(%s): 권위 상태 %s 를 로컬 에셋에서 찾지 못했다 — 상태 Tag 가 지워졌거나 서버와 다른 에셋이다."), *GetNameSafe(GetOwner()), *StateTag.ToString());
@@ -196,7 +197,6 @@ void UWxDeviceStateTreeComponent::FollowStateTag()
 		return;
 	}
 
-	// 어긋난 원인(지연·발행 유실·전이 조건 불일치·복원)을 가리지 않고 StateTag 값으로 끌어온다.
 	UE_LOG(LogWxWorld, Verbose, TEXT("Device(%s): 로컬 %s ≠ 목표 %s — 추종 전이 요청"), *GetNameSafe(GetOwner()), *ActiveTag.ToString(), *StateTag.ToString());
 	RequestState(StateTag);
 }

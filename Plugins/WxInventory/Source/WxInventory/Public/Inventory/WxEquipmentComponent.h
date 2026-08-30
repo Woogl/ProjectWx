@@ -15,7 +15,6 @@ class UWxItemDefinition;
 
 /**
  * 메시가 nullptr 이면 외형 유지(베이스), 소켓이 NAME_None 이면 재부착을 생략한다.
- * 실제 반영 정책은 바인딩한 게임 측이 결정한다.
  */
 DECLARE_MULTICAST_DELEGATE_TwoParams(FWxOnEquipVisualChanged, USkeletalMesh* /*Mesh*/, FName /*Socket*/);
 

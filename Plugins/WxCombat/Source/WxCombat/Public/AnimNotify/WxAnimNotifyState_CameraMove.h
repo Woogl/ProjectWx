@@ -55,7 +55,7 @@ protected:
 	float BlendOutTime = 0.5f;
 
 #if WITH_EDITORONLY_DATA
-	/** 애니메이션 에디터 프리뷰에서 카메라가 놓일 위치·각도를 카메라 모델 메시로 표시한다. 런타임 동작에는 영향 없음. */
+	/** 애니메이션 에디터 프리뷰에서 카메라가 놓일 위치·각도를 카메라 모델 메시로 표시한다. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Camera")
 	bool bDrawEditorPreview = true;
 

@@ -32,7 +32,7 @@ struct FWxFinisherVariant
  * 상호작용(서버 권위)이 보내는 GameplayEvent로 트리거되며, 피해자 위치를 공유 앵커로 모션워핑 정렬한 뒤 양쪽 몽타주를 동시에 시작한다.
  * 피해자 쪽은 UWxAbility_BeingFinished를 일회성으로 부여해 재생시키므로 피해자에게 상시 부여된 수신 어빌리티가 필요 없다.
  *
-	 * 대미지는 변형의 DamageDataRow 계수를 쓰며, 몽타주 노티파이가 실행 타이밍을 정한다.
+ * 대미지는 변형의 DamageDataRow 계수를 쓰며, 몽타주 노티파이가 실행 타이밍을 정한다.
  * GP 초기화는 종료 시 대상에 UWxEffect_ResetGP를 적용해 처리한다 — 앞잡·뒤잡 모두 몽타주가 어떻게 끝나든 한 번 적용된다.
  */
 UCLASS(Abstract)

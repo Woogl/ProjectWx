@@ -10,7 +10,6 @@
 struct FUniversalObjectLocator;
 #endif
 
-/** 스포너를 지목하는 UOL 배열을 다루는 헬퍼. */
 struct FWxSpawnerLocatorUtils
 {
 #if WITH_EDITOR

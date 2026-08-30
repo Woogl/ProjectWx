@@ -98,7 +98,6 @@ protected:
 
 	void ApplyStaticDataFromDef(const UWxItemDefinition* InItemDef);
 
-	/** 추적 인스턴스(슬롯 모드는 바인딩 인스턴스, Def 모드는 첫 인스턴스)의 현재 충전수 기준 표시 아이콘을 요청한다. */
 	void RefreshChargeIcon();
 
 	TWeakObjectPtr<UWxInventoryManagerComponent> CachedInventory;

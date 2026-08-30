@@ -38,7 +38,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Indicator")
 	bool bHasIndicator = false;
 
-	/** 전체화면 캔버스에 정렬 (0.5, 0.5) 로 둔 위젯의 렌더 트랜슬레이션에 바인딩한다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Indicator")
 	FVector2D ScreenPosition = FVector2D::ZeroVector;
 
@@ -78,7 +77,6 @@ class WXUI_API UWxViewModelResolver_Indicator : public UMVVMViewModelContextReso
 public:
 	virtual UObject* CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const override;
 
-	/** 동시 표시는 슬롯 번호가 다른 위젯을 HUD 에 더 배치해 늘린다. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Indicator")
 	int32 SlotIndex = 0;
 };

@@ -21,7 +21,7 @@ public:
 	void OnPlayInEditorBegun();
 #endif
 
-	/** 활성 요청 카운트를 올린다. LoadAndActivate 요청 직전에 호출한다. */
+	/** LoadAndActivate 요청 직전에 호출한다. */
 	static void NotifyOfPluginActivation(const FString& PluginURL);
 
 	/** 카운트를 내리고 마지막 요청이 풀렸으면 true — 그때만 실제 Deactivate 를 호출한다. */

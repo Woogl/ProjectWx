@@ -9,10 +9,7 @@
 
 struct FStreamableHandle;
 
-/**
- * 진행 중인 이미지 스트리밍 1건.
- * Pending 은 완료 콜백이 로드된 오브젝트를 해석하는 데 쓰고, Handle 은 취소용이다.
- */
+/** Pending 은 완료 콜백이 로드된 오브젝트를 해석하는 데 쓰고, Handle 은 취소용이다. */
 struct FWxImageRequest
 {
 	TSoftObjectPtr<UObject> Pending;

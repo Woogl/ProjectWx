@@ -649,7 +649,6 @@ UWxItemInstance* UWxInventoryManagerComponent::FindUsableInstance(const UWxItemD
 
 	const UWxItemFragment_Charges* Charges = ItemDef->FindFragmentByClass<UWxItemFragment_Charges>();
 
-	// 빈 인스턴스가 앞 슬롯에 있어도 뒤의 충전 보유 인스턴스를 사용한다.
 	for (const FWxInventoryEntry& Entry : InventoryList.GetEntries())
 	{
 		UWxItemInstance* SlotInstance = Entry.GetInstance();

@@ -25,7 +25,6 @@
 
 namespace
 {
-	/** 실패 시 스크립트 에러를 올리고 null 을 돌려준다. */
 	UStateTreeEditorData* GetEditorData(UStateTree* StateTree)
 	{
 		if (!StateTree)
@@ -67,7 +66,6 @@ namespace
 	}
 
 	/**
-	 * 실패 시 스크립트 에러 후 null.
 	 * UOL 처럼 ImportTextItem 을 가진 구조체는 JSON 문자열 리터럴로 들어와도 FJsonObjectConverter 가 ImportText 로 처리한다.
 	 */
 	const FPropertyBagPropertyDesc* SetBagValueFromJson(FInstancedPropertyBag& Bag, const FString& Name, const TSharedPtr<FJsonValue>& JsonValue)
@@ -90,7 +88,6 @@ namespace
 		return Desc;
 	}
 
-	/** 빈 문자열은 아무것도 하지 않는다. 실패 시 스크립트 에러 후 false. */
 	bool ApplyMetaJson(FPropertyBagPropertyDesc& Desc, const FString& MetaJson)
 	{
 		if (MetaJson.IsEmpty())
@@ -125,7 +122,6 @@ namespace
 		return Result;
 	}
 
-	/** 실패 시 스크립트 에러를 올리고 null 을 돌려준다. */
 	FStateTreeReference* GetMutableReference(UObject* Object, const FName PropertyName)
 	{
 		if (!Object)
@@ -149,7 +145,6 @@ namespace
 		using FStateTreeCompilerLog::Messages;
 	};
 
-	/** 실패 시 스크립트 에러와 함께 false. */
 	bool MakeBindingPath(const FString& StructId, const FString& Path, FPropertyBindingPath& OutPath)
 	{
 		FGuid Guid;

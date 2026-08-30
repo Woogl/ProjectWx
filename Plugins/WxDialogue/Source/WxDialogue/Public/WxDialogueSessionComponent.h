@@ -18,11 +18,10 @@ struct FWxDialogueTableRow;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWxOnDialogueLineChanged, const FText&, Speaker, const FText&, Line);
 
 /**
- * Experience 주입으로 PlayerController 에 붙는다 — 컨트롤러 컴포넌트라는 사실이 곧 주입 대상 선언이다.
+ * Experience 주입으로 PlayerController 에 붙는다.
  *
- * 서버의 상호작용 응답(대상의 UWxDialogueComponent)이 StartDialogue 로, 퀘스트 ST 처럼 액터가 아닌 쪽은 StartDialogueRow 로 진입하면 소유 클라로 넘겨 세션을 연다.
  * 대화 대상은 비소유 액터라 Client RPC 를 쏠 수 없으므로, 클라 UI 로 가는 전달은 PC 측인 본 컴포넌트가 소유한다.
- * 그 RPC 때문에 복제 컴포넌트여야 한다 — 주입으로 만들어지는 만큼, 클라에 실체가 서 있어야 서버가 쏜 RPC 가 도착할 자리가 생긴다.
+ * 그 RPC 때문에 복제 컴포넌트여야 한다.
  * 세션(현재 노드·라인)은 표시 전용 로컬 상태라 소유 클라가 진행을 소유하며 서버 검증은 없다. 대화가 게임 상태를 바꾸게 되면 그때 서버측으로 옮긴다.
  *
  * 대화는 뜻을 해석하지도 기록을 남기지도 않는다 — 진행 중인 대사의 신원(현재 행)과 대상만 노출하고, 그 의미(퀘스트 수주 등)는 소비자가 관찰로 판정한다.
@@ -63,7 +62,7 @@ public:
 	AActor* GetCurrentDialogueTarget() const;
 
 	/**
-	 * 진행 중인 대사의 행 핸들. 관찰자가 "지금 어느 대사인가"를 가리는 신원이며, 대사를 넘길 때마다 바뀐다.
+	 * 관찰자가 "지금 어느 대사인가"를 가리는 신원이며, 대사를 넘길 때마다 바뀐다.
 	 * 대화 중이 아니면 비어 있다 — 미지정 인자와 같아 보이므로 비교 전에 HasActiveDialogue 로 가린다.
 	 */
 	FDataTableRowHandle GetCurrentRowHandle() const;
@@ -144,7 +143,7 @@ private:
 	/** 스트리밍을 마친 포즈를 요청 당시의 대상에 얹는다. */
 	void PlayPendingPose();
 
-	/** 오너 컨트롤러를 로컬 플레이어 컨트롤러로 얻는다. 카메라는 로컬 어포던스라 그 밖에선 null 을 답해 카메라 경로를 통째로 건너뛴다. */
+	/** 카메라는 로컬 어포던스라 로컬 컨트롤러가 아니면 null 을 답해 카메라 경로를 통째로 건너뛴다. */
 	APlayerController* GetLocalPlayerController() const;
 
 	/** 세션 동안 State.Dialogue 를 발행해 둔 폰 ASC. 종료 시 같은 ASC 에서 되돌리기 위해 기억한다(도중 폰 교체 대비). */

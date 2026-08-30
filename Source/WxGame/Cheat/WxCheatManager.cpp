@@ -33,7 +33,7 @@ void UWxCheatManager::WxKillPlayer()
 
 void UWxCheatManager::WxDamagePlayer(float Amount)
 {
-	// 0 이하는 Raw 대미지 모드 조건을 벗어나 Coeff 없는 ATK·DEF 공식으로 빠지므로 GE 만 헛돈다.
+	// 0 이하는 IncomingDamage 소비 단계의 Damage > 0 조건에 걸려 GE 만 헛돈다.
 	if (Amount <= 0.f)
 	{
 		return;

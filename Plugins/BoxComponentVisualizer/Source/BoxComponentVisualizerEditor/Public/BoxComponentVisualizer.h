@@ -22,8 +22,6 @@ struct HBoxComponentVisProxy : public HComponentVisProxy
  * 잡은 모서리에 맞닿은 면만 따라오고 반대쪽은 고정된다 — 축마다 익스텐트와 위치를 절반씩 움직이면 그 동작이 나온다.
  * 디테일 패널의 익스텐트는 중심에서 각 면까지의 거리라 값 하나를 키우면 양쪽으로 벌어지고, 한쪽 벽에 맞추려면 익스텐트와 위치를 번갈아 손으로 계산해야 했다.
  *
- * 한 축 화살표만 끌면 그 면 하나, 평면 핸들이면 둘, 자유 이동이면 셋이 함께 움직인다.
- *
  * 편집 대상은 프로퍼티 경로로 들고 있다. BP 액터는 값이 바뀔 때마다 컴포넌트를 다시 만들 수 있어 포인터로는 드래그 도중에 끊긴다.
  */
 class FBoxComponentVisualizer : public FComponentVisualizer

@@ -6,7 +6,7 @@
 #include "ThumbnailRendering/BlueprintThumbnailRenderer.h"
 #include "WxAbilityThumbnailRenderer.generated.h"
 
-// UWxAbilityBase 파생 Blueprint 의 에디터 썸네일을 어빌리티 아이콘(AbilityDataRow) 텍스처로 렌더링한다.
+// UWxAbilityBase 파생 Blueprint 의 에디터 썸네일을 어빌리티 아이콘(AbilityDataRow)으로 렌더링한다.
 // 아이콘이 지정되지 않은 경우, 그리고 어빌리티가 아닌 일반 Blueprint 는 엔진 기본 동작(Super)으로 위임한다.
 UCLASS()
 class UWxAbilityThumbnailRenderer : public UBlueprintThumbnailRenderer

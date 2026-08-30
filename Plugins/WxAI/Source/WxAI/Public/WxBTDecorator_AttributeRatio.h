@@ -37,7 +37,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	TEnumAsByte<EArithmeticKeyOperation::Type> ArithmeticOperation;
 
-	/** 비교 기준 비율 (0.0 ~ 1.0) */
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
 	float Ratio;
 };

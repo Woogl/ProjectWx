@@ -46,10 +46,10 @@ public:
 	//~ End UWorldSubsystem
 
 private:
-	/** 메모리 SaveGame 을 소유한 게임 서브시스템. 없으면 Warning 을 남기고 null 을 답한다. */
+	/** 없으면 Warning 을 남기고 null 을 답한다. */
 	UWxSaveGameSubsystem* GetGameSubsystem() const;
 
-	/** 게임 서브시스템이 들고 있는 활성 SaveGame. 없으면 Warning 을 남기고 null 을 답한다. */
+	/** 없으면 Warning 을 남기고 null 을 답한다. */
 	UWxSaveGame* GetActiveSaveGame() const;
 
 	void FlushMapTravelData();
@@ -81,16 +81,16 @@ private:
 	 */
 	bool RestoreActor(const UWxSaveGame& SaveGame, AActor* Actor, bool* bOutIsSavable = nullptr);
 
-	/** OnWorldInitializedActors 핸들러: 영구 레벨 + 초기 WP 셀 액터에 레코드 자동 복원. */
+	/** 영구 레벨 + 초기 WP 셀 액터에 레코드 자동 복원. */
 	void HandleWorldInitializedActors(const UWorld::FActorsInitializedParams& Params);
 
-	/** LevelAddedToWorld 핸들러: 스트리밍-인 셀(World Partition 포함) 액터에 레코드 자동 복원. */
+	/** 스트리밍-인 셀(World Partition 포함) 액터에 레코드 자동 복원. */
 	void HandleLevelAddedToWorld(ULevel* Level, UWorld* World);
 
-	/** LevelRemovedFromWorld 핸들러: 스트리밍-아웃 직전 셀 액터 상태를 메모리에 자동 캡처. 로드 트래블 중엔 스킵. */
+	/** 스트리밍-아웃 직전 셀 액터 상태를 메모리에 자동 캡처. 로드 트래블 중엔 스킵. */
 	void HandleLevelRemovedFromWorld(ULevel* Level, UWorld* World);
 
-	/** OnWorldBeginTearDown 핸들러: 맵 이탈 시 IWxSavable 전체를 메모리에 플러시(디스크 기록 없음). 로드 트래블 중엔 스킵. */
+	/** 맵 이탈 시 IWxSavable 전체를 메모리에 플러시(디스크 기록 없음). 로드 트래블 중엔 스킵. */
 	void HandleWorldBeginTearDown(UWorld* World);
 
 	FDelegateHandle WorldInitializedActorsHandle;

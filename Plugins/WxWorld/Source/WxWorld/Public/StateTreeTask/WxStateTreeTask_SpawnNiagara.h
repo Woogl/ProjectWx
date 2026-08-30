@@ -20,7 +20,7 @@ struct FWxStateTreeTask_SpawnNiagaraInstanceData
 {
 	GENERATED_BODY()
 
-	/** 붙일 컴포넌트. 트리가 붙은 액터가 가진 것 중에서 고르며, 비우면 액터 위치에 재생한다. */
+	/** 트리가 붙은 액터가 가진 것 중에서 고르며, 비우면 액터 위치에 재생한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	FWxStateTreeComponentName AttachComponent;
 

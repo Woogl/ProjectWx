@@ -80,7 +80,6 @@ void FWxStateTreeComponentNameCustomization::HandleGetComponentStrings(TArray<TS
 		return;
 	}
 
-	// 컴포넌트 패널이 만든 클래스 변수를 그대로 훑는다 — 네이티브 선언이든 BP 컴포넌트든 여기서는 같은 오브젝트 프로퍼티다.
 	TArray<FName> ComponentNames;
 	for (TFieldIterator<FObjectPropertyBase> PropertyIt(ActorClass, EFieldIteratorFlags::IncludeSuper); PropertyIt; ++PropertyIt)
 	{

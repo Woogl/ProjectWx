@@ -36,7 +36,6 @@ public:
 	UFUNCTION()
 	void HandleListChanged(const TArray<FText>& InPrompts);
 
-	/** 표시만 갱신한다. */
 	UFUNCTION()
 	void HandleSelectionChanged(int32 InSelectedIndex);
 

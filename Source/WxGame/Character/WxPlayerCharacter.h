@@ -39,7 +39,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")
 	TObjectPtr<UWxLockOnManagerComponent> LockOnManagerComponent;
 
-	/** 플레이어 스킬이 생성한 소환수의 슬롯·수명을 서버에서 관리한다. */
+	/** 플레이어 스킬이 생성한 소환수를 서버에서 보관하고 사망·종료 시 정리한다. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")
 	TObjectPtr<UWxSummonComponent> SummonComponent;
 

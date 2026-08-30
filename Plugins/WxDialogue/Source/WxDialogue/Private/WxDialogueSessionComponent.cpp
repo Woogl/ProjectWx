@@ -42,7 +42,7 @@ void UWxDialogueSessionComponent::StartDialogueRow(const FDataTableRowHandle& St
 {
 	if (!StartRow.DataTable || StartRow.RowName.IsNone())
 	{
-		// 디자이너가 대화 정의에 시작 행을 안 채운 경우다. 이 갈래가 조용하면 "F 를 눌러도 아무 일이 없다"만 남는다.
+		// 이 갈래가 조용하면 "F 를 눌러도 아무 일이 없다"만 남는다.
 		UE_LOG(LogWxDialogue, Warning, TEXT("StartDialogueRow: 시작 행이 지정되지 않음(테이블 %s / 행 %s, 대상 %s)."),
 			*GetNameSafe(StartRow.DataTable), *StartRow.RowName.ToString(), *GetNameSafe(Target));
 		return;
@@ -144,7 +144,6 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FData
 	APawn* Pawn = Controller ? Controller->GetPawn() : nullptr;
 	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn))
 	{
-		// 카운트 가감이 아니라 절대값으로 지정한다.
 		// 이 태그를 loose 로 쓰는 곳은 이 컴포넌트뿐이고, 소비자(UI 매니저)는 0↔비0 전이만 듣기 때문에 카운트가 1 이라도 남으면 대화 창이 영영 닫히지 않는다.
 		ASC->SetLooseGameplayTagCount(WxGameplayTags::State_Dialogue, 1);
 		TaggedAbilitySystem = ASC;
@@ -224,13 +223,12 @@ void UWxDialogueSessionComponent::BeginDialogueCamera()
 		return;
 	}
 
-	// 겨눌 지점은 두 사람의 중간이다. 한쪽만 겨누면 그쪽이 화면 정중앙을 차지하고 다른 쪽이 밀려나 구도가 쏠린다.
-	// 높이 오프셋을 더하는 이유는 루트가 각자 캡슐 중심(허리)이기 때문이다. 카메라도 같은 높이에 서므로 시선은 수평이 된다.
+	// 한쪽만 겨누면 그쪽이 화면 정중앙을 차지하고 다른 쪽이 밀려나 구도가 쏠린다.
 	const FVector PawnLocation = Pawn->GetActorLocation();
 	const FVector TargetLocation = CurrentTarget->GetActorLocation();
 	const FVector AimLocation = (PawnLocation + TargetLocation) * 0.5f + FVector(0.f, 0.f, CameraHeightOffset);
 
-	// 두 사람을 잇는 선에서 비껴선 자리에서 본다. 선 위에 서면 앞사람이 뒷사람을 가리고 뒤통수만 보인다.
+	// 두 사람을 잇는 선 위에 서면 앞사람이 뒷사람을 가리고 뒤통수만 보인다.
 	const FVector TalkAxis = (TargetLocation - PawnLocation).GetSafeNormal2D();
 
 	// 어느 쪽으로 비껴설지는 지금 게임플레이 카메라가 서 있는 쪽을 따른다. 반대편으로 넘어가면 좌우가 뒤집혀 컷이 튀고, 그 쪽은 스프링암이 이미 시야를 확보해 둔 방향이기도 하다.
@@ -255,7 +253,7 @@ void UWxDialogueSessionComponent::BeginDialogueCamera()
 
 	UCameraComponent* CameraComponent = CameraActor->GetCameraComponent();
 	CameraComponent->SetFieldOfView(CameraFieldOfView);
-	// ACameraActor 기본값(bConstrainAspectRatio=true, 16:9)이 뷰포트를 마스킹해 레터박스를 만든다. 제약을 꺼 뷰포트 전체를 채운다.
+	// ACameraActor 기본값(bConstrainAspectRatio=true, 16:9)이 뷰포트를 마스킹해 레터박스를 만든다.
 	CameraComponent->SetConstraintAspectRatio(false);
 
 	DialogueCamera = CameraActor;

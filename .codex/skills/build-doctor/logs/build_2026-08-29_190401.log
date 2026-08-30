@@ -1,0 +1,31 @@
+Using bundled DotNet SDK version: 10.0 win-x64
+Running UnrealBuildTool: dotnet "..\..\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.dll" WxEditor Win64 Development -Project=C:\Wx\Wx.uproject -WaitMutex
+Log file: C:\Users\woojo\AppData\Local\UnrealBuildTool\Log.txt
+Determining max actions to execute in parallel (20 physical cores, 28 logical cores)
+  Executing up to 20 processes, one per physical core
+Using 'git status' to determine working set for adaptive non-unity build (C:\Wx).
+UbaServer - Listening on 0.0.0.0:1345
+Building WxEditor...
+===== Toolchain Information =====
+Using ISPC compiler (C:\Program Files\Epic Games\UE_5.8\Engine\Source\ThirdParty\Intel\ISPC\bin\Windows\ispc.exe)
+  Intel(r) Implicit SPMD Program Compiler (Intel(r) ISPC), 1.24.0 (build commit  @ 20250404, LLVM 18.1.2) 
+Using Visual Studio 14.50.35737 toolchain (C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717) and Windows 10.0.22621.0 SDK (C:\Program Files (x86)\Windows Kits\10).
+[Adaptive Build] Excluded from WxCore unity file: WxGameplayTags.cpp
+[Adaptive Build] Excluded from WxCombat unity file: WxAbilityBase.cpp, WxAbility_BeingFinished.cpp, WxAbility_Finisher.cpp, WxAbilityAction.cpp, WxAbilityAction_ApplyFinisherDamage.cpp, WxAbilityAction_SpawnProjectile.cpp, WxAbilityAction_SummonActor.cpp, WxAnimNotify_ExecuteAbilityAction.cpp, WxSummonComponent.cpp
+[Adaptive Build] Excluded from WxGame unity file: WxAbility_Interact.cpp, WxAbility_UseItem.cpp, WxAbilityAction_UseItem.cpp, WxEnemyCharacter.cpp, WxPlayerCharacter.cpp
+[Adaptive Build] Excluded from WxEditor unity file: WxFinisherBackstabMigrationCommandlet.cpp
+=================================
+Using Unreal Build Accelerator local executor to run 4 action(s)
+  CPU 20 physical cores, 28 logical cores
+  Memory 63.79 GB physical, 29.29 GB/67.79 GB committed
+  UBA Storage capacity 40 GB
+[1/4] Compile [x64] WxFinisherBackstabMigrationCommandlet.cpp
+C:\Wx\Source\WxEditor\WxFinisherBackstabMigrationCommandlet.cpp(99,25): error C2440: '초기화 중': 'const TObjectPtr<UObject>'에서 'UClass *'(으)로 변환할 수 없습니다.
+			UClass* AbilityClass = AbilityClassProperty->GetPropertyValue(GrantedAbilities.GetRawPtr(Index));
+			                     ^
+C:\Wx\Source\WxEditor\WxFinisherBackstabMigrationCommandlet.cpp(99,25): note: 이 변환을 수행할 수 있는 사용 가능한 사용자 정의 변환 연산자가 없거나 연산자를 호출할 수 없습니다.
+Total time in Unreal Build Accelerator local executor: 1.24 seconds
+
+Result: Failed (OtherCompilationError)
+Total execution time: 2.41 seconds
+Trace written to file C:\Users\woojo\AppData\Local\UnrealBuildTool\Trace.uba with size 4.9kb

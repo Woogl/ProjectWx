@@ -19,7 +19,7 @@ class UAbilityTask_WaitGameplayEvent;
  * ConsumableDef 를 지금 쓸 수 있는지(보유 + 충전 잔량) 몽타주 전에 검사해 빈 병 모션을 막는다.
  * 인벤토리와 인스턴스 충전량이 소유 클라에 복제되므로 이 판정은 클라에서도 성립한다.
  *
-	 * 충전 1 감소와 회복 GE 적용은 몽타주의 ExecuteAbilityAction(Event.AbilityAction.UseItem) 시점에 일어나며, 차감은 예측 대상이 아니라 이 단계만 서버 권위로 게이팅한다.
+ * 충전 1 감소와 회복 GE 적용은 몽타주의 ExecuteAbilityAction(Event.AbilityAction.UseItem) 시점에 일어나며, 차감은 예측 대상이 아니라 이 단계만 서버 권위로 게이팅한다.
  * 후딜 구간은 WxAnimNotify_StartRecovery 로 캔슬을 허용한다.
  */
 UCLASS(Abstract)

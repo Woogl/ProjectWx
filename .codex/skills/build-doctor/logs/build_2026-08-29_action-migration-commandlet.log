@@ -1,0 +1,52 @@
+Using bundled DotNet SDK version: 10.0 win-x64
+Running UnrealBuildTool: dotnet "..\..\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.dll" WxEditor Win64 Development -Project=C:\Wx\Wx.uproject -WaitMutex -NoHotReload
+Log file: C:\Users\woojo\AppData\Local\UnrealBuildTool\Log.txt
+Determining max actions to execute in parallel (20 physical cores, 28 logical cores)
+  Executing up to 20 processes, one per physical core
+Using 'git status' to determine working set for adaptive non-unity build (C:\Wx).
+UbaServer - Listening on 0.0.0.0:1345
+Invalidating makefile for WxEditor (source directory added)
+UHT compiled-in object format Default
+Building WxEditor...
+===== Toolchain Information =====
+Using ISPC compiler (C:\Program Files\Epic Games\UE_5.8\Engine\Source\ThirdParty\Intel\ISPC\bin\Windows\ispc.exe)
+  Intel(r) Implicit SPMD Program Compiler (Intel(r) ISPC), 1.24.0 (build commit  @ 20250404, LLVM 18.1.2) 
+Using Visual Studio 14.50.35737 toolchain (C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717) and Windows 10.0.22621.0 SDK (C:\Program Files (x86)\Windows Kits\10).
+[Adaptive Build] Excluded from WxEditor unity file: WxEditor.cpp
+[Adaptive Build] Excluded from WxCore unity file: WxGameplayTags.cpp
+[Adaptive Build] Excluded from WxCombat unity file: WxAbilityBase.cpp, WxAbility_BeingFinished.cpp, WxAbility_Finisher.cpp, WxAbilityAction.cpp, WxAbilityAction_ApplyFinisherDamage.cpp, WxAbilityAction_SpawnProjectile.cpp, WxAbilityAction_SummonActor.cpp, WxAnimNotify_ExecuteAbilityAction.cpp, WxSummonComponent.cpp
+[Adaptive Build] Excluded from WxGame unity file: WxAbility_Interact.cpp, WxAbility_UseItem.cpp, WxAbilityAction_UseItem.cpp, WxEnemyCharacter.cpp, WxPlayerCharacter.cpp, WxMigrateAbilityActionsCommandlet.cpp
+=================================
+Using Unreal Build Accelerator local executor to run 20 action(s)
+  CPU 20 physical cores, 28 logical cores
+  Memory 63.79 GB physical, 23.89 GB/67.79 GB committed
+  UBA Storage capacity 40 GB
+[1/20] Compile [x64] PerModuleInline.gen.cpp
+[2/20] Compile [x64] Module.WxEditor.gen.cpp
+[3/20] Compile [x64] WxDeviceLinkVisualizer.cpp
+[4/20] Compile [x64] WxActorLocatorCustomization.cpp
+[5/20] Compile [x64] WxAbilityAction_UseItem.cpp
+[6/20] Compile [x64] WxAbility_UseItem.cpp
+[7/20] Compile [x64] WxAbilityThumbnailRenderer.cpp
+[8/20] Compile [x64] WxMigrateAbilityActionsCommandlet.cpp
+[9/20] Compile [x64] WxAbility_Interact.cpp
+[10/20] Compile [x64] WxItemDefinitionThumbnailRenderer.cpp
+[11/20] Compile [x64] WxEnemyCharacter.cpp
+[12/20] Compile [x64] WxEditor.cpp
+[13/20] Compile [x64] WxPlayerCharacter.cpp
+[14/20] Compile [x64] WxStateTreeComponentNameCustomization.cpp
+[15/20] Link [x64] UnrealEditor-WxEditor.lib
+   C:/Wx/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxEditor/UnrealEditor-WxEditor.lib 라이브러리 및 C:/Wx/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxEditor/UnrealEditor-WxEditor.exp 개체를 생성하고 있습니다.
+[16/20] Compile [x64] Module.WxGame.cpp
+[17/20] Link [x64] UnrealEditor-WxGame.lib
+   C:/Wx/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxGame/UnrealEditor-WxGame.lib 라이브러리 및 C:/Wx/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxGame/UnrealEditor-WxGame.exp 개체를 생성하고 있습니다.
+[18/20] Link [x64] UnrealEditor-WxEditor.dll
+[19/20] Link [x64] UnrealEditor-WxGame.dll
+[20/20] WriteMetadata WxEditor.target [NoUba]
+
+Total time in Unreal Build Accelerator local executor: 13.36 seconds
+Output binary: C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe
+
+Result: Succeeded
+Total execution time: 17.84 seconds
+Trace written to file C:\Users\woojo\AppData\Local\UnrealBuildTool\Trace.uba with size 10.8kb

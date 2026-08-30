@@ -21,8 +21,8 @@ public:
 	void WxKillPlayer();
 
 	/**
-	 * 대미지 파이프라인(HP 차감·DP 누적, 피격 리액션, 대미지 플로터)을 콘솔에서 재현하기 위한 치트다.
-	 * 대미지 계산은 정상 경로를 그대로 타므로 무적·가드·퍼펙트 가드 상태에서는 그 판정이 적용된다.
+	 * IncomingDamage 에 값을 직접 넣으므로 HP 차감과 사망 처리만 일어난다.
+	 * 정상 대미지 경로(UWxCombatLibrary::ApplyDamage·UWxEffect_Damage)를 건너뛰어 무적·가드 판정도, 피격 리액션·대미지 플로터도 나오지 않는다.
 	 */
 	UFUNCTION(Exec)
 	void WxDamagePlayer(float Amount = 30.f);

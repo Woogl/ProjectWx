@@ -13,7 +13,6 @@
 
 namespace
 {
-	/** 실패 시 스크립트 에러를 올린다. */
 	bool ValidateMontage(const UAnimMontage* Montage, const TCHAR* Label)
 	{
 		if (!Montage)

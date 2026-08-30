@@ -79,7 +79,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	FGameplayAttribute Attribute;
 
-	/** 지정하지 않으면 CurrentAttribute 를 최대값으로 쓴다 */
+	/** 지정하지 않으면 Attribute 를 최대값으로 쓴다 */
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	FGameplayAttribute MaxAttribute;
 };

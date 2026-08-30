@@ -20,7 +20,6 @@ namespace
 
 	void ProjectIndicator(const UWxIndicatorDescriptor& Indicator, const FSceneViewProjectionData& ProjectionData, const FVector2f& ScreenSize, FVector2D& OutScreenPosition, double& OutDistanceToCamera)
 	{
-		// 컴포넌트를 따라다니되, 붙이지 않았거나 언로드·파괴로 사라졌으면 등록증에 적힌 좌표를 원점으로 쓴다.
 		const USceneComponent* TargetComponent = Indicator.GetTargetComponent();
 		const FVector OriginLocation = TargetComponent ? TargetComponent->GetComponentLocation() : Indicator.GetWorldLocation();
 		const FVector WorldLocation = OriginLocation + Indicator.GetWorldOffset();

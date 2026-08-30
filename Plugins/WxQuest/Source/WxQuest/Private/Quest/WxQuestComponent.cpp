@@ -28,7 +28,6 @@ void UWxQuestComponent::ActivateQuest(UStateTree* QuestAsset)
 		return;
 	}
 
-	// 엔진이 Running 중 에셋 교체를 거부하므로 정지 → 교체 → 시작 순서를 지킨다.
 	// 정지가 저널 정리(HandleStateTreeRunStatusChanged)를 발화시키고, 새 퀘스트 진행이 저널을 다시 채운다.
 	FStateTreeReference Quest;
 	Quest.SetStateTree(QuestAsset);

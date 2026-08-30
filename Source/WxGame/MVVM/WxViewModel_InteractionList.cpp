@@ -39,7 +39,7 @@ void UWxViewModel_InteractionList::Initialize(UWxInteractionScannerComponent* In
 	InScanner->OnListChanged.AddDynamic(this, &ThisClass::HandleListChanged);
 	InScanner->OnSelectionChanged.AddDynamic(this, &ThisClass::HandleSelectionChanged);
 
-	// 구독 전에 끝난 broadcast 가 있을 수 있으므로 현재 목록/선택으로 시드한다(목록이 비면 INDEX_NONE).
+	// 구독 전에 끝난 broadcast 가 있을 수 있으므로 현재 목록/선택으로 시드한다.
 	RebuildEntries(InScanner->GetPrompts());
 	ApplySelection(InScanner->GetSelectedIndex());
 }

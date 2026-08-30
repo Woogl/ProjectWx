@@ -80,7 +80,6 @@ void UWxAbility_Guard::HandleMontageCompleted()
 
 void UWxAbility_Guard::HandleMontageInterrupted()
 {
-	// 리액션이 자세를 밀어낸 것뿐이면 가드는 그대로 두고, 리액션이 끝나는 때를 기다렸다 자세를 다시 세운다.
 	// 그로기·사망은 Ability 태그로 이 어빌리티를 먼저 취소하므로 여기 걸리지 않는다.
 	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_GuardReact))

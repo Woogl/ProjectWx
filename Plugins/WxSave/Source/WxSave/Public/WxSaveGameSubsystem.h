@@ -98,7 +98,6 @@ public:
 
 	/**
 	 * 진행 중이던 기록이 끝나면 한 번 발화하고 스스로 비워진다. 기다리는 쪽이 요청 직후 붙인다.
-	 * 발화와 함께 비워지므로 붙인 쪽이 떼어낼 필요가 없다.
 	 */
 	FSimpleMulticastDelegate OnSaveCompleted;
 
@@ -109,7 +108,6 @@ private:
 	/** 성공·실패·중단 어느 경로든 여기로 모인다. */
 	void FinishSaveInProgress();
 
-	/** SaveToFile 이 세우고 비동기 기록 콜백이 내린다. */
 	bool bSaveInProgress = false;
 
 	UPROPERTY()

@@ -92,7 +92,6 @@ void AWxDevice::OnInteracted(AActor* Interactor)
 
 FText AWxDevice::GetInteractionPrompt() const
 {
-	// ST 가 이 상태에 세팅한 프롬프트가 전부다.
 	return InteractionBinding.Prompt;
 }
 
@@ -139,7 +138,6 @@ void AWxDevice::SetInteractionBinding(bool bEnabled, const FWxDeviceInteractionB
 	bInteractionEnabled = bEnabled;
 
 	// 끌 때 비우지 않는다 — 남이 껐다 켜도 이 상태의 문구·발행자로 돌아와야 한다.
-	// 꺼진 장치는 스캔 후보에서 빠지므로 담아 둔 문구가 새어 나갈 일도 없다.
 	if (bEnabled)
 	{
 		InteractionBinding = Binding;

@@ -22,13 +22,13 @@ class WXCOMBAT_API UWxSummonComponent : public UActorComponent
 public:
 	static UWxSummonComponent* FindComponent(const AActor* Actor);
 
-	/** 소환수를 등록한다. 이미 등록된 소환수는 거부한다. 서버 전용이다. */
+	/** 이미 등록된 소환수는 거부한다. 서버 전용이다. */
 	bool RegisterSummon(APawn* Summon);
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
-	struct FActiveSummon
+	struct FWxActiveSummon
 	{
 		TWeakObjectPtr<APawn> Pawn;
 		TWeakObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
@@ -44,5 +44,5 @@ private:
 	UFUNCTION()
 	void HandleSummonEndPlay(AActor* Actor, EEndPlayReason::Type EndPlayReason);
 
-	TArray<FActiveSummon> ActiveSummons;
+	TArray<FWxActiveSummon> ActiveSummons;
 };

@@ -97,7 +97,6 @@ public:
 	void CloseComboWindow();
 
 	/**
-	 * 후딜레이 구간.
 	 * Exclusive_Blocking으로 막혀있던 발동 그룹 잠금을 풀어서 그 순간부터 이후 발동하는 Exclusive 어빌리티에 의한 캔슬을 허용한다.
 	 * 코스트·쿨다운·ActivationBlockedTags는 그대로 검사한다.
 	 */

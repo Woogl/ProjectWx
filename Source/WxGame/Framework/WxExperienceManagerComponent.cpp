@@ -202,7 +202,7 @@ void UWxExperienceManagerComponent::StartExperienceLoad()
 	FStreamableDelegate OnAssetsLoadedDelegate = FStreamableDelegate::CreateUObject(this, &UWxExperienceManagerComponent::HandleExperienceAssetsLoaded);
 	if (!Handle.IsValid() || Handle->HasLoadCompleted())
 	{
-		// 지연 콜백 큐 규칙에 맞춰 즉시 실행한다.
+		// 이미 로드가 끝났어도 직접 호출하지 않고 ExecuteDelegate 로 넘겨, 실제 로드 콜백과 같은 지연 규칙(기본 1프레임 뒤)을 따르게 한다.
 		FStreamableHandle::ExecuteDelegate(MoveTemp(OnAssetsLoadedDelegate));
 	}
 	else

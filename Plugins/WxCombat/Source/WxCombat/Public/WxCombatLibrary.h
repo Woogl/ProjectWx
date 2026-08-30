@@ -27,7 +27,7 @@ class WXCOMBAT_API UWxCombatLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
-	/** 적대 관계일 때만 true. 어느 쪽이든 팀이 없으면 적대가 아니다. */
+	/** 어느 쪽이든 팀이 없으면 적대가 아니다. */
 	static bool IsHostile(const AActor* Source, const AActor* Target);
 
 	/**

@@ -48,7 +48,7 @@ public:
 	/** 뷰모델이 초기 시드로 읽는다. */
 	TArray<FText> GetPrompts() const;
 
-	/** 현재 선택 인덱스(없으면 INDEX_NONE). 뷰모델이 초기 시드로 읽는다. */
+	/** 없으면 INDEX_NONE. 뷰모델이 초기 시드로 읽는다. */
 	int32 GetSelectedIndex() const;
 
 	AActor* GetSelectedActor() const;
@@ -76,22 +76,18 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Interact")
 	float ScanInterval = 0.1f;
 
-	/** 외곽선 강조용 Custom Depth Stencil 값. 포스트프로세스 아웃라인 머티리얼이 비교하는 값과 일치시킨다. */
+	/** 포스트프로세스 아웃라인 머티리얼이 비교하는 값과 일치시킨다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Interact", meta = (ClampMin = 0, ClampMax = 255))
 	int32 HighlightStencilValue = 1;
 
 private:
-	/** 서버가 Event.Interact 를 폰 ASC 로 송출해 권위 실행을 시작한다. */
 	UFUNCTION(Server, Reliable)
 	void ServerInteract(AActor* Selected);
 
-	/**
-	 * 소유 클라에서 주기 타이머로 호출된다.
-	 * 상호작용 불가면 후보를 비워 프롬프트·하이라이트를 정리한다.
-	 */
+	/** 소유 클라에서 주기 타이머로 호출된다. */
 	void HandleScanTimer();
 
-	/** 후보 집합으로 in-range 멤버십을 갱신한다. 기존 순서 보존·신규만 뒤에 추가·이탈은 제거. */
+	/** 기존 순서 보존·신규만 뒤에 추가·이탈은 제거. */
 	void UpdateInRange(const TArray<AActor*>& InCandidates);
 
 	void UpdateSelection(int32 NewIndex);
@@ -113,7 +109,7 @@ private:
 
 	TArray<TWeakObjectPtr<AActor>> InRangeActors;
 
-	/** 마지막으로 내보낸 프롬프트 스냅샷. 대상이 pull 로 주는 문구가 실제로 달라졌을 때만 OnListChanged 를 발화하려고 든다. */
+	/** 대상이 pull 로 주는 문구가 실제로 달라졌을 때만 OnListChanged 를 발화하려고 든다. */
 	TArray<FText> LastPrompts;
 
 	int32 SelectedIndex = INDEX_NONE;

@@ -205,7 +205,7 @@ public:
 
 	/**
 	 * Usable Fragment 보유 + (충전형이면 충전이 남은 인스턴스 존재) 이면 true.
-	 * UseItemByDef 와 동일한 인스턴스 선택 기준을 공유하므로, 빈 병으로 사용 모션이 나가는 것을 사전 차단하는 데 쓸 수 있다.
+	 * UseItemByDef 와 동일한 인스턴스 선택 기준을 공유한다.
 	 */
 	bool CanUseItemByDef(const UWxItemDefinition* ItemDef) const;
 

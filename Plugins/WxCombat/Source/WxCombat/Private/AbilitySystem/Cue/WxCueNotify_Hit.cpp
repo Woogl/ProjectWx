@@ -38,8 +38,7 @@ void UWxCueNotify_Hit::HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent::Ty
 
 	if (CameraShake)
 	{
-		// 큐는 서버·클라 양쪽에서 실행되므로 각 머신은 자기 로컬 컨트롤러만 흔든다.
-		// 리슨 서버가 원격 클라에 RPC까지 쏘면 셰이크가 두 번 걸린다.
+		// 큐는 서버·클라 양쪽에서 실행되므로 각 머신은 자기 로컬 컨트롤러만 흔든다 — 리슨 서버가 원격 클라에 RPC까지 쏘면 셰이크가 두 번 걸린다.
 		// 원인 액터가 아니라 Instigator를 보는 이유는 전자가 무기·투사체 액터이기 때문이다.
 		if (const APawn* Attacker = Cast<APawn>(Parameters.EffectContext.GetInstigator()))
 		{

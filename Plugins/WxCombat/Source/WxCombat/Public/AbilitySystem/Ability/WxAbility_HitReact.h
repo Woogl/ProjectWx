@@ -43,7 +43,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> KnockupMontage;
 
-	/** 넉업이 띄우는 속도. 이동 튜닝(JumpZVelocity)과 분리해 전투 쪽에서 정한다. */
+	/** 이동 튜닝(JumpZVelocity)과 분리해 전투 쪽에서 정한다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability", meta = (ClampMin = "0.0"))
 	float KnockupZVelocity = 640.f;
 

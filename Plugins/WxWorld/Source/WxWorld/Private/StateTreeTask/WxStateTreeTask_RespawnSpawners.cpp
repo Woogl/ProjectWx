@@ -18,7 +18,6 @@ FWxStateTreeTask_RespawnSpawners::FWxStateTreeTask_RespawnSpawners()
 
 EStateTreeRunStatus FWxStateTreeTask_RespawnSpawners::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// 전이로 들어온 것이 아니면(StateTree 시작·세이브 복원·레이트조인) 호출하지 않는다.
 	if (!Transition.SourceStateID.IsValid())
 	{
 		return EStateTreeRunStatus::Succeeded;

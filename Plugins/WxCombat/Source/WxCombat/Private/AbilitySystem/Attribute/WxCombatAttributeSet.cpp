@@ -11,9 +11,9 @@
 #include "WxCombatLibrary.h"
 #include "WxGameplayTags.h"
 
-const UWxCombatAttributeSet::FMaxAttributePair* UWxCombatAttributeSet::FindAttributeMaxPair(const FGameplayAttribute& Attribute)
+const UWxCombatAttributeSet::FWxMaxAttributePair* UWxCombatAttributeSet::FindMaxAttributePair(const FGameplayAttribute& Attribute)
 {
-	static const FMaxAttributePair Pairs[] =
+	static const FWxMaxAttributePair Pairs[] =
 	{
 		{GetHPAttribute(), GetMaxHPAttribute()},
 		{GetSPAttribute(), GetMaxSPAttribute()},
@@ -22,7 +22,7 @@ const UWxCombatAttributeSet::FMaxAttributePair* UWxCombatAttributeSet::FindAttri
 		{GetUPAttribute(), GetMaxUPAttribute()}
 	};
 
-	for (const FMaxAttributePair& Pair : Pairs)
+	for (const FWxMaxAttributePair& Pair : Pairs)
 	{
 		if (Pair.Attribute == Attribute || Pair.MaxAttribute == Attribute)
 		{
@@ -159,7 +159,7 @@ float UWxCombatAttributeSet::ClampAttributeValue(const FGameplayAttribute& Attri
 	const float MinimumValue = Attribute == GetASPDAttribute() ? 0.001f : 0.f;
 	NewValue = FMath::Max(NewValue, MinimumValue);
 
-	const FMaxAttributePair* Pair = FindAttributeMaxPair(Attribute);
+	const FWxMaxAttributePair* Pair = FindMaxAttributePair(Attribute);
 	const UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
 	if (Pair && Pair->Attribute == Attribute && ASC)
 	{
@@ -171,7 +171,7 @@ float UWxCombatAttributeSet::ClampAttributeValue(const FGameplayAttribute& Attri
 
 void UWxCombatAttributeSet::AdjustCurrentAttributeForMaxChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
 {
-	const FMaxAttributePair* Pair = FindAttributeMaxPair(Attribute);
+	const FWxMaxAttributePair* Pair = FindMaxAttributePair(Attribute);
 	if (!Pair || Pair->MaxAttribute != Attribute)
 	{
 		return;

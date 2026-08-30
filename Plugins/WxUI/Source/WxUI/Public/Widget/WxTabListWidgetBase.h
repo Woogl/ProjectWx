@@ -13,7 +13,6 @@ class UCommonUserWidget;
 class UPanelWidget;
 class UWidget;
 
-/** 프리레지스터 배열 또는 런타임 동적 등록으로 쓰인다. */
 USTRUCT(BlueprintType)
 struct FWxTabDescriptor
 {

@@ -43,7 +43,7 @@ struct FWxStateTreeTask_EnableInteractionInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (EditCondition = "TargetKind == EWxInteractionToggleTarget::Self && bEnable", EditConditionHides))
 	FText Prompt;
 
-	/** 눌렸을 때 오너 장치가 발행하는 델리게이트. 전이의 Delegate 칸에서 이것을 골라 목적지를 잇는다(끄는 노드의 것은 발행될 일이 없다). */
+	/** 눌렸을 때 오너 장치가 발행한다(끄는 노드의 것은 발행될 일이 없다). */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (EditCondition = "TargetKind == EWxInteractionToggleTarget::Self", EditConditionHides))
 	FStateTreeDelegateDispatcher OnInteracted;
 };

@@ -329,8 +329,7 @@ const UWxAbilityBase* UWxAbilitySystemComponent::AsActivationGroupBlocker(const 
 
 bool UWxAbilitySystemComponent::TryActivateByInputAction(const UInputAction* Action)
 {
-	// 순회 중 활성화가 어빌리티 목록을 바꿀 수 있다(GE의 GrantedAbilities, RemoveAfterActivation 등).
-	// 락이 없으면 Give/Clear가 즉시 Add/RemoveAtSwap 해 참조와 이터레이터가 무효화된다.
+	// AbilityInputActionTriggered와 같은 이유로 락을 건다.
 	ABILITYLIST_SCOPE_LOCK();
 
 	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())

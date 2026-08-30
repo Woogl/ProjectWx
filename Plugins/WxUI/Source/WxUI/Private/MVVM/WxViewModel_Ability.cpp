@@ -28,8 +28,7 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 			.AddUObject(this, &UWxViewModel_Ability::HandleGameplayEffectApplied);
 	}
 
-	// 어빌리티의 블록/필요 태그로 좁힐 수 없다 — 발동 판정에는 배타 그룹 점유도 걸리는데, 그건 태그가 아니라 ASC 내부 상태라
-	// 다른 어빌리티의 ActivationOwnedTags 변화로만 감지된다.
+	// 어빌리티의 블록/필요 태그로 좁힐 수 없다 — 발동 판정에는 배타 그룹 점유도 걸리는데, 그건 태그가 아니라 ASC 내부 상태라 다른 어빌리티의 ActivationOwnedTags 변화로만 감지된다.
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_Ability::HandleTagChanged);
 
 	GetCost(InASC, InAbility);

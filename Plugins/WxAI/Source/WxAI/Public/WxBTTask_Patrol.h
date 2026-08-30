@@ -58,6 +58,5 @@ private:
 	/** Once 로 경로 끝에 도달해 정찰이 끝났는지. */
 	bool bPatrolFinished = false;
 
-	/** ExecuteTask 에서 부여한 감속 GE. */
 	FActiveGameplayEffectHandle MoveSpeedEffectHandle;
 };

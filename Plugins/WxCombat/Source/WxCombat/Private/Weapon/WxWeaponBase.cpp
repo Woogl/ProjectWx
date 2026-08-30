@@ -196,7 +196,7 @@ void AWxWeaponBase::Tick(float DeltaSeconds)
 		}
 	}
 
-	// 직전 프레임 위치 → 현재 위치 사이를 형상별로 Sweep해서, Overlap 이벤트가 한 틱에 형상을 지나친 액터를 놓치는 터널링을 보완한다.
+	// Overlap 이벤트가 한 틱에 형상을 지나친 액터를 놓치는 터널링을 보완한다.
 	for (int32 Index = 0; Index < HitShapes.Num(); ++Index)
 	{
 		UShapeComponent* Shape = HitShapes[Index];

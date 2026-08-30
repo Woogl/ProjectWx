@@ -15,7 +15,6 @@ UWxAbility_Interact::UWxAbility_Interact()
 	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	AbilityTriggers.Add(TriggerData);
 
-	// 선택 전달은 스캐너 컴포넌트의 ServerInteract RPC 가 담당하므로 LocalPredicted 의 페이로드 통로가 필요 없다.
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
 
 	// 상호작용 스캐너 컴포넌트(WxWorld)가 이 태그로 스펙을 찾아 CanActivateAbility 로 클라 표시 게이트를 삼는다.
@@ -52,7 +51,6 @@ void UWxAbility_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		ExecuteInteract(Selected, ActorInfo);
 	}
 
-	// 상호작용 모션·연출은 대상 StateTree 가 담당하므로 어빌리티는 즉시 종료한다.
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 

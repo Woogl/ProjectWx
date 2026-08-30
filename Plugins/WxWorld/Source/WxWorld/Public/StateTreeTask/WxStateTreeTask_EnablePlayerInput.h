@@ -21,10 +21,7 @@ struct FWxStateTreeTask_EnablePlayerInputInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	bool bEnable = true;
 
-	/**
-	 * (런타임) EnterState 에서 실제로 입력을 끈 폰. ExitState 는 이 기록만 근거로 되돌린다.
-	 * 되돌릴 대상을 그때그때 다시 조회하지 않는 이유는, 그 사이 폰이 소멸·언포제스·교체될 수 있어 진입 시점의 대상이 아닐 수 있기 때문이다.
-	 */
+	/** (런타임) EnterState 에서 실제로 입력을 끈 폰. 그 사이 폰이 소멸·언포제스·교체될 수 있어 되돌릴 대상을 ExitState 에서 다시 조회하지 않는다. */
 	UPROPERTY()
 	TWeakObjectPtr<APawn> DisabledPawn;
 

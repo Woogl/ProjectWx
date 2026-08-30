@@ -27,7 +27,6 @@ struct FWxStateTreeTask_PlaySoundInstanceData
 };
 
 /**
- * State 를 읽지 않아 어떤 장치든 재사용한다.
  * 초기 진입(StateTree 시작/복원/레이트조인: SourceStateID 무효)이면 기본적으로 재생하지 않는다 — 발동 사운드는 발동 순간에만 울리고 복원 시엔 침묵한다.
  * 모든 피어(서버+클라)가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다.
  */

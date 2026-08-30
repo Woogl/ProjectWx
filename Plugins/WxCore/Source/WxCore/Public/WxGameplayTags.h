@@ -86,7 +86,7 @@ namespace WxGameplayTags
 	/** 발동 장치가 연결 장치의 트리에 보내는 기본 이벤트. 목적지가 여럿인 장치는 버튼마다 다른 태그를 저작한다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Device_Triggered);
 
-	/** 적 상호작용이 서버에서 플레이어 ASC에 보내는 처형 트리거. 앞잡·뒤잡 어빌리티가 함께 받고, 페이로드 TargetTags(대상 소유 태그)에 대한 각자의 TargetRequired/BlockedTags로 하나만 성립한다. */
+	/** 적 상호작용이 서버에서 플레이어 ASC에 보내는 처형 트리거. 앞잡·뒤잡은 어빌리티 하나가 받아, 페이로드 TargetTags(대상 소유 태그)의 Ability.Groggy 유무로 연출을 가른다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Finisher);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Death);
@@ -104,10 +104,8 @@ namespace WxGameplayTags
 	/** 소비 아이템 차감과 사용 효과 적용 Action을 실행한다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_AbilityAction_UseItem);
 
-	/** 앞잡·뒤잡 대상에게 대미지를 적용하는 Action을 실행한다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_AbilityAction_ApplyFinisherDamage);
 
-	/** 투사체를 생성하는 Action을 실행한다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_AbilityAction_SpawnProjectile);
 
 	// ── Device ──────────────────────────────────────────────────────────────
@@ -161,7 +159,7 @@ namespace WxGameplayTags
 	/** 가드로 막을 수 있는 공격. 이 태그가 없으면 일반 가드도 퍼펙트 가드도 뚫는다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_CanGuard);
 
-	/** 패리가 성립하는 공격. 이 공격이 퍼펙트 가드로 막히면 공격자가 DP를 반사받고 Event.Hit.Parry로 역경직에 걸린다 */
+	/** 패리가 성립하는 공격. 이 공격이 퍼펙트 가드로 막히면 공격자가 GP를 반사받고 Event.Hit.Parry로 역경직에 걸린다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_CanParry);
 	
 	// ── Ability ──────────────────────────────────────────────────────────────
@@ -217,7 +215,7 @@ namespace WxGameplayTags
 
 	// ── SetByCaller ──────────────────────────────────────────────────────────────
 
-	/** 지속시간 Duration SetByCaller 키. NoCooldown/InfiniteMP/DrainDP 등 Duration 모디파이어에서 공용으로 사용 */
+	/** 지속시간 Duration SetByCaller 키. NoCooldown/InfiniteMP/DrainGP 등 Duration 모디파이어에서 공용으로 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Duration);
 
 	/** 공격력 계수 SetByCaller 키. WxExecCalc_Damage가 ATK 어트리뷰트에 곱하는 배율 */

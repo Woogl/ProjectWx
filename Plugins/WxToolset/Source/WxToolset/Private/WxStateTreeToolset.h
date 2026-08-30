@@ -35,7 +35,6 @@ public:
 	static FString GetRootParameters(UStateTree* StateTree);
 
 	/**
-	 * 루트 파라미터 백에 파라미터를 추가한다.
 	 * @param Type EPropertyBagPropertyType 이름. 예: "Text", "Float", "Bool", "Int32", "Struct", "Object", "SoftObject"
 	 * @param ValueTypePath Type 이 "Struct" 면 값 구조체 경로(예: "/Script/Engine.DataTableRowHandle"), Object/SoftObject/Class/SoftClass 면 값 클래스 경로(예: "/Script/Engine.Actor").
 	 * @param bArray true 면 배열 컨테이너로 추가한다.
@@ -54,7 +53,6 @@ public:
 	static bool SetRootParameterMeta(UStateTree* StateTree, FName Name, const FString& MetaJson);
 
 	/**
-	 * 루트 파라미터 백에서 파라미터를 제거한다.
 	 * 그 파라미터를 소스로 쓰던 바인딩은 함께 지워지지 않으므로 RemoveBinding 으로 별도 정리한다.
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")

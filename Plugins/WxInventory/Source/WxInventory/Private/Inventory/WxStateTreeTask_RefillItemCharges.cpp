@@ -10,7 +10,6 @@
 
 FWxStateTreeTask_RefillItemCharges::FWxStateTreeTask_RefillItemCharges()
 {
-	// 진입 시 1회 리필만 하므로 틱이 불필요하다.
 	bShouldCallTick = false;
 
 #if WITH_EDITORONLY_DATA

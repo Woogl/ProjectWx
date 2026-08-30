@@ -22,7 +22,7 @@ class WXCOMBAT_API UWxAbility_GuardReact : public UWxAbilityBase
 public:
 	UWxAbility_GuardReact();
 
-	/** 페이즈 몽타주는 길이가 곧 연출 규칙이므로 ASPD를 반영하지 않는다. */
+	/** 가드 반응 몽타주는 길이가 곧 연출 규칙이므로 ASPD를 반영하지 않는다. */
 	virtual float GetMontagePlayRate() const override;
 
 protected:

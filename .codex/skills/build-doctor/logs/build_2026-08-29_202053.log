@@ -1,0 +1,12 @@
+Using bundled DotNet SDK version: 10.0 win-x64
+Running UnrealBuildTool: dotnet "..\\..\\Engine\\Binaries\\DotNET\\UnrealBuildTool\\UnrealBuildTool.dll" WxEditor Win64 DebugGame -Project=C:\\Wx\\Wx.uproject -WaitMutex -NoHotReload
+Log file: C:\\Users\\woojo\\AppData\\Local\\UnrealBuildTool\\Log.txt
+Determining max actions to execute in parallel (20 physical cores, 28 logical cores)
+Using 'git status' to determine working set for adaptive non-unity build (C:\\Wx).
+UbaServer - Listening on 0.0.0.0:1345
+Invalidating makefile for WxEditor (source file removed)
+Unable to build while Live Coding is active. Exit the editor and game, or press Ctrl+Alt+F11 if iterating on code in the editor or game
+
+Result: Failed (OtherCompilationError)
+Total execution time: 2.05 seconds
+Trace written to file C:\\Users\\woojo\\AppData\\Local\\UnrealBuildTool\\Trace.uba with size 2.6kb

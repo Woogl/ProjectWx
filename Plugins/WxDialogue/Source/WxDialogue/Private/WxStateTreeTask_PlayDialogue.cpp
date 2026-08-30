@@ -12,7 +12,6 @@
 
 FWxStateTreeTask_PlayDialogue::FWxStateTreeTask_PlayDialogue()
 {
-	// 완료를 세션의 종료 신호로 받으므로 볼 것이 없다.
 	bShouldCallTick = false;
 
 	// 진행 중인 대사를 같은 상태의 재선택으로 처음부터 다시 열지 않는다.

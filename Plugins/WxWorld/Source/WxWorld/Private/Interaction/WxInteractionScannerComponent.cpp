@@ -193,7 +193,7 @@ void UWxInteractionScannerComponent::HandleScanTimer()
 
 void UWxInteractionScannerComponent::UpdateInRange(const TArray<AActor*>& InCandidates)
 {
-	// 선택 안정성을 위해 갱신 전 선택 액터를 포인터로 캐시한다. 순서가 바뀌어도 동일 액터를 다시 찾아 선택을 잇는다.
+	// 순서가 바뀌어도 동일 액터를 다시 찾아 선택을 잇는다.
 	AActor* PreviousSelected = GetSelectedActor();
 
 	bool bChanged = false;
@@ -280,7 +280,7 @@ void UWxInteractionScannerComponent::SetActorHighlighted(AActor* Actor, bool bHi
 		return;
 	}
 
-	// 보이지 않는 것은 건너뛴다 — 캡슐·트리거처럼 렌더링되지 않는 형상까지 켜 봐야 외곽선에 기여하지 않는다.
+	// 캡슐·트리거처럼 렌더링되지 않는 형상은 켜 봐야 외곽선에 기여하지 않는다.
 	for (UActorComponent* Component : Actor->GetComponents())
 	{
 		UPrimitiveComponent* Primitive = Cast<UPrimitiveComponent>(Component);

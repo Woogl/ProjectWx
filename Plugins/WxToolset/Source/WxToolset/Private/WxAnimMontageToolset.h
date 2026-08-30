@@ -46,7 +46,6 @@ public:
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static bool AddNotify(UAnimMontage* Montage, TSubclassOf<UAnimNotify> NotifyClass, FName SectionName, float OffsetInSection, int32 TrackIndex);
 
-	/** 저작 결과를 디스크에 쓴다. */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static bool SaveMontage(UAnimMontage* Montage);
 };

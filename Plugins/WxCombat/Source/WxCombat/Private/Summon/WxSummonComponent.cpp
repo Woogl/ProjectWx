@@ -19,7 +19,7 @@ bool UWxSummonComponent::RegisterSummon(APawn* Summon)
 		return false;
 	}
 
-	for (const FActiveSummon& ActiveSummon : ActiveSummons)
+	for (const FWxActiveSummon& ActiveSummon : ActiveSummons)
 	{
 		if (ActiveSummon.Pawn.Get() == Summon)
 		{
@@ -27,7 +27,7 @@ bool UWxSummonComponent::RegisterSummon(APawn* Summon)
 		}
 	}
 
-	FActiveSummon& ActiveSummon = ActiveSummons.AddDefaulted_GetRef();
+	FWxActiveSummon& ActiveSummon = ActiveSummons.AddDefaulted_GetRef();
 	ActiveSummon.Pawn = Summon;
 	Summon->OnEndPlay.AddDynamic(this, &UWxSummonComponent::HandleSummonEndPlay);
 
@@ -80,7 +80,7 @@ void UWxSummonComponent::RemoveSummonAt(int32 SummonIndex, bool bDestroyActor)
 		return;
 	}
 
-	FActiveSummon ActiveSummon = MoveTemp(ActiveSummons[SummonIndex]);
+	FWxActiveSummon ActiveSummon = MoveTemp(ActiveSummons[SummonIndex]);
 	ActiveSummons.RemoveAtSwap(SummonIndex);
 
 	if (APawn* Summon = ActiveSummon.Pawn.Get())

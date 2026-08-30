@@ -70,14 +70,12 @@ static const FWxDamageExecutionStatics& GetDamageExecutionStatics()
 
 static float CalculateDefenseMultiplier(float TargetDEF)
 {
-	// 방어 저항 = 100 / (100 × 방어력)
 	static constexpr float DefenseConstant = 100.f;
 	return DefenseConstant / (DefenseConstant + TargetDEF);
 }
 
 static float CalculateBaseDamage(float SourceATK, float ATKCoeff, float DefenseMultiplier)
 {
-	// 기본 피해 = 공격력 × 공격 계수 × 방어 보정
 	return FMath::Max(SourceATK * ATKCoeff * DefenseMultiplier, 0.f);
 }
 
@@ -85,7 +83,6 @@ static float CalculateCriticalMultiplier(float SourceCritDMG, bool bIsCritical)
 {
 	if (bIsCritical)
 	{
-		// 1 + 치명피해(%)
 		return 1.f + SourceCritDMG * 0.01f;
 	}
 	return 1.f;	

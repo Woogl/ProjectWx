@@ -50,7 +50,6 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	TotalTime = Duration;
 	ElapsedTime = 0.f;
 
-	// 감속 GE 부여·제거는 Patrol 과 동일하다.
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
 	if (ASC && MoveSpeedEffect)
 	{

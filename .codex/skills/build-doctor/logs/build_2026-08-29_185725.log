@@ -1,0 +1,75 @@
+Using bundled DotNet SDK version: 10.0 win-x64
+Running UnrealBuildTool: dotnet "..\..\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.dll" WxEditor Win64 Development -Project=C:\Wx\Wx.uproject -WaitMutex
+Log file: C:\Users\woojo\AppData\Local\UnrealBuildTool\Log.txt
+Determining max actions to execute in parallel (20 physical cores, 28 logical cores)
+  Executing up to 20 processes, one per physical core
+Using 'git status' to determine working set for adaptive non-unity build (C:\Wx).
+UbaServer - Listening on 0.0.0.0:1345
+Invalidating makefile for WxEditor (source file removed)
+UHT compiled-in object format Default
+Building WxEditor...
+===== Toolchain Information =====
+Using ISPC compiler (C:\Program Files\Epic Games\UE_5.8\Engine\Source\ThirdParty\Intel\ISPC\bin\Windows\ispc.exe)
+  Intel(r) Implicit SPMD Program Compiler (Intel(r) ISPC), 1.24.0 (build commit  @ 20250404, LLVM 18.1.2) 
+Using Visual Studio 14.50.35737 toolchain (C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717) and Windows 10.0.22621.0 SDK (C:\Program Files (x86)\Windows Kits\10).
+[Adaptive Build] Excluded from WxCore unity file: WxGameplayTags.cpp
+[Adaptive Build] Excluded from WxGame unity file: WxAbility_Interact.cpp, WxAbility_UseItem.cpp, WxAbilityAction_UseItem.cpp, WxEnemyCharacter.cpp, WxPlayerCharacter.cpp
+[Adaptive Build] Excluded from WxCombat unity file: WxAbilityBase.cpp, WxAbility_BeingFinished.cpp, WxAbility_Finisher.cpp, WxAbilityAction.cpp, WxAbilityAction_ApplyFinisherDamage.cpp, WxAbilityAction_SpawnProjectile.cpp, WxAbilityAction_SummonActor.cpp, WxAnimNotify_ExecuteAbilityAction.cpp, WxSummonComponent.cpp
+=================================
+Using Unreal Build Accelerator local executor to run 38 action(s)
+  CPU 20 physical cores, 28 logical cores
+  Memory 63.79 GB physical, 24.25 GB/67.79 GB committed
+  UBA Storage capacity 40 GB
+[1/38] Compile [x64] WxGameplayTags.cpp
+[2/38] Link [x64] UnrealEditor-WxCore.lib
+   C:/Wx/Plugins/WxCore/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxCore/UnrealEditor-WxCore.lib 라이브러리 및 C:/Wx/Plugins/WxCore/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxCore/UnrealEditor-WxCore.exp 개체를 생성하고 있습니다.
+[3/38] Compile [x64] WxAnimNotify_ExecuteAbilityAction.cpp
+[4/38] Compile [x64] WxAbilityAction_ApplyFinisherDamage.cpp
+[5/38] Compile [x64] WxAbilityAction_SpawnProjectile.cpp
+[6/38] Compile [x64] WxAbility_BeingFinished.cpp
+[7/38] Compile [x64] WxAbilityAction_SummonActor.cpp
+[8/38] Link [x64] UnrealEditor-WxCore.dll
+[9/38] Compile [x64] WxSummonComponent.cpp
+[10/38] Compile [x64] WxAbility_Finisher.cpp
+[11/38] Compile [x64] WxAbilityBase.cpp
+[12/38] Compile [x64] Module.WxAI.cpp
+[13/38] Link [x64] UnrealEditor-WxAI.lib
+   C:/Wx/Plugins/WxAI/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxAI/UnrealEditor-WxAI.lib 라이브러리 및 C:/Wx/Plugins/WxAI/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxAI/UnrealEditor-WxAI.exp 개체를 생성하고 있습니다.
+[14/38] Compile [x64] WxAbilityAction_UseItem.cpp
+[15/38] Compile [x64] WxAbility_UseItem.cpp
+[16/38] Link [x64] UnrealEditor-WxAI.dll
+[17/38] Compile [x64] WxAbility_Interact.cpp
+[18/38] Compile [x64] Module.WxDialogue.cpp
+[19/38] Link [x64] UnrealEditor-WxDialogue.lib
+   C:/Wx/Plugins/WxDialogue/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxDialogue/UnrealEditor-WxDialogue.lib 라이브러리 및 C:/Wx/Plugins/WxDialogue/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxDialogue/UnrealEditor-WxDialogue.exp 개체를 생성하고 있습니다.
+[20/38] Compile [x64] WxEnemyCharacter.cpp
+[21/38] Link [x64] UnrealEditor-WxDialogue.dll
+[22/38] Compile [x64] WxPlayerCharacter.cpp
+[23/38] Compile [x64] Module.WxInventory.cpp
+[24/38] Link [x64] UnrealEditor-WxInventory.lib
+   C:/Wx/Plugins/WxInventory/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxInventory/UnrealEditor-WxInventory.lib 라이브러리 및 C:/Wx/Plugins/WxInventory/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxInventory/UnrealEditor-WxInventory.exp 개체를 생성하고 있습니다.
+[25/38] Link [x64] UnrealEditor-WxInventory.dll
+[26/38] Compile [x64] Module.WxUI.cpp
+[27/38] Link [x64] UnrealEditor-WxUI.lib
+   C:/Wx/Plugins/WxUI/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxUI/UnrealEditor-WxUI.lib 라이브러리 및 C:/Wx/Plugins/WxUI/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxUI/UnrealEditor-WxUI.exp 개체를 생성하고 있습니다.
+[28/38] Link [x64] UnrealEditor-WxUI.dll
+[29/38] Compile [x64] Module.WxCombat.cpp
+[30/38] Link [x64] UnrealEditor-WxCombat.lib
+   C:/Wx/Plugins/WxCombat/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxCombat/UnrealEditor-WxCombat.lib 라이브러리 및 C:/Wx/Plugins/WxCombat/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxCombat/UnrealEditor-WxCombat.exp 개체를 생성하고 있습니다.
+[31/38] Link [x64] UnrealEditor-WxCombat.dll
+[32/38] Compile [x64] Module.WxWorld.cpp
+[33/38] Link [x64] UnrealEditor-WxWorld.lib
+   C:/Wx/Plugins/WxWorld/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxWorld/UnrealEditor-WxWorld.lib 라이브러리 및 C:/Wx/Plugins/WxWorld/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxWorld/UnrealEditor-WxWorld.exp 개체를 생성하고 있습니다.
+[34/38] Link [x64] UnrealEditor-WxWorld.dll
+[35/38] Compile [x64] Module.WxGame.cpp
+[36/38] Link [x64] UnrealEditor-WxGame.lib
+   C:/Wx/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxGame/UnrealEditor-WxGame.lib 라이브러리 및 C:/Wx/Intermediate/Build/Win64/x64/UnrealEditor/Development/WxGame/UnrealEditor-WxGame.exp 개체를 생성하고 있습니다.
+[37/38] Link [x64] UnrealEditor-WxGame.dll
+[38/38] WriteMetadata WxEditor.target [NoUba]
+
+Total time in Unreal Build Accelerator local executor: 16.57 seconds
+Output binary: C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe
+
+Result: Succeeded
+Total execution time: 19.55 seconds
+Trace written to file C:\Users\woojo\AppData\Local\UnrealBuildTool\Trace.uba with size 15.6kb

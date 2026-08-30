@@ -11,7 +11,7 @@ class USceneComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnLockOnTargetChanged, USceneComponent*, NewTarget);
 
 /**
- * 대상을 액터가 아닌 SceneComponent 단위로 들고 있어 부위별 락온으로 확장할 수 있고, 액터 전체를 가리키려면 루트 컴포넌트를 넘기면 된다.
+ * 대상을 액터가 아닌 SceneComponent 단위로 들고 있어 부위별 락온으로 확장할 수 있다.
  *
  * 발사체 방향·몽타주 스냅 등 서버와 시뮬프록시 소비처가 일관된 값을 읽어야 하므로 서버 권위로 전 머신에 복제한다.
  * 컴포넌트 레퍼런스 복제는 대상이 네트워크 주소를 가질 때만 원격에서 해소된다 — 디폴트 서브오브젝트는 안전하지만 동적 생성한 비복제 컴포넌트는 null로 도착할 수 있다.

@@ -18,7 +18,7 @@ void UWxButtonBase::NativePreConstruct()
 
 	if (IsDesignTime() && InputActionWidget)
 	{
-		// EI 액션은 스톡 디자인타임 경로가 다루지 않으므로 여기서 직접 피드한다.
+		// 스톡 경로는 GameInstance가 있어야 입력 액션을 피드하므로, 디자인타임엔 여기서 직접 피드한다.
 		const bool bHasEnhancedAction = TriggeringEnhancedInputAction != nullptr;
 		if (bHideInputAction || (TriggeringInputAction.IsNull() && !bHasEnhancedAction))
 		{

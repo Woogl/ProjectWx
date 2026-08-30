@@ -113,7 +113,6 @@ void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, co
 		DamageEventTask = nullptr;
 	}
 
-	// 중단·캔슬도 이 경로를 지나므로 앞잡·뒤잡 모두 GP 초기화가 몽타주 종료 방식과 무관하게 한 번 일어난다.
 	if (ActorInfo && ActorInfo->IsNetAuthority())
 	{
 		if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(TargetActor.Get()))

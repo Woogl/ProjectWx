@@ -170,13 +170,13 @@ protected:
 	void OnRep_ASPD(const FGameplayAttributeData& OldASPD);
 
 private:
-	struct FMaxAttributePair
+	struct FWxMaxAttributePair
 	{
 		FGameplayAttribute Attribute;
 		FGameplayAttribute MaxAttribute;
 	};
 
-	static const FMaxAttributePair* FindAttributeMaxPair(const FGameplayAttribute& Attribute);
+	static const FWxMaxAttributePair* FindMaxAttributePair(const FGameplayAttribute& Attribute);
 	float ClampAttributeValue(const FGameplayAttribute& Attribute, float NewValue) const;
 	void AdjustCurrentAttributeForMaxChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue);
 	

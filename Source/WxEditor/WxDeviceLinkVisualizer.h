@@ -9,7 +9,7 @@
  *
  * 그릴 대상·시점은 엔진이 정하므로 선택 추적도 편집 이벤트 구독도 없다.
  *
- * 등록 키는 엔진이 비워 둔 UStateTreeComponent 다 — 배선은 액터가 들고 있는데 비주얼라이저는 컴포넌트 클래스로만 등록되고, 장치의 컴포넌트는 WxWorld Private 이라 여기서 잡을 수 없다.
+ * 등록 키는 엔진이 비워 둔 UStateTreeComponent 다 — 배선은 액터가 들고 있는데 비주얼라이저는 컴포넌트 클래스로만 등록되고, 장치의 UWxDeviceStateTreeComponent 는 모듈 밖으로 export 되지 않아 여기서 잡을 수 없다.
  *
  * 루트가 아닌 컴포넌트에 걸려 있어 레벨 에디터의 Show Selection Subcomponents(기본 켜짐)를 끄면 그려지지 않는다.
  */
