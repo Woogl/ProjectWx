@@ -20,7 +20,7 @@
 | `WxBlackboardKeys` | BB 키 이름·타입 accessor 규약(SelfActor/TargetActor/HomeLocation/PatrolTargetLocation/TargetDistance) | `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` |
 | `UWxBTComposite_RandomChoice` | 조건·가중치로 후보를 걸러 무작위 1개 실행(Selector 폴백 없음) | `Plugins/WxAI/Source/WxAI/Public/WxBTComposite_RandomChoice.h` |
 | `UWxBTDecorator_BeyondLeash` | 앵커에서 `LeashRadius` 이탈 판정으로 복귀 브랜치 게이팅(폴링+RequestExecution) | `Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_BeyondLeash.h` |
-| `UWxBTTask_ReturnHome` | 리시 복귀 이동 + 복귀 중 재감지 억제(`SetTargetingSuppressed`) | `Plugins/WxAI/Source/WxAI/Public/WxBTTask_ReturnHome.h` |
+| `UWxBTTask_ReturnHome` | 리시 복귀 이동 + 현재 타겟 기억 초기화 후 재감지 허용 | `Plugins/WxAI/Source/WxAI/Public/WxBTTask_ReturnHome.h` |
 | `UWxBTTask_ActivateAbility` | `AbilityTag`로 어빌리티 발동, 종료 결과를 노드 결과로 변환 | `Plugins/WxAI/Source/WxAI/Public/WxBTTask_ActivateAbility.h` |
 | `UWxBTTask_Patrol` | `MoveTo` 상속, 도착 시 `UWxPatrolComponent` 커서 진행 | `Plugins/WxAI/Source/WxAI/Public/WxBTTask_Patrol.h` |
 | `UWxPatrolComponent` | 스플라인 정찰 경로(상태 없음), `FindPatrolComponent`로 조회 | `Plugins/WxAI/Source/WxAI/Public/WxPatrolComponent.h` |

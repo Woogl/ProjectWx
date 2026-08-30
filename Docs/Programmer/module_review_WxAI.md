@@ -1,61 +1,48 @@
 # WxAI — 코드 리뷰
 
-> 지각·BT 노드·정찰 경로의 책임 분리가 명확하고 의존성도 `WxCore` 하나에 머무는, 전반적으로 건강한 모듈이다. 규칙 위반(prefix·Handle 콜백·람다·인라인 정의·`BlueprintCallable`·저작권 헤더)은 한 건도 없다. 이번 리뷰는 Public 헤더 15개·Private cpp 14개를 훑고 퍼셉션 수명주기, 어빌리티 발동 Task, 리시 복귀 분업, 가중 무작위 Composite, 정찰/배회 이동을 깊게 봤으며 소비자인 `AWxEnemyController`까지 대조했다.
+> 지각·Behavior Tree 노드·정찰 경로의 책임 분리와 `WxCore`만 참조하는 모듈 경계는 건강하다. Public 헤더 15개와 Private cpp 14개를 모두 훑고, 타겟 수명·리시 복귀·어빌리티 Task·무작위 Composite·정찰/배회 상태 관리를 깊게 검토했다.
 
 ## 요약
 | 심각도 | 개수 |
 | --- | --- |
-| 🟡 개선 | 4 |
-| 🟢 사소 | 2 |
+| 🔴 심각 | 0 |
+| 🟡 개선 | 3 |
+| 🟢 사소 | 1 |
 
 ## 결과
 
-### 1. 🟡 빙의 전환 때 이전 폰의 전투 상태와 타겟이 정리되지 않는다
-- **위치**: `Plugins/WxAI/Source/WxAI/Private/WxAIPerceptionComponent.cpp:255`
+### 1. 🟡 타겟 억제 중 성공 자극이 Blackboard와 포커스를 다시 채운다
+- **위치**: `Plugins/WxAI/Source/WxAI/Private/WxAIPerceptionComponent.cpp:99`, `Plugins/WxAI/Source/WxAI/Private/WxAIPerceptionComponent.cpp:153`
 - **범주**: 버그/정확성
-- **문제**: `HandlePossessedPawnChanged`는 `BindPawnHit(NewPawn)` 한 줄뿐이다. `SetRecognized`가 `GetOwnerPawn()`(현재 폰)의 ASC에만 태그를 쓰므로(`:128`), 언빙의/재빙의 시 이전 폰 ASC에 발행한 `State.InCombat`은 제거되지 않고 남는다. Blackboard `TargetActor`·`AppliedTarget`·컨트롤러 포커스·`bUseControllerDesiredRotation` 변경도 그대로 유지돼, 새 폰은 이전 타겟을 향한 상태로 시작한다. 소비자인 `AWxEnemyController::OnUnPossess`도 `SelfActor`만 비우므로(`Source/WxGame/Controller/WxEnemyController.cpp:56`) 이 정리를 대신하지 않는다.
-- **제안**: `OldPawn`이 유효하면 그 ASC에서 `State.InCombat`을 명시적으로 제거하고, `SetTargetActor(nullptr)`로 타겟·포커스·회전 모드·소실 구독을 함께 되돌린 뒤 새 폰을 바인드한다.
+- **문제**: `SetTargetingSuppressed(true)`는 현재 타겟을 비워 `AppliedTarget`도 비운다. 그러나 이후 `HandleTargetPerceptionUpdated`의 획득 조건에는 `bTargetingSuppressed` 검사가 없어, 복귀 중 대상이 시야에 재진입하거나 새 Hearing/Damage 자극이 오면 `SetTargetActor(Actor)`가 다시 실행된다. `UpdateRecognition`은 `State.InCombat`만 꺼 두므로 Blackboard `TargetActor`, AI 포커스, strafe 회전 모드는 억제 상태와 모순되게 복구된다.
+- **제안**: 성공 자극의 타겟 획득 조건에 `!bTargetingSuppressed`를 추가한다. Perception 내부 자극은 그대로 유지해 억제 해제 시 현재 Sight를 스캔하는 기존 재획득 경로가 사용하게 한다.
 - **확신도**: 높음
 
-### 2. 🟡 어빌리티 취소가 거부돼도 BT 중단이 즉시 완료된다
-- **위치**: `Plugins/WxAI/Source/WxAI/Private/WxBTTask_ActivateAbility.cpp:96`
+### 2. 🟡 빙의 전환 시 이전 폰의 `State.InCombat` 태그가 남는다
+- **위치**: `Plugins/WxAI/Source/WxAI/Private/WxAIPerceptionComponent.cpp:124`, `Plugins/WxAI/Source/WxAI/Private/WxAIPerceptionComponent.cpp:251`
 - **범주**: 버그/정확성
-- **문제**: `AbortTask`가 `CleanUp()`으로 종료 델리게이트를 먼저 해제한 뒤 `CancelAbilityHandle`을 부르고 곧바로 `Super::AbortTask`로 중단을 확정한다(`:102`~`:109`). `CanBeCanceled()`가 거짓이거나 취소가 scope lock으로 지연된 어빌리티는 실제로는 계속 실행되는데 BT만 다음 브랜치로 넘어간다. 이때 남은 몽타주·히트박스·GameplayEffect 위에 새 행동이 겹치고, 구독을 이미 끊었으므로 실제 종료 시점도 추적하지 못한다.
-- **제안**: 취소 직후 `FindAbilitySpecFromHandle`로 spec이 여전히 `IsActive()`인지 확인한다. 활성이면 구독을 유지하고 `EBTNodeResult::InProgress`(지연 중단)를 반환해 종료 콜백에서 `FinishLatentAbort`를 호출한다. 취소 불가 어빌리티를 BT에 매달지 않는 것이 저작 규약이라면 최소한 런타임 경고를 남긴다.
-- **확신도**: 중간
+- **문제**: `HandlePossessedPawnChanged`는 전달받은 `OldPawn`을 사용하지 않고 `SetTargetActor(nullptr)` 뒤 `UpdateRecognition()`을 호출한다. 이 델리게이트 시점에는 컨트롤러의 Pawn이 이미 `NewPawn` 또는 null이므로, `SetRecognized(false)`가 조회하는 ASC도 이전 폰이 아니다. 따라서 이전 폰에 `AddMinimalReplicationGameplayTag`로 발행했던 `State.InCombat`은 언빙의·컨트롤러 재사용 후에도 남아 부활·풀링 시 잘못된 전투 상태로 이어질 수 있다.
+- **제안**: `OldPawn`의 ASC에서 `State.InCombat`을 명시적으로 제거하는 헬퍼를 두고, 현재 타겟·포커스 정리와 새 폰 바인딩 전에 호출한다.
+- **확신도**: 높음
 
-### 3. 🟡 감지 자극이 올 때마다 현재 타겟을 무조건 교체한다
-- **위치**: `Plugins/WxAI/Source/WxAI/Private/WxAIPerceptionComponent.cpp:103`
-- **범주**: 설계/구조
-- **문제**: `HandleTargetPerceptionUpdated`는 성공 자극이면 살아있는지만 확인하고 `SetTargetActor(Actor)`로 덮어쓴다. 우선순위 판단이 없어, A와 교전 중에 B가 시야 가장자리(최대 1500cm)에 들어오거나 멀리서 소음(`HearingRange` 1000cm)을 내기만 해도 타겟·포커스가 B로 넘어가 근접전을 중단하고 이탈한다. 같은 클래스가 억제 해제 경로에서는 "가장 가까운 적"을 고르며 그 이유를 주석으로 남겨 두었으므로(`:181`), 두 경로의 선택 정책이 서로 어긋나 있다.
-- **제안**: 교체 정책을 한 곳에 모은다. 예를 들어 현재 타겟이 유효한 동안에는 Damage 자극이거나 거리가 뚜렷하게 가까울 때만 교체하고, 그 외에는 인식 갱신만 하도록 게이트를 둔다. "최신 자극 우선"이 의도라면 억제 해제 경로도 같은 규칙으로 맞추고 헤더 doc에 명시한다.
-- **확신도**: 중간
-
-### 4. 🟡 AttributeRatio 데코레이터는 실행 중 조건 변화를 관찰할 수 없다
+### 3. 🟡 `AttributeRatio`는 실행 중 어트리뷰트 변화로 트리를 재평가할 수 없다
 - **위치**: `Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_AttributeRatio.cpp:11`
 - **범주**: 설계/구조
-- **문제**: 생성자가 `bAllowAbortLowerPri`·`bAllowAbortChildNodes`를 모두 끄므로 에디터에서 `FlowAbortMode`를 `None` 외의 값으로 지정할 수 없다. 이 데코레이터는 Blackboard 키를 관찰하지도, `UWxBTDecorator_BeyondLeash`처럼 `TickNode` 폴링을 하지도 않아 조건은 트리 탐색 시점에만 평가된다. 결과적으로 저체력 전환(도주·광폭화) 브랜치는 현재 공격 태스크가 끝날 때까지 시작되지 않는다.
-- **제안**: 즉시 전환이 필요한 용도면 abort 허용 플래그를 열고 `BeyondLeash`와 같은 폴링 + `RequestExecution` 패턴을 쓴다. 태스크 경계 평가가 의도라면 그 제약을 헤더 doc과 `GetStaticDescription`에 드러내 BT 저작자가 오해하지 않게 한다.
-- **확신도**: 중간
+- **문제**: 생성자가 `bAllowAbortLowerPri`와 `bAllowAbortChildNodes`를 모두 끄고, Blackboard 관찰·Tick 폴링·ASC 변화 구독도 제공하지 않는다. 따라서 비율 조건은 트리 탐색 시점에만 평가되며, HP 임계치 기반 도주·광폭화 같은 브랜치는 현재 실행 중인 Task가 끝날 때까지 전환될 수 없다.
+- **제안**: 즉시 반응이 필요한 노드라면 abort 모드를 허용하고 ASC 어트리뷰트 변화 구독 또는 제한 주기 폴링으로 `RequestExecution`을 호출한다. 스냅샷 판정이 의도라면 그 제약을 헤더와 노드 설명에 명시한다.
+- **확신도**: 낮음(의도된 설계일 수 있음)
 
-### 5. 🟢 Patrol과 Wander의 감속 GameplayEffect 수명 관리가 그대로 중복된다
-- **위치**: `Plugins/WxAI/Source/WxAI/Private/WxBTTask_Patrol.cpp:58`, `Plugins/WxAI/Source/WxAI/Private/WxBTTask_Wander.cpp:54`
+### 4. 🟢 Patrol과 Wander가 감속 GameplayEffect 수명 코드를 중복한다
+- **위치**: `Plugins/WxAI/Source/WxAI/Private/WxBTTask_Patrol.cpp:58`, `Plugins/WxAI/Source/WxAI/Private/WxBTTask_Wander.cpp:53`
 - **범주**: 중복/복잡도
-- **문제**: `MakeOutgoingSpec` → `SetSetByCallerMagnitude(SetByCaller.MoveSpeedScale, ...)` → `ApplyGameplayEffectSpecToSelf` 부여와 `OnTaskFinished`의 `RemoveActiveGameplayEffect` + 핸들 리셋이 두 Task에 문자 그대로 같은 형태로 존재한다. `MoveSpeedMultiplier`/`MoveSpeedEffect` 프로퍼티 선언과 `GetStaticDescription`의 "감속 GE 미지정" 분기까지 중복이라, SetByCaller 태그나 제거 규약을 바꿀 때 한쪽만 고칠 위험이 있다.
-- **제안**: 상속 계층을 넓히지 말고, 부여/해제를 담당하는 작은 내부 헬퍼(예: Private의 자유 함수 한 쌍)로 추출해 두 Task가 같은 코드를 공유하게 한다.
+- **문제**: 두 Task가 `MakeOutgoingSpec` → `SetSetByCallerMagnitude` → `ApplyGameplayEffectSpecToSelf` 적용과 `OnTaskFinished`의 제거·핸들 초기화를 같은 형태로 반복한다. SetByCaller 태그나 제거 정책이 바뀌면 두 구현이 어긋날 수 있다.
+- **제안**: Private 범위의 작은 헬퍼로 감속 GE 적용과 제거를 모아 두 Task가 같은 수명 규약을 공유하게 한다.
 - **확신도**: 높음
-
-### 6. 🟢 Wander는 내비게이션을 거치지 않고 원시 이동 입력만 넣는다
-- **위치**: `Plugins/WxAI/Source/WxAI/Private/WxBTTask_Wander.cpp:98`
-- **범주**: 버그/정확성
-- **문제**: 실행 시점에 정한 고정 방향으로 `AddMovementInput`만 호출할 뿐 내비메시 투영도, 목적지 유효성 검사도 없다. 오픈월드 지형에서는 배회가 캐릭터를 낭떠러지 아래나 내비메시 밖으로 밀어낼 수 있고, 그 상태에서는 후속 `UWxBTTask_ReturnHome`의 `UBTTask_MoveTo`가 경로를 못 찾아 동기 실패하며(`WxBTTask_ReturnHome.cpp:24`) 억제도 켜지지 않아 복귀가 성립하지 않는다.
-- **제안**: 이동 전에 `UNavigationSystemV1::ProjectPointToNavigation`(또는 `GetRandomReachablePointInRadius`)으로 목표 지점을 검증하고, 도달 불가 방향이면 다른 방향을 고르거나 `Failed`로 마감한다.
-- **확신도**: 중간
 
 ## 검토 범위
 - **깊게 본 파일**: `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h`, `Plugins/WxAI/Source/WxAI/Private/WxAIPerceptionComponent.cpp`, `Plugins/WxAI/Source/WxAI/Public/WxBTTask_ActivateAbility.h`, `Plugins/WxAI/Source/WxAI/Private/WxBTTask_ActivateAbility.cpp`, `Plugins/WxAI/Source/WxAI/Public/WxBTComposite_RandomChoice.h`, `Plugins/WxAI/Source/WxAI/Private/WxBTComposite_RandomChoice.cpp`, `Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_BeyondLeash.h`, `Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_BeyondLeash.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTTask_ReturnHome.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTTask_Patrol.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTTask_Wander.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxPatrolComponent.cpp`
-- **훑은 파일**: `Plugins/WxAI/Source/WxAI/Private/WxBlackboardKeys.cpp`, `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h`, `Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_AttributeRatio.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_RandomWeight.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTService_TargetDistance.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxAnimNotify_ReportNoise.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxAIModule.cpp`, `Plugins/WxAI/Source/WxAI/Public/WxTeamTypes.h`, 대응 Public 헤더 전체, `Plugins/WxAI/Source/WxAI/WxAI.Build.cs`, `Plugins/WxAI/WxAI.uplugin`, `Plugins/WxAI/README.md`, 소비자 대조용 `Source/WxGame/Controller/WxEnemyController.cpp`
-- **미검토 / 한계**: Behavior Tree·Blackboard 에셋과 런타임 재현은 보지 않았다(샌드박스에 엔진 없음). 발견 2·4·6의 실제 체감은 각각 어빌리티의 취소 설정, BT 에셋의 분기 배치, 레벨 지형에 따라 달라진다. `UWxBTComposite_RandomChoice`가 사전 필터에서 `DoDecoratorsAllowExecution`을 부르고 엔진이 선택 직후 같은 검사를 다시 수행하는 이중 평가는, 부작용 있는 데코레이터를 붙이지 않는 한 문제가 되지 않아 발견으로 올리지 않았다.
+- **훑은 파일**: `Plugins/WxAI/README.md`, `Plugins/WxAI/WxAI.uplugin`, `Plugins/WxAI/Source/WxAI/WxAI.Build.cs`, `Plugins/WxAI/Source/WxAI/Public/`의 나머지 헤더, `Plugins/WxAI/Source/WxAI/Private/WxAIModule.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxAnimNotify_ReportNoise.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBlackboardKeys.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_AttributeRatio.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_RandomWeight.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTService_TargetDistance.cpp`, 연계 확인용 `Source/WxGame/Controller/WxEnemyController.cpp`
+- **미검토 / 한계**: Behavior Tree·Blackboard 에셋과 BP/WBP 내부 구조는 범위 밖이다. 로컬 UE 5.8 소스로 델리게이트·BT·GAS 수명 의미를 대조했지만 PIE 런타임 재현과 다중 클라이언트 검증은 수행하지 않았다. 접두사·Copyright 첫 줄·Handle 콜백·`BlueprintCallable`·람다·인라인 정의와 Wx 플러그인 의존 규칙에서는 위반을 찾지 못했다.
 
 ---
-*문서 기준 커밋 `b47e709` · 리뷰일 2026-08-30 · 소스 29파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `66c0f6fd` · 리뷰일 2026-08-30 · 소스 29파일 — `/module-review`로 갱신*
