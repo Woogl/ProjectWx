@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Task/WxAbilityTask_LockOnTarget.h"
+#include "AbilitySystem/Task/WxAbilityTask_LockOnCamera.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Components/SceneComponent.h"
@@ -10,12 +10,11 @@
 #include "Targeting/WxLockOnPointComponent.h"
 #include "WxGameplayTags.h"
 
-UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed, float InPitchOffset, float InMaxDistance, float InCharacterInterpSpeed, TSubclassOf<UUserWidget> InReticleWidgetClass, float InRetargetLookThreshold)
+UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed, float InPitchOffset, float InMaxDistance, TSubclassOf<UUserWidget> InReticleWidgetClass, float InRetargetLookThreshold)
 {
 	UWxAbilityTask_LockOnTarget* Task = NewAbilityTask<UWxAbilityTask_LockOnTarget>(OwningAbility);
 	Task->Target = InTarget;
 	Task->InterpSpeed = InInterpSpeed;
-	Task->CharacterInterpSpeed = InCharacterInterpSpeed;
 	Task->PitchOffset = InPitchOffset;
 	Task->MaxDistanceSquared = InMaxDistance * InMaxDistance;
 	Task->ReticleWidgetClass = InReticleWidgetClass;
@@ -79,17 +78,10 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 
 	const FRotator LookAtRotation = (TargetLocation - AvatarPawn->GetActorLocation()).Rotation();
 
-	// 회피 중에도 적을 화면에 두도록 카메라 추적은 유지한다.
 	FRotator DesiredControlRotation = LookAtRotation;
 	DesiredControlRotation.Pitch += PitchOffset;
 	const FRotator NewControlRotation = FMath::RInterpTo(PC->GetControlRotation(), DesiredControlRotation, DeltaTime, InterpSpeed);
 	PC->SetControlRotation(NewControlRotation);
-
-	// 현재 방향에서 출발하는 보간이라 활성화 순간에 튀지 않는다.
-	// 루트모션이 몸 기준이라 이 회전이 사이드 회피를 타겟 중심 호 궤적으로 만든다.
-	const FRotator DesiredActorRotation(0.f, LookAtRotation.Yaw, 0.f);
-	const FRotator NewActorRotation = FMath::RInterpTo(AvatarPawn->GetActorRotation(), DesiredActorRotation, DeltaTime, CharacterInterpSpeed);
-	AvatarPawn->SetActorRotation(FRotator(0.f, NewActorRotation.Yaw, 0.f));
 
 	UWxLockOnManagerComponent* Comp = LockOnManagerComponent.Get();
 	if (!Comp)

@@ -1,7 +1,9 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_LockOn.h"
-#include "AbilitySystem/Task/WxAbilityTask_LockOnTarget.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
+#include "AbilitySystem/Task/WxAbilityTask_LockOnCamera.h"
+#include "AbilitySystem/Task/WxAbilityTask_RotateToTarget.h"
 #include "AbilitySystemComponent.h"
 #include "Components/SceneComponent.h"
 #include "GameFramework/Character.h"
@@ -74,16 +76,25 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
+	ListenForDodgeRotation();
+
 	// 소유 클라는 로컬 즉시 반영 + 서버 RPC, 리슨 호스트는 권위 직접 반영(복제는 컴포넌트 몫).
-	if (UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(GetOwningActorFromActorInfo()))
+	LockOnManagerComponent = UWxLockOnManagerComponent::FindComponent(GetOwningActorFromActorInfo());
+	if (UWxLockOnManagerComponent* LockOnComp = LockOnManagerComponent.Get())
 	{
+		LockOnComp->OnLockOnTargetChanged.AddDynamic(this, &UWxAbility_LockOn::HandleLockOnTargetChanged);
 		LockOnComp->SetLockOnTarget(TargetComponent);
 	}
+	else if (!IsDodgeActive())
+	{
+		StartRotateToTargetTask(TargetComponent);
+	}
 
-	LockOnTask = UWxAbilityTask_LockOnTarget::CreateTask(this, TargetComponent, CameraInterpSpeed, CameraPitchOffset, MaxDistance, CharacterInterpSpeed, ReticleWidgetClass, RetargetLookThreshold);
+	LockOnTask = UWxAbilityTask_LockOnTarget::CreateTask(this, TargetComponent, CameraInterpSpeed, CameraPitchOffset, MaxDistance, ReticleWidgetClass, RetargetLookThreshold);
 	LockOnTask->OnTargetLost.AddDynamic(this, &UWxAbility_LockOn::HandleTargetLost);
 	LockOnTask->OnRetargetRequested.AddDynamic(this, &UWxAbility_LockOn::HandleRetargetRequested);
 	LockOnTask->ReadyForActivation();
+
 }
 
 void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -92,10 +103,13 @@ void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 	// 그래야 아직 살아있는 태스크가 컴포넌트의 null 변경 브로드캐스트를 받아 레티클을 즉시 정리한다.
 	if (ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
 	{
-		if (UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(GetOwningActorFromActorInfo()))
+		if (UWxLockOnManagerComponent* LockOnComp = LockOnManagerComponent.Get())
 		{
+			LockOnComp->OnLockOnTargetChanged.RemoveDynamic(this, &UWxAbility_LockOn::HandleLockOnTargetChanged);
 			LockOnComp->SetLockOnTarget(nullptr);
 		}
+		LockOnManagerComponent = nullptr;
+		StopRotateToTargetTask();
 
 		if (SavedOrientRotationToMovement.IsSet())
 		{
@@ -112,6 +126,66 @@ void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
 	LockOnTask = nullptr;
+}
+
+void UWxAbility_LockOn::HandleLockOnTargetChanged(USceneComponent* NewTarget)
+{
+	StopRotateToTargetTask();
+
+	if (NewTarget && !IsDodgeActive())
+	{
+		StartRotateToTargetTask(NewTarget);
+	}
+}
+
+void UWxAbility_LockOn::HandleDodgeTagAdded()
+{
+	StopRotateToTargetTask();
+}
+
+void UWxAbility_LockOn::HandleDodgeTagRemoved()
+{
+	if (UWxLockOnManagerComponent* LockOnComp = LockOnManagerComponent.Get())
+	{
+		StartRotateToTargetTask(LockOnComp->GetLockOnTarget());
+	}
+}
+
+void UWxAbility_LockOn::ListenForDodgeRotation()
+{
+	UAbilityTask_WaitGameplayTagAdded* AddedTask = UAbilityTask_WaitGameplayTagAdded::WaitGameplayTagAdd(this, WxGameplayTags::Ability_Dodge, nullptr, false);
+	AddedTask->Added.AddDynamic(this, &UWxAbility_LockOn::HandleDodgeTagAdded);
+	AddedTask->ReadyForActivation();
+
+	UAbilityTask_WaitGameplayTagRemoved* RemovedTask = UAbilityTask_WaitGameplayTagRemoved::WaitGameplayTagRemove(this, WxGameplayTags::Ability_Dodge, nullptr, false);
+	RemovedTask->Removed.AddDynamic(this, &UWxAbility_LockOn::HandleDodgeTagRemoved);
+	RemovedTask->ReadyForActivation();
+}
+
+void UWxAbility_LockOn::StartRotateToTargetTask(USceneComponent* TargetComponent)
+{
+	if (!TargetComponent || RotateToTargetTask)
+	{
+		return;
+	}
+
+	RotateToTargetTask = UWxAbilityTask_RotateToTarget::CreateTask(this, TargetComponent, CharacterInterpSpeed);
+	RotateToTargetTask->ReadyForActivation();
+}
+
+void UWxAbility_LockOn::StopRotateToTargetTask()
+{
+	if (RotateToTargetTask)
+	{
+		RotateToTargetTask->EndTask();
+		RotateToTargetTask = nullptr;
+	}
+}
+
+bool UWxAbility_LockOn::IsDodgeActive() const
+{
+	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	return ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Dodge);
 }
 
 void UWxAbility_LockOn::HandleTargetLost()

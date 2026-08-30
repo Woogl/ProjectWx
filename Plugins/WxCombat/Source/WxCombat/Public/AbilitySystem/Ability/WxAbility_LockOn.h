@@ -8,12 +8,15 @@
 
 class UTargetingPreset;
 class UUserWidget;
+class USceneComponent;
 class UWxAbilityTask_LockOnTarget;
+class UWxAbilityTask_RotateToTarget;
+class UWxLockOnManagerComponent;
 
 /**
  * 입력으로 켜고 재입력으로 끄며, 대상을 잃으면 재탐색하거나 해제한다.
  *
- * 카메라가 타겟을 추적하고, 락온 태스크가 캐릭터를 타겟 방향으로 부드럽게 회전시킨다(그동안 OrientToMovement는 끈다).
+ * 카메라와 캐릭터 회전 태스크가 각각 타겟을 추적하며, 락온 중에는 OrientToMovement를 끈다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAbility_LockOn : public UWxAbilityBase
@@ -64,15 +67,33 @@ private:
 	UFUNCTION()
 	void HandleTargetLost();
 
+	UFUNCTION()
+	void HandleLockOnTargetChanged(USceneComponent* NewTarget);
+
+	UFUNCTION()
+	void HandleDodgeTagAdded();
+
+	UFUNCTION()
+	void HandleDodgeTagRemoved();
+
 	/** 화면상 위치가 시선 방향에 가장 정렬된 지점으로 타겟을 교체한다. */
 	UFUNCTION()
 	void HandleRetargetRequested(FVector2D ScreenDirection);
 
 	/** 거리순 정렬은 프리셋이 담당한다. */
 	void GatherCandidates(TArray<AActor*>& OutCandidates) const;
+	void ListenForDodgeRotation();
+	void StartRotateToTargetTask(USceneComponent* TargetComponent);
+	void StopRotateToTargetTask();
+	bool IsDodgeActive() const;
 
 	UPROPERTY()
 	TObjectPtr<UWxAbilityTask_LockOnTarget> LockOnTask;
+
+	UPROPERTY()
+	TObjectPtr<UWxAbilityTask_RotateToTarget> RotateToTargetTask;
+
+	TWeakObjectPtr<UWxLockOnManagerComponent> LockOnManagerComponent;
 
 	/** 락온이 끄기 전의 이동 방향 회전 설정. 값이 있을 때만 종료에서 되돌린다. */
 	TOptional<bool> SavedOrientRotationToMovement;
