@@ -37,10 +37,10 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	/**
-	 * 리시 복귀 중 감지로 재추격하지 않도록 타겟팅 억제를 전환한다.
-	 * 켜면 타겟·인식을 정리하고, 끄면 현재 시야의 가장 가까운 대상을 다시 획득한다.
+	 * 현재 타겟의 Perception 기록과 Blackboard·포커스·인식을 정리한다.
+	 * 이후 자극은 평소 감지 경로를 통해 다시 타겟을 획득할 수 있다.
 	 */
-	void SetTargetingSuppressed(bool bSuppressed);
+	void ForgetTargetActor();
 
 private:
 	UFUNCTION()
@@ -82,9 +82,6 @@ private:
 	APawn* GetOwnerPawn() const;
 
 	UBlackboardComponent* GetBlackboard() const;
-
-	// 복귀 중 감지 자극을 무시하도록 리시 Task가 켜는 억제 플래그.
-	bool bTargetingSuppressed = false;
 
 	// 마지막으로 적용한 타겟으로, 중복 적용 방지와 소실 구독 해제에 쓴다.
 	// 블랙보드 약참조는 파괴 시 nullptr로 바뀌므로, 유효성과 무관한 TObjectKey로 보관한다.

@@ -106,12 +106,6 @@ void UWxAIPerceptionComponent::HandleTargetPerceptionUpdated(AActor* Actor, FAIS
 
 void UWxAIPerceptionComponent::UpdateRecognition()
 {
-	if (bTargetingSuppressed)
-	{
-		SetRecognized(false);
-		return;
-	}
-
 	// 타겟은 살아있는 액터만 담기므로(획득 가드 + 소실 구독) 유무만 봐도 된다.
 	// 블랙보드가 없으면 추적 대상도 없는 것이므로 off 로 본다.
 	const UBlackboardComponent* BB = GetBlackboard();
@@ -143,50 +137,14 @@ void UWxAIPerceptionComponent::SetRecognized(bool bNewRecognized)
 	}
 }
 
-void UWxAIPerceptionComponent::SetTargetingSuppressed(bool bSuppressed)
+void UWxAIPerceptionComponent::ForgetTargetActor()
 {
-	if (bTargetingSuppressed == bSuppressed)
+	if (AActor* Target = AppliedTarget.ResolveObjectPtr())
 	{
-		return;
+		ForgetActor(Target);
 	}
 
-	bTargetingSuppressed = bSuppressed;
-
-	if (bSuppressed)
-	{
-		SetTargetActor(nullptr);
-	}
-	else
-	{
-		// Sight 는 감지 여부가 바뀔 때만 갱신을 방송하므로, 억제 중 계속 보이던 대상은 해제 후 새 자극이 오지 않는다. 현재 감지 상태를 직접 읽어 재획득한다.
-		// 판정을 Sight 로 좁히는 것이 핵심이다. 모든 센스를 함께 보면 만료되지 않는 청각·촉각 자극 때문에 한 번 싸운 상대를 시야 밖에서도 다시 집어, 리시 복귀가 곧바로 재추격으로 되돌아간다.
-		const FAISenseID SightID = UAISense::GetSenseID<UAISense_Sight>();
-		const APawn* Pawn = GetOwnerPawn();
-		const FVector PawnLocation = Pawn ? Pawn->GetActorLocation() : FVector::ZeroVector;
-
-		AActor* Nearest = nullptr;
-		float NearestDistanceSquared = TNumericLimits<float>::Max();
-		for (FActorPerceptionContainer::TConstIterator It = GetPerceptualDataConstIterator(); It; ++It)
-		{
-			AActor* Target = It->Value.Target.Get();
-			if (!Target || IsActorDead(Target) || !HasActiveStimulus(*Target, SightID))
-			{
-				continue;
-			}
-
-			// TMap 순회 순서는 보장되지 않으므로, 보이는 적이 여럿이면 가장 가까운 쪽으로 확정한다.
-			const float DistanceSquared = FVector::DistSquared(PawnLocation, Target->GetActorLocation());
-			if (DistanceSquared < NearestDistanceSquared)
-			{
-				NearestDistanceSquared = DistanceSquared;
-				Nearest = Target;
-			}
-		}
-
-		SetTargetActor(Nearest);
-	}
-
-	// 인식은 판정에 맡긴다 — 억제 중이면 자연히 꺼지고, 해제 후엔 재획득 결과를 따른다.
+	SetTargetActor(nullptr);
 	UpdateRecognition();
 }
 
