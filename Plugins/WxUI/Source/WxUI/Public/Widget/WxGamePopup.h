@@ -67,6 +67,5 @@ public:
 	
 	virtual void SetupPopup(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback);
 
-	/** 사용자 입력 없이 팝업을 강제로 닫는다. */
 	virtual void KillPopup();
 };

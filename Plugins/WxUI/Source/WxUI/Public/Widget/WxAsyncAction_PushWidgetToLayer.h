@@ -31,7 +31,7 @@ public:
 
 	virtual void Activate() override;
 
-	/** C++ 호출자가 성공·실패를 모두 받고 진행 중인 요청 참조를 정리할 때 사용한다. 실패·취소 시 Widget 은 null 이다. */
+	/** 실패·취소 시 Widget 은 null 이다. */
 	void SetCompletionCallback(FWxPushWidgetToLayerNativeDelegate InCompletionCallback);
 
 	/** 아직 끝나지 않은 스트리밍을 취소하고 실패 완료 콜백을 보낸다. */

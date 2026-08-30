@@ -21,7 +21,6 @@ FWxStateTreeTask_SendEvent::FWxStateTreeTask_SendEvent()
 
 EStateTreeRunStatus FWxStateTreeTask_SendEvent::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// SourceStateID 가 없으면 전이로 들어온 것이 아니다.
 	if (!Transition.SourceStateID.IsValid())
 	{
 		return EStateTreeRunStatus::Succeeded;

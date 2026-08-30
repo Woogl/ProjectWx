@@ -58,7 +58,6 @@ public:
 	FGameplayTagContainer OwnedTags;
 
 protected:
-	/** 초기화 시점에 이미 활성인 GE 로 목록을 구축한다. */
 	void BuildActiveEffectViewModels();
 
 	void RefreshOwnedTags();

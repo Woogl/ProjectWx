@@ -56,7 +56,7 @@ private:
 	UPROPERTY()
 	FVector WorldLocation = FVector::ZeroVector;
 
-	/** 투영 원점에 더할 월드 오프셋. 대상 발밑이 아니라 머리 위를 가리키게 한다. */
+	/** 대상 발밑이 아니라 머리 위를 가리키게 한다. */
 	UPROPERTY()
 	FVector WorldOffset = FVector::ZeroVector;
 
@@ -69,7 +69,6 @@ private:
 	/** 카메라에서 대상까지의 거리. 매 프레임 표시가 떨리지 않도록 1m 단위로 반올림해 들어온다. */
 	float DistanceMeters = 0.f;
 
-	/** 대상이 화면 밖이라 가장자리에 붙었는지. */
 	bool bClamped = false;
 
 	bool bProjected = false;

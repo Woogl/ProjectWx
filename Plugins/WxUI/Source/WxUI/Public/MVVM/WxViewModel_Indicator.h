@@ -65,7 +65,6 @@ private:
 
 	TWeakObjectPtr<UWxIndicatorManagerComponent> CachedManager;
 
-	/** 리졸버가 주입하는 슬롯 번호. */
 	int32 SlotIndex = 0;
 };
 

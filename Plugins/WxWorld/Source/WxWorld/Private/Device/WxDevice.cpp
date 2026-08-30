@@ -82,7 +82,6 @@ void AWxDevice::NotifyDeviceInteracted(AActor* Interactor, FGameplayTag EventTag
 		return;
 	}
 
-	// 멈춘 트리엔 이벤트가 닿지 않는다.
 	if (!StateTreeComponent->IsRunning())
 	{
 		return;
