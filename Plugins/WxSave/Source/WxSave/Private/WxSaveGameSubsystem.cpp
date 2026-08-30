@@ -184,12 +184,12 @@ bool UWxSaveGameSubsystem::SaveToFile(
 		WorldSubsystem->RequestSaveFlush(
 			UWxSaveWorldSubsystem::FOnSaveFlushComplete::FDelegate::CreateUObject(
 				this,
-				&UWxSaveGameSubsystem::ContinueSaveToFileToDisk),
+				&UWxSaveGameSubsystem::HandleSaveFlushComplete),
 			ResumeTransform);
 	}
 	else
 	{
-		ContinueSaveToFileToDisk();
+		HandleSaveFlushComplete();
 	}
 
 	return true;
@@ -331,7 +331,7 @@ bool UWxSaveGameSubsystem::IsSaveInProgress() const
 	return bSaveInProgress;
 }
 
-void UWxSaveGameSubsystem::ContinueSaveToFileToDisk()
+void UWxSaveGameSubsystem::HandleSaveFlushComplete()
 {
 	if (!SaveGame)
 	{

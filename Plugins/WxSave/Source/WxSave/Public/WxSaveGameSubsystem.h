@@ -53,7 +53,7 @@ public:
 	FSimpleMulticastDelegate OnSaveCompleted;
 
 private:
-	void ContinueSaveToFileToDisk();
+	void HandleSaveFlushComplete();
 	void HandleAsyncSaveFinished(const FString& SlotName, int32 UserIndex, bool bSuccess);
 	void FinishSaveInProgress();
 
