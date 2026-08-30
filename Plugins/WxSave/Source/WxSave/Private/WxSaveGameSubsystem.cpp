@@ -189,7 +189,7 @@ bool UWxSaveGameSubsystem::SaveToFile(
 	}
 	else
 	{
-		HandleSaveFlushComplete();
+		BeginAsyncSaveToDisk();
 	}
 
 	return true;
@@ -331,7 +331,7 @@ bool UWxSaveGameSubsystem::IsSaveInProgress() const
 	return bSaveInProgress;
 }
 
-void UWxSaveGameSubsystem::HandleSaveFlushComplete()
+void UWxSaveGameSubsystem::BeginAsyncSaveToDisk()
 {
 	if (!SaveGame)
 	{
@@ -345,6 +345,11 @@ void UWxSaveGameSubsystem::HandleSaveFlushComplete()
 		SaveGame->SlotName,
 		SaveGame->UserIndex,
 		FAsyncSaveGameToSlotDelegate::CreateUObject(this, &UWxSaveGameSubsystem::HandleAsyncSaveFinished));
+}
+
+void UWxSaveGameSubsystem::HandleSaveFlushComplete()
+{
+	BeginAsyncSaveToDisk();
 }
 
 void UWxSaveGameSubsystem::HandleAsyncSaveFinished(const FString& SlotName, int32 UserIndex, bool bSuccess)
