@@ -26,11 +26,16 @@ public:
 
 	virtual void BeginDestroy() override;
 
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Boss")
+	bool bHasAITarget = false;
+
 private:
 	void HandleActorSpawned(AActor* SpawnedActor);
 
 	UFUNCTION()
 	void HandleBossEndPlay(AActor* Actor, EEndPlayReason::Type EndPlayReason);
+
+	void HandleAITargetChanged(bool bNewHasAITarget);
 
 	void SetBoss(AWxBossCharacter* Boss);
 

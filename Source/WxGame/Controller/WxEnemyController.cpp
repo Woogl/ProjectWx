@@ -12,6 +12,7 @@
 AWxEnemyController::AWxEnemyController()
 {
 	WxAIPerceptionComponent = CreateDefaultSubobject<UWxAIPerceptionComponent>(TEXT("WxAIPerceptionComponent"));
+	WxAIPerceptionComponent->OnTargetChanged.AddUObject(this, &ThisClass::HandleAITargetChanged);
 }
 
 void AWxEnemyController::OnPossess(APawn* InPawn)
@@ -30,6 +31,8 @@ void AWxEnemyController::OnPossess(APawn* InPawn)
 	// Blackboard 컴포넌트는 RunBehaviorTree 안에서 생성되므로, BT 를 먼저 실행한 뒤에 컨텍스트 키를 세팅한다.
 	if (AWxEnemyCharacter* Enemy = Cast<AWxEnemyCharacter>(InPawn))
 	{
+		// 재사용된 폰도 새 빙의에서는 타겟 없이 시작한다.
+		Enemy->SetHasAITarget(false);
 		Enemy->OnDeath.AddDynamic(this, &AWxEnemyController::HandlePawnDeath);
 
 		if (UBehaviorTree* BT = Enemy->GetBehaviorTree())
@@ -50,6 +53,7 @@ void AWxEnemyController::OnUnPossess()
 	// 엔진이 Super 에서 폰 참조를 끊으므로, 그보다 앞에서 이전 폰을 찾아 구독을 해제한다.
 	if (AWxEnemyCharacter* Enemy = Cast<AWxEnemyCharacter>(GetPawn()))
 	{
+		Enemy->SetHasAITarget(false);
 		Enemy->OnDeath.RemoveDynamic(this, &AWxEnemyController::HandlePawnDeath);
 	}
 
@@ -59,6 +63,14 @@ void AWxEnemyController::OnUnPossess()
 	}
 
 	Super::OnUnPossess();
+}
+
+void AWxEnemyController::HandleAITargetChanged(AActor* NewTarget)
+{
+	if (AWxEnemyCharacter* Enemy = Cast<AWxEnemyCharacter>(GetPawn()))
+	{
+		Enemy->SetHasAITarget(NewTarget != nullptr);
+	}
 }
 
 void AWxEnemyController::HandlePawnDeath(AWxCharacterBase* DeadCharacter)

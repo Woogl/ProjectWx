@@ -1,14 +1,11 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Task/WxAbilityTask_LockOnCamera.h"
-#include "AbilitySystemBlueprintLibrary.h"
-#include "AbilitySystemComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Targeting/WxLockOnManagerComponent.h"
 #include "Targeting/WxLockOnPointComponent.h"
-#include "WxGameplayTags.h"
 
 UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed, float InPitchOffset, float InMaxDistance, TSubclassOf<UUserWidget> InReticleWidgetClass, float InRetargetLookThreshold)
 {
@@ -169,13 +166,6 @@ void UWxAbilityTask_LockOnTarget::BindTarget()
 		TargetActor->OnDestroyed.AddDynamic(this, &UWxAbilityTask_LockOnTarget::HandleTargetDestroyed);
 	}
 
-	// 피대상 표시는 네임플레이트 조건일 뿐인 개인 UI다.
-	// 이 태스크는 로컬 플레이어의 락온에서만 생성되므로 레티클과 같은 수명으로 로컬 태그를 붙인다.
-	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
-	{
-		TargetASC->AddLooseGameplayTag(WxGameplayTags::State_LockedOn);
-	}
-
 	CreateReticleWidget();
 }
 
@@ -183,15 +173,10 @@ void UWxAbilityTask_LockOnTarget::UnbindTarget()
 {
 	DestroyReticleWidget();
 
-	// Target 약참조가 이미 풀렸어도 캐시한 소유 액터로 바인딩과 표시 태그를 해제한다.
+	// Target 약참조가 이미 풀렸어도 캐시한 소유 액터로 파괴 이벤트 바인딩을 해제한다.
 	if (AActor* TargetActor = BoundTargetActor.Get())
 	{
 		TargetActor->OnDestroyed.RemoveDynamic(this, &UWxAbilityTask_LockOnTarget::HandleTargetDestroyed);
-
-		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
-		{
-			TargetASC->RemoveLooseGameplayTag(WxGameplayTags::State_LockedOn);
-		}
 	}
 	BoundTargetActor = nullptr;
 }

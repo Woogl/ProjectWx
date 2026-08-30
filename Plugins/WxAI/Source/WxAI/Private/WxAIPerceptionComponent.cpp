@@ -100,41 +100,6 @@ void UWxAIPerceptionComponent::HandleTargetPerceptionUpdated(AActor* Actor, FAIS
 	{
 		SetTargetActor(Actor);
 	}
-
-	UpdateRecognition();
-}
-
-void UWxAIPerceptionComponent::UpdateRecognition()
-{
-	// 타겟은 살아있는 액터만 담기므로(획득 가드 + 소실 구독) 유무만 봐도 된다.
-	// 블랙보드가 없으면 추적 대상도 없는 것이므로 off 로 본다.
-	const UBlackboardComponent* BB = GetBlackboard();
-	SetRecognized(BB && WxBlackboardKeys::GetTargetActor(BB) != nullptr);
-}
-
-void UWxAIPerceptionComponent::SetRecognized(bool bNewRecognized)
-{
-	// MinimalReplication 태그는 GE 없이 서버→클라이언트로 복제된다(COND_SkipOwner).
-	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwnerPawn());
-	if (!ASC)
-	{
-		return;
-	}
-	
-	const bool bCurrentlyRecognized = ASC->HasMatchingGameplayTag(WxGameplayTags::State_InCombat);
-	if (bNewRecognized == bCurrentlyRecognized)
-	{
-		return;
-	}
-
-	if (bNewRecognized)
-	{
-		ASC->AddMinimalReplicationGameplayTag(WxGameplayTags::State_InCombat);
-	}
-	else
-	{
-		ASC->RemoveMinimalReplicationGameplayTag(WxGameplayTags::State_InCombat);
-	}
 }
 
 void UWxAIPerceptionComponent::ForgetTargetActor()
@@ -145,9 +110,7 @@ void UWxAIPerceptionComponent::ForgetTargetActor()
 	}
 
 	SetTargetActor(nullptr);
-	UpdateRecognition();
 }
-
 void UWxAIPerceptionComponent::HandleTargetDeathTagChanged(const FGameplayTag Tag, int32 NewCount)
 {
 	// 태그 제거(부활)는 무시한다 — 다음 감지 자극에서 정상적으로 재획득한다.
@@ -157,14 +120,12 @@ void UWxAIPerceptionComponent::HandleTargetDeathTagChanged(const FGameplayTag Ta
 	}
 
 	SetTargetActor(nullptr);
-	UpdateRecognition();
 }
 
 void UWxAIPerceptionComponent::HandleTargetEndPlay(AActor* Actor, EEndPlayReason::Type EndPlayReason)
 {
 	// 엔진은 액터를 무효화하기 전에 EndPlay 를 방송하므로, 이 시점엔 BB 의 약참조가 아직 살아 있어 타겟·포커스·회전 모드가 정상적으로 원복된다.
 	SetTargetActor(nullptr);
-	UpdateRecognition();
 }
 
 void UWxAIPerceptionComponent::BindTargetLoss(AActor* NewTarget)
@@ -210,7 +171,6 @@ void UWxAIPerceptionComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn*
 {
 	// 타겟·포커스·소실 구독은 폰이 아니라 컨트롤러에 남는다. 새 폰이 이전 타겟을 물려받지 않도록 먼저 되돌린다.
 	SetTargetActor(nullptr);
-	UpdateRecognition();
 
 	BindPawnHit(NewPawn);
 }
@@ -291,6 +251,7 @@ void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)
 	WxBlackboardKeys::SetTargetActor(BB, NewTarget);
 
 	BindTargetLoss(NewTarget);
+	OnTargetChanged.Broadcast(NewTarget);
 
 	AAIController* AIC = Cast<AAIController>(GetOwner());
 	ACharacter* Character = AIC ? Cast<ACharacter>(AIC->GetPawn()) : nullptr;

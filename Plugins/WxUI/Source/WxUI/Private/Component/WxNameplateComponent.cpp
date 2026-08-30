@@ -1,12 +1,10 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Component/WxNameplateComponent.h"
-#include "AbilitySystemComponent.h"
 #include "View/MVVMView.h"
 #include "MVVM/WxViewModel_Character.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Misc/CoreMisc.h"
-#include "WxGameplayTags.h"
 #include "WxUIModule.h"
 #include "GameFramework/PlayerController.h"
 
@@ -19,14 +17,6 @@ UWxNameplateComponent::UWxNameplateComponent()
 
 	// 기본 숨김: 적의 존재를 미리 노출하지 않는다.
 	SetVisibility(false);
-
-	// 표시(둘 중 하나)는 OR 이라 TagQuery(MatchAny)로, 숨김은 IgnoreTags(HasAny면 숨김)로 둔다.
-	VisibilityRequirements.IgnoreTags.AddTag(WxGameplayTags::Ability_Death);
-
-	FGameplayTagContainer ShowAnyTags;
-	ShowAnyTags.AddTag(WxGameplayTags::State_InCombat);
-	ShowAnyTags.AddTag(WxGameplayTags::State_LockedOn);
-	VisibilityRequirements.TagQuery = FGameplayTagQuery::MakeQuery_MatchAnyTags(ShowAnyTags);
 }
 
 void UWxNameplateComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -74,13 +64,6 @@ void UWxNameplateComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	NameplateWidget->SetRenderScale(FVector2D(Scale, Scale));
 }
 
-void UWxNameplateComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	StopWatchingVisibilityTags();
-
-	Super::EndPlay(EndPlayReason);
-}
-
 void UWxNameplateComponent::InitializeViewModels(UAbilitySystemComponent* InASC, const FText& InCharacterName, const TSoftObjectPtr<UObject>& InPortrait)
 {
 	// 호출 계약 위반은 빌드를 가리지 않고 알린다 — 그래서 데디 서버 판별보다 앞에 둔다.
@@ -114,71 +97,4 @@ void UWxNameplateComponent::InitializeViewModels(UAbilitySystemComponent* InASC,
 	UWxViewModel_Character* CharacterViewModel = NewObject<UWxViewModel_Character>(this);
 	CharacterViewModel->Initialize(InASC, InCharacterName, InPortrait);
 	View->SetViewModelByClass(CharacterViewModel);
-
-	// 조기 반환을 모두 지난 자리라, 초기화가 실패했을 때 이미 서 있던 표시를 끊지 않는다.
-	StopWatchingVisibilityTags();
-
-	CachedASC = InASC;
-
-	// 표시 여부는 ASC 태그가 바뀔 때만 갱신하면 충분하다(매 틱 재계산 불필요).
-	// 표시는 태그 유무로만 갈리므로 카운트 변화까지 볼 필요가 없다.
-	FGameplayTagContainer WatchedTags;
-	CollectVisibilityTags(WatchedTags);
-	for (const FGameplayTag& WatchedTag : WatchedTags)
-	{
-		InASC->RegisterGameplayTagEvent(WatchedTag, EGameplayTagEventType::NewOrRemoved)
-			.AddUObject(this, &UWxNameplateComponent::HandleOwnedTagsChanged);
-	}
-
-	// 이벤트는 변화 시에만 발화하므로 초기 표시 상태는 여기서 한 번 확정한다.
-	RefreshVisibility();
-}
-
-void UWxNameplateComponent::CollectVisibilityTags(FGameplayTagContainer& OutTags) const
-{
-	OutTags.AppendTags(VisibilityRequirements.RequireTags);
-	OutTags.AppendTags(VisibilityRequirements.IgnoreTags);
-
-	// 기본값처럼 조건이 TagQuery 에 들어 있어도 참조 태그를 전부 돌려준다.
-	for (const FGameplayTag& QueryTag : VisibilityRequirements.TagQuery.GetGameplayTagArray())
-	{
-		OutTags.AddTag(QueryTag);
-	}
-}
-
-void UWxNameplateComponent::StopWatchingVisibilityTags()
-{
-	if (UAbilitySystemComponent* ASC = CachedASC.Get())
-	{
-		FGameplayTagContainer WatchedTags;
-		CollectVisibilityTags(WatchedTags);
-		for (const FGameplayTag& WatchedTag : WatchedTags)
-		{
-			ASC->RegisterGameplayTagEvent(WatchedTag, EGameplayTagEventType::NewOrRemoved).RemoveAll(this);
-		}
-	}
-
-	CachedASC.Reset();
-}
-
-void UWxNameplateComponent::RefreshVisibility()
-{
-	UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (!ASC)
-	{
-		return;
-	}
-
-	// 태그 변경 이벤트가 표시 결과와 무관하게 발화할 수 있으나, SetVisibility 는 값이 같으면 내부에서 no-op 이다.
-	FGameplayTagContainer OwnedTags;
-	ASC->GetOwnedGameplayTags(OwnedTags);
-
-	// 숨김은 컴포넌트를 화면 위젯 레이어에서 빼내 매 프레임 투영 비용까지 없앤다.
-	// 월드의 적 대부분이 기본 숨김이라 이 차이가 곧 전체 비용이다.
-	SetVisibility(VisibilityRequirements.RequirementsMet(OwnedTags));
-}
-
-void UWxNameplateComponent::HandleOwnedTagsChanged(const FGameplayTag Tag, int32 NewCount)
-{
-	RefreshVisibility();
 }

@@ -29,6 +29,8 @@ private:
 	UFUNCTION()
 	void HandlePawnDeath(AWxCharacterBase* DeadCharacter);
 
+	void HandleAITargetChanged(AActor* NewTarget);
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|AI")
 	TObjectPtr<UWxAIPerceptionComponent> WxAIPerceptionComponent;
