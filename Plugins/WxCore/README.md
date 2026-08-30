@@ -37,7 +37,7 @@
 ## 확장 포인트 / 규약
 - 새 태그: 반드시 `WxGameplayTags.h` 선언 + `WxGameplayTags.cpp` 정의 쌍으로만 추가. 다른 곳에서 정의 금지
 - 새 상호작용 대상: 대상 **액터**에 `IWxInteractable` 구현(컴포넌트에 능력이 있어도 계약은 액터가 들고 위임). 감지·사거리는 쿼리 콜리전 프리미티브 위에서 도므로 최소 하나 필요
-- 새 세이브 참여 액터: `IWxSavable` 구현 + `UPROPERTY(SaveGame)` 필드 + 안정적 `GetSaveId()`(에디터에서 1회 부여해 영속 UPROPERTY로 보관)
+- LSP 복원 후 후처리 액터: `IWxSavable` 구현. 저장 대상 property와 식별은 `LevelStreamingPersistenceSettings`와 LSP 오브젝트 경로가 담당한다.
 - 콜리전 채널 상수는 `DefaultEngine.ini`의 채널 등록 순서와 일치해야 함
 
 ## 여기서부터 읽어라

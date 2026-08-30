@@ -3,7 +3,7 @@
 	"Version": 1,
 	"VersionName": "1.0",
 	"FriendlyName": "WxSave",
-	"Description": "Save/Load system plugin (player position on reconnect)",
+	"Description": "Map, Instanced Actors, Mass and player persistence",
 	"Category": "Wx",
 	"Modules": [
 		{
@@ -27,6 +27,14 @@
 		},
 		{
 			"Name": "StateTree",
+			"Enabled": true
+		},
+		{
+			"Name": "LevelStreamingPersistence",
+			"Enabled": true
+		},
+		{
+			"Name": "InstancedActors",
 			"Enabled": true
 		}
 	]

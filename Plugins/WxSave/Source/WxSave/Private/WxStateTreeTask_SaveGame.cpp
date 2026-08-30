@@ -8,6 +8,7 @@
 #include "StateTreeAsyncExecutionContext.h"
 #include "StateTreeExecutionContext.h"
 #include "StateTreePropertyBindings.h"
+#include "TimerManager.h"
 #include "WxSaveGameSubsystem.h"
 
 FWxStateTreeTask_SaveGame::FWxStateTreeTask_SaveGame()
@@ -39,25 +40,41 @@ EStateTreeRunStatus FWxStateTreeTask_SaveGame::EnterState(FStateTreeExecutionCon
 
 	const USceneComponent* ResumePoint = Context.GetInstanceData(*this).ResumePoint;
 	const FTransform ResumeTransform = ResumePoint ? ResumePoint->GetComponentTransform() : FTransform::Identity;
-
-	// 실제 디스크 기록은 월드 플러시 완료 후 이어진다.
-	if (!SaveSubsystem->SaveToFile(FString(), 0, ResumePoint ? &ResumeTransform : nullptr))
+	UWorld* World = Owner->GetWorld();
+	if (!World)
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	// 요청 안에서 이미 끝났으면 기다릴 신호가 없다.
-	if (!SaveSubsystem->IsSaveInProgress())
+	// 이 태스크는 StateTreeComponent::TickComponent 안에서 진입한다. 여기서 바로 LSP 를 플러시하면 컴포넌트가
+	// Super 틱 뒤에 수행하는 StateTag 발행보다 저장이 먼저 끝나므로, 다음 월드 틱까지 미뤄 새 활성 상태를 기록한다.
+	World->GetTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(
+		SaveSubsystem,
+		[WeakSaveSubsystem = TWeakObjectPtr<UWxSaveGameSubsystem>(SaveSubsystem),
+		 WeakContext = Context.MakeWeakExecutionContext(), ResumeTransform, bHasResumePoint = ResumePoint != nullptr]()
 	{
-		return EStateTreeRunStatus::Succeeded;
-	}
+		UWxSaveGameSubsystem* PendingSaveSubsystem = WeakSaveSubsystem.Get();
+		if (!PendingSaveSubsystem
+			|| !PendingSaveSubsystem->SaveToFile(FString(), 0, bHasResumePoint ? &ResumeTransform : nullptr))
+		{
+			WeakContext.FinishTask(EStateTreeFinishTaskType::Succeeded);
+			return;
+		}
 
-	// 약한 실행 컨텍스트를 넘기는 것이 엔진이 제시하는 방식이라 여기선 람다를 쓴다.
-	// 신호는 발화와 함께 비워지므로 상태를 먼저 떠난 노드의 등록도 남지 않는다(그 경우 이 컨텍스트가 무효라 무시된다).
-	SaveSubsystem->OnSaveCompleted.AddLambda([WeakContext = Context.MakeWeakExecutionContext()]()
-	{
-		WeakContext.FinishTask(EStateTreeFinishTaskType::Succeeded);
-	});
+		// 요청 안에서 이미 끝났으면 기다릴 신호가 없다.
+		if (!PendingSaveSubsystem->IsSaveInProgress())
+		{
+			WeakContext.FinishTask(EStateTreeFinishTaskType::Succeeded);
+			return;
+		}
+
+		// 약한 실행 컨텍스트를 넘기는 것이 엔진이 제시하는 방식이라 여기선 람다를 쓴다.
+		// 신호는 발화와 함께 비워지므로 상태를 먼저 떠난 노드의 등록도 남지 않는다(그 경우 이 컨텍스트가 무효라 무시된다).
+		PendingSaveSubsystem->OnSaveCompleted.AddLambda([WeakContext]()
+		{
+			WeakContext.FinishTask(EStateTreeFinishTaskType::Succeeded);
+		});
+	}));
 
 	return EStateTreeRunStatus::Running;
 }

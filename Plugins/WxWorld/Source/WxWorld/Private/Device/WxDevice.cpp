@@ -7,10 +7,6 @@
 #include "Net/UnrealNetwork.h"
 #include "WxWorldModule.h"
 
-#if WITH_EDITOR
-#include "UObject/ObjectSaveContext.h"
-#endif
-
 AWxDevice::AWxDevice()
 {
 	// 상태는 서버 권위이고 클라는 복제 값만 보고 따라간다.
@@ -25,23 +21,6 @@ void AWxDevice::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetim
 
 	DOREPLIFETIME(AWxDevice, InteractingCharacter);
 }
-
-#if WITH_EDITOR
-// 에디터의 액터 복제(Ctrl+W·Alt-드래그)와 붙여넣기는 T3D 텍스트 경로라 생성 훅으로는 원본의 SaveId 가 따라오는 것을 막지 못한다(AWxSpawner::PreSave 의 상세 참조).
-// 그래서 직렬화 직전에 이 액터의 ActorGuid 로 재확정한다.
-void AWxDevice::PreSave(FObjectPreSaveContext ObjectSaveContext)
-{
-	Super::PreSave(ObjectSaveContext);
-
-	// 쿠킹·EditorDomain 등 사용자 편집이 개입할 수 없는 저장은 건드리지 않는다. 값은 맵 저장 때 이미 확정되어 패키지에 실려 있다.
-	if (ObjectSaveContext.IsProceduralSave())
-	{
-		return;
-	}
-
-	SaveId = GetActorGuid();
-}
-#endif
 
 bool AWxDevice::CanInteract(const AActor* Interactor) const
 {
@@ -93,11 +72,6 @@ void AWxDevice::OnInteracted(AActor* Interactor)
 FText AWxDevice::GetInteractionPrompt() const
 {
 	return InteractionBinding.Prompt;
-}
-
-FGuid AWxDevice::GetSaveId() const
-{
-	return SaveId;
 }
 
 void AWxDevice::OnSaveRestored()

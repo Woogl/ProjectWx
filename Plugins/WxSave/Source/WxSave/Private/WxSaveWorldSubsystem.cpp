@@ -5,37 +5,36 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "AttributeSet.h"
-#include "Components/ActorComponent.h"
 #include "Engine/GameInstance.h"
 #include "Engine/Level.h"
-#include "EngineUtils.h"
-#include "GameFramework/Actor.h"
+#include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
+#include "GameMapsSettings.h"
+#include "InstancedActorsManager.h"
+#include "LevelStreamingPersistenceManager.h"
+#include "MassSimulationSubsystem.h"
 #include "Serialization/CustomVersion.h"
 #include "Serialization/MemoryReader.h"
 #include "Serialization/MemoryWriter.h"
-#include "Serialization/ObjectAndNameAsStringProxyArchive.h"
+#include "Serialization/StructuredArchive.h"
+#include "Streaming/LevelStreamingDelegates.h"
 #include "UObject/ObjectVersion.h"
-#include "UObject/UnrealType.h"
+#include "WxMassPersistence.h"
 #include "WxSaveGameSubsystem.h"
-#include "WxSaveGame.h"
-#include "WxSavable.h"
 #include "WxSaveModule.h"
+#include "WxSaveSettings.h"
 
-void UWxSaveWorldSubsystem::RequestSaveFlush(FOnSaveFlushComplete::FDelegate OnComplete, const FTransform* ResumeTransform)
+bool UWxSaveWorldSubsystem::IsTransitionWorld(const UWorld* World)
 {
-	UWorld* World = GetWorld();
-
-	if (World && !World->bIsTearingDown)
+	if (!World)
 	{
-		FlushMapTravelData();
-		FlushPlayerTransform(ResumeTransform);
-		FlushPlayerStats();
+		return false;
 	}
-	FlushSavableActors();
 
-	OnComplete.ExecuteIfBound();
+	const FSoftObjectPath& TransitionMap = GetDefault<UGameMapsSettings>()->TransitionMap;
+	return !TransitionMap.IsNull()
+		&& UWxSaveGameSubsystem::GetStableMapPackageName(World) == TransitionMap.GetAssetPath().GetPackageName();
 }
 
 bool UWxSaveWorldSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -45,28 +44,75 @@ bool UWxSaveWorldSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 		return false;
 	}
 
-	// 저장은 authority 전용이라 클라이언트 월드는 제외한다.
-	UWorld* World = Cast<UWorld>(Outer);
+	const UWorld* World = Cast<UWorld>(Outer);
 	return World && World->IsGameWorld() && !World->IsNetMode(NM_Client);
 }
 
 void UWxSaveWorldSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
+	USubsystem* PersistenceDependency = Collection.InitializeDependency<ULevelStreamingPersistenceManager>();
 	Super::Initialize(Collection);
 
-	// FWorldDelegates 는 전역이라 모든 월드에서 발화한다 — 각 핸들러 선두에서 자기 월드만 필터한다(PIE 다중 인스턴스 격리 포함).
-	WorldInitializedActorsHandle = FWorldDelegates::OnWorldInitializedActors.AddUObject(this, &UWxSaveWorldSubsystem::HandleWorldInitializedActors);
-	LevelAddedHandle = FWorldDelegates::LevelAddedToWorld.AddUObject(this, &UWxSaveWorldSubsystem::HandleLevelAddedToWorld);
-	LevelRemovedHandle = FWorldDelegates::LevelRemovedFromWorld.AddUObject(this, &UWxSaveWorldSubsystem::HandleLevelRemovedFromWorld);
-	WorldBeginTearDownHandle = FWorldDelegates::OnWorldBeginTearDown.AddUObject(this, &UWxSaveWorldSubsystem::HandleWorldBeginTearDown);
+	if (!PersistenceDependency || !GetWorld() || !GetWorld()->GetGameInstance())
+	{
+		UE_LOG(LogWxSave, Warning, TEXT("WxSaveWorldSubsystem 초기화 실패: LSP 또는 GameInstance 없음"));
+		return;
+	}
+
+	LevelMakingVisibleHandle = FLevelStreamingDelegates::OnLevelBeginMakingVisible.AddUObject(
+		this,
+		&UWxSaveWorldSubsystem::HandleLevelBeginMakingVisible);
+	LevelMakingInvisibleHandle = FLevelStreamingDelegates::OnLevelBeginMakingInvisible.AddUObject(
+		this,
+		&UWxSaveWorldSubsystem::FlushInstancedActorManagerDataForLevel);
+	PreActorTickHandle = FWorldDelegates::OnWorldPreActorTick.AddUObject(
+		this,
+		&UWxSaveWorldSubsystem::HandleWorldPreActorTick);
+
+	if (GetDefault<UWxSaveSettings>()->bAutoSaveWhenLeavingMap)
+	{
+		WorldBeginTearDownHandle = FWorldDelegates::OnWorldBeginTearDown.AddUObject(
+			this,
+			&UWxSaveWorldSubsystem::HandleWorldBeginTearDown);
+	}
+
+	const UWxSaveGame* SaveGame = GetActiveSaveGame();
+	if (!SaveGame)
+	{
+		return;
+	}
+
+	const FName MapKey = UWxSaveGameSubsystem::GetStableMapPackageName(GetWorld());
+	const FWxWorldPersistenceEntry* Entry = SaveGame->SavedStatePerMap.Find(MapKey);
+	if (!Entry || Entry->StreamingLevelData.IsEmpty())
+	{
+		return;
+	}
+
+	ULevelStreamingPersistenceManager* PersistenceManager = GetWorld()->GetSubsystem<ULevelStreamingPersistenceManager>();
+	if (PersistenceManager && PersistenceManager->InitializeFrom(Entry->StreamingLevelData))
+	{
+		UE_LOG(LogWxSave, Log, TEXT("LSP 초기화: '%s', %d바이트"), *MapKey.ToString(), Entry->StreamingLevelData.Num());
+	}
+	else
+	{
+		UE_LOG(LogWxSave, Warning, TEXT("LSP 초기화 실패: '%s'"), *MapKey.ToString());
+	}
 }
 
 void UWxSaveWorldSubsystem::Deinitialize()
 {
-	FWorldDelegates::OnWorldInitializedActors.Remove(WorldInitializedActorsHandle);
-	FWorldDelegates::LevelAddedToWorld.Remove(LevelAddedHandle);
-	FWorldDelegates::LevelRemovedFromWorld.Remove(LevelRemovedHandle);
+	FLevelStreamingDelegates::OnLevelBeginMakingVisible.Remove(LevelMakingVisibleHandle);
+	FLevelStreamingDelegates::OnLevelBeginMakingInvisible.Remove(LevelMakingInvisibleHandle);
+	FWorldDelegates::OnWorldPreActorTick.Remove(PreActorTickHandle);
 	FWorldDelegates::OnWorldBeginTearDown.Remove(WorldBeginTearDownHandle);
+
+	if (UMassSimulationSubsystem* SimulationSubsystem = GetWorld()
+		? GetWorld()->GetSubsystem<UMassSimulationSubsystem>()
+		: nullptr)
+	{
+		SimulationSubsystem->GetOnSimulationStarted().Remove(SimulationStartedHandle);
+	}
 
 	Super::Deinitialize();
 }
@@ -75,137 +121,462 @@ void UWxSaveWorldSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
 
-	// 복원(OnWorldInitializedActors)과 구 월드 teardown 이 모두 끝난 뒤라 안전한 가드 해제점이다.
-	UWxSaveGameSubsystem* GameSubsystem = GetGameSubsystem();
-	if (GameSubsystem && GameSubsystem->IsTravelingFromSaveFile())
+	if (IsTransitionWorld(&InWorld))
 	{
-		GameSubsystem->ReportTravelFromSaveFileComplete(&InWorld);
+		return;
 	}
+
+	UMassSimulationSubsystem* SimulationSubsystem = GetWorld()->GetSubsystem<UMassSimulationSubsystem>();
+	if (SimulationSubsystem && SimulationSubsystem->IsSimulationStarted())
+	{
+		RestoreMassEntityData();
+	}
+	else if (SimulationSubsystem)
+	{
+		bPendingMassRestore = true;
+		SimulationStartedHandle = SimulationSubsystem->GetOnSimulationStarted().AddUObject(
+			this,
+			&UWxSaveWorldSubsystem::HandleMassSimulationStarted);
+	}
+
+	if (InWorld.PersistentLevel)
+	{
+		for (AActor* Actor : InWorld.PersistentLevel->Actors)
+		{
+			if (AInstancedActorsManager* Manager = Cast<AInstancedActorsManager>(Actor))
+			{
+				ManagersPendingRestore.AddUnique(Manager);
+			}
+		}
+	}
+
+	UWxSaveGameSubsystem* GameSubsystem = GetGameSubsystem();
+	if (!GameSubsystem || !GameSubsystem->IsTravelingFromSaveFile())
+	{
+		return;
+	}
+
+	const UWxSaveGame* SaveGame = GameSubsystem->GetSaveGame();
+	const UWxSaveSettings* Settings = GetDefault<UWxSaveSettings>();
+	if (Settings->bRestoreControlRotation && SaveGame && SaveGame->TravelData.bHasControlRotation)
+	{
+		if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
+		{
+			PlayerController->SetControlRotation(SaveGame->TravelData.ControlRotation);
+		}
+	}
+
+	GameSubsystem->ReportTravelFromSaveFileComplete(&InWorld);
+}
+
+void UWxSaveWorldSubsystem::RequestSaveFlush(
+	FOnSaveFlushComplete::FDelegate OnComplete,
+	const FTransform* ResumeTransform)
+{
+	if (OnComplete.IsBound())
+	{
+		OnSaveFlushBroadcast.Add(OnComplete);
+	}
+	if (bSaveFlushInProgress)
+	{
+		return;
+	}
+	bSaveFlushInProgress = true;
+
+	UWorld* World = GetWorld();
+	if (World && !World->bIsTearingDown)
+	{
+		FlushMapTravelData(ResumeTransform);
+		FlushPlayerStats();
+	}
+	FlushLevelStreamingPersistenceData();
+
+	UWxMassPersistence::SnapshotEntities(
+		this,
+		FWxOnMassPreSnapshot::CreateUObject(this, &UWxSaveWorldSubsystem::PerformPreSaveMassTasks),
+		FWxOnMassSnapshotComplete::CreateUObject(this, &UWxSaveWorldSubsystem::HandleSaveFlushMassPartFinished));
 }
 
 UWxSaveGameSubsystem* UWxSaveWorldSubsystem::GetGameSubsystem() const
 {
 	const UWorld* World = GetWorld();
 	const UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
-	UWxSaveGameSubsystem* GameSubsystem = GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
-	if (!GameSubsystem)
-	{
-		UE_LOG(LogWxSave, Warning, TEXT("WxSaveGameSubsystem 을 찾을 수 없음 — 이 월드의 세이브 요청은 무시된다."));
-	}
-
-	return GameSubsystem;
+	return GameInstance ? GameInstance->GetSubsystem<UWxSaveGameSubsystem>() : nullptr;
 }
 
 UWxSaveGame* UWxSaveWorldSubsystem::GetActiveSaveGame() const
 {
-	// 서브시스템 부재는 GetGameSubsystem 이 이미 알렸으므로 여기선 슬롯 부재만 알린다 — 실패 1건당 로그 1줄.
 	const UWxSaveGameSubsystem* GameSubsystem = GetGameSubsystem();
-	if (!GameSubsystem)
-	{
-		return nullptr;
-	}
-
-	UWxSaveGame* SaveGame = GameSubsystem->GetSaveGame();
-	if (!SaveGame)
-	{
-		UE_LOG(LogWxSave, Warning, TEXT("활성 SaveGame 없음 — 세이브 요청 무시"));
-	}
-
-	return SaveGame;
+	return GameSubsystem ? GameSubsystem->GetSaveGame() : nullptr;
 }
 
-void UWxSaveWorldSubsystem::FlushMapTravelData()
+void UWxSaveWorldSubsystem::FlushMapTravelData(const FTransform* ResumeTransform)
 {
 	UWxSaveGameSubsystem* GameSubsystem = GetGameSubsystem();
-	if (!GameSubsystem)
+	UWxSaveGame* SaveGame = GetActiveSaveGame();
+	if (!GameSubsystem || !SaveGame)
 	{
 		return;
 	}
 
-	// 재개 지점은 FlushPlayerTransform 이 SaveGame 최상위에 담으므로 TravelData 는 맵만 담는다.
-	FWxSaveTravelData TravelData;
+	const UWxSaveSettings* Settings = GetDefault<UWxSaveSettings>();
+	FWxSaveTravelData TravelData = SaveGame->TravelData;
 	TravelData.Map = FSoftObjectPath(UWxSaveGameSubsystem::GetStableMapPackageName(GetWorld()).ToString());
-	GameSubsystem->SetTravelData(MoveTemp(TravelData));
-}
 
-void UWxSaveWorldSubsystem::FlushSavableActors()
-{
-	UWxSaveGame* SaveGame = GetActiveSaveGame();
-	if (!SaveGame)
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (Settings->bRestorePawnTransform)
 	{
-		return;
-	}
-
-	// 스트리밍-아웃 셀의 액터는 이미 LevelRemovedFromWorld 에서 기록됨.
-	int32 CapturedCount = 0;
-	for (TActorIterator<AActor> It(GetWorld()); It; ++It)
-	{
-		CapturedCount += CaptureActor(*SaveGame, *It) ? 1 : 0;
-	}
-
-	UE_LOG(LogWxSave, Log, TEXT("FlushSavableActors: %d개 캡처(기본값 그대로면 스킵), 누적 레코드 %d개"), CapturedCount, SaveGame->ActorRecords.Num());
-}
-
-void UWxSaveWorldSubsystem::FlushPlayerTransform(const FTransform* ResumeTransform)
-{
-	UWxSaveGame* SaveGame = GetActiveSaveGame();
-	if (!SaveGame)
-	{
-		return;
-	}
-
-	if (ResumeTransform)
-	{
-		SaveGame->PlayerTransform = *ResumeTransform;
+		if (ResumeTransform)
+		{
+			TravelData.PawnTransform = *ResumeTransform;
+			TravelData.bHasPawnTransform = true;
+		}
+		else if (const APawn* Pawn = PlayerController ? PlayerController->GetPawn() : nullptr)
+		{
+			TravelData.PawnTransform = Pawn->GetActorTransform();
+			TravelData.bHasPawnTransform = true;
+		}
 	}
 	else
 	{
-		// 첫 플레이어 폰만 본다 — 스탠드얼론 싱글 전제이고 FlushPlayerStats 와 동일 대상이다.
-		const APlayerController* PC = GetWorld()->GetFirstPlayerController();
-		const APawn* Pawn = PC ? PC->GetPawn() : nullptr;
-		if (!Pawn)
-		{
-			return;
-		}
-
-		SaveGame->PlayerTransform = Pawn->GetActorTransform();
+		TravelData.bHasPawnTransform = false;
 	}
 
-	UE_LOG(LogWxSave, Log, TEXT("FlushPlayerTransform: 재개 지점 %s 캡처"), *SaveGame->PlayerTransform.GetLocation().ToString());
+	if (Settings->bRestoreControlRotation && PlayerController)
+	{
+		TravelData.ControlRotation = PlayerController->GetControlRotation();
+		TravelData.bHasControlRotation = true;
+	}
+	else if (!Settings->bRestoreControlRotation)
+	{
+		TravelData.bHasControlRotation = false;
+	}
+
+	GameSubsystem->SetTravelData(MoveTemp(TravelData));
 }
 
 void UWxSaveWorldSubsystem::FlushPlayerStats()
 {
 	UWxSaveGame* SaveGame = GetActiveSaveGame();
-	if (!SaveGame)
-	{
-		return;
-	}
-
-	// 첫 플레이어 폰만 본다 — 스탠드얼론 싱글 전제이고 FlushPlayerTransform 과 동일 대상이다.
-	const APlayerController* PC = GetWorld()->GetFirstPlayerController();
-	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
-	if (!Pawn)
+	const APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	APawn* Pawn = PlayerController ? PlayerController->GetPawn() : nullptr;
+	if (!SaveGame || !Pawn)
 	{
 		return;
 	}
 
 	SaveGame->PlayerStats.Reset();
 	CapturePlayerStats(Pawn, SaveGame->PlayerStats);
-	SaveGame->bHasPlayerStats = SaveGame->PlayerStats.Num() > 0;
-
-	UE_LOG(LogWxSave, Log, TEXT("FlushPlayerStats: 어트리뷰트 %d개 캡처"), SaveGame->PlayerStats.Num());
+	SaveGame->bHasPlayerStats = !SaveGame->PlayerStats.IsEmpty();
 }
 
-void UWxSaveWorldSubsystem::CapturePlayerStats(AActor* PlayerActor, TMap<FName, float>& OutStats)
+void UWxSaveWorldSubsystem::FlushLevelStreamingPersistenceData()
 {
-	const UAbilitySystemComponent* ASC = UAbilitySystemGlobals::Get().GetAbilitySystemComponentFromActor(PlayerActor);
-	if (!ASC)
+	UWxSaveGameSubsystem* GameSubsystem = GetGameSubsystem();
+	ULevelStreamingPersistenceManager* PersistenceManager = GetWorld()
+		? GetWorld()->GetSubsystem<ULevelStreamingPersistenceManager>()
+		: nullptr;
+	if (!GameSubsystem || !PersistenceManager)
 	{
 		return;
 	}
 
-	for (const UAttributeSet* Set : ASC->GetSpawnedAttributes())
+	TArray<uint8> SerializedData;
+	if (PersistenceManager->SerializeTo(SerializedData, true))
+	{
+		const FName MapKey = UWxSaveGameSubsystem::GetStableMapPackageName(GetWorld());
+		GameSubsystem->SetStreamingLevelDataForMap(MapKey, MoveTemp(SerializedData));
+	}
+	else
+	{
+		UE_LOG(LogWxSave, Warning, TEXT("LSP 직렬화 실패: 기존 맵 데이터 유지"));
+	}
+}
+
+TArray<ULevel*> UWxSaveWorldSubsystem::GetVisibleLevels() const
+{
+	TArray<ULevel*> VisibleLevels;
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return VisibleLevels;
+	}
+
+	if (World->PersistentLevel)
+	{
+		VisibleLevels.Add(World->PersistentLevel);
+	}
+	for (ULevelStreaming* StreamingLevel : World->GetStreamingLevels())
+	{
+		ULevel* LoadedLevel = StreamingLevel ? StreamingLevel->GetLoadedLevel() : nullptr;
+		if (LoadedLevel && LoadedLevel->bIsVisible)
+		{
+			VisibleLevels.Add(LoadedLevel);
+		}
+	}
+	return VisibleLevels;
+}
+
+void UWxSaveWorldSubsystem::FlushInstancedActorManagers()
+{
+	OnPreFlushInstancedActorsData.Broadcast();
+	for (ULevel* Level : GetVisibleLevels())
+	{
+		ULevelStreaming* StreamingLevel = GetWorld()->GetLevelStreamingForPackageName(Level->GetPackage()->GetFName());
+		FlushInstancedActorManagerDataForLevel(GetWorld(), StreamingLevel, Level);
+	}
+}
+
+void UWxSaveWorldSubsystem::FlushInstancedActorManagerDataForLevel(
+	UWorld* World,
+	const ULevelStreaming* LevelStreaming,
+	ULevel* Level)
+{
+	if (!Level || World != GetWorld())
+	{
+		return;
+	}
+
+	UWxSaveGameSubsystem* GameSubsystem = GetGameSubsystem();
+	if (!GameSubsystem || GameSubsystem->IsTravelingFromSaveFile())
+	{
+		return;
+	}
+
+	const FName MapKey = UWxSaveGameSubsystem::GetStableMapPackageName(GetWorld());
+	const FName LevelKey = LevelStreaming
+		? LevelStreaming->GetWorldAssetPackageFName()
+		: MapKey;
+
+	for (AActor* Actor : Level->Actors)
+	{
+		AInstancedActorsManager* Manager = Cast<AInstancedActorsManager>(Actor);
+		if (!IsValid(Manager))
+		{
+			continue;
+		}
+
+		TArray<uint8> BodyData;
+		FMemoryWriter BodyWriter(BodyData);
+		BodyWriter.ArIsSaveGame = true;
+		{
+			FStructuredArchiveFromArchive StructuredArchive(BodyWriter);
+			Manager->Serialize(StructuredArchive.GetSlot().EnterRecord());
+		}
+
+		if (BodyWriter.IsError() || BodyData.IsEmpty())
+		{
+			UE_LOG(LogWxSave, Warning, TEXT("IAM '%s' 직렬화 실패"), *Manager->GetName());
+			continue;
+		}
+
+		FPackageFileVersion PackageVersion = GPackageFileUEVersion;
+		FCustomVersionContainer CustomVersions = BodyWriter.GetCustomVersions();
+		TArray<uint8> Data;
+		FMemoryWriter Writer(Data);
+		Writer.ArIsSaveGame = true;
+		Writer << PackageVersion;
+		CustomVersions.Serialize(Writer);
+		Writer.Serialize(BodyData.GetData(), BodyData.Num());
+
+		if (!Writer.IsError() && !Data.IsEmpty())
+		{
+			GameSubsystem->SetInstancedActorManagerDataForLevel(
+				MapKey,
+				LevelKey,
+				Manager->GetFName(),
+				MoveTemp(Data));
+		}
+	}
+}
+
+void UWxSaveWorldSubsystem::HandleLevelBeginMakingVisible(
+	UWorld* World,
+	const ULevelStreaming* LevelStreaming,
+	ULevel* Level)
+{
+	if (World != GetWorld() || !Level)
+	{
+		return;
+	}
+
+	for (AActor* Actor : Level->Actors)
+	{
+		if (AInstancedActorsManager* Manager = Cast<AInstancedActorsManager>(Actor))
+		{
+			ManagersPendingRestore.AddUnique(Manager);
+		}
+	}
+}
+
+void UWxSaveWorldSubsystem::HandleWorldPreActorTick(UWorld* World, ELevelTick TickType, float DeltaSeconds)
+{
+	if (World != GetWorld() || ManagersPendingRestore.IsEmpty())
+	{
+		return;
+	}
+
+	for (int32 Index = ManagersPendingRestore.Num() - 1; Index >= 0; --Index)
+	{
+		AInstancedActorsManager* Manager = ManagersPendingRestore[Index];
+		if (!IsValid(Manager))
+		{
+			ManagersPendingRestore.RemoveAt(Index);
+			continue;
+		}
+		if (!Manager->GetInstancedActorSubsystem())
+		{
+			continue;
+		}
+		if (Manager->HasSpawnedEntities())
+		{
+			UE_LOG(LogWxSave, Error, TEXT("IAM '%s'가 복원 전에 엔티티를 생성했다. IA.DeferSpawnEntities를 활성화해야 한다."), *Manager->GetName());
+			ManagersPendingRestore.RemoveAt(Index);
+			continue;
+		}
+
+		RestoreManager(Manager);
+		ManagersPendingRestore.RemoveAt(Index);
+	}
+}
+
+void UWxSaveWorldSubsystem::RestoreManager(AInstancedActorsManager* Manager)
+{
+	const UWxSaveGame* SaveGame = GetActiveSaveGame();
+	if (!SaveGame || !Manager || !Manager->GetLevel())
+	{
+		return;
+	}
+
+	const FName MapKey = UWxSaveGameSubsystem::GetStableMapPackageName(GetWorld());
+	ULevel* Level = Manager->GetLevel();
+	ULevelStreaming* StreamingLevel = GetWorld()->GetLevelStreamingForPackageName(Level->GetPackage()->GetFName());
+	const FName LevelKey = StreamingLevel ? StreamingLevel->GetWorldAssetPackageFName() : MapKey;
+
+	const FWxWorldPersistenceEntry* WorldEntry = SaveGame->SavedStatePerMap.Find(MapKey);
+	const FWxStreamingLevelPersistenceEntry* LevelEntry = WorldEntry
+		? WorldEntry->SavedStatePerStreamingLevel.Find(LevelKey)
+		: nullptr;
+	const FWxInstancedActorManagerState* State = LevelEntry
+		? LevelEntry->InstancedActorManagerDeltas.Find(Manager->GetFName())
+		: nullptr;
+	if (!State || State->Data.IsEmpty())
+	{
+		return;
+	}
+
+	FMemoryReader Reader(State->Data);
+	Reader.ArIsSaveGame = true;
+	FPackageFileVersion PackageVersion;
+	FCustomVersionContainer CustomVersions;
+	Reader << PackageVersion;
+	CustomVersions.Serialize(Reader);
+	Reader.SetUEVer(PackageVersion);
+	Reader.SetCustomVersions(CustomVersions);
+
+	FStructuredArchiveFromArchive StructuredArchive(Reader);
+	Manager->Serialize(StructuredArchive.GetSlot().EnterRecord());
+	if (Reader.IsError())
+	{
+		UE_LOG(LogWxSave, Warning, TEXT("IAM '%s' 복원 중 직렬화 오류"), *Manager->GetName());
+	}
+}
+
+void UWxSaveWorldSubsystem::HandleWorldBeginTearDown(UWorld* World)
+{
+	if (World != GetWorld())
+	{
+		return;
+	}
+
+	const UWxSaveGameSubsystem* GameSubsystem = GetGameSubsystem();
+	if (!GameSubsystem || GameSubsystem->IsTravelingFromSaveFile())
+	{
+		return;
+	}
+
+	RequestSaveFlush(FOnSaveFlushComplete::FDelegate());
+}
+
+void UWxSaveWorldSubsystem::PerformPreSaveMassTasks()
+{
+	FlushInstancedActorManagers();
+	OnPreFlushMassEntityData.Broadcast();
+}
+
+void UWxSaveWorldSubsystem::HandleSaveFlushMassPartFinished(
+	TArray<FWxMassEntityConfigGroupSnapshot> Snapshots)
+{
+	if (UWxSaveGameSubsystem* GameSubsystem = GetGameSubsystem())
+	{
+		GameSubsystem->SetMassEntityDataForMap(
+			UWxSaveGameSubsystem::GetStableMapPackageName(GetWorld()),
+			MoveTemp(Snapshots));
+	}
+
+	FOnSaveFlushComplete LocalBroadcast = OnSaveFlushBroadcast;
+	OnSaveFlushBroadcast.Clear();
+	bSaveFlushInProgress = false;
+	LocalBroadcast.Broadcast();
+}
+
+void UWxSaveWorldSubsystem::RestoreMassEntityData()
+{
+	const UWxSaveGame* SaveGame = GetActiveSaveGame();
+	if (!SaveGame)
+	{
+		return;
+	}
+
+	const FName MapKey = UWxSaveGameSubsystem::GetStableMapPackageName(GetWorld());
+	const FWxWorldPersistenceEntry* WorldEntry = SaveGame->SavedStatePerMap.Find(MapKey);
+	if (!WorldEntry || WorldEntry->MassEntitySnapshots.IsEmpty())
+	{
+		return;
+	}
+
+	RestoringMassSnapshotCount = WorldEntry->MassEntitySnapshots.Num();
+	RestoringMassMapKey = MapKey;
+	UWxMassPersistence::RestoreEntities(
+		this,
+		WorldEntry->MassEntitySnapshots,
+		FWxOnMassRestoreComplete::CreateUObject(this, &UWxSaveWorldSubsystem::HandleMassRestoreComplete));
+}
+
+void UWxSaveWorldSubsystem::HandleMassSimulationStarted(UWorld* World)
+{
+	if (World != GetWorld() || !bPendingMassRestore)
+	{
+		return;
+	}
+
+	bPendingMassRestore = false;
+	if (UMassSimulationSubsystem* SimulationSubsystem = GetWorld()->GetSubsystem<UMassSimulationSubsystem>())
+	{
+		SimulationSubsystem->GetOnSimulationStarted().Remove(SimulationStartedHandle);
+	}
+	RestoreMassEntityData();
+}
+
+void UWxSaveWorldSubsystem::HandleMassRestoreComplete()
+{
+	UE_LOG(LogWxSave, Log, TEXT("Mass 스냅샷 복원 완료: %d개 그룹, 맵 '%s'"),
+		RestoringMassSnapshotCount,
+		*RestoringMassMapKey.ToString());
+	RestoringMassSnapshotCount = 0;
+	RestoringMassMapKey = NAME_None;
+}
+
+void UWxSaveWorldSubsystem::CapturePlayerStats(AActor* PlayerActor, TMap<FName, float>& OutStats)
+{
+	const UAbilitySystemComponent* AbilitySystem =
+		UAbilitySystemGlobals::Get().GetAbilitySystemComponentFromActor(PlayerActor);
+	if (!AbilitySystem)
+	{
+		return;
+	}
+
+	for (const UAttributeSet* Set : AbilitySystem->GetSpawnedAttributes())
 	{
 		if (!Set)
 		{
@@ -214,30 +585,27 @@ void UWxSaveWorldSubsystem::CapturePlayerStats(AActor* PlayerActor, TMap<FName, 
 
 		for (TFieldIterator<FStructProperty> It(Set->GetClass()); It; ++It)
 		{
-			if (It->Struct != FGameplayAttributeData::StaticStruct() || !It->HasAnyPropertyFlags(CPF_Net))
+			if (It->Struct == FGameplayAttributeData::StaticStruct() && It->HasAnyPropertyFlags(CPF_Net))
 			{
-				continue;
+				const FGameplayAttribute Attribute(*It);
+				OutStats.Add(It->GetFName(), AbilitySystem->GetNumericAttributeBase(Attribute));
 			}
-
-			const FGameplayAttribute Attribute(*It);
-			OutStats.Add(It->GetFName(), ASC->GetNumericAttributeBase(Attribute));
 		}
 	}
 }
 
 void UWxSaveWorldSubsystem::ApplyPlayerStats(AActor* PlayerActor, const TMap<FName, float>& InStats)
 {
-	UAbilitySystemComponent* ASC = UAbilitySystemGlobals::Get().GetAbilitySystemComponentFromActor(PlayerActor);
-	if (!ASC)
+	UAbilitySystemComponent* AbilitySystem =
+		UAbilitySystemGlobals::Get().GetAbilitySystemComponentFromActor(PlayerActor);
+	if (!AbilitySystem)
 	{
 		return;
 	}
 
-	// 1패스로 전량 적용하면 모든 Max 가 저장 값으로 확정된다(Max 는 다른 어트리뷰트에 의해 재조정되지 않으므로).
-	// 2패스는 아직 저장 값과 다른 것(주로 잘못된 Max 로 클램프된 current)만 재적용해 정확한 Max 로 복원한다.
 	for (int32 Pass = 0; Pass < 2; ++Pass)
 	{
-		for (const UAttributeSet* Set : ASC->GetSpawnedAttributes())
+		for (const UAttributeSet* Set : AbilitySystem->GetSpawnedAttributes())
 		{
 			if (!Set)
 			{
@@ -258,298 +626,12 @@ void UWxSaveWorldSubsystem::ApplyPlayerStats(AActor* PlayerActor, const TMap<FNa
 				}
 
 				const FGameplayAttribute Attribute(*It);
-
-				// 이미 저장 값이면 재적용이 부르는 미세 드리프트를 막는다.
-				if (Pass == 1 && ASC->GetNumericAttributeBase(Attribute) == *SavedValue)
+				if (Pass == 1 && AbilitySystem->GetNumericAttributeBase(Attribute) == *SavedValue)
 				{
 					continue;
 				}
-
-				ASC->SetNumericAttributeBase(Attribute, *SavedValue);
+				AbilitySystem->SetNumericAttributeBase(Attribute, *SavedValue);
 			}
 		}
 	}
-}
-
-bool UWxSaveWorldSubsystem::ShouldSave(const UObject* Object)
-{
-	const UObject* Archetype = Object->GetArchetype();
-	if (!Archetype)
-	{
-		return true;
-	}
-
-	for (TFieldIterator<FProperty> It(Object->GetClass()); It; ++It)
-	{
-		if (!It->HasAnyPropertyFlags(CPF_SaveGame))
-		{
-			continue;
-		}
-
-		for (int32 Index = 0; Index < It->ArrayDim; ++Index)
-		{
-			if (!It->Identical_InContainer(Object, Archetype, Index))
-			{
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
-
-bool UWxSaveWorldSubsystem::CaptureActor(UWxSaveGame& SaveGame, AActor* Actor)
-{
-	const IWxSavable* Savable = Cast<IWxSavable>(Actor);
-	if (!Savable)
-	{
-		return false;
-	}
-
-	const FGuid ActorId = Savable->GetSaveId();
-	if (!ActorId.IsValid())
-	{
-		UE_LOG(LogWxSave, Warning, TEXT("CaptureActor: '%s' 의 WxSaveId 가 유효하지 않아 저장에서 제외됨. 에디터에서 WxSaveId 부여 경로(PostLoad 등)가 동작했는지 확인하라."), *GetNameSafe(Actor));
-		return false;
-	}
-
-	// 이 레코드의 블롭들(액터+컴포넌트)이 사용한 커스텀 버전의 합집합. archive 별로 컨테이너가 분리되므로 병합한다(같은 빌드라 GUID 당 버전이 같아 충돌 없음).
-	FCustomVersionContainer UsedCustomVersions;
-	FWxActorRecord Record;
-
-	if (ShouldSave(Actor))
-	{
-		FMemoryWriter MemWriter(Record.ByteData, true);
-		FObjectAndNameAsStringProxyArchive Ar(MemWriter, false);
-		Ar.ArIsSaveGame = true;
-		Actor->Serialize(Ar);
-		UsedCustomVersions = MemWriter.GetCustomVersions();
-	}
-
-	// 컴포넌트의 UPROPERTY(SaveGame) 필드는 Actor::Serialize 가 자동으로 끌고 가지 않으므로 컴포넌트 FName 으로 별도 캡처.
-	for (UActorComponent* Component : Actor->GetComponents())
-	{
-		if (!Component || !ShouldSave(Component))
-		{
-			continue;
-		}
-
-		FWxComponentRecord& ComponentRecord = Record.ComponentData.Add(Component->GetFName());
-
-		FMemoryWriter MemWriter(ComponentRecord.ByteData, true);
-		FObjectAndNameAsStringProxyArchive Ar(MemWriter, false);
-		Ar.ArIsSaveGame = true;
-		Component->Serialize(Ar);
-
-		for (const FCustomVersion& Version : MemWriter.GetCustomVersions().GetAllVersions())
-		{
-			UsedCustomVersions.SetVersion(Version.Key, Version.Version, Version.GetFriendlyName());
-		}
-	}
-
-	// 담을 것이 하나도 없다 — 옛 레코드까지 걷어 기본값으로 되돌아온 액터가 옛 상태로 복원되지 않게 한다.
-	if (Record.ByteData.IsEmpty() && Record.ComponentData.IsEmpty())
-	{
-		SaveGame.ActorRecords.Remove(ActorId);
-		return false;
-	}
-
-	Record.Transform = Actor->GetActorTransform();
-
-	{
-		FMemoryWriter HeaderWriter(Record.VersionHeader, true);
-		FPackageFileVersion UEVersion = GPackageFileUEVersion;
-		HeaderWriter << UEVersion;
-		UsedCustomVersions.Serialize(HeaderWriter);
-	}
-
-	SaveGame.ActorRecords.Add(ActorId, MoveTemp(Record));
-	return true;
-}
-
-bool UWxSaveWorldSubsystem::RestoreActor(const UWxSaveGame& SaveGame, AActor* Actor, bool* bOutIsSavable)
-{
-	IWxSavable* Savable = Cast<IWxSavable>(Actor);
-	if (bOutIsSavable)
-	{
-		*bOutIsSavable = Savable != nullptr;
-	}
-
-	if (!Savable)
-	{
-		return false;
-	}
-
-	const FGuid ActorId = Savable->GetSaveId();
-	if (!ActorId.IsValid())
-	{
-		UE_LOG(LogWxSave, Warning, TEXT("RestoreActor: '%s' 의 WxSaveId 가 유효하지 않아 복원할 수 없음."), *GetNameSafe(Actor));
-		return false;
-	}
-
-	const FWxActorRecord* Record = SaveGame.ActorRecords.Find(ActorId);
-	if (!Record)
-	{
-		return false;
-	}
-
-	Actor->SetActorTransform(Record->Transform);
-
-	// 헤더가 없는 구버전 레코드는 현재 빌드 버전으로 읽는다.
-	const bool bHasVersionHeader = Record->VersionHeader.Num() > 0;
-	FPackageFileVersion SavedUEVersion = GPackageFileUEVersion;
-	FCustomVersionContainer SavedCustomVersions;
-	if (bHasVersionHeader)
-	{
-		FMemoryReader HeaderReader(Record->VersionHeader, true);
-		HeaderReader << SavedUEVersion;
-		SavedCustomVersions.Serialize(HeaderReader);
-	}
-
-	// 액터 본체는 기본값과 다른 것이 있을 때만 담기므로, 컴포넌트만 바뀐 레코드에선 비어 있다.
-	if (!Record->ByteData.IsEmpty())
-	{
-		FMemoryReader MemReader(Record->ByteData, true);
-		// 맨 FMemoryReader 는 커스텀 버전을 현재 빌드 값으로 리셋하므로, 역직렬화 전에 저장 시점 버전을 적용한다.
-		if (bHasVersionHeader)
-		{
-			MemReader.SetUEVer(SavedUEVersion);
-			MemReader.SetCustomVersions(SavedCustomVersions);
-		}
-		FObjectAndNameAsStringProxyArchive Ar(MemReader, false);
-		Ar.ArIsSaveGame = true;
-		Actor->Serialize(Ar);
-	}
-
-	for (UActorComponent* Component : Actor->GetComponents())
-	{
-		if (!Component)
-		{
-			continue;
-		}
-
-		const FWxComponentRecord* ComponentRecord = Record->ComponentData.Find(Component->GetFName());
-		if (!ComponentRecord || ComponentRecord->ByteData.Num() == 0)
-		{
-			continue;
-		}
-
-		FMemoryReader MemReader(ComponentRecord->ByteData, true);
-		if (bHasVersionHeader)
-		{
-			MemReader.SetUEVer(SavedUEVersion);
-			MemReader.SetCustomVersions(SavedCustomVersions);
-		}
-		FObjectAndNameAsStringProxyArchive Ar(MemReader, false);
-		Ar.ArIsSaveGame = true;
-		Component->Serialize(Ar);
-	}
-
-	Savable->OnSaveRestored();
-
-	UE_LOG(LogWxSave, Verbose, TEXT("RestoreActor: '%s' (%s) 복원"), *GetNameSafe(Actor), *ActorId.ToString());
-	return true;
-}
-
-void UWxSaveWorldSubsystem::HandleWorldInitializedActors(const UWorld::FActorsInitializedParams& Params)
-{
-	if (Params.World != GetWorld())
-	{
-		return;
-	}
-
-	const UWxSaveGame* SaveGame = GetActiveSaveGame();
-	if (!SaveGame)
-	{
-		return;
-	}
-
-	// 신규 세션이면 레코드가 비어있어 noop.
-	int32 SavableCount = 0;
-	int32 RestoredCount = 0;
-	for (TActorIterator<AActor> It(Params.World); It; ++It)
-	{
-		bool bIsSavable = false;
-		RestoredCount += RestoreActor(*SaveGame, *It, &bIsSavable) ? 1 : 0;
-		SavableCount += bIsSavable ? 1 : 0;
-	}
-
-	UE_LOG(LogWxSave, Log, TEXT("월드 초기화 복원: IWxSavable %d개 중 %d개에 슬롯 적용 (슬롯 레코드 %d개)"),
-		SavableCount, RestoredCount, SaveGame->ActorRecords.Num());
-}
-
-void UWxSaveWorldSubsystem::HandleLevelAddedToWorld(ULevel* Level, UWorld* World)
-{
-	if (!Level || World != GetWorld())
-	{
-		return;
-	}
-
-	const UWxSaveGame* SaveGame = GetActiveSaveGame();
-	if (!SaveGame)
-	{
-		return;
-	}
-
-	int32 RestoredCount = 0;
-	for (AActor* Actor : Level->Actors)
-	{
-		RestoredCount += RestoreActor(*SaveGame, Actor) ? 1 : 0;
-	}
-
-	UE_LOG(LogWxSave, Verbose, TEXT("스트리밍-인 복원: 레벨 '%s' — %d개 복원"), *Level->GetOutermost()->GetName(), RestoredCount);
-}
-
-void UWxSaveWorldSubsystem::HandleLevelRemovedFromWorld(ULevel* Level, UWorld* World)
-{
-	if (!Level || World != GetWorld())
-	{
-		return;
-	}
-
-	// 로드 직후 트래블 중이면 구 월드의 라이브 상태가 방금 로드한 세이브를 덮어쓰므로 캡처하지 않는다.
-	const UWxSaveGameSubsystem* GameSubsystem = GetGameSubsystem();
-	if (!GameSubsystem || GameSubsystem->IsTravelingFromSaveFile())
-	{
-		return;
-	}
-
-	UWxSaveGame* SaveGame = GetActiveSaveGame();
-	if (!SaveGame)
-	{
-		return;
-	}
-
-	int32 CapturedCount = 0;
-	for (AActor* Actor : Level->Actors)
-	{
-		CapturedCount += CaptureActor(*SaveGame, Actor) ? 1 : 0;
-	}
-
-	UE_LOG(LogWxSave, Verbose, TEXT("스트리밍-아웃 캡처: 레벨 '%s' — %d개"), *Level->GetOutermost()->GetName(), CapturedCount);
-}
-
-void UWxSaveWorldSubsystem::HandleWorldBeginTearDown(UWorld* World)
-{
-	if (World != GetWorld())
-	{
-		return;
-	}
-
-	const UWxSaveGameSubsystem* GameSubsystem = GetGameSubsystem();
-	if (!GameSubsystem)
-	{
-		return;
-	}
-
-	// 로드 직후 트래블 중이면 구 월드의 라이브 상태가 방금 로드한 세이브를 덮어쓰므로 캡처하지 않는다.
-	if (GameSubsystem->IsTravelingFromSaveFile())
-	{
-		UE_LOG(LogWxSave, Verbose, TEXT("teardown 캡처 스킵: 로드 트래블 중"));
-		return;
-	}
-
-	// teardown 은 스트리밍-아웃·EndPlay 보다 앞서 발화하므로 전체 상태를 담고, 이후 개별 스트리밍-아웃 재캡처는 동일 데이터라 무해하다.
-	UE_LOG(LogWxSave, Log, TEXT("맵 이탈 메모리 플러시: '%s'"), *World->GetMapName());
-	FlushSavableActors();
 }

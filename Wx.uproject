@@ -80,6 +80,14 @@
 			"Enabled": true
 		},
 		{
+			"Name": "LevelStreamingPersistence",
+			"Enabled": true
+		},
+		{
+			"Name": "InstancedActors",
+			"Enabled": true
+		},
+		{
 			"Name": "WxDialogue",
 			"Enabled": true
 		},

@@ -15,9 +15,22 @@ public class WxSave : ModuleRules
 			"Engine",
 			"GameplayAbilities",
 			"GameplayTags",
+			"MassCore",
+			"MassEntity",
+			"MassSpawner",
 			"ModularGameplay",
 			"StateTreeModule",
 			"WxCore",
+		});
+
+		PrivateDependencyModuleNames.AddRange(new string[]
+		{
+			"DeveloperSettings",
+			"EngineSettings",
+			"InstancedActors",
+			"LevelStreamingPersistence",
+			"MassActors",
+			"MassSimulation",
 		});
 	}
 }

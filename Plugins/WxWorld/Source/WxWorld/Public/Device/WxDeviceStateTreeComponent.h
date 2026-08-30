@@ -32,7 +32,7 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	/** 권위가 정한 상태의 Tag. 트리를 훑는 것이 아니라 복제된 필드를 그대로 답하므로 모든 피어가 같은 값을 본다. */
+	/** 권위가 정한 상태의 Tag. 트리를 훑는 것이 아니라 복제된 이름을 변환해 답하므로 모든 피어가 같은 값을 본다. */
 	FGameplayTag GetStateTag() const;
 
 	/**
@@ -63,11 +63,14 @@ protected:
 	 * 도착 즉시 비교하면 아직 대기 중인 발행을 소화하지 못한 트리를 「어긋났다」고 오판하게 된다.
 	 */
 	UFUNCTION()
-	void OnRep_StateTag();
+	void OnRep_StateTagName();
 
-	/** 지금 활성인 상태의 Tag. 권위 측이 트리 틱마다 갱신하며, 이 값이 곧 세이브 슬롯에 담기는 장치의 상태다. */
-	UPROPERTY(ReplicatedUsing = OnRep_StateTag, SaveGame)
-	FGameplayTag StateTag;
+	/**
+	 * 지금 활성인 상태 Tag의 이름. 권위 측이 트리 틱마다 갱신하며, 이 값이 곧 세이브 슬롯에 담기는 장치의 상태다.
+	 * LSP가 FGameplayTag의 중첩 TagName을 직렬화하지 못하므로 저장·복제 필드는 원형인 FName 하나로 유지한다.
+	 */
+	UPROPERTY(VisibleInstanceOnly, ReplicatedUsing = OnRep_StateTagName, SaveGame, Category = "Wx")
+	FName StateTagName;
 
 	/**
 	 * 저장된 상태가 없을 때 시작할 상태의 Tag. 기본값 Root 는 예약어로, 에셋의 루트 기본 상태에서 시작한다는 뜻이다.

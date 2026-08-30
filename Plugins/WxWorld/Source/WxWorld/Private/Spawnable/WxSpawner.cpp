@@ -14,7 +14,6 @@
 
 #if WITH_EDITOR
 #include "Editor/EditorEngine.h"
-#include "UObject/ObjectSaveContext.h"
 #endif
 
 namespace WxSpawnerLabel
@@ -92,11 +91,6 @@ void AWxSpawner::MarkKilled()
 	bIsKilled = true;
 
 	FWxStateTreeTask_WaitSpawnersKilled::NotifySpawnerKilled(this);
-}
-
-FGuid AWxSpawner::GetSaveId() const
-{
-	return SaveId;
 }
 
 void AWxSpawner::OnSaveRestored()
@@ -188,20 +182,6 @@ void AWxSpawner::SpawnTarget()
 }
 
 #if WITH_EDITOR
-void AWxSpawner::PreSave(FObjectPreSaveContext ObjectSaveContext)
-{
-	Super::PreSave(ObjectSaveContext);
-
-	// 쿠킹·EditorDomain 등 사용자 편집이 개입할 수 없는 저장은 건드리지 않는다. 값은 맵 저장 때 이미 확정되어 패키지에 실려 있다.
-	if (ObjectSaveContext.IsProceduralSave())
-	{
-		return;
-	}
-
-	// Modify() 는 부르지 않는다. 이미 저장 중이라 트랜잭션에 남길 이유가 없고, 오히려 저장 직후 패키지가 dirty 로 남는다.
-	SaveId = GetActorGuid();
-}
-
 // 생성 훅으로 PreRegisterAllComponents 는 쓸 수 없다. 월드파티션 셀 스트리밍이 타는 증분 등록 경로가 그 함수를 호출하지 않는다.
 void AWxSpawner::PostRegisterAllComponents()
 {

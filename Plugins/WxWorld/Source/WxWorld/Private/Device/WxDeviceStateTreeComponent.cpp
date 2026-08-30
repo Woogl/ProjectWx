@@ -25,12 +25,12 @@ void UWxDeviceStateTreeComponent::GetLifetimeReplicatedProps(TArray<FLifetimePro
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UWxDeviceStateTreeComponent, StateTag);
+	DOREPLIFETIME(UWxDeviceStateTreeComponent, StateTagName);
 }
 
 FGameplayTag UWxDeviceStateTreeComponent::GetStateTag() const
 {
-	return StateTag;
+	return FGameplayTag::RequestGameplayTag(StateTagName, false);
 }
 
 void UWxDeviceStateTreeComponent::NotifyInteractionPending()
@@ -41,7 +41,7 @@ void UWxDeviceStateTreeComponent::NotifyInteractionPending()
 void UWxDeviceStateTreeComponent::NotifySaveRestored()
 {
 	// 복원은 서버 권위에서만 상태를 움직인다 — 클라 수렴은 복제 추종이 담당한다. 태그 없는 기록은 따라갈 곳이 없다.
-	if (GetOwnerRole() != ROLE_Authority || !StateTag.IsValid())
+	if (GetOwnerRole() != ROLE_Authority || StateTagName.IsNone())
 	{
 		return;
 	}
@@ -74,12 +74,12 @@ void UWxDeviceStateTreeComponent::BeginPlay()
 {
 	// 월드 초기 로드 복원은 BeginPlay 전에 끝나므로 여기서 비어 있으면 저장이 없는 것이다.
 	// 스트리밍-인 복원은 이보다 늦게 와 StateTag 를 덮고 같은 추종으로 갈아탄다.
-	if (GetOwnerRole() == ROLE_Authority && !StateTag.IsValid() && InitialState != RootInitialStateName)
+	if (GetOwnerRole() == ROLE_Authority && StateTagName.IsNone() && InitialState != RootInitialStateName)
 	{
 		const FGameplayTag InitialTag = FGameplayTag::RequestGameplayTag(InitialState, false);
 		if (HasState(InitialTag))
 		{
-			StateTag = InitialTag;
+			StateTagName = InitialTag.GetTagName();
 			bFollowRestoredState = true;
 		}
 		else
@@ -99,8 +99,10 @@ void UWxDeviceStateTreeComponent::BeginPlay()
 	SyncStateWithTree();
 }
 
-void UWxDeviceStateTreeComponent::OnRep_StateTag()
+void UWxDeviceStateTreeComponent::OnRep_StateTagName()
 {
+	const FGameplayTag StateTag = GetStateTag();
+
 	// 권위가 있다고 말하는 상태가 내 에셋에 없다 — 이 장치는 여기서부터 영영 어긋난 채로 남는다.
 	// 값이 바뀐 이 한 번에만 알린다(추종은 매 틱이라 거기서 알리면 로그가 잠긴다).
 	if (StateTag.IsValid() && !HasState(StateTag))
@@ -126,6 +128,7 @@ void UWxDeviceStateTreeComponent::Multicast_ReenterState_Implementation(FGamepla
 	}
 
 	// 그 사이 권위 상태가 더 움직였으면(도착 지연·유실) 지나간 상태의 재진입을 되살릴 이유가 없다 — 추종이 현재 상태로 데려간다.
+	const FGameplayTag StateTag = GetStateTag();
 	if (ReenteredTag != StateTag)
 	{
 		return;
@@ -157,10 +160,11 @@ void UWxDeviceStateTreeComponent::PublishAuthorityState()
 		return;
 	}
 
+	const FGameplayTag StateTag = GetStateTag();
 	if (ActiveTag != StateTag)
 	{
 		UE_LOG(LogWxWorld, Verbose, TEXT("Device(%s): [권위] 상태 %s → %s"), *GetNameSafe(GetOwner()), *StateTag.ToString(), *ActiveTag.ToString());
-		StateTag = ActiveTag;
+		StateTagName = ActiveTag.GetTagName();
 	}
 	else if (bPendingInteractResolve)
 	{
@@ -174,6 +178,8 @@ void UWxDeviceStateTreeComponent::PublishAuthorityState()
 
 void UWxDeviceStateTreeComponent::FollowStateTag()
 {
+	const FGameplayTag StateTag = GetStateTag();
+
 	// 복원 태그가 로컬 에셋에 없으면 영영 수렴할 수 없다 — 추종을 접고 트리 상태 발행으로 복귀해 장치가 조용히 죽는 것을 막는다.
 	if (bFollowRestoredState && !HasState(StateTag))
 	{
