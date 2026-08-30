@@ -10,6 +10,7 @@
 class AWxSpawner;
 struct FStateTreeExecutionContext;
 struct FStateTreeTransitionResult;
+class UWorld;
 
 // GetInstanceDataType() 의 헤더 정의는 코딩 규칙 6 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
 
@@ -22,9 +23,14 @@ struct FWxStateTreeTask_WaitSpawnersKilledInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedLocators = "Actor", AllowedClasses = "/Script/WxWorld.WxSpawner"))
 	TArray<FUniversalObjectLocator> Spawners;
 
-	/** (런타임) 상태를 떠날 때 자기 등록만 골라 걷어내는 데 쓴다. */
-	UPROPERTY()
-	int32 WaitHandle = INDEX_NONE;
+	/** (런타임) 로케이터 해석 비용을 줄이는 약참조 캐시. 스트리밍 아웃되면 다음 판정에서 다시 찾는다. */
+	TArray<TWeakObjectPtr<AWxSpawner>> ResolvedSpawners;
+
+	/** (런타임) 다른 태스크가 트리를 자주 깨워도 실제 조건 판정을 저주기로 제한한다. */
+	float RemainingCheckTime = 0.f;
+
+	/** (런타임) 잠든 StateTree를 다음 조건 판정 시점에 깨우는 요청. */
+	UE::StateTree::FScheduledTickHandle ScheduledTickHandle;
 };
 
 /**
@@ -32,9 +38,9 @@ struct FWxStateTreeTask_WaitSpawnersKilledInstanceData
  * 처치 상태(bIsKilled)는 복제되지 않으므로 권위에서 구동되는 ST 전용이다.
  * 전원이 해석(로드)되고 처치여야 통과한다 — 미해석은 판정 불가라 강제 로드 없이 대기한다.
  *
- * 폴링하지 않는다 — 진입할 때 한 번 보고, 그 뒤로는 스포너가 처치될 때마다(MarkKilled) 오는 통보에서만 다시 본다(틱 없음).
- * 대상 해석도 그 순간에만 하므로, 진입 시점에 스포너가 언로드여도 되고 대기 중에는 아무 비용이 없다.
- * 진입 시 1회 평가가 필요한 것은 이미 전원 처치인 채로 들어오는 조립(퀘스트 재수주 등) 때문이다 — 그땐 새로 올 통보가 없다.
+ * 진입할 때 즉시 판정하고, 이후에는 저주기 Scheduled Tick 으로 지속 상태를 다시 본다.
+ * 따라서 일반 처치뿐 아니라 저장 복원·스트리밍 인처럼 별도 처치 이벤트가 없는 상태 변화도 놓치지 않는다.
+ * 해석된 스포너는 약참조로 캐시하고, 미해석/스트리밍 아웃 대상만 로드된 스포너 중에서 다시 찾으므로 강제 로드하지 않는다.
  *
  * 대상은 FUniversalObjectLocator 로 배치 액터를 직접 지정한다 — 순수 구조체라 ST 컴파일러의 레벨 액터 참조 검증에 걸리지 않고, 씬 픽커와 WP 런타임 셀·PIE 픽스업 해석이 엔진에 내장돼 있어 레벨 밖 호스트(퀘스트 ST)에서도 조립할 수 있다.
  */
@@ -47,11 +53,9 @@ struct FWxStateTreeTask_WaitSpawnersKilled : public FStateTreeTaskCommonBase
 
 	FWxStateTreeTask_WaitSpawnersKilled();
 
-	/** 스포너가 처치된 순간 AWxSpawner::MarkKilled 가 부른다. 같은 월드에서 기다리던 노드들이 자기 지정 전원이 처치됐는지 다시 본다. */
-	static void NotifySpawnerKilled(const AWxSpawner* Spawner);
-
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
 	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 
 #if WITH_EDITOR
@@ -60,6 +64,9 @@ struct FWxStateTreeTask_WaitSpawnersKilled : public FStateTreeTaskCommonBase
 #endif
 
 private:
+	/** 캐시가 비었으면 실제 스포너를 컨텍스트로 로케이터를 맞춰 WP 런타임 셀 대상까지 찾는다. */
+	static AWxSpawner* ResolveSpawner(const FUniversalObjectLocator& Locator, TWeakObjectPtr<AWxSpawner>& CachedSpawner, UWorld* World);
+
 	/** 미해석은 판정 불가라 통과시키지 않는다. 지정이 없으면 완료할 근거도 없다. */
-	static bool AreAllSpawnersKilled(const TArray<FUniversalObjectLocator>& Spawners, UObject* Owner);
+	static bool AreAllSpawnersKilled(FInstanceDataType& Instance, UWorld* World, int32& OutResolvedCount);
 };

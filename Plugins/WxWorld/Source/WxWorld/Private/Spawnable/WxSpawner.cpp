@@ -3,7 +3,6 @@
 #include "Spawnable/WxSpawner.h"
 
 #include "Spawnable/WxSpawnable.h"
-#include "Spawnable/WxStateTreeTask_WaitSpawnersKilled.h"
 #include "Components/BillboardComponent.h"
 #include "Components/ChildActorComponent.h"
 #include "Components/PrimitiveComponent.h"
@@ -89,8 +88,6 @@ void AWxSpawner::MarkKilled()
 	}
 
 	bIsKilled = true;
-
-	FWxStateTreeTask_WaitSpawnersKilled::NotifySpawnerKilled(this);
 }
 
 void AWxSpawner::OnSaveRestored()
