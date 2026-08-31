@@ -208,7 +208,7 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Magnitude);
 	
-	/** 지속시간 Duration SetByCaller 키. NoCooldown/InfiniteMP/DrainGP 등 Duration 모디파이어에서 공용으로 사용 */
+	/** 지속시간 Duration SetByCaller 키. Cooldown/NoCooldown/InfiniteMP의 DurationMagnitude에서 공용으로 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Duration);
 
 	/** 공격력 계수 SetByCaller 키. WxExecCalc_Damage가 ATK 어트리뷰트에 곱하는 배율 */
