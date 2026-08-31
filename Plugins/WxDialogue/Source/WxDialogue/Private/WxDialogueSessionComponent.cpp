@@ -126,6 +126,17 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FData
 		EndDialogue();
 	}
 
+	// 창을 여는 신호가 아래 태그뿐이라, 태그를 못 올리는 세션은 넘길 주체도 끝낼 신호도 없이 굳는다 — 열지 않고 실패로 되돌린다.
+	const AController* Controller = GetController<AController>();
+	APawn* Pawn = Controller ? Controller->GetPawn() : nullptr;
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
+	if (!ASC)
+	{
+		UE_LOG(LogWxDialogue, Warning, TEXT("ClientStartDialogue: 폰 ASC 가 없어 대화를 열지 않는다(테이블 %s / 행 %s). 대화 창을 띄울 신호가 없다."),
+			*GetNameSafe(StartRow.DataTable), *StartRow.RowName.ToString());
+		return;
+	}
+
 	CurrentStartRow = StartRow;
 	if (!EnterRow(StartRow.RowName))
 	{
@@ -140,14 +151,9 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FData
 
 	// 대화 중 상태를 폰 ASC 에 발행한다. 상호작용 어빌리티가 이 태그로 차단되고, 스캐너 표시 게이트(프롬프트·하이라이트)와 대화 창이 함께 이 태그를 따른다.
 	// 대화 창을 여는 관찰자는 여기서 현재 대사를 pull 해 시드하므로, 세션이 다 채워진 뒤인 이 자리에서 올린다.
-	const AController* Controller = GetController<AController>();
-	APawn* Pawn = Controller ? Controller->GetPawn() : nullptr;
-	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn))
-	{
-		// 이 태그를 loose 로 쓰는 곳은 이 컴포넌트뿐이고, 소비자(UI 매니저)는 0↔비0 전이만 듣기 때문에 카운트가 1 이라도 남으면 대화 창이 영영 닫히지 않는다.
-		ASC->SetLooseGameplayTagCount(WxGameplayTags::State_Dialogue, 1);
-		TaggedAbilitySystem = ASC;
-	}
+	// 이 태그를 loose 로 쓰는 곳은 이 컴포넌트뿐이고, 소비자(UI 매니저)는 0↔비0 전이만 듣기 때문에 카운트가 1 이라도 남으면 대화 창이 영영 닫히지 않는다.
+	ASC->SetLooseGameplayTagCount(WxGameplayTags::State_Dialogue, 1);
+	TaggedAbilitySystem = ASC;
 
 	BeginDialogueCamera();
 	ApplyCurrentPose();

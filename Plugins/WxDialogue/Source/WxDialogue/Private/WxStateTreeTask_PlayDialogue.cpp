@@ -41,7 +41,7 @@ EStateTreeRunStatus FWxStateTreeTask_PlayDialogue::EnterState(FStateTreeExecutio
 	// 소유 클라와 권위가 같은 머신이라 세션은 위 호출 안에서 열린다.
 	if (!Session->HasActiveDialogue())
 	{
-		UE_LOG(LogWxDialogue, Warning, TEXT("Play Dialogue: 대화를 열지 못함(행 없음·대사 빔): %s"), *Instance.StartRow.RowName.ToString());
+		UE_LOG(LogWxDialogue, Warning, TEXT("Play Dialogue: 대화를 열지 못함(사유는 직전 경고): %s"), *Instance.StartRow.RowName.ToString());
 		return EStateTreeRunStatus::Failed;
 	}
 
