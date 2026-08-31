@@ -50,9 +50,6 @@ void AWxEnemyCharacter::BeginPlay()
 
 	NameplateComponent->InitializeViewModels(AbilitySystemComponent, CharacterName, Portrait);
 
-	AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death, EGameplayTagEventType::NewOrRemoved)
-		.AddUObject(this, &ThisClass::HandleDeathTagChanged);
-
 	RefreshNameplateVisibility();
 }
 
@@ -130,11 +127,6 @@ void AWxEnemyCharacter::NotifyAITargetChanged()
 	OnAITargetChanged.Broadcast(bHasAITarget);
 }
 
-void AWxEnemyCharacter::HandleDeathTagChanged(const FGameplayTag Tag, int32 NewCount)
-{
-	RefreshNameplateVisibility();
-}
-
 void AWxEnemyCharacter::RefreshNameplateVisibility()
 {
 	const bool bDead = AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Death);
@@ -165,6 +157,9 @@ bool AWxEnemyCharacter::IsInRearCone(const AActor* Interactor) const
 void AWxEnemyCharacter::HandleDeath()
 {
 	Super::HandleDeath();
+
+	// 표시 상태라 시뮬 프록시까지 각 머신이 갱신해야 하므로, 권위 전용 처리 앞에 둔다.
+	RefreshNameplateVisibility();
 
 	if (!HasAuthority())
 	{

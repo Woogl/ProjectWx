@@ -62,14 +62,13 @@ public:
 protected:
 	bool IsInRearCone(const AActor* Interactor) const;
 
-	/** 사망 시 자신을 스폰한 Spawner 에 처치 기록을 남긴다. */
+	/** 사망 시 네임플레이트를 숨기고, 자신을 스폰한 Spawner 에 처치 기록을 남긴다. */
 	virtual void HandleDeath() override;
 
 	UFUNCTION()
 	void OnRep_HasAITarget();
 
 	void NotifyAITargetChanged();
-	void HandleDeathTagChanged(const FGameplayTag Tag, int32 NewCount);
 	void RefreshNameplateVisibility();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
