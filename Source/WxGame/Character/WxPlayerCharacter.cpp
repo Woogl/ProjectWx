@@ -68,6 +68,16 @@ void AWxPlayerCharacter::PossessedBy(AController* NewController)
 
 void AWxPlayerCharacter::NotifyControllerChanged()
 {
+	// MappingContext 는 폰이 아니라 LocalPlayer 에 남으므로 빙의가 풀릴 때 직접 걷는다.
+	// 떠난 컨트롤러는 Super 가 PreviousController 를 현재 값으로 갱신하기 전에만 읽을 수 있다.
+	if (!IsLocallyControlled() && InputConfig && InputConfig->MappingContext)
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystemFromController<UEnhancedInputLocalPlayerSubsystem>(Cast<APlayerController>(PreviousController)))
+		{
+			Subsystem->RemoveMappingContext(InputConfig->MappingContext);
+		}
+	}
+
 	Super::NotifyControllerChanged();
 	
 	StaminaWidget->SetVisibility(IsLocallyControlled());
