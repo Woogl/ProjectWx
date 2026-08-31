@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystemComponent.h"
+#include "GameplayAbilitySpecHandle.h"
 #include "BehaviorTree/BTTaskNode.h"
 #include "GameplayTagContainer.h"
 #include "WxBTTask_ActivateAbility.generated.h"
