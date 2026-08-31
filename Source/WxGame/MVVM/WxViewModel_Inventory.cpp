@@ -4,7 +4,7 @@
 
 #include "Blueprint/UserWidget.h"
 #include "GameFramework/PlayerController.h"
-#include "Inventory/WxInventoryManagerComponent.h"
+#include "Inventory/WxInventoryComponent.h"
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemInstance.h"
 #include "MVVM/WxViewModel_Item.h"
@@ -19,16 +19,16 @@ void UWxViewModel_Inventory::StartObserving(APlayerController* PC)
 	ObservedController = PC;
 
 	// 호스트에선 인벤토리가 위젯보다 항상 먼저 붙는다.
-	if (UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(PC))
+	if (UWxInventoryComponent* Inventory = UWxInventoryComponent::FindInventory(PC))
 	{
 		Initialize(Inventory);
 		return;
 	}
 
-	InventoryReadyHandle = UWxInventoryManagerComponent::OnAnyInventoryReady.AddUObject(this, &UWxViewModel_Inventory::HandleInventoryReady);
+	InventoryReadyHandle = UWxInventoryComponent::OnAnyInventoryReady.AddUObject(this, &UWxViewModel_Inventory::HandleInventoryReady);
 }
 
-void UWxViewModel_Inventory::Initialize(UWxInventoryManagerComponent* InInventory)
+void UWxViewModel_Inventory::Initialize(UWxInventoryComponent* InInventory)
 {
 	if (!InInventory)
 	{
@@ -45,7 +45,7 @@ void UWxViewModel_Inventory::Initialize(UWxInventoryManagerComponent* InInventor
 
 void UWxViewModel_Inventory::Deinitialize()
 {
-	if (UWxInventoryManagerComponent* Inventory = CachedInventory.Get())
+	if (UWxInventoryComponent* Inventory = CachedInventory.Get())
 	{
 		Inventory->OnInventoryStackChanged.Remove(StackChangedHandle);
 	}
@@ -79,7 +79,7 @@ void UWxViewModel_Inventory::BeginDestroy()
 
 int32 UWxViewModel_Inventory::GetCurrencyAmount(const UWxItemDefinition* ItemDef) const
 {
-	const UWxInventoryManagerComponent* Inventory = CachedInventory.Get();
+	const UWxInventoryComponent* Inventory = CachedInventory.Get();
 	return Inventory ? Inventory->GetTotalItemCountByDefinition(ItemDef) : 0;
 }
 
@@ -103,7 +103,7 @@ void UWxViewModel_Inventory::HandleStackChanged(const UWxItemDefinition* ItemDef
 
 	if (Delta > 0 && ItemDef)
 	{
-		if (UWxInventoryManagerComponent* Inventory = CachedInventory.Get())
+		if (UWxInventoryComponent* Inventory = CachedInventory.Get())
 		{
 			UWxViewModel_Item* AcquisitionVM = NewObject<UWxViewModel_Item>(this);
 			AcquisitionVM->Initialize(Inventory, ItemDef);
@@ -117,7 +117,7 @@ void UWxViewModel_Inventory::HandleStackChanged(const UWxItemDefinition* ItemDef
 
 void UWxViewModel_Inventory::RefreshAllItems()
 {
-	UWxInventoryManagerComponent* Inventory = CachedInventory.Get();
+	UWxInventoryComponent* Inventory = CachedInventory.Get();
 	TArray<TObjectPtr<UWxViewModel_Item>> NewItems;
 
 	if (Inventory)
@@ -188,7 +188,7 @@ void UWxViewModel_Inventory::RefreshCategorizedItems()
 	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(CategorizedItems);
 }
 
-void UWxViewModel_Inventory::HandleInventoryReady(UWxInventoryManagerComponent* Inventory)
+void UWxViewModel_Inventory::HandleInventoryReady(UWxInventoryComponent* Inventory)
 {
 	// 신호는 클래스 차원이라 남의 인벤토리도 온다.
 	if (!Inventory || Inventory->GetOwner() != ObservedController.Get())
@@ -204,7 +204,7 @@ void UWxViewModel_Inventory::StopObserving()
 {
 	if (InventoryReadyHandle.IsValid())
 	{
-		UWxInventoryManagerComponent::OnAnyInventoryReady.Remove(InventoryReadyHandle);
+		UWxInventoryComponent::OnAnyInventoryReady.Remove(InventoryReadyHandle);
 		InventoryReadyHandle.Reset();
 	}
 }

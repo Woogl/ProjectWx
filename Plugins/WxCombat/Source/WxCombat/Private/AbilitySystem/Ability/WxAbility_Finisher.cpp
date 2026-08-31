@@ -1,14 +1,13 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Finisher.h"
-#include "AbilitySystem/Ability/WxAbility_BeingFinished.h"
+#include "AbilitySystem/Ability/WxAbility_PlayMontageOnce.h"
 #include "AbilitySystem/Effect/WxEffect_Invincible.h"
 #include "AbilitySystem/Effect/WxEffect_ResetGP.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
-#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "Finisher/WxFinisherDamageComponent.h"
 #include "MotionWarpingComponent.h"
-#include "WxCombatLibrary.h"
 #include "WxGameplayTags.h"
 
 namespace
@@ -27,8 +26,8 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	SetAssetTags(AssetTags);
 
 	// 처형은 상호작용 어빌리티가 대상에게 넘긴 이벤트로 동기 발동하므로, 그 상호작용이 아직 점유 중일 때 뜬다.
-	// Reaction이라 그 점유에 막히지 않는다 — 상호작용은 곧바로 스스로 끝나므로 끊어 줄 필요는 없다.
-	ActivationGroup = EWxAbilityActivationGroup::Reaction;
+	// Override라 그 점유에 막히지 않는다 — 상호작용은 곧바로 스스로 끝나므로 끊어 줄 필요는 없다.
+	ActivationGroup = EWxAbilityActivationGroup::Override;
 
 	ActivationOwnedEffects.Add(UWxEffect_Invincible::StaticClass());
 
@@ -68,8 +67,9 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	const FWxFinisherVariant& Variant = GetCurrentVariant();
 	UAnimMontage* SelectedAttackerMontage = Variant.AttackerMontage;
 	UAnimMontage* SelectedVictimMontage = Variant.VictimMontage;
+	UWxFinisherDamageComponent* FinisherDamageComponent = UWxFinisherDamageComponent::FindComponent(AvatarActor);
 
-	if (!SelectedAttackerMontage || !AvatarActor || !Target || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	if (!SelectedAttackerMontage || !AvatarActor || !Target || !FinisherDamageComponent || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -88,16 +88,13 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 			VictimEvent.Target = Target;
 			VictimEvent.OptionalObject = SelectedVictimMontage;
 
-			FGameplayAbilitySpec VictimSpec(UWxAbility_BeingFinished::StaticClass(), 1);
+			FGameplayAbilitySpec VictimSpec(UWxAbility_PlayMontageOnce::StaticClass(), 1);
 			TargetASC->GiveAbilityAndActivateOnce(VictimSpec, &VictimEvent);
 		}
 	}
 
 	RegisterWarpTarget(AvatarActor, Target);
-
-	DamageEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, WxGameplayTags::Event_AbilityAction_ApplyFinisherDamage, nullptr, true);
-	DamageEventTask->EventReceived.AddDynamic(this, &UWxAbility_Finisher::HandleDamageEvent);
-	DamageEventTask->ReadyForActivation();
+	FinisherDamageComponent->BeginFinisherDamage(Target, Variant.DamageDataRow);
 
 	if (!PlayMontage(SelectedAttackerMontage))
 	{
@@ -107,10 +104,9 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	if (DamageEventTask)
+	if (UWxFinisherDamageComponent* FinisherDamageComponent = UWxFinisherDamageComponent::FindComponent(GetAvatarActorFromActorInfo()))
 	{
-		DamageEventTask->EndTask();
-		DamageEventTask = nullptr;
+		FinisherDamageComponent->EndFinisherDamage(TargetActor.Get());
 	}
 
 	if (ActorInfo && ActorInfo->IsNetAuthority())
@@ -128,7 +124,7 @@ void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, co
 			}
 		}
 	}
-	TargetActor = nullptr;
+	TargetActor.Reset();
 	bBackstab = false;
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
@@ -154,27 +150,4 @@ void UWxAbility_Finisher::RegisterWarpTarget(AActor* AvatarActor, const AActor* 
 
 	const FRotator WarpRotation = Direction.Rotation();
 	MotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(FinisherWarpTargetName, TargetLocation, WarpRotation);
-}
-
-void UWxAbility_Finisher::ApplyFinisherDamage() const
-{
-	const AActor* Target = TargetActor.Get();
-
-	// 처형은 무기 액터를 거치지 않고 노티파이가 직접 넣으므로 공격자 자신이 원인 액터다.
-	AActor* Avatar = GetAvatarActorFromActorInfo();
-	if (!Target || !Avatar)
-	{
-		return;
-	}
-
-	FHitResult HitResult;
-	HitResult.ImpactPoint = Target->GetActorLocation();
-	HitResult.Location = Target->GetActorLocation();
-
-	UWxCombatLibrary::ApplyDamage(Avatar, Target, GetCurrentVariant().DamageDataRow, HitResult, 0.f);
-}
-
-void UWxAbility_Finisher::HandleDamageEvent(FGameplayEventData Payload)
-{
-	ApplyFinisherDamage();
 }

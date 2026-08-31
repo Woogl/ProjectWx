@@ -4,7 +4,7 @@
 #include "Components/SceneComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/PlayerController.h"
-#include "Targeting/WxLockOnManagerComponent.h"
+#include "Targeting/WxLockOnComponent.h"
 #include "Targeting/WxLockOnPointComponent.h"
 
 UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed, float InPitchOffset, float InMaxDistance, TSubclassOf<UUserWidget> InReticleWidgetClass, float InRetargetLookThreshold)
@@ -80,7 +80,7 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 	const FRotator NewControlRotation = FMath::RInterpTo(PC->GetControlRotation(), DesiredControlRotation, DeltaTime, InterpSpeed);
 	PC->SetControlRotation(NewControlRotation);
 
-	UWxLockOnManagerComponent* Comp = LockOnManagerComponent.Get();
+	UWxLockOnComponent* Comp = LockOnComponent.Get();
 	if (!Comp)
 	{
 		return;
@@ -108,7 +108,7 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 
 void UWxAbilityTask_LockOnTarget::OnDestroy(bool bInOwnerFinished)
 {
-	if (UWxLockOnManagerComponent* Comp = LockOnManagerComponent.Get())
+	if (UWxLockOnComponent* Comp = LockOnComponent.Get())
 	{
 		Comp->OnLockOnTargetChanged.RemoveDynamic(this, &UWxAbilityTask_LockOnTarget::HandleLockOnTargetChanged);
 	}
@@ -123,8 +123,8 @@ void UWxAbilityTask_LockOnTarget::Activate()
 	Super::Activate();
 
 	// 락온 대상의 권위·복제 소스는 컴포넌트다.
-	LockOnManagerComponent = UWxLockOnManagerComponent::FindComponent(GetAvatarActor());
-	if (UWxLockOnManagerComponent* Comp = LockOnManagerComponent.Get())
+	LockOnComponent = UWxLockOnComponent::FindComponent(GetAvatarActor());
+	if (UWxLockOnComponent* Comp = LockOnComponent.Get())
 	{
 		Comp->OnLockOnTargetChanged.AddDynamic(this, &UWxAbilityTask_LockOnTarget::HandleLockOnTargetChanged);
 		Target = Comp->GetLockOnTarget();

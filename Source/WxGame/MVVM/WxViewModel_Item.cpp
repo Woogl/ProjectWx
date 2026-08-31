@@ -5,12 +5,12 @@
 #include "Blueprint/UserWidget.h"
 #include "Engine/Texture2D.h"
 #include "GameFramework/PlayerController.h"
-#include "Inventory/WxInventoryManagerComponent.h"
+#include "Inventory/WxInventoryComponent.h"
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemFragment.h"
 #include "Items/WxItemInstance.h"
 
-void UWxViewModel_Item::Initialize(UWxInventoryManagerComponent* InInventory, UWxItemInstance* InInstance)
+void UWxViewModel_Item::Initialize(UWxInventoryComponent* InInventory, UWxItemInstance* InInstance)
 {
 	if (!InInventory || !InInstance)
 	{
@@ -31,7 +31,7 @@ void UWxViewModel_Item::Initialize(UWxInventoryManagerComponent* InInventory, UW
 	UE_MVVM_SET_PROPERTY_VALUE(CurrentCharges, InInstance->GetCurrentCharges());
 }
 
-void UWxViewModel_Item::Initialize(UWxInventoryManagerComponent* InInventory, const UWxItemDefinition* InItemDef)
+void UWxViewModel_Item::Initialize(UWxInventoryComponent* InInventory, const UWxItemDefinition* InItemDef)
 {
 	if (!InInventory || !InItemDef)
 	{
@@ -56,7 +56,7 @@ void UWxViewModel_Item::Initialize(UWxInventoryManagerComponent* InInventory, co
 
 void UWxViewModel_Item::Deinitialize()
 {
-	if (UWxInventoryManagerComponent* Inventory = CachedInventory.Get())
+	if (UWxInventoryComponent* Inventory = CachedInventory.Get())
 	{
 		Inventory->OnInventoryStackChanged.Remove(StackChangedHandle);
 		Inventory->OnInventorySlotChanged.Remove(SlotChangedHandle);
@@ -88,7 +88,7 @@ UWxItemInstance* UWxViewModel_Item::GetTargetInstance() const
 
 bool UWxViewModel_Item::RequestUseConsumable()
 {
-	if (UWxInventoryManagerComponent* Inventory = CachedInventory.Get())
+	if (UWxInventoryComponent* Inventory = CachedInventory.Get())
 	{
 		return Inventory->RequestUseConsumable();
 	}
@@ -138,7 +138,7 @@ void UWxViewModel_Item::RefreshChargeIcon()
 	const UWxItemInstance* Instance = TargetInstance.Get();
 	if (!Instance)
 	{
-		const UWxInventoryManagerComponent* Inventory = CachedInventory.Get();
+		const UWxInventoryComponent* Inventory = CachedInventory.Get();
 		Instance = Inventory ? Inventory->FindFirstItemStackByDefinition(TargetItemDef.Get()) : nullptr;
 	}
 
@@ -186,7 +186,7 @@ UObject* UWxViewModelResolver_Item::CreateInstance(const UClass* ExpectedType, c
 		return ViewModel;
 	}
 
-	UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(UserWidget->GetOwningPlayer());
+	UWxInventoryComponent* Inventory = UWxInventoryComponent::FindInventory(UserWidget->GetOwningPlayer());
 	if (Inventory)
 	{
 		ViewModel->Initialize(Inventory, ItemToDisplay);

@@ -12,10 +12,13 @@
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "Input/WxInputConfig.h"
-#include "Targeting/WxLockOnManagerComponent.h"
-#include "Summon/WxSummonComponent.h"
+#include "Inventory/WxItemUseComponent.h"
+#include "Finisher/WxFinisherDamageComponent.h"
+#include "Targeting/WxLockOnComponent.h"
+#include "WxCombatLibrary.h"
 #include "WxGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Framework/WxWorldSettings.h"
 
 AWxPlayerCharacter::AWxPlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -40,8 +43,9 @@ AWxPlayerCharacter::AWxPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
 
-	LockOnManagerComponent = CreateDefaultSubobject<UWxLockOnManagerComponent>(TEXT("LockOnManagerComponent"));
-	SummonComponent = CreateDefaultSubobject<UWxSummonComponent>(TEXT("SummonComponent"));
+	LockOnComponent = CreateDefaultSubobject<UWxLockOnComponent>(TEXT("LockOnComponent"));
+	FinisherDamageComponent = CreateDefaultSubobject<UWxFinisherDamageComponent>(TEXT("FinisherDamageComponent"));
+	ItemUseComponent = CreateDefaultSubobject<UWxItemUseComponent>(TEXT("ItemUseComponent"));
 
 	StaminaWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("StaminaWidget"));
 	StaminaWidget->SetupAttachment(RootComponent);
@@ -50,6 +54,16 @@ AWxPlayerCharacter::AWxPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	StaminaWidget->SetVisibility(false);
 
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+}
+
+void AWxPlayerCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (AWxWorldSettings* WorldSettings = Cast<AWxWorldSettings>(GetWorld() ? GetWorld()->GetWorldSettings() : nullptr))
+	{
+		WorldSettings->ApplyPendingPlayerState(this);
+	}
 }
 
 void AWxPlayerCharacter::NotifyControllerChanged()
@@ -124,6 +138,14 @@ void AWxPlayerCharacter::Jump()
 	Super::Jump();
 }
 
+void AWxPlayerCharacter::OnJumped_Implementation()
+{
+	Super::OnJumped_Implementation();
+
+	// 2단 점프는 스택되지 않는 GE를 하나 더 만들어, 늦게 걸린 쪽이 만료될 때까지 부여 태그가 유지된다.
+	UWxCombatLibrary::ApplyEffect(AbilitySystemComponent, JumpInvincibleEffect, nullptr);
+}
+
 bool AWxPlayerCharacter::CanCrouch() const
 {
 	const bool bParent = Super::CanCrouch();
@@ -152,9 +174,9 @@ void AWxPlayerCharacter::Look(const FInputActionValue& Value)
 	// 락온 중에는 시점을 돌리지 않고 그 입력을 락온 컴포넌트에 넘겨 대상 전환에 쓰게 한다.
 	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_LockOn))
 	{
-		if (LockOnManagerComponent)
+		if (LockOnComponent)
 		{
-			LockOnManagerComponent->SetLookInput(LookAxis);
+			LockOnComponent->SetLookInput(LookAxis);
 		}
 		return;
 	}

@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Inventory/WxInventoryManagerComponent.h"
+#include "Inventory/WxInventoryComponent.h"
 
 #include "Inventory/WxEquipmentComponent.h"
 #include "Items/WxItemDefinition.h"
@@ -43,7 +43,7 @@ FWxInventoryList::FWxInventoryList(UActorComponent* InOwnerComponent)
 
 void FWxInventoryList::PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize)
 {
-	UWxInventoryManagerComponent* Manager = Cast<UWxInventoryManagerComponent>(OwnerComponent);
+	UWxInventoryComponent* Manager = Cast<UWxInventoryComponent>(OwnerComponent);
 	if (!Manager)
 	{
 		return;
@@ -71,7 +71,7 @@ void FWxInventoryList::PreReplicatedRemove(const TArrayView<int32> RemovedIndice
 
 void FWxInventoryList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize)
 {
-	UWxInventoryManagerComponent* Manager = Cast<UWxInventoryManagerComponent>(OwnerComponent);
+	UWxInventoryComponent* Manager = Cast<UWxInventoryComponent>(OwnerComponent);
 	if (!Manager)
 	{
 		return;
@@ -92,7 +92,7 @@ void FWxInventoryList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, i
 
 void FWxInventoryList::PostReplicatedChange(const TArrayView<int32> ChangedIndices, int32 FinalSize)
 {
-	UWxInventoryManagerComponent* Manager = Cast<UWxInventoryManagerComponent>(OwnerComponent);
+	UWxInventoryComponent* Manager = Cast<UWxInventoryComponent>(OwnerComponent);
 	if (!Manager)
 	{
 		return;
@@ -202,9 +202,9 @@ const TArray<FWxInventoryEntry>& FWxInventoryList::GetEntries() const
 	return Entries;
 }
 
-FWxOnInventoryReady UWxInventoryManagerComponent::OnAnyInventoryReady;
+FWxOnInventoryReady UWxInventoryComponent::OnAnyInventoryReady;
 
-UWxInventoryManagerComponent::UWxInventoryManagerComponent(const FObjectInitializer& ObjectInitializer)
+UWxInventoryComponent::UWxInventoryComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 	, InventoryList(this)
 {
@@ -212,21 +212,21 @@ UWxInventoryManagerComponent::UWxInventoryManagerComponent(const FObjectInitiali
 	bReplicateUsingRegisteredSubObjectList = true;
 }
 
-void UWxInventoryManagerComponent::BeginPlay()
+void UWxInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
 	OnAnyInventoryReady.Broadcast(this);
 }
 
-void UWxInventoryManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UWxInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ThisClass, InventoryList);
 }
 
-void UWxInventoryManagerComponent::ReadyForReplication()
+void UWxInventoryComponent::ReadyForReplication()
 {
 	Super::ReadyForReplication();
 
@@ -239,7 +239,7 @@ void UWxInventoryManagerComponent::ReadyForReplication()
 	}
 }
 
-UWxInventoryManagerComponent* UWxInventoryManagerComponent::FindInventory(const AActor* Actor)
+UWxInventoryComponent* UWxInventoryComponent::FindInventory(const AActor* Actor)
 {
 	if (!Actor)
 	{
@@ -255,10 +255,10 @@ UWxInventoryManagerComponent* UWxInventoryManagerComponent::FindInventory(const 
 		}
 	}
 
-	return PC ? PC->FindComponentByClass<UWxInventoryManagerComponent>() : nullptr;
+	return PC ? PC->FindComponentByClass<UWxInventoryComponent>() : nullptr;
 }
 
-UWxItemInstance* UWxInventoryManagerComponent::AddItemDefinition(const UWxItemDefinition* ItemDef, int32 StackCount)
+UWxItemInstance* UWxInventoryComponent::AddItemDefinition(const UWxItemDefinition* ItemDef, int32 StackCount)
 {
 	if (!ItemDef || StackCount <= 0)
 	{
@@ -325,7 +325,7 @@ UWxItemInstance* UWxInventoryManagerComponent::AddItemDefinition(const UWxItemDe
 	return FirstAffected;
 }
 
-void UWxInventoryManagerComponent::GrantItems(const TArray<FWxItemRewardEntry>& Items)
+void UWxInventoryComponent::GrantItems(const TArray<FWxItemRewardEntry>& Items)
 {
 	for (const FWxItemRewardEntry& Entry : Items)
 	{
@@ -342,7 +342,7 @@ void UWxInventoryManagerComponent::GrantItems(const TArray<FWxItemRewardEntry>& 
 	}
 }
 
-void UWxInventoryManagerComponent::RemoveItemInstance(UWxItemInstance* ItemInstance)
+void UWxInventoryComponent::RemoveItemInstance(UWxItemInstance* ItemInstance)
 {
 	if (!ItemInstance)
 	{
@@ -376,7 +376,7 @@ void UWxInventoryManagerComponent::RemoveItemInstance(UWxItemInstance* ItemInsta
 	NotifyStackChangedFromList(RemovedDef, -RemovedStackCount);
 }
 
-bool UWxInventoryManagerComponent::ConsumeItemsByDefinition(const UWxItemDefinition* ItemDef, int32 NumToConsume)
+bool UWxInventoryComponent::ConsumeItemsByDefinition(const UWxItemDefinition* ItemDef, int32 NumToConsume)
 {
 	if (!ItemDef || NumToConsume <= 0)
 	{
@@ -406,7 +406,7 @@ bool UWxInventoryManagerComponent::ConsumeItemsByDefinition(const UWxItemDefinit
 	return true;
 }
 
-UWxItemInstance* UWxInventoryManagerComponent::FindFirstItemStackByDefinition(const UWxItemDefinition* ItemDef) const
+UWxItemInstance* UWxInventoryComponent::FindFirstItemStackByDefinition(const UWxItemDefinition* ItemDef) const
 {
 	if (!ItemDef)
 	{
@@ -424,7 +424,7 @@ UWxItemInstance* UWxInventoryManagerComponent::FindFirstItemStackByDefinition(co
 	return nullptr;
 }
 
-int32 UWxInventoryManagerComponent::GetTotalItemCountByDefinition(const UWxItemDefinition* ItemDef) const
+int32 UWxInventoryComponent::GetTotalItemCountByDefinition(const UWxItemDefinition* ItemDef) const
 {
 	if (!ItemDef)
 	{
@@ -443,7 +443,7 @@ int32 UWxInventoryManagerComponent::GetTotalItemCountByDefinition(const UWxItemD
 	return Total;
 }
 
-int32 UWxInventoryManagerComponent::GetStackCountByInstance(const UWxItemInstance* Instance) const
+int32 UWxInventoryComponent::GetStackCountByInstance(const UWxItemInstance* Instance) const
 {
 	if (!Instance)
 	{
@@ -460,7 +460,7 @@ int32 UWxInventoryManagerComponent::GetStackCountByInstance(const UWxItemInstanc
 	return 0;
 }
 
-TArray<UWxItemInstance*> UWxInventoryManagerComponent::GetAllItems() const
+TArray<UWxItemInstance*> UWxInventoryComponent::GetAllItems() const
 {
 	const TArray<FWxInventoryEntry>& Entries = InventoryList.GetEntries();
 	TArray<UWxItemInstance*> Result;
@@ -475,7 +475,7 @@ TArray<UWxItemInstance*> UWxInventoryManagerComponent::GetAllItems() const
 	return Result;
 }
 
-bool UWxInventoryManagerComponent::RequestUseConsumable()
+bool UWxInventoryComponent::RequestUseConsumable()
 {
 	const APlayerController* PC = GetOwner<APlayerController>();
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(PC ? PC->GetPawn() : nullptr);
@@ -487,14 +487,14 @@ bool UWxInventoryManagerComponent::RequestUseConsumable()
 	return ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(WxGameplayTags::Ability_UseItem));
 }
 
-bool UWxInventoryManagerComponent::CanUseItemByDef(const UWxItemDefinition* ItemDef) const
+bool UWxInventoryComponent::CanUseItemByDef(const UWxItemDefinition* ItemDef) const
 {
 	return ItemDef
 		&& ItemDef->FindFragmentByClass<UWxItemFragment_Usable>()
 		&& FindUsableInstance(ItemDef) != nullptr;
 }
 
-bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef)
+bool UWxInventoryComponent::UseItemByDef(const UWxItemDefinition* ItemDef)
 {
 	if (!ItemDef)
 	{
@@ -559,7 +559,7 @@ bool UWxInventoryManagerComponent::UseItemByDef(const UWxItemDefinition* ItemDef
 	return true;
 }
 
-bool UWxInventoryManagerComponent::RefillItemCharges(UWxItemInstance* Instance)
+bool UWxInventoryComponent::RefillItemCharges(UWxItemInstance* Instance)
 {
 	if (!Instance)
 	{
@@ -581,7 +581,7 @@ bool UWxInventoryManagerComponent::RefillItemCharges(UWxItemInstance* Instance)
 	return true;
 }
 
-bool UWxInventoryManagerComponent::EquipItemByDef(const UWxItemDefinition* ItemDef)
+bool UWxInventoryComponent::EquipItemByDef(const UWxItemDefinition* ItemDef)
 {
 	check(GetOwner() && GetOwner()->HasAuthority());
 
@@ -609,7 +609,7 @@ bool UWxInventoryManagerComponent::EquipItemByDef(const UWxItemDefinition* ItemD
 	return true;
 }
 
-void UWxInventoryManagerComponent::NotifyStackChangedFromList(const UWxItemDefinition* ItemDef, int32 Delta)
+void UWxInventoryComponent::NotifyStackChangedFromList(const UWxItemDefinition* ItemDef, int32 Delta)
 {
 	if (!ItemDef || Delta == 0)
 	{
@@ -620,7 +620,7 @@ void UWxInventoryManagerComponent::NotifyStackChangedFromList(const UWxItemDefin
 	OnInventoryStackChanged.Broadcast(ItemDef, NewCount, Delta);
 }
 
-void UWxInventoryManagerComponent::NotifySlotChangedFromList(UWxItemInstance* Instance, int32 NewStackCount, int32 Delta)
+void UWxInventoryComponent::NotifySlotChangedFromList(UWxItemInstance* Instance, int32 NewStackCount, int32 Delta)
 {
 	if (!Instance || Delta == 0)
 	{
@@ -630,7 +630,7 @@ void UWxInventoryManagerComponent::NotifySlotChangedFromList(UWxItemInstance* In
 	OnInventorySlotChanged.Broadcast(Instance, NewStackCount, Delta);
 }
 
-void UWxInventoryManagerComponent::NotifyChargeChangedFromSource(UWxItemInstance* Instance, int32 NewCharges, int32 Delta)
+void UWxInventoryComponent::NotifyChargeChangedFromSource(UWxItemInstance* Instance, int32 NewCharges, int32 Delta)
 {
 	if (!Instance || Delta == 0)
 	{
@@ -640,7 +640,7 @@ void UWxInventoryManagerComponent::NotifyChargeChangedFromSource(UWxItemInstance
 	OnInventoryChargeChanged.Broadcast(Instance, NewCharges, Delta);
 }
 
-UWxItemInstance* UWxInventoryManagerComponent::FindUsableInstance(const UWxItemDefinition* ItemDef) const
+UWxItemInstance* UWxInventoryComponent::FindUsableInstance(const UWxItemDefinition* ItemDef) const
 {
 	if (!ItemDef)
 	{
@@ -667,7 +667,7 @@ UWxItemInstance* UWxInventoryManagerComponent::FindUsableInstance(const UWxItemD
 	return nullptr;
 }
 
-void UWxInventoryManagerComponent::RegisterReplicatedInstance(UWxItemInstance* Instance)
+void UWxInventoryComponent::RegisterReplicatedInstance(UWxItemInstance* Instance)
 {
 	if (Instance && IsReadyForReplication())
 	{
@@ -675,7 +675,7 @@ void UWxInventoryManagerComponent::RegisterReplicatedInstance(UWxItemInstance* I
 	}
 }
 
-void UWxInventoryManagerComponent::UnregisterReplicatedInstance(UWxItemInstance* Instance)
+void UWxInventoryComponent::UnregisterReplicatedInstance(UWxItemInstance* Instance)
 {
 	if (Instance && IsReadyForReplication())
 	{

@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
@@ -10,11 +10,8 @@
 
 class UAbilitySystemComponent;
 class UAbilityTask_PlayMontageAndWait;
-class UAbilityTask_WaitGameplayEvent;
 class UAnimMontage;
 class UGameplayEffect;
-class AWxProjectileBase;
-class APawn;
 class UInputAction;
 struct FWxAbilityTableRow;
 
@@ -29,9 +26,9 @@ enum class EWxAbilityActivationPolicy : uint8
 
 /**
  * 어빌리티 발동을 그룹 단위로 묶어서 배타적으로 점유할 수 있다.
- * CancelAbilitiesWithTag로 상대를 지목한 어빌리티는 이 판정보다 우선해 발동할 수 있다.
+ * 기획자가 선언하는 값이며 런타임에 바뀌지 않는다 — 발동 중의 캔슬 창은 EWxAbilityActionPhase가 따로 받는다.
  *
- * Exclusive_ 세 값은 몽타주 노티파이가 순서대로 밟는 하나의 축이다 — 닫힘에서 열림으로 Blocking → ComboWindow → Recovery.
+ * CancelAbilitiesWithTag로 상대를 지목한 어빌리티는 이 판정보다 우선해 발동할 수 있다.
  */
 UENUM()
 enum class EWxAbilityActivationGroup : uint8
@@ -40,16 +37,26 @@ enum class EWxAbilityActivationGroup : uint8
 	Independent,
 
 	/** 배타적으로 다른 Exclusive 어빌리티 발동을 막는다. */
-	Exclusive_Blocking,
+	Exclusive,
 
-	/** (런타임 전환) 콤보 창. 자기 재발동만 통과시키고, 남의 발동은 Exclusive_Blocking처럼 막는다. */
-	Exclusive_ComboWindow,
+	/** Exclusive 점유를 덮어쓰고 발동하며 캔슬되지도 않는다. 주로 HitReact, Groggy, Death에서 사용. */
+	Override,
+};
 
-	/** (런타임 전환) 액션을 캔슬할 수 있게 된 후딜레이 상태. 막지 않는 것은 Independent와 같다. */
-	Exclusive_Recovery,
+/**
+ * Exclusive 어빌리티가 발동 한 번 동안 밟는 캔슬 창.
+ * 몽타주 노티파이가 닫힘에서 열림 순으로 전이시킨다 — Blocking → ComboWindow → Recovery.
+ */
+enum class EWxAbilityActionPhase : uint8
+{
+	/** 본동작. 남의 배타 발동을 막는다. */
+	Blocking,
 
-	/** Exclusive 어빌리티에 막히지 않고 발동한다. 주로 HitReact, Groggy, Death에서 사용. */
-	Reaction, // Override 같은 이름으로 바꿀까???
+	/** 콤보 창. 자기 재발동만 통과시키고, 남의 발동은 본동작처럼 막는다. */
+	ComboWindow,
+
+	/** 액션을 캔슬할 수 있게 된 후딜레이. 점유를 놓아 다른 배타 어빌리티가 끊고 들어올 수 있다. */
+	Recovery,
 };
 
 UCLASS(Abstract, BlueprintType, Blueprintable, PrioritizeCategories = ("Wx"))
@@ -72,10 +79,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	TObjectPtr<UInputAction> ActivationInputAction;
 	
-	/** 후딜 전이(StartRecovery)가 Exclusive_Recovery로 바꾸고, 다음 활성화가 선언값으로 되돌린다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	EWxAbilityActivationGroup ActivationGroup = EWxAbilityActivationGroup::Independent;
-	
+
+	/** 지금 열려 있는 캔슬 창. Exclusive일 때만 뜻이 있고, 활성화마다 Blocking에서 다시 시작한다. */
+	EWxAbilityActionPhase ActionPhase = EWxAbilityActionPhase::Blocking;
+
 	/**
 	 * 활성 구간 동안 소유자에게 유지되는 효과. ActivationOwnedTags의 GE판으로, 활성화에서 걸고 종료에서 걷는다.
 	 * 수명이 어빌리티에 묶이므로 각 GE는 지속시간을 두지 않는다(Infinite).
@@ -97,10 +106,17 @@ public:
 	void CloseComboWindow();
 
 	/**
-	 * Exclusive_Blocking으로 막혀있던 발동 그룹 잠금을 풀어서 그 순간부터 이후 발동하는 Exclusive 어빌리티에 의한 캔슬을 허용한다.
+	 * 본동작이 걸고 있던 발동 그룹 잠금을 풀어서 그 순간부터 이후 발동하는 Exclusive 어빌리티에 의한 캔슬을 허용한다.
 	 * 코스트·쿨다운·ActivationBlockedTags는 그대로 검사한다.
 	 */
 	void StartRecovery();
+
+	/**
+	 * 점유자(후딜에 들지 않은 Exclusive·Override) 중 Candidate의 발동을 막는 첫 어빌리티. 없으면 nullptr.
+	 * Candidate가 없으면 점유자 존재 여부를 묻는 것으로 보아 첫 점유자를 반환한다.
+	 * Override는 서로를 끊지 않아 점유가 둘 이상일 수 있으므로, 통과하려면 점유자 전원을 지나야 한다.
+	 */
+	static const UWxAbilityBase* FindActivationGroupBlocker(const UAbilitySystemComponent& ASC, const UWxAbilityBase* Candidate = nullptr);
 
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 	virtual bool CanBeCanceled() const override;
@@ -137,36 +153,7 @@ protected:
 	UFUNCTION()
 	virtual void HandleMontageCancelled();
 
-	/** 몽타주의 Event.AbilityAction.SpawnProjectile 시점에 서버 권위로 생성할 투사체. */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Projectile")
-	TSubclassOf<AWxProjectileBase> ProjectileClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Projectile")
-	FName ProjectileSpawnSocketName = TEXT("hand_r");
-
-	/** 몽타주의 Event.AbilityAction.SummonActor 시점에 서버 권위로 생성할 소환수. */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Summon")
-	TSubclassOf<APawn> SummonClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Summon")
-	FName SummonSpawnSocketName = NAME_None;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Summon")
-	FTransform SummonRelativeSpawnTransform = FTransform(FVector(150.f, 0.f, 0.f));
-
 private:
-	void RegisterConfiguredMontageEvents();
-	void UnregisterConfiguredMontageEvents();
-	void SpawnProjectile() const;
-	void SpawnSummon();
-	FTransform GetSummonSpawnTransform() const;
-
-	UFUNCTION()
-	void HandleProjectileEvent(FGameplayEventData Payload);
-
-	UFUNCTION()
-	void HandleSummonEvent(FGameplayEventData Payload);
-
 	const FWxAbilityTableRow* GetTableRow() const;
 
 	UPROPERTY(Transient)
@@ -174,12 +161,6 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UAnimMontage> ActiveMontage;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UAbilityTask_WaitGameplayEvent> ProjectileEventTask;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UAbilityTask_WaitGameplayEvent> SummonEventTask;
 	
 	TArray<FActiveGameplayEffectHandle> ActivationOwnedEffectHandles;
 };

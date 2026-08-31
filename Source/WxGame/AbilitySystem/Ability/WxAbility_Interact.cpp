@@ -24,7 +24,7 @@ UWxAbility_Interact::UWxAbility_Interact()
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Interact);
 
 	// 배타 그룹 판정이 그 표시 게이트에 반영되어, 다른 액션 중(마시는 중·장치 연출 중 등)에는 표시가 사라진다.
-	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Blocking;
+	ActivationGroup = EWxAbilityActivationGroup::Exclusive;
 
 	// 이 차단 태그들이 서버 활성·클라 표시(스캐너 컴포넌트) 게이트의 단일 소스다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);

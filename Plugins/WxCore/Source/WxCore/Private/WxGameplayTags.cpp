@@ -11,6 +11,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Effect_PerfectGuard, "Effect.PerfectGuard");
 	UE_DEFINE_GAMEPLAY_TAG(Effect_Exhausted, "Effect.Exhausted");
 	UE_DEFINE_GAMEPLAY_TAG(Effect_SuperArmor, "Effect.SuperArmor");
+	UE_DEFINE_GAMEPLAY_TAG(Effect_Savable, "Effect.Savable");
 
 	UE_DEFINE_GAMEPLAY_TAG(Movement_InAir, "Movement.InAir");
 	UE_DEFINE_GAMEPLAY_TAG(Movement_Sprint, "Movement.Sprint");
@@ -33,11 +34,9 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_Death, "Event.Death");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Groggy, "Event.Groggy");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Ragdoll, "Event.Ragdoll");
-	UE_DEFINE_GAMEPLAY_TAG(Event_AbilityAction, "Event.AbilityAction");
-	UE_DEFINE_GAMEPLAY_TAG(Event_AbilityAction_SummonActor, "Event.AbilityAction.SummonActor");
-	UE_DEFINE_GAMEPLAY_TAG(Event_AbilityAction_UseItem, "Event.AbilityAction.UseItem");
-	UE_DEFINE_GAMEPLAY_TAG(Event_AbilityAction_ApplyFinisherDamage, "Event.AbilityAction.ApplyFinisherDamage");
-	UE_DEFINE_GAMEPLAY_TAG(Event_AbilityAction_SpawnProjectile, "Event.AbilityAction.SpawnProjectile");
+	UE_DEFINE_GAMEPLAY_TAG(Event_UseItem, "Event.UseItem");
+	UE_DEFINE_GAMEPLAY_TAG(Event_ApplyFinisherDamage, "Event.ApplyFinisherDamage");
+	UE_DEFINE_GAMEPLAY_TAG(Event_SpawnProjectile, "Event.SpawnProjectile");
 	
 	UE_DEFINE_GAMEPLAY_TAG(Device_Button_Idle, "Device.Button.Idle");
 	UE_DEFINE_GAMEPLAY_TAG(Device_Button_Pressed, "Device.Button.Pressed");
@@ -100,7 +99,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_HitReact, "Ability.HitReact");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Groggy, "Ability.Groggy");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Death, "Ability.Death");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_BeingFinished, "Ability.BeingFinished");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_PlayMontageOnce, "Ability.PlayMontageOnce");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern, "Ability.Pattern");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_1, "Ability.Pattern.1");
@@ -113,6 +112,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_8, "Ability.Pattern.8");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_9, "Ability.Pattern.9");
 
+	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Magnitude, "SetByCaller.Magnitude");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Duration, "SetByCaller.Duration");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Coeff_ATK, "SetByCaller.Coeff.ATK");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_MoveSpeedScale, "SetByCaller.MoveSpeedScale");

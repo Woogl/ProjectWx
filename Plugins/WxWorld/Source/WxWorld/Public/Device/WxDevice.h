@@ -63,7 +63,7 @@ public:
 
 	//~ Begin IWxSavable
 	/** 복원은 컴포넌트의 StateTag 세팅이 전부다 — 컴포넌트에 알리면 트리가 라이브 전이로 그 상태에 수렴한다. */
-	virtual void OnSaveRestored() override;
+	virtual void OnSaveRestored(const TArray<FName>& RestoredPropertyNames) override;
 	//~ End IWxSavable
 
 	void NotifyDeviceInteracted(AActor* Interactor, FGameplayTag EventTag, FConstStructView Payload = FConstStructView());

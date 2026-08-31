@@ -9,7 +9,7 @@
 #include "Framework/WxWorldSettings.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/SpectatorPawn.h"
-#include "Inventory/WxInventoryManagerComponent.h"
+#include "Inventory/WxInventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "WxGame.h"
 
@@ -55,7 +55,7 @@ UClass* AWxGameMode::GetDefaultPawnClassForController_Implementation(AController
 
 void AWxGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
 {
-	// 재개 지점·스탯 복원 등 프레임워크 컴포넌트가 붙기 전의 스폰을 막는다.
+	// Experience 액션과 GameFeature 컴포넌트 적용이 끝나기 전의 스폰을 막는다.
 	const AWxGameState* WxGameState = Cast<AWxGameState>(GameState);
 	if (WxGameState && !WxGameState->GetExperienceManagerComponent()->IsExperienceLoaded())
 	{
@@ -136,7 +136,7 @@ void AWxGameMode::GrantDefaultInventory(APlayerController* PlayerController, con
 
 	// 인벤토리 주입은 로드 완료 시점에 이미 붙어 있다(로드 후 접속자는 컨트롤러 초기화에서 동기 부착).
 	// 복제 등록 이전이어도 ReadyForReplication 이 기존 엔트리를 back-fill 하므로 지급이 누락되지 않는다.
-	if (UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(PlayerController))
+	if (UWxInventoryComponent* Inventory = UWxInventoryComponent::FindInventory(PlayerController))
 	{
 		Inventory->GrantItems(Items);
 	}

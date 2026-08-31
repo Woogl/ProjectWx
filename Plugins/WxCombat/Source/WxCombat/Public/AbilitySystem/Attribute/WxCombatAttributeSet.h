@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
 #include "AbilitySystemComponent.h"
+#include "WxSavable.h"
 #include "WxCombatAttributeSet.generated.h"
 
 #define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
@@ -25,7 +26,7 @@
  *   SPD / ASPD         - Speed / Attack Speed
  */
 UCLASS()
-class WXCOMBAT_API UWxCombatAttributeSet : public UAttributeSet
+class WXCOMBAT_API UWxCombatAttributeSet : public UAttributeSet, public IWxSavable
 {
 	GENERATED_BODY()
 
@@ -37,6 +38,13 @@ public:
 	virtual void PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const override;
 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
+	//~ Begin IWxSavable
+	virtual void OnSaveRestored(const TArray<FName>& RestoredPropertyNames) override;
+	//~ End IWxSavable
+
+	/** ASC 초기화 전에 LSP가 복원한 base 값을 AbilitySet 부여 뒤 ASC에 게시한다. */
+	void ApplyPendingSaveRestore();
 
 	/** 0이 되면 사망 처리 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Vital", ReplicatedUsing = OnRep_HP)
@@ -179,7 +187,13 @@ private:
 	static const FWxMaxAttributePair* FindMaxAttributePair(const FGameplayAttribute& Attribute);
 	float ClampAttributeValue(const FGameplayAttribute& Attribute, float NewValue) const;
 	void AdjustCurrentAttributeForMaxChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue);
+	void ApplyPendingBaseValue(
+		UAbilitySystemComponent& AbilitySystemComponent,
+		FName PropertyName,
+		const FGameplayAttribute& Attribute) const;
 	
 	void ProcessDamageTaken(const FGameplayEffectModCallbackData& Data, float Damage);
 	void ProcessPerfectGuard(const FGameplayEffectModCallbackData& Data, float ReflectAmount);
+
+	TMap<FName, float> PendingRestoredBaseValues;
 };

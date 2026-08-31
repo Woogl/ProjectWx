@@ -6,17 +6,9 @@
 #include "AbilitySystem/Ability/WxAbilityTableRow.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "Abilities/Tasks/AbilityTask_SpawnActor.h"
-#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
-#include "Abilities/GameplayAbilityTargetTypes.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "GameplayEffect.h"
-#include "Weapon/WxProjectileBase.h"
-#include "Components/SkeletalMeshComponent.h"
-#include "GameFramework/Pawn.h"
-#include "GenericTeamAgentInterface.h"
-#include "Summon/WxSummonComponent.h"
 #include "Engine/World.h"
 #include "WxGameplayTags.h"
 
@@ -55,10 +47,10 @@ float UWxAbilityBase::GetMontagePlayRate() const
 
 void UWxAbilityBase::OpenComboWindow()
 {
-	// 본동작에서만 연다 — 콤보가 없는 어빌리티의 몽타주에 노티파이가 섞여도 Independent를 점유자로 승격시키지 않는다.
-	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive_Blocking)
+	// 배타 본동작에서만 연다 — 콤보가 없는 어빌리티의 몽타주에 노티파이가 섞여도 Independent를 점유자로 승격시키지 않는다.
+	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive && ActionPhase == EWxAbilityActionPhase::Blocking)
 	{
-		ActivationGroup = EWxAbilityActivationGroup::Exclusive_ComboWindow;
+		ActionPhase = EWxAbilityActionPhase::ComboWindow;
 
 		// 창이 열린 순간 쌓인 입력을 재생한다. 재발동이 이 인스턴스를 그대로 되살리므로 전이 뒤에는 아무것도 쓰지 않는다.
 		if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo()))
@@ -70,18 +62,19 @@ void UWxAbilityBase::OpenComboWindow()
 
 void UWxAbilityBase::CloseComboWindow()
 {
-	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive_ComboWindow)
+	// 창이 아직 열려 있을 때만 되돌린다 — 창이 후딜보다 늦게 닫히는 배치가 정상이라 무조건 되돌리면 후딜을 도로 닫는다.
+	if (ActionPhase == EWxAbilityActionPhase::ComboWindow)
 	{
-		ActivationGroup = EWxAbilityActivationGroup::Exclusive_Blocking;
+		ActionPhase = EWxAbilityActionPhase::Blocking;
 	}
 }
 
 void UWxAbilityBase::StartRecovery()
 {
-	// 배타 본동작·콤보 창에서만 후딜로 — 엉뚱한 노티파이가 Independent를 점유자로 승격시키거나 Reaction의 캔슬 면역을 벗기지 않게 한다.
-	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive_Blocking || ActivationGroup == EWxAbilityActivationGroup::Exclusive_ComboWindow)
+	// 배타 어빌리티만 후딜로 — 엉뚱한 노티파이가 Independent를 점유자로 승격시키거나 Override의 캔슬 면역을 벗기지 않게 한다.
+	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive && ActionPhase != EWxAbilityActionPhase::Recovery)
 	{
-		ActivationGroup = EWxAbilityActivationGroup::Exclusive_Recovery;
+		ActionPhase = EWxAbilityActionPhase::Recovery;
 
 		// 후딜이 열린 순간 쌓인 입력을 재생한다. 성립한 어빌리티가 이 인스턴스를 끊으므로 전이 뒤에는 아무것도 쓰지 않는다.
 		if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo()))
@@ -91,6 +84,52 @@ void UWxAbilityBase::StartRecovery()
 	}
 }
 
+const UWxAbilityBase* UWxAbilityBase::FindActivationGroupBlocker(const UAbilitySystemComponent& ASC, const UWxAbilityBase* Candidate)
+{
+	for (const FGameplayAbilitySpec& Spec : ASC.GetActivatableAbilities())
+	{
+		if (!Spec.IsActive())
+		{
+			continue;
+		}
+
+		// 모든 Wx 어빌리티는 기반 생성자가 InstancedPerActor를 강제하므로 스펙당 인스턴스는 하나뿐이다.
+		const UWxAbilityBase* Occupant = Cast<UWxAbilityBase>(Spec.GetPrimaryInstance());
+		if (!Occupant || !Occupant->IsActive())
+		{
+			continue;
+		}
+
+		const bool bOccupying = Occupant->ActivationGroup == EWxAbilityActivationGroup::Override
+			|| (Occupant->ActivationGroup == EWxAbilityActivationGroup::Exclusive && Occupant->ActionPhase != EWxAbilityActionPhase::Recovery);
+		if (!bOccupying)
+		{
+			continue;
+		}
+
+		if (!Candidate)
+		{
+			return Occupant;
+		}
+
+		// 점유자가 후보 자신이면 엔진 재발동으로 들어온 콤보 진행이다. 콤보 창은 후딜보다 이르므로 여기서 갈라야 두 창이 분리된다.
+		if (Occupant == Candidate)
+		{
+			if (Candidate->ActionPhase != EWxAbilityActionPhase::ComboWindow)
+			{
+				return Occupant;
+			}
+		}
+		// 끊겠다고 지목한 점유자는 후보를 막지 못한다. 취소 자체는 발동 직후 순정 PreActivate가 수행한다.
+		else if (!Occupant->GetAssetTags().HasAny(Candidate->CancelAbilitiesWithTag))
+		{
+			return Occupant;
+		}
+	}
+
+	return nullptr;
+}
+
 bool UWxAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
 	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
@@ -98,197 +137,37 @@ bool UWxAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return false;
 	}
 
-	if (ActivationGroup == EWxAbilityActivationGroup::Independent || ActivationGroup == EWxAbilityActivationGroup::Reaction)
+	if (ActivationGroup == EWxAbilityActivationGroup::Independent || ActivationGroup == EWxAbilityActivationGroup::Override)
 	{
 		return true;
 	}
 
-	const UWxAbilitySystemComponent* WxASC = ActorInfo ? Cast<UWxAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get()) : nullptr;
-	if (!WxASC)
+	const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+	if (!ASC)
 	{
 		return true;
 	}
 
-	// 반응형은 배타를 뚫고 공존할 수 있으므로 점유자 전원을 각각 통과해야 한다.
-	for (const UWxAbilityBase* Blocker : WxASC->FindActivationGroupBlockers())
-	{
-		// 점유자가 나 자신이면 엔진 재발동으로 들어온 콤보 진행이다. 콤보 창은 후딜보다 이르므로 여기서 갈라야 두 창이 분리된다.
-		if (Blocker == this)
-		{
-			if (ActivationGroup != EWxAbilityActivationGroup::Exclusive_ComboWindow)
-			{
-				return false;
-			}
-		}
-		// 끊겠다고 지목한 어빌리티는 나를 막지 못한다. 취소 자체는 발동 직후 순정 PreActivate가 수행한다.
-		else if (!Blocker->GetAssetTags().HasAny(CancelAbilitiesWithTag))
-		{
-			return false;
-		}
-	}
-
-	return true;
+	return FindActivationGroupBlocker(*ASC, this) == nullptr;
 }
 
 bool UWxAbilityBase::CanBeCanceled() const
 {
-	return ActivationGroup != EWxAbilityActivationGroup::Reaction && Super::CanBeCanceled();
-}
-
-void UWxAbilityBase::SpawnProjectile() const
-{
-	if (!ProjectileClass)
-	{
-		return;
-	}
-
-	const FGameplayAbilityActorInfo* ActorInfo = GetCurrentActorInfo();
-	AActor* Avatar = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
-	USkeletalMeshComponent* Mesh = ActorInfo ? ActorInfo->SkeletalMeshComponent.Get() : nullptr;
-
-	if (!Avatar || !Mesh || !Avatar->HasAuthority())
-	{
-		return;
-	}
-
-	const FVector SpawnLocation = Mesh->GetSocketLocation(ProjectileSpawnSocketName);
-	const FRotator SpawnRotation = Avatar->GetActorRotation();
-	const FTransform SpawnTransform(SpawnRotation, SpawnLocation);
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = Avatar;
-	SpawnParams.Instigator = Cast<APawn>(Avatar);
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	Avatar->GetWorld()->SpawnActor<AWxProjectileBase>(ProjectileClass, SpawnTransform, SpawnParams);
-}
-
-void UWxAbilityBase::SpawnSummon()
-{
-	AActor* Avatar = GetAvatarActorFromActorInfo();
-	if (!Avatar || !Avatar->HasAuthority() || !SummonClass)
-	{
-		return;
-	}
-
-	UWxSummonComponent* SummonComponent = UWxSummonComponent::FindComponent(Avatar);
-	if (!SummonComponent)
-	{
-		return;
-	}
-
-	FGameplayAbilityTargetDataHandle TargetData;
-	FGameplayAbilityTargetData_LocationInfo* LocationData = new FGameplayAbilityTargetData_LocationInfo();
-	LocationData->SourceLocation.LiteralTransform = Avatar->GetActorTransform();
-	LocationData->TargetLocation.LiteralTransform = GetSummonSpawnTransform();
-	TargetData.Add(LocationData);
-
-	TSubclassOf<AActor> ActorClass = SummonClass;
-	UAbilityTask_SpawnActor* SpawnTask = UAbilityTask_SpawnActor::SpawnActor(this, TargetData, ActorClass);
-	AActor* SpawnedActor = nullptr;
-	if (!SpawnTask->BeginSpawningActor(this, TargetData, ActorClass, SpawnedActor))
-	{
-		return;
-	}
-
-	SpawnedActor->SetOwner(Avatar);
-	SpawnedActor->SetInstigator(Cast<APawn>(Avatar));
-	if (const IGenericTeamAgentInterface* AvatarTeam = Cast<IGenericTeamAgentInterface>(Avatar))
-	{
-		if (IGenericTeamAgentInterface* SummonTeam = Cast<IGenericTeamAgentInterface>(SpawnedActor))
-		{
-			SummonTeam->SetGenericTeamId(AvatarTeam->GetGenericTeamId());
-		}
-	}
-
-	SpawnTask->FinishSpawningActor(this, TargetData, SpawnedActor);
-
-	APawn* Summon = Cast<APawn>(SpawnedActor);
-	if (!Summon || !SummonComponent->RegisterSummon(Summon))
-	{
-		SpawnedActor->Destroy();
-	}
-}
-
-FTransform UWxAbilityBase::GetSummonSpawnTransform() const
-{
-	AActor* Avatar = GetAvatarActorFromActorInfo();
-	if (!Avatar)
-	{
-		return SummonRelativeSpawnTransform;
-	}
-
-	FTransform BaseTransform = Avatar->GetActorTransform();
-	if (SummonSpawnSocketName != NAME_None)
-	{
-		if (USkeletalMeshComponent* Mesh = Avatar->FindComponentByClass<USkeletalMeshComponent>())
-		{
-			if (Mesh->DoesSocketExist(SummonSpawnSocketName))
-			{
-				BaseTransform = Mesh->GetSocketTransform(SummonSpawnSocketName);
-			}
-		}
-	}
-
-	return SummonRelativeSpawnTransform * BaseTransform;
-}
-
-void UWxAbilityBase::RegisterConfiguredMontageEvents()
-{
-	UnregisterConfiguredMontageEvents();
-
-	if (ProjectileClass)
-	{
-		ProjectileEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, WxGameplayTags::Event_AbilityAction_SpawnProjectile, nullptr, true);
-		ProjectileEventTask->EventReceived.AddDynamic(this, &UWxAbilityBase::HandleProjectileEvent);
-		ProjectileEventTask->ReadyForActivation();
-	}
-
-	if (SummonClass)
-	{
-		SummonEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, WxGameplayTags::Event_AbilityAction_SummonActor, nullptr, true);
-		SummonEventTask->EventReceived.AddDynamic(this, &UWxAbilityBase::HandleSummonEvent);
-		SummonEventTask->ReadyForActivation();
-	}
-}
-
-void UWxAbilityBase::UnregisterConfiguredMontageEvents()
-{
-	if (ProjectileEventTask)
-	{
-		ProjectileEventTask->EndTask();
-		ProjectileEventTask = nullptr;
-	}
-
-	if (SummonEventTask)
-	{
-		SummonEventTask->EndTask();
-		SummonEventTask = nullptr;
-	}
-}
-
-void UWxAbilityBase::HandleProjectileEvent(FGameplayEventData Payload)
-{
-	SpawnProjectile();
-}
-
-void UWxAbilityBase::HandleSummonEvent(FGameplayEventData Payload)
-{
-	SpawnSummon();
+	return ActivationGroup != EWxAbilityActivationGroup::Override && Super::CanBeCanceled();
 }
 
 void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	// 직전 활성화의 후딜 전이가 재사용 인스턴스에 남긴 그룹을 선언값으로 되돌린다.
-	ActivationGroup = GetClass()->GetDefaultObject<UWxAbilityBase>()->ActivationGroup;
+	// 직전 활성화가 재사용 인스턴스에 남긴 캔슬 창을 닫는다.
+	ActionPhase = EWxAbilityActionPhase::Blocking;
 
 	if (ActivationGroup != EWxAbilityActivationGroup::Independent)
 	{
 		if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr))
 		{
-			// 후딜에 든 앞 액션은 들어온 배타 발동이 끊는다 — 후딜은 지목할 태그가 없어 여기서만 그룹으로 가른다.
+			// 후딜에 든 앞 액션은 들어온 배타 발동이 끊는다 — 후딜은 지목할 태그가 없어 여기서만 창으로 가른다.
 			// 본동작 점유를 무엇까지 끊을지는 CancelAbilitiesWithTag 선언이 정하고 순정 PreActivate가 수행한다.
-			WxASC->CancelActivationGroupAbilities(EWxAbilityActivationGroup::Exclusive_Recovery, this);
+			WxASC->CancelRecoveringAbilities(this);
 		}
 	}
 
@@ -303,9 +182,6 @@ void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 	}
 
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-
-	RegisterConfiguredMontageEvents();
 }
 
 void UWxAbilityBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -313,9 +189,6 @@ void UWxAbilityBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const F
 	// 태스크를 여기서 끝내면 안 된다 — 엔진 EndAbility가 소유자 종료로 끝내는 경로만 재생 중인 몽타주를 멈추므로, 미리 끊으면 루핑 가드 몽타주처럼 스스로 끝나지 않는 것이 종료 후에도 계속 돈다.
 	MontageTask = nullptr;
 	ActiveMontage = nullptr;
-
-
-	UnregisterConfiguredMontageEvents();
 
 	// 캔슬·중단도 이 경로를 지나므로 효과가 새지 않는다. 활성 중에 이미 걷힌 것은 조회에 걸리지 않아 무해하다.
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())

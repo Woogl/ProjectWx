@@ -14,10 +14,10 @@ class USceneComponent;
 UENUM(BlueprintType)
 enum class EWxSpawnerMode : uint8
 {
-	/** BeginPlay 에서 자동으로 스폰한다. */
+	/** LSP가 레벨 상태를 확정한 뒤 자동으로 스폰한다. */
 	Auto,
 
-	/** BeginPlay 자동 스폰을 건너뛰고 외부 트리거로만 스폰한다. */
+	/** 레벨 복원 후 자동 스폰을 건너뛰고 외부 트리거로만 스폰한다. */
 	Manual
 };
 
@@ -42,11 +42,10 @@ public:
 	void MarkKilled();
 
 	//~ Begin IWxSavable
-	virtual void OnSaveRestored() override;
+	virtual void OnPostRestoreLevel() override;
 	//~ End IWxSavable
 
 protected:
-	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	void SpawnTarget();

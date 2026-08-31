@@ -9,9 +9,11 @@
 class USpringArmComponent;
 class UCameraComponent;
 class UWidgetComponent;
+class UGameplayEffect;
 class UWxInputConfig;
-class UWxLockOnManagerComponent;
-class UWxSummonComponent;
+class UWxLockOnComponent;
+class UWxItemUseComponent;
+class UWxFinisherDamageComponent;
 class UInputAction;
 struct FInputActionValue;
 
@@ -23,12 +25,14 @@ class WXGAME_API AWxPlayerCharacter : public AWxCharacterBase
 
 public:
 	AWxPlayerCharacter(const FObjectInitializer& ObjectInitializer);
+	virtual void PossessedBy(AController* NewController) override;
 	virtual void NotifyControllerChanged() override;
 	virtual void OnRep_PlayerState() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void Jump() override;
+	virtual void OnJumped_Implementation() override;
 	virtual bool CanCrouch() const override;
-	
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Camera")
 	TObjectPtr<USpringArmComponent> CameraBoom;
@@ -37,11 +41,15 @@ protected:
 	TObjectPtr<UCameraComponent> FollowCamera;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")
-	TObjectPtr<UWxLockOnManagerComponent> LockOnManagerComponent;
+	TObjectPtr<UWxLockOnComponent> LockOnComponent;
 
-	/** 플레이어 스킬이 생성한 소환수를 서버에서 보관하고 사망·종료 시 정리한다. */
+	/** AnimNotify GameplayEvent 시점에 준비된 처형 피해를 서버에서 적용한다. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")
-	TObjectPtr<UWxSummonComponent> SummonComponent;
+	TObjectPtr<UWxFinisherDamageComponent> FinisherDamageComponent;
+
+	/** AnimNotify GameplayEvent 시점에 준비된 소비 아이템을 서버에서 사용한다. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Inventory")
+	TObjectPtr<UWxItemUseComponent> ItemUseComponent;
 
 	/** 위젯 클래스는 BP 에서 지정한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|UI")
@@ -56,4 +64,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TObjectPtr<UWxInputConfig> InputConfig;
+
+	/** 도약 순간 자신에게 거는 무적. 지속시간은 GE가 쥐므로 HasDuration 이어야 한다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Combat")
+	TSubclassOf<UGameplayEffect> JumpInvincibleEffect;
 };

@@ -7,11 +7,11 @@
 #include "Items/WxRewardTableRow.h"
 #include "Net/Serialization/FastArraySerializer.h"
 
-#include "WxInventoryManagerComponent.generated.h"
+#include "WxInventoryComponent.generated.h"
 
 class UWxItemDefinition;
 class UWxItemInstance;
-class UWxInventoryManagerComponent;
+class UWxInventoryComponent;
 struct FWxInventoryList;
 
 USTRUCT(BlueprintType)
@@ -121,7 +121,7 @@ DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventorySlotChanged, UWxItemInstanc
  */
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventoryChargeChanged, UWxItemInstance* /*Instance*/, int32 /*NewCharges*/, int32 /*Delta*/);
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnInventoryReady, UWxInventoryManagerComponent* /*Inventory*/);
+DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnInventoryReady, UWxInventoryComponent* /*Inventory*/);
 
 /**
  * PlayerController 에 부착되어 아이템 인스턴스의 생성·소멸·레플리케이션을 관장하는 컴포넌트.
@@ -132,12 +132,12 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnInventoryReady, UWxInventoryManagerComp
  * 등록하지 않으면 인벤토리가 조용히 없는 상태가 된다.
  */
 UCLASS()
-class WXINVENTORY_API UWxInventoryManagerComponent : public UControllerComponent
+class WXINVENTORY_API UWxInventoryComponent : public UControllerComponent
 {
 	GENERATED_BODY()
 
 public:
-	UWxInventoryManagerComponent(const FObjectInitializer& ObjectInitializer);
+	UWxInventoryComponent(const FObjectInitializer& ObjectInitializer);
 
 	//~ Begin UActorComponent interface
 	virtual void BeginPlay() override;
@@ -155,7 +155,7 @@ public:
 	 * 인벤토리는 PlayerController 에 부착되므로, 액터가 Pawn 이면 소유 컨트롤러를 거쳐 조회한다.
 	 * PlayerController 가 아닌 액터(또는 컨트롤러 미할당 폰) 는 nullptr.
 	 */
-	static UWxInventoryManagerComponent* FindInventory(const AActor* Actor);
+	static UWxInventoryComponent* FindInventory(const AActor* Actor);
 
 	/**
 	 * 권한: ItemDef 를 StackCount 만큼 추가한다.

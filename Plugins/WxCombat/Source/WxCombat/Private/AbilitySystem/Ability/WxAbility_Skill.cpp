@@ -13,7 +13,7 @@ UWxAbility_Skill::UWxAbility_Skill()
 
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Skill);
 	
-	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Blocking;
+	ActivationGroup = EWxAbilityActivationGroup::Exclusive;
 
 	bRetriggerInstancedAbility = true;
 }

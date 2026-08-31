@@ -2,7 +2,7 @@
 
 #include "Items/WxItemInstance.h"
 
-#include "Inventory/WxInventoryManagerComponent.h"
+#include "Inventory/WxInventoryComponent.h"
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemFragment.h"
 
@@ -81,7 +81,7 @@ void UWxItemInstance::SetItemDef(const UWxItemDefinition* InItemDef)
 void UWxItemInstance::OnRep_CurrentCharges(int32 OldCharges)
 {
 	// 서버는 사용 처리 시점에 직접 통지하므로, 이 경로는 클라이언트 구독자 전달만 맡는다.
-	if (UWxInventoryManagerComponent* Manager = UWxInventoryManagerComponent::FindInventory(GetTypedOuter<AActor>()))
+	if (UWxInventoryComponent* Manager = UWxInventoryComponent::FindInventory(GetTypedOuter<AActor>()))
 	{
 		Manager->NotifyChargeChangedFromSource(this, CurrentCharges, CurrentCharges - OldCharges);
 	}

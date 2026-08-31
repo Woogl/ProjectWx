@@ -31,6 +31,9 @@ namespace WxGameplayTags
 	/** 궁극기가 WxEffect_SuperArmor로 활성 구간만큼 부여한다. 대미지는 그대로 들어오고 경직(HitReact)만 막힌다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_SuperArmor);
 
+	/** 세션을 넘어 남겨야 하는 GameplayEffect가 Asset Tag로 명시하는 LSP opt-in 표식. */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Savable);
+
 	// ── Movement ──────────────────────────────────────────────────────────────
 	
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_InAir);
@@ -89,18 +92,12 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Ragdoll);
 	
-	/** 어빌리티에 인라인으로 설정한 Action 실행 이벤트의 루트 태그. */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_AbilityAction);
-
-	/** 인라인 Action 중 전투 소환수 생성 Action을 실행한다. */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_AbilityAction_SummonActor);
-
 	/** 소비 아이템 차감과 사용 효과 적용 Action을 실행한다. */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_AbilityAction_UseItem);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_UseItem);
 
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_AbilityAction_ApplyFinisherDamage);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_ApplyFinisherDamage);
 
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_AbilityAction_SpawnProjectile);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_SpawnProjectile);
 
 	// ── Device ──────────────────────────────────────────────────────────────
 
@@ -192,8 +189,8 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Groggy);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Death);
 
-	/** 처형 당하는 중. 피해자 어빌리티가 활성 구간(기상까지) 동안 발행하고, 적의 처형 어포던스가 이걸로 닫힌다. */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_BeingFinished);
+	/** 밖에서 주입된 일회성 몽타주 연출 중. 적의 처형 어포던스가 이걸로 닫힌다 — 처형 당하기는 기상까지가 그 구간이다. */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_PlayMontageOnce);
 
 	/** 적 캐릭터 전용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern);
@@ -209,6 +206,8 @@ namespace WxGameplayTags
 
 	// ── SetByCaller ──────────────────────────────────────────────────────────────
 
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Magnitude);
+	
 	/** 지속시간 Duration SetByCaller 키. NoCooldown/InfiniteMP/DrainGP 등 Duration 모디파이어에서 공용으로 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Duration);
 

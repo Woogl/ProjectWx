@@ -3,7 +3,7 @@
 #include "WxRewardLibrary.h"
 
 #include "GameFramework/Actor.h"
-#include "Inventory/WxInventoryManagerComponent.h"
+#include "Inventory/WxInventoryComponent.h"
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemFragment.h"
 #include "Items/WxItemPickup.h"
@@ -33,7 +33,7 @@ void UWxRewardLibrary::GrantReward(AActor* SourceActor, const FDataTableRowHandl
 	TArray<FWxItemRewardEntry> ValidRewards;
 	Row->GetValidRewards(ValidRewards);
 
-	UWxInventoryManagerComponent* DirectGrantInventory = UWxInventoryManagerComponent::FindInventory(DirectGrantTarget);
+	UWxInventoryComponent* DirectGrantInventory = UWxInventoryComponent::FindInventory(DirectGrantTarget);
 
 	UWorld* World = SourceActor->GetWorld();
 

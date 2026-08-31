@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_GuardReact.h"
 #include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
@@ -16,7 +16,7 @@ UWxAbility_GuardReact::UWxAbility_GuardReact()
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_GuardReact);
 
 	// 가드가 배타 점유 중인 채로 그 위에 얹혀야 한다.
-	ActivationGroup = EWxAbilityActivationGroup::Reaction;
+	ActivationGroup = EWxAbilityActivationGroup::Override;
 
 	// HitReact가 차단에 쓰는 것과 같은 태그라 한 히트에 둘 중 하나만 뜬다.
 	// 이 검사는 서버에서만 돈다 — 소유 클라는 ClientActivateAbilitySucceedWithEventData가 CallActivateAbility를 직접 불러 태그 요건을 건너뛴다.

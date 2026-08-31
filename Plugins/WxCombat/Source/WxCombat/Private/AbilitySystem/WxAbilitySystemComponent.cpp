@@ -137,7 +137,7 @@ void UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* 
 	}
 
 	// 입력을 거절한 것이 진행 중인 액션(배타 점유자)일 때만 기억한다. 유휴 중 실패(쿨다운·코스트)는 기억할 가치가 없다.
-	if (!bBuffer || FindActivationGroupBlockers().IsEmpty())
+	if (!bBuffer || UWxAbilityBase::FindActivationGroupBlocker(*this) == nullptr)
 	{
 		return;
 	}
@@ -279,54 +279,6 @@ void UWxAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecHa
 	UE_LOG(LogWxCombat, Verbose, TEXT("Ability Failed: %s — 사유 %s"), *GetNameSafe(Ability), *FailureReason.ToStringSimple());
 }
 
-TArray<const UWxAbilityBase*, TInlineAllocator<4>> UWxAbilitySystemComponent::FindActivationGroupBlockers() const
-{
-	TArray<const UWxAbilityBase*, TInlineAllocator<4>> Blockers;
-
-	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
-	{
-		if (!Spec.IsActive())
-		{
-			continue;
-		}
-
-		// GetAbilityInstances는 호출마다 두 배열을 합친 사본을 만든다. 인스턴스는 복제 여부로만 갈리므로 각각 훑는다.
-		for (const UGameplayAbility* Instance : Spec.ReplicatedInstances)
-		{
-			if (const UWxAbilityBase* Blocker = AsActivationGroupBlocker(Instance))
-			{
-				Blockers.Add(Blocker);
-			}
-		}
-
-		for (const UGameplayAbility* Instance : Spec.NonReplicatedInstances)
-		{
-			if (const UWxAbilityBase* Blocker = AsActivationGroupBlocker(Instance))
-			{
-				Blockers.Add(Blocker);
-			}
-		}
-	}
-
-	return Blockers;
-}
-
-const UWxAbilityBase* UWxAbilitySystemComponent::AsActivationGroupBlocker(const UGameplayAbility* Instance) const
-{
-	const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Instance);
-	if (!Ability || !Ability->IsActive())
-	{
-		return nullptr;
-	}
-
-	if (Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive_Blocking || Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive_ComboWindow || Ability->ActivationGroup == EWxAbilityActivationGroup::Reaction)
-	{
-		return Ability;
-	}
-
-	return nullptr;
-}
-
 bool UWxAbilitySystemComponent::TryActivateByInputAction(const UInputAction* Action)
 {
 	// AbilityInputActionTriggered와 같은 이유로 락을 건다.
@@ -350,7 +302,7 @@ bool UWxAbilitySystemComponent::TryActivateByInputAction(const UInputAction* Act
 	return false;
 }
 
-void UWxAbilitySystemComponent::CancelActivationGroupAbilities(EWxAbilityActivationGroup Group, UGameplayAbility* IgnoreAbility)
+void UWxAbilitySystemComponent::CancelRecoveringAbilities(UGameplayAbility* IgnoreAbility)
 {
 	// 취소가 어빌리티 목록을 바꿀 수 있으므로 순회를 잠근다.
 	ABILITYLIST_SCOPE_LOCK();
@@ -365,7 +317,7 @@ void UWxAbilitySystemComponent::CancelActivationGroupAbilities(EWxAbilityActivat
 		for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
 		{
 			const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Instance);
-			if (Ability && Ability != IgnoreAbility && Ability->IsActive() && Ability->ActivationGroup == Group)
+			if (Ability && Ability != IgnoreAbility && Ability->IsActive() && Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive && Ability->ActionPhase == EWxAbilityActionPhase::Recovery)
 			{
 				CancelAbilitySpec(Spec, IgnoreAbility);
 				break;

@@ -10,7 +10,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "InputAction.h"
-#include "Targeting/WxLockOnManagerComponent.h"
+#include "Targeting/WxLockOnComponent.h"
 #include "Targeting/WxLockOnPointComponent.h"
 #include "TargetingSystem/TargetingSubsystem.h"
 #include "Types/TargetingSystemTypes.h"
@@ -79,8 +79,8 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	ListenForDodgeRotation();
 
 	// 소유 클라는 로컬 즉시 반영 + 서버 RPC, 리슨 호스트는 권위 직접 반영(복제는 컴포넌트 몫).
-	LockOnManagerComponent = UWxLockOnManagerComponent::FindComponent(GetOwningActorFromActorInfo());
-	if (UWxLockOnManagerComponent* LockOnComp = LockOnManagerComponent.Get())
+	LockOnComponent = UWxLockOnComponent::FindComponent(GetOwningActorFromActorInfo());
+	if (UWxLockOnComponent* LockOnComp = LockOnComponent.Get())
 	{
 		LockOnComp->OnLockOnTargetChanged.AddDynamic(this, &UWxAbility_LockOn::HandleLockOnTargetChanged);
 		LockOnComp->SetLockOnTarget(TargetComponent);
@@ -103,12 +103,12 @@ void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 	// 그래야 아직 살아있는 태스크가 컴포넌트의 null 변경 브로드캐스트를 받아 레티클을 즉시 정리한다.
 	if (ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
 	{
-		if (UWxLockOnManagerComponent* LockOnComp = LockOnManagerComponent.Get())
+		if (UWxLockOnComponent* LockOnComp = LockOnComponent.Get())
 		{
 			LockOnComp->OnLockOnTargetChanged.RemoveDynamic(this, &UWxAbility_LockOn::HandleLockOnTargetChanged);
 			LockOnComp->SetLockOnTarget(nullptr);
 		}
-		LockOnManagerComponent = nullptr;
+		LockOnComponent = nullptr;
 		StopRotateToTargetTask();
 
 		if (SavedOrientRotationToMovement.IsSet())
@@ -145,7 +145,7 @@ void UWxAbility_LockOn::HandleDodgeTagAdded()
 
 void UWxAbility_LockOn::HandleDodgeTagRemoved()
 {
-	if (UWxLockOnManagerComponent* LockOnComp = LockOnManagerComponent.Get())
+	if (UWxLockOnComponent* LockOnComp = LockOnComponent.Get())
 	{
 		StartRotateToTargetTask(LockOnComp->GetLockOnTarget());
 	}
@@ -191,7 +191,7 @@ bool UWxAbility_LockOn::IsDodgeActive() const
 void UWxAbility_LockOn::HandleTargetLost()
 {
 	AActor* Avatar = GetOwningActorFromActorInfo();
-	UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(Avatar);
+	UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(Avatar);
 	if (bRetargetOnTargetLost && IsLocallyControlled() && Avatar && LockOnComp)
 	{
 		// 락온 대상은 컴포넌트지만 후보 비교/제외는 액터 단위이므로 소유 액터로 환원한다.
@@ -245,7 +245,7 @@ void UWxAbility_LockOn::HandleRetargetRequested(FVector2D ScreenDirection)
 		return;
 	}
 
-	UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(Avatar);
+	UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(Avatar);
 	const USceneComponent* CurrentComponent = LockOnComp ? LockOnComp->GetLockOnTarget() : nullptr;
 
 	// 비교 원점은 현재 락온 지점의 화면 좌표(유저가 보고 있는 레티클 위치).

@@ -4,7 +4,7 @@
 
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
-#include "Inventory/WxInventoryManagerComponent.h"
+#include "Inventory/WxInventoryComponent.h"
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemFragment.h"
 #include "Items/WxItemInstance.h"
@@ -82,10 +82,10 @@ void AWxItemPickup::OnInteracted(AActor* Interactor)
 		return;
 	}
 
-	UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(Interactor);
+	UWxInventoryComponent* Inventory = UWxInventoryComponent::FindInventory(Interactor);
 	if (!Inventory)
 	{
-		UE_LOG(LogWxItemPickup, Warning, TEXT("Interactor %s has no UWxInventoryManagerComponent"), *Interactor->GetName());
+		UE_LOG(LogWxItemPickup, Warning, TEXT("Interactor %s has no UWxInventoryComponent"), *Interactor->GetName());
 		return;
 	}
 
@@ -106,6 +106,38 @@ FText AWxItemPickup::GetInteractionPrompt() const
 	return (Quantity > 1)
 		? FText::Format(NSLOCTEXT("WxItemPickup", "InteractionFormatQuantity", "[F] {0} x{1}"), ItemDef->DisplayName, Quantity)
 		: FText::Format(NSLOCTEXT("WxItemPickup", "InteractionFormat", "[F] {0}"), ItemDef->DisplayName);
+}
+
+void AWxItemPickup::OnSavePreparing()
+{
+	PersistedState.ItemDefinition = ItemDef;
+	PersistedState.Quantity = Quantity;
+	PersistedState.bSimulatingPhysics = MeshComponent->IsSimulatingPhysics();
+	PersistedState.LinearVelocity = PersistedState.bSimulatingPhysics
+		? MeshComponent->GetPhysicsLinearVelocity()
+		: FVector::ZeroVector;
+	PersistedState.AngularVelocityRadians = PersistedState.bSimulatingPhysics
+		? MeshComponent->GetPhysicsAngularVelocityInRadians()
+		: FVector::ZeroVector;
+}
+
+void AWxItemPickup::OnSaveRestored(const TArray<FName>& RestoredPropertyNames)
+{
+	if (!RestoredPropertyNames.Contains(GET_MEMBER_NAME_CHECKED(AWxItemPickup, PersistedState)))
+	{
+		return;
+	}
+
+	ItemDef = PersistedState.ItemDefinition.LoadSynchronous();
+	Quantity = FMath::Max(1, PersistedState.Quantity);
+	ApplyPickupVisual();
+
+	MeshComponent->SetSimulatePhysics(PersistedState.bSimulatingPhysics);
+	if (PersistedState.bSimulatingPhysics)
+	{
+		MeshComponent->SetPhysicsLinearVelocity(PersistedState.LinearVelocity);
+		MeshComponent->SetPhysicsAngularVelocityInRadians(PersistedState.AngularVelocityRadians);
+	}
 }
 
 void AWxItemPickup::OnRep_ItemDef()

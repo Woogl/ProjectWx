@@ -1,9 +1,8 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_UseItem.h"
-#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "GameFramework/Pawn.h"
-#include "Inventory/WxInventoryManagerComponent.h"
+#include "Inventory/WxItemUseComponent.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_UseItem::UWxAbility_UseItem()
@@ -18,7 +17,7 @@ UWxAbility_UseItem::UWxAbility_UseItem()
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 
 	// 마시는 중에는 다른 어빌리티로 캔슬되지 않고, 후딜 캔슬로 비집고 들어왔을 때는 발동이 앞 액션을 끊는다.
-	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Blocking;
+	ActivationGroup = EWxAbilityActivationGroup::Exclusive;
 }
 
 void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -32,8 +31,8 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 	}
 
 	APawn* Avatar = Cast<APawn>(ActorInfo->AvatarActor.Get());
-	UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(Avatar);
-	if (!Inventory || !Inventory->CanUseItemByDef(ConsumableDef))
+	UWxItemUseComponent* ItemUseComponent = UWxItemUseComponent::FindComponent(Avatar);
+	if (!ItemUseComponent || !ItemUseComponent->CanUseItem(ConsumableDef))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -46,9 +45,7 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 		return;
 	}
 
-	UseItemEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, WxGameplayTags::Event_AbilityAction_UseItem, nullptr, true);
-	UseItemEventTask->EventReceived.AddDynamic(this, &UWxAbility_UseItem::HandleUseItemEvent);
-	UseItemEventTask->ReadyForActivation();
+	ItemUseComponent->BeginUseItem(ConsumableDef);
 
 	if (!PlayMontage(UseMontage))
 	{
@@ -60,32 +57,10 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 
 void UWxAbility_UseItem::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	if (UseItemEventTask)
+	if (UWxItemUseComponent* ItemUseComponent = UWxItemUseComponent::FindComponent(GetAvatarActorFromActorInfo()))
 	{
-		UseItemEventTask->EndTask();
-		UseItemEventTask = nullptr;
+		ItemUseComponent->EndUseItem(ConsumableDef);
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-}
-
-void UWxAbility_UseItem::HandleUseItemEvent(FGameplayEventData Payload)
-{
-	UseConsumable();
-}
-
-void UWxAbility_UseItem::UseConsumable()
-{
-	// 몽타주가 클라에서도 재생되어 노티파이가 양쪽에서 발화하므로, 이 경로는 클라 인스턴스에서도 도달한다.
-	// 인벤토리 차감은 롤백 장치가 없어 예측 대상이 아니다(UseItemByDef 는 권한을 check 한다).
-	if (!HasAuthority(&CurrentActivationInfo))
-	{
-		return;
-	}
-
-	APawn* Avatar = Cast<APawn>(GetAvatarActorFromActorInfo());
-	if (UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(Avatar))
-	{
-		Inventory->UseItemByDef(ConsumableDef);
-	}
 }

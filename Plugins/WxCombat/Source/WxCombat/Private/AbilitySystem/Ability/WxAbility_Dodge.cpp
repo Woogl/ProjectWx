@@ -19,7 +19,7 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Dodge);
 
-	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Blocking;
+	ActivationGroup = EWxAbilityActivationGroup::Exclusive;
 }
 
 float UWxAbility_Dodge::GetMontagePlayRate() const

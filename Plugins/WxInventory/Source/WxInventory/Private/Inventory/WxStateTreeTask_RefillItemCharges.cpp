@@ -4,7 +4,7 @@
 
 #include "GameFramework/Actor.h"
 #include "GameFramework/PlayerController.h"
-#include "Inventory/WxInventoryManagerComponent.h"
+#include "Inventory/WxInventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "StateTreeExecutionContext.h"
 
@@ -33,7 +33,7 @@ EStateTreeRunStatus FWxStateTreeTask_RefillItemCharges::EnterState(FStateTreeExe
 	}
 
 	// 대상 선택은 보상 직접 지급 경로와 같은 전제다.
-	UWxInventoryManagerComponent* Inventory = UWxInventoryManagerComponent::FindInventory(UGameplayStatics::GetPlayerController(Owner, 0));
+	UWxInventoryComponent* Inventory = UWxInventoryComponent::FindInventory(UGameplayStatics::GetPlayerController(Owner, 0));
 	if (!Inventory)
 	{
 		return EStateTreeRunStatus::Succeeded;

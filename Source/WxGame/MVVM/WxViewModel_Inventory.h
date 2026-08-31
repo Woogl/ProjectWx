@@ -10,7 +10,7 @@
 #include "WxViewModel_Inventory.generated.h"
 
 class APlayerController;
-class UWxInventoryManagerComponent;
+class UWxInventoryComponent;
 class UWxItemInstance;
 class UWxViewModel_Item;
 class UUserWidget;
@@ -30,7 +30,7 @@ public:
 	/** 인벤토리가 이미 붙어 있으면 즉시 연결하고, 아니면 도착 신호를 기다린다. */
 	void StartObserving(APlayerController* PC);
 
-	void Initialize(UWxInventoryManagerComponent* InInventory);
+	void Initialize(UWxInventoryComponent* InInventory);
 	virtual void Deinitialize() override;
 
 	virtual void BeginDestroy() override;
@@ -87,13 +87,13 @@ protected:
 
 	void RefreshCategorizedItems();
 
-	TWeakObjectPtr<UWxInventoryManagerComponent> CachedInventory;
+	TWeakObjectPtr<UWxInventoryComponent> CachedInventory;
 
 	FDelegateHandle StackChangedHandle;
 
 private:
 	/** 관찰 중인 PC 의 것이면 연결하고 관찰을 끝낸다. */
-	void HandleInventoryReady(UWxInventoryManagerComponent* Inventory);
+	void HandleInventoryReady(UWxInventoryComponent* Inventory);
 
 	/** 연결 성공 시와 소멸 시 모두 여기로 모은다. */
 	void StopObserving();

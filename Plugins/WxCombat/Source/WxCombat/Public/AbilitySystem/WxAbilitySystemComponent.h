@@ -8,9 +8,7 @@
 #include "WxAbilitySystemComponent.generated.h"
 
 class UInputAction;
-class UWxAbilityBase;
 class USkeletalMeshComponent;
-enum class EWxAbilityActivationGroup : uint8;
 
 /** 액션 중에 막힌 채 떼어진 발동 입력. IA는 어빌리티 CDO가 쥐고 있어 ASC보다 오래 살므로 생 포인터로 둔다. */
 struct FWxBufferedInput
@@ -68,19 +66,10 @@ public:
 	/** 발동이 거부된 어빌리티와 그 사유(차단·쿨다운·코스트 등)를 남긴다. */
 	virtual void NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason) override;
 
-	/**
-	 * 지금 배타 점유 중인(Exclusive_Blocking·Exclusive_ComboWindow·Reaction) 어빌리티 전원.
-	 * 반응형은 서로를 끊지 않으므로 점유가 둘 이상일 수 있다. 태그 뚫기 판정은 어빌리티가 조립한다.
-	 *
-	 * 발동 시도마다 불리고 홀드 입력이면 매 프레임이라, 통상 개수는 인라인 저장으로 받아 힙 할당을 피한다.
-	 */
-	TArray<const UWxAbilityBase*, TInlineAllocator<4>> FindActivationGroupBlockers() const;
-
-	void CancelActivationGroupAbilities(EWxAbilityActivationGroup Group, UGameplayAbility* IgnoreAbility);
+	/** 후딜에 들어 점유를 놓은 배타 어빌리티를 끊는다. */
+	void CancelRecoveringAbilities(UGameplayAbility* IgnoreAbility);
 
 private:
-	const UWxAbilityBase* AsActivationGroupBlocker(const UGameplayAbility* Instance) const;
-
 	/** 버퍼 재생 경로다. 뗀 뒤의 재생이라 스펙의 키 상태는 세우지 않는다. */
 	bool TryActivateByInputAction(const UInputAction* Action);
 

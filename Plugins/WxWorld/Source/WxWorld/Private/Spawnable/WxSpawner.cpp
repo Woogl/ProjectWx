@@ -55,9 +55,20 @@ void AWxSpawner::Respawn()
 	}
 
 	// 시체면 청소, 살아있으면 위치/상태 원복을 위한 destroy.
-	if (AActor* Existing = SpawnedActor.Get())
+	AActor* TrackedActor = SpawnedActor.Get();
+	if (IsValid(TrackedActor))
 	{
-		Existing->Destroy();
+		TrackedActor->Destroy();
+	}
+
+	TArray<AActor*> AttachedActors;
+	GetAttachedActors(AttachedActors);
+	for (AActor* Existing : AttachedActors)
+	{
+		if (IsValid(Existing) && Existing != TrackedActor)
+		{
+			Existing->Destroy();
+		}
 	}
 	SpawnedActor.Reset();
 
@@ -90,32 +101,8 @@ void AWxSpawner::MarkKilled()
 	bIsKilled = true;
 }
 
-void AWxSpawner::OnSaveRestored()
+void AWxSpawner::OnPostRestoreLevel()
 {
-	// 슬롯 복원으로 bIsKilled=true 가 적용되었지만 BeginPlay 가 먼저 spawn 한 인스턴스가 남아있다면 정리.
-	if (bIsKilled)
-	{
-		if (AActor* Existing = SpawnedActor.Get())
-		{
-			Existing->Destroy();
-		}
-		SpawnedActor.Reset();
-	}
-}
-
-void AWxSpawner::BeginPlay()
-{
-	Super::BeginPlay();
-
-	if (HasAuthority())
-	{
-		// 슬롯 복원으로 true 가 들어온 경우는 OnSaveRestored 가 정리를 담당한다. 이 가드는 에디터 디폴트 등으로 true 인 채 시작하는 경우의 안전망.
-		if (bIsKilled)
-		{
-			return;
-		}
-	}
-
 	if (SpawnMode == EWxSpawnerMode::Auto)
 	{
 		SpawnTarget();
@@ -126,12 +113,22 @@ void AWxSpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (HasAuthority())
 	{
-		if (AActor* Existing = SpawnedActor.Get())
+		AActor* TrackedActor = SpawnedActor.Get();
+		if (IsValid(TrackedActor))
 		{
-			Existing->Destroy();
+			TrackedActor->Destroy();
+		}
+
+		TArray<AActor*> AttachedActors;
+		GetAttachedActors(AttachedActors);
+		for (AActor* Existing : AttachedActors)
+		{
+			if (IsValid(Existing) && Existing != TrackedActor)
+			{
+				Existing->Destroy();
+			}
 		}
 	}
-
 	SpawnedActor.Reset();
 
 	Super::EndPlay(EndPlayReason);
@@ -142,6 +139,27 @@ void AWxSpawner::SpawnTarget()
 	if (!HasAuthority() || !SpawnableActorClass)
 	{
 		return;
+	}
+	if (bIsKilled)
+	{
+		UE_LOG(LogWxWorld, Verbose, TEXT("Spawner(%s): 처치 상태라 생성 시도를 건너뛴다."), *GetName());
+		return;
+	}
+	if (const AActor* Existing = SpawnedActor.Get())
+	{
+		UE_LOG(LogWxWorld, Verbose, TEXT("Spawner(%s): 추적 중인 인스턴스 %s가 있어 생성 시도를 건너뛴다."), *GetName(), *Existing->GetName());
+		return;
+	}
+
+	TArray<AActor*> AttachedActors;
+	GetAttachedActors(AttachedActors);
+	for (const AActor* Existing : AttachedActors)
+	{
+		if (IsValid(Existing))
+		{
+			UE_LOG(LogWxWorld, Verbose, TEXT("Spawner(%s): 복원된 인스턴스 %s가 붙어 있어 생성 시도를 건너뛴다."), *GetName(), *Existing->GetName());
+			return;
+		}
 	}
 
 	if (!SpawnableActorClass->ImplementsInterface(UWxSpawnable::StaticClass()))
@@ -171,11 +189,11 @@ void AWxSpawner::SpawnTarget()
 	}
 
 	Spawned->FinishSpawning(SpawnTransform);
+	SpawnedActor = Spawned;
 
 	// 스포너가 먼저 attach 하지는 않는다 — 스폰 대상은 CMC 로 돌아다니는 캐릭터라, 루트가 붙어 있으면 이동 복제가 ReplicatedMovement 대신 AttachmentReplication(부모 상대 오프셋) 경로를 타 원격 스무딩에서 벗어나고 스포너를 옮기면 딸려 온다.
-	// 수명은 이 약참조와 Respawn/EndPlay/OnSaveRestored 의 명시 Destroy 가 관리하므로 부착이 필요 없다.
+	// 일반 생성 인스턴스는 비영속 약참조로, LSP가 복원한 적은 기존 attachment 관계로 찾는다. Pawn Owner는 빙의 시 Controller로 바뀌므로 수명 추적에 쓰지 않는다.
 	// 예외로 적(AWxEnemyCharacter)은 OnSpawnedBy 에서 스스로 부착한다 — 정찰 경로를 스포너에서 찾아야 해서, 위 대가를 알고 받아들인 선택이다.
-	SpawnedActor = Spawned;
 }
 
 #if WITH_EDITOR

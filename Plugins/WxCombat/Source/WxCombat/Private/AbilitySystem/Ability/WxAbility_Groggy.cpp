@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Groggy.h"
 #include "AbilitySystemComponent.h"
@@ -27,9 +27,9 @@ UWxAbility_Groggy::UWxAbility_Groggy()
 	
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 
-	ActivationGroup = EWxAbilityActivationGroup::Reaction;
+	ActivationGroup = EWxAbilityActivationGroup::Override;
 
-	// 반응형 어빌리티는 유지해 처형 짝 피격처럼 겹쳐야 할 반응을 보존한다.
+	// Override 어빌리티는 캔슬되지 않아, 처형 짝 피격처럼 겹쳐야 할 반응이 보존된다.
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 
 	FAbilityTriggerData TriggerData;
@@ -106,7 +106,7 @@ void UWxAbility_Groggy::HandleMontagePollTick()
 	UAbilitySystemComponent* ASC = CurrentActorInfo ? CurrentActorInfo->AbilitySystemComponent.Get() : nullptr;
 	if (!ASC || ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
 	{
-		// 사망 어빌리티가 반응형 그로기를 취소하지 않아 여기서 종료하고, ASC가 없을 때도 같은 경로로 정리한다.
+		// 사망 어빌리티가 Override 그로기를 취소하지 못해 여기서 종료하고, ASC가 없을 때도 같은 경로로 정리한다.
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 		return;
 	}
@@ -150,7 +150,8 @@ void UWxAbility_Groggy::StartGroggyDrain(const FGameplayAbilitySpecHandle Handle
 	FGameplayEffectSpecHandle DrainSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_DrainGP::StaticClass(), GetAbilityLevel());
 	if (DrainSpecHandle.IsValid())
 	{
-		DrainSpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, GroggyDuration);
+		// 잠가서 넣어야 적용 시점의 Def 기반 Duration 재계산이 이 값을 덮어쓰지 않는다.
+		DrainSpecHandle.Data->SetDuration(GroggyDuration, true);
 		DrainGPEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, DrainSpecHandle);
 	}
 }

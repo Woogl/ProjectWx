@@ -11,7 +11,7 @@ UWxAbility_Attack::UWxAbility_Attack()
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Attack);
 	
-	ActivationGroup = EWxAbilityActivationGroup::Exclusive_Blocking;
+	ActivationGroup = EWxAbilityActivationGroup::Exclusive;
 
 	bRetriggerInstancedAbility = true;
 }

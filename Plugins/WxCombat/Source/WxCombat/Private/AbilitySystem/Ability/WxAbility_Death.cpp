@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Death.h"
 #include "AbilitySystemComponent.h"
@@ -12,7 +12,7 @@ UWxAbility_Death::UWxAbility_Death()
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 
 	// 사망은 되돌릴 수 없다 — 클라가 보내는 실행·종료 요청을 서버가 무시한다.
-	// Reaction 그룹이라 취소는 이미 거부되지만, 종료 요청은 CanBeCanceled를 거치지 않아 그대로 통과한다.
+	// Override 그룹이라 취소는 이미 거부되지만, 종료 요청은 CanBeCanceled를 거치지 않아 그대로 통과한다.
 	NetSecurityPolicy = EGameplayAbilityNetSecurityPolicy::ServerOnly;
 
 	FGameplayTagContainer AssetTags;
@@ -25,7 +25,7 @@ UWxAbility_Death::UWxAbility_Death()
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
 	
-	ActivationGroup = EWxAbilityActivationGroup::Reaction;
+	ActivationGroup = EWxAbilityActivationGroup::Override;
 
 	FAbilityTriggerData TriggerData;
 	TriggerData.TriggerTag = WxGameplayTags::Event_Death;

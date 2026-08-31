@@ -68,8 +68,10 @@ FText AWxDevice::GetInteractionPrompt() const
 	return InteractionBinding.Prompt;
 }
 
-void AWxDevice::OnSaveRestored()
+void AWxDevice::OnSaveRestored(const TArray<FName>& RestoredPropertyNames)
 {
+	static_cast<void>(RestoredPropertyNames);
+
 	// 컴포넌트의 StateTag 는 이 호출 전에 이미 역직렬화로 복원되어 있다(WxSave 가 액터+컴포넌트를 먼저 복원하고 이 훅을 부른다).
 	StateTreeComponent->NotifySaveRestored();
 }

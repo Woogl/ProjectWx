@@ -78,9 +78,9 @@ public:
 
 /**
  * 다크소울 에스트병 방식: 부착된 아이템은 인벤토리 스택이 아니라 인스턴스별 충전량으로 사용 가능 여부가 결정된다.
- * 사용 시 인벤토리 스택은 차감되지 않고(소진돼도 아이템은 인벤토리에 남는다) 충전량만 1 감소하며, 리필(UWxInventoryManagerComponent::RefillItemCharges)로 MaxCharges 까지 회복한다.
+ * 사용 시 인벤토리 스택은 차감되지 않고(소진돼도 아이템은 인벤토리에 남는다) 충전량만 1 감소하며, 리필(UWxInventoryComponent::RefillItemCharges)로 MaxCharges 까지 회복한다.
  *
- * 사용 처리(충전 검증·차감)와 회복 GE 적용은 UWxInventoryManagerComponent::UseItemByDef 가 담당한다.
+ * 사용 처리(충전 검증·차감)와 회복 GE 적용은 UWxInventoryComponent::UseItemByDef 가 담당한다.
  *
  * 기능 축은 Usable 과 직교하며, Usable 없이 단독 부착하면 사용 자체가 성립하지 않아 충전도 소모되지 않는다.
  */

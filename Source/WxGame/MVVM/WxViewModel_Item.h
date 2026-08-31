@@ -10,7 +10,7 @@
 
 #include "WxViewModel_Item.generated.h"
 
-class UWxInventoryManagerComponent;
+class UWxInventoryComponent;
 class UWxItemInstance;
 class UTexture2D;
 class UUserWidget;
@@ -31,9 +31,9 @@ class WXGAME_API UWxViewModel_Item : public UWxViewModel
 	GENERATED_BODY()
 
 public:
-	void Initialize(UWxInventoryManagerComponent* InInventory, UWxItemInstance* InInstance);
+	void Initialize(UWxInventoryComponent* InInventory, UWxItemInstance* InInstance);
 
-	void Initialize(UWxInventoryManagerComponent* InInventory, const UWxItemDefinition* InItemDef);
+	void Initialize(UWxInventoryComponent* InInventory, const UWxItemDefinition* InItemDef);
 
 	virtual void Deinitialize() override;
 
@@ -100,7 +100,7 @@ protected:
 
 	void RefreshChargeIcon();
 
-	TWeakObjectPtr<UWxInventoryManagerComponent> CachedInventory;
+	TWeakObjectPtr<UWxInventoryComponent> CachedInventory;
 
 	TWeakObjectPtr<const UWxItemDefinition> TargetItemDef;
 

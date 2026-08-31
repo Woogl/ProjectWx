@@ -6,7 +6,7 @@
 #include "Components/SceneComponent.h"
 #include "GameFramework/Pawn.h"
 #include "MotionWarpingComponent.h"
-#include "Targeting/WxLockOnManagerComponent.h"
+#include "Targeting/WxLockOnComponent.h"
 #include "TargetingSystem/TargetingSubsystem.h"
 #include "WxGameplayTags.h"
 
@@ -28,7 +28,7 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 	}
 
 	AActor* LockOnTarget = nullptr;
-	if (UWxLockOnManagerComponent* LockOnComp = UWxLockOnManagerComponent::FindComponent(Owner))
+	if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(Owner))
 	{
 		if (const USceneComponent* LockOnTargetComponent = LockOnComp->GetLockOnTarget())
 		{

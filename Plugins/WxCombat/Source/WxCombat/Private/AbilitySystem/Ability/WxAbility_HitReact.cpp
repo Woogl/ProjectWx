@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_HitReact.h"
 #include "AbilitySystemComponent.h"
@@ -14,7 +14,7 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	AssetTags.AddTag(WxGameplayTags::Ability_HitReact);
 	SetAssetTags(AssetTags);
 
-	ActivationGroup = EWxAbilityActivationGroup::Reaction;
+	ActivationGroup = EWxAbilityActivationGroup::Override;
 
 	// 진행 중인 것은 공격·스킬만 끊는다 — 부류(그룹)로 끊으면 적 패턴까지 평타 피격에 중단된다.
 	// Reaction은 막히지 않을 뿐 남을 끊지는 않는다 — 진행 중인 공격을 실제로 중단시키려면 지목이 필요하다.

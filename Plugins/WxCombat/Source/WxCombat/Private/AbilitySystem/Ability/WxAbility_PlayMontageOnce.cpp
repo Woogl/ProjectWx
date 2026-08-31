@@ -1,31 +1,31 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/Ability/WxAbility_BeingFinished.h"
+#include "AbilitySystem/Ability/WxAbility_PlayMontageOnce.h"
 #include "Animation/AnimMontage.h"
 #include "WxGameplayTags.h"
 
-UWxAbility_BeingFinished::UWxAbility_BeingFinished()
+UWxAbility_PlayMontageOnce::UWxAbility_PlayMontageOnce()
 {
-	// 부여도 발동도 서버가 한다. 피해자는 소유 클라가 없어 몽타주는 복제로 퍼진다.
+	// 부여도 발동도 서버가 한다. 소유 클라가 없는 폰에도 걸리므로 몽타주는 복제로 퍼진다.
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 
-	// 그로기 위에 겹쳐 재생되어야 하고, 그로기의 전체 취소 지목에도 끊기지 않아야 한다.
-	ActivationGroup = EWxAbilityActivationGroup::Reaction;
+	// 진행 중인 액션 위에 겹쳐 재생되어야 하고, 그 액션의 전체 취소 지목에도 끊기지 않아야 한다.
+	ActivationGroup = EWxAbilityActivationGroup::Override;
 
 	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(WxGameplayTags::Ability_BeingFinished);
+	AssetTags.AddTag(WxGameplayTags::Ability_PlayMontageOnce);
 	SetAssetTags(AssetTags);
 
 	// 활성 태그는 존재가 전원에 복제되므로 다른 클라의 프롬프트 게이트에도 닿는다.
-	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_BeingFinished);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_PlayMontageOnce);
 }
 
-float UWxAbility_BeingFinished::GetMontagePlayRate() const
+float UWxAbility_PlayMontageOnce::GetMontagePlayRate() const
 {
 	return 1.f;
 }
 
-void UWxAbility_BeingFinished::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+void UWxAbility_PlayMontageOnce::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 

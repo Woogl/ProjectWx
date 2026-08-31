@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "WxLockOnManagerComponent.generated.h"
+#include "WxLockOnComponent.generated.h"
 
 class USceneComponent;
 
@@ -16,17 +16,18 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnLockOnTargetChanged, USceneComp
  * 발사체 방향·몽타주 스냅 등 서버와 시뮬프록시 소비처가 일관된 값을 읽어야 하므로 서버 권위로 전 머신에 복제한다.
  * 컴포넌트 레퍼런스 복제는 대상이 네트워크 주소를 가질 때만 원격에서 해소된다 — 디폴트 서브오브젝트는 안전하지만 동적 생성한 비복제 컴포넌트는 null로 도착할 수 있다.
  *
- * 소유 클라이언트는 응답성을 위해 로컬에 먼저 반영하고 서버에 권위 설정을 요청한 뒤, 복제값이 도착하면 정합한다.
+ * 소유 클라이언트는 응답성을 위해 로컬에 먼저 반영하고 서버에 권위 설정을 요청한다.
+ * 대상 선택은 클라이언트를 신뢰하는 정책이라 서버는 요청을 재검증하지 않으며, 사망·거리 이탈 등으로 대상이 무효해지는 것은 소유 클라의 락온 태스크가 폴링해 해제·재탐색을 다시 올려 보낸다.
  */
 UCLASS()
-class WXCOMBAT_API UWxLockOnManagerComponent : public UActorComponent
+class WXCOMBAT_API UWxLockOnComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
-	UWxLockOnManagerComponent();
+	UWxLockOnComponent();
 
-	static UWxLockOnManagerComponent* FindComponent(const AActor* Actor);
+	static UWxLockOnComponent* FindComponent(const AActor* Actor);
 
 	/** nullptr을 넘기면 해제된다 */
 	void SetLockOnTarget(USceneComponent* InTarget);
@@ -49,7 +50,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
-	/** 서버는 락온 지점과 락온 가능 상태를 확인한 뒤에만 반영한다. */
+	/** 소유 클라가 고른 대상을 그대로 반영한다 — 대상은 락온 지점(UWxLockOnPointComponent)이라는 계약도 클라가 지킨다. */
 	UFUNCTION(Server, Reliable)
 	void ServerSetLockOnTarget(USceneComponent* InTarget);
 

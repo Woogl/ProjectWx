@@ -9,7 +9,7 @@
 
 class USceneComponent;
 class UWidgetComponent;
-class UWxLockOnManagerComponent;
+class UWxLockOnComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnTargetLost);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnRetargetRequested, FVector2D, ScreenDirection);
@@ -52,7 +52,7 @@ private:
 
 	TWeakObjectPtr<USceneComponent> Target;
 	TWeakObjectPtr<AActor> BoundTargetActor;
-	TWeakObjectPtr<UWxLockOnManagerComponent> LockOnManagerComponent;
+	TWeakObjectPtr<UWxLockOnComponent> LockOnComponent;
 	float InterpSpeed = 8.f;
 	float PitchOffset = -15.f;
 	float MaxDistanceSquared = 2000.f * 2000.f;

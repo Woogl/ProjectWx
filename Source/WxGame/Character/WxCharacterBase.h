@@ -5,9 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
+#include "AbilitySystem/WxPersistedAbilitySystemState.h"
 #include "GameplayTagAssetInterface.h"
 #include "GenericTeamAgentInterface.h"
 #include "GameplayEffectTypes.h"
+#include "WxSavable.h"
 #include "WxTeamTypes.h"
 #include "WxCharacterBase.generated.h"
 
@@ -17,6 +19,7 @@ class UWxAbilitySystemComponent;
 class UWxCombatAttributeSet;
 class UWxEquipmentComponent;
 class UWxMetaHumanComponent;
+class UWxProjectileComponent;
 class AWxWeaponBase;
 class USkeletalMesh;
 
@@ -28,7 +31,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBas
  * ModularGameplay 컴포넌트 receiver 다 — 폰 대상 주입 요청(Experience 액션)의 컴포넌트가 자동 부착된다.
  */
 UCLASS(Abstract)
-class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface, public IGenericTeamAgentInterface
+class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface, public IGenericTeamAgentInterface, public IWxSavable
 {
 	GENERATED_BODY()
 
@@ -56,6 +59,15 @@ public:
 	virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
 	//~ End IGenericTeamAgentInterface
 
+	//~ Begin IWxSavable
+	virtual void OnSavePreparing() override;
+	virtual void OnSaveRestored(const TArray<FName>& RestoredPropertyNames) override;
+	virtual void OnPostRestoreLevel() override;
+	//~ End IWxSavable
+
+	void CaptureAbilitySystemState(FWxPersistedAbilitySystemState& OutState) const;
+	void RestoreAbilitySystemState(const FWxPersistedAbilitySystemState& InState);
+
 	bool IsAlive() const;
 	AWxWeaponBase* GetEquippedWeapon() const;
 
@@ -76,6 +88,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Combat")
 	TObjectPtr<UMotionWarpingComponent> MotionWarpingComponent;
+
+	/** AnimNotify GameplayEvent를 받아 서버 권위로 투사체를 생성한다. */
+	UPROPERTY(VisibleAnywhere, Category = "Wx|Combat")
+	TObjectPtr<UWxProjectileComponent> ProjectileComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Equipment")
 	TObjectPtr<UWxEquipmentComponent> EquipmentComponent;
@@ -126,4 +142,18 @@ protected:
 
 	/** 기본 이동 속도 (cm/s). SPD Multiplier의 기준값 */
 	float BaseWalkSpeed;
+
+private:
+	void HandleWorldBeginPlay();
+	void TryRestorePendingAbilitySystemState();
+
+	/** LSP가 직렬화하는 캐릭터의 opt-in GameplayEffect 투영 상태. */
+	UPROPERTY()
+	FWxPersistedAbilitySystemState PersistedAbilitySystemState;
+
+	UPROPERTY(Transient)
+	FWxPersistedAbilitySystemState PendingAbilitySystemRestoreState;
+
+	/** 저장 당시 배열이 비어 있어도 현재 영속 GE를 비워야 하므로 데이터 유무와 별도로 둔다. */
+	bool bAbilitySystemRestorePending = false;
 };

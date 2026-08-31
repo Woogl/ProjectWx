@@ -154,6 +154,77 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 	}
 }
 
+void UWxCombatAttributeSet::OnSaveRestored(const TArray<FName>& RestoredPropertyNames)
+{
+	PendingRestoredBaseValues.Reset();
+
+	// LSP가 FGameplayAttributeData를 직접 쓴 직후 값을 보관한다. deferred spawn은 이 시점에 ASC가 아직 AttributeSet을 등록하지 않았다.
+	if (RestoredPropertyNames.Contains(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, HP))) PendingRestoredBaseValues.Add(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, HP), HP.GetBaseValue());
+	if (RestoredPropertyNames.Contains(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, MaxHP))) PendingRestoredBaseValues.Add(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, MaxHP), MaxHP.GetBaseValue());
+	if (RestoredPropertyNames.Contains(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, SP))) PendingRestoredBaseValues.Add(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, SP), SP.GetBaseValue());
+	if (RestoredPropertyNames.Contains(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, MaxSP))) PendingRestoredBaseValues.Add(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, MaxSP), MaxSP.GetBaseValue());
+	if (RestoredPropertyNames.Contains(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, GP))) PendingRestoredBaseValues.Add(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, GP), GP.GetBaseValue());
+	if (RestoredPropertyNames.Contains(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, MaxGP))) PendingRestoredBaseValues.Add(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, MaxGP), MaxGP.GetBaseValue());
+	if (RestoredPropertyNames.Contains(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, MP))) PendingRestoredBaseValues.Add(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, MP), MP.GetBaseValue());
+	if (RestoredPropertyNames.Contains(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, MaxMP))) PendingRestoredBaseValues.Add(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, MaxMP), MaxMP.GetBaseValue());
+	if (RestoredPropertyNames.Contains(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, UP))) PendingRestoredBaseValues.Add(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, UP), UP.GetBaseValue());
+	if (RestoredPropertyNames.Contains(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, MaxUP))) PendingRestoredBaseValues.Add(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, MaxUP), MaxUP.GetBaseValue());
+	if (RestoredPropertyNames.Contains(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, ATK))) PendingRestoredBaseValues.Add(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, ATK), ATK.GetBaseValue());
+	if (RestoredPropertyNames.Contains(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, DEF))) PendingRestoredBaseValues.Add(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, DEF), DEF.GetBaseValue());
+	if (RestoredPropertyNames.Contains(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, CritRate))) PendingRestoredBaseValues.Add(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, CritRate), CritRate.GetBaseValue());
+	if (RestoredPropertyNames.Contains(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, CritDMG))) PendingRestoredBaseValues.Add(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, CritDMG), CritDMG.GetBaseValue());
+	if (RestoredPropertyNames.Contains(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, SPD))) PendingRestoredBaseValues.Add(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, SPD), SPD.GetBaseValue());
+	if (RestoredPropertyNames.Contains(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, ASPD))) PendingRestoredBaseValues.Add(GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, ASPD), ASPD.GetBaseValue());
+
+	ApplyPendingSaveRestore();
+}
+
+void UWxCombatAttributeSet::ApplyPendingSaveRestore()
+{
+	if (PendingRestoredBaseValues.IsEmpty())
+	{
+		return;
+	}
+
+	UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+	if (!ASC || ASC->GetSet<UWxCombatAttributeSet>() != this)
+	{
+		return;
+	}
+
+	ApplyPendingBaseValue(*ASC, GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, MaxHP), GetMaxHPAttribute());
+	ApplyPendingBaseValue(*ASC, GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, MaxSP), GetMaxSPAttribute());
+	ApplyPendingBaseValue(*ASC, GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, MaxGP), GetMaxGPAttribute());
+	ApplyPendingBaseValue(*ASC, GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, MaxMP), GetMaxMPAttribute());
+	ApplyPendingBaseValue(*ASC, GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, MaxUP), GetMaxUPAttribute());
+
+	ApplyPendingBaseValue(*ASC, GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, HP), GetHPAttribute());
+	ApplyPendingBaseValue(*ASC, GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, SP), GetSPAttribute());
+	ApplyPendingBaseValue(*ASC, GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, GP), GetGPAttribute());
+	ApplyPendingBaseValue(*ASC, GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, MP), GetMPAttribute());
+	ApplyPendingBaseValue(*ASC, GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, UP), GetUPAttribute());
+
+	ApplyPendingBaseValue(*ASC, GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, ATK), GetATKAttribute());
+	ApplyPendingBaseValue(*ASC, GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, DEF), GetDEFAttribute());
+	ApplyPendingBaseValue(*ASC, GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, CritRate), GetCritRateAttribute());
+	ApplyPendingBaseValue(*ASC, GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, CritDMG), GetCritDMGAttribute());
+	ApplyPendingBaseValue(*ASC, GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, SPD), GetSPDAttribute());
+	ApplyPendingBaseValue(*ASC, GET_MEMBER_NAME_CHECKED(UWxCombatAttributeSet, ASPD), GetASPDAttribute());
+
+	PendingRestoredBaseValues.Reset();
+}
+
+void UWxCombatAttributeSet::ApplyPendingBaseValue(
+	UAbilitySystemComponent& AbilitySystemComponent,
+	FName PropertyName,
+	const FGameplayAttribute& Attribute) const
+{
+	if (const float* BaseValue = PendingRestoredBaseValues.Find(PropertyName))
+	{
+		AbilitySystemComponent.SetNumericAttributeBase(Attribute, *BaseValue);
+	}
+}
+
 float UWxCombatAttributeSet::ClampAttributeValue(const FGameplayAttribute& Attribute, float NewValue) const
 {
 	const float MinimumValue = Attribute == GetASPDAttribute() ? 0.001f : 0.f;
