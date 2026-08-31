@@ -67,8 +67,6 @@ protected:
 private:
 	FVector MoveDirection = FVector::ForwardVector;
 
-	float TotalTime = 0.f;
-
 	float ElapsedTime = 0.f;
 
 	FActiveGameplayEffectHandle MoveSpeedEffectHandle;

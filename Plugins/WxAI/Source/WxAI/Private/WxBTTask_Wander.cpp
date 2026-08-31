@@ -47,7 +47,6 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	}
 	MoveDirection = FRotator(0.f, Yaw, 0.f).Vector();
 
-	TotalTime = Duration;
 	ElapsedTime = 0.f;
 
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
@@ -79,7 +78,7 @@ void UWxBTTask_Wander::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMe
 	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
 
 	ElapsedTime += DeltaSeconds;
-	if (ElapsedTime >= TotalTime)
+	if (ElapsedTime >= Duration)
 	{
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		return;
