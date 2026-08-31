@@ -305,6 +305,9 @@ void AWxCharacterBase::InitAbilitySystem()
 	{
 		BaseWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 		SPDChanged.AddUObject(this, &AWxCharacterBase::HandleSPDAttributeChanged);
+
+		// 구독보다 초기 복제가 빨랐다면 그 변경 이벤트는 이미 지나갔으므로 현재 값을 1회 적용한다.
+		GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed * CombatAttributeSet->GetSPD();
 	}
 
 	// GiveAbility는 서버에서만 허용. 클라이언트에는 서버로부터 복제됨
