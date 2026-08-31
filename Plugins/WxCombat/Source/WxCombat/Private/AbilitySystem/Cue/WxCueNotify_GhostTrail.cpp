@@ -37,11 +37,6 @@ void AWxGhostTrail::BeginPlay()
 	PoseableMesh->CopyPoseFromSkeletalComponent(OwnerMesh);
 }
 
-void AWxGhostTrail::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
-}
-
 UWxCueNotify_GhostTrail::UWxCueNotify_GhostTrail()
 {
 	GameplayCueTag = WxGameplayTags::GameplayCue_GhostTrail;
