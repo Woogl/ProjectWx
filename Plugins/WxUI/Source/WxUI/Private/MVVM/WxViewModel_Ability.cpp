@@ -31,7 +31,7 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 	// 어빌리티의 블록/필요 태그로 좁힐 수 없다 — 발동 판정에는 배타 그룹 점유도 걸리는데, 그건 태그가 아니라 ASC 내부 상태라 다른 어빌리티의 ActivationOwnedTags 변화로만 감지된다.
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_Ability::HandleTagChanged);
 
-	GetCost(InASC, InAbility);
+	BindCostAttributes(*InASC, *InAbility);
 
 	RefreshActivationState();
 
@@ -414,18 +414,20 @@ void UWxViewModel_Ability::RefreshActivationState()
 	SetCheckCost(false);
 }
 
-void UWxViewModel_Ability::GetCost(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility)
+float UWxViewModel_Ability::QueryCost(const UAbilitySystemComponent& ASC, const UGameplayAbility& Ability, FGameplayAttribute& OutCostAttribute) const
 {
-	const UGameplayEffect* CostGE = InAbility->GetCostGameplayEffect();
+	OutCostAttribute = FGameplayAttribute();
+
+	const UGameplayEffect* CostGE = Ability.GetCostGameplayEffect();
 	if (!CostGE)
 	{
-		return;
+		return 0.f;
 	}
 
 	float AbilityLevel = 1.f;
-	for (const FGameplayAbilitySpec& Spec : InASC->GetActivatableAbilities())
+	for (const FGameplayAbilitySpec& Spec : ASC.GetActivatableAbilities())
 	{
-		if (Spec.Ability.Get() == InAbility)
+		if (Spec.Ability.Get() == &Ability)
 		{
 			AbilityLevel = Spec.Level;
 			break;
@@ -433,8 +435,8 @@ void UWxViewModel_Ability::GetCost(UAbilitySystemComponent* InASC, const UGamepl
 	}
 
 	// 비용 계산은 소스 어빌리티에서 수치를 읽으므로 컨텍스트에 어빌리티를 실어야 한다.
-	FGameplayEffectContextHandle CostContext = InASC->MakeEffectContext();
-	CostContext.SetAbility(InAbility);
+	FGameplayEffectContextHandle CostContext = ASC.MakeEffectContext();
+	CostContext.SetAbility(&Ability);
 
 	FGameplayEffectSpec CostSpec(CostGE, CostContext, AbilityLevel);
 	CostSpec.CalculateModifierMagnitudes();
@@ -448,17 +450,26 @@ void UWxViewModel_Ability::GetCost(UAbilitySystemComponent* InASC, const UGamepl
 			continue;
 		}
 
-		CostAttribute = ModifierAttribute;
+		OutCostAttribute = ModifierAttribute;
 
 		// 자원 감산이라 음수로 나온다.
-		SetCostAmount(FMath::Abs(Magnitude));
-		break;
+		return FMath::Abs(Magnitude);
 	}
 
-	if (!CostAttribute.IsValid())
+	return 0.f;
+}
+
+void UWxViewModel_Ability::BindCostAttributes(UAbilitySystemComponent& ASC, const UGameplayAbility& Ability)
+{
+	FGameplayAttribute FoundCostAttribute;
+	const float FoundCost = QueryCost(ASC, Ability, FoundCostAttribute);
+	if (!FoundCostAttribute.IsValid())
 	{
 		return;
 	}
+
+	CostAttribute = FoundCostAttribute;
+	SetCostAmount(FoundCost);
 
 	// 어트리뷰트 셋은 현재값과 최대값을 Max 접두 이름으로 짝지어 둔다.
 	if (const UClass* AttributeSetClass = CostAttribute.GetAttributeSetClass())
@@ -470,12 +481,12 @@ void UWxViewModel_Ability::GetCost(UAbilitySystemComponent* InASC, const UGamepl
 		}
 	}
 
-	InASC->GetGameplayAttributeValueChangeDelegate(CostAttribute)
+	ASC.GetGameplayAttributeValueChangeDelegate(CostAttribute)
 		.AddUObject(this, &UWxViewModel_Ability::HandleCostAttributeChanged);
 
 	if (CostMaxAttribute.IsValid())
 	{
-		InASC->GetGameplayAttributeValueChangeDelegate(CostMaxAttribute)
+		ASC.GetGameplayAttributeValueChangeDelegate(CostMaxAttribute)
 			.AddUObject(this, &UWxViewModel_Ability::HandleCostAttributeChanged);
 	}
 }

@@ -147,10 +147,13 @@ private:
 	void RefreshActivationState();
 
 	/**
-	 * 비용 GE 가 실제로 깎는 자원과 그 양을 정한다.
+	 * 비용 GE 가 실제로 깎는 자원을 OutCostAttribute 로 내고 그 양을 반환한다. 깎는 자원이 없으면 0.
 	 * 비용 GE 는 자원별 모디파이어를 모두 선언해 두고 값은 적용 시점에 계산하므로, 정의만 읽어서는 알 수 없어 스펙을 한 번 평가한다.
 	 */
-	void GetCost(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility);
+	float QueryCost(const UAbilitySystemComponent& ASC, const UGameplayAbility& Ability, FGameplayAttribute& OutCostAttribute) const;
+
+	/** 비용 자원과 그 양을 정하고, 값이 바뀌면 발동 가능 판정을 다시 하도록 구독한다. 해제는 Deinitialize 가 짝을 맞춘다. */
+	void BindCostAttributes(UAbilitySystemComponent& ASC, const UGameplayAbility& Ability);
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	TWeakObjectPtr<const UGameplayAbility> CachedAbility;
