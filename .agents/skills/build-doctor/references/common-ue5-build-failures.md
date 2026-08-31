@@ -2,6 +2,28 @@
 
 Use this file only when classifying Unreal Engine 5 C++ build failures.
 
+## 0) Runner / UnrealBuildTool startup
+
+High-signal signatures:
+- `BUILD_DOCTOR_RESULT=preflight-failure`
+- `BUILD_DOCTOR_EXIT_CODE=2`
+- `BUILD_DOCTOR_ERROR=`
+- `Access to the path ... is denied`
+- `BUILD_DOCTOR_EXIT_CODE=-532462766`
+- output stops immediately after `Running UnrealBuildTool`
+
+Likely cause:
+- The project root is wrong or contains zero/multiple `.uproject` files.
+- `LauncherInstalled.dat` has no `UE_5.8` installation entry.
+- `Build.bat` or the build log directory cannot be accessed.
+- UnrealBuildTool cannot create `%LOCALAPPDATA%/UnrealBuildTool/Log.txt`, `Trace.uba`, or its mutex. The CLR exception exit code `-532462766` (`0xE0434352`) can be the only visible symptom.
+
+Good immediate fixes:
+- Fix the failing preflight path instead of editing project source.
+- Keep build-doctor logs under `<project>/Saved/Logs/BuildDoctor`.
+- In Codex desktop, run the build with approved sandbox escalation so UnrealBuildTool can write its user-local files.
+- Retry once only when the first UnrealBuildTool process ended before producing a log; repeated failure needs permission or process-lock diagnosis.
+
 ## 1) UHT / reflection / generated code
 
 High-signal signatures:
@@ -69,11 +91,13 @@ Likely cause:
 - Function signature does not match exactly.
 - Symbol is conditionally excluded by macros.
 - Required module/library is not linked.
+- `UnrealEditor.exe` is holding the output DLL open when `LNK1104` names an `UnrealEditor-*.dll` or UBA reports that the file is used by another process.
 
 Good immediate fixes:
 - Match declaration and definition exactly.
 - Confirm the `.cpp` implementing the symbol is compiled into the target.
 - Check missing module/library dependencies in `Build.cs`.
+- For an editor-owned DLL, close the editor and rebuild or use the `run-editor` skill.
 
 ## 5) Target / plugin / configuration mismatch
 
