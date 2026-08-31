@@ -60,6 +60,6 @@ FText FWxStateTreeTask_WaitMoveToTarget::GetDescription(const FGuid& ID, FStateT
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("목표 지점 도달 대기 ({0})"), FText::FromString(FWxLocatorUtils::GetDisplayName(InstanceData->Target)));
+	return FText::Format(INVTEXT("목표 지점 도달 대기 ({0})"), FWxLocatorUtils::GetDisplayName(InstanceData->Target));
 }
 #endif

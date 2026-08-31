@@ -7,16 +7,16 @@
 #include "UniversalObjectLocator.h"
 #include "UniversalObjectLocators/ActorLocatorFragment.h"
 
-FString FWxLocatorUtils::GetDisplayName(const FUniversalObjectLocator& Locator)
+FText FWxLocatorUtils::GetDisplayName(const FUniversalObjectLocator& Locator)
 {
 	if (Locator.IsEmpty())
 	{
-		return TEXT("unset");
+		return INVTEXT("unset");
 	}
 
 	if (const AActor* Actor = Cast<AActor>(Locator.SyncFind()))
 	{
-		return Actor->GetActorNameOrLabel();
+		return FText::FromString(Actor->GetActorNameOrLabel());
 	}
 
 	const FUniversalObjectLocatorFragment* Fragment = Locator.GetLastFragment();
@@ -25,13 +25,13 @@ FString FWxLocatorUtils::GetDisplayName(const FUniversalObjectLocator& Locator)
 	{
 		const FString SubPath = Payload->Path.GetSubPathString();
 		int32 DotIndex = INDEX_NONE;
-		return SubPath.FindLastChar(TEXT('.'), DotIndex) ? SubPath.Mid(DotIndex + 1) : SubPath;
+		return FText::FromString(SubPath.FindLastChar(TEXT('.'), DotIndex) ? SubPath.Mid(DotIndex + 1) : SubPath);
 	}
 
-	return TEXT("unresolved");
+	return INVTEXT("unresolved");
 }
 
-FText FWxLocatorUtils::GetDisplayNamesText(const TArray<FUniversalObjectLocator>& Locators)
+FText FWxLocatorUtils::GetDisplayNames(const TArray<FUniversalObjectLocator>& Locators)
 {
 	if (Locators.IsEmpty())
 	{
@@ -42,7 +42,7 @@ FText FWxLocatorUtils::GetDisplayNamesText(const TArray<FUniversalObjectLocator>
 	TArray<FString> Names;
 	for (int32 Index = 0; Index < Locators.Num() && Index < MaxNames; ++Index)
 	{
-		Names.Add(GetDisplayName(Locators[Index]));
+		Names.Add(GetDisplayName(Locators[Index]).ToString());
 	}
 
 	FString Joined = FString::Join(Names, TEXT(", "));

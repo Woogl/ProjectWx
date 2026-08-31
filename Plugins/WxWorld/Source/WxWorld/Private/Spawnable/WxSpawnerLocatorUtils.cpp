@@ -18,7 +18,7 @@ EDataValidationResult FWxSpawnerLocatorUtils::ValidateSpawners(UE::StateTree::IC
 		const UObject* Object = Locator.SyncFind();
 		if (Object && !Object->IsA<AWxSpawner>())
 		{
-			CompileContext.AddValidationError(FText::Format(INVTEXT("Spawners: '{0}' 은(는) WxSpawner 가 아니다."), FText::FromString(FWxLocatorUtils::GetDisplayName(Locator))));
+			CompileContext.AddValidationError(FText::Format(INVTEXT("Spawners: '{0}' 은(는) WxSpawner 가 아니다."), FWxLocatorUtils::GetDisplayName(Locator)));
 			Result = EDataValidationResult::Invalid;
 		}
 	}

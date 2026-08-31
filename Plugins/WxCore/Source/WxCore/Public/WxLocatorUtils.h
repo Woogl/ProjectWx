@@ -11,9 +11,9 @@ struct WXCORE_API FWxLocatorUtils
 {
 #if WITH_EDITOR
 	/** 로케이터의 표시명. 해석되면 액터 라벨(아웃라이너와 동일), 미해석이면 경로 끝 오브젝트 이름, 빈 로케이터는 unset. */
-	static FString GetDisplayName(const FUniversalObjectLocator& Locator);
+	static FText GetDisplayName(const FUniversalObjectLocator& Locator);
 
 	/** 목록의 표시 텍스트. 표시명 3개까지 나열하고 초과분은 +N 으로 줄인다. */
-	static FText GetDisplayNamesText(const TArray<FUniversalObjectLocator>& Locators);
+	static FText GetDisplayNames(const TArray<FUniversalObjectLocator>& Locators);
 #endif
 };

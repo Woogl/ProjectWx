@@ -138,6 +138,6 @@ FText FWxStateTreeTask_MarkIndicator::GetDescription(const FGuid& ID, FStateTree
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("인디케이터 표시 ({0})"), FText::FromString(FWxLocatorUtils::GetDisplayName(InstanceData->Target)));
+	return FText::Format(INVTEXT("인디케이터 표시 ({0})"), FWxLocatorUtils::GetDisplayName(InstanceData->Target));
 }
 #endif
