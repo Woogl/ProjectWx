@@ -18,7 +18,6 @@
 #include "WxCombatLibrary.h"
 #include "WxGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Framework/WxWorldSettings.h"
 
 AWxPlayerCharacter::AWxPlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -54,16 +53,6 @@ AWxPlayerCharacter::AWxPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	StaminaWidget->SetVisibility(false);
 
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
-}
-
-void AWxPlayerCharacter::PossessedBy(AController* NewController)
-{
-	Super::PossessedBy(NewController);
-
-	if (AWxWorldSettings* WorldSettings = Cast<AWxWorldSettings>(GetWorld() ? GetWorld()->GetWorldSettings() : nullptr))
-	{
-		WorldSettings->ApplyPendingPlayerState(this);
-	}
 }
 
 void AWxPlayerCharacter::NotifyControllerChanged()

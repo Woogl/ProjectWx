@@ -12,16 +12,13 @@
 #include "Components/ChildActorComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/World.h"
-#include "Engine/Level.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GameplayEffect.h"
 #include "MotionWarpingComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapon/WxWeaponBase.h"
 #include "Weapon/WxProjectileComponent.h"
 #include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
-#include "WxPersistableActorReferenceManager.h"
 
 AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UWxCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -104,10 +101,6 @@ void AWxCharacterBase::PostInitializeComponents()
 void AWxCharacterBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	UGameFrameworkComponentManager::RemoveGameFrameworkComponentReceiver(this);
-	if (UWorld* World = GetWorld())
-	{
-		World->OnWorldBeginPlay.RemoveAll(this);
-	}
 
 	Super::EndPlay(EndPlayReason);
 }
@@ -165,78 +158,6 @@ UAbilitySystemComponent* AWxCharacterBase::GetAbilitySystemComponent() const
 void AWxCharacterBase::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
 {
 	AbilitySystemComponent->GetOwnedGameplayTags(TagContainer);
-}
-
-void AWxCharacterBase::OnSavePreparing()
-{
-	CaptureAbilitySystemState(PersistedAbilitySystemState);
-}
-
-void AWxCharacterBase::OnSaveRestored(const TArray<FName>& RestoredPropertyNames)
-{
-	if (RestoredPropertyNames.Contains(
-		GET_MEMBER_NAME_CHECKED(AWxCharacterBase, PersistedAbilitySystemState)))
-	{
-		RestoreAbilitySystemState(PersistedAbilitySystemState);
-	}
-}
-
-void AWxCharacterBase::OnPostRestoreLevel()
-{
-	TryRestorePendingAbilitySystemState();
-}
-
-void AWxCharacterBase::CaptureAbilitySystemState(FWxPersistedAbilitySystemState& OutState) const
-{
-	OutState.GameplayEffects.Reset();
-
-	const UWorld* World = GetWorld();
-	if (!AbilitySystemComponent->IsOwnerActorAuthoritative() || !World)
-	{
-		return;
-	}
-
-	const TArray<FActiveGameplayEffectHandle> Handles =
-		AbilitySystemComponent->GetActiveEffects(FGameplayEffectQuery());
-	for (const FActiveGameplayEffectHandle Handle : Handles)
-	{
-		const FActiveGameplayEffect* ActiveEffect =
-			AbilitySystemComponent->GetActiveGameplayEffect(Handle);
-		if (!ActiveEffect || !ActiveEffect->Spec.Def)
-		{
-			continue;
-		}
-
-		FGameplayTagContainer AssetTags;
-		ActiveEffect->Spec.GetAllAssetTags(AssetTags);
-		if (!AssetTags.HasTagExact(WxGameplayTags::Effect_Savable))
-		{
-			continue;
-		}
-
-		const float RemainingDuration = ActiveEffect->GetTimeRemaining(World->GetTimeSeconds());
-		const bool bInfinite = RemainingDuration < 0.f;
-		if (!bInfinite && RemainingDuration <= 0.f)
-		{
-			continue;
-		}
-
-		FWxPersistedGameplayEffect& SavedEffect = OutState.GameplayEffects.AddDefaulted_GetRef();
-		SavedEffect.EffectClass = ActiveEffect->Spec.Def->GetClass();
-		SavedEffect.Instigator.Capture(ActiveEffect->Spec.GetContext().GetInstigator());
-		SavedEffect.RemainingDuration = bInfinite ? -1.f : RemainingDuration;
-		SavedEffect.Level = ActiveEffect->Spec.GetLevel();
-		SavedEffect.StackCount = ActiveEffect->Spec.GetStackCount();
-		SavedEffect.SetByCallerNameMagnitudes = ActiveEffect->Spec.SetByCallerNameMagnitudes;
-		SavedEffect.SetByCallerTagMagnitudes = ActiveEffect->Spec.SetByCallerTagMagnitudes;
-	}
-}
-
-void AWxCharacterBase::RestoreAbilitySystemState(const FWxPersistedAbilitySystemState& InState)
-{
-	PendingAbilitySystemRestoreState = InState;
-	bAbilitySystemRestorePending = true;
-	TryRestorePendingAbilitySystemState();
 }
 
 AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const
@@ -314,108 +235,7 @@ void AWxCharacterBase::InitAbilitySystem()
 	if (HasAuthority())
 	{
 		AbilitySystemComponent->GiveAbilitySet();
-		CombatAttributeSet->ApplyPendingSaveRestore();
-		TryRestorePendingAbilitySystemState();
 	}
-}
-
-void AWxCharacterBase::TryRestorePendingAbilitySystemState()
-{
-	UWorld* World = GetWorld();
-	ULevel* Level = GetLevel();
-	if (!bAbilitySystemRestorePending
-		|| !AbilitySystemComponent->IsOwnerActorAuthoritative()
-		|| !World
-		|| !Level
-		|| !AbilitySystemComponent->GetOwnerActor()
-		|| !AbilitySystemComponent->GetAvatarActor())
-	{
-		return;
-	}
-
-	UWxPersistableActorReferenceManager* ReferenceManager =
-		World->GetSubsystem<UWxPersistableActorReferenceManager>();
-	if (!ReferenceManager
-		|| !ReferenceManager->IsLevelCurrentlyPostRestored(FSoftObjectPath(Level)))
-	{
-		return;
-	}
-	if (!World->HasBegunPlay())
-	{
-		if (!World->OnWorldBeginPlay.IsBoundToObject(this))
-		{
-			World->OnWorldBeginPlay.AddUObject(this, &ThisClass::HandleWorldBeginPlay);
-		}
-		return;
-	}
-
-	World->OnWorldBeginPlay.RemoveAll(this);
-
-	FWxPersistedAbilitySystemState RestoreState = MoveTemp(PendingAbilitySystemRestoreState);
-	PendingAbilitySystemRestoreState = FWxPersistedAbilitySystemState();
-	bAbilitySystemRestorePending = false;
-
-	FGameplayTagContainer PersistableTags;
-	PersistableTags.AddTag(WxGameplayTags::Effect_Savable);
-	AbilitySystemComponent->RemoveActiveEffectsWithTags(PersistableTags);
-
-	for (const FWxPersistedGameplayEffect& SavedEffect : RestoreState.GameplayEffects)
-	{
-		AActor* EffectInstigator = AbilitySystemComponent->GetOwnerActor();
-		if (SavedEffect.Instigator.IsSet())
-		{
-			EffectInstigator = SavedEffect.Instigator.Resolve(World);
-			if (!EffectInstigator)
-			{
-				continue;
-			}
-		}
-
-		TSubclassOf<UGameplayEffect> EffectClass = SavedEffect.EffectClass.LoadSynchronous();
-		if (!EffectClass
-			|| (SavedEffect.RemainingDuration != -1.f && SavedEffect.RemainingDuration <= 0.f))
-		{
-			continue;
-		}
-
-		FGameplayEffectContextHandle Context = AbilitySystemComponent->MakeEffectContext();
-		if (EffectInstigator)
-		{
-			Context.AddInstigator(EffectInstigator, EffectInstigator);
-		}
-
-		FGameplayEffectSpecHandle SpecHandle =
-			AbilitySystemComponent->MakeOutgoingSpec(EffectClass, SavedEffect.Level, Context);
-		if (!SpecHandle.IsValid())
-		{
-			continue;
-		}
-
-		for (const TPair<FName, float>& Pair : SavedEffect.SetByCallerNameMagnitudes)
-		{
-			SpecHandle.Data->SetSetByCallerMagnitude(Pair.Key, Pair.Value);
-		}
-		for (const TPair<FGameplayTag, float>& Pair : SavedEffect.SetByCallerTagMagnitudes)
-		{
-			SpecHandle.Data->SetSetByCallerMagnitude(Pair.Key, Pair.Value);
-		}
-		if (SavedEffect.RemainingDuration > 0.f)
-		{
-			SpecHandle.Data->SetDuration(SavedEffect.RemainingDuration, true);
-		}
-		SpecHandle.Data->SetStackCount(FMath::Max(1, SavedEffect.StackCount));
-
-		AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-	}
-}
-
-void AWxCharacterBase::HandleWorldBeginPlay()
-{
-	if (UWorld* World = GetWorld())
-	{
-		World->OnWorldBeginPlay.RemoveAll(this);
-	}
-	TryRestorePendingAbilitySystemState();
 }
 
 void AWxCharacterBase::HandleSPDAttributeChanged(const FOnAttributeChangeData& Data)

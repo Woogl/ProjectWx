@@ -5,33 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "WxInteractable.h"
-#include "WxSavable.h"
 #include "WxItemPickup.generated.h"
 
 class UNiagaraComponent;
 class UStaticMeshComponent;
 class UWxItemDefinition;
-
-USTRUCT()
-struct FWxPersistedItemPickupState
-{
-	GENERATED_BODY()
-
-	UPROPERTY()
-	TSoftObjectPtr<UWxItemDefinition> ItemDefinition;
-
-	UPROPERTY()
-	int32 Quantity = 1;
-
-	UPROPERTY()
-	bool bSimulatingPhysics = false;
-
-	UPROPERTY()
-	FVector LinearVelocity = FVector::ZeroVector;
-
-	UPROPERTY()
-	FVector AngularVelocityRadians = FVector::ZeroVector;
-};
 
 /**
  * 아이템(또는 재화) 지급용 픽업.
@@ -42,7 +20,7 @@ struct FWxPersistedItemPickupState
  * 외부 스포너(예: UWxRewardLibrary::GrantReward) 가 SetItemDef 로 지급 데이터를 주입하고 LaunchInDirection 으로 물리 발사한다.
  */
 UCLASS(Abstract)
-class WXINVENTORY_API AWxItemPickup : public AActor, public IWxInteractable, public IWxSavable
+class WXINVENTORY_API AWxItemPickup : public AActor, public IWxInteractable
 {
 	GENERATED_BODY()
 
@@ -65,11 +43,6 @@ public:
 	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
 
-	//~ Begin IWxSavable
-	virtual void OnSavePreparing() override;
-	virtual void OnSaveRestored(const TArray<FName>& RestoredPropertyNames) override;
-	//~ End IWxSavable
-
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
@@ -84,10 +57,6 @@ protected:
 	/** 최소 1. */
 	UPROPERTY(Replicated)
 	int32 Quantity = 1;
-
-	/** 런타임 생성 픽업을 LSP가 다시 구성하는 데 필요한 동적 상태. */
-	UPROPERTY(VisibleInstanceOnly, Category = "Wx|Persistence")
-	FWxPersistedItemPickupState PersistedState;
 
 private:
 	UFUNCTION()

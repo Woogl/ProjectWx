@@ -38,20 +38,6 @@ void UWxDeviceStateTreeComponent::NotifyInteractionPending()
 	bPendingInteractResolve = true;
 }
 
-void UWxDeviceStateTreeComponent::NotifySaveRestored()
-{
-	// 복원은 서버 권위에서만 상태를 움직인다 — 클라 수렴은 복제 추종이 담당한다. 태그 없는 기록은 따라갈 곳이 없다.
-	if (GetOwnerRole() != ROLE_Authority || StateTagName.IsNone())
-	{
-		return;
-	}
-
-	bFollowRestoredState = true;
-
-	// 월드 초기화 복원(BeginPlay 전)은 곧 BeginPlay 가 트리를 열며 동기화를 시작한다. 실행 중(스트리밍 인 복원)이면 잠든 틱만 깨워 같은 수렴 경로에 태운다.
-	ConditionalEnableTick();
-}
-
 void UWxDeviceStateTreeComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -72,15 +58,14 @@ void UWxDeviceStateTreeComponent::StopLogic(const FString& Reason)
 
 void UWxDeviceStateTreeComponent::BeginPlay()
 {
-	// 월드 초기 로드 복원은 BeginPlay 전에 끝나므로 여기서 비어 있으면 저장이 없는 것이다.
-	// 스트리밍-인 복원은 이보다 늦게 와 StateTag 를 덮고 같은 추종으로 갈아탄다.
+	// 권위의 첫 진입 — StateTag 는 이 시점에 비어 있고, InitialState 지정이 있으면 그것이 시작 상태가 된다.
 	if (GetOwnerRole() == ROLE_Authority && StateTagName.IsNone() && InitialState != RootInitialStateName)
 	{
 		const FGameplayTag InitialTag = FGameplayTag::RequestGameplayTag(InitialState, false);
 		if (HasState(InitialTag))
 		{
 			StateTagName = InitialTag.GetTagName();
-			bFollowRestoredState = true;
+			bFollowInitialState = true;
 		}
 		else
 		{
@@ -140,7 +125,7 @@ void UWxDeviceStateTreeComponent::Multicast_ReenterState_Implementation(FGamepla
 
 void UWxDeviceStateTreeComponent::SyncStateWithTree()
 {
-	if (GetOwnerRole() == ROLE_Authority && !bFollowRestoredState)
+	if (GetOwnerRole() == ROLE_Authority && !bFollowInitialState)
 	{
 		PublishAuthorityState();
 	}
@@ -152,7 +137,7 @@ void UWxDeviceStateTreeComponent::SyncStateWithTree()
 
 void UWxDeviceStateTreeComponent::PublishAuthorityState()
 {
-	// 태그 없는 상태에 머무는 동안엔 마지막 유효 값을 유지한다 — 트리 정지·미태그 구간에서 저장 값이 지워지지 않게 한다.
+	// 태그 없는 상태에 머무는 동안엔 마지막 유효 값을 유지한다 — 트리 정지·미태그 구간에서 상태 값이 지워지지 않게 한다.
 	// 재진입 판정도 플래그를 든 채로 미룬다. 태그 있는 상태로 돌아오는 그 순간이 곧 그 상호작용이 만든 재진입이다.
 	const FGameplayTag ActiveTag = GetActiveStateTag();
 	if (!ActiveTag.IsValid())
@@ -180,11 +165,11 @@ void UWxDeviceStateTreeComponent::FollowStateTag()
 {
 	const FGameplayTag StateTag = GetStateTag();
 
-	// 복원 태그가 로컬 에셋에 없으면 영영 수렴할 수 없다 — 추종을 접고 트리 상태 발행으로 복귀해 장치가 조용히 죽는 것을 막는다.
-	if (bFollowRestoredState && !HasState(StateTag))
+	// 목표 태그가 로컬 에셋에 없으면 영영 수렴할 수 없다 — 추종을 접고 트리 상태 발행으로 복귀해 장치가 조용히 죽는 것을 막는다.
+	if (bFollowInitialState && !HasState(StateTag))
 	{
-		UE_LOG(LogWxWorld, Warning, TEXT("Device(%s): 복원 상태 %s 를 에셋에서 찾지 못했다 — 복원을 포기하고 트리 상태를 발행한다."), *GetNameSafe(GetOwner()), *StateTag.ToString());
-		bFollowRestoredState = false;
+		UE_LOG(LogWxWorld, Warning, TEXT("Device(%s): 목표 상태 %s 를 에셋에서 찾지 못했다 — 추종을 포기하고 트리 상태를 발행한다."), *GetNameSafe(GetOwner()), *StateTag.ToString());
+		bFollowInitialState = false;
 		return;
 	}
 
@@ -199,7 +184,7 @@ void UWxDeviceStateTreeComponent::FollowStateTag()
 
 	if (ActiveTag == StateTag)
 	{
-		bFollowRestoredState = false;
+		bFollowInitialState = false;
 		return;
 	}
 

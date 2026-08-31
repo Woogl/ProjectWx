@@ -67,15 +67,7 @@ FText AWxDevice::GetInteractionPrompt() const
 {
 	return InteractionBinding.Prompt;
 }
-
-void AWxDevice::OnSaveRestored(const TArray<FName>& RestoredPropertyNames)
-{
-	static_cast<void>(RestoredPropertyNames);
-
-	// 컴포넌트의 StateTag 는 이 호출 전에 이미 역직렬화로 복원되어 있다(WxSave 가 액터+컴포넌트를 먼저 복원하고 이 훅을 부른다).
-	StateTreeComponent->NotifySaveRestored();
-}
-
+
 void AWxDevice::NotifyDeviceInteracted(AActor* Interactor, FGameplayTag EventTag, FConstStructView Payload)
 {
 	// 보내는 쪽이 서버 권위에서만 부르지만, 상태를 움직이는 것은 권위 트리뿐이므로 한 번 더 가른다.

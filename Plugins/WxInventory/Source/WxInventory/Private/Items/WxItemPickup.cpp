@@ -108,38 +108,6 @@ FText AWxItemPickup::GetInteractionPrompt() const
 		: FText::Format(NSLOCTEXT("WxItemPickup", "InteractionFormat", "[F] {0}"), ItemDef->DisplayName);
 }
 
-void AWxItemPickup::OnSavePreparing()
-{
-	PersistedState.ItemDefinition = ItemDef;
-	PersistedState.Quantity = Quantity;
-	PersistedState.bSimulatingPhysics = MeshComponent->IsSimulatingPhysics();
-	PersistedState.LinearVelocity = PersistedState.bSimulatingPhysics
-		? MeshComponent->GetPhysicsLinearVelocity()
-		: FVector::ZeroVector;
-	PersistedState.AngularVelocityRadians = PersistedState.bSimulatingPhysics
-		? MeshComponent->GetPhysicsAngularVelocityInRadians()
-		: FVector::ZeroVector;
-}
-
-void AWxItemPickup::OnSaveRestored(const TArray<FName>& RestoredPropertyNames)
-{
-	if (!RestoredPropertyNames.Contains(GET_MEMBER_NAME_CHECKED(AWxItemPickup, PersistedState)))
-	{
-		return;
-	}
-
-	ItemDef = PersistedState.ItemDefinition.LoadSynchronous();
-	Quantity = FMath::Max(1, PersistedState.Quantity);
-	ApplyPickupVisual();
-
-	MeshComponent->SetSimulatePhysics(PersistedState.bSimulatingPhysics);
-	if (PersistedState.bSimulatingPhysics)
-	{
-		MeshComponent->SetPhysicsLinearVelocity(PersistedState.LinearVelocity);
-		MeshComponent->SetPhysicsAngularVelocityInRadians(PersistedState.AngularVelocityRadians);
-	}
-}
-
 void AWxItemPickup::OnRep_ItemDef()
 {
 	ApplyPickupVisual();

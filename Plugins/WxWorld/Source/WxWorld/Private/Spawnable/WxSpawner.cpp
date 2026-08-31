@@ -101,8 +101,10 @@ void AWxSpawner::MarkKilled()
 	bIsKilled = true;
 }
 
-void AWxSpawner::OnPostRestoreLevel()
+void AWxSpawner::BeginPlay()
 {
+	Super::BeginPlay();
+
 	if (SpawnMode == EWxSpawnerMode::Auto)
 	{
 		SpawnTarget();

@@ -6,7 +6,6 @@
 #include "Engine/DataTable.h"
 #include "Engine/TimerHandle.h"
 #include "WxInteractable.h"
-#include "WxPersistableActorReference.h"
 #include "Spawnable/WxSpawnable.h"
 #include "Character/WxCharacterBase.h"
 #include "WxEnemyCharacter.generated.h"
@@ -15,7 +14,6 @@ class AWxSpawner;
 class UBehaviorTree;
 class UWxLockOnPointComponent;
 class UWxNameplateComponent;
-class UWxPersistableReferencedActorComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnEnemyAITargetChanged, bool /*bHasAITarget*/);
 
@@ -51,13 +49,6 @@ public:
 	//~ End IWxInteractable
 
 	virtual void BeginPlay() override;
-	virtual void PostInitializeComponents() override;
-
-	//~ Begin IWxSavable
-	virtual bool ShouldPersistRuntimeActor() const override;
-	virtual void OnSavePreparing() override;
-	virtual void OnSaveRestored(const TArray<FName>& RestoredPropertyNames) override;
-	//~ End IWxSavable
 
 protected:
 	bool IsInRearCone(const AActor* Interactor) const;
@@ -85,10 +76,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx|LockOn")
 	TObjectPtr<UWxLockOnPointComponent> LockOnPoint;
 
-	/** 런타임 리스폰 뒤에도 이전 세션의 액터 참조가 현재 인스턴스를 찾게 한다. */
-	UPROPERTY(VisibleAnywhere, Category = "Wx|Persistence")
-	TObjectPtr<UWxPersistableReferencedActorComponent> PersistableReference;
-
 	/**
 	 * 정면 반대 축 기준 이 반각(도) 이내의 후방 원뿔에 플레이어가 있어야 백스탭이 노출된다.
 	 * 기본 90 = 후방 반구.
@@ -110,8 +97,4 @@ protected:
 
 	/** 직접 배치된 적은 비어 있다. */
 	TWeakObjectPtr<AWxSpawner> OwningSpawner;
-
-	/** LSP가 런타임 적을 생성할 때 원래 스포너와 다시 연결하기 위한 안정 참조. */
-	UPROPERTY(VisibleInstanceOnly, Category = "Wx|Persistence")
-	FWxPersistableActorReference OwningSpawnerReference;
 };

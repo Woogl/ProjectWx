@@ -9,7 +9,6 @@
 #include "StateTreeDelegate.h"
 #include "StructUtils/StructView.h"
 #include "WxInteractable.h"
-#include "WxSavable.h"
 #include "WxDevice.generated.h"
 
 class ACharacter;
@@ -41,12 +40,12 @@ struct FWxDeviceInteractionBinding
  * 루트를 만들지 않는다 — 파생 BP 가 저마다 다른 몸통을 세운다.
  * 버튼·레버 같은 발동 장치도 이 클래스다 — 누른 상태를 자기 트리로 몰면서 '이벤트 보내기' 태스크로 상대를 민다.
  *
- * 상태의 실행·소유(복제·SaveGame StateTag)·ST 에셋 저작은 전부 UWxDeviceStateTreeComponent 가 맡는다 — 상태 구동 패턴은 그 클래스 doc-comment 참조.
- * 이 액터에 남는 것은 상호작용 표면(IWxInteractable·프롬프트·당사자), 복원 후처리(IWxSavable), 그리고 배치가 정하는 배선(LinkedDevices)뿐이다.
- * 상호작용·복원 신호는 전부 액터가 받아 컴포넌트에 전달한다 — 스캐너·어빌리티·발동 장치·세이브가 보는 계약 상대는 액터 하나다.
+ * 상태의 실행·소유(복제 StateTag)·ST 에셋 저작은 전부 UWxDeviceStateTreeComponent 가 맡는다 — 상태 구동 패턴은 그 클래스 doc-comment 참조.
+ * 이 액터에 남는 것은 상호작용 표면(IWxInteractable·프롬프트·당사자), 그리고 배치가 정하는 배선(LinkedDevices)뿐이다.
+ * 상호작용 신호는 액터가 받아 컴포넌트에 전달한다 — 스캐너·어빌리티·발동 장치가 보는 계약 상대는 액터 하나다.
  */
 UCLASS(Abstract)
-class WXWORLD_API AWxDevice : public AActor, public IWxInteractable, public IWxSavable
+class WXWORLD_API AWxDevice : public AActor, public IWxInteractable
 {
 	GENERATED_BODY()
 
@@ -60,12 +59,7 @@ public:
 	virtual void OnInteracted(AActor* Interactor) override;
 	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
-
-	//~ Begin IWxSavable
-	/** 복원은 컴포넌트의 StateTag 세팅이 전부다 — 컴포넌트에 알리면 트리가 라이브 전이로 그 상태에 수렴한다. */
-	virtual void OnSaveRestored(const TArray<FName>& RestoredPropertyNames) override;
-	//~ End IWxSavable
-
+
 	void NotifyDeviceInteracted(AActor* Interactor, FGameplayTag EventTag, FConstStructView Payload = FConstStructView());
 	ACharacter* GetInteractingCharacter() const;
 

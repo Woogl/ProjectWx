@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "WxSavable.h"
 #include "WxSpawner.generated.h"
 
 class UBillboardComponent;
@@ -23,7 +22,7 @@ enum class EWxSpawnerMode : uint8
 
 /** SpawnableActorClass 인스턴스를 스폰하고, 그 처치 상태를 자체적으로 보유하는 레벨 배치 액터. */
 UCLASS(NotBlueprintable)
-class WXWORLD_API AWxSpawner : public AActor, public IWxSavable
+class WXWORLD_API AWxSpawner : public AActor
 {
 	GENERATED_BODY()
 
@@ -41,11 +40,8 @@ public:
 	/** 서버 권위 호출. 인스턴스 destroy 는 호출자(또는 spawnable 자체) 가 별도 처리. */
 	void MarkKilled();
 
-	//~ Begin IWxSavable
-	virtual void OnPostRestoreLevel() override;
-	//~ End IWxSavable
-
 protected:
+	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	void SpawnTarget();
@@ -63,8 +59,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	bool bNeverRevive = false;
 
-	/** WxSave 슬롯에 보존되어 셀 리로드/세션 간에 유지된다. */
-	UPROPERTY(VisibleInstanceOnly, SaveGame, Category = "Wx")
+	/** 서버 런타임 상태다 — 셀이 스트림 아웃되면 함께 사라진다. */
+	UPROPERTY(VisibleInstanceOnly, Category = "Wx")
 	bool bIsKilled = false;
 
 	TWeakObjectPtr<AActor> SpawnedActor;

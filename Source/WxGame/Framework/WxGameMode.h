@@ -14,10 +14,8 @@ class UWxExperienceDefinition;
  * 로드는 비동기라 접속(PostLogin)보다 늦을 수 있다 — 폰 스폰(HandleStartingNewPlayer)을 로드 완료까지 미루고, 완료 시점에 대기 접속자를 일괄 스폰·지급한다.
  * 플레이어 폰 클래스도 Experience 가 정한다 — 상속받은 DefaultPawnClass 는 읽지 않는다.
  * 폰 클래스가 비어 있으면 폰 없는 Experience(프론트엔드)라 엔진 스펙테이터 폰(SpectatorClass)으로 빙의시킨다.
- * 플레이어 스폰 위치는 엔진 기본 경로에 전적으로 맡긴다 — 저장 재개 시 WxSave가 월드 초기화 단계에 APlayerStartPIE를 만들고, GameMode는 ChoosePlayerStart 결과를 그대로 쓴다.
- * 저장된 플레이어 스탯과 opt-in GE는 맵의 AWxWorldSettings가 LSP 상태로 운반하고 빙의 완료 후 적용한다.
+ * 플레이어 스폰 위치는 엔진 기본 경로(ChoosePlayerStart)에 전적으로 맡긴다.
  * 새 플레이어가 무엇을 들고 시작하는지는 Experience 가 정한다 — 본 클래스는 지급 시점만 관장해 그 컨트롤러의 인벤토리에 넣는다(PlayerController 는 인벤토리를 알지 않는다).
- * 적/오브젝트 등 savable 액터의 속성 복원은 Level Streaming Persistence가 담당한다.
  */
 UCLASS()
 class AWxGameMode : public AGameModeBase

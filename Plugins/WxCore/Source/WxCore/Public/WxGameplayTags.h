@@ -31,9 +31,6 @@ namespace WxGameplayTags
 	/** 궁극기가 WxEffect_SuperArmor로 활성 구간만큼 부여한다. 대미지는 그대로 들어오고 경직(HitReact)만 막힌다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_SuperArmor);
 
-	/** 세션을 넘어 남겨야 하는 GameplayEffect가 Asset Tag로 명시하는 LSP opt-in 표식. */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Savable);
-
 	// ── Movement ──────────────────────────────────────────────────────────────
 	
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_InAir);

@@ -25,7 +25,6 @@ class WXGAME_API AWxPlayerCharacter : public AWxCharacterBase
 
 public:
 	AWxPlayerCharacter(const FObjectInitializer& ObjectInitializer);
-	virtual void PossessedBy(AController* NewController) override;
 	virtual void NotifyControllerChanged() override;
 	virtual void OnRep_PlayerState() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;

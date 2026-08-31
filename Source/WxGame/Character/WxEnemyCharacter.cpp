@@ -12,7 +12,6 @@
 #include "Targeting/WxLockOnPointComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "WxGameplayTags.h"
-#include "WxPersistableReferencedActorComponent.h"
 
 AWxEnemyCharacter::AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -33,8 +32,6 @@ AWxEnemyCharacter::AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer
 
 	LockOnPoint = CreateDefaultSubobject<UWxLockOnPointComponent>(TEXT("LockOnPoint"));
 	LockOnPoint->SetupAttachment(GetMesh(), TEXT("pelvis"));
-
-	PersistableReference = CreateDefaultSubobject<UWxPersistableReferencedActorComponent>(TEXT("PersistableReference"));
 }
 
 void AWxEnemyCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -51,53 +48,6 @@ void AWxEnemyCharacter::BeginPlay()
 	NameplateComponent->InitializeViewModels(AbilitySystemComponent, CharacterName, Portrait);
 
 	RefreshNameplateVisibility();
-}
-
-void AWxEnemyCharacter::PostInitializeComponents()
-{
-	if (!OwningSpawner.IsValid() && OwningSpawnerReference.IsSet())
-	{
-		if (AWxSpawner* RestoredSpawner = Cast<AWxSpawner>(OwningSpawnerReference.Resolve(GetWorld())))
-		{
-			OnSpawnedBy(RestoredSpawner);
-		}
-	}
-
-	Super::PostInitializeComponents();
-}
-
-bool AWxEnemyCharacter::ShouldPersistRuntimeActor() const
-{
-	if (!IsAlive() || AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
-	{
-		return false;
-	}
-
-	const AWxSpawner* Spawner = OwningSpawner.Get();
-	return !Spawner || !Spawner->IsKilled();
-}
-
-void AWxEnemyCharacter::OnSavePreparing()
-{
-	Super::OnSavePreparing();
-
-	OwningSpawnerReference.Capture(OwningSpawner.Get());
-}
-
-void AWxEnemyCharacter::OnSaveRestored(const TArray<FName>& RestoredPropertyNames)
-{
-	Super::OnSaveRestored(RestoredPropertyNames);
-
-	if (!RestoredPropertyNames.Contains(GET_MEMBER_NAME_CHECKED(AWxEnemyCharacter, OwningSpawnerReference))
-		|| OwningSpawner.IsValid())
-	{
-		return;
-	}
-
-	if (AWxSpawner* RestoredSpawner = Cast<AWxSpawner>(OwningSpawnerReference.Resolve(GetWorld())))
-	{
-		OnSpawnedBy(RestoredSpawner);
-	}
 }
 
 bool AWxEnemyCharacter::HasAITarget() const

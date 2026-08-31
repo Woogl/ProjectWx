@@ -31,7 +31,6 @@ public class WxGame : ModuleRules
 			"WxDialogue",
 			"WxInventory",
 			"WxQuest",
-			"WxSave",
 			"WxUI",
 			"WxWorld",
 		});
