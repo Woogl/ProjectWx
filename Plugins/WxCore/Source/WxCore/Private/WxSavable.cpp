@@ -2,6 +2,19 @@
 
 #include "WxSavable.h"
 
-void IWxSavable::OnSaveRestored()
+bool IWxSavable::ShouldPersistRuntimeActor() const
+{
+	return true;
+}
+
+void IWxSavable::OnSavePreparing()
+{
+}
+
+void IWxSavable::OnSaveRestored(const TArray<FName>& RestoredPropertyNames)
+{
+}
+
+void IWxSavable::OnPostRestoreLevel()
 {
 }

@@ -9,12 +9,13 @@
 #include "WxSaveWorldSubsystem.generated.h"
 
 class AInstancedActorsManager;
+struct FActorsInitializedParams;
 class ULevel;
 class ULevelStreaming;
 class UWxSaveGame;
 class UWxSaveGameSubsystem;
 
-/** LSP, Instanced Actors, Mass와 플레이어 상태의 월드 단위 저장·복원을 조율한다. */
+/** LSP, Instanced Actors, Mass와 엔진 PlayerStart 재개 지점의 월드 단위 저장·복원을 조율한다. */
 UCLASS()
 class WXSAVE_API UWxSaveWorldSubsystem : public UWorldSubsystem
 {
@@ -30,8 +31,6 @@ public:
 
 	void RequestSaveFlush(FOnSaveFlushComplete::FDelegate OnComplete, const FTransform* ResumeTransform = nullptr);
 
-	static void CapturePlayerStats(AActor* PlayerActor, TMap<FName, float>& OutStats);
-	static void ApplyPlayerStats(AActor* PlayerActor, const TMap<FName, float>& InStats);
 	static bool IsTransitionWorld(const UWorld* World);
 
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
@@ -44,13 +43,13 @@ private:
 	UWxSaveGame* GetActiveSaveGame() const;
 
 	void FlushMapTravelData(const FTransform* ResumeTransform);
-	void FlushPlayerStats();
 	void FlushLevelStreamingPersistenceData();
 	void FlushInstancedActorManagers();
 	void FlushInstancedActorManagerDataForLevel(UWorld* World, const ULevelStreaming* LevelStreaming, ULevel* Level);
 	TArray<ULevel*> GetVisibleLevels() const;
 
 	void HandleLevelBeginMakingVisible(UWorld* World, const ULevelStreaming* LevelStreaming, ULevel* Level);
+	void HandleWorldInitializedActors(const FActorsInitializedParams& Params);
 	void HandleWorldPreActorTick(UWorld* World, ELevelTick TickType, float DeltaSeconds);
 	void HandleWorldBeginTearDown(UWorld* World);
 	void RestoreManager(AInstancedActorsManager* Manager);
@@ -63,12 +62,15 @@ private:
 
 	FDelegateHandle LevelMakingVisibleHandle;
 	FDelegateHandle LevelMakingInvisibleHandle;
+	FDelegateHandle WorldInitializedActorsHandle;
 	FDelegateHandle PreActorTickHandle;
 	FDelegateHandle WorldBeginTearDownHandle;
 	FDelegateHandle SimulationStartedHandle;
 
 	bool bPendingMassRestore = false;
 	bool bSaveFlushInProgress = false;
+	bool bHasPendingPlayerStart = false;
+	FTransform PendingPlayerStartTransform = FTransform::Identity;
 
 	FOnSaveFlushComplete OnSaveFlushBroadcast;
 

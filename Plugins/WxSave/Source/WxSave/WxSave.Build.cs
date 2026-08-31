@@ -13,12 +13,9 @@ public class WxSave : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
-			"GameplayAbilities",
-			"GameplayTags",
 			"MassCore",
 			"MassEntity",
 			"MassSpawner",
-			"ModularGameplay",
 			"StateTreeModule",
 			"WxCore",
 		});

@@ -4,11 +4,13 @@
 
 #include "Components/ActorComponent.h"
 #include "Components/SceneComponent.h"
+#include "Engine/Level.h"
 #include "GameFramework/Actor.h"
 #include "LevelStreamingPersistenceModule.h"
 #include "MassActorSubsystem.h"
 #include "Modules/ModuleManager.h"
 #include "UObject/UnrealType.h"
+#include "WxPersistableActorReferenceManager.h"
 #include "WxSavable.h"
 
 DEFINE_LOG_CATEGORY(LogWxSave);
@@ -24,12 +26,15 @@ void FWxSaveModule::StartupModule()
 	ILevelStreamingPersistenceModule& PersistenceModule = ILevelStreamingPersistenceModule::Get();
 	PersistenceModule.OnShouldPersistProperty(USceneComponent::StaticClass()).BindStatic(
 		&FWxSaveModule::HandleShouldPersistSceneComponentProperty);
+	PersistenceModule.OnPrePersistObject(UObject::StaticClass()).BindStatic(
+		&FWxSaveModule::HandlePrePersistObject);
 	PersistenceModule.OnPostRestoreObject(UObject::StaticClass()).BindStatic(
 		&FWxSaveModule::HandlePostRestoreObject);
 	PersistenceModule.OnPostRestoreObject(USceneComponent::StaticClass()).BindStatic(
 		&FWxSaveModule::HandlePostRestoreSceneComponent);
 	PersistenceModule.OnShouldPersistRuntimeActor(AActor::StaticClass()).BindStatic(
 		&FWxSaveModule::HandleShouldPersistRuntimeActor);
+	PersistenceModule.PostRestoreLevel.BindStatic(&FWxSaveModule::HandlePostRestoreLevel);
 }
 
 void FWxSaveModule::ShutdownModule()
@@ -42,9 +47,32 @@ void FWxSaveModule::ShutdownModule()
 
 	ILevelStreamingPersistenceModule& PersistenceModule = ILevelStreamingPersistenceModule::Get();
 	PersistenceModule.OnShouldPersistProperty(USceneComponent::StaticClass()).Unbind();
+	PersistenceModule.OnPrePersistObject(UObject::StaticClass()).Unbind();
 	PersistenceModule.OnPostRestoreObject(UObject::StaticClass()).Unbind();
 	PersistenceModule.OnPostRestoreObject(USceneComponent::StaticClass()).Unbind();
 	PersistenceModule.OnShouldPersistRuntimeActor(AActor::StaticClass()).Unbind();
+	PersistenceModule.PostRestoreLevel.Unbind();
+}
+
+void FWxSaveModule::HandlePrePersistObject(const UObject* Object)
+{
+	if (!Object)
+	{
+		return;
+	}
+
+	UObject* MutableObject = const_cast<UObject*>(Object);
+	if (IWxSavable* Savable = Cast<IWxSavable>(MutableObject))
+	{
+		Savable->OnSavePreparing();
+		return;
+	}
+
+	const UActorComponent* Component = Cast<UActorComponent>(Object);
+	if (IWxSavable* OwnerSavable = Component ? Cast<IWxSavable>(Component->GetOwner()) : nullptr)
+	{
+		OwnerSavable->OnSavePreparing();
+	}
 }
 
 bool FWxSaveModule::HandleShouldPersistSceneComponentProperty(
@@ -87,16 +115,59 @@ void FWxSaveModule::HandlePostRestoreObject(
 		return;
 	}
 
-	AActor* SavableActor = const_cast<AActor*>(Cast<AActor>(Object));
-	if (!SavableActor)
+	UObject* MutableObject = const_cast<UObject*>(Object);
+	IWxSavable* Savable = Cast<IWxSavable>(MutableObject);
+	if (!Savable)
 	{
 		const UActorComponent* Component = Cast<UActorComponent>(Object);
-		SavableActor = Component ? Component->GetOwner() : nullptr;
+		Savable = Component ? Cast<IWxSavable>(Component->GetOwner()) : nullptr;
 	}
 
-	if (IWxSavable* Savable = Cast<IWxSavable>(SavableActor))
+	if (Savable)
 	{
-		Savable->OnSaveRestored();
+		TArray<FName> RestoredPropertyNames;
+		RestoredPropertyNames.Reserve(RestoredProperties.Num());
+		for (const FProperty* Property : RestoredProperties)
+		{
+			if (Property)
+			{
+				RestoredPropertyNames.Add(Property->GetFName());
+			}
+		}
+		Savable->OnSaveRestored(RestoredPropertyNames);
+	}
+}
+
+void FWxSaveModule::HandlePostRestoreLevel(const ULevel* Level)
+{
+	UWorld* World = Level ? Level->GetWorld() : nullptr;
+	if (UWxPersistableActorReferenceManager* Manager = World
+		? World->GetSubsystem<UWxPersistableActorReferenceManager>()
+		: nullptr)
+	{
+		Manager->OnLevelPostRestore(Level);
+	}
+
+	if (!Level)
+	{
+		return;
+	}
+
+	TArray<TWeakObjectPtr<AActor>> SavableActors;
+	for (AActor* Actor : Level->Actors)
+	{
+		if (IsValid(Actor) && Cast<IWxSavable>(Actor))
+		{
+			SavableActors.Add(Actor);
+		}
+	}
+
+	for (const TWeakObjectPtr<AActor>& Actor : SavableActors)
+	{
+		if (IWxSavable* Savable = Cast<IWxSavable>(Actor.Get()))
+		{
+			Savable->OnPostRestoreLevel();
+		}
 	}
 }
 
@@ -125,6 +196,11 @@ void FWxSaveModule::HandlePostRestoreSceneComponent(
 bool FWxSaveModule::HandleShouldPersistRuntimeActor(const AActor* Actor)
 {
 	if (!Actor)
+	{
+		return false;
+	}
+	if (const IWxSavable* Savable = Cast<IWxSavable>(Actor);
+		Savable && !Savable->ShouldPersistRuntimeActor())
 	{
 		return false;
 	}

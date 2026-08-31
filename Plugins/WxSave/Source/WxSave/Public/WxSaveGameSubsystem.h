@@ -8,7 +8,6 @@
 #include "WxSaveGame.h"
 #include "WxSaveGameSubsystem.generated.h"
 
-class AActor;
 class UWorld;
 
 namespace WxSave
@@ -41,8 +40,6 @@ public:
 	void SetInstancedActorManagerDataForLevel(FName MapKey, FName LevelKey, FName ManagerKey, TArray<uint8> Data);
 	void SetMassEntityDataForMap(FName MapKey, TArray<FWxMassEntityConfigGroupSnapshot> Snapshots);
 
-	bool TryGetPlayerTransform(const UWorld* World, FTransform& OutTransform) const;
-	void ApplySavedPlayerStats(AActor* PlayerActor) const;
 	void ReportTravelFromSaveFileComplete(UWorld* World);
 
 	static FName GetStableMapPackageName(const UWorld* World);

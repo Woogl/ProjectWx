@@ -113,12 +113,6 @@ public:
 	UPROPERTY()
 	FWxSaveTravelData TravelData;
 
-	UPROPERTY()
-	bool bHasPlayerStats = false;
-
-	UPROPERTY()
-	TMap<FName, float> PlayerStats;
-
 	/** 안정화된 맵 패키지 이름별 월드 영속 상태. */
 	UPROPERTY()
 	TMap<FName, FWxWorldPersistenceEntry> SavedStatePerMap;

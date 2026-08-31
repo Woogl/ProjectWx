@@ -256,33 +256,6 @@ void UWxSaveGameSubsystem::SetMassEntityDataForMap(
 	}
 }
 
-bool UWxSaveGameSubsystem::TryGetPlayerTransform(const UWorld* World, FTransform& OutTransform) const
-{
-	if (!SaveGame || !World || !SaveGame->TravelData.bHasPawnTransform)
-	{
-		return false;
-	}
-
-	const FName SavedMap = SaveGame->TravelData.Map.IsNull()
-		? NAME_None
-		: SaveGame->TravelData.Map.GetAssetPath().GetPackageName();
-	if (SavedMap != GetStableMapPackageName(World))
-	{
-		return false;
-	}
-
-	OutTransform = SaveGame->TravelData.PawnTransform;
-	return true;
-}
-
-void UWxSaveGameSubsystem::ApplySavedPlayerStats(AActor* PlayerActor) const
-{
-	if (SaveGame && SaveGame->bHasPlayerStats && PlayerActor)
-	{
-		UWxSaveWorldSubsystem::ApplyPlayerStats(PlayerActor, SaveGame->PlayerStats);
-	}
-}
-
 void UWxSaveGameSubsystem::ReportTravelFromSaveFileComplete(UWorld* World)
 {
 	const FName ExpectedMap = SaveGame && !SaveGame->TravelData.Map.IsNull()
@@ -374,5 +347,5 @@ void UWxSaveGameSubsystem::FinishSaveInProgress()
 
 int32 UWxSaveGameSubsystem::GetCurrentSaveFormatVersion()
 {
-	return 3;
+	return 5;
 }

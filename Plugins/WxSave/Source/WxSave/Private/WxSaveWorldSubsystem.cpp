@@ -2,12 +2,11 @@
 
 #include "WxSaveWorldSubsystem.h"
 
-#include "AbilitySystemComponent.h"
-#include "AbilitySystemGlobals.h"
-#include "AttributeSet.h"
 #include "Engine/GameInstance.h"
 #include "Engine/Level.h"
+#include "Engine/PlayerStartPIE.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "GameMapsSettings.h"
@@ -77,6 +76,28 @@ void UWxSaveWorldSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	}
 
 	const UWxSaveGame* SaveGame = GetActiveSaveGame();
+	UWxSaveGameSubsystem* GameSubsystem = GetGameSubsystem();
+	const UWxSaveSettings* Settings = GetDefault<UWxSaveSettings>();
+	if (GameSubsystem
+		&& GameSubsystem->IsTravelingFromSaveFile()
+		&& Settings->bRestorePawnTransform
+		&& SaveGame
+		&& SaveGame->TravelData.bHasPawnTransform
+		&& !IsTransitionWorld(GetWorld()))
+	{
+		const FName SavedMap = SaveGame->TravelData.Map.IsNull()
+			? NAME_None
+			: SaveGame->TravelData.Map.GetAssetPath().GetPackageName();
+		if (SavedMap.IsNone() || SavedMap == UWxSaveGameSubsystem::GetStableMapPackageName(GetWorld()))
+		{
+			PendingPlayerStartTransform = SaveGame->TravelData.PawnTransform;
+			bHasPendingPlayerStart = true;
+			WorldInitializedActorsHandle = FWorldDelegates::OnWorldInitializedActors.AddUObject(
+				this,
+				&UWxSaveWorldSubsystem::HandleWorldInitializedActors);
+		}
+	}
+
 	if (!SaveGame)
 	{
 		return;
@@ -104,6 +125,7 @@ void UWxSaveWorldSubsystem::Deinitialize()
 {
 	FLevelStreamingDelegates::OnLevelBeginMakingVisible.Remove(LevelMakingVisibleHandle);
 	FLevelStreamingDelegates::OnLevelBeginMakingInvisible.Remove(LevelMakingInvisibleHandle);
+	FWorldDelegates::OnWorldInitializedActors.Remove(WorldInitializedActorsHandle);
 	FWorldDelegates::OnWorldPreActorTick.Remove(PreActorTickHandle);
 	FWorldDelegates::OnWorldBeginTearDown.Remove(WorldBeginTearDownHandle);
 
@@ -187,7 +209,6 @@ void UWxSaveWorldSubsystem::RequestSaveFlush(
 	if (World && !World->bIsTearingDown)
 	{
 		FlushMapTravelData(ResumeTransform);
-		FlushPlayerStats();
 	}
 	FlushLevelStreamingPersistenceData();
 
@@ -255,21 +276,6 @@ void UWxSaveWorldSubsystem::FlushMapTravelData(const FTransform* ResumeTransform
 	GameSubsystem->SetTravelData(MoveTemp(TravelData));
 }
 
-void UWxSaveWorldSubsystem::FlushPlayerStats()
-{
-	UWxSaveGame* SaveGame = GetActiveSaveGame();
-	const APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-	APawn* Pawn = PlayerController ? PlayerController->GetPawn() : nullptr;
-	if (!SaveGame || !Pawn)
-	{
-		return;
-	}
-
-	SaveGame->PlayerStats.Reset();
-	CapturePlayerStats(Pawn, SaveGame->PlayerStats);
-	SaveGame->bHasPlayerStats = !SaveGame->PlayerStats.IsEmpty();
-}
-
 void UWxSaveWorldSubsystem::FlushLevelStreamingPersistenceData()
 {
 	UWxSaveGameSubsystem* GameSubsystem = GetGameSubsystem();
@@ -290,6 +296,38 @@ void UWxSaveWorldSubsystem::FlushLevelStreamingPersistenceData()
 	else
 	{
 		UE_LOG(LogWxSave, Warning, TEXT("LSP 직렬화 실패: 기존 맵 데이터 유지"));
+	}
+}
+
+void UWxSaveWorldSubsystem::HandleWorldInitializedActors(const FActorsInitializedParams& Params)
+{
+	if (Params.World != GetWorld() || !bHasPendingPlayerStart)
+	{
+		return;
+	}
+
+	FWorldDelegates::OnWorldInitializedActors.Remove(WorldInitializedActorsHandle);
+	WorldInitializedActorsHandle.Reset();
+	bHasPendingPlayerStart = false;
+
+	for (TActorIterator<APlayerStartPIE> It(GetWorld()); It; ++It)
+	{
+		It->Destroy();
+	}
+
+	const FVector SpawnLocation = PendingPlayerStartTransform.GetLocation();
+	const FRotator SavedRotation = PendingPlayerStartTransform.GetRotation().Rotator();
+	const FRotator SpawnRotation(0.f, SavedRotation.Yaw, 0.f);
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.ObjectFlags |= RF_Transient;
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	if (!GetWorld()->SpawnActor<APlayerStartPIE>(
+		APlayerStartPIE::StaticClass(),
+		SpawnLocation,
+		SpawnRotation,
+		SpawnParameters))
+	{
+		UE_LOG(LogWxSave, Warning, TEXT("저장 재개용 PlayerStartPIE 생성 실패 — 엔진 기본 시작 지점을 사용한다."));
 	}
 }
 
@@ -565,73 +603,4 @@ void UWxSaveWorldSubsystem::HandleMassRestoreComplete()
 		*RestoringMassMapKey.ToString());
 	RestoringMassSnapshotCount = 0;
 	RestoringMassMapKey = NAME_None;
-}
-
-void UWxSaveWorldSubsystem::CapturePlayerStats(AActor* PlayerActor, TMap<FName, float>& OutStats)
-{
-	const UAbilitySystemComponent* AbilitySystem =
-		UAbilitySystemGlobals::Get().GetAbilitySystemComponentFromActor(PlayerActor);
-	if (!AbilitySystem)
-	{
-		return;
-	}
-
-	for (const UAttributeSet* Set : AbilitySystem->GetSpawnedAttributes())
-	{
-		if (!Set)
-		{
-			continue;
-		}
-
-		for (TFieldIterator<FStructProperty> It(Set->GetClass()); It; ++It)
-		{
-			if (It->Struct == FGameplayAttributeData::StaticStruct() && It->HasAnyPropertyFlags(CPF_Net))
-			{
-				const FGameplayAttribute Attribute(*It);
-				OutStats.Add(It->GetFName(), AbilitySystem->GetNumericAttributeBase(Attribute));
-			}
-		}
-	}
-}
-
-void UWxSaveWorldSubsystem::ApplyPlayerStats(AActor* PlayerActor, const TMap<FName, float>& InStats)
-{
-	UAbilitySystemComponent* AbilitySystem =
-		UAbilitySystemGlobals::Get().GetAbilitySystemComponentFromActor(PlayerActor);
-	if (!AbilitySystem)
-	{
-		return;
-	}
-
-	for (int32 Pass = 0; Pass < 2; ++Pass)
-	{
-		for (const UAttributeSet* Set : AbilitySystem->GetSpawnedAttributes())
-		{
-			if (!Set)
-			{
-				continue;
-			}
-
-			for (TFieldIterator<FStructProperty> It(Set->GetClass()); It; ++It)
-			{
-				if (It->Struct != FGameplayAttributeData::StaticStruct())
-				{
-					continue;
-				}
-
-				const float* SavedValue = InStats.Find(It->GetFName());
-				if (!SavedValue)
-				{
-					continue;
-				}
-
-				const FGameplayAttribute Attribute(*It);
-				if (Pass == 1 && AbilitySystem->GetNumericAttributeBase(Attribute) == *SavedValue)
-				{
-					continue;
-				}
-				AbilitySystem->SetNumericAttributeBase(Attribute, *SavedValue);
-			}
-		}
-	}
 }
