@@ -19,11 +19,11 @@
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxInventoryManagerComponent` | 인벤토리 중심 허브. PlayerController에 부착되어 Add/Consume/Use/Refill과 복제·통지를 관장 | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryManagerComponent.h` |
+| `UWxInventoryComponent` | 인벤토리 중심 허브. PlayerController에 부착되어 Add/Consume/Use/Refill과 복제·통지를 관장 | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryComponent.h` |
 | `UWxItemDefinition` | 아이템 정적 정의(`UPrimaryDataAsset`). Category + Fragments 조합으로 행동 구성 | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemDefinition.h` |
 | `UWxItemFragment` | 기능 축 컴포지션 베이스. 하위: Equippable/Usable/Charges/Stackable/Pickup/Grade | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemFragment.h` |
 | `UWxItemInstance` | 슬롯의 런타임 가변·복제 단위. 충전량 보유, 슬롯 델리게이트의 안정 식별자·GE SourceObject | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemInstance.h` |
-| `FWxInventoryList` | 매니저 내부의 FastArraySerializer. 실제 엔트리 저장·머지·차감·복제 델타 | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryManagerComponent.h` |
+| `FWxInventoryList` | 인벤토리 컴포넌트 내부의 FastArraySerializer. 실제 엔트리 저장·머지·차감·복제 델타 | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryComponent.h` |
 | `UWxRewardLibrary` | 보상 지급의 서버 권위 진입점(무상태 1회성). 픽업 스폰 또는 직접 지급 분기 | `Plugins/WxInventory/Source/WxInventory/Public/WxRewardLibrary.h` |
 | `AWxItemPickup` | 지급용 픽업 액터(`IWxInteractable`). 상호작용 시 인벤토리에 지급 후 파괴 | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemPickup.h` |
 | `UWxEquipmentComponent` | 폰 부착 장비 컴포넌트. 장착 ItemDef 보관·복제, EquipEffect 적용, 외형 방송 | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxEquipmentComponent.h` |
@@ -33,10 +33,10 @@
 - **소비 아이템**: `Usable` Fragment의 `Effect`(GE)를 `UseItemByDef`가 적용+스택 차감. `Charges` Fragment를 겹치면 스택 대신 인스턴스 충전량으로 사용 가능 여부가 결정(에스트병 방식), `RefillItemCharges`로 회복.
 - **데이터 주도 보상**: `FWxRewardTableRow`(DataTable Row, 최대 5개 항목) → `UWxRewardLibrary::GrantReward` 또는 StateTree `FWxStateTreeTask_GiveRewards`. `Item`은 SoftPtr라 지급 시점에 동기 로드.
 - **리플리케이션/권한**: Add/Consume/Use/Equip 등 변경은 서버 권위 전용. `FWxInventoryList`(FastArray)로 클라 동기화, `UWxItemInstance`는 개별 복제 서브오브젝트. 관찰자용 통지는 `On*Changed` 델리게이트 + 클래스 차원 `OnAnyInventoryReady`.
-- **미배선 주의**: 장비 경로(`EquipItemByDef`→`UWxEquipmentComponent::EquipItem`)는 배선만 있고 호출부가 없어 현재 항상 비활성. 여는 방법은 매니저·장비 컴포넌트 헤더 주석 참조.
+- **미배선 주의**: 장비 경로(`EquipItemByDef`→`UWxEquipmentComponent::EquipItem`)는 배선만 있고 호출부가 없어 현재 항상 비활성. 여는 방법은 인벤토리·장비 컴포넌트 헤더 주석 참조.
 
 ## 여기서부터 읽어라
-1. `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryManagerComponent.h` — 모듈의 허브. 인벤토리 API·통지 델리게이트·내부 `FWxInventoryList`가 한 파일에 모여 전체 흐름의 목차 역할.
+1. `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryComponent.h` — 모듈의 허브. 인벤토리 API·통지 델리게이트·내부 `FWxInventoryList`가 한 파일에 모여 전체 흐름의 목차 역할.
 2. `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemFragment.h` — 아이템이 "무엇을 할 수 있나"를 정하는 Fragment 6종. 정의/인스턴스/사용 흐름이 여기서 갈린다.
 3. `Plugins/WxInventory/Source/WxInventory/Private/WxRewardLibrary.cpp` — 보상 → 픽업 스폰/직접 지급 분기의 실제 구현. 아이템이 세상에 들어오는 경로.
 

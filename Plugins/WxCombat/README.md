@@ -24,11 +24,11 @@
 | `UWxCombatAttributeSet` | 전투 스탯 전부와 대미지/사망 후처리 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h` |
 | `UWxCombatLibrary` | 대미지·이펙트 적용의 공용 진입 BFL(`ApplyDamage`, `CheckDamage`) | `Plugins/WxCombat/Source/WxCombat/Public/WxCombatLibrary.h` |
 | `UWxExecCalc_Damage` | 최종 대미지 산출(ATK·DEF·크리). 결과를 EffectContext에 실음 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_Damage.h` |
-| `UWxLockOnManagerComponent` | 서버 권위·클라 예측으로 복제되는 락온 대상(SceneComponent 단위) | `Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxLockOnManagerComponent.h` |
+| `UWxLockOnComponent` | 서버 권위·클라 예측으로 복제되는 락온 대상(SceneComponent 단위) | `Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxLockOnComponent.h` |
 | `AWxWeaponBase` | 무기 액터. ShapeComponent 히트박스 스윕/오버랩으로 히트 판정 | `Plugins/WxCombat/Source/WxCombat/Public/Weapon/WxWeaponBase.h` |
 
 ## 확장 포인트 / 규약
-- **새 어빌리티**: `UWxAbilityBase` 파생 → `ActivationPolicy`(OnTriggered/OnGiven)·`ActivationGroup`(Independent / Exclusive_Blocking·ComboWindow·Recovery / Reaction)·`ActivationInputAction` 지정 → `UWxAbilitySet::GrantedAbilities`에 등록. 입력 라우팅 키는 각 CDO의 `ActivationInputAction`이 쥔다.
+- **새 어빌리티**: `UWxAbilityBase` 파생 → `ActivationPolicy`(OnTriggered/OnGiven)·`ActivationGroup`(Independent / Exclusive / Override)·`ActivationInputAction` 지정 → `UWxAbilitySet::GrantedAbilities`에 등록. 입력 라우팅 키는 각 CDO의 `ActivationInputAction`이 쥔다.
 - **데이터 주도 설정**: `FWxAbilityTableRow`(쿨다운·코스트·아이콘), `FWxDamageTableRow`(ATK 계수·HitReact·가드/패리 가능 여부·추가 GE), `FWxCombatAttributeInitTableRow`(어트리뷰트 초기값). 어빌리티/AbilitySet은 `FDataTableRowHandle`로 참조.
 - **대미지 컨텍스트**: `FWxCombatEffectContext`(크리 판정 등 어트리뷰트로 못 싣는 값)를 쓰려면 `UWxAbilitySystemGlobals`를 `DefaultGame.ini`의 `AbilitySystemGlobalsClassName`에 등록해야 한다(누락 시 `UWxExecCalc_Damage`가 ensure로 알림).
 - **타게팅 필터**: `Targeting/WxTargetingFilterTask_*`(Team·LineTrace·ScreenBounds·InputDirection·GameplayTag) — TargetingSystem 플러그인 태스크를 파생해 추가.

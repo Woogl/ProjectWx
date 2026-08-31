@@ -1,13 +1,13 @@
 # WxCombat — 코드 리뷰
 
-> 권위·예측 경계가 주석과 코드 양쪽에 꼼꼼히 드러나 있고 어빌리티/대미지 파이프라인의 순서 설계도 견고하다. 다만 "GE를 클래스로 걷어내는" 공유 소유권 지점과 락온 권위, 그리고 대미지 판정의 결정성에는 실패 경로가 남아 있다. 이번 리뷰는 README·Build.cs·uplugin으로 경계를 잡은 뒤 ASC·어빌리티 베이스와 파생 전체·AttributeSet·ExecCalc·CombatLibrary·무기/투사체·락온·소환·타임딜레이션·AnimNotify·AbilityTask를 깊게 보고, Public 헤더 전체와 Effect/Cue/Targeting 전 파일을 훑었다.
+> 권위·예측 경계가 주석과 코드 양쪽에 꼼꼼히 드러나 있고 어빌리티/대미지 파이프라인의 순서 설계도 견고하다. 다만 "GE를 클래스로 걷어내는" 공유 소유권 지점과 락온 권위, 그리고 대미지 판정의 결정성에는 실패 경로가 남아 있다. 이번 리뷰는 README·Build.cs·uplugin으로 경계를 잡은 뒤 ASC·어빌리티 베이스와 파생 전체·AttributeSet·ExecCalc·CombatLibrary·무기/투사체·락온·타임딜레이션·AnimNotify·AbilityTask를 깊게 보고, Public 헤더 전체와 Effect/Cue/Targeting 전 파일을 훑었다.
 
 ## 요약
 | 심각도 | 개수 |
 | --- | --- |
 | 🔴 심각 | 2 |
 | 🟡 개선 | 2 |
-| 🟢 사소 | 3 |
+| 🟢 사소 | 2 |
 
 ## 결과
 
@@ -19,7 +19,7 @@
 - **확신도**: 높음
 
 ### 2. 🔴 서버 락온 RPC가 클라이언트가 고른 대상을 충분히 검증하지 않고, 거절해도 예측을 되돌리지 않는다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxLockOnManagerComponent.cpp:40`
+- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxLockOnComponent.cpp:40`
 - **범주**: 설계/구조
 - **문제**: `ServerSetLockOnTarget_Implementation`은 전달된 컴포넌트가 `UWxLockOnPointComponent`이고 `CanBeLockedOn()`(사망 태그만 검사)인지만 본다. 클라이언트가 후보 선별에 쓴 `TargetingPreset`의 거리·팀·시야·화면 필터를 서버가 재검증하지 않으므로, 소유 클라가 임의의 복제된 락온 지점을 보내면 정상 후보 밖의 대상도 서버 `LockOnTarget`이 된다. 이 값은 서버 투사체 호밍(`WxProjectileBase.cpp:58`)과 모션 워핑 스냅(`WxRootMotionModifier_SnapToTarget.cpp:31`)이 그대로 소비한다. 반대 방향도 비어 있다 — 서버가 요청을 무시해도(50행 조건 불충족) 클라이언트가 32행에서 이미 로컬 적용한 값을 되돌리지 않고, 서버 `LockOnTarget`이 변하지 않았으면 RepNotify도 오지 않아 로컬 예측이 그대로 굳는다.
 - **제안**: 서버에서 대상 소유 액터에 대해 적대 관계·최대 거리(가능하면 같은 Preset)를 다시 검사한다. 거절 시에는 권위값을 강제로 되돌리는 경로(예: 클라 전용 정정 RPC)를 두어 로컬 예측을 즉시 롤백한다.
@@ -46,14 +46,7 @@
 - **제안**: `bExecutePeriodicEffectOnApplication`을 끄거나, 즉시 실행을 유지한다면 실제 실행 횟수(`Duration / Period + 1`)를 기준으로 틱당 차감량을 계산한다.
 - **확신도**: 높음
 
-### 6. 🟢 이미 사망한 소환수를 등록 취소하고도 성공을 반환한다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/Summon/WxSummonComponent.cpp:40`
-- **범주**: 버그/정확성
-- **문제**: 등록 직후 대상에 `Ability.Death`가 있으면 42행에서 목록·델리게이트를 도로 걷어내지만 46행은 그대로 `true`를 반환한다. 호출자 `UWxAbilityBase::SpawnSummon`(`WxAbilityBase.cpp:207`)은 이 반환값으로만 성공을 판단해 액터를 파괴하지 않으므로, 컴포넌트가 추적하지 않는 소환수가 월드에 남아 소유자 종료 때도 정리되지 않는다.
-- **제안**: 사망 태그가 이미 있으면 등록 전에 `false`를 반환하거나, 현재 분기에서 제거 후 `false`를 반환해 호출자가 스폰 액터를 파괴하게 한다.
-- **확신도**: 높음
-
-### 7. 🟢 콤보 진행 로직이 세 어빌리티에 그대로 복사되어 있다
+### 6. 🟢 콤보 진행 로직이 세 어빌리티에 그대로 복사되어 있다
 - **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Attack.cpp:29`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Skill.cpp:31`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Pattern.cpp:29`
 - **범주**: 중복/복잡도
 - **문제**: `ComboMontages`·`ComboIndex` 선언(`WxAbility_Attack.h:34/38`, `WxAbility_Skill.h:37/41`, `WxAbility_Pattern.h:31/34`)과 "다음 단 계산 → 몽타주 재생 → 실패 시 종료" 블록, `EndAbility`의 `bWasCancelled` 리셋이 세 클래스에 문자 그대로 중복된다. `WxAbility_Attack`과 `WxAbility_Skill`은 태그·카테고리를 빼면 구현이 동일하다. 콤보 규칙을 바꿀 때 세 곳을 같이 고쳐야 하고, 한 곳을 놓치면 종류별로 동작이 갈린다.
@@ -61,7 +54,7 @@
 - **확신도**: 중간(의도된 설계일 수 있음 — 파생마다 독립적으로 진화시키려는 선택일 수 있다)
 
 ## 검토 범위
-- **깊게 본 파일**: `Plugins/WxCombat/README.md`, `Plugins/WxCombat/WxCombat.uplugin`, `Plugins/WxCombat/Source/WxCombat/WxCombat.Build.cs`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbilityBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Attribute/WxCombatAttributeSet.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Damage.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Damage/WxDamageTableRow.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Damage/WxCombatEffectContext.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxWeaponBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxProjectileBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxLockOnManagerComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxRootMotionModifier_SnapToTarget.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Dodge.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Guard.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_HitReact.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Groggy.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Finisher.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_LockOn.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_LockOnCamera.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_CameraMove.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Summon/WxSummonComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Time/WxTimeDilationComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySet.cpp`
+- **깊게 본 파일**: `Plugins/WxCombat/README.md`, `Plugins/WxCombat/WxCombat.uplugin`, `Plugins/WxCombat/Source/WxCombat/WxCombat.Build.cs`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbilityBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Attribute/WxCombatAttributeSet.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Damage.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Damage/WxDamageTableRow.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Damage/WxCombatEffectContext.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxWeaponBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxProjectileBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxLockOnComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxRootMotionModifier_SnapToTarget.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Dodge.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Guard.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_HitReact.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Groggy.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Finisher.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_LockOn.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_LockOnCamera.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_CameraMove.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Time/WxTimeDilationComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySet.cpp`
 - **훑은 파일**: `Plugins/WxCombat/Source/WxCombat/Public/` 전체 헤더, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/` 나머지 파생(Attack·Skill·Pattern·Passive·Sprint·Death·GuardReact·BeingFinished·Ultimate), `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/` 전체, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Cue/` 전체, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/` 전체, `Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/` 전체, `Plugins/WxCombat/Source/WxCombat/Private/Targeting/` 전체
 - **규칙 점검 결과**: `Wx` prefix, 델리게이트 콜백의 `Handle` prefix, override의 `Super::` 호출, 소스 첫 줄 저작권(일부 파일은 UTF-8 BOM이 앞서지만 문구는 존재), 인라인 함수 정의 없음, 람다 없음, `BlueprintCallable`은 `UWxCombatLibrary::ApplyDamage` 한 건(Blueprint Function Library라 허용), `WxCombat.Build.cs`/`uplugin`의 Wx 의존성은 `WxCore` 단독 — 모두 `CLAUDE.md` 규칙을 지킨다. 규칙 위반 발견 없음.
 - **미검토 / 한계**: BP/WBP 내부 구조, 몽타주에 실제로 배치된 노티파이 구성, DataTable 행 값, `TargetingPreset` 에셋의 필터 조합은 범위 밖이다. 발견 3은 실제 네트워크 세션에서만 드러나므로 실측하지 않았고, 런타임 프로파일링도 수행하지 않았다. 직전 리뷰의 "카메라 노티파이가 첫 로컬 플레이어 시점을 바꾼다"는 현재 `WxAnimNotifyState_CameraMove.cpp:28`의 주석이 그 동작을 의도로 명시하고 있어 이번에는 제외했다.
