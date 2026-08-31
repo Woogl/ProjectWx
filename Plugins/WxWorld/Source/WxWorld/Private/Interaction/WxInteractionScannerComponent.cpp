@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "Interaction/WxInteractionScannerComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -280,11 +280,17 @@ void UWxInteractionScannerComponent::SetActorHighlighted(AActor* Actor, bool bHi
 		return;
 	}
 
-	// 캡슐·트리거처럼 렌더링되지 않는 형상은 켜 봐야 외곽선에 기여하지 않는다.
 	for (UActorComponent* Component : Actor->GetComponents())
 	{
 		UPrimitiveComponent* Primitive = Cast<UPrimitiveComponent>(Component);
-		if (!Primitive || !Primitive->IsVisible())
+		if (!Primitive)
+		{
+			continue;
+		}
+
+		// 캡슐·트리거처럼 렌더링되지 않는 형상은 켜 봐야 외곽선에 기여하지 않는다.
+		// 끌 때는 거르지 않는다 — 숨은 사이 해제를 건너뛰면 다시 보일 때 외곽선이 남는다.
+		if (bHighlighted && !Primitive->IsVisible())
 		{
 			continue;
 		}
