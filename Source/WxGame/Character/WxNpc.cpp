@@ -2,7 +2,7 @@
 
 #include "Character/WxNpc.h"
 
-#include "Character/WxMetaHumanComponent.h"
+#include "Component/WxMetaHumanComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Interaction/WxStateTreeTask_WaitForInteraction.h"

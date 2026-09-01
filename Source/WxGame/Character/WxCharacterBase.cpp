@@ -4,8 +4,6 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
-#include "Character/WxCharacterMovementComponent.h"
-#include "Character/WxMetaHumanComponent.h"
 #include "Inventory/WxEquipmentComponent.h"
 #include "Minion/WxMinionComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -20,6 +18,8 @@
 #include "Weapon/WxProjectileComponent.h"
 #include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
+#include "Component/WxCharacterMovementComponent.h"
+#include "Component/WxMetaHumanComponent.h"
 
 AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UWxCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))

@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Character/WxMetaHumanComponent.h"
+#include "WxMetaHumanComponent.h"
 
 #include "Animation/AnimInstance.h"
 #include "Components/LODSyncComponent.h"
