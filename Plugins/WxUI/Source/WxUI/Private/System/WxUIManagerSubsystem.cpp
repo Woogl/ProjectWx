@@ -26,10 +26,9 @@ void UWxUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		return;
 	}
 
-	for (ULocalPlayer* LocalPlayer : GameInstance->GetLocalPlayers())
-	{
-		HandleLocalPlayerAdded(LocalPlayer);
-	}
+	// 로컬 플레이어는 하나라는 전제다. 서브시스템 초기화가 로컬 플레이어 생성보다 앞서 보통은 아래 이벤트로 들어오고,
+	// 이 호출은 이미 만들어진 뒤에 초기화된 경우를 따라잡기 위한 것이다(null 은 핸들러가 거른다).
+	HandleLocalPlayerAdded(GameInstance->GetFirstGamePlayer());
 
 	GameInstance->OnLocalPlayerAddedEvent.AddUObject(this, &ThisClass::HandleLocalPlayerAdded);
 }
@@ -47,16 +46,9 @@ void UWxUIManagerSubsystem::Deinitialize()
 	UGameInstance* GameInstance = GetGameInstance();
 	if (GameInstance)
 	{
+		// 로컬 플레이어의 PC 교체 구독은 끊지 않는다 — GameInstance 는 로컬 플레이어를 모두 제거한 뒤에야 서브시스템을 내리므로
+		// 여기 도달했을 땐 구독을 걸어 둔 로컬 플레이어가 이미 사라진 뒤다.
 		GameInstance->OnLocalPlayerAddedEvent.RemoveAll(this);
-
-		for (ULocalPlayer* LocalPlayer : GameInstance->GetLocalPlayers())
-		{
-			if (LocalPlayer)
-			{
-				LocalPlayer->OnPlayerControllerChanged().RemoveAll(this);
-			}
-		}
-
 	}
 
 	Super::Deinitialize();

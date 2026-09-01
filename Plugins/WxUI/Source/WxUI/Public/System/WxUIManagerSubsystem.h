@@ -73,6 +73,10 @@ private:
 	/** 전 레이어의 활성 위젯을 순회해, 정지를 원하는 활성 위젯이 하나라도 있으면 게임을 정지(아니면 해제)한다. */
 	void RefreshGamePause();
 
+	/**
+	 * 로컬 플레이어 하나를 전제로 레이아웃과 아래 추적 상태를 단수로 둔다.
+	 * 스플릿스크린이 필요해지면 이것들을 ULocalPlayer 키로 묶어야 한다 — 지금 구조에선 나중에 붙은 플레이어가 앞의 것을 갈아치운다.
+	 */
 	UPROPERTY()
 	TObjectPtr<UWxPrimaryGameLayout> PrimaryGameLayout;
 
