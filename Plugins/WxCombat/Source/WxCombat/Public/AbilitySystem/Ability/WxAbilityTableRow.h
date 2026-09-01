@@ -6,8 +6,6 @@
 #include "Engine/DataTable.h"
 #include "WxAbilityTableRow.generated.h"
 
-class UTexture2D;
-
 UENUM(BlueprintType)
 enum class EWxAbilityCostResource : uint8
 {
