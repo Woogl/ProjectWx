@@ -7,17 +7,20 @@
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystemComponent.h"
-#include "AbilitySystemGlobals.h"
 #include "GameplayEffect.h"
-#include "Engine/World.h"
-#include "WxGameplayTags.h"
+#include "WxCombatModule.h"
+
+#if WITH_EDITOR
+#include "Misc/DataValidation.h"
+#endif
 
 UWxAbilityBase::UWxAbilityBase()
 {
 	InstancingPolicy  = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 
-	CooldownGameplayEffectClass = UWxEffect_Cooldown::StaticClass();
+	// 쿨다운 GE는 각 어빌리티가 지정한다 — 엔진이 스택을 GE 클래스 단위로 병합해서, 여기에 공용 기본값을 두면 어빌리티끼리 쿨다운이 섞인다.
+	// 코스트는 Instant라 병합될 것이 없어 공용 GE 하나로 충분하다.
 	CostGameplayEffectClass = UWxEffect_Cost::StaticClass();
 }
 
@@ -41,14 +44,14 @@ TSoftObjectPtr<UObject> UWxAbilityBase::GetIcon() const
 
 int32 UWxAbilityBase::GetMaxRecharges() const
 {
-	// 커스텀 쿨다운 GE는 엔진 순정 판정(태그 기반 단일 쿨다운)으로 도니 충전을 여러 개 쌓을 수 없다.
-	if (CooldownGameplayEffectClass && CooldownGameplayEffectClass != UWxEffect_Cooldown::StaticClass())
-	{
-		return 1;
-	}
-
 	const FWxAbilityTableRow* Row = GetTableRow();
 	return Row ? FMath::Max(1, Row->MaxRecharges) : 1;
+}
+
+float UWxAbilityBase::GetCooldownTime() const
+{
+	const FWxAbilityTableRow* Row = GetTableRow();
+	return Row ? FMath::Max(0.f, Row->CooldownTime) : 0.f;
 }
 
 float UWxAbilityBase::GetMontagePlayRate() const
@@ -270,6 +273,13 @@ void UWxAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, c
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
 
+	// 쿨다운 태그가 없으면 순정 판정이 통과시켜 쿨다운이 조용히 사라진다 — GE를 못 찾은 경우와 태그를 빠뜨린 GE를 함께 잡는다.
+	const FGameplayTagContainer* CooldownTags = GetCooldownTags();
+	if (GetCooldownTime() > 0.f && (!CooldownTags || CooldownTags->IsEmpty()))
+	{
+		UE_LOG(LogWxCombat, Error, TEXT("%s: 테이블에 쿨다운 수치가 있는데 쿨다운 태그를 부여하는 GE가 없다. CooldownGameplayEffectClass에 전용 UWxEffect_Cooldown 파생 GE를 지정했는지 확인하라."), *GetName());
+	}
+
 	if (ActivationPolicy == EWxAbilityActivationPolicy::OnGiven)
 	{
 		if (UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr)
@@ -279,129 +289,52 @@ void UWxAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, c
 	}
 }
 
-UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
+#if WITH_EDITOR
+EDataValidationResult UWxAbilityBase::IsDataValid(FDataValidationContext& Context) const
 {
-	if (CooldownGameplayEffectClass && CooldownGameplayEffectClass != UWxEffect_Cooldown::StaticClass())
+	EDataValidationResult Result = Super::IsDataValid(Context);
+
+	const FGameplayTagContainer* CooldownTags = GetCooldownTags();
+	if (GetCooldownTime() > 0.f && (!CooldownTags || CooldownTags->IsEmpty()))
 	{
-		return Super::GetCooldownGameplayEffect();
+		Result = EDataValidationResult::Invalid;
+		Context.AddError(FText::FromString(TEXT("테이블에 쿨다운 수치가 있으나 쿨다운 태그를 부여하는 GE가 없습니다. CooldownGameplayEffectClass에 전용 UWxEffect_Cooldown 파생 GE를 지정했는지 확인하세요.")));
 	}
 
-	const FWxAbilityTableRow* Row = GetTableRow();
-	if (!Row || Row->CooldownTime <= 0.f)
+	return Result;
+}
+#endif
+
+UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
+{
+	UGameplayEffect* CooldownGE = Super::GetCooldownGameplayEffect();
+
+	// 테이블 기반 쿨다운은 수치가 없으면 걸지 않는다 — 지속시간이 0인 GE는 만료 타이머가 걸리지 않는다.
+	// 호출자들은 이 nullptr을 "쿨다운 없음" 게이트로도 쓴다.
+	if (CooldownGE && CooldownGE->IsA<UWxEffect_Cooldown>() && GetCooldownTime() <= 0.f)
 	{
-		// 호출자들이 이 nullptr을 "쿨다운 없음" 게이트로 쓴다.
 		return nullptr;
 	}
 
-	return Super::GetCooldownGameplayEffect();
-}
-
-void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
-{
-	if (CooldownGameplayEffectClass && CooldownGameplayEffectClass != UWxEffect_Cooldown::StaticClass())
-	{
-		Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
-		return;
-	}
-
-	const UGameplayEffect* CooldownGE = GetCooldownGameplayEffect();
-	const FWxAbilityTableRow* Row = GetTableRow();
-	if (!CooldownGE || !Row)
-	{
-		return;
-	}
-
-	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, CooldownGE->GetClass(), GetAbilityLevel(Handle, ActorInfo));
-	if (!SpecHandle.IsValid())
-	{
-		return;
-	}
-
-	// 충전이 직렬로 회복되도록 이미 도는 쿨다운의 최장 잔여시간을 더한 값을 SetByCaller로 실어 적용한다.
-	// 이 조회는 GE 적용 전이라 방금 거는 쿨다운이 섞이지 않는다.
-	float LongestRemaining = 0.f;
-	float LongestDuration = 0.f;
-	if (const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr)
-	{
-		QueryActiveCooldowns(*ASC, LongestRemaining, LongestDuration);
-	}
-
-	SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, LongestRemaining + Row->CooldownTime);
-	ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
+	return CooldownGE;
 }
 
 bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	if (CooldownGameplayEffectClass && CooldownGameplayEffectClass != UWxEffect_Cooldown::StaticClass())
-	{
-		return Super::CheckCooldown(Handle, ActorInfo, OptionalRelevantTags);
-	}
-
-	const FWxAbilityTableRow* Row = GetTableRow();
-	if (!Row || Row->CooldownTime <= 0.f)
-	{
-		return true;
-	}
-
+	// 순정 판정은 쿨다운 태그가 붙어 있기만 하면 막는다. 충전이 남아 있으면 그 앞에서 통과시킨다.
 	const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-	if (!ASC)
+	const FGameplayTagContainer* CooldownTags = GetCooldownTags();
+	if (ASC && CooldownTags && !CooldownTags->IsEmpty())
 	{
-		return true;
-	}
-
-	float LongestRemaining = 0.f;
-	float LongestDuration = 0.f;
-	if (QueryActiveCooldowns(*ASC, LongestRemaining, LongestDuration) >= GetMaxRecharges())
-	{
-		// 순정 CheckCooldown처럼 실패 사유 태그를 채워 OnAbilityFailed 파이프라인에 전달한다
-		if (OptionalRelevantTags)
+		const FGameplayEffectQuery CooldownQuery = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(*CooldownTags);
+		if (ASC->GetAggregatedStackCount(CooldownQuery) < GetMaxRecharges())
 		{
-			const FGameplayTag& FailCooldownTag = UAbilitySystemGlobals::Get().ActivateFailCooldownTag;
-			if (FailCooldownTag.IsValid())
-			{
-				OptionalRelevantTags->AddTag(FailCooldownTag);
-			}
+			return true;
 		}
-		return false;
 	}
 
-	return true;
-}
-
-float UWxAbilityBase::GetCooldownTimeRemaining(const FGameplayAbilityActorInfo* ActorInfo) const
-{
-	/**
-	 * 엔진 순정 구현은 쿨다운 GE의 GrantedTags 쿼리 기반이라, 태그를 부여하지 않는 공용 쿨다운 GE에서는 항상 0을 반환한다.
-	 * CDO 기반 쿼리로 대체해 순정 API(BP 노드 포함) 호출자가 올바른 값을 받게 한다.
-	 */
-	if (CooldownGameplayEffectClass && CooldownGameplayEffectClass != UWxEffect_Cooldown::StaticClass())
-	{
-		return Super::GetCooldownTimeRemaining(ActorInfo);
-	}
-
-	float TimeRemaining = 0.f;
-	float Duration = 0.f;
-	if (const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr)
-	{
-		QueryActiveCooldowns(*ASC, TimeRemaining, Duration);
-	}
-	return TimeRemaining;
-}
-
-void UWxAbilityBase::GetCooldownTimeRemainingAndDuration(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, float& TimeRemaining, float& CooldownDuration) const
-{
-	if (CooldownGameplayEffectClass && CooldownGameplayEffectClass != UWxEffect_Cooldown::StaticClass())
-	{
-		Super::GetCooldownTimeRemainingAndDuration(Handle, ActorInfo, TimeRemaining, CooldownDuration);
-		return;
-	}
-
-	TimeRemaining = 0.f;
-	CooldownDuration = 0.f;
-	if (const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr)
-	{
-		QueryActiveCooldowns(*ASC, TimeRemaining, CooldownDuration);
-	}
+	// 실패 사유 태그를 채워 OnAbilityFailed 파이프라인에 전달하는 것까지 순정에 맡긴다.
+	return Super::CheckCooldown(Handle, ActorInfo, OptionalRelevantTags);
 }
 
 const FWxAbilityTableRow* UWxAbilityBase::GetTableRow() const
@@ -411,47 +344,4 @@ const FWxAbilityTableRow* UWxAbilityBase::GetTableRow() const
 		return nullptr;
 	}
 	return AbilityDataRow.GetRow<FWxAbilityTableRow>(TEXT("WxAbilityBase::GetTableRow"));
-}
-
-int32 UWxAbilityBase::QueryActiveCooldowns(const UAbilitySystemComponent& ASC, float& OutLongestRemaining, float& OutLongestDuration) const
-{
-	OutLongestRemaining = 0.f;
-	OutLongestDuration = 0.f;
-
-	const UWorld* World = ASC.GetWorld();
-	if (!World)
-	{
-		return 0;
-	}
-
-	const UGameplayAbility* AbilityCDO = GetClass()->GetDefaultObject<UGameplayAbility>();
-	const UGameplayEffect* CooldownDef = GetDefault<UWxEffect_Cooldown>();
-	const float WorldTime = World->GetTimeSeconds();
-
-	// 홀드 입력이면 매 프레임 도는 경로다. GetActiveEffects는 핸들 배열을 새로 할당하고 핸들마다 컨테이너를 다시 찾게 만들어 직접 순회한다.
-	int32 ActiveCount = 0;
-	for (const FActiveGameplayEffect& ActiveGE : &ASC.GetActiveGameplayEffects())
-	{
-		// 엔진 쿼리의 정의 비교와 같은 규칙 — 하위 클래스가 아니라 CDO 일치다.
-		if (ActiveGE.Spec.Def != CooldownDef || ActiveGE.Spec.GetEffectContext().GetAbility() != AbilityCDO)
-		{
-			continue;
-		}
-
-		// 만료됐지만 아직 제거되지 않은 GE(클라는 제거 복제가 늦게 도착)는 회복된 충전으로 친다
-		const float Remaining = (ActiveGE.StartWorldTime + ActiveGE.Spec.GetDuration()) - WorldTime;
-		if (Remaining <= 0.f)
-		{
-			continue;
-		}
-
-		++ActiveCount;
-		if (Remaining > OutLongestRemaining)
-		{
-			OutLongestRemaining = Remaining;
-			OutLongestDuration = ActiveGE.Spec.GetDuration();
-		}
-	}
-
-	return ActiveCount;
 }

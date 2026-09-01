@@ -7,22 +7,19 @@
 #include "Containers/Ticker.h"
 #include "GameplayTagContainer.h"
 #include "GameplayEffectTypes.h"
-#include "Templates/SubclassOf.h"
 #include "MVVM/WxViewModel.h"
 #include "WxViewModel_Ability.generated.h"
 
 class UAbilitySystemComponent;
 class UGameplayAbility;
-class UGameplayEffect;
 class UTexture2D;
 struct FGameplayEffectSpec;
 
 /**
  * 어빌리티 쿨다운/발동 가능 여부 뷰모델.
- * 쿨다운/충전 상태는 어빌리티의 GetCooldownGameplayEffect() 기준이며, 최대 충전 수만은 게임 모듈이 채워 준다.
+ * 쿨다운은 어빌리티의 GetCooldownTags() 로 식별하며, 최대 충전 수만은 게임 모듈이 채워 준다.
  * 쿨다운 중에는 티커로 매 프레임 남은 시간·충전 수를 갱신한다.
- *
- * 동일 GE 클래스를 여러 어빌리티가 공유하는 경우, 소스 어빌리티 CDO로 구분한다.
+ * 쿨다운 GE 는 소모한 충전 하나를 스택 하나로 쌓으므로, 남은 시간·진행률은 지금 회복 중인 충전 1개 기준이 된다.
  *
  * CanActivate·CheckCost 는 ASC 태그 변경/비용 어트리뷰트 변경/쿨다운 적용·충전 수 변화 시점에 재평가된다.
  * 태그 변경만은 한 프레임 분을 모아 다음 틱에 한 번 판정한다.
@@ -54,6 +51,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	float CooldownRemaining = 0.f;
 
+	/** 충전 1개의 회복 시간. 진행률의 분모다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	float CooldownDuration = 0.f;
 
@@ -145,10 +143,10 @@ private:
 	void StartCooldownTicker();
 
 	/**
-	 * 이 어빌리티가 건 활성 쿨다운 GE 를 훑어 소모된 충전 수를 반환하고, 가장 먼저 만료될 GE 의 잔여·지속시간을 낸다.
-	 * FGameplayEffectQuery 경로는 핸들 배열을 새로 할당한 뒤 핸들마다 컨테이너를 다시 선형 탐색하므로, 매 프레임 도는 이 경로에서는 컨테이너를 직접 한 번만 훑는다.
+	 * 쿨다운 태그를 부여하는 활성 GE 하나를 찾아 소모된 충전 수(스택 수)를 반환하고, 다음 충전까지의 잔여·회복 시간을 낸다.
+	 * 순정 조회 API 는 스택 수를 함께 주지 않는 데다 호출마다 배열을 새로 할당하므로, 매 프레임 도는 이 경로에서는 컨테이너를 직접 한 번만 훑는다.
 	 */
-	int32 QueryActiveCooldowns(const UAbilitySystemComponent& ASC, float WorldTime, float& OutNextRemaining, float& OutNextDuration) const;
+	int32 QueryCooldownStacks(const UAbilitySystemComponent& ASC, float WorldTime, float& OutRemaining, float& OutDuration) const;
 
 	void RefreshActivationState();
 
@@ -163,7 +161,9 @@ private:
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	TWeakObjectPtr<const UGameplayAbility> CachedAbility;
-	TSubclassOf<UGameplayEffect> CachedCooldownClass;
+
+	/** 어빌리티의 쿨다운 GE 가 부여하는 태그. 비어 있으면 쿨다운이 없는 어빌리티다. */
+	FGameplayTagContainer CachedCooldownTags;
 
 	/** 비용 GE가 깎는 자원 어트리뷰트와 그 최대치. 값 변경 델리게이트 등록/해제용 */
 	FGameplayAttribute CostAttribute;

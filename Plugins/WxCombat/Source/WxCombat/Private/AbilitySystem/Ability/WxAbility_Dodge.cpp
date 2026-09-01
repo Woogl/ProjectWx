@@ -3,6 +3,7 @@
 #include "AbilitySystem/Ability/WxAbility_Dodge.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
+#include "AbilitySystem/Effect/WxEffect_Cooldown.h"
 #include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
 #include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
 #include "AbilitySystemComponent.h"
@@ -20,6 +21,8 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Dodge);
 
 	ActivationGroup = EWxAbilityActivationGroup::Exclusive;
+
+	CooldownGameplayEffectClass = UWxEffect_Cooldown_Dodge::StaticClass();
 }
 
 float UWxAbility_Dodge::GetMontagePlayRate() const

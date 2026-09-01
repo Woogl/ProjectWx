@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Skill.h"
+#include "AbilitySystem/Effect/WxEffect_Cooldown.h"
 #include "AbilitySystemComponent.h"
 #include "WxGameplayTags.h"
 
@@ -16,6 +17,9 @@ UWxAbility_Skill::UWxAbility_Skill()
 	ActivationGroup = EWxAbilityActivationGroup::Exclusive;
 
 	bRetriggerInstancedAbility = true;
+
+	// 슬롯별로 쿨다운을 따로 굴려야 하면 슬롯마다 파생 GE를 만들어 각 BP에서 지정한다.
+	CooldownGameplayEffectClass = UWxEffect_Cooldown_Skill_1::StaticClass();
 }
 
 void UWxAbility_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

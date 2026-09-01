@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Ultimate.h"
+#include "AbilitySystem/Effect/WxEffect_Cooldown.h"
 #include "AbilitySystem/Effect/WxEffect_SuperArmor.h"
 #include "AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.h"
 #include "Engine/AssetManager.h"
@@ -17,6 +18,8 @@ UWxAbility_Ultimate::UWxAbility_Ultimate()
 
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Ultimate);
 	ActivationOwnedEffects.Add(UWxEffect_SuperArmor::StaticClass());
+
+	CooldownGameplayEffectClass = UWxEffect_Cooldown_Ultimate::StaticClass();
 }
 
 void UWxAbility_Ultimate::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)

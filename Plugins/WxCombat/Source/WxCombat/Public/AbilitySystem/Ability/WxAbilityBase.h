@@ -9,6 +9,7 @@
 #include "WxUIData.h"
 #include "WxAbilityBase.generated.h"
 
+class FDataValidationContext;
 class UAbilitySystemComponent;
 class UAbilityTask_PlayMontageAndWait;
 class UAnimMontage;
@@ -69,7 +70,8 @@ public:
 	UWxAbilityBase();
 
 	/**
-	 * 기본적으로 쿨다운·코스트 수치는 AbilityDataRow에서 읽어서 공용 GE를 쓴다.
+	 * 쿨다운·코스트 수치는 이 행에서 읽는다.
+	 * 코스트는 공용 GE(UWxEffect_Cost)가, 쿨다운은 어빌리티가 지정한 UWxEffect_Cooldown 파생 GE가 그 수치를 쓴다.
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxAbilityTableRow"))
 	FDataTableRowHandle AbilityDataRow;
@@ -101,6 +103,9 @@ public:
 
 	int32 GetMaxRecharges() const;
 
+	/** 충전 1개의 회복 시간(초). 테이블에 수치가 없으면 0 */
+	float GetCooldownTime() const;
+
 	/**
 	 * 일반적으로는 ASPD가 반영된 몽타주 재생 속도 사용.
 	 * 고정된 시간을 맞춰야하는 등 특수한 경우에는 1을 반환하도록 오버라이드한다.
@@ -127,16 +132,18 @@ public:
 	virtual bool CanBeCanceled() const override;
 
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
-	virtual UGameplayEffect* GetCooldownGameplayEffect() const override;
-	
-	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
-	virtual bool CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
-	
-	virtual float GetCooldownTimeRemaining(const FGameplayAbilityActorInfo* ActorInfo) const override;
-	virtual void GetCooldownTimeRemainingAndDuration(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, float& TimeRemaining, float& CooldownDuration) const override;
 
-	// 발동 횟수 스택을 여러개 충전해두었다가 연속 발동할 수 있는 어빌리티도 있다. (MaxRecharges)
-	int32 QueryActiveCooldowns(const UAbilitySystemComponent& ASC, float& OutLongestRemaining, float& OutLongestDuration) const;
+#if WITH_EDITOR
+	//~ Begin UObject
+	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
+	//~ End UObject
+#endif
+
+	/** 테이블에 쿨다운 수치가 없으면 nullptr — 호출자들이 이것을 "쿨다운 없음" 게이트로 쓴다. */
+	virtual UGameplayEffect* GetCooldownGameplayEffect() const override;
+
+	/** 남은 충전이 있으면 쿨다운 태그가 붙어 있어도 통과시킨다. (MaxRecharges) */
+	virtual bool CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;

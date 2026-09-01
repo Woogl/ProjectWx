@@ -201,6 +201,22 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_8);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_9);
 
+	// ── Cooldown ──────────────────────────────────────────────────────────────
+
+	/**
+	 * 어빌리티별 쿨다운 GE가 부여하는 태그. 순정 CheckCooldown·쿨다운 조회 API가 이 태그로 쿨다운을 식별한다.
+	 * 이름은 위 Ability.X 식별 태그를 따른다 — 어빌리티가 지정한 UWxEffect_Cooldown 파생 GE가 짝이 되는 태그를 부여한다.
+	 * 쿨다운을 실제로 쓰는 어빌리티만 짝을 두므로, 새로 필요해지면 태그와 파생 클래스를 함께 만든다.
+	 * 적은 쿨다운을 쓰지 않는다 — 패턴 간격은 BT가 잡는다.
+	 */
+
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown);
+
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Dodge);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Skill_1);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Ultimate);
+
+
 	// ── SetByCaller ──────────────────────────────────────────────────────────────
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Magnitude);

@@ -27,12 +27,12 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 		RequestImageAsync(TEXT("Icon"), UIData->GetIcon());
 	}
 
-	if (const UGameplayEffect* CooldownGE = InAbility->GetCooldownGameplayEffect())
+	if (const FGameplayTagContainer* CooldownTags = InAbility->GetCooldownTags())
 	{
-		CachedCooldownClass = CooldownGE->GetClass();
+		CachedCooldownTags = *CooldownTags;
 	}
 
-	if (CachedCooldownClass)
+	if (!CachedCooldownTags.IsEmpty())
 	{
 		InASC->OnActiveGameplayEffectAddedDelegateToSelf
 			.AddUObject(this, &UWxViewModel_Ability::HandleGameplayEffectApplied);
@@ -61,44 +61,33 @@ void UWxViewModel_Ability::StartCooldownTicker()
 	);
 }
 
-int32 UWxViewModel_Ability::QueryActiveCooldowns(const UAbilitySystemComponent& ASC, float WorldTime, float& OutNextRemaining, float& OutNextDuration) const
+int32 UWxViewModel_Ability::QueryCooldownStacks(const UAbilitySystemComponent& ASC, float WorldTime, float& OutRemaining, float& OutDuration) const
 {
-	OutNextRemaining = 0.f;
-	OutNextDuration = 0.f;
+	OutRemaining = 0.f;
+	OutDuration = 0.f;
 
-	const UGameplayAbility* AbilityCDO = CachedAbility.Get();
-
-	int32 ActiveCount = 0;
 	for (auto It = ASC.GetActiveGameplayEffects().CreateConstIterator(); It; ++It)
 	{
 		const FActiveGameplayEffect& ActiveGE = *It;
-		if (!ActiveGE.Spec.Def || ActiveGE.Spec.Def->GetClass() != CachedCooldownClass)
+		if (!ActiveGE.Spec.Def || !ActiveGE.Spec.Def->GetGrantedTags().HasAny(CachedCooldownTags))
 		{
 			continue;
 		}
 
-		if (ActiveGE.Spec.GetEffectContext().GetAbility() != AbilityCDO)
+		const float Duration = ActiveGE.Spec.GetDuration();
+		if (Duration <= 0.f)
 		{
 			continue;
 		}
 
-		// 만료됐지만 아직 제거되지 않은 GE(클라이언트는 제거가 리플리케이션으로 도착할 때까지 지연됨)는 회복된 충전으로 취급한다
-		const float SpecDuration = ActiveGE.Spec.GetDuration();
-		const float Remaining = (ActiveGE.StartWorldTime + SpecDuration) - WorldTime;
-		if (SpecDuration <= 0.f || Remaining <= 0.f)
-		{
-			continue;
-		}
-
-		if (ActiveCount == 0 || Remaining < OutNextRemaining)
-		{
-			OutNextRemaining = Remaining;
-			OutNextDuration = SpecDuration;
-		}
-		++ActiveCount;
+		// 회복 시점이 지나도 제거 복제가 올 때까지는 소모된 상태 그대로 둔다.
+		// 발동 판정도 같은 복제 값을 보므로, 여기서 미리 돌려주면 표시만 앞서가 "게이지는 찼는데 안 나가는" 구간이 생긴다.
+		OutRemaining = FMath::Max((ActiveGE.StartWorldTime + Duration) - WorldTime, 0.f);
+		OutDuration = Duration;
+		return ActiveGE.Spec.GetStackCount();
 	}
 
-	return ActiveCount;
+	return 0;
 }
 
 void UWxViewModel_Ability::Deinitialize()
@@ -132,7 +121,7 @@ void UWxViewModel_Ability::Deinitialize()
 
 	CachedASC.Reset();
 	CachedAbility.Reset();
-	CachedCooldownClass = nullptr;
+	CachedCooldownTags.Reset();
 	CostAttribute = FGameplayAttribute();
 	CostMaxAttribute = FGameplayAttribute();
 
@@ -309,12 +298,7 @@ void UWxViewModel_Ability::ApplyLoadedImage(FName FieldName, UObject* LoadedImag
 
 void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle)
 {
-	if (!CachedCooldownClass || !SpecApplied.Def || SpecApplied.Def->GetClass() != CachedCooldownClass)
-	{
-		return;
-	}
-
-	if (SpecApplied.GetEffectContext().GetAbility() != CachedAbility.Get())
+	if (CachedCooldownTags.IsEmpty() || !SpecApplied.Def || !SpecApplied.Def->GetGrantedTags().HasAny(CachedCooldownTags))
 	{
 		return;
 	}
@@ -323,7 +307,6 @@ void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* 
 	SetIsOnCooldown(true);
 	StartCooldownTicker();
 
-	// 쿨다운 GE는 태그를 부여하지 않아 태그 이벤트로 감지되지 않으므로 여기서 재평가한다
 	RefreshActivationState();
 }
 
@@ -350,7 +333,7 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
 	const UWorld* World = ASC ? ASC->GetWorld() : nullptr;
-	if (!World || !CachedCooldownClass)
+	if (!World || CachedCooldownTags.IsEmpty())
 	{
 		// false 반환은 티커를 제거하므로 핸들도 함께 비운다.
 		// 남겨 두면 재등록 게이트(!TickerHandle.IsValid())가 닫힌 채로 굳어 쿨다운 갱신이 영구 정지한다.
@@ -358,11 +341,12 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 		return false;
 	}
 
-	// 활성 쿨다운 GE 1개 = 회복 대기 중인 충전 1개.
-	float NextChargeRemaining = 0.f;
-	float NextChargeDuration = 0.f;
-	const int32 ConsumedCharges = QueryActiveCooldowns(*ASC, World->GetTimeSeconds(), NextChargeRemaining, NextChargeDuration);
+	// 쿨다운 GE 의 스택 1개 = 회복 대기 중인 충전 1개, 지속시간 = 충전 1개의 회복 시간.
+	float ChargeRemaining = 0.f;
+	float ChargeDuration = 0.f;
+	const int32 ConsumedCharges = QueryCooldownStacks(*ASC, World->GetTimeSeconds(), ChargeRemaining, ChargeDuration);
 
+	// GE 가 살아 있는 동안은 스택이 최소 하나라 여기 오지 않는다. 즉 티커는 GE 가 실제로 사라진 뒤에만 멈춘다.
 	if (ConsumedCharges == 0)
 	{
 		SetCooldownDuration(0.f);
@@ -375,15 +359,10 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 		return false;
 	}
 
-	// 진행률 분모는 충전 1개의 회복 주기다. 회복이 직렬이라 나중에 걸린 GE 일수록 지속시간이 길어지므로, 처음 관측한 값을 쿨다운이 끝날 때까지 유지한다.
-	if (CooldownDuration <= 0.f)
-	{
-		SetCooldownDuration(NextChargeDuration);
-	}
-
 	SetIsOnCooldown(true);
-	SetCooldownRemaining(NextChargeRemaining);
-	SetCooldownPercent(NextChargeRemaining / CooldownDuration);
+	SetCooldownDuration(ChargeDuration);
+	SetCooldownRemaining(ChargeRemaining);
+	SetCooldownPercent(ChargeRemaining / ChargeDuration);
 
 	// 충전 회복은 별도 이벤트가 없다. 남은 시간과 달리 발동 가능 여부는 충전 수가 실제로 바뀔 때만 달라지므로 그때만 재평가한다.
 	const int32 NewCharges = FMath::Max(0, MaxRecharges - ConsumedCharges);
