@@ -42,7 +42,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx|Ability")
 	bool TryActivateAbility();
 
-	/** 최대 충전 수처럼 UI 플러그인이 읽지 못하는 값을 게임 모듈이 채울 때 쓴다. */
+	/** UI 플러그인이 읽지 못하는 최대 충전 수를 게임 모듈이 채울 때 쓴다. */
 	const UGameplayAbility* GetBoundAbility() const;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
