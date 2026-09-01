@@ -8,7 +8,7 @@
 - 전투 어트리뷰트(HP/SP/GP/MP/UP/ATK/DEF/Crit/SPD/ASPD)와 데미지·퍼펙트가드 실행 (`UWxCombatAttributeSet`, `UWxExecCalc_Damage`)
 - 데이터 주도 GE·쿨다운·코스트 (`UWxEffectComponent_Table`, `FWxAbilityTableRow`, `FWxDamageTableRow`)
 - 무기 히트박스 스윕/투사체, 피니셔 처형 피해 (`AWxWeaponBase`, `WxProjectile*`, `UWxFinisherDamageComponent`)
-- 락온/타겟팅 필터, 몽타주 타겟 스냅(MotionWarping), 시간 감속 (`UWxLockOnComponent`, `WxTargetingFilterTask_*`, `WxRootMotionModifier_SnapToTarget`, `UWxTimeDilationComponent`)
+- 락온/타겟팅 필터, 몽타주 타겟 스냅(MotionWarping), 시간 감속 (`UWxLockOnComponent`, `WxTargetingFilterTask_*`, `WxRootMotionModifier_SnapToTarget`)
 - 전투 애님 노티파이(콤보 창·무기 공격·이펙트 적용·투사체 스폰·카메라) (`WxAnimNotify*`)
 
 **경계 (비담당)**

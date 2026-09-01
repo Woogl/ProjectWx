@@ -5,9 +5,9 @@
 #include "WxCombatLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "DefaultLevelSequenceInstanceData.h"
+#include "Kismet/GameplayStatics.h"
 #include "LevelSequenceActor.h"
 #include "LevelSequencePlayer.h"
-#include "Time/WxTimeDilationComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Character.h"
 
@@ -27,7 +27,7 @@ void UWxAbilityTask_PlaySkillCutscene::OnDestroy(bool bInOwnerFinished)
 		ASC->RemoveActiveGameplayEffectBySourceEffect(UWxEffect_Invincible::StaticClass(), nullptr, 1);
 	}
 
-	UWxTimeDilationComponent::ClearGlobalTimeDilationAuthoritative(this);
+	ClearTimeDilation();
 	CleanupSequenceActor();
 
 	Super::OnDestroy(bInOwnerFinished);
@@ -55,7 +55,13 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 		GlobalTimeDilation = 0.001f;
 	}
 
-	UWxTimeDilationComponent::SetGlobalTimeDilationAuthoritative(this, GlobalTimeDilation);
+	if (AbilitySystemComponent.IsValid() && AbilitySystemComponent->IsOwnerActorAuthoritative())
+	{
+		UGameplayStatics::SetGlobalTimeDilation(this, GlobalTimeDilation);
+
+		// 엔진이 Min/MaxGlobalTimeDilation으로 클램프하므로, 해제 때 비교하려면 요청값이 아니라 실제로 박힌 값을 들고 있어야 한다.
+		AppliedDilation = UGameplayStatics::GetGlobalTimeDilation(this);
+	}
 
 	AActor* AvatarActor = GetAvatarActor();
 	ACharacter* AvatarCharacter = Cast<ACharacter>(AvatarActor);
@@ -71,7 +77,7 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 
 	if (!SequencePlayer)
 	{
-		UWxTimeDilationComponent::ClearGlobalTimeDilationAuthoritative(this);
+		ClearTimeDilation();
 		CleanupSequenceActor();
 
 		if (ShouldBroadcastAbilityTaskDelegates())
@@ -113,7 +119,7 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 
 void UWxAbilityTask_PlaySkillCutscene::HandleSequenceFinished()
 {
-	UWxTimeDilationComponent::ClearGlobalTimeDilationAuthoritative(this);
+	ClearTimeDilation();
 	CleanupSequenceActor();
 
 	if (ShouldBroadcastAbilityTaskDelegates())
@@ -122,6 +128,18 @@ void UWxAbilityTask_PlaySkillCutscene::HandleSequenceFinished()
 	}
 
 	EndTask();
+}
+
+void UWxAbilityTask_PlaySkillCutscene::ClearTimeDilation()
+{
+	// 배율이 아직 내가 건 값일 때만 되돌린다 — 그 사이 다른 연출이 가져갔다면 남의 연출을 끊지 않는다.
+	// 애초에 걸지 못한 머신은 AppliedDilation이 0이라 이 조건에서 함께 걸러진다.
+	if (AppliedDilation > 0.f && FMath::IsNearlyEqual(UGameplayStatics::GetGlobalTimeDilation(this), AppliedDilation))
+	{
+		UGameplayStatics::SetGlobalTimeDilation(this, 1.f);
+	}
+
+	AppliedDilation = 0.f;
 }
 
 void UWxAbilityTask_PlaySkillCutscene::CleanupSequenceActor()

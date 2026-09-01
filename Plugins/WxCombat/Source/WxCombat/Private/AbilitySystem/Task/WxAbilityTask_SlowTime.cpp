@@ -2,8 +2,9 @@
 
 #include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
 
+#include "AbilitySystemComponent.h"
 #include "Engine/World.h"
-#include "Time/WxTimeDilationComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 UWxAbilityTask_SlowTime* UWxAbilityTask_SlowTime::CreateTask(UGameplayAbility* OwningAbility, float InTimeDilation, float InDuration)
 {
@@ -38,7 +39,12 @@ void UWxAbilityTask_SlowTime::TickTask(float DeltaTime)
 
 void UWxAbilityTask_SlowTime::OnDestroy(bool bInOwnerFinished)
 {
-	UWxTimeDilationComponent::ClearGlobalTimeDilationAuthoritative(this);
+	// 배율이 아직 내가 건 값일 때만 되돌린다 — 그 사이 다른 연출이 가져갔다면 남의 연출을 끊지 않는다.
+	// 애초에 걸지 못한 머신은 AppliedDilation이 0이라 이 조건에서 함께 걸러진다.
+	if (AppliedDilation > 0.f && FMath::IsNearlyEqual(UGameplayStatics::GetGlobalTimeDilation(this), AppliedDilation))
+	{
+		UGameplayStatics::SetGlobalTimeDilation(this, 1.f);
+	}
 
 	Super::OnDestroy(bInOwnerFinished);
 }
@@ -55,7 +61,13 @@ void UWxAbilityTask_SlowTime::Activate()
 		return;
 	}
 
-	UWxTimeDilationComponent::SetGlobalTimeDilationAuthoritative(this, TimeDilation);
+	if (AbilitySystemComponent.IsValid() && AbilitySystemComponent->IsOwnerActorAuthoritative())
+	{
+		UGameplayStatics::SetGlobalTimeDilation(this, TimeDilation);
+
+		// 엔진이 Min/MaxGlobalTimeDilation으로 클램프하므로, 해제 때 비교하려면 요청값이 아니라 실제로 박힌 값을 들고 있어야 한다.
+		AppliedDilation = UGameplayStatics::GetGlobalTimeDilation(this);
+	}
 
 	StartRealTimeSeconds = World->GetRealTimeSeconds();
 }

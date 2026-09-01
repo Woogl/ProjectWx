@@ -15,7 +15,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnCutsceneCancelled);
 /**
  * Global Time Dilation으로 게임 월드를 정지시키고 시퀀스만 정상 속도로 재생하며, AvatarActor의 스켈레탈 메시가 놓인 자리를 시퀀스 원점으로 쓴다.
  *
- * 딜레이션은 UWxTimeDilationComponent가 서버 권위로 관리하므로 클라이언트에는 복제로 도착한다.
+ * 배율은 서버에서만 걸고, 클라이언트에는 엔진의 WorldSettings 복제로 도착한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAbilityTask_PlaySkillCutscene : public UAbilityTask
@@ -44,6 +44,9 @@ private:
 	UFUNCTION()
 	void HandleSequenceFinished();
 
+	/** 그 사이 다른 요청이 배율을 가져갔다면 아무것도 하지 않는다. */
+	void ClearTimeDilation();
+
 	void CleanupSequenceActor();
 
 	UPROPERTY()
@@ -53,4 +56,7 @@ private:
 	TObjectPtr<ALevelSequenceActor> SequenceActor;
 
 	float GlobalTimeDilation = 1.f;
+
+	/** 이 태스크가 실제로 적용한 배율. 0이면 걸지 않은 상태다. */
+	float AppliedDilation = 0.f;
 };
