@@ -68,7 +68,7 @@ public:
 	static FWxOnScannerReady OnAnyScannerReady;
 
 protected:
-	/** 주변 상호작용 액터를 수집할 반경(cm). 이 반경의 구를 오버랩해 후보를 모으므로, 서버 사거리 검증(WxAbility_Interact)의 반경과 일치시킨다. */
+	/** 주변 상호작용 액터를 수집할 반경(cm). 서버 사거리 검증(WxAbility_Interact)의 반경과 일치시킨다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Interact")
 	float ScanRadius = 150.f;
 
@@ -84,7 +84,6 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerInteract(AActor* Selected);
 
-	/** 소유 클라에서 주기 타이머로 호출된다. */
 	void HandleScanTimer();
 
 	/** 기존 순서 보존·신규만 뒤에 추가·이탈은 제거. */

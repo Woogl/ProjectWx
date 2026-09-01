@@ -37,7 +37,6 @@ struct FWxStateTreeTask_ComponentMoveInstanceData
 	UPROPERTY()
 	float MoveSpeed = 0.f;
 
-	/** (런타임) 계산된 목표 상대 위치. */
 	UPROPERTY()
 	FVector TargetLocation = FVector::ZeroVector;
 };

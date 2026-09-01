@@ -115,7 +115,7 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 				}
 			}
 
-			// 즉사 GE가 타격 반응을 내지 않게 Damage GE만 처리하고, 사망 처리 뒤에 호출해 Ability.Death 태그로 히트리액트를 막는다.
+			// 즉사 GE가 타격 반응을 내지 않게 Damage GE만 처리하고, 사망 처리 뒤에 호출해 사망 어빌리티의 BlockAbilitiesWithTag가 히트리액트를 막게 한다.
 			if (Data.EffectSpec.Def && Data.EffectSpec.Def->IsA<UWxEffect_Damage>())
 			{
 				ProcessDamageTaken(Data, Damage);
@@ -356,7 +356,7 @@ void UWxCombatAttributeSet::ProcessPerfectGuard(const FGameplayEffectModCallback
 
 	const bool bCanParry = Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanParry);
 
-	// GP를 MaxGP로 되돌리면 남은 드레인 시간에 0에 닿지 않아 그로기가 안전 타이머까지 늘어진다.
+	// GP를 MaxGP로 되돌리면 남은 드레인 시간에 0에 닿지 않아 그로기가 스스로 풀리지 못한다.
 	if (bCanParry && SourceASC && !SourceASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
 	{
 		UWxCombatLibrary::ApplyAttributeChange(SourceASC, GetGPAttribute(), ReflectAmount);

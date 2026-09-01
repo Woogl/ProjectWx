@@ -7,7 +7,7 @@
 
 UWxAbility_Skill::UWxAbility_Skill()
 {
-	// 슬롯마다 다른 애셋 태그(Ability.Skill.1~4)와 입력 액션은 BP 소관이라, 부모 태그를 기본값으로 깔아 BP가 태그를 빠뜨려도 종류 단위 지목·잠금에서 빠지지 않게 한다.
+	// 슬롯마다 다른 애셋 태그(Ability.Skill.1~4)와 입력 액션은 BP 소관이라, 슬롯 1 태그를 기본값으로 깔아 BP가 태그를 빠뜨려도 종류 단위 지목·잠금에서 빠지지 않게 한다.
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Skill_1);
 	SetAssetTags(AssetTags);

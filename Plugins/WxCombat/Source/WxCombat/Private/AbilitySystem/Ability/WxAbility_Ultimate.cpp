@@ -58,7 +58,6 @@ void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		return;
 	}
 
-	// 컷신 에셋이 없으면 바로 몽타주 단계로 넘어간다.
 	HandleCutsceneCompleted();
 }
 

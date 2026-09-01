@@ -154,7 +154,7 @@ bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 
 	const FName SectionName = SelectDodgeSection(DodgeMontage, LocalDirection);
 
-	// 락온 중에는 락온 태스크가 회피 내내 몸을 타겟으로 추적해 호 궤적을 만들므로 잔차 보정을 하지 않는다.
+	// 락온 중에는 락온이 Ability.Dodge를 보고 회전 태스크를 멈춰 회피 내내 몸 방향을 고정하므로, 회피도 몸을 돌리지 않는다.
 	// 비락온은 섹션 루트모션이 몸 기준 고정 방향이라, 양자화 잔차(±22.5°, 폴백 시 그 이상)만큼 몸을 돌려 이동을 입력 방향에 맞춘다.
 	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	const bool bLockedOn = ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_LockOn);

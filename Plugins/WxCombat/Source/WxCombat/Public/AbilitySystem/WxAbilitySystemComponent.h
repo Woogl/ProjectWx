@@ -38,7 +38,6 @@ public:
 	 * 홀드형 트리거는 눌려 있는 동안 매 프레임 들어온다.
 	 *
 	 * 어빌리티 라우팅의 유일한 진입점이다.
-	 * 액션 중에 막힌 탭은 뗀 뒤에도 InputBufferDuration 동안 기억해 두었다가, 창이 열리는 전이점에서 같은 시도를 한다(입력 버퍼).
 	 */
 	void AbilityInputActionTriggered(const UInputAction* Action);
 
@@ -63,7 +62,6 @@ public:
 	 */
 	void ApplyHitStop(float Duration, const UGameplayAbility* SourceAbility);
 
-	/** 발동이 거부된 어빌리티와 그 사유(차단·쿨다운·코스트 등)를 남긴다. */
 	virtual void NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason) override;
 
 	/** 후딜에 들어 점유를 놓은 배타 어빌리티를 끊는다. */

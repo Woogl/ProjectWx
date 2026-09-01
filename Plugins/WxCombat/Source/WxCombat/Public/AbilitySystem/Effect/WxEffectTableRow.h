@@ -6,7 +6,7 @@
 #include "Engine/DataTable.h"
 #include "WxEffectTableRow.generated.h"
 
-/** RowName 예시: GE_Exceed */
+/** RowName 예시: GE_JumpInvincible */
 USTRUCT(BlueprintType)
 struct WXCOMBAT_API FWxEffectTableRow : public FTableRowBase
 {

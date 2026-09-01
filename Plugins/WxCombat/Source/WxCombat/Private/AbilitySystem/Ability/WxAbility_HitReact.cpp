@@ -74,7 +74,6 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		}
 	}
 
-	// 반응 태그 없이 Event.Hit만 온 평타는 가드 리액션만 처리한다.
 	if (!ReactionTag.IsValid())
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);

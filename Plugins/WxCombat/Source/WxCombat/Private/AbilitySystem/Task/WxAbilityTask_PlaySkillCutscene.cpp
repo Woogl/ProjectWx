@@ -132,7 +132,6 @@ void UWxAbilityTask_PlaySkillCutscene::HandleSequenceFinished()
 
 void UWxAbilityTask_PlaySkillCutscene::ClearTimeDilation()
 {
-	// 배율이 아직 내가 건 값일 때만 되돌린다 — 그 사이 다른 연출이 가져갔다면 남의 연출을 끊지 않는다.
 	// 애초에 걸지 못한 머신은 AppliedDilation이 0이라 이 조건에서 함께 걸러진다.
 	if (AppliedDilation > 0.f && FMath::IsNearlyEqual(UGameplayStatics::GetGlobalTimeDilation(this), AppliedDilation))
 	{

@@ -17,7 +17,6 @@ UWxAbility_Groggy::UWxAbility_Groggy()
 	// 로컬 조종 액터에는 복제 몽타주가 적용되지 않아 소유 클라도 활성화해야 한다.
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 
-	// 실행과 종료 판정은 서버만 한다.
 	NetSecurityPolicy = EGameplayAbilityNetSecurityPolicy::ServerOnly;
 
 	FGameplayTagContainer AssetTags;

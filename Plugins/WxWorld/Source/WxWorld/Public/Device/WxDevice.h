@@ -59,7 +59,7 @@ public:
 	virtual void OnInteracted(AActor* Interactor) override;
 	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
-
+
 	void NotifyDeviceInteracted(AActor* Interactor, FGameplayTag EventTag, FConstStructView Payload = FConstStructView());
 	ACharacter* GetInteractingCharacter() const;
 
@@ -81,10 +81,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	/**
-	 * 이 상태의 발행 자리로 트리에 알린다.
-	 * 발행이 실제로 닿았는지를 답한다 — 자리를 연 적 없는 빈 바인딩과, 그 자리를 연 상태를 이미 떠나 버려지는 발행이 여기서 갈린다.
-	 */
+	/** 발행이 실제로 닿았는지를 답한다 — 자리를 연 적 없는 빈 바인딩과, 그 자리를 연 상태를 이미 떠나 버려지는 발행이 여기서 갈린다. */
 	bool BroadcastInteractionDelegate();
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")

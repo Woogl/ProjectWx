@@ -58,7 +58,6 @@ void UWxDeviceStateTreeComponent::StopLogic(const FString& Reason)
 
 void UWxDeviceStateTreeComponent::BeginPlay()
 {
-	// 권위의 첫 진입 — StateTag 는 이 시점에 비어 있고, InitialState 지정이 있으면 그것이 시작 상태가 된다.
 	if (GetOwnerRole() == ROLE_Authority && StateTagName.IsNone() && InitialState != RootInitialStateName)
 	{
 		const FGameplayTag InitialTag = FGameplayTag::RequestGameplayTag(InitialState, false);

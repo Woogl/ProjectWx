@@ -40,7 +40,7 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExe
 	Binding.Dispatcher = Instance.OnInteracted;
 	Binding.Context = Context.MakeWeakExecutionContext();
 
-	// 꺼지면 장치가 활성 판정에 false 를 답해 다음 스캔에서 탈락한다. 콜리전은 건드리지 않으므로 대상 메시의 설정은 보존된다.
+	// 콜리전은 건드리지 않으므로 대상 메시의 설정은 보존된다.
 	Device->SetInteractionBinding(Instance.bEnable, Binding);
 
 	return EStateTreeRunStatus::Succeeded;

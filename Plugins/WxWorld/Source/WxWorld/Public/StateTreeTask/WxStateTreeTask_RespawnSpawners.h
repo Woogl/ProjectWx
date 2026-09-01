@@ -19,7 +19,7 @@ struct FWxStateTreeTask_RespawnSpawnersInstanceData
 
 /**
  * 라이브 전이로 진입할 때 권위 측에서 월드의 Auto 모드 스포너를 일괄 리스폰하고 Succeeded 로 완료한다(체크포인트 휴식 시 적 리스폰).
- * 대상을 지정하지 않고 월드 전체를 훑는다는 점에서 'Trigger Spawners'(지정 스포너 트리거)와 갈린다.
+ * 대상을 지정하지 않고 월드 전체를 훑는다는 점에서 '스포너 발동'(지정 스포너만 트리거)과 갈린다.
  * 초기 진입(StateTree 시작/복원/레이트조인)이면 호출하지 않는다 — 리스폰은 발동 순간의 효과다.
  */
 USTRUCT(meta = (DisplayName = "스포너 리스폰", Category = "Wx"))

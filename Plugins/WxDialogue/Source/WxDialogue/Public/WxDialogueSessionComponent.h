@@ -111,7 +111,7 @@ protected:
 	float CameraBlendTime = 0.5f;
 
 private:
-	/** 시작 행을 소유 클라로 넘겨 세션을 시드하고 시작을 발행한다. 대상 액터는 관찰자 노출을 위해 세션 동안 기억한다. */
+	/** 대상 액터는 관찰자 노출을 위해 세션 동안 기억한다. */
 	UFUNCTION(Client, Reliable)
 	void ClientStartDialogue(const FDataTableRowHandle& StartRow, AActor* Target);
 
@@ -141,7 +141,6 @@ private:
 
 	void HandlePoseLoaded();
 
-	/** 스트리밍을 마친 포즈를 요청 당시의 대상에 얹는다. */
 	void PlayPendingPose();
 
 	/** 카메라는 로컬 어포던스라 로컬 컨트롤러가 아니면 null 을 답해 카메라 경로를 통째로 건너뛴다. */

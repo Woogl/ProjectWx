@@ -100,7 +100,7 @@ namespace WxGameplayTags
 
 	// ── Device ──────────────────────────────────────────────────────────────
 
-	// 장치의 State Tree 상태값이며 곧 세이브 슬롯에 저장된다.
+	// 장치의 State Tree 상태값이다.
 	// 코드에서 읽거나 쓰는 값은 아니지만 태그는 여기서 정의한다.
 	
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Button_Idle);
@@ -131,7 +131,6 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_GhostTrail);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Exceed);
 
-	/** 공격 경고(선딜 표시) */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_AttackTelegraph_Red);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_AttackTelegraph_Yellow);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_AttackTelegraph_Blue);
@@ -223,7 +222,7 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Magnitude);
 	
-	/** 지속시간 Duration SetByCaller 키. Cooldown/NoCooldown/InfiniteMP의 DurationMagnitude에서 공용으로 사용 */
+	/** 지속시간 Duration SetByCaller 키. NoCooldown/InfiniteMP의 DurationMagnitude에서 공용으로 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Duration);
 
 	/** 공격력 계수 SetByCaller 키. WxExecCalc_Damage가 ATK 어트리뷰트에 곱하는 배율 */

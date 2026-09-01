@@ -15,7 +15,7 @@ class UGameplayEffect;
  * 그 경로는 폰이 부착된 액터(스포너 등)의 것이다.
  * Once 로 경로를 마친 뒤에는 이동 없이 브랜치를 점유한 채 머무르므로, 같은 시퀀스에서 뒤따르는 형제 노드는 더 이상 실행되지 않는다.
  *
- * 이동 목표 키는 UWxPatrolComponent 와의 고정 계약이라 저작 대상이 아니다.
+ * 이동 목표 키는 InitializeFromAsset 가 PatrolTargetLocation 으로 고정하므로 저작 대상이 아니다.
  */
 UCLASS(HideCategories = (Blackboard))
 class WXAI_API UWxBTTask_Patrol : public UBTTask_MoveTo

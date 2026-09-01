@@ -63,7 +63,7 @@ public:
 };
 
 /**
- * 인벤토리 매니저의 UseItemByDef 가 Effect 적용과 스택 1 차감을 함께 수행한다.
+ * UWxInventoryComponent::UseItemByDef 가 Effect 적용과 스택 1 차감을 함께 수행한다.
  */
 UCLASS(DisplayName = "Usable")
 class WXINVENTORY_API UWxItemFragment_Usable : public UWxItemFragment

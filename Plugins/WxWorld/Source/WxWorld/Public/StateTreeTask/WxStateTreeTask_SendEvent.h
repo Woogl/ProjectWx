@@ -33,10 +33,7 @@ struct FWxStateTreeTask_SendEventInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	EWxDeviceEventTarget TargetKind = EWxDeviceEventTarget::Linked;
 
-	/**
-	 * 오너의 같은 이름 프로퍼티를 바인딩으로 받는 자리다 — 태스크가 고르는 값이 아니라 레벨 배선의 거울이다.
-	 * 리터럴로 담지 않는 이유는 공유 ST 에셋을 여러 배치 인스턴스가 쓰기 때문이다 — 에셋에 박은 값은 인스턴스마다 다를 수 없다.
-	 */
+	/** 오너의 같은 이름 프로퍼티를 바인딩으로 받는 자리다 — 공유 ST 에셋을 여러 배치 인스턴스가 쓰므로 에셋에 박은 리터럴은 인스턴스마다 다를 수 없다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (EditCondition = "TargetKind == EWxDeviceEventTarget::Linked", EditConditionHides))
 	TArray<TObjectPtr<AWxDevice>> LinkedDevices;
 
@@ -55,7 +52,7 @@ struct FWxStateTreeTask_SendEventInstanceData
  * 어느 상태로 갈지는 그 이벤트를 듣는 대상 에셋의 전이가 정하고, 결과는 대상의 StateTag 복제로 클라에 전해진다.
  *
  * 대상의 상태를 밖에서 직접 쓰지 않는 것이 요점이다 — 장치의 활성은 그 장치의 트리만 쓰고 밖에서는 상태를 요청하기만 하므로, 대상이 자기 사정으로 켜고 끄는 중이어도 다투지 않는다.
- * 초기 진입(StateTree 시작·세이브 복원·레이트조인)이면 보내지 않는다 — 대상도 자기 복원 경로로 같은 상태에 수렴한다.
+ * 초기 진입(StateTree 시작·레이트조인)이면 보내지 않는다 — 대상도 자기 복원 경로로 같은 상태에 수렴한다.
  */
 USTRUCT(meta = (DisplayName = "이벤트 보내기", Category = "Wx"))
 struct FWxStateTreeTask_SendEvent : public FStateTreeTaskCommonBase

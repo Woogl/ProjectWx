@@ -23,7 +23,7 @@ EStateTreeRunStatus FWxStateTreeTask_ApplyGameplayEffectToInteractor::EnterState
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 전이로 들어온 것이 아니면 StateTree 시작·세이브 복원·레이트조인이다.
+	// 전이로 들어온 것이 아니면 StateTree 시작·레이트조인이다.
 	if (!Transition.SourceStateID.IsValid())
 	{
 		return EStateTreeRunStatus::Succeeded;

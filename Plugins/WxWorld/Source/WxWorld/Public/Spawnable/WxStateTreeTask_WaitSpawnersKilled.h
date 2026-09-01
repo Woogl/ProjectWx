@@ -58,6 +58,6 @@ struct FWxStateTreeTask_WaitSpawnersKilled : public FStateTreeTaskCommonBase
 #endif
 
 private:
-	/** 미해석은 판정 불가라 통과시키지 않는다. 지정이 없으면 완료할 근거도 없다. Context 는 로케이터 해석에 쓰는 태스크 오너. */
+	/** 지정이 없으면 완료할 근거도 없다. Context 는 로케이터 해석에 쓰는 태스크 오너. */
 	static bool AreAllSpawnersKilled(const FInstanceDataType& Instance, UObject* Context, int32& OutResolvedCount);
 };

@@ -27,7 +27,6 @@ EStateTreeRunStatus FWxStateTreeTask_TriggerSpawners::EnterState(FStateTreeExecu
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	// 스폰은 서버 권위 사건이라 클라 진입은 노옵.
 	AActor* Owner = Cast<AActor>(Context.GetOwner());
 	if (!Owner || !Owner->HasAuthority())
 	{

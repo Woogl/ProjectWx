@@ -67,7 +67,7 @@ FText AWxDevice::GetInteractionPrompt() const
 {
 	return InteractionBinding.Prompt;
 }
-
+
 void AWxDevice::NotifyDeviceInteracted(AActor* Interactor, FGameplayTag EventTag, FConstStructView Payload)
 {
 	// 보내는 쪽이 서버 권위에서만 부르지만, 상태를 움직이는 것은 권위 트리뿐이므로 한 번 더 가른다.
@@ -98,7 +98,7 @@ void AWxDevice::SetInteractionBinding(bool bEnabled, const FWxDeviceInteractionB
 {
 	bInteractionEnabled = bEnabled;
 
-	// 끌 때 비우지 않는다 — 켜는 노드마다 자기 것을 새로 담으므로 지울 이유가 없고, 꺼진 동안은 CanInteract 가 먼저 막는다.
+	// 켜는 노드마다 자기 것을 새로 담으므로 지울 이유가 없고, 꺼진 동안은 CanInteract 가 먼저 막는다.
 	if (bEnabled)
 	{
 		InteractionBinding = Binding;

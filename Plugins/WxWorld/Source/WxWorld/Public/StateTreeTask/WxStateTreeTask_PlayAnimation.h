@@ -31,7 +31,7 @@ struct FWxStateTreeTask_PlayAnimationInstanceData
 };
 
 /**
- * 진입 경로(라이브 전이/초기 시작/복원/레이트조인)를 가리지 않고 처음부터 재생한다 — 복원 직후에도 그 연출이 한 번 다시 보인다('Component Move' 와 동일한 방침).
+ * 진입 경로(라이브 전이/초기 시작/레이트조인)를 가리지 않고 처음부터 재생한다 — 초기 시작 직후에도 그 연출이 한 번 다시 보인다('Component Move' 와 동일한 방침).
  * 재생 종료를 감지하려고 틱한다 — 싱글노드 인스턴스가 멈추면 완료로 본다.
  */
 USTRUCT(meta = (DisplayName = "애니메이션 재생", Category = "Wx"))

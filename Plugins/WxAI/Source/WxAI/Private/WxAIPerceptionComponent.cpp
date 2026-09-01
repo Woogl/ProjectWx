@@ -95,7 +95,6 @@ void UWxAIPerceptionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void UWxAIPerceptionComponent::HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
 	// 죽은 액터는 잡지 않는다 — 시체는 파괴되지 않고 남아 시야에 다시 들어오면 성공 자극을 또 만들므로, 이 가드가 없으면 사망 정리가 다음 자극에 되돌려진다.
-	// 자극은 빈 슬롯만 채운다.
 	if (Stimulus.WasSuccessfullySensed() && !IsActorDead(Actor) && !AppliedTarget.ResolveObjectPtr())
 	{
 		SetTargetActor(Actor);

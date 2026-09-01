@@ -20,6 +20,5 @@ public:
 	/** SP 0에서 MaxSP까지 회복에 걸리는 시간(초) */
 	static constexpr float FullRegenDuration = 4.0f;
 
-	/** 회복 틱 간격(초) */
 	static constexpr float RegenPeriod = 1.0f / 30.0f;
 };

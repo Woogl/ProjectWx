@@ -15,7 +15,6 @@ class UWxDialogueComponent;
  *
  * 루트를 만들지 않는다 — 파생이 저마다 다른 몸통을 세운다(NPC 는 캡슐+스켈레탈, 말 거는 물체는 메시).
  * 계약은 액터 전용이라 컴포넌트가 들지 않는다.
- * 대화 말고 다른 상호작용(거래 등)이 같은 대상에 붙어도 구현체는 이 액터 하나로 남고, 능력만 컴포넌트로 조립된다.
  */
 UCLASS(Abstract)
 class WXDIALOGUE_API AWxDialogueActor : public AActor, public IWxInteractable

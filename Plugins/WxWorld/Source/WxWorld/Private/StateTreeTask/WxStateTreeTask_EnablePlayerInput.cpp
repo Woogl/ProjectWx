@@ -57,7 +57,6 @@ EStateTreeRunStatus FWxStateTreeTask_EnablePlayerInput::EnterState(FStateTreeExe
 
 void FWxStateTreeTask_EnablePlayerInput::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	// 켜는 노드(bEnable)는 기록을 남기지 않으므로 여기서 되돌릴 것도 없다.
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 	APawn* Pawn = Instance.DisabledPawn.Get();
 	APlayerController* PC = Instance.DisabledController.Get();

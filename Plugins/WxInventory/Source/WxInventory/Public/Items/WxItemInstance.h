@@ -14,7 +14,7 @@ class UWxItemFragment;
 
 /**
  * UWxItemDefinition 이 정적 정의(데이터 자산)라면, 본 인스턴스는 개별 아이템의 수명/식별 단위다.
- * 인벤토리 매니저가 생성·소멸을 관리하며, 슬롯 단위 델리게이트의 안정 식별자 역할을 한다.
+ * UWxInventoryComponent 가 생성·소멸을 관리하며, 슬롯 단위 델리게이트의 안정 식별자 역할을 한다.
  *
  * 아이템 사용 GE 컨텍스트의 SourceObject 로 실려, 효과 측이 인스턴스별 데이터(Definition 의 Fragment 등)에 접근하는 진입점이 된다.
  */
@@ -58,7 +58,7 @@ public:
 
 	/**
 	 * 권한: 충전 횟수는 [0, MaxCharges] 로 클램프된다.
-	 * 변경 브로드캐스트(OnInventoryChargeChanged)는 호출자(인벤토리 매니저) 책임이다.
+	 * 변경 브로드캐스트(OnInventoryChargeChanged)는 호출자(UWxInventoryComponent) 책임이다.
 	 */
 	void SetCurrentCharges(int32 InCharges);
 

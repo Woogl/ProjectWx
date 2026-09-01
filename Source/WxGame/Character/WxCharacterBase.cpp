@@ -75,7 +75,7 @@ void AWxCharacterBase::PostInitializeComponents()
 	}
 
 	// 사망 처리도 같은 이유로 여기서 구독한다 — 무기 판정 해제와 OnDeath 방송은 시뮬 프록시를 포함한 전 머신에서 일어나야 한다.
-	// 보상 지급 같은 권위 전용 처리는 HandleDeath 내부의 HasAuthority 가드가 계속 가른다.
+	// 보상 지급 같은 권위 전용 처리는 파생 HandleDeath 내부의 HasAuthority 가드가 계속 가른다.
 	AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &AWxCharacterBase::HandleDeathTagChanged);
 

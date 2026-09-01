@@ -30,7 +30,7 @@ protected:
 private:
 	void HandleSpawnMinionEvent(const FGameplayEventData* Payload);
 
-	/** 사라졌거나 죽은 소환물을 걷어낸다. 시체는 월드에 남으므로 사망 태그로 가른다. */
+	/** 시체는 월드에 남으므로 사망 태그로 가른다. */
 	void PruneInactiveMinions();
 
 	TWeakObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;

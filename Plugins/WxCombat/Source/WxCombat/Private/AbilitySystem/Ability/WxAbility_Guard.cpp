@@ -75,7 +75,7 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 void UWxAbility_Guard::HandleMontageCompleted()
 {
-	// GuardMontage는 루핑 몽타주이므로 OnCompleted가 발생하지 않는다. 닿더라도 가드는 입력이 끊을 때까지 유지한다.
+	// 완주로 닿더라도 가드는 입력이 끊을 때까지 유지한다.
 }
 
 void UWxAbility_Guard::HandleMontageInterrupted()

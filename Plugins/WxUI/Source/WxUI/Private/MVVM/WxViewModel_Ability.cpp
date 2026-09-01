@@ -341,7 +341,6 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 		return false;
 	}
 
-	// 쿨다운 GE 의 스택 1개 = 회복 대기 중인 충전 1개, 지속시간 = 충전 1개의 회복 시간.
 	float ChargeRemaining = 0.f;
 	float ChargeDuration = 0.f;
 	const int32 ConsumedCharges = QueryCooldownStacks(*ASC, World->GetTimeSeconds(), ChargeRemaining, ChargeDuration);

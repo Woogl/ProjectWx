@@ -33,7 +33,7 @@ FString UWxBTComposite_RandomChoice::GetStaticDescription() const
 
 int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& SearchData, int32 PrevChild, EBTNodeResult::Type LastResult) const
 {
-	// 첫 진입이 아니면 (= 선택된 자식이 결과를 반환한 시점) 결과를 그대로 부모에 전파한다. 폴백 없음.
+	// 첫 진입이 아니면 (= 선택된 자식이 결과를 반환한 시점) 결과를 그대로 부모에 전파한다.
 	if (PrevChild != BTSpecialChild::NotInitialized)
 	{
 		return BTSpecialChild::ReturnToParent;

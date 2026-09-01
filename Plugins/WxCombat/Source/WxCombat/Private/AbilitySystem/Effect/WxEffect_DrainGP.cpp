@@ -42,7 +42,6 @@ float UWxMMC_DrainGP::CalculateBaseMagnitude_Implementation(const FGameplayEffec
 		return 0.f;
 	}
 
-	// 틱은 주기 배수에만 놓이므로, 자투리 시간까지 시간 비례로 나누면 마지막 틱에서도 GP가 남는다.
 	const int32 TickCount = FMath::Max(1, FMath::FloorToInt(Duration / Period + UE_KINDA_SMALL_NUMBER));
 
 	FAggregatorEvaluateParameters EvalParams;

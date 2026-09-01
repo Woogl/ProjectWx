@@ -139,7 +139,7 @@ void UWxAbility_Finisher::RegisterWarpTarget(AActor* AvatarActor, const AActor* 
 	}
 
 	// 멈출 간격·상대 포즈는 공격 몽타주의 Motion Warping Warp Point(애니)가 소유한다.
-	// 몬스터가 플레이어를 향해 회전하는 것은 처형 당하기 어빌리티가 담당한다.
+	// 몬스터가 플레이어를 향해 회전하는 것은 피해자에게 부여되는 UWxAbility_PlayMontageOnce가 담당한다.
 	const FVector TargetLocation = Target->GetActorLocation();
 	FVector Direction = TargetLocation - AvatarActor->GetActorLocation();
 	Direction.Z = 0.0;

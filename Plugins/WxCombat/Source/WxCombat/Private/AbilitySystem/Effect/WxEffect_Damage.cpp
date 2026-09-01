@@ -92,7 +92,6 @@ static float CalculateGuardMultiplier(bool bGuardHit)
 {
 	if (bGuardHit)
 	{
-		// 50% 차감
 		return UWxEffect_Guard::DamageMultiplier;
 	}
 	return 1.f;
