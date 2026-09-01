@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 using UnrealBuildTool;
 
@@ -19,6 +19,7 @@ public class WxEditor : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
+			"GameplayAbilities",
 			"GameplayStateTreeModule",
 			"Slate",
 			"SlateCore",

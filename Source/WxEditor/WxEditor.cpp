@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "WxEditor.h"
 
@@ -17,11 +17,11 @@
 #include "UnrealEdGlobals.h"
 #include "UObject/Object.h"
 #include "UObject/UObjectGlobals.h"
-#include "WxAbilityThumbnailRenderer.h"
 #include "WxActorLocatorCustomization.h"
 #include "WxStateTreeComponentNameCustomization.h"
 #include "WxDeviceLinkVisualizer.h"
 #include "WxItemDefinitionThumbnailRenderer.h"
+#include "WxUIDataThumbnailRenderer.h"
 #include "Device/WxDeviceComponentName.h"
 
 IMPLEMENT_MODULE(FWxEditorModule, WxEditor)
@@ -52,12 +52,12 @@ void FWxEditorModule::StartupModule()
 		UWxItemDefinition::StaticClass(),
 		UWxItemDefinitionThumbnailRenderer::StaticClass());
 
-	// 어빌리티 BP 썸네일을 FWxAbilityTableRow 의 아이콘으로 렌더링하기 위해, 엔진이 ini 로 등록한 기본 Blueprint 렌더러를 파생 렌더러로 교체한다.
+	// 어빌리티·GE BP 썸네일을 각자의 테이블 행 아이콘으로 렌더링하기 위해, 엔진이 ini 로 등록한 기본 Blueprint 렌더러를 파생 렌더러로 교체한다.
 	// RegisterCustomRenderer 는 동일 클래스 중복 등록을 거부하므로 기존 등록을 먼저 해제해야 한다.
 	UThumbnailManager::Get().UnregisterCustomRenderer(UBlueprint::StaticClass());
 	UThumbnailManager::Get().RegisterCustomRenderer(
 		UBlueprint::StaticClass(),
-		UWxAbilityThumbnailRenderer::StaticClass());
+		UWxUIDataThumbnailRenderer::StaticClass());
 
 	BeginPIEHandle = FEditorDelegates::BeginPIE.AddRaw(this, &FWxEditorModule::HandleBeginPIE);
 
