@@ -16,8 +16,6 @@ public class WxAI : ModuleRules
 			"Engine",
 			"GameplayAbilities",
 			"GameplayTags",
-			"GameplayTasks",
-			"NavigationSystem",
 			"WxCore",
 		});
 	}
