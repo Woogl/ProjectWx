@@ -51,8 +51,6 @@ void UWxViewModel_Indicator::Deinitialize()
 	}
 	CachedManager.Reset();
 
-	ApplyIndicator(nullptr);
-
 	Super::Deinitialize();
 }
 

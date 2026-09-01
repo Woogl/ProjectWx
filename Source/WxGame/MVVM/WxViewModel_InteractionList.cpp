@@ -53,11 +53,7 @@ void UWxViewModel_InteractionList::Deinitialize()
 	}
 	CachedScanner.Reset();
 
-	if (!Entries.IsEmpty())
-	{
-		Entries.Reset();
-		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(Entries);
-	}
+	Entries.Reset();
 
 	Super::Deinitialize();
 }

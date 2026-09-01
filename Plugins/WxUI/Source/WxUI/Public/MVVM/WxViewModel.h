@@ -37,8 +37,11 @@ public:
 	virtual void BeginDestroy() override;
 
 	/**
-	 * 파생은 자기 정리 후 Super 를 호출한다.
+	 * 구독과 소스 참조를 놓는 자리다. 파생은 자기 정리 후 Super 를 호출한다.
 	 * 진행 중인 이미지 요청은 여기서 일괄 취소된다.
+	 *
+	 * 표시 필드 변경은 브로드캐스트하지 않는다 — BeginDestroy 에서도 불려, 함께 수거될 뷰의 바인딩으로 통지가 들어간다.
+	 * 값을 조용히 되돌리는 것은 자유이며, 표시가 바뀌어야 하면 재초기화 경로나 호출자가 세터로 알린다.
 	 */
 	virtual void Deinitialize();
 

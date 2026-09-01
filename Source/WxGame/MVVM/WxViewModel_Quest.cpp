@@ -30,11 +30,7 @@ void UWxViewModel_Quest::Deinitialize()
 	}
 	CachedQuestComponent.Reset();
 
-	if (!Objectives.IsEmpty())
-	{
-		Objectives.Reset();
-		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(Objectives);
-	}
+	Objectives.Reset();
 
 	Super::Deinitialize();
 }
