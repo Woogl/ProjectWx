@@ -1,12 +1,12 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "MVVM/WxViewModel_Effect.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
-#include "Component/WxEffectComponent_UIData.h"
+#include "WxUIData.h"
 #include "Engine/Texture2D.h"
 
-void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const UWxEffectComponent_UIData* InUIData)
+void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const IWxUIData* InUIData)
 {
 	if (!InASC || !InHandle.IsValid() || !InUIData)
 	{
@@ -23,10 +23,11 @@ void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGame
 	CachedASC = InASC;
 	BoundHandle = InHandle;
 
-	SetEffectName(InUIData->DisplayName);
+	SetTitle(InUIData->GetTitle());
+	SetDescription(InUIData->GetDescription());
 
 	// 전투 중 동기 로드 히치를 피한다.
-	RequestImageAsync(TEXT("Icon"), InUIData->Icon);
+	RequestImageAsync(TEXT("Icon"), InUIData->GetIcon());
 
 	SetStackCount(ActiveEffect->Spec.GetStackCount());
 
@@ -87,14 +88,24 @@ FActiveGameplayEffectHandle UWxViewModel_Effect::GetBoundHandle() const
 	return BoundHandle;
 }
 
-FText UWxViewModel_Effect::GetEffectName() const
+FText UWxViewModel_Effect::GetTitle() const
 {
-	return EffectName;
+	return Title;
 }
 
-void UWxViewModel_Effect::SetEffectName(const FText& NewValue)
+void UWxViewModel_Effect::SetTitle(const FText& NewValue)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(EffectName, NewValue);
+	UE_MVVM_SET_PROPERTY_VALUE(Title, NewValue);
+}
+
+FText UWxViewModel_Effect::GetDescription() const
+{
+	return Description;
+}
+
+void UWxViewModel_Effect::SetDescription(const FText& NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(Description, NewValue);
 }
 
 float UWxViewModel_Effect::GetTimeRemaining() const

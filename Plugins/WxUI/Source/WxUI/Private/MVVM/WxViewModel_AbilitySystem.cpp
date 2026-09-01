@@ -1,12 +1,13 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "MVVM/WxViewModel_AbilitySystem.h"
 #include "MVVM/WxViewModel_Ability.h"
 #include "MVVM/WxViewModel_Attribute.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
-#include "Component/WxEffectComponent_UIData.h"
+#include "GameplayEffectUIData.h"
 #include "MVVM/WxViewModel_Effect.h"
+#include "WxUIData.h"
 
 UWxViewModel_AbilitySystem* UWxViewModel_AbilitySystem::GetOrCreate(UAbilitySystemComponent* InASC)
 {
@@ -180,8 +181,11 @@ void UWxViewModel_AbilitySystem::HandleActiveEffectAdded(UAbilitySystemComponent
 		return;
 	}
 
-	const UWxEffectComponent_UIData* UIData = Spec.Def->FindComponent<UWxEffectComponent_UIData>();
-	if (!UIData)
+	// GE 의 컴포넌트 배열은 클래스로만 뒤질 수 있어, 도메인 구현체와 공유하는 엔진 베이스를 앵커로 잡고 계약으로 내린다.
+	const IWxUIData* UIData = Cast<IWxUIData>(Spec.Def->FindComponent<UGameplayEffectUIData>());
+
+	// 수치만 쓰는 GE 도 같은 앵커에 걸리므로, 아이콘을 채운 GE 만 목록에 올린다 — 버프 목록은 아이콘으로 그려진다.
+	if (!UIData || UIData->GetIcon().IsNull())
 	{
 		return;
 	}

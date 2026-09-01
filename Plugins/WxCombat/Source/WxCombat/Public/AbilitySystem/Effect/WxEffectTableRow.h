@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
@@ -19,4 +19,13 @@ struct WXCOMBAT_API FWxEffectTableRow : public FTableRowBase
 	/** 지속시간(초). HasDuration GE만 쓴다 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effect", meta = (ClampMin = "0.0"))
 	float Duration = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Display")
+	FText Title;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Display", meta = (MultiLine = true))
+	FText Description;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Display", meta = (AllowedClasses = "/Script/Engine.Texture2D,/Script/Engine.MaterialInterface"))
+	TSoftObjectPtr<UObject> Icon;
 };

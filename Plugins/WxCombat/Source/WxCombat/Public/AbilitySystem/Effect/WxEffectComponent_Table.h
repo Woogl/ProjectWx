@@ -1,11 +1,12 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
-#include "GameplayEffectComponent.h"
+#include "GameplayEffectUIData.h"
 #include "GameplayModMagnitudeCalculation.h"
+#include "WxUIData.h"
 #include "WxEffectComponent_Table.generated.h"
 
 struct FWxEffectTableRow;
@@ -14,14 +15,22 @@ struct FWxEffectTableRow;
  * GE가 참조할 FWxEffectTableRow 행을 지목한다.
  * 값을 스펙에 실어 보내지는 않는다 — 컴포넌트 콜백은 적용이 끝난 뒤에 오거나 스펙이 const라 주입할 자리가 없다.
  * 대신 아래 MMC들이 계산 시점에 GE 정의에서 이 컴포넌트를 찾아 행을 읽는다.
+ *
+ * 베이스가 UGameplayEffectUIData 인 것은 표시 데이터 때문이다 — WxUI 는 WxCombat 을 참조할 수 없고 GE 의 컴포넌트 배열도 클래스로만 뒤질 수 있어, 양쪽이 아는 이 엔진 클래스가 유일한 조회 앵커다.
  */
 UCLASS(DisplayName = "Wx Effect Data")
-class WXCOMBAT_API UWxEffectComponent_Table : public UGameplayEffectComponent
+class WXCOMBAT_API UWxEffectComponent_Table : public UGameplayEffectUIData, public IWxUIData
 {
 	GENERATED_BODY()
 
 public:
 	UWxEffectComponent_Table();
+
+	//~ Begin IWxUIData
+	virtual FText GetTitle() const override;
+	virtual FText GetDescription() const override;
+	virtual TSoftObjectPtr<UObject> GetIcon() const override;
+	//~ End IWxUIData
 
 	UPROPERTY(EditDefaultsOnly, meta = (RowType = "/Script/WxCombat.WxEffectTableRow"))
 	FDataTableRowHandle EffectDataRow;

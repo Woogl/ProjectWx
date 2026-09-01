@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
@@ -8,7 +8,7 @@
 #include "MVVM/WxViewModel.h"
 #include "WxViewModel_Effect.generated.h"
 
-class UWxEffectComponent_UIData;
+class IWxUIData;
 class UAbilitySystemComponent;
 
 UCLASS()
@@ -17,13 +17,16 @@ class WXUI_API UWxViewModel_Effect : public UWxViewModel
 	GENERATED_BODY()
 
 public:
-	void Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const UWxEffectComponent_UIData* InUIData);
+	void Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const IWxUIData* InUIData);
 	virtual void Deinitialize() override;
 
 	FActiveGameplayEffectHandle GetBoundHandle() const;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Effect")
-	FText EffectName;
+	FText Title;
+
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Effect")
+	FText Description;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Effect")
 	float TimeRemaining = 0.f;
@@ -44,8 +47,11 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Effect")
 	TObjectPtr<UObject> Icon = nullptr;
 
-	FText GetEffectName() const;
-	void SetEffectName(const FText& NewValue);
+	FText GetTitle() const;
+	void SetTitle(const FText& NewValue);
+
+	FText GetDescription() const;
+	void SetDescription(const FText& NewValue);
 
 	float GetTimeRemaining() const;
 	void SetTimeRemaining(float NewValue);

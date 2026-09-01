@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Effect/WxEffectComponent_Table.h"
 #include "AbilitySystem/Effect/WxEffectTableRow.h"
@@ -9,6 +9,24 @@ UWxEffectComponent_Table::UWxEffectComponent_Table()
 #if WITH_EDITORONLY_DATA
 	EditorFriendlyName = TEXT("Wx Effect Data");
 #endif
+}
+
+FText UWxEffectComponent_Table::GetTitle() const
+{
+	const FWxEffectTableRow* Row = GetRow();
+	return Row ? Row->Title : FText::GetEmpty();
+}
+
+FText UWxEffectComponent_Table::GetDescription() const
+{
+	const FWxEffectTableRow* Row = GetRow();
+	return Row ? Row->Description : FText::GetEmpty();
+}
+
+TSoftObjectPtr<UObject> UWxEffectComponent_Table::GetIcon() const
+{
+	const FWxEffectTableRow* Row = GetRow();
+	return Row ? Row->Icon : nullptr;
 }
 
 const FWxEffectTableRow* UWxEffectComponent_Table::GetRow() const
