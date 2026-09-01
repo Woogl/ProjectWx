@@ -7,6 +7,7 @@
 #include "Character/WxCharacterMovementComponent.h"
 #include "Character/WxMetaHumanComponent.h"
 #include "Inventory/WxEquipmentComponent.h"
+#include "Minion/WxMinionComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/GameFrameworkComponentManager.h"
 #include "Components/ChildActorComponent.h"
@@ -37,6 +38,7 @@ AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
 
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
 	ProjectileComponent = CreateDefaultSubobject<UWxProjectileComponent>(TEXT("ProjectileComponent"));
+	MinionComponent = CreateDefaultSubobject<UWxMinionComponent>(TEXT("MinionComponent"));
 
 	EquipmentComponent = CreateDefaultSubobject<UWxEquipmentComponent>(TEXT("EquipmentComponent"));
 
@@ -163,6 +165,11 @@ void AWxCharacterBase::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer)
 AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const
 {
 	return WeaponActor ? Cast<AWxWeaponBase>(WeaponActor->GetChildActor()) : nullptr;
+}
+
+UBehaviorTree* AWxCharacterBase::GetBehaviorTree() const
+{
+	return BehaviorTreeAsset;
 }
 
 const FText& AWxCharacterBase::GetCharacterName() const

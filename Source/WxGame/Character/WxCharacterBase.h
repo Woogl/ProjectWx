@@ -11,12 +11,14 @@
 #include "WxTeamTypes.h"
 #include "WxCharacterBase.generated.h"
 
+class UBehaviorTree;
 class UChildActorComponent;
 class UMotionWarpingComponent;
 class UWxAbilitySystemComponent;
 class UWxCombatAttributeSet;
 class UWxEquipmentComponent;
 class UWxMetaHumanComponent;
+class UWxMinionComponent;
 class UWxProjectileComponent;
 class AWxWeaponBase;
 class USkeletalMesh;
@@ -60,6 +62,9 @@ public:
 	bool IsAlive() const;
 	AWxWeaponBase* GetEquippedWeapon() const;
 
+	/** 비우면 AI 컨트롤러가 트리를 돌리지 않는다 — 플레이어처럼 사람이 모는 캐릭터가 그렇다. */
+	UBehaviorTree* GetBehaviorTree() const;
+
 	const FText& GetCharacterName() const;
 
 	const TSoftObjectPtr<UObject>& GetPortrait() const;
@@ -81,6 +86,10 @@ protected:
 	/** AnimNotify GameplayEvent를 받아 서버 권위로 투사체를 생성한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Combat")
 	TObjectPtr<UWxProjectileComponent> ProjectileComponent;
+
+	/** 소환 AnimNotify GameplayEvent를 받아 서버 권위로 소환물을 생성한다. */
+	UPROPERTY(VisibleAnywhere, Category = "Wx|Combat")
+	TObjectPtr<UWxMinionComponent> MinionComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Equipment")
 	TObjectPtr<UWxEquipmentComponent> EquipmentComponent;
@@ -125,6 +134,9 @@ protected:
 	/** UI 측에서 비동기 로드한다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|UI", meta = (AllowedClasses = "/Script/Engine.Texture2D,/Script/Engine.MaterialInterface"))
 	TSoftObjectPtr<UObject> Portrait;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
+	TObjectPtr<UBehaviorTree> BehaviorTreeAsset;
 
 	UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_Team, Category = "Wx|Team")
 	EWxTeam Team = EWxTeam::Player;

@@ -1,7 +1,7 @@
 ﻿// Copyright Woogle. All Rights Reserved.
 
 #include "Character/WxEnemyCharacter.h"
-#include "Controller/WxEnemyController.h"
+#include "Controller/WxAIController.h"
 #include "Component/WxNameplateComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "WxRewardLibrary.h"
@@ -18,7 +18,7 @@ AWxEnemyCharacter::AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer
 {
 	Team = EWxTeam::Enemy;
 
-	AIControllerClass = AWxEnemyController::StaticClass();
+	AIControllerClass = AWxAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	GetCharacterMovement()->MaxWalkSpeed = 400.f;
@@ -46,6 +46,8 @@ void AWxEnemyCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	NameplateComponent->InitializeViewModels(AbilitySystemComponent, CharacterName, Portrait);
+
+	LockOnPoint->OnLockedOnChanged.AddUObject(this, &AWxEnemyCharacter::HandleLockedOnChanged);
 
 	RefreshNameplateVisibility();
 }
@@ -77,12 +79,20 @@ void AWxEnemyCharacter::NotifyAITargetChanged()
 	OnAITargetChanged.Broadcast(bHasAITarget);
 }
 
+void AWxEnemyCharacter::HandleLockedOnChanged(bool bLockedOn)
+{
+	RefreshNameplateVisibility();
+}
+
 void AWxEnemyCharacter::RefreshNameplateVisibility()
 {
 	const bool bDead = AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Death);
 
+	// 아직 나를 인지하지 못한 적이라도 내가 락온했다면 띄운다.
+	const bool bShow = bHasAITarget || LockOnPoint->IsLockedOn();
+
 	// 숨김은 컴포넌트를 화면 위젯 레이어에서 빼내 매 프레임 투영 비용까지 없앤다.
-	NameplateComponent->SetVisibility(!bDead && bHasAITarget);
+	NameplateComponent->SetVisibility(!bDead && bShow);
 }
 
 bool AWxEnemyCharacter::IsInRearCone(const AActor* Interactor) const
@@ -187,10 +197,5 @@ bool AWxEnemyCharacter::CanInteract(const AActor* Interactor) const
 
 	// 뒤잡은 적이 아직 타겟을 획득하지 못했을 때만 성립한다.
 	return !bHasAITarget && IsInRearCone(Interactor);
-}
-
-UBehaviorTree* AWxEnemyCharacter::GetBehaviorTree() const
-{
-	return BehaviorTreeAsset;
 }
 

@@ -4,21 +4,22 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
-#include "WxEnemyController.generated.h"
+#include "WxAIController.generated.h"
 
 class AWxCharacterBase;
 class UWxAIPerceptionComponent;
 
 /**
+ * AI 가 모는 폰 전부의 컨트롤러다 — 적이든 소환수든 팀을 가리지 않으며, 적대 여부는 빙의한 폰의 팀이 정한다.
  * Perception/감지 → Blackboard 동기화 책임은 UWxAIPerceptionComponent 에 위임한다.
  */
 UCLASS()
-class WXGAME_API AWxEnemyController : public AAIController
+class WXGAME_API AWxAIController : public AAIController
 {
 	GENERATED_BODY()
 
 public:
-	AWxEnemyController();
+	AWxAIController();
 
 protected:
 	virtual void OnPossess(APawn* InPawn) override;

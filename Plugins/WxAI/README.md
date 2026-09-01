@@ -11,7 +11,7 @@
 - 팀 구분 enum (`EWxTeam`)과 애님 노티파이 기반 소음 발생
 
 **경계 (비담당)**
-- AIController·적 캐릭터 클래스, `SelfActor`/`HomeLocation` 키 세팅 → `WxGame`(WxEnemyController 등)
+- AIController·AI 캐릭터 클래스, `SelfActor`/`HomeLocation` 키 세팅 → `WxGame`(WxAIController 등)
 - 어빌리티·이펙트·어트리뷰트의 정의와 실제 전투 규칙 → [[WxCombat]] (BT 노드는 GAS 태그/이펙트 클래스를 데이터로만 참조하며 WxCombat에 링크하지 않음)
 
 ## 핵심 타입 (진입점)
@@ -37,7 +37,7 @@
 3. `Source/WxAI/Private/WxBTComposite_RandomChoice.cpp` — 후보 필터링과 가중 추첨 로직(RandomWeight Decorator와의 협업)이 여기서 결정된다.
 
 ## 관련
-- 상위: `WxGame`의 적 AIController·캐릭터(WxEnemyController 등)가 이 모듈의 노드와 컴포넌트를 조립해 사용한다. 어빌리티/어트리뷰트/이펙트는 [[WxCombat]] 자산을 BT 에디터에서 데이터로 물린다.
+- 상위: `WxGame`의 AIController·캐릭터(WxAIController 등)가 이 모듈의 노드와 컴포넌트를 조립해 사용한다. 어빌리티/어트리뷰트/이펙트는 [[WxCombat]] 자산을 BT 에디터에서 데이터로 물린다.
 
 ---
 *문서 기준 커밋 `b3f982b` · 생성일 2026-08-31 · 소스 28파일 — `/readme-writer`로 갱신*

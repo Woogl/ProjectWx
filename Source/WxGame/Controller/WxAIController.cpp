@@ -1,21 +1,22 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "WxEnemyController.h"
+#include "WxAIController.h"
 #include "WxBlackboardKeys.h"
 #include "WxAIPerceptionComponent.h"
+#include "Character/WxCharacterBase.h"
 #include "Character/WxEnemyCharacter.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BrainComponent.h"
 #include "GenericTeamAgentInterface.h"
 
-AWxEnemyController::AWxEnemyController()
+AWxAIController::AWxAIController()
 {
 	WxAIPerceptionComponent = CreateDefaultSubobject<UWxAIPerceptionComponent>(TEXT("WxAIPerceptionComponent"));
 	WxAIPerceptionComponent->OnTargetChanged.AddUObject(this, &ThisClass::HandleAITargetChanged);
 }
 
-void AWxEnemyController::OnPossess(APawn* InPawn)
+void AWxAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
@@ -29,16 +30,20 @@ void AWxEnemyController::OnPossess(APawn* InPawn)
 	}
 
 	// Blackboard 컴포넌트는 RunBehaviorTree 안에서 생성되므로, BT 를 먼저 실행한 뒤에 컨텍스트 키를 세팅한다.
-	if (AWxEnemyCharacter* Enemy = Cast<AWxEnemyCharacter>(InPawn))
+	if (AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(InPawn))
 	{
-		// 재사용된 폰도 새 빙의에서는 타겟 없이 시작한다.
-		Enemy->SetHasAITarget(false);
-		Enemy->OnDeath.AddDynamic(this, &AWxEnemyController::HandlePawnDeath);
+		WxCharacter->OnDeath.AddDynamic(this, &AWxAIController::HandlePawnDeath);
 
-		if (UBehaviorTree* BT = Enemy->GetBehaviorTree())
+		if (UBehaviorTree* BT = WxCharacter->GetBehaviorTree())
 		{
 			RunBehaviorTree(BT);
 		}
+	}
+
+	// 재사용된 폰도 새 빙의에서는 타겟 없이 시작한다.
+	if (AWxEnemyCharacter* Enemy = Cast<AWxEnemyCharacter>(InPawn))
+	{
+		Enemy->SetHasAITarget(false);
 	}
 
 	if (UBlackboardComponent* BB = GetBlackboardComponent())
@@ -48,13 +53,17 @@ void AWxEnemyController::OnPossess(APawn* InPawn)
 	}
 }
 
-void AWxEnemyController::OnUnPossess()
+void AWxAIController::OnUnPossess()
 {
 	// 엔진이 Super 에서 폰 참조를 끊으므로, 그보다 앞에서 이전 폰을 찾아 구독을 해제한다.
+	if (AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(GetPawn()))
+	{
+		WxCharacter->OnDeath.RemoveDynamic(this, &AWxAIController::HandlePawnDeath);
+	}
+
 	if (AWxEnemyCharacter* Enemy = Cast<AWxEnemyCharacter>(GetPawn()))
 	{
 		Enemy->SetHasAITarget(false);
-		Enemy->OnDeath.RemoveDynamic(this, &AWxEnemyController::HandlePawnDeath);
 	}
 
 	if (UBlackboardComponent* BB = GetBlackboardComponent())
@@ -65,7 +74,7 @@ void AWxEnemyController::OnUnPossess()
 	Super::OnUnPossess();
 }
 
-void AWxEnemyController::HandleAITargetChanged(AActor* NewTarget)
+void AWxAIController::HandleAITargetChanged(AActor* NewTarget)
 {
 	if (AWxEnemyCharacter* Enemy = Cast<AWxEnemyCharacter>(GetPawn()))
 	{
@@ -73,7 +82,7 @@ void AWxEnemyController::HandleAITargetChanged(AActor* NewTarget)
 	}
 }
 
-void AWxEnemyController::HandlePawnDeath(AWxCharacterBase* DeadCharacter)
+void AWxAIController::HandlePawnDeath(AWxCharacterBase* DeadCharacter)
 {
 	if (BrainComponent)
 	{

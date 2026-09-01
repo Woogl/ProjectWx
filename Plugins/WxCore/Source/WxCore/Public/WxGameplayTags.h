@@ -96,6 +96,8 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_SpawnProjectile);
 
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_SpawnMinion);
+
 	// ── Device ──────────────────────────────────────────────────────────────
 
 	// 장치의 State Tree 상태값이며 곧 세이브 슬롯에 저장된다.

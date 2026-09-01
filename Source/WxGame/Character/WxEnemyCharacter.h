@@ -11,7 +11,6 @@
 #include "WxEnemyCharacter.generated.h"
 
 class AWxSpawner;
-class UBehaviorTree;
 class UWxLockOnPointComponent;
 class UWxNameplateComponent;
 
@@ -25,8 +24,6 @@ class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnabl
 public:
 	AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer);
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-	UBehaviorTree* GetBehaviorTree() const;
 
 	AWxSpawner* GetOwningSpawner() const;
 
@@ -60,10 +57,10 @@ protected:
 	void OnRep_HasAITarget();
 
 	void NotifyAITargetChanged();
-	void RefreshNameplateVisibility();
 
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
-	TObjectPtr<UBehaviorTree> BehaviorTreeAsset;
+	void HandleLockedOnChanged(bool bLockedOn);
+
+	void RefreshNameplateVisibility();
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx|UI")
 	TObjectPtr<UWxNameplateComponent> NameplateComponent;
