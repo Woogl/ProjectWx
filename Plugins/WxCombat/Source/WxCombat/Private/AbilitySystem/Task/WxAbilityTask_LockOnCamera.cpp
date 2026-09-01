@@ -166,12 +166,24 @@ void UWxAbilityTask_LockOnTarget::BindTarget()
 		TargetActor->OnDestroyed.AddDynamic(this, &UWxAbilityTask_LockOnTarget::HandleTargetDestroyed);
 	}
 
+	// 피대상 표시는 레티클과 같은 성격의 개인 UI라 같은 수명으로 켠다.
+	if (UWxLockOnPointComponent* TargetPoint = Cast<UWxLockOnPointComponent>(TargetComponent))
+	{
+		TargetPoint->SetLockedOn(true);
+	}
+
 	CreateReticleWidget();
 }
 
 void UWxAbilityTask_LockOnTarget::UnbindTarget()
 {
 	DestroyReticleWidget();
+
+	// 약참조가 풀렸다면 지점 컴포넌트가 파괴된 것이라 끌 표시 상태도 함께 사라졌다.
+	if (UWxLockOnPointComponent* TargetPoint = Cast<UWxLockOnPointComponent>(Target.Get()))
+	{
+		TargetPoint->SetLockedOn(false);
+	}
 
 	// Target 약참조가 이미 풀렸어도 캐시한 소유 액터로 파괴 이벤트 바인딩을 해제한다.
 	if (AActor* TargetActor = BoundTargetActor.Get())
