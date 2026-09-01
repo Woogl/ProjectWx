@@ -1,50 +1,48 @@
-# WxGame — 기본 게임 모듈 (도메인 조립)
+# WxGame — 기본 게임 모듈 (플러그인 조립)
 
-> 도메인 플러그인(전투·인벤토리·UI·AI·대화·퀘스트·월드)을 실제 게임으로 엮는 기본 게임 모듈. Lyra 이식 Experience 시스템으로 "이 판에 무엇을 켜고 어떤 컴포넌트를 누구에게 붙일지"를 데이터 주도로 확정하고, 프레임워크·캐릭터·컨트롤러 등 조립 지점의 구체 클래스를 제공한다.
+> 도메인 플러그인(WxCombat·WxInventory·WxUI 등)을 하나의 게임으로 조립하는 최상위 Runtime 모듈. Lyra 식 Experience/GameFeature 파이프라인으로 이 판의 게임플레이 구성을 데이터 주도로 확정하고, GameMode·GameState·컨트롤러·캐릭터 같은 프레임워크 진입점을 소유한다.
 
 ## 책임
-
 **담당**
-- Experience 시스템: 게임 모드별 구성 정의(GameFeature 활성 + 액션 실행 + 기본 폰/인벤토리)를 확정·복제·로드하는 파이프라인.
-- GameMode/GameState/WorldSettings/PlayerController/PlayerState 등 프레임워크 구체 클래스 — ModularGameplay receiver로서 Experience가 요청한 컴포넌트의 부착 지점.
-- 캐릭터 계층(`AWxCharacterBase` → Player/Enemy/Boss, NPC)과 여기에 붙는 도메인 컴포넌트(ASC·장비·투사체·락온 등)의 조립·초기화.
-- MVVM 리졸버/뷰모델: 도메인 데이터(인벤토리·퀘스트·대화·보스 등)를 [[WxUI]] 뷰모델로 이어주는 양쪽 의존 브릿지.
-- 플레이어 입력 구성(`UWxInputConfig`)과 게임플레이 입력 처리, 상호작용·아이템 사용 어빌리티/애님노티파이.
+- Experience 확정·로드·적용 파이프라인 (GameMode가 고르고 GameState 매니저가 복제·주행)
+- 프레임워크 최상위 조립: GameMode / GameState / PlayerController / PlayerState / 캐릭터 베이스
+- GameFeature 플러그인 활성화 및 ModularGameplay 컴포넌트 주입 액션
+- 플레이어 폰·입력·카메라, MVVM ViewModel 결선, 치트
 
 **경계 (비담당)**
-- 전투 규칙·어트리뷰트·장비 로직은 [[WxCombat]], 인벤토리 저장·아이템 정의는 [[WxInventory]], 위젯·뷰모델 베이스는 [[WxUI]], AI 판단은 [[WxAI]], 대화·퀘스트 진행은 [[WxDialogue]]·[[WxQuest]], 상호작용/스폰 인터페이스는 [[WxWorld]]에 위임. 공용 정의는 [[WxCore]].
+- 전투 로직 — [[WxCombat]]
+- 인벤토리·아이템 정의 — [[WxInventory]]
+- UI 위젯·HUD 레이아웃 — [[WxUI]]
+- AI 행동·컨트롤러 두뇌 — [[WxAI]]
+- 대화·퀘스트 도메인 — [[WxDialogue]] · [[WxQuest]]
 
 ## 핵심 타입 (진입점)
-
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `AWxGameMode` | 진입 URL·WorldSettings로 Experience를 확정해 매니저에 넘기고, 로드 완료까지 폰 스폰·기본 인벤토리 지급을 지연 | `Framework/WxGameMode.h` |
-| `AWxGameState` | Experience 매니저 컴포넌트의 거주처이자 ModularGameplay receiver | `Framework/WxGameState.h` |
-| `UWxExperienceDefinition` | 한 판의 구성(폰 클래스·GameFeature·액션·액션셋)을 담는 프라이머리 데이터 에셋 | `Framework/WxExperienceDefinition.h` |
-| `UWxExperienceManagerComponent` | Experience 참조를 복제하고 서버·클라 각자 GameFeature 로드→액션 실행 파이프라인을 주행 | `Framework/WxExperienceManagerComponent.h` |
-| `UWxGameFeatureAction_AddComponents` | 넷모드 무관하게 대상 액터에 프레임워크 컴포넌트를 주입하는 Experience 액션 | `Framework/WxGameFeatureAction_AddComponents.h` |
-| `AWxCharacterBase` | ASC를 직접 소유하는 공통 베이스 캐릭터, 도메인 컴포넌트 조립 지점 | `Character/WxCharacterBase.h` |
-| `AWxPlayerController` | 게임플레이/입력 소유 분리 위에서 Experience가 요청한 컨트롤러 컴포넌트를 받는 receiver | `Controller/WxPlayerController.h` |
-| `UWxViewModelResolver_PlayerCharacter` | 빙의 폰의 ASC/표시 데이터를 WxUI 뷰모델에 주입하는 MVVM 브릿지 | `MVVM/WxViewModelResolver_PlayerCharacter.h` |
+| `AWxGameMode` | 이 판의 Experience 확정, 로드 완료까지 폰 스폰·시작 지급 지연 (서버 전용) | `Source/WxGame/Framework/WxGameMode.h` |
+| `UWxExperienceDefinition` | 게임플레이 구성 정의 데이터 에셋 (폰 클래스·GameFeature·액션) | `Source/WxGame/Framework/WxExperienceDefinition.h` |
+| `UWxExperienceManagerComponent` | Experience 로드·적용의 주체, 상태기계 (GameState 컴포넌트, 참조 복제) | `Source/WxGame/Framework/WxExperienceManagerComponent.h` |
+| `AWxGameState` | ModularGameplay receiver이자 Experience 매니저의 거주처 | `Source/WxGame/Framework/WxGameState.h` |
+| `AWxWorldSettings` | 맵이 자기 기본 Experience를 지정하는 자리 | `Source/WxGame/Framework/WxWorldSettings.h` |
+| `UWxGameFeatureAction_AddComponents` | 사이드 플래그 없는 컴포넌트 주입 액션 (스톡 대체) | `Source/WxGame/Framework/WxGameFeatureAction_AddComponents.h` |
+| `AWxPlayerController` | Experience가 요청 등록한 컨트롤러 컴포넌트의 주입 대상 | `Source/WxGame/Controller/WxPlayerController.h` |
+| `AWxCharacterBase` | ASC 소유 공통 베이스 캐릭터 (폰 대상 주입 receiver) | `Source/WxGame/Character/WxCharacterBase.h` |
 
 ## 확장 포인트 / 규약
-
-- **판 구성은 코드가 아니라 Experience 에셋으로 한다.** `UWxExperienceDefinition`에 켤 GameFeature 이름·실행할 `UGameFeatureAction`·공유 `UWxExperienceActionSet`을 지정한다. GameMode의 상속 `DefaultPawnClass`는 읽지 않으며 폰 클래스도 Experience가 정한다.
-- **컴포넌트 주입은 `AddComponents` 액션으로.** 대상 액터(Character/PlayerController/PlayerState/GameState)는 ModularGameplay receiver로 opt-in돼 있어야 하고, 컴포넌트 클래스가 상속한 프레임워크 베이스가 곧 부착 대상 선언이다.
-- **캐릭터 확장**: `AWxCharacterBase`를 상속해 ASC·장비·투사체 등 도메인 컴포넌트를 생성자에서 조립한다. 무기·메타휴먼·HUD 위젯 등 구체 에셋은 BP 디폴트에서 지정한다.
-- **UI 연결은 MVVM 리졸버로.** 도메인 데이터는 위젯 뷰모델 컨텍스트 리졸버(`WxViewModelResolver_*`)가 게임/도메인 타입과 [[WxUI]] 뷰모델 양쪽에 의존해 주입한다 — 도메인 뷰모델은 게임 모듈을 참조할 수 없기 때문.
-- Experience가 지정한 `GameFeaturesToEnable` 이름 문자열이 `Plugins/GameFeatures/` 콘텐츠 플러그인을 켜는 유일한 경로다.
+- **Experience 확정 순서**: 진입 URL 옵션 `?Experience=이름` → `AWxWorldSettings.GameplayExperience` 순. 둘 다 비면 폴백 없이 미확정(무효 ID)으로 두고 매니저가 에러로 드러낸다. 상속받은 `DefaultPawnClass`는 읽지 않는다 — 폰 클래스의 유일한 출처는 Experience다(비우면 스펙테이터 폰으로 빙의하는 프론트엔드 Experience).
+- **복제 모델**: GameMode는 서버 전용, Experience 참조만 GameState 서브오브젝트로 복제된다. 서버는 직접 호출, 클라는 `OnRep`으로 각자 같은 로드 파이프라인(에셋 번들 → GameFeature 활성 → 액션 실행)을 주행한다.
+- **컴포넌트 주입**: 도메인 플러그인의 컴포넌트는 `UWxGameFeatureAction_AddComponents`를 통해 ModularGameplay receiver(GameState/PlayerController/PlayerState/캐릭터)에 붙는다. 대상 액터는 컴포넌트 클래스가 상속한 프레임워크 베이스에서 도출된다.
+- **데이터 주도 규약**: `UWxExperienceDefinition`·`UWxExperienceActionSet` 에셋은 반드시 네이티브 클래스 인스턴스로 만든다 — BP 서브클래스 인스턴스는 `PrimaryAssetType`이 달라져 스캔·URL 해석에서 빠진다.
+- `ActionSet`으로 여러 Experience가 액션·GameFeature·시작 지급·HUD 클래스를 공유 합성한다.
 
 ## 여기서부터 읽어라
-
-1. `Framework/WxExperienceManagerComponent.h` — 이 모듈의 심장. 확정→복제→GameFeature 로드→액션 실행의 로드 상태 머신 전체가 여기 있다.
-2. `Framework/WxGameMode.h` — Experience 확정 순서와 로드-지연 스폰/지급 흐름. 매니저와 짝으로 읽는다.
-3. `Character/WxCharacterBase.h` — 캐릭터가 어떤 도메인 컴포넌트를 어떻게 소유·초기화하는지의 표준.
+1. `Source/WxGame/Framework/WxGameMode.h` — Experience 확정과 로드-대기 스폰의 전체 진입 흐름이 여기서 시작한다.
+2. `Source/WxGame/Framework/WxExperienceManagerComponent.h` — 로드 파이프라인 상태기계(`EWxExperienceLoadState`)의 실체. 서버·클라 공통 주행 경로.
+3. `Source/WxGame/Framework/WxGameFeatureAction_AddComponents.h` — 조립이 실제 컴포넌트로 액터에 꽂히는 지점.
 
 ## 관련
-
-- 조립 대상 도메인: [[WxCombat]] · [[WxInventory]] · [[WxUI]] · [[WxAI]] · [[WxDialogue]] · [[WxQuest]] · [[WxWorld]], 공용 foundation [[WxCore]].
-- 상위: `Plugins/GameFeatures/`의 콘텐츠 플러그인은 Experience의 `GameFeaturesToEnable`로만 켜진다.
+- 상위: 조립하는 도메인 플러그인들 — [[WxCombat]] · [[WxInventory]] · [[WxUI]] · [[WxWorld]] · [[WxAI]] · [[WxDialogue]] · [[WxQuest]] · [[WxCore]]
+- 콘텐츠 GameFeature 플러그인은 Experience의 `GameFeaturesToEnable` 이름 문자열로만 켜진다.
 
 ---
-*문서 기준 커밋 `b3f982b` · 생성일 2026-08-31 · 소스 68파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `ee3c177` · 생성일 2026-09-01 · 소스 70파일 — `/readme-writer`로 갱신*

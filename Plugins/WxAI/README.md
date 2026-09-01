@@ -1,43 +1,46 @@
-# WxAI — AI 행동 시스템
+# WxAI — AI 시스템
 
-> 적 AI의 Behavior Tree 노드(Task·Decorator·Service·Composite), 인지(Perception), Blackboard 키 계약, 정찰 경로를 제공한다. AIController·캐릭터·전투 규칙은 담지 않고, BT 에디터에서 조립할 수 있는 재사용 부품과 인지→Blackboard 동기화만 책임진다.
+> 적 폰의 감지·추적·정찰·리시 복귀를 Behavior Tree 노드와 Perception/Patrol 컴포넌트로 구현한다. 트리를 짜기 위한 커스텀 BT 노드 팔레트와, 그 노드들이 공유하는 Blackboard 규약이 이 모듈의 핵심이다.
 
 ## 책임
 **담당**
-- Behavior Tree 커스텀 노드: 어빌리티 발동·정찰·배회·리시 복귀 Task, 리시 이탈·어트리뷰트 비율 Decorator, 타겟 거리 Service, 가중 무작위 선택 Composite
-- 인지 동기화: 시각·청각·피격 자극을 Blackboard `TargetActor`로 합성하고 타겟 소실을 판정 (`UWxAIPerceptionComponent`)
-- Blackboard 키 이름·타입 계약과 타입 안전 accessor (`WxBlackboardKeys`)
-- 정찰 경로 데이터(스플라인)와 순회 규칙 (`UWxPatrolComponent`)
-- 팀 구분 enum (`EWxTeam`)과 애님 노티파이 기반 소음 발생
+- 감지 → 타겟팅: 시각·청각·피격 자극을 `UWxAIPerceptionComponent`가 Blackboard `TargetActor`로 동기화. 사망·파괴·리시 복귀에서만 타겟 해제.
+- 커스텀 BT 노드: 정찰/배회/복귀/어빌리티 발동 Task, 거리·리시·어트리뷰트비율 판정, 가중치 무작위 선택 Composite.
+- 정찰 경로 데이터: `UWxPatrolComponent`(스플라인)가 순회 규칙만 제공하고 진행 커서는 BT Task가 폰별로 소유.
+- Blackboard 키 이름·타입을 한 곳에 묶은 타입 안전 accessor(`WxBlackboardKeys`).
+- 애님 노티파이 소음 발생(`UWxAnimNotify_ReportNoise`).
 
 **경계 (비담당)**
-- AIController·AI 캐릭터 클래스, `SelfActor`/`HomeLocation` 키 세팅 → `WxGame`(WxAIController 등)
-- 어빌리티·이펙트·어트리뷰트의 정의와 실제 전투 규칙 → [[WxCombat]] (BT 노드는 GAS 태그/이펙트 클래스를 데이터로만 참조하며 WxCombat에 링크하지 않음)
+- 어빌리티 발동·어트리뷰트 정의: GAS(GameplayAbilities)에 위임. `UWxBTTask_ActivateAbility`는 태그로 발동만 걸고, 어트리뷰트는 디자이너가 BT에서 지정(WxAI는 [[WxCombat]]에 의존하지 않음).
+- BT/Blackboard 에셋 저작, 실제 트리 구성: 콘텐츠(BP/에셋) 측.
+- 이동/경로탐색/도착 판정: 엔진 `UBTTask_MoveTo`·NavMesh에 위임.
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `WxBlackboardKeys` | 키 이름·타입 계약 허브. 어떤 주체가 어떤 키를 SET/CLEAR하는지 헤더 주석에 정리됨 | `Source/WxAI/Public/WxBlackboardKeys.h` |
-| `UWxAIPerceptionComponent` | 세 감각을 `TargetActor` 하나로 합성, 타겟 소실 판정·회전 모드 발행 | `Source/WxAI/Public/WxAIPerceptionComponent.h` |
-| `UWxBTComposite_RandomChoice` | 조건 통과 자식만 후보로 가중 무작위 선택 (Selector와 다른 시멘틱) | `Source/WxAI/Public/WxBTComposite_RandomChoice.h` |
-| `UWxBTDecorator_RandomWeight` | 위 Composite의 자식 추첨 가중치 운반(조건 평가 아님) | `Source/WxAI/Public/WxBTDecorator_RandomWeight.h` |
-| `UWxBTTask_ActivateAbility` | GAS 어빌리티를 BT에서 발동하고 종료 결과를 노드 결과로 매핑 | `Source/WxAI/Public/WxBTTask_ActivateAbility.h` |
-| `UWxBTDecorator_BeyondLeash` | 앵커에서 리시 이탈 판정·폴링 재평가. `UWxBTTask_ReturnHome`과 복귀 브랜치를 이룸 | `Source/WxAI/Public/WxBTDecorator_BeyondLeash.h` |
-| `UWxPatrolComponent` | 스플라인 정찰 경로(상태 없는 순수 데이터). 커서는 `UWxBTTask_Patrol`이 폰별로 소유 | `Source/WxAI/Public/WxPatrolComponent.h` |
+| `UWxAIPerceptionComponent` | 감지→`TargetActor` 동기화의 허브. 회전 모드·타겟 소실 감시 발행 | `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h` |
+| `WxBlackboardKeys` | Perception·BT 노드가 공유하는 Blackboard 키/accessor 규약 | `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` |
+| `UWxPatrolComponent` | 정찰 경로(스플라인) + MoveMode 순회 규칙, 무상태 | `Plugins/WxAI/Source/WxAI/Public/WxPatrolComponent.h` |
+| `UWxBTTask_Patrol` | `MoveTo` 상속, 도착 시 정찰 커서를 폰별로 진행 | `Plugins/WxAI/Source/WxAI/Public/WxBTTask_Patrol.h` |
+| `UWxBTDecorator_BeyondLeash` | 리시 이탈 폴링→`RequestExecution`으로 복귀 브랜치 게이팅 | `Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_BeyondLeash.h` |
+| `UWxBTComposite_RandomChoice` | 조건·가중치를 반영한 자식 무작위 선택(Selector 폴백 없음) | `Plugins/WxAI/Source/WxAI/Public/WxBTComposite_RandomChoice.h` |
+| `UWxBTTask_ActivateAbility` | 태그로 GAS 어빌리티 발동, 종료 결과를 노드 결과로 변환 | `Plugins/WxAI/Source/WxAI/Public/WxBTTask_ActivateAbility.h` |
+| `EWxTeam` | 피아 구분 팀 열거형 | `Plugins/WxAI/Source/WxAI/Public/WxTeamTypes.h` |
 
 ## 확장 포인트 / 규약
-- 새 BT 노드는 엔진 베이스(`UBTTaskNode`/`UBTDecorator`/`UBTService`/`UBTCompositeNode`)를 상속해 추가한다. Blackboard 키에 접근할 때는 `GetValueAs`를 직접 쓰지 말고 `WxBlackboardKeys` accessor를 거쳐 타입 오용을 막는다.
-- WxAI는 `WxCombat`에 의존하지 않으므로, 감속 이펙트(`MoveSpeedEffect`)·어트리뷰트(`Attribute`/`MaxAttribute`)·어빌리티 태그(`AbilityTag`)는 코드가 아니라 디자이너가 BT 에디터에서 `TSubclassOf`·`FGameplayAttribute`·`FGameplayTag`로 직접 지정한다.
-- 정찰: 적이 부착된 액터(스포너 또는 레벨 배치 액터)에 `UWxPatrolComponent`를 붙이면 `UWxBTTask_Patrol`이 `FindPatrolComponent`로 찾아 따른다. 없으면 그 적은 정찰하지 않는다.
-- 인지→Blackboard는 서버 권한 흐름이다. 소음 발생(`UWxAnimNotify_ReportNoise`)과 피격 보고(Damage 센스)는 서버 전용이며, 피아 판정은 `FGenericTeamId::GetAttitude`로 한다(팀은 `EWxTeam`).
+- Blackboard 규약: 새 키는 `WxBlackboardKeys`에 이름+accessor로 추가하고 GetValueAs/SetValueAs 직접 호출을 피한다. Object 키는 nullptr setter가 Clear와 동치, Float `TargetDistance`는 타겟 부재 시 `NoTargetDistance`를 써 근거리 비교가 통과하지 않게 한다.
+- 새 BT 노드: `UBTTaskNode`/`UBTService`/`UBTDecorator`/`UBTCompositeNode`(또는 엔진 파생) 상속. Composite에서 자체 노드 메모리를 쓸 땐 베이스 메모리 뒤에 배치(`FWxBTRandomChoiceMemory` 패턴).
+- 리시(leashing): `BeyondLeash` 데코가 브랜치를 열고 `UWxBTTask_ReturnHome` Task가 복귀 완료를 단독 판정 — 복귀 중엔 데코가 참을 유지해 경계 왕복을 막는다.
+- 무작위 선택 가중치: 자식에 `UWxBTDecorator_RandomWeight`를 붙여 조율(조건 데코 아님, 없으면 1.0).
+- GAS 연동: 어빌리티/어트리뷰트는 태그·`FGameplayAttribute`로 데이터 주도. 코드 의존은 GameplayAbilities까지만.
 
 ## 여기서부터 읽어라
-1. `Source/WxAI/Public/WxBlackboardKeys.h` — 키 계약과 SET/CLEAR 소유 주체가 정리돼 있어, 노드·인지가 Blackboard로 어떻게 통신하는지의 지도가 된다.
-2. `Source/WxAI/Public/WxAIPerceptionComponent.h` — 타겟 획득/소실이 전체 AI 흐름의 트리거이므로 인지 경로부터 잡는다.
-3. `Source/WxAI/Private/WxBTComposite_RandomChoice.cpp` — 후보 필터링과 가중 추첨 로직(RandomWeight Decorator와의 협업)이 여기서 결정된다.
+1. `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` — 모든 노드가 공유하는 데이터 계약. 먼저 읽어야 나머지 흐름이 보인다.
+2. `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h` — 감지→타겟팅 제어 흐름의 시작점.
+3. `Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_BeyondLeash.h` + `WxBTTask_ReturnHome.h` — 데코/Task 협업(리시)의 대표 예.
 
 ## 관련
-- 상위: `WxGame`의 AIController·캐릭터(WxAIController 등)가 이 모듈의 노드와 컴포넌트를 조립해 사용한다. 어빌리티/어트리뷰트/이펙트는 [[WxCombat]] 자산을 BT 에디터에서 데이터로 물린다.
+- 상위: 적 캐릭터·Experience를 조립하는 [[WxGame]] 및 GameFeature 콘텐츠 플러그인. 어빌리티 태그·어트리뷰트는 [[WxCombat]]과 데이터로만 맞물린다(코드 의존 없음).
 
 ---
-*문서 기준 커밋 `b3f982b` · 생성일 2026-08-31 · 소스 28파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `ee3c177` · 생성일 2026-09-01 · 소스 29파일 — `/readme-writer`로 갱신*
