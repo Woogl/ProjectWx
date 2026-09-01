@@ -1,91 +1,99 @@
 # WxGame — 코드 리뷰
 
-> Experience 부팅 파이프라인·프레임워크 액터·MVVM 브릿지 모두 수명주기 정리와 권위 가드가 일관되게 잡혀 있고, 규칙 위반(Copyright·FORCEINLINE·람다·BlueprintCallable)은 입력 콜백 명명 한 건을 빼면 사실상 없다. 다만 Experience 로드가 성공 경로만 완결돼 있고 실패·재진입 경로에는 여전히 정합성 구멍이 남는다. README·Build.cs 를 진입점으로 Framework 전부와 Character·Controller·Player·MVVM·AbilitySystem·Inventory 의 cpp 까지 내려가 읽었다.
+> 도메인 조립 글루로서 대체로 정돈된 모듈이다. Experience 파이프라인은 Lyra 이식이 충실하고, Tick 오버라이드가 한 곳도 없으며 코딩 규칙 준수도 높다. 다만 MVVM 뷰모델 계층은 나머지 코드보다 성숙도가 한 단계 낮고, 보스 체력바가 배치형 보스를 놓치는 실제 버그가 여기서 나왔다. 이번 리뷰는 `*.Build.cs`와 Framework(Experience 전 경로)·Character·Controller·AbilitySystem·Inventory·Cheat·Input·MVVM을 cpp까지 정독했다.
 
 ## 요약
 | 심각도 | 개수 |
 | --- | --- |
-| 🔴 심각 | 0 |
-| 🟡 개선 | 6 |
-| 🟢 사소 | 4 |
+| 🔴 심각 | 1 |
+| 🟡 개선 | 4 |
+| 🟢 사소 | 6 |
 
 ## 결과
 
-### 1. 🟡 Experience 로드 실패를 소비자가 관찰할 수 없어 스폰 게이트가 영구히 닫힌다
-- **위치**: `Source/WxGame/Framework/WxExperienceManagerComponent.cpp:127`
-- **범주**: 설계/구조
-- **문제**: 플러그인 이름 해석 실패(`:240`)와 활성 실패(`:287`)는 `LoadState` 를 `Failed` 로 옮기면서 `OnExperienceLoaded` 를 비운다. 그런데 `CallOrRegister_OnExperienceLoaded` 는 `IsExperienceLoaded()` 만 보고 실패 상태를 "아직 로딩 중"으로 취급해 델리게이트를 다시 저장한다. `LoadState` 는 private 이고 실패 델리게이트도 상태 조회 API 도 없어(`Source/WxGame/Framework/WxExperienceManagerComponent.h:90`) `AWxGameMode` 는 실패와 진행 중을 구분하지 못한다. 결과적으로 `HandleStartingNewPlayer_Implementation` 의 로드 게이트(`Source/WxGame/Framework/WxGameMode.cpp:60`)가 영원히 열리지 않아 폰도 HUD 도 없는 상태로 멈추고, 단서는 로그 한 줄뿐이다.
-- **제안**: 성공/실패를 함께 싣는 완료 델리게이트를 두거나 `OnExperienceLoadFailed` 와 읽기 전용 상태 접근자를 추가한다. 이미 `Failed` 인 상태에서 등록한 소비자에게는 즉시 실패를 전달해, 실패 UI·재시도·세션 종료 정책을 붙일 자리를 만든다.
+### 1. 🔴 보스 체력바가 스트리밍-인 된 보스를 영영 잡지 못한다
+- **위치**: `Source/WxGame/MVVM/WxViewModel_BossCharacter.cpp:17` (시드는 `:19-23`)
+- **범주**: 버그/정확성
+- **문제**: VM 이 보스를 찾는 경로가 둘뿐인데 둘 다 배치형 보스를 놓친다. (a) `World->AddOnActorSpawnedHandler` 는 `UWorld::SpawnActor` 경로에서만 발화하고, 레벨 패키지에서 로드되는 액터는 이 경로를 지나지 않는다. (b) `StartObserving` 의 `TActorIterator` 시드는 VM 이 만들어지는 그 한 순간만 훑는다. 그런데 `BP_Boss` 는 스폰이 아니라 월드 파티션 배치 액터다 — `Content/__ExternalActors__/Maps/LV_OpenWorld/6/6J/E739HF09XZVERPTLGOXTLC.uasset` 과 `Content/__ExternalActors__/Maps/LV_DevCombat/C/NZ/9TD3LG9ZMG6AZNF70Z5B9R.uasset` 두 건이며, 코드베이스 어디에도 보스를 `SpawnActor` 하는 곳이 없다(스포너의 일반 스폰 경로에 보스 클래스를 꽂은 경우만 우연히 동작한다).
+  실패 시나리오: HUD 는 빙의 시점에 푸시되므로 그때 먼 보스 셀은 아직 로드 전 → 시드 실패. 이후 플레이어가 보스 방에 들어가 셀이 스트리밍-인 돼도 `OnActorSpawned` 가 오지 않아 `SetBoss` 가 불리지 않는다 → 체력바가 끝까지 안 뜬다. 왕복은 더 나쁘다: 한 번 잡혔더라도 셀이 스트리밍-아웃되면 `OnEndPlay` → `SetBoss(nullptr)` 로 해제되고, 재검출 경로가 없어 다시 들어와도 **영구히** 복구되지 않는다. 좁은 `LV_DevCombat` 에선 시작 지점이 보스 셀 로딩 범위 안이라 시드가 우연히 성공해 그동안 드러나지 않았을 가능성이 크다.
+- **제안**: `AWxBossCharacter::BeginPlay` 에서 정적 Ready 신호를 발행하고 VM 이 그걸 구독한다 — 이 코드베이스가 `UWxInventoryComponent::OnAnyInventoryReady`(`WxViewModel_Inventory.cpp:28`)와 `UWxInteractionScannerComponent::OnAnyScannerReady`(`WxViewModel_InteractionList.cpp:25`)로 이미 두 번 쓰고 있는 바로 그 패턴이고, 스트리밍 왕복에도 매번 다시 붙는다.
 - **확신도**: 높음
 
-### 2. 🟡 `Reset()` 경로의 멱등 처리가 절반만 돼 있어 기본 인벤토리가 이중 지급된다
-- **위치**: `Source/WxGame/Framework/WxGameMode.cpp:30`
+### 2. 🟡 `OnUnregister` 가 리더 메시의 애님 틱 옵션을 되돌리지 않는다
+- **위치**: `Source/WxGame/Character/WxMetaHumanComponent.cpp:54-56`, `Source/WxGame/Character/WxMetaHumanComponent.cpp:129-132`
 - **범주**: 버그/정확성
-- **문제**: `UWxExperienceManagerComponent::SetCurrentExperience` 는 헤더 주석대로 재호출에 멱등하지만(`Source/WxGame/Framework/WxExperienceManagerComponent.cpp:104`), 바로 다음 줄의 `CallOrRegister_OnExperienceLoaded` 는 그렇지 않다. 엔진의 `AGameModeBase::Reset()` 은 `InitGameState()` 를 다시 부르고(UE 5.8 `GameModeBase.cpp:336`, `AGameModeBase::ResetLevel()` 이 호출), 그 시점엔 이미 `Loaded` 라 델리게이트가 그 자리에서 실행된다. 그러면 `HandleExperienceLoaded`(`:101`)가 접속 중인 모든 PlayerController 를 돌며 `GrantDefaultInventory` 를 다시 호출해 `DefaultInventoryItems` 를 통째로 한 번 더 지급하고(`:111`), 덤으로 폰 없는 컨트롤러를 `RestartPlayer` 한다. 멱등성 주석이 붙어 있는 만큼 이 재진입은 의도적으로 대비된 경로인데 대비가 한 줄에만 걸려 있다.
-- **제안**: 지급 완료를 컨트롤러 단위로 기록하거나, `InitGameState` 에서 이미 등록·실행된 완료 콜백이면 다시 등록하지 않도록 게이트한다. 지금 `ResetLevel()` 호출부가 프로젝트에 없어 잠복 상태라는 점은 감안하되, 되살아나면 조용히 아이템만 늘어나 원인 추적이 어렵다.
-- **확신도**: 중간(현재 호출부가 없어 잠복. 재진입 자체와 이중 지급 메커니즘은 엔진 소스로 확인)
-
-### 3. 🟡 GameFeature 활성 콜백이 동기로 돌아오면 순회 중인 배열을 그 자리에서 리셋한다
-- **위치**: `Source/WxGame/Framework/WxExperienceManagerComponent.cpp:254`
-- **범주**: 버그/정확성
-- **문제**: `HandleExperienceAssetsLoaded` 는 `GameFeaturePluginURLs` 를 ranged-for 로 돌면서 `LoadAndActivateGameFeaturePlugin` 을 호출한다. 엔진의 `UGameFeaturesSubsystem` 은 플러그인이 허용되지 않거나 프로토콜 옵션 갱신이 실패하면 완료 델리게이트를 **동기로** 실행한다. 마지막 URL 이 그렇게 실패하면 `HandleGameFeaturePluginLoaded` 가 아직 루프 안에서 `ReleaseGameFeaturePluginRequests(false)`(`:289`)를 타고, 그 함수가 같은 배열을 `Reset()` 한다(`:309`). 개발 빌드에선 `TArray` 의 ranged-for 검사가 "Array has changed during ranged-for iteration!" ensure 를 띄워, 진짜 원인인 활성 실패 로그를 덮는다.
-- **제안**: 루프를 `GameFeaturePluginURLs` 의 지역 복사본 위에서 돌리거나, 실패 정리를 `HandleGameFeaturePluginLoaded` 안에서 즉시 하지 말고 다음 틱으로 미룬다.
+- **문제**: `OnRegister` 는 바디를 만들 때 리더 메시에 두 가지를 건다 — `SetVisibility(false)` 와 `VisibilityBasedAnimTickOption = AlwaysTickPoseAndRefreshBones`. 그런데 `OnUnregister` 는 가시성만 되돌리고 틱 옵션은 그대로 둔다. `OnRegister` 는 `World->IsGameWorld()` 를 보지 않아 에디터 뷰포트에서도 도는데, 리더 메시(`ACharacter::Mesh`)는 트랜지언트가 아닌 네이티브 서브오브젝트라 이 비대칭이 레벨/BP 저장 시 굳을 여지가 있다. 가시성을 굳이 되돌리는 코드가 이미 있다는 것 자체가 그 위험을 인지한 설계인데, 짝이 되는 다른 한 줄이 빠졌다. 굳는 경우의 대가는 부착물이 없는 캐릭터도 화면 밖에서 매 프레임 본 리프레시를 계속 도는 것이다.
+- **제안**: `OnRegister` 에서 덮기 전 값을 기억해 두고 `OnUnregister` 의 `SetVisibility(true)` 옆에서 함께 복원한다.
 - **확신도**: 중간
 
-### 4. 🟡 중복 ActionSet 참조가 같은 액션 수명주기와 기본 지급을 두 번 실행한다
-- **위치**: `Source/WxGame/Framework/WxExperienceManagerComponent.cpp:366`
-- **범주**: 버그/정확성
-- **문제**: `CollectActions` 는 Experience 본체와 ActionSet 들의 액션 포인터를 중복 제거 없이 `Add` 로 쌓는다. 한 Experience 가 같은 ActionSet 을 두 번 참조하면 동일 액션 인스턴스에 등록·로딩·활성 훅이 반복 호출되고, `UWxGameFeatureAction_AddComponents` 는 `ContextHandles.FindOrAdd` 로 같은 저장소를 재사용하면서 `GameInstanceStartHandle` 을 덮어써(`Source/WxGame/Framework/WxGameFeatureAction_AddComponents.cpp:54`) 먼저 등록한 전역 델리게이트를 회수할 수 없게 된다. 같은 원인으로 `AWxGameMode::GrantDefaultInventory` 의 `DefaultInventoryItems` 도 두 번 지급된다(`Source/WxGame/Framework/WxGameMode.cpp:128`). `UWxExperienceDefinition::IsDataValid` 는 빈 항목만 보고 중복은 잡지 않는다.
-- **제안**: `CollectActions` 에서 포인터 기준 순서 보존 중복 제거를 하고, `UWxExperienceDefinition::IsDataValid` 에서 같은 ActionSet 이 두 번 실린 경우를 에디터 에러로 드러낸다.
-- **확신도**: 높음
-
-### 5. 🟡 마지막 PIE 요청자가 활성에 실패하면 이미 활성된 플러그인이 남는다
-- **위치**: `Source/WxGame/Framework/WxExperienceManagerComponent.cpp:303`
-- **범주**: 버그/정확성
-- **문제**: 정리 조건이 `RequestToDeactivatePlugin(...) && (bDeactivateAllRequestedPlugins || bWasActivated)` 라, 참조 카운트가 0 이 되어도 **이 컴포넌트의** 활성이 성공하지 않았으면 비활성화를 건너뛴다. 다중 PIE 에서 A 가 플러그인을 활성화한 뒤 B 가 같은 URL 을 로드하는 동안 A 가 먼저 종료되면 A 의 카운트는 2→1 이라 비활성화되지 않고, 이어서 B 의 활성화가 실패하면 B 가 1→0 으로 마지막 요청을 풀지만 `bWasActivated` 가 거짓이라 `DeactivateGameFeaturePlugin` 을 부르지 않는다. 요청자는 0 명인데 플러그인은 활성인 채로 에디터 세션에 남는다.
-- **제안**: 마지막 참조 해제 시에는 이 컴포넌트의 성공 여부가 아니라 플러그인의 전역 활성 상태를 기준으로 비활성화한다. 가장 단순하게는 카운트가 0 이면 무조건 비활성화를 요청하고, 필요하면 `UWxExperienceManager` 가 URL 별 활성 성공 여부까지 함께 추적하게 한다.
-- **확신도**: 높음
-
-### 6. 🟡 SPD 구독 직후 현재 값을 한 번 적용하지 않아 클라이언트 이동 속도에 배율이 빠질 수 있다
-- **위치**: `Source/WxGame/Character/WxCharacterBase.cpp:302`
-- **범주**: 버그/정확성
-- **문제**: `InitAbilitySystem` 은 SPD 변경 델리게이트만 등록하고 등록 시점의 SPD 를 적용하지 않는다. 서버는 곧이어 `GiveAbilitySet()`(`:313`)이 변경 이벤트를 일으켜 문제가 드러나지 않지만, 소유 클라이언트는 `OnRep_PlayerState` 에서 뒤늦게 이 함수를 부른다(`Source/WxGame/Character/WxPlayerCharacter.cpp:80`). 그전에 AttributeSet 초기값이 복제됐다면 그 변경 이벤트는 이미 지나갔고, 다음 SPD 변경 전까지 `MaxWalkSpeed` 가 `BaseWalkSpeed` 로 남아 서버와 어긋난다. 같은 초기 복제 문제를 Ragdoll·Death 태그는 구독 직후 현재 값을 1 회 확인해 메우고 있어(`:73`, `:83`) SPD 경로만 비대칭이다.
-- **제안**: 델리게이트 등록 블록 안에서 현재 SPD 를 읽어 `HandleSPDAttributeChanged` 와 같은 계산을 한 번 실행한다.
+### 3. 🟡 획득 토스트 뷰모델이 인벤토리 델리게이트에 물린 채 버려진다
+- **위치**: `Source/WxGame/MVVM/WxViewModel_Inventory.cpp:108-111`
+- **범주**: 설계/구조 (오브젝트 수명)
+- **문제**: `HandleStackChanged` 는 획득(`Delta > 0`)마다 새 `UWxViewModel_Item` 을 만들어 `Initialize(Inventory, ItemDef)` 를 부르는데, 그 `Initialize` 는 `WxViewModel_Item.cpp:45-46` 에서 `OnInventoryStackChanged`·`OnInventoryChargeChanged` 두 델리게이트에 구독한다. 그런데 이 VM 은 `LastAcquiredItem` 한 칸에만 담기고 교체될 때 아무도 `Deinitialize()` 를 불러주지 않는다. `AllItems` 에 들어가지 않으므로 `RefreshAllItems` 의 정리 루프(`:152-158`)에도 걸리지 않는다. 아이템을 20번 주우면 버려진 토스트 VM 19개가 인벤토리 멀티캐스트에 살아남아 이후 모든 스택/충전 변경마다 19번씩 헛일한다. 약참조라 GC 가 돌면 조용히 정리돼 크래시는 아니지만, 그때까지 브로드캐스트 비용이 선형으로 쌓인다. 토스트는 스냅샷 표시인데 라이브 구독을 들고 있는 것 자체가 설계 착오다.
+- **제안**: 교체 직전 이전 `LastAcquiredItem` 을 `Deinitialize()` 하거나, 더 낫게는 토스트용을 구독 없는 스냅샷 세터로 채운다.
 - **확신도**: 중간
 
-### 7. 🟢 폰이 바뀌어도 이전 Enhanced Input MappingContext 가 남는다
-- **위치**: `Source/WxGame/Character/WxPlayerCharacter.cpp:102`
-- **범주**: 버그/정확성
-- **문제**: `SetupPlayerInputComponent` 는 LocalPlayer 서브시스템에 `InputConfig->MappingContext` 를 추가하지만, 저장소 전체에 `RemoveMappingContext` 호출이 한 건도 없다. 빙의 해제·종료·입력 구성이 다른 폰(폰 없는 Experience 의 스펙테이터 포함)으로의 전환 어디에서도 이전 컨텍스트가 걷히지 않아, 키를 계속 소비하거나 새 폰의 액션과 충돌할 수 있다.
-- **제안**: 추가한 MappingContext 와 대상 LocalPlayer 서브시스템을 기억해 빙의 해제·`EndPlay` 에서 대칭적으로 제거하고, 재설정 시 이전 컨텍스트를 먼저 정리한다.
-- **확신도**: 중간
-
-### 8. 🟢 `HandleDeathTagChanged` 가 베이스의 동명 비가상 함수를 가린다
-- **위치**: `Source/WxGame/Character/WxEnemyCharacter.h:72`
-- **범주**: 중복/복잡도
-- **문제**: `AWxEnemyCharacter::HandleDeathTagChanged` 는 `AWxCharacterBase::HandleDeathTagChanged`(`Source/WxGame/Character/WxCharacterBase.h:120`)와 이름·시그니처가 같은 별개의 비가상 함수다. 베이스는 `PostInitializeComponents` 에서 사망 처리용으로(`Source/WxGame/Character/WxCharacterBase.cpp:81`), 파생은 `BeginPlay` 에서 네임플레이트 갱신용으로(`Source/WxGame/Character/WxEnemyCharacter.cpp:54`) 각각 같은 태그 이벤트에 바인딩한다. 파생 쪽 바인딩이 `&ThisClass::` 를 쓰고 있어 지금은 의도대로 동작하지만, 같은 표기를 베이스 문맥에서 복사해 쓰는 순간 어느 쪽이 걸렸는지 읽어서 알 수 없게 된다.
-- **제안**: 파생 쪽을 역할이 드러나는 이름(예: `HandleDeathTagChangedForNameplate`)으로 바꾸거나, 두 구독을 하나로 합쳐 베이스 콜백이 파생 훅을 부르게 한다.
-- **확신도**: 높음
-
-### 9. 🟢 획득 토스트용 ViewModel 이 인벤토리 구독을 남긴 채 버려진다
-- **위치**: `Source/WxGame/MVVM/WxViewModel_Inventory.cpp:108`
+### 4. 🟡 스택 변경 한 번마다 아이템 목록 전체 재평가 + 열린 위젯 수만큼 곱하기
+- **위치**: `Source/WxGame/MVVM/WxViewModel_Inventory.cpp:115` → `:118-165`, `:167-189`, 리졸버 `:212-224`
 - **범주**: 성능/안전
-- **문제**: `HandleStackChanged` 는 획득(`Delta > 0`)마다 `UWxViewModel_Item` 을 새로 만들어 `Initialize` 한다. 그 안에서 `OnInventoryStackChanged`·`OnInventoryChargeChanged` 를 구독하는데(`Source/WxGame/MVVM/WxViewModel_Item.cpp:45`), `LastAcquiredItem` 이 다음 획득으로 교체될 때 이전 인스턴스에 `Deinitialize` 를 부르지 않는다. 버려진 VM 은 GC 가 회수하기 전까지 구독 목록에 남아, 이후의 모든 스택 변경 브로드캐스트가 그만큼 더 길어진다. 픽업이 잦은 오픈월드에선 GC 주기 사이에 계속 쌓인다.
-- **제안**: 토스트용 VM 은 정적 표시 데이터만 채우고 델리게이트 구독은 하지 않게 하거나, `LastAcquiredItem` 교체 직전에 이전 인스턴스를 `Deinitialize` 한다(표시가 끝난 뒤여야 하면 위젯이 소비한 시점을 신호로 삼는다).
+- **문제**: 골드 1원이 들어와도 `HandleStackChanged` → `RefreshAllItems()` 가 목록 전체를 다시 돈다. 그 안에서 (a) `Inventory->GetAllItems()` 가 `TArray` 를 값으로 새로 만들고(`Plugins/WxInventory/.../WxInventoryComponent.h:196`), (b) `:133-140` 이 인스턴스마다 기존 VM 배열을 선형 탐색해 O(N×M) 이 되며, (c) `:162`·`:188` 이 `AllItems` 와 `CategorizedItems` 를 **무조건** 브로드캐스트해 열려 있는 ListView 엔트리 위젯이 전량 재생성된다. `:161` 주석은 "항상 브로드캐스트"를 정당화하지만 재평가까지 정당화하지는 않는다. 여기에 `UWxViewModelResolver_Inventory`(`:221`)가 위젯마다 별개 VM 을 만들어 각자 자기 자식 VM 트리와 구독을 갖는다 — 인벤토리 화면·통화 HUD·토스트가 동시에 떠 있으면 위 비용이 3배가 된다. 같은 폴더의 `WxViewModelResolver_PlayerCharacter.cpp:22` 는 `FindSharedViewModel` 로 공유하는데 여기만 안 한다.
+- **제안**: `HandleStackChanged` 에서는 영향받은 ItemDef 슬롯만 증분 갱신하고 멤버십이 실제로 바뀐 경우에만 `RefreshAllItems` 를 부른다. 리졸버는 `FindSharedViewModel(Inventory, ...)` 로 인벤토리당 하나를 공유한다.
 - **확신도**: 중간
 
-### 10. 🟢 입력 델리게이트 콜백이 `Handle` 접두사 규칙을 따르지 않는다
-- **위치**: `Source/WxGame/Character/WxPlayerCharacter.h:58`
+### 5. 🟡 클라이언트에서 `InitAbilitySystem` 이 도는 경로가 플레이어 폰 하나뿐이다
+- **위치**: `Source/WxGame/Character/WxCharacterBase.cpp:110-115`, `Source/WxGame/Character/WxCharacterBase.cpp:223-246`, `Source/WxGame/Character/WxPlayerCharacter.cpp:75-80`
+- **범주**: 설계/구조 (권위 모델)
+- **문제**: `InitAbilitySystem()` 의 호출 지점은 저장소 전체에서 딱 둘이다 — 서버 전용인 `AWxCharacterBase::PossessedBy` 와 소유 클라의 `AWxPlayerCharacter::OnRep_PlayerState`. 여기서 둘이 갈라진다. (a) `AWxEnemyCharacter`·`AWxMinion` 의 시뮬 프록시는 클라에서 이 함수를 한 번도 타지 않아 SPD→`MaxWalkSpeed` 구독(같은 파일 `:230-239`)이 설치되지 않는다 — 원격 클라 화면에서 적의 이동 속도가 SPD 배율을 반영하지 못한다. (b) 플레이어 폰조차 `OnRep_Controller` 경로에는 재초기화가 없어, `OnRep_PlayerState` 가 먼저 도착하면 `RefreshAbilityActorInfo()` 가 `Pawn->GetController()` 를 널로 읽어 `AbilityActorInfo->PlayerController` 가 빈 채로 남는다. 헤더 `WxCharacterBase.h:111-113` 이 "클라이언트: 파생 클래스에서 OnRep을 통해 호출"이라 못박고 있어 의도된 단순화로 보이지만, 멀티 검증 시 가장 먼저 깨질 지점이다.
+- **제안**: 지금 고칠 일은 아니고, 멀티 대응 착수 시 체크리스트로 쓴다 — `NotifyControllerChanged` 에도 `InitAbilitySystem()` 을 걸고 AI 폰용 클라 초기화 훅을 `AWxCharacterBase` 에 하나 둔다.
+- **확신도**: 낮음(의도된 설계일 수 있음)
+
+### 6. 🟢 관찰자 3종 세트와 자식 VM 재구축이 통째로 복붙돼 있다
+- **위치**: `Source/WxGame/MVVM/WxViewModel_Inventory.cpp:12-29`·`:191-210` ↔ `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp:9-26`·`:101-120`; `Source/WxGame/MVVM/WxViewModel_Quest.cpp:55-66` ↔ `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp:122-133`
+- **범주**: 중복/복잡도
+- **문제**: `StartObserving`/`Handle~Ready`/`StopObserving` 삼총사가 타입 이름만 바꾼 채 두 벌 존재하며, 주석 문구("신호는 클래스 차원이라 남의 …도 온다")까지 동일하다. 1번 결함을 제안대로 고치면 보스 VM 이 세 번째 사본이 된다. 자식 VM 목록 재구축도 두 벌인데(`RebuildObjectives` ↔ `RebuildEntries`), 둘 다 `Reset` → 루프 `NewObject` + 세터 → 브로드캐스트 형태라 텍스트만 바뀌어도 자식 UObject 를 전량 새로 만든다.
+- **제안**: 1번을 고치기 전에 먼저 정리한다 — `UWxViewModel` 에 "정적 Ready 신호를 관찰하다 소유 액터로 필터해 연결"하는 헬퍼와, 개수가 같으면 세터만 부르는 자식 VM 동기화 헬퍼를 올린다.
+- **확신도**: 높음
+
+### 7. 🟢 입력 바인딩 콜백에 `Handle` 접두사가 없다
+- **위치**: `Source/WxGame/Character/WxPlayerCharacter.cpp:109`, `:113`, `:122`, `:127`, `:128`
 - **범주**: 규칙 위반
-- **문제**: Enhanced Input 에 바인딩되는 `Move`·`Look`·`ToggleCrouch`·`AbilityInputTriggered`·`AbilityInputReleased`(`Source/WxGame/Character/WxPlayerCharacter.cpp:110`, `:114`, `:123`, `:128`, `:129`)는 전부 프로젝트가 소유한 델리게이트 콜백인데 `Handle` 로 시작하지 않는다. `CLAUDE.md` 코딩 규칙 4 는 델리게이트에 바인딩되는 콜백에 `Handle` 접두사를 요구한다. 같은 모듈의 다른 콜백(`HandleSPDAttributeChanged`·`HandleAITargetChanged`·`HandleInventoryReady` 등)은 모두 규칙을 지키고 있어 여기만 예외다.
-- **제안**: `HandleMove`·`HandleLook`·`HandleToggleCrouch`·`HandleAbilityInputTriggered`·`HandleAbilityInputReleased` 로 바꾼다. `Jump`·`StopJumping` 은 엔진 가상 함수라 대상이 아니다.
+- **문제**: `CLAUDE.md` 코딩 규칙 4는 델리게이트에 바인딩되는 콜백에 `Handle` 접두사를 요구한다. `EIC->BindAction(...)` 에 물린 `Move`·`Look`·`ToggleCrouch`·`AbilityInputTriggered`·`AbilityInputReleased` 가 모두 벗어나 있다. 모듈의 나머지 27개 `AddDynamic`/`AddUObject`/`CreateUObject` 바인딩은 전부 규칙을 지키고 있어 이 함수 하나만 예외로 남은 모양새다.
+- **제안**: 위 다섯 개를 `HandleMove`·`HandleLook`·`HandleToggleCrouch`·`HandleAbilityInputTriggered`·`HandleAbilityInputReleased` 로 개명한다. 같은 함수 `:117`·`:118` 에 물린 `AWxPlayerCharacter::Jump`(`ACharacter` 가상 오버라이드)와 `ACharacter::StopJumping`(엔진 함수)은 개명 대상이 아니다.
+- **확신도**: 높음
+
+### 8. 🟢 `Request~` 규약 밖의 `BlueprintCallable`
+- **위치**: `Source/WxGame/MVVM/WxViewModel_Inventory.h:80-81`
+- **범주**: 규칙 위반
+- **문제**: `UWxViewModel_Inventory::SetCurrentCategory` 가 `BlueprintCallable` 인데, 코딩 규칙 5(BP Function Library·Async 팩토리 한정)와 이 프로젝트가 예외로 인정한 VM Command(`Request~`) 어느 쪽에도 들지 않는다. 하는 일(카테고리 설정 → 목록 갱신)은 형제인 `RequestAdvance`·`RequestInteract`·`RequestCycle`·`RequestUseConsumable` 과 같은 VM Command 인데 이름만 규약을 벗어났다.
+- **제안**: `RequestSetCategory` 로 개명해 다른 VM Command 와 어휘를 맞춘다. 위젯 바인딩이 함수명을 참조하므로 개명 후 해당 WBP 의 MVVM 이벤트 바인딩을 함께 갱신해야 한다.
+- **확신도**: 높음
+
+### 9. 🟢 `Deinitialize` 의 비우기 브로드캐스트가 VM 마다 제각각이다
+- **위치**: `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp:56-60`, `Source/WxGame/MVVM/WxViewModel_Quest.cpp:33-37`
+- **범주**: 설계/구조
+- **문제**: `Deinitialize()` 는 재초기화 경로뿐 아니라 `Plugins/WxUI/.../WxViewModel.cpp:33` 의 `UWxViewModel::BeginDestroy()` 에서도 불린다. `BeginDestroy` 는 GC 가 이 VM 을 unreachable 로 판정한 뒤에 도는데, 그때 VM 을 붙들던 `UMVVMView`/위젯도 같이 unreachable 이라 반쯤 해체된 뷰의 바인딩으로 브로드캐스트가 들어갈 수 있다. 같은 폴더의 `WxViewModel_Inventory.cpp` 와 `WxViewModel_Item.cpp` 는 같은 상황에서 브로드캐스트를 하지 않아, 다섯 VM 의 teardown 규약이 서로 다르다.
+- **제안**: 비우기 브로드캐스트를 재초기화 경로(`Initialize` 진입부)로 옮기고 `Deinitialize` 에서는 값만 리셋해 규약을 하나로 맞춘다.
+- **확신도**: 낮음(의도된 설계일 수 있음)
+
+### 10. 🟢 `BaseWalkSpeed` 가 초기화자 없이 선언돼 있다
+- **위치**: `Source/WxGame/Character/WxCharacterBase.h:145`
+- **범주**: 성능/안전
+- **문제**: `float BaseWalkSpeed;` 에 초기화자가 없다. 현재는 대입(`WxCharacterBase.cpp:234`)이 구독 설치보다 반드시 먼저 일어나 쓰레기 값을 읽는 경로가 없지만, `HandleSPDAttributeChanged`(같은 파일 `:250`)가 이 값을 그대로 `MaxWalkSpeed` 에 곱해 넣으므로 초기화 순서가 한 번만 흐트러져도 즉시 눈에 보이는 이동 속도 이상으로 드러난다. 같은 헤더의 다른 멤버는 모두 초기값을 갖고 있어 이 하나만 예외다.
+- **제안**: `float BaseWalkSpeed = 0.f;`
+- **확신도**: 높음
+
+### 11. 🟢 공개 include 경로의 헤더가 Private 의존 모듈 헤더를 포함한다
+- **위치**: `Source/WxGame/WxGame.Build.cs:11`·`:38-43`, `Source/WxGame/Character/WxMetaHumanComponent.h:7`
+- **범주**: 설계/구조
+- **문제**: `PublicIncludePaths` 에 `ModuleDirectory` 를 통째로 넣어 모듈의 모든 헤더를 다운스트림에 노출하는데, `MetaHumanSDKRuntime` 은 `PrivateDependencyModuleNames` 에 있다. 그 결과 `WxMetaHumanComponent.h` 가 포함하는 `MetaHumanComponentUE.h` 의 include 경로가 다운스트림으로 전파되지 않는다. 지금은 이 헤더를 WxGame 내부 cpp 세 곳만 포함해 드러나지 않지만, `WxEditor` 나 앞으로 만들 `Plugins/GameFeatures/` 콘텐츠 플러그인(규칙상 WxGame 참조 허용)이 캐릭터 헤더를 건드리는 순간 컴파일이 깨진다.
+- **제안**: `MetaHumanSDKRuntime` 을 `PublicDependencyModuleNames` 로 올리거나, `UWxMetaHumanComponent` 를 공개 표면에서 뺀다.
 - **확신도**: 높음
 
 ## 검토 범위
-- **깊게 본 파일**: `Source/WxGame/Framework/WxExperienceManagerComponent.h`, `Source/WxGame/Framework/WxExperienceManagerComponent.cpp`, `Source/WxGame/Framework/WxExperienceManager.h`, `Source/WxGame/Framework/WxExperienceManager.cpp`, `Source/WxGame/Framework/WxGameFeatureAction_AddComponents.h`, `Source/WxGame/Framework/WxGameFeatureAction_AddComponents.cpp`, `Source/WxGame/Framework/WxGameMode.h`, `Source/WxGame/Framework/WxGameMode.cpp`, `Source/WxGame/Framework/WxWorldSettings.h`, `Source/WxGame/Framework/WxWorldSettings.cpp`, `Source/WxGame/Framework/WxExperienceDefinition.h`, `Source/WxGame/Framework/WxExperienceDefinition.cpp`, `Source/WxGame/Character/WxCharacterBase.h`, `Source/WxGame/Character/WxCharacterBase.cpp`, `Source/WxGame/Character/WxPlayerCharacter.h`, `Source/WxGame/Character/WxPlayerCharacter.cpp`, `Source/WxGame/Character/WxEnemyCharacter.h`, `Source/WxGame/Character/WxEnemyCharacter.cpp`, `Source/WxGame/Character/WxMetaHumanComponent.h`, `Source/WxGame/Character/WxMetaHumanComponent.cpp`, `Source/WxGame/Character/WxCharacterMovementComponent.cpp`, `Source/WxGame/Controller/WxEnemyController.cpp`, `Source/WxGame/MVVM/WxViewModel_Inventory.h`, `Source/WxGame/MVVM/WxViewModel_Inventory.cpp`, `Source/WxGame/MVVM/WxViewModel_Item.h`, `Source/WxGame/MVVM/WxViewModel_Item.cpp`, `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp`, `Source/WxGame/MVVM/WxViewModel_BossCharacter.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_UseItem.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp`, `Source/WxGame/Inventory/WxItemUseComponent.cpp`, `Source/WxGame/WxGame.Build.cs`
-- **훑은 파일**: `Source/WxGame/README.md`, `Source/WxGame/WxGame.h`, `Source/WxGame/WxGame.cpp`, `Source/WxGame/Framework/WxExperienceActionSet.h`, `Source/WxGame/Framework/WxExperienceActionSet.cpp`, `Source/WxGame/Framework/WxGameState.h`, `Source/WxGame/Framework/WxGameState.cpp`, `Source/WxGame/AbilitySystem/WxPersistedAbilitySystemState.h`, `Source/WxGame/AnimNotify/WxAnimNotify_UseItem.h`, `Source/WxGame/AnimNotify/WxAnimNotify_UseItem.cpp`, `Source/WxGame/Character/WxNpc.h`, `Source/WxGame/Character/WxNpc.cpp`, `Source/WxGame/Character/WxBossCharacter.h`, `Source/WxGame/Character/WxBossCharacter.cpp`, `Source/WxGame/Character/WxCharacterMovementComponent.h`, `Source/WxGame/Controller/WxPlayerController.h`, `Source/WxGame/Controller/WxPlayerController.cpp`, `Source/WxGame/Controller/WxEnemyController.h`, `Source/WxGame/Player/WxPlayerState.h`, `Source/WxGame/Player/WxPlayerState.cpp`, `Source/WxGame/Input/WxInputConfig.h`, `Source/WxGame/Input/WxInputConfig.cpp`, `Source/WxGame/Inventory/WxItemUseComponent.h`, `Source/WxGame/Cheat/WxCheatManager.h`, `Source/WxGame/Cheat/WxCheatManager.cpp`, `Source/WxGame/MVVM/WxViewModel_Dialogue.cpp`, `Source/WxGame/MVVM/WxViewModel_Quest.h`, `Source/WxGame/MVVM/WxViewModel_Quest.cpp`, `Source/WxGame/MVVM/WxViewModel_QuestObjective.cpp`, `Source/WxGame/MVVM/WxViewModel_InteractionList.h`, `Source/WxGame/MVVM/WxViewModel_BossCharacter.h`, `Source/WxGame/MVVM/WxViewModelResolver_Ability.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_PlayerCharacter.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_UseItem.h`, `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.h`
-- **이전 리뷰 대비**: 미사용 빌드 의존성 지적(`WxSave`)은 사실이 아니어서 제외했다 — `WxCharacterBase`·`WxEnemyCharacter` 가 `WxPersistableActorReference(Manager).h` 를 직접 쓴다(`WxSavable.h` 는 `WxCore` 소속). 규칙 스캔은 전 파일 대상으로 다시 돌렸고 Copyright 첫 줄 누락·`FORCEINLINE`·인라인 정의·불필요한 람다는 0 건이며, `BlueprintCallable` 은 뷰모델 명령 함수(`Request~`)와 `BlueprintSetter` 인 `SetCurrentCategory` 뿐이라 이미 정리된 예외 범위 안이다. `UWxViewModel::BeginDestroy` 가 가상 `Deinitialize` 를 부르므로 파생 VM 의 구독 해제 누락은 없음을 확인했다.
-- **미검토 / 한계**: Experience·ActionSet·GameFeature 의 실제 데이터 에셋 조합과 BP/WBP 내부 구조는 범위 밖이다. 멀티플레이·다중 PIE·세이브 재개를 실제로 돌려 검증하지 않았으며, 네트워크·수명주기 판단은 C++ 제어 흐름과 UE 5.8 엔진 소스(`GameModeBase.cpp`, `GameFeaturesSubsystem`)의 계약을 근거로 했다. `AWxNpc`·`AWxBossCharacter`·`AWxPlayerState` 처럼 조립만 하는 얇은 클래스는 훑는 데 그쳤고, 세이브 복원 게이트(`IsLevelCurrentlyPostRestored`)의 타이밍은 WxSave 쪽 구현까지 확인해 문제없다고 판단했으나 실측하지는 않았다.
+- **깊게 본 파일**: `Source/WxGame/WxGame.Build.cs`, `Source/WxGame/Framework/WxExperienceManagerComponent.cpp`, `Source/WxGame/Framework/WxGameMode.cpp`, `Source/WxGame/Framework/WxGameFeatureAction_AddComponents.cpp`, `Source/WxGame/Framework/WxExperienceManager.cpp`, `Source/WxGame/Framework/WxExperienceDefinition.cpp`, `Source/WxGame/Framework/WxExperienceActionSet.cpp`, `Source/WxGame/Framework/WxGameState.cpp`, `Source/WxGame/Framework/WxWorldSettings.cpp`, `Source/WxGame/Character/WxCharacterBase.cpp`, `Source/WxGame/Character/WxPlayerCharacter.cpp`, `Source/WxGame/Character/WxEnemyCharacter.cpp`, `Source/WxGame/Character/WxMetaHumanComponent.cpp`, `Source/WxGame/Character/WxCharacterMovementComponent.cpp`, `Source/WxGame/Character/WxNpc.cpp`, `Source/WxGame/Controller/WxAIController.cpp`, `Source/WxGame/Controller/WxPlayerController.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_UseItem.cpp`, `Source/WxGame/Inventory/WxItemUseComponent.cpp`, `Source/WxGame/Cheat/WxCheatManager.cpp`, `Source/WxGame/MVVM/` 전 파일 (짝이 되는 헤더 포함)
+- **훑은 파일**: `Source/WxGame/AnimNotify/WxAnimNotify_UseItem.cpp`, `Source/WxGame/Character/WxMinion.cpp`, `Source/WxGame/Character/WxBossCharacter.cpp`, `Source/WxGame/Player/WxPlayerState.cpp`, `Source/WxGame/Input/WxInputConfig.cpp`, `Source/WxGame/WxGame.cpp`
+- **확인했으나 지적하지 않은 것**: 코딩 규칙 1(Wx 접두사)·2(저작권 첫 줄)·3(람다 — 모듈 전체 0건)·6(인라인 정의 — 0건)·7(`Super::` 누락 — override 82개 전수 확인, 누락 없음)은 전부 깨끗하다. `WxCharacterBase.cpp` 등 7개 파일의 UTF-8 BOM 은 편집기에서 보이지 않아 제외했다. `UWxItemUseComponent` 는 구독·해제 짝과 재진입 가드(`:86-87`)가 모두 정확해 결함이 없다. `AWxEnemyCharacter::HandleDeath` 가 항상 0번 플레이어에게 보상을 주는 것, `UWxViewModelResolver_BossCharacter` 가 위젯별 관찰형 VM 을 만드는 것은 주석·기존 결정으로 의도가 명시돼 있다. `/Game/Framework` Experience 스캔 설정(`Config/DefaultGame.ini:48-49`)은 코드의 전제와 일치한다. `UWxViewModel_Item` 의 아이콘 이중 요청과 `HandleStackChanged` 중 델리게이트 재진입은 각각 베이스의 `CancelHandle` 과 UE 멀티캐스트의 지연 컴팩션으로 안전함을 확인했다.
+- **미검토 / 한계**: `UWxExperienceManagerComponent` 의 실패·중도 종료 경로는 코드상 정합하나 실제 GameFeature 활성 실패를 재현해 확인하지는 않았다. 1번 결함은 정적 분석과 에셋 배치로 확정했을 뿐 PIE 재현은 하지 않았다 — 수정 전 `LV_OpenWorld` 에서 먼저 재현해 보길 권한다. 범위 밖이지만 `Plugins/WxWorld/.../WxInteractionScannerComponent.cpp:77-85` 는 주석("자리를 빈 텍스트로 채운다")과 코드(`if (AActor* Actor = Weak.Get())` 로 자리를 건너뜀)가 어긋나 있고, `WxViewModel_InteractionList.cpp:43-44` 의 초기 시드가 이를 그대로 읽어 프롬프트와 선택 인덱스가 일시적으로 어긋날 수 있다 — WxWorld 리뷰 때 확인할 것. BP/WBP 내부 구조는 범위 밖이다.
 
 ---
-*문서 기준 커밋 `ba33d69e` · 리뷰일 2026-09-01 · 소스 69파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `a8c6c495` · 리뷰일 2026-09-01 · 소스 70파일 — `/module-review`로 갱신*
