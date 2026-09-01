@@ -24,7 +24,7 @@ struct FWxStateTreeTask_TriggerSpawnersInstanceData
 
 /**
  * 라이브 전이로 진입할 때 권위 측에서만 지정 스포너 전부의 Respawn() 을 호출하고 Succeeded 로 완료한다(1회성 스폰 트리거).
- * 초기 진입(StateTree 시작·세이브 복원·레이트조인: SourceStateID 무효)이면 호출하지 않는다 — 스폰은 발동 순간에만 일어난다.
+ * 초기 진입(StateTree 시작·레이트조인: SourceStateID 무효)이면 호출하지 않는다 — 스폰은 발동 순간에만 일어난다.
  * 미해석(스트리밍 아웃) 스포너는 강제 로드 없이 스킵한다.
  *
  * 대상은 FUniversalObjectLocator 로 배치 액터를 직접 지정한다 — 순수 구조체라 ST 컴파일러의 레벨 액터 참조 검증에 걸리지 않고, 씬 픽커와 WP 런타임 셀·PIE 픽스업 해석이 엔진에 내장돼 있어 레벨 밖 호스트(퀘스트 ST)에서도 조립할 수 있다.

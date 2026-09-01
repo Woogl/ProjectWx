@@ -153,17 +153,6 @@ void AWxSpawner::SpawnTarget()
 		return;
 	}
 
-	TArray<AActor*> AttachedActors;
-	GetAttachedActors(AttachedActors);
-	for (const AActor* Existing : AttachedActors)
-	{
-		if (IsValid(Existing))
-		{
-			UE_LOG(LogWxWorld, Verbose, TEXT("Spawner(%s): 복원된 인스턴스 %s가 붙어 있어 생성 시도를 건너뛴다."), *GetName(), *Existing->GetName());
-			return;
-		}
-	}
-
 	if (!SpawnableActorClass->ImplementsInterface(UWxSpawnable::StaticClass()))
 	{
 		UE_LOG(LogWxWorld, Warning, TEXT("AWxSpawner: %s does not implement IWxSpawnable and will not be spawned."), *SpawnableActorClass->GetName());
@@ -194,7 +183,7 @@ void AWxSpawner::SpawnTarget()
 	SpawnedActor = Spawned;
 
 	// 스포너가 먼저 attach 하지는 않는다 — 스폰 대상은 CMC 로 돌아다니는 캐릭터라, 루트가 붙어 있으면 이동 복제가 ReplicatedMovement 대신 AttachmentReplication(부모 상대 오프셋) 경로를 타 원격 스무딩에서 벗어나고 스포너를 옮기면 딸려 온다.
-	// 일반 생성 인스턴스는 비영속 약참조로, LSP가 복원한 적은 기존 attachment 관계로 찾는다. Pawn Owner는 빙의 시 Controller로 바뀌므로 수명 추적에 쓰지 않는다.
+	// 수명 추적은 약참조 하나로 한다 — Pawn Owner는 빙의 시 Controller로 바뀌어 못 쓴다.
 	// 예외로 적(AWxEnemyCharacter)은 OnSpawnedBy 에서 스스로 부착한다 — 정찰 경로를 스포너에서 찾아야 해서, 위 대가를 알고 받아들인 선택이다.
 }
 

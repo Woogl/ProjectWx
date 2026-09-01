@@ -2,8 +2,6 @@
 
 #include "Spawnable/WxStateTreeTask_WaitSpawnersKilled.h"
 
-#include "EngineUtils.h"
-#include "GameFramework/Actor.h"
 #include "Spawnable/WxSpawner.h"
 #include "StateTreeExecutionContext.h"
 #include "WxLocatorUtils.h"
@@ -22,15 +20,13 @@ FWxStateTreeTask_WaitSpawnersKilled::FWxStateTreeTask_WaitSpawnersKilled()
 	bShouldCopyBoundPropertiesOnTick = false;
 	bShouldCopyBoundPropertiesOnExitState = false;
 
-	// 처치 대기 중 같은 상태가 재선택되어도 런타임 캐시와 판정 주기를 다시 만들 이유가 없다.
+	// 처치 대기 중 같은 상태가 재선택되어도 판정 주기를 다시 세울 이유가 없다.
 	bShouldStateChangeOnReselect = false;
 }
 
 EStateTreeRunStatus FWxStateTreeTask_WaitSpawnersKilled::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
-	Instance.ResolvedSpawners.Reset();
-	Instance.ResolvedSpawners.SetNum(Instance.Spawners.Num());
 
 	// 지정이 없거나 빈 로케이터가 섞이면 완료될 수 없는 잘못된 조립이다.
 	if (Instance.Spawners.IsEmpty())
@@ -46,10 +42,8 @@ EStateTreeRunStatus FWxStateTreeTask_WaitSpawnersKilled::EnterState(FStateTreeEx
 		}
 	}
 
-	UObject* Owner = Context.GetOwner();
-	UWorld* World = Owner ? Owner->GetWorld() : nullptr;
 	int32 ResolvedCount = 0;
-	if (AreAllSpawnersKilled(Instance, World, ResolvedCount))
+	if (AreAllSpawnersKilled(Instance, Context.GetOwner(), ResolvedCount))
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}
@@ -77,10 +71,8 @@ EStateTreeRunStatus FWxStateTreeTask_WaitSpawnersKilled::Tick(FStateTreeExecutio
 		return EStateTreeRunStatus::Running;
 	}
 
-	UObject* Owner = Context.GetOwner();
-	UWorld* World = Owner ? Owner->GetWorld() : nullptr;
 	int32 ResolvedCount = 0;
-	if (AreAllSpawnersKilled(Instance, World, ResolvedCount))
+	if (AreAllSpawnersKilled(Instance, Context.GetOwner(), ResolvedCount))
 	{
 		Context.RemoveScheduledTickRequest(Instance.ScheduledTickHandle);
 		Instance.ScheduledTickHandle = {};
@@ -122,49 +114,18 @@ FText FWxStateTreeTask_WaitSpawnersKilled::GetDescription(const FGuid& ID, FStat
 }
 #endif
 
-AWxSpawner* FWxStateTreeTask_WaitSpawnersKilled::ResolveSpawner(
-	const FUniversalObjectLocator& Locator,
-	TWeakObjectPtr<AWxSpawner>& CachedSpawner,
-	UWorld* World)
-{
-	if (!World)
-	{
-		CachedSpawner.Reset();
-		return nullptr;
-	}
-
-	AWxSpawner* Spawner = CachedSpawner.Get();
-	if (Spawner && Spawner->GetWorld() == World)
-	{
-		return Spawner;
-	}
-
-	CachedSpawner.Reset();
-	for (TActorIterator<AWxSpawner> It(World); It; ++It)
-	{
-		AWxSpawner* Candidate = *It;
-		if (Locator.SyncFind(Candidate) == Candidate)
-		{
-			CachedSpawner = Candidate;
-			return Candidate;
-		}
-	}
-
-	return nullptr;
-}
-
-bool FWxStateTreeTask_WaitSpawnersKilled::AreAllSpawnersKilled(FInstanceDataType& Instance, UWorld* World, int32& OutResolvedCount)
+bool FWxStateTreeTask_WaitSpawnersKilled::AreAllSpawnersKilled(const FInstanceDataType& Instance, UObject* Context, int32& OutResolvedCount)
 {
 	OutResolvedCount = 0;
-	if (Instance.Spawners.IsEmpty() || Instance.ResolvedSpawners.Num() != Instance.Spawners.Num())
+	if (Instance.Spawners.IsEmpty())
 	{
 		return false;
 	}
 
 	bool bAllKilled = true;
-	for (int32 Index = 0; Index < Instance.Spawners.Num(); ++Index)
+	for (const FUniversalObjectLocator& Locator : Instance.Spawners)
 	{
-		AWxSpawner* Spawner = ResolveSpawner(Instance.Spawners[Index], Instance.ResolvedSpawners[Index], World);
+		const AWxSpawner* Spawner = FWxSpawnerLocatorUtils::ResolveSpawner(Locator, Context);
 		if (!Spawner)
 		{
 			bAllKilled = false;

@@ -13,10 +13,10 @@ class USceneComponent;
 UENUM(BlueprintType)
 enum class EWxSpawnerMode : uint8
 {
-	/** LSP가 레벨 상태를 확정한 뒤 자동으로 스폰한다. */
+	/** BeginPlay 에서 곧바로 스폰한다. */
 	Auto,
 
-	/** 레벨 복원 후 자동 스폰을 건너뛰고 외부 트리거로만 스폰한다. */
+	/** BeginPlay 자동 스폰을 건너뛰고 Respawn() 외부 트리거로만 스폰한다. */
 	Manual
 };
 

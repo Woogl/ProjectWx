@@ -39,7 +39,7 @@ EStateTreeRunStatus FWxStateTreeTask_TriggerSpawners::EnterState(FStateTreeExecu
 	int32 TriggeredCount = 0;
 	for (const FUniversalObjectLocator& Locator : Instance.Spawners)
 	{
-		if (AWxSpawner* Spawner = Cast<AWxSpawner>(Locator.SyncFind(Owner)))
+		if (AWxSpawner* Spawner = FWxSpawnerLocatorUtils::ResolveSpawner(Locator, Owner))
 		{
 			Spawner->Respawn();
 			++TriggeredCount;

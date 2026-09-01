@@ -2,11 +2,19 @@
 
 #include "WxSpawnerLocatorUtils.h"
 
-#if WITH_EDITOR
 #include "Spawnable/WxSpawner.h"
 #include "UniversalObjectLocator.h"
-#include "WxLocatorUtils.h"
 
+#if WITH_EDITOR
+#include "WxLocatorUtils.h"
+#endif
+
+AWxSpawner* FWxSpawnerLocatorUtils::ResolveSpawner(const FUniversalObjectLocator& Locator, UObject* Context)
+{
+	return Cast<AWxSpawner>(Locator.SyncFind(Context));
+}
+
+#if WITH_EDITOR
 EDataValidationResult FWxSpawnerLocatorUtils::ValidateSpawners(UE::StateTree::ICompileNodeContext& CompileContext, const TArray<FUniversalObjectLocator>& Spawners)
 {
 	EDataValidationResult Result = EDataValidationResult::Valid;
