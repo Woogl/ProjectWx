@@ -35,16 +35,5 @@ public class WxUI : ModuleRules
 				"SlateCore",
 			}
 		);
-
-		if (Target.bBuildEditor)
-		{
-			PrivateDependencyModuleNames.AddRange(
-				new string[]
-				{
-					"AssetRegistry",
-					"EnhancedInput",
-				}
-			);
-		}
 	}
 }
