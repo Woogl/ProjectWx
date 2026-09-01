@@ -47,7 +47,13 @@ void AWxEnemyCharacter::BeginPlay()
 
 	NameplateComponent->InitializeViewModels(AbilitySystemComponent, CharacterName, Portrait);
 
-	LockOnPoint->OnLockedOnChanged.AddUObject(this, &AWxEnemyCharacter::HandleLockedOnChanged);
+	// 부위별 락온으로 지점이 여럿이어도 어느 쪽이 잡히든 표시되도록 전부 구독한다.
+	TArray<UWxLockOnPointComponent*> LockOnPoints;
+	GetComponents<UWxLockOnPointComponent>(LockOnPoints);
+	for (UWxLockOnPointComponent* Point : LockOnPoints)
+	{
+		Point->OnLockedOnChanged.AddUObject(this, &AWxEnemyCharacter::HandleLockedOnChanged);
+	}
 
 	RefreshNameplateVisibility();
 }
@@ -89,7 +95,7 @@ void AWxEnemyCharacter::RefreshNameplateVisibility()
 	const bool bDead = AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Death);
 
 	// 아직 나를 인지하지 못한 적이라도 내가 락온했다면 띄운다.
-	const bool bShow = bHasAITarget || LockOnPoint->IsLockedOn();
+	const bool bShow = bHasAITarget || UWxLockOnPointComponent::IsActorLockedOn(this);
 
 	// 숨김은 컴포넌트를 화면 위젯 레이어에서 빼내 매 프레임 투영 비용까지 없앤다.
 	NameplateComponent->SetVisibility(!bDead && bShow);
