@@ -6,6 +6,7 @@
 #include "Engine/DataTable.h"
 #include "GameplayTagContainer.h"
 #include "Abilities/GameplayAbility.h"
+#include "WxUIData.h"
 #include "WxAbilityBase.generated.h"
 
 class UAbilitySystemComponent;
@@ -60,7 +61,7 @@ enum class EWxAbilityActionPhase : uint8
 };
 
 UCLASS(Abstract, BlueprintType, Blueprintable, PrioritizeCategories = ("Wx"))
-class WXCOMBAT_API UWxAbilityBase : public UGameplayAbility
+class WXCOMBAT_API UWxAbilityBase : public UGameplayAbility, public IWxUIData
 {
 	GENERATED_BODY()
 
@@ -92,7 +93,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	TArray<TSubclassOf<UGameplayEffect>> ActivationOwnedEffects;
 
-	TSoftObjectPtr<UObject> GetIcon() const;
+	//~ Begin IWxUIData
+	virtual FText GetTitle() const override;
+	virtual FText GetDescription() const override;
+	virtual TSoftObjectPtr<UObject> GetIcon() const override;
+	//~ End IWxUIData
 
 	int32 GetMaxRecharges() const;
 

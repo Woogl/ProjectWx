@@ -5,6 +5,7 @@
 #include "Abilities/GameplayAbility.h"
 #include "Engine/Texture2D.h"
 #include "GameplayEffect.h"
+#include "WxUIData.h"
 
 void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility)
 {
@@ -16,6 +17,15 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGam
 	Deinitialize();
 	CachedASC = InASC;
 	CachedAbility = InAbility;
+
+	if (const IWxUIData* UIData = Cast<IWxUIData>(InAbility))
+	{
+		SetTitle(UIData->GetTitle());
+		SetDescription(UIData->GetDescription());
+
+		// 전투 중 동기 로드 히치를 피한다.
+		RequestImageAsync(TEXT("Icon"), UIData->GetIcon());
+	}
 
 	if (const UGameplayEffect* CooldownGE = InAbility->GetCooldownGameplayEffect())
 	{
@@ -154,6 +164,26 @@ const UGameplayAbility* UWxViewModel_Ability::GetBoundAbility() const
 	return CachedAbility.Get();
 }
 
+FText UWxViewModel_Ability::GetTitle() const
+{
+	return Title;
+}
+
+void UWxViewModel_Ability::SetTitle(const FText& NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(Title, NewValue);
+}
+
+FText UWxViewModel_Ability::GetDescription() const
+{
+	return Description;
+}
+
+void UWxViewModel_Ability::SetDescription(const FText& NewValue)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(Description, NewValue);
+}
+
 float UWxViewModel_Ability::GetCooldownRemaining() const
 {
 	return CooldownRemaining;
@@ -270,11 +300,6 @@ UObject* UWxViewModel_Ability::GetIcon() const
 void UWxViewModel_Ability::SetIcon(UObject* NewValue)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(Icon, NewValue);
-}
-
-void UWxViewModel_Ability::SetIconSoft(const TSoftObjectPtr<UObject>& InIcon)
-{
-	RequestImageAsync(TEXT("Icon"), InIcon);
 }
 
 void UWxViewModel_Ability::ApplyLoadedImage(FName FieldName, UObject* LoadedImage)

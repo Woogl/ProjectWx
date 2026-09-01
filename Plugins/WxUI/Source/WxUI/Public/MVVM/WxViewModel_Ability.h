@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
@@ -19,7 +19,7 @@ struct FGameplayEffectSpec;
 
 /**
  * 어빌리티 쿨다운/발동 가능 여부 뷰모델.
- * 쿨다운/충전 상태는 어빌리티의 GetCooldownGameplayEffect() 기준이며, 최대 충전 수만은 아이콘처럼 게임 모듈이 채워 준다.
+ * 쿨다운/충전 상태는 어빌리티의 GetCooldownGameplayEffect() 기준이며, 최대 충전 수만은 게임 모듈이 채워 준다.
  * 쿨다운 중에는 티커로 매 프레임 남은 시간·충전 수를 갱신한다.
  *
  * 동일 GE 클래스를 여러 어빌리티가 공유하는 경우, 소스 어빌리티 CDO로 구분한다.
@@ -42,8 +42,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx|Ability")
 	bool TryActivateAbility();
 
-	/** 아이콘처럼 UI 플러그인이 읽지 못하는 표시 데이터를 게임 모듈이 채울 때 쓴다. */
+	/** 최대 충전 수처럼 UI 플러그인이 읽지 못하는 값을 게임 모듈이 채울 때 쓴다. */
 	const UGameplayAbility* GetBoundAbility() const;
+
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	FText Title;
+
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	FText Description;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	float CooldownRemaining = 0.f;
@@ -78,9 +84,15 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	float CostAmount = 0.f;
 
-	/** 텍스처 또는 머터리얼이며, 소프트 참조는 SetIconSoft 가 비동기 로드한다. */
+	/** 텍스처 또는 머터리얼이며, 어빌리티가 든 소프트 참조를 초기화 때 비동기 로드해 세팅한다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	TObjectPtr<UObject> Icon = nullptr;
+
+	FText GetTitle() const;
+	void SetTitle(const FText& NewValue);
+
+	FText GetDescription() const;
+	void SetDescription(const FText& NewValue);
 
 	float GetCooldownRemaining() const;
 	void SetCooldownRemaining(float NewValue);
@@ -116,12 +128,6 @@ public:
 
 	UObject* GetIcon() const;
 	void SetIcon(UObject* NewValue);
-
-	/**
-	 * 로드 완료 시 Icon(하드)을 세팅해 바인딩을 발화한다.
-	 * null이면 즉시 Icon을 비운다.
-	 */
-	void SetIconSoft(const TSoftObjectPtr<UObject>& InIcon);
 
 protected:
 	//~ Begin UWxViewModel

@@ -21,6 +21,18 @@ UWxAbilityBase::UWxAbilityBase()
 	CostGameplayEffectClass = UWxEffect_Cost::StaticClass();
 }
 
+FText UWxAbilityBase::GetTitle() const
+{
+	const FWxAbilityTableRow* Row = GetTableRow();
+	return Row ? Row->Title : FText::GetEmpty();
+}
+
+FText UWxAbilityBase::GetDescription() const
+{
+	const FWxAbilityTableRow* Row = GetTableRow();
+	return Row ? Row->Description : FText::GetEmpty();
+}
+
 TSoftObjectPtr<UObject> UWxAbilityBase::GetIcon() const
 {
 	const FWxAbilityTableRow* Row = GetTableRow();
