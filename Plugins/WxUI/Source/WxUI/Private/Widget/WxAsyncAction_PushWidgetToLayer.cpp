@@ -59,6 +59,11 @@ void UWxAsyncAction_PushWidgetToLayer::Activate()
 	}
 }
 
+void UWxAsyncAction_PushWidgetToLayer::SetBeforePushCallback(FWxPushWidgetToLayerNativeDelegate InBeforePushCallback)
+{
+	BeforePushCallback = MoveTemp(InBeforePushCallback);
+}
+
 void UWxAsyncAction_PushWidgetToLayer::SetCompletionCallback(FWxPushWidgetToLayerNativeDelegate InCompletionCallback)
 {
 	CompletionCallback = MoveTemp(InCompletionCallback);
@@ -112,6 +117,7 @@ void UWxAsyncAction_PushWidgetToLayer::HandleWidgetClassLoaded()
 		return;
 	}
 
+	BeforePushCallback.ExecuteIfBound(WidgetInstance);
 	BeforePush.Broadcast(WidgetInstance);
 	if (bFinished)
 	{
@@ -151,6 +157,9 @@ void UWxAsyncAction_PushWidgetToLayer::Finish(UCommonActivatableWidget* Widget, 
 		StreamableHandle->CancelHandle();
 	}
 	StreamableHandle.Reset();
+
+	// 콜백 페이로드가 붙잡고 있는 참조를 여기서 놓는다.
+	BeforePushCallback.Unbind();
 
 	CompletionCallback.ExecuteIfBound(Widget);
 	CompletionCallback.Unbind();

@@ -1,10 +1,12 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Widget/WxActivatableWidget.h"
 #include "WxHUDLayout.generated.h"
+
+class UWxAsyncAction_PushWidgetToLayer;
 
 /**
  * 게임 플레이 중 항상 활성화되는 HUD 루트 위젯 (UI.Layer.Game).
@@ -33,4 +35,10 @@ protected:
 
 private:
 	void PushMenuWidget(TSoftClassPtr<UWxActivatableWidget> WidgetClass);
+
+	void HandleMenuPushCompleted(UCommonActivatableWidget* Widget);
+
+	/** 스트리밍이 끝나기 전까지 토글 입력이 계속 살아 있어, 진행 중인 요청을 기억해 메뉴가 겹쳐 쌓이는 것을 막는다. */
+	UPROPERTY()
+	TObjectPtr<UWxAsyncAction_PushWidgetToLayer> PendingMenuPush;
 };

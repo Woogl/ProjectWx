@@ -1,12 +1,12 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "Widget/WxHUDLayout.h"
 
 #include "CommonInputModeTypes.h"
 #include "Input/CommonUIActionRouterBase.h"
 #include "Input/CommonUIInputTypes.h"
-#include "System/WxUIManagerSubsystem.h"
 #include "UITag.h"
+#include "Widget/WxAsyncAction_PushWidgetToLayer.h"
 #include "WxGameplayTags.h"
 
 void UWxHUDLayout::NativeOnInitialized()
@@ -79,23 +79,18 @@ void UWxHUDLayout::HandleFreeCursorReleased()
 
 void UWxHUDLayout::PushMenuWidget(TSoftClassPtr<UWxActivatableWidget> WidgetClass)
 {
-	UGameInstance* GameInstance = GetGameInstance();
-	if (!GameInstance)
+	if (WidgetClass.IsNull() || PendingMenuPush)
 	{
 		return;
 	}
 
-	UWxUIManagerSubsystem* UIManager = GameInstance->GetSubsystem<UWxUIManagerSubsystem>();
-	if (!UIManager)
-	{
-		return;
-	}
+	PendingMenuPush = UWxAsyncAction_PushWidgetToLayer::PushWidgetToLayer(this, WxGameplayTags::UI_Layer_Menu, WidgetClass);
+	PendingMenuPush->SetCompletionCallback(
+		FWxPushWidgetToLayerNativeDelegate::CreateUObject(this, &ThisClass::HandleMenuPushCompleted));
+	PendingMenuPush->Activate();
+}
 
-	TSubclassOf<UWxActivatableWidget> ResolvedClass = WidgetClass.LoadSynchronous();
-	if (!ResolvedClass)
-	{
-		return;
-	}
-
-	UIManager->PushContentToLayer(WxGameplayTags::UI_Layer_Menu, ResolvedClass);
+void UWxHUDLayout::HandleMenuPushCompleted(UCommonActivatableWidget* Widget)
+{
+	PendingMenuPush = nullptr;
 }

@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "System/WxUIManagerSubsystem.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -62,17 +62,6 @@ void UWxUIManagerSubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
-UCommonActivatableWidget* UWxUIManagerSubsystem::PushContentToLayer(FGameplayTag LayerTag, TSubclassOf<UCommonActivatableWidget> WidgetClass)
-{
-	if (!PrimaryGameLayout || !WidgetClass)
-	{
-		return nullptr;
-	}
-	UCommonActivatableWidget* Widget = PrimaryGameLayout->PushWidgetToLayerStack(LayerTag, WidgetClass);
-	ObserveWidgetForGamePause(Widget);
-	return Widget;
-}
-
 UCommonActivatableWidget* UWxUIManagerSubsystem::PushWidgetInstanceToLayer(FGameplayTag LayerTag, UCommonActivatableWidget* WidgetInstance)
 {
 	if (!PrimaryGameLayout || !WidgetInstance)
@@ -86,24 +75,17 @@ UCommonActivatableWidget* UWxUIManagerSubsystem::PushWidgetInstanceToLayer(FGame
 
 void UWxUIManagerSubsystem::ShowConfirmation(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback)
 {
-	const TSoftClassPtr<UWxGamePopup>& PopupClass = GetDefault<UWxUIDeveloperSettings>()->ConfirmationPopupClass;
-	if (!PrimaryGameLayout || !Descriptor || PopupClass.IsNull())
+	if (!Descriptor)
 	{
 		return;
 	}
 
-	TSubclassOf<UWxGamePopup> LoadedClass = PopupClass.LoadSynchronous();
-	if (!LoadedClass)
-	{
-		return;
-	}
-
-	UWxGamePopup* PushedPopup = PrimaryGameLayout->PushWidgetToLayerStack<UWxGamePopup>(WxGameplayTags::UI_Layer_Modal, LoadedClass,
-		[Descriptor, ResultCallback](UWxGamePopup& Popup)
-		{
-			Popup.SetupPopup(Descriptor, ResultCallback);
-		});
-	ObserveWidgetForGamePause(PushedPopup);
+	// 서술자는 소유자 없이 만들어져 이 델리게이트 말고는 붙잡는 곳이 없다 — 스트리밍을 기다리는 동안 수거되지 않도록 강한 참조로 싣는다.
+	UWxAsyncAction_PushWidgetToLayer* PushAction = UWxAsyncAction_PushWidgetToLayer::PushWidgetToLayer(
+		this, WxGameplayTags::UI_Layer_Modal, GetDefault<UWxUIDeveloperSettings>()->ConfirmationPopupClass);
+	PushAction->SetBeforePushCallback(FWxPushWidgetToLayerNativeDelegate::CreateUObject(
+		this, &ThisClass::HandleConfirmationPopupReady, TStrongObjectPtr<UWxGamePopupDescriptor>(Descriptor), ResultCallback));
+	PushAction->Activate();
 }
 
 UWxPrimaryGameLayout* UWxUIManagerSubsystem::GetPrimaryGameLayout() const
@@ -286,6 +268,14 @@ void UWxUIManagerSubsystem::HandleDialogueTagChanged(const FGameplayTag Callback
 	PendingDialogueScreenPush->SetCompletionCallback(
 		FWxPushWidgetToLayerNativeDelegate::CreateUObject(this, &ThisClass::HandleDialogueScreenPushCompleted));
 	PendingDialogueScreenPush->Activate();
+}
+
+void UWxUIManagerSubsystem::HandleConfirmationPopupReady(UCommonActivatableWidget* Widget, TStrongObjectPtr<UWxGamePopupDescriptor> Descriptor, FWxPopupResultDelegate ResultCallback)
+{
+	if (UWxGamePopup* Popup = Cast<UWxGamePopup>(Widget))
+	{
+		Popup->SetupPopup(Descriptor.Get(), ResultCallback);
+	}
 }
 
 void UWxUIManagerSubsystem::HandleDialogueScreenPushCompleted(UCommonActivatableWidget* Widget)

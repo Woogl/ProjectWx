@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "System/WxPrimaryGameLayout.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
@@ -31,16 +31,6 @@ UCommonActivatableWidgetStack* UWxPrimaryGameLayout::GetLayerWidgetStack(FGamepl
 const TMap<FGameplayTag, TObjectPtr<UCommonActivatableWidgetStack>>& UWxPrimaryGameLayout::GetLayerMap() const
 {
 	return LayerMap;
-}
-
-UCommonActivatableWidget* UWxPrimaryGameLayout::PushWidgetToLayerStack(FGameplayTag LayerTag, TSubclassOf<UCommonActivatableWidget> WidgetClass)
-{
-	UCommonActivatableWidgetStack* Stack = GetLayerWidgetStack(LayerTag);
-	if (!Stack)
-	{
-		return nullptr;
-	}
-	return Stack->AddWidget(WidgetClass);
 }
 
 UCommonActivatableWidget* UWxPrimaryGameLayout::PushWidgetInstanceToLayerStack(FGameplayTag LayerTag, UCommonActivatableWidget* WidgetInstance)

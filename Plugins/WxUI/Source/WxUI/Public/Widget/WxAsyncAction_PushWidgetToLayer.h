@@ -31,6 +31,9 @@ public:
 
 	virtual void Activate() override;
 
+	/** 위젯이 활성화되기 전에 인스턴스를 초기화할 기회를 준다. */
+	void SetBeforePushCallback(FWxPushWidgetToLayerNativeDelegate InBeforePushCallback);
+
 	/** 실패·취소 시 Widget 은 null 이다. */
 	void SetCompletionCallback(FWxPushWidgetToLayerNativeDelegate InCompletionCallback);
 
@@ -54,6 +57,8 @@ private:
 	TWeakObjectPtr<UWxPrimaryGameLayout> TargetLayout;
 
 	TSharedPtr<FStreamableHandle> StreamableHandle;
+
+	FWxPushWidgetToLayerNativeDelegate BeforePushCallback;
 
 	FWxPushWidgetToLayerNativeDelegate CompletionCallback;
 

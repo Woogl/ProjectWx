@@ -1,10 +1,11 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "GameplayTagContainer.h"
+#include "UObject/StrongObjectPtr.h"
 #include "Widget/WxGamePopup.h"
 #include "WxUIManagerSubsystem.generated.h"
 
@@ -25,8 +26,6 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 	virtual void Deinitialize() override;
-
-	UCommonActivatableWidget* PushContentToLayer(FGameplayTag LayerTag, TSubclassOf<UCommonActivatableWidget> WidgetClass);
 
 	UCommonActivatableWidget* PushWidgetInstanceToLayer(FGameplayTag LayerTag, UCommonActivatableWidget* WidgetInstance);
 
@@ -58,6 +57,9 @@ private:
 
 	/** 대화 세션이 열리면 대화 창을 띄우고, 닫히면 걷는다. */
 	void HandleDialogueTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
+	/** 팝업은 활성화되기 전에 내용을 채워야 하므로, push 직전에 서술자를 넘긴다. */
+	void HandleConfirmationPopupReady(UCommonActivatableWidget* Widget, TStrongObjectPtr<UWxGamePopupDescriptor> Descriptor, FWxPopupResultDelegate ResultCallback);
 
 	void HandleDialogueScreenPushCompleted(UCommonActivatableWidget* Widget);
 
