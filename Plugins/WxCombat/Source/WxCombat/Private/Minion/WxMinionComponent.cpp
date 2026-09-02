@@ -8,8 +8,6 @@
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "GenericTeamAgentInterface.h"
-#include "GameplayTagsManager.h"
-#include "NavigationSystem.h"
 #include "WxGameplayTags.h"
 
 void UWxMinionComponent::BeginPlay()
@@ -70,9 +68,7 @@ int32 UWxMinionComponent::TryActivateAbilityOnMinions(const FGameplayTag& Abilit
 		return 0;
 	}
 
-	if (!AbilityTag.IsValid() || !AbilityTag.MatchesTag(WxGameplayTags::Ability)
-		|| AbilityTag == WxGameplayTags::Ability
-		|| !UGameplayTagsManager::Get().RequestGameplayTagChildren(AbilityTag).IsEmpty())
+	if (!AbilityTag.IsValid())
 	{
 		return 0;
 	}
@@ -143,22 +139,12 @@ void UWxMinionComponent::HandleSpawnMinionEvent(const FGameplayEventData* Payloa
 		ActiveMinions.RemoveAt(0);
 	}
 
-	FVector SpawnLocation = Owner->GetActorTransform().TransformPosition(MinionNotify->GetSpawnOffset());
-
-	// 내비메시 밖에 세우면 AI가 한 발짝도 못 움직인다.
-	const UNavigationSystemV1* NavigationSystem = UNavigationSystemV1::GetCurrent(Owner->GetWorld());
-	FNavLocation ProjectedLocation;
-	if (NavigationSystem && NavigationSystem->ProjectPointToNavigation(SpawnLocation, ProjectedLocation))
-	{
-		SpawnLocation = ProjectedLocation.Location;
-	}
-
+	const FVector SpawnLocation = Owner->GetActorTransform().TransformPosition(MinionNotify->GetSpawnOffset());
 	const FTransform SpawnTransform(Owner->GetActorRotation(), SpawnLocation);
 
 	// 팀은 BeginPlay 전에 심어야 최초 복제값부터 옳고 첫 프레임의 인지·판정이 어긋나지 않는다.
-	AActor* Minion = Owner->GetWorld()->SpawnActorDeferred<AActor>(
-		MinionNotify->GetMinionClass(), SpawnTransform, Owner, Cast<APawn>(Owner),
-		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+	APawn* Master = Cast<APawn>(Owner);
+	AActor* Minion = Owner->GetWorld()->SpawnActorDeferred<AActor>(MinionNotify->GetMinionClass(), SpawnTransform, nullptr, Master, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
 	if (!Minion)
 	{
 		return;
@@ -166,7 +152,7 @@ void UWxMinionComponent::HandleSpawnMinionEvent(const FGameplayEventData* Payloa
 
 	if (IGenericTeamAgentInterface* TeamAgent = Cast<IGenericTeamAgentInterface>(Minion))
 	{
-		TeamAgent->SetGenericTeamId(FGenericTeamId::GetTeamIdentifier(Owner));
+		TeamAgent->SetGenericTeamId(FGenericTeamId::GetTeamIdentifier(Master));
 	}
 
 	Minion->FinishSpawning(SpawnTransform);
@@ -219,8 +205,7 @@ bool UWxMinionComponent::TryActivateAbilityByExactTag(UAbilitySystemComponent& M
 		}
 
 		// 같은 식별 태그에 조건별 후보가 여럿이면 발동 가능한 첫 후보 하나만 명령한다.
-		if (!MinionASC.TriggerAbilityFromGameplayEvent(
-			AbilitySpec.Handle, ActorInfo, WxGameplayTags::Event_CommandMinionAbility, &Payload, MinionASC))
+		if (!MinionASC.TriggerAbilityFromGameplayEvent(AbilitySpec.Handle, ActorInfo, WxGameplayTags::Event_CommandMinionAbility, &Payload, MinionASC))
 		{
 			continue;
 		}

@@ -32,7 +32,7 @@ public:
 
 private:
 	/** 동시에 유지할 소환물 수. 넘치면 가장 오래된 것을 파괴하고 새로 소환한다. */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Minion", meta = (ClampMin = "1"))
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Minion")
 	int32 MaxMinionCount = 1;
 
 	void HandleSpawnMinionEvent(const FGameplayEventData* Payload);
