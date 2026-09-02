@@ -25,6 +25,9 @@ struct FWxBTRandomChoiceMemory : public FBTCompositeMemory
  *
  * Selector 시멘틱과 다르다 — 일단 선택된 자식이 실행 후 실패해도 다른 자식으로 폴백하지 않고 그대로 실패를 반환한다.
  *
+ * 조건 실패 자식에는 인덱스와 무관하게 전부 활성화 실패를 통지한다 — 엔진 Selector 는 실행할 자식을 찾은 지점에서 탐색을 멈춰 뒤쪽 자식엔 통지하지 않지만, 무작위 추첨엔 자식 간 우선순위가 없어 앞뒤를 가를 기준이 없다.
+ * 그 대가로 LowerPriority·Both 데코레이터가 붙은 자식은 뒤쪽에 있어도 관찰자로 등록되며, 그 조건이 뒤집히면 실행 중인 추첨 결과가 끊기고 재추첨이 일어날 수 있다.
+ *
  * 베이스 클래스로 UBTComposite_Selector 를 사용하는 것은 시멘틱 일치가 아니라 BT 시스템 호환성 때문이며, 실제 동작은 GetNextChildHandler 오버라이드 한 곳에서 결정된다.
  */
 UCLASS()
