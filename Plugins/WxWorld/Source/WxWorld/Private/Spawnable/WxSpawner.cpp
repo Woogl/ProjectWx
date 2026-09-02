@@ -6,6 +6,7 @@
 #include "Components/BillboardComponent.h"
 #include "Components/ChildActorComponent.h"
 #include "Components/PrimitiveComponent.h"
+#include "Engine/Texture2D.h"
 #include "Engine/World.h"
 #include "UObject/ConstructorHelpers.h"
 #include "System/WxWorldDeveloperSettings.h"
@@ -55,22 +56,7 @@ void AWxSpawner::Respawn()
 	}
 
 	// 시체면 청소, 살아있으면 위치/상태 원복을 위한 destroy.
-	AActor* TrackedActor = SpawnedActor.Get();
-	if (IsValid(TrackedActor))
-	{
-		TrackedActor->Destroy();
-	}
-
-	TArray<AActor*> AttachedActors;
-	GetAttachedActors(AttachedActors);
-	for (AActor* Existing : AttachedActors)
-	{
-		if (IsValid(Existing) && Existing != TrackedActor)
-		{
-			Existing->Destroy();
-		}
-	}
-	SpawnedActor.Reset();
+	DestroySpawnedActor();
 
 	if (bIsKilled && bNeverRevive)
 	{
@@ -113,25 +99,7 @@ void AWxSpawner::BeginPlay()
 
 void AWxSpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if (HasAuthority())
-	{
-		AActor* TrackedActor = SpawnedActor.Get();
-		if (IsValid(TrackedActor))
-		{
-			TrackedActor->Destroy();
-		}
-
-		TArray<AActor*> AttachedActors;
-		GetAttachedActors(AttachedActors);
-		for (AActor* Existing : AttachedActors)
-		{
-			if (IsValid(Existing) && Existing != TrackedActor)
-			{
-				Existing->Destroy();
-			}
-		}
-	}
-	SpawnedActor.Reset();
+	DestroySpawnedActor();
 
 	Super::EndPlay(EndPlayReason);
 }
@@ -185,6 +153,33 @@ void AWxSpawner::SpawnTarget()
 	// 스포너가 먼저 attach 하지는 않는다 — 스폰 대상은 CMC 로 돌아다니는 캐릭터라, 루트가 붙어 있으면 이동 복제가 ReplicatedMovement 대신 AttachmentReplication(부모 상대 오프셋) 경로를 타 원격 스무딩에서 벗어나고 스포너를 옮기면 딸려 온다.
 	// 수명 추적은 약참조 하나로 한다 — Pawn Owner는 빙의 시 Controller로 바뀌어 못 쓴다.
 	// 예외로 적(AWxEnemyCharacter)은 OnSpawnedBy 에서 스스로 부착한다 — 정찰 경로를 스포너에서 찾아야 해서, 위 대가를 알고 받아들인 선택이다.
+}
+
+void AWxSpawner::DestroySpawnedActor()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	AActor* TrackedActor = SpawnedActor.Get();
+	if (IsValid(TrackedActor))
+	{
+		TrackedActor->Destroy();
+	}
+
+	// 약참조를 놓친 경우까지 대비한 안전망이다 — 적(AWxEnemyCharacter)은 OnSpawnedBy 에서 스스로 부착하므로 부착 목록에서 찾을 수 있다.
+	TArray<AActor*> AttachedActors;
+	GetAttachedActors(AttachedActors);
+	for (AActor* Existing : AttachedActors)
+	{
+		if (IsValid(Existing) && Existing != TrackedActor)
+		{
+			Existing->Destroy();
+		}
+	}
+
+	SpawnedActor.Reset();
 }
 
 #if WITH_EDITOR
