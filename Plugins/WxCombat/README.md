@@ -7,7 +7,7 @@
 - 어빌리티 파이프라인: `UWxAbilityBase` 파생(공격/회피/가드/스킬/궁극/패시브/피격·그로기·사망 등)과 발동 그룹(Exclusive/Override)·캔슬 창(Blocking→ComboWindow→Recovery) 배타 제어
 - 어트리뷰트·데미지 파이프라인: `UWxCombatAttributeSet`(HP/SP/GP/MP/UP/ATK/DEF/Crit/SPD/ASPD), ExecCalc 기반 데미지 산출과 크리·그로기·퍼펙트가드 반사 처리
 - 데이터 주도 GameplayEffect: DataTable 행을 MMC/컴포넌트로 읽어 코스트·쿨다운·데미지·상태 GE의 수치를 채움
-- 입력 라우팅과 버퍼링, 몽타주 재생 속도(ASPD) 관리 (`UWxAbilitySystemComponent`), 히트스톱 반응 (`UWxHitStopComponent`)
+- 입력 라우팅과 몽타주 재생 속도(ASPD) 관리 (`UWxAbilitySystemComponent`), 선입력 (`UWxInputBufferComponent`), 히트스톱 반응 (`UWxHitStopComponent`)
 - 락온(SceneComponent 단위·서버 복제), 무기 히트박스 스윕, 투사체, 처형 데미지, AnimNotify 기반 전투 이벤트
 - GameplayCue 연출(피격/데미지 플로터/공격 텔레그래프/퍼펙트가드 등)과 TargetingSystem 필터 태스크
 
@@ -19,7 +19,8 @@
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxAbilitySystemComponent` | ASC. 입력 라우팅·버퍼·몽타주 속도의 단일 진입점 | `Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h` |
+| `UWxAbilitySystemComponent` | ASC. 입력 라우팅·몽타주 속도의 단일 진입점 | `Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h` |
+| `UWxInputBufferComponent` | 선입력. 발동에 실패한 키 입력을 기억했다가 어빌리티 종료·캔슬 창에서 다시 시도한다(유지 시간·개수는 컴포넌트 속성) | `Source/WxCombat/Public/AbilitySystem/WxInputBufferComponent.h` |
 | `UWxHitStopComponent` | `Effect.HitStop`을 부여하는 GE의 추가·제거를 받아 몽타주를 얼리고 되돌린다 | `Source/WxCombat/Public/AbilitySystem/WxHitStopComponent.h` |
 | `UWxAbilityBase` | 모든 어빌리티 베이스. 발동 그룹·캔슬 창·데이터 행·활성 GE | `Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` |
 | `UWxAbilitySet` | 캐릭터에 어빌리티·이펙트·어트리뷰트 초기값을 일괄 부여하는 데이터 에셋 | `Source/WxCombat/Public/AbilitySystem/WxAbilitySet.h` |
@@ -38,7 +39,7 @@
 - **리플리케이션**: 어트리뷰트는 서버 권위·RepNotify, 락온은 서버 권위 복제(대상 선택은 클라 신뢰). ExecCalc·데미지 판정은 서버에서 확정한다.
 
 ## 여기서부터 읽어라
-1. `Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h` — 입력·버퍼·몽타주 속도가 만나는 전투의 심장. 어빌리티 라우팅 진입점
+1. `Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h` — 입력·몽타주 속도가 만나는 전투의 심장. 어빌리티 라우팅 진입점(선입력은 `WxInputBufferComponent.h`가 그 앞에 선다)
 2. `Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` — 발동 그룹·캔슬 창 개념이 모두 여기 정의됨. 모든 어빌리티의 골격
 3. `Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h` — 어트리뷰트 목록과 데미지가 HP로 흘러가는 파이프라인
 4. `Source/WxCombat/Public/WxCombatLibrary.h` — 외부(무기·투사체·AI)가 전투에 데미지를 넣는 공용 문

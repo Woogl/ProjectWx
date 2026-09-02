@@ -5,7 +5,6 @@
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "WxCombatModule.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "Engine/World.h"
 
 UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 {
@@ -81,18 +80,17 @@ void UWxAbilitySystemComponent::RestoreAnimatingMontageMeshTick()
 	UE_LOG(LogWxCombat, Verbose, TEXT("Montage mesh tick restored: Mesh=%s"), *GetNameSafe(Mesh));
 }
 
-void UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* Action)
+bool UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* Action)
 {
 	if (!Action)
 	{
-		return;
+		return false;
 	}
 
 	// 순회 중 활성화가 어빌리티 목록을 바꿀 수 있다(GE의 GrantedAbilities, RemoveAfterActivation 등).
 	// 락이 없으면 Give/Clear가 즉시 Add/RemoveAtSwap 해 참조와 이터레이터가 무효화된다.
 	ABILITYLIST_SCOPE_LOCK();
 
-	bool bBuffer = false;
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
 		const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.Ability);
@@ -102,15 +100,13 @@ void UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* 
 		}
 
 		// 순정 AbilityLocalInputPressed처럼 활성 여부와 무관하게 키 상태를 스펙에 남긴다.
-		// 홀드 어빌리티가 발동 조건으로 읽으며, 버퍼 재생은 뗀 뒤라 이 값을 세우지 않는다.
+		// 홀드 어빌리티가 발동 조건으로 읽는다.
 		Spec.InputPressed = true;
 
 		// 신규 발동과 콤보 재발동은 엔진이 bRetriggerInstancedAbility로 가르므로 호출이 같다.
 		if (TryActivateAbility(Spec.Handle))
 		{
-			// 발동이 성립했으면 쌓아 둔 입력은 전부 낡은 것이다 — 남겨 두면 같은 입력이 라이브와 재생으로 두 번 나간다.
-			BufferedInputs.Reset();
-			return;
+			return true;
 		}
 
 		if (Spec.IsActive())
@@ -128,29 +124,9 @@ void UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* 
 				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
 			}
 		}
-
-		// 배타 게이트의 대상이 아닌 Independent(질주·락온)는 거절 주체가 액션이 아니므로 기억하지 않는다 — 락온 해제 입력이 뒤늦게 다시 켜지는 것도 여기서 막힌다.
-		bBuffer = bBuffer || Ability->ActivationGroup != EWxAbilityActivationGroup::Independent;
 	}
 
-	// 입력을 거절한 것이 진행 중인 액션(배타 점유자)일 때만 기억한다. 유휴 중 실패(쿨다운·코스트)는 기억할 가치가 없다.
-	if (!bBuffer || UWxAbilityBase::FindActivationGroupBlocker(*this) == nullptr)
-	{
-		return;
-	}
-
-	const double Now = GetWorld()->GetRealTimeSeconds();
-	for (FWxBufferedInput& Buffered : BufferedInputs)
-	{
-		// 홀드 중엔 매 프레임 갱신되므로 나이는 사실상 뗀 뒤부터 센다.
-		if (Buffered.Action == Action)
-		{
-			Buffered.TriggeredTime = Now;
-			return;
-		}
-	}
-
-	BufferedInputs.Add({Action, Now});
+	return false;
 }
 
 void UWxAbilitySystemComponent::AbilityInputActionReleased(const UInputAction* Action)
@@ -196,26 +172,27 @@ void UWxAbilitySystemComponent::AbilityInputActionReleased(const UInputAction* A
 	}
 }
 
-void UWxAbilitySystemComponent::FlushBufferedInputs()
+bool UWxAbilitySystemComponent::TryActivateByInputAction(const UInputAction* Action)
 {
-	const double Now = GetWorld()->GetRealTimeSeconds();
-	for (int32 Index = 0; Index < BufferedInputs.Num();)
+	// AbilityInputActionTriggered와 같은 이유로 락을 건다.
+	ABILITYLIST_SCOPE_LOCK();
+
+	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
-		if (Now - BufferedInputs[Index].TriggeredTime > InputBufferDuration)
+		const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.Ability);
+		if (!Ability || Ability->ActivationInputAction.Get() != Action)
 		{
-			BufferedInputs.RemoveAt(Index);
 			continue;
 		}
 
-		// 실패한 항목은 남긴다. 콤보 창은 자기 재발동만 열리므로, 거기서 버리면 같이 쌓인 회피가 후딜에 못 나간다.
-		if (TryActivateByInputAction(BufferedInputs[Index].Action))
+		// 신규 발동과 콤보 재발동은 엔진이 bRetriggerInstancedAbility로 가르므로 호출이 같다.
+		if (TryActivateAbility(Spec.Handle))
 		{
-			BufferedInputs.Reset();
-			return;
+			return true;
 		}
-
-		++Index;
 	}
+
+	return false;
 }
 
 TArray<const UInputAction*> UWxAbilitySystemComponent::GetAbilityInputActions() const
@@ -243,29 +220,6 @@ void UWxAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecHa
 	Super::NotifyAbilityFailed(Handle, Ability, FailureReason);
 
 	UE_LOG(LogWxCombat, Verbose, TEXT("Ability Failed: %s — 사유 %s"), *GetNameSafe(Ability), *FailureReason.ToStringSimple());
-}
-
-bool UWxAbilitySystemComponent::TryActivateByInputAction(const UInputAction* Action)
-{
-	// AbilityInputActionTriggered와 같은 이유로 락을 건다.
-	ABILITYLIST_SCOPE_LOCK();
-
-	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
-	{
-		const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.Ability);
-		if (!Ability || Ability->ActivationInputAction.Get() != Action)
-		{
-			continue;
-		}
-
-		// 신규 발동과 콤보 재발동은 엔진이 bRetriggerInstancedAbility로 가르므로 호출이 같다.
-		if (TryActivateAbility(Spec.Handle))
-		{
-			return true;
-		}
-	}
-
-	return false;
 }
 
 void UWxAbilitySystemComponent::CancelRecoveringAbilities(UGameplayAbility* IgnoreAbility)

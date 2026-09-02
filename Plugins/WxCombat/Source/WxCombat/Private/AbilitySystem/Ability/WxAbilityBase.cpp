@@ -5,6 +5,7 @@
 #include "AbilitySystem/Effect/WxEffect_Cost.h"
 #include "AbilitySystem/Ability/WxAbilityTableRow.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "AbilitySystem/WxInputBufferComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
@@ -67,10 +68,11 @@ void UWxAbilityBase::OpenComboWindow()
 	{
 		ActionPhase = EWxAbilityActionPhase::ComboWindow;
 
-		// 창이 열린 순간 쌓인 입력을 재생한다. 재발동이 이 인스턴스를 그대로 되살리므로 전이 뒤에는 아무것도 쓰지 않는다.
-		if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo()))
+		// 재발동이 이 인스턴스를 그대로 되살리므로 전이 뒤에는 아무것도 쓰지 않는다.
+		const AActor* Avatar = GetAvatarActorFromActorInfo();
+		if (UWxInputBufferComponent* InputBuffer = Avatar ? Avatar->FindComponentByClass<UWxInputBufferComponent>() : nullptr)
 		{
-			WxASC->FlushBufferedInputs();
+			InputBuffer->FlushBufferedInputs();
 		}
 	}
 }
@@ -91,10 +93,11 @@ void UWxAbilityBase::StartRecovery()
 	{
 		ActionPhase = EWxAbilityActionPhase::Recovery;
 
-		// 후딜이 열린 순간 쌓인 입력을 재생한다. 성립한 어빌리티가 이 인스턴스를 끊으므로 전이 뒤에는 아무것도 쓰지 않는다.
-		if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo()))
+		// 성립한 어빌리티가 이 인스턴스를 끊으므로 전이 뒤에는 아무것도 쓰지 않는다.
+		const AActor* Avatar = GetAvatarActorFromActorInfo();
+		if (UWxInputBufferComponent* InputBuffer = Avatar ? Avatar->FindComponentByClass<UWxInputBufferComponent>() : nullptr)
 		{
-			WxASC->FlushBufferedInputs();
+			InputBuffer->FlushBufferedInputs();
 		}
 	}
 }
@@ -320,7 +323,7 @@ UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
 
 bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	// 순정 판정은 쿨다운 태그가 붙어 있기만 하면 막는다. 충전이 남아 있으면 그 앞에서 통과시킨다.
+	// 순정 판정은 쿨다운 태그가 붙어 있기만 하면 막는다.
 	const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
 	const FGameplayTagContainer* CooldownTags = GetCooldownTags();
 	if (ASC && CooldownTags && !CooldownTags->IsEmpty())

@@ -8,6 +8,7 @@
 #include "InputAction.h"
 #include "InputActionValue.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "AbilitySystem/WxInputBufferComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
@@ -45,6 +46,7 @@ AWxPlayerCharacter::AWxPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	LockOnComponent = CreateDefaultSubobject<UWxLockOnComponent>(TEXT("LockOnComponent"));
 	FinisherDamageComponent = CreateDefaultSubobject<UWxFinisherDamageComponent>(TEXT("FinisherDamageComponent"));
 	ItemUseComponent = CreateDefaultSubobject<UWxItemUseComponent>(TEXT("ItemUseComponent"));
+	InputBufferComponent = CreateDefaultSubobject<UWxInputBufferComponent>(TEXT("InputBufferComponent"));
 
 	StaminaWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("StaminaWidget"));
 	StaminaWidget->SetupAttachment(RootComponent);
@@ -198,7 +200,8 @@ void AWxPlayerCharacter::ToggleCrouch()
 
 void AWxPlayerCharacter::AbilityInputTriggered(const UInputAction* Action)
 {
-	AbilitySystemComponent->AbilityInputActionTriggered(Action);
+	// 실패한 입력을 기억하는 선입력이 ASC 앞에 선다. 뗌은 기억할 것이 없어 ASC로 바로 간다.
+	InputBufferComponent->InputActionTriggered(Action);
 }
 
 void AWxPlayerCharacter::AbilityInputReleased(const UInputAction* Action)
