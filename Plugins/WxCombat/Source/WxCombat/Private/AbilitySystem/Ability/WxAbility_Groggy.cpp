@@ -105,7 +105,7 @@ void UWxAbility_Groggy::HandleMontagePollTick()
 	UAbilitySystemComponent* ASC = CurrentActorInfo ? CurrentActorInfo->AbilitySystemComponent.Get() : nullptr;
 	if (!ASC || ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
 	{
-		// 사망 어빌리티가 Override 그로기를 취소하지 못해 여기서 종료하고, ASC가 없을 때도 같은 경로로 정리한다.
+		// 사망 어빌리티가 Override 그로기를 취소하지 못해 여기서 종료한다.
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 		return;
 	}

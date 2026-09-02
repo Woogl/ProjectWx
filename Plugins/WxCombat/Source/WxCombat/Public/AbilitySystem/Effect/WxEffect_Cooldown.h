@@ -30,7 +30,6 @@ public:
 	UWxEffect_Cooldown();
 
 protected:
-	/** 파생 클래스 생성자에서 자기 쿨다운 태그를 부여할 때 부른다. */
 	void GrantCooldownTag(const FGameplayTag& CooldownTag);
 };
 

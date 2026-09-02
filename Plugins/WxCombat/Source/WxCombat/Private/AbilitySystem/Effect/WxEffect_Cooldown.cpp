@@ -15,7 +15,7 @@ UWxEffect_Cooldown::UWxEffect_Cooldown()
 	DurationMagnitude = FGameplayEffectModifierMagnitude(DurationCalc);
 
 	// 쿨다운은 언제나 자기 자신에게 걸리므로 소스를 따지지 않는다 — 인스티게이터 ASC가 비면 스택이 갈라지는 AggregateBySource와 달리 항상 하나로 모인다.
-	// 상한은 GE에 두지 않는다(0 = 무제한).
+	// StackLimitCount 0은 무제한이다.
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
 	StackingType = EGameplayEffectStackingType::AggregateByTarget;
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

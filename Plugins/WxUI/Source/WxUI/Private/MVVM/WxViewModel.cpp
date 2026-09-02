@@ -80,7 +80,6 @@ void UWxViewModel::RequestImageAsync(FName FieldName, const TSoftObjectPtr<UObje
 
 	// 요청한 에셋이 이미 메모리에 있으면 RequestAsyncLoad 안에서 완료 콜백이 바로 돌 수 있다.
 	// 그 사이 슬롯이 다른 대상으로 재요청됐을 수 있으므로, 대상이 그대로일 때만 핸들을 보관한다.
-	// (보관은 생략할 수 없다 — 로드 완료와 지연 콜백 사이에 에셋을 붙잡아 두는 유일한 참조다.)
 	FWxImageRequest* CurrentRequest = ImageRequests.Find(FieldName);
 	if (CurrentRequest && CurrentRequest->Pending == InImage)
 	{

@@ -57,6 +57,6 @@ private:
 
 	float GlobalTimeDilation = 1.f;
 
-	/** 이 태스크가 실제로 적용한 배율. 0이면 걸지 않은 상태다. */
+	/** 0이면 이 태스크가 배율을 걸지 않은 상태다. */
 	float AppliedDilation = 0.f;
 };

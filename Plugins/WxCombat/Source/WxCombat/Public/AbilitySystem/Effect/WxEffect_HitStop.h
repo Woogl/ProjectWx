@@ -23,7 +23,7 @@ public:
 	UWxEffect_HitStop();
 
 	/**
-	 * Source가 Target에 건다. 자기 자신에게 걸면 공격자 쪽 히트스톱이고, Source가 몽타주를 쥔 어빌리티가 있으면 그 활성화 예측 키를 쓴다.
+	 * 자기 자신에게 걸면 공격자 쪽 히트스톱이고, Source가 몽타주를 쥔 어빌리티가 있으면 그 활성화 예측 키를 쓴다.
 	 * 엔진은 0 이하 지속시간을 0.1초로 올리며 에러를 남기므로, Duration이 0 이하면 걸지 않는다.
 	 */
 	static void Apply(float Duration, UAbilitySystemComponent* Source, UAbilitySystemComponent* Target);

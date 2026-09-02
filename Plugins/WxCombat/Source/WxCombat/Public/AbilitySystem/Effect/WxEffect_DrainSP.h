@@ -7,7 +7,7 @@
 #include "WxEffect_DrainSP.generated.h"
 
 /**
- * Movement.Sprint를 보유한 동안에만 틱하므로, 어빌리티는 활성화 시 한 번 걸어 두고 태그 토글로 소모를 켜고 끈다.
+ * Movement.Sprint를 보유한 동안에만 틱한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxEffect_DrainSP : public UGameplayEffect

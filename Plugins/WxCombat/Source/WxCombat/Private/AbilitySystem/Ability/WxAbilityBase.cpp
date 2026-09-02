@@ -350,7 +350,7 @@ bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, cons
 		}
 	}
 
-	// 실패 사유 태그를 채워 OnAbilityFailed 파이프라인에 전달하는 것까지 순정에 맡긴다.
+	// 실패 사유 태그를 채워 NotifyAbilityFailed 파이프라인에 전달하는 것까지 순정에 맡긴다.
 	return Super::CheckCooldown(Handle, ActorInfo, OptionalRelevantTags);
 }
 

@@ -113,7 +113,6 @@ UWxViewModel_Ability* UWxViewModel_AbilitySystem::GetOrCreateAbilityViewModel(co
 		return nullptr;
 	}
 
-	// 슬롯을 가리키는 요청 태그가 그대로 키다. 포함 관계로 찾으면 넓은 질의가 먼저 만들어진 VM 을 잡아 생성 순서에 따라 결과가 갈리므로, 정확히 같은 컨테이너만 재사용한다.
 	for (UWxViewModel_Ability* Existing : AbilityViewModels)
 	{
 		if (Existing && Existing->GetAbilityTags() == InAbilityTags)

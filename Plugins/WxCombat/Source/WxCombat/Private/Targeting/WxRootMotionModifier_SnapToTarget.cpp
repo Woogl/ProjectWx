@@ -72,7 +72,6 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 
 	const bool bFacingTargetIsLockOn = (FacingTarget == LockOnTarget);
 
-	// Preset이 없으면 판정 근거가 없으므로 허용한다.
 	const bool bTargetInSnapRange = !TargetingPreset || TargetingResults.Contains(FacingTarget);
 
 	// 서버 권위로만 도는 AI 등은 폴백 위치 스냅을 유지하며, IsPlayerControlled는 소유 클라·서버 양쪽에서 일관된다.

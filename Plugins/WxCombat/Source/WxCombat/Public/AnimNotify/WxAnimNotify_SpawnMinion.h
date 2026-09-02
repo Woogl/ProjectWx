@@ -27,7 +27,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|Minion")
 	TSubclassOf<APawn> MinionClass;
 
-	/** 소환자 로컬 기준 스폰 지점. 실제 위치는 여기서 내비메시로 투영해 정한다. */
+	/** 소환자 로컬 기준 스폰 지점. 실제 위치는 스폰 시 충돌 보정으로 밀릴 수 있다. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Minion")
 	FVector SpawnOffset = FVector(200.f, 0.f, 0.f);
 

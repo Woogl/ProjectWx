@@ -36,7 +36,6 @@ float UWxTargetingSorterTask_InputDirection::GetScoreForTarget(const FTargetingR
 	ToTarget.Z = 0.f;
 	ToTarget = ToTarget.GetSafeNormal();
 
-	// 입력이 중립이면 전부 0이라 순서가 그대로 남는다.
 	// 수평으로 겹쳐 방향을 못 구하는 타겟은 사이각 0, 즉 최우선으로 취급된다.
 	if (InputDir.IsNearlyZero() || ToTarget.IsNearlyZero())
 	{

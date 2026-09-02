@@ -44,7 +44,7 @@ void UWxHitStopComponent::HandleActiveGameplayEffectAdded(UAbilitySystemComponen
 		return;
 	}
 
-	// 공격자 쪽은 스펙의 어빌리티가 아직 몽타주를 쥐고 있을 때만 센다. 복제본은 비복제 어빌리티 인스턴스가 비어 여기서 걸러지고, 남는 예측 인스턴스가 본인 화면의 지속시간을 정한다.
+	// 공격자 쪽에서 복제본은 비복제 어빌리티 인스턴스가 비어 여기서 걸러지고, 남는 예측 인스턴스가 본인 화면의 지속시간을 정한다.
 	const FGameplayEffectContextHandle& Context = Spec.GetContext();
 	if (Context.GetInstigatorAbilitySystemComponent() == AbilitySystemComponent)
 	{

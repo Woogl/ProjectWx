@@ -37,6 +37,6 @@ private:
 	float Duration = 1.f;
 	float StartRealTimeSeconds = 0.f;
 
-	/** 이 태스크가 실제로 적용한 배율. 0이면 아직 걸지 않았다는 뜻이다. */
+	/** 0이면 이 태스크가 아직 배율을 걸지 않았다는 뜻이다. */
 	float AppliedDilation = 0.f;
 };

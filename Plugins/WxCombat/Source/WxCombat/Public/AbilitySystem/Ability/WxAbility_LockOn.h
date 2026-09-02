@@ -94,6 +94,5 @@ private:
 
 	TWeakObjectPtr<UWxLockOnComponent> LockOnComponent;
 
-	/** 락온이 끄기 전의 이동 방향 회전 설정. 값이 있을 때만 종료에서 되돌린다. */
 	TOptional<bool> SavedOrientRotationToMovement;
 };
