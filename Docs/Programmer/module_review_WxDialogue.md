@@ -1,62 +1,63 @@
 # WxDialogue — 코드 리뷰
 
-> 846줄 11파일의 작은 모듈이고, 설계 근거가 헤더 주석에 촘촘히 적혀 있어 전반적으로 건강하다. CLAUDE.md 코딩·모듈 규칙 위반은 한 건도 없다(Copyright 첫 줄 12파일 전수 확인, `BlueprintCallable`·`FORCEINLINE`·인라인 정의 0건, Build.cs 의존은 `WxCore`뿐, 유일한 람다에 예외 사유 주석 있음). 남은 지적은 세션 수명 관리와 죽은 API 쪽이다. 이번 리뷰는 `*.Build.cs`·`.uplugin`·전 헤더·전 cpp를 통독했고, 세션 컴포넌트와 StateTree 태스크는 UE 5.8 엔진 소스(`FinishTask`·`AutoManageActiveCameraTarget`)까지 대조했다.
+> 11파일 규모의 작고 응집도 높은 모듈이다. 코딩·모듈 규칙 위반은 없고, 수명주기(테이블 행 포인터 비캐시, 스트리밍 핸들 취소, `TWeakObjectPtr` 사용, `CreateUObject` 콜백) 처리도 대체로 견실하다. 남는 지적은 버그라기보다 세션 수명 경계와 v1 권위 전제에 걸린 것들이다. 이번 리뷰는 `.uplugin`/`Build.cs`, 6개 헤더 전부, 5개 cpp 전부를 읽었고 세션 컴포넌트·ST 태스크는 소비자(WxGame `WxViewModel_Dialogue`·`WxAbility_Interact`, WxUI `WxUIManagerSubsystem`)와 엔진 StateTree `FinishTask`/`GetActivePathInfo` 구현까지 대조해 확인했다.
 
 ## 요약
 | 심각도 | 개수 |
 | --- | --- |
 | 🔴 심각 | 0 |
-| 🟡 개선 | 3 |
+| 🟡 개선 | 2 |
 | 🟢 사소 | 2 |
 
 ## 결과
 
-### 1. 🟡 세션을 밖에서 끝낼 수단이 없어 폰 소실 시 세션이 굳는다
-- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueSessionComponent.h:129`, `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueSessionComponent.cpp:203`
+### 1. 🟡 세션을 중도에 접을 경로가 없다 — 고아 세션과 태그 잔류
+- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueSessionComponent.cpp:202`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueSessionComponent.h:113`
 - **범주**: 설계/구조
-- **문제**: `EndDialogue()`는 private이고 호출처가 `Advance()`(cpp:65·72·81)와 `ClientStartDialogue_Implementation()`의 겹침 처리(cpp:126) 넷뿐이다. 즉 세션은 **끝까지 넘기거나, 다른 대화가 새로 열려야만** 닫힌다. 컴포넌트에 `EndPlay`/`UninitializeComponent`/`OnUnregister` 정리도 없다.
-  구체적 실패: 대화 도중 폰이 죽거나 교체되면 `WxUIManagerSubsystem::WatchPawnTags`가 무조건 `CloseDialogueScreen()`을 부른다(`Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp:226`). 대화 창이 사라지면 `Advance()`를 부를 주체가 없고, 세션은 `CurrentRowName`을 그대로 든 채 `HasActiveDialogue()==true`로 남는다. 그 결과 (a) `OnDialogueEnded`가 영영 발화하지 않아 `FWxStateTreeTask_PlayDialogue`가 Running으로 고착되고(`Private/WxStateTreeTask_PlayDialogue.cpp:50-53`) 그 퀘스트 스텝이 진행을 멈춘다, (b) `EndDialogueCamera()`가 돌지 않아 스폰한 `ACameraActor`가 남는다 — Owner가 PlayerController라(cpp:251) 폰과 함께 정리되지 않는다. 뷰 타겟 자체는 재빙의 때 엔진의 `AutoManageActiveCameraTarget`이 되돌려 주지만, 액터와 세션 상태는 남는다.
-  또 하나: 같은 폰을 unpossess 후 다시 possess 하는 경로에서는 ASC가 살아 있어 `State.Dialogue` 카운트가 1로 남는데, `WatchPawnTags`가 창을 이미 닫은 뒤라 `NewOrRemoved` 전이가 다시 오지 않는다 — 창 없이 태그만 남아 상호작용 어빌리티가 계속 차단된다.
-- **제안**: 공개 취소 진입점(`CancelDialogue()` 또는 `EndDialogue` 공개)을 두고, `UninitializeComponent`/`OnUnregister`에서 세션을 접는다. 추가로 컨트롤러의 `OnPossessedPawnChanged`를 관찰해 폰이 바뀌면 세션을 닫으면, 태그 발행처(`TaggedAbilitySystem`)와 세션의 수명이 같은 축에서 끝난다.
-- **확신도**: 중간
+- **문제**: `EndDialogue()` 는 private 이고, 도달하는 경로는 두 가지뿐이다 — `Advance()` 가 `NextRow=None` 에 닿거나, 다음 `ClientStartDialogue` 가 겹침을 접을 때. 컴포넌트에 `EndPlay`/`OnUnregister` 오버라이드도, 외부에서 부를 취소 진입점도 없다. 그래서 세션은 "대사를 끝까지 넘겨야만" 닫힌다.
+  - 폰 교체(사망·리스폰) 시 `UWxUIManagerSubsystem::WatchPawnTags`(`Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp:204`)가 관찰 대상을 옮기며 `CloseDialogueScreen()`(같은 파일 `:216`)로 대화 창을 닫지만, 세션에는 아무도 알리지 않는다. `CurrentRowName` 이 남아 `HasActiveDialogue()` 는 계속 true 이고, 대사를 넘길 UI 가 사라졌으므로 세션은 다음 대화가 열릴 때까지 영구히 열린 채로 남는다.
+  - 그 사이 `FWxStateTreeTask_PlayDialogue` 가 붙여 둔 `OnDialogueEnded` 는 발화하지 않는다(`WxStateTreeTask_PlayDialogue.cpp:99`). 대화 도중 죽으면 '대화 재생' 스텝의 퀘스트 트리가 Running 에 영구 정지한다.
+  - `BeginDialogueCamera` 가 세운 카메라 액터도 `SetLifeSpan` 을 받지 못해 PC 가 죽을 때까지 남는다(뷰 타겟 자체는 리스폰 시 엔진 `AutoManageActiveCameraTarget` 이 되돌리므로 화면은 정상 복귀한다).
+  - 같은 폰을 유지한 채 대화 창만 사라지는 경로(CommonUI back action 등)가 생기면 더 나쁘다 — `State.Dialogue` 가 폰 ASC 에 남아 `UWxAbility_Interact` 의 `ActivationBlockedTags`(`Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp:36`)가 상호작용을 계속 막고, 상호작용이 막히면 세션을 접을 다음 대화도 열 수 없어 소프트락이 된다.
+- **제안**: `EndDialogue()` 를 감싼 public 취소 진입점(`CancelDialogue()`)을 열고, `UActorComponent::EndPlay`/`OnUnregister` 에서 호출한다. 추가로 컨트롤러의 폰 교체(`APlayerController::OnPossessedPawnChanged`)를 구독해 세션을 접으면 사망·리스폰 경로가 함께 닫힌다 — 세션은 이미 `TaggedAbilitySystem` 으로 폰 교체를 의식하고 있으므로 정책상 이질적이지 않다.
+- **확신도**: 중간 (폰 교체 시 창만 닫히고 세션이 남는 것은 코드로 확정. 소프트락 시나리오는 WBP 의 back action 처리에 달려 있어 C++ 만으로는 단정 불가)
 
-### 2. 🟡 `StartDialogueRow` 실패 갈래가 비대칭이라 `HasActiveDialogue()`를 성공 신호로 쓰는 계약이 성립하지 않을 수 있다
-- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueSessionComponent.cpp:41-52`, `Plugins/WxDialogue/Source/WxDialogue/Private/WxStateTreeTask_PlayDialogue.cpp:25-46`
+### 2. 🟡 세션 상태와 `State.Dialogue` 가 소유 클라에만 존재한다
+- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueSessionComponent.cpp:41`, `:154`, `:329`
+- **범주**: 설계/구조
+- **문제**: `StartDialogueRow` 는 곧바로 `ClientStartDialogue` 로 넘기고, 이후의 모든 상태(`CurrentRowName`·`CurrentTarget`·loose 태그·포즈 재생)는 그 클라에서만 만들어진다. 리슨 호스트/싱글에서는 소유 클라와 권위가 같은 머신이라 문제가 없지만, 데디케이티드 서버에서는 다음이 전부 무력화된다.
+  - `UWxAbility_Interact` 는 `ServerOnly` 인데 `State.Dialogue` 는 클라 폰 ASC 의 loose 태그라 서버에서 보이지 않는다 → 대화 중에도 상호작용이 계속 발동한다.
+  - `FWxStateTreeTask_PlayDialogue::EnterState` 가 `StartDialogueRow` 직후에 검사하는 `HasActiveDialogue()`(`WxStateTreeTask_PlayDialogue.cpp:91`)는 서버에서 항상 false → 태스크가 항상 Failed 를 반환하고 경고를 남긴다.
+  - `PlayPendingPose` 의 `Montage_Play` 는 로컬 재생이라 다른 클라는 NPC 포즈를 보지 못한다.
+  헤더(`WxDialogueSessionComponent.h:25,28`)와 README 가 "v1 싱글/리슨 호스트 전제"로 명시하고 있어 의도된 절충이지만, 데디케이티드로 넘어갈 때 손봐야 할 지점이 세 곳으로 흩어져 있다는 사실은 기록해 둘 값이 있다.
+- **제안**: 지금 고칠 필요는 없다. 데디케이티드 전환 시 (a) 세션 진행을 서버로 옮기고 표시만 클라로 내리거나, 최소한 (b) `State.Dialogue` 를 서버에서도 올리고 (c) 포즈를 Multicast 로 돌리는 세 항목을 한 묶음으로 처리한다.
+- **확신도**: 낮음(의도된 설계일 수 있음 — 헤더·README 에 전제로 명시돼 있다)
+
+### 3. 🟢 상호작용 진입점의 실패가 조용하다
+- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueComponent.cpp:121`
 - **범주**: 버그/정확성
-- **문제**: 시작 행 검증(cpp:43)은 RPC **바깥**에, 이전 세션 정리(`EndDialogue()`, cpp:124-127)는 RPC **안쪽**에 있다. 그래서 `StartDialogueRow`가 자기 검증에서 걸러지면 이전 세션이 그대로 살아남고, 검증을 통과한 뒤 실패(ASC 없음·`EnterRow` 실패)하면 이전 세션이 접힌다.
-  `FWxStateTreeTask_PlayDialogue`는 호출 직후 `HasActiveDialogue()`로 성공을 판정하는데(cpp:42), 앞의 갈래에서는 **직전 대화의 잔존 상태**를 자기 성공으로 오독해 열지도 않은 대화를 기다리며 Running으로 남는다. 지금은 태스크가 같은 `StartRow` 검사를 앞단에 중복해 둔 덕분에(cpp:25-29) 이 경로가 우연히 막혀 있을 뿐이라, 새 호출자가 생기거나 검증 조건이 늘면 바로 드러난다.
-- **제안**: `StartDialogueRow`를 `bool` 반환으로 바꿔 호출자가 반환값으로 판정하게 하거나, 검증을 `ClientStartDialogue` 안쪽(이전 세션 `EndDialogue` 이후)으로 옮겨 모든 실패가 같은 결과 상태를 남기게 만든다. 그러면 태스크의 중복 검사도 지울 수 있다.
+- **문제**: `StartDialogueWith` 는 `Interactor` 가 폰이 아니거나 컨트롤러에 `UWxDialogueSessionComponent` 가 없으면 로그 없이 반환한다. 세션 컴포넌트는 Experience 주입으로 붙으므로(`Content/Framework/WAS_CoreGameplay.uasset`) 주입이 빠지거나 실패하면 정확히 이 갈래로 떨어지는데, 그때 남는 단서가 없다. 같은 모듈의 다른 실패 경로는 전부 경고를 남기며(`WxDialogueSessionComponent.cpp:34`, `:46` — "이 갈래가 조용하면 'F 를 눌러도 아무 일이 없다'만 남는다"), 여기만 그 원칙에서 벗어나 있다.
+- **제안**: `LogWxDialogue` 경고 한 줄을 추가한다(대상 액터·Interactor 이름 포함).
+- **확신도**: 높음
+
+### 4. 🟢 `PlayerCameraManager` 를 검증 없이 역참조한다
+- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueSessionComponent.cpp:241`
+- **범주**: 성능/안전
+- **문제**: `PlayerController->PlayerCameraManager->GetCameraLocation()` 을 널 검사 없이 부른다. 같은 함수의 다른 참조(`Pawn`, `CurrentTarget`, 스폰된 `CameraActor`)는 모두 가드가 있어 이 한 줄만 예외다. 로컬 컨트롤러로 이미 걸렀으므로 실제 재현 가능성은 낮지만(`PlayerCameraManager` 는 `InitPlayerState` 시점에 스폰된다), 스폰 전에 대화가 열리는 조립이 생기면 크래시다.
+- **제안**: `PlayerCameraManager` 가 없으면 `Side` 를 임의로 고정(예: `1.f`)하거나 카메라 경로 전체를 건너뛴다.
 - **확신도**: 중간
-
-### 3. 🟡 호출자 없는 public API 두 개 (`GetCurrentRowHandle`, `GetCurrentDialogueTarget`)
-- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueSessionComponent.h:63`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueSessionComponent.h:69` (정의는 `Private/WxDialogueSessionComponent.cpp:94-106`)
-- **범주**: 중복/복잡도
-- **문제**: 저장소 전체(`Source`·`Plugins`)에서 두 함수의 호출자가 하나도 없다. `BlueprintCallable`도 아니라 BP에서도 부를 수 없으므로 현재로선 완전한 데드 코드다. 그런데 헤더 주석과 README는 이 둘을 "대화의 의미를 관찰로 판정하는 소비자 계약"으로 설명하고 있어, 문서가 존재하지 않는 소비자를 전제한다. 특히 `GetCurrentRowHandle`은 발견 1의 굳은 세션 상태에서 이미 끝난 대화의 행을 계속 답하게 되므로, 지금 상태로 소비자를 붙이면 그 결함을 그대로 물려받는다.
-- **제안**: 소비자를 붙일 계획이 확정적이면 그 시점까지 미루고 지금은 지운다(프로젝트 규칙: 호출자 없는 선언 금지). 남긴다면 헤더 주석에 "예정 계약, 아직 소비자 없음"을 명시해 문서와 실제를 맞춘다.
-- **확신도**: 중간(관찰 자체는 확실, 제거 여부는 퀘스트 연동 계획에 달림)
-
-### 4. 🟢 `StartDialogueWith`의 실패 갈래만 조용하다
-- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueComponent.cpp:24-27`
-- **범주**: 버그/정확성
-- **문제**: 상호작용 주체가 폰이 아니거나 컨트롤러에 세션 컴포넌트가 없으면 로그 없이 return 한다. 같은 모듈의 `StartDialogueRow`는 정확히 같은 상황을 두고 "이 갈래가 조용하면 'F 를 눌러도 아무 일이 없다'만 남는다"고 적으며 경고를 찍는다(`Private/WxDialogueSessionComponent.cpp:45-48`). Experience 주입이 빠져 세션 컴포넌트가 안 붙은 조립 실수가 바로 이 갈래로 떨어지는데, 유일하게 단서가 없다.
-- **제안**: 같은 형식의 `LogWxDialogue` Warning 한 줄을 추가한다(주체·컨트롤러 이름 포함).
-- **확신도**: 중간(진단 가드를 의도적으로 미루는 프로젝트 방침이 있으므로 판단은 사람 몫)
-
-### 5. 🟢 `FWxDialogueTableRow`와 `FWxSubtitleTableRow`가 거의 같은 모델이다
-- **위치**: `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueTableRow.h:16-38`, `Plugins/WxUI/Source/WxUI/Public/Subtitle/WxSubtitleTableRow.h:14-33`
-- **범주**: 중복/복잡도
-- **문제**: 두 행 타입 모두 `Speaker`·`Line`(MultiLine)·`NextRow`(None이면 종료)로 이루어진 같은 연결 리스트 모델이고, 주석 문구까지 거의 같다. 차이는 `TargetPose`(대화) 대 `Duration`(자막) 한 필드뿐이다. 진행 규약(빈 `Line`은 잘못된 행, `NextRow=None`이 종료)이 두 곳에 복제되어 있어 한쪽 규약이 바뀌면 다른 쪽이 조용히 어긋난다.
-- **제안**: 즉시 통합할 필요는 없다 — 공용 타입을 `WxCore`로 올리는 것은 "WxCore엔 도메인 타입 금지" 방침과 충돌하므로 현 상태가 의도된 결과일 수 있다. 다만 어느 한쪽의 진행 규약을 손댈 때 다른 쪽을 반드시 함께 확인하도록 두 헤더에 상호 참조 한 줄을 남겨 두는 편이 안전하다.
-- **확신도**: 낮음(의도된 설계일 수 있음)
 
 ## 검토 범위
-- **깊게 본 파일**: `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueSessionComponent.cpp`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueSessionComponent.h`, `Plugins/WxDialogue/Source/WxDialogue/Private/WxStateTreeTask_PlayDialogue.cpp`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxStateTreeTask_PlayDialogue.h`, `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueComponent.cpp`
-- **훑은 파일**: `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueTableRow.h`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueActor.h`, `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueActor.cpp`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueComponent.h`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueModule.h`, `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueModule.cpp`, `Plugins/WxDialogue/Source/WxDialogue/WxDialogue.Build.cs`, `Plugins/WxDialogue/WxDialogue.uplugin`
-- **경계 밖에서 대조한 파일**(발견 근거용): `Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp`, `Source/WxGame/MVVM/WxViewModel_Dialogue.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp`, `Source/WxGame/Character/WxNpc.h`, `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h`
-- **미검토 / 한계**:
-  - 포즈 스트리밍의 동기 완료 경로(`RequestAsyncLoad`가 즉시 콜백하는 경우 `PoseLoadHandle` 대입이 `HandlePoseLoaded`의 `Reset()`보다 늦는다)는 코드가 앞서 `PendingPose.Get()`으로 이미 로드된 경우를 걸러 내므로 실제 도달 가능성을 판정하지 못했다. 잔존 핸들이 남더라도 다음 `CancelHandle()`이 무동작이라 피해는 없어 보여 발견으로 올리지 않았다.
-  - 멀티플레이(전용 서버·리슨 서버의 원격 클라)에서 `HasActiveDialogue()` 즉시 조회가 실패하는 것은 v1 싱글/리슨 호스트 전제로 헤더·README·태스크 주석 세 곳에 명시되어 있어 발견에서 제외했다. 실제 멀티 검증은 하지 않았다.
-  - BP/WBP 에셋 내부(대화 창 위젯의 Advance 바인딩, DT 대화 테이블의 행 정합)는 범위 밖이다.
+- **깊게 본 파일**: `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueSessionComponent.cpp`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueSessionComponent.h`, `Plugins/WxDialogue/Source/WxDialogue/Private/WxStateTreeTask_PlayDialogue.cpp`, `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueComponent.cpp`
+- **훑은 파일**: `Plugins/WxDialogue/WxDialogue.uplugin`, `Plugins/WxDialogue/Source/WxDialogue/WxDialogue.Build.cs`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueTableRow.h`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueActor.h`, `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueActor.cpp`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueComponent.h`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxStateTreeTask_PlayDialogue.h`, `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueModule.h`, `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueModule.cpp`
+- **교차 확인한 소비자**: `Source/WxGame/MVVM/WxViewModel_Dialogue.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp`, `Source/WxGame/Character/WxNpc.cpp`, `Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp`, `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h`
+- **검증했으나 문제 없음으로 판정한 것들**
+  - 규칙 준수: 전 파일 Copyright 첫 줄 ✔, `Wx` prefix ✔, `WxCore` 외 Wx 플러그인 의존 없음 ✔, `BlueprintCallable` 미사용 ✔, 델리게이트 콜백 `HandlePoseLoaded` ✔, 인라인 정의는 `GetInstanceDataType()` 하나뿐이며 예외 사유 주석이 달려 있음(`WxStateTreeTask_PlayDialogue.h:13`) ✔, 람다는 ST 약한 컨텍스트 1건으로 사유 주석 동반 ✔.
+  - 포즈 몽타주 GC: `PoseLoadHandle.Reset()` 이후 하드 참조가 없어도 `UAnimInstance::AddReferencedObjects` → `FAnimMontageInstance::AddReferencedObjects` 가 재생 중 몽타주를 붙잡는다(엔진 `AnimInstance.cpp:4551`, `AnimMontage.cpp:1735`). 주석의 주장이 맞다.
+  - ST 태스크의 미해제 `OnDialogueEnded` 바인딩: 상태를 먼저 떠난 뒤 발화해도 `FStateTreeWeakExecutionContext` 가 활성 경로 ID(`FActiveStateID` — 진입마다 새로 발급)로 걸러 무시된다(엔진 `StateTreeAsyncExecutionContext.cpp:377`). 같은 상태를 재진입해도 ID 가 달라 오작동하지 않는다.
+  - `EndDialogue` 의 `Broadcast()` → `Clear()` 순서: `FinishTask` 는 즉시 전이하지 않고 `bHasPendingCompletedState` 만 세운 뒤 다음 틱을 예약하므로(엔진 `StateTreeAsyncExecutionContext.cpp:243`) 재진입으로 새 바인딩이 지워지는 일은 없다.
+  - 겹침 대화(`ClientStartDialogue` 의 선행 `EndDialogue`): 태그 1→0→1 전이 시점에 `CurrentRowName` 이 이미 채워져 있어 `UWxViewModel_Dialogue::Initialize` 의 pull 시드가 올바른 대사를 얻는다.
+- **미검토 / 한계**: 대화 위젯(WBP)의 back action·입력 처리는 BP 영역이라 보지 않았다 — 발견 1의 소프트락 시나리오가 실제로 성립하는지는 그쪽 확인이 필요하다. `Build.cs` 의 `UniversalObjectLocator` 는 이 모듈 코드에서 쓰이지 않지만 저장소 6개 모듈이 동일하게 들고 있어 프로젝트 전역 관례로 보고 발견에서 제외했다.
 
 ---
-*문서 기준 커밋 `a8c6c495` · 리뷰일 2026-09-01 · 소스 11파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `e9630dc2` · 리뷰일 2026-09-02 · 소스 11파일 — `/module-review`로 갱신*
