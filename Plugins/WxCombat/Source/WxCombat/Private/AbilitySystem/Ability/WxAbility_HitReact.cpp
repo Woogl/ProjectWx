@@ -83,7 +83,8 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 
-	FGameplayTag ReactionTag = WxGameplayTags::HitReact_Normal;
+	// 기본 반응은 없다 — 대미지 행이 HitReactTag 를 비운 것이 곧 "이 공격은 피격 반응을 일으키지 않는다"는 지정이다.
+	FGameplayTag ReactionTag;
 	if (TriggerEventData)
 	{
 		ReactionTag = TriggerEventData->TargetTags.Filter(FGameplayTagContainer(WxGameplayTags::HitReact)).First();
