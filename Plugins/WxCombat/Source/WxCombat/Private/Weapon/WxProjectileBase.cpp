@@ -1,6 +1,7 @@
 ﻿// Copyright Woogle. All Rights Reserved.
 
 #include "Weapon/WxProjectileBase.h"
+#include "AbilitySystem/Effect/WxEffect_HitStop.h"
 #include "Components/SphereComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/SceneComponent.h"
@@ -119,7 +120,10 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 	}
 
 	// 회피여도 호출은 그대로다 — 회피 성공 판정이 여기서 나가고, 대미지와 상태이상은 그쪽이 알아서 거른다.
-	UWxCombatLibrary::ApplyDamage(this, OtherActor, DamageDataRow, HitResult);
+	if (UWxCombatLibrary::ApplyDamage(this, OtherActor, DamageDataRow, HitResult))
+	{
+		UWxEffect_HitStop::Apply(HitStopDuration, SourceASC, TargetASC);
+	}
 
 	if (!bEvaded)
 	{

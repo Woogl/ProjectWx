@@ -54,14 +54,6 @@ public:
 	/** 이 액터의 ASPD가 반영된 몽타주 재생 속도. 어빌리티가 오버라이드하지 않으면 그 어빌리티의 몽타주 재생 속도가 된다. */
 	float GetMontagePlayRate() const;
 
-	/**
-	 * 히트스톱(역경직): 재생 중인 몽타주를 잠깐 얼리고 복원을 예약한다.
-	 *
-	 * 대미지를 적용한 쪽이 자기 ASC를 잡아 부른다.
-	 * SourceAbility가 아직 몽타주를 쥐고 있을 때만 걸려, 같은 적중 처리에서 먼저 발동한 반응(패리 등)에 양보한다.
-	 */
-	void ApplyHitStop(float Duration, const UGameplayAbility* SourceAbility);
-
 	virtual void NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason) override;
 
 	/** 후딜에 들어 점유를 놓은 배타 어빌리티를 끊는다. */
@@ -71,18 +63,10 @@ private:
 	/** 버퍼 재생 경로다. 뗀 뒤의 재생이라 스펙의 키 상태는 세우지 않는다. */
 	bool TryActivateByInputAction(const UInputAction* Action);
 
-	void HandleHitStopElapsed();
-
 	void EnableAnimatingMontageMeshTick();
 	void RestoreAnimatingMontageMeshTick();
 
 	TArray<FWxBufferedInput> BufferedInputs;
-
-	/** 히트스톱이 얼린 몽타주와 얼리기 직전의 재생 속도. 복원 예약이 살아 있는 동안에만 읽는다. */
-	TWeakObjectPtr<UAnimMontage> HitStopMontage;
-	float HitStopResumePlayRate = 1.f;
-
-	FTimerHandle HitStopResumeTimer;
 
 	/** AnimatingAbility가 존재하는 동안에만 강제한 메시와 원래 옵션. 단일 소유자라 별도 참조 수가 필요 없다. */
 	TWeakObjectPtr<USkeletalMeshComponent> MontageTickMesh;

@@ -4,11 +4,8 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "WxCombatModule.h"
-#include "Animation/AnimInstance.h"
-#include "Animation/AnimMontage.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/World.h"
-#include "TimerManager.h"
 
 UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 {
@@ -241,37 +238,6 @@ float UWxAbilitySystemComponent::GetMontagePlayRate() const
 	return FMath::Max(AttrSet->GetASPD(), 0.001f);
 }
 
-void UWxAbilitySystemComponent::ApplyHitStop(float Duration, const UGameplayAbility* SourceAbility)
-{
-	// SetTimer가 0 이하를 예약 취소로 취급하므로, 그대로 두면 복원 없는 정지가 된다.
-	if (Duration <= 0.f)
-	{
-		return;
-	}
-
-	if (!GetAnimatingAbility() || GetAnimatingAbility() != SourceAbility)
-	{
-		return;
-	}
-
-	UAnimMontage* Montage = GetCurrentMontage();
-	if (!Montage)
-	{
-		return;
-	}
-
-	// 얼리기 전에 되돌릴 값을 잡아 둔다. 복원 시점엔 몽타주 주인이 바뀌어 있을 수 있어 다시 물으면 남의 배속을 얻는다.
-	const UWxAbilityBase* SourceWxAbility = Cast<UWxAbilityBase>(SourceAbility);
-	HitStopResumePlayRate = SourceWxAbility ? SourceWxAbility->GetMontagePlayRate() : GetMontagePlayRate();
-	HitStopMontage = Montage;
-
-	// 완전한 0이 아닌 미세 값으로 둬 몽타주 진행 판정 이슈를 피한다.
-	CurrentMontageSetPlayRate(0.001f);
-
-	// 연속 적중이면 타이머가 재설정되어 조기 복원을 막는다.
-	GetWorld()->GetTimerManager().SetTimer(HitStopResumeTimer, this, &UWxAbilitySystemComponent::HandleHitStopElapsed, Duration, false);
-}
-
 void UWxAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason)
 {
 	Super::NotifyAbilityFailed(Handle, Ability, FailureReason);
@@ -323,15 +289,5 @@ void UWxAbilitySystemComponent::CancelRecoveringAbilities(UGameplayAbility* Igno
 				break;
 			}
 		}
-	}
-}
-
-void UWxAbilitySystemComponent::HandleHitStopElapsed()
-{
-	// 피격 등이 현재 몽타주를 가로챘어도 얼렸던 그 몽타주에 정확히 닿는다.
-	UAnimInstance* AnimInstance = AbilityActorInfo.IsValid() ? AbilityActorInfo->GetAnimInstance() : nullptr;
-	if (AnimInstance && HitStopMontage.IsValid())
-	{
-		AnimInstance->Montage_SetPlayRate(HitStopMontage.Get(), HitStopResumePlayRate);
 	}
 }

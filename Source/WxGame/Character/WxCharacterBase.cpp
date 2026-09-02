@@ -3,6 +3,7 @@
 #include "Character/WxCharacterBase.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "AbilitySystem/WxHitStopComponent.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "Inventory/WxEquipmentComponent.h"
 #include "Minion/WxMinionComponent.h"
@@ -37,6 +38,7 @@ AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
 	CombatAttributeSet = CreateDefaultSubobject<UWxCombatAttributeSet>(TEXT("CombatAttributeSet"));
 
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
+	HitStopComponent = CreateDefaultSubobject<UWxHitStopComponent>(TEXT("HitStopComponent"));
 	ProjectileComponent = CreateDefaultSubobject<UWxProjectileComponent>(TEXT("ProjectileComponent"));
 	MinionComponent = CreateDefaultSubobject<UWxMinionComponent>(TEXT("MinionComponent"));
 
