@@ -37,10 +37,16 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 		}
 	}
 
+	// 걸어갈 거리를 구할 수 없으면 길이 0 레이가 막힘으로 오지 않아 검증이 통째로 무력해진다.
+	const UPawnMovementComponent* Movement = Pawn->GetMovementComponent();
+	if (!Movement)
+	{
+		return EBTNodeResult::Failed;
+	}
+
 	// 검증 거리는 이번 실행에서 실제로 걸어갈 거리다.
 	// 감속 GE 는 방향을 고른 뒤 부여되므로 지금 최대 속도는 아직 평상시 값이고, GE 미지정이면 배율 자체가 걸리지 않는다.
-	const UPawnMovementComponent* Movement = Pawn->GetMovementComponent();
-	const float TravelDistance = Movement ? Movement->GetMaxSpeed() * (MoveSpeedEffect ? MoveSpeedMultiplier : 1.f) * Duration : 0.f;
+	const float TravelDistance = Movement->GetMaxSpeed() * (MoveSpeedEffect ? MoveSpeedMultiplier : 1.f) * Duration;
 	const FVector NavStart = Pawn->GetNavAgentLocation();
 
 	bool bFoundDirection = false;
