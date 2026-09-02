@@ -25,7 +25,6 @@
 | `UWxBTDecorator_BeyondLeash` | 리시 이탈 폴링→`RequestExecution`으로 복귀 브랜치 게이팅 | `Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_BeyondLeash.h` |
 | `UWxBTComposite_RandomChoice` | 조건·가중치를 반영한 자식 무작위 선택(Selector 폴백 없음) | `Plugins/WxAI/Source/WxAI/Public/WxBTComposite_RandomChoice.h` |
 | `UWxBTTask_ActivateAbility` | 태그로 GAS 어빌리티 발동, 종료 결과를 노드 결과로 변환 | `Plugins/WxAI/Source/WxAI/Public/WxBTTask_ActivateAbility.h` |
-| `EWxTeam` | 피아 구분 팀 열거형 | `Plugins/WxAI/Source/WxAI/Public/WxTeamTypes.h` |
 
 ## 확장 포인트 / 규약
 - Blackboard 규약: 새 키는 `WxBlackboardKeys`에 이름+accessor로 추가하고 GetValueAs/SetValueAs 직접 호출을 피한다. Object 키는 nullptr setter가 Clear와 동치, Float `TargetDistance`는 타겟 부재 시 `NoTargetDistance`를 써 근거리 비교가 통과하지 않게 한다.

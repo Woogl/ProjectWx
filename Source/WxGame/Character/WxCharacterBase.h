@@ -8,7 +8,7 @@
 #include "GameplayTagAssetInterface.h"
 #include "GenericTeamAgentInterface.h"
 #include "GameplayEffectTypes.h"
-#include "WxTeamTypes.h"
+#include "Character/WxTeamTypes.h"
 #include "WxCharacterBase.generated.h"
 
 class UBehaviorTree;

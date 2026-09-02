@@ -27,6 +27,7 @@
 | `UWxGameFeatureAction_AddComponents` | 사이드 플래그 없는 컴포넌트 주입 액션 (스톡 대체) | `Source/WxGame/Framework/WxGameFeatureAction_AddComponents.h` |
 | `AWxPlayerController` | Experience가 요청 등록한 컨트롤러 컴포넌트의 주입 대상 | `Source/WxGame/Controller/WxPlayerController.h` |
 | `AWxCharacterBase` | ASC 소유 공통 베이스 캐릭터 (폰 대상 주입 receiver) | `Source/WxGame/Character/WxCharacterBase.h` |
+| `EWxTeam` | 캐릭터 피아 구분 팀 열거형 (엔진 `FGenericTeamId`로 환산) | `Source/WxGame/Character/WxTeamTypes.h` |
 
 ## 확장 포인트 / 규약
 - **Experience 확정 순서**: 진입 URL 옵션 `?Experience=이름` → `AWxWorldSettings.GameplayExperience` 순. 둘 다 비면 폴백 없이 미확정(무효 ID)으로 두고 매니저가 에러로 드러낸다. 상속받은 `DefaultPawnClass`는 읽지 않는다 — 폰 클래스의 유일한 출처는 Experience다(비우면 스펙테이터 폰으로 빙의하는 프론트엔드 Experience).
