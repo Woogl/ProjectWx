@@ -168,6 +168,9 @@ void UWxAIPerceptionComponent::UnbindTargetLoss()
 
 void UWxAIPerceptionComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 {
+	// 회전 모드만 폰에 남고, 엔진은 폰 참조를 끊은 뒤에 이 방송을 보낸다. 놓아주는 폰은 여기서 직접 되돌리지 않으면 strafe 로 굳는다.
+	SetStrafeRotation(OldPawn, false);
+
 	// 타겟·포커스·소실 구독은 폰이 아니라 컨트롤러에 남는다. 새 폰이 이전 타겟을 물려받지 않도록 먼저 되돌린다.
 	SetTargetActor(nullptr);
 
@@ -269,14 +272,20 @@ void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)
 		AIC->ClearFocus(EAIFocusPriority::Gameplay);
 	}
 
-	const ACharacter* Character = Cast<ACharacter>(AIC->GetPawn());
+	// 빙의 해제 경로에서는 여기 GetPawn() 이 이미 비어 있다 — 놓아주는 폰의 원복은 HandlePossessedPawnChanged 가 맡는다.
+	SetStrafeRotation(AIC->GetPawn(), NewTarget != nullptr);
+}
+
+void UWxAIPerceptionComponent::SetStrafeRotation(APawn* Pawn, bool bStrafe)
+{
+	const ACharacter* Character = Cast<ACharacter>(Pawn);
 	UCharacterMovementComponent* Movement = Character ? Character->GetCharacterMovement() : nullptr;
 	if (!Movement)
 	{
 		return;
 	}
 
-	if (NewTarget)
+	if (bStrafe)
 	{
 		Movement->bOrientRotationToMovement = false;
 		Movement->bUseControllerDesiredRotation = true;
