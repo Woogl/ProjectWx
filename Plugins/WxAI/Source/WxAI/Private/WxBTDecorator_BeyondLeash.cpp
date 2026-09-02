@@ -38,9 +38,14 @@ void UWxBTDecorator_BeyondLeash::InitializeFromAsset(UBehaviorTree& Asset)
 	}
 }
 
+uint16 UWxBTDecorator_BeyondLeash::GetInstanceMemorySize() const
+{
+	return sizeof(FWxBeyondLeashMemory);
+}
+
 FString UWxBTDecorator_BeyondLeash::GetStaticDescription() const
 {
-	return FString::Printf(TEXT("%s에서 %.0f 이상 이탈 시 true"), *Anchor.SelectedKeyName.ToString(), LeashRadius);
+	return FString::Printf(TEXT("%s로부터 %.0f m 이상 이탈 시 true"), *Anchor.SelectedKeyName.ToString(), LeashRadius / 100);
 }
 
 bool UWxBTDecorator_BeyondLeash::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
@@ -90,9 +95,4 @@ void UWxBTDecorator_BeyondLeash::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 		Memory->bWasBeyond = bBeyond;
 		OwnerComp.RequestExecution(this);
 	}
-}
-
-uint16 UWxBTDecorator_BeyondLeash::GetInstanceMemorySize() const
-{
-	return sizeof(FWxBeyondLeashMemory);
 }
