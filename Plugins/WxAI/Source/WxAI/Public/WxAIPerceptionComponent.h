@@ -64,7 +64,7 @@ private:
 	void HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn);
 
 	/**
-	 * 폰이 받은 적대 대미지를 촉각(Damage 센스)으로 보고해 가해자를 즉시 TargetActor 로 인지하게 한다.
+	 * 폰이 받은 적대 대미지를 촉각(Damage 센스)으로 보고한다. 시야·청각이 놓치는 가해자도 타겟이 비어 있으면 이 경로로 잡힌다.
 	 * 자극은 피격 액터(폰)로 리스너를 역추적해 이 컴포넌트에 닿는다.
 	 */
 	void HandlePawnHit(FGameplayTag MatchingTag, const FGameplayEventData* Payload);
@@ -72,7 +72,7 @@ private:
 	void BindPawnHit(APawn* Pawn);
 	void UnbindPawnHit();
 
-	/** TargetActor·회전 모드·타겟 소실 감시를 함께 갱신하며, 자기 폰은 타겟으로 받지 않는다. */
+	/** TargetActor·포커스·회전 모드·타겟 소실 감시를 함께 갱신하며, 자기 폰은 타겟으로 받지 않는다. 포커스는 컨트롤러, 회전 모드는 폰에 남는다. */
 	void SetTargetActor(AActor* NewTarget);
 
 	/** Ability.Death 태그로 사망 상태를 판별한다. */

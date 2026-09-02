@@ -235,6 +235,7 @@ void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)
 		return;
 	}
 
+	// 블랙보드가 없으면 구독·포커스까지 통째로 건너뛴다 — 적용 기록만 남기면 다음 자극이 중복으로 걸러져 블랙보드가 영영 빈 채로 어긋난다.
 	UBlackboardComponent* BB = GetBlackboard();
 	if (!BB)
 	{
@@ -253,29 +254,37 @@ void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)
 	OnTargetChanged.Broadcast(NewTarget);
 
 	AAIController* AIC = Cast<AAIController>(GetOwner());
-	ACharacter* Character = AIC ? Cast<ACharacter>(AIC->GetPawn()) : nullptr;
-	if (!Character)
+	if (!AIC)
 	{
 		return;
 	}
 
-	UCharacterMovementComponent* Movement = Character->GetCharacterMovement();
+	// 포커스는 폰이 아니라 컨트롤러가 들고 있다. 엔진의 빙의 해제는 폰 참조를 끊은 뒤에야 방송하므로, 이 발행을 폰 가드 안에 두면 그 경로에서 포커스가 영영 풀리지 않는다.
 	if (NewTarget)
 	{
 		AIC->SetFocus(NewTarget);
-		if (Movement)
-		{
-			Movement->bOrientRotationToMovement = false;
-			Movement->bUseControllerDesiredRotation = true;
-		}
 	}
 	else
 	{
 		AIC->ClearFocus(EAIFocusPriority::Gameplay);
+	}
 
+	const ACharacter* Character = Cast<ACharacter>(AIC->GetPawn());
+	UCharacterMovementComponent* Movement = Character ? Character->GetCharacterMovement() : nullptr;
+	if (!Movement)
+	{
+		return;
+	}
+
+	if (NewTarget)
+	{
+		Movement->bOrientRotationToMovement = false;
+		Movement->bUseControllerDesiredRotation = true;
+	}
+	else
+	{
 		// 평상시 회전 모드는 폰마다 다를 수 있으므로, 상수 대신 컴포넌트 아키타입(폰 BP·C++ 생성자 기본값)에서 읽어 되돌린다.
-		const UCharacterMovementComponent* MovementDefaults = Movement ? Cast<UCharacterMovementComponent>(Movement->GetArchetype()) : nullptr;
-		if (MovementDefaults)
+		if (const UCharacterMovementComponent* MovementDefaults = Cast<UCharacterMovementComponent>(Movement->GetArchetype()))
 		{
 			Movement->bUseControllerDesiredRotation = MovementDefaults->bUseControllerDesiredRotation;
 			Movement->bOrientRotationToMovement = MovementDefaults->bOrientRotationToMovement;
