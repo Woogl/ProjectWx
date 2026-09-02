@@ -2,6 +2,7 @@
 
 #include "Indicator/WxStateTreeTask_MarkIndicator.h"
 
+#include "Blueprint/UserWidget.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "Indicator/WxIndicator.h"
@@ -37,9 +38,9 @@ EStateTreeRunStatus FWxStateTreeTask_MarkIndicator::EnterState(FStateTreeExecuti
 		return EStateTreeRunStatus::Running;
 	}
 
-	if (!Instance.IndicatorClass)
+	if (!Instance.IndicatorWidget)
 	{
-		UE_LOG(LogWxUI, Warning, TEXT("Mark Indicator: 띄울 인디케이터가 지정되지 않음."));
+		UE_LOG(LogWxUI, Warning, TEXT("Mark Indicator: 띄울 인디케이터 위젯이 지정되지 않음."));
 		return EStateTreeRunStatus::Running;
 	}
 
@@ -56,16 +57,22 @@ EStateTreeRunStatus FWxStateTreeTask_MarkIndicator::EnterState(FStateTreeExecuti
 	}
 
 	// 대상이 아직 언로드돼 있을 수 있으므로 기록해 둔 좌표에 먼저 띄우고, 해석되면 그때 부착한다.
-	FActorSpawnParameters SpawnParameters;
-	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	// 위젯 컴포넌트가 BeginPlay 에서 위젯을 만들고 액터가 곧바로 그 위젯에 뷰모델을 묶으므로, 지연 스폰으로 위젯 클래스를 그보다 앞에 넣는다.
+	const FTransform SpawnTransform(Instance.TargetLocation);
+	AWxIndicator* Indicator = World->SpawnActorDeferred<AWxIndicator>(
+		AWxIndicator::StaticClass(),
+		SpawnTransform,
+		nullptr,
+		nullptr,
+		ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 
-	AWxIndicator* Indicator = World->SpawnActor<AWxIndicator>(Instance.IndicatorClass, FTransform(Instance.TargetLocation), SpawnParameters);
 	if (!Indicator)
 	{
 		return EStateTreeRunStatus::Running;
 	}
 
-	Indicator->Initialize(Instance.WorldZOffset);
+	Indicator->Initialize(Instance.IndicatorWidget, Instance.WorldZOffset);
+	Indicator->FinishSpawning(SpawnTransform);
 	Instance.SpawnedIndicator = Indicator;
 
 	// 첫 부착을 Tick 까지 미루면 대상이 이미 로드돼 있어도 한 프레임을 기록 좌표에서 보낸다.
@@ -97,7 +104,7 @@ void FWxStateTreeTask_MarkIndicator::RefreshTarget(const FStateTreeExecutionCont
 {
 	AWxIndicator* Indicator = Instance.SpawnedIndicator.Get();
 
-	// 이미 잡고 있으면 해석을 돌리지 않는다 — 정상 표시 중에는 SyncFind 비용이 아예 들지 않는다.
+	// 정상 표시 중에는 SyncFind 비용이 아예 들지 않는다.
 	// 대상이 언로드·파괴되면 엔진이 부착을 풀어 주므로, 그때부터 다시 매 틱 재시도한다.
 	if (!Indicator || Indicator->HasTarget())
 	{

@@ -35,7 +35,6 @@ void AWxIndicator::BeginPlay()
 	// 위젯은 이 안에서 만들어진다(위젯 컴포넌트의 BeginPlay).
 	Super::BeginPlay();
 
-	// 스폰 위치가 곧 첫 앵커다 — 대상에 붙기 전까지 여기를 가리킨다.
 	AnchorLocation = GetActorLocation();
 
 	BindViewModel();
@@ -48,8 +47,9 @@ void AWxIndicator::Tick(float DeltaSeconds)
 	UpdateProjection();
 }
 
-void AWxIndicator::Initialize(float InZOffset)
+void AWxIndicator::Initialize(TSubclassOf<UUserWidget> InWidgetClass, float InZOffset)
 {
+	IndicatorWidget->SetWidgetClass(InWidgetClass);
 	ZOffset = InZOffset;
 }
 
@@ -76,7 +76,7 @@ void AWxIndicator::BindViewModel()
 	UUserWidget* Widget = IndicatorWidget->GetWidget();
 	if (!Widget)
 	{
-		UE_LOG(LogWxUI, Warning, TEXT("Indicator: 위젯이 없어 아무것도 표시되지 않는다(%s). 위젯 컴포넌트의 WidgetClass 지정을 확인한다."), *GetNameSafe(GetClass()));
+		UE_LOG(LogWxUI, Warning, TEXT("Indicator: 위젯이 없어 아무것도 표시되지 않는다. 띄운 쪽의 위젯 지정을 확인한다."));
 		return;
 	}
 
@@ -100,7 +100,6 @@ void AWxIndicator::BindViewModel()
 
 void AWxIndicator::UpdateProjection()
 {
-	// 부착 중이면 대상이 곧 앵커다.
 	// 대상이 파괴되면 엔진이 부착을 풀며 루트를 그 자리(주차 좌표)에 남기므로, 앵커는 트랜스폼이 아니라 여기서 따로 붙들어 둔다.
 	if (const USceneComponent* AttachParent = GetRootComponent()->GetAttachParent())
 	{

@@ -34,6 +34,7 @@
 - **레이어 규약**: 레이어는 `UI.Layer.*` 게임플레이 태그로 식별하며 배열 순서가 z-order다(0=최하단). 위젯 표시는 대상 레이어 태그로 push하고, 위젯 클래스는 `TSoftClassPtr`로 지정해 비동기 로드한다.
 - **뷰모델 추가**: `UWxViewModel`을 상속하고, 표시 이미지 필드는 `RequestImageAsync`/`ApplyLoadedImage` 훅으로 스트리밍한다. ASC당·소스당 하나를 공유해야 하는 VM은 `FindSharedViewModel`/`GetOrCreate` 패턴을 따른다(소스를 Outer로 캐시).
 - **주입 규약**: HUD 클래스·부착 컴포넌트는 코드가 아니라 Experience 에셋이 정한다. 캐릭터 표시 데이터·ASC는 소비 측이 `Initialize`로 넘긴다.
+- **인디케이터 위젯**: `IWxIndicatorWidget`을 구현한 WBP로 만들고 뷰모델 소스는 수동 지정(Creation Type: Manual)으로 둔다 — 값은 `AWxIndicator`가 `UWxViewModel_Indicator`를 밀어 넣는다. 어떤 위젯을 띄울지는 `FWxStateTreeTask_MarkIndicator` 노드가 고르며, 픽커는 이 인터페이스 구현체로 좁혀진다.
 - **StateTree 노드**: 자막 출력은 `FWxStateTreeTask_PrintSubtitle`. 자막 뷰모델은 MVVM 글로벌 컬렉션에 하나만 존재하며 소비 도메인이 값을 push한다.
 
 ## 여기서부터 읽어라
