@@ -39,6 +39,8 @@ namespace WxBlackboardKeys
 
 	const FName TargetActor = TEXT("TargetActor");
 
+	const FName Master = TEXT("Master");
+
 	const FName HomeLocation = TEXT("HomeLocation");
 
 	const FName PatrolTargetLocation = TEXT("PatrolTargetLocation");
@@ -73,6 +75,12 @@ namespace WxBlackboardKeys
 	{
 		VerifyBlackboardKey(Blackboard, SelfActor, UBlackboardKeyType_Object::StaticClass());
 		Blackboard->SetValueAsObject(SelfActor, Value);
+	}
+
+	void SetMaster(UBlackboardComponent* Blackboard, AActor* Value)
+	{
+		VerifyBlackboardKey(Blackboard, Master, UBlackboardKeyType_Object::StaticClass());
+		Blackboard->SetValueAsObject(Master, Value);
 	}
 
 	void SetPatrolTargetLocation(UBlackboardComponent* Blackboard, const FVector& Value)

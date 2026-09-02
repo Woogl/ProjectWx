@@ -50,6 +50,11 @@ void AWxAIController::OnPossess(APawn* InPawn)
 	{
 		WxBlackboardKeys::SetSelfActor(BB, InPawn);
 		WxBlackboardKeys::SetHomeLocation(BB, InPawn->GetActorLocation());
+
+		// 주인은 소환자다 — MinionComponent 가 스폰 파라미터로 심어 둔 Instigator 가 그 값이다.
+		// 엔진은 빈 Instigator 에 폰 자신을 넣으므로(APawn::PreInitializeComponents), 배치·스포너 폰은 자기 자신이 들어온다. 그건 주인 없음으로 읽는다.
+		APawn* Master = InPawn->GetInstigator();
+		WxBlackboardKeys::SetMaster(BB, Master != InPawn ? Master : nullptr);
 	}
 }
 
@@ -69,6 +74,7 @@ void AWxAIController::OnUnPossess()
 	if (UBlackboardComponent* BB = GetBlackboardComponent())
 	{
 		WxBlackboardKeys::SetSelfActor(BB, nullptr);
+		WxBlackboardKeys::SetMaster(BB, nullptr);
 	}
 
 	Super::OnUnPossess();

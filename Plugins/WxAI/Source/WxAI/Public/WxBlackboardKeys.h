@@ -8,7 +8,7 @@ class AActor;
 class UBlackboardComponent;
 
 /**
- * 키 SET/CLEAR 는 AIController(SelfActor·HomeLocation), UWxAIPerceptionComponent(TargetActor), BTTask/BTService(PatrolTargetLocation·TargetDistance) 가 나눠 담당한다.
+ * 키 SET/CLEAR 는 AIController(SelfActor·HomeLocation·Master), UWxAIPerceptionComponent(TargetActor), BTTask/BTService(PatrolTargetLocation·TargetDistance) 가 나눠 담당한다.
  * Blackboard 에셋에 같은 이름의 키가 등록돼 있어야 한다.
  *
  * 키별 accessor 는 키 이름과 값 타입을 한 곳에 묶어 GetValueAs / SetValueAs 계열의 타입 오용을 막는다.
@@ -19,6 +19,7 @@ namespace WxBlackboardKeys
 {
 	WXAI_API extern const FName SelfActor;
 	WXAI_API extern const FName TargetActor;
+	WXAI_API extern const FName Master;
 	WXAI_API extern const FName HomeLocation;
 	WXAI_API extern const FName PatrolTargetLocation;
 	WXAI_API extern const FName TargetDistance;
@@ -30,6 +31,9 @@ namespace WxBlackboardKeys
 
 	WXAI_API AActor* GetSelfActor(const UBlackboardComponent* Blackboard);
 	WXAI_API void SetSelfActor(UBlackboardComponent* Blackboard, AActor* Value);
+
+	/** 소환자다. 주인 없이 태어난 폰에서는 비어 있다. */
+	WXAI_API void SetMaster(UBlackboardComponent* Blackboard, AActor* Value);
 
 	WXAI_API void SetHomeLocation(UBlackboardComponent* Blackboard, const FVector& Value);
 
