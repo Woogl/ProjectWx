@@ -126,7 +126,6 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FData
 		EndDialogue();
 	}
 
-	// 창을 여는 신호가 아래 태그뿐이라, 태그를 못 올리는 세션은 넘길 주체도 끝낼 신호도 없이 굳는다 — 열지 않고 실패로 되돌린다.
 	const AController* Controller = GetController<AController>();
 	APawn* Pawn = Controller ? Controller->GetPawn() : nullptr;
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);

@@ -79,7 +79,8 @@ FWxStateTreeTask_MarkIndicator::FWxStateTreeTask_MarkIndicator()
 	// 재선택마다 재진입하면 ExitState 가 인디케이터를 해제해 표시가 깜빡인다.
 	bShouldStateChangeOnReselect = false;
 
-	// 완료 없이 매 프레임 도는 태스크라 바인딩 복사가 그대로 프레임 비용이 된다. 대상과 높이는 진입 시 한 번 받아 두면 되는 저작값이다.
+	// 완료 없이 매 프레임 도는 태스크라 바인딩 복사가 그대로 프레임 비용이 된다.
+	// 대상과 높이는 진입 시 한 번 받아 두면 되는 저작값이다.
 	bShouldCopyBoundPropertiesOnTick = false;
 
 #if WITH_EDITORONLY_DATA

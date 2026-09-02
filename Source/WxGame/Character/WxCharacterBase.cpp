@@ -299,7 +299,7 @@ void AWxCharacterBase::HandleEquipVisualChanged(USkeletalMesh* MeshAsset, FName 
 	if (!Weapon)
 	{
 		// ChildActor 가 아직 스폰되지 않았을 수 있다(초기 복제 타이밍).
-		// 다음 방송 사이클에 재시도된다.
+		// 이때 놓친 외형은 다음 장착 변경 방송에서야 반영된다.
 		return;
 	}
 

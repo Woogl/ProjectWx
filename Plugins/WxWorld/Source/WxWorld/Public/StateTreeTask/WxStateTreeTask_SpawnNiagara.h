@@ -35,10 +35,7 @@ struct FWxStateTreeTask_SpawnNiagaraInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<UNiagaraSystem> Niagara;
 
-	/**
-	 * 진입 시 재생 여부 판정의 단일 근거다.
-	 * 루프 FX 는 계속 미완료라 유지되고, 일회성 FX 는 재생이 끝나면 완료 상태가 되거나 bAutoDestroy 로 사라져 다음 진입에 다시 스폰된다.
-	 */
+	/** 루프 FX 는 계속 미완료라 유지되고, 일회성 FX 는 재생이 끝나면 완료 상태가 되거나 bAutoDestroy 로 사라져 다음 진입에 다시 스폰된다. */
 	UPROPERTY()
 	TObjectPtr<UNiagaraComponent> SpawnedComponent;
 };

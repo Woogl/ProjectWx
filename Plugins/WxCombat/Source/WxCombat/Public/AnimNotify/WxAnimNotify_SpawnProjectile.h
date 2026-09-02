@@ -9,7 +9,6 @@
 class AWxProjectileBase;
 
 /**
- * 투사체 클래스·스폰 소켓과 함께 GameplayEvent를 발행한다.
  * 자신을 이벤트 페이로드로 전달할 뿐, 투사체 생성은 ProjectileComponent에 맡긴다.
  */
 UCLASS()

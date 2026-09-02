@@ -49,7 +49,6 @@ private:
 
 	// 아래 상태들은 노드 인스턴스(폰)별로 보관된다(bCreateNodeInstance). 폰마다 독립된 커서를 가지므로 같은 경로 공유·리스폰에 안전하다.
 
-	/** 현재 향하는 정찰 지점 인덱스. */
 	int32 PatrolCursor = 0;
 
 	/** PingPong 진행 방향(+1/-1). */

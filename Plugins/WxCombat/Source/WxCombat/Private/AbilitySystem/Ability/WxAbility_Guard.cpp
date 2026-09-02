@@ -75,7 +75,6 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 void UWxAbility_Guard::HandleMontageCompleted()
 {
-	// 완주로 닿더라도 가드는 입력이 끊을 때까지 유지한다.
 }
 
 void UWxAbility_Guard::HandleMontageInterrupted()

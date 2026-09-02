@@ -9,7 +9,7 @@
 
 struct FStreamableHandle;
 
-/** Pending 은 완료 콜백이 로드된 오브젝트를 해석하는 데 쓰고, Handle 은 취소용이다. */
+/** Pending 은 완료 콜백이 로드된 오브젝트를 해석하는 데 쓰고, Handle 은 취소용이자 로드된 에셋을 붙잡아 두는 참조다. */
 struct FWxImageRequest
 {
 	TSoftObjectPtr<UObject> Pending;

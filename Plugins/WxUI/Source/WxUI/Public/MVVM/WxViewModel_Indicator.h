@@ -54,7 +54,7 @@ private:
 
 	void HandleIndicatorsUpdated();
 
-	/** 도착 신호 구독을 해제한다. 연결 성공 시와 소멸 시 모두 여기로 모은다. */
+	/** 연결 성공 시와 소멸 시 모두 여기로 모은다. */
 	void StopObserving();
 
 	void ApplyIndicator(const UWxIndicatorDescriptor* Indicator);

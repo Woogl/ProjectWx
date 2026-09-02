@@ -26,7 +26,7 @@ private:
 	void HandleGetComponentStrings(TArray<TSharedPtr<FString>>& OutStrings, TArray<TSharedPtr<SToolTip>>& OutToolTips, TArray<bool>& OutRestrictedItems) const;
 	FString HandleGetComponentValueString() const;
 
-	/** 이 필드를 담은 ST 에셋 스키마의 Context 액터 클래스. 스키마 밖에서 쓰이거나 지정 전이면 nullptr 이라 후보가 비게 된다. */
+	/** 스키마 밖에서 쓰이거나 지정 전이면 nullptr 이라 후보가 비게 된다. */
 	const UClass* FindContextActorClass() const;
 
 	TSharedPtr<IPropertyHandle> NamePropertyHandle;

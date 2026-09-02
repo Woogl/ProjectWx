@@ -65,7 +65,6 @@ public:
 	/**
 	 * 토스트 등 1회용 표시 채널.
 	 * 본 VM 이 아니라 VM_Inventory 가 획득 broadcast 직전에 Delta 를 써넣고, 수신측은 OneTime 바인딩으로 읽는다.
-	 * FieldNotify 미부착 — OneWay 바인딩 대상 아님.
 	 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Inventory")
 	int32 AcquiredCount = 0;

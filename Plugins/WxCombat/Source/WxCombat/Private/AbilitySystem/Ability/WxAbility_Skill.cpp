@@ -18,7 +18,6 @@ UWxAbility_Skill::UWxAbility_Skill()
 
 	bRetriggerInstancedAbility = true;
 
-	// 슬롯별로 쿨다운을 따로 굴려야 하면 슬롯마다 파생 GE를 만들어 각 BP에서 지정한다.
 	CooldownGameplayEffectClass = UWxEffect_Cooldown_Skill_1::StaticClass();
 }
 

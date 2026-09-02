@@ -24,7 +24,7 @@ public:
 };
 
 /**
- * MMC API가 평가 중인 Modifier 인덱스를 주지 않아, 자원별로 파생 클래스를 분리한다(UWxMMC_MPCost/UWxMMC_UPCost/UWxMMC_SPCost).
+ * MMC API가 평가 중인 Modifier 인덱스를 주지 않아, 자원별로 파생 클래스를 분리한다.
  * Row가 고른 자원과 일치하는 파생 클래스만 값을 내고 나머지는 0이다.
  */
 UCLASS(Abstract)

@@ -134,7 +134,7 @@ void UWxInteractionScannerComponent::HandleScanTimer()
 	UWorld* World = Pawn ? Pawn->GetWorld() : nullptr;
 	if (!World)
 	{
-		// 폰이 사라지는 경로(폰 교체·언포제스·레벨 전환 대기)에서도 외곽선·목록을 남기지 않는다. 아래 상호작용 불가 게이트와 같은 정리다.
+		// 폰이 사라지는 경로(폰 교체·언포제스·레벨 전환 대기)에서도 외곽선·목록을 남기지 않는다.
 		UpdateInRange({});
 		return;
 	}
@@ -218,7 +218,7 @@ void UWxInteractionScannerComponent::UpdateInRange(const TArray<AActor*>& InCand
 		}
 	}
 
-	// 멤버십도 그대로고 볼 대상도 없으면 비교할 문구조차 없다 — 주변에 아무것도 없는 대부분의 스캔이 여기서 끝나 아래 프롬프트 수집 비용이 들지 않는다.
+	// 멤버십도 그대로고 볼 대상도 없으면 비교할 문구조차 없다 — 아무것도 없는 대부분의 스캔이 프롬프트 수집 없이 여기서 끝난다.
 	if (!bChanged && InRangeActors.IsEmpty())
 	{
 		return;

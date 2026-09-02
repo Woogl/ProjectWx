@@ -39,7 +39,6 @@ public:
 
 	static void GatherLockOnPoints(const AActor* Actor, TArray<USceneComponent*>& OutPoints);
 
-	/** 부위 중 하나라도 락온됐는가. */
 	static bool IsActorLockedOn(const AActor* Actor);
 
 	FWxOnLockedOnChanged OnLockedOnChanged;

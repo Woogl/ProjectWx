@@ -50,8 +50,7 @@ void AWxDevice::OnInteracted(AActor* Interactor)
 	// 당사자는 복제로 각 피어에 전해진다 — 몽타주·GE 태스크가 모든 머신에서 같은 대상을 본다.
 	InteractingCharacter = Cast<ACharacter>(Interactor);
 
-	// 닿지 않은 발행은 트리를 움직일 수 없다.
-	// 그런데도 재진입 판정을 예약하면 다음 권위 틱이 「상태가 안 바뀐 재진입」으로 오판해 클라 전원이 연출을 헛재생한다.
+	// 닿지 않은 발행에 재진입 판정을 예약하면 다음 권위 틱이 「상태가 안 바뀐 재진입」으로 오판해 클라 전원이 연출을 헛재생한다.
 	if (!BroadcastInteractionDelegate())
 	{
 		UE_LOG(LogWxWorld, Verbose, TEXT("Device(%s): 상호작용이 트리에 닿지 않았다 — 이 상태에 발행 자리가 없거나, 자리를 연 상태를 이미 떠났다."), *GetName());

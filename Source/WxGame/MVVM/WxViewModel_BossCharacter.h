@@ -46,9 +46,6 @@ private:
 	TWeakObjectPtr<AWxBossCharacter> CurrentBoss;
 };
 
-/**
- * 보스 탐색/연결은 뷰모델이 스스로 수행한다.
- */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXGAME_API UWxViewModelResolver_BossCharacter : public UMVVMViewModelContextResolver
 {

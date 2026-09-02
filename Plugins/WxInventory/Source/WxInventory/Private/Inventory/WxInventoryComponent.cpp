@@ -509,7 +509,6 @@ bool UWxInventoryComponent::UseItemByDef(const UWxItemDefinition* ItemDef)
 		return false;
 	}
 
-	// GE SourceObject 이자 충전형 아이템의 충전량 보유 주체다.
 	UWxItemInstance* SourceInstance = FindUsableInstance(ItemDef);
 	if (!SourceInstance)
 	{

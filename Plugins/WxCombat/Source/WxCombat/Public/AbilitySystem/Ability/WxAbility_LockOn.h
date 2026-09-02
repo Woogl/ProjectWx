@@ -38,7 +38,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	float CameraInterpSpeed = 5.f;
 
-	/** 캐릭터 몸체가 타겟을 향해 회전하는 보간 속도 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	float CharacterInterpSpeed = 8.f;
 

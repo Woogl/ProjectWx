@@ -11,9 +11,6 @@
 class UTexture2D;
 class UWxItemFragment;
 
-/**
- * Fragment 구성과 독립적이므로, 같은 카테고리 안에서도 Fragment 조합으로 세부 행동을 차별화할 수 있다.
- */
 UENUM(BlueprintType)
 enum class EWxItemCategory : uint8
 {

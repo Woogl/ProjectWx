@@ -35,7 +35,6 @@ void FWxEditorModule::StartupModule()
 {
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>(WxEditorModule::PropertyEditorModuleName);
 
-	// 액터 지정(AllowedLocators="Actor" 메타) UOL 필드에만 한 줄 픽커를 적용한다. 메타 없는 UOL 은 엔진 기본 편집기 유지.
 	ActorLocatorIdentifier = MakeShared<FWxActorLocatorTypeIdentifier>();
 	PropertyModule.RegisterCustomPropertyTypeLayout(
 		FUniversalObjectLocator::StaticStruct()->GetFName(),

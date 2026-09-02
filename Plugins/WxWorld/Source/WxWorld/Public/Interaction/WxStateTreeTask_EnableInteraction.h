@@ -35,7 +35,7 @@ struct FWxStateTreeTask_EnableInteractionInstanceData
  *
  * 이 노드의 OnInteracted 를 지목하는 전이는 이 노드가 있는 상태나 그 하위 상태에 두어야 한다 — 바인딩이 볼 수 있는 범위가 루트에서 전이가 달린 상태까지의 경로뿐이라, 부모 상태의 전이는 자식의 발행자를 지목하지 못한다.
  *
- * 오너 자신만 여닫는다. 남의 장치를 잠그는 것은 '이벤트 보내기' 로 그 트리에 상태를 요청하고, NPC 는 '상호작용 대기' 가 기다리는 동안 스스로 열린다.
+ * 오너 자신만 여닫는다.
  */
 USTRUCT(meta = (DisplayName = "상호작용 켜기", Category = "Wx"))
 struct FWxStateTreeTask_EnableInteraction : public FStateTreeTaskCommonBase

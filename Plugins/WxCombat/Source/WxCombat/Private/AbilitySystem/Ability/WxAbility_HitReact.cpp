@@ -82,8 +82,8 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	const AActor* Instigator = TriggerEventData ? TriggerEventData->Instigator.Get() : nullptr;
 	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
 
-	// 그로기 중엔 날아가지 않는다 — 긴 넉 몽타주가 그로기 몽타주를 밀어내는 동안에도 DP 드레인은 돌아 그로기 창이 잘려나간다.
-	// 그로기를 유발한 히트도 여기 걸린다. DP 적용이 그로기를 먼저 띄우고 피격 이벤트가 그 뒤에 오기 때문이다.
+	// 그로기 중엔 날아가지 않는다 — 긴 넉 몽타주가 그로기 몽타주를 밀어내는 동안에도 GP 드레인은 돌아 그로기 창이 잘려나간다.
+	// 그로기를 유발한 히트도 여기 걸린다. GP 적용이 그로기를 먼저 띄우고 피격 이벤트가 그 뒤에 오기 때문이다.
 	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy)
 		&& (ReactionTag == WxGameplayTags::HitReact_KnockBack
 			|| ReactionTag == WxGameplayTags::HitReact_KnockDown
@@ -98,7 +98,6 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		return;
 	}
 
-	// 몽타주 선택과 달리 부수 효과는 여러 종류가 한 갈래를 공유하므로 따로 가른다.
 	if (ReactionTag == WxGameplayTags::HitReact_KnockUp)
 	{
 		if (ACharacter* Character = Cast<ACharacter>(AvatarActor))

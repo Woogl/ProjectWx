@@ -44,7 +44,6 @@ struct FWxStateTreeTask_SplineMoveInstanceData
 	UPROPERTY()
 	float CurrentDistance = 0.f;
 
-	/** (런타임) 목표 포인트(TargetPointIndex)의 스플라인 거리. */
 	UPROPERTY()
 	float TargetDistance = 0.f;
 

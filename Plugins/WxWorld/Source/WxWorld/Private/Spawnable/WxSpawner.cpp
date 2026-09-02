@@ -226,7 +226,6 @@ void AWxSpawner::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 
 		// 라벨 동기화는 프리뷰 갱신과 달리 여기(디자이너가 클래스를 실제로 바꾼 순간)에서만 한다.
 		// 프리뷰 쪽에 두면 맵/셀을 열 때마다 도는 PostRegisterAllComponents 경로에서도 불려, 디자이너가 지은 이름(예: Boss_Room_Guard_01)이 매 로드마다 클래스명으로 되돌아가고 SetActorLabel 의 Modify() 가 아무 편집 없이 패키지를 dirty 로 만든다.
-		// 접두사로 시작하는 자동 라벨일 때만 갱신해, 손수 지은 이름은 대상 클래스를 바꿔도 남긴다.
 		if (GetActorLabel().StartsWith(WxSpawnerLabel::Prefix))
 		{
 			// 엔진이 액터를 배치할 때와 같은 경로다.

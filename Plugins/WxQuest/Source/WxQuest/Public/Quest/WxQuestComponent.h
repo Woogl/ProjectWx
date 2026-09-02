@@ -83,7 +83,7 @@ private:
 	UFUNCTION()
 	void HandleStateTreeRunStatusChanged(EStateTreeRunStatus StateTreeRunStatus);
 
-	/** RequestActivateQuest 의 다음 틱 타이머 콜백. 이 시점엔 러너가 실행 콜스택 밖이라 활성화가 안전하다. */
+	/** RequestActivateQuest 의 다음 틱 타이머 콜백. */
 	void HandleDeferredActivateQuest(TSoftObjectPtr<UStateTree> QuestAsset);
 
 	void ClearJournal();

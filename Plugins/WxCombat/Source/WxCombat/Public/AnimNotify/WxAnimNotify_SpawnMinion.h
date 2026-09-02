@@ -7,7 +7,6 @@
 #include "WxAnimNotify_SpawnMinion.generated.h"
 
 /**
- * 소환물 클래스·스폰 오프셋·수명과 함께 GameplayEvent를 발행한다.
  * 자신을 이벤트 페이로드로 전달할 뿐, 생성은 MinionComponent에 맡긴다.
  */
 UCLASS()

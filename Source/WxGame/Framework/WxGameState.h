@@ -29,7 +29,6 @@ public:
 	UWxExperienceManagerComponent* GetExperienceManagerComponent() const;
 
 private:
-	/** GameState 서브오브젝트라 서버가 고른 Experience 참조가 전 클라로 복제된다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UWxExperienceManagerComponent> ExperienceManagerComponent;
 };

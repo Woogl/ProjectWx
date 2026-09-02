@@ -101,7 +101,7 @@ UWxIndicatorManagerComponent::UWxIndicatorManagerComponent(const FObjectInitiali
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// 등록이 있을 때만 돈다. 투영할 것이 없으면 카메라를 볼 이유도 없다.
+	// 등록이 있을 때만 돈다.
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 
 	// 카메라 갱신은 틱 그룹이 아니라 월드가 액터 틱을 마친 뒤 직접 돌리므로(TG_PostUpdateWork 직전), 그보다 뒤라야 같은 프레임의 카메라로 투영한다.
