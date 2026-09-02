@@ -9,7 +9,8 @@
 
 struct FStateTreeExecutionContext;
 struct FStateTreeTransitionResult;
-class UWxIndicatorDescriptor;
+class AWxIndicator;
+class UUserWidget;
 
 // GetInstanceDataType() 의 헤더 정의는 코딩 규칙 6 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
 
@@ -27,6 +28,10 @@ struct FWxStateTreeTask_MarkIndicatorInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedLocators = "Actor"))
 	FUniversalObjectLocator Target;
 
+	/** 아이콘 등 표시 내용은 전부 이 위젯이 들고 있다. */
+	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (MustImplement = "/Script/WxUI.WxIndicatorWidget"))
+	TSubclassOf<UUserWidget> IndicatorWidget;
+
 	/** 대상 원점에서 위로 올릴 높이(cm). */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	float WorldZOffset = 100.f;
@@ -38,20 +43,20 @@ struct FWxStateTreeTask_MarkIndicatorInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	FVector TargetLocation = FVector::ZeroVector;
 
-	/** (런타임) 이 노드가 실제로 등록한 인디케이터. 해제는 이 기록만 근거로 한다. */
+	/** (런타임) 이 노드가 실제로 띄운 인디케이터. 걷어가는 것은 이 기록만 근거로 한다. */
 	UPROPERTY()
-	TWeakObjectPtr<UWxIndicatorDescriptor> RegisteredIndicator;
+	TWeakObjectPtr<AWxIndicator> SpawnedIndicator;
 };
 
 /**
- * 진입 시 지정 대상 위에 화면 인디케이터를 등록하고, 상태에 머무는 동안 유지하다 떠날 때 해제한다.
- * 인디케이터는 월드가 아니라 화면에 있으므로 대상이 화면 밖이면 화면 가장자리에 붙어 방향을 가리킨다 — 마커 액터로는 줄 수 없는 정보다.
+ * 진입 시 지정 대상 위에 화면 인디케이터를 띄우고, 상태에 머무는 동안 유지하다 떠날 때 걷어간다.
+ * 인디케이터는 대상에 부착돼 따라다니되 화면 밖이면 스스로 화면 가장자리에 붙어 방향을 가리킨다 — 순수 월드 마커로는 줄 수 없는 정보다.
  *
  * 대상 해석은 아직 잡지 못한 동안에만 매 틱 재시도해 월드 파티션 언로드/재로드를 따라간다.
  * 해석되지 않는 동안(언로드·파괴 모두)에는 기록해 둔 좌표를 대신 가리킨다 — 마커가 가장 필요한 때가 목표가 멀어 아직 스트리밍되지 않은 때다.
- * 빈 로케이터는 표시될 수 없는 잘못된 조립이므로 진입 시 경고를 남긴다.
+ * 빈 로케이터·미지정 위젯은 표시될 수 없는 잘못된 조립이므로 진입 시 경고를 남긴다.
  * 완료 없는 머무는 태스크라 항상 Running 이다.
- * 표시는 보는 사람의 사건이라 매니저는 로컬 플레이어(0번 컨트롤러)에서 찾는다(v1 싱글/리슨 호스트 전제).
+ * 인디케이터는 복제되지 않으므로 이 노드를 도는 머신에만 뜬다(v1 싱글/리슨 호스트 전제).
  */
 USTRUCT(meta = (DisplayName = "인디케이터 표시", Category = "Wx"))
 struct FWxStateTreeTask_MarkIndicator : public FStateTreeTaskCommonBase
@@ -66,6 +71,9 @@ struct FWxStateTreeTask_MarkIndicator : public FStateTreeTaskCommonBase
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
 	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+
+	/** 아직 대상을 잡지 못한 인디케이터만 다시 해석해 부착한다. */
+	void RefreshTarget(const FStateTreeExecutionContext& Context, FInstanceDataType& Instance) const;
 
 #if WITH_EDITOR
 	virtual void PostEditInstanceDataChangeChainProperty(const FPropertyChangedChainEvent& PropertyChangedEvent, FStateTreeDataView InstanceDataView) override;

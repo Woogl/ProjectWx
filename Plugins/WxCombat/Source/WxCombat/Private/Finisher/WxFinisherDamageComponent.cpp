@@ -85,5 +85,5 @@ void UWxFinisherDamageComponent::HandleFinisherDamageEvent(const FGameplayEventD
 	FHitResult HitResult;
 	HitResult.ImpactPoint = Target->GetActorLocation();
 	HitResult.Location = Target->GetActorLocation();
-	UWxCombatLibrary::ApplyDamage(Owner, Target, DamageDataRow, HitResult, 0.f);
+	UWxCombatLibrary::ApplyDamage(Owner, Target, DamageDataRow, HitResult);
 }

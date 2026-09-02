@@ -31,6 +31,9 @@ namespace WxGameplayTags
 	/** 궁극기가 WxEffect_SuperArmor로 활성 구간만큼 부여한다. 대미지는 그대로 들어오고 경직(HitReact)만 막힌다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_SuperArmor);
 
+	/** WxEffect_HitStop이 적중마다 무기·투사체의 HitStopDuration만큼 부여한다. 있는 동안 WxHitStopComponent가 몽타주를 얼린다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_HitStop);
+
 	// ── Movement ──────────────────────────────────────────────────────────────
 	
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_InAir);
@@ -222,7 +225,7 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Magnitude);
 	
-	/** 지속시간 Duration SetByCaller 키. NoCooldown/InfiniteMP의 DurationMagnitude에서 공용으로 사용 */
+	/** 지속시간 Duration SetByCaller 키. NoCooldown/InfiniteMP/HitStop의 DurationMagnitude에서 공용으로 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Duration);
 
 	/** 공격력 계수 SetByCaller 키. WxExecCalc_Damage가 ATK 어트리뷰트에 곱하는 배율 */

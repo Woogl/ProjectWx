@@ -17,6 +17,7 @@ class UMotionWarpingComponent;
 class UWxAbilitySystemComponent;
 class UWxCombatAttributeSet;
 class UWxEquipmentComponent;
+class UWxHitStopComponent;
 class UWxMetaHumanComponent;
 class UWxMinionComponent;
 class UWxProjectileComponent;
@@ -82,6 +83,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Combat")
 	TObjectPtr<UMotionWarpingComponent> MotionWarpingComponent;
+
+	/** 히트스톱 GE의 추가·제거를 받아 몽타주를 얼리고 되돌린다. */
+	UPROPERTY(VisibleAnywhere, Category = "Wx|Combat")
+	TObjectPtr<UWxHitStopComponent> HitStopComponent;
 
 	/** AnimNotify GameplayEvent를 받아 서버 권위로 투사체를 생성한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Combat")

@@ -2,7 +2,6 @@
 
 #include "WxCombatLibrary.h"
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
-#include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
@@ -35,7 +34,7 @@ EWxDamageCheck UWxCombatLibrary::CheckDamage(const UAbilitySystemComponent* Sour
 		return EWxDamageCheck::None;
 	}
 
-	// 대미지 GE가 사망 대상을 거르기 전, 히트스톱·투사체 연출도 시체를 제외해야 한다.
+	// 대미지 GE가 사망 대상을 거르기 전, 투사체 연출도 시체를 제외해야 한다.
 	if (Target->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
 	{
 		return EWxDamageCheck::None;
@@ -56,7 +55,7 @@ EWxDamageCheck UWxCombatLibrary::CheckDamage(const UAbilitySystemComponent* Sour
 	return EWxDamageCheck::Damaged;
 }
 
-bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const FDataTableRowHandle& DamageTableRow, const FHitResult& HitResult, float HitStopDuration)
+bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const FDataTableRowHandle& DamageTableRow, const FHitResult& HitResult)
 {
 	if (!Causer || !Target)
 	{
@@ -91,7 +90,6 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 		PredictionKey = AnimatingAbility->GetCurrentActivationInfo().GetActivationPredictionKey();
 	}
 
-	// 적용 전에 판정한다 — 이 히트로 죽는 대상에도 히트스톱이 걸려야 한다.
 	const EWxDamageCheck DamageCheck = CheckDamage(Source, TargetASC);
 
 	if (DamageCheck == EWxDamageCheck::Evaded)
@@ -141,15 +139,6 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 			{
 				Source->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC, PredictionKey);
 			}
-		}
-	}
-
-	// 적용 뒤라야 동기로 도착한 반응(패리 등)에 히트스톱이 몽타주를 양보한다.
-	if (HitStopDuration > 0.f)
-	{
-		if (UWxAbilitySystemComponent* SourceWxASC = Cast<UWxAbilitySystemComponent>(Source))
-		{
-			SourceWxASC->ApplyHitStop(HitStopDuration, AnimatingAbility);
 		}
 	}
 

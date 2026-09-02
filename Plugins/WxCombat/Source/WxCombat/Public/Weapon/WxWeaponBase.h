@@ -36,9 +36,9 @@ public:
 
 	USkeletalMeshComponent* GetMesh() const;
 
-	/** 역경직 지속 시간 (초). 0 이하이면 역경직 미적용 */
+	/** 적중 시 공격자와 피격자 양쪽에 걸 역경직 지속 시간 (초). 0 이하이면 미적용 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Weapon")
-	float HitStopDuration = 0.15f;
+	float HitStopDuration = 0.1f;
 
 	virtual void PostInitializeComponents() override;
 	virtual void Tick(float DeltaSeconds) override;

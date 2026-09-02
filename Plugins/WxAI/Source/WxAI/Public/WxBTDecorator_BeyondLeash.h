@@ -32,6 +32,8 @@ public:
 	UWxBTDecorator_BeyondLeash();
 
 	virtual void InitializeFromAsset(UBehaviorTree& Asset) override;
+	
+	virtual uint16 GetInstanceMemorySize() const override;
 
 	virtual FString GetStaticDescription() const override;
 
@@ -41,8 +43,6 @@ protected:
 	virtual void OnBecomeRelevant(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
-
-	virtual uint16 GetInstanceMemorySize() const override;
 
 	/** 거리를 재는 기준점. Vector 키는 그 위치를, Actor 키는 그 액터의 위치를 쓴다. 미설정이면 이탈로 보지 않는다. */
 	UPROPERTY(EditAnywhere, Category = "Wx|AI")
