@@ -58,7 +58,9 @@ EBTNodeResult::Type UWxBTTask_ActivateAbility::ExecuteTask(UBehaviorTreeComponen
 				{
 					break;
 				}
+				// 채택하지 않은 후보가 남긴 통지는 다음 후보의 결론이 될 수 없다.
 				ActivatedHandle = FGameplayAbilitySpecHandle();
+				ActivationResult = EBTNodeResult::InProgress;
 			}
 		}
 	}
