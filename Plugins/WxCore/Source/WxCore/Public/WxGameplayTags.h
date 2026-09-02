@@ -19,8 +19,8 @@ namespace WxGameplayTags
 	/** WxEffect_Invincible이 부여하며, 구간을 연 쪽(노티파이 구간·컷신 태스크·처형의 활성 구간)이 수명을 쥔다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Invincible);
 
-	/** 가드 어빌리티가 WxEffect_Guard로 부여하고 종료에서 걷는다. SP 고갈로 가드가 깨질 때는 리액션 어빌리티가 가드를 끊어 같은 경로로 걷힌다 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Guard);
+	/** 가드 어빌리티가 WxEffect_GuardReduction으로 부여하고 종료에서 걷는다. SP 고갈로 가드가 깨질 때는 리액션 어빌리티가 가드를 끊어 같은 경로로 걷힌다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_GuardReduction);
 
 	/** 가드 몽타주의 노티파이 구간이 WxEffect_PerfectGuard로 부여하고 구간 끝에서 걷어낸다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_PerfectGuard);
@@ -92,7 +92,7 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Ragdoll);
 	
-	/** 소비 아이템 차감과 사용 효과 적용 Action을 실행한다. */
+	/** 소비 아이템의 스택 차감과 Usable 프래그먼트의 사용 효과 적용을 실행한다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_UseItem);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_ApplyFinisherDamage);
@@ -210,7 +210,6 @@ namespace WxGameplayTags
 	/**
 	 * 어빌리티별 쿨다운 GE가 부여하는 태그. 순정 CheckCooldown·쿨다운 조회 API가 이 태그로 쿨다운을 식별한다.
 	 * 이름은 위 Ability.X 식별 태그를 따른다 — 어빌리티가 지정한 UWxEffect_Cooldown 파생 GE가 짝이 되는 태그를 부여한다.
-	 * 쿨다운을 실제로 쓰는 어빌리티만 짝을 두므로, 새로 필요해지면 태그와 파생 클래스를 함께 만든다.
 	 * 적은 쿨다운을 쓰지 않는다 — 패턴 간격은 BT가 잡는다.
 	 */
 

@@ -5,6 +5,10 @@
 #include "GameFramework/Character.h"
 #include "WxGameplayTags.h"
 
+#if WITH_EDITOR
+#include "Misc/DataValidation.h"
+#endif
+
 UWxAbility_HitReact::UWxAbility_HitReact()
 {
 	// 항상 서버에서 발행된 GameplayEvent로 트리거된다.
@@ -17,7 +21,7 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	ActivationGroup = EWxAbilityActivationGroup::Override;
 
 	// 진행 중인 것은 공격·스킬만 끊는다 — 부류(그룹)로 끊으면 적 패턴까지 평타 피격에 중단된다.
-	// Reaction은 막히지 않을 뿐 남을 끊지는 않는다 — 진행 중인 공격을 실제로 중단시키려면 지목이 필요하다.
+	// Override는 막히지 않을 뿐 남을 끊지는 않는다 — 진행 중인 공격을 실제로 중단시키려면 지목이 필요하다.
 	// Ability.Skill은 부모 태그라 슬롯별 Ability.Skill.1~4까지 함께 잡는다.
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Attack);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Skill);
@@ -28,7 +32,7 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	ActivationBlockedTags.AddTag(WxGameplayTags::Effect_Invincible);
 	ActivationBlockedTags.AddTag(WxGameplayTags::Effect_SuperArmor);
 
-	// 가드는 방어 판정(Effect.Guard)이 아니라 어빌리티로 막는다 — GuardReact의 요구 태그와 같은 것을 봐야 한 히트에 둘 다 거부되는 상태가 없다.
+	// 가드는 방어 판정(Effect.GuardReduction)이 아니라 어빌리티로 막는다 — GuardReact의 요구 태그와 같은 것을 봐야 한 히트에 둘 다 거부되는 상태가 없다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Guard);
 
 	bRetriggerInstancedAbility = true;
@@ -43,6 +47,21 @@ float UWxAbility_HitReact::GetMontagePlayRate() const
 {
 	return 1.f;
 }
+
+#if WITH_EDITOR
+EDataValidationResult UWxAbility_HitReact::IsDataValid(FDataValidationContext& Context) const
+{
+	EDataValidationResult Result = Super::IsDataValid(Context);
+
+	Result = CombineDataValidationResults(Result, ValidateInstantBlendIn(NormalHitReactMontage, Context));
+	Result = CombineDataValidationResults(Result, ValidateInstantBlendIn(KnockbackMontage, Context));
+	Result = CombineDataValidationResults(Result, ValidateInstantBlendIn(KnockdownMontage, Context));
+	Result = CombineDataValidationResults(Result, ValidateInstantBlendIn(KnockupMontage, Context));
+	Result = CombineDataValidationResults(Result, ValidateInstantBlendIn(ParryReactMontage, Context));
+
+	return Result;
+}
+#endif
 
 void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {

@@ -103,10 +103,15 @@ public:
 	FGameplayAttributeData SPD;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, SPD)
 
-	/** 어빌리티 몽타주 PlayRate에 곱해지는 공격 속도 배율(기본 1.0) */
+	/** 어빌리티 몽타주 PlayRate로 그대로 쓰이는 공격 속도 배율(기본 1.0) */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Combat", ReplicatedUsing = OnRep_ASPD)
 	FGameplayAttributeData ASPD;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, ASPD)
+
+	/** 가드로 막았을 때의 피해 경감률(0~1). 기본 0이고 가드 중에만 GE_GuardReduction이 올린다 */
+	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Combat", ReplicatedUsing = OnRep_GuardReductionScale)
+	FGameplayAttributeData GuardReductionScale;
+	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, GuardReductionScale)
 
 	// ── Meta (복제 안 함) ──────────────────────────────────────────────────
 
@@ -168,6 +173,9 @@ protected:
 
 	UFUNCTION()
 	void OnRep_ASPD(const FGameplayAttributeData& OldASPD);
+
+	UFUNCTION()
+	void OnRep_GuardReductionScale(const FGameplayAttributeData& OldGuardReductionScale);
 
 private:
 	struct FWxMaxAttributePair

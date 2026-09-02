@@ -1,7 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Guard.h"
-#include "AbilitySystem/Effect/WxEffect_Guard.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
 #include "WxGameplayTags.h"
@@ -12,8 +11,6 @@ UWxAbility_Guard::UWxAbility_Guard()
 	AssetTags.AddTag(WxGameplayTags::Ability_Guard);
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Guard);
-	ActivationOwnedEffects.Add(UWxEffect_Guard::StaticClass());
-
 
 	// 배타 판정에는 자기 예외가 없어 활성 중 자기 재발동까지 막히는데, 가드는 그 성질에 기대어 상태를 유지한다.
 	ActivationGroup = EWxAbilityActivationGroup::Exclusive;
@@ -40,7 +37,6 @@ void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, co
 {
 	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
 
-	// 리액션이 도는 중이면 끊지 않는다 — 퍼펙트 가드 뒤에도 Effect.Guard가 남아야 반격 윈도우가 선다.
 	// 미뤄 둔 종료는 리액션이 끝나는 지점에서 반영한다. 여기서도 대기를 걸어 둬야 리액션이 자세를 밀어내지 않은 경우에도 가드가 고착되지 않는다.
 	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_GuardReact))

@@ -6,6 +6,10 @@
 #include "GameFramework/Actor.h"
 #include "WxGameplayTags.h"
 
+#if WITH_EDITOR
+#include "Misc/DataValidation.h"
+#endif
+
 UWxAbility_GuardReact::UWxAbility_GuardReact()
 {
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
@@ -43,6 +47,20 @@ float UWxAbility_GuardReact::GetMontagePlayRate() const
 	return 1.f;
 }
 
+#if WITH_EDITOR
+EDataValidationResult UWxAbility_GuardReact::IsDataValid(FDataValidationContext& Context) const
+{
+	EDataValidationResult Result = Super::IsDataValid(Context);
+
+	Result = CombineDataValidationResults(Result, ValidateInstantBlendIn(GuardHitReactMontage, Context));
+	Result = CombineDataValidationResults(Result, ValidateInstantBlendIn(GuardKnockbackMontage, Context));
+	Result = CombineDataValidationResults(Result, ValidateInstantBlendIn(GuardBreakMontage, Context));
+	Result = CombineDataValidationResults(Result, ValidateInstantBlendIn(PerfectGuardMontage, Context));
+
+	return Result;
+}
+#endif
+
 void UWxAbility_GuardReact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
@@ -54,7 +72,7 @@ void UWxAbility_GuardReact::ActivateAbility(const FGameplayAbilitySpecHandle Han
 
 	if (TriggerTag == WxGameplayTags::Event_Hit_GuardBreak)
 	{
-		// 커밋·몽타주보다 먼저 끊어야 한다 — 어느 쪽이든 실패해 가드가 남으면 SP 회복이 Effect.Guard에 막혀 다시는 깨지지 않는 상태가 된다.
+		// 커밋·몽타주보다 먼저 끊어야 한다 — 어느 쪽이든 실패해 가드가 남으면 SP 회복이 Effect.GuardReduction에 막혀 다시는 깨지지 않는 상태가 된다.
 		// 이 어빌리티는 서버와 소유 클라 양쪽에서 활성화되므로 취소도 양쪽에서 로컬로 일어난다.
 		if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 		{

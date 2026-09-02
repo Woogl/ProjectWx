@@ -44,6 +44,12 @@ AWxProjectileBase::AWxProjectileBase()
 	InitialLifeSpan = 10.f;
 }
 
+FGenericTeamId AWxProjectileBase::GetGenericTeamId() const
+{
+	const IGenericTeamAgentInterface* InstigatorTeamAgent = Cast<IGenericTeamAgentInterface>(GetInstigator());
+	return InstigatorTeamAgent ? InstigatorTeamAgent->GetGenericTeamId() : FGenericTeamId::NoTeam;
+}
+
 void AWxProjectileBase::PlayImpactFX()
 {
 	if (ImpactFX)

@@ -8,6 +8,7 @@
 #include "AbilitySystem/WxInputBufferComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystemComponent.h"
+#include "Animation/AnimMontage.h"
 #include "GameplayEffect.h"
 #include "WxCombatModule.h"
 
@@ -305,6 +306,20 @@ EDataValidationResult UWxAbilityBase::IsDataValid(FDataValidationContext& Contex
 	}
 
 	return Result;
+}
+
+EDataValidationResult UWxAbilityBase::ValidateInstantBlendIn(const UAnimMontage* Montage, FDataValidationContext& Context)
+{
+	if (!Montage || Montage->BlendIn.GetBlendTime() <= 0.f)
+	{
+		return EDataValidationResult::Valid;
+	}
+
+	Context.AddError(FText::Format(
+		NSLOCTEXT("Wx", "ReactionMontageBlendIn", "{0}의 Blend In 시간이 0이 아닙니다. 히트스톱이 블렌드까지 멈추므로 반응 몽타주는 즉시 전환되어야 합니다."),
+		FText::FromString(Montage->GetName())));
+
+	return EDataValidationResult::Invalid;
 }
 #endif
 

@@ -4,7 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/CheatManager.h"
+#include "GameplayTagContainer.h"
+#include "Templates/SubclassOf.h"
 #include "WxCheatManager.generated.h"
+
+class UGameplayAbility;
 
 /**
  * AWxPlayerController 가 CheatClass 로 지정하며, 엔진은 AGameModeBase::AllowCheats(Standalone·에디터)일 때만 이 객체를 만든다.
@@ -34,4 +38,16 @@ public:
 	 */
 	UFUNCTION(Exec)
 	void WxKillEnemies(float RadiusMeters = 100.f);
+
+	/**
+	 * 에셋 태그로 어빌리티를 찾아 부여돼 있으면 걷고, 없으면 이 치트가 앞서 걷어 둔 것을 되돌린다.
+	 * 스킬 교체·변신을 흉내 내 스킬바 슬롯이 부여 변화를 따라가는지 확인하기 위한 치트다.
+	 */
+	UFUNCTION(Exec)
+	void WxToggleAbility(FString AbilityTagName);
+
+private:
+	/** 되돌릴 대상. 치트가 걷어 둔 동안 클래스가 수거되지 않도록 붙잡는다. */
+	UPROPERTY()
+	TMap<FGameplayTag, TSubclassOf<UGameplayAbility>> ClearedAbilities;
 };

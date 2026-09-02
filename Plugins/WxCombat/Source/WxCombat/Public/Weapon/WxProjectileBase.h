@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "GameFramework/Actor.h"
+#include "GenericTeamAgentInterface.h"
 #include "WxProjectileBase.generated.h"
 
 class UArrowComponent;
@@ -24,12 +25,17 @@ class UNiagaraSystem;
  * HitCollision은 루트 컴포넌트이며 "WxProjectile" 콜리전 프로파일(DefaultEngine.ini)을 사용한다.
  */
 UCLASS(Abstract, Blueprintable)
-class WXCOMBAT_API AWxProjectileBase : public AActor
+class WXCOMBAT_API AWxProjectileBase : public AActor, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
 public:
 	AWxProjectileBase();
+
+	//~ Begin IGenericTeamAgentInterface
+	/** 팀을 따로 들지 않고 Instigator의 것을 그대로 쓴다 — 피격 판정도 같은 출처로 적대 여부를 가린다. */
+	virtual FGenericTeamId GetGenericTeamId() const override;
+	//~ End IGenericTeamAgentInterface
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|Projectile|Damage", meta = (RowType = "/Script/WxCombat.WxDamageTableRow"))

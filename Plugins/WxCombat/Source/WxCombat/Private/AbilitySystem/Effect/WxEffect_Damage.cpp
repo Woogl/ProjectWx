@@ -2,7 +2,6 @@
 
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
-#include "AbilitySystem/Effect/WxEffect_Guard.h"
 #include "AbilitySystemComponent.h"
 #include "Damage/WxCombatEffectContext.h"
 #include "GameplayEffectComponents/TargetTagRequirementsGameplayEffectComponent.h"
@@ -30,10 +29,12 @@ struct FWxDamageBaseStatics
 {
 	DECLARE_ATTRIBUTE_CAPTUREDEF(ATK);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(DEF);
+	DECLARE_ATTRIBUTE_CAPTUREDEF(GuardReductionScale);
 	FWxDamageBaseStatics()
 	{
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, ATK, Source, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, DEF, Target, false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, GuardReductionScale, Target, false);
 	}
 };
 
@@ -88,21 +89,18 @@ static float CalculateCriticalMultiplier(float SourceCritDMG, bool bIsCritical)
 	return 1.f;	
 }
 
-static float CalculateGuardMultiplier(bool bGuardHit)
+// 경감원이 겹치면 합이 1을 넘겨 피해 부호가 뒤집힌다. 어트리뷰트의 PreAttributeChange는 캡처 경로를 거치지 않아 상한을 걸지 못한다.
+static float CalculateGuardMultiplier(float GuardReductionScale)
 {
-	if (bGuardHit)
-	{
-		return UWxEffect_Guard::DamageMultiplier;
-	}
-	return 1.f;
+	return 1.f - FMath::Clamp(GuardReductionScale, 0.f, 1.f);
 }
 
-static float CalculateFinalDamage(float SourceATK, float TargetDEF, float ATKCoeff, float SourceCritDMG, bool bIsCritical, bool bGuardHit)
+static float CalculateFinalDamage(float SourceATK, float TargetDEF, float ATKCoeff, float SourceCritDMG, bool bIsCritical, float GuardReductionScale)
 {
 	const float DefenseMultiplier = CalculateDefenseMultiplier(TargetDEF);
 	const float BaseDamage = CalculateBaseDamage(SourceATK, ATKCoeff, DefenseMultiplier);
 	const float CriticalMultiplier = CalculateCriticalMultiplier(SourceCritDMG, bIsCritical);
-	const float GuardMultiplier = CalculateGuardMultiplier(bGuardHit);
+	const float GuardMultiplier = CalculateGuardMultiplier(GuardReductionScale);
 	return BaseDamage * CriticalMultiplier * GuardMultiplier;
 }
 
@@ -112,6 +110,7 @@ UWxExecCalc_Damage::UWxExecCalc_Damage()
 	const FWxDamageExecutionStatics& ExecutionStatics = GetDamageExecutionStatics();
 	RelevantAttributesToCapture.Add(BaseStatics.ATKDef);
 	RelevantAttributesToCapture.Add(BaseStatics.DEFDef);
+	RelevantAttributesToCapture.Add(BaseStatics.GuardReductionScaleDef);
 	RelevantAttributesToCapture.Add(ExecutionStatics.CritRateDef);
 	RelevantAttributesToCapture.Add(ExecutionStatics.CritDMGDef);
 	RelevantAttributesToCapture.Add(ExecutionStatics.SPDef);
@@ -136,7 +135,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	const bool bCanGuard = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanGuard);
 	const bool bCanCritical = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanCritical);
-	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_Guard);
+	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_GuardReduction);
 	const bool bIsGroggy = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy);
 	const bool bPerfectGuardApplied = bCanGuard && TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_PerfectGuard);
 
@@ -169,7 +168,13 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		bIsCritical = FMath::FRand() < CritChance;
 	}
 
-	const float FinalDamage = CalculateFinalDamage(SourceATK, TargetDEF, ATKCoeff, SourceCritDMG, bIsCritical, bGuardHit);
+	float GuardReductionScale = 0.f;
+	if (bGuardHit)
+	{
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(BaseStatics.GuardReductionScaleDef, EvalParams, GuardReductionScale);
+	}
+
+	const float FinalDamage = CalculateFinalDamage(SourceATK, TargetDEF, ATKCoeff, SourceCritDMG, bIsCritical, GuardReductionScale);
 
 	const FWxDamageExecutionStatics& ExecutionStatics = GetDamageExecutionStatics();
 
@@ -185,7 +190,6 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		return;
 	}
 
-	// 컨텍스트에는 어트리뷰트로 전달할 수 없는 크리 결과만 기록한다.
 	if (CombatContext)
 	{
 		CombatContext->SetCritical(bIsCritical);

@@ -10,6 +10,7 @@
 
 struct FGameplayAttribute;
 struct FActiveGameplayEffectHandle;
+struct FGameplayAbilitySpec;
 struct FGameplayEffectSpec;
 struct FActiveGameplayEffect;
 class UAbilitySystemComponent;
@@ -21,6 +22,7 @@ class UWxViewModel_Effect;
  * ASC의 어트리뷰트/어빌리티/이펙트를 자식 ViewModel로 노출하는 Composite 뷰모델.
  *
  * 어트리뷰트/어빌리티 VM 은 바인딩이 요청할 때 GetOrCreate... 로 지연 생성하고, 이펙트 VM 은 활성 GE 추가/제거 이벤트로 관리한다.
+ * 어빌리티 부여가 바뀌면 만들어 둔 슬롯 VM 전부에 재매칭을 지시해, 스킬이 교체돼도 슬롯이 따라간다.
  */
 UCLASS()
 class WXUI_API UWxViewModel_AbilitySystem : public UWxViewModel
@@ -45,9 +47,9 @@ public:
 	UWxViewModel_Attribute* GetOrCreateAttributeViewModel(FGameplayAttribute Current, FGameplayAttribute Max);
 
 	/**
-	 * Asset Tags 가 InAbilityTags 를 모두 포함하는(HasAll) 어빌리티를 부여된 스펙에서 찾는다.
-	 * 매칭 시멘틱은 엔진의 GetActivatableGameplayAbilitySpecsByAllMatchingTags 와 동일하며, 여러 어빌리티가 매칭되면 첫 번째 것을 사용한다.
-	 * 매칭되는 어빌리티가 부여되지 않았으면 nullptr 를 반환한다.
+	 * InAbilityTags 가 가리키는 스킬 슬롯의 뷰모델. 그 태그가 곧 공유 키이며, 어빌리티 매칭은 뷰모델이 스스로 한다.
+	 * 조회는 컨테이너 정확 일치다 — 포함 관계로 찾으면 넓은 질의가 먼저 만들어진 것을 주워 생성 순서에 따라 결과가 갈린다.
+	 * 맞는 어빌리티가 아직 부여되지 않았어도 뷰모델은 만들어진다. 부여되면 그때 물고, 교체되면 갈아탄다.
 	 */
 	UWxViewModel_Ability* GetOrCreateAbilityViewModel(const FGameplayTagContainer& InAbilityTags);
 
@@ -65,8 +67,10 @@ protected:
 	void HandleActiveEffectAdded(UAbilitySystemComponent* InASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
 	void HandleActiveEffectRemoved(const FActiveGameplayEffect& ActiveEffect);
 	void HandleTagChanged(const FGameplayTag Tag, int32 NewCount);
+	void HandleAbilitySpecDirtied(const FGameplayAbilitySpec& Spec);
 
 	bool FlushOwnedTagsRefresh(float DeltaTime);
+	bool FlushAbilityRebind(float DeltaTime);
 
 	UPROPERTY()
 	TArray<TObjectPtr<UWxViewModel_Attribute>> AttributeViewModels;
@@ -78,4 +82,7 @@ protected:
 
 	/** 유효하면 이번 프레임의 갱신이 이미 예약돼 있다는 뜻이다. */
 	FTSTicker::FDelegateHandle OwnedTagsRefreshHandle;
+
+	/** 유효하면 이번 프레임의 슬롯 재매칭이 이미 예약돼 있다는 뜻이다. */
+	FTSTicker::FDelegateHandle AbilityRebindHandle;
 };

@@ -99,9 +99,8 @@ public:
 	virtual FText GetTitle() const override;
 	virtual FText GetDescription() const override;
 	virtual TSoftObjectPtr<UObject> GetIcon() const override;
+	virtual int32 GetMaxRecharges() const override;
 	//~ End IWxUIData
-
-	int32 GetMaxRecharges() const;
 
 	/** 충전 1개의 회복 시간(초). 테이블에 수치가 없으면 0 */
 	float GetCooldownTime() const;
@@ -137,6 +136,12 @@ public:
 	//~ Begin UObject
 	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
 	//~ End UObject
+
+	/**
+	 * 히트스톱이 시간을 세우는 순간 이미 그 포즈여야 하는 몽타주를 검사한다.
+	 * 히트스톱은 메시의 애니메이션 시간을 세우므로 블렌드도 함께 멈춘다 — 블렌드인이 남아 있으면 반응 포즈 대신 직전 포즈가 붙잡힌다.
+	 */
+	static EDataValidationResult ValidateInstantBlendIn(const UAnimMontage* Montage, FDataValidationContext& Context);
 #endif
 
 	/** 테이블에 쿨다운 수치가 없으면 nullptr — 호출자들이 이것을 "쿨다운 없음" 게이트로 쓴다. */

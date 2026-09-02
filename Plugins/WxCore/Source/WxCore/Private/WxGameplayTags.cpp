@@ -7,7 +7,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_Dialogue, "State.Dialogue");
 
 	UE_DEFINE_GAMEPLAY_TAG(Effect_Invincible, "Effect.Invincible");
-	UE_DEFINE_GAMEPLAY_TAG(Effect_Guard, "Effect.Guard");
+	UE_DEFINE_GAMEPLAY_TAG(Effect_GuardReduction, "Effect.GuardReduction");
 	UE_DEFINE_GAMEPLAY_TAG(Effect_PerfectGuard, "Effect.PerfectGuard");
 	UE_DEFINE_GAMEPLAY_TAG(Effect_Exhausted, "Effect.Exhausted");
 	UE_DEFINE_GAMEPLAY_TAG(Effect_SuperArmor, "Effect.SuperArmor");

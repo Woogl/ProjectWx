@@ -4,7 +4,6 @@
 #include "MVVM/WxViewModel_Ability.h"
 #include "MVVM/WxViewModel_Attribute.h"
 #include "AbilitySystemComponent.h"
-#include "Abilities/GameplayAbility.h"
 #include "GameplayEffectUIData.h"
 #include "MVVM/WxViewModel_Effect.h"
 #include "WxUIData.h"
@@ -39,6 +38,7 @@ void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 	InASC->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectAdded);
 	InASC->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectRemoved);
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_AbilitySystem::HandleTagChanged);
+	InASC->AbilitySpecDirtiedCallbacks.AddUObject(this, &UWxViewModel_AbilitySystem::HandleAbilitySpecDirtied);
 
 	BuildActiveEffectViewModels();
 	RefreshOwnedTags();
@@ -51,12 +51,19 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 		ASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
 		ASC->OnAnyGameplayEffectRemovedDelegate().RemoveAll(this);
 		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
+		ASC->AbilitySpecDirtiedCallbacks.RemoveAll(this);
 	}
 
 	if (OwnedTagsRefreshHandle.IsValid())
 	{
 		FTSTicker::GetCoreTicker().RemoveTicker(OwnedTagsRefreshHandle);
 		OwnedTagsRefreshHandle.Reset();
+	}
+
+	if (AbilityRebindHandle.IsValid())
+	{
+		FTSTicker::GetCoreTicker().RemoveTicker(AbilityRebindHandle);
+		AbilityRebindHandle.Reset();
 	}
 
 	// 자식은 배열에서 떼기만 한다 — 위젯이 아직 붙들고 있는 공유본을 끊으면 그 표시가 언다.
@@ -106,32 +113,17 @@ UWxViewModel_Ability* UWxViewModel_AbilitySystem::GetOrCreateAbilityViewModel(co
 		return nullptr;
 	}
 
-	// 요청 태그를 판별에 그대로 쓰면 포함 관계라, 넓은 질의가 먼저 만들어진 VM 을 잡아 생성 순서에 따라 결과가 갈린다.
-	const UGameplayAbility* AbilityCDO = nullptr;
-	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
-	{
-		if (Spec.Ability && Spec.Ability->GetAssetTags().HasAll(InAbilityTags))
-		{
-			AbilityCDO = Spec.Ability;
-			break;
-		}
-	}
-
-	if (!AbilityCDO)
-	{
-		return nullptr;
-	}
-
+	// 슬롯을 가리키는 요청 태그가 그대로 키다. 포함 관계로 찾으면 넓은 질의가 먼저 만들어진 VM 을 잡아 생성 순서에 따라 결과가 갈리므로, 정확히 같은 컨테이너만 재사용한다.
 	for (UWxViewModel_Ability* Existing : AbilityViewModels)
 	{
-		if (Existing && Existing->GetBoundAbility() == AbilityCDO)
+		if (Existing && Existing->GetAbilityTags() == InAbilityTags)
 		{
 			return Existing;
 		}
 	}
 
 	UWxViewModel_Ability* AbilityVM = NewObject<UWxViewModel_Ability>(this);
-	AbilityVM->Initialize(ASC, AbilityCDO);
+	AbilityVM->Initialize(ASC, InAbilityTags);
 	AbilityViewModels.Add(AbilityVM);
 	return AbilityVM;
 }
@@ -231,10 +223,39 @@ void UWxViewModel_AbilitySystem::HandleTagChanged(const FGameplayTag Tag, int32 
 	);
 }
 
+void UWxViewModel_AbilitySystem::HandleAbilitySpecDirtied(const FGameplayAbilitySpec& Spec)
+{
+	// 스펙은 발동·종료로도 더러워지고 세트 부여는 한 프레임에 열댓 번이 몰리므로, 슬롯 재매칭은 프레임당 한 번으로 모은다.
+	if (AbilityRebindHandle.IsValid())
+	{
+		return;
+	}
+
+	AbilityRebindHandle = FTSTicker::GetCoreTicker().AddTicker(
+		FTickerDelegate::CreateUObject(this, &UWxViewModel_AbilitySystem::FlushAbilityRebind)
+	);
+}
+
 bool UWxViewModel_AbilitySystem::FlushOwnedTagsRefresh(float DeltaTime)
 {
 	OwnedTagsRefreshHandle.Reset();
 	RefreshOwnedTags();
+
+	return false;
+}
+
+bool UWxViewModel_AbilitySystem::FlushAbilityRebind(float DeltaTime)
+{
+	AbilityRebindHandle.Reset();
+
+	// 교체는 제거 뒤 부여라, 마지막에 오는 부여 신호 하나로 전부를 훑어야 비게 된 슬롯까지 같이 정리된다.
+	for (UWxViewModel_Ability* AbilityVM : AbilityViewModels)
+	{
+		if (AbilityVM)
+		{
+			AbilityVM->RefreshBoundAbility();
+		}
+	}
 
 	return false;
 }

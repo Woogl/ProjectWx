@@ -7,46 +7,26 @@
 #include "GameplayEffect.h"
 #include "WxUIData.h"
 
-void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const UGameplayAbility* InAbility)
+void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags)
 {
-	if (!InASC || !InAbility)
+	// 빈 컨테이너는 HasAll 이 항상 true 라 아무 어빌리티나 매칭되므로 거부한다.
+	if (!InASC || InAbilityTags.IsEmpty())
 	{
 		return;
 	}
 
 	Deinitialize();
 	CachedASC = InASC;
-	CachedAbility = InAbility;
+	AbilityTags = InAbilityTags;
 
-	if (const IWxUIData* UIData = Cast<IWxUIData>(InAbility))
-	{
-		SetTitle(UIData->GetTitle());
-		SetDescription(UIData->GetDescription());
-
-		// 전투 중 동기 로드 히치를 피한다.
-		RequestImageAsync(TEXT("Icon"), UIData->GetIcon());
-	}
-
-	if (const FGameplayTagContainer* CooldownTags = InAbility->GetCooldownTags())
-	{
-		CachedCooldownTags = *CooldownTags;
-	}
-
-	if (!CachedCooldownTags.IsEmpty())
-	{
-		InASC->OnActiveGameplayEffectAddedDelegateToSelf
-			.AddUObject(this, &UWxViewModel_Ability::HandleGameplayEffectApplied);
-	}
+	// 어빌리티가 갈려도 쿨다운 GE 는 같은 ASC 에서 오므로 구독은 한 번뿐이다 — 지금 물고 있는 쿨다운 태그로 거르는 것은 핸들러가 한다.
+	InASC->OnActiveGameplayEffectAddedDelegateToSelf
+		.AddUObject(this, &UWxViewModel_Ability::HandleGameplayEffectApplied);
 
 	// 어빌리티의 블록/필요 태그로 좁힐 수 없다 — 발동 판정에는 배타 그룹 점유도 걸리는데, 그건 태그가 아니라 ASC 내부 상태라 다른 어빌리티의 ActivationOwnedTags 변화로만 감지된다.
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_Ability::HandleTagChanged);
 
-	BindCostAttributes(*InASC, *InAbility);
-
-	RefreshActivationState();
-
-	// 최대 충전 수는 게임 모듈이 뒤늦게 채우므로 그전까지는 단일 충전으로 본다.
-	SetMaxRecharges(1);
+	RefreshBoundAbility();
 }
 
 void UWxViewModel_Ability::StartCooldownTicker()
@@ -59,6 +39,15 @@ void UWxViewModel_Ability::StartCooldownTicker()
 	TickerHandle = FTSTicker::GetCoreTicker().AddTicker(
 		FTickerDelegate::CreateUObject(this, &UWxViewModel_Ability::UpdateCooldownState)
 	);
+}
+
+void UWxViewModel_Ability::StopCooldownTicker()
+{
+	if (TickerHandle.IsValid())
+	{
+		FTSTicker::GetCoreTicker().RemoveTicker(TickerHandle);
+		TickerHandle.Reset();
+	}
 }
 
 int32 UWxViewModel_Ability::QueryCooldownStacks(const UAbilitySystemComponent& ASC, float WorldTime, float& OutRemaining, float& OutDuration) const
@@ -97,21 +86,10 @@ void UWxViewModel_Ability::Deinitialize()
 		ASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
 		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
 
-		if (CostAttribute.IsValid())
-		{
-			ASC->GetGameplayAttributeValueChangeDelegate(CostAttribute).RemoveAll(this);
-		}
-		if (CostMaxAttribute.IsValid())
-		{
-			ASC->GetGameplayAttributeValueChangeDelegate(CostMaxAttribute).RemoveAll(this);
-		}
+		UnbindCostAttributes(*ASC);
 	}
 
-	if (TickerHandle.IsValid())
-	{
-		FTSTicker::GetCoreTicker().RemoveTicker(TickerHandle);
-		TickerHandle.Reset();
-	}
+	StopCooldownTicker();
 
 	if (ActivationRefreshHandle.IsValid())
 	{
@@ -121,9 +99,8 @@ void UWxViewModel_Ability::Deinitialize()
 
 	CachedASC.Reset();
 	CachedAbility.Reset();
+	AbilityTags.Reset();
 	CachedCooldownTags.Reset();
-	CostAttribute = FGameplayAttribute();
-	CostMaxAttribute = FGameplayAttribute();
 
 	Super::Deinitialize();
 }
@@ -148,9 +125,95 @@ bool UWxViewModel_Ability::TryActivateAbility()
 	return false;
 }
 
-const UGameplayAbility* UWxViewModel_Ability::GetBoundAbility() const
+void UWxViewModel_Ability::RefreshBoundAbility()
 {
-	return CachedAbility.Get();
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	if (!ASC)
+	{
+		return;
+	}
+
+	// 매칭 시멘틱은 엔진의 GetActivatableGameplayAbilitySpecsByAllMatchingTags 와 같다. 여러 어빌리티가 걸리면 첫 번째를 쓴다.
+	const UGameplayAbility* MatchedAbility = nullptr;
+	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+	{
+		if (Spec.Ability && Spec.Ability->GetAssetTags().HasAll(AbilityTags))
+		{
+			MatchedAbility = Spec.Ability;
+			break;
+		}
+	}
+
+	if (MatchedAbility == CachedAbility.Get())
+	{
+		return;
+	}
+
+	// 옛 어빌리티에 매달린 것부터 끊는다.
+	UnbindCostAttributes(*ASC);
+	StopCooldownTicker();
+
+	CachedAbility = MatchedAbility;
+	CachedCooldownTags.Reset();
+
+	if (!MatchedAbility)
+	{
+		SetTitle(FText::GetEmpty());
+		SetDescription(FText::GetEmpty());
+		RequestImageAsync(TEXT("Icon"), nullptr);
+		SetCostAmount(0.f);
+		SetCooldownDuration(0.f);
+		SetCooldownRemaining(0.f);
+		SetCooldownPercent(0.f);
+		SetIsOnCooldown(false);
+		SetMaxRecharges(0);
+		SetCurrentCharges(0);
+		RefreshActivationState();
+		return;
+	}
+
+	// 표시 계약을 구현하지 않은 어빌리티는 이름도 아이콘도 없이 단일 충전으로 그려진다.
+	int32 NewMaxRecharges = 1;
+	SetTitle(FText::GetEmpty());
+	SetDescription(FText::GetEmpty());
+	if (const IWxUIData* UIData = Cast<IWxUIData>(MatchedAbility))
+	{
+		SetTitle(UIData->GetTitle());
+		SetDescription(UIData->GetDescription());
+		NewMaxRecharges = UIData->GetMaxRecharges();
+
+		// 전투 중 동기 로드 히치를 피한다.
+		RequestImageAsync(TEXT("Icon"), UIData->GetIcon());
+	}
+	else
+	{
+		RequestImageAsync(TEXT("Icon"), nullptr);
+	}
+
+	if (const FGameplayTagContainer* CooldownTags = MatchedAbility->GetCooldownTags())
+	{
+		CachedCooldownTags = *CooldownTags;
+	}
+
+	BindCostAttributes(*ASC, *MatchedAbility);
+	SetMaxRecharges(NewMaxRecharges);
+
+	// 쿨다운이 없는 어빌리티는 아래 갱신이 첫 줄에서 빠져나가므로 충전을 여기서 채운다.
+	if (CachedCooldownTags.IsEmpty())
+	{
+		SetCurrentCharges(NewMaxRecharges);
+	}
+	else if (UpdateCooldownState(0.f))
+	{
+		StartCooldownTicker();
+	}
+
+	RefreshActivationState();
+}
+
+const FGameplayTagContainer& UWxViewModel_Ability::GetAbilityTags() const
+{
+	return AbilityTags;
 }
 
 FText UWxViewModel_Ability::GetTitle() const
@@ -232,13 +295,6 @@ void UWxViewModel_Ability::SetMaxRecharges(int32 NewValue)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(MaxRecharges, NewValue);
 	SetHasMultipleCharges(NewValue > 1);
-	SetCurrentCharges(NewValue);
-
-	// 이 VM 은 UMG 바인딩 최초 평가 시 지연 생성되므로, 쿨다운 도중에 태어나면 GE 적용 통지를 놓쳐 만충으로 굳는다.
-	if (UpdateCooldownState(0.f))
-	{
-		StartCooldownTicker();
-	}
 }
 
 bool UWxViewModel_Ability::GetHasMultipleCharges() const
@@ -466,13 +522,16 @@ void UWxViewModel_Ability::BindCostAttributes(UAbilitySystemComponent& ASC, cons
 {
 	FGameplayAttribute FoundCostAttribute;
 	const float FoundCost = QueryCost(ASC, Ability, FoundCostAttribute);
+
+	// 코스트가 없는 어빌리티로 갈아탔을 때 옛 수치가 남지 않도록 구독 여부와 무관하게 먼저 반영한다.
+	SetCostAmount(FoundCost);
+
 	if (!FoundCostAttribute.IsValid())
 	{
 		return;
 	}
 
 	CostAttribute = FoundCostAttribute;
-	SetCostAmount(FoundCost);
 
 	// 어트리뷰트 셋은 현재값과 최대값을 Max 접두 이름으로 짝지어 둔다.
 	if (const UClass* AttributeSetClass = CostAttribute.GetAttributeSetClass())
@@ -492,4 +551,19 @@ void UWxViewModel_Ability::BindCostAttributes(UAbilitySystemComponent& ASC, cons
 		ASC.GetGameplayAttributeValueChangeDelegate(CostMaxAttribute)
 			.AddUObject(this, &UWxViewModel_Ability::HandleCostAttributeChanged);
 	}
+}
+
+void UWxViewModel_Ability::UnbindCostAttributes(UAbilitySystemComponent& ASC)
+{
+	if (CostAttribute.IsValid())
+	{
+		ASC.GetGameplayAttributeValueChangeDelegate(CostAttribute).RemoveAll(this);
+	}
+	if (CostMaxAttribute.IsValid())
+	{
+		ASC.GetGameplayAttributeValueChangeDelegate(CostMaxAttribute).RemoveAll(this);
+	}
+
+	CostAttribute = FGameplayAttribute();
+	CostMaxAttribute = FGameplayAttribute();
 }
