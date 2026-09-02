@@ -41,6 +41,9 @@ public:
 
 	int32 GetNumPoints() const;
 
+	/** 중단된 정찰을 어디서 재개할지는 순회 규칙에 달렸으므로, 호출자가 모드를 직접 본다. */
+	EWxPatrolMoveMode GetMoveMode() const;
+
 	/** Index 정찰 지점의 월드 좌표. */
 	FVector GetPointLocation(int32 Index) const;
 

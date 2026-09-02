@@ -32,6 +32,11 @@ int32 UWxPatrolComponent::GetNumPoints() const
 	return GetNumberOfSplinePoints();
 }
 
+EWxPatrolMoveMode UWxPatrolComponent::GetMoveMode() const
+{
+	return MoveMode;
+}
+
 FVector UWxPatrolComponent::GetPointLocation(int32 Index) const
 {
 	return GetLocationAtSplinePoint(Index, ESplineCoordinateSpace::World);

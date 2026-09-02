@@ -42,7 +42,7 @@ EBTNodeResult::Type UWxBTTask_Patrol::ExecuteTask(UBehaviorTreeComponent& OwnerC
 		return EBTNodeResult::Failed;
 	}
 
-	// Once 로 경로를 마쳤으면 더 이상 움직이지 않는다(전투 뒤 재진입이면 마지막 지점이 아니라 지금 서 있는 자리다).
+	// 갈 지점이 더 없으면 움직이지 않는다(Once 는 전투 뒤 재진입에서도 마지막 지점이 아니라 지금 서 있는 자리다).
 	// Failed 를 반환하면 하위 폴백 분기가 폰을 집/배회로 끌고 가고, 즉시 Succeeded 는 브랜치를 놓아 주어 상위가 되감기며 재탐색을 되풀이한다.
 	if (bPatrolFinished)
 	{
@@ -90,24 +90,32 @@ void UWxBTTask_Patrol::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* 
 	}
 	MoveSpeedEffectHandle = FActiveGameplayEffectHandle();
 
-	// 중단·실패 시엔 커서를 보존해 재개 시 이어서 정찰한다.
-	if (TaskResult != EBTNodeResult::Succeeded)
+	const AAIController* AIController = OwnerComp.GetAIOwner();
+	const UWxPatrolComponent* Patrol = UWxPatrolComponent::FindPatrolComponent(AIController ? AIController->GetPawn() : nullptr);
+	if (!Patrol)
 	{
 		return;
 	}
 
-	const AAIController* AIController = OwnerComp.GetAIOwner();
-	if (const UWxPatrolComponent* Patrol = UWxPatrolComponent::FindPatrolComponent(AIController ? AIController->GetPawn() : nullptr))
+	// 중단·실패 시엔 커서를 보존해 재개 시 이어서 정찰한다.
+	// Once 가 아니면 정찰 종료도 함께 되돌린다 — 그래야 전투로 밀려났던 폰이 다시 정찰 지점으로 돌아온다(지점이 하나뿐인 경로가 여기 걸린다).
+	if (TaskResult != EBTNodeResult::Succeeded)
 	{
-		int32 NextIndex = PatrolCursor;
-		if (Patrol->GetNextIndex(PatrolCursor, PatrolDirection, NextIndex))
+		if (Patrol->GetMoveMode() != EWxPatrolMoveMode::Once)
 		{
-			PatrolCursor = NextIndex;
+			bPatrolFinished = false;
 		}
-		else
-		{
-			// 다음 지점이 없다는 건 Once 로 경로 끝에 도달했다는 뜻이다.
-			bPatrolFinished = true;
-		}
+		return;
+	}
+
+	int32 NextIndex = PatrolCursor;
+	if (Patrol->GetNextIndex(PatrolCursor, PatrolDirection, NextIndex))
+	{
+		PatrolCursor = NextIndex;
+	}
+	else
+	{
+		// 갈 지점이 더 없다 — Once 로 경로를 마쳤거나, 지점이 하나뿐인 경로에 도착했다.
+		bPatrolFinished = true;
 	}
 }

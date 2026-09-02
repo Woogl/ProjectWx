@@ -13,7 +13,8 @@ class UGameplayEffect;
  * UBTTask_MoveTo 를 상속해 이동/도착 판정/경로 실패·중단 처리는 엔진에 맡기고, 도착(성공)했을 때만 정찰 커서를 한 칸 진행한다.
  * 이동 목표는 Blackboard 의 PatrolTargetLocation 에서 읽고, 도착 시 UWxPatrolComponent 에 커서 진행을 위임한다.
  * 그 경로는 폰이 부착된 액터(스포너 등)의 것이다.
- * Once 로 경로를 마친 뒤에는 이동 없이 브랜치를 점유한 채 머무르므로, 같은 시퀀스에서 뒤따르는 형제 노드는 더 이상 실행되지 않는다.
+ * 갈 지점이 더 없으면(Once 완주, 또는 지점이 하나뿐인 경로) 이동 없이 브랜치를 점유한 채 머무르므로, 같은 시퀀스에서 뒤따르는 형제 노드는 더 이상 실행되지 않는다.
+ * 그 상태로 중단되면 Once 만 선 자리에 남고, 나머지 모드는 재개 시 정찰 지점으로 돌아간다.
  *
  * 이동 목표 키는 InitializeFromAsset 가 PatrolTargetLocation 으로 고정하므로 저작 대상이 아니다.
  */
@@ -54,7 +55,7 @@ private:
 	/** PingPong 진행 방향(+1/-1). */
 	int32 PatrolDirection = 1;
 
-	/** Once 로 경로 끝에 도달해 정찰이 끝났는지. */
+	/** 갈 지점이 더 없어 제자리에 머무는 중인지. 중단되면 Once 만 이 상태를 유지한다. */
 	bool bPatrolFinished = false;
 
 	FActiveGameplayEffectHandle MoveSpeedEffectHandle;
