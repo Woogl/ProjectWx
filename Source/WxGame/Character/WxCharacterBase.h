@@ -130,9 +130,6 @@ protected:
 
 	virtual void HandleDeath();
 
-	UFUNCTION()
-	void OnRep_Team(EWxTeam PreviousTeam);
-	
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|UI")
 	FText CharacterName;
 
@@ -143,7 +140,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
 	TObjectPtr<UBehaviorTree> BehaviorTreeAsset;
 
-	UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_Team, Category = "Wx|Team")
+	/** 소비자가 모두 질의 시점에 이 값을 직접 읽으므로 복제 통지를 받을 대상이 없다. */
+	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Wx|Team")
 	EWxTeam Team = EWxTeam::Player;
 
 	/** 기본 이동 속도 (cm/s). SPD Multiplier의 기준값 */

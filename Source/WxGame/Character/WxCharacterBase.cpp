@@ -189,12 +189,6 @@ void AWxCharacterBase::SetGenericTeamId(const FGenericTeamId& InTeamId)
 	Team = static_cast<EWxTeam>(InTeamId.GetId());
 }
 
-void AWxCharacterBase::OnRep_Team(EWxTeam PreviousTeam)
-{
-	// 팀 판정은 GetGenericTeamId에서 복제된 값을 직접 읽으므로 별도 캐시를 갱신할 필요가 없다.
-	static_cast<void>(PreviousTeam);
-}
-
 FGenericTeamId AWxCharacterBase::GetGenericTeamId() const
 {
 	return FGenericTeamId(static_cast<uint8>(Team));
