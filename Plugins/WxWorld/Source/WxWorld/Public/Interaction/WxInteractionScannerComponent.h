@@ -45,7 +45,7 @@ public:
 	/** 리슨호스트에선 ServerInteract 가 로컬 권위 호출이 된다. */
 	void TryInteractSelected();
 
-	/** 뷰모델이 초기 시드로 읽는다. */
+	/** 뷰모델이 초기 시드로 읽는다. 인덱스는 GetSelectedIndex() 와 같은 축이라, 문구를 못 얻은 대상도 빈 텍스트로 자리를 지킨다. */
 	TArray<FText> GetPrompts() const;
 
 	/** 없으면 INDEX_NONE. 뷰모델이 초기 시드로 읽는다. */

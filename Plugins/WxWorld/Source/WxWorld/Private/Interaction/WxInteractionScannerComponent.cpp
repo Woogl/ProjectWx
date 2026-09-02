@@ -76,12 +76,10 @@ TArray<FText> UWxInteractionScannerComponent::GetPrompts() const
 	Prompts.Reserve(InRangeActors.Num());
 	for (const TWeakObjectPtr<AActor>& Weak : InRangeActors)
 	{
-		if (AActor* Actor = Weak.Get())
-		{
-			// 인덱스 정합을 위해 대상이 없으면 빈 텍스트로 자리를 채운다.
-			const IWxInteractable* Target = Cast<IWxInteractable>(Actor);
-			Prompts.Add(Target ? Target->GetInteractionPrompt() : FText::GetEmpty());
-		}
+		// 인덱스가 곧 선택 키라, 대상이 사라졌거나 인터페이스가 아니어도 빈 텍스트로 자리를 채운다.
+		AActor* Actor = Weak.Get();
+		const IWxInteractable* Target = Actor ? Cast<IWxInteractable>(Actor) : nullptr;
+		Prompts.Add(Target ? Target->GetInteractionPrompt() : FText::GetEmpty());
 	}
 	return Prompts;
 }
