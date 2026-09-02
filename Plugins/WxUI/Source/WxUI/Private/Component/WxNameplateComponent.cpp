@@ -83,7 +83,6 @@ void UWxNameplateComponent::InitializeViewModels(UAbilitySystemComponent* InASC,
 	UUserWidget* NameplateWidget = GetWidget();
 	if (!NameplateWidget)
 	{
-		UE_LOG(LogWxUI, Warning, TEXT("Nameplate: 위젯이 없어 네임플레이트가 영영 숨김에 머문다(%s). WidgetClass 지정을 확인한다."), *GetNameSafe(GetOwner()));
 		return;
 	}
 

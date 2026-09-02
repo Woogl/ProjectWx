@@ -3,7 +3,6 @@
 #include "Cheat/WxCheatManager.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
-#include "Abilities/GameplayAbility.h"
 #include "AbilitySystem/Effect/WxEffect_Kill.h"
 #include "EngineUtils.h"
 #include "WxCombatLibrary.h"
@@ -64,7 +63,6 @@ void UWxCheatManager::WxKillEnemies(float RadiusMeters)
 
 	const float RadiusSquared = FMath::Square(RadiusMeters * 100.f);
 	const FVector Origin = Pawn->GetActorLocation();
-	int32 KillCount = 0;
 
 	// 오버랩 질의 대신 액터 순회로 찾는다 — 콜리전 설정에 따라 대상이 새면 "구역을 비운다"는 목적 자체가 깨진다.
 	// 죽일 수 있는 대상은 결국 ASC 를 가진 액터뿐이라, 클래스로 좁히지 않고 ASC 유무를 필터로 쓴다.
@@ -94,62 +92,8 @@ void UWxCheatManager::WxKillEnemies(float RadiusMeters)
 		if (SpecHandle.IsValid())
 		{
 			AbilitySystem->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetAbilitySystem);
-			++KillCount;
+			FString VictimNameStr = Actor->GetActorNameOrLabel();
+			UE_LOG(LogWxGame, Log, TEXT("WxKillEnemies: %s 처치"), *VictimNameStr);
 		}
 	}
-
-	// 대상이 없었던 것과 치트가 안 먹은 것을 구분할 수 있게 남긴다.
-	UE_LOG(LogWxGame, Log, TEXT("WxKillEnemies: 반경 %.0fm 안에서 %d 개 대상을 처치했다."), RadiusMeters, KillCount);
-}
-
-void UWxCheatManager::WxToggleAbility(FString AbilityTagName)
-{
-	const APlayerController* PC = GetOuterAPlayerController();
-	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
-	UAbilitySystemComponent* AbilitySystem = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Pawn);
-	if (!AbilitySystem)
-	{
-		return;
-	}
-
-	const FGameplayTag AbilityTag = FGameplayTag::RequestGameplayTag(FName(*AbilityTagName), false);
-	if (!AbilityTag.IsValid())
-	{
-		UE_LOG(LogWxGame, Warning, TEXT("WxToggleAbility: '%s' 는 등록되지 않은 태그다."), *AbilityTagName);
-		return;
-	}
-
-	// 순회 중에 제거하면 스펙 배열이 흔들리므로 찾기만 하고 빠져나온다.
-	FGameplayAbilitySpecHandle FoundHandle;
-	TSubclassOf<UGameplayAbility> FoundClass;
-	for (const FGameplayAbilitySpec& Spec : AbilitySystem->GetActivatableAbilities())
-	{
-		if (Spec.Ability && Spec.Ability->GetAssetTags().HasTag(AbilityTag))
-		{
-			FoundHandle = Spec.Handle;
-			FoundClass = Spec.Ability->GetClass();
-			break;
-		}
-	}
-
-	if (FoundHandle.IsValid())
-	{
-		ClearedAbilities.Add(AbilityTag, FoundClass);
-		AbilitySystem->ClearAbility(FoundHandle);
-		UE_LOG(LogWxGame, Log, TEXT("WxToggleAbility: %s 를 걷었다."), *GetNameSafe(FoundClass));
-		return;
-	}
-
-	const TSubclassOf<UGameplayAbility> ClearedClass = ClearedAbilities.FindRef(AbilityTag);
-	if (!ClearedClass)
-	{
-		UE_LOG(LogWxGame, Warning, TEXT("WxToggleAbility: %s 를 단 어빌리티도, 이 치트가 걷어 둔 것도 없다."), *AbilityTagName);
-		return;
-	}
-
-	FGameplayAbilitySpec Spec(ClearedClass, 1);
-	AbilitySystem->GiveAbility(Spec);
-	ClearedAbilities.Remove(AbilityTag);
-
-	UE_LOG(LogWxGame, Log, TEXT("WxToggleAbility: %s 를 되돌렸다."), *GetNameSafe(ClearedClass));
 }
