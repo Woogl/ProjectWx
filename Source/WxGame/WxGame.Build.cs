@@ -21,6 +21,7 @@ public class WxGame : ModuleRules
 			"GameplayAbilities",
 			"GameplayTags",
 			"GameplayTasks",
+			"MetaHumanSDKRuntime",
 			"ModelViewViewModel",
 			"ModularGameplay",
 			"MotionWarping",
@@ -39,7 +40,6 @@ public class WxGame : ModuleRules
 		{
 			"EnhancedInput",
 			"HairStrandsCore",
-			"MetaHumanSDKRuntime",
 		});
 	}
 }
