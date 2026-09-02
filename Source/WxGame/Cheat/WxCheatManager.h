@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/CheatManager.h"
-#include "GameplayTagContainer.h"
 #include "Templates/SubclassOf.h"
 #include "WxCheatManager.generated.h"
 
@@ -42,9 +41,4 @@ public:
 	 */
 	UFUNCTION(Exec)
 	void WxKillEnemies(float RadiusMeters = 100.f);
-
-private:
-	/** 되돌릴 대상. 치트가 걷어 둔 동안 클래스가 수거되지 않도록 붙잡는다. */
-	UPROPERTY()
-	TMap<FGameplayTag, TSubclassOf<UGameplayAbility>> ClearedAbilities;
 };

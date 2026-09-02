@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
-#include "Engine/TimerHandle.h"
 #include "WxInteractable.h"
 #include "Spawnable/WxSpawnable.h"
 #include "Character/WxCharacterBase.h"
