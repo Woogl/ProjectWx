@@ -8,6 +8,7 @@
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "GenericTeamAgentInterface.h"
+#include "GameplayTagsManager.h"
 #include "NavigationSystem.h"
 #include "WxGameplayTags.h"
 
@@ -42,15 +43,75 @@ void UWxMinionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 	for (const TWeakObjectPtr<AActor>& ActiveMinion : ActiveMinions)
 	{
-		if (AActor* Minion = ActiveMinion.Get())
+		AActor* Minion = ActiveMinion.Get();
+		if (!Minion)
 		{
-			Minion->Destroy();
+			continue;
 		}
+
+		Minion->Destroy();
 	}
 
 	ActiveMinions.Reset();
 
 	Super::EndPlay(EndPlayReason);
+}
+
+int32 UWxMinionComponent::TryActivateAbilityOnMinions(const FGameplayTag& AbilityTag)
+{
+	return TryActivateAbilityOnMinions(AbilityTag, FGameplayEventData());
+}
+
+int32 UWxMinionComponent::TryActivateAbilityOnMinions(const FGameplayTag& AbilityTag, const FGameplayEventData& Payload)
+{
+	AActor* Owner = GetOwner();
+	if (!Owner || !Owner->HasAuthority())
+	{
+		return 0;
+	}
+
+	if (!AbilityTag.IsValid() || !AbilityTag.MatchesTag(WxGameplayTags::Ability)
+		|| AbilityTag == WxGameplayTags::Ability
+		|| !UGameplayTagsManager::Get().RequestGameplayTagChildren(AbilityTag).IsEmpty())
+	{
+		return 0;
+	}
+
+	RemoveInvalidOrDeadMinions();
+
+	FGameplayEventData CommandPayload = Payload;
+	if (!CommandPayload.Instigator)
+	{
+		CommandPayload.Instigator = Owner;
+	}
+
+	// 발동한 어빌리티가 액터 수명이나 소환 목록을 바꾸더라도 이번 명령의 대상 집합은 유지한다.
+	const TArray<TWeakObjectPtr<AActor>> CommandTargets = ActiveMinions;
+	int32 ActivatedMinionCount = 0;
+
+	for (const TWeakObjectPtr<AActor>& CommandTarget : CommandTargets)
+	{
+		AActor* Minion = CommandTarget.Get();
+		if (!Minion)
+		{
+			continue;
+		}
+
+		UAbilitySystemComponent* MinionASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Minion);
+		if (!MinionASC)
+		{
+			continue;
+		}
+
+		if (!TryActivateAbilityByExactTag(*MinionASC, AbilityTag, CommandPayload))
+		{
+			continue;
+		}
+
+		++ActivatedMinionCount;
+	}
+
+	return ActivatedMinionCount;
 }
 
 void UWxMinionComponent::HandleSpawnMinionEvent(const FGameplayEventData* Payload)
@@ -68,9 +129,11 @@ void UWxMinionComponent::HandleSpawnMinionEvent(const FGameplayEventData* Payloa
 		return;
 	}
 
-	PruneInactiveMinions();
+	RemoveInvalidOrDeadMinions();
 
-	while (!ActiveMinions.IsEmpty() && ActiveMinions.Num() >= MaxMinionCount)
+	// 새 소환수 한 자리를 확보하되, 런타임에 상한이 낮아진 경우 초과분도 함께 정리한다.
+	const int32 MinionCountToRemove = FMath::Max(ActiveMinions.Num() - MaxMinionCount + 1, 0);
+	for (int32 RemovedMinionCount = 0; RemovedMinionCount < MinionCountToRemove; ++RemovedMinionCount)
 	{
 		if (AActor* OldestMinion = ActiveMinions[0].Get())
 		{
@@ -83,13 +146,11 @@ void UWxMinionComponent::HandleSpawnMinionEvent(const FGameplayEventData* Payloa
 	FVector SpawnLocation = Owner->GetActorTransform().TransformPosition(MinionNotify->GetSpawnOffset());
 
 	// 내비메시 밖에 세우면 AI가 한 발짝도 못 움직인다.
-	if (const UNavigationSystemV1* NavigationSystem = UNavigationSystemV1::GetCurrent(Owner->GetWorld()))
+	const UNavigationSystemV1* NavigationSystem = UNavigationSystemV1::GetCurrent(Owner->GetWorld());
+	FNavLocation ProjectedLocation;
+	if (NavigationSystem && NavigationSystem->ProjectPointToNavigation(SpawnLocation, ProjectedLocation))
 	{
-		FNavLocation ProjectedLocation;
-		if (NavigationSystem->ProjectPointToNavigation(SpawnLocation, ProjectedLocation))
-		{
-			SpawnLocation = ProjectedLocation.Location;
-		}
+		SpawnLocation = ProjectedLocation.Location;
 	}
 
 	const FTransform SpawnTransform(Owner->GetActorRotation(), SpawnLocation);
@@ -118,7 +179,7 @@ void UWxMinionComponent::HandleSpawnMinionEvent(const FGameplayEventData* Payloa
 	ActiveMinions.Add(Minion);
 }
 
-void UWxMinionComponent::PruneInactiveMinions()
+void UWxMinionComponent::RemoveInvalidOrDeadMinions()
 {
 	for (int32 MinionIndex = ActiveMinions.Num() - 1; MinionIndex >= 0; --MinionIndex)
 	{
@@ -130,9 +191,42 @@ void UWxMinionComponent::PruneInactiveMinions()
 		}
 
 		const UAbilitySystemComponent* MinionASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Minion);
-		if (MinionASC && MinionASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
+		if (!MinionASC || !MinionASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
 		{
-			ActiveMinions.RemoveAt(MinionIndex);
+			continue;
 		}
+
+		ActiveMinions.RemoveAt(MinionIndex);
 	}
+}
+
+bool UWxMinionComponent::TryActivateAbilityByExactTag(UAbilitySystemComponent& MinionASC, const FGameplayTag& AbilityTag, const FGameplayEventData& Payload) const
+{
+	FGameplayAbilityActorInfo* ActorInfo = MinionASC.AbilityActorInfo.Get();
+	if (!ActorInfo)
+	{
+		return false;
+	}
+
+	// 발동과 실패 통지가 부여 목록을 바꿀 수 있으므로 후보 순회가 끝날 때까지 변경을 지연한다.
+	FScopedAbilityListLock ActiveScopeLock(MinionASC);
+
+	for (const FGameplayAbilitySpec& AbilitySpec : MinionASC.GetActivatableAbilities())
+	{
+		if (!AbilitySpec.Ability || !AbilitySpec.Ability->GetAssetTags().HasTagExact(AbilityTag))
+		{
+			continue;
+		}
+
+		// 같은 식별 태그에 조건별 후보가 여럿이면 발동 가능한 첫 후보 하나만 명령한다.
+		if (!MinionASC.TriggerAbilityFromGameplayEvent(
+			AbilitySpec.Handle, ActorInfo, WxGameplayTags::Event_CommandMinionAbility, &Payload, MinionASC))
+		{
+			continue;
+		}
+
+		return true;
+	}
+
+	return false;
 }

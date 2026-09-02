@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "GameplayTagContainer.h"
 #include "WxMinionComponent.generated.h"
 
 class UAbilitySystemComponent;
@@ -19,23 +20,29 @@ class WXCOMBAT_API UWxMinionComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-protected:
+public:
+	/** 관리 중인 활성 소환수 모두에게 정확한 식별 태그의 어빌리티 발동을 요청한다. 서버에서 발동을 수락한 소환수 수를 반환한다. */
+	int32 TryActivateAbilityOnMinions(const FGameplayTag& AbilityTag);
+
+	/** Payload를 TriggerEventData로 전달하는 명령 경로다. EventTag는 Event.CommandMinionAbility로 설정된다. */
+	int32 TryActivateAbilityOnMinions(const FGameplayTag& AbilityTag, const FGameplayEventData& Payload);
+
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+private:
 	/** 동시에 유지할 소환물 수. 넘치면 가장 오래된 것을 파괴하고 새로 소환한다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Minion", meta = (ClampMin = "1"))
 	int32 MaxMinionCount = 1;
 
-private:
 	void HandleSpawnMinionEvent(const FGameplayEventData* Payload);
 
-	/** 시체는 월드에 남으므로 사망 태그로 가른다. */
-	void PruneInactiveMinions();
+	void RemoveInvalidOrDeadMinions();
+
+	bool TryActivateAbilityByExactTag(UAbilitySystemComponent& MinionASC, const FGameplayTag& AbilityTag, const FGameplayEventData& Payload) const;
 
 	TWeakObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 	FDelegateHandle SpawnMinionEventHandle;
 
-	/** 소환 순서를 유지한다. 앞쪽이 가장 오래된 소환물이다. */
 	TArray<TWeakObjectPtr<AActor>> ActiveMinions;
 };

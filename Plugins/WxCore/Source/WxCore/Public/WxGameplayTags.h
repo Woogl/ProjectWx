@@ -101,6 +101,9 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_SpawnMinion);
 
+	/** 주인이 관리 중인 소환수의 특정 어빌리티를 페이로드와 함께 발동한다. */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_CommandMinionAbility);
+
 	// ── Device ──────────────────────────────────────────────────────────────
 
 	// 장치의 State Tree 상태값이다.
