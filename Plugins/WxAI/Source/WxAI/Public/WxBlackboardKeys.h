@@ -19,6 +19,7 @@ namespace WxBlackboardKeys
 {
 	WXAI_API extern const FName SelfActor;
 	WXAI_API extern const FName TargetActor;
+	/** 소환자다. 주인 없이 태어난 폰에서는 비어 있다. */
 	WXAI_API extern const FName Master;
 	WXAI_API extern const FName HomeLocation;
 	WXAI_API extern const FName PatrolTargetLocation;
@@ -32,7 +33,6 @@ namespace WxBlackboardKeys
 	WXAI_API AActor* GetSelfActor(const UBlackboardComponent* Blackboard);
 	WXAI_API void SetSelfActor(UBlackboardComponent* Blackboard, AActor* Value);
 
-	/** 소환자다. 주인 없이 태어난 폰에서는 비어 있다. */
 	WXAI_API void SetMaster(UBlackboardComponent* Blackboard, AActor* Value);
 
 	WXAI_API void SetHomeLocation(UBlackboardComponent* Blackboard, const FVector& Value);
