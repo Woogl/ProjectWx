@@ -37,7 +37,7 @@ protected:
 
 	/** 적중 시 피격자에게 걸 역경직 지속 시간 (초). 0 이하이면 미적용 */
 	UPROPERTY(EditAnywhere, Category = "Wx|Projectile|Damage")
-	float HitStopDuration = 0.15f;
+	float HitStopDuration = 0.1f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Projectile")
 	TObjectPtr<UArrowComponent> Arrow;

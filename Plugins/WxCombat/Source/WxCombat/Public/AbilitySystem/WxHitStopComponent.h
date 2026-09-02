@@ -26,7 +26,6 @@ class WXCOMBAT_API UWxHitStopComponent : public UActorComponent
 public:
 	UWxHitStopComponent();
 
-protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
