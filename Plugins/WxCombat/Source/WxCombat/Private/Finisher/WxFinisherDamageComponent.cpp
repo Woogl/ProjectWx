@@ -8,11 +8,6 @@
 #include "WxCombatLibrary.h"
 #include "WxGameplayTags.h"
 
-UWxFinisherDamageComponent* UWxFinisherDamageComponent::FindComponent(const AActor* Actor)
-{
-	return Actor ? Actor->FindComponentByClass<UWxFinisherDamageComponent>() : nullptr;
-}
-
 void UWxFinisherDamageComponent::BeginFinisherDamage(const AActor* Target, const FDataTableRowHandle& DamageDataRow)
 {
 	PendingTarget = Target;

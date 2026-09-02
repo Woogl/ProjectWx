@@ -31,7 +31,7 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 	}
 
 	APawn* Avatar = Cast<APawn>(ActorInfo->AvatarActor.Get());
-	UWxItemUseComponent* ItemUseComponent = UWxItemUseComponent::FindComponent(Avatar);
+	UWxItemUseComponent* ItemUseComponent = Avatar ? Avatar->FindComponentByClass<UWxItemUseComponent>() : nullptr;
 	if (!ItemUseComponent || !ItemUseComponent->CanUseItem(ConsumableDef))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
@@ -57,7 +57,8 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 
 void UWxAbility_UseItem::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	if (UWxItemUseComponent* ItemUseComponent = UWxItemUseComponent::FindComponent(GetAvatarActorFromActorInfo()))
+	const AActor* Avatar = GetAvatarActorFromActorInfo();
+	if (UWxItemUseComponent* ItemUseComponent = Avatar ? Avatar->FindComponentByClass<UWxItemUseComponent>() : nullptr)
 	{
 		ItemUseComponent->EndUseItem(ConsumableDef);
 	}

@@ -67,7 +67,7 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	const FWxFinisherVariant& Variant = GetCurrentVariant();
 	UAnimMontage* SelectedAttackerMontage = Variant.AttackerMontage;
 	UAnimMontage* SelectedVictimMontage = Variant.VictimMontage;
-	UWxFinisherDamageComponent* FinisherDamageComponent = UWxFinisherDamageComponent::FindComponent(AvatarActor);
+	UWxFinisherDamageComponent* FinisherDamageComponent = AvatarActor ? AvatarActor->FindComponentByClass<UWxFinisherDamageComponent>() : nullptr;
 
 	if (!SelectedAttackerMontage || !AvatarActor || !Target || !FinisherDamageComponent || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
@@ -104,7 +104,8 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	if (UWxFinisherDamageComponent* FinisherDamageComponent = UWxFinisherDamageComponent::FindComponent(GetAvatarActorFromActorInfo()))
+	const AActor* AvatarActor = GetAvatarActorFromActorInfo();
+	if (UWxFinisherDamageComponent* FinisherDamageComponent = AvatarActor ? AvatarActor->FindComponentByClass<UWxFinisherDamageComponent>() : nullptr)
 	{
 		FinisherDamageComponent->EndFinisherDamage(TargetActor.Get());
 	}

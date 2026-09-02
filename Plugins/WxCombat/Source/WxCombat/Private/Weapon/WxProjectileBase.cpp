@@ -56,7 +56,8 @@ void AWxProjectileBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(GetInstigator()))
+	const APawn* InstigatorPawn = GetInstigator();
+	if (UWxLockOnComponent* LockOnComp = InstigatorPawn ? InstigatorPawn->FindComponentByClass<UWxLockOnComponent>() : nullptr)
 	{
 		if (USceneComponent* LockOnTarget = LockOnComp->GetLockOnTarget())
 		{

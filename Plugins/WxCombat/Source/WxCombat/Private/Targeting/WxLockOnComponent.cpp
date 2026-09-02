@@ -9,16 +9,6 @@ UWxLockOnComponent::UWxLockOnComponent()
 	SetIsReplicatedByDefault(true);
 }
 
-UWxLockOnComponent* UWxLockOnComponent::FindComponent(const AActor* Actor)
-{
-	if (!Actor)
-	{
-		return nullptr;
-	}
-
-	return Actor->FindComponentByClass<UWxLockOnComponent>();
-}
-
 void UWxLockOnComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

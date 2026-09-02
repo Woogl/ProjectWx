@@ -123,7 +123,8 @@ void UWxAbilityTask_LockOnTarget::Activate()
 	Super::Activate();
 
 	// 락온 대상의 권위·복제 소스는 컴포넌트다.
-	LockOnComponent = UWxLockOnComponent::FindComponent(GetAvatarActor());
+	const AActor* Avatar = GetAvatarActor();
+	LockOnComponent = Avatar ? Avatar->FindComponentByClass<UWxLockOnComponent>() : nullptr;
 	if (UWxLockOnComponent* Comp = LockOnComponent.Get())
 	{
 		Comp->OnLockOnTargetChanged.AddDynamic(this, &UWxAbilityTask_LockOnTarget::HandleLockOnTargetChanged);

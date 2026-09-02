@@ -28,7 +28,7 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 	}
 
 	AActor* LockOnTarget = nullptr;
-	if (UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(Owner))
+	if (UWxLockOnComponent* LockOnComp = Owner->FindComponentByClass<UWxLockOnComponent>())
 	{
 		if (const USceneComponent* LockOnTargetComponent = LockOnComp->GetLockOnTarget())
 		{

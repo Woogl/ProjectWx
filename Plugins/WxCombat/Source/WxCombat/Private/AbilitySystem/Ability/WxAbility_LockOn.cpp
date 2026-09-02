@@ -79,7 +79,8 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	ListenForDodgeRotation();
 
 	// 소유 클라는 로컬 즉시 반영 + 서버 RPC, 리슨 호스트는 권위 직접 반영(복제는 컴포넌트 몫).
-	LockOnComponent = UWxLockOnComponent::FindComponent(GetOwningActorFromActorInfo());
+	const AActor* Owner = GetOwningActorFromActorInfo();
+	LockOnComponent = Owner ? Owner->FindComponentByClass<UWxLockOnComponent>() : nullptr;
 	if (UWxLockOnComponent* LockOnComp = LockOnComponent.Get())
 	{
 		LockOnComp->OnLockOnTargetChanged.AddDynamic(this, &UWxAbility_LockOn::HandleLockOnTargetChanged);
@@ -191,7 +192,7 @@ bool UWxAbility_LockOn::IsDodgeActive() const
 void UWxAbility_LockOn::HandleTargetLost()
 {
 	AActor* Avatar = GetOwningActorFromActorInfo();
-	UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(Avatar);
+	UWxLockOnComponent* LockOnComp = Avatar ? Avatar->FindComponentByClass<UWxLockOnComponent>() : nullptr;
 	if (bRetargetOnTargetLost && IsLocallyControlled() && Avatar && LockOnComp)
 	{
 		// 락온 대상은 컴포넌트지만 후보 비교/제외는 액터 단위이므로 소유 액터로 환원한다.
@@ -245,7 +246,7 @@ void UWxAbility_LockOn::HandleRetargetRequested(FVector2D ScreenDirection)
 		return;
 	}
 
-	UWxLockOnComponent* LockOnComp = UWxLockOnComponent::FindComponent(Avatar);
+	UWxLockOnComponent* LockOnComp = Avatar->FindComponentByClass<UWxLockOnComponent>();
 	const USceneComponent* CurrentComponent = LockOnComp ? LockOnComp->GetLockOnTarget() : nullptr;
 
 	// 비교 원점은 현재 락온 지점의 화면 좌표(유저가 보고 있는 레티클 위치).

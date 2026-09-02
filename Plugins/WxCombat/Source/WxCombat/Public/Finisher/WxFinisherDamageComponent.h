@@ -17,8 +17,6 @@ class WXCOMBAT_API UWxFinisherDamageComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
-	static UWxFinisherDamageComponent* FindComponent(const AActor* Actor);
-
 	void BeginFinisherDamage(const AActor* Target, const FDataTableRowHandle& DamageDataRow);
 	void EndFinisherDamage(const AActor* Target);
 

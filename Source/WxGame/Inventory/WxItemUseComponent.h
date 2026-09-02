@@ -17,8 +17,6 @@ class WXGAME_API UWxItemUseComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
-	static UWxItemUseComponent* FindComponent(const AActor* Actor);
-
 	bool CanUseItem(const UWxItemDefinition* ItemDefinition) const;
 	void BeginUseItem(UWxItemDefinition* ItemDefinition);
 	void EndUseItem(const UWxItemDefinition* ItemDefinition);

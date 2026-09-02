@@ -27,8 +27,6 @@ class WXCOMBAT_API UWxLockOnComponent : public UActorComponent
 public:
 	UWxLockOnComponent();
 
-	static UWxLockOnComponent* FindComponent(const AActor* Actor);
-
 	/** nullptr을 넘기면 해제된다 */
 	void SetLockOnTarget(USceneComponent* InTarget);
 

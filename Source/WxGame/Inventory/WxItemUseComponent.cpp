@@ -10,11 +10,6 @@
 #include "Items/WxItemDefinition.h"
 #include "WxGameplayTags.h"
 
-UWxItemUseComponent* UWxItemUseComponent::FindComponent(const AActor* Actor)
-{
-	return Actor ? Actor->FindComponentByClass<UWxItemUseComponent>() : nullptr;
-}
-
 bool UWxItemUseComponent::CanUseItem(const UWxItemDefinition* ItemDefinition) const
 {
 	const APawn* Pawn = Cast<APawn>(GetOwner());
