@@ -162,13 +162,6 @@ void UWxBTTask_ActivateAbility::HandleAbilityEnded(const FAbilityEndedData& Abil
 	FinishLatentTask(*BTComp, Result);
 }
 
-void UWxBTTask_ActivateAbility::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult)
-{
-	CleanUp();
-
-	Super::OnTaskFinished(OwnerComp, NodeMemory, TaskResult);
-}
-
 void UWxBTTask_ActivateAbility::CleanUp()
 {
 	if (UAbilitySystemComponent* ASC = CachedASC.Get())
