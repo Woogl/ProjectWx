@@ -12,6 +12,25 @@
 #include "WxGameplayTags.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 
+void UWxCheatManager::WxTeleport(float X, float Y, float Z)
+{
+	const APlayerController* PC = GetOuterAPlayerController();
+	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+	if (!Pawn)
+	{
+		return;
+	}
+
+	const FVector TargetLocation(X, Y, Z);
+	if (!Pawn->TeleportTo(TargetLocation, Pawn->GetActorRotation(), false, true))
+	{
+		UE_LOG(LogWxGame, Warning, TEXT("WxTeleport: 텔레포트 실패 (%s)"), *TargetLocation.ToString());
+		return;
+	}
+
+	UE_LOG(LogWxGame, Log, TEXT("WxTeleport: %s"), *Pawn->GetActorLocation().ToString());
+}
+
 void UWxCheatManager::WxKillPlayer()
 {
 	const APlayerController* PC = GetOuterAPlayerController();
