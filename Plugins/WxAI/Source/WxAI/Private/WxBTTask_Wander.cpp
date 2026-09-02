@@ -4,8 +4,10 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "AIController.h"
+#include "NavigationSystem.h"
 #include "WxGameplayTags.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/PawnMovementComponent.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 
 UWxBTTask_Wander::UWxBTTask_Wander()
@@ -18,7 +20,7 @@ UWxBTTask_Wander::UWxBTTask_Wander()
 
 EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	const AAIController* AIController = OwnerComp.GetAIOwner();
+	AAIController* AIController = OwnerComp.GetAIOwner();
 	APawn* Pawn = AIController ? AIController->GetPawn() : nullptr;
 	if (!Pawn)
 	{
@@ -26,26 +28,45 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	}
 
 	// 8 = EWxWanderDirection 의 방향 개수.
-	TArray<int32, TInlineAllocator<8>> AllowedIndices;
+	TArray<int32, TInlineAllocator<8>> RemainingIndices;
 	for (int32 Index = 0; Index < 8; ++Index)
 	{
 		if (Directions & (1 << Index))
 		{
-			AllowedIndices.Add(Index);
+			RemainingIndices.Add(Index);
 		}
 	}
 
-	float Yaw;
-	if (AllowedIndices.Num() > 0)
+	// 검증 거리는 이번 실행에서 실제로 걸어갈 거리다.
+	// 감속 GE 는 방향을 고른 뒤 부여되므로 지금 최대 속도는 아직 평상시 값이고, GE 미지정이면 배율 자체가 걸리지 않는다.
+	const UPawnMovementComponent* Movement = Pawn->GetMovementComponent();
+	const float TravelDistance = Movement ? Movement->GetMaxSpeed() * (MoveSpeedEffect ? MoveSpeedMultiplier : 1.f) * Duration : 0.f;
+	const FVector NavStart = Pawn->GetNavAgentLocation();
+
+	bool bFoundDirection = false;
+	while (RemainingIndices.Num() > 0)
 	{
-		const int32 ChosenIndex = AllowedIndices[FMath::RandRange(0, AllowedIndices.Num() - 1)];
-		Yaw = AIController->GetControlRotation().Yaw + ChosenIndex * 45.f;
+		const int32 PickedSlot = FMath::RandRange(0, RemainingIndices.Num() - 1);
+		const FVector Candidate = FRotator(0.f, AIController->GetControlRotation().Yaw + RemainingIndices[PickedSlot] * 45.f, 0.f).Vector();
+		RemainingIndices.RemoveAtSwap(PickedSlot);
+
+		// 내비 데이터가 아예 없어도 막힘으로 온다 — 내비메시 없는 맵에서는 배회하지 않는다.
+		FVector HitLocation;
+		if (UNavigationSystemV1::NavigationRaycast(Pawn, NavStart, NavStart + Candidate * TravelDistance, HitLocation, nullptr, AIController))
+		{
+			continue;
+		}
+
+		MoveDirection = Candidate;
+		bFoundDirection = true;
+		break;
 	}
-	else
+
+	// 허용 방향이 하나도 없거나 전부 내비메시를 벗어난다. 상위 폴백 분기에 넘긴다.
+	if (!bFoundDirection)
 	{
-		Yaw = FMath::FRandRange(0.f, 360.f);
+		return EBTNodeResult::Failed;
 	}
-	MoveDirection = FRotator(0.f, Yaw, 0.f).Vector();
 
 	ElapsedTime = 0.f;
 

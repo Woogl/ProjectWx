@@ -18,5 +18,10 @@ public class WxAI : ModuleRules
 			"GameplayTags",
 			"WxCore",
 		});
+
+		PrivateDependencyModuleNames.AddRange(new string[]
+		{
+			"NavigationSystem",
+		});
 	}
 }

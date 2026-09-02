@@ -25,6 +25,9 @@ enum class EWxWanderDirection : uint8
 
 /**
  * 타겟을 바라본 채 이동(strafe)할지는 이 태스크가 아니라 타겟의 원천인 UWxAIPerceptionComponent 가 회전 모드를 발행해 결정한다.
+ *
+ * 이동은 내비게이션이 아니라 원시 입력이므로, 방향을 고를 때 그 구간이 내비메시 위인지 직접 검증한다.
+ * 내비메시가 없는 맵에서는 모든 방향이 막힘으로 판정돼 배회하지 않는다.
  */
 UCLASS()
 class WXAI_API UWxBTTask_Wander : public UBTTaskNode
@@ -47,7 +50,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (ClampMin = "0.0", UIMin = "0.0"))
 	float Duration = 1.f;
 
-	/** 이동 가능한 방향(폰 정면 기준 8방향, 복수 선택). 매 실행마다 선택된 방향 중 하나를 무작위로 고른다. */
+	/**
+	 * 이동 가능한 방향(폰 정면 기준 8방향, 복수 선택). 매 실행마다 선택된 방향 중 하나를 무작위로 고른다.
+	 *
+	 * 내비메시를 벗어나는 방향은 후보에서 빠지며, 남는 후보가 없거나 애초에 하나도 고르지 않았으면 태스크가 실패해 상위 폴백 분기로 넘어간다.
+	 */
 	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (Bitmask, BitmaskEnum = "/Script/WxAI.EWxWanderDirection"))
 	int32 Directions = 0xFF;
 
