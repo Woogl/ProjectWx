@@ -70,8 +70,14 @@ private:
 
 	void HandleObservedWidgetActivationChanged();
 
-	/** 전 레이어의 활성 위젯을 순회해, 정지를 원하는 활성 위젯이 하나라도 있으면 게임을 정지(아니면 해제)한다. */
+	/** 정지를 원하는 활성 위젯 유무에 맞춰 게임 정지를 걸거나 해제한다. */
 	void RefreshGamePause();
+
+	/** 전 레이어의 활성 위젯을 순회해, 정지를 원하는 위젯이 하나라도 있는지 본다. */
+	bool WantsGamePause() const;
+
+	/** 정지를 풀어도 되는지 게임모드가 해제 직전 되묻는 콜백. */
+	bool HandleCanUnpause();
 
 	/**
 	 * 로컬 플레이어 하나를 전제로 레이아웃과 아래 추적 상태를 단수로 둔다.

@@ -10,7 +10,6 @@
 #include "Widget/WxActivatableWidget.h"
 #include "Widget/WxAsyncAction_PushWidgetToLayer.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
-#include "Kismet/GameplayStatics.h"
 #include "WxGameplayTags.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/GameInstance.h"
@@ -117,11 +116,6 @@ void UWxUIManagerSubsystem::HandleObservedWidgetActivationChanged()
 
 void UWxUIManagerSubsystem::RefreshGamePause()
 {
-	if (!PrimaryGameLayout)
-	{
-		return;
-	}
-
 	UGameInstance* GameInstance = GetGameInstance();
 	UWorld* World = GameInstance ? GameInstance->GetWorld() : nullptr;
 	if (!World || !World->IsNetMode(NM_Standalone))
@@ -129,8 +123,32 @@ void UWxUIManagerSubsystem::RefreshGamePause()
 		return;
 	}
 
+	APlayerController* PC = TrackedPlayerController.Get();
+	if (!PC)
+	{
+		return;
+	}
+
+	// 해제 조건을 대리자로 걸어 두면 게임모드가 해제 직전 되물으므로, 우리 해제가 남의 정지를 지우지 않고 남의 해제도 우리 정지를 지우지 않는다.
+	// 새로 생기는 정지 주체도 같은 방식으로 자기 조건을 걸어야 이 보호를 받는다.
+	if (WantsGamePause())
+	{
+		PC->SetPause(true, FCanUnpause::CreateUObject(this, &ThisClass::HandleCanUnpause));
+	}
+	else
+	{
+		PC->SetPause(false);
+	}
+}
+
+bool UWxUIManagerSubsystem::WantsGamePause() const
+{
+	if (!PrimaryGameLayout)
+	{
+		return false;
+	}
+
 	// 스택에 위젯이 하나뿐이면 비활성화 후에도 GetActiveWidget 이 그 위젯을 반환할 수 있어 IsActivated 로 걸러낸다.
-	bool bWantsPause = false;
 	for (const TPair<FGameplayTag, TObjectPtr<UCommonActivatableWidgetStack>>& Layer : PrimaryGameLayout->GetLayerMap())
 	{
 		UCommonActivatableWidgetStack* Stack = Layer.Value;
@@ -142,12 +160,16 @@ void UWxUIManagerSubsystem::RefreshGamePause()
 		UWxActivatableWidget* ActiveWidget = Cast<UWxActivatableWidget>(Stack->GetActiveWidget());
 		if (ActiveWidget && ActiveWidget->IsActivated() && ActiveWidget->ShouldPauseGame())
 		{
-			bWantsPause = true;
-			break;
+			return true;
 		}
 	}
 
-	UGameplayStatics::SetGamePaused(World, bWantsPause);
+	return false;
+}
+
+bool UWxUIManagerSubsystem::HandleCanUnpause()
+{
+	return !WantsGamePause();
 }
 
 void UWxUIManagerSubsystem::HandleLocalPlayerAdded(ULocalPlayer* LocalPlayer)
