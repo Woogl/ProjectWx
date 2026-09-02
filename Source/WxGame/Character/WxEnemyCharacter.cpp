@@ -5,6 +5,7 @@
 #include "Component/WxNameplateComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "WxRewardLibrary.h"
+#include "WxCombatLibrary.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Kismet/GameplayStatics.h"
@@ -184,6 +185,12 @@ void AWxEnemyCharacter::OnSpawnedBy(AWxSpawner* Spawner)
 
 bool AWxEnemyCharacter::CanInteract(const AActor* Interactor) const
 {
+	// 에너미 클래스여도 팀은 소환자에게서 물려받는다 — 아군이 된 소환수는 처형 대상이 아니다.
+	if (!UWxCombatLibrary::IsHostile(Interactor, this))
+	{
+		return false;
+	}
+
 	if (!IsAlive())
 	{
 		return false;
