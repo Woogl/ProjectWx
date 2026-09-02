@@ -11,9 +11,7 @@ class UAbilitySystemComponent;
 struct FGameplayEventData;
 
 /**
- * 소환 AnimNotify가 보낸 GameplayEvent를 받아 서버 권위로 소환물을 생성한다.
- * 소환물 클래스와 스폰 지점은 이벤트 페이로드가 소유하므로 어빌리티와 무관하게 동작한다.
- * 소환수와 설치물을 가리지 않으며, AI 빙의는 소환물 자신의 AutoPossessAI가 맡는다.
+ * 소환 AnimNotify의 GameplayEvent 페이로드로 소환수와 설치물을 서버에서 생성하며, AI 빙의는 소환물의 AutoPossessAI에 맡긴다.
  */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))
 class WXCOMBAT_API UWxMinionComponent : public UActorComponent
@@ -24,7 +22,7 @@ public:
 	/** 관리 중인 활성 소환수 모두에게 정확한 식별 태그의 어빌리티 발동을 요청한다. 서버에서 발동을 수락한 소환수 수를 반환한다. */
 	int32 TryActivateAbilityOnMinions(const FGameplayTag& AbilityTag);
 
-	/** Payload를 TriggerEventData로 전달하는 명령 경로다. EventTag는 Event.CommandMinionAbility로 설정된다. */
+	/** Payload는 TriggerEventData로 전달되고 EventTag는 Event.CommandMinionAbility로 설정된다. */
 	int32 TryActivateAbilityOnMinions(const FGameplayTag& AbilityTag, const FGameplayEventData& Payload);
 
 	virtual void BeginPlay() override;
