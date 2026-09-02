@@ -2,81 +2,17 @@
 
 #include "Indicator/WxStateTreeTask_MarkIndicator.h"
 
-#include "Components/SceneComponent.h"
+#include "Engine/World.h"
 #include "GameFramework/Actor.h"
-#include "GameFramework/PlayerController.h"
-#include "Indicator/WxIndicatorDescriptor.h"
-#include "Indicator/WxIndicatorManagerComponent.h"
-#include "Kismet/GameplayStatics.h"
+#include "Indicator/WxIndicator.h"
+#include "Misc/CoreMisc.h"
 #include "StateTreeExecutionContext.h"
 #include "WxLocatorUtils.h"
 #include "WxUIModule.h"
 
-namespace
-{
-	/** 빈 로케이터·미로드(스트리밍 아웃)·파괴 대기는 nullptr. */
-	AActor* ResolveTargetActor(const FUniversalObjectLocator& Locator, AActor* Owner)
-	{
-		AActor* Target = Cast<AActor>(Locator.SyncFind(Owner));
-		return IsValid(Target) ? Target : nullptr;
-	}
-
-	UWxIndicatorManagerComponent* FindIndicatorManager(const AActor* Owner)
-	{
-		APlayerController* PlayerController = UGameplayStatics::GetPlayerController(Owner, 0);
-		return PlayerController ? PlayerController->FindComponentByClass<UWxIndicatorManagerComponent>() : nullptr;
-	}
-
-	void UnregisterIndicator(TWeakObjectPtr<UWxIndicatorDescriptor>& RegisteredIndicator)
-	{
-		if (UWxIndicatorDescriptor* Indicator = RegisteredIndicator.Get())
-		{
-			Indicator->Unregister();
-		}
-		RegisteredIndicator.Reset();
-	}
-
-	void RefreshIndicator(const FStateTreeExecutionContext& Context, FWxStateTreeTask_MarkIndicatorInstanceData& Instance)
-	{
-		// 빈 로케이터는 좌표도 기록되지 않았으므로 대역으로 갈 곳이 없다.
-		if (Instance.Target.IsEmpty())
-		{
-			return;
-		}
-
-		// 언로드·파괴로 대상을 놓치면 등록증이 스스로 좌표로 내려앉아 다시 여기로 온다.
-		const UWxIndicatorDescriptor* Indicator = Instance.RegisteredIndicator.Get();
-		if (Indicator && Indicator->GetTargetComponent())
-		{
-			return;
-		}
-
-		AActor* Owner = Cast<AActor>(Context.GetOwner());
-		AActor* Target = ResolveTargetActor(Instance.Target, Owner);
-		USceneComponent* TargetComponent = Target ? Target->GetRootComponent() : nullptr;
-
-		if (Indicator && !TargetComponent)
-		{
-			return;
-		}
-
-		UnregisterIndicator(Instance.RegisteredIndicator);
-
-		// 매니저는 아직 없을 수 있다(폰·컨트롤러 스폰 전).
-		UWxIndicatorManagerComponent* Manager = FindIndicatorManager(Owner);
-		if (!Manager)
-		{
-			return;
-		}
-
-		const FVector WorldOffset(0.f, 0.f, Instance.WorldZOffset);
-		Instance.RegisteredIndicator = Manager->AddIndicator(TargetComponent, Instance.TargetLocation, WorldOffset);
-	}
-}
-
 FWxStateTreeTask_MarkIndicator::FWxStateTreeTask_MarkIndicator()
 {
-	// 재선택마다 재진입하면 ExitState 가 인디케이터를 해제해 표시가 깜빡인다.
+	// 재선택마다 재진입하면 ExitState 가 인디케이터를 걷어가 표시가 깜빡인다.
 	bShouldStateChangeOnReselect = false;
 
 	// 완료 없이 매 프레임 도는 태스크라 바인딩 복사가 그대로 프레임 비용이 된다.
@@ -92,15 +28,48 @@ FWxStateTreeTask_MarkIndicator::FWxStateTreeTask_MarkIndicator()
 EStateTreeRunStatus FWxStateTreeTask_MarkIndicator::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
+	Instance.SpawnedIndicator.Reset();
 
+	// 대역 좌표는 로케이터를 지정해야 기록되므로, 빈 로케이터는 가리킬 곳이 아예 없다는 뜻이다.
 	if (Instance.Target.IsEmpty())
 	{
 		UE_LOG(LogWxUI, Warning, TEXT("Mark Indicator: 가리킬 대상이 지정되지 않음."));
+		return EStateTreeRunStatus::Running;
 	}
 
-	// 첫 해석·등록이 실패(대상 언로드·매니저 미부착)해도 Tick 이 재시도한다.
-	Instance.RegisteredIndicator.Reset();
-	RefreshIndicator(Context, Instance);
+	if (!Instance.IndicatorClass)
+	{
+		UE_LOG(LogWxUI, Warning, TEXT("Mark Indicator: 띄울 인디케이터가 지정되지 않음."));
+		return EStateTreeRunStatus::Running;
+	}
+
+	// 그릴 화면이 없는 머신에서는 틱만 도는 액터가 된다.
+	if (IsRunningDedicatedServer())
+	{
+		return EStateTreeRunStatus::Running;
+	}
+
+	UWorld* World = Context.GetWorld();
+	if (!World)
+	{
+		return EStateTreeRunStatus::Running;
+	}
+
+	// 대상이 아직 언로드돼 있을 수 있으므로 기록해 둔 좌표에 먼저 띄우고, 해석되면 그때 부착한다.
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	AWxIndicator* Indicator = World->SpawnActor<AWxIndicator>(Instance.IndicatorClass, FTransform(Instance.TargetLocation), SpawnParameters);
+	if (!Indicator)
+	{
+		return EStateTreeRunStatus::Running;
+	}
+
+	Indicator->Initialize(Instance.WorldZOffset);
+	Instance.SpawnedIndicator = Indicator;
+
+	// 첫 부착을 Tick 까지 미루면 대상이 이미 로드돼 있어도 한 프레임을 기록 좌표에서 보낸다.
+	RefreshTarget(Context, Instance);
 
 	return EStateTreeRunStatus::Running;
 }
@@ -108,7 +77,7 @@ EStateTreeRunStatus FWxStateTreeTask_MarkIndicator::EnterState(FStateTreeExecuti
 EStateTreeRunStatus FWxStateTreeTask_MarkIndicator::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
-	RefreshIndicator(Context, Instance);
+	RefreshTarget(Context, Instance);
 
 	return EStateTreeRunStatus::Running;
 }
@@ -116,7 +85,33 @@ EStateTreeRunStatus FWxStateTreeTask_MarkIndicator::Tick(FStateTreeExecutionCont
 void FWxStateTreeTask_MarkIndicator::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
-	UnregisterIndicator(Instance.RegisteredIndicator);
+
+	if (AWxIndicator* Indicator = Instance.SpawnedIndicator.Get())
+	{
+		Indicator->Destroy();
+	}
+	Instance.SpawnedIndicator.Reset();
+}
+
+void FWxStateTreeTask_MarkIndicator::RefreshTarget(const FStateTreeExecutionContext& Context, FInstanceDataType& Instance) const
+{
+	AWxIndicator* Indicator = Instance.SpawnedIndicator.Get();
+
+	// 이미 잡고 있으면 해석을 돌리지 않는다 — 정상 표시 중에는 SyncFind 비용이 아예 들지 않는다.
+	// 대상이 언로드·파괴되면 엔진이 부착을 풀어 주므로, 그때부터 다시 매 틱 재시도한다.
+	if (!Indicator || Indicator->HasTarget())
+	{
+		return;
+	}
+
+	// 빈 로케이터·미로드(스트리밍 아웃)·파괴 대기는 전부 미해석이다.
+	AActor* Target = Cast<AActor>(Instance.Target.SyncFind(Context.GetOwner()));
+	if (!IsValid(Target))
+	{
+		return;
+	}
+
+	Indicator->SetTarget(Target);
 }
 
 #if WITH_EDITOR
