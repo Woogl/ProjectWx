@@ -1,45 +1,48 @@
-# WxAI — AI 행동 시스템
+# WxAI — AI 시스템
 
-> 적/NPC의 감지·행동을 담당한다. 엔진 Behavior Tree 위에 Wx 전용 태스크·데코레이터·서비스와 Perception 동기화, 정찰 경로 데이터를 얹는다.
+> 적 NPC의 감지·판단·행동을 구동한다. 언리얼 Behavior Tree 위에 얹는 커스텀 노드 묶음과, 그 노드들이 공유하는 Perception·Blackboard·정찰 경로 인프라를 제공한다.
 
 ## 책임
 **담당**
-- Perception(시각·청각·피격) 자극을 Blackboard `TargetActor`로 동기화하고 사망·소실 시 해제
-- AI 락온(컨트롤러 포커스 + 폰 strafe 회전 모드)의 단독 소유(`UWxBTService_LockOn`) — 플레이어 락온은 [[WxCombat]] 소관으로 별개다
-- BT 노드 라이브러리: 무작위 선택 Composite, 어빌리티 발동/정찰/배회/복귀 Task, 어트리뷰트·리시·가중치 Decorator, 타겟 거리·락온 Service
-- 스플라인 기반 정찰 경로 데이터(`UWxPatrolComponent`)와 진행 규칙(PingPong/Loop/Once)
-- Blackboard 키 이름·타입을 한 곳에 묶는 타입 안전 accessor(`WxBlackboardKeys`)
-- 애님 노티파이로 청각 소음 이벤트 발행(`UWxAnimNotify_ReportNoise`)
+- 감지 → 타겟 결정: 시각·청각·피격 자극을 하나의 `TargetActor`로 정리(`UWxAIPerceptionComponent`)
+- Blackboard 키 규약: 키 이름·타입·accessor를 한 곳에 묶어 소유자별 SET/CLEAR를 정리(`WxBlackboardKeys`)
+- BT 커스텀 노드: 정찰/배회/복귀/어빌리티 발동 Task, 락온/거리 갱신 Service, 리시·어트리뷰트·가중치 Decorator, 무작위 선택 Composite
+- 정찰 경로 데이터: 스플라인 기반 순수 경로 + 순회 규칙(`UWxPatrolComponent`)
+- 락온 상태 소유: 컨트롤러 포커스 + 폰 회전 모드를 한 쌍으로 관리(`UWxBTService_LockOn`)
 
 **경계 (비담당)**
-- 어빌리티·이펙트·어트리뷰트 정의는 [[WxCombat]] — WxAI는 의존하지 않고 `FGameplayTag`/`FGameplayAttribute`/`TSubclassOf<UGameplayEffect>`를 BT 에디터에서 디자이너가 주입
-- AIController·Blackboard 에셋·BT 에셋 저작 및 폰 아키타입은 이 모듈 밖(콘텐츠/게임 모듈)
+- `AIController`·Blackboard 에셋·BT 에셋 저작: 이 모듈은 노드/컴포넌트만 제공하고, `SelfActor`·`HomeLocation`·`Master` 키를 쓰는 컨트롤러와 트리 구성은 게임 측([[WxGame]])에 있다.
+- 전투 로직·어트리뷰트·GameplayEffect 정의: 발동만 여기서 하고 실체는 [[WxCombat]]. 감속 효과(`WxEffect_MoveSpeedScale`)·비교 어트리뷰트는 디자이너가 BT 에디터에서 지정한다(런타임 의존 없음).
+- 플레이어 락온: 이름만 같은 별개 구현(`UWxLockOnComponent`, [[WxCombat]]).
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxAIPerceptionComponent` | 자극 → `TargetActor` 동기화의 시작점. 타겟 획득/해제 | `Source/WxAI/Public/WxAIPerceptionComponent.h` |
-| `UWxBTService_LockOn` | 부착한 브랜치 동안 `TargetActor`를 컨트롤러 포커스·폰 회전(strafe) 모드에 반영 | `Source/WxAI/Public/WxBTService_LockOn.h` |
-| `WxBlackboardKeys` | BT 노드·Perception이 공유하는 키 이름/accessor 허브 | `Source/WxAI/Public/WxBlackboardKeys.h` |
-| `UWxBTComposite_RandomChoice` | 조건·가중치로 자식을 추첨하는 Composite. `RandomWeight`·`bAvoidRepeat`와 함께 동작 | `Source/WxAI/Public/WxBTComposite_RandomChoice.h` |
-| `UWxBTTask_ActivateAbility` | GAS 어빌리티를 태그로 발동하고 종료 결과를 노드 결과로 반환 | `Source/WxAI/Public/WxBTTask_ActivateAbility.h` |
-| `UWxBTTask_Patrol` | `UBTTask_MoveTo` 확장. `UWxPatrolComponent` 경로를 따라 정찰 커서 진행 | `Source/WxAI/Public/WxBTTask_Patrol.h` |
-| `UWxBTDecorator_BeyondLeash` | 앵커(HomeLocation)에서 리시 반경 이탈 판정, 복귀 브랜치 게이팅 | `Source/WxAI/Public/WxBTDecorator_BeyondLeash.h` |
-| `UWxPatrolComponent` | 스플라인 정찰 경로 데이터(무상태). 부착 부모에 붙여 폰이 참조 | `Source/WxAI/Public/WxPatrolComponent.h` |
+| `UWxAIPerceptionComponent` | 자극 → `TargetActor` 동기화. 데이터 흐름의 시작점 | `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h` |
+| `WxBlackboardKeys` | 모든 노드가 공유하는 Blackboard 키·accessor 규약 | `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` |
+| `UWxBTService_LockOn` | 포커스+회전 모드 소유. 퍼셉션과 역할 분담의 경계 | `Plugins/WxAI/Source/WxAI/Public/WxBTService_LockOn.h` |
+| `UWxBTComposite_RandomChoice` | 조건·가중치 반영 무작위 분기(짝: `RandomWeight`) | `Plugins/WxAI/Source/WxAI/Public/WxBTComposite_RandomChoice.h` |
+| `UWxBTTask_ActivateAbility` | BT ↔ GAS 다리. 어빌리티 발동·종료를 Task 결과로 | `Plugins/WxAI/Source/WxAI/Public/WxBTTask_ActivateAbility.h` |
+| `UWxBTTask_Patrol` | `MoveTo` 상속 정찰 실행. 커서를 폰별로 소유 | `Plugins/WxAI/Source/WxAI/Public/WxBTTask_Patrol.h` |
+| `UWxBTDecorator_BeyondLeash` | 리시 이탈 게이팅. `ReturnHome` Task와 한 쌍 | `Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_BeyondLeash.h` |
+| `UWxPatrolComponent` | 스플라인 정찰 경로(상태 없는 순수 데이터) | `Plugins/WxAI/Source/WxAI/Public/WxPatrolComponent.h` |
 
 ## 확장 포인트 / 규약
-- 새 AI 행동은 엔진 베이스(`UBTTaskNode`/`UBTDecorator`/`UBTService`/`UBTCompositeNode`, 이동류는 `UBTTask_MoveTo`)를 상속하고 `Wx` 접두사로 만든다. 노드별 상태는 `bCreateNodeInstance`(폰 인스턴스) 또는 노드 메모리 struct(예: `FWxBTRandomChoiceMemory`, `FWxBeyondLeashMemory`)로 보관한다.
-- Blackboard는 직접 `GetValueAs`/`SetValueAs`를 쓰지 말고 `WxBlackboardKeys` accessor를 경유한다. 새 키는 이 네임스페이스에 이름·타입·accessor를 함께 추가한다.
-- WxCombat 의존 없이 전투 자산을 쓰는 노드(`ActivateAbility`·`Patrol`·`Wander`·`AttributeRatio`)는 `FGameplayTag`/`FGameplayAttribute`/`GameplayEffect`를 `UPROPERTY`로 노출해 BT 에디터에서 디자이너가 지정하게 한다.
-- 정찰 경로는 데이터 주도: 적이 부착된 액터(스포너 등)에 `UWxPatrolComponent`를 달고 `MoveMode`로 순회 규칙을 정한다. 진행 상태는 경로가 아니라 BT 태스크가 폰별로 소유한다.
+- 새 Blackboard 키를 늘릴 때는 `WxBlackboardKeys`에 이름·accessor를 함께 추가한다 — 키 이름과 값 타입을 한 곳에 묶어 타입 오용을 막는 것이 이 네임스페이스의 목적이다. Blackboard 에셋에 같은 이름 키가 등록돼 있어야 한다.
+- 새 BT 노드는 엔진 베이스(`UBTTaskNode`/`UBTService`/`UBTDecorator`/`UBTCompositeNode`)를 상속하고 `Wx|AI` 카테고리에 UPROPERTY를 노출한다. 노드 인스턴스별 상태(정찰 커서·락온 기록 등)는 `bCreateNodeInstance` 또는 노드 메모리 구조체로 폰별 격리한다.
+- WxCombat 비의존 원칙: 감속·어트리뷰트·어빌리티는 코드 참조가 아니라 `TSubclassOf<UGameplayEffect>`/`FGameplayAttribute`/`FGameplayTag`(`Ability` 계열) UPROPERTY로 받아 BT 에디터에서 주입한다. 미지정이면 해당 효과 없이 동작한다.
+- 정찰 경로는 적이 부착된 액터(스포너 등)에 `UWxPatrolComponent`를 붙여 구동한다. 경로는 데이터, 진행 커서는 Task 소유 — 같은 경로를 여러 폰이 공유해도 안전하다.
+- 소음은 서버 전용이며 실제 청취 거리는 `min(HearingDistance, 청취자 HearingRange)`다(`UWxAnimNotify_ReportNoise`).
 
 ## 여기서부터 읽어라
-1. `Source/WxAI/Public/WxBlackboardKeys.h` — 모듈 전체가 공유하는 Blackboard 계약. 키 소유권 분담이 헤더에 정리돼 있다.
-2. `Source/WxAI/Public/WxAIPerceptionComponent.h` — 타겟이 어떻게 잡히고 풀리는지(감지 경로·사망/소실 해제)의 진입점. 그 타겟을 바라보는 상태는 `WxBTService_LockOn.h`가 이어받는다.
-3. `Source/WxAI/Public/WxBTComposite_RandomChoice.h` — 무작위 선택 시멘틱과 Decorator 연동(조건/가중치)이 Selector와 어떻게 다른지.
+1. `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` — 모든 노드가 공유하는 상태 계약. 어떤 키를 누가 쓰고 지우는지가 시스템 전체의 지도다.
+2. `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h` — 데이터 흐름의 입구. 자극이 `TargetActor`로 바뀌는 규칙과 타겟 소실 처리.
+3. `Plugins/WxAI/Source/WxAI/Public/WxBTService_LockOn.h` — 퍼셉션과 BT의 역할 경계가 가장 명확히 드러나는 지점(감지 vs 응시).
+4. `Plugins/WxAI/Source/WxAI/Private/WxBTComposite_RandomChoice.cpp` — 조건·가중치 필터링과 재추첨 로직. 커스텀 Composite 동작의 핵심.
 
 ## 관련
-- 상위: BT/Blackboard/AIController 에셋을 저작하는 콘텐츠·게임 모듈이 이 노드 라이브러리를 소비한다. 전투 자산 주입 대상은 [[WxCombat]], 공용 정의는 [[WxCore]].
+- 상위: BT/Blackboard/`AIController` 에셋을 저작해 이 노드들을 배치하는 게임 콘텐츠 및 [[WxGame]]
+- 함께: 어빌리티·어트리뷰트·GameplayEffect 실체를 제공하는 [[WxCombat]], 공용 정의의 [[WxCore]]
 
 ---
-*문서 기준 커밋 `27fb65d` · 생성일 2026-09-02 · 소스 28파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `f0aad4c` · 생성일 2026-09-03 · 소스 30파일 — `/readme-writer`로 갱신*
