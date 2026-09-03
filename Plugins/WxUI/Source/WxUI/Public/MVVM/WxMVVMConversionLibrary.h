@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "Math/Color.h"
 #include "Components/SlateWrapperTypes.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "WxMVVMConversionLibrary.generated.h"
@@ -20,6 +21,12 @@ class WXUI_API UWxMVVMConversionLibrary : public UBlueprintFunctionLibrary
 public:
 	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "To Visibility (GameplayTag)"))
 	static ESlateVisibility Conv_GameplayTagToSlateVisibility(const FGameplayTagContainer& TagContainer, FGameplayTag Tag, ESlateVisibility TrueVisibility = ESlateVisibility::SelfHitTestInvisible, ESlateVisibility FalseVisibility = ESlateVisibility::Collapsed);
+
+	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "To Meters (Centimeters)"))
+	static double Conv_CentimetersToMeters(double Centimeters, int32 FractionDigits = 1);
+
+	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "To Tint (Threshold)"))
+	static FLinearColor Conv_DoubleToTint(double Value, double Threshold, FLinearColor BelowTint = FLinearColor::Red, FLinearColor NormalTint = FLinearColor::White);
 
 	/**
 	 * 없으면 생성한다 — 바인딩이 요청한 어트리뷰트에 대해서만 VM 이 지연 생성된다.
