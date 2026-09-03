@@ -5,8 +5,6 @@
 #include "WxGameplayTags.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GenericTeamAgentInterface.h"
@@ -123,7 +121,7 @@ void UWxAIPerceptionComponent::HandleTargetDeathTagChanged(const FGameplayTag Ta
 
 void UWxAIPerceptionComponent::HandleTargetEndPlay(AActor* Actor, EEndPlayReason::Type EndPlayReason)
 {
-	// 엔진은 액터를 무효화하기 전에 EndPlay 를 방송하므로, 이 시점엔 BB 의 약참조가 아직 살아 있어 타겟·포커스·회전 모드가 정상적으로 원복된다.
+	// 엔진은 액터를 무효화하기 전에 EndPlay 를 방송하므로, 이 시점엔 BB 의 약참조가 아직 살아 있어 타겟이 정상적으로 비워진다.
 	SetTargetActor(nullptr);
 }
 
@@ -168,10 +166,7 @@ void UWxAIPerceptionComponent::UnbindTargetLoss()
 
 void UWxAIPerceptionComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 {
-	// 회전 모드만 폰에 남고, 엔진은 폰 참조를 끊은 뒤에 이 방송을 보낸다. 놓아주는 폰은 여기서 직접 되돌리지 않으면 strafe 로 굳는다.
-	SetStrafeRotation(OldPawn, false);
-
-	// 타겟·포커스·소실 구독은 폰이 아니라 컨트롤러에 남는다. 새 폰이 이전 타겟을 물려받지 않도록 먼저 되돌린다.
+	// 타겟과 소실 구독은 폰이 아니라 컨트롤러에 남는다. 새 폰이 이전 타겟을 물려받지 않도록 먼저 되돌린다.
 	SetTargetActor(nullptr);
 
 	BindPawnHit(NewPawn);
@@ -232,20 +227,20 @@ void UWxAIPerceptionComponent::UnbindPawnHit()
 void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)
 {
 	// 엔진 청각은 소리를 낸 본인의 리스너를 제외하지 않아, 자기 발소리가 그대로 자기 자극으로 돌아온다.
-	// 유효한 타겟일 때만 가른다 — 폰이 없는 순간의 해제 요청(nullptr)이 여기 걸리면 포커스가 영영 풀리지 않는다.
+	// 유효한 타겟일 때만 가른다 — 폰이 없는 순간의 해제 요청(nullptr)이 여기 걸리면 타겟이 영영 비워지지 않는다.
 	if (NewTarget && NewTarget == GetOwnerPawn())
 	{
 		return;
 	}
 
-	// 블랙보드가 없으면 구독·포커스까지 통째로 건너뛴다 — 적용 기록만 남기면 다음 자극이 중복으로 걸러져 블랙보드가 영영 빈 채로 어긋난다.
+	// 블랙보드가 없으면 구독까지 통째로 건너뛴다 — 적용 기록만 남기면 다음 자극이 중복으로 걸러져 블랙보드가 영영 빈 채로 어긋난다.
 	UBlackboardComponent* BB = GetBlackboard();
 	if (!BB)
 	{
 		return;
 	}
 
-	// 블랙보드 값이 아니라 적용 기록과 비교한다. 블랙보드 Object 키는 약참조라 타겟이 파괴되면 이 컴포넌트 모르게 비워지고, 그걸 기준으로 삼으면 뒤늦은 해제 요청이 "이미 비어 있다" 로 걸러져 포커스·회전 모드가 strafe 에 고착된다.
+	// 블랙보드 값이 아니라 적용 기록과 비교한다. 블랙보드 Object 키는 약참조라 타겟이 파괴되면 이 컴포넌트 모르게 비워지고, 그걸 기준으로 삼으면 뒤늦은 해제 요청이 "이미 비어 있다" 로 걸러져 소실 구독이 남는다.
 	if (AppliedTarget == TObjectKey<AActor>(NewTarget))
 	{
 		return;
@@ -255,50 +250,6 @@ void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)
 
 	BindTargetLoss(NewTarget);
 	OnTargetChanged.Broadcast(NewTarget);
-
-	AAIController* AIC = Cast<AAIController>(GetOwner());
-	if (!AIC)
-	{
-		return;
-	}
-
-	// 포커스는 폰이 아니라 컨트롤러가 들고 있다. 엔진의 빙의 해제는 폰 참조를 끊은 뒤에야 방송하므로, 이 발행을 폰 가드 안에 두면 그 경로에서 포커스가 영영 풀리지 않는다.
-	if (NewTarget)
-	{
-		AIC->SetFocus(NewTarget);
-	}
-	else
-	{
-		AIC->ClearFocus(EAIFocusPriority::Gameplay);
-	}
-
-	// 빙의 해제 경로에서는 여기 GetPawn() 이 이미 비어 있다 — 놓아주는 폰의 원복은 HandlePossessedPawnChanged 가 맡는다.
-	SetStrafeRotation(AIC->GetPawn(), NewTarget != nullptr);
-}
-
-void UWxAIPerceptionComponent::SetStrafeRotation(APawn* Pawn, bool bStrafe)
-{
-	const ACharacter* Character = Cast<ACharacter>(Pawn);
-	UCharacterMovementComponent* Movement = Character ? Character->GetCharacterMovement() : nullptr;
-	if (!Movement)
-	{
-		return;
-	}
-
-	if (bStrafe)
-	{
-		Movement->bOrientRotationToMovement = false;
-		Movement->bUseControllerDesiredRotation = true;
-	}
-	else
-	{
-		// 평상시 회전 모드는 폰마다 다를 수 있으므로, 상수 대신 컴포넌트 아키타입(폰 BP·C++ 생성자 기본값)에서 읽어 되돌린다.
-		if (const UCharacterMovementComponent* MovementDefaults = Cast<UCharacterMovementComponent>(Movement->GetArchetype()))
-		{
-			Movement->bUseControllerDesiredRotation = MovementDefaults->bUseControllerDesiredRotation;
-			Movement->bOrientRotationToMovement = MovementDefaults->bOrientRotationToMovement;
-		}
-	}
 }
 
 bool UWxAIPerceptionComponent::IsActorDead(AActor* Actor)

@@ -22,6 +22,8 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnPerceptionTargetChanged, AActor* /*NewT
 /**
  * 시각·청각·피격 감지를 Blackboard TargetActor에 동기화한다.
  * 타겟은 사망·파괴나 리시 복귀에서만 해제하며, Damage 센스에는 피아 필터가 없어 적대 가해자만 직접 보고한다.
+ *
+ * 감지·인식까지가 이 컴포넌트의 범위다. 그 타겟을 바라볼지(컨트롤러 포커스·폰 회전 모드)는 UWxBTService_LockOn 이 단독으로 정한다.
  */
 UCLASS(ClassGroup=(AI), meta=(BlueprintSpawnableComponent))
 class WXAI_API UWxAIPerceptionComponent : public UAIPerceptionComponent
@@ -38,7 +40,7 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	/**
-	 * 현재 타겟의 Perception 기록과 Blackboard·포커스를 정리한다.
+	 * 현재 타겟의 Perception 기록과 Blackboard 를 정리한다.
 	 * 이후 자극은 평소 감지 경로를 통해 다시 타겟을 획득할 수 있다.
 	 */
 	void ForgetTargetActor();
@@ -72,14 +74,8 @@ private:
 	void BindPawnHit(APawn* Pawn);
 	void UnbindPawnHit();
 
-	/** TargetActor·포커스·회전 모드·타겟 소실 감시를 함께 갱신하며, 자기 폰은 타겟으로 받지 않는다. 포커스는 컨트롤러, 회전 모드는 폰에 남는다. */
+	/** TargetActor 와 타겟 소실 감시를 함께 갱신하며, 자기 폰은 타겟으로 받지 않는다. */
 	void SetTargetActor(AActor* NewTarget);
-
-	/**
-	 * 폰의 회전 모드를 타겟 추적(strafe)과 아키타입 기본값 사이에서 전환한다.
-	 * 이 상태는 컨트롤러가 아니라 폰에 남으므로 대상 폰을 호출자가 지정한다 — 빙의 해제 방송 시점의 컨트롤러는 폰을 이미 놓은 뒤다.
-	 */
-	void SetStrafeRotation(APawn* Pawn, bool bStrafe);
 
 	/** Ability.Death 태그로 사망 상태를 판별한다. */
 	bool IsActorDead(AActor* Actor);

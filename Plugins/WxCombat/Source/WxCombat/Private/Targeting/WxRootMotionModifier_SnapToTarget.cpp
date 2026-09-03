@@ -3,6 +3,7 @@
 #include "Targeting/WxRootMotionModifier_SnapToTarget.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "AIController.h"
 #include "Components/SceneComponent.h"
 #include "GameFramework/Pawn.h"
 #include "MotionWarpingComponent.h"
@@ -27,12 +28,25 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 		return;
 	}
 
+	const APawn* OwnerPawn = Cast<APawn>(Owner);
+
 	AActor* LockOnTarget = nullptr;
 	if (UWxLockOnComponent* LockOnComp = Owner->FindComponentByClass<UWxLockOnComponent>())
 	{
 		if (const USceneComponent* LockOnTargetComponent = LockOnComp->GetLockOnTarget())
 		{
 			LockOnTarget = LockOnTargetComponent->GetOwner();
+		}
+	}
+
+	// AI 에겐 락온 대신 컨트롤러가 응시 중인 액터가 전투 대상이다. 이걸 보지 않으면 몽타주가 프리셋이 먼저 집은 다른 적을 향해 돈다.
+	// 컨트롤러는 서버에만 있으므로 클라의 시뮬레이티드 프록시는 아래 프리셋 폴백을 탄다 — AI 의 대상 판정은 원래 로컬이다.
+	AActor* DesignatedTarget = LockOnTarget;
+	if (!DesignatedTarget && OwnerPawn)
+	{
+		if (const AAIController* AIController = Cast<AAIController>(OwnerPawn->GetController()))
+		{
+			DesignatedTarget = AIController->GetFocusActor();
 		}
 	}
 
@@ -53,7 +67,7 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 		}
 	}
 
-	AActor* FacingTarget = LockOnTarget;
+	AActor* FacingTarget = DesignatedTarget;
 	if (!FacingTarget && TargetingResults.Num() > 0)
 	{
 		FacingTarget = TargetingResults[0];
@@ -75,7 +89,6 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 	const bool bTargetInSnapRange = !TargetingPreset || TargetingResults.Contains(FacingTarget);
 
 	// 서버 권위로만 도는 AI 등은 폴백 위치 스냅을 유지하며, IsPlayerControlled는 소유 클라·서버 양쪽에서 일관된다.
-	const APawn* OwnerPawn = Cast<APawn>(Owner);
 	const bool bRequireLockOnForTranslation = OwnerPawn && OwnerPawn->IsPlayerControlled();
 	const bool bShouldWarpTranslation = bWarpTranslation && bTargetInSnapRange && (!bRequireLockOnForTranslation || bFacingTargetIsLockOn);
 

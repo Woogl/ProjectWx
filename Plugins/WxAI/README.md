@@ -5,7 +5,8 @@
 ## 책임
 **담당**
 - Perception(시각·청각·피격) 자극을 Blackboard `TargetActor`로 동기화하고 사망·소실 시 해제
-- BT 노드 라이브러리: 무작위 선택 Composite, 어빌리티 발동/정찰/배회/복귀 Task, 어트리뷰트·리시·가중치 Decorator, 타겟 거리 Service
+- AI 락온(컨트롤러 포커스 + 폰 strafe 회전 모드)의 단독 소유(`UWxBTService_LockOn`) — 플레이어 락온은 [[WxCombat]] 소관으로 별개다
+- BT 노드 라이브러리: 무작위 선택 Composite, 어빌리티 발동/정찰/배회/복귀 Task, 어트리뷰트·리시·가중치 Decorator, 타겟 거리·락온 Service
 - 스플라인 기반 정찰 경로 데이터(`UWxPatrolComponent`)와 진행 규칙(PingPong/Loop/Once)
 - Blackboard 키 이름·타입을 한 곳에 묶는 타입 안전 accessor(`WxBlackboardKeys`)
 - 애님 노티파이로 청각 소음 이벤트 발행(`UWxAnimNotify_ReportNoise`)
@@ -17,7 +18,8 @@
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxAIPerceptionComponent` | 자극 → `TargetActor` 동기화의 시작점. 타겟 획득/해제와 회전(strafe)·포커스 전환 | `Source/WxAI/Public/WxAIPerceptionComponent.h` |
+| `UWxAIPerceptionComponent` | 자극 → `TargetActor` 동기화의 시작점. 타겟 획득/해제 | `Source/WxAI/Public/WxAIPerceptionComponent.h` |
+| `UWxBTService_LockOn` | 부착한 브랜치 동안 `TargetActor`를 컨트롤러 포커스·폰 회전(strafe) 모드에 반영 | `Source/WxAI/Public/WxBTService_LockOn.h` |
 | `WxBlackboardKeys` | BT 노드·Perception이 공유하는 키 이름/accessor 허브 | `Source/WxAI/Public/WxBlackboardKeys.h` |
 | `UWxBTComposite_RandomChoice` | 조건·가중치로 자식을 추첨하는 Composite. `RandomWeight`·`bAvoidRepeat`와 함께 동작 | `Source/WxAI/Public/WxBTComposite_RandomChoice.h` |
 | `UWxBTTask_ActivateAbility` | GAS 어빌리티를 태그로 발동하고 종료 결과를 노드 결과로 반환 | `Source/WxAI/Public/WxBTTask_ActivateAbility.h` |
@@ -33,7 +35,7 @@
 
 ## 여기서부터 읽어라
 1. `Source/WxAI/Public/WxBlackboardKeys.h` — 모듈 전체가 공유하는 Blackboard 계약. 키 소유권 분담이 헤더에 정리돼 있다.
-2. `Source/WxAI/Public/WxAIPerceptionComponent.h` — 타겟이 어떻게 잡히고 풀리는지(감지 경로·사망/소실 해제·회전 모드)의 진입점.
+2. `Source/WxAI/Public/WxAIPerceptionComponent.h` — 타겟이 어떻게 잡히고 풀리는지(감지 경로·사망/소실 해제)의 진입점. 그 타겟을 바라보는 상태는 `WxBTService_LockOn.h`가 이어받는다.
 3. `Source/WxAI/Public/WxBTComposite_RandomChoice.h` — 무작위 선택 시멘틱과 Decorator 연동(조건/가중치)이 Selector와 어떻게 다른지.
 
 ## 관련
