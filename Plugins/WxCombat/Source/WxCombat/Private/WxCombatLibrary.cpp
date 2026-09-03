@@ -153,7 +153,8 @@ void UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclass
 	}
 
 	const UGameplayEffect* CDO = EffectClass->GetDefaultObject<UGameplayEffect>();
-	const float Level = PredictingAbility ? PredictingAbility->GetAbilityLevel() : 0.f;
+	// 어빌리티 없이 걸리는 GE 도 GetAbilityLevel 의 기본 반환과 같은 레벨 1 로 만든다.
+	const float Level = PredictingAbility ? PredictingAbility->GetAbilityLevel() : 1.f;
 	FGameplayEffectSpec Spec(CDO, TargetASC->MakeEffectContext(), Level);
 
 	FPredictionKey PredictionKey;
