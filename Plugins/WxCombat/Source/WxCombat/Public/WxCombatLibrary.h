@@ -50,6 +50,4 @@ public:
 	 * @param PredictingAbility	이 어빌리티의 예측 키로 걸어 소유 클라도 같은 프레임에 태그를 갖는다.
 	 */
 	static void ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass, const UGameplayAbility* PredictingAbility);
-	
-	static void ApplyAttributeChange(UAbilitySystemComponent* TargetASC, const FGameplayAttribute& Attribute, float Delta);
 };

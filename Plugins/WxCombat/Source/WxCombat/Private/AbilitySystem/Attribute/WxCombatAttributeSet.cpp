@@ -1,6 +1,7 @@
 ﻿// Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
+#include "AbilitySystem/Effect/WxEffect_AddAttribute.h"
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "AbilitySystem/Effect/WxEffect_Exhaust.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -8,7 +9,6 @@
 #include "Damage/WxCombatEffectContext.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
-#include "WxCombatLibrary.h"
 #include "WxGameplayTags.h"
 
 const UWxCombatAttributeSet::FWxMaxAttributePair* UWxCombatAttributeSet::FindMaxAttributePair(const FGameplayAttribute& Attribute)
@@ -134,6 +134,7 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 	{
 		// 남은 양이 아니라 소모 후 결과로 지속시간을 고르므로, 0에서 또 깎여도 짧은 쪽으로 갱신되지 않는다.
 		// MaxSP가 없는 아바타는 스태미나를 쓰지 않으므로 제외한다.
+		// 부호 검사는 UWxEffect_Cost가 MP·UP·SP를 한 GE에 담은 탓에 0으로 실행되는 형제 모디파이어까지 막는다 — 빼면 SP를 안 쓰는 어빌리티도 걸린다.
 		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
 		if (Data.EvaluatedData.Magnitude < 0.f && GetMaxSP() > 0.f && ASC && ASC->IsOwnerActorAuthoritative())
 		{
@@ -361,9 +362,10 @@ void UWxCombatAttributeSet::ProcessPerfectGuard(const FGameplayEffectModCallback
 	const bool bCanParry = Data.EffectSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanParry);
 
 	// GP를 MaxGP로 되돌리면 남은 드레인 시간에 0에 닿지 않아 그로기가 스스로 풀리지 못한다.
+	// 컨텍스트를 가드한 쪽으로 만들어야 이 GP가 유발하는 공격자 그로기의 원인이 공격자 자신이 되지 않는다.
 	if (bCanParry && SourceASC && !SourceASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
 	{
-		UWxCombatLibrary::ApplyAttributeChange(SourceASC, GetGPAttribute(), ReflectAmount);
+		UWxEffect_AddGP::Apply(SourceASC, ReflectAmount, ASC->MakeEffectContext());
 	}
 
 	// 컨텍스트를 함께 실어야 가드 리액션이 피격 이벤트와 같은 방식으로 원인 액터를 집는다.
