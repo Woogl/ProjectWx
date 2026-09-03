@@ -11,7 +11,9 @@
 #include "Misc/CoreMisc.h"
 #include "MVVM/WxViewModel_Indicator.h"
 #include "SceneView.h"
+#include "System/WxUIManagerSubsystem.h"
 #include "View/MVVMView.h"
+#include "WxUILibrary.h"
 #include "WxUIModule.h"
 
 AWxIndicator::AWxIndicator()
@@ -22,9 +24,13 @@ AWxIndicator::AWxIndicator()
 	// 앞서 돌면 표시가 카메라를 한 프레임 늦게 따라간다.
 	PrimaryActorTick.TickGroup = TG_LastDemotable;
 
+	// 정지시키는 메뉴가 떠도 숨기 판정이 돌아야 한다. 화면에서 떼는 일도 위젯 컴포넌트 틱에서만 처리되므로 함께 켠다.
+	PrimaryActorTick.bTickEvenWhenPaused = true;
+
 	IndicatorWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("IndicatorWidget"));
 	RootComponent = IndicatorWidget;
 
+	IndicatorWidget->PrimaryComponentTick.bTickEvenWhenPaused = true;
 	IndicatorWidget->SetWidgetSpace(EWidgetSpace::Screen);
 	IndicatorWidget->SetDrawAtDesiredSize(true);
 	IndicatorWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -100,6 +106,14 @@ void AWxIndicator::BindViewModel()
 
 void AWxIndicator::UpdateProjection()
 {
+	// 스크린 스페이스 위젯은 UI 레이어 스택이 아니라 뷰포트에 직접 붙어 메뉴가 덮어 주지 못한다 — 메뉴가 떠 있는 동안은 이쪽에서 물러난다.
+	const UWxUIManagerSubsystem* UIManager = UWxUILibrary::GetUIManagerSubsystem(this);
+	if (UIManager && UIManager->IsMenuLayerActive())
+	{
+		IndicatorWidget->SetVisibility(false);
+		return;
+	}
+
 	// 대상이 파괴되면 엔진이 부착을 풀며 루트를 그 자리(주차 좌표)에 남기므로, 앵커는 트랜스폼이 아니라 여기서 따로 붙들어 둔다.
 	if (const USceneComponent* AttachParent = GetRootComponent()->GetAttachParent())
 	{

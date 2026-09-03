@@ -3,6 +3,7 @@
 #include "System/WxUIManagerSubsystem.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "CommonActivatableWidget.h"
 #include "GameFramework/Pawn.h"
 #include "System/WxPrimaryGameLayout.h"
 #include "System/WxUIDeveloperSettings.h"
@@ -90,6 +91,30 @@ void UWxUIManagerSubsystem::SetGameHUDClass(const TSoftClassPtr<UWxHUDLayout>& I
 const TSoftClassPtr<UWxHUDLayout>& UWxUIManagerSubsystem::GetGameHUDClass() const
 {
 	return GameHUDClass;
+}
+
+bool UWxUIManagerSubsystem::IsMenuLayerActive() const
+{
+	// GameMenu 는 아이템 획득 알림처럼 화면을 덮지 않는 자리라 메뉴로 세지 않는다.
+	return HasActiveWidgetInLayer(WxGameplayTags::UI_Layer_Menu) || HasActiveWidgetInLayer(WxGameplayTags::UI_Layer_Modal);
+}
+
+bool UWxUIManagerSubsystem::HasActiveWidgetInLayer(FGameplayTag LayerTag) const
+{
+	if (!PrimaryGameLayout)
+	{
+		return false;
+	}
+
+	const UCommonActivatableWidgetStack* Stack = PrimaryGameLayout->GetLayerWidgetStack(LayerTag);
+	if (!Stack)
+	{
+		return false;
+	}
+
+	// 스택에 위젯이 하나뿐이면 비활성화 후에도 GetActiveWidget 이 그 위젯을 반환할 수 있어 IsActivated 로 걸러낸다.
+	const UCommonActivatableWidget* ActiveWidget = Stack->GetActiveWidget();
+	return ActiveWidget && ActiveWidget->IsActivated();
 }
 
 void UWxUIManagerSubsystem::ObserveWidgetForGamePause(UCommonActivatableWidget* Widget)

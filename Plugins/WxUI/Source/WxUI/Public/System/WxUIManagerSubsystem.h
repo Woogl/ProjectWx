@@ -34,12 +34,17 @@ public:
 
 	UWxPrimaryGameLayout* GetPrimaryGameLayout() const;
 
+	/** 화면을 차지하는 메뉴(Menu·Modal 레이어)가 떠 있는지. 레이어 밖에 그려지는 표시가 스스로 물러날 때 쓴다. */
+	bool IsMenuLayerActive() const;
+
 	/** 어떤 HUD 를 띄울지는 UI 밖(Experience)이 정하므로, 정해진 값을 여기에 실어 둔다. 미지정이면 HUD 를 띄우지 않는다. */
 	void SetGameHUDClass(const TSoftClassPtr<UWxHUDLayout>& InGameHUDClass);
 
 	const TSoftClassPtr<UWxHUDLayout>& GetGameHUDClass() const;
 
 private:
+	bool HasActiveWidgetInLayer(FGameplayTag LayerTag) const;
+
 	void HandleLocalPlayerAdded(ULocalPlayer* LocalPlayer);
 
 	void HandlePlayerControllerSet(APlayerController* PC);

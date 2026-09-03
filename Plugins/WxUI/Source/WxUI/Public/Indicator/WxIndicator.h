@@ -43,7 +43,7 @@ public:
 private:
 	void BindViewModel();
 
-	/** 뷰를 얻지 못하면(월드 전환 등) 위젯을 숨긴다. */
+	/** 메뉴가 떠 있거나 뷰를 얻지 못하면(월드 전환 등) 위젯을 숨긴다. */
 	void UpdateProjection();
 
 	/** 당겼으면 true — 위젯이 화면 밖임을 알 수 있다. */
