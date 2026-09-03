@@ -86,16 +86,8 @@ void AWxCharacterBase::PostInitializeComponents()
 		HandleDeath();
 	}
 
-	if (EquipmentComponent)
-	{
-		EquipmentComponent->OnEquipVisualChanged.AddUObject(this, &AWxCharacterBase::HandleEquipVisualChanged);
-	}
+	EquipmentComponent->OnEquipVisualChanged.AddUObject(this, &AWxCharacterBase::HandleEquipVisualChanged);
 
-	if (!WeaponActor)
-	{
-		return;
-	}
-	
 	if (AActor* SpawnedWeapon = WeaponActor->GetChildActor())
 	{
 		SpawnedWeapon->SetOwner(this);
@@ -166,7 +158,7 @@ void AWxCharacterBase::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer)
 
 AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const
 {
-	return WeaponActor ? Cast<AWxWeaponBase>(WeaponActor->GetChildActor()) : nullptr;
+	return Cast<AWxWeaponBase>(WeaponActor->GetChildActor());
 }
 
 UBehaviorTree* AWxCharacterBase::GetBehaviorTree() const
@@ -301,7 +293,7 @@ void AWxCharacterBase::HandleEquipVisualChanged(USkeletalMesh* MeshAsset, FName 
 
 	Weapon->SetVisualMesh(MeshAsset);
 
-	if (WeaponActor && Socket != NAME_None)
+	if (Socket != NAME_None)
 	{
 		if (USceneComponent* CurrentParent = WeaponActor->GetAttachParent())
 		{

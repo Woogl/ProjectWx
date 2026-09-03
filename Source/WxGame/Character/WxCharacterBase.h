@@ -30,6 +30,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBas
  * 플레이어·에너미 공통 베이스 캐릭터.
  * ASC를 캐릭터에 직접 소유 (리스폰 시 스탯을 새로 초기화하므로 PlayerState 불필요).
  * ModularGameplay 컴포넌트 receiver 다 — 폰 대상 주입 요청(Experience 액션)의 컴포넌트가 자동 부착된다.
+ *
+ * 서브오브젝트 멤버는 모두 생성자에서 만들어 수명 내내 널이 아니다 — 파생 전부가 널 검사 없이 역참조한다.
  */
 UCLASS(Abstract)
 class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface, public IGenericTeamAgentInterface
@@ -74,7 +76,6 @@ public:
 	FWxOnDeathSignature OnDeath;
 
 protected:
-	/** 생성자 서브오브젝트라 수명 내내 널이 아니다 — 파생 전부가 널 검사 없이 역참조한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|GAS")
 	TObjectPtr<UWxAbilitySystemComponent> AbilitySystemComponent;
 	
