@@ -55,7 +55,7 @@ private:
 
 	/** AnimatingAbility가 존재하는 동안에만 강제한 메시와 원래 옵션. 단일 소유자라 별도 참조 수가 필요 없다. */
 	TWeakObjectPtr<USkeletalMeshComponent> MontageTickMesh;
-	EVisibilityBasedAnimTickOption PreviousMontageTickOption;
+	EVisibilityBasedAnimTickOption PreviousMontageTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
 
 protected:
 	// 소유 캐릭터가 "Wx|GAS"를 쓰므로 여기서 같은 경로를 쓰면 Class Defaults 패널에 GAS 헤더가 두 번 그려진다.
