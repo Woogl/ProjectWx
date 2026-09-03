@@ -9,11 +9,6 @@ UWxItemDefinition::UWxItemDefinition()
 {
 }
 
-FPrimaryAssetId UWxItemDefinition::GetPrimaryAssetId() const
-{
-	return FPrimaryAssetId(TEXT("WxItem"), GetFName());
-}
-
 EWxItemCategory UWxItemDefinition::GetItemCategory() const
 {
 	return Category;

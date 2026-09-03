@@ -24,8 +24,10 @@ enum class EWxItemCategory : uint8
  * 동일한 Definition 을 참조하는 모든 인스턴스는 같은 정의를 공유하며, 런타임 가변 상태는 별도 UWxItemInstance 에서 관리한다.
  *
  * Fragment 베이스의 OnInstanceCreated 가 인스턴스 초기 상태를 주입한다.
+ *
+ * NotBlueprintable 인 이유는 BP 서브클래스 인스턴스의 PrimaryAssetType 이 달라져 AssetManager 등록과 어긋나기 때문이다.
  */
-UCLASS(BlueprintType)
+UCLASS(BlueprintType, NotBlueprintable)
 class WXINVENTORY_API UWxItemDefinition : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
@@ -47,8 +49,6 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Item")
 	TArray<TObjectPtr<UWxItemFragment>> Fragments;
-
-	virtual FPrimaryAssetId GetPrimaryAssetId() const override;
 
 	EWxItemCategory GetItemCategory() const;
 
