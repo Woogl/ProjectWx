@@ -128,7 +128,7 @@ void UWxMinionComponent::HandleSpawnMinionEvent(const FGameplayEventData* Payloa
 	RemoveInvalidOrDeadMinions();
 
 	// 새 소환수 한 자리를 확보하되, 런타임에 상한이 낮아진 경우 초과분도 함께 정리한다.
-	const int32 MinionCountToRemove = FMath::Max(ActiveMinions.Num() - MaxMinionCount + 1, 0);
+	const int32 MinionCountToRemove = FMath::Clamp(ActiveMinions.Num() - MaxMinionCount + 1, 0, ActiveMinions.Num());
 	for (int32 RemovedMinionCount = 0; RemovedMinionCount < MinionCountToRemove; ++RemovedMinionCount)
 	{
 		if (AActor* OldestMinion = ActiveMinions[0].Get())
