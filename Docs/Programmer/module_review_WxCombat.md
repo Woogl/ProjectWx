@@ -6,7 +6,7 @@
 | 심각도 | 개수 |
 | --- | --- |
 | 🔴 심각 | 1 |
-| 🟡 개선 | 4 |
+| 🟡 개선 | 3 |
 | 🟢 사소 | 3 |
 
 ## 결과
@@ -39,28 +39,21 @@
 - **제안**: 히트가 성립해 파괴가 확정된 시점에 각 머신이 로컬로도 콜리전과 이동을 끄고 메시를 숨기고(권위만 `Destroy()`), 서버 파괴 복제가 실제 정리를 맡게 한다.
 - **확신도**: 중간
 
-### 5. 🟡 극한 회피·퍼펙트가드·궁극기 슬로모션이 월드 전역 시간을 늦춘다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_SlowTime.cpp:63-69`, `.../WxAbilityTask_PlaySkillCutscene.cpp:58-64` (호출부: `.../Ability/WxAbility_Dodge.cpp:205`, `.../Ability/WxAbility_GuardReact.cpp:113`)
-- **범주**: 설계/구조 (리플리케이션 권위)
-- **문제**: 두 태스크 모두 `IsOwnerActorAuthoritative()`일 때만 `UGameplayStatics::SetGlobalTimeDilation`을 건다. `AWorldSettings::TimeDilation`은 복제되므로, 한 플레이어의 극한 회피/퍼펙트가드/궁극기가 서버 월드 전체를 느리게 만들어 접속한 모든 플레이어에게 걸린다. 개인 연출로 의도했다면 아바타 단위 `CustomTimeDilation` 또는 로컬 전용 처리여야 한다.
-- **제안**: 멀티 대응이 필요하면 발동 플레이어의 폰·카메라에만 걸리는 방식으로 좁힌다. 전역 슬로모션이 의도라면 그 사실을 태스크 주석에 못박아 두고, 소유 클라 한정으로 걸지 서버가 걸지도 함께 기록한다.
-- **확신도**: 낮음 (의도된 설계일 수 있음 — `WxAbility_GuardReact.cpp:110`의 "복제된 딜레이션" 주석은 복제를 인지하고 있음을 보여준다)
-
-### 6. 🟢 락온 종료 시 `bOrientRotationToMovement` 복원이 무관한 ASC 유효성 조건 안에 갇혀 있다
+### 5. 🟢 락온 종료 시 `bOrientRotationToMovement` 복원이 무관한 ASC 유효성 조건 안에 갇혀 있다
 - **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_LockOn.cpp:105-125`
 - **범주**: 설계/구조
 - **문제**: CMC의 `bOrientRotationToMovement` 저장·복원은 `ActivateAbility`에서는 `IsLocallyControlled` 게이트 **앞**(`:46-51`)에서 무조건 수행되는데, `EndAbility`의 복원만 `if (ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())` 블록 안에 들어 있다. 이동 컴포넌트 복원은 ASC 유효성과 아무 관련이 없어 조건이 대칭이 아니고, 조건이 깨지는 경로가 생기면 캐릭터가 영구히 이동 방향으로 회전하지 않는 상태로 남는다.
 - **제안**: `SavedOrientRotationToMovement` 복원 블록을 ASC 조건 밖으로 빼서 저장 지점과 같은 조건으로 맞춘다.
 - **확신도**: 중간 (현재 ASC는 캐릭터 서브오브젝트라 실제로 조건이 깨지기는 어렵다)
 
-### 7. 🟢 `PreviousMontageTickOption`이 초기화되지 않은 채 선언되어 있다
+### 6. 🟢 `PreviousMontageTickOption`이 초기화되지 않은 채 선언되어 있다
 - **위치**: `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h:58`
 - **범주**: 버그/정확성
 - **문제**: `EVisibilityBasedAnimTickOption PreviousMontageTickOption;`에 초기값이 없다. 현재는 `MontageTickMesh`와 항상 한 쌍으로 대입되고 `RestoreAnimatingMontageMeshTick`이 메시 널 검사로 조기 반환하므로 읽히지 않지만, 그 불변식이 깨지면 메시 틱 정책에 쓰레기 값이 들어간다.
 - **제안**: `= EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered` 등 기본값을 명시한다.
 - **확신도**: 높음
 
-### 8. 🟢 `ApplyEffect`가 어빌리티 없이 호출되면 GE 스펙을 Level 0으로 만든다
+### 7. 🟢 `ApplyEffect`가 어빌리티 없이 호출되면 GE 스펙을 Level 0으로 만든다
 - **위치**: `Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp:156`
 - **범주**: 버그/정확성
 - **문제**: `const float Level = PredictingAbility ? PredictingAbility->GetAbilityLevel() : 0.f;` — GAS 관례상 어빌리티 레벨은 1부터이고, 이 모듈의 다른 스펙 생성부는 모두 `1.f`를 넘긴다(`WxDamageTableRow.cpp:17`, `WxEffect_HitStop.cpp:42`, `WxEffect_Exhaust.cpp:44`). 지금 이 경로로 걸리는 GE(무적·슈퍼아머)는 레벨 스케일 수치가 없어 무해하지만, 나중에 `FScalableFloat` 커브를 쓰는 GE를 이 통로에 태우면 레벨 0 구간을 읽어 조용히 다른 값이 나온다.
