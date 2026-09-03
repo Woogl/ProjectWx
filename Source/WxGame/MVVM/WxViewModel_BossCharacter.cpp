@@ -2,7 +2,8 @@
 
 #include "MVVM/WxViewModel_BossCharacter.h"
 #include "Blueprint/UserWidget.h"
-#include "Character/WxBossCharacter.h"
+#include "Character/Component/WxBossComponent.h"
+#include "Character/WxEnemyCharacter.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
 
@@ -14,23 +15,24 @@ void UWxViewModel_BossCharacter::StartObserving(UWorld* World)
 	}
 
 	ObservedWorld = World;
-	ActorSpawnedHandle = World->AddOnActorSpawnedHandler(FOnActorSpawned::FDelegate::CreateUObject(this, &UWxViewModel_BossCharacter::HandleActorSpawned));
+	BossReadyHandle = UWxBossComponent::OnAnyBossReady.AddUObject(this, &UWxViewModel_BossCharacter::HandleBossReady);
 
-	TActorIterator<AWxBossCharacter> ExistingBossIt(World);
-	if (ExistingBossIt)
+	// 위젯이 보스보다 늦게 생기면 발행을 놓치므로 이미 있는 보스를 훑어 시드한다.
+	for (TActorIterator<AWxEnemyCharacter> It(World); It; ++It)
 	{
-		SetBoss(*ExistingBossIt);
+		if (It->FindComponentByClass<UWxBossComponent>())
+		{
+			SetBoss(*It);
+			break;
+		}
 	}
 }
 
 void UWxViewModel_BossCharacter::BeginDestroy()
 {
-	if (UWorld* World = ObservedWorld.Get())
-	{
-		World->RemoveOnActorSpawnedHandler(ActorSpawnedHandle);
-	}
+	UWxBossComponent::OnAnyBossReady.Remove(BossReadyHandle);
 
-	if (AWxBossCharacter* Boss = CurrentBoss.Get())
+	if (AWxEnemyCharacter* Boss = CurrentBoss.Get())
 	{
 		Boss->OnEndPlay.RemoveDynamic(this, &UWxViewModel_BossCharacter::HandleBossEndPlay);
 		Boss->OnAITargetChanged.RemoveAll(this);
@@ -39,11 +41,12 @@ void UWxViewModel_BossCharacter::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-void UWxViewModel_BossCharacter::HandleActorSpawned(AActor* SpawnedActor)
+void UWxViewModel_BossCharacter::HandleBossReady(UWxBossComponent* BossComponent)
 {
-	if (AWxBossCharacter* Boss = Cast<AWxBossCharacter>(SpawnedActor))
+	// 클래스 차원 델리게이트라 PIE 에선 서버·클라 월드가 함께 실린다.
+	if (BossComponent && BossComponent->GetWorld() == ObservedWorld.Get())
 	{
-		SetBoss(Boss);
+		SetBoss(BossComponent->GetBossCharacter());
 	}
 }
 
@@ -55,9 +58,9 @@ void UWxViewModel_BossCharacter::HandleBossEndPlay(AActor* Actor, EEndPlayReason
 	}
 }
 
-void UWxViewModel_BossCharacter::SetBoss(AWxBossCharacter* Boss)
+void UWxViewModel_BossCharacter::SetBoss(AWxEnemyCharacter* Boss)
 {
-	if (AWxBossCharacter* PreviousBoss = CurrentBoss.Get())
+	if (AWxEnemyCharacter* PreviousBoss = CurrentBoss.Get())
 	{
 		PreviousBoss->OnEndPlay.RemoveDynamic(this, &UWxViewModel_BossCharacter::HandleBossEndPlay);
 		PreviousBoss->OnAITargetChanged.RemoveAll(this);

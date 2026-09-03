@@ -10,7 +10,7 @@
  * 소환으로 태어나 소환자의 팀으로 싸우는 전투 폰.
  *
  * 적대 여부는 클래스가 아니라 팀이 가르며, 팀은 MinionComponent가 스폰 시점에 소환자에게서 물려준다.
- * 배치가 아니라 스폰으로만 태어나므로 자동 빙의를 스폰까지 열어 둔다.
+ * 적이 아니라서 WxEnemyCharacter 계열이 아니다 — 네임플레이트·피니셔·보상 같은 적 전용 장치를 받지 않는다.
  */
 UCLASS()
 class WXGAME_API AWxMinion : public AWxCharacterBase

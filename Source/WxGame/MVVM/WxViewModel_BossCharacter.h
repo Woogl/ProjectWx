@@ -8,9 +8,10 @@
 #include "View/MVVMViewModelContextResolver.h"
 #include "WxViewModel_BossCharacter.generated.h"
 
-class AWxBossCharacter;
+class AWxEnemyCharacter;
 class UUserWidget;
 class UMVVMView;
+class UWxBossComponent;
 
 /**
  * 보스 존재를 스스로 관찰하는 보스 네임플레이트용 뷰모델.
@@ -30,20 +31,20 @@ public:
 	bool bHasAITarget = false;
 
 private:
-	void HandleActorSpawned(AActor* SpawnedActor);
+	void HandleBossReady(UWxBossComponent* BossComponent);
 
 	UFUNCTION()
 	void HandleBossEndPlay(AActor* Actor, EEndPlayReason::Type EndPlayReason);
 
 	void HandleAITargetChanged(bool bNewHasAITarget);
 
-	void SetBoss(AWxBossCharacter* Boss);
+	void SetBoss(AWxEnemyCharacter* Boss);
 
 	TWeakObjectPtr<UWorld> ObservedWorld;
 
-	FDelegateHandle ActorSpawnedHandle;
+	FDelegateHandle BossReadyHandle;
 
-	TWeakObjectPtr<AWxBossCharacter> CurrentBoss;
+	TWeakObjectPtr<AWxEnemyCharacter> CurrentBoss;
 };
 
 UCLASS(EditInlineNew, CollapseCategories)
