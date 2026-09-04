@@ -29,6 +29,11 @@ void AWxGhostTrail::BeginPlay()
 	}
 
 	USkeletalMeshComponent* OwnerMesh = OwnerCharacter->GetMesh();
+	if (!OwnerMesh)
+	{
+		UE_LOG(LogWxCombat, Warning, TEXT("GhostTrail: Owner '%s'에 메시가 없어 잔상을 만들 수 없다."), *GetNameSafe(GetOwner()));
+		return;
+	}
 
 	// 포즈를 메시 기준 컴포넌트 스페이스로 복사하므로 배치 기준도 메시 트랜스폼이어야 한다 — 메시 상대 트랜스폼이 기본값이 아니면 어긋난다.
 	SetActorTransform(OwnerMesh->GetComponentTransform());

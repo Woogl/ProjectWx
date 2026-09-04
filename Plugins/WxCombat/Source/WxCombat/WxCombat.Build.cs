@@ -19,8 +19,6 @@ public class WxCombat : ModuleRules
 			"GameplayTags",
 			"GameplayTasks",
 			"MotionWarping",
-			"NavigationSystem",
-			"NetCore",
 			"TargetingSystem",
 			"UMG",
 			"WxCore",
@@ -28,7 +26,6 @@ public class WxCombat : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
-			"InputCore",
 			"LevelSequence",
 			"MovieScene",
 			"Niagara",
