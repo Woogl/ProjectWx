@@ -11,7 +11,6 @@ class UCameraComponent;
 class UWidgetComponent;
 class UGameplayEffect;
 class UWxInputConfig;
-class UWxLockOnComponent;
 class UWxItemUseComponent;
 class UWxFinisherDamageComponent;
 class UWxInputBufferComponent;
@@ -39,9 +38,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Camera")
 	TObjectPtr<UCameraComponent> FollowCamera;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")
-	TObjectPtr<UWxLockOnComponent> LockOnComponent;
 
 	/** AnimNotify GameplayEvent 시점에 준비된 처형 피해를 서버에서 적용한다. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")

@@ -2,6 +2,7 @@
 
 #include "Targeting/WxLockOnComponent.h"
 #include "Components/SceneComponent.h"
+#include "GameFramework/Actor.h"
 #include "Net/UnrealNetwork.h"
 
 UWxLockOnComponent::UWxLockOnComponent()
@@ -14,6 +15,13 @@ void UWxLockOnComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UWxLockOnComponent, LockOnTarget);
+}
+
+AActor* UWxLockOnComponent::ResolveLockOnTargetActor(const AActor* Source)
+{
+	const UWxLockOnComponent* LockOnComponent = Source ? Source->FindComponentByClass<UWxLockOnComponent>() : nullptr;
+	const USceneComponent* Target = LockOnComponent ? LockOnComponent->GetLockOnTarget() : nullptr;
+	return Target ? Target->GetOwner() : nullptr;
 }
 
 void UWxLockOnComponent::SetLockOnTarget(USceneComponent* InTarget)
@@ -52,7 +60,9 @@ void UWxLockOnComponent::ApplyLockOnTarget(USceneComponent* InTarget)
 
 USceneComponent* UWxLockOnComponent::GetLockOnTarget() const
 {
-	return LockOnTarget;
+	// 파괴된 대상은 다음 GC 까지 하드 참조에 남는다.
+	// 서버는 대상 소실 경로가 즉시 비우지만 그 경로가 없는 클라는 복제된 널이 올 때까지 죽은 컴포넌트를 읽게 되므로, 읽는 이 길목에서 끊는다.
+	return IsValid(LockOnTarget) ? LockOnTarget.Get() : nullptr;
 }
 
 void UWxLockOnComponent::SetLookInput(const FVector2D& InLookInput)

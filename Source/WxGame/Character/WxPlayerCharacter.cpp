@@ -43,7 +43,6 @@ AWxPlayerCharacter::AWxPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
 
-	LockOnComponent = CreateDefaultSubobject<UWxLockOnComponent>(TEXT("LockOnComponent"));
 	FinisherDamageComponent = CreateDefaultSubobject<UWxFinisherDamageComponent>(TEXT("FinisherDamageComponent"));
 	ItemUseComponent = CreateDefaultSubobject<UWxItemUseComponent>(TEXT("ItemUseComponent"));
 	InputBufferComponent = CreateDefaultSubobject<UWxInputBufferComponent>(TEXT("InputBufferComponent"));
@@ -175,10 +174,7 @@ void AWxPlayerCharacter::Look(const FInputActionValue& Value)
 	// 락온 중에는 시점을 돌리지 않고 그 입력을 락온 컴포넌트에 넘겨 대상 전환에 쓰게 한다.
 	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_LockOn))
 	{
-		if (LockOnComponent)
-		{
-			LockOnComponent->SetLookInput(LookAxis);
-		}
+		LockOnComponent->SetLookInput(LookAxis);
 		return;
 	}
 

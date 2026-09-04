@@ -17,7 +17,7 @@ struct FWxLockOnMemory
 
 /**
  * BT Service: 관찰하는 브랜치가 살아 있는 동안 Blackboard TargetActor 를 컨트롤러 포커스와 폰의 strafe 회전 모드에 반영한다.
- * AI 판 락온이며, 플레이어의 락온(WxCombat 의 UWxLockOnComponent)과는 이름만 같고 별개의 구현이다.
+ * AI 판 락온이며, 플레이어의 락온과는 별개의 구현이다 — 겨누는 대상 자체는 AWxAIController 가 UWxLockOnComponent 에 실어 두고, 이 서비스는 그 대상을 어떻게 바라볼지만 정한다.
  *
  * 포커스는 컨트롤러가, 회전 모드는 폰이 들고 있어 소유자가 갈라지기 쉬운 상태다.
  * 이 서비스가 둘을 한 쌍으로 묶어 단독으로 소유한다 — 퍼셉션은 TargetActor 발행까지만 맡으므로 두 시스템이 같은 상태를 두고 다투지 않는다.

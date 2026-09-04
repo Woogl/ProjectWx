@@ -7,6 +7,7 @@
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "Inventory/WxEquipmentComponent.h"
 #include "Minion/WxMinionComponent.h"
+#include "Targeting/WxLockOnComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/GameFrameworkComponentManager.h"
 #include "Components/ChildActorComponent.h"
@@ -38,6 +39,7 @@ AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
 	CombatAttributeSet = CreateDefaultSubobject<UWxCombatAttributeSet>(TEXT("CombatAttributeSet"));
 
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
+	LockOnComponent = CreateDefaultSubobject<UWxLockOnComponent>(TEXT("LockOnComponent"));
 	HitStopComponent = CreateDefaultSubobject<UWxHitStopComponent>(TEXT("HitStopComponent"));
 	ProjectileComponent = CreateDefaultSubobject<UWxProjectileComponent>(TEXT("ProjectileComponent"));
 	MinionComponent = CreateDefaultSubobject<UWxMinionComponent>(TEXT("MinionComponent"));
@@ -159,6 +161,11 @@ void AWxCharacterBase::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer)
 AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const
 {
 	return Cast<AWxWeaponBase>(WeaponActor->GetChildActor());
+}
+
+UWxLockOnComponent* AWxCharacterBase::GetLockOnComponent() const
+{
+	return LockOnComponent;
 }
 
 UBehaviorTree* AWxCharacterBase::GetBehaviorTree() const

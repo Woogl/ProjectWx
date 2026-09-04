@@ -6,6 +6,7 @@
 #include "Character/WxEnemyCharacter.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
+#include "Targeting/WxLockOnComponent.h"
 
 void UWxViewModel_BossCharacter::StartObserving(UWorld* World)
 {
@@ -35,7 +36,7 @@ void UWxViewModel_BossCharacter::BeginDestroy()
 	if (AWxEnemyCharacter* Boss = CurrentBoss.Get())
 	{
 		Boss->OnEndPlay.RemoveDynamic(this, &UWxViewModel_BossCharacter::HandleBossEndPlay);
-		Boss->OnAITargetChanged.RemoveAll(this);
+		Boss->GetLockOnComponent()->OnLockOnTargetChanged.RemoveDynamic(this, &UWxViewModel_BossCharacter::HandleAITargetChanged);
 	}
 
 	Super::BeginDestroy();
@@ -63,27 +64,27 @@ void UWxViewModel_BossCharacter::SetBoss(AWxEnemyCharacter* Boss)
 	if (AWxEnemyCharacter* PreviousBoss = CurrentBoss.Get())
 	{
 		PreviousBoss->OnEndPlay.RemoveDynamic(this, &UWxViewModel_BossCharacter::HandleBossEndPlay);
-		PreviousBoss->OnAITargetChanged.RemoveAll(this);
+		PreviousBoss->GetLockOnComponent()->OnLockOnTargetChanged.RemoveDynamic(this, &UWxViewModel_BossCharacter::HandleAITargetChanged);
 	}
 
 	CurrentBoss = Boss;
 
 	if (!Boss)
 	{
-		HandleAITargetChanged(false);
+		HandleAITargetChanged(nullptr);
 		Deinitialize();
 		return;
 	}
 
 	Boss->OnEndPlay.AddDynamic(this, &UWxViewModel_BossCharacter::HandleBossEndPlay);
-	Boss->OnAITargetChanged.AddUObject(this, &UWxViewModel_BossCharacter::HandleAITargetChanged);
+	Boss->GetLockOnComponent()->OnLockOnTargetChanged.AddDynamic(this, &UWxViewModel_BossCharacter::HandleAITargetChanged);
 	Initialize(Boss->GetAbilitySystemComponent(), Boss->GetCharacterName(), Boss->GetPortrait());
-	HandleAITargetChanged(Boss->HasAITarget());
+	HandleAITargetChanged(Boss->GetLockOnComponent()->GetLockOnTarget());
 }
 
-void UWxViewModel_BossCharacter::HandleAITargetChanged(bool bNewHasAITarget)
+void UWxViewModel_BossCharacter::HandleAITargetChanged(USceneComponent* NewTarget)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(bHasAITarget, bNewHasAITarget);
+	UE_MVVM_SET_PROPERTY_VALUE(bHasAITarget, NewTarget != nullptr);
 }
 
 UObject* UWxViewModelResolver_BossCharacter::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const

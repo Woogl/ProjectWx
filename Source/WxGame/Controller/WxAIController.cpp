@@ -4,11 +4,11 @@
 #include "WxBlackboardKeys.h"
 #include "WxAIPerceptionComponent.h"
 #include "Character/WxCharacterBase.h"
-#include "Character/WxEnemyCharacter.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BrainComponent.h"
 #include "GenericTeamAgentInterface.h"
+#include "Targeting/WxLockOnComponent.h"
 
 AWxAIController::AWxAIController()
 {
@@ -34,16 +34,13 @@ void AWxAIController::OnPossess(APawn* InPawn)
 	{
 		WxCharacter->OnDeath.AddDynamic(this, &AWxAIController::HandlePawnDeath);
 
+		// 재사용된 폰도 새 빙의에서는 대상 없이 시작한다.
+		WxCharacter->GetLockOnComponent()->SetLockOnTarget(nullptr);
+
 		if (UBehaviorTree* BT = WxCharacter->GetBehaviorTree())
 		{
 			RunBehaviorTree(BT);
 		}
-	}
-
-	// 재사용된 폰도 새 빙의에서는 타겟 없이 시작한다.
-	if (AWxEnemyCharacter* Enemy = Cast<AWxEnemyCharacter>(InPawn))
-	{
-		Enemy->SetHasAITarget(false);
 	}
 
 	if (UBlackboardComponent* BB = GetBlackboardComponent())
@@ -68,11 +65,7 @@ void AWxAIController::OnUnPossess()
 	if (AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(GetPawn()))
 	{
 		WxCharacter->OnDeath.RemoveDynamic(this, &AWxAIController::HandlePawnDeath);
-	}
-
-	if (AWxEnemyCharacter* Enemy = Cast<AWxEnemyCharacter>(GetPawn()))
-	{
-		Enemy->SetHasAITarget(false);
+		WxCharacter->GetLockOnComponent()->SetLockOnTarget(nullptr);
 	}
 
 	if (UBlackboardComponent* BB = GetBlackboardComponent())
@@ -92,10 +85,16 @@ void AWxAIController::OnUnPossess()
 
 void AWxAIController::HandleAITargetChanged(AActor* NewTarget)
 {
-	if (AWxEnemyCharacter* Enemy = Cast<AWxEnemyCharacter>(GetPawn()))
+	AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(GetPawn());
+	if (!WxCharacter)
 	{
-		Enemy->SetHasAITarget(NewTarget != nullptr);
+		return;
 	}
+
+	// 겨누는 대상은 서버 권위로 복제돼야 스냅 워프·타겟팅 필터·발사체가 전 머신에서 같은 답을 읽는다.
+	// 조준 지점은 대상의 루트다 — 락온 지점은 플레이어 락온의 대상 계약이라 AI 가 겨누는 액터(플레이어 등)에는 없고, 지점 조건도 플레이어 락온 전용 게이트다.
+	// 퍼셉션이 무는 대상은 복제되는 폰이라는 전제다. 루트가 런타임 생성 비복제 컴포넌트인 액터를 물면 원격에는 null 로 도착한다.
+	WxCharacter->GetLockOnComponent()->SetLockOnTarget(NewTarget ? NewTarget->GetRootComponent() : nullptr);
 }
 
 void AWxAIController::HandlePawnDeath(AWxCharacterBase* DeadCharacter)

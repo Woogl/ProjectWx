@@ -18,6 +18,7 @@ class UWxAbilitySystemComponent;
 class UWxCombatAttributeSet;
 class UWxEquipmentComponent;
 class UWxHitStopComponent;
+class UWxLockOnComponent;
 class UWxMetaHumanComponent;
 class UWxMinionComponent;
 class UWxProjectileComponent;
@@ -65,6 +66,8 @@ public:
 	bool IsAlive() const;
 	AWxWeaponBase* GetEquippedWeapon() const;
 
+	UWxLockOnComponent* GetLockOnComponent() const;
+
 	/** 비우면 AI 컨트롤러가 트리를 돌리지 않는다 — 플레이어처럼 사람이 모는 캐릭터가 그렇다. */
 	UBehaviorTree* GetBehaviorTree() const;
 
@@ -84,6 +87,13 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Combat")
 	TObjectPtr<UMotionWarpingComponent> MotionWarpingComponent;
+
+	/**
+	 * 이 캐릭터가 겨누는 대상이다 — 플레이어는 락온 어빌리티가, AI 는 AWxAIController 가 채운다.
+	 * 서버 권위로 복제되므로 스냅 워프·타겟팅 필터·발사체가 전 머신에서 같은 대상을 읽는다.
+	 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")
+	TObjectPtr<UWxLockOnComponent> LockOnComponent;
 
 	/** 히트스톱 GE의 추가·제거를 받아 메시의 애니메이션 시간을 세우고 되돌린다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Combat")

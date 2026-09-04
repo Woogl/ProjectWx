@@ -10,10 +10,9 @@
 #include "WxEnemyCharacter.generated.h"
 
 class AWxSpawner;
+class USceneComponent;
 class UWxLockOnPointComponent;
 class UWxNameplateComponent;
-
-DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnEnemyAITargetChanged, bool /*bHasAITarget*/);
 
 UCLASS(Abstract)
 class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnable, public IWxInteractable
@@ -22,17 +21,12 @@ class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnabl
 
 public:
 	AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer);
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	AWxSpawner* GetOwningSpawner() const;
 
+	/** AI 가 겨누는 대상의 유무다 — 서버의 AIController 가 채우는 락온 대상에서 파생하므로 클라이언트도 같은 답을 읽는다. */
 	bool HasAITarget() const;
 
-	/** 서버의 AIController가 실제 타겟 변경과 빙의 수명주기에 맞춰 호출한다. */
-	void SetHasAITarget(bool bNewHasAITarget);
-
-	FWxOnEnemyAITargetChanged OnAITargetChanged;
-	
 	//~ Begin IWxSpawnable
 	/** 처치 기록에 쓰려고 스폰 주체를 기억하고, 정찰 경로 조회를 위해 스폰 주체에 부착한다. */
 	virtual void OnSpawnedBy(AWxSpawner* Spawner) override;
@@ -52,9 +46,7 @@ protected:
 	virtual void HandleDeath() override;
 
 	UFUNCTION()
-	void OnRep_HasAITarget();
-
-	void NotifyAITargetChanged();
+	void HandleAITargetChanged(USceneComponent* NewTarget);
 
 	void HandleLockedOnChanged(bool bLockedOn);
 
@@ -62,10 +54,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx|UI")
 	TObjectPtr<UWxNameplateComponent> NameplateComponent;
-
-	/** AI의 TargetActor 유무를 서버 판정과 클라이언트 UI가 함께 읽는 단일 복제 상태다. */
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, ReplicatedUsing = OnRep_HasAITarget, Category = "Wx|AI")
-	bool bHasAITarget = false;
 
 	/** 메시의 pelvis 본에 부착되어 카메라·캐릭터 시선과 레티클·호밍이 이 위치를 향한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|LockOn")

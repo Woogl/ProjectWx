@@ -3,9 +3,8 @@
 #include "Targeting/WxRootMotionModifier_SnapToTarget.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "AIController.h"
 #include "Components/SceneComponent.h"
-#include "GameFramework/Pawn.h"
+#include "GameFramework/Actor.h"
 #include "MotionWarpingComponent.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "TargetingSystem/TargetingSubsystem.h"
@@ -21,6 +20,40 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 		return;
 	}
 
+	ApplySnapTarget();
+}
+
+void UWxRootMotionModifier_SnapToTarget::Update(const FMotionWarpingUpdateContext& Context)
+{
+	if (GetState() == ERootMotionModifierState::Active)
+	{
+		// 부모 SkewWarp는 창 끝까지 반드시 도달시키는 마감형 보정이라 매 프레임 "남은 거리 / 남은 시간" 속도를 상한 없이 요구한다.
+		// 대상이 죽으면 시체가 루트 모션으로 밀리고 래그돌로 캡슐까지 사라져 워프 타겟이 흔들리는데, 창 끝 몇 프레임에 겹치면 그 요구 속도가 그대로 튄다.
+		if (!IsSnapTargetAlive())
+		{
+			if (UMotionWarpingComponent* MotionWarpingComp = GetOwnerComponent())
+			{
+				MotionWarpingComp->RemoveWarpTarget(WarpTargetName);
+			}
+		}
+		// 지정 대상이 창 도중에 도착하거나 바뀌면 회전을 그쪽으로 옮긴다 — 폴백으로 먼저 돈 머신이 권위 값에 수렴하는 경로다.
+		// 이동 역할은 재조준하지 않는다. 부모가 남은 시간에 남은 거리를 반드시 메우므로, 창 도중에 대상을 바꾸면 그 프레임에 캐릭터가 튄다.
+		// 지정 대상이 없는 프레임에는 아무것도 하지 않아 폴백 상태에서 프리셋을 매 틱 재질의하지 않는다.
+		else if (!bWarpTranslation)
+		{
+			const AActor* DesignatedTarget = UWxLockOnComponent::ResolveLockOnTargetActor(GetActorOwner());
+			if (DesignatedTarget && DesignatedTarget != SnapTarget.Get())
+			{
+				ApplySnapTarget();
+			}
+		}
+	}
+
+	Super::Update(Context);
+}
+
+void UWxRootMotionModifier_SnapToTarget::ApplySnapTarget()
+{
 	AActor* Owner = GetActorOwner();
 	UMotionWarpingComponent* MotionWarpingComp = GetOwnerComponent();
 	if (!Owner || !MotionWarpingComp)
@@ -28,31 +61,20 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 		return;
 	}
 
-	const APawn* OwnerPawn = Cast<APawn>(Owner);
+	AActor* DesignatedTarget = UWxLockOnComponent::ResolveLockOnTargetActor(Owner);
 
-	AActor* LockOnTarget = nullptr;
-	if (UWxLockOnComponent* LockOnComp = Owner->FindComponentByClass<UWxLockOnComponent>())
+	// 위치를 옮기는 역할은 전 머신이 같은 값을 읽는 지정 대상에만 건다 — 로컬 프리셋 폴백으로 밀면 머신마다 다른 곳에 선다.
+	// 대상이 없으면 범위 판정도 볼 것이 없으므로 쿼리 앞에서 끊는다.
+	if (bWarpTranslation && !DesignatedTarget)
 	{
-		if (const USceneComponent* LockOnTargetComponent = LockOnComp->GetLockOnTarget())
-		{
-			LockOnTarget = LockOnTargetComponent->GetOwner();
-		}
+		MotionWarpingComp->RemoveWarpTarget(WarpTargetName);
+		return;
 	}
 
-	// AI 에겐 락온 대신 컨트롤러가 응시 중인 액터가 전투 대상이다. 이걸 보지 않으면 몽타주가 프리셋이 먼저 집은 다른 적을 향해 돈다.
-	// 컨트롤러는 서버에만 있으므로 클라의 시뮬레이티드 프록시는 아래 프리셋 폴백을 탄다 — AI 의 대상 판정은 원래 로컬이다.
-	AActor* DesignatedTarget = LockOnTarget;
-	if (!DesignatedTarget && OwnerPawn)
-	{
-		if (const AAIController* AIController = Cast<AAIController>(OwnerPawn->GetController()))
-		{
-			DesignatedTarget = AIController->GetFocusActor();
-		}
-	}
-
-	// TargetingPreset 쿼리 결과가 곧 스냅 가능 범위이며, 대상이 그 밖이면 위치 스냅 없이 회전만 적용한다.
+	// TargetingPreset 쿼리 결과가 곧 스냅 가능 범위이자, 지정 대상이 없을 때 쓸 폴백 후보다.
+	// 범위를 볼 이동 역할이거나 폴백이 필요할 때만 돌린다 — 지정 대상을 아는 회전 역할에는 쓸 데가 없다.
 	TArray<AActor*> TargetingResults;
-	if (TargetingPreset)
+	if (TargetingPreset && (bWarpTranslation || !DesignatedTarget))
 	{
 		if (UTargetingSubsystem* TargetingSubsystem = UTargetingSubsystem::Get(Owner->GetWorld()))
 		{
@@ -67,6 +89,14 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 		}
 	}
 
+	// 접근은 스냅 가능 범위 안에서만 건다.
+	if (bWarpTranslation && TargetingPreset && !TargetingResults.Contains(DesignatedTarget))
+	{
+		MotionWarpingComp->RemoveWarpTarget(WarpTargetName);
+		return;
+	}
+
+	// 회전 역할은 지정 대상이 없어도 폴백으로 돈다. 늦게 도착한 지정 대상은 Update 가 다시 잡는다.
 	AActor* FacingTarget = DesignatedTarget;
 	if (!FacingTarget && TargetingResults.Num() > 0)
 	{
@@ -84,33 +114,8 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 
 	SnapTarget = FacingTarget;
 
-	const bool bFacingTargetIsLockOn = (FacingTarget == LockOnTarget);
-
-	const bool bTargetInSnapRange = !TargetingPreset || TargetingResults.Contains(FacingTarget);
-
-	// 서버 권위로만 도는 AI 등은 폴백 위치 스냅을 유지하며, IsPlayerControlled는 소유 클라·서버 양쪽에서 일관된다.
-	const bool bRequireLockOnForTranslation = OwnerPawn && OwnerPawn->IsPlayerControlled();
-	const bool bShouldWarpTranslation = bWarpTranslation && bTargetInSnapRange && (!bRequireLockOnForTranslation || bFacingTargetIsLockOn);
-
-	bWarpTranslation = bShouldWarpTranslation;
-
 	// 접근·회전 모두 수평(yaw) 전용이며, 작은 높이차는 SkewWarp의 bIgnoreZAxis와 캡슐 step-up이 흡수한다.
 	MotionWarpingComp->AddOrUpdateWarpTargetFromComponent(WarpTargetName, TargetComponent, NAME_None, true, EWarpTargetLocationOffsetDirection::VectorFromTargetToOwner, LocationOffset);
-}
-
-void UWxRootMotionModifier_SnapToTarget::Update(const FMotionWarpingUpdateContext& Context)
-{
-	// 부모 SkewWarp는 창 끝까지 반드시 도달시키는 마감형 보정이라 매 프레임 "남은 거리 / 남은 시간" 속도를 상한 없이 요구한다.
-	// 대상이 죽으면 시체가 루트 모션으로 밀리고 래그돌로 캡슐까지 사라져 워프 타겟이 흔들리는데, 창 끝 몇 프레임에 겹치면 그 요구 속도가 그대로 튄다.
-	if (GetState() == ERootMotionModifierState::Active && !IsSnapTargetAlive())
-	{
-		if (UMotionWarpingComponent* MotionWarpingComp = GetOwnerComponent())
-		{
-			MotionWarpingComp->RemoveWarpTarget(WarpTargetName);
-		}
-	}
-
-	Super::Update(Context);
 }
 
 bool UWxRootMotionModifier_SnapToTarget::IsSnapTargetAlive() const

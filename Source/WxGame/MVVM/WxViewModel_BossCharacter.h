@@ -9,6 +9,7 @@
 #include "WxViewModel_BossCharacter.generated.h"
 
 class AWxEnemyCharacter;
+class USceneComponent;
 class UUserWidget;
 class UMVVMView;
 class UWxBossComponent;
@@ -36,7 +37,8 @@ private:
 	UFUNCTION()
 	void HandleBossEndPlay(AActor* Actor, EEndPlayReason::Type EndPlayReason);
 
-	void HandleAITargetChanged(bool bNewHasAITarget);
+	UFUNCTION()
+	void HandleAITargetChanged(USceneComponent* NewTarget);
 
 	void SetBoss(AWxEnemyCharacter* Boss);
 

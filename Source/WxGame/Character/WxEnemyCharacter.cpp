@@ -10,8 +10,8 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Spawnable/WxSpawner.h"
+#include "Targeting/WxLockOnComponent.h"
 #include "Targeting/WxLockOnPointComponent.h"
-#include "Net/UnrealNetwork.h"
 #include "WxGameplayTags.h"
 
 AWxEnemyCharacter::AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer)
@@ -35,18 +35,13 @@ AWxEnemyCharacter::AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer
 	LockOnPoint->SetupAttachment(GetMesh(), TEXT("pelvis"));
 }
 
-void AWxEnemyCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AWxEnemyCharacter, bHasAITarget);
-}
-
 void AWxEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
 	NameplateComponent->InitializeViewModels(AbilitySystemComponent, CharacterName, Portrait);
+
+	LockOnComponent->OnLockOnTargetChanged.AddDynamic(this, &AWxEnemyCharacter::HandleAITargetChanged);
 
 	// 부위별 락온으로 지점이 여럿이어도 어느 쪽이 잡히든 표시되도록 전부 구독한다.
 	TArray<UWxLockOnPointComponent*> LockOnPoints;
@@ -61,29 +56,12 @@ void AWxEnemyCharacter::BeginPlay()
 
 bool AWxEnemyCharacter::HasAITarget() const
 {
-	return bHasAITarget;
+	return LockOnComponent->GetLockOnTarget() != nullptr;
 }
 
-void AWxEnemyCharacter::SetHasAITarget(bool bNewHasAITarget)
-{
-	if (bHasAITarget == bNewHasAITarget)
-	{
-		return;
-	}
-
-	bHasAITarget = bNewHasAITarget;
-	NotifyAITargetChanged();
-}
-
-void AWxEnemyCharacter::OnRep_HasAITarget()
-{
-	NotifyAITargetChanged();
-}
-
-void AWxEnemyCharacter::NotifyAITargetChanged()
+void AWxEnemyCharacter::HandleAITargetChanged(USceneComponent* NewTarget)
 {
 	RefreshNameplateVisibility();
-	OnAITargetChanged.Broadcast(bHasAITarget);
 }
 
 void AWxEnemyCharacter::HandleLockedOnChanged(bool bLockedOn)
@@ -96,7 +74,7 @@ void AWxEnemyCharacter::RefreshNameplateVisibility()
 	const bool bDead = AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Death);
 
 	// 아직 나를 인지하지 못한 적이라도 내가 락온했다면 띄운다.
-	const bool bShow = bHasAITarget || UWxLockOnPointComponent::IsActorLockedOn(this);
+	const bool bShow = HasAITarget() || UWxLockOnPointComponent::IsActorLockedOn(this);
 
 	// 숨김은 컴포넌트를 화면 위젯 레이어에서 빼내 매 프레임 투영 비용까지 없앤다.
 	NameplateComponent->SetVisibility(!bDead && bShow);
@@ -209,6 +187,6 @@ bool AWxEnemyCharacter::CanInteract(const AActor* Interactor) const
 	}
 
 	// 뒤잡은 적이 아직 타겟을 획득하지 못했을 때만 성립한다.
-	return !bHasAITarget && IsInRearCone(Interactor);
+	return !HasAITarget() && IsInRearCone(Interactor);
 }
 
