@@ -4,7 +4,9 @@
 #include "View/MVVMView.h"
 #include "MVVM/WxViewModel_Character.h"
 #include "Framework/Application/SlateApplication.h"
+#include "GameplayTagAssetInterface.h"
 #include "Misc/CoreMisc.h"
+#include "WxGameplayTags.h"
 #include "WxUIModule.h"
 #include "GameFramework/PlayerController.h"
 
@@ -15,17 +17,30 @@ UWxNameplateComponent::UWxNameplateComponent()
 	SetWidgetSpace(EWidgetSpace::Screen);
 	SetDrawAtDesiredSize(true);
 
-	// 기본 숨김: 적의 존재를 미리 노출하지 않는다.
+	// 첫 가시성 판정 전에 한 프레임 노출되지 않도록 숨겨 둔다.
 	SetVisibility(false);
+
+	VisibilityRequirements.IgnoreTags.AddTag(WxGameplayTags::Ability_Death);
+
+	FGameplayTagContainer ShowAnyTags;
+	ShowAnyTags.AddTag(WxGameplayTags::State_LockedOn);
+	ShowAnyTags.AddTag(WxGameplayTags::State_Engaged);
+	VisibilityRequirements.TagQuery = FGameplayTagQuery::MakeQuery_MatchAnyTags(ShowAnyTags);
 }
 
 void UWxNameplateComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
+	float Distance = 0.f;
+	const bool bShouldBeVisible = ShouldBeVisible(Distance);
+	if (IsVisible() != bShouldBeVisible)
+	{
+		SetVisibility(bShouldBeVisible);
+	}
+
+	// 스크린 스페이스 위젯의 화면 부착·해제가 이 틱에서 결정되므로, 가시성을 먼저 반영한다.
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// 화면 부착·해제를 맡은 Super 는 지나가되, 거리 스케일은 보일 때만 계산한다.
-	// 판정이 갈리지 않도록 엔진의 화면 부착 조건과 같은 술어를 쓴다.
-	if (!IsVisible())
+	if (!bShouldBeVisible)
 	{
 		return;
 	}
@@ -36,23 +51,6 @@ void UWxNameplateComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 		return;
 	}
 
-	const UWorld* World = GetWorld();
-	if (!World)
-	{
-		return;
-	}
-
-	const APlayerController* PC = World->GetFirstPlayerController();
-	if (!PC)
-	{
-		return;
-	}
-
-	FVector CameraLocation;
-	FRotator CameraRotation;
-	PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
-
-	const float Distance = FVector::Dist(GetComponentLocation(), CameraLocation);
 	const float Scale = FMath::Clamp(ReferenceDistance / FMath::Max(Distance, 1.0f), MinScale, MaxScale);
 
 	if (FMath::IsNearlyEqual(Scale, LastRenderScale, KINDA_SMALL_NUMBER))
@@ -62,6 +60,33 @@ void UWxNameplateComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 
 	LastRenderScale = Scale;
 	NameplateWidget->SetRenderScale(FVector2D(Scale, Scale));
+}
+
+bool UWxNameplateComponent::ShouldBeVisible(float& OutDistance) const
+{
+	FGameplayTagContainer OwnedTags;
+	if (const IGameplayTagAssetInterface* TagOwner = Cast<IGameplayTagAssetInterface>(GetOwner()))
+	{
+		TagOwner->GetOwnedGameplayTags(OwnedTags);
+	}
+
+	if (!VisibilityRequirements.RequirementsMet(OwnedTags))
+	{
+		return false;
+	}
+
+	const UWorld* World = GetWorld();
+	const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+	if (!PC)
+	{
+		return false;
+	}
+
+	FVector CameraLocation;
+	FRotator CameraRotation;
+	PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
+	OutDistance = FVector::Dist(GetComponentLocation(), CameraLocation);
+	return OutDistance <= MaxVisibilityDistance;
 }
 
 void UWxNameplateComponent::InitializeViewModels(UAbilitySystemComponent* InASC, const FText& InCharacterName, const TSoftObjectPtr<UObject>& InPortrait)

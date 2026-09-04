@@ -1,4 +1,4 @@
-﻿// Copyright Woogle. All Rights Reserved.
+// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
@@ -6,15 +6,21 @@
 #include "Spawnable/WxSpawnable.h"
 #include "WxInteractable.h"
 #include "Character/WxCharacterBase.h"
+#include "Engine/DataTable.h"
 #include "WxEnemyCharacter.generated.h"
 
+class AWxEnemyCharacter;
 class AWxSpawner;
 class UWxAIBehaviorComponent;
-class UWxEnemyComponent;
 class UWxLockOnPointComponent;
 class UWxNameplateComponent;
+class USceneComponent;
 
-/** 전투 AI의 필수 컴포넌트와 기본값만 조립하며, 런타임 기능과 상태는 각 컴포넌트가 소유한다. */
+DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnBossReady, AWxEnemyCharacter* /*BossCharacter*/);
+DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnBossEndPlay, AWxEnemyCharacter* /*BossCharacter*/);
+DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnEnemyEngagementChanged, bool /*bEngaged*/);
+
+/** 적 캐릭터의 AI 조립, 상호작용, 보상, 보스 표시 상태를 소유한다. 소환 시 Team을 바꾸면 아군으로 운용할 수 있다. */
 UCLASS(Abstract)
 class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnable, public IWxInteractable
 {
@@ -22,6 +28,16 @@ class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnabl
 
 public:
 	AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer);
+
+	bool IsBoss() const;
+	bool IsEngaged() const;
+	AWxSpawner* GetOwningSpawner() const;
+
+	FWxOnBossEndPlay OnBossEndPlay;
+	FWxOnEnemyEngagementChanged OnEngagementChanged;
+
+	/** 보스로 설정된 AI 캐릭터가 BeginPlay를 마칠 때 발행된다. */
+	static FWxOnBossReady OnAnyBossReady;
 
 	//~ Begin IWxSpawnable
 	virtual void OnSpawnedBy(AWxSpawner* Spawner) override;
@@ -34,12 +50,11 @@ public:
 	//~ End IWxInteractable
 
 protected:
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	UPROPERTY(VisibleAnywhere, Category = "Wx|AI")
 	TObjectPtr<UWxAIBehaviorComponent> AIBehaviorComponent;
-
-	/** 적 역할 로직을 소유하며, 이 조립 클래스가 외부 액터 계약을 컴포넌트에 전달한다. */
-	UPROPERTY(VisibleAnywhere, Category = "Wx|Role")
-	TObjectPtr<UWxEnemyComponent> EnemyComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx|UI")
 	TObjectPtr<UWxNameplateComponent> NameplateComponent;
@@ -48,4 +63,31 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx|LockOn")
 	TObjectPtr<UWxLockOnPointComponent> LockOnPoint;
 
+private:
+	UFUNCTION()
+	void HandleAITargetChanged(USceneComponent* NewTarget);
+
+	UFUNCTION()
+	void HandleOwnerDeath(AWxCharacterBase* DeadCharacter);
+
+	bool IsInRearCone(const AActor* Interactor) const;
+	void SetEngaged(bool bInEngaged);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
+	bool bIsBoss = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Interaction", meta = (ClampMin = "0", ClampMax = "180"))
+	float BackstabRearHalfAngle = 90.f;
+
+	/** 처치 시 지급할 보상. 비우면 보상 없음. */
+	UPROPERTY(EditAnywhere, Category = "Wx|Reward", meta = (RowType = "/Script/WxInventory.WxRewardTableRow", WxPreviewRow = "true"))
+	FDataTableRowHandle RewardRow;
+
+	/** 처치 시 스폰되는 픽업 보상의 수직 발사 속도(cm/s). */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Reward", meta = (ClampMin = "0"))
+	float LaunchSpeed = 300.f;
+
+	TWeakObjectPtr<AWxSpawner> OwningSpawner;
+	bool bDeathHandled = false;
+	bool bEngaged = false;
 };

@@ -6,7 +6,7 @@
 **담당**
 - 게임 프레임워크 골격: `AWxGameMode`·`AWxGameState`·`AWxPlayerController`·`AWxAIController`·`AWxPlayerState`·`AWxWorldSettings`.
 - Experience 시스템(`Framework/`): 어떤 GameFeature·컴포넌트·시작 지급으로 이 판을 구성할지 데이터로 정의하고, 서버가 고른 정의를 복제해 서버·클라가 각자 비동기 로드·적용한다.
-- 구체 캐릭터/폰 조립: `AWxCharacterBase`가 도메인 플러그인의 전투·장비·이동 컴포넌트를 한 액터에 모으고, `AWxPlayerCharacter`/`AWxEnemyCharacter`/`AWxMinion`/`AWxNpc`가 파생한다.
+- 구체 캐릭터/폰 조립: `AWxCharacterBase`가 도메인 플러그인의 전투·장비·이동 컴포넌트를 한 액터에 모으고, `AWxPlayerCharacter`/`AWxEnemyCharacter`/`AWxNpc`가 역할별로 파생한다.
 - 게임플레이 입력(이동/시선/점프/크라우치)과 그 구성 애셋(`UWxInputConfig`).
 - 게임↔UI 브리지(`MVVM/`): 게임 모듈의 Pawn·PlayerController·ASC 데이터를 WxUI 소속 뷰모델에 주입하는 리졸버·뷰모델.
 
@@ -24,7 +24,7 @@
 | `UWxGameFeatureAction_AddComponents` | 넷모드 무관하게 receiver 액터에 컴포넌트를 주입하는 Experience 액션 | `Source/WxGame/Framework/WxGameFeatureAction_AddComponents.h` |
 | `AWxCharacterBase` | 도메인 컴포넌트(ASC·전투·장비·이동)를 조립하는 공통 베이스, ModularGameplay receiver | `Source/WxGame/Character/WxCharacterBase.h` |
 | `AWxPlayerCharacter` | 플레이어 입력·카메라·락온 소유, `UWxInputConfig`로 입력 주입 | `Source/WxGame/Character/WxPlayerCharacter.h` |
-| `AWxEnemyCharacter` | Spawnable·Interactable(피니셔) 구현, 락온·네임플레이트·보상 | `Source/WxGame/Character/WxEnemyCharacter.h` |
+| `AWxEnemyCharacter` | 적 AI 조립과 Spawnable·Interactable(피니셔), 락온·네임플레이트·보상·보스 상태를 소유. Team 변경 시 아군 소환으로 운용 가능 | `Source/WxGame/Character/WxEnemyCharacter.h` |
 | `UWxViewModelResolver_PlayerCharacter` | 빙의 Pawn의 ASC·표시 데이터를 WxUI 뷰모델에 주입하는 브리지 | `Source/WxGame/MVVM/WxViewModelResolver_PlayerCharacter.h` |
 
 ## 확장 포인트 / 규약

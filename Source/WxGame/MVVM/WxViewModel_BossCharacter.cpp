@@ -2,8 +2,7 @@
 
 #include "MVVM/WxViewModel_BossCharacter.h"
 #include "Blueprint/UserWidget.h"
-#include "Character/Component/WxEnemyComponent.h"
-#include "Character/WxCharacterBase.h"
+#include "Character/WxEnemyCharacter.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
 
@@ -15,14 +14,14 @@ void UWxViewModel_BossCharacter::StartObserving(UWorld* World)
 	}
 
 	ObservedWorld = World;
-	BossReadyHandle = UWxEnemyComponent::OnAnyBossReady.AddUObject(this, &UWxViewModel_BossCharacter::HandleBossReady);
+	BossReadyHandle = AWxEnemyCharacter::OnAnyBossReady.AddUObject(this, &UWxViewModel_BossCharacter::HandleBossReady);
 
 	// 위젯이 보스보다 늦게 생기면 발행을 놓치므로 이미 있는 보스를 훑어 시드한다.
-	for (TActorIterator<AWxCharacterBase> It(World); It; ++It)
+	for (TActorIterator<AWxEnemyCharacter> It(World); It; ++It)
 	{
-		if (UWxEnemyComponent* EnemyComponent = It->FindComponentByClass<UWxEnemyComponent>(); EnemyComponent && EnemyComponent->IsBoss())
+		if (It->IsBoss())
 		{
-			SetBoss(EnemyComponent);
+			SetBoss(*It);
 			break;
 		}
 	}
@@ -30,65 +29,56 @@ void UWxViewModel_BossCharacter::StartObserving(UWorld* World)
 
 void UWxViewModel_BossCharacter::BeginDestroy()
 {
-	UWxEnemyComponent::OnAnyBossReady.Remove(BossReadyHandle);
+	AWxEnemyCharacter::OnAnyBossReady.Remove(BossReadyHandle);
 
-	if (UWxEnemyComponent* EnemyComponent = CurrentBossComponent.Get())
+	if (AWxEnemyCharacter* BossCharacter = CurrentBossCharacter.Get())
 	{
-		EnemyComponent->OnBossEndPlay.RemoveAll(this);
-		EnemyComponent->OnEngagementChanged.RemoveAll(this);
+		BossCharacter->OnBossEndPlay.RemoveAll(this);
+		BossCharacter->OnEngagementChanged.RemoveAll(this);
 	}
 
 	Super::BeginDestroy();
 }
 
-void UWxViewModel_BossCharacter::HandleBossReady(UWxEnemyComponent* EnemyComponent)
+void UWxViewModel_BossCharacter::HandleBossReady(AWxEnemyCharacter* BossCharacter)
 {
 	// 클래스 차원 델리게이트라 PIE 에선 서버·클라 월드가 함께 실린다.
-	if (EnemyComponent && EnemyComponent->GetWorld() == ObservedWorld.Get())
+	if (BossCharacter && BossCharacter->GetWorld() == ObservedWorld.Get())
 	{
-		SetBoss(EnemyComponent);
+		SetBoss(BossCharacter);
 	}
 }
 
-void UWxViewModel_BossCharacter::HandleBossEndPlay(UWxEnemyComponent* EnemyComponent)
+void UWxViewModel_BossCharacter::HandleBossEndPlay(AWxEnemyCharacter* BossCharacter)
 {
-	if (EnemyComponent == CurrentBossComponent.Get())
+	if (BossCharacter == CurrentBossCharacter.Get())
 	{
 		SetBoss(nullptr);
 	}
 }
 
-void UWxViewModel_BossCharacter::SetBoss(UWxEnemyComponent* EnemyComponent)
+void UWxViewModel_BossCharacter::SetBoss(AWxEnemyCharacter* BossCharacter)
 {
-	if (UWxEnemyComponent* PreviousEnemyComponent = CurrentBossComponent.Get())
+	if (AWxEnemyCharacter* PreviousBossCharacter = CurrentBossCharacter.Get())
 	{
-		PreviousEnemyComponent->OnBossEndPlay.RemoveAll(this);
-		PreviousEnemyComponent->OnEngagementChanged.RemoveAll(this);
+		PreviousBossCharacter->OnBossEndPlay.RemoveAll(this);
+		PreviousBossCharacter->OnEngagementChanged.RemoveAll(this);
 	}
 
-	CurrentBossComponent = EnemyComponent;
+	CurrentBossCharacter = BossCharacter;
 
-	if (!EnemyComponent || !EnemyComponent->IsBoss())
+	if (!BossCharacter || !BossCharacter->IsBoss())
 	{
-		CurrentBossComponent.Reset();
+		CurrentBossCharacter.Reset();
 		HandleEngagementChanged(false);
 		Deinitialize();
 		return;
 	}
 
-	AWxCharacterBase* Boss = EnemyComponent->GetEnemyCharacter();
-	if (!Boss)
-	{
-		CurrentBossComponent.Reset();
-		HandleEngagementChanged(false);
-		Deinitialize();
-		return;
-	}
-
-	EnemyComponent->OnBossEndPlay.AddUObject(this, &ThisClass::HandleBossEndPlay);
-	EnemyComponent->OnEngagementChanged.AddUObject(this, &ThisClass::HandleEngagementChanged);
-	Initialize(Boss->GetAbilitySystemComponent(), Boss->GetCharacterName(), Boss->GetPortrait());
-	HandleEngagementChanged(EnemyComponent->IsEngaged());
+	BossCharacter->OnBossEndPlay.AddUObject(this, &ThisClass::HandleBossEndPlay);
+	BossCharacter->OnEngagementChanged.AddUObject(this, &ThisClass::HandleEngagementChanged);
+	Initialize(BossCharacter->GetAbilitySystemComponent(), BossCharacter->GetCharacterName(), BossCharacter->GetPortrait());
+	HandleEngagementChanged(BossCharacter->IsEngaged());
 }
 
 void UWxViewModel_BossCharacter::HandleEngagementChanged(bool bEngaged)

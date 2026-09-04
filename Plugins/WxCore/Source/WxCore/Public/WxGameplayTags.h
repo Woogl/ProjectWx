@@ -8,6 +8,12 @@
 namespace WxGameplayTags
 {
 	// ── State ──────────────────────────────────────────────────────────────
+
+	/** 로컬 플레이어가 이 액터를 락온 중일 때 피대상 ASC에만 붙는 개인 UI 상태. */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_LockedOn);
+
+	/** 적 AI가 유효한 전투 대상을 보유하고 있는 교전 상태. */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Engaged);
 	
 	/** 대화 세션 컴포넌트가 시작·종료에 맞춰 폰 ASC에 loose 태그로 발행. WxAbility_Interact가 ActivationBlockedTags로 사용해 대화 중 프롬프트 표시·상호작용을 닫는다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dialogue);

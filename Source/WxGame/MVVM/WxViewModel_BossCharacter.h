@@ -9,10 +9,10 @@
 
 class UUserWidget;
 class UMVVMView;
-class UWxEnemyComponent;
+class AWxEnemyCharacter;
 
 /**
- * Boss 등급의 EnemyComponent를 관찰해 전투 데이터와 표시 상태를 FieldNotify로 중계한다.
+ * 보스로 설정된 AI 캐릭터를 관찰해 전투 데이터와 표시 상태를 FieldNotify로 중계한다.
  */
 UCLASS()
 class WXGAME_API UWxViewModel_BossCharacter : public UWxViewModel_Character
@@ -29,19 +29,19 @@ public:
 	bool bBossBattleActive = false;
 
 private:
-	void HandleBossReady(UWxEnemyComponent* EnemyComponent);
+	void HandleBossReady(AWxEnemyCharacter* BossCharacter);
 
-	void HandleBossEndPlay(UWxEnemyComponent* EnemyComponent);
+	void HandleBossEndPlay(AWxEnemyCharacter* BossCharacter);
 
 	void HandleEngagementChanged(bool bEngaged);
 
-	void SetBoss(UWxEnemyComponent* EnemyComponent);
+	void SetBoss(AWxEnemyCharacter* BossCharacter);
 
 	TWeakObjectPtr<UWorld> ObservedWorld;
 
 	FDelegateHandle BossReadyHandle;
 
-	TWeakObjectPtr<UWxEnemyComponent> CurrentBossComponent;
+	TWeakObjectPtr<AWxEnemyCharacter> CurrentBossCharacter;
 };
 
 UCLASS(EditInlineNew, CollapseCategories)
