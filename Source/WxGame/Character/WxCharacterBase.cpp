@@ -88,7 +88,10 @@ void AWxCharacterBase::PostInitializeComponents()
 		HandleDeath();
 	}
 
-	EquipmentComponent->OnEquipVisualChanged.AddUObject(this, &AWxCharacterBase::HandleEquipVisualChanged);
+	if (!WeaponActor)
+	{
+		return;
+	}
 
 	if (AActor* SpawnedWeapon = WeaponActor->GetChildActor())
 	{
@@ -160,7 +163,7 @@ void AWxCharacterBase::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer)
 
 AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const
 {
-	return Cast<AWxWeaponBase>(WeaponActor->GetChildActor());
+	return WeaponActor ? Cast<AWxWeaponBase>(WeaponActor->GetChildActor()) : nullptr;
 }
 
 UWxLockOnComponent* AWxCharacterBase::GetLockOnComponent() const
@@ -286,27 +289,6 @@ void AWxCharacterBase::EnterRagdoll()
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->DisableMovement();
-}
-
-void AWxCharacterBase::HandleEquipVisualChanged(USkeletalMesh* MeshAsset, FName Socket)
-{
-	AWxWeaponBase* Weapon = GetEquippedWeapon();
-	if (!Weapon)
-	{
-		// ChildActor 가 아직 스폰되지 않았을 수 있다(초기 복제 타이밍).
-		// 이때 놓친 외형은 다음 장착 변경 방송에서야 반영된다.
-		return;
-	}
-
-	Weapon->SetVisualMesh(MeshAsset);
-
-	if (Socket != NAME_None)
-	{
-		if (USceneComponent* CurrentParent = WeaponActor->GetAttachParent())
-		{
-			WeaponActor->AttachToComponent(CurrentParent, FAttachmentTransformRules::SnapToTargetIncludingScale, Socket);
-		}
-	}
 }
 
 void AWxCharacterBase::HandleDeath()

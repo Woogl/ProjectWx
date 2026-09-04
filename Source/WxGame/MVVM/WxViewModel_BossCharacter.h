@@ -3,19 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/EngineBaseTypes.h"
 #include "MVVM/WxViewModel_Character.h"
 #include "View/MVVMViewModelContextResolver.h"
 #include "WxViewModel_BossCharacter.generated.h"
 
-class AWxEnemyCharacter;
-class USceneComponent;
 class UUserWidget;
 class UMVVMView;
 class UWxBossComponent;
 
 /**
- * 보스 존재를 스스로 관찰하는 보스 네임플레이트용 뷰모델.
+ * 보스 컴포넌트를 관찰해 전투 데이터와 표시 상태를 FieldNotify로 중계하는 보스 네임플레이트용 뷰모델.
  */
 UCLASS()
 class WXGAME_API UWxViewModel_BossCharacter : public UWxViewModel_Character
@@ -29,24 +26,22 @@ public:
 	virtual void BeginDestroy() override;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Boss")
-	bool bHasAITarget = false;
+	bool bBossBattleActive = false;
 
 private:
 	void HandleBossReady(UWxBossComponent* BossComponent);
 
-	UFUNCTION()
-	void HandleBossEndPlay(AActor* Actor, EEndPlayReason::Type EndPlayReason);
+	void HandleBossEndPlay(UWxBossComponent* BossComponent);
 
-	UFUNCTION()
-	void HandleAITargetChanged(USceneComponent* NewTarget);
+	void HandleEngagementChanged(bool bEngaged);
 
-	void SetBoss(AWxEnemyCharacter* Boss);
+	void SetBoss(UWxBossComponent* BossComponent);
 
 	TWeakObjectPtr<UWorld> ObservedWorld;
 
 	FDelegateHandle BossReadyHandle;
 
-	TWeakObjectPtr<AWxEnemyCharacter> CurrentBoss;
+	TWeakObjectPtr<UWxBossComponent> CurrentBossComponent;
 };
 
 UCLASS(EditInlineNew, CollapseCategories)

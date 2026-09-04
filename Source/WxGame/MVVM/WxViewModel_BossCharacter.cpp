@@ -6,7 +6,6 @@
 #include "Character/WxEnemyCharacter.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
-#include "Targeting/WxLockOnComponent.h"
 
 void UWxViewModel_BossCharacter::StartObserving(UWorld* World)
 {
@@ -21,9 +20,9 @@ void UWxViewModel_BossCharacter::StartObserving(UWorld* World)
 	// 위젯이 보스보다 늦게 생기면 발행을 놓치므로 이미 있는 보스를 훑어 시드한다.
 	for (TActorIterator<AWxEnemyCharacter> It(World); It; ++It)
 	{
-		if (It->FindComponentByClass<UWxBossComponent>())
+		if (UWxBossComponent* BossComponent = It->FindComponentByClass<UWxBossComponent>())
 		{
-			SetBoss(*It);
+			SetBoss(BossComponent);
 			break;
 		}
 	}
@@ -33,10 +32,10 @@ void UWxViewModel_BossCharacter::BeginDestroy()
 {
 	UWxBossComponent::OnAnyBossReady.Remove(BossReadyHandle);
 
-	if (AWxEnemyCharacter* Boss = CurrentBoss.Get())
+	if (UWxBossComponent* BossComponent = CurrentBossComponent.Get())
 	{
-		Boss->OnEndPlay.RemoveDynamic(this, &UWxViewModel_BossCharacter::HandleBossEndPlay);
-		Boss->GetLockOnComponent()->OnLockOnTargetChanged.RemoveDynamic(this, &UWxViewModel_BossCharacter::HandleAITargetChanged);
+		BossComponent->OnBossEndPlay.RemoveAll(this);
+		BossComponent->OnEngagementChanged.RemoveAll(this);
 	}
 
 	Super::BeginDestroy();
@@ -47,44 +46,53 @@ void UWxViewModel_BossCharacter::HandleBossReady(UWxBossComponent* BossComponent
 	// 클래스 차원 델리게이트라 PIE 에선 서버·클라 월드가 함께 실린다.
 	if (BossComponent && BossComponent->GetWorld() == ObservedWorld.Get())
 	{
-		SetBoss(BossComponent->GetBossCharacter());
+		SetBoss(BossComponent);
 	}
 }
 
-void UWxViewModel_BossCharacter::HandleBossEndPlay(AActor* Actor, EEndPlayReason::Type EndPlayReason)
+void UWxViewModel_BossCharacter::HandleBossEndPlay(UWxBossComponent* BossComponent)
 {
-	if (Actor == CurrentBoss.Get())
+	if (BossComponent == CurrentBossComponent.Get())
 	{
 		SetBoss(nullptr);
 	}
 }
 
-void UWxViewModel_BossCharacter::SetBoss(AWxEnemyCharacter* Boss)
+void UWxViewModel_BossCharacter::SetBoss(UWxBossComponent* BossComponent)
 {
-	if (AWxEnemyCharacter* PreviousBoss = CurrentBoss.Get())
+	if (UWxBossComponent* PreviousBossComponent = CurrentBossComponent.Get())
 	{
-		PreviousBoss->OnEndPlay.RemoveDynamic(this, &UWxViewModel_BossCharacter::HandleBossEndPlay);
-		PreviousBoss->GetLockOnComponent()->OnLockOnTargetChanged.RemoveDynamic(this, &UWxViewModel_BossCharacter::HandleAITargetChanged);
+		PreviousBossComponent->OnBossEndPlay.RemoveAll(this);
+		PreviousBossComponent->OnEngagementChanged.RemoveAll(this);
 	}
 
-	CurrentBoss = Boss;
+	CurrentBossComponent = BossComponent;
 
-	if (!Boss)
+	if (!BossComponent)
 	{
-		HandleAITargetChanged(nullptr);
+		HandleEngagementChanged(false);
 		Deinitialize();
 		return;
 	}
 
-	Boss->OnEndPlay.AddDynamic(this, &UWxViewModel_BossCharacter::HandleBossEndPlay);
-	Boss->GetLockOnComponent()->OnLockOnTargetChanged.AddDynamic(this, &UWxViewModel_BossCharacter::HandleAITargetChanged);
+	AWxEnemyCharacter* Boss = BossComponent->GetBossCharacter();
+	if (!Boss)
+	{
+		CurrentBossComponent.Reset();
+		HandleEngagementChanged(false);
+		Deinitialize();
+		return;
+	}
+
+	BossComponent->OnBossEndPlay.AddUObject(this, &ThisClass::HandleBossEndPlay);
+	BossComponent->OnEngagementChanged.AddUObject(this, &ThisClass::HandleEngagementChanged);
 	Initialize(Boss->GetAbilitySystemComponent(), Boss->GetCharacterName(), Boss->GetPortrait());
-	HandleAITargetChanged(Boss->GetLockOnComponent()->GetLockOnTarget());
+	HandleEngagementChanged(BossComponent->IsEngaged());
 }
 
-void UWxViewModel_BossCharacter::HandleAITargetChanged(USceneComponent* NewTarget)
+void UWxViewModel_BossCharacter::HandleEngagementChanged(bool bEngaged)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(bHasAITarget, NewTarget != nullptr);
+	UE_MVVM_SET_PROPERTY_VALUE(bBossBattleActive, bEngaged);
 }
 
 UObject* UWxViewModelResolver_BossCharacter::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const

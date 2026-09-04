@@ -11,7 +11,6 @@
 class AWxItemPickup;
 class UGameplayEffect;
 class UNiagaraSystem;
-class USkeletalMesh;
 class UStaticMesh;
 class UTexture2D;
 class UWxItemInstance;
@@ -41,22 +40,13 @@ public:
 	virtual void OnInstanceCreated(UWxItemInstance* Instance) const;
 };
 
-/**
- * 무기 액터 자체는 캐릭터가 ChildActor(AWxCharacterBase::WeaponActor) 로 항상 소유하므로, 장비 변경은 액터 스폰/디스트로이가 아닌 메시 스왑과 부착 소켓 변경으로만 수행한다.
- */
+/** 장착 시 적용하고 해제 시 제거할 GameplayEffect를 기술한다. */
 UCLASS(DisplayName = "Equippable")
 class WXINVENTORY_API UWxItemFragment_Equippable : public UWxItemFragment
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, Category = "Equippable")
-	TObjectPtr<USkeletalMesh> SkeletalMesh;
-
-	/** 비어 있으면 재부착 자체를 건너뛰므로 직전 소켓이 그대로 유지된다. */
-	UPROPERTY(EditDefaultsOnly, Category = "Equippable")
-	FName AttachSocket = TEXT("hand_r");
-
 	/** 장착 시 적용되고 해제 시 제거되는 GE 들. */
 	UPROPERTY(EditDefaultsOnly, Category = "Equippable")
 	TArray<TSubclassOf<UGameplayEffect>> EquipEffects;

@@ -49,34 +49,11 @@ void UWxEquipmentComponent::EquipItem(const UWxItemDefinition* ItemDef)
 	RemoveActiveEquipEffects();
 
 	EquippedItemDef = ItemDef;
-	BroadcastEquipVisual();
 
 	if (NewFragment)
 	{
 		ApplyEquipEffects(ItemDef, NewFragment->EquipEffects);
 	}
-}
-
-void UWxEquipmentComponent::OnRep_EquippedItemDef()
-{
-	BroadcastEquipVisual();
-}
-
-void UWxEquipmentComponent::BroadcastEquipVisual()
-{
-	USkeletalMesh* MeshAsset = nullptr;
-	FName Socket = NAME_None;
-
-	if (EquippedItemDef)
-	{
-		if (const UWxItemFragment_Equippable* Fragment = EquippedItemDef->FindFragmentByClass<UWxItemFragment_Equippable>())
-		{
-			MeshAsset = Fragment->SkeletalMesh;
-			Socket = Fragment->AttachSocket;
-		}
-	}
-
-	OnEquipVisualChanged.Broadcast(MeshAsset, Socket);
 }
 
 void UWxEquipmentComponent::ApplyEquipEffects(const UWxItemDefinition* SourceDef, const TArray<TSubclassOf<UGameplayEffect>>& Effects)

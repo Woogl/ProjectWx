@@ -114,16 +114,6 @@ void AWxWeaponBase::CancelAttack()
 	HitActorsThisSwing.Empty();
 }
 
-void AWxWeaponBase::SetVisualMesh(USkeletalMesh* MeshAsset)
-{
-	if (!Mesh || !MeshAsset)
-	{
-		return;
-	}
-
-	Mesh->SetSkeletalMeshAsset(MeshAsset);
-}
-
 void AWxWeaponBase::AttachToCharacter(ACharacter* OwnerCharacter, FName SocketName)
 {
 	if (!OwnerCharacter || !Mesh)
