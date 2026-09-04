@@ -70,12 +70,23 @@ EBTNodeResult::Type UWxBTTask_Patrol::ExecuteTask(UBehaviorTreeComponent& OwnerC
 
 FString UWxBTTask_Patrol::GetStaticDescription() const
 {
-	if (!MoveSpeedEffect)
+	const FString SpeedLine = MoveSpeedEffect ? FString::Printf(TEXT("Speed: x%.2f"), MoveSpeedMultiplier) : FString(TEXT("Speed: 감속 GE 미지정"));
+
+	return FString::Printf(TEXT("%s\n%s\n갈 지점이 없으면 제자리 대기(브랜치 점유)"), *Super::GetStaticDescription(), *SpeedLine);
+}
+
+void UWxBTTask_Patrol::DescribeRuntimeValues(const UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTDescriptionVerbosity::Type Verbosity, TArray<FString>& Values) const
+{
+	Super::DescribeRuntimeValues(OwnerComp, NodeMemory, Verbosity, Values);
+
+	// 이동 중인 Patrol 과 완주해 눌러앉은 Patrol 은 디버거에서 똑같이 Running 으로만 보인다.
+	if (bPatrolFinished)
 	{
-		return FString::Printf(TEXT("%s\nSpeed: 감속 GE 미지정"), *Super::GetStaticDescription());
+		Values.Add(TEXT("정찰 완주 — 제자리 대기"));
+		return;
 	}
 
-	return FString::Printf(TEXT("%s\nSpeed: x%.2f"), *Super::GetStaticDescription(), MoveSpeedMultiplier);
+	Values.Add(FString::Printf(TEXT("Cursor: %d"), PatrolCursor));
 }
 
 void UWxBTTask_Patrol::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult)
