@@ -28,7 +28,7 @@ public:
 
 protected:
 	/** 비우면 대화가 시작되지 않는다. */
-	UPROPERTY(EditAnywhere, Category = "Wx|Dialogue", meta = (RowType = "/Script/WxDialogue.WxDialogueTableRow"))
+	UPROPERTY(EditAnywhere, Category = "Wx|Dialogue", meta = (RowType = "/Script/WxDialogue.WxDialogueTableRow", WxPreviewRow = "true"))
 	FDataTableRowHandle StartRow;
 
 	/** 상호작용 프롬프트에 쓰인다. */

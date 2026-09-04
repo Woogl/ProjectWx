@@ -18,6 +18,7 @@
 #include "UObject/Object.h"
 #include "UObject/UObjectGlobals.h"
 #include "WxActorLocatorCustomization.h"
+#include "WxDataTableRowHandleCustomization.h"
 #include "WxStateTreeComponentNameCustomization.h"
 #include "WxDeviceLinkVisualizer.h"
 #include "WxItemDefinitionThumbnailRenderer.h"
@@ -45,6 +46,12 @@ void FWxEditorModule::StartupModule()
 		FUniversalObjectLocator::StaticStruct()->GetFName(),
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FWxActorLocatorCustomization::MakeInstance),
 		ActorLocatorIdentifier);
+
+	DataTableRowHandleIdentifier = MakeShared<FWxDataTableRowHandleTypeIdentifier>();
+	PropertyModule.RegisterCustomPropertyTypeLayout(
+		FDataTableRowHandle::StaticStruct()->GetFName(),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FWxDataTableRowHandleCustomization::MakeInstance),
+		DataTableRowHandleIdentifier);
 
 	PropertyModule.RegisterCustomPropertyTypeLayout(
 		FWxStateTreeComponentName::StaticStruct()->GetFName(),
@@ -106,6 +113,11 @@ void FWxEditorModule::ShutdownModule()
 		{
 			PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("UniversalObjectLocator"), ActorLocatorIdentifier);
 			ActorLocatorIdentifier.Reset();
+		}
+		if (DataTableRowHandleIdentifier.IsValid())
+		{
+			PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("DataTableRowHandle"), DataTableRowHandleIdentifier);
+			DataTableRowHandleIdentifier.Reset();
 		}
 		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("WxStateTreeComponentName"));
 

@@ -22,6 +22,6 @@ public:
 	virtual FString GetNotifyName_Implementation() const override;
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxDamageTableRow"))
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxDamageTableRow", WxPreviewRow = "true"))
 	FDataTableRowHandle DamageDataRow;
 };

@@ -73,7 +73,7 @@ public:
 	 * 쿨다운·코스트 수치는 이 행에서 읽는다.
 	 * 코스트는 공용 GE(UWxEffect_Cost)가, 쿨다운은 어빌리티가 지정한 UWxEffect_Cooldown 파생 GE가 그 수치를 쓴다.
 	 */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxAbilityTableRow"))
+	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxAbilityTableRow", WxPreviewRow = "true"))
 	FDataTableRowHandle AbilityDataRow;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")

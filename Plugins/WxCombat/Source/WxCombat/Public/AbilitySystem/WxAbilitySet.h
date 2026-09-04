@@ -25,7 +25,7 @@ public:
 	TArray<const UInputAction*> GetInputActions() const;
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Attributes", meta = (RowType = "/Script/WxCombat.WxCombatAttributeInitTableRow"))
+	UPROPERTY(EditDefaultsOnly, Category = "Attributes", meta = (RowType = "/Script/WxCombat.WxCombatAttributeInitTableRow", WxPreviewRow = "true"))
 	FDataTableRowHandle AttributeInitRow;
 
 	/** 입력 라우팅 키는 각 어빌리티 CDO의 ActivationInputAction이 쥐고 있다. */

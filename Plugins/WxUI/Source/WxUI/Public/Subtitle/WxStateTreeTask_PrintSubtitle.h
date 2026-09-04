@@ -24,7 +24,7 @@ struct FWxStateTreeTask_PrintSubtitleInstanceData
 	GENERATED_BODY()
 
 	/** 이후 진행(유지 시간·다음 줄)은 자막 데이터가 정한다. */
-	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (RowType = "/Script/WxUI.WxSubtitleTableRow"))
+	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (RowType = "/Script/WxUI.WxSubtitleTableRow", WxPreviewRow = "true"))
 	FDataTableRowHandle StartRow;
 
 	/** (런타임) 다음 줄을 찾을 출발점이다. */

@@ -32,7 +32,7 @@ public:
 	virtual TSoftObjectPtr<UObject> GetIcon() const override;
 	//~ End IWxUIData
 
-	UPROPERTY(EditDefaultsOnly, meta = (RowType = "/Script/WxCombat.WxEffectTableRow"))
+	UPROPERTY(EditDefaultsOnly, meta = (RowType = "/Script/WxCombat.WxEffectTableRow", WxPreviewRow = "true"))
 	FDataTableRowHandle EffectDataRow;
 
 	const FWxEffectTableRow* GetRow() const;

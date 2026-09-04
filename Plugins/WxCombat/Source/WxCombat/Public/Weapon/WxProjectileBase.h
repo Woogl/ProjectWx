@@ -38,7 +38,7 @@ public:
 	//~ End IGenericTeamAgentInterface
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "Wx|Projectile|Damage", meta = (RowType = "/Script/WxCombat.WxDamageTableRow"))
+	UPROPERTY(EditAnywhere, Category = "Wx|Projectile|Damage", meta = (RowType = "/Script/WxCombat.WxDamageTableRow", WxPreviewRow = "true"))
 	FDataTableRowHandle DamageDataRow;
 
 	/** 적중 시 공격자에게 걸 역경직 지속 시간 (초). 0 이하이면 미적용 */

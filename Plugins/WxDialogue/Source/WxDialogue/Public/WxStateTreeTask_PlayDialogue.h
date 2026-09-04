@@ -18,7 +18,7 @@ struct FWxStateTreeTask_PlayDialogueInstanceData
 	GENERATED_BODY()
 
 	/** 이후 진행(다음 행)은 대화 데이터가 정한다. */
-	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (RowType = "/Script/WxDialogue.WxDialogueTableRow"))
+	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (RowType = "/Script/WxDialogue.WxDialogueTableRow", WxPreviewRow = "true"))
 	FDataTableRowHandle StartRow;
 };
 

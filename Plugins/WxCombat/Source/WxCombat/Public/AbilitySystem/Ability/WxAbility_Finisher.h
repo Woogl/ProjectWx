@@ -21,7 +21,7 @@ struct FWxFinisherVariant
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> VictimMontage;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Ability", meta = (RowType = "/Script/WxCombat.WxDamageTableRow"))
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Ability", meta = (RowType = "/Script/WxCombat.WxDamageTableRow", WxPreviewRow = "true"))
 	FDataTableRowHandle DamageDataRow;
 };
 

@@ -18,7 +18,7 @@ struct FWxStateTreeTask_GiveRewardsInstanceData
 	GENERATED_BODY()
 
 	/** 비우면 아무것도 지급하지 않는다. */
-	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (RowType = "/Script/WxInventory.WxRewardTableRow"))
+	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (RowType = "/Script/WxInventory.WxRewardTableRow", WxPreviewRow = "true"))
 	FDataTableRowHandle RewardRow;
 
 	/**
