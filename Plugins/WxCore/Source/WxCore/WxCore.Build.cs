@@ -18,7 +18,7 @@ public class WxCore : ModuleRules
 
 		if (Target.bBuildEditor)
 		{
-			PrivateDependencyModuleNames.AddRange(new string[]
+			PublicDependencyModuleNames.AddRange(new string[]
 			{
 				"UniversalObjectLocator",
 			});
