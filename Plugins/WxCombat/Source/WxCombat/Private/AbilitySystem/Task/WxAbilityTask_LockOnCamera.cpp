@@ -1,15 +1,18 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Task/WxAbilityTask_LockOnCamera.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "Targeting/WxLockOnPointComponent.h"
+#include "WxGameplayTags.h"
 
-UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed, float InPitchOffset, float InMaxDistance, TSubclassOf<UUserWidget> InReticleWidgetClass, float InRetargetLookThreshold)
+UWxAbilityTask_LockOnCamera* UWxAbilityTask_LockOnCamera::CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed, float InPitchOffset, float InMaxDistance, TSubclassOf<UUserWidget> InReticleWidgetClass, float InRetargetLookThreshold)
 {
-	UWxAbilityTask_LockOnTarget* Task = NewAbilityTask<UWxAbilityTask_LockOnTarget>(OwningAbility);
+	UWxAbilityTask_LockOnCamera* Task = NewAbilityTask<UWxAbilityTask_LockOnCamera>(OwningAbility);
 	Task->Target = InTarget;
 	Task->InterpSpeed = InInterpSpeed;
 	Task->PitchOffset = InPitchOffset;
@@ -20,7 +23,7 @@ UWxAbilityTask_LockOnTarget* UWxAbilityTask_LockOnTarget::CreateTask(UGameplayAb
 	return Task;
 }
 
-void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
+void UWxAbilityTask_LockOnCamera::TickTask(float DeltaTime)
 {
 	Super::TickTask(DeltaTime);
 
@@ -106,11 +109,11 @@ void UWxAbilityTask_LockOnTarget::TickTask(float DeltaTime)
 	}
 }
 
-void UWxAbilityTask_LockOnTarget::OnDestroy(bool bInOwnerFinished)
+void UWxAbilityTask_LockOnCamera::OnDestroy(bool bInOwnerFinished)
 {
 	if (UWxLockOnComponent* Comp = LockOnComponent.Get())
 	{
-		Comp->OnLockOnTargetChanged.RemoveDynamic(this, &UWxAbilityTask_LockOnTarget::HandleLockOnTargetChanged);
+		Comp->OnLockOnTargetChanged.RemoveDynamic(this, &UWxAbilityTask_LockOnCamera::HandleLockOnTargetChanged);
 	}
 
 	UnbindTarget();
@@ -118,7 +121,7 @@ void UWxAbilityTask_LockOnTarget::OnDestroy(bool bInOwnerFinished)
 	Super::OnDestroy(bInOwnerFinished);
 }
 
-void UWxAbilityTask_LockOnTarget::Activate()
+void UWxAbilityTask_LockOnCamera::Activate()
 {
 	Super::Activate();
 
@@ -127,7 +130,7 @@ void UWxAbilityTask_LockOnTarget::Activate()
 	LockOnComponent = Avatar ? Avatar->FindComponentByClass<UWxLockOnComponent>() : nullptr;
 	if (UWxLockOnComponent* Comp = LockOnComponent.Get())
 	{
-		Comp->OnLockOnTargetChanged.AddDynamic(this, &UWxAbilityTask_LockOnTarget::HandleLockOnTargetChanged);
+		Comp->OnLockOnTargetChanged.AddDynamic(this, &UWxAbilityTask_LockOnCamera::HandleLockOnTargetChanged);
 		Target = Comp->GetLockOnTarget();
 	}
 
@@ -135,7 +138,7 @@ void UWxAbilityTask_LockOnTarget::Activate()
 	BindTarget();
 }
 
-void UWxAbilityTask_LockOnTarget::HandleLockOnTargetChanged(USceneComponent* NewTarget)
+void UWxAbilityTask_LockOnCamera::HandleLockOnTargetChanged(USceneComponent* NewTarget)
 {
 	if (NewTarget == Target.Get())
 	{
@@ -151,7 +154,7 @@ void UWxAbilityTask_LockOnTarget::HandleLockOnTargetChanged(USceneComponent* New
 	// NewTarget 이 null 이면 다음 TickTask 가 무효 Target 을 감지해 OnTargetLost 를 발생시킨다.
 }
 
-void UWxAbilityTask_LockOnTarget::BindTarget()
+void UWxAbilityTask_LockOnCamera::BindTarget()
 {
 	USceneComponent* TargetComponent = Target.Get();
 	if (!TargetComponent)
@@ -164,7 +167,7 @@ void UWxAbilityTask_LockOnTarget::BindTarget()
 	BoundTargetActor = TargetActor;
 	if (TargetActor)
 	{
-		TargetActor->OnDestroyed.AddDynamic(this, &UWxAbilityTask_LockOnTarget::HandleTargetDestroyed);
+		TargetActor->OnDestroyed.AddDynamic(this, &UWxAbilityTask_LockOnCamera::HandleTargetDestroyed);
 	}
 
 	// 피대상 표시는 레티클과 같은 성격의 개인 UI라 같은 수명으로 켠다.
@@ -172,11 +175,15 @@ void UWxAbilityTask_LockOnTarget::BindTarget()
 	{
 		TargetPoint->SetLockedOn(true);
 	}
+	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
+	{
+		TargetASC->AddLooseGameplayTag(WxGameplayTags::State_LockedOn);
+	}
 
 	CreateReticleWidget();
 }
 
-void UWxAbilityTask_LockOnTarget::UnbindTarget()
+void UWxAbilityTask_LockOnCamera::UnbindTarget()
 {
 	DestroyReticleWidget();
 
@@ -189,12 +196,17 @@ void UWxAbilityTask_LockOnTarget::UnbindTarget()
 	// Target 약참조가 이미 풀렸어도 캐시한 소유 액터로 파괴 이벤트 바인딩을 해제한다.
 	if (AActor* TargetActor = BoundTargetActor.Get())
 	{
-		TargetActor->OnDestroyed.RemoveDynamic(this, &UWxAbilityTask_LockOnTarget::HandleTargetDestroyed);
+		TargetActor->OnDestroyed.RemoveDynamic(this, &UWxAbilityTask_LockOnCamera::HandleTargetDestroyed);
+
+		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
+		{
+			TargetASC->RemoveLooseGameplayTag(WxGameplayTags::State_LockedOn);
+		}
 	}
 	BoundTargetActor = nullptr;
 }
 
-void UWxAbilityTask_LockOnTarget::HandleTargetDestroyed(AActor* DestroyedActor)
+void UWxAbilityTask_LockOnCamera::HandleTargetDestroyed(AActor* DestroyedActor)
 {
 	if (ShouldBroadcastAbilityTaskDelegates())
 	{
@@ -202,7 +214,7 @@ void UWxAbilityTask_LockOnTarget::HandleTargetDestroyed(AActor* DestroyedActor)
 	}
 }
 
-void UWxAbilityTask_LockOnTarget::CreateReticleWidget()
+void UWxAbilityTask_LockOnCamera::CreateReticleWidget()
 {
 	USceneComponent* TargetComponent = Target.Get();
 	if (!TargetComponent || !ReticleWidgetClass)
@@ -220,7 +232,7 @@ void UWxAbilityTask_LockOnTarget::CreateReticleWidget()
 	ReticleWidgetComponent->AttachToComponent(TargetComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 }
 
-void UWxAbilityTask_LockOnTarget::DestroyReticleWidget()
+void UWxAbilityTask_LockOnCamera::DestroyReticleWidget()
 {
 	if (ReticleWidgetComponent)
 	{

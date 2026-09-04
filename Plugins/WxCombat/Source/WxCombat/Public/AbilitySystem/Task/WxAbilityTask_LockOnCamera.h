@@ -16,12 +16,12 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnRetargetRequested, FVector2D, S
 
 /** 컨트롤러 회전을 타겟 방향으로 보간하고, 대상이 파괴·무효화되면 OnTargetLost를 쏜다. */
 UCLASS()
-class WXCOMBAT_API UWxAbilityTask_LockOnTarget : public UAbilityTask
+class WXCOMBAT_API UWxAbilityTask_LockOnCamera : public UAbilityTask
 {
 	GENERATED_BODY()
 
 public:
-	static UWxAbilityTask_LockOnTarget* CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed = 10.f, float InPitchOffset = -15.f, float InMaxDistance = 2000.f, TSubclassOf<UUserWidget> InReticleWidgetClass = nullptr, float InRetargetLookThreshold = 40.f);
+	static UWxAbilityTask_LockOnCamera* CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed = 10.f, float InPitchOffset = -15.f, float InMaxDistance = 2000.f, TSubclassOf<UUserWidget> InReticleWidgetClass = nullptr, float InRetargetLookThreshold = 40.f);
 
 	UPROPERTY()
 	FWxOnTargetLost OnTargetLost;

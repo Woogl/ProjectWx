@@ -9,7 +9,7 @@
 class UTargetingPreset;
 class UUserWidget;
 class USceneComponent;
-class UWxAbilityTask_LockOnTarget;
+class UWxAbilityTask_LockOnCamera;
 class UWxAbilityTask_RotateToTarget;
 class UWxLockOnComponent;
 
@@ -87,7 +87,7 @@ private:
 	bool IsDodgeActive() const;
 
 	UPROPERTY()
-	TObjectPtr<UWxAbilityTask_LockOnTarget> LockOnTask;
+	TObjectPtr<UWxAbilityTask_LockOnCamera> LockOnTask;
 
 	UPROPERTY()
 	TObjectPtr<UWxAbilityTask_RotateToTarget> RotateToTargetTask;

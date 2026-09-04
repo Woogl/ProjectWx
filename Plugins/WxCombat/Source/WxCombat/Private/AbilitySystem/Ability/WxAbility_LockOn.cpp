@@ -91,7 +91,7 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		StartRotateToTargetTask(TargetComponent);
 	}
 
-	LockOnTask = UWxAbilityTask_LockOnTarget::CreateTask(this, TargetComponent, CameraInterpSpeed, CameraPitchOffset, MaxDistance, ReticleWidgetClass, RetargetLookThreshold);
+	LockOnTask = UWxAbilityTask_LockOnCamera::CreateTask(this, TargetComponent, CameraInterpSpeed, CameraPitchOffset, MaxDistance, ReticleWidgetClass, RetargetLookThreshold);
 	LockOnTask->OnTargetLost.AddDynamic(this, &UWxAbility_LockOn::HandleTargetLost);
 	LockOnTask->OnRetargetRequested.AddDynamic(this, &UWxAbility_LockOn::HandleRetargetRequested);
 	LockOnTask->ReadyForActivation();
