@@ -4,6 +4,7 @@
 #include "WxBlackboardKeys.h"
 #include "WxAIPerceptionComponent.h"
 #include "Character/WxCharacterBase.h"
+#include "Character/Component/WxAIBehaviorComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BrainComponent.h"
@@ -37,7 +38,8 @@ void AWxAIController::OnPossess(APawn* InPawn)
 		// 재사용된 폰도 새 빙의에서는 대상 없이 시작한다.
 		WxCharacter->GetLockOnComponent()->SetLockOnTarget(nullptr);
 
-		if (UBehaviorTree* BT = WxCharacter->GetBehaviorTree())
+		const UWxAIBehaviorComponent* AIBehaviorComponent = WxCharacter->FindComponentByClass<UWxAIBehaviorComponent>();
+		if (UBehaviorTree* BT = AIBehaviorComponent ? AIBehaviorComponent->GetBehaviorTree() : nullptr)
 		{
 			RunBehaviorTree(BT);
 		}
@@ -48,13 +50,11 @@ void AWxAIController::OnPossess(APawn* InPawn)
 		WxBlackboardKeys::SetSelfActor(BB, InPawn);
 		WxBlackboardKeys::SetHomeLocation(BB, InPawn->GetActorLocation());
 
-		// 주인은 소환자다 — MinionComponent 가 스폰 파라미터로 심어 둔 Instigator 가 그 값이다.
-		// 엔진은 빈 Instigator 에 폰 자신을 넣으므로(APawn::PreInitializeComponents), 주인 없이 태어난 폰은 자기 자신이 들어온다.
+		// 소환자는 Deferred Spawn 시 Instigator로 지정되어 빙의보다 먼저 사용할 수 있다.
 		// 그런 폰의 블랙보드에는 Master 키가 없으니 쓰지 않는다 — 쓰면 키를 못 찾았다는 경고만 남는다.
-		APawn* Summoner = InPawn->GetInstigator();
-		if (Summoner != InPawn)
+		if (APawn* Master = ResolveMinionMaster(InPawn))
 		{
-			WxBlackboardKeys::SetMaster(BB, Summoner);
+			WxBlackboardKeys::SetMaster(BB, Master);
 		}
 	}
 }
@@ -74,7 +74,7 @@ void AWxAIController::OnUnPossess()
 
 		// 키를 쓴 폰만 지운다. GetPawn() 은 Super 앞이라 아직 이전 폰이다.
 		const APawn* PreviousPawn = GetPawn();
-		if (PreviousPawn && PreviousPawn->GetInstigator() != PreviousPawn)
+		if (ResolveMinionMaster(PreviousPawn))
 		{
 			WxBlackboardKeys::SetMaster(BB, nullptr);
 		}
@@ -95,6 +95,17 @@ void AWxAIController::HandleAITargetChanged(AActor* NewTarget)
 	// 조준 지점은 대상의 루트다 — 락온 지점은 플레이어 락온의 대상 계약이라 AI 가 겨누는 액터(플레이어 등)에는 없고, 지점 조건도 플레이어 락온 전용 게이트다.
 	// 퍼셉션이 무는 대상은 복제되는 폰이라는 전제다. 루트가 런타임 생성 비복제 컴포넌트인 액터를 물면 원격에는 null 로 도착한다.
 	WxCharacter->GetLockOnComponent()->SetLockOnTarget(NewTarget ? NewTarget->GetRootComponent() : nullptr);
+}
+
+APawn* AWxAIController::ResolveMinionMaster(const APawn* InPawn) const
+{
+	if (!InPawn)
+	{
+		return nullptr;
+	}
+
+	APawn* SpawnInstigator = InPawn->GetInstigator();
+	return SpawnInstigator != InPawn ? SpawnInstigator : nullptr;
 }
 
 void AWxAIController::HandlePawnDeath(AWxCharacterBase* DeadCharacter)

@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Minion/WxMinionComponent.h"
+#include "Minion/WxMinionManagerComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "AnimNotify/WxAnimNotify_SpawnMinion.h"
@@ -8,9 +8,10 @@
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "GenericTeamAgentInterface.h"
+#include "WxCombatModule.h"
 #include "WxGameplayTags.h"
 
-void UWxMinionComponent::BeginPlay()
+void UWxMinionManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -23,10 +24,10 @@ void UWxMinionComponent::BeginPlay()
 	AbilitySystemComponent = ASC;
 	SpawnMinionEventHandle = ASC->GenericGameplayEventCallbacks
 		.FindOrAdd(WxGameplayTags::Event_SpawnMinion)
-		.AddUObject(this, &UWxMinionComponent::HandleSpawnMinionEvent);
+		.AddUObject(this, &UWxMinionManagerComponent::HandleSpawnMinionEvent);
 }
 
-void UWxMinionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void UWxMinionManagerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (UAbilitySystemComponent* ASC = AbilitySystemComponent.Get())
 	{
@@ -55,12 +56,12 @@ void UWxMinionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-int32 UWxMinionComponent::TryActivateAbilityOnMinions(const FGameplayTag& AbilityTag)
+int32 UWxMinionManagerComponent::TryActivateAbilityOnMinions(const FGameplayTag& AbilityTag)
 {
 	return TryActivateAbilityOnMinions(AbilityTag, FGameplayEventData());
 }
 
-int32 UWxMinionComponent::TryActivateAbilityOnMinions(const FGameplayTag& AbilityTag, const FGameplayEventData& Payload)
+int32 UWxMinionManagerComponent::TryActivateAbilityOnMinions(const FGameplayTag& AbilityTag, const FGameplayEventData& Payload)
 {
 	AActor* Owner = GetOwner();
 	if (!Owner || !Owner->HasAuthority())
@@ -110,7 +111,7 @@ int32 UWxMinionComponent::TryActivateAbilityOnMinions(const FGameplayTag& Abilit
 	return ActivatedMinionCount;
 }
 
-void UWxMinionComponent::HandleSpawnMinionEvent(const FGameplayEventData* Payload)
+void UWxMinionManagerComponent::HandleSpawnMinionEvent(const FGameplayEventData* Payload)
 {
 	AActor* Owner = GetOwner();
 	if (!Owner || !Owner->HasAuthority() || !Payload)
@@ -120,8 +121,14 @@ void UWxMinionComponent::HandleSpawnMinionEvent(const FGameplayEventData* Payloa
 
 	const UWxAnimNotify_SpawnMinion* MinionNotify = Cast<UWxAnimNotify_SpawnMinion>(Payload->OptionalObject.Get());
 	const USkeletalMeshComponent* Mesh = Cast<USkeletalMeshComponent>(Payload->OptionalObject2.Get());
-	if (!MinionNotify || !Mesh || Mesh->GetOwner() != Owner || !MinionNotify->GetMinionClass())
+	const TSubclassOf<APawn> MinionClass = MinionNotify ? MinionNotify->GetMinionClass() : nullptr;
+	if (!MinionNotify || !Mesh || Mesh->GetOwner() != Owner || !MinionClass)
 	{
+		return;
+	}
+	if (!MinionClass->ImplementsInterface(UGenericTeamAgentInterface::StaticClass()))
+	{
+		UE_LOG(LogWxCombat, Warning, TEXT("%s: 소환 클래스 %s가 GenericTeamAgentInterface를 구현하지 않아 생성하지 않는다."), *GetNameSafe(Owner), *GetNameSafe(MinionClass.Get()));
 		return;
 	}
 
@@ -144,7 +151,7 @@ void UWxMinionComponent::HandleSpawnMinionEvent(const FGameplayEventData* Payloa
 
 	// 팀은 BeginPlay 전에 심어야 최초 복제값부터 옳고 첫 프레임의 인지·판정이 어긋나지 않는다.
 	APawn* Master = Cast<APawn>(Owner);
-	AActor* Minion = Owner->GetWorld()->SpawnActorDeferred<AActor>(MinionNotify->GetMinionClass(), SpawnTransform, nullptr, Master, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+	APawn* Minion = Owner->GetWorld()->SpawnActorDeferred<APawn>(MinionClass, SpawnTransform, nullptr, Master, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
 	if (!Minion)
 	{
 		return;
@@ -165,7 +172,7 @@ void UWxMinionComponent::HandleSpawnMinionEvent(const FGameplayEventData* Payloa
 	ActiveMinions.Add(Minion);
 }
 
-void UWxMinionComponent::RemoveInvalidOrDeadMinions()
+void UWxMinionManagerComponent::RemoveInvalidOrDeadMinions()
 {
 	for (int32 MinionIndex = ActiveMinions.Num() - 1; MinionIndex >= 0; --MinionIndex)
 	{
@@ -186,7 +193,7 @@ void UWxMinionComponent::RemoveInvalidOrDeadMinions()
 	}
 }
 
-bool UWxMinionComponent::TryActivateAbilityByExactTag(UAbilitySystemComponent& MinionASC, const FGameplayTag& AbilityTag, const FGameplayEventData& Payload) const
+bool UWxMinionManagerComponent::TryActivateAbilityByExactTag(UAbilitySystemComponent& MinionASC, const FGameplayTag& AbilityTag, const FGameplayEventData& Payload) const
 {
 	FGameplayAbilityActorInfo* ActorInfo = MinionASC.AbilityActorInfo.Get();
 	if (!ActorInfo)

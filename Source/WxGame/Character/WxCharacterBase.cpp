@@ -6,7 +6,7 @@
 #include "AbilitySystem/WxHitStopComponent.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "Inventory/WxEquipmentComponent.h"
-#include "Minion/WxMinionComponent.h"
+#include "Minion/WxMinionManagerComponent.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/GameFrameworkComponentManager.h"
@@ -17,7 +17,7 @@
 #include "MotionWarpingComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapon/WxWeaponBase.h"
-#include "Weapon/WxProjectileComponent.h"
+#include "Weapon/WxProjectileManagerComponent.h"
 #include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 #include "Component/WxCharacterMovementComponent.h"
@@ -41,8 +41,8 @@ AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
 	LockOnComponent = CreateDefaultSubobject<UWxLockOnComponent>(TEXT("LockOnComponent"));
 	HitStopComponent = CreateDefaultSubobject<UWxHitStopComponent>(TEXT("HitStopComponent"));
-	ProjectileComponent = CreateDefaultSubobject<UWxProjectileComponent>(TEXT("ProjectileComponent"));
-	MinionComponent = CreateDefaultSubobject<UWxMinionComponent>(TEXT("MinionComponent"));
+	ProjectileManagerComponent = CreateDefaultSubobject<UWxProjectileManagerComponent>(TEXT("ProjectileManagerComponent"));
+	MinionManagerComponent = CreateDefaultSubobject<UWxMinionManagerComponent>(TEXT("MinionManagerComponent"));
 
 	EquipmentComponent = CreateDefaultSubobject<UWxEquipmentComponent>(TEXT("EquipmentComponent"));
 
@@ -171,9 +171,9 @@ UWxLockOnComponent* AWxCharacterBase::GetLockOnComponent() const
 	return LockOnComponent;
 }
 
-UBehaviorTree* AWxCharacterBase::GetBehaviorTree() const
+bool AWxCharacterBase::HasCombatTarget() const
 {
-	return BehaviorTreeAsset;
+	return LockOnComponent->GetLockOnTarget() != nullptr;
 }
 
 const FText& AWxCharacterBase::GetCharacterName() const

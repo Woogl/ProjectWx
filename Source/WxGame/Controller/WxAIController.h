@@ -31,6 +31,7 @@ private:
 	void HandlePawnDeath(AWxCharacterBase* DeadCharacter);
 
 	void HandleAITargetChanged(AActor* NewTarget);
+	APawn* ResolveMinionMaster(const APawn* InPawn) const;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|AI")

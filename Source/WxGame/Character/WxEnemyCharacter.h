@@ -3,17 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/DataTable.h"
-#include "WxInteractable.h"
 #include "Spawnable/WxSpawnable.h"
+#include "WxInteractable.h"
 #include "Character/WxCharacterBase.h"
 #include "WxEnemyCharacter.generated.h"
 
 class AWxSpawner;
-class USceneComponent;
+class UWxAIBehaviorComponent;
+class UWxEnemyComponent;
 class UWxLockOnPointComponent;
 class UWxNameplateComponent;
 
+/** 전투 AI의 필수 컴포넌트와 기본값만 조립하며, 런타임 기능과 상태는 각 컴포넌트가 소유한다. */
 UCLASS(Abstract)
 class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnable, public IWxInteractable
 {
@@ -22,35 +23,23 @@ class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnabl
 public:
 	AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer);
 
-	AWxSpawner* GetOwningSpawner() const;
-
-	/** AI 가 겨누는 대상의 유무다 — 서버의 AIController 가 채우는 락온 대상에서 파생하므로 클라이언트도 같은 답을 읽는다. */
-	bool HasAITarget() const;
-
 	//~ Begin IWxSpawnable
-	/** 처치 기록에 쓰려고 스폰 주체를 기억하고, 정찰 경로 조회를 위해 스폰 주체에 부착한다. */
 	virtual void OnSpawnedBy(AWxSpawner* Spawner) override;
 	//~ End IWxSpawnable
-	
-	//~ Begin IWxInteractable — Finisher 상호작용
+
+	//~ Begin IWxInteractable
 	virtual bool CanInteract(const AActor* Interactor) const override;
 	virtual void OnInteracted(AActor* Interactor) override;
 	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
 
-	virtual void BeginPlay() override;
-
 protected:
-	bool IsInRearCone(const AActor* Interactor) const;
+	UPROPERTY(VisibleAnywhere, Category = "Wx|AI")
+	TObjectPtr<UWxAIBehaviorComponent> AIBehaviorComponent;
 
-	virtual void HandleDeath() override;
-
-	UFUNCTION()
-	void HandleAITargetChanged(USceneComponent* NewTarget);
-
-	void HandleLockedOnChanged(bool bLockedOn);
-
-	void RefreshNameplateVisibility();
+	/** 적 역할 로직을 소유하며, 이 조립 클래스가 외부 액터 계약을 컴포넌트에 전달한다. */
+	UPROPERTY(VisibleAnywhere, Category = "Wx|Role")
+	TObjectPtr<UWxEnemyComponent> EnemyComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx|UI")
 	TObjectPtr<UWxNameplateComponent> NameplateComponent;
@@ -59,25 +48,4 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx|LockOn")
 	TObjectPtr<UWxLockOnPointComponent> LockOnPoint;
 
-	/**
-	 * 정면 반대 축 기준 이 반각(도) 이내의 후방 원뿔에 플레이어가 있어야 백스탭이 노출된다.
-	 * 기본 90 = 후방 반구.
-	 */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Interaction", meta = (ClampMin = "0", ClampMax = "180"))
-	float BackstabRearHalfAngle = 90.f;
-
-	/** 처치 시 지급할 보상. 비우면 보상 없음. */
-	UPROPERTY(EditAnywhere, Category = "Wx|Reward", meta = (RowType = "/Script/WxInventory.WxRewardTableRow"))
-	FDataTableRowHandle RewardRow;
-
-	/**
-	 * 처치 시 스폰되는 픽업 보상의 발사 속도(cm/s).
-	 * 발사 방향은 항상 월드 Z 업(수직)이다.
-	 * 비-픽업(재화) 보상엔 영향 없다.
-	 */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Reward", meta = (ClampMin = "0"))
-	float LaunchSpeed = 300.f;
-
-	/** 직접 배치된 적은 비어 있다. */
-	TWeakObjectPtr<AWxSpawner> OwningSpawner;
 };

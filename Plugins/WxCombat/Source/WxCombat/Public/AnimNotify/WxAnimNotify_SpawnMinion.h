@@ -7,7 +7,7 @@
 #include "WxAnimNotify_SpawnMinion.generated.h"
 
 /**
- * 자신을 이벤트 페이로드로 전달할 뿐, 생성은 MinionComponent에 맡긴다.
+ * 자신을 이벤트 페이로드로 전달할 뿐, 생성은 MinionManagerComponent에 맡긴다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAnimNotify_SpawnMinion : public UAnimNotify
@@ -18,13 +18,13 @@ public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 	virtual FString GetNotifyName_Implementation() const override;
 
-	TSubclassOf<AActor> GetMinionClass() const;
+	TSubclassOf<APawn> GetMinionClass() const;
 	FVector GetSpawnOffset() const;
 	float GetLifetime() const;
 
 protected:
-	/** 소환수뿐 아니라 터렛·토템 같은 설치물도 같은 경로로 낸다. */
-	UPROPERTY(EditAnywhere, Category = "Wx|Minion")
+	/** 소환자의 팀을 물려받을 수 있는 Pawn만 지정한다. */
+	UPROPERTY(EditAnywhere, Category = "Wx|Minion", meta = (MustImplement = "/Script/AIModule.GenericTeamAgentInterface"))
 	TSubclassOf<APawn> MinionClass;
 
 	/** 소환자 로컬 기준 스폰 지점. 실제 위치는 스폰 시 충돌 보정으로 밀릴 수 있다. */

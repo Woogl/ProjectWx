@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Weapon/WxProjectileComponent.h"
+#include "Weapon/WxProjectileManagerComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "AnimNotify/WxAnimNotify_SpawnProjectile.h"
@@ -10,7 +10,7 @@
 #include "Weapon/WxProjectileBase.h"
 #include "WxGameplayTags.h"
 
-void UWxProjectileComponent::BeginPlay()
+void UWxProjectileManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -23,10 +23,10 @@ void UWxProjectileComponent::BeginPlay()
 	AbilitySystemComponent = ASC;
 	SpawnProjectileEventHandle = ASC->GenericGameplayEventCallbacks
 		.FindOrAdd(WxGameplayTags::Event_SpawnProjectile)
-		.AddUObject(this, &UWxProjectileComponent::HandleSpawnProjectileEvent);
+		.AddUObject(this, &UWxProjectileManagerComponent::HandleSpawnProjectileEvent);
 }
 
-void UWxProjectileComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void UWxProjectileManagerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (UAbilitySystemComponent* ASC = AbilitySystemComponent.Get())
 	{
@@ -42,7 +42,7 @@ void UWxProjectileComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void UWxProjectileComponent::HandleSpawnProjectileEvent(const FGameplayEventData* Payload)
+void UWxProjectileManagerComponent::HandleSpawnProjectileEvent(const FGameplayEventData* Payload)
 {
 	AActor* Owner = GetOwner();
 	if (!Owner || !Owner->HasAuthority() || !Payload)

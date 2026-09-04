@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "GameplayTagContainer.h"
-#include "WxMinionComponent.generated.h"
+#include "WxMinionManagerComponent.generated.h"
 
 class UAbilitySystemComponent;
 struct FGameplayEventData;
@@ -14,7 +14,7 @@ struct FGameplayEventData;
  * 소환 AnimNotify의 GameplayEvent 페이로드로 소환수와 설치물을 서버에서 생성하며, AI 빙의는 소환물의 AutoPossessAI에 맡긴다.
  */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))
-class WXCOMBAT_API UWxMinionComponent : public UActorComponent
+class WXCOMBAT_API UWxMinionManagerComponent : public UActorComponent
 {
 	GENERATED_BODY()
 

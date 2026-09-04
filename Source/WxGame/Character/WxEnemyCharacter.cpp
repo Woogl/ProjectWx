@@ -1,31 +1,22 @@
 ﻿// Copyright Woogle. All Rights Reserved.
 
 #include "Character/WxEnemyCharacter.h"
-#include "Controller/WxAIController.h"
+#include "Character/Component/WxAIBehaviorComponent.h"
+#include "Character/Component/WxEnemyComponent.h"
 #include "Component/WxNameplateComponent.h"
+#include "Controller/WxAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "WxRewardLibrary.h"
-#include "WxCombatLibrary.h"
-#include "AbilitySystem/WxAbilitySystemComponent.h"
-#include "AbilitySystemBlueprintLibrary.h"
-#include "Kismet/GameplayStatics.h"
-#include "Spawnable/WxSpawner.h"
-#include "Targeting/WxLockOnComponent.h"
 #include "Targeting/WxLockOnPointComponent.h"
-#include "WxGameplayTags.h"
 
 AWxEnemyCharacter::AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	Team = EWxTeam::Enemy;
-
 	AIControllerClass = AWxAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	GetCharacterMovement()->MaxWalkSpeed = 400.f;
-
-	// 네임플레이트 UI(아이콘, 남은 시간 비율)에 필요.
-	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Full);
+	AIBehaviorComponent = CreateDefaultSubobject<UWxAIBehaviorComponent>(TEXT("AIBehaviorComponent"));
 
 	NameplateComponent = CreateDefaultSubobject<UWxNameplateComponent>(TEXT("NameplateComponent"));
 	NameplateComponent->SetupAttachment(GetRootComponent());
@@ -33,160 +24,32 @@ AWxEnemyCharacter::AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer
 
 	LockOnPoint = CreateDefaultSubobject<UWxLockOnPointComponent>(TEXT("LockOnPoint"));
 	LockOnPoint->SetupAttachment(GetMesh(), TEXT("pelvis"));
-}
 
-void AWxEnemyCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-
-	NameplateComponent->InitializeViewModels(AbilitySystemComponent, CharacterName, Portrait);
-
-	LockOnComponent->OnLockOnTargetChanged.AddDynamic(this, &AWxEnemyCharacter::HandleAITargetChanged);
-
-	// 부위별 락온으로 지점이 여럿이어도 어느 쪽이 잡히든 표시되도록 전부 구독한다.
-	TArray<UWxLockOnPointComponent*> LockOnPoints;
-	GetComponents<UWxLockOnPointComponent>(LockOnPoints);
-	for (UWxLockOnPointComponent* Point : LockOnPoints)
-	{
-		Point->OnLockedOnChanged.AddUObject(this, &AWxEnemyCharacter::HandleLockedOnChanged);
-	}
-
-	RefreshNameplateVisibility();
-}
-
-bool AWxEnemyCharacter::HasAITarget() const
-{
-	return LockOnComponent->GetLockOnTarget() != nullptr;
-}
-
-void AWxEnemyCharacter::HandleAITargetChanged(USceneComponent* NewTarget)
-{
-	RefreshNameplateVisibility();
-}
-
-void AWxEnemyCharacter::HandleLockedOnChanged(bool bLockedOn)
-{
-	RefreshNameplateVisibility();
-}
-
-void AWxEnemyCharacter::RefreshNameplateVisibility()
-{
-	const bool bDead = AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Death);
-
-	// 아직 나를 인지하지 못한 적이라도 내가 락온했다면 띄운다.
-	const bool bShow = HasAITarget() || UWxLockOnPointComponent::IsActorLockedOn(this);
-
-	// 숨김은 컴포넌트를 화면 위젯 레이어에서 빼내 매 프레임 투영 비용까지 없앤다.
-	NameplateComponent->SetVisibility(!bDead && bShow);
-}
-
-bool AWxEnemyCharacter::IsInRearCone(const AActor* Interactor) const
-{
-	if (!Interactor)
-	{
-		return false;
-	}
-
-	FVector ToInteractor = Interactor->GetActorLocation() - GetActorLocation();
-	ToInteractor.Z = 0.0;
-	if (!ToInteractor.Normalize())
-	{
-		return false;
-	}
-
-	const float ForwardDot = FVector::DotProduct(GetActorForwardVector(), ToInteractor);
-	const float RearThreshold = -FMath::Cos(FMath::DegreesToRadians(BackstabRearHalfAngle));
-	return ForwardDot <= RearThreshold;
-}
-
-void AWxEnemyCharacter::HandleDeath()
-{
-	Super::HandleDeath();
-
-	// 표시 상태라 시뮬 프록시까지 각 머신이 갱신해야 하므로, 권위 전용 처리 앞에 둔다.
-	RefreshNameplateVisibility();
-
-	if (!HasAuthority())
-	{
-		return;
-	}
-
-	if (AWxSpawner* Spawner = OwningSpawner.Get())
-	{
-		Spawner->MarkKilled();
-	}
-
-	// 처치자를 가리지 않고 항상 0번 플레이어에게 지급하는 것이 의도다.
-	if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0))
-	{
-		UWxRewardLibrary::GrantReward(this, RewardRow, PlayerController, GetActorTransform(), FVector::UpVector * LaunchSpeed);
-	}
-}
-
-void AWxEnemyCharacter::OnInteracted(AActor* Interactor)
-{
-	// 서버 권위에서만 호출된다.
-	if (!Interactor)
-	{
-		return;
-	}
-
-	// CanInteract가 서버에서 검증한 앞잡·뒤잡 자격을 통합 피니셔 어빌리티의 연출 선택에 전달한다.
-	FGameplayEventData EventData;
-	EventData.Instigator = Interactor;
-	EventData.Target = this;
-	EventData.EventTag = WxGameplayTags::Event_Finisher;
-	AbilitySystemComponent->GetOwnedGameplayTags(EventData.TargetTags);
-
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Interactor, WxGameplayTags::Event_Finisher, EventData);
-}
-
-FText AWxEnemyCharacter::GetInteractionPrompt() const
-{
-	return FText::FromString(TEXT("Finisher"));
-}
-
-AWxSpawner* AWxEnemyCharacter::GetOwningSpawner() const
-{
-	return OwningSpawner.Get();
+	EnemyComponent = CreateDefaultSubobject<UWxEnemyComponent>(TEXT("EnemyComponent"));
 }
 
 void AWxEnemyCharacter::OnSpawnedBy(AWxSpawner* Spawner)
 {
-	OwningSpawner = Spawner;
-
-	// 정찰 경로를 스포너에 그려 두므로 폰에서 거슬러 올라갈 링크가 필요하다(UWxPatrolComponent::FindPatrolComponent).
-	// 부착을 고른 건 아웃라이너에서 어느 스포너 소속인지 그대로 보이기 때문이다.
-	// 대가로 이동 복제가 ReplicatedMovement 가 아니라 AttachmentReplication 경로를 탄다 — 멀티 검증 때 재확인할 것.
-	AttachToActor(Spawner, FAttachmentTransformRules::KeepWorldTransform);
+	if (EnemyComponent)
+	{
+		EnemyComponent->HandleSpawnedBy(Spawner);
+	}
 }
 
 bool AWxEnemyCharacter::CanInteract(const AActor* Interactor) const
 {
-	// 에너미 클래스여도 팀은 소환자에게서 물려받는다 — 아군이 된 소환수는 처형 대상이 아니다.
-	if (!UWxCombatLibrary::IsHostile(Interactor, this))
-	{
-		return false;
-	}
-
-	if (!IsAlive())
-	{
-		return false;
-	}
-
-	// 주입된 일회성 몽타주 연출 중에는 닫는다 — 처형 당하기는 기상까지가 그 구간이다.
-	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_PlayMontageOnce))
-	{
-		return false;
-	}
-
-	// 그로기는 이미 무방비라 방향을 묻지 않는다(앞잡).
-	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
-	{
-		return true;
-	}
-
-	// 뒤잡은 적이 아직 타겟을 획득하지 못했을 때만 성립한다.
-	return !HasAITarget() && IsInRearCone(Interactor);
+	return EnemyComponent && EnemyComponent->CanInteract(Interactor);
 }
 
+void AWxEnemyCharacter::OnInteracted(AActor* Interactor)
+{
+	if (EnemyComponent)
+	{
+		EnemyComponent->Interact(Interactor);
+	}
+}
+
+FText AWxEnemyCharacter::GetInteractionPrompt() const
+{
+	return EnemyComponent ? EnemyComponent->GetInteractionPrompt() : FText::GetEmpty();
+}

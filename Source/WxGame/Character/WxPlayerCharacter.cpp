@@ -24,6 +24,8 @@ AWxPlayerCharacter::AWxPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	: Super(ObjectInitializer)
 {
 	Team = EWxTeam::Player;
+	AIControllerClass = nullptr;
+	AutoPossessAI = EAutoPossessAI::Disabled;
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);

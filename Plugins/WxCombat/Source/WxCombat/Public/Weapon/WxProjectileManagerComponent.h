@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "WxProjectileComponent.generated.h"
+#include "WxProjectileManagerComponent.generated.h"
 
 class UAbilitySystemComponent;
 struct FGameplayEventData;
@@ -14,11 +14,11 @@ struct FGameplayEventData;
  * 투사체 클래스와 소켓은 이벤트 페이로드가 소유하므로 어빌리티와 무관하게 동작한다.
  */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))
-class WXCOMBAT_API UWxProjectileComponent : public UActorComponent
+class WXCOMBAT_API UWxProjectileManagerComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-protected:
+public:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 

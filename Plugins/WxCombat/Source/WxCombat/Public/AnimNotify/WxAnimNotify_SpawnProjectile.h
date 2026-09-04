@@ -9,7 +9,7 @@
 class AWxProjectileBase;
 
 /**
- * 자신을 이벤트 페이로드로 전달할 뿐, 투사체 생성은 ProjectileComponent에 맡긴다.
+ * 자신을 이벤트 페이로드로 전달할 뿐, 투사체 생성은 ProjectileManagerComponent에 맡긴다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAnimNotify_SpawnProjectile : public UAnimNotify

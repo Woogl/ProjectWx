@@ -33,7 +33,7 @@ FString UWxAnimNotify_SpawnMinion::GetNotifyName_Implementation() const
 	return Super::GetNotifyName_Implementation();
 }
 
-TSubclassOf<AActor> UWxAnimNotify_SpawnMinion::GetMinionClass() const
+TSubclassOf<APawn> UWxAnimNotify_SpawnMinion::GetMinionClass() const
 {
 	return MinionClass;
 }
