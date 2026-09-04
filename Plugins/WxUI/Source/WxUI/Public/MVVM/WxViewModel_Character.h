@@ -21,8 +21,15 @@ class WXUI_API UWxViewModel_Character : public UWxViewModel
 	GENERATED_BODY()
 
 public:
+	/**
+	 * Source 를 Outer 로 공유되는 인스턴스. 없으면 만든다 — 표시 데이터 주입은 호출자가 한다.
+	 * 같은 Outer 를 집는다는 약속이 발행자와 소비자를 잇는 유일한 연결 고리다.
+	 */
+	static UWxViewModel_Character* GetOrCreate(UObject* Source);
+
 	void Initialize(UAbilitySystemComponent* InASC, const FText& InCharacterName, const TSoftObjectPtr<UObject>& InPortrait);
 
+	/** 표시 필드를 비운다. 파괴 중이 아니면 변경을 통지해, 소스가 빠졌다는 사실이 화면에 반영되게 한다. */
 	virtual void Deinitialize() override;
 
 	/** ASC 가 소유하는 공유본이다 — 같은 캐릭터를 보는 다른 뷰모델·위젯과 같은 인스턴스를 가리킨다. */

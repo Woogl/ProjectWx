@@ -10,6 +10,11 @@ ESlateVisibility UWxMVVMConversionLibrary::Conv_GameplayTagToSlateVisibility(con
 	return TagContainer.HasTag(Tag) ? TrueVisibility : FalseVisibility;
 }
 
+ESlateVisibility UWxMVVMConversionLibrary::Conv_ObjectToSlateVisibility(const UObject* Object, ESlateVisibility TrueVisibility, ESlateVisibility FalseVisibility)
+{
+	return IsValid(Object) ? TrueVisibility : FalseVisibility;
+}
+
 double UWxMVVMConversionLibrary::Conv_CentimetersToMeters(double Centimeters, int32 FractionDigits)
 {
 	// 음수면 m 단위 자체가 뭉개지고, 과도하게 크면 Scale 이 발산해 NaN 이 된다.

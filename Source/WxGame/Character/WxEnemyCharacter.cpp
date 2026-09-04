@@ -16,7 +16,7 @@
 #include "WxGameplayTags.h"
 #include "WxRewardLibrary.h"
 
-FWxOnBossReady AWxEnemyCharacter::OnAnyBossReady;
+FWxOnBossEngagementChanged AWxEnemyCharacter::OnAnyBossEngagementChanged;
 
 AWxEnemyCharacter::AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -48,15 +48,10 @@ void AWxEnemyCharacter::BeginPlay()
 	OnDeath.AddDynamic(this, &ThisClass::HandleOwnerDeath);
 
 	const bool bDead = ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death);
-	RefreshEngagedTag();
+	RefreshEngagement();
 	if (bDead)
 	{
 		HandleOwnerDeath(this);
-	}
-
-	if (IsBoss())
-	{
-		OnAnyBossReady.Broadcast(this);
 	}
 }
 
@@ -67,9 +62,9 @@ void AWxEnemyCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 	OwningSpawner.Reset();
 	GetAbilitySystemComponent()->SetLooseGameplayTagCount(WxGameplayTags::State_Engaged, 0);
-	if (IsBoss())
+	if (bIsBoss)
 	{
-		OnBossEndPlay.Broadcast(this);
+		OnAnyBossEngagementChanged.Broadcast(this, false);
 	}
 
 	Super::EndPlay(EndPlayReason);
@@ -142,7 +137,7 @@ FText AWxEnemyCharacter::GetInteractionPrompt() const
 
 void AWxEnemyCharacter::HandleAITargetChanged(USceneComponent* NewTarget)
 {
-	RefreshEngagedTag();
+	RefreshEngagement();
 }
 
 void AWxEnemyCharacter::HandleOwnerDeath(AWxCharacterBase* DeadCharacter)
@@ -183,19 +178,13 @@ bool AWxEnemyCharacter::IsInRearCone(const AActor* Interactor) const
 	return ForwardDot <= RearThreshold;
 }
 
-void AWxEnemyCharacter::RefreshEngagedTag()
+void AWxEnemyCharacter::RefreshEngagement()
 {
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
-	if (ASC && LockOnComponent)
+	const bool bEngaged = GetLockOnComponent()->GetLockOnTarget() != nullptr;
+	GetAbilitySystemComponent()->SetLooseGameplayTagCount(WxGameplayTags::State_Engaged, bEngaged ? 1 : 0);
+
+	if (bIsBoss)
 	{
-		const bool bEngaged = LockOnComponent->GetLockOnTarget() != nullptr;
-		if (bEngaged)
-		{
-			ASC->SetLooseGameplayTagCount(WxGameplayTags::State_Engaged, 1);
-		}
-		else
-		{
-			ASC->SetLooseGameplayTagCount(WxGameplayTags::State_Engaged, 0);
-		}
+		OnAnyBossEngagementChanged.Broadcast(this, bEngaged);
 	}
 }

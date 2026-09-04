@@ -19,7 +19,7 @@ class UMVVMView;
 /**
  * UWxViewModelResolver_Inventory 가 위젯별로 생성하며, 인벤토리 연결은 본 VM 이 스스로 관찰해 처리한다.
  * 인벤토리는 Experience 주입(서버) 또는 복제(클라)로 붙어 위젯보다 늦게 도착할 수 있고, 리졸버가 돌려준 인스턴스는 뷰가 교체할 수 없다.
- * 그래서 인스턴스는 고정한 채 도착 신호를 받아 내부 상태(Initialize)만 갈아끼운다 — UWxViewModel_BossCharacter 와 같은 구조다.
+ * 그래서 인스턴스는 고정한 채 도착 신호를 받아 내부 상태(Initialize)만 갈아끼운다 — 보스 바가 리졸버 쪽에서 같은 방식으로 자리를 갈아끼운다.
  */
 UCLASS()
 class WXGAME_API UWxViewModel_Inventory : public UWxViewModel

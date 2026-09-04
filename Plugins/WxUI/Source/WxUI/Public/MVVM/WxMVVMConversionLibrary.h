@@ -22,6 +22,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "To Visibility (GameplayTag)"))
 	static ESlateVisibility Conv_GameplayTagToSlateVisibility(const FGameplayTagContainer& TagContainer, FGameplayTag Tag, ESlateVisibility TrueVisibility = ESlateVisibility::SelfHitTestInvisible, ESlateVisibility FalseVisibility = ESlateVisibility::Collapsed);
 
+	/** 뷰모델의 자식 뷰모델처럼 채워졌다 비었다 하는 필드를 그대로 표시 여부로 쓴다. */
+	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "To Visibility (Object)"))
+	static ESlateVisibility Conv_ObjectToSlateVisibility(const UObject* Object, ESlateVisibility TrueVisibility = ESlateVisibility::SelfHitTestInvisible, ESlateVisibility FalseVisibility = ESlateVisibility::Collapsed);
+
 	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "To Meters (Centimeters)"))
 	static double Conv_CentimetersToMeters(double Centimeters, int32 FractionDigits = 1);
 

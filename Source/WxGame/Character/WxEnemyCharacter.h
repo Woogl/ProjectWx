@@ -16,8 +16,7 @@ class UWxLockOnPointComponent;
 class UWxNameplateComponent;
 class USceneComponent;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnBossReady, AWxEnemyCharacter* /*BossCharacter*/);
-DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnBossEndPlay, AWxEnemyCharacter* /*BossCharacter*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FWxOnBossEngagementChanged, AWxEnemyCharacter* /*BossCharacter*/, bool /*bEngaged*/);
 
 /** 적 캐릭터의 AI 조립, 상호작용, 보상, 보스 표시 상태를 소유한다. 소환 시 Team을 바꾸면 아군으로 운용할 수 있다. */
 UCLASS(Abstract)
@@ -31,10 +30,11 @@ public:
 	bool IsBoss() const;
 	AWxSpawner* GetOwningSpawner() const;
 
-	FWxOnBossEndPlay OnBossEndPlay;
-
-	/** 보스로 설정된 AI 캐릭터가 BeginPlay를 마칠 때 발행된다. */
-	static FWxOnBossReady OnAnyBossReady;
+	/**
+	 * 보스로 설정된 AI 캐릭터의 교전 상태가 바뀔 때 발행된다. 소멸도 비교전으로 알린다.
+	 * 관찰자가 보스보다 먼저 생길 수 있어 클래스 차원에 둔다 — 어느 월드의 보스인지는 인자로 온 캐릭터가 말해 준다.
+	 */
+	static FWxOnBossEngagementChanged OnAnyBossEngagementChanged;
 
 	//~ Begin IWxSpawnable
 	virtual void OnSpawnedBy(AWxSpawner* Spawner) override;
@@ -68,7 +68,9 @@ private:
 	void HandleOwnerDeath(AWxCharacterBase* DeadCharacter);
 
 	bool IsInRearCone(const AActor* Interactor) const;
-	void RefreshEngagedTag();
+
+	/** 교전 여부를 다시 계산해 상태 태그와 보스 교전 통지에 반영한다. */
+	void RefreshEngagement();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
 	bool bIsBoss = false;
