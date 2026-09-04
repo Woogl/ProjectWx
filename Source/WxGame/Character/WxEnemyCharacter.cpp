@@ -48,7 +48,7 @@ void AWxEnemyCharacter::BeginPlay()
 	OnDeath.AddDynamic(this, &ThisClass::HandleOwnerDeath);
 
 	const bool bDead = ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death);
-	SetEngaged(!bDead && HasCombatTarget());
+	RefreshEngagedTag();
 	if (bDead)
 	{
 		HandleOwnerDeath(this);
@@ -66,7 +66,7 @@ void AWxEnemyCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	OnDeath.RemoveDynamic(this, &ThisClass::HandleOwnerDeath);
 
 	OwningSpawner.Reset();
-	SetEngaged(false);
+	GetAbilitySystemComponent()->SetLooseGameplayTagCount(WxGameplayTags::State_Engaged, 0);
 	if (IsBoss())
 	{
 		OnBossEndPlay.Broadcast(this);
@@ -78,11 +78,6 @@ void AWxEnemyCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 bool AWxEnemyCharacter::IsBoss() const
 {
 	return bIsBoss;
-}
-
-bool AWxEnemyCharacter::IsEngaged() const
-{
-	return bEngaged;
 }
 
 AWxSpawner* AWxEnemyCharacter::GetOwningSpawner() const
@@ -121,7 +116,7 @@ bool AWxEnemyCharacter::CanInteract(const AActor* Interactor) const
 		return true;
 	}
 
-	return !HasCombatTarget() && IsInRearCone(Interactor);
+	return !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Engaged) && IsInRearCone(Interactor);
 }
 
 void AWxEnemyCharacter::OnInteracted(AActor* Interactor)
@@ -147,20 +142,11 @@ FText AWxEnemyCharacter::GetInteractionPrompt() const
 
 void AWxEnemyCharacter::HandleAITargetChanged(USceneComponent* NewTarget)
 {
-	const bool bDead = GetAbilitySystemComponent()->HasMatchingGameplayTag(WxGameplayTags::Ability_Death);
-	SetEngaged(!bDead && NewTarget != nullptr);
+	RefreshEngagedTag();
 }
 
 void AWxEnemyCharacter::HandleOwnerDeath(AWxCharacterBase* DeadCharacter)
 {
-	SetEngaged(false);
-
-	if (bDeathHandled)
-	{
-		return;
-	}
-
-	bDeathHandled = true;
 	if (!HasAuthority())
 	{
 		return;
@@ -174,7 +160,7 @@ void AWxEnemyCharacter::HandleOwnerDeath(AWxCharacterBase* DeadCharacter)
 	// 처치자를 가리지 않고 항상 0번 플레이어에게 지급하는 것이 기존 정책이다.
 	if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0))
 	{
-		UWxRewardLibrary::GrantReward(this, RewardRow, PlayerController, GetActorTransform(), FVector::UpVector * LaunchSpeed);
+		UWxRewardLibrary::GrantReward(this, RewardRow, PlayerController, GetActorTransform(), FVector::UpVector * 300.f);
 	}
 }
 
@@ -197,16 +183,19 @@ bool AWxEnemyCharacter::IsInRearCone(const AActor* Interactor) const
 	return ForwardDot <= RearThreshold;
 }
 
-void AWxEnemyCharacter::SetEngaged(bool bInEngaged)
+void AWxEnemyCharacter::RefreshEngagedTag()
 {
-	const bool bEngagementChanged = bEngaged != bInEngaged;
-	bEngaged = bInEngaged;
-	GetAbilitySystemComponent()->SetLooseGameplayTagCount(WxGameplayTags::State_Engaged, bEngaged ? 1 : 0);
-
-	if (!bEngagementChanged)
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (ASC && LockOnComponent)
 	{
-		return;
+		const bool bEngaged = LockOnComponent->GetLockOnTarget() != nullptr;
+		if (bEngaged)
+		{
+			ASC->SetLooseGameplayTagCount(WxGameplayTags::State_Engaged, 1);
+		}
+		else
+		{
+			ASC->SetLooseGameplayTagCount(WxGameplayTags::State_Engaged, 0);
+		}
 	}
-
-	OnEngagementChanged.Broadcast(bEngaged);
 }

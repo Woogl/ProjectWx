@@ -8,7 +8,7 @@
 #include "Misc/CoreMisc.h"
 #include "WxGameplayTags.h"
 #include "WxUIModule.h"
-#include "GameFramework/PlayerController.h"
+#include "Kismet/GameplayStatics.h"
 
 UWxNameplateComponent::UWxNameplateComponent()
 {
@@ -30,40 +30,22 @@ UWxNameplateComponent::UWxNameplateComponent()
 
 void UWxNameplateComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	float Distance = 0.f;
-	const bool bShouldBeVisible = ShouldBeVisible(Distance);
-	if (IsVisible() != bShouldBeVisible)
-	{
-		SetVisibility(bShouldBeVisible);
-	}
-
-	// 스크린 스페이스 위젯의 화면 부착·해제가 이 틱에서 결정되므로, 가시성을 먼저 반영한다.
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (!bShouldBeVisible)
+	const APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (!PlayerPawn)
 	{
+		SetVisibility(false);
 		return;
 	}
 
-	UUserWidget* NameplateWidget = GetWidget();
-	if (!NameplateWidget)
+	const float Distance = FVector::Dist(GetComponentLocation(), PlayerPawn->GetActorLocation());
+	if (Distance > MaxVisibilityDistance)
 	{
+		SetVisibility(false);
 		return;
 	}
 
-	const float Scale = FMath::Clamp(ReferenceDistance / FMath::Max(Distance, 1.0f), MinScale, MaxScale);
-
-	if (FMath::IsNearlyEqual(Scale, LastRenderScale, KINDA_SMALL_NUMBER))
-	{
-		return;
-	}
-
-	LastRenderScale = Scale;
-	NameplateWidget->SetRenderScale(FVector2D(Scale, Scale));
-}
-
-bool UWxNameplateComponent::ShouldBeVisible(float& OutDistance) const
-{
 	FGameplayTagContainer OwnedTags;
 	if (const IGameplayTagAssetInterface* TagOwner = Cast<IGameplayTagAssetInterface>(GetOwner()))
 	{
@@ -72,21 +54,26 @@ bool UWxNameplateComponent::ShouldBeVisible(float& OutDistance) const
 
 	if (!VisibilityRequirements.RequirementsMet(OwnedTags))
 	{
-		return false;
+		SetVisibility(false);
+		return;
 	}
 
-	const UWorld* World = GetWorld();
-	const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
-	if (!PC)
+	SetVisibility(true);
+
+	UUserWidget* NameplateWidget = GetWidget();
+	if (!NameplateWidget)
 	{
-		return false;
+		return;
 	}
 
-	FVector CameraLocation;
-	FRotator CameraRotation;
-	PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
-	OutDistance = FVector::Dist(GetComponentLocation(), CameraLocation);
-	return OutDistance <= MaxVisibilityDistance;
+	const float Scale = FMath::Clamp(ReferenceDistance / FMath::Max(Distance, 1.f), MinScale, MaxScale);
+	if (FMath::IsNearlyEqual(Scale, LastRenderScale, KINDA_SMALL_NUMBER))
+	{
+		return;
+	}
+
+	LastRenderScale = Scale;
+	NameplateWidget->SetRenderScale(FVector2D(Scale, Scale));
 }
 
 void UWxNameplateComponent::InitializeViewModels(UAbilitySystemComponent* InASC, const FText& InCharacterName, const TSoftObjectPtr<UObject>& InPortrait)

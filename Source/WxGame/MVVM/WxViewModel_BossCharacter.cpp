@@ -1,10 +1,13 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "MVVM/WxViewModel_BossCharacter.h"
+
+#include "AbilitySystemComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "Character/WxEnemyCharacter.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
+#include "WxGameplayTags.h"
 
 void UWxViewModel_BossCharacter::StartObserving(UWorld* World)
 {
@@ -30,12 +33,7 @@ void UWxViewModel_BossCharacter::StartObserving(UWorld* World)
 void UWxViewModel_BossCharacter::BeginDestroy()
 {
 	AWxEnemyCharacter::OnAnyBossReady.Remove(BossReadyHandle);
-
-	if (AWxEnemyCharacter* BossCharacter = CurrentBossCharacter.Get())
-	{
-		BossCharacter->OnBossEndPlay.RemoveAll(this);
-		BossCharacter->OnEngagementChanged.RemoveAll(this);
-	}
+	UnbindBoss();
 
 	Super::BeginDestroy();
 }
@@ -59,31 +57,57 @@ void UWxViewModel_BossCharacter::HandleBossEndPlay(AWxEnemyCharacter* BossCharac
 
 void UWxViewModel_BossCharacter::SetBoss(AWxEnemyCharacter* BossCharacter)
 {
-	if (AWxEnemyCharacter* PreviousBossCharacter = CurrentBossCharacter.Get())
-	{
-		PreviousBossCharacter->OnBossEndPlay.RemoveAll(this);
-		PreviousBossCharacter->OnEngagementChanged.RemoveAll(this);
-	}
-
-	CurrentBossCharacter = BossCharacter;
+	UnbindBoss();
 
 	if (!BossCharacter || !BossCharacter->IsBoss())
 	{
-		CurrentBossCharacter.Reset();
-		HandleEngagementChanged(false);
+		SetBossBattleActive(false);
 		Deinitialize();
 		return;
 	}
 
+	UAbilitySystemComponent* ASC = BossCharacter->GetAbilitySystemComponent();
+	if (!ASC)
+	{
+		SetBossBattleActive(false);
+		Deinitialize();
+		return;
+	}
+
+	CurrentBossCharacter = BossCharacter;
+	ObservedAbilitySystem = ASC;
 	BossCharacter->OnBossEndPlay.AddUObject(this, &ThisClass::HandleBossEndPlay);
-	BossCharacter->OnEngagementChanged.AddUObject(this, &ThisClass::HandleEngagementChanged);
-	Initialize(BossCharacter->GetAbilitySystemComponent(), BossCharacter->GetCharacterName(), BossCharacter->GetPortrait());
-	HandleEngagementChanged(BossCharacter->IsEngaged());
+	EngagementTagHandle = ASC->RegisterGameplayTagEvent(WxGameplayTags::State_Engaged, EGameplayTagEventType::NewOrRemoved)
+		.AddUObject(this, &ThisClass::HandleEngagementTagChanged);
+	Initialize(ASC, BossCharacter->GetCharacterName(), BossCharacter->GetPortrait());
+	SetBossBattleActive(ASC->HasMatchingGameplayTag(WxGameplayTags::State_Engaged));
 }
 
-void UWxViewModel_BossCharacter::HandleEngagementChanged(bool bEngaged)
+void UWxViewModel_BossCharacter::UnbindBoss()
 {
-	UE_MVVM_SET_PROPERTY_VALUE(bBossBattleActive, bEngaged);
+	if (AWxEnemyCharacter* BossCharacter = CurrentBossCharacter.Get())
+	{
+		BossCharacter->OnBossEndPlay.RemoveAll(this);
+	}
+
+	if (UAbilitySystemComponent* ASC = ObservedAbilitySystem.Get())
+	{
+		ASC->RegisterGameplayTagEvent(WxGameplayTags::State_Engaged, EGameplayTagEventType::NewOrRemoved).Remove(EngagementTagHandle);
+	}
+
+	EngagementTagHandle.Reset();
+	ObservedAbilitySystem.Reset();
+	CurrentBossCharacter.Reset();
+}
+
+void UWxViewModel_BossCharacter::HandleEngagementTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	SetBossBattleActive(NewCount > 0);
+}
+
+void UWxViewModel_BossCharacter::SetBossBattleActive(bool bActive)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(bBossBattleActive, bActive);
 }
 
 UObject* UWxViewModelResolver_BossCharacter::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const

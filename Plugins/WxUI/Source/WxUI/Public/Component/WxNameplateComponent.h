@@ -46,8 +46,6 @@ protected:
 	FGameplayTagRequirements VisibilityRequirements;
 
 private:
-	bool ShouldBeVisible(float& OutDistance) const;
-
 	/**
 	 * 값이 같아도 SetRenderScale 은 위젯을 무효화하므로 변화가 있을 때만 부른다.
 	 * 음수 초기값은 "아직 한 번도 적용하지 않음"을 뜻해 첫 틱이 반드시 반영되게 한다.

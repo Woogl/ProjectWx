@@ -18,7 +18,6 @@ class USceneComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnBossReady, AWxEnemyCharacter* /*BossCharacter*/);
 DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnBossEndPlay, AWxEnemyCharacter* /*BossCharacter*/);
-DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnEnemyEngagementChanged, bool /*bEngaged*/);
 
 /** 적 캐릭터의 AI 조립, 상호작용, 보상, 보스 표시 상태를 소유한다. 소환 시 Team을 바꾸면 아군으로 운용할 수 있다. */
 UCLASS(Abstract)
@@ -30,11 +29,9 @@ public:
 	AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer);
 
 	bool IsBoss() const;
-	bool IsEngaged() const;
 	AWxSpawner* GetOwningSpawner() const;
 
 	FWxOnBossEndPlay OnBossEndPlay;
-	FWxOnEnemyEngagementChanged OnEngagementChanged;
 
 	/** 보스로 설정된 AI 캐릭터가 BeginPlay를 마칠 때 발행된다. */
 	static FWxOnBossReady OnAnyBossReady;
@@ -48,11 +45,11 @@ public:
 	virtual void OnInteracted(AActor* Interactor) override;
 	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
-
-protected:
+	
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx|AI")
 	TObjectPtr<UWxAIBehaviorComponent> AIBehaviorComponent;
 
@@ -71,7 +68,7 @@ private:
 	void HandleOwnerDeath(AWxCharacterBase* DeadCharacter);
 
 	bool IsInRearCone(const AActor* Interactor) const;
-	void SetEngaged(bool bInEngaged);
+	void RefreshEngagedTag();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
 	bool bIsBoss = false;
@@ -83,11 +80,5 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Wx|Reward", meta = (RowType = "/Script/WxInventory.WxRewardTableRow", WxPreviewRow = "true"))
 	FDataTableRowHandle RewardRow;
 
-	/** 처치 시 스폰되는 픽업 보상의 수직 발사 속도(cm/s). */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Reward", meta = (ClampMin = "0"))
-	float LaunchSpeed = 300.f;
-
 	TWeakObjectPtr<AWxSpawner> OwningSpawner;
-	bool bDeathHandled = false;
-	bool bEngaged = false;
 };

@@ -61,7 +61,6 @@ public:
 	//~ End IGenericTeamAgentInterface
 
 	bool IsAlive() const;
-	bool HasCombatTarget() const;
 	AWxWeaponBase* GetEquippedWeapon() const;
 
 	UWxLockOnComponent* GetLockOnComponent() const;

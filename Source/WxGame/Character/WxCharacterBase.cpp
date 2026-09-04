@@ -171,11 +171,6 @@ UWxLockOnComponent* AWxCharacterBase::GetLockOnComponent() const
 	return LockOnComponent;
 }
 
-bool AWxCharacterBase::HasCombatTarget() const
-{
-	return LockOnComponent->GetLockOnTarget() != nullptr;
-}
-
 const FText& AWxCharacterBase::GetCharacterName() const
 {
 	return CharacterName;

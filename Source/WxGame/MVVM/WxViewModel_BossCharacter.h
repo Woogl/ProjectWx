@@ -9,7 +9,9 @@
 
 class UUserWidget;
 class UMVVMView;
+class UAbilitySystemComponent;
 class AWxEnemyCharacter;
+struct FGameplayTag;
 
 /**
  * 보스로 설정된 AI 캐릭터를 관찰해 전투 데이터와 표시 상태를 FieldNotify로 중계한다.
@@ -33,15 +35,20 @@ private:
 
 	void HandleBossEndPlay(AWxEnemyCharacter* BossCharacter);
 
-	void HandleEngagementChanged(bool bEngaged);
+	void HandleEngagementTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
+	void SetBossBattleActive(bool bActive);
 
 	void SetBoss(AWxEnemyCharacter* BossCharacter);
+	void UnbindBoss();
 
 	TWeakObjectPtr<UWorld> ObservedWorld;
 
 	FDelegateHandle BossReadyHandle;
+	FDelegateHandle EngagementTagHandle;
 
 	TWeakObjectPtr<AWxEnemyCharacter> CurrentBossCharacter;
+	TWeakObjectPtr<UAbilitySystemComponent> ObservedAbilitySystem;
 };
 
 UCLASS(EditInlineNew, CollapseCategories)
