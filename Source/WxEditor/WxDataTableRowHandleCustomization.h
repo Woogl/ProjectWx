@@ -25,6 +25,7 @@ class FWxDataTableRowHandleCustomization : public IPropertyTypeCustomization
 {
 public:
 	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
+	virtual ~FWxDataTableRowHandleCustomization() override;
 
 	virtual void CustomizeHeader(TSharedRef<IPropertyHandle> InPropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> InPropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
@@ -37,13 +38,12 @@ private:
 		Fail,
 	};
 
-	FString HandleGetDataTablePath() const;
-	void HandleDataTableSelected(const FAssetData& AssetData);
 	bool HandleShouldFilterAsset(const FAssetData& AssetData);
 	void HandleGetRowStrings(TArray<TSharedPtr<FString>>& OutStrings, TArray<TSharedPtr<SToolTip>>& OutToolTips, TArray<bool>& OutRestrictedItems) const;
 	FString HandleGetRowValueString() const;
-	void HandleRowSelected(const FString& RowValue);
+	void HandleDataTablePropertyChanged();
 	void HandlePropertyChanged();
+	void HandleDataTableChanged();
 	void HandleSearchForReferences();
 	bool HandleIsEditable() const;
 	bool HandleDiffersFromDefault() const;
@@ -51,10 +51,16 @@ private:
 
 	EWxValueAccess GetCurrentValue(const UDataTable*& OutDataTable, FName& OutRowName) const;
 	bool GetCommonDataTable(const UDataTable*& OutDataTable) const;
+	void BindDataTableChanged(const UDataTable* DataTable);
+	void UnbindDataTableChanged();
 	void RequestRefresh() const;
 
 	TSharedPtr<IPropertyHandle> PropertyHandle;
+	TSharedPtr<IPropertyHandle> DataTablePropertyHandle;
+	TSharedPtr<IPropertyHandle> RowNamePropertyHandle;
 	TWeakPtr<IPropertyUtilities> PropertyUtilities;
 	FName RowTypeFilter;
 	UScriptStruct* RowFilterStruct = nullptr;
+	TWeakObjectPtr<UDataTable> ObservedDataTable;
+	FDelegateHandle DataTableChangedHandle;
 };

@@ -12,7 +12,6 @@
 #include "IPropertyUtilities.h"
 #include "PropertyCustomizationHelpers.h"
 #include "PropertyHandle.h"
-#include "ScopedTransaction.h"
 #include "UObject/Class.h"
 #include "UObject/UnrealType.h"
 #include "Widgets/Layout/SWrapBox.h"
@@ -59,11 +58,18 @@ TSharedRef<IPropertyTypeCustomization> FWxDataTableRowHandleCustomization::MakeI
 	return MakeShared<FWxDataTableRowHandleCustomization>();
 }
 
+FWxDataTableRowHandleCustomization::~FWxDataTableRowHandleCustomization()
+{
+	UnbindDataTableChanged();
+}
+
 void FWxDataTableRowHandleCustomization::CustomizeHeader(TSharedRef<IPropertyHandle> InPropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
 	using namespace WxDataTableRowHandleCustomization;
 
 	PropertyHandle = InPropertyHandle;
+	DataTablePropertyHandle = InPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FDataTableRowHandle, DataTable));
+	RowNamePropertyHandle = InPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FDataTableRowHandle, RowName));
 	PropertyUtilities = CustomizationUtils.GetPropertyUtilities();
 	RowTypeFilter = NAME_None;
 	RowFilterStruct = nullptr;
@@ -76,11 +82,17 @@ void FWxDataTableRowHandleCustomization::CustomizeHeader(TSharedRef<IPropertyHan
 	}
 
 	InPropertyHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FWxDataTableRowHandleCustomization::HandlePropertyChanged));
+	DataTablePropertyHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FWxDataTableRowHandleCustomization::HandleDataTablePropertyChanged));
+	RowNamePropertyHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FWxDataTableRowHandleCustomization::HandlePropertyChanged));
 
-	FPropertyComboBoxArgs ComboArgs;
-	ComboArgs.OnGetStrings = FOnGetPropertyComboBoxStrings::CreateSP(this, &FWxDataTableRowHandleCustomization::HandleGetRowStrings);
-	ComboArgs.OnGetValue = FOnGetPropertyComboBoxValue::CreateSP(this, &FWxDataTableRowHandleCustomization::HandleGetRowValueString);
-	ComboArgs.OnValueSelected = FOnPropertyComboBoxValueSelected::CreateSP(this, &FWxDataTableRowHandleCustomization::HandleRowSelected);
+	const UDataTable* DataTable = nullptr;
+	GetCommonDataTable(DataTable);
+	BindDataTableChanged(DataTable);
+
+	FPropertyComboBoxArgs ComboArgs(
+		RowNamePropertyHandle,
+		FOnGetPropertyComboBoxStrings::CreateSP(this, &FWxDataTableRowHandleCustomization::HandleGetRowStrings),
+		FOnGetPropertyComboBoxValue::CreateSP(this, &FWxDataTableRowHandleCustomization::HandleGetRowValueString));
 	ComboArgs.ShowSearchForItemCount = 1;
 
 	FUIAction CopyAction;
@@ -109,11 +121,10 @@ void FWxDataTableRowHandleCustomization::CustomizeHeader(TSharedRef<IPropertyHan
 		+ SWrapBox::Slot()
 		[
 			SNew(SObjectPropertyEntryBox)
-			.ObjectPath(this, &FWxDataTableRowHandleCustomization::HandleGetDataTablePath)
+			.PropertyHandle(DataTablePropertyHandle)
 			.AllowedClass(UDataTable::StaticClass())
 			.AllowClear(true)
 			.DisplayThumbnail(false)
-			.OnObjectChanged(this, &FWxDataTableRowHandleCustomization::HandleDataTableSelected)
 			.OnShouldFilterAsset(this, &FWxDataTableRowHandleCustomization::HandleShouldFilterAsset)
 		]
 		+ SWrapBox::Slot()
@@ -183,40 +194,6 @@ void FWxDataTableRowHandleCustomization::CustomizeChildren(TSharedRef<IPropertyH
 	}
 }
 
-FString FWxDataTableRowHandleCustomization::HandleGetDataTablePath() const
-{
-	const UDataTable* DataTable = nullptr;
-	return GetCommonDataTable(DataTable) && DataTable ? DataTable->GetPathName() : FString();
-}
-
-void FWxDataTableRowHandleCustomization::HandleDataTableSelected(const FAssetData& AssetData)
-{
-	UDataTable* NewDataTable = Cast<UDataTable>(AssetData.GetAsset());
-	const FScopedTransaction Transaction(LOCTEXT("SetDataTable", "Set Data Table Row Handle Table"));
-	PropertyHandle->NotifyPreChange();
-
-	TArray<void*> RawData;
-	PropertyHandle->AccessRawData(RawData);
-	for (void* Raw : RawData)
-	{
-		if (!Raw)
-		{
-			continue;
-		}
-
-		FDataTableRowHandle* RowHandle = static_cast<FDataTableRowHandle*>(Raw);
-		RowHandle->DataTable = NewDataTable;
-		if (!NewDataTable || !NewDataTable->FindRowUnchecked(RowHandle->RowName))
-		{
-			RowHandle->RowName = NAME_None;
-		}
-	}
-
-	PropertyHandle->NotifyPostChange(EPropertyChangeType::ValueSet);
-	PropertyHandle->NotifyFinishedChangingProperties();
-	RequestRefresh();
-}
-
 bool FWxDataTableRowHandleCustomization::HandleShouldFilterAsset(const FAssetData& AssetData)
 {
 	using namespace WxDataTableRowHandleCustomization;
@@ -265,41 +242,40 @@ void FWxDataTableRowHandleCustomization::HandleGetRowStrings(TArray<TSharedPtr<F
 
 FString FWxDataTableRowHandleCustomization::HandleGetRowValueString() const
 {
-	const UDataTable* DataTable = nullptr;
 	FName RowName;
-	switch (GetCurrentValue(DataTable, RowName))
+	switch (RowNamePropertyHandle->GetValue(RowName))
 	{
-	case EWxValueAccess::Success:
+	case FPropertyAccess::Success:
 		return RowName.IsNone() ? LOCTEXT("NoRow", "None").ToString() : RowName.ToString();
-	case EWxValueAccess::MultipleValues:
+	case FPropertyAccess::MultipleValues:
 		return LOCTEXT("MultipleValues", "Multiple Values").ToString();
 	default:
 		return LOCTEXT("NoRow", "None").ToString();
 	}
 }
 
-void FWxDataTableRowHandleCustomization::HandleRowSelected(const FString& RowValue)
+void FWxDataTableRowHandleCustomization::HandleDataTablePropertyChanged()
 {
-	const FName NewRowName(*RowValue);
-	const FScopedTransaction Transaction(LOCTEXT("SetRow", "Set Data Table Row Handle Row"));
-	PropertyHandle->NotifyPreChange();
-
-	TArray<void*> RawData;
-	PropertyHandle->AccessRawData(RawData);
-	for (void* Raw : RawData)
+	const UDataTable* DataTable = nullptr;
+	FName RowName;
+	if (GetCurrentValue(DataTable, RowName) == EWxValueAccess::Success
+		&& (!DataTable || !DataTable->FindRowUnchecked(RowName)))
 	{
-		if (Raw)
-		{
-			static_cast<FDataTableRowHandle*>(Raw)->RowName = NewRowName;
-		}
+		RowNamePropertyHandle->SetValue(NAME_None);
 	}
 
-	PropertyHandle->NotifyPostChange(EPropertyChangeType::ValueSet);
-	PropertyHandle->NotifyFinishedChangingProperties();
-	RequestRefresh();
+	HandlePropertyChanged();
 }
 
 void FWxDataTableRowHandleCustomization::HandlePropertyChanged()
+{
+	const UDataTable* DataTable = nullptr;
+	GetCommonDataTable(DataTable);
+	BindDataTableChanged(DataTable);
+	RequestRefresh();
+}
+
+void FWxDataTableRowHandleCustomization::HandleDataTableChanged()
 {
 	RequestRefresh();
 }
@@ -339,63 +315,71 @@ void FWxDataTableRowHandleCustomization::HandleResetToDefault()
 
 FWxDataTableRowHandleCustomization::EWxValueAccess FWxDataTableRowHandleCustomization::GetCurrentValue(const UDataTable*& OutDataTable, FName& OutRowName) const
 {
-	if (!PropertyHandle.IsValid() || !PropertyHandle->IsValidHandle())
+	if (!DataTablePropertyHandle.IsValid() || !DataTablePropertyHandle->IsValidHandle()
+		|| !RowNamePropertyHandle.IsValid() || !RowNamePropertyHandle->IsValidHandle())
 	{
 		return EWxValueAccess::Fail;
 	}
 
-	TArray<const void*> RawData;
-	PropertyHandle->AccessRawData(RawData);
-	if (RawData.IsEmpty() || !RawData[0])
+	UObject* DataTableObject = nullptr;
+	const FPropertyAccess::Result DataTableResult = DataTablePropertyHandle->GetValue(DataTableObject);
+	const FPropertyAccess::Result RowNameResult = RowNamePropertyHandle->GetValue(OutRowName);
+	if (DataTableResult == FPropertyAccess::Success && RowNameResult == FPropertyAccess::Success)
 	{
-		return EWxValueAccess::Fail;
+		OutDataTable = Cast<UDataTable>(DataTableObject);
+		return EWxValueAccess::Success;
 	}
 
-	const FDataTableRowHandle* FirstValue = static_cast<const FDataTableRowHandle*>(RawData[0]);
-	for (const void* Raw : RawData)
+	if (DataTableResult == FPropertyAccess::MultipleValues || RowNameResult == FPropertyAccess::MultipleValues)
 	{
-		if (!Raw)
-		{
-			return EWxValueAccess::Fail;
-		}
-
-		const FDataTableRowHandle* Value = static_cast<const FDataTableRowHandle*>(Raw);
-		if (Value->DataTable != FirstValue->DataTable || Value->RowName != FirstValue->RowName)
-		{
-			return EWxValueAccess::MultipleValues;
-		}
+		return EWxValueAccess::MultipleValues;
 	}
 
-	OutDataTable = FirstValue->DataTable;
-	OutRowName = FirstValue->RowName;
-	return EWxValueAccess::Success;
+	return EWxValueAccess::Fail;
 }
 
 bool FWxDataTableRowHandleCustomization::GetCommonDataTable(const UDataTable*& OutDataTable) const
 {
-	if (!PropertyHandle.IsValid() || !PropertyHandle->IsValidHandle())
+	if (!DataTablePropertyHandle.IsValid() || !DataTablePropertyHandle->IsValidHandle())
 	{
 		return false;
 	}
 
-	TArray<const void*> RawData;
-	PropertyHandle->AccessRawData(RawData);
-	if (RawData.IsEmpty() || !RawData[0])
+	UObject* DataTableObject = nullptr;
+	if (DataTablePropertyHandle->GetValue(DataTableObject) != FPropertyAccess::Success)
 	{
 		return false;
 	}
 
-	const FDataTableRowHandle* FirstValue = static_cast<const FDataTableRowHandle*>(RawData[0]);
-	for (const void* Raw : RawData)
-	{
-		if (!Raw || static_cast<const FDataTableRowHandle*>(Raw)->DataTable != FirstValue->DataTable)
-		{
-			return false;
-		}
-	}
-
-	OutDataTable = FirstValue->DataTable;
+	OutDataTable = Cast<UDataTable>(DataTableObject);
 	return true;
+}
+
+void FWxDataTableRowHandleCustomization::BindDataTableChanged(const UDataTable* DataTable)
+{
+	UDataTable* NewDataTable = const_cast<UDataTable*>(DataTable);
+	if (ObservedDataTable.Get() == NewDataTable)
+	{
+		return;
+	}
+
+	UnbindDataTableChanged();
+	ObservedDataTable = NewDataTable;
+	if (NewDataTable)
+	{
+		DataTableChangedHandle = NewDataTable->OnDataTableChanged().AddSP(this, &FWxDataTableRowHandleCustomization::HandleDataTableChanged);
+	}
+}
+
+void FWxDataTableRowHandleCustomization::UnbindDataTableChanged()
+{
+	if (UDataTable* DataTable = ObservedDataTable.Get(); DataTable && DataTableChangedHandle.IsValid())
+	{
+		DataTable->OnDataTableChanged().Remove(DataTableChangedHandle);
+	}
+
+	DataTableChangedHandle.Reset();
+	ObservedDataTable.Reset();
 }
 
 void FWxDataTableRowHandleCustomization::RequestRefresh() const
