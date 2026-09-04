@@ -101,7 +101,9 @@ static float CalculateFinalDamage(float SourceATK, float TargetDEF, float ATKCoe
 	const float BaseDamage = CalculateBaseDamage(SourceATK, ATKCoeff, DefenseMultiplier);
 	const float CriticalMultiplier = CalculateCriticalMultiplier(SourceCritDMG, bIsCritical);
 	const float GuardMultiplier = CalculateGuardMultiplier(GuardReductionScale);
-	return BaseDamage * CriticalMultiplier * GuardMultiplier;
+
+	// 여기서 정수로 못박아야 HP·GP·가드 SP·반사량이 함께 정수로 움직인다 — 소수 잔량으로 생존하거나 그로기 임계에 못 닿는 상황을 없앤다.
+	return FMath::RoundToFloat(BaseDamage * CriticalMultiplier * GuardMultiplier);
 }
 
 UWxExecCalc_Damage::UWxExecCalc_Damage()
