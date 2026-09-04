@@ -91,6 +91,18 @@ bool UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* 
 	// 락이 없으면 Give/Clear가 즉시 Add/RemoveAtSwap 해 참조와 이터레이터가 무효화된다.
 	ABILITYLIST_SCOPE_LOCK();
 
+	// 순정 AbilityLocalInputPressed처럼 활성 여부와 무관하게 키 상태를 스펙에 남긴다.
+	// 홀드 어빌리티가 발동 조건으로 읽는다.
+	// 아래 발동 순회는 첫 성립에서 입력을 소비하고 끊기므로, 세우기를 먼저 끝내야 한 IA를 공유하는 뒤 스펙도 내리기와 대칭이 된다.
+	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
+	{
+		const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.Ability);
+		if (Ability && Ability->ActivationInputAction.Get() == Action)
+		{
+			Spec.InputPressed = true;
+		}
+	}
+
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
 		const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.Ability);
@@ -98,10 +110,6 @@ bool UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* 
 		{
 			continue;
 		}
-
-		// 순정 AbilityLocalInputPressed처럼 활성 여부와 무관하게 키 상태를 스펙에 남긴다.
-		// 홀드 어빌리티가 발동 조건으로 읽는다.
-		Spec.InputPressed = true;
 
 		// 신규 발동과 콤보 재발동은 엔진이 bRetriggerInstancedAbility로 가르므로 호출이 같다.
 		if (TryActivateAbility(Spec.Handle))
