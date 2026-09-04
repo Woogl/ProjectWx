@@ -100,7 +100,7 @@ void UWxPatrolComponent::ConfigureSpline()
 {
 	SetClosedLoop(MoveMode == EWxPatrolMoveMode::Loop, /*bUpdateSpline*/ false);
 
-	// 정찰은 지점 사이를 내비게이션으로 직선 이동하므로, 곡선 보간을 끄고 포인트를 직선으로 잇는다(에디터 표시도 실제 경로와 일치).
+	// 정찰은 지점 사이를 내비게이션으로 직선 이동하므로, 곡선 보간을 끈다(에디터 표시도 실제 경로와 일치).
 	const int32 NumPoints = GetNumberOfSplinePoints();
 	for (int32 Index = 0; Index < NumPoints; ++Index)
 	{

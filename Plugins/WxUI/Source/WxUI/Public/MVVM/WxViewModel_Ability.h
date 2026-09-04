@@ -86,7 +86,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	float CostAmount = 0.f;
 
-	/** 텍스처 또는 머터리얼이며, 어빌리티가 든 소프트 참조를 초기화 때 비동기 로드해 세팅한다. */
+	/** 텍스처 또는 머터리얼이며, 어빌리티를 물 때마다 그것이 든 소프트 참조를 비동기 로드해 세팅한다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	TObjectPtr<UObject> Icon = nullptr;
 

@@ -77,7 +77,6 @@ private:
 	/** TargetActor 와 타겟 소실 감시를 함께 갱신하며, 자기 폰은 타겟으로 받지 않는다. */
 	void SetTargetActor(AActor* NewTarget);
 
-	/** Ability.Death 태그로 사망 상태를 판별한다. */
 	bool IsActorDead(AActor* Actor);
 
 	APawn* GetOwnerPawn() const;

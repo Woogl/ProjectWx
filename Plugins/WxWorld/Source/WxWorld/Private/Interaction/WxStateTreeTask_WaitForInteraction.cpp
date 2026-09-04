@@ -72,7 +72,6 @@ FText FWxStateTreeTask_WaitForInteraction::GetDescription(const FGuid& ID, FStat
 bool FWxStateTreeTask_WaitForInteraction::IsWaitingFor(const FUniversalObjectLocator& Wanted, const AActor* Target)
 {
 	// 대상 해석을 지금 한다 — 기다리는 동안 스트리밍으로 액터가 새로 만들어졌어도 이 순간의 것과 맞춰 본다.
-	// 컨텍스트가 대상의 레벨이면 엔진이 스트리밍 레벨을 역추적하는 1차 경로에서 바로 풀린다.
-	// 오너인 GameState 를 주면 그 경로를 못 타고 경로 직접 해석 폴백으로 넘어간다 — 폴백도 WP 런타임 셀 안의 액터를 찾지만 한 단계 멀다.
+	// 컨텍스트로 대상의 레벨을 주면 엔진의 스트리밍 레벨 역추적 경로에서 바로 풀린다 — 오너인 GameState 를 주면 경로 직접 해석 폴백으로 한 단계 멀어진다.
 	return Wanted.SyncFind(Target->GetLevel()) == Target;
 }

@@ -83,7 +83,6 @@ private:
 	UFUNCTION()
 	void HandleStateTreeRunStatusChanged(EStateTreeRunStatus StateTreeRunStatus);
 
-	/** RequestActivateQuest 의 다음 틱 타이머 콜백. */
 	void HandleDeferredActivateQuest(TSoftObjectPtr<UStateTree> QuestAsset);
 
 	void ClearJournal();

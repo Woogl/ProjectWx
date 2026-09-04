@@ -34,7 +34,7 @@ public:
 
 	UWxPrimaryGameLayout* GetPrimaryGameLayout() const;
 
-	/** 화면을 차지하는 메뉴(Menu·Modal 레이어)가 떠 있는지. 레이어 밖에 그려지는 표시가 스스로 물러날 때 쓴다. */
+	/** 화면을 차지하는 메뉴(Menu·Modal 레이어)가 떠 있는지. */
 	bool IsMenuLayerActive() const;
 
 	/** 어떤 HUD 를 띄울지는 UI 밖(Experience)이 정하므로, 정해진 값을 여기에 실어 둔다. 미지정이면 HUD 를 띄우지 않는다. */
@@ -75,7 +75,6 @@ private:
 
 	void HandleObservedWidgetActivationChanged();
 
-	/** 정지를 원하는 활성 위젯 유무에 맞춰 게임 정지를 걸거나 해제한다. */
 	void RefreshGamePause();
 
 	/** 전 레이어의 활성 위젯을 순회해, 정지를 원하는 위젯이 하나라도 있는지 본다. */

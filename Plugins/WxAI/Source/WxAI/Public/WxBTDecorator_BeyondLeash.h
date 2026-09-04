@@ -44,7 +44,7 @@ protected:
 
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
-	/** 거리를 재는 기준점. Vector 키는 그 위치를, Actor 키는 그 액터의 위치를 쓴다. 미설정이면 이탈로 보지 않는다. */
+	/** Vector 키는 그 위치를, Actor 키는 그 액터의 위치를 쓴다. 미설정이면 이탈로 보지 않는다. */
 	UPROPERTY(EditAnywhere, Category = "Wx|AI")
 	FBlackboardKeySelector Anchor;
 

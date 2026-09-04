@@ -44,7 +44,6 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 		return EBTNodeResult::Failed;
 	}
 
-	// 검증 거리는 이번 실행에서 실제로 걸어갈 거리다.
 	// 감속 GE 는 방향을 고른 뒤 부여되므로 지금 최대 속도는 아직 평상시 값이고, GE 미지정이면 배율 자체가 걸리지 않는다.
 	const float TravelDistance = Movement->GetMaxSpeed() * (MoveSpeedEffect ? MoveSpeedMultiplier : 1.f) * Duration;
 	const FVector NavStart = Pawn->GetNavAgentLocation();
@@ -56,7 +55,7 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 		const FVector Candidate = FRotator(0.f, AIController->GetControlRotation().Yaw + RemainingIndices[PickedSlot] * 45.f, 0.f).Vector();
 		RemainingIndices.RemoveAtSwap(PickedSlot);
 
-		// 내비 데이터가 아예 없어도 막힘으로 온다 — 내비메시 없는 맵에서는 배회하지 않는다.
+		// 내비 데이터가 아예 없어도 막힘으로 온다.
 		FVector HitLocation;
 		if (UNavigationSystemV1::NavigationRaycast(Pawn, NavStart, NavStart + Candidate * TravelDistance, HitLocation, nullptr, AIController))
 		{
@@ -68,7 +67,6 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 		break;
 	}
 
-	// 허용 방향이 하나도 없거나 전부 내비메시를 벗어난다. 상위 폴백 분기에 넘긴다.
 	if (!bFoundDirection)
 	{
 		return EBTNodeResult::Failed;

@@ -46,7 +46,7 @@ protected:
 
 	void SpawnTarget();
 
-	/** 서버 전용. 스폰한 인스턴스를 지우고 추적을 끊는다. */
+	/** 서버 전용. */
 	void DestroySpawnedActor();
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")

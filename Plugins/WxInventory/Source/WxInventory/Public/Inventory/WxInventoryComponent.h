@@ -75,7 +75,7 @@ struct FWxInventoryList : public FFastArraySerializer
 	/** 권한: 인스턴스에 해당하는 엔트리를 통째로 제거. */
 	void RemoveEntry(UWxItemInstance* Instance);
 
-	/** 권한: EntryIndex 슬롯의 StackCount 를 Amount 만큼 늘리고 갱신 후 수량을 반환한다(MarkItemDirty 포함). */
+	/** 권한: 갱신 후 수량을 반환한다(MarkItemDirty 포함). */
 	int32 AddToEntryStack(int32 EntryIndex, int32 Amount);
 
 	/**

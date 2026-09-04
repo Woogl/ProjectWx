@@ -11,7 +11,7 @@ struct FGameplayTag;
 
 /**
  * 충전형 쿨다운의 베이스.
- * 지속시간은 UWxMMC_CooldownDuration이 소스 어빌리티의 테이블 행에서 읽으므로, 엔진 순정 ApplyCooldown/CheckCooldown/쿨다운 조회 API를 그대로 쓴다.
+ * 지속시간은 UWxMMC_CooldownDuration이 소스 어빌리티의 테이블 행에서 읽으므로, 엔진 순정 ApplyCooldown/쿨다운 조회 API를 그대로 쓴다.
  *
  * 소모한 충전 하나가 스택 하나다.
  * 스택이 더 쌓여도 진행 중인 회복은 건드리지 않고(NeverRefresh), 만료마다 스택 하나만 돌려주며 다음 회복을 시작한다(RemoveSingleStackAndRefreshDuration) — 충전이 직렬로 돌아온다.

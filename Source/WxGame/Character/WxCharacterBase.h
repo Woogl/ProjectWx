@@ -85,7 +85,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Combat")
 	TObjectPtr<UMotionWarpingComponent> MotionWarpingComponent;
 
-	/** 히트스톱 GE의 추가·제거를 받아 몽타주를 얼리고 되돌린다. */
+	/** 히트스톱 GE의 추가·제거를 받아 메시의 애니메이션 시간을 세우고 되돌린다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Combat")
 	TObjectPtr<UWxHitStopComponent> HitStopComponent;
 
@@ -145,6 +145,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Wx|Team")
 	EWxTeam Team = EWxTeam::Player;
 
-	/** 기본 이동 속도 (cm/s). SPD Multiplier의 기준값 */
+	/** SPD Multiplier의 기준값 (cm/s) */
 	float BaseWalkSpeed;
 };

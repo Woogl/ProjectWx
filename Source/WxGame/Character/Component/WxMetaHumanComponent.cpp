@@ -31,7 +31,7 @@ void UWxMetaHumanComponent::OnRegister()
 		return;
 	}
 
-	// BP 리컴파일·레벨 스트리밍으로 등록이 반복돼도 조립은 한 번만 한다. (해제 시 전부 파괴되므로 포인터가 곧 가드)
+	// BP 리컴파일·레벨 스트리밍으로 등록이 반복돼도 조립은 한 번만 한다.
 	if (BodyComponent || FaceComponent || OutfitComponent || LODSyncComponent || GroomComponents.Num() > 0)
 	{
 		return;
@@ -171,7 +171,7 @@ USkeletalMeshComponent* UWxMetaHumanComponent::CreateAttachedMesh(USkeletalMesh*
 	MeshComponent->CreationMethod = CreationMethod;
 	MeshComponent->SetSkeletalMeshAsset(Mesh);
 	MeshComponent->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
-	// 여기서 만드는 메시는 전부 표시 전용이라 화면에 없으면 갱신할 이유가 없다.
+	// 표시 전용이라 화면에 없으면 갱신할 이유가 없다.
 	MeshComponent->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
 	MeshComponent->SetupAttachment(AttachTarget);
 	MeshComponent->RegisterComponent();

@@ -23,8 +23,7 @@ UWxBTTask_Patrol::UWxBTTask_Patrol()
 
 void UWxBTTask_Patrol::InitializeFromAsset(UBehaviorTree& Asset)
 {
-	// ExecuteTask 가 쓰는 키와 Super 가 읽는 키는 반드시 같아야 한다.
-	// Super 가 이 이름으로 키를 해석하므로, 에셋에 다른 값이 남아 있어도 여기서 덮어써 고정한다.
+	// Super 가 이 이름으로 이동 목표 키를 해석하므로, 에셋에 다른 값이 남아 있어도 여기서 덮어써 고정한다.
 	BlackboardKey.SelectedKeyName = WxBlackboardKeys::PatrolTargetLocation;
 
 	Super::InitializeFromAsset(Asset);

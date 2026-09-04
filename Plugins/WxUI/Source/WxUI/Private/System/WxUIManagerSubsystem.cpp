@@ -155,7 +155,6 @@ void UWxUIManagerSubsystem::RefreshGamePause()
 	}
 
 	// 해제 조건을 대리자로 걸어 두면 게임모드가 해제 직전 되물으므로, 우리 해제가 남의 정지를 지우지 않고 남의 해제도 우리 정지를 지우지 않는다.
-	// 새로 생기는 정지 주체도 같은 방식으로 자기 조건을 걸어야 이 보호를 받는다.
 	if (WantsGamePause())
 	{
 		PC->SetPause(true, FCanUnpause::CreateUObject(this, &ThisClass::HandleCanUnpause));

@@ -19,7 +19,7 @@ class WXGAME_API UWxCheatManager : public UCheatManager
 	GENERATED_BODY()
 
 public:
-	/** 월드 스트리밍 장거리 이동 시험을 위해 플레이어를 지정한 월드 좌표로 옮긴다. */
+	/** 월드 스트리밍 장거리 이동 시험을 위한 치트다. */
 	UFUNCTION(Exec)
 	void WxTeleport(float X, float Y, float Z);
 

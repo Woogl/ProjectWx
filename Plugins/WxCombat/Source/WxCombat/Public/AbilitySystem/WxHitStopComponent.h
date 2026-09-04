@@ -36,7 +36,7 @@ private:
 	void HandleGameplayEffectRemoved(const FActiveGameplayEffect& RemovedEffect);
 	void HandleHitStopTagChanged(const FGameplayTag Tag, int32 NewCount);
 
-	/** 지금 상태로 애니메이션 시간을 다시 정한다. 토글이 아니라 대입이라 이벤트를 놓쳐도 다음 호출에서 참값으로 돌아온다. */
+	/** 토글이 아니라 대입이라 이벤트를 놓쳐도 다음 호출에서 참값으로 돌아온다. */
 	void RefreshAnimRateScale();
 
 	UPROPERTY()

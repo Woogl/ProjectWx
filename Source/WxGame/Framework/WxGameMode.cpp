@@ -119,7 +119,7 @@ void AWxGameMode::HandleExperienceLoaded(const UWxExperienceDefinition* Experien
 
 void AWxGameMode::GrantDefaultInventory(APlayerController* PlayerController, const UWxExperienceDefinition* Experience) const
 {
-	// 지급 목록은 Experience 가 참조한 액션셋들이 정의한다(매니저의 GameFeature 목록 합성과 같은 규칙).
+	// 지급 목록은 Experience 가 참조한 액션셋들이 정의한다 — 정의 에셋 본체엔 지급 필드가 없다.
 	TArray<FWxItemRewardEntry> Items;
 	for (const TObjectPtr<UWxExperienceActionSet>& ActionSet : Experience->ActionSets)
 	{

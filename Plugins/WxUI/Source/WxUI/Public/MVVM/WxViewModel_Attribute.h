@@ -13,9 +13,6 @@ class UAbilitySystemComponent;
 class UMVVMView;
 class UUserWidget;
 
-/**
- * ASC의 임의의 어트리뷰트 쌍(현재값, 최대값)의 변경을 감지하여 UI 바인딩용 프로퍼티를 갱신한다.
- */
 UCLASS()
 class WXUI_API UWxViewModel_Attribute : public UWxViewModel
 {

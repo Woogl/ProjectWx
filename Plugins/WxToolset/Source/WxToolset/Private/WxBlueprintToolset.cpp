@@ -12,7 +12,6 @@
 
 namespace
 {
-	/** 이 블루프린트가 직접 선언한 변수의 서술자를 찾는다. */
 	const FBPVariableDescription* FindVariable(const UBlueprint* Blueprint, const FName VarName)
 	{
 		if (!Blueprint)

@@ -17,8 +17,8 @@ UWxBTService_LockOn::UWxBTService_LockOn()
 	// TickNode/OnBecomeRelevant/OnCeaseRelevant 오버라이드를 감지해 알림 플래그를 자동 설정한다(엔진 서비스 관용).
 	INIT_SERVICE_NODE_NOTIFY_FLAGS();
 
-	// bCallTickOnSearchStart 는 쓰지 않는다 — 그 틱은 aux 노드 등록이 커밋되기 전에 돌아, 탐색이 폐기되면
-	// 걸어 둔 포커스·회전 모드를 되돌릴 OnCeaseRelevant 가 영영 오지 않는다. 진입 시 적용은 OnBecomeRelevant 가 맡는다.
+	// bCallTickOnSearchStart 는 쓰지 않는다 — 그 틱은 aux 노드 등록이 커밋되기 전에 돌아, 탐색이 폐기되면 걸어 둔 포커스·회전 모드를 되돌릴 OnCeaseRelevant 가 영영 오지 않는다.
+	// 진입 시 적용은 OnBecomeRelevant 가 맡는다.
 	Interval = 0.1f;
 	RandomDeviation = 0.0f;
 }
@@ -47,8 +47,8 @@ void UWxBTService_LockOn::OnBecomeRelevant(UBehaviorTreeComponent& OwnerComp, ui
 {
 	Super::OnBecomeRelevant(OwnerComp, NodeMemory);
 
-	// 첫 틱을 기다리지 않고 브랜치 진입 즉시 대상을 바라본다. 이 통지는 aux 노드 등록이 커밋된 뒤에만 오므로,
-	// 여기서 건 상태는 반드시 짝이 되는 OnCeaseRelevant 를 받는다.
+	// 첫 틱을 기다리지 않고 브랜치 진입 즉시 대상을 바라본다.
+	// 이 통지는 aux 노드 등록이 커밋된 뒤에만 오므로, 여기서 건 상태는 반드시 짝이 되는 OnCeaseRelevant 를 받는다.
 	SyncLockOn(OwnerComp, NodeMemory);
 }
 
@@ -93,8 +93,8 @@ void UWxBTService_LockOn::SyncLockOn(UBehaviorTreeComponent& OwnerComp, uint8* N
 		return;
 	}
 
-	// 폰이 바뀔 때만 이전 폰을 되돌린다. 대상만 갈리는 재타겟은 SetFocus 가 같은 우선순위를 먼저 비우므로,
-	// 회전 모드를 아키타입 값으로 왕복시킬 이유가 없다.
+	// 폰이 바뀔 때만 이전 폰을 되돌린다.
+	// 대상만 갈리는 재타겟은 SetFocus 가 같은 우선순위를 먼저 비우므로, 회전 모드를 아키타입 값으로 왕복시킬 이유가 없다.
 	if (Memory->LockedOnPawn.Get() != Pawn)
 	{
 		ReleaseLockOn(AIController, *Memory);

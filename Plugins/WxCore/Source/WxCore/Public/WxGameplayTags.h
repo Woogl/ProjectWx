@@ -227,13 +227,13 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Magnitude);
 	
-	/** 지속시간 Duration SetByCaller 키. NoCooldown/InfiniteMP/HitStop의 DurationMagnitude에서 공용으로 사용 */
+	/** NoCooldown/InfiniteMP/HitStop의 DurationMagnitude에서 공용으로 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Duration);
 
-	/** 공격력 계수 SetByCaller 키. WxExecCalc_Damage가 ATK 어트리뷰트에 곱하는 배율 */
+	/** WxExecCalc_Damage가 ATK 어트리뷰트에 곱하는 배율 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Coeff_ATK);
 
-	/** 이동 속도 배율 SetByCaller 키. WxEffect_MoveSpeedScale이 SPD 어트리뷰트에 곱하는 배율 */
+	/** WxEffect_MoveSpeedScale이 SPD 어트리뷰트에 곱하는 배율 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_MoveSpeedScale);
 	
 	// ── UI ──────────────────────────────────────────────────────────────

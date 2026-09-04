@@ -30,6 +30,6 @@ public:
 	/** 텍스처와 머티리얼 양쪽이 올 수 있다. 스트리밍은 소비처가 맡도록 소프트 참조로 넘긴다. */
 	virtual TSoftObjectPtr<UObject> GetIcon() const = 0;
 
-	/** 충전 칸 수. 충전 개념이 없는 구현체는 기본값 1 을 그대로 둔다. */
+	/** 충전 개념이 없는 구현체는 기본값 1 을 그대로 둔다. */
 	virtual int32 GetMaxRecharges() const;
 };

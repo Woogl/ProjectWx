@@ -40,7 +40,7 @@ public:
 	static int32 ReplicateNotifiesToSections(UAnimMontage* Montage, FName SourceSectionName);
 
 	/**
-	 * 섹션 시작 기준 오프셋(초)에 단발 노티파이를 하나 추가하고 성공 여부를 돌려준다.
+	 * 섹션 시작 기준 오프셋(초)에 단발 노티파이를 하나 추가한다.
 	 * 트랙은 인덱스로 지목하며 그 인덱스까지 없는 트랙은 만든다.
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")

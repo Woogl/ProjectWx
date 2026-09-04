@@ -137,8 +137,7 @@ void AWxIndicator::UpdateProjection()
 	const FIntRect ViewRect = ProjectionData.GetConstrainedViewRect();
 
 	// 뷰 크기를 넘겨 좌표계 원점을 (0,0) 으로 맞춘다.
-	// 엔진은 카메라 뒤 좌표를 접을 때 중심이 아니라 Max 의 절반을 기준으로 뒤집으므로(ULocalPlayer::GetPixelPoint),
-	// 레터박스처럼 뷰가 화면 원점에서 떨어져 있으면 원점을 옮겨 주지 않는 한 접힌 좌표가 그만큼 어긋난다.
+	// 엔진은 카메라 뒤 좌표를 Max 의 절반 기준으로 접으므로(ULocalPlayer::GetPixelPoint), 레터박스처럼 뷰가 화면 원점에서 떨어져 있으면 접힌 좌표가 그만큼 어긋난다.
 	const FVector2f ViewSize(ViewRect.Size());
 
 	FVector2D PixelPosition;
