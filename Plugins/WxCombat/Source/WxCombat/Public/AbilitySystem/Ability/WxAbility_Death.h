@@ -39,8 +39,12 @@ protected:
 	virtual void HandleMontageInterrupted() override;
 	virtual void HandleMontageCancelled() override;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	TObjectPtr<UAnimMontage> DeathMontage;
+	
+	/** 어빌리티 발동 시점부터 액터가 파괴되기까지의 시간. 음수 또는 0 이면 파괴하지 않음. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
+	float PendingDestroyTime = 0.f;
 
 private:
 	void PlayDeathMontageOrRagdoll();

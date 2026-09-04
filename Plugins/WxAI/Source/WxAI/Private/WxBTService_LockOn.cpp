@@ -40,7 +40,7 @@ void UWxBTService_LockOn::CleanupMemory(UBehaviorTreeComponent& OwnerComp, uint8
 
 FString UWxBTService_LockOn::GetStaticServiceDescription() const
 {
-	return FString::Printf(TEXT("%s를 바라보고 strafe, %s"), *WxBlackboardKeys::TargetActor.ToString(), *GetStaticTickIntervalDescription());
+	return FString::Printf(TEXT("%s, %s"), *WxBlackboardKeys::TargetActor.ToString(), *GetStaticTickIntervalDescription());
 }
 
 void UWxBTService_LockOn::OnBecomeRelevant(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)

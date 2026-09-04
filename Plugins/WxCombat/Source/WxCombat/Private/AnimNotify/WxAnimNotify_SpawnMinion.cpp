@@ -42,8 +42,3 @@ FVector UWxAnimNotify_SpawnMinion::GetSpawnOffset() const
 {
 	return SpawnOffset;
 }
-
-float UWxAnimNotify_SpawnMinion::GetLifetime() const
-{
-	return Lifetime;
-}
