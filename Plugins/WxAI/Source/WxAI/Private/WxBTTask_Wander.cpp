@@ -37,7 +37,6 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 		}
 	}
 
-	// 걸어갈 거리를 구할 수 없으면 길이 0 레이가 막힘으로 오지 않아 검증이 통째로 무력해진다.
 	const UPawnMovementComponent* Movement = Pawn->GetMovementComponent();
 	if (!Movement)
 	{
@@ -46,6 +45,14 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 
 	// 감속 GE 는 방향을 고른 뒤 부여되므로 지금 최대 속도는 아직 평상시 값이고, GE 미지정이면 배율 자체가 걸리지 않는다.
 	const float TravelDistance = Movement->GetMaxSpeed() * (MoveSpeedEffect ? MoveSpeedMultiplier : 1.f) * Duration;
+
+	// 걸어갈 거리가 0이면 길이 0 레이가 막힘으로 오지 않아 8방향이 전부 무검증 통과한다.
+	// 지금 못 움직인다고 무해한 것이 아니다 — 배회가 끝나기 전에 속박이 풀리면 검증되지 않은 방향으로 걸어 나간다.
+	if (FMath::IsNearlyZero(TravelDistance))
+	{
+		return EBTNodeResult::Failed;
+	}
+
 	const FVector NavStart = Pawn->GetNavAgentLocation();
 
 	bool bFoundDirection = false;
