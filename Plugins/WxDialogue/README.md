@@ -1,43 +1,44 @@
 # WxDialogue — 대화 시스템
 
-> NPC·오브젝트에게 말을 걸어 데이터 테이블에 담긴 대사를 한 줄씩 넘겨 재생하고, 그 동안 전용 카메라·포즈 연출을 세우는 대화 진행 시스템. 대사의 신원(현재 행)만 노출하고 그 의미 해석은 소비자에게 맡긴다.
+> NPC·오브젝트에 말을 걸어 대사 테이블을 한 줄씩 진행하고, 대화 동안 전용 카메라와 대상 포즈를 연출한다. 대사의 신원(현재 행)과 대상만 노출하고 그 의미 판정은 관찰자에게 맡긴다.
 
 ## 책임
 **담당**
-- 대화 데이터 스키마(대사 한 줄 = 테이블 한 행, `NextRow` 로 잇고 `None` 이면 종료)
-- 상호작용으로 대화를 열고, 대사를 넘기고(`Advance`), 끝맺는 세션 진행
-- 대화 시작 지점 보유(호스트 액터)와 세션 소유(플레이어 컨트롤러)의 분리
-- 대화 연출: 두 사람 배치에서 구도를 잡는 전용 카메라, 대사별 대상 포즈 몽타주 비동기 스트리밍
-- 진행 중 대사의 신원(현재 행)·대상 노출과 대사 변경 델리게이트(`OnLineChanged`) 발행
-- 퀘스트 등 액터 외부가 대사를 고르는 진입점(StateTree `Play Dialogue` 태스크)
+- 대화 데이터 모델: 행 하나 = 대사 한 줄, `NextRow`로 이어지고 `None`에서 끝나는 테이블 주도 그래프
+- 상호작용 진입: 말을 걸 수 있는 호스트 액터가 상호작용 계약을 받아 대화 컴포넌트로 넘김
+- 세션 진행: 소유 클라(PlayerController)가 현재 노드·라인을 소유하고 `Advance`로 넘기며, 대사 변화를 델리게이트로 발행
+- 연출: 대화 전용 카메라 구도 계산·뷰 전환, 대사별 대상 포즈(몽타주) 비동기 스트리밍·재생
+- 세션 개폐 신호: 폰 ASC에 `State.Dialogue` 루즈 태그를 올렸다 내림
+- 퀘스트 등 액터 밖에서 특정 대사를 여는 StateTree 태스크 진입점
 
 **경계 (비담당)**
-- 상호작용 트리거·프롬프트 판정 계약(`IWxInteractable`) — [[WxCore]]가 정의, 호스트 액터가 구현만
-- 세션 개폐를 알리는 `State.Dialogue` 태그와 ASC — [[WxCore]]의 `WxGameplayTags`, 태그를 보는 UI 창 개폐 — [[WxUI]]
-- 대사의 의미(퀘스트 수주 등) 판정 — 관찰하는 소비자([[WxQuest]] 등)의 몫
+- 대화 창 UI 렌더링 — `State.Dialogue` 태그를 보는 [[WxUI]]가 여닫음. 이 모듈은 창 시작·종료 델리게이트를 두지 않음
+- 대사의 의미 해석(퀘스트 수주 등)·대화 기록 — 진행 대사를 관찰하는 소비자([[WxQuest]] 등)의 몫
+- 상호작용 계약 인터페이스 `IWxInteractable`·`State.Dialogue` 태그 정의 — [[WxCore]] 제공
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `FWxDialogueTableRow` | 대화 데이터 한 행(화자·대사·포즈·다음 행). 대화 1편 = 테이블 1개 | `Source/WxDialogue/Public/WxDialogueTableRow.h` |
-| `AWxDialogueActor` | 말 걸 수 있는 대상의 추상 호스트. `IWxInteractable` 계약을 컴포넌트로 넘김 | `Source/WxDialogue/Public/WxDialogueActor.h` |
-| `UWxDialogueComponent` | 호스트에 붙어 시작 행·프롬프트만 보유, 상호작용 시 세션을 연다 | `Source/WxDialogue/Public/WxDialogueComponent.h` |
-| `UWxDialogueSessionComponent` | 진행·카메라·포즈를 소유하는 세션 본체. PC에 Experience로 주입 | `Source/WxDialogue/Public/WxDialogueSessionComponent.h` |
-| `FWxStateTreeTask_PlayDialogue` | 액터 없이 행을 직접 지정해 대화를 여는 StateTree 태스크(독백·무전·처치 후 대사) | `Source/WxDialogue/Public/WxStateTreeTask_PlayDialogue.h` |
+| `FWxDialogueTableRow` | 대화 그래프의 행(대사·화자·포즈·NextRow). 대화 1편 = 테이블 1개 | `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueTableRow.h` |
+| `AWxDialogueActor` | 말 걸 수 있는 대상의 Abstract 호스트. 상호작용 계약을 받아 컴포넌트로 위임 | `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueActor.h` |
+| `UWxDialogueComponent` | 호스트에 붙어 시작 행만 보유. `StartDialogueWith`로 상호작용자 세션을 엶 | `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueComponent.h` |
+| `UWxDialogueSessionComponent` | PC에 주입되는 세션 소유자. 진행·카메라·포즈·델리게이트를 모두 든 중심 | `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueSessionComponent.h` |
+| `FWxStateTreeTask_PlayDialogue` | 액터 밖(퀘스트 ST)에서 지정 대사를 열고 종료까지 Running으로 대기 | `Plugins/WxDialogue/Source/WxDialogue/Public/WxStateTreeTask_PlayDialogue.h` |
 
 ## 확장 포인트 / 규약
-- 새 대화 대상: `AWxDialogueActor`를 상속해 몸통(캡슐+스켈레탈 / 메시)을 세운다. 베이스는 루트를 만들지 않으며, 포즈를 얹을 메시가 있으면 `GetPoseMesh()`를 재정의한다.
-- 대화 편성: `FWxDialogueTableRow` 로우 타입의 데이터 테이블로 작성한다. 모든 행이 `NextRow`를 채워야 하며 종료는 `None`으로 표시한다(빈 값·빈 대사는 잘못된 행으로 보고 경고 후 대화를 접는다). 포즈는 `TSoftObjectPtr` 소프트 참조로, 세션이 대사를 넘길 때 비동기 스트리밍한다.
-- 외부에서 대사 열기: `UWxDialogueSessionComponent::StartDialogueRow(StartRow, Target)`. `Target`을 비우면 나레이션(카메라는 플레이어에 머묾).
-- 전제: 세션은 소유 클라 로컬 표시 상태이며 서버 검증이 없다(v1 싱글/리슨 호스트). 폰 ASC가 없으면 `State.Dialogue` 태그를 올릴 곳이 없어 세션을 열지 않는다.
+- 새 대화: `FWxDialogueTableRow` 로우 타입 DataTable을 만들고 `UWxDialogueComponent::StartRow`(또는 ST 태스크의 `StartRow`)로 시작 행을 지정. 모든 행은 `NextRow`를 채워야 하며 종료는 `NextRow=None`
+- 새 말 거는 대상: `AWxDialogueActor`를 상속해 몸통(캡슐+스켈레탈/메시)을 세우고, 포즈를 얹으려면 `GetPoseMesh()`를 오버라이드
+- 포즈는 소프트 참조(`TSoftObjectPtr<UAnimMontage>`)로, 세션이 대사를 넘길 때 비동기 스트리밍. 대화가 끝나도 되돌리지 않고 마지막 자세로 남음
+- 권한 모델: 서버 권위 진입점(`StartDialogue`)이 Client RPC로 소유 클라를 열고, 세션 진행 상태는 로컬 표시 전용(서버 검증 없음). v1 싱글/리슨 호스트 전제
+- 세션 전제: 폰 ASC가 없으면 `State.Dialogue`를 올릴 곳이 없어 세션을 열지 않음. 카메라는 로컬 컨트롤러에서만 동작(나레이션이면 카메라 미개입)
 
 ## 여기서부터 읽어라
-1. `Source/WxDialogue/Public/WxDialogueSessionComponent.h` — 소유·복제·카메라·포즈·태그 정책이 헤더 주석에 모두 서술된 시스템의 심장부
-2. `Source/WxDialogue/Public/WxDialogueTableRow.h` — 대화가 어떤 데이터로 표현되는지, 진행 규약(NextRow/None)의 출발점
-3. `Source/WxDialogue/Private/WxDialogueSessionComponent.cpp` — `EnterRow`→`PublishCurrentLine`→`Advance`→`EndDialogue` 진행과 카메라·포즈 스트리밍 실제 흐름
+1. `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueSessionComponent.h` — 진행·연출·복제 정책이 클래스 주석에 응축된 모듈의 심장
+2. `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueTableRow.h` — 대화 데이터 모델. 행→NextRow 그래프 규약
+3. `Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueSessionComponent.cpp` — 카메라 구도 계산·포즈 스트리밍·태그 개폐의 실제 흐름
 
 ## 관련
 - 상위: 호스트 액터를 상호작용으로 부르는 [[WxCore]]의 `IWxInteractable`, 세션을 PC에 주입하는 Experience, 진행 대사를 관찰해 의미를 판정하는 [[WxQuest]], `State.Dialogue` 태그로 창을 여닫는 [[WxUI]]
 
 ---
-*문서 기준 커밋 `27fb65d` · 생성일 2026-09-02 · 소스 11파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `a1df17d` · 생성일 2026-09-04 · 소스 11파일 — `/readme-writer`로 갱신*

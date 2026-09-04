@@ -1,48 +1,48 @@
 # WxWorld — 월드 오브젝트 및 상호작용
 
-> 문·상자·체크포인트·엘리베이터·버튼 같은 배치형 월드 장치를 StateTree로 구동하고, 플레이어의 근거리 상호작용 감지·선택과 레벨 스포너(적 배치·처치·리스폰)를 담당한다.
+> 레벨에 놓인 상호작용 장치(문·상자·체크포인트·엘리베이터·버튼)와 몬스터 스포너를 StateTree로 구동하고, 플레이어가 주변 대상을 감지·선택·발동하는 상호작용 파이프라인을 제공한다.
 
 ## 책임
 **담당**
-- 월드 장치(`AWxDevice`)의 상태 구동과 네트워크 수렴 — StateTree 실행, 상태(StateTag) 서버 권위 소유·복제, 상호작용 On/Off 바인딩
-- 플레이어 상호작용 스캔 — 주변 후보 수집(액터 단위), 선택 사이클, 하이라이트(스텐실), `ServerInteract` RPC 발신
-- 레벨 스포너(`AWxSpawner`) — 대상 스폰, 처치 상태 보유, 개별/일괄 리스폰
-- 월드용 StateTree 태스크 모음 — 연출(애니메이션·사운드·나이아가라·레벨 시퀀스·컴포넌트/스플라인 이동), 상호작용 게이트, 스포너 발동·처치 대기·리스폰, 이벤트 송출
+- StateTree로 자기 상태를 구동하는 월드 장치(`AWxDevice`)와 그 상태 실행·복제(`UWxDeviceStateTreeComponent`).
+- 플레이어의 주변 상호작용 대상 스캔·선택·하이라이트(`UWxInteractionScannerComponent`)와 서버 발동 RPC.
+- 레벨 배치 스포너(`AWxSpawner`)의 스폰·처치·리스폰과 스폰 대상 계약(`IWxSpawnable`).
+- 장치·퀘스트 ST가 쓰는 월드 연출·게이트 태스크군(`Source/WxWorld/Public/StateTreeTask`, `Public/Interaction`, `Public/Spawnable`)과 그 완료 대기 등록부(`TWxStateTreeWaitRegistry`).
 
 **경계 (비담당)**
-- 상호작용 인터페이스 계약(`IWxInteractable`)과 `Event.Interact` 태그 정의 → [[WxCore]]
-- 상호작용 어빌리티의 서버 권위 사거리·활성 검증 → GAS 어빌리티(에셋). 스캐너는 대상 인터페이스 호출을 어빌리티에 위임한다
-- HUD 상호작용 리스트 표시 → [[WxUI]] (`WxViewModel_Interaction`)
-- 퀘스트 스텝 게이트 호스트(레벨 밖 StateTree) → [[WxQuest]]
+- 상호작용의 권위 검증·사거리 판정은 `Ability.Interact` 어빌리티가 맡는다 — 스캐너는 선택만 서버로 넘긴다. 어빌리티 시스템은 [[WxCombat]] 계열.
+- 상호작용 표면 계약(`IWxInteractable`)의 정의는 [[WxCore]].
+- HUD 리스트 표시는 뷰모델(`UWxViewModel_InteractionList`)이 맡는다 — [[WxUI]].
+- 스폰되는 몬스터·AI의 행동 자체는 [[WxAI]].
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `AWxDevice` | 장치 공통 호스트. 상호작용 표면(IWxInteractable)과 배선(LinkedDevices)만 갖고 상태 구동은 컴포넌트에 위임 | `Source/WxWorld/Public/Device/WxDevice.h` |
-| `UWxDeviceStateTreeComponent` | 장치 상태머신 실행기이자 복제 StateTag 소유자. 서버 권위→클라 추종 수렴 패턴의 중심 | `Source/WxWorld/Public/Device/WxDeviceStateTreeComponent.h` |
-| `UWxInteractionScannerComponent` | PlayerController 부착, 소유 클라에서 근거리 상호작용 스캔·선택·하이라이트 | `Source/WxWorld/Public/Interaction/WxInteractionScannerComponent.h` |
-| `AWxSpawner` | SpawnableActorClass를 스폰하고 처치 상태를 보유하는 레벨 배치 액터 | `Source/WxWorld/Public/Spawnable/WxSpawner.h` |
-| `IWxSpawnable` | 스폰 대상이 구현. FinishSpawning 이전 `OnSpawnedBy`로 스포너 주입을 받음 | `Source/WxWorld/Public/Spawnable/WxSpawnable.h` |
-| `FWxStateTreeTask_WaitForInteraction` | 대상이 상호작용될 때까지 대기하는 퀘스트 게이트. WaitRegistry로 무틱 대기 | `Source/WxWorld/Public/Interaction/WxStateTreeTask_WaitForInteraction.h` |
-| `FWxStateTreeComponentName` | ST 에셋이 레벨 컴포넌트를 이름으로 지목하는 순수 구조체(연출 태스크 대상 지정) | `Source/WxWorld/Public/Device/WxDeviceComponentName.h` |
-| `UWxSpawnerLibrary` | `TryRespawnAll` — Auto 모드 스포너 일괄 리스폰(BP 진입점) | `Source/WxWorld/Public/System/WxSpawnerLibrary.h` |
+| `AWxDevice` | `IWxInteractable` 호스트 액터. 상호작용 표면·배선(`LinkedDevices`)만 갖고 상태 구동은 컴포넌트에 위임 | `Source/WxWorld/Public/Device/WxDevice.h` |
+| `UWxDeviceStateTreeComponent` | 장치 상태머신 실행기이자 복제 StateTag의 소유자. 서버 권위→클라 수렴 패턴의 중심 | `Source/WxWorld/Public/Device/WxDeviceStateTreeComponent.h` |
+| `UWxInteractionScannerComponent` | PlayerController 부착. 주변 후보 스캔·선택·하이라이트·`ServerInteract` | `Source/WxWorld/Public/Interaction/WxInteractionScannerComponent.h` |
+| `AWxSpawner` | 레벨 배치 스포너. 스폰·처치 상태 보유, `Auto`/`Manual` 모드 | `Source/WxWorld/Public/Spawnable/WxSpawner.h` |
+| `IWxSpawnable` | 스폰 대상 계약. FinishSpawning 이전 `OnSpawnedBy`로 초기값 주입 | `Source/WxWorld/Public/Spawnable/WxSpawnable.h` |
+| `FWxStateTreeTask_WaitForInteraction` | 대상 상호작용까지 대기하는 퀘스트 게이트 태스크(폴링 없음) | `Source/WxWorld/Public/Interaction/WxStateTreeTask_WaitForInteraction.h` |
+| `TWxStateTreeWaitRegistry` | 통보 올 때까지 Running으로 머무는 태스크들의 공용 등록부(템플릿) | `Source/WxWorld/Public/StateTreeTask/WxStateTreeWaitRegistry.h` |
+| `UWxSpawnerLibrary` | 스포너 일괄 조작 BP 함수 라이브러리(`TryRespawnAll`) | `Source/WxWorld/Public/System/WxSpawnerLibrary.h` |
 
 ## 확장 포인트 / 규약
-- **새 장치**: `AWxDevice`를 상속한 BP를 만들고 몸통 컴포넌트를 세운 뒤, `UWxDeviceStateTreeComponent`의 StateTree 에셋에 상태를 저작한다. 루트는 베이스가 만들지 않으므로 파생 BP가 세운다.
-- **상태 식별**: 상태 디테일의 Tag 필드에 (에셋 내 유일한) GameplayTag를 달면 그 값이 복제·수렴 키가 된다. 태그 없는 상태는 추종 대상이 될 수 없어 시작 상태로도 못 쓴다.
-- **새 StateTree 태스크**: `FStateTreeTaskCommonBase`를 상속하고 `FInstanceDataType`/`GetInstanceDataType()`을 둔다(헤더 정의는 코딩 규칙 6의 명시적 예외). 레벨 액터 지정은 `FUniversalObjectLocator`로 받아 ST 컴파일러의 레벨 참조 검증을 피한다.
-- **통보형 대기**: `TWxStateTreeWaitRegistry<Payload>`로 진입 시 등록·통보 시 완료하는 무폴링 대기를 만든다(`WaitForInteraction`이 예시). 완료는 약한 실행 컨텍스트로 보내고 PIE 월드 경계로 좁힌다.
-- **스포너 아이콘**: `UWxWorldDeveloperSettings`(Project Settings > Wx World Settings)에 스포너 클래스별 에디터 아이콘을 데이터로 매핑한다.
+- **장치 만들기**: `AWxDevice`를 상속한 BP에 몸통을 세우고 `UWxDeviceStateTreeComponent`에 ST 에셋·`InitialState`를 지정한다. 루트는 파생 BP가 세운다(베이스는 루트를 만들지 않음).
+- **상태 구동 모델**: 상태는 서버 권위다. 권위 트리만 활성 상태 Tag를 복제 `StateTagName`에 기록하고, 클라는 그 값에 수렴하도록 라이브 전이를 요청한다. 상태 식별 키는 엔진 순정 상태 Tag(에셋 안에서 유일). 상세는 `WxDeviceStateTreeComponent.h` doc-comment.
+- **월드 ST 태스크 추가**: `FStateTreeTaskCommonBase`(또는 `FStateTreeTaskBase`)를 상속하고 `Public/StateTreeTask`에 둔다. 대상 액터는 `FUniversalObjectLocator`(순정 구조체라 ST 컴파일러의 레벨 액터 참조 검증을 우회, 퀘스트 등 레벨 밖 호스트에서도 조립 가능), 대상 컴포넌트는 `FWxStateTreeComponentName`(이름 지목)으로 가리킨다.
+- **대기형 태스크**: 통보 기반 완료는 `TWxStateTreeWaitRegistry`에 진입 시 등록하고 `ExitState`에서 핸들로 해제한다 — PIE 서버/클라 월드 분리를 등록부가 처리한다.
+- **스폰 대상**: `IWxSpawnable`을 구현하고 `AWxSpawner::SpawnableActorClass`에 지정한다(`MustImplement`로 강제). `bNeverRevive`로 보스형 영구 처치 지정.
+- **리플리케이션/권한**: 장치 상태·스폰/처치는 모두 서버 권위. 스캐너는 소유 클라 로컬 어포던스이며 발동만 `ServerInteract` RPC로 서버에 전달한다. `UWxWorldDeveloperSettings`는 에디터 스포너 아이콘 매핑(`Config=Game`).
 
 ## 여기서부터 읽어라
-1. `Source/WxWorld/Public/Device/WxDeviceStateTreeComponent.h` — 이 모듈의 핵심 난도. 서버 권위 상태를 StateTag 복제로 전 피어가 수렴시키는 패턴을 doc-comment가 전부 설명한다.
-2. `Source/WxWorld/Public/Device/WxDevice.h` — 장치가 상호작용 신호를 받아 컴포넌트에 넘기고, 상태별 프롬프트·발행 자리(Binding)를 여닫는 흐름.
-3. `Source/WxWorld/Public/Interaction/WxInteractionScannerComponent.h` — 스캔→선택→`ServerInteract`→어빌리티 권위 검증으로 이어지는 상호작용 로컬리티/네트워크 경로.
-4. `Source/WxWorld/Public/StateTreeTask/WxStateTreeWaitRegistry.h` — 통보형 대기 태스크의 공용 등록부(무틱 대기·월드 경계·오너 소멸 정리).
+1. `Source/WxWorld/Public/Device/WxDeviceStateTreeComponent.h` — 이 모듈 전체를 관통하는 서버 권위→클라 수렴 상태 구동 패턴의 근거.
+2. `Source/WxWorld/Public/Device/WxDevice.h` — 상호작용 표면과 상태 컴포넌트가 만나는 지점, 장치의 계약 상대.
+3. `Source/WxWorld/Public/Interaction/WxInteractionScannerComponent.h` — 스캔→선택→서버 발동→어빌리티 검증으로 이어지는 상호작용 흐름 전모.
+4. `Source/WxWorld/Public/Spawnable/WxSpawner.h` + `WxSpawnable.h` — 스포너/스폰 대상 계약과 리스폰 모델.
 
 ## 관련
-- 상위: 장치·스포너 상호작용을 소비하는 [[WxQuest]](스텝 게이트 ST), 리스트 UI를 그리는 [[WxUI]]
-- 계약: 상호작용 인터페이스·태그의 단일 소스 [[WxCore]]
+- 상위: 상호작용 발동·검증은 [[WxCombat]](어빌리티), HUD 표시는 [[WxUI]], 스폰 몬스터 행동은 [[WxAI]]가 소비한다. 상호작용 표면 계약(`IWxInteractable`)·공용 정의는 [[WxCore]]. 장치·스포너 ST 태스크는 퀘스트([[WxQuest]]) 호스트 트리에서도 조립된다.
 
 ---
-*문서 기준 커밋 `27fb65d` · 생성일 2026-09-02 · 소스 51파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `a1df17d` · 생성일 2026-09-04 · 소스 51파일 — `/readme-writer`로 갱신*
