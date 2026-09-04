@@ -21,6 +21,7 @@
 #include "WxStateTreeComponentNameCustomization.h"
 #include "WxDeviceLinkVisualizer.h"
 #include "WxItemDefinitionThumbnailRenderer.h"
+#include "WxObjectDetails.h"
 #include "WxUIDataThumbnailRenderer.h"
 #include "Device/WxDeviceComponentName.h"
 
@@ -29,6 +30,10 @@ IMPLEMENT_MODULE(FWxEditorModule, WxEditor)
 namespace WxEditorModule
 {
 	static const FName PropertyEditorModuleName(TEXT("PropertyEditor"));
+	static const FName DetailCustomizationsModuleName(TEXT("DetailCustomizations"));
+	/** 엔진이 FObjectDetails 를 등록할 때 쓰는 클래스 이름 그대로. */
+	static const FName ObjectClassName(TEXT("Object"));
+	static const FName WxSectionName(TEXT("Wx"));
 }
 
 void FWxEditorModule::StartupModule()
@@ -44,6 +49,23 @@ void FWxEditorModule::StartupModule()
 	PropertyModule.RegisterCustomPropertyTypeLayout(
 		FWxStateTreeComponentName::StaticStruct()->GetFName(),
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FWxStateTreeComponentNameCustomization::MakeInstance));
+
+	// "Object" 는 엔진 DetailCustomizations 가 FObjectDetails 로 차지한 자리고 재등록은 교체다. 원본을 꺼내 안에 품고 실행 순서(Order)도 그대로 잇는다.
+	FModuleManager::Get().LoadModuleChecked(WxEditorModule::DetailCustomizationsModuleName);
+	FRegisterCustomClassLayoutParams ObjectLayoutParams;
+	if (const FDetailLayoutCallback* EngineCallback = PropertyModule.GetClassNameToDetailLayoutNameMap().Find(WxEditorModule::ObjectClassName))
+	{
+		EngineObjectLayout = *EngineCallback;
+		ObjectLayoutParams.OptionalOrder = EngineCallback->Order;
+	}
+	PropertyModule.RegisterCustomClassLayout(
+		WxEditorModule::ObjectClassName,
+		FOnGetDetailCustomizationInstance::CreateStatic(&FWxObjectDetails::MakeInstance, EngineObjectLayout.DetailLayoutDelegate),
+		ObjectLayoutParams);
+
+	// 레벨 에디터 디테일의 섹션 탭. 엔진 섹션은 전부 기본 Order(0)라 알파벳순이므로, 더 작은 값으로 General 바로 다음에 둔다.
+	PropertyModule.FindOrCreateSection(WxEditorModule::ObjectClassName, WxEditorModule::WxSectionName, INVTEXT("Wx"), -1)
+		->AddCategory(FWxObjectDetails::WxCategoryName);
 
 	PropertyModule.NotifyCustomizationModuleChanged();
 
@@ -86,6 +108,19 @@ void FWxEditorModule::ShutdownModule()
 			ActorLocatorIdentifier.Reset();
 		}
 		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("WxStateTreeComponentName"));
+
+		if (EngineObjectLayout.DetailLayoutDelegate.IsBound())
+		{
+			FRegisterCustomClassLayoutParams ObjectLayoutParams;
+			ObjectLayoutParams.OptionalOrder = EngineObjectLayout.Order;
+			PropertyModule.RegisterCustomClassLayout(WxEditorModule::ObjectClassName, EngineObjectLayout.DetailLayoutDelegate, ObjectLayoutParams);
+		}
+		else
+		{
+			PropertyModule.UnregisterCustomClassLayout(WxEditorModule::ObjectClassName);
+		}
+		PropertyModule.RemoveSection(WxEditorModule::ObjectClassName, WxEditorModule::WxSectionName);
+
 		PropertyModule.NotifyCustomizationModuleChanged();
 	}
 

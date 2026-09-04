@@ -61,7 +61,7 @@ enum class EWxAbilityActionPhase : uint8
 	Recovery,
 };
 
-UCLASS(Abstract, BlueprintType, Blueprintable, PrioritizeCategories = ("Wx"))
+UCLASS(Abstract, BlueprintType, Blueprintable)
 class WXCOMBAT_API UWxAbilityBase : public UGameplayAbility, public IWxUIData
 {
 	GENERATED_BODY()
