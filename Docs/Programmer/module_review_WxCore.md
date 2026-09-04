@@ -1,48 +1,47 @@
 # WxCore — 코드 리뷰
 
-> 로직이 거의 없는 계약·상수 전용 foundation 모듈이라 전반적으로 매우 건강하다. 실행 코드는 `WxLocatorUtils` 하나뿐이고 나머지는 태그 선언과 인터페이스 계약이다. 이번 리뷰는 11개 소스 전부를 읽고, 추가로 선언된 109개 네이티브 태그의 실제 소비처(C++·`*.uasset`·`*.umap`·`*.ini`)와 `ECC_WxAttack`·`DefaultEngine.ini` 짝을 교차 검증했다.
+> 11파일 전부가 선언·상수·인터페이스 계약이고 실행 로직은 에디터 전용 표시명 헬퍼 하나뿐이라, foundation 모듈로서 매우 얇고 건강하다. 소스 11파일을 모두 통독했고, 여기에 더해 태그 109개의 선언·정의 짝과 프로젝트 전체(C++·Content·Config) 참조 여부, `ECC_WxAttack`의 `DefaultEngine.ini` 매핑, `FWxLocatorUtils` 소비처 6곳의 빌드 의존성을 교차 검증했다.
 
 ## 요약
 | 심각도 | 개수 |
 | --- | --- |
 | 🔴 심각 | 0 |
-| 🟡 개선 | 2 |
-| 🟢 사소 | 1 |
+| 🟡 개선 | 1 |
+| 🟢 사소 | 2 |
 
 ## 결과
 
-### 1. 🟡 `Cooldown.Skill.2~4` 부재 — 스킬 슬롯이 쿨다운 태그를 공유하게 된다
-- **위치**: `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h:213-223` (짝 규약 주석 + `Cooldown_Dodge`/`Cooldown_Skill_1`/`Cooldown_Ultimate`), 대비 `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h:180-183` (`Ability_Skill_1~4`)
+### 1. 🟡 `ECC_WxAttack`이 ini 등록 순서에 묶여 있으나 어긋나도 조용히 지나간다
+- **위치**: `Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h:15`
 - **범주**: 설계/구조
-- **문제**: 주석은 "이름은 위 Ability.X 식별 태그를 따른다 — 어빌리티가 지정한 `UWxEffect_Cooldown` 파생 GE가 짝이 되는 태그를 부여한다"고 1:1 규약을 선언하지만, 실제 선언된 쿨다운 태그는 슬롯 1뿐이다. 소비 측 `UWxAbility_Skill` 생성자는 `CooldownGameplayEffectClass = UWxEffect_Cooldown_Skill_1::StaticClass()`를 기본값으로 깔고(`Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Skill.cpp:21`), `UWxEffect_Cooldown` 파생 클래스는 Dodge/Skill_1/Ultimate 3개가 전부다(`Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Cooldown.cpp:54,59,64`). 프로젝트에 `DefaultGameplayTags.ini`가 없어 모든 태그가 네이티브 선언뿐이므로, BP가 슬롯별 쿨다운 GE를 저작하려 해도 고를 태그 자체가 없다. 결과적으로 `GA_Skill_3`·`GA_Skill_4`(`Ability.Skill.3`/`.4` 사용 확인)가 발동하면 순정 `CheckCooldown`이 보는 태그가 `Cooldown.Skill.1` 하나라 슬롯 1·3·4가 한 쿨다운을 공유한다. 다만 두 GA는 현재 어떤 어빌리티 세트에도 참조되지 않아(에셋 역참조 0건) **아직 발현되지 않은 잠재 결함**이다.
-- **제안**: 슬롯 2~4를 실제로 붙일 시점에 `Cooldown.Skill.2~4`를 이 파일에 선언하고 WxCombat에 짝 GE 파생을 추가한다. 반대로 "스킬 슬롯은 쿨다운을 공유한다"가 의도라면 태그 이름을 `Cooldown.Skill`로 바꿔 규약 주석과 어긋나지 않게 한다.
+- **문제**: `ECC_WxAttack = ECC_GameTraceChannel1`은 `Config/DefaultEngine.ini:39`의 `+DefaultChannelResponses=(Channel=ECC_GameTraceChannel1, ..., Name="WxAttack")` 한 줄과만 짝을 이룬다. 현재는 정확히 일치하지만(확인함), 이 대응은 컴파일러도 엔진도 검사하지 않는다. 프로젝트 설정에서 채널을 지우거나 순서를 바꾸면 `ECC_WxAttack`이 다른 채널을 가리키게 되고, 그 결과는 빌드 에러나 로그가 아니라 **무기·투사체 히트 판정이 통째로 어긋나는 런타임 증상**으로만 드러난다. 무기 히트박스는 이 채널을 Object Type으로 쓰고 캐릭터 메시는 `WxCharacterBase.cpp:30`에서 이 채널에 Overlap을 건다 — 전투 전체가 이 한 상수 위에 서 있다.
+- **제안**: `FWxCoreModule::StartupModule()`에서 `UCollisionProfile::Get()->ReturnChannelNameFromContainerIndex(ECC_WxAttack)`이 `"WxAttack"`인지 `ensureMsgf`로 한 번 확인한다. 지금 비어 있는 그 함수가 유일하게 자연스러운 자리다. 반대로 진단 가드를 두지 않기로 하면 `FWxCoreModule` 클래스 자체가 빈 override 두 개뿐이므로(`WxCoreModule.h:8-13`, `WxCoreModule.cpp:6-9`) `IMPLEMENT_MODULE(FDefaultModuleImpl, WxCore)` 한 줄로 줄이고 두 파일을 지우는 쪽이 정직하다. 둘 중 하나는 정해야 한다.
 - **확신도**: 중간
 
-### 2. 🟡 미사용 태그 5개 — 선언·정의만 있고 코드·에셋·설정 어디서도 참조되지 않는다
-- **위치**: `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h:206-209`, `:228` / `Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp:112-115`, `:123`
+### 2. 🟢 어디에서도 참조되지 않는 태그 6개
+- **위치**: `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h:181`, `:205-209`
 - **범주**: 중복/복잡도
-- **문제**: `Ability.Pattern.6`~`Ability.Pattern.9`, `SetByCaller.Magnitude`가 전 저장소에서 참조 0건이다(C++ `WxGameplayTags::` 참조, `*.uasset`/`*.umap`/`*.ini`/`*.json` 문자열 전수 스캔 모두 0). `Ability.Pattern.1~5`는 에셋에서 실제로 쓰이고 있어 6~9만 남아 있는 형태이고, `SetByCaller.Magnitude`는 같은 블록의 나머지 3개 SetByCaller 키가 모두 사용 중인 것과 대비된다 — 특히 이 키는 doc-comment도 없어 남은 잔재로 보인다. 태그는 부팅 시 전역 레지스트리에 올라가고 저작 UI의 선택 목록을 오염시키므로, 쓰지 않는 항목은 기획자에게 "있는데 안 먹는 태그"로 오인된다.
-- **제안**: `SetByCaller.Magnitude`는 제거한다. `Ability.Pattern.6~9`가 향후 패턴 슬롯 예약이라면 그 취지를 블록 주석에 한 줄 남기고, 예약이 아니라면 함께 제거한다.
-- **확신도**: 중간 (Pattern 6~9는 의도된 예약일 수 있음 / `SetByCaller.Magnitude` 미사용 자체는 높음)
-
-### 3. 🟢 `GetDisplayName`의 미해석 폴백이 빈 문자열을 낼 수 있다
-- **위치**: `Plugins/WxCore/Source/WxCore/Private/WxLocatorUtils.cpp:22-31`
-- **범주**: 버그/정확성
-- **문제**: `FActorLocatorFragment::Path`(`FSoftObjectPath`)에서 `GetSubPathString()`이 빈 문자열이면 `SubPath`를 그대로 반환해 표시 텍스트가 공란이 된다. 아래의 `INVTEXT("unresolved")` 폴백은 페이로드 자체가 없을 때만 도달하므로 이 경로를 받아주지 못한다. 실제로는 액터 로케이터의 경로가 `.../Map:PersistentLevel.Actor` 형태라 서브패스가 늘 존재하지만, 값이 깨졌거나 서브패스 없이 초기화된 로케이터에서는 디테일 패널·ST 노드 설명이 아무 글자도 없는 칸으로 보인다(`Source/WxEditor/WxActorLocatorCustomization.cpp:143`이 이 값을 그대로 표시).
-- **제안**: `SubPath`가 비면 `INVTEXT("unresolved")`로 떨어지도록 한 줄 가드를 둔다.
+- **문제**: `Ability.Skill.2`, `Ability.Pattern.5` ~ `Ability.Pattern.9` 여섯 개는 C++(`WxGameplayTags::` 심볼 참조)에서도, `Content`·`Plugins/*/Content`의 에셋 문자열에서도, `Config`에서도 단 한 건도 참조되지 않는다. 나머지 103개는 모두 코드나 에셋에 실제 참조가 있다. 같은 축의 `Ability.Skill.3`·`Ability.Skill.4`·`Ability.Pattern.1`~`.4`는 에셋에 존재하므로, 빠진 자리만 비어 있는 모양이다.
+- **제안**: 슬롯 예약이 맞다면 그대로 두되 "슬롯 예약, 아직 구현 없음" 주석을 한 줄 남긴다. 예약 의도가 아니면 지운다 — 어빌리티 식별 태그는 에셋에서 소비되므로 미사용 태그가 쌓이면 슬롯 표에서 어디까지가 실재인지 구분이 안 된다.
 - **확신도**: 낮음(의도된 설계일 수 있음)
 
+### 3. 🟢 Public 헤더가 노출하는 `FUniversalObjectLocator`의 모듈 의존성이 Private이다
+- **위치**: `Plugins/WxCore/Source/WxCore/WxCore.Build.cs:19-25`
+- **범주**: 설계/구조
+- **문제**: `WxLocatorUtils.h`는 Public 헤더인데 두 함수 시그니처가 모두 `FUniversalObjectLocator`를 받고(`WxLocatorUtils.h:14,17`), 정작 `UniversalObjectLocator` 모듈은 `PrivateDependencyModuleNames`에 있다. 헤더가 전방 선언만 하므로 지금은 컴파일되고, 현 소비처 4개 모듈(`WxQuest`·`WxUI`·`WxWorld`·`WxEditor`)은 전부 스스로 `UniversalObjectLocator`를 선언하고 있어 실제 고장은 없다. 다만 새 소비 모듈이 `WxLocatorUtils.h`만 include하면 불완전 타입 에러를 만나게 된다.
+- **제안**: `bBuildEditor` 블록의 `PrivateDependencyModuleNames`를 `PublicDependencyModuleNames`로 바꾸면 전파된다. 실익이 작다고 판단하면 헤더 doc-comment에 "소비 모듈이 `UniversalObjectLocator` 의존성을 직접 선언해야 한다"고 적어 두는 것으로 갈음해도 된다.
+- **확신도**: 중간
+
 ## 검토 범위
-- **깊게 본 파일**: `Plugins/WxCore/Source/WxCore/Private/WxLocatorUtils.cpp`, `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h`, `Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp`, `Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h`, `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h`, `Plugins/WxCore/Source/WxCore/Public/WxUIData.h`
-- **훑은 파일**: `Plugins/WxCore/WxCore.uplugin`, `Plugins/WxCore/Source/WxCore/WxCore.Build.cs`, `Plugins/WxCore/Source/WxCore/Public/WxCoreModule.h`, `Plugins/WxCore/Source/WxCore/Private/WxCoreModule.cpp`, `Plugins/WxCore/Source/WxCore/Public/WxLocatorUtils.h`, `Plugins/WxCore/Source/WxCore/Private/WxInteractable.cpp`, `Plugins/WxCore/Source/WxCore/Private/WxUIData.cpp`, `Plugins/WxCore/README.md`
-- **교차 검증(참고로만 열어본 모듈 밖 파일)**: `Config/DefaultEngine.ini`, `Config/DefaultGame.ini`, `Source/WxGame/Character/WxCharacterBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxWeaponBase.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Skill.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Cooldown.cpp`, `Source/WxEditor/WxActorLocatorCustomization.cpp`
-- **확인했고 문제 없던 항목**:
-  - 모듈 경계: `WxCore.Build.cs`는 엔진 모듈(`Core`/`CoreUObject`/`Engine`/`GameplayTags`, 에디터 한정 `UniversalObjectLocator`)만 참조하며 다른 `Wx` 플러그인 의존 0건 — DAG 최하단 규칙 준수.
-  - 코딩 규칙: 11개 파일 전부 첫 줄 `// Copyright Woogle. All Rights Reserved.`, `Wx` prefix 준수, 인라인 함수 정의·불필요한 람다·`BlueprintCallable` 오용 없음. 델리게이트 콜백이 없어 `Handle` prefix 대상도 없음.
-  - 태그 단일 출처: `UE_DECLARE_GAMEPLAY_TAG_EXTERN`/`UE_DEFINE_GAMEPLAY_TAG`가 WxCore 밖에 0건이고 `DefaultGameplayTags.ini`도 없어, 선언처가 두 파일로 실제 일원화되어 있다. 에셋 문자열 스캔에서도 미선언 `State.*`/`Effect.*`/`Event.*`/`Device.*`/`GameplayCue.*`/`Damage.*` 태그는 발견되지 않았다.
-  - `ECC_WxAttack = ECC_GameTraceChannel1`이 `Config/DefaultEngine.ini:39`의 유일한 커스텀 채널 등록(`Name="WxAttack"`)과 일치하고, 헤더 주석이 서술한 메시 Overlap·캡슐 Ignore 오버라이드도 `Source/WxGame/Character/WxCharacterBase.cpp:29,33`과 일치.
-  - `GameplayCue.*` 9개 태그 모두 `Content/AbilitySystem/Cue`의 `GC_*` 에셋과 1:1 대응.
-- **미검토 / 한계**: BP·GE·StateTree 에셋 내부 구조는 범위 밖이라 바이너리 문자열 스캔으로만 태그 소비 여부를 판정했다 — 압축·리다이렉터로 문자열이 남지 않는 참조가 있다면 "미사용" 판정(발견 2)에 위양성이 있을 수 있다. `FUniversalObjectLocator::SyncFind()`가 디테일 패널 페인트마다 호출되는 경로(`WxActorLocatorCustomization.cpp:143`)는 확인했으나, `Find` 플래그라 에셋 로드를 유발하지 않고 경로 해시 조회 수준이어서 발견으로 올리지 않았다.
+- **깊게 본 파일**: `Plugins/WxCore/Source/WxCore/Private/WxLocatorUtils.cpp`, `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h`, `Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp`, `Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h`, `Plugins/WxCore/Source/WxCore/WxCore.Build.cs`
+- **훑은 파일**: `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h`, `Plugins/WxCore/Source/WxCore/Private/WxInteractable.cpp`, `Plugins/WxCore/Source/WxCore/Public/WxUIData.h`, `Plugins/WxCore/Source/WxCore/Private/WxUIData.cpp`, `Plugins/WxCore/Source/WxCore/Public/WxLocatorUtils.h`, `Plugins/WxCore/Source/WxCore/Public/WxCoreModule.h`, `Plugins/WxCore/Source/WxCore/Private/WxCoreModule.cpp`, `Plugins/WxCore/WxCore.uplugin`
+- **확인했고 문제 없었던 것**:
+  - 태그 109개가 헤더 선언·cpp 정의 1:1로 짝을 이루며 중복·누락이 없다.
+  - `ECC_WxAttack`의 doc-comment(`WxCollisionChannels.h:11-13`)가 `Config/DefaultEngine.ini`의 `DefaultResponse=ECR_Block`, `WxProjectile` 프리셋, `WxCharacterBase.cpp:30,34`의 메시 Overlap·캡슐 Ignore override와 모두 일치한다.
+  - `FUniversalObjectLocator::SyncFind()`는 `FActorLocatorFragment` 경로에서 `ResolveObject()`만 타므로 동기 패키지 로드를 유발하지 않는다 — 에디터 표시명 경로의 성능 위험은 없다.
+  - 규칙 위반 없음: 전 파일 첫 줄 저작권 표기, `Wx` prefix, 인라인 함수 정의 없음(`ECC_WxAttack`은 `constexpr` 상수라 해당 없음), `BlueprintCallable` 없음, 람다 없음, 델리게이트·콜백 없음. 인터페이스 기본 구현 두 개(`IWxInteractable::CanInteract`, `IWxUIData::GetMaxRecharges`)는 모두 cpp에 내려가 있고 그에 맞게 I-class에 `WXCORE_API`가 붙어 있다.
+  - WxCore는 다른 Wx 플러그인을 참조하지 않는다(`Core`/`CoreUObject`/`Engine`/`GameplayTags` + 에디터 전용 `UniversalObjectLocator`뿐).
+- **미검토 / 한계**: 태그의 에셋 참조 여부는 `.uasset` 바이너리 문자열 검색으로 판정했다 — 이름 테이블에 남지 않는 형태로 참조되는 태그가 있다면 2번 발견이 위양성일 수 있다. BP/WBP·GE·StateTree 에셋의 내부 구조는 범위 밖이다.
 
 ---
-*문서 기준 커밋 `c486a5c7` · 리뷰일 2026-09-03 · 소스 11파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `491dd7ec` · 리뷰일 2026-09-05 · 소스 11파일 — `/module-review`로 갱신*
