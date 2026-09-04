@@ -224,17 +224,16 @@ void AWxCharacterBase::InitAbilitySystem()
 	AbilitySystemComponent->RefreshAbilityActorInfo();
 
 	// GiveAbilitySet보다 먼저 등록해야 초기 어트리뷰트 변경(SPD 등)이 콜백에 반영된다.
-	// 재진입 때 기준값을 다시 잡으면 이미 SPD가 곱해진 MaxWalkSpeed가 기준이 돼 배율이 누적된다.
 	FOnGameplayAttributeValueChange& SPDChanged =
 		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetSPDAttribute());
 	if (!SPDChanged.IsBoundToObject(this))
 	{
-		BaseWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 		SPDChanged.AddUObject(this, &AWxCharacterBase::HandleSPDAttributeChanged);
-
-		// 구독보다 초기 복제가 빨랐다면 그 변경 이벤트는 이미 지나갔으므로 현재 값을 1회 적용한다.
-		GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed * CombatAttributeSet->GetSPD();
 	}
+
+	// 구독보다 초기 복제가 빨랐다면 그 변경 이벤트는 이미 지나갔으므로 현재 값을 1회 적용한다.
+	const float BaseWalkSpeed = GetDefault<AWxCharacterBase>(GetClass())->GetCharacterMovement()->MaxWalkSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed * CombatAttributeSet->GetSPD();
 
 	// GiveAbility는 서버에서만 허용. 클라이언트에는 서버로부터 복제됨
 	if (HasAuthority())
@@ -245,6 +244,8 @@ void AWxCharacterBase::InitAbilitySystem()
 
 void AWxCharacterBase::HandleSPDAttributeChanged(const FOnAttributeChangeData& Data)
 {
+	// 기준값은 항상 클래스 기본값에서 읽는다 — 인스턴스의 MaxWalkSpeed는 이미 SPD가 곱해져 있어 기준으로 못 쓴다.
+	const float BaseWalkSpeed = GetDefault<AWxCharacterBase>(GetClass())->GetCharacterMovement()->MaxWalkSpeed;
 	GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed * Data.NewValue;
 }
 

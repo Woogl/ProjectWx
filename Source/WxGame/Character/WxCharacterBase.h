@@ -65,9 +65,7 @@ public:
 	AWxWeaponBase* GetEquippedWeapon() const;
 
 	UWxLockOnComponent* GetLockOnComponent() const;
-
 	const FText& GetCharacterName() const;
-
 	const TSoftObjectPtr<UObject>& GetPortrait() const;
 
 	UPROPERTY(BlueprintAssignable, Category = "Wx|Character")
@@ -143,7 +141,4 @@ protected:
 	/** 소비자가 모두 질의 시점에 이 값을 직접 읽으므로 복제 통지를 받을 대상이 없다. */
 	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Wx|Team")
 	EWxTeam Team = EWxTeam::Player;
-
-	/** SPD Multiplier의 기준값 (cm/s) */
-	float BaseWalkSpeed;
 };
