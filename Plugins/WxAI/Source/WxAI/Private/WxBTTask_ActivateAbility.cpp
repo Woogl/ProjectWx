@@ -1,7 +1,9 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "WxBTTask_ActivateAbility.h"
+#include "WxAIModule.h"
 #include "AIController.h"
+#include "Abilities/GameplayAbility.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
@@ -117,6 +119,20 @@ EBTNodeResult::Type UWxBTTask_ActivateAbility::AbortTask(UBehaviorTreeComponent&
 		// CancelAbilityHandle이 동기적으로 끝낸 경우에는 AbortTask 안의 콜백을 마감하지 않는다.
 		CleanUp();
 		return EBTNodeResult::Aborted;
+	}
+
+	// 엔진의 취소는 CanBeCanceled 를 거부하는 인스턴스에서 로그 한 줄 없이 아무 일도 하지 않는다.
+	// 종료 통지가 온다는 보장이 없으므로 기다리지 않는다 — 여기서 InProgress 로 앉으면 트리 전체가 Aborting 에 갇힌다.
+	for (const UGameplayAbility* Instance : ActiveSpec->GetAbilityInstances())
+	{
+		if (Instance && !Instance->CanBeCanceled())
+		{
+			UE_LOG(LogWxAI, Warning, TEXT("어빌리티 '%s' 가 취소를 거부해 Abort 를 즉시 마감합니다. 취소되지 않는 어빌리티는 이 Task 로 발동하지 마세요. (AbilityTag: %s)"),
+				*Instance->GetName(), *AbilityTag.ToString());
+
+			CleanUp();
+			return EBTNodeResult::Aborted;
+		}
 	}
 
 	return EBTNodeResult::InProgress;

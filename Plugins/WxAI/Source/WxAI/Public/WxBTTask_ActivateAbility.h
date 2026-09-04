@@ -15,6 +15,8 @@ class UAbilitySystemComponent;
  * 어빌리티가 정상 종료되면 Succeeded, 발동 실패 또는 캔슬 시 Failed를 반환한다.
  *
  * 동일 어빌리티 연속 발동 회피는 부모 노드 (예: WxBTComposite_RandomChoice 의 bAvoidRepeat) 에서 처리.
+ *
+ * 취소를 거부하는 어빌리티(Override 그룹)를 물리면 abort 는 즉시 마감되고 그 어빌리티는 혼자 계속 돈다 — 저작에서 피해야 하는 조합이라 경고를 남긴다.
  */
 UCLASS()
 class WXAI_API UWxBTTask_ActivateAbility : public UBTTaskNode
