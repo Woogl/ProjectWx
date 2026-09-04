@@ -129,7 +129,8 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 	// 회피여도 호출은 그대로다 — 회피 성공 판정이 여기서 나가고, 대미지와 상태이상은 그쪽이 알아서 거른다.
 	if (UWxCombatLibrary::ApplyDamage(this, OtherActor, DamageDataRow, HitResult))
 	{
-		UWxEffect_HitStop::Apply(HitStopDuration, SourceASC, TargetASC);
+		UWxEffect_HitStop::Apply(InstigatorHitStop, SourceASC, SourceASC);
+		UWxEffect_HitStop::Apply(VictimHitStop, SourceASC, TargetASC);
 	}
 
 	if (!bEvaded)

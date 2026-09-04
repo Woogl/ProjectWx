@@ -263,7 +263,7 @@ void AWxWeaponBase::ProcessHit(AActor* OtherActor, const FHitResult& HitResult)
 		// 대미지 GE 뒤라야 공격자 쪽은 동기로 도착한 반응(패리 등)에 몽타주를 양보하고, 피격자 쪽은 막 시작된 반응 몽타주를 얼린다.
 		UAbilitySystemComponent* OwnerASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(WeaponOwner);
 		UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
-		UWxEffect_HitStop::Apply(HitStopDuration, OwnerASC, OwnerASC);
-		UWxEffect_HitStop::Apply(HitStopDuration, OwnerASC, TargetASC);
+		UWxEffect_HitStop::Apply(InstigatorHitStop, OwnerASC, OwnerASC);
+		UWxEffect_HitStop::Apply(VictimHitStop, OwnerASC, TargetASC);
 	}
 }
