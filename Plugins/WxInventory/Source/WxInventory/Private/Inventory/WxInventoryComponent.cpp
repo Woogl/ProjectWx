@@ -117,6 +117,15 @@ bool FWxInventoryList::NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParms)
 	return FFastArraySerializer::FastArrayDeltaSerialize<FWxInventoryEntry, FWxInventoryList>(Entries, DeltaParms, *this);
 }
 
+void FWxInventoryList::PostReplicatedReceive(const FFastArraySerializer::FPostReplicatedReceiveParameters& Parameters)
+{
+	// 미해결 인스턴스 참조가 나중에 매핑될 때도 호출된다. Delta가 0이어도 표시를 따라잡는다.
+	if (UWxInventoryComponent* Manager = Cast<UWxInventoryComponent>(OwnerComponent))
+	{
+		Manager->NotifyContentsChangedFromReplication();
+	}
+}
+
 UWxItemInstance* FWxInventoryList::AddEntry(const UWxItemDefinition* ItemDef, int32 StackCount)
 {
 	check(ItemDef);
@@ -203,6 +212,7 @@ const TArray<FWxInventoryEntry>& FWxInventoryList::GetEntries() const
 }
 
 FWxOnInventoryReady UWxInventoryComponent::OnAnyInventoryReady;
+FWxOnInventoryEnded UWxInventoryComponent::OnAnyInventoryEnded;
 
 UWxInventoryComponent::UWxInventoryComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -215,10 +225,15 @@ UWxInventoryComponent::UWxInventoryComponent(const FObjectInitializer& ObjectIni
 void UWxInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
 	OnAnyInventoryReady.Broadcast(this);
 }
 
+void UWxInventoryComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// HasBegunPlay를 먼저 해제하여 종료 중인 자신에게 재연결하지 않도록 한다.
+	Super::EndPlay(EndPlayReason);
+	OnAnyInventoryEnded.Broadcast(this);
+}
 void UWxInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -239,23 +254,9 @@ void UWxInventoryComponent::ReadyForReplication()
 	}
 }
 
-UWxInventoryComponent* UWxInventoryComponent::FindInventory(const AActor* Actor)
+void UWxInventoryComponent::NotifyContentsChangedFromReplication()
 {
-	if (!Actor)
-	{
-		return nullptr;
-	}
-
-	const APlayerController* PC = Cast<APlayerController>(Actor);
-	if (!PC)
-	{
-		if (const APawn* Pawn = Cast<APawn>(Actor))
-		{
-			PC = Cast<APlayerController>(Pawn->GetController());
-		}
-	}
-
-	return PC ? PC->FindComponentByClass<UWxInventoryComponent>() : nullptr;
+	OnInventoryContentsChanged.Broadcast();
 }
 
 UWxItemInstance* UWxInventoryComponent::AddItemDefinition(const UWxItemDefinition* ItemDef, int32 StackCount)

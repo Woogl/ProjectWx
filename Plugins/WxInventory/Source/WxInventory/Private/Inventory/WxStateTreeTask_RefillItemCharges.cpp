@@ -33,7 +33,8 @@ EStateTreeRunStatus FWxStateTreeTask_RefillItemCharges::EnterState(FStateTreeExe
 	}
 
 	// 대상 선택은 보상 직접 지급 경로와 같은 전제다.
-	UWxInventoryComponent* Inventory = UWxInventoryComponent::FindInventory(UGameplayStatics::GetPlayerController(Owner, 0));
+	const APlayerController* PlayerController = UGameplayStatics::GetPlayerController(Owner, 0);
+	UWxInventoryComponent* Inventory = PlayerController ? PlayerController->FindComponentByClass<UWxInventoryComponent>() : nullptr;
 	if (!Inventory)
 	{
 		return EStateTreeRunStatus::Succeeded;

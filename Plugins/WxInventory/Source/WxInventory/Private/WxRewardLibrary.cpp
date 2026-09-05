@@ -2,6 +2,9 @@
 
 #include "WxRewardLibrary.h"
 
+#include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
+
 #include "GameFramework/Actor.h"
 #include "Inventory/WxInventoryComponent.h"
 #include "Items/WxItemDefinition.h"
@@ -33,7 +36,9 @@ void UWxRewardLibrary::GrantReward(AActor* SourceActor, const FDataTableRowHandl
 	TArray<FWxItemRewardEntry> ValidRewards;
 	Row->GetValidRewards(ValidRewards);
 
-	UWxInventoryComponent* DirectGrantInventory = UWxInventoryComponent::FindInventory(DirectGrantTarget);
+	const APawn* TargetPawn = Cast<APawn>(DirectGrantTarget);
+	const APlayerController* PlayerController = TargetPawn ? Cast<APlayerController>(TargetPawn->GetController()) : Cast<APlayerController>(DirectGrantTarget);
+	UWxInventoryComponent* DirectGrantInventory = PlayerController ? PlayerController->FindComponentByClass<UWxInventoryComponent>() : nullptr;
 
 	UWorld* World = SourceActor->GetWorld();
 

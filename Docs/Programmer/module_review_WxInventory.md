@@ -1,5 +1,33 @@
 # WxInventory — 코드 리뷰
 
+> 이번 검토는 `08c73f51`을 기준으로 작업 트리에 있는 인벤토리 수명 통지, 지연 복제 상태 통지, 정적 조회 헬퍼 제거에 한정한다. 이 변경에서 새로 보고할 고신호 결함은 발견하지 않았다. 모듈 전체가 결함 없다는 의미는 아니며 이전 리뷰 결과는 아래에 별도로 보존한다.
+
+## 요약
+
+| 심각도 | 이번 변경의 신규 발견 |
+| --- | --- |
+| 🔴 심각 | 0 |
+| 🟡 개선 | 0 |
+| 🟢 사소 | 0 |
+
+## 결과
+
+- `BeginPlay`에서 기존 `OnAnyInventoryReady`만 발행하고 `EndPlay`에서 별도 `OnAnyInventoryEnded`를 발행한다. UE 5.8 `UActorComponent::EndPlay`가 `bHasBegunPlay`를 해제한 다음 종료 통지가 전달되므로 뷰모델의 초기 연결 검사와 맞는다. 재등록을 새로운 수명으로 취급하지 않는 현재 요구에도 맞는다.
+- `FindInventory` 제거 후 픽업·보상 경로는 기존 Pawn→PlayerController 변환을 호출처에 보존한다. 시작 아이템 액션은 기존처럼 BeginPlay를 마친 컴포넌트만 초기 조회로 지급하고 Ready를 계속 구독한다.
+- `FWxInventoryList::PostReplicatedReceive`와 `UWxItemInstance::HandleItemDefReplicated`가 목록 상태 재조회 통지를 제공한다. 엔진의 미해결 FastArray 참조 후속 매핑 경로에서도 전자가 호출됨을 확인했다. 두 뷰모델이 이 통지를 구독하므로 이전 리뷰 1번의 HUD 목록 영구 누락 원인은 코드상 보완되었다. 이 통지는 획득 Delta를 복구하는 이벤트가 아니며, 모든 기존 델타 통지 유실까지 해결되었다고 판단하지 않는다.
+
+## 검토 범위
+
+- **깊게 본 파일**: `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp`, `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryComponent.h`, `Plugins/WxInventory/Source/WxInventory/Private/Items/WxItemInstance.cpp`, `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemInstance.h`, `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxGameFeatureAction_AddInventoryItems.cpp`.
+- **훑은 파일**: `Plugins/WxInventory/README.md`, `Plugins/WxInventory/Source/WxInventory/WxInventory.Build.cs`, 픽업·보상·충전 리필 호출처의 변경 부분. 계약 확인 목적으로 `Source/WxGame/MVVM/WxViewModel_Inventory.cpp`, `Source/WxGame/MVVM/WxViewModel_Item.cpp`와 설치된 UE 5.8의 `FastArraySerializer.h`, `ActorComponent.cpp`를 교차 확인했다.
+- **미검토 / 한계**: 한 PlayerController의 인벤토리 하나가 종료된 뒤 교체되는 현재 설계를 전제로 한다. 실제 네트워크 패킷 지연·NetGUID 매핑 순서, BP/WBP 내부 바인딩, 런타임 에셋 값은 실행 검증하지 않았다. 이번에는 빌드나 자동화 테스트를 재실행하지 않았다.
+
+## 이전 리뷰 보존 기록
+
+아래 내용은 `491dd7ec` 기준의 기존 문서를 원문 보존한 것이다. 위치·라인·개수·단정은 당시 기준이며 이번 신규 발견 수에 포함하지 않는다. 1번의 화면 상태 누락은 위에서 변경 경로를 재검토했다. 나머지 2~6번은 이번 범위에서 전체 재검증하지 않았으므로 해결 여부를 단정하지 않는다. 특히 README 관련 서술이나 호출처 수는 현재 상태와 다를 수 있다.
+
+# WxInventory — 코드 리뷰
+
 > 모듈 경계·코딩 규칙 준수는 흠잡을 데 없고(WxCore 외 Wx 의존 0, 저작권 헤더 22/22, 람다·FORCEINLINE·BlueprintCallable 오용 0, override Super 누락 0), Lyra 계열 FastArray 인벤토리를 충실히 따라간 구조다. 남은 문제는 복제 수신 경로의 통지 유실 가능성, 확장점을 가로지르는 참조 수명, 그리고 배선만 남은 장비 경로 세 갈래다. 이번 리뷰는 `*.Build.cs`·`.uplugin`·전체 헤더와 `WxInventoryComponent.cpp`·`WxEquipmentComponent.cpp`·`WxRewardLibrary.cpp`·`WxItemPickup.cpp` 를 정독했고, 소비자(WxGame 뷰모델·`UWxItemUseComponent`·`UWxAbility_Interact`) 쪽은 계약 검증 목적으로만 교차 확인했다.
 
 ## 요약
@@ -63,4 +91,8 @@
   - 아이템 정의·보상 DataTable 등 데이터 에셋의 실제 값(예: `MaxStack`, `ItemActorClass` 설정 여부)은 열어보지 않았다.
 
 ---
-*문서 기준 커밋 `491dd7ec` · 리뷰일 2026-09-05 · 소스 22파일 — `/module-review`로 갱신*
+*이전 리뷰 커밋 `491dd7ec` · 리뷰일 2026-09-05 · 당시 소스 22파일*
+
+---
+*문서 기준 커밋 `08c73f51` · 리뷰일 2026-09-05 · 소스 24파일 — `/module-review`로 갱신*
+

@@ -19,7 +19,7 @@ class UMVVMView;
 /**
  * UWxViewModelResolver_Inventory 가 위젯별로 생성하며, 인벤토리 연결은 본 VM 이 스스로 관찰해 처리한다.
  * 인벤토리는 Experience 주입(서버) 또는 복제(클라)로 붙어 위젯보다 늦게 도착할 수 있고, 리졸버가 돌려준 인스턴스는 뷰가 교체할 수 없다.
- * 그래서 인스턴스는 고정한 채 도착 신호를 받아 내부 상태(Initialize)만 갈아끼운다 — 보스 바가 리졸버 쪽에서 같은 방식으로 자리를 갈아끼운다.
+ * 동일한 뷰모델을 유지하며 인벤토리의 등장과 제거에 맞춰 내부 연결을 교체한다.
  */
 UCLASS()
 class WXGAME_API UWxViewModel_Inventory : public UWxViewModel
@@ -30,10 +30,10 @@ public:
 	/** 인벤토리가 이미 붙어 있으면 즉시 연결하고, 아니면 도착 신호를 기다린다. */
 	void StartObserving(APlayerController* PC);
 
-	void Initialize(UWxInventoryComponent* InInventory);
 	virtual void Deinitialize() override;
 
-	virtual void BeginDestroy() override;
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
+	bool bIsInventoryAvailable = false;
 
 	/** ItemDef 기준 총 보유량. */
 	UFUNCTION(BlueprintPure, Category = "Wx|Inventory")
@@ -92,15 +92,19 @@ protected:
 	FDelegateHandle StackChangedHandle;
 
 private:
-	/** 관찰 중인 PC 의 것이면 연결하고 관찰을 끝낸다. */
 	void HandleInventoryReady(UWxInventoryComponent* Inventory);
+	void HandleInventoryEnded(UWxInventoryComponent* Inventory);
+	void BindSource(UWxInventoryComponent* Inventory);
+	void UnbindSource();
+	void HandleContentsChanged();
 
-	/** 연결 성공 시와 소멸 시 모두 여기로 모은다. */
 	void StopObserving();
 
 	TWeakObjectPtr<APlayerController> ObservedController;
 
-	FDelegateHandle InventoryReadyHandle;
+	FDelegateHandle ReadyHandle;
+	FDelegateHandle EndedHandle;
+	FDelegateHandle ContentsChangedHandle;
 };
 
 /**
@@ -113,4 +117,5 @@ class WXGAME_API UWxViewModelResolver_Inventory : public UMVVMViewModelContextRe
 
 public:
 	virtual UObject* CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const override;
+	virtual void DestroyInstance(UObject* ViewModel, const UMVVMView* View) const override;
 };

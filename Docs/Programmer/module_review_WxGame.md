@@ -1,32 +1,29 @@
 # WxGame — 코드 리뷰
 
-> 게임 조립과 도메인 경계는 대체로 명확하며, 이번 검토에서 심각 결함은 확인하지 못했다. FrontEnd 진입·복구, Experience 수명, 캐릭터 초기화·교전·입력, MVVM 연결을 중심으로 검토했으며, UI 구독 수명과 초기 연결 순서에서 수정할 문제를 확인했다.
+> 이번 검토는 HEAD `08c73f51`에 더해 현재 미커밋 작업 트리의 인벤토리 조회·MVVM 수명 변경을 대상으로 한다. 승인된 PlayerController당 인벤토리 하나를 종료 후 교체하는 범위에서 신규 결함은 확인하지 못했다. 모듈 전체 재리뷰가 아니다.
 
 ## 요약
 
-| 심각도 | 개수 |
+| 심각도 | 이번 변경의 신규 발견 |
 | --- | --- |
 | 🔴 심각 | 0 |
-| 🟡 개선 | 3 |
-| 🟢 사소 | 2 |
+| 🟡 개선 | 0 |
+| 🟢 사소 | 0 |
 
 ## 결과
 
-### 1. 🟡 보스 위젯 하나가 해제되면 같은 리졸버를 쓰는 나머지 위젯의 구독도 끊긴다
+이번 변경에서 수정이 필요한 신규 결함을 확인하지 못했다.
 
-- **위치**: `Source/WxGame/MVVM/WxViewModelResolver_BossCharacter.cpp:44`, `Source/WxGame/MVVM/WxViewModelResolver_BossCharacter.cpp:26`
-- **범주**: 버그/정확성
-- **문제**: 리졸버는 위젯 클래스가 공유하지만 `DestroyInstance`는 어느 뷰가 해제됐는지 구분하지 않고 `OnAnyBossEngagementChanged.RemoveAll(this)`를 호출한다. 같은 위젯 클래스의 인스턴스 A와 B를 생성한 뒤 A만 제거하면, 살아 있는 B도 이후 보스 교전 시작·종료·사망 통지를 받지 못한다. `CreateInstance`도 기존 구독을 지우고 하나만 다시 등록하므로 인스턴스별 구독이 남아 있지 않다. UE 5.8의 `MVVMViewClass.cpp`는 생성 시 공유 `Source.Resolver->CreateInstance`, 해제 시 같은 리졸버의 `DestroyInstance`를 호출하므로 엔진에서 이를 대신 참조 계수하지 않는다.
-- **제안**: 구독을 월드별 관찰 객체에 옮기거나, 살아 있는 뷰를 추적하여 마지막 뷰가 해제될 때만 구독을 제거한다. 같은 클래스의 위젯 두 개 중 하나를 제거한 뒤 남은 위젯의 교전·사망 갱신을 검증한다.
-- **확신도**: 높음
+- 최초 관찰은 PlayerController에서 직접 조회하고 `HasBegunPlay()`·`IsBeingDestroyed()`로 연결 가능 여부를 검사한다. 이후 `Ready`가 전달한 인스턴스를 직접 연결하며, `Ended`에서는 연결만 해제하고 관찰을 유지한다.
+- 아이템·인벤토리 리졸버는 위젯별 뷰모델을 생성하고, 해제 대상 인스턴스의 구독만 정리한다. 고정 아이템은 인벤토리 도착 전 정적 정보를 제공하고, 종료 후 동적 표시를 초기화한다.
+- `ContentsChanged`에 의한 스냅샷 갱신은 획득 통지와 분리되어 있으며, 정의가 아직 없는 슬롯은 목록에서 제외하다 정의 복제 통지 후 다시 구성한다.
+- `UWxItemUseComponent`의 직접 조회는 기존 소유 Pawn의 PlayerController를 조회하는 범위를 보존한다.
 
-### 2. 🟡 고정 아이템 뷰모델은 인벤토리가 늦게 도착하면 계속 빈 상태로 남는다
+## 이전 지적의 상태
 
-- **위치**: `Source/WxGame/MVVM/WxViewModel_Item.cpp:189`, `Source/WxGame/MVVM/WxViewModel_Item.cpp:195`
-- **범주**: 버그/정확성
-- **문제**: `ItemToDisplay`를 지정한 리졸버는 생성 시 한 번만 인벤토리를 찾고, 없으면 초기화하지 않은 뷰모델을 그대로 반환한다. 원격 클라이언트에서 HUD 생성이 인벤토리 컴포넌트 복제보다 앞서면 이름·아이콘·수량이 빈 채로 남으며 `CachedInventory`가 없어 사용 요청도 실패한다. HUD의 빙의 처리에는 인벤토리 준비를 기다리는 조건이 없고, 이 뷰모델에는 재조회나 `OnAnyInventoryReady` 구독이 없다. 같은 모듈의 `UWxViewModel_Inventory::StartObserving`은 이미 이 도착 순서를 지원한다.
-- **제안**: 고정 아이템 뷰모델도 해당 PlayerController의 `OnAnyInventoryReady`를 기다렸다가 같은 인스턴스를 초기화하고, 연결·소멸 시 구독을 해제한다. 인벤토리가 없는 상태에서 생성한 뒤 컴포넌트가 도착하는 순서로 검증한다.
-- **확신도**: 높음
+- **보스 위젯 공유 구독 해제 — 해결 확인**: 현재 `UWxViewModelResolver_BossCharacter`는 위젯별 `UWxViewModel_BossDisplay`를 만들며, 그 인스턴스가 자신의 델리게이트 핸들만 제거한다. 이 판정은 기존 지적의 원인 해소 확인이며 보스 전체 동작 재리뷰는 아니다.
+- **고정 아이템의 늦은 인벤토리 미연결 — 해결 확인**: `StartObserving`에서 Ready·Ended 구독을 유지하고 인벤토리가 늦게 나타나거나 새로 생성될 때 같은 뷰모델을 연결한다. 추가 정적 조회 헬퍼는 제거되어 있다.
+- 아래 세 항목은 **이전 리뷰의 미해결 기록을 보존**한다. 이번 변경의 신규 발견 및 위 요약 개수에 포함하지 않으며, 관련 코드·라인 전체를 이번에 재검증하지 않았다. 위치는 이전 검토 시점 기준이다.
 
 ### 3. 🟡 MetaHuman 부착물을 제거해도 리더 메시의 애니메이션 틱 설정이 복원되지 않는다
 
@@ -54,11 +51,11 @@
 
 ## 검토 범위
 
-- **깊게 본 파일**: `Source/WxGame/FrontEnd/WxGameFlowSubsystem.cpp`, `Source/WxGame/FrontEnd/WxGameFlowSubsystem.h`, `Source/WxGame/Framework/WxGameMode.cpp`, `Source/WxGame/Framework/WxExperienceManagerComponent.cpp`, `Source/WxGame/Framework/WxExperienceManagerComponent.h`, `Source/WxGame/Framework/WxGameFeatureAction_AddComponents.cpp`, `Source/WxGame/Framework/WxExperienceManager.cpp`, `Source/WxGame/Character/WxCharacterBase.cpp`, `Source/WxGame/Character/WxCharacterBase.h`, `Source/WxGame/Character/WxEnemyCharacter.cpp`, `Source/WxGame/Character/WxEnemyCharacter.h`, `Source/WxGame/Character/WxPlayerCharacter.cpp`, `Source/WxGame/Character/Component/WxMetaHumanComponent.cpp`, `Source/WxGame/Character/Component/WxMetaHumanComponent.h`, `Source/WxGame/Character/Component/WxCharacterMovementComponent.cpp`, `Source/WxGame/Controller/WxAIController.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_BossCharacter.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_PlayerCharacter.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_Ability.cpp`, `Source/WxGame/MVVM/WxViewModel_Inventory.cpp`, `Source/WxGame/MVVM/WxViewModel_Item.cpp`, `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp`, `Source/WxGame/MVVM/WxViewModel_Dialogue.cpp`, `Source/WxGame/MVVM/WxViewModel_Quest.cpp`, `Source/WxGame/Inventory/WxItemUseComponent.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_UseItem.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp`.
-- **훑은 파일**: `Source/WxGame/README.md`, `Source/WxGame/WxGame.Build.cs`, `Source/WxGame/FrontEnd/WxFrontEndLibrary.cpp`, `Source/WxGame/FrontEnd/Tests/WxFrontEndTests.cpp`, `Source/WxGame/Framework/WxExperienceDefinition.cpp`, `Source/WxGame/Framework/WxExperienceDefinition.h`, `Source/WxGame/Framework/WxExperienceActionSet.cpp`, `Source/WxGame/Framework/WxExperienceActionSet.h`, `Source/WxGame/Framework/WxWorldSettings.cpp`, `Source/WxGame/Framework/WxGameState.cpp`, `Source/WxGame/Controller/WxPlayerController.cpp`, `Source/WxGame/Player/WxPlayerState.cpp`, `Source/WxGame/Character/WxNpc.cpp`, `Source/WxGame/Character/Component/WxAIBehaviorComponent.cpp`, `Source/WxGame/Cheat/WxCheatManager.cpp`, `Source/WxGame/Input/WxInputConfig.cpp`, `Source/WxGame/AnimNotify/WxAnimNotify_UseItem.cpp`, `Source/WxGame/MVVM/WxViewModel_Inventory.h`, `Source/WxGame/MVVM/WxViewModel_Item.h`, `Source/WxGame/MVVM/WxViewModel_InteractionList.h`, `Source/WxGame/MVVM/WxViewModel_Dialogue.h`.
-- **경계 확인**: WxUI의 `UWxViewModel_Character`·`UWxViewModel` 공유·해제 구현, `UWxHUDComponent` 빙의 후 HUD 생성 조건, `UWxUIManagerSubsystem` 준비 조건, WxInventory의 `OnAnyInventoryReady` 발행·인벤토리 조회, UE 5.8 `MVVMViewClass.cpp`의 리졸버 생성·해제 계약을 확인했다. 소스 전체에 저작권 첫 줄·`BlueprintCallable`·인라인·람다 패턴 검색을 수행했다.
-- **이전 리뷰 재판정**: 투사체·소환 매니저의 베이스 무조건 생성과 `bEngaged` 멤버 이중 상태는 현재 코드에서 제거되어 닫았다. MetaHuman 틱 복원과 입력 콜백 명명 문제는 재확인하여 유지했다. ASC 초기화 가드 부족은 현재 유효한 실패 경로를 확인하지 못해 이번 액션 목록에서 제외했다. 이전 문서의 `BlueprintCallable` 문제 없음 판정은 위 네 지점을 확인하여 정정했다.
-- **미검토 / 한계**: 정적 코드 리뷰이며 빌드·자동화 테스트·PIE·패키징 실행은 하지 않았다. 특히 인벤토리 복제 지연과 위젯 동시 인스턴스 시나리오는 코드 계약으로 확인했으며 실행 재현은 하지 않았다. BP/WBP 내부 구조, 실제 Experience·ActionSet·아이템 데이터, MetaHuman 엔진 플러그인의 내부 리그 평가, 모든 헤더의 전면 통독은 범위 밖이다. FrontEnd의 현재 싱글플레이 범위 자체는 결함으로 분류하지 않았다. 소스 코드는 수정하지 않았다.
+- **깊게 본 파일**: `Source/WxGame/MVVM/WxViewModel_Item.h`, `Source/WxGame/MVVM/WxViewModel_Item.cpp`, `Source/WxGame/MVVM/WxViewModel_Inventory.h`, `Source/WxGame/MVVM/WxViewModel_Inventory.cpp`, `Source/WxGame/Inventory/WxItemUseComponent.cpp`, `Source/WxGame/MVVM/Tests/WxInventoryViewModelTests.cpp`.
+- **훑은 파일**: `Source/WxGame/README.md`, `Source/WxGame/WxGame.Build.cs`, `Source/WxGame/MVVM/WxViewModelResolver_BossCharacter.cpp`, `Source/WxGame/MVVM/WxViewModel_BossDisplay.cpp`.
+- **경계 확인**: `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp`의 Ready·Ended·스냅샷·슬롯/합계 통지와 조회, `Plugins/WxInventory/Source/WxInventory/Private/Items/WxItemInstance.cpp`의 복제 콜백, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel.cpp`의 GC 해제·비동기 이미지 취소 계약을 확인했다.
+- **테스트 코드 확인**: 기존 `Wx.MVVM.Inventory.Lifecycle`·`DelayedDefinition`은 VM/소스 생성 순서 양쪽, 다른 Controller 제외, 종료 초기화, 후속 Ready 연결, 한 VM 해제 후 다른 VM 유지, 정의 도착 후 목록 갱신을 다룬다. Lifecycle은 직접 생성한 VM에 `DestroyInstance`를 호출하므로 실제 위젯을 통한 리졸버 `CreateInstance` 경로 검증은 아니다. 정의 지연도 반영 프로퍼티와 콜백으로 재현하며 실제 네트워크 패킷 지연 검증은 아니다.
+- **미검토 / 한계**: 이번은 정적 코드 리뷰이며 빌드·자동화 테스트를 재실행하지 않았다. BP/WBP 내부, 실제 PIE 네트워크 지연, FieldNotify 수신측에서 동기적으로 위젯을 해제하는 재진입 흐름은 실행 검증하지 않았다. 인벤토리 복수 동시 소유는 승인된 설계 범위 밖이다. 관련 없는 기존 MetaHuman·입력·BlueprintCallable 지적은 위에 이전 기록으로 보존했다. 소스 코드는 수정하지 않았다.
 
 ---
-*문서 기준 커밋 `3025580b` · 리뷰일 2026-09-05 · 소스 74파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `08c73f51` · 리뷰일 2026-09-05 · 소스 78파일 — `/module-review`로 갱신*

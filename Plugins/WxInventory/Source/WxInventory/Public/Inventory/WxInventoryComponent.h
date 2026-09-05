@@ -62,6 +62,7 @@ struct FWxInventoryList : public FFastArraySerializer
 	void PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize);
 	void PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize);
 	void PostReplicatedChange(const TArrayView<int32> ChangedIndices, int32 FinalSize);
+	void PostReplicatedReceive(const FFastArraySerializer::FPostReplicatedReceiveParameters& Parameters);
 	//~ End FFastArraySerializer
 
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParms);
@@ -122,6 +123,8 @@ DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventorySlotChanged, UWxItemInstanc
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventoryChargeChanged, UWxItemInstance* /*Instance*/, int32 /*NewCharges*/, int32 /*Delta*/);
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnInventoryReady, UWxInventoryComponent* /*Inventory*/);
+DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnInventoryEnded, UWxInventoryComponent* /*Inventory*/);
+DECLARE_MULTICAST_DELEGATE(FWxOnInventoryContentsChanged);
 
 /**
  * PlayerController 에 부착되어 아이템 인스턴스의 생성·소멸·레플리케이션을 관장하는 컴포넌트.
@@ -142,6 +145,7 @@ public:
 
 	//~ Begin UActorComponent interface
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void ReadyForReplication() override;
 	//~ End UActorComponent interface
@@ -152,11 +156,8 @@ public:
 	 */
 	static FWxOnInventoryReady OnAnyInventoryReady;
 
-	/**
-	 * 인벤토리는 PlayerController 에 부착되므로, 액터가 Pawn 이면 소유 컨트롤러를 거쳐 조회한다.
-	 * PlayerController 가 아닌 액터(또는 컨트롤러 미할당 폰) 는 nullptr.
-	 */
-	static UWxInventoryComponent* FindInventory(const AActor* Actor);
+	/** EndPlay 후 발행된다. 종료된 인벤토리는 조회에서 제외된다. */
+	static FWxOnInventoryEnded OnAnyInventoryEnded;
 
 	/**
 	 * 권한: ItemDef 를 StackCount 만큼 추가한다.
@@ -240,6 +241,10 @@ public:
 
 	FWxOnInventoryChargeChanged OnInventoryChargeChanged;
 
+	/** 복제된 목록/정의의 현재 상태를 다시 읽으라는 통지. 획득 이벤트로 해석하지 않는다. */
+	FWxOnInventoryContentsChanged OnInventoryContentsChanged;
+	void NotifyContentsChangedFromReplication();
+
 	//~ 아래 3종은 List 복제 콜백/Instance OnRep/내부 변경 경로 전용 통지 진입점이다(외부 소비자 호출 금지, 비-BlueprintCallable).
 
 	/** NewCount 는 내부에서 합계를 재계산한다. */
@@ -251,6 +256,7 @@ public:
 	void NotifyChargeChangedFromSource(UWxItemInstance* Instance, int32 NewCharges, int32 Delta);
 
 private:
+
 	/**
 	 * ItemDef 의 사용 대상 인스턴스를 찾는다. 충전형(Charges)은 충전이 남은 첫 인스턴스, 그 외는 보유한 첫 인스턴스.
 	 * UseItemByDef 와 CanUseItemByDef 가 동일한 선택 기준을 공유하기 위한 헬퍼다. 없으면 nullptr.

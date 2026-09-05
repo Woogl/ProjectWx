@@ -6,6 +6,7 @@
 #include "AnimNotify/WxAnimNotify_UseItem.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
 #include "Inventory/WxInventoryComponent.h"
 #include "Items/WxItemDefinition.h"
 #include "WxGameplayTags.h"
@@ -13,7 +14,8 @@
 bool UWxItemUseComponent::CanUseItem(const UWxItemDefinition* ItemDefinition) const
 {
 	const APawn* Pawn = Cast<APawn>(GetOwner());
-	const UWxInventoryComponent* Inventory = UWxInventoryComponent::FindInventory(Pawn);
+	const APlayerController* PlayerController = Pawn ? Cast<APlayerController>(Pawn->GetController()) : nullptr;
+	const UWxInventoryComponent* Inventory = PlayerController ? PlayerController->FindComponentByClass<UWxInventoryComponent>() : nullptr;
 	return Inventory && Inventory->CanUseItemByDef(ItemDefinition);
 }
 
@@ -81,7 +83,9 @@ void UWxItemUseComponent::HandleUseItemEvent(const FGameplayEventData* Payload)
 	UWxItemDefinition* ItemDefinition = PendingItemDefinition;
 	PendingItemDefinition = nullptr;
 
-	if (UWxInventoryComponent* Inventory = UWxInventoryComponent::FindInventory(Cast<APawn>(Owner)))
+	const APawn* Pawn = Cast<APawn>(Owner);
+	const APlayerController* PlayerController = Pawn ? Cast<APlayerController>(Pawn->GetController()) : nullptr;
+	if (UWxInventoryComponent* Inventory = PlayerController ? PlayerController->FindComponentByClass<UWxInventoryComponent>() : nullptr)
 	{
 		Inventory->UseItemByDef(ItemDefinition);
 	}

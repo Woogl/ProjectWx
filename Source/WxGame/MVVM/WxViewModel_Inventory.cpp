@@ -11,52 +11,45 @@
 
 void UWxViewModel_Inventory::StartObserving(APlayerController* PC)
 {
-	if (!PC)
-	{
-		return;
-	}
-
-	ObservedController = PC;
-
-	// 호스트에선 인벤토리가 위젯보다 항상 먼저 붙는다.
-	if (UWxInventoryComponent* Inventory = UWxInventoryComponent::FindInventory(PC))
-	{
-		Initialize(Inventory);
-		return;
-	}
-
-	InventoryReadyHandle = UWxInventoryComponent::OnAnyInventoryReady.AddUObject(this, &UWxViewModel_Inventory::HandleInventoryReady);
-}
-
-void UWxViewModel_Inventory::Initialize(UWxInventoryComponent* InInventory)
-{
-	if (!InInventory)
-	{
-		return;
-	}
-
 	Deinitialize();
-
-	CachedInventory = InInventory;
-	StackChangedHandle = InInventory->OnInventoryStackChanged.AddUObject(this, &UWxViewModel_Inventory::HandleStackChanged);
-
-	RefreshAllItems();
+	ObservedController = PC;
+	ReadyHandle = UWxInventoryComponent::OnAnyInventoryReady.AddUObject(this, &UWxViewModel_Inventory::HandleInventoryReady);
+	EndedHandle = UWxInventoryComponent::OnAnyInventoryEnded.AddUObject(this, &UWxViewModel_Inventory::HandleInventoryEnded);
+	BindSource(PC ? PC->FindComponentByClass<UWxInventoryComponent>() : nullptr);
 }
 
-void UWxViewModel_Inventory::Deinitialize()
+void UWxViewModel_Inventory::BindSource(UWxInventoryComponent* Inventory)
+{
+	if (CachedInventory.Get() == Inventory)
+	{
+		return;
+	}
+	UnbindSource();
+	if (!Inventory || !Inventory->HasBegunPlay() || Inventory->IsBeingDestroyed())
+	{
+		return;
+	}
+	CachedInventory = Inventory;
+	StackChangedHandle = Inventory->OnInventoryStackChanged.AddUObject(this, &UWxViewModel_Inventory::HandleStackChanged);
+	ContentsChangedHandle = Inventory->OnInventoryContentsChanged.AddUObject(this, &UWxViewModel_Inventory::HandleContentsChanged);
+	RefreshAllItems();
+	UE_MVVM_SET_PROPERTY_VALUE(bIsInventoryAvailable, true);
+}
+
+void UWxViewModel_Inventory::UnbindSource()
 {
 	if (UWxInventoryComponent* Inventory = CachedInventory.Get())
 	{
 		Inventory->OnInventoryStackChanged.Remove(StackChangedHandle);
+		Inventory->OnInventoryContentsChanged.Remove(ContentsChangedHandle);
 	}
 	StackChangedHandle.Reset();
+	ContentsChangedHandle.Reset();
 	CachedInventory.Reset();
-
-	LastChangedItemDef = nullptr;
-	LastChangedAmount = 0;
-	LastChangedDelta = 0;
-	LastAcquiredItem = nullptr;
-
+	if (HasAnyFlags(RF_BeginDestroyed))
+	{
+		return;
+	}
 	for (UWxViewModel_Item* ChildVM : AllItems)
 	{
 		if (ChildVM)
@@ -64,19 +57,32 @@ void UWxViewModel_Inventory::Deinitialize()
 			ChildVM->Deinitialize();
 		}
 	}
+	if (LastAcquiredItem)
+	{
+		LastAcquiredItem->Deinitialize();
+	}
+	UE_MVVM_SET_PROPERTY_VALUE(bIsInventoryAvailable, false);
+	UE_MVVM_SET_PROPERTY_VALUE(LastChangedItemDef, nullptr);
+	UE_MVVM_SET_PROPERTY_VALUE(LastChangedAmount, 0);
+	UE_MVVM_SET_PROPERTY_VALUE(LastChangedDelta, 0);
+	UE_MVVM_SET_PROPERTY_VALUE(LastAcquiredItem, nullptr);
 	AllItems.Reset();
 	CategorizedItems.Reset();
+	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(AllItems);
+	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(CategorizedItems);
+}
 
+void UWxViewModel_Inventory::Deinitialize()
+{
+	StopObserving();
+	UnbindSource();
 	Super::Deinitialize();
 }
 
-void UWxViewModel_Inventory::BeginDestroy()
+void UWxViewModel_Inventory::HandleContentsChanged()
 {
-	StopObserving();
-
-	Super::BeginDestroy();
+	RefreshAllItems();
 }
-
 int32 UWxViewModel_Inventory::GetCurrencyAmount(const UWxItemDefinition* ItemDef) const
 {
 	const UWxInventoryComponent* Inventory = CachedInventory.Get();
@@ -124,7 +130,7 @@ void UWxViewModel_Inventory::RefreshAllItems()
 	{
 		for (UWxItemInstance* Instance : Inventory->GetAllItems())
 		{
-			if (!Instance)
+			if (!Instance || !Instance->GetItemDef() || Inventory->GetStackCountByInstance(Instance) <= 0)
 			{
 				continue;
 			}
@@ -190,35 +196,43 @@ void UWxViewModel_Inventory::RefreshCategorizedItems()
 
 void UWxViewModel_Inventory::HandleInventoryReady(UWxInventoryComponent* Inventory)
 {
-	// 신호는 클래스 차원이라 남의 인벤토리도 온다.
-	if (!Inventory || Inventory->GetOwner() != ObservedController.Get())
+	if (ObservedController.IsValid() && Inventory && Inventory->GetOwner() == ObservedController.Get())
 	{
-		return;
+		BindSource(Inventory);
 	}
-
-	StopObserving();
-	Initialize(Inventory);
 }
 
+void UWxViewModel_Inventory::HandleInventoryEnded(UWxInventoryComponent* Inventory)
+{
+	if (Inventory == CachedInventory.Get())
+	{
+		UnbindSource();
+	}
+}
 void UWxViewModel_Inventory::StopObserving()
 {
-	if (InventoryReadyHandle.IsValid())
-	{
-		UWxInventoryComponent::OnAnyInventoryReady.Remove(InventoryReadyHandle);
-		InventoryReadyHandle.Reset();
-	}
+	UWxInventoryComponent::OnAnyInventoryReady.Remove(ReadyHandle);
+	UWxInventoryComponent::OnAnyInventoryEnded.Remove(EndedHandle);
+	ReadyHandle.Reset();
+	EndedHandle.Reset();
+	ObservedController.Reset();
 }
 
 UObject* UWxViewModelResolver_Inventory::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
 {
-	APlayerController* PC = UserWidget ? UserWidget->GetOwningPlayer() : nullptr;
-	if (!PC)
+	if (!UserWidget || !ExpectedType || !ExpectedType->IsChildOf(UWxViewModel_Inventory::StaticClass()) || ExpectedType->HasAnyClassFlags(CLASS_Abstract))
 	{
 		return nullptr;
 	}
-
-	// 인벤토리가 아직 없을 수 있으므로 Outer 는 PC 로 잡는다.
-	UWxViewModel_Inventory* ViewModel = NewObject<UWxViewModel_Inventory>(PC);
-	ViewModel->StartObserving(PC);
+	UWxViewModel_Inventory* ViewModel = NewObject<UWxViewModel_Inventory>(const_cast<UUserWidget*>(UserWidget), ExpectedType);
+	ViewModel->StartObserving(UserWidget->GetOwningPlayer());
 	return ViewModel;
+}
+
+void UWxViewModelResolver_Inventory::DestroyInstance(UObject* ViewModel, const UMVVMView* View) const
+{
+	if (UWxViewModel_Inventory* Inventory = Cast<UWxViewModel_Inventory>(ViewModel))
+	{
+		Inventory->Deinitialize();
+	}
 }

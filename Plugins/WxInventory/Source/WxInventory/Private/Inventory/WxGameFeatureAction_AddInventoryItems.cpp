@@ -26,7 +26,7 @@ void UWxGameFeatureAction_AddInventoryItems::OnGameFeatureActivating(FGameFeatur
 
 		for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
 		{
-			UWxInventoryComponent* Inventory = UWxInventoryComponent::FindInventory(It->Get());
+			UWxInventoryComponent* Inventory = It->Get() ? It->Get()->FindComponentByClass<UWxInventoryComponent>() : nullptr;
 			if (Inventory && Inventory->HasBegunPlay() && Inventory->GetOwner()->HasAuthority())
 			{
 				Inventory->GrantItems(Items);

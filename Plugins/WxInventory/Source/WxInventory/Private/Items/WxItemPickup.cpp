@@ -2,6 +2,9 @@
 
 #include "Items/WxItemPickup.h"
 
+#include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
+
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Inventory/WxInventoryComponent.h"
@@ -82,7 +85,9 @@ void AWxItemPickup::OnInteracted(AActor* Interactor)
 		return;
 	}
 
-	UWxInventoryComponent* Inventory = UWxInventoryComponent::FindInventory(Interactor);
+	const APawn* TargetPawn = Cast<APawn>(Interactor);
+	const APlayerController* PlayerController = TargetPawn ? Cast<APlayerController>(TargetPawn->GetController()) : Cast<APlayerController>(Interactor);
+	UWxInventoryComponent* Inventory = PlayerController ? PlayerController->FindComponentByClass<UWxInventoryComponent>() : nullptr;
 	if (!Inventory)
 	{
 		UE_LOG(LogWxItemPickup, Warning, TEXT("Interactor %s has no UWxInventoryComponent"), *Interactor->GetName());

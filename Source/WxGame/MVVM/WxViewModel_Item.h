@@ -31,6 +31,7 @@ class WXGAME_API UWxViewModel_Item : public UWxViewModel
 	GENERATED_BODY()
 
 public:
+	void StartObserving(APlayerController* PC, const UWxItemDefinition* InItemDef);
 	void Initialize(UWxInventoryComponent* InInventory, UWxItemInstance* InInstance);
 
 	void Initialize(UWxInventoryComponent* InInventory, const UWxItemDefinition* InItemDef);
@@ -50,6 +51,9 @@ public:
 	/** 슬롯 모드는 해당 슬롯의 스택 수, Def 모드는 ItemDef 의 총 보유량. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	int32 TotalCount = 0;
+
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
+	bool bIsInventoryAvailable = false;
 
 	/**
 	 * 슬롯 모드는 바인딩 인스턴스, Def 모드는 첫 인스턴스 기준.
@@ -101,7 +105,8 @@ protected:
 
 	TWeakObjectPtr<UWxInventoryComponent> CachedInventory;
 
-	TWeakObjectPtr<const UWxItemDefinition> TargetItemDef;
+	UPROPERTY(Transient)
+	TObjectPtr<const UWxItemDefinition> TargetItemDef;
 
 	TWeakObjectPtr<UWxItemInstance> TargetInstance;
 
@@ -110,10 +115,22 @@ protected:
 	FDelegateHandle SlotChangedHandle;
 
 	FDelegateHandle ChargeChangedHandle;
+
+	void StopObserving();
+	void BindSource(UWxInventoryComponent* Inventory);
+	void UnbindSource();
+	void HandleInventoryReady(UWxInventoryComponent* Inventory);
+	void HandleInventoryEnded(UWxInventoryComponent* Inventory);
+	void RefreshFromSource();
+	void HandleContentsChanged();
+	TWeakObjectPtr<APlayerController> ObservedController;
+	FDelegateHandle ReadyHandle;
+	FDelegateHandle EndedHandle;
+	FDelegateHandle ContentsChangedHandle;
 };
 
 /**
- * ItemToDisplay 가 비었거나 인벤토리를 찾지 못하면 Initialize 없이 빈 VM 으로 반환된다.
+ * 고정 아이템의 정적 정보를 먼저 제공하고 플레이어 인벤토리의 등장과 제거를 관찰한다.
  */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXGAME_API UWxViewModelResolver_Item : public UMVVMViewModelContextResolver
@@ -125,4 +142,5 @@ public:
 	TObjectPtr<UWxItemDefinition> ItemToDisplay;
 
 	virtual UObject* CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const override;
+	virtual void DestroyInstance(UObject* ViewModel, const UMVVMView* View) const override;
 };
