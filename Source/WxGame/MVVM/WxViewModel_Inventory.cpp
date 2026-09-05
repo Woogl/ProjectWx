@@ -7,7 +7,7 @@
 #include "Inventory/WxInventoryComponent.h"
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemInstance.h"
-#include "MVVM/WxViewModel_Item.h"
+#include "MVVM/WxViewModel_InventoryItem.h"
 
 void UWxViewModel_Inventory::StartObserving(APlayerController* PC)
 {
@@ -50,7 +50,7 @@ void UWxViewModel_Inventory::UnbindSource()
 	{
 		return;
 	}
-	for (UWxViewModel_Item* ChildVM : AllItems)
+	for (UWxViewModel_InventoryItem* ChildVM : AllItems)
 	{
 		if (ChildVM)
 		{
@@ -111,7 +111,7 @@ void UWxViewModel_Inventory::HandleStackChanged(const UWxItemDefinition* ItemDef
 	{
 		if (UWxInventoryComponent* Inventory = CachedInventory.Get())
 		{
-			UWxViewModel_Item* AcquisitionVM = NewObject<UWxViewModel_Item>(this);
+			UWxViewModel_InventoryItem* AcquisitionVM = NewObject<UWxViewModel_InventoryItem>(this);
 			AcquisitionVM->Initialize(Inventory, ItemDef);
 			AcquisitionVM->AcquiredCount = Delta;
 			UE_MVVM_SET_PROPERTY_VALUE(LastAcquiredItem, AcquisitionVM);
@@ -124,7 +124,7 @@ void UWxViewModel_Inventory::HandleStackChanged(const UWxItemDefinition* ItemDef
 void UWxViewModel_Inventory::RefreshAllItems()
 {
 	UWxInventoryComponent* Inventory = CachedInventory.Get();
-	TArray<TObjectPtr<UWxViewModel_Item>> NewItems;
+	TArray<TObjectPtr<UWxViewModel_InventoryItem>> NewItems;
 
 	if (Inventory)
 	{
@@ -135,8 +135,8 @@ void UWxViewModel_Inventory::RefreshAllItems()
 				continue;
 			}
 
-			UWxViewModel_Item* ChildVM = nullptr;
-			for (UWxViewModel_Item* Existing : AllItems)
+			UWxViewModel_InventoryItem* ChildVM = nullptr;
+			for (UWxViewModel_InventoryItem* Existing : AllItems)
 			{
 				if (Existing && Existing->GetTargetInstance() == Instance)
 				{
@@ -147,7 +147,7 @@ void UWxViewModel_Inventory::RefreshAllItems()
 
 			if (!ChildVM)
 			{
-				ChildVM = NewObject<UWxViewModel_Item>(this);
+				ChildVM = NewObject<UWxViewModel_InventoryItem>(this);
 				ChildVM->Initialize(Inventory, Instance);
 			}
 
@@ -155,7 +155,7 @@ void UWxViewModel_Inventory::RefreshAllItems()
 		}
 	}
 
-	for (UWxViewModel_Item* OldVM : AllItems)
+	for (UWxViewModel_InventoryItem* OldVM : AllItems)
 	{
 		if (OldVM && !NewItems.Contains(OldVM))
 		{
@@ -172,10 +172,10 @@ void UWxViewModel_Inventory::RefreshAllItems()
 
 void UWxViewModel_Inventory::RefreshCategorizedItems()
 {
-	TArray<TObjectPtr<UWxViewModel_Item>> NewCategorized;
+	TArray<TObjectPtr<UWxViewModel_InventoryItem>> NewCategorized;
 	NewCategorized.Reserve(AllItems.Num());
 
-	for (UWxViewModel_Item* ItemVM : AllItems)
+	for (UWxViewModel_InventoryItem* ItemVM : AllItems)
 	{
 		if (!ItemVM)
 		{

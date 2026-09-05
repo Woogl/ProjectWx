@@ -12,9 +12,10 @@
 #include "Items/WxItemInstance.h"
 #include "Misc/AutomationTest.h"
 #include "MVVM/WxViewModel_Inventory.h"
-#include "MVVM/WxViewModel_Item.h"
+#include "MVVM/WxViewModel_InventoryItem.h"
 #include "UObject/StrongObjectPtr.h"
 #include "UObject/UnrealType.h"
+#include "UObject/CoreRedirects.h"
 
 namespace WxInventoryViewModelTests
 {
@@ -85,8 +86,8 @@ bool FWxInventoryViewModelLifecycleTest::RunTest(const FString& Parameters)
 	Charges->ChargeIcons.SetNum(Charges->MaxCharges + 1);
 	Charges->ChargeIcons[Charges->MaxCharges] = ChargedIcon.Get();
 	Def->Fragments.Add(Charges);
-	TStrongObjectPtr<UWxViewModel_Item> Fixed(NewObject<UWxViewModel_Item>());
-	TStrongObjectPtr<UWxViewModel_Item> Second(NewObject<UWxViewModel_Item>());
+	TStrongObjectPtr<UWxViewModel_InventoryItem> Fixed(NewObject<UWxViewModel_InventoryItem>());
+	TStrongObjectPtr<UWxViewModel_InventoryItem> Second(NewObject<UWxViewModel_InventoryItem>());
 	TStrongObjectPtr<UWxViewModel_Inventory> List(NewObject<UWxViewModel_Inventory>());
 	Fixed->StartObserving(PC, Def.Get());
 	List->StartObserving(PC);
@@ -113,11 +114,11 @@ bool FWxInventoryViewModelLifecycleTest::RunTest(const FString& Parameters)
 	Second->StartObserving(PC, Def.Get());
 	TestEqual(TEXT("Source before VM uses snapshot"), Second->TotalCount, 3);
 	Second->StartObserving(PC, Def.Get());
-	UWxViewModel_Item* Toast = List->LastAcquiredItem;
+	UWxViewModel_InventoryItem* Toast = List->LastAcquiredItem;
 	Inventory->NotifyContentsChangedFromReplication();
 	TestEqual(TEXT("Snapshot does not fabricate acquisition"), List->LastAcquiredItem.Get(), Toast);
 	FWxNotifications Notifications;
-	const FDelegateHandle Handle = Fixed->AddFieldValueChangedDelegate(UWxViewModel_Item::FFieldNotificationClassDescriptor::TotalCount,
+	const FDelegateHandle Handle = Fixed->AddFieldValueChangedDelegate(UWxViewModel_InventoryItem::FFieldNotificationClassDescriptor::TotalCount,
 		INotifyFieldValueChanged::FFieldValueChangedDelegate::CreateRaw(&Notifications, &FWxNotifications::HandleChanged));
 	Inventory->EndPlay(EEndPlayReason::RemovedFromWorld);
 	Second->StartObserving(PC, Def.Get());
@@ -127,7 +128,7 @@ bool FWxInventoryViewModelLifecycleTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Removed source clears charges"), Fixed->CurrentCharges, 0);
 	TestEqual(TEXT("Removed source restores default icon"), Fixed->Icon.Get(), DefaultIcon.Get());
 	TestTrue(TEXT("Clear notifies bindings"), Notifications.Count > 0);
-	Fixed->RemoveFieldValueChangedDelegate(UWxViewModel_Item::FFieldNotificationClassDescriptor::TotalCount, Handle);
+	Fixed->RemoveFieldValueChangedDelegate(UWxViewModel_InventoryItem::FFieldNotificationClassDescriptor::TotalCount, Handle);
 	TestEqual(TEXT("Definition survives removal"), Fixed->DisplayName.ToString(), Def->DisplayName.ToString());
 	TestEqual(TEXT("List clears on removal"), List->AllItems.Num(), 0);
 	UWxInventoryComponent* Replacement = CreateInventory(PC);
@@ -176,7 +177,7 @@ bool FWxInventoryViewModelDelayedDefinitionTest::RunTest(const FString& Paramete
 	}
 	// 네트워크에서 슬롯 참조가 정의보다 먼저 도착한 상태를 재현한다.
 	DefinitionProperty->SetObjectPropertyValue_InContainer(Instance, nullptr);
-	TStrongObjectPtr<UWxViewModel_Item> Fixed(NewObject<UWxViewModel_Item>());
+	TStrongObjectPtr<UWxViewModel_InventoryItem> Fixed(NewObject<UWxViewModel_InventoryItem>());
 	TStrongObjectPtr<UWxViewModel_Inventory> List(NewObject<UWxViewModel_Inventory>());
 	Fixed->StartObserving(PC, Def.Get());
 	List->StartObserving(PC);
@@ -191,6 +192,27 @@ bool FWxInventoryViewModelDelayedDefinitionTest::RunTest(const FString& Paramete
 	Fixed->Deinitialize();
 	List->Deinitialize();
 	Inventory->DestroyComponent();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FWxInventoryViewModelRedirectTest, "Wx.MVVM.Inventory.LegacyReferences",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FWxInventoryViewModelRedirectTest::RunTest(const FString& Parameters)
+{
+	const FCoreRedirectObjectName OldClass(TEXT("/Script/WxGame.WxViewModel_Item"));
+	const FCoreRedirectObjectName NewClass = FCoreRedirects::GetRedirectedName(ECoreRedirectFlags::Type_Class, OldClass);
+	TestEqual(TEXT("Legacy class keeps inventory behavior"), NewClass.ToString(), UWxViewModel_InventoryItem::StaticClass()->GetPathName());
+	for (const TCHAR* FieldName : { TEXT("Icon"), TEXT("DisplayName") })
+	{
+		const FCoreRedirectObjectName OldField(FString::Printf(TEXT("/Script/WxGame.WxViewModel_Item.%s"), FieldName));
+		const FCoreRedirectObjectName NewField = FCoreRedirects::GetRedirectedName(ECoreRedirectFlags::Type_Property, OldField);
+		const FProperty* Property = FindFProperty<FProperty>(UWxViewModel_InventoryItem::StaticClass(), FieldName);
+		if (TestNotNull(TEXT("Inherited field remains available"), Property))
+		{
+			TestEqual(TEXT("Legacy field points at common owner"), NewField.ToString(), Property->GetPathName());
+		}
+	}
 	return true;
 }
 

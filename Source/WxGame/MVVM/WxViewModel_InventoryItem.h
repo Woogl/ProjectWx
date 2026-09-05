@@ -5,14 +5,13 @@
 #include "CoreMinimal.h"
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemFragment.h"
-#include "MVVM/WxViewModel.h"
+#include "MVVM/WxViewModel_Item.h"
 #include "View/MVVMViewModelContextResolver.h"
 
-#include "WxViewModel_Item.generated.h"
+#include "WxViewModel_InventoryItem.generated.h"
 
 class UWxInventoryComponent;
 class UWxItemInstance;
-class UTexture2D;
 class UUserWidget;
 class UMVVMView;
 
@@ -26,7 +25,7 @@ class UMVVMView;
  * 충전형의 Icon 은 충전량 변경 시 ChargeIcons[CurrentCharges] 로 함께 갱신된다.
  */
 UCLASS()
-class WXGAME_API UWxViewModel_Item : public UWxViewModel
+class WXGAME_API UWxViewModel_InventoryItem : public UWxViewModel_Item
 {
 	GENERATED_BODY()
 
@@ -73,13 +72,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Inventory")
 	int32 AcquiredCount = 0;
 
-	/** ItemDef(충전형이면 ChargeIcons)의 Soft 참조를 베이스가 비동기 스트리밍해 세팅한다. */
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
-	TObjectPtr<UObject> Icon;
-
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
-	FText DisplayName;
-
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	EWxItemGrade Grade = EWxItemGrade::Common;
 
@@ -88,10 +80,6 @@ public:
 	FLinearColor GradeColor = FLinearColor::White;
 
 protected:
-	//~ Begin UWxViewModel
-	virtual void ApplyLoadedImage(FName FieldName, UObject* LoadedImage) override;
-	//~ End UWxViewModel
-
 	void HandleStackChanged(const UWxItemDefinition* ItemDef, int32 NewCount, int32 Delta);
 
 	void HandleSlotChanged(UWxItemInstance* Instance, int32 NewStackCount, int32 Delta);

@@ -12,7 +12,7 @@
 class APlayerController;
 class UWxInventoryComponent;
 class UWxItemInstance;
-class UWxViewModel_Item;
+class UWxViewModel_InventoryItem;
 class UUserWidget;
 class UMVVMView;
 
@@ -55,7 +55,7 @@ public:
 	 * 동일 ItemDef 가 복수 슬롯으로 분할되어 있어도 각 VM 이 자기 슬롯 인스턴스에 바인딩되어 독립적으로 수량을 표시한다.
 	 */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
-	TArray<TObjectPtr<UWxViewModel_Item>> AllItems;
+	TArray<TObjectPtr<UWxViewModel_InventoryItem>> AllItems;
 
 	/**
 	 * Setter 가 CategorizedItems 재계산을 함께 트리거하므로, 직접 멤버를 쓰지 말고 SetCurrentCategory 로만 변경한다.
@@ -67,15 +67,15 @@ public:
 	 * AllItems 변경 또는 CurrentCategory 변경 시 자동 갱신된다.
 	 */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
-	TArray<TObjectPtr<UWxViewModel_Item>> CategorizedItems;
+	TArray<TObjectPtr<UWxViewModel_InventoryItem>> CategorizedItems;
 
 	/**
 	 * HandleStackChanged 에서 Delta>0 일 때 교체된다.
-	 * 매번 새로 생성된 Def 모드 UWxViewModel_Item(AcquiredCount=Delta) 이므로 같은 ItemDef 를 연속 획득해도 FieldNotify 가 항상 발생하고, 토스트 위젯 간 표시 데이터가 서로 영향을 주지 않는다.
+	 * 매번 새로 생성된 Def 모드 UWxViewModel_InventoryItem(AcquiredCount=Delta) 이므로 같은 ItemDef 를 연속 획득해도 FieldNotify 가 항상 발생하고, 토스트 위젯 간 표시 데이터가 서로 영향을 주지 않는다.
 	 * 뷰 초기화 시점의 첫 실행에서는 nullptr 가 전달되므로 수신측이 유효성을 검사해야 한다.
 	 */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
-	TObjectPtr<UWxViewModel_Item> LastAcquiredItem;
+	TObjectPtr<UWxViewModel_InventoryItem> LastAcquiredItem;
 
 	UFUNCTION(BlueprintCallable, Category = "Wx|Inventory")
 	void SetCurrentCategory(EWxItemCategory NewCategory);
