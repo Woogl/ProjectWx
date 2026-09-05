@@ -5,6 +5,11 @@
 #include "Engine/World.h"
 #include "Minion/WxMinionSubsystem.h"
 
+UWxAnimNotify_SpawnMinion::UWxAnimNotify_SpawnMinion()
+{
+	LocalSpawnOffset.SetLocation(FVector(200.0f, 0.0f, 0.0f));
+}
+
 void UWxAnimNotify_SpawnMinion::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
 	Super::Notify(MeshComp, Animation, EventReference);
@@ -16,8 +21,7 @@ void UWxAnimNotify_SpawnMinion::Notify(USkeletalMeshComponent* MeshComp, UAnimSe
 		return;
 	}
 
-	const FTransform SpawnTransform(Owner->GetActorRotation(), Owner->GetActorTransform().TransformPosition(SpawnOffset));
-	MinionSubsystem->SpawnMinion(*Owner, MinionClass, SpawnTransform, MaxMinionCount);
+	MinionSubsystem->SpawnMinion(*Owner, MinionClass, LocalSpawnOffset, MaxMinionCount);
 }
 
 FString UWxAnimNotify_SpawnMinion::GetNotifyName_Implementation() const
