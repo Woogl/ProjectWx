@@ -20,6 +20,9 @@ class UAbilitySystemComponent;
  *
  * 대상이 아무것도 하지 않으면 즉시 Failed 라, 얼마나 빨리 따라붙는지는 이 노드를 다시 밟는 트리의 주기가 정한다.
  * 그 주기만큼 늦게 시작하고 끝은 대상을 따라가므로 동작의 꼬리가 그만큼 잘린다 — 주기를 짧게 잡을수록 줄어든다.
+ *
+ * 대상을 따라 놓으면 Succeeded, 대상이 아직 쥐고 있는데 밖에서 끊기면(피격·사망 등) Failed.
+ * 취소를 거부하는 어빌리티는 따라 놓지 못하고 혼자 계속 돈다 — 저작에서 피해야 하는 조합이라 경고를 남긴다.
  */
 UCLASS()
 class WXAI_API UWxBTTask_MirrorAbility : public UBTTaskNode
@@ -76,8 +79,8 @@ private:
 	 */
 	bool bIsActivating = false;
 
-	/** CancelAbilityHandle 호출 중 동기 종료 콜백이 일반 완료로 처리되지 않게 보호한다. */
-	bool bIsRequestingAbort = false;
+	/** 스스로 건 CancelAbilityHandle 호출 중 true. 그 동기 종료 콜백은 마감하지 않고 호출한 쪽이 마감한다. */
+	bool bIsRequestingCancel = false;
 
 	/**
 	 * 발동 구간에 마지막으로 받은 종료 통지의 결과.

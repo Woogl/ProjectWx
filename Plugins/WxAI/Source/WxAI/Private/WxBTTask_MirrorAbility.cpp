@@ -45,7 +45,7 @@ void UWxBTTask_MirrorAbility::InitializeFromAsset(UBehaviorTree& Asset)
 
 EBTNodeResult::Type UWxBTTask_MirrorAbility::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	bIsRequestingAbort = false;
+	bIsRequestingCancel = false;
 
 	const AAIController* AIController = OwnerComp.GetAIOwner();
 	APawn* Pawn = AIController ? AIController->GetPawn() : nullptr;
@@ -148,14 +148,13 @@ EBTNodeResult::Type UWxBTTask_MirrorAbility::AbortTask(UBehaviorTreeComponent& O
 	}
 
 	// 취소 요청은 실제 종료를 보장하지 않는다. 종료 통지를 받을 때까지 구독을 유지한다.
-	bIsRequestingAbort = true;
+	bIsRequestingCancel = true;
 	ASC->CancelAbilityHandle(ActivatedHandle);
-	bIsRequestingAbort = false;
+	bIsRequestingCancel = false;
 
 	const FGameplayAbilitySpec* ActiveSpec = ASC->FindAbilitySpecFromHandle(ActivatedHandle);
 	if (!ActiveSpec || !ActiveSpec->IsActive())
 	{
-		// CancelAbilityHandle이 동기적으로 끝낸 경우에는 AbortTask 안의 콜백을 마감하지 않는다.
 		CleanUp();
 		return EBTNodeResult::Aborted;
 	}
@@ -187,11 +186,38 @@ void UWxBTTask_MirrorAbility::TickTask(UBehaviorTreeComponent& OwnerComp, uint8*
 		return;
 	}
 
-	// 대상이 놓았다(또는 사라졌다). abort 가 아니라 정상 마감이므로, 뒤따르는 종료 통지가 이 태스크를 끝내게 둔다.
-	if (UAbilitySystemComponent* ASC = CachedASC.Get())
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	if (!ASC)
 	{
-		ASC->CancelAbilityHandle(ActivatedHandle);
+		CleanUp();
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		return;
 	}
+
+	// 대상이 놓았다(또는 사라졌다). 따라 놓는 것이 이 태스크의 정상 마감이다.
+	// 종료 통지는 취소 사유를 모르고 bWasCancelled 만 실어 오므로 통지에 맡기면 Failed 로 읽힌다 — 마감은 여기서 한다.
+	bIsRequestingCancel = true;
+	ASC->CancelAbilityHandle(ActivatedHandle);
+	bIsRequestingCancel = false;
+
+	// 틱에서 건 취소는 미뤄질 스코프 락이 없어 동기 종료되거나 거부되거나 둘 중 하나다.
+	// 엔진의 취소는 CanBeCanceled 를 거부하는 인스턴스에서 로그 한 줄 없이 아무 일도 하지 않으므로 저작 실수가 드러나게 경고한다.
+	const FGameplayAbilitySpec* ActiveSpec = ASC->FindAbilitySpecFromHandle(ActivatedHandle);
+	if (ActiveSpec && ActiveSpec->IsActive())
+	{
+		for (const UGameplayAbility* Instance : ActiveSpec->GetAbilityInstances())
+		{
+			if (Instance && !Instance->CanBeCanceled())
+			{
+				UE_LOG(LogWxAI, Warning, TEXT("어빌리티 '%s' 가 취소를 거부해 대상을 따라 놓지 못했습니다. 취소되지 않는 어빌리티는 따라할 목록에 넣지 마세요. (AbilityTag: %s)"),
+					*Instance->GetName(), *MirroredTag.ToString());
+				break;
+			}
+		}
+	}
+
+	CleanUp();
+	FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 }
 
 FGameplayTag UWxBTTask_MirrorAbility::FindMirroredTag(const UBehaviorTreeComponent& OwnerComp) const
@@ -239,9 +265,7 @@ void UWxBTTask_MirrorAbility::HandleAbilityEnded(const FAbilityEndedData& Abilit
 		return;
 	}
 
-	// CancelAbilityHandle은 동기적으로 OnAbilityEnded를 브로드캐스트할 수 있다.
-	// AbortTask 안에서 FinishLatentAbort 로 되돌아가지 않게 막는다 — 마감은 AbortTask 반환값 하나에 맡긴다.
-	if (bIsRequestingAbort)
+	if (bIsRequestingCancel)
 	{
 		return;
 	}
@@ -271,5 +295,5 @@ void UWxBTTask_MirrorAbility::CleanUp()
 	AbilityEndedDelegateHandle.Reset();
 	ActivatedHandle = FGameplayAbilitySpecHandle();
 	MirroredTag = FGameplayTag();
-	bIsRequestingAbort = false;
+	bIsRequestingCancel = false;
 }
