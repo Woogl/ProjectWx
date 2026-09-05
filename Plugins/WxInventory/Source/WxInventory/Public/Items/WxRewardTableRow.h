@@ -17,7 +17,6 @@ struct WXINVENTORY_API FWxItemRewardEntry
 {
 	GENERATED_BODY()
 
-	/** 비어 있으면 이 항목은 무시된다. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Reward")
 	TSoftObjectPtr<UWxItemDefinition> Item;
 

@@ -27,9 +27,9 @@ public:
 
 	virtual FText GetDescription() const = 0;
 
-	/** 텍스처와 머티리얼 양쪽이 올 수 있다. 스트리밍은 소비처가 맡도록 소프트 참조로 넘긴다. */
+	/** 텍스처나 머티리얼 */
 	virtual TSoftObjectPtr<UObject> GetIcon() const = 0;
 
-	/** 충전 개념이 없는 구현체는 기본값 1 을 그대로 둔다. */
+	/** 충전 개념이 없는 구현체는 기본값 1. */
 	virtual int32 GetMaxRecharges() const;
 };
