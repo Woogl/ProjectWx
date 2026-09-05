@@ -17,7 +17,7 @@
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `AWxGameMode` | 서버 전용. Experience 확정 + 폰 스폰/시작 지급을 로드 완료까지 게이트 | `Source/WxGame/Framework/WxGameMode.h` |
+| `AWxGameMode` | 서버 전용. Experience 확정 + 폰 스폰을 로드 완료까지 게이트 | `Source/WxGame/Framework/WxGameMode.h` |
 | `UWxExperienceDefinition` | 이 판의 구성(폰 클래스·GameFeature·액션·액션셋)을 담는 프라이머리 데이터 에셋 | `Source/WxGame/Framework/WxExperienceDefinition.h` |
 | `UWxExperienceManagerComponent` | Experience 로드·적용의 주체. GameState 에 상주, 참조 복제 + OnRep 로드 파이프라인 | `Source/WxGame/Framework/WxExperienceManagerComponent.h` |
 | `UWxGameFeatureAction_AddComponents` | Experience/GameFeature 가 대상 액터에 컴포넌트를 주입하는 액션 | `Source/WxGame/Framework/WxGameFeatureAction_AddComponents.h` |
@@ -34,7 +34,7 @@
 - 권한 모델: Experience 는 GameMode(서버)가 고르고 매니저가 복제, 서버는 직접 호출·클라는 OnRep 로 같은 파이프라인을 주행. 폰 스폰은 로드 완료까지 지연된다.
 
 ## 여기서부터 읽어라
-1. `Source/WxGame/Framework/WxGameMode.cpp` — 한 판이 시작되는 지점. Experience 확정 → 로드 대기 → 폰 스폰/시작 지급의 전체 흐름.
+1. `Source/WxGame/Framework/WxGameMode.cpp` — 한 판이 시작되는 지점. Experience 확정 → 로드 대기 → 폰 스폰의 전체 흐름.
 2. `Source/WxGame/Framework/WxExperienceManagerComponent.cpp` — Experience 가 실제로 어떻게 로드·적용되는지(번들 로드 → GameFeature 활성 → 액션 실행).
 3. `Source/WxGame/Character/WxCharacterBase.cpp` — 도메인 플러그인 컴포넌트들이 캐릭터에 어떻게 조립·초기화되는지.
 
