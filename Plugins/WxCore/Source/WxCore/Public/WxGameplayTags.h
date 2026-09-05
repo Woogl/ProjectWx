@@ -18,6 +18,9 @@ namespace WxGameplayTags
 	/** 대화 세션 컴포넌트가 시작·종료에 맞춰 폰 ASC에 loose 태그로 발행. WxAbility_Interact가 ActivationBlockedTags로 사용해 대화 중 프롬프트 표시·상호작용을 닫는다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dialogue);
 
+	/** 주인의 소환물이 살아 있는 동안 UWxMinionSubsystem이 주인 ASC에 복제 loose 태그로 발행. 소환 어빌리티는 ActivationBlockedTags, 명령 어빌리티는 ActivationRequiredTags로 써서 한 슬롯을 나눈다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Minion_Active);
+
 	// ── Effect ──────────────────────────────────────────────────────────────
 	
 	// GE가 부여하는 태그. 애셋 태그로도 사용한다.

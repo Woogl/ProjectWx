@@ -132,14 +132,25 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 		return;
 	}
 
-	// 매칭 시멘틱은 엔진의 GetActivatableGameplayAbilitySpecsByAllMatchingTags 와 같다. 여러 어빌리티가 걸리면 첫 번째를 쓴다.
+	// 매칭 시멘틱은 엔진의 GetActivatableGameplayAbilitySpecsByAllMatchingTags 와 같다.
+	// 같은 슬롯 태그의 후보가 여럿이면(소환↔명령처럼 상태 태그로 갈리는 쌍) 지금 태그 요건을 만족하는 쪽을 그리고, 하나도 없으면 첫 번째를 쓴다.
 	const UGameplayAbility* MatchedAbility = nullptr;
 	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
 	{
-		if (Spec.Ability && Spec.Ability->GetAssetTags().HasAll(AbilityTags))
+		if (!Spec.Ability || !Spec.Ability->GetAssetTags().HasAll(AbilityTags))
+		{
+			continue;
+		}
+
+		if (Spec.Ability->DoesAbilitySatisfyTagRequirements(*ASC))
 		{
 			MatchedAbility = Spec.Ability;
 			break;
+		}
+
+		if (!MatchedAbility)
+		{
+			MatchedAbility = Spec.Ability;
 		}
 	}
 
@@ -433,6 +444,9 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 bool UWxViewModel_Ability::FlushActivationRefresh(float DeltaTime)
 {
 	ActivationRefreshHandle.Reset();
+
+	// 상태 태그로 갈리는 후보 쌍은 물고 있는 어빌리티부터 다시 고른다 — 바뀌면 아이콘·쿨다운·비용 바인딩이 통째로 갈린다.
+	RefreshBoundAbility();
 	RefreshActivationState();
 
 	return false;

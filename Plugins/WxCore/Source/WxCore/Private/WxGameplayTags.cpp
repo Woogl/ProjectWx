@@ -7,6 +7,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_LockedOn, "State.LockedOn");
 	UE_DEFINE_GAMEPLAY_TAG(State_Engaged, "State.Engaged");
 	UE_DEFINE_GAMEPLAY_TAG(State_Dialogue, "State.Dialogue");
+	UE_DEFINE_GAMEPLAY_TAG(State_Minion_Active, "State.Minion.Active");
 
 	UE_DEFINE_GAMEPLAY_TAG(Effect_Invincible, "Effect.Invincible");
 	UE_DEFINE_GAMEPLAY_TAG(Effect_GuardReduction, "Effect.GuardReduction");
