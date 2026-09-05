@@ -18,7 +18,7 @@ struct FWxEffectTableRow;
  *
  * 베이스가 UGameplayEffectUIData 인 것은 표시 데이터 때문이다 — WxUI 는 WxCombat 을 참조할 수 없고 GE 의 컴포넌트 배열도 클래스로만 뒤질 수 있어, 양쪽이 아는 이 엔진 클래스가 유일한 조회 앵커다.
  */
-UCLASS(DisplayName = "Wx Effect Data")
+UCLASS()
 class WXCOMBAT_API UWxEffectComponent_Table : public UGameplayEffectUIData, public IWxUIData
 {
 	GENERATED_BODY()
@@ -37,7 +37,6 @@ public:
 
 	const FWxEffectTableRow* GetRow() const;
 
-	/** 이 컴포넌트를 붙이지 않은 GE면 nullptr */
 	static const FWxEffectTableRow* FindRow(const UGameplayEffect* Def);
 };
 

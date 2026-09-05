@@ -6,9 +6,6 @@
 
 UWxEffectComponent_Table::UWxEffectComponent_Table()
 {
-#if WITH_EDITORONLY_DATA
-	EditorFriendlyName = TEXT("Wx Effect Data");
-#endif
 }
 
 FText UWxEffectComponent_Table::GetTitle() const
