@@ -1,0 +1,17 @@
+{
+  "dimensions_m": [
+    0.23305866122245789,
+    0.04600000008940697,
+    1.5
+  ],
+  "triangles": 6250,
+  "non_manifold_edges": 0,
+  "uv_layers": 1,
+  "pivot": "Grip center; blade +Z; meters in Blender, FBX centimeters metadata",
+  "slot_ray_clear": true,
+  "fbx_roundtrip_dimensions_m": [
+    0.23305866122245789,
+    0.04600000008940697,
+    1.5
+  ]
+}
