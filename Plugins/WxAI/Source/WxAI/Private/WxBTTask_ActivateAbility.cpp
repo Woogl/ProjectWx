@@ -158,7 +158,7 @@ void UWxBTTask_ActivateAbility::HandleAbilityEnded(const FAbilityEndedData& Abil
 	}
 
 	// CancelAbilityHandle은 동기적으로 OnAbilityEnded를 브로드캐스트할 수 있다.
-	// 이때 엔진은 아직 이 태스크를 Aborting으로 기록하지 않았으므로 AbortTask가 직접 Aborted를 반환한다.
+	// AbortTask 안에서 FinishLatentAbort 로 되돌아가지 않게 막는다 — 마감은 AbortTask 반환값 하나에 맡긴다.
 	if (bIsRequestingAbort)
 	{
 		return;

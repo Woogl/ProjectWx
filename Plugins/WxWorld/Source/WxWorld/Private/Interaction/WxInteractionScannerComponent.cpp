@@ -42,7 +42,6 @@ void UWxInteractionScannerComponent::BeginPlay()
 		World->GetTimerManager().SetTimer(ScanTimerHandle, this, &UWxInteractionScannerComponent::HandleScanTimer, FMath::Max(ScanInterval, 0.01f), true);
 	}
 
-	// 설정 즉시 1회 스캔해 진입 시점의 주변 상호작용을 바로 반영한다.
 	HandleScanTimer();
 }
 

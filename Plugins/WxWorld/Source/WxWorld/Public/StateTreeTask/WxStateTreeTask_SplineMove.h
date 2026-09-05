@@ -19,11 +19,10 @@ struct FWxStateTreeTask_SplineMoveInstanceData
 {
 	GENERATED_BODY()
 
-	/** 트리가 붙은 액터가 가진 컴포넌트 중에서 고른다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	FWxStateTreeComponentName TargetComponent;
 
-	/** 컴포넌트는 이 경로 위를 탄다고 가정한다. 같은 액터의 스플라인 중에서 고른다. */
+	/** 컴포넌트는 이 경로 위를 탄다고 가정한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedClasses = "/Script/Engine.SplineComponent"))
 	FWxStateTreeComponentName Spline;
 

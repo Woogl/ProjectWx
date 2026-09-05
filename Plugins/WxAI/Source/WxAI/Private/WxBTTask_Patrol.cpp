@@ -125,7 +125,6 @@ void UWxBTTask_Patrol::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* 
 	}
 	else
 	{
-		// 갈 지점이 더 없다 — Once 로 경로를 마쳤거나, 지점이 하나뿐인 경로에 도착했다.
 		bPatrolFinished = true;
 	}
 }

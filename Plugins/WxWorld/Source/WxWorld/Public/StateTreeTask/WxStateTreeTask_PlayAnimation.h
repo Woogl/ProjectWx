@@ -19,7 +19,6 @@ struct FWxStateTreeTask_PlayAnimationInstanceData
 {
 	GENERATED_BODY()
 
-	/** 트리가 붙은 액터가 가진 메시 중에서 고른다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedClasses = "/Script/Engine.SkeletalMeshComponent"))
 	FWxStateTreeComponentName TargetMesh;
 

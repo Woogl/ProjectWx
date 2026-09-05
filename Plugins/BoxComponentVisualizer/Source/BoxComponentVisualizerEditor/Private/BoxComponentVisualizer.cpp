@@ -141,7 +141,8 @@ bool FBoxComponentVisualizer::HandleInputDelta(FEditorViewportClient* ViewportCl
 		BoxComponent->SetBoxExtent(NewExtent, false);
 		BoxComponent->SetWorldLocation(BoxComponent->GetComponentLocation() + Transform.TransformVector(LocalShift));
 
-		// 이 통지가 BP 프리뷰 액터의 변경을 아키타입까지 밀어 준다. 직접 PostEditChangeProperty 만 부르면 BP 에디터에서 끌어 놓은 값이 컴파일과 함께 되돌아간다.
+		// 이 통지가 BP 프리뷰 액터의 변경을 아키타입까지 밀어 준다.
+		// 직접 PostEditChangeProperty 만 부르면 BP 에디터에서 끌어 놓은 값이 컴파일과 함께 되돌아간다.
 		TArray<FProperty*> ModifiedProperties;
 
 		// BoxExtent 는 protected 라 GET_MEMBER_NAME_CHECKED 로 잡히지 않는다.

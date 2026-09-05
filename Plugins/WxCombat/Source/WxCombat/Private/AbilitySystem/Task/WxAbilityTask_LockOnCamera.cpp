@@ -193,7 +193,6 @@ void UWxAbilityTask_LockOnCamera::UnbindTarget()
 		TargetPoint->SetLockedOn(false);
 	}
 
-	// Target 약참조가 이미 풀렸어도 캐시한 소유 액터로 파괴 이벤트 바인딩을 해제한다.
 	if (AActor* TargetActor = BoundTargetActor.Get())
 	{
 		TargetActor->OnDestroyed.RemoveDynamic(this, &UWxAbilityTask_LockOnCamera::HandleTargetDestroyed);

@@ -11,7 +11,6 @@
 
 UWxAbility_HitReact::UWxAbility_HitReact()
 {
-	// 항상 서버에서 발행된 GameplayEvent로 트리거된다.
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 
 	FGameplayTagContainer AssetTags;

@@ -54,7 +54,7 @@ struct FWxStateTreeTask_WaitForInteraction : public FStateTreeTaskCommonBase
 	 */
 	static WXWORLD_API void NotifyInteracted(const AActor* Target);
 
-	/** 이 대상의 상호작용을 기다리는 노드가 있는가. 대상 자격을 대기 여부에서 파생하는 쪽이 스캔마다 묻는다. */
+	/** 대상 자격을 대기 여부에서 파생하는 쪽이 스캔마다 묻는다. */
 	static WXWORLD_API bool IsAwaited(const AActor* Target);
 
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
@@ -66,6 +66,6 @@ struct FWxStateTreeTask_WaitForInteraction : public FStateTreeTaskCommonBase
 #endif
 
 private:
-	/** 등록 하나가 이 대상을 지목하는가. 통보와 조회가 같은 술어를 쓴다. */
+	/** 통보와 조회가 같은 술어를 쓴다. */
 	static bool IsWaitingFor(const FUniversalObjectLocator& Wanted, const AActor* Target);
 };

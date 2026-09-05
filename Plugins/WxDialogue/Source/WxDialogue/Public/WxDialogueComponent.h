@@ -23,7 +23,7 @@ public:
 
 	FText GetTalkPrompt() const;
 
-	/** 주체의 컨트롤러에서 세션을 찾아 대화를 연다. 서버 권위에서 호스트 액터의 상호작용 응답이 부른다. */
+	/** 서버 권위에서 호스트 액터의 상호작용 응답이 부른다. */
 	void StartDialogueWith(AActor* Interactor);
 
 protected:

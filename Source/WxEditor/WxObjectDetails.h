@@ -14,7 +14,7 @@ class IDetailLayoutBuilder;
 class FWxObjectDetails : public IDetailCustomization
 {
 public:
-	/** 최상단으로 올리는 카테고리 이름. 모듈의 섹션 매핑도 같은 이름을 쓴다. */
+	/** 모듈의 섹션 매핑도 같은 이름을 쓴다. */
 	static const FName WxCategoryName;
 
 	/** InnerFactory 는 이 등록이 대체한 원본 "Object" 커스터마이제이션의 팩토리. 바인딩이 없으면 정렬만 수행한다. */
@@ -27,6 +27,5 @@ public:
 private:
 	void MoveWxCategoryToTop(IDetailLayoutBuilder& DetailBuilder);
 
-	/** 대체한 원본 커스터마이제이션. */
 	TSharedPtr<IDetailCustomization> Inner;
 };

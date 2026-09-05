@@ -200,7 +200,7 @@ void AWxSpawner::PostRegisterAllComponents()
 		PreviewChildActorComponent = NewObject<UChildActorComponent>(this, TEXT("PreviewChildActorComponent"), RF_Transient);
 		PreviewChildActorComponent->SetupAttachment(SceneRoot);
 
-		// 자식 액터에 bIsEditorOnlyActor 를 세우고, 아웃라이너에서 감춘다.
+		// 자식 액터에 bIsEditorOnlyActor 를 세운다.
 		PreviewChildActorComponent->SetIsVisualizationComponent(true);
 		PreviewChildActorComponent->SetEditorTreeViewVisualizationMode(EChildActorComponentTreeViewVisualizationMode::Hidden);
 

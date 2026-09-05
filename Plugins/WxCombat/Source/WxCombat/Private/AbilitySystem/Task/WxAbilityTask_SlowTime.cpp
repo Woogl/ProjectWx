@@ -39,7 +39,6 @@ void UWxAbilityTask_SlowTime::TickTask(float DeltaTime)
 
 void UWxAbilityTask_SlowTime::OnDestroy(bool bInOwnerFinished)
 {
-	// 애초에 걸지 못한 머신은 AppliedDilation이 0이라 이 조건에서 함께 걸러진다.
 	if (AppliedDilation > 0.f && FMath::IsNearlyEqual(UGameplayStatics::GetGlobalTimeDilation(this), AppliedDilation))
 	{
 		UGameplayStatics::SetGlobalTimeDilation(this, 1.f);

@@ -39,19 +39,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Camera")
 	TObjectPtr<UCameraComponent> FollowCamera;
 
-	/** AnimNotify GameplayEvent 시점에 준비된 처형 피해를 서버에서 적용한다. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")
 	TObjectPtr<UWxFinisherDamageComponent> FinisherDamageComponent;
 
-	/** AnimNotify GameplayEvent 시점에 준비된 소비 아이템을 서버에서 사용한다. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Inventory")
 	TObjectPtr<UWxItemUseComponent> ItemUseComponent;
 
-	/** 발동에 실패한 어빌리티 입력을 잠시 기억했다가 어빌리티 종료·캔슬 창에서 다시 시도한다. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Input")
 	TObjectPtr<UWxInputBufferComponent> InputBufferComponent;
 
-	/** 위젯 클래스는 BP 에서 지정한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|UI")
 	TObjectPtr<UWidgetComponent> StaminaWidget;
 

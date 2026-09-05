@@ -40,7 +40,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Wx|Ability")
 	bool TryActivateAbility();
 
-	/** 슬롯 태그에 맞는 어빌리티를 다시 찾아 물거나 놓는다. 물고 있던 것이 그대로면 아무것도 하지 않는다. */
+	/** 물고 있던 어빌리티가 그대로면 아무것도 하지 않는다. */
 	void RefreshBoundAbility();
 
 	/** 이 슬롯의 공유 키다. */

@@ -24,7 +24,6 @@ struct FWxStateTreeTask_WaitSpawnersKilledInstanceData
 	/** (런타임) 다른 태스크가 트리를 자주 깨워도 실제 조건 판정을 저주기로 제한한다. */
 	float RemainingCheckTime = 0.f;
 
-	/** (런타임) 잠든 StateTree를 다음 조건 판정 시점에 깨우는 요청. */
 	UE::StateTree::FScheduledTickHandle ScheduledTickHandle;
 };
 

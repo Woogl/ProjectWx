@@ -49,7 +49,6 @@ void UWxViewModel_Character::Deinitialize()
 	Portrait = nullptr;
 
 	// 파괴 경로에서는 통지하지 않는다 — 함께 수거될 뷰의 바인딩으로 통지가 들어간다.
-	// 그 밖의 해제는 소스가 빠졌다는 사실 자체가 표시돼야 하므로 통지한다.
 	if (!HasAnyFlags(RF_BeginDestroyed))
 	{
 		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(AbilitySystem);

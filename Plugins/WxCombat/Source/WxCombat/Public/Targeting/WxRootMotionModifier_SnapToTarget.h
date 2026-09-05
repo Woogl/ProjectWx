@@ -38,7 +38,7 @@ public:
 	virtual void Update(const FMotionWarpingUpdateContext& Context) override;
 
 private:
-	/** 대상을 정해 워프 타겟을 등록한다. 조건이 서지 않으면 워프 타겟을 지워 modifier를 끈다. */
+	/** 조건이 서지 않으면 워프 타겟을 지워 modifier를 끈다. */
 	void ApplySnapTarget();
 
 	/** 워프 도중 생존을 다시 보기 위해 기억해 두는 확정 대상 */

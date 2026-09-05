@@ -86,7 +86,6 @@ private:
 
 	void CreateGroom(const FWxGroomSlot& Slot, FName BaseName, USkeletalMeshComponent* AttachTarget);
 
-	/** LODCount가 0이면 매핑 없이 항목만 넣는다. */
 	void AddLODSync(FName ComponentName, ESyncOption SyncOption, int32 LODCount, int32 NumSyncLODs);
 
 	UPROPERTY(Transient)

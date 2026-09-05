@@ -9,7 +9,7 @@
 class UWxExperienceDefinition;
 
 /**
- * 맵이 자기 기본 Experience 를 지정하는 자리다 — GameMode 는 진입 URL 다음으로 이 값을 보며, 확정의 마지막 단계다.
+ * GameMode 는 진입 URL 다음으로 이 값을 보며, 확정의 마지막 단계다.
  */
 UCLASS()
 class AWxWorldSettings : public AWorldSettings

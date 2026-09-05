@@ -69,7 +69,6 @@ private:
 
 	bool IsInRearCone(const AActor* Interactor) const;
 
-	/** 생존과 겨누는 대상으로 교전 여부를 다시 계산해 상태 태그와 보스 교전 통지에 반영한다. */
 	void RefreshEngagement();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")

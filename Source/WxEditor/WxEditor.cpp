@@ -32,7 +32,6 @@ namespace WxEditorModule
 {
 	static const FName PropertyEditorModuleName(TEXT("PropertyEditor"));
 	static const FName DetailCustomizationsModuleName(TEXT("DetailCustomizations"));
-	/** 엔진이 FObjectDetails 를 등록할 때 쓰는 클래스 이름 그대로. */
 	static const FName ObjectClassName(TEXT("Object"));
 	static const FName WxSectionName(TEXT("Wx"));
 }

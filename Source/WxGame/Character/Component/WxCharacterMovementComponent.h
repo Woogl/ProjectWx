@@ -37,10 +37,7 @@ protected:
 private:
 	void JumpToLandingSection();
 
-	/**
-	 * 첫 호출에만 오너에서 해석하고 이후엔 기억해 둔 값을 준다 — 이동 갱신마다 도는 탐색을 없앤다.
-	 * 오너가 아직 없으면 널이다.
-	 */
+	/** 첫 호출에만 오너에서 해석해 기억해 둔다 — 이동 갱신마다 도는 탐색을 없앤다. */
 	UAbilitySystemComponent* GetAbilitySystemComponent();
 
 	UPROPERTY(Transient)

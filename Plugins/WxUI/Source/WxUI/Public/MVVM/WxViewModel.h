@@ -30,7 +30,7 @@ class WXUI_API UWxViewModel : public UMVVMViewModelBase
 public:
 	/**
 	 * Source 를 Outer 로 이미 만들어 둔 뷰모델을 찾는다 — 데이터 소스가 곧 공유 키다.
-	 * 클래스는 정확히 일치해야 한다. 보스 뷰모델이 캐릭터 뷰모델을 상속해 IsA 로는 서로를 오매칭한다.
+	 * 클래스는 IsA 가 아니라 정확히 일치해야 한다.
 	 */
 	static UWxViewModel* FindSharedViewModel(const UObject* Source, TSubclassOf<UWxViewModel> ViewModelClass);
 

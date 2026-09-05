@@ -47,7 +47,6 @@ class WXINVENTORY_API UWxItemFragment_Equippable : public UWxItemFragment
 	GENERATED_BODY()
 
 public:
-	/** 장착 시 적용되고 해제 시 제거되는 GE 들. */
 	UPROPERTY(EditDefaultsOnly, Category = "Equippable")
 	TArray<TSubclassOf<UGameplayEffect>> EquipEffects;
 };
@@ -129,7 +128,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Pickup")
 	TSoftObjectPtr<UStaticMesh> Mesh;
 
-	/** 비어있으면 이펙트 비활성. */
 	UPROPERTY(EditDefaultsOnly, Category = "Pickup")
 	TSoftObjectPtr<UNiagaraSystem> NiagaraSystem;
 };

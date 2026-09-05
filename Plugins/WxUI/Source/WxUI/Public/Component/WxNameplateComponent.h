@@ -20,10 +20,7 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	/**
-	 * 주입받은 표시 데이터와 ASC를 묶은 UWxViewModel_Character를 생성해 MVVM View에 바인딩한다.
-	 * WxUI는 구체 캐릭터 타입을 알지 못하므로 표시 데이터는 소비 측이 주입한다.
-	 */
+	/** WxUI는 구체 캐릭터 타입을 알지 못하므로 표시 데이터는 소비 측이 주입한다. */
 	void InitializeViewModels(UAbilitySystemComponent* InASC, const FText& InCharacterName, const TSoftObjectPtr<UObject>& InPortrait);
 
 protected:

@@ -102,15 +102,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Equipment")
 	TObjectPtr<UWxEquipmentComponent> EquipmentComponent;
 
-	/**
-	 * BP 의 ChildActorClass 에 기본 무기 BP 를 지정한다.
-	 */
+	/** BP 의 ChildActorClass 에 기본 무기 BP 를 지정한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Equipment")
 	TObjectPtr<UChildActorComponent> WeaponActor;
 
-	/**
-	 * BP 디폴트에서 에셋을 지정한 캐릭터만 부착물을 만들고, 비워두면 아무것도 만들지 않는다.
-	 */
+	/** BP 디폴트에서 에셋을 지정한 캐릭터만 부착물을 만들고, 비워두면 아무것도 만들지 않는다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Visual")
 	TObjectPtr<UWxMetaHumanComponent> MetaHumanComponent;
 

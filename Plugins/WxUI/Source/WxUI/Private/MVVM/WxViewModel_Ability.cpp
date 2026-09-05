@@ -9,7 +9,6 @@
 
 void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags)
 {
-	// 빈 컨테이너는 HasAll 이 항상 true 라 아무 어빌리티나 매칭되므로 거부한다.
 	if (!InASC || InAbilityTags.IsEmpty())
 	{
 		return;
@@ -149,7 +148,6 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 		return;
 	}
 
-	// 옛 어빌리티에 매달린 것부터 끊는다.
 	UnbindCostAttributes(*ASC);
 	StopCooldownTicker();
 

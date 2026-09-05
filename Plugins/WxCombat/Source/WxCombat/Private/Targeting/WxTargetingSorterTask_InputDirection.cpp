@@ -42,7 +42,6 @@ float UWxTargetingSorterTask_InputDirection::GetScoreForTarget(const FTargetingR
 		return 0.f;
 	}
 
-	// 점수는 낮을수록 앞에 온다.
 	const float Dot = FMath::Clamp(FVector::DotProduct(InputDir, ToTarget), -1.f, 1.f);
 	return FMath::RadiansToDegrees(FMath::Acos(Dot));
 }

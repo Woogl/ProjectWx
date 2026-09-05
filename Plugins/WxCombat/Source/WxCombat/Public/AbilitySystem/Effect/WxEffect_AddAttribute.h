@@ -25,7 +25,7 @@ public:
 protected:
 	void AddAttributeModifier(const FGameplayAttribute& Attribute);
 
-	/** 공용 구현. static은 어느 파생 클래스로 불렸는지 알 수 없어, 파생 클래스의 Apply가 자기 클래스를 실어 부른다. */
+	/** static은 어느 파생 클래스로 불렸는지 알 수 없어, 파생 클래스의 Apply가 자기 클래스를 실어 부른다. */
 	static void Apply(TSubclassOf<UWxEffect_AddAttribute> EffectClass, UAbilitySystemComponent* TargetASC, float Delta, const FGameplayEffectContextHandle& Context);
 };
 

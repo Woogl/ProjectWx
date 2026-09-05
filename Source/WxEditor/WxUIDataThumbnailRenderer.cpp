@@ -66,7 +66,7 @@ void UWxUIDataThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uint32 
 	{
 		if (IconTexture->GetResource() != nullptr)
 		{
-			// 아이콘은 알파 채널을 가질 수 있으므로 Translucent 블렌드로 그린다.
+			// 아이콘은 알파 채널을 가질 수 있다.
 			FCanvasTileItem TileItem(
 				FVector2D(X, Y),
 				IconTexture->GetResource(),

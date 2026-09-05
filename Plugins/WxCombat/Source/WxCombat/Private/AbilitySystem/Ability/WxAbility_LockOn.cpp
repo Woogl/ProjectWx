@@ -78,7 +78,6 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 	ListenForDodgeRotation();
 
-	// 소유 클라는 로컬 즉시 반영 + 서버 RPC, 리슨 호스트는 권위 직접 반영(복제는 컴포넌트 몫).
 	const AActor* Owner = GetOwningActorFromActorInfo();
 	LockOnComponent = Owner ? Owner->FindComponentByClass<UWxLockOnComponent>() : nullptr;
 	if (UWxLockOnComponent* LockOnComp = LockOnComponent.Get())

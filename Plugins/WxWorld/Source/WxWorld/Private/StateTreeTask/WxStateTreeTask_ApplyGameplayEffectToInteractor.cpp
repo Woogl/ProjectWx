@@ -29,7 +29,6 @@ EStateTreeRunStatus FWxStateTreeTask_ApplyGameplayEffectToInteractor::EnterState
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	// GE 적용은 서버 권위 사건이다. 클라는 복제된 어트리뷰트를 추종한다.
 	AWxDevice* Owner = Cast<AWxDevice>(Context.GetOwner());
 	if (!Owner || !Owner->HasAuthority() || !Instance.EffectClass)
 	{

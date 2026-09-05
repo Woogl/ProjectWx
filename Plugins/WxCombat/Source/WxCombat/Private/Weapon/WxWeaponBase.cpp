@@ -194,7 +194,8 @@ void AWxWeaponBase::Tick(float DeltaSeconds)
 		UShapeComponent* Shape = HitShapes[Index];
 		const FVector CurrLocation = Shape->GetComponentLocation();
 
-		// 형상 자신의 응답을 넘겨야 Overlap 경로와 판정이 일치한다. 기본값은 전 채널 Block이라 지형에서 Sweep이 잘리고 한 틱 다중 타격도 끊긴다.
+		// 형상 자신의 응답을 넘겨야 Overlap 경로와 판정이 일치한다.
+		// 기본값은 전 채널 Block이라 지형에서 Sweep이 잘리고 한 틱 다중 타격도 끊긴다.
 		const FCollisionResponseParams ResponseParams(Shape->GetCollisionResponseToChannels());
 
 		TArray<FHitResult> Hits;
