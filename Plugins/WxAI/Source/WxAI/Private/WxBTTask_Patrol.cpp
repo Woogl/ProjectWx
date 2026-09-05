@@ -72,7 +72,7 @@ FString UWxBTTask_Patrol::GetStaticDescription() const
 {
 	const FString SpeedLine = MoveSpeedEffect ? FString::Printf(TEXT("Speed: x%.2f"), MoveSpeedMultiplier) : FString(TEXT("Speed: 감속 GE 미지정"));
 
-	return FString::Printf(TEXT("%s\n%s\n갈 지점이 없으면 제자리 대기(브랜치 점유)"), *Super::GetStaticDescription(), *SpeedLine);
+	return FString::Printf(TEXT("%s\n%s\n"), *Super::GetStaticDescription(), *SpeedLine);
 }
 
 void UWxBTTask_Patrol::DescribeRuntimeValues(const UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTDescriptionVerbosity::Type Verbosity, TArray<FString>& Values) const

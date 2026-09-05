@@ -20,7 +20,6 @@ public:
 
 	TSubclassOf<APawn> GetMinionClass() const;
 	FVector GetSpawnOffset() const;
-	float GetLifetime() const;
 
 protected:
 	/** 소환자의 팀을 물려받을 수 있는 Pawn만 지정한다. */
@@ -30,8 +29,4 @@ protected:
 	/** 소환자 로컬 기준 스폰 지점. 실제 위치는 스폰 시 충돌 보정으로 밀릴 수 있다. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Minion")
 	FVector SpawnOffset = FVector(200.f, 0.f, 0.f);
-
-	/** 0이면 무제한이다. */
-	UPROPERTY(EditAnywhere, Category = "Wx|Minion", meta = (ClampMin = "0"))
-	float Lifetime = 0.f;
 };

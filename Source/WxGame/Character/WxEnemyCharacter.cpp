@@ -142,6 +142,9 @@ void AWxEnemyCharacter::HandleAITargetChanged(USceneComponent* NewTarget)
 
 void AWxEnemyCharacter::HandleOwnerDeath(AWxCharacterBase* DeadCharacter)
 {
+	// 사망 통지는 전 머신에 오므로, 표시에 쓰이는 교전 상태는 권위 검사 앞에서 갱신한다.
+	RefreshEngagement();
+
 	if (!HasAuthority())
 	{
 		return;
@@ -180,7 +183,8 @@ bool AWxEnemyCharacter::IsInRearCone(const AActor* Interactor) const
 
 void AWxEnemyCharacter::RefreshEngagement()
 {
-	const bool bEngaged = GetLockOnComponent()->GetLockOnTarget() != nullptr;
+	// 죽어도 겨누던 대상은 그대로 남는다 — 그것만 보면 시체가 계속 교전 중으로 남는다.
+	const bool bEngaged = IsAlive() && GetLockOnComponent()->GetLockOnTarget() != nullptr;
 	GetAbilitySystemComponent()->SetLooseGameplayTagCount(WxGameplayTags::State_Engaged, bEngaged ? 1 : 0);
 
 	if (bIsBoss)

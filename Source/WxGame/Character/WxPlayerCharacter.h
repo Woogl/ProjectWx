@@ -18,7 +18,7 @@ class UInputAction;
 struct FInputActionValue;
 
 /** 게임플레이 입력(이동/시선/어빌리티) 소유. 입력 구성은 UWxInputConfig DA에서 주입. */
-UCLASS()
+UCLASS(Abstract)
 class WXGAME_API AWxPlayerCharacter : public AWxCharacterBase
 {
 	GENERATED_BODY()

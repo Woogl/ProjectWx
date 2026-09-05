@@ -164,11 +164,6 @@ void UWxMinionManagerComponent::HandleSpawnMinionEvent(const FGameplayEventData*
 
 	Minion->FinishSpawning(SpawnTransform);
 
-	if (MinionNotify->GetLifetime() > 0.f)
-	{
-		Minion->SetLifeSpan(MinionNotify->GetLifetime());
-	}
-
 	ActiveMinions.Add(Minion);
 }
 
