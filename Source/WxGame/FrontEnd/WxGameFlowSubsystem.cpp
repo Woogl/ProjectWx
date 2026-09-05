@@ -17,6 +17,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Misc/PackageName.h"
 #include "System/WxPrimaryGameLayout.h"
+#include "System/WxCheckpointSubsystem.h"
 #include "System/WxUIManagerSubsystem.h"
 #include "WxGameplayTags.h"
 #include "WorldPartition/WorldPartitionSubsystem.h"
@@ -98,6 +99,7 @@ void UWxGameFlowSubsystem::HandleAssetsLoaded(FGuid RequestId)
 		return;
 	}
 	State = EWxTravelState::Traveling;
+	GetGameInstance()->GetSubsystem<UWxCheckpointSubsystem>()->ResetCheckpoint();
 	UGameplayStatics::OpenLevel(this, FName(*PendingLevel.ToSoftObjectPath().GetLongPackageName()), true);
 }
 

@@ -29,8 +29,9 @@ private:
 	void HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn);
 
 	void HandleHUDPushCompleted(UCommonActivatableWidget* Widget);
+	void ClearHUD();
 
-	/** 폰이 갈아탈 때마다 다시 push 하지 않고 이 인스턴스를 그대로 쓴다. */
+	/** 현재 빙의 Pawn의 ViewModel을 사용하는 HUD. 빙의 대상 변경 시 교체한다. */
 	TWeakObjectPtr<UCommonActivatableWidget> HUDWidget;
 
 	/** 컴포넌트가 먼저 걷히면 HUD 가 뒤늦게 나타나지 않도록 취소할 진행 중인 요청. */

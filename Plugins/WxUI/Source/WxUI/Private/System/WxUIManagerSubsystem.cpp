@@ -283,7 +283,7 @@ void UWxUIManagerSubsystem::HandleDeathTagChanged(const FGameplayTag CallbackTag
 		return;
 	}
 
-	// 사망 화면은 걷어내지 않는다 — PC 가 바뀌면 layout 이 통째로 재생성되면서 함께 사라진다.
+	// 같은 월드의 부활 요청은 완료 시 호출한 사망 화면을 비활성화한다. PC 교체 시에는 layout과 함께 제거된다.
 	UWxAsyncAction_PushWidgetToLayer* PushAction = UWxAsyncAction_PushWidgetToLayer::PushWidgetToLayer(
 		this, WxGameplayTags::UI_Layer_Menu, GetDefault<UWxUIDeveloperSettings>()->DeathScreenClass);
 	PushAction->Activate();
