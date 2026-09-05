@@ -9,20 +9,6 @@
 
 class UGameplayEffect;
 
-/** 폰의 정면(ControlRotation)을 기준으로 시계 방향 45도 간격의 8방향. */
-UENUM()
-enum class EWxWanderDirection : uint8
-{
-	Forward,
-	ForwardRight,
-	Right,
-	BackRight,
-	Back,
-	BackLeft,
-	Left,
-	ForwardLeft,
-};
-
 /**
  * 타겟을 바라본 채 이동(strafe)할지는 이 태스크가 아니라 UWxBTService_LockOn 이 회전 모드를 발행해 결정한다 — 그 서비스가 붙은 브랜치 안에서 배회하면 타겟을 보며 움직인다.
  *
@@ -51,12 +37,16 @@ protected:
 	float Duration = 1.f;
 
 	/**
-	 * 이동 가능한 방향(폰 정면 기준 8방향, 복수 선택). 매 실행마다 선택된 방향 중 하나를 무작위로 고른다.
+	 * 이동 가능한 방향의 범위(도). 폰 정면(ControlRotation)이 0, 양수가 시계 방향이며, 매 실행마다 이 범위 안에서 무작위로 한 방향을 고른다.
 	 *
-	 * 내비메시를 벗어나는 방향은 후보에서 빠지며, 남는 후보가 없거나 애초에 하나도 고르지 않았으면 태스크가 실패해 상위 폴백 분기로 넘어간다.
+	 * 범위를 좁게 잡을수록 내비메시에 막혀 갈 수 있는 방향이 없을 확률이 올라가고, 그때는 태스크가 실패해 상위 폴백 분기로 넘어간다.
 	 */
-	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (Bitmask, BitmaskEnum = "/Script/WxAI.EWxWanderDirection"))
-	int32 Directions = 0xFF;
+	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (ClampMin = "-180.0", ClampMax = "180.0", UIMin = "-180.0", UIMax = "180.0"))
+	float MinAngle = -180.f;
+
+	/** MinAngle 참고. */
+	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (ClampMin = "-180.0", ClampMax = "180.0", UIMin = "-180.0", UIMax = "180.0"))
+	float MaxAngle = 180.f;
 
 	/** 최대 이동 속도가 이 비율로 제한된다. (1.0 = 평상시 속도) */
 	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))

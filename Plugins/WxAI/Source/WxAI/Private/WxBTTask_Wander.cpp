@@ -27,14 +27,12 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 		return EBTNodeResult::Failed;
 	}
 
-	// 8 = EWxWanderDirection 의 방향 개수.
-	TArray<int32, TInlineAllocator<8>> RemainingIndices;
-	for (int32 Index = 0; Index < 8; ++Index)
+	// 각도 범위를 등분해 구간마다 한 번씩 시도한다. 후보가 서로 다른 구간에 흩어져 좁은 범위에서도 같은 방향만 반복해 재보지 않는다.
+	constexpr int32 SectorCount = 8;
+	TArray<int32, TInlineAllocator<SectorCount>> RemainingSectors;
+	for (int32 Index = 0; Index < SectorCount; ++Index)
 	{
-		if (Directions & (1 << Index))
-		{
-			RemainingIndices.Add(Index);
-		}
+		RemainingSectors.Add(Index);
 	}
 
 	const UPawnMovementComponent* Movement = Pawn->GetMovementComponent();
@@ -43,10 +41,10 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 		return EBTNodeResult::Failed;
 	}
 
-	// 감속 GE 는 방향을 고른 뒤 부여되므로 지금 최대 속도는 아직 평상시 값이고, GE 미지정이면 배율 자체가 걸리지 않는다.
+	// 감속 GE 는 방향을 고른 뒤 부여되므로 지금 최대 속도는 아직 평상시 값이다.
 	const float TravelDistance = Movement->GetMaxSpeed() * (MoveSpeedEffect ? MoveSpeedMultiplier : 1.f) * Duration;
 
-	// 걸어갈 거리가 0이면 길이 0 레이가 막힘으로 오지 않아 8방향이 전부 무검증 통과한다.
+	// 걸어갈 거리가 0이면 길이 0 레이가 막힘으로 오지 않아 후보가 전부 무검증 통과한다.
 	// 지금 못 움직인다고 무해한 것이 아니다 — 배회가 끝나기 전에 속박이 풀리면 검증되지 않은 방향으로 걸어 나간다.
 	if (FMath::IsNearlyZero(TravelDistance))
 	{
@@ -55,12 +53,16 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 
 	const FVector NavStart = Pawn->GetNavAgentLocation();
 
+	// 범위를 뒤집어 넣으면 폭이 음수가 되어 같은 부채꼴을 반대로 훑을 뿐이라 따로 바로잡지 않는다.
+	const float SectorSize = (MaxAngle - MinAngle) / SectorCount;
+
 	bool bFoundDirection = false;
-	while (RemainingIndices.Num() > 0)
+	while (RemainingSectors.Num() > 0)
 	{
-		const int32 PickedSlot = FMath::RandRange(0, RemainingIndices.Num() - 1);
-		const FVector Candidate = FRotator(0.f, AIController->GetControlRotation().Yaw + RemainingIndices[PickedSlot] * 45.f, 0.f).Vector();
-		RemainingIndices.RemoveAtSwap(PickedSlot);
+		const int32 PickedSlot = FMath::RandRange(0, RemainingSectors.Num() - 1);
+		const float Angle = MinAngle + (RemainingSectors[PickedSlot] + FMath::FRand()) * SectorSize;
+		const FVector Candidate = FRotator(0.f, AIController->GetControlRotation().Yaw + Angle, 0.f).Vector();
+		RemainingSectors.RemoveAtSwap(PickedSlot);
 
 		// 내비 데이터가 아예 없어도 막힘으로 온다.
 		FVector HitLocation;
@@ -99,10 +101,10 @@ FString UWxBTTask_Wander::GetStaticDescription() const
 {
 	if (!MoveSpeedEffect)
 	{
-		return FString::Printf(TEXT("Duration: %.1f s\nSpeed: 감속 GE 미지정"), Duration);
+		return FString::Printf(TEXT("Duration: %.1f s\nAngle: %.0f ~ %.0f\nSpeed: 감속 GE 미지정"), Duration, MinAngle, MaxAngle);
 	}
 
-	return FString::Printf(TEXT("Duration: %.1f s\nSpeed: x %.1f"), Duration, MoveSpeedMultiplier);
+	return FString::Printf(TEXT("Duration: %.1f s\nAngle: %.0f ~ %.0f\nSpeed: x %.1f"), Duration, MinAngle, MaxAngle, MoveSpeedMultiplier);
 }
 
 void UWxBTTask_Wander::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
