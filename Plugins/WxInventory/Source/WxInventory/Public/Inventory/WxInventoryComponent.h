@@ -130,6 +130,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnInventoryReady, UWxInventoryComponent* 
  *
  * 부착은 코드가 아니라 GameMode 가 고른 Experience 에셋의 주입 설정으로 한다(PlayerController 는 본 클래스를 모른다).
  * 등록하지 않으면 인벤토리가 조용히 없는 상태가 된다.
+ * 시작 아이템은 Experience 의 Add Inventory Items 액션이 도착 신호(OnAnyInventoryReady)를 받아 지급한다 — 본 클래스는 목록을 갖지 않는다.
  */
 UCLASS()
 class WXINVENTORY_API UWxInventoryComponent : public UControllerComponent

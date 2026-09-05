@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "Items/WxRewardTableRow.h"
 #include "WxExperienceActionSet.generated.h"
 
 class FDataValidationContext;
@@ -38,9 +37,6 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TArray<FString> GameFeaturesToEnable;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Wx")
-	TArray<FWxItemRewardEntry> DefaultInventoryItems;
 
 	/** 빙의한 로컬 플레이어에게 띄울 HUD */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")

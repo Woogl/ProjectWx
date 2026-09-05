@@ -13,6 +13,7 @@ public class WxInventory : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
+			"GameFeatures",
 			"GameplayAbilities",
 			"GameplayTags",
 			"ModularGameplay",

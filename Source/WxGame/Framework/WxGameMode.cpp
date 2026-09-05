@@ -2,14 +2,12 @@
 
 #include "Framework/WxGameMode.h"
 
-#include "Framework/WxExperienceActionSet.h"
 #include "Framework/WxExperienceDefinition.h"
 #include "Framework/WxExperienceManagerComponent.h"
 #include "Framework/WxGameState.h"
 #include "Framework/WxWorldSettings.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/SpectatorPawn.h"
-#include "Inventory/WxInventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "WxGame.h"
 
@@ -65,18 +63,6 @@ void AWxGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewP
 	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
 }
 
-void AWxGameMode::PostLogin(APlayerController* NewPlayer)
-{
-	Super::PostLogin(NewPlayer);
-
-	// 완료 전 접속자는 HandleExperienceLoaded 가 일괄 지급하므로 이중 지급이 없다.
-	const AWxGameState* WxGameState = Cast<AWxGameState>(GameState);
-	if (WxGameState && WxGameState->GetExperienceManagerComponent()->IsExperienceLoaded())
-	{
-		GrantDefaultInventory(NewPlayer, WxGameState->GetExperienceManagerComponent()->GetCurrentExperienceChecked());
-	}
-}
-
 FPrimaryAssetId AWxGameMode::ResolveExperienceId() const
 {
 	// 같은 맵이라도 진입 URL 로 다른 구성을 실험할 수 있게 URL 옵션이 우선한다.
@@ -98,7 +84,7 @@ FPrimaryAssetId AWxGameMode::ResolveExperienceId() const
 	return FPrimaryAssetId();
 }
 
-void AWxGameMode::HandleExperienceLoaded(const UWxExperienceDefinition* Experience)
+void AWxGameMode::HandleExperienceLoaded(const UWxExperienceDefinition*)
 {
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
@@ -108,36 +94,9 @@ void AWxGameMode::HandleExperienceLoaded(const UWxExperienceDefinition* Experien
 			continue;
 		}
 
-		GrantDefaultInventory(PlayerController, Experience);
-
 		if (!PlayerController->GetPawn() && PlayerCanRestart(PlayerController))
 		{
 			RestartPlayer(PlayerController);
 		}
-	}
-}
-
-void AWxGameMode::GrantDefaultInventory(APlayerController* PlayerController, const UWxExperienceDefinition* Experience) const
-{
-	// 지급 목록은 Experience 가 참조한 액션셋들이 정의한다 — 정의 에셋 본체엔 지급 필드가 없다.
-	TArray<FWxItemRewardEntry> Items;
-	for (const TObjectPtr<UWxExperienceActionSet>& ActionSet : Experience->ActionSets)
-	{
-		if (ActionSet)
-		{
-			Items.Append(ActionSet->DefaultInventoryItems);
-		}
-	}
-
-	if (Items.IsEmpty())
-	{
-		return;
-	}
-
-	// 인벤토리 주입은 로드 완료 시점에 이미 붙어 있다(로드 후 접속자는 컨트롤러 초기화에서 동기 부착).
-	// 복제 등록 이전이어도 ReadyForReplication 이 기존 엔트리를 back-fill 하므로 지급이 누락되지 않는다.
-	if (UWxInventoryComponent* Inventory = UWxInventoryComponent::FindInventory(PlayerController))
-	{
-		Inventory->GrantItems(Items);
 	}
 }

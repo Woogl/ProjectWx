@@ -27,10 +27,12 @@
 | `UWxRewardLibrary` | 보상 지급 서버 권위 진입점(픽업 스폰/직접 지급) | `Source/WxInventory/Public/WxRewardLibrary.h` |
 | `AWxItemPickup` | 지급용 픽업 액터, `IWxInteractable` 구현 | `Source/WxInventory/Public/Items/WxItemPickup.h` |
 | `UWxEquipmentComponent` | 폰 부착, 장착 ItemDef 보관 + EquipEffect GE 라이프사이클 | `Source/WxInventory/Public/Inventory/WxEquipmentComponent.h` |
+| `UWxGameFeatureAction_AddInventoryItems` | Experience 액션셋에 실려 시작 아이템을 지급하는 GameFeatureAction | `Source/WxInventory/Public/Inventory/WxGameFeatureAction_AddInventoryItems.h` |
 
 ## 확장 포인트 / 규약
 - 새 아이템 기능: `UWxItemFragment` 파생 후 정의 자산의 `Fragments`에 EditInline 부착. `OnInstanceCreated`로 인스턴스 초기 상태 주입. `FindFragmentByClass<T>()`로 조회.
 - 데이터 주도: 아이템은 `UWxItemDefinition`(NotBlueprintable PrimaryDataAsset), 보상은 `FWxRewardTableRow` DataTable, `Item`은 `TSoftObjectPtr`라 지급 시점 지연 로드.
+- 시작 아이템: 액션셋 `Actions`의 `UWxGameFeatureAction_AddInventoryItems`(Items)가 지급. 활성 시 이미 있는 인벤토리는 즉시, 이후 생기는 인벤토리는 `OnAnyInventoryReady`로, 서버 권한만. GameMode 등 외부 호출 없음.
 - 리플리케이션/권한: Add/Consume/Use/Equip/Grant는 모두 서버 권위 전용. `FWxInventoryList`(FastArray)로 델타 복제되고, 각 `UWxItemInstance`는 `RegisterReplicatedInstance`로 서브오브젝트 복제. 변경은 정의 합계/슬롯/충전 3종 멀티캐스트 델리게이트로 브로드캐스트(관찰자가 먼저 존재할 수 있어 `OnAnyInventoryReady`는 클래스 static).
 - StateTree: `FWxStateTreeTask_GiveRewards`·`FWxStateTreeTask_RefillItemCharges`는 라이브 전이 + 서버 권위에서만 실행(초기 진입/복원/레이트조인 시 중복 지급 방지).
 - 미배선: `EquipItemByDef`/`UWxEquipmentComponent::EquipItem` 경로는 호출부가 없어(BlueprintCallable도 아님) 장비 경로 전체가 배선만 있고 트리거가 없다. `RemoveItemInstance`도 호출부 0건.
