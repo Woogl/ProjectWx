@@ -4,6 +4,7 @@
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "GameFramework/MovementComponent.h"
 #include "GameplayEffect.h"
 #include "WxGameplayTags.h"
 
@@ -37,6 +38,25 @@ void UWxHitStopComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
+bool UWxHitStopComponent::IsFrozen() const
+{
+	// 권위 태그가 걷혔으면 어느 머신에서든 푼다. 로컬이 아직 세고 있다면 그건 새어 나간 상태다.
+	if (!AbilitySystemComponent || !AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Effect_HitStop))
+	{
+		return false;
+	}
+
+	// 로컬 인스턴스를 받는 머신에서는 그쪽이 이긴다 — 태그는 예측 인스턴스와 복제본이 겹쳐 RTT만큼 늦게 걷히므로, 그것으로 얼리면 본인 화면만 더 오래 멈춘다.
+	// 시뮬 프록시에는 인스턴스가 오지 않으므로 태그가 유일한 신호다.
+	return IsSimulatedProxy() || !FrozenHandles.IsEmpty();
+}
+
+bool UWxHitStopComponent::IsSimulatedProxy() const
+{
+	return !AbilitySystemComponent->IsOwnerActorAuthoritative()
+		&& !(AbilitySystemComponent->AbilityActorInfo.IsValid() && AbilitySystemComponent->AbilityActorInfo->IsLocallyControlled());
+}
+
 void UWxHitStopComponent::HandleActiveGameplayEffectAdded(UAbilitySystemComponent* Target, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle)
 {
 	if (!Spec.Def || !Spec.Def->GetGrantedTags().HasTag(WxGameplayTags::Effect_HitStop))
@@ -55,7 +75,7 @@ void UWxHitStopComponent::HandleActiveGameplayEffectAdded(UAbilitySystemComponen
 	}
 
 	FrozenHandles.Add(Handle);
-	RefreshAnimRateScale();
+	RefreshFrozenState();
 }
 
 void UWxHitStopComponent::HandleGameplayEffectRemoved(const FActiveGameplayEffect& RemovedEffect)
@@ -65,31 +85,32 @@ void UWxHitStopComponent::HandleGameplayEffectRemoved(const FActiveGameplayEffec
 		return;
 	}
 
-	RefreshAnimRateScale();
+	RefreshFrozenState();
 }
 
 void UWxHitStopComponent::HandleHitStopTagChanged(const FGameplayTag Tag, int32 NewCount)
 {
-	RefreshAnimRateScale();
+	RefreshFrozenState();
 }
 
-void UWxHitStopComponent::RefreshAnimRateScale()
+void UWxHitStopComponent::RefreshFrozenState()
 {
-	USkeletalMeshComponent* Mesh = AbilitySystemComponent->AbilityActorInfo.IsValid() ? AbilitySystemComponent->AbilityActorInfo->SkeletalMeshComponent.Get() : nullptr;
-	if (!Mesh)
+	if (!AbilitySystemComponent->AbilityActorInfo.IsValid())
 	{
 		return;
 	}
 
-	// 권위 태그가 걷혔으면 어느 머신에서든 푼다. 로컬이 아직 세고 있다면 그건 새어 나간 상태다.
-	const bool bTagged = AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Effect_HitStop);
+	const bool bFrozen = IsFrozen();
 
-	// 로컬 인스턴스를 받는 머신에서는 그쪽이 이긴다 — 태그는 예측 인스턴스와 복제본이 겹쳐 RTT만큼 늦게 걷히므로, 그것으로 얼리면 본인 화면만 더 오래 멈춘다.
-	// 시뮬 프록시에는 인스턴스가 오지 않으므로 태그가 유일한 신호다.
-	const bool bHasLocalInstances = AbilitySystemComponent->IsOwnerActorAuthoritative()
-		|| (AbilitySystemComponent->AbilityActorInfo.IsValid() && AbilitySystemComponent->AbilityActorInfo->IsLocallyControlled());
+	if (USkeletalMeshComponent* Mesh = AbilitySystemComponent->AbilityActorInfo->SkeletalMeshComponent.Get())
+	{
+		Mesh->GlobalAnimRateScale = bFrozen ? 0.f : 1.f;
+	}
 
-	const bool bFrozen = bTagged && (!bHasLocalInstances || !FrozenHandles.IsEmpty());
-
-	Mesh->GlobalAnimRateScale = bFrozen ? 0.f : 1.f;
+	// 리슨서버 호스트가 원격 플레이어의 틱을 끄면 이동은 그대로인 채 그 틱에서 돌던 스무딩만 멎어, 메시가 어긋난 보정을 문 채 굳는다.
+	const bool bFreezeMovement = bFrozen && AbilitySystemComponent->AbilityActorInfo->IsLocallyControlled();
+	if (UMovementComponent* Movement = AbilitySystemComponent->AbilityActorInfo->MovementComponent.Get())
+	{
+		Movement->SetComponentTickEnabled(!bFreezeMovement);
+	}
 }

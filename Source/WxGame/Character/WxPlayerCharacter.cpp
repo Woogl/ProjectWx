@@ -8,6 +8,7 @@
 #include "InputAction.h"
 #include "InputActionValue.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "AbilitySystem/WxHitStopComponent.h"
 #include "AbilitySystem/WxInputBufferComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Engine/LocalPlayer.h"
@@ -134,6 +135,11 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 void AWxPlayerCharacter::Jump()
 {
+	if (HitStopComponent->IsFrozen())
+	{
+		return;
+	}
+
 	// 앉은 채로는 엔진이 점프를 막으므로 점프 입력을 기립 의사로 먼저 옮긴다.
 	UnCrouch();
 
@@ -158,7 +164,8 @@ bool AWxPlayerCharacter::CanCrouch() const
 
 void AWxPlayerCharacter::Move(const FInputActionValue& Value)
 {
-	if (!Controller)
+	// 히트스톱이 이동 틱을 세우는 동안 입력을 받아 두면 소비되지 않고 쌓였다가 풀리는 첫 프레임에 한꺼번에 나간다.
+	if (!Controller || HitStopComponent->IsFrozen())
 	{
 		return;
 	}
@@ -174,7 +181,7 @@ void AWxPlayerCharacter::Look(const FInputActionValue& Value)
 {
 	const FVector2D LookAxis = Value.Get<FVector2D>();
 
-	// 락온 중에는 시점을 돌리지 않고 그 입력을 락온 컴포넌트에 넘겨 대상 전환에 쓰게 한다.
+	// 넘긴 시선 입력은 락온 대상 전환에 쓰인다.
 	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_LockOn))
 	{
 		LockOnComponent->SetLookInput(LookAxis);
@@ -187,6 +194,11 @@ void AWxPlayerCharacter::Look(const FInputActionValue& Value)
 
 void AWxPlayerCharacter::ToggleCrouch()
 {
+	if (HitStopComponent->IsFrozen())
+	{
+		return;
+	}
+
 	if (IsCrouched())
 	{
 		UnCrouch();
