@@ -29,7 +29,7 @@
 
 ## 확장 포인트 / 규약
 - **장치 만들기**: `AWxDevice`를 상속한 BP에 몸통을 세우고 `UWxDeviceStateTreeComponent`에 ST 에셋·`InitialState`를 지정한다. 루트는 파생 BP가 세운다(베이스는 루트를 만들지 않음).
-- **상태 구동 모델**: 상태는 서버 권위다. 권위 트리만 활성 상태 Tag를 복제 `StateTagName`에 기록하고, 클라는 그 값에 수렴하도록 라이브 전이를 요청한다. 상태 식별 키는 엔진 순정 상태 Tag(에셋 안에서 유일). 상세는 `WxDeviceStateTreeComponent.h` doc-comment.
+- **상태 구동 모델**: 권위 트리의 실제 전이를 관측해 태그·진입 번호·실행 상태·당사자를 `FWxDeviceStateSnapshot`으로 복제한다. 클라는 최초 수렴과 동일 태그 재진입을 구분하며, 선행 완료 후 복구는 같은 목표당 3회로 제한한다. 상태 태그는 루트 에셋 안에서 유일해야 한다. 상세 계약·디버깅·회귀 테스트는 [WxDevice 상태 동기화](../../Docs/Programmer/WxDevice-state-synchronization.md)를 참조한다.
 - **월드 ST 태스크 추가**: `FStateTreeTaskCommonBase`(또는 `FStateTreeTaskBase`)를 상속하고 `Public/StateTreeTask`에 둔다. 대상 액터는 `FUniversalObjectLocator`(순정 구조체라 ST 컴파일러의 레벨 액터 참조 검증을 우회, 퀘스트 등 레벨 밖 호스트에서도 조립 가능), 대상 컴포넌트는 `FWxStateTreeComponentName`(이름 지목)으로 가리킨다.
 - **대기형 태스크**: 통보 기반 완료는 `TWxStateTreeWaitRegistry`에 진입 시 등록하고 `ExitState`에서 핸들로 해제한다 — PIE 서버/클라 월드 분리를 등록부가 처리한다.
 - **스폰 대상**: `IWxSpawnable`을 구현하고 `AWxSpawner::SpawnableActorClass`에 지정한다(`MustImplement`로 강제). `bNeverRevive`로 보스형 영구 처치 지정.

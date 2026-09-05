@@ -2,6 +2,8 @@
 
 #include "Device/WxDeviceStateTreeComponent.h"
 
+#include "Device/WxDevice.h"
+#include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
 #include "StateTree.h"
 #include "StateTreeExecutionContext.h"
@@ -9,275 +11,481 @@
 
 namespace
 {
-	/** InitialState 의 예약어. 상태 Tag 는 계층 이름(Device.x.y)이라 이 한 단어와 겹치지 않는다. */
-	const FName RootInitialStateName = TEXT("Root");
+	const FName RootInitialStateName(TEXT("Root"));
+	constexpr uint8 MaxSyncAttempts = 3;
+}
+
+void FWxDeviceExecutionExtension::ScheduleNextTick(const FContextParameters& Context, const FNextTickArguments& Args)
+{
+	if (Component)
+	{
+		Component->ConditionalEnableTick();
+	}
+}
+
+void FWxDeviceExecutionExtension::OnBeginApplyTransition(const FContextParameters& Context, const FStateTreeTransitionResult& Transition)
+{
+	if (Component)
+	{
+		Component->HandleBeginApplyTransition(Context, Transition);
+	}
 }
 
 UWxDeviceStateTreeComponent::UWxDeviceStateTreeComponent()
 {
-	// StateTag 복제와 재진입 멀티캐스트가 이 컴포넌트를 타므로 복제 서브오브젝트로 등록한다.
 	SetIsReplicatedByDefault(true);
-
 	InitialState = RootInitialStateName;
 }
 
 void UWxDeviceStateTreeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(UWxDeviceStateTreeComponent, StateTagName);
+	
+	DOREPLIFETIME(UWxDeviceStateTreeComponent, StateSnapshot);
 }
 
 FGameplayTag UWxDeviceStateTreeComponent::GetStateTag() const
 {
-	return FGameplayTag::RequestGameplayTag(StateTagName, false);
+	return FGameplayTag::RequestGameplayTag(StateSnapshot.StateTagName, false);
 }
 
-void UWxDeviceStateTreeComponent::NotifyInteractionPending()
+bool UWxDeviceStateTreeComponent::IsRunning() const
 {
-	bPendingInteractResolve = true;
+	// 순정 bIsRunning은 자동 완료 때 갱신되지 않는다. 종료된 트리로 상호작용을 보내지 않는다.
+	return Super::IsRunning() && GetStateTreeRunStatus() == EStateTreeRunStatus::Running;
 }
 
-void UWxDeviceStateTreeComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+bool UWxDeviceStateTreeComponent::IsRestoringState() const
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	SyncStateWithTree();
-}
-
-void UWxDeviceStateTreeComponent::StopLogic(const FString& Reason)
-{
-	// 종착 상태에 들어간 그 틱에 트리가 멈추는 경우까지 잡으려면 정지 전에 한 번 더 알려야 한다.
-	if (bIsRunning)
-	{
-		SyncStateWithTree();
-	}
-
-	Super::StopLogic(Reason);
+	return bRestoringState;
 }
 
 void UWxDeviceStateTreeComponent::BeginPlay()
 {
-	if (GetOwnerRole() == ROLE_Authority && StateTagName.IsNone() && InitialState != RootInitialStateName)
+	if (GetOwnerRole() == ROLE_Authority && InitialState != RootInitialStateName)
 	{
-		const FGameplayTag InitialTag = FGameplayTag::RequestGameplayTag(InitialState, false);
-		if (HasState(InitialTag))
+		InitialTarget = FGameplayTag::RequestGameplayTag(InitialState, false);
+		if (!HasState(InitialTarget))
 		{
-			StateTagName = InitialTag.GetTagName();
-			bFollowInitialState = true;
-		}
-		else
-		{
-			UE_LOG(LogWxWorld, Warning, TEXT("Device(%s): 초기 상태 %s 를 에셋에서 찾지 못했다 — 에셋을 바꿨거나 상태 Tag 가 지워졌다. 루트 기본 상태로 시작한다."), *GetNameSafe(GetOwner()), *InitialState.ToString());
+			UE_LOG(LogWxWorld, Warning, TEXT("Device(%s): InitialState '%s' not found; using Root."), *GetNameSafe(GetOwner()), *InitialState.ToString());
+			InitialTarget = FGameplayTag();
 		}
 	}
-
+	
 	Super::BeginPlay();
-
-	if (!bIsRunning)
-	{
-		UE_LOG(LogWxWorld, Error, TEXT("Device(%s): State Tree 가 열리지 않았다 — 에셋 미지정, 스키마 불일치, 혹은 Start Logic Automatically 꺼짐."), *GetNameSafe(GetOwner()));
-		return;
-	}
-
-	SyncStateWithTree();
 }
 
-void UWxDeviceStateTreeComponent::OnRep_StateTagName()
+void UWxDeviceStateTreeComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	const FGameplayTag StateTag = GetStateTag();
-
-	// 권위가 있다고 말하는 상태가 내 에셋에 없다 — 이 장치는 여기서부터 영영 어긋난 채로 남는다.
-	// 값이 바뀐 이 한 번에만 알린다(추종은 매 틱이라 거기서 알리면 로그가 잠긴다).
-	if (StateTag.IsValid() && !HasState(StateTag))
-	{
-		UE_LOG(LogWxWorld, Warning, TEXT("Device(%s): 권위 상태 %s 를 로컬 에셋에서 찾지 못했다 — 상태 Tag 가 지워졌거나 서버와 다른 에셋이다."), *GetNameSafe(GetOwner()), *StateTag.ToString());
-	}
-
-	// 아직 시작 전이면 곧 BeginPlay 가 이 값으로 동기화를 시작하므로 건드리지 않는다.
-	if (!bIsRunning)
-	{
-		return;
-	}
-
-	ConditionalEnableTick();
+	bEndingPlay = true;
+	
+	Super::EndPlay(EndPlayReason);
 }
 
-void UWxDeviceStateTreeComponent::Multicast_ReenterState_Implementation(FGameplayTag ReenteredTag)
+void UWxDeviceStateTreeComponent::StartLogic()
 {
-	// 권위는 자기 트리에서 이미 재진입했다.
-	if (GetOwnerRole() == ROLE_Authority || !bIsRunning)
+	if (InstanceData.GetExecutionState()->CurrentPhase != EStateTreeUpdatePhase::Unset)
 	{
+		UE_LOG(LogWxWorld, Warning, TEXT("Device(%s): StartLogic ignored during StateTree update."), *GetNameSafe(GetOwner()));
 		return;
 	}
-
-	// 그 사이 권위 상태가 더 움직였으면(도착 지연·유실) 지나간 상태의 재진입을 되살릴 이유가 없다 — 추종이 현재 상태로 데려간다.
-	const FGameplayTag StateTag = GetStateTag();
-	if (ReenteredTag != StateTag)
-	{
-		return;
-	}
-
-	UE_LOG(LogWxWorld, Verbose, TEXT("Device(%s): [클라] 권위 재진입 통지 — 상태 %s 재선택 요청"), *GetNameSafe(GetOwner()), *StateTag.ToString());
-	RequestState(StateTag);
+	SyncAttempts = 0;
+	SyncFailure.Reset();
+	bRequestPending = false;
+	ApplyInteractor();
+	TGuardValue<bool> RestoreGuard(bRestoringState, true);
+	
+	Super::StartLogic();
+	
+	InstallExecutionObserver();
+	ObserveActiveState();
+	Synchronize();
 }
 
-void UWxDeviceStateTreeComponent::SyncStateWithTree()
+void UWxDeviceStateTreeComponent::RestartLogic()
 {
-	if (GetOwnerRole() == ROLE_Authority && !bFollowInitialState)
+	if (InstanceData.GetExecutionState()->CurrentPhase != EStateTreeUpdatePhase::Unset)
 	{
+		UE_LOG(LogWxWorld, Warning, TEXT("Device(%s): RestartLogic ignored during StateTree update."), *GetNameSafe(GetOwner()));
+		return;
+	}
+	SyncAttempts = 0;
+	SyncFailure.Reset();
+	bRequestPending = false;
+	ApplyInteractor();
+	TGuardValue<bool> RestoreGuard(bRestoringState, true);
+	
+	Super::RestartLogic();
+	
+	InstallExecutionObserver();
+	ObserveActiveState();
+	Synchronize();
+}
+
+void UWxDeviceStateTreeComponent::InstallExecutionObserver()
+{
+	// StartTree가 순정 확장을 새로 만들므로 Start/Restart 직후마다 교체한다.
+	FWxDeviceExecutionExtension Extension;
+	Extension.Component = this;
+	InstanceData.GetMutableExecutionState()->ExecutionExtension = TInstancedStruct<FStateTreeExecutionExtension>::Make<FWxDeviceExecutionExtension>(MoveTemp(Extension));
+	ObservedFrameID = UE::StateTree::FActiveFrameID();
+	ObservedStateID = UE::StateTree::FActiveStateID();
+	LastEnteredTag = FGameplayTag();
+	bPendingReselect = false;
+}
+
+void UWxDeviceStateTreeComponent::StopLogic(const FString& Reason)
+{
+	ObserveActiveState();
+	
+	Super::StopLogic(Reason);
+	
+	if (GetOwnerRole() == ROLE_Authority && !bEndingPlay && !InitialTarget.IsValid())
+	{
+		PublishAuthorityState();
+	}
+}
+
+void UWxDeviceStateTreeComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	const bool bRestore = InitialTarget.IsValid() || (GetOwnerRole() != ROLE_Authority && (!bHasAppliedSnapshot || (bRequestPending && !bRequestIsLive)));
+	TGuardValue<bool> RestoreGuard(bRestoringState, bRestore);
+	
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	
+	ObserveActiveState();
+	Synchronize();
+	if (!IsRunning())
+	{
+		DisableTick();
+	}
+}
+
+void UWxDeviceStateTreeComponent::HandleBeginApplyTransition(const FStateTreeExecutionExtension::FContextParameters& Context, const FStateTreeTransitionResult& Transition)
+{
+	// 앞 전이로 들어간 상태를 다음 ExitState가 지우기 전에 확보한다. 같은 틱의 진입→완료도 포함된다.
+	ObserveActiveState();
+	bPendingReselect = false;
+	if (Transition.TargetState.IsCompletionState())
+	{
+		return;
+	}
+
+	// 기본 선택 규칙은 재선택 시 인스턴스 ID를 유지한다. 태그 상태/조상을 직접 대상으로 삼은
+	// 적용 전이만 별도로 기록한다. 태그 아래 자식 사이 이동은 태그 상태의 재진입이 아니다.
+	for (const FStateTreeExecutionFrame& Frame : Context.InstanceData.GetExecutionState().ActiveFrames)
+	{
+		for (int32 Index = 0; Index < Frame.ActiveStates.Num(); ++Index)
+		{
+			if (Frame.FrameID == Transition.SourceFrameID && Frame.ActiveStates[Index] == Transition.TargetState)
+			{
+				bPendingReselect = true;
+			}
+			if (Frame.FrameID == ObservedFrameID && Frame.ActiveStates.StateIDs[Index] == ObservedStateID)
+			{
+				return;
+			}
+		}
+	}
+}
+
+void UWxDeviceStateTreeComponent::ObserveActiveState()
+{
+	const FStateTreeExecutionState* Execution = InstanceData.GetExecutionState();
+	for (int32 FrameIndex = Execution->ActiveFrames.Num() - 1; FrameIndex >= 0; --FrameIndex)
+	{
+		const FStateTreeExecutionFrame& Frame = Execution->ActiveFrames[FrameIndex];
+		if (!Frame.StateTree)
+		{
+			continue;
+		}
+		for (int32 Index = Frame.ActiveStates.Num() - 1; Index >= 0; --Index)
+		{
+			const FCompactStateTreeState* State = Frame.StateTree->GetStateFromHandle(Frame.ActiveStates[Index]);
+			if (!State || !State->Tag.IsValid())
+			{
+				continue;
+			}
+
+			if (Frame.FrameID != ObservedFrameID || Frame.ActiveStates.StateIDs[Index] != ObservedStateID || bPendingReselect)
+			{
+				LastEnteredTag = State->Tag;
+				ObservedFrameID = Frame.FrameID;
+				ObservedStateID = Frame.ActiveStates.StateIDs[Index];
+				++LocalEntrySerial;
+				UE_LOG(LogWxWorld, VeryVerbose, TEXT("Device(%s): observed entry %u tag=%s"), *GetNameSafe(GetOwner()), LocalEntrySerial, *LastEnteredTag.ToString());
+			}
+			bPendingReselect = false;
+			return;
+		}
+	}
+	
+	// 마지막 유효 태그는 완료 스냅샷에 필요하다. 현재 활성 프레임 ID만 비운다.
+	ObservedFrameID = UE::StateTree::FActiveFrameID();
+	ObservedStateID = UE::StateTree::FActiveStateID();
+	bPendingReselect = false;
+}
+
+void UWxDeviceStateTreeComponent::Synchronize()
+{
+	if (bEndingPlay)
+	{
+		return;
+	}
+	
+	if (GetOwnerRole() == ROLE_Authority)
+	{
+		if (InitialTarget.IsValid())
+		{
+			if (LastEnteredTag == InitialTarget)
+			{
+				InitialTarget = FGameplayTag();
+				bRequestPending = false;
+				SyncAttempts = 0;
+			}
+			else
+			{
+				RequestState(InitialTarget);
+				return;
+			}
+		}
 		PublishAuthorityState();
 	}
 	else
 	{
-		FollowStateTag();
+		FollowAuthorityState();
 	}
 }
 
 void UWxDeviceStateTreeComponent::PublishAuthorityState()
 {
-	// 태그 없는 상태에 머무는 동안엔 마지막 유효 값을 유지한다 — 트리 정지·미태그 구간에서 상태 값이 지워지지 않게 한다.
-	// 재진입 판정도 플래그를 든 채로 미룬다. 태그 있는 상태로 돌아오는 그 순간이 곧 그 상호작용이 만든 재진입이다.
-	const FGameplayTag ActiveTag = GetActiveStateTag();
-	if (!ActiveTag.IsValid())
+	const EStateTreeRunStatus Status = GetStateTreeRunStatus();
+	const bool bNewEntry = PublishedLocalEntrySerial != LocalEntrySerial;
+	if (!bNewEntry && StateSnapshot.EntrySerial != 0 && StateSnapshot.RunStatus == Status)
 	{
 		return;
 	}
 
-	const FGameplayTag StateTag = GetStateTag();
-	if (ActiveTag != StateTag)
+	if (bNewEntry || StateSnapshot.EntrySerial == 0)
 	{
-		UE_LOG(LogWxWorld, Verbose, TEXT("Device(%s): [권위] 상태 %s → %s"), *GetNameSafe(GetOwner()), *StateTag.ToString(), *ActiveTag.ToString());
-		StateTagName = ActiveTag.GetTagName();
-	}
-	else if (bPendingInteractResolve)
-	{
-		UE_LOG(LogWxWorld, Verbose, TEXT("Device(%s): [권위] 상태 %s 재진입"), *GetNameSafe(GetOwner()), *StateTag.ToString());
-		Multicast_ReenterState(StateTag);
-	}
-
-	// 플래그가 선 뒤 처음 도는 이 지점은 트리가 발행을 소화한 뒤다 — 나머지 호출부(정지)에선 소화할 발행 자체가 없다.
-	bPendingInteractResolve = false;
-}
-
-void UWxDeviceStateTreeComponent::FollowStateTag()
-{
-	const FGameplayTag StateTag = GetStateTag();
-
-	// 목표 태그가 로컬 에셋에 없으면 영영 수렴할 수 없다 — 추종을 접고 트리 상태 발행으로 복귀해 장치가 조용히 죽는 것을 막는다.
-	if (bFollowInitialState && !HasState(StateTag))
-	{
-		UE_LOG(LogWxWorld, Warning, TEXT("Device(%s): 목표 상태 %s 를 에셋에서 찾지 못했다 — 추종을 포기하고 트리 상태를 발행한다."), *GetNameSafe(GetOwner()), *StateTag.ToString());
-		bFollowInitialState = false;
-		return;
-	}
-
-	// 태그가 한쪽이라도 비어 있으면 대조할 근거가 없다.
-	//  - StateTag 가 비었다(첫 플레이 클라): 따라갈 곳이 없다.
-	//  - 내가 태그 없는 구간에 있다: 수렴 이동 중이거나, 권위의 StateTag 도 마지막 유효 값(과거)을 들고 있어 대조하면 이미 지나온 상태로 되감긴다.
-	const FGameplayTag ActiveTag = GetActiveStateTag();
-	if (!StateTag.IsValid() || !ActiveTag.IsValid())
-	{
-		return;
-	}
-
-	if (ActiveTag == StateTag)
-	{
-		bFollowInitialState = false;
-		return;
-	}
-
-	UE_LOG(LogWxWorld, Verbose, TEXT("Device(%s): 로컬 %s ≠ 목표 %s — 추종 전이 요청"), *GetNameSafe(GetOwner()), *ActiveTag.ToString(), *StateTag.ToString());
-	RequestState(StateTag);
-}
-
-FGameplayTag UWxDeviceStateTreeComponent::GetActiveStateTag()
-{
-	const UStateTree* Asset = StateTreeRef.GetStateTree();
-	if (!Asset || !bIsRunning)
-	{
-		return FGameplayTag();
-	}
-
-	FStateTreeReadOnlyExecutionContext Context(GetOwner(), Asset, InstanceData);
-
-	// 시퀀스를 자식 상태로 쪼갠 장치(엘리베이터)는 태그가 그 시퀀스를 감싼 상위 상태에 붙으므로, leaf 만 보면 놓친다.
-	const TConstArrayView<FStateTreeExecutionFrame> Frames = Context.GetActiveFrames();
-	for (int32 FrameIndex = Frames.Num() - 1; FrameIndex >= 0; --FrameIndex)
-	{
-		const FStateTreeExecutionFrame& Frame = Frames[FrameIndex];
-		if (!Frame.StateTree)
+		++StateSnapshot.EntrySerial;
+		if (StateSnapshot.EntrySerial == 0)
 		{
-			continue;
-		}
-
-		for (int32 StateIndex = Frame.ActiveStates.Num() - 1; StateIndex >= 0; --StateIndex)
-		{
-			const FCompactStateTreeState* State = Frame.StateTree->GetStateFromHandle(Frame.ActiveStates[StateIndex]);
-			if (State && State->Tag.IsValid())
-			{
-				return State->Tag;
-			}
+			++StateSnapshot.EntrySerial;
 		}
 	}
-
-	return FGameplayTag();
+	
+	PublishedLocalEntrySerial = LocalEntrySerial;
+	StateSnapshot.StateTagName = LastEnteredTag.GetTagName();
+	StateSnapshot.RunStatus = Status;
+	const AWxDevice* Device = Cast<AWxDevice>(GetOwner());
+	StateSnapshot.Interactor = Device ? Device->GetInteractingCharacter() : nullptr;
+	StateSnapshot.bHasInteractor = StateSnapshot.Interactor != nullptr;
+	GetOwner()->ForceNetUpdate();
+	UE_LOG(LogWxWorld, Verbose, TEXT("Device publish: %s"), *DescribeSynchronization());
 }
 
-void UWxDeviceStateTreeComponent::RequestState(FGameplayTag InStateTag)
+void UWxDeviceStateTreeComponent::OnRep_StateSnapshot(const FWxDeviceStateSnapshot& Previous)
 {
+	if (Previous.EntrySerial != StateSnapshot.EntrySerial || Previous.StateTagName != StateSnapshot.StateTagName)
+	{
+		SyncAttempts = 0;
+		SyncFailure.Reset();
+		bRequestPending = false;
+	}
+	else if (Previous.RunStatus != StateSnapshot.RunStatus)
+	{
+		// 동일 진입의 완료 통지가 뒤따라 와도 이미 요청한 진입을 다시 요청하지 않는다.
+		SyncAttempts = 0;
+		SyncFailure.Reset();
+	}
+	
+	ApplyInteractor();
+	// 수신만으로 정지된 트리를 틱하지 않는다. 복구가 필요하면 Restart/RequestTransition이 틱을 예약한다.
+	// 실행 중 재진입한 통지는 현재 틱 끝의 Synchronize에서 처리한다.
+	if ((HasBegunPlay() || GetStateTreeRunStatus() != EStateTreeRunStatus::Unset)
+		&& InstanceData.GetExecutionState()->CurrentPhase == EStateTreeUpdatePhase::Unset && !bRequestPending)
+	{
+		ObserveActiveState();
+		Synchronize();
+	}
+	UE_LOG(LogWxWorld, Verbose, TEXT("Device receive: %s"), *DescribeSynchronization());
+}
+
+void UWxDeviceStateTreeComponent::ApplyInteractor()
+{
+	if (StateSnapshot.bHasInteractor && !IsValid(StateSnapshot.Interactor))
+	{
+		// 참조 해소를 기다리는 동안 현재 실행 중인 상태의 당사자를 덮지 않는다.
+		return;
+	}
+	
+	if (GetOwnerRole() != ROLE_Authority && StateSnapshot.EntrySerial != 0)
+	{
+		if (AWxDevice* Device = Cast<AWxDevice>(GetOwner()))
+		{
+			Device->InteractingCharacter = StateSnapshot.bHasInteractor ? StateSnapshot.Interactor.Get() : nullptr;
+		}
+	}
+}
+
+void UWxDeviceStateTreeComponent::FollowAuthorityState()
+{
+	if (StateSnapshot.EntrySerial == 0 || !SyncFailure.IsEmpty())
+	{
+		return;
+	}
+	
+	if (StateSnapshot.bHasInteractor && !IsValid(StateSnapshot.Interactor))
+	{
+		// 기본 객체 프로퍼티 복제가 참조를 추적한다. 매핑 완료 후 RepNotify가 다시 적용한다.
+		return;
+	}
+	
+	ApplyInteractor();
+	const FGameplayTag TargetTag = GetStateTag();
+	if (!TargetTag.IsValid())
+	{
+		if (StateSnapshot.RunStatus != EStateTreeRunStatus::Running)
+		{
+			Super::StopLogic(TEXT("Authority completed without a tagged state"));
+		}
+		return;
+	}
+	
+	if (!HasState(TargetTag))
+	{
+		FailSynchronization(TEXT("Authority tag is missing from the local root asset"));
+		return;
+	}
+
+	const bool bRequestApplied = bRequestPending && LocalEntrySerial != RequestedAtLocalEntry && LastEnteredTag == TargetTag;
+	const bool bNewEntry = bHasAppliedSnapshot && AppliedEntrySerial != StateSnapshot.EntrySerial;
+	const bool bAtTarget = LastEnteredTag == TargetTag;
+	if (bRequestApplied || (bAtTarget && !bNewEntry && !bRequestPending))
+	{
+		bHasAppliedSnapshot = true;
+		AppliedEntrySerial = StateSnapshot.EntrySerial;
+		bRequestPending = false;
+		if (StateSnapshot.RunStatus != EStateTreeRunStatus::Running)
+		{
+			// 마지막 상태의 진입 태스크까지 적용한 뒤 정지한다.
+			Super::StopLogic(TEXT("Authority completed"));
+			return;
+		}
+		if (IsRunning())
+		{
+			return;
+		}
+	}
+	
+	// 이미 적용한 진입 안의 미태그 시퀀스는 과거 태그로 되감지 않는다.
+	if (!bNewEntry && bHasAppliedSnapshot && AppliedEntrySerial == StateSnapshot.EntrySerial && IsRunning() && !ObservedStateID.IsValid())
+	{
+		return;
+	}
+	RequestState(TargetTag);
+}
+
+void UWxDeviceStateTreeComponent::RequestState(FGameplayTag TargetTag)
+{
+	if (!SyncFailure.IsEmpty())
+	{
+		return;
+	}
+	
+	if (!HasState(TargetTag))
+	{
+		FailSynchronization(TEXT("Target tag is missing from the root asset"));
+		return;
+	}
+	
+	if (SyncAttempts >= MaxSyncAttempts)
+	{
+		FailSynchronization(TEXT("Transition rejected or local tree repeatedly completed (attempt limit)"));
+		return;
+	}
+	
+	bRequestIsLive = GetOwnerRole() != ROLE_Authority && bHasAppliedSnapshot && AppliedEntrySerial != StateSnapshot.EntrySerial && SyncAttempts == 0;
+	++SyncAttempts;
+
+	if (!IsRunning())
+	{
+		TGuardValue<bool> RestoreGuard(bRestoringState, true);
+		// 엔진 전이 요청은 완료된 트리를 시작하지 않는다. public RestartLogic의 재시도 초기화는 피한다.
+		Super::RestartLogic();
+		InstallExecutionObserver();
+		ObserveActiveState();
+	}
+	
+	if (!IsRunning())
+	{
+		FailSynchronization(TEXT("StateTree could not restart; check asset, schema and start-state tasks"));
+		return;
+	}
+
 	const UStateTree* Asset = StateTreeRef.GetStateTree();
-	if (!Asset || !bIsRunning)
-	{
-		return;
-	}
-
-	const FStateTreeStateHandle TargetState = Asset->GetStateHandleFromGameplayTag(InStateTag, UStateTree::EStateGameplayTagQueryMethod::MatchesExact);
-	if (!TargetState.IsValid())
-	{
-		return;
-	}
-
-	// 요청은 다음 트리 틱의 전이 처리 맨 앞에서 소비되며, 잠들어 있으면 엔진이 실행 확장을 통해 틱을 깨운다.
 	FStateTreeExecutionContext Context(*GetOwner(), *Asset, InstanceData);
-	if (SetContextRequirements(Context))
+	if (!SetContextRequirements(Context))
 	{
-		Context.RequestTransition(TargetState, EStateTreeTransitionPriority::Critical);
+		FailSynchronization(TEXT("StateTree context requirements failed"));
+		return;
+	}
+	
+	RequestedAtLocalEntry = LocalEntrySerial;
+	bRequestPending = true;
+	Context.RequestTransition(Asset->GetStateHandleFromGameplayTag(TargetTag, UStateTree::EStateGameplayTagQueryMethod::MatchesExact), EStateTreeTransitionPriority::Critical);
+	UE_LOG(LogWxWorld, Verbose, TEXT("Device request target=%s: %s"), *TargetTag.ToString(), *DescribeSynchronization());
+}
+
+void UWxDeviceStateTreeComponent::FailSynchronization(const FString& Reason)
+{
+	if (SyncFailure.IsEmpty())
+	{
+		SyncFailure = Reason;
+		UE_LOG(LogWxWorld, Error, TEXT("Device synchronization stopped: %s"), *DescribeSynchronization());
 	}
 }
 
-bool UWxDeviceStateTreeComponent::HasState(FGameplayTag InStateTag) const
+bool UWxDeviceStateTreeComponent::HasState(FGameplayTag Tag) const
 {
 	const UStateTree* Asset = StateTreeRef.GetStateTree();
-	if (!InStateTag.IsValid() || !Asset)
-	{
-		return false;
-	}
-
-	return Asset->GetStateHandleFromGameplayTag(InStateTag, UStateTree::EStateGameplayTagQueryMethod::MatchesExact).IsValid();
+	return Asset && Tag.IsValid() && Asset->GetStateHandleFromGameplayTag(Tag, UStateTree::EStateGameplayTagQueryMethod::MatchesExact).IsValid();
 }
+
+FString UWxDeviceStateTreeComponent::DescribeSynchronization() const
+{
+	return FString::Printf(TEXT("%s role=%s local=%s/%u target=%s/%u applied=%u run=%s authorityRun=%s attempts=%u interactor=%s waitingInteractor=%d initial=%s error=%s"),
+		*GetNameSafe(GetOwner()), GetOwnerRole() == ROLE_Authority ? TEXT("Authority") : TEXT("Client"),
+		*LastEnteredTag.ToString(), LocalEntrySerial, *StateSnapshot.StateTagName.ToString(), StateSnapshot.EntrySerial,
+		AppliedEntrySerial, *UEnum::GetValueAsString(GetStateTreeRunStatus()), *UEnum::GetValueAsString(StateSnapshot.RunStatus),
+		SyncAttempts, *GetNameSafe(StateSnapshot.Interactor), StateSnapshot.bHasInteractor && !IsValid(StateSnapshot.Interactor),
+		*InitialTarget.ToString(), *SyncFailure);
+}
+
+#if WITH_GAMEPLAY_DEBUGGER
+FString UWxDeviceStateTreeComponent::GetDebugInfoString() const
+{
+	return Super::GetDebugInfoString() + TEXT("\n") + DescribeSynchronization();
+}
+#endif
 
 #if WITH_EDITOR
 TArray<FPropertyTextFName> UWxDeviceStateTreeComponent::GetInitialStateOptions() const
 {
 	TArray<FPropertyTextFName> Options;
 	Options.Add({ .ValueString = RootInitialStateName, .DisplayName = FText::FromName(RootInitialStateName) });
-
-	// 컴파일된 상태 목록을 읽으므로 에셋이 미지정이거나 컴파일 전이면 Root 만 남는다.
-	const UStateTree* Asset = StateTreeRef.GetStateTree();
-	if (!Asset)
+	if (const UStateTree* Asset = StateTreeRef.GetStateTree())
 	{
-		return Options;
-	}
-
-	for (const FCompactStateTreeState& State : Asset->GetStates())
-	{
-		if (State.Tag.IsValid())
+		for (const FCompactStateTreeState& State : Asset->GetStates())
 		{
-			Options.Add({ .ValueString = State.Tag.GetTagName(), .DisplayName = FText::FromName(State.Name) });
+			if (State.Tag.IsValid())
+			{
+				Options.Add({ .ValueString = State.Tag.GetTagName(),
+					.DisplayName = FText::Format(INVTEXT("{0} ({1})"), FText::FromName(State.Name), FText::FromName(State.Tag.GetTagName())) });
+			}
 		}
 	}
-
 	return Options;
 }
 #endif

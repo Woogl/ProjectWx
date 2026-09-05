@@ -35,6 +35,8 @@ public class WxWorld : ModuleRules
 		if (Target.bBuildEditor)
 		{
 			PrivateDependencyModuleNames.Add("UnrealEd");
+			PrivateDependencyModuleNames.Add("StateTreeEditorModule");
+			PrivateDependencyModuleNames.Add("PropertyBindingUtils");
 		}
 	}
 }

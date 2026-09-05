@@ -8,6 +8,7 @@
 #include "GameFramework/Actor.h"
 #include "GameFramework/Character.h"
 #include "StateTreeExecutionContext.h"
+#include "Device/WxDeviceExecutionPolicy.h"
 
 FWxStateTreeTask_ApplyGameplayEffectToInteractor::FWxStateTreeTask_ApplyGameplayEffectToInteractor()
 {
@@ -24,7 +25,7 @@ EStateTreeRunStatus FWxStateTreeTask_ApplyGameplayEffectToInteractor::EnterState
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
 	// 전이로 들어온 것이 아니면 StateTree 시작·레이트조인이다.
-	if (!Transition.SourceStateID.IsValid())
+	if (FWxDeviceExecutionPolicy::IsRestoring(Context, Transition))
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}

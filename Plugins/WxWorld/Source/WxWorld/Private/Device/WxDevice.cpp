@@ -4,7 +4,7 @@
 
 #include "Device/WxDeviceStateTreeComponent.h"
 #include "GameFramework/Character.h"
-#include "Net/UnrealNetwork.h"
+
 #include "WxWorldModule.h"
 
 AWxDevice::AWxDevice()
@@ -15,16 +15,9 @@ AWxDevice::AWxDevice()
 	StateTreeComponent = CreateDefaultSubobject<UWxDeviceStateTreeComponent>(TEXT("StateTree"));
 }
 
-void AWxDevice::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AWxDevice, InteractingCharacter);
-}
-
 bool AWxDevice::CanInteract(const AActor* Interactor) const
 {
-	return bInteractionEnabled;
+	return bInteractionEnabled && StateTreeComponent->IsRunning();
 }
 
 void AWxDevice::OnInteracted(AActor* Interactor)
@@ -35,7 +28,7 @@ void AWxDevice::OnInteracted(AActor* Interactor)
 		return;
 	}
 
-	// 멈춘 트리엔 발행이 닿지 않는다. 소화될 일 없는 재진입 판정을 예약해 두면 다음 시작 때 헛재진입으로 새어 나간다.
+	// 자동 완료된 트리도 발행을 받지 않는다.
 	if (!StateTreeComponent->IsRunning())
 	{
 		return;
@@ -47,19 +40,16 @@ void AWxDevice::OnInteracted(AActor* Interactor)
 		return;
 	}
 
-	// 당사자는 복제로 각 피어에 전해진다 — 몽타주·GE 태스크가 모든 머신에서 같은 대상을 본다.
+	// 실제 상태 진입이 관측되면 컴포넌트가 당사자를 상태 스냅샷에 함께 담는다.
 	InteractingCharacter = Cast<ACharacter>(Interactor);
 
-	// 닿지 않은 발행에 재진입 판정을 예약하면 다음 권위 틱이 「상태가 안 바뀐 재진입」으로 오판해 클라 전원이 연출을 헛재생한다.
+	// 발행 결과는 진단에만 사용한다. 재진입은 컴포넌트가 실제 전이에서 관측한다.
 	if (!BroadcastInteractionDelegate())
 	{
 		UE_LOG(LogWxWorld, Verbose, TEXT("Device(%s): 상호작용이 트리에 닿지 않았다 — 이 상태에 발행 자리가 없거나, 자리를 연 상태를 이미 떠났다."), *GetName());
 
 		return;
 	}
-
-	// 이 상호작용이 상태를 바꾸는지 아닌지는 트리가 발행을 소화해 봐야 안다 — 컴포넌트가 그 결과를 보고 재진입을 가려낸다.
-	StateTreeComponent->NotifyInteractionPending();
 }
 
 FText AWxDevice::GetInteractionPrompt() const
@@ -80,11 +70,10 @@ void AWxDevice::NotifyDeviceInteracted(AActor* Interactor, FGameplayTag EventTag
 		return;
 	}
 
-	// 당사자는 복제로 각 피어에 전해진다 — 몽타주·GE 태스크가 모든 머신에서 같은 대상을 본다.
+	// 실제 상태 진입이 관측되면 컴포넌트가 당사자를 상태 스냅샷에 함께 담는다.
 	InteractingCharacter = Cast<ACharacter>(Interactor);
 
 	// 잠든 트리는 이 발송이 예약하는 다음 틱이 깨운다.
-	// 자기 상호작용과 달리 재진입 판정은 걸지 않는다 — 이벤트엔 「지금 듣고 있는가」를 가릴 자리가 없어, 반응하지 않는 상태에서 당길 때마다 클라만 현재 상태를 재진입해 연출을 헛재생하게 된다.
 	StateTreeComponent->SendStateTreeEvent(EventTag, Payload);
 }
 
@@ -97,10 +86,38 @@ void AWxDevice::SetInteractionBinding(bool bEnabled, const FWxDeviceInteractionB
 {
 	bInteractionEnabled = bEnabled;
 
-	// 켜는 노드마다 자기 것을 새로 담으므로 지울 이유가 없고, 꺼진 동안은 CanInteract 가 먼저 막는다.
-	if (bEnabled)
+	InteractionBinding = bEnabled ? Binding : FWxDeviceInteractionBinding();
+}
+
+uint32 AWxDevice::PushInteractionBinding(bool bEnabled, const FWxDeviceInteractionBinding& Binding)
+{
+	if (++NextInteractionToken == 0)
 	{
-		InteractionBinding = Binding;
+		++NextInteractionToken;
+	}
+	ScopedInteractions.Add({NextInteractionToken, bEnabled, Binding});
+	SetInteractionBinding(bEnabled, Binding);
+	return NextInteractionToken;
+}
+
+void AWxDevice::PopInteractionBinding(uint32 Token)
+{
+	for (int32 Index = 0; Index < ScopedInteractions.Num(); ++Index)
+	{
+		if (ScopedInteractions[Index].Token == Token)
+		{
+			ScopedInteractions.RemoveAt(Index);
+			if (ScopedInteractions.IsEmpty())
+			{
+				SetInteractionBinding(false, FWxDeviceInteractionBinding());
+			}
+			else
+			{
+				const FWxScopedInteraction& Current = ScopedInteractions.Last();
+				SetInteractionBinding(Current.bEnabled, Current.Binding);
+			}
+			return;
+		}
 	}
 }
 

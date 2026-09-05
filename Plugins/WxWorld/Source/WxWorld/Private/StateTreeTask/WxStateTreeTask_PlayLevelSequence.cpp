@@ -7,6 +7,7 @@
 #include "LevelSequenceActor.h"
 #include "LevelSequencePlayer.h"
 #include "StateTreeExecutionContext.h"
+#include "Device/WxDeviceExecutionPolicy.h"
 
 FWxStateTreeTask_PlayLevelSequence::FWxStateTreeTask_PlayLevelSequence()
 {
@@ -19,7 +20,7 @@ EStateTreeRunStatus FWxStateTreeTask_PlayLevelSequence::EnterState(FStateTreeExe
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	if (!Transition.SourceStateID.IsValid())
+	if (FWxDeviceExecutionPolicy::IsRestoring(Context, Transition))
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}

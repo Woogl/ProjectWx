@@ -6,6 +6,7 @@
 #include "Device/WxDevice.h"
 #include "GameFramework/Character.h"
 #include "StateTreeExecutionContext.h"
+#include "Device/WxDeviceExecutionPolicy.h"
 #include "StateTreePropertyBindings.h"
 #include "WxWorldModule.h"
 
@@ -21,7 +22,7 @@ FWxStateTreeTask_SendEvent::FWxStateTreeTask_SendEvent()
 
 EStateTreeRunStatus FWxStateTreeTask_SendEvent::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	if (!Transition.SourceStateID.IsValid())
+	if (FWxDeviceExecutionPolicy::IsRestoring(Context, Transition))
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}

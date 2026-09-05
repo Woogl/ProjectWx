@@ -23,7 +23,7 @@ FWxStateTreeTask_EnableInteraction::FWxStateTreeTask_EnableInteraction()
 
 EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
+	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
 	// 프롬프트·발행 자리까지 담아야 해서 계약이 아니라 장치로 직접 부른다 — 그러지 않으면 공용 계약이 StateTree 를 떠안는다.
 	AWxDevice* Device = Cast<AWxDevice>(Context.GetOwner());
@@ -41,9 +41,19 @@ EStateTreeRunStatus FWxStateTreeTask_EnableInteraction::EnterState(FStateTreeExe
 	Binding.Context = Context.MakeWeakExecutionContext();
 
 	// 콜리전은 건드리지 않으므로 대상 메시의 설정은 보존된다.
-	Device->SetInteractionBinding(Instance.bEnable, Binding);
+	Instance.BindingToken = Device->PushInteractionBinding(Instance.bEnable, Binding);
 
 	return EStateTreeRunStatus::Succeeded;
+}
+
+void FWxStateTreeTask_EnableInteraction::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+{
+	FInstanceDataType& Instance = Context.GetInstanceData(*this);
+	if (AWxDevice* Device = Cast<AWxDevice>(Context.GetOwner()))
+	{
+		Device->PopInteractionBinding(Instance.BindingToken);
+	}
+	Instance.BindingToken = 0;
 }
 
 #if WITH_EDITOR
@@ -54,9 +64,9 @@ FText FWxStateTreeTask_EnableInteraction::GetDescription(const FGuid& ID, FState
 
 	if (InstanceData->bEnable && !InstanceData->Prompt.IsEmpty())
 	{
-		return FText::Format(INVTEXT("\"{0}\" 상호작용 켜기"), InstanceData->Prompt);
+		return FText::Format(INVTEXT("이 상태 동안 \"{0}\" 상호작용"), InstanceData->Prompt);
 	}
 
-	return InstanceData->bEnable ? INVTEXT("상호작용 켜기") : INVTEXT("상호작용 끄기");
+	return InstanceData->bEnable ? INVTEXT("이 상태 동안 상호작용 허용") : INVTEXT("이 상태 동안 상호작용 차단");
 }
 #endif

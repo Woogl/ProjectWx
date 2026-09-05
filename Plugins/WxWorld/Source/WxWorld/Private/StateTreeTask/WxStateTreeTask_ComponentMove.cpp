@@ -5,6 +5,7 @@
 #include "Components/SceneComponent.h"
 #include "GameFramework/Actor.h"
 #include "StateTreeExecutionContext.h"
+#include "Device/WxDeviceExecutionPolicy.h"
 #include "WxWorldModule.h"
 
 FWxStateTreeTask_ComponentMove::FWxStateTreeTask_ComponentMove()
@@ -33,7 +34,7 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentMove::EnterState(FStateTreeExecuti
 	const FVector Anchor = Archetype ? Archetype->GetRelativeLocation() : Component->GetRelativeLocation();
 	Instance.TargetLocation = Anchor + Instance.LocalOffset;
 
-	const bool bReachNow = Instance.Duration <= 0.f || Component->GetRelativeLocation().Equals(Instance.TargetLocation);
+	const bool bReachNow = FWxDeviceExecutionPolicy::IsRestoringDevice(Context) || Instance.Duration <= 0.f || Component->GetRelativeLocation().Equals(Instance.TargetLocation);
 	if (bReachNow)
 	{
 		Component->SetRelativeLocation(Instance.TargetLocation);

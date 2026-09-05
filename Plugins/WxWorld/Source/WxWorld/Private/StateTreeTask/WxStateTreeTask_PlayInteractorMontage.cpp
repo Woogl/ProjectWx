@@ -9,12 +9,13 @@
 #include "GameFramework/Actor.h"
 #include "GameFramework/Character.h"
 #include "StateTreeExecutionContext.h"
+#include "Device/WxDeviceExecutionPolicy.h"
 
 EStateTreeRunStatus FWxStateTreeTask_PlayInteractorMontage::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	if (!Transition.SourceStateID.IsValid())
+	if (FWxDeviceExecutionPolicy::IsRestoring(Context, Transition))
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}

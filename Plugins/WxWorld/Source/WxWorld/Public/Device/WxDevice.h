@@ -52,8 +52,6 @@ class WXWORLD_API AWxDevice : public AActor, public IWxInteractable
 public:
 	AWxDevice();
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 	//~ Begin IWxInteractable
 	virtual bool CanInteract(const AActor* Interactor) const override;
 	virtual void OnInteracted(AActor* Interactor) override;
@@ -64,17 +62,20 @@ public:
 	ACharacter* GetInteractingCharacter() const;
 
 	/**
-	 * 상호작용을 켜고 끄며, 켤 때는 그 상태의 프롬프트와 발행 자리(Binding)도 함께 담는다 — 끌 때 Binding 은 쓰이지 않고 담겨 있던 것도 지우지 않는다.
-	 * '상호작용 켜기' 태스크가 상태 진입 시 호출한다. 꺼져 있으면 CanInteract 가 false 를 답해 다음 스캔에서 후보에서 빠지고, 어빌리티의 서버 활성 검증에도 걸린다.
+	 * 상호작용과 프롬프트·발행 자리를 적용하며 끌 때는 비운다.
 	 * 복제하지 않는다 — ST 가 각 피어에서 실행되어 같은 값에 수렴한다.
 	 */
 	void SetInteractionBinding(bool bEnabled, const FWxDeviceInteractionBinding& Binding);
+	/** 활성 자식 상태의 설정을 우선하며, 종료 시 토큰으로 자기 설정만 제거한다. */
+	uint32 PushInteractionBinding(bool bEnabled, const FWxDeviceInteractionBinding& Binding);
+	void PopInteractionBinding(uint32 Token);
 
 	/** 'SendEvent' 태스크의 대상 */
 	UPROPERTY(EditInstanceOnly, Category = "Wx")
 	TArray<TObjectPtr<AWxDevice>> LinkedDevices;
 
-	UPROPERTY(Replicated, Transient)
+	/** 실행 시 사용할 당사자. 네트워크 소유권은 컴포넌트의 상태 스냅샷에 있다. */
+	UPROPERTY(Transient)
 	TObjectPtr<ACharacter> InteractingCharacter;
 
 protected:
@@ -89,4 +90,13 @@ private:
 
 	bool bInteractionEnabled = false;
 	FWxDeviceInteractionBinding InteractionBinding;
+
+	struct FWxScopedInteraction
+	{
+		uint32 Token = 0;
+		bool bEnabled = false;
+		FWxDeviceInteractionBinding Binding;
+	};
+	TArray<FWxScopedInteraction> ScopedInteractions;
+	uint32 NextInteractionToken = 0;
 };

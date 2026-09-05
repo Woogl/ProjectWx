@@ -6,6 +6,7 @@
 #include "Components/SplineComponent.h"
 #include "GameFramework/Actor.h"
 #include "StateTreeExecutionContext.h"
+#include "Device/WxDeviceExecutionPolicy.h"
 #include "WxWorldModule.h"
 
 FWxStateTreeTask_SplineMove::FWxStateTreeTask_SplineMove()
@@ -46,7 +47,7 @@ EStateTreeRunStatus FWxStateTreeTask_SplineMove::EnterState(FStateTreeExecutionC
 	const float SegmentLength = FMath::Abs(TargetDistance - StartDistance);
 	Instance.MoveSpeed = Instance.Duration > 0.f ? SegmentLength / Instance.Duration : SegmentLength;
 
-	const bool bSnap = Instance.Duration <= 0.f || FMath::IsNearlyEqual(StartDistance, TargetDistance);
+	const bool bSnap = FWxDeviceExecutionPolicy::IsRestoringDevice(Context) || Instance.Duration <= 0.f || FMath::IsNearlyEqual(StartDistance, TargetDistance);
 	Instance.CurrentDistance = bSnap ? TargetDistance : StartDistance;
 	Component->SetWorldLocation(Spline->GetLocationAtDistanceAlongSpline(Instance.CurrentDistance, ESplineCoordinateSpace::World));
 
