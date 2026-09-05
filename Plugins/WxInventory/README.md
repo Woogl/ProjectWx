@@ -1,49 +1,47 @@
 # WxInventory — 아이템·인벤토리 시스템
 
-> 아이템의 정적 정의(DataAsset)와 런타임 인스턴스를 분리해, PlayerController 부착 컴포넌트로 소유·소비·장착·복제를 서버 권위로 관리하고, 보상 지급(픽업 스폰/직접 지급)까지 담당한다.
+> 아이템 정의(데이터 자산)와 런타임 인스턴스, 플레이어 인벤토리 보유·사용·장착, 그리고 보상 지급을 담당한다. 인벤토리는 PlayerController 에 붙어 FastArray 로 복제된다.
 
 ## 책임
 **담당**
-- 아이템 정의(`UWxItemDefinition`)와 기능 축 Fragment 컴포지션(Equippable/Usable/Charges/Stackable/Pickup/Grade)
-- 런타임 인벤토리 소유·스택·소비·충전(에스트병식 Charges) — FastArray 기반 서버→클라 복제
-- 보상 테이블(`FWxRewardTableRow`) 지급: 픽업 액터 스폰·발사 또는 인벤토리 직접 지급
-- 아이템 사용(Usable GE 적용 + 스택/충전 차감), 장착 GE 라이프사이클(`UWxEquipmentComponent`)
-- StateTree 태스크로 보상 지급·충전 리필을 콘텐츠(퀘스트/체크포인트)에 노출
+- 아이템 정의(`UWxItemDefinition`) + Fragment 조합으로 아이템의 데이터·기능을 컴포지션
+- 런타임 아이템 인스턴스(`UWxItemInstance`)의 생성·소멸·복제 및 충전량 상태
+- 플레이어 인벤토리 보유/추가/소비/사용, 슬롯·합계·충전 단위 변경 통지(델리게이트)
+- 보상 테이블(`FWxRewardTableRow`) 지급과 픽업 액터(`AWxItemPickup`) 스폰/발사
+- Experience 시작 아이템 지급(GameFeatureAction), 보상·리필 StateTree 태스크
 
 **경계 (비담당)**
-- 어빌리티/GameplayEffect 정의 자체 — 아이템은 GE 클래스를 참조만 하고 적용은 소유 폰 ASC에 위임 ([[WxCombat]])
-- 상호작용 스캔·프롬프트 트리거 — 픽업은 `IWxInteractable`(WxCore 계약)만 구현, 스캐너는 [[WxWorld]]
-- 인벤토리 UI/뷰모델 — 델리게이트만 발행 ([[WxUI]])
-- 컴포넌트 부착 — 코드가 아니라 Experience 에셋 주입 설정으로 처리
+- GameplayEffect 적용 대상 ASC·`Ability.UseItem` 같은 태그·어빌리티 정의는 [[WxCore]] 및 소유 폰의 GAS 쪽 소관 (여기선 태그로 발동만)
+- 픽업이 스캐너에 잡히는 상호작용 계약(`IWxInteractable`)은 [[WxCore]]
+- Experience 에셋·GameFeature 활성 흐름 자체는 [[WxGame]]/GameFeature 계층
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxInventoryComponent` | PlayerController 부착, Add/Consume/Use/Equip의 서버 권위 진입점 | `Source/WxInventory/Public/Inventory/WxInventoryComponent.h` |
-| `FWxInventoryList` | FastArraySerializer 복제 컨테이너, 실제 엔트리 변경 로직 | `Source/WxInventory/Public/Inventory/WxInventoryComponent.h` |
-| `UWxItemDefinition` | PrimaryDataAsset 아이템 정의 + Fragment 컬렉션 | `Source/WxInventory/Public/Items/WxItemDefinition.h` |
-| `UWxItemInstance` | 개별 아이템 수명/식별 단위, 충전량 복제, GE SourceObject | `Source/WxInventory/Public/Items/WxItemInstance.h` |
-| `UWxItemFragment` | 기능 축 컴포지션 베이스(6종 파생) | `Source/WxInventory/Public/Items/WxItemFragment.h` |
-| `UWxRewardLibrary` | 보상 지급 서버 권위 진입점(픽업 스폰/직접 지급) | `Source/WxInventory/Public/WxRewardLibrary.h` |
-| `AWxItemPickup` | 지급용 픽업 액터, `IWxInteractable` 구현 | `Source/WxInventory/Public/Items/WxItemPickup.h` |
-| `UWxEquipmentComponent` | 폰 부착, 장착 ItemDef 보관 + EquipEffect GE 라이프사이클 | `Source/WxInventory/Public/Inventory/WxEquipmentComponent.h` |
-| `UWxGameFeatureAction_AddInventoryItems` | Experience 액션셋에 실려 시작 아이템을 지급하는 GameFeatureAction | `Source/WxInventory/Public/Inventory/WxGameFeatureAction_AddInventoryItems.h` |
+| `UWxInventoryComponent` | 인벤토리 핵심. Add/Consume/Use/Equip 전부 여기 진입. PlayerController 부착 | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryComponent.h` |
+| `FWxInventoryList` | FastArray 복제 백엔드. 엔트리 추가·차감의 실제 구현체 | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryComponent.h` |
+| `UWxItemDefinition` | 정적 아이템 정의(PrimaryDataAsset) + Fragment 컬렉션 | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemDefinition.h` |
+| `UWxItemFragment` | 기능 축 컴포지션 베이스(Equippable/Usable/Charges/Stackable/Pickup/Grade) | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemFragment.h` |
+| `UWxItemInstance` | 슬롯 단위 런타임 상태(충전량·식별자·GE SourceObject) | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemInstance.h` |
+| `UWxRewardLibrary` | 보상 지급의 서버 권위 진입점(픽업 스폰/직접 지급) | `Plugins/WxInventory/Source/WxInventory/Public/WxRewardLibrary.h` |
+| `UWxGameFeatureAction_AddInventoryItems` | Experience 켜질 때 시작 아이템 지급 | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxGameFeatureAction_AddInventoryItems.h` |
+| `AWxItemPickup` | 월드 픽업 액터. 상호작용 시 인벤토리에 지급 후 파괴 | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemPickup.h` |
 
 ## 확장 포인트 / 규약
-- 새 아이템 기능: `UWxItemFragment` 파생 후 정의 자산의 `Fragments`에 EditInline 부착. `OnInstanceCreated`로 인스턴스 초기 상태 주입. `FindFragmentByClass<T>()`로 조회.
-- 데이터 주도: 아이템은 `UWxItemDefinition`(NotBlueprintable PrimaryDataAsset), 보상은 `FWxRewardTableRow` DataTable, `Item`은 `TSoftObjectPtr`라 지급 시점 지연 로드.
-- 시작 아이템: 액션셋 `Actions`의 `UWxGameFeatureAction_AddInventoryItems`(Items)가 지급. 활성 시 이미 있는 인벤토리는 즉시, 이후 생기는 인벤토리는 `OnAnyInventoryReady`로, 서버 권한만. GameMode 등 외부 호출 없음.
-- 리플리케이션/권한: Add/Consume/Use/Equip/Grant는 모두 서버 권위 전용. `FWxInventoryList`(FastArray)로 델타 복제되고, 각 `UWxItemInstance`는 `RegisterReplicatedInstance`로 서브오브젝트 복제. 변경은 정의 합계/슬롯/충전 3종 멀티캐스트 델리게이트로 브로드캐스트(관찰자가 먼저 존재할 수 있어 `OnAnyInventoryReady`는 클래스 static).
-- StateTree: `FWxStateTreeTask_GiveRewards`·`FWxStateTreeTask_RefillItemCharges`는 라이브 전이 + 서버 권위에서만 실행(초기 진입/복원/레이트조인 시 중복 지급 방지).
-- 미배선: `EquipItemByDef`/`UWxEquipmentComponent::EquipItem` 경로는 호출부가 없어(BlueprintCallable도 아님) 장비 경로 전체가 배선만 있고 트리거가 없다. `RemoveItemInstance`도 호출부 0건.
+- 새 아이템 기능 추가는 `UWxItemFragment` 를 상속해 `UWxItemDefinition::Fragments` 에 EditInline 부착. 카테고리는 `Category`(enum), Fragment 는 "무엇을 할 수 있나"만 책임. 필요 시 `OnInstanceCreated` 로 인스턴스 초기 상태 주입
+- 데이터 주도: 아이템은 `UWxItemDefinition` 자산, 보상은 `FWxRewardTableRow` DataTable, 시작 아이템은 Add Inventory Items GameFeatureAction
+- 권한 모델: Add/Consume/Use/Equip/Grant 는 모두 서버 권한 전용. 클라는 `FWxInventoryList`(FastArray)·`UWxItemInstance`(OnRep) 복제로 수렴하며, 변경 통지는 `OnInventoryStackChanged`/`SlotChanged`/`ChargeChanged`/`ContentsChanged` 델리게이트로 관찰
+- 인벤토리 부착은 코드가 아니라 Experience 주입 설정으로 하며, 관찰자는 클래스 차원의 `OnAnyInventoryReady`/`OnAnyInventoryEnded` 로 존재를 감지
+- 장비 경로(`EquipItemByDef`/`UWxEquipmentComponent`)는 배선만 있고 트리거 호출부가 아직 없는 미구현 상태
 
 ## 여기서부터 읽어라
-1. `Source/WxInventory/Public/Inventory/WxInventoryComponent.h` — 소유·소비·사용·복제·델리게이트가 모두 모이는 허브. `FWxInventoryList`의 AddEntry/ConsumeByDefinition이 실제 변경 로직.
-2. `Source/WxInventory/Public/Items/WxItemFragment.h` — 6종 Fragment로 아이템 기능 축이 어떻게 나뉘는지, 특히 Charges(에스트병식)와 Stackable/Usable의 직교 관계.
-3. `Source/WxInventory/Public/WxRewardLibrary.h` — 픽업 스폰 vs 직접 지급으로 갈리는 보상 지급 흐름의 진입점.
+1. `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryComponent.h` — 모듈의 관문. 보유/사용/소비 API와 복제·통지 구조가 한눈에 들어온다
+2. `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemFragment.h` — Fragment 6종으로 아이템 데이터 모델 전체를 파악
+3. `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp` — AddItemDefinition 머지/분할, Consume 원자성, Use/Charges 처리의 실제 로직
+4. `Plugins/WxInventory/Source/WxInventory/Public/WxRewardLibrary.h` — 보상이 픽업 스폰과 직접 지급으로 갈리는 지점
 
 ## 관련
-- 상위: 보상 지급을 트리거하는 [[WxQuest]]·체크포인트(StateTree 태스크), 아이템 사용 GE의 [[WxCombat]], 픽업 상호작용의 [[WxWorld]], 인벤토리 표시의 [[WxUI]]. 공용 계약(`IWxInteractable` 등)은 [[WxCore]].
+- 상위: Experience/GameFeature 계층([[WxGame]])이 인벤토리 주입·시작 아이템 지급을 구동, 아이템 사용은 소유 폰의 GAS([[WxCombat]]/[[WxCore]])로 이어짐. 공용 정의·상호작용 계약은 [[WxCore]]
 
 ---
-*문서 기준 커밋 `a1df17d` · 생성일 2026-09-04 · 소스 22파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `f826b21` · 생성일 2026-09-05 · 소스 24파일 — `/readme-writer`로 갱신*
