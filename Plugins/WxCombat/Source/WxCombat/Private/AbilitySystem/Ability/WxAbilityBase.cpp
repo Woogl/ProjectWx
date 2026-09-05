@@ -1,4 +1,4 @@
-﻿// Copyright Woogle. All Rights Reserved.
+// Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystem/Effect/WxEffect_Cooldown.h"

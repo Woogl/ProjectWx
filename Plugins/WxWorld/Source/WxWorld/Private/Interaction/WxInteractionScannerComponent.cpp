@@ -1,4 +1,4 @@
-﻿// Copyright Woogle. All Rights Reserved.
+// Copyright Woogle. All Rights Reserved.
 
 #include "Interaction/WxInteractionScannerComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"

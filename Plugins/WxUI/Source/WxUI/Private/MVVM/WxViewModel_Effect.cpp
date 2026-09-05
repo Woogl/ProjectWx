@@ -1,4 +1,4 @@
-﻿// Copyright Woogle. All Rights Reserved.
+// Copyright Woogle. All Rights Reserved.
 
 #include "MVVM/WxViewModel_Effect.h"
 #include "AbilitySystemComponent.h"

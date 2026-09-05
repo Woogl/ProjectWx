@@ -1,4 +1,4 @@
-﻿// Copyright Woogle. All Rights Reserved.
+// Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_PlayMontageOnce.h"
 #include "Animation/AnimMontage.h"

@@ -1,4 +1,4 @@
-﻿// Copyright Woogle. All Rights Reserved.
+// Copyright Woogle. All Rights Reserved.
 
 #include "Character/WxPlayerCharacter.h"
 #include "Camera/CameraComponent.h"

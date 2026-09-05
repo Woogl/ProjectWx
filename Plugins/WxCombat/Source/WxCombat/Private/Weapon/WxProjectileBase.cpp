@@ -1,4 +1,4 @@
-﻿// Copyright Woogle. All Rights Reserved.
+// Copyright Woogle. All Rights Reserved.
 
 #include "Weapon/WxProjectileBase.h"
 #include "AbilitySystem/Effect/WxEffect_HitStop.h"
