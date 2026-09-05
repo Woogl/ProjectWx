@@ -6,6 +6,8 @@
 #include "Framework/WxExperienceManagerComponent.h"
 #include "Framework/WxGameState.h"
 #include "Framework/WxWorldSettings.h"
+#include "Engine/GameInstance.h"
+#include "FrontEnd/WxGameFlowSubsystem.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/SpectatorPawn.h"
 #include "Kismet/GameplayStatics.h"
@@ -42,6 +44,13 @@ UClass* AWxGameMode::GetDefaultPawnClassForController_Implementation(AController
 	}
 
 	// Super 를 부르지 않는다 — GameMode 의 DefaultPawnClass 로 폴백하면 폰 클래스의 출처가 둘이 된다.
+	if (UWxGameFlowSubsystem* Flow = GetGameInstance()->GetSubsystem<UWxGameFlowSubsystem>())
+	{
+		if (UClass* SelectedClass = Flow->GetSelectedPawnClass(GetWorld()))
+		{
+			return SelectedClass;
+		}
+	}
 	// 스펙테이터 폰으로 빙의시켜 HUD 가 빙의 경로 그대로 뜨게 한다.
 	if (!Experience->DefaultPawnClass)
 	{
@@ -60,7 +69,19 @@ void AWxGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewP
 		return;
 	}
 
+	if (UWxGameFlowSubsystem* Flow = GetGameInstance()->GetSubsystem<UWxGameFlowSubsystem>())
+	{
+		const UWxExperienceDefinition* Experience = WxGameState ? WxGameState->GetExperienceManagerComponent()->GetCurrentExperience() : nullptr;
+		if (!Flow->ValidateArrival(GetWorld(), Experience))
+		{
+			return;
+		}
+	}
 	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+	if (UWxGameFlowSubsystem* Flow = GetGameInstance()->GetSubsystem<UWxGameFlowSubsystem>())
+	{
+		Flow->HoldArrivalPawn(NewPlayer);
+	}
 }
 
 FPrimaryAssetId AWxGameMode::ResolveExperienceId() const
@@ -96,7 +117,7 @@ void AWxGameMode::HandleExperienceLoaded(const UWxExperienceDefinition*)
 
 		if (!PlayerController->GetPawn() && PlayerCanRestart(PlayerController))
 		{
-			RestartPlayer(PlayerController);
+			HandleStartingNewPlayer(PlayerController);
 		}
 	}
 }

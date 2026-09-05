@@ -108,6 +108,7 @@ void UWxExperienceManagerComponent::SetCurrentExperience(FPrimaryAssetId Experie
 
 	if (!ExperienceId.IsValid())
 	{
+		LoadState = EWxExperienceLoadState::Failed;
 		UE_LOG(LogWxGame, Error, TEXT("SetCurrentExperience: Experience 미확정. 프레임워크 컴포넌트 주입과 폰 스폰이 진행되지 않는다. 맵 WorldSettings 의 GameplayExperience 를 지정하거나 진입 URL 에 ?Experience=이름 을 넘겨야 한다."));
 		return;
 	}
@@ -117,6 +118,7 @@ void UWxExperienceManagerComponent::SetCurrentExperience(FPrimaryAssetId Experie
 	if (!Experience)
 	{
 		UE_LOG(LogWxGame, Error, TEXT("SetCurrentExperience: '%s' 를 Experience 에셋으로 해석하지 못함. AssetManager 스캔 설정과 에셋 경로 확인 필요."), *ExperienceId.ToString());
+		LoadState = EWxExperienceLoadState::Failed;
 		return;
 	}
 
@@ -139,6 +141,11 @@ void UWxExperienceManagerComponent::CallOrRegister_OnExperienceLoaded(FWxOnExper
 bool UWxExperienceManagerComponent::IsExperienceLoaded() const
 {
 	return LoadState == EWxExperienceLoadState::Loaded && CurrentExperience;
+}
+
+bool UWxExperienceManagerComponent::HasLoadFailed() const
+{
+	return LoadState == EWxExperienceLoadState::Failed;
 }
 
 const UWxExperienceDefinition* UWxExperienceManagerComponent::GetCurrentExperienceChecked() const

@@ -53,6 +53,8 @@ public:
 
 	bool IsExperienceLoaded() const;
 
+	bool HasLoadFailed() const;
+
 	const UWxExperienceDefinition* GetCurrentExperienceChecked() const;
 
 	/** 확정됐으나 아직 로드 중일 수 있는 Experience 를 반환한다(미확정이면 널). */
