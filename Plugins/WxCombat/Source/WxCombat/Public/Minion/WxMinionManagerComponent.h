@@ -29,7 +29,7 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
-	/** 동시에 유지할 소환물 수. 넘치면 가장 오래된 것을 파괴하고 새로 소환한다. */
+	/** 넘치면 가장 오래된 것을 파괴하고 새로 소환한다. 0이면 소환하지 않는다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Minion")
 	int32 MaxMinionCount = 1;
 

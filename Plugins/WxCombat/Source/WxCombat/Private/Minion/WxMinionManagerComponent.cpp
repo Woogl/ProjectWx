@@ -114,7 +114,7 @@ int32 UWxMinionManagerComponent::TryActivateAbilityOnMinions(const FGameplayTag&
 void UWxMinionManagerComponent::HandleSpawnMinionEvent(const FGameplayEventData* Payload)
 {
 	AActor* Owner = GetOwner();
-	if (!Owner || !Owner->HasAuthority() || !Payload)
+	if (!Owner || !Owner->HasAuthority() || !Payload || MaxMinionCount <= 0)
 	{
 		return;
 	}
