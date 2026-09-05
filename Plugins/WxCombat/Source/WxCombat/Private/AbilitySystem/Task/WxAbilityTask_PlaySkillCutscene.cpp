@@ -65,8 +65,10 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 
 	AActor* AvatarActor = GetAvatarActor();
 	ACharacter* AvatarCharacter = Cast<ACharacter>(AvatarActor);
+	const USkeletalMeshComponent* AvatarMesh = nullptr;
 	if (AvatarCharacter)
 	{
+		AvatarMesh = AvatarCharacter->GetMesh();
 		AvatarCharacter->StopAnimMontage();
 	}
 
@@ -95,7 +97,14 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 		if (UDefaultLevelSequenceInstanceData* InstanceData = Cast<UDefaultLevelSequenceInstanceData>(SequenceActor->DefaultInstanceData))
 		{
 			// 시퀀스는 레퍼런스 스켈레탈 메시를 원점에 두고 저작하므로, 아바타 쪽 대응물도 액터가 아니라 메시가 놓인 자리다.
-			InstanceData->TransformOrigin = AvatarCharacter ? AvatarCharacter->GetMesh()->GetComponentTransform() : AvatarActor->GetActorTransform();
+			if (AvatarMesh)
+			{
+				InstanceData->TransformOrigin = AvatarMesh->GetComponentTransform();
+			}
+			else
+			{
+				InstanceData->TransformOrigin = AvatarActor->GetActorTransform();
+			}
 		}
 
 		static const FName PlayerBindingTag = TEXT("Player");
