@@ -8,7 +8,7 @@
 - 어트리뷰트·데미지: HP/SP/GP/MP/UP·ATK/DEF·크리 등 `UWxCombatAttributeSet`, ExecCalc 데미지 산출과 가드·퍼펙트가드·히트스톱 반응
 - 상태·연출 이펙트: 다수의 `UWxEffect_*` GameplayEffect, `UWxCueNotify_*` 큐, `UWxAnimNotify*` 몽타주 노티파이(콤보 창·무기 히트·스냅 등)
 - 조준·타겟팅: `UWxLockOnComponent` 락온 대상 복제, TargetingSystem 필터/소터 태스크, MotionWarping 스냅
-- 무기·투사체·소환·피니셔 컴포넌트
+- 무기·피니셔 컴포넌트, 투사체·소환물의 서버 권위 스폰(월드 서브시스템)
 
 **경계 (비담당)**
 - 공용 정의(팀·`WxUIData` 등)는 [[WxCore]]에 위임
@@ -25,6 +25,8 @@
 | `UWxCombatLibrary` | 히트→데미지/이펙트 적용의 공용 진입점(예측·투사체 임팩트 공유) | `Source/WxCombat/Public/WxCombatLibrary.h` |
 | `UWxInputBufferComponent` | 발동 실패 입력의 선입력 버퍼(캔슬 창에서 재시도) | `Source/WxCombat/Public/AbilitySystem/WxInputBufferComponent.h` |
 | `UWxLockOnComponent` | 겨누는 대상(SceneComponent)을 서버 권위로 복제 보관 | `Source/WxCombat/Public/Targeting/WxLockOnComponent.h` |
+| `UWxProjectileSubsystem` | 몽타주 노티파이가 부르는 서버 권위 투사체 스폰 진입점(월드 서브시스템) | `Source/WxCombat/Public/Weapon/WxProjectileSubsystem.h` |
+| `UWxMinionSubsystem` | 주인별 소환물 로스터·상한·명령·주인 소멸 시 정리(월드 서브시스템). 소환물은 소환자가 될 수 없다 | `Source/WxCombat/Public/Minion/WxMinionSubsystem.h` |
 | `FWxCombatEffectContext` | 크리 판정 등 어트리뷰트로 못 싣는 데미지 메타 전달 컨텍스트 | `Source/WxCombat/Public/Damage/WxCombatEffectContext.h` |
 
 ## 확장 포인트 / 규약
@@ -32,6 +34,7 @@
 - 데미지는 `FWxDamageTableRow` 한 행으로 저작한다(계수·히트리액트 태그·가드/패리 허용·추가 GE). `UWxCombatLibrary::ApplyDamage`가 유일한 적용 경로.
 - 상태·비용·연출은 `UWxEffect_*` GameplayEffect를 늘려 붙이고, 히트 연출은 `UWxCueNotify_*`, 타이밍은 `UWxAnimNotify*`로 몽타주에 심는다.
 - 타겟팅 필터/소터는 `WxTargetingFilterTask_*`/`WxTargetingSorterTask_*`(TargetingSystem 태스크)로 확장한다.
+- 캐릭터별 상태가 없는 서버 권위 스폰(투사체·소환물)은 캐릭터 컴포넌트가 아니라 월드 서브시스템이 맡는다. 몽타주 노티파이가 클래스·위치를 풀어 직접 호출하고, 권위 판정은 서브시스템이 한다.
 - 리플리케이션: 어트리뷰트는 서버 권위 복제, 락온 대상은 서버 권위+소유 클라 선반영, 데미지 판정은 어트리뷰트를 보지 않아 예측·임팩트가 같은 결론을 쓴다.
 - `UWxAbilitySystemGlobals`를 `DefaultGame.ini`의 `AbilitySystemGlobalsClassName`에 등록해야 `FWxCombatEffectContext`가 만들어진다(누락 시 ExecCalc가 ensure).
 

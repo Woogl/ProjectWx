@@ -1,26 +1,23 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AnimNotify/WxAnimNotify_SpawnMinion.h"
-#include "AbilitySystemBlueprintLibrary.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "WxGameplayTags.h"
+#include "Engine/World.h"
+#include "Minion/WxMinionSubsystem.h"
 
 void UWxAnimNotify_SpawnMinion::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
 	Super::Notify(MeshComp, Animation, EventReference);
 
 	AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr;
-	if (!Owner)
+	UWxMinionSubsystem* MinionSubsystem = Owner ? UWorld::GetSubsystem<UWxMinionSubsystem>(Owner->GetWorld()) : nullptr;
+	if (!MinionSubsystem)
 	{
 		return;
 	}
 
-	FGameplayEventData Payload;
-	Payload.EventTag = WxGameplayTags::Event_SpawnMinion;
-	Payload.Instigator = Owner;
-	Payload.OptionalObject = this;
-	Payload.OptionalObject2 = MeshComp;
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Owner, Payload.EventTag, Payload);
+	const FTransform SpawnTransform(Owner->GetActorRotation(), Owner->GetActorTransform().TransformPosition(SpawnOffset));
+	MinionSubsystem->SpawnMinion(*Owner, MinionClass, SpawnTransform, MaxMinionCount);
 }
 
 FString UWxAnimNotify_SpawnMinion::GetNotifyName_Implementation() const
@@ -31,14 +28,4 @@ FString UWxAnimNotify_SpawnMinion::GetNotifyName_Implementation() const
 	}
 
 	return Super::GetNotifyName_Implementation();
-}
-
-TSubclassOf<APawn> UWxAnimNotify_SpawnMinion::GetMinionClass() const
-{
-	return MinionClass;
-}
-
-FVector UWxAnimNotify_SpawnMinion::GetSpawnOffset() const
-{
-	return SpawnOffset;
 }

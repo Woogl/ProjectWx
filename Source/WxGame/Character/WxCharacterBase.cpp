@@ -1,4 +1,4 @@
-﻿// Copyright Woogle. All Rights Reserved.
+// Copyright Woogle. All Rights Reserved.
 
 #include "Character/WxCharacterBase.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
@@ -6,7 +6,6 @@
 #include "AbilitySystem/WxHitStopComponent.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "Inventory/WxEquipmentComponent.h"
-#include "Minion/WxMinionManagerComponent.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/GameFrameworkComponentManager.h"
@@ -17,7 +16,6 @@
 #include "MotionWarpingComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapon/WxWeaponBase.h"
-#include "Weapon/WxProjectileManagerComponent.h"
 #include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
 #include "Component/WxCharacterMovementComponent.h"
@@ -41,8 +39,6 @@ AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
 	LockOnComponent = CreateDefaultSubobject<UWxLockOnComponent>(TEXT("LockOnComponent"));
 	HitStopComponent = CreateDefaultSubobject<UWxHitStopComponent>(TEXT("HitStopComponent"));
-	ProjectileManagerComponent = CreateDefaultSubobject<UWxProjectileManagerComponent>(TEXT("ProjectileManagerComponent"));
-	MinionManagerComponent = CreateDefaultSubobject<UWxMinionManagerComponent>(TEXT("MinionManagerComponent"));
 
 	EquipmentComponent = CreateDefaultSubobject<UWxEquipmentComponent>(TEXT("EquipmentComponent"));
 

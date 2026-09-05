@@ -1,27 +1,24 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AnimNotify/WxAnimNotify_SpawnProjectile.h"
-#include "AbilitySystemBlueprintLibrary.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Engine/World.h"
 #include "Weapon/WxProjectileBase.h"
-#include "WxGameplayTags.h"
+#include "Weapon/WxProjectileSubsystem.h"
 
 void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
 	Super::Notify(MeshComp, Animation, EventReference);
 
 	AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr;
-	if (!Owner)
+	UWxProjectileSubsystem* ProjectileSubsystem = Owner ? UWorld::GetSubsystem<UWxProjectileSubsystem>(Owner->GetWorld()) : nullptr;
+	if (!ProjectileSubsystem)
 	{
 		return;
 	}
 
-	FGameplayEventData Payload;
-	Payload.EventTag = WxGameplayTags::Event_SpawnProjectile;
-	Payload.Instigator = Owner;
-	Payload.OptionalObject = this;
-	Payload.OptionalObject2 = MeshComp;
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Owner, Payload.EventTag, Payload);
+	const FTransform SpawnTransform(Owner->GetActorRotation(), MeshComp->GetSocketLocation(SpawnSocketName));
+	ProjectileSubsystem->SpawnProjectile(*Owner, ProjectileClass, SpawnTransform);
 }
 
 FString UWxAnimNotify_SpawnProjectile::GetNotifyName_Implementation() const
@@ -32,14 +29,4 @@ FString UWxAnimNotify_SpawnProjectile::GetNotifyName_Implementation() const
 	}
 
 	return Super::GetNotifyName_Implementation();
-}
-
-TSubclassOf<AWxProjectileBase> UWxAnimNotify_SpawnProjectile::GetProjectileClass() const
-{
-	return ProjectileClass;
-}
-
-FName UWxAnimNotify_SpawnProjectile::GetSpawnSocketName() const
-{
-	return SpawnSocketName;
 }

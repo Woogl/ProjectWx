@@ -9,7 +9,7 @@
 class AWxProjectileBase;
 
 /**
- * 자신을 이벤트 페이로드로 전달할 뿐, 투사체 생성은 ProjectileManagerComponent에 맡긴다.
+ * 소켓 위치와 투사체 클래스를 풀어 월드의 ProjectileSubsystem에 생성을 맡긴다. 권위 판정은 서브시스템이 한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAnimNotify_SpawnProjectile : public UAnimNotify
@@ -19,9 +19,6 @@ class WXCOMBAT_API UWxAnimNotify_SpawnProjectile : public UAnimNotify
 public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 	virtual FString GetNotifyName_Implementation() const override;
-
-	TSubclassOf<AWxProjectileBase> GetProjectileClass() const;
-	FName GetSpawnSocketName() const;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|Projectile")

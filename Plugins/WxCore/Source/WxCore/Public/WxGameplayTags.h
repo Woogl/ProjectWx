@@ -1,4 +1,4 @@
-﻿// Copyright Woogle. All Rights Reserved.
+// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
@@ -102,10 +102,6 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_UseItem);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_ApplyFinisherDamage);
-
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_SpawnProjectile);
-
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_SpawnMinion);
 
 	/** 주인이 관리 중인 소환수의 특정 어빌리티를 페이로드와 함께 발동한다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_CommandMinionAbility);

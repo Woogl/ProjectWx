@@ -29,7 +29,7 @@
 ## 확장 포인트 / 규약
 - 새 플레이 구성: `UWxExperienceDefinition` 에셋을 만들고 `GameFeaturesToEnable`(이름 문자열)·`Actions`·`ActionSets`·`DefaultPawnClass` 를 채운다. 진입 URL `?Experience=이름` → `AWxWorldSettings.GameplayExperience` 순으로 확정된다(둘 다 비면 미확정 = 에러).
 - 새 컴포넌트 주입: 대상 액터를 ModularGameplay receiver 로 만들고, `UWxGameFeatureAction_AddComponents` 의 `ComponentList` 에 컴포넌트 클래스를 추가한다. 대상 액터는 컴포넌트가 상속한 프레임워크 베이스에서 도출되므로 별도 지정 불필요.
-- 새 캐릭터: `AWxCharacterBase` 를 상속(또는 파생 BP). ASC·전투 컴포넌트는 베이스가 붙이며, 서버는 `PossessedBy` → `InitAbilitySystem`, 클라는 파생의 OnRep 경로로 초기화한다.
+- 새 캐릭터: `AWxCharacterBase` 를 상속(또는 파생 BP). ASC·전투 컴포넌트는 베이스가 붙이며, 서버는 `PossessedBy` → `InitAbilitySystem`, 클라는 파생의 OnRep 경로로 초기화한다. 베이스가 붙이는 것은 캐릭터마다 상태를 갖는 컴포넌트뿐이고, 투사체·소환물 스폰처럼 캐릭터별 상태가 없는 서버 권위 처리는 WxCombat 의 월드 서브시스템이 맡는다.
 - 새 UI 데이터 연결: WxUI 는 게임 모듈을 참조하지 못하므로, 양쪽에 의존하는 `MVVM/` 리졸버가 게임 측 액터를 읽어 뷰모델을 채운다.
 - 권한 모델: Experience 는 GameMode(서버)가 고르고 매니저가 복제, 서버는 직접 호출·클라는 OnRep 로 같은 파이프라인을 주행. 폰 스폰은 로드 완료까지 지연된다.
 

@@ -19,8 +19,6 @@ class UWxEquipmentComponent;
 class UWxHitStopComponent;
 class UWxLockOnComponent;
 class UWxMetaHumanComponent;
-class UWxMinionManagerComponent;
-class UWxProjectileManagerComponent;
 class AWxWeaponBase;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBase*, DeadCharacter);
@@ -90,14 +88,6 @@ protected:
 	/** 히트스톱 GE의 추가·제거를 받아 메시의 애니메이션 시간을 세우고 되돌린다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Combat")
 	TObjectPtr<UWxHitStopComponent> HitStopComponent;
-
-	/** AnimNotify GameplayEvent를 받아 서버 권위로 투사체를 생성한다. */
-	UPROPERTY(VisibleAnywhere, Category = "Wx|Combat")
-	TObjectPtr<UWxProjectileManagerComponent> ProjectileManagerComponent;
-
-	/** 소환 AnimNotify GameplayEvent를 받아 서버 권위로 소환물을 생성한다. */
-	UPROPERTY(VisibleAnywhere, Category = "Wx|Combat")
-	TObjectPtr<UWxMinionManagerComponent> MinionManagerComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Equipment")
 	TObjectPtr<UWxEquipmentComponent> EquipmentComponent;
