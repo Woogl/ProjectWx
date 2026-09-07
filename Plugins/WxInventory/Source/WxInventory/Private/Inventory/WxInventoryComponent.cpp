@@ -225,6 +225,13 @@ UWxInventoryComponent::UWxInventoryComponent(const FObjectInitializer& ObjectIni
 void UWxInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// 도착 신호보다 앞서 지급해야 뷰모델이 전체 갱신 한 번으로 시작 아이템까지 읽는다.
+	if (GetOwner()->HasAuthority())
+	{
+		GrantItems(StartingItems);
+	}
+
 	OnAnyInventoryReady.Broadcast(this);
 }
 

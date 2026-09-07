@@ -131,7 +131,7 @@ DECLARE_MULTICAST_DELEGATE(FWxOnInventoryContentsChanged);
  *
  * 권한(서버)에서만 Add/Consume 이 호출되어야 하며, FastArray 로 클라이언트에 동기화된다.
  *
- * 부착은 AWxPlayerController 생성자의 기본 서브오브젝트다. 시작 아이템은 GameMode 가 접속 시 GrantItems 로 지급하며 본 클래스는 목록을 갖지 않는다.
+ * 부착은 AWxPlayerController 생성자의 기본 서브오브젝트다. 시작 아이템은 BeginPlay 에서 스스로 지급하고, 목록은 컨트롤러 BP 의 이 컴포넌트 디테일에서 저작한다.
  */
 UCLASS()
 class WXINVENTORY_API UWxInventoryComponent : public UActorComponent
@@ -267,4 +267,8 @@ private:
 
 	UPROPERTY(Replicated)
 	FWxInventoryList InventoryList;
+
+	/** BeginPlay 에서 권한 측이 한 번 지급한다. 빈 항목은 무시된다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (TitleProperty = "{Item} x{Quantity}"))
+	TArray<FWxItemRewardEntry> StartingItems;
 };
