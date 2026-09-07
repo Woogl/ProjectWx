@@ -147,28 +147,16 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 		return;
 	}
 
-	// 매칭 시멘틱은 엔진의 GetActivatableGameplayAbilitySpecsByAllMatchingTags 와 같다.
-	// 같은 슬롯 태그의 후보가 여럿이면(소환↔명령처럼 상태 태그로 갈리는 쌍) 지금 태그 요건을 만족하는 쪽을 그리고, 하나도 없으면 첫 번째를 쓴다.
+	// 상황에 따라 다른 어빌리티로 교체하지 않는다. Resolver에는 대상을 구분하는 태그를 지정한다.
 	const UGameplayAbility* MatchedAbility = nullptr;
 	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
 	{
-		if (!Spec.Ability || !Spec.Ability->GetAssetTags().HasAll(AbilityTags))
-		{
-			continue;
-		}
-
-		if (Spec.Ability->DoesAbilitySatisfyTagRequirements(*ASC))
+		if (Spec.Ability && Spec.Ability->GetAssetTags().HasAll(AbilityTags))
 		{
 			MatchedAbility = Spec.Ability;
 			break;
 		}
-
-		if (!MatchedAbility)
-		{
-			MatchedAbility = Spec.Ability;
-		}
 	}
-
 	if (MatchedAbility == CachedAbility.Get())
 	{
 		return;
@@ -179,6 +167,10 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 
 	CachedAbility = MatchedAbility;
 	CachedCooldownTags.Reset();
+	SetCooldownDuration(0.f);
+	SetCooldownRemaining(0.f);
+	SetCooldownPercent(0.f);
+	SetIsOnCooldown(false);
 
 	if (!MatchedAbility)
 	{
@@ -186,10 +178,6 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 		SetDescription(FText::GetEmpty());
 		RequestImageAsync(TEXT("Icon"), nullptr);
 		SetCostAmount(0.f);
-		SetCooldownDuration(0.f);
-		SetCooldownRemaining(0.f);
-		SetCooldownPercent(0.f);
-		SetIsOnCooldown(false);
 		SetMaxRecharges(0);
 		SetCurrentCharges(0);
 		RefreshActivationState();
@@ -460,8 +448,7 @@ bool UWxViewModel_Ability::FlushActivationRefresh(float DeltaTime)
 {
 	ActivationRefreshHandle.Reset();
 
-	// 상태 태그로 갈리는 후보 쌍은 물고 있는 어빌리티부터 다시 고른다 — 바뀌면 아이콘·쿨다운·비용 바인딩이 통째로 갈린다.
-	RefreshBoundAbility();
+	// 상태 태그는 발동 가능 여부만 갱신한다. 상황별 가시성은 위젯의 MVVM 바인딩이 맡는다.
 	RefreshActivationState();
 
 	return false;

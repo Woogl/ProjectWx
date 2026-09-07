@@ -20,6 +20,12 @@ public class WxEditor : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"GameplayAbilities",
+			"ModelViewViewModel",
+			"ModelViewViewModelBlueprint",
+			"ModelViewViewModelEditor",
+			"UMG",
+			"UMGEditor",
+			"GameplayTags",
 			"GameplayStateTreeModule",
 			"Slate",
 			"SlateCore",
