@@ -1,9 +1,9 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
+#include "AbilitySystem/Effect/WxEffectComponent_DamageResponse.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
-#include "Damage/WxCombatEffectContext.h"
 #include "GameplayEffectComponents/TargetTagRequirementsGameplayEffectComponent.h"
 #include "WxGameplayTags.h"
 
@@ -15,7 +15,9 @@ UWxEffect_Damage::UWxEffect_Damage()
 	ExecDef.CalculationClass = UWxExecCalc_Damage::StaticClass();
 	Executions.Add(ExecDef);
 
-	// 예측 Cue는 타격 연출만 처리하고, 서버 크리 판정이 필요한 플로터는 AttributeSet에서 처리한다.
+	GEComponents.Add(CreateDefaultSubobject<UWxEffectComponent_DamageResponse>(TEXT("DamageResponse")));
+
+	// 예측 Cue는 타격 연출만 처리하고, 서버 크리 판정이 필요한 플로터는 DamageResponse 컴포넌트에서 처리한다.
 	FGameplayEffectCue Cue;
 	Cue.GameplayCueTags.AddTag(WxGameplayTags::GameplayCue_Hit);
 	GameplayCues.Add(Cue);
@@ -127,14 +129,6 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	const FGameplayEffectSpec& OwningSpec = ExecutionParams.GetOwningSpec();
 
-	// GetContext는 핸들을 값으로 주므로 const 스펙에서도 쓰기가 열린다.
-	FGameplayEffectContextHandle ContextHandle = OwningSpec.GetContext();
-	FGameplayEffectContext* RawContext = ContextHandle.Get();
-	FWxCombatEffectContext* CombatContext = (RawContext && RawContext->GetScriptStruct() == FWxCombatEffectContext::StaticStruct())
-		? static_cast<FWxCombatEffectContext*>(RawContext)
-		: nullptr;
-	ensureMsgf(CombatContext, TEXT("대미지 컨텍스트가 FWxCombatEffectContext가 아니다. DefaultGame.ini의 AbilitySystemGlobalsClassName 등록을 확인할 것."));
-
 	const bool bCanGuard = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanGuard);
 	const bool bCanCritical = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanCritical);
 	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_GuardReduction);
@@ -182,7 +176,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	if (bPerfectGuardApplied)
 	{
-		// 대상 어트리뷰트는 하나도 바뀌지 않으므로, 반사량을 메타 어트리뷰트로 실어야 PostGameplayEffectExecute가 돈다.
+		// 피해 대신 반사 메타 속성을 출력해 DamageResponse 컴포넌트가 퍼펙트 가드 결과를 식별하게 한다.
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(ExecutionStatics.IncomingReflectProperty, EGameplayModOp::Additive, FinalDamage));
 		return;
 	}
@@ -192,9 +186,9 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		return;
 	}
 
-	if (CombatContext)
+	if (bIsCritical)
 	{
-		CombatContext->SetCritical(bIsCritical);
+		ExecutionParams.GetOwningSpecForPreExecuteMod()->AddDynamicAssetTag(WxGameplayTags::Damage_Critical);
 	}
 
 	if (bGuardHit)

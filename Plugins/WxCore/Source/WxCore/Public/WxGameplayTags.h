@@ -18,7 +18,7 @@ namespace WxGameplayTags
 	/** 대화 세션 컴포넌트가 시작·종료에 맞춰 폰 ASC에 loose 태그로 발행. WxAbility_Interact가 ActivationBlockedTags로 사용해 대화 중 프롬프트 표시·상호작용을 닫는다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dialogue);
 
-	/** 주인의 소환물이 살아 있는 동안 UWxMinionSubsystem이 주인 ASC에 복제 loose 태그로 발행. 소환 어빌리티는 ActivationBlockedTags, 명령 어빌리티는 ActivationRequiredTags로 써서 한 슬롯을 나눈다 */
+	/** 소환물이 살아 있는 동안 자신이 주인 ASC에 카운트로 올린다(AWxEnemyCharacter::MasterStateTag). 한 슬롯을 나눠 쓰려던 소환·명령 어빌리티 분기는 아직 이 태그를 읽지 않는다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Minion_Active);
 
 	// ── Effect ──────────────────────────────────────────────────────────────
@@ -149,6 +149,10 @@ namespace WxGameplayTags
 	
 	// ── Damage ──────────────────────────────────────────────────────────────
 
+	/** 공격이 낸 피해. 이 표식이 없는 피해(치트·즉사 등)는 타격 반응도 플로터도 내지 않는다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Attack);
+
+	/** 대미지 ExecCalc가 판정해 스펙에 붙이는 결과 — 이 히트가 크리티컬로 터졌다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Critical);
 
 	/** 대미지 ExecCalc가 판정해 스펙에 붙이는 결과 — 가드 히트의 SP 차감이 이 히트로 0에 닿았다 */

@@ -16,7 +16,7 @@ public:
 	UWxEffect_Damage();
 };
 
-/** IncomingDamage를 마지막에 출력해, 그 이전 GP 변경으로 일어난 그로기가 피격 이벤트보다 먼저 처리되게 한다. */
+/** SP·GP·IncomingDamage 순으로 반영한다. 전투 반응은 모든 출력 반영 후 DamageResponse 컴포넌트가 처리한다. */
 UCLASS()
 class WXCOMBAT_API UWxExecCalc_Damage : public UGameplayEffectExecutionCalculation
 {

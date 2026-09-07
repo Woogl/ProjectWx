@@ -120,7 +120,7 @@ public:
 	FGameplayAttributeData IncomingDamage;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, IncomingDamage)
 
-	/** 퍼펙트 가드는 대상 어트리뷰트를 바꾸지 않아, PostGameplayEffectExecute 실행을 위해 반사량을 이 통로로 전달한다. */
+	/** 퍼펙트 가드 반사량을 GE 실행 기록에 남긴다. AttributeSet은 초기화하고 DamageResponse 컴포넌트가 결과를 전달한다. */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Meta")
 	FGameplayAttributeData IncomingReflect;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, IncomingReflect)
@@ -187,6 +187,4 @@ private:
 	static const FWxMaxAttributePair* FindMaxAttributePair(const FGameplayAttribute& Attribute);
 	float ClampAttributeValue(const FGameplayAttribute& Attribute, float NewValue) const;
 	void AdjustCurrentAttributeForMaxChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue);
-	void ProcessDamageTaken(const FGameplayEffectModCallbackData& Data, float Damage);
-	void ProcessPerfectGuard(const FGameplayEffectModCallbackData& Data, float ReflectAmount);
 };

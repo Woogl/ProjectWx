@@ -20,7 +20,9 @@ TArray<FGameplayEffectSpecHandle> FWxDamageTableRow::MakeSpecs(UAbilitySystemCom
 		FGameplayEffectSpec* Spec = DamageSpecHandle.Data.Get();
 		Spec->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, CoeffATK);
 
+		// 소비 쪽은 이 태그로 치트·즉사 같은 직접 피해와 가른다.
 		FGameplayTagContainer AttackTags;
+		AttackTags.AddTag(WxGameplayTags::Damage_Attack);
 		if (HitReactTag.IsValid())
 		{
 			AttackTags.AddTag(HitReactTag);
@@ -37,10 +39,7 @@ TArray<FGameplayEffectSpecHandle> FWxDamageTableRow::MakeSpecs(UAbilitySystemCom
 		{
 			AttackTags.AddTag(WxGameplayTags::Damage_CanParry);
 		}
-		if (!AttackTags.IsEmpty())
-		{
-			Spec->AppendDynamicAssetTags(AttackTags);
-		}
+		Spec->AppendDynamicAssetTags(AttackTags);
 
 		Specs.Add(DamageSpecHandle);
 	}

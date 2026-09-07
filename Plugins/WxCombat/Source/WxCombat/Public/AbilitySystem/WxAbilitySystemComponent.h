@@ -9,6 +9,7 @@
 
 class UInputAction;
 class USkeletalMeshComponent;
+struct FOnAttributeChangeData;
 
 UCLASS()
 class WXCOMBAT_API UWxAbilitySystemComponent : public UAbilitySystemComponent
@@ -17,6 +18,8 @@ class WXCOMBAT_API UWxAbilitySystemComponent : public UAbilitySystemComponent
 
 public:
 	UWxAbilitySystemComponent();
+
+	virtual void BeginPlay() override;
 
 	/** 몽타주를 시작한 엔진의 AnimatingAbility 전이에 맞춰 메시 본 갱신 정책을 승격한다. */
 	virtual float PlayMontage(UGameplayAbility* AnimatingAbility, FGameplayAbilityActivationInfo ActivationInfo, UAnimMontage* Montage, float InPlayRate, FName StartSectionName = NAME_None, float StartTimeSeconds = 0.0f) override;
@@ -49,6 +52,12 @@ public:
 	void CancelRecoveringAbilities(UGameplayAbility* IgnoreAbility);
 
 private:
+	/**
+	 * SP를 소모하면 자연 회복을 멈춘다 — 소모 경로가 어빌리티 코스트와 질주 드레인으로 갈려 있어 어트리뷰트 감소를 접점으로 삼는다.
+	 * 회복으로 늘어난 변화와 스태미나를 쓰지 않는 아바타는 제외한다.
+	 */
+	void HandleSPChanged(const FOnAttributeChangeData& ChangeData);
+
 	void EnableAnimatingMontageMeshTick();
 	void RestoreAnimatingMontageMeshTick();
 

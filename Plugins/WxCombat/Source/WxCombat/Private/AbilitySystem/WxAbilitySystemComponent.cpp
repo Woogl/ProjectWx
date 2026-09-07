@@ -3,12 +3,21 @@
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
+#include "AbilitySystem/Effect/WxEffect_Exhaust.h"
 #include "WxCombatModule.h"
 #include "Components/SkeletalMeshComponent.h"
 
 UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 {
 	SetIsReplicatedByDefault(true);
+}
+
+void UWxAbilitySystemComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetSPAttribute())
+		.AddUObject(this, &UWxAbilitySystemComponent::HandleSPChanged);
 }
 
 float UWxAbilitySystemComponent::PlayMontage(UGameplayAbility* AnimatingAbility, FGameplayAbilityActivationInfo ActivationInfo, UAnimMontage* Montage, float InPlayRate, FName StartSectionName, float StartTimeSeconds)
@@ -45,6 +54,20 @@ void UWxAbilitySystemComponent::GiveAbilitySet()
 	bAbilitySetGranted = true;
 
 	AbilitySet->GiveToAbilitySystem(this);
+}
+
+void UWxAbilitySystemComponent::HandleSPChanged(const FOnAttributeChangeData& ChangeData)
+{
+	// 클라도 복제 수신으로 이 콜백을 지난다.
+	if (ChangeData.NewValue >= ChangeData.OldValue || !IsOwnerActorAuthoritative())
+	{
+		return;
+	}
+
+	if (GetNumericAttribute(UWxCombatAttributeSet::GetMaxSPAttribute()) > 0.f)
+	{
+		UWxEffect_Exhaust::ApplyTo(this);
+	}
 }
 
 void UWxAbilitySystemComponent::EnableAnimatingMontageMeshTick()
