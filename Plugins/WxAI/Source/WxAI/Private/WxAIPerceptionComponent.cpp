@@ -110,19 +110,22 @@ void UWxAIPerceptionComponent::ForgetTargetActor()
 }
 void UWxAIPerceptionComponent::HandleTargetDeathTagChanged(const FGameplayTag Tag, int32 NewCount)
 {
-	// 태그 제거(부활)는 무시한다 — 다음 감지 자극에서 정상적으로 재획득한다.
+	// 태그 제거(부활)는 무시한다 — 사망 시점에 이 구독까지 함께 해제되므로 여기로 오지 않는다.
 	if (NewCount <= 0)
 	{
 		return;
 	}
 
-	SetTargetActor(nullptr);
+	SetTargetActor(FindPerceivedTarget());
 }
 
 void UWxAIPerceptionComponent::HandleTargetEndPlay(AActor* Actor, EEndPlayReason::Type EndPlayReason)
 {
-	// 엔진은 액터를 무효화하기 전에 EndPlay 를 방송하므로, 이 시점엔 BB 의 약참조가 아직 살아 있어 타겟이 정상적으로 비워진다.
-	SetTargetActor(nullptr);
+	// 엔진은 액터를 무효화하기 전에 EndPlay 를 방송하므로, 이 시점엔 그 액터가 아직 유효하다.
+	// 사라지는 액터는 아직 감지 목록에 남아 자기 자신이 다시 뽑히므로, 승계 전에 기록을 지운다.
+	ForgetActor(Actor);
+
+	SetTargetActor(FindPerceivedTarget());
 }
 
 void UWxAIPerceptionComponent::BindTargetLoss(AActor* NewTarget)
@@ -168,6 +171,9 @@ void UWxAIPerceptionComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn*
 {
 	// 타겟과 소실 구독은 폰이 아니라 컨트롤러에 남는다. 새 폰이 이전 타겟을 물려받지 않도록 먼저 되돌린다.
 	SetTargetActor(nullptr);
+
+	// 감지 기록도 옛 폰이 모은 것이라 함께 지운다 — 남겨 두면 새 폰이 보고 있는 액터가 이미 감지 상태여서 상태 변화 통지가 나오지 않는다.
+	ForgetAll();
 
 	BindPawnHit(NewPawn);
 }
@@ -222,6 +228,25 @@ void UWxAIPerceptionComponent::UnbindPawnHit()
 	}
 	AbilitySystemComponent = nullptr;
 	PawnHitDelegateHandle.Reset();
+}
+
+AActor* UWxAIPerceptionComponent::FindPerceivedTarget()
+{
+	TArray<AActor*> PerceivedActors;
+	GetCurrentlyPerceivedActors(nullptr, PerceivedActors);
+
+	// 세 센스 모두 적대만 등록하므로 피아는 다시 가르지 않는다.
+	// 자기 폰은 여기서 걸러야 한다 — SetTargetActor 의 자기 폰 가드는 조기 return 이라, 후보로 뽑히면 잃은 타겟이 블랙보드에 그대로 남는다.
+	const APawn* OwnerPawn = GetOwnerPawn();
+	for (AActor* PerceivedActor : PerceivedActors)
+	{
+		if (PerceivedActor != OwnerPawn && !IsActorDead(PerceivedActor))
+		{
+			return PerceivedActor;
+		}
+	}
+
+	return nullptr;
 }
 
 void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)

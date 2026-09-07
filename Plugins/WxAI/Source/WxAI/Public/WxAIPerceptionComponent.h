@@ -51,10 +51,10 @@ private:
 	UFUNCTION()
 	void HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
-	/** 추적 중인 타겟이 죽으면 타겟을 정리한다. 시체는 파괴되지 않고 시야에 남아 자극만으로는 재판정이 오지 않는다. */
+	/** 추적 중인 타겟이 죽으면 다음 감지 대상으로 넘긴다. 시체는 파괴되지 않고 시야에 남아 자극만으로는 재판정이 오지 않는다. */
 	void HandleTargetDeathTagChanged(const FGameplayTag Tag, int32 NewCount);
 
-	/** 추적 중인 타겟이 사라지면 타겟을 정리한다. 파괴는 ASC 도 함께 없애 사망 태그로는 잡히지 않고, 엔진도 소스가 무효하면 감지 갱신을 방송하지 않는다. */
+	/** 추적 중인 타겟이 사라지면 다음 감지 대상으로 넘긴다. 파괴는 ASC 도 함께 없애 사망 태그로는 잡히지 않고, 엔진도 소스가 무효하면 감지 갱신을 방송하지 않는다. */
 	UFUNCTION()
 	void HandleTargetEndPlay(AActor* Actor, EEndPlayReason::Type EndPlayReason);
 
@@ -73,6 +73,12 @@ private:
 
 	void BindPawnHit(APawn* Pawn);
 	void UnbindPawnHit();
+
+	/**
+	 * 시야는 감지 상태가 뒤집힐 때만 통지하므로, 계속 보고 있던 액터는 타겟이 빈 뒤에도 새 통지를 만들지 않는다.
+	 * 그래서 소실 경로에서는 자극을 기다리지 않고 지금 감지 중인 목록을 직접 읽어 다음 타겟을 고른다.
+	 */
+	AActor* FindPerceivedTarget();
 
 	/** TargetActor 와 타겟 소실 감시를 함께 갱신하며, 자기 폰은 타겟으로 받지 않는다. */
 	void SetTargetActor(AActor* NewTarget);
