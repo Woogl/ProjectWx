@@ -21,7 +21,8 @@ void UWxAnimNotify_SpawnMinion::Notify(USkeletalMeshComponent* MeshComp, UAnimSe
 		return;
 	}
 
-	MinionSubsystem->SpawnMinion(*Owner, MinionClass, LocalSpawnOffset, MaxMinionCount);
+	const FTransform SpawnTransform = LocalSpawnOffset * Owner->GetActorTransform();
+	MinionSubsystem->SpawnMinion(*Owner, MinionClass, SpawnTransform, MaxMinionCount);
 }
 
 FString UWxAnimNotify_SpawnMinion::GetNotifyName_Implementation() const
