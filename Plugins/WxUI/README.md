@@ -11,7 +11,7 @@
 
 **경계 (비담당)**
 - 구체 캐릭터/아이템 타입 정의와 표시 데이터의 원본 — 소비 측(게임 모듈)이 `Initialize`로 주입한다
-- 무엇을 띄울지의 정책(HUD 클래스 지정 등) — 컨트롤러 BP 가 `UWxHUDComponent` 프로퍼티로 지정
+- 무엇을 띄울지의 정책(HUD 클래스 지정 등) — 컨트롤러 BP 가 `UWxPlayerLayoutComponent` 프로퍼티로 지정
 - 전투·인벤토리 등 도메인 로직 — [[WxCombat]], [[WxInventory]] 등이 소유하고 WxUI는 그 상태만 관찰
 
 ## 핵심 타입 (진입점)

@@ -7,7 +7,7 @@
 #include "WxPlayerController.generated.h"
 
 class UWxDialogueSessionComponent;
-class UWxHUDComponent;
+class UWxPlayerLayoutComponent;
 class UWxInteractionScannerComponent;
 class UWxInventoryComponent;
 
@@ -35,5 +35,5 @@ private:
 	TObjectPtr<UWxDialogueSessionComponent> DialogueSessionComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	TObjectPtr<UWxHUDComponent> HUDComponent;
+	TObjectPtr<UWxPlayerLayoutComponent> PlayerLayoutComponent;
 };

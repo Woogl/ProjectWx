@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Component/WxHUDComponent.h"
+#include "Component/WxPlayerLayoutComponent.h"
 
 #include "CommonActivatableWidget.h"
 #include "GameFramework/PlayerController.h"
@@ -11,7 +11,7 @@
 #include "WxGameplayTags.h"
 #include "WxUILibrary.h"
 
-void UWxHUDComponent::BeginPlay()
+void UWxPlayerLayoutComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -28,31 +28,26 @@ void UWxHUDComponent::BeginPlay()
 	HandlePossessedPawnChanged(nullptr, OwningController->GetPawn());
 }
 
-void UWxHUDComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void UWxPlayerLayoutComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (APlayerController* OwningController = Cast<APlayerController>(GetOwner()))
 	{
 		OwningController->OnPossessedPawnChanged.RemoveDynamic(this, &ThisClass::HandlePossessedPawnChanged);
 	}
 
-	ClearHUD();
+	ClearLayout();
 
 	Super::EndPlay(EndPlayReason);
 }
 
-const TSoftClassPtr<UWxHUDLayout>& UWxHUDComponent::GetGameHUDClass() const
-{
-	return GameHUDClass;
-}
-
-void UWxHUDComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
+void UWxPlayerLayoutComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 {
 	// ViewModel은 생성 당시 Pawn의 ASC를 소유자로 삼으므로 빙의 해제·교체 때 함께 걷는다.
 	if (OldPawn != NewPawn)
 	{
-		ClearHUD();
+		ClearLayout();
 	}
-	if (!NewPawn || GameHUDClass.IsNull())
+	if (!NewPawn || LayoutClass.IsNull())
 	{
 		return;
 	}
@@ -66,38 +61,38 @@ void UWxHUDComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 
 	// 같은 Pawn 알림은 기존 HUD를 유지한다. CommonUI 풀에 남은 참조는 스택 포함 여부로 구분한다.
 	const UCommonActivatableWidgetStack* GameStack = Layout->GetLayerWidgetStack(WxGameplayTags::UI_Layer_Game);
-	if (GameStack && GameStack->GetWidgetList().Contains(HUDWidget.Get()))
+	if (GameStack && GameStack->GetWidgetList().Contains(LayoutWidget.Get()))
 	{
 		return;
 	}
-	if (PendingHUDPush)
+	if (PendingLayoutPush)
 	{
 		return;
 	}
 
-	PendingHUDPush = UWxAsyncAction_PushWidgetToLayer::PushWidgetToLayer(this, WxGameplayTags::UI_Layer_Game, GameHUDClass);
-	PendingHUDPush->SetCompletionCallback(
-		FWxPushWidgetToLayerNativeDelegate::CreateUObject(this, &ThisClass::HandleHUDPushCompleted));
-	PendingHUDPush->Activate();
+	PendingLayoutPush = UWxAsyncAction_PushWidgetToLayer::PushWidgetToLayer(this, WxGameplayTags::UI_Layer_Game, LayoutClass);
+	PendingLayoutPush->SetCompletionCallback(
+		FWxPushWidgetToLayerNativeDelegate::CreateUObject(this, &ThisClass::HandleLayoutPushCompleted));
+	PendingLayoutPush->Activate();
 }
 
-void UWxHUDComponent::HandleHUDPushCompleted(UCommonActivatableWidget* Widget)
+void UWxPlayerLayoutComponent::HandleLayoutPushCompleted(UCommonActivatableWidget* Widget)
 {
-	PendingHUDPush = nullptr;
-	HUDWidget = Widget;
+	PendingLayoutPush = nullptr;
+	LayoutWidget = Widget;
 }
 
-void UWxHUDComponent::ClearHUD()
+void UWxPlayerLayoutComponent::ClearLayout()
 {
-	if (PendingHUDPush)
+	if (PendingLayoutPush)
 	{
-		PendingHUDPush->Cancel();
-		PendingHUDPush = nullptr;
+		PendingLayoutPush->Cancel();
+		PendingLayoutPush = nullptr;
 	}
 	UWxUIManagerSubsystem* UIManager = UWxUILibrary::GetUIManagerSubsystem(this);
 	UWxPrimaryGameLayout* Layout = UIManager ? UIManager->GetPrimaryGameLayout() : nullptr;
 	UCommonActivatableWidgetStack* Stack = Layout ? Layout->GetLayerWidgetStack(WxGameplayTags::UI_Layer_Game) : nullptr;
-	if (UCommonActivatableWidget* Widget = HUDWidget.Get())
+	if (UCommonActivatableWidget* Widget = LayoutWidget.Get())
 	{
 		Widget->DeactivateWidget();
 		if (Stack)
@@ -105,5 +100,5 @@ void UWxHUDComponent::ClearHUD()
 			Stack->RemoveWidget(*Widget);
 		}
 	}
-	HUDWidget.Reset();
+	LayoutWidget.Reset();
 }
