@@ -3,40 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Containers/Ticker.h"
 #include "Engine/EngineBaseTypes.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "WxGameFlowSubsystem.generated.h"
 
-struct FStreamableHandle;
 class APawn;
-class APlayerController;
-class UCharacterMovementComponent;
 
-UENUM()
-enum class EWxTravelState : uint8
-{
-	Idle,
-	Preparing,
-	Traveling,
-	AwaitingReady,
-	Recovering,
-	Failed
-};
-
-/** 실행 중 확정 상태. 디스크 저장과 객체 수명을 결합하지 않는다. */
-USTRUCT()
-struct FWxRunState
-{
-	GENERATED_BODY()
-
-	UPROPERTY()
-	TSoftClassPtr<APawn> PawnClass;
-
-	UPROPERTY()
-	TSoftObjectPtr<UWorld> Level;
-};
-
+/**
+ * 프론트엔드에서 고른 폰과 목적지를 들고 맵을 열어, 도착한 GameMode 가 그 폰을 쓰게 한다.
+ * 선택은 같은 맵의 재스폰에도 쓰이므로 목적지 월드에 있는 동안 유지되고, 다른 맵이 열리면 버려진다.
+ */
 UCLASS()
 class WXGAME_API UWxGameFlowSubsystem : public UGameInstanceSubsystem
 {
@@ -46,26 +22,21 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
+	/** 요청 접수 여부다. 도착 완료가 아니다. */
 	bool RequestNewGame(TSoftClassPtr<APawn> PawnClass, TSoftObjectPtr<UWorld> Level);
-	void CancelPreparation();
+
+	/** 목적지를 골라 뒀는데 아직 그 월드가 아니면 이동 중이다. */
 	bool IsBusy() const;
-	EWxTravelState GetTravelState() const;
+
 	const FText& GetStatusText() const;
-	const FWxRunState& GetRunState() const;
-	bool IsDestinationWorld(const UWorld* World) const;
+
+	/** 목적지 월드에서만 선택 폰을 돌려준다. */
 	UClass* GetSelectedPawnClass(const UWorld* World) const;
-	bool ValidateArrival(const UWorld* World);
-	void HoldArrivalPawn(APlayerController* Controller);
 
 private:
-	bool HandleTick(float DeltaSeconds);
-	void HandleAssetsLoaded(FGuid RequestId);
 	void HandlePostLoadMap(UWorld* World);
 	void HandleTravelFailure(UWorld* World, ETravelFailure::Type FailureType, const FString& Error);
-	void Fail(const FText& Reason);
-	void BeginRecovery();
-	void ClearPending();
-	void ReleaseArrivalPawn();
+	bool IsDestinationWorld(const UWorld* World) const;
 	bool IsWorldPackage(const UWorld* World, const TSoftObjectPtr<UWorld>& Map) const;
 
 	UPROPERTY(Transient)
@@ -74,24 +45,5 @@ private:
 	UPROPERTY(Transient)
 	TSoftObjectPtr<UWorld> PendingLevel;
 
-	UPROPERTY(Transient)
-	TSubclassOf<APawn> SelectedPawnClass;
-
-	UPROPERTY(Transient)
-	FWxRunState RunState;
-
-	FGuid ActiveRequestId;
-	// 도착 실패 시 ClearPending 이후에도 출발 맵으로 돌아갈 수 있어야 한다.
-	FName ReturnLevelPackage;
-	EWxTravelState State = EWxTravelState::Idle;
 	FText StatusText;
-	double Deadline = 0.0;
-	bool bRecoveryRequired = false;
-	bool bMovementTickWasEnabled = false;
-	bool bPawnInputWasEnabled = false;
-	TWeakObjectPtr<APawn> HeldPawn;
-	TWeakObjectPtr<APlayerController> HeldController;
-	TWeakObjectPtr<UCharacterMovementComponent> HeldMovement;
-	TSharedPtr<FStreamableHandle> AssetHandle;
-	FTSTicker::FDelegateHandle TickerHandle;
 };
