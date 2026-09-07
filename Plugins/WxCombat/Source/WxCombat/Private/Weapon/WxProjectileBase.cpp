@@ -6,13 +6,17 @@
 #include "Components/ArrowComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "GameFramework/Pawn.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Damage/WxDamageTableRow.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "WxCombatLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "WxGameplayTags.h"
 
 AWxProjectileBase::AWxProjectileBase()
 {
@@ -50,6 +54,30 @@ FGenericTeamId AWxProjectileBase::GetGenericTeamId() const
 	return InstigatorTeamAgent ? InstigatorTeamAgent->GetGenericTeamId() : FGenericTeamId::NoTeam;
 }
 
+void AWxProjectileBase::Reflect(APawn* Parrier)
+{
+	APawn* Shooter = GetInstigator();
+	if (!Parrier || !Shooter)
+	{
+		return;
+	}
+
+	// 팀은 Instigator에서, 대미지 출처는 Owner에서 파생하므로 둘을 함께 옮겨야 되돌아간 히트가 패리한 쪽의 것이 된다.
+	SetOwner(Parrier);
+	SetInstigator(Parrier);
+
+	const FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), Shooter->GetActorLocation());
+	SetActorRotation(LookAtRotation);
+	ProjectileMovement->Velocity = LookAtRotation.Vector() * ProjectileMovement->InitialSpeed;
+	if (ProjectileMovement->bIsHomingProjectile)
+	{
+		ProjectileMovement->HomingTargetComponent = Shooter->GetRootComponent();
+	}
+
+	// 날아온 시간만큼 깎인 수명으로는 돌아가는 도중에 사라질 수 있다.
+	SetLifeSpan(InitialLifeSpan);
+}
+
 void AWxProjectileBase::PlayImpactFX()
 {
 	if (ImpactFX)
@@ -77,6 +105,16 @@ void AWxProjectileBase::BeginPlay()
 			}
 		}
 	}
+}
+
+void AWxProjectileBase::OnRep_Instigator()
+{
+	Super::OnRep_Instigator();
+
+	// 서버가 세운 회전은 함께 복제되므로 방향은 그대로 쓰고 속도만 다시 얹는다.
+	// 유도 대상은 되돌림 전의 Instigator라 클라가 알 수 없어 비운다 — 궤적은 복제된 위치가 끌고 간다.
+	ProjectileMovement->Velocity = GetActorRotation().Vector() * ProjectileMovement->InitialSpeed;
+	ProjectileMovement->HomingTargetComponent = nullptr;
 }
 
 void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -126,6 +164,12 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 		}
 	}
 
+	// 되돌림이 출처를 갈아 끼우므로 대미지보다 먼저 읽는다.
+	// 흘려낸 히트는 대미지 GE가 걸리지 않아 패리도 서지 않고, 가드가 먹히는 대미지라도 패리까지 허용해야 되돌아간다.
+	const FWxDamageTableRow* DamageRow = DamageDataRow.GetRow<FWxDamageTableRow>(TEXT("HandleHitCollisionOverlap"));
+	const bool bParried = !bEvaded && DamageRow && DamageRow->bCanGuard && DamageRow->bCanParry
+		&& TargetASC && TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_PerfectGuard);
+
 	// 회피여도 호출은 그대로다 — 회피 성공 판정이 여기서 나가고, 대미지와 상태이상은 그쪽이 알아서 거른다.
 	if (UWxCombatLibrary::ApplyDamage(this, OtherActor, DamageDataRow, HitResult))
 	{
@@ -133,7 +177,11 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 		UWxEffect_HitStop::Apply(VictimHitStop, SourceASC, TargetASC);
 	}
 
-	if (!bEvaded)
+	if (bParried)
+	{
+		Reflect(Cast<APawn>(OtherActor));
+	}
+	else if (!bEvaded)
 	{
 		Destroy();
 	}
