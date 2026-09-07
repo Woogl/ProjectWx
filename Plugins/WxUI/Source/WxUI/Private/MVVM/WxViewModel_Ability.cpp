@@ -101,6 +101,21 @@ void UWxViewModel_Ability::Deinitialize()
 	AbilityTags.Reset();
 	CachedCooldownTags.Reset();
 
+	// 통지 없이 값만 되돌린다 — 재초기화가 빈 슬롯으로 끝나면 RefreshBoundAbility 가 조기 반환해 옛 표시가 남는다.
+	Title = FText::GetEmpty();
+	Description = FText::GetEmpty();
+	Icon = nullptr;
+	CostAmount = 0.f;
+	CooldownDuration = 0.f;
+	CooldownRemaining = 0.f;
+	CooldownPercent = 0.f;
+	IsOnCooldown = false;
+	MaxRecharges = 0;
+	HasMultipleCharges = false;
+	CurrentCharges = 0;
+	CanActivate = false;
+	CheckCost = false;
+
 	Super::Deinitialize();
 }
 
