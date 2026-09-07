@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
@@ -68,13 +68,6 @@ protected:
 	/** DodgeMontage와 같은 섹션 규약을 따르며, 끼어드는 시점의 진행 방향 섹션으로 재생한다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> PerfectDodgeMontage;
-
-	/** 극한 회피 성공 시 적용할 GlobalTimeDilation 값 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|SlowTime", meta = (ClampMin = "0.01"))
-	float PerfectDodgeSlowTimeDilation = 0.4f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|SlowTime", meta = (ClampMin = "0.0"))
-	float PerfectDodgeSlowTimeDuration = 0.4f;
 
 private:
 	EWxDodgeDirection ResolveDodgeDirection(const FVector& LocalDirection) const;

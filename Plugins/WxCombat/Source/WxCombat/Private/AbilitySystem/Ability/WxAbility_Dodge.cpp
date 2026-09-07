@@ -1,11 +1,10 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Dodge.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
 #include "AbilitySystem/Effect/WxEffect_Cooldown.h"
 #include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
-#include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
 #include "AbilitySystemComponent.h"
 #include "WxCollisionChannels.h"
 #include "Components/CapsuleComponent.h"
@@ -202,9 +201,6 @@ void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 		return;
 	}
 	
-	UWxAbilityTask_SlowTime* SlowTimeTask = UWxAbilityTask_SlowTime::CreateTask(this, PerfectDodgeSlowTimeDilation, PerfectDodgeSlowTimeDuration);
-	SlowTimeTask->ReadyForActivation();
-
 	// 회피 섹션은 몸을 돌리지 않고 몸 기준 루트모션으로만 흐르므로, 극한 회피도 같은 방향 섹션으로 이어야 이동이 꺾이지 않는다.
 	// 루트모션 중 속도가 곧 진행 방향이라, 8방향 양자화·잔차 보정·백스텝이 이 값 하나로 수렴한다.
 	FName SectionName = NAME_None;

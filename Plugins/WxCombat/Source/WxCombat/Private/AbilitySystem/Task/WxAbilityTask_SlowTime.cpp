@@ -26,13 +26,8 @@ void UWxAbilityTask_SlowTime::TickTask(float DeltaTime)
 		return;
 	}
 
-	if (World->GetRealTimeSeconds() - StartRealTimeSeconds >= Duration)
+	if (World->GetTimeSeconds() - StartTimeSeconds >= Duration)
 	{
-		if (ShouldBroadcastAbilityTaskDelegates())
-		{
-			OnFinished.Broadcast();
-		}
-
 		EndTask();
 	}
 }
@@ -67,5 +62,5 @@ void UWxAbilityTask_SlowTime::Activate()
 		AppliedDilation = UGameplayStatics::GetGlobalTimeDilation(this);
 	}
 
-	StartRealTimeSeconds = World->GetRealTimeSeconds();
+	StartTimeSeconds = World->GetTimeSeconds();
 }

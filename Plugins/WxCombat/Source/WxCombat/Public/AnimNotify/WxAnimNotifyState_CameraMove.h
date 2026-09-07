@@ -15,7 +15,7 @@ class UStaticMeshComponent;
  * 순수 로컬 연출이라 이 클라이언트의 로컬 플레이어 뷰에만 적용되고, 데디서버에선 아무 것도 하지 않는다.
  */
 // TODO: 게임 로직 이관 필요
-UCLASS(meta = (DisplayName = "Wx Camera Move"))
+UCLASS()
 class WXCOMBAT_API UWxAnimNotifyState_CameraMove : public UAnimNotifyState
 {
 	GENERATED_BODY()

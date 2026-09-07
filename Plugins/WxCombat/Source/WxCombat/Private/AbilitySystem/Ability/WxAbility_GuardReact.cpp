@@ -1,7 +1,6 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_GuardReact.h"
-#include "AbilitySystem/Task/WxAbilityTask_SlowTime.h"
 #include "AbilitySystemComponent.h"
 #include "GameFramework/Actor.h"
 #include "WxGameplayTags.h"
@@ -105,13 +104,6 @@ void UWxAbility_GuardReact::ActivateAbility(const FGameplayAbilitySpecHandle Han
 			NewRotation.Yaw = Direction.ToOrientationRotator().Yaw;
 			AvatarActor->SetActorRotation(NewRotation);
 		}
-	}
-
-	// 몽타주가 실제로 걸린 뒤에 건다 — 실패 경로에서 걸면 태스크가 같은 프레임에 파괴되며 복제된 딜레이션만 한 번 튄다.
-	if (TriggerTag == WxGameplayTags::Event_PerfectGuard)
-	{
-		UWxAbilityTask_SlowTime* SlowTimeTask = UWxAbilityTask_SlowTime::CreateTask(this, PerfectGuardSlowTimeDilation, PerfectGuardSlowTimeDuration);
-		SlowTimeTask->ReadyForActivation();
 	}
 }
 

@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #pragma once
 
@@ -47,13 +47,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> PerfectGuardMontage;
-
-	/** 퍼펙트 가드 성공 시 적용할 GlobalTimeDilation 값 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|SlowTime", meta = (ClampMin = "0.01"))
-	float PerfectGuardSlowTimeDilation = 0.4f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|SlowTime", meta = (ClampMin = "0.0"))
-	float PerfectGuardSlowTimeDuration = 0.4f;
 
 private:
 	UAnimMontage* SelectMontage(FGameplayTag TriggerTag, FGameplayTag ReactionTag) const;
