@@ -83,16 +83,6 @@ UWxPrimaryGameLayout* UWxUIManagerSubsystem::GetPrimaryGameLayout() const
 	return PrimaryGameLayout;
 }
 
-void UWxUIManagerSubsystem::SetGameHUDClass(const TSoftClassPtr<UWxHUDLayout>& InGameHUDClass)
-{
-	GameHUDClass = InGameHUDClass;
-}
-
-const TSoftClassPtr<UWxHUDLayout>& UWxUIManagerSubsystem::GetGameHUDClass() const
-{
-	return GameHUDClass;
-}
-
 bool UWxUIManagerSubsystem::IsMenuLayerActive() const
 {
 	// GameMenu 는 아이템 획득 알림처럼 화면을 덮지 않는 자리라 메뉴로 세지 않는다.

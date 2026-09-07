@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ControllerComponent.h"
+#include "Components/ActorComponent.h"
 #include "Items/WxRewardTableRow.h"
 #include "Net/Serialization/FastArraySerializer.h"
 
@@ -131,12 +131,10 @@ DECLARE_MULTICAST_DELEGATE(FWxOnInventoryContentsChanged);
  *
  * 권한(서버)에서만 Add/Consume 이 호출되어야 하며, FastArray 로 클라이언트에 동기화된다.
  *
- * 부착은 코드가 아니라 GameMode 가 고른 Experience 에셋의 주입 설정으로 한다(PlayerController 는 본 클래스를 모른다).
- * 등록하지 않으면 인벤토리가 조용히 없는 상태가 된다.
- * 시작 아이템은 Experience 의 Add Inventory Items 액션이 도착 신호(OnAnyInventoryReady)를 받아 지급한다 — 본 클래스는 목록을 갖지 않는다.
+ * 부착은 AWxPlayerController 생성자의 기본 서브오브젝트다. 시작 아이템은 GameMode 가 접속 시 GrantItems 로 지급하며 본 클래스는 목록을 갖지 않는다.
  */
 UCLASS()
-class WXINVENTORY_API UWxInventoryComponent : public UControllerComponent
+class WXINVENTORY_API UWxInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
@@ -151,7 +149,7 @@ public:
 	//~ End UActorComponent interface
 
 	/**
-	 * 인벤토리가 쓸 수 있게 될 때마다 발행된다. 주입(서버)·복제 도착(클라) 어느 경로든 BeginPlay 로 수렴한다.
+	 * 인벤토리가 쓸 수 있게 될 때마다 발행된다. 서버 생성·복제 도착(클라) 어느 경로든 BeginPlay 로 수렴한다.
 	 * 관찰자가 인벤토리보다 먼저 존재할 수 있어(HUD 뷰모델) 인스턴스가 아니라 클래스 차원에 둔다 — 구독자는 소유 액터로 자기 것인지 가린다.
 	 */
 	static FWxOnInventoryReady OnAnyInventoryReady;

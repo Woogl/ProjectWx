@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ControllerComponent.h"
+#include "Components/ActorComponent.h"
 #include "Engine/TimerHandle.h"
 #include "WxInteractionScannerComponent.generated.h"
 
@@ -28,11 +28,9 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnScannerReady, UWxInteractionScannerComp
  * 입력 수신: 본 컴포넌트는 입력을 직접 바인딩하지 않는다. HUD 리스트 위젯이 Enhanced Input 으로 받아 리스트 뷰모델에 넘기고, 뷰모델이 TryInteractSelected/CycleSelection 을 호출한다.
  * 선택 전달: 입력 시 로컬 선택을 읽어 ServerInteract 로 액터 포인터를 원자 전송한다(선택을 복제하지 않으므로 "사이클→즉시입력" 순서가 로컬 동기 읽기로 보장된다).
  * 서버는 Event.Interact(OptionalObject=선택)를 폰 ASC 로 송출해 ServerOnly WxAbility_Interact 가 권위에서 사거리·활성 검증 후 대상 인터페이스를 호출하게 한다.
- *
- * 부착은 코드가 아니라 GameMode 가 고른 Experience 에셋의 주입 설정으로 한다(컨트롤러는 본 클래스를 모른다).
  */
 UCLASS()
-class WXWORLD_API UWxInteractionScannerComponent : public UControllerComponent
+class WXWORLD_API UWxInteractionScannerComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
@@ -62,7 +60,7 @@ public:
 	FWxOnInteractionSelectionChanged OnSelectionChanged;
 
 	/**
-	 * 스캐너가 쓸 수 있게 될 때마다 발행된다. 주입(서버)·복제 도착(클라) 어느 경로든 BeginPlay 로 수렴한다.
+	 * 스캐너가 쓸 수 있게 될 때마다 발행된다. 서버 생성·복제 도착(클라) 어느 경로든 BeginPlay 로 수렴한다.
 	 * 관찰자가 스캐너보다 먼저 존재할 수 있어(HUD 뷰모델) 인스턴스가 아니라 클래스 차원에 둔다 — 구독자는 소유 액터로 자기 것인지 가린다.
 	 */
 	static FWxOnScannerReady OnAnyScannerReady;

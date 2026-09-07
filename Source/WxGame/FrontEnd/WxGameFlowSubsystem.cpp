@@ -7,9 +7,7 @@
 #include "Engine/GameInstance.h"
 #include "Engine/StreamableManager.h"
 #include "Engine/World.h"
-#include "Framework/WxExperienceDefinition.h"
-#include "Framework/WxExperienceManagerComponent.h"
-#include "Framework/WxGameState.h"
+#include "Component/WxHUDComponent.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -143,28 +141,22 @@ bool UWxGameFlowSubsystem::HandleTick(float DeltaSeconds)
 	UWorld* World = GetWorld();
 	if (State == EWxTravelState::AwaitingReady || State == EWxTravelState::Recovering)
 	{
-		const AWxGameState* GameState = World ? World->GetGameState<AWxGameState>() : nullptr;
-		const UWxExperienceManagerComponent* Experience = GameState ? GameState->GetExperienceManagerComponent() : nullptr;
-		if (Experience && Experience->HasLoadFailed())
-		{
-			Fail(LOCTEXT("ExperienceFailed", "게임 구성을 불러오지 못했습니다."));
-			return true;
-		}
 		APlayerController* PC = GetGameInstance()->GetFirstLocalPlayerController();
+		const UWxHUDComponent* HUD = PC ? PC->FindComponentByClass<UWxHUDComponent>() : nullptr;
 		const UWxUIManagerSubsystem* UI = GetGameInstance()->GetSubsystem<UWxUIManagerSubsystem>();
 		const UWxPrimaryGameLayout* Layout = UI ? UI->GetPrimaryGameLayout() : nullptr;
 		const UCommonActivatableWidgetStack* Stack = Layout ? Layout->GetLayerWidgetStack(WxGameplayTags::UI_Layer_Game) : nullptr;
-		const bool bHUDReady = UI && (UI->GetGameHUDClass().IsNull() || (Stack && Stack->GetNumWidgets() > 0));
+		const bool bHUDReady = !HUD || HUD->GetGameHUDClass().IsNull() || (Stack && Stack->GetNumWidgets() > 0);
 		UWorldPartitionSubsystem* Partition = World ? World->GetSubsystem<UWorldPartitionSubsystem>() : nullptr;
 		const bool bWorldReady = !World || !World->GetWorldPartition() || (Partition && Partition->IsAllStreamingCompleted());
-		if (Experience && Experience->IsExperienceLoaded() && PC && PC->GetPawn() && bHUDReady && bWorldReady)
+		if (PC && PC->GetPawn() && bHUDReady && bWorldReady)
 		{
 			if (State == EWxTravelState::Recovering
 				&& UWorld::RemovePIEPrefix(World->GetOutermost()->GetName()) == ReturnLevelPackage.ToString())
 			{
 				State = EWxTravelState::Idle;
 			}
-			else if (State == EWxTravelState::AwaitingReady && ValidateArrival(World, Experience->GetCurrentExperience()))
+			else if (State == EWxTravelState::AwaitingReady && ValidateArrival(World))
 			{
 				if (!PC->GetPawn()->IsA(SelectedPawnClass))
 				{
@@ -188,7 +180,7 @@ bool UWxGameFlowSubsystem::HandleTick(float DeltaSeconds)
 	return true;
 }
 
-bool UWxGameFlowSubsystem::ValidateArrival(const UWorld* World, const UWxExperienceDefinition* Experience)
+bool UWxGameFlowSubsystem::ValidateArrival(const UWorld* World)
 {
 	if (State == EWxTravelState::Idle && !PendingLevel.IsNull() && !IsDestinationWorld(World))
 	{
@@ -203,7 +195,7 @@ bool UWxGameFlowSubsystem::ValidateArrival(const UWorld* World, const UWxExperie
 	{
 		return false;
 	}
-	if (!IsDestinationWorld(World) || !Experience || !SelectedPawnClass)
+	if (!IsDestinationWorld(World) || !SelectedPawnClass)
 	{
 		Fail(LOCTEXT("ArrivalMismatch", "목적지의 게임 구성이 요청과 일치하지 않습니다."));
 		return false;

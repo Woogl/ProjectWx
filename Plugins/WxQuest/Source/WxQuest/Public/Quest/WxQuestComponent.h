@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/GameStateComponent.h"
+#include "Components/ActorComponent.h"
 #include "StateTreeExecutionTypes.h"
 #include "WxQuestComponent.generated.h"
 
@@ -40,11 +40,10 @@ struct FWxQuestObjective
  *  - 수주: 레벨에 배치한 트리거 볼륨이 UWxQuestLibrary::StartQuest 로 넘기는 에셋
  *  - 체인: StartNextQuest 태스크의 Quest 소프트 참조
  *
- * 부착은 코드가 아니라 GameMode 가 고른 Experience 에셋의 주입 목록으로 한다(GameState 는 본 클래스를 모른다).
- * 목록에는 사이드 구분이 없어 클라 GameState 에도 사본이 붙으므로, 러너를 권위에서만 띄우는 것은 본 클래스의 책임이다.
+ * 부착은 AWxGameState 생성자의 기본 서브오브젝트다. 클라 GameState 에도 사본이 있으므로, 러너를 권위에서만 띄우는 것은 본 클래스의 책임이다.
  */
 UCLASS()
-class WXQUEST_API UWxQuestComponent : public UGameStateComponent
+class WXQUEST_API UWxQuestComponent : public UActorComponent
 {
 	GENERATED_BODY()
 

@@ -20,7 +20,6 @@ UWxInteractionScannerComponent::UWxInteractionScannerComponent(const FObjectInit
 	PrimaryComponentTick.bCanEverTick = false;
 
 	// Server RPC(ServerInteract) 라우팅을 위해 복제 활성화. 복제 프로퍼티는 없다(스캐너 상태는 클라 로컬).
-	// 주입으로 부착되는 동적 컴포넌트라 기본 서브오브젝트의 안정된 이름이 없다 — 원격에서 이 객체를 해소하는 수단이 복제뿐이다.
 	SetIsReplicatedByDefault(true);
 }
 
@@ -32,7 +31,8 @@ void UWxInteractionScannerComponent::BeginPlay()
 
 	OnAnyScannerReady.Broadcast(this);
 
-	if (!IsLocalController())
+	const AController* OwningController = Cast<AController>(GetOwner());
+	if (!OwningController || !OwningController->IsLocalController())
 	{
 		return;
 	}
@@ -321,6 +321,6 @@ bool UWxInteractionScannerComponent::CanActivateInteract(const UAbilitySystemCom
 
 APawn* UWxInteractionScannerComponent::GetOwnerPawn() const
 {
-	const APlayerController* PC = GetController<APlayerController>();
+	const APlayerController* PC = Cast<APlayerController>(GetOwner());
 	return PC ? PC->GetPawn() : nullptr;
 }

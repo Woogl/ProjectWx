@@ -41,10 +41,6 @@
 		{
 			"Name": "StateTree",
 			"Enabled": true
-		},
-		{
-			"Name": "ModularGameplay",
-			"Enabled": true
 		}
 	]
 }
