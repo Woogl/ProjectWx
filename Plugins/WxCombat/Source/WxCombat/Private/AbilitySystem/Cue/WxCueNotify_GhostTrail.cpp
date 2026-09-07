@@ -38,7 +38,8 @@ void AWxGhostTrail::BeginPlay()
 	// 포즈를 메시 기준 컴포넌트 스페이스로 복사하므로 배치 기준도 메시 트랜스폼이어야 한다 — 메시 상대 트랜스폼이 기본값이 아니면 어긋난다.
 	SetActorTransform(OwnerMesh->GetComponentTransform());
 
-	PoseableMesh->SetSkinnedAsset(OwnerMesh->GetSkeletalMeshAsset());
+	// 원시 SetSkinnedAsset은 포인터만 바꿔 렌더 스테이트와 본 버퍼가 옛 메시에 남는다.
+	PoseableMesh->SetSkinnedAssetAndUpdate(OwnerMesh->GetSkeletalMeshAsset());
 	PoseableMesh->CopyPoseFromSkeletalComponent(OwnerMesh);
 }
 
