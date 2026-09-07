@@ -38,6 +38,14 @@ void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGame
 	}
 
 	const float EffectDuration = ActiveEffect->GetDuration();
+
+	// 무한 지속은 잔량이 줄지 않는다 — 링을 가득 채워 두고 갱신도 걸지 않는다.
+	if (EffectDuration == FGameplayEffectConstants::INFINITE_DURATION)
+	{
+		SetTimeRemainingPercent(1.f);
+		return;
+	}
+
 	if (EffectDuration > 0.f)
 	{
 		const UWorld* World = InASC->GetWorld();
