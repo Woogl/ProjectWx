@@ -49,7 +49,7 @@ private:
 };
 
 /**
- * 퀘스트 컴포넌트는 Experience 에셋 주입으로 부착되므로, 미등록 게임모드에선 null 을 반환한다(WBP 에서 뷰모델을 optional 로 둔다).
+ * 퀘스트 컴포넌트는 AWxGameState 가 소유하므로, 다른 GameState 클래스에선 null 을 반환한다(WBP 에서 뷰모델을 optional 로 둔다).
  */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXGAME_API UWxViewModelResolver_Quest : public UMVVMViewModelContextResolver

@@ -1,25 +1,20 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Controller/WxPlayerController.h"
+
 #include "Cheat/WxCheatManager.h"
-#include "Components/GameFrameworkComponentManager.h"
+#include "Component/WxHUDComponent.h"
+#include "Interaction/WxInteractionScannerComponent.h"
+#include "Inventory/WxInventoryComponent.h"
+#include "WxDialogueSessionComponent.h"
 
 AWxPlayerController::AWxPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	CheatClass = UWxCheatManager::StaticClass();
-}
 
-void AWxPlayerController::PreInitializeComponents()
-{
-	Super::PreInitializeComponents();
-
-	UGameFrameworkComponentManager::AddGameFrameworkComponentReceiver(this);
-}
-
-void AWxPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	UGameFrameworkComponentManager::RemoveGameFrameworkComponentReceiver(this);
-
-	Super::EndPlay(EndPlayReason);
+	InventoryComponent = CreateDefaultSubobject<UWxInventoryComponent>(TEXT("InventoryComponent"));
+	InteractionScannerComponent = CreateDefaultSubobject<UWxInteractionScannerComponent>(TEXT("InteractionScannerComponent"));
+	DialogueSessionComponent = CreateDefaultSubobject<UWxDialogueSessionComponent>(TEXT("DialogueSessionComponent"));
+	HUDComponent = CreateDefaultSubobject<UWxHUDComponent>(TEXT("HUDComponent"));
 }

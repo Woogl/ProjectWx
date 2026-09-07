@@ -38,7 +38,7 @@
 4. `Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueActor.h` — 상호작용에서 세션으로 이어지는 진입 경로
 
 ## 관련
-- 상위: 호스트 액터를 상호작용으로 부르는 [[WxCore]]의 `IWxInteractable`, 세션을 PC에 주입하는 Experience, 진행 대사를 관찰해 의미를 판정하는 [[WxQuest]], `State.Dialogue` 태그로 창을 여닫는 [[WxUI]]
+- 상위: 호스트 액터를 상호작용으로 부르는 [[WxCore]]의 `IWxInteractable`, 세션을 기본 서브오브젝트로 드는 [[WxGame]] 의 PlayerController, 진행 대사를 관찰해 의미를 판정하는 [[WxQuest]], `State.Dialogue` 태그로 창을 여닫는 [[WxUI]]
 
 ---
 *문서 기준 커밋 `f826b21` · 생성일 2026-09-05 · 소스 11파일 — `/readme-writer`로 갱신*

@@ -11,7 +11,7 @@
 
 **경계 (비담당)**
 - 저널을 화면에 그리는 것 — HUD 뷰모델이 `OnJournalChanged` 를 구독해 pull ([[WxUI]])
-- 컴포넌트 부착 — 코드가 아니라 Experience 에셋의 주입 목록이 GameState 에 붙인다 (GameFeature/Experience 계층)
+- 컴포넌트 부착 — [[WxGame]] 의 `AWxGameState` 생성자가 기본 서브오브젝트로 붙인다
 - 보상 지급 등 실제 게임플레이 효과 — 다른 모듈의 StateTree 노드(예: GiveRewards)
 
 ## 핵심 타입 (진입점)
@@ -36,7 +36,7 @@
 3. `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestObjective.h` — "상태 수명 = 목표 수명" 규약이 왜 정리 태스크를 없애는지.
 
 ## 관련
-- 상위: 저널을 구독·표시하는 [[WxUI]] HUD, 컴포넌트를 주입하는 Experience 계층(GameFeature), 보상 등 크로스모듈 StateTree 노드
+- 상위: 저널을 구독·표시하는 [[WxUI]] HUD, 컴포넌트를 소유하는 [[WxGame]] 의 GameState, 보상 등 크로스모듈 StateTree 노드
 
 ---
 *문서 기준 커밋 `f826b21` · 생성일 2026-09-05 · 소스 14파일 — `/readme-writer`로 갱신*

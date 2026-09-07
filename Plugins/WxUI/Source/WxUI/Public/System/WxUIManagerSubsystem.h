@@ -14,7 +14,6 @@ class UAbilitySystemComponent;
 class UWxPrimaryGameLayout;
 class UCommonActivatableWidget;
 class UWxGamePopupDescriptor;
-class UWxHUDLayout;
 class UWxAsyncAction_PushWidgetToLayer;
 
 UCLASS()
@@ -36,11 +35,6 @@ public:
 
 	/** 화면을 차지하는 메뉴(Menu·Modal 레이어)가 떠 있는지. */
 	bool IsMenuLayerActive() const;
-
-	/** 어떤 HUD 를 띄울지는 UI 밖(Experience)이 정하므로, 정해진 값을 여기에 실어 둔다. 미지정이면 HUD 를 띄우지 않는다. */
-	void SetGameHUDClass(const TSoftClassPtr<UWxHUDLayout>& InGameHUDClass);
-
-	const TSoftClassPtr<UWxHUDLayout>& GetGameHUDClass() const;
 
 private:
 	bool HasActiveWidgetInLayer(FGameplayTag LayerTag) const;
@@ -99,9 +93,6 @@ private:
 	FDelegateHandle DeathTagHandle;
 
 	FDelegateHandle DialogueTagHandle;
-
-	/** Experience 가 발행한 HUD 지정. 세계가 바뀌면 다시 발행되며, 발행이 없으면 비어 있다. */
-	TSoftClassPtr<UWxHUDLayout> GameHUDClass;
 
 	/** 대화 중 띄워 둔 대화 창. 세션이 끝날 때 이 창을 닫기 위해 기억한다. */
 	TWeakObjectPtr<UCommonActivatableWidget> DialogueScreen;

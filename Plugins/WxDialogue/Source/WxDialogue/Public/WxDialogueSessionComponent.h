@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ControllerComponent.h"
+#include "Components/ActorComponent.h"
 #include "Engine/DataTable.h"
 #include "WxDialogueSessionComponent.generated.h"
 
@@ -18,7 +18,7 @@ struct FWxDialogueTableRow;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWxOnDialogueLineChanged, const FText&, Speaker, const FText&, Line);
 
 /**
- * Experience 주입으로 PlayerController 에 붙는다.
+ * AWxPlayerController 생성자의 기본 서브오브젝트로 붙는다.
  *
  * 대화 대상은 비소유 액터라 Client RPC 를 쏠 수 없으므로, 클라 UI 로 가는 전달은 PC 측인 본 컴포넌트가 소유한다.
  * 그 RPC 때문에 복제 컴포넌트여야 한다.
@@ -38,7 +38,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWxOnDialogueLineChanged, const FTe
  * 다만 카메라와 달리 되돌리지 않는다 — 대화가 끝나도 대상은 마지막 자세로 남고, 다음 대사나 다음 대화가 그것을 갈아끼운다. 그래서 세션은 무엇을 재생했는지 기억할 필요가 없다.
  */
 UCLASS()
-class WXDIALOGUE_API UWxDialogueSessionComponent : public UControllerComponent
+class WXDIALOGUE_API UWxDialogueSessionComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
@@ -84,7 +84,7 @@ public:
 protected:
 	/**
 	 * 카메라 구도는 대상이 아니라 대화 연출 전반의 정책이라 여기 모아 둔다.
-	 * 주입 컴포넌트라 여기 적힌 기본값이 곧 실제 값이다.
+	 * 컨트롤러 BP 에서 덮어쓰지 않는 한 여기 적힌 기본값이 곧 실제 값이다.
 	 */
 
 	/** 대화 중 시야각(도). 게임플레이(90)보다 좁혀 망원처럼 압축한다 — 광각은 가까운 사람만 크게 부풀리고 얼굴을 왜곡한다. */

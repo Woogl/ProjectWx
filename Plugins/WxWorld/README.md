@@ -14,7 +14,7 @@
 - `IWxInteractable` 계약 자체는 [[WxCore]] 정의(`WxInteractable.h`)를 가져다 쓴다
 - 상호작용의 권위 검증(사거리·활성) 어빌리티 `WxAbility_Interact` 와 `Event.Interact` 처리는 [[WxCombat]]/GAS 측 — 스캐너는 폰 ASC 로 이벤트만 송출한다
 - HUD 상호작용 리스트 표시(`UWxViewModel_InteractionList`)는 [[WxUI]]
-- 스캐너 컴포넌트의 부착은 코드가 아니라 Experience 에셋 주입 설정([[WxGame]] 계열)
+- 스캐너 컴포넌트의 부착은 [[WxGame]] 의 `AWxPlayerController` 생성자(기본 서브오브젝트)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
@@ -44,7 +44,7 @@
 4. `Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawner.h` — 스폰/처치/리스폰 사이클과 IWxSpawnable 초기화 시점.
 
 ## 관련
-- 상위: 상호작용 계약과 공용 정의는 [[WxCore]], 상호작용 어빌리티는 [[WxCombat]], HUD 표시는 [[WxUI]], 컴포넌트 부착 Experience 는 [[WxGame]], 에디터 커스터마이제이션은 [[WxToolset]]
+- 상위: 상호작용 계약과 공용 정의는 [[WxCore]], 상호작용 어빌리티는 [[WxCombat]], HUD 표시는 [[WxUI]], 컴포넌트를 소유하는 PlayerController 는 [[WxGame]], 에디터 커스터마이제이션은 [[WxToolset]]
 
 ---
 *문서 기준 커밋 `f826b21` · 생성일 2026-09-05 · 소스 61파일 — `/readme-writer`로 갱신*

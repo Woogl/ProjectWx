@@ -15,8 +15,8 @@ void UWxHUDComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// 주입 목록에는 사이드 구분이 없다 — 띄울 화면이 없는 원격 사본(데디 서버가 든 PC)은 여기서 걸러낸다.
-	APlayerController* OwningController = GetController<APlayerController>();
+	// 띄울 화면이 없는 원격 사본(데디 서버가 든 PC)은 여기서 걸러낸다.
+	APlayerController* OwningController = Cast<APlayerController>(GetOwner());
 	if (!OwningController || !OwningController->IsLocalController())
 	{
 		return;
@@ -24,13 +24,13 @@ void UWxHUDComponent::BeginPlay()
 
 	OwningController->OnPossessedPawnChanged.AddDynamic(this, &ThisClass::HandlePossessedPawnChanged);
 
-	// 주입이 빙의보다 늦으면 신호가 다시 오지 않으므로, 지금 폰으로 따라잡는다.
+	// BeginPlay 가 빙의보다 늦으면 신호가 다시 오지 않으므로, 지금 폰으로 따라잡는다.
 	HandlePossessedPawnChanged(nullptr, OwningController->GetPawn());
 }
 
 void UWxHUDComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if (APlayerController* OwningController = GetController<APlayerController>())
+	if (APlayerController* OwningController = Cast<APlayerController>(GetOwner()))
 	{
 		OwningController->OnPossessedPawnChanged.RemoveDynamic(this, &ThisClass::HandlePossessedPawnChanged);
 	}
@@ -40,25 +40,9 @@ void UWxHUDComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void UWxHUDComponent::ClearHUD()
+const TSoftClassPtr<UWxHUDLayout>& UWxHUDComponent::GetGameHUDClass() const
 {
-	if (PendingHUDPush)
-	{
-		PendingHUDPush->Cancel();
-		PendingHUDPush = nullptr;
-	}
-	UWxUIManagerSubsystem* UIManager = UWxUILibrary::GetUIManagerSubsystem(this);
-	UWxPrimaryGameLayout* Layout = UIManager ? UIManager->GetPrimaryGameLayout() : nullptr;
-	UCommonActivatableWidgetStack* Stack = Layout ? Layout->GetLayerWidgetStack(WxGameplayTags::UI_Layer_Game) : nullptr;
-	if (UCommonActivatableWidget* Widget = HUDWidget.Get())
-	{
-		Widget->DeactivateWidget();
-		if (Stack)
-		{
-			Stack->RemoveWidget(*Widget);
-		}
-	}
-	HUDWidget.Reset();
+	return GameHUDClass;
 }
 
 void UWxHUDComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
@@ -68,7 +52,7 @@ void UWxHUDComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 	{
 		ClearHUD();
 	}
-	if (!NewPawn)
+	if (!NewPawn || GameHUDClass.IsNull())
 	{
 		return;
 	}
@@ -91,9 +75,7 @@ void UWxHUDComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 		return;
 	}
 
-	// 빙의는 Experience 로드 완료 뒤라, 이 시점엔 발행된 지정을 읽을 수 있다.
-	PendingHUDPush = UWxAsyncAction_PushWidgetToLayer::PushWidgetToLayer(
-		this, WxGameplayTags::UI_Layer_Game, UIManager->GetGameHUDClass());
+	PendingHUDPush = UWxAsyncAction_PushWidgetToLayer::PushWidgetToLayer(this, WxGameplayTags::UI_Layer_Game, GameHUDClass);
 	PendingHUDPush->SetCompletionCallback(
 		FWxPushWidgetToLayerNativeDelegate::CreateUObject(this, &ThisClass::HandleHUDPushCompleted));
 	PendingHUDPush->Activate();
@@ -103,4 +85,25 @@ void UWxHUDComponent::HandleHUDPushCompleted(UCommonActivatableWidget* Widget)
 {
 	PendingHUDPush = nullptr;
 	HUDWidget = Widget;
+}
+
+void UWxHUDComponent::ClearHUD()
+{
+	if (PendingHUDPush)
+	{
+		PendingHUDPush->Cancel();
+		PendingHUDPush = nullptr;
+	}
+	UWxUIManagerSubsystem* UIManager = UWxUILibrary::GetUIManagerSubsystem(this);
+	UWxPrimaryGameLayout* Layout = UIManager ? UIManager->GetPrimaryGameLayout() : nullptr;
+	UCommonActivatableWidgetStack* Stack = Layout ? Layout->GetLayerWidgetStack(WxGameplayTags::UI_Layer_Game) : nullptr;
+	if (UCommonActivatableWidget* Widget = HUDWidget.Get())
+	{
+		Widget->DeactivateWidget();
+		if (Stack)
+		{
+			Stack->RemoveWidget(*Widget);
+		}
+	}
+	HUDWidget.Reset();
 }

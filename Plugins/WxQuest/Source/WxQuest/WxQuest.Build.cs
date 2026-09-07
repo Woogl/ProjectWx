@@ -14,7 +14,6 @@ public class WxQuest : ModuleRules
 			"CoreUObject",
 			"Engine",
 			"GameplayTags",
-			"ModularGameplay",
 			"StateTreeModule",
 			"UniversalObjectLocator",
 			"WxCore",

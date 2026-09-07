@@ -8,7 +8,6 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "WxGameFlowSubsystem.generated.h"
 
-class UWxExperienceDefinition;
 struct FStreamableHandle;
 class APawn;
 class APlayerController;
@@ -55,7 +54,7 @@ public:
 	const FWxRunState& GetRunState() const;
 	bool IsDestinationWorld(const UWorld* World) const;
 	UClass* GetSelectedPawnClass(const UWorld* World) const;
-	bool ValidateArrival(const UWorld* World, const UWxExperienceDefinition* Experience);
+	bool ValidateArrival(const UWorld* World);
 	void HoldArrivalPawn(APlayerController* Controller);
 
 private:

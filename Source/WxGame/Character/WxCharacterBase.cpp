@@ -8,7 +8,6 @@
 #include "Inventory/WxEquipmentComponent.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Components/GameFrameworkComponentManager.h"
 #include "Components/ChildActorComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/World.h"
@@ -53,13 +52,6 @@ AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
 	bUseControllerRotationRoll  = false;
 }
 
-void AWxCharacterBase::PreInitializeComponents()
-{
-	Super::PreInitializeComponents();
-
-	UGameFrameworkComponentManager::AddGameFrameworkComponentReceiver(this);
-}
-
 void AWxCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -93,13 +85,6 @@ void AWxCharacterBase::PostInitializeComponents()
 	{
 		SpawnedWeapon->SetOwner(this);
 	}
-}
-
-void AWxCharacterBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	UGameFrameworkComponentManager::RemoveGameFrameworkComponentReceiver(this);
-
-	Super::EndPlay(EndPlayReason);
 }
 
 void AWxCharacterBase::PossessedBy(AController* NewController)

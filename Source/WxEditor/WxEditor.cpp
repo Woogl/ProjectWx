@@ -7,7 +7,6 @@
 #include "Editor/UnrealEdEngine.h"
 #include "Engine/Blueprint.h"
 #include "Engine/DataTable.h"
-#include "Framework/WxExperienceManager.h"
 #include "Items/WxItemDefinition.h"
 #include "Modules/ModuleManager.h"
 #include "PropertyEditorModule.h"
@@ -86,8 +85,6 @@ void FWxEditorModule::StartupModule()
 		UBlueprint::StaticClass(),
 		UWxUIDataThumbnailRenderer::StaticClass());
 
-	BeginPIEHandle = FEditorDelegates::BeginPIE.AddRaw(this, &FWxEditorModule::HandleBeginPIE);
-
 	// 엔진은 UStateTreeComponent 자리를 비워 두었고, 에디터가 클래스 사슬을 거슬러 찾으므로 장치의 파생 컴포넌트까지 덮인다.
 	if (GUnrealEd)
 	{
@@ -101,9 +98,6 @@ void FWxEditorModule::ShutdownModule()
 	{
 		GUnrealEd->UnregisterComponentVisualizer(UStateTreeComponent::StaticClass()->GetFName());
 	}
-
-	FEditorDelegates::BeginPIE.Remove(BeginPIEHandle);
-	BeginPIEHandle.Reset();
 
 	if (FModuleManager::Get().IsModuleLoaded(WxEditorModule::PropertyEditorModuleName))
 	{
@@ -144,12 +138,4 @@ void FWxEditorModule::ShutdownModule()
 			UBlueprint::StaticClass(),
 			UBlueprintThumbnailRenderer::StaticClass());
 	}
-}
-
-void FWxEditorModule::HandleBeginPIE(bool bIsSimulating)
-{
-	UWxExperienceManager* ExperienceManager = GEngine->GetEngineSubsystem<UWxExperienceManager>();
-	check(ExperienceManager);
-
-	ExperienceManager->OnPlayInEditorBegun();
 }

@@ -11,7 +11,7 @@
 
 **경계 (비담당)**
 - 구체 캐릭터/아이템 타입 정의와 표시 데이터의 원본 — 소비 측(게임 모듈)이 `Initialize`로 주입한다
-- 무엇을 띄울지의 정책(HUD 클래스 지정 등) — Experience 에셋이 UI 매니저에 발행
+- 무엇을 띄울지의 정책(HUD 클래스 지정 등) — 컨트롤러 BP 가 `UWxHUDComponent` 프로퍼티로 지정
 - 전투·인벤토리 등 도메인 로직 — [[WxCombat]], [[WxInventory]] 등이 소유하고 WxUI는 그 상태만 관찰
 
 ## 핵심 타입 (진입점)
@@ -30,7 +30,7 @@
 - 새 화면 위젯은 `UWxActivatableWidget`를 상속하고 `InputMode`·`bPauseGame`로 입력·정지를 선언한다. 실제 정지 적용은 UI 매니저가 전 레이어를 재평가해 결정한다.
 - 새 ViewModel은 `UWxViewModel`를 상속한다. 소스를 Outer로 공유 인스턴스를 만드는 규약(`FindSharedViewModel`/`GetOrCreate`)이 발행자와 소비자를 잇는 유일한 연결고리다.
 - WxUI는 구체 도메인 타입을 알지 못하므로 표시 데이터는 소비 측이 `Initialize`/`InitializeViewModels`로 주입한다.
-- 어떤 위젯을 어느 레이어에 띄울지는 `UWxUIDeveloperSettings`와 Experience 발행값으로 정한다 — 코드가 아니라 데이터.
+- 어떤 위젯을 어느 레이어에 띄울지는 `UWxUIDeveloperSettings`와 컨트롤러 BP 의 HUD 컴포넌트 프로퍼티로 정한다 — 코드가 아니라 데이터.
 - 자막·인디케이터는 StateTree 노드(`FWxStateTreeTask_PrintSubtitle`, `FWxStateTreeTask_MarkIndicator`)를 함께 제공해, 퀘스트 등 소비 도메인이 WxUI를 참조하지 않고도 에셋에서 골라 쓴다.
 
 ## 여기서부터 읽어라
@@ -39,7 +39,7 @@
 3. `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h` — MVVM 베이스와 공유 VM/이미지 스트리밍 규약(파생 VM 이해의 출발점)
 
 ## 관련
-- 상위: Experience 에셋이 HUD/레이아웃 정책을 발행하고 GameFeature가 콘텐츠를 켠다. 도메인 상태를 [[WxCombat]]·[[WxInventory]] 등에서 관찰하며, 공용 정의는 [[WxCore]]에 의존한다.
+- 상위: [[WxGame]] 의 PlayerController 가 HUD 컴포넌트를 소유하고 BP 에서 HUD 클래스를 지정한다. 도메인 상태를 [[WxCombat]]·[[WxInventory]] 등에서 관찰하며, 공용 정의는 [[WxCore]]에 의존한다.
 
 ---
 *문서 기준 커밋 `f826b21` · 생성일 2026-09-05 · 소스 57파일 — `/readme-writer`로 갱신*

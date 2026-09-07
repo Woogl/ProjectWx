@@ -29,7 +29,6 @@ public class WxEditor : ModuleRules
 			"UnrealEd",
 			"WxCombat",
 			"WxCore",
-			"WxGame",
 			"WxInventory",
 			"WxQuest",
 			"WxUI",

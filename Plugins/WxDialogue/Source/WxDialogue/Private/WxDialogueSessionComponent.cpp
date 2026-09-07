@@ -23,7 +23,7 @@
 UWxDialogueSessionComponent::UWxDialogueSessionComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	// 주입으로 붙는 동적 컴포넌트라 기본 서브오브젝트의 안정된 이름이 없다 — 원격에서 이 객체를 해소하는 수단이 복제뿐이다.
+	// RPC 라우팅을 위해 복제 활성화.
 	SetIsReplicatedByDefault(true);
 }
 
@@ -126,7 +126,7 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FData
 		EndDialogue();
 	}
 
-	const AController* Controller = GetController<AController>();
+	const AController* Controller = Cast<AController>(GetOwner());
 	APawn* Pawn = Controller ? Controller->GetPawn() : nullptr;
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
 	if (!ASC)
@@ -353,6 +353,6 @@ void UWxDialogueSessionComponent::PlayPendingPose()
 
 APlayerController* UWxDialogueSessionComponent::GetLocalPlayerController() const
 {
-	APlayerController* PlayerController = GetController<APlayerController>();
+	APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
 	return (PlayerController && PlayerController->IsLocalController()) ? PlayerController : nullptr;
 }
