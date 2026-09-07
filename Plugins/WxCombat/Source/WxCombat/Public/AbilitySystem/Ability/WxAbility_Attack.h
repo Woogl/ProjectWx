@@ -10,10 +10,7 @@ class UAnimMontage;
 
 /**
  * ComboMontages의 첫 몽타주를 재생하고, 콤보 창 구간의 재발동이 다음 단으로 넘긴다(터미널 단에서는 첫 단으로 되돌아간다).
- *
  * 콤보 진행은 엔진 순정 재발동(bRetriggerInstancedAbility)이라 단계마다 CommitAbility가 새로 걸린다.
- *
- * 타겟 방향 회전은 WxAnimNotifyState_SnapToTarget이 담당.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Attack : public UWxAbilityBase
