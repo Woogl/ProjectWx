@@ -34,6 +34,8 @@ AWxEnemyCharacter::AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer
 
 	LockOnPoint = CreateDefaultSubobject<UWxLockOnPointComponent>(TEXT("LockOnPoint"));
 	LockOnPoint->SetupAttachment(GetMesh(), TEXT("pelvis"));
+
+	MasterStateTag = WxGameplayTags::State_Minion_Active;
 }
 
 void AWxEnemyCharacter::BeginPlay()
@@ -46,6 +48,15 @@ void AWxEnemyCharacter::BeginPlay()
 
 	GetLockOnComponent()->OnLockOnTargetChanged.AddDynamic(this, &ThisClass::HandleAITargetChanged);
 	OnDeath.AddDynamic(this, &ThisClass::HandleOwnerDeath);
+
+	// 주인이 부리는 소환물의 종류와 수를 그대로 세려면 발행이 소환물마다 있어야 한다.
+	if (HasAuthority())
+	{
+		if (UAbilitySystemComponent* MasterASC = GetMasterASC())
+		{
+			MasterASC->AddLooseGameplayTag(MasterStateTag, 1, EGameplayTagReplicationState::TagOnly);
+		}
+	}
 
 	const bool bDead = ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death);
 	RefreshEngagement();
@@ -62,6 +73,13 @@ void AWxEnemyCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 	OwningSpawner.Reset();
 	GetAbilitySystemComponent()->SetLooseGameplayTagCount(WxGameplayTags::State_Engaged, 0);
+
+	// 죽어서 사라지는 소환물은 사망 시점에 이미 반납했다.
+	if (HasAuthority() && IsAlive())
+	{
+		ReleaseMasterStateTag();
+	}
+
 	if (bIsBoss)
 	{
 		OnAnyBossEngagementChanged.Broadcast(this, false);
@@ -150,6 +168,8 @@ void AWxEnemyCharacter::HandleOwnerDeath(AWxCharacterBase* DeadCharacter)
 		return;
 	}
 
+	ReleaseMasterStateTag();
+
 	if (AWxSpawner* Spawner = OwningSpawner.Get())
 	{
 		Spawner->MarkKilled();
@@ -191,4 +211,23 @@ void AWxEnemyCharacter::RefreshEngagement()
 	{
 		OnAnyBossEngagementChanged.Broadcast(this, bEngaged);
 	}
+}
+
+void AWxEnemyCharacter::ReleaseMasterStateTag()
+{
+	if (UAbilitySystemComponent* MasterASC = GetMasterASC())
+	{
+		MasterASC->RemoveLooseGameplayTag(MasterStateTag, 1, EGameplayTagReplicationState::TagOnly);
+	}
+}
+
+UAbilitySystemComponent* AWxEnemyCharacter::GetMasterASC() const
+{
+	// 소환자 없이 배치·스폰된 폰은 APawn이 인스티게이터를 자기 자신으로 채우므로, 이 비교가 곧 소환 여부다.
+	if (GetInstigator() == this || !MasterStateTag.IsValid())
+	{
+		return nullptr;
+	}
+
+	return UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator());
 }

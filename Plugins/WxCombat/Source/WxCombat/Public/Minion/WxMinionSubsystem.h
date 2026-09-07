@@ -14,7 +14,7 @@ struct FGameplayEventData;
 /**
  * 소환물을 서버 권위로 생성해 주인별로 관리한다. AI 빙의는 소환물의 AutoPossessAI에 맡긴다.
  * 로스터에 소환물로 올라 있는 액터는 소환자가 될 수 없다 — 주인의 몽타주를 따라하는 소환물이 같은 노티파이로 증식하지 않는다.
- * 주인에게 살아 있는 소환물이 하나라도 있는 동안 주인 ASC에 State.Minion.Active를 복제 loose 태그로 발행한다 — 소환↔명령 어빌리티가 한 슬롯을 나누는 기준.
+ * 소환물이 살아 있다는 상태 태그는 소환물 자신이 주인 ASC에 올린다(AWxEnemyCharacter::MasterStateTag).
  */
 UCLASS()
 class WXCOMBAT_API UWxMinionSubsystem : public UWorldSubsystem
@@ -22,7 +22,7 @@ class WXCOMBAT_API UWxMinionSubsystem : public UWorldSubsystem
 	GENERATED_BODY()
 
 public:
-	/** 상한을 넘치면 주인의 가장 오래된 소환물부터 파괴한다. 생성하지 않으면 null. */
+	/** SpawnTransform 은 월드 기준이다. 상한을 넘치면 주인의 가장 오래된 소환물부터 파괴한다. */
 	APawn* SpawnMinion(AActor& Master, TSubclassOf<APawn> MinionClass, const FTransform& SpawnTransform, int32 MaxMinionCount);
 
 	/**
@@ -47,14 +47,11 @@ private:
 
 	bool IsMinion(const AActor& Actor) const;
 
-	/** 소환물을 로스터에서 내리고 구독을 푼 뒤 주인을 돌려준다. 로스터에 없으면 null. 태그는 호출자가 마감한다 — 교체 소환은 내림과 올림을 한 번에 반영해야 해서. */
-	AActor* ReleaseMinion(APawn& Minion);
-
-	/** 주인의 로스터가 비었는지로 State.Minion.Active를 올리거나 내린다. */
-	void PublishMinionActiveTag(AActor& Master) const;
+	/** 소환물을 로스터에서 내리고 구독을 푼다. */
+	void ReleaseMinion(APawn& Minion);
 
 	bool TryActivateAbilityByExactTag(UAbilitySystemComponent& MinionASC, const FGameplayTag& AbilityTag, const FGameplayEventData& Payload) const;
 
-	/** 주인 → 소환 순서의 살아 있는 소환물. 사망·파괴는 구독으로 즉시 내린다. 주인이 처음 오를 때 OnEndPlay를 구독하고 EndPlay에서 통째로 내린다. */
+	/** 주인 → 소환 순서의 살아 있는 소환물. 사망·파괴는 구독으로 즉시 내린다. */
 	TMap<TWeakObjectPtr<AActor>, TArray<TWeakObjectPtr<APawn>>> Rosters;
 };

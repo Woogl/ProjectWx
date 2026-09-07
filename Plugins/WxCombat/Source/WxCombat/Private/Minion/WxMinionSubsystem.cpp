@@ -34,7 +34,6 @@ APawn* UWxMinionSubsystem::SpawnMinion(AActor& Master, TSubclassOf<APawn> Minion
 
 	// 새 소환물 한 자리를 확보하되, 상한이 낮아진 경우 초과분도 함께 정리한다.
 	// Destroy가 EndPlay를 동기 호출하므로 로스터에서 먼저 내려야 핸들러가 이 순회와 겹치지 않는다.
-	// 태그는 새 소환물까지 올린 뒤 한 번만 발행한다 — 교체 소환이 한 프레임에 1→0→1로 튀지 않게.
 	const int32 MinionCountToRemove = FMath::Clamp(Minions.Num() - MaxMinionCount + 1, 0, Minions.Num());
 	for (int32 RemovedMinionCount = 0; RemovedMinionCount < MinionCountToRemove; ++RemovedMinionCount)
 	{
@@ -53,7 +52,6 @@ APawn* UWxMinionSubsystem::SpawnMinion(AActor& Master, TSubclassOf<APawn> Minion
 	APawn* Minion = GetWorld()->SpawnActorDeferred<APawn>(MinionClass, SpawnTransform, nullptr, Cast<APawn>(&Master), ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
 	if (!Minion)
 	{
-		PublishMinionActiveTag(Master);
 		return nullptr;
 	}
 
@@ -70,8 +68,6 @@ APawn* UWxMinionSubsystem::SpawnMinion(AActor& Master, TSubclassOf<APawn> Minion
 	{
 		MinionASC->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death).AddUObject(this, &UWxMinionSubsystem::HandleMinionDeathTagChanged, TWeakObjectPtr<APawn>(Minion));
 	}
-
-	PublishMinionActiveTag(Master);
 
 	return Minion;
 }
@@ -137,7 +133,7 @@ void UWxMinionSubsystem::HandleMasterEndPlay(AActor* Actor, EEndPlayReason::Type
 		return;
 	}
 
-	// 로스터를 먼저 내렸으므로 파괴로 오는 소환물 EndPlay는 주인을 못 찾고 그냥 돌아온다. 주인은 끝나는 중이라 태그를 만지지 않는다.
+	// 로스터를 먼저 내렸으므로 파괴로 오는 소환물 EndPlay는 주인을 못 찾고 그냥 돌아온다.
 	for (const TWeakObjectPtr<APawn>& ActiveMinion : Minions)
 	{
 		if (APawn* Minion = ActiveMinion.Get())
@@ -155,10 +151,7 @@ void UWxMinionSubsystem::HandleMinionEndPlay(AActor* Actor, EEndPlayReason::Type
 		return;
 	}
 
-	if (AActor* Master = ReleaseMinion(*Minion))
-	{
-		PublishMinionActiveTag(*Master);
-	}
+	ReleaseMinion(*Minion);
 }
 
 void UWxMinionSubsystem::HandleMinionDeathTagChanged(const FGameplayTag Tag, int32 NewCount, TWeakObjectPtr<APawn> Minion)
@@ -169,10 +162,7 @@ void UWxMinionSubsystem::HandleMinionDeathTagChanged(const FGameplayTag Tag, int
 		return;
 	}
 
-	if (AActor* Master = ReleaseMinion(*DeadMinion))
-	{
-		PublishMinionActiveTag(*Master);
-	}
+	ReleaseMinion(*DeadMinion);
 }
 
 bool UWxMinionSubsystem::IsMinion(const AActor& Actor) const
@@ -191,7 +181,7 @@ bool UWxMinionSubsystem::IsMinion(const AActor& Actor) const
 	return false;
 }
 
-AActor* UWxMinionSubsystem::ReleaseMinion(APawn& Minion)
+void UWxMinionSubsystem::ReleaseMinion(APawn& Minion)
 {
 	for (TPair<TWeakObjectPtr<AActor>, TArray<TWeakObjectPtr<APawn>>>& Roster : Rosters)
 	{
@@ -206,25 +196,8 @@ AActor* UWxMinionSubsystem::ReleaseMinion(APawn& Minion)
 			MinionASC->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death).RemoveAll(this);
 		}
 
-		return Roster.Key.Get();
-	}
-
-	return nullptr;
-}
-
-void UWxMinionSubsystem::PublishMinionActiveTag(AActor& Master) const
-{
-	UAbilitySystemComponent* MasterASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(&Master);
-	if (!MasterASC)
-	{
 		return;
 	}
-
-	const TArray<TWeakObjectPtr<APawn>>* Minions = Rosters.Find(&Master);
-	const bool bHasActiveMinion = Minions && !Minions->IsEmpty();
-
-	// 클라이언트도 이 태그로 소환·명령 중 어느 쪽을 예측 발동할지 고르므로 복제한다.
-	MasterASC->SetLooseGameplayTagCount(WxGameplayTags::State_Minion_Active, bHasActiveMinion ? 1 : 0, EGameplayTagReplicationState::TagOnly);
 }
 
 bool UWxMinionSubsystem::TryActivateAbilityByExactTag(UAbilitySystemComponent& MinionASC, const FGameplayTag& AbilityTag, const FGameplayEventData& Payload) const

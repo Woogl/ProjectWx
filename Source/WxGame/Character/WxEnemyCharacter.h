@@ -7,6 +7,7 @@
 #include "WxInteractable.h"
 #include "Character/WxCharacterBase.h"
 #include "Engine/DataTable.h"
+#include "GameplayTagContainer.h"
 #include "WxEnemyCharacter.generated.h"
 
 class AWxEnemyCharacter;
@@ -14,11 +15,12 @@ class AWxSpawner;
 class UWxAIBehaviorComponent;
 class UWxLockOnPointComponent;
 class UWxNameplateComponent;
+class UAbilitySystemComponent;
 class USceneComponent;
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FWxOnBossEngagementChanged, AWxEnemyCharacter* /*BossCharacter*/, bool /*bEngaged*/);
 
-/** 적 캐릭터의 AI 조립, 상호작용, 보상, 보스 표시 상태를 소유한다. 소환 시 Team을 바꾸면 아군으로 운용할 수 있다. */
+/** 적 캐릭터의 AI 조립, 상호작용, 보상, 보스 표시 상태를 소유한다. */
 UCLASS(Abstract)
 class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnable, public IWxInteractable
 {
@@ -71,13 +73,25 @@ private:
 
 	void RefreshEngagement();
 
+	void ReleaseMasterStateTag();
+
+	/** 소환물일 때만 주인 ASC를 돌려준다. 올릴 태그를 비워 두면 발행할 것이 없으므로 그때도 null. */
+	UAbilitySystemComponent* GetMasterASC() const;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
 	bool bIsBoss = false;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Interaction", meta = (ClampMin = "0", ClampMax = "180"))
 	float BackstabRearHalfAngle = 90.f;
 
-	/** 처치 시 지급할 보상. 비우면 보상 없음. */
+	/**
+	 * 소환되어 살아 있는 동안 주인 ASC에 카운트로 올려 두는 상태 태그.
+	 * 소환물 종류를 가려야 하면 자식 태그를 지정한다 — 소유 태그는 부모까지 세므로 부모를 보는 요건은 그대로 물린다.
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Minion", meta = (Categories = "State.Minion"))
+	FGameplayTag MasterStateTag;
+
+	/** 처치 시 지급할 보상. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Reward", meta = (RowType = "/Script/WxInventory.WxRewardTableRow", WxPreviewRow = "true"))
 	FDataTableRowHandle RewardRow;
 
