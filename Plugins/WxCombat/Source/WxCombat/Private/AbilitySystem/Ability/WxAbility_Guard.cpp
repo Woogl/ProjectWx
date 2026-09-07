@@ -38,7 +38,6 @@ void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, co
 {
 	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
 
-	// 미뤄 둔 종료는 리액션이 끝나는 지점에서 반영한다.
 	// 여기서도 대기를 걸어 둬야 리액션이 자세를 밀어내지 않은 경우에도 가드가 고착되지 않는다.
 	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_GuardReact))

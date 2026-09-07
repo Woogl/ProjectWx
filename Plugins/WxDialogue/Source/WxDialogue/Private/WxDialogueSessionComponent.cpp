@@ -23,7 +23,6 @@
 UWxDialogueSessionComponent::UWxDialogueSessionComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	// RPC 라우팅을 위해 복제 활성화.
 	SetIsReplicatedByDefault(true);
 }
 

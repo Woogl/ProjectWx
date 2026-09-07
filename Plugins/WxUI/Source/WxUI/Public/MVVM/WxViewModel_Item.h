@@ -19,7 +19,6 @@ public:
 	void SetIcon(const TSoftObjectPtr<UObject>& InIcon);
 	virtual void Deinitialize() override;
 
-	/** 표시 중에는 원본을 유지하며 Deinitialize에서 참조를 해제한다. */
 	UPROPERTY(Transient, BlueprintReadOnly, FieldNotify, Category = "Wx|UI")
 	TObjectPtr<const UObject> SourceObject;
 

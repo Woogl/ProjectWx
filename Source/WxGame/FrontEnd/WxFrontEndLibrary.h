@@ -8,7 +8,7 @@
 
 class APawn;
 
-/** WBP 목록 항목. 표시 정보와 입장에 전달할 참조만 보관한다. */
+/** WBP 목록 항목. */
 USTRUCT(BlueprintType)
 struct WXGAME_API FWxFrontEndOption
 {

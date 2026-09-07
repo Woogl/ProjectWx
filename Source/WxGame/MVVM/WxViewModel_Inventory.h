@@ -58,7 +58,7 @@ public:
 	TArray<TObjectPtr<UWxViewModel_InventoryItem>> AllItems;
 
 	/**
-	 * Setter 가 CategorizedItems 재계산을 함께 트리거하므로, 직접 멤버를 쓰지 말고 SetCurrentCategory 로만 변경한다.
+	 * Setter 가 CategorizedItems 재계산을 함께 트리거한다.
 	 */
 	UPROPERTY(BlueprintReadWrite, FieldNotify, BlueprintSetter = SetCurrentCategory, Category = "Wx|Inventory")
 	EWxItemCategory CurrentCategory = EWxItemCategory::Equipment;

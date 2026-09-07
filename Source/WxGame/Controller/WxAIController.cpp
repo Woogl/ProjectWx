@@ -72,7 +72,6 @@ void AWxAIController::OnUnPossess()
 	{
 		WxBlackboardKeys::SetSelfActor(BB, nullptr);
 
-		// 키를 쓴 폰만 지운다.
 		const APawn* PreviousPawn = GetPawn();
 		if (ResolveMinionMaster(PreviousPawn))
 		{

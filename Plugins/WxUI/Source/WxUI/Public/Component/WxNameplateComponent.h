@@ -9,7 +9,7 @@
 
 class UAbilitySystemComponent;
 
-/** 소유자의 태그와 카메라 거리로 표시 여부와 원근 스케일을 자동 조절한다. */
+/** 소유자의 태그와 플레이어 폰과의 거리로 표시 여부와 원근 스케일을 자동 조절한다. */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))
 class WXUI_API UWxNameplateComponent : public UWidgetComponent
 {

@@ -37,7 +37,6 @@ void UWxRootMotionModifier_SnapToTarget::Update(const FMotionWarpingUpdateContex
 			}
 		}
 		// 지정 대상이 창 도중에 도착하거나 바뀌면 회전을 그쪽으로 옮긴다 — 폴백으로 먼저 돈 머신이 권위 값에 수렴하는 경로다.
-		// 이동 역할은 재조준하지 않는다. 부모가 남은 시간에 남은 거리를 반드시 메우므로, 창 도중에 대상을 바꾸면 그 프레임에 캐릭터가 튄다.
 		// 지정 대상이 없는 프레임에는 아무것도 하지 않아 폴백 상태에서 프리셋을 매 틱 재질의하지 않는다.
 		else if (!bWarpTranslation)
 		{
@@ -63,7 +62,6 @@ void UWxRootMotionModifier_SnapToTarget::ApplySnapTarget()
 
 	AActor* DesignatedTarget = UWxLockOnComponent::ResolveLockOnTargetActor(Owner);
 
-	// 위치를 옮기는 역할은 전 머신이 같은 값을 읽는 지정 대상에만 건다 — 로컬 프리셋 폴백으로 밀면 머신마다 다른 곳에 선다.
 	// 대상이 없으면 범위 판정도 볼 것이 없으므로 쿼리 앞에서 끊는다.
 	if (bWarpTranslation && !DesignatedTarget)
 	{
@@ -89,14 +87,12 @@ void UWxRootMotionModifier_SnapToTarget::ApplySnapTarget()
 		}
 	}
 
-	// 접근은 스냅 가능 범위 안에서만 건다.
 	if (bWarpTranslation && TargetingPreset && !TargetingResults.Contains(DesignatedTarget))
 	{
 		MotionWarpingComp->RemoveWarpTarget(WarpTargetName);
 		return;
 	}
 
-	// 회전 역할은 지정 대상이 없어도 폴백으로 돈다. 늦게 도착한 지정 대상은 Update 가 다시 잡는다.
 	AActor* FacingTarget = DesignatedTarget;
 	if (!FacingTarget && TargetingResults.Num() > 0)
 	{

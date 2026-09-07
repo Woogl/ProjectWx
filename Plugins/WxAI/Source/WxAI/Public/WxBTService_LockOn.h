@@ -52,7 +52,7 @@ protected:
 	virtual void OnCeaseRelevant(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
 private:
-	/** Blackboard 타겟·현재 폰에 적용 상태를 맞춘다. 브랜치 진입과 매 틱이 같은 경로를 탄다. */
+	/** 브랜치 진입과 매 틱이 같은 경로를 탄다. */
 	void SyncLockOn(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const;
 
 	/** 컨트롤러가 응시 방향을, 폰 CMC 가 그 방향으로의 회전을 담당하므로 둘은 한 쌍으로 건다. */

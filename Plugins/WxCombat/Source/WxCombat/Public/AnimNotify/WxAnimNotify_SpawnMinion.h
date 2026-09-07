@@ -29,7 +29,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|Minion")
 	FTransform LocalSpawnOffset;
 
-	// TODO: 더 적절한 곳으로 옮겨야함
+	// TODO: 더 적절한 곳으로 옮겨야 한다.
 	/** 소환자가 동시에 유지할 소환물 수. 넘치면 가장 오래된 소환물부터 파괴하고 새로 소환한다. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Minion", meta = (ClampMin = 1))
 	int32 MaxMinionCount = 1;

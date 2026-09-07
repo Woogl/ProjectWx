@@ -147,7 +147,6 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 		return;
 	}
 
-	// 상황에 따라 다른 어빌리티로 교체하지 않는다. Resolver에는 대상을 구분하는 태그를 지정한다.
 	const UGameplayAbility* MatchedAbility = nullptr;
 	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
 	{
@@ -448,7 +447,6 @@ bool UWxViewModel_Ability::FlushActivationRefresh(float DeltaTime)
 {
 	ActivationRefreshHandle.Reset();
 
-	// 상태 태그는 발동 가능 여부만 갱신한다. 상황별 가시성은 위젯의 MVVM 바인딩이 맡는다.
 	RefreshActivationState();
 
 	return false;

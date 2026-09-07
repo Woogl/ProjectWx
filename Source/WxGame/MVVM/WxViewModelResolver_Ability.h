@@ -12,7 +12,7 @@ class UMVVMView;
 
 /**
  * 위젯을 소유한 PlayerController 의 빙의 Pawn 에서 ASC 를 끌어와 AbilityTags 가 가리키는 스킬 슬롯의 뷰모델을 얻는다.
- * 대상 하나를 구분하는 태그를 지정한다. 상황별 표시 여부는 위젯의 MVVM 가시성 바인딩에서 정한다.
+ * 상황별 표시 여부는 위젯의 MVVM 가시성 바인딩에서 정한다.
  */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXGAME_API UWxViewModelResolver_Ability : public UMVVMViewModelContextResolver

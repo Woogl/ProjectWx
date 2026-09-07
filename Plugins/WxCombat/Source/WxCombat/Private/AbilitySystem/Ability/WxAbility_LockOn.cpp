@@ -60,7 +60,7 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	TArray<AActor*> Candidates;
 	GatherCandidates(Candidates);
 
-	// 락온 지점(UWxLockOnPointComponent)이 있는 액터만 대상이 되며, 후보가 거리순이라 첫 지점이 가장 가깝다.
+	// 후보가 거리순이라 첫 지점이 가장 가깝다.
 	USceneComponent* TargetComponent = nullptr;
 	for (AActor* Candidate : Candidates)
 	{
@@ -248,7 +248,6 @@ void UWxAbility_LockOn::HandleRetargetRequested(FVector2D ScreenDirection)
 	UWxLockOnComponent* LockOnComp = Avatar->FindComponentByClass<UWxLockOnComponent>();
 	const USceneComponent* CurrentComponent = LockOnComp ? LockOnComp->GetLockOnTarget() : nullptr;
 
-	// 비교 원점은 현재 락온 지점의 화면 좌표(유저가 보고 있는 레티클 위치).
 	int32 ViewportX = 0;
 	int32 ViewportY = 0;
 	PC->GetViewportSize(ViewportX, ViewportY);

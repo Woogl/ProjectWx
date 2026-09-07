@@ -20,7 +20,7 @@ UWxAIPerceptionComponent::UWxAIPerceptionComponent()
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
 	SightConfig->DetectionByAffiliation.bDetectNeutrals = false;
 	SightConfig->DetectionByAffiliation.bDetectFriendlies = false;
-	// 시야 상실 반경을 감지 반경과 같게 둔다 — 반경 경계에서 붙었다 떨어졌다 하는 것은 리시 복귀가 다루므로 히스테리시스를 두지 않는다.
+	// 반경 경계에서 붙었다 떨어졌다 하는 것은 리시 복귀가 다루므로 시야 상실 반경에 히스테리시스를 두지 않는다.
 	SightConfig->SightRadius = 1500.0f;
 	SightConfig->LoseSightRadius = 1500.0f;
 	// 정면 기준 편측 시야각(도). 전체 시야각은 이 값의 2배다.
@@ -265,7 +265,8 @@ void UWxAIPerceptionComponent::SetTargetActor(AActor* NewTarget)
 		return;
 	}
 
-	// 블랙보드 값이 아니라 적용 기록과 비교한다. 블랙보드 Object 키는 약참조라 타겟이 파괴되면 이 컴포넌트 모르게 비워지고, 그걸 기준으로 삼으면 뒤늦은 해제 요청이 "이미 비어 있다" 로 걸러져 소실 구독이 남는다.
+	// 블랙보드 값이 아니라 적용 기록과 비교한다.
+	// 블랙보드 Object 키는 약참조라 타겟이 파괴되면 이 컴포넌트 모르게 비워지고, 그걸 기준으로 삼으면 뒤늦은 해제 요청이 "이미 비어 있다" 로 걸러져 소실 구독이 남는다.
 	if (AppliedTarget == TObjectKey<AActor>(NewTarget))
 	{
 		return;

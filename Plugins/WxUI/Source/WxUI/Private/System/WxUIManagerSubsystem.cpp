@@ -224,7 +224,7 @@ void UWxUIManagerSubsystem::HandlePlayerControllerSet(APlayerController* PC)
 
 	CreateLayoutForPlayer(PC);
 
-	// 빈 layout 을 채우는 컨텐츠(HUD)는 주입된 컴포넌트가 띄우고, 여기서는 폰 상태 태그 관찰만 빙의를 따라간다.
+	// 빈 layout 을 채우는 컨텐츠(HUD)는 컨트롤러의 UWxPlayerLayoutComponent 가 띄우고, 여기서는 폰 상태 태그 관찰만 빙의를 따라간다.
 	PC->OnPossessedPawnChanged.AddDynamic(this, &ThisClass::HandlePossessedPawnChanged);
 	TrackedPlayerController = PC;
 

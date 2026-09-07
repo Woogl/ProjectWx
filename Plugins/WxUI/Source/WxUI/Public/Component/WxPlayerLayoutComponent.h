@@ -32,11 +32,10 @@ private:
 	void HandleLayoutPushCompleted(UCommonActivatableWidget* Widget);
 	void ClearLayout();
 
-	/** 빙의한 로컬 플레이어에게 띄울 HUD. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TSoftClassPtr<UWxHUDLayout> LayoutClass;
 
-	/** 현재 빙의 Pawn의 ViewModel을 사용하는 HUD. 빙의 대상 변경 시 교체한다. */
+	/** 현재 빙의 Pawn의 ViewModel을 사용하는 HUD. */
 	TWeakObjectPtr<UCommonActivatableWidget> LayoutWidget;
 
 	/** 컴포넌트가 먼저 걷히면 HUD 가 뒤늦게 나타나지 않도록 취소할 진행 중인 요청. */
