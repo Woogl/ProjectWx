@@ -1,6 +1,6 @@
 # WxInventory — 아이템·인벤토리 시스템
 
-> 아이템 정의(데이터 자산)와 런타임 인스턴스, 플레이어 인벤토리 보유·사용·장착, 그리고 보상 지급을 담당한다. 인벤토리는 PlayerController 에 붙어 FastArray 로 복제된다.
+> 아이템 정의(데이터 자산)와 런타임 인스턴스, 플레이어 인벤토리 보유·사용, 그리고 보상 지급을 담당한다. 인벤토리는 PlayerController 에 붙어 FastArray 로 복제된다.
 
 ## 책임
 **담당**
@@ -18,10 +18,10 @@
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxInventoryComponent` | 인벤토리 핵심. Add/Consume/Use/Equip 전부 여기 진입. PlayerController 부착 | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryComponent.h` |
+| `UWxInventoryComponent` | 인벤토리 핵심. Add/Consume/Use 전부 여기 진입. PlayerController 부착 | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryComponent.h` |
 | `FWxInventoryList` | FastArray 복제 백엔드. 엔트리 추가·차감의 실제 구현체 | `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryComponent.h` |
 | `UWxItemDefinition` | 정적 아이템 정의(PrimaryDataAsset) + Fragment 컬렉션 | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemDefinition.h` |
-| `UWxItemFragment` | 기능 축 컴포지션 베이스(Equippable/Usable/Charges/Stackable/Pickup/Grade) | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemFragment.h` |
+| `UWxItemFragment` | 기능 축 컴포지션 베이스(Usable/Charges/Stackable/Pickup/Grade) | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemFragment.h` |
 | `UWxItemInstance` | 슬롯 단위 런타임 상태(충전량·식별자·GE SourceObject) | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemInstance.h` |
 | `UWxRewardLibrary` | 보상 지급의 서버 권위 진입점(픽업 스폰/직접 지급) | `Plugins/WxInventory/Source/WxInventory/Public/WxRewardLibrary.h` |
 | `AWxItemPickup` | 월드 픽업 액터. 상호작용 시 인벤토리에 지급 후 파괴 | `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemPickup.h` |
@@ -29,9 +29,8 @@
 ## 확장 포인트 / 규약
 - 새 아이템 기능 추가는 `UWxItemFragment` 를 상속해 `UWxItemDefinition::Fragments` 에 EditInline 부착. 카테고리는 `Category`(enum), Fragment 는 "무엇을 할 수 있나"만 책임. 필요 시 `OnInstanceCreated` 로 인스턴스 초기 상태 주입
 - 데이터 주도: 아이템은 `UWxItemDefinition` 자산, 보상은 `FWxRewardTableRow` DataTable, 시작 아이템은 컨트롤러 BP 의 인벤토리 컴포넌트 `StartingItems`
-- 권한 모델: Add/Consume/Use/Equip/Grant 는 모두 서버 권한 전용. 클라는 `FWxInventoryList`(FastArray)·`UWxItemInstance`(OnRep) 복제로 수렴하며, 변경 통지는 `OnInventoryStackChanged`/`SlotChanged`/`ChargeChanged`/`ContentsChanged` 델리게이트로 관찰
+- 권한 모델: Add/Consume/Use/Grant 는 모두 서버 권한 전용. 클라는 `FWxInventoryList`(FastArray)·`UWxItemInstance`(OnRep) 복제로 수렴하며, 변경 통지는 `OnInventoryStackChanged`/`SlotChanged`/`ChargeChanged`/`ContentsChanged` 델리게이트로 관찰
 - 인벤토리는 `AWxPlayerController` 생성자의 기본 서브오브젝트이며, 시작 아이템은 BeginPlay 에서 권한 측이 스스로 지급한다. 관찰자는 클래스 차원의 `OnAnyInventoryReady`/`OnAnyInventoryEnded` 로 존재를 감지
-- 장비 경로(`EquipItemByDef`/`UWxEquipmentComponent`)는 배선만 있고 트리거 호출부가 아직 없는 미구현 상태
 
 ## 여기서부터 읽어라
 1. `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryComponent.h` — 모듈의 관문. 보유/사용/소비 API와 복제·통지 구조가 한눈에 들어온다

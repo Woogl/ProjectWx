@@ -5,7 +5,6 @@
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxHitStopComponent.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
-#include "Inventory/WxEquipmentComponent.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/ChildActorComponent.h"
@@ -38,8 +37,6 @@ AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
 	LockOnComponent = CreateDefaultSubobject<UWxLockOnComponent>(TEXT("LockOnComponent"));
 	HitStopComponent = CreateDefaultSubobject<UWxHitStopComponent>(TEXT("HitStopComponent"));
-
-	EquipmentComponent = CreateDefaultSubobject<UWxEquipmentComponent>(TEXT("EquipmentComponent"));
 
 	WeaponActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("WeaponActor"));
 	WeaponActor->SetupAttachment(GetMesh(), TEXT("hand_r"));

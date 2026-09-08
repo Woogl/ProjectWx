@@ -15,7 +15,6 @@ class UChildActorComponent;
 class UMotionWarpingComponent;
 class UWxAbilitySystemComponent;
 class UWxCombatAttributeSet;
-class UWxEquipmentComponent;
 class UWxHitStopComponent;
 class UWxLockOnComponent;
 class UWxMetaHumanComponent;
@@ -85,9 +84,6 @@ protected:
 	/** 히트스톱 GE의 추가·제거를 받아 메시의 애니메이션 시간을 세우고 되돌린다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Combat")
 	TObjectPtr<UWxHitStopComponent> HitStopComponent;
-
-	UPROPERTY(VisibleAnywhere, Category = "Wx|Equipment")
-	TObjectPtr<UWxEquipmentComponent> EquipmentComponent;
 
 	/** BP 의 ChildActorClass 에 기본 무기 BP 를 지정한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Equipment")

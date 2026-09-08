@@ -223,16 +223,6 @@ public:
 	 */
 	bool RefillItemCharges(UWxItemInstance* Instance);
 
-	/**
-	 * 권한: 소유 중인 Equipment Fragment 아이템을 소유 폰의 UWxEquipmentComponent 에 장착 요청.
-	 * 미소유 ItemDef 는 거부한다.
-	 * 스택은 차감하지 않는다.
-	 * ItemDef 가 nullptr 이면 장착 해제.
-	 *
-	 * 미구현: 현재 호출부가 0건이다(BlueprintCallable 도 아니라 BP 진입도 불가). 장비 경로 전체가 배선만 있고 트리거가 없는 상태다 — UWxEquipmentComponent 주석 참조.
-	 */
-	bool EquipItemByDef(const UWxItemDefinition* ItemDef);
-
 	FWxOnInventoryStackChanged OnInventoryStackChanged;
 
 	FWxOnInventorySlotChanged OnInventorySlotChanged;

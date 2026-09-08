@@ -2,7 +2,6 @@
 
 #include "Inventory/WxInventoryComponent.h"
 
-#include "Inventory/WxEquipmentComponent.h"
 #include "Items/WxItemDefinition.h"
 #include "Items/WxItemFragment.h"
 #include "Items/WxItemInstance.h"
@@ -585,34 +584,6 @@ bool UWxInventoryComponent::RefillItemCharges(UWxItemInstance* Instance)
 	Instance->SetCurrentCharges(MaxCharges);
 	const int32 NewCharges = Instance->GetCurrentCharges();
 	NotifyChargeChangedFromSource(Instance, NewCharges, NewCharges - OldCharges);
-	return true;
-}
-
-bool UWxInventoryComponent::EquipItemByDef(const UWxItemDefinition* ItemDef)
-{
-	check(GetOwner() && GetOwner()->HasAuthority());
-
-	if (ItemDef)
-	{
-		if (!ItemDef->FindFragmentByClass<UWxItemFragment_Equippable>())
-		{
-			return false;
-		}
-		if (!FindFirstItemStackByDefinition(ItemDef))
-		{
-			return false;
-		}
-	}
-
-	const APlayerController* PC = GetOwner<APlayerController>();
-	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
-	UWxEquipmentComponent* Equipment = Pawn ? Pawn->FindComponentByClass<UWxEquipmentComponent>() : nullptr;
-	if (!Equipment)
-	{
-		return false;
-	}
-
-	Equipment->EquipItem(ItemDef);
 	return true;
 }
 

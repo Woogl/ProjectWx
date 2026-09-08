@@ -40,17 +40,6 @@ public:
 	virtual void OnInstanceCreated(UWxItemInstance* Instance) const;
 };
 
-/** 장착 시 적용하고 해제 시 제거할 GameplayEffect를 기술한다. */
-UCLASS(DisplayName = "Equippable")
-class WXINVENTORY_API UWxItemFragment_Equippable : public UWxItemFragment
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditDefaultsOnly, Category = "Equippable")
-	TArray<TSubclassOf<UGameplayEffect>> EquipEffects;
-};
-
 /**
  * UWxInventoryComponent::UseItemByDef 가 Effect 적용과 스택 1 차감을 함께 수행한다.
  */

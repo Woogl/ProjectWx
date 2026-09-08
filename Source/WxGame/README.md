@@ -12,7 +12,7 @@
 
 **경계 (비담당)**
 - 전투(ASC/GE/무기/락온/히트스톱) → [[WxCombat]]. 캐릭터는 컴포넌트를 소유만 한다.
-- 인벤토리·장비·아이템 정의 → [[WxInventory]].
+- 인벤토리·아이템 정의 → [[WxInventory]].
 - UI 위젯·뷰모델 베이스 클래스 → [[WxUI]]. 여기 뷰모델은 그 베이스를 상속한다.
 - 월드 오브젝트·상호작용 → [[WxWorld]] / AI 지각·StateTree → [[WxAI]] / 대화 → [[WxDialogue]] / 퀘스트 → [[WxQuest]].
 - 공용 정의·태그·유틸 → [[WxCore]].
