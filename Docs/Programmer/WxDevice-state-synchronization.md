@@ -55,27 +55,3 @@
 | error | 현재 목표의 수렴 중단 원인 |
 
 오류 로그가 있으면 먼저 태그 존재 여부, 로컬 전이 조건, 진입 태스크의 즉시 완료/실패를 확인한다. `waitingInteractor=1`이면 해당 액터의 네트워크 관련성과 참조 해소를 확인한다. 콘솔 로그를 활성화하지 않아도 수렴 중단 원인은 Error로 한 번 출력한다.
-
-## 검증
-
-`Private/Device/Tests/WxDeviceTests.cpp`에서 임시 StateTree 에셋을 컴파일하고 실제 장치와 컴포넌트를 실행한다. 서버/클라이언트 역할과 스냅샷 수신은 테스트가 제어한다.
-
-- `Wx.Device.DelegateReentry`: 조건 실패·지연·성공한 직접 상호작용 자기 전이.
-- `Wx.Device.EventReentry`: 연결 장치 이벤트를 통한 반복 자기 전이.
-- `Wx.Device.UntaggedInitialAndLateJoin`: 미태그 기본 상태에서 권위 초기화·클라이언트 최초 수렴.
-- `Wx.Device.SameTickCompletionAndRecovery`: 같은 틱의 마지막 진입·완료 보존 및 완료한 클라이언트 복구.
-- `Wx.Device.SnapshotBaselineAndReentry`: 최초 수신, 새 번호, 중복 방지, 진입 요청 중 완료 수신.
-- `Wx.Device.RecoveryAttemptLimit`: 반복 자동 완료를 3회로 제한하고 한 번 진단.
-- `Wx.Device.ChildTransitionPreservesParentEntry`: 미태그 자식 이동은 부모 진입을 증가시키지 않음.
-- `Wx.Device.WaitForInteractor`: 미해소 당사자 참조 대기와 해소 후 진입.
-- `Wx.Device.NativeSnapshotSerialization`: 엔진 FRepLayout 구조체 직렬화 왕복, 미해소 참조 보고, 개별 객체 프로퍼티 해소 시 최신 태그·진입 번호·완료 상태 보존. 패키지 맵은 참조 해소 상태만 제어하는 테스트 대역이다.
-
-실행 명령:
-
-```powershell
-& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'C:\Wx\Wx.uproject' -unattended -nop4 -NullRHI -nosound -nosplash '-ExecCmds=Automation RunTests Wx.Device' '-TestExit=Automation Test Queue Empty' '-ReportExportPath=C:\Wx\Saved\Automation\WxDevice' '-abslog=C:\Wx\Saved\Logs\WxDeviceAutomation.log'
-```
-
-테스트 보고서의 성공/실패를 확인해야 한다. 실행기 종료 코드만으로 테스트 성공을 판정하지 않는다.
-
-실제 BP/StateTree 콘텐츠, 다중 프로세스 네트워크 패킷 전송, 실제 NetGUID 캐시의 지연·관련성 변화, 사운드·몽타주 연출은 이 자동화 테스트의 검증 범위 밖이다. 프로퍼티 직렬화 및 적용 단계 테스트를 실제 네트워크 검증과 동일시하지 않는다.

@@ -14,7 +14,7 @@
 class ACharacter;
 class UWxDeviceStateTreeComponent;
 
-/** 최신 상태의 스냅샷이다. 복제 사이의 여러 진입은 최신 진입으로 합쳐지며 과거 연출을 큐로 재생하지 않는다. */
+/** 복제 사이의 여러 진입은 최신 진입으로 합쳐지며 과거 연출을 큐로 재생하지 않는다. */
 USTRUCT()
 struct FWxDeviceStateSnapshot
 {
@@ -91,7 +91,6 @@ protected:
 
 private:
 	friend struct FWxDeviceExecutionExtension;
-	friend struct FWxDeviceTestAccess;
 
 	void InstallExecutionObserver();
 	void HandleBeginApplyTransition(const FStateTreeExecutionExtension::FContextParameters& Context, const FStateTreeTransitionResult& Transition);
