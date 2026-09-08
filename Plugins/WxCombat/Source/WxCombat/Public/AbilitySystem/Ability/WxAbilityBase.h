@@ -156,8 +156,6 @@ protected:
 	
 	bool PlayMontage(UAnimMontage* Montage, FName StartSection = NAME_None);
 
-	UAnimMontage* GetActiveMontage() const;
-
 	UFUNCTION()
 	virtual void HandleMontageCompleted();
 
@@ -176,8 +174,5 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
 
-	UPROPERTY(Transient)
-	TObjectPtr<UAnimMontage> ActiveMontage;
-	
 	TArray<FActiveGameplayEffectHandle> ActivationOwnedEffectHandles;
 };

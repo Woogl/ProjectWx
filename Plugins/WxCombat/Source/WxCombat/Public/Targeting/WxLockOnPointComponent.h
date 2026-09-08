@@ -7,8 +7,6 @@
 #include "GameplayEffectTypes.h"
 #include "WxLockOnPointComponent.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnLockedOnChanged, bool /*bLockedOn*/);
-
 /**
  * 락온 대상은 이 컴포넌트 자체이고 카메라·캐릭터는 그 월드 위치를 조준하므로, 한 액터에 여러 개를 붙여 부위별 락온을 구성한다.
  * 이 컴포넌트가 없는 액터는 플레이어 락온 대상이 될 수 없다(AI 가 겨누는 대상은 이 지점을 거치지 않고 루트를 조준한다).
@@ -32,16 +30,10 @@ public:
 	 */
 	void SetLockedOn(bool bNewLockedOn);
 
-	bool IsLockedOn() const;
-
 	/** 락온 가능한 첫 지점을 반환한다 */
 	static USceneComponent* ResolveLockOnTarget(const AActor* Actor);
 
 	static void GatherLockOnPoints(const AActor* Actor, TArray<USceneComponent*>& OutPoints);
-
-	static bool IsActorLockedOn(const AActor* Actor);
-
-	FWxOnLockedOnChanged OnLockedOnChanged;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Wx")

@@ -29,18 +29,7 @@ bool UWxLockOnPointComponent::CanBeLockedOn() const
 
 void UWxLockOnPointComponent::SetLockedOn(bool bNewLockedOn)
 {
-	if (bLockedOn == bNewLockedOn)
-	{
-		return;
-	}
-
 	bLockedOn = bNewLockedOn;
-	OnLockedOnChanged.Broadcast(bLockedOn);
-}
-
-bool UWxLockOnPointComponent::IsLockedOn() const
-{
-	return bLockedOn;
 }
 
 USceneComponent* UWxLockOnPointComponent::ResolveLockOnTarget(const AActor* Actor)
@@ -81,24 +70,4 @@ void UWxLockOnPointComponent::GatherLockOnPoints(const AActor* Actor, TArray<USc
 			OutPoints.Add(Point);
 		}
 	}
-}
-
-bool UWxLockOnPointComponent::IsActorLockedOn(const AActor* Actor)
-{
-	if (!Actor)
-	{
-		return false;
-	}
-
-	TArray<UWxLockOnPointComponent*> Points;
-	Actor->GetComponents<UWxLockOnPointComponent>(Points);
-	for (const UWxLockOnPointComponent* Point : Points)
-	{
-		if (Point->IsLockedOn())
-		{
-			return true;
-		}
-	}
-
-	return false;
 }
