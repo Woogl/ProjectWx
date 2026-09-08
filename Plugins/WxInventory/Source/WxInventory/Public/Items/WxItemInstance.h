@@ -70,13 +70,13 @@ public:
 
 protected:
 	UFUNCTION()
-	void HandleItemDefReplicated();
+	void OnRep_ItemDef();
 
 	UFUNCTION()
 	void OnRep_CurrentCharges(int32 OldCharges);
 
 private:
-	UPROPERTY(ReplicatedUsing = HandleItemDefReplicated)
+	UPROPERTY(ReplicatedUsing = OnRep_ItemDef)
 	TObjectPtr<const UWxItemDefinition> ItemDef;
 
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentCharges)

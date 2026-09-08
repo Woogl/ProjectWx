@@ -89,7 +89,7 @@ void UWxItemInstance::OnRep_CurrentCharges(int32 OldCharges)
 	}
 }
 
-void UWxItemInstance::HandleItemDefReplicated()
+void UWxItemInstance::OnRep_ItemDef()
 {
 	// 엔트리보다 정의가 늦게 도착해도 현재 목록을 다시 해석한다. 획득 Delta는 만들지 않는다.
 	const APlayerController* PlayerController = GetTypedOuter<APlayerController>();
