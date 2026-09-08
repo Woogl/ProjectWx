@@ -1,51 +1,58 @@
 # WxAI — 코드 리뷰
 
-> 상태 소유권·수명주기 처리가 이 저장소에서 가장 잘 정리된 모듈 중 하나다. BT 노드마다 폰별 격리(`bCreateNodeInstance` / `GetInstanceMemorySize`)를 빠짐없이 챙겼고, 퍼셉션의 구독 해제 경로와 어빌리티 발동/취소의 3중 예외(동기 종료·재발동·취소 거부)는 엔진 동작을 정확히 읽고 짠 흔적이 뚜렷하다. 커버리지: 소스 32파일을 모두 읽었고, `WxAIPerceptionComponent`·`WxBTTask_ActivateAbility`·`WxBTTask_MirrorAbility`·`WxBTComposite_RandomChoice`·`WxBTTask_Patrol`·`WxBTService_LockOn`·`WxBTDecorator_BeyondLeash` 는 호출 경로와 엔진 계약(`OnTargetPerceptionUpdated` 발화 조건, `UBTTask_MoveTo::AbortTask`, `UBTCompositeNode` 메모리 레이아웃, `FScopedAbilityListLock`)을 따라가며 깊게 봤다. 지난 리뷰의 미러링 마감 결함과 `TickTask` 취소 거부 가드 누락은 두 건 모두 수정된 것을 확인했다.
+> 여전히 이 저장소에서 상태 소유권·수명주기 처리가 가장 잘 정리된 모듈이다. 지난 리뷰의 🟡 1번(타겟 소실 후 재획득 불가)은 `FindPerceivedTarget` 도입으로 해소됐고, 규칙 위반은 이번에도 0건이다(`BlueprintCallable`·`FORCEINLINE`·인라인 정의·람다 전부 0건, 32파일 모두 저작권 첫 줄과 `Wx` 접두사, 델리게이트 콜백 6종 모두 `Handle` 접두사, 의존은 `WxCore` 하나). 커버리지: 소스 32파일 전부와 `Build.cs`/`uplugin`/`README`를 읽었고, 새로 들어온 `FindPerceivedTarget` 경로와 어빌리티 발동/중단 프로토콜은 엔진 소스(`UAIPerceptionComponent::GetCurrentlyPerceivedActors`·`ConfigureSense`·`UBehaviorTreeComponent::OnTaskFinished`·틱 대상 선정)를 직접 확인하며 깊게 봤다.
 
 ## 요약
 | 심각도 | 개수 |
 | --- | --- |
 | 🔴 심각 | 0 |
 | 🟡 개선 | 2 |
-| 🟢 사소 | 1 |
+| 🟢 사소 | 2 |
 
 ## 결과
 
-### 1. 🟡 타겟을 해제해도, 이미 계속 보고 있는 다른 적대 액터로는 다시 붙지 못한다
-- **위치**: `Plugins/WxAI/Source/WxAI/Private/WxAIPerceptionComponent.cpp:93-100` (획득 게이트), `:111-120` (사망 해제), `:122-126` (파괴 해제), `:167-173` (빙의 변경 해제)
+### 1. 🟡 타겟 승계가 "가장 가까운 적"이 아니라 해시 순서로 아무나 고른다
+- **위치**: `Plugins/WxAI/Source/WxAI/Private/WxAIPerceptionComponent.cpp:233-250` (호출부는 `:119`, `:128`)
 - **범주**: 버그/정확성
-- **문제**: 타겟 획득은 `HandleTargetPerceptionUpdated` 하나뿐이고, 그 함수는 `OnTargetPerceptionUpdated` 가 올 때만 돈다. 엔진은 이 델리게이트를 **감지 상태가 바뀔 때만** 방송한다(매 갱신마다 오는 것은 별개의 `OnTargetPerceptionInfoUpdated` 다). 그래서 계속 시야에 들어와 있는 액터는 이미 "감지 중" 상태를 유지하는 동안 통지를 한 번도 더 만들지 않는다.
-  결과적으로 타겟을 해제하는 세 경로(사망 태그·`EndPlay`·빙의 변경)에서 폰 앞에 **이미 보이고 있던 다른 적대 액터**가 있어도 타겟이 빈 채로 남는다. 구체적 시나리오: 두 명이 한 적을 상대하다 한 명이 죽으면, 바로 옆에 서 있는 생존자가 시야 안에 있는데도 적은 타겟이 없어 전투 브랜치에서 빠진다. 생존자가 공격(Damage 센스)하거나 소리(Hearing)를 내거나 시야를 끊었다 다시 들어와야 재획득된다.
-  `UWxBTTask_ReturnHome` 경로만 이 함정을 피한다 — `ForgetTargetActor` 가 `ForgetActor` 로 퍼셉션 기록을 지워 다음 시야 질의가 새 상태 변화로 잡히기 때문이다(`WxAIPerceptionComponent.cpp:102-110`). 나머지 해제 경로에는 그 정리가 없다. 헤더 주석(`WxAIPerceptionComponent.h:54`)은 시체가 계속 감지 상태로 남는다는 점을 이미 알고 있는데, cpp 주석(`WxAIPerceptionComponent.cpp:113`)의 "다음 감지 자극에서 정상적으로 재획득한다" 는 그 전제와 어긋난다.
-- **제안**: `SetTargetActor(nullptr)` 로 타겟을 비운 직후(또는 세 Handle 함수의 공통 지점에서) `GetCurrentlyPerceivedActors` 로 현재 감지 중인 목록을 한 번 훑어, 살아 있고 적대적인 첫 액터를 곧바로 다음 타겟으로 승격시킨다. 자극을 기다리지 않고 이미 가진 정보만 다시 읽는 것이라 추가 감지 비용이 없다.
+- **문제**: `FindPerceivedTarget` 은 `GetCurrentlyPerceivedActors(nullptr, ...)` 결과를 앞에서부터 훑어 **첫 번째** 유효 액터를 그대로 승계한다. 그 목록의 원본은 `TMap<TObjectKey<AActor>, FActorPerceptionInfo>` 라 순서가 해시 버킷 순서이며, 거리·최신성·감각 종류와 무관하다. 게다가 `SenseToUse == nullptr` 이면 엔진은 `HasAnyCurrentStimulus()` 로 판정하는데, 이는 **만료 전 성공 자극이 하나라도 있으면 참**이다. Hearing·Damage 의 `MaxAge` 가 5초(`:37-40`)이므로 "4초 전에 소리를 낸 뒤 사라진 액터" 도 후보에 들어간다.
+  구체적 실패: 눈앞의 A와 5초 안에 소리를 냈던 먼 곳의 B가 모두 후보일 때, 타겟이던 C가 죽으면 해시 순서에 따라 **보이지도 않는 B** 를 승계할 수 있다. 그러면 `UWxBTService_LockOn` 은 벽 너머를 겨누고, `TargetDistance` 는 사거리 밖 값이 되어 전투 브랜치가 헛돈다. 나아가 같은 상황이 서버 실행마다(액터 스폰 순서/해시 배치에 따라) 다르게 나올 수 있어 재현도 어렵다.
+- **제안**: 루프를 "첫 유효 액터 반환" 대신 "유효 후보 중 폰과의 거리제곱이 최소인 액터"로 바꾼다. 후보 수가 적어 정렬 없이 순회 중 최소값만 갱신하면 되고, 이미 가진 목록만 다시 읽는 것이라 추가 감지 비용이 없다. 시야를 우선하고 싶다면 `GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), ...)` 를 먼저 시도하고, 비면 전체 목록으로 폴백하는 2단계도 가능하다.
 - **확신도**: 중간
 
-### 2. 🟡 어빌리티 발동/중단/종료 프로토콜이 두 태스크에 통째로 복제돼 있다
-- **위치**: `Plugins/WxAI/Source/WxAI/Private/WxBTTask_MirrorAbility.cpp:46-125`, `:141-177`, `:249-299` ↔ `Plugins/WxAI/Source/WxAI/Private/WxBTTask_ActivateAbility.cpp:16-95`, `:102-139`, `:141-192` (헤더 상태 필드도 `WxBTTask_MirrorAbility.h:65-89` ↔ `WxBTTask_ActivateAbility.h:42-63` 로 동일)
+### 2. 🟡 어빌리티 발동/중단/종료 프로토콜이 두 태스크에 통째로 복제돼 있다 (미해결 이월)
+- **위치**: `Plugins/WxAI/Source/WxAI/Private/WxBTTask_ActivateAbility.cpp:16-95`, `:102-139`, `:141-192` ↔ `Plugins/WxAI/Source/WxAI/Private/WxBTTask_MirrorAbility.cpp:46-125`, `:141-177`, `:249-299` (헤더 상태 필드도 `WxBTTask_ActivateAbility.h:38-63` ↔ `WxBTTask_MirrorAbility.h:56-89` 로 동일)
 - **범주**: 중복/복잡도
-- **문제**: 태그를 어디서 얻느냐(저작값 `AbilityTag` vs 대상 ASC 폴링 `MirroredTag`)만 다르고, 그 뒤의 `FScopedAbilityListLock` 후보 순회·재발동 판별·`ActivationResult` 되감기·`CanBeCanceled` 즉시 마감·`GetTaskStatus` 로 abort/완료를 가르는 종료 처리까지 약 150줄이 주석 문구 차이를 빼면 문자 단위로 같다. 이 프로토콜은 이 모듈에서 가장 미묘한 코드라, 한쪽에서 결함이 나오면 반드시 양쪽을 같이 고쳐야 하는데 그 연결이 코드에 드러나 있지 않다. 실제로 지난 리뷰가 지적한 "MirrorAbility 쪽에만 `CanBeCanceled` 가드가 없다" 는 결함이 정확히 이 방식으로 생겼다(지금은 수정됨).
-- **제안**: 두 노드 클래스는 그대로 두고(과거에 "기존 발동 태스크와 통합" 은 명시적으로 기각됐다), 발동 대상 태그만 순수 가상 함수로 뽑은 공통 베이스(`UWxBTTask_AbilityBase` 등)로 발동·중단·종료 구간을 끌어올린다. 통합이 아니라 프로토콜 한 벌만 공유하는 것이므로 기존 결정과 충돌하지 않는다. 이마저 원치 않으면 최소한 양쪽 헤더에 "이 프로토콜은 반대편 태스크와 쌍으로 유지한다" 는 주석을 남겨 다음 수정자가 한쪽만 고치지 않게 한다.
-- **확신도**: 낮음(의도된 설계일 수 있음 — 두 태스크를 별도 클래스로 유지하기로 한 선행 결정이 있다)
+- **문제**: 발동 대상 태그를 어디서 얻느냐(저작값 `AbilityTag` vs 대상 ASC 폴링 `MirroredTag`)만 다르고, `FScopedAbilityListLock` 후보 순회 → `ActivatedHandle` 선기록 → 재발동 판별(`FindAbilitySpecFromHandle`+`IsActive`) → `ActivationResult` 되감기 → `CanBeCanceled` 거부 시 즉시 마감 → `GetTaskStatus` 로 abort/완료를 가르는 종료 처리까지 약 150줄이 주석 문구를 빼면 문자 단위로 같다.
+  이 프로토콜은 모듈에서 가장 미묘한 코드이고, 실제로 과거에 "`MirrorAbility` 쪽에만 `CanBeCanceled` 가드가 없다" 는 결함이 정확히 이 복제 구조에서 나왔다. 지금도 한쪽만 고칠 위험이 그대로 남아 있으며, 코드 어디에도 두 파일이 쌍이라는 표시가 없다.
+- **제안**: 두 노드를 통합하지 말고(별도 클래스 유지는 선행 결정), 발동 대상 태그만 순수 가상으로 뽑은 공통 베이스(`UWxBTTask_AbilityBase` 등)로 발동·중단·종료 구간만 끌어올린다. 구체 BT Task 를 상속하는 것이 아니라 프로토콜 한 벌을 공유하는 것이라 기존 결정과 충돌하지 않는다. 그마저 원치 않으면 최소한 양쪽 헤더에 "이 프로토콜은 반대편 태스크와 쌍으로 유지한다" 는 주석을 남긴다.
+- **확신도**: 낮음(의도된 설계일 수 있음 — 두 태스크를 독립 클래스로 유지하기로 한 선행 결정이 있다)
 
-### 3. 🟢 BT 노드 3종에 NodeName 이 없어 그래프에 클래스명이 그대로 노출된다
+### 3. 🟢 BT 노드 3종에 `NodeName` 이 없어 그래프에 클래스명이 그대로 노출된다 (미해결 이월)
 - **위치**: `Plugins/WxAI/Source/WxAI/Private/WxBTTask_ActivateAbility.cpp:11-14`, `Plugins/WxAI/Source/WxAI/Private/WxBTTask_Wander.cpp:13-19`, `Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_AttributeRatio.cpp:9-16`
 - **범주**: 설계/구조
-- **문제**: 나머지 노드는 생성자에서 `NodeName` 을 지정해 BT 에디터에 "Patrol", "Lock On", "Random Choice", "Mirror Ability" 로 뜨는데, 이 셋만 비어 있어 엔진 폴백인 `WxBTTask_ActivateAbility` 형태의 타입명이 그대로 보인다. 이 모듈은 BT 저작 표면 그 자체이므로 일관성이 곧 사용성이다. (지난 리뷰에서 지적됐으나 그대로 남아 있다.)
+- **문제**: 나머지 노드는 생성자에서 `NodeName` 을 지정해 BT 에디터에 "Patrol", "Lock On", "Random Choice", "Mirror Ability", "Beyond Leash", "Return Home", "Random Weight", "Update Target Distance" 로 뜨는데 이 셋만 비어 있어 엔진 폴백인 타입명이 그대로 보인다. 이 모듈은 BT 저작 표면 그 자체라 일관성이 곧 사용성이다. 두 차례 리뷰에서 연속으로 남아 있다.
 - **제안**: 각 생성자에 `NodeName = TEXT("Activate Ability")` / `TEXT("Wander")` / `TEXT("Attribute Ratio")` 한 줄씩 추가한다.
 - **확신도**: 높음
 
+### 4. 🟢 리시 복귀가 끝난 뒤에는, 복귀 내내 계속 보이던 적대 액터를 다시 물지 못한다
+- **위치**: `Plugins/WxAI/Source/WxAI/Private/WxAIPerceptionComponent.cpp:102-110`, `Plugins/WxAI/Source/WxAI/Private/WxBTTask_ReturnHome.cpp:28-35`
+- **범주**: 버그/정확성
+- **문제**: `ForgetTargetActor` 는 **현재 타겟 하나만** `ForgetActor` 하고 `SetTargetActor(nullptr)` 로 끝낸다. 다른 적대 액터의 감지 기록은 그대로 남고, 엔진은 감지 상태가 뒤집힐 때만 `OnTargetPerceptionUpdated` 를 방송하므로 복귀 내내 계속 보이고 있던 액터는 새 통지를 만들지 않는다. 결과적으로 복귀가 끝나 `UWxBTDecorator_BeyondLeash` 가 거짓으로 돌아온 뒤에도 `TargetActor` 가 빈 채라, 홈 근처에 서 있는 적을 눈앞에 두고 전투 브랜치가 열리지 않는다.
+  같은 컴포넌트의 빙의 변경 경로(`:176`)는 `ForgetAll()` 로 이 함정을 피하고 있어 처리도 비대칭이다. 대부분의 경우 복귀 이동으로 시야 반경(1500)을 벗어났다가 재진입하며 자연히 풀리므로 노출 빈도는 낮다.
+- **제안**: `ForgetTargetActor` 를 `ForgetActor(Target)` 대신 `ForgetAll()` 로 바꾸면 다음 퍼셉션 갱신에서 보이는 모든 액터가 새 상태 변화로 다시 등록돼 자연 재획득된다. 단 이 경우 복귀 중에도 즉시 새 타겟이 잡히므로(브랜치는 `BeyondLeash` 가 잡고 있어 전투로 넘어가지는 않는다) "복귀 동안 타겟 없음"을 유지하려는 의도가 있었다면 그 의도가 사라진다는 점을 확인하고 결정한다.
+- **확신도**: 낮음(의도된 설계일 수 있음 — 복귀는 디스인게이지이므로 타겟을 비운 채 두는 것이 목적일 수 있다)
+
 ## 검토 범위
-- **깊게 본 파일**: `Plugins/WxAI/Source/WxAI/Private/WxAIPerceptionComponent.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTTask_MirrorAbility.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTTask_ActivateAbility.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTComposite_RandomChoice.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTTask_Patrol.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTService_LockOn.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_BeyondLeash.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTTask_Wander.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBlackboardKeys.cpp`
-- **훑은 파일**: `Plugins/WxAI/Source/WxAI/Private/WxPatrolComponent.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTTask_ReturnHome.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTService_TargetDistance.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_AttributeRatio.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_RandomWeight.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxAnimNotify_ReportNoise.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxAIModule.cpp`, 대응 Public 헤더 16종, `Plugins/WxAI/Source/WxAI/WxAI.Build.cs`, `Plugins/WxAI/WxAI.uplugin`, `Plugins/WxAI/README.md`
+- **깊게 본 파일**: `Plugins/WxAI/Source/WxAI/Private/WxAIPerceptionComponent.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTTask_ActivateAbility.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTTask_MirrorAbility.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTComposite_RandomChoice.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTService_LockOn.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTTask_Patrol.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_BeyondLeash.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTTask_Wander.cpp`
+- **훑은 파일**: `Plugins/WxAI/Source/WxAI/Private/WxBlackboardKeys.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxPatrolComponent.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTTask_ReturnHome.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTService_TargetDistance.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_AttributeRatio.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_RandomWeight.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxAnimNotify_ReportNoise.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxAIModule.cpp`, 대응 Public 헤더 16종, `Plugins/WxAI/Source/WxAI/WxAI.Build.cs`, `Plugins/WxAI/WxAI.uplugin`, `Plugins/WxAI/README.md`, 소비자 확인용 `Source/WxGame/Controller/WxAIController.cpp`
 - **검증했으나 문제 없음(오탐 배제 기록)**:
-  - 모듈 규칙 — `Build.cs`/`uplugin` 의존은 `WxCore` 하나뿐이고, 실제 include 도 `WxGameplayTags.h` 외 도메인 참조가 없다. `BlueprintCallable`/`BlueprintPure`·`FORCEINLINE`·헤더 인라인 정의·람다는 모듈 전체에 0건, 32파일 모두 첫 줄이 규정 저작권 문구다. 델리게이트 콜백 6종 모두 `Handle` 접두사를 지켰고, 타입 접두사도 전부 `Wx` 다.
-  - 지난 리뷰 지적 2건이 수정된 것을 확인 — `UWxBTTask_MirrorAbility::TickTask` 는 이제 `Succeeded` 로 마감하고(`:220`), 같은 자리에 `CanBeCanceled` 거부 경고도 들어갔다(`:203-217`).
-  - `UWxBTDecorator_AttributeRatio`·`UWxBTDecorator_RandomWeight` 가 `bAllowAbortLowerPri`/`bAllowAbortChildNodes` 를 모두 끈 것은 실수가 아니라 정합적이다 — 어트리뷰트·가중치 변화는 관찰자로 잡을 수단이 없으므로 엔진이 `FlowAbortMode` 를 `None` 으로만 저작하게 강제한다.
-  - `UWxBTTask_Patrol` 의 완주 시 `InProgress` 상주 — `UBTTask_MoveTo` 의 태스크 메모리는 `InitializeNodeMemory` 로 0 초기화돼 `bWaitingForPath` 가 꺼져 있고, `AbortTask` 도 무효 `MoveRequestID` 를 안전하게 통과한다. 감속 GE 도 이 분기 앞에서 되돌아가 붙지 않는다.
-  - `UWxBTService_LockOn` 의 포커스/회전 모드 왕복 — 최초 진입·재타겟·폰 교체·타겟 소실 네 경로를 모두 따라가 `ReleaseLockOn` 의 멱등성과 아키타입 복원이 성립함을 확인했다. `bCallTickOnSearchStart` 를 쓰지 않는 판단도 근거가 맞다.
-  - `UWxBTComposite_RandomChoice` 의 `FBTCompositeMemory` 확장, 가중치 0 후보 제외와 회피 완화 순서, `TotalWeight > 0` 보장, 부동소수 폴백(`:114`) 모두 정합적이다.
-  - `UWxBTTask_ActivateAbility`/`MirrorAbility` 의 `AddUObject` 구독은 약참조라 노드 인스턴스나 ASC 가 먼저 사라져도 댕글링이 되지 않는다. `CleanUp` 이 ASC 소멸 후 해제를 건너뛰는 것도 안전하다.
-- **미검토 / 한계**: BT/Blackboard 애셋과 `AWxAIController` 가 이 노드들을 어떤 트리 형태로 조립하는지는 리뷰 범위 밖이라, 발견 1의 실제 체감(전투 브랜치 게이트가 `TargetActor` 를 어떻게 읽는지)과 `UWxBTComposite_RandomChoice` 가 조건 실패 자식 전부에 활성화 실패를 통지하는 설계의 부작용은 코드 근거로만 적었다. `UWxAIPerceptionComponent::PostInitProperties` 의 `ConfigureSense` 3회 호출은 지난 리뷰가 엔진 소스로 검증한 결과를 그대로 받아들였고 이번에 재검증하지 않았다. 리플리케이션·데디케이티드 서버 경로는 `UWxAnimNotify_ReportNoise` 의 `HasAuthority` 가드 외에는 보지 않았다.
+  - `PostInitProperties` 의 `ConfigureSense` 3회 호출 — 엔진 `UAIPerceptionComponent::ConfigureSense` 가 같은 클래스의 기존 항목을 **교체**하므로, 아키타입에서 복사된 `SensesConfig` 위에 다시 등록해도 중복이 생기지 않는다(UE 5.8 소스 확인).
+  - `ForgetActor`/`ForgetAll` 은 Shipping 에서도 컴파일되는 정식 API 라, 리시 복귀의 기록 정리가 빌드 구성에 따라 달라지지 않는다.
+  - Damage 센스에 피아 필터가 없는 문제 — 저장소 전체에서 `ReportDamageEvent` 호출부는 `WxAIPerceptionComponent.cpp:204` 하나뿐이고 그 앞에 `FGenericTeamId::GetAttitude` 가드가 있다. 따라서 `FindPerceivedTarget` 이 아군을 후보로 받을 경로는 현재 없다(향후 BP/타 모듈이 직접 보고하면 깨지는 전제다).
+  - `UWxBTTask_MirrorAbility::TickTask` 가 abort 진행 중에도 호출돼 `FinishLatentTask(Succeeded)` 로 마감할 수 있는 점 — 엔진 `UBehaviorTreeComponent::OnTaskFinished` 는 `bWasAborting` 이면 결과값을 무시하고 `RequestExecution` 을 걸지 않으므로(트리 상태는 정상 복구) 실질 영향이 디버거 표시에 그친다. 결함으로 올리지 않았다.
+  - `UWxBTComposite_RandomChoice` 의 `FBTCompositeMemory` 확장(엔진 `FBTParallelMemory` 와 동일 패턴), 가중치 0 후보 제외와 회피 완화 순서, 부동소수 폴백(`:114`) 모두 정합적이다.
+  - `UWxBTTask_Patrol` 완주 시 `InProgress` 상주, `UWxBTService_LockOn` 의 포커스/회전 모드 왕복(진입·재타겟·폰 교체·소실 4경로), 어빌리티 태스크의 `AddUObject` 약참조 수명 — 지난 리뷰와 동일 결론으로 재확인했다.
+- **미검토 / 한계**: BT/Blackboard 애셋이 이 노드들을 어떤 트리 형태로 조립하는지는 범위 밖이라, 발견 1·4의 체감 강도(전투 브랜치가 `TargetActor` 를 어떤 게이트로 읽는지)는 코드 근거로만 적었다. 리플리케이션·데디케이티드 서버 경로는 `UWxAnimNotify_ReportNoise` 의 `HasAuthority` 가드와 "퍼셉션/BT 는 서버 전용" 전제 외에는 보지 않았다. `UWxBTTask_Patrol` 의 `PatrolCursor` 가 컨트롤러 재사용으로 더 짧은 경로에 남는 경우는 `USplineComponent` 가 입력 키를 클램프해 크래시가 없음만 확인하고, 실제 재사용 시나리오가 존재하는지는 확인하지 않았다.
 
 ---
-*문서 기준 커밋 `6ea7624` · 리뷰일 2026-09-06 · 소스 32파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `262e4cca` · 리뷰일 2026-09-08 · 소스 32파일 — `/module-review`로 갱신*
