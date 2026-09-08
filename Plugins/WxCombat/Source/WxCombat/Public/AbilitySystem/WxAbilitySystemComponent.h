@@ -27,7 +27,7 @@ public:
 	/** 마지막 AnimatingAbility가 해제될 때 몽타주 전의 메시 본 갱신 정책을 복원한다. */
 	virtual void ClearAnimatingAbility(UGameplayAbility* Ability) override;
 
-	void GiveAbilitySet();
+	void GiveAbilitySets();
 
 	/**
 	 * 홀드형 트리거는 눌려 있는 동안 매 프레임 들어온다.
@@ -66,10 +66,14 @@ private:
 	EVisibilityBasedAnimTickOption PreviousMontageTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
 
 protected:
-	// 소유 캐릭터가 "Wx|GAS"를 쓰므로 여기서 같은 경로를 쓰면 Class Defaults 패널에 GAS 헤더가 두 번 그려진다.
+	/**
+	 * 앞에서부터 순서대로 부여한다. 두 세트가 같은 어트리뷰트 행을 지정하면 뒤 세트가 앞 세트 값을 덮는다.
+	 *
+	 * 소유 캐릭터가 "Wx|GAS"를 쓰므로 여기서 같은 경로를 쓰면 Class Defaults 패널에 GAS 헤더가 두 번 그려진다.
+	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
-	TObjectPtr<UWxAbilitySet> AbilitySet;
+	TArray<TObjectPtr<UWxAbilitySet>> AbilitySets;
 
-	bool bAbilitySetGranted = false;
+	bool bAbilitySetsGranted = false;
 
 };

@@ -196,7 +196,7 @@ void AWxCharacterBase::InitAbilitySystem()
 	// 재빙의·PlayerState 재복제로 다시 들어온다. 바뀐 컨트롤러를 다시 물리는 이 갱신은 매번 필요하다.
 	AbilitySystemComponent->RefreshAbilityActorInfo();
 
-	// GiveAbilitySet보다 먼저 등록해야 초기 어트리뷰트 변경(SPD 등)이 콜백에 반영된다.
+	// GiveAbilitySets보다 먼저 등록해야 초기 어트리뷰트 변경(SPD 등)이 콜백에 반영된다.
 	FOnGameplayAttributeValueChange& SPDChanged =
 		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetSPDAttribute());
 	if (!SPDChanged.IsBoundToObject(this))
@@ -211,7 +211,7 @@ void AWxCharacterBase::InitAbilitySystem()
 	// GiveAbility는 서버에서만 허용. 클라이언트에는 서버로부터 복제됨
 	if (HasAuthority())
 	{
-		AbilitySystemComponent->GiveAbilitySet();
+		AbilitySystemComponent->GiveAbilitySets();
 	}
 }
 

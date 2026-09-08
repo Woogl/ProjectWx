@@ -62,16 +62,14 @@ void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC) const
 	}
 }
 
-TArray<const UInputAction*> UWxAbilitySet::GetInputActions() const
+void UWxAbilitySet::AppendInputActions(TArray<const UInputAction*>& OutInputActions) const
 {
-	TArray<const UInputAction*> InputActions;
 	for (const TSubclassOf<UWxAbilityBase>& AbilityClass : GrantedAbilities)
 	{
 		const UWxAbilityBase* AbilityCDO = AbilityClass.GetDefaultObject();
 		if (AbilityCDO && AbilityCDO->ActivationInputAction)
 		{
-			InputActions.AddUnique(AbilityCDO->ActivationInputAction.Get());
+			OutInputActions.AddUnique(AbilityCDO->ActivationInputAction.Get());
 		}
 	}
-	return InputActions;
 }

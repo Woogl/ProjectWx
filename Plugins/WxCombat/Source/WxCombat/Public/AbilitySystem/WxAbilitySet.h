@@ -12,7 +12,7 @@ class UGameplayEffect;
 class UWxAbilitySystemComponent;
 class UInputAction;
 
-/** 캐릭터 BP가 이 에셋을 지정하면 InitAbilitySystem 시점에 서버에서 모든 항목이 ASC에 일괄 부여된다. */
+/** 캐릭터 BP가 ASC의 AbilitySets에 이 에셋을 넣으면 InitAbilitySystem 시점에 서버에서 모든 항목이 ASC에 일괄 부여된다. */
 UCLASS(BlueprintType, Const)
 class WXCOMBAT_API UWxAbilitySet : public UPrimaryDataAsset
 {
@@ -21,8 +21,8 @@ class WXCOMBAT_API UWxAbilitySet : public UPrimaryDataAsset
 public:
 	void GiveToAbilitySystem(UWxAbilitySystemComponent* ASC) const;
 
-	/** 각 어빌리티 CDO가 요구하는 입력 액션 전체(중복 제거) */
-	TArray<const UInputAction*> GetInputActions() const;
+	/** 여러 세트를 한 배열에 모으므로 중복 제거는 받은 배열 기준이다. */
+	void AppendInputActions(TArray<const UInputAction*>& OutInputActions) const;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Attributes", meta = (RowType = "/Script/WxCombat.WxCombatAttributeInitTableRow", WxPreviewRow = "true"))

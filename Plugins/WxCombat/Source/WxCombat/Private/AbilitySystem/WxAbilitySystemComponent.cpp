@@ -42,18 +42,24 @@ void UWxAbilitySystemComponent::ClearAnimatingAbility(UGameplayAbility* Ability)
 	}
 }
 
-void UWxAbilitySystemComponent::GiveAbilitySet()
+void UWxAbilitySystemComponent::GiveAbilitySets()
 {
 	// ASC는 캐릭터 서브오브젝트라 재빙의 후에도 앞서 부여한 어빌리티를 그대로 쥐고 있다.
 	// 다시 부여하면 어빌리티·GE가 중복되고 어트리뷰트 초기화가 HP/SP를 초기값으로 되돌린다.
-	if (!AbilitySet || bAbilitySetGranted)
+	if (bAbilitySetsGranted)
 	{
 		return;
 	}
 
-	bAbilitySetGranted = true;
+	bAbilitySetsGranted = true;
 
-	AbilitySet->GiveToAbilitySystem(this);
+	for (const TObjectPtr<UWxAbilitySet>& Set : AbilitySets)
+	{
+		if (Set)
+		{
+			Set->GiveToAbilitySystem(this);
+		}
+	}
 }
 
 void UWxAbilitySystemComponent::HandleSPChanged(const FOnAttributeChangeData& ChangeData)
@@ -228,11 +234,15 @@ bool UWxAbilitySystemComponent::TryActivateByInputAction(const UInputAction* Act
 
 TArray<const UInputAction*> UWxAbilitySystemComponent::GetAbilityInputActions() const
 {
-	if (AbilitySet)
+	TArray<const UInputAction*> InputActions;
+	for (const TObjectPtr<UWxAbilitySet>& Set : AbilitySets)
 	{
-		return AbilitySet->GetInputActions();
+		if (Set)
+		{
+			Set->AppendInputActions(InputActions);
+		}
 	}
-	return TArray<const UInputAction*>();
+	return InputActions;
 }
 
 float UWxAbilitySystemComponent::GetMontagePlayRate() const
