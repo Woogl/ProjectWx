@@ -153,6 +153,11 @@ FText AWxEnemyCharacter::GetInteractionPrompt() const
 	return FText::FromString(TEXT("Finisher"));
 }
 
+int32 AWxEnemyCharacter::GetMaxCountPerMaster() const
+{
+	return MaxCountPerMaster;
+}
+
 void AWxEnemyCharacter::HandleAITargetChanged(USceneComponent* NewTarget)
 {
 	RefreshEngagement();

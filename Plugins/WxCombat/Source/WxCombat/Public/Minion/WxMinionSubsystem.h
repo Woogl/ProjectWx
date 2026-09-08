@@ -22,8 +22,8 @@ class WXCOMBAT_API UWxMinionSubsystem : public UWorldSubsystem
 	GENERATED_BODY()
 
 public:
-	/** SpawnTransform 은 월드 기준이다. 상한을 넘치면 주인의 가장 오래된 소환물부터 파괴한다. */
-	APawn* SpawnMinion(AActor& Master, TSubclassOf<APawn> MinionClass, const FTransform& SpawnTransform, int32 MaxMinionCount);
+	/** SpawnTransform 은 월드 기준이다. 소환물 클래스가 선언한 상한을 넘치면 주인의 가장 오래된 소환물부터 파괴한다. */
+	APawn* SpawnMinion(AActor& Master, TSubclassOf<APawn> MinionClass, const FTransform& SpawnTransform);
 
 	/**
 	 * 주인이 관리 중인 활성 소환물 모두에게 정확한 식별 태그의 어빌리티 발동을 요청하고, 발동을 수락한 소환물 수를 반환한다.

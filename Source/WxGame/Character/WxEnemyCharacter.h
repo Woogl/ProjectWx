@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Spawnable/WxSpawnable.h"
 #include "WxInteractable.h"
+#include "Minion/WxMinion.h"
 #include "Character/WxCharacterBase.h"
 #include "Engine/DataTable.h"
 #include "GameplayTagContainer.h"
@@ -22,7 +23,7 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FWxOnBossEngagementChanged, AWxEnemyCharact
 
 /** 적 캐릭터의 AI 조립, 상호작용, 보상, 보스 표시 상태를 소유한다. */
 UCLASS(Abstract)
-class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnable, public IWxInteractable
+class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnable, public IWxInteractable, public IWxMinion
 {
 	GENERATED_BODY()
 
@@ -48,6 +49,10 @@ public:
 	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
 	
+	//~ Begin IWxMinion
+	virtual int32 GetMaxCountPerMaster() const override;
+	//~ End IWxMinion
+
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
@@ -90,6 +95,10 @@ private:
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Minion", meta = (Categories = "State.Minion"))
 	FGameplayTag MasterStateTag;
+
+	/** 주인이 이 소환물을 동시에 몇 마리까지 유지할지. 넘치면 주인의 가장 오래된 소환물부터 파괴하고 새로 소환한다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Minion", meta = (ClampMin = 1))
+	int32 MaxCountPerMaster = 1;
 
 	/** 처치 시 지급할 보상. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Reward", meta = (RowType = "/Script/WxInventory.WxRewardTableRow", WxPreviewRow = "true"))

@@ -7,7 +7,7 @@
 #include "WxAnimNotify_SpawnMinion.generated.h"
 
 /**
- * 소환 클래스·위치·상한을 풀어 월드의 MinionSubsystem에 생성을 맡긴다. 권위 판정과 상한 처리는 서브시스템이 한다.
+ * 소환 클래스와 스폰 지점을 풀어 월드의 MinionSubsystem에 생성을 맡긴다. 권위 판정과 상한 처리는 서브시스템이 한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAnimNotify_SpawnMinion : public UAnimNotify
@@ -21,16 +21,11 @@ public:
 	virtual FString GetNotifyName_Implementation() const override;
 
 protected:
-	/** 소환자의 팀을 물려받을 수 있는 Pawn만 지정한다. */
-	UPROPERTY(EditAnywhere, Category = "Wx|Minion", meta = (MustImplement = "/Script/AIModule.GenericTeamAgentInterface"))
+	/** 동시 유지 수를 선언하는 소환물만 지정한다. 소환자의 팀을 물려받을 수 있는지는 서브시스템이 런타임에 본다. */
+	UPROPERTY(EditAnywhere, Category = "Wx|Minion", meta = (MustImplement = "/Script/WxCombat.WxMinion"))
 	TSubclassOf<APawn> MinionClass;
 
 	/** 소환자 로컬 기준 스폰 지점. 실제 위치는 스폰 시 충돌 보정으로 밀릴 수 있다. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Minion")
 	FTransform LocalSpawnOffset;
-
-	// TODO: 더 적절한 곳으로 옮겨야 한다.
-	/** 소환자가 동시에 유지할 소환물 수. 넘치면 가장 오래된 소환물부터 파괴하고 새로 소환한다. */
-	UPROPERTY(EditAnywhere, Category = "Wx|Minion", meta = (ClampMin = 1))
-	int32 MaxMinionCount = 1;
 };
