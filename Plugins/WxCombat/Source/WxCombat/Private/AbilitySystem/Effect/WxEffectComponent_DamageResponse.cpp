@@ -5,6 +5,7 @@
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
+#include "Weapon/WxProjectileBase.h"
 #include "WxGameplayTags.h"
 
 void UWxEffectComponent_DamageResponse::OnGameplayEffectExecuted(FActiveGameplayEffectsContainer& ActiveGEContainer, FGameplayEffectSpec& GESpec, FPredictionKey& PredictionKey) const
@@ -100,12 +101,17 @@ void UWxEffectComponent_DamageResponse::ProcessPerfectGuard(UAbilitySystemCompon
 	EventData.Instigator = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
 	EventData.Target = ASC->GetOwnerActor();
 	EventData.EventMagnitude = ReflectAmount;
-	EventData.InstigatorTags = Spec.GetDynamicAssetTags();
 	EventData.ContextHandle = ContextHandle;
 	ASC->HandleGameplayEvent(WxGameplayTags::Event_PerfectGuard, &EventData);
 
+	// 투사체는 되돌아가는 것 자체가 보복이라 공격자에게 GP와 패리 리액션을 겹쳐 넣지 않는다.
+	// 되돌아가는 판정은 투사체 쪽과 같아야 한다 — Damage.CanParry가 없으면 파괴만 되므로 보복이 없고, 막아낸 대가인 GP는 들어가야 한다.
+	const AActor* EffectCauser = ContextHandle.GetEffectCauser();
+	const bool bCanParry = Spec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanParry);
+	const bool bReflectedProjectile = bCanParry && EffectCauser && EffectCauser->IsA<AWxProjectileBase>();
+
 	// 가드 어빌리티의 구독 수명과 무관하게 이 GE에서 성립한 퍼펙트 가드 결과를 처리한다.
-	if (SourceASC && Spec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanParry))
+	if (SourceASC && !bReflectedProjectile)
 	{
 		// 이미 그로기면 GP를 더해 남은 드레인 시간보다 회복을 늦추지 않는다.
 		// 방어자 컨텍스트를 사용해야 반사 GP에 의한 그로기의 원인이 방어자로 기록된다.
@@ -114,11 +120,15 @@ void UWxEffectComponent_DamageResponse::ProcessPerfectGuard(UAbilitySystemCompon
 			UWxEffect_AddGP::Apply(SourceASC, ReflectAmount, ASC->MakeEffectContext());
 		}
 
-		FGameplayEventData ParryEventData;
-		ParryEventData.EventTag = WxGameplayTags::Event_Hit_Parry;
-		ParryEventData.Instigator = ASC->GetAvatarActor();
-		ParryEventData.Target = SourceASC->GetOwnerActor();
-		SourceASC->HandleGameplayEvent(WxGameplayTags::Event_Hit_Parry, &ParryEventData);
+		// 저작으로 가르는 것은 리액션뿐이다 — 막아낸 대가인 GP는 어느 공격이든 들어간다.
+		if (bCanParry)
+		{
+			FGameplayEventData ParryEventData;
+			ParryEventData.EventTag = WxGameplayTags::Event_Hit_Parry;
+			ParryEventData.Instigator = ASC->GetOwnerActor();
+			ParryEventData.Target = SourceASC->GetOwnerActor();
+			SourceASC->HandleGameplayEvent(WxGameplayTags::Event_Hit_Parry, &ParryEventData);
+		}
 	}
 
 	// UWxAbilitySystemGlobals가 원래 공격 컨텍스트의 ImpactPoint를 Cue 위치로 채운다.
