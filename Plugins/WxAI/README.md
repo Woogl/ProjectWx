@@ -1,47 +1,45 @@
-# WxAI — AI 시스템
+# WxAI — AI 행동 시스템
 
-> 적 폰의 감지·행동을 담당한다. AIPerception 을 Blackboard 타겟으로 동기화하고, 그 타겟을 소비하는 Behavior Tree 노드(Task·Service·Decorator·Composite)와 정찰 경로 데이터를 제공한다.
+> 적 폰의 감지·표적 선정·행동을 담당한다. 엔진 Behavior Tree / AIPerception 위에 얹는 커스텀 BT 노드와 퍼셉션·정찰 컴포넌트, 그리고 이들이 공유하는 Blackboard 키 계약을 제공한다.
 
 ## 책임
 **담당**
-- 시각·청각·피격 감지를 Blackboard `TargetActor` 로 동기화 (`UWxAIPerceptionComponent`)
-- Blackboard 키 이름·타입·accessor 계약 (`WxBlackboardKeys`)
-- 전투 행동 BT 노드: 어빌리티 발동/미러링, 정찰·배회·복귀 이동, 무작위 선택, 리시·어트리뷰트 게이팅
-- AI 락온(컨트롤러 포커스 + 폰 strafe 회전 모드)의 단독 소유 (`UWxBTService_LockOn`)
-- 스플라인 기반 정찰 경로 데이터 (`UWxPatrolComponent`)
+- 감지·인식: 시각·청각·피격(Damage) 센스를 묶은 퍼셉션과, 폰별 감각 수치를 컨트롤러에 실어 주는 경로
+- 표적 흐름: 감지 결과에서 TargetActor 선정, 거리 갱신, 락온(포커스+strafe 회전) 반영
+- 행동 실행: 어빌리티 발동/미러링, 배회, 정찰, 리시(leash) 복귀 등 커스텀 BT Task/Service/Decorator/Composite
+- Blackboard 키 계약: 키 이름·값 타입을 accessor 로 묶어 타입 오용을 차단
 
 **경계 (비담당)**
-- 겨눌 대상 자체의 발행·AIController 소유 → `AWxAIController`(WxGame 게임 모듈). 이 모듈은 그 대상을 어떻게 바라보고 소비할지만 정한다.
-- 어트리뷰트·GameplayEffect·어빌리티 정의 → [[WxCombat]]. WxAI 는 이를 참조하지 않으며, 어트리뷰트/이펙트/어빌리티 태그는 디자이너가 BT 에디터에서 직접 지정한다.
-- Blackboard/BehaviorTree 에셋 저작 (같은 이름의 키 등록은 에셋 쪽 책임)
-
-## 확장 포인트 / 규약
-- 새 BT 노드는 엔진 베이스(`UBTTaskNode`·`UBTService`·`UBTDecorator`·`UBTCompositeNode`)를 상속하고 `Wx` 접두사를 붙인다. 이동 계열은 `UBTTask_MoveTo` 를 상속해 이동/도착 판정을 엔진에 맡긴다(`WxBTTask_Patrol`·`WxBTTask_ReturnHome`).
-- Blackboard 접근은 `GetValueAs`/`SetValueAs` 직접 호출 대신 `WxBlackboardKeys` 의 키별 accessor 를 쓴다 — 키 이름·값 타입을 한 곳에 묶어 타입 오용을 막고, 잘못된 접근을 경고 로그로 드러낸다.
-- 데이터 주도 설정은 노드의 `UPROPERTY(EditAnywhere)` 로 노출한다. WxCombat 을 참조할 수 없으므로 어트리뷰트·이펙트·어빌리티 태그는 셀렉터/`TSubclassOf`/`FGameplayTag` 로 열어 두고 저작 값에 맡긴다.
-- 노드 상태는 `bCreateNodeInstance` 또는 노드 메모리 구조체(`FWx...Memory`)에 폰별로 보관한다. Composite 계열은 베이스가 쓰는 `FBTCompositeMemory` 뒤에 자체 상태를 배치한다.
-- 권한: 소음 발생(`UWxAnimNotify_ReportNoise`)은 서버 전용이며, AI 로직은 서버 권한 폰에서 돈다.
+- AIController·캐릭터 본체: `AWxAIController`(Source/WxGame)가 폰을 빙의하고 이 모듈의 컴포넌트/BT를 구동한다
+- 어빌리티·어트리뷰트 정의: 실제 GameplayAbility·AttributeSet은 [[WxCombat]]에 있다. WxAI는 태그(`Ability.*`)와 디자이너가 지정한 Attribute만 참조하고 WxCombat에 의존하지 않는다
+- 락온 대상 선정: 누구를 겨눌지는 [[WxCombat]]의 `UWxLockOnComponent`가 정하고, 이 모듈의 `UWxBTService_LockOn`은 "어떻게 바라볼지"만 맡는다
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxAIPerceptionComponent` | 감지 → `TargetActor` 발행의 유일한 소스. 사망·파괴·복귀에서만 해제 | `Source/WxAI/Public/WxAIPerceptionComponent.h` |
-| `WxBlackboardKeys` | Blackboard 키 이름·타입·accessor 계약. 폰-BT 간 데이터 규약의 중심 | `Source/WxAI/Public/WxBlackboardKeys.h` |
-| `UWxBTService_LockOn` | `TargetActor` 를 컨트롤러 포커스 + 폰 회전 모드에 반영. 락온 상태 단독 소유 | `Source/WxAI/Public/WxBTService_LockOn.h` |
-| `UWxBTTask_ActivateAbility` | `AbilityTag` 로 어빌리티 발동, 종료까지 latent 대기 | `Source/WxAI/Public/WxBTTask_ActivateAbility.h` |
-| `UWxBTTask_MirrorAbility` | 지목 대상이 쓰는 어빌리티를 같은 태그로 따라 발동/해제 | `Source/WxAI/Public/WxBTTask_MirrorAbility.h` |
-| `UWxBTDecorator_BeyondLeash` + `UWxBTTask_ReturnHome` | 리시 이탈 판정(폴링) 과 홈 복귀 이동. 복귀 완료는 Task 가 단독 판정 | `Source/WxAI/Public/WxBTDecorator_BeyondLeash.h` |
-| `UWxBTComposite_RandomChoice` + `UWxBTDecorator_RandomWeight` | 조건 통과 자식 중 가중치 무작위 1개 선택 | `Source/WxAI/Public/WxBTComposite_RandomChoice.h` |
-| `UWxPatrolComponent` | 스플라인 정찰 경로 데이터(무상태). 커서는 `UWxBTTask_Patrol` 이 폰별 소유 | `Source/WxAI/Public/WxPatrolComponent.h` |
+| `WxBlackboardKeys` | 모듈 전체가 공유하는 Blackboard 키·accessor 계약. 노드 간 데이터 흐름의 허브 | `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` |
+| `UWxAIPerceptionComponent` | 컨트롤러에 붙는 감지 진입점(시각·청각·피격). TargetActor 후보를 만든다 | `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h` |
+| `UWxAIBehaviorComponent` | 폰에 붙어 BT 자산·감각 수치를 종류별로 공급(퍼셉션이 빙의 시 읽어 감) | `Plugins/WxAI/Source/WxAI/Public/WxAIBehaviorComponent.h` |
+| `UWxBTService_UpdateTargetActor` | 감지 결과 → Blackboard TargetActor 발행. 표적 흐름의 시작점(루트에 상주) | `Plugins/WxAI/Source/WxAI/Public/WxBTService_UpdateTargetActor.h` |
+| `UWxBTService_LockOn` | TargetActor를 컨트롤러 포커스 + 폰 strafe 회전에 반영 | `Plugins/WxAI/Source/WxAI/Public/WxBTService_LockOn.h` |
+| `UWxBTTask_ActivateAbility` | 태그로 어빌리티를 발동하고 종료까지 latent 대기 | `Plugins/WxAI/Source/WxAI/Public/WxBTTask_ActivateAbility.h` |
+| `UWxBTComposite_RandomChoice` | 조건·가중치로 자식 하나를 추첨하는 Composite(Selector와 다른 시멘틱) | `Plugins/WxAI/Source/WxAI/Public/WxBTComposite_RandomChoice.h` |
+| `UWxPatrolComponent` | 스플라인 기반 정찰 경로 데이터(무상태). 커서는 BT Task가 폰별로 소유 | `Plugins/WxAI/Source/WxAI/Public/WxPatrolComponent.h` |
+
+## 확장 포인트 / 규약
+- 새 행동 노드는 엔진 베이스(`UBTTaskNode`/`UBTService`/`UBTDecorator`/`UBTCompositeNode` 또는 `UBTTask_MoveTo` 파생)를 상속해 추가한다. 노드 간 데이터는 반드시 `WxBlackboardKeys`의 accessor로 주고받고(직접 `GetValueAs`/`SetValueAs` 금지), 사용하는 키는 Blackboard 에셋에 같은 이름으로 등록돼 있어야 한다.
+- 데이터 주도 구동: 폰의 `UWxAIBehaviorComponent`에 BT 자산·시야/청각 수치를 지정해 종류별 차이를 낸다. 정찰은 폰이 부착된 액터(스포너 등)의 `UWxPatrolComponent`를 따르며, 경로가 없으면 정찰하지 않는다.
+- 어빌리티 연동은 태그 계약으로만 이뤄진다 — 어빌리티는 활성 구간에 식별 태그 `Ability.X`를 소유 태그로 발행하고, `ActivateAbility`/`MirrorAbility`가 그 태그로 시작·종료를 추적한다. `AttributeRatio` 데코의 Attribute/MaxAttribute는 디자이너가 BT 에디터에서 직접 지정한다.
+- 권한 모델: 소음 발생(`UWxAnimNotify_ReportNoise`)은 서버 전용이다.
 
 ## 여기서부터 읽어라
-1. `Source/WxAI/Public/WxBlackboardKeys.h` — 폰·퍼셉션·BT 노드가 어떤 키를 나눠 쓰는지가 모듈 전체의 데이터 흐름 지도다.
-2. `Source/WxAI/Public/WxAIPerceptionComponent.h` — `TargetActor` 가 언제 발행/해제되는지. 대부분의 전투 브랜치가 이 키에서 시작한다.
-3. `Source/WxAI/Public/WxBTService_LockOn.h` — 퍼셉션(감지)과 락온(응시)의 책임 경계, 그리고 AIController 와의 소유 분리를 설명한다.
+1. `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` — 노드들이 공유하는 데이터 계약. 모듈 전체 데이터 흐름의 지도다
+2. `Plugins/WxAI/Source/WxAI/Public/WxBTService_UpdateTargetActor.h` — 감지→표적 발행. 표적 흐름이 여기서 시작한다
+3. `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h` — 세 센스가 어떻게 후보를 만들고 컨트롤러/폰이 어떻게 얽히는지
+4. `Plugins/WxAI/Source/WxAI/Public/WxBTComposite_RandomChoice.h` — 추첨 Composite의 후보 필터·통지 규칙(가장 비자명한 노드)
 
 ## 관련
-- 상위: [[WxCore]] (공용 정의), `AWxAIController`(WxGame)
-- 저작 값 연계: [[WxCombat]] (어트리뷰트·이펙트·어빌리티, 직접 의존 없음)
+- 상위: `AWxAIController`(Source/WxGame)가 이 모듈을 구동한다. 어빌리티·어트리뷰트·락온 대상은 [[WxCombat]], 공용 정의는 [[WxCore]]
 
 ---
-*문서 기준 커밋 `ba86cff` · 생성일 2026-09-08 · 소스 32파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `e0e3ecc` · 생성일 2026-09-09 · 소스 38파일 — `/readme-writer`로 갱신*
