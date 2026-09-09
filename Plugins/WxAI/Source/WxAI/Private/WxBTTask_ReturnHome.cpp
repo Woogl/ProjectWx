@@ -2,10 +2,11 @@
 
 #include "WxBTTask_ReturnHome.h"
 
-#include "WxAIPerceptionComponent.h"
 #include "WxBlackboardKeys.h"
 #include "AIController.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "Perception/AIPerceptionComponent.h"
 
 UWxBTTask_ReturnHome::UWxBTTask_ReturnHome()
 {
@@ -25,13 +26,17 @@ EBTNodeResult::Type UWxBTTask_ReturnHome::ExecuteTask(UBehaviorTreeComponent& Ow
 		return MoveResult;
 	}
 
-	// 타겟의 Perception 기록과 적용 상태 변경은 퍼셉션이 단일 지점에서 수행한다.
-	if (AAIController* AIController = OwnerComp.GetAIOwner())
+	// 감지 기록까지 지워야 타겟이 풀린다 — 블랙보드만 비우면 여전히 감지 중이라 선정 서비스가 곧바로 같은 대상을 다시 문다.
+	AAIController* AIController = OwnerComp.GetAIOwner();
+	UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();
+	if (AIController && Blackboard)
 	{
-		if (UWxAIPerceptionComponent* Perception = Cast<UWxAIPerceptionComponent>(AIController->GetPerceptionComponent()))
+		if (UAIPerceptionComponent* Perception = AIController->GetPerceptionComponent())
 		{
-			Perception->ForgetTargetActor();
+			Perception->ForgetActor(WxBlackboardKeys::GetTargetActor(Blackboard));
 		}
+
+		WxBlackboardKeys::SetTargetActor(Blackboard, nullptr);
 	}
 
 	return MoveResult;

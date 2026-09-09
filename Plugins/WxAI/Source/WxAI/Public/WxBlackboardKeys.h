@@ -8,7 +8,7 @@ class AActor;
 class UBlackboardComponent;
 
 /**
- * 키 SET/CLEAR 는 AIController(SelfActor·HomeLocation·Master), UWxAIPerceptionComponent(TargetActor), BTTask/BTService(PatrolTargetLocation·TargetDistance) 가 나눠 담당한다.
+ * 키 SET/CLEAR 는 AIController(SelfActor·HomeLocation·Master·빙의 전환 시 TargetActor), BTTask/BTService(TargetActor·PatrolTargetLocation·TargetDistance) 가 나눠 담당한다.
  * Blackboard 에셋에 같은 이름의 키가 등록돼 있어야 한다.
  *
  * 키별 accessor 는 키 이름과 값 타입을 한 곳에 묶어 GetValueAs / SetValueAs 계열의 타입 오용을 막는다.

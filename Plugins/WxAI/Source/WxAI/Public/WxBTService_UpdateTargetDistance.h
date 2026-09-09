@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTService.h"
-#include "WxBTService_TargetDistance.generated.h"
+#include "WxBTService_UpdateTargetDistance.generated.h"
 
 /**
  * BT Service: SelfActor 와 TargetActor 사이 거리를 Blackboard 의 TargetDistance(Float 키) 에 주기적으로 기록한다.
@@ -12,12 +12,12 @@
  * TargetActor 가 없으면 stale 거리 대신 NoTargetDistance 를 기록해, 근거리 비교가 타겟 부재 시 통과하지 않게 한다.
  */
 UCLASS()
-class WXAI_API UWxBTService_TargetDistance : public UBTService
+class WXAI_API UWxBTService_UpdateTargetDistance : public UBTService
 {
 	GENERATED_BODY()
 
 public:
-	UWxBTService_TargetDistance();
+	UWxBTService_UpdateTargetDistance();
 
 protected:
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;

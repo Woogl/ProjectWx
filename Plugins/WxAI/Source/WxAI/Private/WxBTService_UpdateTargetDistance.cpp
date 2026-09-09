@@ -1,13 +1,13 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "WxBTService_TargetDistance.h"
+#include "WxBTService_UpdateTargetDistance.h"
 
 #include "WxBlackboardKeys.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Actor.h"
 
-UWxBTService_TargetDistance::UWxBTService_TargetDistance()
+UWxBTService_UpdateTargetDistance::UWxBTService_UpdateTargetDistance()
 {
 	NodeName = TEXT("Update Target Distance");
 
@@ -19,7 +19,7 @@ UWxBTService_TargetDistance::UWxBTService_TargetDistance()
 	RandomDeviation = 0.0f;
 }
 
-void UWxBTService_TargetDistance::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+void UWxBTService_UpdateTargetDistance::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
