@@ -10,7 +10,13 @@
 #include "WxCombatModule.h"
 #include "WxGameplayTags.h"
 
-APawn* UWxMinionSubsystem::SpawnMinion(AActor& Master, TSubclassOf<APawn> MinionClass, const FTransform& SpawnTransform)
+APawn* UWxMinionSubsystem::GetMaster(const APawn& Minion)
+{
+	APawn* SpawnInstigator = Minion.GetInstigator();
+	return SpawnInstigator != &Minion ? SpawnInstigator : nullptr;
+}
+
+APawn* UWxMinionSubsystem::SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionClass, const FTransform& SpawnTransform)
 {
 	if (!Master.HasAuthority() || !MinionClass)
 	{
@@ -27,11 +33,6 @@ APawn* UWxMinionSubsystem::SpawnMinion(AActor& Master, TSubclassOf<APawn> Minion
 		UE_LOG(LogWxCombat, Warning, TEXT("%s: 소환 클래스 %s가 IWxMinion을 구현하지 않아 생성하지 않는다."), *Master.GetName(), *GetNameSafe(MinionClass.Get()));
 		return nullptr;
 	}
-	if (IsMinion(Master))
-	{
-		return nullptr;
-	}
-
 	if (!Rosters.Contains(&Master))
 	{
 		Master.OnEndPlay.AddDynamic(this, &UWxMinionSubsystem::HandleMasterEndPlay);
@@ -56,7 +57,7 @@ APawn* UWxMinionSubsystem::SpawnMinion(AActor& Master, TSubclassOf<APawn> Minion
 	}
 
 	// 팀은 BeginPlay 전에 심어야 최초 복제값부터 옳고 첫 프레임의 인지·판정이 어긋나지 않는다.
-	APawn* Minion = GetWorld()->SpawnActorDeferred<APawn>(MinionClass, SpawnTransform, nullptr, Cast<APawn>(&Master), ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+	APawn* Minion = GetWorld()->SpawnActorDeferred<APawn>(MinionClass, SpawnTransform, nullptr, &Master, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
 	if (!Minion)
 	{
 		return nullptr;
@@ -79,7 +80,7 @@ APawn* UWxMinionSubsystem::SpawnMinion(AActor& Master, TSubclassOf<APawn> Minion
 	return Minion;
 }
 
-int32 UWxMinionSubsystem::TryActivateAbilityOnMinions(AActor& Master, const FGameplayTag& AbilityTag, const FGameplayEventData& Payload)
+int32 UWxMinionSubsystem::TryActivateAbilityOnMinions(APawn& Master, const FGameplayTag& AbilityTag, const FGameplayEventData& Payload)
 {
 	if (!Master.HasAuthority() || !AbilityTag.IsValid())
 	{
@@ -135,7 +136,7 @@ bool UWxMinionSubsystem::DoesSupportWorldType(const EWorldType::Type WorldType) 
 void UWxMinionSubsystem::HandleMasterEndPlay(AActor* Actor, EEndPlayReason::Type EndPlayReason)
 {
 	TArray<TWeakObjectPtr<APawn>> Minions;
-	if (!Rosters.RemoveAndCopyValue(Actor, Minions))
+	if (!Rosters.RemoveAndCopyValue(Cast<APawn>(Actor), Minions))
 	{
 		return;
 	}
@@ -172,25 +173,9 @@ void UWxMinionSubsystem::HandleMinionDeathTagChanged(const FGameplayTag Tag, int
 	ReleaseMinion(*DeadMinion);
 }
 
-bool UWxMinionSubsystem::IsMinion(const AActor& Actor) const
-{
-	for (const TPair<TWeakObjectPtr<AActor>, TArray<TWeakObjectPtr<APawn>>>& Roster : Rosters)
-	{
-		for (const TWeakObjectPtr<APawn>& Minion : Roster.Value)
-		{
-			if (Minion.Get() == &Actor)
-			{
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
-
 void UWxMinionSubsystem::ReleaseMinion(APawn& Minion)
 {
-	for (TPair<TWeakObjectPtr<AActor>, TArray<TWeakObjectPtr<APawn>>>& Roster : Rosters)
+	for (TPair<TWeakObjectPtr<APawn>, TArray<TWeakObjectPtr<APawn>>>& Roster : Rosters)
 	{
 		if (Roster.Value.Remove(TWeakObjectPtr<APawn>(&Minion)) == 0)
 		{

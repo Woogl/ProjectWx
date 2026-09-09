@@ -3,6 +3,7 @@
 #include "AnimNotify/WxAnimNotify_SpawnMinion.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/World.h"
+#include "GameFramework/Pawn.h"
 #include "Minion/WxMinionSubsystem.h"
 
 UWxAnimNotify_SpawnMinion::UWxAnimNotify_SpawnMinion()
@@ -14,7 +15,7 @@ void UWxAnimNotify_SpawnMinion::Notify(USkeletalMeshComponent* MeshComp, UAnimSe
 {
 	Super::Notify(MeshComp, Animation, EventReference);
 
-	AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr;
+	APawn* Owner = MeshComp ? Cast<APawn>(MeshComp->GetOwner()) : nullptr;
 	UWxMinionSubsystem* MinionSubsystem = Owner ? UWorld::GetSubsystem<UWxMinionSubsystem>(Owner->GetWorld()) : nullptr;
 	if (!MinionSubsystem)
 	{

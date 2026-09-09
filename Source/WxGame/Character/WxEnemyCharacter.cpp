@@ -8,6 +8,7 @@
 #include "Controller/WxAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Minion/WxMinionSubsystem.h"
 #include "Spawnable/WxSpawner.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "Targeting/WxLockOnPointComponent.h"
@@ -228,11 +229,11 @@ void AWxEnemyCharacter::ReleaseMasterStateTag()
 
 UAbilitySystemComponent* AWxEnemyCharacter::GetMasterASC() const
 {
-	// 소환자 없이 배치·스폰된 폰은 APawn이 인스티게이터를 자기 자신으로 채우므로, 이 비교가 곧 소환 여부다.
-	if (GetInstigator() == this || !MasterStateTag.IsValid())
+	APawn* Master = UWxMinionSubsystem::GetMaster(*this);
+	if (!Master || !MasterStateTag.IsValid())
 	{
 		return nullptr;
 	}
 
-	return UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator());
+	return UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Master);
 }

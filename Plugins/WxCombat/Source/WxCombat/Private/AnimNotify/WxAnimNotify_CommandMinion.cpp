@@ -4,13 +4,14 @@
 #include "Abilities/GameplayAbilityTypes.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/World.h"
+#include "GameFramework/Pawn.h"
 #include "Minion/WxMinionSubsystem.h"
 
 void UWxAnimNotify_CommandMinion::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
 	Super::Notify(MeshComp, Animation, EventReference);
 
-	AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr;
+	APawn* Owner = MeshComp ? Cast<APawn>(MeshComp->GetOwner()) : nullptr;
 	UWxMinionSubsystem* MinionSubsystem = Owner ? UWorld::GetSubsystem<UWxMinionSubsystem>(Owner->GetWorld()) : nullptr;
 	if (!MinionSubsystem)
 	{
