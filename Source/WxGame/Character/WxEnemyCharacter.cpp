@@ -4,7 +4,6 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "Character/Component/WxAIBehaviorComponent.h"
 #include "Component/WxNameplateComponent.h"
 #include "Controller/WxAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -12,6 +11,7 @@
 #include "Spawnable/WxSpawner.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "Targeting/WxLockOnPointComponent.h"
+#include "WxAIBehaviorComponent.h"
 #include "WxCombatLibrary.h"
 #include "WxGameplayTags.h"
 #include "WxRewardLibrary.h"

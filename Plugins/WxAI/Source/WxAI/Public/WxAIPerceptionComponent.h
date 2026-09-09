@@ -48,6 +48,12 @@ public:
 	FWxOnPerceptionTargetChanged OnTargetChanged;
 
 private:
+	/**
+	 * 폰의 UWxAIBehaviorComponent 가 정한 감각 수치를 센스 설정에 옮긴다.
+	 * 그 컴포넌트가 없거나 폰이 없으면 클래스 기본값으로 되돌려, 이전 폰의 수치가 남지 않게 한다.
+	 */
+	void ApplySenseSettings(const APawn* Pawn);
+
 	UFUNCTION()
 	void HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
@@ -89,7 +95,7 @@ private:
 
 	UBlackboardComponent* GetBlackboard() const;
 
-	// 마지막으로 적용한 타겟으로, 중복 적용 방지와 소실 구독 해제에 쓴다.
+	// 중복 적용 방지와 소실 구독 해제에 쓴다.
 	// 블랙보드 약참조는 파괴 시 nullptr로 바뀌므로, 유효성과 무관한 TObjectKey로 보관한다.
 	TObjectKey<AActor> AppliedTarget;
 	FDelegateHandle TargetDeathTagDelegateHandle;
