@@ -44,7 +44,7 @@ float UWxMMC_Cost::GetCostMagnitude(const FGameplayEffectSpec& Spec, EWxAbilityC
 		return 0.f;
 	}
 
-	const FWxAbilityTableRow* Row = Ability->AbilityDataRow.GetRow<FWxAbilityTableRow>(TEXT("UWxMMC_Cost::GetCostMagnitude"));
+	const FWxAbilityTableRow* Row = Ability->AbilityDataRow.GetRow<FWxAbilityTableRow>(ANSI_TO_TCHAR(__FUNCTION__));
 	return Row && Row->CostResource == Resource ? -Row->CostAmount : 0.f;
 }
 

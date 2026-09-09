@@ -353,5 +353,5 @@ const FWxAbilityTableRow* UWxAbilityBase::GetTableRow() const
 	{
 		return nullptr;
 	}
-	return AbilityDataRow.GetRow<FWxAbilityTableRow>(TEXT("WxAbilityBase::GetTableRow"));
+	return AbilityDataRow.GetRow<FWxAbilityTableRow>(ANSI_TO_TCHAR(__FUNCTION__));
 }

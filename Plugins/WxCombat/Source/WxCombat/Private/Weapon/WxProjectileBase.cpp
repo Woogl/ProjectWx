@@ -165,7 +165,7 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 
 	// 되돌림이 출처를 갈아 끼우므로 대미지보다 먼저 읽는다.
 	// 흘려낸 히트는 대미지 GE가 걸리지 않고, 가드를 뚫는 공격에는 퍼펙트 가드가 서지 않는다.
-	const FWxDamageTableRow* DamageRow = DamageDataRow.GetRow<FWxDamageTableRow>(TEXT("HandleHitCollisionOverlap"));
+	const FWxDamageTableRow* DamageRow = DamageDataRow.GetRow<FWxDamageTableRow>(ANSI_TO_TCHAR(__FUNCTION__));
 	const bool bReflecting = bCanReflect && !bEvaded && DamageRow && DamageRow->bCanGuard
 		&& TargetASC && TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_PerfectGuard);
 

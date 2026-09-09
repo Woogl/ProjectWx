@@ -160,7 +160,7 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FData
 bool UWxDialogueSessionComponent::EnterRow(FName RowName)
 {
 	const UDataTable* Table = CurrentStartRow.DataTable;
-	const FWxDialogueTableRow* Row = Table ? Table->FindRow<FWxDialogueTableRow>(RowName, TEXT("WxDialogueSession")) : nullptr;
+	const FWxDialogueTableRow* Row = Table ? Table->FindRow<FWxDialogueTableRow>(RowName, ANSI_TO_TCHAR(__FUNCTION__)) : nullptr;
 	if (!Row)
 	{
 		UE_LOG(LogWxDialogue, Warning, TEXT("EnterRow: 행을 찾지 못했다(테이블 %s / 행 %s). 가리키는 이름이 틀렸거나 행이 지워졌다."),
@@ -190,7 +190,7 @@ const FWxDialogueTableRow* UWxDialogueSessionComponent::FindCurrentRow() const
 		return nullptr;
 	}
 
-	return Table->FindRow<FWxDialogueTableRow>(CurrentRowName, TEXT("WxDialogueSession"));
+	return Table->FindRow<FWxDialogueTableRow>(CurrentRowName, ANSI_TO_TCHAR(__FUNCTION__));
 }
 
 void UWxDialogueSessionComponent::PublishCurrentLine()

@@ -33,7 +33,7 @@ const FWxEffectTableRow* UWxEffectComponent_Table::GetRow() const
 		return nullptr;
 	}
 
-	return EffectDataRow.GetRow<FWxEffectTableRow>(TEXT("WxEffectComponent_Data::GetRow"));
+	return EffectDataRow.GetRow<FWxEffectTableRow>(ANSI_TO_TCHAR(__FUNCTION__));
 }
 
 const FWxEffectTableRow* UWxEffectComponent_Table::FindRow(const UGameplayEffect* Def)

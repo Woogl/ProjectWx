@@ -52,7 +52,7 @@ EStateTreeRunStatus FWxStateTreeTask_PrintSubtitle::Tick(FStateTreeExecutionCont
 
 	// 슬롯이 하나라 새 줄이 앞 줄을 덮으므로 넘어가는 자리에선 걷지 않는다.
 	const UDataTable* Table = Instance.StartRow.DataTable;
-	const FWxSubtitleTableRow* Row = Table ? Table->FindRow<FWxSubtitleTableRow>(Instance.CurrentRowName, TEXT("WxPrintSubtitle")) : nullptr;
+	const FWxSubtitleTableRow* Row = Table ? Table->FindRow<FWxSubtitleTableRow>(Instance.CurrentRowName, ANSI_TO_TCHAR(__FUNCTION__)) : nullptr;
 	const FName NextRowName = Row ? Row->NextRow : NAME_None;
 	if (!NextRowName.IsNone() && ShowRow(Context, Instance, NextRowName))
 	{
@@ -85,7 +85,7 @@ void FWxStateTreeTask_PrintSubtitle::ExitState(FStateTreeExecutionContext& Conte
 bool FWxStateTreeTask_PrintSubtitle::ShowRow(FStateTreeExecutionContext& Context, FInstanceDataType& Instance, FName RowName) const
 {
 	const UDataTable* Table = Instance.StartRow.DataTable;
-	const FWxSubtitleTableRow* Row = Table ? Table->FindRow<FWxSubtitleTableRow>(RowName, TEXT("WxPrintSubtitle")) : nullptr;
+	const FWxSubtitleTableRow* Row = Table ? Table->FindRow<FWxSubtitleTableRow>(RowName, ANSI_TO_TCHAR(__FUNCTION__)) : nullptr;
 	if (!Row)
 	{
 		UE_LOG(LogWxUI, Warning, TEXT("Print Subtitle: 행을 찾지 못했다(테이블 %s / 행 %s). 가리키는 이름이 틀렸거나 행이 지워졌다."),

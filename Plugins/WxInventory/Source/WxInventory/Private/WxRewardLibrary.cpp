@@ -27,7 +27,7 @@ void UWxRewardLibrary::GrantReward(AActor* SourceActor, const FDataTableRowHandl
 		return;
 	}
 
-	const FWxRewardTableRow* Row = RewardRow.GetRow<FWxRewardTableRow>(TEXT("UWxRewardLibrary::GrantReward"));
+	const FWxRewardTableRow* Row = RewardRow.GetRow<FWxRewardTableRow>(ANSI_TO_TCHAR(__FUNCTION__));
 	if (!Row)
 	{
 		return;
