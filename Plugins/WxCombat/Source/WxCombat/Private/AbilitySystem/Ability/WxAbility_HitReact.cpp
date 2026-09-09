@@ -5,10 +5,6 @@
 #include "GameFramework/Character.h"
 #include "WxGameplayTags.h"
 
-#if WITH_EDITOR
-#include "Misc/DataValidation.h"
-#endif
-
 UWxAbility_HitReact::UWxAbility_HitReact()
 {
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
@@ -46,21 +42,6 @@ float UWxAbility_HitReact::GetMontagePlayRate() const
 {
 	return 1.f;
 }
-
-#if WITH_EDITOR
-EDataValidationResult UWxAbility_HitReact::IsDataValid(FDataValidationContext& Context) const
-{
-	EDataValidationResult Result = Super::IsDataValid(Context);
-
-	Result = CombineDataValidationResults(Result, ValidateInstantBlendIn(NormalHitReactMontage, Context));
-	Result = CombineDataValidationResults(Result, ValidateInstantBlendIn(KnockbackMontage, Context));
-	Result = CombineDataValidationResults(Result, ValidateInstantBlendIn(KnockdownMontage, Context));
-	Result = CombineDataValidationResults(Result, ValidateInstantBlendIn(KnockupMontage, Context));
-	Result = CombineDataValidationResults(Result, ValidateInstantBlendIn(ParryReactMontage, Context));
-
-	return Result;
-}
-#endif
 
 void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {

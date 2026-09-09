@@ -5,10 +5,6 @@
 #include "GameFramework/Actor.h"
 #include "WxGameplayTags.h"
 
-#if WITH_EDITOR
-#include "Misc/DataValidation.h"
-#endif
-
 UWxAbility_GuardReact::UWxAbility_GuardReact()
 {
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
@@ -45,20 +41,6 @@ float UWxAbility_GuardReact::GetMontagePlayRate() const
 {
 	return 1.f;
 }
-
-#if WITH_EDITOR
-EDataValidationResult UWxAbility_GuardReact::IsDataValid(FDataValidationContext& Context) const
-{
-	EDataValidationResult Result = Super::IsDataValid(Context);
-
-	Result = CombineDataValidationResults(Result, ValidateInstantBlendIn(GuardHitReactMontage, Context));
-	Result = CombineDataValidationResults(Result, ValidateInstantBlendIn(GuardKnockbackMontage, Context));
-	Result = CombineDataValidationResults(Result, ValidateInstantBlendIn(GuardBreakMontage, Context));
-	Result = CombineDataValidationResults(Result, ValidateInstantBlendIn(PerfectGuardMontage, Context));
-
-	return Result;
-}
-#endif
 
 void UWxAbility_GuardReact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {

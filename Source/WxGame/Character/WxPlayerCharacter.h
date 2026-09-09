@@ -29,7 +29,6 @@ public:
 	virtual void OnRep_PlayerState() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void Jump() override;
-	virtual void OnJumped_Implementation() override;
 	virtual bool CanCrouch() const override;
 
 protected:
@@ -60,8 +59,4 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TObjectPtr<UWxInputConfig> InputConfig;
-
-	/** 도약 순간 자신에게 거는 무적. 지속시간은 GE가 쥐므로 HasDuration 이어야 한다. */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Combat")
-	TSubclassOf<UGameplayEffect> JumpInvincibleEffect;
 };

@@ -17,7 +17,6 @@
 #include "Inventory/WxItemUseComponent.h"
 #include "Finisher/WxFinisherDamageComponent.h"
 #include "Targeting/WxLockOnComponent.h"
-#include "WxCombatLibrary.h"
 #include "WxGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -142,15 +141,6 @@ void AWxPlayerCharacter::Jump()
 	UnCrouch();
 
 	Super::Jump();
-}
-
-void AWxPlayerCharacter::OnJumped_Implementation()
-{
-	Super::OnJumped_Implementation();
-
-	// 2단 점프는 스택되지 않는 GE를 하나 더 만들어, 늦게 걸린 쪽이 만료될 때까지 부여 태그가 유지된다.
-	// 예측 키 없이 건다 — 리모트 클라는 엔진의 네트워크 권한 검사에서 걸러지고 서버 복제만 받는다.
-	UWxCombatLibrary::ApplyEffect(AbilitySystemComponent, JumpInvincibleEffect, nullptr);
 }
 
 bool AWxPlayerCharacter::CanCrouch() const

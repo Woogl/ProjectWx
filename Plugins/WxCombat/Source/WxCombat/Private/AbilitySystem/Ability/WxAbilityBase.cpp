@@ -12,10 +12,6 @@
 #include "GameplayEffect.h"
 #include "WxCombatModule.h"
 
-#if WITH_EDITOR
-#include "Misc/DataValidation.h"
-#endif
-
 UWxAbilityBase::UWxAbilityBase()
 {
 	InstancingPolicy  = EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -285,36 +281,6 @@ void UWxAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, c
 		}
 	}
 }
-
-#if WITH_EDITOR
-EDataValidationResult UWxAbilityBase::IsDataValid(FDataValidationContext& Context) const
-{
-	EDataValidationResult Result = Super::IsDataValid(Context);
-
-	const FGameplayTagContainer* CooldownTags = GetCooldownTags();
-	if (GetCooldownTime() > 0.f && (!CooldownTags || CooldownTags->IsEmpty()))
-	{
-		Result = EDataValidationResult::Invalid;
-		Context.AddError(FText::FromString(TEXT("테이블에 쿨다운 수치가 있으나 쿨다운 태그를 부여하는 GE가 없습니다. CooldownGameplayEffectClass에 전용 UWxEffect_Cooldown 파생 GE를 지정했는지 확인하세요.")));
-	}
-
-	return Result;
-}
-
-EDataValidationResult UWxAbilityBase::ValidateInstantBlendIn(const UAnimMontage* Montage, FDataValidationContext& Context)
-{
-	if (!Montage || Montage->BlendIn.GetBlendTime() <= 0.f)
-	{
-		return EDataValidationResult::Valid;
-	}
-
-	Context.AddError(FText::Format(
-		NSLOCTEXT("Wx", "ReactionMontageBlendIn", "{0}의 Blend In 시간이 0이 아닙니다. 히트스톱이 블렌드까지 멈추므로 반응 몽타주는 즉시 전환되어야 합니다."),
-		FText::FromString(Montage->GetName())));
-
-	return EDataValidationResult::Invalid;
-}
-#endif
 
 UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
 {
