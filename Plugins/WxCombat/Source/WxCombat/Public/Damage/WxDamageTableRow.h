@@ -31,10 +31,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	bool bCanGuard = true;
 
-	/**
-	 * false이면 퍼펙트 가드로 막아도 공격자가 역경직에 걸리지 않는다. 막아낸 대가인 GP 반사는 그대로 들어간다.
-	 * 투사체는 true여도 공격자가 이 둘을 받지 않는다 — 되돌아가는 투사체가 곧 보복이다.
-	 */
+	/** false이면 퍼펙트 가드로 막아도 공격자가 역경직에 걸리지 않는다. 막아낸 대가인 GP 반사는 그대로 들어간다. */
 	UPROPERTY(EditAnywhere)
 	bool bCanParry = true;
 

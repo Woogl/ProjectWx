@@ -18,7 +18,7 @@ class UNiagaraSystem;
 /**
  * Pawn에 Overlap하거나 월드에 Block하면 이펙트를 재생하고 사라진다.
  * 다만 판정이 성립하지 않는 Pawn은 충돌로 치지 않아, 이펙트도 파괴도 없이 그대로 통과한다 — 아군·중립이거나 회피 무적으로 흘려낸 경우다.
- * 패리가 성립한 히트만은 파괴 대신 쏜 쪽으로 돌아선다.
+ * 되돌릴 수 있는 투사체를 퍼펙트 가드로 막은 히트만은 파괴 대신 쏜 쪽으로 돌아선다.
  *
  * 스폰과 파괴 모두 서버 권위이며, 대미지도 그 서버에서만 적용한다 — 클라에는 예측 키가 없어 어차피 GAS가 적용을 막는다.
  * 반면 ImpactFX는 권위 검사 앞에서 재생하므로, 충돌을 감지한 머신이 각자 즉시 재생한다.
@@ -49,6 +49,10 @@ protected:
 	/** 적중 시 피격자에게 걸 역경직 지속 시간 (초). 0 이하이면 미적용 */
 	UPROPERTY(EditAnywhere, Category = "Wx|Projectile|Damage")
 	float VictimHitStop = 0.1f;
+
+	/** false이면 퍼펙트 가드로 막혀도 되돌아가지 않고 그대로 파괴된다. */
+	UPROPERTY(EditAnywhere, Category = "Wx|Projectile")
+	bool bCanReflect = true;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Projectile")
 	TObjectPtr<UArrowComponent> Arrow;

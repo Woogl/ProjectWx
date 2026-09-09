@@ -95,7 +95,7 @@ void AWxProjectileBase::BeginPlay()
 	{
 		if (USceneComponent* LockOnTarget = LockOnComp->GetLockOnTarget())
 		{
-			// 대상이 컴포넌트 단위라 부위 위치를 직접 조준하고, 호밍도 그 컴포넌트를 그대로 따라간다.
+			// 대상이 컴포넌트 단위라 부위 위치를 직접 조준한다.
 			const FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), LockOnTarget->GetComponentLocation());
 			SetActorRotation(LookAtRotation);
 			ProjectileMovement->Velocity = LookAtRotation.Vector() * ProjectileMovement->InitialSpeed;
@@ -111,7 +111,6 @@ void AWxProjectileBase::OnRep_Instigator()
 {
 	Super::OnRep_Instigator();
 
-	// 서버가 세운 회전은 함께 복제되므로 방향은 그대로 쓰고 속도만 다시 얹는다.
 	// 유도 대상은 되돌림 전의 Instigator라 클라가 알 수 없어 비운다 — 궤적은 복제된 위치가 끌고 간다.
 	ProjectileMovement->Velocity = GetActorRotation().Vector() * ProjectileMovement->InitialSpeed;
 	ProjectileMovement->HomingTargetComponent = nullptr;
@@ -165,9 +164,9 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 	}
 
 	// 되돌림이 출처를 갈아 끼우므로 대미지보다 먼저 읽는다.
-	// 흘려낸 히트는 대미지 GE가 걸리지 않아 패리도 서지 않고, 가드가 먹히는 대미지라도 패리까지 허용해야 되돌아간다.
+	// 흘려낸 히트는 대미지 GE가 걸리지 않고, 가드를 뚫는 공격에는 퍼펙트 가드가 서지 않는다.
 	const FWxDamageTableRow* DamageRow = DamageDataRow.GetRow<FWxDamageTableRow>(TEXT("HandleHitCollisionOverlap"));
-	const bool bParried = !bEvaded && DamageRow && DamageRow->bCanGuard && DamageRow->bCanParry
+	const bool bReflecting = bCanReflect && !bEvaded && DamageRow && DamageRow->bCanGuard
 		&& TargetASC && TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_PerfectGuard);
 
 	// 회피여도 호출은 그대로다 — 회피 성공 판정이 여기서 나가고, 대미지와 상태이상은 그쪽이 알아서 거른다.
@@ -177,7 +176,7 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 		UWxEffect_HitStop::Apply(VictimHitStop, SourceASC, TargetASC);
 	}
 
-	if (bParried)
+	if (bReflecting)
 	{
 		Reflect(Cast<APawn>(OtherActor));
 	}
