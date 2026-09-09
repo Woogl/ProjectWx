@@ -37,8 +37,6 @@ AWxPlayerCharacter::AWxPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	CameraBoom->CameraLagSpeed       = 8.f;
 	
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
-	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
-	GetCharacterMovement()->SetCrouchedHalfHeight(60.f);
 
 	JumpMaxCount = 2;
 
