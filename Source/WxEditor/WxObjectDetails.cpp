@@ -4,6 +4,7 @@
 
 #include "DetailCategoryBuilder.h"
 #include "DetailLayoutBuilder.h"
+#include "PropertyHandle.h"
 
 const FName FWxObjectDetails::WxCategoryName(TEXT("Wx"));
 
@@ -29,7 +30,7 @@ void FWxObjectDetails::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 	{
 		Inner->CustomizeDetails(DetailBuilder);
 	}
-	MoveWxCategoryToTop(DetailBuilder);
+	CustomizeWxCategory(DetailBuilder);
 }
 
 void FWxObjectDetails::CustomizeDetails(const TSharedPtr<IDetailLayoutBuilder>& DetailBuilder)
@@ -38,7 +39,7 @@ void FWxObjectDetails::CustomizeDetails(const TSharedPtr<IDetailLayoutBuilder>& 
 	{
 		Inner->CustomizeDetails(DetailBuilder);
 	}
-	MoveWxCategoryToTop(*DetailBuilder);
+	CustomizeWxCategory(*DetailBuilder);
 }
 
 void FWxObjectDetails::PendingDelete()
@@ -49,7 +50,7 @@ void FWxObjectDetails::PendingDelete()
 	}
 }
 
-void FWxObjectDetails::MoveWxCategoryToTop(IDetailLayoutBuilder& DetailBuilder)
+void FWxObjectDetails::CustomizeWxCategory(IDetailLayoutBuilder& DetailBuilder)
 {
 	// 없는 카테고리를 EditCategory 로 만들어 두지 않는다.
 	TArray<FName> CategoryNames;
@@ -60,5 +61,28 @@ void FWxObjectDetails::MoveWxCategoryToTop(IDetailLayoutBuilder& DetailBuilder)
 	}
 
 	// 다른 커스터마이제이션이 먼저 편집한 카테고리는 EditCategory 가 정렬값을 갱신하지 않으므로 직접 지정한다.
-	DetailBuilder.EditCategory(WxCategoryName).SetSortOrder(WxObjectDetails::WxCategorySortOrder);
+	IDetailCategoryBuilder& WxCategory = DetailBuilder.EditCategory(WxCategoryName);
+	WxCategory.SetSortOrder(WxObjectDetails::WxCategorySortOrder);
+
+	// 하위 카테고리 행은 프로퍼티 없는 핸들로 온다. 이름이 겹치는 두 번째부터 숨기면 남은 첫 행이 병합된 내용을 그대로 보여준다.
+	TArray<TSharedRef<IPropertyHandle>> DefaultProperties;
+	WxCategory.GetDefaultProperties(DefaultProperties);
+	TArray<FString> SeenSubcategoryNames;
+	for (const TSharedRef<IPropertyHandle>& Handle : DefaultProperties)
+	{
+		if (Handle->GetProperty() != nullptr)
+		{
+			continue;
+		}
+
+		const FString SubcategoryName = Handle->GetPropertyDisplayName().ToString();
+		if (SeenSubcategoryNames.Contains(SubcategoryName))
+		{
+			DetailBuilder.HideProperty(Handle);
+		}
+		else
+		{
+			SeenSubcategoryNames.Add(SubcategoryName);
+		}
+	}
 }
