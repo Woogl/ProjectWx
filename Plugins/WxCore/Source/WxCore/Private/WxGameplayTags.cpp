@@ -8,6 +8,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_Engaged, "State.Engaged");
 	UE_DEFINE_GAMEPLAY_TAG(State_Dialogue, "State.Dialogue");
 	UE_DEFINE_GAMEPLAY_TAG(State_Minion_Active, "State.Minion.Active");
+	UE_DEFINE_GAMEPLAY_TAG(State_Ragdoll, "State.Ragdoll");
 
 	UE_DEFINE_GAMEPLAY_TAG(Effect_Invincible, "Effect.Invincible");
 	UE_DEFINE_GAMEPLAY_TAG(Effect_GuardReduction, "Effect.GuardReduction");
@@ -36,7 +37,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_Finisher, "Event.Finisher");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Death, "Event.Death");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Groggy, "Event.Groggy");
-	UE_DEFINE_GAMEPLAY_TAG(Event_Ragdoll, "Event.Ragdoll");
 	UE_DEFINE_GAMEPLAY_TAG(Event_UseItem, "Event.UseItem");
 	UE_DEFINE_GAMEPLAY_TAG(Event_ApplyFinisherDamage, "Event.ApplyFinisherDamage");
 	UE_DEFINE_GAMEPLAY_TAG(Event_CommandMinionAbility, "Event.CommandMinionAbility");

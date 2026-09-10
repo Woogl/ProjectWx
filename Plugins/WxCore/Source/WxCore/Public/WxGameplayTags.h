@@ -21,6 +21,9 @@ namespace WxGameplayTags
 	/** 소환물이 살아 있는 동안 자신이 주인 ASC에 카운트로 올린다(AWxEnemyCharacter::MasterStateTag). 한 슬롯을 나눠 쓰려던 소환·명령 어빌리티 분기는 아직 이 태그를 읽지 않는다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Minion_Active);
 
+	/** UWxAbility_Death가 서버에서 loose 태그로 발행(TagOnly 복제). AWxCharacterBase가 구독해 전 머신에서 래그돌로 전환하고, 타게팅 프리셋이 IgnoreTags로 사용한다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Ragdoll);
+
 	// ── Effect ──────────────────────────────────────────────────────────────
 	
 	// GE가 부여하는 태그. 애셋 태그로도 사용한다.
@@ -99,8 +102,6 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Groggy);
 
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Ragdoll);
-	
 	/** 소비 아이템의 스택 차감과 Usable 프래그먼트의 사용 효과 적용을 실행한다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_UseItem);
 
