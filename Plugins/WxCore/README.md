@@ -20,7 +20,7 @@
 | `WxGameplayTags` (namespace) | 전 프로젝트 Native Tag의 유일한 선언처. State/Effect/Event/Ability/Device/UI 등으로 묶임 | `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h` |
 | `IWxInteractable` | 상호작용 대상의 공용 계약. 액터가 구현(컴포넌트 아님), 조회는 Cast 한 번 | `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h` |
 | `IWxUIData` | UI가 그대로 표시하는 데이터(아이콘·이름·설명·충전 수)의 공용 계약 | `Plugins/WxCore/Source/WxCore/Public/WxUIData.h` |
-| `ECC_WxAttack` | 무기·투사체 히트박스용 Object Channel 상수. `DefaultEngine.ini` 등록 순서와 일치해야 함 | `Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h` |
+| `ECC_WxAttack` | 무기·투사체 히트박스용 Object Channel 상수. `DefaultEngine.ini` 의 `WxAttack` 등록 항목이 쓰는 `Channel` 값과 일치해야 함 | `Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h` |
 | `FWxLocatorUtils` | 에디터 전용. `FUniversalObjectLocator`의 표시명 생성 | `Plugins/WxCore/Source/WxCore/Public/WxLocatorUtils.h` |
 
 ## Gameplay Tags
@@ -39,7 +39,7 @@
 - 새 전역 태그: `WxGameplayTags.h`에 `UE_DECLARE_...`, `.cpp`에 `UE_DEFINE_...`. 다른 곳에 흩뿌리지 않는다
 - 새 상호작용 대상: 액터에 `IWxInteractable` 구현. `CanInteract`는 구현체가 자기 상태에서 파생(외부 on/off 진입점 없음)해 클라 표시 게이트와 서버 발동 검증이 같은 답을 받게 한다. 감지·사거리는 쿼리 콜리전 형상 위에서 도므로 프리미티브가 있어야 스캔에 걸린다
 - 새 UI 표시원: 저작 데이터를 쥔 쪽(어빌리티·GE 컴포넌트 등)이 `IWxUIData` 구현, 대개 DataTable 행을 그대로 흘려보낸다
-- `ECC_WxAttack`은 `ECC_GameTraceChannel1`에 고정 — 채널 상수 변경 시 `DefaultEngine.ini` 등록 순서와 동기화 필수
+- `ECC_WxAttack`은 `ECC_GameTraceChannel1`에 고정 — `DefaultEngine.ini` 의 `WxAttack` 등록 항목이 쓰는 `Channel` 값과 동기화 필수 (줄 순서는 무관)
 
 ## 여기서부터 읽어라
 1. `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h` — 이 모듈의 중심. 태그 doc-comment가 각 도메인의 제어 흐름(대미지 파이프라인·가드·처형·장치 트리)을 요약해 준다
