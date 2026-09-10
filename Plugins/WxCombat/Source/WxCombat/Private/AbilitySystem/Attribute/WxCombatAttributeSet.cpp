@@ -148,7 +148,7 @@ float UWxCombatAttributeSet::ClampAttributeValue(const FGameplayAttribute& Attri
 void UWxCombatAttributeSet::AdjustAttributeForMaxChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
 {
 	const FWxMaxAttributePair* Pair = FindMaxAttributePair(Attribute);
-	if (!Pair || Pair->MaxAttribute != Attribute || OldValue <= 0.f)
+	if (!Pair || Pair->MaxAttribute != Attribute || OldValue <= 0.f || FMath::IsNearlyEqual(OldValue, NewValue))
 	{
 		return;
 	}
