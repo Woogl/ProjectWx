@@ -1,45 +1,44 @@
-# WxAI — AI 행동 시스템
+# WxAI — AI 시스템
 
-> 적 폰의 감지·표적 선정·행동을 담당한다. 엔진 Behavior Tree / AIPerception 위에 얹는 커스텀 BT 노드와 퍼셉션·정찰 컴포넌트, 그리고 이들이 공유하는 Blackboard 키 계약을 제공한다.
+> 적 폰의 감지·타겟 선정·행동(Behavior Tree)을 담당한다. 무엇을 감지하고 누구를 노릴지, 정찰·리시 복귀·어빌리티 발동을 어떤 트리로 엮을지를 데이터 주도로 제공한다.
 
 ## 책임
 **담당**
-- 감지·인식: 시각·청각·피격(Damage) 센스를 묶은 퍼셉션과, 폰별 감각 수치를 컨트롤러에 실어 주는 경로
-- 표적 흐름: 감지 결과에서 TargetActor 선정, 거리 갱신, 락온(포커스+strafe 회전) 반영
-- 행동 실행: 어빌리티 발동/미러링, 배회, 정찰, 리시(leash) 복귀 등 커스텀 BT Task/Service/Decorator/Composite
-- Blackboard 키 계약: 키 이름·값 타입을 accessor 로 묶어 타입 오용을 차단
+- 퍼셉션(시각·청각·피격)으로 적대 대상을 감지하고, 감지 결과 중 하나를 TargetActor로 승격
+- Behavior Tree용 커스텀 Task/Service/Decorator/Composite 노드 묶음 (정찰·배회·리시 복귀·어빌리티 발동/모방·락온·거리 갱신 등)
+- Blackboard 키 이름·값 타입을 한곳에 묶는 타입 안전 accessor (`WxBlackboardKeys`)
+- 폰별 감각 수치·행동 자산을 캐릭터 상속과 분리해 제공하는 컴포넌트
+- 스플라인 기반 정찰 경로 데이터, 애님 노티파이 기반 소음 방출
 
 **경계 (비담당)**
-- AIController·캐릭터 본체: `AWxAIController`(Source/WxGame)가 폰을 빙의하고 이 모듈의 컴포넌트/BT를 구동한다
-- 어빌리티·어트리뷰트 정의: 실제 GameplayAbility·AttributeSet은 [[WxCombat]]에 있다. WxAI는 태그(`Ability.*`)와 디자이너가 지정한 Attribute만 참조하고 WxCombat에 의존하지 않는다
-- 락온 대상 선정: 누구를 겨눌지는 [[WxCombat]]의 `UWxLockOnComponent`가 정하고, 이 모듈의 `UWxBTService_LockOn`은 "어떻게 바라볼지"만 맡는다
+- AIController 자체와 락온 대상 보관 — Source/WxGame `AWxAIController`, [[WxCombat]] `UWxLockOnComponent`에 위임. 이 모듈은 그 대상을 "어떻게 바라볼지"만 정한다
+- 어트리뷰트(HP 등) 정의 — [[WxCombat]] 소유. `UWxBTDecorator_AttributeRatio`는 어떤 Attribute를 비교할지 BT 에디터에서 디자이너가 직접 지정한다(WxCombat 미의존)
+- 어빌리티 실행 로직 — GAS/[[WxCombat]]. BT 노드는 태그로 발동을 요청·관찰만 한다
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `WxBlackboardKeys` | 모듈 전체가 공유하는 Blackboard 키·accessor 계약. 노드 간 데이터 흐름의 허브 | `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` |
-| `UWxAIPerceptionComponent` | 컨트롤러에 붙는 감지 진입점(시각·청각·피격). TargetActor 후보를 만든다 | `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h` |
-| `UWxAIBehaviorComponent` | 폰에 붙어 BT 자산·감각 수치를 종류별로 공급(퍼셉션이 빙의 시 읽어 감) | `Plugins/WxAI/Source/WxAI/Public/WxAIBehaviorComponent.h` |
-| `UWxBTService_UpdateTargetActor` | 감지 결과 → Blackboard TargetActor 발행. 표적 흐름의 시작점(루트에 상주) | `Plugins/WxAI/Source/WxAI/Public/WxBTService_UpdateTargetActor.h` |
-| `UWxBTService_LockOn` | TargetActor를 컨트롤러 포커스 + 폰 strafe 회전에 반영 | `Plugins/WxAI/Source/WxAI/Public/WxBTService_LockOn.h` |
-| `UWxBTTask_ActivateAbility` | 태그로 어빌리티를 발동하고 종료까지 latent 대기 | `Plugins/WxAI/Source/WxAI/Public/WxBTTask_ActivateAbility.h` |
-| `UWxBTComposite_RandomChoice` | 조건·가중치로 자식 하나를 추첨하는 Composite(Selector와 다른 시멘틱) | `Plugins/WxAI/Source/WxAI/Public/WxBTComposite_RandomChoice.h` |
-| `UWxPatrolComponent` | 스플라인 기반 정찰 경로 데이터(무상태). 커서는 BT Task가 폰별로 소유 | `Plugins/WxAI/Source/WxAI/Public/WxPatrolComponent.h` |
+| `WxBlackboardKeys` | 노드·컨트롤러가 공유하는 Blackboard 키·accessor의 단일 정의(데이터 버스) | `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` |
+| `UWxAIPerceptionComponent` | 시각·청각·피격 감지. 컨트롤러에 붙어 폰 종류를 가리지 않음 | `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h` |
+| `UWxBTService_UpdateTargetActor` | 감지된 후보 중 하나를 TargetActor로 기록(타겟 선정의 유일한 주체) | `Plugins/WxAI/Source/WxAI/Public/WxBTService_UpdateTargetActor.h` |
+| `UWxAIBehaviorComponent` | 폰별 행동 자산·감각 수치를 상속과 분리해 제공 | `Plugins/WxAI/Source/WxAI/Public/WxAIBehaviorComponent.h` |
+| `UWxPatrolComponent` | 스플라인 정찰 경로 데이터(무상태) + 순회 규칙 | `Plugins/WxAI/Source/WxAI/Public/WxPatrolComponent.h` |
+| `UWxBTService_LockOn` | 컨트롤러 포커스와 폰 strafe 회전 모드를 한 쌍으로 소유해 TargetActor 반영 | `Plugins/WxAI/Source/WxAI/Public/WxBTService_LockOn.h` |
+| `UWxBTTask_ActivateAbility` | 태그로 GAS 어빌리티 발동을 요청하고 종료까지 추적 | `Plugins/WxAI/Source/WxAI/Public/WxBTTask_ActivateAbility.h` |
 
 ## 확장 포인트 / 규약
-- 새 행동 노드는 엔진 베이스(`UBTTaskNode`/`UBTService`/`UBTDecorator`/`UBTCompositeNode` 또는 `UBTTask_MoveTo` 파생)를 상속해 추가한다. 노드 간 데이터는 반드시 `WxBlackboardKeys`의 accessor로 주고받고(직접 `GetValueAs`/`SetValueAs` 금지), 사용하는 키는 Blackboard 에셋에 같은 이름으로 등록돼 있어야 한다.
-- 데이터 주도 구동: 폰의 `UWxAIBehaviorComponent`에 BT 자산·시야/청각 수치를 지정해 종류별 차이를 낸다. 정찰은 폰이 부착된 액터(스포너 등)의 `UWxPatrolComponent`를 따르며, 경로가 없으면 정찰하지 않는다.
-- 어빌리티 연동은 태그 계약으로만 이뤄진다 — 어빌리티는 활성 구간에 식별 태그 `Ability.X`를 소유 태그로 발행하고, `ActivateAbility`/`MirrorAbility`가 그 태그로 시작·종료를 추적한다. `AttributeRatio` 데코의 Attribute/MaxAttribute는 디자이너가 BT 에디터에서 직접 지정한다.
-- 권한 모델: 소음 발생(`UWxAnimNotify_ReportNoise`)은 서버 전용이다.
+- **새 BT 노드**: 엔진 베이스(`UBTService`/`UBTTaskNode`/`UBTDecorator`/`UBTCompositeNode`)를 상속하고 `WxBT<종류>_<이름>` 규칙을 따른다. 인스턴스별 상태는 노드 메모리 구조체(`FWx...Memory`)로 두며, Composite 파생은 반드시 베이스 메모리(`FBTCompositeMemory`) 뒤에 자체 필드를 배치한다(`UWxBTComposite_RandomChoice` 참고).
+- **Blackboard 접근**: `GetValueAs`/`SetValueAs` 직접 호출 대신 `WxBlackboardKeys`의 accessor를 쓴다. Blackboard 에셋에 같은 이름·타입의 키가 등록돼 있어야 하며, Float 부재값은 `NoTargetDistance`로 기록해 "무한히 멀다"로 읽히게 한다.
+- **데이터 주도 설정**: 정찰 경로는 폰이 부착된 액터(스포너 등)의 `UWxPatrolComponent`에서, 감각 수치·행동 트리는 폰의 `UWxAIBehaviorComponent`에서 읽는다. 어빌리티/어트리뷰트는 BT 에디터에서 태그·핸들로 지정한다.
 
 ## 여기서부터 읽어라
-1. `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` — 노드들이 공유하는 데이터 계약. 모듈 전체 데이터 흐름의 지도다
-2. `Plugins/WxAI/Source/WxAI/Public/WxBTService_UpdateTargetActor.h` — 감지→표적 발행. 표적 흐름이 여기서 시작한다
-3. `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h` — 세 센스가 어떻게 후보를 만들고 컨트롤러/폰이 어떻게 얽히는지
-4. `Plugins/WxAI/Source/WxAI/Public/WxBTComposite_RandomChoice.h` — 추첨 Composite의 후보 필터·통지 규칙(가장 비자명한 노드)
+1. `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` — 모든 노드가 공유하는 데이터 버스. 키의 SET/CLEAR 소유권 분담(컨트롤러 vs BT 노드)이 여기 정리돼 있어 제어 흐름의 지도 역할을 한다.
+2. `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h` → `WxBTService_UpdateTargetActor.h` — "감지 → 타겟 선정"의 데이터 흐름과 두 컴포넌트의 책임 경계.
+3. `Plugins/WxAI/Source/WxAI/Public/WxAIBehaviorComponent.h` — 폰별 설정이 어떻게 컨트롤러/퍼셉션으로 흘러 들어가는지(빙의 시점 읽기).
 
 ## 관련
-- 상위: `AWxAIController`(Source/WxGame)가 이 모듈을 구동한다. 어빌리티·어트리뷰트·락온 대상은 [[WxCombat]], 공용 정의는 [[WxCore]]
+- 상위: `Source/WxGame/Controller/WxAIController.h` (`AWxAIController`) — 이 모듈의 컴포넌트·행동 트리를 실제로 구동하는 소비자
+- 협력: [[WxCombat]] — 어빌리티/어트리뷰트/락온 대상 보관
 
 ---
-*문서 기준 커밋 `e0e3ecc` · 생성일 2026-09-09 · 소스 38파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `ffc6360` · 생성일 2026-09-10 · 소스 38파일 — `/readme-writer`로 갱신*
