@@ -204,10 +204,12 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		}
 	}
 
+	// 모디파이어마다 PostGameplayEffectExecute가 돌아 출력 순서가 곧 이벤트 순서다.
+	// GP가 먼저면 HP가 아직 안 깎여 그로기가 Ability.Death 가드를 지나친다.
+	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(ExecutionStatics.IncomingDamageProperty, EGameplayModOp::Additive, FinalDamage));
+
 	if (!bIsGroggy)
 	{
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(ExecutionStatics.GPProperty, EGameplayModOp::Additive, FinalDamage));
 	}
-
-	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(ExecutionStatics.IncomingDamageProperty, EGameplayModOp::Additive, FinalDamage));
 }
