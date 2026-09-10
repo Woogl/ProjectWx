@@ -89,13 +89,19 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 {
 	Super::PostGameplayEffectExecute(Data);
 
+	UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+	if (!ASC)
+	{
+		return;
+	}
+
 	if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
 	{
-		const float Damage = GetIncomingDamage();
+		// 리셋이 베이스만 지우므로, 현재값을 읽으면 지속형 모디파이어 몫이 매 타격 피해량에 얹힌다.
+		const float Damage = ASC->GetNumericAttributeBase(GetIncomingDamageAttribute());
 		SetIncomingDamage(0.f);
 
-		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
-		if (Damage > 0.f && ASC)
+		if (Damage > 0.f)
 		{
 			// 현재값이 아니라 베이스에서 뺀다. 현재값에서 빼면 지속형 모디파이어 몫이 베이스로 굳는다.
 			SetHP(ASC->GetNumericAttributeBase(GetHPAttribute()) - Damage);
@@ -118,8 +124,7 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 	else if (Data.EvaluatedData.Attribute == GetGPAttribute() && GetMaxGP() > 0.f)
 	{
 		// 그로기 진입만 알리고 해제는 관여하지 않는다 — 어빌리티가 GP를 직접 보고 스스로 끝낸다.
-		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
-		if (GetGP() >= GetMaxGP() && ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
+		if (GetGP() >= GetMaxGP() && !ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
 		{
 			FGameplayEventData EventData;
 			EventData.EventTag = WxGameplayTags::Event_Groggy;
