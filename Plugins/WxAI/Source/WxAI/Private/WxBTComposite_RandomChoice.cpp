@@ -33,7 +33,7 @@ FString UWxBTComposite_RandomChoice::GetStaticDescription() const
 
 int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& SearchData, int32 PrevChild, EBTNodeResult::Type LastResult) const
 {
-	// 첫 진입이 아니면 (= 선택된 자식이 결과를 반환한 시점) 결과를 그대로 부모에 전파한다.
+	// 첫 진입이 아닌 시점은 선택된 자식이 결과를 반환했거나, 아래에서 넘긴 차단 자식을 엔진이 재검사해 실패시킨 직후다.
 	if (PrevChild != BTSpecialChild::NotInitialized)
 	{
 		return BTSpecialChild::ReturnToParent;
@@ -53,16 +53,23 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 	Candidates.Reserve(ChildrenNum);
 	Weights.Reserve(ChildrenNum);
 
+	// 후보가 하나도 남지 않았을 때 엔진에 되돌려줄 자식.
+	int32 BlockedChild = INDEX_NONE;
+
 	// 회피는 여기서 보지 않는다. 회피를 풀지 말지는 조건을 통과한 후보가 몇 개인지에 달렸으므로, 수집을 끝낸 뒤에 판단해야 한다.
 	for (int32 Index = 0; Index < ChildrenNum; ++Index)
 	{
 		// 엔진이 선택 직후 FindChildToExecute 에서 이 자식에 대해 동일하게 호출하는 검사이므로, 미리 걸러도 선택 결과가 엔진 판정과 어긋나지 않는다.
 		if (!DoDecoratorsAllowExecution(SearchData.OwnerComp, SearchData.OwnerComp.GetActiveInstanceIdx(), Index))
 		{
-			// 엔진은 FindChildToExecute 에서 조건 실패 자식을 지나칠 때 이 알림으로 LowerPriority·Both 데코레이터를 관찰자로 등록한다.
-			// 사전 필터가 그 경로를 건너뛰므로 여기서 대신 보낸다.
+			// 사전 필터가 엔진의 조건 실패 경로를 건너뛰므로, 관찰자 등록 알림을 여기서 대신 보낸다.
 			EBTNodeResult::Type FailedResult = EBTNodeResult::Failed;
 			NotifyDecoratorsOnFailedActivation(SearchData, Index, FailedResult);
+
+			if (BlockedChild == INDEX_NONE)
+			{
+				BlockedChild = Index;
+			}
 			continue;
 		}
 
@@ -90,6 +97,12 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 
 	if (Candidates.Num() == 0)
 	{
+		// 부모 Selector 는 탐색 결과가 Failed 일 때만 다음 형제로 넘어가는데, 이 훅의 LastResult 는 값 전달이라 여기서 실패를 쓸 수 없다.
+		if (BlockedChild != INDEX_NONE)
+		{
+			return BlockedChild;
+		}
+
 		return BTSpecialChild::ReturnToParent;
 	}
 
