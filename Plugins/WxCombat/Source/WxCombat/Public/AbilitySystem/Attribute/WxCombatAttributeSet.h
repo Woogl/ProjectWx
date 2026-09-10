@@ -186,5 +186,5 @@ private:
 
 	static const FWxMaxAttributePair* FindMaxAttributePair(const FGameplayAttribute& Attribute);
 	float ClampAttributeValue(const FGameplayAttribute& Attribute, float NewValue) const;
-	void AdjustCurrentAttributeForMaxChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue);
+	void AdjustAttributeForMaxChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue);
 };

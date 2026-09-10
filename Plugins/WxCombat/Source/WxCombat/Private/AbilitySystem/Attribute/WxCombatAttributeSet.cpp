@@ -82,7 +82,7 @@ void UWxCombatAttributeSet::PostAttributeChange(const FGameplayAttribute& Attrib
 		return;
 	}
 
-	AdjustCurrentAttributeForMaxChange(Attribute, OldValue, NewValue);
+	AdjustAttributeForMaxChange(Attribute, OldValue, NewValue);
 }
 
 void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -93,22 +93,21 @@ void UWxCombatAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 	{
 		const float Damage = GetIncomingDamage();
 		SetIncomingDamage(0.f);
-		if (Damage > 0.f)
+
+		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+		if (Damage > 0.f && ASC)
 		{
-			SetHP(GetHP() - Damage);
+			// 현재값이 아니라 베이스에서 뺀다. 현재값에서 빼면 지속형 모디파이어 몫이 베이스로 굳는다.
+			SetHP(ASC->GetNumericAttributeBase(GetHPAttribute()) - Damage);
 
 			// 사망 표식(Ability.Death)은 사망 어빌리티가 활성 동안 들고 있으므로, 여기서는 발동만 알린다.
-			if (GetHP() <= 0.f)
+			if (GetHP() <= 0.f && !ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
 			{
-				UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
-				if (ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
-				{
-					FGameplayEventData EventData;
-					EventData.EventTag = WxGameplayTags::Event_Death;
-					EventData.Instigator = Data.EffectSpec.GetEffectContext().GetInstigator();
-					EventData.Target = GetOwningActor();
-					ASC->HandleGameplayEvent(WxGameplayTags::Event_Death, &EventData);
-				}
+				FGameplayEventData EventData;
+				EventData.EventTag = WxGameplayTags::Event_Death;
+				EventData.Instigator = Data.EffectSpec.GetEffectContext().GetInstigator();
+				EventData.Target = GetOwningActor();
+				ASC->HandleGameplayEvent(WxGameplayTags::Event_Death, &EventData);
 			}
 		}
 	}
@@ -146,10 +145,10 @@ float UWxCombatAttributeSet::ClampAttributeValue(const FGameplayAttribute& Attri
 	return NewValue;
 }
 
-void UWxCombatAttributeSet::AdjustCurrentAttributeForMaxChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
+void UWxCombatAttributeSet::AdjustAttributeForMaxChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
 {
 	const FWxMaxAttributePair* Pair = FindMaxAttributePair(Attribute);
-	if (!Pair || Pair->MaxAttribute != Attribute)
+	if (!Pair || Pair->MaxAttribute != Attribute || OldValue <= 0.f)
 	{
 		return;
 	}
@@ -160,13 +159,9 @@ void UWxCombatAttributeSet::AdjustCurrentAttributeForMaxChange(const FGameplayAt
 		return;
 	}
 
-	float AdjustedValue = ASC->GetNumericAttribute(Pair->Attribute);
-	if (OldValue > 0.f)
-	{
-		AdjustedValue *= NewValue / OldValue;
-	}
-
-	ASC->SetNumericAttributeBase(Pair->Attribute, AdjustedValue);
+	// 현재값이 아니라 베이스를 읽어 베이스에 쓴다. 현재값을 읽으면 지속형 모디파이어 몫까지 베이스로 굳어 GE가 걷혀도 남는다.
+	const float ScaledBase = ASC->GetNumericAttributeBase(Pair->Attribute) * NewValue / OldValue;
+	ASC->SetNumericAttributeBase(Pair->Attribute, ScaledBase);
 }
 
 void UWxCombatAttributeSet::OnRep_HP(const FGameplayAttributeData& OldHP)
