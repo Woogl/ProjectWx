@@ -166,6 +166,17 @@ bool UWxAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	return FindActivationGroupBlocker(*ASC, this) == nullptr;
 }
 
+bool UWxAbilityBase::DoesAbilitySatisfyTagRequirements(const UAbilitySystemComponent& AbilitySystemComponent, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	// 콤보 창은 취소되지 않은 활성 배타 어빌리티에서만 열린다. 피격·그로기·사망은 공격을 먼저 끊으므로 이 면제에 닿지 않는다.
+	if (IsActive() && ActionPhase == EWxAbilityActionPhase::ComboWindow)
+	{
+		return true;
+	}
+
+	return Super::DoesAbilitySatisfyTagRequirements(AbilitySystemComponent, SourceTags, TargetTags, OptionalRelevantTags);
+}
+
 bool UWxAbilityBase::CanBeCanceled() const
 {
 	return ActivationGroup != EWxAbilityActivationGroup::Override && Super::CanBeCanceled();
