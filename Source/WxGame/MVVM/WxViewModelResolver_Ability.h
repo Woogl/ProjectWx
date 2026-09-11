@@ -12,7 +12,7 @@ class UMVVMView;
 
 /**
  * 위젯을 소유한 PlayerController 의 빙의 Pawn 에서 ASC 를 끌어와 AbilityTags 가 가리키는 스킬 슬롯의 뷰모델을 얻는다.
- * 후보가 여럿인 슬롯(소환↔명령처럼 상태로 갈리는 쌍)에서는 지금 조건에 맞는 후보의 뷰모델을 주고, 상태가 바뀐 뒤의 교체는 위젯에 붙인 UWxAbilitySlotSwitcher 가 맡는다.
+ * 슬롯 태그 하나에 뷰모델 하나이며, 후보가 여럿인 슬롯에서 누구를 무는지는 뷰모델이 스스로 정한다.
  * 상황별 표시 여부는 위젯의 MVVM 가시성 바인딩에서 정한다.
  */
 UCLASS(EditInlineNew, CollapseCategories)

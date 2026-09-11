@@ -147,15 +147,35 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 		return;
 	}
 
+	// 슬롯 태그를 공유하는 후보가 여럿이면 요건을 만족하는 것을 고른다.
+	// 쿨다운과 비용은 보지 않아 표시가 그것들로 흔들리지 않는다.
 	const UGameplayAbility* MatchedAbility = nullptr;
+	const UGameplayAbility* FallbackAbility = nullptr;
 	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
 	{
-		if (Spec.Ability && Spec.Ability->GetAssetTags().HasAll(AbilityTags))
+		if (!Spec.Ability || !Spec.Ability->GetAssetTags().HasAll(AbilityTags))
+		{
+			continue;
+		}
+
+		if (Spec.Ability->DoesAbilitySatisfyTagRequirements(*ASC))
 		{
 			MatchedAbility = Spec.Ability;
 			break;
 		}
+
+		// 사망처럼 후보가 전부 막히는 구간에는 보던 얼굴을 유지한다.
+		if (!FallbackAbility || Spec.Ability.Get() == CachedAbility.Get())
+		{
+			FallbackAbility = Spec.Ability;
+		}
 	}
+
+	if (!MatchedAbility)
+	{
+		MatchedAbility = FallbackAbility;
+	}
+
 	if (MatchedAbility == CachedAbility.Get())
 	{
 		return;
@@ -446,6 +466,9 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 bool UWxViewModel_Ability::FlushActivationRefresh(float DeltaTime)
 {
 	ActivationRefreshHandle.Reset();
+
+	// 후보를 가르는 요건이 태그라 대상부터 다시 고른다. 고른 것이 그대로면 조기 반환한다.
+	RefreshBoundAbility();
 
 	RefreshActivationState();
 
