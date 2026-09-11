@@ -27,8 +27,7 @@ APawn* UWxMinionSubsystem::SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionC
 		UE_LOG(LogWxCombat, Warning, TEXT("%s: 소환 클래스 %s가 GenericTeamAgentInterface를 구현하지 않아 생성하지 않는다."), *Master.GetName(), *GetNameSafe(MinionClass.Get()));
 		return nullptr;
 	}
-	const IWxMinion* MinionDefaults = Cast<IWxMinion>(MinionClass.GetDefaultObject());
-	if (!MinionDefaults)
+	if (!MinionClass->ImplementsInterface(UWxMinion::StaticClass()))
 	{
 		UE_LOG(LogWxCombat, Warning, TEXT("%s: 소환 클래스 %s가 IWxMinion을 구현하지 않아 생성하지 않는다."), *Master.GetName(), *GetNameSafe(MinionClass.Get()));
 		return nullptr;
@@ -42,7 +41,8 @@ APawn* UWxMinionSubsystem::SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionC
 
 	// 새 소환물 한 자리를 확보하되, 상한이 낮아진 경우 초과분도 함께 정리한다.
 	// Destroy가 EndPlay를 동기 호출하므로 로스터에서 먼저 내려야 핸들러가 이 순회와 겹치지 않는다.
-	const int32 MinionCountToRemove = FMath::Clamp(Minions.Num() - MinionDefaults->GetMaxCountPerMaster() + 1, 0, Minions.Num());
+	const int32 MaxCountPerMaster = FMath::Max(1, IWxMinion::Execute_GetMaxCountPerMaster(MinionClass.GetDefaultObject()));
+	const int32 MinionCountToRemove = FMath::Clamp(Minions.Num() - MaxCountPerMaster + 1, 0, Minions.Num());
 	for (int32 RemovedMinionCount = 0; RemovedMinionCount < MinionCountToRemove; ++RemovedMinionCount)
 	{
 		APawn* OldestMinion = Minions[0].Get();

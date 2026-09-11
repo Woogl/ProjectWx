@@ -10,6 +10,7 @@
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Perception/AIPerceptionComponent.h"
+#include "Minion/WxMinion.h"
 
 UWxBTService_UpdateTargetActor::UWxBTService_UpdateTargetActor()
 {
@@ -32,9 +33,9 @@ void UWxBTService_UpdateTargetActor::TickNode(UBehaviorTreeComponent& OwnerComp,
 		return;
 	}
 
-	// 파괴된 타겟은 블랙보드 약참조가 이미 비워 두므로, 사망만 여기서 가른다.
+	// 감지를 유지하더라도 BP에서 어그로를 비허용으로 바꾸면 타겟을 놓는다.
 	AActor* CurrentTarget = WxBlackboardKeys::GetTargetActor(Blackboard);
-	if (CurrentTarget && !IsActorDead(CurrentTarget))
+	if (CanBeAggroTarget(CurrentTarget) && !IsActorDead(CurrentTarget))
 	{
 		return;
 	}
@@ -42,6 +43,7 @@ void UWxBTService_UpdateTargetActor::TickNode(UBehaviorTreeComponent& OwnerComp,
 	const UAIPerceptionComponent* Perception = AIController->GetPerceptionComponent();
 	if (!Perception)
 	{
+		WxBlackboardKeys::SetTargetActor(Blackboard, nullptr);
 		return;
 	}
 
@@ -56,7 +58,7 @@ AActor* UWxBTService_UpdateTargetActor::FindPerceivedTarget(const UAIPerceptionC
 	for (AActor* PerceivedActor : PerceivedActors)
 	{
 		// 엔진 청각은 소리를 낸 본인의 리스너를 제외하지 않아, 자기 발소리가 그대로 자기 자극으로 돌아온다.
-		if (PerceivedActor != SelfActor && !IsActorDead(PerceivedActor))
+		if (PerceivedActor != SelfActor && CanBeAggroTarget(PerceivedActor) && !IsActorDead(PerceivedActor))
 		{
 			return PerceivedActor;
 		}
@@ -69,4 +71,10 @@ bool UWxBTService_UpdateTargetActor::IsActorDead(AActor* Actor) const
 {
 	const UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor);
 	return ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death);
+}
+
+bool UWxBTService_UpdateTargetActor::CanBeAggroTarget(AActor* Actor) const
+{
+	return IsValid(Actor) && (!Actor->GetClass()->ImplementsInterface(UWxMinion::StaticClass())
+		|| !IWxMinion::Execute_IsAggroIgnored(Actor));
 }

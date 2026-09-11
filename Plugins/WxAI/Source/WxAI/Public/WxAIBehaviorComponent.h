@@ -18,7 +18,13 @@ class WXAI_API UWxAIBehaviorComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
+	UWxAIBehaviorComponent();
+
 	virtual void BeginPlay() override;
+
+#if WITH_EDITOR
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+#endif
 
 	UBehaviorTree* GetBehaviorTree() const;
 

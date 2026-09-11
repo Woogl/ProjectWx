@@ -63,7 +63,6 @@ protected:
 	bool bNeverRevive = false;
 
 	/** 서버 런타임 상태다 — 셀이 스트림 아웃되면 함께 사라진다. */
-	UPROPERTY(VisibleInstanceOnly, Category = "Wx")
 	bool bIsKilled = false;
 
 	TWeakObjectPtr<AActor> SpawnedActor;

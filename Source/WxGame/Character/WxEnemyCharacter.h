@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Spawnable/WxSpawnable.h"
 #include "WxInteractable.h"
-#include "Minion/WxMinion.h"
 #include "Character/WxCharacterBase.h"
 #include "Engine/DataTable.h"
 #include "GameplayTagContainer.h"
@@ -23,7 +22,7 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FWxOnBossEngagementChanged, AWxEnemyCharact
 
 /** 적 캐릭터의 AI 조립, 상호작용, 보상, 보스 표시 상태를 소유한다. */
 UCLASS(Abstract)
-class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnable, public IWxInteractable, public IWxMinion
+class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnable, public IWxInteractable
 {
 	GENERATED_BODY()
 
@@ -49,10 +48,6 @@ public:
 	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
 	
-	//~ Begin IWxMinion
-	virtual int32 GetMaxCountPerMaster() const override;
-	//~ End IWxMinion
-
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
@@ -78,27 +73,11 @@ private:
 
 	void RefreshEngagement();
 
-	void ReleaseMasterStateTag();
-
-	/** 소환물일 때만 주인 ASC를 돌려준다. 올릴 태그를 비워 두면 발행할 것이 없으므로 그때도 null. */
-	UAbilitySystemComponent* GetMasterASC() const;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
 	bool bIsBoss = false;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Interaction", meta = (ClampMin = "0", ClampMax = "180"))
 	float BackstabRearHalfAngle = 90.f;
-
-	/**
-	 * 소환되어 살아 있는 동안 주인 ASC에 카운트로 올려 두는 상태 태그.
-	 * 소환물 종류를 가려야 하면 자식 태그를 지정한다 — 소유 태그는 부모까지 세므로 부모를 보는 요건은 그대로 물린다.
-	 */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Minion", meta = (Categories = "State.Minion"))
-	FGameplayTag MasterStateTag;
-
-	/** 주인이 이 소환물을 동시에 몇 마리까지 유지할지. 넘치면 주인의 가장 오래된 소환물부터 파괴하고 새로 소환한다. */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Minion", meta = (ClampMin = 1))
-	int32 MaxCountPerMaster = 1;
 
 	/** 처치 시 지급할 보상. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Reward", meta = (RowType = "/Script/WxInventory.WxRewardTableRow", WxPreviewRow = "true"))
