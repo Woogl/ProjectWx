@@ -21,7 +21,7 @@ class WXCORE_API IWxMinion
 	GENERATED_BODY()
 
 public:
-	/** 주인이 이 소환물을 동시에 몇 마리까지 유지하는가. 넘치면 주인의 가장 오래된 소환물부터 파괴된다. */
+	/** 0이면 개수 제한이 없다. 양수이면 해당 개수를 넘길 때 주인의 가장 오래된 소환물부터 파괴한다. 음수는 0으로 보정한다. */
 	UFUNCTION(BlueprintNativeEvent, Category = "Wx|Minion")
 	int32 GetMaxCountPerMaster() const;
 	virtual int32 GetMaxCountPerMaster_Implementation() const;

@@ -41,8 +41,9 @@ APawn* UWxMinionSubsystem::SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionC
 
 	// 새 소환물 한 자리를 확보하되, 상한이 낮아진 경우 초과분도 함께 정리한다.
 	// Destroy가 EndPlay를 동기 호출하므로 로스터에서 먼저 내려야 핸들러가 이 순회와 겹치지 않는다.
-	const int32 MaxCountPerMaster = FMath::Max(1, IWxMinion::Execute_GetMaxCountPerMaster(MinionClass.GetDefaultObject()));
-	const int32 MinionCountToRemove = FMath::Clamp(Minions.Num() - MaxCountPerMaster + 1, 0, Minions.Num());
+	const int32 MaxCountPerMaster = FMath::Max(0, IWxMinion::Execute_GetMaxCountPerMaster(MinionClass.GetDefaultObject()));
+	const int32 MinionCountToRemove = MaxCountPerMaster > 0
+		? FMath::Clamp(Minions.Num() - MaxCountPerMaster + 1, 0, Minions.Num()) : 0;
 	for (int32 RemovedMinionCount = 0; RemovedMinionCount < MinionCountToRemove; ++RemovedMinionCount)
 	{
 		APawn* OldestMinion = Minions[0].Get();
