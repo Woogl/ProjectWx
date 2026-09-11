@@ -14,7 +14,9 @@
 #include "PropertyHandle.h"
 #include "UObject/Class.h"
 #include "UObject/UnrealType.h"
+#include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SWrapBox.h"
+#include "Widgets/SBoxPanel.h"
 #include "Widgets/Text/STextBlock.h"
 
 #define LOCTEXT_NAMESPACE "WxDataTableRowHandleCustomization"
@@ -166,6 +168,14 @@ void FWxDataTableRowHandleCustomization::CustomizeChildren(TSharedRef<IPropertyH
 
 	const FDataTableEditorRowListViewDataPtr& SelectedRow = Rows[0];
 	const int32 ColumnCount = FMath::Min(Columns.Num(), SelectedRow->CellData.Num());
+
+	// 칼럼을 데이터 테이블 에디터의 한 행처럼 가로로 늘어놓고, 패널 폭을 넘치면 다음 줄로 넘긴다.
+	TSharedRef<SWrapBox> CellBox = SNew(SWrapBox)
+		.Orientation(Orient_Horizontal)
+		.UseAllottedSize(true)
+		.InnerSlotPadding(FVector2D(12.f, 4.f));
+
+	TArray<FString> ColumnNames;
 	for (int32 ColumnIndex = 0; ColumnIndex < ColumnCount; ++ColumnIndex)
 	{
 		const FDataTableEditorColumnHeaderDataPtr& Column = Columns[ColumnIndex];
@@ -175,23 +185,42 @@ void FWxDataTableRowHandleCustomization::CustomizeChildren(TSharedRef<IPropertyH
 		}
 
 		const FText CellText = SelectedRow->CellData[ColumnIndex];
-		ChildBuilder.AddCustomRow(Column->DisplayName)
-		.NameContent()
+		ColumnNames.Add(Column->DisplayName.ToString());
+
+		// 폭 상한이 없으면 대사처럼 긴 값 하나가 패널 폭을 넘겨 잘린다.
+		CellBox->AddSlot()
+		.VAlign(VAlign_Top)
 		[
-			SNew(STextBlock)
-			.Text(Column->DisplayName)
-			.Font(CustomizationUtils.GetRegularFont())
-		]
-		.ValueContent()
-		.MinDesiredWidth(250.f)
-		[
-			SNew(STextBlock)
-			.Text(CellText)
-			.ToolTipText(CellText)
-			.AutoWrapText(true)
-			.Font(CustomizationUtils.GetRegularFont())
+			SNew(SBox)
+			.MaxDesiredWidth(400.f)
+			[
+				SNew(SVerticalBox)
+				+ SVerticalBox::Slot()
+				.AutoHeight()
+				[
+					SNew(STextBlock)
+					.Text(Column->DisplayName)
+					.Font(CustomizationUtils.GetBoldFont())
+				]
+				+ SVerticalBox::Slot()
+				.AutoHeight()
+				[
+					SNew(STextBlock)
+					.Text(CellText)
+					.ToolTipText(CellText)
+					.AutoWrapText(true)
+					.Font(CustomizationUtils.GetRegularFont())
+				]
+			]
 		];
 	}
+
+	// 칼럼명을 이어 붙인 검색어라 디테일 검색창에서 칼럼명으로 계속 찾힌다.
+	ChildBuilder.AddCustomRow(FText::FromString(FString::Join(ColumnNames, TEXT(" "))))
+	.WholeRowContent()
+	[
+		CellBox
+	];
 }
 
 bool FWxDataTableRowHandleCustomization::HandleShouldFilterAsset(const FAssetData& AssetData)

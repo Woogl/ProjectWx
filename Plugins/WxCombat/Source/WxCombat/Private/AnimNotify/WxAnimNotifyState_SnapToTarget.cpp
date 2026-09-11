@@ -5,6 +5,7 @@
 #include "GameFramework/Actor.h"
 #include "MotionWarpingComponent.h"
 #include "Targeting/WxRootMotionModifier_SnapToTarget.h"
+#include "Targeting/WxTargetingPreview.h"
 
 namespace
 {
@@ -84,3 +85,10 @@ void UWxAnimNotifyState_SnapToTarget::NotifyBegin(USkeletalMeshComponent* MeshCo
 		MotionWarpingComp->AddModifier(RotationModifier);
 	}
 }
+
+#if WITH_EDITOR
+void UWxAnimNotifyState_SnapToTarget::DrawInEditor(FPrimitiveDrawInterface* PDI, USkeletalMeshComponent* MeshComp, const UAnimSequenceBase* Animation, const FAnimNotifyEvent& NotifyEvent) const
+{
+	WxTargetingPreview::DrawDebugTargetingPreset(PDI, MeshComp, NotifyEvent, TargetingPreset, FLinearColor(NotifyColor));
+}
+#endif

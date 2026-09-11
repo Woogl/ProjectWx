@@ -20,7 +20,7 @@ public:
 	virtual bool IsPropertyTypeCustomized(const IPropertyHandle& PropertyHandle) const override;
 };
 
-/** 테이블·행 선택기를 헤더에 두고, 펼친 자식 영역에 선택한 행의 모든 데이터 테이블 칼럼을 읽기 전용으로 표시한다. */
+/** 테이블·행 선택기를 헤더에 두고, 펼친 자식 영역에 선택한 행의 모든 데이터 테이블 칼럼을 가로로 나열해 읽기 전용으로 표시한다. */
 class FWxDataTableRowHandleCustomization : public IPropertyTypeCustomization
 {
 public:

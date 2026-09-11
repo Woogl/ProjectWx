@@ -23,6 +23,11 @@ class WXCOMBAT_API UWxAnimNotifyState_SnapToTarget : public UAnimNotifyState
 public:
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
 
+#if WITH_EDITOR
+	/** 스냅 가능 범위를 노티파이 색으로 그린다. 표시 구간과 프레임 규칙은 WxTargetingPreview가 갖는다. */
+	virtual void DrawInEditor(FPrimitiveDrawInterface* PDI, USkeletalMeshComponent* MeshComp, const UAnimSequenceBase* Animation, const FAnimNotifyEvent& NotifyEvent) const override;
+#endif
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|Targeting")
 	TObjectPtr<UTargetingPreset> TargetingPreset;
