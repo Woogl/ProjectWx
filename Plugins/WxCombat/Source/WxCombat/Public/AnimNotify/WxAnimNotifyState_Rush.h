@@ -3,7 +3,6 @@
 #pragma once
 
 #include "Animation/AnimNotifies/AnimNotifyState.h"
-#include "GameplayTagContainer.h"
 #include "Engine/EngineTypes.h"
 #include "WxAnimNotifyState_Rush.generated.h"
 
@@ -41,13 +40,6 @@ protected:
 	/** 돌진 구간 동안 캡슐이 무시할 오브젝트 종류. 빈 목록은 기존 충돌을 유지한다. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Rush")
 	TArray<TEnumAsByte<EObjectTypeQuery>> IgnoreCollisions;
-
-	/** 소환물을 대상으로 돌진할 때 같은 구간에서 협공을 시작한다. */
-	UPROPERTY(EditAnywhere, Category = "Wx|Rush", meta = (EditCondition = "TargetSource == EWxRushTarget::Minion"))
-	bool bCommandMinion = false;
-
-	UPROPERTY(EditAnywhere, Category = "Wx|Rush", meta = (Categories = "Ability", EditCondition = "bCommandMinion"))
-	FGameplayTag MinionAbilityTag;
 
 private:
 	AActor* FindTarget(APawn& Avatar) const;

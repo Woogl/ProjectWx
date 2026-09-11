@@ -3,7 +3,6 @@
 #include "AnimNotify/WxAnimNotifyState_Rush.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "Animation/AnimInstance.h"
 #include "Animation/AnimNotifyQueue.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "EngineUtils.h"
@@ -17,7 +16,6 @@
 UWxAnimNotifyState_Rush::UWxAnimNotifyState_Rush()
 {
 	bIsNativeBranchingPoint = true;
-	MinionAbilityTag = WxGameplayTags::Ability_Skill_2;
 }
 
 void UWxAnimNotifyState_Rush::BranchingPointNotifyBegin(FBranchingPointNotifyPayload& Payload)
@@ -94,22 +92,6 @@ void UWxAnimNotifyState_Rush::NotifyBegin(USkeletalMeshComponent* MeshComp, UAni
 		return;
 	}
 	Warping->AddModifier(Modifier);
-	if (TargetSource == EWxRushTarget::Minion && bCommandMinion && Avatar->HasAuthority())
-	{
-		UWxMinionSubsystem* Subsystem = Avatar->GetWorld()->GetSubsystem<UWxMinionSubsystem>();
-		if (!Subsystem || Subsystem->TryActivateAbilityOnMinions(*Avatar, MinionAbilityTag, FGameplayEventData()) == 0)
-		{
-			Modifier->CancelRush();
-			return;
-		}
-		UAbilitySystemComponent* OtherASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Other);
-		UAnimInstance* AnimInstance = MeshComp->GetAnimInstance();
-		if (OtherASC && AnimInstance)
-		{
-			// 분신의 ASPD와 무관하게 주인과 같은 시간축으로 돌진·피해 구간을 진행한다.
-			OtherASC->CurrentMontageSetPlayRate(AnimInstance->Montage_GetPlayRate(AnimInstance->GetCurrentActiveMontage()));
-		}
-	}
 }
 
 void UWxAnimNotifyState_Rush::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)

@@ -97,15 +97,6 @@ void UWxRootMotionModifier_Rush::CancelRush()
 		return;
 	}
 	SetState(ERootMotionModifierState::Disabled);
-	if (OwnerASC.IsValid() && AbilityHandle.IsValid())
-	{
-		// Override 어빌리티도 돌진 자체가 중단되면 잔여 몽타주 이동·타격을 멈춘다.
-		if (const UGameplayAbility* Ability = OwnerASC->GetAnimatingAbility(); Ability && Ability->GetCurrentAbilitySpecHandle() == AbilityHandle)
-		{
-			OwnerASC->CurrentMontageStop(0.f);
-		}
-		OwnerASC->CancelAbilityHandle(AbilityHandle);
-	}
 }
 
 void UWxRootMotionModifier_Rush::HandleTargetEndPlay(AActor* Actor, EEndPlayReason::Type EndPlayReason)
