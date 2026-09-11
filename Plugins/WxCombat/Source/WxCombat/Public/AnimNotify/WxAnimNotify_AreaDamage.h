@@ -25,7 +25,11 @@ public:
 	virtual FString GetNotifyName_Implementation() const override;
 
 #if WITH_EDITOR
-	/** 프리셋의 AOE 선택 태스크를 실제 쿼리와 같은 트랜스폼·형상으로 그린다. 뷰포트 Character 메뉴의 노티파이 시각화가 켜져 있어야 보인다. */
+	/**
+	 * 프리셋의 AOE 선택 태스크를 실제 쿼리와 같은 트랜스폼·형상으로 그린다. 뷰포트 Character 메뉴의 노티파이 시각화가 켜져 있어야 보인다.
+	 *
+	 * 재생 위치가 트리거 시점을 지난 뒤 1초 동안만 보인다. 색은 타임라인 칩과 같은 노티파이 색을 쓴다.
+	 */
 	virtual void DrawInEditor(FPrimitiveDrawInterface* PDI, USkeletalMeshComponent* MeshComp, const UAnimSequenceBase* Animation, const FAnimNotifyEvent& NotifyEvent) const override;
 #endif
 

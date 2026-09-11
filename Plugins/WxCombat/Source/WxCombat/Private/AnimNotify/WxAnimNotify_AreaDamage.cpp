@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AnimNotify/WxAnimNotify_AreaDamage.h"
+#include "Animation/AnimSingleNodeInstance.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "PrimitiveDrawingUtils.h"
 #include "TargetingSystem/TargetingPreset.h"
@@ -57,6 +58,21 @@ FString UWxAnimNotify_AreaDamage::GetNotifyName_Implementation() const
 void UWxAnimNotify_AreaDamage::DrawInEditor(FPrimitiveDrawInterface* PDI, USkeletalMeshComponent* MeshComp, const UAnimSequenceBase* Animation, const FAnimNotifyEvent& NotifyEvent) const
 {
 	if (!PDI || !MeshComp || !TargetingPreset)
+	{
+		return;
+	}
+
+	// 뷰포트가 프리뷰 애셋의 모든 노티파이를 매 프레임 그리므로, 표시 구간은 재생 위치로 직접 좁힌다.
+	// 몽타주 프리뷰의 현재 시간은 엔진이 몽타주 위치를 그대로 넣은 값이라 노티파이의 절대 시간과 같은 축이다.
+	const UAnimSingleNodeInstance* PreviewInstance = MeshComp->GetSingleNodeInstance();
+	if (!PreviewInstance)
+	{
+		return;
+	}
+
+	constexpr float VisibleDuration = 1.f;
+	const float TimeSinceTrigger = PreviewInstance->GetCurrentTime() - NotifyEvent.GetTriggerTime();
+	if (TimeSinceTrigger < 0.f || TimeSinceTrigger > VisibleDuration)
 	{
 		return;
 	}
