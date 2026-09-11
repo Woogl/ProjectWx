@@ -120,6 +120,9 @@ namespace WxGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Dodge, "Cooldown.Dodge");
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill_1, "Cooldown.Skill.1");
+	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill_2, "Cooldown.Skill.2");
+	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill_3, "Cooldown.Skill.3");
+	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Skill_4, "Cooldown.Skill.4");
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Ultimate, "Cooldown.Ultimate");
 
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Magnitude, "SetByCaller.Magnitude");

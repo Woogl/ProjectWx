@@ -9,14 +9,16 @@
 
 void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags)
 {
-	if (!InASC || InAbilityTags.IsEmpty())
+	// 호출자가 현재 슬롯의 태그를 다시 전달할 수도 있으므로 종료 전에 복사한다.
+	const FGameplayTagContainer NewAbilityTags = InAbilityTags;
+	Deinitialize();
+	if (!InASC || NewAbilityTags.IsEmpty())
 	{
 		return;
 	}
 
-	Deinitialize();
 	CachedASC = InASC;
-	AbilityTags = InAbilityTags;
+	AbilityTags = NewAbilityTags;
 
 	// 어빌리티가 갈려도 쿨다운 GE 는 같은 ASC 에서 오므로 구독은 한 번뿐이다 — 지금 물고 있는 쿨다운 태그로 거르는 것은 핸들러가 한다.
 	InASC->OnActiveGameplayEffectAddedDelegateToSelf
@@ -101,22 +103,22 @@ void UWxViewModel_Ability::Deinitialize()
 	AbilityTags.Reset();
 	CachedCooldownTags.Reset();
 
-	// 통지 없이 값만 되돌린다 — 재초기화가 빈 슬롯으로 끝나면 RefreshBoundAbility 가 조기 반환해 옛 표시가 남는다.
-	Title = FText::GetEmpty();
-	Description = FText::GetEmpty();
-	Icon = nullptr;
-	CostAmount = 0.f;
-	CooldownDuration = 0.f;
-	CooldownRemaining = 0.f;
-	CooldownPercent = 0.f;
-	IsOnCooldown = false;
-	MaxRecharges = 0;
-	HasMultipleCharges = false;
-	CurrentCharges = 0;
-	CanActivate = false;
-	CheckCost = false;
-
 	Super::Deinitialize();
+	if (!HasAnyFlags(RF_BeginDestroyed))
+	{
+		SetTitle(FText::GetEmpty());
+		SetDescription(FText::GetEmpty());
+		SetIcon(nullptr);
+		SetCostAmount(0.f);
+		SetCooldownDuration(0.f);
+		SetCooldownRemaining(0.f);
+		SetCooldownPercent(0.f);
+		SetIsOnCooldown(false);
+		SetMaxRecharges(0);
+		SetCurrentCharges(0);
+		SetCanActivate(false);
+		SetCheckCost(false);
+	}
 }
 
 bool UWxViewModel_Ability::TryActivateAbility()

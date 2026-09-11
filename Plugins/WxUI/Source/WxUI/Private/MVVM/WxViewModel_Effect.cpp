@@ -8,6 +8,7 @@
 
 void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const IWxUIData* InUIData)
 {
+	Deinitialize();
 	if (!InASC || !InHandle.IsValid() || !InUIData)
 	{
 		return;
@@ -19,7 +20,6 @@ void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGame
 		return;
 	}
 
-	Deinitialize();
 	CachedASC = InASC;
 	BoundHandle = InHandle;
 
@@ -42,6 +42,9 @@ void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGame
 	// 무한 지속은 잔량이 줄지 않는다 — 링을 가득 채워 두고 갱신도 걸지 않는다.
 	if (EffectDuration == FGameplayEffectConstants::INFINITE_DURATION)
 	{
+		// 무한 지속의 시간은 0, 진행률은 1로 표시한다.
+		SetDuration(0.f);
+		SetTimeRemaining(0.f);
 		SetTimeRemainingPercent(1.f);
 		return;
 	}
@@ -89,6 +92,16 @@ void UWxViewModel_Effect::Deinitialize()
 	BoundHandle.Invalidate();
 
 	Super::Deinitialize();
+	if (!HasAnyFlags(RF_BeginDestroyed))
+	{
+		SetTitle(FText::GetEmpty());
+		SetDescription(FText::GetEmpty());
+		SetIcon(nullptr);
+		SetDuration(0.f);
+		SetTimeRemaining(0.f);
+		SetTimeRemainingPercent(0.f);
+		SetStackCount(0);
+	}
 }
 
 FActiveGameplayEffectHandle UWxViewModel_Effect::GetBoundHandle() const

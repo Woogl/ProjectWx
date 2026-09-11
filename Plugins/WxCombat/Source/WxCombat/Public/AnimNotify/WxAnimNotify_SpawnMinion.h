@@ -22,7 +22,7 @@ public:
 
 protected:
 	/** 동시 유지 수를 선언하는 소환물만 지정한다. 소환자의 팀을 물려받을 수 있는지는 서브시스템이 런타임에 본다. */
-	UPROPERTY(EditAnywhere, Category = "Wx|Minion", meta = (MustImplement = "/Script/WxCombat.WxMinion"))
+	UPROPERTY(EditAnywhere, Category = "Wx|Minion", meta = (MustImplement = "/Script/WxCore.WxMinion"))
 	TSubclassOf<APawn> MinionClass;
 
 	/** 소환자 로컬 기준 스폰 지점. 실제 위치는 스폰 시 충돌 보정으로 밀릴 수 있다. */

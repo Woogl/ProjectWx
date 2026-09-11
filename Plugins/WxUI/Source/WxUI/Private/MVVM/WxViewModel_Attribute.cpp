@@ -10,12 +10,13 @@
 
 void UWxViewModel_Attribute::Initialize(UAbilitySystemComponent* InASC, FGameplayAttribute InAttribute, FGameplayAttribute InMaxAttribute)
 {
-	if (!InASC)
+	Deinitialize();
+	if (!InASC || !InAttribute.IsValid())
 	{
 		return;
 	}
 
-	Deinitialize();
+	InMaxAttribute = InMaxAttribute.IsValid() ? InMaxAttribute : InAttribute;
 	CachedASC = InASC;
 
 	if (InAttribute.IsValid())
@@ -60,6 +61,14 @@ void UWxViewModel_Attribute::Deinitialize()
 	BoundMaxAttribute = FGameplayAttribute();
 
 	Super::Deinitialize();
+	if (!HasAnyFlags(RF_BeginDestroyed))
+	{
+		SetAttributeAmount(0.f);
+		SetMaxAttributeAmount(0.f);
+		SetAttributePercent(0.f);
+		SetIsAttributeEmpty(false);
+		SetIsAttributeFull(false);
+	}
 }
 
 float UWxViewModel_Attribute::GetAttributeAmount() const

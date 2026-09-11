@@ -18,7 +18,7 @@ class WXGAME_API UWxViewModel_Dialogue : public UWxViewModel
 	GENERATED_BODY()
 
 public:
-	/** 세션을 물려 대사 변경을 구독하고 현재 대사로 시드한다. */
+	/** 이전 세션을 해제한 뒤 연결한다. nullptr이면 표시까지 비운다. */
 	void Initialize(UWxDialogueSessionComponent* InSession);
 
 	virtual void Deinitialize() override;
@@ -49,4 +49,5 @@ class WXGAME_API UWxViewModelResolver_Dialogue : public UMVVMViewModelContextRes
 
 public:
 	virtual UObject* CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const override;
+	virtual void DestroyInstance(UObject* ViewModel, const UMVVMView* View) const override;
 };

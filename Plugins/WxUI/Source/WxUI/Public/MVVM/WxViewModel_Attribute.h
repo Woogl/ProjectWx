@@ -19,6 +19,7 @@ class WXUI_API UWxViewModel_Attribute : public UWxViewModel
 	GENERATED_BODY()
 
 public:
+	/** Max 생략 시 Current를 최대값으로 사용한다. 유효하지 않은 소스는 연결을 해제한다. */
 	void Initialize(UAbilitySystemComponent* InASC, FGameplayAttribute InAttribute, FGameplayAttribute InMaxAttribute);
 	virtual void Deinitialize() override;
 

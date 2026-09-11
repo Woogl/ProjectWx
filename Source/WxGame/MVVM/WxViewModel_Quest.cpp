@@ -9,6 +9,7 @@
 
 void UWxViewModel_Quest::Initialize(UWxQuestComponent* InQuestComponent)
 {
+	Deinitialize();
 	if (!InQuestComponent)
 	{
 		return;
@@ -33,6 +34,12 @@ void UWxViewModel_Quest::Deinitialize()
 	Objectives.Reset();
 
 	Super::Deinitialize();
+	if (!HasAnyFlags(RF_BeginDestroyed))
+	{
+		UE_MVVM_SET_PROPERTY_VALUE(bHasActiveQuest, false);
+		UE_MVVM_SET_PROPERTY_VALUE(QuestTitle, FText::GetEmpty());
+		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(Objectives);
+	}
 }
 
 void UWxViewModel_Quest::HandleJournalChanged()
@@ -71,8 +78,15 @@ UObject* UWxViewModelResolver_Quest::CreateInstance(const UClass* ExpectedType, 
 		return nullptr;
 	}
 
-	// 컴포넌트는 GameState 소유라 월드 수명과 같으며, 수명은 뷰의 강참조와 BeginDestroy 의 Deinitialize 가 관리한다.
 	UWxViewModel_Quest* ViewModel = NewObject<UWxViewModel_Quest>(QuestComponent);
 	ViewModel->Initialize(QuestComponent);
 	return ViewModel;
+}
+
+void UWxViewModelResolver_Quest::DestroyInstance(UObject* ViewModel, const UMVVMView* View) const
+{
+	if (UWxViewModel_Quest* Quest = Cast<UWxViewModel_Quest>(ViewModel))
+	{
+		Quest->Deinitialize();
+	}
 }

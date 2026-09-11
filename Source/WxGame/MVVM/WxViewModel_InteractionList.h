@@ -31,7 +31,6 @@ public:
 	void Initialize(UWxInteractionScannerComponent* InScanner);
 
 	virtual void Deinitialize() override;
-	virtual void BeginDestroy() override;
 
 	UFUNCTION()
 	void HandleListChanged(const TArray<FText>& InPrompts);
@@ -56,7 +55,7 @@ private:
 	/** 관찰 중인 PC 의 것이면 연결하고 관찰을 끝낸다. */
 	void HandleScannerReady(UWxInteractionScannerComponent* Scanner);
 
-	/** 연결 성공 시와 소멸 시 모두 여기로 모은다. */
+	/** 연결 교체와 종료 시 이전 컨트롤러의 대기를 취소한다. */
 	void StopObserving();
 
 	void RebuildEntries(const TArray<FText>& InPrompts);
@@ -81,4 +80,5 @@ class WXGAME_API UWxViewModelResolver_InteractionList : public UMVVMViewModelCon
 
 public:
 	virtual UObject* CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const override;
+	virtual void DestroyInstance(UObject* ViewModel, const UMVVMView* View) const override;
 };

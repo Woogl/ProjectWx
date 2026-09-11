@@ -18,7 +18,7 @@ namespace WxGameplayTags
 	/** 대화 세션 컴포넌트가 시작·종료에 맞춰 폰 ASC에 loose 태그로 발행. WxAbility_Interact가 ActivationBlockedTags로 사용해 대화 중 프롬프트 표시·상호작용을 닫는다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dialogue);
 
-	/** 소환물이 살아 있는 동안 자신이 주인 ASC에 카운트로 올린다(AWxEnemyCharacter::MasterStateTag). 한 슬롯을 나눠 쓰려던 소환·명령 어빌리티 분기는 아직 이 태그를 읽지 않는다 */
+	/** 소환물 서브시스템이 살아 있는 소환물 보유 여부를 주인 ASC에 발행·복제한다. 같은 입력을 쓰는 소환·명령 스킬의 발동 조건이다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Minion_Active);
 
 	/** UWxAbility_Death가 서버에서 loose 태그로 발행(TagOnly 복제). AWxCharacterBase가 구독해 전 머신에서 래그돌로 전환하고, 타게팅 프리셋이 IgnoreTags로 사용한다 */
@@ -230,6 +230,9 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Dodge);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Skill_1);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Skill_2);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Skill_3);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Skill_4);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Ultimate);
 
 

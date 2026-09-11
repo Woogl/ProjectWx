@@ -63,6 +63,33 @@ public:
 };
 
 UCLASS()
+class WXCOMBAT_API UWxEffect_Cooldown_Skill_2 : public UWxEffect_Cooldown
+{
+	GENERATED_BODY()
+
+public:
+	UWxEffect_Cooldown_Skill_2();
+};
+
+UCLASS()
+class WXCOMBAT_API UWxEffect_Cooldown_Skill_3 : public UWxEffect_Cooldown
+{
+	GENERATED_BODY()
+
+public:
+	UWxEffect_Cooldown_Skill_3();
+};
+
+UCLASS()
+class WXCOMBAT_API UWxEffect_Cooldown_Skill_4 : public UWxEffect_Cooldown
+{
+	GENERATED_BODY()
+
+public:
+	UWxEffect_Cooldown_Skill_4();
+};
+
+UCLASS()
 class WXCOMBAT_API UWxEffect_Cooldown_Ultimate : public UWxEffect_Cooldown
 {
 	GENERATED_BODY()

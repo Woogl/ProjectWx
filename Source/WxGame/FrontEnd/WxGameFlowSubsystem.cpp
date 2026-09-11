@@ -37,6 +37,7 @@ bool UWxGameFlowSubsystem::RequestNewGame(TSoftClassPtr<APawn> PawnClass, TSoftO
 	if (!World || !World->IsNetMode(NM_Standalone))
 	{
 		StatusText = LOCTEXT("StandaloneOnly", "새 게임 진입은 싱글플레이에서 사용할 수 있습니다.");
+		FrontEndChanged.Broadcast();
 		return false;
 	}
 	if (PawnClass.IsNull() || Level.IsNull()
@@ -44,12 +45,14 @@ bool UWxGameFlowSubsystem::RequestNewGame(TSoftClassPtr<APawn> PawnClass, TSoftO
 		|| IsWorldPackage(World, Level))
 	{
 		StatusText = LOCTEXT("InvalidSelection", "캐릭터 또는 레벨을 확인해주세요.");
+		FrontEndChanged.Broadcast();
 		return false;
 	}
 	PendingPawnClass = PawnClass;
 	PendingLevel = Level;
 	StatusText = FText::GetEmpty();
 	GetGameInstance()->GetSubsystem<UWxCheckpointSubsystem>()->ResetCheckpoint();
+	FrontEndChanged.Broadcast();
 	UGameplayStatics::OpenLevel(this, FName(*Level.ToSoftObjectPath().GetLongPackageName()), true);
 	return true;
 }
@@ -80,6 +83,7 @@ void UWxGameFlowSubsystem::HandlePostLoadMap(UWorld* World)
 		// 전환이 어긋났든 이후의 일반 이동이든, 목적지가 아닌 맵이 열리면 선택은 여기서 끝난다.
 		PendingPawnClass.Reset();
 		PendingLevel.Reset();
+		FrontEndChanged.Broadcast();
 		return;
 	}
 	// 폰은 스폰됐지만 아직 한 틱도 돌지 않았다. 지금 지형을 올려 두면 중력으로 떨어지지 않는다.
@@ -90,6 +94,7 @@ void UWxGameFlowSubsystem::HandlePostLoadMap(UWorld* World)
 		Controller->PlayerCameraManager->UpdateCamera(0.f);
 	}
 	World->BlockTillLevelStreamingCompleted();
+	FrontEndChanged.Broadcast();
 }
 
 void UWxGameFlowSubsystem::HandleTravelFailure(UWorld* World, ETravelFailure::Type FailureType, const FString& Error)
@@ -102,6 +107,88 @@ void UWxGameFlowSubsystem::HandleTravelFailure(UWorld* World, ETravelFailure::Ty
 	PendingPawnClass.Reset();
 	PendingLevel.Reset();
 	StatusText = FText::Format(LOCTEXT("TravelFailure", "레벨 전환에 실패했습니다: {0}"), FText::FromString(Error));
+	FrontEndChanged.Broadcast();
+}
+
+UWxGameFlowSubsystem::FWxFrontEndChanged& UWxGameFlowSubsystem::OnFrontEndChanged()
+{
+	return FrontEndChanged;
+}
+
+void UWxGameFlowSubsystem::ResetFrontEnd()
+{
+	SelectedCharacter = FWxFrontEndOption();
+	SelectedDestination = FWxFrontEndOption();
+	FrontEndStep = EWxFrontEndStep::Main;
+	FrontEndChanged.Broadcast();
+}
+
+void UWxGameFlowSubsystem::BeginCharacterSelection()
+{
+	if (FrontEndStep != EWxFrontEndStep::Main || IsFrontEndInputBlocked())
+	{
+		return;
+	}
+	SelectedCharacter = FWxFrontEndOption();
+	SelectedDestination = FWxFrontEndOption();
+	FrontEndStep = EWxFrontEndStep::Character;
+	FrontEndChanged.Broadcast();
+}
+
+bool UWxGameFlowSubsystem::SelectCharacter(const FWxFrontEndOption& Option)
+{
+	if (FrontEndStep != EWxFrontEndStep::Character || IsFrontEndInputBlocked() || Option.PawnClass.IsNull())
+	{
+		return false;
+	}
+	SelectedCharacter = Option;
+	FrontEndStep = EWxFrontEndStep::Destination;
+	FrontEndChanged.Broadcast();
+	return true;
+}
+
+bool UWxGameFlowSubsystem::SelectDestination(const FWxFrontEndOption& Option)
+{
+	if (FrontEndStep != EWxFrontEndStep::Destination || IsFrontEndInputBlocked() || Option.Level.IsNull())
+	{
+		return false;
+	}
+	SelectedDestination = Option;
+	FrontEndStep = EWxFrontEndStep::Confirmation;
+	FrontEndChanged.Broadcast();
+	return true;
+}
+
+void UWxGameFlowSubsystem::ResolveStartConfirmation(bool bConfirmed)
+{
+	if (FrontEndStep != EWxFrontEndStep::Confirmation)
+	{
+		return;
+	}
+	if (!bConfirmed)
+	{
+		ResetFrontEnd();
+		return;
+	}
+	FrontEndStep = EWxFrontEndStep::Destination;
+	RequestNewGame(SelectedCharacter.PawnClass, SelectedDestination.Level);
+	FrontEndChanged.Broadcast();
+}
+
+EWxFrontEndStep UWxGameFlowSubsystem::GetFrontEndStep() const
+{
+	return FrontEndStep;
+}
+
+bool UWxGameFlowSubsystem::IsFrontEndInputBlocked() const
+{
+	return IsBusy() || FrontEndStep == EWxFrontEndStep::Confirmation;
+}
+
+FText UWxGameFlowSubsystem::GetStartConfirmationText() const
+{
+	return FText::Format(LOCTEXT("StartConfirmation", "Character: {0}\nLevel: {1}\n\nStart the game with this selection?"),
+		SelectedCharacter.Title, SelectedDestination.Title);
 }
 
 bool UWxGameFlowSubsystem::IsDestinationWorld(const UWorld* World) const

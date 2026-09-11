@@ -7,6 +7,7 @@
 
 void UWxViewModel_Dialogue::Initialize(UWxDialogueSessionComponent* InSession)
 {
+	Deinitialize();
 	if (!InSession)
 	{
 		return;
@@ -29,6 +30,10 @@ void UWxViewModel_Dialogue::Deinitialize()
 	CachedSession.Reset();
 
 	Super::Deinitialize();
+	if (!HasAnyFlags(RF_BeginDestroyed))
+	{
+		HandleLineChanged(FText::GetEmpty(), FText::GetEmpty());
+	}
 }
 
 void UWxViewModel_Dialogue::HandleLineChanged(const FText& InSpeaker, const FText& InLine)
@@ -67,4 +72,12 @@ UObject* UWxViewModelResolver_Dialogue::CreateInstance(const UClass* ExpectedTyp
 	UWxViewModel_Dialogue* ViewModel = NewObject<UWxViewModel_Dialogue>(Session);
 	ViewModel->Initialize(Session);
 	return ViewModel;
+}
+
+void UWxViewModelResolver_Dialogue::DestroyInstance(UObject* ViewModel, const UMVVMView* View) const
+{
+	if (UWxViewModel_Dialogue* Dialogue = Cast<UWxViewModel_Dialogue>(ViewModel))
+	{
+		Dialogue->Deinitialize();
+	}
 }

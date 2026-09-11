@@ -59,6 +59,21 @@ UWxEffect_Cooldown_Skill_1::UWxEffect_Cooldown_Skill_1()
 	GrantCooldownTag(WxGameplayTags::Cooldown_Skill_1);
 }
 
+UWxEffect_Cooldown_Skill_2::UWxEffect_Cooldown_Skill_2()
+{
+	GrantCooldownTag(WxGameplayTags::Cooldown_Skill_2);
+}
+
+UWxEffect_Cooldown_Skill_3::UWxEffect_Cooldown_Skill_3()
+{
+	GrantCooldownTag(WxGameplayTags::Cooldown_Skill_3);
+}
+
+UWxEffect_Cooldown_Skill_4::UWxEffect_Cooldown_Skill_4()
+{
+	GrantCooldownTag(WxGameplayTags::Cooldown_Skill_4);
+}
+
 UWxEffect_Cooldown_Ultimate::UWxEffect_Cooldown_Ultimate()
 {
 	GrantCooldownTag(WxGameplayTags::Cooldown_Ultimate);

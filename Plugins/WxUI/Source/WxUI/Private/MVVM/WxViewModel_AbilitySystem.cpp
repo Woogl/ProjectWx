@@ -73,6 +73,11 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 	AbilityViewModels.Empty();
 	ActiveEffectViewModels.Empty();
 	OwnedTags.Reset();
+	if (!HasAnyFlags(RF_BeginDestroyed))
+	{
+		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(ActiveEffectViewModels);
+		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(OwnedTags);
+	}
 
 	Super::Deinitialize();
 }

@@ -4,10 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "Engine/EngineBaseTypes.h"
+#include "FrontEnd/WxFrontEndLibrary.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "WxGameFlowSubsystem.generated.h"
 
 class APawn;
+
+enum class EWxFrontEndStep : uint8
+{
+	Main,
+	Character,
+	Destination,
+	Confirmation
+};
 
 /**
  * 프론트엔드에서 고른 폰과 목적지를 들고 맵을 열어, 도착한 GameMode 가 그 폰을 쓰게 한다.
@@ -19,6 +28,17 @@ class WXGAME_API UWxGameFlowSubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 
 public:
+	DECLARE_EVENT(UWxGameFlowSubsystem, FWxFrontEndChanged);
+	FWxFrontEndChanged& OnFrontEndChanged();
+	void ResetFrontEnd();
+	void BeginCharacterSelection();
+	bool SelectCharacter(const FWxFrontEndOption& Option);
+	bool SelectDestination(const FWxFrontEndOption& Option);
+	void ResolveStartConfirmation(bool bConfirmed);
+	EWxFrontEndStep GetFrontEndStep() const;
+	bool IsFrontEndInputBlocked() const;
+	FText GetStartConfirmationText() const;
+
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
@@ -34,6 +54,15 @@ public:
 	UClass* GetSelectedPawnClass(const UWorld* World) const;
 
 private:
+	UPROPERTY(Transient)
+	FWxFrontEndOption SelectedCharacter;
+
+	UPROPERTY(Transient)
+	FWxFrontEndOption SelectedDestination;
+
+	EWxFrontEndStep FrontEndStep = EWxFrontEndStep::Main;
+	FWxFrontEndChanged FrontEndChanged;
+
 	void HandlePostLoadMap(UWorld* World);
 	void HandleTravelFailure(UWorld* World, ETravelFailure::Type FailureType, const FString& Error);
 	bool IsDestinationWorld(const UWorld* World) const;

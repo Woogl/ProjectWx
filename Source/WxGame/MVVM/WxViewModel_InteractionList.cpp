@@ -8,6 +8,7 @@
 
 void UWxViewModel_InteractionList::StartObserving(APlayerController* PC)
 {
+	Deinitialize();
 	if (!PC)
 	{
 		return;
@@ -27,12 +28,11 @@ void UWxViewModel_InteractionList::StartObserving(APlayerController* PC)
 
 void UWxViewModel_InteractionList::Initialize(UWxInteractionScannerComponent* InScanner)
 {
+	Deinitialize();
 	if (!InScanner)
 	{
 		return;
 	}
-
-	Deinitialize();
 
 	CachedScanner = InScanner;
 
@@ -46,6 +46,7 @@ void UWxViewModel_InteractionList::Initialize(UWxInteractionScannerComponent* In
 
 void UWxViewModel_InteractionList::Deinitialize()
 {
+	StopObserving();
 	if (UWxInteractionScannerComponent* Scanner = CachedScanner.Get())
 	{
 		Scanner->OnListChanged.RemoveDynamic(this, &ThisClass::HandleListChanged);
@@ -56,13 +57,11 @@ void UWxViewModel_InteractionList::Deinitialize()
 	Entries.Reset();
 
 	Super::Deinitialize();
-}
-
-void UWxViewModel_InteractionList::BeginDestroy()
-{
-	StopObserving();
-
-	Super::BeginDestroy();
+	if (!HasAnyFlags(RF_BeginDestroyed))
+	{
+		UE_MVVM_SET_PROPERTY_VALUE(SelectedIndex, INDEX_NONE);
+		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(Entries);
+	}
 }
 
 void UWxViewModel_InteractionList::HandleListChanged(const TArray<FText>& InPrompts)
@@ -98,7 +97,7 @@ void UWxViewModel_InteractionList::RequestCycle(int32 Delta)
 void UWxViewModel_InteractionList::HandleScannerReady(UWxInteractionScannerComponent* Scanner)
 {
 	// 신호는 클래스 차원이라 남의 스캐너도 온다(PIE 다중 인스턴스 포함).
-	if (!Scanner || Scanner->GetOwner() != ObservedController.Get())
+	if (!ObservedController.IsValid() || !Scanner || Scanner->GetOwner() != ObservedController.Get())
 	{
 		return;
 	}
@@ -109,6 +108,7 @@ void UWxViewModel_InteractionList::HandleScannerReady(UWxInteractionScannerCompo
 
 void UWxViewModel_InteractionList::StopObserving()
 {
+	ObservedController.Reset();
 	if (ScannerReadyHandle.IsValid())
 	{
 		UWxInteractionScannerComponent::OnAnyScannerReady.Remove(ScannerReadyHandle);
@@ -156,8 +156,16 @@ UObject* UWxViewModelResolver_InteractionList::CreateInstance(const UClass* Expe
 		return nullptr;
 	}
 
-	// 스캐너가 아직 없을 수 있으므로 Outer 는 PC 로 잡는다.
+	// 스캐너가 아직 없을 수 있으므로 Outer는 PC로 잡는다.
 	UWxViewModel_InteractionList* ViewModel = NewObject<UWxViewModel_InteractionList>(PC);
 	ViewModel->StartObserving(PC);
 	return ViewModel;
+}
+
+void UWxViewModelResolver_InteractionList::DestroyInstance(UObject* ViewModel, const UMVVMView* View) const
+{
+	if (UWxViewModel_InteractionList* InteractionList = Cast<UWxViewModel_InteractionList>(ViewModel))
+	{
+		InteractionList->Deinitialize();
+	}
 }

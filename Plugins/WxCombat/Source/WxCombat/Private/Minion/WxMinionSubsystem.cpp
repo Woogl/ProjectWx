@@ -16,6 +16,22 @@ APawn* UWxMinionSubsystem::GetMaster(const APawn& Minion)
 	return SpawnInstigator != &Minion ? SpawnInstigator : nullptr;
 }
 
+APawn* UWxMinionSubsystem::FindActiveMinion(const APawn& Master) const
+{
+	const TArray<TWeakObjectPtr<APawn>>* Minions = Rosters.Find(&Master);
+	if (Minions)
+	{
+		for (const TWeakObjectPtr<APawn>& Minion : *Minions)
+		{
+			if (Minion.IsValid())
+			{
+				return Minion.Get();
+			}
+		}
+	}
+	return nullptr;
+}
+
 APawn* UWxMinionSubsystem::SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionClass, const FTransform& SpawnTransform)
 {
 	if (!Master.HasAuthority() || !MinionClass)
@@ -78,6 +94,7 @@ APawn* UWxMinionSubsystem::SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionC
 		MinionASC->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death).AddUObject(this, &UWxMinionSubsystem::HandleMinionDeathTagChanged, TWeakObjectPtr<APawn>(Minion));
 	}
 
+	RefreshMasterStateTag(Master);
 	return Minion;
 }
 
@@ -141,6 +158,7 @@ void UWxMinionSubsystem::HandleMasterEndPlay(AActor* Actor, EEndPlayReason::Type
 	{
 		return;
 	}
+	RefreshMasterStateTag(*CastChecked<APawn>(Actor));
 
 	// 로스터를 먼저 내렸으므로 파괴로 오는 소환물 EndPlay는 주인을 못 찾고 그냥 돌아온다.
 	for (const TWeakObjectPtr<APawn>& ActiveMinion : Minions)
@@ -188,9 +206,26 @@ void UWxMinionSubsystem::ReleaseMinion(APawn& Minion)
 		{
 			MinionASC->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death).RemoveAll(this);
 		}
+		if (APawn* Master = Roster.Key.Get())
+		{
+			RefreshMasterStateTag(*Master);
+		}
 
 		return;
 	}
+}
+
+void UWxMinionSubsystem::RefreshMasterStateTag(APawn& Master) const
+{
+	UAbilitySystemComponent* MasterASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(&Master);
+	if (!MasterASC)
+	{
+		return;
+	}
+
+	const TArray<TWeakObjectPtr<APawn>>* Minions = Rosters.Find(&Master);
+	const bool bHasMinion = Minions && !Minions->IsEmpty();
+	MasterASC->SetLooseGameplayTagCount(WxGameplayTags::State_Minion_Active, bHasMinion ? 1 : 0, EGameplayTagReplicationState::TagOnly);
 }
 
 bool UWxMinionSubsystem::TryActivateAbilityByExactTag(UAbilitySystemComponent& MinionASC, const FGameplayTag& AbilityTag, const FGameplayEventData& Payload) const

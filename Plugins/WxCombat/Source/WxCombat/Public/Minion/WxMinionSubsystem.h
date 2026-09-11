@@ -20,7 +20,7 @@ struct FGameplayEventData;
  * - Owner는 소환 관계에 쓰지 않는다. 폰의 Owner는 빙의 시 Controller로 덮인다.
  * - 주인은 Pawn이다. 소환물이 주인을 Instigator로 무는 이상 다른 타입은 관계를 절반만 맺는다.
  *
- * 소환물이 살아 있다는 상태 태그는 소환물 자신이 주인 ASC에 올린다(AWxEnemyCharacter::MasterStateTag).
+ * 살아 있는 소환물 보유 여부는 로스터 변경 시 주인 ASC의 State.Minion.Active 태그로 복제한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxMinionSubsystem : public UWorldSubsystem
@@ -33,6 +33,9 @@ public:
 	 * APawn이 빈 인스티게이터를 자기 자신으로 채우므로 소환 여부 플래그를 따로 두지 않는다.
 	 */
 	static APawn* GetMaster(const APawn& Minion);
+
+	/** 서버 로스터에서 가장 먼저 소환된 활성 소환물을 반환한다. */
+	APawn* FindActiveMinion(const APawn& Master) const;
 
 	/** SpawnTransform 은 월드 기준이다. 소환물 클래스가 선언한 상한을 넘치면 주인의 가장 오래된 소환물부터 파괴한다. */
 	APawn* SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionClass, const FTransform& SpawnTransform);
@@ -58,6 +61,8 @@ private:
 	void HandleMinionDeathTagChanged(const FGameplayTag Tag, int32 NewCount, TWeakObjectPtr<APawn> Minion);
 
 	void ReleaseMinion(APawn& Minion);
+
+	void RefreshMasterStateTag(APawn& Master) const;
 
 	bool TryActivateAbilityByExactTag(UAbilitySystemComponent& MinionASC, const FGameplayTag& AbilityTag, const FGameplayEventData& Payload) const;
 

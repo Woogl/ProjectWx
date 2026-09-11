@@ -37,7 +37,7 @@ public:
 	 */
 	static UWxViewModel_AbilitySystem* GetOrCreate(UAbilitySystemComponent* InASC);
 
-	void Initialize(UAbilitySystemComponent* InASC);
+	/** 공유본을 사용하는 모든 화면이 사용을 마친 뒤에만 호출한다. */
 	virtual void Deinitialize() override;
 
 	/**
@@ -85,4 +85,8 @@ protected:
 
 	/** 유효하면 이번 프레임의 슬롯 재매칭이 이미 예약돼 있다는 뜻이다. */
 	FTSTicker::FDelegateHandle AbilityRebindHandle;
+
+private:
+	/** ASC별 일회 초기화 계약을 팩토리 내부로 제한한다. */
+	void Initialize(UAbilitySystemComponent* InASC);
 };

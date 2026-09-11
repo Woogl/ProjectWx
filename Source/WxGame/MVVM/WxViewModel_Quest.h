@@ -26,6 +26,7 @@ class WXGAME_API UWxViewModel_Quest : public UWxViewModel
 	GENERATED_BODY()
 
 public:
+	/** 이전 저널 구독을 해제하고 재연결한다. nullptr이면 표시까지 비운다. */
 	void Initialize(UWxQuestComponent* InQuestComponent);
 
 	virtual void Deinitialize() override;
@@ -58,4 +59,5 @@ class WXGAME_API UWxViewModelResolver_Quest : public UMVVMViewModelContextResolv
 
 public:
 	virtual UObject* CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const override;
+	virtual void DestroyInstance(UObject* ViewModel, const UMVVMView* View) const override;
 };
