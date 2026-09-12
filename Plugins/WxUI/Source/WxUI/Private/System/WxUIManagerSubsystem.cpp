@@ -1,4 +1,4 @@
-﻿// Copyright Woogle. All Rights Reserved.
+// Copyright Woogle. All Rights Reserved.
 
 #include "System/WxUIManagerSubsystem.h"
 #include "AbilitySystemBlueprintLibrary.h"
