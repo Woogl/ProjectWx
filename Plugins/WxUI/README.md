@@ -8,6 +8,7 @@
 - ASC/캐릭터 표시 정보를 UMG에 노출하는 MVVM 뷰모델 계층 (`WxViewModel` 파생), 바인딩용 변환 함수
 - 확인 팝업, HUD, 액티버터블 위젯 등 공용 위젯 베이스와 비동기 위젯 로드/push 프리미티브
 - 자막·화면 인디케이터의 런타임 표시 및 이를 거는 StateTree 노드 제공
+- 네임플레이트 컴포넌트의 Character VM 수동 주입과 거리 기반 표시·스케일 갱신
 
 **경계 (비담당)**
 - 캐릭터 표시 데이터의 원본은 게임 모듈이 소유한다. WxUI는 구체 캐릭터 타입에 의존하지 않고 `IWxUIData`로 이름·초상화를 읽는다.
@@ -22,6 +23,7 @@
 | `UWxPrimaryGameLayout` | `UI.Layer` 태그별 위젯 스택을 z-order로 보유하는 최상위 레이아웃 | `Plugins/WxUI/Source/WxUI/Public/System/WxPrimaryGameLayout.h` |
 | `UWxActivatableWidget` | 모든 화면의 베이스. 입력 모드·게임 정지 의사 표명 | `Plugins/WxUI/Source/WxUI/Public/Widget/WxActivatableWidget.h` |
 | `UWxViewModel` | 뷰모델 베이스. Outer로 공유 인스턴스 조회, 표시 이미지 비동기 스트리밍 | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h` |
+| `UWxNameplateComponent` | ASC별 Character VM을 주입하고 플레이어 유무·거리로 컴포넌트 가시성과 위젯 스케일 적용 | `Plugins/WxUI/Source/WxUI/Public/Component/WxNameplateComponent.h` |
 | `UWxViewModelResolver_PlayerCharacter` | OwningPlayer의 Pawn에서 ASC를 찾아 공유 Character ViewModel을 초기화 | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModelResolver_PlayerCharacter.h` |
 | `UWxViewModel_AbilitySystem` | ASC 하나당 하나. 어트리뷰트·어빌리티·이펙트 자식 VM을 지연/이벤트 관리하는 Composite | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h` |
 | `UWxAsyncAction_PushWidgetToLayer` | 위젯 클래스 비동기 로드 후 레이어에 push. push 전 초기화 훅·취소 지원 | `Plugins/WxUI/Source/WxUI/Public/Widget/WxAsyncAction_PushWidgetToLayer.h` |
@@ -31,6 +33,7 @@
 ## 확장 포인트 / 규약
 - 새 화면은 `UWxActivatableWidget`(또는 `UWxGamePopup`/`UWxHUDLayout`)을 상속한 WBP로 만들고, 레이어에 `UWxAsyncAction_PushWidgetToLayer` 또는 매니저 서브시스템 경로로 push한다.
 - 새 표시 뷰모델은 `UWxViewModel`을 상속한다. 공유가 필요하면 데이터 소스를 Outer로 하는 `FindSharedViewModel`/`GetOrCreate` 관례를 따른다 — "같은 Outer를 집는다"가 발행자·소비자를 잇는 유일한 연결이다. 이미지 필드는 `RequestImageAsync`/`ApplyLoadedImage`로 다룬다.
+- 네임플레이트 WBP의 Character VM은 Manual 소스로 선언한다. 태그 가시성은 `Character.AbilitySystem.OwnedTags`를 `Conv_TagRequirementsToVisibility`에 연결하고, 거리 제한·원근 스케일은 컴포넌트의 기존 틱에서 처리한다. 컴포넌트 해제 시 공유 VM을 `Deinitialize`하지 않는다.
 - 화면 클래스·레이아웃·팝업은 하드 참조 대신 `UWxUIDeveloperSettings`의 `TSoftClassPtr` config로 지정한다(미지정이면 해당 동작 없음).
 - 자막·인디케이터를 다른 도메인이 참조 없이 쓰도록, 표시를 거는 StateTree 태스크(`WxStateTreeTask_PrintSubtitle`, `WxStateTreeTask_MarkIndicator`)를 본 모듈이 함께 제공한다.
 

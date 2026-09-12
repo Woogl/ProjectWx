@@ -5,7 +5,7 @@
 #include "AbilitySystem/Ability/WxAbility_Finisher.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "Components/WidgetComponent.h"
+#include "Component/WxNameplateComponent.h"
 #include "Controller/WxAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -29,9 +29,7 @@ AWxEnemyCharacter::AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer
 	GetCharacterMovement()->MaxWalkSpeed = 400.f;
 	AIBehaviorComponent = CreateDefaultSubobject<UWxAIBehaviorComponent>(TEXT("AIBehaviorComponent"));
 
-	NameplateComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("NameplateComponent"));
-	NameplateComponent->SetWidgetSpace(EWidgetSpace::Screen);
-	NameplateComponent->SetDrawAtDesiredSize(true);
+	NameplateComponent = CreateDefaultSubobject<UWxNameplateComponent>(TEXT("NameplateComponent"));
 	NameplateComponent->SetupAttachment(GetRootComponent());
 	NameplateComponent->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
 

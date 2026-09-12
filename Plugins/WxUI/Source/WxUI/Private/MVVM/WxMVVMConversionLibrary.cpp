@@ -5,18 +5,9 @@
 #include "AttributeSet.h"
 #include "MVVM/WxViewModel_AbilitySystem.h"
 
-ESlateVisibility UWxMVVMConversionLibrary::Conv_NameplateStateToVisibility(double Distance, bool bHasViewer, const FGameplayTagContainer& OwnedTags, const FGameplayTagRequirements& VisibilityRequirements, float MaxVisibilityDistance)
+ESlateVisibility UWxMVVMConversionLibrary::Conv_TagRequirementsToVisibility(const FGameplayTagContainer& OwnedTags, const FGameplayTagRequirements& VisibilityRequirements)
 {
-	const bool bVisible = bHasViewer && MaxVisibilityDistance > 0.f && Distance <= MaxVisibilityDistance
-		&& VisibilityRequirements.RequirementsMet(OwnedTags);
-	return bVisible ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed;
-}
-
-FVector2D UWxMVVMConversionLibrary::Conv_DistanceToNameplateScale(double Distance, float ReferenceDistance, float MinScale, float MaxScale)
-{
-	const double Scale = FMath::Clamp(ReferenceDistance / FMath::Max(Distance, 1.0),
-		static_cast<double>(MinScale), static_cast<double>(MaxScale));
-	return FVector2D(Scale, Scale);
+	return VisibilityRequirements.RequirementsMet(OwnedTags) ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed;
 }
 
 ESlateVisibility UWxMVVMConversionLibrary::Conv_GameplayTagToSlateVisibility(const FGameplayTagContainer& TagContainer, FGameplayTag Tag, ESlateVisibility TrueVisibility, ESlateVisibility FalseVisibility)
@@ -27,18 +18,6 @@ ESlateVisibility UWxMVVMConversionLibrary::Conv_GameplayTagToSlateVisibility(con
 ESlateVisibility UWxMVVMConversionLibrary::Conv_ObjectToSlateVisibility(const UObject* Object, ESlateVisibility TrueVisibility, ESlateVisibility FalseVisibility)
 {
 	return IsValid(Object) ? TrueVisibility : FalseVisibility;
-}
-
-double UWxMVVMConversionLibrary::Conv_CentimetersToMeters(double Centimeters, int32 FractionDigits)
-{
-	// 음수면 m 단위 자체가 뭉개지고, 과도하게 크면 Scale 이 발산해 NaN 이 된다.
-	const double Scale = FMath::Pow(10.0, static_cast<double>(FMath::Clamp(FractionDigits, 0, 6)));
-	return FMath::RoundToDouble(Centimeters * 0.01 * Scale) / Scale;
-}
-
-FLinearColor UWxMVVMConversionLibrary::Conv_DoubleToTint(double Value, double Threshold, FLinearColor BelowTint, FLinearColor NormalTint)
-{
-	return (Value <= Threshold) ? BelowTint : NormalTint;
 }
 
 UWxViewModel_Attribute* UWxMVVMConversionLibrary::GetAttributeViewModel(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayAttribute Attribute, FGameplayAttribute MaxAttribute)
