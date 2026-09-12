@@ -57,8 +57,6 @@ public:
 	bool IsAlive() const;
 
 	UWxLockOnComponent* GetLockOnComponent() const;
-	const FText& GetCharacterName() const;
-	const TSoftObjectPtr<UObject>& GetPortrait() const;
 
 	//~ Begin IWxUIData
 	virtual FText GetTitle() const override;

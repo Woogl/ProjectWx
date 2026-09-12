@@ -144,16 +144,6 @@ UWxLockOnComponent* AWxCharacterBase::GetLockOnComponent() const
 	return LockOnComponent;
 }
 
-const FText& AWxCharacterBase::GetCharacterName() const
-{
-	return CharacterName;
-}
-
-const TSoftObjectPtr<UObject>& AWxCharacterBase::GetPortrait() const
-{
-	return Portrait;
-}
-
 FText AWxCharacterBase::GetTitle() const
 {
 	return CharacterName;

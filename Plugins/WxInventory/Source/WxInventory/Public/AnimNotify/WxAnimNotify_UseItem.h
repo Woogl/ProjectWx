@@ -11,7 +11,7 @@
  * 자신과 Mesh를 페이로드로 전달할 뿐, 아이템 사용은 ItemUseComponent에 맡긴다.
  */
 UCLASS()
-class WXGAME_API UWxAnimNotify_UseItem : public UAnimNotify
+class WXINVENTORY_API UWxAnimNotify_UseItem : public UAnimNotify
 {
 	GENERATED_BODY()
 

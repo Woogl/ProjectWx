@@ -12,7 +12,7 @@ struct FGameplayEventData;
 
 /** AnimNotify GameplayEvent를 받아 서버 권위로 준비된 소비 아이템을 한 번 사용한다. */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))
-class WXGAME_API UWxItemUseComponent : public UActorComponent
+class WXINVENTORY_API UWxItemUseComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
