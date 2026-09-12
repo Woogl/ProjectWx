@@ -70,15 +70,17 @@ void UWxViewModel_Quest::RebuildObjectives(const TArray<FText>& InObjectiveTexts
 
 UObject* UWxViewModelResolver_Quest::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
 {
-	const UWorld* World = UserWidget ? UserWidget->GetWorld() : nullptr;
-	const AGameStateBase* GameState = World ? World->GetGameState() : nullptr;
-	UWxQuestComponent* QuestComponent = GameState ? GameState->FindComponentByClass<UWxQuestComponent>() : nullptr;
-	if (!QuestComponent)
+	if (!UserWidget || !ExpectedType || !ExpectedType->IsChildOf(UWxViewModel_Quest::StaticClass()) || ExpectedType->HasAnyClassFlags(CLASS_Abstract))
 	{
 		return nullptr;
 	}
 
-	UWxViewModel_Quest* ViewModel = NewObject<UWxViewModel_Quest>(QuestComponent);
+	const UWorld* World = UserWidget ? UserWidget->GetWorld() : nullptr;
+	const AGameStateBase* GameState = World ? World->GetGameState() : nullptr;
+	UWxQuestComponent* QuestComponent = GameState ? GameState->FindComponentByClass<UWxQuestComponent>() : nullptr;
+
+	// 퀘스트 소스가 늦게 준비되면 호출 측에서 이 인스턴스에 Initialize 로 주입한다.
+	UWxViewModel_Quest* ViewModel = NewObject<UWxViewModel_Quest>(const_cast<UUserWidget*>(UserWidget), ExpectedType);
 	ViewModel->Initialize(QuestComponent);
 	return ViewModel;
 }

@@ -22,12 +22,12 @@ UWxViewModel_Character* UWxViewModel_Character::GetOrCreate(UObject* Source)
 
 void UWxViewModel_Character::Initialize(UAbilitySystemComponent* InASC, const FText& InCharacterName, const TSoftObjectPtr<UObject>& InPortrait)
 {
+	Deinitialize();
+
 	if (!InASC)
 	{
 		return;
 	}
-
-	Deinitialize();
 
 	UE_MVVM_SET_PROPERTY_VALUE(AbilitySystem, UWxViewModel_AbilitySystem::GetOrCreate(InASC));
 

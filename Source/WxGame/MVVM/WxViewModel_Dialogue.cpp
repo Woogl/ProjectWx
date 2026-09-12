@@ -61,15 +61,16 @@ bool UWxViewModel_Dialogue::HasSpeaker() const
 
 UObject* UWxViewModelResolver_Dialogue::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
 {
-	const APlayerController* PC = UserWidget ? UserWidget->GetOwningPlayer() : nullptr;
-	UWxDialogueSessionComponent* Session = PC ? PC->FindComponentByClass<UWxDialogueSessionComponent>() : nullptr;
-	if (!Session)
+	if (!UserWidget || !ExpectedType || !ExpectedType->IsChildOf(UWxViewModel_Dialogue::StaticClass()) || ExpectedType->HasAnyClassFlags(CLASS_Abstract))
 	{
 		return nullptr;
 	}
 
-	// 세션은 PC 소유라 폰 리스폰에도 생존하며, 수명은 뷰의 강참조와 BeginDestroy 의 Deinitialize 가 관리한다.
-	UWxViewModel_Dialogue* ViewModel = NewObject<UWxViewModel_Dialogue>(Session);
+	const APlayerController* PC = UserWidget ? UserWidget->GetOwningPlayer() : nullptr;
+	UWxDialogueSessionComponent* Session = PC ? PC->FindComponentByClass<UWxDialogueSessionComponent>() : nullptr;
+
+	// 세션이 늦게 준비되면 호출 측에서 이 인스턴스에 Initialize 로 주입한다.
+	UWxViewModel_Dialogue* ViewModel = NewObject<UWxViewModel_Dialogue>(const_cast<UUserWidget*>(UserWidget), ExpectedType);
 	ViewModel->Initialize(Session);
 	return ViewModel;
 }
