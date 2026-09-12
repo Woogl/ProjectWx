@@ -39,6 +39,9 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	TriggerData.TriggerTag = WxGameplayTags::Event_Finisher;
 	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	AbilityTriggers.Add(TriggerData);
+
+	// BP 에서 비워 두어도 화면 문구가 사라지지 않게 기본값을 둔다.
+	InteractionPrompt = NSLOCTEXT("WxAbility_Finisher", "InteractionPrompt", "Finisher");
 }
 
 float UWxAbility_Finisher::GetMontagePlayRate() const

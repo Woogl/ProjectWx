@@ -2,6 +2,7 @@
 
 #include "Character/WxEnemyCharacter.h"
 
+#include "AbilitySystem/Ability/WxAbility_Finisher.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Components/WidgetComponent.h"
@@ -134,7 +135,23 @@ void AWxEnemyCharacter::OnInteracted(AActor* Interactor)
 
 FText AWxEnemyCharacter::GetInteractionPrompt() const
 {
-	return FText::FromString(TEXT("Finisher"));
+	// 문구의 주인은 실제로 나갈 처형 어빌리티다. 프롬프트는 로컬 표시라 그 어빌리티를 들고 있는 주체는 항상 로컬 플레이어다.
+	APawn* Interactor = UGameplayStatics::GetPlayerPawn(this, 0);
+	const UAbilitySystemComponent* InteractorASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Interactor);
+	if (!InteractorASC)
+	{
+		return FText::GetEmpty();
+	}
+
+	for (const FGameplayAbilitySpec& Spec : InteractorASC->GetActivatableAbilities())
+	{
+		if (const UWxAbility_Finisher* Finisher = Cast<UWxAbility_Finisher>(Spec.Ability.Get()))
+		{
+			return Finisher->InteractionPrompt;
+		}
+	}
+
+	return FText::GetEmpty();
 }
 
 void AWxEnemyCharacter::HandleAITargetChanged(USceneComponent* NewTarget)

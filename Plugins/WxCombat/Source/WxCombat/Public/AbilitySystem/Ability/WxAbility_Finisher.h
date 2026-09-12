@@ -42,6 +42,10 @@ class WXCOMBAT_API UWxAbility_Finisher : public UWxAbilityBase
 public:
 	UWxAbility_Finisher();
 
+	/** 처형 대상이 띄우는 상호작용 문구. 문구의 주인은 대상이 아니라 실제로 나갈 이 어빌리티다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Ability")
+	FText InteractionPrompt;
+
 	bool IsBackstab() const;
 
 	/** 피해자 짝 피격이 고정 1.0으로 재생되므로 공격자도 ASPD를 반영하지 않는다. */
