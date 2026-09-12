@@ -84,7 +84,8 @@ protected:
 	virtual void HandleHitCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 private:
-	void Reflect(APawn* Parrier);
+	/** 되돌림이 성립한 히트에서만 부른다. 쏜 쪽은 오버랩 핸들러의 적대 판정이 보장한다. */
+	void Reflect(APawn& Parrier);
 
 	void PlayImpactFX();
 };

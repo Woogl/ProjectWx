@@ -54,17 +54,13 @@ FGenericTeamId AWxProjectileBase::GetGenericTeamId() const
 	return InstigatorTeamAgent ? InstigatorTeamAgent->GetGenericTeamId() : FGenericTeamId::NoTeam;
 }
 
-void AWxProjectileBase::Reflect(APawn* Parrier)
+void AWxProjectileBase::Reflect(APawn& Parrier)
 {
-	APawn* Shooter = GetInstigator();
-	if (!Parrier || !Shooter)
-	{
-		return;
-	}
+	const APawn* Shooter = GetInstigator();
 
 	// 팀은 Instigator에서, 대미지 출처는 Owner에서 파생하므로 둘을 함께 옮겨야 되돌아간 히트가 패리한 쪽의 것이 된다.
-	SetOwner(Parrier);
-	SetInstigator(Parrier);
+	SetOwner(&Parrier);
+	SetInstigator(&Parrier);
 
 	const FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), Shooter->GetActorLocation());
 	SetActorRotation(LookAtRotation);
@@ -165,8 +161,10 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 
 	// 되돌림이 출처를 갈아 끼우므로 대미지보다 먼저 읽는다.
 	// 흘려낸 히트는 대미지 GE가 걸리지 않고, 가드를 뚫는 공격에는 퍼펙트 가드가 서지 않는다.
+	// 되돌아간 투사체의 출처가 될 폰까지 여기서 함께 가른다 — 성립 판정이 둘로 갈라지면 되돌림도 파괴도 아닌 히트가 생긴다.
 	const FWxDamageTableRow* DamageRow = DamageDataRow.GetRow<FWxDamageTableRow>(ANSI_TO_TCHAR(__FUNCTION__));
-	const bool bReflecting = bCanReflect && !bEvaded && DamageRow && DamageRow->bCanGuard
+	APawn* Parrier = Cast<APawn>(OtherActor);
+	const bool bReflecting = bCanReflect && !bEvaded && Parrier && DamageRow && DamageRow->bCanGuard
 		&& TargetASC && TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_PerfectGuard);
 
 	// 회피여도 호출은 그대로다 — 회피 성공 판정이 여기서 나가고, 대미지와 상태이상은 그쪽이 알아서 거른다.
@@ -178,7 +176,7 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 
 	if (bReflecting)
 	{
-		Reflect(Cast<APawn>(OtherActor));
+		Reflect(*Parrier);
 	}
 	else if (!bEvaded)
 	{
