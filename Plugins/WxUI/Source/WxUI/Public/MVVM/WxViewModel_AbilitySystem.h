@@ -21,7 +21,7 @@ class UWxViewModel_Effect;
 /**
  * ASC의 어트리뷰트/어빌리티/이펙트를 자식 ViewModel로 노출하는 Composite 뷰모델.
  *
- * 어트리뷰트/어빌리티 VM 은 바인딩이 요청할 때 GetOrCreate... 로 지연 생성하고, 이펙트 VM 은 활성 GE 추가/제거 이벤트로 관리한다.
+ * 자식 VM 은 조회할 때 지연 생성한다. 이펙트 목록은 최초 조회부터 활성 GE 추가/제거 이벤트로 관리한다.
  * 어빌리티 부여가 바뀌면 만들어 둔 슬롯 VM 전부에 재매칭을 지시해, 스킬이 교체돼도 슬롯이 따라간다.
  */
 UCLASS()
@@ -53,8 +53,8 @@ public:
 	 */
 	UWxViewModel_Ability* GetOrCreateAbilityViewModel(const FGameplayTagContainer& InAbilityTags);
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|AbilitySystem")
-	TArray<TObjectPtr<UWxViewModel_Effect>> ActiveEffectViewModels;
+	/** 최초 조회부터 이펙트를 추적한다. 이후에는 공유 VM의 수명 동안 목록을 유지한다. */
+	const TArray<TObjectPtr<UWxViewModel_Effect>>& GetActiveEffectViewModels() const;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|AbilitySystem")
 	FGameplayTagContainer OwnedTags;
@@ -87,6 +87,13 @@ protected:
 	FTSTicker::FDelegateHandle AbilityRebindHandle;
 
 private:
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter, Category = "Wx|AbilitySystem", meta = (AllowPrivateAccess = "true"))
+	TArray<TObjectPtr<UWxViewModel_Effect>> ActiveEffectViewModels;
+
+	bool bActiveEffectsInitialized = false;
+
+	void InitializeActiveEffects();
+
 	/** ASC별 일회 초기화 계약을 팩토리 내부로 제한한다. */
 	void Initialize(UAbilitySystemComponent* InASC);
 };

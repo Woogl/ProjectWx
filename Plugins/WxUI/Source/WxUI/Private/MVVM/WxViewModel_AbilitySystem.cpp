@@ -35,13 +35,32 @@ void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 
 	CachedASC = InASC;
 
-	InASC->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectAdded);
-	InASC->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectRemoved);
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_AbilitySystem::HandleTagChanged);
 	InASC->AbilitySpecDirtiedCallbacks.AddUObject(this, &UWxViewModel_AbilitySystem::HandleAbilitySpecDirtied);
 
-	BuildActiveEffectViewModels();
 	RefreshOwnedTags();
+}
+
+const TArray<TObjectPtr<UWxViewModel_Effect>>& UWxViewModel_AbilitySystem::GetActiveEffectViewModels() const
+{
+	// 리플렉션 Getter는 const 계약이므로, 표시 데이터의 지연 초기화만 비const 경로로 넘긴다.
+	const_cast<UWxViewModel_AbilitySystem*>(this)->InitializeActiveEffects();
+	return ActiveEffectViewModels;
+}
+
+void UWxViewModel_AbilitySystem::InitializeActiveEffects()
+{
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	if (bActiveEffectsInitialized || !ASC)
+	{
+		return;
+	}
+
+	// 목록 구성 중 FieldNotify가 Getter에 재진입해도 구독과 생성을 반복하지 않는다.
+	bActiveEffectsInitialized = true;
+	ASC->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectAdded);
+	ASC->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectRemoved);
+	BuildActiveEffectViewModels();
 }
 
 void UWxViewModel_AbilitySystem::Deinitialize()
@@ -69,6 +88,7 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 	// 자식은 배열에서 떼기만 한다 — 위젯이 아직 붙들고 있는 공유본을 끊으면 그 표시가 언다.
 	// 자식이 이 VM 을 Outer 로 삼아 살려 두므로, 파괴로 여기 닿았다면 자식을 붙든 위젯도 없고 각 자식은 자기 BeginDestroy 로 구독·티커를 정리한다.
 	CachedASC.Reset();
+	bActiveEffectsInitialized = false;
 	AttributeViewModels.Empty();
 	AbilityViewModels.Empty();
 	ActiveEffectViewModels.Empty();

@@ -10,7 +10,7 @@
 - 자막·화면 인디케이터의 런타임 표시 및 이를 거는 StateTree 노드 제공
 
 **경계 (비담당)**
-- 구체 캐릭터 타입과 표시 데이터의 원본(이름·초상화·어트리뷰트 정의)은 게임 모듈이 뷰모델에 주입한다 — WxUI는 소비자를 모른다
+- 캐릭터 표시 데이터의 원본은 게임 모듈이 소유한다. WxUI는 구체 캐릭터 타입에 의존하지 않고 `IWxUIData`로 이름·초상화를 읽는다.
 - 어빌리티/어트리뷰트/이펙트 상태의 소유는 GAS이며, 전투 규칙은 [[WxCombat]]에 있다
 - 대화 세션의 개시·종료는 [[WxDialogue]]가 소유하고, WxUI는 상태 태그를 관찰해 대화 창만 띄운다
 - 자막·인디케이터를 "언제 무엇에" 거는지는 소비 도메인([[WxQuest]]·[[WxWorld]] 등)이 StateTree 에셋에서 결정한다
@@ -22,6 +22,7 @@
 | `UWxPrimaryGameLayout` | `UI.Layer` 태그별 위젯 스택을 z-order로 보유하는 최상위 레이아웃 | `Plugins/WxUI/Source/WxUI/Public/System/WxPrimaryGameLayout.h` |
 | `UWxActivatableWidget` | 모든 화면의 베이스. 입력 모드·게임 정지 의사 표명 | `Plugins/WxUI/Source/WxUI/Public/Widget/WxActivatableWidget.h` |
 | `UWxViewModel` | 뷰모델 베이스. Outer로 공유 인스턴스 조회, 표시 이미지 비동기 스트리밍 | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h` |
+| `UWxViewModelResolver_PlayerCharacter` | OwningPlayer의 Pawn에서 ASC를 찾아 공유 Character ViewModel을 초기화 | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModelResolver_PlayerCharacter.h` |
 | `UWxViewModel_AbilitySystem` | ASC 하나당 하나. 어트리뷰트·어빌리티·이펙트 자식 VM을 지연/이벤트 관리하는 Composite | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h` |
 | `UWxAsyncAction_PushWidgetToLayer` | 위젯 클래스 비동기 로드 후 레이어에 push. push 전 초기화 훅·취소 지원 | `Plugins/WxUI/Source/WxUI/Public/Widget/WxAsyncAction_PushWidgetToLayer.h` |
 | `UWxUILibrary` | Blueprint 진입점. 레이아웃 접근·확인 팝업 표시·레이어 비활성화 | `Plugins/WxUI/Source/WxUI/Public/WxUILibrary.h` |

@@ -4,7 +4,7 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "Component/WxNameplateComponent.h"
+#include "Components/WidgetComponent.h"
 #include "Controller/WxAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -28,7 +28,9 @@ AWxEnemyCharacter::AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer
 	GetCharacterMovement()->MaxWalkSpeed = 400.f;
 	AIBehaviorComponent = CreateDefaultSubobject<UWxAIBehaviorComponent>(TEXT("AIBehaviorComponent"));
 
-	NameplateComponent = CreateDefaultSubobject<UWxNameplateComponent>(TEXT("NameplateComponent"));
+	NameplateComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("NameplateComponent"));
+	NameplateComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	NameplateComponent->SetDrawAtDesiredSize(true);
 	NameplateComponent->SetupAttachment(GetRootComponent());
 	NameplateComponent->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
 
@@ -42,7 +44,6 @@ void AWxEnemyCharacter::BeginPlay()
 
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
 	ASC->SetReplicationMode(EGameplayEffectReplicationMode::Full);
-	NameplateComponent->InitializeViewModels(ASC, GetCharacterName(), GetPortrait());
 
 	GetLockOnComponent()->OnLockOnTargetChanged.AddDynamic(this, &ThisClass::HandleAITargetChanged);
 	OnDeath.AddDynamic(this, &ThisClass::HandleOwnerDeath);

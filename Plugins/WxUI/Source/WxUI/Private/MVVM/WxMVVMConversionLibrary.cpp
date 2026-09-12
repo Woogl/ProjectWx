@@ -5,6 +5,20 @@
 #include "AttributeSet.h"
 #include "MVVM/WxViewModel_AbilitySystem.h"
 
+ESlateVisibility UWxMVVMConversionLibrary::Conv_NameplateStateToVisibility(double Distance, bool bHasViewer, const FGameplayTagContainer& OwnedTags, const FGameplayTagRequirements& VisibilityRequirements, float MaxVisibilityDistance)
+{
+	const bool bVisible = bHasViewer && MaxVisibilityDistance > 0.f && Distance <= MaxVisibilityDistance
+		&& VisibilityRequirements.RequirementsMet(OwnedTags);
+	return bVisible ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed;
+}
+
+FVector2D UWxMVVMConversionLibrary::Conv_DistanceToNameplateScale(double Distance, float ReferenceDistance, float MinScale, float MaxScale)
+{
+	const double Scale = FMath::Clamp(ReferenceDistance / FMath::Max(Distance, 1.0),
+		static_cast<double>(MinScale), static_cast<double>(MaxScale));
+	return FVector2D(Scale, Scale);
+}
+
 ESlateVisibility UWxMVVMConversionLibrary::Conv_GameplayTagToSlateVisibility(const FGameplayTagContainer& TagContainer, FGameplayTag Tag, ESlateVisibility TrueVisibility, ESlateVisibility FalseVisibility)
 {
 	return TagContainer.HasTag(Tag) ? TrueVisibility : FalseVisibility;

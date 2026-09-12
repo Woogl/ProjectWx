@@ -139,11 +139,6 @@ void AWxCharacterBase::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer)
 	AbilitySystemComponent->GetOwnedGameplayTags(TagContainer);
 }
 
-AWxWeaponBase* AWxCharacterBase::GetEquippedWeapon() const
-{
-	return WeaponActor ? Cast<AWxWeaponBase>(WeaponActor->GetChildActor()) : nullptr;
-}
-
 UWxLockOnComponent* AWxCharacterBase::GetLockOnComponent() const
 {
 	return LockOnComponent;
@@ -155,6 +150,21 @@ const FText& AWxCharacterBase::GetCharacterName() const
 }
 
 const TSoftObjectPtr<UObject>& AWxCharacterBase::GetPortrait() const
+{
+	return Portrait;
+}
+
+FText AWxCharacterBase::GetTitle() const
+{
+	return CharacterName;
+}
+
+FText AWxCharacterBase::GetDescription() const
+{
+	return FText::GetEmpty();
+}
+
+TSoftObjectPtr<UObject> AWxCharacterBase::GetIcon() const
 {
 	return Portrait;
 }
@@ -269,7 +279,7 @@ void AWxCharacterBase::HandleDeath()
 {
 	// 스윙 도중 죽으면 공격 구간을 닫을 ANS 종료가 오지 않을 수 있으므로, 시체의 무기가 계속 때리지 않도록 여기서 판정을 걷어낸다.
 	// 사망 태그는 복제되어 모든 머신에서 이 경로를 타므로, 각 머신의 로컬 판정이 함께 해제된다.
-	if (AWxWeaponBase* Weapon = GetEquippedWeapon())
+	if (AWxWeaponBase* Weapon = AWxWeaponBase::FindWeapon(this))
 	{
 		Weapon->CancelAttack();
 	}

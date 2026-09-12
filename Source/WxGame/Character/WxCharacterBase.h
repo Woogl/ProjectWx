@@ -9,6 +9,7 @@
 #include "GenericTeamAgentInterface.h"
 #include "GameplayEffectTypes.h"
 #include "Character/WxTeamTypes.h"
+#include "WxUIData.h"
 #include "WxCharacterBase.generated.h"
 
 class UChildActorComponent;
@@ -18,7 +19,6 @@ class UWxCombatAttributeSet;
 class UWxHitStopComponent;
 class UWxLockOnComponent;
 class UWxMetaHumanComponent;
-class AWxWeaponBase;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBase*, DeadCharacter);
 
@@ -28,7 +28,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBas
  * 생성자 서브오브젝트는 기본적으로 존재하지만, 직렬화된 BP·레벨 인스턴스를 다루는 초기화 경계에서는 유효성을 확인한다.
  */
 UCLASS(Abstract)
-class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface, public IGenericTeamAgentInterface
+class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface, public IGenericTeamAgentInterface, public IWxUIData
 {
 	GENERATED_BODY()
 
@@ -55,11 +55,16 @@ public:
 	//~ End IGenericTeamAgentInterface
 
 	bool IsAlive() const;
-	AWxWeaponBase* GetEquippedWeapon() const;
 
 	UWxLockOnComponent* GetLockOnComponent() const;
 	const FText& GetCharacterName() const;
 	const TSoftObjectPtr<UObject>& GetPortrait() const;
+
+	//~ Begin IWxUIData
+	virtual FText GetTitle() const override;
+	virtual FText GetDescription() const override;
+	virtual TSoftObjectPtr<UObject> GetIcon() const override;
+	//~ End IWxUIData
 
 	UPROPERTY(BlueprintAssignable, Category = "Wx|Character")
 	FWxOnDeathSignature OnDeath;

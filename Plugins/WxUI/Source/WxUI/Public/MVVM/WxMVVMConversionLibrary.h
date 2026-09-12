@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "GameplayEffectTypes.h"
 #include "Math/Color.h"
 #include "Components/SlateWrapperTypes.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
@@ -19,6 +20,12 @@ class WXUI_API UWxMVVMConversionLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 	
 public:
+	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "To Visibility (Nameplate)", AutoCreateRefTerm = "VisibilityRequirements"))
+	static ESlateVisibility Conv_NameplateStateToVisibility(double Distance, bool bHasViewer, const FGameplayTagContainer& OwnedTags, const FGameplayTagRequirements& VisibilityRequirements, float MaxVisibilityDistance = 3000.f);
+
+	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "To Scale (Nameplate)"))
+	static FVector2D Conv_DistanceToNameplateScale(double Distance, float ReferenceDistance = 1000.f, float MinScale = 0.5f, float MaxScale = 1.f);
+
 	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "To Visibility (GameplayTag)"))
 	static ESlateVisibility Conv_GameplayTagToSlateVisibility(const FGameplayTagContainer& TagContainer, FGameplayTag Tag, ESlateVisibility TrueVisibility = ESlateVisibility::SelfHitTestInvisible, ESlateVisibility FalseVisibility = ESlateVisibility::Collapsed);
 

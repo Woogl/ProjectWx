@@ -2,8 +2,9 @@
 
 #include "MVVM/WxViewModelResolver_PlayerCharacter.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "Blueprint/UserWidget.h"
-#include "Character/WxPlayerCharacter.h"
+#include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "MVVM/WxViewModel.h"
 #include "MVVM/WxViewModel_Character.h"
@@ -11,8 +12,8 @@
 UObject* UWxViewModelResolver_PlayerCharacter::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
 {
 	const APlayerController* PC = UserWidget ? UserWidget->GetOwningPlayer() : nullptr;
-	AWxPlayerCharacter* PlayerCharacter = PC ? Cast<AWxPlayerCharacter>(PC->GetPawn()) : nullptr;
-	UAbilitySystemComponent* ASC = PlayerCharacter ? PlayerCharacter->GetAbilitySystemComponent() : nullptr;
+	APawn* PlayerCharacter = PC ? PC->GetPawn() : nullptr;
+	UAbilitySystemComponent* ASC = PlayerCharacter ? UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(PlayerCharacter) : nullptr;
 	if (!ASC)
 	{
 		return nullptr;
@@ -25,7 +26,7 @@ UObject* UWxViewModelResolver_PlayerCharacter::CreateInstance(const UClass* Expe
 	}
 
 	UWxViewModel_Character* ViewModel = NewObject<UWxViewModel_Character>(ASC);
-	ViewModel->Initialize(ASC, PlayerCharacter->GetCharacterName(), PlayerCharacter->GetPortrait());
+	ViewModel->Initialize(ASC, PlayerCharacter);
 
 	return ViewModel;
 }

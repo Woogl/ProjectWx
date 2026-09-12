@@ -91,7 +91,7 @@ void UWxViewModel_BossDisplay::RefreshDisplayedBoss()
 	DisplayedBoss = NextBoss;
 	if (NextBoss)
 	{
-		Character->Initialize(NextBoss->GetAbilitySystemComponent(), NextBoss->GetCharacterName(), NextBoss->GetPortrait());
+		Character->Initialize(NextBoss->GetAbilitySystemComponent(), NextBoss);
 	}
 	else
 	{

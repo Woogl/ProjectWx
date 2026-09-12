@@ -31,19 +31,18 @@
 | `AWxEnemyCharacter` | 적 파생. AI 조립·상호작용·보상·소환·보스 표시를 엮는 지점 | `Source/WxGame/Character/WxEnemyCharacter.h` |
 | `AWxAIController` | AI 폰 전체의 컨트롤러. 인지·타겟을 락온으로 연결 | `Source/WxGame/Controller/WxAIController.h` |
 | `UWxGameFlowSubsystem` | 프론트엔드 선택(폰·목적지)을 들고 맵 전환을 주도 | `Source/WxGame/FrontEnd/WxGameFlowSubsystem.h` |
-| `UWxViewModelResolver_PlayerCharacter` | 게임 폰 데이터를 WxUI 뷰모델에 주입하는 브리지 | `Source/WxGame/MVVM/WxViewModelResolver_PlayerCharacter.h` |
 
 ## 확장 포인트 / 규약
 - 맵별 구성은 `AWxGameMode` 의 BP(GM_FrontEnd·GM_Combat)와 맵 WorldSettings 의 GameModeOverride 로 고른다. 폰은 프론트엔드 선택을 우선하고, 없으면 DefaultPawnClass 를 쓴다.
 - 캐릭터 파생은 `AWxCharacterBase` 를 상속하고 도메인 컴포넌트를 생성자에서 붙이는 방식. 무기·부착물은 BP 디폴트의 ChildActorClass·에셋 지정으로 주입한다.
 - 게임플레이 입력은 `UWxInputConfig` DataAsset 으로 주입한다. 어빌리티 발동 IA는 어빌리티 CDO가, 메뉴/상호작용 입력은 WxUI(CommonUI 액션·HUD 위젯)가 각각 소유하므로 여기 두지 않는다.
-- 게임 데이터를 UI에 노출할 때는 `MVVM/` 에 리졸버/뷰모델을 추가한다. WxUI 뷰모델은 게임 모듈을 참조할 수 없으므로, 양쪽에 의존하는 이 브리지가 데이터를 채운다.
+- 캐릭터 표시 데이터는 기존 `IWxUIData`로 제공한다. 플레이어 Resolver는 WxUI에서 Pawn의 ASC를 찾고, Character ViewModel이 인터페이스로 이름·초상화를 읽는다.
 
 ## 여기서부터 읽어라
 1. `Source/WxGame/Framework/WxGameMode.h` — 무엇이 무엇을 조립하는지, 폰 선택 규칙의 출발점
 2. `Source/WxGame/Character/WxCharacterBase.h` — 캐릭터가 어느 도메인 컴포넌트를 어떻게 합성하는지
 3. `Source/WxGame/FrontEnd/WxGameFlowSubsystem.h` — 프론트엔드에서 게임플레이로 넘어가는 흐름
-4. `Source/WxGame/MVVM/WxViewModelResolver_PlayerCharacter.h` — 게임↔UI 경계를 잇는 방식
+4. `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModelResolver_PlayerCharacter.h` — Pawn의 ASC와 표시 데이터 소스를 연결하는 방식
 
 ## 관련
 - 조립 대상: [[WxCombat]] · [[WxInventory]] · [[WxAI]] · [[WxDialogue]] · [[WxQuest]] · [[WxUI]] · [[WxWorld]] · [[WxCore]]

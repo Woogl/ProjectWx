@@ -3,7 +3,7 @@
 #include "MVVM/WxViewModel_Character.h"
 #include "MVVM/WxViewModel_AbilitySystem.h"
 
-#include "Engine/Texture2D.h"
+#include "WxUIData.h"
 
 UWxViewModel_Character* UWxViewModel_Character::GetOrCreate(UObject* Source)
 {
@@ -20,7 +20,7 @@ UWxViewModel_Character* UWxViewModel_Character::GetOrCreate(UObject* Source)
 	return NewObject<UWxViewModel_Character>(Source);
 }
 
-void UWxViewModel_Character::Initialize(UAbilitySystemComponent* InASC, const FText& InCharacterName, const TSoftObjectPtr<UObject>& InPortrait)
+void UWxViewModel_Character::Initialize(UAbilitySystemComponent* InASC, const UObject* InDisplaySource)
 {
 	Deinitialize();
 
@@ -31,8 +31,11 @@ void UWxViewModel_Character::Initialize(UAbilitySystemComponent* InASC, const FT
 
 	UE_MVVM_SET_PROPERTY_VALUE(AbilitySystem, UWxViewModel_AbilitySystem::GetOrCreate(InASC));
 
-	UE_MVVM_SET_PROPERTY_VALUE(CharacterName, InCharacterName);
-	RequestImageAsync(TEXT("Portrait"), InPortrait);
+	if (const IWxUIData* UIData = Cast<IWxUIData>(InDisplaySource))
+	{
+		UE_MVVM_SET_PROPERTY_VALUE(CharacterName, UIData->GetTitle());
+		RequestImageAsync(TEXT("Portrait"), UIData->GetIcon());
+	}
 }
 
 void UWxViewModel_Character::ApplyLoadedImage(FName FieldName, UObject* LoadedImage)
