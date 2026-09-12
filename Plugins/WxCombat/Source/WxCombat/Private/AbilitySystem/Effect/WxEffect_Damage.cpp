@@ -161,6 +161,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(ExecutionStatics.CritDMGDef, EvalParams, SourceCritDMG);
 
 		const float CritChance = FMath::Clamp(SourceCritRate * 0.01f, 0.f, 1.f);
+		// 실행 계산은 권한 측에서만 돈다 — 예측 클라는 Instant GE를 무한 지속으로 바꿔 실행을 건너뛰므로 클라·서버 롤이 갈라지지 않는다.
 		bIsCritical = FMath::FRand() < CritChance;
 	}
 
