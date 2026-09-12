@@ -24,12 +24,6 @@ public:
 	/** ASC가 없으면 빈 태그로 평가하므로 요구 태그가 없을 때만 통과한다. */
 	bool CanBeLockedOn() const;
 
-	/**
-	 * 로컬 플레이어의 락온 태스크가 레티클과 같은 수명으로 켜고 끈다.
-	 * 피대상 표시는 개인 UI라 복제하지 않는다 — 남이 락온한 대상은 내 화면에서 켜지지 않는다.
-	 */
-	void SetLockedOn(bool bNewLockedOn);
-
 	/** 락온 가능한 첫 지점을 반환한다 */
 	static USceneComponent* ResolveLockOnTarget(const AActor* Actor);
 
@@ -38,8 +32,4 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	FGameplayTagRequirements LockOnRequirements;
-
-private:
-	UPROPERTY(VisibleInstanceOnly, Category = "Wx")
-	bool bLockedOn = false;
 };

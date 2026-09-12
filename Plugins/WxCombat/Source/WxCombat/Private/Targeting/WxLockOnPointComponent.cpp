@@ -27,11 +27,6 @@ bool UWxLockOnPointComponent::CanBeLockedOn() const
 	return LockOnRequirements.RequirementsMet(OwnedTags);
 }
 
-void UWxLockOnPointComponent::SetLockedOn(bool bNewLockedOn)
-{
-	bLockedOn = bNewLockedOn;
-}
-
 USceneComponent* UWxLockOnPointComponent::ResolveLockOnTarget(const AActor* Actor)
 {
 	if (!Actor)
