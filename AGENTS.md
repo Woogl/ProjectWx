@@ -51,11 +51,7 @@
    
 3. 람다식은 반드시 필요한 경우에만 사용한다.
 
-4. Delegate에 바인딩되는 Callback 함수는 `Handle`을 Prefix로 사용한다. (예시: `HandleMontageEnded`, `HandleDeath`)
-
-5. `BlueprintCallable` 지정자는 Blueprint Function Library, Blueprint Async Action의 팩토리 함수에서만 사용한다.
-
-6. 인라인 함수 정의를 금지한다. (`FORCEINLINE` 등) 단, cpp 로 내릴 수 없는 템플릿 함수와 StateTree 노드의 `GetInstanceDataType()` 은 예외이며, 해당 지점에 예외 사유를 주석으로 남긴다.
+4. 인라인 함수 정의를 금지한다. (`FORCEINLINE` 등) 단, cpp 로 내릴 수 없는 템플릿 함수와 StateTree 노드의 `GetInstanceDataType()` 은 예외이며, 해당 지점에 예외 사유를 주석으로 남긴다.
 
 ---
 
@@ -63,8 +59,6 @@
 
 * 게임의 주요 시스템은 Unreal Engine Plugin 단위로 분리하여 개발한다.
 * 모든 `Wx` 플러그인은 `WxCore`를 제외한 다른 플러그인을 참조하면 안된다.
-* 예외: `Plugins/GameFeatures/` 아래의 GameFeature 플러그인(콘텐츠 분류)은 DAG 최상단으로, `WxGame`과 도메인 플러그인을 참조할 수 있다. 역방향(코드·에셋이 GameFeature 플러그인을 참조)은 금지하며, Experience 에셋의 `GameFeaturesToEnable` 이름 문자열만 예외다.
-* GameFeature 플러그인은 `ExplicitlyLoaded=true`, `BuiltInInitialFeatureState=Registered`로 만든다 — 발견은 되되 Experience가 켤 때까지 비활성. 이름은 GF 표식 없이 `Wx`+콘텐츠명으로 짓는다(예: WxFishing).
 * 플러그인 분류는 아래 표에 명시한다.
 
 | Module       | 분류              | Description                       |
