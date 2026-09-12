@@ -16,29 +16,25 @@ void UWxViewModel_Attribute::Initialize(UAbilitySystemComponent* InASC, FGamepla
 		return;
 	}
 
+	// 최대치 생략은 여기서 현재치로 메운다 — 아래는 둘 다 유효한 것으로 다룬다.
 	InMaxAttribute = InMaxAttribute.IsValid() ? InMaxAttribute : InAttribute;
+
 	CachedASC = InASC;
+	BoundAttribute = InAttribute;
+	BoundMaxAttribute = InMaxAttribute;
 
-	if (InAttribute.IsValid())
-	{
-		BoundAttribute = InAttribute;
-		const float InitialValue = InASC->GetNumericAttribute(InAttribute);
-		SetAttributeAmount(InitialValue);
-		SetIsAttributeEmpty(InitialValue <= 0.f);
-		SetIsAttributeFull(InMaxAttribute.IsValid() && InitialValue >= InASC->GetNumericAttribute(InMaxAttribute));
-		InASC->GetGameplayAttributeValueChangeDelegate(InAttribute)
-			.AddUObject(this, &UWxViewModel_Attribute::HandleAttributeChanged);
-	}
-
-	if (InMaxAttribute.IsValid())
-	{
-		BoundMaxAttribute = InMaxAttribute;
-		SetMaxAttributeAmount(InASC->GetNumericAttribute(InMaxAttribute));
-		InASC->GetGameplayAttributeValueChangeDelegate(InMaxAttribute)
-			.AddUObject(this, &UWxViewModel_Attribute::HandleMaxAttributeChanged);
-	}
-
+	const float InitialValue = InASC->GetNumericAttribute(InAttribute);
+	const float InitialMaxValue = InASC->GetNumericAttribute(InMaxAttribute);
+	SetAttributeAmount(InitialValue);
+	SetMaxAttributeAmount(InitialMaxValue);
+	SetIsAttributeEmpty(InitialValue <= 0.f);
+	SetIsAttributeFull(InitialValue >= InitialMaxValue);
 	RecalculateAttributePercent();
+
+	InASC->GetGameplayAttributeValueChangeDelegate(InAttribute)
+		.AddUObject(this, &UWxViewModel_Attribute::HandleAttributeChanged);
+	InASC->GetGameplayAttributeValueChangeDelegate(InMaxAttribute)
+		.AddUObject(this, &UWxViewModel_Attribute::HandleMaxAttributeChanged);
 }
 
 void UWxViewModel_Attribute::Deinitialize()
