@@ -1,50 +1,47 @@
 # WxUI — UI 시스템
 
-> CommonUI 레이어 스택과 MVVM 뷰모델 위에 게임의 화면·HUD·팝업·자막·인디케이터를 얹는 UI 도메인. 표시할 데이터는 알지만 그 데이터의 출처(캐릭터·전투·대화)는 알지 못한다.
+> 게임 화면 전체를 책임지는 런타임 UI 플러그인. CommonUI 레이어 스택으로 HUD·메뉴·팝업의 표시/입력/정지를 관리하고, 게임플레이 상태를 MVVM ViewModel로 위젯에 공급한다. 화면 인디케이터와 자막도 함께 소유한다.
 
 ## 책임
 **담당**
-- 레이어 기반 화면 스택 관리와 화면 push/pop, 게임 정지·입력 모드 조정 (`WxUIManagerSubsystem` + `WxPrimaryGameLayout`)
-- ASC/캐릭터 표시 정보를 UMG에 노출하는 MVVM 뷰모델 계층 (`WxViewModel` 파생), 바인딩용 변환 함수
-- 확인 팝업, HUD, 액티버터블 위젯 등 공용 위젯 베이스와 비동기 위젯 로드/push 프리미티브
-- 자막·화면 인디케이터의 런타임 표시 및 이를 거는 StateTree 노드 제공
-- 네임플레이트 컴포넌트의 Character VM 수동 주입과 거리 기반 표시·스케일 갱신
+- 로컬 플레이어 화면 구성: 레이어(z-order) 스택, HUD/메뉴/모달 push, 활성 위젯에 따른 입력 모드·게임 정지 재평가
+- 확인 팝업(`ShowConfirmation`)과 사망·대화 화면의 자동 표시/회수
+- 게임플레이 데이터 → 표시용 ViewModel 변환 (`Wx|MVVM`): ASC의 어트리뷰트·어빌리티·이펙트, 캐릭터/아이템/상호작용 등을 위젯에 노출
+- 화면 인디케이터 액터(`AWxIndicator`)와 자막 표시, 그리고 이를 거는 StateTree 태스크 노드
 
 **경계 (비담당)**
-- 캐릭터 표시 데이터의 원본은 게임 모듈이 소유한다. WxUI는 구체 캐릭터 타입에 의존하지 않고 `IWxUIData`로 이름·초상화를 읽는다.
-- 어빌리티/어트리뷰트/이펙트 상태의 소유는 GAS이며, 전투 규칙은 [[WxCombat]]에 있다
-- 대화 세션의 개시·종료는 [[WxDialogue]]가 소유하고, WxUI는 상태 태그를 관찰해 대화 창만 띄운다
-- 자막·인디케이터를 "언제 무엇에" 거는지는 소비 도메인([[WxQuest]]·[[WxWorld]] 등)이 StateTree 에셋에서 결정한다
+- 표시할 데이터의 의미/원본: 대상은 `IWxUIData`(→ [[WxCore]])로만 조회하며 구체 타입을 모른다
+- 위젯·WBP 애셋의 시각 디자인, 실제 MVVM 바인딩 그래프 (Content 측 BP/WBP 소관)
+- 인벤토리·대화·전투 등 도메인 로직: 각 도메인 모듈([[WxInventory]]·[[WxDialogue]]·[[WxCombat]])이 소유하며, WxUI는 그 결과만 표시
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxUIManagerSubsystem` | UI 전체 오케스트레이터. 플레이어별 레이아웃 생성, 폰 ASC 태그(사망·대화) 관찰, 화면·팝업 push, 정지 재평가 | `Plugins/WxUI/Source/WxUI/Public/System/WxUIManagerSubsystem.h` |
-| `UWxPrimaryGameLayout` | `UI.Layer` 태그별 위젯 스택을 z-order로 보유하는 최상위 레이아웃 | `Plugins/WxUI/Source/WxUI/Public/System/WxPrimaryGameLayout.h` |
-| `UWxActivatableWidget` | 모든 화면의 베이스. 입력 모드·게임 정지 의사 표명 | `Plugins/WxUI/Source/WxUI/Public/Widget/WxActivatableWidget.h` |
-| `UWxViewModel` | 뷰모델 베이스. Outer로 공유 인스턴스 조회, 표시 이미지 비동기 스트리밍 | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h` |
-| `UWxNameplateComponent` | ASC별 Character VM을 주입하고 플레이어 유무·거리로 컴포넌트 가시성과 위젯 스케일 적용 | `Plugins/WxUI/Source/WxUI/Public/Component/WxNameplateComponent.h` |
-| `UWxViewModelResolver_PlayerCharacter` | OwningPlayer의 Pawn에서 ASC를 찾아 공유 Character ViewModel을 초기화 | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModelResolver_PlayerCharacter.h` |
-| `UWxViewModel_AbilitySystem` | ASC 하나당 하나. 어트리뷰트·어빌리티·이펙트 자식 VM을 지연/이벤트 관리하는 Composite | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h` |
-| `UWxAsyncAction_PushWidgetToLayer` | 위젯 클래스 비동기 로드 후 레이어에 push. push 전 초기화 훅·취소 지원 | `Plugins/WxUI/Source/WxUI/Public/Widget/WxAsyncAction_PushWidgetToLayer.h` |
-| `UWxUILibrary` | Blueprint 진입점. 레이아웃 접근·확인 팝업 표시·레이어 비활성화 | `Plugins/WxUI/Source/WxUI/Public/WxUILibrary.h` |
-| `UWxUIDeveloperSettings` | 레이아웃/팝업/사망·대화 화면 클래스를 config로 데이터 주입 | `Plugins/WxUI/Source/WxUI/Public/System/WxUIDeveloperSettings.h` |
+| `UWxUIManagerSubsystem` | GameInstance 서브시스템. 레이아웃 생성·push·팝업·화면 자동표시·정지 재평가의 오케스트레이터 | `Plugins/WxUI/Source/WxUI/Public/System/WxUIManagerSubsystem.h` |
+| `UWxPrimaryGameLayout` | 레이어별 `CommonActivatableWidgetStack`을 담는 화면 루트. 태그→스택 맵 | `Plugins/WxUI/Source/WxUI/Public/System/WxPrimaryGameLayout.h` |
+| `UWxViewModel` | 모든 VM의 베이스. 소프트 이미지 비동기 스트리밍과 `FindSharedViewModel`(소스=공유 키) 제공 | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h` |
+| `UWxViewModel_AbilitySystem` | ASC당 하나의 Composite VM. 어트리뷰트/어빌리티/이펙트 자식 VM을 지연 생성·추적 | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h` |
+| `UWxViewModelResolver_PlayerCharacter` | 위젯 소유 PC의 빙의 폰·ASC로 캐릭터 VM을 해석하는 MVVM Resolver | `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModelResolver_PlayerCharacter.h` |
+| `UWxUIDeveloperSettings` | 레이아웃/팝업/사망·대화 화면 클래스를 프로젝트 설정으로 지정 | `Plugins/WxUI/Source/WxUI/Public/System/WxUIDeveloperSettings.h` |
+| `AWxIndicator` | 대상을 가리키는 화면 인디케이터 액터(위치만 담당, 비복제) | `Plugins/WxUI/Source/WxUI/Public/Indicator/WxIndicator.h` |
 
 ## 확장 포인트 / 규약
-- 새 화면은 `UWxActivatableWidget`(또는 `UWxGamePopup`/`UWxHUDLayout`)을 상속한 WBP로 만들고, 레이어에 `UWxAsyncAction_PushWidgetToLayer` 또는 매니저 서브시스템 경로로 push한다.
-- 새 표시 뷰모델은 `UWxViewModel`을 상속한다. 공유가 필요하면 데이터 소스를 Outer로 하는 `FindSharedViewModel`/`GetOrCreate` 관례를 따른다 — "같은 Outer를 집는다"가 발행자·소비자를 잇는 유일한 연결이다. 이미지 필드는 `RequestImageAsync`/`ApplyLoadedImage`로 다룬다.
-- 네임플레이트 WBP의 Character VM은 Manual 소스로 선언한다. 태그 가시성은 `Character.AbilitySystem.OwnedTags`를 `Conv_TagRequirementsToVisibility`에 연결하고, 거리 제한·원근 스케일은 컴포넌트의 기존 틱에서 처리한다. 컴포넌트 해제 시 공유 VM을 `Deinitialize`하지 않는다.
-- 화면 클래스·레이아웃·팝업은 하드 참조 대신 `UWxUIDeveloperSettings`의 `TSoftClassPtr` config로 지정한다(미지정이면 해당 동작 없음).
-- 자막·인디케이터를 다른 도메인이 참조 없이 쓰도록, 표시를 거는 StateTree 태스크(`WxStateTreeTask_PrintSubtitle`, `WxStateTreeTask_MarkIndicator`)를 본 모듈이 함께 제공한다.
+- **새 ViewModel**: `UWxViewModel`을 상속하고, 소프트 이미지는 `RequestImageAsync`/`ApplyLoadedImage` 훅으로 노출한다(소프트 참조를 UMG에 직접 넘기지 않음). 공유가 필요하면 데이터 소스를 Outer로 `GetOrCreate`/`FindSharedViewModel` 패턴을 따른다 — Outer가 곧 공유 키다.
+- **새 위젯을 화면에 붙일 때**: 레이어 태그(`UI.Layer.*`)를 골라 `UWxAsyncAction_PushWidgetToLayer`(BP: `PushWidgetToLayer`)로 push. 활성화 전 초기화는 `BeforePush`/`SetBeforePushCallback`에서 한다.
+- **위젯이 데이터를 받는 법**: WBP에서 `UWxViewModelResolver_*`를 MVVM 소스로 지정. 자막처럼 화면당 하나인 것은 MVVM 글로벌 컬렉션에 단일 인스턴스로 둔다(`UWxViewModel_Subtitle::GetOrCreate`).
+- **정지/입력**: `UWxActivatableWidget`의 `InputMode`·`bPauseGame`로 선언하면 매니저가 전 레이어를 재평가해 실제 적용(멀티플레이 미적용).
+- **소비 도메인용 노드**: 인디케이터·자막은 StateTree 태스크(`FWxStateTreeTask_MarkIndicator`·`FWxStateTreeTask_PrintSubtitle`)로도 제공해, 퀘스트 등이 WxUI를 참조하지 않고 에셋에서 골라 쓰게 한다.
+- **레이어/입력 태그는 C++ 네이티브 선언이 아니라** 프로젝트 태그(`UI.Layer.*`, `UI.Action.*`)를 meta 필터로 참조한다.
+- **단일 로컬 플레이어 전제(v1)**: 매니저의 레이아웃·추적 상태는 단수다. 인디케이터·자막은 비복제 로컬 표시.
 
 ## 여기서부터 읽어라
-1. `Plugins/WxUI/Source/WxUI/Public/System/WxUIManagerSubsystem.h` — UI 생명주기와 화면 push/정지/태그 관찰이 모두 여기서 엮인다. 모듈 전체의 제어 흐름 지도.
-2. `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h` — VM 베이스의 공유·비동기 이미지 규약. `WxViewModel_AbilitySystem`/`_Character`로 내려가면 HUD 데이터 흐름이 보인다.
-3. `Plugins/WxUI/Source/WxUI/Public/Widget/WxAsyncAction_PushWidgetToLayer.h` — 위젯이 실제로 레이어에 올라가는 경로와 취소·초기화 훅.
+1. `Plugins/WxUI/Source/WxUI/Public/System/WxUIManagerSubsystem.h` — 화면 수명·레이어·정지의 중앙. 이 모듈이 "언제 무엇을 띄우는지"의 전모가 여기 헤더 주석에 있다.
+2. `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h` — VM 계층의 뿌리와 공유 인스턴스 규약. 데이터 흐름을 잡으려면 먼저 읽는다.
+3. `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModelResolver_PlayerCharacter.cpp` — 위젯이 어떻게 살아 있는 게임플레이 데이터에 연결되는지의 짧고 대표적인 예.
 
 ## 관련
-- 상위: [[WxGame]]
-- 참조: [[WxCore]]
+- 상위: 컨트롤러에 붙는 `UWxPlayerLayoutComponent`가 HUD를 push하고, 각 도메인([[WxCombat]]·[[WxInventory]]·[[WxDialogue]]·[[WxQuest]])이 표시할 데이터와 상태 태그를 공급한다.
+- 의존 규약: 표시 데이터는 [[WxCore]]의 `IWxUIData`로만 읽어 도메인 타입에 의존하지 않는다.
 
 ---
-*문서 기준 커밋 `81c04f5` · 생성일 2026-09-11 · 소스 56파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `d1674fa` · 생성일 2026-09-12 · 소스 58파일 — `/readme-writer`로 갱신*
