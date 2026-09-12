@@ -16,7 +16,7 @@ struct FGameplayEventData;
  *
  * 주인·소환물 참조 규칙:
  * - 소환물 → 주인은 Instigator 하나가 답한다(GetMaster). 소환물이 죽어 로스터에서 내려가도 남는 영구 사실이다.
- * - 주인 → 소환물은 이 로스터 하나가 답한다. 서버 전용이고, 지금 살아서 명령을 받을 수 있는 것만 담는다.
+ * - 주인 → 소환물은 이 로스터 하나가 답한다. 지금 살아서 명령을 받을 수 있는 것만 담고, 생성은 서버 권위여도 로스터는 모든 머신이 채운다.
  * - Owner는 소환 관계에 쓰지 않는다. 폰의 Owner는 빙의 시 Controller로 덮인다.
  * - 주인은 Pawn이다. 소환물이 주인을 Instigator로 무는 이상 다른 타입은 관계를 절반만 맺는다.
  *
@@ -34,7 +34,7 @@ public:
 	 */
 	static APawn* GetMaster(const APawn& Minion);
 
-	/** 서버 로스터에서 가장 먼저 소환된 활성 소환물을 반환한다. */
+	/** 로스터에서 가장 먼저 소환된 활성 소환물을 반환한다. */
 	APawn* FindActiveMinion(const APawn& Master) const;
 
 	/** SpawnTransform 은 월드 기준이다. 소환물 클래스가 선언한 상한을 넘치면 주인의 가장 오래된 소환물부터 파괴한다. */
@@ -49,8 +49,19 @@ public:
 protected:
 	/** 에디터 월드에서는 시퀀서 프리뷰의 노티파이가 권위를 통과해 레벨에 스폰해 버리므로 게임 월드에만 만든다. */
 	virtual bool DoesSupportWorldType(const EWorldType::Type WorldType) const override;
+	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
+	virtual void Deinitialize() override;
 
 private:
+	/** 주인의 활성 소환물을 소환 순서로 모은다. 순회 중 발동·파괴가 로스터를 바꿔도 이번 집합은 유지된다. */
+	TArray<TWeakObjectPtr<APawn>> CollectMinions(const APawn& Master) const;
+
+	/**
+	 * 클래스로만 소환물을 가린다. 복제 스폰은 이 시점에 Instigator가 아직 비어 있어 주인을 못 읽는다.
+	 * 그래서 주인은 등재가 아니라 질의 시점에 파생한다.
+	 */
+	void HandleActorSpawned(AActor* Actor);
+
 	UFUNCTION()
 	void HandleMasterEndPlay(AActor* Actor, EEndPlayReason::Type EndPlayReason);
 
@@ -66,6 +77,8 @@ private:
 
 	bool TryActivateAbilityByExactTag(UAbilitySystemComponent& MinionASC, const FGameplayTag& AbilityTag, const FGameplayEventData& Payload) const;
 
-	/** 주인 → 소환 순서의 살아 있는 소환물. 사망·파괴는 구독으로 즉시 내린다. */
-	TMap<TWeakObjectPtr<APawn>, TArray<TWeakObjectPtr<APawn>>> Rosters;
+	/** 이 머신에 스폰된 소환물 클래스 폰을 소환 순서로 담는다. 주인은 질의할 때 GetMaster로 거르고, 사망·파괴는 구독으로 즉시 내린다. */
+	TArray<TWeakObjectPtr<APawn>> Minions;
+
+	FDelegateHandle ActorSpawnedHandle;
 };

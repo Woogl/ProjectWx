@@ -1,17 +1,13 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AnimNotify/WxAnimNotifyState_Rush.h"
-#include "AbilitySystemBlueprintLibrary.h"
-#include "AbilitySystemComponent.h"
 #include "Animation/AnimNotifyQueue.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "EngineUtils.h"
 #include "GameFramework/Pawn.h"
 #include "Minion/WxMinionSubsystem.h"
 #include "MotionWarpingComponent.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "Targeting/WxRootMotionModifier_Rush.h"
-#include "WxGameplayTags.h"
 
 UWxAnimNotifyState_Rush::UWxAnimNotifyState_Rush()
 {
@@ -43,25 +39,8 @@ AActor* UWxAnimNotifyState_Rush::FindTarget(APawn& Avatar) const
 	{
 		return UWxMinionSubsystem::GetMaster(Avatar);
 	}
-	if (Avatar.HasAuthority())
-	{
-		const UWxMinionSubsystem* Subsystem = Avatar.GetWorld()->GetSubsystem<UWxMinionSubsystem>();
-		return Subsystem ? Subsystem->FindActiveMinion(Avatar) : nullptr;
-	}
-
-	// 오너 예측 실행에는 서버 로스터가 없으므로 복제된 소환 관계로 찾는다.
-	for (TActorIterator<APawn> It(Avatar.GetWorld()); It; ++It)
-	{
-		if (!It->IsActorBeingDestroyed() && UWxMinionSubsystem::GetMaster(**It) == &Avatar)
-		{
-			const UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(*It);
-			if (ASC && !ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
-			{
-				return *It;
-			}
-		}
-	}
-	return nullptr;
+	const UWxMinionSubsystem* Subsystem = Avatar.GetWorld()->GetSubsystem<UWxMinionSubsystem>();
+	return Subsystem ? Subsystem->FindActiveMinion(Avatar) : nullptr;
 }
 
 void UWxAnimNotifyState_Rush::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
