@@ -3,9 +3,9 @@
 #include "Weapon/WxWeaponBase.h"
 #include "AbilitySystem/Effect/WxEffect_HitStop.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "Components/ChildActorComponent.h"
 #include "Components/ShapeComponent.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "GameFramework/Character.h"
 #include "WxCollisionChannels.h"
 #include "WxCombatLibrary.h"
 
@@ -31,11 +31,13 @@ AWxWeaponBase* AWxWeaponBase::FindWeapon(const AActor* Owner)
 		return nullptr;
 	}
 
-	TArray<AActor*> AttachedActors;
-	Owner->GetAttachedActors(AttachedActors);
-	for (AActor* Attached : AttachedActors)
+	// 무기는 캐릭터가 무기 슬롯(ChildActorComponent)에 만들어 붙인다.
+	// 부착 액터 목록은 슬롯 밖 액터도 들어오는 자리라 기준이 되지 못한다.
+	TArray<UChildActorComponent*> WeaponSlots;
+	Owner->GetComponents<UChildActorComponent>(WeaponSlots);
+	for (const UChildActorComponent* WeaponSlot : WeaponSlots)
 	{
-		if (AWxWeaponBase* Weapon = Cast<AWxWeaponBase>(Attached))
+		if (AWxWeaponBase* Weapon = Cast<AWxWeaponBase>(WeaponSlot->GetChildActor()))
 		{
 			return Weapon;
 		}
@@ -114,31 +116,6 @@ void AWxWeaponBase::CancelAttack()
 	HitActorsThisSwing.Empty();
 }
 
-void AWxWeaponBase::AttachToCharacter(ACharacter* OwnerCharacter, FName SocketName)
-{
-	if (!OwnerCharacter || !Mesh)
-	{
-		return;
-	}
-
-	USkeletalMeshComponent* TargetMesh = OwnerCharacter->GetMesh();
-	if (!TargetMesh)
-	{
-		return;
-	}
-
-	AttachToComponent(TargetMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
-	SetOwner(OwnerCharacter);
-}
-
-void AWxWeaponBase::DetachFromCharacter()
-{
-	CancelAttack();
-
-	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	SetOwner(nullptr);
-}
-
 USkeletalMeshComponent* AWxWeaponBase::GetMesh() const
 {
 	return Mesh;
@@ -212,7 +189,7 @@ void AWxWeaponBase::Tick(float DeltaSeconds)
 
 void AWxWeaponBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	DetachFromCharacter();
+	CancelAttack();
 
 	Super::EndPlay(EndPlayReason);
 }

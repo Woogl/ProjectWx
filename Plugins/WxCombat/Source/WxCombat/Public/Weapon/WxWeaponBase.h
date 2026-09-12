@@ -6,7 +6,6 @@
 #include "GameFramework/Actor.h"
 #include "WxWeaponBase.generated.h"
 
-class ACharacter;
 class UShapeComponent;
 class USkeletalMeshComponent;
 
@@ -27,9 +26,6 @@ public:
 	void BeginAttack(const FDataTableRowHandle& InDamageInfo);
 	void EndAttack();
 	void CancelAttack();
-
-	void AttachToCharacter(ACharacter* OwnerCharacter, FName SocketName);
-	void DetachFromCharacter();
 
 	USkeletalMeshComponent* GetMesh() const;
 
