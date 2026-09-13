@@ -33,7 +33,10 @@ public:
 	/**
 	 * ASC 하나당 하나. 없으면 ASC 를 Outer 로 만들어 초기화한다.
 	 * 폰이 바뀌면 ASC 도 바뀌므로 새 인스턴스가 생긴다.
-	 * GC 는 객체 → Outer 방향만 수집하므로 Outer 인 ASC 는 이 VM 을 살려 두지 않는다 — 수명은 이 VM 을 Outer 로 삼는 자식 VM 이 쥔다.
+	 * ASC를 Outer로 지정하는 것만으로는 이 VM의 생존이 보장되지 않는다.
+	 * 이 VM 또는 자식 VM이 루트에서 강한 참조 경로로 도달 가능한 동안 유지된다.
+	 * 자식 VM의 Outer 참조는 부모를 유지하지만, 외부 참조 경로가 사라지면
+	 * 부모와 자식 사이의 순환 참조만으로는 GC 수거를 막지 못한다.
 	 */
 	static UWxViewModel_AbilitySystem* GetOrCreate(UAbilitySystemComponent* InASC);
 
