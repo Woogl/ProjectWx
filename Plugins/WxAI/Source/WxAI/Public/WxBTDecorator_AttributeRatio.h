@@ -9,8 +9,6 @@
 #include "WxBTDecorator_AttributeRatio.generated.h"
 
 /**
- * BT Decorator: 현재 캐릭터의 어트리뷰트 비율(Attribute / MaxAttribute) 을 지정된 값과 비교한다.
- *
  * WxAI 는 WxCombat 에 의존하지 않으므로, Attribute / MaxAttribute 는 디자이너가 BT 에디터에서 직접 지정한다 (예: WxCombatAttributeSet::HP, WxCombatAttributeSet::MaxHP).
  */
 UCLASS()

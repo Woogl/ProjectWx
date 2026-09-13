@@ -60,7 +60,6 @@ void UWxRootMotionModifier_SnapToTarget::ApplySnapTarget()
 
 	AActor* DesignatedTarget = UWxLockOnComponent::ResolveLockOnTargetActor(Owner);
 
-	// 대상이 없으면 범위 판정도 볼 것이 없으므로 쿼리 앞에서 끊는다.
 	if (bWarpTranslation && !DesignatedTarget)
 	{
 		MotionWarpingComp->RemoveWarpTarget(WarpTargetName);
