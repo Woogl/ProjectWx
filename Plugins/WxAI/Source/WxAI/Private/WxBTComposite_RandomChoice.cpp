@@ -56,7 +56,7 @@ int32 UWxBTComposite_RandomChoice::GetNextChildHandler(FBehaviorTreeSearchData& 
 	// 후보가 하나도 남지 않았을 때 엔진에 되돌려줄 자식.
 	int32 BlockedChild = INDEX_NONE;
 
-	// 회피는 여기서 보지 않는다. 회피를 풀지 말지는 조건을 통과한 후보가 몇 개인지에 달렸으므로, 수집을 끝낸 뒤에 판단해야 한다.
+	// 회피를 풀지 말지는 조건을 통과한 후보 수에 달렸으므로 수집을 끝낸 뒤에 판단한다.
 	for (int32 Index = 0; Index < ChildrenNum; ++Index)
 	{
 		// 엔진이 선택 직후 FindChildToExecute 에서 이 자식에 대해 동일하게 호출하는 검사이므로, 미리 걸러도 선택 결과가 엔진 판정과 어긋나지 않는다.

@@ -17,7 +17,8 @@ class UTargetingPreset;
  *
  * 지정 대상이 없으면 TargetingPreset 쿼리 결과를 폴백으로 쓰는데, 이 판정은 머신마다 갈릴 수 있어 회전에만 허용한다.
  * 이동 워프는 지정 대상이 스냅 범위 안에 있을 때만 걸고, 아니면 자기 워프 타겟을 지워 부모가 modifier를 끄게 한다.
- * 지정 대상이 늦게 도착하거나 바뀌면 Update가 회전을 그쪽으로 옮겨 정합을 맞춘다. 이동은 진입 시 정한 대상을 끝까지 쓴다 — 창 도중에 바꾸면 부모가 남은 거리를 메우느라 튄다.
+ * 지정 대상이 늦게 도착하거나 바뀌면 Update가 회전을 그쪽으로 옮겨 정합을 맞춘다.
+ * 이동은 진입 시 정한 대상을 끝까지 쓴다 — 창 도중에 바꾸면 부모가 남은 거리를 메우느라 튄다.
  */
 UCLASS()
 class WXCOMBAT_API UWxRootMotionModifier_SnapToTarget : public URootMotionModifier_SkewWarp
@@ -41,7 +42,7 @@ private:
 	/** 조건이 서지 않으면 워프 타겟을 지워 modifier를 끈다. */
 	void ApplySnapTarget();
 
-	/** 워프 도중 생존을 다시 보기 위해 기억해 두는 확정 대상 */
+	/** 워프 도중 생존 재확인과 지정 대상 변경 감지에 쓰는 확정 대상 */
 	UPROPERTY()
 	TWeakObjectPtr<AActor> SnapTarget;
 

@@ -12,7 +12,7 @@ struct FStateTreeTransitionResult;
 class USceneComponent;
 class USplineComponent;
 
-// GetInstanceDataType() 의 헤더 정의는 코딩 규칙 6 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
+// GetInstanceDataType() 의 헤더 정의는 코딩 규칙 4 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
 
 USTRUCT()
 struct FWxStateTreeTask_SplineMoveInstanceData
@@ -30,7 +30,10 @@ struct FWxStateTreeTask_SplineMoveInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
 	int32 TargetPointIndex = 0;
 
-	/** 목표 포인트까지 주파 시간(초). 0 이하면 즉시 스냅. 이동 중 재진입 시엔 남은 거리를 이 시간에 주파한다. */
+	/**
+	 * 목표 포인트까지 주파 시간(초). 0 이하면 즉시 스냅.
+	 * 이동 중 재진입 시엔 남은 거리를 이 시간에 주파한다.
+	 */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
 	float Duration = 1.f;
 
@@ -46,7 +49,7 @@ struct FWxStateTreeTask_SplineMoveInstanceData
 	UPROPERTY()
 	float TargetDistance = 0.f;
 
-	/** (런타임) 시작→목표 구간의 일정 속도(초당 스플라인 거리). 시작점이 동적이라 Tick 이 고정 저자값에서 재계산할 수 없어 EnterState 에서 1회 산출한다. */
+	/** 시작→목표 구간의 일정 속도(초당 스플라인 거리). 시작점이 동적이라 EnterState 에서 1회 산출한다. */
 	UPROPERTY()
 	float MoveSpeed = 0.f;
 };

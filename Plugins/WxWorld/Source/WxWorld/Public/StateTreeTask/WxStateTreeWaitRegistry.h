@@ -7,7 +7,7 @@
 #include "StateTreeAsyncExecutionContext.h"
 #include "StateTreeExecutionContext.h"
 
-// 아래 정의를 cpp 로 내리지 못하는 것은 코딩 규칙 6 의 예외다 — 페이로드 타입이 태스크마다 다른 클래스 템플릿이라 인스턴스화 지점이 호출부에 있다.
+// 아래 정의를 cpp 로 내리지 못하는 것은 코딩 규칙 4 의 예외다 — 페이로드 타입이 태스크마다 다른 클래스 템플릿이라 인스턴스화 지점이 호출부에 있다.
 
 /**
  * 통보가 올 때까지 Running 으로 머무는 태스크들의 공용 등록부. 등록 하나가 대기 중인 노드 하나다.
@@ -62,7 +62,6 @@ struct TWxStateTreeWaitRegistry
 			// 술어나 완료가 등록부를 건드려도 이 항목이 매달리지 않도록 복사해 둔다.
 			const FWait Wait = Waits[Index];
 
-			// 트리째 사라진(오너 파괴) 등록은 통보할 곳이 없으므로 이 참에 걷어낸다.
 			TStrongObjectPtr<UObject> Owner = Wait.Context.GetOwner();
 			if (!Owner)
 			{

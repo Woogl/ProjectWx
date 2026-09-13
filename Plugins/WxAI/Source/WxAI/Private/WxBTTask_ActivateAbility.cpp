@@ -149,7 +149,6 @@ void UWxBTTask_ActivateAbility::HandleAbilityEnded(const FAbilityEndedData& Abil
 		? EBTNodeResult::Failed
 		: EBTNodeResult::Succeeded;
 
-	// 발동 구간의 통지는 재발동으로 끝난 이전 실행의 것일 수 있어 그 자체로는 결론이 되지 못한다.
 	// 결과만 남기고 구독 해제와 판단은 ExecuteTask 에 맡긴다.
 	if (bIsActivating)
 	{

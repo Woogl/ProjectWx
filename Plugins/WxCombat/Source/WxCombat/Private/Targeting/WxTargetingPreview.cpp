@@ -28,7 +28,6 @@ void WxTargetingPreview::DrawDebugTargetingPreset(FPrimitiveDrawInterface* PDI, 
 		return;
 	}
 
-	// 단발 노티파이는 구간 길이가 0이라 그냥 두면 한 프레임도 못 보고 지나간다.
 	constexpr float MinVisibleDuration = 0.1f;
 	const float TriggerTime = NotifyEvent.GetTriggerTime();
 	const float EndTime = FMath::Max(NotifyEvent.GetEndTriggerTime(), TriggerTime + MinVisibleDuration);
@@ -45,7 +44,7 @@ void WxTargetingPreview::DrawDebugTargetingPreset(FPrimitiveDrawInterface* PDI, 
 
 	FTargetingRequestHandle RequestHandle = UTargetingSubsystem::MakeTargetRequestHandle(TargetingPreset, SourceContext);
 
-	// 쿼리는 액터 트랜스폼 기준으로 돈다. ACharacter가 메시를 요 -90도·Z -90으로 앉히므로, 그 보정을 되돌리면 프리뷰 메시에서 액터 프레임이 나온다.
+	// 쿼리는 액터 트랜스폼 기준으로 돈다. 캐릭터 BP가 메시를 요 -90도·Z -90으로 앉히므로, 그 보정을 되돌리면 프리뷰 메시에서 액터 프레임이 나온다.
 	// 기준을 루트 본으로 잡는다. 프리뷰가 루트 모션을 컴포넌트로 옮기든 본에 남기든, 그래야 볼륨이 몸을 따라간다.
 	const FTransform CharacterMeshOffset(FRotator(0.f, -90.f, 0.f), FVector(0.f, 0.f, -90.f));
 	const FTransform SourceFrame = CharacterMeshOffset.Inverse() * MeshComp->GetBoneTransform(0);

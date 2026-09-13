@@ -11,7 +11,6 @@ class USkeletalMeshComponent;
 class UTargetingPreset;
 struct FAnimNotifyEvent;
 
-/** 애님 에디터 뷰포트에 타겟팅 프리셋의 범위를 그려 보인다. */
 namespace WxTargetingPreview
 {
 	/**

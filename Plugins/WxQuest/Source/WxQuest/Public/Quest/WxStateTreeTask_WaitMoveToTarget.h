@@ -10,7 +10,7 @@
 struct FStateTreeExecutionContext;
 struct FStateTreeTransitionResult;
 
-// GetInstanceDataType() 의 헤더 정의는 코딩 규칙 6 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
+// GetInstanceDataType() 의 헤더 정의는 코딩 규칙 4 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
 
 USTRUCT()
 struct FWxStateTreeTask_WaitMoveToTargetInstanceData
@@ -26,7 +26,6 @@ struct FWxStateTreeTask_WaitMoveToTargetInstanceData
 };
 
 /**
- * 플레이어 폰(0번 컨트롤러)이 지정 대상의 AcceptRadius 안에 들어올 때까지 Running 으로 대기하다 도달 시 Succeeded 로 완료한다.
  * 0번 컨트롤러 사용은 GiveRewards 등 기존 크로스모듈 노드와 같은 전제(v1 싱글/리슨 호스트)다.
  * 빈 로케이터는 완료될 수 없는 잘못된 조립이므로 진입 시 경고를 남긴다.
  *

@@ -7,31 +7,39 @@
 /** 태그 추가 시 이 파일과 WxGameplayTags.cpp에만 작성. */
 namespace WxGameplayTags
 {
-	// ── State ──────────────────────────────────────────────────────────────
-
 	/** 로컬 플레이어가 이 액터를 락온 중일 때 피대상 ASC에만 붙는 개인 UI 상태. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_LockedOn);
 
 	/** 적 AI가 유효한 전투 대상을 보유하고 있는 교전 상태. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Engaged);
 	
-	/** 대화 세션 컴포넌트가 시작·종료에 맞춰 폰 ASC에 loose 태그로 발행. WxAbility_Interact가 ActivationBlockedTags로 사용해 대화 중 프롬프트 표시·상호작용을 닫는다 */
+	/**
+	 * 대화 세션 컴포넌트가 시작·종료에 맞춰 폰 ASC에 loose 태그로 발행한다.
+	 * WxAbility_Interact가 ActivationBlockedTags로 사용해 대화 중 프롬프트 표시·상호작용을 닫는다.
+	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dialogue);
 
-	/** 소환물 서브시스템이 살아 있는 소환물 보유 여부를 주인 ASC에 발행·복제한다. 같은 입력을 쓰는 소환·명령 스킬의 발동 조건이다. */
+	/**
+	 * 소환물 서브시스템이 살아 있는 소환물 보유 여부를 주인 ASC에 발행·복제한다.
+	 * 같은 입력을 쓰는 소환·명령 스킬의 발동 조건이다.
+	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Minion_Active);
 
-	/** UWxAbility_Death가 서버에서 loose 태그로 발행(TagOnly 복제). AWxCharacterBase가 구독해 전 머신에서 래그돌로 전환하고, 타게팅 프리셋이 IgnoreTags로 사용한다 */
+	/**
+	 * UWxAbility_Death가 서버에서 loose 태그로 발행한다(TagOnly 복제).
+	 * AWxCharacterBase가 구독해 전 머신에서 래그돌로 전환하고, 타게팅 프리셋이 IgnoreTags로 사용한다.
+	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Ragdoll);
 
-	// ── Effect ──────────────────────────────────────────────────────────────
-	
 	// GE가 부여하는 태그. 애셋 태그로도 사용한다.
 
 	/** WxEffect_Invincible이 부여하며, 구간을 연 쪽(노티파이 구간·컷신 태스크·처형의 활성 구간)이 수명을 쥔다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Invincible);
 
-	/** 가드 어빌리티가 WxEffect_GuardReduction으로 부여하고 종료에서 걷는다. SP 고갈로 가드가 깨질 때는 리액션 어빌리티가 가드를 끊어 같은 경로로 걷힌다 */
+	/**
+	 * 가드 어빌리티가 WxEffect_GuardReduction으로 부여하고 종료에서 걷는다.
+	 * SP 고갈로 가드가 깨질 때는 리액션 어빌리티가 가드를 끊어 같은 경로로 걷힌다.
+	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_GuardReduction);
 
 	/** 가드 몽타주의 노티파이 구간이 WxEffect_PerfectGuard로 부여하고 구간 끝에서 걷어낸다 */
@@ -43,15 +51,14 @@ namespace WxGameplayTags
 	/** 궁극기가 WxEffect_SuperArmor로 활성 구간만큼 부여한다. 대미지는 그대로 들어오고 경직(HitReact)만 막힌다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_SuperArmor);
 
-	/** WxEffect_HitStop이 적중마다 무기·투사체의 InstigatorHitStop·VictimHitStop만큼 부여한다. 있는 동안 WxHitStopComponent가 애니메이션과 이동을 함께 세운다 */
+	/**
+	 * WxEffect_HitStop이 적중마다 무기·투사체의 InstigatorHitStop·VictimHitStop만큼 부여한다.
+	 * 있는 동안 WxHitStopComponent가 애니메이션과 이동을 함께 세운다.
+	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_HitStop);
 
-	// ── Movement ──────────────────────────────────────────────────────────────
-	
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_InAir);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Sprint);
-
-	// ── HitReact ────────────────────────────────────────────────────────────
 
 	/** 대미지 테이블이 저작하는 피격 반응 종류. Event.Hit의 TargetTags 페이로드로 전달한다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitReact);
@@ -60,8 +67,6 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitReact_KnockDown);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitReact_KnockUp);
 
-	// ── Event ──────────────────────────────────────────────────────────────
-	
 	/**
 	 * 피격 이벤트. 대미지 파이프라인이 서버에서 피격자 ASC에 히트마다 한 번 보낸다.
 	 * 공격이 요청한 반응 종류는 TargetTags의 HitReact.* 페이로드로 전달한다.
@@ -72,10 +77,9 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Parry);
 
 	/**
-	 * 이 히트로 SP가 바닥나 가드가 깨졌다. 대미지 파이프라인이 서버에서 판정해 반응 태그 대신 이것을 보낸다.
+	 * 이 히트로 SP가 바닥나 가드가 깨졌다. 대미지 파이프라인이 서버에서 판정해 Event.Hit 대신 이것을 보낸다.
 	 * 클라의 복제 SP는 트리거보다 늦게 도착하므로 판정을 클라에서 다시 하면 서버와 갈린다.
-	 *
-	 * 파이프라인이 만들어 내는 결과값이라 공격의 반응 종류로 저작하면 안 된다 — 가드하지 않은 대상에게는 받아 줄 어빌리티가 없어 반응 없이 지나간다.
+	 * 가드하지 않은 대상에게는 받아 줄 어빌리티가 없어 가드 중인 대상에게만 보낸다.
 	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_GuardBreak);
 
@@ -95,7 +99,10 @@ namespace WxGameplayTags
 	/** 발동 장치가 연결 장치의 트리에 보내는 기본 이벤트. 목적지가 여럿인 장치는 버튼마다 다른 태그를 저작한다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Device_Triggered);
 
-	/** 적 상호작용이 서버에서 플레이어 ASC에 보내는 처형 트리거. 앞잡·뒤잡은 어빌리티 하나가 받아, 페이로드 TargetTags(대상 소유 태그)의 Ability.Groggy 유무로 연출을 가른다. */
+	/**
+	 * 적 상호작용이 서버에서 플레이어 ASC에 보내는 처형 트리거.
+	 * 앞잡·뒤잡은 어빌리티 하나가 받아, 페이로드 TargetTags(대상 소유 태그)의 Ability.Groggy 유무로 연출을 가른다.
+	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Finisher);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Death);
@@ -109,8 +116,6 @@ namespace WxGameplayTags
 
 	/** 주인이 관리 중인 소환수의 특정 어빌리티를 페이로드와 함께 발동한다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_CommandMinionAbility);
-
-	// ── Device ──────────────────────────────────────────────────────────────
 
 	// 장치의 State Tree 상태값이다.
 	// 코드에서 읽거나 쓰는 값은 아니지만 태그는 여기서 정의한다.
@@ -135,8 +140,6 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Piston_On);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Piston_Off);
 
-	// ── GameplayCue ──────────────────────────────────────────────────────────────
-	
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_DamageFloater);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Hit);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_PerfectGuard);
@@ -148,8 +151,6 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_AttackTelegraph_Blue);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_AttackTelegraph_Purple);
 	
-	// ── Damage ──────────────────────────────────────────────────────────────
-
 	/** 공격이 낸 피해. 이 표식이 없는 피해(치트·즉사 등)는 타격 반응도 플로터도 내지 않는다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Attack);
 
@@ -164,10 +165,8 @@ namespace WxGameplayTags
 	/** 가드로 막을 수 있는 공격. 이 태그가 없으면 일반 가드도 퍼펙트 가드도 뚫는다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_CanGuard);
 
-	/** 패리가 성립하는 공격. 이 공격이 퍼펙트 가드로 막히면 공격자가 GP를 반사받고 Event.Hit.Parry로 역경직에 걸린다 */
+	/** 패리가 성립하는 공격. 이 공격이 퍼펙트 가드로 막히면 공격자가 Event.Hit.Parry로 역경직에 걸린다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_CanParry);
-	
-	// ── Ability ──────────────────────────────────────────────────────────────
 	
 	/**
 	 * 어빌리티는 자신을 가리키는 식별 태그 Ability.X를 정확히 하나 갖고, AssetTags와 ActivationOwnedTags 양쪽에 넣는다.
@@ -218,8 +217,6 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_8);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Pattern_9);
 
-	// ── Cooldown ──────────────────────────────────────────────────────────────
-
 	/**
 	 * 어빌리티별 쿨다운 GE가 부여하는 태그. 순정 CheckCooldown·쿨다운 조회 API가 이 태그로 쿨다운을 식별한다.
 	 * 이름은 위 Ability.X 식별 태그를 따른다 — 어빌리티가 지정한 UWxEffect_Cooldown 파생 GE가 짝이 되는 태그를 부여한다.
@@ -235,9 +232,6 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Skill_4);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown_Ultimate);
 
-
-	// ── SetByCaller ──────────────────────────────────────────────────────────────
-
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Magnitude);
 	
 	/** NoCooldown/InfiniteMP/HitStop의 DurationMagnitude에서 공용으로 사용 */
@@ -249,8 +243,6 @@ namespace WxGameplayTags
 	/** WxEffect_MoveSpeedScale이 SPD 어트리뷰트에 곱하는 배율 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_MoveSpeedScale);
 	
-	// ── UI ──────────────────────────────────────────────────────────────
-
 	/** HUD 레이어 (플레이어 체력 바 등) */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_Game);
 

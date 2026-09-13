@@ -12,7 +12,6 @@
 struct FWxEffectTableRow;
 
 /**
- * GE가 참조할 FWxEffectTableRow 행을 지목한다.
  * 값을 스펙에 실어 보내지는 않는다 — 컴포넌트 콜백은 적용이 끝난 뒤에 오거나 스펙이 const라 주입할 자리가 없다.
  * 대신 아래 MMC들이 계산 시점에 GE 정의에서 이 컴포넌트를 찾아 행을 읽는다.
  *

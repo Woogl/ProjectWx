@@ -99,8 +99,7 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	// Super::EndAbility 가 태스크를 해제하기 전에 타겟을 먼저 비운다.
-	// 그래야 아직 살아있는 태스크가 컴포넌트의 null 변경 브로드캐스트를 받아 레티클을 즉시 정리한다.
+	// 아직 살아있는 태스크가 null 변경 브로드캐스트로 레티클을 즉시 정리하도록 Super::EndAbility 전에 타겟을 비운다.
 	if (ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
 	{
 		if (UWxLockOnComponent* LockOnComp = LockOnComponent.Get())

@@ -131,7 +131,7 @@ DECLARE_MULTICAST_DELEGATE(FWxOnInventoryContentsChanged);
  *
  * 권한(서버)에서만 Add/Consume 이 호출되어야 하며, FastArray 로 클라이언트에 동기화된다.
  *
- * 부착은 AWxPlayerController 생성자의 기본 서브오브젝트다. 시작 아이템은 BeginPlay 에서 스스로 지급하고, 목록은 컨트롤러 BP 의 이 컴포넌트 디테일에서 저작한다.
+ * 부착은 AWxPlayerController 생성자의 기본 서브오브젝트다.
  */
 UCLASS()
 class WXINVENTORY_API UWxInventoryComponent : public UActorComponent
@@ -174,7 +174,7 @@ public:
 
 	/**
 	 * 권한: 특정 인스턴스 슬롯을 통째로 제거한다.
-	 * 미구현: 현재 호출부가 0건이다(소비는 ConsumeItemsByDefinition 경로가 담당한다).
+	 * 현재 호출부가 없다(소비는 ConsumeItemsByDefinition 경로가 담당한다).
 	 */
 	void RemoveItemInstance(UWxItemInstance* ItemInstance);
 
@@ -205,7 +205,6 @@ public:
 
 	/**
 	 * Usable Fragment 보유 + (충전형이면 충전이 남은 인스턴스 존재) 이면 true.
-	 * UseItemByDef 와 동일한 인스턴스 선택 기준을 공유한다.
 	 */
 	bool CanUseItemByDef(const UWxItemDefinition* ItemDef) const;
 
@@ -240,7 +239,7 @@ public:
 
 	void NotifySlotChangedFromList(UWxItemInstance* Instance, int32 NewStackCount, int32 Delta);
 
-	/** 서버(사용/리필)와 클라이언트(OnRep_CurrentCharges) 공통 진입. */
+	/** 서버(추가/사용/리필)와 클라이언트(OnRep_CurrentCharges) 공통 진입. */
 	void NotifyChargeChangedFromSource(UWxItemInstance* Instance, int32 NewCharges, int32 Delta);
 
 private:

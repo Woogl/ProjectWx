@@ -33,10 +33,7 @@ public:
 	/**
 	 * ASC 하나당 하나. 없으면 ASC 를 Outer 로 만들어 초기화한다.
 	 * 폰이 바뀌면 ASC 도 바뀌므로 새 인스턴스가 생긴다.
-	 * ASC를 Outer로 지정하는 것만으로는 이 VM의 생존이 보장되지 않는다.
-	 * 이 VM 또는 자식 VM이 루트에서 강한 참조 경로로 도달 가능한 동안 유지된다.
-	 * 자식 VM의 Outer 참조는 부모를 유지하지만, 외부 참조 경로가 사라지면
-	 * 부모와 자식 사이의 순환 참조만으로는 GC 수거를 막지 못한다.
+	 * ASC 를 Outer 로 둬도 생존은 보장되지 않는다 — 이 VM 이나 자식 VM 이 루트에서 강한 참조로 닿는 동안만 유지된다.
 	 */
 	static UWxViewModel_AbilitySystem* GetOrCreate(UAbilitySystemComponent* InASC);
 
@@ -56,7 +53,6 @@ public:
 	 */
 	UWxViewModel_Ability* GetOrCreateAbilityViewModel(const FGameplayTagContainer& InAbilityTags);
 
-	/** 최초 조회부터 이펙트를 추적한다. 이후에는 공유 VM의 수명 동안 목록을 유지한다. */
 	const TArray<TObjectPtr<UWxViewModel_Effect>>& GetActiveEffectViewModels() const;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|AbilitySystem")

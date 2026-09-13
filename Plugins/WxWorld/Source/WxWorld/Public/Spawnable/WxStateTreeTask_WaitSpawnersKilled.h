@@ -10,7 +10,7 @@
 struct FStateTreeExecutionContext;
 struct FStateTreeTransitionResult;
 
-// GetInstanceDataType() 의 헤더 정의는 코딩 규칙 6 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
+// GetInstanceDataType() 의 헤더 정의는 코딩 규칙 4 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
 
 USTRUCT()
 struct FWxStateTreeTask_WaitSpawnersKilledInstanceData
@@ -28,12 +28,10 @@ struct FWxStateTreeTask_WaitSpawnersKilledInstanceData
 };
 
 /**
- * 지정 스포너 전원이 처치 상태(IsKilled)가 될 때까지 Running 으로 대기하다 완료 시 Succeeded 를 반환한다.
+ * 지정 스포너 전원이 해석(로드)되고 처치(IsKilled)될 때까지 대기한다 — 미해석은 판정 불가라 강제 로드 없이 대기한다.
  * 처치 상태(bIsKilled)는 복제되지 않으므로 권위에서 구동되는 ST 전용이다.
- * 전원이 해석(로드)되고 처치여야 통과한다 — 미해석은 판정 불가라 강제 로드 없이 대기한다.
  *
- * 진입할 때 즉시 판정하고, 이후에는 저주기 Scheduled Tick 으로 지속 상태를 다시 본다.
- * 따라서 일반 처치뿐 아니라 스트리밍 인처럼 별도 처치 이벤트가 없는 상태 변화도 놓치지 않는다.
+ * 처치 이벤트 대신 저주기 Scheduled Tick 으로 지속 상태를 다시 봐서 스트리밍 인처럼 이벤트 없는 상태 변화도 놓치지 않는다.
  *
  * 대상은 FUniversalObjectLocator 로 배치 액터를 직접 지정한다 — 순수 구조체라 ST 컴파일러의 레벨 액터 참조 검증에 걸리지 않고, 씬 픽커와 WP 런타임 셀·PIE 픽스업 해석이 엔진에 내장돼 있어 레벨 밖 호스트(퀘스트 ST)에서도 조립할 수 있다.
  */

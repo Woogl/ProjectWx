@@ -27,7 +27,7 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 		return EBTNodeResult::Failed;
 	}
 
-	// 각도 범위를 등분해 구간마다 한 번씩 시도한다. 후보가 서로 다른 구간에 흩어져 좁은 범위에서도 같은 방향만 반복해 재보지 않는다.
+	// 등분한 구간마다 한 번씩 시도해야 좁은 범위에서도 같은 방향만 반복해 재보지 않는다.
 	constexpr int32 SectorCount = 8;
 	TArray<int32, TInlineAllocator<SectorCount>> RemainingSectors;
 	for (int32 Index = 0; Index < SectorCount; ++Index)

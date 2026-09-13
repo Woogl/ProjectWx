@@ -71,7 +71,7 @@ public:
 	 * @param SourceStructId 소스 구조체 GUID(루트 파라미터 ID 또는 노드 iD).
 	 * @param SourcePath 소스 프로퍼티 경로. 예: "Npcs" (구조체 전체 복사면 빈 문자열 불가 — 프로퍼티명까지 쓴다)
 	 * @param TargetStructId 타깃 노드의 iD(GUID).
-	 * @param TargetPath 타깃 인스턴스 데이터의 프로퍼티 경로. 예: "Targets", "DialogueRow"
+	 * @param TargetPath 타깃 인스턴스 데이터의 프로퍼티 경로. 예: "Target", "StartRow"
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static bool AddBinding(UStateTree* StateTree, const FString& SourceStructId, const FString& SourcePath, const FString& TargetStructId, const FString& TargetPath);

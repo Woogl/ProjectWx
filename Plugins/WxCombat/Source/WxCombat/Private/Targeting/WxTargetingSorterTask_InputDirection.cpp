@@ -27,7 +27,6 @@ float UWxTargetingSorterTask_InputDirection::GetScoreForTarget(const FTargetingR
 		return 0.f;
 	}
 
-	// 이동 입력은 평면적이라 yaw 기준으로만 비교한다.
 	FVector InputDir = MovementComponent->GetCurrentAcceleration();
 	InputDir.Z = 0.f;
 	InputDir = InputDir.GetSafeNormal();

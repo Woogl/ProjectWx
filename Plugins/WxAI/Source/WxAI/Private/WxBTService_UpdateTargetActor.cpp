@@ -33,7 +33,6 @@ void UWxBTService_UpdateTargetActor::TickNode(UBehaviorTreeComponent& OwnerComp,
 		return;
 	}
 
-	// 감지를 유지하더라도 BP에서 어그로를 비허용으로 바꾸면 타겟을 놓는다.
 	AActor* CurrentTarget = WxBlackboardKeys::GetTargetActor(Blackboard);
 	if (CanBeAggroTarget(CurrentTarget) && !IsActorDead(CurrentTarget))
 	{

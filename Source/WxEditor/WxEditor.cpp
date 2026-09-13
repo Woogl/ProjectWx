@@ -68,7 +68,7 @@ void FWxEditorModule::StartupModule()
 		FOnGetDetailCustomizationInstance::CreateStatic(&FWxObjectDetails::MakeInstance, EngineObjectLayout.DetailLayoutDelegate),
 		ObjectLayoutParams);
 
-	// 레벨 에디터 디테일의 섹션 탭. 엔진 섹션은 전부 기본 Order(0)라 알파벳순이므로, 더 작은 값으로 General 바로 다음에 둔다.
+	// 엔진 섹션은 전부 기본 Order(0)라 알파벳순이므로, 더 작은 값으로 General 바로 다음에 둔다.
 	PropertyModule.FindOrCreateSection(WxEditorModule::ObjectClassName, WxEditorModule::WxSectionName, INVTEXT("Wx"), -1)
 		->AddCategory(FWxObjectDetails::WxCategoryName);
 

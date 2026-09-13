@@ -16,7 +16,7 @@ public:
 	UWxEffect_Damage();
 };
 
-/** SP·GP·IncomingDamage 순으로 반영한다. 전투 반응은 모든 출력 반영 후 DamageResponse 컴포넌트가 처리한다. */
+/** SP·IncomingDamage·GP 순으로 반영한다. 전투 반응은 모든 출력 반영 후 DamageResponse 컴포넌트가 처리한다. */
 UCLASS()
 class WXCOMBAT_API UWxExecCalc_Damage : public UGameplayEffectExecutionCalculation
 {

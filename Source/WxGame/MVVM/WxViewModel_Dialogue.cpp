@@ -40,7 +40,6 @@ void UWxViewModel_Dialogue::HandleLineChanged(const FText& InSpeaker, const FTex
 {
 	if (UE_MVVM_SET_PROPERTY_VALUE(Speaker, InSpeaker))
 	{
-		// HasSpeaker 는 Speaker 에서 파생되므로 원본이 바뀔 때 함께 알린다.
 		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(HasSpeaker);
 	}
 	UE_MVVM_SET_PROPERTY_VALUE(LineText, InLine);
@@ -69,7 +68,7 @@ UObject* UWxViewModelResolver_Dialogue::CreateInstance(const UClass* ExpectedTyp
 	const APlayerController* PC = UserWidget ? UserWidget->GetOwningPlayer() : nullptr;
 	UWxDialogueSessionComponent* Session = PC ? PC->FindComponentByClass<UWxDialogueSessionComponent>() : nullptr;
 
-	// 세션이 늦게 준비되면 호출 측에서 이 인스턴스에 Initialize 로 주입한다.
+	// 세션은 PC 생성자 컴포넌트라 늦게 준비되지 않으며, 못 찾으면 빈 표시로 남는다.
 	UWxViewModel_Dialogue* ViewModel = NewObject<UWxViewModel_Dialogue>(const_cast<UUserWidget*>(UserWidget), ExpectedType);
 	ViewModel->Initialize(Session);
 	return ViewModel;

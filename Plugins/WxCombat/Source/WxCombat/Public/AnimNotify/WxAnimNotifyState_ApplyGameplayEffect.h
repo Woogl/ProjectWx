@@ -9,7 +9,7 @@
 class UGameplayEffect;
 
 /**
- * 구간이 열려 있는 동안 지정한 GE를 소유자 ASC에 건다. 무적(Effect.Invincible)·퍼펙트가드(Effect.PerfectGuard) 판정 구간이 이걸로 열린다.
+ * 무적(Effect.Invincible)·퍼펙트가드(Effect.PerfectGuard) 판정 구간이 이걸로 열린다.
  *
  * 구간의 수명은 이 노티파이가 소유한다 — 시작에 걸고 끝에서 걷어낸다.
  * GE에 지속시간을 실어 스스로 만료시키면 애니메이션 시계와 GE 시계가 둘로 갈려, 재생 속도가 도중에 바뀌는 순간 구간이 애니메이션과 어긋난다.

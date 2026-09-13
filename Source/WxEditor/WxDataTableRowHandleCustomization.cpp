@@ -169,7 +169,6 @@ void FWxDataTableRowHandleCustomization::CustomizeChildren(TSharedRef<IPropertyH
 	const FDataTableEditorRowListViewDataPtr& SelectedRow = Rows[0];
 	const int32 ColumnCount = FMath::Min(Columns.Num(), SelectedRow->CellData.Num());
 
-	// 칼럼을 데이터 테이블 에디터의 한 행처럼 가로로 늘어놓고, 패널 폭을 넘치면 다음 줄로 넘긴다.
 	TSharedRef<SWrapBox> CellBox = SNew(SWrapBox)
 		.Orientation(Orient_Horizontal)
 		.UseAllottedSize(true)

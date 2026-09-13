@@ -27,6 +27,5 @@ UObject* UWxViewModelResolver_Ability::CreateInstance(const UClass* ExpectedType
 		return nullptr;
 	}
 
-	// 슬롯 태그가 곧 뷰모델의 정체성이다. 후보가 여럿인 슬롯에서 누구를 물지는 뷰모델이 스스로 다시 고른다.
 	return AbilitySystemViewModel->GetOrCreateAbilityViewModel(AbilityTags);
 }

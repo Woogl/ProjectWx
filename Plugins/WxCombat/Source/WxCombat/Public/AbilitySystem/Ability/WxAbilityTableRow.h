@@ -29,7 +29,6 @@ struct WXCOMBAT_API FWxAbilityTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cooldown")
 	int32 MaxRecharges = 1;
 
-	/** None이면 코스트 미적용 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cost")
 	EWxAbilityCostResource CostResource = EWxAbilityCostResource::None;
 

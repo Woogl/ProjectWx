@@ -18,7 +18,6 @@ UWxBTService_LockOn::UWxBTService_LockOn()
 	INIT_SERVICE_NODE_NOTIFY_FLAGS();
 
 	// bCallTickOnSearchStart 는 쓰지 않는다 — 그 틱은 aux 노드 등록이 커밋되기 전에 돌아, 탐색이 폐기되면 걸어 둔 포커스·회전 모드를 되돌릴 OnCeaseRelevant 가 영영 오지 않는다.
-	// 진입 시 적용은 OnBecomeRelevant 가 맡는다.
 	Interval = 0.1f;
 	RandomDeviation = 0.0f;
 }
@@ -134,7 +133,6 @@ void UWxBTService_LockOn::ReleaseLockOn(AAIController* AIController, FWxLockOnMe
 		AIController->ClearFocus(EAIFocusPriority::Gameplay);
 	}
 
-	// 폰이 파괴된 뒤라면 되돌릴 대상이 없다. 컨트롤러가 이미 사라진 경로에서도 폰만 살아 있으면 여기까지 와서 원복한다.
 	APawn* Pawn = Memory.LockedOnPawn.Get();
 	Memory.LockedOnPawn.Reset();
 

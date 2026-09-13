@@ -79,7 +79,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Interaction", meta = (ClampMin = "0", ClampMax = "180"))
 	float BackstabRearHalfAngle = 90.f;
 
-	/** 처치 시 지급할 보상. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Reward", meta = (RowType = "/Script/WxInventory.WxRewardTableRow", WxPreviewRow = "true"))
 	FDataTableRowHandle RewardRow;
 

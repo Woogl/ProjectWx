@@ -211,7 +211,7 @@ void UWxDialogueSessionComponent::EndDialogue()
 	}
 	TaggedAbilitySystem.Reset();
 
-	// 포즈는 거두지 않고, 진행 중인 스트리밍도 접지 않는다 — 마지막 대사의 자세가 늦게 도착했을 뿐이고, 요청이 대상을 따로 들고 있어 세션 없이도 얹힌다.
+	// 진행 중인 포즈 스트리밍은 접지 않는다 — 마지막 대사의 자세가 늦게 도착했을 뿐이다.
 	EndDialogueCamera();
 
 	OnDialogueEnded.Broadcast();

@@ -16,7 +16,6 @@ class WXCOMBAT_API UWxEffect_DrainGP : public UGameplayEffect
 public:
 	UWxEffect_DrainGP();
 
-	/** 드레인 틱 간격(초) */
 	static constexpr float DrainPeriod = 1.0f / 30.0f;
 };
 

@@ -16,7 +16,6 @@ void UWxViewModel_Attribute::Initialize(UAbilitySystemComponent* InASC, FGamepla
 		return;
 	}
 
-	// 최대치 생략은 여기서 현재치로 메운다 — 아래는 둘 다 유효한 것으로 다룬다.
 	InMaxAttribute = InMaxAttribute.IsValid() ? InMaxAttribute : InAttribute;
 
 	CachedASC = InASC;

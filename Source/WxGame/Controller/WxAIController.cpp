@@ -21,7 +21,6 @@ AWxAIController::AWxAIController()
 	UAIPerceptionComponent* Perception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("PerceptionComponent"));
 	SetPerceptionComponent(*Perception);
 
-	// 감지 거리·각도는 폰의 UWxAIBehaviorComponent 가 정하므로, 여기서는 폰을 가리지 않는 피아 필터와 자극 수명만 잡는다.
 	UAISenseConfig_Sight* SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
 	SightConfig->DetectionByAffiliation.bDetectNeutrals = false;

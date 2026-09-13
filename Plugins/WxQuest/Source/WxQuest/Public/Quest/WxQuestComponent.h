@@ -78,7 +78,7 @@ public:
 	virtual void BeginPlay() override;
 
 private:
-	/** Running 이탈(완료·실패·정지)이면 저널을 정리한다 — 이 콜백 안 재시작은 엔진 재진입 가드에 막힌다. */
+	/** 이 콜백 안 재시작은 엔진 재진입 가드에 막힌다. */
 	UFUNCTION()
 	void HandleStateTreeRunStatusChanged(EStateTreeRunStatus StateTreeRunStatus);
 

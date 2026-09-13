@@ -16,7 +16,7 @@ void UWxViewModel_InteractionList::StartObserving(APlayerController* PC)
 
 	ObservedController = PC;
 
-	// 호스트에선 스캐너가 위젯보다 항상 먼저 붙는다.
+	// 스캐너는 PC 생성자 컴포넌트라 호스트·클라 모두 위젯보다 항상 먼저 붙는다.
 	if (UWxInteractionScannerComponent* Scanner = PC->FindComponentByClass<UWxInteractionScannerComponent>())
 	{
 		Initialize(Scanner);
@@ -156,7 +156,7 @@ UObject* UWxViewModelResolver_InteractionList::CreateInstance(const UClass* Expe
 		return nullptr;
 	}
 
-	// 스캐너가 아직 없을 수 있으므로 Outer는 PC로 잡는다.
+	// 스캐너가 없는 PC일 수 있으므로 Outer는 PC로 잡는다.
 	UWxViewModel_InteractionList* ViewModel = NewObject<UWxViewModel_InteractionList>(PC);
 	ViewModel->StartObserving(PC);
 	return ViewModel;

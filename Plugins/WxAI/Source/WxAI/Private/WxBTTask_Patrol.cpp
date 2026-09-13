@@ -41,7 +41,6 @@ EBTNodeResult::Type UWxBTTask_Patrol::ExecuteTask(UBehaviorTreeComponent& OwnerC
 		return EBTNodeResult::Failed;
 	}
 
-	// 갈 지점이 더 없으면 움직이지 않는다(Once 는 전투 뒤 재진입에서도 마지막 지점이 아니라 지금 서 있는 자리다).
 	// Failed 를 반환하면 하위 폴백 분기가 폰을 집/배회로 끌고 가고, 즉시 Succeeded 는 브랜치를 놓아 주어 상위가 되감기며 재탐색을 되풀이한다.
 	if (bPatrolFinished)
 	{

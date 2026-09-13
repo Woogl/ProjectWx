@@ -297,7 +297,7 @@ UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
 {
 	UGameplayEffect* CooldownGE = Super::GetCooldownGameplayEffect();
 
-	// 테이블 기반 쿨다운은 수치가 없으면 걸지 않는다 — 지속시간이 0인 GE는 만료 타이머가 걸리지 않는다.
+	// 지속시간이 0인 GE는 만료 타이머가 걸리지 않는다.
 	if (CooldownGE && CooldownGE->IsA<UWxEffect_Cooldown>() && GetCooldownTime() <= 0.f)
 	{
 		return nullptr;

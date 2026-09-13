@@ -9,7 +9,8 @@
 class UAnimMontage;
 
 /**
- * 가드 홀드 상태를 소유한다 — 경감 효과 부여와 루핑 자세 몽타주가 전부다. 효과는 GA_Guard의 ActivationOwnedEffects가 지목한다.
+ * 가드 홀드 상태를 소유한다 — 경감 효과 부여와 루핑 자세 몽타주가 전부다.
+ * 효과는 GA_Shared_Guard의 ActivationOwnedEffects가 지목한다.
  *
  * 퍼펙트 가드의 GP 반사·역경직·큐는 UWxEffectComponent_DamageResponse가 처리한다.
  *

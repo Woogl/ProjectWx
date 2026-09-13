@@ -9,7 +9,7 @@
 class AWxProjectileBase;
 
 /**
- * 소켓 위치와 투사체 클래스를 풀어 월드의 ProjectileSubsystem에 생성을 맡긴다. 권위 판정은 서브시스템이 한다.
+ * 생성과 권위 판정은 ProjectileSubsystem이 맡는다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAnimNotify_SpawnProjectile : public UAnimNotify

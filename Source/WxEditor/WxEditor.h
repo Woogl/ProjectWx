@@ -16,10 +16,9 @@ public:
 	virtual void ShutdownModule() override;
 
 private:
-	/** 액터 지정 UOL 픽커의 조건부 등록 식별자. 해제 시 같은 인스턴스를 넘겨야 하므로 들고 있는다. */
+	/** 해제 시 같은 인스턴스를 넘겨야 하므로 들고 있는다. */
 	TSharedPtr<IPropertyTypeIdentifier> ActorLocatorIdentifier;
 
-	/** 전체 행 미리보기 DataTableRowHandle 의 조건부 등록 식별자. */
 	TSharedPtr<IPropertyTypeIdentifier> DataTableRowHandleIdentifier;
 
 	/** "Object" 자리에서 대체한 엔진 원본 커스터마이제이션 콜백. 종료 시 그대로 되돌려 놓는다. */

@@ -53,7 +53,7 @@ void AWxCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	// 래그돌 감지는 시뮬 프록시를 포함한 전 머신에서 필요하므로, 서버·오너 클라에서만 도는 InitAbilitySystem이 아니라 여기서 구독한다.
+	// 래그돌 감지는 시뮬 프록시를 포함한 전 머신에서 필요하므로, 클라에선 PlayerState 복제로만 도는(에너미는 안 도는) InitAbilitySystem이 아니라 여기서 구독한다.
 	AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::State_Ragdoll, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &AWxCharacterBase::HandleRagdollTagChanged);
 

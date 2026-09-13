@@ -21,7 +21,7 @@ enum class EWxItemCategory : uint8
 };
 
 /**
- * 동일한 Definition 을 참조하는 모든 인스턴스는 같은 정의를 공유하며, 런타임 가변 상태는 별도 UWxItemInstance 에서 관리한다.
+ * 모든 인스턴스가 공유하는 정의이며, 런타임 가변 상태는 별도 UWxItemInstance 에서 관리한다.
  *
  * Fragment 베이스의 OnInstanceCreated 가 인스턴스 초기 상태를 주입한다.
  *
@@ -54,7 +54,7 @@ public:
 
 	const UWxItemFragment* FindFragmentByClass(TSubclassOf<UWxItemFragment> FragmentClass) const;
 
-	// 헤더 정의는 코딩 규칙 6 의 예외다 — 템플릿이라 cpp 로 내릴 수 없다.
+	// 헤더 정의는 코딩 규칙 4 의 예외다 — 템플릿이라 cpp 로 내릴 수 없다.
 	template <typename T>
 	const T* FindFragmentByClass() const
 	{

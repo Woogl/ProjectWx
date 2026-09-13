@@ -70,7 +70,6 @@ void AWxDevice::NotifyDeviceInteracted(AActor* Interactor, FGameplayTag EventTag
 		return;
 	}
 
-	// 실제 상태 진입이 관측되면 컴포넌트가 당사자를 상태 스냅샷에 함께 담는다.
 	InteractingCharacter = Cast<ACharacter>(Interactor);
 
 	// 잠든 트리는 이 발송이 예약하는 다음 틱이 깨운다.

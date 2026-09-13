@@ -37,9 +37,10 @@ protected:
 	float Duration = 1.f;
 
 	/**
-	 * 이동 가능한 방향의 범위(도). 폰 정면(ControlRotation)이 0, 양수가 시계 방향이며, 매 실행마다 이 범위 안에서 무작위로 한 방향을 고른다.
+	 * 이동 가능한 방향의 범위(도).
+	 * 폰 정면(ControlRotation)이 0, 양수가 시계 방향이며, 매 실행마다 이 범위 안에서 무작위로 한 방향을 고른다.
 	 *
-	 * 범위를 좁게 잡을수록 내비메시에 막혀 갈 수 있는 방향이 없을 확률이 올라가고, 그때는 태스크가 실패해 상위 폴백 분기로 넘어간다.
+	 * 범위 안에 내비메시로 갈 수 있는 방향이 없으면 태스크가 실패한다.
 	 */
 	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (ClampMin = "-180.0", ClampMax = "180.0", UIMin = "-180.0", UIMax = "180.0"))
 	float MinAngle = -180.f;

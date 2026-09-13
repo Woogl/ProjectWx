@@ -22,7 +22,7 @@ TSoftObjectPtr<UObject> UWxUIDataThumbnailRenderer::GetIcon(UObject* Object)
 
 	const UObject* CDO = GeneratedClass->GetDefaultObject();
 
-	// 어빌리티는 CDO 가 계약을 직접 들고, GE 는 컴포넌트가 든다.
+	// 어빌리티·캐릭터는 CDO 가 계약을 직접 들고, GE 는 컴포넌트가 든다.
 	const IWxUIData* UIData = Cast<IWxUIData>(CDO);
 	if (UIData == nullptr)
 	{

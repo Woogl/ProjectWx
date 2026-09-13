@@ -56,10 +56,7 @@ private:
 	/** 주인의 활성 소환물을 소환 순서로 모은다. 순회 중 발동·파괴가 로스터를 바꿔도 이번 집합은 유지된다. */
 	TArray<TWeakObjectPtr<APawn>> CollectMinions(const APawn& Master) const;
 
-	/**
-	 * 클래스로만 소환물을 가린다. 복제 스폰은 이 시점에 Instigator가 아직 비어 있어 주인을 못 읽는다.
-	 * 그래서 주인은 등재가 아니라 질의 시점에 파생한다.
-	 */
+	/** 클래스로만 소환물을 가린다. 복제 스폰은 이 시점에 Instigator가 아직 비어 있어 주인을 못 읽는다. */
 	void HandleActorSpawned(AActor* Actor);
 
 	UFUNCTION()

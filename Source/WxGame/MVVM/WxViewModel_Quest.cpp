@@ -79,7 +79,7 @@ UObject* UWxViewModelResolver_Quest::CreateInstance(const UClass* ExpectedType, 
 	const AGameStateBase* GameState = World ? World->GetGameState() : nullptr;
 	UWxQuestComponent* QuestComponent = GameState ? GameState->FindComponentByClass<UWxQuestComponent>() : nullptr;
 
-	// 퀘스트 소스가 늦게 준비되면 호출 측에서 이 인스턴스에 Initialize 로 주입한다.
+	// 퀘스트 소스가 늦게 준비돼도 이 인스턴스에 다시 Initialize 로 주입하는 경로는 없다.
 	UWxViewModel_Quest* ViewModel = NewObject<UWxViewModel_Quest>(const_cast<UUserWidget*>(UserWidget), ExpectedType);
 	ViewModel->Initialize(QuestComponent);
 	return ViewModel;

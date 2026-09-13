@@ -26,11 +26,9 @@ public:
 protected:
 	virtual bool CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
 	
-	/** 분자 어트리뷰트 (예: HP) */
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	FGameplayAttribute Attribute;
 
-	/** 분모 어트리뷰트 (예: MaxHP) */
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	FGameplayAttribute MaxAttribute;
 

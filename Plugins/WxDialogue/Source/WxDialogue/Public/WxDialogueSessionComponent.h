@@ -50,7 +50,7 @@ public:
 
 	/**
 	 * 대화 정의 컴포넌트 없이 행을 직접 지정하는 진입점. 퀘스트 ST 의 Play Dialogue 태스크처럼 대사를 고르는 쪽이 액터가 아닐 때 쓴다.
-	 * Target 은 카메라 전환·관찰자 노출용일 뿐이라 비워도 되며(나레이션), 그때는 뷰 타겟이 플레이어 폰에 머문다.
+	 * Target 은 카메라 전환·포즈·관찰자 노출용일 뿐이라 비워도 되며(나레이션), 그때는 뷰 타겟이 플레이어 폰에 머문다.
 	 */
 	void StartDialogueRow(const FDataTableRowHandle& StartRow, AActor* Target);
 
@@ -75,17 +75,11 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Wx")
 	FWxOnDialogueLineChanged OnLineChanged;
 
-	/**
-	 * 대화가 끝나면 한 번 발화하고 스스로 비워진다. 종료를 기다리는 쪽('Play Dialogue' 태스크)이 대화를 연 직후 붙인다.
-	 * 발화와 함께 비워지므로 붙인 쪽이 떼어낼 필요가 없다 — 대화 한 번에 대한 일회성 약속이다.
-	 */
+	/** 대화가 끝나면 한 번 발화하고 스스로 비워진다. 종료를 기다리는 쪽('Play Dialogue' 태스크)이 대화를 연 직후 붙인다. */
 	FSimpleMulticastDelegate OnDialogueEnded;
 
 protected:
-	/**
-	 * 카메라 구도는 대상이 아니라 대화 연출 전반의 정책이라 여기 모아 둔다.
-	 * 컨트롤러 BP 에서 덮어쓰지 않는 한 여기 적힌 기본값이 곧 실제 값이다.
-	 */
+	/** 카메라 구도는 대상이 아니라 대화 연출 전반의 정책이라 여기 모아 둔다. */
 
 	/** 대화 중 시야각(도). 게임플레이(90)보다 좁혀 망원처럼 압축한다 — 광각은 가까운 사람만 크게 부풀리고 얼굴을 왜곡한다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Camera")
@@ -111,7 +105,6 @@ protected:
 	float CameraBlendTime = 0.5f;
 
 private:
-	/** 대상 액터는 관찰자 노출을 위해 세션 동안 기억한다. */
 	UFUNCTION(Client, Reliable)
 	void ClientStartDialogue(const FDataTableRowHandle& StartRow, AActor* Target);
 
@@ -128,7 +121,6 @@ private:
 
 	void EndDialogue();
 
-	/** 대상 없는 대사(나레이션)면 카메라를 건드리지 않는다. */
 	void BeginDialogueCamera();
 
 	void EndDialogueCamera();
@@ -155,19 +147,17 @@ private:
 	UPROPERTY()
 	FDataTableRowHandle CurrentStartRow;
 
-	/** 현재 노드의 행 이름이자 세션 자체의 상태. 비어 있으면 대화 중이 아니고, 행 실체는 여기서 매번 되찾는다(FindCurrentRow). */
+	/** 현재 노드의 행 이름이자 세션 자체의 상태. 비어 있으면 대화 중이 아니다. */
 	FName CurrentRowName;
 
-	/** 세션 동안 세워 둔 대화 카메라. 종료 시 뷰를 되돌리고 만료시킨다. */
 	TWeakObjectPtr<ACameraActor> DialogueCamera;
 
 	/**
 	 * 스트리밍을 걸어 둔 포즈와 그 대상. 완료 콜백이 인자를 받지 않으므로 "무엇을 누구에게"를 요청 시점에 남긴다.
-	 * 세션이 닫힌 뒤 도착해도 제 대상에 얹히도록 CurrentTarget 과 따로 든다 — 포즈는 대화가 끝나도 거두지 않는다.
+	 * 세션이 닫힌 뒤 도착해도 제 대상에 얹히도록 CurrentTarget 과 따로 든다.
 	 */
 	TSoftObjectPtr<UAnimMontage> PendingPose;
 	TWeakObjectPtr<AActor> PendingPoseTarget;
 
-	/** 진행 중인 포즈 스트리밍. 다음 대사가 포즈를 새로 지목할 때 취소하는 용도다. */
 	TSharedPtr<FStreamableHandle> PoseLoadHandle;
 };

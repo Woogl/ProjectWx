@@ -35,7 +35,6 @@ public:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	/** 라이브 입력의 진입점. */
 	void InputActionTriggered(const UInputAction* Action);
 
 	/**

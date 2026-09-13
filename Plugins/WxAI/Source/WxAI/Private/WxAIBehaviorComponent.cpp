@@ -48,7 +48,7 @@ void UWxAIBehaviorComponent::BeginPlay()
 
 	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn))
 	{
-		// 반응 히트는 Event.Hit 자식으로 나가므로 정확 매칭 구독은 놓친다.
+		// 가드 브레이크 히트는 Event.Hit.GuardBreak 자식으로 나가므로 정확 매칭 구독은 놓친다.
 		ASC->AddGameplayEventTagContainerDelegate(FGameplayTagContainer(WxGameplayTags::Event_Hit),
 			FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &UWxAIBehaviorComponent::HandlePawnHit));
 	}
@@ -158,7 +158,7 @@ void UWxAIBehaviorComponent::ApplySenseSettings(AController* Controller) const
 
 void UWxAIBehaviorComponent::HandlePawnHit(FGameplayTag MatchingTag, const FGameplayEventData* Payload)
 {
-	// 패리 반동은 대미지 없이 같은 이벤트를 쓰므로 자극에서 뺀다.
+	// 패리 반동은 대미지 없이 Event.Hit.Parry 로 같은 구독에 걸리므로 자극에서 뺀다.
 	if (!Payload || Payload->EventMagnitude <= 0.f)
 	{
 		return;
@@ -171,7 +171,8 @@ void UWxAIBehaviorComponent::HandlePawnHit(FGameplayTag MatchingTag, const FGame
 		return;
 	}
 
-	// Sight·Hearing 과 달리 Damage 센스에는 DetectionByAffiliation 이 없어 엔진이 가해자를 가려 주지 않는다. 여기서 막지 않으면 아군 오사 한 번에 서로를 타겟으로 확정한다.
+	// Sight·Hearing 과 달리 Damage 센스에는 DetectionByAffiliation 이 없어 엔진이 가해자를 가려 주지 않는다.
+	// 여기서 막지 않으면 아군 오사 한 번에 서로를 타겟으로 확정한다.
 	if (FGenericTeamId::GetAttitude(Pawn, DamageInstigator) != ETeamAttitude::Hostile)
 	{
 		return;

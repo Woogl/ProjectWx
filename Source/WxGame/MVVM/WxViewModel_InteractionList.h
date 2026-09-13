@@ -38,7 +38,6 @@ public:
 	UFUNCTION()
 	void HandleSelectionChanged(int32 InSelectedIndex);
 
-	/** 선택 대상은 스캐너가 알고 있으므로 인자가 없다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Interaction")
 	void RequestInteract();
 
@@ -52,10 +51,8 @@ public:
 	int32 SelectedIndex = INDEX_NONE;
 
 private:
-	/** 관찰 중인 PC 의 것이면 연결하고 관찰을 끝낸다. */
 	void HandleScannerReady(UWxInteractionScannerComponent* Scanner);
 
-	/** 연결 교체와 종료 시 이전 컨트롤러의 대기를 취소한다. */
 	void StopObserving();
 
 	void RebuildEntries(const TArray<FText>& InPrompts);
@@ -69,10 +66,6 @@ private:
 	TWeakObjectPtr<UWxInteractionScannerComponent> CachedScanner;
 };
 
-/**
- * 위젯을 소유한 PlayerController 로 위젯별 UWxViewModel_InteractionList 를 생성하고 관찰을 시작시킨다.
- * 스캐너가 아직 없어도(클라 복제 도착 전, 미등록 모드) VM 은 만들어지며, 연결은 VM 이 도착 신호 관찰로 스스로 처리한다.
- */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXGAME_API UWxViewModelResolver_InteractionList : public UMVVMViewModelContextResolver
 {

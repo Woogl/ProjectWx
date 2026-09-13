@@ -14,7 +14,6 @@ void UWxRootMotionModifier_SnapToTarget::OnStateChanged(ERootMotionModifierState
 {
 	Super::OnStateChanged(LastState);
 
-	// Active로 막 진입한 프레임에만 스냅 타겟을 판정해 워프 타겟을 등록한다.
 	if (LastState == ERootMotionModifierState::Active || GetState() != ERootMotionModifierState::Active)
 	{
 		return;
@@ -36,7 +35,6 @@ void UWxRootMotionModifier_SnapToTarget::Update(const FMotionWarpingUpdateContex
 				MotionWarpingComp->RemoveWarpTarget(WarpTargetName);
 			}
 		}
-		// 지정 대상이 창 도중에 도착하거나 바뀌면 회전을 그쪽으로 옮긴다 — 폴백으로 먼저 돈 머신이 권위 값에 수렴하는 경로다.
 		// 지정 대상이 없는 프레임에는 아무것도 하지 않아 폴백 상태에서 프리셋을 매 틱 재질의하지 않는다.
 		else if (!bWarpTranslation)
 		{
@@ -69,7 +67,6 @@ void UWxRootMotionModifier_SnapToTarget::ApplySnapTarget()
 		return;
 	}
 
-	// TargetingPreset 쿼리 결과가 곧 스냅 가능 범위이자, 지정 대상이 없을 때 쓸 폴백 후보다.
 	// 범위를 볼 이동 역할이거나 폴백이 필요할 때만 돌린다 — 지정 대상을 아는 회전 역할에는 쓸 데가 없다.
 	TArray<AActor*> TargetingResults;
 	if (TargetingPreset && (bWarpTranslation || !DesignatedTarget))
@@ -100,7 +97,6 @@ void UWxRootMotionModifier_SnapToTarget::ApplySnapTarget()
 	}
 
 	// 워프 타겟은 이름으로 컴포넌트에 남고 몽타주가 끝나도 엔진이 지우지 않으므로, 새로 등록하지 않으면 직전 공격이 남긴 타겟을 그대로 집어 쓴다.
-	// 여기서 자기 워프 타겟을 지우면 부모 Warp::Update 가 타겟 부재를 감지해 modifier 를 끄고 순정 루트 모션으로 재생한다.
 	USceneComponent* TargetComponent = FacingTarget ? FacingTarget->GetRootComponent() : nullptr;
 	if (!TargetComponent)
 	{

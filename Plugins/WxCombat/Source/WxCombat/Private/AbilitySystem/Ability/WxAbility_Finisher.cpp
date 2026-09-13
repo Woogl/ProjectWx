@@ -25,7 +25,7 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	AssetTags.AddTag(WxGameplayTags::Ability_Finisher);
 	SetAssetTags(AssetTags);
 
-	// 처형은 상호작용 어빌리티가 대상에게 넘긴 이벤트로 동기 발동하므로, 그 상호작용이 아직 점유 중일 때 뜬다.
+	// 처형은 상호작용 어빌리티 도중 대상이 되돌려 보낸 이벤트로 동기 발동하므로, 그 상호작용이 아직 점유 중일 때 뜬다.
 	// Override라 그 점유에 막히지 않는다 — 상호작용은 곧바로 스스로 끝나므로 끊어 줄 필요는 없다.
 	ActivationGroup = EWxAbilityActivationGroup::Override;
 

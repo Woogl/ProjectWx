@@ -11,7 +11,7 @@ struct FStateTreeTransitionResult;
 class APawn;
 class APlayerController;
 
-// GetInstanceDataType() 의 헤더 정의는 코딩 규칙 6 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
+// GetInstanceDataType() 의 헤더 정의는 코딩 규칙 4 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
 
 USTRUCT()
 struct FWxStateTreeTask_EnablePlayerInputInstanceData
@@ -33,7 +33,7 @@ struct FWxStateTreeTask_EnablePlayerInputInstanceData
 /**
  * 진입 시 장치 상호작용 당사자의 로컬 폰 입력 전체를 bEnable 로 토글한 뒤 Succeeded 로 완료한다.
  * 진입 경로를 가리지 않으므로 레이트조인 시에도 일관되게 적용된다.
- * 끈 경우 ExitState 가 되돌리므로, 다음 상태에 Enable Player Input(true) 를 배선하지 않았거나 연출 중 장치 액터/셀이 사라져 ST 가 멈춰도 입력이 꺼진 채 남지 않는다.
+ * 끈 입력은 ExitState 가 되돌리므로 장치 액터/셀이 사라져 ST 가 멈춰도 꺼진 채 남지 않는다.
  * 상호작용 당사자를 소유한 로컬 컨트롤러/폰이 없으면(예: 데디 서버·원격 플레이어 상태) 노옵한다.
  */
 USTRUCT(meta = (DisplayName = "플레이어 입력 켜기", Category = "Wx"))

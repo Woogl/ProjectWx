@@ -35,7 +35,7 @@ EStateTreeRunStatus FWxStateTreeTask_SendEvent::EnterState(FStateTreeExecutionCo
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	// 상태를 움직이는 것은 권위 트리뿐이다(받는 장치도 한 번 더 가린다). 클라에서 먼저 걸러 아래 저작 진단이 피어마다 반복되지 않게 한다.
+	// 받는 장치도 권위를 가리지만, 클라에서 먼저 걸러 아래 저작 진단이 피어마다 반복되지 않게 한다.
 	if (!Owner->HasAuthority())
 	{
 		return EStateTreeRunStatus::Succeeded;

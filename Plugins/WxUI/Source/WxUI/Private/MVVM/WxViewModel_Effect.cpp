@@ -42,7 +42,6 @@ void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGame
 	// 무한 지속은 잔량이 줄지 않는다 — 링을 가득 채워 두고 갱신도 걸지 않는다.
 	if (EffectDuration == FGameplayEffectConstants::INFINITE_DURATION)
 	{
-		// 무한 지속의 시간은 0, 진행률은 1로 표시한다.
 		SetDuration(0.f);
 		SetTimeRemaining(0.f);
 		SetTimeRemainingPercent(1.f);

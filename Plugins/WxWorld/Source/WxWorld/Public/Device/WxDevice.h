@@ -16,7 +16,7 @@ class UWxDeviceStateTreeComponent;
 
 /**
  * 상호작용이 켜져 있는 동안의 HUD 프롬프트와, 눌렸을 때 트리에 알릴 자리.
- * '상호작용 켜기' 태스크가 상태 진입 시 자기 몫을 하나 넘긴다 — 상태마다 발행자가 다르므로 전이에 페이로드 비교 조건이 필요 없다.
+ * '상태 상호작용' 태스크가 상태 진입 시 자기 몫을 하나 넘긴다 — 상태마다 발행자가 다르므로 전이에 페이로드 비교 조건이 필요 없다.
  */
 USTRUCT()
 struct FWxDeviceInteractionBinding

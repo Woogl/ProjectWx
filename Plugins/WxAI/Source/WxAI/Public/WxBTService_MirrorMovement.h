@@ -51,8 +51,6 @@ struct FWxMirrorMovementMemory
  * 태스크가 아니라 서비스인 이유는 두 가지다.
  * 태스크로 만들면 어빌리티 미러가 브랜치를 쥔 동안 기록이 끊겨 자취에 구멍이 생기고, 그동안 폰이 멈춘다.
  * 같은 이유로 이 서비스는 루트 컴포지트에 붙여야 한다 — 하위 브랜치에 붙이면 그 브랜치가 쉴 때 기록이 끊긴다.
- *
- * bMirrorFacing 은 컨트롤러 포커스와 폰의 회전 모드를 쓰므로 UWxBTService_LockOn 과 한 트리에 두지 않는다.
  */
 UCLASS()
 class WXAI_API UWxBTService_MirrorMovement : public UBTService

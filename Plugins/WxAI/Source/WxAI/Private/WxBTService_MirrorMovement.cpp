@@ -193,7 +193,6 @@ void UWxBTService_MirrorMovement::MirrorSample(APawn& Pawn, const FWxTrailSample
 		return;
 	}
 
-	// 기록된 속력을 그대로 내는 입력 스케일은 상한 대비 비율이다. 폰의 상한이 대상보다 낮으면 그만큼 뒤처진다.
 	const float MaxSpeed = Movement->GetMaxSpeed();
 	const float Scale = (Distance > CatchUpDistance || MaxSpeed <= 0.f)
 		? 1.f
@@ -237,7 +236,6 @@ void UWxBTService_MirrorMovement::ReleaseFacing(AAIController* AIController, FWx
 		AIController->ClearFocus(EAIFocusPriority::Gameplay);
 	}
 
-	// 폰이 파괴된 뒤라면 되돌릴 대상이 없다. 컨트롤러가 이미 사라진 경로에서도 폰만 살아 있으면 여기까지 와서 원복한다.
 	APawn* Pawn = Memory.FacingPawn.Get();
 	Memory.FacingPawn.Reset();
 

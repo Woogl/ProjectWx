@@ -48,7 +48,6 @@ public:
 	FVector GetPointLocation(int32 Index) const;
 
 	/**
-	 * MoveMode 규칙으로 CurrentIndex 의 다음 정찰 지점을 계산한다.
 	 * 계속 정찰할 수 있으면 OutNextIndex 를 채우고 true 를, Once 로 마지막 지점에 도달했거나 진행할 지점이 없으면 false 를 반환한다.
 	 * InOutDirection 은 PingPong 진행 방향(+1/-1)으로, 호출자가 폰별로 보관하며 본 함수가 끝점에서 뒤집는다.
 	 */

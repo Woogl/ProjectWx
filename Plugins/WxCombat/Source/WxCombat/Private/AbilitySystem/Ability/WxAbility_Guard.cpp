@@ -12,15 +12,15 @@ UWxAbility_Guard::UWxAbility_Guard()
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Guard);
 
-	// 배타 판정에는 자기 예외가 없어 활성 중 자기 재발동까지 막히는데, 가드는 그 성질에 기대어 상태를 유지한다.
+	// 배타 판정은 콤보 창이 아니면 활성 중 자기 재발동까지 막는데, 가드는 그 성질에 기대어 상태를 유지한다.
 	ActivationGroup = EWxAbilityActivationGroup::Exclusive;
 }
 
 bool UWxAbility_Guard::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
 	// 뗀 뒤 버퍼 재생으로 뒤늦게 올라가면 다음 누름까지 가드가 고정된다.
-	// 서버 스펙의 키 상태는 발동 RPC가 무조건 true로 세우므로 여기서 걸러낼 수 없다 — 소유 클라에서만 본다.
-	// 막으려는 것이 플레이어 입력 버퍼라 판정도 거기에 맞춘다. AI 가 모는 폰은 서버에서 로컬 조종으로 읽혀, 누른 적 없는 키 상태에 걸려 영영 발동하지 못한다.
+	// 서버 스펙의 키 상태는 발동 RPC가 무조건 true로 세우므로 소유 클라에서만 본다.
+	// AI 폰은 서버에서 로컬 조종으로 읽혀 누른 적 없는 키 상태에 영영 막히므로 플레이어로 한정한다.
 	if (ActorInfo && ActorInfo->IsLocallyControlledPlayer())
 	{
 		const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
@@ -110,7 +110,7 @@ void UWxAbility_Guard::HandleGuardReactEnded()
 
 bool UWxAbility_Guard::IsInputHeld() const
 {
-	// 원격 소유자의 키 상태는 여기서 읽을 수 없고, AI 에게는 뗀다는 개념이 없다 — 놓는 판단은 발동시킨 쪽이 한다.
+	// AI 에게는 뗀다는 개념이 없어 놓는 판단은 발동시킨 쪽이 한다.
 	const FGameplayAbilityActorInfo* ActorInfo = GetCurrentActorInfo();
 	if (!ActorInfo || !ActorInfo->IsLocallyControlledPlayer())
 	{

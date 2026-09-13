@@ -9,9 +9,6 @@
 
 class UWxQuestComponent;
 
-/**
- * 판 전체 상태를 드는 컴포넌트의 거주처다.
- */
 UCLASS()
 class WXGAME_API AWxGameState : public AGameStateBase
 {

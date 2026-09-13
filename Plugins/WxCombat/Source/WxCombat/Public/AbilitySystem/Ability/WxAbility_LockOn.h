@@ -55,7 +55,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	float RetargetLookThreshold = 40.f;
 
-	/** 재탐색 시 시선 방향과 후보 방향의 최소 정렬도(cos). 클수록 시선이 가리키는 쪽에 더 정확히 위치한 적만 선택된다. */
+	/** 재탐색 시 시선 방향과 후보 방향의 최소 정렬도(cos). */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	float RetargetMinAlignment = 0.1f;
 

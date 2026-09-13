@@ -135,7 +135,7 @@ public:
 
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 
-	/** 테이블에 쿨다운 수치가 없으면 nullptr — 호출자들이 이것을 "쿨다운 없음" 게이트로 쓴다. */
+	/** UWxEffect_Cooldown 파생 GE는 테이블에 쿨다운 수치가 없으면 nullptr — 호출자들이 이것을 "쿨다운 없음" 게이트로 쓴다. */
 	virtual UGameplayEffect* GetCooldownGameplayEffect() const override;
 
 	/** 남은 충전이 있으면 쿨다운 태그가 붙어 있어도 통과시킨다. (MaxRecharges) */

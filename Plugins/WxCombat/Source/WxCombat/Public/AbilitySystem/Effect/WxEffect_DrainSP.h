@@ -20,6 +20,5 @@ public:
 	/** MaxSP에서 0까지 소진되는 데 걸리는 시간(초) */
 	static constexpr float FullDrainDuration = 8.0f;
 
-	/** 소모 틱 간격(초) */
 	static constexpr float DrainPeriod = 1.0f / 30.0f;
 };

@@ -83,7 +83,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	bool CheckCost = false;
 
-	/** 코스트가 없으면 0 */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
 	float CostAmount = 0.f;
 

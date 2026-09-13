@@ -149,7 +149,6 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 		return;
 	}
 
-	// 슬롯 태그를 공유하는 후보가 여럿이면 요건을 만족하는 것을 고른다.
 	// 쿨다운과 비용은 보지 않아 표시가 그것들로 흔들리지 않는다.
 	const UGameplayAbility* MatchedAbility = nullptr;
 	const UGameplayAbility* FallbackAbility = nullptr;

@@ -52,10 +52,7 @@ protected:
 	 */
 	void RequestImageAsync(FName FieldName, const TSoftObjectPtr<UObject>& InImage);
 
-	/**
-	 * RequestImageAsync 의 결과 수신점.
-	 * 파생 VM 이 FieldName 에 해당하는 자기 표시 필드에 세팅한다.
-	 */
+	/** 파생 VM 이 FieldName 에 해당하는 자기 표시 필드에 세팅한다. */
 	virtual void ApplyLoadedImage(FName FieldName, UObject* LoadedImage);
 
 private:

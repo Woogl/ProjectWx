@@ -54,7 +54,7 @@ void UWxLockOnComponent::ApplyLockOnTarget(USceneComponent* InTarget)
 
 	LockOnTarget = InTarget;
 
-	// 권위 측은 OnRep이 불리지 않으므로 여기서 직접 브로드캐스트한다.
+	// 권위 적용과 소유 클라의 로컬 예측은 OnRep을 거치지 않으므로 여기서 직접 브로드캐스트한다.
 	OnLockOnTargetChanged.Broadcast(LockOnTarget);
 }
 

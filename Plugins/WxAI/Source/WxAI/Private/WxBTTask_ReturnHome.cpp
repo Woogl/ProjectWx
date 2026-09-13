@@ -12,14 +12,12 @@ UWxBTTask_ReturnHome::UWxBTTask_ReturnHome()
 {
 	NodeName = TEXT("Return Home");
 
-	// 에디터에서 별도 선택 없이 동작하도록 기본 키를 채워 둔다. 실제 키 해석은 InitializeFromAsset 가 한다.
 	BlackboardKey.SelectedKeyName = WxBlackboardKeys::HomeLocation;
 }
 
 EBTNodeResult::Type UWxBTTask_ReturnHome::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	// MoveTo 는 경로가 없거나 목표가 내비메시 밖이면 이동을 시작하지 못하고 동기 Failed 를 반환한다.
-	// 복귀가 시작되지 않은 실패 경로에서는 현재 타겟도 잊지 않는다.
 	const EBTNodeResult::Type MoveResult = Super::ExecuteTask(OwnerComp, NodeMemory);
 	if (MoveResult != EBTNodeResult::InProgress)
 	{

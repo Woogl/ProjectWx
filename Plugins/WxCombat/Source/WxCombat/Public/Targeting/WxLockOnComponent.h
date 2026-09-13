@@ -29,10 +29,7 @@ class WXCOMBAT_API UWxLockOnComponent : public UActorComponent
 public:
 	UWxLockOnComponent();
 
-	/**
-	 * 소스가 겨누는 액터를 묻는 소비처용 조회. 컴포넌트가 없거나 대상이 없으면 nullptr.
-	 * 조준 지점을 돌려주는 UWxLockOnPointComponent::ResolveLockOnTarget 과 짝이며, 이쪽은 그 지점의 액터를 답한다.
-	 */
+	/** 조준 지점을 돌려주는 UWxLockOnPointComponent::ResolveLockOnTarget 과 짝이며, 이쪽은 그 지점의 액터를 답한다. */
 	static AActor* ResolveLockOnTargetActor(const AActor* Source);
 
 	/** nullptr을 넘기면 해제된다 */
