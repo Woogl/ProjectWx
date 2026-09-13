@@ -2,7 +2,6 @@
 
 #include "WxAIController.h"
 #include "WxBlackboardKeys.h"
-#include "WxAIPerceptionComponent.h"
 #include "WxAIBehaviorComponent.h"
 #include "Character/WxCharacterBase.h"
 #include "BehaviorTree/BehaviorTree.h"
@@ -10,24 +9,67 @@
 #include "BrainComponent.h"
 #include "GenericTeamAgentInterface.h"
 #include "Minion/WxMinionSubsystem.h"
+#include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISenseConfig_Sight.h"
+#include "Perception/AISenseConfig_Hearing.h"
+#include "Perception/AISenseConfig_Damage.h"
+#include "Perception/AISense_Sight.h"
 #include "Targeting/WxLockOnComponent.h"
 
 AWxAIController::AWxAIController()
 {
-	WxAIPerceptionComponent = CreateDefaultSubobject<UWxAIPerceptionComponent>(TEXT("WxAIPerceptionComponent"));
+	UAIPerceptionComponent* Perception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("PerceptionComponent"));
+	SetPerceptionComponent(*Perception);
+
+	// 감지 거리·각도는 폰의 UWxAIBehaviorComponent 가 정하므로, 여기서는 폰을 가리지 않는 피아 필터와 자극 수명만 잡는다.
+	UAISenseConfig_Sight* SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
+	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
+	SightConfig->DetectionByAffiliation.bDetectNeutrals = false;
+	SightConfig->DetectionByAffiliation.bDetectFriendlies = false;
+
+	UAISenseConfig_Hearing* HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
+	HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
+	HearingConfig->DetectionByAffiliation.bDetectNeutrals = false;
+	HearingConfig->DetectionByAffiliation.bDetectFriendlies = false;
+
+	UAISenseConfig_Damage* DamageConfig = CreateDefaultSubobject<UAISenseConfig_Damage>(TEXT("DamageConfig"));
+
+	// Sight 와 달리 이 둘은 성공 자극만 등록하는 일회성 센스라 해제 이벤트가 없다.
+	// MaxAge 를 비워 두면 GetMaxAge 가 NeverHappenedAge 를 돌려줘 자극이 영영 "감지 중" 으로 남으므로, 유한한 수명을 준다.
+	HearingConfig->SetMaxAge(5.0f);
+	DamageConfig->SetMaxAge(5.0f);
+
+	// 엔진은 여기서 넘긴 센스만 OnRegister 에서 퍼셉션 시스템 리스너로 올린다.
+	Perception->ConfigureSense(*SightConfig);
+	Perception->ConfigureSense(*HearingConfig);
+	Perception->ConfigureSense(*DamageConfig);
+
+	Perception->SetDominantSense(UAISense_Sight::StaticClass());
 }
 
 void AWxAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	if (const IGenericTeamAgentInterface* PawnTeam = Cast<IGenericTeamAgentInterface>(InPawn))
+	if (UAIPerceptionComponent* Perception = GetPerceptionComponent())
 	{
-		SetGenericTeamId(PawnTeam->GetGenericTeamId());
+		// 폰을 놓은 동안 재워 둔 감각을 되살린다.
+		if (!Perception->IsRegistered())
+		{
+			Perception->RegisterComponent();
+		}
 
-		// 퍼셉션 리스너는 빙의 전에 등록되면서 그 자리에서 컨트롤러 팀을 캐시하는데, 엔진은 팀이 바뀌어도 퍼셉션에 통보하지 않는다.
-		// 청각·촉각의 피아 판정이 그 캐시를 쓰므로, 여기서 갱신하지 않으면 무팀으로 남아 자기 발소리와 아군 소음까지 적대로 듣는다.
-		WxAIPerceptionComponent->RequestStimuliListenerUpdate();
+		// 감지 기록은 옛 폰이 모은 것이라 지운다 — 남겨 두면 새 폰이 보고 있는 액터가 이미 감지 상태여서 상태 변화 통지가 나오지 않는다.
+		Perception->ForgetAll();
+
+		if (const IGenericTeamAgentInterface* PawnTeam = Cast<IGenericTeamAgentInterface>(InPawn))
+		{
+			SetGenericTeamId(PawnTeam->GetGenericTeamId());
+
+			// 퍼셉션 리스너는 빙의 전에 등록되면서 그 자리에서 컨트롤러 팀을 캐시하는데, 엔진은 팀이 바뀌어도 퍼셉션에 통보하지 않는다.
+			// 청각·촉각의 피아 판정이 그 캐시를 쓰므로, 여기서 갱신하지 않으면 무팀으로 남아 자기 발소리와 아군 소음까지 적대로 듣는다.
+			Perception->RequestStimuliListenerUpdate();
+		}
 	}
 
 	// Blackboard 컴포넌트는 RunBehaviorTree 안에서 생성되므로, BT 를 먼저 실행한 뒤에 컨텍스트 키를 세팅한다.
@@ -86,6 +128,12 @@ void AWxAIController::OnUnPossess()
 		{
 			WxBlackboardKeys::SetMaster(BB, nullptr);
 		}
+	}
+
+	// 몸이 없는 리스너는 마지막 시점에 머문 채 시야 쿼리를 계속 도므로, 폰을 놓은 동안에는 감각을 재운다.
+	if (UAIPerceptionComponent* Perception = GetPerceptionComponent())
+	{
+		Perception->UnregisterComponent();
 	}
 
 	Super::OnUnPossess();

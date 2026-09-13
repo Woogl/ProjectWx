@@ -9,11 +9,11 @@
 
 class AWxCharacterBase;
 class UBlackboardComponent;
-class UWxAIPerceptionComponent;
 
 /**
  * AI 가 모는 폰 전부의 컨트롤러다 — 적이든 소환수든 팀을 가리지 않으며, 적대 여부는 빙의한 폰의 팀이 정한다.
- * 감지는 UWxAIPerceptionComponent 가, 그중 누구를 적으로 삼을지는 BT 서비스가 정한다.
+ * 감각의 모양(피아 필터·자극 수명·지배 감각)은 여기서 잡고, 감지 거리·각도는 폰의 UWxAIBehaviorComponent 가 빙의 시점에 밀어 넣는다.
+ * 감지한 것 중 누구를 적으로 삼을지는 BT 서비스가 정한다.
  */
 UCLASS()
 class WXGAME_API AWxAIController : public AAIController
@@ -34,8 +34,4 @@ private:
 
 	/** BT 서비스가 고른 타겟을 락온 대상으로 옮긴다. WxCombat 을 아는 쪽이 컨트롤러뿐이라 이 통로는 여기 남는다. */
 	EBlackboardNotificationResult HandleTargetActorChanged(const UBlackboardComponent& InBlackboard, FBlackboard::FKey KeyID);
-
-protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|AI")
-	TObjectPtr<UWxAIPerceptionComponent> WxAIPerceptionComponent;
 };

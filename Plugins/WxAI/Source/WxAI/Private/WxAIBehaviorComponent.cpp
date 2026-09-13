@@ -2,7 +2,16 @@
 
 #include "WxAIBehaviorComponent.h"
 #include "WxAIModule.h"
+#include "WxGameplayTags.h"
+#include "AIController.h"
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "GameFramework/Pawn.h"
+#include "GenericTeamAgentInterface.h"
+#include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISenseConfig_Sight.h"
+#include "Perception/AISenseConfig_Hearing.h"
+#include "Perception/AISense_Damage.h"
 
 #if WITH_EDITOR
 #include "DrawDebugHelpers.h"
@@ -26,9 +35,22 @@ void UWxAIBehaviorComponent::BeginPlay()
 	SetComponentTickEnabled(false);
 #endif
 
-	if (!GetOwner<APawn>())
+	APawn* Pawn = GetOwner<APawn>();
+	if (!Pawn)
 	{
 		UE_LOG(LogWxAI, Warning, TEXT("%s: WxAIBehaviorComponent 는 Pawn 에만 부착할 수 있다."), *GetNameSafe(GetOwner()));
+		return;
+	}
+
+	// 배치된 폰은 이 컴포넌트의 BeginPlay 전에 빙의되므로 델리게이트만으로는 첫 컨트롤러를 놓친다.
+	Pawn->ReceiveControllerChangedDelegate.AddDynamic(this, &UWxAIBehaviorComponent::HandleControllerChanged);
+	ApplySenseSettings(Pawn->GetController());
+
+	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn))
+	{
+		// 반응 히트는 Event.Hit 자식으로 나가므로 정확 매칭 구독은 놓친다.
+		ASC->AddGameplayEventTagContainerDelegate(FGameplayTagContainer(WxGameplayTags::Event_Hit),
+			FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &UWxAIBehaviorComponent::HandlePawnHit));
 	}
 }
 
@@ -99,4 +121,63 @@ float UWxAIBehaviorComponent::GetSightAngle() const
 float UWxAIBehaviorComponent::GetHearingRadius() const
 {
 	return HearingRadius;
+}
+
+void UWxAIBehaviorComponent::HandleControllerChanged(APawn* Pawn, AController* OldController, AController* NewController)
+{
+	ApplySenseSettings(NewController);
+}
+
+void UWxAIBehaviorComponent::ApplySenseSettings(AController* Controller) const
+{
+	AAIController* AIController = Cast<AAIController>(Controller);
+	UAIPerceptionComponent* Perception = AIController ? AIController->GetPerceptionComponent() : nullptr;
+	if (!Perception)
+	{
+		return;
+	}
+
+	if (UAISenseConfig_Sight* SightConfig = Perception->GetSenseConfig<UAISenseConfig_Sight>())
+	{
+		SightConfig->SightRadius = SightRadius;
+		// 반경 경계에서 붙었다 떨어졌다 하는 것은 리시 복귀가 다루므로 시야 상실 반경에 히스테리시스를 두지 않는다.
+		SightConfig->LoseSightRadius = SightRadius;
+		SightConfig->PeripheralVisionAngleDegrees = SightAngle;
+
+		// 엔진은 config 를 고친 것을 스스로 알아채지 못한다. 같은 config 를 다시 넘기는 것이 재구성 통로다.
+		// 아직 등록 전이면 설정만 갱신되고, 등록 시 그 값으로 리스너가 만들어진다.
+		Perception->ConfigureSense(*SightConfig);
+	}
+
+	if (UAISenseConfig_Hearing* HearingConfig = Perception->GetSenseConfig<UAISenseConfig_Hearing>())
+	{
+		HearingConfig->HearingRange = HearingRadius;
+		Perception->ConfigureSense(*HearingConfig);
+	}
+}
+
+void UWxAIBehaviorComponent::HandlePawnHit(FGameplayTag MatchingTag, const FGameplayEventData* Payload)
+{
+	// 패리 반동은 대미지 없이 같은 이벤트를 쓰므로 자극에서 뺀다.
+	if (!Payload || Payload->EventMagnitude <= 0.f)
+	{
+		return;
+	}
+
+	APawn* Pawn = GetOwner<APawn>();
+	AActor* DamageInstigator = Payload->ContextHandle.GetInstigator();
+	if (!Pawn || !DamageInstigator)
+	{
+		return;
+	}
+
+	// Sight·Hearing 과 달리 Damage 센스에는 DetectionByAffiliation 이 없어 엔진이 가해자를 가려 주지 않는다. 여기서 막지 않으면 아군 오사 한 번에 서로를 타겟으로 확정한다.
+	if (FGenericTeamId::GetAttitude(Pawn, DamageInstigator) != ETeamAttitude::Hostile)
+	{
+		return;
+	}
+
+	const FHitResult* HitResult = Payload->ContextHandle.GetHitResult();
+	const FVector HitLocation = HitResult ? FVector(HitResult->ImpactPoint) : Pawn->GetActorLocation();
+	UAISense_Damage::ReportDamageEvent(this, Pawn, DamageInstigator, Payload->EventMagnitude, DamageInstigator->GetActorLocation(), HitLocation);
 }

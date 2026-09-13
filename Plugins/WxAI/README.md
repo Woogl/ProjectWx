@@ -4,22 +4,21 @@
 
 ## 책임
 **담당**
-- 폰의 감지·인식: 시각/청각/피격 센스 구성과 자극 수집 (`UWxAIPerceptionComponent`)
+- 폰별 감각 수치와 피격 자극 보고: 빙의 시점에 컨트롤러의 퍼셉션 설정에 수치를 밀어 넣고, GAS 피격을 Damage 센스로 보고 (`UWxAIBehaviorComponent`)
 - 감지 결과를 판단 재료로 정리해 Blackboard 에 발행: 타겟 선정, 거리, 락온 (`WxBTService_*`)
 - BT 실행 노드 라이브러리: 정찰/배회/복귀/어빌리티 발동·미러/이동 미러/무작위 선택·가중치/리시·어트리뷰트 게이트
 - 정찰 경로 데이터(스플라인)와 순회 규칙 (`UWxPatrolComponent`)
-- 폰별 감각 수치를 캐릭터 상속과 분리해 컨트롤러에 넘김 (`UWxAIBehaviorComponent`)
 
 **경계 (비담당)**
 - AIController 본체·폰 빙의·BehaviorTree/Blackboard 에셋 실행 시작 → 게임 모듈 `WxGame`(`AWxAIController`)
+- 퍼셉션 컴포넌트 부착과 센스의 모양(피아 필터·자극 수명·지배 감각) → `WxGame`(`AWxAIController`)가 순정 `UAIPerceptionComponent` 로 구성. 이 모듈은 수치만 공급
 - 어빌리티 정의·어트리뷰트·이동속도 감속 이펙트 → [[WxCombat]] (BT 에디터에서 디자이너가 태그/에셋으로 지정, 코드 의존 없음)
 - 플레이어 락온 및 겨누는 대상 산출 → [[WxCombat]] (`UWxLockOnComponent`). 이 모듈의 LockOn 서비스는 "어떻게 바라볼지"만 정함
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxAIPerceptionComponent` | 컨트롤러에 붙어 시각·청각·피격 감지. 감지까지가 범위 | `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h` |
-| `UWxAIBehaviorComponent` | 폰이 소유. BT 에셋·감각 수치를 컨트롤러에 공급 | `Plugins/WxAI/Source/WxAI/Public/WxAIBehaviorComponent.h` |
+| `UWxAIBehaviorComponent` | 폰이 소유. BT 에셋·감각 수치·피격 보고를 캐릭터가 들고 다닌다 | `Plugins/WxAI/Source/WxAI/Public/WxAIBehaviorComponent.h` |
 | `WxBlackboardKeys` | BT ↔ 컨트롤러 공유 키의 타입-세이프 accessor 네임스페이스 | `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` |
 | `UWxBTService_UpdateTargetActor` | 감지 액터 중 하나를 `TargetActor` 로 선정(타겟 두뇌). 루트에 상주 | `Plugins/WxAI/Source/WxAI/Public/WxBTService_UpdateTargetActor.h` |
 | `UWxBTService_LockOn` | `TargetActor` 를 컨트롤러 포커스+폰 strafe 회전에 반영 | `Plugins/WxAI/Source/WxAI/Public/WxBTService_LockOn.h` |
@@ -36,7 +35,7 @@
 
 ## 여기서부터 읽어라
 1. `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` — 모듈 전체를 잇는 데이터 계약. 누가 어떤 키를 SET/CLEAR 하는지 여기서 잡힌다.
-2. `Plugins/WxAI/Source/WxAI/Public/WxAIPerceptionComponent.h` — 인지의 입구. 감지가 어떻게 들어오는지.
+2. `Plugins/WxAI/Source/WxAI/Public/WxAIBehaviorComponent.h` — 인지의 입구. 감각 수치가 어디서 컨트롤러로 넘어가고 피격이 어떻게 자극이 되는지.
 3. `Plugins/WxAI/Source/WxAI/Public/WxBTService_UpdateTargetActor.h` — 감지에서 타겟 결정으로 넘어가는 지점.
 4. `Plugins/WxAI/Source/WxAI/Public/WxBTService_LockOn.h` / `WxBTService_MirrorMovement.h` — 포커스·회전 소유권 규약(가장 얽히기 쉬운 부분).
 
