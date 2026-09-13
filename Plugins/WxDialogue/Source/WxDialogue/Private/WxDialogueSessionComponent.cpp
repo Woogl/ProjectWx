@@ -305,7 +305,6 @@ void UWxDialogueSessionComponent::ApplyCurrentPose()
 	PendingPose = Row->TargetPose;
 	PendingPoseTarget = CurrentTarget;
 
-	// 이미 로드돼 있으면(직전 대사와 같은 포즈를 다시 지목하는 등) 스트리밍을 거치지 않는다.
 	if (PendingPose.Get())
 	{
 		PlayPendingPose();

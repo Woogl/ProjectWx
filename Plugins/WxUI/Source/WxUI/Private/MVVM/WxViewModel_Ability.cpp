@@ -204,7 +204,6 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 		return;
 	}
 
-	// 표시 계약을 구현하지 않은 어빌리티는 이름도 아이콘도 없이 단일 충전으로 그려진다.
 	int32 NewMaxRecharges = 1;
 	SetTitle(FText::GetEmpty());
 	SetDescription(FText::GetEmpty());

@@ -79,8 +79,6 @@ public:
 	FSimpleMulticastDelegate OnDialogueEnded;
 
 protected:
-	/** 카메라 구도는 대상이 아니라 대화 연출 전반의 정책이라 여기 모아 둔다. */
-
 	/** 대화 중 시야각(도). 게임플레이(90)보다 좁혀 망원처럼 압축한다 — 광각은 가까운 사람만 크게 부풀리고 얼굴을 왜곡한다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Camera")
 	float CameraFieldOfView = 55.f;

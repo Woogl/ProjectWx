@@ -70,7 +70,6 @@ namespace WxGameplayTags
 	/**
 	 * 피격 이벤트. 대미지 파이프라인이 서버에서 피격자 ASC에 히트마다 한 번 보낸다.
 	 * 공격이 요청한 반응 종류는 TargetTags의 HitReact.* 페이로드로 전달한다.
-	 * 패리 반동과 가드 브레이크는 전투 시스템이 생성하는 별도 이벤트 자식으로 유지한다.
 	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit);
 	
@@ -114,7 +113,6 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_ApplyFinisherDamage);
 
-	/** 주인이 관리 중인 소환수의 특정 어빌리티를 페이로드와 함께 발동한다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_CommandMinionAbility);
 
 	// 장치의 State Tree 상태값이다.
