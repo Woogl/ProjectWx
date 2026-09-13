@@ -1,46 +1,48 @@
 # WxCombat — 전투 시스템
 
-> GAS(Gameplay Ability System) 위에 세운 액션 RPG 전투 런타임. 어빌리티·어트리뷰트·데미지 파이프라인, 락온/타겟팅, 소환물·투사체, 몽타주 구동 판정을 서버 권위로 굴린다.
+> GAS(Gameplay Ability System) 위에 올린 액션 RPG 전투의 뼈대. 어빌리티 발동·입력 라우팅·어트리뷰트·대미지 파이프라인·락온/타겟팅을 책임진다.
 
 ## 책임
 **담당**
-- GAS 확장: 커스텀 ASC(입력 라우팅·몽타주 재생 정책), `UWxAbilityBase`(발동 그룹/캔슬 창), 전투 어트리뷰트 세트, 데미지 ExecCalc.
-- 데미지 파이프라인: `FWxDamageTableRow` → GE Spec 생성 → SP/GP/HP 반영 → 가드·퍼펙트가드·회피·크리티컬 반응.
-- 입력 처리: Enhanced Input을 어빌리티 발동으로 잇는 라우팅과 선입력 버퍼.
-- 타겟팅/락온, 소환물(`UWxMinionSubsystem`)·투사체(`UWxProjectileSubsystem`) 생성, 몽타주 AnimNotify로 여는 판정 창.
+- 어빌리티 발동 모델: 활성화 정책(OnTriggered/OnGiven), 배타 점유 그룹, 발동 중 캔슬 창(Blocking → ComboWindow → Recovery)
+- 라이브 입력 라우팅과 선입력 버퍼링
+- 전투 어트리뷰트(HP/SP/GP/MP/UP 등)와 대미지·사망·그로기 반영
+- 데이터 주도 GameplayEffect(값·표시·쿨다운·코스트)와 대미지 실행 계산
+- 락온/타겟팅, 웨폰·투사체 스폰, 미니언, 히트스톱·큐 등 전투 연출 접점
 
 **경계 (비담당)**
-- 팀 관계·공용 정의·UI 데이터 인터페이스(`IWxUIData`)의 원본은 [[WxCore]].
-- 어빌리티 아이콘/설명의 실제 화면 표시는 [[WxUI]].
-- AI의 락온 대상 주입·의사결정은 [[WxAI]] (`AWxAIController`가 퍼셉션 타겟을 `UWxLockOnComponent`에 채운다).
+- 팀 판정·공용 UI 데이터 계약(IWxUIData) 등 공용 정의 → [[WxCore]]
+- 어빌리티를 발동시키는 AI 판단·퍼셉션 타겟 주입 → [[WxAI]]
+- 어트리뷰트·이펙트의 화면 표시 → [[WxUI]]
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxAbilitySystemComponent` | 라이브 입력 라우팅·몽타주 재생 속도·어빌리티 세트 부여의 단일 창구 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h` |
-| `UWxAbilityBase` | 모든 전투 어빌리티의 베이스. 발동 그룹(Exclusive/Override)과 캔슬 창(Blocking→ComboWindow→Recovery) 규약 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` |
-| `UWxCombatAttributeSet` | HP/SP/GP/MP/UP·ATK/DEF·크리·속도 등 전투 수치와 클램프·메타 어트리뷰트 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h` |
-| `UWxAbilitySet` | 캐릭터 BP가 넣으면 어트리뷰트 초기화·어빌리티·GE를 서버에서 일괄 부여하는 데이터 에셋 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySet.h` |
-| `UWxCombatLibrary` | 적대 판정·데미지 성립 검사·데미지/상태 GE 적용의 static 진입점 | `Plugins/WxCombat/Source/WxCombat/Public/WxCombatLibrary.h` |
-| `FWxDamageTableRow` | 데미지 계수·피격반응 태그·가드/패리 규칙·추가 GE의 데이터 주도 정의 | `Plugins/WxCombat/Source/WxCombat/Public/Damage/WxDamageTableRow.h` |
-| `UWxLockOnComponent` | 겨누는 대상(SceneComponent)을 서버 권위로 복제해 방향·스냅·필터 소비처에 공급 | `Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxLockOnComponent.h` |
-| `UWxMinionSubsystem` | 소환물을 서버 권위로 생성·주인별 로스터 관리·일괄 어빌리티 명령 | `Plugins/WxCombat/Source/WxCombat/Public/Minion/WxMinionSubsystem.h` |
+| `UWxAbilityBase` | 모든 어빌리티의 베이스. 활성화 정책·배타 그룹·캔슬 창을 정의 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` |
+| `UWxAbilitySystemComponent` | 입력 라우팅·몽타주 재생·배타 점유 조정의 중심 ASC | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h` |
+| `UWxCombatAttributeSet` | 전투 자원 어트리뷰트와 대미지/사망/그로기 반영 규칙 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h` |
+| `UWxAbilitySet` | 어빌리티·이펙트·어트리뷰트 초기화를 데이터 주도로 일괄 부여 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySet.h` |
+| `UWxInputBufferComponent` | 발동 실패 입력을 기억했다 캔슬 창에서 재시도하는 선입력 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxInputBufferComponent.h` |
+| `UWxEffectComponent_Table` | GE에 붙어 값·표시 데이터를 담는 조회 앵커. MMC/ExecCalc가 계산 시점에 읽음 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffectComponent_Table.h` |
+| `UWxLockOnComponent` | 캐릭터가 겨누는 대상을 SceneComponent 단위로 복제 보관 | `Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxLockOnComponent.h` |
+| `UWxCombatLibrary` | 대미지 성립 판정·GE 적용의 공용 진입점 | `Plugins/WxCombat/Source/WxCombat/Public/WxCombatLibrary.h` |
 
 ## 확장 포인트 / 규약
-- 새 어빌리티: `UWxAbilityBase` 파생. `AbilityDataRow`(쿨다운·코스트)·`ActivationInputAction`(입력 키)·`ActivationGroup`을 CDO에 선언하고, 필요 시 `EWxAbilityActionPhase` 창을 몽타주 노티파이로 전이시킨다.
-- 새 데미지/상태 효과: `Effect/`의 `UWxEffect_*` 파생(GE) 또는 `FWxDamageTableRow.AdditionalEffects`로 데이터에서 붙인다. 최종 데미지는 `UWxExecCalc_Damage`가 SP·GP·IncomingDamage 순으로 반영한다.
-- 캐릭터 구성은 코드가 아니라 `UWxAbilitySet` 에셋(+ `WxCombatAttributeInitTableRow`·`WxAbilityTableRow`·`WxEffectTableRow` 데이터테이블)으로 주도한다.
-- 타겟팅 필터/정렬은 `Targeting/`의 `WxTargetingFilterTask_*`·`WxTargetingSorterTask_*`(TargetingSystem 플러그인 태스크)로 확장한다.
-- 리플리케이션: 데미지·소환·투사체 생성은 서버 권위, 락온 대상은 소유 클라 예측 후 서버 반영. 어트리뷰트는 복제, 메타(IncomingDamage/Reflect)는 비복제.
+- **새 어빌리티**: `UWxAbilityBase`를 상속하고 `EWxAbilityActivationPolicy`/`EWxAbilityActivationGroup`을 선언한다. 입력 키는 CDO의 `ActivationInputAction`이 쥐며(ASC가 아님), `FWxAbilityTableRow`로 쿨다운·코스트·표시를 데이터로 설정한다.
+- **어빌리티 부여**: 캐릭터 BP가 `UWxAbilitySet`을 ASC의 AbilitySets에 넣으면 InitAbilitySystem 시점에 서버에서 어빌리티/이펙트/어트리뷰트 초기화가 일괄 적용된다.
+- **새 이펙트**: `UGameplayEffect`에 `UWxEffectComponent_Table`을 붙이고 `FWxEffectTableRow`로 값·표시를 저작한다. 값은 스펙에 실리지 않고 MMC/ExecCalc가 계산 시점에 GE 정의에서 컴포넌트를 찾아 행을 읽는다.
+- **대미지**: `FWxDamageTableRow`(ATK 계수·HitReact 태그·가드/패리 여부·추가 이펙트)를 `UWxCombatLibrary::ApplyDamage`에 넘기면 `UWxExecCalc_Damage`가 SP·IncomingDamage·GP 순으로 반영한다. 성립하지 않는 히트(아군·시체·회피)는 GE를 걸지 않는다.
+- **리플리케이션**: 서버 권위 모델. 락온 대상은 전 머신에 복제되고 소유 클라이언트는 응답성을 위해 로컬 선반영 후 서버에 요청한다.
+- **등록**: `UWxAbilitySystemGlobals`를 `DefaultGame.ini`의 `AbilitySystemGlobalsClassName`으로 등록해야 GE 큐가 히트 위치에서 터진다.
 
 ## 여기서부터 읽어라
-1. `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` — 발동 그룹·캔슬 창·쿨다운 규약. 전투 흐름의 골격.
-2. `Plugins/WxCombat/Source/WxCombat/Public/WxCombatLibrary.h` — 히트가 데미지 GE로 이어지는 진입점(`ApplyDamage`/`CheckDamage`).
-3. `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h` — 입력이 어떻게 어빌리티로 라우팅되는지(`UWxInputBufferComponent`와 함께).
-4. `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h` — 수치 정의와 데미지 반영 지점.
+1. `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h` — 활성화 정책/배타 그룹/캔슬 창이 전투 흐름 전체의 상태 모델이라 여기가 출발점이다.
+2. `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h` — 입력이 어떻게 어빌리티로 라우팅되고 배타 점유가 조정되는지.
+3. `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h` — 자원 정의와 대미지·사망·그로기 반영 규칙.
+4. `Plugins/WxCombat/Source/WxCombat/Public/WxCombatLibrary.h` — 대미지/이펙트 적용의 공용 진입점.
 
 ## 관련
-- 상위: 캐릭터/폰이 ASC와 `UWxAbilitySet`을 통해 이 모듈을 소비한다. 함께 보기 — [[WxCore]](팀·`IWxUIData` 원본), [[WxAI]](AI 락온·명령), [[WxUI]](어빌리티 표시).
+- 상위: 캐릭터에 ASC/AbilitySet을 장착하는 [[WxGame]], 어빌리티를 발동·타겟을 주입하는 [[WxAI]], 어트리뷰트·이펙트를 표시하는 [[WxUI]]. 공용 정의는 [[WxCore]].
 
 ---
-*문서 기준 커밋 `d1674fa` · 생성일 2026-09-12 · 소스 181파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `eda01fd` · 생성일 2026-09-13 · 소스 181파일 — `/readme-writer`로 갱신*

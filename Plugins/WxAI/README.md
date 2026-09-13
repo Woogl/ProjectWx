@@ -1,47 +1,44 @@
-# WxAI — AI 행동 시스템
+# WxAI — AI 시스템
 
-> 적 폰의 인지(시각·청각·피격)와 행동 트리 실행을 책임진다. 퍼셉션 → Blackboard → BT 노드로 이어지는 데이터 흐름을 제공하고, 정찰·배회·리시 복귀·타겟 락온·어빌리티/이동 미러 같은 재사용 BT 노드를 낸다.
+> 적 폰의 행동을 Behavior Tree 로 굴린다. 퍼셉션 감지·타겟팅·정찰·리시 복귀·어빌리티 발동을 담당하는 커스텀 BT 노드와 폰별 AI 셋업 컴포넌트를 제공한다.
 
 ## 책임
 **담당**
-- 폰별 감각 수치와 피격 자극 보고: 빙의 시점에 컨트롤러의 퍼셉션 설정에 수치를 밀어 넣고, GAS 피격을 Damage 센스로 보고 (`UWxAIBehaviorComponent`)
-- 감지 결과를 판단 재료로 정리해 Blackboard 에 발행: 타겟 선정, 거리, 락온 (`WxBTService_*`)
-- BT 실행 노드 라이브러리: 정찰/배회/복귀/어빌리티 발동·미러/이동 미러/무작위 선택·가중치/리시·어트리뷰트 게이트
-- 정찰 경로 데이터(스플라인)와 순회 규칙 (`UWxPatrolComponent`)
+- 캐릭터에 붙는 AI 셋업(행동 자산·감각 수치·피격 자극 보고)과, 컨트롤러 빙의 시점에 폰별 퍼셉션 설정 주입
+- 타겟 획득/거리/락온/미러링 등 Blackboard 상태를 굴리는 BT Service
+- 어빌리티 발동·정찰·배회·리시 복귀 BT Task 와 이를 게이팅하는 Decorator·Composite
+- 스플라인 기반 정찰 경로 데이터, Blackboard 키 이름/타입 accessor
 
 **경계 (비담당)**
-- AIController 본체·폰 빙의·BehaviorTree/Blackboard 에셋 실행 시작 → 게임 모듈 `WxGame`(`AWxAIController`)
-- 퍼셉션 컴포넌트 부착과 센스의 모양(피아 필터·자극 수명·지배 감각) → `WxGame`(`AWxAIController`)가 순정 `UAIPerceptionComponent` 로 구성. 이 모듈은 수치만 공급
-- 어빌리티 정의·어트리뷰트·이동속도 감속 이펙트 → [[WxCombat]] (BT 에디터에서 디자이너가 태그/에셋으로 지정, 코드 의존 없음)
-- 플레이어 락온 및 겨누는 대상 산출 → [[WxCombat]] (`UWxLockOnComponent`). 이 모듈의 LockOn 서비스는 "어떻게 바라볼지"만 정함
+- 어그로 대상 선정·락온 대상 보관은 게임 모듈의 `AWxAIController`/`UWxLockOnComponent` 소유 (WxAI 는 그 대상을 "어떻게 바라볼지"만 정함)
+- 어트리뷰트 정의는 [[WxCombat]] — `UWxBTDecorator_AttributeRatio` 는 어떤 어트리뷰트를 볼지 BT 에디터에서 디자이너가 지정
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxAIBehaviorComponent` | 폰이 소유. BT 에셋·감각 수치·피격 보고를 캐릭터가 들고 다닌다 | `Plugins/WxAI/Source/WxAI/Public/WxAIBehaviorComponent.h` |
-| `WxBlackboardKeys` | BT ↔ 컨트롤러 공유 키의 타입-세이프 accessor 네임스페이스 | `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` |
-| `UWxBTService_UpdateTargetActor` | 감지 액터 중 하나를 `TargetActor` 로 선정(타겟 두뇌). 루트에 상주 | `Plugins/WxAI/Source/WxAI/Public/WxBTService_UpdateTargetActor.h` |
-| `UWxBTService_LockOn` | `TargetActor` 를 컨트롤러 포커스+폰 strafe 회전에 반영 | `Plugins/WxAI/Source/WxAI/Public/WxBTService_LockOn.h` |
-| `UWxBTTask_ActivateAbility` | 태그로 어빌리티를 발동하고 종료까지 대기 | `Plugins/WxAI/Source/WxAI/Public/WxBTTask_ActivateAbility.h` |
-| `UWxBTComposite_RandomChoice` | 조건·가중치로 자식 1개 무작위 실행(Selector 폴백 없음) | `Plugins/WxAI/Source/WxAI/Public/WxBTComposite_RandomChoice.h` |
-| `UWxPatrolComponent` | 스플라인 정찰 경로 데이터. 상태 없음(커서는 BT 태스크가 소유) | `Plugins/WxAI/Source/WxAI/Public/WxPatrolComponent.h` |
+| `UWxAIBehaviorComponent` | 캐릭터측 AI 셋업 진입점 — 폰을 따라다니며 빙의 시 퍼셉션 주입, 피격을 촉각 자극으로 보고 | `Plugins/WxAI/Source/WxAI/Public/WxAIBehaviorComponent.h` |
+| `WxBlackboardKeys` | 키 이름/값 타입을 묶은 accessor 네임스페이스 — Service/Task/Controller 가 공유하는 계약 | `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` |
+| `UWxBTService_UpdateTargetActor` | 퍼셉션 감지 결과를 TargetActor 로 발행 (타겟 획득의 단일 출처) | `Plugins/WxAI/Source/WxAI/Public/WxBTService_UpdateTargetActor.h` |
+| `UWxBTService_LockOn` | TargetActor 를 컨트롤러 포커스+폰 strafe 회전에 반영 (겨누는 방식의 단독 소유) | `Plugins/WxAI/Source/WxAI/Public/WxBTService_LockOn.h` |
+| `UWxBTComposite_RandomChoice` | 자식 무작위 1택 실행 — 조건 데코+`RandomWeight` 로 후보 필터링 | `Plugins/WxAI/Source/WxAI/Public/WxBTComposite_RandomChoice.h` |
+| `UWxBTTask_ActivateAbility` | GameplayTag 로 어빌리티를 발동하고 종료까지 대기 | `Plugins/WxAI/Source/WxAI/Public/WxBTTask_ActivateAbility.h` |
+| `UWxBTDecorator_BeyondLeash` | 리시 이탈을 폴링 판정해 복귀 브랜치를 게이팅 | `Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_BeyondLeash.h` |
+| `UWxPatrolComponent` | 스플라인 정찰 경로 데이터(순회 규칙 포함), 상태 없음 | `Plugins/WxAI/Source/WxAI/Public/WxPatrolComponent.h` |
 
 ## 확장 포인트 / 규약
-- 새 BT 노드는 엔진 `UBTTaskNode`/`UBTService`/`UBTDecorator`/`UBTCompositeNode`(또는 그 파생)를 상속. 폰별 상태는 노드 인스턴스 메모리(`GetInstanceMemorySize`/`InitializeMemory`) 또는 `bCreateNodeInstance` 로 보관해 경로 공유·리스폰에 안전하게 한다.
-- Blackboard 키는 `WxBlackboardKeys` accessor 로만 읽고 쓴다(직접 `GetValueAs`/`SetValueAs` 지양). Blackboard 에셋에 동명 키가 등록돼 있어야 한다. Object 키는 nullptr set = Clear, Float 거리는 타겟 부재 시 `NoTargetDistance`.
-- 데이터 주도: 감각 수치·정찰 경로·BT 노드 프로퍼티는 컴포넌트/노드에서 편집. 어빌리티 태그, 어트리뷰트(`FGameplayAttribute`), 이동속도 감속 이펙트(`TSubclassOf<UGameplayEffect>`)는 WxCombat 자산을 BT 에디터에서 직접 지정한다.
-- 리플리케이션: AI 판단·소음 보고(`UWxAnimNotify_ReportNoise`)는 서버 권위에서 돈다.
-- 락온과 이동 미러는 둘 다 컨트롤러 포커스+회전 모드를 점유하므로 한 트리에 함께 두지 않는다.
+- 새 BT 노드는 엔진 베이스(`UBTTaskNode`/`UBTService`/`UBTDecorator`/`UBTCompositeNode`)를 상속하고 `WXAI_API` 로 노출한다. Blackboard 접근은 반드시 `WxBlackboardKeys` accessor 를 거쳐 키 이름/타입 오용을 막는다.
+- 이동형 Task 는 `UBTTask_MoveTo` 를 상속해 경로 판정을 엔진에 맡기고 도착 처리만 오버라이드한다(`WxBTTask_Patrol`/`WxBTTask_ReturnHome` 참고).
+- 인스턴스 상태가 필요한 노드는 전용 memory struct + `GetInstanceMemorySize`/`InitializeMemory` 로 폰별 상태를 보관한다(트리·경로 재사용 안전). Composite 파생은 memory struct 를 `FBTCompositeMemory` 뒤에 배치한다.
+- 정찰 경로는 폰이 부착된 액터(스포너 등)에 `UWxPatrolComponent` 를 달면 `FindPatrolComponent` 가 자동으로 집는다.
+- 어트리뷰트 비교/어빌리티 발동은 GameplayAbilities 를 쓰되 특정 AttributeSet 을 하드코딩하지 않고 디자이너가 태그/어트리뷰트로 주입한다.
 
 ## 여기서부터 읽어라
-1. `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` — 모듈 전체를 잇는 데이터 계약. 누가 어떤 키를 SET/CLEAR 하는지 여기서 잡힌다.
-2. `Plugins/WxAI/Source/WxAI/Public/WxAIBehaviorComponent.h` — 인지의 입구. 감각 수치가 어디서 컨트롤러로 넘어가고 피격이 어떻게 자극이 되는지.
-3. `Plugins/WxAI/Source/WxAI/Public/WxBTService_UpdateTargetActor.h` — 감지에서 타겟 결정으로 넘어가는 지점.
-4. `Plugins/WxAI/Source/WxAI/Public/WxBTService_LockOn.h` / `WxBTService_MirrorMovement.h` — 포커스·회전 소유권 규약(가장 얽히기 쉬운 부분).
+1. `Plugins/WxAI/Source/WxAI/Public/WxAIBehaviorComponent.h` — 폰이 AI 로 굴러가는 진입점. 퍼셉션 주입·자극 보고의 소유 관계를 먼저 잡는다.
+2. `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` — 모든 Service/Task 가 공유하는 상태 계약. 키별 담당자와 sentinel(NoTargetDistance) 규약이 여기 있다.
+3. `Plugins/WxAI/Source/WxAI/Public/WxBTService_LockOn.h` — 컨트롤러 포커스와 폰 회전 모드가 갈라지기 쉬운 상태를 한 서비스가 묶는 이유. 노드 간 소유권 분리 원칙의 대표 사례.
 
 ## 관련
-- 상위: `AWxAIController`(게임 모듈 `WxGame`)가 이 모듈의 컴포넌트를 붙이고 BT/Blackboard 를 구동한다.
-- 함께: [[WxCombat]] — 어빌리티·어트리뷰트·이동속도 이펙트·`UWxLockOnComponent` 제공(코드 의존 아닌 에셋/태그 연동). 공용 정의는 [[WxCore]].
+- 상위: 게임 모듈의 `AWxAIController`(SelfActor·HomeLocation·Master 발행, 락온 대상 보관)가 이 모듈의 BT 자산을 구동한다. 어빌리티·어트리뷰트는 [[WxCombat]], 공용 정의는 [[WxCore]].
 
 ---
-*문서 기준 커밋 `d1674fa` · 생성일 2026-09-12 · 소스 38파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `eda01fd` · 생성일 2026-09-13 · 소스 36파일 — `/readme-writer`로 갱신*

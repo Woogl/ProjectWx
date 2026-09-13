@@ -1,54 +1,49 @@
-# WxCore — 공용 정의 파운데이션
+# WxCore — 공용 기반 모듈
 
-> 모든 Wx 플러그인이 공유하는 정의(GameplayTags, 콜리전 채널, 공용 인터페이스)의 단일 출처. 도메인 간 결합을 끊어 주는 최하위 계층으로, 다른 Wx 플러그인을 참조하지 않는다.
+> 모든 Wx 플러그인이 공유하는 정의를 한곳에 모은 foundation 모듈이다. 네이티브 게임플레이 태그, 도메인 간 계약 인터페이스, 콜리전 채널 상수를 담아 도메인 플러그인끼리 서로를 참조하지 않고도 같은 언어로 대화하게 만든다.
 
 ## 책임
 **담당**
-- 프로젝트 전역 Native GameplayTag의 선언·정의 (State/Effect/Event/Ability/Damage/Device/UI 등 모든 네임스페이스)
-- 도메인이 서로를 알지 않고도 계약을 나누게 하는 공용 인터페이스: `IWxInteractable`(상호작용), `IWxUIData`(UI 표시 데이터), `IWxMinion`(소환물)
-- 공용 상수: 커스텀 콜리전 채널 `ECC_WxAttack`
-- 에디터 저작 헬퍼 `FWxLocatorUtils` (로케이터 표시명, 에디터 전용)
+- 프로젝트 전역에서 쓰는 C++ 네이티브 게임플레이 태그의 단일 선언처
+- 도메인 경계를 가로지르는 계약 인터페이스(상호작용·UI 표시 데이터·소환물)의 정의
+- 프로젝트 커스텀 콜리전 채널 상수의 정의(엔진 ini와 짝을 맞춤)
 
 **경계 (비담당)**
-- 태그를 실제로 발행·소비하는 시스템 로직 — 전투 파이프라인 [[WxCombat]], 상호작용/장치 [[WxWorld]], UI 레이어 [[WxUI]], 소환물 서브시스템 [[WxAI]]
-- 인터페이스 구현체는 각 소비 도메인이 자기 액터/컴포넌트에 둔다 (WxCore는 계약만 제공)
+- 위 인터페이스의 실제 구현·소비는 각 도메인이 담당한다 — 상호작용 대상은 [[WxWorld]]·[[WxInventory]], UI 표시는 [[WxUI]], 소환물 관리는 [[WxCombat]]·[[WxAI]]
+- 태그를 발행·소비하는 로직은 전투([[WxCombat]])·장치([[WxWorld]]) 등 각 도메인에 있다. 여기엔 이름만 산다.
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `WxGameplayTags` (namespace) | 전역 Native Tag 선언부. 태그 추가는 이 파일과 짝 cpp에만 | `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h` |
-| `IWxInteractable` | 상호작용 대상 계약(액터가 구현). 소비 도메인이 WxWorld 없이 자기 액터를 상호작용 대상으로 만듦 | `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h` |
-| `IWxUIData` | UI가 그대로 표시하는 데이터(아이콘·이름·설명·충전 칸) 계약 | `Plugins/WxCore/Source/WxCore/Public/WxUIData.h` |
-| `IWxMinion` | 소환 가능 액터 계약(상한·어그로 무시). GenericTeamAgentInterface도 함께 구현 요구 | `Plugins/WxCore/Source/WxCore/Public/Minion/WxMinion.h` |
-| `ECC_WxAttack` | 무기·투사체 히트박스의 Object Channel 상수. DefaultEngine.ini 등록값과 일치해야 함 | `Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h` |
-| `FWxLocatorUtils` | 로케이터 표시명 헬퍼(에디터 전용, WITH_EDITOR) | `Plugins/WxCore/Source/WxCore/Public/WxLocatorUtils.h` |
+| `WxGameplayTags` | 전 프로젝트 네이티브 태그 네임스페이스. 태그 추가는 이 헤더와 짝 cpp에만 | `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h` |
+| `IWxInteractable` | 상호작용 대상 계약. 액터가 구현하고 도메인이 소비 | `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h` |
+| `IWxUIData` | UI가 그대로 표시하는 데이터(제목·설명·아이콘·충전 수) 계약 | `Plugins/WxCore/Source/WxCore/Public/WxUIData.h` |
+| `IWxMinion` | 소환 가능한 액터 계약. 종류별 상한·어그로 무시 여부 선언 | `Plugins/WxCore/Source/WxCore/Public/Minion/WxMinion.h` |
+| `ECC_WxAttack` | 무기·투사체 히트박스가 쓰는 오브젝트 채널 상수 | `Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h` |
+| `FWxLocatorUtils` | 저작 도구용 UOL 표시명 헬퍼(에디터 전용) | `Plugins/WxCore/Source/WxCore/Public/WxLocatorUtils.h` |
 
 ## Gameplay Tags
-- 선언: `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h` / 정의: `Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp`
-- 태그 추가·변경은 이 두 파일에만 (헤더 `UE_DECLARE_...` + cpp `UE_DEFINE_...` 짝).
-- 주요 네임스페이스:
-  - `Event.*` — 시스템 간 GameplayEvent 계약 (`Event.Hit`, `Event.DamageDealt`, `Event.Finisher`, `Event.UseItem` 등 대미지·처형·아이템 파이프라인의 이벤트 축)
-  - `Ability.*` — 어빌리티 식별 태그. "Ability.X = 그 어빌리티가 활성 중"이 성립하도록 AssetTags/ActivationOwnedTags 양쪽에 넣는 규약
-  - `Cooldown.*` — 어빌리티별 쿨다운 GE가 부여, 이름은 `Ability.X`를 따름
-  - `State.*` / `Effect.*` — ASC에 붙는 상태·GE 부여 태그 (락온·교전·래그돌 / 무적·가드·경직)
-  - `Damage.*` — 공격/판정 결과 표식 (`Damage.Attack`, `Damage.Critical`, `Damage.CanParry` 등)
-  - `Device.*` — 장치의 State Tree 상태값 (코드가 아니라 STree가 읽고 씀)
-  - `HitReact.*` / `GameplayCue.*` / `UI.*` / `SetByCaller.*` — 피격 반응, 큐, UI 레이어·액션, GE SetByCaller 키
+- 선언: `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h` (정의는 짝 cpp `Private/WxGameplayTags.cpp`)
+- `State.*` — 락온·교전·대화·소환물 보유·래그돌 등 ASC에 붙는 상태
+- `Effect.*` — 무적·가드·퍼펙트가드·탈진·슈퍼아머·히트스톱 등 GE가 부여하는 태그
+- `Event.*` — 피격·처형·아이템 사용·장치 트리거 등 어빌리티 트리거용 게임플레이 이벤트
+- `Ability.*` / `Cooldown.*` — 어빌리티 식별 태그(활성 표식 겸용)와 짝 쿨다운 태그
+- `Damage.*` / `HitReact.*` — 대미지 표식·판정 결과와 피격 반응 종류
+- `Device.*` — 장치 State Tree 상태값(코드가 읽지 않고 태그만 여기서 정의)
+- `GameplayCue.*` / `UI.*` / `SetByCaller.*` — 큐, HUD 레이어·CommonUI 액션, GE 매그니튜드 키
 
 ## 확장 포인트 / 규약
-- 새 태그: `WxGameplayTags.h`에 `WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(...)` 추가 후 `WxGameplayTags.cpp`에 `UE_DEFINE_GAMEPLAY_TAG(..., "...")` 짝을 맞춘다.
-- 상호작용 대상: 소비 도메인의 **액터**가 `IWxInteractable` 구현(컴포넌트는 구현하지 않음). 액터에 쿼리 콜리전 프리미티브가 있어야 스캔·사거리에 걸린다.
-- UI 표시 데이터: 저작 데이터를 쥔 쪽(어빌리티·GE 컴포넌트 등)이 `IWxUIData` 구현.
-- 소환물: `IWxMinion` + `GenericTeamAgentInterface`를 함께 구현(주인 팀 상속).
-- 콜리전: `ECC_WxAttack`은 `DefaultEngine.ini`의 WxAttack 등록 항목 값과 반드시 일치. 투사체는 "WxProjectile" 프리셋 사용.
+- 새 태그: `WxGameplayTags.h`에 `UE_DECLARE_...EXTERN`, `WxGameplayTags.cpp`에 `UE_DEFINE_...` 한 쌍만 추가. 다른 파일에서 선언하지 않는다.
+- 계약 인터페이스는 액터/데이터 소유자가 구현하고, 소비 도메인은 WxCore만 참조해 조회한다 — 이 덕에 도메인 플러그인끼리 직접 의존이 생기지 않는다.
+- `ECC_WxAttack`은 `DefaultEngine.ini`의 채널 등록 값과 반드시 일치해야 한다(값을 바꾸면 모든 히트 판정이 다른 채널을 가리킴).
+- `FWxLocatorUtils`와 `UniversalObjectLocator` 의존은 `WITH_EDITOR`/`bBuildEditor`로만 컴파일된다.
 
 ## 여기서부터 읽어라
-1. `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h` — 모듈의 심장. doc-comment가 각 태그를 누가 발행·소비하는지 짚어 주므로 전투/AI/UI 시스템의 데이터 흐름 지도로 읽힌다.
-2. `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h` / `WxUIData.h` — 도메인 결합을 끊는 계약 패턴(계약은 WxCore, 구현은 소비 도메인)의 실례.
-3. `Plugins/WxCore/Source/WxCore/WxCore.Build.cs` — 의존이 엔진 모듈뿐임을 확인(파운데이션 규칙 검증).
+1. `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h` — 태그 doc-comment가 전투·상호작용·UI의 제어 흐름을 요약한 사실상의 시스템 색인이다.
+2. `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h` — 계약이 왜 WxCore에 사는지(도메인 간 의존 회피)를 보여주는 대표 사례.
 
 ## 관련
-- 상위: 모든 Wx 도메인 플러그인 — [[WxCombat]], [[WxInventory]], [[WxUI]], [[WxWorld]], [[WxAI]], [[WxDialogue]], [[WxQuest]] 이 WxCore의 태그·인터페이스를 공유한다.
+- 상위: 모든 Wx 도메인 플러그인([[WxCombat]] · [[WxWorld]] · [[WxUI]] · [[WxInventory]] · [[WxAI]] · [[WxDialogue]] · [[WxQuest]])과 게임 모듈 WxGame이 이 모듈을 참조한다. WxCore는 어떤 Wx 플러그인도 참조하지 않는다.
 
 ---
-*문서 기준 커밋 `d1674fa` · 생성일 2026-09-12 · 소스 13파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `eda01fd` · 생성일 2026-09-13 · 소스 13파일 — `/readme-writer`로 갱신*
