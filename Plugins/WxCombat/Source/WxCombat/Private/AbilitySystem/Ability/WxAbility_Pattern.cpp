@@ -55,6 +55,7 @@ void UWxAbility_Pattern::HandleMontageBlendOut()
 	ComboIndex = ComboIndex + 1;
 	if (!PlayMontage(ComboMontages[ComboIndex].Get()))
 	{
+		ComboIndex = INDEX_NONE;
 		EndAbility(CurrentSpecHandle, GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
 	}
 }
