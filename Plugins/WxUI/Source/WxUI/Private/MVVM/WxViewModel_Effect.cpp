@@ -27,7 +27,7 @@ void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGame
 	SetDescription(InUIData->GetDescription());
 
 	// 전투 중 동기 로드 히치를 피한다.
-	RequestImageAsync(TEXT("Icon"), InUIData->GetIcon());
+	RequestImageAsync(GET_MEMBER_NAME_CHECKED(UWxViewModel_Effect, Icon), InUIData->GetIcon());
 
 	SetStackCount(ActiveEffect->Spec.GetStackCount());
 
@@ -234,5 +234,8 @@ bool UWxViewModel_Effect::UpdateEffectState(float DeltaTime)
 
 void UWxViewModel_Effect::ApplyLoadedImage(FName FieldName, UObject* LoadedImage)
 {
-	SetIcon(LoadedImage);
+	if (FieldName == GET_MEMBER_NAME_CHECKED(UWxViewModel_Effect, Icon))
+	{
+		SetIcon(LoadedImage);
+	}
 }

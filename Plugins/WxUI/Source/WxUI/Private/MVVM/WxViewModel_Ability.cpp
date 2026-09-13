@@ -197,7 +197,7 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 	{
 		SetTitle(FText::GetEmpty());
 		SetDescription(FText::GetEmpty());
-		RequestImageAsync(TEXT("Icon"), nullptr);
+		RequestImageAsync(GET_MEMBER_NAME_CHECKED(UWxViewModel_Ability, Icon), nullptr);
 		SetCostAmount(0.f);
 		SetMaxRecharges(0);
 		SetCurrentCharges(0);
@@ -216,11 +216,11 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 		NewMaxRecharges = UIData->GetMaxRecharges();
 
 		// 전투 중 동기 로드 히치를 피한다.
-		RequestImageAsync(TEXT("Icon"), UIData->GetIcon());
+		RequestImageAsync(GET_MEMBER_NAME_CHECKED(UWxViewModel_Ability, Icon), UIData->GetIcon());
 	}
 	else
 	{
-		RequestImageAsync(TEXT("Icon"), nullptr);
+		RequestImageAsync(GET_MEMBER_NAME_CHECKED(UWxViewModel_Ability, Icon), nullptr);
 	}
 
 	if (const FGameplayTagContainer* CooldownTags = MatchedAbility->GetCooldownTags())
@@ -382,7 +382,10 @@ void UWxViewModel_Ability::SetIcon(UObject* NewValue)
 
 void UWxViewModel_Ability::ApplyLoadedImage(FName FieldName, UObject* LoadedImage)
 {
-	SetIcon(LoadedImage);
+	if (FieldName == GET_MEMBER_NAME_CHECKED(UWxViewModel_Ability, Icon))
+	{
+		SetIcon(LoadedImage);
+	}
 }
 
 void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle)

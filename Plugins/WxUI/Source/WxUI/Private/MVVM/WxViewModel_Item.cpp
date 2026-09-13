@@ -22,7 +22,7 @@ void UWxViewModel_Item::SetDisplayName(const FText& InDisplayName)
 
 void UWxViewModel_Item::SetIcon(const TSoftObjectPtr<UObject>& InIcon)
 {
-	RequestImageAsync(TEXT("Icon"), InIcon);
+	RequestImageAsync(GET_MEMBER_NAME_CHECKED(UWxViewModel_Item, Icon), InIcon);
 }
 
 void UWxViewModel_Item::Deinitialize()
@@ -43,7 +43,7 @@ void UWxViewModel_Item::Deinitialize()
 
 void UWxViewModel_Item::ApplyLoadedImage(FName FieldName, UObject* LoadedImage)
 {
-	if (FieldName == TEXT("Icon"))
+	if (FieldName == GET_MEMBER_NAME_CHECKED(UWxViewModel_Item, Icon))
 	{
 		UE_MVVM_SET_PROPERTY_VALUE(Icon, LoadedImage);
 	}

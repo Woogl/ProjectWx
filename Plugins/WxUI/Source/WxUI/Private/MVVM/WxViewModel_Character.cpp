@@ -38,13 +38,16 @@ void UWxViewModel_Character::Initialize(UAbilitySystemComponent* InASC, const UO
 	if (const IWxUIData* UIData = Cast<IWxUIData>(InDisplaySource))
 	{
 		UE_MVVM_SET_PROPERTY_VALUE(CharacterName, UIData->GetTitle());
-		RequestImageAsync(TEXT("Portrait"), UIData->GetIcon());
+		RequestImageAsync(GET_MEMBER_NAME_CHECKED(UWxViewModel_Character, Portrait), UIData->GetIcon());
 	}
 }
 
 void UWxViewModel_Character::ApplyLoadedImage(FName FieldName, UObject* LoadedImage)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(Portrait, LoadedImage);
+	if (FieldName == GET_MEMBER_NAME_CHECKED(UWxViewModel_Character, Portrait))
+	{
+		UE_MVVM_SET_PROPERTY_VALUE(Portrait, LoadedImage);
+	}
 }
 
 void UWxViewModel_Character::Deinitialize()
