@@ -68,9 +68,9 @@ public:
 
 	/**
 	 * 프로퍼티 바인딩을 추가한다. 소스가 루트 파라미터면 SourceStructId 에 GetRootParameters 의 rootParametersId 를 넣는다.
-	 * @param SourceStructId 소스 구조체 GUID(루트 파라미터 ID 또는 노드 iD).
+	 * @param SourceStructId 소스 구조체 GUID(루트 파라미터 ID 또는 노드 ID).
 	 * @param SourcePath 소스 프로퍼티 경로. 예: "Npcs" (구조체 전체 복사면 빈 문자열 불가 — 프로퍼티명까지 쓴다)
-	 * @param TargetStructId 타깃 노드의 iD(GUID).
+	 * @param TargetStructId 타깃 노드의 ID(GUID).
 	 * @param TargetPath 타깃 인스턴스 데이터의 프로퍼티 경로. 예: "Target", "StartRow"
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
@@ -78,7 +78,7 @@ public:
 
 	/**
 	 * 지정 타깃 경로의 바인딩을 제거한다(경로 포함 일치).
-	 * @param TargetStructId 타깃 노드의 iD(GUID).
+	 * @param TargetStructId 타깃 노드의 ID(GUID).
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static bool RemoveBinding(UStateTree* StateTree, const FString& TargetStructId, const FString& TargetPath);

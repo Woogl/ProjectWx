@@ -28,7 +28,6 @@ void AWxDevice::OnInteracted(AActor* Interactor)
 		return;
 	}
 
-	// 자동 완료된 트리도 발행을 받지 않는다.
 	if (!StateTreeComponent->IsRunning())
 	{
 		return;

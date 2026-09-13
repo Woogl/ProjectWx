@@ -48,7 +48,6 @@ EStateTreeRunStatus FWxStateTreeTask_SendEvent::EnterState(FStateTreeExecutionCo
 
 	if (Instance.TargetKind == EWxDeviceEventTarget::Linked)
 	{
-		// 선언해 놓고 배선이 비면 보낼 곳이 없다 — 조용히 통과하면 저작 실수가 드러나지 않는다.
 		if (Instance.LinkedDevices.IsEmpty())
 		{
 			UE_LOG(LogWxWorld, Warning, TEXT("Send Event: %s 의 연결 장치가 비어 보낼 곳이 없음."), *GetNameSafe(Owner));
