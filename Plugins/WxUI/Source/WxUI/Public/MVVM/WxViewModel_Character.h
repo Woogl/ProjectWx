@@ -22,10 +22,10 @@ class WXUI_API UWxViewModel_Character : public UWxViewModel
 
 public:
 	/**
-	 * Source 를 Outer 로 공유되는 인스턴스. 없으면 만든다 — 초기화는 호출자가 한다.
-	 * 같은 Outer 를 집는다는 약속이 발행자와 소비자를 잇는 유일한 연결 고리다.
+	 * ASC를 Outer로 공유하며, 새로 만든 경우에만 InDisplaySource로 초기화한다.
+	 * 기존 공유본의 표시 데이터와 진행 중인 이미지 요청은 유지한다.
 	 */
-	static UWxViewModel_Character* GetOrCreate(UObject* Source);
+	static UWxViewModel_Character* GetOrCreate(UAbilitySystemComponent* InASC, const UObject* InDisplaySource);
 
 	void Initialize(UAbilitySystemComponent* InASC, const UObject* InDisplaySource);
 

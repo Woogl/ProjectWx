@@ -1,23 +1,27 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "MVVM/WxViewModel_Character.h"
+#include "AbilitySystemComponent.h"
 #include "MVVM/WxViewModel_AbilitySystem.h"
 
 #include "WxUIData.h"
 
-UWxViewModel_Character* UWxViewModel_Character::GetOrCreate(UObject* Source)
+UWxViewModel_Character* UWxViewModel_Character::GetOrCreate(UAbilitySystemComponent* InASC, const UObject* InDisplaySource)
 {
-	if (!Source)
+	if (!InASC)
 	{
 		return nullptr;
 	}
 
-	if (UWxViewModel* Existing = FindSharedViewModel(Source, StaticClass()))
+	if (UWxViewModel* Existing = FindSharedViewModel(InASC, StaticClass()))
 	{
 		return CastChecked<UWxViewModel_Character>(Existing);
 	}
 
-	return NewObject<UWxViewModel_Character>(Source);
+	UWxViewModel_Character* ViewModel = NewObject<UWxViewModel_Character>(InASC);
+	ViewModel->Initialize(InASC, InDisplaySource);
+
+	return ViewModel;
 }
 
 void UWxViewModel_Character::Initialize(UAbilitySystemComponent* InASC, const UObject* InDisplaySource)
