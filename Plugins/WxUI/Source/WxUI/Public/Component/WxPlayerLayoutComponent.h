@@ -13,7 +13,7 @@ class UWxHUDLayout;
 
 /**
  * 로컬 플레이어의 화면을 Game 레이어에 띄우고, 컴포넌트가 걷힐 때 함께 걷는 컨트롤러 컴포넌트.
- * 컨트롤러 BP 마다 LayoutClass로 전투 HUD 또는 프론트엔드 메뉴를 지정한다. 비우면 띄우지 않는다.
+ * 컨트롤러 BP의 LayoutClass로 전투 HUD를 지정한다. 비우면 띄우지 않는다.
  */
 UCLASS()
 class WXUI_API UWxPlayerLayoutComponent : public UActorComponent
