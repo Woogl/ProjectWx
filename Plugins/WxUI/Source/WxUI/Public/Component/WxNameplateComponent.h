@@ -8,7 +8,7 @@
 
 class APawn;
 
-/** 거리 기반 표시와 스케일만 담당한다. 캐릭터 데이터와 태그 가시성은 WBP의 MVVM이 처리한다. */
+/** 공유 Character VM을 위젯에 연결하고 거리 기반 표시와 스케일을 처리한다. 태그 가시성은 WBP의 MVVM이 처리한다. */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))
 class WXUI_API UWxNameplateComponent : public UWidgetComponent
 {
@@ -17,6 +17,8 @@ class WXUI_API UWxNameplateComponent : public UWidgetComponent
 public:
 	UWxNameplateComponent();
 
+	virtual void InitWidget() override;
+	virtual void SetWidget(UUserWidget* InWidget) override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
@@ -36,5 +38,6 @@ protected:
 private:
 	friend class FWxNameplatePresentationTest;
 
+	void BindViewModel();
 	void UpdatePresentation(const APawn* ViewerPawn);
 };

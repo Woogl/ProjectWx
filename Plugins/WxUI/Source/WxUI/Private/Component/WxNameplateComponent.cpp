@@ -2,10 +2,14 @@
 
 #include "Component/WxNameplateComponent.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "Blueprint/UserWidget.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
+#include "MVVM/WxViewModel_Character.h"
+#include "View/MVVMView.h"
+#include "WxUIModule.h"
 
 UWxNameplateComponent::UWxNameplateComponent()
 {
@@ -13,6 +17,52 @@ UWxNameplateComponent::UWxNameplateComponent()
 	SetDrawAtDesiredSize(true);
 	SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SetVisibility(false);
+}
+
+void UWxNameplateComponent::InitWidget()
+{
+	UUserWidget* PreviousWidget = GetWidget();
+	Super::InitWidget();
+	if (GetWidget() != PreviousWidget)
+	{
+		BindViewModel();
+	}
+}
+
+void UWxNameplateComponent::SetWidget(UUserWidget* InWidget)
+{
+	Super::SetWidget(InWidget);
+	BindViewModel();
+}
+
+void UWxNameplateComponent::BindViewModel()
+{
+	UUserWidget* NameplateWidget = GetWidget();
+	if (!NameplateWidget || !GetWorld() || !GetWorld()->IsGameWorld() || NameplateWidget->IsDesignTime())
+	{
+		return;
+	}
+
+	UMVVMView* View = NameplateWidget->GetExtension<UMVVMView>();
+	if (!View)
+	{
+		UE_LOG(LogWxUI, Warning, TEXT("Nameplate: 위젯에 MVVM View가 없다. Widget=%s"), *GetNameSafe(NameplateWidget));
+		return;
+	}
+
+	AActor* Owner = GetOwner();
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner);
+	if (!ASC)
+	{
+		UE_LOG(LogWxUI, Warning, TEXT("Nameplate: 위젯 구성 전에 Owner의 ASC가 필요하다. Owner=%s"), *GetNameSafe(Owner));
+		return;
+	}
+
+	// 공유본의 수명은 이를 참조하는 MVVM View가 유지한다. 컴포넌트가 직접 초기화·해제하지 않는다.
+	if (!View->SetViewModelByClass(UWxViewModel_Character::GetOrCreate(ASC, Owner)))
+	{
+		UE_LOG(LogWxUI, Warning, TEXT("Nameplate: Character 뷰모델을 연결하지 못했다. 위젯의 Manual 소스를 확인한다. Widget=%s"), *GetNameSafe(NameplateWidget));
+	}
 }
 
 void UWxNameplateComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
