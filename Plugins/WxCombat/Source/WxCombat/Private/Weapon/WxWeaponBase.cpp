@@ -221,7 +221,7 @@ void AWxWeaponBase::HandleHitShapeOverlap(UPrimitiveComponent* OverlappedCompone
 
 void AWxWeaponBase::ProcessHit(AActor* OtherActor, const FHitResult& HitResult)
 {
-	// 클라와 서버가 같은 히트 판정과 GE 적용을 수행한다.
+	// 서버와 클라가 함께 판정하지만 클라의 GE 예측 적용은 큐·히트스톱만 앞당기고, 대미지 계산은 권위에서만 돈다(UWxExecCalc_Damage 참조).
 
 	AActor* WeaponOwner = GetOwner();
 	if (!OtherActor || OtherActor == WeaponOwner || HitActorsThisSwing.Contains(OtherActor))
