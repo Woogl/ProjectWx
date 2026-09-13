@@ -1,28 +1,24 @@
 # WxCombat — 코드 리뷰
 
-> 발동 그룹·액션 페이즈·표 수치·태그 발행이라는 축이 일관되고 수명주기 해제와 권위 경계도 대부분 제자리에 있는 건강한 모듈이다. 다만 노티파이 시점에 활성화 예측 키로 거는 GE가 소유 클라에서 영영 걷히지 않는 멀티플레이 결함이 하나 있다. 이번 리뷰는 소스 181파일을 대상으로 어빌리티·ASC·어트리뷰트·데미지 파이프라인·노티파이·태스크·타겟팅·무기/투사체/소환 cpp까지 읽었고, 예측·몽타주 해제에 관한 판단은 설치된 UE 5.8 GAS 엔진 소스와 대조했다.
+> 발동 그룹·액션 페이즈·표 수치·태그 발행이라는 축이 일관되고 수명주기 해제와 권위 경계도 대부분 제자리에 있는 건강한 모듈이다. 노티파이의 오래된 활성화 예측 키 재사용 결함은 2026-09-13 서버 적용·GAS 복제 방식으로 수정했다. 이번 리뷰는 소스 181파일을 대상으로 어빌리티·ASC·어트리뷰트·데미지 파이프라인·노티파이·태스크·타겟팅·무기/투사체/소환 cpp까지 읽었고, 예측·몽타주 해제에 관한 판단은 설치된 UE 5.8 GAS 엔진 소스와 대조했다.
 
 ## 요약
 | 심각도 | 개수 |
 | --- | --- |
-| 🔴 심각 | 1 |
+| 🔴 심각 | 1 (노티파이 구간 수정, 타격 예측 경로 잔여) |
 | 🟡 개선 | 2 |
 | 🟢 사소 | 3 |
 
 ## 결과
 
-### 1. 🔴 노티파이 시점의 예측 GE가 소유 클라에서 제거되지 않아 무적 태그가 영구히 남는다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.cpp:19`, `Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.cpp:28-35`, `Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp:160-166`, `Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp:86-91`
-- **범주**: 버그/정확성
-- **문제**:
-  - `NotifyBegin`은 `UWxCombatLibrary::ApplyEffect`로 `GetAnimatingAbility()`의 활성화 예측 키를 실어 무한 지속 GE(`UWxEffect_Invincible`·`UWxEffect_PerfectGuard`)를 건다. 클라에서 이 예측본을 걷는 경로는 GAS가 그 키에 묶는 "확인 도착" 델리게이트 하나뿐이다(엔진 `GameplayEffect.cpp:4525-4533`).
-  - 서버는 활성화 예측 창을 닫는 순간 그 키를 확인·복제하고(엔진 `GameplayPrediction.cpp:519-528`), 클라는 도착 시 그 키의 델리게이트를 한 번 소비한다(같은 파일 `:614`). 노티파이가 그보다 늦으면(무적 구간이 몽타주 첫 프레임이 아닌 일반적 배치) 뒤늦게 등록한 델리게이트는 다시 불리지 않고, 5.8 기본 `StaleKeyBehavior=2`는 오래된 항목을 실행 없이 버린다(같은 파일 `:27`, `:680`).
-  - `NotifyEnd`는 권위에서만 제거하고(28-35행) 서버 제거는 복제본만 지우므로, 원격 클라 플레이어는 첫 회피 이후 `Effect.Invincible`을 계속 들고 있다. 헤더의 "나머지는 복제를 따른다"(`Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.h:17`)는 예측본에는 성립하지 않는다.
-  - 증상: 그 클라의 `CheckDamage`가 자기에게 오는 적 타격을 전부 `Evaded`로 보고 로컬에서만 `Event.DodgeSuccess`를 보낸다(`Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp:50`, `:95-103`). 다음 회피에서는 `WaitGameplayTagAdd`가 이미 붙은 태그로 즉시 발화해 판정 캡슐이 회피 시작 지점에 내내 박히므로(`Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Dodge.cpp:223-229`), 서버와 다른 극한 회피가 그 클라 화면에만 뜬다.
-  - 같은 원인으로 `ApplyDamage`가 같은 키로 대상 ASC에 거는 Instant GE(86-91·128·140행)는 예측 클라에서 무한 지속으로 바뀐 채 적중마다 대상의 활성 GE 배열에 쌓인다. 모디파이어를 가진 Instant 추가 효과라면 그 수치까지 클라 쪽에 누적된다.
-  - 스탠드얼론·리슨 서버 호스트는 권위라 드러나지 않는다.
-- **제안**: 노티파이발 예측본의 클라 정리 경로를 명시적으로 둔다. `UWxAbilitySystemComponent`에 "이 머신이 예측으로 건 인스턴스(`PredictionKey.IsLocalClientKey() && !PredictionKey.WasReceived()`)를 클래스로 찾아 `RemoveActiveGameplayEffect_AllowClientRemoval`로 걷는" 좁은 함수를 두고 `NotifyEnd`의 비권위 분기에서 부른다. `ApplyDamage`의 대상 예측본은 공격자 화면 큐가 목적이므로 적용 직후 같은 함수로 걷거나, 이미 확인된 키를 싣지 않는 쪽을 택한다.
-- **확신도**: 중간(엔진 5.8 소스 경로로 확인했고 PIE "클라이언트로 플레이" 재현은 하지 않았다 — 회피 1회 후 클라 `showdebug abilitysystem`에서 `Effect.Invincible` 잔존 여부로 바로 확인된다)
+### 1. 노티파이 구간 수정 완료 — 타격 예측 경로는 보류 (2026-09-13)
+- **판정**: 타당한 결함이었다. 활성화 키가 이미 확인된 뒤 비동기 노티파이에서 그 키로 GE를 만들면, 늦게 등록한 정리 델리게이트가 호출되지 않아 무한 지속 예측본이 남을 수 있었다. 모든 회피에서 반드시 발생하는 것은 아니며 키 확인과 노티파이 실행 순서에 좌우된다.
+- **원인 근거**: 설치된 UE 5.8 `GameplayPrediction.h`의 Ability Activation / GameplayEffect Prediction 설명과 `GameplayPrediction.cpp`의 키 확인·stale key 처리, `GameplayEffect.cpp`의 예측 GE 정리 델리게이트 등록을 대조했다. 활성화 예측 창은 여러 프레임에 걸쳐 유지되지 않고 GE 제거 자체도 기본 예측 대상이 아니다.
+- **최종 수정**: 사용자 최종 지시(예측 보류·최소 범위)에 따라 `NotifyBegin`에 서버 권위 검사만 추가했다. 기존 서버 전용 `NotifyEnd`와 적용·제거 주체를 일치시키고 소유 클라도 GAS 복제를 따른다.
+- **범위**: 예측 태스크·TargetData·어빌리티 연동 및 공용 `ApplyEffect`/`ApplyDamage` 수정은 모두 되돌렸다. 타격 GE·히트스톱 경로는 변경하지 않는다.
+- **동작 차이**: 무적·퍼펙트가드 태그가 소유 클라에도 서버 복제 시점에 반영된다. 로컬 회피 판정·퍼펙트 회피 분기와 투사체 충돌 연출에는 지연에 따른 차이가 있을 수 있다. 서버의 판정 시점은 기존과 같다.
+- **검증**: 최종 코드의 UE 5.8.2 `WxEditor Win64 Development` 빌드 성공. `Wx.Combat.Prediction.NotifyEffectLifetime` 성공(경고 0, 실패 0): 확인된 활성화 키가 남은 상태의 반복 클라 노티파이 비누적, 현재 예측 창 내부의 클라 차단, 서버 적용·제거를 확인했다. 실제 네트워크 PIE 및 지연 환경은 미검증이다.
+- **별도 미해결**: `RemoveActiveGameplayEffectBySourceEffect(..., 1)`은 일치하는 각 GE의 스택 하나를 제거하므로 같은 클래스의 중첩 구간을 독립적으로 제거하지 못한다. 제거 정책은 유지하고 오해를 주던 주석만 정정했다. 공용 함수와 히트스톱 등 다른 호출부의 과거 활성화 예측 키 재사용도 이번 범위에 포함하지 않는다.
 
 ### 2. 🟡 `UWxAbility_Skill`의 기본 쿨다운 GE가 슬롯 1이라 슬롯 BP가 갈아 끼우지 않으면 쿨다운이 조용히 공유된다
 - **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Skill.cpp:21`
