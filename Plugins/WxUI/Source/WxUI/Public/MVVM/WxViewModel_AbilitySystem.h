@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Containers/Ticker.h"
+#include "Engine/TimerHandle.h"
 #include "GameplayTagContainer.h"
 #include "MVVM/WxViewModel.h"
 #include "WxViewModel_AbilitySystem.generated.h"
@@ -68,8 +68,8 @@ protected:
 	void HandleTagChanged(const FGameplayTag Tag, int32 NewCount);
 	void HandleAbilitySpecDirtied(const FGameplayAbilitySpec& Spec);
 
-	bool FlushOwnedTagsRefresh(float DeltaTime);
-	bool FlushAbilityRebind(float DeltaTime);
+	void FlushOwnedTagsRefresh();
+	void FlushAbilityRebind();
 
 	UPROPERTY()
 	TArray<TObjectPtr<UWxViewModel_Attribute>> AttributeViewModels;
@@ -79,11 +79,11 @@ protected:
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 
-	/** 유효하면 이번 프레임의 갱신이 이미 예약돼 있다는 뜻이다. */
-	FTSTicker::FDelegateHandle OwnedTagsRefreshHandle;
+	/** 타이머가 활성이면 갱신이 이미 예약돼 있다. 실행 중에도 활성으로 잡히므로 플러시가 먼저 놓는다. */
+	FTimerHandle OwnedTagsRefreshHandle;
 
-	/** 유효하면 이번 프레임의 슬롯 재매칭이 이미 예약돼 있다는 뜻이다. */
-	FTSTicker::FDelegateHandle AbilityRebindHandle;
+	/** 타이머가 활성이면 슬롯 재매칭이 이미 예약돼 있다. 실행 중에도 활성으로 잡히므로 플러시가 먼저 놓는다. */
+	FTimerHandle AbilityRebindHandle;
 
 private:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter, Category = "Wx|AbilitySystem", meta = (AllowPrivateAccess = "true"))

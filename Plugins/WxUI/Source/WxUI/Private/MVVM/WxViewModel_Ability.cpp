@@ -4,7 +4,9 @@
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
 #include "Engine/Texture2D.h"
+#include "Engine/World.h"
 #include "GameplayEffect.h"
+#include "TimerManager.h"
 #include "WxUIData.h"
 
 void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags)
@@ -88,15 +90,14 @@ void UWxViewModel_Ability::Deinitialize()
 		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
 
 		UnbindCostAttributes(*ASC);
+
+		if (UWorld* World = ASC->GetWorld())
+		{
+			World->GetTimerManager().ClearTimer(ActivationRefreshHandle);
+		}
 	}
 
 	StopCooldownTicker();
-
-	if (ActivationRefreshHandle.IsValid())
-	{
-		FTSTicker::GetCoreTicker().RemoveTicker(ActivationRefreshHandle);
-		ActivationRefreshHandle.Reset();
-	}
 
 	CachedASC.Reset();
 	CachedAbility.Reset();
@@ -402,15 +403,16 @@ void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* 
 
 void UWxViewModel_Ability::HandleTagChanged(const FGameplayTag Tag, int32 NewCount)
 {
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	UWorld* World = ASC ? ASC->GetWorld() : nullptr;
+
 	// 통지는 바뀐 태그의 부모까지 오고 GE 하나가 태그를 여럿 부여하므로, 한 프레임에 열댓 번이 몰려도 판정 결과는 마지막 한 번과 같다.
-	if (ActivationRefreshHandle.IsValid())
+	if (!World || World->GetTimerManager().IsTimerActive(ActivationRefreshHandle))
 	{
 		return;
 	}
 
-	ActivationRefreshHandle = FTSTicker::GetCoreTicker().AddTicker(
-		FTickerDelegate::CreateUObject(this, &UWxViewModel_Ability::FlushActivationRefresh)
-	);
+	ActivationRefreshHandle = World->GetTimerManager().SetTimerForNextTick(this, &UWxViewModel_Ability::FlushActivationRefresh);
 }
 
 void UWxViewModel_Ability::HandleCostAttributeChanged(const FOnAttributeChangeData& Data)
@@ -472,16 +474,14 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 	return true;
 }
 
-bool UWxViewModel_Ability::FlushActivationRefresh(float DeltaTime)
+void UWxViewModel_Ability::FlushActivationRefresh()
 {
-	ActivationRefreshHandle.Reset();
+	ActivationRefreshHandle.Invalidate();
 
 	// 후보를 가르는 요건이 태그라 대상부터 다시 고른다. 고른 것이 그대로면 조기 반환한다.
 	RefreshBoundAbility();
 
 	RefreshActivationState();
-
-	return false;
 }
 
 void UWxViewModel_Ability::RefreshActivationState()

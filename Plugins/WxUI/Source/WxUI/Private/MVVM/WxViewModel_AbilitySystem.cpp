@@ -4,8 +4,10 @@
 #include "MVVM/WxViewModel_Ability.h"
 #include "MVVM/WxViewModel_Attribute.h"
 #include "AbilitySystemComponent.h"
+#include "Engine/World.h"
 #include "GameplayEffectUIData.h"
 #include "MVVM/WxViewModel_Effect.h"
+#include "TimerManager.h"
 #include "WxUIData.h"
 
 UWxViewModel_AbilitySystem* UWxViewModel_AbilitySystem::GetOrCreate(UAbilitySystemComponent* InASC)
@@ -71,18 +73,12 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 		ASC->OnAnyGameplayEffectRemovedDelegate().RemoveAll(this);
 		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
 		ASC->AbilitySpecDirtiedCallbacks.RemoveAll(this);
-	}
 
-	if (OwnedTagsRefreshHandle.IsValid())
-	{
-		FTSTicker::GetCoreTicker().RemoveTicker(OwnedTagsRefreshHandle);
-		OwnedTagsRefreshHandle.Reset();
-	}
-
-	if (AbilityRebindHandle.IsValid())
-	{
-		FTSTicker::GetCoreTicker().RemoveTicker(AbilityRebindHandle);
-		AbilityRebindHandle.Reset();
+		if (UWorld* World = ASC->GetWorld())
+		{
+			World->GetTimerManager().ClearTimer(OwnedTagsRefreshHandle);
+			World->GetTimerManager().ClearTimer(AbilityRebindHandle);
+		}
 	}
 
 	// 자식은 배열에서 떼기만 한다 — 위젯이 아직 붙들고 있는 공유본을 끊으면 그 표시가 언다.
@@ -236,41 +232,41 @@ void UWxViewModel_AbilitySystem::HandleActiveEffectRemoved(const FActiveGameplay
 
 void UWxViewModel_AbilitySystem::HandleTagChanged(const FGameplayTag Tag, int32 NewCount)
 {
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	UWorld* World = ASC ? ASC->GetWorld() : nullptr;
+
 	// 통지는 바뀐 태그의 부모까지 오고 GE 하나가 태그를 여럿 부여하므로, 한 프레임에 열댓 번이 몰려도 결과는 마지막 한 번과 같다.
-	if (OwnedTagsRefreshHandle.IsValid())
+	if (!World || World->GetTimerManager().IsTimerActive(OwnedTagsRefreshHandle))
 	{
 		return;
 	}
 
-	OwnedTagsRefreshHandle = FTSTicker::GetCoreTicker().AddTicker(
-		FTickerDelegate::CreateUObject(this, &UWxViewModel_AbilitySystem::FlushOwnedTagsRefresh)
-	);
+	OwnedTagsRefreshHandle = World->GetTimerManager().SetTimerForNextTick(this, &UWxViewModel_AbilitySystem::FlushOwnedTagsRefresh);
 }
 
 void UWxViewModel_AbilitySystem::HandleAbilitySpecDirtied(const FGameplayAbilitySpec& Spec)
 {
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	UWorld* World = ASC ? ASC->GetWorld() : nullptr;
+
 	// 스펙은 발동·종료로도 더러워지고 세트 부여는 한 프레임에 열댓 번이 몰리므로, 슬롯 재매칭은 프레임당 한 번으로 모은다.
-	if (AbilityRebindHandle.IsValid())
+	if (!World || World->GetTimerManager().IsTimerActive(AbilityRebindHandle))
 	{
 		return;
 	}
 
-	AbilityRebindHandle = FTSTicker::GetCoreTicker().AddTicker(
-		FTickerDelegate::CreateUObject(this, &UWxViewModel_AbilitySystem::FlushAbilityRebind)
-	);
+	AbilityRebindHandle = World->GetTimerManager().SetTimerForNextTick(this, &UWxViewModel_AbilitySystem::FlushAbilityRebind);
 }
 
-bool UWxViewModel_AbilitySystem::FlushOwnedTagsRefresh(float DeltaTime)
+void UWxViewModel_AbilitySystem::FlushOwnedTagsRefresh()
 {
-	OwnedTagsRefreshHandle.Reset();
+	OwnedTagsRefreshHandle.Invalidate();
 	RefreshOwnedTags();
-
-	return false;
 }
 
-bool UWxViewModel_AbilitySystem::FlushAbilityRebind(float DeltaTime)
+void UWxViewModel_AbilitySystem::FlushAbilityRebind()
 {
-	AbilityRebindHandle.Reset();
+	AbilityRebindHandle.Invalidate();
 
 	// 교체는 제거 뒤 부여라, 마지막에 오는 부여 신호 하나로 전부를 훑어야 비게 된 슬롯까지 같이 정리된다.
 	for (UWxViewModel_Ability* AbilityVM : AbilityViewModels)
@@ -280,6 +276,4 @@ bool UWxViewModel_AbilitySystem::FlushAbilityRebind(float DeltaTime)
 			AbilityVM->RefreshBoundAbility();
 		}
 	}
-
-	return false;
 }

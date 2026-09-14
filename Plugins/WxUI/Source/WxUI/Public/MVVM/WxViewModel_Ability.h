@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
 #include "Containers/Ticker.h"
+#include "Engine/TimerHandle.h"
 #include "GameplayTagContainer.h"
 #include "GameplayEffectTypes.h"
 #include "MVVM/WxViewModel.h"
@@ -24,7 +25,7 @@ struct FGameplayEffectSpec;
  * 쿨다운 GE 는 소모한 충전 하나를 스택 하나로 쌓으므로, 남은 시간·진행률은 지금 회복 중인 충전 1개 기준이 된다.
  *
  * CanActivate·CheckCost 는 ASC 태그 변경/비용 어트리뷰트 변경/쿨다운 적용·충전 수 변화 시점에 재평가된다.
- * 태그 변경만은 한 프레임 분을 모아 다음 틱에 한 번 판정한다.
+ * 태그 변경만은 한 프레임 분을 모아 다음 월드 타이머 틱에 한 번 판정한다.
  *
  * 소모량은 어빌리티를 물 때 비용 GE 를 한 번 평가해 정한다.
  */
@@ -142,7 +143,7 @@ private:
 	void HandleCostAttributeChanged(const FOnAttributeChangeData& Data);
 	bool UpdateCooldownState(float DeltaTime);
 
-	bool FlushActivationRefresh(float DeltaTime);
+	void FlushActivationRefresh();
 
 	void StartCooldownTicker();
 	void StopCooldownTicker();
@@ -182,6 +183,6 @@ private:
 
 	FTSTicker::FDelegateHandle TickerHandle;
 
-	/** 유효하면 이번 프레임의 재평가가 이미 예약돼 있다는 뜻이다. */
-	FTSTicker::FDelegateHandle ActivationRefreshHandle;
+	/** 타이머가 활성이면 재평가가 이미 예약돼 있다. 실행 중에도 활성으로 잡히므로 플러시가 먼저 놓는다. */
+	FTimerHandle ActivationRefreshHandle;
 };
