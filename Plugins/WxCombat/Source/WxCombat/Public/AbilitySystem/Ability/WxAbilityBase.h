@@ -85,7 +85,7 @@ public:
 	EWxAbilityActivationGroup ActivationGroup = EWxAbilityActivationGroup::Independent;
 
 	/** 지금 열려 있는 캔슬 창. Exclusive일 때만 뜻이 있고, 활성화마다 Blocking에서 다시 시작한다. */
-	EWxAbilityActionPhase ActionPhase = EWxAbilityActionPhase::Blocking;
+	EWxAbilityActionPhase GetActionPhase() const;
 
 	/**
 	 * 활성 구간 동안 소유자에게 유지되는 효과. ActivationOwnedTags의 GE판으로, 활성화에서 걸고 종료에서 걷는다.
@@ -160,6 +160,9 @@ protected:
 	virtual void HandleMontageCancelled();
 
 private:
+	void SetActionPhase(EWxAbilityActionPhase NewPhase);
+	EWxAbilityActionPhase ActionPhase = EWxAbilityActionPhase::Blocking;
+
 	const FWxAbilityTableRow* GetTableRow() const;
 
 	UPROPERTY(Transient)

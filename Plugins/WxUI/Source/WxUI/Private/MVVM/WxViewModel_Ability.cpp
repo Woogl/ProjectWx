@@ -8,6 +8,7 @@
 #include "GameplayEffect.h"
 #include "TimerManager.h"
 #include "WxUIData.h"
+#include "WxGameplayTags.h"
 
 void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags)
 {
@@ -26,8 +27,11 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGam
 	InASC->OnActiveGameplayEffectAddedDelegateToSelf
 		.AddUObject(this, &UWxViewModel_Ability::HandleGameplayEffectApplied);
 
-	// 어빌리티의 블록/필요 태그로 좁힐 수 없다 — 발동 판정에는 배타 그룹 점유도 걸리는데, 그건 태그가 아니라 ASC 내부 상태라 다른 어빌리티의 ActivationOwnedTags 변화로만 감지된다.
+	// 다른 어빌리티의 발동·종료도 배타 점유를 바꾸므로 특정 슬롯의 블록/필요 태그로 구독을 좁히지 않는다.
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_Ability::HandleTagChanged);
+	ActivationStateChangedHandle = InASC->AddGameplayEventTagContainerDelegate(
+		FGameplayTagContainer(WxGameplayTags::Event_Ability_ActivationStateChanged),
+		FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &UWxViewModel_Ability::HandleActivationStateChanged));
 
 	RefreshBoundAbility();
 }
@@ -88,6 +92,8 @@ void UWxViewModel_Ability::Deinitialize()
 	{
 		ASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
 		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
+		ASC->RemoveGameplayEventTagContainerDelegate(
+			FGameplayTagContainer(WxGameplayTags::Event_Ability_ActivationStateChanged), ActivationStateChangedHandle);
 
 		UnbindCostAttributes(*ASC);
 
@@ -98,6 +104,7 @@ void UWxViewModel_Ability::Deinitialize()
 	}
 
 	StopCooldownTicker();
+	ActivationStateChangedHandle.Reset();
 
 	CachedASC.Reset();
 	CachedAbility.Reset();
@@ -403,10 +410,24 @@ void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* 
 
 void UWxViewModel_Ability::HandleTagChanged(const FGameplayTag Tag, int32 NewCount)
 {
+	ScheduleActivationRefresh();
+}
+
+void UWxViewModel_Ability::HandleActivationStateChanged(FGameplayTag EventTag, const FGameplayEventData* Payload)
+{
+	// 컨테이너 구독은 하위 태그도 받지만 이 계약은 전용 이벤트만 처리한다.
+	if (EventTag == WxGameplayTags::Event_Ability_ActivationStateChanged)
+	{
+		ScheduleActivationRefresh();
+	}
+}
+
+void UWxViewModel_Ability::ScheduleActivationRefresh()
+{
 	UAbilitySystemComponent* ASC = CachedASC.Get();
 	UWorld* World = ASC ? ASC->GetWorld() : nullptr;
 
-	// 통지는 바뀐 태그의 부모까지 오고 GE 하나가 태그를 여럿 부여하므로, 한 프레임에 열댓 번이 몰려도 판정 결과는 마지막 한 번과 같다.
+	// 태그 알림과 단계 전환 뒤 입력 버퍼 재발동이 겹쳐도 최종 상태만 한 번 판정한다.
 	if (!World || World->GetTimerManager().IsTimerActive(ActivationRefreshHandle))
 	{
 		return;

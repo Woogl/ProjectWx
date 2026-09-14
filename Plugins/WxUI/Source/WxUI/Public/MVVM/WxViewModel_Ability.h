@@ -14,6 +14,7 @@
 class UAbilitySystemComponent;
 class UGameplayAbility;
 class UTexture2D;
+struct FGameplayEventData;
 struct FGameplayEffectSpec;
 
 /**
@@ -24,8 +25,8 @@ struct FGameplayEffectSpec;
  * 쿨다운은 어빌리티의 GetCooldownTags() 로 식별하고, 쿨다운 중에는 티커로 매 프레임 남은 시간·충전 수를 갱신한다.
  * 쿨다운 GE 는 소모한 충전 하나를 스택 하나로 쌓으므로, 남은 시간·진행률은 지금 회복 중인 충전 1개 기준이 된다.
  *
- * CanActivate·CheckCost 는 ASC 태그 변경/비용 어트리뷰트 변경/쿨다운 적용·충전 수 변화 시점에 재평가된다.
- * 태그 변경만은 한 프레임 분을 모아 다음 월드 타이머 틱에 한 번 판정한다.
+ * CanActivate·CheckCost 는 ASC 태그·발동 조건 이벤트/비용 어트리뷰트/쿨다운 적용·충전 수 변화 시점에 재평가된다.
+ * 태그 변경과 발동 조건 이벤트는 한 프레임 분을 모아 다음 월드 타이머 틱에 한 번 판정한다.
  *
  * 소모량은 어빌리티를 물 때 비용 GE 를 한 번 평가해 정한다.
  */
@@ -140,6 +141,8 @@ protected:
 private:
 	void HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle);
 	void HandleTagChanged(const FGameplayTag Tag, int32 NewCount);
+	void HandleActivationStateChanged(FGameplayTag EventTag, const FGameplayEventData* Payload);
+	void ScheduleActivationRefresh();
 	void HandleCostAttributeChanged(const FOnAttributeChangeData& Data);
 	bool UpdateCooldownState(float DeltaTime);
 
@@ -182,6 +185,7 @@ private:
 	FGameplayAttribute CostMaxAttribute;
 
 	FTSTicker::FDelegateHandle TickerHandle;
+	FDelegateHandle ActivationStateChangedHandle;
 
 	/** 타이머가 활성이면 재평가가 이미 예약돼 있다. 실행 중에도 활성으로 잡히므로 플러시가 먼저 놓는다. */
 	FTimerHandle ActivationRefreshHandle;

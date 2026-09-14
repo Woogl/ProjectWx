@@ -26,6 +26,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(HitReact_KnockDown, "HitReact.KnockDown");
 	UE_DEFINE_GAMEPLAY_TAG(HitReact_KnockUp, "HitReact.KnockUp");
 
+	UE_DEFINE_GAMEPLAY_TAG(Event_Ability_ActivationStateChanged, "Event.Ability.ActivationStateChanged");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Hit, "Event.Hit");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_Parry, "Event.Hit.Parry");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_GuardBreak, "Event.Hit.GuardBreak");

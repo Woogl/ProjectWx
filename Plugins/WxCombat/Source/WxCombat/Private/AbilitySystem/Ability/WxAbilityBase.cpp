@@ -11,6 +11,7 @@
 #include "Animation/AnimMontage.h"
 #include "GameplayEffect.h"
 #include "WxCombatModule.h"
+#include "WxGameplayTags.h"
 
 UWxAbilityBase::UWxAbilityBase()
 {
@@ -58,12 +59,35 @@ float UWxAbilityBase::GetMontagePlayRate() const
 	return ASC ? ASC->GetMontagePlayRate() : 1.f;
 }
 
+EWxAbilityActionPhase UWxAbilityBase::GetActionPhase() const
+{
+	return ActionPhase;
+}
+
+void UWxAbilityBase::SetActionPhase(EWxAbilityActionPhase NewPhase)
+{
+	if (ActionPhase == NewPhase)
+	{
+		return;
+	}
+
+	ActionPhase = NewPhase;
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		FGameplayEventData Payload;
+		Payload.EventTag = WxGameplayTags::Event_Ability_ActivationStateChanged;
+		Payload.Instigator = GetAvatarActorFromActorInfo();
+		// 관찰자는 입력 버퍼의 재발동·종료까지 끝난 뒤 최종 상태를 평가한다.
+		ASC->HandleGameplayEvent(Payload.EventTag, &Payload);
+	}
+}
+
 void UWxAbilityBase::OpenComboWindow()
 {
 	// 배타 본동작에서만 연다 — 콤보가 없는 어빌리티의 몽타주에 노티파이가 섞여도 Independent를 점유자로 승격시키지 않는다.
 	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive && ActionPhase == EWxAbilityActionPhase::Blocking)
 	{
-		ActionPhase = EWxAbilityActionPhase::ComboWindow;
+		SetActionPhase(EWxAbilityActionPhase::ComboWindow);
 
 		// 재발동이 이 인스턴스를 그대로 되살리므로 전이 뒤에는 아무것도 쓰지 않는다.
 		const AActor* Avatar = GetAvatarActorFromActorInfo();
@@ -79,7 +103,7 @@ void UWxAbilityBase::CloseComboWindow()
 	// 창이 아직 열려 있을 때만 되돌린다 — 창이 후딜보다 늦게 닫히는 배치가 정상이라 무조건 되돌리면 후딜을 도로 닫는다.
 	if (ActionPhase == EWxAbilityActionPhase::ComboWindow)
 	{
-		ActionPhase = EWxAbilityActionPhase::Blocking;
+		SetActionPhase(EWxAbilityActionPhase::Blocking);
 	}
 }
 
@@ -88,7 +112,7 @@ void UWxAbilityBase::StartRecovery()
 	// 배타 어빌리티만 후딜로 — 엉뚱한 노티파이가 Independent를 점유자로 승격시키거나 Override의 캔슬 면역을 벗기지 않게 한다.
 	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive && ActionPhase != EWxAbilityActionPhase::Recovery)
 	{
-		ActionPhase = EWxAbilityActionPhase::Recovery;
+		SetActionPhase(EWxAbilityActionPhase::Recovery);
 
 		// 성립한 어빌리티가 이 인스턴스를 끊으므로 전이 뒤에는 아무것도 쓰지 않는다.
 		const AActor* Avatar = GetAvatarActorFromActorInfo();
@@ -185,7 +209,7 @@ bool UWxAbilityBase::CanBeCanceled() const
 void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	// 직전 활성화가 재사용 인스턴스에 남긴 캔슬 창을 닫는다.
-	ActionPhase = EWxAbilityActionPhase::Blocking;
+	SetActionPhase(EWxAbilityActionPhase::Blocking);
 
 	if (ActivationGroup != EWxAbilityActivationGroup::Independent)
 	{

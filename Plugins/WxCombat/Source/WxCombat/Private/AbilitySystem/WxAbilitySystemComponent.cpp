@@ -277,7 +277,7 @@ void UWxAbilitySystemComponent::CancelRecoveringAbilities(UGameplayAbility* Igno
 
 		// FindActivationGroupBlocker와 같은 근거 — 기반 생성자가 InstancedPerActor를 강제하므로 스펙당 인스턴스는 하나뿐이다.
 		const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.GetPrimaryInstance());
-		if (Ability && Ability != IgnoreAbility && Ability->IsActive() && Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive && Ability->ActionPhase == EWxAbilityActionPhase::Recovery)
+		if (Ability && Ability != IgnoreAbility && Ability->IsActive() && Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive && Ability->GetActionPhase() == EWxAbilityActionPhase::Recovery)
 		{
 			CancelAbilitySpec(Spec, IgnoreAbility);
 		}
