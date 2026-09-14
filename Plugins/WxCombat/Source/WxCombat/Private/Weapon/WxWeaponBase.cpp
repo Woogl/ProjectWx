@@ -3,6 +3,7 @@
 #include "Weapon/WxWeaponBase.h"
 #include "AbilitySystem/Effect/WxEffect_HitStop.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "Components/ChildActorComponent.h"
 #include "Components/ShapeComponent.h"
 #include "Components/SkeletalMeshComponent.h"

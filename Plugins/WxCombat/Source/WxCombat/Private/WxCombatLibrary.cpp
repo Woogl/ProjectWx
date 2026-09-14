@@ -7,6 +7,7 @@
 #include "Abilities/GameplayAbility.h"
 #include "GenericTeamAgentInterface.h"
 #include "Damage/WxDamageTableRow.h"
+#include "Weapon/WxProjectileBase.h"
 
 bool UWxCombatLibrary::IsHostile(const AActor* Source, const AActor* Target)
 {
@@ -46,11 +47,26 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 		return false;
 	}
 
-	const UGameplayAbility* AnimatingAbility = Source->GetAnimatingAbility();
+	const AWxProjectileBase* Projectile = Cast<AWxProjectileBase>(Causer);
+	// 비행 중 다른 발동으로 바뀌어도 투사체는 발사 레벨과 독립 지급 정책을 유지한다.
+	const UGameplayAbility* SourceAbility = nullptr;
+	float DamageLevel = 1.f;
+	if (Projectile)
+	{
+		DamageLevel = Projectile->GetProjectileLevel();
+	}
+	else
+	{
+		SourceAbility = Source->GetAnimatingAbility();
+		if (SourceAbility)
+		{
+			DamageLevel = SourceAbility->GetAbilityLevel();
+		}
+	}
 
 	FGameplayEffectContextHandle Context(new FWxHitEffectContext(*Source->MakeEffectContext().Get(), DamageTableRow));
 	Context.AddInstigator(SourceActor, Causer);
-	Context.SetAbility(AnimatingAbility);
+	Context.SetAbility(SourceAbility);
 	Context.AddHitResult(HitResult);
 
 	const FWxDamageTableRow* DamageRow = DamageTableRow.GetRow<FWxDamageTableRow>(ANSI_TO_TCHAR(__FUNCTION__));
@@ -59,7 +75,7 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 		return false;
 	}
 
-	const FGameplayEffectSpecHandle HitSpec = DamageRow->MakeHitSpec(Source, Context);
+	const FGameplayEffectSpecHandle HitSpec = DamageRow->MakeHitSpec(Source, Context, DamageLevel);
 	if (!HitSpec.IsValid())
 	{
 		return false;

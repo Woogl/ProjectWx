@@ -48,6 +48,11 @@ AWxProjectileBase::AWxProjectileBase()
 	InitialLifeSpan = 10.f;
 }
 
+int32 AWxProjectileBase::GetProjectileLevel() const
+{
+	return ProjectileLevel;
+}
+
 FGenericTeamId AWxProjectileBase::GetGenericTeamId() const
 {
 	const IGenericTeamAgentInterface* InstigatorTeamAgent = Cast<IGenericTeamAgentInterface>(GetInstigator());

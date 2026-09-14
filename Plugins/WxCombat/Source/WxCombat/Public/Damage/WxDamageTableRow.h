@@ -40,5 +40,5 @@ public:
 	TArray<TSubclassOf<UGameplayEffect>> AdditionalEffects;
 
 	/** Context에는 이 행을 가리키는 FWxHitEffectContext를 전달한다. 일반 진입점은 ApplyDamage다. */
-	FGameplayEffectSpecHandle MakeHitSpec(UAbilitySystemComponent* SourceASC, const FGameplayEffectContextHandle& Context) const;
+	FGameplayEffectSpecHandle MakeHitSpec(UAbilitySystemComponent* SourceASC, const FGameplayEffectContextHandle& Context, float DamageLevel) const;
 };

@@ -27,6 +27,7 @@ public:
 	 * 서버에서만 적용하며 적중 연출과 추가 효과는 예측하지 않는다.
 	 *
 	 * @param Causer	히트를 낸 액터. ASC가 없으면 Owner가 공격자다.
+	 * 투사체는 저장된 발사 레벨로 독립 적중 처리한다. 그 외에는 공격자의 현재 어빌리티와 레벨(없으면 1)을 사용한다.
 	 * @return			대미지 GE가 적용됐으면 true. 비권위·회피(DodgeSuccess)·적용 실패는 false.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Combat")

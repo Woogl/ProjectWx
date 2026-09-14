@@ -6,14 +6,14 @@
 #include "WxGameplayTags.h"
 #include "AbilitySystem/Effect/WxEffect_Hit.h"
 
-FGameplayEffectSpecHandle FWxDamageTableRow::MakeHitSpec(UAbilitySystemComponent* SourceASC, const FGameplayEffectContextHandle& Context) const
+FGameplayEffectSpecHandle FWxDamageTableRow::MakeHitSpec(UAbilitySystemComponent* SourceASC, const FGameplayEffectContextHandle& Context, float DamageLevel) const
 {
 	if (!SourceASC)
 	{
 		return FGameplayEffectSpecHandle();
 	}
 
-	const FGameplayEffectSpecHandle HitSpecHandle = SourceASC->MakeOutgoingSpec(UWxEffect_Hit::StaticClass(), 1.f, Context);
+	const FGameplayEffectSpecHandle HitSpecHandle = SourceASC->MakeOutgoingSpec(UWxEffect_Hit::StaticClass(), DamageLevel, Context);
 	if (HitSpecHandle.IsValid())
 	{
 		FGameplayEffectSpec* Spec = HitSpecHandle.Data.Get();

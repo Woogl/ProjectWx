@@ -33,6 +33,9 @@ class WXCOMBAT_API AWxProjectileBase : public AActor, public IGenericTeamAgentIn
 public:
 	AWxProjectileBase();
 
+	/** 발사 시 저장한 서버 피해 레벨. 반사 후에도 유지된다. */
+	int32 GetProjectileLevel() const;
+
 	//~ Begin IGenericTeamAgentInterface
 	/** 팀을 따로 들지 않고 Instigator의 것을 그대로 쓴다 — 피격 판정도 같은 출처로 적대 여부를 가린다. */
 	virtual FGenericTeamId GetGenericTeamId() const override;
@@ -84,6 +87,12 @@ protected:
 	virtual void HandleHitCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 private:
+	friend class UWxProjectileSubsystem;
+
+	/** 발사 시 확정한다. 반사는 소유자만 바꾸고 레벨은 유지한다. 피해는 서버에서만 계산한다. */
+	UPROPERTY(VisibleInstanceOnly, Category = "Wx|Projectile|Damage")
+	int32 ProjectileLevel = 1;
+
 	/** 되돌림이 성립한 히트에서만 부른다. 쏜 쪽은 오버랩 핸들러의 적대 판정이 보장한다. */
 	void Reflect(APawn& Parrier);
 

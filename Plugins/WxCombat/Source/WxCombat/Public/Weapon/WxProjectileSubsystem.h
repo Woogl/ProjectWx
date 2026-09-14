@@ -18,7 +18,7 @@ class WXCOMBAT_API UWxProjectileSubsystem : public UWorldSubsystem
 
 public:
 	/** Owner를 소유자이자 Instigator로 심어 투사체가 팀과 적중 판정의 출처로 쓴다. 생성하지 않으면 null. */
-	AWxProjectileBase* SpawnProjectile(AActor& Owner, TSubclassOf<AWxProjectileBase> ProjectileClass, const FTransform& SpawnTransform);
+	AWxProjectileBase* SpawnProjectile(AActor& Owner, TSubclassOf<AWxProjectileBase> ProjectileClass, const FTransform& SpawnTransform, int32 ProjectileLevel);
 
 protected:
 	/** 에디터 월드에서는 시퀀서 프리뷰의 노티파이가 권위를 통과해 레벨에 스폰해 버리므로 게임 월드에만 만든다. */

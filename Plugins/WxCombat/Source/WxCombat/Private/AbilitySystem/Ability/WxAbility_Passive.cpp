@@ -21,7 +21,7 @@ void UWxAbility_Passive::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	// 발동마다 새로 채워지는 예측 키가 곧 그 발동의 식별자다 — 인스턴스를 재사용하는 콤보 재발동도 새 키를 받는다.
-	// 공격 어빌리티가 실리지 않은 적중(몽타주가 끝난 뒤 닿은 투사체 등)은 키가 무효라 그 히트를 한 번으로 쳐서 지급한다.
+	// 공격 어빌리티가 실리지 않은 독립 적중(반사 투사체 등)은 키가 무효라 그 히트를 한 번으로 쳐서 지급한다.
 	const UGameplayAbility* SourceAbility = TriggerEventData ? TriggerEventData->ContextHandle.GetAbilityInstance_NotReplicated() : nullptr;
 	const FPredictionKey SourceActivationKey = SourceAbility ? SourceAbility->GetCurrentActivationInfo().GetActivationPredictionKey() : FPredictionKey();
 	if (SourceActivationKey.IsValidKey() && SourceActivationKey == ChargedActivationKey)
@@ -30,7 +30,11 @@ void UWxAbility_Passive::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 		return;
 	}
 
-	ChargedActivationKey = SourceActivationKey;
+	// 독립 적중이 끼어들어도 이미 지급한 근접 발동의 다단 적중을 다시 지급하지 않는다.
+	if (SourceActivationKey.IsValidKey())
+	{
+		ChargedActivationKey = SourceActivationKey;
+	}
 
 	for (const TSubclassOf<UGameplayEffect>& EffectClass : TriggeredEffects)
 	{
