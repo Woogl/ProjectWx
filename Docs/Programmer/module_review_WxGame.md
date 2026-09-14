@@ -1,97 +1,72 @@
 # WxGame — 코드 리뷰
 
-> 조립 모듈로서 경계가 잘 지켜져 있고 수명·권위·정리 경로 대부분이 의도적으로 설계되어 있다. 이번에도 치명적 결함은 확인하지 못했고, 직전 리뷰의 지적 중 캐릭터 표시 접근자 데드 코드와 하드코딩된 처형 문구 두 건은 이미 해소됐다. 이번 리뷰는 직전 커밋에서 바뀐 `WxCharacterBase`(`IWxUIData` 도입)·`WxEnemyCharacter`(프롬프트 재구성)·`WxViewModel_BossDisplay`를 먼저 깊게 보고, 프레임워크 골격·프론트엔드 흐름·MVVM 뷰모델 전부·어빌리티/MetaHuman 조립 경로의 cpp까지 내려가 읽었으며, 기계적 규칙(Copyright·인라인·람다·`Handle` 접두사·`BlueprintCallable`)은 모듈 전체를 일괄 검사했다.
+> 조립 모듈로서 도메인 경계와 수명·정리 경로가 전반적으로 탄탄하고, 이번에도 치명적 결함은 확인하지 못했다. 직전 리뷰 지적 중 프론트엔드 위젯 하드코딩과 Quest·Dialogue 주석 불일치는 해소됐고, 새로 AI 퍼셉션의 피아 판정이 캐릭터의 Neutral 규칙을 따르지 않는 잠재 결함을 찾았다. 모듈 아래 h/cpp 58개를 모두 열어 읽었고, 캐릭터·AI 컨트롤러·MVVM 뷰모델·게임 흐름은 연관 플러그인과 UE 5.8 엔진 소스까지 따라가 검증했다.
 
 ## 요약
-
 | 심각도 | 개수 |
 | --- | --- |
 | 🔴 심각 | 0 |
-| 🟡 개선 | 3 |
-| 🟢 사소 | 6 |
+| 🟡 개선 | 2 |
+| 🟢 사소 | 5 |
 
 ## 결과
 
-### 1. 🟡 처형 프롬프트가 실제 상호작용자가 아니라 0번 플레이어의 어빌리티에서 문구를 읽는다
+### 1. 🟡 AI 시야·청각의 피아 판정이 캐릭터의 Neutral 규칙을 따르지 않는다
+- **위치**: `Source/WxGame/Controller/WxAIController.cpp:26`, `Source/WxGame/Controller/WxAIController.cpp:31`, `Source/WxGame/Controller/WxAIController.cpp:66`, `Source/WxGame/Character/WxCharacterBase.cpp:176`
+- **범주**: 버그/정확성
+- **문제**: 팀 규칙은 `AWxCharacterBase::GetTeamAttitudeTowards`에만 있다 — 어느 한쪽이 `EWxTeam::Neutral`이면 `Neutral`을 돌려준다. 그런데 엔진 시야·청각 센스는 리스너의 팀 주체를 퍼셉션 컴포넌트 오너인 `AWxAIController`로 잡고(엔진 `AIPerceptionTypes.cpp:140`), `AAIController`는 `GetTeamAttitudeTowards`를 재정의하지 않아 `FGenericTeamId::GetAttitude(팀ID, 팀ID)`로 떨어진다. 프로젝트는 `FGenericTeamId::SetAttitudeSolver`를 한 번도 부르지 않으므로 엔진 기본 솔버 `A != B ? Hostile : Friendly`(엔진 `AIInterfaces.cpp:32`)가 쓰이고, `Neutral = 255`는 그저 다른 팀이라 `Hostile`이 된다. 결과적으로 `bDetectNeutrals = false`(`:26`, `:31`)는 Wx 폰을 한 번도 걸러내지 못한다. 반면 대미지 센스 보고(`Plugins/WxAI/Source/WxAI/Private/WxAIBehaviorComponent.cpp:176`)와 대미지 판정(`Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp:27`)은 폰의 규칙을 쓴다. 실패 시나리오: BP에서 `Team`을 `Neutral`로 둔 폰이 생기면 적 AI는 그 폰을 시야로 적으로 감지하고, 적대 여부를 다시 보지 않는 `UWxBTService_UpdateTargetActor::FindPerceivedTarget`(`Plugins/WxAI/Source/WxAI/Private/WxBTService_UpdateTargetActor.cpp:60`)이 그대로 타겟으로 확정하지만 공격은 `IsHostile`에 막혀 피해 없이 추격만 반복한다. 반대로 Neutral 팀 AI는 플레이어를 감지·추격하되 때리지 못한다. 현재 `Content`에서 `EWxTeam::Neutral`을 쓰는 에셋은 검색되지 않아 잠재 결함이다.
+- **제안**: `AWxAIController`에서 `GetTeamAttitudeTowards`를 재정의해 빙의 폰의 판정에 위임하거나, Neutral 규칙을 `FGenericTeamId::SetAttitudeSolver`로 등록해 캐릭터·컨트롤러·센스가 한 솔버를 공유하게 한다.
+- **확신도**: 중간 (엔진 경로는 소스로 확인했으나 Neutral 팀 콘텐츠가 아직 없다)
 
-- **위치**: `Source/WxGame/Character/WxEnemyCharacter.cpp:137`, `Source/WxGame/Character/WxEnemyCharacter.cpp:144`, `Source/WxGame/Character/WxEnemyCharacter.cpp:152`, `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h:35`
-- **범주**: 설계/구조
-- **문제**: 직전 변경으로 프롬프트가 하드코딩 문자열에서 `UWxAbility_Finisher::InteractionPrompt` 읽기로 바뀌어 번역·저작 문제는 해소됐지만, 문구의 주체를 `UGameplayStatics::GetPlayerPawn(this, 0)`으로 **추측**한다. 계약(`IWxInteractable::GetInteractionPrompt()`)이 `Interactor` 인자를 받지 않는 반면 같은 계약의 `CanInteract(const AActor*)`는 받으므로, 구현이 이 공백을 0번 플레이어로 메운 형태다. 결과로 세 가지가 남는다. (1) 스캐너를 가진 컨트롤러가 0번이 아닌 경우(리슨 서버의 두 번째 플레이어·스플릿스크린) 남의 어빌리티 문구를 읽는다. 스탠드얼론에서는 우연히 항상 일치한다. (2) 후보가 여럿일 때 `GetActivatableAbilities()` 순회에서 **처음** 만난 `UWxAbility_Finisher`를 채택하므로, 실제로 발동할 어빌리티와 다른 문구가 나갈 수 있다. (3) 처형 어빌리티가 아직 부여되지 않았으면 빈 `FText`를 돌려주는데, `CanInteract`(`:115`)는 처형 어빌리티 보유를 조건에 넣지 않으므로 대상은 목록에 남은 채 문구만 빈 줄로 표시된다(이전 구현은 항상 "Finisher"가 보였다).
-- **제안**: `GetInteractionPrompt()`에 `const AActor* Interactor` 인자를 더해 스캐너가 자기 폰을 넘기게 계약을 맞추는 것이 근본 수정이다(`WxCore`·`WxWorld`·구현 4곳 동반 수정). 그 전까지는 최소한 (3)을 막아 `CanInteract`와 프롬프트의 판정 근거를 하나로 묶는다.
-- **확신도**: 중간 (스탠드얼론 단일 플레이어 전제라면 (1)은 의도된 단순화일 수 있다)
-
-### 2. 🟡 프론트엔드 선택지가 C++ 버튼 이름·고정 인덱스에 묶여 있다
-
-- **위치**: `Source/WxGame/FrontEnd/WxFrontEndWidget.cpp:20`, `Source/WxGame/FrontEnd/WxFrontEndWidget.cpp:21`, `Source/WxGame/FrontEnd/WxFrontEndWidget.h:38`, `Source/WxGame/FrontEnd/WxFrontEndWidget.h:40`
-- **범주**: 설계/구조
-- **문제**: 클래스 주석(`WxFrontEndWidget.h:15`)은 "선택 데이터와 디자인은 WBP에 두고"라고 선언하지만, 실제로는 버튼 하나하나가 `BindWidget` 필수 프로퍼티로 C++에 박혀 있고 `CharacterOptions`/`DestinationOptions` 배열의 인덱스 `0`/`1`이 바인딩 시점에 리터럴로 고정된다. 캐릭터나 목적지를 하나 늘리려면 WBP만이 아니라 C++ 헤더·생성자 양쪽을 고쳐야 하므로 주석이 말하는 데이터 주도 구조가 성립하지 않는다. 더구나 `BP_HGTest`라는 테스트 에셋 이름이 필수 바인딩으로 남아 있어, 그 이름의 버튼이 없는 WBP는 바인딩 실패로 막힌다. `CharacterOptions`에 항목이 두 개 미만이면 `HandleSelectCharacter`(`:76`)의 인덱스 검사에 걸려 버튼이 조용히 무동작이 된다.
-- **제안**: 버튼 목록을 `UListView`(또는 동적 생성 엔트리)로 돌려 옵션 배열이 버튼 수를 정하게 하거나, 최소한 `BP_HGTest`를 `BindWidgetOptional`로 낮추고 인덱스 리터럴을 엔트리 위젯이 들고 오는 값으로 바꾼다.
-- **확신도**: 높음
-
-### 3. 🟡 InventoryItem 뷰모델의 진입점 세 개가 같은 구독 코드를 각각 복제한다
-
-- **위치**: `Source/WxGame/MVVM/WxViewModel_InventoryItem.cpp:12`, `Source/WxGame/MVVM/WxViewModel_InventoryItem.cpp:23`, `Source/WxGame/MVVM/WxViewModel_InventoryItem.cpp:34`
+### 2. 🟡 InventoryItem 뷰모델의 세 진입점이 같은 구독 코드를 복제하고, 그중 두 곳의 도착 구독은 동작할 수 없다
+- **위치**: `Source/WxGame/MVVM/WxViewModel_InventoryItem.cpp:12`, `Source/WxGame/MVVM/WxViewModel_InventoryItem.cpp:23`, `Source/WxGame/MVVM/WxViewModel_InventoryItem.cpp:34`, `Source/WxGame/MVVM/WxViewModel_InventoryItem.cpp:100`
 - **범주**: 중복/복잡도
-- **문제**: `StartObserving`·`Initialize(Instance)`·`Initialize(ItemDef)` 세 함수가 `Deinitialize` → 타깃 설정 → `ApplyStaticDataFromDef` → `OnAnyInventoryReady`/`OnAnyInventoryEnded` 구독 → `BindSource` 순서를 글자 그대로 세 번 반복한다. 특히 구독 두 줄(`:18`–`:19`, `:29`–`:30`, `:39`–`:40`)은 완전히 동일하다. 전역 신호가 하나 늘거나 구독 조건이 바뀔 때 세 곳을 모두 고쳐야 하고 한 곳을 빠뜨려도 컴파일은 통과하므로, 특정 초기화 경로만 신호를 놓치는 형태로 조용히 깨진다.
-- **제안**: 구조 분리 없이 인플레이스로, 같은 클래스 안의 private 헬퍼 하나(관찰 시작 + `BindSource`)에 세 진입점이 모두 들어가게 모은다. `WxViewModel_Inventory.cpp:12`에 있는 같은 패턴의 한 벌은 클래스가 달라 이번 범위 밖으로 둔다.
+- **문제**: `StartObserving`·`Initialize(Instance)`·`Initialize(ItemDef)`가 `Deinitialize` → 타깃 설정 → `ApplyStaticDataFromDef` → `OnAnyInventoryReady`/`OnAnyInventoryEnded` 구독 → `BindSource` 순서를 세 번 반복하며, 구독 두 줄(`:18`–`:19`, `:29`–`:30`, `:39`–`:40`)은 글자까지 같다. 게다가 두 `Initialize`는 첫 줄의 `Deinitialize()`가 `StopObserving()`(`:115` → `:95`)으로 `ObservedController`를 비운 뒤 다시 세우지 않는데, `HandleInventoryReady`(`:100`)는 `ObservedController.IsValid()`일 때만 연결하므로 이 두 경로의 도착 구독은 신호를 받기만 하고 아무것도 하지 않는다. `UWxViewModel_Inventory`가 슬롯마다(`WxViewModel_Inventory.cpp:151`), 획득마다(`WxViewModel_Inventory.cpp:115`) 이 경로로 자식을 만들기 때문에 무의미한 정적 델리게이트 바인딩이 그 수만큼 붙는다. 신호나 구독 조건이 바뀌면 세 곳을 함께 고쳐야 하고, 한 곳을 빠뜨려도 컴파일은 통과한다.
+- **제안**: 같은 클래스의 private 헬퍼 하나로 "정적 데이터 적용 + 구독 + `BindSource`"를 모은다. `OnAnyInventoryReady` 구독은 `ObservedController`를 세우는 `StartObserving` 경로에만 두고, 자기 정리에 필요한 `OnAnyInventoryEnded` 구독은 공통 헬퍼에 남긴다.
 - **확신도**: 높음
 
-### 4. 🟢 플레이어 입력 콜백 다섯 개가 `Handle` 접두사 규칙을 어긴다
+### 3. 🟢 처형 프롬프트와 처형 자격이 서로 다른 근거로 판정된다
+- **위치**: `Source/WxGame/Character/WxEnemyCharacter.cpp:97`, `Source/WxGame/Character/WxEnemyCharacter.cpp:131`, `Source/WxGame/Character/WxEnemyCharacter.cpp:134`
+- **범주**: 설계/구조
+- **문제**: `GetInteractionPrompt`(`:134`)는 로컬 플레이어 폰의 ASC에서 `UWxAbility_Finisher` 스펙을 찾아 문구를 읽고 못 찾으면 빈 `FText`를 돌려주지만, `CanInteract`(`:97`)는 적대·생존·태그·후방 원뿔만 보고 상호작용자가 처형 어빌리티를 가졌는지는 보지 않는다. 처형 어빌리티를 부여받지 않은 폰(프론트엔드에서 고를 수 있는 다른 캐릭터 등)이 적의 뒤로 다가가면 스캐너 목록에 빈 줄이 뜨고, 그 항목으로 상호작용하면 서버 검증은 통과해 `Event.Finisher`(`:131`)를 보내지만 받을 어빌리티가 없어 아무 일도 일어나지 않는다.
+- **제안**: `CanInteract`에서 `Interactor`의 ASC에 `UWxAbility_Finisher` 스펙이 있는지 함께 확인해, 프롬프트와 자격이 같은 근거를 공유하게 한다.
+- **확신도**: 중간 (모든 플레이어 폰의 AbilitySet이 처형 어빌리티를 부여한다면 증상은 없다)
 
-- **위치**: `Source/WxGame/Character/WxPlayerCharacter.h:53`–`:58`, `Source/WxGame/Character/WxPlayerCharacter.cpp:110`, `Source/WxGame/Character/WxPlayerCharacter.cpp:114`, `Source/WxGame/Character/WxPlayerCharacter.cpp:123`, `Source/WxGame/Character/WxPlayerCharacter.cpp:128`, `Source/WxGame/Character/WxPlayerCharacter.cpp:129`
-- **범주**: 규칙 위반
-- **문제**: `Move`·`Look`·`ToggleCrouch`·`AbilityInputTriggered`·`AbilityInputReleased`는 `BindAction`으로 델리게이트에 물리는 자체 콜백인데 `Handle` 접두사 규칙을 따르지 않는다. 모듈 전체를 일괄 검사한 결과 델리게이트 콜백 중 규칙을 벗어난 것은 이 다섯뿐이다(`HandleRagdollTagChanged`·`HandleOwnerDeath`·`HandleFrontEndChanged`·`HandleScannerReady` 등은 모두 준수). 엔진 오버라이드인 `Jump`와 엔진 함수 `ACharacter::StopJumping`은 대상이 아니다.
-- **제안**: 선언·정의·바인딩 이름을 `Handle` 접두사로 맞춘다.
-- **확신도**: 높음
-
-### 5. 🟢 MetaHuman 해제가 리더 메시의 틱 옵션을 되돌리지 않는다
-
+### 4. 🟢 MetaHuman 해제가 리더 메시에 건 설정을 절반만, 원래 값과 무관하게 되돌린다
 - **위치**: `Source/WxGame/Character/Component/WxMetaHumanComponent.cpp:54`, `Source/WxGame/Character/Component/WxMetaHumanComponent.cpp:56`, `Source/WxGame/Character/Component/WxMetaHumanComponent.cpp:131`
 - **범주**: 성능/안전
-- **문제**: 조립 시 리더 메시에 두 가지를 건다 — 표시 끄기(`:54`)와 `AlwaysTickPoseAndRefreshBones`(`:56`). 해제에서는 표시만 되돌리고(`:131`) 틱 옵션은 그대로 둔다. 또 되돌림이 "원래 값 복원"이 아니라 무조건 `true`라, 이 컴포넌트가 손대기 전부터 숨겨져 있던 리더는 해제 후 보이게 된다. 실제 창은 좁다 — 액터 파괴에서는 리더도 함께 사라지고, 레벨 스트리밍 재등록에서는 조립이 다시 돌며 두 설정을 모두 다시 걸기 때문이다. 짝지어 건 설정 중 하나만 되돌리는 비대칭 자체가 남는 문제다.
-- **제안**: 등록 시 리더의 표시·틱 옵션 원래 값을 보관하고 해제에서 그대로 복원한다.
+- **문제**: 조립 시 리더 메시에 표시 끄기(`:54`)와 `AlwaysTickPoseAndRefreshBones`(`:56`)를 함께 건다. 해제(`:131`)는 표시만 무조건 `true`로 되돌리고 틱 옵션은 그대로 둔다. 그래서 해제 후 리더는 화면 밖에서도 포즈·본 갱신을 계속하고, 이 컴포넌트가 손대기 전부터 숨겨져 있던 리더는 해제 후 보이게 된다. 액터 파괴에서는 리더도 함께 사라지고 재등록에서는 두 설정이 다시 걸리므로 실제 창은 좁지만, 짝지어 건 설정의 비대칭은 남는다.
+- **제안**: 해제에서 표시와 `VisibilityBasedAnimTickOption`을 함께 되돌리되, 캐시 필드를 새로 두기보다 리더 메시 아키타입(`LeaderMesh->GetArchetype()`)의 값을 읽어 복원한다.
 - **확신도**: 높음
 
-### 6. 🟢 `PostInitializeComponents`의 즉시 태그 확인 두 곳은 주석이 말하는 상황을 못 본다
-
-- **위치**: `Source/WxGame/Character/WxCharacterBase.cpp:61`, `Source/WxGame/Character/WxCharacterBase.cpp:71`
+### 5. 🟢 `PostInitializeComponents`의 즉시 태그 확인 두 곳은 참이 될 수 없다
+- **위치**: `Source/WxGame/Character/WxCharacterBase.cpp:60`, `Source/WxGame/Character/WxCharacterBase.cpp:61`, `Source/WxGame/Character/WxCharacterBase.cpp:71`
 - **범주**: 중복/복잡도
-- **문제**: 두 블록의 주석은 "late join 시 구독보다 먼저 초기 복제로 태그가 실려 왔을 수 있어"를 근거로 든다. 그런데 권위 측에서는 이 시점의 ASC가 갓 만들어진 상태라 `Ability.Death`·`State.Ragdoll`이 서 있을 수 없고, 뒤늦게 태그가 오면 바로 위에서 건 `RegisterGameplayTagEvent` 콜백이 그 변경을 잡는다. 더 결정적인 건 여기서 `HandleDeath()`가 불려도 `OnDeath` 구독자가 아직 하나도 없다는 점이다 — `AWxEnemyCharacter`는 `BeginPlay`(`WxEnemyCharacter.cpp:48`)에서, `AWxAIController`는 `OnPossess`(`WxAIController.cpp:36`)에서 붙는다. 그래서 이 확인이 참이 되더라도 방송은 허공에 나가고, 실제로 필요한 안전망은 `AWxEnemyCharacter::BeginPlay:50`–`:55`의 재확인이 이미 들고 있다.
-- **제안**: 두 즉시 확인을 지우거나, 정말 초기 복제 이후를 보려면 `BeginPlay`로 옮긴다. 옮기지 않는다면 주석의 근거를 실제 대상 상황으로 고친다.
-- **확신도**: 중간
+- **문제**: 주석(`:60`)은 "late join 시 구독보다 먼저 초기 복제로 태그가 실려 왔을 수 있어"를 근거로 들지만, 두 역할 모두에서 그 상황이 생기지 않는다. 권위 측은 ASC가 막 생성된 상태이고, 적은 `Super::PostInitializeComponents()`(`:54`) 안의 자동 빙의(엔진 `Pawn.cpp:157`)로 어빌리티셋 부여까지 끝났을 뿐이라 `Ability.Death`·`State.Ragdoll`이 서 있을 수 없다. 원격 측은 복제 액터가 지연 생성 없이 스폰되어(엔진 `PackageMapClient.cpp:768`) 초기 프로퍼티·서브오브젝트 복제가 이 함수 뒤에 적용되고, 레벨 배치 액터도 로드 시점에 이 함수를 지나므로 태그는 항상 바로 위에서 등록한 콜백으로 들어온다. 결국 두 분기는 실행되지 않는 코드이고, 실제 안전망은 등록 콜백과 `AWxEnemyCharacter::BeginPlay`의 재확인(`WxEnemyCharacter.cpp:50`–`:55`)이다.
+- **제안**: 두 즉시 확인을 지우고, 주석은 콜백 등록 위치의 이유만 남긴다.
+- **확신도**: 중간 (Iris 미사용 기준의 엔진 스폰 순서에 근거한다)
 
-### 7. 🟢 적 ASC의 GE 복제 모드 설정은 엔진 기본값을 다시 쓰는 무동작 호출이다
-
+### 6. 🟢 적 ASC의 GE 복제 모드 설정은 엔진 기본값을 다시 쓰는 무동작 호출이다
 - **위치**: `Source/WxGame/Character/WxEnemyCharacter.cpp:45`
 - **범주**: 중복/복잡도
-- **문제**: `BeginPlay`에서 `SetReplicationMode(EGameplayEffectReplicationMode::Full)`을 부르는데, `UAbilitySystemComponent` 생성자가 이미 `Full`로 초기화한다. 즉 상태를 바꾸지 않는 줄이 런타임 초기화 경로에 남아 있다. 게다가 짝이 되는 플레이어 쪽(`WxPlayerCharacter.cpp:56`)은 같은 설정을 생성자에서 하므로, 같은 성격의 설정이 두 파생에서 서로 다른 시점에 놓여 있다. 부여 순서도 어긋나 있다 — `AutoPossessAI`로 `PossessedBy`→`InitAbilitySystem`→`GiveAbilitySets`가 `BeginPlay`보다 먼저 끝나므로, 이 호출은 어빌리티셋 부여 뒤에 도착한다.
-- **제안**: 줄을 지우거나(순정 기본값 유지), 의도를 남기려면 플레이어와 같이 생성자로 올린다.
+- **문제**: `BeginPlay`에서 `SetReplicationMode(EGameplayEffectReplicationMode::Full)`을 부르지만 `UAbilitySystemComponent` 생성자가 이미 `Full`로 초기화하고(엔진 `AbilitySystemComponent.cpp:78`) `UWxAbilitySystemComponent`도 이를 바꾸지 않는다. 짝인 플레이어 설정(`WxPlayerCharacter.cpp:56`)은 생성자에 있어 같은 성격의 설정이 파생마다 다른 시점에 놓였고, 적은 자동 빙의로 어빌리티셋 부여가 `BeginPlay`보다 먼저 끝나므로 이 줄이 의미를 가진다 해도 부여 뒤에 도착한다.
+- **제안**: 줄을 지운다. 의도를 남기려면 플레이어와 같이 생성자로 올린다.
 - **확신도**: 높음
 
-### 8. 🟢 `Initialize`가 `StartObserving`이 막 세운 `ObservedController`를 되돌린다
-
-- **위치**: `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp:17`, `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp:31`, `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp:105`
+### 7. 🟢 InteractionList의 도착 신호 대기 경로는 타지 않고, 즉시 연결 경로는 `ObservedController`를 곧바로 비운다
+- **위치**: `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp:17`, `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp:22`, `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp:26`, `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp:31`, `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp:105`
 - **범주**: 중복/복잡도
-- **문제**: `StartObserving`은 `ObservedController = PC`(`:17`)를 세운 뒤 스캐너가 이미 있으면 `Initialize(Scanner)`(`:22`)를 부른다. 그런데 `Initialize`가 첫 줄에서 `Deinitialize()`(`:31`) → `StopObserving()`(`:49`) → `ObservedController.Reset()`(`:111`)을 타므로, 이 경로를 지나면 헤더가 "관찰 중인 PC"라고 설명하는 필드가 곧바로 비워진다. `HandleScannerReady`(`:105`)도 이미 `StopObserving()`을 부른 직후 `Initialize`가 같은 일을 한 번 더 한다. 현재 증상은 없다(스캐너는 PC 기본 서브오브젝트라 위젯보다 먼저 사라질 경로가 없어 재연결이 필요하지 않다), 그러나 "세운 값이 다음 호출로 지워지는" 흐름은 나중에 재연결 경로를 넣으려는 사람을 정확히 함정에 빠뜨린다.
-- **제안**: `Initialize`에서 무조건 `Deinitialize()`를 부르는 대신 스캐너 바인딩만 교체하는 경로를 분리하거나, `StartObserving`이 `Initialize` 뒤에 `ObservedController`를 다시 세우게 한다.
-- **확신도**: 높음
-
-### 9. 🟢 Quest·Dialogue 뷰모델은 늦게 오는 소스에 다시 붙을 경로가 없는데 주석은 있다고 말한다
-
-- **위치**: `Source/WxGame/MVVM/WxViewModel_Quest.cpp:82`, `Source/WxGame/MVVM/WxViewModel_Dialogue.cpp:72`
-- **범주**: 설계/구조
-- **문제**: 두 리졸버 모두 "소스가 늦게 준비되면 호출 측에서 이 인스턴스에 `Initialize` 로 주입한다"고 적어 두었지만, 저장소 전체에서 이 두 뷰모델의 `Initialize`를 밖에서 부르는 코드는 없다(두 cpp 내부 호출이 전부다). 같은 폴더의 Inventory·InteractionList는 `OnAnyInventoryReady`·`OnAnyScannerReady` 같은 준비 신호를 스스로 관찰해 나중에 붙는데, Quest·Dialogue만 생성 시점 스냅샷으로 끝난다. Quest 소스는 GameState에 있어 위젯보다 늦게 도착할 여지가 Dialogue(PC 기본 서브오브젝트)보다 크다. 스탠드얼론에서는 GameState가 항상 먼저 서므로 현재 증상으로 드러나지는 않는다.
-- **제안**: 주석이 말하는 주입 경로를 실제로 만들지 않을 것이라면 주석을 지우고 "생성 시점 소스가 곧 계약"임을 명시한다. 재연결이 필요해지는 시점에 Inventory와 같은 준비 신호 관찰을 도입한다.
+- **문제**: `StartObserving`은 `ObservedController = PC`(`:17`)를 세운 뒤 스캐너가 있으면 `Initialize(Scanner)`(`:22`)를 부르는데, `Initialize` 첫 줄의 `Deinitialize()`(`:31`)가 `StopObserving()`을 거쳐 그 필드를 다시 비운다. 한편 스캐너가 없을 때의 `OnAnyScannerReady` 대기(`:26`)는 같은 함수의 주석(`:19`)대로 스캐너가 `AWxPlayerController` 생성자 컴포넌트라 위젯보다 늦게 붙는 경우가 없어 실제로 타지 않으며, 생성자에 스캐너가 없는 PC라면 신호도 영영 오지 않는다. `HandleScannerReady`의 `StopObserving()`(`:105`)도 곧이어 `Initialize`가 같은 일을 반복한다. 현재 증상은 없지만 세운 값이 다음 호출로 지워지는 흐름과 타지 않는 대기 경로가 함께 있어, 재연결 경로를 넣으려는 사람이 이 필드를 믿으면 그대로 함정에 빠진다.
+- **제안**: 주석의 전제를 계약으로 삼아 `StartObserving`을 "스캐너를 찾아 `Initialize`" 하나로 줄이고 `ObservedController`·`ScannerReadyHandle`·`HandleScannerReady`를 걷어낸다(이 경우 `UWxInteractionScannerComponent::OnAnyScannerReady`는 구독자가 사라진다). 대기 경로를 유지할 것이라면 `Initialize` 뒤에 `ObservedController`를 다시 세운다.
 - **확신도**: 중간
 
 ## 검토 범위
-
-- **깊게 본 파일**: `Source/WxGame/Character/WxCharacterBase.cpp`, `Source/WxGame/Character/WxCharacterBase.h`, `Source/WxGame/Character/WxEnemyCharacter.cpp`, `Source/WxGame/Character/WxEnemyCharacter.h`, `Source/WxGame/Character/WxPlayerCharacter.cpp`, `Source/WxGame/Character/WxNpc.cpp`, `Source/WxGame/Character/Component/WxMetaHumanComponent.cpp`, `Source/WxGame/Character/Component/WxCharacterMovementComponent.cpp`, `Source/WxGame/Controller/WxAIController.cpp`, `Source/WxGame/Framework/WxRespawnLibrary.cpp`, `Source/WxGame/FrontEnd/WxGameFlowSubsystem.cpp`, `Source/WxGame/FrontEnd/WxFrontEndWidget.cpp`, `Source/WxGame/Cheat/WxCheatManager.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_UseItem.cpp`, `Source/WxGame/MVVM/WxViewModel_BossDisplay.cpp`, `Source/WxGame/MVVM/WxViewModel_Inventory.cpp`, `Source/WxGame/MVVM/WxViewModel_InventoryItem.cpp`, `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp`, `Source/WxGame/MVVM/WxViewModel_Quest.cpp`, `Source/WxGame/MVVM/WxViewModel_Dialogue.cpp`.
-- **훑은 파일**: `Source/WxGame/README.md`, `Source/WxGame/WxGame.Build.cs`, `Source/WxGame/Framework/WxGameMode.cpp`, `Source/WxGame/Framework/WxGameState.cpp`, `Source/WxGame/Controller/WxPlayerController.cpp`, `Source/WxGame/Player/WxPlayerState.h`, `Source/WxGame/Input/WxInputConfig.h`, `Source/WxGame/Character/WxTeamTypes.h`, `Source/WxGame/MVVM/WxViewModelResolver_Ability.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_BossCharacter.cpp`, `Source/WxGame/MVVM/WxViewModel_QuestObjective.cpp`, `Source/WxGame/FrontEnd/WxFrontEndLibrary.cpp` 및 대응 헤더 전부. 이번 변경의 경계를 확인하려고 `Plugins/WxCore/Source/WxCore/Public/WxUIData.h`, `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Character.h`, `Plugins/WxUI/Source/WxUI/Private/Component/WxNameplateComponent.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModelResolver_PlayerCharacter.cpp`, `Plugins/WxUI/Source/WxUI/Private/Component/WxPlayerLayoutComponent.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Item.cpp`, `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Finisher.h`, `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxWeaponBase.cpp`, `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxItemUseComponent.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxInteractionScannerComponent.cpp`, `Plugins/WxWorld/Source/WxWorld/Public/System/WxCheckpointSubsystem.h`도 함께 읽었다.
-- **일괄 검사**: `Copyright` 첫 줄(59파일 + `WxGame.Build.cs` 전부 통과), `FORCEINLINE`·헤더 인라인 정의(0건), 람다(0건), 델리게이트 콜백 `Handle` 접두사(발견 4 외 전부 통과), `BlueprintCallable`(라이브러리 2건과 승인된 VM Command 예외 5건뿐), `TODO`/`FIXME`/`HACK`(0건).
-- **중복 의심 해소**: 오케스트레이터가 지목한 `WxAnimNotify_UseItem`·`WxItemUseComponent` 이중 존재는 이관 잔재가 아니라 **이관 완료**였다 — 두 파일은 `04420d246..231068b` 구간에서 `Plugins/WxInventory` 로 이동했고(git rename R100/R089), `Source/WxGame/AnimNotify/`·`Source/WxGame/Inventory/` 폴더는 현재 트리에 없다. `UWxAbility_UseItem`(`:5`)은 플러그인 쪽 헤더를 포함해 이관본을 쓰고 있어 끊긴 참조도 없다. 같은 구간의 `WxViewModelResolver_PlayerCharacter` 역시 `Plugins/WxUI` 로 이동했다(R073/R058).
-- **재검증 결과 제외한 항목**: 뷰모델의 `BlueprintCallable`(`RequestAdvance`·`RequestInteract`·`RequestCycle`·`RequestUseConsumable`·`SetCurrentCategory`)은 VM Command에 대해 승인된 예외라 규칙 위반으로 세지 않았다. `LastAcquiredItem` 교체 시 이전 인스턴스를 종료하지 않는 건은 교체와 동시에 유일한 `UPROPERTY` 참조가 끊겨 GC 대상이 되고(Outer만으로는 살아남지 않는다) 델리게이트가 약한 참조라 구독이 무한히 쌓이지 않음을 다시 확인해 제외했다. `AWxEnemyCharacter::BeginPlay`에서 네임플레이트 수동 주입이 사라진 건은 `UWxNameplateComponent`가 `InitWidget`/`SetWidget`/틱에서 스스로 ASC를 찾아 VM을 묶으므로(`WxNameplateComponent.cpp:94`·`:111`) 미초기화로 남지 않음을 확인해 제외했다. `GetInteractionPrompt()`가 매 스캔 어빌리티 목록을 순회하는 비용은 스캐너가 0.1초 타이머이고 후보가 없으면 프롬프트 수집 자체를 건너뛰므로(`WxInteractionScannerComponent.cpp:99`) 성능 지적에서 제외했다. `UWxGameFlowSubsystem::RequestNewGame:54`의 무검사 서브시스템 역참조는 `UWxCheckpointSubsystem`이 `ShouldCreateSubsystem`을 재정의하지 않아 항상 생성됨을 확인해 제외했다. `UWxViewModelResolver_Ability`가 폰 부재 시 재시도 없이 `nullptr`을 돌려주는 건은 `UWxPlayerLayoutComponent`가 `OnPossessedPawnChanged`로 HUD를 다시 밀어 리졸버를 재실행함을 확인해 제외했다. `AWxEnemyCharacter::HandleOwnerDeath`가 처치자를 가리지 않고 0번 플레이어에게 보상하는 건은 코드 주석이 명시한 확정 정책이라 다루지 않았다.
-- **미검토 / 한계**: 정적 리뷰이며 빌드·PIE·네트워크 실행은 하지 않았다. WBP/BP 내부(위젯 계층·MVVM 바인딩 행·이벤트 그래프)와 BP 디폴트 값(예: `UWxAbility_Interact::ScanRadius`와 스캐너 반경의 일치, `NameplateComponent`의 `WidgetClass`)은 범위 밖이며 C++ 기본값의 정합만 확인했다. 멀티플레이 경로는 프로젝트 정책상 미결정이라 권위·복제 지적을 단정하지 않고 근거만 적었다. `WxMetaHumanComponent`의 LOD 매핑 산식과 엔진 `UMetaHumanComponentUE` 내부 동작은 에디터 실행 없이는 검증할 수 없어 코드 정합만 봤다. 모듈 아래 h/cpp 59개를 전부 통독한 결과는 아니다.
+- **깊게 본 파일**: `Source/WxGame/Character/WxCharacterBase.cpp`, `Source/WxGame/Character/WxCharacterBase.h`, `Source/WxGame/Character/WxEnemyCharacter.cpp`, `Source/WxGame/Character/WxEnemyCharacter.h`, `Source/WxGame/Character/WxPlayerCharacter.cpp`, `Source/WxGame/Character/Component/WxMetaHumanComponent.cpp`, `Source/WxGame/Character/Component/WxCharacterMovementComponent.cpp`, `Source/WxGame/Controller/WxAIController.cpp`, `Source/WxGame/Framework/WxRespawnLibrary.cpp`, `Source/WxGame/FrontEnd/WxGameFlowSubsystem.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_UseItem.cpp`, `Source/WxGame/MVVM/WxViewModel_Inventory.cpp`, `Source/WxGame/MVVM/WxViewModel_InventoryItem.cpp`, `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp`, `Source/WxGame/MVVM/WxViewModel_BossDisplay.cpp`, `Source/WxGame/MVVM/WxViewModel_Quest.cpp`, `Source/WxGame/MVVM/WxViewModel_Dialogue.cpp` 및 대응 헤더. 발견 검증을 위해 `Plugins/WxAI/Source/WxAI/Private/WxBTService_UpdateTargetActor.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxAIBehaviorComponent.cpp`, `Plugins/WxAI/Source/WxAI/Private/WxPatrolComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemComponent.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Finisher.cpp`, `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxLockOnComponent.cpp`, `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp`, `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxItemUseComponent.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxInteractionScannerComponent.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawner.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Item.cpp`와 엔진 `AIInterfaces.cpp`·`GenericTeamAgentInterface.h`·`AIPerceptionTypes.h/.cpp`·`AISense_Sight.cpp`·`Pawn.cpp`·`PackageMapClient.cpp`·`ActorReplication.cpp`·`MVVMViewClass.cpp`·`AbilitySystemComponent.cpp`도 읽었다.
+- **훑은 파일**: `Source/WxGame/README.md`, `Source/WxGame/WxGame.Build.cs`, `Source/WxGame/WxGame.h`, `Source/WxGame/WxGame.cpp`, `Source/WxGame/Framework/WxGameMode.cpp`, `Source/WxGame/Framework/WxGameState.cpp`, `Source/WxGame/Controller/WxPlayerController.cpp`, `Source/WxGame/Player/WxPlayerState.cpp`, `Source/WxGame/Character/WxNpc.cpp`, `Source/WxGame/Character/WxTeamTypes.h`, `Source/WxGame/Cheat/WxCheatManager.cpp`, `Source/WxGame/FrontEnd/WxFrontEndLibrary.cpp`, `Source/WxGame/Input/WxInputConfig.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_Ability.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_BossCharacter.cpp`, `Source/WxGame/MVVM/WxViewModel_QuestObjective.cpp`, `Source/WxGame/Tests/WxNameplateViewModelTest.cpp` 및 대응 헤더.
+- **일괄 검사**: 소스 첫 줄 Copyright(58파일 + `WxGame.Build.cs` 전부 통과), `FORCEINLINE`·`inline`·헤더 본문 정의(0건), 람다(0건), 자체 타입의 `Wx` 접두사(전부 준수). `WxGame`은 게임 모듈이라 플러그인 참조 규칙의 대상이 아니다.
+- **직전 리뷰 대비 정리**: 프론트엔드 위젯 하드코딩 지적은 `WxFrontEndWidget`이 제거되고 `FWxFrontEndOption`·`UWxFrontEndLibrary`로 바뀌어 해소됐다. Quest·Dialogue 주석 불일치는 주석이 "재주입 경로 없음"(`WxViewModel_Quest.cpp:82`)·"생성자 컴포넌트라 늦지 않음"(`WxViewModel_Dialogue.cpp:71`)으로 고쳐져 해소됐다. 플레이어 입력 콜백의 `Handle` 접두사 지적은 현행 `CLAUDE.md` 코딩 규칙에 해당 조항이 없어 뺐다. 처형 프롬프트 지적 중 "0번 플레이어 추측"은 로컬 플레이어 1명 전제로, "첫 처형 어빌리티 채택"은 앞잡·뒤잡을 한 어빌리티(`FinisherVariant`/`BackstabVariant`)가 처리하는 구조로 해소되어 발견 3의 불일치만 남겼다. 즉시 태그 확인 지적(발견 5)은 "이 시점엔 `OnDeath` 구독자가 없다"는 직전 근거가 틀려(권위 측 `AWxAIController`는 `Super` 안의 빙의에서 이미 구독한다) 근거를 엔진 스폰 순서로 바꿨다.
+- **재검증 결과 제외한 항목**: 적이 스포너에 부착되어 이동 복제가 `AttachmentReplication`을 타는 건은 속도·스무딩 손실을 엔진 소스로 확인했으나 `WxSpawner.cpp:153`–`:155`가 정찰 경로 조회를 위해 알고 받아들인 대가로 명시해 제외했다. `UWxAbility_UseItem`의 조기 종료·중복 `EndAbility`가 `EndUseItem`을 부르는 건은 `WxItemUseComponent.cpp:29`의 일치 가드로 무해하다. `UWxRespawnLibrary`의 생성 실패 복귀가 `Possess(DeadPawn)`로 어빌리티셋을 다시 부여하는 건은 `WxAbilitySystemComponent.cpp:49`의 `bAbilitySetsGranted` 가드로 막힌다. `LastAcquiredItem` 교체 시 이전 인스턴스를 `Deinitialize`하지 않는 건은 아직 떠 있는 토스트의 표시가 비는 것을 막는 의도(`WxViewModel_Inventory.h:74`)로 보아 제외했다. `UWxViewModelResolver_InteractionList`·`UWxViewModelResolver_Ability`가 `ExpectedType`을 검사하지 않는 건은 엔진이 타입 불일치 인스턴스를 오류와 함께 거부하고(`MVVMViewClass.cpp:156`) 현 C++ 구조에 서브클래스 기대가 없어 제외했다. `UWxCheatManager`의 "존재 시점은 곧 권위" 전제는 클라가 `EnableCheats`로 만들 수 있지만 권위 없는 GE 적용을 ASC가 거부해 무동작이므로 제외했다. `AWxEnemyCharacter::HandleOwnerDeath`의 0번 플레이어 보상은 코드 주석이 밝힌 확정 정책이라 다루지 않았다.
+- **미검토 / 한계**: 정적 리뷰이며 빌드·PIE·네트워크 실행은 하지 않았다. WBP/BP 내부와 BP 디폴트 값(플레이어 폰별 AbilitySet 구성, `UWxAbility_Interact::ScanRadius`와 스캐너 반경의 일치, `Team` 설정 등)은 범위 밖이라 발견 1·3의 실제 발현 여부는 콘텐츠 확인이 필요하다. `WxMetaHumanComponent`의 LOD 매핑 산식과 엔진 `UMetaHumanComponentUE` 내부 동작은 에디터 실행 없이는 검증하지 못했다. 멀티플레이 경로는 게임 진입·부활이 스탠드얼론 전용인 현재 구조에 맞춰 권위·복제 지적을 단정하지 않았다.
 
 ---
-*문서 기준 커밋 `231068b` · 리뷰일 2026-09-13 · 소스 59파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `9d8cb2dd` · 리뷰일 2026-09-14 · 소스 58파일 — `/module-review`로 갱신*

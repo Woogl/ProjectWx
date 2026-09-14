@@ -1,87 +1,85 @@
 # WxInventory — 코드 리뷰
 
-> 모듈 경계·코딩 규칙은 이번에도 흠이 없다(WxCore 외 Wx 플러그인 의존 0 — `.uplugin` 의 `Plugins` 는 `WxCore`·`GameplayAbilities`·`StateTree`, `Build.cs` 의 Wx 의존은 `WxCore` 하나, 포함하는 외부 Wx 헤더는 `WxInteractable.h`·`WxCollisionChannels.h`·`WxGameplayTags.h` 뿐이며, 저작권 첫 줄 24/24, 람다·`FORCEINLINE` 0건, 헤더 함수 정의는 StateTree `GetInstanceDataType()` 2건과 템플릿 `FindFragmentByClass<T>()` 2건뿐으로 전부 예외 사유 주석이 달려 있고, `BlueprintCallable` 은 BP Function Library 인 `UWxRewardLibrary::GrantReward` 하나다). 직전 리뷰(`04420d246`) 이후 이 모듈의 변경은 `WxItemUseComponent`·`WxAnimNotify_UseItem` 4파일이 `Source/WxGame` 에서 이관된 것뿐이고(아래 참조), 인벤토리 본체 코드는 손대지 않아 기존 7건이 그대로 살아 있다. 이번 리뷰는 `README.md`·`.uplugin`·`*.Build.cs`·Public 헤더 전부를 읽고 `WxInventoryComponent.cpp` 와 이관된 4파일을 정독했으며, 소비자 계약을 `Source/WxGame` 의 `WxAbility_UseItem`·`WxAbility_Interact`·`WxViewModel_Inventory`·`WxCharacterBase`·`WxPlayerCharacter` 로 교차 확인했다.
->
-> **중복 여부 확인 결과(발견 아님)**: `WxItemUseComponent`/`WxAnimNotify_UseItem` 은 중복이 아니라 이관이다. 커밋 `48d191f` 가 `Source/WxGame/Inventory/WxItemUseComponent.cpp` → `Plugins/WxInventory/.../Private/Inventory/WxItemUseComponent.cpp` 를 `similarity index 100%` 의 rename 으로 기록했고(AnimNotify cpp 도 동일), 헤더 2개는 `WXGAME_API` → `WXINVENTORY_API` 1줄만 바뀌었다. 현재 `Source/WxGame` 아래에 같은 이름의 클래스는 남아 있지 않다(`find Source -iname "*UseItem*"` 결과는 `WxAbility_UseItem` 뿐). 확신도 높음.
+> 모듈 경계와 코딩 규칙은 흠이 없고(Wx 의존은 `WxCore` 하나, 저작권 첫 줄 24/24, 람다·`FORCEINLINE` 0건, 헤더 본문 정의 4건은 모두 예외 사유 주석 보유, `BlueprintCallable` 은 BP Function Library 의 `UWxRewardLibrary::GrantReward` 하나), 서버 권위·FastArray 복제 골격도 건전하다 — 실제로 드러나는 문제는 통지 입자도가 경로마다 달라 획득 연출 수량이 쪼개지는 1건이고 나머지는 확장점·저작 데이터·실패 경로에 걸린 잠재 결함이다. 이번 리뷰는 소스 24파일을 모두 읽고 인벤토리 컴포넌트·아이템 인스턴스·사용 컴포넌트를 정독했으며, 복제 순서와 FastArray 콜백 재호출은 UE 5.8 엔진 소스로, 소비자 계약은 `Source/WxGame` 의 뷰모델·어빌리티로 교차 확인했다.
 
 ## 요약
 | 심각도 | 개수 |
 | --- | --- |
 | 🔴 심각 | 0 |
-| 🟡 개선 | 3 |
-| 🟢 사소 | 5 |
+| 🟡 개선 | 1 |
+| 🟢 사소 | 7 |
 
 ## 결과
 
-### 1. 🟡 스택 변경 통지의 입자도가 경로마다 달라 획득 연출에 틀린 수량이 뜬다
-- **위치**: `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp:302-303`, `:318-319`, `:412`, `:590-599` / 소비자 `Source/WxGame/MVVM/WxViewModel_Inventory.cpp:103-121`
+### 1. 🟡 스택 변경 통지의 입자도가 경로마다 달라, 한 번의 획득이 여러 토스트로 쪼개진다
+- **위치**: `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp:302-303`, `:318-319`, `:412`, `:66-67`, `:86-87`, `:108-109`, `:597` / 소비자 `Source/WxGame/MVVM/WxViewModel_Inventory.cpp:104-122`
 - **범주**: 버그/정확성
-- **문제**: 같은 델리게이트(`OnInventoryStackChanged`)가 경로마다 다른 단위로 발행된다. 추가 경로는 머지·분할된 슬롯 **하나마다** 1회(302-303·318-319행), 소비 경로는 배치 전체에 1회(412행, `-NumToConsume`), 클라이언트 복제 경로는 엔트리 하나마다 1회(87·109행)다. 구독자가 `NewCount` 만 읽으면 무해하지만 실제 구독자는 `Delta` 를 쓴다 — `UWxViewModel_Inventory::HandleStackChanged` 는 `Delta > 0` 마다 획득 연출용 VM 을 새로 만들어 `AcquiredCount = Delta` 를 넣고 `LastAcquiredItem` 에 덮어쓴다(`WxViewModel_Inventory.cpp:113-117`). 결과적으로 마지막 조각의 델타만 화면에 남는다. 구체적으로: Stackable Fragment 가 없는(=`MaxStack` 1) 아이템 5개를 보상으로 주면 `Delta == 1` 통지가 5번 나가 토스트가 "x1" 로 뜨고, 97/99 슬롯에 5개를 더하면 "x2"(머지분) 뒤 "x3"(신규 슬롯분)이 떠 최종 표시가 x3 이 된다. 스탠드얼론·서버에서 그대로 재현된다. 덤으로 발행마다 `NotifyStackChangedFromList` 가 597행에서 엔트리 전체를 훑고 구독자가 `RefreshAllItems()`(`WxViewModel_Inventory.cpp:121`)를 다시 돌리므로, 대량 지급 1회가 슬롯 수만큼의 전체 재스캔·VM 생성으로 증폭된다.
-- **제안**: 발행 단위를 "변경 배치당 1회"로 통일한다. `AddItemDefinition` 이 머지·분할 델타를 누적해 함수 끝에서 한 번만 발행하면(소비 경로가 이미 그 형태다) 표시도 맞고 전체 재스캔도 지급당 1회로 줄어든다. 슬롯 단위 정보는 `OnInventorySlotChanged` 가 이미 담당한다.
+- **문제**: 같은 `OnInventoryStackChanged` 가 경로마다 다른 단위로 발행된다. 서버 추가 경로는 머지·분할된 슬롯마다 1회(302-303·318-319행), 서버 소비 경로는 배치 전체에 1회(412행), 클라이언트 복제 경로는 엔트리마다 1회(66-67·86-87·108-109행)다. 구독자 `UWxViewModel_Inventory::HandleStackChanged` 는 `Delta > 0` 이 올 때마다 획득 연출용 VM 을 새로 만들어 `AcquiredCount = Delta` 로 `LastAcquiredItem` 에 넣는다(`WxViewModel_Inventory.cpp:110-118`, 헤더 `WxViewModel_Inventory.h:73-74` 는 발행마다 토스트가 독립적으로 뜨는 것을 의도로 적고 있다). 그래서 Stackable 없는 아이템 5개를 보상으로 받으면 "x1" 이 5번, 97/99 슬롯에 5개를 더하면 "x2" 와 "x3" 이 따로 뜬다. 스탠드얼론·서버에서 그대로 재현된다. 덤으로 발행마다 597행이 엔트리 전체를 다시 합산하고 구독자가 O(N²) 인 `RefreshAllItems()`(`WxViewModel_Inventory.cpp:121`, `:124-171`)를 돌려, 대량 지급 1회가 슬롯 수만큼 증폭된다.
+- **제안**: 발행 단위를 "변경 배치당 ItemDef 1회"로 통일한다. 서버는 `AddItemDefinition` 이 델타를 누적해 함수 끝에서 한 번 발행한다(소비 경로가 이미 이 형태이고, 슬롯 단위 정보는 `OnInventorySlotChanged` 가 계속 담당한다). 클라이언트는 한 번의 수신에서 Change(+2)·Add(+3) 콜백이 따로 호출되므로, 세 콜백에서 ItemDef 별 델타를 모았다가 가장 마지막에 호출되는 `PostReplicatedReceive`(119-126행)에서 한 번 발행해야 서버와 같은 수량이 나온다.
 - **확신도**: 높음
 
-### 2. 🟡 FastArray 수신 콜백이 유효성 검사보다 먼저 `LastObservedCount` 를 갱신해, 엔진이 주는 복구 콜백을 스스로 버린다
-- **위치**: `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp:82`, `:84`, `:87`, `:103-106`, `:592`
+### 2. 🟢 `AddEntry` 가 가상 확장점 호출 너머로 `Entries` 원소 참조를 붙든다
+- **위치**: `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp:135-150`
 - **범주**: 버그/정확성
-- **문제**: `PostReplicatedAdd` 는 82행에서 `Entry.LastObservedCount = Entry.StackCount;` 를 무조건 수행한 뒤 84행에서야 `Entry.Instance` 널 검사를 한다. 엔트리 도착 시점에 서브오브젝트 참조가 아직 NetGUID 미해결이면 통지는 건너뛰는데 관찰값만 최신으로 올라간다. 엔진은 GUID 가 나중에 매핑되면 그 항목들을 모아 `PostReplicatedChange(ChangedIndices, ...)` 를 다시 호출해 주지만, 그때는 이미 `Delta == Entry.StackCount - Entry.LastObservedCount == 0` 이라 106행 `Delta != 0` 가드가 통째로 걸러낸다 — 복구 기회가 코드 자신에 의해 소거된다. 두 번째 경로도 같다: 인스턴스는 해결됐지만 그 위의 `ItemDef` 가 미해결로 남으면 87행이 `nullptr` 을 넘기고 `NotifyStackChangedFromList` 가 592행에서 조용히 반환하는데, 이때도 관찰값은 최신이다(`OnRep_ItemDef` 는 의도적으로 델타를 만들지 않고 "다시 읽어라" 신호만 보낸다). 목록 **표시** 는 같은 경로에서 함께 호출되는 `PostReplicatedReceive` → `OnInventoryContentsChanged`(119-126행)가 뒤늦게 따라잡으므로, 발현 범위는 발견 1 의 획득 연출이 해당 아이템에 대해 아예 뜨지 않는 것이다. `PostReplicatedChange`(103-104행)도 같은 형태다.
-- **제안**: `LastObservedCount` 갱신을 실제로 통지를 발행하는 분기 안(널 검사 + `ItemDef` 유효 확인 이후)으로 옮긴다. 그러면 미해결 슬롯은 GUID 매핑 시 재호출되는 `PostReplicatedChange` 에서 누적 델타로 복구된다.
-- **확신도**: 중간 (엔진의 재호출은 직전 리뷰가 UE 5.8 `FastArraySerializer.h` 소스로 확인했으나, 인스턴스가 실제로 미해결 상태로 도착하는 빈도는 번치 순서에 달려 있고 PIE 실측은 하지 않았다)
-
-### 3. 🟡 `Entries` 배열 참조·인덱스를 가상 확장점·외부 브로드캐스트 너머까지 붙들고 있다
-- **위치**: `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp:135-150`, `:285-309`
-- **범주**: 버그/정확성
-- **문제**: 두 지점이 같은 형태다. (a) `FWxInventoryList::AddEntry` 는 135행 `Entries.AddDefaulted_GetRef()` 로 얻은 참조 `NewEntry` 를 들고 141-147행에서 가상 확장점 `Fragment->OnInstanceCreated(NewEntry.Instance)` 를 호출한 뒤 149행 `MarkItemDirty(NewEntry)`·150행 `return NewEntry.Instance` 를 이어간다. `OnInstanceCreated` 는 README 와 `Public/Items/WxItemFragment.h:40` 이 공식 확장점으로 광고하는 가상 함수인데, 그 안에서 같은 인벤토리에 아이템이 추가되면 `Entries` 재할당으로 `NewEntry` 가 댕글링된다. (b) `AddItemDefinition` 의 머지 루프는 285행에서 `const TArray<FWxInventoryEntry>& Entries` 를 잡고 루프 조건(286행)과 인덱싱(288·293·298·299행)에 계속 쓰면서, 루프 **안**의 302-303행에서 외부 구독자에게 브로드캐스트한다. 구독자가 같은 인벤토리를 변경하면 인덱스 의미와 배열 참조가 동시에 무효해진다(`Entries.Num()` 을 매 회전 재평가해 범위 밖 접근은 막히지만, 슬롯을 건너뛰거나 중복 머지할 수 있다). 현재 구독자인 뷰모델들은 읽기만 해서 발현되지 않지만, (b)는 임의의 구독자가 트리거할 수 있어 도달 경로가 넓다.
-- **제안**: (a) `const int32 NewIndex = Entries.AddDefaulted();` 로 인덱스를 잡고 프래그먼트 호출 이후 `Entries[NewIndex]` 로 다시 접근한다. (b) 발견 1 의 배치 발행으로 옮기면 루프 안 브로드캐스트가 사라져 함께 해소된다.
+- **문제**: 135행 `Entries.AddDefaulted_GetRef()` 로 얻은 원소 참조 `NewEntry` 를 들고 145행에서 `Fragment->OnInstanceCreated(NewEntry.Instance)` 를 호출한 뒤 149-150행에서 다시 쓴다. `OnInstanceCreated` 는 `Public/Items/WxItemFragment.h:39-40` 과 README 가 기능 확장점으로 광고하는 가상 함수인데, 파생 Fragment 가 그 안에서 같은 인벤토리에 아이템을 추가·차감하면(묶음 아이템 개봉 등) `Entries` 버퍼가 재할당·이동되어 `MarkItemDirty(NewEntry)` 가 해제된 메모리를 쓴다. 현재 오버라이드는 충전량만 채우는 `UWxItemFragment_Charges` 하나라 발현되지 않는다.
+- **제안**: 인스턴스를 로컬 변수로 먼저 완성(`NewObject` → `SetItemDef` → Fragment 루프)한 뒤, 마지막에 `AddDefaulted_GetRef()` 로 엔트리를 만들어 대입과 `MarkItemDirty` 까지 중간 호출 없이 끝낸다.
 - **확신도**: 중간
 
-### 4. 🟢 `UseItemByDef` 가 차감 이후에 GE 를 적용해, 지속형 효과의 `SourceObject` 가 댕글링된다
-- **위치**: `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp:537-540`, `:555`, `:560-563`
-- **범주**: 버그/정확성
-- **문제**: 538행이 `Context.AddSourceObject(SourceInstance)` 로 아이템 인스턴스를 GE 컨텍스트에 싣고, 555행에서 `ConsumeItemsByDefinition(ItemDef, 1)` 이 그 인스턴스의 엔트리를 통째로 제거한 뒤, 562행에서 GE 를 적용한다. 엔트리가 사라지면 `UWxItemInstance` 를 붙드는 `UPROPERTY` 참조가 남지 않는다(Outer 는 GC 를 막지 않으며, `UnregisterReplicatedInstance` 로 서브오브젝트 등록도 풀린다). 엔진의 `FGameplayEffectContext::SourceObject` 는 `TWeakObjectPtr` 이므로 즉발 GE 는 같은 프레임에 끝나 무사하지만 지속형·무한 GE 는 다음 GC 이후 `GetSourceObject()` 가 널이 된다. `Public/Items/WxItemInstance.h:19` 가 SourceObject 를 "효과 측이 인스턴스별 데이터에 접근하는 진입점"으로 광고하고 있어, MMC/ExecCalc/GameplayCue 가 그것을 읽는 순간 조용히 널을 받는다. 저장소 전체에 `GetSourceObject` 호출부가 아직 0건이고 소비 아이템도 충전형(에스트병) 하나뿐이라 이 경로(555행)를 타지 않지만, 지속 버프 물약을 추가하는 순간 발현된다.
-- **제안**: 560-563행의 GE 적용을 547행의 차감 분기보다 **앞으로** 옮긴다(가용성·Spec 검증은 이미 그 앞에서 끝났다). 차감 후 적용을 유지해야 한다면 적용이 끝날 때까지 인스턴스를 강참조로 붙든다.
-- **확신도**: 중간
-
-### 5. 🟢 `MaxStack` 이 0 이하면 `AddItemDefinition` 이 무한 루프에 빠진다
+### 3. 🟢 `MaxStack` 이 0 이하면 `AddItemDefinition` 이 무한 루프에 빠진다
 - **위치**: `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp:278`, `:312-330`
 - **범주**: 성능/안전
-- **문제**: 314행 `ChunkCount = FMath::Min(MaxStack, Remaining)` 이 0 이면 325행 `Remaining -= ChunkCount` 가 진전을 못 만들어, while 루프가 매 회전마다 새 엔트리와 `UWxItemInstance` 를 만들며 영원히 돈다(행 + OOM). `UWxItemFragment_Stackable::MaxStack` 의 `ClampMin = "1"`(`Public/Items/WxItemFragment.h:98`)은 디테일 패널 입력만 막을 뿐, 클램프가 붙기 전에 저장된 값이나 MCP 툴셋·스크립트로 직접 쓰인 값은 막지 못한다.
+- **문제**: 278행은 `Stackable->MaxStack` 을 검증 없이 쓴다. 0 이면 314행 `ChunkCount` 가 0 이라 325행이 진전을 만들지 못하고, 음수면 `Remaining` 이 오히려 늘어나, while 루프가 매 회전 엔트리와 `UWxItemInstance` 를 만들며 멈추지 않는다(행 + OOM). `ClampMin = "1"`(`Public/Items/WxItemFragment.h:98`)은 에디터 입력 위젯에만 적용되므로, 클램프가 붙기 전에 저장된 값이나 스크립트·툴셋이 리플렉션으로 쓴 값은 막지 못한다.
 - **제안**: 278행을 `const int32 MaxStack = FMath::Max(1, Stackable ? Stackable->MaxStack : 1);` 로 한 번 방어한다.
 - **확신도**: 중간
 
-### 6. 🟢 Stackable 과 Charges 를 함께 붙이면 스택 전체가 충전량 하나를 공유한다
-- **위치**: `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp:283-310`, `:547-554`, `Plugins/WxInventory/Source/WxInventory/Private/Items/WxItemFragment.cpp:11-19`
+### 4. 🟢 Stackable 과 Charges 를 함께 붙이면 스택 전체가 충전량 하나를 공유한다
+- **위치**: `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp:283-310`, `:547-554`, `Plugins/WxInventory/Source/WxInventory/Private/Items/WxItemFragment.cpp:11-19`, `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemDefinition.h:30-64`
 - **범주**: 설계/구조
-- **문제**: 충전량은 `UWxItemInstance` 단위인데 Stackable 은 여러 개를 인스턴스 하나로 머지한다. 두 Fragment 를 함께 부착한 아이템을 3개 획득하면, 첫 획득만 `OnInstanceCreated` 로 `MaxCharges` 를 채우고(`WxItemFragment.cpp:17`) 이후 획득은 머지 경로(283-310행)라 인스턴스를 만들지 않아 충전량이 늘지 않는다. `UseItemByDef` 는 Charges 가 있으면 스택을 건드리지 않고 그 하나의 충전량만 1 줄이므로(547-554행), 3개를 들고도 총 `MaxCharges` 회만 쓸 수 있다. `UWxItemDefinition` 에 `IsDataValid` 가 없어 저작 시 아무 경고도 없다. 두 축을 직교로 설계한 것 자체는 Fragment 컴포지션의 의도이나, 이 조합만은 실질적으로 성립하지 않는다.
-- **제안**: `UWxItemDefinition::IsDataValid` 를 추가해 Stackable + Charges 동시 부착을 에러로 잡는다. 주석에 "직교"라 적힌 Usable + Charges(`Public/Items/WxItemFragment.h:61`)와 달리 이쪽은 무효 조합이라는 점을 Charges 주석에도 남긴다.
+- **문제**: 충전량은 `UWxItemInstance` 단위인데 Stackable 은 여러 개를 인스턴스 하나로 머지한다. 두 Fragment 를 함께 부착한 아이템을 3개 획득하면 첫 획득만 `OnInstanceCreated` 로 `MaxCharges` 를 채우고(`WxItemFragment.cpp:17`) 이후 획득은 머지 경로(283-310행)라 인스턴스를 만들지 않는다. `UseItemByDef` 는 Charges 가 있으면 스택을 건드리지 않고 그 하나의 충전량만 줄이므로(547-554행), 3개를 들고도 총 `MaxCharges` 회만 쓸 수 있다. `UWxItemDefinition` 에 `IsDataValid` 가 없어 저작 시 경고도 없다. 기능 축을 직교로 두는 Fragment 컴포지션은 의도이지만 이 조합만은 성립하지 않는다.
+- **제안**: `UWxItemDefinition::IsDataValid` 에서 Stackable + Charges 동시 부착을 에러로 잡고, Charges 클래스 주석(`Public/Items/WxItemFragment.h:57-62`)에 Usable 과 달리 Stackable 과는 함께 쓸 수 없다고 남긴다.
 - **확신도**: 중간
 
-### 7. 🟢 `RemoveItemInstance` 는 호출부 0건인 데드 코드다
-- **위치**: `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryComponent.h:175-179`, `Private/Inventory/WxInventoryComponent.cpp:352-384`
+### 5. 🟢 `HandleUseItemEvent` 가 `UseItemByDef` 의 실패를 버려, 마시는 모션만 나가고 흔적이 남지 않는다
+- **위치**: `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxItemUseComponent.cpp:83-91`
+- **범주**: 버그/정확성
+- **문제**: 90행은 `UseItemByDef` 의 반환값을 버리고, 88행에서 인벤토리를 못 찾아도 조용히 끝난다. `UseItemByDef` 는 6개 경로에서 false 를 돌려주는데(`WxInventoryComponent.cpp:508` 널 정의, `:516` Usable 없음, `:522` 사용 가능 인스턴스 없음, `:533` 대상 ASC 없음, `:543` GE Spec 무효, `:557` 차감 실패), 어빌리티 발동 시점의 사전 검증(`Source/WxGame/AbilitySystem/Ability/WxAbility_UseItem.cpp:35`)과 AnimNotify 시점 사이에 상태가 바뀌면 몽타주를 끝까지 보고도 회복이 없고, 83-84행에서 `PendingItemDefinition` 은 이미 비워져 재시도 여지도 없다. 같은 모듈의 픽업·보상 실패 경로는 진단 로그를 남기는데(`WxItemPickup.cpp:93`, `WxRewardLibrary.cpp:62`·`:70`) 이 파일에는 로그 카테고리가 없어, Effect 클래스 누락 같은 저작 실수도 묻힌다.
+- **제안**: 88-91행 실패 분기에 `UE_LOG(Warning)` 한 줄씩을 남긴다(모듈 관례대로 `DEFINE_LOG_CATEGORY_STATIC`). 어빌리티 사전 검증이 정상 경로를 막고 있으므로 게임플레이로 되돌릴 필요는 없고 관측만 되면 충분하다.
+- **확신도**: 중간 (정상 플레이에서는 도달 빈도가 낮다 — 의도된 침묵일 수 있다)
+
+### 6. 🟢 소모형 아이템 인스턴스를 GE `SourceObject` 로 실어, 지속형 효과에서는 나중에 널이 된다
+- **위치**: `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp:536-540`, `:555`, `:560-563`, `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemInstance.h:19`
+- **범주**: 버그/정확성
+- **문제**: 538행이 슬롯 인스턴스를 SourceObject 로 싣는데, 엔진의 `FGameplayEffectContext::SourceObject` 는 `TWeakObjectPtr` 다(엔진 `GameplayEffectTypes.h:443`). 비충전 소비 아이템은 마지막 1개가 차감되면(555행) 엔트리 제거로 인스턴스를 붙드는 강참조가 사라져 다음 GC 에 수거되므로, 즉발 GE 는 무사하지만 지속형·무한 GE 를 이후 시점에 다루는 MMC·GameplayCue 는 `GetSourceObject()` 로 널을 받는다. 차감(555행)과 적용(562행)의 순서를 바꿔도 인스턴스 수명은 같아 해결되지 않는다. 헤더(`WxItemInstance.h:19`)는 SourceObject 를 효과 측이 인스턴스별 데이터에 접근하는 진입점으로 광고하지만, 저장소에 `GetSourceObject` 호출부가 0건이고 소비 아이템이 인스턴스가 남는 충전형 하나뿐이라 아직 발현되지 않는다.
+- **제안**: 헤더 계약을 "적용 시점에만 유효"로 좁히거나, 소모형 경로는 수명이 보장되는 `ItemDef` 를 SourceObject 로 싣는다. 인스턴스별 값이 필요하면 적용 시점에 Spec(SetByCaller 등)으로 복사한다.
+- **확신도**: 중간
+
+### 7. 🟢 FastArray 수신 콜백이 유효성 검사보다 먼저 `LastObservedCount` 를 갱신해, 참조 매핑 후 재호출에서 통지를 잃는다
+- **위치**: `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp:82-88`, `:103-106`, `:59`, `:592`
+- **범주**: 버그/정확성
+- **문제**: `PostReplicatedAdd` 는 82행에서 `LastObservedCount` 를 무조건 갱신한 뒤 84행에서야 `Entry.Instance` 를 검사하고, 87행은 `GetItemDef()` 가 널이면 592행에서 조용히 반환된다(103-104행도 같은 형태). 인스턴스 참조가 미해결인 채 도착하면 통지는 건너뛰었는데 관찰값만 최신이 되어, GUID 매핑 후 엔진이 다시 부르는 `PostReplicatedChange`(엔진 `FastArraySerializer.h:1343-1385`)에서 `Delta == 0` 으로 106행에 걸러진다. 목록 표시는 `PostReplicatedReceive`(119-126행)가 따라잡으므로 잃는 것은 해당 아이템의 획득 연출뿐이다. 현재 설정에서는 빈도가 낮다 — 엔진이 컴포넌트의 등록 서브오브젝트를 컴포넌트 본체보다 먼저 쓰고(엔진 `DataChannel.cpp:4347-4381`) 프로젝트 설정에 비동기 넷 로딩이 없어, 미해결 도착은 드물다.
+- **제안**: `LastObservedCount` 갱신을 실제 발행 분기(Instance·ItemDef 유효 확인 이후) 안으로 옮긴다. 이때 한 번도 관찰하지 못한 엔트리는 `INDEX_NONE`(-1)으로 남으므로 103행과 59행의 델타 계산에서 `INDEX_NONE` 을 0 으로 취급해야 ±1 오차가 생기지 않는다.
+- **확신도**: 낮음 (복제 시스템이 Iris 로 선택되는지 확인하지 못해, 그 경우의 빈도는 판단하지 않았다)
+
+### 8. 🟢 `RemoveItemInstance` 는 호출부 0건인 데드 코드다
+- **위치**: `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryComponent.h:175-179`, `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp:352-384`
 - **범주**: 중복/복잡도
-- **문제**: 저장소 전체에서 호출부가 0건이고, 헤더 177행이 스스로 "미구현: 현재 호출부가 0건이다"라고 적고 있다. 프로젝트에는 호출자 없는 방어적 선언을 두지 않는다는 기존 결정이 있고, 지난 리뷰에서 같은 지적을 받은 장비 경로(`UWxEquipmentComponent`·`UWxItemFragment_Equippable`)는 실제로 제거됐는데 이 함수만 남았다. 33행 분량이 "슬롯 통째 제거 + 등록 해제 + 통지" 순서를 소비 경로와 미묘하게 다르게 재구현하고 있어, 유지되는 동안 계속 두 갈래 진실을 만든다.
-- **제안**: 장비·버리기 기능을 곧 쓸 계획이 없으면 함수를 걷어낸다. 남긴다면 "미구현" 문구 대신 어떤 기능이 이것을 쓸 예정인지 적어 둔다.
+- **문제**: 저장소 전체에서 호출부가 0건이고 헤더 177행도 "현재 호출부가 없다"고 적는다. 33행 분량이 "슬롯 제거 + 등록 해제 + 통지" 순서를 소비 경로(`ConsumeItemsByDefinition`, 386-414행)와 따로 구현하고 있어, 발견 1 처럼 통지 규약을 바꿀 때 함께 고쳐야 하는 두 번째 갈래로 남는다.
+- **제안**: 버리기·장비 해제 같은 사용처가 생길 때 다시 만들기로 하고 걷어낸다.
 - **확신도**: 높음
 
-### 8. 🟢 `HandleUseItemEvent` 가 `UseItemByDef` 의 실패를 버려, 마시는 모션만 나가고 아무 흔적도 남지 않는다
-- **위치**: `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxItemUseComponent.cpp:90`
-- **범주**: 버그/정확성
-- **문제**: 이번에 이관된 파일에서 새로 보게 된 지점이다. 90행 `Inventory->UseItemByDef(ItemDefinition);` 은 반환값을 버린다. `UseItemByDef` 는 6개 경로에서 false 를 돌려주는데(`WxInventoryComponent.cpp:508` 널 정의, `:516` Usable 없음, `:522` 사용 가능 인스턴스 없음, `:533` 대상 ASC 없음, `:543` GE Spec 무효, `:557` 차감 실패), 어빌리티 발동 시점(`Source/WxGame/AbilitySystem/Ability/WxAbility_UseItem.cpp:35`)과 AnimNotify 시점 사이에 상태가 바뀌면 플레이어는 몽타주를 끝까지 보고도 회복이 없고, 83-84행에서 `PendingItemDefinition` 은 이미 비워져 재시도 여지도 없다. 같은 모듈의 다른 실패 경로들은 모두 진단 로그를 남기는데(`WxItemPickup.cpp:93`, `WxRewardLibrary.cpp:62`·`:70`) 이 컴포넌트에는 로그 카테고리 자체가 없어, 저작 실수(Usable Fragment 없는 `ConsumableDef`, Effect 클래스 누락)가 조용히 묻힌다.
-- **제안**: 90행을 `if (!Inventory->UseItemByDef(ItemDefinition))` 로 감싸 `UE_LOG(Warning)` 한 줄을 남긴다(모듈 관례대로 `DEFINE_LOG_CATEGORY_STATIC`). 실패를 게임플레이로 되돌릴 필요는 없다 — 어빌리티 쪽 사전 검증이 정상 경로를 이미 막고 있으므로 관측만 되면 충분하다.
-- **확신도**: 중간 (정상 플레이에서는 어빌리티 사전 검증에 걸려 도달 빈도가 낮다 — 의도된 침묵일 수 있다)
-
 ## 검토 범위
-- **깊게 본 파일**: `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp`, `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryComponent.h`, `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxItemUseComponent.cpp`, `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxItemUseComponent.h`, `Plugins/WxInventory/Source/WxInventory/Private/AnimNotify/WxAnimNotify_UseItem.cpp`, `Plugins/WxInventory/Source/WxInventory/Public/AnimNotify/WxAnimNotify_UseItem.h`, `Plugins/WxInventory/Source/WxInventory/Private/Items/WxItemInstance.cpp`, `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemFragment.h`
-- **훑은 파일**: `Plugins/WxInventory/README.md`, `Plugins/WxInventory/WxInventory.uplugin`, `Plugins/WxInventory/Source/WxInventory/WxInventory.Build.cs`, `.../Private/Items/WxItemPickup.cpp`, `.../Public/Items/WxItemPickup.h`, `.../Private/WxRewardLibrary.cpp`, `.../Public/WxRewardLibrary.h`, `.../Private/Inventory/WxStateTreeTask_GiveRewards.cpp`, `.../Private/Inventory/WxStateTreeTask_RefillItemCharges.cpp`, `.../Public/Inventory/WxStateTreeTask_GiveRewards.h`, `.../Public/Inventory/WxStateTreeTask_RefillItemCharges.h`, `.../Private/Items/WxItemDefinition.cpp`, `.../Public/Items/WxItemDefinition.h`, `.../Private/Items/WxItemFragment.cpp`, `.../Public/Items/WxItemInstance.h`, `.../Private/Items/WxRewardTableRow.cpp`, `.../Public/Items/WxRewardTableRow.h`, `.../Private/WxInventoryModule.cpp`, `.../Public/WxInventoryModule.h`. 계약 교차 확인으로 `Source/WxGame/AbilitySystem/Ability/WxAbility_UseItem.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp`, `Source/WxGame/MVVM/WxViewModel_Inventory.cpp`, `Source/WxGame/Character/WxCharacterBase.h`, `Source/WxGame/Character/WxPlayerCharacter.cpp`, `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h`, `Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp`
+- **깊게 본 파일**: `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp`, `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryComponent.h`, `Plugins/WxInventory/Source/WxInventory/Private/Items/WxItemInstance.cpp`, `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemInstance.h`, `Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxItemUseComponent.cpp`, `Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxItemUseComponent.h`, `Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemFragment.h`, `Plugins/WxInventory/Source/WxInventory/Private/Items/WxItemFragment.cpp`, `Plugins/WxInventory/Source/WxInventory/Private/Items/WxItemPickup.cpp`, `Plugins/WxInventory/Source/WxInventory/Private/WxRewardLibrary.cpp`
+- **훑은 파일**: `Plugins/WxInventory/README.md`, `Plugins/WxInventory/WxInventory.uplugin`, `Plugins/WxInventory/Source/WxInventory/WxInventory.Build.cs`, 나머지 소스 14파일(`WxItemPickup.h`, `WxRewardLibrary.h`, `WxItemDefinition.h/.cpp`, `WxRewardTableRow.h/.cpp`, `WxStateTreeTask_GiveRewards.h/.cpp`, `WxStateTreeTask_RefillItemCharges.h/.cpp`, `WxAnimNotify_UseItem.h/.cpp`, `WxInventoryModule.h/.cpp`). 계약 교차 확인으로 `Source/WxGame/MVVM/WxViewModel_Inventory.h/.cpp`, `Source/WxGame/MVVM/WxViewModel_InventoryItem.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_UseItem.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp`, `Source/WxGame/Character/WxEnemyCharacter.cpp`, `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemComponent.cpp`, 엔진 `FastArraySerializer.h`·`DataChannel.cpp`·`ActorReplication.cpp`·`GameplayEffectTypes.h`·`UEBuildTarget.cs`
 - **미검토 / 한계**:
-  - 이관된 `WxItemUseComponent` 의 사용 흐름은 전 경로를 따라갔고 발견 8 외에는 문제를 찾지 못했다. 확인한 것: ASC 는 `AWxCharacterBase` 의 기본 서브오브젝트라 `BeginPlay`(39-43행)의 조회가 널이 될 여지가 없다(`WxCharacterBase.cpp:32`); `Event_UseItem` 을 트리거로 쓰는 어빌리티가 저장소에 없어 AnimNotify 가 모든 머신에서 발행돼도 비권위 측은 71행 게이트에서 무동작이다; `PendingItemDefinition` 은 `EndUseItem` 의 동일성 비교(29행) 덕에 Exclusive 그룹 교체 시에도 남의 것을 지우지 않는다; 인벤토리가 PlayerController 에 붙어 소유 클라에만 복제되므로 어빌리티의 클라 측 `CanUseItem` 사전 검증이 성립한다.
-  - 소비 성립이 **서버 측 AnimNotify 발화**라는 단일 경로에 걸려 있다(`WxAnimNotify_UseItem.cpp:23` → `WxItemUseComponent.cpp:68-91`). 데디케이티드 서버에서 몽타주 노티파이가 뜨는지는 `VisibilityBasedAnimTickOption`·URO 설정에 달려 있어 코드만으로 단정할 수 없고 이 환경에서 실측도 불가해 발견으로 올리지 않았다. 멀티플레이를 실제로 돌리는 시점에 가장 먼저 확인할 지점으로 적어 둔다.
-  - StateTree 태스크 2종이 대상 인벤토리를 `UGameplayStatics::GetPlayerController(Owner, 0)` 으로 고정하는 점(`WxStateTreeTask_GiveRewards.cpp:40`, `WxStateTreeTask_RefillItemCharges.cpp:36`)은 이번에도 발견으로 올리지 않았다. 멀티플레이 정책 자체가 미결정으로 보류된 상태라 모듈 고유 결함이 아니다. 다만 픽업 경로(`WxItemPickup.cpp:88-90`)와 이관된 사용 경로(`WxItemUseComponent.cpp:16-18`, `:86-88`)는 당사자를 제대로 집으므로 같은 모듈 안에 두 정책이 공존한다 — 정책을 정하는 시점에 두 태스크의 인스턴스 데이터에 바인딩 가능한 대상 액터를 노출하는 방향으로 함께 봐야 한다(WxInventory 는 WxWorld 를 참조할 수 없으니 바인딩 입력이 유일한 해법이다).
-  - "Pawn → PlayerController → `FindComponentByClass<UWxInventoryComponent>`" 관용구는 이관으로 4곳에서 6곳으로 늘었다(`WxItemPickup.cpp:88-90`, `WxRewardLibrary.cpp:39-41`, `WxStateTreeTask_RefillItemCharges.cpp:36-37`, `WxItemInstance.cpp:85-86`·`:95-96`, `WxItemUseComponent.cpp:16-18`·`:86-88` — 마지막 둘은 **한 파일 안에서** 중복이다). 정적 `FindComponent` 래퍼를 두지 않고 `FindComponentByClass` 를 직접 부른다는 기존 결정이 있어 발견으로 올리지 않았으나, 같은 파일 안 중복만은 파일 로컬 헬퍼로 접을 여지가 있다.
-  - `AWxItemPickup::OnInteracted`(`WxItemPickup.cpp:74-102`)와 `SetItemDef`(`:55-60`)는 주석으로만 서버 권위를 선언하고 `HasAuthority()` 게이트가 없다. 이번에 호출 경로를 다시 확인했고 `UWxAbility_Interact` 가 `NetExecutionPolicy = ServerOnly` 에 `HasAuthority(&ActivationInfo)` 이중 게이트까지 두고 있어(`WxAbility_Interact.cpp:18`, `:50`) 발견으로 올리지 않았다. 다만 클라이언트 경로가 생기면 Development 에선 `AddItemDefinition` 의 `check`(`WxInventoryComponent.cpp:275`)로 크래시하고 Shipping 에선 그 `check` 가 컴파일 아웃되어 로컬 상태만 조용히 어긋난다.
-  - `PreReplicatedRemove`(43-69행)가 한 번의 번치로 같은 `ItemDef` 의 여러 슬롯을 지울 때, 첫 통지의 `NewCount` 가 아직 0 으로 내려가지 않은 나머지 슬롯을 함께 세어 과대 계상된다. 마지막 통지와 `PostReplicatedReceive` 로 수렴하므로 발견으로 올리지 않았다.
-  - `UWxRewardLibrary::GrantReward` 가 `World`(`WxRewardLibrary.cpp:43`)만 검사 없이 `SpawnActorDeferred`(`:75`)에 넘기는 비대칭, 그리고 `SpawnActorDeferred` → `FinishSpawning` 사이의 `NiagaraComponent->Activate/Deactivate`(`WxItemPickup.cpp:139-147`)는 직전 리뷰가 엔진 소스로 무해함을 정리했고 코드가 그대로여서 다시 다루지 않았다.
-  - 아이템 정의·보상 DataTable 등 데이터 에셋의 실제 값(`MaxStack`, `ItemActorClass` 설정 여부, Usable Effect 의 지속 정책 등)과 BP/WBP 내부 구조(사용 몽타주의 노티파이 배치 포함)는 열어보지 않았다. 발견 4·5·6·8 의 발현 여부는 그 데이터에 달려 있다.
-  - 모듈에 자동화 테스트가 없다. 수량·슬롯 경계 로직이 순수 함수에 가까워 테스트 가치가 높은 편이라는 점만 적어 둔다. 이번 리뷰에서 빌드·에디터 실행은 하지 않았다.
+  - 발견에서 제외한 확인 결과: `AddItemDefinition` 머지 루프(285-309행)가 브로드캐스트 너머로 잡는 것은 `TArray` 객체 참조라 버퍼 재할당에도 유효하고 인덱스·잔여 수량은 매 회전 다시 읽으므로, 구독자가 재진입해도 최악은 슬롯 채움 순서가 비최적이 되는 정도다. `PostReplicatedAdd/Change` 는 삭제 원소가 실제로 빠지기 전에 호출되므로(엔진 `FastArraySerializer.h:1161-1193`) 63행의 `StackCount = 0` 선반영이 합계를 맞추고, 한 번에 여러 슬롯이 지워질 때의 중간 과대 계상은 마지막 통지로 수렴한다.
+  - 클라이언트는 삭제를 `RemoveAtSwap`(엔진 `FastArraySerializer.h:1193`)으로 적용해 엔트리 순서가 서버와 달라질 수 있어, `FindFirstItemStackByDefinition` 의 결과가 서버 선택과 다를 수 있다. 클라는 표시만 하고 충전형 인스턴스가 하나뿐이라 발견으로 올리지 않았다.
+  - StateTree 태스크 2종이 대상 인벤토리를 0번 PlayerController 로 고정한다(`WxStateTreeTask_GiveRewards.cpp:40`, `WxStateTreeTask_RefillItemCharges.cpp:36`). 적 드랍도 같은 정책을 명시하고 있어(`Source/WxGame/Character/WxEnemyCharacter.cpp:175`) 멀티플레이 정책 미결로 보고 제외했다. 픽업(`WxItemPickup.cpp:88-90`)·사용(`WxItemUseComponent.cpp:86-88`)은 당사자를 집으므로 정책을 정할 때 두 태스크의 인스턴스 데이터에 바인딩 가능한 대상 액터를 함께 노출해야 한다.
+  - `AWxItemPickup::OnInteracted`·`SetItemDef` 에는 `HasAuthority()` 게이트가 없지만 호출 경로 `UWxAbility_Interact` 가 `ServerOnly` + `HasAuthority` 로 막고 있어(`WxAbility_Interact.cpp:18`, `:49`) 제외했다. 클라 경로가 생기면 Shipping 에서는 `AddItemDefinition` 의 `check`(275행)가 컴파일 아웃되어 로컬 상태만 조용히 어긋난다.
+  - 소비 성립은 서버 측 AnimNotify 발화에 걸려 있다. `UWxAbilitySystemComponent::PlayMontage` 가 몽타주 동안 메시 틱 옵션을 `AlwaysTickPoseAndRefreshBones` 로 올리므로(`WxAbilitySystemComponent.cpp:25-28`, `:92-94`) 데디케이티드 서버에서도 노티파이가 뜰 조건은 코드상 갖춰져 있으나 실측하지 않았다.
+  - `.uplugin` 에 `Niagara` 가 없지만 `GameplayAbilities.uplugin` 이 `Niagara` 를 의존해 UBT 의 전이 의존 계산(엔진 `UEBuildTarget.cs:5979`)에 포함되므로 경고가 나지 않는다. 발견은 아니며, GAS 쪽 의존이 바뀌면 드러나는 암묵 의존이다.
+  - 이 모듈에는 세이브/복원 경로가 없다(인벤토리는 PlayerController 수명 동안만 유지되고, 새 컨트롤러는 `StartingItems` 를 다시 받는다 — 229-232행). 기능 범위의 문제라 결함으로 다루지 않았다.
+  - 복제 시스템이 런타임에 Generic 과 Iris 중 무엇으로 선택되는지 확정하지 못했다(프로젝트 설정에 명시 없음). 발견 7 의 빈도 판단은 Generic 기준이다.
+  - 아이템 정의·보상 DataTable 의 실제 값(`MaxStack`, Fragment 조합, Usable Effect 의 지속 정책)과 BP/WBP 내부(토스트 위젯, 사용 몽타주의 노티파이 배치)는 열지 않았다. 발견 3·4·5·6 의 발현 여부는 그 데이터에 달려 있다. 자동화 테스트는 없고, 빌드·에디터 실행은 하지 않았다.
 
 ---
-*문서 기준 커밋 `231068b` · 리뷰일 2026-09-13 · 소스 24파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `9d8cb2dd` · 리뷰일 2026-09-14 · 소스 24파일 — `/module-review`로 갱신*
