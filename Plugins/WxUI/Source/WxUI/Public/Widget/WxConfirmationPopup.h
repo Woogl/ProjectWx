@@ -19,7 +19,6 @@ public:
 	UWxConfirmationPopup();
 
 	virtual void SetupPopup(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback) override;
-	virtual void KillPopup() override;
 
 protected:
 	virtual void NativeOnInitialized() override;
@@ -49,7 +48,7 @@ protected:
 	TObjectPtr<UCommonRichTextBlock> RichText_Description;
 
 private:
-	/** 버튼 클릭/강제 종료 공통 진입점. 위젯을 닫은 뒤 결과 콜백을 최초 1회만 실행한다. */
+	/** 버튼 클릭/뒤로 가기 공통 진입점. 위젯을 닫은 뒤 결과 콜백을 최초 1회만 실행한다. */
 	void HandleResultChosen(EWxPopupResult Result);
 
 	FWxPopupResultDelegate OnResultCallback;

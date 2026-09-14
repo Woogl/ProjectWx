@@ -112,12 +112,6 @@ void UWxConfirmationPopup::SetupPopup(UWxGamePopupDescriptor* Descriptor, FWxPop
 	OnSetupPopup(Descriptor);
 }
 
-void UWxConfirmationPopup::KillPopup()
-{
-	Super::KillPopup();
-	HandleResultChosen(EWxPopupResult::Killed);
-}
-
 void UWxConfirmationPopup::HandleResultChosen(EWxPopupResult Result)
 {
 	// 별도 플래그 대신 델리게이트 언바인딩으로 상태를 표현해 연타나 종료 후 재진입에서 중복 실행을 막는다.

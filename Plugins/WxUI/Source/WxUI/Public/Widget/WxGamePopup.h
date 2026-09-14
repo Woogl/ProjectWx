@@ -31,8 +31,6 @@ public:
 	/** 결과 기본 라벨 대신 표시할 텍스트(선택). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FText OptionalDisplayText;
-
-	bool operator==(const FWxConfirmationPopupAction& Other) const;
 };
 
 UCLASS(BlueprintType)
@@ -66,6 +64,4 @@ public:
 	UWxGamePopup();
 	
 	virtual void SetupPopup(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback);
-
-	virtual void KillPopup();
 };
