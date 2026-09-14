@@ -127,8 +127,11 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 	UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator());
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
 
-	// 판정은 각 머신이 로컬로 낸다 — 이펙트가 권위 검사 앞에서 재생되기 때문이다.
-	const bool bEvaded = UWxCombatLibrary::CheckDamage(SourceASC, TargetASC) == EWxDamageCheck::Evaded;
+	// 충돌 연출·투사체 수명에만 쓰는 로컬 조회다. 피해와 회피 성공 이벤트는 Hit Wrapper가 처리한다.
+	const bool bEvaded = SourceASC && TargetASC
+		&& UWxCombatLibrary::IsHostile(SourceASC->GetAvatarActor(), TargetASC->GetAvatarActor())
+		&& !TargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death)
+		&& TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_Invincible);
 	if (!bEvaded)
 	{
 		PlayImpactFX();
@@ -168,13 +171,14 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 		&& TargetASC && TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_PerfectGuard);
 
 	// 회피여도 호출은 그대로다 — 회피 성공 판정이 여기서 나가고, 대미지와 상태이상은 그쪽이 알아서 거른다.
-	if (UWxCombatLibrary::ApplyDamage(this, OtherActor, DamageDataRow, HitResult))
+	const bool bDamageApplied = UWxCombatLibrary::ApplyDamage(this, OtherActor, DamageDataRow, HitResult);
+	if (bDamageApplied)
 	{
 		UWxEffect_HitStop::Apply(InstigatorHitStop, SourceASC, SourceASC);
 		UWxEffect_HitStop::Apply(VictimHitStop, SourceASC, TargetASC);
 	}
 
-	if (bReflecting)
+	if (bDamageApplied && bReflecting)
 	{
 		Reflect(*Parrier);
 	}

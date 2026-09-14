@@ -4,20 +4,19 @@
 
 #include "AbilitySystemComponent.h"
 #include "WxGameplayTags.h"
-#include "AbilitySystem/Effect/WxEffect_Damage.h"
+#include "AbilitySystem/Effect/WxEffect_Hit.h"
 
-TArray<FGameplayEffectSpecHandle> FWxDamageTableRow::MakeSpecs(UAbilitySystemComponent* SourceASC, const FGameplayEffectContextHandle& Context) const
+FGameplayEffectSpecHandle FWxDamageTableRow::MakeHitSpec(UAbilitySystemComponent* SourceASC, const FGameplayEffectContextHandle& Context) const
 {
-	TArray<FGameplayEffectSpecHandle> Specs;
 	if (!SourceASC)
 	{
-		return Specs;
+		return FGameplayEffectSpecHandle();
 	}
 
-	const FGameplayEffectSpecHandle DamageSpecHandle = SourceASC->MakeOutgoingSpec(UWxEffect_Damage::StaticClass(), 1.f, Context);
-	if (DamageSpecHandle.IsValid())
+	const FGameplayEffectSpecHandle HitSpecHandle = SourceASC->MakeOutgoingSpec(UWxEffect_Hit::StaticClass(), 1.f, Context);
+	if (HitSpecHandle.IsValid())
 	{
-		FGameplayEffectSpec* Spec = DamageSpecHandle.Data.Get();
+		FGameplayEffectSpec* Spec = HitSpecHandle.Data.Get();
 		Spec->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, CoeffATK);
 
 		// 소비 쪽은 이 태그로 치트·즉사 같은 직접 피해와 가른다.
@@ -40,23 +39,7 @@ TArray<FGameplayEffectSpecHandle> FWxDamageTableRow::MakeSpecs(UAbilitySystemCom
 			AttackTags.AddTag(WxGameplayTags::Damage_CanParry);
 		}
 		Spec->AppendDynamicAssetTags(AttackTags);
-
-		Specs.Add(DamageSpecHandle);
 	}
 
-	for (const TSubclassOf<UGameplayEffect>& EffectClass : AdditionalEffects)
-	{
-		if (!EffectClass)
-		{
-			continue;
-		}
-
-		const FGameplayEffectSpecHandle AdditionalSpecHandle = SourceASC->MakeOutgoingSpec(EffectClass, 1.f, Context);
-		if (AdditionalSpecHandle.IsValid())
-		{
-			Specs.Add(AdditionalSpecHandle);
-		}
-	}
-
-	return Specs;
+	return HitSpecHandle;
 }

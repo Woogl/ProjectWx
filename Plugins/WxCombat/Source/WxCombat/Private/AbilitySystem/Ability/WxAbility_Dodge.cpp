@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/Ability/WxAbility_Dodge.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "Abilities/Tasks/AbilityTask_NetworkSyncPoint.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
 #include "AbilitySystem/Effect/WxEffect_Cooldown.h"
 #include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
@@ -32,6 +33,7 @@ float UWxAbility_Dodge::GetMontagePlayRate() const
 void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	bDodgeSuccessHandled = false;
 
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 
@@ -192,13 +194,34 @@ void UWxAbility_Dodge::ListenForDodgeSuccess()
 		this, WxGameplayTags::Event_DodgeSuccess, nullptr, true);
 	EventTask->EventReceived.AddDynamic(this, &UWxAbility_Dodge::HandleDodgeSuccess);
 	EventTask->ReadyForActivation();
+
+	if (IsPredictingClient())
+	{
+		// 타인의 공격 예측 키 없이도, 내 회피 활성화에 대한 서버 확정 신호를 받는다.
+		UAbilityTask_NetworkSyncPoint* ConfirmationTask = UAbilityTask_NetworkSyncPoint::WaitNetSync(this, EAbilityTaskNetSyncType::OnlyClientWait);
+		ConfirmationTask->OnSync.AddDynamic(this, &UWxAbility_Dodge::HandleConfirmedDodgeSuccess);
+		ConfirmationTask->ReadyForActivation();
+	}
+}
+
+void UWxAbility_Dodge::HandleConfirmedDodgeSuccess()
+{
+	HandleDodgeSuccess(FGameplayEventData());
 }
 
 void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
 {
-	if (!PerfectDodgeMontage)
+	if (bDodgeSuccessHandled || !PerfectDodgeMontage)
 	{
 		return;
+	}
+	bDodgeSuccessHandled = true;
+
+	if (HasAuthority(&CurrentActivationInfo) && !IsLocallyControlled())
+	{
+		// 서버는 기다리지 않는다. 이 회피의 SpecHandle·활성화 키로 소유 클라이언트에만 통지한다.
+		UAbilityTask_NetworkSyncPoint* ConfirmationTask = UAbilityTask_NetworkSyncPoint::WaitNetSync(this, EAbilityTaskNetSyncType::OnlyClientWait);
+		ConfirmationTask->ReadyForActivation();
 	}
 	
 	// 회피 섹션은 몸을 돌리지 않고 몸 기준 루트모션으로만 흐르므로, 극한 회피도 같은 방향 섹션으로 이어야 이동이 꺾이지 않는다.

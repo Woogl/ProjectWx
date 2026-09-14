@@ -88,6 +88,12 @@ private:
 	void HandleDodgeSuccess(FGameplayEventData Payload);
 
 	UFUNCTION()
+	void HandleConfirmedDodgeSuccess();
+
+	/** 로컬 성공 이벤트와 서버 확정 신호가 겹쳐도 몽타주는 한 번만 전환한다. */
+	bool bDodgeSuccessHandled = false;
+
+	UFUNCTION()
 	void HandleInvincibleTagAdded();
 
 	UFUNCTION()

@@ -4,6 +4,7 @@
 #include "AbilitySystem/Effect/WxEffectComponent_DamageResponse.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
+#include "Damage/WxHitEffectContext.h"
 #include "GameplayEffectComponents/TargetTagRequirementsGameplayEffectComponent.h"
 #include "WxGameplayTags.h"
 
@@ -16,11 +17,6 @@ UWxEffect_Damage::UWxEffect_Damage()
 	Executions.Add(ExecDef);
 
 	GEComponents.Add(CreateDefaultSubobject<UWxEffectComponent_DamageResponse>(TEXT("DamageResponse")));
-
-	// 예측 Cue는 타격 연출만 처리하고, 서버 크리 판정이 필요한 플로터는 DamageResponse 컴포넌트에서 처리한다.
-	FGameplayEffectCue Cue;
-	Cue.GameplayCueTags.AddTag(WxGameplayTags::GameplayCue_Hit);
-	GameplayCues.Add(Cue);
 
 	UTargetTagRequirementsGameplayEffectComponent* TagReqComp = CreateDefaultSubobject<UTargetTagRequirementsGameplayEffectComponent>(TEXT("TargetTagReq"));
 	TagReqComp->ApplicationTagRequirements.IgnoreTags.AddTag(WxGameplayTags::Ability_Death);
@@ -129,11 +125,10 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	const FGameplayEffectSpec& OwningSpec = ExecutionParams.GetOwningSpec();
 
-	const bool bCanGuard = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanGuard);
+	const FWxHitEffectContext* HitContext = FWxHitEffectContext::Get(OwningSpec.GetContext());
 	const bool bCanCritical = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanCritical);
-	const bool bIsGuarding = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_GuardReduction);
 	const bool bIsGroggy = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy);
-	const bool bPerfectGuardApplied = bCanGuard && TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_PerfectGuard);
+	const bool bPerfectGuardApplied = HitContext && HitContext->bPerfectGuard;
 
 	FAggregatorEvaluateParameters EvalParams;
 	EvalParams.SourceTags = OwningSpec.CapturedSourceTags.GetAggregatedTags();
@@ -149,7 +144,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	const float ATKCoeff = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, false, 0.f);
 	const bool bCanApplyCritical = !bPerfectGuardApplied && bCanCritical;
-	const bool bGuardHit = !bPerfectGuardApplied && bIsGuarding && bCanGuard;
+	const bool bGuardHit = HitContext && HitContext->bGuarded;
 
 	float SourceCritRate = 0.f;
 	float SourceCritDMG = 0.f;
@@ -177,7 +172,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	if (bPerfectGuardApplied)
 	{
-		// 피해 대신 반사 메타 속성을 출력해 DamageResponse 컴포넌트가 퍼펙트 가드 결과를 식별하게 한다.
+		// 피해 대신 반사 메타 속성을 출력해 타격 Wrapper가 퍼펙트 가드 결과를 식별하게 한다.
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(ExecutionStatics.IncomingReflectProperty, EGameplayModOp::Additive, FinalDamage));
 		return;
 	}
