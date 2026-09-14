@@ -250,7 +250,8 @@ void UWxDialogueSessionComponent::BeginDialogueCamera()
 {
 	APlayerController* PlayerController = GetLocalPlayerController();
 	const APawn* Pawn = PlayerController ? PlayerController->GetPawn() : nullptr;
-	if (!Pawn || !CurrentTarget.IsValid())
+	const APlayerCameraManager* CameraManager = PlayerController ? PlayerController->PlayerCameraManager.Get() : nullptr;
+	if (!Pawn || !CameraManager || !CurrentTarget.IsValid())
 	{
 		return;
 	}
@@ -265,7 +266,7 @@ void UWxDialogueSessionComponent::BeginDialogueCamera()
 
 	// 어느 쪽으로 비껴설지는 지금 게임플레이 카메라가 서 있는 쪽을 따른다. 반대편으로 넘어가면 좌우가 뒤집혀 컷이 튀고, 그 쪽은 스프링암이 이미 시야를 확보해 둔 방향이기도 하다.
 	const FVector AxisRight = FVector::CrossProduct(FVector::UpVector, TalkAxis);
-	const FVector ViewLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
+	const FVector ViewLocation = CameraManager->GetCameraLocation();
 	const float Side = (FVector::DotProduct(AxisRight, ViewLocation - AimLocation) >= 0.f) ? 1.f : -1.f;
 
 	// 시선이 수평 방향이라 회전이 그대로 카메라 회전이 된다.
