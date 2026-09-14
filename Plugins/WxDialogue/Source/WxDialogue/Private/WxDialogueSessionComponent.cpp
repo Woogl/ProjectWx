@@ -26,6 +26,26 @@ UWxDialogueSessionComponent::UWxDialogueSessionComponent(const FObjectInitialize
 	SetIsReplicatedByDefault(true);
 }
 
+void UWxDialogueSessionComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (AController* Controller = Cast<AController>(GetOwner()))
+	{
+		Controller->OnPossessedPawnChanged.AddDynamic(this, &ThisClass::HandlePossessedPawnChanged);
+	}
+}
+
+void UWxDialogueSessionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (AController* Controller = Cast<AController>(GetOwner()))
+	{
+		Controller->OnPossessedPawnChanged.RemoveDynamic(this, &ThisClass::HandlePossessedPawnChanged);
+	}
+
+	Super::EndPlay(EndPlayReason);
+}
+
 void UWxDialogueSessionComponent::StartDialogue(UWxDialogueComponent* Dialogue)
 {
 	if (!Dialogue)
@@ -157,6 +177,14 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FData
 	ApplyCurrentPose();
 }
 
+void UWxDialogueSessionComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
+{
+	if (HasActiveDialogue())
+	{
+		EndDialogue();
+	}
+}
+
 bool UWxDialogueSessionComponent::EnterRow(FName RowName)
 {
 	const UDataTable* Table = CurrentStartRow.DataTable;
@@ -245,7 +273,7 @@ void UWxDialogueSessionComponent::BeginDialogueCamera()
 	const FTransform CameraTransform(ViewDirection.Rotation(), AimLocation - ViewDirection * CameraDistance);
 
 	FActorSpawnParameters SpawnParams;
-	// 컨트롤러가 사라지면 카메라도 함께 정리된다.
+	// 오너가 파괴돼도 카메라는 남는다 — 회수는 EndDialogueCamera 가 주는 수명이 맡는다.
 	SpawnParams.Owner = PlayerController;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
