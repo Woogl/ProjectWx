@@ -31,7 +31,7 @@ void UWxAnimNotify_AreaDamage::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 	TargetingSubsystem->GetTargetingResults(RequestHandle, Results);
 	UTargetingSubsystem::ReleaseTargetRequestHandle(RequestHandle);
 
-	// 아군·시체·무적 제외와 예측 키 처리는 ApplyDamage가 하므로, 여기서는 결과를 그대로 흘려보낸다.
+	// 서버 권위 검사와 아군·시체·무적 처리는 ApplyDamage의 타격 경로에서 맡는다.
 	for (const FHitResult& Result : Results)
 	{
 		if (AActor* TargetActor = Result.GetActor())

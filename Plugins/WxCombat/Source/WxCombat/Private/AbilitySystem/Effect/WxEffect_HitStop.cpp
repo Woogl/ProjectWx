@@ -23,18 +23,13 @@ UWxEffect_HitStop::UWxEffect_HitStop()
 
 void UWxEffect_HitStop::Apply(float Duration, UAbilitySystemComponent* Source, UAbilitySystemComponent* Target)
 {
-	if (Duration <= 0.f || !Source || !Target)
+	if (Duration <= 0.f || !Source || !Target || !Source->IsOwnerActorAuthoritative())
 	{
 		return;
 	}
 
-	// 노티파이는 활성화 스코프 밖이라 ASC의 ScopedPredictionKey가 무효다. 투사체처럼 몽타주가 끝난 뒤 맞으면 키 없이 권위로만 걸린다.
+	// 히트스톱도 서버 적중 판정을 따르며 클라이언트는 GE 복제로 시작한다.
 	const UGameplayAbility* AnimatingAbility = Source->GetAnimatingAbility();
-	FPredictionKey PredictionKey;
-	if (AnimatingAbility)
-	{
-		PredictionKey = AnimatingAbility->GetCurrentActivationInfo().GetActivationPredictionKey();
-	}
 
 	FGameplayEffectContextHandle Context = Source->MakeEffectContext();
 	Context.SetAbility(AnimatingAbility);
@@ -46,5 +41,5 @@ void UWxEffect_HitStop::Apply(float Duration, UAbilitySystemComponent* Source, U
 	}
 
 	Spec.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, Duration);
-	Source->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), Target, PredictionKey);
+	Source->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), Target, FPredictionKey());
 }

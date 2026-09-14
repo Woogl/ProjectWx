@@ -16,7 +16,7 @@ bool UWxEffectComponent_Hit::CanGameplayEffectApply(const FActiveGameplayEffects
 	const UAbilitySystemComponent* Target = ActiveGEContainer.Owner;
 	const UAbilitySystemComponent* Source = GESpec.GetContext().GetInstigatorAbilitySystemComponent();
 	const FWxHitEffectContext* Context = FWxHitEffectContext::Get(GESpec.GetContext());
-	return Source && Target && Context && Context->DamageTable.IsValid()
+	return Source && Target && Target->IsOwnerActorAuthoritative() && Context && Context->DamageTable.IsValid()
 		&& Context->DamageTable->FindRow<FWxDamageTableRow>(Context->DamageRowName, TEXT("HitRequirements"), false)
 		&& UWxCombatLibrary::IsHostile(Source->GetAvatarActor(), Target->GetAvatarActor());
 }
@@ -81,30 +81,24 @@ void UWxEffectComponent_Hit::OnGameplayEffectApplied(FActiveGameplayEffectsConta
 	const float Damage = Context->DamageMagnitude;
 	const float Reflect = Context->ReflectMagnitude;
 	const bool bHasReflect = Context->bHasReflect;
-	const bool bAuthority = Target->IsOwnerActorAuthoritative();
 	DamageSpec.AppendDynamicAssetTags(Context->DamageResultTags);
-	// 예측 클라는 Execution을 실행하지 않는다. 서버의 출력 없는 0 피해만 타격 Cue를 생략한다.
+	// 출력 없는 0 피해는 타격 Cue를 생략한다.
 	// 반사량이 0이어도 퍼펙트 가드의 출력 기록은 남으므로 타격 연출을 유지한다.
-	if (!bAuthority || Damage > 0.f || bHasReflect)
+	if (Damage > 0.f || bHasReflect)
 	{
 		FGameplayCueParameters HitCue;
 		UAbilitySystemGlobals::Get().InitGameplayCueParameters_GESpec(HitCue, DamageSpec);
-		// 서버는 Damage 적용 시점, Execution을 건너뛰는 예측 클라는 Wrapper의 태그를 사용한다.
-		HitCue.AggregatedTargetTags = bAuthority
-			? Context->DamageTargetTags : *GESpec.CapturedTargetTags.GetAggregatedTags();
+		HitCue.AggregatedTargetTags = Context->DamageTargetTags;
 		UAbilitySystemGlobals::Get().GetGameplayCueManager()->InvokeGameplayCueExecuted_WithParams(Target, WxGameplayTags::GameplayCue_Hit, PredictionKey, HitCue);
 	}
 
-	if (bAuthority)
+	if (Damage > 0.f && DamageSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Attack))
 	{
-		if (Damage > 0.f && DamageSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_Attack))
-		{
-			ProcessDamageTaken(Target, DamageSpec, Damage);
-		}
-		if (bHasReflect)
-		{
-			ProcessPerfectGuard(Target, DamageSpec, Reflect);
-		}
+		ProcessDamageTaken(Target, DamageSpec, Damage);
+	}
+	if (bHasReflect)
+	{
+		ProcessPerfectGuard(Target, DamageSpec, Reflect);
 	}
 
 	for (const FGameplayEffectSpecHandle& ExtraSpec : ExtraSpecs)

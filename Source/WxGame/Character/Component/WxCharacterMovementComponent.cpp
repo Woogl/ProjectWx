@@ -57,6 +57,18 @@ UAbilitySystemComponent* UWxCharacterMovementComponent::GetAbilitySystemComponen
 	return AbilitySystemComponent;
 }
 
+void UWxCharacterMovementComponent::PerformMovement(float DeltaSeconds)
+{
+	const UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Effect_HitStop))
+	{
+		// 이동 틱과 ServerMove 타임스탬프는 유지한다. 물리 갱신만 멈춰 속도·넉업·이동 모드를 보존한다.
+		return;
+	}
+
+	Super::PerformMovement(DeltaSeconds);
+}
+
 void UWxCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float DeltaSeconds)
 {
 	// 몽타주를 쓰지 않는 어빌리티는 앉은 자세와 공존한다.

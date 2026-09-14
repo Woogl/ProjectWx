@@ -24,9 +24,10 @@ public:
 
 	/**
 	 * Hit Wrapper GE가 아군·시체를 거르고, 무적이면 피해 대신 DodgeSuccess 이벤트를 낸다.
+	 * 서버에서만 적용하며 적중 연출과 추가 효과는 예측하지 않는다.
 	 *
 	 * @param Causer	히트를 낸 액터. ASC가 없으면 Owner가 공격자다.
-	 * @return			대미지 GE가 적용됐으면 true. 회피(DodgeSuccess)·적용 실패는 false.
+	 * @return			대미지 GE가 적용됐으면 true. 비권위·회피(DodgeSuccess)·적용 실패는 false.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Combat")
 	static bool ApplyDamage(AActor* Causer, const AActor* Target, const FDataTableRowHandle& DamageTableRow, const FHitResult& HitResult);

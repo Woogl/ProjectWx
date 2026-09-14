@@ -41,7 +41,7 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 	}
 
 	UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
-	if (!Source || !TargetASC)
+	if (!Source || !TargetASC || !Source->IsOwnerActorAuthoritative())
 	{
 		return false;
 	}
@@ -52,13 +52,6 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 	Context.AddInstigator(SourceActor, Causer);
 	Context.SetAbility(AnimatingAbility);
 	Context.AddHitResult(HitResult);
-
-	// 노티파이는 활성화 스코프 밖이라 ASC의 ScopedPredictionKey가 무효다.
-	FPredictionKey PredictionKey;
-	if (AnimatingAbility)
-	{
-		PredictionKey = AnimatingAbility->GetCurrentActivationInfo().GetActivationPredictionKey();
-	}
 
 	const FWxDamageTableRow* DamageRow = DamageTableRow.GetRow<FWxDamageTableRow>(ANSI_TO_TCHAR(__FUNCTION__));
 	if (!DamageRow)
@@ -72,7 +65,8 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 		return false;
 	}
 
-	Source->ApplyGameplayEffectSpecToTarget(*HitSpec.Data.Get(), TargetASC, PredictionKey);
+	// 적중 GE와 Cue는 서버 판정을 따른다. 과거 활성화 키를 실으면 예측본 잔류나 소유 클라의 Cue 생략이 발생한다.
+	Source->ApplyGameplayEffectSpecToTarget(*HitSpec.Data.Get(), TargetASC, FPredictionKey());
 	// Wrapper 접수와 자식 피해 적용은 다르다. 회피와 자식 거부에서는 히트스톱을 켜지 않는다.
 	return FWxHitEffectContext::Get(Context)->bDamageApplied;
 }

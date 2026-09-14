@@ -25,6 +25,7 @@ public:
 	//~ End UMovementComponent Interface
 
 	//~ Begin UCharacterMovementComponent Interface
+	virtual void PerformMovement(float DeltaSeconds) override;
 	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
 	//~ End UCharacterMovementComponent Interface
 
