@@ -40,17 +40,20 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 
 bool UWxAbility_HitReact::ShouldAbilityRespondToEvent(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayEventData* Payload) const
 {
-	// ActivateAbility에 도달하면 재트리거 종료와 공격·스킬 취소가 이미 끝난 뒤다.
-	return Payload && Payload->TargetTags.HasTag(WxGameplayTags::HitReact)
-		&& Payload->EventTag != WxGameplayTags::Event_Hit_GuardBreak
-		&& Super::ShouldAbilityRespondToEvent(ActorInfo, Payload);
-}
+	// 가드 브레이크는 GuardReact가 맡는다.
+	if (Payload->EventTag == WxGameplayTags::Event_Hit_GuardBreak)
+	{
+		return false;
+	}
 
-bool UWxAbility_HitReact::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
-{
-	// 이벤트 없이 직접 활성화하는 경로도 반응 페이로드를 요구한다.
-	return TargetTags && TargetTags->HasTag(WxGameplayTags::HitReact)
-		&& Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
+	// ActivateAbility에서 거르면 재트리거 종료와 공격·스킬 취소가 이미 끝난 뒤다.
+	// 패리는 반응 태그와 무관하게 받는다 — 성립 여부는 대미지 행의 bCanParry가 이미 갈랐다.
+	if (Payload->EventTag == WxGameplayTags::Event_Hit && !Payload->TargetTags.HasTag(WxGameplayTags::HitReact))
+	{
+		return false;
+	}
+
+	return Super::ShouldAbilityRespondToEvent(ActorInfo, Payload);
 }
 
 float UWxAbility_HitReact::GetMontagePlayRate() const
@@ -76,7 +79,7 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	if (TriggerEventData)
 	{
 		ReactionTag = TriggerEventData->TargetTags.Filter(FGameplayTagContainer(WxGameplayTags::HitReact)).First();
-		if (ReactionTag.IsValid() && TriggerEventData->EventTag == WxGameplayTags::Event_Hit_Parry)
+		if (TriggerEventData->EventTag == WxGameplayTags::Event_Hit_Parry)
 		{
 			ReactionTag = WxGameplayTags::Event_Hit_Parry;
 		}

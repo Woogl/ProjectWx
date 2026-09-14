@@ -39,16 +39,20 @@ UWxAbility_GuardReact::UWxAbility_GuardReact()
 
 bool UWxAbility_GuardReact::ShouldAbilityRespondToEvent(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayEventData* Payload) const
 {
-	// 반응 없는 히트로 기존 가드 반응 몽타주를 재트리거하지 않는다.
-	return Payload && Payload->TargetTags.HasTag(WxGameplayTags::HitReact)
-		&& Payload->EventTag != WxGameplayTags::Event_Hit_Parry
-		&& Super::ShouldAbilityRespondToEvent(ActorInfo, Payload);
-}
+	// 패리는 공격자의 경직이라 HitReact가 맡는다.
+	if (Payload->EventTag == WxGameplayTags::Event_Hit_Parry)
+	{
+		return false;
+	}
 
-bool UWxAbility_GuardReact::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
-{
-	return TargetTags && TargetTags->HasTag(WxGameplayTags::HitReact)
-		&& Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
+	// 반응 없는 일반 히트로 기존 가드 반응 몽타주를 재트리거하지 않는다.
+	// 가드 브레이크·퍼펙트 가드는 막는 쪽의 결과라 공격의 반응 태그를 요구하지 않는다.
+	if (Payload->EventTag == WxGameplayTags::Event_Hit && !Payload->TargetTags.HasTag(WxGameplayTags::HitReact))
+	{
+		return false;
+	}
+
+	return Super::ShouldAbilityRespondToEvent(ActorInfo, Payload);
 }
 
 float UWxAbility_GuardReact::GetMontagePlayRate() const

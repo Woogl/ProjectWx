@@ -11,7 +11,7 @@ class UAnimMontage;
 /**
  * 데미지 파이프라인이 보내는 Event.Hit으로 트리거되어 TargetTags의 HitReact.*에 매칭되는 몽타주를 재생한다.
  *
- * HitReact 태그 없는 히트는 활성화 전에 거부하여 진행 중인 반응과 공격을 유지한다.
+ * HitReact 태그 없는 일반 히트는 활성화 전에 거부하여 진행 중인 반응과 공격을 유지한다 — 패리는 반응 태그와 무관하게 받는다.
  * 가드 중 피격 반응은 WxAbility_GuardReact가 맡는다 — 그쪽이 Ability.Guard를 요구하고 이쪽이 같은 태그에 막히므로 한 히트에 둘 중 하나만 뜬다.
  */
 UCLASS(Abstract)
@@ -23,7 +23,6 @@ public:
 	UWxAbility_HitReact();
 
 	virtual bool ShouldAbilityRespondToEvent(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayEventData* Payload) const override;
-	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
 	/** 피격 몽타주는 길이가 곧 경직 시간이므로 ASPD를 반영하지 않는다. */
 	virtual float GetMontagePlayRate() const override;

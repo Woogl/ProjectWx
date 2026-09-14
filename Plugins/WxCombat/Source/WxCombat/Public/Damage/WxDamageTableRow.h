@@ -19,7 +19,7 @@ public:
 
 	/**
 	 * 비워 두면 이 공격은 피격 반응을 일으키지 않는다 — 무반응을 고르는 수단이라 기본 반응으로 대체하지 않는다.
-	 * 패리·가드 브레이크는 전투 시스템이 별도 이벤트로 생성하므로 저작하지 않는다.
+	 * 패리·가드 브레이크·퍼펙트 가드 연출은 이 값과 무관하게 전투 시스템이 별도 이벤트로 낸다.
 	 */
 	UPROPERTY(EditAnywhere, meta = (Categories = "HitReact"))
 	FGameplayTag HitReactTag;
