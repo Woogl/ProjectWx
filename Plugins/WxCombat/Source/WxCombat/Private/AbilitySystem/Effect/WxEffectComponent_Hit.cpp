@@ -82,7 +82,6 @@ void UWxEffectComponent_Hit::OnGameplayEffectApplied(FActiveGameplayEffectsConta
 	const float Reflect = Context->ReflectMagnitude;
 	const bool bHasReflect = Context->bHasReflect;
 	DamageSpec.AppendDynamicAssetTags(Context->DamageResultTags);
-	// 출력 없는 0 피해는 타격 Cue를 생략한다.
 	// 반사량이 0이어도 퍼펙트 가드의 출력 기록은 남으므로 타격 연출을 유지한다.
 	if (Damage > 0.f || bHasReflect)
 	{

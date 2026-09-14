@@ -28,7 +28,6 @@ void UWxEffect_HitStop::Apply(float Duration, UAbilitySystemComponent* Source, U
 		return;
 	}
 
-	// 히트스톱도 서버 적중 판정을 따르며 클라이언트는 GE 복제로 시작한다.
 	const UGameplayAbility* AnimatingAbility = Source->GetAnimatingAbility();
 
 	FGameplayEffectContextHandle Context = Source->MakeEffectContext();
