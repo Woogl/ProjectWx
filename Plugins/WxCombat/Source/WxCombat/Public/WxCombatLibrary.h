@@ -34,8 +34,8 @@ public:
 	static bool ApplyDamage(AActor* Causer, const AActor* Target, const FDataTableRowHandle& DamageTableRow, const FHitResult& HitResult);
 
 	/**
-	 * 구간형 상태 GE(무적·퍼펙트가드 등)를 건다.
-	 * @param PredictingAbility	이 어빌리티의 예측 키로 걸어 소유 클라도 같은 프레임에 태그를 갖는다.
+	 * 구간형 상태 GE(무적·퍼펙트가드 등)를 SourceAbility의 레벨(없으면 1)로 건다.
+	 * 발동 창 안에서 부르면 그 발동의 예측 키로 걸려 소유 클라도 같은 프레임에 태그를 갖고, 창 밖(비동기 노티파이 등)에서는 키 없이 걸린다.
 	 */
-	static void ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass, const UGameplayAbility* PredictingAbility);
+	static void ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass, const UGameplayAbility* SourceAbility);
 };

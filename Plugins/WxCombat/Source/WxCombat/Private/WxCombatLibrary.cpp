@@ -87,7 +87,7 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 	return FWxHitEffectContext::Get(Context)->bDamageApplied;
 }
 
-void UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass, const UGameplayAbility* PredictingAbility)
+void UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass, const UGameplayAbility* SourceAbility)
 {
 	if (!TargetASC || !EffectClass)
 	{
@@ -96,14 +96,8 @@ void UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclass
 
 	const UGameplayEffect* CDO = EffectClass->GetDefaultObject<UGameplayEffect>();
 	// 어빌리티 없이 걸리는 GE 도 GetAbilityLevel 의 기본 반환과 같은 레벨 1 로 만든다.
-	const float Level = PredictingAbility ? PredictingAbility->GetAbilityLevel() : 1.f;
+	const float Level = SourceAbility ? SourceAbility->GetAbilityLevel() : 1.f;
 	FGameplayEffectSpec Spec(CDO, TargetASC->MakeEffectContext(), Level);
-
-	FPredictionKey PredictionKey;
-	if (PredictingAbility)
-	{
-		PredictionKey = PredictingAbility->GetCurrentActivationInfo().GetActivationPredictionKey();
-	}
-
-	TargetASC->ApplyGameplayEffectSpecToSelf(Spec, PredictionKey);
+	// 발동의 활성화 키를 직접 실으면 창 밖의 권위 적용에도 키가 남아 소유 클라가 이 GE의 Cue를 건너뛴다.
+	TargetASC->ApplyGameplayEffectSpecToSelf(Spec, TargetASC->GetPredictionKeyForNewAction());
 }
