@@ -36,24 +36,45 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGam
 	RefreshBoundAbility();
 }
 
-void UWxViewModel_Ability::StartCooldownTicker()
+void UWxViewModel_Ability::StartCooldownTimer()
 {
-	if (TickerHandle.IsValid())
+	if (CooldownTimerHandle.IsValid())
 	{
 		return;
 	}
 
-	TickerHandle = FTSTicker::GetCoreTicker().AddTicker(
-		FTickerDelegate::CreateUObject(this, &UWxViewModel_Ability::UpdateCooldownState)
-	);
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	UWorld* World = ASC ? ASC->GetWorld() : nullptr;
+	if (!World)
+	{
+		return;
+	}
+
+	CooldownTimerHandle = World->GetTimerManager().SetTimerForNextTick(this, &UWxViewModel_Ability::HandleCooldownTimer);
 }
 
-void UWxViewModel_Ability::StopCooldownTicker()
+void UWxViewModel_Ability::StopCooldownTimer()
 {
-	if (TickerHandle.IsValid())
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	UWorld* World = ASC ? ASC->GetWorld() : nullptr;
+	if (World)
 	{
-		FTSTicker::GetCoreTicker().RemoveTicker(TickerHandle);
-		TickerHandle.Reset();
+		World->GetTimerManager().ClearTimer(CooldownTimerHandle);
+	}
+	CooldownTimerHandle.Invalidate();
+}
+
+void UWxViewModel_Ability::HandleCooldownTimer()
+{
+	// 실행 중인 단발 예약을 놓아야 다음 월드 틱을 예약할 수 있다.
+	CooldownTimerHandle.Invalidate();
+	if (UpdateCooldownState())
+	{
+		StartCooldownTimer();
+	}
+	else
+	{
+		StopCooldownTimer();
 	}
 }
 
@@ -103,7 +124,7 @@ void UWxViewModel_Ability::Deinitialize()
 		}
 	}
 
-	StopCooldownTicker();
+	StopCooldownTimer();
 	ActivationStateChangedHandle.Reset();
 
 	CachedASC.Reset();
@@ -191,7 +212,7 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 	}
 
 	UnbindCostAttributes(*ASC);
-	StopCooldownTicker();
+	StopCooldownTimer();
 
 	CachedAbility = MatchedAbility;
 	CachedCooldownTags.Reset();
@@ -242,9 +263,9 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 	{
 		SetCurrentCharges(NewMaxRecharges);
 	}
-	else if (UpdateCooldownState(0.f))
+	else if (UpdateCooldownState())
 	{
-		StartCooldownTicker();
+		StartCooldownTimer();
 	}
 
 	RefreshActivationState();
@@ -403,7 +424,7 @@ void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* 
 
 	// 남은 시간·충전 수·진행률 분모는 첫 틱이 채운다 — 방금 적용된 GE 가 활성 목록에 보이는 시점에 기대지 않기 위해서다.
 	SetIsOnCooldown(true);
-	StartCooldownTicker();
+	StartCooldownTimer();
 
 	RefreshActivationState();
 }
@@ -448,15 +469,12 @@ void UWxViewModel_Ability::HandleCostAttributeChanged(const FOnAttributeChangeDa
 	RefreshActivationState();
 }
 
-bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
+bool UWxViewModel_Ability::UpdateCooldownState()
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
 	const UWorld* World = ASC ? ASC->GetWorld() : nullptr;
 	if (!World || CachedCooldownTags.IsEmpty())
 	{
-		// false 반환은 티커를 제거하므로 핸들도 함께 비운다.
-		// 남겨 두면 재등록 게이트(!TickerHandle.IsValid())가 닫힌 채로 굳어 쿨다운 갱신이 영구 정지한다.
-		TickerHandle.Reset();
 		return false;
 	}
 
@@ -464,7 +482,7 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 	float ChargeDuration = 0.f;
 	const int32 ConsumedCharges = QueryCooldownStacks(*ASC, World->GetTimeSeconds(), ChargeRemaining, ChargeDuration);
 
-	// GE 가 살아 있는 동안은 스택이 최소 하나라 여기 오지 않는다. 즉 티커는 GE 가 실제로 사라진 뒤에만 멈춘다.
+	// GE 가 살아 있는 동안은 스택이 최소 하나라 여기 오지 않는다. 갱신은 GE 가 실제로 사라진 뒤에만 멈춘다.
 	if (ConsumedCharges == 0)
 	{
 		SetCooldownDuration(0.f);
@@ -472,7 +490,6 @@ bool UWxViewModel_Ability::UpdateCooldownState(float DeltaTime)
 		SetCooldownPercent(0.f);
 		SetIsOnCooldown(false);
 		SetCurrentCharges(MaxRecharges);
-		TickerHandle.Reset();
 		RefreshActivationState();
 		return false;
 	}

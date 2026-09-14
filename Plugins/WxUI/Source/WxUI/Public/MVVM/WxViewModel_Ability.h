@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
-#include "Containers/Ticker.h"
 #include "Engine/TimerHandle.h"
 #include "GameplayTagContainer.h"
 #include "GameplayEffectTypes.h"
@@ -22,7 +21,7 @@ struct FGameplayEffectSpec;
  * 그 태그에 맞는 어빌리티가 부여돼 있으면 그것을 물고, 교체되면 갈아타며, 없으면 빈 슬롯으로 남는다.
  * 슬롯 태그를 공유하는 후보가 여럿이면 발동 태그 요건을 만족하는 것을 표시하고, 전부 막히면 보던 것을 유지한다. 상황별 가시성은 위젯 바인딩이 맡는다.
  *
- * 쿨다운은 어빌리티의 GetCooldownTags() 로 식별하고, 쿨다운 중에는 티커로 매 프레임 남은 시간·충전 수를 갱신한다.
+ * 쿨다운은 어빌리티의 GetCooldownTags() 로 식별하고, 쿨다운 중에는 월드 타이머로 매 프레임 남은 시간·충전 수를 갱신한다.
  * 쿨다운 GE 는 소모한 충전 하나를 스택 하나로 쌓으므로, 남은 시간·진행률은 지금 회복 중인 충전 1개 기준이 된다.
  *
  * CanActivate·CheckCost 는 ASC 태그·발동 조건 이벤트/비용 어트리뷰트/쿨다운 적용·충전 수 변화 시점에 재평가된다.
@@ -144,12 +143,13 @@ private:
 	void HandleActivationStateChanged(FGameplayTag EventTag, const FGameplayEventData* Payload);
 	void ScheduleActivationRefresh();
 	void HandleCostAttributeChanged(const FOnAttributeChangeData& Data);
-	bool UpdateCooldownState(float DeltaTime);
+	bool UpdateCooldownState();
+	void HandleCooldownTimer();
 
 	void FlushActivationRefresh();
 
-	void StartCooldownTicker();
-	void StopCooldownTicker();
+	void StartCooldownTimer();
+	void StopCooldownTimer();
 
 	/**
 	 * 쿨다운 태그를 부여하는 활성 GE 하나를 찾아 소모된 충전 수(스택 수)를 반환하고, 다음 충전까지의 잔여·회복 시간을 낸다.
@@ -184,7 +184,7 @@ private:
 	FGameplayAttribute CostAttribute;
 	FGameplayAttribute CostMaxAttribute;
 
-	FTSTicker::FDelegateHandle TickerHandle;
+	FTimerHandle CooldownTimerHandle;
 	FDelegateHandle ActivationStateChangedHandle;
 
 	/** 타이머가 활성이면 재평가가 이미 예약돼 있다. 실행 중에도 활성으로 잡히므로 플러시가 먼저 놓는다. */
