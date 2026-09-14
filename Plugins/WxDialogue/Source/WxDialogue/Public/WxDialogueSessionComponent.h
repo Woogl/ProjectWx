@@ -25,7 +25,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWxOnDialogueLineChanged, const FTe
  * 그 RPC 때문에 복제 컴포넌트여야 한다.
  * 세션(현재 노드·라인)은 표시 전용 로컬 상태라 소유 클라가 진행을 소유하며 서버 검증은 없다. 대화가 게임 상태를 바꾸게 되면 그때 서버측으로 옮긴다.
  *
- * 대화는 뜻을 해석하지도 기록을 남기지도 않는다 — 진행 중인 대사의 신원(현재 행)과 대상만 노출하고, 그 의미(퀘스트 수주 등)는 소비자가 관찰로 판정한다.
+ * 대화는 뜻을 해석하지도 기록을 남기지도 않는다 — 그 의미(퀘스트 수주 등)는 종료를 기다린 쪽이 판정한다.
  * v1 싱글/리슨 호스트(소유 클라=권위 동일 머신) 전제라 권위 측 소비자가 이 로컬 상태를 직접 읽는다.
  *
  * UI 는 모른다 — 대사가 바뀌면 델리게이트로 발행해 뷰모델이 받아 가고, 세션이 열리고 닫힌 사실은 폰 ASC 의 State.Dialogue 태그가 알린다.
@@ -55,7 +55,7 @@ public:
 
 	/**
 	 * 대화 정의 컴포넌트 없이 행을 직접 지정하는 진입점. 퀘스트 ST 의 Play Dialogue 태스크처럼 대사를 고르는 쪽이 액터가 아닐 때 쓴다.
-	 * Target 은 카메라 전환·포즈·관찰자 노출용일 뿐이라 비워도 되며(나레이션), 그때는 뷰 타겟이 플레이어 폰에 머문다.
+	 * Target 은 카메라 전환·포즈용일 뿐이라 비워도 되며(나레이션), 그때는 뷰 타겟이 플레이어 폰에 머문다.
 	 */
 	void StartDialogueRow(const FDataTableRowHandle& StartRow, AActor* Target);
 
@@ -63,15 +63,6 @@ public:
 	void Advance();
 
 	bool HasActiveDialogue() const;
-
-	/** 대화 중이 아니거나 대상 없는 대사(나레이션)면 null. */
-	AActor* GetCurrentDialogueTarget() const;
-
-	/**
-	 * 관찰자가 "지금 어느 대사인가"를 가리는 신원이며, 대사를 넘길 때마다 바뀐다.
-	 * 대화 중이 아니면 비어 있다 — 미지정 인자와 같아 보이므로 비교 전에 HasActiveDialogue 로 가린다.
-	 */
-	FDataTableRowHandle GetCurrentRowHandle() const;
 
 	FText GetCurrentSpeaker() const;
 

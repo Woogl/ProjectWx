@@ -110,20 +110,6 @@ bool UWxDialogueSessionComponent::HasActiveDialogue() const
 	return !CurrentRowName.IsNone();
 }
 
-AActor* UWxDialogueSessionComponent::GetCurrentDialogueTarget() const
-{
-	return CurrentTarget.Get();
-}
-
-FDataTableRowHandle UWxDialogueSessionComponent::GetCurrentRowHandle() const
-{
-	FDataTableRowHandle Handle;
-	Handle.DataTable = CurrentStartRow.DataTable;
-	Handle.RowName = CurrentRowName;
-
-	return Handle;
-}
-
 FText UWxDialogueSessionComponent::GetCurrentSpeaker() const
 {
 	const FWxDialogueTableRow* Row = FindCurrentRow();
@@ -158,9 +144,8 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FData
 	CurrentStartRow = StartRow;
 	if (!EnterRow(StartRow.RowName))
 	{
-		// 앞서 대입한 테이블도 되돌린다 — 행 없이 테이블만 남으면 GetCurrentRowHandle() 이 반쪽짜리 핸들을 답한다.
+		// 세션이 열리지 않았으니 앞서 대입한 테이블 강참조도 놓는다.
 		CurrentStartRow = FDataTableRowHandle();
-		CurrentRowName = NAME_None;
 		return;
 	}
 
