@@ -93,6 +93,9 @@ private:
 
 	void InitializeActiveEffects();
 
+	/** 최초 목록 구성에서도 사용하므로 FieldNotify 없이 추가 성공 여부만 반환한다. */
+	bool AddActiveEffectViewModel(UAbilitySystemComponent* InASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
+
 	/** ASC별 일회 초기화 계약을 팩토리 내부로 제한한다. */
 	void Initialize(UAbilitySystemComponent* InASC);
 };

@@ -58,7 +58,7 @@ void UWxViewModel_AbilitySystem::InitializeActiveEffects()
 		return;
 	}
 
-	// 목록 구성 중 FieldNotify가 Getter에 재진입해도 구독과 생성을 반복하지 않는다.
+	// 최초 조회에서만 이벤트 구독과 현재 목록 구성을 수행한다.
 	bActiveEffectsInitialized = true;
 	ASC->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectAdded);
 	ASC->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectRemoved);
@@ -156,14 +156,14 @@ void UWxViewModel_AbilitySystem::BuildActiveEffectViewModels()
 		return;
 	}
 
-	// 이미 활성인 GE 는 추가 통지가 다시 오지 않으므로, 지금 목록으로 그 통지를 대신 태운다.
+	// Getter 안에서는 같은 필드의 변경을 통지하지 않고 현재 스냅샷만 구성한다.
 	FGameplayEffectQuery Query;
 	TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);
 	for (const FActiveGameplayEffectHandle& Handle : Handles)
 	{
 		if (const FActiveGameplayEffect* Effect = ASC->GetActiveGameplayEffect(Handle))
 		{
-			HandleActiveEffectAdded(ASC, Effect->Spec, Handle);
+			AddActiveEffectViewModel(ASC, Effect->Spec, Handle);
 		}
 	}
 }
@@ -188,9 +188,26 @@ void UWxViewModel_AbilitySystem::RefreshOwnedTags()
 
 void UWxViewModel_AbilitySystem::HandleActiveEffectAdded(UAbilitySystemComponent* InASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle)
 {
-	if (!Spec.Def)
+	if (AddActiveEffectViewModel(InASC, Spec, Handle))
 	{
-		return;
+		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(ActiveEffectViewModels);
+	}
+}
+
+bool UWxViewModel_AbilitySystem::AddActiveEffectViewModel(UAbilitySystemComponent* InASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle)
+{
+	if (!Handle.IsValid() || !Spec.Def)
+	{
+		return false;
+	}
+
+	// 억제 해제도 같은 핸들로 추가 통지를 보내므로 기존 VM과 스택 구독을 유지한다.
+	for (const UWxViewModel_Effect* Existing : ActiveEffectViewModels)
+	{
+		if (Existing && Existing->GetBoundHandle() == Handle)
+		{
+			return false;
+		}
 	}
 
 	// GE 의 컴포넌트 배열은 클래스로만 뒤질 수 있어, 도메인 구현체와 공유하는 엔진 베이스를 앵커로 잡고 계약으로 내린다.
@@ -199,7 +216,7 @@ void UWxViewModel_AbilitySystem::HandleActiveEffectAdded(UAbilitySystemComponent
 	// 수치만 쓰는 GE 도 같은 앵커에 걸리므로, 아이콘을 채운 GE 만 목록에 올린다 — 버프 목록은 아이콘으로 그려진다.
 	if (!UIData || UIData->GetIcon().IsNull())
 	{
-		return;
+		return false;
 	}
 
 	UWxViewModel_Effect* EffectVM = NewObject<UWxViewModel_Effect>(this);
@@ -208,11 +225,11 @@ void UWxViewModel_AbilitySystem::HandleActiveEffectAdded(UAbilitySystemComponent
 	// 초기화가 핸들을 잡지 못했으면 제거 통지와 영영 매칭되지 않아 목록에 유령으로 남는다.
 	if (!EffectVM->GetBoundHandle().IsValid())
 	{
-		return;
+		return false;
 	}
 
 	ActiveEffectViewModels.Add(EffectVM);
-	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(ActiveEffectViewModels);
+	return true;
 }
 
 void UWxViewModel_AbilitySystem::HandleActiveEffectRemoved(const FActiveGameplayEffect& ActiveEffect)
