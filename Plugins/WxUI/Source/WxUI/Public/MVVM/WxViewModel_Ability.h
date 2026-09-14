@@ -45,7 +45,6 @@ public:
 	/** 물고 있던 어빌리티가 그대로면 아무것도 하지 않는다. */
 	void RefreshBoundAbility();
 
-	/** 이 슬롯의 공유 키다. */
 	const FGameplayTagContainer& GetAbilityTags() const;
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")

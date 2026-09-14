@@ -58,7 +58,6 @@ void UWxViewModel_AbilitySystem::InitializeActiveEffects()
 		return;
 	}
 
-	// 최초 조회에서만 이벤트 구독과 현재 목록 구성을 수행한다.
 	bActiveEffectsInitialized = true;
 	ASC->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectAdded);
 	ASC->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectRemoved);
