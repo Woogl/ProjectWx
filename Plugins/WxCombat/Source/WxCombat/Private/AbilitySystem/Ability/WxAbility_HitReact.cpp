@@ -38,6 +38,21 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	AbilityTriggers.Add(HitTrigger);
 }
 
+bool UWxAbility_HitReact::ShouldAbilityRespondToEvent(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayEventData* Payload) const
+{
+	// ActivateAbility에 도달하면 재트리거 종료와 공격·스킬 취소가 이미 끝난 뒤다.
+	return Payload && Payload->TargetTags.HasTag(WxGameplayTags::HitReact)
+		&& Payload->EventTag != WxGameplayTags::Event_Hit_GuardBreak
+		&& Super::ShouldAbilityRespondToEvent(ActorInfo, Payload);
+}
+
+bool UWxAbility_HitReact::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	// 이벤트 없이 직접 활성화하는 경로도 반응 페이로드를 요구한다.
+	return TargetTags && TargetTags->HasTag(WxGameplayTags::HitReact)
+		&& Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
+}
+
 float UWxAbility_HitReact::GetMontagePlayRate() const
 {
 	return 1.f;
@@ -46,13 +61,6 @@ float UWxAbility_HitReact::GetMontagePlayRate() const
 void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-	// 가드 브레이크는 GuardReact가 전담한다. 부모 Event.Hit 트리거로 여기에도 닿을 수 있으므로 먼저 제외한다.
-	if (TriggerEventData && TriggerEventData->EventTag == WxGameplayTags::Event_Hit_GuardBreak)
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-		return;
-	}
 
 	// 회전·띄우기는 커밋과 몽타주가 모두 성립한 뒤에 낸다 — 어느 하나라도 실패해 곧장 종료하면 캐릭터가 어빌리티 없이 공중에 뜬다.
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
@@ -68,7 +76,7 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	if (TriggerEventData)
 	{
 		ReactionTag = TriggerEventData->TargetTags.Filter(FGameplayTagContainer(WxGameplayTags::HitReact)).First();
-		if (!ReactionTag.IsValid() && TriggerEventData->EventTag == WxGameplayTags::Event_Hit_Parry)
+		if (ReactionTag.IsValid() && TriggerEventData->EventTag == WxGameplayTags::Event_Hit_Parry)
 		{
 			ReactionTag = WxGameplayTags::Event_Hit_Parry;
 		}

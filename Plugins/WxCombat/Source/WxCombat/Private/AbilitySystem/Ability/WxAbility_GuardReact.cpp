@@ -37,6 +37,20 @@ UWxAbility_GuardReact::UWxAbility_GuardReact()
 	AbilityTriggers.Add(PerfectGuardTrigger);
 }
 
+bool UWxAbility_GuardReact::ShouldAbilityRespondToEvent(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayEventData* Payload) const
+{
+	// 반응 없는 히트로 기존 가드 반응 몽타주를 재트리거하지 않는다.
+	return Payload && Payload->TargetTags.HasTag(WxGameplayTags::HitReact)
+		&& Payload->EventTag != WxGameplayTags::Event_Hit_Parry
+		&& Super::ShouldAbilityRespondToEvent(ActorInfo, Payload);
+}
+
+bool UWxAbility_GuardReact::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	return TargetTags && TargetTags->HasTag(WxGameplayTags::HitReact)
+		&& Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
+}
+
 float UWxAbility_GuardReact::GetMontagePlayRate() const
 {
 	return 1.f;

@@ -131,6 +131,12 @@ void UWxEffectComponent_Hit::ProcessDamageTaken(UAbilitySystemComponent* ASC, co
 	// 브레이크 여부를 반응 종류에 실어 보내는 이유: 어빌리티 트리거는 RPC라 어트리뷰트 복제보다 먼저 도착해, 소유 클라가 SP를 다시 읽으면 차감 전 값을 본다.
 	// 받아 줄 GuardReact가 Ability.Guard를 요구하므로, 같은 히트의 GP로 뜬 그로기가 가드를 먼저 끊었으면 일반 반응으로 보낸다.
 	const bool bGuardBroken = DamageTags.HasTag(WxGameplayTags::Damage_GuardBreak) && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Guard);
+	if (bGuardBroken && !ReactionTag.IsValid())
+	{
+		// 반응 어빌리티가 발동하지 않아도 소진된 가드를 해제해야 SP가 다시 회복된다.
+		const FGameplayTagContainer GuardAbilityTags(WxGameplayTags::Ability_Guard);
+		ASC->CancelAbilities(&GuardAbilityTags);
+	}
 	const FGameplayTag HitEventTag = bGuardBroken
 		? WxGameplayTags::Event_Hit_GuardBreak
 		: WxGameplayTags::Event_Hit;
@@ -167,6 +173,7 @@ void UWxEffectComponent_Hit::ProcessPerfectGuard(UAbilitySystemComponent* ASC, c
 	// 컨텍스트를 함께 실어야 가드 리액션이 피격 이벤트와 같은 방식으로 원인 액터를 집는다.
 	FGameplayEventData EventData;
 	EventData.EventTag = WxGameplayTags::Event_PerfectGuard;
+	EventData.TargetTags = Spec.GetDynamicAssetTags().Filter(FGameplayTagContainer(WxGameplayTags::HitReact));
 	EventData.Instigator = SourceASC ? SourceASC->GetOwnerActor() : nullptr;
 	EventData.Target = ASC->GetOwnerActor();
 	EventData.EventMagnitude = ReflectAmount;
@@ -188,6 +195,7 @@ void UWxEffectComponent_Hit::ProcessPerfectGuard(UAbilitySystemComponent* ASC, c
 		{
 			FGameplayEventData ParryEventData;
 			ParryEventData.EventTag = WxGameplayTags::Event_Hit_Parry;
+			ParryEventData.TargetTags = EventData.TargetTags;
 			ParryEventData.Instigator = ASC->GetOwnerActor();
 			ParryEventData.Target = SourceASC->GetOwnerActor();
 			SourceASC->HandleGameplayEvent(WxGameplayTags::Event_Hit_Parry, &ParryEventData);

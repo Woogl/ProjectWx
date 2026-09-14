@@ -22,6 +22,9 @@ class WXCOMBAT_API UWxAbility_GuardReact : public UWxAbilityBase
 public:
 	UWxAbility_GuardReact();
 
+	virtual bool ShouldAbilityRespondToEvent(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayEventData* Payload) const override;
+	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+
 	/** 가드 반응 몽타주는 길이가 곧 연출 규칙이므로 ASPD를 반영하지 않는다. */
 	virtual float GetMontagePlayRate() const override;
 
