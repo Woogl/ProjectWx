@@ -129,13 +129,14 @@ void AWxAIController::OnUnPossess()
 		}
 	}
 
+	Super::OnUnPossess();
+
 	// 몸이 없는 리스너는 마지막 시점에 머문 채 시야 쿼리를 계속 도므로, 폰을 놓은 동안에는 감각을 재운다.
+	// 폰 참조가 끊긴 뒤에 재워야 한다 — 폰이 남아 있으면 엔진이 그 폰을 자극원에서 빼고 다시 올리지 않는다.
 	if (UAIPerceptionComponent* Perception = GetPerceptionComponent())
 	{
 		Perception->UnregisterComponent();
 	}
-
-	Super::OnUnPossess();
 }
 
 EBlackboardNotificationResult AWxAIController::HandleTargetActorChanged(const UBlackboardComponent& InBlackboard, FBlackboard::FKey KeyID)
