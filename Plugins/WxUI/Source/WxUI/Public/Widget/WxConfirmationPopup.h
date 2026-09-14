@@ -16,11 +16,16 @@ class WXUI_API UWxConfirmationPopup : public UWxGamePopup
 	GENERATED_BODY()
 
 public:
+	UWxConfirmationPopup();
+
 	virtual void SetupPopup(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback) override;
 	virtual void KillPopup() override;
 
 protected:
 	virtual void NativeOnInitialized() override;
+	virtual void NativeOnDeactivated() override;
+	virtual void NativeDestruct() override;
+	virtual bool NativeOnHandleBackAction() override;
 
 	/**
 	 * 텍스트/버튼 표시가 끝난 뒤, WBP가 버튼 라벨(OptionalDisplayText)이나 부가 비주얼을 구성하도록 호출된다.
@@ -48,4 +53,5 @@ private:
 	void HandleResultChosen(EWxPopupResult Result);
 
 	FWxPopupResultDelegate OnResultCallback;
+	EWxPopupResult BackResult = EWxPopupResult::Unknown;
 };

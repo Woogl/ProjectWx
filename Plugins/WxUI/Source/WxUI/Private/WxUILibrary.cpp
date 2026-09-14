@@ -67,6 +67,7 @@ void UWxUILibrary::ShowConfirmationPopup(const UObject* WorldContextObject, EWxP
 	UWxUIManagerSubsystem* UIManager = GetUIManagerSubsystem(WorldContextObject);
 	if (!UIManager)
 	{
+		OnResult.ExecuteIfBound(EWxPopupResult::Killed);
 		return;
 	}
 

@@ -5,6 +5,12 @@
 #include "CommonTextBlock.h"
 #include "CommonRichTextBlock.h"
 
+UWxConfirmationPopup::UWxConfirmationPopup()
+{
+	// 확인 전용 팝업에서도 Back을 소비해 하위 화면으로 전달하지 않는다.
+	bIsBackHandler = true;
+}
+
 void UWxConfirmationPopup::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
@@ -23,12 +29,39 @@ void UWxConfirmationPopup::NativeOnInitialized()
 	}
 }
 
+void UWxConfirmationPopup::NativeOnDeactivated()
+{
+	FWxPopupResultDelegate Callback = OnResultCallback;
+	OnResultCallback.Unbind();
+	Super::NativeOnDeactivated();
+	Callback.ExecuteIfBound(EWxPopupResult::Killed);
+}
+
+void UWxConfirmationPopup::NativeDestruct()
+{
+	// 이미 비활성 상태인 위젯도 레이아웃과 함께 제거될 수 있다.
+	FWxPopupResultDelegate Callback = OnResultCallback;
+	OnResultCallback.Unbind();
+	Super::NativeDestruct();
+	Callback.ExecuteIfBound(EWxPopupResult::Killed);
+}
+
+bool UWxConfirmationPopup::NativeOnHandleBackAction()
+{
+	if (BackResult != EWxPopupResult::Unknown)
+	{
+		HandleResultChosen(BackResult);
+	}
+	return true;
+}
+
 void UWxConfirmationPopup::SetupPopup(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback)
 {
 	Super::SetupPopup(Descriptor, ResultCallback);
 
 	if (!Descriptor)
 	{
+		ResultCallback.ExecuteIfBound(EWxPopupResult::Killed);
 		return;
 	}
 
@@ -74,6 +107,8 @@ void UWxConfirmationPopup::SetupPopup(UWxGamePopupDescriptor* Descriptor, FWxPop
 		Button_Cancel->SetVisibility(bHasCancel ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 	}
 
+	BackResult = bHasCancel ? EWxPopupResult::Cancelled :
+		(bHasDecline ? EWxPopupResult::Declined : EWxPopupResult::Unknown);
 	OnSetupPopup(Descriptor);
 }
 
