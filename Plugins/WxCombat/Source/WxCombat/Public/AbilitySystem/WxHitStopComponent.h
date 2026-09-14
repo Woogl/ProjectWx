@@ -29,7 +29,6 @@ public:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	/** 지금 이 머신에서 시간이 서 있다. */
 	bool IsFrozen() const;
 
 private:

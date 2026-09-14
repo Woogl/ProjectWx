@@ -33,7 +33,6 @@ class WXCOMBAT_API AWxProjectileBase : public AActor, public IGenericTeamAgentIn
 public:
 	AWxProjectileBase();
 
-	/** 발사 시 저장한 서버 피해 레벨. 반사 후에도 유지된다. */
 	int32 GetProjectileLevel() const;
 
 	//~ Begin IGenericTeamAgentInterface
