@@ -2,10 +2,8 @@
 
 #include "WxUILibrary.h"
 #include "System/WxUIManagerSubsystem.h"
-#include "System/WxPrimaryGameLayout.h"
 #include "Widget/WxGamePopup.h"
 #include "CommonActivatableWidget.h"
-#include "Widgets/CommonActivatableWidgetContainer.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/Widget.h"
 #include "Engine/GameInstance.h"
@@ -62,23 +60,6 @@ void UWxUILibrary::DeactivateOwningActivatable(UWidget* StartingWidget)
 			return;
 		}
 	}
-}
-
-void UWxUILibrary::DeactivateWidgetsInLayer(const UObject* WorldContextObject, FGameplayTag LayerTag)
-{
-	UWxPrimaryGameLayout* Layout = GetPrimaryGameLayout(WorldContextObject);
-	if (!Layout)
-	{
-		return;
-	}
-
-	UCommonActivatableWidgetStack* Stack = Layout->GetLayerWidgetStack(LayerTag);
-	if (!Stack)
-	{
-		return;
-	}
-
-	Stack->ClearWidgets();
 }
 
 void UWxUILibrary::ShowConfirmationPopup(const UObject* WorldContextObject, EWxPopupButtonLayout Buttons, FText Header, FText Body, const FWxPopupResultDynamicDelegate& OnResult)

@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Widget/WxGamePopup.h"
 #include "WxUILibrary.generated.h"
@@ -37,9 +36,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Wx|UI")
 	static void DeactivateOwningActivatable(UWidget* StartingWidget);
-
-	UFUNCTION(BlueprintCallable, Category = "Wx|UI", meta = (WorldContext = "WorldContextObject"))
-	static void DeactivateWidgetsInLayer(const UObject* WorldContextObject, UPARAM(meta = (Categories = "UI.Layer"))FGameplayTag LayerTag);
 
 	UFUNCTION(BlueprintCallable, Category = "Wx|UI|Popup", meta = (WorldContext = "WorldContextObject", AutoCreateRefTerm = "OnResult"))
 	static void ShowConfirmationPopup(const UObject* WorldContextObject, EWxPopupButtonLayout Buttons, FText Header, FText Body, const FWxPopupResultDynamicDelegate& OnResult);

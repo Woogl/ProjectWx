@@ -36,8 +36,6 @@ protected:
 	float MaxVisibilityDistance = 3000.f;
 
 private:
-	friend class FWxNameplatePresentationTest;
-
 	void BindViewModel();
 	void UpdatePresentation(const APawn* ViewerPawn);
 };
