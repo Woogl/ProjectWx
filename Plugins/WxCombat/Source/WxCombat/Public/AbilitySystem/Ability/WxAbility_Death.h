@@ -49,5 +49,9 @@ protected:
 private:
 	void PlayDeathMontageOrRagdoll();
 
+	/** 어빌리티가 끝나지 않아 엔진 해제 경로가 없으므로, 몽타주는 두고 소유만 놓아 ASC가 강제한 메시 본 갱신을 되돌린다. */
+	UFUNCTION()
+	void HandleDeathMontageElapsed();
+
 	void EnableRagdoll();
 };

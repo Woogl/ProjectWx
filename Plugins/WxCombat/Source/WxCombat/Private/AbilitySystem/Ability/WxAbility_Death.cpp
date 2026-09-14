@@ -1,8 +1,10 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Death.h"
+#include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "AbilitySystemComponent.h"
 #include "AIController.h"
+#include "Animation/AnimMontage.h"
 #include "BrainComponent.h"
 #include "GameFramework/Pawn.h"
 #include "WxGameplayTags.h"
@@ -83,6 +85,20 @@ void UWxAbility_Death::PlayDeathMontageOrRagdoll()
 	if (!PlayMontage(DeathMontage))
 	{
 		EnableRagdoll();
+		return;
+	}
+
+	// 포즈를 유지하는 사망 몽타주는 끝에 닿아도 완료 통지가 오지 않아 재생 길이로 끝을 잡는다.
+	UAbilityTask_WaitDelay* WaitTask = UAbilityTask_WaitDelay::WaitDelay(this, DeathMontage->GetPlayLength() / (GetMontagePlayRate() * DeathMontage->RateScale));
+	WaitTask->OnFinish.AddDynamic(this, &UWxAbility_Death::HandleDeathMontageElapsed);
+	WaitTask->ReadyForActivation();
+}
+
+void UWxAbility_Death::HandleDeathMontageElapsed()
+{
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		ASC->ClearAnimatingAbility(this);
 	}
 }
 
