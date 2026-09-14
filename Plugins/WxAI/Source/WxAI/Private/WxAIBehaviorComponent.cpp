@@ -108,21 +108,6 @@ UBehaviorTree* UWxAIBehaviorComponent::GetBehaviorTree() const
 	return BehaviorTreeAsset;
 }
 
-float UWxAIBehaviorComponent::GetSightRadius() const
-{
-	return SightRadius;
-}
-
-float UWxAIBehaviorComponent::GetSightAngle() const
-{
-	return SightAngle;
-}
-
-float UWxAIBehaviorComponent::GetHearingRadius() const
-{
-	return HearingRadius;
-}
-
 void UWxAIBehaviorComponent::HandleControllerChanged(APawn* Pawn, AController* OldController, AController* NewController)
 {
 	ApplySenseSettings(NewController);

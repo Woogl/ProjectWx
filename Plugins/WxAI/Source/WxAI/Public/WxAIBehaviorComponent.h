@@ -33,10 +33,6 @@ public:
 
 	UBehaviorTree* GetBehaviorTree() const;
 
-	float GetSightRadius() const;
-	float GetSightAngle() const;
-	float GetHearingRadius() const;
-
 private:
 	UFUNCTION()
 	void HandleControllerChanged(APawn* Pawn, AController* OldController, AController* NewController);
