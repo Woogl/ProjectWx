@@ -415,6 +415,12 @@ void UWxViewModel_Ability::HandleTagChanged(const FGameplayTag Tag, int32 NewCou
 
 void UWxViewModel_Ability::HandleCostAttributeChanged(const FOnAttributeChangeData& Data)
 {
+	// 엔진은 값이 그대로여도 통지한다 — 자원이 가득 찬 채 도는 주기 회복 GE 가 매 주기 같은 값을 보낸다.
+	if (Data.NewValue == Data.OldValue)
+	{
+		return;
+	}
+
 	// 자원 값 자체는 UWxViewModel_Attribute 가 같은 어트리뷰트를 구독해 갱신한다.
 	RefreshActivationState();
 }
