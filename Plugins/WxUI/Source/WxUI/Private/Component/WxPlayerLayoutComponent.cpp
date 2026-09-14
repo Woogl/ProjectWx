@@ -5,7 +5,6 @@
 #include "CommonActivatableWidget.h"
 #include "GameFramework/PlayerController.h"
 #include "System/WxPrimaryGameLayout.h"
-#include "System/WxUIManagerSubsystem.h"
 #include "Widget/WxAsyncAction_PushWidgetToLayer.h"
 #include "Widget/WxHUDLayout.h"
 #include "WxGameplayTags.h"
@@ -52,8 +51,7 @@ void UWxPlayerLayoutComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn*
 		return;
 	}
 
-	UWxUIManagerSubsystem* UIManager = UWxUILibrary::GetUIManagerSubsystem(this);
-	UWxPrimaryGameLayout* Layout = UIManager ? UIManager->GetPrimaryGameLayout() : nullptr;
+	UWxPrimaryGameLayout* Layout = UWxUILibrary::GetPrimaryGameLayout(this);
 	if (!Layout)
 	{
 		return;
@@ -89,8 +87,7 @@ void UWxPlayerLayoutComponent::ClearLayout()
 		PendingLayoutPush->Cancel();
 		PendingLayoutPush = nullptr;
 	}
-	UWxUIManagerSubsystem* UIManager = UWxUILibrary::GetUIManagerSubsystem(this);
-	UWxPrimaryGameLayout* Layout = UIManager ? UIManager->GetPrimaryGameLayout() : nullptr;
+	UWxPrimaryGameLayout* Layout = UWxUILibrary::GetPrimaryGameLayout(this);
 	UCommonActivatableWidgetStack* Stack = Layout ? Layout->GetLayerWidgetStack(WxGameplayTags::UI_Layer_Game) : nullptr;
 	if (UCommonActivatableWidget* Widget = LayoutWidget.Get())
 	{
