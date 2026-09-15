@@ -10,14 +10,10 @@
 class UWxAbilitySystemComponent;
 
 /**
- * 히트스톱 반응. 소유자 ASC에 Effect.HitStop이 붙어 있는 동안 아바타의 애니메이션을 세운다.
+ * Effect.HitStop이 있는 동안 소유자의 CustomTimeDilation을 낮추고 마지막 태그가 사라지면 복원한다.
  *
- * 몽타주 재생 속도가 아니라 메시의 GlobalAnimRateScale을 쓴다 — 몽타주보다 아래층이라 슬롯 그룹·재생 주체·몽타주 교체를 보지 않고, 되돌릴 값이 상수 1이라 무엇을 얼렸는지 기억할 필요가 없다.
- * 배속의 주인은 히트스톱뿐이므로 다른 연출이 같은 값을 쓰기 시작하면 서로 덮는다.
- *
- * 모든 머신은 Effect.HitStop 태그로 판정하며, 클라이언트는 서버 태그의 복제를 따른다.
- * 캐릭터의 시간을 가진 머신만 세운다. 원격 클라 폰의 서버 사본은 클라가 무브를 보내지 않는 동안 저절로 멈춘다.
- * 이동 정지는 게임의 이동 컴포넌트가 같은 태그로 처리한다.
+ * GE 수명은 월드 시간으로 흘러 GAS 쿨다운과 함께 정상 만료된다. 클라이언트도 복제된 태그로 배율을 적용한다.
+ * 히트스톱 중 CustomTimeDilation의 쓰기는 이 컴포넌트가 소유한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxHitStopComponent : public UActorComponent
@@ -35,8 +31,10 @@ public:
 private:
 	void HandleHitStopTagChanged(const FGameplayTag Tag, int32 NewCount);
 
-	/** 토글이 아니라 대입이라 이벤트를 놓쳐도 다음 호출에서 참값으로 돌아온다. */
-	void RefreshFrozenState();
+	void SetFrozen(bool bFrozen);
+
+	bool bHitStopApplied = false;
+	float SavedCustomTimeDilation = 1.f;
 
 	UPROPERTY()
 	TObjectPtr<UWxAbilitySystemComponent> AbilitySystemComponent;

@@ -152,7 +152,7 @@ bool AWxPlayerCharacter::CanCrouch() const
 
 void AWxPlayerCharacter::Move(const FInputActionValue& Value)
 {
-	// 히트스톱 중에도 입력은 받는다. 무브는 이동 컴포넌트가 세우고, 회피가 읽는 마지막 입력 방향은 이동 컴포넌트가 이 입력을 소비하며 갱신한다.
+	// 히트스톱 중에도 입력을 소비해 회피가 읽는 마지막 입력 방향을 갱신한다.
 	if (!Controller)
 	{
 		return;

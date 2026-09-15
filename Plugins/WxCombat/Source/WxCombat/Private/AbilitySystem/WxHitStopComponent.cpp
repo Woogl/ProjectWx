@@ -3,8 +3,14 @@
 #include "AbilitySystem/WxHitStopComponent.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
-#include "Components/SkeletalMeshComponent.h"
+#include "GameFramework/Actor.h"
 #include "WxGameplayTags.h"
+
+namespace
+{
+	// 이동 경로에 0 델타를 직접 전달하지 않도록 작은 양수 배율을 쓴다.
+	constexpr float HitStopTimeDilation = 0.001f;
+}
 
 UWxHitStopComponent::UWxHitStopComponent()
 {
@@ -18,8 +24,8 @@ void UWxHitStopComponent::BeginPlay()
 	AbilitySystemComponent = Cast<UWxAbilitySystemComponent>(UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()));
 	if (AbilitySystemComponent)
 	{
-		AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::Effect_HitStop).AddUObject(this, &UWxHitStopComponent::HandleHitStopTagChanged);
-		RefreshFrozenState();
+		AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::Effect_HitStop, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &UWxHitStopComponent::HandleHitStopTagChanged);
+		SetFrozen(IsFrozen());
 	}
 }
 
@@ -27,8 +33,10 @@ void UWxHitStopComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (AbilitySystemComponent)
 	{
-		AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::Effect_HitStop).RemoveAll(this);
+		AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::Effect_HitStop, EGameplayTagEventType::NewOrRemoved).RemoveAll(this);
 	}
+
+	SetFrozen(false);
 
 	Super::EndPlay(EndPlayReason);
 }
@@ -40,23 +48,26 @@ bool UWxHitStopComponent::IsFrozen() const
 
 void UWxHitStopComponent::HandleHitStopTagChanged(const FGameplayTag Tag, int32 NewCount)
 {
-	RefreshFrozenState();
+	SetFrozen(NewCount > 0);
 }
 
-void UWxHitStopComponent::RefreshFrozenState()
+void UWxHitStopComponent::SetFrozen(bool bFrozen)
 {
-	if (!AbilitySystemComponent->AbilityActorInfo.IsValid())
+	AActor* Owner = GetOwner();
+	if (!Owner || bHitStopApplied == bFrozen)
 	{
 		return;
 	}
 
-	USkeletalMeshComponent* Mesh = AbilitySystemComponent->AbilityActorInfo->SkeletalMeshComponent.Get();
-	if (!Mesh)
+	if (bFrozen)
 	{
-		return;
+		SavedCustomTimeDilation = Owner->CustomTimeDilation;
+		Owner->CustomTimeDilation = SavedCustomTimeDilation * HitStopTimeDilation;
+	}
+	else
+	{
+		Owner->CustomTimeDilation = SavedCustomTimeDilation;
 	}
 
-	// 원격 클라 폰의 서버 사본은 클라 무브 안에서만 포즈를 틱해 클라와 함께 멈춘다. 서버 태그로 세우면 클라가 아직 멈추지 않은 무브의 루트모션이 어긋난다.
-	const bool bFreezeAnimation = IsFrozen() && !Mesh->bOnlyAllowAutonomousTickPose;
-	Mesh->GlobalAnimRateScale = bFreezeAnimation ? 0.f : 1.f;
+	bHitStopApplied = bFrozen;
 }

@@ -53,7 +53,7 @@ namespace WxGameplayTags
 
 	/**
 	 * WxEffect_HitStop이 적중마다 무기·투사체의 InstigatorHitStop·VictimHitStop만큼 부여한다.
-	 * 있는 동안 애니메이션은 WxHitStopComponent가, 이동은 캐릭터 이동 컴포넌트가 세운다.
+	 * 있는 동안 WxHitStopComponent가 액터의 CustomTimeDilation을 낮춘다. GE 수명은 월드 시간을 따른다.
 	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_HitStop);
 

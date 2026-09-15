@@ -93,29 +93,6 @@ void UWxCharacterMovementComponent::OnMovementModeChanged(EMovementMode Previous
 	}
 }
 
-void UWxCharacterMovementComponent::ControlledCharacterMove(const FVector& InputVector, float DeltaSeconds)
-{
-	if (IsHitStopped())
-	{
-		// 서버 사본은 무브가 끊긴 동안에도 발판은 따라가므로 같은 기준 위치를 유지한다.
-		MaybeUpdateBasedMovement(DeltaSeconds);
-		MaybeSaveBaseLocation();
-		return;
-	}
-
-	Super::ControlledCharacterMove(InputVector, DeltaSeconds);
-}
-
-void UWxCharacterMovementComponent::SimulateMovement(float DeltaTime)
-{
-	if (IsHitStopped())
-	{
-		return;
-	}
-
-	Super::SimulateMovement(DeltaTime);
-}
-
 void UWxCharacterMovementComponent::JumpToLandingSection()
 {
 	if (!CharacterOwner)
@@ -140,10 +117,4 @@ void UWxCharacterMovementComponent::JumpToLandingSection()
 	{
 		AnimInstance->Montage_JumpToSection(LandingSectionName, Montage);
 	}
-}
-
-bool UWxCharacterMovementComponent::IsHitStopped()
-{
-	const UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
-	return ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Effect_HitStop);
 }

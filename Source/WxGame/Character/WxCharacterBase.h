@@ -84,7 +84,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")
 	TObjectPtr<UWxLockOnComponent> LockOnComponent;
 
-	/** 히트스톱 GE의 추가·제거를 받아 메시의 애니메이션 시간을 세우고 되돌린다. */
+	/** 히트스톱 GE의 추가·제거를 받아 액터의 CustomTimeDilation을 적용·복원한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|Combat")
 	TObjectPtr<UWxHitStopComponent> HitStopComponent;
 
