@@ -4,6 +4,7 @@
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffectComponents/AssetTagsGameplayEffectComponent.h"
+#include "GameplayEffectComponents/BlockAbilityTagsGameplayEffectComponent.h"
 #include "GameplayEffectComponents/ImmunityGameplayEffectComponent.h"
 #include "GameplayEffectComponents/TargetTagsGameplayEffectComponent.h"
 #include "WxGameplayTags.h"
@@ -24,6 +25,13 @@ UWxEffect_Invincible::UWxEffect_Invincible()
 	GrantedTags.Added.AddTag(WxGameplayTags::Effect_Invincible);
 	TargetTagsComp->SetAndApplyTargetTagChanges(GrantedTags);
 	GEComponents.Add(TargetTagsComp);
+
+	// 무적 대상에겐 Event.Hit이 오지 않지만, 공격자 쪽으로 가는 Event.Hit.Parry는 여기서 막힌다.
+	UBlockAbilityTagsGameplayEffectComponent* BlockAbilityTagsComp = CreateDefaultSubobject<UBlockAbilityTagsGameplayEffectComponent>(TEXT("BlockAbilityTags"));
+	FInheritedTagContainer BlockedAbilityTags;
+	BlockedAbilityTags.Added.AddTag(WxGameplayTags::Ability_HitReact);
+	BlockAbilityTagsComp->SetAndApplyBlockedAbilityTagChanges(BlockedAbilityTags);
+	GEComponents.Add(BlockAbilityTagsComp);
 
 	UAssetTagsGameplayEffectComponent* AssetTagsComp = CreateDefaultSubobject<UAssetTagsGameplayEffectComponent>(TEXT("AssetTags"));
 	FInheritedTagContainer AssetTags;

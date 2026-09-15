@@ -7,6 +7,7 @@
 #include "WxEffect_SuperArmor.generated.h"
 
 /**
+ * HitReact 발동을 막는다.
  * 부여하는 어빌리티가 도는 동안 유지돼 고정 지속시간이 없으므로, 수명은 그 어빌리티가 끊는다.
  */
 UCLASS()
