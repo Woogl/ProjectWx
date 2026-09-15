@@ -280,8 +280,8 @@ void UWxDeviceStateTreeComponent::PublishAuthorityState()
 	StateSnapshot.StateTagName = LastEnteredTag.GetTagName();
 	StateSnapshot.RunStatus = Status;
 	const AWxDevice* Device = Cast<AWxDevice>(GetOwner());
-	StateSnapshot.Interactor = Device ? Device->GetInteractingCharacter() : nullptr;
-	StateSnapshot.bHasInteractor = StateSnapshot.Interactor != nullptr;
+	ACharacter* Interactor = Device ? Device->GetInteractingCharacter() : nullptr;
+	StateSnapshot.Interactor = IsValid(Interactor) ? Interactor : nullptr;
 	GetOwner()->ForceNetUpdate();
 	UE_LOG(LogWxWorld, Verbose, TEXT("Device publish: %s"), *DescribeSynchronization());
 }
@@ -315,17 +315,12 @@ void UWxDeviceStateTreeComponent::OnRep_StateSnapshot(const FWxDeviceStateSnapsh
 
 void UWxDeviceStateTreeComponent::ApplyInteractor()
 {
-	if (StateSnapshot.bHasInteractor && !IsValid(StateSnapshot.Interactor))
-	{
-		// 참조 해소를 기다리는 동안 현재 실행 중인 상태의 당사자를 덮지 않는다.
-		return;
-	}
-	
 	if (GetOwnerRole() != ROLE_Authority && StateSnapshot.EntrySerial != 0)
 	{
 		if (AWxDevice* Device = Cast<AWxDevice>(GetOwner()))
 		{
-			Device->InteractingCharacter = StateSnapshot.bHasInteractor ? StateSnapshot.Interactor.Get() : nullptr;
+			// 새 상태가 이전 당사자를 사용하지 않게 한다. 뒤늦은 참조 해소는 RepNotify에서 반영한다.
+			Device->InteractingCharacter = IsValid(StateSnapshot.Interactor) ? StateSnapshot.Interactor.Get() : nullptr;
 		}
 	}
 }
@@ -334,12 +329,6 @@ void UWxDeviceStateTreeComponent::FollowAuthorityState()
 {
 	if (StateSnapshot.EntrySerial == 0 || !SyncFailure.IsEmpty())
 	{
-		return;
-	}
-	
-	if (StateSnapshot.bHasInteractor && !IsValid(StateSnapshot.Interactor))
-	{
-		// 기본 객체 프로퍼티 복제가 참조를 추적한다. 매핑 완료 후 RepNotify가 다시 적용한다.
 		return;
 	}
 	
@@ -456,11 +445,11 @@ bool UWxDeviceStateTreeComponent::HasState(FGameplayTag Tag) const
 
 FString UWxDeviceStateTreeComponent::DescribeSynchronization() const
 {
-	return FString::Printf(TEXT("%s role=%s local=%s/%u target=%s/%u applied=%u run=%s authorityRun=%s attempts=%u interactor=%s waitingInteractor=%d initial=%s error=%s"),
+	return FString::Printf(TEXT("%s role=%s local=%s/%u target=%s/%u applied=%u run=%s authorityRun=%s attempts=%u interactor=%s initial=%s error=%s"),
 		*GetNameSafe(GetOwner()), GetOwnerRole() == ROLE_Authority ? TEXT("Authority") : TEXT("Client"),
 		*LastEnteredTag.ToString(), LocalEntrySerial, *StateSnapshot.StateTagName.ToString(), StateSnapshot.EntrySerial,
 		AppliedEntrySerial, *UEnum::GetValueAsString(GetStateTreeRunStatus()), *UEnum::GetValueAsString(StateSnapshot.RunStatus),
-		SyncAttempts, *GetNameSafe(StateSnapshot.Interactor), StateSnapshot.bHasInteractor && !IsValid(StateSnapshot.Interactor),
+		SyncAttempts, *GetNameSafe(StateSnapshot.Interactor),
 		*InitialTarget.ToString(), *SyncFailure);
 }
 

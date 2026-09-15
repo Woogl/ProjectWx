@@ -30,12 +30,9 @@ struct FWxDeviceStateSnapshot
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	EStateTreeRunStatus RunStatus = EStateTreeRunStatus::Unset;
 
+	/** 선택적 실행 문맥. 참조가 미해소여도 상태는 적용하고, 해소되면 당사자만 갱신한다. */
 	UPROPERTY()
 	TObjectPtr<ACharacter> Interactor;
-
-	/** 미해소 NetGUID와 당사자 없는 상태를 구분한다. */
-	UPROPERTY()
-	bool bHasInteractor = false;
 };
 
 /** 기존 활성 프레임이 지워지기 직전에 관측하며 순정 컴포넌트의 틱 깨우기를 유지한다. */
@@ -91,6 +88,9 @@ protected:
 
 private:
 	friend struct FWxDeviceExecutionExtension;
+#if WITH_DEV_AUTOMATION_TESTS
+	friend class FWxDeviceInteractorSyncTest;
+#endif
 
 	void InstallExecutionObserver();
 	void HandleBeginApplyTransition(const FStateTreeExecutionExtension::FContextParameters& Context, const FStateTreeTransitionResult& Transition);
