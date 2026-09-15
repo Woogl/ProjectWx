@@ -132,7 +132,7 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 void AWxPlayerCharacter::Jump()
 {
-	if (HitStopComponent->IsFrozen())
+	if (HitStopComponent->HasHitStop())
 	{
 		return;
 	}
@@ -182,7 +182,7 @@ void AWxPlayerCharacter::Look(const FInputActionValue& Value)
 
 void AWxPlayerCharacter::ToggleCrouch()
 {
-	if (HitStopComponent->IsFrozen())
+	if (HitStopComponent->HasHitStop())
 	{
 		return;
 	}

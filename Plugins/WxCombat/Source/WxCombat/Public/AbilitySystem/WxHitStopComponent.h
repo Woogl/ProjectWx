@@ -7,7 +7,7 @@
 #include "GameplayTagContainer.h"
 #include "WxHitStopComponent.generated.h"
 
-class UWxAbilitySystemComponent;
+class UAbilitySystemComponent;
 
 /**
  * Effect.HitStop이 있는 동안 소유자의 CustomTimeDilation을 낮추고 마지막 태그가 사라지면 복원한다.
@@ -26,7 +26,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	bool IsFrozen() const;
+	bool HasHitStop() const;
 
 private:
 	void HandleHitStopTagChanged(const FGameplayTag Tag, int32 NewCount);
@@ -37,5 +37,5 @@ private:
 	float SavedCustomTimeDilation = 1.f;
 
 	UPROPERTY()
-	TObjectPtr<UWxAbilitySystemComponent> AbilitySystemComponent;
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 };

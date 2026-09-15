@@ -1,9 +1,10 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/WxHitStopComponent.h"
-#include "AbilitySystem/WxAbilitySystemComponent.h"
+#include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "GameFramework/Actor.h"
+#include "WxCombatModule.h"
 #include "WxGameplayTags.h"
 
 namespace
@@ -21,11 +22,11 @@ void UWxHitStopComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	AbilitySystemComponent = Cast<UWxAbilitySystemComponent>(UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()));
+	AbilitySystemComponent = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner());
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::Effect_HitStop, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &UWxHitStopComponent::HandleHitStopTagChanged);
-		SetFrozen(IsFrozen());
+		SetFrozen(HasHitStop());
 	}
 }
 
@@ -41,7 +42,7 @@ void UWxHitStopComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-bool UWxHitStopComponent::IsFrozen() const
+bool UWxHitStopComponent::HasHitStop() const
 {
 	return AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Effect_HitStop);
 }
@@ -59,6 +60,7 @@ void UWxHitStopComponent::SetFrozen(bool bFrozen)
 		return;
 	}
 
+	const float PreviousTimeDilation = Owner->CustomTimeDilation;
 	if (bFrozen)
 	{
 		SavedCustomTimeDilation = Owner->CustomTimeDilation;
@@ -70,4 +72,7 @@ void UWxHitStopComponent::SetFrozen(bool bFrozen)
 	}
 
 	bHitStopApplied = bFrozen;
+	UE_LOG(LogWxCombat, VeryVerbose, TEXT("HitStop %s: Actor=%s Role=%s CustomTimeDilation=%g -> %g"),
+		bFrozen ? TEXT("Apply") : TEXT("Restore"), *Owner->GetName(),
+		*UEnum::GetValueAsString(Owner->GetLocalRole()), PreviousTimeDilation, Owner->CustomTimeDilation);
 }
