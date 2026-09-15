@@ -23,6 +23,11 @@ class WXGAME_API AWxAIController : public AAIController
 public:
 	AWxAIController();
 
+	//~ Begin IGenericTeamAgentInterface
+	/** 시야 센스가 퍼셉션 오너인 컨트롤러에게 묻는 피아 판정을 폰의 규칙에 맡긴다. 청각은 이 함수를 거치지 않고 팀 ID 솔버로 판정한다. */
+	virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
+	//~ End IGenericTeamAgentInterface
+
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnUnPossess() override;

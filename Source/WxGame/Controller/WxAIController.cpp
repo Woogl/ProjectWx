@@ -46,6 +46,15 @@ AWxAIController::AWxAIController()
 	Perception->SetDominantSense(UAISense_Sight::StaticClass());
 }
 
+ETeamAttitude::Type AWxAIController::GetTeamAttitudeTowards(const AActor& Other) const
+{
+	if (const IGenericTeamAgentInterface* PawnTeamAgent = Cast<IGenericTeamAgentInterface>(GetPawn()))
+	{
+		return PawnTeamAgent->GetTeamAttitudeTowards(Other);
+	}
+	return Super::GetTeamAttitudeTowards(Other);
+}
+
 void AWxAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
