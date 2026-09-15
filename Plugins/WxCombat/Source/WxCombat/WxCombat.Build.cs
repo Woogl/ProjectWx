@@ -28,6 +28,7 @@ public class WxCombat : ModuleRules
 		{
 			"LevelSequence",
 			"MovieScene",
+			"MovieSceneTracks",
 			"Niagara",
 		});
 	}

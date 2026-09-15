@@ -8,6 +8,7 @@
 #include "Engine/StreamableManager.h"
 #include "LevelSequence.h"
 #include "WxGameplayTags.h"
+#include "Cutscene/WxSkillCutsceneComponent.h"
 
 UWxAbility_Ultimate::UWxAbility_Ultimate()
 {
@@ -32,21 +33,47 @@ void UWxAbility_Ultimate::OnGiveAbility(const FGameplayAbilityActorInfo* ActorIn
 	}
 }
 
+bool UWxAbility_Ultimate::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	const UWxSkillCutsceneComponent* Coordinator = UWxSkillCutsceneComponent::Get(GetWorld());
+	if (Coordinator && Coordinator->IsBusy())
+	{
+		return false;
+	}
+	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
+}
+
 void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
 
 	// 부여 직후 곧바로 발동하면 프리로드가 아직 도착하지 않았을 수 있다.
 	ULevelSequence* Sequence = CutsceneSequence.Get();
 	if (!Sequence)
 	{
 		Sequence = CutsceneSequence.LoadSynchronous();
+	}
+
+	UWxSkillCutsceneComponent* Coordinator = nullptr;
+	if (Sequence && ActorInfo->IsNetAuthority())
+	{
+		Coordinator = UWxSkillCutsceneComponent::Get(GetWorld());
+		if (!Coordinator || !Coordinator->Reserve(this))
+		{
+			EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+			return;
+		}
+	}
+
+	// 서버는 예약 후 비용을 확정한다. 거절된 로컬 발동의 예측 비용은 GAS가 롤백한다.
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+	{
+		if (Coordinator)
+		{
+			Coordinator->Cancel(this);
+		}
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
 	}
 
 	if (Sequence)

@@ -8,6 +8,7 @@
 #include "WxGameState.generated.h"
 
 class UWxQuestComponent;
+class UWxSkillCutsceneComponent;
 
 UCLASS()
 class WXGAME_API AWxGameState : public AGameStateBase
@@ -18,6 +19,9 @@ public:
 	AWxGameState();
 
 private:
+	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	TObjectPtr<UWxSkillCutsceneComponent> SkillCutsceneComponent;
+
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UWxQuestComponent> QuestComponent;
 };
