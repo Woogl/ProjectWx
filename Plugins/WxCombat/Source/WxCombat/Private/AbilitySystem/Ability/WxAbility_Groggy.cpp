@@ -56,10 +56,11 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 	StartMontagePolling();
 
-	// 클라의 복제 GP로 종료를 판정하면 서버와 종료 시점이 어긋난다.
-	if (ActorInfo->IsNetAuthority())
+	// 효과의 수명과 정상 종료 판정은 서버가 소유한다.
+	if (ActorInfo->IsNetAuthority() && !StartGroggyDrain(Handle, ActorInfo, ActivationInfo))
 	{
-		StartGroggyDrain(Handle, ActorInfo, ActivationInfo);
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
 	}
 
 	SetAILogicPaused(ActorInfo, true);
@@ -92,12 +93,19 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UWxAbility_Groggy::HandleGPChanged(const FOnAttributeChangeData& Data)
+void UWxAbility_Groggy::HandleDrainRemoved(const FGameplayEffectRemovalInfo& RemovalInfo)
 {
-	if (Data.NewValue <= 0.f)
+	if (RemovalInfo.bPrematureRemoval || !IsActive() || !CurrentActorInfo || !CurrentActorInfo->IsNetAuthority())
 	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		return;
 	}
+
+	// 주기 실행 횟수나 누적 오차와 무관하게 효과의 자연 만료가 그로기를 끝낸다.
+	if (UAbilitySystemComponent* ASC = CurrentActorInfo->AbilitySystemComponent.Get())
+	{
+		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetGPAttribute(), 0.f);
+	}
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UWxAbility_Groggy::HandleMontagePollTick()
@@ -134,18 +142,19 @@ void UWxAbility_Groggy::StopMontagePolling()
 	}
 }
 
-void UWxAbility_Groggy::StartGroggyDrain(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+bool UWxAbility_Groggy::StartGroggyDrain(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
 	if (!ASC)
 	{
-		return;
+		return false;
 	}
 
-	GPDelegateHandle = ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetGPAttribute())
-		.AddUObject(this, &UWxAbility_Groggy::HandleGPChanged);
-
 	const float GroggyDuration = GroggyMontage->GetPlayLength();
+	if (!FMath::IsFinite(GroggyDuration) || GroggyDuration <= 0.f)
+	{
+		return false;
+	}
 	FGameplayEffectSpecHandle DrainSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_DrainGP::StaticClass(), GetAbilityLevel());
 	if (DrainSpecHandle.IsValid())
 	{
@@ -153,21 +162,27 @@ void UWxAbility_Groggy::StartGroggyDrain(const FGameplayAbilitySpecHandle Handle
 		DrainSpecHandle.Data->SetDuration(GroggyDuration, true);
 		DrainGPEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, DrainSpecHandle);
 	}
+	if (FOnActiveGameplayEffectRemoved_Info* RemovedDelegate = ASC->OnGameplayEffectRemoved_InfoDelegate(DrainGPEffectHandle))
+	{
+		DrainRemovedDelegateHandle = RemovedDelegate->AddUObject(this, &UWxAbility_Groggy::HandleDrainRemoved);
+		return true;
+	}
+	return false;
 }
 
 void UWxAbility_Groggy::StopGroggyDrain(UAbilitySystemComponent& ASC)
 {
 	if (DrainGPEffectHandle.IsValid())
 	{
+		// 직접 효과를 제거하는 종료 경로에서 제거 콜백이 재진입하지 않게 한다.
+		if (FOnActiveGameplayEffectRemoved_Info* RemovedDelegate = ASC.OnGameplayEffectRemoved_InfoDelegate(DrainGPEffectHandle))
+		{
+			RemovedDelegate->Remove(DrainRemovedDelegateHandle);
+		}
 		ASC.RemoveActiveGameplayEffect(DrainGPEffectHandle);
 		DrainGPEffectHandle.Invalidate();
 	}
-
-	if (GPDelegateHandle.IsValid())
-	{
-		ASC.GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetGPAttribute()).Remove(GPDelegateHandle);
-		GPDelegateHandle.Reset();
-	}
+	DrainRemovedDelegateHandle.Reset();
 }
 
 void UWxAbility_Groggy::SetAILogicPaused(const FGameplayAbilityActorInfo* ActorInfo, bool bPaused) const

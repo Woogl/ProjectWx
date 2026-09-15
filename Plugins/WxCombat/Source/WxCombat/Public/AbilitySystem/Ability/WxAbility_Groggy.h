@@ -10,7 +10,7 @@
 
 class UAnimMontage;
 class UAbilitySystemComponent;
-struct FOnAttributeChangeData;
+struct FGameplayEffectRemovalInfo;
 
 /**
  * GP가 MaxGP에 닿으면 AttributeSet이 송출하는 Event.Groggy로 발동해 빈 몽타주 슬롯에 그로기 몽타주를 재생하고 GP를 드레인한다.
@@ -32,18 +32,18 @@ protected:
 	TObjectPtr<UAnimMontage> GroggyMontage;
 
 private:
-	void HandleGPChanged(const FOnAttributeChangeData& Data);
+	void HandleDrainRemoved(const FGameplayEffectRemovalInfo& RemovalInfo);
 
 	void HandleMontagePollTick();
 	void StartMontagePolling();
 	void StopMontagePolling();
 
-	void StartGroggyDrain(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo);
+	bool StartGroggyDrain(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo);
 	void StopGroggyDrain(UAbilitySystemComponent& ASC);
 
 	void SetAILogicPaused(const FGameplayAbilityActorInfo* ActorInfo, bool bPaused) const;
 
-	FDelegateHandle GPDelegateHandle;
+	FDelegateHandle DrainRemovedDelegateHandle;
 	FActiveGameplayEffectHandle DrainGPEffectHandle;
 	FTimerHandle MontagePollingTimerHandle;
 };
