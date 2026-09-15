@@ -3,7 +3,8 @@
 #include "AbilitySystem/WxHitStopComponent.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
-#include "GameFramework/Actor.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "GameFramework/Character.h"
 #include "WxCombatModule.h"
 #include "WxGameplayTags.h"
 
@@ -55,13 +56,21 @@ void UWxHitStopComponent::HandleHitStopTagChanged(const FGameplayTag Tag, int32 
 void UWxHitStopComponent::SetFrozen(bool bFrozen)
 {
 	AActor* Owner = GetOwner();
-	if (!Owner || bHitStopApplied == bFrozen)
+	if (!Owner)
+	{
+		return;
+	}
+
+	// 서버 사본은 클라가 느려진 무브를 따라 멈추므로, 배율까지 걸면 서버가 복제 전 무브의 델타를 잘라 보정이 난다.
+	const ACharacter* Character = Cast<ACharacter>(Owner);
+	const bool bApply = bFrozen && !(Character && Character->GetMesh()->bOnlyAllowAutonomousTickPose);
+	if (bHitStopApplied == bApply)
 	{
 		return;
 	}
 
 	const float PreviousTimeDilation = Owner->CustomTimeDilation;
-	if (bFrozen)
+	if (bApply)
 	{
 		SavedCustomTimeDilation = Owner->CustomTimeDilation;
 		Owner->CustomTimeDilation = SavedCustomTimeDilation * HitStopTimeDilation;
@@ -71,8 +80,8 @@ void UWxHitStopComponent::SetFrozen(bool bFrozen)
 		Owner->CustomTimeDilation = SavedCustomTimeDilation;
 	}
 
-	bHitStopApplied = bFrozen;
+	bHitStopApplied = bApply;
 	UE_LOG(LogWxCombat, VeryVerbose, TEXT("HitStop %s: Actor=%s Role=%s CustomTimeDilation=%g -> %g"),
-		bFrozen ? TEXT("Apply") : TEXT("Restore"), *Owner->GetName(),
+		bApply ? TEXT("Apply") : TEXT("Restore"), *Owner->GetName(),
 		*UEnum::GetValueAsString(Owner->GetLocalRole()), PreviousTimeDilation, Owner->CustomTimeDilation);
 }
