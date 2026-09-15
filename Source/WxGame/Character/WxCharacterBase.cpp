@@ -54,24 +54,14 @@ void AWxCharacterBase::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	// 래그돌 감지는 시뮬 프록시를 포함한 전 머신에서 필요하므로, 클라에선 PlayerState 복제로만 도는(에너미는 안 도는) InitAbilitySystem이 아니라 여기서 구독한다.
+	// 원격 머신의 초기 복제는 이 함수 뒤에 적용되므로, 늦게 참여해 이미 선 태그도 이 콜백으로 들어온다.
 	AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::State_Ragdoll, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &AWxCharacterBase::HandleRagdollTagChanged);
-
-	// late join 시 구독보다 먼저 초기 복제로 태그가 실려 왔을 수 있어 1회 즉시 확인한다.
-	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::State_Ragdoll))
-	{
-		EnterRagdoll();
-	}
 
 	// 사망 처리도 같은 이유로 여기서 구독한다 — 무기 판정 해제와 OnDeath 방송은 시뮬 프록시를 포함한 전 머신에서 일어나야 한다.
 	// 보상 지급 같은 권위 전용 처리는 OnDeath 구독자(AWxEnemyCharacter::HandleOwnerDeath) 안의 HasAuthority 가드가 계속 가른다.
 	AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &AWxCharacterBase::HandleDeathTagChanged);
-
-	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
-	{
-		HandleDeath();
-	}
 
 	if (!WeaponActor)
 	{
