@@ -139,7 +139,7 @@ protected:
 private:
 	void HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle);
 	void HandleTagChanged(const FGameplayTag Tag, int32 NewCount);
-	void HandleActivationStateChanged(FGameplayTag EventTag, const FGameplayEventData* Payload);
+	void HandleActionPhaseChanged(FGameplayTag EventTag, const FGameplayEventData* Payload);
 	void ScheduleActivationRefresh();
 	void HandleCostAttributeChanged(const FOnAttributeChangeData& Data);
 	bool UpdateCooldownState();
@@ -184,7 +184,7 @@ private:
 	FGameplayAttribute CostMaxAttribute;
 
 	FTimerHandle CooldownTimerHandle;
-	FDelegateHandle ActivationStateChangedHandle;
+	FDelegateHandle ActionPhaseChangedHandle;
 
 	/** 타이머가 활성이면 재평가가 이미 예약돼 있다. 실행 중에도 활성으로 잡히므로 플러시가 먼저 놓는다. */
 	FTimerHandle ActivationRefreshHandle;

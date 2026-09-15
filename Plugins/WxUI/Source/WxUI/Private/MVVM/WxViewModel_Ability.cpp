@@ -29,9 +29,9 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGam
 
 	// 다른 어빌리티의 발동·종료도 배타 점유를 바꾸므로 특정 슬롯의 블록/필요 태그로 구독을 좁히지 않는다.
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_Ability::HandleTagChanged);
-	ActivationStateChangedHandle = InASC->AddGameplayEventTagContainerDelegate(
-		FGameplayTagContainer(WxGameplayTags::Event_Ability_ActivationStateChanged),
-		FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &UWxViewModel_Ability::HandleActivationStateChanged));
+	ActionPhaseChangedHandle = InASC->AddGameplayEventTagContainerDelegate(
+		FGameplayTagContainer(WxGameplayTags::Event_Ability_ActionPhaseChanged),
+		FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &UWxViewModel_Ability::HandleActionPhaseChanged));
 
 	RefreshBoundAbility();
 }
@@ -114,7 +114,7 @@ void UWxViewModel_Ability::Deinitialize()
 		ASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
 		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
 		ASC->RemoveGameplayEventTagContainerDelegate(
-			FGameplayTagContainer(WxGameplayTags::Event_Ability_ActivationStateChanged), ActivationStateChangedHandle);
+			FGameplayTagContainer(WxGameplayTags::Event_Ability_ActionPhaseChanged), ActionPhaseChangedHandle);
 
 		UnbindCostAttributes(*ASC);
 
@@ -125,7 +125,7 @@ void UWxViewModel_Ability::Deinitialize()
 	}
 
 	StopCooldownTimer();
-	ActivationStateChangedHandle.Reset();
+	ActionPhaseChangedHandle.Reset();
 
 	CachedASC.Reset();
 	CachedAbility.Reset();
@@ -434,10 +434,10 @@ void UWxViewModel_Ability::HandleTagChanged(const FGameplayTag Tag, int32 NewCou
 	ScheduleActivationRefresh();
 }
 
-void UWxViewModel_Ability::HandleActivationStateChanged(FGameplayTag EventTag, const FGameplayEventData* Payload)
+void UWxViewModel_Ability::HandleActionPhaseChanged(FGameplayTag EventTag, const FGameplayEventData* Payload)
 {
 	// 컨테이너 구독은 하위 태그도 받지만 이 계약은 전용 이벤트만 처리한다.
-	if (EventTag == WxGameplayTags::Event_Ability_ActivationStateChanged)
+	if (EventTag == WxGameplayTags::Event_Ability_ActionPhaseChanged)
 	{
 		ScheduleActivationRefresh();
 	}

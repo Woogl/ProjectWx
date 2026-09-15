@@ -75,7 +75,7 @@ void UWxAbilityBase::SetActionPhase(EWxAbilityActionPhase NewPhase)
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 	{
 		FGameplayEventData Payload;
-		Payload.EventTag = WxGameplayTags::Event_Ability_ActivationStateChanged;
+		Payload.EventTag = WxGameplayTags::Event_Ability_ActionPhaseChanged;
 		Payload.Instigator = GetAvatarActorFromActorInfo();
 		// 관찰자는 입력 버퍼의 재발동·종료까지 끝난 뒤 최종 상태를 평가한다.
 		ASC->HandleGameplayEvent(Payload.EventTag, &Payload);
