@@ -11,7 +11,10 @@ enum class EWxPopupResult : uint8
 	Confirmed,
 	Declined,
 	Cancelled,
-	/** 사용자 입력 없이 강제로 종료됐다. */
+	/**
+	 * 팝업을 띄우지 못해 사용자 선택 없이 끝났다.
+	 * 표시된 팝업을 밖에서 닫으면 결과가 오지 않는다.
+	 */
 	Killed,
 	Unknown UMETA(Hidden)
 };

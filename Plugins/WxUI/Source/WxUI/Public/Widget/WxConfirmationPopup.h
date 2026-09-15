@@ -22,8 +22,6 @@ public:
 
 protected:
 	virtual void NativeOnInitialized() override;
-	virtual void NativeOnDeactivated() override;
-	virtual void NativeDestruct() override;
 	virtual bool NativeOnHandleBackAction() override;
 
 	/**

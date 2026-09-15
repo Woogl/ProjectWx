@@ -18,14 +18,6 @@
 
 namespace
 {
-	void CompleteConfirmationOnce(EWxPopupResult Result, TSharedRef<FWxPopupResultDelegate> PendingCallback)
-	{
-		// 활성화 중 종료와 push 실패가 겹쳐도 요청 전체에서 한 번만 전달한다.
-		FWxPopupResultDelegate Callback = *PendingCallback;
-		PendingCallback->Unbind();
-		Callback.ExecuteIfBound(Result);
-	}
-
 	void HandleConfirmationPushCompleted(UCommonActivatableWidget* Widget, FWxPopupResultDelegate ResultCallback)
 	{
 		if (!Cast<UWxGamePopup>(Widget))
@@ -90,16 +82,13 @@ void UWxUIManagerSubsystem::ShowConfirmation(UWxGamePopupDescriptor* Descriptor,
 		return;
 	}
 
-	const FWxPopupResultDelegate Completion = FWxPopupResultDelegate::CreateStatic(
-		&CompleteConfirmationOnce, MakeShared<FWxPopupResultDelegate>(ResultCallback));
-
 	// 서술자는 소유자 없이 만들어져 이 델리게이트 말고는 붙잡는 곳이 없다 — 스트리밍을 기다리는 동안 수거되지 않도록 강한 참조로 싣는다.
 	UWxAsyncAction_PushWidgetToLayer* PushAction = UWxAsyncAction_PushWidgetToLayer::PushWidgetToLayer(
 		this, WxGameplayTags::UI_Layer_Modal, GetDefault<UWxUIDeveloperSettings>()->ConfirmationPopupClass);
 	PushAction->SetBeforePushCallback(FWxPushWidgetToLayerNativeDelegate::CreateUObject(
-		this, &ThisClass::HandleConfirmationPopupReady, TStrongObjectPtr<UWxGamePopupDescriptor>(Descriptor), Completion));
+		this, &ThisClass::HandleConfirmationPopupReady, TStrongObjectPtr<UWxGamePopupDescriptor>(Descriptor), ResultCallback));
 	PushAction->SetCompletionCallback(FWxPushWidgetToLayerNativeDelegate::CreateStatic(
-		&HandleConfirmationPushCompleted, Completion));
+		&HandleConfirmationPushCompleted, ResultCallback));
 	PushAction->Activate();
 }
 
