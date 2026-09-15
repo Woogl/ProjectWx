@@ -467,7 +467,6 @@ void UWxSkillCutsceneComponent::StartLocalPlayer()
 		ServerRestore.TimeDilation = UGameplayStatics::GetGlobalTimeDilation(this);
 		UGameplayStatics::SetGlobalTimeDilation(this, ServerExecution.RequestedDilation);
 	}
-	// 각 머신이 시퀀스 범위의 시작부터 재생한다. 서버 시간으로 건너뛰지 않는다.
 	LocalPlayback.SequenceActor->GetSequencePlayer()->OnFinished.AddDynamic(this, &UWxSkillCutsceneComponent::HandleLocalSequenceFinished);
 	LocalPlayback.SequenceActor->GetSequencePlayer()->Play();
 }

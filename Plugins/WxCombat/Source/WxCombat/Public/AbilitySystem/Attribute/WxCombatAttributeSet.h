@@ -108,7 +108,7 @@ public:
 	FGameplayAttributeData ASPD;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, ASPD)
 
-	/** 가드로 막았을 때의 피해 경감률(0~1). 기본 0이고 가드 중에만 GE_GuardReduction이 올린다 */
+	/** 가드로 막았을 때의 피해 경감률(0~1). 기본 0이고 가드 중에만 WxEffect_GuardReduction이 올린다 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Combat", ReplicatedUsing = OnRep_GuardReductionScale)
 	FGameplayAttributeData GuardReductionScale;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, GuardReductionScale)
