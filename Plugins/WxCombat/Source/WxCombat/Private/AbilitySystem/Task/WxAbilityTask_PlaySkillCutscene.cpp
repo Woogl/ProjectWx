@@ -21,13 +21,9 @@ void UWxAbilityTask_PlaySkillCutscene::Activate()
 		if (AbilitySystemComponent.IsValid() && !AbilitySystemComponent->IsOwnerActorAuthoritative())
 		{
 			// 로컬 발동은 유지하되 독립적인 시퀀스를 만들지 않고 서버의 해당 시전자 세션을 기다린다.
-			SessionId = Coordinator->GetSessionId() + (Coordinator->IsForAvatar(GetAvatarActor()) ? 0 : 1);
+			SessionId = Coordinator->GetSessionId() + 1;
 			EndedHandle = Coordinator->OnCutsceneEnded.AddUObject(this, &UWxAbilityTask_PlaySkillCutscene::HandleCutsceneEnded);
 			return;
-		}
-		if (!Coordinator->IsBusy())
-		{
-			Coordinator->Reserve(Ability);
 		}
 		SessionId = Coordinator->GetSessionId();
 		EndedHandle = Coordinator->OnCutsceneEnded.AddUObject(this, &UWxAbilityTask_PlaySkillCutscene::HandleCutsceneEnded);

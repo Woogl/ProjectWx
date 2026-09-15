@@ -46,8 +46,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Ability")
 	FText InteractionPrompt;
 
-	bool IsBackstab() const;
-
 	/** 피해자 짝 피격이 고정 1.0으로 재생되므로 공격자도 ASPD를 반영하지 않는다. */
 	virtual float GetMontagePlayRate() const override;
 
@@ -64,10 +62,7 @@ protected:
 	FWxFinisherVariant BackstabVariant;
 
 private:
-	const FWxFinisherVariant& GetCurrentVariant() const;
 	void RegisterWarpTarget(AActor* AvatarActor, const AActor* Target) const;
 
 	TWeakObjectPtr<const AActor> TargetActor;
-
-	bool bBackstab = false;
 };

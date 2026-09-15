@@ -307,14 +307,6 @@ void UWxAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, c
 	{
 		UE_LOG(LogWxCombat, Error, TEXT("%s: 테이블에 쿨다운 수치가 있는데 쿨다운 태그를 부여하는 GE가 없다. CooldownGameplayEffectClass에 전용 UWxEffect_Cooldown 파생 GE를 지정했는지 확인하라."), *GetName());
 	}
-
-	if (ActivationPolicy == EWxAbilityActivationPolicy::OnGiven)
-	{
-		if (UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr)
-		{
-			ASC->TryActivateAbility(Spec.Handle);
-		}
-	}
 }
 
 UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const

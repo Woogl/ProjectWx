@@ -49,16 +49,6 @@ float UWxAbility_Finisher::GetMontagePlayRate() const
 	return 1.f;
 }
 
-bool UWxAbility_Finisher::IsBackstab() const
-{
-	return bBackstab;
-}
-
-const FWxFinisherVariant& UWxAbility_Finisher::GetCurrentVariant() const
-{
-	return bBackstab ? BackstabVariant : FinisherVariant;
-}
-
 void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
@@ -66,8 +56,8 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	AActor* AvatarActor = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
 	// 대상에 가하는 변경은 전부 대상 ASC 를 거치고 액터 자체는 위치만 읽으므로 const 로 다룬다.
 	const AActor* Target = TriggerEventData ? TriggerEventData->Target.Get() : nullptr;
-	bBackstab = TriggerEventData && !TriggerEventData->TargetTags.HasTag(WxGameplayTags::Ability_Groggy);
-	const FWxFinisherVariant& Variant = GetCurrentVariant();
+	const bool bBackstab = TriggerEventData && !TriggerEventData->TargetTags.HasTag(WxGameplayTags::Ability_Groggy);
+	const FWxFinisherVariant& Variant = bBackstab ? BackstabVariant : FinisherVariant;
 	UAnimMontage* SelectedAttackerMontage = Variant.AttackerMontage;
 	UAnimMontage* SelectedVictimMontage = Variant.VictimMontage;
 	UWxFinisherDamageComponent* FinisherDamageComponent = AvatarActor ? AvatarActor->FindComponentByClass<UWxFinisherDamageComponent>() : nullptr;
@@ -129,7 +119,6 @@ void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, co
 		}
 	}
 	TargetActor.Reset();
-	bBackstab = false;
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }

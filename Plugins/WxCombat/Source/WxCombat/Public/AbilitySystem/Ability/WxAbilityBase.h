@@ -16,15 +16,6 @@ class UGameplayEffect;
 class UInputAction;
 struct FWxAbilityTableRow;
 
-UENUM(BlueprintType)
-enum class EWxAbilityActivationPolicy : uint8
-{
-	/** 트리거(입력·이벤트·AI)를 기다려 활성화 */
-	OnTriggered,
-	/** 부여될 때 즉시 자동 활성화 (패시브, 상시 버프 등) */
-	OnGiven,
-};
-
 /**
  * 어빌리티 발동을 그룹 단위로 묶어서 배타적으로 점유할 수 있다.
  * 기획자가 선언하는 값이며 런타임에 바뀌지 않는다 — 발동 중의 캔슬 창은 EWxAbilityActionPhase가 따로 받는다.
@@ -74,10 +65,7 @@ public:
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxAbilityTableRow", WxPreviewRow = "true"))
 	FDataTableRowHandle AbilityDataRow;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
-	EWxAbilityActivationPolicy ActivationPolicy = EWxAbilityActivationPolicy::OnTriggered;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	TObjectPtr<UInputAction> ActivationInputAction;
 	

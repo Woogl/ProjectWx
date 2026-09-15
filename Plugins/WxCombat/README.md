@@ -29,7 +29,7 @@
 | `UWxMinionSubsystem` | 소환물 서버 권위 스폰·주인별 로스터·명령 라우팅 | `Plugins/WxCombat/Source/WxCombat/Public/Minion/WxMinionSubsystem.h` |
 
 ## 확장 포인트 / 규약
-- **새 어빌리티**: `UWxAbilityBase` 상속(`Public/AbilitySystem/Ability/WxAbility_*`). `AbilityDataRow`(`FWxAbilityTableRow`)에서 쿨다운·코스트 읽고, `ActivationPolicy`(OnTriggered/OnGiven)·`EWxAbilityActivationGroup`(Independent/Exclusive/Override)·`EWxAbilityActionPhase`를 선언한다. 코스트는 공용 `UWxEffect_Cost`, 쿨다운은 `UWxEffect_Cooldown` 파생 GE가 그 행 수치를 쓴다.
+- **새 어빌리티**: `UWxAbilityBase` 상속(`Public/AbilitySystem/Ability/WxAbility_*`). `AbilityDataRow`(`FWxAbilityTableRow`)에서 쿨다운·코스트 읽고, `EWxAbilityActivationGroup`(Independent/Exclusive/Override)·`EWxAbilityActionPhase`를 선언한다. 코스트는 공용 `UWxEffect_Cost`, 쿨다운은 `UWxEffect_Cooldown` 파생 GE가 그 행 수치를 쓴다.
 - **새 이펙트**: `UGameplayEffect` 파생(`Public/AbilitySystem/Effect/WxEffect_*`). 수치/표시 데이터는 스펙에 싣지 않고 `UWxEffectComponent_Table`(+`FWxEffectTableRow`)를 GE에 붙여 MMC가 계산 시점에 조회한다. 대미지 계산은 `UWxExecCalc_Damage`.
 - **데이터 주도**: 부여는 `UWxAbilitySet` DataAsset, 수치는 DataTable 행(`FWxAbilityTableRow`·`FWxEffectTableRow`·`FWxDamageTableRow`·`FWxCombatAttributeInitTableRow`).
 - **리플리케이션/권한**: 대미지·이펙트 적용·투사체/소환물 스폰은 모두 서버 권위. 락온 대상 선택은 클라이언트 신뢰(서버 미재검증, 소유 클라 태스크가 무효화 폴링). 대미지 컨텍스트는 `FWxHitEffectContext`로 방어/반사/적용 결과를 실어 나른다.

@@ -126,7 +126,6 @@ public:
 	static UWxSkillCutsceneComponent* Get(const UWorld* World);
 
 	bool IsBusy() const;
-	bool IsForAvatar(const AActor* Avatar) const;
 	bool Reserve(UGameplayAbility* Requester);
 	bool Start(UGameplayAbility* Requester, ULevelSequence* Sequence, float Dilation);
 	void Cancel(UGameplayAbility* Requester);

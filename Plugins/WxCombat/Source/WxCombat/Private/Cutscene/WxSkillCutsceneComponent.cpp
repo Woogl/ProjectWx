@@ -117,11 +117,6 @@ bool UWxSkillCutsceneComponent::IsBusy() const
 	return ServerExecution.Reservation.IsValid() || State.Phase != EWxSkillCutscenePhase::Idle;
 }
 
-bool UWxSkillCutsceneComponent::IsForAvatar(const AActor* Avatar) const
-{
-	return State.Phase != EWxSkillCutscenePhase::Idle && State.Session.Avatar == Avatar;
-}
-
 bool UWxSkillCutsceneComponent::Reserve(UGameplayAbility* Requester)
 {
 	if (!HasAuthority() || !Requester || IsBusy())
@@ -172,7 +167,6 @@ bool UWxSkillCutsceneComponent::Start(UGameplayAbility* Requester, ULevelSequenc
 	ServerExecution.StartTime = 0.0;
 	State.Phase = EWxSkillCutscenePhase::Playing;
 	ServerExecution.RequestedDilation = FMath::Max(Dilation, 0.001f);
-	LocalPlayback.PreparationDeadline = FPlatformTime::Seconds() + 20.0;
 	ServerRestore.AvatarAlwaysRelevant = Avatar->bAlwaysRelevant;
 	Avatar->bAlwaysRelevant = true;
 	Avatar->FlushNetDormancy();
@@ -472,7 +466,6 @@ void UWxSkillCutsceneComponent::StartLocalPlayer()
 	{
 		ServerRestore.TimeDilation = UGameplayStatics::GetGlobalTimeDilation(this);
 		UGameplayStatics::SetGlobalTimeDilation(this, ServerExecution.RequestedDilation);
-		ServerExecution.StartTime = LocalPlayback.StartTime;
 	}
 	// 각 머신이 시퀀스 범위의 시작부터 재생한다. 서버 시간으로 건너뛰지 않는다.
 	LocalPlayback.SequenceActor->GetSequencePlayer()->OnFinished.AddDynamic(this, &UWxSkillCutsceneComponent::HandleLocalSequenceFinished);
