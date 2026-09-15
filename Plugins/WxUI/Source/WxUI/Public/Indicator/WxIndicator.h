@@ -28,7 +28,6 @@ class WXUI_API AWxIndicator : public AActor
 public:
 	AWxIndicator();
 
-	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
 	/** 위젯 컴포넌트가 BeginPlay 에서 위젯을 만들므로 FinishSpawning 이전에 부른다. 앵커는 스폰 위치이며, 여기서 받은 높이만큼 위를 가리킨다. */
@@ -39,6 +38,9 @@ public:
 
 	/** 부착 대상이 살아 있는지. 띄운 쪽이 대상을 다시 해석할 때가 됐는지 판단하는 데 쓴다. */
 	bool HasTarget() const;
+
+protected:
+	virtual void BeginPlay() override;
 
 private:
 	void BindViewModel();

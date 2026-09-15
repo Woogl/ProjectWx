@@ -36,16 +36,6 @@ AWxIndicator::AWxIndicator()
 	IndicatorWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
-void AWxIndicator::BeginPlay()
-{
-	// 위젯은 이 안에서 만들어진다(위젯 컴포넌트의 BeginPlay).
-	Super::BeginPlay();
-
-	AnchorLocation = GetActorLocation();
-
-	BindViewModel();
-}
-
 void AWxIndicator::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -68,6 +58,16 @@ void AWxIndicator::SetTarget(AActor* InTarget)
 bool AWxIndicator::HasTarget() const
 {
 	return GetAttachParentActor() != nullptr;
+}
+
+void AWxIndicator::BeginPlay()
+{
+	// 위젯은 이 안에서 만들어진다(위젯 컴포넌트의 BeginPlay).
+	Super::BeginPlay();
+
+	AnchorLocation = GetActorLocation();
+
+	BindViewModel();
 }
 
 void AWxIndicator::BindViewModel()
