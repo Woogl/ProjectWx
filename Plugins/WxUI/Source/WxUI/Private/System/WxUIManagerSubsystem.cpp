@@ -16,20 +16,12 @@
 #include "Engine/GameInstance.h"
 #include "GameFramework/PlayerController.h"
 
-namespace
-{
-	void HandleConfirmationPushCompleted(UCommonActivatableWidget* Widget, FWxPopupResultDelegate ResultCallback)
-	{
-		if (!Cast<UWxGamePopup>(Widget))
-		{
-			ResultCallback.ExecuteIfBound(EWxPopupResult::Killed);
-		}
-	}
-}
-
 void UWxUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
+
+	// 팝업 요청 시 서술자를 비동기 작업에 보관하지 않도록 클래스를 미리 로드한다.
+	ConfirmationPopupClass = GetDefault<UWxUIDeveloperSettings>()->ConfirmationPopupClass.LoadSynchronous();
 
 	UGameInstance* GameInstance = GetGameInstance();
 	if (!GameInstance)
@@ -76,20 +68,32 @@ UCommonActivatableWidget* UWxUIManagerSubsystem::PushWidgetInstanceToLayer(FGame
 
 void UWxUIManagerSubsystem::ShowConfirmation(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback)
 {
-	if (!Descriptor)
+	if (!Descriptor || !PrimaryGameLayout || !ConfirmationPopupClass)
 	{
 		ResultCallback.ExecuteIfBound(EWxPopupResult::Killed);
 		return;
 	}
 
-	// 서술자는 소유자 없이 만들어져 이 델리게이트 말고는 붙잡는 곳이 없다 — 스트리밍을 기다리는 동안 수거되지 않도록 강한 참조로 싣는다.
-	UWxAsyncAction_PushWidgetToLayer* PushAction = UWxAsyncAction_PushWidgetToLayer::PushWidgetToLayer(
-		this, WxGameplayTags::UI_Layer_Modal, GetDefault<UWxUIDeveloperSettings>()->ConfirmationPopupClass);
-	PushAction->SetBeforePushCallback(FWxPushWidgetToLayerNativeDelegate::CreateUObject(
-		this, &ThisClass::HandleConfirmationPopupReady, TStrongObjectPtr<UWxGamePopupDescriptor>(Descriptor), ResultCallback));
-	PushAction->SetCompletionCallback(FWxPushWidgetToLayerNativeDelegate::CreateStatic(
-		&HandleConfirmationPushCompleted, ResultCallback));
-	PushAction->Activate();
+	APlayerController* OwningPlayer = PrimaryGameLayout->GetOwningPlayer();
+	if (!OwningPlayer)
+	{
+		ResultCallback.ExecuteIfBound(EWxPopupResult::Killed);
+		return;
+	}
+
+	UWxGamePopup* Popup = CreateWidget<UWxGamePopup>(OwningPlayer, ConfirmationPopupClass);
+	if (!Popup)
+	{
+		ResultCallback.ExecuteIfBound(EWxPopupResult::Killed);
+		return;
+	}
+
+	// 레이어에 추가하면 활성화되므로 내용을 먼저 채운다.
+	Popup->SetupPopup(Descriptor, ResultCallback);
+	if (!PushWidgetInstanceToLayer(WxGameplayTags::UI_Layer_Modal, Popup))
+	{
+		ResultCallback.ExecuteIfBound(EWxPopupResult::Killed);
+	}
 }
 
 UWxPrimaryGameLayout* UWxUIManagerSubsystem::GetPrimaryGameLayout() const
@@ -308,14 +312,6 @@ void UWxUIManagerSubsystem::HandleDialogueTagChanged(const FGameplayTag Callback
 	PendingDialogueScreenPush->SetCompletionCallback(
 		FWxPushWidgetToLayerNativeDelegate::CreateUObject(this, &ThisClass::HandleDialogueScreenPushCompleted));
 	PendingDialogueScreenPush->Activate();
-}
-
-void UWxUIManagerSubsystem::HandleConfirmationPopupReady(UCommonActivatableWidget* Widget, TStrongObjectPtr<UWxGamePopupDescriptor> Descriptor, FWxPopupResultDelegate ResultCallback)
-{
-	if (UWxGamePopup* Popup = Cast<UWxGamePopup>(Widget))
-	{
-		Popup->SetupPopup(Descriptor.Get(), ResultCallback);
-	}
 }
 
 void UWxUIManagerSubsystem::HandleDialogueScreenPushCompleted(UCommonActivatableWidget* Widget)
