@@ -22,7 +22,6 @@
 #include "Sections/MovieSceneSkeletalAnimationSection.h"
 #include "Net/UnrealNetwork.h"
 #include "WxCombatModule.h"
-#include "WorldPartition/WorldPartitionSubsystem.h"
 
 namespace
 {
@@ -115,12 +114,12 @@ bool UWxSkillCutsceneComponent::HasAuthority() const
 
 bool UWxSkillCutsceneComponent::IsBusy() const
 {
-	return Reservation.IsValid() || State.Phase != EWxSkillCutscenePhase::Idle;
+	return ServerExecution.Reservation.IsValid() || State.Phase != EWxSkillCutscenePhase::Idle;
 }
 
 bool UWxSkillCutsceneComponent::IsForAvatar(const AActor* Avatar) const
 {
-	return State.Phase != EWxSkillCutscenePhase::Idle && State.Avatar == Avatar;
+	return State.Phase != EWxSkillCutscenePhase::Idle && State.Session.Avatar == Avatar;
 }
 
 bool UWxSkillCutsceneComponent::Reserve(UGameplayAbility* Requester)
@@ -129,14 +128,15 @@ bool UWxSkillCutsceneComponent::Reserve(UGameplayAbility* Requester)
 	{
 		return false;
 	}
-	Reservation = Requester;
-	++State.Id;
+	ServerExecution.Reservation = Requester;
+	++State.Session.Id;
+	State.Session.Avatar = Requester->GetAvatarActorFromActorInfo();
 	return true;
 }
 
 bool UWxSkillCutsceneComponent::Start(UGameplayAbility* Requester, ULevelSequence* Sequence, float Dilation)
 {
-	if (!HasAuthority() || !Requester || Reservation.Get() != Requester || State.Phase != EWxSkillCutscenePhase::Idle)
+	if (!HasAuthority() || !Requester || ServerExecution.Reservation.Get() != Requester || State.Phase != EWxSkillCutscenePhase::Idle)
 	{
 		return false;
 	}
@@ -158,42 +158,40 @@ bool UWxSkillCutsceneComponent::Start(UGameplayAbility* Requester, ULevelSequenc
 		return false;
 	}
 
-	State.Sequence = Sequence;
-	State.Avatar = Avatar;
-	State.Origin = Avatar->GetActorTransform();
+	State.Session.Sequence = Sequence;
+	State.Session.Avatar = Avatar;
+	State.Session.Origin = Avatar->GetActorTransform();
 	if (const ACharacter* Character = Cast<ACharacter>(Avatar))
 	{
 		if (const USkeletalMeshComponent* Mesh = Character->GetMesh())
 		{
-			State.Origin = Mesh->GetComponentTransform();
+			State.Session.Origin = Mesh->GetComponentTransform();
 		}
 	}
-	State.Duration = Duration;
-	ServerPlaybackStartTime = 0.0;
-	State.bCancelled = false;
+	State.Session.Duration = Duration;
+	ServerExecution.StartTime = 0.0;
 	State.Phase = EWxSkillCutscenePhase::Playing;
-	RequestedDilation = FMath::Max(Dilation, 0.001f);
-	PreparationDeadline = FPlatformTime::Seconds() + 20.0;
-	bAvatarWasAlwaysRelevant = Avatar->bAlwaysRelevant;
-	bAvatarRelevancyChanged = true;
+	ServerExecution.RequestedDilation = FMath::Max(Dilation, 0.001f);
+	LocalPlayback.PreparationDeadline = FPlatformTime::Seconds() + 20.0;
+	ServerRestore.AvatarAlwaysRelevant = Avatar->bAlwaysRelevant;
 	Avatar->bAlwaysRelevant = true;
 	Avatar->FlushNetDormancy();
 	Avatar->ForceNetUpdate();
 
 	if (UAbilitySystemComponent* ASC = Requester->GetAbilitySystemComponentFromActorInfo())
 	{
-		InvincibleASC = ASC;
-		InvincibleHandle = ASC->ApplyGameplayEffectToSelf(GetDefault<UWxEffect_Invincible>(), Requester->GetAbilityLevel(), ASC->MakeEffectContext());
+		ServerRestore.InvincibleASC = ASC;
+		ServerRestore.InvincibleHandle = ASC->ApplyGameplayEffectToSelf(GetDefault<UWxEffect_Invincible>(), Requester->GetAbilityLevel(), ASC->MakeEffectContext());
 	}
 
-	OnRep_State();
+	MulticastSessionStarted(State.Session);
 	GetOwner()->ForceNetUpdate();
 	return true;
 }
 
 void UWxSkillCutsceneComponent::Cancel(UGameplayAbility* Requester)
 {
-	if (HasAuthority() && Requester && Reservation.Get() == Requester)
+	if (HasAuthority() && Requester && ServerExecution.Reservation.Get() == Requester)
 	{
 		Finish(true);
 	}
@@ -201,12 +199,13 @@ void UWxSkillCutsceneComponent::Cancel(UGameplayAbility* Requester)
 
 uint32 UWxSkillCutsceneComponent::GetSessionId() const
 {
-	return State.Id;
+	return State.Session.Id;
 }
 
 double UWxSkillCutsceneComponent::GetPlaybackSeconds() const
 {
-	return bLocalPlaying ? FMath::Clamp(FPlatformTime::Seconds() - LocalPlaybackStartTime, 0.0, LocalState.Duration) : 0.0;
+	return LocalPlayback.Phase == EWxSkillCutsceneLocalPhase::Playing
+		? FMath::Clamp(FPlatformTime::Seconds() - LocalPlayback.StartTime, 0.0, LocalPlayback.Session.Duration) : 0.0;
 }
 
 void UWxSkillCutsceneComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -217,40 +216,104 @@ void UWxSkillCutsceneComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 
 void UWxSkillCutsceneComponent::OnRep_State()
 {
-	if (State.Id != ObservedSessionId)
+	// 접속 시 이미 진행 중인 컷신은 스냅샷으로 준비한다. 이후 전이는 Reliable RPC가 전달한다.
+	if (ObservedSessionId == 0 && State.Phase == EWxSkillCutscenePhase::Playing)
 	{
-		ObservedSessionId = State.Id;
-		if (State.Phase == EWxSkillCutscenePhase::Playing && GetWorld()->GetNetMode() != NM_DedicatedServer)
+		QueueLocalSession(State.Session);
+	}
+	RefreshSessionAvatar(State.Session.Id, State.Session.Avatar);
+	NotifyReadyClientCompletions();
+}
+
+void UWxSkillCutsceneComponent::QueueLocalSession(const FWxSkillCutsceneSession& Session)
+{
+	if (Session.Id <= ObservedSessionId)
+	{
+		return;
+	}
+	ObservedSessionId = Session.Id;
+	if (GetWorld()->GetNetMode() != NM_DedicatedServer)
+	{
+		PendingLocalSessions.Add(Session);
+		BeginNextLocalSession();
+	}
+}
+
+void UWxSkillCutsceneComponent::RefreshSessionAvatar(uint32 SessionId, AActor* Avatar)
+{
+	if (!IsValid(Avatar))
+	{
+		return;
+	}
+	if (LocalPlayback.Session.Id == SessionId)
+	{
+		LocalPlayback.Session.Avatar = Avatar;
+	}
+	for (FWxSkillCutsceneSession& Pending : PendingLocalSessions)
+	{
+		if (Pending.Id == SessionId)
 		{
-			PendingLocalSessions.Add(State);
+			Pending.Avatar = Avatar;
 		}
 	}
-	// 참조가 늦게 해석되어도 같은 시전자를 기다리며 로컬 폰으로 대체하지 않는다.
-	if (bLocalActive && LocalState.Id == State.Id && State.Avatar)
+	for (FWxSkillCutsceneCompletion& Pending : PendingClientCompletions)
 	{
-		LocalState.Avatar = State.Avatar;
-	}
-	for (int32 Index = PendingLocalSessions.Num() - 1; Index >= 0; --Index)
-	{
-		if (PendingLocalSessions[Index].Id == State.Id)
+		if (Pending.Id == SessionId)
 		{
-			PendingLocalSessions[Index].Avatar = State.Avatar;
-			if (State.bCancelled)
+			Pending.Avatar = Avatar;
+		}
+	}
+}
+
+void UWxSkillCutsceneComponent::MulticastSessionStarted_Implementation(const FWxSkillCutsceneSession& Session)
+{
+	if (Session.Id >= State.Session.Id)
+	{
+		State.Session = Session;
+		State.Phase = EWxSkillCutscenePhase::Playing;
+	}
+	QueueLocalSession(Session);
+	RefreshSessionAvatar(Session.Id, Session.Avatar);
+}
+
+void UWxSkillCutsceneComponent::MulticastSessionEnded_Implementation(const FWxSkillCutsceneCompletion& Session)
+{
+	if (HasAuthority())
+	{
+		return;
+	}
+	if (Session.Id >= State.Session.Id)
+	{
+		State.Session.Id = Session.Id;
+		State.Session.Avatar = Session.Avatar;
+		State.Phase = EWxSkillCutscenePhase::Idle;
+	}
+	RefreshSessionAvatar(Session.Id, Session.Avatar);
+	if (Session.bCancelled)
+	{
+		for (int32 Index = PendingLocalSessions.Num() - 1; Index >= 0; --Index)
+		{
+			if (PendingLocalSessions[Index].Id == Session.Id)
 			{
 				PendingLocalSessions.RemoveAt(Index);
 			}
 		}
+		if (LocalPlayback.Phase != EWxSkillCutsceneLocalPhase::Idle && LocalPlayback.Session.Id == Session.Id)
+		{
+			CleanupLocalPlayer();
+		}
 	}
-	if (State.Phase == EWxSkillCutscenePhase::Idle && State.bCancelled && bLocalActive && LocalState.Id == State.Id)
+	if (Session.Id > LastReceivedEndId)
 	{
-		CleanupLocalPlayer();
+		LastReceivedEndId = Session.Id;
+		FWxSkillCutsceneCompletion Completion = Session;
+		if (!IsValid(Completion.Avatar) && LocalPlayback.Session.Id == Session.Id)
+		{
+			Completion.Avatar = LocalPlayback.Session.Avatar;
+		}
+		PendingClientCompletions.Add(Completion);
 	}
 	BeginNextLocalSession();
-	if (!HasAuthority() && State.Phase == EWxSkillCutscenePhase::Idle && State.Id != 0 && LastReceivedEndId != State.Id)
-	{
-		LastReceivedEndId = State.Id;
-		PendingClientCompletions.Add(State);
-	}
 	NotifyReadyClientCompletions();
 }
 
@@ -258,13 +321,13 @@ void UWxSkillCutsceneComponent::NotifyReadyClientCompletions()
 {
 	for (int32 Index = 0; Index < PendingClientCompletions.Num();)
 	{
-		const FWxSkillCutsceneState Completion = PendingClientCompletions[Index];
-		bool bWaitingForLocal = bLocalActive && LocalState.Id == Completion.Id;
-		for (const FWxSkillCutsceneState& Pending : PendingLocalSessions)
+		const FWxSkillCutsceneCompletion Completion = PendingClientCompletions[Index];
+		bool bWaitingForLocal = LocalPlayback.Phase != EWxSkillCutsceneLocalPhase::Idle && LocalPlayback.Session.Id == Completion.Id;
+		for (const FWxSkillCutsceneSession& Pending : PendingLocalSessions)
 		{
 			bWaitingForLocal |= Pending.Id == Completion.Id;
 		}
-		if (!Completion.bCancelled && bWaitingForLocal)
+		if (!IsValid(Completion.Avatar) || (!Completion.bCancelled && bWaitingForLocal))
 		{
 			++Index;
 			continue;
@@ -278,20 +341,14 @@ void UWxSkillCutsceneComponent::NotifyReadyClientCompletions()
 
 void UWxSkillCutsceneComponent::BeginNextLocalSession()
 {
-	if (bLocalActive || PendingLocalSessions.IsEmpty())
+	if (LocalPlayback.Phase != EWxSkillCutsceneLocalPhase::Idle || PendingLocalSessions.IsEmpty())
 	{
 		return;
 	}
-	LocalState = PendingLocalSessions[0];
+	LocalPlayback.Session = PendingLocalSessions[0];
 	PendingLocalSessions.RemoveAt(0);
-	bLocalActive = true;
-	PreparationDeadline = FPlatformTime::Seconds() + 20.0;
-	if (UWorldPartitionSubsystem* Partition = GetWorld()->GetSubsystem<UWorldPartitionSubsystem>())
-	{
-		Partition->RegisterStreamingSourceProvider(this);
-		bStreamingSourceRegistered = true;
-		StreamingSourceFrame = GFrameCounter;
-	}
+	LocalPlayback.Phase = EWxSkillCutsceneLocalPhase::Preparing;
+	LocalPlayback.PreparationDeadline = FPlatformTime::Seconds() + 20.0;
 }
 
 void UWxSkillCutsceneComponent::TickComponent(float DeltaSeconds, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -299,32 +356,31 @@ void UWxSkillCutsceneComponent::TickComponent(float DeltaSeconds, ELevelTick Tic
 	Super::TickComponent(DeltaSeconds, TickType, ThisTickFunction);
 	if (HasAuthority() && State.Phase != EWxSkillCutscenePhase::Idle)
 	{
-		if (!Reservation.IsValid() || !IsValid(State.Avatar))
+		if (!ServerExecution.Reservation.IsValid() || !IsValid(State.Session.Avatar))
 		{
 			Finish(true);
 			return;
 		}
-		if (GetWorld()->GetNetMode() == NM_DedicatedServer && ServerPlaybackStartTime == 0.0)
+		if (GetWorld()->GetNetMode() == NM_DedicatedServer && ServerExecution.StartTime == 0.0)
 		{
-			PreviousDilation = UGameplayStatics::GetGlobalTimeDilation(this);
-			UGameplayStatics::SetGlobalTimeDilation(this, RequestedDilation);
-			bDilationApplied = true;
-			ServerPlaybackStartTime = FPlatformTime::Seconds();
+			ServerRestore.TimeDilation = UGameplayStatics::GetGlobalTimeDilation(this);
+			UGameplayStatics::SetGlobalTimeDilation(this, ServerExecution.RequestedDilation);
+			ServerExecution.StartTime = FPlatformTime::Seconds();
 		}
-		if (GetWorld()->GetNetMode() == NM_DedicatedServer && ServerPlaybackStartTime > 0.0 && FPlatformTime::Seconds() - ServerPlaybackStartTime >= State.Duration)
+		if (GetWorld()->GetNetMode() == NM_DedicatedServer && ServerExecution.StartTime > 0.0 && FPlatformTime::Seconds() - ServerExecution.StartTime >= State.Session.Duration)
 		{
 			Finish(false);
 			return;
 		}
 	}
 	BeginNextLocalSession();
-	if (!bLocalActive)
+	if (LocalPlayback.Phase == EWxSkillCutsceneLocalPhase::Idle)
 	{
 		return;
 	}
-	if (!bLocalPlaying && FPlatformTime::Seconds() >= PreparationDeadline)
+	if (LocalPlayback.Phase == EWxSkillCutsceneLocalPhase::Preparing && FPlatformTime::Seconds() >= LocalPlayback.PreparationDeadline)
 	{
-		UE_LOG(LogWxCombat, Warning, TEXT("컷신 %u: 로컬 준비 20초 시간 초과."), LocalState.Id);
+		UE_LOG(LogWxCombat, Warning, TEXT("컷신 %u: 로컬 준비 20초 시간 초과."), LocalPlayback.Session.Id);
 		if (HasAuthority())
 		{
 			Finish(true);
@@ -340,33 +396,33 @@ void UWxSkillCutsceneComponent::TickComponent(float DeltaSeconds, ELevelTick Tic
 
 void UWxSkillCutsceneComponent::PrepareLocalPlayer()
 {
-	if (!bLocalActive || bLocalPlaying)
+	if (LocalPlayback.Phase != EWxSkillCutsceneLocalPhase::Preparing)
 	{
 		return;
 	}
-	if (!LocalState.Sequence.Get() && !SequenceLoad)
+	if (!LocalPlayback.Session.Sequence.Get() && !LocalPlayback.SequenceLoad)
 	{
-		SequenceLoad = UAssetManager::GetStreamableManager().RequestAsyncLoad(LocalState.Sequence.ToSoftObjectPath());
+		LocalPlayback.SequenceLoad = UAssetManager::GetStreamableManager().RequestAsyncLoad(LocalPlayback.Session.Sequence.ToSoftObjectPath());
 	}
-	if (SequenceLoad && !SequenceLoad->HasLoadCompleted())
-	{
-		return;
-	}
-	bool bFailed = LocalState.Sequence.Get() == nullptr;
-	if (!bFailed && (!IsValid(LocalState.Avatar) || !IsSceneReady()))
+	if (LocalPlayback.SequenceLoad && !LocalPlayback.SequenceLoad->HasLoadCompleted())
 	{
 		return;
 	}
-	if (!bFailed && !LocalSequenceActor)
+	bool bFailed = LocalPlayback.Session.Sequence.Get() == nullptr;
+	if (!bFailed && !IsValid(LocalPlayback.Session.Avatar))
+	{
+		return;
+	}
+	if (!bFailed && !LocalPlayback.SequenceActor)
 	{
 		FMovieSceneSequencePlaybackSettings Settings;
 		Settings.bDisableMovementInput = true;
 		Settings.bDisableLookAtInput = true;
 		Settings.FinishCompletionStateOverride = EMovieSceneCompletionModeOverride::ForceRestoreState;
 		ALevelSequenceActor* NewActor = nullptr;
-		ULevelSequence* PlaybackSequence = CreatePlayerCutsceneSequence(LocalState.Sequence.Get(), this);
+		ULevelSequence* PlaybackSequence = CreatePlayerCutsceneSequence(LocalPlayback.Session.Sequence.Get(), this);
 		ULevelSequencePlayer* Player = ULevelSequencePlayer::CreateLevelSequencePlayer(GetWorld(), PlaybackSequence, Settings, NewActor);
-		LocalSequenceActor = NewActor;
+		LocalPlayback.SequenceActor = NewActor;
 		bFailed = !Player || !NewActor || NewActor->FindNamedBindings(TEXT("Player")).IsEmpty();
 		if (!bFailed)
 		{
@@ -375,9 +431,9 @@ void UWxSkillCutsceneComponent::PrepareLocalPlayer()
 			bFailed = InstanceData == nullptr;
 			if (InstanceData)
 			{
-				InstanceData->TransformOrigin = LocalState.Origin;
+				InstanceData->TransformOrigin = LocalPlayback.Session.Origin;
 				TArray<AActor*> Actors;
-				Actors.Add(LocalState.Avatar);
+				Actors.Add(LocalPlayback.Session.Avatar);
 				NewActor->SetBindingByTag(TEXT("Player"), Actors, false);
 				Player->SetTimeController(MakeShared<FWxSkillCutsceneClock>(this, Player->GetStartTime().AsSeconds()));
 			}
@@ -385,7 +441,7 @@ void UWxSkillCutsceneComponent::PrepareLocalPlayer()
 	}
 	if (bFailed)
 	{
-		UE_LOG(LogWxCombat, Warning, TEXT("컷신 %u: 로컬 시퀀스 또는 Player 바인딩 준비 실패."), LocalState.Id);
+		UE_LOG(LogWxCombat, Warning, TEXT("컷신 %u: 로컬 시퀀스 또는 Player 바인딩 준비 실패."), LocalPlayback.Session.Id);
 		if (HasAuthority())
 		{
 			Finish(true);
@@ -401,27 +457,26 @@ void UWxSkillCutsceneComponent::PrepareLocalPlayer()
 
 void UWxSkillCutsceneComponent::StartLocalPlayer()
 {
-	if (bLocalPlaying || !LocalSequenceActor)
+	if (LocalPlayback.Phase == EWxSkillCutsceneLocalPhase::Playing || !LocalPlayback.SequenceActor)
 	{
 		return;
 	}
-	if (ACharacter* Character = Cast<ACharacter>(LocalState.Avatar))
+	if (ACharacter* Character = Cast<ACharacter>(LocalPlayback.Session.Avatar))
 	{
 		Character->StopAnimMontage();
 	}
 	EnableLocalMeshPoseTick();
-	LocalPlaybackStartTime = FPlatformTime::Seconds();
-	bLocalPlaying = true;
+	LocalPlayback.StartTime = FPlatformTime::Seconds();
+	LocalPlayback.Phase = EWxSkillCutsceneLocalPhase::Playing;
 	if (HasAuthority())
 	{
-		PreviousDilation = UGameplayStatics::GetGlobalTimeDilation(this);
-		UGameplayStatics::SetGlobalTimeDilation(this, RequestedDilation);
-		bDilationApplied = true;
-		ServerPlaybackStartTime = LocalPlaybackStartTime;
+		ServerRestore.TimeDilation = UGameplayStatics::GetGlobalTimeDilation(this);
+		UGameplayStatics::SetGlobalTimeDilation(this, ServerExecution.RequestedDilation);
+		ServerExecution.StartTime = LocalPlayback.StartTime;
 	}
 	// 각 머신이 시퀀스 범위의 시작부터 재생한다. 서버 시간으로 건너뛰지 않는다.
-	LocalSequenceActor->GetSequencePlayer()->OnFinished.AddDynamic(this, &UWxSkillCutsceneComponent::HandleLocalSequenceFinished);
-	LocalSequenceActor->GetSequencePlayer()->Play();
+	LocalPlayback.SequenceActor->GetSequencePlayer()->OnFinished.AddDynamic(this, &UWxSkillCutsceneComponent::HandleLocalSequenceFinished);
+	LocalPlayback.SequenceActor->GetSequencePlayer()->Play();
 }
 
 void UWxSkillCutsceneComponent::HandleLocalSequenceFinished()
@@ -438,85 +493,80 @@ void UWxSkillCutsceneComponent::HandleLocalSequenceFinished()
 
 void UWxSkillCutsceneComponent::EnableLocalMeshPoseTick()
 {
-	const ACharacter* Character = Cast<ACharacter>(LocalState.Avatar);
+	const ACharacter* Character = Cast<ACharacter>(LocalPlayback.Session.Avatar);
 	USkeletalMeshComponent* Mesh = Character ? Character->GetMesh() : nullptr;
-	if (!Mesh || LocalPoseMesh.IsValid())
+	if (!Mesh || LocalPlayback.PoseMesh.IsValid())
 	{
 		return;
 	}
 
-	LocalPoseMesh = Mesh;
-	bPreviousOnlyAllowAutonomousTickPose = Mesh->bOnlyAllowAutonomousTickPose;
+	LocalPlayback.PoseMesh = Mesh;
+	LocalPlayback.bPreviousOnlyAllowAutonomousTickPose = Mesh->bOnlyAllowAutonomousTickPose;
 	// 서버의 원격 시전자는 평소 이동 패킷이 포즈를 갱신한다. 컷신은 일반 메시 틱에서도 평가되어야 한다.
 	Mesh->bOnlyAllowAutonomousTickPose = false;
 }
 
 void UWxSkillCutsceneComponent::CleanupLocalPlayer()
 {
-	if (LocalSequenceActor)
+	if (LocalPlayback.SequenceActor)
 	{
-		if (ULevelSequencePlayer* Player = LocalSequenceActor->GetSequencePlayer())
+		if (ULevelSequencePlayer* Player = LocalPlayback.SequenceActor->GetSequencePlayer())
 		{
 			Player->OnFinished.RemoveDynamic(this, &UWxSkillCutsceneComponent::HandleLocalSequenceFinished);
 			Player->Stop();
 			Player->RestoreState();
 		}
-		LocalSequenceActor->Destroy();
-		LocalSequenceActor = nullptr;
+		LocalPlayback.SequenceActor->Destroy();
+		LocalPlayback.SequenceActor = nullptr;
 	}
-	if (USkeletalMeshComponent* Mesh = LocalPoseMesh.Get())
+	if (USkeletalMeshComponent* Mesh = LocalPlayback.PoseMesh.Get())
 	{
-		Mesh->bOnlyAllowAutonomousTickPose = bPreviousOnlyAllowAutonomousTickPose;
+		Mesh->bOnlyAllowAutonomousTickPose = LocalPlayback.bPreviousOnlyAllowAutonomousTickPose;
 	}
-	LocalPoseMesh.Reset();
-	SequenceLoad.Reset();
-	if (bStreamingSourceRegistered)
-	{
-		if (UWorldPartitionSubsystem* Partition = GetWorld()->GetSubsystem<UWorldPartitionSubsystem>())
-		{
-			Partition->UnregisterStreamingSourceProvider(this);
-		}
-		bStreamingSourceRegistered = false;
-	}
-	bLocalActive = false;
-	bLocalPlaying = false;
-	LocalPlaybackStartTime = 0.0;
+	LocalPlayback.PoseMesh.Reset();
+	LocalPlayback.SequenceLoad.Reset();
+	LocalPlayback.Phase = EWxSkillCutsceneLocalPhase::Idle;
+	LocalPlayback.StartTime = 0.0;
 	NotifyReadyClientCompletions();
 }
 
 void UWxSkillCutsceneComponent::RestoreServerState()
 {
-	if (bDilationApplied)
+	if (ServerRestore.TimeDilation.IsSet())
 	{
-		UGameplayStatics::SetGlobalTimeDilation(this, PreviousDilation);
-		bDilationApplied = false;
+		UGameplayStatics::SetGlobalTimeDilation(this, ServerRestore.TimeDilation.GetValue());
+		ServerRestore.TimeDilation.Reset();
 	}
-	if (UAbilitySystemComponent* ASC = InvincibleASC.Get())
+	if (UAbilitySystemComponent* ASC = ServerRestore.InvincibleASC.Get())
 	{
-		ASC->RemoveActiveGameplayEffect(InvincibleHandle);
+		ASC->RemoveActiveGameplayEffect(ServerRestore.InvincibleHandle);
 	}
-	InvincibleHandle.Invalidate();
-	InvincibleASC.Reset();
-	if (bAvatarRelevancyChanged && IsValid(State.Avatar))
+	ServerRestore.InvincibleHandle.Invalidate();
+	ServerRestore.InvincibleASC.Reset();
+	if (ServerRestore.AvatarAlwaysRelevant.IsSet() && IsValid(State.Session.Avatar))
 	{
-		State.Avatar->bAlwaysRelevant = bAvatarWasAlwaysRelevant;
-		State.Avatar->ForceNetUpdate();
+		State.Session.Avatar->bAlwaysRelevant = ServerRestore.AvatarAlwaysRelevant.GetValue();
+		State.Session.Avatar->ForceNetUpdate();
 	}
-	bAvatarRelevancyChanged = false;
+	ServerRestore.AvatarAlwaysRelevant.Reset();
 }
 
 void UWxSkillCutsceneComponent::Finish(bool bCancelled)
 {
-	const uint32 FinishedId = State.Id;
+	const uint32 FinishedId = State.Session.Id;
 	RestoreServerState();
 	CleanupLocalPlayer();
-	Reservation.Reset();
+	ServerExecution.Reservation.Reset();
 	PendingLocalSessions.Reset();
 	State.Phase = EWxSkillCutscenePhase::Idle;
-	State.bCancelled = bCancelled;
+	FWxSkillCutsceneCompletion Completion;
+	Completion.Id = FinishedId;
+	Completion.Avatar = State.Session.Avatar;
+	Completion.bCancelled = bCancelled;
+	MulticastSessionEnded(Completion);
 	// 마지막 상태에도 장면 정보를 남겨 늦게 해석되는 참조를 보존한다.
 	GetOwner()->ForceNetUpdate();
-	OnCutsceneEnded.Broadcast(State.Avatar, FinishedId, bCancelled);
+	OnCutsceneEnded.Broadcast(State.Session.Avatar, FinishedId, bCancelled);
 }
 
 void UWxSkillCutsceneComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -532,30 +582,4 @@ void UWxSkillCutsceneComponent::EndPlay(const EEndPlayReason::Type EndPlayReason
 	}
 	PendingLocalSessions.Reset();
 	Super::EndPlay(EndPlayReason);
-}
-
-bool UWxSkillCutsceneComponent::GetStreamingSource(FWorldPartitionStreamingSource& OutSource) const
-{
-	if (!bLocalActive)
-	{
-		return false;
-	}
-	OutSource = FWorldPartitionStreamingSource(GetFName(), LocalState.Origin.GetLocation(), LocalState.Origin.Rotator(),
-		EStreamingSourceTargetState::Activated, false, EStreamingSourcePriority::High, false);
-	return true;
-}
-
-const UObject* UWxSkillCutsceneComponent::GetStreamingSourceOwner() const
-{
-	return this;
-}
-
-bool UWxSkillCutsceneComponent::IsSceneReady() const
-{
-	if (bStreamingSourceRegistered && GFrameCounter <= StreamingSourceFrame + 1)
-	{
-		return false;
-	}
-	const UWorldPartitionSubsystem* Partition = GetWorld()->GetSubsystem<UWorldPartitionSubsystem>();
-	return !Partition || Partition->IsStreamingCompleted(this);
 }
