@@ -89,8 +89,6 @@ private:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter, Category = "Wx|AbilitySystem", meta = (AllowPrivateAccess = "true"))
 	TArray<TObjectPtr<UWxViewModel_Effect>> ActiveEffectViewModels;
 
-	bool bActiveEffectsInitialized = false;
-
 	void InitializeActiveEffects();
 
 	/** 최초 목록 구성에서도 사용하므로 FieldNotify 없이 추가 성공 여부만 반환한다. */
