@@ -78,6 +78,7 @@ void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	if (Sequence)
 	{
+		bLocalPresentationPending = !ActorInfo->IsNetAuthority() && ActorInfo->IsLocallyControlled();
 		UWxAbilityTask_PlaySkillCutscene* CutsceneTask = UWxAbilityTask_PlaySkillCutscene::CreateTask(this, Sequence, 0.001f);
 		CutsceneTask->OnCompleted.AddDynamic(this, &UWxAbility_Ultimate::HandleCutsceneCompleted);
 		CutsceneTask->OnCancelled.AddDynamic(this, &UWxAbility_Ultimate::HandleCutsceneCancelled);
@@ -86,6 +87,19 @@ void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	}
 
 	HandleCutsceneCompleted();
+}
+
+void UWxAbility_Ultimate::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	// 서버의 몽타주가 먼저 끝나도 로컬 컷신/몽타주는 자신의 완료 콜백까지 살아 있어야 한다.
+	// RemoteEndOrCancelAbility는 이 호출 전에 RemoteInstanceEnded를 설정한다. 강제 취소는 보류하지 않는다.
+	if (bLocalPresentationPending && ActorInfo && !ActorInfo->IsNetAuthority()
+		&& RemoteInstanceEnded && !bReplicateEndAbility && !bWasCancelled)
+	{
+		return;
+	}
+	bLocalPresentationPending = false;
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void UWxAbility_Ultimate::HandleCutsceneCompleted()

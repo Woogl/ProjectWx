@@ -30,6 +30,7 @@ public:
 
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TSoftObjectPtr<ULevelSequence> CutsceneSequence;
@@ -46,4 +47,5 @@ private:
 
 	/** 이 핸들이 곧 GC 방지이므로 어빌리티가 살아 있는 동안 들고 있는다 */
 	TSharedPtr<FStreamableHandle> CutscenePreloadHandle;
+	bool bLocalPresentationPending = false;
 };
