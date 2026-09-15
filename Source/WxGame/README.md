@@ -36,7 +36,7 @@
 1. `Source/WxGame/Framework/WxGameMode.cpp` — 프론트엔드 선택→폰 반영, 스테이트 클래스 배선의 시작점.
 2. `Source/WxGame/Character/WxCharacterBase.h` — 모든 캐릭터가 무엇을 소유하고 어느 도메인과 잇는지.
 3. `Source/WxGame/Controller/WxPlayerController.h` — 플레이어 단위 컴포넌트가 어느 도메인에서 오는지의 지도.
-4. `Source/WxGame/FrontEnd/WxGameFlowSubsystem.h` — 프론트엔드→게임 맵 전환 흐름. (`Tests/`의 `WxHitStopMovementTest.cpp`는 이동 히트스톱 회귀 테스트.)
+4. `Source/WxGame/FrontEnd/WxGameFlowSubsystem.h` — 프론트엔드→게임 맵 전환 흐름.
 
 ## 관련
 - 조립 대상 도메인: [[WxCombat]] · [[WxInventory]] · [[WxUI]] · [[WxWorld]] · [[WxAI]] · [[WxDialogue]] · [[WxQuest]] · foundation [[WxCore]]

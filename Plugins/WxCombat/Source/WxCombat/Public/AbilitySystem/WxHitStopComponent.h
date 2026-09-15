@@ -16,7 +16,8 @@ class UWxAbilitySystemComponent;
  * 배속의 주인은 히트스톱뿐이므로 다른 연출이 같은 값을 쓰기 시작하면 서로 덮는다.
  *
  * 모든 머신은 Effect.HitStop 태그로 판정하며, 클라이언트는 서버 태그의 복제를 따른다.
- * 이동 정지는 게임의 이동 컴포넌트가 같은 태그로 처리하며, 네트워크 갱신을 위해 이동 틱은 유지한다.
+ * 캐릭터의 시간을 가진 머신만 세운다. 원격 클라 폰의 서버 사본은 클라가 무브를 보내지 않는 동안 저절로 멈춘다.
+ * 이동 정지는 게임의 이동 컴포넌트가 같은 태그로 처리한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxHitStopComponent : public UActorComponent
