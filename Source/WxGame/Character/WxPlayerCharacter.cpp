@@ -152,8 +152,8 @@ bool AWxPlayerCharacter::CanCrouch() const
 
 void AWxPlayerCharacter::Move(const FInputActionValue& Value)
 {
-	// 히트스톱이 이동 틱을 세우는 동안 입력을 받아 두면 소비되지 않고 쌓였다가 풀리는 첫 프레임에 한꺼번에 나간다.
-	if (!Controller || HitStopComponent->IsFrozen())
+	// 히트스톱 중에도 입력은 받는다. 무브는 이동 컴포넌트가 세우고, 회피가 읽는 마지막 입력 방향은 이동 컴포넌트가 이 입력을 소비하며 갱신한다.
+	if (!Controller)
 	{
 		return;
 	}
