@@ -25,6 +25,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|Minion", meta = (MustImplement = "/Script/WxCore.WxMinion"))
 	TSubclassOf<APawn> MinionClass;
 
+	/** 소환자가 이 클래스의 활성 소환물을 보유하면 이번 소환을 건너뛴다. 비어 있으면 제한하지 않는다. */
+	UPROPERTY(EditAnywhere, Category = "Wx|Minion", meta = (MustImplement = "/Script/WxCore.WxMinion"))
+	TSubclassOf<APawn> BlockingMinionClass;
+
 	/** 소환자 로컬 기준 스폰 지점. 실제 위치는 스폰 시 충돌 보정으로 밀릴 수 있다. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Minion")
 	FTransform LocalSpawnOffset;

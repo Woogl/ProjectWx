@@ -43,6 +43,15 @@
 - 현재 Skill 1은 실행 후 대기하고, Skill 2·강공격은 정상 종료 후 BT에서 `Ability.Death`를 실행해 퇴장한다. 기존 리시 이탈 퇴장 분기는 유지한다. 발동은 수정하지 않은 기존 `UWxBTTask_ActivateAbility`가 담당한다.
 - `Log LogWxAI Verbose`로 Master 발동 감지를 확인한다. Service 런타임 표시에는 감지한 태그가 나오며, 실행 분기는 BT 디버거에서 확인한다. 발동 Task는 Master 상태를 참조하지 않는다.
 
+## 도플갱어의 Master 복제
+
+- `BT_Doppelganger`는 `BB_Shared.Master`와 기존 `AWxAIController`를 사용한다. 루트 Sequence에 `MirrorMovement` Service, 그 아래에 지속 실행되는 `MirrorAbility` Task를 배치한다. `BT_Minion`의 반응 분기는 변경하지 않는다.
+- `MirrorMovement`는 Master의 우측 100cm를 목표로 CMC 이동 입력을 넣는다. 도달 반경은 15cm이며 일반 지상 추종이 연속 1초 이상 걸리면 충돌 검사 후 텔레포트한다. Master 또는 분신의 어빌리티가 활성인 동안에는 텔레포트를 막고 접근 타이머를 초기화한다. GAS 종료 통지 후 양쪽의 활성 어빌리티가 모두 없어진 첫 BT 틱에는 1초를 기다리지 않고 현재 Master 우측 100cm로 텔레포트한다. 목적지 충돌로 실패하면 복귀 요청을 유지한다. 점프·추가 점프·앉기·회전도 따르고 공중에서는 일반 추종 타이머를 초기화한다. 상대 위치를 고정하는 부착은 사용하지 않는다.
+- `MirrorAbility.AbilityMappings`는 원본 클래스와 실제 재생 몽타주를 분신용 클래스에 대응시킨다. GAS 커밋 이후 BT 틱에서 읽으므로 같은 태그의 콤보·회피 변형을 구분하며, 여러 활성 행동을 각 스펙별로 추적한다. 패시브는 `ReplayOnSuccessfulEnd`, 대상이 필요한 처형은 `SourceEventTag`를 사용한다.
+- 분신 전용 에셋에서 비용·쿨다운·입력 자격 조건을 비우고, 콤보는 단일 단계로 구성한다. 소환 노티파이가 있는 몽타주는 분신용 복사본에서 해당 노티파이를 제거한다. 처형의 대상 정보는 원본 이벤트를 전달하되 분신용 피해자 몽타주를 비워 대상 연출을 중복 재생하지 않는다. 기존 `WxAbility` 코드는 수정하지 않는다.
+- HGTest 약공격 4타의 `WxAnimNotify_SpawnMinion.BlockingMinionClass`는 BP_Doppelganger다. Master의 활성 도플갱어가 있으면 일반 미니언 소환을 건너뛰며, 도플갱어가 없으면 기존 소환·교체 규칙을 따른다. 궁극기 소환에는 이 제한을 설정하지 않는다.
+- Task 종료·중단 시 Master 구독과 해당 Task가 부여한 어빌리티를 정리한다. Service도 이동 설정과 틱 의존성을 되돌린다. 새 어빌리티/몽타주를 HGTest에 추가하면 대응 에셋과 매핑도 추가해야 한다. 이벤트를 놓친 뒤 이미 진행 중인 처형에 붙는 경우에는 대상 문맥을 추측하지 않고 다음 발동을 기다린다.
+
 ## 여기서부터 읽어라
 1. `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` — 키 소유 분담 주석이 이 모듈 전체의 데이터 흐름 지도다.
 2. `Plugins/WxAI/Source/WxAI/Public/WxAIBehaviorComponent.h` — 캐릭터가 AI로 구동되기 시작하는 지점(BT·감각·자극 배선).

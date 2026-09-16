@@ -32,8 +32,8 @@ public:
 	 */
 	static APawn* GetMaster(const APawn& Minion);
 
-	/** 로스터에서 가장 먼저 소환된 활성 소환물을 반환한다. */
-	APawn* FindActiveMinion(const APawn& Master) const;
+	/** 로스터에서 가장 먼저 소환된 활성 소환물을 반환한다. 클래스 지정 시 해당 클래스와 파생 클래스만 찾는다. */
+	APawn* FindActiveMinion(const APawn& Master, TSubclassOf<APawn> MinionClass = nullptr) const;
 
 	/** SpawnTransform 은 월드 기준이다. 소환물 클래스가 선언한 상한을 넘치면 주인의 가장 오래된 소환물부터 파괴한다. */
 	APawn* SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionClass, const FTransform& SpawnTransform);

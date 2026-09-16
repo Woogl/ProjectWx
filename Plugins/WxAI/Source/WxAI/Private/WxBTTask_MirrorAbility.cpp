@@ -1,298 +1,230 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "WxBTTask_MirrorAbility.h"
-
-#include "WxAIModule.h"
-#include "WxBlackboardKeys.h"
 #include "AIController.h"
-#include "Abilities/GameplayAbility.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "BehaviorTree/BehaviorTreeComponent.h"
+#include "Abilities/GameplayAbility.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
+#include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "BehaviorTree/BlackboardData.h"
-#include "BehaviorTree/Blackboard/BlackboardKeyType_Object.h"
-#include "GameFramework/Actor.h"
-#include "GameFramework/Pawn.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "GameFramework/Character.h"
 
 UWxBTTask_MirrorAbility::UWxBTTask_MirrorAbility()
 {
 	NodeName = TEXT("Mirror Ability");
-
-	// 실행 상태(따라잡은 태그·발동 핸들·구독)를 노드가 직접 들고 있으므로 폰마다 인스턴스가 필요하다.
 	bCreateNodeInstance = true;
-
-	// TickTask 오버라이드를 감지해 알림 플래그(bNotifyTick 등)를 자동 설정한다(엔진 관용).
 	INIT_TASK_NODE_NOTIFY_FLAGS();
-
-	MirrorTarget.AddObjectFilter(this, GET_MEMBER_NAME_CHECKED(UWxBTTask_MirrorAbility, MirrorTarget), AActor::StaticClass());
-	MirrorTarget.SelectedKeyName = WxBlackboardKeys::Master;
+	bNotifyTick = true;
+	bNotifyTaskFinished = true;
+	MirrorTarget.SelectedKeyName = TEXT("Master");
+	MirrorTarget.AddObjectFilter(this, GET_MEMBER_NAME_CHECKED(ThisClass, MirrorTarget), AActor::StaticClass());
 }
 
 void UWxBTTask_MirrorAbility::InitializeFromAsset(UBehaviorTree& Asset)
 {
 	Super::InitializeFromAsset(Asset);
-
-	if (const UBlackboardData* BlackboardAsset = GetBlackboardAsset())
-	{
-		MirrorTarget.ResolveSelectedKey(*BlackboardAsset);
-	}
-	else
-	{
-		MirrorTarget.InvalidateResolvedKey();
-	}
-}
-
-EBTNodeResult::Type UWxBTTask_MirrorAbility::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
-{
-	bIsRequestingCancel = false;
-
-	const AAIController* AIController = OwnerComp.GetAIOwner();
-	APawn* Pawn = AIController ? AIController->GetPawn() : nullptr;
-	if (!Pawn)
-	{
-		return EBTNodeResult::Failed;
-	}
-
-	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
-	if (!ASC)
-	{
-		return EBTNodeResult::Failed;
-	}
-
-	MirroredTag = FindMirroredTag(OwnerComp);
-	if (!MirroredTag.IsValid())
-	{
-		return EBTNodeResult::Failed;
-	}
-
-	CachedASC = ASC;
-	CachedOwnerComp = &OwnerComp;
-
-	// TryActivateAbility 안에서 어빌리티가 동기 종료될 수 있으므로(CommitAbility 실패 등), 그 종료 통지를 받으려면 발동 전에 바인드해야 한다.
-	AbilityEndedDelegateHandle = ASC->OnAbilityEnded.AddUObject(
-		this, &UWxBTTask_MirrorAbility::HandleAbilityEnded);
-
-	ActivationResult = EBTNodeResult::InProgress;
-	bIsActivating = true;
-	{
-		// 순회 중 활성화도 실패 통지도 어빌리티 목록을 바꿀 수 있다(GE의 GrantedAbilities, 실패 콜백의 Give/Clear 등).
-		FScopedAbilityListLock ActiveScopeLock(*ASC);
-
-		// 같은 식별 태그의 어빌리티가 여럿일 수 있으므로, 발동에 성공하는 첫 후보를 채택한다.
-		for (const FGameplayAbilitySpec& IterSpec : ASC->GetActivatableAbilities())
-		{
-			if (IterSpec.Ability && IterSpec.Ability->GetAssetTags().HasTag(MirroredTag))
-			{
-				// 종료 콜백이 발동 도중 도착하므로 판별용 핸들을 미리 세운다.
-				ActivatedHandle = IterSpec.Handle;
-				if (ASC->TryActivateAbility(IterSpec.Handle))
-				{
-					break;
-				}
-				// 채택하지 않은 후보가 남긴 통지는 다음 후보의 결론이 될 수 없다.
-				ActivatedHandle = FGameplayAbilitySpecHandle();
-				ActivationResult = EBTNodeResult::InProgress;
-			}
-		}
-	}
-	bIsActivating = false;
-
-	if (!ActivatedHandle.IsValid())
-	{
-		CleanUp();
-		return EBTNodeResult::Failed;
-	}
-
-	// TryActivateAbility 는 활성화 도중 어빌리티 부여/제거로 ActivatableAbilities 배열을 재할당할 수 있어, 활성화 이전에 잡아둔 Spec 포인터는 무효가 될 수 있다.
-	const FGameplayAbilitySpec* ActiveSpec = ASC->FindAbilitySpecFromHandle(ActivatedHandle);
-
-	// 발동 구간에 도착한 종료 통지가 방금 시작한 실행의 것이라는 보장은 없다.
-	// 엔진은 재발동(bRetriggerInstancedAbility)에서 같은 핸들로 기존 실행을 먼저 끝낸 뒤 재활성화하므로, 통지 대신 "지금 도는 실행이 있는가" 를 결론으로 삼는다.
-	if (ActiveSpec && ActiveSpec->IsActive())
-	{
-		return EBTNodeResult::InProgress;
-	}
-
-	// 비활성이면 발동 구간 안에서 끝난 것이므로 그때 받은 통지가 결론이다.
-	// 통지 없이 비활성이면(스펙 제거 등) 콜백이 오지 않아 BT 가 InProgress 로 영구 정지하므로 실패로 마감한다.
-	const EBTNodeResult::Type Result = ActivationResult != EBTNodeResult::InProgress
-		? ActivationResult
-		: EBTNodeResult::Failed;
-
-	CleanUp();
-	return Result;
+	if (Asset.BlackboardAsset) { MirrorTarget.ResolveSelectedKey(*Asset.BlackboardAsset); }
 }
 
 FString UWxBTTask_MirrorAbility::GetStaticDescription() const
 {
-	return FString::Printf(TEXT("%s 가 쓰는 %s 를 따라한다"),
-		*MirrorTarget.SelectedKeyName.ToString(),
-		MirroredAbilities.IsEmpty() ? TEXT("없음") : *MirroredAbilities.ToStringSimple());
+	return FString::Printf(TEXT("%s: %d ability/montage mappings; listen until aborted"), *MirrorTarget.SelectedKeyName.ToString(), AbilityMappings.Num());
 }
 
-void UWxBTTask_MirrorAbility::DescribeRuntimeValues(const UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTDescriptionVerbosity::Type Verbosity, TArray<FString>& Values) const
+EBTNodeResult::Type UWxBTTask_MirrorAbility::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	Super::DescribeRuntimeValues(OwnerComp, NodeMemory, Verbosity, Values);
-
-	Values.Add(FString::Printf(TEXT("따라하는 중: %s"), MirroredTag.IsValid() ? *MirroredTag.ToString() : TEXT("없음")));
-}
-
-EBTNodeResult::Type UWxBTTask_MirrorAbility::AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
-{
-	UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (!ASC || !ActivatedHandle.IsValid())
+	CleanUp();
+	AAIController* AI = OwnerComp.GetAIOwner();
+	if (!AI || !AI->HasAuthority()) { return EBTNodeResult::Failed; }
+	MirrorASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(AI->GetPawn());
+	if (!MirrorASC.IsValid()) { return EBTNodeResult::Failed; }
+	for (const FWxMirrorAbilityMapping& Mapping : AbilityMappings)
 	{
-		CleanUp();
-		return EBTNodeResult::Aborted;
+		GrantedHandles.Add(Mapping.MirrorAbility ? MirrorASC->GiveAbility(FGameplayAbilitySpec(Mapping.MirrorAbility, 1)) : FGameplayAbilitySpecHandle());
 	}
-
-	// 취소 요청은 실제 종료를 보장하지 않는다. 종료 통지를 받을 때까지 구독을 유지한다.
-	bIsRequestingCancel = true;
-	ASC->CancelAbilityHandle(ActivatedHandle);
-	bIsRequestingCancel = false;
-
-	const FGameplayAbilitySpec* ActiveSpec = ASC->FindAbilitySpecFromHandle(ActivatedHandle);
-	if (!ActiveSpec || !ActiveSpec->IsActive())
-	{
-		CleanUp();
-		return EBTNodeResult::Aborted;
-	}
-
-	// 엔진의 취소는 CanBeCanceled 를 거부하는 인스턴스에서 로그 한 줄 없이 아무 일도 하지 않는다.
-	// 종료 통지가 온다는 보장이 없으므로 기다리지 않는다 — 여기서 InProgress 로 앉으면 트리 전체가 Aborting 에 갇힌다.
-	for (const UGameplayAbility* Instance : ActiveSpec->GetAbilityInstances())
-	{
-		if (Instance && !Instance->CanBeCanceled())
-		{
-			UE_LOG(LogWxAI, Warning, TEXT("어빌리티 '%s' 가 취소를 거부해 Abort 를 즉시 마감합니다. 취소되지 않는 어빌리티는 따라할 목록에 넣지 마세요. (AbilityTag: %s)"),
-				*Instance->GetName(), *MirroredTag.ToString());
-
-			CleanUp();
-			return EBTNodeResult::Aborted;
-		}
-	}
-
+	// OnPossess는 RunBehaviorTree 뒤에 Master를 채운다. 비어 있어도 태스크를 유지한다.
+	TickTask(OwnerComp, NodeMemory, 0.f);
 	return EBTNodeResult::InProgress;
 }
 
-void UWxBTTask_MirrorAbility::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+void UWxBTTask_MirrorAbility::StopMirror(FGameplayAbilitySpecHandle Handle)
 {
-	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
+	if (MirrorASC.IsValid() && Handle.IsValid()) { MirrorASC->CancelAbilityHandle(Handle); }
+}
 
-	const UAbilitySystemComponent* TargetASC = FindMirrorTargetAbilitySystem(OwnerComp);
-	if (TargetASC && TargetASC->HasMatchingGameplayTag(MirroredTag))
+void UWxBTTask_MirrorAbility::BindMaster(UAbilitySystemComponent* ASC)
+{
+	if (ASC == MirrorASC.Get()) { ASC = nullptr; }
+	if (MasterASC.Get() == ASC && (ASC || MasterASC.IsExplicitlyNull())) { return; }
+	if (MasterASC.IsValid())
 	{
-		return;
-	}
-
-	UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (!ASC)
-	{
-		CleanUp();
-		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
-		return;
-	}
-
-	// 대상이 놓았다(또는 사라졌다). 따라 놓는 것이 이 태스크의 정상 마감이다.
-	// 종료 통지는 취소 사유를 모르고 bWasCancelled 만 실어 오므로 통지에 맡기면 Failed 로 읽힌다 — 마감은 여기서 한다.
-	bIsRequestingCancel = true;
-	ASC->CancelAbilityHandle(ActivatedHandle);
-	bIsRequestingCancel = false;
-
-	// 틱에서 건 취소는 미뤄질 스코프 락이 없어 동기 종료되거나 거부되거나 둘 중 하나다.
-	// 엔진의 취소는 CanBeCanceled 를 거부하는 인스턴스에서 로그 한 줄 없이 아무 일도 하지 않으므로 저작 실수가 드러나게 경고한다.
-	const FGameplayAbilitySpec* ActiveSpec = ASC->FindAbilitySpecFromHandle(ActivatedHandle);
-	if (ActiveSpec && ActiveSpec->IsActive())
-	{
-		for (const UGameplayAbility* Instance : ActiveSpec->GetAbilityInstances())
+		MasterASC->AbilityCommittedCallbacks.RemoveAll(this);
+		MasterASC->OnAbilityEnded.RemoveAll(this);
+		for (const FGameplayTag& Tag : ObservedEventTags)
 		{
-			if (Instance && !Instance->CanBeCanceled())
+			if (FGameplayEventMulticastDelegate* Delegate = MasterASC->GenericGameplayEventCallbacks.Find(Tag)) { Delegate->RemoveAll(this); }
+		}
+	}
+	ObservedEventTags.Reset();
+	for (const auto& Pair : Active) { StopMirror(Pair.Value.MirrorHandle); }
+	Active.Empty();
+	MasterASC = ASC;
+	if (!ASC) { return; }
+	ASC->AbilityCommittedCallbacks.AddUObject(this, &ThisClass::HandleCommitted);
+	ASC->OnAbilityEnded.AddUObject(this, &ThisClass::HandleEnded);
+	for (const FWxMirrorAbilityMapping& Mapping : AbilityMappings)
+	{
+		if (Mapping.SourceEventTag.IsValid() && !ObservedEventTags.HasTagExact(Mapping.SourceEventTag))
+		{
+			ObservedEventTags.AddTag(Mapping.SourceEventTag);
+			ASC->GenericGameplayEventCallbacks.FindOrAdd(Mapping.SourceEventTag).AddUObject(this, &ThisClass::HandleGameplayEvent, Mapping.SourceEventTag);
+		}
+	}
+	FScopedAbilityListLock Lock(*ASC);
+	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+	{
+		if (Spec.IsActive()) { HandleCommitted(Spec.GetPrimaryInstance()); }
+	}
+}
+
+void UWxBTTask_MirrorAbility::HandleCommitted(UGameplayAbility* Ability)
+{
+	if (!Ability) { return; }
+	for (const FWxMirrorAbilityMapping& Mapping : AbilityMappings)
+	{
+		if (Ability->GetClass() == Mapping.SourceAbility && !Mapping.bReplayOnSuccessfulEnd)
+		{
+			const FGameplayAbilitySpecHandle Handle = Ability->GetCurrentAbilitySpecHandle();
+			if (const FWxMirroredAbilityState* Previous = Active.Find(Handle)) { StopMirror(Previous->MirrorHandle); }
+			FWxMirroredAbilityState State;
+			State.Source = Ability;
+			Active.Add(Handle, State);
+			// 커밋 콜백은 원본 PlayMontage보다 앞선다. 다음 BT 틱에서 실제 단계를 읽는다.
+			return;
+		}
+	}
+}
+
+void UWxBTTask_MirrorAbility::HandleEnded(const FAbilityEndedData& Data)
+{
+	if (!Data.AbilityThatEnded) { return; }
+	if (!Data.bWasCancelled && MirrorASC.IsValid())
+	{
+		for (int32 Index = 0; Index < AbilityMappings.Num(); ++Index)
+		{
+			const FWxMirrorAbilityMapping& Mapping = AbilityMappings[Index];
+			if (Mapping.bReplayOnSuccessfulEnd && Mapping.SourceAbility == Data.AbilityThatEnded->GetClass())
 			{
-				UE_LOG(LogWxAI, Warning, TEXT("어빌리티 '%s' 가 취소를 거부해 대상을 따라 놓지 못했습니다. 취소되지 않는 어빌리티는 따라할 목록에 넣지 마세요. (AbilityTag: %s)"),
-					*Instance->GetName(), *MirroredTag.ToString());
+				MirrorASC->TryActivateAbility(GrantedHandles[Index]);
 				break;
 			}
 		}
 	}
-
-	CleanUp();
-	FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+	FWxMirroredAbilityState State;
+	if (Active.RemoveAndCopyValue(Data.AbilitySpecHandle, State)) { StopMirror(State.MirrorHandle); }
 }
 
-FGameplayTag UWxBTTask_MirrorAbility::FindMirroredTag(const UBehaviorTreeComponent& OwnerComp) const
+void UWxBTTask_MirrorAbility::HandleGameplayEvent(const FGameplayEventData* Data, FGameplayTag EventTag)
 {
-	const UAbilitySystemComponent* TargetASC = FindMirrorTargetAbilitySystem(OwnerComp);
-	if (!TargetASC)
+	if (!Data) { return; }
+	for (auto& Pair : Active)
 	{
-		return FGameplayTag();
+		for (const FWxMirrorAbilityMapping& Mapping : AbilityMappings)
+		{
+			if (Mapping.SourceEventTag == EventTag && Pair.Value.Source.IsValid() && Mapping.SourceAbility == Pair.Value.Source->GetClass())
+			{
+				Pair.Value.EventData = *Data;
+				Pair.Value.EventData.EventTag = EventTag;
+				Pair.Value.bHasEventData = true;
+				break;
+			}
+		}
 	}
-
-	// 활성 어빌리티가 발행한 식별 태그만 남긴다. 부모 태그로 저작해도 걸리도록 Filter 가 계층을 펼쳐 준다.
-	FGameplayTagContainer TargetTags;
-	TargetASC->GetOwnedGameplayTags(TargetTags);
-	return TargetTags.Filter(MirroredAbilities).First();
 }
 
-UAbilitySystemComponent* UWxBTTask_MirrorAbility::FindMirrorTargetAbilitySystem(const UBehaviorTreeComponent& OwnerComp) const
+void UWxBTTask_MirrorAbility::Replay(FGameplayAbilitySpecHandle SourceHandle)
 {
-	const UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();
-	if (!Blackboard)
+	FWxMirroredAbilityState* State = Active.Find(SourceHandle);
+	if (!State || !State->Source.IsValid() || !State->Source->IsActive()) { return; }
+	UGameplayAbility* Source = State->Source.Get();
+	UAnimMontage* SourceMontage = MasterASC->GetAnimatingAbility() == Source ? MasterASC->GetCurrentMontage() : nullptr;
+	int32 MappingIndex = INDEX_NONE;
+	for (int32 Index = 0; Index < AbilityMappings.Num(); ++Index)
 	{
-		return nullptr;
+		const FWxMirrorAbilityMapping& Mapping = AbilityMappings[Index];
+		if (Mapping.SourceAbility == Source->GetClass() && Mapping.SourceMontage == SourceMontage) { MappingIndex = Index; break; }
 	}
-
-	AActor* TargetActor = Cast<AActor>(Blackboard->GetValue<UBlackboardKeyType_Object>(MirrorTarget.GetSelectedKeyID()));
-	return UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+	if (MappingIndex == INDEX_NONE || (State->bStarted && State->LastMontage == SourceMontage)) { return; }
+	const FWxMirrorAbilityMapping& Mapping = AbilityMappings[MappingIndex];
+	if (Mapping.SourceEventTag.IsValid() && !State->bHasEventData) { return; }
+	StopMirror(State->MirrorHandle);
+	const FGameplayAbilitySpecHandle MirrorHandle = GrantedHandles[MappingIndex];
+	State->MirrorHandle = MirrorHandle;
+	State->LastMontage = SourceMontage;
+	State->bStarted = true;
+	// 방향을 읽는 회피 어빌리티에는 대형 보정 입력 대신 Master의 실제 입력을 넘긴다.
+	APawn* MasterPawn = Cast<APawn>(MasterASC->GetAvatarActor());
+	APawn* Pawn = Cast<APawn>(MirrorASC->GetAvatarActor());
+	if (Pawn && MasterPawn)
+	{
+		Pawn->ConsumeMovementInputVector();
+		Pawn->AddMovementInput(MasterPawn->GetLastMovementInputVector(), 1.f, true);
+		Pawn->ConsumeMovementInputVector();
+	}
+	const bool bActivated = State->bHasEventData
+		? MirrorASC->TriggerAbilityFromGameplayEvent(MirrorHandle, MirrorASC->AbilityActorInfo.Get(), Mapping.SourceEventTag, &State->EventData, *MirrorASC)
+		: MirrorASC->TryActivateAbility(MirrorHandle);
+	if (!bActivated) { return; }
+	ACharacter* MasterCharacter = Cast<ACharacter>(MasterPawn);
+	ACharacter* Character = Cast<ACharacter>(Pawn);
+	UAnimInstance* SourceAnim = MasterCharacter ? MasterCharacter->GetMesh()->GetAnimInstance() : nullptr;
+	UAnimInstance* Anim = Character ? Character->GetMesh()->GetAnimInstance() : nullptr;
+	UAnimMontage* Montage = MirrorASC->GetCurrentMontage();
+	if (SourceMontage && Montage && SourceAnim && Anim)
+	{
+		Anim->Montage_SetPlayRate(Montage, SourceAnim->Montage_GetPlayRate(SourceMontage));
+		Anim->Montage_SetPosition(Montage, SourceAnim->Montage_GetPosition(SourceMontage));
+	}
 }
 
-void UWxBTTask_MirrorAbility::HandleAbilityEnded(const FAbilityEndedData& AbilityEndedData)
+void UWxBTTask_MirrorAbility::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-	if (AbilityEndedData.AbilitySpecHandle != ActivatedHandle)
-	{
-		return;
-	}
-
-	const EBTNodeResult::Type Result = AbilityEndedData.bWasCancelled
-		? EBTNodeResult::Failed
-		: EBTNodeResult::Succeeded;
-
-	// 결과만 남기고 구독 해제와 판단은 ExecuteTask 에 맡긴다.
-	if (bIsActivating)
-	{
-		ActivationResult = Result;
-		return;
-	}
-
-	if (bIsRequestingCancel)
-	{
-		return;
-	}
-
-	UBehaviorTreeComponent* BTComp = CachedOwnerComp.Get();
-	CleanUp();
-	if (!BTComp)
-	{
-		return;
-	}
-
-	if (BTComp->GetTaskStatus(this) == EBTTaskStatus::Aborting)
-	{
-		FinishLatentAbort(*BTComp);
-		return;
-	}
-
-	FinishLatentTask(*BTComp, Result);
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	AActor* Master = BB ? Cast<AActor>(BB->GetValueAsObject(MirrorTarget.SelectedKeyName)) : nullptr;
+	BindMaster(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Master));
+	if (!MasterASC.IsValid() || !MirrorASC.IsValid()) { return; }
+	TArray<FGameplayAbilitySpecHandle> Handles;
+	Active.GetKeys(Handles);
+	for (FGameplayAbilitySpecHandle Handle : Handles) { Replay(Handle); }
 }
 
 void UWxBTTask_MirrorAbility::CleanUp()
 {
-	if (UAbilitySystemComponent* ASC = CachedASC.Get())
+	BindMaster(nullptr);
+	if (MirrorASC.IsValid())
 	{
-		ASC->OnAbilityEnded.Remove(AbilityEndedDelegateHandle);
+		for (FGameplayAbilitySpecHandle Handle : GrantedHandles)
+		{
+			StopMirror(Handle);
+			MirrorASC->ClearAbility(Handle);
+		}
 	}
-	AbilityEndedDelegateHandle.Reset();
-	ActivatedHandle = FGameplayAbilitySpecHandle();
-	MirroredTag = FGameplayTag();
-	bIsRequestingCancel = false;
+	GrantedHandles.Empty();
+	Active.Empty();
+	MirrorASC.Reset();
+}
+
+EBTNodeResult::Type UWxBTTask_MirrorAbility::AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+{
+	CleanUp();
+	return EBTNodeResult::Aborted;
+}
+
+void UWxBTTask_MirrorAbility::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type Result)
+{
+	CleanUp();
+	Super::OnTaskFinished(OwnerComp, NodeMemory, Result);
 }

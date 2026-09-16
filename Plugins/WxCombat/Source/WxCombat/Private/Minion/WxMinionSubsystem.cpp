@@ -16,10 +16,18 @@ APawn* UWxMinionSubsystem::GetMaster(const APawn& Minion)
 	return SpawnInstigator != &Minion ? SpawnInstigator : nullptr;
 }
 
-APawn* UWxMinionSubsystem::FindActiveMinion(const APawn& Master) const
+APawn* UWxMinionSubsystem::FindActiveMinion(const APawn& Master, TSubclassOf<APawn> MinionClass) const
 {
 	const TArray<TWeakObjectPtr<APawn>> MasterMinions = CollectMinions(Master);
-	return MasterMinions.IsEmpty() ? nullptr : MasterMinions[0].Get();
+	for (const TWeakObjectPtr<APawn>& Entry : MasterMinions)
+	{
+		APawn* Minion = Entry.Get();
+		if (Minion && (!MinionClass || Minion->IsA(MinionClass)))
+		{
+			return Minion;
+		}
+	}
+	return nullptr;
 }
 
 APawn* UWxMinionSubsystem::SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionClass, const FTransform& SpawnTransform)
