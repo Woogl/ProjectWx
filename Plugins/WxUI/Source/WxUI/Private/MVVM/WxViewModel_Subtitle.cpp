@@ -9,18 +9,6 @@
 #include "Types/MVVMViewModelCollection.h"
 #include "Types/MVVMViewModelContext.h"
 
-namespace
-{
-	/** 등록·조회가 같은 값을 써야 하므로 문맥을 한 곳에서 만든다. */
-	FMVVMViewModelContext MakeSubtitleContext()
-	{
-		FMVVMViewModelContext Context;
-		Context.ContextClass = UWxViewModel_Subtitle::StaticClass();
-		Context.ContextName = TEXT("VM_Subtitle");
-		return Context;
-	}
-}
-
 UWxViewModel_Subtitle* UWxViewModel_Subtitle::GetOrCreate(const UObject* WorldContextObject)
 {
 	const UWorld* World = WorldContextObject ? WorldContextObject->GetWorld() : nullptr;
@@ -32,7 +20,10 @@ UWxViewModel_Subtitle* UWxViewModel_Subtitle::GetOrCreate(const UObject* WorldCo
 		return nullptr;
 	}
 
-	const FMVVMViewModelContext Context = MakeSubtitleContext();
+	FMVVMViewModelContext Context;
+	Context.ContextClass = UWxViewModel_Subtitle::StaticClass();
+	Context.ContextName = TEXT("VM_Subtitle");
+
 	if (UMVVMViewModelBase* Registered = ViewModelCollection->FindViewModelInstance(Context))
 	{
 		return CastChecked<UWxViewModel_Subtitle>(Registered);
