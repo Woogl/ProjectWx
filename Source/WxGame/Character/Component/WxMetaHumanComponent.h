@@ -58,7 +58,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Visual")
 	TObjectPtr<USkeletalMesh> FaceMesh;
 
-	/** 페이스에 걸 AnimBP (예: ABP_Face). 페이스 포스트프로세스 ABP는 메시 에셋에 내장돼 있어 별도 지정이 필요 없다. */
+	/** 페이스 포스트프로세스 ABP는 메시 에셋에 내장돼 있어 별도 지정이 필요 없다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Visual")
 	TSubclassOf<UAnimInstance> FaceAnimClass;
 

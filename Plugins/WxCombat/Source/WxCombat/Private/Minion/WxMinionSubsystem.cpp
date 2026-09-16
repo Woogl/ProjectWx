@@ -141,7 +141,6 @@ void UWxMinionSubsystem::HandleMasterEndPlay(AActor* Actor, EEndPlayReason::Type
 		return;
 	}
 
-	// 파괴가 소환물 EndPlay를 동기 호출해 로스터를 줄이지만, 대상 집합은 이미 떠 왔으므로 순회와 겹치지 않는다.
 	const TArray<TWeakObjectPtr<APawn>> MasterMinions = CollectMinions(*Master);
 	for (const TWeakObjectPtr<APawn>& ActiveMinion : MasterMinions)
 	{

@@ -44,7 +44,7 @@ struct FWxSkillCutsceneState
 	UPROPERTY()
 	bool bPlaying = false;
 
-	/** 강제 취소로 끝났는지. 각 머신은 이 값으로 로컬 재생을 끊을지 끝까지 갈지 정한다. */
+	/** 각 머신은 이 값으로 로컬 재생을 끊을지 끝까지 갈지 정한다. */
 	UPROPERTY()
 	bool bCancelled = false;
 };
