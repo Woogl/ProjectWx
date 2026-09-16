@@ -33,7 +33,7 @@ namespace WxGameplayTags
 
 	// GE가 부여하는 태그. 애셋 태그로도 사용한다.
 
-	/** WxEffect_Invincible이 부여하며, 구간을 연 쪽(노티파이 구간·컷신 태스크·처형의 활성 구간)이 수명을 쥔다 */
+	/** WxEffect_Invincible이 부여하며, 구간을 연 쪽(노티파이 구간·스킬 컷신 컴포넌트의 세션·처형의 활성 구간)이 수명을 쥔다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Invincible);
 
 	/**
