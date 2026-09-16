@@ -18,80 +18,40 @@
 #include "LevelSequencePlayer.h"
 #include "MovieScene.h"
 #include "MovieSceneTimeController.h"
-#include "Tracks/MovieSceneSkeletalAnimationTrack.h"
-#include "Sections/MovieSceneSkeletalAnimationSection.h"
 #include "Net/UnrealNetwork.h"
 #include "WxCombatModule.h"
 
 namespace
 {
-	ULevelSequence* CreatePlayerCutsceneSequence(ULevelSequence* Source, UObject* Outer)
-	{
-		// 에셋은 PIE 월드끼리 공유한다. 원본 섹션을 수정하면 다른 플레이어와 에디터까지 영향을 받는다.
-		ULevelSequence* PlaybackSequence = DuplicateObject<ULevelSequence>(Source, Outer,
-			MakeUniqueObjectName(Outer, Source->GetClass(), Source->GetFName()));
-		UMovieScene* MovieScene = PlaybackSequence->GetMovieScene();
-		TSet<FGuid> PlayerBindings;
-		for (const FMovieSceneObjectBindingID& BindingId : PlaybackSequence->FindBindingsByTag(TEXT("Player")))
-		{
-			PlayerBindings.Add(BindingId.GetGuid());
-		}
-		for (const FMovieSceneBinding& Binding : static_cast<const UMovieScene*>(MovieScene)->GetBindings())
-		{
-			FGuid OwnerId = Binding.GetObjectGuid();
-			while (OwnerId.IsValid() && !PlayerBindings.Contains(OwnerId))
-			{
-				const FMovieScenePossessable* Possessable = MovieScene->FindPossessable(OwnerId);
-				OwnerId = Possessable ? Possessable->GetParent() : FGuid();
-			}
-			if (!PlayerBindings.Contains(OwnerId))
-			{
-				continue;
-			}
-			for (UMovieSceneTrack* Track : Binding.GetTracks())
-			{
-				if (UMovieSceneSkeletalAnimationTrack* AnimationTrack = Cast<UMovieSceneSkeletalAnimationTrack>(Track))
-				{
-					for (UMovieSceneSection* Section : AnimationTrack->GetAllSections())
-					{
-						if (UMovieSceneSkeletalAnimationSection* AnimationSection = Cast<UMovieSceneSkeletalAnimationSection>(Section))
-						{
-							// 대기/이동 AnimBP의 슬롯 경로를 거치지 않고 시퀀서가 시전자 포즈를 소유한다.
-							AnimationSection->Params.bForceCustomMode = true;
-						}
-					}
-				}
-			}
-		}
-		return PlaybackSequence;
-	}
-
-	/** 플랫폼 시각에서 직접 프레임을 구하므로 월드 배율이나 시퀀스의 Clock Source에 의존하지 않는다. */
+	/**
+	 * 플랫폼 시각으로 직접 진행해 월드 배율과 시퀀스의 Clock Source에 의존하지 않는다.
+	 * 엔진의 외부 시계(FMovieSceneTimeController_ExternalClock)는 월드 배율이 곱해진 PlayRate를 다시 반영하므로 0.001배 월드에서는 쓸 수 없다.
+	 */
 	class FWxSkillCutsceneClock : public FMovieSceneTimeController
 	{
-	public:
-		explicit FWxSkillCutsceneClock(UWxSkillCutsceneComponent* InCoordinator, double InStartSeconds);
-
 	protected:
+		virtual void OnStartPlaying(const FQualifiedFrameTime& InStartTime) override;
 		virtual FFrameTime OnRequestCurrentTime(const FQualifiedFrameTime& InCurrentTime, float InPlayRate) override;
 
 	private:
-		TWeakObjectPtr<UWxSkillCutsceneComponent> Coordinator;
-		double StartSeconds;
+		double StartSeconds = 0.0;
 	};
 
-	FWxSkillCutsceneClock::FWxSkillCutsceneClock(UWxSkillCutsceneComponent* InCoordinator, double InStartSeconds)
-		: Coordinator(InCoordinator), StartSeconds(InStartSeconds)
+	void FWxSkillCutsceneClock::OnStartPlaying(const FQualifiedFrameTime& InStartTime)
 	{
+		StartSeconds = FPlatformTime::Seconds();
 	}
 
 	FFrameTime FWxSkillCutsceneClock::OnRequestCurrentTime(const FQualifiedFrameTime& InCurrentTime, float InPlayRate)
 	{
-		if (const UWxSkillCutsceneComponent* Owner = Coordinator.Get())
+		const TOptional<FQualifiedFrameTime> PlaybackStart = GetPlaybackStartTime();
+		if (!PlaybackStart.IsSet())
 		{
-			return InCurrentTime.Rate.AsFrameTime(StartSeconds + Owner->GetPlaybackSeconds());
+			return InCurrentTime.Time;
 		}
-		return InCurrentTime.Time;
+
+		// 경과를 상한으로 자르지 않는다. 엔진이 재생 범위 끝에서 스스로 멈춘다.
+		return PlaybackStart->ConvertTo(InCurrentTime.Rate) + InCurrentTime.Rate.AsFrameTime(FPlatformTime::Seconds() - StartSeconds);
 	}
 }
 
@@ -114,24 +74,12 @@ bool UWxSkillCutsceneComponent::HasAuthority() const
 
 bool UWxSkillCutsceneComponent::IsBusy() const
 {
-	return ServerExecution.Reservation.IsValid() || State.Phase != EWxSkillCutscenePhase::Idle;
-}
-
-bool UWxSkillCutsceneComponent::Reserve(UGameplayAbility* Requester)
-{
-	if (!HasAuthority() || !Requester || IsBusy())
-	{
-		return false;
-	}
-	ServerExecution.Reservation = Requester;
-	++State.Session.Id;
-	State.Session.Avatar = Requester->GetAvatarActorFromActorInfo();
-	return true;
+	return State.bPlaying;
 }
 
 bool UWxSkillCutsceneComponent::Start(UGameplayAbility* Requester, ULevelSequence* Sequence, float Dilation)
 {
-	if (!HasAuthority() || !Requester || ServerExecution.Reservation.Get() != Requester || State.Phase != EWxSkillCutscenePhase::Idle)
+	if (!HasAuthority() || !Requester || IsBusy())
 	{
 		return false;
 	}
@@ -153,6 +101,7 @@ bool UWxSkillCutsceneComponent::Start(UGameplayAbility* Requester, ULevelSequenc
 		return false;
 	}
 
+	++State.Session.Id;
 	State.Session.Sequence = Sequence;
 	State.Session.Avatar = Avatar;
 	State.Session.Origin = Avatar->GetActorTransform();
@@ -163,43 +112,40 @@ bool UWxSkillCutsceneComponent::Start(UGameplayAbility* Requester, ULevelSequenc
 			State.Session.Origin = Mesh->GetComponentTransform();
 		}
 	}
-	State.Session.Duration = Duration;
-	ServerExecution.StartTime = 0.0;
-	State.Phase = EWxSkillCutscenePhase::Playing;
-	ServerExecution.RequestedDilation = FMath::Max(Dilation, 0.001f);
-	ServerRestore.AvatarAlwaysRelevant = Avatar->bAlwaysRelevant;
+	// bCancelled는 직전 종료의 결과다. 여기서 지우면 두 전이가 한 복제 창에 겹쳤을 때 그 결과를 잃는다.
+	State.bPlaying = true;
+
+	ServerState.Owner = Requester;
+	ServerState.Duration = Duration;
+	ServerState.StartTime = FPlatformTime::Seconds();
+
+	UGameplayStatics::SetGlobalTimeDilation(this, FMath::Max(Dilation, 0.001f));
+
+	// 엔진이 Min/MaxGlobalTimeDilation으로 클램프하므로, 해제 때 비교하려면 요청값이 아니라 실제로 박힌 값을 들고 있어야 한다.
+	ServerState.AppliedDilation = UGameplayStatics::GetGlobalTimeDilation(this);
+
+	ServerState.bAvatarWasAlwaysRelevant = Avatar->bAlwaysRelevant;
 	Avatar->bAlwaysRelevant = true;
 	Avatar->FlushNetDormancy();
 	Avatar->ForceNetUpdate();
 
 	if (UAbilitySystemComponent* ASC = Requester->GetAbilitySystemComponentFromActorInfo())
 	{
-		ServerRestore.InvincibleASC = ASC;
-		ServerRestore.InvincibleHandle = ASC->ApplyGameplayEffectToSelf(GetDefault<UWxEffect_Invincible>(), Requester->GetAbilityLevel(), ASC->MakeEffectContext());
+		ServerState.InvincibleASC = ASC;
+		ServerState.InvincibleHandle = ASC->ApplyGameplayEffectToSelf(GetDefault<UWxEffect_Invincible>(), Requester->GetAbilityLevel(), ASC->MakeEffectContext());
 	}
 
-	MulticastSessionStarted(State.Session);
+	UpdateSession();
 	GetOwner()->ForceNetUpdate();
 	return true;
 }
 
 void UWxSkillCutsceneComponent::Cancel(UGameplayAbility* Requester)
 {
-	if (HasAuthority() && Requester && ServerExecution.Reservation.Get() == Requester)
+	if (HasAuthority() && Requester && ServerState.Owner.Get() == Requester)
 	{
 		Finish(true);
 	}
-}
-
-uint32 UWxSkillCutsceneComponent::GetSessionId() const
-{
-	return State.Session.Id;
-}
-
-double UWxSkillCutsceneComponent::GetPlaybackSeconds() const
-{
-	return LocalPlayback.Phase == EWxSkillCutsceneLocalPhase::Playing
-		? FMath::Clamp(FPlatformTime::Seconds() - LocalPlayback.StartTime, 0.0, LocalPlayback.Session.Duration) : 0.0;
 }
 
 void UWxSkillCutsceneComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -210,181 +156,81 @@ void UWxSkillCutsceneComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 
 void UWxSkillCutsceneComponent::OnRep_State()
 {
-	// 접속 시 이미 진행 중인 컷신은 스냅샷으로 준비한다. 이후 전이는 Reliable RPC가 전달한다.
-	if (ObservedSessionId == 0 && State.Phase == EWxSkillCutscenePhase::Playing)
-	{
-		QueueLocalSession(State.Session);
-	}
-	RefreshSessionAvatar(State.Session.Id, State.Session.Avatar);
-	NotifyReadyClientCompletions();
+	UpdateSession();
 }
 
-void UWxSkillCutsceneComponent::QueueLocalSession(const FWxSkillCutsceneSession& Session)
+void UWxSkillCutsceneComponent::UpdateSession()
 {
-	if (Session.Id <= ObservedSessionId)
+	const bool bNewSession = State.Session.Id != LocalPlayback.Session.Id;
+	if (bNewSession)
+	{
+		// 남아 있던 로컬 재생은 밀어내고, 그 세션의 종료를 먼저 알린다.
+		// 직전 종료를 못 보고 이 시작만 받았을 수도 있으므로 결과는 State가 들고 있는 값을 쓴다.
+		CleanupLocalPlayer();
+		NotifyEnded(State.bCancelled);
+	}
+
+	// 미해석이던 시전자 참조가 풀리면 엔진이 OnRep을 다시 부르므로, 사본은 매번 갱신한다.
+	LocalPlayback.Session = State.Session;
+
+	if (bNewSession)
+	{
+		// 접속 전에 끝난 세션은 통지 없이 입양만 한다.
+		bEndNotified = !State.bPlaying;
+		if (State.bPlaying && GetWorld()->GetNetMode() != NM_DedicatedServer)
+		{
+			LocalPlayback.Phase = EWxSkillCutsceneLocalPhase::Preparing;
+		}
+	}
+
+	if (State.bPlaying)
 	{
 		return;
 	}
-	ObservedSessionId = Session.Id;
-	if (GetWorld()->GetNetMode() != NM_DedicatedServer)
-	{
-		PendingLocalSessions.Add(Session);
-		BeginNextLocalSession();
-	}
-}
 
-void UWxSkillCutsceneComponent::RefreshSessionAvatar(uint32 SessionId, AActor* Avatar)
-{
-	if (!IsValid(Avatar))
+	// 서버가 끝냈다. 강제 취소가 아니면 이미 재생 중인 장면은 자기 끝까지 간다.
+	if (LocalPlayback.Phase == EWxSkillCutsceneLocalPhase::Playing && !State.bCancelled)
 	{
 		return;
 	}
-	if (LocalPlayback.Session.Id == SessionId)
-	{
-		LocalPlayback.Session.Avatar = Avatar;
-	}
-	for (FWxSkillCutsceneSession& Pending : PendingLocalSessions)
-	{
-		if (Pending.Id == SessionId)
-		{
-			Pending.Avatar = Avatar;
-		}
-	}
-	for (FWxSkillCutsceneCompletion& Pending : PendingClientCompletions)
-	{
-		if (Pending.Id == SessionId)
-		{
-			Pending.Avatar = Avatar;
-		}
-	}
+
+	// 준비 중이었다면 여기서 접는다. 서버가 끝냈으면 더 기다릴 이유가 없다.
+	CleanupLocalPlayer();
+	NotifyEnded(State.bCancelled);
 }
 
-void UWxSkillCutsceneComponent::MulticastSessionStarted_Implementation(const FWxSkillCutsceneSession& Session)
+void UWxSkillCutsceneComponent::NotifyEnded(bool bCancelled)
 {
-	if (Session.Id >= State.Session.Id)
-	{
-		State.Session = Session;
-		State.Phase = EWxSkillCutscenePhase::Playing;
-	}
-	QueueLocalSession(Session);
-	RefreshSessionAvatar(Session.Id, Session.Avatar);
-}
-
-void UWxSkillCutsceneComponent::MulticastSessionEnded_Implementation(const FWxSkillCutsceneCompletion& Session)
-{
-	if (HasAuthority())
+	if (bEndNotified)
 	{
 		return;
 	}
-	if (Session.Id >= State.Session.Id)
-	{
-		State.Session.Id = Session.Id;
-		State.Session.Avatar = Session.Avatar;
-		State.Phase = EWxSkillCutscenePhase::Idle;
-	}
-	RefreshSessionAvatar(Session.Id, Session.Avatar);
-	if (Session.bCancelled)
-	{
-		for (int32 Index = PendingLocalSessions.Num() - 1; Index >= 0; --Index)
-		{
-			if (PendingLocalSessions[Index].Id == Session.Id)
-			{
-				PendingLocalSessions.RemoveAt(Index);
-			}
-		}
-		if (LocalPlayback.Phase != EWxSkillCutsceneLocalPhase::Idle && LocalPlayback.Session.Id == Session.Id)
-		{
-			CleanupLocalPlayer();
-		}
-	}
-	if (Session.Id > LastReceivedEndId)
-	{
-		LastReceivedEndId = Session.Id;
-		FWxSkillCutsceneCompletion Completion = Session;
-		if (!IsValid(Completion.Avatar) && LocalPlayback.Session.Id == Session.Id)
-		{
-			Completion.Avatar = LocalPlayback.Session.Avatar;
-		}
-		PendingClientCompletions.Add(Completion);
-	}
-	BeginNextLocalSession();
-	NotifyReadyClientCompletions();
-}
 
-void UWxSkillCutsceneComponent::NotifyReadyClientCompletions()
-{
-	for (int32 Index = 0; Index < PendingClientCompletions.Num();)
-	{
-		const FWxSkillCutsceneCompletion Completion = PendingClientCompletions[Index];
-		bool bWaitingForLocal = LocalPlayback.Phase != EWxSkillCutsceneLocalPhase::Idle && LocalPlayback.Session.Id == Completion.Id;
-		for (const FWxSkillCutsceneSession& Pending : PendingLocalSessions)
-		{
-			bWaitingForLocal |= Pending.Id == Completion.Id;
-		}
-		if (!IsValid(Completion.Avatar) || (!Completion.bCancelled && bWaitingForLocal))
-		{
-			++Index;
-			continue;
-		}
-		// 완료 콜백이 다음 어빌리티를 시작할 수 있으므로 먼저 대기 목록에서 제거한다.
-		PendingClientCompletions.RemoveAt(Index);
-		OnCutsceneEnded.Broadcast(Completion.Avatar, Completion.Id, Completion.bCancelled);
-		Index = 0;
-	}
-}
-
-void UWxSkillCutsceneComponent::BeginNextLocalSession()
-{
-	if (LocalPlayback.Phase != EWxSkillCutsceneLocalPhase::Idle || PendingLocalSessions.IsEmpty())
-	{
-		return;
-	}
-	LocalPlayback.Session = PendingLocalSessions[0];
-	PendingLocalSessions.RemoveAt(0);
-	LocalPlayback.Phase = EWxSkillCutsceneLocalPhase::Preparing;
-	LocalPlayback.PreparationDeadline = FPlatformTime::Seconds() + 20.0;
+	bEndNotified = true;
+	OnCutsceneEnded.Broadcast(LocalPlayback.Session.Avatar, bCancelled);
 }
 
 void UWxSkillCutsceneComponent::TickComponent(float DeltaSeconds, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaSeconds, TickType, ThisTickFunction);
-	if (HasAuthority() && State.Phase != EWxSkillCutscenePhase::Idle)
+
+	if (HasAuthority() && State.bPlaying)
 	{
-		if (!ServerExecution.Reservation.IsValid() || !IsValid(State.Session.Avatar))
+		if (!ServerState.Owner.IsValid() || !IsValid(State.Session.Avatar))
 		{
 			Finish(true);
 			return;
 		}
-		if (GetWorld()->GetNetMode() == NM_DedicatedServer && ServerExecution.StartTime == 0.0)
-		{
-			ServerRestore.TimeDilation = UGameplayStatics::GetGlobalTimeDilation(this);
-			UGameplayStatics::SetGlobalTimeDilation(this, ServerExecution.RequestedDilation);
-			ServerExecution.StartTime = FPlatformTime::Seconds();
-		}
-		if (GetWorld()->GetNetMode() == NM_DedicatedServer && ServerExecution.StartTime > 0.0 && FPlatformTime::Seconds() - ServerExecution.StartTime >= State.Session.Duration)
+
+		// 시퀀스가 실제로 돌고 있으면 그 완료가 끝을 정한다. 아니면(전용 서버·준비 지연·시퀀스 액터 소실) 길이로 끊어 월드가 감속에 갇히지 않게 한다.
+		const bool bLocalSequenceRunning = LocalPlayback.Phase == EWxSkillCutsceneLocalPhase::Playing && LocalPlayback.SequenceActor;
+		if (!bLocalSequenceRunning && FPlatformTime::Seconds() - ServerState.StartTime >= ServerState.Duration)
 		{
 			Finish(false);
 			return;
 		}
 	}
-	BeginNextLocalSession();
-	if (LocalPlayback.Phase == EWxSkillCutsceneLocalPhase::Idle)
-	{
-		return;
-	}
-	if (LocalPlayback.Phase == EWxSkillCutsceneLocalPhase::Preparing && FPlatformTime::Seconds() >= LocalPlayback.PreparationDeadline)
-	{
-		UE_LOG(LogWxCombat, Warning, TEXT("컷신 %u: 로컬 준비 20초 시간 초과."), LocalPlayback.Session.Id);
-		if (HasAuthority())
-		{
-			Finish(true);
-		}
-		else
-		{
-			CleanupLocalPlayer();
-		}
-		return;
-	}
+
 	PrepareLocalPlayer();
 }
 
@@ -402,9 +248,11 @@ void UWxSkillCutsceneComponent::PrepareLocalPlayer()
 	{
 		return;
 	}
+
 	bool bFailed = LocalPlayback.Session.Sequence.Get() == nullptr;
 	if (!bFailed && !IsValid(LocalPlayback.Session.Avatar))
 	{
+		// 시전자 참조가 아직 안 풀렸다. 풀리면 OnRep이 사본을 채운다.
 		return;
 	}
 	if (!bFailed && !LocalPlayback.SequenceActor)
@@ -414,8 +262,7 @@ void UWxSkillCutsceneComponent::PrepareLocalPlayer()
 		Settings.bDisableLookAtInput = true;
 		Settings.FinishCompletionStateOverride = EMovieSceneCompletionModeOverride::ForceRestoreState;
 		ALevelSequenceActor* NewActor = nullptr;
-		ULevelSequence* PlaybackSequence = CreatePlayerCutsceneSequence(LocalPlayback.Session.Sequence.Get(), this);
-		ULevelSequencePlayer* Player = ULevelSequencePlayer::CreateLevelSequencePlayer(GetWorld(), PlaybackSequence, Settings, NewActor);
+		ULevelSequencePlayer* Player = ULevelSequencePlayer::CreateLevelSequencePlayer(GetWorld(), LocalPlayback.Session.Sequence.Get(), Settings, NewActor);
 		LocalPlayback.SequenceActor = NewActor;
 		bFailed = !Player || !NewActor || NewActor->FindNamedBindings(TEXT("Player")).IsEmpty();
 		if (!bFailed)
@@ -429,73 +276,56 @@ void UWxSkillCutsceneComponent::PrepareLocalPlayer()
 				TArray<AActor*> Actors;
 				Actors.Add(LocalPlayback.Session.Avatar);
 				NewActor->SetBindingByTag(TEXT("Player"), Actors, false);
-				Player->SetTimeController(MakeShared<FWxSkillCutsceneClock>(this, Player->GetStartTime().AsSeconds()));
+				Player->SetTimeController(MakeShared<FWxSkillCutsceneClock>());
 			}
 		}
 	}
 	if (bFailed)
 	{
 		UE_LOG(LogWxCombat, Warning, TEXT("컷신 %u: 로컬 시퀀스 또는 Player 바인딩 준비 실패."), LocalPlayback.Session.Id);
+		CleanupLocalPlayer();
 		if (HasAuthority())
 		{
 			Finish(true);
+			return;
 		}
-		else
-		{
-			CleanupLocalPlayer();
-		}
+		UpdateSession();
 		return;
 	}
+
 	StartLocalPlayer();
 }
 
 void UWxSkillCutsceneComponent::StartLocalPlayer()
 {
-	if (LocalPlayback.Phase == EWxSkillCutsceneLocalPhase::Playing || !LocalPlayback.SequenceActor)
-	{
-		return;
-	}
 	if (ACharacter* Character = Cast<ACharacter>(LocalPlayback.Session.Avatar))
 	{
 		Character->StopAnimMontage();
+		if (USkeletalMeshComponent* Mesh = Character->GetMesh())
+		{
+			LocalPlayback.PoseMesh = Mesh;
+			LocalPlayback.bPreviousOnlyAllowAutonomousTickPose = Mesh->bOnlyAllowAutonomousTickPose;
+
+			// 서버의 원격 시전자는 평소 이동 패킷이 포즈를 갱신한다. 컷신은 일반 메시 틱에서도 평가되어야 한다.
+			Mesh->bOnlyAllowAutonomousTickPose = false;
+		}
 	}
-	EnableLocalMeshPoseTick();
-	LocalPlayback.StartTime = FPlatformTime::Seconds();
+
 	LocalPlayback.Phase = EWxSkillCutsceneLocalPhase::Playing;
-	if (HasAuthority())
-	{
-		ServerRestore.TimeDilation = UGameplayStatics::GetGlobalTimeDilation(this);
-		UGameplayStatics::SetGlobalTimeDilation(this, ServerExecution.RequestedDilation);
-	}
 	LocalPlayback.SequenceActor->GetSequencePlayer()->OnFinished.AddDynamic(this, &UWxSkillCutsceneComponent::HandleLocalSequenceFinished);
 	LocalPlayback.SequenceActor->GetSequencePlayer()->Play();
 }
 
 void UWxSkillCutsceneComponent::HandleLocalSequenceFinished()
 {
+	// 시퀀서가 사전 상태를 되돌린 뒤라야 후속 몽타주가 포즈를 잡는다.
+	CleanupLocalPlayer();
 	if (HasAuthority())
 	{
 		Finish(false);
-	}
-	else
-	{
-		CleanupLocalPlayer();
-	}
-}
-
-void UWxSkillCutsceneComponent::EnableLocalMeshPoseTick()
-{
-	const ACharacter* Character = Cast<ACharacter>(LocalPlayback.Session.Avatar);
-	USkeletalMeshComponent* Mesh = Character ? Character->GetMesh() : nullptr;
-	if (!Mesh || LocalPlayback.PoseMesh.IsValid())
-	{
 		return;
 	}
-
-	LocalPlayback.PoseMesh = Mesh;
-	LocalPlayback.bPreviousOnlyAllowAutonomousTickPose = Mesh->bOnlyAllowAutonomousTickPose;
-	// 서버의 원격 시전자는 평소 이동 패킷이 포즈를 갱신한다. 컷신은 일반 메시 틱에서도 평가되어야 한다.
-	Mesh->bOnlyAllowAutonomousTickPose = false;
+	UpdateSession();
 }
 
 void UWxSkillCutsceneComponent::CleanupLocalPlayer()
@@ -518,60 +348,42 @@ void UWxSkillCutsceneComponent::CleanupLocalPlayer()
 	LocalPlayback.PoseMesh.Reset();
 	LocalPlayback.SequenceLoad.Reset();
 	LocalPlayback.Phase = EWxSkillCutsceneLocalPhase::Idle;
-	LocalPlayback.StartTime = 0.0;
-	NotifyReadyClientCompletions();
-}
-
-void UWxSkillCutsceneComponent::RestoreServerState()
-{
-	if (ServerRestore.TimeDilation.IsSet())
-	{
-		UGameplayStatics::SetGlobalTimeDilation(this, ServerRestore.TimeDilation.GetValue());
-		ServerRestore.TimeDilation.Reset();
-	}
-	if (UAbilitySystemComponent* ASC = ServerRestore.InvincibleASC.Get())
-	{
-		ASC->RemoveActiveGameplayEffect(ServerRestore.InvincibleHandle);
-	}
-	ServerRestore.InvincibleHandle.Invalidate();
-	ServerRestore.InvincibleASC.Reset();
-	if (ServerRestore.AvatarAlwaysRelevant.IsSet() && IsValid(State.Session.Avatar))
-	{
-		State.Session.Avatar->bAlwaysRelevant = ServerRestore.AvatarAlwaysRelevant.GetValue();
-		State.Session.Avatar->ForceNetUpdate();
-	}
-	ServerRestore.AvatarAlwaysRelevant.Reset();
 }
 
 void UWxSkillCutsceneComponent::Finish(bool bCancelled)
 {
-	const uint32 FinishedId = State.Session.Id;
-	RestoreServerState();
-	CleanupLocalPlayer();
-	ServerExecution.Reservation.Reset();
-	PendingLocalSessions.Reset();
-	State.Phase = EWxSkillCutscenePhase::Idle;
-	FWxSkillCutsceneCompletion Completion;
-	Completion.Id = FinishedId;
-	Completion.Avatar = State.Session.Avatar;
-	Completion.bCancelled = bCancelled;
-	MulticastSessionEnded(Completion);
+	// 시작 때 박은 값이 그대로일 때만 되돌린다. 컷신 도중 끊긴 다른 슬로우 타임의 배율을 되살리지 않는다.
+	if (ServerState.AppliedDilation > 0.f && FMath::IsNearlyEqual(UGameplayStatics::GetGlobalTimeDilation(this), ServerState.AppliedDilation))
+	{
+		UGameplayStatics::SetGlobalTimeDilation(this, 1.f);
+	}
+	if (UAbilitySystemComponent* ASC = ServerState.InvincibleASC.Get())
+	{
+		ASC->RemoveActiveGameplayEffect(ServerState.InvincibleHandle);
+	}
+	if (IsValid(State.Session.Avatar))
+	{
+		State.Session.Avatar->bAlwaysRelevant = ServerState.bAvatarWasAlwaysRelevant;
+		State.Session.Avatar->ForceNetUpdate();
+	}
+	ServerState = FWxSkillCutsceneServerState();
+
+	State.bPlaying = false;
+	State.bCancelled = bCancelled;
+
 	// 마지막 상태에도 장면 정보를 남겨 늦게 해석되는 참조를 보존한다.
 	GetOwner()->ForceNetUpdate();
-	OnCutsceneEnded.Broadcast(State.Session.Avatar, FinishedId, bCancelled);
+	UpdateSession();
 }
 
 void UWxSkillCutsceneComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	PendingClientCompletions.Reset();
-	if (HasAuthority() && IsBusy())
+	// 월드가 내려가는 중이므로 종료 콜백은 부르지 않는다.
+	bEndNotified = true;
+	if (HasAuthority() && State.bPlaying)
 	{
 		Finish(true);
 	}
-	else
-	{
-		CleanupLocalPlayer();
-	}
-	PendingLocalSessions.Reset();
+	CleanupLocalPlayer();
 	Super::EndPlay(EndPlayReason);
 }

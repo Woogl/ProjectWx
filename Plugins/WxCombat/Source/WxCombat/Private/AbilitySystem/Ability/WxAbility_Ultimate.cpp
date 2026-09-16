@@ -57,15 +57,16 @@ void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	UWxSkillCutsceneComponent* Coordinator = nullptr;
 	if (Sequence && ActorInfo->IsNetAuthority())
 	{
+		// 비용 확정보다 먼저 컷신을 연다. 뒤로 밀면 컷신을 못 열고 쿨다운만 쓰는 창이 생긴다.
+		// 거절된 로컬 발동의 예측 비용은 GAS가 롤백한다.
 		Coordinator = UWxSkillCutsceneComponent::Get(GetWorld());
-		if (!Coordinator || !Coordinator->Reserve(this))
+		if (!Coordinator || !Coordinator->Start(this, Sequence, 0.001f))
 		{
 			EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 			return;
 		}
 	}
 
-	// 서버는 예약 후 비용을 확정한다. 거절된 로컬 발동의 예측 비용은 GAS가 롤백한다.
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		if (Coordinator)
@@ -79,7 +80,7 @@ void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	if (Sequence)
 	{
 		bLocalPresentationPending = !ActorInfo->IsNetAuthority() && ActorInfo->IsLocallyControlled();
-		UWxAbilityTask_PlaySkillCutscene* CutsceneTask = UWxAbilityTask_PlaySkillCutscene::CreateTask(this, Sequence, 0.001f);
+		UWxAbilityTask_PlaySkillCutscene* CutsceneTask = UWxAbilityTask_PlaySkillCutscene::CreateTask(this);
 		CutsceneTask->OnCompleted.AddDynamic(this, &UWxAbility_Ultimate::HandleCutsceneCompleted);
 		CutsceneTask->OnCancelled.AddDynamic(this, &UWxAbility_Ultimate::HandleCutsceneCancelled);
 		CutsceneTask->ReadyForActivation();

@@ -1,43 +1,31 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.h"
-#include "AbilitySystemComponent.h"
 #include "Cutscene/WxSkillCutsceneComponent.h"
 
-UWxAbilityTask_PlaySkillCutscene* UWxAbilityTask_PlaySkillCutscene::CreateTask(UGameplayAbility* OwningAbility, ULevelSequence* InLevelSequence, float InGlobalTimeDilation)
+UWxAbilityTask_PlaySkillCutscene* UWxAbilityTask_PlaySkillCutscene::CreateTask(UGameplayAbility* OwningAbility)
 {
-	UWxAbilityTask_PlaySkillCutscene* Task = NewAbilityTask<UWxAbilityTask_PlaySkillCutscene>(OwningAbility);
-	Task->LevelSequence = InLevelSequence;
-	Task->GlobalTimeDilation = InGlobalTimeDilation;
-	return Task;
+	return NewAbilityTask<UWxAbilityTask_PlaySkillCutscene>(OwningAbility);
 }
 
 void UWxAbilityTask_PlaySkillCutscene::Activate()
 {
 	Super::Activate();
+
 	Coordinator = UWxSkillCutsceneComponent::Get(GetWorld());
-	if (Coordinator.IsValid())
+	if (!Coordinator.IsValid())
 	{
-		if (AbilitySystemComponent.IsValid() && !AbilitySystemComponent->IsOwnerActorAuthoritative())
-		{
-			// 로컬 발동은 유지하되 독립적인 시퀀스를 만들지 않고 서버의 해당 시전자 세션을 기다린다.
-			SessionId = Coordinator->GetSessionId() + 1;
-			EndedHandle = Coordinator->OnCutsceneEnded.AddUObject(this, &UWxAbilityTask_PlaySkillCutscene::HandleCutsceneEnded);
-			return;
-		}
-		SessionId = Coordinator->GetSessionId();
-		EndedHandle = Coordinator->OnCutsceneEnded.AddUObject(this, &UWxAbilityTask_PlaySkillCutscene::HandleCutsceneEnded);
-		if (Coordinator->Start(Ability, LevelSequence, GlobalTimeDilation))
-		{
-			return;
-		}
+		HandleCutsceneEnded(GetAvatarActor(), true);
+		return;
 	}
-	HandleCutsceneEnded(GetAvatarActor(), SessionId, true);
+
+	EndedHandle = Coordinator->OnCutsceneEnded.AddUObject(this, &UWxAbilityTask_PlaySkillCutscene::HandleCutsceneEnded);
 }
 
-void UWxAbilityTask_PlaySkillCutscene::HandleCutsceneEnded(AActor* Avatar, uint32 FinishedId, bool bCancelled)
+void UWxAbilityTask_PlaySkillCutscene::HandleCutsceneEnded(AActor* Avatar, bool bCancelled)
 {
-	if (Avatar != GetAvatarActor() || FinishedId < SessionId)
+	// 동시에 도는 컷신은 하나뿐이므로 시전자만 맞으면 내 세션이다.
+	if (Avatar != GetAvatarActor())
 	{
 		return;
 	}
@@ -66,5 +54,6 @@ void UWxAbilityTask_PlaySkillCutscene::OnDestroy(bool bInOwnerFinished)
 		Coordinator->OnCutsceneEnded.Remove(EndedHandle);
 		Coordinator->Cancel(Ability);
 	}
+
 	Super::OnDestroy(bInOwnerFinished);
 }
