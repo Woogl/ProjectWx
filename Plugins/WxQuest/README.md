@@ -1,43 +1,47 @@
 # WxQuest — 퀘스트 시스템
 
-> StateTree 에셋으로 기술된 퀘스트를 서버 권위로 실행하고, 활성 퀘스트의 제목·목표 저널을 관리해 HUD에 알린다. 퀘스트 1개 = UStateTree 에셋 1개, 활성 퀘스트는 동시 1개(새 시작은 교체)다.
+> 퀘스트 1개를 StateTree 에셋 1개로 보고, 그 진행을 서버 권위로 구동하며 플레이어에게 보여줄 저널(제목·목표 목록)을 유지한다. 퀘스트의 내용은 전부 에셋이 정하고, 이 모듈은 실행기와 저널만 제공한다.
 
 ## 책임
 **담당**
-- 퀘스트 StateTree 러너의 권위 측 실행·수명 관리, 그리고 활성 퀘스트의 저널(제목·목표) 상태 보관
-- 저널 조작을 위한 StateTree 태스크 노드 제공(제목 설정, 목표 추가/제거, 다음 퀘스트 예약, 목표 지점 도달 대기)
-- 저널 변경 통지(HUD 뷰모델이 구독해 pull)
+- 활성 퀘스트 StateTree 의 실행·교체·정지 (동시 활성 퀘스트는 1개, 새 시작은 교체)
+- 저널 상태(제목 1개 + 목표 N개) 보관과 변경 통지
+- 퀘스트 저작용 StateTree 태스크 노드 제공 (제목/목표 등록, 도달 대기, 다음 퀘스트 체인)
+- 레벨 배치 액터가 퀘스트를 수주시킬 수 있는 블루프린트 진입점
 
 **경계 (비담당)**
-- 저널을 화면에 그리는 것 — [[WxUI]]
-- 퀘스트 완료 시 보상·월드 부수효과 — 별도 StateTree 노드/타 모듈에 위임
-- 배치 액터 로케이터 해석 유틸 — [[WxCore]] (`WxLocatorUtils`)
+- 저널을 화면에 그리는 일 — 뷰모델·위젯은 `WxGame`(`UWxViewModel_Quest`)과 [[WxUI]]가 담당하며, 이 모듈은 `OnJournalChanged` 통지만 쏜다
+- 퀘스트 컴포넌트를 GameState 에 붙이는 일 — `WxGame` 의 `AWxGameState` 생성자가 기본 서브오브젝트로 생성한다
+- 보상 지급·전투·대화 등 퀘스트가 걸어 놓는 실제 게임 동작 — [[WxCombat]], [[WxInventory]], [[WxDialogue]] 등 각 도메인의 StateTree 노드로 조립한다
+- 퀘스트 진행 상황의 저장/복원, 퀘스트 목록·수주 조건 같은 메타데이터 관리 (현재 없음)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `UWxQuestComponent` | GameState 기본 서브오브젝트. 권위 측에서 러너를 소유하고 저널을 관리하는 중심. 태스크·라이브러리가 여기로 수렴 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestComponent.h` |
-| `UWxQuestLibrary` | 레벨 배치물(트리거 볼륨 등)이 퀘스트를 수주시키는 외부 진입점. GameState에서 컴포넌트를 찾아 위임 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestLibrary.h` |
-| `FWxStateTreeTask_SetQuestTitle` | 상태 진입 시 저널 제목 등록 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestTitle.h` |
-| `FWxStateTreeTask_SetQuestObjective` | 상태 수명 동안 목표 하나를 걸고 이탈 시 핸들로 걷어감 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestObjective.h` |
-| `FWxStateTreeTask_WaitMoveToTarget` | 로케이터 대상 도달까지 상태 완료를 붙잡는 대기 태스크 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_WaitMoveToTarget.h` |
-| `FWxStateTreeTask_StartNextQuest` | 다음 퀘스트를 다음 틱에 예약해 체인 연결 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_StartNextQuest.h` |
+| `UWxQuestComponent` | 이 모듈의 허브. 러너(`UStateTreeComponent`)를 권위 측에서만 런타임 생성해 소유하고, 모든 태스크가 오너에서 찾아 들어오는 저널 API 를 노출한다 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestComponent.h` |
+| `UWxQuestLibrary` | 컴포넌트를 모르는 외부(레벨 배치 트리거 등)가 월드 GameState 를 거쳐 수주를 거는 유일한 BP 경로 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestLibrary.h` |
+| `FWxStateTreeTask_SetQuestTitle` | 퀘스트 루트 상태에 거는 저널 등록 태스크 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestTitle.h` |
+| `FWxStateTreeTask_SetQuestObjective` | 목표의 수명을 상태의 수명에 묶는 태스크(진입 시 등록, 이탈 시 핸들로 제거) | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestObjective.h` |
+| `FWxStateTreeTask_WaitMoveToTarget` | 이 모듈이 가진 유일한 완료 판정 태스크. 상태를 끝내는 쪽은 항상 이런 Wait 계열이다 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_WaitMoveToTarget.h` |
+| `FWxStateTreeTask_StartNextQuest` | 퀘스트 체인 연결점. 러너 콜스택 안이라 즉시 교체가 아닌 다음 틱 예약으로 처리한다 | `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_StartNextQuest.h` |
+| `LogWxQuest` | 조립 오류(러너 밖 태스크 사용, 빈 로케이터)를 알리는 모듈 로그 카테고리 | `Plugins/WxQuest/Source/WxQuest/Public/WxQuestModule.h` |
 
 ## 확장 포인트 / 규약
-- 새 퀘스트 스텝/조건은 `FStateTreeTaskCommonBase` 파생 USTRUCT로 추가한다. 기존 태스크가 표준 형태다: `using FInstanceDataType` + 헤더의 `GetInstanceDataType()`(코딩 규칙 4 예외), 파라미터는 InstanceData의 `EditAnywhere` 필드로.
-- 저널을 바꾸는 태스크는 컨텍스트 오너(GameState)에서 `UWxQuestComponent`를 찾아 `SetQuestTitle`/`AddObjective`/`RemoveObjective`로 위임한다. 상태 완료는 이 태스크들이 아니라 짝이 되는 Wait 태스크가 낸다(제목·목표 태스크는 완료 판정에서 빠져 있음).
-- 저널 정리는 태스크가 아니라 러너의 실행 상태 변경 통지 한 곳으로 수렴한다(완료·실패·교체 세 경로 공통).
-- 러너 실행 콜스택 안에서의 재시작은 엔진 재진입 가드에 막히므로, 콜스택 안 활성화는 `RequestActivateQuest`로 다음 틱 예약한다.
-- 배치 액터 지정은 `FUniversalObjectLocator`를 쓴다(순수 구조체라 ST 컴파일러의 레벨 액터 참조 검증을 우회, 씬 픽커·WP·PIE 해석은 엔진 내장).
+- **새 퀘스트 만들기**: C++ 작업 없이 `UStateTree` 에셋 하나를 만들고, 루트에 `SetQuestTitle`, 각 스텝 상태에 `SetQuestObjective` + 완료를 내는 Wait 태스크를 얹는다. 마지막 상태에서 `StartNextQuest` 로 다음 에셋을 가리키면 체인이 되고, 비워 두면 종점이다.
+- **새 태스크 만들기**: `FStateTreeTaskCommonBase` 를 상속하고, `Context.GetOwner()`(GameState)에서 `UWxQuestComponent` 를 `FindComponentByClass` 로 찾는 것이 이 모듈의 태스크 규약이다. 저널만 건드리는 태스크는 생성자에서 `bConsideredForCompletion = false` 로 완료 판정에서 빠져야 한다 — 그러지 않으면 `Succeeded` 반환이 상태를 즉시 끝낸다. 상태를 끝내는 책임은 Wait 계열 태스크 하나로 몰아 둔다.
+- **레벨 액터 참조**: 태스크가 배치 액터를 가리킬 때는 `FUniversalObjectLocator`(WxCore 의 `WxLocatorUtils` 와 함께)를 쓴다. ST 컴파일러의 레벨 액터 참조 검증을 피하면서 WP 언로드/재로드를 견디기 위한 선택이다.
+- **권위 모델(최대 4인 멀티)**: 러너는 권위 머신의 `BeginPlay` 에서만 생성되므로 비-권위에서는 `ActivateQuest`·태스크 진입이 자연히 노옵이다. 저널 자체는 리플리케이트되지 않으며 권위(싱글/리슨 호스트) 기준으로만 채워진다. `WaitMoveToTarget` 이 0번 플레이어 컨트롤러를 보는 것도 같은 v1 전제다.
+- **수명 규약**: 저널 정리는 태스크가 아니라 러너의 `OnStateTreeRunStatusChanged` 한 곳에서 한다 — 완료·실패·교체 세 종료 경로가 모두 여기로 수렴한다. 목표는 문구가 아니라 발급 핸들로 지목하므로 중복 문구도 안전하다.
 
 ## 여기서부터 읽어라
-1. `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestComponent.h` — 클래스 doc-comment가 아키텍처 전체(러너 권위 소유, 저널 수렴, 에셋 불가지)를 설명한다. 여기부터.
-2. `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp` — 러너 런타임 생성·위임·상태 변경 통지 처리의 실제 구현.
-3. `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestLibrary.h` — 퀘스트가 어떻게 수주되는지(외부→컴포넌트) 흐름의 시작점.
+1. `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestComponent.h` — 실행 모델(러너 소유, 권위 한정, 종료 수렴)이 클래스 주석에 다 들어 있다. 나머지 파일은 전부 이 컴포넌트를 향한다.
+2. `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp` — 교체 시 `StopLogic`→`SetStateTreeReference`→`StartLogic` 순서와, 재진입 회피용 다음 틱 예약을 확인한다.
+3. `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_SetQuestObjective.cpp` — 태스크가 오너에서 컴포넌트를 찾는 공통 패턴과 EnterState/ExitState 쌍의 수명 처리 표본.
+4. `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestLibrary.h` — 외부에서 퀘스트가 시작되는 유일한 경로.
 
 ## 관련
-- 상위: 퀘스트 수주는 레벨 배치물이 [[WxWorld]] 상호작용을 통해 `UWxQuestLibrary::StartQuest`를 호출하는 경로, 저널 표시는 [[WxUI]] 뷰모델. 부착 지점인 GameState는 [[WxGame]].
-- 하위: 로케이터 해석 등 공용 유틸은 [[WxCore]].
+- 상위: `WxGame` — `AWxGameState` 가 컴포넌트를 소유하고 `UWxViewModel_Quest` 가 `OnJournalChanged` 를 구독한다. 표시 계층은 [[WxUI]], 퀘스트가 조립해 쓰는 동작 노드는 [[WxCombat]]·[[WxInventory]]·[[WxDialogue]] 등 각 도메인에 있다.
+- 기반: [[WxCore]] — 로케이터 유틸 등 공용 정의.
 
 ---
-*문서 기준 커밋 `eda01fd` · 생성일 2026-09-13 · 소스 14파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `047197a` · 생성일 2026-09-16 · 소스 14파일 — `/readme-writer`로 갱신*

@@ -1,45 +1,57 @@
-# WxGame — 게임 기본 모듈
+# WxGame — 게임 조립 모듈
 
-> 도메인 플러그인(전투·인벤토리·UI·월드·AI·대화·퀘스트)을 실제 폰·컨트롤러·프레임워크 클래스로 조립하는 게임 기본 모듈. 어느 한 도메인에도 속하지 않고 여러 도메인이 만나는 지점(캐릭터 합성, 프론트엔드 흐름, MVVM 배선)을 여기서 잇는다.
+> 프레임워크(GameMode·GameState·Controller·Character)를 구현하고, 각 `Wx` 플러그인이 제공하는 컴포넌트·어빌리티·뷰모델을 실제 액터 위에 조립하는 유일한 지점이다. 플러그인끼리 서로를 볼 수 없으므로, **둘 이상의 도메인이 만나는 배선은 전부 여기에 있다.**
 
 ## 책임
+
 **담당**
-- 프레임워크 조립: `AWxGameMode`/`AWxGameState`/`AWxPlayerState`가 GAS·퀘스트 컴포넌트·프론트엔드 폰 선택을 배선.
-- 캐릭터 계층: `AWxCharacterBase`(ASC·모션워핑·락온·히트스톱 소유)와 플레이어/적/NPC 파생.
-- 컨트롤러: 플레이어(인벤토리·상호작용·대화·레이아웃 컴포넌트)와 AI(감각·BT 타겟→락온 통로).
-- 프론트엔드 흐름: `UWxGameFlowSubsystem`이 선택 폰·목적지 맵을 들고 전환.
-- 입력·MVVM·치트: Enhanced Input 설정, 위젯 뷰모델 리졸버, 개발용 Exec 치트.
+- 액터 조립: 어떤 플러그인 컴포넌트를 어느 프레임워크 액터가 소유하는지 결정한다. 캐릭터(ASC·락온·히트스톱·모션워핑·메타휴먼), 플레이어 컨트롤러(인벤토리·상호작용 스캐너·대화 세션·UI 레이아웃), GameState(퀘스트·스킬 컷신).
+- 프레임워크 클래스 계층: `AWxGameMode`/`AWxGameState`/`AWxPlayerState`와 캐릭터 3종(플레이어·적·NPC), 컨트롤러 2종(플레이어·AI).
+- 도메인 횡단 배선: AI 블랙보드 타겟 → 락온 타겟, 백스탭 상호작용 → 피니셔 이벤트, 적 처치 → 보상 테이블, NPC 상호작용 가능 여부 → 퀘스트 대기 상태.
+- MVVM 뷰모델·리졸버 중 **둘 이상의 도메인을 참조해야 하는 것들** (`MVVM/`). 예: 퀘스트 컴포넌트를 구독하는 HUD 뷰모델, ASC에서 스킬 슬롯을 찾는 리졸버.
+- 게임플레이 입력 바인딩(`UWxInputConfig` + Enhanced Input)과 어빌리티 입력 액션 바인딩.
+- 프론트엔드 → 전투 맵 전환(`UWxGameFlowSubsystem`)과 단일 플레이 리스폰(`UWxRespawnLibrary`).
+- 치트(`UWxCheatManager`), 메타휴먼 외형 조립(`UWxMetaHumanComponent`), 비대칭 중력 이동(`UWxCharacterMovementComponent`).
 
 **경계 (비담당)**
-- 전투 로직 → [[WxCombat]] · 아이템/보상 → [[WxInventory]] · HUD/위젯 → [[WxUI]] · 상호작용/스폰 → [[WxWorld]] · AI 판단 → [[WxAI]] · 대화 → [[WxDialogue]] · 퀘스트 → [[WxQuest]] · 공용 정의 → [[WxCore]]. 이 모듈은 각 도메인의 컴포넌트/인터페이스를 폰에 붙여 잇기만 한다.
+- 전투 규칙·ASC 구현·어빌리티 베이스·락온·피니셔·히트스톱 → [[WxCombat]]
+- 인벤토리 데이터·아이템 정의·사용 처리 → [[WxInventory]]
+- 위젯·HUD 레이아웃·`UWxViewModel` 베이스·네임플레이트 → [[WxUI]]
+- 상호작용 스캔·스포너·체크포인트 → [[WxWorld]]
+- 퍼셉션 설정값·BT/블랙보드 자산·행동 컴포넌트 → [[WxAI]]
+- 대화 세션·대사 진행 → [[WxDialogue]]
+- 퀘스트 저널·목표 판정 → [[WxQuest]]
+- Gameplay Tag 선언·충돌 채널·공용 인터페이스 → [[WxCore]] (이 모듈은 선언하지 않고 쓰기만 한다)
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |
 | --- | --- | --- |
-| `AWxGameMode` | 폰/스테이트 클래스 지정, 프론트엔드 선택 폰을 `GetDefaultPawnClassForController`로 반영 | `Source/WxGame/Framework/WxGameMode.h` |
-| `UWxGameFlowSubsystem` | 프론트엔드 선택(폰·목적지)을 들고 맵 전환, 목적지 월드에서 선택 폰 반환 | `Source/WxGame/FrontEnd/WxGameFlowSubsystem.h` |
-| `AWxCharacterBase` | 공통 베이스: ASC·전투 컴포넌트·팀·UI 데이터 소유 (플레이어/적 공통) | `Source/WxGame/Character/WxCharacterBase.h` |
-| `AWxPlayerCharacter` | 게임플레이 입력·카메라·아이템사용/입력버퍼 컴포넌트 소유 | `Source/WxGame/Character/WxPlayerCharacter.h` |
-| `AWxEnemyCharacter` | 적 AI 조립·상호작용·보상·보스 표시 상태 | `Source/WxGame/Character/WxEnemyCharacter.h` |
-| `AWxNpc` | 대화 NPC(폰 아닌 액터). 대화×외형 합성 지점 | `Source/WxGame/Character/WxNpc.h` |
-| `AWxPlayerController` | 폰 리스폰에도 살아남는 플레이어 단위 컴포넌트(인벤/스캐너/대화/레이아웃) 소유 | `Source/WxGame/Controller/WxPlayerController.h` |
-| `AWxAIController` | AI 폰 공용 컨트롤러: 감각 형태 설정, BT 타겟을 락온으로 옮김 | `Source/WxGame/Controller/WxAIController.h` |
+| `AWxCharacterBase` | 모든 캐릭터의 조립 지점. ASC를 PlayerState가 아닌 캐릭터가 직접 소유하고, 사망·래그돌 태그 구독과 `GiveAbilitySets()` 호출이 여기서 일어난다 | `Source/WxGame/Character/WxCharacterBase.h` |
+| `AWxPlayerCharacter` | 카메라·Enhanced Input·아이템 사용·입력 버퍼를 더한 플레이어 쪽 조립 | `Source/WxGame/Character/WxPlayerCharacter.h` |
+| `AWxEnemyCharacter` | AI·네임플레이트·락온 포인트를 더한 적 쪽 조립. 백스탭 상호작용과 보상 지급, 보스 교전 상태 방송을 겸한다 | `Source/WxGame/Character/WxEnemyCharacter.h` |
+| `AWxPlayerController` | 폰 리스폰에도 살아남아야 하는 플레이어 단위 컴포넌트(인벤토리·스캐너·대화·레이아웃)의 소유자 | `Source/WxGame/Controller/WxPlayerController.h` |
+| `AWxAIController` | 퍼셉션의 모양을 잡고, BT가 고른 타겟을 `UWxLockOnComponent`로 옮기는 AI↔전투 통로 | `Source/WxGame/Controller/WxAIController.h` |
+| `AWxGameMode` | 맵별 BP로 갈리며, 폰 클래스를 프론트엔드 선택값 → `DefaultPawnClass` 순으로 고른다 | `Source/WxGame/Framework/WxGameMode.h` |
+| `AWxGameState` | 월드 단위 컴포넌트(퀘스트·스킬 컷신)의 소유자 | `Source/WxGame/Framework/WxGameState.h` |
+| `UWxGameFlowSubsystem` | 프론트엔드에서 고른 폰·목적지를 들고 맵을 여는 전환 상태 보관소. GameMode가 이 선택을 읽는다 | `Source/WxGame/FrontEnd/WxGameFlowSubsystem.h` |
 
 ## 확장 포인트 / 규약
-- 맵별 GameMode는 BP(GM_FrontEnd·GM_Combat)와 WorldSettings의 GameModeOverride로 고른다. 폰 클래스는 프론트엔드 선택이 우선, 없으면 `DefaultPawnClass`.
-- 플레이어 단위 상태(인벤토리·상호작용·대화·레이아웃)는 폰 리스폰에도 유지돼야 하므로 컨트롤러가 소유한다. `AWxPlayerState`는 현재 빈 클래스(스탯은 캐릭터 ASC가 리스폰마다 새로 초기화).
-- 캐릭터 외형은 `UWxMetaHumanComponent`에 에셋만 지정하면 등록 시점에 부착물을 조립(`Source/WxGame/Character/Component/WxMetaHumanComponent.h`).
-- 입력은 `UWxInputConfig` 데이터에셋으로 주도. 어빌리티/상호작용/메뉴 입력은 여기 두지 않고 각각 AbilitySet·HUD 위젯·CommonUI가 소유.
-- 위젯 데이터 바인딩은 `MVVM/` 리졸버(`WxViewModelResolver_Ability` 등)와 뷰모델이 담당.
+- **새 캐릭터**: `AWxCharacterBase` 파생 BP를 만든다. 무기는 `WeaponActor`(ChildActorComponent)의 클래스로, 외형은 `MetaHumanComponent`의 에셋 슬롯으로, 어빌리티·어트리뷰트는 ASC의 `AbilitySets`(`UWxAbilitySet`, WxCombat)로 지정한다 — C++ 수정 없이 데이터로 끝난다.
+- **새 적**: `AWxEnemyCharacter` 파생 BP에서 `bIsBoss`, `RewardRow`(`FWxRewardTableRow`, WxInventory), `AIBehaviorComponent`의 감지 설정을 채운다.
+- **새 게임플레이 입력**: 이동·시선·점프·앉기만 `UWxInputConfig`에 둔다. 어빌리티 발동 IA는 어빌리티 CDO가 들고 AbilitySet에서 파생되며, 메뉴/UI 입력은 CommonUI 액션이 받는다 — `UWxInputConfig`를 늘리기 전에 어느 쪽인지 먼저 가른다.
+- **새 뷰모델**: 한 도메인 안에서 끝나면 그 플러그인에 두고, 두 도메인을 동시에 봐야 할 때만 `MVVM/`에 둔다. 위젯과의 결합은 `UMVVMViewModelContextResolver` 파생(리졸버)이 담당하며, 리졸버는 위젯 클래스가 공유하므로 상태를 갖지 않고 뷰모델만 만들어 돌려준다.
+- **리플리케이션/권한 (최대 4인 멀티)**: ASC는 캐릭터 소유이고 플레이어는 Mixed 복제 모드다. `PossessedBy`(서버)와 `OnRep_PlayerState`(클라)가 같은 `InitAbilitySystem()`으로 모이며, `GiveAbilitySets()`는 권위에서만 돈다. 반면 사망·래그돌 구독은 시뮬 프록시를 포함한 전 머신에서 필요하므로 `PostInitializeComponents`에 있다. `Team`은 복제되고 피아 판정의 단일 출처다.
+- **리스폰**: `UWxRespawnLibrary::RequestRespawn`은 Standalone 전용이며 사망 위젯이 호출한다. 체크포인트(WxWorld) → `RestartPlayer` → 어트리뷰트 재초기화 → 스포너 리셋 순으로 진행한다.
 
 ## 여기서부터 읽어라
-1. `Source/WxGame/Framework/WxGameMode.cpp` — 프론트엔드 선택→폰 반영, 스테이트 클래스 배선의 시작점.
-2. `Source/WxGame/Character/WxCharacterBase.h` — 모든 캐릭터가 무엇을 소유하고 어느 도메인과 잇는지.
-3. `Source/WxGame/Controller/WxPlayerController.h` — 플레이어 단위 컴포넌트가 어느 도메인에서 오는지의 지도.
-4. `Source/WxGame/FrontEnd/WxGameFlowSubsystem.h` — 프론트엔드→게임 맵 전환 흐름.
+1. `Source/WxGame/Character/WxCharacterBase.h` — 캐릭터에 무엇이 붙는지가 곧 이 게임의 시스템 목록이다. 생성자와 `InitAbilitySystem`을 같이 본다.
+2. `Source/WxGame/Controller/WxPlayerController.cpp` — 20줄짜리 생성자 하나가 플레이어 단위 시스템 4개의 소속을 정한다.
+3. `Source/WxGame/Character/WxEnemyCharacter.cpp` — AI·전투·인벤토리·UI가 한 액터에서 만나는 가장 밀도 높은 배선 예시(백스탭 → 피니셔 이벤트, 사망 → 보상, 보스 교전 방송).
+4. `Source/WxGame/MVVM/` — HUD가 어느 컴포넌트를 구독해 어떤 값을 끌어오는지. 한 파일 안에 뷰모델과 그 리졸버가 같이 있다.
+5. `Source/WxGame/FrontEnd/WxGameFlowSubsystem.h` + `Source/WxGame/Framework/WxGameMode.cpp` — 타이틀에서 전투 맵까지의 흐름.
 
 ## 관련
-- 조립 대상 도메인: [[WxCombat]] · [[WxInventory]] · [[WxUI]] · [[WxWorld]] · [[WxAI]] · [[WxDialogue]] · [[WxQuest]] · foundation [[WxCore]]
+- 상위: 이 모듈이 최종 소비자다. 조립 대상은 [[WxCore]] · [[WxCombat]] · [[WxInventory]] · [[WxUI]] · [[WxWorld]] · [[WxAI]] · [[WxDialogue]] · [[WxQuest]].
 
 ---
-*문서 기준 커밋 `dc08752` · 생성일 2026-09-14 · 소스 58파일 — `/readme-writer`로 갱신*
+*문서 기준 커밋 `047197a` · 생성일 2026-09-16 · 소스 57파일 — `/readme-writer`로 갱신*
