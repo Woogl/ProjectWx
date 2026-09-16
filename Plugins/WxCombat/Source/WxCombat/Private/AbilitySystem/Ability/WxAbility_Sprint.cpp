@@ -102,20 +102,22 @@ void UWxAbility_Sprint::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
-	if (ASC)
+	// 예측으로 건 클라본은 예측 키 확인이, 서버본은 복제가 걷는다 — 제거 호출은 권위만 한다.
+	if (ASC && ASC->IsOwnerActorAuthoritative())
 	{
 		if (SpeedEffectHandle.IsValid())
 		{
 			ASC->RemoveActiveGameplayEffect(SpeedEffectHandle);
-			SpeedEffectHandle.Invalidate();
 		}
 
 		if (DrainEffectHandle.IsValid())
 		{
 			ASC->RemoveActiveGameplayEffect(DrainEffectHandle);
-			DrainEffectHandle.Invalidate();
 		}
 	}
+
+	SpeedEffectHandle.Invalidate();
+	DrainEffectHandle.Invalidate();
 }
 
 void UWxAbility_Sprint::HandleMovingChanged(bool bIsMoving)

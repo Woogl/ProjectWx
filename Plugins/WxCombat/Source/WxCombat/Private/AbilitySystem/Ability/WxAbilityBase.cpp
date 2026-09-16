@@ -226,8 +226,12 @@ void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 	{
 		if (EffectClass)
 		{
+			// 권위도 예측 키도 없는 머신에는 적용 자체가 일어나지 않는다 — 빈 핸들은 걷을 것도 없어 담지 않는다.
 			FActiveGameplayEffectHandle EffectHandle = ApplyGameplayEffectToOwner(Handle, ActorInfo, ActivationInfo, EffectClass.GetDefaultObject(), GetAbilityLevel());
-			ActivationOwnedEffectHandles.Add(EffectHandle);
+			if (EffectHandle.WasSuccessfullyApplied())
+			{
+				ActivationOwnedEffectHandles.Add(EffectHandle);
+			}
 		}
 	}
 
@@ -240,7 +244,9 @@ void UWxAbilityBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const F
 	MontageTask = nullptr;
 
 	// 캔슬·중단도 이 경로를 지나므로 효과가 새지 않는다. 활성 중에 이미 걷힌 것은 조회에 걸리지 않아 무해하다.
-	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	// 제거는 권위만 한다 — 클라의 예측본은 예측 키 확인이, 서버본은 복제가 걷는다.
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (ASC && ASC->IsOwnerActorAuthoritative())
 	{
 		for (FActiveGameplayEffectHandle EffectHandle : ActivationOwnedEffectHandles)
 		{
