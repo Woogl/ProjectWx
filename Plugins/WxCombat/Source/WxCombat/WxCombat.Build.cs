@@ -26,6 +26,7 @@ public class WxCombat : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
+			"HairStrandsCore",
 			"LevelSequence",
 			"MovieScene",
 			"Niagara",

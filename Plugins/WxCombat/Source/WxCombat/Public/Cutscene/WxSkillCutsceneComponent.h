@@ -126,6 +126,15 @@ private:
 	void PrepareLocalPlayer();
 	void StartLocalPlayer();
 	void CleanupLocalPlayer();
+
+	/**
+	 * 컷신 동안 Groom 시뮬만 정상 속도로 돌린다. 1.0 이면 원래대로 되돌린다.
+	 *
+	 * 배율을 걸면 엔진이 시뮬을 배치에서 solo 로 옮겨 소유 액터의 CustomTimeDilation 과 틱 그룹에 함께 묶인다.
+	 * 그래서 호출부가 월드·액터 배율을 모두 상쇄하고 매 틱 갱신한다.
+	 */
+	void SetGroomTimeDilation(float Dilation);
+
 	void Finish(bool bCancelled);
 	bool HasAuthority() const;
 

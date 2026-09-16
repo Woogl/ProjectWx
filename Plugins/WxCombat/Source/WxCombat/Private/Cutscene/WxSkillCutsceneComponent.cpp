@@ -11,6 +11,8 @@
 #include "Engine/World.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/GameStateBase.h"
+#include "GameFramework/WorldSettings.h"
+#include "GroomComponent.h"
 #include "HAL/PlatformTime.h"
 #include "Kismet/GameplayStatics.h"
 #include "LevelSequence.h"
@@ -19,6 +21,7 @@
 #include "MovieScene.h"
 #include "MovieSceneTimeController.h"
 #include "Net/UnrealNetwork.h"
+#include "NiagaraComponent.h"
 #include "WxCombatModule.h"
 
 namespace
@@ -232,6 +235,14 @@ void UWxSkillCutsceneComponent::TickComponent(float DeltaSeconds, ELevelTick Tic
 	}
 
 	PrepareLocalPlayer();
+
+	if (LocalPlayback.Phase == EWxSkillCutsceneLocalPhase::Playing && IsValid(LocalPlayback.Session.Avatar))
+	{
+		// 월드·액터 배율 모두 컷신 도중 바뀐다 — 서버가 먼저 끝내거나, 히트스톱이 액터를 멈추거나, 다른 슬로모션이 끼어든다.
+		// 매 틱 현재값을 상쇄하지 않으면 남은 역배율이 시뮬을 발산시킨다.
+		const float Combined = GetWorld()->GetWorldSettings()->GetEffectiveTimeDilation() * LocalPlayback.Session.Avatar->CustomTimeDilation;
+		SetGroomTimeDilation(1.f / FMath::Max(Combined, UE_KINDA_SMALL_NUMBER));
+	}
 }
 
 void UWxSkillCutsceneComponent::PrepareLocalPlayer()
@@ -345,9 +356,46 @@ void UWxSkillCutsceneComponent::CleanupLocalPlayer()
 	{
 		Mesh->bOnlyAllowAutonomousTickPose = LocalPlayback.bPreviousOnlyAllowAutonomousTickPose;
 	}
+	if (LocalPlayback.Phase == EWxSkillCutsceneLocalPhase::Playing)
+	{
+		SetGroomTimeDilation(1.f);
+	}
 	LocalPlayback.PoseMesh.Reset();
 	LocalPlayback.SequenceLoad.Reset();
 	LocalPlayback.Phase = EWxSkillCutsceneLocalPhase::Idle;
+}
+
+void UWxSkillCutsceneComponent::SetGroomTimeDilation(float Dilation)
+{
+	AActor* Avatar = LocalPlayback.Session.Avatar;
+	if (!IsValid(Avatar))
+	{
+		return;
+	}
+
+	const bool bSolo = !FMath::IsNearlyEqual(Dilation, 1.f);
+	TInlineComponentArray<UGroomComponent*> Grooms(Avatar);
+	for (UGroomComponent* Groom : Grooms)
+	{
+		for (UNiagaraComponent* Simulation : Groom->NiagaraComponents)
+		{
+			if (!Simulation)
+			{
+				continue;
+			}
+
+			// 1.0이 아닌 배율은 엔진이 solo 모드로 돌려 컴포넌트 틱에서 평가한다.
+			Simulation->SetCustomTimeDilation(Dilation);
+
+			// 그 전환은 틱 그룹을 갱신하지 않아 생성자 기본값(TG_PrePhysics)이 남는다.
+			// 배치에서 돌던 자리로 옮겨 그 프레임의 포즈가 선 뒤에 시뮬되게 한다.
+			if (bSolo)
+			{
+				Simulation->PrimaryComponentTick.TickGroup = TG_EndPhysics;
+				Simulation->PrimaryComponentTick.EndTickGroup = TG_LastDemotable;
+			}
+		}
+	}
 }
 
 void UWxSkillCutsceneComponent::Finish(bool bCancelled)
