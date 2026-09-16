@@ -44,12 +44,12 @@ class WXGAME_API UWxMetaHumanComponent : public UMetaHumanComponentUE
 public:
 	void SetLeaderMesh(USkeletalMeshComponent* InLeaderMesh);
 
-protected:
-	//~ Begin UActorComponent
+	//~ Begin UMetaHumanComponentUE
 	virtual void OnRegister() override;
 	virtual void OnUnregister() override;
-	//~ End UActorComponent
-	
+	//~ End UMetaHumanComponentUE
+
+protected:
 	/** 비워두면 바디를 만들지 않는다. 지정하면 표시를 이 메시가 맡고 리더는 숨긴 구동 전용이 된다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Visual")
 	TObjectPtr<USkeletalMesh> BodyMesh;

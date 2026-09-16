@@ -88,28 +88,6 @@ void AWxCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(AWxCharacterBase, Team);
 }
 
-bool AWxCharacterBase::CanJumpInternal_Implementation() const
-{
-	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
-	{
-		return false;
-	}
-
-	if (UWxAbilityBase::FindActivationGroupBlocker(*AbilitySystemComponent) != nullptr)
-	{
-		return false;
-	}
-
-	// 점프 입력이 앉기를 먼저 풀어도 실제 기립은 다음 이동 갱신이라 이 시점엔 아직 앉은 것으로 보인다.
-	// 기립 의사가 선 상태면 엔진의 앉음 금지만 건너뛰고 나머지 조건은 그대로 본다.
-	if (IsCrouched() && !GetCharacterMovement()->bWantsToCrouch)
-	{
-		return JumpIsAllowedInternal();
-	}
-
-	return Super::CanJumpInternal_Implementation();
-}
-
 void AWxCharacterBase::OnJumped_Implementation()
 {
 	Super::OnJumped_Implementation();
@@ -179,6 +157,28 @@ bool AWxCharacterBase::IsAlive() const
 		return AttrSet->GetHP() > 0.f;
 	}
 	return false;
+}
+
+bool AWxCharacterBase::CanJumpInternal_Implementation() const
+{
+	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
+	{
+		return false;
+	}
+
+	if (UWxAbilityBase::FindActivationGroupBlocker(*AbilitySystemComponent) != nullptr)
+	{
+		return false;
+	}
+
+	// 점프 입력이 앉기를 먼저 풀어도 실제 기립은 다음 이동 갱신이라 이 시점엔 아직 앉은 것으로 보인다.
+	// 기립 의사가 선 상태면 엔진의 앉음 금지만 건너뛰고 나머지 조건은 그대로 본다.
+	if (IsCrouched() && !GetCharacterMovement()->bWantsToCrouch)
+	{
+		return JumpIsAllowedInternal();
+	}
+
+	return Super::CanJumpInternal_Implementation();
 }
 
 void AWxCharacterBase::InitAbilitySystem()

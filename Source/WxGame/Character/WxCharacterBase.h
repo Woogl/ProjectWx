@@ -37,7 +37,6 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual bool CanJumpInternal_Implementation() const override;
 	virtual void OnJumped_Implementation() override;
 
 	//~ Begin IAbilitySystemInterface
@@ -68,6 +67,8 @@ public:
 	FWxOnDeathSignature OnDeath;
 
 protected:
+	virtual bool CanJumpInternal_Implementation() const override;
+
 	UPROPERTY(VisibleAnywhere, Category = "Wx|GAS")
 	TObjectPtr<UWxAbilitySystemComponent> AbilitySystemComponent;
 	
