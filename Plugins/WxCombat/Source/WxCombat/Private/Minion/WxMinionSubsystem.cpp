@@ -72,47 +72,6 @@ APawn* UWxMinionSubsystem::SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionC
 	return Minion;
 }
 
-int32 UWxMinionSubsystem::TryActivateAbilityOnMinions(APawn& Master, const FGameplayTag& AbilityTag, const FGameplayEventData& Payload)
-{
-	if (!Master.HasAuthority() || !AbilityTag.IsValid())
-	{
-		return 0;
-	}
-
-	FGameplayEventData CommandPayload = Payload;
-	if (!CommandPayload.Instigator)
-	{
-		CommandPayload.Instigator = &Master;
-	}
-
-	const TArray<TWeakObjectPtr<APawn>> CommandTargets = CollectMinions(Master);
-	int32 ActivatedMinionCount = 0;
-
-	for (const TWeakObjectPtr<APawn>& CommandTarget : CommandTargets)
-	{
-		APawn* Minion = CommandTarget.Get();
-		if (!Minion)
-		{
-			continue;
-		}
-
-		UAbilitySystemComponent* MinionASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Minion);
-		if (!MinionASC)
-		{
-			continue;
-		}
-
-		if (!TryActivateAbilityByExactTag(*MinionASC, AbilityTag, CommandPayload))
-		{
-			continue;
-		}
-
-		++ActivatedMinionCount;
-	}
-
-	return ActivatedMinionCount;
-}
-
 bool UWxMinionSubsystem::DoesSupportWorldType(const EWorldType::Type WorldType) const
 {
 	return WorldType == EWorldType::Game || WorldType == EWorldType::PIE;
@@ -235,34 +194,4 @@ void UWxMinionSubsystem::RefreshMasterStateTag(APawn& Master) const
 	}
 
 	MasterASC->SetLooseGameplayTagCount(WxGameplayTags::State_Minion_Active, FindActiveMinion(Master) ? 1 : 0, EGameplayTagReplicationState::TagOnly);
-}
-
-bool UWxMinionSubsystem::TryActivateAbilityByExactTag(UAbilitySystemComponent& MinionASC, const FGameplayTag& AbilityTag, const FGameplayEventData& Payload) const
-{
-	FGameplayAbilityActorInfo* ActorInfo = MinionASC.AbilityActorInfo.Get();
-	if (!ActorInfo)
-	{
-		return false;
-	}
-
-	// 발동과 실패 통지가 부여 목록을 바꿀 수 있으므로 후보 순회가 끝날 때까지 변경을 지연한다.
-	FScopedAbilityListLock ActiveScopeLock(MinionASC);
-
-	for (const FGameplayAbilitySpec& AbilitySpec : MinionASC.GetActivatableAbilities())
-	{
-		if (!AbilitySpec.Ability || !AbilitySpec.Ability->GetAssetTags().HasTagExact(AbilityTag))
-		{
-			continue;
-		}
-
-		// 같은 식별 태그에 조건별 후보가 여럿이면 발동 가능한 첫 후보 하나만 명령한다.
-		if (!MinionASC.TriggerAbilityFromGameplayEvent(AbilitySpec.Handle, ActorInfo, WxGameplayTags::Event_CommandMinionAbility, &Payload, MinionASC))
-		{
-			continue;
-		}
-
-		return true;
-	}
-
-	return false;
 }

@@ -26,7 +26,7 @@
 | `UWxCombatLibrary` | `ApplyDamage`/`ApplyEffect` 정적 진입점(서버 권위 대미지·구간 상태 부여) | `Plugins/WxCombat/Source/WxCombat/Public/WxCombatLibrary.h` |
 | `UWxInputBufferComponent` | 선입력. 실패한 입력을 기억했다 캔슬 창/어빌리티 종료에 재시도 | `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxInputBufferComponent.h` |
 | `AWxWeaponBase` | 무기 히트박스(Overlap+매 틱 Sweep) 판정, 스윙당 액터 1회 피격 | `Plugins/WxCombat/Source/WxCombat/Public/Weapon/WxWeaponBase.h` |
-| `UWxMinionSubsystem` | 소환물 서버 권위 스폰·주인별 로스터·명령 라우팅 | `Plugins/WxCombat/Source/WxCombat/Public/Minion/WxMinionSubsystem.h` |
+| `UWxMinionSubsystem` | 소환물 서버 권위 스폰·주인별 로스터·수명 관리 | `Plugins/WxCombat/Source/WxCombat/Public/Minion/WxMinionSubsystem.h` |
 
 ## 확장 포인트 / 규약
 - **새 어빌리티**: `UWxAbilityBase` 상속(`Public/AbilitySystem/Ability/WxAbility_*`). `AbilityDataRow`(`FWxAbilityTableRow`)에서 쿨다운·코스트 읽고, `EWxAbilityActivationGroup`(Independent/Exclusive/Override)·`EWxAbilityActionPhase`를 선언한다. 코스트는 공용 `UWxEffect_Cost`, 쿨다운은 `UWxEffect_Cooldown` 파생 GE가 그 행 수치를 쓴다.

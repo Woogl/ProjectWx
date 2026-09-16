@@ -120,7 +120,6 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_ApplyFinisherDamage);
 
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_CommandMinionAbility);
 
 	// 장치의 State Tree 상태값이다.
 	// 코드에서 읽거나 쓰는 값은 아니지만 태그는 여기서 정의한다.

@@ -8,15 +8,13 @@
 #include "WxMinionSubsystem.generated.h"
 
 class APawn;
-class UAbilitySystemComponent;
-struct FGameplayEventData;
 
 /**
  * 소환물을 서버 권위로 생성해 주인별로 관리한다. AI 빙의는 소환물의 AutoPossessAI에 맡긴다.
  *
  * 주인·소환물 참조 규칙:
  * - 소환물 → 주인은 Instigator 하나가 답한다(GetMaster). 소환물이 죽어 로스터에서 내려가도 남는 영구 사실이다.
- * - 주인 → 소환물은 이 로스터 하나가 답한다. 지금 살아서 명령을 받을 수 있는 것만 담고, 생성은 서버 권위여도 로스터는 모든 머신이 채운다.
+ * - 주인 → 소환물은 이 로스터 하나가 답한다. 살아 있는 소환물만 담고, 생성은 서버 권위여도 로스터는 모든 머신이 채운다.
  * - Owner는 소환 관계에 쓰지 않는다. 폰의 Owner는 빙의 시 Controller로 덮인다.
  * - 주인은 Pawn이다. 소환물이 주인을 Instigator로 무는 이상 다른 타입은 관계를 절반만 맺는다.
  *
@@ -40,12 +38,6 @@ public:
 	/** SpawnTransform 은 월드 기준이다. 소환물 클래스가 선언한 상한을 넘치면 주인의 가장 오래된 소환물부터 파괴한다. */
 	APawn* SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionClass, const FTransform& SpawnTransform);
 
-	/**
-	 * 주인이 관리 중인 활성 소환물 모두에게 정확한 식별 태그의 어빌리티 발동을 요청하고, 발동을 수락한 소환물 수를 반환한다.
-	 * Payload는 TriggerEventData로 전달되고 EventTag는 Event.CommandMinionAbility로 설정된다.
-	 */
-	int32 TryActivateAbilityOnMinions(APawn& Master, const FGameplayTag& AbilityTag, const FGameplayEventData& Payload);
-
 protected:
 	/** 에디터 월드에서는 시퀀서 프리뷰의 노티파이가 권위를 통과해 레벨에 스폰해 버리므로 게임 월드에만 만든다. */
 	virtual bool DoesSupportWorldType(const EWorldType::Type WorldType) const override;
@@ -53,7 +45,7 @@ protected:
 	virtual void Deinitialize() override;
 
 private:
-	/** 주인의 활성 소환물을 소환 순서로 모은다. 순회 중 발동·파괴가 로스터를 바꿔도 이번 집합은 유지된다. */
+	/** 주인의 활성 소환물을 소환 순서로 모은다. 순회 중 파괴가 로스터를 바꿔도 이번 집합은 유지된다. */
 	TArray<TWeakObjectPtr<APawn>> CollectMinions(const APawn& Master) const;
 
 	/** 클래스로만 소환물을 가린다. 복제 스폰은 이 시점에 Instigator가 아직 비어 있어 주인을 못 읽는다. */
@@ -71,8 +63,6 @@ private:
 	void ReleaseMinion(APawn& Minion);
 
 	void RefreshMasterStateTag(APawn& Master) const;
-
-	bool TryActivateAbilityByExactTag(UAbilitySystemComponent& MinionASC, const FGameplayTag& AbilityTag, const FGameplayEventData& Payload) const;
 
 	/** 이 머신에 스폰된 소환물 클래스 폰을 소환 순서로 담는다. 주인은 질의할 때 GetMaster로 거르고, 사망·파괴는 구독으로 즉시 내린다. */
 	TArray<TWeakObjectPtr<APawn>> Minions;

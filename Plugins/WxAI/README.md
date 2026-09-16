@@ -32,6 +32,17 @@
 - 데이터 주도: WxCombat에 의존하지 않으므로 전투 연동은 BT 에디터에서 디자이너가 지정한다 — 정찰 감속은 `MoveSpeedEffect`(`WxEffect_MoveSpeedScale` 류 GameplayEffect), 속성 게이팅은 `AttributeRatio` 데코의 `Attribute`/`MaxAttribute`(예: `WxCombatAttributeSet::HP`), 어빌리티는 태그(`Ability.*`)로 지목한다.
 - 권한: 소음 보고(`UWxAnimNotify_ReportNoise` → `UAISense_Hearing::ReportNoiseEvent`)와 퍼셉션은 서버 전용. 피격 자극은 폰이 컨트롤러에 빙의돼 있을 때(=AI 조종 중)만 리스너가 있어 유효하다.
 
+## 미니언의 Master 반응
+
+- `BT_Minion` 최상위의 `UWxBTService_ObserveMasterAbility`가 서버에서 Blackboard `Master` ASC의 기존 발동 델리게이트를 구독한다. 폴링이나 별도 GameplayEvent는 사용하지 않는다.
+- 소환 도중 이미 시작된 스킬은 ASC에 처음 연결할 때 한 번 따라잡는다. 트리 재탐색으로 같은 실행을 다시 요청하지 않는다.
+- `BT_Minion`은 기존 `BB_Shared`를 그대로 사용한다. 추가 BB 키 없이 감지 Service 인스턴스의 `PendingAbility` 태그 하나를 임시 보관한다. 감지 번호나 별도 실행 상태는 두지 않는다.
+- `UWxBTDecorator_MasterAbility`가 Master 태그를 정확히 비교하고, 분기 진입 시 요청을 한 번 소비한다. 별도 소비 Task 없이 기존 `UWxBTTask_ActivateAbility`를 바로 배치한다. 대응 스킬은 발동 Task의 `AbilityTag`에서 정한다.
+- 최상위 Selector 아래에는 Skill 1 단일 Task, Skill 2·강공격의 공격→퇴장 Sequence, 리시 이탈 퇴장, 대기의 다섯 분기만 둔다. 대응하지 않는 Master 태그는 실행하지 않으며 다음 감지로 교체된다.
+- 새 발동을 감지하면 태그를 보관하고 부모 Selector에서 반응을 다시 선택한다. 실행 중인 반응은 기존 Task의 Abort로 취소하며 같은 스킬도 재시작한다. BT 좌우 우선순위와 무관하게 전환하고, 재탐색 전 여러 발동은 최신 태그 하나만 반영한다. 취소 불가·쿨다운 등 GAS 제한은 유지하며 발동 실패를 자동 재시도하지 않는다. Master 종료만으로 미니언 스킬을 취소하지는 않는다.
+- 현재 Skill 1은 실행 후 대기하고, Skill 2·강공격은 정상 종료 후 BT에서 `Ability.Death`를 실행해 퇴장한다. 기존 리시 이탈 퇴장 분기는 유지한다. 발동은 수정하지 않은 기존 `UWxBTTask_ActivateAbility`가 담당한다.
+- `Log LogWxAI Verbose`로 Master 발동 감지를 확인한다. Service 런타임 표시에는 감지한 태그가 나오며, 실행 분기는 BT 디버거에서 확인한다. 발동 Task는 Master 상태를 참조하지 않는다.
+
 ## 여기서부터 읽어라
 1. `Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h` — 키 소유 분담 주석이 이 모듈 전체의 데이터 흐름 지도다.
 2. `Plugins/WxAI/Source/WxAI/Public/WxAIBehaviorComponent.h` — 캐릭터가 AI로 구동되기 시작하는 지점(BT·감각·자극 배선).
