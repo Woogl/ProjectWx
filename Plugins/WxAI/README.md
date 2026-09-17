@@ -17,7 +17,7 @@
 - 어빌리티/Attribute/이동속도 GE의 정의는 [[WxCombat]]. WxAI는 `FGameplayAttribute`·`TSubclassOf<UGameplayEffect>`를 **저작 값으로 받아** 다룰 뿐 타입을 알지 못한다(`UWxBTDecorator_AttributeRatio`, `UWxBTTask_Patrol`/`_Wander`의 `MoveSpeedEffect`).
 - 락온 **대상 보관**은 [[WxCombat]]의 `UWxLockOnComponent`이며, BT가 고른 타겟을 그쪽에 옮기는 일은 `AWxAIController`가 한다. 이 모듈의 `UWxBTService_LockOn`은 "어떻게 바라볼지"(컨트롤러 포커스 + 폰 strafe 회전 모드)만 정한다.
 - 소환자-소환물 관계(`UWxMinionSubsystem`, `IWxMinion`)와 공용 태그(`WxGameplayTags`)는 [[WxCore]].
-- 스폰·배치·경로 소유 액터는 [[WxWorld]]/레벨 저작 쪽. `UWxPatrolComponent`는 폰의 **부착 부모**에서 경로를 찾을 뿐이다.
+- 스폰·배치·경로 소유 액터는 [[WxWorld]]/레벨 저작 쪽. `UWxPatrolComponent`는 스포너에 붙고, 폰의 `UWxAIBehaviorComponent`가 초기화 시 스폰 주체(빙의 전 Owner)에서 찾아 둔 것을 BT가 읽을 뿐이다(폰 루트 부착은 원격 이동 복제를 멈추므로 쓰지 않는다).
 
 ## 핵심 타입 (진입점)
 | 타입 | 역할 | 위치 |

@@ -4,6 +4,7 @@
 
 #include "Components/ArrowComponent.h"
 #include "GameFramework/Pawn.h"
+#include "WxAIBehaviorComponent.h"
 
 UWxPatrolComponent::UWxPatrolComponent()
 {
@@ -22,9 +23,9 @@ UWxPatrolComponent::UWxPatrolComponent()
 
 UWxPatrolComponent* UWxPatrolComponent::FindPatrolComponent(const APawn* Pawn)
 {
-	const AActor* PathOwner = Pawn ? Pawn->GetAttachParentActor() : nullptr;
+	const UWxAIBehaviorComponent* AIBehavior = Pawn ? Pawn->FindComponentByClass<UWxAIBehaviorComponent>() : nullptr;
 
-	return PathOwner ? PathOwner->FindComponentByClass<UWxPatrolComponent>() : nullptr;
+	return AIBehavior ? AIBehavior->GetPatrolPath() : nullptr;
 }
 
 int32 UWxPatrolComponent::GetNumPoints() const

@@ -129,6 +129,7 @@ void AWxSpawner::SpawnTarget()
 
 	// Deferred Spawn 으로 빙의(AutoPossessAI) 전에 OnSpawnedBy 컨텍스트를 주입한다.
 	// 일반 SpawnActor 는 빙의가 호출 내부에서 끝나므로, 그 뒤엔 컨트롤러 OnPossess 가 컨텍스트를 보지 못한다.
+	// Owner 로 자신을 넘기는 것도 계약이다 — 스폰 대상 컴포넌트가 빙의 전 초기화에서 이것으로 스폰 주체를 찾는다(정찰 경로 등).
 	const FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 	AActor* Spawned = GetWorld()->SpawnActorDeferred<AActor>(
 		SpawnableActorClass,
@@ -150,9 +151,8 @@ void AWxSpawner::SpawnTarget()
 	Spawned->FinishSpawning(SpawnTransform);
 	SpawnedActor = Spawned;
 
-	// 스포너가 먼저 attach 하지는 않는다 — 스폰 대상은 CMC 로 돌아다니는 캐릭터라, 루트가 붙어 있으면 이동 복제가 ReplicatedMovement 대신 AttachmentReplication(부모 상대 오프셋) 경로를 타 원격 스무딩에서 벗어나고 스포너를 옮기면 딸려 온다.
+	// 스폰 대상을 부착하지 않는다 — CMC 로 돌아다니는 캐릭터는 루트가 붙어 있으면 이동 복제가 AttachmentReplication(부모 상대 오프셋)으로만 가서, 원격의 스무딩·속도·이동 모드 시뮬레이션이 멈추고 스포너를 옮기면 딸려 온다.
 	// 수명 추적은 약참조 하나로 한다 — Pawn Owner는 빙의 시 Controller로 바뀌어 못 쓴다.
-	// 예외로 적 역할을 가진 스폰 대상은 OnSpawnedBy 에서 스스로 부착한다 — 정찰 경로를 스포너에서 찾아야 해서, 위 대가를 알고 받아들인 선택이다.
 }
 
 void AWxSpawner::DestroySpawnedActor()
@@ -166,17 +166,6 @@ void AWxSpawner::DestroySpawnedActor()
 	if (IsValid(TrackedActor))
 	{
 		TrackedActor->Destroy();
-	}
-
-	// 약참조를 놓친 경우까지 대비한 안전망이다 — 적 역할의 스폰 대상은 OnSpawnedBy 에서 스스로 부착하므로 부착 목록에서 찾을 수 있다.
-	TArray<AActor*> AttachedActors;
-	GetAttachedActors(AttachedActors);
-	for (AActor* Existing : AttachedActors)
-	{
-		if (IsValid(Existing) && Existing != TrackedActor)
-		{
-			Existing->Destroy();
-		}
 	}
 
 	SpawnedActor.Reset();

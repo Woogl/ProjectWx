@@ -3,6 +3,7 @@
 #include "WxAIBehaviorComponent.h"
 #include "WxAIModule.h"
 #include "WxGameplayTags.h"
+#include "WxPatrolComponent.h"
 #include "AIController.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -20,10 +21,21 @@
 
 UWxAIBehaviorComponent::UWxAIBehaviorComponent()
 {
+	bWantsInitializeComponent = true;
+
 #if WITH_EDITOR
 	PrimaryComponentTick.bCanEverTick = true;
 	bTickInEditor = true;
 #endif
+}
+
+void UWxAIBehaviorComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+
+	// 빙의가 폰의 Owner 를 컨트롤러로 덮기 전인 지금만 스폰 주체를 알 수 있다.
+	const AActor* Spawner = GetOwner()->GetOwner();
+	PatrolPath = Spawner ? Spawner->FindComponentByClass<UWxPatrolComponent>() : nullptr;
 }
 
 void UWxAIBehaviorComponent::BeginPlay()
@@ -106,6 +118,11 @@ void UWxAIBehaviorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 UBehaviorTree* UWxAIBehaviorComponent::GetBehaviorTree() const
 {
 	return BehaviorTreeAsset;
+}
+
+UWxPatrolComponent* UWxAIBehaviorComponent::GetPatrolPath() const
+{
+	return PatrolPath;
 }
 
 void UWxAIBehaviorComponent::HandleControllerChanged(APawn* Pawn, AController* OldController, AController* NewController)

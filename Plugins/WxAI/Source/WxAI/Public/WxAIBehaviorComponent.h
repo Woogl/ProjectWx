@@ -10,12 +10,13 @@
 class AController;
 class APawn;
 class UBehaviorTree;
+class UWxPatrolComponent;
 struct FGameplayEventData;
 
 /**
- * 이 캐릭터가 AI 로 굴러갈 때 필요한 것을 모은다 — 행동 자산, 감각 수치, 피격 자극 보고.
+ * 이 캐릭터가 AI 로 굴러갈 때 필요한 것을 모은다 — 행동 자산, 감각 수치, 정찰 경로, 피격 자극 보고.
  * 퍼셉션은 컨트롤러에 붙어 폰 종류를 가리지 않으므로, 종류별 차이는 이 컴포넌트가 빙의 시점에 밀어 넣어 낸다.
- * 캐릭터가 컨트롤러를 갈아타도(파티원 교체) 이 셋은 캐릭터를 따라다닌다.
+ * 캐릭터가 컨트롤러를 갈아타도(파티원 교체) 이것들은 캐릭터를 따라다닌다.
  */
 UCLASS(ClassGroup = (Wx), meta = (BlueprintSpawnableComponent))
 class WXAI_API UWxAIBehaviorComponent : public UActorComponent
@@ -25,6 +26,7 @@ class WXAI_API UWxAIBehaviorComponent : public UActorComponent
 public:
 	UWxAIBehaviorComponent();
 
+	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
 
 #if WITH_EDITOR
@@ -32,6 +34,8 @@ public:
 #endif
 
 	UBehaviorTree* GetBehaviorTree() const;
+
+	UWxPatrolComponent* GetPatrolPath() const;
 
 private:
 	UFUNCTION()
@@ -48,6 +52,10 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
 	TObjectPtr<UBehaviorTree> BehaviorTreeAsset;
+
+	/** 스폰 주체(스포너 등)에 붙은 경로. 비어 있으면 정찰하지 않는다. */
+	UPROPERTY(Transient)
+	TObjectPtr<UWxPatrolComponent> PatrolPath;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI|Perception", meta = (ClampMin = "0", ForceUnits = "cm"))
 	float SightRadius = 1500.f;

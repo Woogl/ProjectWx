@@ -84,14 +84,6 @@ AWxSpawner* AWxEnemyCharacter::GetOwningSpawner() const
 void AWxEnemyCharacter::OnSpawnedBy(AWxSpawner* Spawner)
 {
 	OwningSpawner = Spawner;
-	if (!Spawner)
-	{
-		return;
-	}
-
-	// 정찰 경로를 스포너에 그려 두므로 폰에서 거슬러 올라갈 링크가 필요하다(UWxPatrolComponent::FindPatrolComponent).
-	// 부착으로 아웃라이너에서도 소속이 보이지만 이동 복제는 AttachmentReplication 경로를 탄다.
-	AttachToActor(Spawner, FAttachmentTransformRules::KeepWorldTransform);
 }
 
 bool AWxEnemyCharacter::CanInteract(const AActor* Interactor) const
