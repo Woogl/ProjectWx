@@ -180,7 +180,6 @@ void UWxSkillCutsceneComponent::UpdateSession()
 	const bool bNewSession = State.Session.Id != LocalPlayback.Session.Id;
 	if (bNewSession)
 	{
-		// 남아 있던 로컬 재생은 밀어내고, 그 세션의 종료를 먼저 알린다.
 		// 직전 종료를 못 보고 이 시작만 받았을 수도 있으므로 결과는 State가 들고 있는 값을 쓴다.
 		CleanupLocalPlayer();
 		NotifyEnded(State.bCancelled);
