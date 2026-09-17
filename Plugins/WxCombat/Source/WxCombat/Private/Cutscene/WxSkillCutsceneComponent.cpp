@@ -13,7 +13,6 @@
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/WorldSettings.h"
 #include "GroomComponent.h"
-#include "HAL/PlatformTime.h"
 #include "Kismet/GameplayStatics.h"
 #include "LevelSequence.h"
 #include "LevelSequenceActor.h"
@@ -27,34 +26,47 @@
 namespace
 {
 	/**
-	 * 플랫폼 시각으로 직접 진행해 월드 배율과 시퀀스의 Clock Source에 의존하지 않는다.
+	 * 월드 오디오 시각(배율은 받지 않고 일시정지에는 멈춘다)으로 직접 진행해 월드 배율과 시퀀스의 Clock Source에 의존하지 않는다.
 	 * 엔진의 외부 시계(FMovieSceneTimeController_ExternalClock)는 월드 배율이 곱해진 PlayRate를 다시 반영하므로 0.001배 월드에서는 쓸 수 없다.
 	 */
 	class FWxSkillCutsceneClock : public FMovieSceneTimeController
 	{
+	public:
+		explicit FWxSkillCutsceneClock(const UWorld* InWorld);
+
 	protected:
 		virtual void OnStartPlaying(const FQualifiedFrameTime& InStartTime) override;
 		virtual FFrameTime OnRequestCurrentTime(const FQualifiedFrameTime& InCurrentTime, float InPlayRate) override;
 
 	private:
+		TWeakObjectPtr<const UWorld> World;
 		double StartSeconds = 0.0;
 	};
 
+	FWxSkillCutsceneClock::FWxSkillCutsceneClock(const UWorld* InWorld)
+		: World(InWorld)
+	{
+	}
+
 	void FWxSkillCutsceneClock::OnStartPlaying(const FQualifiedFrameTime& InStartTime)
 	{
-		StartSeconds = FPlatformTime::Seconds();
+		if (const UWorld* CurrentWorld = World.Get())
+		{
+			StartSeconds = CurrentWorld->GetAudioTimeSeconds();
+		}
 	}
 
 	FFrameTime FWxSkillCutsceneClock::OnRequestCurrentTime(const FQualifiedFrameTime& InCurrentTime, float InPlayRate)
 	{
+		const UWorld* CurrentWorld = World.Get();
 		const TOptional<FQualifiedFrameTime> PlaybackStart = GetPlaybackStartTime();
-		if (!PlaybackStart.IsSet())
+		if (!CurrentWorld || !PlaybackStart.IsSet())
 		{
 			return InCurrentTime.Time;
 		}
 
 		// 경과를 상한으로 자르지 않는다. 엔진이 재생 범위 끝에서 스스로 멈춘다.
-		return PlaybackStart->ConvertTo(InCurrentTime.Rate) + InCurrentTime.Rate.AsFrameTime(FPlatformTime::Seconds() - StartSeconds);
+		return PlaybackStart->ConvertTo(InCurrentTime.Rate) + InCurrentTime.Rate.AsFrameTime(CurrentWorld->GetAudioTimeSeconds() - StartSeconds);
 	}
 }
 
@@ -120,7 +132,7 @@ bool UWxSkillCutsceneComponent::Start(UGameplayAbility* Requester, ULevelSequenc
 
 	ServerState.Owner = Requester;
 	ServerState.Duration = Duration;
-	ServerState.StartTime = FPlatformTime::Seconds();
+	ServerState.StartTime = GetWorld()->GetAudioTimeSeconds();
 
 	UGameplayStatics::SetGlobalTimeDilation(this, FMath::Max(Dilation, 0.001f));
 
@@ -227,7 +239,7 @@ void UWxSkillCutsceneComponent::TickComponent(float DeltaSeconds, ELevelTick Tic
 
 		// 시퀀스가 실제로 돌고 있으면 그 완료가 끝을 정한다. 아니면(전용 서버·준비 지연·시퀀스 액터 소실) 길이로 끊어 월드가 감속에 갇히지 않게 한다.
 		const bool bLocalSequenceRunning = LocalPlayback.Phase == EWxSkillCutsceneLocalPhase::Playing && LocalPlayback.SequenceActor;
-		if (!bLocalSequenceRunning && FPlatformTime::Seconds() - ServerState.StartTime >= ServerState.Duration)
+		if (!bLocalSequenceRunning && GetWorld()->GetAudioTimeSeconds() - ServerState.StartTime >= ServerState.Duration)
 		{
 			Finish(false);
 			return;
@@ -287,7 +299,7 @@ void UWxSkillCutsceneComponent::PrepareLocalPlayer()
 				TArray<AActor*> Actors;
 				Actors.Add(LocalPlayback.Session.Avatar);
 				NewActor->SetBindingByTag(TEXT("Player"), Actors, false);
-				Player->SetTimeController(MakeShared<FWxSkillCutsceneClock>());
+				Player->SetTimeController(MakeShared<FWxSkillCutsceneClock>(GetWorld()));
 			}
 		}
 	}
