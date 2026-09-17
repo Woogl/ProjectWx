@@ -9,7 +9,6 @@
 #include "Engine/World.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/GameStateBase.h"
-#include "GameFramework/WorldSettings.h"
 #include "GroomComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "LevelSequence.h"
@@ -241,7 +240,6 @@ void UWxSkillCutsceneComponent::TickComponent(float DeltaSeconds, ELevelTick Tic
 		}
 
 		// 세션은 길이로만 끝낸다. 이 머신의 로컬 재생도 다른 머신처럼 따로 자기 끝까지 간다.
-		// 바꾼 배율은 다음 프레임 델타부터 들어가므로, 이번 틱의 Groom 역배율은 옛 값 그대로 두고 반환한다.
 		if (GetWorld()->GetAudioTimeSeconds() >= ServerState.EndTime)
 		{
 			Finish(false);
@@ -254,8 +252,10 @@ void UWxSkillCutsceneComponent::TickComponent(float DeltaSeconds, ELevelTick Tic
 	if (LocalPlayback.Phase == EWxSkillCutsceneLocalPhase::Playing && IsValid(LocalPlayback.Session.Avatar))
 	{
 		// 월드·액터 배율 모두 컷신 도중 바뀐다 — 서버가 먼저 끝내거나, 히트스톱이 액터를 멈추거나, 다른 슬로모션이 끼어든다.
-		// 매 틱 현재값을 상쇄하지 않으면 남은 역배율이 시뮬을 발산시킨다.
-		const float Combined = GetWorld()->GetWorldSettings()->GetEffectiveTimeDilation() * LocalPlayback.Session.Avatar->CustomTimeDilation;
+		// 매 틱 상쇄하지 않으면 남은 역배율이 시뮬을 발산시킨다. 틱 도중 바꾼 월드 배율은 다음 프레임 델타부터 들어가므로 이번 프레임에 실제로 곱해진 값을 쓴다.
+		const FGameTime Time = GetWorld()->GetTime();
+		const float WorldDilation = Time.GetDeltaRealTimeSeconds() > 0.f ? Time.GetTimeDilation() : 1.f;
+		const float Combined = WorldDilation * LocalPlayback.Session.Avatar->CustomTimeDilation;
 		SetGroomTimeDilation(1.f / FMath::Max(Combined, UE_KINDA_SMALL_NUMBER));
 	}
 }
@@ -300,6 +300,13 @@ void UWxSkillCutsceneComponent::StartLocalPlayer()
 	if (ACharacter* Character = Cast<ACharacter>(LocalPlayback.Session.Avatar))
 	{
 		Character->StopAnimMontage();
+
+		// 끊긴 몽타주의 콜백은 동기로 돌아 그 사이 세션을 접었을 수 있다.
+		if (LocalPlayback.Phase != EWxSkillCutsceneLocalPhase::Preparing)
+		{
+			return;
+		}
+
 		if (USkeletalMeshComponent* Mesh = Character->GetMesh())
 		{
 			LocalPlayback.PoseMesh = Mesh;
