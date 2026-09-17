@@ -190,7 +190,8 @@ void UWxSkillCutsceneComponent::UpdateSession()
 
 	if (bNewSession)
 	{
-		// 접속 전에 끝난 세션은 통지 없이 입양만 한다.
+		// 시작을 못 본 채 끝난 세션은 통지 없이 입양만 한다. 그 세션을 기다리던 궁극기는 서버가 복제하는 어빌리티 종료로 닫힌다.
+		// 여기서 알리면 커밋 실패로 한 호출 안에서 열리고 닫힌 세션의 취소가 직후의 재발동을 끊는다.
 		bEndNotified = !State.bPlaying;
 		if (State.bPlaying && GetWorld()->GetNetMode() != NM_DedicatedServer)
 		{

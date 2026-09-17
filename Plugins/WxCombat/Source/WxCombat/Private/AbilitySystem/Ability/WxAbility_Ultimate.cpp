@@ -4,8 +4,7 @@
 #include "AbilitySystem/Effect/WxEffect_Cooldown.h"
 #include "AbilitySystem/Effect/WxEffect_SuperArmor.h"
 #include "AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.h"
-#include "Engine/AssetManager.h"
-#include "Engine/StreamableManager.h"
+#include "AbilitySystemComponent.h"
 #include "LevelSequence.h"
 #include "WxGameplayTags.h"
 #include "Cutscene/WxSkillCutsceneComponent.h"
@@ -23,16 +22,6 @@ UWxAbility_Ultimate::UWxAbility_Ultimate()
 	CooldownGameplayEffectClass = UWxEffect_Cooldown_Ultimate::StaticClass();
 }
 
-void UWxAbility_Ultimate::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
-{
-	Super::OnGiveAbility(ActorInfo, Spec);
-
-	if (!CutsceneSequence.IsNull() && !CutsceneSequence.Get())
-	{
-		CutscenePreloadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(CutsceneSequence.ToSoftObjectPath());
-	}
-}
-
 bool UWxAbility_Ultimate::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
 	const UWxSkillCutsceneComponent* Coordinator = UWxSkillCutsceneComponent::Get(GetWorld());
@@ -47,13 +36,7 @@ void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	// 부여 직후 곧바로 발동하면 프리로드가 아직 도착하지 않았을 수 있다.
-	ULevelSequence* Sequence = CutsceneSequence.Get();
-	if (!Sequence)
-	{
-		Sequence = CutsceneSequence.LoadSynchronous();
-	}
-
+	ULevelSequence* Sequence = CutsceneSequence;
 	UWxSkillCutsceneComponent* Coordinator = nullptr;
 	if (Sequence && ActorInfo->IsNetAuthority())
 	{
@@ -79,7 +62,6 @@ void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	if (Sequence)
 	{
-		bLocalPresentationPending = !ActorInfo->IsNetAuthority() && ActorInfo->IsLocallyControlled();
 		UWxAbilityTask_PlaySkillCutscene* CutsceneTask = UWxAbilityTask_PlaySkillCutscene::CreateTask(this);
 		CutsceneTask->OnCompleted.AddDynamic(this, &UWxAbility_Ultimate::HandleCutsceneCompleted);
 		CutsceneTask->OnCancelled.AddDynamic(this, &UWxAbility_Ultimate::HandleCutsceneCancelled);
@@ -92,14 +74,15 @@ void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 void UWxAbility_Ultimate::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	// 서버의 몽타주가 먼저 끝나도 로컬 컷신/몽타주는 자신의 완료 콜백까지 살아 있어야 한다.
+	// 로컬 몽타주를 재생하는 동안에는 서버의 정상 종료를 보류하고, 몽타주 완료 콜백이 끝낸다.
+	// 컷신을 기다리는 동안에는 보류하지 않는다 — 이 머신이 놓친 세션은 종료 통지가 오지 않아 이 종료만이 어빌리티를 닫는다.
 	// RemoteEndOrCancelAbility는 이 호출 전에 RemoteInstanceEnded를 설정한다. 강제 취소는 보류하지 않는다.
-	if (bLocalPresentationPending && ActorInfo && !ActorInfo->IsNetAuthority()
+	const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+	if (ASC && !ActorInfo->IsNetAuthority() && ASC->IsAnimatingAbility(this)
 		&& RemoteInstanceEnded && !bReplicateEndAbility && !bWasCancelled)
 	{
 		return;
 	}
-	bLocalPresentationPending = false;
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
