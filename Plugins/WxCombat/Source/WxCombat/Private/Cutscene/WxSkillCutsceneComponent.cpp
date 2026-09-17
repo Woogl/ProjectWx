@@ -6,8 +6,6 @@
 #include "AbilitySystem/Effect/WxEffect_Invincible.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "DefaultLevelSequenceInstanceData.h"
-#include "Engine/AssetManager.h"
-#include "Engine/StreamableManager.h"
 #include "Engine/World.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/GameStateBase.h"
@@ -115,6 +113,11 @@ bool UWxSkillCutsceneComponent::Start(UGameplayAbility* Requester, ULevelSequenc
 	{
 		return false;
 	}
+	if (Sequence->FindBindingsByTag(TEXT("Player")).IsEmpty())
+	{
+		UE_LOG(LogWxCombat, Warning, TEXT("컷신 시퀀스 %s에 Binding Tag \"Player\"가 없다."), *Sequence->GetPathName());
+		return false;
+	}
 
 	++State.Session.Id;
 	State.Session.Sequence = Sequence;
@@ -131,8 +134,7 @@ bool UWxSkillCutsceneComponent::Start(UGameplayAbility* Requester, ULevelSequenc
 	State.bPlaying = true;
 
 	ServerState.Owner = Requester;
-	ServerState.Duration = Duration;
-	ServerState.StartTime = GetWorld()->GetAudioTimeSeconds();
+	ServerState.EndTime = GetWorld()->GetAudioTimeSeconds() + Duration;
 
 	UGameplayStatics::SetGlobalTimeDilation(this, FMath::Max(Dilation, 0.001f));
 
@@ -238,9 +240,9 @@ void UWxSkillCutsceneComponent::TickComponent(float DeltaSeconds, ELevelTick Tic
 			return;
 		}
 
-		// 시퀀스가 실제로 돌고 있으면 그 완료가 끝을 정한다. 아니면(전용 서버·준비 지연·시퀀스 액터 소실) 길이로 끊어 월드가 감속에 갇히지 않게 한다.
-		const bool bLocalSequenceRunning = LocalPlayback.Phase == EWxSkillCutsceneLocalPhase::Playing && LocalPlayback.SequenceActor;
-		if (!bLocalSequenceRunning && GetWorld()->GetAudioTimeSeconds() - ServerState.StartTime >= ServerState.Duration)
+		// 세션은 길이로만 끝낸다. 이 머신의 로컬 재생도 다른 머신처럼 따로 자기 끝까지 간다.
+		// 바꾼 배율은 다음 프레임 델타부터 들어가므로, 이번 틱의 Groom 역배율은 옛 값 그대로 두고 반환한다.
+		if (GetWorld()->GetAudioTimeSeconds() >= ServerState.EndTime)
 		{
 			Finish(false);
 			return;
@@ -260,62 +262,35 @@ void UWxSkillCutsceneComponent::TickComponent(float DeltaSeconds, ELevelTick Tic
 
 void UWxSkillCutsceneComponent::PrepareLocalPlayer()
 {
-	if (LocalPlayback.Phase != EWxSkillCutsceneLocalPhase::Preparing)
-	{
-		return;
-	}
-	if (!LocalPlayback.Session.Sequence.Get() && !LocalPlayback.SequenceLoad)
-	{
-		LocalPlayback.SequenceLoad = UAssetManager::GetStreamableManager().RequestAsyncLoad(LocalPlayback.Session.Sequence.ToSoftObjectPath());
-	}
-	if (LocalPlayback.SequenceLoad && !LocalPlayback.SequenceLoad->HasLoadCompleted())
+	// 참조가 늦게 풀리면 엔진이 OnRep을 다시 불러 사본을 채우고, 끝내 안 풀리면 서버 종료가 준비를 접는다.
+	const FWxSkillCutsceneSession& Session = LocalPlayback.Session;
+	if (LocalPlayback.Phase != EWxSkillCutsceneLocalPhase::Preparing || !Session.Sequence || !IsValid(Session.Avatar))
 	{
 		return;
 	}
 
-	bool bFailed = LocalPlayback.Session.Sequence.Get() == nullptr;
-	if (!bFailed && !IsValid(LocalPlayback.Session.Avatar))
+	FMovieSceneSequencePlaybackSettings Settings;
+	Settings.bDisableMovementInput = true;
+	Settings.bDisableLookAtInput = true;
+	Settings.FinishCompletionStateOverride = EMovieSceneCompletionModeOverride::ForceRestoreState;
+	ALevelSequenceActor* NewActor = nullptr;
+	ULevelSequencePlayer* Player = ULevelSequencePlayer::CreateLevelSequencePlayer(GetWorld(), Session.Sequence, Settings, NewActor);
+	LocalPlayback.SequenceActor = NewActor;
+	UDefaultLevelSequenceInstanceData* InstanceData = NewActor ? Cast<UDefaultLevelSequenceInstanceData>(NewActor->DefaultInstanceData) : nullptr;
+	if (!Player || !InstanceData)
 	{
-		// 시전자 참조가 아직 안 풀렸다. 풀리면 OnRep이 사본을 채운다.
-		return;
-	}
-	if (!bFailed && !LocalPlayback.SequenceActor)
-	{
-		FMovieSceneSequencePlaybackSettings Settings;
-		Settings.bDisableMovementInput = true;
-		Settings.bDisableLookAtInput = true;
-		Settings.FinishCompletionStateOverride = EMovieSceneCompletionModeOverride::ForceRestoreState;
-		ALevelSequenceActor* NewActor = nullptr;
-		ULevelSequencePlayer* Player = ULevelSequencePlayer::CreateLevelSequencePlayer(GetWorld(), LocalPlayback.Session.Sequence.Get(), Settings, NewActor);
-		LocalPlayback.SequenceActor = NewActor;
-		bFailed = !Player || !NewActor || NewActor->FindNamedBindings(TEXT("Player")).IsEmpty();
-		if (!bFailed)
-		{
-			NewActor->bOverrideInstanceData = true;
-			UDefaultLevelSequenceInstanceData* InstanceData = Cast<UDefaultLevelSequenceInstanceData>(NewActor->DefaultInstanceData);
-			bFailed = InstanceData == nullptr;
-			if (InstanceData)
-			{
-				InstanceData->TransformOrigin = LocalPlayback.Session.Origin;
-				TArray<AActor*> Actors;
-				Actors.Add(LocalPlayback.Session.Avatar);
-				NewActor->SetBindingByTag(TEXT("Player"), Actors, false);
-				Player->SetTimeController(MakeShared<FWxSkillCutsceneClock>(GetWorld()));
-			}
-		}
-	}
-	if (bFailed)
-	{
-		UE_LOG(LogWxCombat, Warning, TEXT("컷신 %u: 로컬 시퀀스 또는 Player 바인딩 준비 실패."), LocalPlayback.Session.Id);
+		// 이 머신만 재생을 건너뛴다. 종료는 서버가 길이로 끝낼 때 통지된다.
+		UE_LOG(LogWxCombat, Warning, TEXT("컷신 %u: 로컬 시퀀스 플레이어 준비 실패."), Session.Id);
 		CleanupLocalPlayer();
-		if (HasAuthority())
-		{
-			Finish(true);
-			return;
-		}
-		UpdateSession();
 		return;
 	}
+
+	NewActor->bOverrideInstanceData = true;
+	InstanceData->TransformOrigin = Session.Origin;
+	TArray<AActor*> Actors;
+	Actors.Add(Session.Avatar);
+	NewActor->SetBindingByTag(TEXT("Player"), Actors, false);
+	Player->SetTimeController(MakeShared<FWxSkillCutsceneClock>(GetWorld()));
 
 	StartLocalPlayer();
 }
@@ -344,11 +319,6 @@ void UWxSkillCutsceneComponent::HandleLocalSequenceFinished()
 {
 	// 시퀀서가 사전 상태를 되돌린 뒤라야 후속 몽타주가 포즈를 잡는다.
 	CleanupLocalPlayer();
-	if (HasAuthority())
-	{
-		Finish(false);
-		return;
-	}
 	UpdateSession();
 }
 
@@ -374,7 +344,6 @@ void UWxSkillCutsceneComponent::CleanupLocalPlayer()
 		SetGroomTimeDilation(1.f);
 	}
 	LocalPlayback.PoseMesh.Reset();
-	LocalPlayback.SequenceLoad.Reset();
 	LocalPlayback.Phase = EWxSkillCutsceneLocalPhase::Idle;
 }
 

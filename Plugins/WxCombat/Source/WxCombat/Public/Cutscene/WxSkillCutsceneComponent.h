@@ -12,7 +12,6 @@ class UAbilitySystemComponent;
 class ULevelSequence;
 class USkeletalMeshComponent;
 class ALevelSequenceActor;
-struct FStreamableHandle;
 
 /** 모든 머신이 같은 장면을 재생하는 데 필요한 정보. */
 USTRUCT()
@@ -24,7 +23,7 @@ struct FWxSkillCutsceneSession
 	uint32 Id = 0;
 
 	UPROPERTY()
-	TSoftObjectPtr<ULevelSequence> Sequence;
+	TObjectPtr<ULevelSequence> Sequence;
 
 	UPROPERTY()
 	TObjectPtr<AActor> Avatar;
@@ -63,7 +62,7 @@ struct FWxSkillCutsceneLocalPlayback
 {
 	GENERATED_BODY()
 
-	/** 서버가 먼저 끝내도 로컬 재생과 종료 통지에 필요하므로 사본을 들고 있는다. */
+	/** State가 다음 세션으로 덮여도 이 머신이 재생·통지 중인 세션을 가리키도록 사본을 둔다. */
 	UPROPERTY(Transient)
 	FWxSkillCutsceneSession Session;
 
@@ -71,7 +70,6 @@ struct FWxSkillCutsceneLocalPlayback
 	TObjectPtr<ALevelSequenceActor> SequenceActor;
 
 	EWxSkillCutsceneLocalPhase Phase = EWxSkillCutsceneLocalPhase::Idle;
-	TSharedPtr<FStreamableHandle> SequenceLoad;
 	TWeakObjectPtr<USkeletalMeshComponent> PoseMesh;
 	bool bPreviousOnlyAllowAutonomousTickPose = false;
 };
@@ -82,14 +80,17 @@ struct FWxSkillCutsceneServerState
 	TWeakObjectPtr<UGameplayAbility> Owner;
 	TWeakObjectPtr<UAbilitySystemComponent> InvincibleASC;
 	FActiveGameplayEffectHandle InvincibleHandle;
-	double Duration = 0.0;
-	double StartTime = 0.0;
+
+	/** 월드 오디오 시각. 로컬 재생과 무관하게 이 시각에 세션을 끝낸다. */
+	double EndTime = 0.0;
+
 	float AppliedDilation = 0.f;
 	bool bAvatarWasAlwaysRelevant = false;
 };
 
 /**
- * GameState가 같은 장면을 전달하고 각 머신이 로딩 후 처음부터 재생한다.
+ * GameState가 같은 장면을 전달하고, 각 머신은 받으면 처음부터 자기 끝까지 재생한다.
+ * 세션 수명(월드 배율·무적·관련성)은 서버가 시퀀스 길이로만 정한다.
  *
  * 시퀀스 저작 규약 2가지:
  * - Binding Tag "Player"가 시전자 AvatarActor를 가리킨다. 그 바인딩의 레퍼런스 액터는 월드 원점에 두고 트랜스폼 트랙을 두지 않는다 — 원점이 아바타의 메시로 옮겨오므로, 트랙이 남아 있으면 아바타를 메시 자리까지 끌어내린다.
