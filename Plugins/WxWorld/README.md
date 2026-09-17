@@ -43,7 +43,6 @@
 3. `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDevice.cpp` — 상호작용이 액터에서 트리로 넘어가는 실제 경로(`OnInteracted` → `BroadcastInteractionDelegate`).
 4. `Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxInteractionScannerComponent.h` — 플레이어 쪽 절반과 모듈 경계(어디까지 로컬, 어디부터 서버 어빌리티인지).
 5. `Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_SendEvent.h` — 장치끼리 미는 법(버튼→문). 여기까지 보면 태스크 묶음의 나머지는 같은 틀의 반복이다.
-6. `Plugins/WxWorld/Source/WxWorld/Private/Tests/WxDeviceInteractorSyncTest.cpp` — 실제 문 BP로 동기화 규약을 검증하는 자동화 테스트. 기대 동작의 실행 가능한 명세다.
 
 ## 관련
 - 상위: [[WxGame]] (상호작용 어빌리티 `WxAbility_Interact`, 스폰 대상 `AWxEnemyCharacter`, NPC), `Source/WxEditor` (ST 노드 커스터마이제이션)

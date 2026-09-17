@@ -88,9 +88,6 @@ protected:
 
 private:
 	friend struct FWxDeviceExecutionExtension;
-#if WITH_DEV_AUTOMATION_TESTS
-	friend class FWxDeviceInteractorSyncTest;
-#endif
 
 	void InstallExecutionObserver();
 	void HandleBeginApplyTransition(const FStateTreeExecutionExtension::FContextParameters& Context, const FStateTreeTransitionResult& Transition);
