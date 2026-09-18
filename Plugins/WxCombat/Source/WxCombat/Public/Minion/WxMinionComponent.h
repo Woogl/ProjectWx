@@ -31,7 +31,10 @@ public:
 	/** 소환물은 폰이다. 주인을 Instigator 로 무는 이상 다른 타입은 관계를 절반만 맺는다. */
 	APawn* GetMinionPawn() const;
 
-	/** 주인 ASC 가 없으면 빈 태그로 평가하므로 요구 태그가 없을 때만 통과한다. 스폰 전 CDO 에서 불린다. */
+	/**
+	 * 주인 ASC 가 없으면 빈 태그로 평가한다. 스폰 전 CDO 에서 불린다.
+	 * 취소 조건을 이미 만족하면 거부한다 — 통과시키면 상한 정리가 기존 소환물을 먼저 지운 뒤 새 소환물마저 곧바로 취소돼 둘 다 잃는다.
+	 */
 	bool CanBeSummonedBy(APawn& Master) const;
 
 	/** 음수는 0으로 보정한다. */
@@ -55,13 +58,23 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Minion")
 	FGameplayTag MasterStateTag;
 
-	/** 주인이 만족해야 이 소환물이 생성되는 조건. 다른 소환물이 발행한 MasterStateTag 를 IgnoreTags 로 걸면 종류끼리 배타가 된다. */
+	/** 소환하는 순간 주인이 만족해야 하는 조건. 다른 소환물의 MasterStateTag 를 IgnoreTags 로 걸면 그 소환물이 있는 동안 소환되지 않는다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Minion")
-	FGameplayTagRequirements MasterTagRequirements;
+	FGameplayTagRequirements SummonMasterTagRequirements;
+
+	/** 소환된 동안 주인이 만족하면 이 소환물이 사라지는 조건. 다른 소환물의 MasterStateTag 를 RequireTags 로 걸면 그 소환물이 올 때 자리를 내준다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Minion")
+	FGameplayTagRequirements CancelMasterTagRequirements;
 
 private:
 	/** 사망은 액터가 남은 채로 로스터에서만 내려가는 사유라, EndPlay 와 별개로 듣는다. */
 	void HandleDeathTagChanged(const FGameplayTag Tag, int32 NewCount);
 
+	/** 취소는 파괴라 권위에서만 듣는다. */
+	void HandleMasterTagChanged(const FGameplayTag Tag, int32 NewCount);
+
 	FDelegateHandle DeathTagHandle;
+
+	/** 주인 ASC 는 들고 있지 않고 해제할 때 GetMaster 로 다시 구한다. */
+	FDelegateHandle MasterTagHandle;
 };
