@@ -33,6 +33,7 @@ public:
 	/**
 	 * SpawnTransform 은 월드 기준이다. 소환물 클래스가 선언한 상한을 넘치면 주인의 가장 오래된 소환물부터 파괴한다.
 	 * 소환물이 선언한 소환 가능 조건을 만족하지 못하거나 취소 조건을 이미 만족하면 아무것도 하지 않고 null 을 돌려준다.
+	 * Master 가 소환물이어도 null 을 돌려준다.
 	 */
 	APawn* SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionClass, const FTransform& SpawnTransform);
 

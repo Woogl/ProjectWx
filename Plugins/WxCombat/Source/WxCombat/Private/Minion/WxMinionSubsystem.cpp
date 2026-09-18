@@ -24,6 +24,12 @@ APawn* UWxMinionSubsystem::SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionC
 		return nullptr;
 	}
 
+	// 소환물은 소환하지 못한다 — 주인의 어빌리티를 따라 하는 분신은 주인 태그가 없어 소환 조건을 그냥 통과한다.
+	if (UWxMinionComponent::GetMaster(Master))
+	{
+		return nullptr;
+	}
+
 	// 컴포넌트가 적 캐릭터에 네이티브로 붙어 CDO에 실리므로, 스폰 전에 조건과 상한을 읽을 수 있다.
 	const APawn* MinionDefaultPawn = MinionClass.GetDefaultObject();
 	const UWxMinionComponent* MinionDefaults = MinionDefaultPawn ? MinionDefaultPawn->FindComponentByClass<UWxMinionComponent>() : nullptr;
