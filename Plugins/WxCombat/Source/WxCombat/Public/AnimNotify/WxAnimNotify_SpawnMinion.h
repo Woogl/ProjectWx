@@ -29,6 +29,6 @@ protected:
 	TSubclassOf<APawn> MinionClass;
 
 	/** 소환자 로컬 기준 스폰 지점. 실제 위치는 스폰 시 충돌 보정으로 밀릴 수 있다. */
-	UPROPERTY(EditAnywhere, Category = "Wx|Minion")
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (MustImplement = "/Script/WxCore.WxSpawnable", AllowAbstract = "false"))
 	FTransform LocalSpawnOffset;
 };

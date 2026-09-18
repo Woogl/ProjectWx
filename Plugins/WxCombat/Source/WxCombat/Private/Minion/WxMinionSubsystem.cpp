@@ -8,6 +8,7 @@
 #include "GenericTeamAgentInterface.h"
 #include "Minion/WxMinionComponent.h"
 #include "WxCombatModule.h"
+#include "WxGameplayTags.h"
 
 APawn* UWxMinionSubsystem::FindActiveMinion(const APawn& Master) const
 {
@@ -82,6 +83,39 @@ APawn* UWxMinionSubsystem::SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionC
 	Minion->FinishSpawning(SpawnTransform);
 
 	return Minion;
+}
+
+void UWxMinionSubsystem::DespawnMinions(const APawn& Master, TSubclassOf<APawn> MinionClass)
+{
+	if (!Master.HasAuthority() || !MinionClass)
+	{
+		return;
+	}
+
+	// 로스터 해제는 소환물 컴포넌트가 사망 태그를 보고 하므로 여기서 내리지 않는다. 이미 죽은 소환물은 그 해제로 목록에 없다.
+	const TArray<TWeakObjectPtr<UWxMinionComponent>> MasterMinions = CollectMinions(Master);
+	for (const TWeakObjectPtr<UWxMinionComponent>& MasterMinion : MasterMinions)
+	{
+		const UWxMinionComponent* MinionComponent = MasterMinion.Get();
+		APawn* Minion = MinionComponent ? MinionComponent->GetMinionPawn() : nullptr;
+		UAbilitySystemComponent* MinionASC = Minion && Minion->IsA(MinionClass) ? UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Minion) : nullptr;
+		if (!MinionASC)
+		{
+			continue;
+		}
+
+		FGameplayEventData EventData;
+		EventData.EventTag = WxGameplayTags::Event_Death;
+		EventData.Instigator = &Master;
+		EventData.Target = Minion;
+		const int32 TriggeredCount = MinionASC->HandleGameplayEvent(WxGameplayTags::Event_Death, &EventData);
+
+		// 사망 어빌리티가 없는 경우 강제 파괴
+		if (TriggeredCount == 0)
+		{
+			Minion->Destroy();
+		}
+	}
 }
 
 void UWxMinionSubsystem::RegisterMinion(UWxMinionComponent& MinionComponent)

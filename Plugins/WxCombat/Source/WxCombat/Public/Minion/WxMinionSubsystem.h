@@ -37,6 +37,9 @@ public:
 	 */
 	APawn* SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionClass, const FTransform& SpawnTransform);
 
+	/** 주인의 소환물 중 MinionClass(하위 포함)인 것에 Event.Death 를 보내 사망 어빌리티로 거둔다. 파괴가 아니라 사망 연출과 시체 수명을 거친다. */
+	void DespawnMinions(const APawn& Master, TSubclassOf<APawn> MinionClass);
+
 	/**
 	 * 소환물 컴포넌트가 BeginPlay·EndPlay에서 자기를 올리고 내린다. 사망도 내림으로 처리한다.
 	 * 스폰 통지를 쓰지 않는 이유는 그 시점엔 복제 스폰의 Instigator가 아직 비어 주인을 못 읽기 때문이다.
