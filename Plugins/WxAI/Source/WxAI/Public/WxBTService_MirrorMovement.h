@@ -3,12 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "BehaviorTree/BTService.h"
 #include "BehaviorTree/BehaviorTreeTypes.h"
 #include "WxBTService_MirrorMovement.generated.h"
 
 class ACharacter;
 class UAbilitySystemComponent;
+class UGameplayAbility;
 struct FAbilityEndedData;
 
 /** Master 옆으로 이동하며, 어빌리티 종료 또는 도달 제한 시간 초과 시 위치를 보정한다. */
@@ -31,8 +33,15 @@ protected:
 	float ArrivalRadius = 15.f;
 	UPROPERTY(EditAnywhere, Category="Wx|AI", meta=(ClampMin="0.01"))
 	float TeleportDelay = 1.f;
+	/** 일치하는 AssetTags의 발동 시 전방으로 이동한다. 같은 소유 태그가 유지되는 동안 추적 대신 마스터를 바라본다. */
+	UPROPERTY(EditAnywhere, Category="Wx|AI")
+	FGameplayTagContainer FaceMasterAbilityTags;
+	UPROPERTY(EditAnywhere, Category="Wx|AI", meta=(ClampMin="1.0", Units="cm"))
+	float AbilityTeleportDistance = 500.f;
 private:
+	friend class FWxMirrorMovementAbilityTeleportTest;
 	void Release(UBehaviorTreeComponent& OwnerComp);
+	void HandleAbilityActivated(UGameplayAbility* Ability);
 	void HandleAbilityEnded(const FAbilityEndedData& Data);
 	TWeakObjectPtr<ACharacter> Master;
 	TWeakObjectPtr<ACharacter> Follower;

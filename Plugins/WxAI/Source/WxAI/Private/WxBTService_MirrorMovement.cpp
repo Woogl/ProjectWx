@@ -4,6 +4,7 @@
 #include "AIController.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "Abilities/GameplayAbility.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -35,7 +36,11 @@ FString UWxBTService_MirrorMovement::GetStaticServiceDescription() const
 
 void UWxBTService_MirrorMovement::Release(UBehaviorTreeComponent& OwnerComp)
 {
-	if (FollowerAbilitySystem.IsValid()) { FollowerAbilitySystem->OnAbilityEnded.RemoveAll(this); }
+	if (FollowerAbilitySystem.IsValid())
+	{
+		FollowerAbilitySystem->AbilityActivatedCallbacks.RemoveAll(this);
+		FollowerAbilitySystem->OnAbilityEnded.RemoveAll(this);
+	}
 	FollowerAbilitySystem.Reset();
 	bPendingAbilityEndTeleport = false;
 	if (ACharacter* Pawn = Follower.Get())
@@ -47,6 +52,28 @@ void UWxBTService_MirrorMovement::Release(UBehaviorTreeComponent& OwnerComp)
 	if (Master.IsValid()) { OwnerComp.RemoveTickPrerequisiteComponent(Master->GetCharacterMovement()); }
 	Master.Reset();
 	Follower.Reset();
+	TravelTime = 0.f;
+}
+
+void UWxBTService_MirrorMovement::HandleAbilityActivated(UGameplayAbility* Ability)
+{
+	ACharacter* Pawn = Follower.Get();
+	const ACharacter* Target = Master.Get();
+	if (!Pawn || !Pawn->HasAuthority() || !Target || !Ability || !Ability->GetAssetTags().HasAnyExact(FaceMasterAbilityTags))
+	{
+		return;
+	}
+
+	// GAS의 PreActivate 알림이므로 몽타주 시작 전에 위치와 방향이 정해진다. 거절된 발동은 이 알림에 닿지 않는다.
+	const FVector Forward = FRotator(0.f, Target->GetActorRotation().Yaw, 0.f).Vector();
+	const FVector Destination = Target->GetActorLocation() + Forward * AbilityTeleportDistance;
+	Pawn->TeleportTo(Destination, (-Forward).Rotation());
+	const FRotator Facing(0.f, (Target->GetActorLocation() - Pawn->GetActorLocation()).Rotation().Yaw, 0.f);
+	Pawn->SetActorRotation(Facing);
+	if (AController* Controller = Pawn->GetController()) { Controller->SetControlRotation(Facing); }
+	Pawn->ConsumeMovementInputVector();
+	Pawn->StopJumping();
+	Pawn->GetCharacterMovement()->StopMovementImmediately();
 	TravelTime = 0.f;
 }
 
@@ -82,7 +109,11 @@ void UWxBTService_MirrorMovement::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 		Master = Target;
 		Follower = Pawn;
 		FollowerAbilitySystem = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
-		if (FollowerAbilitySystem.IsValid()) { FollowerAbilitySystem->OnAbilityEnded.AddUObject(this, &ThisClass::HandleAbilityEnded); }
+		if (FollowerAbilitySystem.IsValid())
+		{
+			FollowerAbilitySystem->AbilityActivatedCallbacks.AddUObject(this, &ThisClass::HandleAbilityActivated);
+			FollowerAbilitySystem->OnAbilityEnded.AddUObject(this, &ThisClass::HandleAbilityEnded);
+		}
 		PreviousJumpCount = Target->JumpCurrentCount;
 		OwnerComp.AddTickPrerequisiteComponent(Target->GetCharacterMovement());
 		Movement->AddTickPrerequisiteComponent(&OwnerComp);
@@ -92,6 +123,17 @@ void UWxBTService_MirrorMovement::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 			Movement->SetMovementMode(MOVE_Falling);
 			Movement->Velocity = Target->GetVelocity();
 		}
+	}
+	if (FollowerAbilitySystem.IsValid() && FollowerAbilitySystem->HasAnyMatchingGameplayTags(FaceMasterAbilityTags))
+	{
+		const FRotator Facing(0.f, (Target->GetActorLocation() - Pawn->GetActorLocation()).Rotation().Yaw, 0.f);
+		Pawn->SetActorRotation(Facing);
+		Controller->SetControlRotation(Facing);
+		Pawn->ConsumeMovementInputVector();
+		Pawn->StopJumping();
+		PreviousJumpCount = Target->JumpCurrentCount;
+		TravelTime = 0.f;
+		return;
 	}
 	Pawn->SetActorRotation(Target->GetActorRotation());
 	Controller->SetControlRotation(Target->GetControlRotation());
