@@ -135,6 +135,9 @@ void UWxBTTask_MirrorAbility::ReplayAutomatic(UGameplayAbility* Ability)
 	}
 	// 콤보 상태·대상 이벤트를 추측하지 않고 일반 발동 조건을 그대로 적용한다.
 	const bool bActivated = ASC->TryActivateAbility(MirrorHandle, false);
+	// 선입력은 Master 노티파이 안에서 발동해, 같은 프레임에 아직 창을 열지 못한 분신의 앞 동작에 거절될 수 있다.
+	RetryHandle = bActivated ? FGameplayAbilitySpecHandle() : MirrorHandle;
+	RetryElapsed = 0.f;
 	UE_LOG(LogWxAI, Verbose, TEXT("Mirror commit: %s -> %s, activation %s"), *GetNameSafe(AbilityClass.Get()), *GetNameSafe(ASC->GetAvatarActor()), bActivated ? TEXT("accepted") : TEXT("rejected"));
 }
 
@@ -142,6 +145,7 @@ void UWxBTTask_MirrorAbility::ClearAutomaticAbilities()
 {
 	TMap<FGameplayAbilitySpecHandle, FGameplayAbilitySpecHandle> Handles = MoveTemp(AutomaticHandles);
 	AutomaticHandles.Reset();
+	RetryHandle = FGameplayAbilitySpecHandle();
 	if (UAbilitySystemComponent* ASC = MirrorASC.Get())
 	{
 		for (const auto& Pair : Handles)
@@ -158,6 +162,18 @@ void UWxBTTask_MirrorAbility::TickTask(UBehaviorTreeComponent& OwnerComp, uint8*
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 	AActor* Master = BB ? Cast<AActor>(BB->GetValueAsObject(MirrorTarget.SelectedKeyName)) : nullptr;
 	BindMaster(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Master));
+
+	if (!RetryHandle.IsValid() || !MirrorASC.IsValid())
+	{
+		return;
+	}
+	RetryElapsed += DeltaSeconds;
+	const bool bActivated = RetryElapsed <= RetryDuration && MirrorASC->TryActivateAbility(RetryHandle, false);
+	if (bActivated || RetryElapsed > RetryDuration)
+	{
+		UE_LOG(LogWxAI, Verbose, TEXT("Mirror retry: %s -> %s after %.3f s, activation %s"), *RetryHandle.ToString(), *GetNameSafe(MirrorASC->GetAvatarActor()), RetryElapsed, bActivated ? TEXT("accepted") : TEXT("expired"));
+		RetryHandle = FGameplayAbilitySpecHandle();
+	}
 }
 
 void UWxBTTask_MirrorAbility::CleanUp()

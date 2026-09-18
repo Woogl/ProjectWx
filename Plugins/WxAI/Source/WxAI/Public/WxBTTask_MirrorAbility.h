@@ -30,6 +30,9 @@ protected:
 	/** 어느 컨테이너든 어빌리티 AssetTags와 정확히 같은 태그가 하나라도 있으면 제외한다. 부모 태그는 매칭하지 않는다. */
 	UPROPERTY(EditAnywhere, Category="Wx|AI")
 	TArray<FGameplayTagContainer> ExcludedAbilities;
+	/** 거절된 따라 쓰기를 이 시간 동안 매 틱 다시 시도한다. 플레이어 선입력 버퍼와 같은 창이다. */
+	UPROPERTY(EditAnywhere, Category="Wx|AI", meta=(ClampMin="0.0"))
+	float RetryDuration = 0.4f;
 private:
 	bool IsExcluded(const UGameplayAbility* Ability) const;
 	void ReplayAutomatic(UGameplayAbility* Ability);
@@ -40,6 +43,8 @@ private:
 	TWeakObjectPtr<UAbilitySystemComponent> MasterASC;
 	TWeakObjectPtr<UAbilitySystemComponent> MirrorASC;
 	TMap<FGameplayAbilitySpecHandle, FGameplayAbilitySpecHandle> AutomaticHandles;
+	FGameplayAbilitySpecHandle RetryHandle;
+	float RetryElapsed = 0.f;
 	uint32 MasterGeneration = 0;
 	bool bReplayingAutomatic = false;
 };
