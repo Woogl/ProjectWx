@@ -4,13 +4,13 @@
 
 #include "WxBlackboardKeys.h"
 #include "WxGameplayTags.h"
+#include "WxMinion.h"
 #include "AIController.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Perception/AIPerceptionComponent.h"
-#include "Minion/WxMinion.h"
 
 UWxBTService_UpdateTargetActor::UWxBTService_UpdateTargetActor()
 {

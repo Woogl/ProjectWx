@@ -21,7 +21,7 @@
 | `WxGameplayTags` | 모듈 전체에서 가장 많이 참조되는 지점. 태그 이름 하나가 어느 시스템에 닿는지 주석으로 적혀 있어 사실상 프로젝트 게임플레이 계약의 색인이다 | `Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h` |
 | `IWxInteractable` | 상호작용 대상의 계약. 액터가 구현하며, 이 계약이 WxCore에 있어 인벤토리 픽업이 WxWorld에 의존하지 않고도 상호작용 대상이 된다 | `Plugins/WxCore/Source/WxCore/Public/WxInteractable.h` |
 | `IWxUIData` | 표시용 데이터의 계약. WxUI가 도메인 플러그인(어빌리티·GE 컴포넌트)을 몰라도 아이콘·이름을 읽게 하는 역방향 의존 차단막 | `Plugins/WxCore/Source/WxCore/Public/WxUIData.h` |
-| `IWxMinion` | 소환 가능한 액터가 자기 상한·어그로 정책을 선언하는 계약. 유일하게 BlueprintNativeEvent라 BP 소환물도 구현할 수 있다 | `Plugins/WxCore/Source/WxCore/Public/Minion/WxMinion.h` |
+| `IWxMinion` | 소환 가능한 액터가 자기 상한·어그로 정책을 선언하는 계약. 유일하게 BlueprintNativeEvent라 BP 소환물도 구현할 수 있다 | `Plugins/WxCore/Source/WxCore/Public/WxMinion.h` |
 | `ECC_WxAttack` | 무기·투사체 히트박스 Object Type 상수. 전투·픽업·캐릭터 콜리전 설정이 모두 이 한 값을 참조한다 | `Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h` |
 | `FWxLocatorUtils` | `WITH_EDITOR` 전용. StateTree 태스크·디테일 커스터마이제이션이 로케이터를 사람이 읽는 이름으로 보여줄 때 쓴다 | `Plugins/WxCore/Source/WxCore/Public/WxLocatorUtils.h` |
 

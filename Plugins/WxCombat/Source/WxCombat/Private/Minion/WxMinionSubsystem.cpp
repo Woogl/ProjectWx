@@ -6,9 +6,9 @@
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "GenericTeamAgentInterface.h"
-#include "Minion/WxMinion.h"
 #include "WxCombatModule.h"
 #include "WxGameplayTags.h"
+#include "WxMinion.h"
 
 APawn* UWxMinionSubsystem::GetMaster(const APawn& Minion)
 {

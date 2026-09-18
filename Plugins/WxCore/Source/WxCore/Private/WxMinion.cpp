@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Minion/WxMinion.h"
+#include "WxMinion.h"
 
 int32 IWxMinion::GetMaxCountPerMaster_Implementation() const
 {
