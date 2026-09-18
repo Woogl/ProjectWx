@@ -18,6 +18,8 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Effect_SuperArmor, "Effect.SuperArmor");
 	UE_DEFINE_GAMEPLAY_TAG(Effect_HitStop, "Effect.HitStop");
 	UE_DEFINE_GAMEPLAY_TAG(Effect_IgnoreAggro, "Effect.IgnoreAggro");
+	UE_DEFINE_GAMEPLAY_TAG(Effect_IgnoreCosts, "Effect.IgnoreCosts");
+	UE_DEFINE_GAMEPLAY_TAG(Effect_IgnoreCooldowns, "Effect.IgnoreCooldowns");
 
 	UE_DEFINE_GAMEPLAY_TAG(Movement_InAir, "Movement.InAir");
 	UE_DEFINE_GAMEPLAY_TAG(Movement_Sprint, "Movement.Sprint");
