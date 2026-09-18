@@ -9,7 +9,7 @@
 UENUM(BlueprintType)
 enum class EWxAbilityCostResource : uint8
 {
-	None,
+	Custom,
 	SP,
 	MP,
 	UP,
@@ -30,7 +30,7 @@ struct WXCOMBAT_API FWxAbilityTableRow : public FTableRowBase
 	int32 MaxRecharges = 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cost")
-	EWxAbilityCostResource CostResource = EWxAbilityCostResource::None;
+	EWxAbilityCostResource CostResource = EWxAbilityCostResource::Custom;
 
 	/** 질주처럼 지속 소모하는 어빌리티에서는 진입 비용이다 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cost", meta = (ClampMin = "0.0"))
