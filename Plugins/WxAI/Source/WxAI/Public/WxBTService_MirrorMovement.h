@@ -36,16 +36,8 @@ private:
 	void HandleAbilityEnded(const FAbilityEndedData& Data);
 	TWeakObjectPtr<ACharacter> Master;
 	TWeakObjectPtr<ACharacter> Follower;
-	TWeakObjectPtr<UAbilitySystemComponent> MasterAbilitySystem;
 	TWeakObjectPtr<UAbilitySystemComponent> FollowerAbilitySystem;
 	bool bPendingAbilityEndTeleport = false;
 	float TravelTime = 0.f;
 	int32 PreviousJumpCount = 0;
-	bool bOriginalOrientToMovement = false;
-	bool bOriginalControllerDesiredRotation = false;
-	float OriginalMaxWalkSpeed = 0.f;
-	float OriginalCrouchSpeed = 0.f;
-	float OriginalGravity = 1.f;
-	float OriginalJumpVelocity = 0.f;
-	int32 OriginalJumpMaxCount = 1;
 };

@@ -10,21 +10,6 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-namespace
-{
-	bool HasActiveMirrorMovementAbility(AActor* Actor)
-	{
-		UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor);
-		if (!ASC) { return false; }
-		FScopedAbilityListLock Lock(*ASC);
-		for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
-		{
-			if (Spec.IsActive()) { return true; }
-		}
-		return false;
-	}
-}
-
 UWxBTService_MirrorMovement::UWxBTService_MirrorMovement()
 {
 	NodeName = TEXT("Mirror Movement");
@@ -50,22 +35,12 @@ FString UWxBTService_MirrorMovement::GetStaticServiceDescription() const
 
 void UWxBTService_MirrorMovement::Release(UBehaviorTreeComponent& OwnerComp)
 {
-	if (MasterAbilitySystem.IsValid()) { MasterAbilitySystem->OnAbilityEnded.RemoveAll(this); }
 	if (FollowerAbilitySystem.IsValid()) { FollowerAbilitySystem->OnAbilityEnded.RemoveAll(this); }
-	MasterAbilitySystem.Reset();
 	FollowerAbilitySystem.Reset();
 	bPendingAbilityEndTeleport = false;
 	if (ACharacter* Pawn = Follower.Get())
 	{
-		UCharacterMovementComponent* Movement = Pawn->GetCharacterMovement();
-		Movement->RemoveTickPrerequisiteComponent(&OwnerComp);
-		Movement->bOrientRotationToMovement = bOriginalOrientToMovement;
-		Movement->bUseControllerDesiredRotation = bOriginalControllerDesiredRotation;
-		Movement->MaxWalkSpeed = OriginalMaxWalkSpeed;
-		Movement->MaxWalkSpeedCrouched = OriginalCrouchSpeed;
-		Movement->GravityScale = OriginalGravity;
-		Movement->JumpZVelocity = OriginalJumpVelocity;
-		Pawn->JumpMaxCount = OriginalJumpMaxCount;
+		Pawn->GetCharacterMovement()->RemoveTickPrerequisiteComponent(&OwnerComp);
 		Pawn->StopJumping();
 		if (Master.IsValid()) { Pawn->GetCapsuleComponent()->IgnoreActorWhenMoving(Master.Get(), false); }
 	}
@@ -106,18 +81,9 @@ void UWxBTService_MirrorMovement::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 		Release(OwnerComp);
 		Master = Target;
 		Follower = Pawn;
-		MasterAbilitySystem = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Target);
 		FollowerAbilitySystem = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
-		if (MasterAbilitySystem.IsValid()) { MasterAbilitySystem->OnAbilityEnded.AddUObject(this, &ThisClass::HandleAbilityEnded); }
 		if (FollowerAbilitySystem.IsValid()) { FollowerAbilitySystem->OnAbilityEnded.AddUObject(this, &ThisClass::HandleAbilityEnded); }
 		PreviousJumpCount = Target->JumpCurrentCount;
-		bOriginalOrientToMovement = Movement->bOrientRotationToMovement;
-		bOriginalControllerDesiredRotation = Movement->bUseControllerDesiredRotation;
-		OriginalMaxWalkSpeed = Movement->MaxWalkSpeed;
-		OriginalCrouchSpeed = Movement->MaxWalkSpeedCrouched;
-		OriginalGravity = Movement->GravityScale;
-		OriginalJumpVelocity = Movement->JumpZVelocity;
-		OriginalJumpMaxCount = Pawn->JumpMaxCount;
 		OwnerComp.AddTickPrerequisiteComponent(Target->GetCharacterMovement());
 		Movement->AddTickPrerequisiteComponent(&OwnerComp);
 		Pawn->GetCapsuleComponent()->IgnoreActorWhenMoving(Target, true);
@@ -127,22 +93,18 @@ void UWxBTService_MirrorMovement::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 			Movement->Velocity = Target->GetVelocity();
 		}
 	}
-	Movement->bOrientRotationToMovement = false;
-	Movement->bUseControllerDesiredRotation = false;
 	Pawn->SetActorRotation(Target->GetActorRotation());
 	Controller->SetControlRotation(Target->GetControlRotation());
 	Movement->MaxWalkSpeed = SourceMovement->MaxWalkSpeed * 1.25f;
 	Movement->MaxWalkSpeedCrouched = SourceMovement->MaxWalkSpeedCrouched * 1.25f;
-	Movement->GravityScale = SourceMovement->GravityScale;
-	Movement->JumpZVelocity = SourceMovement->JumpZVelocity;
-	Pawn->JumpMaxCount = Target->JumpMaxCount;
 	if (Target->IsCrouched()) { Pawn->Crouch(); } else { Pawn->UnCrouch(); }
 	if (Target->JumpCurrentCount > PreviousJumpCount) { Pawn->StopJumping(); Pawn->Jump(); }
 	else if (!Target->bPressedJump) { Pawn->StopJumping(); }
 	PreviousJumpCount = Target->JumpCurrentCount;
 
 	const FVector Destination = Target->GetActorLocation() + Target->GetActorRotation().RotateVector(LocalOffset);
-	const bool bAbilityActive = HasActiveMirrorMovementAbility(Target) || HasActiveMirrorMovementAbility(Pawn);
+	// 몽타주 없이 켜져 있는 락온·질주는 몸을 쥐지 않으므로 보정을 막지 않는다.
+	const bool bAbilityActive = FollowerAbilitySystem.IsValid() && FollowerAbilitySystem->GetAnimatingAbility();
 	if (bPendingAbilityEndTeleport && !bAbilityActive && Pawn->TeleportTo(Destination, Target->GetActorRotation()))
 	{
 		bPendingAbilityEndTeleport = false;
@@ -152,7 +114,6 @@ void UWxBTService_MirrorMovement::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 	FVector Error = Destination - Pawn->GetActorLocation();
 	Error.Z = 0.f;
 	if (Error.SizeSquared() <= FMath::Square(ArrivalRadius)) { TravelTime = 0.f; Error = FVector::ZeroVector; }
-	// Master를 함께 검사해 커밋과 분신의 다음 BT 틱 사이에도 강제 이동하지 않는다.
 	else if (bAbilityActive) { TravelTime = 0.f; }
 	else if (Movement->IsMovingOnGround() && SourceMovement->IsMovingOnGround())
 	{
