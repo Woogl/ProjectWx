@@ -9,7 +9,6 @@ UWxBTDecorator_MasterAbility::UWxBTDecorator_MasterAbility()
 	NodeName = TEXT("Master Ability");
 	FlowAbortMode = EBTFlowAbortMode::LowerPriority;
 	bAllowAbortNone = false;
-	bAllowAbortChildNodes = false;
 	INIT_DECORATOR_NODE_NOTIFY_FLAGS();
 }
 
