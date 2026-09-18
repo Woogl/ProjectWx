@@ -4,6 +4,7 @@
 #include "Animation/AnimNotifyQueue.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Pawn.h"
+#include "Minion/WxMinionComponent.h"
 #include "Minion/WxMinionSubsystem.h"
 #include "MotionWarpingComponent.h"
 #include "Targeting/WxLockOnComponent.h"
@@ -37,7 +38,7 @@ AActor* UWxAnimNotifyState_Rush::FindTarget(APawn& Avatar) const
 	}
 	if (TargetSource == EWxRushTarget::Master)
 	{
-		return UWxMinionSubsystem::GetMaster(Avatar);
+		return UWxMinionComponent::GetMaster(Avatar);
 	}
 	const UWxMinionSubsystem* Subsystem = Avatar.GetWorld()->GetSubsystem<UWxMinionSubsystem>();
 	return Subsystem ? Subsystem->FindActiveMinion(Avatar) : nullptr;

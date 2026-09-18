@@ -2,7 +2,7 @@
 
 #include "Spawnable/WxSpawner.h"
 
-#include "Spawnable/WxSpawnable.h"
+#include "WxSpawnable.h"
 #include "Components/BillboardComponent.h"
 #include "Components/ChildActorComponent.h"
 #include "Components/PrimitiveComponent.h"

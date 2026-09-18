@@ -8,7 +8,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BrainComponent.h"
 #include "GenericTeamAgentInterface.h"
-#include "Minion/WxMinionSubsystem.h"
+#include "Minion/WxMinionComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Hearing.h"
@@ -108,7 +108,7 @@ void AWxAIController::OnPossess(APawn* InPawn)
 
 		// 소환자는 Deferred Spawn 시 Instigator로 지정되어 빙의보다 먼저 사용할 수 있다.
 		// 소환물이 아닌 폰의 블랙보드에는 Master 키가 없으니 쓰지 않는다 — 쓰면 키를 못 찾았다는 경고만 남는다.
-		if (APawn* Master = UWxMinionSubsystem::GetMaster(*InPawn))
+		if (APawn* Master = UWxMinionComponent::GetMaster(*InPawn))
 		{
 			WxBlackboardKeys::SetMaster(BB, Master);
 		}
@@ -132,7 +132,7 @@ void AWxAIController::OnUnPossess()
 		WxBlackboardKeys::SetTargetActor(BB, nullptr);
 
 		const APawn* PreviousPawn = GetPawn();
-		if (PreviousPawn && UWxMinionSubsystem::GetMaster(*PreviousPawn))
+		if (PreviousPawn && UWxMinionComponent::GetMaster(*PreviousPawn))
 		{
 			WxBlackboardKeys::SetMaster(BB, nullptr);
 		}

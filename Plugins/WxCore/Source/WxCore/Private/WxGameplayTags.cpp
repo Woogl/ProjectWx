@@ -7,7 +7,8 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_LockedOn, "State.LockedOn");
 	UE_DEFINE_GAMEPLAY_TAG(State_Engaged, "State.Engaged");
 	UE_DEFINE_GAMEPLAY_TAG(State_Dialogue, "State.Dialogue");
-	UE_DEFINE_GAMEPLAY_TAG(State_Minion_Active, "State.Minion.Active");
+	UE_DEFINE_GAMEPLAY_TAG(State_MinionMaster_Minion, "State.MinionMaster.Minion");
+	UE_DEFINE_GAMEPLAY_TAG(State_MinionMaster_Doppelganger, "State.MinionMaster.Doppelganger");
 	UE_DEFINE_GAMEPLAY_TAG(State_Ragdoll, "State.Ragdoll");
 
 	UE_DEFINE_GAMEPLAY_TAG(Effect_Invincible, "Effect.Invincible");
@@ -16,6 +17,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Effect_Exhausted, "Effect.Exhausted");
 	UE_DEFINE_GAMEPLAY_TAG(Effect_SuperArmor, "Effect.SuperArmor");
 	UE_DEFINE_GAMEPLAY_TAG(Effect_HitStop, "Effect.HitStop");
+	UE_DEFINE_GAMEPLAY_TAG(Effect_AggroIgnored, "Effect.AggroIgnored");
 
 	UE_DEFINE_GAMEPLAY_TAG(Movement_InAir, "Movement.InAir");
 	UE_DEFINE_GAMEPLAY_TAG(Movement_Sprint, "Movement.Sprint");

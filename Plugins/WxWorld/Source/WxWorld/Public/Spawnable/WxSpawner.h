@@ -52,7 +52,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<USceneComponent> SceneRoot;
 
-	UPROPERTY(EditAnywhere, Category = "Wx", meta = (MustImplement = "/Script/WxWorld.WxSpawnable", AllowAbstract = "false"))
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (MustImplement = "/Script/WxCore.WxSpawnable", AllowAbstract = "false"))
 	TSubclassOf<AActor> SpawnableActorClass;
 
 	UPROPERTY(EditAnywhere, Category = "Wx")

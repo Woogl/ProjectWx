@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Spawnable/WxSpawnable.h"
+#include "WxSpawnable.h"
 #include "WxInteractable.h"
 #include "Character/WxCharacterBase.h"
 #include "Engine/DataTable.h"
@@ -14,6 +14,7 @@ class AWxEnemyCharacter;
 class AWxSpawner;
 class UWxAIBehaviorComponent;
 class UWxLockOnPointComponent;
+class UWxMinionComponent;
 class UWxNameplateComponent;
 class UAbilitySystemComponent;
 class USceneComponent;
@@ -39,7 +40,7 @@ public:
 	static FWxOnBossEngagementChanged OnAnyBossEngagementChanged;
 
 	//~ Begin IWxSpawnable
-	virtual void OnSpawnedBy(AWxSpawner* Spawner) override;
+	virtual void OnSpawnedBy(AActor* Spawner) override;
 	//~ End IWxSpawnable
 
 	//~ Begin IWxInteractable
@@ -61,6 +62,10 @@ protected:
 	/** 메시의 pelvis 본에 부착되어 카메라·캐릭터 시선과 레티클·호밍이 이 위치를 향한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|LockOn")
 	TObjectPtr<UWxLockOnPointComponent> LockOnPoint;
+
+	/** 소환물로 태어난 개체만 값이 의미를 갖는다. 그 판정은 컴포넌트가 Instigator로 한다. */
+	UPROPERTY(VisibleAnywhere, Category = "Wx|Minion")
+	TObjectPtr<UWxMinionComponent> MinionComponent;
 
 private:
 	UFUNCTION()

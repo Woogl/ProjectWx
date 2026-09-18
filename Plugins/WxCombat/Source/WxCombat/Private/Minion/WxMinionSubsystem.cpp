@@ -6,28 +6,15 @@
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "GenericTeamAgentInterface.h"
+#include "Minion/WxMinionComponent.h"
 #include "WxCombatModule.h"
-#include "WxGameplayTags.h"
-#include "WxMinion.h"
 
-APawn* UWxMinionSubsystem::GetMaster(const APawn& Minion)
+APawn* UWxMinionSubsystem::FindActiveMinion(const APawn& Master) const
 {
-	APawn* SpawnInstigator = Minion.GetInstigator();
-	return SpawnInstigator != &Minion ? SpawnInstigator : nullptr;
-}
-
-APawn* UWxMinionSubsystem::FindActiveMinion(const APawn& Master, TSubclassOf<APawn> MinionClass) const
-{
-	const TArray<TWeakObjectPtr<APawn>> MasterMinions = CollectMinions(Master);
-	for (const TWeakObjectPtr<APawn>& Entry : MasterMinions)
-	{
-		APawn* Minion = Entry.Get();
-		if (Minion && (!MinionClass || Minion->IsA(MinionClass)))
-		{
-			return Minion;
-		}
-	}
-	return nullptr;
+	// CollectMinions 가 폰이 유효한 후보만 소환 순서대로 담으므로 첫 항목이 곧 가장 오래된 소환물이다.
+	const TArray<TWeakObjectPtr<UWxMinionComponent>> MasterMinions = CollectMinions(Master);
+	const UWxMinionComponent* FirstMinion = MasterMinions.IsEmpty() ? nullptr : MasterMinions[0].Get();
+	return FirstMinion ? FirstMinion->GetMinionPawn() : nullptr;
 }
 
 APawn* UWxMinionSubsystem::SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionClass, const FTransform& SpawnTransform)
@@ -36,28 +23,36 @@ APawn* UWxMinionSubsystem::SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionC
 	{
 		return nullptr;
 	}
-	if (!MinionClass->ImplementsInterface(UGenericTeamAgentInterface::StaticClass()))
+
+	// 컴포넌트가 적 캐릭터에 네이티브로 붙어 CDO에 실리므로, 스폰 전에 조건과 상한을 읽을 수 있다.
+	const APawn* MinionDefaultPawn = MinionClass.GetDefaultObject();
+	const UWxMinionComponent* MinionDefaults = MinionDefaultPawn ? MinionDefaultPawn->FindComponentByClass<UWxMinionComponent>() : nullptr;
+	if (!MinionDefaults)
 	{
-		UE_LOG(LogWxCombat, Warning, TEXT("%s: 소환 클래스 %s가 GenericTeamAgentInterface를 구현하지 않아 생성하지 않는다."), *Master.GetName(), *GetNameSafe(MinionClass.Get()));
+		// 상한도 조건도 이 컴포넌트가 들고 있어, 없는 채로 소환하면 추적되지 않는 소환물이 무제한으로 쌓인다.
+		UE_LOG(LogWxCombat, Warning, TEXT("%s: 소환 클래스 %s의 CDO에 MinionComponent가 없어 소환하지 않는다. 네이티브로 부착해야 한다."), *Master.GetName(), *GetNameSafe(MinionClass.Get()));
 		return nullptr;
 	}
-	if (!MinionClass->ImplementsInterface(UWxMinion::StaticClass()))
+
+	// 조건 검사는 상한 정리보다 앞선다 — 소환하지 않을 참에 낡은 소환물을 파괴하면 안 된다.
+	if (!MinionDefaults->CanBeSummonedBy(Master))
 	{
-		UE_LOG(LogWxCombat, Warning, TEXT("%s: 소환 클래스 %s가 IWxMinion을 구현하지 않아 생성하지 않는다."), *Master.GetName(), *GetNameSafe(MinionClass.Get()));
 		return nullptr;
 	}
 	Master.OnEndPlay.AddUniqueDynamic(this, &UWxMinionSubsystem::HandleMasterEndPlay);
 
 	// 새 소환물 한 자리를 확보하되, 상한이 낮아진 경우 초과분도 함께 정리한다.
-	const TArray<TWeakObjectPtr<APawn>> MasterMinions = CollectMinions(Master);
-	const int32 MaxCountPerMaster = FMath::Max(0, IWxMinion::Execute_GetMaxCountPerMaster(MinionClass.GetDefaultObject()));
+	// 자리를 다투는 것은 같은 주인 태그를 선언한 소환물뿐이라, 다른 종류는 이 정리에 휘말리지 않는다.
+	const TArray<TWeakObjectPtr<UWxMinionComponent>> MasterMinions = CollectMinions(Master, MinionDefaults->GetMasterStateTag());
+	const int32 MaxCountPerMaster = MinionDefaults->GetMaxCountPerMaster();
 	const int32 MinionCountToRemove = MaxCountPerMaster > 0
 		? FMath::Clamp(MasterMinions.Num() - MaxCountPerMaster + 1, 0, MasterMinions.Num()) : 0;
 	for (int32 RemovedMinionCount = 0; RemovedMinionCount < MinionCountToRemove; ++RemovedMinionCount)
 	{
-		if (APawn* OldestMinion = MasterMinions[RemovedMinionCount].Get())
+		const UWxMinionComponent* OldestMinion = MasterMinions[RemovedMinionCount].Get();
+		if (APawn* OldestPawn = OldestMinion ? OldestMinion->GetMinionPawn() : nullptr)
 		{
-			OldestMinion->Destroy();
+			OldestPawn->Destroy();
 		}
 	}
 
@@ -72,12 +67,44 @@ APawn* UWxMinionSubsystem::SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionC
 	{
 		TeamAgent->SetGenericTeamId(FGenericTeamId::GetTeamIdentifier(&Master));
 	}
+	else
+	{
+		UE_LOG(LogWxCombat, Warning, TEXT("%s: 소환물 %s가 GenericTeamAgentInterface를 구현하지 않아 주인의 팀을 물려받지 못한다."), *Master.GetName(), *Minion->GetName());
+	}
 
-	// 로스터 등재는 스폰 통지가 맡는다. 이 호출이 그 통지를 낸다.
+	// 로스터 등재는 소환물의 MinionComponent가 BeginPlay에서 한다. 이 호출이 그 BeginPlay를 낸다.
 	Minion->FinishSpawning(SpawnTransform);
 
-	RefreshMasterStateTag(Master);
 	return Minion;
+}
+
+void UWxMinionSubsystem::RegisterMinion(UWxMinionComponent& MinionComponent)
+{
+	APawn* Minion = MinionComponent.GetMinionPawn();
+	if (!Minion || Minions.Contains(TWeakObjectPtr<UWxMinionComponent>(&MinionComponent)))
+	{
+		return;
+	}
+
+	Minions.Add(&MinionComponent);
+	if (APawn* Master = UWxMinionComponent::GetMaster(*Minion))
+	{
+		RefreshMasterStateTag(*Master, MinionComponent.GetMasterStateTag());
+	}
+}
+
+void UWxMinionSubsystem::UnregisterMinion(UWxMinionComponent& MinionComponent)
+{
+	if (Minions.Remove(TWeakObjectPtr<UWxMinionComponent>(&MinionComponent)) == 0)
+	{
+		return;
+	}
+
+	const APawn* Minion = MinionComponent.GetMinionPawn();
+	if (APawn* Master = Minion ? UWxMinionComponent::GetMaster(*Minion) : nullptr)
+	{
+		RefreshMasterStateTag(*Master, MinionComponent.GetMasterStateTag());
+	}
 }
 
 bool UWxMinionSubsystem::DoesSupportWorldType(const EWorldType::Type WorldType) const
@@ -85,52 +112,25 @@ bool UWxMinionSubsystem::DoesSupportWorldType(const EWorldType::Type WorldType) 
 	return WorldType == EWorldType::Game || WorldType == EWorldType::PIE;
 }
 
-void UWxMinionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
+TArray<TWeakObjectPtr<UWxMinionComponent>> UWxMinionSubsystem::CollectMinions(const APawn& Master, const FGameplayTag StateTag) const
 {
-	Super::OnWorldBeginPlay(InWorld);
-
-	ActorSpawnedHandle = InWorld.AddOnActorSpawnedHandler(FOnActorSpawned::FDelegate::CreateUObject(this, &UWxMinionSubsystem::HandleActorSpawned));
-}
-
-void UWxMinionSubsystem::Deinitialize()
-{
-	if (const UWorld* World = GetWorld())
+	TArray<TWeakObjectPtr<UWxMinionComponent>> MasterMinions;
+	for (const TWeakObjectPtr<UWxMinionComponent>& Candidate : Minions)
 	{
-		World->RemoveOnActorSpawnedHandler(ActorSpawnedHandle);
-	}
+		const UWxMinionComponent* MinionComponent = Candidate.Get();
+		const APawn* Minion = MinionComponent ? MinionComponent->GetMinionPawn() : nullptr;
+		if (!Minion || UWxMinionComponent::GetMaster(*Minion) != &Master)
+		{
+			continue;
+		}
 
-	Super::Deinitialize();
-}
-
-TArray<TWeakObjectPtr<APawn>> UWxMinionSubsystem::CollectMinions(const APawn& Master) const
-{
-	TArray<TWeakObjectPtr<APawn>> MasterMinions;
-	for (const TWeakObjectPtr<APawn>& Candidate : Minions)
-	{
-		const APawn* Minion = Candidate.Get();
-		if (Minion && GetMaster(*Minion) == &Master)
+		if (!StateTag.IsValid() || MinionComponent->GetMasterStateTag() == StateTag)
 		{
 			MasterMinions.Add(Candidate);
 		}
 	}
 
 	return MasterMinions;
-}
-
-void UWxMinionSubsystem::HandleActorSpawned(AActor* Actor)
-{
-	APawn* Minion = Cast<APawn>(Actor);
-	if (!Minion || !Minion->GetClass()->ImplementsInterface(UWxMinion::StaticClass()))
-	{
-		return;
-	}
-
-	Minions.Add(Minion);
-	Minion->OnEndPlay.AddDynamic(this, &UWxMinionSubsystem::HandleMinionEndPlay);
-	if (UAbilitySystemComponent* MinionASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Minion))
-	{
-		MinionASC->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death).AddUObject(this, &UWxMinionSubsystem::HandleMinionDeathTagChanged, TWeakObjectPtr<APawn>(Minion));
-	}
 }
 
 void UWxMinionSubsystem::HandleMasterEndPlay(AActor* Actor, EEndPlayReason::Type EndPlayReason)
@@ -141,64 +141,26 @@ void UWxMinionSubsystem::HandleMasterEndPlay(AActor* Actor, EEndPlayReason::Type
 		return;
 	}
 
-	const TArray<TWeakObjectPtr<APawn>> MasterMinions = CollectMinions(*Master);
-	for (const TWeakObjectPtr<APawn>& ActiveMinion : MasterMinions)
+	const TArray<TWeakObjectPtr<UWxMinionComponent>> MasterMinions = CollectMinions(*Master);
+	for (const TWeakObjectPtr<UWxMinionComponent>& ActiveMinion : MasterMinions)
 	{
-		if (APawn* Minion = ActiveMinion.Get())
+		const UWxMinionComponent* MinionComponent = ActiveMinion.Get();
+		if (APawn* Minion = MinionComponent ? MinionComponent->GetMinionPawn() : nullptr)
 		{
 			Minion->Destroy();
 		}
 	}
 }
 
-void UWxMinionSubsystem::HandleMinionEndPlay(AActor* Actor, EEndPlayReason::Type EndPlayReason)
-{
-	APawn* Minion = Cast<APawn>(Actor);
-	if (!Minion)
-	{
-		return;
-	}
-
-	ReleaseMinion(*Minion);
-}
-
-void UWxMinionSubsystem::HandleMinionDeathTagChanged(const FGameplayTag Tag, int32 NewCount, TWeakObjectPtr<APawn> Minion)
-{
-	APawn* DeadMinion = Minion.Get();
-	if (NewCount <= 0 || !DeadMinion)
-	{
-		return;
-	}
-
-	ReleaseMinion(*DeadMinion);
-}
-
-void UWxMinionSubsystem::ReleaseMinion(APawn& Minion)
-{
-	if (Minions.Remove(TWeakObjectPtr<APawn>(&Minion)) == 0)
-	{
-		return;
-	}
-
-	Minion.OnEndPlay.RemoveDynamic(this, &UWxMinionSubsystem::HandleMinionEndPlay);
-	if (UAbilitySystemComponent* MinionASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(&Minion))
-	{
-		MinionASC->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death).RemoveAll(this);
-	}
-	if (APawn* Master = GetMaster(Minion))
-	{
-		RefreshMasterStateTag(*Master);
-	}
-}
-
-void UWxMinionSubsystem::RefreshMasterStateTag(APawn& Master) const
+void UWxMinionSubsystem::RefreshMasterStateTag(APawn& Master, const FGameplayTag StateTag) const
 {
 	// 복제되는 태그라 권위에서만 쓴다. 클라이언트가 덧쓰면 복제값과 싸운다.
 	UAbilitySystemComponent* MasterASC = Master.HasAuthority() ? UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(&Master) : nullptr;
-	if (!MasterASC)
+	if (!MasterASC || !StateTag.IsValid())
 	{
 		return;
 	}
 
-	MasterASC->SetLooseGameplayTagCount(WxGameplayTags::State_Minion_Active, FindActiveMinion(Master) ? 1 : 0, EGameplayTagReplicationState::TagOnly);
+	const bool bHoldsTag = !CollectMinions(Master, StateTag).IsEmpty();
+	MasterASC->SetLooseGameplayTagCount(StateTag, bHoldsTag ? 1 : 0, EGameplayTagReplicationState::TagOnly);
 }

@@ -21,10 +21,6 @@ void UWxAnimNotify_SpawnMinion::Notify(USkeletalMeshComponent* MeshComp, UAnimSe
 	{
 		return;
 	}
-	if (BlockingMinionClass && MinionSubsystem->FindActiveMinion(*Owner, BlockingMinionClass))
-	{
-		return;
-	}
 
 	const FTransform SpawnTransform = LocalSpawnOffset * Owner->GetActorTransform();
 	MinionSubsystem->SpawnMinion(*Owner, MinionClass, SpawnTransform);

@@ -4,7 +4,6 @@
 
 #include "WxBlackboardKeys.h"
 #include "WxGameplayTags.h"
-#include "WxMinion.h"
 #include "AIController.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -39,12 +38,15 @@ void UWxBTService_UpdateTargetActor::TickNode(UBehaviorTreeComponent& OwnerComp,
 		return;
 	}
 
-	const UAIPerceptionComponent* Perception = AIController->GetPerceptionComponent();
+	UAIPerceptionComponent* Perception = AIController->GetPerceptionComponent();
 	if (!Perception)
 	{
 		WxBlackboardKeys::SetTargetActor(Blackboard, nullptr);
 		return;
 	}
+
+	// 타겟에서 내려오는 대상은 감지 기록까지 지운다 — 청각·촉각 자극은 MaxAge 안에 남아 있어, 자격을 되찾는 순간 그대로 어그로가 된다.
+	Perception->ForgetActor(CurrentTarget);
 
 	WxBlackboardKeys::SetTargetActor(Blackboard, FindPerceivedTarget(*Perception, AIController->GetPawn()));
 }
@@ -74,6 +76,11 @@ bool UWxBTService_UpdateTargetActor::IsActorDead(AActor* Actor) const
 
 bool UWxBTService_UpdateTargetActor::CanBeAggroTarget(AActor* Actor) const
 {
-	return IsValid(Actor) && (!Actor->GetClass()->ImplementsInterface(UWxMinion::StaticClass())
-		|| !IWxMinion::Execute_IsAggroIgnored(Actor));
+	if (!IsValid(Actor))
+	{
+		return false;
+	}
+
+	const UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor);
+	return !(ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Effect_AggroIgnored));
 }

@@ -27,7 +27,7 @@
 | `UWxInteractionScannerComponent` | 상호작용 파이프라인의 클라 측 시작점. PlayerController 에 붙어 스캔→선택→`ServerInteract` 까지 간다 | `Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxInteractionScannerComponent.h` |
 | `FWxStateTreeTask_WaitForInteraction` | 모듈 밖 권위 경로가 들어오는 문. `NotifyInteracted`/`IsAwaited` 정적 함수가 WxGame 쪽에서 불린다 | `Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxStateTreeTask_WaitForInteraction.h` |
 | `TWxStateTreeWaitRegistry` | 폴링 없이 대기하는 태스크들이 공유하는 등록부 템플릿 | `Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeWaitRegistry.h` |
-| `AWxSpawner` / `IWxSpawnable` | 스폰 대상의 수명과 처치 상태를 쥐는 배치 액터, 그리고 스폰 대상이 구현할 계약 | `Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawner.h`, `Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawnable.h` |
+| `AWxSpawner` | 스폰 대상의 수명과 처치 상태를 쥐는 배치 액터. 대상이 구현할 `IWxSpawnable` 계약은 [[WxCombat]] 소환 노티파이도 같은 필터로 쓰므로 [[WxCore]]에 있다 | `Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawner.h`, `Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h` |
 | `UWxCheckpointSubsystem` | 체크포인트 태스크가 쓰고 WxGame 리스폰 경로가 읽는 GameInstance 저장소 | `Plugins/WxWorld/Source/WxWorld/Public/System/WxCheckpointSubsystem.h` |
 
 ## 확장 포인트 / 규약

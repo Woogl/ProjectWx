@@ -9,6 +9,7 @@
 #include "Controller/WxAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Minion/WxMinionComponent.h"
 #include "Spawnable/WxSpawner.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "Targeting/WxLockOnPointComponent.h"
@@ -35,6 +36,8 @@ AWxEnemyCharacter::AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer
 
 	LockOnPoint = CreateDefaultSubobject<UWxLockOnPointComponent>(TEXT("LockOnPoint"));
 	LockOnPoint->SetupAttachment(GetMesh(), TEXT("pelvis"));
+
+	MinionComponent = CreateDefaultSubobject<UWxMinionComponent>(TEXT("MinionComponent"));
 }
 
 void AWxEnemyCharacter::BeginPlay()
@@ -81,9 +84,9 @@ AWxSpawner* AWxEnemyCharacter::GetOwningSpawner() const
 	return OwningSpawner.Get();
 }
 
-void AWxEnemyCharacter::OnSpawnedBy(AWxSpawner* Spawner)
+void AWxEnemyCharacter::OnSpawnedBy(AActor* Spawner)
 {
-	OwningSpawner = Spawner;
+	OwningSpawner = Cast<AWxSpawner>(Spawner);
 }
 
 bool AWxEnemyCharacter::CanInteract(const AActor* Interactor) const

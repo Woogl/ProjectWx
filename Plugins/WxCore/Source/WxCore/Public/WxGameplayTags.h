@@ -20,10 +20,13 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dialogue);
 
 	/**
-	 * 소환물 서브시스템이 살아 있는 소환물 보유 여부를 주인 ASC에 발행·복제한다.
-	 * 같은 입력을 쓰는 소환·명령 스킬의 발동 조건이다.
+	 * 소환물을 보유한 주인에게 붙는다. 소환물 컴포넌트가 종류마다 하나를 선언하고 서브시스템이 로스터 변경마다 발행·복제한다.
+	 * 같은 입력을 쓰는 소환·명령 스킬의 발동 조건이며, 부모 State.MinionMaster 로 물으면 종류를 가리지 않는다.
 	 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Minion_Active);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_MinionMaster_Minion);
+
+	/** 소환물 컴포넌트가 선언하는 값이라 C++ 에서는 읽지 않는다. 선언만 여기 모은다. */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_MinionMaster_Doppelganger);
 
 	/**
 	 * UWxAbility_Death가 서버에서 loose 태그로 발행한다(TagOnly 복제).
@@ -56,6 +59,12 @@ namespace WxGameplayTags
 	 * 있는 동안 WxHitStopComponent가 액터의 CustomTimeDilation을 낮춘다. GE 수명은 월드 시간을 따른다.
 	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_HitStop);
+
+	/**
+	 * 이 태그를 가진 액터는 감지되거나 공격을 가해도 AI의 어그로 대상이 되지 않고, 플레이어 락온 대상에서도 빠진다.
+	 * 이미 물린 어그로와 락온도 각자의 폴링에서 풀린다. 소환물 등 타겟팅에서 빠질 액터의 AbilitySet이 WxEffect_AggroIgnored로 부여한다.
+	 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_AggroIgnored);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_InAir);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Sprint);
