@@ -82,5 +82,5 @@ bool UWxBTService_UpdateTargetActor::CanBeAggroTarget(AActor* Actor) const
 	}
 
 	const UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor);
-	return !(ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Effect_AggroIgnored));
+	return !(ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Effect_IgnoreAggro));
 }

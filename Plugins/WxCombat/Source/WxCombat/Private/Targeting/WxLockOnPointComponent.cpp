@@ -14,7 +14,7 @@ UWxLockOnPointComponent::UWxLockOnPointComponent()
 	Mobility = EComponentMobility::Movable;
 
 	LockOnRequirements.IgnoreTags.AddTag(WxGameplayTags::Ability_Death);
-	LockOnRequirements.IgnoreTags.AddTag(WxGameplayTags::Effect_AggroIgnored);
+	LockOnRequirements.IgnoreTags.AddTag(WxGameplayTags::Effect_IgnoreAggro);
 }
 
 bool UWxLockOnPointComponent::CanBeLockedOn() const

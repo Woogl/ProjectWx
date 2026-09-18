@@ -60,12 +60,9 @@ namespace WxGameplayTags
 	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_HitStop);
 
-	/**
-	 * 이 태그를 가진 액터는 감지되거나 공격을 가해도 AI의 어그로 대상이 되지 않고, 플레이어 락온 대상에서도 빠진다.
-	 * 이미 물린 어그로와 락온도 각자의 폴링에서 풀린다. 소환물 등 타겟팅에서 빠질 액터의 AbilitySet이 WxEffect_AggroIgnored로 부여한다.
-	 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_AggroIgnored);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_IgnoreAggro);
 
+	// 캐릭터 이동
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_InAir);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Sprint);
 
