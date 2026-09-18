@@ -21,9 +21,9 @@ public:
 	virtual FString GetNotifyName_Implementation() const override;
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "Wx|Projectile")
+	UPROPERTY(EditAnywhere, Category = "Wx")
 	TSubclassOf<AWxProjectileBase> ProjectileClass;
 
-	UPROPERTY(EditAnywhere, Category = "Wx|Projectile")
+	UPROPERTY(EditAnywhere, Category = "Wx")
 	FName SpawnSocketName = TEXT("hand_r");
 };

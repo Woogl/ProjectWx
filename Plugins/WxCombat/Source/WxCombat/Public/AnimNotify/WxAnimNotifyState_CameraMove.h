@@ -32,34 +32,34 @@ public:
 
 protected:
 	/** 메시(캐릭터 몸체) 로컬 기준 카메라 위치 오프셋. */
-	UPROPERTY(EditAnywhere, Category = "Wx|Camera")
+	UPROPERTY(EditAnywhere, Category = "Wx")
 	FVector CameraRelativeLocation = FVector(250.f, 50.f, 180.f);
 
 	/** 메시(캐릭터 몸체) 로컬 기준 카메라 회전. */
-	UPROPERTY(EditAnywhere, Category = "Wx|Camera")
+	UPROPERTY(EditAnywhere, Category = "Wx")
 	FRotator CameraRelativeRotation = FRotator(-20.f, 180.f, 0.f);
 
 	/** true면 카메라를 오너(몽타주 재생 액터)에 부착해 따라가고, false면 구간 시작 시점의 월드 트랜스폼에 고정한다. */
-	UPROPERTY(EditAnywhere, Category = "Wx|Camera")
+	UPROPERTY(EditAnywhere, Category = "Wx")
 	bool bAttachToOwner = true;
 
-	UPROPERTY(EditAnywhere, Category = "Wx|Camera", meta = (ClampMin = "5", ClampMax = "170"))
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ClampMin = "5", ClampMax = "170"))
 	float FieldOfView = 90.0f;
 
 	/** 임시 카메라로 전환하는 블렌드 시간(초). */
-	UPROPERTY(EditAnywhere, Category = "Wx|Camera", meta = (ClampMin = "0"))
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ClampMin = "0"))
 	float BlendInTime = 0.5f;
 
 	/** 폰 카메라로 복귀하는 블렌드 시간(초). */
-	UPROPERTY(EditAnywhere, Category = "Wx|Camera", meta = (ClampMin = "0"))
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ClampMin = "0"))
 	float BlendOutTime = 0.5f;
 
 #if WITH_EDITORONLY_DATA
 	/** 애니메이션 에디터 프리뷰에서 카메라가 놓일 위치·각도를 카메라 모델 메시로 표시한다. */
-	UPROPERTY(EditAnywhere, Category = "Wx|Camera")
+	UPROPERTY(EditAnywhere, Category = "Wx")
 	bool bDrawEditorPreview = true;
 
-	UPROPERTY(EditAnywhere, Category = "Wx|Camera")
+	UPROPERTY(EditAnywhere, Category = "Wx")
 	TSoftObjectPtr<UStaticMesh> PreviewCameraMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Engine/EditorMeshes/MatineeCam_SM.MatineeCam_SM")));
 
 	/** 파괴하지 않고 재사용하며, 구간 밖·토글 오프 시 비저빌리티만 끈다(월드 교체 시 폐기). */

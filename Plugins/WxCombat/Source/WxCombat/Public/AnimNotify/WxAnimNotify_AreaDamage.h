@@ -29,7 +29,7 @@ public:
 #endif
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "Wx|Targeting")
+	UPROPERTY(EditAnywhere, Category = "Wx")
 	TObjectPtr<UTargetingPreset> TargetingPreset;
 
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (RowType = "/Script/WxCombat.WxDamageTableRow", WxPreviewRow = "true"))

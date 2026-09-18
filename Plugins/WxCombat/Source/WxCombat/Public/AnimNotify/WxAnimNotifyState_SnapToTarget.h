@@ -29,16 +29,16 @@ public:
 #endif
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "Wx|Targeting")
+	UPROPERTY(EditAnywhere, Category = "Wx")
 	TObjectPtr<UTargetingPreset> TargetingPreset;
 
-	UPROPERTY(EditAnywhere, Category = "Wx|Snap")
+	UPROPERTY(EditAnywhere, Category = "Wx")
 	bool bSnapLocation = false;
 
-	UPROPERTY(EditAnywhere, Category = "Wx|Snap")
+	UPROPERTY(EditAnywhere, Category = "Wx")
 	bool bSnapRotation = true;
 
-	UPROPERTY(EditAnywhere, Category = "Wx|Snap", meta = (EditCondition = "bSnapLocation"))
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (EditCondition = "bSnapLocation"))
 	FVector LocationOffset = FVector(100.0f, 0.0f, 0.0f);
 
 };

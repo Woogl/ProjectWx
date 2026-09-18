@@ -30,15 +30,15 @@ public:
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "Wx|Rush")
+	UPROPERTY(EditAnywhere, Category = "Wx")
 	EWxRushTarget TargetSource = EWxRushTarget::LockOnTarget;
 
 	/** 대상 앞에서 멈출 거리. 교차 돌진에는 0을 사용한다. */
-	UPROPERTY(EditAnywhere, Category = "Wx|Rush", meta = (ClampMin = "0"))
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (ClampMin = "0"))
 	float StopDistance = 0.f;
 
 	/** 돌진 구간 동안 캡슐이 무시할 오브젝트 종류. 빈 목록은 기존 충돌을 유지한다. */
-	UPROPERTY(EditAnywhere, Category = "Wx|Rush")
+	UPROPERTY(EditAnywhere, Category = "Wx")
 	TArray<TEnumAsByte<EObjectTypeQuery>> IgnoreCollisions;
 
 private:
