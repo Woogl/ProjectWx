@@ -3,6 +3,7 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystem/Effect/WxEffect_Cooldown.h"
 #include "AbilitySystem/Effect/WxEffect_Cost.h"
+#include "AbilitySystem/Effect/WxEffect_IgnoreAbilityTags.h"
 #include "AbilitySystem/Ability/WxAbilityTableRow.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxInputBufferComponent.h"
@@ -192,6 +193,11 @@ bool UWxAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 bool UWxAbilityBase::DoesAbilitySatisfyTagRequirements(const UAbilitySystemComponent& AbilitySystemComponent, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
+	if (AbilitySystemComponent.HasMatchingGameplayTag(WxCombatGameplayTags::Effect_IgnoreAbilityTags))
+	{
+		return true;
+	}
+
 	// 콤보 창은 취소되지 않은 활성 배타 어빌리티에서만 열린다. 피격·그로기·사망은 공격을 먼저 끊으므로 이 면제에 닿지 않는다.
 	if (IsActive() && ActionPhase == EWxAbilityActionPhase::ComboWindow)
 	{
