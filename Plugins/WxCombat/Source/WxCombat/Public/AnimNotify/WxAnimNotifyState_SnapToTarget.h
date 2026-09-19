@@ -21,6 +21,7 @@ class WXCOMBAT_API UWxAnimNotifyState_SnapToTarget : public UAnimNotifyState
 	GENERATED_BODY()
 
 public:
+	virtual FLinearColor GetEditorColor() override;
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
 
 #if WITH_EDITOR

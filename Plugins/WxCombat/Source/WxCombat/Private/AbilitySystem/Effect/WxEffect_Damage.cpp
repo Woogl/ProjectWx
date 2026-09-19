@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "Damage/WxHitEffectContext.h"
 #include "GameplayEffectComponents/TargetTagRequirementsGameplayEffectComponent.h"
+#include "System/WxCombatDeveloperSettings.h"
 #include "WxGameplayTags.h"
 
 UWxEffect_Damage::UWxEffect_Damage()
@@ -69,7 +70,7 @@ static const FWxDamageExecutionStatics& GetDamageExecutionStatics()
 
 static float CalculateDefenseMultiplier(float TargetDEF)
 {
-	static constexpr float DefenseConstant = 100.f;
+	const float DefenseConstant = FMath::Max(GetDefault<UWxCombatDeveloperSettings>()->DefenseConstant, UE_SMALL_NUMBER);
 	return DefenseConstant / (DefenseConstant + TargetDEF);
 }
 

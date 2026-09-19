@@ -16,6 +16,7 @@ class WXCOMBAT_API UWxAnimNotifyState_ComboWindow : public UAnimNotifyState
 	GENERATED_BODY()
 
 public:
+	virtual FLinearColor GetEditorColor() override;
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 };

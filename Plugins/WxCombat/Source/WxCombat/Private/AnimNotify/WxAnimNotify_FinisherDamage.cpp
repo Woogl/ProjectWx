@@ -3,7 +3,13 @@
 #include "AnimNotify/WxAnimNotify_FinisherDamage.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "System/WxCombatDeveloperSettings.h"
 #include "WxGameplayTags.h"
+
+FLinearColor UWxAnimNotify_FinisherDamage::GetEditorColor()
+{
+	return GetDefault<UWxCombatDeveloperSettings>()->CombatAnimNotifyColor;
+}
 
 void UWxAnimNotify_FinisherDamage::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {

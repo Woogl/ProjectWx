@@ -5,6 +5,12 @@
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "Minion/WxMinionSubsystem.h"
+#include "System/WxCombatDeveloperSettings.h"
+
+FLinearColor UWxAnimNotify_DespawnMinion::GetEditorColor()
+{
+	return GetDefault<UWxCombatDeveloperSettings>()->CombatAnimNotifyColor;
+}
 
 void UWxAnimNotify_DespawnMinion::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {

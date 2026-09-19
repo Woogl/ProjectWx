@@ -8,6 +8,12 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
+#include "System/WxCombatDeveloperSettings.h"
+
+FLinearColor UWxAnimNotify_SpawnProjectile::GetEditorColor()
+{
+	return GetDefault<UWxCombatDeveloperSettings>()->CombatAnimNotifyColor;
+}
 
 void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {

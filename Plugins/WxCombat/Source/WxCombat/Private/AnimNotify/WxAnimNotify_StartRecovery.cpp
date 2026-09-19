@@ -4,6 +4,12 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "System/WxCombatDeveloperSettings.h"
+
+FLinearColor UWxAnimNotify_StartRecovery::GetEditorColor()
+{
+	return GetDefault<UWxCombatDeveloperSettings>()->CombatAnimNotifyColor;
+}
 
 void UWxAnimNotify_StartRecovery::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {

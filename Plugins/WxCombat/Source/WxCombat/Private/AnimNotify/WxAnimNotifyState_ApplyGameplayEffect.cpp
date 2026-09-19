@@ -3,7 +3,13 @@
 #include "AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "System/WxCombatDeveloperSettings.h"
 #include "WxCombatLibrary.h"
+
+FLinearColor UWxAnimNotifyState_ApplyGameplayEffect::GetEditorColor()
+{
+	return GetDefault<UWxCombatDeveloperSettings>()->CombatAnimNotifyColor;
+}
 
 void UWxAnimNotifyState_ApplyGameplayEffect::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {

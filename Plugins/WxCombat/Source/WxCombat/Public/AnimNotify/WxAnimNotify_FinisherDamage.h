@@ -15,5 +15,6 @@ class WXCOMBAT_API UWxAnimNotify_FinisherDamage : public UAnimNotify
 	GENERATED_BODY()
 
 public:
+	virtual FLinearColor GetEditorColor() override;
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 };

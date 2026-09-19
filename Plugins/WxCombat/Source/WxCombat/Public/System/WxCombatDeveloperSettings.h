@@ -1,0 +1,31 @@
+// Copyright Woogle. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Engine/DeveloperSettings.h"
+#include "WxCombatDeveloperSettings.generated.h"
+
+UCLASS(Config = Game, DefaultConfig, meta = (DisplayName = "Wx Combat Settings"))
+class WXCOMBAT_API UWxCombatDeveloperSettings : public UDeveloperSettings
+{
+	GENERATED_BODY()
+
+public:
+	UWxCombatDeveloperSettings();
+
+	UPROPERTY(Config, EditAnywhere, Category = "Damage", meta = (ClampMin = "0.0001", UIMin = "0.0001"))
+	float DefenseConstant;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Anim Notify", meta = (HideAlphaChannel))
+	FLinearColor CombatAnimNotifyColor;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Anim Notify", meta = (HideAlphaChannel))
+	FLinearColor MovementAnimNotifyColor;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Anim Notify", meta = (HideAlphaChannel))
+	FLinearColor PresentationAnimNotifyColor;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Anim Notify", meta = (HideAlphaChannel))
+	FLinearColor OtherAnimNotifyColor;
+};

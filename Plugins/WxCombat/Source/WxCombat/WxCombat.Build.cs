@@ -13,6 +13,7 @@ public class WxCombat : ModuleRules
 			"AIModule",
 			"Core",
 			"CoreUObject",
+			"DeveloperSettings",
 			"EnhancedInput",
 			"Engine",
 			"GameplayAbilities",

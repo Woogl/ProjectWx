@@ -6,6 +6,7 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/Engine.h"
+#include "System/WxCombatDeveloperSettings.h"
 
 #if WITH_EDITOR
 #include "Animation/AnimSingleNodeInstance.h"
@@ -14,6 +15,11 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #endif
+
+FLinearColor UWxAnimNotifyState_CameraMove::GetEditorColor()
+{
+	return GetDefault<UWxCombatDeveloperSettings>()->PresentationAnimNotifyColor;
+}
 
 void UWxAnimNotifyState_CameraMove::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {

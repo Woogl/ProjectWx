@@ -3,6 +3,12 @@
 #include "AnimNotify/WxAnimNotify_SendGameplayEvent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "System/WxCombatDeveloperSettings.h"
+
+FLinearColor UWxAnimNotify_SendGameplayEvent::GetEditorColor()
+{
+	return GetDefault<UWxCombatDeveloperSettings>()->OtherAnimNotifyColor;
+}
 
 void UWxAnimNotify_SendGameplayEvent::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {

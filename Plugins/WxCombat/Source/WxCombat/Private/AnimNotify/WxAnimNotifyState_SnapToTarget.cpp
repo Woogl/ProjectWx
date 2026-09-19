@@ -4,6 +4,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Actor.h"
 #include "MotionWarpingComponent.h"
+#include "System/WxCombatDeveloperSettings.h"
 #include "Targeting/WxRootMotionModifier_SnapToTarget.h"
 #include "Targeting/WxTargetingPreview.h"
 
@@ -11,6 +12,11 @@ namespace
 {
 	const FName LocationWarpTargetName = TEXT("SnapToTarget_Location");
 	const FName RotationWarpTargetName = TEXT("SnapToTarget_Rotation");
+}
+
+FLinearColor UWxAnimNotifyState_SnapToTarget::GetEditorColor()
+{
+	return GetDefault<UWxCombatDeveloperSettings>()->MovementAnimNotifyColor;
 }
 
 void UWxAnimNotifyState_SnapToTarget::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
@@ -89,6 +95,7 @@ void UWxAnimNotifyState_SnapToTarget::NotifyBegin(USkeletalMeshComponent* MeshCo
 #if WITH_EDITOR
 void UWxAnimNotifyState_SnapToTarget::DrawInEditor(FPrimitiveDrawInterface* PDI, USkeletalMeshComponent* MeshComp, const UAnimSequenceBase* Animation, const FAnimNotifyEvent& NotifyEvent) const
 {
-	WxTargetingPreview::DrawDebugTargetingPreset(PDI, MeshComp, NotifyEvent, TargetingPreset, FLinearColor(NotifyColor));
+	const FLinearColor PreviewColor = GetDefault<UWxCombatDeveloperSettings>()->MovementAnimNotifyColor;
+	WxTargetingPreview::DrawDebugTargetingPreset(PDI, MeshComp, NotifyEvent, TargetingPreset, PreviewColor);
 }
 #endif

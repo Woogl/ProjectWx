@@ -16,7 +16,8 @@ class WXCOMBAT_API UWxAnimNotify_SpawnMinion : public UAnimNotify
 
 public:
 	UWxAnimNotify_SpawnMinion();
-	
+
+	virtual FLinearColor GetEditorColor() override;
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 	virtual FString GetNotifyName_Implementation() const override;
 

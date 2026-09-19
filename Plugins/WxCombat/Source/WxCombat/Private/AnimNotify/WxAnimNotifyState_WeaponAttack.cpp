@@ -1,7 +1,13 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AnimNotify/WxAnimNotifyState_WeaponAttack.h"
+#include "System/WxCombatDeveloperSettings.h"
 #include "Weapon/WxWeaponBase.h"
+
+FLinearColor UWxAnimNotifyState_WeaponAttack::GetEditorColor()
+{
+	return GetDefault<UWxCombatDeveloperSettings>()->CombatAnimNotifyColor;
+}
 
 UWxAnimNotifyState_WeaponAttack::UWxAnimNotifyState_WeaponAttack()
 {

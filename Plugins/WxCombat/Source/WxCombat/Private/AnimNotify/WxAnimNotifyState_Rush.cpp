@@ -7,8 +7,14 @@
 #include "Minion/WxMinionComponent.h"
 #include "Minion/WxMinionSubsystem.h"
 #include "MotionWarpingComponent.h"
+#include "System/WxCombatDeveloperSettings.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "Targeting/WxRootMotionModifier_Rush.h"
+
+FLinearColor UWxAnimNotifyState_Rush::GetEditorColor()
+{
+	return GetDefault<UWxCombatDeveloperSettings>()->MovementAnimNotifyColor;
+}
 
 UWxAnimNotifyState_Rush::UWxAnimNotifyState_Rush()
 {
