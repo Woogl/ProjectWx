@@ -404,6 +404,7 @@ function Invoke-Audit([string]$Root, $Redirects) {
                 try {
                     $package = Read-Package $file.FullName $bytes
                 } catch {
+                    $unreadable++
                     foreach ($r in $candidates) { [void]$r.Evidence.Add(@{ File = $file.FullName; Reason = 'header parse failed: ' + $_.Exception.Message; Package = $null }) }
                     continue
                 }
@@ -413,6 +414,11 @@ function Invoke-Audit([string]$Root, $Redirects) {
                 }
             }
         }
+    }
+
+    # Missing evidence from an unreadable package must never authorize removal.
+    if ($unreadable -gt 0) {
+        throw ('Audit incomplete: {0} asset file(s) could not be read. Redirect removal is blocked.' -f $unreadable)
     }
 
     # Text references (string paths in code or config) are never fixed by a resave, so they always need a person.
@@ -513,6 +519,7 @@ function Invoke-Resave([string]$Root, $Redirects) {
 
     $packages = @{}
     $worlds = @{}
+    $failed = 0
     foreach ($r in $Redirects) {
         if ((Get-Status $r $null) -ne 'RESAVE') { continue }
         foreach ($e in $r.Evidence) {
@@ -520,6 +527,7 @@ function Invoke-Resave([string]$Root, $Redirects) {
             $info = $null
             if ($e.Package) { $info = Get-ExternalActorInfo $e.Package }
             if ($null -eq $info) {
+                $failed++
                 Write-Warning ('Skipped {0}: could not read its map and actor class. Resave it from the editor.' -f $e.File)
                 continue
             }
@@ -529,7 +537,6 @@ function Invoke-Resave([string]$Root, $Redirects) {
     }
 
     $resaved = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
-    $failed = 0
     $index = 0
     $files = @($packages.Keys)
     $start = 0
@@ -553,8 +560,11 @@ function Invoke-Resave([string]$Root, $Redirects) {
         foreach ($file in $batch) { $before[$file] = (Get-Item -LiteralPath $file).LastWriteTimeUtc }
         $log = Join-Path $logDir ('resave_{0}.log' -f $index)
         $code = Invoke-Commandlet $exe (@($uproject, '-run=ResavePackages') + $switches + @('-unattended', '-nopause', '-nosplash', '-SCCProvider=None')) $log
-        # The exit code also turns non-zero for unrelated errors logged while loading, so the file times decide.
-        if ($code -ne 0) { Write-Warning ('ResavePackages reported errors (exit code {0}). See {1}' -f $code, $log) }
+        # Rewritten timestamps do not prove a failed commandlet completed safely.
+        if ($code -ne 0) {
+            $failed++
+            Write-Warning ('ResavePackages reported errors (exit code {0}). See {1}' -f $code, $log)
+        }
         foreach ($file in $batch) {
             if ((Get-Item -LiteralPath $file).LastWriteTimeUtc -eq $before[$file]) {
                 $failed++
@@ -689,11 +699,13 @@ try {
         $answer = Read-Host ('Resave the assets that still reference {0} redirect(s)? Close the editor first; this runs it in the background for a few minutes. [y/N]' -f $counts.RESAVE)
         if ($answer -match '^\s*y(es)?\s*$') {
             $result = Invoke-Resave $root $redirects
+            if ($result.Failed -gt 0) {
+                throw ('{0} resave step(s) failed. Redirect removal is blocked; inspect the logs before retrying.' -f $result.Failed)
+            }
             Write-Host ''
             Write-Host 'Re-checking after resave...'
             $redirects = @(Get-Redirects $root)
             $stats = Invoke-Audit $root $redirects
-            if ($result.Failed -gt 0) { Write-Warning ('{0} resave step(s) failed; see the warnings above.' -f $result.Failed) }
             $counts = Write-Report $root $redirects $stats $result.Resaved
         }
     }
