@@ -17,6 +17,7 @@ struct FStreamableHandle;
 struct FWxDialogueTableRow;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWxOnDialogueLineChanged, const FText&, Speaker, const FText&, Line);
+DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnDialogueEnded, bool /*bCompleted*/);
 
 /**
  * AWxPlayerController 생성자의 기본 서브오브젝트로 붙는다.
@@ -71,8 +72,12 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Wx")
 	FWxOnDialogueLineChanged OnLineChanged;
 
-	/** 대화가 끝나면 한 번 발화하고 스스로 비워진다. 종료를 기다리는 쪽('Play Dialogue' 태스크)이 대화를 연 직후 붙인다. */
-	FSimpleMulticastDelegate OnDialogueEnded;
+	/**
+	 * 대화가 끝나면 한 번 발화하고 스스로 비워진다. 종료를 기다리는 쪽('Play Dialogue' 태스크)이 대화를 연 직후 붙인다.
+	 * bCompleted 는 마지막 행까지 읽고 끝났는지다 — 중단(테이블 갈림·행 해석 실패·빙의 전이·대화 겹침)이면 false 다.
+	 * 대화의 의미를 판정하는 쪽이 읽지 않은 대사에 전진하지 않으려면 이 값을 봐야 한다.
+	 */
+	FWxOnDialogueEnded OnDialogueEnded;
 
 protected:
 	/** 대화 중 시야각(도). 게임플레이(90)보다 좁혀 망원처럼 압축한다 — 광각은 가까운 사람만 크게 부풀리고 얼굴을 왜곡한다. */
@@ -116,7 +121,8 @@ private:
 
 	void PublishCurrentLine();
 
-	void EndDialogue();
+	/** bCompleted 는 마지막 행까지 읽고 끝났는지다. 호출부가 자기 사유를 알고 있으므로 그 자리에서 넘긴다. */
+	void EndDialogue(bool bCompleted);
 
 	void BeginDialogueCamera();
 

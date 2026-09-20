@@ -47,9 +47,14 @@ EStateTreeRunStatus FWxStateTreeTask_PlayDialogue::EnterState(FStateTreeExecutio
 
 	// 약한 실행 컨텍스트를 넘기는 것이 엔진이 제시하는 방식이라 여기선 람다를 쓴다.
 	// 신호는 발화와 함께 비워지므로 상태를 먼저 떠난 노드의 등록도 남지 않는다(그 경우 이 컨텍스트가 무효라 무시된다).
-	Session->OnDialogueEnded.AddLambda([WeakContext = Context.MakeWeakExecutionContext()]()
+	// 중단은 완료로 치지 않고 아무것도 하지 않는다. Succeeded 면 읽지 않은 대사에 트리가 전진하고,
+	// Failed 면 UWxQuestComponent::HandleStateTreeRunStatusChanged 가 저널을 통째로 비워 퀘스트가 사라진다.
+	Session->OnDialogueEnded.AddLambda([WeakContext = Context.MakeWeakExecutionContext()](bool bCompleted)
 	{
-		WeakContext.FinishTask(EStateTreeFinishTaskType::Succeeded);
+		if (bCompleted)
+		{
+			WeakContext.FinishTask(EStateTreeFinishTaskType::Succeeded);
+		}
 	});
 
 	return EStateTreeRunStatus::Running;

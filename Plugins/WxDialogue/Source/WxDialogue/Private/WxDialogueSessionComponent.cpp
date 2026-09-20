@@ -43,6 +43,7 @@ void UWxDialogueSessionComponent::EndPlay(const EEndPlayReason::Type EndPlayReas
 		Controller->OnPossessedPawnChanged.RemoveDynamic(this, &ThisClass::HandlePossessedPawnChanged);
 	}
 
+	// 여기서 세션을 접지 않는다 — APlayerController::Destroyed 가 EndPlay 보다 먼저 UnPossess 를 부르므로 빙의 전이 쪽이 이미 접었다.
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -81,14 +82,15 @@ void UWxDialogueSessionComponent::Advance()
 	if (!Row)
 	{
 		// 세션 도중 테이블이 갈린 경우다(에디터 재임포트). 이어갈 곳이 없으니 접는다 — 남겨 두면 진행도 종료도 없는 세션이 굳는다.
-		EndDialogue();
+		EndDialogue(/*bCompleted*/ false);
 		return;
 	}
 
 	const FName NextRowName = Row->NextRow;
 	if (NextRowName.IsNone())
 	{
-		EndDialogue();
+		// 마지막 행까지 읽었다. EndDialogue 에 true 가 가는 유일한 경로다.
+		EndDialogue(/*bCompleted*/ true);
 		return;
 	}
 
@@ -97,7 +99,7 @@ void UWxDialogueSessionComponent::Advance()
 		// 다음 행이 지정돼 있는데 해석에 실패한 것은 정상 종료가 아니다. 구분해 찍지 않으면 오타가 "대화가 이유 없이 끊김"으로만 보인다.
 		UE_LOG(LogWxDialogue, Warning, TEXT("Advance: 다음 행을 해석하지 못해 대화를 종료한다(테이블 %s / 행 %s → %s)."),
 			*GetNameSafe(CurrentStartRow.DataTable), *CurrentRowName.ToString(), *NextRowName.ToString());
-		EndDialogue();
+		EndDialogue(/*bCompleted*/ false);
 		return;
 	}
 
@@ -128,7 +130,7 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FData
 	// 앞 세션을 그대로 덮으면 그쪽 태그·카메라를 되돌릴 주체가 사라지므로, 새 세션을 열기 전에 접는다.
 	if (HasActiveDialogue())
 	{
-		EndDialogue();
+		EndDialogue(/*bCompleted*/ false);
 	}
 
 	const AController* Controller = Cast<AController>(GetOwner());
@@ -166,7 +168,8 @@ void UWxDialogueSessionComponent::HandlePossessedPawnChanged(APawn* OldPawn, APa
 {
 	if (HasActiveDialogue())
 	{
-		EndDialogue();
+		// 대화 중 사망·리스폰이다. 읽던 대사가 남았으므로 완주가 아니다.
+		EndDialogue(/*bCompleted*/ false);
 	}
 }
 
@@ -211,7 +214,7 @@ void UWxDialogueSessionComponent::PublishCurrentLine()
 	OnLineChanged.Broadcast(GetCurrentSpeaker(), GetCurrentLine());
 }
 
-void UWxDialogueSessionComponent::EndDialogue()
+void UWxDialogueSessionComponent::EndDialogue(bool bCompleted)
 {
 	CurrentStartRow = FDataTableRowHandle();
 	CurrentRowName = NAME_None;
@@ -227,8 +230,10 @@ void UWxDialogueSessionComponent::EndDialogue()
 	// 진행 중인 포즈 스트리밍은 접지 않는다 — 마지막 대사의 자세가 늦게 도착했을 뿐이다.
 	EndDialogueCamera();
 
-	OnDialogueEnded.Broadcast();
+	// 멤버를 먼저 비우고 사본으로 발화한다 — 발화 도중 리스너가 새 대화를 열어 건 바인딩까지 뒤의 Clear 가 지우지 않게 한다.
+	FWxOnDialogueEnded Ended = MoveTemp(OnDialogueEnded);
 	OnDialogueEnded.Clear();
+	Ended.Broadcast(bCompleted);
 }
 
 void UWxDialogueSessionComponent::BeginDialogueCamera()
