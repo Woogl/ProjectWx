@@ -16,8 +16,6 @@ class UUserWidget;
 class UMVVMView;
 
 /**
- * 단일 슬롯(또는 ItemDef 합계) 표시 데이터를 노출하는 ViewModel.
- *
  * Initialize 인자가 ItemInstance 면 슬롯 모드, ItemDef 면 그 Def 의 합계 모드다.
  *
  * 정적 표시 데이터(DisplayName/Grade/GradeColor/MaxCharges)는 초기화 시 ItemDef 에서 세팅되며, 슬롯 인스턴스의 ItemDef 가 달라졌을 때만 다시 세팅된다.
