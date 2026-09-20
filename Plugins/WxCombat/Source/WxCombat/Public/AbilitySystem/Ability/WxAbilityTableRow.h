@@ -15,7 +15,7 @@ enum class EWxAbilityCostResource : uint8
 	UP,
 };
 
-/** RowName 예시: GA_Skill_E, GA_Ultimate */
+/** RowName 예시: GA_HGTest_Skill_1, GA_HGTest_Ultimate_1 */
 USTRUCT(BlueprintType)
 struct WXCOMBAT_API FWxAbilityTableRow : public FTableRowBase
 {

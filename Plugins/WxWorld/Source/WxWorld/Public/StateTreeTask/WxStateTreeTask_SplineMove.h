@@ -12,7 +12,7 @@ struct FStateTreeTransitionResult;
 class USceneComponent;
 class USplineComponent;
 
-// GetInstanceDataType() 의 헤더 정의는 코딩 규칙 4 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
+// GetInstanceDataType() 의 헤더 정의는 코딩 규칙 3 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
 
 USTRUCT()
 struct FWxStateTreeTask_SplineMoveInstanceData
@@ -56,7 +56,7 @@ struct FWxStateTreeTask_SplineMoveInstanceData
 
 /**
  * 지정 컴포넌트를 TargetPointIndex 가 가리키는 스플라인 포인트로 옮기고, 도달하면 Succeeded 를 반환해 상태를 완료시킨다.
- * 진입 경로를 가리지 않고 플랫폼의 실제 현재 위치에서 목표 포인트까지 곡선을 따라 슬라이드한다.
+ * 복원 진입이면 목표 포인트로 즉시 스냅하고, 그 밖의 진입에서는 컴포넌트의 실제 현재 위치에서 곡선을 따라 슬라이드한다.
  */
 USTRUCT(meta = (DisplayName = "스플라인 이동", Category = "Wx"))
 struct FWxStateTreeTask_SplineMove : public FStateTreeTaskCommonBase

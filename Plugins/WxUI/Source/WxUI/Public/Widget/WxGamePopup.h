@@ -21,7 +21,6 @@ enum class EWxPopupResult : uint8
 
 DECLARE_DELEGATE_OneParam(FWxPopupResultDelegate, EWxPopupResult /*Result*/);
 
-/** 팝업에 표시할 버튼 하나의 정의. */
 USTRUCT(BlueprintType)
 struct FWxConfirmationPopupAction
 {

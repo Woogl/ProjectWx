@@ -49,7 +49,6 @@ APawn* UWxMinionSubsystem::SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionC
 	Master.OnEndPlay.AddUniqueDynamic(this, &UWxMinionSubsystem::HandleMasterEndPlay);
 
 	// 새 소환물 한 자리를 확보하되, 상한이 낮아진 경우 초과분도 함께 정리한다.
-	// 자리를 다투는 것은 같은 주인 태그를 선언한 소환물뿐이라, 다른 종류는 이 정리에 휘말리지 않는다.
 	const TArray<TWeakObjectPtr<UWxMinionComponent>> MasterMinions = CollectMinions(Master, MinionDefaults->GetMasterStateTag());
 	const int32 MaxCountPerMaster = MinionDefaults->GetMaxCountPerMaster();
 	const int32 MinionCountToRemove = MaxCountPerMaster > 0
@@ -110,7 +109,6 @@ void UWxMinionSubsystem::DespawnMinions(const APawn& Master, TSubclassOf<APawn> 
 		EventData.Target = Minion;
 		const int32 TriggeredCount = MinionASC->HandleGameplayEvent(WxGameplayTags::Event_Death, &EventData);
 
-		// 사망 어빌리티가 없는 경우 강제 파괴
 		if (TriggeredCount == 0)
 		{
 			Minion->Destroy();

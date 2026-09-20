@@ -92,10 +92,7 @@ public:
 	/** 충전 1개의 회복 시간(초). 테이블에 수치가 없으면 0 */
 	float GetCooldownTime() const;
 
-	/**
-	 * 일반적으로는 ASPD가 반영된 몽타주 재생 속도 사용.
-	 * 고정된 시간을 맞춰야하는 등 특수한 경우에는 1을 반환하도록 오버라이드한다.
-	 */
+	/** 일반적으로는 ASPD가 반영된 몽타주 재생 속도 사용. */
 	virtual float GetMontagePlayRate() const;
 
 	void OpenComboWindow();

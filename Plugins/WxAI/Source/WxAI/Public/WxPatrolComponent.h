@@ -36,7 +36,6 @@ class WXAI_API UWxPatrolComponent : public USplineComponent
 public:
 	UWxPatrolComponent();
 
-	/** Pawn 이 따를 정찰 경로. UWxAIBehaviorComponent 가 초기화 시 스폰 주체에서 찾아 둔 것을 쓰며, 없으면 정찰하지 않는다. */
 	static UWxPatrolComponent* FindPatrolComponent(const APawn* Pawn);
 
 	int32 GetNumPoints() const;

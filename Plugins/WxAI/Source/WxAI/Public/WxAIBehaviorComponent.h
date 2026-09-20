@@ -41,7 +41,7 @@ private:
 	UFUNCTION()
 	void HandleControllerChanged(APawn* Pawn, AController* OldController, AController* NewController);
 
-	/** 이 폰의 감각 수치를 컨트롤러의 퍼셉션 설정에 옮긴다. 플레이어가 잡고 있으면 옮길 곳이 없어 아무 일도 하지 않는다. */
+	/** 플레이어가 잡고 있으면 옮길 퍼셉션이 없어 아무 일도 하지 않는다. */
 	void ApplySenseSettings(AController* Controller) const;
 
 	/**

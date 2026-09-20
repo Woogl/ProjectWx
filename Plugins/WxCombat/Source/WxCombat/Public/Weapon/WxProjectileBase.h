@@ -88,7 +88,10 @@ protected:
 private:
 	friend class UWxProjectileSubsystem;
 
-	/** 발사 시 확정한다. 반사는 소유자만 바꾸고 레벨은 유지한다. 피해는 서버에서만 계산한다. */
+	/**
+	 * 발사 시 확정한다. 반사는 소유자만 바꾸고 레벨은 유지한다.
+	 * 피해는 서버에서만 계산한다.
+	 */
 	UPROPERTY(VisibleInstanceOnly, Category = "Wx|Projectile|Damage")
 	int32 ProjectileLevel = 1;
 

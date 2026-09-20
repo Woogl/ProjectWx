@@ -89,7 +89,7 @@ void UWxDialogueSessionComponent::Advance()
 	const FName NextRowName = Row->NextRow;
 	if (NextRowName.IsNone())
 	{
-		// 마지막 행까지 읽었다. EndDialogue 에 true 가 가는 유일한 경로다.
+		// EndDialogue 에 true 가 가는 유일한 경로다.
 		EndDialogue(/*bCompleted*/ true);
 		return;
 	}

@@ -7,7 +7,7 @@
 #include "WxAnimNotify_SpawnMinion.generated.h"
 
 /**
- * 소환 클래스와 스폰 지점을 풀어 월드의 MinionSubsystem에 생성을 맡긴다. 권위 판정과 상한 처리는 서브시스템이 한다.
+ * 권위 판정과 상한 처리는 이 노티파이가 아니라 MinionSubsystem이 한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxAnimNotify_SpawnMinion : public UAnimNotify

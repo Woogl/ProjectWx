@@ -102,7 +102,7 @@ void UWxAIBehaviorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	FVector PreviousPoint = EyeLocation + Radius * (Forward * FMath::Cos(StartRadians) + Right * FMath::Sin(StartRadians));
 	DrawDebugLine(World, EyeLocation, PreviousPoint, Color);
 
-	// 거리 제한과 편측 각도를 수평 단면으로 표시한다. 180도는 원 전체가 된다.
+	// 편측 각도가 180도면 원 전체가 된다.
 	constexpr int32 SegmentCount = 64;
 	for (int32 Segment = 1; Segment <= SegmentCount; ++Segment)
 	{

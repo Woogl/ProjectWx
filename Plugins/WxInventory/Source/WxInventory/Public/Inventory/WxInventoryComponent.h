@@ -82,8 +82,7 @@ struct FWxInventoryList : public FFastArraySerializer
 	/**
 	 * 권한: ItemDef 를 NumToConsume 만큼 슬롯 순서대로 차감하고 0 이 된 슬롯은 제거한다(MarkItemDirty/MarkArrayDirty 포함).
 	 * 원자성(총량 >= NumToConsume)은 호출자가 사전 검증해야 한다 — 부족분만큼만 부분 차감될 수 있다.
-	 * 차감된 슬롯의 변경을 차감 순서대로 반환한다.
-	 * NewStackCount 가 0 인 항목은 제거된 슬롯이다.
+	 * 차감된 슬롯의 변경을 차감 순서대로 반환하며, NewStackCount 가 0 인 항목은 제거된 슬롯이다.
 	 * 통지는 하지 않는다.
 	 */
 	TArray<FWxInventoryChangeResult> ConsumeByDefinition(const UWxItemDefinition* ItemDef, int32 NumToConsume);

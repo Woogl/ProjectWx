@@ -17,9 +17,8 @@ class UUserWidget;
 class UMVVMView;
 
 /**
- * UWxViewModelResolver_Inventory 가 위젯별로 생성하며, 인벤토리 연결은 본 VM 이 스스로 관찰해 처리한다.
  * 인벤토리는 컨트롤러와 함께 생기지만 클라에선 복제로 위젯보다 늦게 도착할 수 있고, 리졸버가 돌려준 인스턴스는 뷰가 교체할 수 없다.
- * 동일한 뷰모델을 유지하며 인벤토리의 등장과 제거에 맞춰 내부 연결을 교체한다.
+ * 그래서 뷰모델은 그대로 두고 인벤토리의 등장·제거를 스스로 관찰해 내부 연결만 교체한다.
  */
 UCLASS()
 class WXGAME_API UWxViewModel_Inventory : public UWxViewModel
@@ -27,7 +26,7 @@ class WXGAME_API UWxViewModel_Inventory : public UWxViewModel
 	GENERATED_BODY()
 
 public:
-	/** 인벤토리가 이미 붙어 있으면 즉시 연결하고, 아니면 도착 신호를 기다린다. */
+	/** 인벤토리가 이미 붙어 있으면 즉시 연결하며, 등장·제거 신호는 그와 별개로 계속 구독한다. */
 	void StartObserving(APlayerController* PC);
 
 	virtual void Deinitialize() override;
@@ -70,8 +69,7 @@ public:
 	TArray<TObjectPtr<UWxViewModel_InventoryItem>> CategorizedItems;
 
 	/**
-	 * HandleStackChanged 에서 Delta>0 일 때 교체된다.
-	 * 매번 새로 생성된 Def 모드 UWxViewModel_InventoryItem(AcquiredCount=Delta) 이므로 같은 ItemDef 를 연속 획득해도 FieldNotify 가 항상 발생하고, 토스트 위젯 간 표시 데이터가 서로 영향을 주지 않는다.
+	 * 획득(Delta>0)마다 새 Def 모드 UWxViewModel_InventoryItem 으로 교체되므로 같은 ItemDef 를 연속 획득해도 FieldNotify 가 항상 발생하고, 토스트 위젯 간 표시 데이터가 서로 영향을 주지 않는다.
 	 * 뷰 초기화 시점의 첫 실행에서는 nullptr 가 전달되므로 수신측이 유효성을 검사해야 한다.
 	 */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")

@@ -67,7 +67,6 @@ private:
 
 	void RefreshGamePause();
 
-	/** 전 레이어의 활성 위젯을 순회해, 정지를 원하는 위젯이 하나라도 있는지 본다. */
 	bool WantsGamePause() const;
 
 	/** 정지를 풀어도 되는지 게임모드가 해제 직전 되묻는 콜백. */
@@ -93,7 +92,7 @@ private:
 
 	FDelegateHandle DialogueTagHandle;
 
-	/** 대화 중 띄워 둔 대화 창. 세션이 끝날 때 이 창을 닫기 위해 기억한다. */
+	/** 세션이 끝날 때 닫기 위해 기억해 두는, 대화 중 띄운 창. */
 	TWeakObjectPtr<UCommonActivatableWidget> DialogueScreen;
 
 	/** 대화 태그가 먼저 걷히면 화면이 뒤늦게 나타나지 않도록 취소할 진행 중인 요청. */

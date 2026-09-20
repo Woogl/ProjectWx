@@ -25,7 +25,7 @@ namespace WxGameplayTags
 	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_MinionMaster_Minion);
 
-	/** 소환물 컴포넌트가 선언하는 값이라 C++ 에서는 읽지 않는다. 선언만 여기 모은다. */
+	/** 소환물 컴포넌트가 선언하는 값이라 C++ 에서는 읽지 않는다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_MinionMaster_Doppelganger);
 
 	/**
@@ -64,7 +64,6 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_IgnoreCosts);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_IgnoreCooldowns);
 
-	// 캐릭터 이동
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_InAir);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Sprint);
 
@@ -129,8 +128,7 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_ApplyFinisherDamage);
 
 
-	// 장치의 State Tree 상태값이다.
-	// 코드에서 읽거나 쓰는 값은 아니지만 태그는 여기서 정의한다.
+	// 장치의 State Tree 상태값이다. C++ 에서는 읽거나 쓰지 않는다.
 	
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Button_Idle);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Button_Pressed);

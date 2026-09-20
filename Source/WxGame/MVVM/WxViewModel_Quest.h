@@ -18,7 +18,6 @@ class UMVVMView;
  *
  * GameState 의 퀘스트 컴포넌트(WxQuest)를 직접 들고 저널 변경을 구독한다.
  * 그래서 WxUI 가 아니라 양쪽에 의존할 수 있는 본 모듈에 있다.
- * 저널의 소유자는 어디까지나 퀘스트 컴포넌트이며, 본 VM 은 변경 통지를 받아 현재 값을 pull 해 표시한다.
  */
 UCLASS()
 class WXGAME_API UWxViewModel_Quest : public UWxViewModel
@@ -26,7 +25,7 @@ class WXGAME_API UWxViewModel_Quest : public UWxViewModel
 	GENERATED_BODY()
 
 public:
-	/** 이전 저널 구독을 해제하고 재연결한다. nullptr이면 표시까지 비운다. */
+	/** nullptr 이면 구독을 끊고 표시까지 비운다. */
 	void Initialize(UWxQuestComponent* InQuestComponent);
 
 	virtual void Deinitialize() override;

@@ -171,8 +171,7 @@ void UWxDeviceStateTreeComponent::HandleBeginApplyTransition(const FStateTreeExe
 		return;
 	}
 
-	// 기본 선택 규칙은 재선택 시 인스턴스 ID를 유지한다.
-	// 태그 상태/조상을 직접 대상으로 삼은 적용 전이만 별도로 기록한다.
+	// 기본 선택 규칙은 재선택 시 인스턴스 ID를 유지하므로, 태그 상태/조상을 직접 대상으로 삼은 적용 전이만 별도로 기록한다.
 	// 태그 아래 자식 사이 이동은 태그 상태의 재진입이 아니다.
 	for (const FStateTreeExecutionFrame& Frame : Context.InstanceData.GetExecutionState().ActiveFrames)
 	{

@@ -7,7 +7,6 @@
 #include "WxAbilityTask_RotateToTarget.generated.h"
 
 class USceneComponent;
-/** 지정된 타겟 방향으로 캐릭터 몸체 Yaw를 보간한다. */
 UCLASS()
 class WXCOMBAT_API UWxAbilityTask_RotateToTarget : public UAbilityTask
 {

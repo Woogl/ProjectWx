@@ -121,7 +121,7 @@ private:
 
 	void PublishCurrentLine();
 
-	/** bCompleted 는 마지막 행까지 읽고 끝났는지다. 호출부가 자기 사유를 알고 있으므로 그 자리에서 넘긴다. */
+	/** 호출부가 자기 사유를 알고 있으므로 bCompleted 는 그 자리에서 넘긴다. */
 	void EndDialogue(bool bCompleted);
 
 	void BeginDialogueCamera();

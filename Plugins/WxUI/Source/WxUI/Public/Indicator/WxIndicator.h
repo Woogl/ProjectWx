@@ -36,7 +36,6 @@ public:
 	/** 유효한 대상만 넘긴다 — 부착 해제는 대상이 사라질 때 엔진이 대신 한다. */
 	void SetTarget(AActor* InTarget);
 
-	/** 부착 대상이 살아 있는지. */
 	bool HasTarget() const;
 
 protected:

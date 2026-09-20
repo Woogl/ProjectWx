@@ -37,7 +37,6 @@ public:
 	/**
 	 * @param Type EPropertyBagPropertyType 이름. 예: "Text", "Float", "Bool", "Int32", "Struct", "Object", "SoftObject"
 	 * @param ValueTypePath Type 이 "Struct" 면 값 구조체 경로(예: "/Script/Engine.DataTableRowHandle"), Object/SoftObject/Class/SoftClass 면 값 클래스 경로(예: "/Script/Engine.Actor").
-	 * @param bArray true 면 배열 컨테이너로 추가한다.
 	 * @param MetaJson 선택. 생성 프로퍼티에 붙일 메타 {"키":"값", ...}. 예: {"AllowedLocators":"Actor"} 는 UOL 파라미터에 전용 액터 픽커를 띄우며, 링크 상태 오버라이드 행까지 전파된다. 빈 문자열이면 메타 없음.
 	 * @return 추가된 파라미터의 ID(GUID 문자열).
 	 */

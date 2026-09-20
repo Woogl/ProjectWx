@@ -16,7 +16,7 @@ void UWxAnimNotify_ReportNoise::Notify(USkeletalMeshComponent* MeshComp, UAnimSe
 		return;
 	}
 
-	// AI Perception 은 서버에서 동작하므로 서버에서만 보고한다.
+	// AI Perception 은 서버에서만 동작한다.
 	// Loudness 1 고정이라 MaxRange 가 곧 절대 거리(cm)이고, Instigator=소유 액터로 청취자-소음원 팀 소속을 판정한다.
 	if (Owner->HasAuthority())
 	{

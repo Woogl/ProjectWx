@@ -58,11 +58,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Minion")
 	FGameplayTag MasterStateTag;
 
-	/** 소환하는 순간 주인이 만족해야 하는 조건. 다른 소환물의 MasterStateTag 를 IgnoreTags 로 걸면 그 소환물이 있는 동안 소환되지 않는다. */
+	/** 소환하는 순간 주인이 만족해야 하는 조건. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Minion")
 	FGameplayTagRequirements SummonMasterTagRequirements;
 
-	/** 소환된 동안 주인이 만족하면 이 소환물이 사라지는 조건. 다른 소환물의 MasterStateTag 를 RequireTags 로 걸면 그 소환물이 올 때 자리를 내준다. */
+	/** 소환된 동안 주인이 만족하면 이 소환물이 사라지는 조건. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Minion")
 	FGameplayTagRequirements CancelMasterTagRequirements;
 

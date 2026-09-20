@@ -120,7 +120,10 @@ public:
 	FGameplayAttributeData IncomingDamage;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, IncomingDamage)
 
-	/** 퍼펙트 가드 반사량을 GE 실행 기록에 남긴다. AttributeSet은 초기화하고, DamageResponse 컴포넌트가 컨텍스트에 옮기면 Hit 컴포넌트가 처리한다. */
+	/**
+	 * 퍼펙트 가드 반사량을 GE 실행 기록에 남긴다.
+	 * DamageResponse 컴포넌트가 컨텍스트에 옮기면 Hit 컴포넌트가 처리한다.
+	 */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Meta")
 	FGameplayAttributeData IncomingReflect;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, IncomingReflect)

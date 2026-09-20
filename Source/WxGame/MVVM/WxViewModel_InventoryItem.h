@@ -18,8 +18,7 @@ class UMVVMView;
 /**
  * 단일 슬롯(또는 ItemDef 합계) 표시 데이터를 노출하는 ViewModel.
  *
- * Initialize(Inventory, ItemInstance) 는 특정 슬롯에 바인딩해 슬롯 단위 델리게이트를 구독한다.
- * Initialize(Inventory, ItemDef) 는 ItemDef 합계에 바인딩해 합계 델리게이트를 구독한다.
+ * Initialize 인자가 ItemInstance 면 슬롯 모드, ItemDef 면 그 Def 의 합계 모드다.
  *
  * 정적 표시 데이터(DisplayName/Grade/GradeColor/MaxCharges)는 초기화 시 ItemDef 에서 세팅되며, 슬롯 인스턴스의 ItemDef 가 달라졌을 때만 다시 세팅된다.
  * 충전형의 Icon 은 충전량 변경 시 ChargeIcons[CurrentCharges] 로 함께 갱신된다.

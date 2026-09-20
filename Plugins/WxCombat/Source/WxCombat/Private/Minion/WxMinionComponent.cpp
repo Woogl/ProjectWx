@@ -54,7 +54,7 @@ void UWxMinionComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// 소환된 적 없는 적은 Instigator 가 자기 자신이라 주인이 없다. 복제 스폰도 이 시점엔 Instigator 가 들어와 있다.
+	// 복제 스폰도 이 시점엔 Instigator 가 들어와 있다.
 	const APawn* Minion = GetMinionPawn();
 	APawn* Master = Minion ? GetMaster(*Minion) : nullptr;
 	if (!Master)
