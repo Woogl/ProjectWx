@@ -10,7 +10,7 @@ struct FStateTreeExecutionContext;
 struct FStateTreeTransitionResult;
 class UStateTree;
 
-// GetInstanceDataType() 의 헤더 정의는 코딩 규칙 4 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
+// GetInstanceDataType() 의 헤더 정의는 코딩 규칙 3 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
 
 USTRUCT()
 struct FWxStateTreeTask_StartNextQuestInstanceData
