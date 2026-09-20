@@ -3,11 +3,11 @@ const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),vm=r
 const {listTasks,saveTask}=require('./Wiki-Tasks.cjs');
 const {saveHandoff,renameTask}=require('./Wiki-AI.cjs');
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'wx-tasks-'));
-const scripts=['workflow-model.js','workflow.js'].map(f=>fs.readFileSync(path.join(__dirname,'wiki-viewer',f),'utf8')).join('\n');
+const scripts=['workflow-model.js','workflow.js','execution.js'].map(f=>fs.readFileSync(path.join(__dirname,'wiki-viewer',f),'utf8')).join('\n');
 const panel={};
 async function browser(storage=new Map()){
   const c=vm.createContext({location:{pathname:'/workflow'},data:{ai:{url:'http://127.0.0.1/analyze',token:'test'}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},$:()=>panel});
-  c.fetch=async(url,options)=>{try{const b=JSON.parse(options.body);const receipt=url.endsWith('/tasks')?listTasks(root):url.endsWith('/task')?saveTask(root,b):url.endsWith('/handoff')?saveHandoff(b,root):renameTask(b,root);return {ok:true,json:async()=>receipt};}catch(e){return {ok:false,json:async()=>({error:e.message})};}};
+  c.fetch=async(url,options)=>{try{const b=JSON.parse(options.body);const receipt=url.endsWith('/tasks')?listTasks(root):url.endsWith('/task')?saveTask(root,b):url.endsWith('/handoff')?saveHandoff(b,root):renameTask(b,root);return {ok:true,json:async()=>receipt};}catch(e){return {ok:false,json:async()=>({error:e.message,current:e.current})};}};
   vm.runInContext(scripts,c);await vm.runInContext('initializeSharedTasks()',c);return c;
 }
 const run=(c,s)=>vm.runInContext(s,c);
@@ -15,7 +15,7 @@ const run=(c,s)=>vm.runInContext(s,c);
   const a=await browser();run(a,"workflowState=newTask('공유 기획');workflowState.source='원본';saveWorkflow()");await run(a,'flushSharedTasks()');
   const b=await browser();assert.equal(run(b,"otherTasks['공유 기획'].source"),'원본');
   run(b,"workflowState=otherTasks['공유 기획'];workflowState.source='다른 사람의 수정';saveWorkflow()");await run(b,'flushSharedTasks()');
-  run(a,"workflowState.source='오래 열린 화면의 입력';saveWorkflow()");await assert.rejects(run(a,'flushSharedTasks()'),/다른 사람이/);
+  run(a,"workflowState.source='오래 열린 화면의 입력';saveWorkflow()");await assert.rejects(run(a,'flushSharedTasks()'));
   assert.equal(listTasks(root).tasks['공유 기획'].task.source,'다른 사람의 수정');
   assert.equal(run(a,"draftRecovery['공유 기획'].task.source"),'오래 열린 화면의 입력');
   // 응답 유실 시 같은 저장 요청을 재전송해도 버전은 한 번만 증가한다.

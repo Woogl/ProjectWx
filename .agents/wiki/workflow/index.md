@@ -10,10 +10,7 @@
 
 ## 작업
 
-1. [기획](planning.md)
-2. [구현](implementation.md)
-3. [테스트](testing.md)
-4. [완료](completion.md)
+- [작업](planning.md)
 
 ## 참고 자료
 

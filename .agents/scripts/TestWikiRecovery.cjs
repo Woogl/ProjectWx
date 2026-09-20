@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),vm=require('node:vm'),assert=require('node:assert/strict');
 const {listTasks,saveTask}=require('./Wiki-Tasks.cjs');
 const {saveHandoff,revokeHandoff,startChange,renameTask,readCurrent}=require('./Wiki-AI.cjs');
-const scripts=['workflow-model.js','workflow.js'].map(file=>fs.readFileSync(path.join(__dirname,'wiki-viewer',file),'utf8')).join('\n');
+const scripts=['workflow-model.js','workflow.js','execution.js'].map(file=>fs.readFileSync(path.join(__dirname,'wiki-viewer',file),'utf8')).join('\n');
 const fixture=fs.mkdtempSync(path.join(os.tmpdir(),'wx-recovery-'));
 const storage=new Map(),panel={};let loseResponse=false,failAfterCommit=false,requests=0;
 const localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)};

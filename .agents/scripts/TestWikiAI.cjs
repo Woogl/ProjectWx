@@ -40,9 +40,12 @@ const question={id:'Q1',title:'취소 정책',requirement:'기획 미정',scope:
     assert.equal((await send({plan:'회피',mode:'bad'})).status,400);
     assert.equal((await send({}, {'X-Wx-Token':'invalid'},'/handoff')).status,403);
     assert.equal((await send({}, {'X-Wx-Token':'invalid'},'/revoke')).status,403);
+    assert.equal((await send({}, {'X-Wx-Token':'invalid'},'/execution')).status,403);
+    assert.equal((await send({}, {Origin:'https://example.com'},'/execution')).status,403);
+    assert.equal((await send({}, {},'/execution')).status,400,'execution without a configured worker cannot silently succeed');
     assert.equal((await send({}, {},'/revoke')).status,400);
     assert.equal((await send({}, {},'/handoff')).status,200);
-    const health=await(await fetch('http://127.0.0.1:18744/health')).json();assert.equal(health.protocol,3);assert.equal(health.revision.split(':').length,10);
+    const health=await(await fetch('http://127.0.0.1:18744/health')).json();assert.equal(health.protocol,3);assert.equal(health.revision.split(':').length,11);
   }finally{await new Promise(resolve=>server.close(resolve));}
   const fixture=fs.mkdtempSync(path.join(os.tmpdir(),'wx-workflow-'));
   try{

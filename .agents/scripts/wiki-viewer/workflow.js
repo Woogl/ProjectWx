@@ -90,8 +90,10 @@ async function syncSharedTasks(){
     await flushSharedTasks();
     const before=JSON.stringify(workflowState);
     await loadSharedTasks();
+    if(typeof recoverExecutionRequests==='function')await recoverExecutionRequests();
     if(Object.keys(draftRecovery).length||before!==JSON.stringify(workflowState))return;
     if(workflowState.taskId)workflowState=otherTasks[workflowState.taskId]||newTask();
+    if(typeof watchExecution==='function')watchExecution();
     sharedStatus('');
     if(typeof readRoute==='function')readRoute();
   }catch(error){sharedStatus(error.message);if(typeof readRoute==='function')readRoute();}finally{sharedSyncing=false;}
@@ -119,10 +121,7 @@ function handoffBlockers(stage) {
   if(stage==='implementation'&&l.decisions.some(q=>WxWorkflowModel.active(q)&&q.kind==='planning'))reasons.push('기획 변경 질문을 기획 단계로 전달해 확정하세요.');
   return reasons;
 }
-function announceWorkflow(text) {
-  const status=el('p',text,'notice');status.setAttribute('role','status');status.setAttribute('tabindex','-1');
-  $('workflow-controls').append(status);status.focus();status.scrollIntoView?.({block:'center'});
-}
+
 function loopConfirmed(stage) {
   const l = workflowState[stage];
   return !!(loopReady(stage) && l.confirmation && l.confirmation.basis === loopBasis(stage) && l.confirmation.draft === l.result.draft);
@@ -141,8 +140,8 @@ async function finishPendingSave() {
   if(analysisBusy)throw new Error('진행 중인 작업이 끝난 뒤 다시 시도하세요.');
   analysisBusy=true;
   const panel=$('workflow-controls');panel.inert=true;
-  $('workflow-busy-title').textContent='인계 기록을 저장하고 있습니다';
-  $('workflow-busy-detail').textContent='저장 결과를 확인하고 있습니다. 완료되면 인계 경로를 표시합니다.';
+  $('workflow-busy-title').textContent='저장 중';
+  $('workflow-busy-detail').textContent='잠시 기다려 주세요.';
   $('workflow-busy').hidden=false;$('app-shell').inert=true;$('workflow-busy').focus?.();
   try {
     const operation=pendingSave;
@@ -213,6 +212,8 @@ async function beginChange(stage,next,reason,scope) {
   next.taskId=WxWorkflowModel.taskName(next.title);
   next.serverRevision=0;
   delete next.changeTo;
+  delete next.execution;
+  delete next.executionJudgment;
   next[stage].reviewBasis='';
   next[stage].notes=[next[stage].notes,'변경 요청: '+reason].filter(Boolean).join('\n\n');
   await commitWorkflow('/change',{taskId:workflowState.taskId,expectedRevision:workflowState.serverRevision,newTaskId:next.taskId,title:next.title,stage,reason,scope:scope||'변경 요청과 관련된 구현은 영향 분석·새 기준 확정까지 보류. AI가 기존 코드·판단을 대조해 영향 범위와 영향 없는 작업을 구분한다.'},next);
@@ -257,11 +258,11 @@ function renderTaskPicker(panel) {
     if(!selected&&Object.hasOwn(otherTasks,title)){message.textContent='이미 사용 중인 작업 제목입니다.';return;}
     const previous=workflowState;
     workflowState=selected?JSON.parse(JSON.stringify(otherTasks[selected])):newTask(title);
-    if(!saveWorkflow()){
+    if(!selected&&!saveWorkflow()){
       if(!selected)delete otherTasks[workflowState.taskId];workflowState=previous;
       message.textContent=workflowStorageError;list.value=workflowState.taskId;return;
     }
-    location.hash=route('.agents/wiki/workflow/planning.md');renderWorkflow('.agents/wiki/workflow/planning.md');
+    openWorkStage();
   };
   list.onchange=()=>{if(Object.hasOwn(tasks,list.value))return openTask(list.value);};
   const apply=workflowButton('새 작업 만들기',()=>{
@@ -276,16 +277,19 @@ function renderTaskPicker(panel) {
   input.id='workflow-new-task';const newLabel=el('label','새 작업');newLabel.setAttribute('for',input.id);
   existingRow.append(existingLabel,list);newRow.append(newLabel,input,apply);
   const status=el('p',workflowStorageError,'notice');status.id='workflow-shared-status';status.setAttribute('role','status');
-  panel.append(el('h3','작업'),status,existingRow,newRow,message);
+  panel.append(el('h3','작업'),status);
+  if(Object.keys(tasks).length)panel.append(existingRow);
+  if(workflowState.taskId){
+    const create=el('details');create.append(el('summary','새 작업 만들기'),newRow);panel.append(create);
+  }else panel.append(newRow);
+  panel.append(message);
   if(!sharedReady||sharedLoading){list.disabled=true;input.disabled=true;apply.disabled=true;}
   if(!workflowState.taskId)return;
-  const progress=el('select');progress.setAttribute('aria-label','현재 진행 단계');
-  for(const phase of ['기획','설계','구현','코드 리뷰','테스트','완료','보류']){const option=el('option',phase);option.value=phase;progress.append(option);}
-  progress.value=workflowState.progress?.stage||'기획';
-  const progressNote=el('textarea');progressNote.rows=2;progressNote.setAttribute('aria-label','진행상황과 다음 할 일');progressNote.placeholder='진행상황·다음 할 일·관련 코드나 검증 자료';progressNote.value=workflowState.progress?.note||'';
-  const saveProgress=()=>{workflowState.progress={stage:progress.value,note:progressNote.value};saveWorkflow();};
-  progress.onchange=saveProgress;progressNote.oninput=saveProgress;
-  panel.append(el('h3','공유 진행상황'),progress,progressNote,el('p','진행 단계는 공유 메모이며 기획·설계 확정이나 리뷰·테스트 승인을 대신하지 않습니다.','notice'));
+  const stage=loopConfirmed('planning')?'implementation':'planning';
+  panel.append(el('p',loopConfirmed('implementation')?executionStatus():(stage==='planning'?'기획 · ':'설계 · ')+reviewStatus(stage),'notice'));
+  if(workflowState.progress?.note){
+    const previous=el('details');previous.append(el('summary','이전 작업 메모'),el('pre',workflowState.progress.note,'plan-preview'));panel.append(previous);
+  }
   const titleInput=el('input');titleInput.type='text';titleInput.value=taskTitle(workflowState);titleInput.maxLength=80;titleInput.setAttribute('aria-label','현재 작업 제목');
   const rename=el('details');rename.append(el('summary','현재 작업 제목 변경'));
   rename.append(titleInput,workflowButton('제목 변경',async()=>{
@@ -307,20 +311,25 @@ function onWikiNavigation(event) {
   readRoute();
   syncSharedTasks();
 }
+function reviewStatus(stage) {
+  if(workflowState.changeTo)return '후속 변경 작업에서 확인';
+  if(loopConfirmed(stage))return '확정됨';
+  if(stage==='implementation'&&!loopConfirmed('planning'))return '기획 확정 후 진행';
+  const l=workflowState[stage];
+  if(!l.result)return stage==='planning'&&!workflowState.source.trim()?'기획서 입력부터 시작':'AI 검토 시작';
+  const unanswered=l.decisions.filter(q=>WxWorkflowModel.active(q)&&!q.confirmed).length;
+  if(unanswered)return unanswered+'개 질문에 답변 필요';
+  return loopReady(stage)?'최종 확정 대기':l.result.blockers?.length?'추가 자료 확인 필요':'답변 반영·AI 재검토 필요';
+}
 function renderWorkSummary() {
   const summary = $('work-summary'); summary.replaceChildren();
+  const tasks=$('dashboard-tasks');tasks.replaceChildren();if(sharedReady)renderTaskPicker(tasks);
   $('current-task-title').textContent=!workflowState.taskId?'새 작업을 만들거나 기존 작업을 선택하세요.':'현재 작업 · '+taskTitle(workflowState);
   $('work-summary-error').textContent=workflowStorageError;
-  for (const [stage, title] of [['planning','기획'],['implementation','구현'],['testing','테스트'],['completion','완료']]) {
-    const card = el('a', undefined, 'card'); card.href = route(`.agents/wiki/workflow/${stage}.md`);
-    let status = stage==='testing'?'구현·코드 리뷰 후 진행':'테스트 승인 후 진행';
-    if (stage === 'planning' || stage === 'implementation') {
-      const l = workflowState[stage];
-      const unanswered=l.decisions.filter(q => WxWorkflowModel.active(q)&&!q.confirmed).length;
-      status = loopConfirmed(stage) ? '확정됨' : stage==='implementation'&&!loopConfirmed('planning') ? '기획 확정 후 진행' : !l.result ? (stage==='planning'&&!workflowState.source.trim()?'기획서 입력부터 시작':'AI 검토 시작') : unanswered ? unanswered+'개 질문에 답변 필요' : loopReady(stage) ? '최종 확정 대기' : l.result.blockers?.length ? '추가 자료 확인 필요' : '답변 반영·AI 재검토 필요';
-      if(workflowState.changeTo)status='후속 변경 작업에서 확인';
-    }
-    card.append(el('span',title,'eyebrow'),el('h2',status)); summary.append(card);
+  if(workflowState.taskId){
+    const stage=currentWorkStage(),card=el('a',undefined,'card');card.href=route('.agents/wiki/workflow/planning.md');
+    const status=loopConfirmed('implementation')?executionStatus():reviewStatus(stage);
+    card.append(el('span','현재 상태','eyebrow'),el('h2',status),el('p','작업 열기 →'));summary.append(card);
   }
 
 }
@@ -329,7 +338,7 @@ async function workflowRequest(endpoint, body) {
   if(sharedReady&&!pendingSave&&!['/task','/tasks'].includes(endpoint))await flushSharedTasks();
   const response = await fetch(data.ai.url.replace(/\/analyze$/,endpoint), { method:'POST', headers:{'Content-Type':'application/json','X-Wx-Token':data.ai.token}, body:JSON.stringify(body) });
   const result = await response.json();
-  if (!response.ok) throw new Error(result.error || '요청에 실패했습니다.');
+  if (!response.ok) {const error=new Error(result.error||'요청에 실패했습니다.');error.current=result.current;error.responded=true;throw error;}
   return result;
 }
 function renderDecisionLoop(panel, stage) {
@@ -352,10 +361,15 @@ function renderDecisionLoop(panel, stage) {
     }),message);return;
   }
   if(l.confirmation){
-    panel.append(el('h3',title+' 확정본'),el('pre',l.confirmation.draft,'plan-preview'),el('p','인계 문서: '+l.confirmation.path),message);
-    const request=el('textarea');request.rows=3;request.setAttribute('aria-label','변경 요청');request.placeholder='바꾸려는 내용과 이유를 적으세요. 기존 자료는 자동으로 연결합니다.';
-    panel.append(request,workflowButton(title+' 변경 작업 시작',async()=>{try{await beginChange(stage,undefined,request.value);renderWorkflow(`.agents/wiki/workflow/${stage}.md`);}catch(error){message.textContent=error.message;if(pendingSave)renderWorkflow(`.agents/wiki/workflow/${stage}.md`);}}));
-    panel.append(el('p','확정본과 판단 기록을 보존하고 별도 작업에서 변경을 검토합니다. 새 확정본이 해당 기준을 대체합니다.'));
+    panel.append(el('h3',title+' 확정 완료'));
+    if(stage==='planning'){
+      panel.append(el('p','AI가 확정한 기획을 조사해 설계 판단을 준비합니다.'));
+      panel.append(workflowButton('설계 검토 이어서 진행',async()=>{
+        openWorkStage('implementation');
+        if(!workflowState.implementation.result&&runCurrentReview)await runCurrentReview();
+      }));
+    }else renderExecution(panel);
+    const record=el('details');record.append(el('summary',title+' 확정 내용'),el('pre',l.confirmation.draft,'plan-preview'),el('p','인계 문서: '+l.confirmation.path));panel.append(record);
     return;
   }
   if (stage === 'planning') {
@@ -381,21 +395,25 @@ function renderDecisionLoop(panel, stage) {
       } catch(error){message.textContent=error.message;}
       finally{file.value='';analysisBusy=false;panel.inert=false;}
     };
-    panel.append(el('h3','기획서 원본'),input,file,el('p','Markdown · 텍스트 · Word(.docx) · PDF · PowerPoint(.pptx) / 최대 20MB. 문서의 텍스트를 읽으며 이미지·스캔·도표는 포함하지 않습니다.','notice'));
+    const sourcePanel=l.result?el('details'):el('div');
+    sourcePanel.append(el(l.result?'summary':'h3','기획서 원본'),input,file,el('p','텍스트·Word·PDF·PowerPoint / 최대 20MB','notice'));panel.append(sourcePanel);
   } else {
-    panel.append(el('h3','확정 기획과 판단 기록'),el('pre',sourceFor(stage)||'기획을 먼저 확정하세요.','plan-preview'));
+    const planningRecord=el('details');planningRecord.append(el('summary','확정 기획'),el('pre',sourceFor(stage)||'기획을 먼저 확정하세요.','plan-preview'));panel.append(planningRecord);
     if(!loopConfirmed('planning')){panel.append(el('p','기획 확정이 필요합니다. 기존 설계 판단은 보존되며 기획 재확정 후 재검토합니다.','notice'));return;}
-    panel.append(el('p','기획 인계 문서: '+workflowState.planning.confirmation.path,'notice'));
+
   }
-  const notes=el('textarea');notes.rows=3;notes.value=l.notes;notes.setAttribute('aria-label','추가 요청·수정 의견');
-  notes.oninput=()=>{if(analysisBusy||pendingSave)return;l.notes=notes.value;invalidate(stage);remember();refreshHandoffStatus();};
-  panel.append(el('h3','추가 요청·수정 의견'),notes);
+  if(l.result||l.notes){
+    const notes=el('textarea');notes.rows=3;notes.value=l.notes;notes.setAttribute('aria-label','추가 요청·수정 의견');
+    notes.oninput=()=>{if(analysisBusy||pendingSave)return;l.notes=notes.value;invalidate(stage);remember();refreshHandoffStatus();};
+    const feedback=el('details');feedback.append(el('summary','수정 의견'),notes);panel.append(feedback);
+  }
   const providers=data.ai?.providers || [];
   const providerSelect=el('select');providerSelect.setAttribute('aria-label','검토할 AI 서비스');
   for(const provider of providers){const option=el('option',provider.label);option.value=provider.id;providerSelect.append(option);}
   providerSelect.value=providers.some(p=>p.id===workflowState.provider)?workflowState.provider:(providers[0]?.id||'');
   providerSelect.onchange=()=>{workflowState.provider=providerSelect.value;saveWorkflow();};
-  panel.append(el('h3','검토할 AI 서비스'),providerSelect,el('p',providers.length?'선택한 서비스에 검토 자료와 조사에 필요한 파일 내용이 전달됩니다. 해당 CLI의 로그인·기본 모델 설정을 사용합니다.':'사용 가능한 AI가 없습니다. Codex, Claude Code 또는 Gemini CLI 설치·로그인 후 OpenWorkflow.bat을 다시 실행하세요.','notice'));
+  if(providers.length>1){const service=el('details');service.append(el('summary','AI: '+(providers.find(p=>p.id===providerSelect.value)?.label||'')),providerSelect);panel.append(service);}
+  panel.append(el('p',providers.length?(providers.length===1?providers[0].label+'로 검토합니다. ':'')+'선택한 서비스에 검토 자료와 조사에 필요한 파일 내용이 전달됩니다.':'사용 가능한 AI가 없습니다. Codex, Claude Code 또는 Gemini CLI 설치·로그인 후 OpenWorkflow.bat을 다시 실행하세요.','notice'));
   const generate=workflowButton(`AI ${title} 검토 · 답변 반영`,async()=>{
     if(analysisBusy)return;
     const source=sourceFor(stage);
@@ -405,8 +423,8 @@ function renderDecisionLoop(panel, stage) {
     if(!saveWorkflow()){message.textContent=workflowStorageError;return;}
     const selectedProvider=providerSelect.value;
     const basis=loopBasis(stage),reviewHash=location.hash; analysisBusy=true;generate.disabled=true;providerSelect.disabled=true;preview.replaceChildren();
-    $('workflow-busy-title').textContent=`AI가 ${title}을 재검토하고 있습니다`;
-    $('workflow-busy-detail').textContent='답변을 반영하고 추가 질문과 통합 초안을 준비하고 있습니다.';
+    $('workflow-busy-title').textContent='AI 검토 중';
+    $('workflow-busy-detail').textContent='몇 분 걸릴 수 있습니다. 잠시 기다려 주세요.';
     $('workflow-busy').hidden=false;$('app-shell').inert=true;$('workflow-busy').focus();
     message.textContent='기존 판단을 포함해 사실·추가 질문·통합 초안을 검토하고 있습니다…';
     try {
@@ -440,11 +458,12 @@ function renderDecisionLoop(panel, stage) {
     }
   });
   generate.disabled=!providers.length;
+  runCurrentReview=generate.onclick;
   panel.append(generate,message,preview,el('h3',title+' 판단 체크리스트'));
   if(l.decisions.some(q=>WxWorkflowModel.active(q)&&!q.confirmed))panel.append(el('p','현재 질문의 답변을 모두 결정하면 AI가 자동으로 재검토하고 필요한 추가 질문을 제시합니다.','notice'));
   if(!l.decisions.length)panel.append(el('p','판단 항목이 없습니다. AI가 명확한 사실을 정리하고 추가 판단만 질문합니다.'));
   for(const q of l.decisions){
-    const group=el('div');group.append(el('h4',`${q.id} · ${q.title}`),el('p','근거: '+q.requirement),el('p',q.scope));
+    const group=el('div');group.append(el('h4',q.title),el('p','근거: '+q.requirement),el('p',q.scope));
     if(!WxWorkflowModel.active(q)){group.append(el('p',q.status==='excluded'?'범위 제외: '+q.exclusion.reason+' · 근거: '+q.exclusion.basis:'기획으로 전달됨: '+q.transferredTo),el('pre','이전 답변: '+q.answer,'plan-preview'));panel.append(group);continue;}
     const decisionStatus=el('span');decisionStatus.setAttribute('role','status');
     const updateDecisionStatus=()=>{
@@ -466,6 +485,9 @@ function renderDecisionLoop(panel, stage) {
       updateDecisionStatus();
       refreshHandoffStatus();
       if(l.decisions.every(item=>!WxWorkflowModel.active(item)||(item.confirmed&&item.answer.trim()))){
+        if(stage==='implementation'&&l.decisions.some(item=>WxWorkflowModel.active(item)&&item.kind==='planning')){
+          try{await transferPlanningQuestions();openWorkStage('planning');if(runCurrentReview)await runCurrentReview();}catch(error){sharedStatus(error.message);}return;
+        }
         if(!providers.length){message.textContent='답변을 저장했습니다. AI 연결 후 검토 버튼을 눌러 계속하세요.';return;}
         await generate.onclick();
       }else renderWorkflow(`.agents/wiki/workflow/${stage}.md`);
@@ -488,14 +510,8 @@ function renderDecisionLoop(panel, stage) {
     }
     answer.placeholder='직접 답변하거나 선택한 내용에 추가 의견을 적으세요.';
     group.append(answer,confirm);
-    if(stage==='implementation')group.append(workflowButton('기획 변경 질문 함께 전달 · 답변 보존',async()=>{
-      try{
-        await transferPlanningQuestions(q.id);
-        location.hash=route('.agents/wiki/workflow/planning.md');renderWorkflow('.agents/wiki/workflow/planning.md');
-      }catch(error){message.textContent=error.message;if(pendingSave)renderWorkflow(`.agents/wiki/workflow/${stage}.md`);}
-    }));
     if(q.history.length)group.append(el('pre','이전 판단\n'+q.history.map(h=>`${h.question}\n${h.answer}\n${h.reason}`).join('\n\n'),'plan-preview'));
-    panel.append(group);
+    if(q.confirmed){const decided=el('details');decided.append(el('summary','결정됨 · '+q.title),group);panel.append(decided);}else panel.append(group);
   }
   if(l.result){
     if(stage==='implementation'){
@@ -504,7 +520,7 @@ function renderDecisionLoop(panel, stage) {
     }
     panel.append(el('h3',title+' 통합 초안'),el('pre',l.result.draft,'plan-preview'),el('p',loopReady(stage)?'추가 미확정 항목 없음 · 통합 결과를 최종 판단하세요.':'답변·원본·의견 변경 후 AI 재검토가 필요합니다.','notice'));
     const saveStatus=el('div');saveStatus.setAttribute('role','status');saveStatus.setAttribute('tabindex','-1');
-    const finalize=workflowButton(`${title} 최종 확정 · 인계 문서 저장`,async()=>{
+    const finalize=workflowButton(stage==='planning'?'기획 확정 · 설계 검토':'설계 확정 · AI 구현 시작',async()=>{
       if(analysisBusy)return;
       if(!loopReady(stage)){refreshHandoffStatus();saveStatus.focus();saveStatus.scrollIntoView?.({block:'center'});return;}
       const basis=loopBasis(stage);
@@ -512,11 +528,16 @@ function renderDecisionLoop(panel, stage) {
       finalize.disabled=true;panel.inert=true;
       try{
         await commitWorkflow('/handoff',snapshot,workflowState,basis);
-        renderWorkflow(`.agents/wiki/workflow/${stage}.md`);
-        announceWorkflow('저장 완료 · '+workflowState[stage].confirmation.path);
+        if(stage==='planning'){
+          openWorkStage('implementation');
+          if(runCurrentReview)await runCurrentReview();
+        }else{
+          renderWorkflow('.agents/wiki/workflow/implementation.md');
+          await executeAction('start');
+        }
       }catch(error){
         if(pendingSave)renderWorkflow(`.agents/wiki/workflow/${stage}.md`);
-        announceWorkflow('저장 완료를 확인하지 못했습니다. '+error.message+(pendingSave?' 입력은 유지되며 연결이 돌아오면 저장을 다시 확인합니다.':' 입력은 유지됩니다. 다시 시도하세요.'));
+        sharedStatus('저장 완료를 확인하지 못했습니다. '+error.message+(pendingSave?' 입력은 유지되며 연결이 돌아오면 저장을 다시 확인합니다.':' 입력은 유지됩니다. 다시 시도하세요.'));
       }finally{finalize.disabled=false;panel.inert=false;}
     });
     refreshHandoffStatus=()=>{
@@ -526,24 +547,24 @@ function renderDecisionLoop(panel, stage) {
       finalize.disabled=!!reasons.length;
     };
     refreshHandoffStatus();panel.append(saveStatus,finalize);
+    if(stage==='implementation')panel.append(el('p','확정하면 Codex가 저장소에서 구현·검증을 시작합니다.','notice'));
   }
   if(loopConfirmed(stage))panel.append(el('p','확정 · AI 인계 문서: '+l.confirmation.path,'notice'));
   if(l.archive.length)panel.append(el('pre','이전 확정본 (현재 작업 기준 아님)\n'+l.archive.map(c=>c.path).join('\n'),'plan-preview'));
 }
+let runCurrentReview=null;
 function renderWorkflow(path){
+  runCurrentReview=null;
   const panel=$('workflow-controls');panel.replaceChildren();
-  const stage=path.match(/^\.agents\/wiki\/workflow\/(planning|implementation|testing|completion)\.md$/)?.[1];
+  const requested=path.match(/^\.agents\/wiki\/workflow\/(planning|implementation|testing|completion)\.md$/)?.[1];
+  const stage=requested?currentWorkStage():null;
   panel.hidden=!stage;if(!stage)return;
-  panel.append(el('h2',({planning:'기획',implementation:'구현',testing:'테스트',completion:'완료'})[stage]));
+  panel.append(el('h2','작업'));
   if(!sharedReady){panel.append(el('p',workflowStorageError||'작업 목록을 불러오는 중입니다.','notice'));return;}
   if(pendingSave){panel.append(el('p',workflowStorageError||'저장 결과를 확인하고 있습니다.','notice'));return;}
   const stageBody=el('div');
   renderTaskPicker(panel);panel.append(stageBody);
   if(!workflowState.taskId){stageBody.append(el('p','새 작업 제목을 입력해 시작하세요.','notice'));return;}
   if(stage==='planning'||stage==='implementation')renderDecisionLoop(stageBody,stage);
-  else{
-    stageBody.append(el('p',loopConfirmed('implementation')?'설계 인계 문서: '+workflowState.implementation.confirmation.path:'유효한 설계 확정이 필요합니다.','notice'));
-    stageBody.append(el('p','설계 확정은 코드 구현·인간 코드 리뷰·테스트 승인이 아닙니다. AI는 인계 문서에 구현 버전·검증 근거를 연결하고 사람의 리뷰·수용 판단을 기록합니다.'));
-    stageBody.append(el('p','실제 구현과 테스트는 이 문서를 읽는 작업에서 수행합니다. 화면은 게임 코드 실행이나 최종 테스트 승인을 대신하지 않습니다.'));
-  }
+  else renderExecution(stageBody);
 }

@@ -54,7 +54,7 @@ if (Test-Path -LiteralPath $assetRoot) {
     }
 }
 $template = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/index.html'))
-$workflowScript = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/workflow-model.js')) + "`n" + [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/workflow.js'))
+$workflowScript = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/workflow-model.js')) + "`n" + [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/workflow.js')) + "`n" + [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/execution.js'))
 foreach ($mode in @('Wiki', 'Workflow')) {
     $indexPath = if ($mode -eq 'Wiki') { Join-Path $wiki 'index.md' } else { Join-Path $wiki 'workflow/index.md' }
     $navigation = @()

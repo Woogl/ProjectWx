@@ -42,7 +42,7 @@ var WxWorkflowModel = (() => {
   function encodeFilename(value) { return encodeURIComponent(value).replace(/[!'()*]/g,c=>'%'+c.charCodeAt(0).toString(16).toUpperCase()); }
   function remapTask(value,oldName,newName) {
     const paths=text=>{
-      for(const stage of ['planning','implementation','current'])for(const extension of ['md','json']){
+      for(const stage of ['planning','implementation','current','execution'])for(const extension of ['md','json']){
         const oldFile=`workflow_${oldName}_${stage}.${extension}`,newFile=`workflow_${newName}_${stage}.${extension}`;
         text=text.split(oldFile).join(newFile).split(encodeFilename(oldFile)).join(encodeFilename(newFile));
       }
@@ -54,7 +54,7 @@ var WxWorkflowModel = (() => {
       if(typeof item!=='string')return item;
       if(['taskId','newTaskId','changeTo'].includes(key)&&item===oldName)return newName;
       if(key==='title'&&parent.taskId===oldName)return newName;
-      return ['path','dataPath','planning','implementation','basis','reviewBasis','prior'].includes(key)?paths(item):item;
+      return ['path','dataPath','planning','implementation','design','basis','reviewBasis','prior'].includes(key)?paths(item):item;
     }
     return walk(value);
   }

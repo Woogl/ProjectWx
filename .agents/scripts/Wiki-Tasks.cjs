@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { taskName, basis } = require('./wiki-viewer/workflow-model.js');
+const { readExecution } = require('./Workflow-Execution.cjs');
 const loop = () => ({ notes:'', decisions:[], result:null, reviewBasis:'', confirmation:null, archive:[] });
 function folder(root) { return path.join(root, '.agents/in-progress'); }
 function file(root, title) { if(taskName(title)!==title)throw new Error('작업 제목 앞뒤 공백을 제거하세요.');return path.join(folder(root), `workflow_${title}_task.json`); }
@@ -56,6 +57,7 @@ function listTasks(root) {
   for(const title of names){
     const saved=readTask(root,title);
     const task=saved?.task||{version:2,taskId:title,title,source:'',sourceVersions:[],serverRevision:0,planning:loop(),implementation:loop()};
+    task.execution=readExecution(root,title);
     tasks[title]={revision:saved?.revision||0,updatedAt:saved?.updatedAt||null,task:reconcile(root,task)};
   }
   return {tasks};
@@ -69,11 +71,12 @@ function saveTask(root, body) {
   const previous=readTask(root,task.taskId);
   const digest=crypto.createHash('sha256').update(JSON.stringify(body)).digest('hex');
   if(previous?.operationId===body.operationId){if(previous.digest!==digest)throw new Error('같은 저장 요청의 내용이 변경되었습니다.');return {revision:previous.revision,updatedAt:previous.updatedAt};}
-  if((previous?.revision||0)!==body.expectedVersion)throw new Error('다른 사람이 작업을 변경해 저장하지 못했습니다. 작성한 입력은 유지됩니다.');
+  if((previous?.revision||0)!==body.expectedVersion){const error=new Error('다른 사람이 같은 작업을 수정했습니다.');error.current=listTasks(root).tasks[task.taskId];throw error;}
   if(!previous&&fs.existsSync(folder(root))&&fs.readdirSync(folder(root)).some(name=>name.toLowerCase()===path.basename(target).toLowerCase()))throw new Error('이미 사용 중인 작업 제목입니다.');
   const currentPath=path.join(folder(root),`workflow_${task.taskId}_current.json`);
-  if(fs.existsSync(currentPath)&&JSON.parse(fs.readFileSync(currentPath,'utf8')).revision!==task.serverRevision)throw new Error('확정 기록이 변경되어 저장하지 못했습니다. 작성한 입력은 유지됩니다.');
-  const record={revision:(previous?.revision||0)+1,updatedAt:new Date().toISOString(),operationId:body.operationId,digest,task};
+  if(fs.existsSync(currentPath)&&JSON.parse(fs.readFileSync(currentPath,'utf8')).revision!==task.serverRevision){const error=new Error('확정 기록이 변경되었습니다.');error.current=listTasks(root).tasks[task.taskId];throw error;}
+  const {execution,...editable}=task;
+  const record={revision:(previous?.revision||0)+1,updatedAt:new Date().toISOString(),operationId:body.operationId,digest,task:editable};
   fs.mkdirSync(folder(root),{recursive:true});
   const temporary=target+'.'+crypto.randomUUID()+'.tmp';
   try{fs.writeFileSync(temporary,JSON.stringify(record,null,2)+'\n',{flag:'wx'});fs.renameSync(temporary,target);}finally{if(fs.existsSync(temporary))fs.unlinkSync(temporary);}
