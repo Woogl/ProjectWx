@@ -47,8 +47,10 @@ git log --since="24 hours ago" --author="$(git config user.name)" --pretty=forma
 
 ### 4단계: 전송
 
+위에서 읽은 SKILL.md의 실제 경로를 기준으로 `.agents/scripts/Send-DiscordReport.ps1`을 찾는다. 아래 자리표시자는 현재 작업 저장소의 절대경로로 바꾼다. 다른 체크아웃의 스크립트나 웹훅 설정을 대신 사용하지 않는다. 해당 체크아웃에 설정이 없으면 전송하지 않고 설정 부재를 알린다.
+
 ```
-& "C:\Wx\.Codex\scripts\Send-DiscordReport.ps1" -Path "$env:TEMP\Codex-discord-report.txt"
+& '<현재 저장소 루트>\.agents\scripts\Send-DiscordReport.ps1' -Path "$env:TEMP\Codex-discord-report.txt"
 ```
 
 - 디스코드 2000자 제한은 스크립트가 1900자 단위로 자동 분할한다.
@@ -56,7 +58,7 @@ git log --since="24 hours ago" --author="$(git config user.name)" --pretty=forma
 
 ## 설정 / 주의
 
-- 웹훅 URL(비밀): `C:\Wx\.Codex\discord-webhook.local.json` — git 미추적, 커밋 금지.
+- 웹훅 URL(비밀): `<현재 저장소 루트>\.agents\discord-webhook.local.json` — git 미추적, 커밋 금지.
 - `Send-DiscordReport.ps1` 본문은 ASCII(영문) 전용 유지 — Windows PowerShell 5.1이 UTF-8 `.ps1`의 한글을 CP949로 잘못 읽어 파스 에러를 낸다. 한글 추가 금지.
 - 전송은 외부로 발행되는 행위다. 같은 내용을 직전에 이미 보냈다면 중복 전송 전 사용자에게 확인한다.
 - 관련 메모리: `discord-report-webhook`.
