@@ -83,7 +83,7 @@ AI를 통해 다음 두 가지를 확보해야 합니다.
 ## AI Skill 활용
 
 Claude Code 및 Gemini CLI에서 사용할 수 있는 공용 AI Skill을 만들었습니다.
-- 경로: `\.claude\skills`
+- 경로: `\.agents\skills` (Claude Code 는 `\.claude\skills` 링크로 접근)
 
 ### 커스텀 AI Skill 목록
 

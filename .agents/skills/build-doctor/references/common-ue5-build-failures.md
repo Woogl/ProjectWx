@@ -21,7 +21,7 @@ Likely cause:
 Good immediate fixes:
 - Fix the failing preflight path instead of editing project source.
 - Keep build-doctor logs under `<project>/Saved/Logs/BuildDoctor`.
-- In Codex desktop, run the build with approved sandbox escalation so UnrealBuildTool can write its user-local files.
+- When the harness runs inside a filesystem sandbox, get approval to run outside it so UnrealBuildTool can write its user-local files.
 - Retry once only when the first UnrealBuildTool process ended before producing a log; repeated failure needs permission or process-lock diagnosis.
 
 ## 1) UHT / reflection / generated code

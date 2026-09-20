@@ -1,5 +1,5 @@
 # Copyright Woogle. All Rights Reserved.
-# Sends a Claude work report to a Discord channel via incoming webhook.
+# Sends a work report to a Discord channel via incoming webhook.
 # Webhook URL is read from .agents/discord-webhook.local.json (git-ignored).
 # Pass the message inline with -Message, or from a UTF-8 file with -Path
 # (prefer -Path for Korean text to avoid console-encoding issues).
@@ -39,7 +39,7 @@ if ([string]::IsNullOrWhiteSpace($webhookUrl)) {
 }
 if ([string]::IsNullOrWhiteSpace($Username)) {
     if ([string]::IsNullOrWhiteSpace($config.username)) {
-        $Username = 'Claude Code'
+        $Username = 'WX Agent'
     }
     else {
         $Username = $config.username
