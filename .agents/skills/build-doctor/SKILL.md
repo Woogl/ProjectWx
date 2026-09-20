@@ -9,6 +9,8 @@ UE 5.8 프로젝트의 `<프로젝트명>Editor` / Win64 / Development 빌드를
 
 ## 실행
 
+Windows PowerShell 5.1과 PowerShell 7을 지원한다. 실행기 소스는 5.1의 한글 해석을 위해 UTF-8 BOM으로, 빌드 로그는 두 셸 모두 UTF-8 BOM 없이 기록한다.
+
 프로젝트 루트에서 이 스킬의 `scripts/Invoke-WxEditorBuild.ps1`을 실행한다. 스크립트 경로는 현재 `SKILL.md` 위치를 기준으로 해석하고, `-ProjectRoot`에는 프로젝트 루트의 절대 경로를 전달한다.
 
 Codex 데스크톱의 제한된 파일시스템 샌드박스에서는 첫 실행부터 승인된 샌드박스 외 실행을 요청한다. UnrealBuildTool이 `%LOCALAPPDATA%\UnrealBuildTool\Log.txt`와 `Trace.uba`를 기록해야 하기 때문이다. 샌드박스 안에서 먼저 실패시킨 뒤 재시도하지 않는다. 권한이 없으면 스크립트의 쓰기 사전 검사가 UBT 실행 전에 종료 코드 `2`로 중단한다.

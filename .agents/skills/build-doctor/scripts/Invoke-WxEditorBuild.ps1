@@ -1,4 +1,4 @@
-# Copyright Woogle. All Rights Reserved.
+﻿# Copyright Woogle. All Rights Reserved.
 
 [CmdletBinding()]
 param(
@@ -48,7 +48,9 @@ function Assert-DirectoryWritable
 	}
 }
 
+$LogEncoding = New-Object System.Text.UTF8Encoding($false)
 $LogPath = $null
+$BuildInvoked = $false
 
 try
 {
@@ -116,15 +118,32 @@ try
 		"BUILD_DOCTOR_EDITOR_PIDS=$EditorProcessSummary",
 		"BUILD_DOCTOR_COMMAND=$BuildCommand"
 	)
-	$HeaderLines | Set-Content -LiteralPath $LogPath -Encoding utf8NoBOM
+	[IO.File]::WriteAllLines($LogPath, [string[]]$HeaderLines, $LogEncoding)
 
 	$HeaderLines | ForEach-Object { Write-Output $_ }
 	Write-Output "BUILD_DOCTOR_LOG=$LogPath"
 	Assert-DirectoryWritable -DirectoryPath $UnrealBuildToolDataDirectory
 
-	& $BuildBatchFile $EditorTarget Win64 Development "-Project=$($ProjectFile.FullName)" -WaitMutex -NoHotReloadFromIDE 2>&1 |
-		Tee-Object -FilePath $LogPath -Append
-	$BuildExitCode = $LASTEXITCODE
+	# Windows PowerShell 5.1 emits redirected native stderr as ErrorRecord objects.
+	# Capture those as text; the native exit code determines build success.
+	$BuildInvoked = $true
+	$PreviousErrorActionPreference = $ErrorActionPreference
+	try
+	{
+		$ErrorActionPreference = 'Continue'
+		& $BuildBatchFile $EditorTarget Win64 Development "-Project=$($ProjectFile.FullName)" -WaitMutex -NoHotReloadFromIDE 2>&1 |
+			ForEach-Object {
+				$Line = [string]$_
+				try { [IO.File]::AppendAllText($LogPath, ($Line + [Environment]::NewLine), $LogEncoding) }
+				catch { throw }
+				Write-Output $Line
+			}
+		$BuildExitCode = $LASTEXITCODE
+	}
+	finally
+	{
+		$ErrorActionPreference = $PreviousErrorActionPreference
+	}
 
 	$ResultLine = if ($BuildExitCode -eq 0)
 	{
@@ -135,19 +154,19 @@ try
 		'BUILD_DOCTOR_RESULT=build-failure'
 	}
 	$ExitLine = "BUILD_DOCTOR_EXIT_CODE=$BuildExitCode"
-	@($ResultLine, $ExitLine) | Tee-Object -FilePath $LogPath -Append
+	@($ResultLine, $ExitLine) | ForEach-Object { [IO.File]::AppendAllText($LogPath, ([string]$_ + [Environment]::NewLine), $LogEncoding); Write-Output $_ }
 	exit $BuildExitCode
 }
 catch
 {
 	$ErrorMessage = $_.Exception.Message
 	$ErrorLine = "BUILD_DOCTOR_ERROR=$ErrorMessage"
-	$ResultLine = 'BUILD_DOCTOR_RESULT=preflight-failure'
+	$ResultLine = if ($BuildInvoked) { 'BUILD_DOCTOR_RESULT=build-failure' } else { 'BUILD_DOCTOR_RESULT=preflight-failure' }
 	$ExitLine = 'BUILD_DOCTOR_EXIT_CODE=2'
 	Write-BuildDoctorError -Message $ErrorMessage
 	if ($LogPath -and (Test-Path -LiteralPath $LogPath -PathType Leaf -ErrorAction SilentlyContinue))
 	{
-		@($ErrorLine, $ResultLine, $ExitLine) | Add-Content -LiteralPath $LogPath -Encoding utf8NoBOM -ErrorAction SilentlyContinue
+		try { [IO.File]::AppendAllText($LogPath, ((@($ErrorLine, $ResultLine, $ExitLine) -join [Environment]::NewLine) + [Environment]::NewLine), $LogEncoding) } catch {}
 	}
 	Write-Output $ResultLine
 	Write-Output $ExitLine
