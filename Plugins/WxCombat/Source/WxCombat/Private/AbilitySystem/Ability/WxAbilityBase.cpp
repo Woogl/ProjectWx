@@ -193,7 +193,7 @@ bool UWxAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 bool UWxAbilityBase::DoesAbilitySatisfyTagRequirements(const UAbilitySystemComponent& AbilitySystemComponent, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	if (AbilitySystemComponent.HasMatchingGameplayTag(WxCombatGameplayTags::Effect_IgnoreAbilityTags))
+	if (AbilitySystemComponent.HasMatchingGameplayTag(WxGameplayTags::Effect_IgnoreAbilityTags))
 	{
 		return true;
 	}
