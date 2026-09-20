@@ -12,8 +12,9 @@
  *
  * 상호작용 계약은 호스트 액터(AWxDialogueActor)가 들고 이 컴포넌트로 넘긴다.
  * 그래서 이 컴포넌트를 아무 액터에 붙여도 말을 걸 수 있게 되지는 않는다.
+ * 같은 이유로 Add Component 메뉴에 노출하지 않는다 — AWxDialogueActor 가 네이티브 서브오브젝트로 만든다.
  */
-UCLASS(ClassGroup = "Wx", meta = (BlueprintSpawnableComponent))
+UCLASS()
 class WXDIALOGUE_API UWxDialogueComponent : public UActorComponent
 {
 	GENERATED_BODY()
