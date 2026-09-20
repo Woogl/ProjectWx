@@ -1,0 +1,2381 @@
+{
+  "version": 1,
+  "observed_at": "2026-09-20",
+  "observation": "working-tree; hashes detect changes, not semantic verification",
+  "sources": {
+    "Config/DefaultEditor.ini": {
+      "sha256": "3dcd63bfa53b93cbd54019da901ce4a0be32f5c1d6b9b110fd45257d93d0c470"
+    },
+    "Config/DefaultEditorPerProjectUserSettings.ini": {
+      "sha256": "23124781ef758126636e6b54189f3fcc905d563352318b8a80be509f302906db"
+    },
+    "Config/DefaultEngine.ini": {
+      "sha256": "ab39c0488d228111a0f7e80cc77fb4b866ab656570bfd05a710dcf4a86c173bd"
+    },
+    "Config/DefaultGame.ini": {
+      "sha256": "edce13ec2952e0bc6aafe18aaaa9e8a836556631a37141d5276b030bee1b9421"
+    },
+    "Config/DefaultInput.ini": {
+      "sha256": "fb4b91300754f5c07b0e1556ee7c083c2d7127448dee8137efba1ec084b0afc6"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/Tests/WxMirrorMovementAbilityTeleportTest.cpp": {
+      "sha256": "5e550847f5191d8e1a0f7a485211f2df63b78ed0e9da6da54ed2bbc13c6f8ac4"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/Tests/WxPatrolPathSpawnTest.cpp": {
+      "sha256": "d8dd79df7773a3f23ad5cdc41ccb3ddde0f2d13b27df7f2b67ae76d4c0ecfd98"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxAIBehaviorComponent.cpp": {
+      "sha256": "ccf60199e43628c0aa6a27f498276867e9a927eb2726757d098efe93a91f9ce9"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxAIModule.cpp": {
+      "sha256": "cc2f87c344a177f4fd37049f7dc25d20bdf1c6c75ed2f44586089f9a2272e9e3"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxAnimNotify_ReportNoise.cpp": {
+      "sha256": "2b896d7cd44256dbb300812a0259439e8d11e9f688c687c7b4a2d5366ef21528"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxBlackboardKeys.cpp": {
+      "sha256": "493f3faab9f63ee71104a931307a0ab1c7d97cf940331dba9ffcf4d0608a1480"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxBTComposite_RandomChoice.cpp": {
+      "sha256": "ec0ecfb1f242c1dae078ee4c2509a1564120d6ae3badd6ca00203e56caf3169f"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_AttributeRatio.cpp": {
+      "sha256": "ebd2e2a92e530e81d0dd4bd0e2bbfa6e9e771dabce89d90b00f38f44aa3e5e54"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_BeyondLeash.cpp": {
+      "sha256": "55b37eb327b0deb165f57fcc3e83a9dbedddd4f030b8fbe8b6ef49add3cebf5e"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_MasterAbility.cpp": {
+      "sha256": "46091dc2ca24143fe2aea0d0fc3a0aca50f55d11755bab992f05d0020c6bce9b"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_ObserveAbility.cpp": {
+      "sha256": "f5254215b6d778bb40dded0a9df01def4e23c29719d3d73f51542a0ad051d034"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_RandomWeight.cpp": {
+      "sha256": "88518b3b8b5880c5062fe1263f00d3007a0a1d06d6cfa81d0d7f095f21811450"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxBTService_LockOn.cpp": {
+      "sha256": "115be32edd01aaf0ab575bfb2e2a4f6856889d7718ed2856328324b2b6278dd1"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxBTService_MirrorMovement.cpp": {
+      "sha256": "22cd49873bf8df7cd7e4383f1f4e48aeb45fae1526927158d2ab448eb9670789"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxBTService_ObserveMasterAbility.cpp": {
+      "sha256": "6d325ed212c6a495dd3cfd2879adeba47e8025f8ed9dd41ce4d752b391e463f4"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxBTService_UpdateTargetActor.cpp": {
+      "sha256": "e5a9c63d6881d57610c3e40d29281a99f2806cca80f352c004a3a501a299aaf5"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxBTService_UpdateTargetDistance.cpp": {
+      "sha256": "962013ae0a8b0eba2d1b2337eac727c97fa2b5fe0194ef50ebb11be2e002433b"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxBTTask_ActivateAbility.cpp": {
+      "sha256": "66947f243cf65587b54bd8a7a5c12f20c69a829a527426c038f36344113b22e5"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxBTTask_FollowMasterAbility.cpp": {
+      "sha256": "67e85ffdb633bb02844320a592195029cc3296f43c9d1b8333f91ec1e037bfe4"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxBTTask_MirrorAbility.cpp": {
+      "sha256": "b94b0e4e294971d4a492484d50d91d109e0ceb874e2cf4e97fafb38bcca86e2a"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxBTTask_Patrol.cpp": {
+      "sha256": "bff1cc974fda1d6374c8bdd6f78f36501c7d4246c4eef8b8336383bb890f075e"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxBTTask_ReturnHome.cpp": {
+      "sha256": "4699bd43fea221a72f883a45a6fe94a00ba0a7a535f159749fd8f0ec19e1843f"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxBTTask_Wander.cpp": {
+      "sha256": "224b500f1c0f59aaa47d0dd736b48b18b17775e7d1bb839684a7444caf221e5e"
+    },
+    "Plugins/WxAI/Source/WxAI/Private/WxPatrolComponent.cpp": {
+      "sha256": "5643e51989fa13da58faf673715e403e0ac86e9658a2c3e41dc3f22065337656"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxAIBehaviorComponent.h": {
+      "sha256": "2a7c269ba4da79c83814e03f111de4cb3720750a9de630c533ad564f3872b2ce"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxAIModule.h": {
+      "sha256": "70f4181eb943d4ed56f4d4d6cad7bb91e217e325ee33289bdd79a5f9a4900bb3"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxAnimNotify_ReportNoise.h": {
+      "sha256": "af392b831e87f3c9e18eb4e5c950f65a5c5dfcd249e54e6bf69e32359344e6fd"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h": {
+      "sha256": "50fdf967dae5fc0b03d9aa2dacc55a82e1142bc5d3561d6f854ecdeedefb927b"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxBTComposite_RandomChoice.h": {
+      "sha256": "4dc84aa30d065db481512cd14f49041f4339622387b9314f87170c4eb4aceb1a"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_AttributeRatio.h": {
+      "sha256": "0a4a3f8aac2605604b4b48ab55bbcd7ec59d6b63ad7662298ac97542c664143b"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_BeyondLeash.h": {
+      "sha256": "dd7e46e361fcc9e873548f2e33fa654f7a621e600bd8d308ab7d3258d1e74709"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_MasterAbility.h": {
+      "sha256": "7a03b4f5118574a44049387ec485af7725400212019c9337a66527f44939a282"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_ObserveAbility.h": {
+      "sha256": "2f7cf2cc6d6017367e4e1665537d9b2fb470051ff131877c99f1b70f402fed34"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_RandomWeight.h": {
+      "sha256": "028fb1193e2b2efb340bfb885afe347d1371e013b60667b2819e6241ddf8a292"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxBTService_LockOn.h": {
+      "sha256": "895d760ea2db86df33cefc2dbe6eb571a896b87290328808fbe461c48921e327"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxBTService_MirrorMovement.h": {
+      "sha256": "64124548cc0e7f54d1e2cc5e8b92e10548a231b057c0c27cbd557085e1066002"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxBTService_ObserveMasterAbility.h": {
+      "sha256": "e1123507b705e4969d01d4ca9f766684fddde9a66a517a5947279a3ecb210b87"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxBTService_UpdateTargetActor.h": {
+      "sha256": "8f82e4c21e52faca8c9c17b6e2cc10a862d5c4c8533af018e8ef7c228acba8c4"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxBTService_UpdateTargetDistance.h": {
+      "sha256": "ab72a5d8a7b6173468765220f821d516313c8efbaf7da5c2b86b14f8a04750e8"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxBTTask_ActivateAbility.h": {
+      "sha256": "4bd49e05933c8d6dc5203e49c79b7c49a7c76d17f03ed5229749f05a376bbbbe"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxBTTask_FollowMasterAbility.h": {
+      "sha256": "b8823214feb4c4c992451d28f8c804c4e47b7486cd5ed43e1165525b2969b014"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxBTTask_MirrorAbility.h": {
+      "sha256": "d4a96f2a8396b6e1512a7c509257ff7fe1eb7a28e8f9f2d33fc3f4993f2399d0"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxBTTask_Patrol.h": {
+      "sha256": "dac9cb86e122cfe205e360f5351e502beebc88ad6de7a42571d0b6106da3415f"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxBTTask_ReturnHome.h": {
+      "sha256": "1c87b3dabf641c1ce9aa4dca6f7b65a020773a7dba5e4af1057fad95328ba914"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxBTTask_Wander.h": {
+      "sha256": "92bbdb693e56897507699b679ce882655c7a7d1a0889459402fef839719f234f"
+    },
+    "Plugins/WxAI/Source/WxAI/Public/WxPatrolComponent.h": {
+      "sha256": "f9641be0800737a57ec5ee61eecde80c55e19b53560ccad5fad147b2332c18e7"
+    },
+    "Plugins/WxAI/Source/WxAI/WxAI.Build.cs": {
+      "sha256": "7771b653372eeb3ea29ea57ff6b74f73bcdeaf0fdac85dc021b5a2cde460b754"
+    },
+    "Plugins/WxAI/WxAI.uplugin": {
+      "sha256": "2f4f4607f553d9af1bda0ea64e1910a5708107ef0e51e83651a7f7391b691fcc"
+    },
+    "Plugins/WxCore/Source/WxCore/Private/WxCoreModule.cpp": {
+      "sha256": "b657940f75278069b4d45fc24af27fe0fb70cc5e501f54df8c327d6eaefeaec9"
+    },
+    "Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp": {
+      "sha256": "ebd6802fdd08285b1eebf921594ea412e0ac9bdaa1ccd9217225f401426c479c"
+    },
+    "Plugins/WxCore/Source/WxCore/Private/WxInteractable.cpp": {
+      "sha256": "35e0089be94aac97d6a7b2d106c8946cd9fccb640bf71aecc45a239f9467e500"
+    },
+    "Plugins/WxCore/Source/WxCore/Private/WxLocatorUtils.cpp": {
+      "sha256": "2795099f42459f4683177454bc04ba7cc253e9f360edb3049bf0c9559fc86211"
+    },
+    "Plugins/WxCore/Source/WxCore/Private/WxSpawnable.cpp": {
+      "sha256": "a58230089773acf8ffdcd979b776b9ca51a3d0a71030135b7468e45b14caafae"
+    },
+    "Plugins/WxCore/Source/WxCore/Private/WxUIData.cpp": {
+      "sha256": "da9df8c8f7f2639b4bda329ef09734715011d77fdd9c4cf4907d38e2a35ff8bf"
+    },
+    "Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h": {
+      "sha256": "5e217c7e03eb478e4ff1577a04d2e86923d64568b40b71b753462e114e605671"
+    },
+    "Plugins/WxCore/Source/WxCore/Public/WxCoreModule.h": {
+      "sha256": "c79b03634c47a340c581f52ab2c5241fe4534da9b8a31800d8b015a6a1655a21"
+    },
+    "Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h": {
+      "sha256": "01a5b3acc234fc3c81a1dfa703cb55c6e51c7eff0a206f89ff580fb671adf829"
+    },
+    "Plugins/WxCore/Source/WxCore/Public/WxInteractable.h": {
+      "sha256": "6c468cfc3b89ddb008bbe702f64fc6d33abc42e246f186968c54404ca0830313"
+    },
+    "Plugins/WxCore/Source/WxCore/Public/WxLocatorUtils.h": {
+      "sha256": "31bee10aee2866366f43613a728b62ebc624917eb15abf932b38967218ce6e3a"
+    },
+    "Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h": {
+      "sha256": "ae58cb82081ee25f1b3b7194a5863f4b38e5512092a38f89ec7a318f37bb16bf"
+    },
+    "Plugins/WxCore/Source/WxCore/Public/WxUIData.h": {
+      "sha256": "50a747dae82436fa8d9b940b1c28b209023607050316772f9d699351e4bf2a2a"
+    },
+    "Plugins/WxCore/Source/WxCore/WxCore.Build.cs": {
+      "sha256": "9f7dbb0de6af0cc19faa353f176d6fca882e65b6399726098286bd86b7cfd52e"
+    },
+    "Source/WxGame/Controller/WxAIController.cpp": {
+      "sha256": "7e645f190424c2989d82e341fbf29957bc73a2270d0f0fd0e0f29781080d2e41"
+    },
+    "Wx.uproject": {
+      "sha256": "c30a6e32cc9931c9ea9ce1cb57bf6a4c678cf86e453b0c57050093586df666f3"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Attack.cpp": {
+      "sha256": "273dc0491d3ea60eddb035956346ba587caa7fe5e139208f1db0c3ef23d85f9e"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Death.cpp": {
+      "sha256": "adc950a747ead29028b8f84dc0261168e482818d7be1ca3ee2e51a86654c9f02"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Dodge.cpp": {
+      "sha256": "74a93a96f380635d7dbb9596bb6b4a1fb90626ec65a7e9c90885801294098776"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Finisher.cpp": {
+      "sha256": "5ee843d90a1f97d0497f34748caa79c080974ce04ab1a2a8814e47f860a78a02"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Groggy.cpp": {
+      "sha256": "80f51ee7fd57c124574e686f7e35eb8290bbda98591c9071dd1d55092c57409e"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Guard.cpp": {
+      "sha256": "fdac5731425a95851b2b7c717e5b8bdd306825322278a031091e59c47dc367a3"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_GuardReact.cpp": {
+      "sha256": "bab713d2768e629a0d4f4438b8196660acc61e19c5e714e1318056b900390665"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_HitReact.cpp": {
+      "sha256": "05a048186ff886c6b571337c70f005da8598d0be0cc822215c22d3202381f0a5"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_LockOn.cpp": {
+      "sha256": "2c385c083af880f410fdef174911753b9ee8fc7bb53d9ffa2ef97ab6f2ef0001"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Passive.cpp": {
+      "sha256": "081f864f98f527324fec829e5b99c9262b5b057a0d1146c6a4c4fc7d7d040712"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Pattern.cpp": {
+      "sha256": "3c5010b6a1e2936396697d481d426e5b786329e14663889915e2c2aee200b164"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_PlayMontageOnce.cpp": {
+      "sha256": "5342386a5c24a34385b7a93a374b60f80bcda03213aac6db91d40f523cff638f"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Skill.cpp": {
+      "sha256": "86bfca7f69122b90254197b6a9ec96b40c0041ff39bb0f7f6fb6c9321b0e8de4"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Sprint.cpp": {
+      "sha256": "0907e5547b4c468f15364e21f9ac6e3cd9572401fb62a8c809d8699021a883ce"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Ultimate.cpp": {
+      "sha256": "3b1576ad54dd6b4900c9532fa6ef9934bc67ce13175f13682f8c9846a5f7f911"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbilityBase.cpp": {
+      "sha256": "51300a1ca42c84094ca6c3895fa0613cee42d49cfc5d0f13580b6ee49d1dce6e"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Attribute/WxCombatAttributeSet.cpp": {
+      "sha256": "aee562971380734774f9c67d444101cc53de6f6ac43f295906bafa44451be2be"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Cue/WxCueNotify_AttackTelegraph.cpp": {
+      "sha256": "922dff152373649e254439e0e13ac89084d737c61e71c08971417acda3208aa5"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Cue/WxCueNotify_DamageFloater.cpp": {
+      "sha256": "168f12f885425a7f81e10e684a7e61aca671881e347430cfc8f9f44537e3bed3"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Cue/WxCueNotify_Exceed.cpp": {
+      "sha256": "9899a611316cdaa93c87233aa8dd0d697225e1ea772b2d7e34f1150bcc5276cc"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Cue/WxCueNotify_GhostTrail.cpp": {
+      "sha256": "a6a201ba824360b3068ccacf4b9edffa2bd83c8bae5f82603283989a35c1972b"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Cue/WxCueNotify_Hit.cpp": {
+      "sha256": "8ac3fd07238ab77bdd736a994d4b2f1adba44735470080e998906796eae4461d"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Cue/WxCueNotify_PerfectGuard.cpp": {
+      "sha256": "cf114b3c9fdb19e50b519a902c8cd6961de3b3c10b449323dd4ea5446e4e8057"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_AddAttribute.cpp": {
+      "sha256": "ef6fb8a2ac24c61f282ec15ca17f70835fa6be1f7d85de45860b1bb71bc8f147"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Cooldown.cpp": {
+      "sha256": "d314401e07a93d5aa29dad263f330def26781ea2c0a79ec470c4b204e23f12bd"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Cost.cpp": {
+      "sha256": "0481db0869d6b42d99f9f79301ca86d40d806d2a7236f9a8620959927b1441fd"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Damage.cpp": {
+      "sha256": "b3292eebdc1f11f3546bb2600a30c72ef4a8b596857a9d264b86becc9e8da92c"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_DrainGP.cpp": {
+      "sha256": "d449cc45e30f33ca52991fc5af02d23b7a83b2e203dbef0dd0b9aa51b184871c"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_DrainSP.cpp": {
+      "sha256": "d10ec8a54aae85ac940d613d42ab9ecd0272d067c4b73ad208080156adafee7b"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Exceed.cpp": {
+      "sha256": "399e54ab4604bd3e919a68c4b4a210687b291578171ace23d76ac0ebb723a072"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Exhaust.cpp": {
+      "sha256": "0eba0306e3884161dde543fcd607065fbc70255a57271854b1eff31362910a8f"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_FullHP.cpp": {
+      "sha256": "6465a00cc5db154170c632b87f318241819ae154eab6f946cae44fdfa69cb4ed"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_GuardReduction.cpp": {
+      "sha256": "8ee62f97b47e6b0a01feccf134542936221120ccd8be3683375442d32903c7a3"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_HealPercent.cpp": {
+      "sha256": "046fbdeff85a7afeb37a44eac74718a0c470da34af97602ff58bb0a9c5847aec"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Hit.cpp": {
+      "sha256": "f7ae844b2a3a95822133680c06669d98a4de901d3581df199b6c5120f2eac163"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_HitStop.cpp": {
+      "sha256": "46e8c96ae4436addecaba94b23f16aca01dbfe7a1ddcc650421167cf8243fd07"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_IgnoreAbilityTags.cpp": {
+      "sha256": "b7e74b2804208a50a6cf51bcc87ebd4ea6675315ff67c5dac673ed90e7af4635"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_IgnoreAggro.cpp": {
+      "sha256": "2ec24d04f8c1412549950dbb02fb9e0d94b790d234c60002e0b8472a1819b49f"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_IgnoreCooldowns.cpp": {
+      "sha256": "7344449d0d3101a4aab6e95cbbf189f4564cde2f3b62400a66808a7ec1dc2c33"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_IgnoreCosts.cpp": {
+      "sha256": "089b178b0b329bb6762579e9818f678f354233dd2215c3622bd5133f897419d0"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_InfiniteMP.cpp": {
+      "sha256": "c7c17bfc132fdbac7e45c0123e2686b8fb1ac0d13850901096189741c015ab77"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Invincible.cpp": {
+      "sha256": "5e6ef215565e145ad698a3f730d79df8aabce58b66ff1dff6b34575b0032609b"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_MoveSpeedScale.cpp": {
+      "sha256": "7a0ff3b6bf935197a38259cf94855744186ff68dd9a97abdc012e6bea5db532b"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_NoCooldown.cpp": {
+      "sha256": "77b01fbac0aefc35a9cba5f17eb288c509942df96a63843253186c704d855651"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_PerfectGuard.cpp": {
+      "sha256": "846ae4e7122c81697e16575e689d712a62dfcba1994d5f79e89eeccc96af7354"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_RegenSP.cpp": {
+      "sha256": "aff7576e06f3c7a13dc245ab779f57f6011f0dafafb0447cb3d8a2ec46461996"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_ResetGP.cpp": {
+      "sha256": "f2470a6f4d0713660d5db68448b396dc7b01ea3d9918758513567b98d85ea510"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_SuperArmor.cpp": {
+      "sha256": "0c8403c7236faa3ddbc0214fb6d2fc49582c1c89bae408bf98f1952fa1e5a4c7"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffectComponent_DamageResponse.cpp": {
+      "sha256": "86346fcc2662af33af4cb8cf2847d98239e829c19933385769a38ae081c8c62d"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffectComponent_Hit.cpp": {
+      "sha256": "23e5247e190f2cb472b0ad9a0c5eceea6f43c7e8caa892befd73b4e07f43dc15"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffectComponent_Table.cpp": {
+      "sha256": "fe67a63c423a8faab957366e2d2bc3e5aabad3864e309dfaf95c83bce073739d"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/TargetData/WxAbilityTargetData_Direction.cpp": {
+      "sha256": "90f78c694bf939cf44bc00ef9fdd8ce575e3c6f8820f45e5803608bce726e68a"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_LockOnCamera.cpp": {
+      "sha256": "6062545514b50b05174806fa186452f657290b0fbe2b8cfe51281a3d85426977"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.cpp": {
+      "sha256": "042267aaf67de6dcb99ed56958755664e0aba91c15d3caf61e1de16980772330"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_RotateToTarget.cpp": {
+      "sha256": "d9eb28755c48d43d06b6a3b8e22590f846bf40dd222c889501354ca14d21d48c"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_SlowTime.cpp": {
+      "sha256": "5e72a1e1b84e667cede3f0bc1d482266baa9e15938ba951df7e34629f66f3246"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_WaitMoving.cpp": {
+      "sha256": "4125ef03da5ae09ca18c096da8e5f261d31671551176aa59536b25db09a34439"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySet.cpp": {
+      "sha256": "a6238cca604793a641176c408b21ac2e7e8b4e40a0e89ad8391072754e5c3025"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemComponent.cpp": {
+      "sha256": "842ea43ca28185fd93b6a7c2eb779e918a96d82f70e2531851f1fdb45f7421fc"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemGlobals.cpp": {
+      "sha256": "d45cf2393d9192f1150a1b11f6e95ed991a6b08ab6e5318310bacc6edabc4ad1"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxHitStopComponent.cpp": {
+      "sha256": "b2870069df173cc9bbc0dab4abecd88dd459312b300377cc498329c2d46235b9"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxInputBufferComponent.cpp": {
+      "sha256": "a23b90ef7092439ae4c45b527eafe011ba5d9cfd35ca17783643cf42ef446f61"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotify_AreaDamage.cpp": {
+      "sha256": "bdac39c63def790fc168753961e01c864dc406f5b764de995246a115f7a8f051"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotify_DespawnMinion.cpp": {
+      "sha256": "07df7bfe77c474839bf7a67867b8c83f3fb17c69347967e3b26d040452a25c38"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotify_FinisherDamage.cpp": {
+      "sha256": "ba79e8d356ac69179dea9b343b19ac16e59a988fc5560a698296a6a5c73bcdc9"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotify_SendGameplayEvent.cpp": {
+      "sha256": "8163fbecf404a96c9bcabe8dc5fab769f44af53263b41b761279aeb4413189ec"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotify_SpawnMinion.cpp": {
+      "sha256": "b2be175cf17fddde3cfbe18725d318ef5067db3438e353651dde99a3bd833eca"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotify_SpawnProjectile.cpp": {
+      "sha256": "9489d4f57cead713727804b8798984fde0738ae1593420120924c970350fa54c"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotify_StartRecovery.cpp": {
+      "sha256": "252909458a06b1de91e51cfbd849636774b1a1e7a766fabd7bc3237116417da1"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.cpp": {
+      "sha256": "d6767dbeb094aa0f37f2775bd2c80c1a72bc1a586d5ad0faa7e0ca70070333ac"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_CameraMove.cpp": {
+      "sha256": "2bfd3d45f25f329da2887f119f755c9874e45ac115a8a2fec0f23edf1cbd7831"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_ComboWindow.cpp": {
+      "sha256": "e754a90036556ad49e024938a0ad545c525dcff88621dc42cf8986726dfc0f26"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_Rush.cpp": {
+      "sha256": "f016fd443e11863ee663ab8773cfbf14aa8263d734b45adb04877ba17bf9a44a"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_SlowTime.cpp": {
+      "sha256": "80170e4ede3cb2ae0fa4fc562bc7292dcf42f98f38c91c012645500733e8f700"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_SnapToTarget.cpp": {
+      "sha256": "f345a0baef4ab6ae9db4919e9c3c16b2ce6616470d06c171db59cba293ca3214"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_WeaponAttack.cpp": {
+      "sha256": "c098c6ca56fc0b746789c3b907eff16482b8dab6582ed15687b1ed4fc22f1732"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Cutscene/WxSkillCutsceneComponent.cpp": {
+      "sha256": "81c755884dd65fd6f39290b7df16ec120ad754e184e77782e66923594f4fa511"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Damage/WxDamageTableRow.cpp": {
+      "sha256": "f3863aff4e6097a47d46da6a0153b085b110b5c0305b746d40d5b1166d89bd70"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Damage/WxHitEffectContext.cpp": {
+      "sha256": "998daa3076d2dcc07e5e7e5cb51b1e6407b42babb8c3fe2717a19c0782350974"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Finisher/WxFinisherDamageComponent.cpp": {
+      "sha256": "6e7f0674a4b99e0ce7680ea8cac07af8044e5205719454f6e5b6cb7396cb5a93"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Minion/WxMinionComponent.cpp": {
+      "sha256": "0665a00e3d821b93a3ef0f993a391afa86df9e68d39fa956f7871dd0670c45e3"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Minion/WxMinionSubsystem.cpp": {
+      "sha256": "a181b1e445d954aca4ad76dbb532e77bf1e9aeece0546b9e41c868410840575a"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/System/WxCombatDeveloperSettings.cpp": {
+      "sha256": "0e34a30b3cc70697113d5ebdb28e00e1ada16fddf4e3e089eaaed388bbde86d2"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxLockOnComponent.cpp": {
+      "sha256": "77260980914ba53027cff6104da716c18ef10cbb418324bdf8e4a9150da71b25"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxLockOnPointComponent.cpp": {
+      "sha256": "2875db0c56c27fe656e9586286f286e5f66250088873fa4e3991b39504956196"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxRootMotionModifier_Rush.cpp": {
+      "sha256": "274f76620fd2bb35d0b39bfc4cb73c612ee2db10444af731da7df46be962be1f"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxRootMotionModifier_SnapToTarget.cpp": {
+      "sha256": "97b092f19f5e838ca974dbbb678a76c17197db9fb849101ce5995089379b01e5"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxTargetingFilterTask_GameplayTag.cpp": {
+      "sha256": "3e34ec4d1d1d82026ba9bf4bc145580e63e6448a4da66bd91708ac5d28f2f870"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxTargetingFilterTask_LineTrace.cpp": {
+      "sha256": "9686849bc3d3ed3f4831158c93da0bb4230dd75f5dd988634a84955383283070"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxTargetingFilterTask_LockOnTarget.cpp": {
+      "sha256": "de1bf4e691c26bb1daf4c62657f751a0893f4c3ba81a7a7671d7ae08feec8730"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxTargetingFilterTask_ScreenBounds.cpp": {
+      "sha256": "ad4cfae66e7e96996a392129764b7ba6e4babf61d0f8e632ab8fb5a7f5e59827"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxTargetingFilterTask_Team.cpp": {
+      "sha256": "4b20681e296bc4be4454347670d6b49a9104e117ffebe064498d478c5de43f7b"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxTargetingPreview.cpp": {
+      "sha256": "d740946dd0106ddf5814003059698987f792861b87b252902eb891793a6f01b4"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxTargetingSorterTask_InputDirection.cpp": {
+      "sha256": "3353c99edbda3009786c643fb6a5d9ce59b098ad1fddf47b51665306c2146c4b"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxProjectileBase.cpp": {
+      "sha256": "3e896cc2c7df9f84ea86ad8cda89f8d70443b131ec6a592dd19d307b98c60c01"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxProjectileSubsystem.cpp": {
+      "sha256": "aae74ac8f9cc2e019a2397bed6adc2622c72185dc0e40f3c7e151b21353c5cd6"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxWeaponBase.cpp": {
+      "sha256": "c45cf8b6d3321aeee83d1be714c866a0ea49fa66b701c605aa53681563b2ef23"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp": {
+      "sha256": "a30f350b173b7086e7a7d23d2b2ea19f510eafd97fcea9ed0f307308b77d395a"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Private/WxCombatModule.cpp": {
+      "sha256": "341ca25b83d5a2bcefa3acc8aefd8e8469dee6179a38ae424373546975299b12"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Attack.h": {
+      "sha256": "a3f38dfd037d1975976f6d6dbaf777fee5754dc1dd440f964e767c2beb108856"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Death.h": {
+      "sha256": "f394aa2127766fe3e7c34019f73febe2cfecbcea5a0cc31a57a383aeb7b24710"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Dodge.h": {
+      "sha256": "f9341f5026a58182292144d6d550eb8f432ef94b7908bc548f2508cc2130c2ed"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Finisher.h": {
+      "sha256": "4836429b9faad50d56e841928faa8005f3058f8a64d68e5a181ea396a83c17e3"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Groggy.h": {
+      "sha256": "9b7c512af220158d1e4a70378dbb9f538407e2426c32e0f150460a91bfef1e8a"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Guard.h": {
+      "sha256": "57e4402655e614aab02def3080d7057d0822408733b8a844bc93b0eeba0eda38"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_GuardReact.h": {
+      "sha256": "0aad559b2c2f260c58bca47228a9712f8f0f4ac54f178688e2f18f3fff235823"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_HitReact.h": {
+      "sha256": "f074ed895b95a6aa00e227fec86fffad681e87fe1c42d4feb57f7bbb37fae840"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_LockOn.h": {
+      "sha256": "4f011122ac67f669f5abf251fa9088c8b3b069bf295b78f76e622c99fdf96dea"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Passive.h": {
+      "sha256": "c5a33f56461c1f4139efde17d057f564bef5cab473bff5c61d77ea9ed1b06796"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Pattern.h": {
+      "sha256": "8b74d5c00d62a5f1b2fd7077b9c43c1e277f1fd15ce5bab41a4764098c18769f"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_PlayMontageOnce.h": {
+      "sha256": "df6f45ec0ea909e5a1a2007b5078790f7fed80033ed706255f8dc2a7b859911f"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Skill.h": {
+      "sha256": "c754c7698935003863fe786f23d547d61d712971c6e0b76eeef11a7009b49d2c"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Sprint.h": {
+      "sha256": "481a538e4fbd851ed711cb5cd176cc3e00441397d9d4f7556d4de3dd3085c9be"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Ultimate.h": {
+      "sha256": "d7eb6ef5d5bd4d07972115a7d1427d1e91eae704bcb994e646fc7549d253a349"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h": {
+      "sha256": "53c6fcc219151c745d248a182b55062aeda9162e3f30dca980542335a3d2a253"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityTableRow.h": {
+      "sha256": "5521a1016d870bd0669a66af5a35e2e84ce81c029561fee35a789feec958111d"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeInitTableRow.h": {
+      "sha256": "5593fcac5b9281401381035497810d2041797c69bb1ea9db9c54ead8be0bbd21"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h": {
+      "sha256": "5bf3394dd22a48d764960684b652ec5c6489a9192b2373be36edf575615c192f"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Cue/WxCueNotify_AttackTelegraph.h": {
+      "sha256": "05107b12dddad6c5ac5e391820d1af6a76744aa26681ef4be94cbee5b15c6c84"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Cue/WxCueNotify_DamageFloater.h": {
+      "sha256": "4bf3c400a65887eafbe06e85fca07b16977e3272a0130e8a2bb2b2eb120ab9fd"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Cue/WxCueNotify_Exceed.h": {
+      "sha256": "cf0a858229dfa407683f2cd1a7ae7daa3de02dde8696c1709f3f9ea9a748513f"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Cue/WxCueNotify_GhostTrail.h": {
+      "sha256": "794591565f2cd17ab04ff429817ae1919e2c191e429a3db6399fec612d7166a0"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Cue/WxCueNotify_Hit.h": {
+      "sha256": "4c89d76a5535744944eed8e289696110be5e680cebb7a26528d4481ee1d8db77"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Cue/WxCueNotify_PerfectGuard.h": {
+      "sha256": "de20a6abef41ed688f69eb53b242b3b5b071ea81af82f08aa1b26f9a0874776a"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_AddAttribute.h": {
+      "sha256": "60c6f90408ebe136abc65bf85e4d081e51dd005b4d41d1f3d226e4dce9a4a8ba"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_Cooldown.h": {
+      "sha256": "53ed7387e20e520c9a445596a330f80e875f2f90f3801fd201188a324a06204c"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_Cost.h": {
+      "sha256": "06fb6a07b44b33d5d75518e569f176efaeca2f54f7e50c468d01ded8c3f8f65e"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_Damage.h": {
+      "sha256": "c8bf825dcd0fbb3d1c5c931af20d2a1ae8f94da8c0beb42c826fded31831eae9"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_DrainGP.h": {
+      "sha256": "9f4d0b06d41ace0825b5d6605f50171a348d71daef4057343644917ae1bf8c31"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_DrainSP.h": {
+      "sha256": "ee4e18e595556f0bf37bda852ac0eda101997893466729112b92d86a61d93c48"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_Exceed.h": {
+      "sha256": "753f611dddad803d51b3f6d6ab49b0c40dbff686eaff35ee73984be2291c1f24"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_Exhaust.h": {
+      "sha256": "3cb38dbc68d9516661b01e9cac57c35cd3c6f0c28139b913a54066bcadaf5ae7"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_FullHP.h": {
+      "sha256": "52abdf98a6cc4623719007b9f9379d35d0e3974f9c771d6297077d1ab9d25760"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_GuardReduction.h": {
+      "sha256": "12226e2194b6440775ea749bb0ec3956c9a348bb5d6b3e171a8cb9edc1424661"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_HealPercent.h": {
+      "sha256": "19ec6c0e72c4560209ec1e6785240b8a33e82eea19de76a006a892f3a2c8fec6"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_Hit.h": {
+      "sha256": "96640c44280ccf4d553be5e4006a11378f2a7f56c94b53e81b2b0df56d50a4be"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_HitStop.h": {
+      "sha256": "742a61bafc95eda1727addba44612eacac598265f3ab594b1d0fd997809f181f"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_IgnoreAbilityTags.h": {
+      "sha256": "c11a148c0d92c402b3ac13c366d9d048087769e472ace69a8d5490afbee4a42f"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_IgnoreAggro.h": {
+      "sha256": "add9e60af0150ee3e03c870123c7fc2d3d8005e83d417681008c360476e01336"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_IgnoreCooldowns.h": {
+      "sha256": "91b1456108d4678f0155b8a5488a2e48b3d353045a6507a572031bddac844235"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_IgnoreCosts.h": {
+      "sha256": "b32b2d9e90bfd969187a166ea63c84f314a959342740b8e6c376d358585a0d78"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_InfiniteMP.h": {
+      "sha256": "cc0f0a0034dbd9386434bcd8fed733f6384f8090db0f206021359d67b9eca409"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_Invincible.h": {
+      "sha256": "66c25c217fc2f844ee680471506dacdc2790d3a46dd5e5fb2bc12a0ed2ead343"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_MoveSpeedScale.h": {
+      "sha256": "985161355f70d9c81c5d0ae2167d2d790687521335fe80b9fed421f90e127354"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_NoCooldown.h": {
+      "sha256": "ab821a9672db96e9d785cb17dde766a9100207d42c7f3726ddbab24cf1402527"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_PerfectGuard.h": {
+      "sha256": "2fce31f956b24acc957122777fe82955565802f592683282285c96e5cc6fe8bd"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_RegenSP.h": {
+      "sha256": "3e605abbe158b8c896e5a84fcf5e5f5048825b2abd3f414014a1a881ad139ebc"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_ResetGP.h": {
+      "sha256": "eee0356b126d51536deb4526c03e1e8f6ebf275e4f86a43167442aba584e1838"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_SuperArmor.h": {
+      "sha256": "f91b362805372bdc45efb79ddbf83277b84a20dd12946fbe5a7bc689091cd4c6"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffectComponent_DamageResponse.h": {
+      "sha256": "fd0463c5c9741044a658d3223ab4cabbc78710bc7686a147ae44931a871fbadc"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffectComponent_Hit.h": {
+      "sha256": "a4d33a0f8602b6c8a9ad545db9465d2714bfcac1080b5ced34bbf13635ebf0c2"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffectComponent_Table.h": {
+      "sha256": "ef6350f3e1ea0b487c9b718a5129e125a6ee9d72df8922977ce482a3431adf7c"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffectTableRow.h": {
+      "sha256": "b45efb32ed22e518e4829f005985e424c79e244f432d1f97e3aa4738057a2363"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/TargetData/WxAbilityTargetData_Direction.h": {
+      "sha256": "b29c43ece6f5a85bd677abc7c3a78cd7667d29fc3822d2d9efd7acaf0fe76742"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Task/WxAbilityTask_LockOnCamera.h": {
+      "sha256": "bb733c06dd58beade3c2b6733d58a5463f5f23ce335026132e9ce2fa3595f526"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.h": {
+      "sha256": "627541750ddb6788f220cbbf792b3d51973e224a022fe7ae17f70afbf13a6274"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Task/WxAbilityTask_RotateToTarget.h": {
+      "sha256": "dca65ada3295071350e05bff5b808f5918e77c0fc74878cee2fe54d829fe4af7"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Task/WxAbilityTask_SlowTime.h": {
+      "sha256": "99b64440a7db3f3dce2c6ae7392ed59fa29fe2316c0a63075d605fef1dc7204c"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Task/WxAbilityTask_WaitMoving.h": {
+      "sha256": "1165a2014edc653545fd3a5624a4f8f9b23ee72d0b5086afde56aa2a79a934f1"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySet.h": {
+      "sha256": "0d85b882a4df9b32bd2787a8806e959847bd295c1ba3c135c150ef46811684dd"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h": {
+      "sha256": "af7d8d0d5a4a9eea502e7f8965c914e3e52872ce895a856a72be22983dfc5766"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySystemGlobals.h": {
+      "sha256": "14ae17bff8b5b6aa718ebeab176cd8cb47c33c62ce9910f4305d51c25594a1c1"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxHitStopComponent.h": {
+      "sha256": "54f4ded2c5f778bb82b2a9aadb18d690b20db3f0dfe9924c05c2b5f0ce098896"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxInputBufferComponent.h": {
+      "sha256": "6adb2163b604c009bba42237ac16ec291792b9d04d3f7ceb8133a5a3a778677b"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotify_AreaDamage.h": {
+      "sha256": "884968ca2481abd215f4ef4bc26cd871798ee37ffe8b15edc9dbea92c7ca9887"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotify_DespawnMinion.h": {
+      "sha256": "a318a7deab7cfcc3881b608d23bb6ba410f9b457b6a4348485ab38a5087fd9b3"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotify_FinisherDamage.h": {
+      "sha256": "6e14f90c0cab30670cc5ebe66991c96c2945a9bef5f5c10efb02ca0b52d55994"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotify_SendGameplayEvent.h": {
+      "sha256": "11f499c5669c46a3aab13cdf1ccbd407c0177a1827d35b110f051013214ef309"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotify_SpawnMinion.h": {
+      "sha256": "b51b69af744c8172d71362c11b0574d7232c261f05ec08301e5ad2b5c5d3f105"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotify_SpawnProjectile.h": {
+      "sha256": "1088dfe67eebbe69775ee34514442ece09886c9dde2e757cc75aa49242a5f1d2"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotify_StartRecovery.h": {
+      "sha256": "6442de4ccfe787b5bbf19a476d2df5ad20af1c94f97129d5abaf8ed360e72c66"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.h": {
+      "sha256": "3dcccc2bbb8aa9f8c2643d2b96523bd80d415b585dce0d28c670e1d5ea8ab9bd"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotifyState_CameraMove.h": {
+      "sha256": "30e96123c1b93bb1a023d18072f67bcb4a5308aa7ae0a734b888a0e1e3cc943c"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotifyState_ComboWindow.h": {
+      "sha256": "168db85087f599d724491c80f4f677c5a7021c480676d003d57c18e37ebc9de1"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotifyState_Rush.h": {
+      "sha256": "275fedb68aa6224598e112d2a37a1444af06974011e59ba7c849d98c4e8e53f7"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotifyState_SlowTime.h": {
+      "sha256": "8f799649f8f470d65dfb763878fbd52f7850dfa9ee00d3f1ec83186d8ce8a1a1"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotifyState_SnapToTarget.h": {
+      "sha256": "47f49d7d3562123cc06f57873939696a7a4f3ade2e6a2bca074d168a51587963"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotifyState_WeaponAttack.h": {
+      "sha256": "3f8795d88a4ff0b0a320ef30fd88fd6123d4e4a7fc24dbf7591849f6b8078afa"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Cutscene/WxSkillCutsceneComponent.h": {
+      "sha256": "adb2029bc44b9a31e0c9dc17373c8ed33994f1c6d97e1981a4838d988cce47bb"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Damage/WxDamageTableRow.h": {
+      "sha256": "4394e5e77007c7d57af97fe20f78244245e6387a62b3be3025ff19e1e61e7e80"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Damage/WxHitEffectContext.h": {
+      "sha256": "5fe680b78603eb4d9f46db6d55fcd2f4cccf220aef926650b78be0f01e45bf66"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Finisher/WxFinisherDamageComponent.h": {
+      "sha256": "3b443d3cff2a1d1dcfe8171a2920f2532ca59e1dc552e5c9da3ce26b6f699ac4"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Minion/WxMinionComponent.h": {
+      "sha256": "9b968c08d8e570f91bfee840c8b7ed04423b4ba99c56125dc2cd6c277671be26"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Minion/WxMinionSubsystem.h": {
+      "sha256": "4e126b27025fdc5cd87f7a2b9c18716b14ffe7dce26aeef8444ee0f58e0c45b3"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/System/WxCombatDeveloperSettings.h": {
+      "sha256": "70c9196e0cd56dec1558d2cf918926c843cdfb93aa1d222e64ba2f0bbb211d52"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxLockOnComponent.h": {
+      "sha256": "92d627a4929b4d0ca2dca65868b2588a6dfb6a695f8f3626235d323ebff759c7"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxLockOnPointComponent.h": {
+      "sha256": "6bd666948ef0d86c8b931de25d8cdb0421af4acf9b6f675d7e42f8f35c8530bf"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxRootMotionModifier_Rush.h": {
+      "sha256": "73885ee307cd11c58b26e72ae19bda6e63bb5bd84873416b7e2e3d967c9ba25e"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxRootMotionModifier_SnapToTarget.h": {
+      "sha256": "191edaeb0a90835365a55506bc95ef9828f1622cc0e319f2ebc05946f9ac9e84"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxTargetingFilterTask_GameplayTag.h": {
+      "sha256": "26f1f0cc5a5c15099d2c4af92b7c727fd2490024a23fd93783cb23916073e8b7"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxTargetingFilterTask_LineTrace.h": {
+      "sha256": "84bd9db0157c169418ff640d659bd92a3ad66169b641456cfd44218ecfd2139e"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxTargetingFilterTask_LockOnTarget.h": {
+      "sha256": "2ffd7c64312304411790c7ce11b69b97556a7caef504349420bd23d4c764b977"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxTargetingFilterTask_ScreenBounds.h": {
+      "sha256": "4334e02aef65785860346410669c878d45ac87d4cf335392f4484fb000926377"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxTargetingFilterTask_Team.h": {
+      "sha256": "5e9ca7625a5899aa98dce824a91a8592a818dd2282869b3a0ef4b15a17dd6f4b"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxTargetingPreview.h": {
+      "sha256": "e4eb8905f7e558c42b2e93e9837f52e3744a2b650789f5bda89dcaccaa57fab8"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxTargetingSorterTask_InputDirection.h": {
+      "sha256": "5ab016a6867df259b05f9537a3dac7f39f1fef84e917d740870104b80d55ec5d"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Weapon/WxProjectileBase.h": {
+      "sha256": "2279ed38055b7e54f897f97fb4be0dbf8a8dc8593dd67e72f9e263baa71f9b50"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Weapon/WxProjectileSubsystem.h": {
+      "sha256": "a5d7d3275040cf6b7222cfaa206b128f58333217f0d75b5dd7cbb12e9c597d76"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/Weapon/WxWeaponBase.h": {
+      "sha256": "3f640d47add31c85e797333e4dc8573c83a9d64a74e00d7ad2b658741722a4a3"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/WxCombatLibrary.h": {
+      "sha256": "c9cbe128dc29f44fd352c1e73ce994639a25c24b7f2fdfe2f21db620b1ce49cb"
+    },
+    "Plugins/WxCombat/Source/WxCombat/Public/WxCombatModule.h": {
+      "sha256": "aa3de621620d86fbce5c2f70a23c812155487f5a2aec0266bc50c62747b888db"
+    },
+    "Plugins/WxCombat/Source/WxCombat/WxCombat.Build.cs": {
+      "sha256": "00ec1004d18b5e68628935bd6f63e56bfa194c9436beb540c2542d07a346ec4d"
+    },
+    "Plugins/WxCombat/WxCombat.uplugin": {
+      "sha256": "8b1377dd7039b55e1b0ef0c78263e6d0add3eee2c12239f7eb8f8ffefe6d9f42"
+    },
+    "Plugins/WxCore/WxCore.uplugin": {
+      "sha256": "7950d4e2c1ec8cbf3da83947b0b8ae645ace8336cb63309e2327c55ed15e225e"
+    },
+    "Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueActor.cpp": {
+      "sha256": "89f46aa7cd4c6c2b61d928b792c1986b33beb84fa380a54c95ed06d02aa324ce"
+    },
+    "Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueComponent.cpp": {
+      "sha256": "6dc4f4c75e3c115f5d003b8e71332652a62c79577ff37d1248c0082602cac7ba"
+    },
+    "Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueModule.cpp": {
+      "sha256": "b153436d2371608d90a03ad3f10ea299ccf15003ab566ab915b2e6eda84e940f"
+    },
+    "Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueSessionComponent.cpp": {
+      "sha256": "4200a775b5eb88be77fafc1b30c598ebb464006dcf7e74537371342337dea958"
+    },
+    "Plugins/WxDialogue/Source/WxDialogue/Private/WxStateTreeTask_PlayDialogue.cpp": {
+      "sha256": "3d54ce39b72ae5815e25f4274cad479d78fe86fff04237e58535e87cf57afdb0"
+    },
+    "Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueActor.h": {
+      "sha256": "8036fc3dd2912cb006491e0388f9a634ae527d39a2a58c36a8aec5a231d73258"
+    },
+    "Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueComponent.h": {
+      "sha256": "a773f87b03b098d3c82ffc20a5b5b3edb7ed613118c50eb7992765073aef87f2"
+    },
+    "Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueModule.h": {
+      "sha256": "8cd649f562d3980c32a98ccb6d7b4c0df00d8315891dc4af4ef59f9baccd2296"
+    },
+    "Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueSessionComponent.h": {
+      "sha256": "eab28642ae51c04def33d031053210d45851c4dc55c1b6c4c4836f5c74341d7d"
+    },
+    "Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueTableRow.h": {
+      "sha256": "9bd496635ec82914b8c98f66e1c529dd6e94159e584d0bc2155f0aa2176317db"
+    },
+    "Plugins/WxDialogue/Source/WxDialogue/Public/WxStateTreeTask_PlayDialogue.h": {
+      "sha256": "cdff7837cbd20ff314a0f16ccfffdcf265f5d55a6bf71d4e9a3dfecf0bcd9f45"
+    },
+    "Plugins/WxDialogue/Source/WxDialogue/WxDialogue.Build.cs": {
+      "sha256": "d08672b118b09118325adab76f4e76fc1ac33e81c3182d899109463a92b2528c"
+    },
+    "Plugins/WxDialogue/WxDialogue.uplugin": {
+      "sha256": "3c10d7681cb31edc31e653f4b3934f44bd44318d604e6297d9e7feee6e9be2df"
+    },
+    "Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp": {
+      "sha256": "1761d3d8fdbdc07fd972ee21b7c7921de1ff6122f01baf0efb578b8895ad6f63"
+    },
+    "Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.h": {
+      "sha256": "40a50f306718e437ed68416240da18f7c0c61104cf9a94d7aaa07ca08ccd59c2"
+    },
+    "Source/WxGame/AbilitySystem/Ability/WxAbility_UseItem.cpp": {
+      "sha256": "1ff6aac1ba7aec233a2d01f17812a6866515fe8c92e50e8c5e3712579ae761c9"
+    },
+    "Source/WxGame/AbilitySystem/Ability/WxAbility_UseItem.h": {
+      "sha256": "2f36979bde3e170999ef39016c80c2f639e00a2d5ca7672b5233eed3a16ade95"
+    },
+    "Source/WxGame/Character/Component/WxCharacterMovementComponent.cpp": {
+      "sha256": "6f698f8933c7bb496dcca9c5dc1c4903b3cee3c78ab35dbcf37445e7d23f2263"
+    },
+    "Source/WxGame/Character/Component/WxCharacterMovementComponent.h": {
+      "sha256": "cb340263aea88c0b6e90cd387027c994e65956bbe834254b0c1540e8172af232"
+    },
+    "Source/WxGame/Character/Component/WxMetaHumanComponent.cpp": {
+      "sha256": "0f00d32f4f88d2d201b8076788bcc7b6ffde2ec6077e5c84648935f2ff4b38cc"
+    },
+    "Source/WxGame/Character/Component/WxMetaHumanComponent.h": {
+      "sha256": "c116fd76e9b89c60b6f798716b2b2a91e2e25cf0655b17d09f8b97aab7dde88e"
+    },
+    "Source/WxGame/Character/WxCharacterBase.cpp": {
+      "sha256": "10daa82f43a6874fb3c49d4265bbe212d9577dae763d1355f6dba50fb5c47cca"
+    },
+    "Source/WxGame/Character/WxCharacterBase.h": {
+      "sha256": "a0ab2f69b1882a9f8c9d0eb7144533f99d68aeb1bd7e032acbb8828ffb2a6758"
+    },
+    "Source/WxGame/Character/WxEnemyCharacter.cpp": {
+      "sha256": "12f2e74c8f18d41e559543d7f84ba9490132d6be0d93762ae07f3bedd60c64f1"
+    },
+    "Source/WxGame/Character/WxEnemyCharacter.h": {
+      "sha256": "97dbfffd02a796e21a7134110de6d6f0d9d5dc65bd2566cb0ef0f667680db4ba"
+    },
+    "Source/WxGame/Character/WxNpc.cpp": {
+      "sha256": "4613198d43df2978e1e874961a573763a295171531516920f40af874fe1bb3fb"
+    },
+    "Source/WxGame/Character/WxNpc.h": {
+      "sha256": "e3d6ec91985a73a666b9abcf6293109e653fcc568449d2a19f4634fb3c54dc07"
+    },
+    "Source/WxGame/Character/WxPlayerCharacter.cpp": {
+      "sha256": "1b5825c506814f521d7e345d90d5295137accd6fcf0a33ad34a69f0d91f70e88"
+    },
+    "Source/WxGame/Character/WxPlayerCharacter.h": {
+      "sha256": "18f35efcfdb0cfe0a3be179ce17c5be14b7158973fb4255d6ebd7c81de8ec8ba"
+    },
+    "Source/WxGame/Character/WxTeamTypes.h": {
+      "sha256": "4a0df34e0317746726e21cb6e9a8ae11e3002932a9557fee2ac3ac0a7f7a7674"
+    },
+    "Source/WxGame/Cheat/WxCheatManager.cpp": {
+      "sha256": "293207c41c76de52ef6223f0e71a32751debe5591f1a790aa90572a3d653bc48"
+    },
+    "Source/WxGame/Cheat/WxCheatManager.h": {
+      "sha256": "20383fdbd10a86d3e557c636408e1fa68b8eea0eda8b53740883f530932beffe"
+    },
+    "Source/WxGame/Controller/WxAIController.h": {
+      "sha256": "3602cfc87a43bb11c942b9e521170ac96bf336837a33ef4a110a5c352349d32b"
+    },
+    "Source/WxGame/Controller/WxPlayerController.cpp": {
+      "sha256": "af122cc3eed03e7698093e252cd835191c383ca7422b2cd2471394aaa5397b03"
+    },
+    "Source/WxGame/Controller/WxPlayerController.h": {
+      "sha256": "54fcba44518943656996ffe46f5d981749856596b1e441b7aadc9a2204e3de5e"
+    },
+    "Source/WxGame/Framework/WxGameMode.cpp": {
+      "sha256": "a7529edda15b76e4be233fc6bf06ecc93325924bed530b73746d2055a27dd13a"
+    },
+    "Source/WxGame/Framework/WxGameMode.h": {
+      "sha256": "b945f09988eb21bd6a37927bb1e3c8b939eebd556ba5a4af5e42a9b9252c6187"
+    },
+    "Source/WxGame/Framework/WxGameState.cpp": {
+      "sha256": "8f861cd73edb57b8e0d5e62b41df686c437fb029d91a1edb3500a5dba2423813"
+    },
+    "Source/WxGame/Framework/WxGameState.h": {
+      "sha256": "0952aecd22f6e9ce43f652bb08bdd17a9023f055b8a5af64e75c7a4186d8d08b"
+    },
+    "Source/WxGame/Framework/WxRespawnLibrary.cpp": {
+      "sha256": "9a7b34c0ed05d2f6be55a08052dd4aa91e3db8bb5bf2b58896ee12727a182bef"
+    },
+    "Source/WxGame/Framework/WxRespawnLibrary.h": {
+      "sha256": "b63423ae7c3e4dbd0fdc39821b5253c1a337761cd25698f8fc13878283ee1a4f"
+    },
+    "Source/WxGame/FrontEnd/WxFrontEndLibrary.cpp": {
+      "sha256": "b8e5f0062dd371dcae5c3fdbb9238126638eb3d1ccca8bb7e39a2c680415bad1"
+    },
+    "Source/WxGame/FrontEnd/WxFrontEndLibrary.h": {
+      "sha256": "9c7dd85dd657081e0889a6269de11dfa658179160b6f09dd9aeeeb292b8419c8"
+    },
+    "Source/WxGame/FrontEnd/WxGameFlowSubsystem.cpp": {
+      "sha256": "64d44dbc5d72f314c3b5e899516dde06fb1400121d42b1d174d185f7da053809"
+    },
+    "Source/WxGame/FrontEnd/WxGameFlowSubsystem.h": {
+      "sha256": "569078a06783788672edbe9a26d2a879c78baacd0062dc21ca096ca00b2fcfa0"
+    },
+    "Source/WxGame/Input/WxInputConfig.cpp": {
+      "sha256": "178b7b9c9d9dc86d659d4521534949946717c42778663ec7556c270c6544825b"
+    },
+    "Source/WxGame/Input/WxInputConfig.h": {
+      "sha256": "d60e0014d9f3c399079a3e82332b8c526bbcc751806986fe20181e857df34354"
+    },
+    "Source/WxGame/MVVM/WxViewModel_BossDisplay.cpp": {
+      "sha256": "9386e7c68041acd46f35f0e8df11a505766e2af6e65f43a2c6310520cc3cbbc5"
+    },
+    "Source/WxGame/MVVM/WxViewModel_BossDisplay.h": {
+      "sha256": "9dc29397c104d62496ef06b545d970f507a3bc7e488f8acb726feee49b0430ca"
+    },
+    "Source/WxGame/MVVM/WxViewModel_Dialogue.cpp": {
+      "sha256": "cb9119bd20f519ccd2e42a0d73b08e5088d0676d9652fd20c8afc85e626339be"
+    },
+    "Source/WxGame/MVVM/WxViewModel_Dialogue.h": {
+      "sha256": "10cb1ebbcb840442bc9cfe76055bd44c4e673703098c7a4e49f2d7c73123a1f1"
+    },
+    "Source/WxGame/MVVM/WxViewModel_InteractionList.cpp": {
+      "sha256": "7d198076fe434e0305cbb56523b7b32731cc6533df97c164629aa7847b6348d6"
+    },
+    "Source/WxGame/MVVM/WxViewModel_InteractionList.h": {
+      "sha256": "2bc31c09f3272cf9c61cd5a2bd8731265e826d1cf1b0f094a45d7dc3b63bf73e"
+    },
+    "Source/WxGame/MVVM/WxViewModel_Inventory.cpp": {
+      "sha256": "d96621aba38c30411bebd08e36e0b4cfa3b91b26a0a74da97a6beb562371fa2d"
+    },
+    "Source/WxGame/MVVM/WxViewModel_Inventory.h": {
+      "sha256": "d6472dae0d5fb4ce91da3b07f8d8aabde59ea8ca59e0b7e25332c9644fc07ee6"
+    },
+    "Source/WxGame/MVVM/WxViewModel_InventoryItem.cpp": {
+      "sha256": "fb38d6aa8bc5369e6aec0b29e4e01871c2d3597aacf28bd35ec5ba0b17ecbd77"
+    },
+    "Source/WxGame/MVVM/WxViewModel_InventoryItem.h": {
+      "sha256": "4ae91f56905e89f9f59045c5517dc419030918f176385521548e296a605cf421"
+    },
+    "Source/WxGame/MVVM/WxViewModel_Quest.cpp": {
+      "sha256": "96ceac0b0d6dabeef931d840caea896dd5ef90d5774ea84ae8de1173c0d30756"
+    },
+    "Source/WxGame/MVVM/WxViewModel_Quest.h": {
+      "sha256": "a2df56c5221e5bd6f9c4a7e74f0a56f24d07a232d3373fa53f3b33c7512ea3cf"
+    },
+    "Source/WxGame/MVVM/WxViewModel_QuestObjective.cpp": {
+      "sha256": "e3f6faffb7c7c4c48c3c8135f07dbc5988957625c7a2e43981ecdd02706d8499"
+    },
+    "Source/WxGame/MVVM/WxViewModel_QuestObjective.h": {
+      "sha256": "bb0120dc8b3ff5054235879616a3c8770b218efb401ea7984c6b552e256f2118"
+    },
+    "Source/WxGame/MVVM/WxViewModelResolver_Ability.cpp": {
+      "sha256": "016a135d5c3f26fa04b36b025c5b93c1f5150966d5f34b8eb87f26d59b4170ab"
+    },
+    "Source/WxGame/MVVM/WxViewModelResolver_Ability.h": {
+      "sha256": "266ff36ae93df3321c8354680ea5db3b561aa156aee7086cff3027f862bcf2fa"
+    },
+    "Source/WxGame/MVVM/WxViewModelResolver_BossCharacter.cpp": {
+      "sha256": "0b16ac12b8d5c4476d42f7e73622c92fd321713bfe3cb302cbec4239e895ce29"
+    },
+    "Source/WxGame/MVVM/WxViewModelResolver_BossCharacter.h": {
+      "sha256": "59a53c24e358588d08126acb10ed2968521b90d4bf3eec418b017b353e91208c"
+    },
+    "Source/WxGame/Player/WxPlayerState.cpp": {
+      "sha256": "ef2a2c685092df5924e1b6781797f527a0e1f6539881d602050af0c7b33e584e"
+    },
+    "Source/WxGame/Player/WxPlayerState.h": {
+      "sha256": "bf9e5770f01e6dabe41baaf793edf74a2d1ce8176029f1710bb14f557345a54e"
+    },
+    "Source/WxGame/WxGame.Build.cs": {
+      "sha256": "36c0bcb307364315a9932a49a13decdb7efc2958632da4058b73a358b9fa11a0"
+    },
+    "Source/WxGame/WxGame.cpp": {
+      "sha256": "09835a439f0e1236fbc179a7e9a34945bb4553a411ad5287ee003d36fbc58542"
+    },
+    "Source/WxGame/WxGame.h": {
+      "sha256": "60fcc626ff1313e2a138b7d7ba4ca0474433762a817520231b6b5f838eeac6a5"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Private/AnimNotify/WxAnimNotify_UseItem.cpp": {
+      "sha256": "f1efb96f6ad1c3796082ac468c588c4caeedacd76f948c7c9fec4ce573632ce9"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp": {
+      "sha256": "22b1ce04abad06436349b13e5cc7374aee090239d450a5cb2af49746eb0e9a25"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxItemUseComponent.cpp": {
+      "sha256": "e1a654930a4b796985227c9241d2ff81c512a6ae3cd30abd65c2782148142aab"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxStateTreeTask_GiveRewards.cpp": {
+      "sha256": "e947693b7466cb9a5295a665792aa86e987aaf287e329a0469135c8a265798c5"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxStateTreeTask_RefillItemCharges.cpp": {
+      "sha256": "6983934f44f83f56fe2c49145082d243dd28d7227fd97040388b6f825c76f470"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Private/Items/WxItemDefinition.cpp": {
+      "sha256": "8d05fc0113a1c2d9904269b2a5c7d2ef60319221bf5cd3b6423bae88dfdddea4"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Private/Items/WxItemFragment.cpp": {
+      "sha256": "6b0dcb1447f46372a42eeccc507dff8786c3fd0fa47662b32b00ceb9978d008e"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Private/Items/WxItemInstance.cpp": {
+      "sha256": "f25ab1475ccac06b66ad705ced1acf8bd43ceb03ea0efbb3a1b5fd08e1d1601a"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Private/Items/WxItemPickup.cpp": {
+      "sha256": "c25be1e6592948de82b6a87d3a888bb3ff0fdd91ffbeb451a0fc934b53ae3ca1"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Private/Items/WxRewardTableRow.cpp": {
+      "sha256": "fd0ede5dddac1d978f89a8b1ac9a420f4e709944cc2543fd40888b0c9cb91667"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Private/WxInventoryModule.cpp": {
+      "sha256": "345a4608df0baa8962564f46920e8dc53dfa2104a789547feeb0d6ab31a49d18"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Private/WxRewardLibrary.cpp": {
+      "sha256": "ac8795c8cc78164b4df77bc33a69b1e4fa402ee31615e830c3874f2f8e1e0744"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Public/AnimNotify/WxAnimNotify_UseItem.h": {
+      "sha256": "079ae56c6a7f5651a4bd81ba02a2fa328aa59b0b3487fba53510f198bef14da3"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryComponent.h": {
+      "sha256": "c983cf3f32514b724b3e10ab83cba9c4f0b9687c57f13b63c252e7f29f3a056f"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxItemUseComponent.h": {
+      "sha256": "4ee397907d32acf98e7bdc6276c80355eca92fd3dde49109dd75e0922119cd1e"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxStateTreeTask_GiveRewards.h": {
+      "sha256": "e64a8961bc7dcb39b2259c217e6ca52fb3f25452855c1e086340abcc1c34f3c2"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxStateTreeTask_RefillItemCharges.h": {
+      "sha256": "ad52f0e860417341116a5eb8710ec20d86ced609e750cb349bc5bc5b9a3031dd"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemDefinition.h": {
+      "sha256": "f97ff14e6b88675657b0e26a9c78fc6aaa3141ca2d9368ceb158793bafc1d0db"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemFragment.h": {
+      "sha256": "00be7f10327142a22e695b4a3dfd324e4ef8f0f5837b17a41f9a12da12c4d5b1"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemInstance.h": {
+      "sha256": "6e1ee32d1d3dc64fb4385a6fa399ca7daed8bb70ac736961cdbf7f8f934f39a5"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemPickup.h": {
+      "sha256": "3a03fb315c7c8c03cd1cf007a8ec802b62f8b5a9cb7ff79574ac0a76c54a1b76"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Public/Items/WxRewardTableRow.h": {
+      "sha256": "623b63a11fe7dfe238814051029e6877729a61d84955ec6b76c9692625540c18"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Public/WxInventoryModule.h": {
+      "sha256": "abd110f358fa7b9dcb585d154c0804b5403569bb0a71bdbf89262fefb73839f9"
+    },
+    "Plugins/WxInventory/Source/WxInventory/Public/WxRewardLibrary.h": {
+      "sha256": "9186e6c2104db7674630174adc3d5a7c8dde0f2cd0f924329aea188ef5037067"
+    },
+    "Plugins/WxInventory/Source/WxInventory/WxInventory.Build.cs": {
+      "sha256": "efe240fcef0dd1aaf363653f9181ad304d1a9c49f9f48e97f921d4c40edff7c0"
+    },
+    "Plugins/WxInventory/WxInventory.uplugin": {
+      "sha256": "402b598d158d5e4a213a694811476c0573870a47e817a4abe8cdd0c58f048e3f"
+    },
+    "Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp": {
+      "sha256": "58c2210dd37d7a92e94fffdf9ebd3d25614b9e6754d9a6751a74f50ee012bb72"
+    },
+    "Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestLibrary.cpp": {
+      "sha256": "fee1423731e4182a1e70f084215c6e97763f330c8fa82b3ad254d25f7d6757f7"
+    },
+    "Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_SetQuestObjective.cpp": {
+      "sha256": "586ec524d97c3856365891e371c537fa692acf516211d0590a1f2d699bd1313b"
+    },
+    "Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_SetQuestTitle.cpp": {
+      "sha256": "96d69f50c7a0c872cf50ec7618eeecb30f0ce2159d7d780b8096c818e57dd08a"
+    },
+    "Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_StartNextQuest.cpp": {
+      "sha256": "3934e874288ca75bd5254af20210bffbd94a75fda04e45ca273d5540df0524ab"
+    },
+    "Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_WaitMoveToTarget.cpp": {
+      "sha256": "141d3575771630720a748b8bea47e6ed227c763b11334e678cdbaf0fbc4d0479"
+    },
+    "Plugins/WxQuest/Source/WxQuest/Private/WxQuestModule.cpp": {
+      "sha256": "efd62e02cb6da80c75ed33c01b7b00ed5fe4979ec06002c62a7bd0db97f2dd37"
+    },
+    "Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestComponent.h": {
+      "sha256": "3f2e3906265400d78cac0c2e991373413eb1a7ce1f892abb6fb310d2d399b2af"
+    },
+    "Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestLibrary.h": {
+      "sha256": "0ad336f26e0e1152df08d61302ad78918a636f0e771df2fb6fa9e1f9cf302fa2"
+    },
+    "Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestObjective.h": {
+      "sha256": "cee567fc1ec95a658776a8bc24e72ed575becf6492cb112021e68996c6853263"
+    },
+    "Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestTitle.h": {
+      "sha256": "087e345ee04e6676fa7c4817db6e839dbf6484734b66c8fff439908323f285ce"
+    },
+    "Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_StartNextQuest.h": {
+      "sha256": "e60f8c4dc856e7f47fcc4000f8abc2cf577f81e55a7ef146bac7e550336a0ff3"
+    },
+    "Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_WaitMoveToTarget.h": {
+      "sha256": "caa464cf39800a95e1ae7bc581a8c10ef95c030a6be6673215c181d62a03b6f1"
+    },
+    "Plugins/WxQuest/Source/WxQuest/Public/WxQuestModule.h": {
+      "sha256": "da1fff247614f8e9f20f0edf3d31fa7cb5b8a78653f34158e9b79586fa5c4452"
+    },
+    "Plugins/WxQuest/Source/WxQuest/WxQuest.Build.cs": {
+      "sha256": "dca350a8cc942eed38d1afad3f86c5c12628e1b034834f86d41ce7e8b0989741"
+    },
+    "Plugins/WxQuest/WxQuest.uplugin": {
+      "sha256": "e2ade6be194d8f7afc58611ca45bb2f3557f4acc2d1e3da9b6223e51accec3f1"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/Component/WxNameplateComponent.cpp": {
+      "sha256": "db80b81caa6e9dfe02bcf60cc677e7cddd0bad2e7146c859c1d362b1975635ca"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/Component/WxPlayerLayoutComponent.cpp": {
+      "sha256": "3280a0009008fa0107492122b3551d4acf7d7d22ea2101e9144b862950195fdc"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/Indicator/WxIndicator.cpp": {
+      "sha256": "2fd88f0ae9ad3626bac58b59848459b049822e6d3b8e67cc83ad74dd4f2d8e3e"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/Indicator/WxStateTreeTask_MarkIndicator.cpp": {
+      "sha256": "cde6ac02354d2fba511691f748742d6f2e221d2493839b63aab388c7aee63a22"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/MVVM/WxMVVMConversionLibrary.cpp": {
+      "sha256": "b4c6774f2c206530d1b7cc9a76e4cf557e223094a8857ee515112974526d3ca7"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Ability.cpp": {
+      "sha256": "d6e9b288ad0c34b0d4dd00ba382bc5f3d8a8431b728cbbd0edd10f11f8c94fed"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_AbilitySystem.cpp": {
+      "sha256": "5e104f13c4a65f2ce2f7258b19ed65c6c1948f02a11c69bd056cab6245dd8f8f"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Attribute.cpp": {
+      "sha256": "ca63ad2b6782720c05ebdaa146dfce4ebfffb034c56133e0e2d8e6c33819b548"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Character.cpp": {
+      "sha256": "94f10f716722b38dd293f00476ea22b118305c704cc933080200885df81f2589"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Effect.cpp": {
+      "sha256": "426eebd11c61e5fe92b99bad8d81567bb9e7755c5700526f8dcd67033dd5acc9"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Indicator.cpp": {
+      "sha256": "e700599b95c587d19e03a71082952f4af6982a3e0b34b8e1c3b836c7daa228be"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Interaction.cpp": {
+      "sha256": "1dce485b1792a6dceecded8af70635b613619f42274a6b4d7d1c3926193e0561"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Item.cpp": {
+      "sha256": "6e534114a9e6bf629a4041e05b6c30a5dbe52692150b7168dd91d080c1fe3437"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Subtitle.cpp": {
+      "sha256": "0c11dfc78dafc1c64866d9f15b8c5e7aa10723b0b3473e4f0eb3b008bf9ad45a"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel.cpp": {
+      "sha256": "aeb9ad1a9f660d345c829506956659323e1e72ac4c2be2e45f9ea4e8bd6c7cf8"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModelResolver_PlayerCharacter.cpp": {
+      "sha256": "8862684feb641adef151ca83b24745552f444ef3d1dd07c3f92de784216ba6a2"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/Subtitle/WxStateTreeTask_PrintSubtitle.cpp": {
+      "sha256": "a5f6266bffaccdf4f930421867b07c58d29e59f7d5326d35b2066046e35b89ae"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/System/WxPrimaryGameLayout.cpp": {
+      "sha256": "06ed9ceb62ae6633d3797c4fc395b3dcd7cd76519a77b624432115b070634d4f"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/System/WxUIDeveloperSettings.cpp": {
+      "sha256": "eb0054f385c027d013916422d6314cf2432a39e631f8fa234ae01800ad8523b4"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp": {
+      "sha256": "953d54ea1a5bc544d66f51e480dbd1d869b8bc9d46fb546babd09fbaf8f8f5a4"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/Widget/WxActivatableWidget.cpp": {
+      "sha256": "db56c18bb0e3f5e628d352fc3a9046f5978c795fe5894637051bb2ec23db2099"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/Widget/WxAsyncAction_PushWidgetToLayer.cpp": {
+      "sha256": "792176ceb54f7a908069433085043914945b5554523dffca051245dbe82d1bd1"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/Widget/WxButtonBase.cpp": {
+      "sha256": "ae32b3ab1f7d2f46a8d3003400b107eaea969bf56d5b62344bf9c25570a109da"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/Widget/WxConfirmationPopup.cpp": {
+      "sha256": "152c554712829307056f7fe8108cf36175b17640d5ecf5709f6865ee415e5ad3"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/Widget/WxGamePopup.cpp": {
+      "sha256": "e1022e889d0cfcf65d8b5880d13882d7838cd12d5af7561de9d4e7c0c80be90b"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/Widget/WxHUDLayout.cpp": {
+      "sha256": "2bdf17359248c65980778cf41e92cceaab35eac60b8569bf8d0a2d541ad49fb0"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/WxUILibrary.cpp": {
+      "sha256": "c64882789516f49efc4da3bfab7e8f0271b00461d19ce171e911fe875bf48af6"
+    },
+    "Plugins/WxUI/Source/WxUI/Private/WxUIModule.cpp": {
+      "sha256": "933d180bd41c54da708f227ab805bac32425c1fb0d96dda9cc1def9d180ad470"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/Component/WxNameplateComponent.h": {
+      "sha256": "be601e223269571374bd5dbbf16514f42d10561ce76228165f71f1e12c770c14"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/Component/WxPlayerLayoutComponent.h": {
+      "sha256": "93c99394fd0129fa7e12de2243509994f05f6bc6227ebb5eb42549af5e38a470"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/Indicator/WxIndicator.h": {
+      "sha256": "f9a369d2b3c178a47a7adbe20548574ca2e1593154c1e56e13283a2881454727"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/Indicator/WxIndicatorWidget.h": {
+      "sha256": "c6fb330e427a57364e672c502628178c3452c6ece9a4a19df4dd978029be45f9"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/Indicator/WxStateTreeTask_MarkIndicator.h": {
+      "sha256": "c2f7bbc0082a4e09edaff859c7a9928330359e4a0ab7ca50b600187aa0d0efc2"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/MVVM/WxMVVMConversionLibrary.h": {
+      "sha256": "3f7b4b8b758dcf24a6f5ed99fedf88d755ad10b08b4c965e2b660cef33ff6846"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Ability.h": {
+      "sha256": "48f9403a5660af2e7e2b39460aa436142576d2cf4d23fd2bf61bc9a50f370670"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h": {
+      "sha256": "60cf7a3fd5487a5ad751c167d37b1aee8732f6abb0d5b923064eaaa4bc76ea55"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Attribute.h": {
+      "sha256": "602f00bfc0c0366e69201f0475956e58961066ec4366249fe34c23bc43a8ba32"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Character.h": {
+      "sha256": "8424da6c512f731712c258af7aaa69b89dfdee2e63fbf68b2679b2b02545881b"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Effect.h": {
+      "sha256": "75efe7aad2e97329ba6f68f1ccd4c3e5086fd760eb7c8c2e295bde8afb7310c5"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Indicator.h": {
+      "sha256": "d3dd96d8672421f99a01a09c6272a9704793ddfe86b04a958d5ebcf164acb689"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Interaction.h": {
+      "sha256": "19398562ac81ef7aefe620f7569266956ba576ccd7755986599c33cb65fb63be"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Item.h": {
+      "sha256": "52558cd524cd555f16567a528d1116fb28110a0f81597e83fb4893ba9dbb666a"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Subtitle.h": {
+      "sha256": "f3290a6e34fef129639dace98b1254ad4139b4a2f2344c62fb3b77f2d887a10f"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h": {
+      "sha256": "0b0247c50622a042a24e3f98f35c6b403bab5c71fbfee604ec5ec026684339f7"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModelResolver_PlayerCharacter.h": {
+      "sha256": "291dd4f2e0419603b3aea2a46adda9d8f8fb97b07886d97dc3b2e571815ed803"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/Subtitle/WxStateTreeTask_PrintSubtitle.h": {
+      "sha256": "380a8b3865f08b410905bab3f9c79b00dcb3951410f639e286f42c21b5a80d45"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/Subtitle/WxSubtitleTableRow.h": {
+      "sha256": "cc5d585e61dcfa2e2c0ef9c1245615ae98d640ed9caaf8381a5c8ffaa5745071"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/System/WxPrimaryGameLayout.h": {
+      "sha256": "e1d6d2f8c815a86ea31ccb49252c312817201690631f8a44dc071055499c53b0"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/System/WxUIDeveloperSettings.h": {
+      "sha256": "963bc50ef5a43452cd8a0e7c6a87b187df3341331238c5b244792e351d00a6cf"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/System/WxUIManagerSubsystem.h": {
+      "sha256": "88d17e1b67f4ee1ca48d3e217c87bcf5db9b0537a423610e0b6c0ae875197998"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/Widget/WxActivatableWidget.h": {
+      "sha256": "f8ca996a24232f292b3621f89e431813cfbc8185085c8f6233236f60e184bab8"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/Widget/WxAsyncAction_PushWidgetToLayer.h": {
+      "sha256": "281106f2d110391e4117ba7a1c4b329487c69cebd50aacba70981b1cf19f231e"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/Widget/WxButtonBase.h": {
+      "sha256": "7286733a7fe95501085f2cb0cf996e9ffd65705d0ee5e214d5ab8c7f34fbe82a"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/Widget/WxConfirmationPopup.h": {
+      "sha256": "484251ab0fdd3902e9a89e62df9f4df564534d0d5351e1f7bb0933b9ca2d59f6"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/Widget/WxGamePopup.h": {
+      "sha256": "35991ba5ac63284baf00418251ec03f82b7447a21e7caf50c8d55ed1c46b317e"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/Widget/WxHUDLayout.h": {
+      "sha256": "69ec7680490051d4f938ae04146df17a8944723376a7a08b919cf45aea551a59"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/WxUILibrary.h": {
+      "sha256": "6e6f7cacb5ee630f2fe6d9aab23302c77aa0ed140ac448851c89ac706a9d37a4"
+    },
+    "Plugins/WxUI/Source/WxUI/Public/WxUIModule.h": {
+      "sha256": "3a74871cd4bdee5ad71e1979de7372f2ea32918f3cb7ba3a61c1f8a20401cf87"
+    },
+    "Plugins/WxUI/Source/WxUI/WxUI.Build.cs": {
+      "sha256": "66bc3aff2bcacbdf8d1f396a36851699a92fb3e33318e03fa7cf320a41bfd9c6"
+    },
+    "Plugins/WxUI/WxUI.uplugin": {
+      "sha256": "3db2bcc55a770be7c856fc732317c296f2473a7fa660050ed628df1aba8d188f"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/Device/WxDevice.cpp": {
+      "sha256": "5240b196a5f3da9299bae166b93810076210476ba6495ea5e380029f284585e9"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceComponentName.cpp": {
+      "sha256": "56c755f316a1404a80f080c866de14e09ed1de158e96fb917e41dce84ce6d333"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceExecutionPolicy.cpp": {
+      "sha256": "5c127934d648696d3ea58c731dd2540f10ab25262ce908b1e1b81f61dc2581f3"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceStateTreeComponent.cpp": {
+      "sha256": "3183ac74c532edbed59b048099c714d3418f787154bfe197c567406d7b153ccd"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxInteractionScannerComponent.cpp": {
+      "sha256": "ff9d34d0168f6624b07dc9bb6f0763bacb4661eb6713c87be065976fa8f56111"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxStateTreeTask_EnableInteraction.cpp": {
+      "sha256": "2b7a02c4aba49ff9d39662a799e6ba4495aa35ef5ba17baa864c7ed33be21e8b"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxStateTreeTask_WaitForInteraction.cpp": {
+      "sha256": "e9f5810542a487cffc16f105bbc7e6c930f41884a8cfca5f01adbb2230cb8bc2"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawner.cpp": {
+      "sha256": "5ed5540998a61c8da6ab803d1380b93960cdb6fe72ffd5f45391dc25acd52fde"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawnerLocatorUtils.cpp": {
+      "sha256": "81852408b50d3723a28dc5ad8b68d3ab4157031499c47e91f10d2fa6d82934ea"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawnerLocatorUtils.h": {
+      "sha256": "be420f5f39391478672730eaad11cca56e09400eb9db76ce628c0cd6448af12d"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxStateTreeTask_TriggerSpawners.cpp": {
+      "sha256": "6b661d0d44e7c1371525d0bf90366bfdc0089f04bd632a7a21081bbbb2f79dc0"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxStateTreeTask_WaitSpawnersKilled.cpp": {
+      "sha256": "dcce6b6a1f9306ccfaac248022c9a6062fb73f6c5b093791ef3d41da270cc100"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_ApplyGameplayEffectToInteractor.cpp": {
+      "sha256": "958da27e8251023a249a8e1cc0ffba27dc2e397c1528e490193f5b93cd398a6e"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_ComponentMove.cpp": {
+      "sha256": "1d903ef822a475e10ba664e866f2a840968fb11d0072ed1fadf501ad8e205487"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_EnablePlayerInput.cpp": {
+      "sha256": "471c16b43986049431bd88c9021b67583ad760e40aed4f67e57b348f49ea2019"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_PlayAnimation.cpp": {
+      "sha256": "e1d043811bb4101e58f577daa4fcf1f672131931c57d07002806147a4772cb9f"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_PlayInteractorMontage.cpp": {
+      "sha256": "6ced37eb9fb67b63b5319d4d79059ded06acf84a97d5b15ab9e90f70092c841c"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_PlayLevelSequence.cpp": {
+      "sha256": "bf877c87073caa028ffd58de364f3159c46a230fc988a2033da772eabe7b6e3e"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_PlaySound.cpp": {
+      "sha256": "d574687cb2ada41279f318a1fe86a6241814a36871bbf05b46007cd8dd20947d"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_RecordCheckpoint.cpp": {
+      "sha256": "9a9e76928633c98ad19ca4a01b755e3873119709d6d6a0c908734cc89dd394a7"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_RespawnSpawners.cpp": {
+      "sha256": "ff95ffd31a22f3a38a22eb2a1d9b0d6e686d92dc911d914b653f074369c0d98a"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_SendEvent.cpp": {
+      "sha256": "927a49a3d24659b245d422c273deba8d9775551ca48ef20c86e93d0be7557fef"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_SpawnNiagara.cpp": {
+      "sha256": "ca2b9d55f34c65cdf83e6347751e9d120f63a406066ca28a2b8a5fbc87c12a9d"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_SplineMove.cpp": {
+      "sha256": "2125a19779ccf57b0871e5e9de42e7f9b0886701b5d98cb7d42d64b0f92c327c"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/System/WxCheckpointSubsystem.cpp": {
+      "sha256": "d8422e06e185f9523cb23960ec1af7e3d2badd0bc614d921ca5a82c10ee96690"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/System/WxSpawnerLibrary.cpp": {
+      "sha256": "1b71b28f3bb6416e0c9972d0f524a264cbb67852543ddf89fc6eff42a42c7651"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/System/WxWorldDeveloperSettings.cpp": {
+      "sha256": "68e998c9b4ddb328e27ae4756a432a828025db99598bfe03acfc50a616b97649"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Private/WxWorldModule.cpp": {
+      "sha256": "bfb1a4ab886320655c53292cd3afd469ec6863fcba9d4ccebea5cf27f1d87654"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/Device/WxDevice.h": {
+      "sha256": "fb66bcb6d6dae5760111605dafd8aab272df754f4cddd87d8c2dd9ffa9d11111"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/Device/WxDeviceComponentName.h": {
+      "sha256": "d5c098016a64e162d99a7879bc344e2e152953a316b293ca4e7b3de477f61882"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/Device/WxDeviceExecutionPolicy.h": {
+      "sha256": "f15ef339488f186f87f3cbfabe6671ab31551227758f952d2bbcc4d18b483a01"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/Device/WxDeviceStateTreeComponent.h": {
+      "sha256": "c9a798c5b4b093a4a9492549ea0e22fc936c876004f87d7db8e815bf01dbc577"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxInteractionScannerComponent.h": {
+      "sha256": "2091eb752ffe5578c7e0332a05129392ce8c65301ffe70698493d0bbc190c5be"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxStateTreeTask_EnableInteraction.h": {
+      "sha256": "8c208c8e68575635b18630ab8ad41fe781d5dd0a8df7dc99cd6ac7acaebed697"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxStateTreeTask_WaitForInteraction.h": {
+      "sha256": "5b568d439dcd9ee22ccdbec96579de3fffea4d843e2a560dba831690b4f3e91b"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawner.h": {
+      "sha256": "1c1fbfa74eb85b2c1b20df3d1f6abc8dac71bccd721db1194010234501cd3afd"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxStateTreeTask_TriggerSpawners.h": {
+      "sha256": "64fb03be277e0a9a8795f93334016bf8cf665eb358c15b6669cebb8327ced43d"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxStateTreeTask_WaitSpawnersKilled.h": {
+      "sha256": "1316a23e65ef3fcdca043805820426039ac353f964a7c4109fbf90bf59e07d28"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_ApplyGameplayEffectToInteractor.h": {
+      "sha256": "32a41a58f5d3453d8a01943a945831893b530cc93540b6251a022144fb9ee622"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_ComponentMove.h": {
+      "sha256": "28226251a56add22e11b28f3a25330f82ec570f1c4354b72a8040061570483e1"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_EnablePlayerInput.h": {
+      "sha256": "54366afcf4815e4622ad0082f2e8777d75d6daf4de91d2f7bcd1f9beca70607d"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_PlayAnimation.h": {
+      "sha256": "30b03db71fe70a99185304ba68427641fef9ef98858668c29441442dfa639276"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_PlayInteractorMontage.h": {
+      "sha256": "43b2f743a5d52613775de9e6e8d2248adaa0732a3d9239de2a4639f206ae488d"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_PlayLevelSequence.h": {
+      "sha256": "07ee17e10302a4da901dbdbc78a6bcf7bb4cd660a077c6ada13ec719fcad1a13"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_PlaySound.h": {
+      "sha256": "f0b6858d9d978bd5f0124374af0571b2f21ce068800d80b899565560bef52727"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_RecordCheckpoint.h": {
+      "sha256": "fd33f1ba3dced3a254f40bbfdea0612b659173e9ce7f102884b7c320a0a64908"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_RespawnSpawners.h": {
+      "sha256": "85447b80514e0fb4c7c71b126a17e4cb68c3447e1813570dd2b2b046b59d7aad"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_SendEvent.h": {
+      "sha256": "8222e9bebd49247178f6357f59f67e6e7b061bf8ddfdf479cb02fef405e4bc9c"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_SpawnNiagara.h": {
+      "sha256": "067d876ab4f02ba3244f4250fc466681d55023e60eb4acff7068a3c422d9ae11"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_SplineMove.h": {
+      "sha256": "7ff5d18aa970a49b7d5a1c13130628147aefd49d5104af9173ee86076d2a27ac"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeWaitRegistry.h": {
+      "sha256": "a126acecb578d242cde733a5d59dbf1cb473357bdc1fd0816a77c7ca6201423c"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/System/WxCheckpointSubsystem.h": {
+      "sha256": "b31803b1fe5ba668b8d64b53142c86251507bec3baddd9365631efe3a79b2661"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/System/WxSpawnerLibrary.h": {
+      "sha256": "459fcff25952c2cd3dab7f83124fe504533479eedbf69e72d449ecaabb5281bf"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/System/WxWorldDeveloperSettings.h": {
+      "sha256": "386651ecafd92b4aae9f77880d793e829c941d0d89264351b7291fe418c92f77"
+    },
+    "Plugins/WxWorld/Source/WxWorld/Public/WxWorldModule.h": {
+      "sha256": "7dedcb5178d38a5a659671700b107222f6f9ee4169127fc107e4bec8aa1d9ff8"
+    },
+    "Plugins/WxWorld/Source/WxWorld/WxWorld.Build.cs": {
+      "sha256": "d5f800e8bd2b5f5b29ad80ef065c15af32a6d48eb24efdad2e6ad0b1732bdcfe"
+    },
+    "Plugins/WxWorld/WxWorld.uplugin": {
+      "sha256": "42afc4a712bfa1aab594c3044c302d4f45961d5e03bb43ce09d237f09b35aea4"
+    },
+    "Source/WxEditor/WxStateTreeComponentNameCustomization.h": {
+      "sha256": "063fc79672be6cf36ef4f1e99f7c970e146d80f7eb6177c4b4643a702ab2457e"
+    },
+    "Docs/CombatDesign/그로기_시스템.md": {
+      "sha256": "8d84e67b0cfd15473d4029589c9c10762b0cfb1305ed65ecb19bbefd8c88518b"
+    },
+    "Docs/CombatDesign/그로기_피니시_시스템_기획서.md": {
+      "sha256": "7f0fcdd55e07e7ec41bc391f4ac818e396b171d98838464fafae2e97c6e44ec3"
+    },
+    "Docs/Meeting/2026-09-19 회의자료.md": {
+      "sha256": "5caa534e9fb9ca8fe82731fc93733b0ef4d0682f7a4228d279c25a0ba3e2b83c"
+    },
+    "Docs/SystemDesign/Core_Combat_System.md": {
+      "sha256": "b83eee16c6d0686181d1b07b97fc8d5270dccf18f788cac445a3ec07ccf62afe"
+    },
+    "AGENTS.md": {
+      "sha256": "f95925b7c8e6dfa9796a0cee6fa8a7c6f050b403b849099933de2a959318b24e"
+    },
+    ".agents/reports/LLM_Wiki_Feasibility.md": {
+      "sha256": "abf6674dd50eae91d3669a7b085a9a6f64e75652b404a578659e7041bab29355"
+    },
+    ".agents/reports/module_review_WxCombat.md": {
+      "sha256": "69d4a0f5ea0bdde4fe96f33a4ee1c6206887a0f617556402b358316a4f34e592"
+    }
+  },
+  "pages": {
+    "modules/WxAI.md": {
+      "status": "needs-review",
+      "scope": "기존 README 이관; 전체 코드 재검증 및 에셋 내부 미검증",
+      "baseline_commit": "2872e9a",
+      "legacy_readme": "Plugins/WxAI/README.md",
+      "watch_roots": [
+        "Plugins/WxAI",
+        "Plugins/WxCore/Source",
+        "Config",
+        "Wx.uproject"
+      ],
+      "sources": [
+        "Config/DefaultEditor.ini",
+        "Config/DefaultEditorPerProjectUserSettings.ini",
+        "Config/DefaultEngine.ini",
+        "Config/DefaultGame.ini",
+        "Config/DefaultInput.ini",
+        "Plugins/WxAI/Source/WxAI/Private/Tests/WxMirrorMovementAbilityTeleportTest.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/Tests/WxPatrolPathSpawnTest.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxAIBehaviorComponent.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxAIModule.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxAnimNotify_ReportNoise.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxBlackboardKeys.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxBTComposite_RandomChoice.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_AttributeRatio.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_BeyondLeash.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_MasterAbility.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_ObserveAbility.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxBTDecorator_RandomWeight.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxBTService_LockOn.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxBTService_MirrorMovement.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxBTService_ObserveMasterAbility.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxBTService_UpdateTargetActor.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxBTService_UpdateTargetDistance.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxBTTask_ActivateAbility.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxBTTask_FollowMasterAbility.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxBTTask_MirrorAbility.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxBTTask_Patrol.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxBTTask_ReturnHome.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxBTTask_Wander.cpp",
+        "Plugins/WxAI/Source/WxAI/Private/WxPatrolComponent.cpp",
+        "Plugins/WxAI/Source/WxAI/Public/WxAIBehaviorComponent.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxAIModule.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxAnimNotify_ReportNoise.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxBTComposite_RandomChoice.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_AttributeRatio.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_BeyondLeash.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_MasterAbility.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_ObserveAbility.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxBTDecorator_RandomWeight.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxBTService_LockOn.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxBTService_MirrorMovement.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxBTService_ObserveMasterAbility.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxBTService_UpdateTargetActor.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxBTService_UpdateTargetDistance.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxBTTask_ActivateAbility.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxBTTask_FollowMasterAbility.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxBTTask_MirrorAbility.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxBTTask_Patrol.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxBTTask_ReturnHome.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxBTTask_Wander.h",
+        "Plugins/WxAI/Source/WxAI/Public/WxPatrolComponent.h",
+        "Plugins/WxAI/Source/WxAI/WxAI.Build.cs",
+        "Plugins/WxAI/WxAI.uplugin",
+        "Plugins/WxCore/Source/WxCore/Private/WxCoreModule.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxInteractable.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxLocatorUtils.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxSpawnable.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxUIData.cpp",
+        "Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxCoreModule.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxInteractable.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxLocatorUtils.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxUIData.h",
+        "Plugins/WxCore/Source/WxCore/WxCore.Build.cs",
+        "Source/WxGame/Controller/WxAIController.cpp",
+        "Wx.uproject"
+      ]
+    },
+    "modules/WxCombat.md": {
+      "status": "needs-review",
+      "scope": "기존 README 이관; 전체 코드 재검증 및 에셋 내부 미검증",
+      "baseline_commit": "2872e9a",
+      "legacy_readme": "Plugins/WxCombat/README.md",
+      "watch_roots": [
+        "Plugins/WxCombat",
+        "Plugins/WxCore/Source",
+        "Config",
+        "Wx.uproject"
+      ],
+      "sources": [
+        "Config/DefaultEditor.ini",
+        "Config/DefaultEditorPerProjectUserSettings.ini",
+        "Config/DefaultEngine.ini",
+        "Config/DefaultGame.ini",
+        "Config/DefaultInput.ini",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Attack.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Death.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Dodge.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Finisher.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Groggy.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Guard.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_GuardReact.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_HitReact.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_LockOn.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Passive.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Pattern.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_PlayMontageOnce.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Skill.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Sprint.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Ultimate.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbilityBase.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Attribute/WxCombatAttributeSet.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Cue/WxCueNotify_AttackTelegraph.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Cue/WxCueNotify_DamageFloater.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Cue/WxCueNotify_Exceed.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Cue/WxCueNotify_GhostTrail.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Cue/WxCueNotify_Hit.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Cue/WxCueNotify_PerfectGuard.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_AddAttribute.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Cooldown.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Cost.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Damage.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_DrainGP.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_DrainSP.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Exceed.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Exhaust.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_FullHP.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_GuardReduction.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_HealPercent.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Hit.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_HitStop.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_IgnoreAbilityTags.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_IgnoreAggro.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_IgnoreCooldowns.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_IgnoreCosts.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_InfiniteMP.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Invincible.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_MoveSpeedScale.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_NoCooldown.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_PerfectGuard.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_RegenSP.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_ResetGP.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_SuperArmor.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffectComponent_DamageResponse.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffectComponent_Hit.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffectComponent_Table.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/TargetData/WxAbilityTargetData_Direction.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_LockOnCamera.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_RotateToTarget.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_SlowTime.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_WaitMoving.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySet.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemComponent.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemGlobals.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxHitStopComponent.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxInputBufferComponent.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotify_AreaDamage.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotify_DespawnMinion.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotify_FinisherDamage.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotify_SendGameplayEvent.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotify_SpawnMinion.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotify_SpawnProjectile.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotify_StartRecovery.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_CameraMove.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_ComboWindow.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_Rush.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_SlowTime.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_SnapToTarget.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_WeaponAttack.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Cutscene/WxSkillCutsceneComponent.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Damage/WxDamageTableRow.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Damage/WxHitEffectContext.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Finisher/WxFinisherDamageComponent.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Minion/WxMinionComponent.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Minion/WxMinionSubsystem.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/System/WxCombatDeveloperSettings.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxLockOnComponent.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxLockOnPointComponent.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxRootMotionModifier_Rush.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxRootMotionModifier_SnapToTarget.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxTargetingFilterTask_GameplayTag.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxTargetingFilterTask_LineTrace.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxTargetingFilterTask_LockOnTarget.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxTargetingFilterTask_ScreenBounds.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxTargetingFilterTask_Team.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxTargetingPreview.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxTargetingSorterTask_InputDirection.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxProjectileBase.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxProjectileSubsystem.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxWeaponBase.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/WxCombatModule.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Attack.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Death.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Dodge.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Finisher.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Groggy.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Guard.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_GuardReact.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_HitReact.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_LockOn.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Passive.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Pattern.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_PlayMontageOnce.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Skill.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Sprint.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_Ultimate.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityTableRow.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeInitTableRow.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Cue/WxCueNotify_AttackTelegraph.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Cue/WxCueNotify_DamageFloater.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Cue/WxCueNotify_Exceed.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Cue/WxCueNotify_GhostTrail.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Cue/WxCueNotify_Hit.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Cue/WxCueNotify_PerfectGuard.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_AddAttribute.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_Cooldown.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_Cost.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_Damage.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_DrainGP.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_DrainSP.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_Exceed.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_Exhaust.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_FullHP.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_GuardReduction.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_HealPercent.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_Hit.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_HitStop.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_IgnoreAbilityTags.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_IgnoreAggro.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_IgnoreCooldowns.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_IgnoreCosts.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_InfiniteMP.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_Invincible.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_MoveSpeedScale.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_NoCooldown.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_PerfectGuard.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_RegenSP.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_ResetGP.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_SuperArmor.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffectComponent_DamageResponse.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffectComponent_Hit.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffectComponent_Table.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffectTableRow.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/TargetData/WxAbilityTargetData_Direction.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Task/WxAbilityTask_LockOnCamera.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Task/WxAbilityTask_RotateToTarget.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Task/WxAbilityTask_SlowTime.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Task/WxAbilityTask_WaitMoving.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySet.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySystemComponent.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxAbilitySystemGlobals.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxHitStopComponent.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/WxInputBufferComponent.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotify_AreaDamage.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotify_DespawnMinion.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotify_FinisherDamage.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotify_SendGameplayEvent.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotify_SpawnMinion.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotify_SpawnProjectile.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotify_StartRecovery.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotifyState_CameraMove.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotifyState_ComboWindow.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotifyState_Rush.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotifyState_SlowTime.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotifyState_SnapToTarget.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/AnimNotify/WxAnimNotifyState_WeaponAttack.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Cutscene/WxSkillCutsceneComponent.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Damage/WxDamageTableRow.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Damage/WxHitEffectContext.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Finisher/WxFinisherDamageComponent.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Minion/WxMinionComponent.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Minion/WxMinionSubsystem.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/System/WxCombatDeveloperSettings.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxLockOnComponent.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxLockOnPointComponent.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxRootMotionModifier_Rush.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxRootMotionModifier_SnapToTarget.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxTargetingFilterTask_GameplayTag.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxTargetingFilterTask_LineTrace.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxTargetingFilterTask_LockOnTarget.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxTargetingFilterTask_ScreenBounds.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxTargetingFilterTask_Team.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxTargetingPreview.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Targeting/WxTargetingSorterTask_InputDirection.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Weapon/WxProjectileBase.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Weapon/WxProjectileSubsystem.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/Weapon/WxWeaponBase.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/WxCombatLibrary.h",
+        "Plugins/WxCombat/Source/WxCombat/Public/WxCombatModule.h",
+        "Plugins/WxCombat/Source/WxCombat/WxCombat.Build.cs",
+        "Plugins/WxCombat/WxCombat.uplugin",
+        "Plugins/WxCore/Source/WxCore/Private/WxCoreModule.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxInteractable.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxLocatorUtils.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxSpawnable.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxUIData.cpp",
+        "Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxCoreModule.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxInteractable.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxLocatorUtils.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxUIData.h",
+        "Plugins/WxCore/Source/WxCore/WxCore.Build.cs",
+        "Wx.uproject"
+      ]
+    },
+    "modules/WxCore.md": {
+      "status": "needs-review",
+      "scope": "기존 README 이관; 전체 코드 재검증 및 에셋 내부 미검증",
+      "baseline_commit": "047197a",
+      "legacy_readme": "Plugins/WxCore/README.md",
+      "watch_roots": [
+        "Plugins/WxCore",
+        "Plugins/WxCore/Source",
+        "Config",
+        "Wx.uproject"
+      ],
+      "sources": [
+        "Config/DefaultEditor.ini",
+        "Config/DefaultEditorPerProjectUserSettings.ini",
+        "Config/DefaultEngine.ini",
+        "Config/DefaultGame.ini",
+        "Config/DefaultInput.ini",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_IgnoreAbilityTags.h",
+        "Plugins/WxCore/Source/WxCore/Private/WxCoreModule.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxInteractable.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxLocatorUtils.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxSpawnable.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxUIData.cpp",
+        "Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxCoreModule.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxInteractable.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxLocatorUtils.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxUIData.h",
+        "Plugins/WxCore/Source/WxCore/WxCore.Build.cs",
+        "Plugins/WxCore/WxCore.uplugin",
+        "Wx.uproject"
+      ]
+    },
+    "modules/WxDialogue.md": {
+      "status": "needs-review",
+      "scope": "기존 README 이관; 전체 코드 재검증 및 에셋 내부 미검증",
+      "baseline_commit": "047197a",
+      "legacy_readme": "Plugins/WxDialogue/README.md",
+      "watch_roots": [
+        "Plugins/WxDialogue",
+        "Plugins/WxCore/Source",
+        "Config",
+        "Wx.uproject"
+      ],
+      "sources": [
+        "Config/DefaultEditor.ini",
+        "Config/DefaultEditorPerProjectUserSettings.ini",
+        "Config/DefaultEngine.ini",
+        "Config/DefaultGame.ini",
+        "Config/DefaultInput.ini",
+        "Plugins/WxCore/Source/WxCore/Private/WxCoreModule.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxInteractable.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxLocatorUtils.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxSpawnable.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxUIData.cpp",
+        "Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxCoreModule.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxInteractable.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxLocatorUtils.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxUIData.h",
+        "Plugins/WxCore/Source/WxCore/WxCore.Build.cs",
+        "Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueActor.cpp",
+        "Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueComponent.cpp",
+        "Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueModule.cpp",
+        "Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueSessionComponent.cpp",
+        "Plugins/WxDialogue/Source/WxDialogue/Private/WxStateTreeTask_PlayDialogue.cpp",
+        "Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueActor.h",
+        "Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueComponent.h",
+        "Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueModule.h",
+        "Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueSessionComponent.h",
+        "Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueTableRow.h",
+        "Plugins/WxDialogue/Source/WxDialogue/Public/WxStateTreeTask_PlayDialogue.h",
+        "Plugins/WxDialogue/Source/WxDialogue/WxDialogue.Build.cs",
+        "Plugins/WxDialogue/WxDialogue.uplugin",
+        "Wx.uproject"
+      ]
+    },
+    "modules/WxGame.md": {
+      "status": "needs-review",
+      "scope": "기존 README 이관; 전체 코드 재검증 및 에셋 내부 미검증",
+      "baseline_commit": "2872e9a",
+      "legacy_readme": "Source/WxGame/README.md",
+      "watch_roots": [
+        "Source/WxGame",
+        "Plugins/WxCore/Source",
+        "Config",
+        "Wx.uproject"
+      ],
+      "sources": [
+        "Config/DefaultEditor.ini",
+        "Config/DefaultEditorPerProjectUserSettings.ini",
+        "Config/DefaultEngine.ini",
+        "Config/DefaultGame.ini",
+        "Config/DefaultInput.ini",
+        "Plugins/WxCore/Source/WxCore/Private/WxCoreModule.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxInteractable.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxLocatorUtils.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxSpawnable.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxUIData.cpp",
+        "Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxCoreModule.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxInteractable.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxLocatorUtils.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxUIData.h",
+        "Plugins/WxCore/Source/WxCore/WxCore.Build.cs",
+        "Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp",
+        "Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.h",
+        "Source/WxGame/AbilitySystem/Ability/WxAbility_UseItem.cpp",
+        "Source/WxGame/AbilitySystem/Ability/WxAbility_UseItem.h",
+        "Source/WxGame/Character/Component/WxCharacterMovementComponent.cpp",
+        "Source/WxGame/Character/Component/WxCharacterMovementComponent.h",
+        "Source/WxGame/Character/Component/WxMetaHumanComponent.cpp",
+        "Source/WxGame/Character/Component/WxMetaHumanComponent.h",
+        "Source/WxGame/Character/WxCharacterBase.cpp",
+        "Source/WxGame/Character/WxCharacterBase.h",
+        "Source/WxGame/Character/WxEnemyCharacter.cpp",
+        "Source/WxGame/Character/WxEnemyCharacter.h",
+        "Source/WxGame/Character/WxNpc.cpp",
+        "Source/WxGame/Character/WxNpc.h",
+        "Source/WxGame/Character/WxPlayerCharacter.cpp",
+        "Source/WxGame/Character/WxPlayerCharacter.h",
+        "Source/WxGame/Character/WxTeamTypes.h",
+        "Source/WxGame/Cheat/WxCheatManager.cpp",
+        "Source/WxGame/Cheat/WxCheatManager.h",
+        "Source/WxGame/Controller/WxAIController.cpp",
+        "Source/WxGame/Controller/WxAIController.h",
+        "Source/WxGame/Controller/WxPlayerController.cpp",
+        "Source/WxGame/Controller/WxPlayerController.h",
+        "Source/WxGame/Framework/WxGameMode.cpp",
+        "Source/WxGame/Framework/WxGameMode.h",
+        "Source/WxGame/Framework/WxGameState.cpp",
+        "Source/WxGame/Framework/WxGameState.h",
+        "Source/WxGame/Framework/WxRespawnLibrary.cpp",
+        "Source/WxGame/Framework/WxRespawnLibrary.h",
+        "Source/WxGame/FrontEnd/WxFrontEndLibrary.cpp",
+        "Source/WxGame/FrontEnd/WxFrontEndLibrary.h",
+        "Source/WxGame/FrontEnd/WxGameFlowSubsystem.cpp",
+        "Source/WxGame/FrontEnd/WxGameFlowSubsystem.h",
+        "Source/WxGame/Input/WxInputConfig.cpp",
+        "Source/WxGame/Input/WxInputConfig.h",
+        "Source/WxGame/MVVM/WxViewModel_BossDisplay.cpp",
+        "Source/WxGame/MVVM/WxViewModel_BossDisplay.h",
+        "Source/WxGame/MVVM/WxViewModel_Dialogue.cpp",
+        "Source/WxGame/MVVM/WxViewModel_Dialogue.h",
+        "Source/WxGame/MVVM/WxViewModel_InteractionList.cpp",
+        "Source/WxGame/MVVM/WxViewModel_InteractionList.h",
+        "Source/WxGame/MVVM/WxViewModel_Inventory.cpp",
+        "Source/WxGame/MVVM/WxViewModel_Inventory.h",
+        "Source/WxGame/MVVM/WxViewModel_InventoryItem.cpp",
+        "Source/WxGame/MVVM/WxViewModel_InventoryItem.h",
+        "Source/WxGame/MVVM/WxViewModel_Quest.cpp",
+        "Source/WxGame/MVVM/WxViewModel_Quest.h",
+        "Source/WxGame/MVVM/WxViewModel_QuestObjective.cpp",
+        "Source/WxGame/MVVM/WxViewModel_QuestObjective.h",
+        "Source/WxGame/MVVM/WxViewModelResolver_Ability.cpp",
+        "Source/WxGame/MVVM/WxViewModelResolver_Ability.h",
+        "Source/WxGame/MVVM/WxViewModelResolver_BossCharacter.cpp",
+        "Source/WxGame/MVVM/WxViewModelResolver_BossCharacter.h",
+        "Source/WxGame/Player/WxPlayerState.cpp",
+        "Source/WxGame/Player/WxPlayerState.h",
+        "Source/WxGame/WxGame.Build.cs",
+        "Source/WxGame/WxGame.cpp",
+        "Source/WxGame/WxGame.h",
+        "Wx.uproject"
+      ]
+    },
+    "modules/WxInventory.md": {
+      "status": "needs-review",
+      "scope": "기존 README 이관; 전체 코드 재검증 및 에셋 내부 미검증",
+      "baseline_commit": "047197a",
+      "legacy_readme": "Plugins/WxInventory/README.md",
+      "watch_roots": [
+        "Plugins/WxInventory",
+        "Plugins/WxCore/Source",
+        "Config",
+        "Wx.uproject"
+      ],
+      "sources": [
+        "Config/DefaultEditor.ini",
+        "Config/DefaultEditorPerProjectUserSettings.ini",
+        "Config/DefaultEngine.ini",
+        "Config/DefaultGame.ini",
+        "Config/DefaultInput.ini",
+        "Plugins/WxCore/Source/WxCore/Private/WxCoreModule.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxInteractable.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxLocatorUtils.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxSpawnable.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxUIData.cpp",
+        "Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxCoreModule.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxInteractable.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxLocatorUtils.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxUIData.h",
+        "Plugins/WxCore/Source/WxCore/WxCore.Build.cs",
+        "Plugins/WxInventory/Source/WxInventory/Private/AnimNotify/WxAnimNotify_UseItem.cpp",
+        "Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp",
+        "Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxItemUseComponent.cpp",
+        "Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxStateTreeTask_GiveRewards.cpp",
+        "Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxStateTreeTask_RefillItemCharges.cpp",
+        "Plugins/WxInventory/Source/WxInventory/Private/Items/WxItemDefinition.cpp",
+        "Plugins/WxInventory/Source/WxInventory/Private/Items/WxItemFragment.cpp",
+        "Plugins/WxInventory/Source/WxInventory/Private/Items/WxItemInstance.cpp",
+        "Plugins/WxInventory/Source/WxInventory/Private/Items/WxItemPickup.cpp",
+        "Plugins/WxInventory/Source/WxInventory/Private/Items/WxRewardTableRow.cpp",
+        "Plugins/WxInventory/Source/WxInventory/Private/WxInventoryModule.cpp",
+        "Plugins/WxInventory/Source/WxInventory/Private/WxRewardLibrary.cpp",
+        "Plugins/WxInventory/Source/WxInventory/Public/AnimNotify/WxAnimNotify_UseItem.h",
+        "Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxInventoryComponent.h",
+        "Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxItemUseComponent.h",
+        "Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxStateTreeTask_GiveRewards.h",
+        "Plugins/WxInventory/Source/WxInventory/Public/Inventory/WxStateTreeTask_RefillItemCharges.h",
+        "Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemDefinition.h",
+        "Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemFragment.h",
+        "Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemInstance.h",
+        "Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemPickup.h",
+        "Plugins/WxInventory/Source/WxInventory/Public/Items/WxRewardTableRow.h",
+        "Plugins/WxInventory/Source/WxInventory/Public/WxInventoryModule.h",
+        "Plugins/WxInventory/Source/WxInventory/Public/WxRewardLibrary.h",
+        "Plugins/WxInventory/Source/WxInventory/WxInventory.Build.cs",
+        "Plugins/WxInventory/WxInventory.uplugin",
+        "Wx.uproject"
+      ]
+    },
+    "modules/WxQuest.md": {
+      "status": "needs-review",
+      "scope": "기존 README 이관; 전체 코드 재검증 및 에셋 내부 미검증",
+      "baseline_commit": "047197a",
+      "legacy_readme": "Plugins/WxQuest/README.md",
+      "watch_roots": [
+        "Plugins/WxQuest",
+        "Plugins/WxCore/Source",
+        "Config",
+        "Wx.uproject"
+      ],
+      "sources": [
+        "Config/DefaultEditor.ini",
+        "Config/DefaultEditorPerProjectUserSettings.ini",
+        "Config/DefaultEngine.ini",
+        "Config/DefaultGame.ini",
+        "Config/DefaultInput.ini",
+        "Plugins/WxCore/Source/WxCore/Private/WxCoreModule.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxInteractable.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxLocatorUtils.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxSpawnable.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxUIData.cpp",
+        "Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxCoreModule.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxInteractable.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxLocatorUtils.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxUIData.h",
+        "Plugins/WxCore/Source/WxCore/WxCore.Build.cs",
+        "Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp",
+        "Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestLibrary.cpp",
+        "Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_SetQuestObjective.cpp",
+        "Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_SetQuestTitle.cpp",
+        "Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_StartNextQuest.cpp",
+        "Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_WaitMoveToTarget.cpp",
+        "Plugins/WxQuest/Source/WxQuest/Private/WxQuestModule.cpp",
+        "Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestComponent.h",
+        "Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestLibrary.h",
+        "Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestObjective.h",
+        "Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestTitle.h",
+        "Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_StartNextQuest.h",
+        "Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_WaitMoveToTarget.h",
+        "Plugins/WxQuest/Source/WxQuest/Public/WxQuestModule.h",
+        "Plugins/WxQuest/Source/WxQuest/WxQuest.Build.cs",
+        "Plugins/WxQuest/WxQuest.uplugin",
+        "Wx.uproject"
+      ]
+    },
+    "modules/WxUI.md": {
+      "status": "needs-review",
+      "scope": "기존 README 이관; 전체 코드 재검증 및 에셋 내부 미검증",
+      "baseline_commit": "047197a",
+      "legacy_readme": "Plugins/WxUI/README.md",
+      "watch_roots": [
+        "Plugins/WxUI",
+        "Plugins/WxCore/Source",
+        "Config",
+        "Wx.uproject"
+      ],
+      "sources": [
+        "Config/DefaultEditor.ini",
+        "Config/DefaultEditorPerProjectUserSettings.ini",
+        "Config/DefaultEngine.ini",
+        "Config/DefaultGame.ini",
+        "Config/DefaultInput.ini",
+        "Plugins/WxCore/Source/WxCore/Private/WxCoreModule.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxInteractable.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxLocatorUtils.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxSpawnable.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxUIData.cpp",
+        "Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxCoreModule.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxInteractable.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxLocatorUtils.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxUIData.h",
+        "Plugins/WxCore/Source/WxCore/WxCore.Build.cs",
+        "Plugins/WxUI/Source/WxUI/Private/Component/WxNameplateComponent.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/Component/WxPlayerLayoutComponent.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/Indicator/WxIndicator.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/Indicator/WxStateTreeTask_MarkIndicator.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/MVVM/WxMVVMConversionLibrary.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Ability.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_AbilitySystem.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Attribute.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Character.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Effect.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Indicator.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Interaction.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Item.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Subtitle.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModelResolver_PlayerCharacter.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/Subtitle/WxStateTreeTask_PrintSubtitle.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/System/WxPrimaryGameLayout.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/System/WxUIDeveloperSettings.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/Widget/WxActivatableWidget.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/Widget/WxAsyncAction_PushWidgetToLayer.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/Widget/WxButtonBase.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/Widget/WxConfirmationPopup.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/Widget/WxGamePopup.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/Widget/WxHUDLayout.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/WxUILibrary.cpp",
+        "Plugins/WxUI/Source/WxUI/Private/WxUIModule.cpp",
+        "Plugins/WxUI/Source/WxUI/Public/Component/WxNameplateComponent.h",
+        "Plugins/WxUI/Source/WxUI/Public/Component/WxPlayerLayoutComponent.h",
+        "Plugins/WxUI/Source/WxUI/Public/Indicator/WxIndicator.h",
+        "Plugins/WxUI/Source/WxUI/Public/Indicator/WxIndicatorWidget.h",
+        "Plugins/WxUI/Source/WxUI/Public/Indicator/WxStateTreeTask_MarkIndicator.h",
+        "Plugins/WxUI/Source/WxUI/Public/MVVM/WxMVVMConversionLibrary.h",
+        "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Ability.h",
+        "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h",
+        "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Attribute.h",
+        "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Character.h",
+        "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Effect.h",
+        "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Indicator.h",
+        "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Interaction.h",
+        "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Item.h",
+        "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Subtitle.h",
+        "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h",
+        "Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModelResolver_PlayerCharacter.h",
+        "Plugins/WxUI/Source/WxUI/Public/Subtitle/WxStateTreeTask_PrintSubtitle.h",
+        "Plugins/WxUI/Source/WxUI/Public/Subtitle/WxSubtitleTableRow.h",
+        "Plugins/WxUI/Source/WxUI/Public/System/WxPrimaryGameLayout.h",
+        "Plugins/WxUI/Source/WxUI/Public/System/WxUIDeveloperSettings.h",
+        "Plugins/WxUI/Source/WxUI/Public/System/WxUIManagerSubsystem.h",
+        "Plugins/WxUI/Source/WxUI/Public/Widget/WxActivatableWidget.h",
+        "Plugins/WxUI/Source/WxUI/Public/Widget/WxAsyncAction_PushWidgetToLayer.h",
+        "Plugins/WxUI/Source/WxUI/Public/Widget/WxButtonBase.h",
+        "Plugins/WxUI/Source/WxUI/Public/Widget/WxConfirmationPopup.h",
+        "Plugins/WxUI/Source/WxUI/Public/Widget/WxGamePopup.h",
+        "Plugins/WxUI/Source/WxUI/Public/Widget/WxHUDLayout.h",
+        "Plugins/WxUI/Source/WxUI/Public/WxUILibrary.h",
+        "Plugins/WxUI/Source/WxUI/Public/WxUIModule.h",
+        "Plugins/WxUI/Source/WxUI/WxUI.Build.cs",
+        "Plugins/WxUI/WxUI.uplugin",
+        "Wx.uproject"
+      ]
+    },
+    "modules/WxWorld.md": {
+      "status": "needs-review",
+      "scope": "기존 README 이관; 전체 코드 재검증 및 에셋 내부 미검증",
+      "baseline_commit": "2872e9a",
+      "legacy_readme": "Plugins/WxWorld/README.md",
+      "watch_roots": [
+        "Plugins/WxWorld",
+        "Plugins/WxCore/Source",
+        "Config",
+        "Wx.uproject"
+      ],
+      "sources": [
+        "Config/DefaultEditor.ini",
+        "Config/DefaultEditorPerProjectUserSettings.ini",
+        "Config/DefaultEngine.ini",
+        "Config/DefaultGame.ini",
+        "Config/DefaultInput.ini",
+        "Plugins/WxCore/Source/WxCore/Private/WxCoreModule.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxInteractable.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxLocatorUtils.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxSpawnable.cpp",
+        "Plugins/WxCore/Source/WxCore/Private/WxUIData.cpp",
+        "Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxCoreModule.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxInteractable.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxLocatorUtils.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h",
+        "Plugins/WxCore/Source/WxCore/Public/WxUIData.h",
+        "Plugins/WxCore/Source/WxCore/WxCore.Build.cs",
+        "Plugins/WxWorld/Source/WxWorld/Private/Device/WxDevice.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceComponentName.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceExecutionPolicy.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceStateTreeComponent.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxInteractionScannerComponent.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxStateTreeTask_EnableInteraction.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxStateTreeTask_WaitForInteraction.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawner.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawnerLocatorUtils.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawnerLocatorUtils.h",
+        "Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxStateTreeTask_TriggerSpawners.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxStateTreeTask_WaitSpawnersKilled.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_ApplyGameplayEffectToInteractor.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_ComponentMove.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_EnablePlayerInput.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_PlayAnimation.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_PlayInteractorMontage.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_PlayLevelSequence.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_PlaySound.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_RecordCheckpoint.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_RespawnSpawners.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_SendEvent.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_SpawnNiagara.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_SplineMove.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/System/WxCheckpointSubsystem.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/System/WxSpawnerLibrary.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/System/WxWorldDeveloperSettings.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Private/WxWorldModule.cpp",
+        "Plugins/WxWorld/Source/WxWorld/Public/Device/WxDevice.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/Device/WxDeviceComponentName.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/Device/WxDeviceExecutionPolicy.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/Device/WxDeviceStateTreeComponent.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxInteractionScannerComponent.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxStateTreeTask_EnableInteraction.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxStateTreeTask_WaitForInteraction.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawner.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxStateTreeTask_TriggerSpawners.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxStateTreeTask_WaitSpawnersKilled.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_ApplyGameplayEffectToInteractor.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_ComponentMove.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_EnablePlayerInput.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_PlayAnimation.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_PlayInteractorMontage.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_PlayLevelSequence.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_PlaySound.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_RecordCheckpoint.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_RespawnSpawners.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_SendEvent.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_SpawnNiagara.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeTask_SplineMove.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeWaitRegistry.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/System/WxCheckpointSubsystem.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/System/WxSpawnerLibrary.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/System/WxWorldDeveloperSettings.h",
+        "Plugins/WxWorld/Source/WxWorld/Public/WxWorldModule.h",
+        "Plugins/WxWorld/Source/WxWorld/WxWorld.Build.cs",
+        "Plugins/WxWorld/WxWorld.uplugin",
+        "Source/WxEditor/WxStateTreeComponentNameCustomization.h",
+        "Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp",
+        "Source/WxGame/Framework/WxRespawnLibrary.cpp",
+        "Source/WxGame/MVVM/WxViewModel_InteractionList.h",
+        "Wx.uproject"
+      ]
+    },
+    "systems/groggy.md": {
+      "status": "current",
+      "scope": "페이지에 명시된 기획 비교 또는 정적 코드 확인; 에셋/실행 미검증",
+      "baseline_commit": "5836af84",
+      "sources": [
+        "Docs/CombatDesign/그로기_시스템.md",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Groggy.cpp",
+        "Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Attribute/WxCombatAttributeSet.cpp"
+      ]
+    },
+    "systems/finisher.md": {
+      "status": "blocked",
+      "scope": "페이지에 명시된 기획 비교 또는 정적 코드 확인; 에셋/실행 미검증",
+      "baseline_commit": "5836af84",
+      "sources": [
+        "Docs/CombatDesign/그로기_피니시_시스템_기획서.md"
+      ]
+    },
+    "systems/combat-resources.md": {
+      "status": "current",
+      "scope": "페이지에 명시된 기획 비교 또는 정적 코드 확인; 에셋/실행 미검증",
+      "baseline_commit": "5836af84",
+      "sources": [
+        "Docs/Meeting/2026-09-19 회의자료.md",
+        "Docs/SystemDesign/Core_Combat_System.md"
+      ]
+    },
+    "questions/open-questions.md": {
+      "status": "current",
+      "scope": "페이지에 명시된 기획 비교 또는 정적 코드 확인; 에셋/실행 미검증",
+      "baseline_commit": "5836af84",
+      "sources": [
+        "Docs/CombatDesign/그로기_피니시_시스템_기획서.md",
+        "Docs/Meeting/2026-09-19 회의자료.md",
+        ".agents/reports/module_review_WxCombat.md",
+        "Docs/SystemDesign/Core_Combat_System.md",
+        "Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Effect/WxEffect_IgnoreAbilityTags.h"
+      ]
+    },
+    "decisions/wiki-ownership.md": {
+      "status": "current",
+      "scope": "사용자 대화 승인 수기 기록; 연결된 문서는 운영 맥락이며 대화 원문이 아님",
+      "baseline_commit": "5836af84",
+      "sources": [
+        "AGENTS.md",
+        ".agents/reports/LLM_Wiki_Feasibility.md"
+      ]
+    }
+  }
+}
