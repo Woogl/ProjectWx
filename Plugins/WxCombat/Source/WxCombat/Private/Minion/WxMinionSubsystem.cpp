@@ -12,7 +12,6 @@
 
 APawn* UWxMinionSubsystem::FindActiveMinion(const APawn& Master) const
 {
-	// CollectMinions 가 폰이 유효한 후보만 소환 순서대로 담으므로 첫 항목이 곧 가장 오래된 소환물이다.
 	const TArray<TWeakObjectPtr<UWxMinionComponent>> MasterMinions = CollectMinions(Master);
 	const UWxMinionComponent* FirstMinion = MasterMinions.IsEmpty() ? nullptr : MasterMinions[0].Get();
 	return FirstMinion ? FirstMinion->GetMinionPawn() : nullptr;
@@ -78,7 +77,7 @@ APawn* UWxMinionSubsystem::SpawnMinion(APawn& Master, TSubclassOf<APawn> MinionC
 		UE_LOG(LogWxCombat, Warning, TEXT("%s: 소환물 %s가 GenericTeamAgentInterface를 구현하지 않아 주인의 팀을 물려받지 못한다."), *Master.GetName(), *Minion->GetName());
 	}
 
-	// 로스터 등재는 소환물의 MinionComponent가 BeginPlay에서 한다. 이 호출이 그 BeginPlay를 낸다.
+	// 이 호출이 내는 BeginPlay에서 소환물의 MinionComponent가 로스터에 오른다.
 	Minion->FinishSpawning(SpawnTransform);
 
 	return Minion;
