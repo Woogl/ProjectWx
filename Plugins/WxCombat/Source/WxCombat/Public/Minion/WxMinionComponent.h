@@ -54,7 +54,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Minion")
 	int32 MaxCountPerMaster = 1;
 
-	/** 살아 있는 동안 주인 ASC 에 붙는 태그이자 상한을 다투는 단위다. 종류마다 다른 태그를 주면 소환·명령 스킬을 따로 게이팅할 수 있다. */
+	/** 살아 있는 동안 주인 ASC 에 붙는 태그이자 상한을 다투는 단위다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Minion")
 	FGameplayTag MasterStateTag;
 
