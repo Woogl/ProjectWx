@@ -1,118 +1,86 @@
 # WxUI — 코드 리뷰
 
-> 모듈은 건강하다. 레이어 push·정지 재평가·뷰모델 공유와 해제 규약이 일관되게 지켜지고, 심각하거나 개선이 필요한 결함은 찾지 못했으며 남은 발견은 모두 사소한 정리 항목이다. 커버리지: 소스 58파일을 모두 읽었다. 제어 흐름의 중심(서브시스템·push 액션·HUD·레이아웃 컴포넌트·팝업)과 뷰모델 수명 경로는 엔진·Lyra 원본과 대조해 정독했고, 지난 리뷰 이후 바뀐 `WxViewModel_Subtitle.cpp`·`WxIndicator.h`도 확인했다.
+> 전반적으로 건강한 모듈이다. 수명주기·재진입·파괴 중 브로드캐스트 같은 UI/MVVM의 전형적 함정이 대부분 의도적으로 방어돼 있고(`RF_BeginDestroyed` 가드, 스트리밍 취소, 맵 재해시 주의), 플러그인 경계·명명·인라인 금지 등 프로젝트 규칙 위반도 사실상 없다. 이번 리뷰는 `Plugins/WxUI` C++ 58파일 전부를 훑고 UIManager 서브시스템·비동기 푸시 액션·MVVM VM 트리·인디케이터 투영·StateTree 태스크는 cpp 본문까지 읽었으며, 의심 지점은 UE 5.8 엔진 원본(`UGameInstance::Shutdown`, `UObject::ConditionalBeginDestroy`, `UWorld::SpawnPlayActor`, `GetObjectsWithOuter`, `UWidgetComponent::TickComponent`)과 대조해 오탐을 걷어냈다.
 
 ## 요약
 | 심각도 | 개수 |
 | --- | --- |
 | 🔴 심각 | 0 |
-| 🟡 개선 | 0 |
+| 🟡 개선 | 4 |
 | 🟢 사소 | 4 |
 
 ## 결과
 
-### 1. 🟢 레이아웃 컴포넌트의 "같은 폰" 게이트에 도달하지 않는다
-- **위치**: `Plugins/WxUI/Source/WxUI/Private/Component/WxPlayerLayoutComponent.cpp:54-69`, `:44-48`
+### 1. 🟡 사망 화면만 푸시 추적·태그 해제 대응이 빠져 있다
+- **위치**: `Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp:287-298`
+- **범주**: 버그/정확성
+- **문제**: 같은 파일의 대화 창 경로(`:300-315`, `:317-333`, `:335-349`)는 ①진행 중 푸시를 `PendingDialogueScreenPush` 로 붙들어 취소하고 ②`NewCount <= 0` 에 창을 닫고 ③관찰을 놓는 `WatchPawnTags(:269-270)` 에서도 닫는다. 사망 경로는 이 셋이 전부 없고, 푸시 결과조차 보관하지 않는다. 회수는 전적으로 `Source/WxGame/Framework/WxRespawnLibrary.cpp:79` 이 위젯 자신을 인자로 받아 `DeactivateWidget()` 하는 데 의존한다 — 즉 **플레이어가 그 화면의 부활 버튼을 눌러야만 닫힌다**. 실패 시나리오 두 가지: (a) 부활 버튼이 아닌 경로로 `Ability.Death` 가 걷히면(리바이브 GE, 폰 교체, 치트) 화면이 Menu 레이어에 영구히 남고 관찰도 이미 끊겨 걷을 신호가 오지 않는다. (b) 비동기 클래스 스트리밍이 끝나기 전에 부활하면 부활 **후에** 사망 화면이 떠오르고, 취소할 핸들이 없어 그대로 남는다.
+- **제안**: 대화 창과 같은 모양으로 맞춘다 — `PendingDeathScreenPush`·`DeathScreen` 을 들고, `HandleDeathTagChanged` 의 `NewCount <= 0` 분기와 `WatchPawnTags` 에서 `CloseDeathScreen()` 을 부른다. 부활 라이브러리의 `DeactivateWidget()` 은 그대로 둬도 이중 호출이 무해하다.
+- **확신도**: 중간
+
+### 2. 🟡 슬롯 VM 마다 ASC 제네릭 태그 이벤트를 구독해, 태그 한 번 변화가 슬롯 수만큼의 전체 재평가를 부른다
+- **위치**: `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Ability.cpp:31`
+- **범주**: 성능/안전
+- **문제**: 어빌리티 슬롯 VM 은 하나하나가 `RegisterGenericGameplayTagEvent()` 에 붙는다(`:31`). 제네릭 이벤트는 부모 태그까지 통지하고 GE 하나가 태그를 여럿 부여하므로, 전투 중 한 프레임에 수십 회 발화한다. 각 발화는 `HandleTagChanged(:432)` → `ScheduleActivationRefresh(:446)` 로 슬롯별 다음-틱 타이머를 걸고, 다음 프레임의 `FlushActivationRefresh(:515)` 는 `RefreshBoundAbility(:173)`(ActivatableAbilities 전수 순회 + `DoesAbilitySatisfyTagRequirements`) 와 `RefreshActivationState(:536)`(다시 전수 순회 + `CanActivateAbility`, 내부에서 쿨다운 GE 조회·비용 판정까지) 를 돈다. 슬롯 N개면 프레임당 N회, 여기에 `WxViewModel_AbilitySystem.cpp:40` 의 제네릭 구독 1개가 더해진다. 프레임당 합계는 `N × 2 × 부여된 어빌리티 수` 순회이며, 코얼레싱은 슬롯 **내부**에서만 일어나고 슬롯 **간**에는 없다.
+- **제안**: 코얼레싱 지점을 허브로 올린다 — `UWxViewModel_AbilitySystem` 이 제네릭 태그 이벤트를 혼자 구독해 프레임당 한 번만 모은 뒤(`FlushAbilityRebind(:283-295)` 이 이미 그 모양이다) 자식 슬롯 VM 에 재평가를 밀어 주고, 슬롯 VM 의 개별 구독은 걷는다.
+- **확신도**: 중간
+
+### 3. 🟡 비동기 푸시 부기가 세 곳에 복제돼 있고, 네 번째 호출부가 그것을 빠뜨렸다
+- **위치**: `Plugins/WxUI/Source/WxUI/Private/Component/WxPlayerLayoutComponent.cpp:66-89`
 - **범주**: 중복/복잡도
-- **문제**:
-  - `:44-48`은 옛 폰과 새 폰이 다르면 먼저 `ClearLayout`을 부른다. `ClearLayout`은 `PendingLayoutPush`와 `LayoutWidget`을 비운다(`:85-89`, `:100`). 그래서 `:60-69`의 두 게이트는 두 폰이 같은 알림에서만 반환할 수 있다.
-  - 그런 알림은 오지 않는다.
-    - 엔진은 폰이 실제로 바뀔 때만 `OnPossessedPawnChanged`를 방송한다. `Possess`(엔진 `Controller.cpp:346-350`), `UnPossess`(`:400-404`), `OnRep_Pawn`(`:570-572`)이 모두 그렇다.
-    - `Possess`의 알림 강제 분기는 옛 폰을 nullptr로 보낸다(`:350`).
-    - BeginPlay 따라잡기(`WxPlayerLayoutComponent.cpp:27`)도 옛 폰을 nullptr로 넘긴다.
-  - 결국 두 게이트는 이미 비운 멤버만 검사한다(`Contains(nullptr)`, null `PendingLayoutPush`). `:60` 주석("같은 Pawn 알림은 기존 HUD를 유지한다")은 일어나지 않는 경우를 설명한다.
-  - 게이트는 폰을 갈아타도 HUD를 유지하던 설계(`86b134d6`, 08-28)에서 왔고, 폰 교체 때 HUD를 걷는 분기가 앞에 붙으면서(`9a03745d`, 09-06) 역할을 잃었다.
-- **제안**: `:60-69`를 걷는다. 그러면 `:54-58`의 레이아웃 조회도 게이트 말고는 쓰는 곳이 없어 함께 걷을 수 있다. 레이아웃이 없으면 푸시 액션이 실패 완료로 끝낸다(`WxAsyncAction_PushWidgetToLayer.cpp:30-37`).
+- **문제**: "보류 요청을 UPROPERTY 로 붙든다 → `SetCompletionCallback` → `Activate()` → 완료 콜백에서 null 로 놓는다 → 정리 시 `Cancel()`" 라는 동일한 8~10줄 부기가 `WxPlayerLayoutComponent.cpp:66-89/77-81/83-89`, `WxHUDLayout.cpp:80-96`, `WxUIManagerSubsystem.cpp:300-349` 세 곳에 거의 글자 그대로 복제돼 있다. 발견 1의 사망 화면 경로가 바로 이 패턴을 빠뜨린 네 번째 호출부이며, 복제 패턴은 앞으로도 같은 누락을 반복시킨다.
+- **제안**: 이 부기를 `UWxAsyncAction_PushWidgetToLayer` 쪽으로 흡수한다 — 예: 소유자와 완료 델리게이트를 받아 보류 핸들을 스스로 관리하는 네이티브 헬퍼(`PushAndTrack`) 하나를 두고, 호출부는 취소만 부른다.
 - **확신도**: 높음
 
-### 2. 🟢 `SetBeforePushCallback`이 호출자 없는 데드 코드다
-- **위치**: `Plugins/WxUI/Source/WxUI/Public/Widget/WxAsyncAction_PushWidgetToLayer.h:34-35`, `:61`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxAsyncAction_PushWidgetToLayer.cpp:62-65`, `:120`, `:161-162`
-- **범주**: 중복/복잡도
-- **문제**:
-  - 저장소 C++(`Source/`·`Plugins/`)에 `SetBeforePushCallback` 호출이 없다. `UFUNCTION`이 아니라 BP 경로도 없다. 그래서 선언·멤버·실행 줄(`:120`)·언바인딩(`:162`)이 아무 일도 하지 않는다.
-  - `:161` 주석("콜백 페이로드가 붙잡고 있는 참조를 여기서 놓는다")은 이미 사라진 서술자 페이로드를 설명한다. 남은 완료 콜백 3곳은 모두 페이로드 없는 `CreateUObject`다(`WxHUDLayout.cpp:88-89`, `WxPlayerLayoutComponent.cpp:72-73`, `WxUIManagerSubsystem.cpp:312-313`).
-- **제안**: `SetBeforePushCallback` 선언·정의, `BeforePushCallback` 멤버, `:120` 실행 줄, `:161-162` 주석과 언바인딩을 걷는다. BP 비동기 노드용 `BeforePush` 동적 델리게이트는 그대로 둔다.
-- **확신도**: 높음
+### 4. 🟡 활성 이펙트 하나마다 코어 티커를 하나씩 단다
+- **위치**: `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Effect.cpp:66-68`
+- **범주**: 성능/안전
+- **문제**: 지속시간이 있는 GE 마다 `FTSTicker::GetCoreTicker().AddTicker(...)` 가 하나씩 붙는다. 아이콘을 가진 버프가 M개면 코어 티커 M개가 매 프레임 돌고, 각 티커는 `UpdateEffectState(:197)` 에서 `GetActiveGameplayEffect` 조회와 MVVM 필드 4개 세팅을 한다. 형제 VM 들은 각기 다른 펌프를 쓴다 — `WxViewModel_Ability` 는 월드 타이머, `WxViewModel_AbilitySystem` 은 월드 타이머, `WxViewModel_Effect` 만 코어 티커다. 확립된 방침(공유 주기는 베이스의 횡단 서비스 = 정적 레지스트리 + 티커 1개)과 어긋난다.
+- **제안**: `UWxViewModel` 베이스에 정적 레지스트리 + 티커 1개짜리 횡단 서비스를 두고, 주기 갱신이 필요한 VM 은 자기를 등록만 한다. VM 자체의 자기완결성(등록/해제를 스스로 한다)은 그대로 유지된다.
+- **확신도**: 낮음(의도된 설계일 수 있음 — 자기완결성을 우선한 선택으로 볼 여지가 있다)
 
-### 3. 🟢 단일 호출 헬퍼 `MakeNativeResultDelegate`가 익명 namespace에 남아 있다
-- **위치**: `Plugins/WxUI/Source/WxUI/Private/WxUILibrary.cpp:12-26`, `:83`
-- **범주**: 중복/복잡도
-- **문제**:
-  - 호출부는 `UWxUILibrary::ShowConfirmationPopup` 한 곳뿐이다(`:83`). 모듈에 남은 유일한 `namespace { }` 블록이다.
-  - 사용자는 `.cpp` 내부 헬퍼를 익명 namespace 대신 호출부에 인라인하는 쪽을 택해 왔다. 같은 모양의 `WxViewModel_Subtitle.cpp` 헬퍼도 지난 리뷰 뒤 인라인했다(`08218a58`).
-  - 지난 리뷰의 "람다를 `CreateUFunction`으로 바꾸라"는 제안은 CLAUDE.md에서 람다 제한이 빠져(`5fe1ceb6`) 더는 근거가 없다. 남는 것은 헬퍼 위치 문제뿐이다.
-- **제안**: `:83` 직전에 `FWxPopupResultDelegate` 지역 변수를 두고, `OnResult.IsBound()`일 때만 지금의 `CreateWeakLambda`를 대입해 넘긴다. 그다음 namespace 블록을 걷는다.
-- **확신도**: 중간(CLAUDE.md 명문 규칙이 아니라 사용자 선호로 정한 방침이다)
-
-### 4. 🟢 인라인 예외 주석이 없어진 "코딩 규칙 4"를 가리킨다
-- **위치**: `Plugins/WxUI/Source/WxUI/Public/Indicator/WxStateTreeTask_MarkIndicator.h:15`, `Plugins/WxUI/Source/WxUI/Public/Subtitle/WxStateTreeTask_PrintSubtitle.h:13`
+### 5. 🟢 `UWxViewModel_Ability::TryActivateAbility` 의 `BlueprintCallable`
+- **위치**: `Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_Ability.h:42-43`
 - **범주**: 규칙 위반
-- **문제**:
-  - CLAUDE.md는 `GetInstanceDataType()` 헤더 정의를 예외로 허용하되 그 자리에 사유 주석을 남기라고 한다. 두 헤더의 사유 주석은 있고 내용도 맞다.
-  - 다만 `5fe1ceb6`에서 람다 규칙(구 3번)이 빠지면서 인라인 금지가 3번으로 올라왔다. 두 주석은 여전히 "코딩 규칙 4의 예외"라고 적어, 규칙 준수를 확인하는 사람이 존재하지 않는 번호를 찾게 된다.
-  - 같은 문장이 다른 모듈 헤더 25곳(WxDialogue·WxInventory·WxQuest·WxWorld)에도 있다.
-- **제안**: 두 주석의 "코딩 규칙 4"를 "코딩 규칙 3"으로 고친다. 다른 모듈도 한 번에 일괄 치환하는 편이 낫다(`grep -rn "코딩 규칙 4" Plugins`).
+- **문제**: 모듈 내 `BlueprintCallable` 4개 중 셋은 규칙이 허용하는 자리다(`WxUILibrary.h:37,40` 은 BP Function Library, `WxAsyncAction_PushWidgetToLayer.h:29` 는 Async 팩토리). 이것만 ViewModel 위의 일반 명령 함수이며, 허용 예외인 "위젯 서브클래스의 MVVM 1-arg setter" 에도 해당하지 않는다.
+- **제안**: 명령 통로가 필요하면 `UWxUILibrary` 파사드에 `TryActivateAbility(UWxViewModel_Ability*)` 로 내리거나, 예외로 유지한다면 그 사유를 헤더 주석에 남긴다(StateTree `GetInstanceDataType()` 예외와 같은 방식).
+- **확신도**: 낮음(의도된 설계일 수 있음 — WBP 버튼이 VM 을 직접 부르는 MVVM 커맨드 패턴)
+
+### 6. 🟢 `.cpp` 내 익명 namespace 헬퍼
+- **위치**: `Plugins/WxUI/Source/WxUI/Private/WxUILibrary.cpp:12-26`
+- **범주**: 규칙 위반
+- **문제**: 모듈 전체에서 유일한 익명 namespace 헬퍼(`MakeNativeResultDelegate`)다. 호출부가 `:83` 한 곳뿐이라 인라인으로 내려도 3줄이며, "cpp 내부 헬퍼는 익명 namespace 대신 호출부 인라인" 이라는 프로젝트 선호와 어긋난다.
+- **제안**: `ShowConfirmationPopup` 안으로 인라인한다.
+- **확신도**: 중간
+
+### 7. 🟢 `FlushActivationRefresh` 가 `RefreshActivationState` 를 두 번 돌린다
+- **위치**: `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Ability.cpp:515-523`
+- **범주**: 중복/복잡도
+- **문제**: `RefreshBoundAbility(:520)` 은 조기 반환(물고 있던 어빌리티가 그대로)하지 않는 **모든** 경로에서 끝에 `RefreshActivationState()` 를 부른다(`:232`, `:271`). 그 뒤 `:522` 가 무조건 한 번 더 부르므로, 어빌리티가 갈린 프레임에는 전수 순회 + `CanActivateAbility` 가 연달아 두 번 돈다. 발견 2의 비용이 그만큼 더 커진다.
+- **제안**: `RefreshBoundAbility` 가 "대상이 바뀌었는지" 를 bool 로 돌려주게 하고, `FlushActivationRefresh` 는 바뀌지 않았을 때만 `RefreshActivationState()` 를 부른다.
 - **확신도**: 높음
+
+### 8. 🟢 HUD 푸시 트리거가 하나뿐이라 레이아웃이 아직 없으면 조용히 영영 안 뜬다
+- **위치**: `Plugins/WxUI/Source/WxUI/Private/Component/WxPlayerLayoutComponent.cpp:54-58`
+- **범주**: 설계/구조
+- **문제**: HUD 를 띄우는 유일한 트리거가 `OnPossessedPawnChanged` 인데, 그 시점에 레이아웃이 없으면 로그도 재시도도 없이 반환한다. 권위 경로에서는 안전함을 확인했다 — 엔진 `UWorld::SpawnPlayActor` 가 `SetPlayer()`(→ 레이아웃 생성) 를 `PostLogin()`(→ `RestartPlayer` → 빙의) 보다 먼저 부른다(`LevelActor.cpp:1110-1111`). 다만 클라이언트에서는 `OnRep_Pawn` 과 로컬 플레이어 결합(`ULocalPlayer::ReceivedPlayerController`) 의 선후가 같은 방식으로 보장되지 않아, 순서가 뒤집히면 HUD 가 끝까지 뜨지 않고 단서도 남지 않는다.
+- **제안**: 레이아웃이 없을 때 경고 로그 한 줄이라도 남기거나, `UWxUIManagerSubsystem` 이 레이아웃 생성 완료를 알리는 신호를 내고 컴포넌트가 그때 한 번 따라잡게 한다.
+- **확신도**: 낮음(의도된 설계일 수 있음 — README 가 v1 싱글/리슨 호스트 전제를 명시한다)
 
 ## 검토 범위
-- **깊게 본 파일**:
-  - 제어 흐름(각 대응 헤더 포함):
-    - `Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp`
-    - `Plugins/WxUI/Source/WxUI/Private/Widget/WxAsyncAction_PushWidgetToLayer.cpp`
-    - `Plugins/WxUI/Source/WxUI/Private/Widget/WxHUDLayout.cpp`
-    - `Plugins/WxUI/Source/WxUI/Private/Component/WxPlayerLayoutComponent.cpp`
-    - `Plugins/WxUI/Source/WxUI/Private/System/WxPrimaryGameLayout.cpp`
-    - `Plugins/WxUI/Source/WxUI/Private/WxUILibrary.cpp`
-    - `Plugins/WxUI/Source/WxUI/Private/Widget/WxConfirmationPopup.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxGamePopup.cpp`
-  - 뷰모델·인디케이터·자막:
-    - `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel.cpp`
-    - `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_AbilitySystem.cpp`
-    - `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Ability.cpp`
-    - `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Effect.cpp`
-    - `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Attribute.cpp`
-    - `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Subtitle.cpp`(이번 변경분 포함)
-    - `Plugins/WxUI/Source/WxUI/Private/Indicator/WxIndicator.cpp`, `Plugins/WxUI/Source/WxUI/Public/Indicator/WxIndicator.h`(이번 변경분 포함)
-    - `Plugins/WxUI/Source/WxUI/Private/Indicator/WxStateTreeTask_MarkIndicator.cpp`, `Plugins/WxUI/Source/WxUI/Private/Subtitle/WxStateTreeTask_PrintSubtitle.cpp`
-  - 판정 근거로 본 외부 코드:
-    - UE 5.8 `Engine/Private/Controller.cpp`: `Possess`·`UnPossess`·`OnRep_Pawn`의 빙의 알림 조건
-    - UE 5.8 `Engine/Private/LocalPlayer.cpp`: `ReceivedPlayerController`의 `OnPlayerControllerChanged` 방송
-    - UE 5.8 `Engine/Private/LevelTick.cpp`: 일시정지 중 월드 타이머 미실행
-    - UE 5.8 `UMG/Private/Components/WidgetComponent.cpp`: `InitWidget`이 `SetWidget`을 거치지 않음(네임플레이트 이중 바인딩 없음 확인)
-    - Lyra 5.7 `LyraHUDLayout.cpp`, CommonGame `PrimaryGameLayout.h`·`CommonUIExtensions.cpp`: 스트리밍 push 핸들 처리
-  - 작업 기록: `.claude/worklog/2026-08-03-HUD-자막.md`, `.claude/worklog/2026-09-14-코드리뷰-반영-월드타이머-전환.md`, `.claude/worklog/2026-09-15-가려진-확인-팝업-종료-판정.md`, `.claude/worklog/2026-09-16-Subtitle-익명-namespace-헬퍼-제거.md`, `.codex/worklog/2026-09-15-Ability-쿨다운-월드타이머.md`
-- **훑은 파일**:
-  - `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Character.cpp`, `WxViewModel_Item.cpp`, `WxViewModel_Interaction.cpp`, `WxViewModel_Indicator.cpp`, `WxViewModelResolver_PlayerCharacter.cpp`, `WxMVVMConversionLibrary.cpp`
-  - `Plugins/WxUI/Source/WxUI/Private/Component/WxNameplateComponent.cpp`
-  - `Plugins/WxUI/Source/WxUI/Private/Widget/WxActivatableWidget.cpp`, `WxButtonBase.cpp`
-  - `Plugins/WxUI/Source/WxUI/Private/System/WxUIDeveloperSettings.cpp`, `Plugins/WxUI/Source/WxUI/Private/WxUIModule.cpp`
-  - `Plugins/WxUI/Source/WxUI/Public/Indicator/WxIndicatorWidget.h`, `Plugins/WxUI/Source/WxUI/Public/Subtitle/WxSubtitleTableRow.h`
-  - `Plugins/WxUI/Source/WxUI/WxUI.Build.cs`, `Plugins/WxUI/WxUI.uplugin`, `Plugins/WxUI/README.md`
+- **깊게 본 파일**: `Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxAsyncAction_PushWidgetToLayer.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_AbilitySystem.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Ability.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Effect.cpp`, `Plugins/WxUI/Source/WxUI/Private/Indicator/WxIndicator.cpp`, `Plugins/WxUI/Source/WxUI/Private/Component/WxPlayerLayoutComponent.cpp`, `Plugins/WxUI/Source/WxUI/Private/Component/WxNameplateComponent.cpp`, `Plugins/WxUI/Source/WxUI/Private/System/WxPrimaryGameLayout.cpp`
+- **훑은 파일**: `Plugins/WxUI/Source/WxUI/WxUI.Build.cs`, `Plugins/WxUI/WxUI.uplugin`, `Plugins/WxUI/README.md`, `Plugins/WxUI/Source/WxUI/Private/WxUILibrary.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxConfirmationPopup.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxGamePopup.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxHUDLayout.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxButtonBase.cpp`, `Plugins/WxUI/Source/WxUI/Private/Widget/WxActivatableWidget.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Attribute.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Character.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Item.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Subtitle.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Indicator.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Interaction.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModelResolver_PlayerCharacter.cpp`, `Plugins/WxUI/Source/WxUI/Private/MVVM/WxMVVMConversionLibrary.cpp`, `Plugins/WxUI/Source/WxUI/Private/Indicator/WxStateTreeTask_MarkIndicator.cpp`, `Plugins/WxUI/Source/WxUI/Private/Subtitle/WxStateTreeTask_PrintSubtitle.cpp`, `Plugins/WxUI/Source/WxUI/Private/System/WxUIDeveloperSettings.cpp`, `Plugins/WxUI/Source/WxUI/Private/WxUIModule.cpp` 및 대응 헤더 전부
+- **확인해 두고 지적하지 않은 것**(오탐 배제 근거):
+  - 플러그인 경계 — `.Build.cs` 의존성과 실제 `#include` 를 함께 훑었고, WxCore 외 Wx 플러그인 참조는 0건이다(외부 include 는 `WxGameplayTags.h`·`WxUIData.h`·`WxLocatorUtils.h` 뿐, 모두 WxCore).
+  - 규칙 준수 — 58파일 전부 첫 줄 저작권 표기 있음, `FORCEINLINE`·헤더 내 함수 본문 0건(StateTree `GetInstanceDataType()` 두 곳은 예외 사유 주석이 붙어 있다), 델리게이트 콜백 `Handle` prefix 일관, override 의 `Super::` 호출 누락 없음.
+  - `RF_BeginDestroyed` 가드 — 파괴 중 브로드캐스트를 막는 VM 들의 가드는 올바르다. `UObject::ConditionalBeginDestroy(Obj.cpp:1314-1316)` 가 `BeginDestroy()` 호출 **전에** 플래그를 세운다.
+  - `UWxUIManagerSubsystem::Deinitialize(:51)` 의 "로컬 플레이어가 먼저 사라진다" 는 주석은 사실이다. `UGameInstance::Shutdown(GameInstance.cpp:157-167)` 이 `RemoveLocalPlayer` 루프를 `SubsystemCollection.Deinitialize()` 보다 먼저 돈다.
+  - `FindSharedViewModel` 의 "언리처블은 기본으로 빠진다" 도 사실이다(`UObjectHash.cpp:1600-1601` 의 `AddMandatoryInternalExclusionFlags`).
+  - `UWxNameplateComponent` 가 생성자에서 `SetVisibility(false)` 하는데도 틱이 죽지 않는다. `UWidgetComponent` 의 틱 자동 차단은 `TickMode != Enabled` 에서만 동작하고 기본값은 `Enabled` 다(`WidgetComponent.cpp:58`, `:1264`).
 - **미검토 / 한계**:
-  - WBP 내부(위젯 계층·MVVM 바인딩·이벤트 그래프)는 보지 않았다. 빌드·PIE·자동화 테스트는 돌리지 않았다(리뷰 전용).
-  - 멀티플레이 경로(원격 클라의 태그·GE·스펙 복제 통지)는 v1 싱글/리슨 호스트 전제라 깊이 보지 않았다.
-  - 지난 리뷰 대비 정리:
-    - 지난 1번(HUD가 가려지거나 걷혀도 진행 중인 메뉴 요청을 취소하지 않음)은 뺐다. 코드는 그대로지만 Lyra HUD도 스트리밍 push 핸들을 버리고 비활성화 때 취소하지 않는다(`LyraHUDLayout.cpp:67-71`). Lyra와 같은 패턴이라 결함으로 보지 않는다. 재현 창도 메뉴 클래스를 처음 스트리밍하는 동안뿐이다.
-    - 지난 4번(람다)은 CLAUDE.md에서 람다 제한이 빠져 규칙 위반 근거가 없어졌다. 남은 익명 namespace 문제만 3번으로 옮겼다.
-    - 지난 5번(`MakeSubtitleContext`)은 `08218a58`에서 해결됐다.
-    - `WxIndicator.h` 변경은 `HasTarget` 주석 축약뿐이다. 유일한 호출부(`WxStateTreeTask_MarkIndicator.cpp:109`)와 의미가 맞는다.
-  - 의도된 결정이라 뺀 것:
-    - 표시된 팝업을 밖에서 닫으면 결과가 오지 않는다. `EWxPopupResult::Killed` 주석(`WxGamePopup.h:14-17`)에 명시된 계약이며, 결과를 사용자 선택에만 묶는 Lyra 확인 창 방식이다.
-    - `UWxConfirmationPopup::NativeOnHandleBackAction`은 `Super`를 부르지 않는다(`WxConfirmationPopup.cpp:32-39`). 엔진 기본 동작인 무조건 비활성화를 대체하려는 것이다.
-    - `UWxActivatableWidget::GetDesiredInputConfig`는 `All`을 처리하지 않는다.
-    - 뷰모델의 월드 타이머 예약(태그·스펙 재평가, 쿨다운 갱신)은 일시정지 중에 돌지 않는다. 작업 기록에 감수 사항으로 남아 있다. 이펙트 게이지만 코어 티커다.
-    - 자막 뷰모델은 UI 매니저가 소유하지 않고 스스로 MVVM 글로벌 컬렉션에 등록한다(`WxViewModel_Subtitle.cpp:12-37`). 별도 서브시스템을 만들지 않았고, 매니저 관여를 걷어낸 결정이 `2026-08-03-HUD-자막.md` 완료 항목에 있다.
-    - 이펙트·어빌리티 VM은 인스턴스마다 자기 티커·타이머를 건다. 자기완결 구동이라 방침에 맞고, 비용 문제도 관찰되지 않았다.
-  - 도달 경로·가치가 없어 뺀 것:
-    - `UWxUIManagerSubsystem::Initialize`의 팝업 클래스 동기 로드는 데디케이티드 서버에서도 돈다. 하지만 서버 타깃이 없다(`Source/Wx.Target.cs`·`Source/WxEditor.Target.cs`만 있음).
-    - `HandlePlayerControllerSet`은 추적 PC를 먼저 비운다. 그래서 정지 위젯이 레이아웃과 함께 걷힐 때 옛 PC의 정지를 풀지 않는다. 하지만 같은 월드에서 PC를 바꾸는 코드(`SwitchController`·`SwapPlayerControllers`)가 없다.
-    - 사망 화면에는 대화 창 같은 취소·회수 경로가 없다. 부활 요청이 활성 사망 화면을 요구하므로(`Source/WxGame/Framework/WxRespawnLibrary.cpp:21`) 뒤늦게 뜰 창이 없다.
-    - 주석·표기 수준이라 `/comment-cleanup` 영역으로 보고 뺀 것이 2건 있다.
-      - `ObserveWidgetForGamePause`의 "CommonUI 풀에서 재사용" 주석(`WxUIManagerSubsystem.cpp:135`)은 실제와 다르다. push 경로는 새로 만든 인스턴스를 `AddWidgetInstance`로 넣으므로 CommonUI 풀을 거치지 않는다(엔진 `CommonActivatableWidgetContainer.cpp:38-41`, `UserWidgetPool.cpp:44-48`). 구독을 뗐다 다시 거는 코드 자체는 무해하다.
-      - `UWxViewModel_Indicator::SetProjection`의 인자 이름이 선언(`InDistanceMeters`)과 정의(`InCameraDistance`)에서 다르다.
-  - 모듈 규칙은 전 파일을 확인했다.
-    - `WxUI.Build.cs`·`WxUI.uplugin`은 Wx 플러그인 중 `WxCore`만 참조한다. Wx 헤더 include도 WxCore 공개 헤더(`WxUIData.h`·`WxGameplayTags.h`·`WxLocatorUtils.h`)뿐이다.
-    - 소스 58파일과 `WxUI.Build.cs`의 첫 줄 저작권이 모두 맞다. 타입 이름은 모두 `Wx` 접두사를 쓴다.
-    - 헤더 인라인 정의는 StateTree `GetInstanceDataType()` 2건뿐이고, 둘 다 사유 주석이 있다(번호만 틀림, 4번 참고). `FORCEINLINE`은 없다.
+  - **WBP/에셋은 범위 밖이다.** WxUI 는 위젯 계층·MVVM 바인딩 그래프·이벤트 그래프가 WBP 에 있는 모듈이라 C++ 만으로는 그림이 불완전하다. 특히 `meta=(BindWidget)` 계약 충족 여부, `UWxPrimaryGameLayout::LayerTags` 의 실제 저작 순서(z-order), 각 위젯의 뷰모델 소스가 `Creation Type: Manual` 인지, `UWxUIDeveloperSettings` 4종 클래스가 `DefaultGame.ini` 에 실제로 물려 있는지는 확인하지 않았다. 위 발견은 모두 C++ 근거로만 적었다.
+  - `UWxViewModel_Ability` 의 쿨다운·충전 계산이 실제 쿨다운 GE 저작(스택 정책·Duration 산식)과 맞는지는 WxCombat 의 GE 에셋을 봐야 판정할 수 있어 검증하지 않았다.
+  - 네트워크 경로(클라이언트에서의 PC/Pawn 복제 순서)는 엔진 코드를 끝까지 따라가지 않았다 — 발견 8의 확신도를 낮음으로 둔 이유다.
 
 ---
-*문서 기준 커밋 `5eb1a754` · 리뷰일 2026-09-17 · 소스 58파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `fe57e17a` · 리뷰일 2026-09-20 · 소스 58파일 — `/module-review`로 갱신*

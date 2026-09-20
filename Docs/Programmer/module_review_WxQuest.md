@@ -1,76 +1,86 @@
 # WxQuest — 코드 리뷰
 
-> 14파일짜리 작은 모듈로, 권위 모델·에셋 불가지·"목표 수명 = 상태 수명" 규약이 doc-comment 에 정리돼 있어 구조는 건강하다. 크래시성 결함·수명주기 위험·모듈 경계 침범은 없고 의존도 `WxCore` 와 엔진 모듈뿐이며, 남은 위험은 StateTree 재진입·완료 판정 규약과 수주 시점을 전제로만 두고 확인하지 않아 "로그 없이 어긋나는" 지점들이다. 이번 리뷰는 모듈 소스 14파일을 모두 읽고 컴포넌트와 태스크 4종 cpp 를 깊게 봤으며, 판정 근거인 엔진 동작은 UE 5.8 설치본 소스에서 직접 확인했다.
+> 14파일 · 실코드 500줄 남짓의 작은 모듈이고, 책임 분할(러너 소유 = 컴포넌트, 완료 판정 = Wait 계열 하나, 저널 정리 = 실행 상태 통지 한 곳)이 명확해 구조적 건강도는 좋다. 크래시성 결함·수명주기 위험·모듈 경계 침범은 없고, 남은 문제는 거의 전부 "StateTree 엔진이 실패를 조용히 삼키는 지점을 이 모듈이 확인하지 않는다"는 한 가지 축에 모여 있다. 이번 리뷰는 모듈 소스 14파일을 전부 읽고 컴포넌트·태스크 4종 cpp 를 깊게 봤으며, 판정 근거인 태스크 플래그·Enter/Exit/Stop/Start 실행 순서는 UE 5.8 설치본 엔진 소스에서 직접 대조했다.
 
 ## 요약
 | 심각도 | 개수 |
 | --- | --- |
 | 🔴 심각 | 0 |
-| 🟡 개선 | 5 |
+| 🟡 개선 | 6 |
 | 🟢 사소 | 3 |
 
 ## 결과
 
-### 1. 🟡 즉시 수주 경로 `ActivateQuest` 가 호출 시점 전제를 확인하지 않아 새 퀘스트가 조용히 버려진다
-- **위치**: `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp:18-37`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp:105-120`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestLibrary.cpp:10-18`, `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestComponent.h:74-76`
+### 1. 🟡 저널 태스크 3종이 `bShouldStateChangeOnReselect` 기본값(true)을 그대로 둬 스텝 전이마다 저널이 통째로 재구축된다
+- **위치**: `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_SetQuestTitle.cpp:10`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_SetQuestObjective.cpp:10`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_StartNextQuest.cpp:9`
 - **범주**: 버그/정확성
-- **문제**: BP 유일 진입점 `UWxQuestLibrary::StartQuest` 는 `ActivateQuest` 를 곧장 부르는데, `ActivateQuest` 는 두 전제를 확인하지 않고 어긋나면 로그 없이 끝난다. (a) 러너 콜스택 밖이어야 한다(`WxQuestComponent.h:53`). 콜스택 안에서 불리면 `UStateTreeComponent::StopLogic` 이 `bIsRunning` 을 먼저 내리고(`StateTreeComponent.cpp:221`), 업데이트 단계 중인 `FStateTreeExecutionContext::Stop` 은 정지를 미루고 `Running` 을 돌려주며(`StateTreeExecutionContext.cpp:1707-1715`), `SetStateTreeReference` 는 트리가 아직 Running 이라 교체를 거부하고(`StateTreeComponent.cpp:493-501`), `StartTree` 는 재진입 가드에 막힌다(`:181-185`). 결과는 미뤄 둔 정지(`StateTreeExecutionContext.cpp:1801-1806`)가 기존 퀘스트를 끝내고 저널을 비우는 동안 새 퀘스트는 시작되지 않는 상태다. BlueprintAssignable `OnJournalChanged`(`WxQuestComponent.h:74-76`)는 태스크 Enter/Exit 과 실행 상태 통지 안에서 발화하므로 여기에 반응해 `StartQuest` 를 부르는 BP 가 이 경로를 타고, 퀘스트 ST 안의 BP 태스크도 마찬가지다. (b) 권위 측 `BeginPlay` 이후여야 한다. 러너는 `BeginPlay`(`WxQuestComponent.cpp:105-120`)에서야 생기고, 그 전 호출은 `:26-29` 에서 비권위 호출과 똑같이 조용히 반환된다. GameState 는 `AGameModeBase::PreInitializeComponents` 에서 런타임 스폰되어 퍼시스턴트 레벨 액터 목록 끝에 붙고(`GameModeBase.cpp:132`, `LevelActor.cpp:739`), 에디터 빌드의 `AWorldSettings::NotifyBeginPlay` 는 퍼시스턴트 레벨 목록 순서대로 BeginPlay 를 돈다(`WorldSettings.cpp:370-375`, `EngineUtils.h:220`). 따라서 PIE 에서는 레벨 BP 나 퍼시스턴트 레벨 배치 액터의 BeginPlay 에서 첫 퀘스트를 거는 저작이 매번 조용히 실패하고, 쿠킹 빌드에서는 이 순서가 정해져 있지 않다(`EngineUtils.h:256-258`). 초기 오버랩도 각 액터 BeginPlay 끝에서 계산되므로(`Actor.cpp:4801`) 퍼시스턴트 레벨의 수주 볼륨이 시작부터 폰과 겹쳐 있으면 같은 창에 들 수 있다.
-- **제안**: `UWxQuestLibrary::StartQuest` 도 다음 틱 경로(`RequestActivateQuest`)로 보내 활성화 진입점을 하나로 모은다. 다음 틱이면 러너 콜스택 밖이고 월드 BeginPlay 도 끝나 있어 (a)(b)가 함께 풀린다(예약 누적인 발견 6 과 같이 처리). 별도로 `ActivateQuest` 는 `StopLogic` 뒤에도 `QuestStateTree->GetStateTreeRunStatus()` 가 `Running` 이거나, 권위인데 러너가 없으면 `LogWxQuest` 경고를 남기고 중단한다.
-- **확신도**: 중간(엔진 동작은 소스로 확인했다. 현재 `StartQuest` 를 부르는 에셋은 `Content/Quest/BP_QuestVolume` 하나뿐이라 실제 발생 여부는 그 BP 와 맵 배치에 달려 있다)
+- **문제**: 엔진은 전이 후에도 활성으로 남는 상태(Sustained)의 태스크에 대해 `bShouldStateChangeOnReselect` 가 true 면 `ExitState`·`EnterState` 를 다시 호출한다(UE 5.8 `StateTreeExecutionContext.cpp:3839`, `:4029`). 이 모듈에서 플래그를 끈 것은 `WaitMoveToTarget` 하나뿐이고(`WxStateTreeTask_WaitMoveToTarget.cpp:16`), 저널 태스크 3종은 전부 기본값이다. README 가 규정한 표준 조립(루트에 `SetQuestTitle`, 각 스텝 상태에 `SetQuestObjective`)에서 스텝이 넘어갈 때마다 루트가 Sustained 로 재진입해 `SetQuestTitle::EnterState` → `Objectives.Reset()`(`WxQuestComponent.cpp:53`)이 다시 돌고, 살아 있는 부모 상태의 목표들도 제거→재추가되어 핸들이 매번 새로 발급된다. 전이 1회에 `OnJournalChanged` 가 3~N+2회 발화한다.
+  결과가 지금 맞아떨어지는 것은 엔진이 EnterState 를 루트→리프 순으로 돌아 "먼저 비우고 전부 다시 채우는" 형태가 되기 때문일 뿐이다. 같은 상태에서 `SetQuestObjective` 를 `SetQuestTitle` 보다 앞에 배치하면 그 목표는 조용히 사라지고, 둘 중 하나만 플래그를 끄면 목표가 중복되거나 유실된다 — 저작자가 알 수 없는 순서 의존이다.
+  `StartNextQuest` 도 같다. 체인 종점 상태가 재선택되면 `EnterState` 가 다시 불려 `RequestActivateQuest` 가 한 번 더 예약된다(발견 4 와 연결).
+- **제안**: 세 태스크 생성자에 `bShouldStateChangeOnReselect = false` 를 명시한다. `SetQuestObjective` 는 이 값이 "목표의 수명 = 상태의 수명"이라는 헤더 주석(`WxStateTreeTask_SetQuestObjective.h:29`)과 정확히 일치하는 의미이며, `SetQuestTitle` 의 파괴적인 `Objectives.Reset()` 도 실제로 퀘스트가 바뀔 때만 돌게 된다.
+- **확신도**: 높음 (재진입 메커니즘은 엔진 소스로 확인)
 
-### 2. 🟡 저널 태스크 3종이 `bShouldStateChangeOnReselect` 기본값(true)을 그대로 둬 Sustained 재진입 시 저널이 어긋난다
-- **위치**: `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_SetQuestTitle.cpp:10-18`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_SetQuestObjective.cpp:10-18`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_StartNextQuest.cpp:9-17`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp:53`
-- **범주**: 버그/정확성
-- **문제**: 세 생성자는 `bShouldStateChangeOnReselect` 를 엔진 기본값 `true`(`StateTreeTaskBase.h:24`)로 남긴다. UE 5.8 에서 Sustained 는 이미 활성인 상태가 전이 대상이 되거나 그 아래에서 다시 선택될 때만 생기고(대상이 아닌 공통 조상은 건너뛴다 — `StateTreeExecutionContext.cpp:3711-3723`), 이때 이 플래그가 참인 태스크만 Exit/Enter 가 다시 불린다(`:3839-3840`, `:4028-4029`). 따라서 형제 스텝으로 가는 일반 전이에는 영향이 없지만, 활성 조상이나 자기 자신을 대상으로 하는 전이(스텝 재시도용 "부모로 가기", 이벤트로 자기 상태 재선택 등)가 저작되면 두 가지가 어긋난다. (a) 대상 상태의 제목 태스크가 재진입해 `SetQuestTitle` 의 `Objectives.Reset()`(`WxQuestComponent.cpp:53`)을 다시 돈다. Enter 는 상위→하위, 상태 안에서는 선언 순으로 돌기 때문에(`:3816`) 같은 상태에서 목표 태스크가 제목보다 먼저 선언돼 있거나, 목표가 대상보다 위 조상 상태에 걸려 있으면(조상은 Enter 가 다시 불리지 않는다) 그 목표가 지워지고 상태가 끝날 때까지 복구되지 않는다 — `WxStateTreeTask_SetQuestObjective.h:28` 의 "상태에 머무는 동안 유지" 계약 위반이다. 그 외 경우에도 핸들 재발급과 `OnJournalChanged` 다중 발화가 남는다. (b) `StartNextQuest` 가 재진입하면 다음 틱 예약이 한 번 더 쌓여 발견 6 의 이중 활성화로 이어진다. 엔진 doc-comment(`StateTreeTaskBase.h:107-112`)는 자식 상태 동안 유지되는 리소스형 태스크는 false 여야 한다고 명시하며, 같은 모듈의 `WxStateTreeTask_WaitMoveToTarget.cpp:16` 은 이미 false 로 둔다.
-- **제안**: 세 태스크 생성자에 `bShouldStateChangeOnReselect = false;` 를 추가한다.
-- **확신도**: 중간(엔진 동작은 소스로 확인했으나, 현재 퀘스트 에셋에 활성 상태를 대상으로 하는 전이가 있는지는 미확인이다)
-
-### 3. 🟡 `WaitMoveToTarget` 은 빈 로케이터나 사라진 대상에도 영원히 Running — 퀘스트가 흔적 없이 멈춘다
-- **위치**: `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_WaitMoveToTarget.cpp:23-28`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_WaitMoveToTarget.cpp:48-54`
-- **범주**: 버그/정확성
-- **문제**: 빈 로케이터는 진입 시 경고 한 줄만 남기고 `Running` 을 반환해(`:23-28`) 완료될 수 없는 상태에 머문다. 대상이 해석되지 않는 경우도 `:48-54` 에서 로그 없이 Running 을 이어간다. WP 셀 미로드는 플레이어가 다가가면 풀리므로 Running 이 맞지만(`SyncFind` 는 강제 로드하지 않는다 — `WxStateTreeTask_WaitMoveToTarget.h:33`), 액터가 삭제·이름 변경돼 로케이터가 영구히 깨진 경우도 똑같이 무기한 대기한다. 이 태스크는 완료 판정에 참여하므로 `Failed` 반환이 상태에 실제로 전파되는데도 그 수단을 쓰지 않는다. 스텝 상태의 완료를 내는 태스크가 이것이라 결과는 "그 스텝에서 영구 정지"이고 원인 로그도 없다.
-- **제안**: 빈 로케이터는 `EnterState` 에서 `Failed` 로 끝낸다. 해석 실패는 스트리밍을 고려해 Running 을 유지하되, 일정 시간 이상 지속되면 대상 경로를 담은 1회성 경고를 남긴다.
-- **확신도**: 중간(빈 로케이터를 경고만 하고 넘기는 것은 `WxStateTreeTask_WaitMoveToTarget.h:30` 에 적힌 현재 의도라 방침 변경에 해당한다)
-
-### 4. 🟡 `bHasActiveQuest` 가 "퀘스트 활성"이 아니라 "제목 등록됨"을 뜻한다
-- **위치**: `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestComponent.h:100`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp:54`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp:83-86`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp:137-140`
+### 2. 🟡 BP 에 열린 유일한 수주 경로가 콜스택-불안전한 `ActivateQuest` 로 직결된다
+- **위치**: `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestLibrary.cpp:16`, `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestComponent.h:53`
 - **범주**: 설계/구조
-- **문제**: 이 플래그가 참이 되는 곳은 `SetQuestTitle`(`:54`)뿐이다. 제목 태스크 없이 목표만 거는 퀘스트나 제목을 뒤쪽 상태에서 거는 퀘스트는 러너가 돌고 목표가 저널에 올라와 있어도 `HasActiveQuest()` 가 false 이고, 이 값을 표시 조건으로 쓰는 구독자(`Source/WxGame/MVVM/WxViewModel_Quest.cpp:53`)에선 "목표는 있는데 HUD 가 숨는" 형태로 드러난다. 저널 내용이나 러너 상태에서 조회할 수 있는 값을 별도 플래그로 저장해 동기화 책임만 늘린 형태이며, `ClearJournal` 의 조기 반환(`:137-140`)도 같은 플래그에 묶여 있다.
-- **제안**: 플래그를 없애고 `QuestTitle`/`Objectives` 유무, 또는 `QuestStateTree` 가 있고 `GetStateTreeRunStatus() == EStateTreeRunStatus::Running` 인지에서 파생시킨다(`ClearJournal` 의 조기 반환도 같은 기준으로). 단 `IsRunning()` 은 쓰면 안 된다 — `UStateTreeComponent` 는 트리가 스스로 완료돼도 `bIsRunning` 을 내리지 않는다(갱신 지점은 `StateTreeComponent.cpp:126`, `:176`, `:201`, `:221`, `:241` 뿐이고 `TickComponent` 의 완료 경로엔 없다).
-- **확신도**: 중간(모든 퀘스트가 제목 태스크부터 건다는 저작 관례가 전제라면 의도된 설계일 수 있음)
+- **문제**: 모듈은 ST 실행 콜스택 안에서의 활성화를 위해 `RequestActivateQuest`(다음 틱 예약)를 따로 두고 `StartNextQuest` 태스크만 그것을 쓴다. 그런데 디자이너에게 노출된 단 하나의 진입점 `UWxQuestLibrary::StartQuest` 는 경고 문구도 없이 즉시 경로인 `ActivateQuest` 를 부른다. 퀘스트 ST 가 구동하는 BP(도메인 BP 태스크, 그로부터 호출되는 액터 이벤트 등)에서 이 노드를 쓰면 `StopLogic` 은 재진입 컨텍스트로 성공해 트리를 멈추고, `SetStateTreeReference` 도 상태가 Stopped 라 새 에셋으로 교체되지만, 이어지는 `StartLogic` 은 `"Reentrant call to StartTree is not allowed"` 에러 로그만 남기고 반환한다(UE 5.8 `StateTreeComponent.cpp:183`). 즉 **이전 퀘스트는 죽고 새 퀘스트는 시작되지 않은 채 `LogWxQuest` 에는 아무 흔적도 남지 않는다.**
+- **제안**: `UWxQuestLibrary::StartQuest` 를 `RequestActivateQuest` 로 라우팅한다. 트리거 볼륨 수주가 한 틱 늦어지는 것은 체감되지 않고, 두 진입점의 안전성 차이를 없앨 수 있다.
+- **확신도**: 중간 (경로는 확실하나 실제 저작에서 ST 안 호출이 얼마나 흔한지는 BP 범위 밖)
 
-### 5. 🟡 퀘스트 체인이 끊기는 두 실패 경로가 로그를 남기지 않고, 헤더가 약속한 `Failed` 는 엔진이 무시한다
-- **위치**: `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_StartNextQuest.cpp:23-26`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp:130-133`, `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_StartNextQuest.h:27`
+### 3. 🟡 `ActivateQuest` 의 3단계가 모두 실패를 무시하며, 실패 시 직전 퀘스트를 재시작할 수 있다
+- **위치**: `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp:34`
 - **범주**: 버그/정확성
-- **문제**: Set 계열 3종은 `bConsideredForCompletion = false` 라 `EnterState` 반환값이 상태 결과에 반영되지 않는다(`StateTreeExecutionContext.cpp:3873-3880` 은 완료 판정 참여 태스크만 `Result` 에 합친다). 그래서 `WxStateTreeTask_StartNextQuest.h:27` 의 "예약 없이 Failed 로 끝난다"는 실제로는 "아무 일 없이 상태가 계속된다"이다. 제목·목표 태스크는 같은 상황에서 `LogWxQuest` 경고를 남기지만 `StartNextQuest` 의 조기 반환(`:23-26`)은 로그가 없다. 예약 이후도 같다 — `HandleDeferredActivateQuest` 의 `LoadSynchronous()`(`WxQuestComponent.cpp:132`)가 에셋 삭제·이동으로 null 을 돌려주면 `ActivateQuest` 의 널 검사(`:20-23`)에서 조용히 반환한다. 어느 쪽이든 체인이 끊겨도 로그 한 줄 남지 않는다.
-- **제안**: `StartNextQuest` 조기 반환과 `HandleDeferredActivateQuest` 의 로드 실패에 `LogWxQuest` 경고(오너 이름·소프트 참조 경로 포함)를 넣고, 헤더 서술을 실제 동작(경고만 남기고 상태는 계속)대로 고친다. 실패를 상태에 전파하려고 `bConsideredForCompletion` 을 켜면 진입 즉시 `Succeeded` 가 상태를 끝내 버려 현재 설계와 양립하지 않는다.
+- **문제**: `StopLogic` → `SetStateTreeReference` → `StartLogic` 세 함수 모두 void 이고 실패 시 엔진 로그만 남긴다. 특히 `StopLogic` 은 내부 `SetContextRequirements` 가 실패하면 `StopTree` 를 아예 호출하지 않아 `bIsRunning` 이 true 로 남는다(UE 5.8 `StateTreeComponent.cpp:253`). 그러면 바로 다음 `SetStateTreeReference` 가 "running instance" 사유로 거부되고(`:495`) `StateTreeRef` 는 **구 퀘스트 에셋 그대로**인데, 이어진 `StartLogic()` 이 그 구 에셋을 다시 시작한다. 호출자 `UWxQuestLibrary::StartQuest` 는 void 라 이 상황을 전달할 수도 없다. 모듈에는 정확히 이런 조립 오류용 `LogWxQuest` 카테고리가 있고 태스크들은 쓰고 있는데, 정작 실행기 본체는 쓰지 않는다.
+- **제안**: `StartLogic()` 직후 `QuestStateTree->IsRunning()`(또는 `GetStateTreeRunStatus()`)을 확인하고, 아니면 퀘스트 에셋 이름과 함께 `LogWxQuest` Warning 을 남긴다.
+- **확신도**: 중간 (연쇄가 성립하려면 `SetContextRequirements` 실패 — 퀘스트 ST 스키마의 Context Actor Class 오설정 등 — 이 전제)
+
+### 4. 🟡 `RequestActivateQuest` 는 예약을 병합·취소하지 않아 같은 퀘스트를 두 번 시작할 수 있다
+- **위치**: `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp:47`
+- **범주**: 버그/정확성
+- **문제**: 매 호출마다 `SetTimerForNextTick` 을 새로 잡고 핸들을 보관하지 않는다. 한 프레임에 요청이 두 번 들어오면 다음 틱에 `ActivateQuest` 가 두 번 실행되고, 두 번째가 **방금 시작한 새 퀘스트**를 `StopLogic`→`StartLogic` 한다. 새 퀘스트 첫 상태의 부수효과(다른 도메인 ST 태스크가 거는 보상 지급·스폰 등)가 두 번 실행되고, 저널도 한 프레임 안에서 구축→파기→재구축된다. 발견 1 의 재진입(체인 종점 상태 재선택 시 `StartNextQuest::EnterState` 재호출)이 이 상황을 만드는 가장 현실적인 경로다.
+- **제안**: 보류 중인 요청을 `TSoftObjectPtr` 필드 + `FTimerHandle` 하나로 들고, 이미 예약돼 있으면 대상만 덮어쓴다.
+- **확신도**: 중간
+
+### 5. 🟡 빈 로케이터·미해석 대상이면 `WaitMoveToTarget` 이 영원히 Running — 퀘스트가 복구 경로 없이 멈춘다
+- **위치**: `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_WaitMoveToTarget.cpp:23`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_WaitMoveToTarget.cpp:48`
+- **범주**: 버그/정확성
+- **문제**: 로케이터가 비어 있으면 `EnterState` 가 Warning 한 줄만 남기고 `Running` 을 돌려준다. 이 모듈에서 상태를 끝내는 유일한 태스크이므로, 잘못 조립된 퀘스트는 완료 조건이 영영 성립하지 않는 채로 그 상태에 고정된다 — 플레이어에겐 목표가 떠 있는데 무엇을 해도 진행되지 않는 소프트락이고, 다음 퀘스트 체인도 함께 끊긴다. `Instance.Target.SyncFind(Owner)` 가 계속 null 을 돌려주는 경우(삭제된 액터를 가리키는 낡은 로케이터)도 로그 한 줄 없이 같은 결과가 된다.
+- **제안**: 빈 로케이터는 `EnterState` 에서 `Failed` 를 반환해 상태가 실패 전이를 타게 하고(이 태스크는 완료 판정에 포함되므로 실제로 전달된다 — 발견 6 과 대비), 해석 실패가 일정 시간 이상 지속되면 `LogWxQuest` Warning 을 한 번 남긴다.
+- **확신도**: 중간 (WP 스트리밍 타이밍상 일시적 미해석을 견디려고 Running 을 유지했을 수 있음)
+
+### 6. 🟡 저널 태스크가 돌려주는 `Failed` 는 엔진이 삼켜서, 헤더가 약속한 동작이 일어나지 않는다
+- **위치**: `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_StartNextQuest.h:27`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_SetQuestTitle.cpp:28`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_SetQuestObjective.cpp:28`
+- **범주**: 버그/정확성
+- **문제**: 세 태스크 모두 `bConsideredForCompletion = false` 다. 엔진은 완료 판정에서 빠진 태스크의 `EnterState` 반환값을 상태 결과에 반영하지 않는다(UE 5.8 `StateTreeExecutionContext.cpp:3873` 의 `IsConsideredForCompletion` 가드). 따라서 `StartNextQuest` 헤더의 *"퀘스트 컴포넌트가 없으면 잘못된 조립(퀘스트 러너 밖 사용)이라 예약 없이 Failed 로 끝난다"* 는 서술은 실제와 다르다. 퀘스트 컴포넌트를 못 찾아도 상태는 아무 일 없이 계속되고, `StartNextQuest` 는 나머지 둘과 달리 로그조차 남기지 않아(`WxStateTreeTask_StartNextQuest.cpp:25`) 체인이 끊긴 사실이 어디에도 드러나지 않는다.
+- **제안**: (a) 세 태스크의 `Failed` 반환은 유지하되 주석에서 "상태를 끝낸다"는 뉘앙스를 걷어내고, (b) `StartNextQuest` 에도 나머지 둘과 같은 `LogWxQuest` Warning 을 추가한다. 조립 오류를 실제로 퀘스트 실패로 만들고 싶다면 이 태스크만 `bConsideredForCompletion` 을 켜야 한다.
 - **확신도**: 높음
 
-### 6. 🟢 `RequestActivateQuest` 의 다음 틱 예약이 누적되고 취소할 수 없다
-- **위치**: `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp:39-48`
-- **범주**: 버그/정확성
-- **문제**: `SetTimerForNextTick` 은 호출마다 새 `FTimerData` 를 만들 뿐 중복 제거가 없고(`TimerManager.cpp:736-749`), 반환 핸들을 버리므로 앞선 예약을 취소·대체할 수 없다. 예약부터 실행까지의 한 프레임 창에 요청이 겹치면 전부 순서대로 실행된다. 발견 2 의 재진입으로 같은 요청이 두 번 쌓이면 다음 틱에 새 퀘스트가 시작 직후 한 번 더 재시작되고, 예약 직후 트리거 볼륨이 `StartQuest` 로 다른 퀘스트를 즉시 시작하면 뒤늦은 예약이 그 퀘스트를 덮는다. 어느 경우든 덮이는 쪽의 진입 상태 부수효과는 이미 실행된 뒤이며, 퀘스트 ST 에는 `FWxStateTreeTask_GiveRewards`(WxInventory)·`FWxStateTreeTask_TriggerSpawners`(WxWorld) 같은 되돌릴 수 없는 노드가 붙는다. 발견 1 의 제안대로 `StartQuest` 를 이 경로로 모으면 노출 빈도도 늘어난다.
-- **제안**: 예약 `FTimerHandle` 을 멤버로 두고, 새 예약 전과 `ActivateQuest` 즉시 경로에서 기존 예약을 `ClearTimer` 해 마지막 요청만 유효하게 한다.
-- **확신도**: 중간(누적·취소 불가는 소스로 확인했고, 실제 충돌은 한 프레임 창에 요청이 겹칠 때만 드러난다)
+### 7. 🟢 `bHasActiveQuest` 는 "퀘스트 활성"이 아니라 "제목이 등록됨"을 뜻한다
+- **위치**: `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp:54`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp:137`
+- **범주**: 설계/구조
+- **문제**: 플래그를 켜는 곳이 `SetQuestTitle` 하나뿐이다. `SetQuestTitle` 태스크를 빠뜨린 퀘스트는 러너가 멀쩡히 돌고 목표도 등록되는데 `HasActiveQuest()` 가 false 라, 구독자인 `UWxViewModel_Quest` 가 저널 위젯을 열지 않는다(`Source/WxGame/MVVM/WxViewModel_Quest.cpp:53`). 게다가 `ClearJournal` 이 같은 플래그로 조기 반환하므로 그 퀘스트가 끝나도 정리 통지가 나가지 않는다. 실제 권위 있는 활성 여부는 러너가 쥐고 있다.
+- **제안**: `HasActiveQuest()` 가 `QuestStateTree && QuestStateTree->IsRunning()` 을 반환하게 하고 별도 저장 필드를 없앤다. 조회 가능한 값을 따로 들지 않는다는 프로젝트 선호와도 맞는다.
+- **확신도**: 중간
 
-### 7. 🟢 "완료 판정에서 빠져 있어 상태를 끝내지 않는다" doc-comment 에 전제가 빠졌다
-- **위치**: `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestTitle.h:26`, `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestObjective.h:30`
-- **범주**: 버그/정확성
-- **문제**: 태스크 자신의 기여만 보면 맞지만, 상태에 완료 판정 참여 태스크가 하나도 없으면 성립하지 않는다. UE 5.8 컴파일러는 그런 상태에 "상태 자신" 비트를 태스크 비트 뒤(오프셋 = 태스크 수)에 붙이는데(`StateTreeCompiler.cpp:390-400`), 상태 진입 시 `ResetStatus(TasksNum)` 은 태스크 수만큼만 비트를 지운다(`StateTreeTasksStatus.cpp:177-181`, `StateTreeTasksStatus.h:245-265`). 같은 부모의 형제 상태들은 시작 비트를 공유하므로(`StateTreeCompiler.cpp:1353-1357`), 직전 형제가 그 위치에 남긴 완료 비트 — 비참여 태스크의 `Succeeded` 반환도 비트 자체는 기록한다(`StateTreeTasksStatus.h:212-226`) — 를 물려받아 예컨대 목표 태스크만 얹은 스텝 상태가 진입 직후 완료로 판정된다(`StateTreeExecutionContext.cpp:4876-4881`). 새 퀘스트 상태를 짜는 사람이 이 문장을 근거로 대기 태스크 없는 상태를 만들면 그대로 함정에 빠진다.
-- **제안**: 두 문장에 "단, 그 상태에 완료 판정 참여 태스크(대기 계열)가 최소 하나 있어야 한다"는 전제를 덧붙인다.
-- **확신도**: 중간(엔진 메커니즘은 소스로 확인했으나, 현재 퀘스트 에셋에 판정 참여 태스크 없는 상태가 있는지는 미확인이다)
+### 8. 🟢 저널이 복제되지 않아 권위가 아닌 머신에는 퀘스트 UI 가 비어 있다
+- **위치**: `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestComponent.h:93`
+- **범주**: 설계/구조
+- **문제**: `QuestTitle`·`Objectives`·`bHasActiveQuest` 어느 것도 복제되지 않고, 러너 자체가 권위에서만 생성된다. 싱글·리슨 호스트에서는 문제가 없지만 클라이언트는 저널이 영원히 빈 채로 남는다. README 가 v1 전제로 명시한 알려진 한계이므로 결함으로 보지는 않되, 프로젝트 목표(최대 4인 멀티)상 언젠가 반드시 걸린다. `FText` 배열이라 그대로 복제하기 어려워 스냅샷 구조체 설계가 선행돼야 하는 만큼 미룰수록 비용이 커진다.
+- **제안**: 지금 손댈 필요는 없다. 다만 복제 스냅샷(제목 + 목표 텍스트 배열)을 `FWxQuestObjective` 확장으로 미리 설계해 두면, 태스크·저널 API 는 그대로 두고 복제 경로만 덧붙일 수 있다.
+- **확신도**: 낮음 (의도된 설계일 수 있음 — README 에 v1 전제로 명시돼 있다)
 
-### 8. 🟢 인라인 예외 주석이 존재하지 않는 "코딩 규칙 4"를 근거로 든다
+### 9. 🟢 인라인 예외 주석이 존재하지 않는 규칙 번호를 인용한다
 - **위치**: `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestTitle.h:12`, `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_SetQuestObjective.h:12`, `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_StartNextQuest.h:13`, `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_WaitMoveToTarget.h:13`
 - **범주**: 규칙 위반
-- **문제**: `CLAUDE.md` 는 `GetInstanceDataType()` 헤더 정의를 예외로 허용하되 그 지점에 예외 사유 주석을 요구한다. 네 헤더에 주석과 사유는 있지만 근거를 "코딩 규칙 4"로 적는데, 커밋 `5fe1ceb6` 에서 람다 규칙이 빠지며 인라인 금지는 규칙 3 이 됐고 규칙 4 는 더 이상 없어 주석이 가리키는 근거가 끊겼다. 같은 문구가 저장소의 다른 StateTree 노드 헤더 23곳(WxWorld·WxInventory·WxUI·WxDialogue)에도 있다.
-- **제안**: 번호 대신 "인라인 함수 정의 금지 규칙의 예외"처럼 내용으로 지칭하도록 저장소 전체를 일괄 치환한다. 규칙 번호가 다시 바뀌어도 깨지지 않는다.
+- **문제**: 네 헤더 모두 `GetInstanceDataType()` 의 헤더 정의를 *"코딩 규칙 4 의 예외"* 로 적고 있으나, CLAUDE.md 코딩 규칙은 3개뿐이고 인라인 금지는 3번이다. 예외 사유를 남기라는 요구 자체는 충족하지만 근거 번호가 어긋나 있어, 규칙이 한 번 더 바뀌면 추적이 끊긴다.
+- **제안**: 네 곳의 "코딩 규칙 4"를 "코딩 규칙 3"으로 고치거나, 번호 없이 "인라인 함수 정의 금지 규칙의 예외"로 바꾼다.
 - **확신도**: 높음
 
 ## 검토 범위
-- **깊게 본 파일**: `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp`, `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestComponent.h`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_SetQuestTitle.cpp`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_SetQuestObjective.cpp`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_StartNextQuest.cpp`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_WaitMoveToTarget.cpp`
-- **훑은 파일**: 태스크 4종 헤더(`Plugins/WxQuest/Source/WxQuest/Public/Quest/WxStateTreeTask_*.h`), `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestLibrary.h`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestLibrary.cpp`, `Plugins/WxQuest/Source/WxQuest/Public/WxQuestModule.h`, `Plugins/WxQuest/Source/WxQuest/Private/WxQuestModule.cpp`, `Plugins/WxQuest/Source/WxQuest/WxQuest.Build.cs`, `Plugins/WxQuest/WxQuest.uplugin`, `Plugins/WxQuest/README.md`. 참고용(리뷰 대상 아님)으로 `Source/WxGame/MVVM/WxViewModel_Quest.cpp`(구독자 영향), 저장소 전체의 `UWxQuestComponent`·`ActivateQuest` 호출처(부착은 `Source/WxGame/Framework/WxGameState.cpp` 1곳뿐), `Content/` 에셋의 `StartQuest` 참조 문자열(`BP_QuestVolume` 1곳뿐), UE 5.8 엔진의 `StateTreeComponent.cpp`·`StateTreeExecutionContext.cpp`(Stop·EnterState·ExitState·틱 완료 집계)·`StateTreeTasksStatus.h/.cpp`·`StateTreeCompiler.cpp`·`StateTreeTaskBase.h`·`TimerManager.cpp`·`GameModeBase.cpp`·`WorldSettings.cpp`·`EngineUtils.h`·`LevelActor.cpp`·`Actor.cpp`·`PrimitiveComponent.cpp`(BeginPlay 순서·초기 오버랩)를 확인했다.
-- **미검토 / 한계**: 퀘스트 `UStateTree` 에셋(`Content/Quest/ST_Quest_*`, `Content/Quest/Steps/ST_QuestStep_*`)과 `BP_QuestVolume` 내부는 에셋/BP 영역이라 열지 않았으므로, 발견 1·2·6·7 이 현재 저작물·맵 배치에서 실제로 성립하는지는 미정이다. 같은 에셋으로 `StartQuest` 를 다시 부르면 진행 중인 퀘스트가 처음부터 재시작(진입 부수효과 재실행)되는데 C++ 에는 이를 막는 장치가 없고 호출 측 BP 의 1회성 처리에 기대는 구조라 발견으로 잡지 않았다. 저널 리플리케이션 부재는 `WxQuestComponent.h:36` 에 명시된 v1(싱글/리슨 호스트) 유보라 발견에서 뺐다 — 데디케이티드 서버로 가면 `WaitMoveToTarget` 의 0번 컨트롤러 전제(`WxStateTreeTask_WaitMoveToTarget.cpp:41`)와 함께 재설계 대상이다. 퀘스트 진행도 영속화는 존재하지 않는 기능이라 발견에서 뺐다. 지난 리뷰(`9d8cb2dd`) 이후 모듈 소스 변경은 없으며, 이전 발견 7건은 모두 현재 코드·엔진 소스로 다시 검증해 유효했고 라인도 그대로다. 이번 판에서는 발견 1 에 "권위 측 BeginPlay 이전 호출" 경로를 엔진 근거와 함께 보강했고(이전 판은 조기 반환 목록에 한 단어로만 언급), 발견 8(낡은 규칙 번호)을 새로 추가했다.
+- **깊게 본 파일**: `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp`, `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestComponent.h`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_SetQuestObjective.cpp`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_SetQuestTitle.cpp`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_StartNextQuest.cpp`, `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_WaitMoveToTarget.cpp`
+- **훑은 파일**: `Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestLibrary.cpp`, `Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestLibrary.h`, 태스크 4종 헤더, `Plugins/WxQuest/Source/WxQuest/Public/WxQuestModule.h`, `Plugins/WxQuest/Source/WxQuest/Private/WxQuestModule.cpp`, `Plugins/WxQuest/Source/WxQuest/WxQuest.Build.cs`, `Plugins/WxQuest/WxQuest.uplugin`, `Plugins/WxQuest/README.md`
+- **대조 확인(발견 없음)**: 모듈 경계는 깨끗하다 — `.Build.cs` 의존성은 엔진 모듈 + `WxCore` 뿐이고, 실제 include 도 `WxLocatorUtils.h`(WxCore) 하나만 모듈 밖을 향한다. 저작권 첫 줄은 14파일 전부 충족하고, `Wx` 접두사·`Handle` 콜백 접두사·`BlueprintCallable` 사용처(BP Function Library 1건)도 규칙을 지킨다. 런타임 생성한 `QuestStateTree` 가 `InitializeComponent`/`BeginPlay` 를 제대로 받는지, `bConsideredForCompletion` 이 쿠킹 후에도 유지되는지(에디터 전용 UPROPERTY 로 ST 컴파일 시 베이킹됨)도 엔진 소스로 확인했고 둘 다 문제없다.
+- **미검토 / 한계**: 퀘스트 `UStateTree` 에셋의 실제 상태·태스크 배치는 BP/에셋 범위라 보지 않았다 — 발견 1·5·6 의 실제 체감 정도는 에셋이 어떤 모양인지에 달려 있다. `FUniversalObjectLocator::SyncFind` 의 매 틱 비용은 프로파일링으로 재지 않고 "경로 조회라 비용이 무시된다"는 README 전제를 받아들였다(활성 퀘스트가 1개뿐이라 실측 필요성은 낮다). `OnJournalChanged` 가 목표 1개 갱신마다 발화해 `UWxViewModel_Quest::RebuildObjectives` 가 매번 목표 VM 을 전부 재생성하는 비용은 WxGame 리뷰 소관으로 넘긴다.
 
 ---
-*문서 기준 커밋 `5eb1a754` · 리뷰일 2026-09-17 · 소스 14파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `fe57e17a` · 리뷰일 2026-09-20 · 소스 14파일 — `/module-review`로 갱신*
