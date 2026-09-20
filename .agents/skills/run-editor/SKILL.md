@@ -22,7 +22,9 @@ allowed-tools: PowerShell, Glob
 $ErrorActionPreference = 'Stop'
 
 # --- 0) 프로젝트 / 엔진 (UE 5.8 고정) ---
-$uproject = Get-ChildItem -Path . -Filter *.uproject -File | Select-Object -First 1
+$projectFiles = @(Get-ChildItem -LiteralPath . -Filter *.uproject -File)
+if ($projectFiles.Count -ne 1) { throw '프로젝트 루트에 .uproject가 정확히 하나 있어야 합니다.' }
+$uproject = $projectFiles[0]
 if (-not $uproject) { throw '.uproject 파일을 찾을 수 없습니다. 프로젝트 루트에서 실행하세요.' }
 $projPath = $uproject.FullName
 $projName = [System.IO.Path]::GetFileNameWithoutExtension($projPath)   # 예: Wx
@@ -49,10 +51,10 @@ foreach ($p in @($buildBat, $editorExe)) { if (-not (Test-Path $p)) { throw "필
 "빌드 타겟: $editorTarget Win64 Development"
 
 # --- 1) 실행 중인 에디터/게임 종료 (이 프로젝트만) ---
-$targets = @()
-$targets += Get-CimInstance Win32_Process -Filter "Name LIKE 'UnrealEditor%.exe'" -ErrorAction SilentlyContinue |   # DebugGame 등 구성별 바이너리(UnrealEditor-Win64-DebugGame.exe 등) 포함
-  Where-Object { $_.CommandLine -and ($_.CommandLine -like "*$projPath*" -or $_.CommandLine -like "*$projName.uproject*") }
-$targets += Get-CimInstance Win32_Process -Filter "Name='$projName.exe' OR Name LIKE '$projName-Win64-%.exe'" -ErrorAction SilentlyContinue   # 스탠드얼론/패키지 게임(구성별 접미사 포함)
+$selector = Join-Path $uproject.Directory.FullName '.agents\skills\run-editor\scripts\Get-WxProjectProcess.ps1'
+. $selector
+$processes = @(Get-CimInstance Win32_Process -ErrorAction Stop)
+$targets = @(Get-WxProjectProcess -ProjectFile $projPath -Processes $processes)
 $ids = $targets | Select-Object -ExpandProperty ProcessId -Unique
 if ($ids) {
   $ids | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }
@@ -84,6 +86,6 @@ $proc = Start-Process -FilePath $editorExe -ArgumentList "`"$projPath`"" -PassTh
 
 - 빌드 구성은 **Development Editor** 고정이다. DebugGame 등 다른 구성이 필요하면 스크립트의
   `Development` 인자를 바꾼다 (예: `DebugGame`).
-- 종료 대상은 **현재 프로젝트의** 에디터/게임 프로세스만이다(명령줄에 `.uproject` 경로가 포함된 인스턴스).
+- 종료 대상은 에디터의 정규화된 절대 프로젝트 인자 또는 현재 프로젝트 Binaries/Win64의 게임 실행 파일로 확인한다. 이름만 같거나 상대경로·정보 누락으로 소유 프로젝트가 모호하면 제외한다.
   다른 프로젝트의 에디터는 건드리지 않는다.
 - 빌드만 실패 없이 끝나면 에디터가 새 창으로 뜬다. 에디터는 대기하지 않고 백그라운드로 실행된다.
