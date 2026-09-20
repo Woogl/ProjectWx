@@ -113,7 +113,7 @@ public:
 
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
-	/** 진입 태그 조건은 처음 발동에서만 묻는다 — 콤보 창의 재발동은 이미 성립한 액션의 다음 단이다. */
+	/** 이 어빌리티가 선언한 진입 태그 조건은 처음 발동에서만 묻는다 — 콤보 창의 재발동은 이미 성립한 액션의 다음 단이다. 효과가 건 어빌리티 차단은 그 창에서도 유효하다. */
 	virtual bool DoesAbilitySatisfyTagRequirements(const UAbilitySystemComponent& AbilitySystemComponent, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
 	virtual bool CanBeCanceled() const override;
