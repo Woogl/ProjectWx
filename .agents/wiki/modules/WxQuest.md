@@ -1,7 +1,9 @@
 # WxQuest — 퀘스트 시스템
 
-> 상태: needs-review · 2026-09-20 이관 · 원문 기준 커밋: 047197a
-> 기존 README를 이관했습니다. 전체 코드 재검증은 하지 않았습니다. 아래 과거 설명은 탐색에 사용하고 변경 전 원자료를 확인하세요. 에셋 내부는 미검증입니다.
+작업 단계: 구현
+
+> 상태: current · 범위: 본문 핵심 계약·주요 C++ 경로의 정적 재검증 · 2026-09-20 · 기준 커밋: 5a3f282e3bd71fd85d263021c113cd30558820b7
+> 아래 검증 범위와 근거에 명시한 경로를 현재 작업 트리에서 확인했습니다. 전체 소스의 결함 검토·빌드·게임 실행·BP/WBP·DataTable·BT/StateTree 에셋 내부는 미검증입니다.
 > [Wiki 목차](../index.md) · [운영 절차](../maintenance.md)
 
 
@@ -44,9 +46,15 @@
 3. [Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_SetQuestObjective.cpp](../../../Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_SetQuestObjective.cpp) — 태스크가 오너에서 컴포넌트를 찾는 공통 패턴과 EnterState/ExitState 쌍의 수명 처리 표본.
 4. [Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestLibrary.h](../../../Plugins/WxQuest/Source/WxQuest/Public/Quest/WxQuestLibrary.h) — 외부에서 퀘스트가 시작되는 유일한 경로.
 
-## 관련
+## 검증 범위와 근거
+
+[Build.cs](../../../Plugins/WxQuest/Source/WxQuest/WxQuest.Build.cs)·[descriptor](../../../Plugins/WxQuest/WxQuest.uplugin), [QuestComponent](../../../Plugins/WxQuest/Source/WxQuest/Private/Quest/WxQuestComponent.cpp)의 권위 러너 생성·교체·저널 정리, [목표 등록/제거](../../../Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_SetQuestObjective.cpp), [다음 퀘스트 예약](../../../Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_StartNextQuest.cpp), [도달 대기](../../../Plugins/WxQuest/Source/WxQuest/Private/Quest/WxStateTreeTask_WaitMoveToTarget.cpp)를 확인했다. 부착은 [WxGameState.cpp](../../../Source/WxGame/Framework/WxGameState.cpp)에서 대조했다.
+
+저널은 네트워크 복제 속성이 아니며, `WaitMoveToTarget`은 0번 플레이어를 조회한다. 위치 대상이 해석되지 않으면 Running에 남는다. `StartNextQuest`의 빈 참조는 새 퀘스트 요청을 생략하는 의미이며, 현재 트리의 종료 전이까지 자동으로 만드는 것은 아니다. 실제 퀘스트 에셋·로드/언로드·멀티 플레이 실행은 미검증이다.
+
+## 관련 모듈
 - 상위: `WxGame` — `AWxGameState` 가 컴포넌트를 소유하고 `UWxViewModel_Quest` 가 `OnJournalChanged` 를 구독한다. 표시 계층은 [WxUI](WxUI.md), 퀘스트가 조립해 쓰는 동작 노드는 [WxCombat](WxCombat.md)·[WxInventory](WxInventory.md)·[WxDialogue](WxDialogue.md) 등 각 도메인에 있다.
 - 기반: [WxCore](WxCore.md) — 로케이터 유틸 등 공용 정의.
 
 ---
-*문서 기준 커밋 `047197a` · 생성일 2026-09-16 · 소스 14파일 — `/readme-writer`로 갱신*
+*이관 원문의 기준 커밋 `047197a` · 생성일 2026-09-16 · 소스 14파일 — 원문 출처 보존; 현재 확인 범위는 상단과 검증 절 참고*

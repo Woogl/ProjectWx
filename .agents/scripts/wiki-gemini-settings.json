@@ -1,0 +1,6 @@
+{
+  "tools": { "core": ["read_file", "read_many_files", "list_directory", "glob", "grep_search"] },
+  "hooksConfig": { "enabled": false },
+  "mcp": { "allowed": ["wx-wiki-no-mcp"] },
+  "skills": { "enabled": false }
+}

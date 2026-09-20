@@ -1,7 +1,9 @@
 # WxWorld — 월드 오브젝트 및 상호작용
 
-> 상태: needs-review · 2026-09-20 이관 · 원문 기준 커밋: 2872e9a
-> 기존 README를 이관했습니다. 전체 코드 재검증은 하지 않았습니다. 아래 과거 설명은 탐색에 사용하고 변경 전 원자료를 확인하세요. 에셋 내부는 미검증입니다.
+작업 단계: 구현
+
+> 상태: current · 범위: 본문 핵심 계약·주요 C++ 경로의 정적 재검증 · 2026-09-20 · 기준 커밋: 5a3f282e3bd71fd85d263021c113cd30558820b7
+> 아래 검증 범위와 근거에 명시한 경로를 현재 작업 트리에서 확인했습니다. 전체 소스의 결함 검토·빌드·게임 실행·BP/WBP·DataTable·BT/StateTree 에셋 내부는 미검증입니다.
 > [Wiki 목차](../index.md) · [운영 절차](../maintenance.md)
 
 
@@ -54,6 +56,17 @@
 4. [Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeWaitRegistry.h](../../../Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeWaitRegistry.h) — 대기형 태스크의 공통 골격. `WxStateTreeTask_WaitForInteraction.cpp` 와 함께 보면 "틱 없이 기다리다 통보로 완료" 패턴이 잡힌다.
 5. [Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawner.h](../../../Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawner.h) — 스포너 3종 태스크(발동·처치 대기·일괄 리스폰)가 모두 이 액터의 상태를 읽고 쓴다.
 
+## 검증 범위와 근거
+
+[Build.cs](../../../Plugins/WxWorld/Source/WxWorld/WxWorld.Build.cs)·[descriptor](../../../Plugins/WxWorld/WxWorld.uplugin), Device·DeviceStateTreeComponent 공개 계약과 [상태 동기화 구현](../../../Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceStateTreeComponent.cpp), [장치 상호작용](../../../Plugins/WxWorld/Source/WxWorld/Private/Device/WxDevice.cpp)을 확인했다.
+
+- 스냅샷은 상태 태그명·진입 일련번호·실행 상태·상호작용 캐릭터를 담는다. 클라이언트는 이를 따라 상태 전이를 요청한다. 초기/복원 진입과 라이브 전이는 구분되며 개별 태스크가 그 정책을 올바르게 사용하는지는 실제 조합별 확인이 필요하다.
+- [Spawner](../../../Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawner.cpp): 서버 지연 스폰, 기존 인스턴스·처치 상태 검사, `OnSpawnedBy` 이후 `FinishSpawning`, `bNeverRevive` 복원 분기.
+- [Scanner](../../../Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxInteractionScannerComponent.cpp)·[WaitForInteraction](../../../Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxStateTreeTask_WaitForInteraction.cpp): 소유 로컬 컨트롤러의 스캔과 RPC 요청, 권위 어빌리티의 상호작용 실행 후 대기 통지.
+- [Checkpoint](../../../Plugins/WxWorld/Source/WxWorld/Private/System/WxCheckpointSubsystem.cpp): Standalone에서 월드 패키지별 부활 위치를 보관한다. 디스크 영속 저장을 제공한다는 뜻은 아니다.
+
+장치별 StateTree·BP, 모든 이동·연출 태스크의 실행 결과, 레이트조인 동기화와 에디터 UI는 이번 검증 범위 밖이다.
+
 ## 관련
 
 - 상위: [Source/WxGame](../../../Source/WxGame) — PlayerController 가 스캐너를 소유하고, `WxAbility_Interact` 가 권위 판정 후 이 모듈에 통보하며, 리스폰 경로가 체크포인트를 읽는다.
@@ -61,4 +74,4 @@
 - 에디터 지원: [Source/WxEditor](../../../Source/WxEditor) — 장치 컴포넌트 이름 드롭다운 커스터마이제이션.
 
 ---
-*문서 기준 커밋 `2872e9a` · 생성일 2026-09-17 · 소스 57파일 — `/readme-writer`로 갱신*
+*이관 원문의 기준 커밋 `2872e9a` · 생성일 2026-09-17 · 소스 57파일 — 원문 출처 보존; 현재 확인 범위는 상단과 검증 절 참고*

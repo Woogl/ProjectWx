@@ -1,7 +1,9 @@
 # WxUI — UI 시스템
 
-> 상태: needs-review · 2026-09-20 이관 · 원문 기준 커밋: 047197a
-> 기존 README를 이관했습니다. 전체 코드 재검증은 하지 않았습니다. 아래 과거 설명은 탐색에 사용하고 변경 전 원자료를 확인하세요. 에셋 내부는 미검증입니다.
+작업 단계: 구현
+
+> 상태: current · 범위: 본문 핵심 계약·주요 C++ 경로의 정적 재검증 · 2026-09-20 · 기준 커밋: 5a3f282e3bd71fd85d263021c113cd30558820b7
+> 아래 검증 범위와 근거에 명시한 경로를 현재 작업 트리에서 확인했습니다. 전체 소스의 결함 검토·빌드·게임 실행·BP/WBP·DataTable·BT/StateTree 에셋 내부는 미검증입니다.
 > [Wiki 목차](../index.md) · [운영 절차](../maintenance.md)
 
 
@@ -11,7 +13,7 @@
 ## 책임
 **담당**
 - 로컬 플레이어 화면의 레이어 구조(`UI.Layer.*` 스택)와 위젯 푸시·비동기 클래스 스트리밍
-- 게임 정지·입력 모드(`FUIInputConfig`) 결정 — 활성 위젯들을 재평가해 최종 상태를 정한다
+- 게임 정지는 서브시스템이 활성 위젯을 재평가한다. 입력 모드(`FUIInputConfig`)는 위젯이 CommonUI에 제공한다.
 - ASC(어트리뷰트·어빌리티·이펙트)와 캐릭터 표시 데이터를 ViewModel 트리로 노출
 - 확인 팝업, 사망 화면·대화 창 같은 전역 화면의 표시 트리거
 - 화면 인디케이터 액터와 자막 슬롯, 그리고 이를 구동하는 StateTree 태스크 노드
@@ -28,7 +30,7 @@
 | --- | --- | --- |
 | `UWxUIManagerSubsystem` | 모듈의 중심. 레이아웃 생성·레이어 푸시·게임 정지 재평가·상태 태그(사망/대화) 감시가 모두 여기로 모인다 | [Plugins/WxUI/Source/WxUI/Public/System/WxUIManagerSubsystem.h](../../../Plugins/WxUI/Source/WxUI/Public/System/WxUIManagerSubsystem.h) |
 | `UWxPrimaryGameLayout` | 태그 → `UCommonActivatableWidgetStack` 맵을 들고 있는 화면 루트. 레이어 개념의 실체 | [Plugins/WxUI/Source/WxUI/Public/System/WxPrimaryGameLayout.h](../../../Plugins/WxUI/Source/WxUI/Public/System/WxPrimaryGameLayout.h) |
-| `UWxAsyncAction_PushWidgetToLayer` | 모든 위젯 푸시가 지나가는 단일 경로(스트리밍·취소 포함). 푸시 관련 버그는 먼저 여기를 본다 | [Plugins/WxUI/Source/WxUI/Public/Widget/WxAsyncAction_PushWidgetToLayer.h](../../../Plugins/WxUI/Source/WxUI/Public/Widget/WxAsyncAction_PushWidgetToLayer.h) |
+| `UWxAsyncAction_PushWidgetToLayer` | 일반 화면의 클래스 스트리밍·취소·레이어 푸시 경로. 확인 팝업은 ShowConfirmation이 직접 생성·푸시한다 | [Plugins/WxUI/Source/WxUI/Public/Widget/WxAsyncAction_PushWidgetToLayer.h](../../../Plugins/WxUI/Source/WxUI/Public/Widget/WxAsyncAction_PushWidgetToLayer.h) |
 | `UWxActivatableWidget` | 모든 화면 위젯의 베이스. 입력 모드·정지 요구를 서브시스템에 알리는 지점 | [Plugins/WxUI/Source/WxUI/Public/Widget/WxActivatableWidget.h](../../../Plugins/WxUI/Source/WxUI/Public/Widget/WxActivatableWidget.h) |
 | `UWxViewModel` | VM 계층의 루트. 공유 VM 조회(`FindSharedViewModel`)와 이미지 비동기 로드를 공통 제공 | [Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h](../../../Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel.h) |
 | `UWxViewModel_AbilitySystem` | ASC 하나를 물고 자식 VM(어트리뷰트·어빌리티 슬롯·활성 이펙트)을 지연 생성하는 허브 | [Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h](../../../Plugins/WxUI/Source/WxUI/Public/MVVM/WxViewModel_AbilitySystem.h) |
@@ -42,7 +44,7 @@
 - **위젯에 VM 연결**: WBP 의 MVVM 뷰모델 소스로 `UWxViewModelResolver_PlayerCharacter`(빙의 폰의 Character VM) 또는 `UWxViewModelResolver_Subtitle`(글로벌 자막 슬롯)을 지정한다. 전자는 위젯이 **빙의 이후** 생성될 것을 전제한다.
 - **데이터 주도**: 자막 1편 = `FWxSubtitleTableRow` DataTable 1개(행이 `NextRow` 로 스스로 이어짐). 표시 이름·아이콘은 소스 오브젝트의 `IWxUIData`(WxCore)에서 읽는다. 화면 클래스 4종은 `UWxUIDeveloperSettings`(DefaultGame.ini)로 주입한다.
 - **StateTree 노드**: `FWxStateTreeTask_MarkIndicator`·`FWxStateTreeTask_PrintSubtitle` 은 소비 도메인이 WxUI 를 참조하지 않고도 에셋에서 고를 수 있도록 본 모듈이 제공한다. 두 노드 모두 자기가 띄운 것만 회수한다.
-- **권한 모델**: 인디케이터·자막·HUD 는 복제하지 않는 로컬 표시물이며, 게임 정지(`bPauseGame`)는 싱글/리슨 호스트(v1) 전제다. 최대 4인 멀티에서는 각 클라이언트가 자기 화면을 스스로 만든다.
+- **권한 모델**: 인디케이터·자막·HUD는 로컬 표시 경로다. `RefreshGamePause`는 `NM_Standalone`에서만 정지를 적용하며 리슨 서버에서는 적용하지 않는다. 퀘스트 노드가 서버에서만 실행되는 경우 그 표시가 원격 클라이언트에도 전달된다고 가정해서는 안 된다.
 - **한계**: 레이아웃과 추적 상태는 로컬 플레이어 1명을 전제로 단수로 유지된다 — 스플릿스크린이 필요해지면 `ULocalPlayer` 키로 묶어야 한다.
 
 ## 여기서부터 읽어라
@@ -52,9 +54,18 @@
 4. [Plugins/WxUI/Source/WxUI/Private/Widget/WxAsyncAction_PushWidgetToLayer.cpp](../../../Plugins/WxUI/Source/WxUI/Private/Widget/WxAsyncAction_PushWidgetToLayer.cpp) — 취소·레이아웃 교체 등 푸시 경로의 예외 처리가 모여 있다.
 5. [Plugins/WxUI/Source/WxUI/Public/Component/WxPlayerLayoutComponent.h](../../../Plugins/WxUI/Source/WxUI/Public/Component/WxPlayerLayoutComponent.h) — 컨트롤러 쪽에서 HUD 가 어떻게 붙고 걷히는지의 반대편 끝.
 
+## 검증 범위와 근거
+
+[Build.cs](../../../Plugins/WxUI/Source/WxUI/WxUI.Build.cs)·[descriptor](../../../Plugins/WxUI/WxUI.uplugin), UIManager·레이아웃·설정의 공개 계약과 위에 연결한 구현을 확인했다.
+
+- [PrimaryGameLayout](../../../Plugins/WxUI/Source/WxUI/Private/System/WxPrimaryGameLayout.cpp)·[ActivatableWidget](../../../Plugins/WxUI/Source/WxUI/Private/Widget/WxActivatableWidget.cpp): 레이어 생성과 CommonUI 입력 설정. [UIManager](../../../Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp)의 확인 팝업은 미리 로드한 클래스로 위젯을 만들고 내용을 채운 뒤 Modal에 푸시한다.
+- [ViewModel](../../../Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel.cpp)·[AbilitySystem VM](../../../Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_AbilitySystem.cpp): Outer/정확 클래스 기반 공유 조회, 이미지 요청 교체, 자식 VM 지연 생성·구독 정리.
+- [Indicator](../../../Plugins/WxUI/Source/WxUI/Private/Indicator/WxIndicator.cpp)·[MarkIndicator](../../../Plugins/WxUI/Source/WxUI/Private/Indicator/WxStateTreeTask_MarkIndicator.cpp): 별도 액터의 대상 부착·화면 가장자리 보정과 태스크 이탈 시 회수.
+- [PrintSubtitle](../../../Plugins/WxUI/Source/WxUI/Private/Subtitle/WxStateTreeTask_PrintSubtitle.cpp): 행 진행과 표시 핸들 회수. WBP 바인딩·자막 테이블·실제 화면 표시와 분할 화면은 미검증이다.
+
 ## 관련
-- 상위: `WxGame` — `AWxCharacterBase` 가 `IWxUIData` 를 구현해 표시 데이터를 공급하고, `UWxViewModel_InteractionList`·`UWxViewModel_Quest` 가 본 모듈의 VM 을 확장한다. `UWxPlayerLayoutComponent`·`UWxNameplateComponent` 부착은 BP 에서 이뤄진다.
+- 상위: `WxGame` — `AWxCharacterBase`가 `IWxUIData`를 구현하고 도메인 VM이 표시를 확장한다. `UWxPlayerLayoutComponent`는 [PlayerController](../../../Source/WxGame/Controller/WxPlayerController.cpp), `UWxNameplateComponent`는 [EnemyCharacter](../../../Source/WxGame/Character/WxEnemyCharacter.cpp)의 네이티브 생성자에서 부착된다. 추가 BP 부착 여부는 확인하지 않았다.
 - 함께 보기: [WxCore](WxCore.md)(태그·`IWxUIData` 정의), [WxCombat](WxCombat.md)(VM 이 읽는 ASC 데이터의 출처), [WxWorld](WxWorld.md)(상호작용 후보 탐색). StateTree 노드를 쓰는 도메인은 C++ 의존 없이 에셋에서만 연결되므로, 소비처는 코드가 아니라 ST 에셋에서 찾는다.
 
 ---
-*문서 기준 커밋 `047197a` · 생성일 2026-09-16 · 소스 58파일 — `/readme-writer`로 갱신*
+*이관 원문의 기준 커밋 `047197a` · 생성일 2026-09-16 · 소스 58파일 — 원문 출처 보존; 현재 확인 범위는 상단과 검증 절 참고*

@@ -1,7 +1,9 @@
 # WxCore — 공용 정의 foundation
 
-> 상태: needs-review · 2026-09-20 이관 · 원문 기준 커밋: 047197a
-> 기존 README를 이관했습니다. 전체 코드 재검증은 하지 않았습니다. 아래 과거 설명은 탐색에 사용하고 변경 전 원자료를 확인하세요. 에셋 내부는 미검증입니다.
+작업 단계: 구현
+
+> 상태: current · 범위: 본문 핵심 계약·주요 C++ 경로의 정적 재검증 · 2026-09-20 · 기준 커밋: 5a3f282e3bd71fd85d263021c113cd30558820b7
+> 아래 검증 범위와 근거에 명시한 경로를 현재 작업 트리에서 확인했습니다. 전체 소스의 결함 검토·빌드·게임 실행·BP/WBP·DataTable·BT/StateTree 에셋 내부는 미검증입니다.
 > [Wiki 목차](../index.md) · [운영 절차](../maintenance.md)
 
 
@@ -9,7 +11,7 @@
 
 ## 책임
 **담당**
-- 프로젝트 공용 C++ Native Gameplay Tag의 선언처. WxCombat의 IgnoreAbilityTags 자체 선언 예외는 [Q-004](../questions/open-questions.md) 참고(2026-09-20 확인)
+- 프로젝트 C++ Native Gameplay Tag의 유일한 선언처. 도메인 플러그인은 자체 태그를 선언하지 않는다([결정](../decisions/gameplay-tag-ownership.md), 2026-09-21 확인)
 - 도메인 간 경계를 넘는 인터페이스 계약(`IWxInteractable`, `IWxUIData`, `IWxSpawnable`) 정의와 기본 구현
 - 공격 판정용 커스텀 Object Channel 상수(`ECC_WxAttack`)의 C++ 측 고정
 - 에디터 전용 로케이터 표시명 헬퍼
@@ -32,14 +34,14 @@
 
 ## Gameplay Tags
 - 선언: [Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h](../../../Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h) / 정의: [Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp](../../../Plugins/WxCore/Source/WxCore/Private/WxGameplayTags.cpp)
-- 기존 문서의 설계 지침은 이 두 파일로 새 태그를 모으는 것이다. 현재 코드 전체가 이를 만족한다는 뜻은 아니다.
+- 모든 네이티브 태그를 이 두 파일에만 선언·정의한다([결정](../decisions/gameplay-tag-ownership.md)). 2026-09-21 전역 검색 기준 예외는 없다.
 - 주요 네임스페이스:
   - `State.*` — ASC에 붙는 지속 상태(락온·교전·대화·래그돌). `State.MinionMaster.*` 는 소환물을 보유한 **주인** 쪽에 붙으며 잎이 소환물 종류다
   - `Effect.*` — GE가 부여하는 전투 상태(무적·가드·탈진·슈퍼아머·히트스톱). 애셋 태그로도 쓴다
   - `Event.*` — GameplayEvent 채널. 대미지 파이프라인·상호작용·장치·아이템 사용의 신호
   - `HitReact.*` — 공격이 요청하는 피격 반응 종류. `Event.Hit`의 TargetTags 페이로드로 전달된다
-  - `Ability.*` — 어빌리티 식별 태그. 각 어빌리티가 AssetTags·ActivationOwnedTags 양쪽에 정확히 하나 갖는 규약이라 "태그 보유 = 활성 중"이 성립한다
-  - `Cooldown.*` — `Ability.*`와 짝을 이루는 쿨다운 GE 태그. 순정 `CheckCooldown`이 이 태그로 쿨다운을 식별한다
+  - `Ability.*` — 어빌리티 식별·활성 상태에 사용하는 태그. 개별 어빌리티의 AssetTags와 ActivationOwnedTags 설정을 확인해야 하며 태그 존재만으로 모든 어빌리티의 활성 스펙을 단정하지 않는다.
+  - `Cooldown.*` — 쿨다운 GE 식별 태그. WxCombat의 `CheckCooldown`은 충전 수·면제 태그를 먼저 확인한 뒤 필요하면 엔진 기본 검사로 위임한다.
   - `Damage.*` — 대미지 스펙의 성질·판정 결과(공격 표식·치명타·가드 가능·패리 가능·가드브레이크)
   - `SetByCaller.*` — GE 매그니튜드 주입 키
   - `Device.*` — 월드 장치의 StateTree 상태값. C++에서 읽지 않지만 선언은 여기 모은다
@@ -47,10 +49,10 @@
   - `Movement.*`, `UI.Layer.*`, `UI.Action.*`
 
 ## 확장 포인트 / 규약
-- **새 태그**: 헤더에 `UE_DECLARE_GAMEPLAY_TAG_EXTERN` + `WXCORE_API`, cpp에 `UE_DEFINE_GAMEPLAY_TAG` 한 쌍. 공용 태그를 여기에 모으는 것이 기존 문서의 설계 지침이며, 현재 예외는 Q-004에서 추적한다.
+- **새 태그**: 헤더에 `UE_DECLARE_GAMEPLAY_TAG_EXTERN` + `WXCORE_API`, cpp에 `UE_DEFINE_GAMEPLAY_TAG` 한 쌍. 도메인 안에서만 쓰는 태그도 예외 없이 여기에 모은다([결정](../decisions/gameplay-tag-ownership.md)).
 - **새 상호작용 대상**: 액터(컴포넌트 아님)가 `IWxInteractable`을 구현한다. `CanInteract`는 기본 `true`이며 구현체가 자기 상태에서 파생시켜야 클라 표시 게이트와 서버 검증이 같은 답을 낸다. 쿼리 콜리전이 켜진 프리미티브가 없으면 스캔에 걸리지 않는다.
 - **새 UI 표시 데이터**: 저작 데이터를 쥔 쪽(어빌리티·GE 컴포넌트)이 `IWxUIData`를 구현한다. `GetMaxRecharges`만 기본값 1로 제공된다.
-- **새 스폰 대상**: 액터가 `IWxSpawnable`을 구현한다. `OnSpawnedBy`는 Deferred Spawn의 `FinishSpawning` 이전에 불린다. 소환물 정책(상한·주인 태그)은 여기 없고 [WxCombat](WxCombat.md)의 `UWxMinionComponent`가 선언한다.
+- **새 스폰 대상**: 배치 스포너가 생성할 액터는 `IWxSpawnable`을 구현한다. WxWorld의 `AWxSpawner`는 `FinishSpawning` 전에 `OnSpawnedBy`를 호출한다. WxCombat 소환 노티파이도 이 인터페이스를 에디터 필터로 쓰지만 소환 런타임은 `OnSpawnedBy`를 호출하지 않고 `UWxMinionComponent`와 Instigator로 정책·주인을 관리한다.
 - **의존 규칙**: foundation 모듈이므로 엔진 모듈 외에는 아무것도 참조하지 않는다. 다른 Wx 플러그인이 서로를 참조하지 않고 통신하려면 그 접점을 여기에 올린다.
 - 리플리케이션 정책은 갖지 않는다 — 태그를 복제하는지 loose로 두는지는 발행하는 도메인이 정하며, 헤더 주석에 태그별로 적혀 있다.
 
@@ -59,8 +61,14 @@
 2. [Plugins/WxCore/Source/WxCore/Public/WxInteractable.h](../../../Plugins/WxCore/Source/WxCore/Public/WxInteractable.h) · `WxUIData.h` — 도메인 플러그인이 서로를 참조하지 않는 이유가 이 두 계약에 있다
 3. [Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h](../../../Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h) — 히트 판정이 왜 메시에서만 일어나는지에 대한 근거. `DefaultEngine.ini`와 함께 본다
 
-## 관련
+## 검증 범위와 근거
+
+[Build.cs](../../../Plugins/WxCore/Source/WxCore/WxCore.Build.cs)·[descriptor](../../../Plugins/WxCore/WxCore.uplugin), 태그 선언·정의, [상호작용 기본 구현](../../../Plugins/WxCore/Source/WxCore/Private/WxInteractable.cpp), [UI 데이터 기본 구현](../../../Plugins/WxCore/Source/WxCore/Private/WxUIData.cpp), [스폰 계약](../../../Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h), [로케이터 표시 헬퍼](../../../Plugins/WxCore/Source/WxCore/Private/WxLocatorUtils.cpp)를 확인했다. 과거 `IWxMinion`은 제거되었으며 소환 정책은 WxCombat에 있다.
+
+`ECC_WxAttack`은 [DefaultEngine.ini](../../../Config/DefaultEngine.ini)의 GameTraceChannel1 등록과 일치한다. 실제 메시·캡슐 응답은 소비 클래스와 에셋 설정도 함께 확인해야 한다. 위 태그 분류는 탐색용이며 전체 소비 경로·에셋별 태그 부여 결과를 전수 검증한 것은 아니다.
+
+## 관련 모듈
 - 상위: 모든 Wx 플러그인과 [WxGame](WxGame.md)이 이 모듈을 참조한다. 태그 소비가 가장 두꺼운 곳은 [WxCombat](WxCombat.md)이고, `IWxInteractable` 구현은 [WxWorld](WxWorld.md)·[WxDialogue](WxDialogue.md)·[WxInventory](WxInventory.md)·[WxGame](WxGame.md)에, `FWxLocatorUtils` 사용은 [WxWorld](WxWorld.md)·[WxQuest](WxQuest.md)·[WxUI](WxUI.md)의 StateTree 태스크에 있다
 
 ---
-*문서 기준 커밋 `047197a` · 생성일 2026-09-16 · 소스 13파일 — `/readme-writer`로 갱신*
+*이관 원문의 기준 커밋 `047197a` · 생성일 2026-09-16 · 소스 13파일 — 원문 출처 보존; 현재 확인 범위는 상단과 검증 절 참고*

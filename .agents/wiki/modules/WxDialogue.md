@@ -1,7 +1,9 @@
 # WxDialogue — 대화 시스템
 
-> 상태: needs-review · 2026-09-20 이관 · 원문 기준 커밋: 047197a
-> 기존 README를 이관했습니다. 전체 코드 재검증은 하지 않았습니다. 아래 과거 설명은 탐색에 사용하고 변경 전 원자료를 확인하세요. 에셋 내부는 미검증입니다.
+작업 단계: 구현
+
+> 상태: current · 범위: 본문 핵심 계약·주요 C++ 경로의 정적 재검증 · 2026-09-20 · 기준 커밋: 5a3f282e3bd71fd85d263021c113cd30558820b7
+> 아래 검증 범위와 근거에 명시한 경로를 현재 작업 트리에서 확인했습니다. 전체 소스의 결함 검토·빌드·게임 실행·BP/WBP·DataTable·BT/StateTree 에셋 내부는 미검증입니다.
 > [Wiki 목차](../index.md) · [운영 절차](../maintenance.md)
 
 
@@ -48,11 +50,19 @@
 3. [Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueTableRow.h](../../../Plugins/WxDialogue/Source/WxDialogue/Public/WxDialogueTableRow.h) — 세션이 소비하는 데이터의 전부. 짧다.
 4. [Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueComponent.cpp](../../../Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueComponent.cpp) — 상호작용에서 세션까지 어떻게 건너가는지(대상 → Interactor 폰 → 컨트롤러 → 세션)를 보여 주는 15줄.
 
-## 관련
+## 검증 범위와 근거
+
+[Build.cs](../../../Plugins/WxDialogue/Source/WxDialogue/WxDialogue.Build.cs)·[descriptor](../../../Plugins/WxDialogue/WxDialogue.uplugin), [Actor 중계](../../../Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueActor.cpp), DialogueComponent·DialogueTableRow, [Session 전체 구현](../../../Plugins/WxDialogue/Source/WxDialogue/Private/WxDialogueSessionComponent.cpp), [PlayDialogue 태스크](../../../Plugins/WxDialogue/Source/WxDialogue/Private/WxStateTreeTask_PlayDialogue.cpp)를 확인했다. manifest와 달랐던 원자료 4개도 대조했다.
+
+`EndDialogue`는 종료 델리게이트를 지역 사본으로 이동하고 멤버를 비운 뒤 발행한다. 종료 콜백 안에서 새 세션이 구독한 델리게이트를 지우지 않기 위한 순서다. StateTree 태스크는 같은 상태 재선택 시 대화를 재시작하지 않는다. 포즈 스트리밍은 세션 종료 때 취소하지 않으며 마지막 포즈가 늦게 도착할 수 있다.
+
+PC 부착은 [WxPlayerController.cpp](../../../Source/WxGame/Controller/WxPlayerController.cpp), 창 개폐는 [UIManager](../../../Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp)에서 확인했다. 원격 클라이언트에서 권위 StateTree와 로컬 대화 완료를 연결하는 동작은 검증하지 않았으며, 기존 싱글/리슨 호스트 전제를 유지한다.
+
+## 관련 모듈
 - 상위: [WxGame](WxGame.md) — `AWxPlayerController` 가 세션 컴포넌트를 생성자에서 붙이고, `AWxNpc` 가 `AWxDialogueActor` 를 상속하며, `UWxViewModel_Dialogue` 가 `OnLineChanged`/`Advance()` 를 잇는다
 - [WxUI](WxUI.md) — `State.Dialogue` 태그 전이로 대화 창을 여닫는다
 - [WxCore](WxCore.md) — `IWxInteractable` 계약과 `WxGameplayTags::State_Dialogue` 선언
 - StateTree 트리(퀘스트 등) — `대화 재생` 태스크로 이 모듈을 호출하고, 종료(`OnDialogueEnded`)를 기다려 그 의미를 판정한다. 완주(`bCompleted=true`)만 `Succeeded` 로 마감되고 중단은 `Running` 에 머문다
 
 ---
-*문서 기준 커밋 `047197a` · 생성일 2026-09-16 · 소스 11파일 — `/readme-writer`로 갱신*
+*이관 원문의 기준 커밋 `047197a` · 생성일 2026-09-16 · 소스 11파일 — 원문 출처 보존; 현재 확인 범위는 상단과 검증 절 참고*

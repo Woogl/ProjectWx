@@ -1,7 +1,9 @@
 # WxGame — 게임 모듈 (조립 계층)
 
-> 상태: needs-review · 2026-09-20 이관 · 원문 기준 커밋: 2872e9a
-> 기존 README를 이관했습니다. 전체 코드 재검증은 하지 않았습니다. 아래 과거 설명은 탐색에 사용하고 변경 전 원자료를 확인하세요. 에셋 내부는 미검증입니다.
+작업 단계: 구현
+
+> 상태: current · 범위: 본문 핵심 계약·주요 C++ 경로의 정적 재검증 · 2026-09-20 · 기준 커밋: 5a3f282e3bd71fd85d263021c113cd30558820b7
+> 아래 검증 범위와 근거에 명시한 경로를 현재 작업 트리에서 확인했습니다. 전체 소스의 결함 검토·빌드·게임 실행·BP/WBP·DataTable·BT/StateTree 에셋 내부는 미검증입니다.
 > [Wiki 목차](../index.md) · [운영 절차](../maintenance.md)
 
 
@@ -42,9 +44,9 @@
 ## 확장 포인트 / 규약
 - **새 캐릭터**: `AWxCharacterBase`(추상)를 상속하거나 `AWxPlayerCharacter` / `AWxEnemyCharacter`의 BP를 만든다. 스탯·어빌리티는 C++이 아니라 ASC에 지정한 AbilitySet에서 온다 — `InitAbilitySystem()`이 어트리뷰트 콜백을 먼저 걸고 `GiveAbilitySets()`를 호출하는 순서에 의존한다. 대화만 하는 캐릭터는 폰이 아니라 `AWxNpc`(`AWxDialogueActor` 파생)를 쓴다.
 - **새 게임플레이 입력**: 이동류면 `UWxInputConfig`에 IA를 추가하고 `AWxPlayerCharacter::SetupPlayerInputComponent`에서 바인딩한다. 어빌리티 발동 입력은 여기 넣지 않는다 — IA는 어빌리티 CDO가 들고 있고 바인딩 목록은 AbilitySet에서 파생된다. 메뉴/UI 입력은 CommonUI 액션(WxUI) 쪽이다.
-- **새 HUD 데이터**: `UWxViewModel`(WxCore/WxUI) 파생 뷰모델과 짝이 되는 `UMVVMViewModelContextResolver` 파생을 `MVVM/`에 함께 둔다. 리졸버는 위젯 클래스 단위로 공유되므로 상태·구독은 뷰모델이 가진다. 도메인 컴포넌트가 위젯보다 늦게 도착할 수 있어(복제) 뷰모델은 인스턴스를 교체하지 않고 내부 연결만 갈아 끼우는 관찰 패턴(`StartObserving`)을 쓴다.
+- **새 HUD 데이터**: `UWxViewModel`(WxUI) 파생 뷰모델과 짝이 되는 `UMVVMViewModelContextResolver` 파생을 `MVVM/`에 함께 둔다. 리졸버에 플레이어별 상태를 두지 않고 상태·구독은 뷰모델이 가진다. 도메인 컴포넌트의 늦은 도착·교체는 뷰모델의 관찰 경로에서 처리한다.
 - **데이터 주도 설정**: `AWxEnemyCharacter::RewardRow`는 `WxRewardTableRow`(WxInventory) DataTable 행을, `UWxAbility_UseItem::ConsumableDef`는 Usable/Charges Fragment를 가진 `UWxItemDefinition`을 요구한다. 프론트엔드 목록은 `FWxFrontEndOption`(폰 클래스+레벨)을 WBP에서 채운다.
-- **권한 모델(최대 4인)**: 서버 권위 기준이다. 캐릭터 ASC는 서버 `PossessedBy`, 플레이어는 클라 `OnRep_PlayerState`에서 초기화한다. `AWxAbility_Interact`는 ServerOnly이고 클라 스캐너의 선택을 서버가 사거리로 재검증한다. `UWxRespawnLibrary::RequestRespawn`은 Standalone 전용 경로다.
+- **권한 모델**: 캐릭터 ASC는 서버 `PossessedBy`, 플레이어는 클라 `OnRep_PlayerState`에서 초기화한다. `UWxAbility_Interact`는 ServerOnly이고 클라 스캐너의 선택을 서버가 `CanInteract`와 쿼리 충돌 기반 사거리로 재검증한다. `UWxRespawnLibrary::RequestRespawn`과 `UWxGameFlowSubsystem::RequestNewGame`은 Standalone 전용이다.
 
 ## 여기서부터 읽어라
 1. [Source/WxGame/WxGame.Build.cs](../../../Source/WxGame/WxGame.Build.cs) — 이 모듈이 어느 도메인 플러그인을 조립하는지가 의존 목록에 그대로 드러난다.
@@ -53,9 +55,21 @@
 4. [Source/WxGame/MVVM/WxViewModel_InteractionList.h](../../../Source/WxGame/MVVM/WxViewModel_InteractionList.h) — 도메인↔UI 접착이 왜 이 모듈에 있는지 보여 주는 대표 사례.
 5. [Source/WxGame/FrontEnd/WxGameFlowSubsystem.h](../../../Source/WxGame/FrontEnd/WxGameFlowSubsystem.h) + [Source/WxGame/Framework/WxGameMode.cpp](../../../Source/WxGame/Framework/WxGameMode.cpp) — 프론트엔드에서 전투 맵까지의 흐름이 이 둘 사이에서 완결된다.
 
-## 관련
+## 검증 범위와 근거
+
+[Build.cs](../../../Source/WxGame/WxGame.Build.cs)·[uproject](../../../Wx.uproject), 캐릭터·컨트롤러·GameMode·GameState의 컴포넌트 조립과 다음 경로를 확인했다.
+
+- [CharacterBase](../../../Source/WxGame/Character/WxCharacterBase.cpp)·[PlayerCharacter](../../../Source/WxGame/Character/WxPlayerCharacter.cpp): ASC 소유, 속성 콜백 연결 후 서버 AbilitySet 부여, EnhancedInput 배선. 실제 입력 에셋 값은 미검증이다.
+- [PlayerController](../../../Source/WxGame/Controller/WxPlayerController.cpp)·[GameState](../../../Source/WxGame/Framework/WxGameState.cpp): 인벤토리·스캐너·대화·레이아웃 및 퀘스트·컷신의 네이티브 부착.
+- [EnemyCharacter](../../../Source/WxGame/Character/WxEnemyCharacter.cpp): `UWxMinionComponent`·Nameplate의 네이티브 부착, 스포너 사망 통지와 보상 지급. 소환되지 않은 일반 적은 Instigator 주인이 없으므로 소환물로 등록하지 않는다.
+- [AIController](../../../Source/WxGame/Controller/WxAIController.cpp): BT 실행과 블랙보드 초기화, `UWxMinionComponent::GetMaster`를 통한 Master 전달, TargetActor 변경의 락온 연결.
+- [Interact](../../../Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp), [리스폰](../../../Source/WxGame/Framework/WxRespawnLibrary.cpp), [게임 진입](../../../Source/WxGame/FrontEnd/WxGameFlowSubsystem.cpp)의 권한·실패 분기.
+
+MVVM은 모듈 간 연결 구조를 확인한 범위이며 모든 표시 필드·리졸버 수명, 메타휴먼 조립·이동·치트의 세부 동작 및 실제 멀티 플레이는 전수 검증하지 않았다.
+
+## 관련 모듈
 - 하위(위임 대상): [WxCore](WxCore.md) · [WxCombat](WxCombat.md) · [WxInventory](WxInventory.md) · [WxUI](WxUI.md) · [WxWorld](WxWorld.md) · [WxAI](WxAI.md) · [WxDialogue](WxDialogue.md) · [WxQuest](WxQuest.md)
 - 상위: 없음 — 이 모듈이 최상위 게임 모듈(`IMPLEMENT_PRIMARY_GAME_MODULE`)이며, 맵·BP 에셋이 여기 클래스를 파생해 쓴다.
 
 ---
-*문서 기준 커밋 `2872e9a` · 생성일 2026-09-17 · 소스 57파일 — `/readme-writer`로 갱신*
+*이관 원문의 기준 커밋 `2872e9a` · 생성일 2026-09-17 · 소스 57파일 — 원문 출처 보존; 현재 확인 범위는 상단과 검증 절 참고*
