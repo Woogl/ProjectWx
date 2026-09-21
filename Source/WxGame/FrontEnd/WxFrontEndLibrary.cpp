@@ -9,6 +9,7 @@
 #include "FrontEnd/WxFrontEndDeveloperSettings.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
+#include "Misc/PackageName.h"
 #include "Widget/WxButtonBase.h"
 
 TArray<FWxFrontEndOption> UWxFrontEndLibrary::GetCharacterOptions()
@@ -18,8 +19,12 @@ TArray<FWxFrontEndOption> UWxFrontEndLibrary::GetCharacterOptions()
 	{
 		FWxFrontEndOption& Option = Options.AddDefaulted_GetRef();
 		Option.PawnClass = Character;
-		// GetClassDisplayName과 같은 클래스 이름을 로드 없이 읽는다.
-		Option.DisplayName = FText::FromString(Character.ToSoftObjectPath().GetAssetName());
+		const FSoftObjectPath& ClassPath = Character.ToSoftObjectPath();
+		const FString PackageName = ClassPath.GetLongPackageName();
+		const FString DisplayName = FPackageName::IsScriptPackage(PackageName)
+			? ClassPath.GetAssetName()
+			: FPackageName::GetShortName(PackageName);
+		Option.DisplayName = FText::FromString(DisplayName);
 	}
 	return Options;
 }
