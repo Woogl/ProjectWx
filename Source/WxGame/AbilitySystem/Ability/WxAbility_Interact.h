@@ -35,7 +35,7 @@ protected:
 
 private:
 	/** 권위에서만 호출한다. */
-	void ExecuteInteract(AActor* Selected, const FGameplayAbilityActorInfo* ActorInfo);
+	void ExecuteInteract(AActor* Selected, int32 OptionValue, const FGameplayAbilityActorInfo* ActorInfo);
 
 	/**
 	 * 프리미티브엔 쿼리 콜리전이 켜져 있어야 한다(스켈레탈이면 피직스 애셋도 필요) — 하나도 없으면 항상 false 다.

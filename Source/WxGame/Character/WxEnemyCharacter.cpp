@@ -103,7 +103,7 @@ bool AWxEnemyCharacter::CanInteract(const AActor* Interactor) const
 	return !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Engaged) && IsInRearCone(Interactor);
 }
 
-void AWxEnemyCharacter::OnInteracted(AActor* Interactor)
+void AWxEnemyCharacter::OnInteracted(AActor* Interactor, int32 OptionValue)
 {
 	if (!Interactor)
 	{

@@ -71,7 +71,7 @@ void AWxItemPickup::LaunchInDirection(const FVector& Direction, float Speed)
 	MeshComponent->SetPhysicsLinearVelocity(Direction.GetSafeNormal() * Speed);
 }
 
-void AWxItemPickup::OnInteracted(AActor* Interactor)
+void AWxItemPickup::OnInteracted(AActor* Interactor, int32 OptionValue)
 {
 	// 서버 권위에서만 호출된다.
 	if (!Interactor)

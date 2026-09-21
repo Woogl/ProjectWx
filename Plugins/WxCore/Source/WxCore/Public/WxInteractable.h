@@ -8,6 +8,15 @@
 
 class AActor;
 
+/** 상호작용 선택지 하나. 한 대상이 여럿을 내놓으면 HUD 목록에 그 수만큼 행이 생긴다. */
+struct FWxInteractionOption
+{
+	FText Prompt;
+
+	/** 고른 선택지를 대상에 되돌려 줄 때 쓰는 값. 뜻은 대상이 정한다(엘리베이터는 정차 지점 번호). 선택지가 하나뿐인 대상은 INDEX_NONE. */
+	int32 Value = INDEX_NONE;
+};
+
 /**
  * 상호작용 대상의 공용 계약. 대상 액터가 구현한다 — 컴포넌트는 구현하지 않는다.
  *
@@ -33,7 +42,11 @@ public:
 	 */
 	virtual bool CanInteract(const AActor* Interactor) const;
 
-	virtual void OnInteracted(AActor* Interactor) = 0;
+	/** 기본은 GetInteractionPrompt() 하나다. 선택지가 여럿인 대상만 재정의한다. */
+	virtual void GetInteractionOptions(const AActor* Interactor, TArray<FWxInteractionOption>& OutOptions) const;
+
+	/** OptionValue 는 플레이어가 고른 선택지의 Value 다. 클라가 보낸 값이지만, 호출하는 상호작용 어빌리티가 서버에서 지금의 선택지와 대조한 뒤에만 부른다. */
+	virtual void OnInteracted(AActor* Interactor, int32 OptionValue) = 0;
 
 	virtual FText GetInteractionPrompt() const = 0;
 };

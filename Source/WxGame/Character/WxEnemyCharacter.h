@@ -43,7 +43,7 @@ public:
 
 	//~ Begin IWxInteractable
 	virtual bool CanInteract(const AActor* Interactor) const override;
-	virtual void OnInteracted(AActor* Interactor) override;
+	virtual void OnInteracted(AActor* Interactor, int32 OptionValue) override;
 	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
 	

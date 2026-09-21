@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Engine/TimerHandle.h"
+#include "WxInteractable.h"
 #include "WxInteractionScannerComponent.generated.h"
 
 class AActor;
@@ -26,8 +27,8 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnScannerReady, UWxInteractionScannerComp
  * 감지·선택·하이라이트는 로컬 어포던스라 소유 클라에서만 구동한다(데디 서버 PC 는 스캔하지 않는다).
  *
  * 입력 수신: 본 컴포넌트는 입력을 직접 바인딩하지 않는다. HUD 리스트 위젯이 Enhanced Input 으로 받아 리스트 뷰모델에 넘기고, 뷰모델이 TryInteractSelected/CycleSelection 을 호출한다.
- * 선택 전달: 입력 시 로컬 선택을 읽어 ServerInteract 로 액터 포인터를 원자 전송한다(선택을 복제하지 않으므로 "사이클→즉시입력" 순서가 로컬 동기 읽기로 보장된다).
- * 서버는 Event.Interact(OptionalObject=선택)를 폰 ASC 로 송출해 ServerOnly WxAbility_Interact 가 권위에서 사거리·활성 검증 후 대상 인터페이스를 호출하게 한다.
+ * 선택 전달: 입력 시 로컬 선택을 읽어 ServerInteract 로 액터 포인터와 선택지 값을 원자 전송한다(선택을 복제하지 않으므로 "사이클→즉시입력" 순서가 로컬 동기 읽기로 보장된다).
+ * 서버는 Event.Interact(OptionalObject=선택, EventMagnitude=선택지 값)를 폰 ASC 로 송출해 ServerOnly WxAbility_Interact 가 권위에서 사거리·활성 검증 후 대상 인터페이스를 호출하게 한다.
  */
 UCLASS()
 class WXWORLD_API UWxInteractionScannerComponent : public UActorComponent
@@ -43,7 +44,7 @@ public:
 	/** 리슨호스트에선 ServerInteract 가 로컬 권위 호출이 된다. */
 	void TryInteractSelected();
 
-	/** 뷰모델이 초기 시드로 읽는다. 인덱스는 GetSelectedIndex() 와 같은 축이라, 문구를 못 얻은 대상도 빈 텍스트로 자리를 지킨다. */
+	/** 뷰모델이 초기 시드로 읽는다. 행 하나가 선택지 하나라, 선택지가 여럿인 대상은 그 수만큼 자리를 차지한다. 인덱스는 GetSelectedIndex() 와 같은 축이다. */
 	TArray<FText> GetPrompts() const;
 
 	/** 없으면 INDEX_NONE. 뷰모델이 초기 시드로 읽는다. */
@@ -79,12 +80,19 @@ protected:
 	int32 HighlightStencilValue = 1;
 
 private:
+	/** HUD 목록의 한 행. 대상과 그 대상이 내놓은 선택지(문구 + 값) 하나다. */
+	struct FWxInteractionRow
+	{
+		TWeakObjectPtr<AActor> Actor;
+		FWxInteractionOption Option;
+	};
+
 	UFUNCTION(Server, Reliable)
-	void ServerInteract(AActor* Selected);
+	void ServerInteract(AActor* Selected, int32 OptionValue);
 
 	void HandleScanTimer();
 
-	/** 기존 순서 보존·신규만 뒤에 추가·이탈은 제거. */
+	/** 기존 대상의 순서 보존·신규만 뒤에 추가·이탈은 제거. 행이 실제로 달라졌을 때만 목록·선택 변경을 발화한다. */
 	void UpdateInRange(const TArray<AActor*>& InCandidates);
 
 	void UpdateSelection(int32 NewIndex);
@@ -103,10 +111,8 @@ private:
 
 	APawn* GetOwnerPawn() const;
 
-	TArray<TWeakObjectPtr<AActor>> InRangeActors;
-
-	/** 대상이 pull 로 주는 문구가 실제로 달라졌을 때만 OnListChanged 를 발화하려고 든다. */
-	TArray<FText> LastPrompts;
+	/** 사거리 안 대상들의 선택지를 순서대로 펼친 것. 스캔 때 한 번 채우고, 표시·선택·전송은 전부 이 배열의 인덱스로 한다. */
+	TArray<FWxInteractionRow> Rows;
 
 	int32 SelectedIndex = INDEX_NONE;
 

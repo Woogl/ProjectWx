@@ -110,9 +110,6 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Interact);
 
-	/** 발동 장치가 연결 장치의 트리에 보내는 기본 이벤트. 목적지가 여럿인 장치는 버튼마다 다른 태그를 저작한다. */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Device_Triggered);
-
 	/**
 	 * 적 상호작용이 서버에서 플레이어 ASC에 보내는 처형 트리거.
 	 * 앞잡·뒤잡은 어빌리티 하나가 받아, 페이로드 TargetTags(대상 소유 태그)의 Ability.Groggy 유무로 연출을 가른다.
@@ -130,23 +127,26 @@ namespace WxGameplayTags
 
 
 	// 장치의 State Tree 상태값이다. C++ 에서는 읽거나 쓰지 않는다.
-	
+
+	/** 스스로 잠기는 장치(일회용 레버 등)의 공용 상태. 상호작용 노드를 두지 않는 상태에 붙인다. */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Locked);
+
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Button_Idle);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Button_Pressed);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Button_Locked);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Door_Close);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Door_Open);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Elevator_Inactive);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Elevator_1F);
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Elevator_2F);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Elevator_Idle);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Elevator_Moving);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_TreasureChest_Closed);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_TreasureChest_Open);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_CheckPoint_Unlit);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_CheckPoint_Lit);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_CheckPoint_Resting);
 	
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Piston_On);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Piston_Off);

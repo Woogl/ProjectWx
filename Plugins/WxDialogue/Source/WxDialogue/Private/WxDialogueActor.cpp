@@ -9,7 +9,7 @@ AWxDialogueActor::AWxDialogueActor()
 	DialogueComponent = CreateDefaultSubobject<UWxDialogueComponent>(TEXT("DialogueComponent"));
 }
 
-void AWxDialogueActor::OnInteracted(AActor* Interactor)
+void AWxDialogueActor::OnInteracted(AActor* Interactor, int32 OptionValue)
 {
 	DialogueComponent->StartDialogueWith(Interactor);
 }

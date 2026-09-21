@@ -45,16 +45,19 @@ void UWxAbility_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		? const_cast<AActor*>(Cast<AActor>(TriggerEventData->OptionalObject.Get()))
 		: nullptr;
 
+	// 선택지 값은 스캐너가 EventMagnitude 에 실어 보낸다.
+	const int32 OptionValue = TriggerEventData ? FMath::RoundToInt(TriggerEventData->EventMagnitude) : INDEX_NONE;
+
 	// ServerOnly 라 항상 권위지만, 방어적으로 게이트한다.
 	if (HasAuthority(&ActivationInfo))
 	{
-		ExecuteInteract(Selected, ActorInfo);
+		ExecuteInteract(Selected, OptionValue, ActorInfo);
 	}
 
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
-void UWxAbility_Interact::ExecuteInteract(AActor* Selected, const FGameplayAbilityActorInfo* ActorInfo)
+void UWxAbility_Interact::ExecuteInteract(AActor* Selected, int32 OptionValue, const FGameplayAbilityActorInfo* ActorInfo)
 {
 	AActor* Avatar = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
 	if (!Selected || !Avatar)
@@ -81,7 +84,16 @@ void UWxAbility_Interact::ExecuteInteract(AActor* Selected, const FGameplayAbili
 		return;
 	}
 
-	Target->OnInteracted(Avatar);
+	// 선택지 값도 클라가 보낸 것이라, 지금 대상이 내놓는 선택지에 있는 값인지 본다(엘리베이터가 움직여 목록이 바뀐 직후의 낡은 값 등).
+	// 통과하지 못한 상호작용은 실행도 아래 퀘스트 통지도 하지 않는다.
+	TArray<FWxInteractionOption> Options;
+	Target->GetInteractionOptions(Avatar, Options);
+	if (!Options.ContainsByPredicate([OptionValue](const FWxInteractionOption& Option) { return Option.Value == OptionValue; }))
+	{
+		return;
+	}
+
+	Target->OnInteracted(Avatar, OptionValue);
 
 	// 이 대상을 기다리던 퀘스트 스텝('상호작용 대기')이 있으면 여기서 완료된다. 기다리는 쪽이 없으면 무동작이다.
 	FWxStateTreeTask_WaitForInteraction::NotifyInteracted(Selected);

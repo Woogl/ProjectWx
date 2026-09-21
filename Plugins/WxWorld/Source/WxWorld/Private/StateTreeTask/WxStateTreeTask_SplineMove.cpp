@@ -11,8 +11,10 @@
 
 FWxStateTreeTask_SplineMove::FWxStateTreeTask_SplineMove()
 {
-	// ComponentMove 와 같은 이유 — 목표 끝점을 선언하는 상태형이라, 재선택으로 다시 진입하면 주파 중이던 구간이 끊긴다.
-	bShouldStateChangeOnReselect = false;
+	// 재선택에도 다시 진입한다 — 목표가 바인딩(Actor.SelectedOptionValue)으로 바뀔 수 있어서다.
+	// 클라가 이동을 보지 못한 채 같은 상태의 새 진입만 받으면(컬 거리 밖에 있다 돌아온 경우) 재선택이 되는데, 그때 새 목표로 다시 맞추지 않으면 탑승칸이 옛 자리에 남는다.
+	// 대가로 주파 도중 재선택되면 남은 거리를 Duration 에 다시 주파한다.
+	bShouldStateChangeOnReselect = true;
 }
 
 EStateTreeRunStatus FWxStateTreeTask_SplineMove::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
@@ -31,8 +33,9 @@ EStateTreeRunStatus FWxStateTreeTask_SplineMove::EnterState(FStateTreeExecutionC
 		return EStateTreeRunStatus::Failed;
 	}
 
+	// 음수는 「아직 목적지를 받은 적 없다」는 뜻이라(Actor.SelectedOptionValue 바인딩의 초기값) 배치된 자리에 그대로 둔다.
 	const int32 NumPoints = Spline->GetNumberOfSplinePoints();
-	if (NumPoints == 0)
+	if (NumPoints == 0 || Instance.TargetPointIndex < 0)
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}

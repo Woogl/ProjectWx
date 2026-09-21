@@ -66,18 +66,16 @@ void UWxInteractionScannerComponent::TryInteractSelected()
 		return;
 	}
 
-	ServerInteract(Selected);
+	ServerInteract(Selected, Rows[SelectedIndex].Option.Value);
 }
 
 TArray<FText> UWxInteractionScannerComponent::GetPrompts() const
 {
 	TArray<FText> Prompts;
-	Prompts.Reserve(InRangeActors.Num());
-	for (const TWeakObjectPtr<AActor>& Weak : InRangeActors)
+	Prompts.Reserve(Rows.Num());
+	for (const FWxInteractionRow& Row : Rows)
 	{
-		AActor* Actor = Weak.Get();
-		const IWxInteractable* Target = Actor ? Cast<IWxInteractable>(Actor) : nullptr;
-		Prompts.Add(Target ? Target->GetInteractionPrompt() : FText::GetEmpty());
+		Prompts.Add(Row.Option.Prompt);
 	}
 	return Prompts;
 }
@@ -89,16 +87,16 @@ int32 UWxInteractionScannerComponent::GetSelectedIndex() const
 
 AActor* UWxInteractionScannerComponent::GetSelectedActor() const
 {
-	if (!InRangeActors.IsValidIndex(SelectedIndex))
+	if (!Rows.IsValidIndex(SelectedIndex))
 	{
 		return nullptr;
 	}
-	return InRangeActors[SelectedIndex].Get();
+	return Rows[SelectedIndex].Actor.Get();
 }
 
 void UWxInteractionScannerComponent::CycleSelection(int32 Delta)
 {
-	const int32 Count = InRangeActors.Num();
+	const int32 Count = Rows.Num();
 	if (Count == 0 || Delta == 0)
 	{
 		return;
@@ -109,7 +107,7 @@ void UWxInteractionScannerComponent::CycleSelection(int32 Delta)
 	UpdateSelection(NewIndex);
 }
 
-void UWxInteractionScannerComponent::ServerInteract_Implementation(AActor* Selected)
+void UWxInteractionScannerComponent::ServerInteract_Implementation(AActor* Selected, int32 OptionValue)
 {
 	APawn* Pawn = GetOwnerPawn();
 	if (!Pawn)
@@ -121,6 +119,7 @@ void UWxInteractionScannerComponent::ServerInteract_Implementation(AActor* Selec
 	EventData.Instigator = Pawn;
 	EventData.EventTag = WxGameplayTags::Event_Interact;
 	EventData.OptionalObject = Selected;
+	EventData.EventMagnitude = OptionValue;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Pawn, WxGameplayTags::Event_Interact, EventData);
 }
 
@@ -189,68 +188,89 @@ void UWxInteractionScannerComponent::HandleScanTimer()
 
 void UWxInteractionScannerComponent::UpdateInRange(const TArray<AActor*>& InCandidates)
 {
-	// 순서가 바뀌어도 동일 액터를 다시 찾아 선택을 잇는다.
-	AActor* PreviousSelected = GetSelectedActor();
-
-	bool bChanged = false;
-
-	for (int32 Index = InRangeActors.Num() - 1; Index >= 0; --Index)
-	{
-		AActor* Existing = InRangeActors[Index].Get();
-		if (!Existing || !InCandidates.Contains(Existing))
-		{
-			SetActorHighlighted(Existing, false);
-			InRangeActors.RemoveAt(Index);
-			bChanged = true;
-		}
-	}
-
-	for (AActor* Candidate : InCandidates)
-	{
-		if (Candidate && !InRangeActors.Contains(Candidate))
-		{
-			InRangeActors.Add(Candidate);
-			bChanged = true;
-		}
-	}
-
-	// 멤버십도 그대로고 볼 대상도 없으면 비교할 문구조차 없다 — 아무것도 없는 대부분의 스캔이 프롬프트 수집 없이 여기서 끝난다.
-	if (!bChanged && InRangeActors.IsEmpty())
+	// 아무것도 없는 대부분의 스캔이 선택지 수집 없이 여기서 끝난다.
+	if (InCandidates.IsEmpty() && Rows.IsEmpty())
 	{
 		return;
 	}
 
-	if (bChanged)
+	// 기존 대상의 순서를 지키고 신규만 뒤에 붙여, 목록이 스캔마다 뒤섞이지 않게 한다.
+	TArray<AActor*> Ordered;
+	for (const FWxInteractionRow& Row : Rows)
 	{
-		const int32 RestoredIndex = PreviousSelected ? InRangeActors.IndexOfByKey(PreviousSelected) : INDEX_NONE;
-		SelectedIndex = InRangeActors.IsEmpty() ? INDEX_NONE : (RestoredIndex != INDEX_NONE ? RestoredIndex : 0);
-
-		ApplyHighlight();
+		AActor* Existing = Row.Actor.Get();
+		if (Existing && InCandidates.Contains(Existing))
+		{
+			Ordered.AddUnique(Existing);
+		}
+	}
+	for (AActor* Candidate : InCandidates)
+	{
+		if (Candidate)
+		{
+			Ordered.AddUnique(Candidate);
+		}
 	}
 
-	// 프롬프트는 대상에서 pull 하는 값이라 멤버십이 그대로여도 문구만 바뀔 수 있다(상태가 바뀌어도 상호작용을 끄지 않는 장치).
-	TArray<FText> Prompts = GetPrompts();
-	bool bPromptsChanged = Prompts.Num() != LastPrompts.Num();
-	for (int32 Index = 0; !bPromptsChanged && Index < Prompts.Num(); ++Index)
+	// 선택지는 대상에서 pull 하는 값이라 대상이 그대로여도 행이 바뀔 수 있다(상태에 따라 문구·선택지 수가 달라지는 장치).
+	TArray<FWxInteractionRow> NewRows;
+	TArray<FWxInteractionOption> Options;
+	for (AActor* Actor : Ordered)
 	{
-		bPromptsChanged = !Prompts[Index].EqualTo(LastPrompts[Index]);
+		const IWxInteractable* Target = Cast<IWxInteractable>(Actor);
+		if (!Target)
+		{
+			continue;
+		}
+
+		Options.Reset();
+		Target->GetInteractionOptions(GetOwnerPawn(), Options);
+		for (const FWxInteractionOption& Option : Options)
+		{
+			NewRows.Add({Actor, Option});
+		}
 	}
 
-	if (bPromptsChanged)
+	bool bChanged = NewRows.Num() != Rows.Num();
+	for (int32 Index = 0; !bChanged && Index < NewRows.Num(); ++Index)
 	{
-		LastPrompts = MoveTemp(Prompts);
-		OnListChanged.Broadcast(LastPrompts);
+		bChanged = NewRows[Index].Actor != Rows[Index].Actor || NewRows[Index].Option.Value != Rows[Index].Option.Value || !NewRows[Index].Option.Prompt.EqualTo(Rows[Index].Option.Prompt);
 	}
 
-	if (bChanged)
+	if (!bChanged)
 	{
-		OnSelectionChanged.Broadcast(SelectedIndex);
+		return;
 	}
+
+	// 새 목록에 행이 없는 대상의 외곽선을 끈다 — 후보로는 남았어도 선택지가 없어진 대상이 여기에 든다.
+	for (const FWxInteractionRow& Row : Rows)
+	{
+		AActor* Old = Row.Actor.Get();
+		if (Old && !NewRows.ContainsByPredicate([Old](const FWxInteractionRow& NewRow) { return NewRow.Actor == Old; }))
+		{
+			SetActorHighlighted(Old, false);
+		}
+	}
+
+	// 같은 선택지가 남아 있으면 그것을, 선택지만 바뀌었으면 같은 대상의 첫 행을 잇는다.
+	const FWxInteractionRow PreviousSelected = Rows.IsValidIndex(SelectedIndex) ? Rows[SelectedIndex] : FWxInteractionRow();
+	Rows = MoveTemp(NewRows);
+
+	int32 RestoredIndex = Rows.IndexOfByPredicate([&PreviousSelected](const FWxInteractionRow& Row) { return Row.Actor == PreviousSelected.Actor && Row.Option.Value == PreviousSelected.Option.Value; });
+	if (RestoredIndex == INDEX_NONE)
+	{
+		RestoredIndex = Rows.IndexOfByPredicate([&PreviousSelected](const FWxInteractionRow& Row) { return Row.Actor == PreviousSelected.Actor; });
+	}
+	SelectedIndex = Rows.IsEmpty() ? INDEX_NONE : (RestoredIndex != INDEX_NONE ? RestoredIndex : 0);
+
+	ApplyHighlight();
+	OnListChanged.Broadcast(GetPrompts());
+	OnSelectionChanged.Broadcast(SelectedIndex);
 }
 
 void UWxInteractionScannerComponent::UpdateSelection(int32 NewIndex)
 {
-	const int32 Clamped = InRangeActors.IsEmpty() ? INDEX_NONE : FMath::Clamp(NewIndex, 0, InRangeActors.Num() - 1);
+	const int32 Clamped = Rows.IsEmpty() ? INDEX_NONE : FMath::Clamp(NewIndex, 0, Rows.Num() - 1);
 	if (Clamped == SelectedIndex)
 	{
 		return;
@@ -263,9 +283,11 @@ void UWxInteractionScannerComponent::UpdateSelection(int32 NewIndex)
 
 void UWxInteractionScannerComponent::ApplyHighlight()
 {
-	for (int32 Index = 0; Index < InRangeActors.Num(); ++Index)
+	// 선택지가 여럿인 대상은 행마다 다시 걸리지만 같은 값이라 결과는 같다.
+	const AActor* Selected = GetSelectedActor();
+	for (const FWxInteractionRow& Row : Rows)
 	{
-		SetActorHighlighted(InRangeActors[Index].Get(), Index == SelectedIndex);
+		SetActorHighlighted(Row.Actor.Get(), Row.Actor.Get() == Selected);
 	}
 }
 
