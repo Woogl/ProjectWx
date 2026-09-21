@@ -6,6 +6,6 @@
 
 작성 전 [작성 규칙](../AGENTS.md)과 [운영 절차](../maintenance.md)를 읽습니다. 상태·검증 범위·기준을 표시하고 코드·기획 원자료를 연결합니다. 본문과 `sources.json`의 상태·확인 범위를 맞춥니다.
 
-새 문서는 [작업 가이드](work-guides.md)에 연결하고 Wiki 변경 이력을 짧게 갱신합니다. 저장소 루트에서 `powershell -NoProfile -ExecutionPolicy Bypass -File .agents/scripts/CheckWikiLinks.ps1`을 실행하고 로컬 링크 오류를 확인하면 문서 정리를 마칩니다.
+새 문서는 [작업 가이드](work-guides.md)에 연결합니다. 저장소 루트에서 `powershell -NoProfile -ExecutionPolicy Bypass -File .agents/scripts/CheckWikiLinks.ps1`을 실행하고 로컬 링크 오류를 확인하면 문서 정리를 마칩니다.
 
 [위키 목차](../index.md)

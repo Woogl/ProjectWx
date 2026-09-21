@@ -36,4 +36,4 @@ allowed-tools: Read, Grep, Glob, Bash, Write, Agent
 
 본문에 읽은 코드·설정·기획 근거와 확인 범위·미검증 사항을 남긴다. `sources.json`에는 페이지 상태·범위·참고 기준 커밋을 맞춘다. 미커밋 변경을 확인했다면 작업 트리 관찰임을 명시한다.
 
-목차·로그와 기존 README의 안내 링크를 맞추고 `.agents/scripts/CheckWikiLinks.ps1`로 링크를 확인한다. 생성/갱신 페이지, 남은 재검토, 에셋 등 검증 한계를 한국어로 보고한다. 커밋·푸시는 이 스킬에 포함하지 않는다.
+목차와 기존 README의 안내 링크를 맞추고 `.agents/scripts/CheckWikiLinks.ps1`로 링크를 확인한다. 생성/갱신 페이지, 남은 재검토, 에셋 등 검증 한계를 한국어로 보고한다. 커밋·푸시는 이 스킬에 포함하지 않는다.

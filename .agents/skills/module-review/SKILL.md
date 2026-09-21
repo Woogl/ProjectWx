@@ -151,7 +151,7 @@ allowed-tools: Read, Grep, Glob, Bash, Agent
 
 ## 3. 마무리 보고 (아침 다이제스트)
 
-오케스트레이터는 `.agents/in-progress/index.md`와 Wiki 로그를 갱신하고 `.agents/scripts/CheckWikiLinks.ps1`로 링크를 확인한다. 기존 리뷰를 인용하는 Wiki는 변경된 결론이 설명에 미치는 영향을 확인해 필요한 내용만 갱신한다.
+오케스트레이터는 `.agents/in-progress/index.md`를 갱신하고 `.agents/scripts/CheckWikiLinks.ps1`로 링크를 확인한다. 기존 리뷰를 인용하는 Wiki는 변경된 결론이 설명에 미치는 영향을 확인해 필요한 내용만 갱신한다.
 
 한국어로 짧게 보고한다. 사용자가 아침에 한눈에 "어디에 불이 났는지" 보게 하는 것이 목표다.
 
