@@ -54,7 +54,6 @@ void AWxDevice::GetInteractionOptions(const AActor* Interactor, TArray<FWxIntera
 		}
 	}
 
-	// 「그냥 받는다」는 빈 문구 선택지는 이 장치의 프롬프트로 채운다.
 	for (int32 Index = FirstIndex; Index < OutOptions.Num(); ++Index)
 	{
 		if (OutOptions[Index].Prompt.IsEmpty())
@@ -83,7 +82,8 @@ void AWxDevice::NotifyDeviceInteracted(AActor* Interactor, const AWxDevice* Send
 		return;
 	}
 
-	// 값 없는 선택지(INDEX_NONE)는 「그냥 받는다」는 뜻이라 어떤 값이 실려 와도 받는다. 받을 값이면 대기 태스크를 완료시킨다 — 잠든 트리는 이 완료가 예약하는 다음 틱이 깨운다.
+	// 값 없는 선택지(INDEX_NONE)는 「그냥 받는다」는 뜻이라 어떤 값이 실려 와도 받는다.
+	// 잠든 트리는 이 완료가 예약하는 다음 틱이 깨운다.
 	TArray<FWxInteractionOption> Accepted;
 	GetAcceptedOptions(Sender, Accepted);
 	if (!Accepted.ContainsByPredicate([Value](const FWxInteractionOption& Option) { return Option.Value == Value || Option.Value == INDEX_NONE; })

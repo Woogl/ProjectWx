@@ -65,7 +65,7 @@ public:
 	UPROPERTY(EditInstanceOnly, Category = "Wx")
 	TArray<TObjectPtr<AWxDevice>> LinkedDevices;
 
-	/** 실행 시 사용할 당사자. 네트워크 소유권은 컴포넌트의 상태 스냅샷에 있다. */
+	/** 네트워크 소유권은 컴포넌트의 상태 스냅샷에 있다. */
 	UPROPERTY(Transient)
 	TObjectPtr<ACharacter> InteractingCharacter;
 
@@ -84,7 +84,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UWxDeviceStateTreeComponent> StateTreeComponent;
 
-	/** 지금 작동을 기다리는 대기 태스크. 없으면 이 장치는 작동도 플레이어 상호작용도 받지 않는다. */
+	/** 없으면 이 장치는 작동도 플레이어 상호작용도 받지 않는다. */
 	const FWxStateTreeTask_WaitForTrigger* WaitingTask = nullptr;
 	FStateTreeWeakExecutionContext WaitingContext;
 };
