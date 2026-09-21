@@ -6,6 +6,70 @@
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "FrontEnd/WxGameFlowSubsystem.h"
+#include "FrontEnd/WxFrontEndDeveloperSettings.h"
+#include "Components/VerticalBox.h"
+#include "Components/VerticalBoxSlot.h"
+#include "Widget/WxButtonBase.h"
+
+TArray<FWxFrontEndOption> UWxFrontEndLibrary::GetCharacterOptions()
+{
+	TArray<FWxFrontEndOption> Options;
+	for (const TSoftClassPtr<APawn>& Character : GetDefault<UWxFrontEndDeveloperSettings>()->CharacterOptions)
+	{
+		FWxFrontEndOption& Option = Options.AddDefaulted_GetRef();
+		Option.PawnClass = Character;
+		// GetClassDisplayName과 같은 클래스 이름을 로드 없이 읽는다.
+		Option.DisplayName = FText::FromString(Character.ToSoftObjectPath().GetAssetName());
+	}
+	return Options;
+}
+
+TArray<FWxFrontEndOption> UWxFrontEndLibrary::GetLevelOptions()
+{
+	TArray<FWxFrontEndOption> Options;
+	for (const TSoftObjectPtr<UWorld>& Level : GetDefault<UWxFrontEndDeveloperSettings>()->LevelOptions)
+	{
+		FWxFrontEndOption& Option = Options.AddDefaulted_GetRef();
+		Option.Level = Level;
+		Option.DisplayName = FText::FromString(Level.ToSoftObjectPath().GetAssetName());
+	}
+	return Options;
+}
+
+bool UWxFrontEndLibrary::HasSelectableOptions()
+{
+	return GetDefault<UWxFrontEndDeveloperSettings>()->HasSelectableOptions();
+}
+
+UWidget* UWxFrontEndLibrary::BuildOptionButtons(UUserWidget* Owner, UVerticalBox* Container, TSubclassOf<UWxButtonBase> ButtonClass,
+	const TArray<FWxFrontEndOption>& Options, const FWxFrontEndOptionSelected& OnSelected, float ButtonSpacing)
+{
+	if (!Owner || !Container || !ButtonClass)
+	{
+		return nullptr;
+	}
+	Container->ClearChildren();
+	UWidget* FocusTarget = nullptr;
+	for (int32 Index = 0; Index < Options.Num(); ++Index)
+	{
+		UWxButtonBase* Button = CreateWidget<UWxButtonBase>(Owner, ButtonClass);
+		if (!Button)
+		{
+			continue;
+		}
+		const FWxFrontEndOption& Option = Options[Index];
+		Button->SetButtonText(Option.DisplayName);
+		const bool bSelectable = !Option.PawnClass.IsNull() || !Option.Level.IsNull();
+		Button->SetIsEnabled(bSelectable);
+		Button->OnClicked().AddWeakLambda(Owner, [OnSelected, Index]() { OnSelected.ExecuteIfBound(Index); });
+		Container->AddChildToVerticalBox(Button)->SetPadding(FMargin(0.f, ButtonSpacing));
+		if (!FocusTarget && bSelectable)
+		{
+			FocusTarget = Button;
+		}
+	}
+	return FocusTarget;
+}
 
 void UWxFrontEndLibrary::GetTravelStatus(const UObject* WorldContextObject, bool& bBusy, FText& Message)
 {

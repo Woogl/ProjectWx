@@ -16,6 +16,7 @@ public class WxGame : ModuleRules
 			"CommonUI",
 			"Core",
 			"CoreUObject",
+			"DeveloperSettings",
 			"Engine",
 			"GameplayAbilities",
 			"GameplayTags",

@@ -58,6 +58,12 @@ void UWxButtonBase::NativeOnCurrentTextStyleChanged()
 	}
 }
 
+void UWxButtonBase::SetButtonText(const FText& InText)
+{
+	ButtonText = InText;
+	RefreshButtonText();
+}
+
 void UWxButtonBase::RefreshButtonText()
 {
 	if (ButtonText.IsEmpty())

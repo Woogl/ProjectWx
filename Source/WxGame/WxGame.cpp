@@ -5,4 +5,4 @@
 
 DEFINE_LOG_CATEGORY(LogWxGame);
 
-IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, WxGame, "WxGame" );
+IMPLEMENT_PRIMARY_GAME_MODULE(FDefaultGameModuleImpl, WxGame, "WxGame");

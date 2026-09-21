@@ -17,6 +17,9 @@ class WXUI_API UWxButtonBase : public UCommonButtonBase
 public:
 	UWxButtonBase(const FObjectInitializer& ObjectInitializer);
 
+	UFUNCTION(BlueprintCallable, Category = "Wx|Button")
+	void SetButtonText(const FText& InText);
+
 protected:
 	// UUserWidget interface
 	virtual void NativePreConstruct() override;

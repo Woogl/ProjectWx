@@ -6,6 +6,7 @@
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
+#include "FrontEnd/WxFrontEndDeveloperSettings.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/PackageName.h"
@@ -61,6 +62,11 @@ bool UWxGameFlowSubsystem::IsBusy() const
 
 const FText& UWxGameFlowSubsystem::GetStatusText() const
 {
+	if (StatusText.IsEmpty() && !GetDefault<UWxFrontEndDeveloperSettings>()->HasSelectableOptions())
+	{
+		static const FText NoOptions = LOCTEXT("NoOptions", "선택 가능한 캐릭터 또는 레벨이 없습니다.");
+		return NoOptions;
+	}
 	return StatusText;
 }
 
