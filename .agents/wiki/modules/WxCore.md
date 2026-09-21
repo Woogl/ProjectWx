@@ -51,6 +51,7 @@
 ## 확장 포인트 / 규약
 - **새 태그**: 헤더에 `UE_DECLARE_GAMEPLAY_TAG_EXTERN` + `WXCORE_API`, cpp에 `UE_DEFINE_GAMEPLAY_TAG` 한 쌍. 도메인 안에서만 쓰는 태그도 예외 없이 여기에 모은다([결정](../decisions/gameplay-tag-ownership.md)).
 - **새 상호작용 대상**: 액터(컴포넌트 아님)가 `IWxInteractable`을 구현한다. `CanInteract`는 기본 `true`이며 구현체가 자기 상태에서 파생시켜야 클라 표시 게이트와 서버 검증이 같은 답을 낸다. 쿼리 콜리전이 켜진 프리미티브가 없으면 스캔에 걸리지 않는다.
+- **선택지가 여럿인 대상**: `GetInteractionOptions` 를 재정의해 `FWxInteractionOption`(문구 + 값)을 여러 개 내놓으면 HUD 상호작용 목록에 그 수만큼 행이 생긴다(기본 구현은 `GetInteractionPrompt()` 하나). 고른 값은 스캐너 RPC → `Event.Interact` 의 `EventMagnitude` → `OnInteracted(Interactor, OptionValue)` 로 돌아온다. 클라가 보낸 값이므로 상호작용 어빌리티가 서버에서 지금의 선택지와 대조하고, 통과하지 못하면 실행도 퀘스트 `상호작용 대기` 통지도 하지 않는다. 계약을 컴포넌트로 되돌리지 않고 옵션 목록으로 키운다는 기존 방향의 적용이다(현재 사용처: [WxWorld](WxWorld.md) 엘리베이터 탑승칸 버튼의 층 선택).
 - **새 UI 표시 데이터**: 저작 데이터를 쥔 쪽(어빌리티·GE 컴포넌트)이 `IWxUIData`를 구현한다. `GetMaxRecharges`만 기본값 1로 제공된다.
 - **새 스폰 대상**: 배치 스포너가 생성할 액터는 C++에서 `IWxSpawnable`을 구현하고, 처치되면 서버에서 `GetOnKilledDelegate()`를 방송한다. 통지가 네이티브 델리게이트라 BP만으로는 구현할 수 없다(`CannotImplementInterfaceInBlueprint`). WxWorld의 `AWxSpawner`는 `FinishSpawning` 전에 이 통지를 구독해 처치 상태를 세운다. 적이 아닌 대상도 스포너가 스폰할 가능성이 있어 적 전용 판정 대신 이 계약을 유지한다(2026-09-21 사용자 결정). WxCombat 소환 노티파이도 이 인터페이스를 에디터 필터로 쓰지만 소환 런타임은 이 통지를 구독하지 않고 `UWxMinionComponent`와 Instigator로 정책·주인을 관리한다.
 - **의존 규칙**: foundation 모듈이므로 엔진 모듈 외에는 아무것도 참조하지 않는다. 다른 Wx 플러그인이 서로를 참조하지 않고 통신하려면 그 접점을 여기에 올린다.

@@ -4,6 +4,7 @@
 
 > 상태: current · 범위: 본문 핵심 계약·주요 C++ 경로의 정적 재검증 · 2026-09-20 · 기준 커밋: 5a3f282e3bd71fd85d263021c113cd30558820b7
 > 아래 검증 범위와 근거에 명시한 경로를 현재 작업 트리에서 확인했습니다. 전체 소스의 결함 검토·빌드·게임 실행·BP/WBP·DataTable·BT/StateTree 에셋 내부는 미검증입니다.
+> 추가 확인(2026-09-21 작업 트리): 프론트엔드 설정 이전과 WBP 그래프·기본값은 UE 5.8.2 커맨드릿으로 검사했다. C++ 빌드, WBP 재로드·컴파일, 동적 버튼·빈 목록 검증을 수행했으며 실제 화면 조작·레벨 이동·패키징은 미검증이다.
 > [Wiki 목차](../index.md) · [운영 절차](../maintenance.md)
 
 
@@ -45,7 +46,14 @@
 - **새 캐릭터**: `AWxCharacterBase`(추상)를 상속하거나 `AWxPlayerCharacter` / `AWxEnemyCharacter`의 BP를 만든다. 스탯·어빌리티는 C++이 아니라 ASC에 지정한 AbilitySet에서 온다 — `InitAbilitySystem()`이 어트리뷰트 콜백을 먼저 걸고 `GiveAbilitySets()`를 호출하는 순서에 의존한다. 대화만 하는 캐릭터는 폰이 아니라 `AWxNpc`(`AWxDialogueActor` 파생)를 쓴다.
 - **새 게임플레이 입력**: 이동류면 `UWxInputConfig`에 IA를 추가하고 `AWxPlayerCharacter::SetupPlayerInputComponent`에서 바인딩한다. 어빌리티 발동 입력은 여기 넣지 않는다 — IA는 어빌리티 CDO가 들고 있고 바인딩 목록은 AbilitySet에서 파생된다. 메뉴/UI 입력은 CommonUI 액션(WxUI) 쪽이다.
 - **새 HUD 데이터**: `UWxViewModel`(WxUI) 파생 뷰모델과 짝이 되는 `UMVVMViewModelContextResolver` 파생을 `MVVM/`에 함께 둔다. 리졸버에 플레이어별 상태를 두지 않고 상태·구독은 뷰모델이 가진다. 도메인 컴포넌트의 늦은 도착·교체는 뷰모델의 관찰 경로에서 처리한다.
-- **데이터 주도 설정**: `AWxEnemyCharacter::RewardRow`는 `WxRewardTableRow`(WxInventory) DataTable 행을, `UWxAbility_UseItem::ConsumableDef`는 Usable/Charges Fragment를 가진 `UWxItemDefinition`을 요구한다. 프론트엔드 목록은 `FWxFrontEndOption`(폰 클래스+레벨)을 WBP에서 채운다.
+- **데이터 주도 설정**: `AWxEnemyCharacter::RewardRow`는 `WxRewardTableRow`(WxInventory) DataTable 행을, `UWxAbility_UseItem::ConsumableDef`는 Usable/Charges Fragment를 가진 `UWxItemDefinition`을 요구한다. 프론트엔드의 캐릭터·레벨 목록은 [UWxFrontEndDeveloperSettings](../../../Source/WxGame/FrontEnd/WxFrontEndDeveloperSettings.h)의 `CharacterOptions`·`LevelOptions`에서 관리한다. Project Settings → Wx → Front End에서 클래스·레벨 참조를 지정하며 [DefaultGame.ini](../../../Config/DefaultGame.ini)에 저장한다.
+
+### 프론트엔드 표시와 선택 데이터
+
+- 설정은 `TArray<TSoftClassPtr<APawn>>`와 `TArray<TSoftObjectPtr<UWorld>>`로 보관하며 별도의 캐릭터·레벨 옵션 구조체를 두지 않는다. [UWxFrontEndLibrary](../../../Source/WxGame/FrontEnd/WxFrontEndLibrary.h)가 표시용 `FWxFrontEndOption` 배열로 제공한다. `WBP_FrontEnd`는 설정 목록에서 버튼을 생성하며 로컬 목록 기본값을 소유하지 않는다. 항목 순서가 버튼 순서다. 버튼과 확인 팝업은 표시용 항목의 `DisplayName`을 사용하며, 별도의 제목·설명·툴팁 데이터는 관리하지 않는다. 캐릭터 이름은 소프트 경로에서 읽는다. Blueprint는 `FPackageName::GetShortName`으로 패키지의 에셋 이름을 얻고, `IsScriptPackage`가 참인 네이티브 클래스는 `GetAssetName`으로 클래스 이름을 얻는다. 접미사를 직접 제거하지 않는다. 레벨 에셋 이름은 그대로 표시하며 목록 표시만을 위한 동기 로드는 없다.
+- `WBP_FrontEnd`의 부모는 `UWxActivatableWidget`으로 유지한다. 별도의 C++ 위젯 파생 클래스는 추가하지 않는다(2026-09-21 사용자 요구). WBP는 페이지·포커스·확인 팝업을 표현하고, 선택된 항목의 `PawnClass`·`Level` 소프트 참조를 라이브러리의 `RequestNewGame`에 전달한다. 라이브러리는 기존 `UWxGameFlowSubsystem::RequestNewGame`으로 호출을 전달하며, 서브시스템은 진입 검증·맵 전환을 담당한다. 설정 배열의 인덱스는 WBP 내부 선택 상태이며 게임 진입 API로 전달하지 않는다(2026-09-21 사용자 합의). 상태 메시지는 서브시스템이 소유하고 목록의 선택 가능 여부는 설정 클래스가 조회한다. 버튼 생성·표시·클릭 연결은 프레젠테이션 헬퍼로 남긴다.
+- WBP의 `OptionButtonClass`와 `BuildOptionButtons`의 간격 인수는 표현 설정이다. 데이터 항목을 늘릴 때 WBP의 고정 버튼이나 클릭 이벤트를 추가하지 않는다. 참조가 비어 있는 항목은 비활성화하고, 캐릭터 또는 레벨 목록에 선택 가능한 항목이 없으면 새 게임 버튼을 비활성화한다.
+- [Asset Manager 설정](../../../Config/DefaultGame.ini)은 `/Game` 전체에서 `Map`과 `AWxPlayerCharacter` 파생 Blueprint 클래스(`WxPlayerCharacter` 타입)를 검색하고 `AlwaysCook`을 적용한다. Front End 선택 목록과 무관하게 프로젝트 콘텐츠의 모든 맵·플레이어 캐릭터를 패키징한다. 두 타입은 `bIsEditorOnly=False`로 쿠킹 대상이 되며, `bShouldManagerDetermineTypeAndName=True`로 별도 ID 구현이 없는 캐릭터 클래스의 Primary Asset ID를 엔진이 결정한다. 플러그인의 별도 콘텐츠 루트는 검색 범위에 포함되지 않는다. 직접 `ModifyCookDelegate`를 등록하지 않는다. 전체 패키징 검증은 별도다.
 - **권한 모델**: 캐릭터 ASC는 서버 `PossessedBy`, 플레이어는 클라 `OnRep_PlayerState`에서 초기화한다. `UWxAbility_Interact`는 ServerOnly이고 클라 스캐너의 선택을 서버가 `CanInteract`와 쿼리 충돌 기반 사거리로 재검증한다. `UWxRespawnLibrary::RequestRespawn`과 `UWxGameFlowSubsystem::RequestNewGame`은 Standalone 전용이다.
 
 ## 여기서부터 읽어라
