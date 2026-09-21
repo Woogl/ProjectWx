@@ -37,9 +37,6 @@ public:
 
 	bool IsKilled() const;
 
-	/** 서버 권위 호출. 인스턴스 destroy 는 호출자(또는 spawnable 자체) 가 별도 처리. */
-	void MarkKilled();
-
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -48,6 +45,9 @@ protected:
 
 	/** 서버 전용. */
 	void DestroySpawnedActor();
+
+	/** 시체는 치우지 않는다 — 다음 Respawn 이 정리한다. */
+	void HandleSpawnedActorKilled();
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<USceneComponent> SceneRoot;

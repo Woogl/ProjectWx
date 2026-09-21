@@ -11,7 +11,6 @@
 #include "WxEnemyCharacter.generated.h"
 
 class AWxEnemyCharacter;
-class AWxSpawner;
 class UWxAIBehaviorComponent;
 class UWxLockOnPointComponent;
 class UWxMinionComponent;
@@ -31,7 +30,6 @@ public:
 	AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer);
 
 	bool IsBoss() const;
-	AWxSpawner* GetOwningSpawner() const;
 
 	/**
 	 * 보스로 설정된 AI 캐릭터의 교전 상태가 바뀔 때 발행된다. 소멸도 비교전으로 알린다.
@@ -40,7 +38,7 @@ public:
 	static FWxOnBossEngagementChanged OnAnyBossEngagementChanged;
 
 	//~ Begin IWxSpawnable
-	virtual void OnSpawnedBy(AActor* Spawner) override;
+	virtual FWxOnSpawnableKilled& GetOnKilledDelegate() override;
 	//~ End IWxSpawnable
 
 	//~ Begin IWxInteractable
@@ -87,5 +85,5 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Wx|Reward", meta = (RowType = "/Script/WxInventory.WxRewardTableRow", WxPreviewRow = "true"))
 	FDataTableRowHandle RewardRow;
 
-	TWeakObjectPtr<AWxSpawner> OwningSpawner;
+	FWxOnSpawnableKilled OnSpawnableKilled;
 };

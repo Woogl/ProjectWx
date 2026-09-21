@@ -34,7 +34,7 @@
 | `UWxInteractionScannerComponent` | 상호작용 파이프라인의 클라 측 시작점. PlayerController 에 붙어 스캔→선택→`ServerInteract` 까지 간다 | [Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxInteractionScannerComponent.h](../../../Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxInteractionScannerComponent.h) |
 | `FWxStateTreeTask_WaitForInteraction` | 모듈 밖 권위 경로가 들어오는 문. `NotifyInteracted`/`IsAwaited` 정적 함수가 WxGame 쪽에서 불린다 | [Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxStateTreeTask_WaitForInteraction.h](../../../Plugins/WxWorld/Source/WxWorld/Public/Interaction/WxStateTreeTask_WaitForInteraction.h) |
 | `TWxStateTreeWaitRegistry` | 폴링 없이 대기하는 태스크들이 공유하는 등록부 템플릿 | [Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeWaitRegistry.h](../../../Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeWaitRegistry.h) |
-| `AWxSpawner` | 스폰 대상의 수명과 처치 상태를 쥐는 배치 액터. 대상이 구현할 `IWxSpawnable` 계약은 [WxCombat](WxCombat.md) 소환 노티파이도 같은 필터로 쓰므로 [WxCore](WxCore.md)에 있다 | [Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawner.h](../../../Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawner.h), [Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h](../../../Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h) |
+| `AWxSpawner` | 스폰 대상의 수명과 처치 상태를 쥐는 배치 액터. 처치 판정은 대상이 하고 스포너는 그 통지를 받는다. 대상이 구현할 `IWxSpawnable` 계약은 [WxCombat](WxCombat.md) 소환 노티파이도 같은 필터로 쓰므로 [WxCore](WxCore.md)에 있다 | [Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawner.h](../../../Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawner.h), [Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h](../../../Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h) |
 | `UWxCheckpointSubsystem` | 체크포인트 태스크가 쓰고 WxGame 리스폰 경로가 읽는 GameInstance 저장소 | [Plugins/WxWorld/Source/WxWorld/Public/System/WxCheckpointSubsystem.h](../../../Plugins/WxWorld/Source/WxWorld/Public/System/WxCheckpointSubsystem.h) |
 
 ## 확장 포인트 / 규약
@@ -43,7 +43,7 @@
 - **장치끼리 잇기**: 버튼→문처럼 다른 장치를 미는 경로는 `이벤트 보내기`(`FWxStateTreeTask_SendEvent`) 하나뿐이다. 대상은 레벨 배치가 정하는 `LinkedDevices` 또는 오너 BP 에 심긴 자식 장치(`FWxStateTreeComponentName`)로 고른다.
 - **새 ST 태스크**: `FStateTreeTaskCommonBase` 파생 USTRUCT + `Category = "Wx"` 의 `DisplayName` 메타. 인스턴스 데이터를 별도 USTRUCT 로 두고 `GetInstanceDataType()` 만 헤더에 남긴다(코딩 규칙 3의 명시 예외).
 - **레벨 액터 지목**: 태스크가 배치 액터를 가리킬 때는 직접 참조 대신 `FUniversalObjectLocator` 를 쓴다 — ST 컴파일러의 레벨 액터 참조 검증에 걸리지 않아 레벨 밖 호스트(퀘스트 ST)에서도 조립된다. 스포너 지정은 `FWxSpawnerLocatorUtils`([Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawnerLocatorUtils.h](../../../Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawnerLocatorUtils.h))로 해석·컴파일 검증을 통일한다.
-- **스폰 대상**: `AWxSpawner::SpawnableActorClass` 는 `MustImplement` 로 `IWxSpawnable` 을 강제한다. `OnSpawnedBy` 는 Deferred Spawn 의 `FinishSpawning` 이전 타이밍이다.
+- **스폰 대상**: `AWxSpawner::SpawnableActorClass` 는 `MustImplement` 로 `IWxSpawnable` 을 강제한다. 스포너는 Deferred Spawn 의 `FinishSpawning` 이전에 대상의 처치 통지(`GetOnKilledDelegate`)를 구독하고, 스폰 Owner 로 자신을 넘긴다 — 대상의 `UWxAIBehaviorComponent` 가 빙의 전 초기화에서 이것으로 정찰 경로를 찾는다.
 - **복원 vs 라이브**: 진입 시 일회성 효과(이벤트 송신·스폰 트리거·체크포인트 기록)를 낼지는 `FWxDeviceExecutionPolicy::IsRestoring*` 로 가른다. 새 태스크가 부작용을 낸다면 이 구분을 반드시 통과시켜야 한다.
 - **데이터 주도 설정**: `UWxWorldDeveloperSettings`(`Config = Game`, "Wx World Settings")가 스포너 클래스별 에디터 아이콘 매핑을 들고 있다.
 - **리플리케이션/권한(최대 4인)**: 장치 상태는 `FWxDeviceStateSnapshot` 복제로 전파되고 클라는 그 스냅샷을 따라간다. 반면 스포너의 처치 상태(`bIsKilled`)는 서버 런타임 값이라 복제되지 않으므로, 스포너 계열 태스크와 `상호작용 대기`는 권위에서 구동되는 트리 전용이다. 스캐너는 반대로 소유 클라 전용(데디 서버 PC 는 스캔하지 않음)이다.
@@ -61,7 +61,7 @@
 [Build.cs](../../../Plugins/WxWorld/Source/WxWorld/WxWorld.Build.cs)·[descriptor](../../../Plugins/WxWorld/WxWorld.uplugin), Device·DeviceStateTreeComponent 공개 계약과 [상태 동기화 구현](../../../Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceStateTreeComponent.cpp), [장치 상호작용](../../../Plugins/WxWorld/Source/WxWorld/Private/Device/WxDevice.cpp)을 확인했다.
 
 - 스냅샷은 상태 태그명·진입 일련번호·실행 상태·상호작용 캐릭터를 담는다. 클라이언트는 이를 따라 상태 전이를 요청한다. 초기/복원 진입과 라이브 전이는 구분되며 개별 태스크가 그 정책을 올바르게 사용하는지는 실제 조합별 확인이 필요하다.
-- [Spawner](../../../Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawner.cpp): 서버 지연 스폰, 기존 인스턴스·처치 상태 검사, `OnSpawnedBy` 이후 `FinishSpawning`, `bNeverRevive` 복원 분기.
+- [Spawner](../../../Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawner.cpp): 서버 지연 스폰, 기존 인스턴스·처치 상태 검사, 처치 통지 구독 이후 `FinishSpawning`, `bNeverRevive` 복원 분기. 통지 발행 측은 [Source/WxGame/Character/WxEnemyCharacter.cpp](../../../Source/WxGame/Character/WxEnemyCharacter.cpp)의 서버 사망 처리다.
 - [Scanner](../../../Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxInteractionScannerComponent.cpp)·[WaitForInteraction](../../../Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxStateTreeTask_WaitForInteraction.cpp): 소유 로컬 컨트롤러의 스캔과 RPC 요청, 권위 어빌리티의 상호작용 실행 후 대기 통지.
 - [Checkpoint](../../../Plugins/WxWorld/Source/WxWorld/Private/System/WxCheckpointSubsystem.cpp): Standalone에서 월드 패키지별 부활 위치를 보관한다. 디스크 영속 저장을 제공한다는 뜻은 아니다.
 

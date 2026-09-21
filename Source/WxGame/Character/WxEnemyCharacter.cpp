@@ -10,7 +10,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Minion/WxMinionComponent.h"
-#include "Spawnable/WxSpawner.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "Targeting/WxLockOnPointComponent.h"
 #include "WxAIBehaviorComponent.h"
@@ -63,7 +62,6 @@ void AWxEnemyCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	GetLockOnComponent()->OnLockOnTargetChanged.RemoveDynamic(this, &ThisClass::HandleAITargetChanged);
 	OnDeath.RemoveDynamic(this, &ThisClass::HandleOwnerDeath);
 
-	OwningSpawner.Reset();
 	GetAbilitySystemComponent()->SetLooseGameplayTagCount(WxGameplayTags::State_Engaged, 0);
 
 	if (bIsBoss)
@@ -79,14 +77,9 @@ bool AWxEnemyCharacter::IsBoss() const
 	return bIsBoss;
 }
 
-AWxSpawner* AWxEnemyCharacter::GetOwningSpawner() const
+FWxOnSpawnableKilled& AWxEnemyCharacter::GetOnKilledDelegate()
 {
-	return OwningSpawner.Get();
-}
-
-void AWxEnemyCharacter::OnSpawnedBy(AActor* Spawner)
-{
-	OwningSpawner = Cast<AWxSpawner>(Spawner);
+	return OnSpawnableKilled;
 }
 
 bool AWxEnemyCharacter::CanInteract(const AActor* Interactor) const
@@ -161,11 +154,8 @@ void AWxEnemyCharacter::HandleOwnerDeath(AWxCharacterBase* DeadCharacter)
 	{
 		return;
 	}
-	
-	if (AWxSpawner* Spawner = OwningSpawner.Get())
-	{
-		Spawner->MarkKilled();
-	}
+
+	OnSpawnableKilled.Broadcast();
 
 	// 처치자를 가리지 않고 항상 0번 플레이어에게 지급하는 것이 기존 정책이다.
 	if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0))

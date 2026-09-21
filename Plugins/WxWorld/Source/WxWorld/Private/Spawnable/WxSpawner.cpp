@@ -77,16 +77,6 @@ bool AWxSpawner::IsKilled() const
 	return bIsKilled;
 }
 
-void AWxSpawner::MarkKilled()
-{
-	if (!HasAuthority())
-	{
-		return;
-	}
-
-	bIsKilled = true;
-}
-
 void AWxSpawner::BeginPlay()
 {
 	Super::BeginPlay();
@@ -127,8 +117,7 @@ void AWxSpawner::SpawnTarget()
 		return;
 	}
 
-	// Deferred Spawn 으로 빙의(AutoPossessAI) 전에 OnSpawnedBy 컨텍스트를 주입한다.
-	// 일반 SpawnActor 는 빙의가 호출 내부에서 끝나므로, 그 뒤엔 컨트롤러 OnPossess 가 컨텍스트를 보지 못한다.
+	// Deferred Spawn 으로 대상이 BeginPlay·빙의를 돌기 전에 처치 통지를 구독해, 그 사이의 처치도 놓치지 않는다.
 	// Owner 로 자신을 넘기는 것도 계약이다 — 스폰 대상 컴포넌트가 빙의 전 초기화에서 이것으로 스폰 주체를 찾는다(정찰 경로 등).
 	const FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 	AActor* Spawned = GetWorld()->SpawnActorDeferred<AActor>(
@@ -143,9 +132,10 @@ void AWxSpawner::SpawnTarget()
 		return;
 	}
 
+	// 통지는 인스턴스와 함께 사라지므로 따로 해제하지 않는다.
 	if (IWxSpawnable* Spawnable = Cast<IWxSpawnable>(Spawned))
 	{
-		Spawnable->OnSpawnedBy(this);
+		Spawnable->GetOnKilledDelegate().AddUObject(this, &ThisClass::HandleSpawnedActorKilled);
 	}
 
 	Spawned->FinishSpawning(SpawnTransform);
@@ -169,6 +159,11 @@ void AWxSpawner::DestroySpawnedActor()
 	}
 
 	SpawnedActor.Reset();
+}
+
+void AWxSpawner::HandleSpawnedActorKilled()
+{
+	bIsKilled = true;
 }
 
 #if WITH_EDITOR

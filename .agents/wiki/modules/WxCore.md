@@ -28,7 +28,7 @@
 | `WxGameplayTags` | 모듈 전체에서 가장 많이 참조되는 지점. 태그 이름 하나가 어느 시스템에 닿는지 주석으로 적혀 있어 사실상 프로젝트 게임플레이 계약의 색인이다 | [Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h](../../../Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h) |
 | `IWxInteractable` | 상호작용 대상의 계약. 액터가 구현하며, 이 계약이 WxCore에 있어 인벤토리 픽업이 WxWorld에 의존하지 않고도 상호작용 대상이 된다 | [Plugins/WxCore/Source/WxCore/Public/WxInteractable.h](../../../Plugins/WxCore/Source/WxCore/Public/WxInteractable.h) |
 | `IWxUIData` | 표시용 데이터의 계약. WxUI가 도메인 플러그인(어빌리티·GE 컴포넌트)을 몰라도 아이콘·이름을 읽게 하는 역방향 의존 차단막 | [Plugins/WxCore/Source/WxCore/Public/WxUIData.h](../../../Plugins/WxCore/Source/WxCore/Public/WxUIData.h) |
-| `IWxSpawnable` | 다른 주체가 스폰해 태어나는 액터의 계약. 스폰 주체를 아는 픽커([WxWorld](WxWorld.md) 스포너, [WxCombat](WxCombat.md) 소환 노티파이)가 `MustImplement`로 이 계약을 강제한다 | [Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h](../../../Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h) |
+| `IWxSpawnable` | 다른 주체가 스폰해 태어나는 액터의 계약. 처치 판정은 액터가 하고 `GetOnKilledDelegate()` 통지로 스폰 주체에 알린다. 스폰 주체를 아는 픽커([WxWorld](WxWorld.md) 스포너, [WxCombat](WxCombat.md) 소환 노티파이)가 `MustImplement`로 이 계약을 강제한다 | [Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h](../../../Plugins/WxCore/Source/WxCore/Public/WxSpawnable.h) |
 | `ECC_WxAttack` | 무기·투사체 히트박스 Object Type 상수. 전투·픽업·캐릭터 콜리전 설정이 모두 이 한 값을 참조한다 | [Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h](../../../Plugins/WxCore/Source/WxCore/Public/WxCollisionChannels.h) |
 | `FWxLocatorUtils` | `WITH_EDITOR` 전용. StateTree 태스크·디테일 커스터마이제이션이 로케이터를 사람이 읽는 이름으로 보여줄 때 쓴다 | [Plugins/WxCore/Source/WxCore/Public/WxLocatorUtils.h](../../../Plugins/WxCore/Source/WxCore/Public/WxLocatorUtils.h) |
 
@@ -52,7 +52,7 @@
 - **새 태그**: 헤더에 `UE_DECLARE_GAMEPLAY_TAG_EXTERN` + `WXCORE_API`, cpp에 `UE_DEFINE_GAMEPLAY_TAG` 한 쌍. 도메인 안에서만 쓰는 태그도 예외 없이 여기에 모은다([결정](../decisions/gameplay-tag-ownership.md)).
 - **새 상호작용 대상**: 액터(컴포넌트 아님)가 `IWxInteractable`을 구현한다. `CanInteract`는 기본 `true`이며 구현체가 자기 상태에서 파생시켜야 클라 표시 게이트와 서버 검증이 같은 답을 낸다. 쿼리 콜리전이 켜진 프리미티브가 없으면 스캔에 걸리지 않는다.
 - **새 UI 표시 데이터**: 저작 데이터를 쥔 쪽(어빌리티·GE 컴포넌트)이 `IWxUIData`를 구현한다. `GetMaxRecharges`만 기본값 1로 제공된다.
-- **새 스폰 대상**: 배치 스포너가 생성할 액터는 `IWxSpawnable`을 구현한다. WxWorld의 `AWxSpawner`는 `FinishSpawning` 전에 `OnSpawnedBy`를 호출한다. WxCombat 소환 노티파이도 이 인터페이스를 에디터 필터로 쓰지만 소환 런타임은 `OnSpawnedBy`를 호출하지 않고 `UWxMinionComponent`와 Instigator로 정책·주인을 관리한다.
+- **새 스폰 대상**: 배치 스포너가 생성할 액터는 C++에서 `IWxSpawnable`을 구현하고, 처치되면 서버에서 `GetOnKilledDelegate()`를 방송한다. 통지가 네이티브 델리게이트라 BP만으로는 구현할 수 없다(`CannotImplementInterfaceInBlueprint`). WxWorld의 `AWxSpawner`는 `FinishSpawning` 전에 이 통지를 구독해 처치 상태를 세운다. 적이 아닌 대상도 스포너가 스폰할 가능성이 있어 적 전용 판정 대신 이 계약을 유지한다(2026-09-21 사용자 결정). WxCombat 소환 노티파이도 이 인터페이스를 에디터 필터로 쓰지만 소환 런타임은 이 통지를 구독하지 않고 `UWxMinionComponent`와 Instigator로 정책·주인을 관리한다.
 - **의존 규칙**: foundation 모듈이므로 엔진 모듈 외에는 아무것도 참조하지 않는다. 다른 Wx 플러그인이 서로를 참조하지 않고 통신하려면 그 접점을 여기에 올린다.
 - 리플리케이션 정책은 갖지 않는다 — 태그를 복제하는지 loose로 두는지는 발행하는 도메인이 정하며, 헤더 주석에 태그별로 적혀 있다.
 
