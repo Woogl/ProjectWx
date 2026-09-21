@@ -194,7 +194,7 @@ void UWxInteractionScannerComponent::UpdateInRange(const TArray<AActor*>& InCand
 		return;
 	}
 
-	// 기존 대상의 순서를 지키고 신규만 뒤에 붙여, 목록이 스캔마다 뒤섞이지 않게 한다.
+	// 목록이 스캔마다 뒤섞이지 않게 한다.
 	TArray<AActor*> Ordered;
 	for (const FWxInteractionRow& Row : Rows)
 	{
@@ -242,7 +242,7 @@ void UWxInteractionScannerComponent::UpdateInRange(const TArray<AActor*>& InCand
 		return;
 	}
 
-	// 새 목록에 행이 없는 대상의 외곽선을 끈다 — 후보로는 남았어도 선택지가 없어진 대상이 여기에 든다.
+	// 후보로는 남았어도 선택지가 없어진 대상이 여기에 든다.
 	for (const FWxInteractionRow& Row : Rows)
 	{
 		AActor* Old = Row.Actor.Get();
