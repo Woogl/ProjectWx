@@ -77,6 +77,7 @@ public:
 	int32 SelectedOptionValue = INDEX_NONE;
 
 protected:
+	virtual void PostActorCreated() override;
 	virtual void BeginPlay() override;
 
 private:

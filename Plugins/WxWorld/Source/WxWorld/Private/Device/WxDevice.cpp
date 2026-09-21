@@ -142,6 +142,20 @@ void AWxDevice::EndWaitForTrigger(const FWxStateTreeTask_WaitForTrigger& Task)
 	}
 }
 
+void AWxDevice::PostActorCreated()
+{
+	Super::PostActorCreated();
+
+	// 맵에 배치된 장치의 자식 액터 장치(엘리베이터 호출 버튼)는 맵 로드 뒤에 다시 스폰돼도 서버·클라가 같은 이름을 쓴다.
+	// 경로로 주소 지정되게 해 두지 않으면 클라가 이 장치를 가리키는 RPC(ServerInteract)를 직렬화하다 엔진 assert 로 죽는다.
+	const AActor* ParentActor = GetParentActor();
+	if (ParentActor && ParentActor->IsNameStableForNetworking())
+	{
+		SetNetAddressable();
+		UE_LOG(LogWxWorld, Verbose, TEXT("Device(%s): 자식 액터 장치를 경로 주소 지정으로 표시(%s)."), *GetName(), GetNetMode() == NM_Client ? TEXT("Client") : TEXT("Server"));
+	}
+}
+
 void AWxDevice::BeginPlay()
 {
 	Super::BeginPlay();
