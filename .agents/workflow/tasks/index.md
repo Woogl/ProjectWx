@@ -11,3 +11,4 @@
 ## 작업 인계
 
 - [Wiki 전체 재생성](wiki-regeneration.md)
+- [상호작용 목록 VM 단순화](interaction-list-vm-simplification.md)
