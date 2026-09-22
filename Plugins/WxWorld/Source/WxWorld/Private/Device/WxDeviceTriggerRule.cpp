@@ -6,8 +6,6 @@
 #include "Components/SplineComponent.h"
 #include "Device/WxDevice.h"
 
-#define LOCTEXT_NAMESPACE "WxDeviceTriggerRule"
-
 FWxDeviceTriggerRule::~FWxDeviceTriggerRule() = default;
 
 void FWxDeviceTriggerRule::GetAcceptedOptions(const AWxDevice& Receiver, const AWxDevice* Sender, TArray<FWxInteractionOption>& OutOptions) const
@@ -34,11 +32,16 @@ void FWxDeviceTriggerRule_SplineStops::GetAcceptedOptions(const AWxDevice& Recei
 
 	if (Sender->GetRootComponent()->IsAttachedTo(PlatformComponent))
 	{
+		if (bWakeOnCall)
+		{
+			return;
+		}
+
 		for (int32 Stop = 0; Stop < NumStops; ++Stop)
 		{
-			if (Stop != CurrentStop || bAcceptCurrentStop)
+			if (Stop != CurrentStop)
 			{
-				OutOptions.Add({FText::Format(LOCTEXT("FloorOption", "{0}층"), FText::AsNumber(Stop + 1)), Stop});
+				OutOptions.Add({FText::Format(StopPrompt, FText::AsNumber(Stop + 1)), Stop});
 			}
 		}
 
@@ -46,10 +49,8 @@ void FWxDeviceTriggerRule_SplineStops::GetAcceptedOptions(const AWxDevice& Recei
 	}
 
 	const int32 NearestStop = FMath::Clamp(FMath::RoundToInt(SplineComponent->FindInputKeyClosestToWorldLocation(Sender->GetActorLocation())), 0, NumStops - 1);
-	if (NearestStop != CurrentStop || bAcceptCurrentStop)
+	if (NearestStop != CurrentStop || bWakeOnCall)
 	{
 		OutOptions.Add({FText::GetEmpty(), NearestStop});
 	}
 }
-
-#undef LOCTEXT_NAMESPACE
