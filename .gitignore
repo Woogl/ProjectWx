@@ -76,6 +76,7 @@ Plugins/**/Intermediate/*
 DerivedDataCache/*
 
 # Agents (AI 하네스 — 스킬·스크립트 정본은 .agents/)
+# .wiki/ is intentionally versioned: this is the shared project wiki, not a personal vault.
 .claude/**/*.local.json
 .agents/**/*.local.json
 

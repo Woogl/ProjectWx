@@ -5,10 +5,12 @@ $ErrorActionPreference = 'Stop'
 try {
     if (!$RepoRoot) { $RepoRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent }
     $repo = [IO.Path]::GetFullPath($RepoRoot).TrimEnd('\', '/')
-    $files = @(foreach ($folder in @('.agents/wiki', '.agents/workflow')) {
+    # Raw preserves imported source text and its original relative paths; lint articles, not immutable inputs.
+    $files = @(foreach ($folder in @('.wiki/wiki', '.agents/workflow')) {
         if (!(Test-Path -LiteralPath (Join-Path $repo $folder))) { continue }
         Get-ChildItem -LiteralPath (Join-Path $repo $folder) -Filter '*.md' -File -Recurse
     })
+    $files += @(Get-ChildItem -LiteralPath (Join-Path $repo '.wiki') -Filter '*.md' -File)
     $files += @(Get-Item -LiteralPath (Join-Path $repo 'README.md') -ErrorAction SilentlyContinue)
     foreach ($folder in @('Plugins', 'Source')) {
         foreach ($module in Get-ChildItem -LiteralPath (Join-Path $repo $folder) -Directory -ErrorAction SilentlyContinue) {

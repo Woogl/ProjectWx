@@ -5,27 +5,31 @@ param([string]$RepoRoot, [switch]$Open, [ValidateSet('Wiki', 'Workflow')][string
 $ErrorActionPreference = 'Stop'
 if (!$RepoRoot) { $RepoRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent }
 $repo = (Resolve-Path -LiteralPath $RepoRoot).Path
-$wiki = Join-Path $repo '.agents/wiki'
-$manifest = Get-Content -LiteralPath (Join-Path $wiki 'sources.json') -Raw | ConvertFrom-Json -AsHashtable
+$wiki = Join-Path $repo '.wiki'
 $documents = @(
-    foreach ($folder in @('.agents/wiki', '.agents/workflow')) {
+    foreach ($folder in @('.wiki', '.agents/workflow')) {
         if (!(Test-Path -LiteralPath (Join-Path $repo $folder))) { continue }
         foreach ($file in (Get-ChildItem -LiteralPath (Join-Path $repo $folder) -Recurse -File -Filter '*.md' | Sort-Object FullName)) {
             $path = [IO.Path]::GetRelativePath($repo, $file.FullName).Replace('\', '/')
             $relative = [IO.Path]::GetRelativePath($wiki, $file.FullName).Replace('\', '/')
+            # Only compiled knowledge and navigation belong in the reader, not imported sources or personal runtime state.
+            if ($folder -eq '.wiki' -and $relative.Contains('/') -and !$relative.StartsWith('wiki/')) { continue }
+            if ($folder -eq '.wiki' -and !$relative.Contains('/') -and $relative -notin @('_index.md', 'config.md', 'schema.md')) { continue }
             $raw = [IO.File]::ReadAllText($file.FullName)
-            $heading = [regex]::Match($raw, '(?m)^#\s+(.+)$')
-            $meta = $manifest.pages[$relative]
+            # Keep YAML verbatim for provenance display; rendering never interprets it as document headings or a second schema.
+            $frontmatter = [regex]::Match($raw, '\A---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)')
+            $body = if ($frontmatter.Success) { $raw.Substring($frontmatter.Length) } else { $raw }
+            $heading = [regex]::Match($body, '(?m)^#\s+(.+)$')
+            # The standard Markdown half supplies navigation; avoid displaying the paired Obsidian link twice.
+            $renderBody = [regex]::Replace($body, '\[\[[^\]\r\n]+\]\]\s*\((\[[^\]\r\n]+\]\([^\r\n]+?\))\)', '$1')
             $category = if ($path.StartsWith('.agents/workflow/tasks/')) { 'tasks' } elseif ($folder -eq '.agents/workflow') { 'workflow' } elseif ($relative.Contains('/')) { $relative.Split('/')[0] } else { 'guide' }
             [ordered]@{
                 path = $path
                 title = if ($heading.Success) { $heading.Groups[1].Value.Trim() } else { $file.BaseName }
                 category = $category
-                status = if ($meta) { $meta.status } elseif ($category -eq 'tasks') { 'historical' } else { 'untracked' }
-                scope = if ($meta) { $meta.scope } else { '' }
-                baseline_commit = if ($meta) { $meta.baseline_commit } else { '' }
+                frontmatter = if ($frontmatter.Success) { $frontmatter.Groups[1].Value } else { '' }
                 text = $raw
-                html = (ConvertFrom-Markdown -InputObject $raw).Html
+                html = (ConvertFrom-Markdown -InputObject $renderBody).Html
             }
         }
     }
@@ -34,7 +38,7 @@ $connectionPath = Join-Path $repo 'Saved/Wiki/ai-connection.json'
 $ai = if (Test-Path -LiteralPath $connectionPath) { Get-Content -LiteralPath $connectionPath -Raw | ConvertFrom-Json -AsHashtable } else { $null }
 # Bundle Wiki PNG assets so the file viewer needs no external image access.
 $images = @{}
-$assetRoot = Join-Path $wiki 'assets'
+$assetRoot = Join-Path $repo '.agents/workflow/assets'
 if (Test-Path -LiteralPath $assetRoot) {
     foreach ($asset in (Get-ChildItem -LiteralPath $assetRoot -File -Filter '*.png')) {
         if ($asset.Attributes -band [IO.FileAttributes]::ReparsePoint) { continue }
@@ -49,7 +53,7 @@ $diagramScript = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/di
 $mermaidVendor = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/vendor/mermaid-11.12.0.min.js')).Replace('</script', '<\/script')
 $workflowScript = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/workflow-model.js')) + "`n" + [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/workflow.js')) + "`n" + [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/execution.js'))
 foreach ($mode in @('Wiki', 'Workflow')) {
-    $indexPath = if ($mode -eq 'Wiki') { Join-Path $wiki 'index.md' } else { Join-Path $repo '.agents/workflow/index.md' }
+    $indexPath = if ($mode -eq 'Wiki') { Join-Path $wiki '_index.md' } else { Join-Path $repo '.agents/workflow/index.md' }
     $navigation = @()
     $group = $null
     foreach ($line in (Get-Content -LiteralPath $indexPath)) {

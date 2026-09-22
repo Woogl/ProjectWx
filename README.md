@@ -1,6 +1,6 @@
 # WX
 
-프로젝트 기술 문서는 [WX Wiki](.agents/wiki/index.md)에서 관리합니다.
+프로젝트 기술 문서는 [WX Wiki](.wiki/_index.md)에서 관리합니다.
 
 브라우저에서 검색·탐색하려면 [OpenWiki.bat](BatchFiles/OpenWiki.bat)을 더블클릭하세요. PowerShell 7이 필요하며, 실행할 때마다 최신 Markdown으로 로컬 뷰어를 생성합니다.
 

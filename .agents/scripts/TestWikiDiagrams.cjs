@@ -13,9 +13,9 @@ const root = path.resolve(__dirname, '../..');
     page.on('pageerror', error => errors.push(error.message));
     const url = pathToFileURL(path.join(root,'Saved/Wiki/knowledge.html')).href;
     await page.goto(url);
-    const diagrams = ['combat/index','combat/damage','combat/groggy','combat/finisher','tooling/wiki-workflow'];
+    const diagrams = ['topics/combat','concepts/combat-damage','concepts/combat-groggy','concepts/combat-finisher','references/wiki-workflow'];
     for(const name of diagrams) {
-      await page.evaluate(name => {location.hash=encodeURIComponent('.agents/wiki/knowledge/'+name+'.md');}, name);
+      await page.evaluate(name => {location.hash=encodeURIComponent('.wiki/wiki/'+name+'.md');}, name);
       await page.waitForFunction(() => document.querySelector('.diagram-error') || (document.querySelectorAll('.wiki-diagram').length > 0 && [...document.querySelectorAll('.wiki-diagram')].every(node => {const img=node.querySelector('img');return img?.complete && img.naturalWidth>0;})));
       assert.equal(await page.locator('.diagram-error').count(), 0, name);
       assert.equal(await page.locator('.wiki-diagram').count(), 1, name);
@@ -23,8 +23,8 @@ const root = path.resolve(__dirname, '../..');
         assert.ok(await diagram.locator('img').evaluate(img=>img.naturalWidth>0 && img.naturalHeight>0),name);
         assert.ok((await diagram.locator('details code').textContent()).length>20);
       }
-      if(name==='combat/damage' || name==='combat/groggy' || name==='tooling/wiki-workflow') {
-        await page.locator('.wiki-diagram').screenshot({path:path.join(root,'Saved/Wiki/'+(name==='combat/damage'?'damage':name==='combat/groggy'?'groggy':'workflow')+'-diagram.png')});
+      if(name==='concepts/combat-damage' || name==='concepts/combat-groggy' || name==='references/wiki-workflow') {
+        await page.locator('.wiki-diagram').screenshot({path:path.join(root,'Saved/Wiki/'+(name==='concepts/combat-damage'?'damage':name==='concepts/combat-groggy'?'groggy':'workflow')+'-diagram.png')});
       }
     }
     assert.deepEqual(external, [], 'offline diagrams must not make network requests');
