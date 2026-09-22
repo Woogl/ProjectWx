@@ -29,7 +29,8 @@ AWxItemPickup::AWxItemPickup()
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	SetRootComponent(MeshComponent);
 
-	// 대상 자격은 콜리전 프리셋·응답과 무관하다(CanInteract 로 답한다) — 아래 설정은 순전히 LaunchInDirection 의 물리 발사와 월드 충돌을 위한 것이다.
+	// 대상 자격 자체는 콜리전 응답과 무관하게 CanInteract 로 답하지만, 쿼리 콜리전이 꺼지면 스캐너에 잡히지 않는다.
+	// 오브젝트 타입과 채널 응답은 LaunchInDirection 의 물리 발사와 월드 충돌을 위한 것이다.
 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	MeshComponent->SetCollisionObjectType(ECC_WorldDynamic);
 	MeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
@@ -72,7 +73,6 @@ void AWxItemPickup::LaunchInDirection(const FVector& Direction, float Speed)
 
 void AWxItemPickup::OnInteracted(AActor* Interactor, int32 OptionValue)
 {
-	// 서버 권위에서만 호출된다.
 	if (!Interactor)
 	{
 		return;

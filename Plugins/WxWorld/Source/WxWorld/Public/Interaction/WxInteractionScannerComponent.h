@@ -44,7 +44,7 @@ public:
 	/** 뷰모델이 행을 만들 때 읽는다. 행 하나가 선택지 하나라, 선택지가 여럿인 대상은 그 수만큼 자리를 차지한다. 인덱스는 GetSelectedIndex() 와 같은 축이다. */
 	TArray<FText> GetPrompts() const;
 
-	/** 없으면 INDEX_NONE. 뷰모델이 행을 만들 때 읽는다. */
+	/** 없으면 INDEX_NONE. */
 	int32 GetSelectedIndex() const;
 
 	AActor* GetSelectedActor() const;
@@ -69,7 +69,7 @@ protected:
 	int32 HighlightStencilValue = 1;
 
 private:
-	/** HUD 목록의 한 행. 대상과 그 대상이 내놓은 선택지(문구 + 값) 하나다. */
+	/** HUD 목록의 한 행. */
 	struct FWxInteractionRow
 	{
 		TWeakObjectPtr<AActor> Actor;
