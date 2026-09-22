@@ -12,7 +12,7 @@ function currentWorkStage(){
   return 'implementation';
 }
 function openWorkStage(){
-  const path='.agents/wiki/workflow/planning.md';
+  const path='.agents/workflow/process/planning.md';
   if(typeof history!=='undefined')history.replaceState(null,'',route(path));
   else location.hash=route(path);
   if(typeof readRoute==='function')readRoute();

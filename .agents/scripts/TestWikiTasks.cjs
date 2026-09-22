@@ -40,7 +40,7 @@ const run=(c,s)=>vm.runInContext(s,c);
   const duplicate=new Map([[key+':tasks',JSON.stringify({'새 제목':{...legacy,taskId:'새 제목',title:'새 제목',source:'다른 브라우저의 미확정 원본'}})]]);
   await browser(duplicate);assert.equal(listTasks(root).tasks['새 제목'].task.planning.result.draft,'확정 기획');
   assert(!Object.values(listTasks(root).tasks).some(r=>r.task.source==='다른 브라우저의 미확정 원본'));
-  fs.unlinkSync(path.join(root,'.agents/in-progress/workflow_공유 기획_task.json'));
+  fs.unlinkSync(path.join(root,'.agents/workflow/tasks/workflow_공유 기획_task.json'));
   const e=await browser();assert(!run(e,"Object.hasOwn(otherTasks,'공유 기획')"));
   console.log('PASS shared files across browsers, stale-write rejection, input preservation, idempotent save, legacy isolation, rename and file deletion');
 }finally{assert.equal(path.dirname(path.resolve(root)),path.resolve(os.tmpdir()));assert(path.basename(root).startsWith('wx-tasks-'));fs.rmSync(root,{recursive:true,force:true});}})().catch(e=>{console.error(e);process.exitCode=1;});

@@ -5,7 +5,7 @@ $ErrorActionPreference = 'Stop'
 try {
     if (!$RepoRoot) { $RepoRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent }
     $repo = [IO.Path]::GetFullPath($RepoRoot).TrimEnd('\', '/')
-    $files = @(foreach ($folder in @('.agents/wiki', '.agents/in-progress')) {
+    $files = @(foreach ($folder in @('.agents/wiki', '.agents/workflow')) {
         if (!(Test-Path -LiteralPath (Join-Path $repo $folder))) { continue }
         Get-ChildItem -LiteralPath (Join-Path $repo $folder) -Filter '*.md' -File -Recurse
     })

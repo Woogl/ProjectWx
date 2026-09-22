@@ -32,11 +32,11 @@ function confirm(context){
   await assert.rejects(confirm(c),/response lost/);
   const journal=run(c,'JSON.stringify(pendingSave.body)');
   assert.equal(run(c,'workflowState.serverRevision'),0);
-  const files=fs.readdirSync(path.join(fixture,'.agents/in-progress')).sort();
+  const files=fs.readdirSync(path.join(fixture,'.agents/workflow/tasks')).sort();
   c=await reload();assert.equal(run(c,'JSON.stringify(pendingSave.body)'),journal);
   await run(c,'syncSharedTasks()');
   assert.equal(run(c,"loopConfirmed('planning')"),true);
-  assert.deepEqual(fs.readdirSync(path.join(fixture,'.agents/in-progress')).sort(),files);
+  assert.deepEqual(fs.readdirSync(path.join(fixture,'.agents/workflow/tasks')).sort(),files);
   assert.equal(run(c,'workflowState.serverRevision'),1);
   c.result=result;run(c,"workflowState.implementation.result=result;workflowState.implementation.reviewBasis=loopBasis('implementation');saveWorkflow()");
   loseResponse=true;await assert.rejects(run(c,"beginChange('planning',undefined,'비용 변경')"),/response lost/);

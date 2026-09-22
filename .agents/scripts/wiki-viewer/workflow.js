@@ -301,8 +301,8 @@ function renderTaskPicker(panel) {
     try{
       if(sharedReady||workflowState.serverRevision||workflowState.changeFrom)await commitWorkflow('/rename',{taskId:workflowState.taskId,expectedRevision:workflowState.serverRevision,title},next);
       else{workflowState=next;delete otherTasks[oldName];if(!saveWorkflow())throw new Error(workflowStorageError);}
-      renderWorkflow(decodeURIComponent(location.hash?.slice(1)||'.agents/wiki/workflow/planning.md'));
-    }catch(error){message.textContent=error.message;if(pendingSave)renderWorkflow('.agents/wiki/workflow/planning.md');}
+      renderWorkflow(decodeURIComponent(location.hash?.slice(1)||'.agents/workflow/process/planning.md'));
+    }catch(error){message.textContent=error.message;if(pendingSave)renderWorkflow('.agents/workflow/process/planning.md');}
   }));
   panel.append(rename);
 }
@@ -327,7 +327,7 @@ function renderWorkSummary() {
   $('current-task-title').textContent=!workflowState.taskId?'새 작업을 만들거나 기존 작업을 선택하세요.':'현재 작업 · '+taskTitle(workflowState);
   $('work-summary-error').textContent=workflowStorageError;
   if(workflowState.taskId){
-    const stage=currentWorkStage(),card=el('a',undefined,'card');card.href=route('.agents/wiki/workflow/planning.md');
+    const stage=currentWorkStage(),card=el('a',undefined,'card');card.href=route('.agents/workflow/process/planning.md');
     const status=loopConfirmed('implementation')?executionStatus():reviewStatus(stage);
     card.append(el('span','현재 상태','eyebrow'),el('h2',status),el('p','작업 열기 →'));summary.append(card);
   }
@@ -357,7 +357,7 @@ function renderDecisionLoop(panel, stage) {
     panel.append(workflowButton('변경 작업 열기',()=>{
       const next=otherTasks[workflowState.changeTo];
       if(!next){message.textContent='현재 브라우저에 변경 작업이 없습니다. 공용 변경 기록을 확인하세요.';return;}
-      workflowState=JSON.parse(JSON.stringify(next));saveWorkflow();renderWorkflow(`.agents/wiki/workflow/${stage}.md`);
+      workflowState=JSON.parse(JSON.stringify(next));saveWorkflow();renderWorkflow(`.agents/workflow/process/${stage}.md`);
     }),message);return;
   }
   if(l.confirmation){
@@ -434,7 +434,7 @@ function renderDecisionLoop(panel, stage) {
         const merged=WxWorkflowModel.mergeDecisions(l.decisions,result.questions,result.exclusions||[]);
         invalidate(stage);l.decisions=merged;l.result=result;l.reviewProvider=selectedProvider;l.reviewBasis=loopBasis(stage);
         if(saveWorkflow()){
-          renderWorkflow(`.agents/wiki/workflow/${stage}.md`);
+          renderWorkflow(`.agents/workflow/process/${stage}.md`);
           const remaining=l.decisions.filter(q=>WxWorkflowModel.active(q)&&!q.confirmed).length;
           $('workflow-review-status').textContent=remaining?`검토 완료 · 답변이 필요한 질문 ${remaining}개를 확인하세요.`:loopReady(stage)?'검토 완료 · 통합 초안을 확인하고 최종 확정하세요.':'검토 완료 · 확정 전 해결할 자료와 판단을 확인하세요.';
         }else message.textContent=workflowStorageError;
@@ -490,7 +490,7 @@ function renderDecisionLoop(panel, stage) {
         }
         if(!providers.length){message.textContent='답변을 저장했습니다. AI 연결 후 검토 버튼을 눌러 계속하세요.';return;}
         await generate.onclick();
-      }else renderWorkflow(`.agents/wiki/workflow/${stage}.md`);
+      }else renderWorkflow(`.agents/workflow/process/${stage}.md`);
     });
     answer.oninput=()=>{
       if(pendingSave)return;
@@ -532,11 +532,11 @@ function renderDecisionLoop(panel, stage) {
           openWorkStage('implementation');
           if(runCurrentReview)await runCurrentReview();
         }else{
-          renderWorkflow('.agents/wiki/workflow/implementation.md');
+          renderWorkflow('.agents/workflow/process/implementation.md');
           await executeAction('start');
         }
       }catch(error){
-        if(pendingSave)renderWorkflow(`.agents/wiki/workflow/${stage}.md`);
+        if(pendingSave)renderWorkflow(`.agents/workflow/process/${stage}.md`);
         sharedStatus('저장 완료를 확인하지 못했습니다. '+error.message+(pendingSave?' 입력은 유지되며 연결이 돌아오면 저장을 다시 확인합니다.':' 입력은 유지됩니다. 다시 시도하세요.'));
       }finally{finalize.disabled=false;panel.inert=false;}
     });
@@ -556,7 +556,7 @@ let runCurrentReview=null;
 function renderWorkflow(path){
   runCurrentReview=null;
   const panel=$('workflow-controls');panel.replaceChildren();
-  const requested=path.match(/^\.agents\/wiki\/workflow\/(planning|implementation|testing|completion)\.md$/)?.[1];
+  const requested=path.match(/^\.agents\/workflow\/process\/(planning|implementation|testing|completion)\.md$/)?.[1];
   const stage=requested?currentWorkStage():null;
   panel.hidden=!stage;if(!stage)return;
   panel.append(el('h2','작업'));

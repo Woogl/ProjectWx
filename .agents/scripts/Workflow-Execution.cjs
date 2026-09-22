@@ -10,7 +10,7 @@ function validateReport(value){
   if(!value||typeof value.summary!=='string'||!value.summary.trim()||!['changes','humanChecks','blockers'].every(k=>Array.isArray(value[k])&&value[k].every(x=>typeof x==='string'))||!Array.isArray(value.checks)||!value.checks.every(c=>c&&typeof c.name==='string'&&['passed','failed','not_run'].includes(c.status)&&typeof c.evidence==='string'&&c.evidence.trim()))throw Error('AI 결과에 요약·검증 근거가 필요합니다.');
   return value;
 }
-function executionFile(root,title){taskName(title);return path.join(root,'.agents/in-progress',`workflow_${title}_execution.json`);}
+function executionFile(root,title){taskName(title);return path.join(root,'.agents/workflow/tasks',`workflow_${title}_execution.json`);}
 function readExecution(root,title){const file=executionFile(root,title);return fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):null;}
 function writeExecution(root,record){
   record.updatedAt=new Date().toISOString();const file=executionFile(root,record.taskId),temp=file+'.'+crypto.randomUUID()+'.tmp';
@@ -19,7 +19,7 @@ function writeExecution(root,record){
 function codeVersion(root){
   const git=args=>execFileSync('git',['-c','safe.directory='+root.replace(/\\/g,'/'),...args],{cwd:root,windowsHide:true,maxBuffer:64*1024*1024});
   const hash=crypto.createHash('sha256');hash.update(git(['rev-parse','HEAD']));
-  const scope=['--','.',':(exclude).agents/in-progress'];
+  const scope=['--','.',':(exclude).agents/workflow/tasks'];
   hash.update(git(['diff','HEAD','--binary',...scope]));
   const files=git(['ls-files','--others','--exclude-standard','-z',...scope]).toString().split('\0').filter(Boolean).sort();
   for(const file of files){hash.update(file);hash.update(fs.readFileSync(path.join(root,file)));}
@@ -27,7 +27,7 @@ function codeVersion(root){
 }
 function reviewDiff(root){
   const git=args=>execFileSync('git',['-c','safe.directory='+root.replace(/\\/g,'/'),...args],{cwd:root,windowsHide:true,maxBuffer:64*1024*1024}).toString();
-  const scope=['--','.',':(exclude).agents/in-progress'];
+  const scope=['--','.',':(exclude).agents/workflow/tasks'];
   let diff=git(['diff','HEAD','--no-ext-diff',...scope]);
   for(const file of git(['ls-files','--others','--exclude-standard','-z',...scope]).split('\0').filter(Boolean)){
     const bytes=fs.readFileSync(path.join(root,file));diff+='\n새 파일: '+file+'\n'+(bytes.includes(0)?'(바이너리 파일)':bytes.toString('utf8'));
@@ -65,7 +65,7 @@ function createExecutionService({root,resolveCurrent,run,fingerprint=()=>codeVer
     for(const pid of previousWorkers){try{process.kill(pid,0);}catch(error){if(error.code==='ESRCH')previousWorkers.delete(pid);}}
     return !!active||previousWorkers.size>0;
   }
-  const folder=path.join(root,'.agents/in-progress');
+  const folder=path.join(root,'.agents/workflow/tasks');
   for(const name of fs.existsSync(folder)?fs.readdirSync(folder):[]){
     if(!/^workflow_.+_execution\.json$/.test(name))continue;
     const record=JSON.parse(fs.readFileSync(path.join(folder,name),'utf8'));

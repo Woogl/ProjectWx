@@ -52,14 +52,14 @@ const question={id:'Q1',title:'취소 정책',requirement:'기획 미정',scope:
     const body={operationId:'first-save',title:'회피 시스템 개선',taskId:'회피 시스템 개선',expectedRevision:0,stage:'planning',source:'원본',notes:'의견',decisions,result:sample,confirmedAt:new Date().toISOString()};
     const record=saveHandoff(body,fixture);
     assert.ok(fs.readFileSync(path.join(fixture,record.path),'utf8').startsWith('# 회피 시스템 개선 · 기획 확정 인계'));
-    assert.ok(fs.readFileSync(path.join(fixture,'.agents/in-progress/index.md'),'utf8').includes('[회피 시스템 개선 · 기획 확정 인계]'));
+    assert.ok(fs.readFileSync(path.join(fixture,'.agents/workflow/tasks/index.md'),'utf8').includes('[회피 시스템 개선 · 기획 확정 인계]'));
     assert.equal(readCurrent({...body,expectedRevision:record.revision},fixture).title,body.title);
     assert.deepEqual(saveHandoff(body,fixture),record,'lost response retry returns original receipt');
-    assert.equal(fs.readdirSync(path.join(fixture,'.agents/in-progress')).filter(f=>f.endsWith('.md')).length,2,'retry creates no duplicate handoff');
+    assert.equal(fs.readdirSync(path.join(fixture,'.agents/workflow/tasks')).filter(f=>f.endsWith('.md')).length,2,'retry creates no duplicate handoff');
     assert.throws(()=>saveHandoff({...body,source:'changed'},fixture),/같은 요청 식별자/);
     assert(fs.readFileSync(path.join(fixture,record.path),'utf8').includes('확정 답변: 유지'));
     assert.deepEqual(JSON.parse(fs.readFileSync(path.join(fixture,record.dataPath),'utf8')).decisions,decisions);
-    assert(fs.readFileSync(path.join(fixture,'.agents/in-progress/index.md'),'utf8').includes(encodeURIComponent(path.basename(record.path))));
+    assert(fs.readFileSync(path.join(fixture,'.agents/workflow/tasks/index.md'),'utf8').includes(encodeURIComponent(path.basename(record.path))));
     assert.throws(()=>saveHandoff({...body,operationId:undefined,expectedRevision:record.revision,result:{...sample,blockers:['미검증']}},fixture),/미확정 판단 또는 미해결 자료/);
     assert.throws(()=>saveHandoff({...body,operationId:undefined,expectedRevision:record.revision,decisions:[{...decisions[0],confirmed:false}]},fixture),/미확정 판단 또는 미해결 자료/);
     assert.throws(()=>saveHandoff({...body,operationId:undefined,expectedRevision:record.revision,stage:'implementation'},fixture),/확정 기획 인계 자료/);
@@ -101,10 +101,10 @@ const question={id:'Q1',title:'취소 정책',requirement:'기획 미정',scope:
     const renamed=renameTask({taskId:'change-one',title:'회피 비용 변경',expectedRevision:designChange.revision,operationId:'rename-change'},fixture);
     assert.equal(renamed.taskId,'회피 비용 변경');
     assert.equal(fs.existsSync(path.join(fixture,newPlan.path)),false);
-    assert.equal(resolveCurrent(body.taskId,fixture).planning,'.agents/in-progress/workflow_회피 비용 변경_planning.md');
+    assert.equal(resolveCurrent(body.taskId,fixture).planning,'.agents/workflow/tasks/workflow_회피 비용 변경_planning.md');
     assert.equal(resolveCurrent('change-two',fixture).implementation,final.path);
     assert.deepEqual(renameTask({taskId:'change-one',title:'회피 비용 변경',expectedRevision:designChange.revision,operationId:'rename-change'},fixture),renamed);
-    const json=JSON.parse(fs.readFileSync(path.join(fixture,'.agents/in-progress/workflow_회피 비용 변경_planning.json'),'utf8'));
+    const json=JSON.parse(fs.readFileSync(path.join(fixture,'.agents/workflow/tasks/workflow_회피 비용 변경_planning.json'),'utf8'));
     assert.deepEqual(json.decisions,newBody.decisions,'rename preserves human decisions');
     const renameBody={taskId:'change-two',title:'후속 설계 (검증)',expectedRevision:resolveCurrent(body.taskId,fixture).revision,operationId:'rename-recovery'};
     try{
@@ -116,7 +116,7 @@ const question={id:'Q1',title:'취소 정책',requirement:'기획 미정',scope:
     assert.deepEqual(renameTask(renameBody,fixture),recovered);
     assert.equal(resolveCurrent(body.taskId,fixture).taskId,'후속 설계 (검증)');
     assert.equal(fs.existsSync(path.join(fixture,final.path)),false);
-    assert(fs.readFileSync(path.join(fixture,'.agents/in-progress/index.md'),'utf8').includes('%28'));
+    assert(fs.readFileSync(path.join(fixture,'.agents/workflow/tasks/index.md'),'utf8').includes('%28'));
     assert.throws(()=>renameTask({...renameBody,taskId:renameBody.title,title:body.taskId,expectedRevision:recovered.revision,operationId:'duplicate-title'},fixture),/이미 사용/);
     for(const title of ['../escape','bad/name','bad:name','bad.','bad?'])assert.throws(()=>renameTask({taskId:'change-two',title,expectedRevision:final.revision,operationId:'invalid'},fixture));
 

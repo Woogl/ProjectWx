@@ -47,7 +47,7 @@ const settle=async()=>{await new Promise(resolve=>setImmediate(resolve));};
   await new Promise((resolve,reject)=>{child.once('spawn',resolve);child.once('error',reject);});
   const stopped=new Promise(resolve=>child.once('exit',resolve));
   try{
-    const file=path.join(root,'.agents/in-progress/workflow_남은 실행_execution.json');
+    const file=path.join(root,'.agents/workflow/tasks/workflow_남은 실행_execution.json');
     fs.writeFileSync(file,JSON.stringify({taskId:'남은 실행',status:'running',revision:1,workerPid:child.pid}));
     runner=service();assert.equal(runner.isBusy(),true,'surviving worker blocks the entire repository');
     current.taskId='새 작업';assert.throws(()=>runner.act({taskId:current.taskId,action:'start',expectedRevision:0,operationId:'other-task'}),/진행 중/);

@@ -5,7 +5,7 @@ const crypto = require('node:crypto');
 const { taskName, basis } = require('./wiki-viewer/workflow-model.js');
 const { readExecution } = require('./Workflow-Execution.cjs');
 const loop = () => ({ notes:'', decisions:[], result:null, reviewBasis:'', confirmation:null, archive:[] });
-function folder(root) { return path.join(root, '.agents/in-progress'); }
+function folder(root) { return path.join(root, '.agents/workflow/tasks'); }
 function file(root, title) { if(taskName(title)!==title)throw new Error('작업 제목 앞뒤 공백을 제거하세요.');return path.join(folder(root), `workflow_${title}_task.json`); }
 function checkReady(root) { if(fs.existsSync(path.join(folder(root),'workflow_rename_pending.json')))throw new Error('제목 변경 저장을 먼저 복구하세요.'); }
 function readTask(root, title) {

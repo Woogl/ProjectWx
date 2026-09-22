@@ -80,7 +80,7 @@ function saveHandoff(body, root = repo) {
   const displayTitle=body.taskId;
   const escapedTitle=displayTitle.replace(/[\\`*_{}\[\]()<>#!|]/g,character=>'\\'+character);
   const name=`workflow_${body.taskId}_${body.stage}`;
-  const relative=`.agents/in-progress/${name}.md`, dataPath=`.agents/in-progress/${name}.json`;
+  const relative=`.agents/workflow/tasks/${name}.md`, dataPath=`.agents/workflow/tasks/${name}.json`;
   const title=body.stage==='planning'?'기획 확정 인계':'설계 확정 인계';
   const lines=[`# ${escapedTitle} · ${title}`, '', `확정 시각: ${body.confirmedAt}`, '확정 근거: OpenWiki에서 사람이 통합 결과 최종 확정 버튼을 누름. 사용자 신원 인증 기록은 아님.',
     `작업 제목: ${body.taskId}. 구현 시작·재개·결과 인계 전 node .agents/scripts/Wiki-AI.cjs --current '${body.taskId.replace(/'/g,"''")}'로 변경 연결을 따라 최신 기준과 보류 범위를 확인한다. 이 문서는 확정 당시 기록이며 후속 변경으로 대체될 수 있다.`,
@@ -94,7 +94,7 @@ function saveHandoff(body, root = repo) {
   if(body.upstream)lines.push('## 상위 인계','',body.upstream.path,'');
   if(current.changeFrom)lines.push('## 이전 확정본과 변경 범위','',JSON.stringify(current.changeFrom,null,2),'','영향받는 구현·리뷰·테스트만 다시 수행한다. 기존 판단 원문은 이전 인계에 보존한다.');
   lines.push('## 후속 작업','',body.stage==='planning'?'AI는 이 확정본과 판단 기록을 읽고 기존 코드를 조사하여 설계 판단 자료를 준비한다.':'AI는 이 설계와 판단 기록을 기준으로 구현·자체 검증하고 사람이 판단할 diff·검증 자료를 준비한다. 설계 변경이 필요하면 영향받는 항목만 다시 질문한다.','구현 버전·리뷰 결과·테스트 증거와 인간 수용 판단은 관련 검토 보고서에서 연결한다.');
-  fs.mkdirSync(path.join(root,'.agents/in-progress'),{recursive:true});
+  fs.mkdirSync(path.join(root,'.agents/workflow/tasks'),{recursive:true});
   // 유효 확정본은 위에서 차단한다. 미완료 저장만 같은 요청으로 복구한다.
   fs.writeFileSync(path.join(root,dataPath),JSON.stringify({...body,title:displayTitle,changeFrom:current.changeFrom||null},null,2)+'\n');
   fs.writeFileSync(path.join(root,relative),lines.join('\n')+'\n');
@@ -108,7 +108,7 @@ function saveHandoff(body, root = repo) {
   return response;
 }
 function readHandoff(root,relative) {
-  const match=typeof relative==='string'&&relative.match(/^\.agents\/in-progress\/workflow_(.+)_(planning|implementation)\.md$/);
+  const match=typeof relative==='string'&&relative.match(/^\.agents\/workflow\/tasks\/workflow_(.+)_(planning|implementation)\.md$/);
   if(!match)throw new Error('인계 경로 오류');
   taskName(match[1]);
   const file=path.join(root,relative.replace(/\.md$/,'.json'));
@@ -125,7 +125,7 @@ function startChange(body,root=repo) {
   const title=body.newTaskId;
   if(body.stage==='implementation'&&!current.implementation)throw new Error('미확정 설계는 현재 작업에서 수정하세요.');
   const changeFrom={taskId:body.taskId,title:current.title||'제목 없는 작업',stage:body.stage,planning:current.planning,implementation:current.implementation,reason:body.reason,scope:body.scope};
-  const childPath=path.join(root,'.agents/in-progress',`workflow_${body.newTaskId}_current.json`);
+  const childPath=path.join(root,'.agents/workflow/tasks',`workflow_${body.newTaskId}_current.json`);
   if(fs.existsSync(childPath)){
     const child=currentRecord({taskId:body.newTaskId},root);
     if(child.creationOperation!==operation.hash||child.revision!==0)throw new Error('이미 사용 중인 변경 작업 식별자입니다.');
@@ -141,7 +141,7 @@ function startChange(body,root=repo) {
 function renameTask(body,root=repo) {
   const oldName=taskName(body.taskId),newName=taskName(body.title);
   if(!/^[A-Za-z0-9_-]{1,80}$/.test(body.operationId||''))throw new Error('저장 요청 식별자 오류');
-  const folder=path.join(root,'.agents/in-progress'),journalPath=path.join(folder,'workflow_rename_pending.json');
+  const folder=path.join(root,'.agents/workflow/tasks'),journalPath=path.join(folder,'workflow_rename_pending.json');
   const operation={id:body.operationId,hash:crypto.createHash('sha256').update(JSON.stringify({kind:'rename',body})).digest('hex')};
   function finish(journal){
     if(journal.operation.hash!==operation.hash)throw new Error('다른 제목 변경을 먼저 복구하세요.');
@@ -223,7 +223,7 @@ function resolveCurrent(taskId,root=repo) {
 }
 // 보고서 목록에는 현재 유효한 인계만 남긴다. label이 없으면 해당 줄을 지운다.
 function indexEntry(root,name,label) {
-  const file=path.join(root,'.agents/in-progress/index.md'), heading='## 작업 인계';
+  const file=path.join(root,'.agents/workflow/tasks/index.md'), heading='## 작업 인계';
   if(!label && !fs.existsSync(file))return;
   const source=fs.existsSync(file)?fs.readFileSync(file,'utf8'):'# 진행 중 작업 자료\n';
   const link=encodeFilename(name+'.md');
@@ -235,9 +235,9 @@ function indexEntry(root,name,label) {
   fs.writeFileSync(file,lines.join('\n').replace(/\n{3,}/g,'\n\n').replace(/\n*$/,'\n'));
 }
 function currentRecord(body,root=repo) {
-  if(fs.existsSync(path.join(root,'.agents/in-progress/workflow_rename_pending.json')))throw new Error('제목 변경 저장을 먼저 복구하세요.');
+  if(fs.existsSync(path.join(root,'.agents/workflow/tasks/workflow_rename_pending.json')))throw new Error('제목 변경 저장을 먼저 복구하세요.');
   if(taskName(body?.taskId)!==body.taskId)throw new Error('작업 제목 앞뒤 공백을 제거하세요.');
-  const file=path.join(root,'.agents/in-progress',`workflow_${body.taskId}_current.json`);
+  const file=path.join(root,'.agents/workflow/tasks',`workflow_${body.taskId}_current.json`);
   const record=fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):{taskId:body.taskId,title:body.taskId,revision:0,planning:null,implementation:null};
   if(record.taskId!==body.taskId)throw new Error('대소문자를 포함해 기존 작업 제목과 일치해야 합니다.');
   return record;
@@ -264,7 +264,7 @@ function readMutation(body,kind,root) {
 }
 function writeCurrent(current,root=repo) {
   current.revision++;current.updatedAt=new Date().toISOString();
-  const file=path.join(root,'.agents/in-progress',`workflow_${current.taskId}_current.json`);
+  const file=path.join(root,'.agents/workflow/tasks',`workflow_${current.taskId}_current.json`);
   fs.mkdirSync(path.dirname(file),{recursive:true});
   atomicWrite(file,JSON.stringify(current,null,2)+'\n');
   return current.revision;
