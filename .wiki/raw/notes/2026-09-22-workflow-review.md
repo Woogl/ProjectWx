@@ -3,7 +3,7 @@ title: "Workflow 기획서 검토 전환과 검색 제거"
 source: "MANUAL"
 type: "notes"
 ingested: "2026-09-22"
-tags: ["wx", "tooling"]
+tags: ["wx", "workflow"]
 summary: "사용자 요청: 개발자가 전달받은 기획서를 검토하고 Workflow 문서 검색을 제거한다."
 ---
 

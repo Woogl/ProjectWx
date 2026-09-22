@@ -55,3 +55,8 @@
 
 ## [2026-09-22] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
 - 검증·색인: 순정 Lint 오류 0, 저장소 링크 37개 문서 오류 0, 관련 회귀 6개 통과. 실제 원자료 18개로 상위 색인 통계를 정정하고 뷰어를 재생성했다.
+
+## [2026-09-22] lint | 18 checks, 0 critical, 0 warnings, 3 suggestions, 0 candidates, 0 auto-fixed
+- 보고 전용 에이전트 lint: 원자료 18개·기사 17개, 링크 157개(코드 38) 오류 0, 관련 문서 역링크 82쌍 양방향. 제안: inventory·datasets 계층 미사용(schema 방침상 의도), workflow-review 원자료 태그 tooling→workflow 통일 검토. 신선도 전 기사 75점(verified 없음 상한), 2026-10-06부터 70 미만. 게임 코드·에셋 재검증 아님.
+
+## [2026-09-22] lint | 태그 정리: raw/notes/2026-09-22-workflow-review.md의 tooling 태그를 workflow로 통일하고 raw/notes/_index.md 행을 맞춤. 본문·출처 변경 없음, 순정 lint 0건.

@@ -25,4 +25,4 @@ Last updated: 2026-09-22
 | [장치 복제·상호작용·체크포인트 정적 조사](2026-09-22-current-world.md) | 장치 복제·상호작용·체크포인트 정적 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, world | 2026-09-22 |
 | [Workflow 승인 버전·정리 완료·승인자 기록](2026-09-22-workflow-closure.md) | P1·P2 개선 요청에 따라 승인 버전 검증, 테스트 수용과 정리 완료 분리, 승인자 기록을 구현한 근거 | wx, workflow | 2026-09-22 |
 | [Workflow 단계별 일감 대시보드](2026-09-22-workflow-dashboard.md) | 사용자 요청과 단계별 대시보드 구현·검증 범위 | wx, workflow | 2026-09-22 |
-| [Workflow 기획서 검토 전환과 검색 제거](2026-09-22-workflow-review.md) | 사용자 요청: 개발자가 전달받은 기획서를 검토하고 Workflow 문서 검색을 제거한다. | wx, tooling | 2026-09-22 |
+| [Workflow 기획서 검토 전환과 검색 제거](2026-09-22-workflow-review.md) | 사용자 요청: 개발자가 전달받은 기획서를 검토하고 Workflow 문서 검색을 제거한다. | wx, workflow | 2026-09-22 |
