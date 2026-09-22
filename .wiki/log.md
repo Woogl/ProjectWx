@@ -62,3 +62,9 @@
 ## [2026-09-22] lint | 태그 정리: raw/notes/2026-09-22-workflow-review.md의 tooling 태그를 workflow로 통일하고 raw/notes/_index.md 행을 맞춤. 본문·출처 변경 없음, 순정 lint 0건.
 
 ## [2026-09-22] schema | 사용자 결정: verified를 순정 규칙으로 전환. 편찬·재확인 때 그날로 기록하고 편찬 없는 구조 이관에는 넣지 않음. schema.md·wiki-operation.md·_index.md 문구 갱신, 오늘 편찬한 기사 17개에 verified: 2026-09-22 추가. 신선도 전 기사 100점. 순정 lint 0건, 저장소 링크 37개 문서 오류 0. PowerShell 7 부재로 뷰어 미재생성. 빌드·실행 검증 아님.
+
+## [2026-09-22] ingest | 그로기 종료 시 몽타주 정지 경로 수정 조사 (raw/notes/2026-09-22-groggy-montage-stop-fix.md)
+
+## [2026-09-22] compile | 1 source → 0 new articles, 1 updated (combat-groggy). 가산 피격 중 그로기 몽타주 정지 수정(c2b1088a0) 반영. combat-finisher는 몽타주 정지를 다루지 않아 변경 없음.
+
+## [2026-09-22] librarian | scanned 17 articles, 0 stale, 0 low-quality

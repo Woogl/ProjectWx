@@ -23,6 +23,7 @@ Last updated: 2026-09-22
 | [레이어·대화 화면·HUD·속성 표시 수명 조사](2026-09-22-current-ui.md) | 레이어·대화 화면·HUD·속성 표시 수명 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, ui | 2026-09-22 |
 | [Wiki·Workflow 정본과 실행 경계 조사](2026-09-22-current-workflow.md) | Wiki·Workflow 정본과 실행 경계 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, workflow | 2026-09-22 |
 | [장치 복제·상호작용·체크포인트 정적 조사](2026-09-22-current-world.md) | 장치 복제·상호작용·체크포인트 정적 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, world | 2026-09-22 |
+| [그로기 종료 시 몽타주 정지 경로 수정 조사](2026-09-22-groggy-montage-stop-fix.md) | 커밋 c2b1088a0으로 그로기 종료가 ASC 현재 몽타주 기준 정지 대신 AnimInstance에서 그로기 몽타주를 직접 정지하도록 바뀐 저장소 원문 발췌와 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, groggy | 2026-09-22 |
 | [Workflow 승인 버전·정리 완료·승인자 기록](2026-09-22-workflow-closure.md) | P1·P2 개선 요청에 따라 승인 버전 검증, 테스트 수용과 정리 완료 분리, 승인자 기록을 구현한 근거 | wx, workflow | 2026-09-22 |
 | [Workflow 단계별 일감 대시보드](2026-09-22-workflow-dashboard.md) | 사용자 요청과 단계별 대시보드 구현·검증 범위 | wx, workflow | 2026-09-22 |
 | [Workflow 기획서 검토 전환과 검색 제거](2026-09-22-workflow-review.md) | 사용자 요청: 개발자가 전달받은 기획서를 검토하고 Workflow 문서 검색을 제거한다. | wx, workflow | 2026-09-22 |
