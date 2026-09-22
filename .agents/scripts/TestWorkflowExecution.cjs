@@ -7,7 +7,7 @@ const current={taskId:'작업',planning:'p.md',implementation:'d.md',pending:nul
 let version='v1',finish,runs=0;
 const service=()=>createExecutionService({root,resolveCurrent:()=>current,fingerprint:()=>version,diff:()=>'+ actual change',run:()=>{runs++;return new Promise(resolve=>{finish=resolve;});}});
 let runner=service(),sequence=0;
-const action=(type,extra={})=>runner.act({taskId:'작업',action:type,expectedRevision:readExecution(root,'작업')?.revision||0,operationId:'op-'+(++sequence),...extra});
+const action=(type,extra={})=>runner.act({taskId:'작업',action:type,actor:'테스터',expectedRevision:readExecution(root,'작업')?.revision||0,operationId:'op-'+(++sequence),...extra});
 const settle=async()=>{await new Promise(resolve=>setImmediate(resolve));};
 (async()=>{try{
   current.implementation=null;assert.throws(()=>action('start'),/확정/);current.implementation='d.md';
@@ -16,12 +16,27 @@ const settle=async()=>{await new Promise(resolve=>setImmediate(resolve));};
   assert.equal(runner.act(request).status,'running');assert.equal(runs,1,'response loss must not execute twice');
   assert.throws(()=>action('accept'),/진행 중/);
   finish(report);await settle();assert.equal(readExecution(root,'작업').status,'review');
+  assert.throws(()=>action('approve',{actor:' '}),/승인자/);
   version='v2';assert.equal(action('approve').status,'blocked');assert.equal(readExecution(root,'작업').decisions.length,0);
   action('retry');await settle();finish(report);await settle();
   action('approve');await settle();assert.equal(readExecution(root,'작업').phase,'verify');
   finish(report);await settle();assert.equal(readExecution(root,'작업').status,'acceptance');
   assert.throws(()=>action('accept'),/확인할 항목/);
-  action('accept',{confirmedChecks:[0]});assert.equal(readExecution(root,'작업').status,'complete');
+  assert.throws(()=>action('accept',{actor:undefined,confirmedChecks:[0]}),/승인자/);
+  action('accept',{confirmedChecks:[0]});assert.equal(readExecution(root,'작업').status,'cleanup');
+  assert.equal(readExecution(root,'작업').decisions[1].actor,'테스터');
+  assert.throws(()=>action('finish'),/Wiki/);
+  assert.throws(()=>action('finish',{actor:' '}),/승인자/);
+  const closure={wikiStatus:'skipped',wikiEvidence:'재사용할 새 지식 없음',cleanupEvidence:'확정본과 검증 근거 보존, 임시 자료 없음'};
+  const finishRequest={taskId:'작업',action:'finish',actor:'정리 확인자',closure,expectedRevision:readExecution(root,'작업').revision,operationId:'finish'};
+  runner=service();assert.equal(readExecution(root,'작업').status,'cleanup','cleanup survives restart');
+  assert.equal(runner.act(finishRequest).status,'complete');assert.deepEqual(runner.act(finishRequest),readExecution(root,'작업'),'completion replay is idempotent');
+  assert.equal(readExecution(root,'작업').closure.wikiEvidence,closure.wikiEvidence);
+  assert.equal(readExecution(root,'작업').closure.actor,'정리 확인자');
+  const legacyFile=path.join(root,'.agents/workflow/tasks/workflow_legacy_execution.json');
+  const legacy={taskId:'legacy',revision:4,status:'complete',decisions:[{action:'accept'}]};fs.writeFileSync(legacyFile,JSON.stringify(legacy));
+  assert.equal(readExecution(root,'legacy').status,'cleanup');assert.equal(readExecution(root,'legacy').decisions[0].actor,undefined);
+  assert.deepEqual(JSON.parse(fs.readFileSync(legacyFile)),legacy,'legacy read preserves original records');
   assert.equal(readExecution(root,'작업').decisions.length,2,'only humans approve review and acceptance');
   assert.throws(()=>action('retry'),/다시 실행/);
 
@@ -30,10 +45,25 @@ const settle=async()=>{await new Promise(resolve=>setImmediate(resolve));};
   // 이전 프로세스의 콜백은 재시작한 서버에 존재하지 않는 상황을 모사한다.
   runner.act({...start,action:'retry',expectedRevision:readExecution(root,'중단').revision,operationId:'resume'});await settle();
   finish({...report,checks:[{name:'게임 실행',status:'not_run',evidence:'에디터 실행 불가'}]});await settle();
-  const decide=(type,extra={})=>runner.act({taskId:'중단',action:type,expectedRevision:readExecution(root,'중단').revision,operationId:'more-'+(++sequence),...extra});
+  const decide=(type,extra={})=>runner.act({taskId:'중단',action:type,actor:'테스터',expectedRevision:readExecution(root,'중단').revision,operationId:'more-'+(++sequence),...extra});
   decide('approve');await settle();version='v3';finish(report);await settle();assert.equal(readExecution(root,'중단').status,'review','verification changes require code review again');
   decide('approve');await settle();finish({...report,checks:[]});await settle();assert.throws(()=>decide('accept',{confirmedChecks:[0]}),/미검증/);
-  decide('accept',{confirmedChecks:[0],feedback:'실행 환경 한계를 알고 이 범위를 수용'});assert.equal(readExecution(root,'중단').status,'complete');
+  decide('accept',{confirmedChecks:[0],feedback:'실행 환경 한계를 알고 이 범위를 수용'});assert.equal(readExecution(root,'중단').status,'cleanup');
+  // 재시도 시작 전에 바뀐 코드도 기존 리뷰 승인으로 수용할 수 없다.
+  current.taskId='버전 재검토';
+  const versionAction=(type,extra={})=>runner.act({taskId:current.taskId,action:type,actor:'리뷰어',expectedRevision:readExecution(root,current.taskId)?.revision||0,operationId:'version-'+(++sequence),...extra});
+  versionAction('start');await settle();finish(report);await settle();versionAction('approve');await settle();finish(report);await settle();
+  const beforeRetryRuns=runs;version='v4';
+  assert.equal(versionAction('retry').status,'blocked');assert.equal(runs,beforeRetryRuns,'changed code must not start verification');
+  assert.equal(readExecution(root,current.taskId).phase,'implement');assert.throws(()=>versionAction('accept',{confirmedChecks:[0]}),/판단할 결과/);
+  versionAction('retry');await settle();finish(report);await settle();assert.equal(readExecution(root,current.taskId).status,'review');
+  versionAction('approve');await settle();finish(report);await settle();
+  // 저장된 결과 버전만 현재여도 최신 리뷰 승인이 다르면 수용을 거부한다.
+  const guardFile=path.join(root,'.agents/workflow/tasks/workflow_버전 재검토_execution.json');
+  const guarded=readExecution(root,current.taskId);guarded.decisions.findLast(d=>d.action==='approve').codeVersion='old';fs.writeFileSync(guardFile,JSON.stringify(guarded));
+  assert.equal(versionAction('accept',{confirmedChecks:[0]}).status,'blocked');
+  versionAction('retry');await settle();finish(report);await settle();versionAction('approve');await settle();finish(report);await settle();
+  versionAction('retry');await settle();finish(report);await settle();assert.equal(versionAction('accept',{confirmedChecks:[0]}).status,'cleanup','unchanged approved version can retry and accept');
   current.taskId='수정 재시도';const feedbacks=[];
   runner=createExecutionService({root,resolveCurrent:()=>current,fingerprint:()=>version,diff:()=>'',run:async record=>{
     feedbacks.push(record.feedback);if(feedbacks.length===2)throw Error('일시적 실패');return report;

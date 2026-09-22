@@ -11,7 +11,9 @@ function validateReport(value){
   return value;
 }
 function executionFile(root,title){taskName(title);return path.join(root,'.agents/workflow/tasks',`workflow_${title}_execution.json`);}
-function readExecution(root,title){const file=executionFile(root,title);return fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):null;}
+function readExecution(root,title){const file=executionFile(root,title);if(!fs.existsSync(file))return null;const record=JSON.parse(fs.readFileSync(file,'utf8'));
+  // 과거 complete는 테스트 수용만 의미하므로 정리 근거 없이 최종 완료로 승격하지 않는다.
+  if(record.status==='complete'&&!record.closure)record.status='cleanup';return record;}
 function writeExecution(root,record){
   record.updatedAt=new Date().toISOString();const file=executionFile(root,record.taskId),temp=file+'.'+crypto.randomUUID()+'.tmp';
   fs.mkdirSync(path.dirname(file),{recursive:true});try{fs.writeFileSync(temp,JSON.stringify(record,null,2)+'\n');fs.renameSync(temp,file);}finally{if(fs.existsSync(temp))fs.unlinkSync(temp);}
@@ -79,9 +81,17 @@ function createExecutionService({root,resolveCurrent,run,fingerprint=()=>codeVer
     return current;
   }
   function publish(record){record.revision++;writeExecution(root,record);return record;}
+  function reviewedVersion(record){return record.decisions.findLast(d=>d.action==='approve')?.codeVersion;}
+  function requireReview(record){
+    record.attempts.push({phase:record.phase,report:record.report,codeVersion:record.codeVersion});delete record.report;
+    record.status='blocked';record.phase='implement';record.error='코드 리뷰 승인 버전과 현재 코드가 다릅니다. AI가 다시 확인한 결과를 리뷰해주세요.';
+    return publish(record);
+  }
   function launch(record){
     if(isBusy())throw Error('다른 AI 구현·검증이 진행 중입니다.');
-    record.status='running';record.error='';record.startedVersion=fingerprint();publish(record);active=record.taskId;
+    const startVersion=fingerprint();
+    if(record.phase==='verify'&&reviewedVersion(record)!==startVersion)return requireReview(record);
+    record.status='running';record.error='';record.startedVersion=startVersion;publish(record);active=record.taskId;
     Promise.resolve().then(()=>run(record,pid=>{record.workerPid=pid;writeExecution(root,record);})).then(report=>{
       record.report=validateReport(report);const current=basis(record.taskId);
       if(current.planning!==record.planning||current.implementation!==record.design)throw Error('실행 중 확정 기준이 바뀌었습니다. 최신 작업에서 다시 검토하세요.');
@@ -94,7 +104,7 @@ function createExecutionService({root,resolveCurrent,run,fingerprint=()=>codeVer
     return record;
   }
   function act(body){
-    if(!body||!['start','retry','revise','approve','accept'].includes(body.action)||!Number.isSafeInteger(body.expectedRevision)||typeof body.operationId!=='string'||!body.operationId||(body.feedback!==undefined&&typeof body.feedback!=='string'))throw Error('작업 요청 형식 오류');
+    if(!body||!['start','retry','revise','approve','accept','finish'].includes(body.action)||!Number.isSafeInteger(body.expectedRevision)||typeof body.operationId!=='string'||!body.operationId||(body.feedback!==undefined&&typeof body.feedback!=='string'))throw Error('작업 요청 형식 오류');
     const current=basis(body.taskId);let record=readExecution(root,body.taskId);
     const digest=crypto.createHash('sha256').update(JSON.stringify(body)).digest('hex');
     if(record?.operationId===body.operationId){if(record.operationDigest!==digest)throw Error('같은 요청의 내용이 바뀌었습니다.');return record;}
@@ -105,9 +115,19 @@ function createExecutionService({root,resolveCurrent,run,fingerprint=()=>codeVer
       if(record)throw Error('이미 시작한 작업입니다.');
       record={taskId:body.taskId,revision:0,phase:'implement',planning:current.planning,design:current.implementation,decisions:[],attempts:[]};
     }else if(!record)throw Error('실행 결과가 없습니다.');
+    if(['approve','accept','finish'].includes(body.action)&&
+      (typeof body.actor!=='string'||!body.actor.trim()||body.actor.trim().length>100))throw Error('승인자 이름을 1~100자로 입력하세요.');
+    if(body.action==='finish'){
+      if(record.status!=='cleanup')throw Error('테스트 수용 후 정리 결과를 기록하세요.');
+      const closure=body.closure;
+      if(!closure||!['reflected','skipped'].includes(closure.wikiStatus)||typeof closure.wikiEvidence!=='string'||!closure.wikiEvidence.trim()||typeof closure.cleanupEvidence!=='string'||!closure.cleanupEvidence.trim())throw Error('Wiki 반영 근거 또는 생략 사유와 자료 정리 결과가 필요합니다.');
+      record.closure={wikiStatus:closure.wikiStatus,wikiEvidence:closure.wikiEvidence.trim(),cleanupEvidence:closure.cleanupEvidence.trim(),actor:body.actor.trim(),at:new Date().toISOString(),acceptedCodeVersion:record.codeVersion};
+      record.status='complete';record.operationId=body.operationId;record.operationDigest=digest;return publish(record);
+    }
     if(['approve','accept'].includes(body.action)){
       if(record.status!==(body.action==='approve'?'review':'acceptance'))throw Error('판단할 결과가 없습니다.');
-      if(fingerprint()!==record.codeVersion){
+      const currentVersion=fingerprint();
+      if(currentVersion!==record.codeVersion||(body.action==='accept'&&reviewedVersion(record)!==currentVersion)){
         record.attempts.push({phase:record.phase,report:record.report,codeVersion:record.codeVersion});delete record.report;
         record.status='blocked';record.phase='implement';record.error='결과 생성 후 코드가 변경되었습니다. AI가 다시 확인한 결과를 리뷰해주세요.';
         record.operationId=body.operationId;record.operationDigest=digest;return publish(record);
@@ -116,7 +136,7 @@ function createExecutionService({root,resolveCurrent,run,fingerprint=()=>codeVer
         if(!Array.isArray(body.confirmedChecks)||record.report.humanChecks.some((_,i)=>!body.confirmedChecks.includes(i)))throw Error('사람이 확인할 항목을 확인하세요.');
         if((!record.report.checks.length||record.report.checks.some(c=>c.status!=='passed'))&&!body.feedback?.trim())throw Error('미검증 항목을 수용하는 이유가 필요합니다.');
       }
-      record.decisions.push({action:body.action,codeVersion:record.codeVersion,at:new Date().toISOString(),feedback:body.feedback||'',confirmedChecks:body.confirmedChecks||[]});
+      record.decisions.push({action:body.action,actor:body.actor.trim(),codeVersion:record.codeVersion,at:new Date().toISOString(),feedback:body.feedback||'',confirmedChecks:body.confirmedChecks||[]});
       if(body.action==='approve')record.phase='verify';
     }else if(body.action!=='start'){
       if(body.action==='revise'&&!body.feedback?.trim())throw Error('수정할 내용을 입력하세요.');
@@ -127,7 +147,7 @@ function createExecutionService({root,resolveCurrent,run,fingerprint=()=>codeVer
       }
     }
     record.operationId=body.operationId;record.operationDigest=digest;if(body.action!=='retry')record.feedback=body.feedback||'';
-    if(body.action==='accept'){record.status='complete';return publish(record);}
+    if(body.action==='accept'){record.status='cleanup';return publish(record);}
     if(record.report)record.attempts.push({phase:record.phase,report:record.report,codeVersion:record.codeVersion});
     return launch(record);
   }

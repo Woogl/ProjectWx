@@ -2,6 +2,7 @@
 title: "Wiki·Workflow 도구 구조"
 category: reference
 sources:
+  - "raw/notes/2026-09-22-workflow-closure.md"
   - "raw/notes/2026-09-22-workflow-dashboard.md"
   - "raw/notes/2026-09-22-current-workflow.md"
   - "raw/notes/2026-09-22-workflow-review.md"
@@ -38,7 +39,7 @@ Wiki는 프로젝트 지식의 정본이고 Workflow는 사람의 판단·확정
 
 ## 단계별 일감 대시보드
 
-왼쪽 메뉴는 작업 현황 대시보드·새 작업 만들기·기존 작업 이어하기·사용 방법 안내·LLM 위키 검색으로 구성한다. 대시보드는 공용 작업을 기획 검토·설계·구현·코드 리뷰·테스트·완료로 묶어 건수와 제목·상태를 보여준다. 유효한 기획·설계 확정과 실행 상태로 분류하며, 검증 중단은 테스트에 남기고 후속 변경으로 인계된 작업은 별도 구역에 둔다. 완료 표시는 테스트 수용 기준이며 지식 정리 완료를 보증하지 않는다.
+왼쪽 메뉴는 작업 현황 대시보드·새 작업 만들기·기존 작업 이어하기·사용 방법 안내·LLM 위키 검색으로 구성한다. 대시보드는 공용 작업을 기획 검토·설계·구현·코드 리뷰·테스트·정리 대기·완료로 묶어 건수와 제목·상태를 보여준다. 유효한 기획·설계 확정과 실행 상태로 분류하며, 검증 중단은 테스트에 남기고 후속 변경으로 인계된 작업은 별도 구역에 둔다. 테스트 수용은 정리 대기로 표시하며, 지식·자료 정리 결과를 명시적으로 기록한 뒤 최종 완료한다.
 
 카드를 선택하면 현재 입력을 저장하고 공용 상태를 다시 조회해 작업을 연다. 연결 대기와 실제 빈 목록을 구분한다. 모의 DOM 회귀 테스트로 분류·확정 무효·빈 상태를 확인했으며 실제 브라우저 육안 검증은 포함하지 않는다.
 
@@ -64,7 +65,11 @@ sequenceDiagram
 
 `Wiki-AI.cjs`는 127.0.0.1:18743에 바인딩하고 Host·Origin·토큰을 검사한다. `/tasks`, `/task`, `/handoff`, `/change`, `/execution` 등이 작업 저장과 실행에 쓰인다. 기획·설계 분석과 실제 구현 실행은 별도 경로다. 구현 실행기는 Codex의 workspace-write 모드를 사용한다.
 
-`Workflow-Execution.cjs`의 테스트 수용은 complete 상태를 저장한다. 그 분기가 Wiki 재생성을 자동 수행하지는 않는다. 지식 통합·자료 정리는 별도 완료 절차다. 실행 잠금·개정 검사·재시도 정책의 전체 회귀는 이번 문서 조사로 다시 검증하지 않았다.
+`Workflow-Execution.cjs`는 검증 시작·재시도와 테스트 수용 시 현재 코드 버전을 최신 코드 리뷰 승인 버전과 대조한다. 다르면 구현 재검토·인간 리뷰를 다시 요구한다.
+
+테스트 수용은 cleanup 상태를 저장한다. AI가 지식·자료 정리를 수행한 뒤 정리 화면에 Wiki 반영 근거 또는 생략 사유와 자료 정리 결과를 남기고 정리 완료(finish)를 선택하면 complete가 된다. 정리 확인자·시각·수용 버전도 closure에 남는다. Wiki 편찬·자료 정리를 자동 실행하는 기능은 아니다.
+
+코드 리뷰·테스트 수용은 직접 입력한 승인자 이름을 필수로 decisions.actor에 기록한다. 이는 계정 인증이 아니며 과거 누락된 승인자는 추정하지 않는다. 과거 complete에 closure가 없으면 원본을 보존한 채 정리 대기로 해석한다. 실행 잠금·개정 검사·재시도 정책의 전체 회귀는 이번 문서 조사로 다시 검증하지 않았다.
 
 진입점: [내보내기](../../../.agents/scripts/Export-Wiki.ps1), [AI 서버](../../../.agents/scripts/Wiki-AI.cjs), [실행 서비스](../../../.agents/scripts/Workflow-Execution.cjs), [공통 절차](../../../.agents/workflow/process/index.md).
 
@@ -74,6 +79,8 @@ sequenceDiagram
 - [[wiki-operation|WX Wiki 운영과 재생성]] ([WX Wiki 운영과 재생성](../references/wiki-operation.md))
 
 ## Sources
+
+- [승인 버전·정리 완료·승인자 기록 개선](../../raw/notes/2026-09-22-workflow-closure.md)
 
 - [단계별 대시보드 요청·구현·검증](../../raw/notes/2026-09-22-workflow-dashboard.md)
 

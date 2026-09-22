@@ -327,6 +327,7 @@ function dashboardStage(task) {
   if(!loopConfirmed('planning',task))return 'planning';
   if(!loopConfirmed('implementation',task))return 'design';
   const execution=task.execution;
+  if(execution?.status==='cleanup')return 'cleanup';
   if(execution?.status==='complete')return 'completion';
   if(execution?.status==='review')return 'review';
   if(execution?.status==='acceptance'||execution?.phase==='verify')return 'testing';
@@ -336,7 +337,7 @@ function dashboardStatus(task, stage) {
   if(stage==='changed')return '후속 변경 작업 · '+task.changeTo;
   if(stage==='planning'||stage==='design')return reviewStatus(stage==='planning'?'planning':'implementation',task);
   const execution=task.execution;
-  return ({running:execution?.phase==='verify'?'AI 검증 중':'AI 구현 중',review:'코드 리뷰 필요',acceptance:'테스트 결과 수용 대기',complete:'테스트 수용 완료',blocked:'확인 필요 · 진행 보류',interrupted:'실행 중단 · 재개 필요'})[execution?.status]||'AI 구현 준비';
+  return ({running:execution?.phase==='verify'?'AI 검증 중':'AI 구현 중',review:'코드 리뷰 필요',acceptance:'테스트 결과 수용 대기',cleanup:'테스트 수용 완료 · 정리 대기',complete:'정리 완료',blocked:'확인 필요 · 진행 보류',interrupted:'실행 중단 · 재개 필요'})[execution?.status]||'AI 구현 준비';
 }
 async function openDashboardTask(taskId) {
   if(analysisBusy||pendingSave)return;
@@ -359,7 +360,7 @@ function renderWorkSummary() {
   const tasks={...otherTasks};if(workflowState.taskId)tasks[workflowState.taskId]=workflowState;
   const entries=Object.values(tasks).filter(task=>task?.taskId).sort((a,b)=>taskTitle(a).localeCompare(taskTitle(b),'ko'));
   $('current-task-title').textContent=entries.length?'전체 '+entries.length+'개 일감 · 카드를 선택해 이어서 진행하세요.':'등록된 일감이 없습니다. 새 작업 만들기에서 시작하세요.';
-  const stages=[['planning','기획 검토'],['design','설계'],['implementation','구현'],['review','코드 리뷰'],['testing','테스트'],['completion','완료']];
+  const stages=[['planning','기획 검토'],['design','설계'],['implementation','구현'],['review','코드 리뷰'],['testing','테스트'],['cleanup','정리 대기'],['completion','완료']];
   if(entries.some(task=>task.changeTo))stages.push(['changed','후속 변경으로 인계']);
   for(const [stage,title] of stages){
     const items=entries.filter(task=>dashboardStage(task)===stage),column=el('section',undefined,'stage-column');

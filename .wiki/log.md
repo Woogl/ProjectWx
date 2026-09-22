@@ -47,3 +47,11 @@
 ## 2026-09-22 · Workflow 대시보드 증분 반영
 
 - 사용자 요청·코드 관찰·모의 DOM 검증을 raw/notes/2026-09-22-workflow-dashboard.md에 수집하고 기존 wiki/references/wiki-workflow.md에 통합했다. 인간 검증일은 부여하지 않았다.
+
+## 2026-09-22 · Workflow P1·P2 증분 반영
+
+- ingest: 사용자 개선 요청, 코드 해시·구현 관찰·회귀 검증 범위를 raw/notes/2026-09-22-workflow-closure.md에 수집했다.
+- compile: 기존 wiki/references/wiki-workflow.md에 승인 버전 검사, 테스트 수용/정리 완료 분리, 승인자 기록과 과거 기록 해석을 통합했다. 인간 검증일은 추가하지 않았다.
+
+## [2026-09-22] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
+- 검증·색인: 순정 Lint 오류 0, 저장소 링크 37개 문서 오류 0, 관련 회귀 6개 통과. 실제 원자료 18개로 상위 색인 통계를 정정하고 뷰어를 재생성했다.
