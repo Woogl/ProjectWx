@@ -11,10 +11,7 @@
 class AActor;
 class UAbilitySystemComponent;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionListChanged, const TArray<FText>&, Prompts);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnInteractionSelectionChanged, int32, SelectedIndex);
-
-DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnScannerReady, UWxInteractionScannerComponent* /*Scanner*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnInteractionRowsChanged);
 
 /**
  * AWxPlayerController 에 붙어, 소유 클라(리슨호스트 포함)에서 주변 상호작용 액터를 주기 스캔해 in-range 집합을 모은다.
@@ -44,27 +41,19 @@ public:
 	/** 리슨호스트에선 ServerInteract 가 로컬 권위 호출이 된다. */
 	void TryInteractSelected();
 
-	/** 뷰모델이 초기 시드로 읽는다. 행 하나가 선택지 하나라, 선택지가 여럿인 대상은 그 수만큼 자리를 차지한다. 인덱스는 GetSelectedIndex() 와 같은 축이다. */
+	/** 뷰모델이 행을 만들 때 읽는다. 행 하나가 선택지 하나라, 선택지가 여럿인 대상은 그 수만큼 자리를 차지한다. 인덱스는 GetSelectedIndex() 와 같은 축이다. */
 	TArray<FText> GetPrompts() const;
 
-	/** 없으면 INDEX_NONE. 뷰모델이 초기 시드로 읽는다. */
+	/** 없으면 INDEX_NONE. 뷰모델이 행을 만들 때 읽는다. */
 	int32 GetSelectedIndex() const;
 
 	AActor* GetSelectedActor() const;
 
 	void CycleSelection(int32 Delta);
 
+	/** 목록이나 선택이 바뀌면 발행한다. */
 	UPROPERTY(BlueprintAssignable, Category = "Wx")
-	FWxOnInteractionListChanged OnListChanged;
-
-	UPROPERTY(BlueprintAssignable, Category = "Wx")
-	FWxOnInteractionSelectionChanged OnSelectionChanged;
-
-	/**
-	 * 스캐너가 쓸 수 있게 될 때마다 발행된다. 서버 생성·복제 도착(클라) 어느 경로든 BeginPlay 로 수렴한다.
-	 * 관찰자가 스캐너보다 먼저 존재할 수 있어(HUD 뷰모델) 인스턴스가 아니라 클래스 차원에 둔다 — 구독자는 소유 액터로 자기 것인지 가린다.
-	 */
-	static FWxOnScannerReady OnAnyScannerReady;
+	FWxOnInteractionRowsChanged OnRowsChanged;
 
 protected:
 	/** 주변 상호작용 액터를 수집할 반경(cm). 서버 사거리 검증(WxAbility_Interact)의 반경과 일치시킨다. */
@@ -92,7 +81,7 @@ private:
 
 	void HandleScanTimer();
 
-	/** 기존 대상의 순서 보존·신규만 뒤에 추가·이탈은 제거. 행이 실제로 달라졌을 때만 목록·선택 변경을 발화한다. */
+	/** 기존 대상의 순서 보존·신규만 뒤에 추가·이탈은 제거. 행이 실제로 달라졌을 때만 OnRowsChanged 를 발행한다. */
 	void UpdateInRange(const TArray<AActor*>& InCandidates);
 
 	void UpdateSelection(int32 NewIndex);

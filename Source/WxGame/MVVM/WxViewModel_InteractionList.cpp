@@ -6,76 +6,48 @@
 #include "Interaction/WxInteractionScannerComponent.h"
 #include "MVVM/WxViewModel_Interaction.h"
 
-void UWxViewModel_InteractionList::StartObserving(APlayerController* PC)
-{
-	Deinitialize();
-	if (!PC)
-	{
-		return;
-	}
-
-	ObservedController = PC;
-
-	// 스캐너는 PC 생성자 컴포넌트라 호스트·클라 모두 위젯보다 항상 먼저 붙는다.
-	if (UWxInteractionScannerComponent* Scanner = PC->FindComponentByClass<UWxInteractionScannerComponent>())
-	{
-		Initialize(Scanner);
-		return;
-	}
-
-	ScannerReadyHandle = UWxInteractionScannerComponent::OnAnyScannerReady.AddUObject(this, &UWxViewModel_InteractionList::HandleScannerReady);
-}
-
 void UWxViewModel_InteractionList::Initialize(UWxInteractionScannerComponent* InScanner)
 {
-	Deinitialize();
 	if (!InScanner)
 	{
 		return;
 	}
 
 	CachedScanner = InScanner;
+	InScanner->OnRowsChanged.AddDynamic(this, &ThisClass::HandleRowsChanged);
 
-	InScanner->OnListChanged.AddDynamic(this, &ThisClass::HandleListChanged);
-	InScanner->OnSelectionChanged.AddDynamic(this, &ThisClass::HandleSelectionChanged);
-
-	// 구독 전에 끝난 broadcast 가 있을 수 있으므로 현재 목록/선택으로 시드한다.
-	RebuildEntries(InScanner->GetPrompts());
-	ApplySelection(InScanner->GetSelectedIndex());
+	// 구독 전에 끝난 발행이 있을 수 있으므로 현재 상태로 시드한다.
+	HandleRowsChanged();
 }
 
 void UWxViewModel_InteractionList::Deinitialize()
 {
-	StopObserving();
 	if (UWxInteractionScannerComponent* Scanner = CachedScanner.Get())
 	{
-		Scanner->OnListChanged.RemoveDynamic(this, &ThisClass::HandleListChanged);
-		Scanner->OnSelectionChanged.RemoveDynamic(this, &ThisClass::HandleSelectionChanged);
+		Scanner->OnRowsChanged.RemoveDynamic(this, &ThisClass::HandleRowsChanged);
 	}
 	CachedScanner.Reset();
 
-	Entries.Reset();
-
 	Super::Deinitialize();
-	if (!HasAnyFlags(RF_BeginDestroyed))
+}
+
+void UWxViewModel_InteractionList::HandleRowsChanged()
+{
+	Entries.Reset();
+	if (const UWxInteractionScannerComponent* Scanner = CachedScanner.Get())
 	{
-		UE_MVVM_SET_PROPERTY_VALUE(SelectedIndex, INDEX_NONE);
-		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(Entries);
+		const TArray<FText> Prompts = Scanner->GetPrompts();
+		const int32 SelectedIndex = Scanner->GetSelectedIndex();
+		for (int32 Index = 0; Index < Prompts.Num(); ++Index)
+		{
+			UWxViewModel_Interaction* Entry = NewObject<UWxViewModel_Interaction>(this);
+			Entry->Prompt = Prompts[Index];
+			Entry->bSelected = Index == SelectedIndex;
+			Entries.Add(Entry);
+		}
 	}
-}
 
-void UWxViewModel_InteractionList::HandleListChanged(const TArray<FText>& InPrompts)
-{
-	RebuildEntries(InPrompts);
-
-	// 목록이 새 항목으로 교체되었으므로 현재 선택을 다시 적용해 bSelected 를 반영한다.
-	// 멤버십까지 바뀌었다면 곧 HandleSelectionChanged 가 정확한 값으로 덮는다.
-	ApplySelection(SelectedIndex);
-}
-
-void UWxViewModel_InteractionList::HandleSelectionChanged(int32 InSelectedIndex)
-{
-	ApplySelection(InSelectedIndex);
+	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(Entries);
 }
 
 void UWxViewModel_InteractionList::RequestInteract()
@@ -94,60 +66,6 @@ void UWxViewModel_InteractionList::RequestCycle(int32 Delta)
 	}
 }
 
-void UWxViewModel_InteractionList::HandleScannerReady(UWxInteractionScannerComponent* Scanner)
-{
-	// 신호는 클래스 차원이라 남의 스캐너도 온다(PIE 다중 인스턴스 포함).
-	if (!ObservedController.IsValid() || !Scanner || Scanner->GetOwner() != ObservedController.Get())
-	{
-		return;
-	}
-
-	StopObserving();
-	Initialize(Scanner);
-}
-
-void UWxViewModel_InteractionList::StopObserving()
-{
-	ObservedController.Reset();
-	if (ScannerReadyHandle.IsValid())
-	{
-		UWxInteractionScannerComponent::OnAnyScannerReady.Remove(ScannerReadyHandle);
-		ScannerReadyHandle.Reset();
-	}
-}
-
-void UWxViewModel_InteractionList::RebuildEntries(const TArray<FText>& InPrompts)
-{
-	Entries.Reset(InPrompts.Num());
-	for (const FText& Prompt : InPrompts)
-	{
-		UWxViewModel_Interaction* Entry = NewObject<UWxViewModel_Interaction>(this);
-		Entry->SetPrompt(Prompt);
-		Entries.Add(Entry);
-	}
-
-	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(Entries);
-}
-
-void UWxViewModel_InteractionList::ApplySelection(int32 InSelectedIndex)
-{
-	const int32 ClampedIndex = Entries.IsEmpty() ? INDEX_NONE : FMath::Clamp(InSelectedIndex, 0, Entries.Num() - 1);
-
-	for (int32 Index = 0; Index < Entries.Num(); ++Index)
-	{
-		if (UWxViewModel_Interaction* Entry = Entries[Index])
-		{
-			Entry->SetSelected(Index == ClampedIndex);
-		}
-	}
-
-	if (SelectedIndex != ClampedIndex)
-	{
-		SelectedIndex = ClampedIndex;
-		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(SelectedIndex);
-	}
-}
-
 UObject* UWxViewModelResolver_InteractionList::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
 {
 	APlayerController* PC = UserWidget ? UserWidget->GetOwningPlayer() : nullptr;
@@ -158,7 +76,7 @@ UObject* UWxViewModelResolver_InteractionList::CreateInstance(const UClass* Expe
 
 	// 스캐너가 없는 PC일 수 있으므로 Outer는 PC로 잡는다.
 	UWxViewModel_InteractionList* ViewModel = NewObject<UWxViewModel_InteractionList>(PC);
-	ViewModel->StartObserving(PC);
+	ViewModel->Initialize(PC->FindComponentByClass<UWxInteractionScannerComponent>());
 	return ViewModel;
 }
 

@@ -8,7 +8,6 @@
 
 #include "WxViewModel_InteractionList.generated.h"
 
-class APlayerController;
 class UWxInteractionScannerComponent;
 class UWxViewModel_Interaction;
 class UUserWidget;
@@ -24,19 +23,14 @@ class WXGAME_API UWxViewModel_InteractionList : public UWxViewModel
 	GENERATED_BODY()
 
 public:
-	/** 스캐너가 이미 붙어 있으면 즉시 연결하고, 아니면 도착 신호를 기다린다. */
-	void StartObserving(APlayerController* PC);
-
-	/** 스캐너를 물려 목록·선택 변경을 구독하고 현재 상태로 시드한다. */
+	/** nullptr 이면 빈 목록으로 남는다. */
 	void Initialize(UWxInteractionScannerComponent* InScanner);
 
 	virtual void Deinitialize() override;
 
+	/** 선택만 바뀌어도 행 전체를 다시 만든다. */
 	UFUNCTION()
-	void HandleListChanged(const TArray<FText>& InPrompts);
-
-	UFUNCTION()
-	void HandleSelectionChanged(int32 InSelectedIndex);
+	void HandleRowsChanged();
 
 	UFUNCTION(BlueprintCallable, Category = "Wx|Interaction")
 	void RequestInteract();
@@ -47,25 +41,13 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Interaction")
 	TArray<TObjectPtr<UWxViewModel_Interaction>> Entries;
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Interaction")
-	int32 SelectedIndex = INDEX_NONE;
-
 private:
-	void HandleScannerReady(UWxInteractionScannerComponent* Scanner);
-
-	void StopObserving();
-
-	void RebuildEntries(const TArray<FText>& InPrompts);
-
-	void ApplySelection(int32 InSelectedIndex);
-
-	TWeakObjectPtr<APlayerController> ObservedController;
-
-	FDelegateHandle ScannerReadyHandle;
-
 	TWeakObjectPtr<UWxInteractionScannerComponent> CachedScanner;
 };
 
+/**
+ * 스캐너는 AWxPlayerController 생성자 컴포넌트라 위젯보다 먼저 있다. 나중에 주입하는 구조로 바꾸면 늦은 도착 처리가 다시 필요하다.
+ */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXGAME_API UWxViewModelResolver_InteractionList : public UMVVMViewModelContextResolver
 {

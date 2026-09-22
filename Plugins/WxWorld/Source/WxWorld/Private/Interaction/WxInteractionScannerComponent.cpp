@@ -23,13 +23,9 @@ UWxInteractionScannerComponent::UWxInteractionScannerComponent(const FObjectInit
 	SetIsReplicatedByDefault(true);
 }
 
-FWxOnScannerReady UWxInteractionScannerComponent::OnAnyScannerReady;
-
 void UWxInteractionScannerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	OnAnyScannerReady.Broadcast(this);
 
 	const AController* OwningController = Cast<AController>(GetOwner());
 	if (!OwningController || !OwningController->IsLocalController())
@@ -264,8 +260,7 @@ void UWxInteractionScannerComponent::UpdateInRange(const TArray<AActor*>& InCand
 	SelectedIndex = Rows.IsEmpty() ? INDEX_NONE : (RestoredIndex != INDEX_NONE ? RestoredIndex : 0);
 
 	ApplyHighlight();
-	OnListChanged.Broadcast(GetPrompts());
-	OnSelectionChanged.Broadcast(SelectedIndex);
+	OnRowsChanged.Broadcast();
 }
 
 void UWxInteractionScannerComponent::UpdateSelection(int32 NewIndex)
@@ -278,7 +273,7 @@ void UWxInteractionScannerComponent::UpdateSelection(int32 NewIndex)
 
 	SelectedIndex = Clamped;
 	ApplyHighlight();
-	OnSelectionChanged.Broadcast(SelectedIndex);
+	OnRowsChanged.Broadcast();
 }
 
 void UWxInteractionScannerComponent::ApplyHighlight()
