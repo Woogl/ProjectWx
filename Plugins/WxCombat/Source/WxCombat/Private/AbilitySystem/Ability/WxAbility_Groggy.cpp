@@ -5,6 +5,7 @@
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystem/Effect/WxEffect_DrainGP.h"
 #include "AIController.h"
+#include "Animation/AnimInstance.h"
 #include "BrainComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
@@ -79,9 +80,11 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 			UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 
 			// GroggyMontage 미설정 경로에서는 즉시 종료될 수 있다.
-			if (GroggyMontage)
+			// 가산 슬롯 피격이 ASC의 현재 몽타주 자리를 차지하면 StopMontageIfCurrent는 그 아래에서 루프 중인 그로기 몽타주를 놓친다.
+			UAnimInstance* AnimInstance = ActorInfo->GetAnimInstance();
+			if (GroggyMontage && AnimInstance)
 			{
-				ASC->StopMontageIfCurrent(*GroggyMontage);
+				AnimInstance->Montage_Stop(GroggyMontage->GetDefaultBlendOutTime(), GroggyMontage);
 			}
 
 			StopGroggyDrain(*ASC);
