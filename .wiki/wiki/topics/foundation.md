@@ -3,6 +3,9 @@ title: "WxCore — 공용 계약과 설정"
 category: topic
 sources:
   - "raw/notes/2026-09-22-current-foundation.md"
+  - "raw/notes/2026-09-22-current-core-support.md"
+  - "raw/notes/2026-09-22-current-game.md"
+  - "raw/notes/2026-09-22-current-ui.md"
 created: 2026-09-22
 updated: 2026-09-22
 tags: [wx, foundation]
@@ -19,17 +22,17 @@ WxCore는 도메인들이 함께 사용하는 태그·상호작용·스폰·표�
 
 ## 책임과 의존 방향
 
-WxGame은 여러 도메인 플러그인을 조립한다. WxCore는 그 아래에서 GameplayTag와 인터페이스를 제공하며 전투·인벤토리·월드 구현에 의존하지 않는다. 이 분리 덕분에 아이템 픽업은 WxWorld를 참조하지 않고도 상호작용 대상이 된다. 모듈 의존성은 각 `Build.cs`, 활성화·유형은 `Wx.uproject`와 `.uplugin`을 함께 확인한다.
+WxGame은 여러 도메인 플러그인을 조립한다. WxCore는 그 아래에서 GameplayTag와 인터페이스를 제공하며 전투·인벤토리·월드 구현에 의존하지 않는다. 이 분리 덕분에 `AWxItemPickup`은 WxCore의 `IWxInteractable`을 직접 구현해 WxWorld를 참조하지 않고도 상호작용 대상이 된다. 모듈 의존성은 각 `Build.cs`, 활성화·유형은 `Wx.uproject`와 `.uplugin`을 함께 확인한다.
 
 ## 공용 계약
 
 | 계약 | 의미와 주의점 |
 |---|---|
-| `WxGameplayTags` | 네이티브 태그 선언·정의의 단일 위치. 도메인 내부용 태그도 이곳에 둔다. |
+| `WxGameplayTags` | 네이티브 태그의 단일 위치. 선언은 `WxGameplayTags.h`, 정의는 `WxGameplayTags.cpp`의 `UE_DEFINE_GAMEPLAY_TAG`에 둔다. 도메인 내부용 태그도 이곳에 둔다. |
 | `IWxInteractable` | 액터가 자격·문구·선택지를 제공하고 `OnInteracted`로 실행한다. 선택지의 `Value` 의미는 대상이 정한다. |
 | `IWxSpawnable` | 스폰된 액터가 서버에서 처치를 통지한다. 네이티브 델리게이트 계약이므로 BP 단독 구현은 허용하지 않는다. |
 | `IWxUIData` | 게임 도메인의 제목·설명·아이콘 등 표시 정보를 UI가 읽는 접점. |
-| `FWxLocatorUtils` | 에디터에서 UniversalObjectLocator를 읽기 쉬운 이름으로 표시한다. 런타임 액터 수명을 보장하는 기능은 아니다. |
+| `FWxLocatorUtils` | 에디터에서 UniversalObjectLocator를 읽기 쉬운 이름으로 표시한다. 해석되면 액터 라벨, 미해석이면 경로 끝 이름, 비어 있으면 unset이다. 함수는 `WITH_EDITOR`에서만 존재하며 런타임 액터 수명을 보장하는 기능이 아니다. |
 
 태그를 `WxGameplayTags.h/.cpp`에 모으는 규칙은 기존 Wiki에 2026-09-21 사용자 확정으로 기록되어 있었으며, 현재 헤더의 명시 규칙과도 일치한다. 이번 재편찬으로 새 결정을 만든 것은 아니다.
 
@@ -49,8 +52,10 @@ WxGame은 여러 도메인 플러그인을 조립한다. WxCore는 그 아래에
 
 - [[ai|WxAI — AI 인지와 행동]] ([WxAI — AI 인지와 행동](../topics/ai.md))
 - [[combat|WxCombat — 전투 시스템]] ([WxCombat — 전투 시스템](../topics/combat.md))
+- [[dialogue|WxDialogue — 대화 세션]] ([WxDialogue — 대화 세션](../topics/dialogue.md))
 - [[editor-tools|편집기 도구 — WxEditor·WxToolset·BoxComponentVisualizer]] ([편집기 도구 — WxEditor·WxToolset·BoxComponentVisualizer](../references/editor-tools.md))
 - [[game|WxGame — 게임 조립과 실행 흐름]] ([WxGame — 게임 조립과 실행 흐름](../topics/game.md))
+- [[inventory|WxInventory — 아이템 소유와 사용]] ([WxInventory — 아이템 소유와 사용](../topics/inventory.md))
 - [[ui|WxUI — 화면 레이어와 표시 수명]] ([WxUI — 화면 레이어와 표시 수명](../topics/ui.md))
 - [[wiki-operation|WX Wiki 운영과 재생성]] ([WX Wiki 운영과 재생성](../references/wiki-operation.md))
 - [[world|WxWorld — 장치와 상호작용]] ([WxWorld — 장치와 상호작용](../topics/world.md))
@@ -58,11 +63,14 @@ WxGame은 여러 도메인 플러그인을 조립한다. WxCore는 그 아래에
 ## Sources
 
 - [근거 1](../../raw/notes/2026-09-22-current-foundation.md)
+- [WxCore 태그 정의·로케이터 표시·픽업 상호작용 조사](../../raw/notes/2026-09-22-current-core-support.md) — 태그 정의부·로케이터 헬퍼·픽업 구현
+- [게임 조립·새 게임·부활 정적 조사](../../raw/notes/2026-09-22-current-game.md) — 캐릭터 충돌 응답
+- [레이어·대화 화면·HUD·속성 표시 수명 조사](../../raw/notes/2026-09-22-current-ui.md) — `IWxUIData`
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
 
-2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
+2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 태그 정의부·로케이터·픽업 설명은 HEAD `60c324c714b1dab10cd48d36cabad63ace232716` 기준으로 보강했다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
 
 빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
 

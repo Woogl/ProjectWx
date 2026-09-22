@@ -8,9 +8,12 @@ Last updated: 2026-09-22
 
 | File | Summary | Tags | Updated |
 |------|---------|------|---------|
+| [어빌리티 비용·쿨다운 GE 정적 조사](2026-09-22-current-ability-cost-cooldown.md) | 어빌리티 비용·쿨다운 GameplayEffect의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, combat | 2026-09-22 |
 | [AI 인지·Blackboard·락온 수명 정적 조사](2026-09-22-current-ai.md) | AI 인지·Blackboard·락온 수명 정적 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, ai | 2026-09-22 |
 | [GAS 부여·어빌리티 계약 정적 조사](2026-09-22-current-combat.md) | GAS 부여·어빌리티 계약 정적 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, combat | 2026-09-22 |
+| [WxCore 태그 정의·로케이터 표시·픽업 상호작용 조사](2026-09-22-current-core-support.md) | WxCore 태그 정의부·로케이터 표시 헬퍼와 WxCore 상호작용 계약을 쓰는 아이템 픽업의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, foundation | 2026-09-22 |
 | [피해 판정·자원 반영 정적 조사](2026-09-22-current-damage.md) | 피해 판정·자원 반영 정적 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, damage | 2026-09-22 |
+| [대화 정의·호스트·행 데이터와 세션 계약 조사](2026-09-22-current-dialogue-definition.md) | 대화 정의 컴포넌트·호스트 액터·대화 행·세션 공개 계약의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, dialogue | 2026-09-22 |
 | [대화 세션과 StateTree 연결 정적 조사](2026-09-22-current-dialogue.md) | 대화 세션과 StateTree 연결 정적 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, dialogue | 2026-09-22 |
 | [편집기 모듈 등록과 공개 도구 계약 조사](2026-09-22-current-editor.md) | 편집기 모듈 등록과 공개 도구 계약 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, editor | 2026-09-22 |
 | [피니시 기획 충돌과 현재 C++ 경로 조사](2026-09-22-current-finisher.md) | 피니시 기획 충돌과 현재 C++ 경로 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, finisher | 2026-09-22 |
@@ -18,12 +21,14 @@ Last updated: 2026-09-22
 | [게임 조립·새 게임·부활 정적 조사](2026-09-22-current-game.md) | 게임 조립·새 게임·부활 정적 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, game | 2026-09-22 |
 | [그로기 기획과 활성화 수명 조사](2026-09-22-current-groggy.md) | 그로기 기획과 활성화 수명 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, groggy | 2026-09-22 |
 | [아이템 소유·사용·StateTree 보상 정적 조사](2026-09-22-current-inventory.md) | 아이템 소유·사용·StateTree 보상 정적 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, inventory | 2026-09-22 |
+| [퀘스트 계약·StateTree 태스크·저널 표시 조사](2026-09-22-current-quest-tasks.md) | 퀘스트 컴포넌트 공개 계약·StateTree 태스크·수주 라이브러리·저널 ViewModel의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, quests | 2026-09-22 |
 | [퀘스트 러너·저널 수명 정적 조사](2026-09-22-current-quests.md) | 퀘스트 러너·저널 수명 정적 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, quests | 2026-09-22 |
 | [전투 자원 기획·보고와 속성 계약 조사](2026-09-22-current-resources.md) | 전투 자원 기획·보고와 속성 계약 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, resources | 2026-09-22 |
 | [레이어·대화 화면·HUD·속성 표시 수명 조사](2026-09-22-current-ui.md) | 레이어·대화 화면·HUD·속성 표시 수명 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, ui | 2026-09-22 |
 | [Wiki·Workflow 정본과 실행 경계 조사](2026-09-22-current-workflow.md) | Wiki·Workflow 정본과 실행 경계 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, workflow | 2026-09-22 |
 | [장치 복제·상호작용·체크포인트 정적 조사](2026-09-22-current-world.md) | 장치 복제·상호작용·체크포인트 정적 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, world | 2026-09-22 |
 | [그로기 종료 시 몽타주 정지 경로 수정 조사](2026-09-22-groggy-montage-stop-fix.md) | 커밋 c2b1088a0으로 그로기 종료가 ASC 현재 몽타주 기준 정지 대신 AnimInstance에서 그로기 몽타주를 직접 정지하도록 바뀐 저장소 원문 발췌와 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, groggy | 2026-09-22 |
+| [verified 순정 규칙 전환 결정](2026-09-22-verified-stock-rule.md) | 사용자 결정으로 기사 verified를 WX 전용 인간 확인 방침 대신 LLM Wiki 순정 규칙(편찬·재확인 때 그날 기록)으로 전환했다. 순정 규칙 원문과 반영된 schema.md 발췌. | wx, workflow | 2026-09-22 |
 | [Workflow 승인 버전·정리 완료·승인자 기록](2026-09-22-workflow-closure.md) | P1·P2 개선 요청에 따라 승인 버전 검증, 테스트 수용과 정리 완료 분리, 승인자 기록을 구현한 근거 | wx, workflow | 2026-09-22 |
 | [Workflow 단계별 일감 대시보드](2026-09-22-workflow-dashboard.md) | 사용자 요청과 단계별 대시보드 구현·검증 범위 | wx, workflow | 2026-09-22 |
 | [Workflow 기획서 검토 전환과 검색 제거](2026-09-22-workflow-review.md) | 사용자 요청: 개발자가 전달받은 기획서를 검토하고 Workflow 문서 검색을 제거한다. | wx, workflow | 2026-09-22 |

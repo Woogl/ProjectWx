@@ -3,6 +3,7 @@ title: "WX Wiki 운영과 재생성"
 category: reference
 sources:
   - "raw/notes/2026-09-22-current-workflow.md"
+  - "raw/notes/2026-09-22-verified-stock-rule.md"
 created: 2026-09-22
 updated: 2026-09-22
 tags: [wx, workflow]
@@ -35,7 +36,7 @@ LLM Wiki의 `compile --full`은 raw 전체를 다시 읽는 작업이다. 최신
 
 ## 검증 상태를 읽는 법
 
-`created`·`updated`·`verified`는 순정 규칙을 따른다. `verified`는 편찬하거나 순정 refresh·librarian으로 재확인한 날이며 빌드·실행 검증일이 아니다.
+`created`·`updated`·`verified`는 순정 규칙을 따른다. `verified`는 편찬하거나 순정 refresh·librarian으로 재확인한 날이며 빌드·실행 검증일이 아니다. 2026-09-22 사용자 결정으로 인간 확인 근거가 있을 때만 적던 WX 전용 방침을 폐기했다. 순정 편찬은 손댄 기사의 `verified`가 오늘인지 스스로 검증한다.
 
 현재 raw 조사 기록은 모델의 정적 관찰과 저장소 원문 발췌이므로 독립적인 실행 시험 증거가 아니다. 해시는 읽은 버전의 식별값이며 그 파일 전체의 품질 인증이 아니다. `confidence`와 최신성 점수도 빌드·에셋·멀티플레이 성공을 보증하지 않는다.
 
@@ -56,11 +57,12 @@ LLM Wiki의 `compile --full`은 raw 전체를 다시 읽는 작업이다. 최신
 ## Sources
 
 - [근거 1](../../raw/notes/2026-09-22-current-workflow.md)
+- [verified 순정 규칙 전환 결정](../../raw/notes/2026-09-22-verified-stock-rule.md) — 사용자 결정과 순정 규칙 원문
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
 
-2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
+2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. verified 규칙 설명은 2026-09-22 사용자 결정 기록을 근거로 한다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
 
 빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
 

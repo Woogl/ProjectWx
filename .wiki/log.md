@@ -68,3 +68,17 @@
 ## [2026-09-22] compile | 1 source → 0 new articles, 1 updated (combat-groggy). 가산 피격 중 그로기 몽타주 정지 수정(c2b1088a0) 반영. combat-finisher는 몽타주 정지를 다루지 않아 변경 없음.
 
 ## [2026-09-22] librarian | scanned 17 articles, 0 stale, 0 low-quality
+
+## [2026-09-22] ingest | 어빌리티 비용·쿨다운 GE 정적 조사 (raw/notes/2026-09-22-current-ability-cost-cooldown.md)
+
+## [2026-09-22] ingest | 대화 정의·호스트·행 데이터와 세션 계약 조사 (raw/notes/2026-09-22-current-dialogue-definition.md)
+
+## [2026-09-22] ingest | 퀘스트 계약·StateTree 태스크·저널 표시 조사 (raw/notes/2026-09-22-current-quest-tasks.md)
+
+## [2026-09-22] ingest | WxCore 태그 정의·로케이터 표시·픽업 상호작용 조사 (raw/notes/2026-09-22-current-core-support.md)
+
+## [2026-09-22] ingest | verified 순정 규칙 전환 결정 (raw/notes/2026-09-22-verified-stock-rule.md)
+
+## [2026-09-22] compile | 5 sources → 0 new articles, 6 updated (combat-abilities, dialogue, foundation, quests, wiki-operation, inventory). 출처 하나뿐이던 5개 기사에 근거 추가, 기존 원자료 current-game·current-ui도 인용. inventory는 foundation 역링크만 추가.
+
+## [2026-09-22] librarian | scanned 17 articles, 0 stale, 0 low-quality
