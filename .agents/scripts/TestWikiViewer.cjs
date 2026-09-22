@@ -10,7 +10,6 @@ const payload = html.match(/<script id="wiki-data" type="application\/json">([\s
 const data = JSON.parse(payload);
 const script = html.match(/<script>\s*([\s\S]*?)<\/script>/)[1].replace('if(isWorkflow)syncSharedTasks();','');
 new vm.Script(script);
-const manifest = JSON.parse(fs.readFileSync(path.join(root, '.agents/wiki/sources.json'), 'utf8'));
 const expectedNavigation = [];
 for (const line of fs.readFileSync(path.join(root, '.agents/workflow/index.md'), 'utf8').split(/\r?\n/)) {
   if (line === '## 한줄 요약') continue;
@@ -23,8 +22,11 @@ assert.deepEqual(data.navigation, expectedNavigation, 'navigation must follow th
 assert.equal(new Set(data.documents.map(d => d.path)).size, data.documents.length);
 for (const d of data.documents) {
   assert.equal(d.text, fs.readFileSync(path.join(root, d.path), 'utf8'));
-  const meta = manifest.pages[path.posix.relative('.agents/wiki', d.path)];
-  if (meta) assert.equal(d.status, meta.status);
+  const frontmatter = d.text.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
+  assert.equal(d.frontmatter, frontmatter?.[1] || '');
+  assert.ok(!d.html.includes('<p>category:'), 'YAML must not render as article prose');
+  assert.ok(!d.html.includes('[['), 'paired Obsidian links must render once');
+  assert.ok(!Object.hasOwn(d, 'status'), 'reader must not invent freshness from a separate manifest');
   assert.ok(d.html.length > 0);
 }
 class Element {
@@ -50,15 +52,15 @@ vm.runInContext(script, context);
 {const c=vm.createContext({location:{pathname:'/workflow'},localStorage:{getItem:()=>JSON.stringify({ghost:{taskId:'ghost'}})}});
 vm.runInContext(['workflow-model.js','workflow.js'].map(f=>fs.readFileSync(path.join(root,'.agents/scripts/wiki-viewer',f),'utf8')).join('\n'),c);
 assert.equal(vm.runInContext('Object.keys(otherTasks).length',c),0);}
-const imagePath = '.agents/wiki/assets/ai-workflow.png';
+const imagePath = '.agents/workflow/assets/ai-workflow.png';
 assert.equal(data.images[imagePath], 'data:image/png;base64,' + fs.readFileSync(path.join(root, imagePath)).toString('base64'));
 // Asset bundling is independent of whether a particular guide currently embeds the image.
-assert.equal(vm.runInContext("wikiImageSource('.agents/workflow/usage.md', '../wiki/assets/ai-workflow.png')", context), data.images[imagePath]);
+assert.equal(vm.runInContext("wikiImageSource('.agents/workflow/usage.md', 'assets/ai-workflow.png')", context), data.images[imagePath]);
 for (const source of ['https://example.com/a.png', '//example.com/a.png', 'file:///C:/a.png', 'data:image/svg+xml,test', '../assets/missing.png', '%invalid']) {
   context.testImageSource = source;
   assert.equal(vm.runInContext("wikiImageSource('.agents/workflow/usage.md', testImageSource)", context), null);
 }
-const imageAttributes = new Map([['src', '../wiki/assets/ai-workflow.png'], ['alt', '워크플로우'], ['onload', 'bad()'], ['srcset', 'https://example.com/a.png']]);
+const imageAttributes = new Map([['src', 'assets/ai-workflow.png'], ['alt', '워크플로우'], ['onload', 'bad()'], ['srcset', 'https://example.com/a.png']]);
 const imageNode = { tagName: 'IMG', get attributes() { return [...imageAttributes.keys()].map(name => ({ name })); },
   getAttribute: key => imageAttributes.get(key), removeAttribute: key => imageAttributes.delete(key), setAttribute: (key, value) => imageAttributes.set(key, value) };
 context.DOMParser = class { parseFromString() { return { body: { querySelectorAll: () => [imageNode] } }; } };
@@ -70,40 +72,59 @@ assert.ok(html.includes('img-src data:'));
 assert.ok(html.includes('article img{display:block;max-width:100%;height:auto;'));
 console.log('PASS bundled workflow PNG, relative image resolution, external image rejection and sanitized responsive rendering');
 assert.equal(byId('work-summary').children.length,0,'no stage choices before a task is selected');
-assert.match(byId('current-task-title').textContent,/새 작업/);
+assert.match(byId('current-task-title').textContent,/공용 작업 연결/);
 assert.equal(byId('cards').children.length, 0, 'home must not list documents');
 context.location.hash = '#search';
 vm.runInContext('readRoute()', context);
-assert.equal(byId('cards').children.length, data.documents.length);
+assert.equal(context.location.hash, '');
+assert.equal(byId('search-page').hidden, true);
+assert.equal(byId('dashboard').hidden, false);
 byId('search').value = 'WxCombat';
 byId('search').handlers.input();
-assert.ok(byId('cards').children.length > 0);
-assert.ok(byId('cards').children.every(card => decodeURIComponent(card.href).startsWith('#.agents/')));
-byId('search').value = 'NO_MATCH_78302914';
-byId('search').handlers.input();
-assert.match(byId('count').textContent, /0개/);
-byId('search').value = '';
-byId('search').handlers.input();
-assert.ok(!html.includes('id="stage"'));
-assert.equal(byId('cards').children.length, data.documents.length);
-assert.equal(byId('nav').children.length, expectedNavigation.length);
-for (const [i, group] of byId('nav').children.entries()) {
-  const expected = expectedNavigation[i];
-  assert.equal(group.children[0].textContent, expected.title);
-  const links = group.children.slice(1);
-  assert.equal(links.length, expected.items.length);
-  for (const [j, link] of links.entries()) {
-    const item = expected.items[j];
-    assert.equal(link.tagName, 'A');
-    assert.equal(link.textContent, item.title);
-    assert.equal(link.dataset.path, item.path);
-    assert.equal(link.href, '#' + encodeURIComponent(item.path));
-    assert.ok(data.documents.some(d => d.path === item.path), `missing navigation target: ${item.path}`);
-  }
+assert.equal(byId('cards').children.length, 0, 'Workflow must not search documents');
+assert.ok(!html.includes('문서 검색 →'));
+const menu=byId('nav').children[0].children;
+assert.deepEqual(menu.map(link=>link.textContent),['작업 현황 대시보드','새 작업 만들기','기존 작업 이어하기','사용 방법 안내','LLM 위키 검색']);
+assert.deepEqual(menu.map(link=>link.href),['#','#new-task','#resume-task','#'+encodeURIComponent('.agents/workflow/usage.md'),'knowledge.html']);
+assert.equal(byId('other-space-row').hidden,true);
+// Classify independent saved tasks without changing the currently open task.
+vm.runInContext(`
+globalThis.boardFixtures=[];
+function boardTask(name,confirmCount,execution){
+ const task=newTask(name);task.source='기획';
+ for(const stage of ['planning','implementation'].slice(0,confirmCount)){
+  task[stage].result={draft:stage+' 확정본',blockers:[]};
+  task[stage].reviewBasis=loopBasis(stage,task);
+  task[stage].confirmation={basis:loopBasis(stage,task),draft:task[stage].result.draft};
+ }
+ if(execution)task.execution=execution;
+ boardFixtures.push(task);return task;
 }
-assert.equal(vm.runInContext("resolvePath('.agents/wiki/knowledge/ai/index.md', '../combat/groggy.md')", context), '.agents/wiki/knowledge/combat/groggy.md');
-assert.equal(vm.runInContext("resolvePath('.agents/wiki/index.md', '../workflow/tasks/index.md')", context), '.agents/workflow/tasks/index.md');
-assert.equal(vm.runInContext("route('.agents/wiki/한글 문서.md','절 제목')", context), '#' + encodeURIComponent('.agents/wiki/한글 문서.md') + '!' + encodeURIComponent('절 제목'));
+boardTask('기획 일감',0);boardTask('설계 일감',1);boardTask('구현 일감',2,{status:'running',phase:'implement'});
+boardTask('리뷰 일감',2,{status:'review'});boardTask('테스트 일감',2,{status:'blocked',phase:'verify'});
+boardTask('완료 일감',2,{status:'complete'});boardTask('이전 일감',2).changeTo='기획 일감';
+`,context);
+assert.equal(vm.runInContext('boardFixtures.map(dashboardStage).join(",")',context),'planning,design,implementation,review,testing,completion,changed');
+assert.match(vm.runInContext('dashboardStatus(boardFixtures[4],"testing")',context),/보류/);
+vm.runInContext('sharedReady=true;otherTasks=Object.fromEntries(boardFixtures.map(task=>[task.taskId,task]));renderWorkSummary()',context);
+assert.equal(byId('work-summary').children.length,7);
+assert.ok(byId('work-summary').children.every(column=>column.children.length===2));
+assert.equal(vm.runInContext('workflowState.taskId',context),'');
+vm.runInContext('boardFixtures[2].source="수정된 기획"',context);
+assert.equal(vm.runInContext('dashboardStage(boardFixtures[2])',context),'planning','stale confirmations must not advance a task');
+vm.runInContext('otherTasks=Object.create(null);renderWorkSummary()',context);
+assert.equal(byId('work-summary').children.length,6);
+assert.match(byId('current-task-title').textContent,/등록된 일감이 없습니다/);
+vm.runInContext('sharedReady=false',context);
+
+for(const [hash,title] of [['#new-task','새 작업 만들기'],['#resume-task','기존 작업 이어하기']]){
+context.location.hash=hash;vm.runInContext('readRoute()',context);
+assert.equal(byId('dashboard').hidden,false);assert.equal(byId('dashboard-title').textContent,title);assert.equal(byId('work-summary').hidden,true);
+}
+context.location.hash='';vm.runInContext('readRoute()',context);assert.equal(byId('work-summary').hidden,false);
+assert.equal(vm.runInContext("resolvePath('.wiki/wiki/topics/ai.md', '../concepts/combat-groggy.md')", context), '.wiki/wiki/concepts/combat-groggy.md');
+assert.equal(vm.runInContext("resolvePath('.wiki/_index.md', '../.agents/workflow/tasks/index.md')", context), '.agents/workflow/tasks/index.md');
+assert.equal(vm.runInContext("route('.wiki/wiki/topics/한글 문서.md','절 제목')", context), '#' + encodeURIComponent('.wiki/wiki/topics/한글 문서.md') + '!' + encodeURIComponent('절 제목'));
 context.location.hash = '#missing-document';
 vm.runInContext('readRoute()', context);
 assert.equal(byId('article').children[0].textContent, '문서를 찾을 수 없습니다.');
@@ -134,7 +155,7 @@ context.fetch=async(url,options)=>{
 };
 function applyExclusions(){if(response.exclusions?.length)control('검토 결과 반영 · 기존 판단 보존').onclick();}
 (async()=>{
-  run("renderWorkflow('.agents/workflow/process/planning.md')");
+  run("renderWorkflow('.agents/workflow/process/design_review.md')");
   input('새 작업 제목').value='회피 시스템 개선';input('새 작업 제목').oninput();await control('새 작업 만들기').onclick();
   assert.equal(run('workflowState.title'),'회피 시스템 개선');
   assert.equal(run('workflowState.taskId'),'회피 시스템 개선','the title itself is the task key');
@@ -149,19 +170,21 @@ function applyExclusions(){if(response.exclusions?.length)control('검토 결과
   assert.equal(run("reviewStatus('planning')"),'기획서 입력부터 시작');
   const createSection=descendants(byId('workflow-controls')).find(n=>n.tagName==='DETAILS'&&n.children.some(c=>c.textContent==='새 작업 만들기'));
   assert.ok(createSection&&!createSection.open,'new task form is collapsed while working');
-  run("globalThis.allProviders=data.ai.providers;data.ai.providers=[allProviders[0]];renderWorkflow('.agents/workflow/process/planning.md')");
-  assert.ok(!descendants(byId('workflow-controls')).some(n=>n.attributes?.['aria-label']==='검토할 AI 서비스'),'one provider needs no selector');
-  run("data.ai.providers=allProviders;renderWorkflow('.agents/workflow/process/planning.md')");
+  run("globalThis.allProviders=data.ai.providers;data.ai.providers=[allProviders[0]];renderWorkflow('.agents/workflow/process/design_review.md')");
+  assert.equal(input('검토할 AI 서비스').children.length,1,'provider selection remains visible with one provider');
+  assert.ok(!descendants(byId('workflow-controls')).filter(n=>n.tagName==='DETAILS').some(n=>descendants(n).includes(input('검토할 AI 서비스'))),'provider selection must not be collapsible');
+  run("data.ai.providers=allProviders;renderWorkflow('.agents/workflow/process/design_review.md')");
   input('검토할 AI 서비스').value='claude';input('검토할 AI 서비스').onchange();
   input('기획서 원본').value='원본 비용 20';input('기획서 원본').oninput();
   const fetchBeforeWait=context.fetch;
   let finishReview,waitingRequests=0;
   const waiting=new Promise(resolve=>{finishReview=resolve;});
   context.fetch=async(...args)=>{waitingRequests++;await waiting;return fetchBeforeWait(...args);};
-  const reviewing=control('AI 기획 검토 · 답변 반영').onclick();
+  const reviewing=control('AI 기획서 검토').onclick();
+  assert.equal(run("workflowGuideDocument(docs.find(d=>d.path==='.agents/workflow/process/design_review.md')).path"),'.agents/workflow/process/design_review.md','guide follows the active workflow stage');
   assert.equal(byId('workflow-busy').hidden,false,'waiting indicator is visible');
   assert.equal(byId('app-shell').inert,true,'all background controls and navigation are locked');
-  await control('AI 기획 검토 · 답변 반영').onclick();
+  await control('AI 기획서 검토').onclick();
   assert.equal(waitingRequests,1,'duplicate review cannot start');
   const reviewingTask=run('workflowState.taskId');
   input('새 작업 제목').value='검토 중 새 작업';input('새 작업 제목').oninput();await control('새 작업 만들기').onclick();
@@ -174,7 +197,7 @@ function applyExclusions(){if(response.exclusions?.length)control('검토 결과
   assert.equal(run('workflowState.planning.decisions.length'),1,'questions must be answerable immediately');
   assert.ok(input('추가 요청·수정 의견'),'feedback becomes available after review');
   assert.equal(run("reviewStatus('planning')"),'1개 질문에 답변 필요');
-  assert.equal(control('기획 확정 · 설계 검토').disabled,true,'unresolved decision disables handoff');
+  assert.equal(control('검토본 확정 · 설계 검토').disabled,true,'unresolved decision disables handoff');
   assert.ok(descendants(byId('workflow-controls')).some(n=>n.textContent==='답변 결정 필요: 취소 정책'));
   assert.ok(descendants(byId('workflow-controls')).some(n=>n.className==='decision-card decision-unanswered'));
   control('반환').onclick();
@@ -198,17 +221,17 @@ function applyExclusions(){if(response.exclusions?.length)control('검토 결과
   await control('이 답변으로 결정').onclick();
   assert.equal(run("loopReady('planning')"),true,'review converges without automatic final confirmation');
   response={...result,draft:'회피 비용 20, 취소해도 반환하지 않음'};
-  await control('AI 기획 검토 · 답변 반영').onclick();
+  await control('AI 기획서 검토').onclick();
   assert.equal(requests.at(-1).context.decisions[0].answer,'반환하지 않음');
   applyExclusions();
   assert.equal(run('workflowState.planning.decisions[0].confirmed'),true,'omission preserves confirmed decision');
   assert.equal(run("loopReady('planning')"),true);
   assert.equal(run("loopConfirmed('planning')"),false,'AI never finalizes');
-  assert.equal(control('기획 확정 · 설계 검토').disabled,false);
+  assert.equal(control('검토본 확정 · 설계 검토').disabled,false);
   const saveFetch=context.fetch;let releaseSave;
   const saveWait=new Promise(resolve=>{releaseSave=resolve;});
   context.fetch=async(...args)=>{await saveWait;return saveFetch(...args);};
-  const saving=control('기획 확정 · 설계 검토').onclick();
+  const saving=control('검토본 확정 · 설계 검토').onclick();
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(byId('workflow-busy').hidden,false);
   assert.equal(byId('workflow-busy-title').textContent,'저장 중');
@@ -224,22 +247,23 @@ function applyExclusions(){if(response.exclusions?.length)control('검토 결과
   applyExclusions();
   input('D1 답변').value='기존 컴포넌트 재사용';input('D1 답변').oninput();await control('이 답변으로 결정').onclick();
   response={...response,questions:[]};await control('AI 설계 검토 · 답변 반영').onclick();applyExclusions();
-  await control('설계 확정 · AI 구현 시작').onclick();
+  await control('설계 확정').onclick();
+  assert.equal(run("workflowGuideDocument(docs.find(d=>d.path==='.agents/workflow/process/design_review.md')).path"),'.agents/workflow/process/implementation.md','guide follows the active workflow stage');
   assert.equal(run("loopConfirmed('implementation')"),true);assert.equal(handoffs[1].upstream.path,'.agents/workflow/tasks/test-1.md');
   const approvedDesign=run('JSON.stringify(workflowState)');
-  run("renderWorkflow('.agents/workflow/process/planning.md')");
-  await run("beginChange('planning',undefined,'회피 정책 변경')");run("renderWorkflow('.agents/workflow/process/planning.md')");
+  run("renderWorkflow('.agents/workflow/process/design_review.md')");
+  await run("beginChange('planning',undefined,'회피 정책 변경')");run("renderWorkflow('.agents/workflow/process/design_review.md')");
   input('Q1 답변').value='반환하도록 변경';input('Q1 답변').oninput();
   assert.equal(run("loopConfirmed('planning')"),false);assert.equal(run("loopConfirmed('implementation')"),false);
   assert.equal(run('workflowState.implementation.decisions[0].answer'),'기존 컴포넌트 재사용');
   assert.equal(run('workflowState.planning.decisions[0].history[0].answer'),'반환하지 않음');
   run("renderWorkflow('.agents/workflow/process/implementation.md')");
   assert(!descendants(byId('workflow-controls')).some(n=>n.textContent==='AI 설계 검토 · 답변 반영'),'revoked planning cannot feed stale design');
-  run("renderWorkflow('.agents/workflow/process/planning.md')");
+  run("renderWorkflow('.agents/workflow/process/design_review.md')");
   await control('이 답변으로 결정').onclick();
   response={...result,draft:handoffs[0].result.draft,questions:[]};
-  await control('AI 기획 검토 · 답변 반영').onclick();applyExclusions();
-  await control('기획 확정 · 설계 검토').onclick();
+  await control('AI 기획서 검토').onclick();applyExclusions();
+  await control('검토본 확정 · 설계 검토').onclick();
   assert.equal(requests.at(-1).mode,'implementation','new planning approval triggers design rereview even when draft text is unchanged');
   const confirmedBefore=run('workflowState.planning.confirmation.path');
   const workingFetch=context.fetch;
@@ -248,18 +272,18 @@ function applyExclusions(){if(response.exclusions?.length)control('검토 결과
   assert.equal(run('workflowState.planning.confirmation.path'),confirmedBefore,'failed handoff must not create a new confirmation');
   context.fetch=workingFetch;
   await run('(async()=>{const route=readRoute;readRoute=()=>{};try{await syncSharedTasks();}finally{readRoute=route;}})()');
-  run("renderWorkflow('.agents/workflow/process/planning.md')");
-  response={...result,questions:[],exclusions:[{id:'Q1',reason:'범위 제외',basis:'사용자 요청'}]};await control('AI 기획 검토 · 답변 반영').onclick();
+  run("renderWorkflow('.agents/workflow/process/design_review.md')");
+  response={...result,questions:[],exclusions:[{id:'Q1',reason:'범위 제외',basis:'사용자 요청'}]};await control('AI 기획서 검토').onclick();
   input('기획서 원본').value='추가 변경';input('기획서 원본').oninput();
   const before=run('workflowState.planning.result.draft');applyExclusions();assert.equal(run('workflowState.planning.result.draft'),before,'stale preview rejected');
   assert.equal(input('기획서 원본').value,'추가 변경');
   response={...result,blockers:['에셋 정책 근거 부족']};
-  await control('AI 기획 검토 · 답변 반영').onclick();applyExclusions();
+  await control('AI 기획서 검토').onclick();applyExclusions();
   assert.equal(run("loopReady('planning')"),false,'missing material cannot be treated as finalizable');
-  assert.equal(control('기획 확정 · 설계 검토').disabled,true);
+  assert.equal(control('검토본 확정 · 설계 검토').disabled,true);
   assert.ok(!descendants(byId('workflow-controls')).some(n=>['AI가 정리한 사실·조사 근거','확정 전 해결할 자료·충돌'].includes(n.textContent)),'AI reference sections are hidden');
   const originalFetch=context.fetch;context.fetch=async()=>({ok:false,json:async()=>({error:'AI 실패'})});
-  await control('AI 기획 검토 · 답변 반영').onclick();assert.equal(run('workflowState.planning.decisions[0].answer'),'반환하도록 변경');context.fetch=originalFetch;
+  await control('AI 기획서 검토').onclick();assert.equal(run('workflowState.planning.decisions[0].answer'),'반환하도록 변경');context.fetch=originalFetch;
   assert.equal(byId('workflow-busy').hidden,true);
   assert.equal(byId('app-shell').inert,false,'failure unlocks the screen for retry');
   const priorDraft=run('workflowState.planning.result.draft');
@@ -268,7 +292,7 @@ function applyExclusions(){if(response.exclusions?.length)control('검토 결과
     input('기획서 원본').value='분석 도중 바꾼 의견';input('기획서 원본').oninput();
     return originalFetch(...args);
   };
-  await control('AI 기획 검토 · 답변 반영').onclick();
+  await control('AI 기획서 검토').onclick();
   assert.equal(run('workflowState.planning.result.draft'),priorDraft,'changed input rejects automatic integration');
   assert.equal(input('기획서 원본').value,'분석 도중 바꾼 의견');context.fetch=originalFetch;
   const previousTask=run('workflowState.taskId');
@@ -286,13 +310,13 @@ function applyExclusions(){if(response.exclusions?.length)control('검토 결과
   input('새 작업 제목').value='새 기획 2';input('새 작업 제목').oninput();await control('새 작업 만들기').onclick();
   input('기획서 원본').value='회피 비용 20';input('기획서 원본').oninput();
   response={...result,questions:[question]};
-  await control('AI 기획 검토 · 답변 반영').onclick();applyExclusions();
+  await control('AI 기획서 검토').onclick();applyExclusions();
   input('Q1 답변').value='취소 기능은 이번 범위에서 제외';input('Q1 답변').oninput();
   response={...result,exclusions:[{id:'Q1',reason:'취소 기능 제외',basis:'사용자 추가 요청'}]};
-  await control('AI 기획 검토 · 답변 반영').onclick();applyExclusions();
+  await control('AI 기획서 검토').onclick();applyExclusions();
   assert.equal(run('workflowState.planning.decisions[0].status'),'excluded');
   assert.equal(run("loopReady('planning')"),true,'excluded unanswered question does not block');
-  await control('기획 확정 · 설계 검토').onclick();
+  await control('검토본 확정 · 설계 검토').onclick();
   run("renderWorkflow('.agents/workflow/process/implementation.md')");
   response={...result,questions:[{...question,id:'CHANGE',kind:'planning',scope:'회피 비용을 10으로 변경?'}]};
   await control('AI 설계 검토 · 답변 반영').onclick();applyExclusions();
@@ -303,30 +327,32 @@ function applyExclusions(){if(response.exclusions?.length)control('검토 결과
   assert.equal(run('workflowState.planning.decisions.at(-1).confirmed'),true);
   assert.equal(run('workflowState.implementation.decisions[0].status'),'transferred');
   response={...result,draft:'회피 비용 10'};
-  await control('AI 기획 검토 · 답변 반영').onclick();applyExclusions();
-  await control('기획 확정 · 설계 검토').onclick();
+  await control('AI 기획서 검토').onclick();applyExclusions();
+  await control('검토본 확정 · 설계 검토').onclick();
   assert.equal(requests.at(-1).mode,'implementation','new planning automatically receives design rereview');
   run("renderWorkflow('.agents/workflow/process/implementation.md')");
   await control('AI 설계 검토 · 답변 반영').onclick();applyExclusions();
   assert.equal(run("loopReady('implementation')"),true);
-  run("renderWorkflow('.agents/workflow/process/planning.md')");
-  await run("beginChange('planning',undefined,'회피 정책 변경')");run("renderWorkflow('.agents/workflow/process/planning.md')");
+  run("renderWorkflow('.agents/workflow/process/design_review.md')");
+  await run("beginChange('planning',undefined,'회피 정책 변경')");run("renderWorkflow('.agents/workflow/process/design_review.md')");
   assert.equal(run('workflowState.taskId'),run('workflowState.title'));
   console.log('PASS title task keys, rename, task isolation, scope exclusion, change recovery and planning-change roundtrip');
   const editingTask=run('JSON.stringify(workflowState)');context.approvedDesign=approvedDesign;
   context.executionReport={summary:'실제 변경 요약',changes:['기능 구현'],checks:[{name:'회귀 검사',status:'passed',evidence:'test: exit 0'}],humanChecks:['조작감 확인'],blockers:[]};
-  run("workflowState=JSON.parse(approvedDesign);workflowState.execution={revision:2,status:'review',phase:'implement',report:executionReport,diff:'+ change',decisions:[]};renderWorkflow('.agents/workflow/process/planning.md')");
+  run("workflowState=JSON.parse(approvedDesign);workflowState.execution={revision:2,status:'review',phase:'implement',report:executionReport,diff:'+ change',decisions:[]};renderWorkflow('.agents/workflow/process/design_review.md')");
   assert.ok(control('코드 리뷰 승인'));assert.ok(!input('기획서 원본'),'only the current judgment is shown');
   const normalFetch=context.fetch;let executionAction;
   context.fetch=async(url,options)=>{if(!url.endsWith('/execution'))return normalFetch(url,options);executionAction=JSON.parse(options.body);return{ok:true,json:async()=>({revision:executionAction.expectedRevision+1,status:executionAction.action==='accept'?'complete':'running',phase:'verify',report:context.executionReport,decisions:[]})};};
   await control('코드 리뷰 승인').onclick();assert.equal(executionAction.action,'approve');assert.equal(run('currentWorkStage()'),'testing');
-  run("workflowState.execution.status='acceptance';renderWorkflow('.agents/workflow/process/planning.md')");
+  assert.equal(run("workflowGuideDocument(docs.find(d=>d.path==='.agents/workflow/process/design_review.md')).path"),'.agents/workflow/process/testing.md','guide follows the active workflow stage');
+  run("workflowState.execution.status='acceptance';renderWorkflow('.agents/workflow/process/design_review.md')");
   const humanCheck=descendants(byId('workflow-controls')).find(n=>n.tagName==='INPUT'&&n.type==='checkbox');humanCheck.checked=true;humanCheck.onchange();
   input('판단 의견').value='직접 확인 완료';input('판단 의견').oninput();
-  run("renderWorkflow('.agents/workflow/process/planning.md')");assert.equal(input('판단 의견').value,'직접 확인 완료','judgment survives rerender');
-  await control('결과 수용 · 완료').onclick();assert.equal(executionAction.action,'accept');assert.deepEqual(executionAction.confirmedChecks,[0]);assert.equal(run('currentWorkStage()'),'completion');
+  run("renderWorkflow('.agents/workflow/process/design_review.md')");assert.equal(input('판단 의견').value,'직접 확인 완료','judgment survives rerender');
+  await control('테스트 완료').onclick();assert.equal(executionAction.action,'accept');assert.deepEqual(executionAction.confirmedChecks,[0]);assert.equal(run('currentWorkStage()'),'completion');
+  assert.equal(run("workflowGuideDocument(docs.find(d=>d.path==='.agents/workflow/process/design_review.md')).path"),'.agents/workflow/process/completion.md','guide follows the active workflow stage');
   assert.ok(!input('판단 의견'),'completion has no more input');context.fetch=normalFetch;
-  context.editingTask=editingTask;run("workflowState=JSON.parse(editingTask);renderWorkflow('.agents/workflow/process/planning.md')");
+  context.editingTask=editingTask;run("workflowState=JSON.parse(editingTask);renderWorkflow('.agents/workflow/process/design_review.md')");
   context.localStorage.setItem=()=>{throw new Error('quota')};input('기획서 원본').value='저장 실패 입력';input('기획서 원본').oninput();assert.match(run('workflowStorageError'),/저장하지 못했습니다/);
   assert.equal(input('기획서 원본').value,'저장 실패 입력');
   const model=fs.readFileSync(path.join(root,'.agents/scripts/wiki-viewer/workflow-model.js'),'utf8');

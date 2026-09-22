@@ -12,13 +12,19 @@ function currentWorkStage(){
   return 'implementation';
 }
 function openWorkStage(){
-  const path='.agents/workflow/process/planning.md';
+  const stage=currentWorkStage();
+  const path=`.agents/workflow/process/${stage==='planning'?'design_review':stage}.md`;
   if(typeof history!=='undefined')history.replaceState(null,'',route(path));
   else location.hash=route(path);
   if(typeof readRoute==='function')readRoute();
   renderWorkflow(path);
 }
 let executionPoll=null,executionRequestBusy=false;
+function workflowGuideDocument(doc){
+  if(!isWorkflow||!workflowState.taskId||!/^\.agents\/workflow\/process\/(design_review|implementation|testing|completion)\.md$/.test(doc.path))return doc;
+  const stage=currentWorkStage();
+  return docs.find(item=>item.path===`.agents/workflow/process/${stage==='planning'?'design_review':stage}.md`)||doc;
+}
 async function recoverExecutionRequests(){
   if(executionRequestBusy)return;
   for(const title of Object.keys(otherTasks)){
@@ -94,7 +100,7 @@ function renderExecution(panel){
   if(execution.status==='review')panel.append(workflowButton('코드 리뷰 승인',()=>executeAction('approve',feedback.value)));
   if(execution.status==='acceptance'){
     if(!report.checks.length||report.checks.some(c=>c.status==='not_run'))panel.append(el('p','미검증 항목까지 수용하려면 의견에 이유를 적어주세요.','notice'));
-    panel.append(workflowButton('결과 수용 · 완료',()=>executeAction('accept',feedback.value,confirmed)));
+    panel.append(workflowButton('테스트 완료',()=>executeAction('accept',feedback.value,confirmed)));
   }
   const stopped=execution.status==='blocked'||execution.status==='interrupted';
   panel.append(workflowButton(stopped?'AI 이어서 진행':'수정 요청',()=>executeAction(stopped&&!feedback.value.trim()?'retry':'revise',feedback.value)));

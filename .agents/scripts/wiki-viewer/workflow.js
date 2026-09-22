@@ -105,10 +105,10 @@ if(typeof window!=='undefined'){
 function workflowButton(text, action) {
   const b = el('button', text, 'back'); b.type = 'button'; b.onclick = action; return b;
 }
-function sourceFor(stage) { return stage === 'planning' ? workflowState.source : workflowState.planning.confirmation?.draft || ''; }
-function reviewSourceFor(stage) { return stage === 'planning' ? sourceFor(stage) : JSON.stringify({ source: sourceFor(stage), upstream: workflowState.planning.confirmation?.path, upstreamRevision: workflowState.planning.confirmation?.revision, upstreamBasis: workflowState.planning.confirmation?.basis }); }
-function loopBasis(stage) { const l = workflowState[stage]; return WxWorkflowModel.basis(reviewSourceFor(stage), l.notes, l.decisions); }
-function loopReady(stage) { return (stage === 'planning' || (loopConfirmed('planning') && !workflowState[stage].decisions.some(q=>WxWorkflowModel.active(q)&&q.kind==='planning'))) && WxWorkflowModel.ready(workflowState[stage], reviewSourceFor(stage)); }
+function sourceFor(stage, task=workflowState) { return stage === 'planning' ? task.source : task.planning.confirmation?.draft || ''; }
+function reviewSourceFor(stage, task=workflowState) { return stage === 'planning' ? sourceFor(stage, task) : JSON.stringify({ source: sourceFor(stage, task), upstream: task.planning.confirmation?.path, upstreamRevision: task.planning.confirmation?.revision, upstreamBasis: task.planning.confirmation?.basis }); }
+function loopBasis(stage, task=workflowState) { const l = task[stage]; return WxWorkflowModel.basis(reviewSourceFor(stage, task), l.notes, l.decisions); }
+function loopReady(stage, task=workflowState) { return (stage === 'planning' || (loopConfirmed('planning', task) && !task[stage].decisions.some(q=>WxWorkflowModel.active(q)&&q.kind==='planning'))) && WxWorkflowModel.ready(task[stage], reviewSourceFor(stage, task)); }
 function handoffBlockers(stage) {
   const l=workflowState[stage],reasons=[];
   if(!sourceFor(stage).trim())reasons.push('기획서 원본이 필요합니다.');
@@ -118,13 +118,13 @@ function handoffBlockers(stage) {
   for(const blocker of l.result?.blockers||[])reasons.push('미해결 사항: '+blocker);
   if(l.result&&l.reviewBasis!==loopBasis(stage))reasons.push('변경한 답변·원본을 AI 검토에 반영해야 합니다.');
   if(stage==='implementation'&&!loopConfirmed('planning'))reasons.push('기획을 먼저 최종 확정하세요.');
-  if(stage==='implementation'&&l.decisions.some(q=>WxWorkflowModel.active(q)&&q.kind==='planning'))reasons.push('기획 변경 질문을 기획 단계로 전달해 확정하세요.');
+  if(stage==='implementation'&&l.decisions.some(q=>WxWorkflowModel.active(q)&&q.kind==='planning'))reasons.push('기획 변경 질문을 기획서 검토 단계로 전달해 확정하세요.');
   return reasons;
 }
 
-function loopConfirmed(stage) {
-  const l = workflowState[stage];
-  return !!(loopReady(stage) && l.confirmation && l.confirmation.basis === loopBasis(stage) && l.confirmation.draft === l.result.draft);
+function loopConfirmed(stage, task=workflowState) {
+  const l = task[stage];
+  return !!(loopReady(stage, task) && l.confirmation && l.confirmation.basis === loopBasis(stage, task) && l.confirmation.draft === l.result.draft);
 }
 function invalidate(stage) {
   invalidateState(workflowState,stage);
@@ -237,7 +237,7 @@ async function transferPlanningQuestions(selectedId) {
 function taskTitle(task) {
   return (typeof task.title==='string'&&task.title.trim()) || (task.source||'').split(/\r?\n/).map(line=>line.replace(/^#+\s*/, '').trim()).find(Boolean)?.slice(0,80) || '제목 없는 작업';
 }
-function renderTaskPicker(panel) {
+function renderTaskPicker(panel, mode='all') {
   const tasks=!workflowState.taskId?{...otherTasks}:{...otherTasks,[workflowState.taskId]:workflowState};
   const used=new Set();
   const list=el('select');list.id='workflow-task-options';list.setAttribute('aria-label','기존 작업 선택');
@@ -277,16 +277,17 @@ function renderTaskPicker(panel) {
   input.id='workflow-new-task';const newLabel=el('label','새 작업');newLabel.setAttribute('for',input.id);
   existingRow.append(existingLabel,list);newRow.append(newLabel,input,apply);
   const status=el('p',workflowStorageError,'notice');status.id='workflow-shared-status';status.setAttribute('role','status');
-  panel.append(el('h3','작업'),status);
-  if(Object.keys(tasks).length)panel.append(existingRow);
-  if(workflowState.taskId){
+  panel.append(status);
+  if(mode!=='new'&&Object.keys(tasks).length)panel.append(existingRow);
+  if(mode==='resume'&&!Object.keys(tasks).length)panel.append(el('p','저장된 작업이 없습니다. 새 작업 만들기에서 시작하세요.','notice'));
+  if(mode==='resume'){}else if(workflowState.taskId&&mode!=='new'){
     const create=el('details');create.append(el('summary','새 작업 만들기'),newRow);panel.append(create);
   }else panel.append(newRow);
   panel.append(message);
   if(!sharedReady||sharedLoading){list.disabled=true;input.disabled=true;apply.disabled=true;}
-  if(!workflowState.taskId)return;
+  if(mode!=='all'||!workflowState.taskId)return;
   const stage=loopConfirmed('planning')?'implementation':'planning';
-  panel.append(el('p',loopConfirmed('implementation')?executionStatus():(stage==='planning'?'기획 · ':'설계 · ')+reviewStatus(stage),'notice'));
+  panel.append(el('p',loopConfirmed('implementation')?executionStatus():(stage==='planning'?'기획서 검토 · ':'설계 · ')+reviewStatus(stage),'notice'));
   if(workflowState.progress?.note){
     const previous=el('details');previous.append(el('summary','이전 작업 메모'),el('pre',workflowState.progress.note,'plan-preview'));panel.append(previous);
   }
@@ -301,8 +302,8 @@ function renderTaskPicker(panel) {
     try{
       if(sharedReady||workflowState.serverRevision||workflowState.changeFrom)await commitWorkflow('/rename',{taskId:workflowState.taskId,expectedRevision:workflowState.serverRevision,title},next);
       else{workflowState=next;delete otherTasks[oldName];if(!saveWorkflow())throw new Error(workflowStorageError);}
-      renderWorkflow(decodeURIComponent(location.hash?.slice(1)||'.agents/workflow/process/planning.md'));
-    }catch(error){message.textContent=error.message;if(pendingSave)renderWorkflow('.agents/workflow/process/planning.md');}
+      renderWorkflow(decodeURIComponent(location.hash?.slice(1)||'.agents/workflow/process/design_review.md'));
+    }catch(error){message.textContent=error.message;if(pendingSave)renderWorkflow('.agents/workflow/process/design_review.md');}
   }));
   panel.append(rename);
 }
@@ -311,27 +312,67 @@ function onWikiNavigation(event) {
   readRoute();
   syncSharedTasks();
 }
-function reviewStatus(stage) {
-  if(workflowState.changeTo)return '후속 변경 작업에서 확인';
-  if(loopConfirmed(stage))return '확정됨';
-  if(stage==='implementation'&&!loopConfirmed('planning'))return '기획 확정 후 진행';
-  const l=workflowState[stage];
-  if(!l.result)return stage==='planning'&&!workflowState.source.trim()?'기획서 입력부터 시작':'AI 검토 시작';
+function reviewStatus(stage, task=workflowState) {
+  if(task.changeTo)return '후속 변경 작업에서 확인';
+  if(loopConfirmed(stage, task))return '확정됨';
+  if(stage==='implementation'&&!loopConfirmed('planning', task))return '기획 확정 후 진행';
+  const l=task[stage];
+  if(!l.result)return stage==='planning'&&!task.source.trim()?'기획서 입력부터 시작':'AI 검토 시작';
   const unanswered=l.decisions.filter(q=>WxWorkflowModel.active(q)&&!q.confirmed).length;
   if(unanswered)return unanswered+'개 질문에 답변 필요';
-  return loopReady(stage)?'최종 확정 대기':l.result.blockers?.length?'추가 자료 확인 필요':'답변 반영·AI 재검토 필요';
+  return loopReady(stage, task)?'최종 확정 대기':l.result.blockers?.length?'추가 자료 확인 필요':'답변 반영·AI 재검토 필요';
+}
+function dashboardStage(task) {
+  if(task.changeTo)return 'changed';
+  if(!loopConfirmed('planning',task))return 'planning';
+  if(!loopConfirmed('implementation',task))return 'design';
+  const execution=task.execution;
+  if(execution?.status==='complete')return 'completion';
+  if(execution?.status==='review')return 'review';
+  if(execution?.status==='acceptance'||execution?.phase==='verify')return 'testing';
+  return 'implementation';
+}
+function dashboardStatus(task, stage) {
+  if(stage==='changed')return '후속 변경 작업 · '+task.changeTo;
+  if(stage==='planning'||stage==='design')return reviewStatus(stage==='planning'?'planning':'implementation',task);
+  const execution=task.execution;
+  return ({running:execution?.phase==='verify'?'AI 검증 중':'AI 구현 중',review:'코드 리뷰 필요',acceptance:'테스트 결과 수용 대기',complete:'테스트 수용 완료',blocked:'확인 필요 · 진행 보류',interrupted:'실행 중단 · 재개 필요'})[execution?.status]||'AI 구현 준비';
+}
+async function openDashboardTask(taskId) {
+  if(analysisBusy||pendingSave)return;
+  if(!saveWorkflow()){$('work-summary-error').textContent=workflowStorageError;return;}
+  try{
+    await flushSharedTasks();await loadSharedTasks();
+    if(!otherTasks[taskId])throw new Error('작업을 찾을 수 없습니다. 대시보드를 새로고침하세요.');
+    workflowState=JSON.parse(JSON.stringify(otherTasks[taskId]));openWorkStage();
+  }catch(error){$('work-summary-error').textContent=error.message;}
 }
 function renderWorkSummary() {
-  const summary = $('work-summary'); summary.replaceChildren();
-  const tasks=$('dashboard-tasks');tasks.replaceChildren();if(sharedReady)renderTaskPicker(tasks);
-  $('current-task-title').textContent=!workflowState.taskId?'새 작업을 만들거나 기존 작업을 선택하세요.':'현재 작업 · '+taskTitle(workflowState);
+  const summary=$('work-summary');summary.replaceChildren();
+  const mode=location.hash==='#new-task'?'new':location.hash==='#resume-task'?'resume':'all';
+  $('dashboard-title').textContent=mode==='new'?'새 작업 만들기':mode==='resume'?'기존 작업 이어하기':'작업 현황 대시보드';
+  summary.hidden=mode!=='all';$('current-task-title').hidden=mode!=='all';
+  const picker=$('dashboard-tasks');picker.replaceChildren();
   $('work-summary-error').textContent=workflowStorageError;
-  if(workflowState.taskId){
-    const stage=currentWorkStage(),card=el('a',undefined,'card');card.href=route('.agents/workflow/process/planning.md');
-    const status=loopConfirmed('implementation')?executionStatus():reviewStatus(stage);
-    card.append(el('span','현재 상태','eyebrow'),el('h2',status),el('p','작업 열기 →'));summary.append(card);
+  if(mode!=='all'){if(sharedReady)renderTaskPicker(picker,mode);return;}
+  if(!sharedReady){$('current-task-title').textContent=sharedLoading?'일감을 불러오는 중입니다.':'공용 작업 연결을 기다리고 있습니다.';return;}
+  const tasks={...otherTasks};if(workflowState.taskId)tasks[workflowState.taskId]=workflowState;
+  const entries=Object.values(tasks).filter(task=>task?.taskId).sort((a,b)=>taskTitle(a).localeCompare(taskTitle(b),'ko'));
+  $('current-task-title').textContent=entries.length?'전체 '+entries.length+'개 일감 · 카드를 선택해 이어서 진행하세요.':'등록된 일감이 없습니다. 새 작업 만들기에서 시작하세요.';
+  const stages=[['planning','기획 검토'],['design','설계'],['implementation','구현'],['review','코드 리뷰'],['testing','테스트'],['completion','완료']];
+  if(entries.some(task=>task.changeTo))stages.push(['changed','후속 변경으로 인계']);
+  for(const [stage,title] of stages){
+    const items=entries.filter(task=>dashboardStage(task)===stage),column=el('section',undefined,'stage-column');
+    column.append(el('h2',title+' · '+items.length));
+    if(!items.length)column.append(el('p','일감 없음','notice'));
+    for(const task of items){
+      const card=workflowButton('',()=>openDashboardTask(task.taskId));card.className='stage-task';
+      card.append(el('strong',taskTitle(task)),el('span',dashboardStatus(task,stage),'notice'));
+      if(['blocked','interrupted'].includes(task.execution?.status))card.className+=' needs-attention';
+      column.append(card);
+    }
+    summary.append(column);
   }
-
 }
 async function workflowRequest(endpoint, body) {
   if (!data.ai) throw new Error('OpenWorkflow.bat을 다시 실행하여 AI 연결을 시작하세요.');
@@ -342,7 +383,7 @@ async function workflowRequest(endpoint, body) {
   return result;
 }
 function renderDecisionLoop(panel, stage) {
-  const l = workflowState[stage], title = stage === 'planning' ? '기획' : '설계';
+  const l = workflowState[stage], title = stage === 'planning' ? '기획서 검토' : '설계';
   let refreshHandoffStatus=()=>{};
   const message = el('p',workflowStorageError,'notice'); message.id='workflow-review-status';message.setAttribute('role','status');message.setAttribute('tabindex','-1');
   const preview = el('div');
@@ -357,7 +398,7 @@ function renderDecisionLoop(panel, stage) {
     panel.append(workflowButton('변경 작업 열기',()=>{
       const next=otherTasks[workflowState.changeTo];
       if(!next){message.textContent='현재 브라우저에 변경 작업이 없습니다. 공용 변경 기록을 확인하세요.';return;}
-      workflowState=JSON.parse(JSON.stringify(next));saveWorkflow();renderWorkflow(`.agents/workflow/process/${stage}.md`);
+      workflowState=JSON.parse(JSON.stringify(next));saveWorkflow();renderWorkflow(`.agents/workflow/process/${stage === 'planning' ? 'design_review' : stage}.md`);
     }),message);return;
   }
   if(l.confirmation){
@@ -373,6 +414,7 @@ function renderDecisionLoop(panel, stage) {
     return;
   }
   if (stage === 'planning') {
+    panel.append(el('p','전달받은 기획서를 입력하세요. AI가 누락·충돌·구현 영향을 검토합니다. 기획 판단이 필요한 항목은 담당자와 확인한 답변을 기록하세요.'));
     const input = el('textarea'); input.rows=10; input.value=workflowState.source; input.setAttribute('aria-label','기획서 원본');
     input.oninput = () => { if(pendingSave)return;workflowState.source=input.value; invalidate('planning'); remember(); };
     const file = el('input'); file.type='file'; file.accept='.md,.txt,.docx,.pdf,.pptx';
@@ -412,9 +454,9 @@ function renderDecisionLoop(panel, stage) {
   for(const provider of providers){const option=el('option',provider.label);option.value=provider.id;providerSelect.append(option);}
   providerSelect.value=providers.some(p=>p.id===workflowState.provider)?workflowState.provider:(providers[0]?.id||'');
   providerSelect.onchange=()=>{workflowState.provider=providerSelect.value;saveWorkflow();};
-  if(providers.length>1){const service=el('details');service.append(el('summary','AI: '+(providers.find(p=>p.id===providerSelect.value)?.label||'')),providerSelect);panel.append(service);}
+  if(providers.length){const service=el('div');providerSelect.id='workflow-ai-provider';const label=el('label','AI 선택');label.setAttribute('for',providerSelect.id);service.append(label,providerSelect);panel.append(service);}
   panel.append(el('p',providers.length?(providers.length===1?providers[0].label+'로 검토합니다. ':'')+'선택한 서비스에 검토 자료와 조사에 필요한 파일 내용이 전달됩니다.':'사용 가능한 AI가 없습니다. Codex, Claude Code 또는 Gemini CLI 설치·로그인 후 OpenWorkflow.bat을 다시 실행하세요.','notice'));
-  const generate=workflowButton(`AI ${title} 검토 · 답변 반영`,async()=>{
+  const generate=workflowButton(stage==='planning'?'AI 기획서 검토':`AI ${title} 검토 · 답변 반영`,async()=>{
     if(analysisBusy)return;
     const source=sourceFor(stage);
     if(!source.trim()||source.length>120000){message.textContent='기획서를 1~120,000자로 입력하세요.';return;}
@@ -434,7 +476,7 @@ function renderDecisionLoop(panel, stage) {
         const merged=WxWorkflowModel.mergeDecisions(l.decisions,result.questions,result.exclusions||[]);
         invalidate(stage);l.decisions=merged;l.result=result;l.reviewProvider=selectedProvider;l.reviewBasis=loopBasis(stage);
         if(saveWorkflow()){
-          renderWorkflow(`.agents/workflow/process/${stage}.md`);
+          renderWorkflow(`.agents/workflow/process/${stage === 'planning' ? 'design_review' : stage}.md`);
           const remaining=l.decisions.filter(q=>WxWorkflowModel.active(q)&&!q.confirmed).length;
           $('workflow-review-status').textContent=remaining?`검토 완료 · 답변이 필요한 질문 ${remaining}개를 확인하세요.`:loopReady(stage)?'검토 완료 · 통합 초안을 확인하고 최종 확정하세요.':'검토 완료 · 확정 전 해결할 자료와 판단을 확인하세요.';
         }else message.textContent=workflowStorageError;
@@ -490,7 +532,7 @@ function renderDecisionLoop(panel, stage) {
         }
         if(!providers.length){message.textContent='답변을 저장했습니다. AI 연결 후 검토 버튼을 눌러 계속하세요.';return;}
         await generate.onclick();
-      }else renderWorkflow(`.agents/workflow/process/${stage}.md`);
+      }else renderWorkflow(`.agents/workflow/process/${stage === 'planning' ? 'design_review' : stage}.md`);
     });
     answer.oninput=()=>{
       if(pendingSave)return;
@@ -511,7 +553,7 @@ function renderDecisionLoop(panel, stage) {
     answer.placeholder='직접 답변하거나 선택한 내용에 추가 의견을 적으세요.';
     group.append(answer,confirm);
     if(q.history.length)group.append(el('pre','이전 판단\n'+q.history.map(h=>`${h.question}\n${h.answer}\n${h.reason}`).join('\n\n'),'plan-preview'));
-    if(q.confirmed){const decided=el('details');decided.append(el('summary','결정됨 · '+q.title),group);panel.append(decided);}else panel.append(group);
+    panel.append(group);
   }
   if(l.result){
     if(stage==='implementation'){
@@ -520,7 +562,7 @@ function renderDecisionLoop(panel, stage) {
     }
     panel.append(el('h3',title+' 통합 초안'),el('pre',l.result.draft,'plan-preview'),el('p',loopReady(stage)?'추가 미확정 항목 없음 · 통합 결과를 최종 판단하세요.':'답변·원본·의견 변경 후 AI 재검토가 필요합니다.','notice'));
     const saveStatus=el('div');saveStatus.setAttribute('role','status');saveStatus.setAttribute('tabindex','-1');
-    const finalize=workflowButton(stage==='planning'?'기획 확정 · 설계 검토':'설계 확정 · AI 구현 시작',async()=>{
+    const finalize=workflowButton(stage==='planning'?'검토본 확정 · 설계 검토':'설계 확정',async()=>{
       if(analysisBusy)return;
       if(!loopReady(stage)){refreshHandoffStatus();saveStatus.focus();saveStatus.scrollIntoView?.({block:'center'});return;}
       const basis=loopBasis(stage);
@@ -536,17 +578,18 @@ function renderDecisionLoop(panel, stage) {
           await executeAction('start');
         }
       }catch(error){
-        if(pendingSave)renderWorkflow(`.agents/workflow/process/${stage}.md`);
+        if(pendingSave)renderWorkflow(`.agents/workflow/process/${stage === 'planning' ? 'design_review' : stage}.md`);
         sharedStatus('저장 완료를 확인하지 못했습니다. '+error.message+(pendingSave?' 입력은 유지되며 연결이 돌아오면 저장을 다시 확인합니다.':' 입력은 유지됩니다. 다시 시도하세요.'));
       }finally{finalize.disabled=false;panel.inert=false;}
     });
     refreshHandoffStatus=()=>{
       const reasons=handoffBlockers(stage);
       saveStatus.className=reasons.length?'decision-card decision-unanswered':'decision-card decision-confirmed';
-      saveStatus.replaceChildren(el('strong',reasons.length?'아직 인계 문서를 저장할 수 없습니다':'통합 초안 확인 후 최종 확정할 수 있습니다'),...reasons.map(reason=>el('p',reason)));
+      const heading=el('p');heading.append(el('strong',reasons.length?'아직 인계 문서를 저장할 수 없습니다':'통합 초안 확인 후 최종 확정할 수 있습니다'));
+      saveStatus.replaceChildren(heading,...reasons.map(reason=>el('p',reason)),finalize);
       finalize.disabled=!!reasons.length;
     };
-    refreshHandoffStatus();panel.append(saveStatus,finalize);
+    refreshHandoffStatus();panel.append(saveStatus);
     if(stage==='implementation')panel.append(el('p','확정하면 Codex가 저장소에서 구현·검증을 시작합니다.','notice'));
   }
   if(loopConfirmed(stage))panel.append(el('p','확정 · AI 인계 문서: '+l.confirmation.path,'notice'));
@@ -556,7 +599,7 @@ let runCurrentReview=null;
 function renderWorkflow(path){
   runCurrentReview=null;
   const panel=$('workflow-controls');panel.replaceChildren();
-  const requested=path.match(/^\.agents\/workflow\/process\/(planning|implementation|testing|completion)\.md$/)?.[1];
+  const requested=path.match(/^\.agents\/workflow\/process\/(design_review|implementation|testing|completion)\.md$/)?.[1];
   const stage=requested?currentWorkStage():null;
   panel.hidden=!stage;if(!stage)return;
   panel.append(el('h2','작업'));
