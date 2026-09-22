@@ -97,3 +97,4 @@
   - 대기 상태에서 탑승칸 목록에 다른 층만 `Floor N`으로 뜨는지
   - 엘리베이터가 이미 와 있는 층의 호출 버튼이 잠기는지
 - 완료 단계에서 Wiki에 반영할 것: "인스턴스 구조체(StateTree 노드 안의 규칙 등)의 FText에 C++ 기본값을 두면, 값이 기본값과 같을 때 에셋 저장이 FortniteMain 커스텀 버전 불일치로 실패한다."
+- Wiki 반영(2026-09-23, 사용자 요청): 원자료 `.wiki/raw/notes/2026-09-23-instanced-struct-ftext-default-save-fail.md`를 수집하고, `.wiki/wiki/topics/world.md`에 「엘리베이터 정차 지점 규칙」 절과 FText 기본값 저장 함정을 편찬했다. 순정 lint PASS(0건), CheckWikiLinks 38개 문서 오류 0.

@@ -82,3 +82,7 @@
 ## [2026-09-22] compile | 5 sources → 0 new articles, 6 updated (combat-abilities, dialogue, foundation, quests, wiki-operation, inventory). 출처 하나뿐이던 5개 기사에 근거 추가, 기존 원자료 current-game·current-ui도 인용. inventory는 foundation 역링크만 추가.
 
 ## [2026-09-22] librarian | scanned 17 articles, 0 stale, 0 low-quality
+
+## [2026-09-23] ingest | 인스턴스 구조체 FText 기본값과 에셋 저장 실패 조사 (raw/notes/2026-09-23-instanced-struct-ftext-default-save-fail.md)
+
+## [2026-09-23] compile | 1 source → 0 new articles, 1 updated (world). 엘리베이터 정차 지점 규칙(bWakeOnCall·StopPrompt)과 인스턴스 구조체 FText C++ 기본값 저장 실패 함정(5212bbe3a) 반영. 저장 실패 재현은 에디터 MCP 결과이며 인게임 동작은 미검증.

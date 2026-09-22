@@ -2,16 +2,16 @@
 
 > WX의 게임 규칙·구현·제약과 검증 범위를 관리하는 팀 공유 LLM Wiki입니다.
 
-Last updated: 2026-09-22
+Last updated: 2026-09-23
 
 ## Statistics
 
-- Sources: 24 raw documents
+- Sources: 25 raw documents
 - Articles: 17 compiled wiki articles
 - Inventory records: 0 tracked items
 - Datasets: 0 manifests
 - Outputs: 0 generated artifacts
-- Last compiled: 2026-09-22 (현재 코드·설정·기획의 핵심 경로 정적 조사와 전체 재편찬)
+- Last compiled: 2026-09-23 (world 기사에 엘리베이터 정차 지점 규칙과 FText 기본값 저장 함정 반영)
 - Last lint: 2026-09-22 (구조·출처·링크 검사; 게임 실행 검증과 별개)
 
 ## Quick Navigation
