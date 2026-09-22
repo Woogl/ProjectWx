@@ -60,3 +60,5 @@
 - 보고 전용 에이전트 lint: 원자료 18개·기사 17개, 링크 157개(코드 38) 오류 0, 관련 문서 역링크 82쌍 양방향. 제안: inventory·datasets 계층 미사용(schema 방침상 의도), workflow-review 원자료 태그 tooling→workflow 통일 검토. 신선도 전 기사 75점(verified 없음 상한), 2026-10-06부터 70 미만. 게임 코드·에셋 재검증 아님.
 
 ## [2026-09-22] lint | 태그 정리: raw/notes/2026-09-22-workflow-review.md의 tooling 태그를 workflow로 통일하고 raw/notes/_index.md 행을 맞춤. 본문·출처 변경 없음, 순정 lint 0건.
+
+## [2026-09-22] schema | 사용자 결정: verified를 순정 규칙으로 전환. 편찬·재확인 때 그날로 기록하고 편찬 없는 구조 이관에는 넣지 않음. schema.md·wiki-operation.md·_index.md 문구 갱신, 오늘 편찬한 기사 17개에 verified: 2026-09-22 추가. 신선도 전 기사 100점. 순정 lint 0건, 저장소 링크 37개 문서 오류 0. PowerShell 7 부재로 뷰어 미재생성. 빌드·실행 검증 아님.
