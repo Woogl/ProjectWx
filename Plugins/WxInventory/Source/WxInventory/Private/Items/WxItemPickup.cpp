@@ -108,8 +108,8 @@ FText AWxItemPickup::GetInteractionPrompt() const
 	}
 
 	return (Quantity > 1)
-		? FText::Format(NSLOCTEXT("WxItemPickup", "InteractionFormatQuantity", "[F] {0} x{1}"), ItemDef->DisplayName, Quantity)
-		: FText::Format(NSLOCTEXT("WxItemPickup", "InteractionFormat", "[F] {0}"), ItemDef->DisplayName);
+		? FText::Format(NSLOCTEXT("WxItemPickup", "InteractionFormatQuantity", "{0} x{1}"), ItemDef->DisplayName, Quantity)
+		: ItemDef->DisplayName;
 }
 
 void AWxItemPickup::OnRep_ItemDef()
