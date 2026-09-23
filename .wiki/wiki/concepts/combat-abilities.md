@@ -4,13 +4,14 @@ category: concept
 sources:
   - "raw/notes/2026-09-22-current-combat.md"
   - "raw/notes/2026-09-22-current-ability-cost-cooldown.md"
+  - "raw/notes/2026-09-24-wxcombat-cleanup.md"
 created: 2026-09-22
-updated: 2026-09-22
+updated: 2026-09-24
 tags: [wx, combat]
 aliases: ["GAS"]
 confidence: medium
 volatility: warm
-verified: 2026-09-22
+verified: 2026-09-24
 summary: "발동 그룹과 액션 단계는 서로 다른 계약이며, 비용·쿨다운·표시 데이터는 어빌리티 행으로 연결한다."
 ---
 
@@ -30,12 +31,25 @@ summary: "발동 그룹과 액션 단계는 서로 다른 계약이며, 비용·
 - 비용 GE `UWxEffect_Cost`는 공용 Instant 효과다. MP·UP·SP에 Additive 모디파이어를 하나씩 두고, 각 MMC가 소스 어빌리티의 `AbilityDataRow`를 읽어 행이 고른 자원에만 `-CostAmount`를 낸다. 엔진 순정 CheckCost·ApplyCost를 그대로 쓰며, 순정 자원 부족 판정이 Additive 모디파이어만 보기 때문에 Additive를 쓴다.
 - 쿨다운 GE는 `UWxEffect_Cooldown` 파생 클래스를 어빌리티별로 지정하고, 파생 클래스가 부여하는 `WxGameplayTags::Cooldown_*` 태그가 순정 쿨다운 API의 식별자다. 엔진이 스택을 GE 클래스 단위로 병합하므로 공용 쿨다운 클래스를 함께 쓰면 서로 다른 능력의 충전이 섞인다.
 - 소모한 충전 하나가 쿨다운 스택 하나다. 진행 중인 회복은 새 스택으로 갱신되지 않고, 만료마다 스택 하나만 돌려주며 다음 회복을 시작하므로 충전은 직렬로 돌아온다. 충전 상한은 GE가 아니라 테이블의 MaxRecharges를 `UWxAbilityBase::CheckCooldown`이 판정한다. 지속시간은 소스 어빌리티의 쿨다운 시간에서 읽으며, 어빌리티를 거치지 않고 적용되면 경고와 함께 즉시 만료된다.
-- `ActivationOwnedEffects`는 발동 수명에 묶는 효과 목록이다. 지속시간이 별도인 효과를 무조건 이 목록으로 옮기지 않는다.
+- `ActivationOwnedEffects`는 발동 수명에 묶는 효과 목록이다. 지속시간이 별도인 효과를 무조건 이 목록으로 옮기지 않는다. 종료 때 각 핸들의 스택 하나만 뺀다. 스택형 GE는 다른 소유자의 적용과 한 핸들로 합쳐지기 때문이다.
 - `AbilitySet`은 최대값→현재값 초기화, 효과 적용, 어빌리티 부여 순서로 구성된다. 실제 부여 목록과 데이터 행은 에셋 내부 확인이 필요하다.
+
+## 몽타주 구간 상태 GE
+
+무적·퍼펙트 가드처럼 몽타주 구간 동안만 거는 상태 GE는 `UWxAnimNotifyState_ApplyGameplayEffect`로 건다. 적용은 `UWxCombatLibrary::ApplyEffect`가 하고, 적용한 핸들을 돌려준다.
+
+- `EffectClass`는 지속시간이 없는(Infinite) GE여야 한다. Instant나 HasDuration이면 구간이 성립하지 않는다.
+- 서버 권위에서만 걸고 클라이언트는 GE 복제를 따른다. 비동기 노티파이라 발동의 예측 키를 재사용하지 않는다.
+- 끝에서는 그 구간이 건 핸들의 스택 하나만 뺀다(2026-09-24, 커밋 `ce6295184`). 같은 GE를 건 구간이 겹쳐도(극한 회피·처형·컷신 무적, 가드→가드히트 퍼펙트 가드) 서로 걷어내지 않으므로 스택형이 아닌 GE도 쓸 수 있다. 이전에는 같은 클래스의 GE를 전부 한 스택씩 걷어 겹친 구간이 함께 사라졌다.
+- 노티파이 객체는 몽타주 에셋에 하나라 여러 캐릭터가 공유한다. 그래서 구간별 핸들을 전역 고유한 몽타주 인스턴스 ID로 가른다. 큐 경로는 이벤트 참조의 `FAnimNotifyMontageInstanceContext`에서, 브랜칭 포인트 경로는 페이로드에서 ID를 받는다. 엔진 기본 브랜칭 구현은 빈 이벤트 참조를 넘겨 ID를 잃는다.
+- 몽타주가 아닌 재생에서는 경고를 남기고 적용하지 않는다.
+- 컷신 무적(`UWxSkillCutsceneComponent`)도 종료 때 자기 핸들의 스택 하나만 뺀다.
+
+겹침·브랜칭 경로·비몽타주 미적용은 임시 자동화 테스트로 확인했고(테스트는 삭제), 플레이는 확인하지 않았다.
 
 ## 변경 시 확인
 
-[AbilityBase](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbilityBase.cpp)의 활성화 조건·종료 정리와 [AbilityTableRow](../../../Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityTableRow.h)를 함께 본다. 비용·충전 규칙은 [비용 GE](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Cost.cpp)와 [쿨다운 GE](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Cooldown.cpp)에서 본다. 애니메이션의 콤보·후딜 노티파이 시점과 네트워크 예측까지 이번 정적 조사로 검증한 것은 아니다.
+[AbilityBase](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbilityBase.cpp)의 활성화 조건·종료 정리와 [AbilityTableRow](../../../Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityTableRow.h)를 함께 본다. 비용·충전 규칙은 [비용 GE](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Cost.cpp)와 [쿨다운 GE](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Cooldown.cpp)에서, 구간 상태 GE는 [구간 GE 노티파이](../../../Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.cpp)에서 본다. 애니메이션의 콤보·후딜 노티파이 시점과 네트워크 예측까지 이번 정적 조사로 검증한 것은 아니다.
 
 ## 관련 문서
 
@@ -48,11 +62,12 @@ summary: "발동 그룹과 액션 단계는 서로 다른 계약이며, 비용·
 
 - [근거 1](../../raw/notes/2026-09-22-current-combat.md)
 - [어빌리티 비용·쿨다운 GE 정적 조사](../../raw/notes/2026-09-22-current-ability-cost-cooldown.md) — 비용·쿨다운 GE 구조
+- [WxCombat 정리 네 건](../../raw/notes/2026-09-24-wxcombat-cleanup.md) — 구간 GE 노티파이의 자기 핸들 제거
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
 
-2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 비용·쿨다운 GE 설명은 HEAD `60c324c714b1dab10cd48d36cabad63ace232716` 기준으로 보강했다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
+2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 비용·쿨다운 GE 설명은 HEAD `60c324c714b1dab10cd48d36cabad63ace232716` 기준으로 보강했다. 2026-09-24에 몽타주 구간 상태 GE 절과 발동 소유 효과의 제거 방식을 HEAD `ca84c9aac` 코드와 대조해 추가했다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
 
 빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
 

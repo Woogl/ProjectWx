@@ -212,3 +212,26 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 ## [2026-09-23] compile | 1 source → 0 new articles, 1 updated (ai)
 - ai: 이동 속도는 SPD가 소유하고 BT 노드는 에셋에서 지정한 GE로만 바꾼다는 규칙, 도플갱어 Mirror 노드 구성과 WxEffect_MoveSpeedOverride에 의한 Master 속도 추종·종료 시 복원, 따라 쓴 Sprint가 끝나지 않아 덮어쓰기를 쓰는 이유와 남은 제약을 추가했다. 삭제된 미니언 추종 노드 언급을 걷어냈다.
 - 커밋 411e74d7f~0aaaa917d 기준이며, 빌드·자동화 테스트·BT 저장값 확인과 사용자 인게임 확인을 거쳤다.
+
+## [2026-09-24] ingest | Nameplate·락온 Reticle을 로컬 NameplateManager가 붙이고 떼는 구조 (raw/notes/2026-09-24-nameplate-manager.md)
+
+## [2026-09-24] ingest | WxCombat 정리: 구간 GE 노티파이 자기 핸들 제거·처형 피해 어빌리티 직접 적용·퍼펙트 가드 Cue 통합 (raw/notes/2026-09-24-wxcombat-cleanup.md)
+
+## [2026-09-24] ingest | 장치 상태 태그는 루트 StateTree 에셋에서만 발행 (raw/notes/2026-09-24-device-linked-state-tag.md)
+
+## [2026-09-24] compile | 3 sources → 0 new articles, 7 updated (ui, game, combat, combat-abilities, combat-damage, combat-finisher, world)
+- ui: 머리 위 Nameplate와 락온 Reticle 절을 추가했다(NameplateSource 등록, 로컬 NameplateManager, VisibilityRequirements 하나, LockOn 대상 예외, 거리 여유·메시 기준 높이·대상 소유 수명, 리다이렉트를 넣지 않은 이유). 보스 사례의 옛 UWxNameplateComponent 표현을 정정했다.
+- game: AWxPlayerController의 NameplateManager 부착과 LockOnTargetQuery 바인딩, AWxEnemyCharacter의 교전 태그·NameplateSource를 추가했다.
+- combat: 락온 표시 경계와 수정 위치 표(구간 상태 GE·처형 피해·락온)를 추가했다.
+- combat-abilities: 몽타주 구간 상태 GE 절(몽타주 인스턴스 ID별 핸들, 스택 하나만 제거, 브랜칭 경로, 비몽타주 미적용)과 발동 소유 효과의 제거 방식을 추가했다.
+- combat-finisher: 처형 피해를 UWxFinisherDamageComponent 대신 Finisher 어빌리티가 서버에서 Event.ApplyFinisherDamage를 받아 적용하는 경로로 고쳤다.
+- combat-damage: 퍼펙트 가드 Cue의 서버 발행과 GC_Hit·GC_PerfectGuard의 UWxCueNotify_Hit 공유를 반영했다. ExecCalc 캡처 정의 통합은 동작이 같아 본문을 바꾸지 않았다.
+- world: 서버가 루트 StateTree 에셋의 상태 태그만 발행하는 규칙을 추가했다.
+- HEAD ca84c9aac 코드와 대조했다. Nameplate·처형 피해·퍼펙트 가드 Cue·장치 태그 발행의 인게임 동작은 미검증이다.
+
+## [2026-09-24] refresh | 17 articles checked, 7 updated, 0 flagged, 0 retracted
+- 원자료에 기록된 파일별 SHA-256 113건을 현재 파일과 대조했다(74건 동일, 30건 변경, 9건은 삭제된 파일 또는 경로가 아닌 제목). 변경 파일마다 이전 refresh(7606a258d) 이후 커밋을 추적하고, 마지막 Wiki 반영(3f1ca0d0f) 이후 커밋을 함께 확인했다.
+- 미반영은 aaf557a09·ce6295184·4c1bf3e52·ca84c9aac·74fc58853·67d288fc5·6f452b728 일곱 커밋이었다. 7c4420fbb는 WxAI 리뷰 후속 원자료가 이미 반영했다. 모듈 리뷰 문서(88f7e88f4·d6a6ca97b·9d4c18fcc)는 Workflow 작업 자료라 Wiki로 옮기지 않았다.
+- 6f452b728(FWxWait 이름)과 74fc58853(ExecCalc 캡처 정의)은 동작 변화가 없어 원자료에만 기록했다.
+
+## [2026-09-24] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed

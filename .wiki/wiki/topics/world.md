@@ -6,13 +6,14 @@ sources:
   - "raw/notes/2026-09-22-current-foundation.md"
   - "raw/notes/2026-09-23-instanced-struct-ftext-default-save-fail.md"
   - "raw/notes/2026-09-23-interaction-list-vm.md"
+  - "raw/notes/2026-09-24-device-linked-state-tag.md"
 created: 2026-09-22
-updated: 2026-09-23
+updated: 2026-09-24
 tags: [wx, world]
 aliases: ["WxWorld"]
 confidence: medium
 volatility: warm
-verified: 2026-09-23
+verified: 2026-09-24
 summary: "WxWorld는 장치 StateTree의 상태 동기화, 로컬 상호작용 탐색, 스포너와 체크포인트 기능을 제공한다."
 ---
 
@@ -22,7 +23,7 @@ WxWorld는 장치 StateTree의 상태 동기화, 로컬 상호작용 탐색, 스
 
 ## 장치 상태의 복제
 
-`AWxDevice`와 `UWxDeviceStateTreeComponent`가 장치 실행의 중심이다. 서버는 상태 태그명·진입 일련번호·상호작용자·선택지 값을 스냅샷으로 발행한다. 활성 태그가 없거나 이전 태그와 같으면 `PublishState`는 새 스냅샷을 만들지 않는다. 같은 태그의 재진입까지 별도 이벤트로 보존하는 복제 로그는 아니다.
+`AWxDevice`와 `UWxDeviceStateTreeComponent`가 장치 실행의 중심이다. 서버는 상태 태그명·진입 일련번호·상호작용자·선택지 값을 스냅샷으로 발행한다. 발행할 태그는 루트 StateTree 에셋의 활성 상태 중 태그가 있는 가장 깊은 상태에서 고른다. 받는 쪽이 루트 에셋에서만 태그로 상태를 찾으므로, 링크된 에셋 안의 상태 태그는 발행하지 않는다(2026-09-23 수정). 활성 태그가 없거나 이전 태그와 같으면 `PublishState`는 새 스냅샷을 만들지 않는다. 같은 태그의 재진입까지 별도 이벤트로 보존하는 복제 로그는 아니다.
 
 클라이언트는 일련번호가 바로 다음이면 실시간 전이로, 초기 수신·번호 건너뜀은 복원으로 처리한다. 상호작용자 참조가 늦게 해소되어 같은 번호가 다시 통지되면 참조를 갱신하지만 전이를 반복하지 않는다. 태그로 루트 에셋의 상태를 찾아 Critical 전이를 요청하며, 종료된 트리는 먼저 재시작한다.
 
@@ -105,6 +106,7 @@ CheckpointSubsystem은 Standalone에서만 레벨 패키지와 위치·회전을
 - [근거 2](../../raw/notes/2026-09-22-current-foundation.md)
 - [근거 3](../../raw/notes/2026-09-23-instanced-struct-ftext-default-save-fail.md)
 - [상호작용 목록 VM과 문구 출처](../../raw/notes/2026-09-23-interaction-list-vm.md)
+- [장치 상태 태그는 루트 에셋에서만 발행](../../raw/notes/2026-09-24-device-linked-state-tag.md)
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
@@ -116,5 +118,7 @@ CheckpointSubsystem은 Standalone에서만 레벨 패키지와 위치·회전을
 2026-09-23 편찬: 커밋 `5212bbe3a` 기준으로 엘리베이터 정차 지점 규칙과 FText 기본값 저장 함정을 추가했다. 저장 실패는 DebugGame 에디터에서 MCP로 재현한 결과다. 엘리베이터 버튼 잠금의 인게임 동작은 확인하지 않았다.
 
 2026-09-23 refresh: 원자료 해시 대조로 스캐너 변경(`f98eef471`)을 찾아 HUD 목록 연결과 문구 출처 원칙을 HEAD `7d2a20408` 기준으로 추가했다. 상호작용 목록의 인게임 동작은 확인하지 않았다.
+
+2026-09-24 refresh: 원자료 해시 대조로 장치 상태 태그 발행 범위 변경(`67d288fc5`)을 찾아 HEAD `ca84c9aac` 코드와 대조해 추가했다. 링크된 StateTree를 쓰는 장치 에셋이 있는지와 인게임 동작은 확인하지 않았다.
 
 </details>

@@ -5,13 +5,15 @@ sources:
   - "raw/notes/2026-09-22-current-combat.md"
   - "raw/notes/2026-09-22-current-foundation.md"
   - "raw/notes/2026-09-23-damage-forward-flow.md"
+  - "raw/notes/2026-09-24-wxcombat-cleanup.md"
+  - "raw/notes/2026-09-24-nameplate-manager.md"
 created: 2026-09-22
-updated: 2026-09-23
+updated: 2026-09-24
 tags: [wx, combat]
 aliases: ["WxCombat"]
 confidence: medium
 volatility: warm
-verified: 2026-09-23
+verified: 2026-09-24
 summary: "WxCombat은 GAS의 어빌리티·자원·피해 처리와 전투 연출을 제공하고, 캐릭터 조립은 WxGame이 맡는다."
 ---
 
@@ -23,7 +25,7 @@ WxCombat은 GAS의 어빌리티·자원·피해 처리와 전투 연출을 제�
 
 ASC·AbilitySet·AttributeSet이 전투의 공통 기반이다. 어빌리티는 발동과 수명을, `ApplyDamage`와 Damage GE 경로는 피해 판정과 자원 변화를 담당한다. 무기·투사체·소환물·타겟팅·모션 워핑·GameplayCue는 이 전투 흐름에 참여한다. 개별 캐릭터의 몽타주·수치·AbilitySet은 에셋 저작이므로 클래스 존재만으로 플레이 가능한 조합이 완성되지는 않는다.
 
-WxCombat은 WxCore·GAS·MotionWarping·TargetingSystem 등에 의존한다. 퀘스트 진행이나 인벤토리 소유, 화면 레이어는 이 모듈의 책임이 아니다. 캐릭터의 ASC 생성·빙의 초기화·입력 연결은 WxGame에서 읽는다.
+WxCombat은 WxCore·GAS·MotionWarping·TargetingSystem 등에 의존한다. 퀘스트 진행이나 인벤토리 소유, 화면 레이어는 이 모듈의 책임이 아니다. 락온 대상 선택과 카메라는 WxCombat이 맡지만, 대상 위의 Reticle·Nameplate는 WxUI NameplateManager가 로컬에서 붙인다([UI](ui.md)). 캐릭터의 ASC 생성·빙의 초기화·입력 연결은 WxGame에서 읽는다.
 
 ## 핵심 흐름
 
@@ -50,6 +52,9 @@ ASC의 `GiveAbilitySets`는 재빙의로 같은 AbilitySet이 중복 부여되�
 | 방어 판정·피해 계산 | `UWxEffect_Damage`, `UWxExecCalc_Damage` |
 | 피격 반응·퍼펙트 가드·히트스톱·추가 효과 | `UWxEffectComponent_DamageReaction`·`_PerfectGuard`·`_HitStop`·`_AdditionalEffects` |
 | 회피(극한 회피) | `UWxEffect_Invincible`의 Immunity 차단 통지를 구독하는 `UWxAbility_Dodge` |
+| 몽타주 구간 상태 GE(무적·퍼펙트 가드) | `UWxAnimNotifyState_ApplyGameplayEffect`, `UWxCombatLibrary::ApplyEffect` |
+| 처형 피해 | `UWxAbility_Finisher`(서버에서 `Event.ApplyFinisherDamage` 대기), `UWxAnimNotify_FinisherDamage` |
+| 락온 대상·카메라 | `UWxLockOnComponent`, `UWxAbility_LockOn`, `UWxAbilityTask_LockOnCamera` |
 
 일반 어빌리티의 기본 정책은 LocalPredicted지만 피니시·그로기는 ServerInitiated이며 상호작용은 WxGame의 ServerOnly 어빌리티다. 전투 전체를 단일 네트워크 정책으로 설명하지 않는다. [전투 모듈 소스](../../../Plugins/WxCombat/Source/WxCombat)에서 담당 경로를 추적한다.
 
@@ -62,12 +67,15 @@ ASC의 `GiveAbilitySets`는 재빙의로 같은 AbilitySet이 중복 부여되�
 - [[combat-resources|전투 자원과 현광의 예외]] ([전투 자원과 현광의 예외](../concepts/combat-resources.md))
 - [[foundation|WxCore — 공용 계약과 설정]] ([WxCore — 공용 계약과 설정](../topics/foundation.md))
 - [[game|WxGame — 게임 조립과 실행 흐름]] ([WxGame — 게임 조립과 실행 흐름](../topics/game.md))
+- [[ui|WxUI — 화면 레이어와 표시 수명]] ([WxUI — 화면 레이어와 표시 수명](../topics/ui.md))
 
 ## Sources
 
 - [근거 1](../../raw/notes/2026-09-22-current-combat.md)
 - [근거 2](../../raw/notes/2026-09-22-current-foundation.md)
 - [Damage 정방향 흐름](../../raw/notes/2026-09-23-damage-forward-flow.md)
+- [WxCombat 정리 네 건](../../raw/notes/2026-09-24-wxcombat-cleanup.md)
+- [Nameplate·Reticle을 로컬 NameplateManager로](../../raw/notes/2026-09-24-nameplate-manager.md)
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
@@ -77,5 +85,7 @@ ASC의 `GiveAbilitySets`는 재빙의로 같은 AbilitySet이 중복 부여되�
 빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
 
 2026-09-23: 시스템 경계와 핵심 흐름의 피해 경로 표현(삭제된 Hit GE)만 현재 코드(`ApplyDamage` → `UWxEffect_Damage`)와 대조해 정정했다. 나머지 본문은 재확인하지 않았다.
+
+2026-09-24: 락온 표시 경계와 수정 위치 표의 구간 GE·처형 피해·락온 행을 HEAD `ca84c9aac` 코드와 대조해 추가했다.
 
 </details>

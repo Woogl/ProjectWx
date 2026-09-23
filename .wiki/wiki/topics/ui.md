@@ -14,13 +14,14 @@ sources:
   - "raw/notes/2026-09-23-boss-battle-three-layer.md"
   - "raw/notes/2026-09-23-item-viewmodel-unification.md"
   - "raw/notes/2026-09-23-interaction-list-vm.md"
+  - "raw/notes/2026-09-24-nameplate-manager.md"
 created: 2026-09-22
-updated: 2026-09-23
+updated: 2026-09-24
 tags: [wx, ui]
 aliases: ["WxUI"]
 confidence: medium
 volatility: warm
-verified: 2026-09-23
+verified: 2026-09-24
 summary: "WxUI는 CommonUI 레이어와 MVVM 표시를 관리하고, 도메인 상태는 공용 태그·표시 계약으로 관찰한다."
 ---
 
@@ -58,7 +59,7 @@ VM은 WxUI에 모은다(2026-09-23 사용자 결정). 도메인 데이터가 필
 HUD 보스 바(`WBP_Nameplate_Boss`)가 이 규칙을 처음 적용한 사례다.
 - WxGame의 `UWxViewModelResolver_BossCharacter`가 위젯마다 WxUI `UWxViewModel_Character`를 만들고, [게임 조립](game.md)의 `UWxBattleSubsystem`이 정한 현재 보스를 싣는다.
 - 보스가 없으면 VM을 비우고, 그러면 가시성 바인딩이 바를 숨긴다.
-- UIManager와 머리 위 `UWxNameplateComponent`는 보스를 모른다.
+- UIManager와 머리 위 Nameplate(`UWxNameplateManagerComponent`)는 보스를 모른다.
 - WBP 로드·컴파일은 확인했지만 인게임 표시는 검증하지 않았다.
 
 `UWxViewModelResolver_Ability`는 WxUI의 `WxViewModel_Ability.h/.cpp`에 함께 둔다. 위젯 소유 컨트롤러의 Pawn에서 ASC를 얻고, AbilityTags에 대응하는 공유 슬롯 VM을 AbilitySystem VM에서 가져온다. 이전 WxGame 클래스 경로는 CoreRedirect로 유지한다. 이는 모듈 이동의 정적 확인이며 기존 WBP 로드·표시 검증과는 별개다.
@@ -82,14 +83,34 @@ Quest·QuestObjective VM도 WxUI의 표시 데이터다. 퀘스트 추적기(`WB
 
 MVVM 변환 함수는 위젯 블루프린트 자신의 Pure·const 함수이거나 `UBlueprintFunctionLibrary`의 정적 Pure 함수여야 한다(UE 5.8 엔진 제약). VM 클래스의 정적 함수는 엔진이 거부한다. MVVM 암시적 변환기는 enum을 다루지 않으므로, enum을 숫자로 바꿔 넘기면 표시 VM에 의미 없는 숫자 필드가 생긴다. 바인딩을 도구로 편집하는 방법은 [편집기 도구](../references/editor-tools.md)의 MVVM 절에 있다.
 
+## 머리 위 Nameplate와 락온 Reticle
+
+적 머리 위 Nameplate와 락온 Reticle은 보는 사람마다 다른 로컬 표시다(2026-09-24, 커밋 `aaf557a09`). Lyra의 `NameplateSource`·`NameplateManagerComponent` 구조를 따른다.
+
+- 적은 WxUI `UWxNameplateSourceComponent`를 가진다. 위젯·위치·틱 없이 정적 목록에 등록·해제만 한다.
+- PlayerController의 WxUI `UWxNameplateManagerComponent`가 로컬 컨트롤러(리슨 호스트 포함)에서만 틱하며 Nameplate와 Reticle을 붙이고 뗀다. 위젯 클래스·거리·스케일·높이 설정도 여기에 있고, 위젯 클래스 값은 `BP_PlayerController`에 있다.
+- 태그 조건은 NameplateManager의 `VisibilityRequirements` 하나다. C++ 기본값은 Require `State.Engaged`, Ignore `Ability.Death`다. WBP에는 가시성 조건을 두지 않는다. 붙어 있으면 보인다.
+- LockOn 대상의 주인은 Require와 거리 조건을 건너뛰고 Ignore만 따른다. 교전하지 않은 적도 락온하면 Nameplate가 뜬다(사용자 결정). 락온 가능 거리는 락온 쪽이 정한다.
+- 락온은 WxCombat 소유이고 WxUI는 WxCombat을 참조하지 않는다. 그래서 LockOn 대상 지점은 네이티브 델리게이트 `LockOnTargetQuery`로 받고, [게임 조립](game.md)의 `AWxPlayerController`가 이를 바인딩한다. Reticle은 그 지점에 붙고 대상이 바뀌면 다시 붙는다. 락온 태스크는 대상 ASC에 태그를 붙이거나 위젯을 만들지 않으며, `State.LockedOn` 태그는 제거됐다.
+
+| 항목 | 규칙 |
+|---|---|
+| 거리 | 새로 붙이려면 `MaxVisibilityDistance`(3000cm) − `VisibilityDistanceHysteresis`(200cm) 안쪽이어야 하고, 이미 붙은 것은 3000cm까지 유지한다. 경계에서 붙였다 떼기를 반복하지 않기 위해서다. |
+| 높이 | 대상 루트(캡슐)에 붙이고, 캐릭터 메시 기본 포즈 바운드(`GetImportedBounds`) 윗면 + `HeadClearance`(30cm)로 붙일 때 한 번 정한다. 애니메이션 바운드·`head` 본은 모션마다 흔들려 기각했다. |
+| 수명 | 위젯 컴포넌트는 대상 액터 소유로 만들어 대상 파괴 때 함께 사라진다. NameplateManager의 EndPlay에서도 직접 뗀다. |
+| VM | 대상 ASC의 `UWxViewModel_Character` 공유본을 MVVM View에 넣는다. 공유본 수명은 View가 유지한다. |
+
+옛 `UWxNameplateComponent`에는 클래스 리다이렉트를 넣지 않았다. 넣으면 배치 액터에 저장된 옛 서브오브젝트가 새 클래스로 로드되어 한 액터에 NameplateSource가 둘이 될 수 있다. 빌드와 관련 BP 9개 컴파일은 확인했고, 인게임 표시와 리슨 서버·원격 클라이언트에서 각자 자기 락온만 보이는지는 검증하지 않았다. 확인 항목은 [작업 자료](../../../.agents/workflow/tasks/nameplate-manager.md)에 있다.
+
 ## 일시정지와 제약
 
 활성 `UWxActivatableWidget`의 ShouldPauseGame 요청을 보고 Standalone에서만 정지를 조정한다. 메뉴가 있다는 사실만으로 멀티플레이 월드를 정지하지 않는다. 레이아웃과 추적 PC는 단수이므로 현재 구조는 로컬 플레이어 하나를 전제로 하며 스플릿스크린 지원으로 해석하지 않는다.
 
-진입점: [UIManager](../../../Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp), [HUD·사망·대화 화면 수명](../../../Plugins/WxUI/Source/WxUI/Private/Component/WxPlayerLayoutComponent.cpp), [설정](../../../Config/DefaultGame.ini). 화면 클래스 값은 `BP_PlayerController`에 있다. 사망·부활·대화 화면 동작은 2026-09-23 사용자가 인게임에서 확인했고, 그 밖의 WBP 바인딩과 화면 품질은 에디터·실행 확인이 필요하다.
+진입점: [UIManager](../../../Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp), [HUD·사망·대화 화면 수명](../../../Plugins/WxUI/Source/WxUI/Private/Component/WxPlayerLayoutComponent.cpp), [NameplateManager](../../../Plugins/WxUI/Source/WxUI/Private/Component/WxNameplateManagerComponent.cpp), [설정](../../../Config/DefaultGame.ini). 화면 클래스 값은 `BP_PlayerController`에 있다. 사망·부활·대화 화면 동작은 2026-09-23 사용자가 인게임에서 확인했고, 그 밖의 WBP 바인딩과 화면 품질은 에디터·실행 확인이 필요하다.
 
 ## 관련 문서
 
+- [[combat|WxCombat — 전투 시스템]] ([WxCombat — 전투 시스템](../topics/combat.md))
 - [[dialogue|WxDialogue — 대화 세션]] ([WxDialogue — 대화 세션](../topics/dialogue.md))
 - [[editor-tools|편집기 도구 — WxEditor·WxToolset·DataTableRowFixup·BoxComponentVisualizer]] ([편집기 도구 — WxEditor·WxToolset·DataTableRowFixup·BoxComponentVisualizer](../references/editor-tools.md))
 - [[foundation|WxCore — 공용 계약과 설정]] ([WxCore — 공용 계약과 설정](../topics/foundation.md))
@@ -113,12 +134,13 @@ MVVM 변환 함수는 위젯 블루프린트 자신의 Pure·const 함수이거�
 - [보스 표시 세 층 구조](../../raw/notes/2026-09-23-boss-battle-three-layer.md)
 - [아이템 VM 단일화](../../raw/notes/2026-09-23-item-viewmodel-unification.md)
 - [상호작용 목록 VM](../../raw/notes/2026-09-23-interaction-list-vm.md)
+- [Nameplate·Reticle을 로컬 NameplateManager로](../../raw/notes/2026-09-24-nameplate-manager.md)
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
 
 2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
 
-빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 2026-09-23에 보스 표시 세 층 구조 원자료(커밋 `4352e9100`)를 편찬해 추가했다. 같은 날 refresh에서 원자료 해시 대조로 누락을 찾아 아이템 VM 단일화(`ba396fc16`)·상호작용 목록 VM(`f98eef471`)·MVVM 변환 함수 제약을 HEAD `7d2a20408` 기준으로 추가하고, 표시 VM 절을 규칙→사례→예외 순으로 재배치했다. 이어서 대화·퀘스트 화면 클래스 제거 원자료(커밋 `570e72562`·`6daf3f804`)를 편찬해 연결 주체를 리졸버로 바꾸고 VM 명령 전달 규칙을 추가했다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
+빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 2026-09-23에 보스 표시 세 층 구조 원자료(커밋 `4352e9100`)를 편찬해 추가했다. 같은 날 refresh에서 원자료 해시 대조로 누락을 찾아 아이템 VM 단일화(`ba396fc16`)·상호작용 목록 VM(`f98eef471`)·MVVM 변환 함수 제약을 HEAD `7d2a20408` 기준으로 추가하고, 표시 VM 절을 규칙→사례→예외 순으로 재배치했다. 이어서 대화·퀘스트 화면 클래스 제거 원자료(커밋 `570e72562`·`6daf3f804`)를 편찬해 연결 주체를 리졸버로 바꾸고 VM 명령 전달 규칙을 추가했다. 2026-09-24 refresh에서 NameplateManager 원자료(커밋 `aaf557a09`)를 편찬해 머리 위 표시 절을 추가하고, 이 절은 HEAD `ca84c9aac` 코드와 대조했다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
 
 </details>

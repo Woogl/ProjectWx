@@ -1,6 +1,6 @@
 # Nameplate를 로컬 NameplateManager가 붙이고 떼는 구조로 전환
 
-상태: 제출(2026-09-24, 사용자 "제출하려고 합니다") — 인게임 확인·Wiki 반영 대기
+상태: 제출(2026-09-24, 사용자 "제출하려고 합니다") — 인게임 확인 대기. Wiki 반영 완료(2026-09-24, [UI](../../../.wiki/wiki/topics/ui.md)의 머리 위 Nameplate 절·[게임 조립](../../../.wiki/wiki/topics/game.md)·[전투](../../../.wiki/wiki/topics/combat.md))
 
 - 날짜: 2026-09-23
 - 계기: [WxCombat 모듈 리뷰](module_review_WxCombat.md)의 "락온 표시가 대상 ASC 루즈 태그와 태스크가 만든 레티클 위젯으로 흩어져 있다".
