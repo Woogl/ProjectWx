@@ -5,6 +5,7 @@
 - 조사: 참조하는 Ability·AbilitySystem VM은 이미 WxUI에 있고 필요한 GAS·MVVM 의존성도 등록되어 있다.
 - 구현: 사용자 추가 지시에 따라 WxUI의 WxViewModel_Ability.h/.cpp에 Resolver 선언·구현을 통합하고 export를 WXUI_API로 변경했다. 기존 별도 Resolver 파일은 제거했으며 동작은 유지한다.
 - 호환성: DefaultEngine.ini에 `/Script/WxGame.WxViewModelResolver_Ability` → `/Script/WxUI.WxViewModelResolver_Ability` ClassRedirect를 추가했다. 에셋 재저장·실행 확인 전 제거하지 않는다.
+  - 2026-09-24 제거: 사용자 지시("오래된 리디렉터 제거 진행합시다")로 `DefaultEngine.ini`의 `[CoreRedirects]`를 모두 비웠다. 리다이렉트가 없어도 참조 WBP 6개(`WBP_Ability`·`WBP_PlayerSkills`·`WBP_ItemQuickSlot`·`WBP_QuestTracker`·`WBP_QuestObjective`·`WBP_DialogueScreen`)가 누락 클래스 경고 없이 로드되고 컴파일 오류·경고가 0이었다. 인게임 표시는 확인하지 않았다. 근거: [Nameplate 작업 자료](nameplate-manager.md)의 "오래된 CoreRedirects 제거" 절.
 - 검증: diff 공백 검사 통과. 최종 통합 코드의 WxEditor Win64 Development 빌드 성공(UHT·WxViewModel_Ability.cpp 컴파일·WxUI 링크, exit 0). 로그: Saved/Logs/BuildDoctor/build_2026-09-23_114057_482_45528.log.
 - 미확인: 기존 WBP 로드와 실제 슬롯 표시. 인간 리뷰·실행 수용은 아직 받지 않았다.
 

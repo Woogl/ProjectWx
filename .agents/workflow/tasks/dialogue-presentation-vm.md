@@ -15,6 +15,7 @@
 - WxGame의 `UWxDialogueScreen`: 위젯 소유 컨트롤러의 세션으로 RequestAdvance를 전달한다. WBP_DialogueScreen의 부모와 MVVM 진행 이벤트 목적지를 이 클래스로 전환한다.
 - 새 연결 객체나 자식 VM은 없다. Build.cs, WxCore, WxDialogue의 게임 로직은 변경하지 않는다.
 - 이동한 VM 클래스만 CoreRedirect로 WxGame → WxUI 경로를 유지한다. Resolver는 WxGame 경로 그대로다.
+  - 2026-09-24 제거: 사용자 지시("오래된 리디렉터 제거 진행합시다")로 `DefaultEngine.ini`의 `[CoreRedirects]`를 모두 비웠다. 리다이렉트가 없어도 참조 WBP 6개(`WBP_Ability`·`WBP_PlayerSkills`·`WBP_ItemQuickSlot`·`WBP_QuestTracker`·`WBP_QuestObjective`·`WBP_DialogueScreen`)가 누락 클래스 경고 없이 로드되고 컴파일 오류·경고가 0이었다. 인게임 표시는 확인하지 않았다. 근거: [Nameplate 작업 자료](nameplate-manager.md)의 "오래된 CoreRedirects 제거" 절.
 - 에디터 도구에 MVVM 이벤트 목적지를 위젯 함수로 변경하는 기능을 추가한다. 기존 MCP/Python 프로퍼티 쓰기로는 래퍼 그래프를 올바르게 갱신할 수 없어 MVVMEditorSubsystem을 사용한다.
 
 ## 1차 검증

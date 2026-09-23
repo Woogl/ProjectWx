@@ -12,6 +12,7 @@
 - Quest·QuestObjective h/cpp를 WxUI Public/Private로 이전하고 WXUI_API 적용.
 - Quest SetJournal은 표시 필드와 목표별 VM만 갱신. WxGame QuestTracker가 GameState 조회·구독·초기 저널 동기화 담당.
 - Quest Resolver 제거, 기존 두 VM 클래스 경로 리다이렉트 추가. Build.cs와 WxCore 변경 없음.
+  - 2026-09-24 제거: 사용자 지시("오래된 리디렉터 제거 진행합시다")로 `DefaultEngine.ini`의 `[CoreRedirects]`를 모두 비웠다. 리다이렉트가 없어도 참조 WBP 6개(`WBP_Ability`·`WBP_PlayerSkills`·`WBP_ItemQuickSlot`·`WBP_QuestTracker`·`WBP_QuestObjective`·`WBP_DialogueScreen`)가 누락 클래스 경고 없이 로드되고 컴파일 오류·경고가 0이었다. 인게임 표시는 확인하지 않았다. 근거: [Nameplate 작업 자료](nameplate-manager.md)의 "오래된 CoreRedirects 제거" 절.
 - 에디터 종료 후 기존 Resolver→Create Instance 에셋 전환 저장 성공(QuestCreateInstance3.log).
 - Wx.UI.Quest.TrackerLifecycle: 실제 WBP, 초기 시드·중복 목표·목표 제거·복수 추적기·해제·재생성·소스 부재 검증 추가.
 - 첫 빌드에서 Quest 관련 소스는 통과. 별도 변경의 WxCombat 전방 선언 누락 및 WxDataTableRowRename 테스트 AnimNotifyState 헤더 누락 확인. 누락 헤더를 보완했으며 동시 작업이 추가한 중복 전방 선언은 한 개만 유지.
