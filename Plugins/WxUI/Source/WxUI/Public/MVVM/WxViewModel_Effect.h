@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ActiveGameplayEffectHandle.h"
-#include "Containers/Ticker.h"
+#include "Engine/TimerHandle.h"
 #include "MVVM/WxViewModel.h"
 #include "WxViewModel_Effect.generated.h"
 
@@ -79,10 +79,14 @@ protected:
 private:
 	void HandleStackCountChanged(FActiveGameplayEffectHandle Handle, int32 NewStackCount, int32 PreviousStackCount);
 
-	bool UpdateEffectState(float DeltaTime);
+	bool UpdateEffectState();
+	void HandleTimeRemainingTimer();
+
+	void StartTimeRemainingTimer();
+	void StopTimeRemainingTimer();
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	FActiveGameplayEffectHandle BoundHandle;
 	FDelegateHandle StackChangeHandle;
-	FTSTicker::FDelegateHandle TickerHandle;
+	FTimerHandle TimeRemainingTimerHandle;
 };

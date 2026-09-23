@@ -5,6 +5,8 @@
 #include "GameplayEffect.h"
 #include "WxUIData.h"
 #include "Engine/Texture2D.h"
+#include "Engine/World.h"
+#include "TimerManager.h"
 
 void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const IWxUIData* InUIData)
 {
@@ -47,34 +49,15 @@ void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGame
 		return;
 	}
 
-	if (EffectDuration > 0.f)
+	if (EffectDuration > 0.f && UpdateEffectState())
 	{
-		const UWorld* World = InASC->GetWorld();
-		if (!World)
-		{
-			return;
-		}
-
-		const float CurrentTime = World->GetTimeSeconds();
-		const float Remaining = FMath::Max((ActiveEffect->StartWorldTime + EffectDuration) - CurrentTime, 0.f);
-
-		SetDuration(EffectDuration);
-		SetTimeRemaining(Remaining);
-		SetTimeRemainingPercent(Remaining / EffectDuration);
-
-		TickerHandle = FTSTicker::GetCoreTicker().AddTicker(
-			FTickerDelegate::CreateUObject(this, &UWxViewModel_Effect::UpdateEffectState)
-		);
+		StartTimeRemainingTimer();
 	}
 }
 
 void UWxViewModel_Effect::Deinitialize()
 {
-	if (TickerHandle.IsValid())
-	{
-		FTSTicker::GetCoreTicker().RemoveTicker(TickerHandle);
-		TickerHandle.Reset();
-	}
+	StopTimeRemainingTimer();
 
 	// 통지는 활성 효과가 들고 있으므로, 효과가 이미 걷혔으면 조회가 비고 뗄 것도 없다.
 	if (UAbilitySystemComponent* ASC = CachedASC.Get())
@@ -193,7 +176,40 @@ void UWxViewModel_Effect::HandleStackCountChanged(FActiveGameplayEffectHandle Ha
 	SetStackCount(NewStackCount);
 }
 
-bool UWxViewModel_Effect::UpdateEffectState(float DeltaTime)
+void UWxViewModel_Effect::StartTimeRemainingTimer()
+{
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	UWorld* World = ASC ? ASC->GetWorld() : nullptr;
+	if (!World)
+	{
+		return;
+	}
+
+	TimeRemainingTimerHandle = World->GetTimerManager().SetTimerForNextTick(this, &UWxViewModel_Effect::HandleTimeRemainingTimer);
+}
+
+void UWxViewModel_Effect::StopTimeRemainingTimer()
+{
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	UWorld* World = ASC ? ASC->GetWorld() : nullptr;
+	if (World)
+	{
+		World->GetTimerManager().ClearTimer(TimeRemainingTimerHandle);
+	}
+	TimeRemainingTimerHandle.Invalidate();
+}
+
+void UWxViewModel_Effect::HandleTimeRemainingTimer()
+{
+	// 실행 중인 단발 예약을 놓아야 다음 월드 틱을 예약할 수 있다.
+	TimeRemainingTimerHandle.Invalidate();
+	if (UpdateEffectState())
+	{
+		StartTimeRemainingTimer();
+	}
+}
+
+bool UWxViewModel_Effect::UpdateEffectState()
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
 	if (!ASC)
