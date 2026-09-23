@@ -13,7 +13,6 @@
 class UWxAIBehaviorComponent;
 class UWxLockOnPointComponent;
 class UWxMinionComponent;
-class UWxNameplateSourceComponent;
 class UAbilitySystemComponent;
 class USceneComponent;
 
@@ -42,9 +41,6 @@ public:
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx|AI")
 	TObjectPtr<UWxAIBehaviorComponent> AIBehaviorComponent;
-
-	UPROPERTY(VisibleAnywhere, Category = "Wx|UI")
-	TObjectPtr<UWxNameplateSourceComponent> NameplateSourceComponent;
 
 	/** 메시의 pelvis 본에 부착되어 카메라·캐릭터 시선과 레티클·호밍이 이 위치를 향한다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx|LockOn")

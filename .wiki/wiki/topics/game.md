@@ -6,6 +6,7 @@ sources:
   - "raw/notes/2026-09-22-current-foundation.md"
   - "raw/notes/2026-09-23-boss-battle-three-layer.md"
   - "raw/notes/2026-09-24-nameplate-manager.md"
+  - "raw/notes/2026-09-24-nameplate-manager-wxgame.md"
 created: 2026-09-22
 updated: 2026-09-24
 tags: [wx, game]
@@ -26,12 +27,12 @@ WxGame은 캐릭터·컨트롤러·GameState에 도메인 기능을 배치하고
 |---|---|
 | `AWxCharacterBase` | ASC, CombatAttributeSet, MotionWarping, LockOn, HitStop, 무기 ChildActor, MetaHuman 구성 |
 | `AWxPlayerController` | 인벤토리, 상호작용 스캐너, 대화 세션, PlayerLayout, NameplateManager |
-| `AWxEnemyCharacter` | 교전 태그(`State.Engaged`) 갱신, NameplateSource |
+| `AWxEnemyCharacter` | 교전 태그(`State.Engaged`) 갱신 |
 | `AWxGameState` | 퀘스트 컴포넌트, 스킬 컷신 컴포넌트 |
 | GameInstance 서브시스템 | 새 게임 흐름, UI 레이아웃, 체크포인트 등 각 도메인의 장기 수명 |
 | 월드 서브시스템 | `UWxBattleSubsystem`: 교전 중인 보스와 현재 보스 |
 
-`AWxPlayerController`는 BeginPlay에서 WxUI NameplateManager의 `LockOnTargetQuery`를 빙의 캐릭터의 `UWxLockOnComponent::GetLockOnTarget`에 바인딩한다. 락온(WxCombat)과 머리 위 표시(WxUI)는 서로 모르므로 조립 계층이 잇는다. 표시 규칙은 [UI](ui.md)의 머리 위 Nameplate 절에 있다.
+`AWxPlayerController`에 붙은 WxGame `UWxNameplateManagerComponent`가 빙의 캐릭터의 락온 대상과 적의 교전 태그를 직접 읽어 머리 위 Nameplate·Reticle을 붙인다. 락온(WxCombat)과 위젯·VM(WxUI)을 함께 알아야 하는 연결 코드라 조립 계층에 있다. 표시 규칙은 [UI](ui.md)의 머리 위 Nameplate 절에 있다.
 
 ASC는 PlayerState가 아니라 캐릭터의 기본 서브오브젝트다. 사망·래그돌 태그 구독은 PostInitializeComponents에 있어 시뮬레이티드 프록시까지 포함한다. 보상처럼 권위에서만 처리할 동작은 해당 구독자에서 다시 권한을 확인해야 한다.
 
@@ -86,6 +87,7 @@ ASC는 PlayerState가 아니라 캐릭터의 기본 서브오브젝트다. 사�
 - [근거 2](../../raw/notes/2026-09-22-current-foundation.md)
 - [보스 표시 세 층 구조](../../raw/notes/2026-09-23-boss-battle-three-layer.md)
 - [Nameplate·Reticle을 로컬 NameplateManager로](../../raw/notes/2026-09-24-nameplate-manager.md)
+- [NameplateManager를 WxGame으로](../../raw/notes/2026-09-24-nameplate-manager-wxgame.md)
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>

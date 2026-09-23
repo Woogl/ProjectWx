@@ -26,13 +26,7 @@ class WXGAME_API AWxPlayerController : public APlayerController
 public:
 	AWxPlayerController(const FObjectInitializer& ObjectInitializer);
 
-protected:
-	virtual void BeginPlay() override;
-
 private:
-	/** NameplateManager의 LockOnTargetQuery에 연결하는 빙의 캐릭터의 락온 지점. */
-	USceneComponent* GetLockOnTarget() const;
-
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UWxInventoryComponent> InventoryComponent;
 

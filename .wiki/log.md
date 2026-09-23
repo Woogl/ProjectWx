@@ -241,3 +241,15 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 ## [2026-09-24] compile | 1 source → 0 new articles, 2 updated (foundation, combat-damage)
 - foundation: WxCore는 순수 정의만 두고 게임플레이 로직을 구현하지 않는다는 사용자 확정과 `FDefaultModuleImpl` 등록을 반영했다.
 - combat-damage: 읽는 곳이 없던 `Damage.Guarded` 결과 태그 제거를 반영했다. 가드 경감·SP 차감 판정은 바뀌지 않았다.
+
+## [2026-09-24] ingest | NameplateManager를 WxGame으로 옮기고 마커·락온 질의를 제거 (raw/notes/2026-09-24-nameplate-manager-wxgame.md)
+
+## [2026-09-24] compile | 1 source → 0 new articles, 3 updated (ui, game, combat)
+- ui: 머리 위 Nameplate 절을 WxGame NameplateManager, 적 클래스 순회, `IsAlive && (LockOn || (거리 && State.Engaged))` 조건, 캡슐 윗면 높이, Reticle을 LockOnComponent에 두지 않는 이유로 고쳤다.
+- game: `AWxEnemyCharacter`의 NameplateSource와 PC의 `LockOnTargetQuery` 바인딩 설명을 지우고, NameplateManager가 조립 계층의 연결 코드라는 설명으로 바꿨다.
+- combat: 대상 위 Reticle·Nameplate를 붙이는 주체를 WxGame NameplateManager로 고쳤다.
+
+## [2026-09-24] ingest | 오래된 CoreRedirects 제거와 HeadClearance 90 확인을 원자료에 추가 (raw/notes/2026-09-24-nameplate-manager-wxgame.md)
+
+## [2026-09-24] compile | 1 source → 0 new articles, 1 updated (ui)
+- ui: Ability 리졸버의 CoreRedirect 유지 문장을 제거 사실로 고쳤다. Nameplate 절의 ClassRedirect 문장을 `BP_PlayerController` 재저장·리다이렉트 없음으로 바꾸고, `HeadClearance` 기본값을 90cm(사용자 의도값)로 고쳤다.

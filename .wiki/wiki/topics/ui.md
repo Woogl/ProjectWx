@@ -15,6 +15,7 @@ sources:
   - "raw/notes/2026-09-23-item-viewmodel-unification.md"
   - "raw/notes/2026-09-23-interaction-list-vm.md"
   - "raw/notes/2026-09-24-nameplate-manager.md"
+  - "raw/notes/2026-09-24-nameplate-manager-wxgame.md"
 created: 2026-09-22
 updated: 2026-09-24
 tags: [wx, ui]
@@ -62,7 +63,7 @@ HUD 보스 바(`WBP_Nameplate_Boss`)가 이 규칙을 처음 적용한 사례다
 - UIManager와 머리 위 Nameplate(`UWxNameplateManagerComponent`)는 보스를 모른다.
 - WBP 로드·컴파일은 확인했지만 인게임 표시는 검증하지 않았다.
 
-`UWxViewModelResolver_Ability`는 WxUI의 `WxViewModel_Ability.h/.cpp`에 함께 둔다. 위젯 소유 컨트롤러의 Pawn에서 ASC를 얻고, AbilityTags에 대응하는 공유 슬롯 VM을 AbilitySystem VM에서 가져온다. 이전 WxGame 클래스 경로는 CoreRedirect로 유지한다. 이는 모듈 이동의 정적 확인이며 기존 WBP 로드·표시 검증과는 별개다.
+`UWxViewModelResolver_Ability`는 WxUI의 `WxViewModel_Ability.h/.cpp`에 함께 둔다. 위젯 소유 컨트롤러의 Pawn에서 ASC를 얻고, AbilityTags에 대응하는 공유 슬롯 VM을 AbilitySystem VM에서 가져온다. 이전 WxGame 클래스 경로의 CoreRedirect는 2026-09-24에 제거했다. 참조 WBP가 리다이렉트 없이 경고 없이 로드되고 컴파일되는 것을 확인했다. 인게임 표시는 따로 검증하지 않았다.
 
 대화 창(`WBP_DialogueScreen`, 부모 `UWxActivatableWidget`)은 WxGame `UWxViewModelResolver_Dialogue`가 만든 WxUI `UWxViewModel_Dialogue`로 구동된다. VM은 Speaker·LineText·HasSpeaker와 SetLine, 진행 명령 `RequestAdvance`만 가진다. 리졸버가 세션 대사를 VM에 걸고, VM의 `OnAdvanceRequested`를 세션 `Advance`에 잇는다. 진행 버튼의 MVVM 이벤트 목적지는 `WxViewModel_Dialogue.RequestAdvance`다. 2026-09-23 이전의 `UWxDialogueScreen`(활성화 수명으로 연결)은 제거했다. 구독 수명과 인게임 확인은 [대화](dialogue.md)의 수명과 연출에 있다.
 
@@ -85,28 +86,37 @@ MVVM 변환 함수는 위젯 블루프린트 자신의 Pure·const 함수이거�
 
 ## 머리 위 Nameplate와 락온 Reticle
 
-적 머리 위 Nameplate와 락온 Reticle은 보는 사람마다 다른 로컬 표시다(2026-09-24, 커밋 `aaf557a09`). Lyra의 `NameplateSource`·`NameplateManagerComponent` 구조를 따른다.
+적 머리 위 Nameplate와 락온 Reticle은 보는 사람마다 다른 로컬 표시다. 커밋 `aaf557a09`에서 도입했고, 2026-09-24에 NameplateManager를 WxGame으로 옮겼다. Lyra처럼 게임 쪽 NameplateManager가 붙이고 뗀다.
 
-- 적은 WxUI `UWxNameplateSourceComponent`를 가진다. 위젯·위치·틱 없이 정적 목록에 등록·해제만 한다.
-- PlayerController의 WxUI `UWxNameplateManagerComponent`가 로컬 컨트롤러(리슨 호스트 포함)에서만 틱하며 Nameplate와 Reticle을 붙이고 뗀다. 위젯 클래스·거리·스케일·높이 설정도 여기에 있고, 위젯 클래스 값은 `BP_PlayerController`에 있다.
-- 태그 조건은 NameplateManager의 `VisibilityRequirements` 하나다. C++ 기본값은 Require `State.Engaged`, Ignore `Ability.Death`다. WBP에는 가시성 조건을 두지 않는다. 붙어 있으면 보인다.
-- LockOn 대상의 주인은 Require와 거리 조건을 건너뛰고 Ignore만 따른다. 교전하지 않은 적도 락온하면 Nameplate가 뜬다(사용자 결정). 락온 가능 거리는 락온 쪽이 정한다.
-- 락온은 WxCombat 소유이고 WxUI는 WxCombat을 참조하지 않는다. 그래서 LockOn 대상 지점은 네이티브 델리게이트 `LockOnTargetQuery`로 받고, [게임 조립](game.md)의 `AWxPlayerController`가 이를 바인딩한다. Reticle은 그 지점에 붙고 대상이 바뀌면 다시 붙는다. 락온 태스크는 대상 ASC에 태그를 붙이거나 위젯을 만들지 않으며, `State.LockedOn` 태그는 제거됐다.
+- **위치와 구동:** WxGame `UWxNameplateManagerComponent`가 `AWxPlayerController`에 붙는다. 로컬 컨트롤러(리슨 호스트 포함)에서만 틱하며 Nameplate와 Reticle을 붙이고 뗀다.
+  - 적 상태와 락온(WxCombat)을 직접 읽는 연결 코드라서 WxGame에 있다. 세 층(모델·연결·VM) 중 연결에 해당한다.
+  - 위젯 클래스, 거리, 스케일, 높이 설정도 여기에 있다. 위젯 클래스 값은 `BP_PlayerController`에 있다.
+  - 옛 WxUI 클래스 경로로 저장돼 있던 `BP_PlayerController`는 다시 저장했고, 리다이렉트는 두지 않는다.
+- **대상 찾기:** `TActorIterator<AWxEnemyCharacter>`로 찾는다. BeginPlay 전인 적(스트리밍 직후)은 건너뛴다. 별도 마커 컴포넌트는 없다(옛 `UWxNameplateSourceComponent` 삭제).
+- **표시 조건:** `IsAlive() && (LockOn 대상 || (거리 안 && State.Engaged))`.
+  - 교전하지 않은 적도 락온하면 뜬다(사용자 결정).
+  - 락온 가능 거리는 락온 쪽이 정하므로 LockOn 대상에는 거리 조건을 두지 않는다.
+  - `State.Engaged`는 적이 `RefreshEngagement`로 한 곳에서 계산해 붙이는 월드 상태다. 뒤잡 판정도 같은 태그를 읽는다.
+  - WBP에는 가시성 조건을 두지 않는다. 붙어 있으면 보인다.
+- **락온 대상과 Reticle:** 락온 대상 지점은 빙의 캐릭터의 `UWxLockOnComponent::GetLockOnTarget()`을 매 틱 직접 읽는다.
+  - Reticle은 그 지점(부위 컴포넌트)에 붙고, 지점이 바뀌면 다시 붙는다.
+  - 락온 태스크는 대상 ASC에 태그를 붙이거나 위젯을 만들지 않는다.
+  - Reticle은 `UWxLockOnComponent`에 두지 않는다. LockOnComponent는 AI와 시뮬 프록시에도 붙는 복제 모델이기 때문이다.
 
 | 항목 | 규칙 |
 |---|---|
 | 거리 | 새로 붙이려면 `MaxVisibilityDistance`(3000cm) − `VisibilityDistanceHysteresis`(200cm) 안쪽이어야 하고, 이미 붙은 것은 3000cm까지 유지한다. 경계에서 붙였다 떼기를 반복하지 않기 위해서다. |
-| 높이 | 대상 루트(캡슐)에 붙이고, 캐릭터 메시 기본 포즈 바운드(`GetImportedBounds`) 윗면 + `HeadClearance`(30cm)로 붙일 때 한 번 정한다. 애니메이션 바운드·`head` 본은 모션마다 흔들려 기각했다. |
+| 높이 | 대상 캡슐에 붙인다. 높이는 붙일 때 한 번, 캡슐 반높이 + `HeadClearance`(C++ 기본 90cm, 사용자 의도값)로 정한다(사용자 지시로 메시 기본 포즈 바운드 방식을 대체). 애니메이션 바운드와 `head` 본은 모션마다 흔들려 쓰지 않는다. |
 | 수명 | 위젯 컴포넌트는 대상 액터 소유로 만들어 대상 파괴 때 함께 사라진다. NameplateManager의 EndPlay에서도 직접 뗀다. |
 | VM | 대상 ASC의 `UWxViewModel_Character` 공유본을 MVVM View에 넣는다. 공유본 수명은 View가 유지한다. |
 
-옛 `UWxNameplateComponent`에는 클래스 리다이렉트를 넣지 않았다. 넣으면 배치 액터에 저장된 옛 서브오브젝트가 새 클래스로 로드되어 한 액터에 NameplateSource가 둘이 될 수 있다. 빌드와 관련 BP 9개 컴파일은 확인했고, 인게임 표시와 리슨 서버·원격 클라이언트에서 각자 자기 락온만 보이는지는 검증하지 않았다. 확인 항목은 [작업 자료](../../../.agents/workflow/tasks/nameplate-manager.md)에 있다.
+마커 컴포넌트를 지우면서 적 BP 5종과 `LV_DevCombat` 배치 액터 1개를 다시 저장해 옛 데이터를 없앴다. 빌드, 관련 BP 컴파일, 레벨 재로드 시 경고 0건은 확인했다. 인게임 표시와 리슨 서버·원격 클라이언트에서 각자 자기 락온만 보이는지는 검증하지 않았다. 확인 항목은 [작업 자료](../../../.agents/workflow/tasks/nameplate-manager.md)에 있다.
 
 ## 일시정지와 제약
 
 활성 `UWxActivatableWidget`의 ShouldPauseGame 요청을 보고 Standalone에서만 정지를 조정한다. 메뉴가 있다는 사실만으로 멀티플레이 월드를 정지하지 않는다. 레이아웃과 추적 PC는 단수이므로 현재 구조는 로컬 플레이어 하나를 전제로 하며 스플릿스크린 지원으로 해석하지 않는다.
 
-진입점: [UIManager](../../../Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp), [HUD·사망·대화 화면 수명](../../../Plugins/WxUI/Source/WxUI/Private/Component/WxPlayerLayoutComponent.cpp), [NameplateManager](../../../Plugins/WxUI/Source/WxUI/Private/Component/WxNameplateManagerComponent.cpp), [설정](../../../Config/DefaultGame.ini). 화면 클래스 값은 `BP_PlayerController`에 있다. 사망·부활·대화 화면 동작은 2026-09-23 사용자가 인게임에서 확인했고, 그 밖의 WBP 바인딩과 화면 품질은 에디터·실행 확인이 필요하다.
+진입점: [UIManager](../../../Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp), [HUD·사망·대화 화면 수명](../../../Plugins/WxUI/Source/WxUI/Private/Component/WxPlayerLayoutComponent.cpp), [NameplateManager](../../../Source/WxGame/Controller/WxNameplateManagerComponent.cpp), [설정](../../../Config/DefaultGame.ini). 화면 클래스 값은 `BP_PlayerController`에 있다. 사망·부활·대화 화면 동작은 2026-09-23 사용자가 인게임에서 확인했고, 그 밖의 WBP 바인딩과 화면 품질은 에디터·실행 확인이 필요하다.
 
 ## 관련 문서
 
@@ -135,6 +145,7 @@ MVVM 변환 함수는 위젯 블루프린트 자신의 Pure·const 함수이거�
 - [아이템 VM 단일화](../../raw/notes/2026-09-23-item-viewmodel-unification.md)
 - [상호작용 목록 VM](../../raw/notes/2026-09-23-interaction-list-vm.md)
 - [Nameplate·Reticle을 로컬 NameplateManager로](../../raw/notes/2026-09-24-nameplate-manager.md)
+- [NameplateManager를 WxGame으로](../../raw/notes/2026-09-24-nameplate-manager-wxgame.md)
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
