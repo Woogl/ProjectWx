@@ -253,3 +253,15 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 
 ## [2026-09-24] compile | 1 source → 0 new articles, 1 updated (ui)
 - ui: Ability 리졸버의 CoreRedirect 유지 문장을 제거 사실로 고쳤다. Nameplate 절의 ClassRedirect 문장을 `BP_PlayerController` 재저장·리다이렉트 없음으로 바꾸고, `HeadClearance` 기본값을 90cm(사용자 의도값)로 고쳤다.
+
+## [2026-09-24] ingest | 모듈화 목적 재정의와 배치 원칙 정립 (raw/notes/2026-09-24-module-principles.md)
+
+## [2026-09-24] compile | 1 source → 1 new article, 2 updated (modules; foundation, game)
+- modules(신규): 게임 내부 경계를 목적으로 하는 모듈 계층, 참조 모듈 수 기반 배치 규칙, 도메인 간 전달 선호 순서, WxCore 계약 세 조건, 중간 통합 플러그인 금지, 모듈 이동·리다이렉트 절차, 재검토 신호를 정리했다.
+- foundation: 책임과 의존 방향 절에서 WxCore 계약 조건과 배치 규칙을 modules로 연결했다.
+- game: 관련 문서에 modules를 연결했다.
+
+## [2026-09-24] ingest | 모듈 원칙 초안 반증 검토와 사용자 확정을 원자료에 추가 (raw/notes/2026-09-24-module-principles.md)
+
+## [2026-09-24] compile | 1 source → 0 new articles, 1 updated (modules)
+- modules: 참조 수 배치 대신 책임 기반 배치(시험 질문)로 바꿨다. 통로 우선순위를 성격별 선택으로 고쳤다. 계약 조건 1을 "소비자의 책임이 한 도메인 안"으로 고치고, 기능 단위 플러그인을 조립 계층으로 허용했다. WxCore에 상태 없는 헬퍼를 허용했다. 다른 도메인 베이스 클래스가 필요한 코드는 미결정 절로 분리했다.

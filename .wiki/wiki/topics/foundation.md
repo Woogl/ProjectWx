@@ -23,7 +23,7 @@ WxCore는 도메인들이 함께 사용하는 태그·상호작용·스폰·표�
 
 ## 책임과 의존 방향
 
-WxGame은 여러 도메인 플러그인을 조립한다. WxCore는 그 아래에서 GameplayTag와 인터페이스를 제공하며 전투·인벤토리·월드 구현에 의존하지 않는다. WxCore는 순수 정의만 두고 게임플레이 로직은 구현하지 않는다(2026-09-24 사용자 확정). 그래서 모듈 클래스도 없이 엔진 기본 `FDefaultModuleImpl`로 등록한다. 이 분리 덕분에 `AWxItemPickup`은 WxCore의 `IWxInteractable`을 직접 구현해 WxWorld를 참조하지 않고도 상호작용 대상이 된다. 모듈 의존성은 각 `Build.cs`, 활성화·유형은 `Wx.uproject`와 `.uplugin`을 함께 확인한다.
+WxGame은 여러 도메인 플러그인을 조립한다. WxCore는 그 아래에서 GameplayTag와 인터페이스를 제공하며 전투·인벤토리·월드 구현에 의존하지 않는다. WxCore는 순수 정의만 두고 게임플레이 로직은 구현하지 않는다(2026-09-24 사용자 확정). 그래서 모듈 클래스도 없이 엔진 기본 `FDefaultModuleImpl`로 등록한다. 이 분리 덕분에 `AWxItemPickup`은 WxCore의 `IWxInteractable`을 직접 구현해 WxWorld를 참조하지 않고도 상호작용 대상이 된다. 모듈 의존성은 각 `Build.cs`, 활성화·유형은 `Wx.uproject`와 `.uplugin`을 함께 확인한다. WxCore에 새 계약을 둘 조건과 모듈 배치 규칙은 [모듈 경계와 배치 원칙](modules.md)에 있다.
 
 ## 공용 계약
 
@@ -51,6 +51,7 @@ WxGame은 여러 도메인 플러그인을 조립한다. WxCore는 그 아래에
 
 ## 관련 문서
 
+- [[modules|모듈 경계와 배치 원칙]] ([모듈 경계와 배치 원칙](../topics/modules.md))
 - [[ai|WxAI — AI 인지와 행동]] ([WxAI — AI 인지와 행동](../topics/ai.md))
 - [[combat|WxCombat — 전투 시스템]] ([WxCombat — 전투 시스템](../topics/combat.md))
 - [[dialogue|WxDialogue — 대화 세션]] ([WxDialogue — 대화 세션](../topics/dialogue.md))

@@ -24,6 +24,7 @@ Last updated: 2026-09-24
 
 ## 프로젝트 지식
 
+- [모듈 경계와 배치 원칙](wiki/topics/modules.md)
 - [전투 · WxCombat](wiki/topics/combat.md)
 - [AI · WxAI](wiki/topics/ai.md)
 - [공용 기반 · WxCore](wiki/topics/foundation.md)

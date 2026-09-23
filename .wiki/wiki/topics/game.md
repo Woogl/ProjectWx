@@ -71,6 +71,7 @@ ASC는 PlayerState가 아니라 캐릭터의 기본 서브오브젝트다. 사�
 
 ## 관련 문서
 
+- [[modules|모듈 경계와 배치 원칙]] ([모듈 경계와 배치 원칙](../topics/modules.md))
 - [[ai|WxAI — AI 인지와 행동]] ([WxAI — AI 인지와 행동](../topics/ai.md))
 - [[combat|WxCombat — 전투 시스템]] ([WxCombat — 전투 시스템](../topics/combat.md))
 - [[combat-finisher|그로기 피니시와 뒤잡]] ([그로기 피니시와 뒤잡](../concepts/combat-finisher.md))

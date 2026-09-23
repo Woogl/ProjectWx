@@ -14,6 +14,7 @@ Last updated: 2026-09-24
 | [WxCore — 공용 계약과 설정](foundation.md) | WxCore는 도메인들이 함께 사용하는 태그·상호작용·스폰·표시 계약을 제공한다. | wx, foundation | 2026-09-24 |
 | [WxGame — 게임 조립과 실행 흐름](game.md) | WxGame은 캐릭터·컨트롤러·GameState에 도메인 기능을 배치하고 새 게임·부활·표시 연결을 조립한다. | wx, game | 2026-09-24 |
 | [WxInventory — 아이템 소유와 사용](inventory.md) | WxInventory는 서버에서 아이템 소유·소비·충전을 변경하고 인벤토리와 인스턴스를 복제한다. | wx, inventory | 2026-09-23 |
+| [모듈 경계와 배치 원칙](modules.md) | Wx 플러그인은 다른 프로젝트 재사용이 아니라 이 게임 안의 도메인 경계를 지키기 위해 둔다. 코드는 책임이 속한 도메인에 두고, 여러 도메인을 엮는 책임과 도메인 없는 게임 고유 코드는 WxGame에 둔다. 경계를 넘는 정보는 성격에 맞는 통로로 받는다. | wx, architecture, foundation | 2026-09-24 |
 | [WxQuest — 퀘스트 실행과 저널](quests.md) | WxQuest는 권위 측의 단일 StateTree 러너와 제목·목표 저널을 제공하며, 실제 진행 내용은 에셋이 구성한다. | wx, quests | 2026-09-23 |
 | [WxUI — 화면 레이어와 표시 수명](ui.md) | WxUI는 CommonUI 레이어와 MVVM 표시를 관리하고, 도메인 상태는 공용 태그·표시 계약으로 관찰한다. | wx, ui | 2026-09-24 |
 | [WxWorld — 장치와 상호작용](world.md) | WxWorld는 장치 StateTree의 상태 동기화, 로컬 상호작용 탐색, 스포너와 체크포인트 기능을 제공한다. | wx, world | 2026-09-24 |
