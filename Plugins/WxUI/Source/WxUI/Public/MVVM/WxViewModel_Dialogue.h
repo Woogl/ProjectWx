@@ -16,7 +16,6 @@ public:
 	UFUNCTION()
 	void SetLine(const FText& InSpeaker, const FText& InLine);
 
-	/** 뷰의 진행 입력을 OnAdvanceRequested 로 넘긴다. */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Dialogue")
 	void RequestAdvance();
 

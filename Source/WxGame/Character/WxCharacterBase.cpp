@@ -246,7 +246,7 @@ void AWxCharacterBase::EnterRagdoll()
 
 	USkeletalMeshComponent* MeshComp = GetMesh();
 	MeshComp->SetCollisionProfileName(TEXT("Ragdoll"));
-	// Ragdoll 프로필이 응답 컨테이너를 통째로 덮으므로, 사망 시 걸어둔 override를 다시 적용한다.
+	// Ragdoll 프로필이 응답 컨테이너를 통째로 덮으므로, 생성자와 사망 시 걸어둔 override를 다시 적용한다.
 	// Camera는 Block으로 덮이면 스프링암 카메라가 래그돌 본에 걸려 줌-인되고, WxAttack은 Block으로 덮이면 시체가 다시 맞는다.
 	MeshComp->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	MeshComp->SetCollisionResponseToChannel(ECC_WxAttack, ECR_Ignore);

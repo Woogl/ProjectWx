@@ -53,7 +53,6 @@ void UWxAnimNotifyState_ApplyGameplayEffect::BeginWindow(USkeletalMeshComponent*
 {
 	AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr;
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner);
-	// 비동기 노티파이에서는 활성화 예측 키를 재사용하지 않고 서버 GE의 복제를 따른다.
 	if (!ASC || !ASC->IsOwnerActorAuthoritative())
 	{
 		return;

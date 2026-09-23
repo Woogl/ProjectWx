@@ -103,7 +103,6 @@ void UWxAnimNotifyState_CameraMove::NotifyTick(USkeletalMeshComponent* MeshComp,
 		return;
 	}
 
-	// 이전 에디터 세션 등 다른 월드에 묶인 낡은 컴포넌트는 버리고 현재 프리뷰 월드에 새로 만든다.
 	if (PreviewCameraMeshComponent && PreviewCameraMeshComponent->GetWorld() != World)
 	{
 		PreviewCameraMeshComponent = nullptr;

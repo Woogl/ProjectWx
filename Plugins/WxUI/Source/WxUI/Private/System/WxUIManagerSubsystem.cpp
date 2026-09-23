@@ -152,7 +152,8 @@ void UWxUIManagerSubsystem::RefreshGamePause()
 		return;
 	}
 
-	// 게임모드는 해제 때 대리자를 건 정지만 되묻고 대리자 없는 정지는 그냥 지운다. 그래서 남의 해제는 우리 정지를 지우지 못하지만, 다른 정지 주체도 대리자를 걸어야 우리 해제에 지워지지 않는다.
+	// 게임모드는 해제 때 대리자를 건 정지만 되묻고 대리자 없는 정지는 그냥 지운다.
+	// 그래서 남의 해제는 우리 정지를 지우지 못하지만, 다른 정지 주체도 대리자를 걸어야 우리 해제에 지워지지 않는다.
 	if (WantsGamePause())
 	{
 		PC->SetPause(true, FCanUnpause::CreateUObject(this, &ThisClass::HandleCanUnpause));
