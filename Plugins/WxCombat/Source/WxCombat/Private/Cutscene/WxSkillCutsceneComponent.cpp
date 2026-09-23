@@ -395,7 +395,8 @@ void UWxSkillCutsceneComponent::Finish(bool bCancelled)
 	}
 	if (UAbilitySystemComponent* ASC = ServerState.InvincibleASC.Get())
 	{
-		ASC->RemoveActiveGameplayEffect(ServerState.InvincibleHandle);
+		// 스택형 GE라면 다른 소유자의 적용과 한 핸들로 합쳐졌을 수 있으므로 컷신의 몫 하나만 뺀다.
+		ASC->RemoveActiveGameplayEffect(ServerState.InvincibleHandle, 1);
 	}
 	if (IsValid(State.Session.Avatar))
 	{

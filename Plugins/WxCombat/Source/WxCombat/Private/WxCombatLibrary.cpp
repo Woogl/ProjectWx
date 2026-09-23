@@ -84,11 +84,11 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 	return Source->ApplyGameplayEffectSpecToTarget(*DamageSpec.Data.Get(), TargetASC, FPredictionKey()).WasSuccessfullyApplied();
 }
 
-void UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass, const UGameplayAbility* SourceAbility)
+FActiveGameplayEffectHandle UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass, const UGameplayAbility* SourceAbility)
 {
 	if (!TargetASC || !EffectClass)
 	{
-		return;
+		return FActiveGameplayEffectHandle();
 	}
 
 	const UGameplayEffect* CDO = EffectClass->GetDefaultObject<UGameplayEffect>();
@@ -96,5 +96,5 @@ void UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclass
 	const float Level = SourceAbility ? SourceAbility->GetAbilityLevel() : 1.f;
 	FGameplayEffectSpec Spec(CDO, TargetASC->MakeEffectContext(), Level);
 	// 발동의 활성화 키를 직접 실으면 창 밖의 권위 적용에도 키가 남아 소유 클라가 이 GE의 Cue를 건너뛴다.
-	TargetASC->ApplyGameplayEffectSpecToSelf(Spec, TargetASC->GetPredictionKeyForNewAction());
+	return TargetASC->ApplyGameplayEffectSpecToSelf(Spec, TargetASC->GetPredictionKeyForNewAction());
 }

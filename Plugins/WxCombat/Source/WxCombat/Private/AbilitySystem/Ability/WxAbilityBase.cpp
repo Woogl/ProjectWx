@@ -266,9 +266,10 @@ void UWxAbilityBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const F
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	if (ASC && ASC->IsOwnerActorAuthoritative())
 	{
+		// 스택형 GE는 다른 소유자의 적용과 한 핸들로 합쳐지므로 이 활성화의 몫인 스택 하나만 뺀다.
 		for (FActiveGameplayEffectHandle EffectHandle : ActivationOwnedEffectHandles)
 		{
-			ASC->RemoveActiveGameplayEffect(EffectHandle);
+			ASC->RemoveActiveGameplayEffect(EffectHandle, 1);
 		}
 	}
 	ActivationOwnedEffectHandles.Reset();

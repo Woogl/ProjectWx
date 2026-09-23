@@ -3,8 +3,10 @@
 #include "AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "Animation/ActiveMontageInstanceScope.h"
 #include "System/WxCombatDeveloperSettings.h"
 #include "WxCombatLibrary.h"
+#include "WxCombatModule.h"
 
 FLinearColor UWxAnimNotifyState_ApplyGameplayEffect::GetEditorColor()
 {
@@ -15,30 +17,26 @@ void UWxAnimNotifyState_ApplyGameplayEffect::NotifyBegin(USkeletalMeshComponent*
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
-	AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr;
-	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner);
-	// 비동기 노티파이에서는 활성화 예측 키를 재사용하지 않고 서버 GE의 복제를 따른다.
-	if (!ASC || !ASC->IsOwnerActorAuthoritative())
-	{
-		return;
-	}
-
-	UWxCombatLibrary::ApplyEffect(ASC, EffectClass, ASC->GetAnimatingAbility());
+	const UE::Anim::FAnimNotifyMontageInstanceContext* MontageContext = EventReference.GetContextData<UE::Anim::FAnimNotifyMontageInstanceContext>();
+	BeginWindow(MeshComp, MontageContext ? MontageContext->MontageInstanceID : INDEX_NONE);
 }
 
 void UWxAnimNotifyState_ApplyGameplayEffect::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
 
-	AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr;
-	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner);
-	if (!ASC || !ASC->IsOwnerActorAuthoritative())
-	{
-		return;
-	}
+	const UE::Anim::FAnimNotifyMontageInstanceContext* MontageContext = EventReference.GetContextData<UE::Anim::FAnimNotifyMontageInstanceContext>();
+	EndWindow(MeshComp, MontageContext ? MontageContext->MontageInstanceID : INDEX_NONE);
+}
 
-	// 일치하는 각 GE에서 스택 하나를 제거한다. GE 인스턴스 하나만 선택하는 인자는 아니다.
-	ASC->RemoveActiveGameplayEffectBySourceEffect(EffectClass, nullptr, 1);
+void UWxAnimNotifyState_ApplyGameplayEffect::BranchingPointNotifyBegin(FBranchingPointNotifyPayload& BranchingPointPayload)
+{
+	BeginWindow(BranchingPointPayload.SkelMeshComponent, BranchingPointPayload.MontageInstanceID);
+}
+
+void UWxAnimNotifyState_ApplyGameplayEffect::BranchingPointNotifyEnd(FBranchingPointNotifyPayload& BranchingPointPayload)
+{
+	EndWindow(BranchingPointPayload.SkelMeshComponent, BranchingPointPayload.MontageInstanceID);
 }
 
 FString UWxAnimNotifyState_ApplyGameplayEffect::GetNotifyName_Implementation() const
@@ -49,4 +47,43 @@ FString UWxAnimNotifyState_ApplyGameplayEffect::GetNotifyName_Implementation() c
 	}
 
 	return Super::GetNotifyName_Implementation();
+}
+
+void UWxAnimNotifyState_ApplyGameplayEffect::BeginWindow(USkeletalMeshComponent* MeshComp, int32 MontageInstanceID)
+{
+	AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr;
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner);
+	// 비동기 노티파이에서는 활성화 예측 키를 재사용하지 않고 서버 GE의 복제를 따른다.
+	if (!ASC || !ASC->IsOwnerActorAuthoritative())
+	{
+		return;
+	}
+
+	if (MontageInstanceID == INDEX_NONE)
+	{
+		UE_LOG(LogWxCombat, Warning, TEXT("ApplyGameplayEffect 노티파이는 몽타주에서만 동작한다. 끝에서 걷을 구간을 가를 수 없어 적용하지 않는다. Notify=%s Owner=%s"), *GetNotifyName(), *GetNameSafe(Owner));
+		return;
+	}
+
+	const FActiveGameplayEffectHandle Handle = UWxCombatLibrary::ApplyEffect(ASC, EffectClass, ASC->GetAnimatingAbility());
+	if (Handle.IsValid())
+	{
+		AppliedEffects.Add(MontageInstanceID, Handle);
+	}
+}
+
+void UWxAnimNotifyState_ApplyGameplayEffect::EndWindow(USkeletalMeshComponent* MeshComp, int32 MontageInstanceID)
+{
+	FActiveGameplayEffectHandle Handle;
+	if (!AppliedEffects.RemoveAndCopyValue(MontageInstanceID, Handle))
+	{
+		return;
+	}
+
+	AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr;
+	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
+	{
+		// 스택형 GE는 다른 구간·소유자의 적용과 한 핸들로 합쳐졌을 수 있으므로 이 구간의 몫 하나만 뺀다.
+		ASC->RemoveActiveGameplayEffect(Handle, 1);
+	}
 }
