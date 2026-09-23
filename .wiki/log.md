@@ -206,3 +206,9 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 - ui: 세 층 규칙의 연결을 리졸버로 한정하고(연결용 위젯 클래스 금지), 동적·네이티브 델리게이트 구독과 VM→도메인 명령 전달 규칙을 추가했다.
 - editor-tools: SetEventDestinationWidgetFunction을 SetEventDestination(뷰모델 함수 지원)으로 정정하고 WBP 부모 교체 순서를 추가했다.
 - 커밋 570e72562·6daf3f804 기준이며, 사용자가 대화·퀘스트 추적기의 인게임 동작을 확인했다.
+
+## [2026-09-23] ingest | WxAI 리뷰 후속: 미니언 노드 삭제·도플갱어 이동속도 SPD 소유·Mirror 노드 정리 (raw/notes/2026-09-23-wxai-review-followups.md)
+
+## [2026-09-23] compile | 1 source → 0 new articles, 1 updated (ai)
+- ai: 이동 속도는 SPD가 소유하고 BT 노드는 에셋에서 지정한 GE로만 바꾼다는 규칙, 도플갱어 Mirror 노드 구성과 WxEffect_MoveSpeedOverride에 의한 Master 속도 추종·종료 시 복원, 따라 쓴 Sprint가 끝나지 않아 덮어쓰기를 쓰는 이유와 남은 제약을 추가했다. 삭제된 미니언 추종 노드 언급을 걷어냈다.
+- 커밋 411e74d7f~0aaaa917d 기준이며, 빌드·자동화 테스트·BT 저장값 확인과 사용자 인게임 확인을 거쳤다.

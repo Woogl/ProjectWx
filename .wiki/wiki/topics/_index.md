@@ -8,7 +8,7 @@ Last updated: 2026-09-23
 
 | File | Summary | Tags | Updated |
 |------|---------|------|---------|
-| [WxAI — AI 인지와 행동](ai.md) | WxAI는 인지 결과를 Blackboard로 전달하고 Behavior Tree 노드로 이동·전투 행동을 구성한다. | wx, ai | 2026-09-22 |
+| [WxAI — AI 인지와 행동](ai.md) | WxAI는 인지 결과를 Blackboard로 전달하고 Behavior Tree 노드로 이동·전투 행동을 구성한다. | wx, ai | 2026-09-23 |
 | [WxCombat — 전투 시스템](combat.md) | WxCombat은 GAS의 어빌리티·자원·피해 처리와 전투 연출을 제공하고, 캐릭터 조립은 WxGame이 맡는다. | wx, combat | 2026-09-23 |
 | [WxDialogue — 대화 세션](dialogue.md) | 대화 정의는 액터에, 진행 세션은 PlayerController에 두고 행 데이터·ASC 태그·UI를 연결한다. | wx, dialogue | 2026-09-23 |
 | [WxCore — 공용 계약과 설정](foundation.md) | WxCore는 도메인들이 함께 사용하는 태그·상호작용·스폰·표시 계약을 제공한다. | wx, foundation | 2026-09-22 |
