@@ -8,6 +8,7 @@
 #include "MVVMBlueprintFunctionReference.h"
 #include "MVVMBlueprintPin.h"
 #include "MVVMBlueprintView.h"
+#include "MVVMBlueprintViewEvent.h"
 #include "MVVMBlueprintViewBinding.h"
 #include "MVVMBlueprintViewConversionFunction.h"
 #include "MVVMBlueprintViewModelContext.h"
@@ -18,6 +19,24 @@
 #include "Serialization/JsonSerializer.h"
 #include "Types/MVVMFieldVariant.h"
 #include "WidgetBlueprint.h"
+
+bool UWxMVVMToolset::SetEventDestinationWidgetFunction(UWidgetBlueprint* WidgetBlueprint, int32 EventIndex, FName FunctionName)
+{
+	const UMVVMWidgetBlueprintExtension_View* Extension = WidgetBlueprint ? UWidgetBlueprintExtension::GetExtension<UMVVMWidgetBlueprintExtension_View>(WidgetBlueprint) : nullptr;
+	UMVVMBlueprintView* View = Extension ? const_cast<UMVVMWidgetBlueprintExtension_View*>(Extension)->GetBlueprintView() : nullptr;
+	const UFunction* Function = WidgetBlueprint && WidgetBlueprint->SkeletonGeneratedClass ? WidgetBlueprint->SkeletonGeneratedClass->FindFunctionByName(FunctionName) : nullptr;
+	if (!View || !View->GetEvents().IsValidIndex(EventIndex) || !View->GetEvents()[EventIndex] || !Function || !Function->HasAnyFunctionFlags(FUNC_BlueprintCallable))
+	{
+		UKismetSystemLibrary::RaiseScriptError(TEXT("MVVM 이벤트 또는 호출 가능한 위젯 함수를 찾지 못했다."));
+		return false;
+	}
+
+	FMVVMBlueprintPropertyPath Path;
+	Path.SetSelfContext();
+	Path.AppendPropertyPath(WidgetBlueprint, UE::MVVM::FMVVMConstFieldVariant(Function));
+	GEditor->GetEditorSubsystem<UMVVMEditorSubsystem>()->SetEventDestinationPath(View->GetEvents()[EventIndex], Path);
+	return true;
+}
 
 bool UWxMVVMToolset::SetBindingConversionFunction(UWidgetBlueprint* WidgetBlueprint, const FString& BindingId, const FString& FunctionPath, const FString& ArgumentsJson)
 {
