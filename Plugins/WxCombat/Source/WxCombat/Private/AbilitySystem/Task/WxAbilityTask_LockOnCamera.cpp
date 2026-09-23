@@ -1,23 +1,18 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Task/WxAbilityTask_LockOnCamera.h"
-#include "AbilitySystemBlueprintLibrary.h"
-#include "AbilitySystemComponent.h"
 #include "Components/SceneComponent.h"
-#include "Components/WidgetComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "Targeting/WxLockOnPointComponent.h"
-#include "WxGameplayTags.h"
 
-UWxAbilityTask_LockOnCamera* UWxAbilityTask_LockOnCamera::CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed, float InPitchOffset, float InMaxDistance, TSubclassOf<UUserWidget> InReticleWidgetClass, float InRetargetLookThreshold)
+UWxAbilityTask_LockOnCamera* UWxAbilityTask_LockOnCamera::CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed, float InPitchOffset, float InMaxDistance, float InRetargetLookThreshold)
 {
 	UWxAbilityTask_LockOnCamera* Task = NewAbilityTask<UWxAbilityTask_LockOnCamera>(OwningAbility);
 	Task->Target = InTarget;
 	Task->InterpSpeed = InInterpSpeed;
 	Task->PitchOffset = InPitchOffset;
 	Task->MaxDistanceSquared = InMaxDistance * InMaxDistance;
-	Task->ReticleWidgetClass = InReticleWidgetClass;
 	Task->RetargetLookThreshold = InRetargetLookThreshold;
 	Task->bTickingTask = true;
 	return Task;
@@ -169,28 +164,13 @@ void UWxAbilityTask_LockOnCamera::BindTarget()
 	{
 		TargetActor->OnDestroyed.AddDynamic(this, &UWxAbilityTask_LockOnCamera::HandleTargetDestroyed);
 	}
-
-	// 피대상 표시는 레티클과 같은 성격의 개인 UI라 같은 수명으로 켠다. 루즈 태그라 남의 화면에는 켜지지 않는다.
-	if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
-	{
-		TargetASC->AddLooseGameplayTag(WxGameplayTags::State_LockedOn);
-	}
-
-	CreateReticleWidget();
 }
 
 void UWxAbilityTask_LockOnCamera::UnbindTarget()
 {
-	DestroyReticleWidget();
-
 	if (AActor* TargetActor = BoundTargetActor.Get())
 	{
 		TargetActor->OnDestroyed.RemoveDynamic(this, &UWxAbilityTask_LockOnCamera::HandleTargetDestroyed);
-
-		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
-		{
-			TargetASC->RemoveLooseGameplayTag(WxGameplayTags::State_LockedOn);
-		}
 	}
 	BoundTargetActor = nullptr;
 }
@@ -200,32 +180,5 @@ void UWxAbilityTask_LockOnCamera::HandleTargetDestroyed(AActor* DestroyedActor)
 	if (ShouldBroadcastAbilityTaskDelegates())
 	{
 		OnTargetLost.Broadcast();
-	}
-}
-
-void UWxAbilityTask_LockOnCamera::CreateReticleWidget()
-{
-	USceneComponent* TargetComponent = Target.Get();
-	if (!TargetComponent || !ReticleWidgetClass)
-	{
-		return;
-	}
-
-	// 추적 대상 컴포넌트에 직접 부착해 부위를 그대로 따라가게 한다(루트 컴포넌트면 액터 중심).
-	ReticleWidgetComponent = NewObject<UWidgetComponent>(TargetComponent->GetOwner());
-	ReticleWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
-	ReticleWidgetComponent->SetWidgetClass(ReticleWidgetClass);
-	ReticleWidgetComponent->SetDrawAtDesiredSize(true);
-	ReticleWidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	ReticleWidgetComponent->RegisterComponent();
-	ReticleWidgetComponent->AttachToComponent(TargetComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-}
-
-void UWxAbilityTask_LockOnCamera::DestroyReticleWidget()
-{
-	if (ReticleWidgetComponent)
-	{
-		ReticleWidgetComponent->DestroyComponent();
-		ReticleWidgetComponent = nullptr;
 	}
 }

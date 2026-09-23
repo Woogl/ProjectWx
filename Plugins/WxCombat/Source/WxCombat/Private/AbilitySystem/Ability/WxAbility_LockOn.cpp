@@ -50,7 +50,7 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		Movement->bOrientRotationToMovement = false;
 	}
 
-	// 타겟 결정과 추적 태스크는 소유 클라(또는 리슨 서버 호스트)에서만 처리한다 — 태스크는 카메라·몸체 추적, 재탐색 입력 폴링, 레티클의 로컬 어포던스다.
+	// 타겟 결정과 추적 태스크는 소유 클라(또는 리슨 서버 호스트)에서만 처리한다 — 태스크는 카메라·몸체 추적과 재탐색 입력 폴링의 로컬 어포던스다.
 	// 서버는 소유 클라의 SetLockOnTarget RPC로 복제된 값만 보유하고, 발사체·스냅 등 소비처가 그 값을 읽는다.
 	if (!IsLocallyControlled())
 	{
@@ -90,7 +90,7 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		StartRotateToTargetTask(TargetComponent);
 	}
 
-	LockOnTask = UWxAbilityTask_LockOnCamera::CreateTask(this, TargetComponent, CameraInterpSpeed, CameraPitchOffset, MaxDistance, ReticleWidgetClass, RetargetLookThreshold);
+	LockOnTask = UWxAbilityTask_LockOnCamera::CreateTask(this, TargetComponent, CameraInterpSpeed, CameraPitchOffset, MaxDistance, RetargetLookThreshold);
 	LockOnTask->OnTargetLost.AddDynamic(this, &UWxAbility_LockOn::HandleTargetLost);
 	LockOnTask->OnRetargetRequested.AddDynamic(this, &UWxAbility_LockOn::HandleRetargetRequested);
 	LockOnTask->ReadyForActivation();
@@ -99,7 +99,7 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	// 아직 살아있는 태스크가 null 변경 브로드캐스트로 레티클을 즉시 정리하도록 Super::EndAbility 전에 타겟을 비운다.
+	// 대상을 비워 락온을 해제한다. Reticle과 Nameplate는 NameplateManager가 이 값을 매 틱 읽어 정리한다.
 	if (ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
 	{
 		if (UWxLockOnComponent* LockOnComp = LockOnComponent.Get())

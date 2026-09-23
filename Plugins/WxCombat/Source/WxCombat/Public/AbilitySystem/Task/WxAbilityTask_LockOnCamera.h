@@ -4,11 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/Tasks/AbilityTask.h"
-#include "Blueprint/UserWidget.h"
 #include "WxAbilityTask_LockOnCamera.generated.h"
 
 class USceneComponent;
-class UWidgetComponent;
 class UWxLockOnComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnTargetLost);
@@ -21,7 +19,7 @@ class WXCOMBAT_API UWxAbilityTask_LockOnCamera : public UAbilityTask
 	GENERATED_BODY()
 
 public:
-	static UWxAbilityTask_LockOnCamera* CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed = 10.f, float InPitchOffset = -15.f, float InMaxDistance = 2000.f, TSubclassOf<UUserWidget> InReticleWidgetClass = nullptr, float InRetargetLookThreshold = 40.f);
+	static UWxAbilityTask_LockOnCamera* CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed = 10.f, float InPitchOffset = -15.f, float InMaxDistance = 2000.f, float InRetargetLookThreshold = 40.f);
 
 	UPROPERTY()
 	FWxOnTargetLost OnTargetLost;
@@ -47,9 +45,6 @@ private:
 	void BindTarget();
 	void UnbindTarget();
 
-	void CreateReticleWidget();
-	void DestroyReticleWidget();
-
 	TWeakObjectPtr<USceneComponent> Target;
 	TWeakObjectPtr<AActor> BoundTargetActor;
 	TWeakObjectPtr<UWxLockOnComponent> LockOnComponent;
@@ -58,10 +53,4 @@ private:
 	float MaxDistanceSquared = 2000.f * 2000.f;
 	float RetargetLookThreshold = 40.f;
 	FVector2D AccumulatedLook = FVector2D::ZeroVector;
-
-	UPROPERTY()
-	TSubclassOf<UUserWidget> ReticleWidgetClass;
-
-	UPROPERTY()
-	TObjectPtr<UWidgetComponent> ReticleWidgetComponent;
 };

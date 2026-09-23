@@ -10,6 +10,7 @@ class UWxDialogueSessionComponent;
 class UWxPlayerLayoutComponent;
 class UWxInteractionScannerComponent;
 class UWxInventoryComponent;
+class UWxNameplateManagerComponent;
 
 /**
  * 게임플레이 입력(이동/시선/어빌리티)은 AWxPlayerCharacter가, 메뉴 토글 입력은 UWxHUDLayout(CommonUI 액션)이 소유한다.
@@ -25,7 +26,13 @@ class WXGAME_API AWxPlayerController : public APlayerController
 public:
 	AWxPlayerController(const FObjectInitializer& ObjectInitializer);
 
+protected:
+	virtual void BeginPlay() override;
+
 private:
+	/** NameplateManager의 LockOnTargetQuery에 연결하는 빙의 캐릭터의 락온 지점. */
+	USceneComponent* GetLockOnTarget() const;
+
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UWxInventoryComponent> InventoryComponent;
 
@@ -37,4 +44,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UWxPlayerLayoutComponent> PlayerLayoutComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "Wx")
+	TObjectPtr<UWxNameplateManagerComponent> NameplateManagerComponent;
 };

@@ -6,7 +6,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Battle/WxBattleSubsystem.h"
-#include "Component/WxNameplateComponent.h"
+#include "Component/WxNameplateSourceComponent.h"
 #include "Controller/WxAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -28,9 +28,7 @@ AWxEnemyCharacter::AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer
 	GetCharacterMovement()->MaxWalkSpeed = 400.f;
 	AIBehaviorComponent = CreateDefaultSubobject<UWxAIBehaviorComponent>(TEXT("AIBehaviorComponent"));
 
-	NameplateComponent = CreateDefaultSubobject<UWxNameplateComponent>(TEXT("NameplateComponent"));
-	NameplateComponent->SetupAttachment(GetRootComponent());
-	NameplateComponent->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
+	NameplateSourceComponent = CreateDefaultSubobject<UWxNameplateSourceComponent>(TEXT("NameplateSourceComponent"));
 
 	LockOnPoint = CreateDefaultSubobject<UWxLockOnPointComponent>(TEXT("LockOnPoint"));
 	LockOnPoint->SetupAttachment(GetMesh(), TEXT("pelvis"));

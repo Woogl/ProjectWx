@@ -7,7 +7,6 @@
 #include "WxAbility_LockOn.generated.h"
 
 class UTargetingPreset;
-class UUserWidget;
 class USceneComponent;
 class UWxAbilityTask_LockOnCamera;
 class UWxAbilityTask_RotateToTarget;
@@ -58,9 +57,6 @@ protected:
 	/** 재탐색 시 시선 방향과 후보 방향의 최소 정렬도(cos). */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	float RetargetMinAlignment = 0.1f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TSubclassOf<UUserWidget> ReticleWidgetClass;
 
 private:
 	UFUNCTION()
