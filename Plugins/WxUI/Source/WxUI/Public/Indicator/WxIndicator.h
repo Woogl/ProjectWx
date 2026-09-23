@@ -58,8 +58,7 @@ private:
 	 * 클램프된 인디케이터와 화면 가장자리 사이에 둘 여백(슬레이트 단위).
 	 * 위젯의 중심 좌표를 당기므로 "아이콘 절반 + 여백" 만큼이 필요하다 — 아이콘을 크게 바꾸면 이 값도 함께 키운다.
 	 */
-	UPROPERTY(EditAnywhere, Category = "Wx|Indicator")
-	float ScreenMargin = 48.f;
+	static constexpr float ScreenMargin = 48.f;
 
 	/** 대상 발밑이 아니라 머리 위를 가리키게 한다. */
 	float ZOffset = 0.f;
