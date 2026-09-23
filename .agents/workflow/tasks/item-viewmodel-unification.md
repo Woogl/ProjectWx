@@ -110,3 +110,12 @@
 - 수정: 사전 해석 루프에서 키를 검증한다. `CPF_Parm`이면서 `CPF_ReturnParm`이 아니어야 하며, 아니면 스크립트 에러를 낸다. 헤더 주석의 예시도 실제로 있는 함수로 바꿨다.
 - Development 빌드 성공. 로그는 `Saved/Logs/BuildDoctor/build_2026-09-23_115926_019_30056.log`이다. 에디터에 반영하려면 재시작이 필요하다.
 - 참고: 같은 파일의 `SetEventDestinationWidgetFunction`은 다른 세션이 추가한 것이다.
+
+## Wiki 반영 · 2026-09-23
+
+- 사용자 요청(위키 최신화)으로 인게임 확인 전에 반영했다. 퀵슬롯·획득 표시에는 "런타임 미검증"을 표기했다.
+- 원자료 `.wiki/raw/notes/2026-09-23-item-viewmodel-unification.md`를 수집했다. 완료 단계 항목을 다음과 같이 편찬했다.
+  - ① VM_Item은 수동 VM이고 인벤토리 VM이 채운다: `wiki/topics/ui.md` 「표시 VM의 위치와 연결」, `inventory.md` 「화면 표시와 픽업 문구」
+  - ② MVVM 변환 함수 위치 제약: `ui.md`
+  - ③ WxMVVMToolset·AddEnumVariable 사용법: `wiki/references/editor-tools.md` 「Blueprint 변수와 MVVM 바인딩 편집」. 도구 등록 수(세 개→네 개)도 정정했다.
+- 순정 lint PASS(0건), `CheckWikiLinks.ps1` 오류 0(46개 문서). PowerShell 7이 없어 뷰어는 갱신하지 못했다.

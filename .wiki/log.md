@@ -176,3 +176,18 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 
 ## [2026-09-23] compile | 1 sources → 0 new articles, 3 updated (ui, game, editor-tools)
 - 모델/WxGame 리졸버/WxUI VM 세 층 규칙과 보스 바 연결(ui), UWxBattleSubsystem·IdentityTags·PostInitializeComponents 재실행에 따른 사망 구독 중복 문제(game), WxMVVMToolset.SetBindingSourcePath와 WBP 전환 함정(editor-tools)을 반영했다. 보스 표시는 인게임 미검증.
+
+## [2026-09-23] ingest | 상호작용 목록 VM의 행 전체 재생성과 문구 출처 원칙 (raw/notes/2026-09-23-interaction-list-vm.md)
+
+## [2026-09-23] ingest | 아이템 VM 단일화와 WxToolset의 enum 변수·MVVM 도구 (raw/notes/2026-09-23-item-viewmodel-unification.md)
+
+## [2026-09-23] compile | 2 sources → 0 new articles, 4 updated (world, ui, inventory, editor-tools)
+- world: 스캐너 행 교체·선택 복원 규칙, HUD 목록 VM 연결과 주입 전환 시 주의점, 상호작용 문구 출처 원칙을 추가했다.
+- ui: 아이템 VM 단일화(PC당 공유 인벤토리 VM), 상호작용 목록 VM, WxGame에 남은 VM의 미결정, MVVM 변환 함수 위치 제약을 추가하고 표시 VM 절을 규칙→사례→예외 순으로 재배치했다.
+- inventory: 화면 표시 연결과 픽업 문구 절을 추가했다.
+- editor-tools: WxToolset 도구 등록 수(세 개→네 개)를 정정하고 AddEnumVariable·SetEventDestinationWidgetFunction·변환 함수 인자 검증을 추가했다.
+- 모두 HEAD `7d2a20408` 기준 정적 확인이며, 상호작용 목록·퀵슬롯·획득 표시의 인게임 동작은 미검증이다.
+
+## [2026-09-23] refresh | 17 articles checked, 4 updated, 0 flagged, 0 retracted
+- 원자료에 기록된 파일별 SHA-256을 현재 파일과 대조하고(113건 중 81건 동일), 변경 파일마다 기준 이후 커밋을 추적했다. 변경 대부분은 기존 09-23 원자료가 이미 반영했고, 미반영은 f98eef471·9556bfc78·ba396fc16·9b41020cc·2bfc61535 다섯 커밋이었다.
+- 기사에 적힌 Wx 식별자·태그를 코드와 대조한 결과 없는 이름은 삭제 이력으로 명시된 3건뿐이었고, 깨진 상대 링크는 0건이었다.

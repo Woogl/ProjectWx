@@ -98,3 +98,9 @@
   - 엘리베이터가 이미 와 있는 층의 호출 버튼이 잠기는지
 - 완료 단계에서 Wiki에 반영할 것: "인스턴스 구조체(StateTree 노드 안의 규칙 등)의 FText에 C++ 기본값을 두면, 값이 기본값과 같을 때 에셋 저장이 FortniteMain 커스텀 버전 불일치로 실패한다."
 - Wiki 반영(2026-09-23, 사용자 요청): 원자료 `.wiki/raw/notes/2026-09-23-instanced-struct-ftext-default-save-fail.md`를 수집하고, `.wiki/wiki/topics/world.md`에 「엘리베이터 정차 지점 규칙」 절과 FText 기본값 저장 함정을 편찬했다. 순정 lint PASS(0건), CheckWikiLinks 38개 문서 오류 0.
+
+## Wiki 반영 · 2026-09-23
+
+- 사용자 요청(위키 최신화)으로 인게임 확인 전에 반영했다. 목록 동작에는 "인게임 미검증"을 표기했다.
+- 원자료 `.wiki/raw/notes/2026-09-23-interaction-list-vm.md`를 수집했다. `wiki/topics/world.md`에 행 교체·선택 복원 규칙, 「HUD 목록 연결」(리졸버의 스캐너 연결과 주입 전환 시 주의점), 「상호작용 문구의 출처」를 편찬했다. `ui.md`·`inventory.md`에는 요약과 링크만 두었다.
+- 순정 lint PASS(0건), `CheckWikiLinks.ps1` 오류 0(46개 문서). PowerShell 7이 없어 뷰어(`Export-Wiki.ps1`)는 갱신하지 못했다.

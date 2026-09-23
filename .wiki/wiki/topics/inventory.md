@@ -4,13 +4,15 @@ category: topic
 sources:
   - "raw/notes/2026-09-22-current-inventory.md"
   - "raw/notes/2026-09-22-current-foundation.md"
+  - "raw/notes/2026-09-23-item-viewmodel-unification.md"
+  - "raw/notes/2026-09-23-interaction-list-vm.md"
 created: 2026-09-22
-updated: 2026-09-22
+updated: 2026-09-23
 tags: [wx, inventory]
 aliases: ["WxInventory"]
 confidence: medium
 volatility: warm
-verified: 2026-09-22
+verified: 2026-09-23
 summary: "WxInventory는 서버에서 아이템 소유·소비·충전을 변경하고 인벤토리와 인스턴스를 복제한다."
 ---
 
@@ -49,6 +51,12 @@ Add/Consume/Use/Refill은 서버 호출 계약이다. 클라이언트 표시와 
 
 외부 기능이 이미 아이템을 소비했다면 `UseItemByDef`를 다시 호출해 효과만 적용할 수는 없다. 소비가 다시 발생하므로 외부 섭취 결과에 연결하는 설계는 경계를 별도로 정해야 한다.
 
+## 화면 표시와 픽업 문구
+
+WxInventory는 표시 VM을 모른다. WxGame의 PC당 공유 인벤토리 VM이 컴포넌트의 스택·슬롯·충전·목록 변경 통지를 구독해 WxUI 아이템 VM에 값을 공급한다. 클라에서 인벤토리가 늦게 복제되면 등장·제거 통지로 연결만 바꾼다. 퀵슬롯의 사용 요청은 `Ability.UseItem` 어빌리티 발동으로 보낸다. WxGame `UWxAbility_UseItem`이 ItemUseComponent에 아이템을 예약하므로 위 사용 흐름을 그대로 탄다. VM 구조와 검증 범위는 [UI](ui.md)의 표시 VM 절에 있다.
+
+픽업의 상호작용 문구는 아이템 데이터의 표시 이름(수량이 2 이상이면 `{0} x{1}`)으로 만든다. 키 표기는 문구에 넣지 않고 상호작용 위젯이 표시한다([월드](world.md)의 문구 출처 원칙).
+
 진입점: [InventoryComponent](../../../Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxInventoryComponent.cpp), [Fragment](../../../Plugins/WxInventory/Source/WxInventory/Public/Items/WxItemFragment.h), [ItemUseComponent](../../../Plugins/WxInventory/Source/WxInventory/Private/Inventory/WxItemUseComponent.cpp). 실제 아이템 에셋·픽업 배선·복제 타이밍은 미검증이다.
 
 ## 관련 문서
@@ -64,6 +72,8 @@ Add/Consume/Use/Refill은 서버 호출 계약이다. 클라이언트 표시와 
 
 - [근거 1](../../raw/notes/2026-09-22-current-inventory.md)
 - [근거 2](../../raw/notes/2026-09-22-current-foundation.md)
+- [아이템 VM 단일화](../../raw/notes/2026-09-23-item-viewmodel-unification.md)
+- [상호작용 문구 출처](../../raw/notes/2026-09-23-interaction-list-vm.md)
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
@@ -71,5 +81,7 @@ Add/Consume/Use/Refill은 서버 호출 계약이다. 클라이언트 표시와 
 2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
 
 빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
+
+2026-09-23 refresh: 아이템 VM 단일화(`ba396fc16`)와 픽업 문구의 키 표기 제거(`9556bfc78`)에 따른 표시 연결·픽업 문구 절을 HEAD `7d2a20408` 기준으로 추가했다. 퀵슬롯·획득 표시의 런타임 동작은 확인하지 않았다.
 
 </details>

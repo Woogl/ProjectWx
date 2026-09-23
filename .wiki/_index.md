@@ -6,12 +6,12 @@ Last updated: 2026-09-23
 
 ## Statistics
 
-- Sources: 31 raw documents
+- Sources: 47 raw documents
 - Articles: 17 compiled wiki articles
 - Inventory records: 0 tracked items
 - Datasets: 0 manifests
 - Outputs: 0 generated artifacts
-- Last compiled: 2026-09-23 (world의 엘리베이터/FText 규칙, ui·dialogue의 사망·대화 화면 주인 변경, combat-damage의 요청·결과 API 및 투사체 소비 계약 반영, editor-tools의 DataTableRowFixup 행 참조 갱신 반영, ui·game의 보스 표시 세 층 구조·UWxBattleSubsystem·재초기화 문제, editor-tools의 MVVM 소스 경로 도구 반영)
+- Last compiled: 2026-09-23 (world의 엘리베이터/FText 규칙, ui·dialogue의 사망·대화 화면 주인 변경, combat-damage의 요청·결과 API 및 투사체 소비 계약 반영, editor-tools의 DataTableRowFixup 행 참조 갱신 반영, ui·game의 보스 표시 세 층 구조·UWxBattleSubsystem·재초기화 문제, editor-tools의 MVVM 소스 경로 도구 반영, refresh로 world·ui·inventory·editor-tools에 상호작용 목록 VM·아이템 VM 단일화·WxToolset 도구 반영)
 - Last lint: 2026-09-23 (구조·출처·링크 검사; 게임 실행 검증과 별개)
 
 ## Quick Navigation
