@@ -56,3 +56,4 @@ Last updated: 2026-09-23
 | [Damage의 단일 요청 진입점](2026-09-23-damage-single-entry.md) | C++/Blueprint 공통 ApplyDamage(Request), 추론 어댑터 제거 | wx, damage | 2026-09-23 |
 | [Damage 결과를 앞으로만 흘리는 구조](2026-09-23-damage-forward-flow.md) | Hit Wrapper GE·전용 Context 제거, ApplyDamage 판정 → DamageResponse 반응 | wx, damage | 2026-09-23 |
 | [ApplyDamage 네 인자 인터페이스 복원](2026-09-23-damage-four-arguments.md) | 요청 구조체 제거, 네 인자·Result 반환·단일 진입점 유지 | wx, damage | 2026-09-23 |
+| [0 피해 히트스톱 조건과 Hit Cue 발행 주석 정정](2026-09-23-zero-damage-hitstop.md) | 히트스톱을 Hit Cue와 같은 조건(피해 > 0 또는 퍼펙트 가드)으로, Hit Cue 예측 발행·무적·무기 사전 검사 주석 정정 | wx, damage | 2026-09-23 |

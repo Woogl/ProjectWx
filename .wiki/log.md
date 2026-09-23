@@ -191,3 +191,10 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 ## [2026-09-23] refresh | 17 articles checked, 4 updated, 0 flagged, 0 retracted
 - 원자료에 기록된 파일별 SHA-256을 현재 파일과 대조하고(113건 중 81건 동일), 변경 파일마다 기준 이후 커밋을 추적했다. 변경 대부분은 기존 09-23 원자료가 이미 반영했고, 미반영은 f98eef471·9556bfc78·ba396fc16·9b41020cc·2bfc61535 다섯 커밋이었다.
 - 기사에 적힌 Wx 식별자·태그를 코드와 대조한 결과 없는 이름은 삭제 이력으로 명시된 3건뿐이었고, 깨진 상대 링크는 0건이었다.
+
+## [2026-09-23] ingest | 0 피해 히트스톱 조건과 Hit Cue 발행 주석 정정 (raw/notes/2026-09-23-zero-damage-hitstop.md)
+
+## [2026-09-23] compile | 1 source → 0 new articles, 2 updated (combat-damage, combat)
+- combat-damage: 히트스톱을 Hit Cue와 같은 조건(피해 > 0 또는 퍼펙트 가드)으로 맞춘 규칙, 0 피해 타격의 후속 범위, Hit Cue·플로터의 서버 발행, 무적 Immunity가 Damage GE만 막는 범위를 추가했다.
+- combat: 시스템 경계와 핵심 흐름의 삭제된 Hit GE 표현을 ApplyDamage → Damage GE로 정정했다.
+- 코드 대조와 전체 WxEditor 빌드까지 확인했고 플레이는 미검증이다.

@@ -15,6 +15,7 @@ sources:
   - "raw/notes/2026-09-23-damage-single-entry.md"
   - "raw/notes/2026-09-23-damage-forward-flow.md"
   - "raw/notes/2026-09-23-damage-four-arguments.md"
+  - "raw/notes/2026-09-23-zero-damage-hitstop.md"
 created: 2026-09-22
 updated: 2026-09-23
 tags: [wx, damage]
@@ -45,6 +46,8 @@ flowchart TD
 
 적대는 GE 요건이 아니라 `ApplyDamage`에서 거른다. 엔진이 무적 Immunity 쿼리를 GE 적용 요건보다 먼저 돌려, GE 요건으로 두면 아군 공격에도 회피 통지가 나가기 때문이다. 사망은 사망 어빌리티가 `Ability.*`를 취소해 Dodge가 비활성이므로 Damage GE의 TargetTagRequirements만으로 충분하다. 반응은 실행 기록(`GetModifiedAttribute`)을 가진 `OnGameplayEffectExecuted`에서 낸다.
 
+무적(`UWxEffect_Invincible`)의 Immunity는 `UWxEffect_Damage` 클래스만 막는다. 추가 효과로 이미 걸린 지속 피해 GE나 치트 `UWxEffect_AddIncomingDamage`는 무적 중에도 들어간다.
+
 ## 출처와 레벨
 
 Causer의 ASC를 출처로 쓰고, 없으면 Causer의 Owner ASC를 쓴다. 투사체는 저장된 발사 레벨을 쓰고 Ability를 연결하지 않는다. 반사로 Owner가 바뀌어도 레벨은 유지하며 능력치 전체를 발사 시점에 고정하지 않는다. 그 외 Causer는 현재 AnimatingAbility와 그 레벨(없으면 1)을 쓴다.
@@ -67,11 +70,13 @@ Causer의 ASC를 출처로 쓰고, 없으면 Causer의 Owner ASC를 쓴다. 투�
 
 HP를 GP보다 먼저 반영해 사망 이벤트가 그로기 이벤트보다 앞서도록 한다. 사망·그로기 발행은 AttributeSet에 있어 치트·AddGP 같은 직접 자원 경로도 공유한다. `IncomingDamage`는 실행 후 기본값을 읽고 초기화하며 HP 기본값에서 뺀다. 현재값을 기본값에 다시 쓰면 지속형 보정이 영구화될 수 있기 때문이다.
 
-반응 순서는 플로터 → Hit Cue → 가드 취소 → 피격 → 가해 → 퍼펙트 가드(투사체 되돌림 포함) → 히트스톱 → 추가 효과다. 반응은 Damage GE에 붙은 `UWxEffectComponent_DamageReaction`·`_PerfectGuard`·`_HitStop`·`_AdditionalEffects`가 생성자에서 추가된 순서대로 `OnGameplayEffectExecuted`에서 처리한다. 히트스톱은 원인 액터(무기·투사체)의 설정값을 읽어 공격자·피격자에게 걸며, 범위 공격·피니셔처럼 그 외 원인은 걸지 않는다. 가드 불가 공격은 피격 이벤트 전에 가드를 취소한다. GuardBreak 태그가 있어도 같은 타격에서 그로기가 가드를 끊었다면 일반 Hit 이벤트로 보낸다.
+반응 순서는 플로터 → Hit Cue → 가드 취소 → 피격 → 가해 → 퍼펙트 가드(투사체 되돌림 포함) → 히트스톱 → 추가 효과다. 반응은 Damage GE에 붙은 `UWxEffectComponent_DamageReaction`·`_PerfectGuard`·`_HitStop`·`_AdditionalEffects`가 생성자에서 추가된 순서대로 `OnGameplayEffectExecuted`에서 처리한다. 히트스톱은 Hit Cue와 같은 조건(피해 > 0 또는 퍼펙트 가드)에서만 원인 액터(무기·투사체)의 설정값을 읽어 공격자·피격자에게 걸며, 범위 공격·피니셔처럼 그 외 원인은 걸지 않는다. 플로터·Hit Cue는 `_DamageReaction`이 서버에서 빈 예측 키로 발행하므로 공격자 클라이언트도 서버 판정 뒤에 받는다. 가드 불가 공격은 피격 이벤트 전에 가드를 취소한다. GuardBreak 태그가 있어도 같은 타격에서 그로기가 가드를 끊었다면 일반 Hit 이벤트로 보낸다.
 
 ## 결과 해석
 
 `ApplyDamage`는 Damage GE 적용 여부(bool)만 돌려준다. 양수 피해가 아니어도 true이고 무적·사망·거부면 false다. 적용 결과에 따른 후속(회피·반응·히트스톱·퍼펙트 가드 되돌림)은 모두 GAS 안에서 처리되며 운영 호출부는 반환값을 쓰지 않는다. 일반 가드와 퍼펙트 가드는 서로 배타적이며 Spec 태그로만 존재한다. 반응과 플로터는 실행 기록의 피해량을 쓴다(남은 HP로 제한한 실제 감소량이 아님).
+
+ExecCalc가 0 피해로 출력 없이 끝난 타격(반올림 0, 완전 경감 가드)은 적용은 됐지만 타격이 아니다. 플로터·Hit Cue·피격 이벤트·가드 SP 차감·히트스톱이 모두 빠지고, 피해 없는 디버프 행을 위해 추가 효과만 적용된다. 무적·사망·비적대처럼 GE가 적용되지 않은 경우는 추가 효과까지 모두 빠진다.
 
 투사체는 서버·클라이언트 모두 피해 적용 전에 대상의 무적 태그를 보고 통과를 정한다(회피 반응이 무적을 걷어낼 수 있어 적용 전에 본다). 퍼펙트 가드로 막히면 `_PerfectGuard` 컴포넌트가 원인 투사체를 방어자 Pawn 쪽으로 되돌린다(투사체의 `bCanReflect`가 false면 무시). 투사체는 피해 호출 뒤 Owner가 방어자로 바뀌었으면 되돌려진 것으로 보고 파괴하지 않는다. 서버 Overlap FX는 피해 호출 뒤 재생한다.
 
@@ -99,11 +104,14 @@ HP를 GP보다 먼저 반영해 사망 이벤트가 그로기 이벤트보다 �
 - [단일 요청 진입점의 중간 구현](../../raw/notes/2026-09-23-damage-single-entry.md)
 - [정방향 흐름 재설계](../../raw/notes/2026-09-23-damage-forward-flow.md)
 - [네 인자 인터페이스 복원](../../raw/notes/2026-09-23-damage-four-arguments.md)
+- [0 피해 히트스톱 조건과 주석 정정](../../raw/notes/2026-09-23-zero-damage-hitstop.md)
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
 
 2026-09-23 커밋 `855ec2eb3` 기준으로 본문 전체(처리 순서·출처·판정·계산·결과 해석)를 코드와 대조했다. 전체 WxEditor 빌드는 통과했고, 피해 파이프라인 자동화 테스트(`Wx.Combat.Damage.Result`)는 사용자 지시로 삭제되어 이후 회귀 검증은 빌드와 플레이로만 한다. 극한 회피·히트스톱·퍼펙트 가드 되돌림·추가 효과 시점·멀티플레이 연출은 플레이 미검증이다. 근거와 남은 과제는 [작업 자료](../../../.agents/workflow/tasks/damage-pipeline-structure-review.md)에 있다.
+
+2026-09-23 `zero-damage-hitstop` 반영분(히트스톱 조건·0 피해 타격·Hit Cue 발행 주체·무적 범위)은 해당 코드와 대조했고 전체 WxEditor 빌드가 통과했다. 플레이는 미검증이다.
 
 원자료 중 Hit Wrapper GE·`FWxHitEffectContext`·`FWxDamageRequest`·`FWxDamageResult`를 다루는 노트는 재설계 전 단계의 이력이며 현재 구조가 아니다.
 
