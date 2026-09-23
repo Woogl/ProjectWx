@@ -8,19 +8,19 @@
 | --- | --- |
 | 🔴 심각 | 1 |
 | 🟡 개선 | 2 |
-| 🟢 사소 | 2 |
+| 🟢 사소 | 1 |
 
 ## 결과
 
-### 1. 🔴 AI 브레인 일시정지를 세 곳이 참조 계수 없이 따로 제어한다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxRootMotionModifier_Rush.cpp:181`, `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxRootMotionModifier_Rush.cpp:67`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Groggy.cpp:187`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Groggy.cpp:191`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Death.cpp:55`
+### 1. 🔴 AI 브레인 일시정지를 두 곳이 참조 계수 없이 따로 제어한다
+- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxRootMotionModifier_Rush.cpp:181`, `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxRootMotionModifier_Rush.cpp:67`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Groggy.cpp:187`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Groggy.cpp:191`
 - **범주**: 설계/구조
-- **문제**: `UBrainComponent`의 일시정지는 단일 플래그다. Reason 문자열은 로그용일 뿐이다(엔진 `BehaviorTreeComponent.cpp:173`·`:187`). 그런데 돌진 modifier·그로기·사망이 각자 `PauseLogic`/`ResumeLogic`/`StopLogic`을 부른다. 돌진 중에 GP가 차면 다음 순서가 된다.
+- **문제**: `UBrainComponent`의 일시정지는 단일 플래그다. Reason 문자열은 로그용일 뿐이다(엔진 `BehaviorTreeComponent.cpp:173`·`:187`). 그런데 돌진 modifier·그로기가 각자 `PauseLogic`/`ResumeLogic`을 부른다. 사망 시 정지는 2026-09-24부터 `OnDeath`를 받는 `AWxAIController`만 한다(사망 어빌리티의 중복 `StopLogic` 제거). 돌진 중에 GP가 차면 다음 순서가 된다.
   1. 그로기가 PreActivate에서 `Ability.*`를 취소하고(`WxAbility_Groggy.cpp:32`) 발동 즉시 정지를 건다(`:65`).
   2. 돌진 modifier는 그 뒤에 해제된다. 몽타주가 바뀐 다음 워핑 갱신에서 MarkedForRemoval되거나(엔진 `RootMotionModifier.cpp:287`), 몽타주 종료 시 ANS가 끝날 때다.
   3. 해제 시 `ReleaseState`는 `IsPaused()`만 보고 `ResumeLogic`을 부른다(`:181`). 결과적으로 그로기 도중 BT가 다시 돈다. 이동 태스크가 그로기 자세의 적을 끌고 다니거나 피니시 거리를 벗어나게 할 수 있다.
 
-  그로기가 사망을 감지해 끝날 때(`WxAbility_Groggy.cpp:108`)도 `StopLogic("Death")` 뒤에 `ResumeLogic("Groggy")`를 부른다. AI 모듈(WxAI)에는 브레인 제어 코드가 하나도 없다. AI 실행 여부를 전투 모듈이 직접 정하는 구조다.
+  그로기가 사망을 감지해 끝날 때(`WxAbility_Groggy.cpp:108`)도 컨트롤러의 `StopLogic` 뒤에 `ResumeLogic("Groggy")`를 부른다. AI 모듈(WxAI)에는 브레인 제어 코드가 하나도 없다. 일시정지 여부를 전투 모듈이 직접 정하는 구조다.
 - **제안**: 브레인 제어의 주인을 하나로 둔다. 전투 쪽은 상태 태그(`Ability.Groggy`, `Ability.Death`, 돌진 중 태그)만 낸다. WxAI BT는 그 태그를 보는 데코레이터(관찰자 중단)로 분기를 멈춘다. 임시 대응으로 Rush 해제 시 `Ability.Groggy`·`Ability.Death`면 재개를 건너뛸 수는 있다. 다만 소유자가 늘면 같은 문제가 재발한다.
 - **확신도**: 중간. 호출 순서는 엔진 코드로 확인했지만 플레이로 재현하지는 않았다.
 
@@ -38,17 +38,7 @@
 - **제안**: `AWxWeaponBase::BeginAttack`/`Tick`과 `UWxAnimNotify_AreaDamage::Notify` 초입에 권위 게이트를 둔다. 사망 시 `CancelAttack`은 모든 머신에서 불려도 무해하다.
 - **확신도**: 높음
 
-### 4. 🟢 락온 어빌리티에 도달하지 않는 폴백과 조회 가능한 값의 저장이 남아 있다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_LockOn.cpp:88`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_LockOn.cpp:49`, `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbility_LockOn.h:93`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Task/WxAbilityTask_LockOnCamera.cpp:132`
-- **범주**: 중복/복잡도
-- **문제**:
-  - `UWxLockOnComponent`는 `AWxCharacterBase`에 네이티브로 부착된다(`Source/WxGame/Character/WxCharacterBase.cpp:38`). 그래서 컴포넌트가 없을 때의 폴백(어빌리티 `:88`, 카메라 태스크의 초기 타겟 폴백 `:132`)은 현재 어떤 아바타에서도 타지 않는다.
-  - 컴포넌트를 약참조로 캐시(`WxAbility_LockOn.h:91`)하면서도 두 핸들러는 다시 `FindComponentByClass`한다(`WxAbility_LockOn.cpp:193`, `:247`).
-  - `bOrientRotationToMovement`는 직전 값을 `TOptional`에 저장해 복원한다(`:49`, `:113`). 같은 플래그를 WxAI는 무브먼트 아키타입 기본값으로 복원한다(`Plugins/WxAI/Source/WxAI/Private/WxBTService_LockOn.cpp:147`). 복원 규약이 둘로 갈려 있다.
-- **제안**: 폴백 분기를 걷고 캐시를 하나로 쓴다. 복원은 아키타입 기본값에서 읽어 저장 필드를 없앤다.
-- **확신도**: 중간
-
-### 5. 🟢 AttributeSet 접근자 매크로가 헤더에 인라인 정의 76개를 만든다(규칙 3)
+### 4. 🟢 AttributeSet 접근자 매크로가 헤더에 인라인 정의 76개를 만든다(규칙 3)
 - **위치**: `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h:10`
 - **범주**: 규칙 위반
 - **문제**: `ATTRIBUTE_ACCESSORS`가 GAS 매크로를 묶어 19개 어트리뷰트마다 클래스 본문 인라인 함수 4개를 정의한다(엔진 `AttributeSet.h:428`~`:455`). AGENTS.md 규칙 3의 예외는 템플릿 함수와 `GetInstanceDataType()`뿐이다. 예외라면 해당 지점에 사유 주석이 있어야 하는데 없다.
@@ -75,4 +65,4 @@
   - 그 작업 문서의 "현재 흐름" 절(51~55행)은 삭제된 Hit GE·Hit 컴포넌트·DamageResponse 경로를 서술해 현재 코드(`ApplyDamage` → `UWxEffect_Damage` → Damage GE 컴포넌트 4종)와 어긋난다.
 
 ---
-*문서 기준 커밋 `e72c9179f` · 리뷰일 2026-09-23 · 소스 203파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `e72c9179f` · 리뷰일 2026-09-23 · 소스 203파일 — `/module-review`로 갱신. 2026-09-24 후속 정리로 옛 4번(락온 폴백·캐시·저장값)을 해결해 지웠고 1번의 사망 정지 부분을 갱신했다([원자료](../../../.wiki/raw/notes/2026-09-24-wxcombat-machinery-cleanup.md)).*

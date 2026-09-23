@@ -265,3 +265,14 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 
 ## [2026-09-24] compile | 1 source → 0 new articles, 1 updated (modules)
 - modules: 참조 수 배치 대신 책임 기반 배치(시험 질문)로 바꿨다. 통로 우선순위를 성격별 선택으로 고쳤다. 계약 조건 1을 "소비자의 책임이 한 도메인 안"으로 고치고, 기능 단위 플러그인을 조립 계층으로 허용했다. WxCore에 상태 없는 헬퍼를 허용했다. 다른 도메인 베이스 클래스가 필요한 코드는 미결정 절로 분리했다.
+
+## [2026-09-24] ingest | WxCombat 불필요한 장치 정리를 원자료에 추가 (raw/notes/2026-09-24-wxcombat-machinery-cleanup.md)
+
+## [2026-09-24] compile | 1 source → 0 new articles, 2 updated (combat-abilities, combat)
+- combat-abilities: 쿨다운 무시(순정 Immunity·RemoveOther GE)와 코스트 무시(태그+AbilityBase) 구조, AbilitySet GrantedEffects의 SetByCaller 미설정 시 1초 지속, Wx 고유 발동 실패는 로그가 없는 이유를 추가했다.
+- combat: 락온 대상은 UWxLockOnComponent 하나가 들고 태스크가 매 틱 읽는다는 점과 사망 시 BT 정지는 AWxAIController가 맡는다는 점을 추가했다. 빌드 통과, 인게임 미검증.
+
+## [2026-09-24] ingest | 플레이어 래그돌 떨림 원인과 PhysicsAsset 통일을 원자료에 추가 (raw/notes/2026-09-24-ragdoll-physics-asset.md)
+
+## [2026-09-24] compile | 1 source → 0 new articles, 1 updated (game)
+- game: 마네킹 메시 네 개가 NiagaraExamples PA를 쓰고 /Game/Mannequins PA는 겹치는 바디 쌍의 충돌 때문에 쓰지 않는다는 점, 정본 PA가 예제 폴더에 있다는 제약을 추가했다. 인게임 미검증.
