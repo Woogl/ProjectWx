@@ -31,7 +31,4 @@ private:
 	 * 블랙보드 TargetActor 를 채우는 유일한 통로다 — 여기서 거른 대상은 다시 감지되어도 어그로가 되지 않는다.
 	 */
 	AActor* FindPerceivedTarget(const UAIPerceptionComponent& Perception, const AActor* SelfActor) const;
-
-	bool IsActorDead(AActor* Actor) const;
-	bool CanBeAggroTarget(AActor* Actor) const;
 };

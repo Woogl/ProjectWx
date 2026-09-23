@@ -33,7 +33,8 @@ void UWxBTService_UpdateTargetActor::TickNode(UBehaviorTreeComponent& OwnerComp,
 	}
 
 	AActor* CurrentTarget = WxBlackboardKeys::GetTargetActor(Blackboard);
-	if (CanBeAggroTarget(CurrentTarget) && !IsActorDead(CurrentTarget))
+	const UAbilitySystemComponent* CurrentTargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(CurrentTarget);
+	if (IsValid(CurrentTarget) && !(CurrentTargetASC && (CurrentTargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death) || CurrentTargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_IgnoreAggro))))
 	{
 		return;
 	}
@@ -59,28 +60,17 @@ AActor* UWxBTService_UpdateTargetActor::FindPerceivedTarget(const UAIPerceptionC
 	for (AActor* PerceivedActor : PerceivedActors)
 	{
 		// 엔진 청각은 소리를 낸 본인의 리스너를 제외하지 않아, 자기 발소리가 그대로 자기 자극으로 돌아온다.
-		if (PerceivedActor != SelfActor && CanBeAggroTarget(PerceivedActor) && !IsActorDead(PerceivedActor))
+		if (PerceivedActor == SelfActor || !IsValid(PerceivedActor))
+		{
+			continue;
+		}
+
+		const UAbilitySystemComponent* PerceivedASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(PerceivedActor);
+		if (!(PerceivedASC && (PerceivedASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death) || PerceivedASC->HasMatchingGameplayTag(WxGameplayTags::Effect_IgnoreAggro))))
 		{
 			return PerceivedActor;
 		}
 	}
 
 	return nullptr;
-}
-
-bool UWxBTService_UpdateTargetActor::IsActorDead(AActor* Actor) const
-{
-	const UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor);
-	return ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death);
-}
-
-bool UWxBTService_UpdateTargetActor::CanBeAggroTarget(AActor* Actor) const
-{
-	if (!IsValid(Actor))
-	{
-		return false;
-	}
-
-	const UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor);
-	return !(ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Effect_IgnoreAggro));
 }

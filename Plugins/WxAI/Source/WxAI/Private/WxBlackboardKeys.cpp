@@ -9,7 +9,7 @@
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
 #include "GameFramework/Actor.h"
 
-namespace
+namespace WxBlackboardKeys
 {
 	// 매 accessor 호출마다 도는 진단이라 Shipping 빌드에서는 검사를 통째로 비운다.
 	void VerifyBlackboardKey(const UBlackboardComponent* Blackboard, const FName& KeyName, TSubclassOf<UBlackboardKeyType> ExpectedType)
@@ -31,10 +31,7 @@ namespace
 		}
 #endif
 	}
-}
 
-namespace WxBlackboardKeys
-{
 	const FName SelfActor = TEXT("SelfActor");
 
 	const FName TargetActor = TEXT("TargetActor");

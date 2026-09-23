@@ -3,9 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Templates/SubclassOf.h"
 
 class AActor;
 class UBlackboardComponent;
+class UBlackboardKeyType;
 
 /**
  * 키 SET/CLEAR 는 AIController(SelfActor·HomeLocation·Master·빙의 전환 시 TargetActor), BTTask/BTService(TargetActor·PatrolTargetLocation·TargetDistance) 가 나눠 담당한다.
@@ -24,6 +26,9 @@ namespace WxBlackboardKeys
 	WXAI_API extern const FName HomeLocation;
 	WXAI_API extern const FName PatrolTargetLocation;
 	WXAI_API extern const FName TargetDistance;
+
+	/** accessor 전용 진단이라 export 하지 않는다. */
+	void VerifyBlackboardKey(const UBlackboardComponent* Blackboard, const FName& KeyName, TSubclassOf<UBlackboardKeyType> ExpectedType);
 
 	// Object 키: null = 미설정이라 setter 에 nullptr 을 넘기면 Clear 와 동일하게 동작 → 별도 Clear 불필요.
 
