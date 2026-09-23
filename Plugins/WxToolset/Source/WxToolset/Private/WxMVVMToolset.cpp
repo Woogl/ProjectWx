@@ -84,48 +84,16 @@ bool UWxMVVMToolset::SetBindingConversionFunction(UWidgetBlueprint* WidgetBluepr
 		}
 
 		FString PathString;
-		TArray<FString> Segments;
-		if (!Pair.Value->TryGetString(PathString) || PathString.ParseIntoArray(Segments, TEXT(".")) < 2)
+		if (!Pair.Value->TryGetString(PathString))
 		{
 			UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("인자 '%s' 의 경로는 \"소스.필드\" 문자열이어야 한다."), *Pair.Key));
 			return false;
 		}
 
 		FMVVMBlueprintPropertyPath Path;
-		const UStruct* Owner = nullptr;
-		if (Segments[0] == TEXT("Self"))
+		if (!ResolvePropertyPath(WidgetBlueprint, View, PathString, Path))
 		{
-			Path.SetSelfContext();
-			Owner = WidgetBlueprint->SkeletonGeneratedClass;
-		}
-		else if (const FMVVMBlueprintViewModelContext* Context = View->FindViewModel(FName(*Segments[0])))
-		{
-			Path.SetViewModelId(Context->GetViewModelId());
-			Owner = Context->GetViewModelClass();
-		}
-
-		for (int32 Index = 1; Index < Segments.Num(); ++Index)
-		{
-			const UClass* OwnerClass = Cast<UClass>(Owner);
-			const FProperty* Property = Owner ? FindFProperty<FProperty>(Owner, FName(*Segments[Index])) : nullptr;
-			const UFunction* Getter = !Property && OwnerClass ? OwnerClass->FindFunctionByName(FName(*Segments[Index])) : nullptr;
-			if (Property)
-			{
-				Path.AppendPropertyPath(WidgetBlueprint, UE::MVVM::FMVVMConstFieldVariant(Property));
-				const FObjectPropertyBase* ObjectProperty = CastField<FObjectPropertyBase>(Property);
-				Owner = ObjectProperty ? ObjectProperty->PropertyClass : nullptr;
-			}
-			else if (Getter)
-			{
-				Path.AppendPropertyPath(WidgetBlueprint, UE::MVVM::FMVVMConstFieldVariant(Getter));
-				const FObjectPropertyBase* ReturnProperty = CastField<FObjectPropertyBase>(Getter->GetReturnProperty());
-				Owner = ReturnProperty ? ReturnProperty->PropertyClass : nullptr;
-			}
-			else
-			{
-				UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("인자 '%s' 의 경로 '%s' 에서 '%s' 를 찾지 못했다."), *Pair.Key, *PathString, *Segments[Index]));
-				return false;
-			}
+			return false;
 		}
 		Arguments.Emplace(FName(*Pair.Key), Path);
 	}
@@ -144,5 +112,99 @@ bool UWxMVVMToolset::SetBindingConversionFunction(UWidgetBlueprint* WidgetBluepr
 	{
 		Subsystem->SetPathForConversionFunctionArgument(WidgetBlueprint, *Binding, FMVVMBlueprintPinId(TArray<FName>{Argument.Key}), Argument.Value, true);
 	}
+	return true;
+}
+
+bool UWxMVVMToolset::SetBindingSourcePath(UWidgetBlueprint* WidgetBlueprint, const FString& BindingId, FName ArgumentName, const FString& SourcePath)
+{
+	const UMVVMWidgetBlueprintExtension_View* Extension = WidgetBlueprint ? UWidgetBlueprintExtension::GetExtension<UMVVMWidgetBlueprintExtension_View>(WidgetBlueprint) : nullptr;
+	UMVVMBlueprintView* View = Extension ? const_cast<UMVVMWidgetBlueprintExtension_View*>(Extension)->GetBlueprintView() : nullptr;
+	if (!View)
+	{
+		UKismetSystemLibrary::RaiseScriptError(TEXT("WidgetBlueprint 에 MVVM 뷰가 없다."));
+		return false;
+	}
+
+	FGuid Id;
+	FMVVMBlueprintViewBinding* Binding = FGuid::Parse(BindingId, Id) ? View->GetBinding(Id) : nullptr;
+	if (!Binding)
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("바인딩 '%s' 가 없다."), *BindingId));
+		return false;
+	}
+
+	FMVVMBlueprintPropertyPath Path;
+	if (!ResolvePropertyPath(WidgetBlueprint, View, SourcePath, Path))
+	{
+		return false;
+	}
+
+	UMVVMEditorSubsystem* Subsystem = GEditor->GetEditorSubsystem<UMVVMEditorSubsystem>();
+	if (ArgumentName.IsNone())
+	{
+		Subsystem->SetSourcePathForBinding(WidgetBlueprint, *Binding, Path);
+		return true;
+	}
+
+	// 엔진은 없는 핀 이름을 check 로 받아 에디터가 크래시한다.
+	const UMVVMBlueprintViewConversionFunction* Conversion = Binding->Conversion.GetConversionFunction(true);
+	const UFunction* Function = Conversion ? Conversion->GetConversionFunction().GetFunction(WidgetBlueprint) : nullptr;
+	const FProperty* Parameter = Function ? FindFProperty<FProperty>(Function, ArgumentName) : nullptr;
+	if (!Parameter || !Parameter->HasAnyPropertyFlags(CPF_Parm) || Parameter->HasAnyPropertyFlags(CPF_ReturnParm))
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("바인딩 '%s' 의 변환 함수에 입력 파라미터 '%s' 가 없다."), *BindingId, *ArgumentName.ToString()));
+		return false;
+	}
+
+	Subsystem->SetPathForConversionFunctionArgument(WidgetBlueprint, *Binding, FMVVMBlueprintPinId(TArray<FName>{ArgumentName}), Path, true);
+	return true;
+}
+
+bool UWxMVVMToolset::ResolvePropertyPath(const UWidgetBlueprint* WidgetBlueprint, const UMVVMBlueprintView* View, const FString& PathString, FMVVMBlueprintPropertyPath& OutPath)
+{
+	TArray<FString> Segments;
+	if (PathString.ParseIntoArray(Segments, TEXT(".")) < 2)
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("경로 '%s' 는 \"소스.필드\" 문자열이어야 한다."), *PathString));
+		return false;
+	}
+
+	FMVVMBlueprintPropertyPath Path;
+	const UStruct* Owner = nullptr;
+	if (Segments[0] == TEXT("Self"))
+	{
+		Path.SetSelfContext();
+		Owner = WidgetBlueprint->SkeletonGeneratedClass;
+	}
+	else if (const FMVVMBlueprintViewModelContext* Context = View->FindViewModel(FName(*Segments[0])))
+	{
+		Path.SetViewModelId(Context->GetViewModelId());
+		Owner = Context->GetViewModelClass();
+	}
+
+	for (int32 Index = 1; Index < Segments.Num(); ++Index)
+	{
+		const UClass* OwnerClass = Cast<UClass>(Owner);
+		const FProperty* Property = Owner ? FindFProperty<FProperty>(Owner, FName(*Segments[Index])) : nullptr;
+		const UFunction* Getter = !Property && OwnerClass ? OwnerClass->FindFunctionByName(FName(*Segments[Index])) : nullptr;
+		if (Property)
+		{
+			Path.AppendPropertyPath(WidgetBlueprint, UE::MVVM::FMVVMConstFieldVariant(Property));
+			const FObjectPropertyBase* ObjectProperty = CastField<FObjectPropertyBase>(Property);
+			Owner = ObjectProperty ? ObjectProperty->PropertyClass : nullptr;
+		}
+		else if (Getter)
+		{
+			Path.AppendPropertyPath(WidgetBlueprint, UE::MVVM::FMVVMConstFieldVariant(Getter));
+			const FObjectPropertyBase* ReturnProperty = CastField<FObjectPropertyBase>(Getter->GetReturnProperty());
+			Owner = ReturnProperty ? ReturnProperty->PropertyClass : nullptr;
+		}
+		else
+		{
+			UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("경로 '%s' 에서 '%s' 를 찾지 못했다."), *PathString, *Segments[Index]));
+			return false;
+		}
+	}
+	OutPath = Path;
 	return true;
 }

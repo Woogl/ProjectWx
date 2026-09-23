@@ -6,10 +6,12 @@
 #include "ToolsetRegistry/ToolsetDefinition.h"
 #include "WxMVVMToolset.generated.h"
 
+class UMVVMBlueprintView;
 class UWidgetBlueprint;
+struct FMVVMBlueprintPropertyPath;
 
 /**
- * 기존 MCP 표면(ObjectTools 등)이 닿지 못하는 지점만 뚫는다 — MVVM 바인딩 변환 함수와 이벤트 목적지.
+ * 기존 MCP 표면(ObjectTools 등)이 닿지 못하는 지점만 뚫는다 — MVVM 바인딩 경로·변환 함수와 이벤트 목적지.
  * 변환 객체의 함수·인자 경로는 편집 플래그가 없어 set_properties 로 쓸 수 없고, 래퍼 그래프도 에디터 서브시스템이 만들어야 한다.
  */
 UCLASS(BlueprintType, Hidden)
@@ -31,4 +33,16 @@ public:
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static bool SetBindingConversionFunction(UWidgetBlueprint* WidgetBlueprint, const FString& BindingId, const FString& FunctionPath, const FString& ArgumentsJson);
+
+	/**
+	 * 바인딩의 소스 경로나 Source→Destination 변환 함수 인자 하나의 경로만 바꾼다. 나머지 인자의 경로·기본값은 유지된다.
+	 * @param ArgumentName 비우면 바인딩 자체의 소스 경로다. 이때 엔진 에디터와 같이 기존 변환 함수는 제거된다.
+	 * @param SourcePath "뷰모델이름.필드[.필드...]" 또는 "Self.필드[.필드...]".
+	 */
+	UFUNCTION(BlueprintCallable, meta = (AICallable), Category = "Wx")
+	static bool SetBindingSourcePath(UWidgetBlueprint* WidgetBlueprint, const FString& BindingId, FName ArgumentName, const FString& SourcePath);
+
+private:
+	/** "소스.필드[.필드...]" 를 뷰 기준 경로로 해석한다. 실패하면 스크립트 오류를 올린다. */
+	static bool ResolvePropertyPath(const UWidgetBlueprint* WidgetBlueprint, const UMVVMBlueprintView* View, const FString& PathString, FMVVMBlueprintPropertyPath& OutPath);
 };
