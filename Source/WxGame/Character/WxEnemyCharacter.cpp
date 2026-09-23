@@ -5,6 +5,7 @@
 #include "AbilitySystem/Ability/WxAbility_Finisher.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "Battle/WxBattleSubsystem.h"
 #include "Component/WxNameplateComponent.h"
 #include "Controller/WxAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -16,8 +17,6 @@
 #include "WxCombatLibrary.h"
 #include "WxGameplayTags.h"
 #include "WxRewardLibrary.h"
-
-FWxOnBossEngagementChanged AWxEnemyCharacter::OnAnyBossEngagementChanged;
 
 AWxEnemyCharacter::AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -63,18 +62,12 @@ void AWxEnemyCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	OnDeath.RemoveDynamic(this, &ThisClass::HandleOwnerDeath);
 
 	GetAbilitySystemComponent()->SetLooseGameplayTagCount(WxGameplayTags::State_Engaged, 0);
-
-	if (bIsBoss)
+	if (UWxBattleSubsystem* Battle = UWorld::GetSubsystem<UWxBattleSubsystem>(GetWorld()))
 	{
-		OnAnyBossEngagementChanged.Broadcast(this, false);
+		Battle->NotifyEngagementChanged(this, false);
 	}
 
 	Super::EndPlay(EndPlayReason);
-}
-
-bool AWxEnemyCharacter::IsBoss() const
-{
-	return bIsBoss;
 }
 
 FWxOnSpawnableKilled& AWxEnemyCharacter::GetOnKilledDelegate()
@@ -188,9 +181,8 @@ void AWxEnemyCharacter::RefreshEngagement()
 	// 죽어도 겨누던 대상은 그대로 남는다 — 그것만 보면 시체가 계속 교전 중으로 남는다.
 	const bool bEngaged = IsAlive() && GetLockOnComponent()->GetLockOnTarget() != nullptr;
 	GetAbilitySystemComponent()->SetLooseGameplayTagCount(WxGameplayTags::State_Engaged, bEngaged ? 1 : 0);
-
-	if (bIsBoss)
+	if (UWxBattleSubsystem* Battle = UWorld::GetSubsystem<UWxBattleSubsystem>(GetWorld()))
 	{
-		OnAnyBossEngagementChanged.Broadcast(this, bEngaged);
+		Battle->NotifyEngagementChanged(this, bEngaged);
 	}
 }

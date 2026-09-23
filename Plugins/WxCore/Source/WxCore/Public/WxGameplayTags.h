@@ -7,6 +7,9 @@
 /** 태그 추가 시 이 파일과 WxGameplayTags.cpp에만 작성. */
 namespace WxGameplayTags
 {
+	/** 캐릭터 BP의 IdentityTags 로 지정한다. 전투 서브시스템이 교전 중인 보스를 가릴 때 읽는다. */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Boss);
+
 	/** 로컬 플레이어가 이 액터를 락온 중일 때 피대상 ASC에만 붙는 개인 UI 상태. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_LockedOn);
 

@@ -10,7 +10,6 @@
 #include "GameplayTagContainer.h"
 #include "WxEnemyCharacter.generated.h"
 
-class AWxEnemyCharacter;
 class UWxAIBehaviorComponent;
 class UWxLockOnPointComponent;
 class UWxMinionComponent;
@@ -18,9 +17,7 @@ class UWxNameplateComponent;
 class UAbilitySystemComponent;
 class USceneComponent;
 
-DECLARE_MULTICAST_DELEGATE_TwoParams(FWxOnBossEngagementChanged, AWxEnemyCharacter* /*BossCharacter*/, bool /*bEngaged*/);
-
-/** 적 캐릭터의 AI 조립, 상호작용, 보상, 보스 표시 상태를 소유한다. */
+/** 적 캐릭터의 AI 조립, 상호작용, 보상, 교전 상태를 소유한다. */
 UCLASS(Abstract)
 class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnable, public IWxInteractable
 {
@@ -28,14 +25,6 @@ class WXGAME_API AWxEnemyCharacter : public AWxCharacterBase, public IWxSpawnabl
 
 public:
 	AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer);
-
-	bool IsBoss() const;
-
-	/**
-	 * 보스로 설정된 AI 캐릭터의 교전 상태가 바뀔 때 발행된다. 소멸도 비교전으로 알린다.
-	 * 관찰자가 보스보다 먼저 생길 수 있어 클래스 차원에 둔다 — 어느 월드의 보스인지는 인자로 온 캐릭터가 말해 준다.
-	 */
-	static FWxOnBossEngagementChanged OnAnyBossEngagementChanged;
 
 	//~ Begin IWxSpawnable
 	virtual FWxOnSpawnableKilled& GetOnKilledDelegate() override;
@@ -75,9 +64,6 @@ private:
 	bool IsInRearCone(const AActor* Interactor) const;
 
 	void RefreshEngagement();
-
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
-	bool bIsBoss = false;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Interaction", meta = (ClampMin = "0", ClampMax = "180"))
 	float BackstabRearHalfAngle = 90.f;

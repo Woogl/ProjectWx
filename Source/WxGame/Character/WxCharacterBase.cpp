@@ -63,6 +63,12 @@ void AWxCharacterBase::PostInitializeComponents()
 	AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death, EGameplayTagEventType::NewOrRemoved)
 		.AddUObject(this, &AWxCharacterBase::HandleDeathTagChanged);
 
+	// 클래스 기본값이라 머신마다 복제 없이 올린다. 스트리밍 레벨이 다시 보일 때도 불리므로 개수를 1로 맞춘다.
+	for (const FGameplayTag& IdentityTag : IdentityTags)
+	{
+		AbilitySystemComponent->SetLooseGameplayTagCount(IdentityTag, 1);
+	}
+
 	if (!WeaponActor)
 	{
 		return;

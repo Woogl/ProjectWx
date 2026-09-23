@@ -10,6 +10,7 @@
 
 ## 작업 인계
 
+- [보스 표시 VM 단순화](boss-display-simplification.md)
 - [DataTable 행 이름 변경 시 사용처 참조 갱신](datatable-row-rename-reference-update.md)
 - [Quest 표시 VM을 WxUI로 이전](quest-presentation-vm.md)
 

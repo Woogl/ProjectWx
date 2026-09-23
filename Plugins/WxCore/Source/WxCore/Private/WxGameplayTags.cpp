@@ -4,6 +4,8 @@
 
 namespace WxGameplayTags
 {
+	UE_DEFINE_GAMEPLAY_TAG(Character_Boss, "Character.Boss");
+
 	UE_DEFINE_GAMEPLAY_TAG(State_LockedOn, "State.LockedOn");
 	UE_DEFINE_GAMEPLAY_TAG(State_Engaged, "State.Engaged");
 	UE_DEFINE_GAMEPLAY_TAG(State_Dialogue, "State.Dialogue");

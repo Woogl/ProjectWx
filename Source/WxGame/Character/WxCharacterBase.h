@@ -123,4 +123,8 @@ protected:
 	/** 소비자가 모두 질의 시점에 이 값을 직접 읽으므로 복제 통지를 받을 대상이 없다. */
 	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Wx|Team")
 	EWxTeam Team = EWxTeam::Player;
+
+	/** 캐릭터 종류를 가리는 고정 태그다. 전 머신에서 ASC에 loose 태그로 올라 GAS 태그 조건에서도 보인다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Character", meta = (Categories = "Character"))
+	FGameplayTagContainer IdentityTags;
 };

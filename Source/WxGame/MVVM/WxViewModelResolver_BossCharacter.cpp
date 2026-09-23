@@ -1,27 +1,44 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "MVVM/WxViewModelResolver_BossCharacter.h"
-
+#include "AbilitySystemComponent.h"
+#include "Battle/WxBattleSubsystem.h"
 #include "Blueprint/UserWidget.h"
-#include "MVVM/WxViewModel_BossDisplay.h"
+#include "Character/WxCharacterBase.h"
+#include "Engine/World.h"
+#include "MVVM/WxViewModel_Character.h"
 
 UObject* UWxViewModelResolver_BossCharacter::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
 {
-	UWorld* World = UserWidget ? UserWidget->GetWorld() : nullptr;
-	if (!World || !ExpectedType || !ExpectedType->IsChildOf(UWxViewModel_BossDisplay::StaticClass()) || ExpectedType->HasAnyClassFlags(CLASS_Abstract))
+	UWxBattleSubsystem* Battle = UserWidget ? UWorld::GetSubsystem<UWxBattleSubsystem>(UserWidget->GetWorld()) : nullptr;
+	if (!Battle)
 	{
 		return nullptr;
 	}
 
-	UWxViewModel_BossDisplay* ViewModel = NewObject<UWxViewModel_BossDisplay>(const_cast<UUserWidget*>(UserWidget), ExpectedType);
-	ViewModel->StartObserving(World);
+	UWxViewModel_Character* ViewModel = NewObject<UWxViewModel_Character>(const_cast<UUserWidget*>(UserWidget));
+	const FWxOnCurrentBossChanged::FDelegate ApplyBoss = FWxOnCurrentBossChanged::FDelegate::CreateWeakLambda(ViewModel, [ViewModel](AWxCharacterBase* CurrentBoss)
+	{
+		if (CurrentBoss)
+		{
+			ViewModel->Initialize(CurrentBoss->GetAbilitySystemComponent(), CurrentBoss);
+		}
+		else
+		{
+			ViewModel->Deinitialize();
+		}
+	});
+
+	// 위젯보다 먼저 시작된 보스전도 보여 준다.
+	ApplyBoss.Execute(Battle->GetCurrentBoss());
+	Battle->OnCurrentBossChanged.Add(ApplyBoss);
 	return ViewModel;
 }
 
 void UWxViewModelResolver_BossCharacter::DestroyInstance(UObject* ViewModel, const UMVVMView* View) const
 {
-	if (UWxViewModel_BossDisplay* BossDisplay = Cast<UWxViewModel_BossDisplay>(ViewModel))
+	if (UWxBattleSubsystem* Battle = ViewModel ? UWorld::GetSubsystem<UWxBattleSubsystem>(ViewModel->GetWorld()) : nullptr)
 	{
-		BossDisplay->Deinitialize();
+		Battle->OnCurrentBossChanged.RemoveAll(ViewModel);
 	}
 }

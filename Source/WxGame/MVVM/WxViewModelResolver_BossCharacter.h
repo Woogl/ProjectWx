@@ -10,8 +10,8 @@ class UUserWidget;
 class UMVVMView;
 
 /**
- * 위젯별 보스 표시 영역 뷰모델을 생성한다. 교전 구독은 반환한 뷰모델이 소유한다.
- * 리졸버 자체는 위젯 클래스가 공유하므로 뷰의 상태나 구독을 보관하지 않는다.
+ * 전투 서브시스템의 현재 보스를 위젯별 Character VM에 싣는다.
+ * 리졸버는 위젯 클래스가 공유하므로 구독은 VM을 소유자로 걸고, 해제도 그 VM의 것만 끊는다.
  */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXGAME_API UWxViewModelResolver_BossCharacter : public UMVVMViewModelContextResolver
@@ -22,5 +22,4 @@ public:
 	virtual UObject* CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const override;
 
 	virtual void DestroyInstance(UObject* ViewModel, const UMVVMView* View) const override;
-
 };

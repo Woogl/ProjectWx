@@ -27,4 +27,6 @@
 
 제안: UI를 한 모듈로 모으려는 목적이면 보스 계열을 제외한 위 대상을 이동할 수 있다. 공용 UI 독립성을 유지하려면 QuestObjective만 우선 이동하고 나머지 조립은 유지한다. BossCharacter Resolver만 단독 이동하면 BossDisplay를 통해 WxGame 역의존성이 생기므로 해결되지 않는다.
 
+> 후속(2026-09-23): 보스 계열의 위 제약은 [보스 표시 VM 단순화](boss-display-simplification.md)에서 해소되었다. BossDisplay VM과 정적 교전 이벤트를 제거했고, 현재 구조는 모델(`UWxBattleSubsystem`)·연결(WxGame 리졸버)·VM(WxUI `UWxViewModel_Character`)이다.
+
 이동 시 Resolver는 해당 VM 파일에 통합하는 사용자 관례를 유지한다. 모듈 경로가 바뀌는 모든 UCLASS의 리다이렉트, C++ 빌드, 영향받는 WBP 로드·컴파일을 검증해야 한다. 이번 검토는 빌드·에셋 실행 검증이 아니다.
