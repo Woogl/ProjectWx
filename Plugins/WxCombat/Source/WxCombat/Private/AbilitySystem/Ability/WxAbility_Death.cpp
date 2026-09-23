@@ -3,10 +3,8 @@
 #include "AbilitySystem/Ability/WxAbility_Death.h"
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "AbilitySystemComponent.h"
-#include "AIController.h"
 #include "Animation/AnimMontage.h"
-#include "BrainComponent.h"
-#include "GameFramework/Pawn.h"
+#include "GameFramework/Actor.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_Death::UWxAbility_Death()
@@ -46,14 +44,8 @@ void UWxAbility_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 	// 커밋하지 않는다 — 사망은 코스트·쿨다운이 없는 강제 전이이고, 커밋 실패가 곧 사망 미성립(Ability.Death 미부여)이 된다.
 
-	// 시체의 피격 판정 해제는 AWxCharacterBase::HandleDeath가 맡는다 — 콜리전 응답은 복제되지 않아 시뮬 프록시도 각자 걷어야 한다.
+	// 시체의 피격 판정 해제는 AWxCharacterBase::HandleDeath가, BT 정지는 그 OnDeath를 받는 AI 컨트롤러가 맡는다 — 둘 다 발동 전에 붙는 Ability.Death로 이미 끝나 있다.
 	AActor* Avatar = GetAvatarActorFromActorInfo();
-	const APawn* AvatarPawn = Cast<APawn>(Avatar);
-	AAIController* AIController = AvatarPawn ? Cast<AAIController>(AvatarPawn->GetController()) : nullptr;
-	if (UBrainComponent* Brain = AIController ? AIController->GetBrainComponent() : nullptr)
-	{
-		Brain->StopLogic(TEXT("Death"));
-	}
 
 	PlayDeathMontageOrRagdoll();
 
