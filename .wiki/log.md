@@ -87,21 +87,27 @@
 
 ## [2026-09-23] compile | 1 source → 0 new articles, 1 updated (world). 엘리베이터 정차 지점 규칙(bWakeOnCall·StopPrompt)과 인스턴스 구조체 FText C++ 기본값 저장 실패 함정(5212bbe3a) 반영. 저장 실패 재현은 에디터 MCP 결과이며 인게임 동작은 미검증.
 
-## [2026-09-23] ingest | 사망·대화 화면 주인을 컨트롤러 컴포넌트로 이동 (raw/notes/2026-09-23-player-screen-owner.md)
-
-## [2026-09-23] compile | 1 source → 0 new articles, 2 updated (ui, dialogue). 사망·대화 화면 클래스·태그 관찰의 주인이 UWxPlayerLayoutComponent로 바뀐 것과 설정/컨트롤러 BP 배치 기준을 반영했다. 인게임 동작은 사용자 확인.
-## 2026-09-23 — 표시 VM 모듈 경계와 화면 수명
-
-Ability Resolver의 WxUI 통합과 Dialogue·Quest·QuestObjective의 순수 표시 VM 이전을 원자료 5개로 수집해 ui·dialogue·quests에 반영했다. 도메인 구독은 WxGame 화면 수명이 담당하며 새 Wx 기능 모듈 의존성이나 WxCore 로직은 추가하지 않는다. 빌드·에셋 컴파일·수명 테스트의 검증 범위는 각 작업 기록에 남겼다. 사용자 요청으로 검증용 C++ 테스트와 friend 선언을 제거했다.
-
 ## [2026-09-23] ingest | 피해 결과 반환과 투사체 소비 계약 (raw/notes/2026-09-23-damage-result-contract.md)
 
 ## [2026-09-23] compile | 1 source → 0 new articles, 1 updated (combat-damage). DamageResult/호환 API/서버 투사체 결과 소비를 반영했다. 내부 이벤트 순서는 유지하며 빌드·자동화 근거는 Workflow Task에서 별도 관리한다.
+
+## [2026-09-23] ingest | 사망·대화 화면 주인을 컨트롤러 컴포넌트로 이동 (raw/notes/2026-09-23-player-screen-owner.md)
+
+## [2026-09-23] compile | 1 source → 0 new articles, 2 updated (ui, dialogue). 사망·대화 화면 클래스·태그 관찰의 주인이 UWxPlayerLayoutComponent로 바뀐 것과 설정/컨트롤러 BP 배치 기준을 반영했다. 인게임 동작은 사용자 확인.
+
+## 2026-09-23 — Ability Resolver 모듈 소유 반영
+- 사용자 요청에 따른 WxUI 이동을 원자료로 수집하고 ui 기사에 통합했다. 기존 클래스 경로 리다이렉트와 WBP 실행 미검증 범위를 기록했다.
 
 ## [2026-09-23] ingest | 명시적 DamageRequest와 기존 BP 호환 경계 (raw/notes/2026-09-23-damage-request-contract.md)
 
 ## [2026-09-23] compile | 1 source → 0 new articles, 1 updated (combat-damage). 동기 요청 API와 호출자 출처 선택, 기존 BP 어댑터 경계를 반영했다. 실행 검증과 사용자의 이전 단계 테스트 수용은 Workflow Task에서 구분한다.
 - 추가 지시 반영: 별도 Resolver 파일 배치를 Ability VM 파일 통합으로 대체하고 새 원자료로 근거를 남겼다.
+
+## 2026-09-23 — Dialogue 표시 VM 분리
+- 사용자 모듈 의존성 원칙과 Dialogue VM 분리를 원자료로 수집하고 ui·dialogue에 통합했다. C++ 빌드·WBP 재로드/컴파일·델리게이트 전달 검증과 인게임 미검증 범위를 구분했다.
+
+## 2026-09-23 — Dialogue Resolver 제거
+- 사용자 승인으로 화면이 세션 연결을 소유하고 MVVM Create Instance를 사용하는 구조를 ui·dialogue에 반영했다. 기존 Resolver 설명은 새 원자료로 대체했다.
 
 ## [2026-09-23] ingest / compile | 타격별 피해 실행 정의
 - 원자료 1개를 combat-damage에 통합했다. Hit의 행 재조회 제거와 로컬 정의의 복사·복제 계약을 기록했다. 실행 검증은 Workflow Task에서 구분한다.
@@ -112,6 +118,10 @@ Ability Resolver의 WxUI 통합과 Dialogue·Quest·QuestObjective의 순수 표
 
 ## [2026-09-23] ingest / compile | Hit 처리 함수 분리
 - 새 원자료를 combat-damage에 통합했다. 기존 클래스 내부 함수 책임과 추가 효과의 캡처/적용 순서를 기록했다.
+
+## 2026-09-23 — Quest 표시 VM 이전
+
+Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료로 수집하고 quests·ui의 구독 책임 설명을 갱신했다. 빌드·에셋·실행 검증은 quest-presentation-vm 작업 기록에 구분한다.
 
 ## [2026-09-23] ingest / compile | Damage Context 정리
 - 미사용 테이블 참조와 중복 수치 제거를 원자료로 수집하고 combat-damage의 현재 저장·복제 계약을 갱신했다.
