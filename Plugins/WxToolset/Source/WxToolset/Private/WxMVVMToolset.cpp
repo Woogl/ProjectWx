@@ -20,20 +20,30 @@
 #include "Types/MVVMFieldVariant.h"
 #include "WidgetBlueprint.h"
 
-bool UWxMVVMToolset::SetEventDestinationWidgetFunction(UWidgetBlueprint* WidgetBlueprint, int32 EventIndex, FName FunctionName)
+bool UWxMVVMToolset::SetEventDestination(UWidgetBlueprint* WidgetBlueprint, int32 EventIndex, const FString& DestinationPath)
 {
 	const UMVVMWidgetBlueprintExtension_View* Extension = WidgetBlueprint ? UWidgetBlueprintExtension::GetExtension<UMVVMWidgetBlueprintExtension_View>(WidgetBlueprint) : nullptr;
 	UMVVMBlueprintView* View = Extension ? const_cast<UMVVMWidgetBlueprintExtension_View*>(Extension)->GetBlueprintView() : nullptr;
-	const UFunction* Function = WidgetBlueprint && WidgetBlueprint->SkeletonGeneratedClass ? WidgetBlueprint->SkeletonGeneratedClass->FindFunctionByName(FunctionName) : nullptr;
-	if (!View || !View->GetEvents().IsValidIndex(EventIndex) || !View->GetEvents()[EventIndex] || !Function || !Function->HasAnyFunctionFlags(FUNC_BlueprintCallable))
+	if (!View || !View->GetEvents().IsValidIndex(EventIndex) || !View->GetEvents()[EventIndex])
 	{
-		UKismetSystemLibrary::RaiseScriptError(TEXT("MVVM 이벤트 또는 호출 가능한 위젯 함수를 찾지 못했다."));
+		UKismetSystemLibrary::RaiseScriptError(TEXT("MVVM 이벤트를 찾지 못했다."));
 		return false;
 	}
 
 	FMVVMBlueprintPropertyPath Path;
-	Path.SetSelfContext();
-	Path.AppendPropertyPath(WidgetBlueprint, UE::MVVM::FMVVMConstFieldVariant(Function));
+	if (!ResolvePropertyPath(WidgetBlueprint, View, DestinationPath, Path))
+	{
+		return false;
+	}
+
+	const TArray<UE::MVVM::FMVVMConstFieldVariant> Fields = Path.GetFields(WidgetBlueprint->SkeletonGeneratedClass);
+	const UFunction* Function = !Fields.IsEmpty() && Fields.Last().IsFunction() ? Fields.Last().GetFunction() : nullptr;
+	if (!Function || !Function->HasAnyFunctionFlags(FUNC_BlueprintCallable))
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("'%s' 는 호출 가능한 함수가 아니다."), *DestinationPath));
+		return false;
+	}
+
 	GEditor->GetEditorSubsystem<UMVVMEditorSubsystem>()->SetEventDestinationPath(View->GetEvents()[EventIndex], Path);
 	return true;
 }

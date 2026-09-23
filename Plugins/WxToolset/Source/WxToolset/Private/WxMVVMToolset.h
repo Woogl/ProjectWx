@@ -20,9 +20,12 @@ class UWxMVVMToolset : public UToolsetDefinition
 	GENERATED_BODY()
 
 public:
-	/** MVVM 이벤트의 목적지를 위젯 자신의 함수로 바꾼다. 래퍼 그래프도 에디터 서브시스템에서 갱신한다. */
+	/**
+	 * MVVM 이벤트의 목적지를 호출 가능한 함수로 바꾼다. 래퍼 그래프도 에디터 서브시스템에서 갱신한다.
+	 * @param DestinationPath "Self.함수" 또는 "뷰모델이름.함수".
+	 */
 	UFUNCTION(BlueprintCallable, meta = (AICallable), Category = "Wx")
-	static bool SetEventDestinationWidgetFunction(UWidgetBlueprint* WidgetBlueprint, int32 EventIndex, FName FunctionName);
+	static bool SetEventDestination(UWidgetBlueprint* WidgetBlueprint, int32 EventIndex, const FString& DestinationPath);
 
 	/**
 	 * 바인딩의 Source→Destination 변환 함수를 지정하고 인자마다 소스 경로를 연결한다. 기존 소스 경로는 변환 함수로 대체된다.
