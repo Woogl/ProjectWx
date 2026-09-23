@@ -30,48 +30,35 @@ UWxEffect_Damage::UWxEffect_Damage()
 	GEComponents.Add(CreateDefaultSubobject<UWxEffectComponent_AdditionalEffects>(TEXT("AdditionalEffects")));
 }
 
-struct FWxDamageBaseStatics
+struct FWxDamageStatics
 {
 	DECLARE_ATTRIBUTE_CAPTUREDEF(ATK);
-	DECLARE_ATTRIBUTE_CAPTUREDEF(DEF);
-	DECLARE_ATTRIBUTE_CAPTUREDEF(GuardReductionScale);
-	FWxDamageBaseStatics()
-	{
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, ATK, Source, false);
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, DEF, Target, false);
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, GuardReductionScale, Target, false);
-	}
-};
-
-static const FWxDamageBaseStatics& GetDamageBaseStatics()
-{
-	static FWxDamageBaseStatics DamageBaseStatics;
-	return DamageBaseStatics;
-}
-
-struct FWxDamageExecutionStatics
-{
 	DECLARE_ATTRIBUTE_CAPTUREDEF(CritRate);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(CritDMG);
+	DECLARE_ATTRIBUTE_CAPTUREDEF(DEF);
+	DECLARE_ATTRIBUTE_CAPTUREDEF(GuardReductionScale);
+	DECLARE_ATTRIBUTE_CAPTUREDEF(SP);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(IncomingDamage);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(IncomingReflect);
-	DECLARE_ATTRIBUTE_CAPTUREDEF(SP);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(GP);
-	FWxDamageExecutionStatics()
+	FWxDamageStatics()
 	{
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, ATK, Source, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, CritRate, Source, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, CritDMG, Source, false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, DEF, Target, false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, GuardReductionScale, Target, false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, SP, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, IncomingDamage, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, IncomingReflect, Target, false);
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, SP, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, GP, Target, false);
 	}
 };
 
-static const FWxDamageExecutionStatics& GetDamageExecutionStatics()
+static const FWxDamageStatics& GetDamageStatics()
 {
-	static FWxDamageExecutionStatics DamageExecutionStatics;
-	return DamageExecutionStatics;
+	static FWxDamageStatics DamageStatics;
+	return DamageStatics;
 }
 
 static float CalculateDefenseMultiplier(float TargetDEF)
@@ -113,14 +100,13 @@ static float CalculateFinalDamage(float SourceATK, float TargetDEF, float ATKCoe
 
 UWxExecCalc_Damage::UWxExecCalc_Damage()
 {
-	const FWxDamageBaseStatics& BaseStatics = GetDamageBaseStatics();
-	const FWxDamageExecutionStatics& ExecutionStatics = GetDamageExecutionStatics();
-	RelevantAttributesToCapture.Add(BaseStatics.ATKDef);
-	RelevantAttributesToCapture.Add(BaseStatics.DEFDef);
-	RelevantAttributesToCapture.Add(BaseStatics.GuardReductionScaleDef);
-	RelevantAttributesToCapture.Add(ExecutionStatics.CritRateDef);
-	RelevantAttributesToCapture.Add(ExecutionStatics.CritDMGDef);
-	RelevantAttributesToCapture.Add(ExecutionStatics.SPDef);
+	const FWxDamageStatics& Statics = GetDamageStatics();
+	RelevantAttributesToCapture.Add(Statics.ATKDef);
+	RelevantAttributesToCapture.Add(Statics.CritRateDef);
+	RelevantAttributesToCapture.Add(Statics.CritDMGDef);
+	RelevantAttributesToCapture.Add(Statics.DEFDef);
+	RelevantAttributesToCapture.Add(Statics.GuardReductionScaleDef);
+	RelevantAttributesToCapture.Add(Statics.SPDef);
 }
 void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
@@ -153,12 +139,12 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	EvalParams.TargetTags = OwningSpec.CapturedTargetTags.GetAggregatedTags();
 
 	// 퍼펙트 가드는 반사량 산출을 위해 크리를 스킵한다.
-	const FWxDamageBaseStatics& BaseStatics = GetDamageBaseStatics();
+	const FWxDamageStatics& Statics = GetDamageStatics();
 	float SourceATK = 0.f;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(BaseStatics.ATKDef, EvalParams, SourceATK);
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.ATKDef, EvalParams, SourceATK);
 
 	float TargetDEF = 0.f;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(BaseStatics.DEFDef, EvalParams, TargetDEF);
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.DEFDef, EvalParams, TargetDEF);
 
 	const float ATKCoeff = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, false, 0.f);
 	const bool bCanApplyCritical = !bPerfectGuardApplied && bCanCritical;
@@ -168,9 +154,8 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	bool bIsCritical = false;
 	if (bCanApplyCritical)
 	{
-		const FWxDamageExecutionStatics& ExecutionStatics = GetDamageExecutionStatics();
-		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(ExecutionStatics.CritRateDef, EvalParams, SourceCritRate);
-		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(ExecutionStatics.CritDMGDef, EvalParams, SourceCritDMG);
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.CritRateDef, EvalParams, SourceCritRate);
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.CritDMGDef, EvalParams, SourceCritDMG);
 
 		const float CritChance = FMath::Clamp(SourceCritRate * 0.01f, 0.f, 1.f);
 		// 실행 계산은 권한 측에서만 돈다 — 예측 클라는 Instant GE를 무한 지속으로 바꿔 실행을 건너뛰므로 클라·서버 롤이 갈라지지 않는다.
@@ -180,17 +165,15 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	float GuardReductionScale = 0.f;
 	if (bGuardHit)
 	{
-		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(BaseStatics.GuardReductionScaleDef, EvalParams, GuardReductionScale);
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.GuardReductionScaleDef, EvalParams, GuardReductionScale);
 	}
 
 	const float FinalDamage = CalculateFinalDamage(SourceATK, TargetDEF, ATKCoeff, SourceCritDMG, bIsCritical, GuardReductionScale);
 
-	const FWxDamageExecutionStatics& ExecutionStatics = GetDamageExecutionStatics();
-
 	if (bPerfectGuardApplied)
 	{
 		// 피해 대신 반사량을 반사 메타 속성으로 출력한다.
-		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(ExecutionStatics.IncomingReflectProperty, EGameplayModOp::Additive, FinalDamage));
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingReflectProperty, EGameplayModOp::Additive, FinalDamage));
 		return;
 	}
 
@@ -206,11 +189,11 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	if (bGuardHit)
 	{
-		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(ExecutionStatics.SPProperty, EGameplayModOp::Additive, -FinalDamage));
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.SPProperty, EGameplayModOp::Additive, -FinalDamage));
 
 		// 가드 브레이크는 차감 전 SP가 있어야 판정할 수 있다.
 		float TargetSP = 0.f;
-		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(ExecutionStatics.SPDef, EvalParams, TargetSP);
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(Statics.SPDef, EvalParams, TargetSP);
 		if (TargetSP <= FinalDamage)
 		{
 			ExecutionParams.GetOwningSpecForPreExecuteMod()->AddDynamicAssetTag(WxGameplayTags::Damage_GuardBreak);
@@ -219,10 +202,10 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	// 모디파이어마다 PostGameplayEffectExecute가 돌아 출력 순서가 곧 이벤트 순서다.
 	// GP가 먼저면 HP가 아직 안 깎여 그로기가 Ability.Death 가드를 지나친다.
-	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(ExecutionStatics.IncomingDamageProperty, EGameplayModOp::Additive, FinalDamage));
+	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingDamageProperty, EGameplayModOp::Additive, FinalDamage));
 
 	if (!bIsGroggy)
 	{
-		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(ExecutionStatics.GPProperty, EGameplayModOp::Additive, FinalDamage));
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.GPProperty, EGameplayModOp::Additive, FinalDamage));
 	}
 }
