@@ -17,6 +17,7 @@ sources:
   - "raw/notes/2026-09-23-damage-four-arguments.md"
   - "raw/notes/2026-09-23-zero-damage-hitstop.md"
   - "raw/notes/2026-09-24-wxcombat-cleanup.md"
+  - "raw/notes/2026-09-24-wxcore-cleanup.md"
 created: 2026-09-22
 updated: 2026-09-24
 tags: [wx, damage]
@@ -55,7 +56,7 @@ Causer의 ASC를 출처로 쓰고, 없으면 Causer의 Owner ASC를 쓴다. 투�
 
 ## 판정과 전달
 
-피해 행은 요청마다 한 번 읽는다. `MakeDamageSpec`이 계수(SetByCaller)와 공격 태그를 Damage GE Spec에 싣고, 추가 효과 GE 목록을 입력 전용 `FWxDamageEffectContext`에 싣는다. 방어 판정은 ExecCalc가 실행 시점의 대상 태그와 `Damage.CanGuard`로 한 번 내리고 `Damage.Guarded`/`Damage.PerfectGuarded` 결과 태그를 붙인다(크리티컬·가드 브레이크와 같은 방식). 마지막 컴포넌트 `_AdditionalEffects`가 퍼펙트 가드가 아니면 반응이 끝난 뒤의 출처 상태로 추가 효과 Spec을 만들어 적용한다.
+피해 행은 요청마다 한 번 읽는다. `MakeDamageSpec`이 계수(SetByCaller)와 공격 태그를 Damage GE Spec에 싣고, 추가 효과 GE 목록을 입력 전용 `FWxDamageEffectContext`에 싣는다. 방어 판정은 ExecCalc가 실행 시점의 대상 태그와 `Damage.CanGuard`로 한 번 내리고, 퍼펙트 가드면 `Damage.PerfectGuarded` 결과 태그를 붙인다(크리티컬·가드 브레이크와 같은 방식). 일반 가드는 읽는 쪽이 없어 결과 태그를 두지 않는다. 마지막 컴포넌트 `_AdditionalEffects`가 퍼펙트 가드가 아니면 반응이 끝난 뒤의 출처 상태로 추가 효과 Spec을 만들어 적용한다.
 
 | 결과 | 자원 반영 | 후속 처리 |
 |---|---|---|
@@ -107,6 +108,7 @@ ExecCalc가 0 피해로 출력 없이 끝난 타격(반올림 0, 완전 경감 �
 - [네 인자 인터페이스 복원](../../raw/notes/2026-09-23-damage-four-arguments.md)
 - [0 피해 히트스톱 조건과 주석 정정](../../raw/notes/2026-09-23-zero-damage-hitstop.md)
 - [퍼펙트 가드 Cue 통합·ExecCalc 캡처 정의 통합](../../raw/notes/2026-09-24-wxcombat-cleanup.md)
+- [WxCore 정리: 쓰지 않는 태그·모듈 클래스 제거](../../raw/notes/2026-09-24-wxcore-cleanup.md) — `Damage.Guarded` 제거
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>

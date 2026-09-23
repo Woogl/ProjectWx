@@ -235,3 +235,9 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 - 6f452b728(FWxWait 이름)과 74fc58853(ExecCalc 캡처 정의)은 동작 변화가 없어 원자료에만 기록했다.
 
 ## [2026-09-24] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
+
+## [2026-09-24] ingest | WxCore 정리: 쓰지 않는 태그·모듈 클래스 제거 (raw/notes/2026-09-24-wxcore-cleanup.md)
+
+## [2026-09-24] compile | 1 source → 0 new articles, 2 updated (foundation, combat-damage)
+- foundation: WxCore는 순수 정의만 두고 게임플레이 로직을 구현하지 않는다는 사용자 확정과 `FDefaultModuleImpl` 등록을 반영했다.
+- combat-damage: 읽는 곳이 없던 `Damage.Guarded` 결과 태그 제거를 반영했다. 가드 경감·SP 차감 판정은 바뀌지 않았다.

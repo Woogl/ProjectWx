@@ -6,8 +6,9 @@ sources:
   - "raw/notes/2026-09-22-current-core-support.md"
   - "raw/notes/2026-09-22-current-game.md"
   - "raw/notes/2026-09-22-current-ui.md"
+  - "raw/notes/2026-09-24-wxcore-cleanup.md"
 created: 2026-09-22
-updated: 2026-09-22
+updated: 2026-09-24
 tags: [wx, foundation]
 aliases: ["WxCore"]
 confidence: medium
@@ -22,7 +23,7 @@ WxCore는 도메인들이 함께 사용하는 태그·상호작용·스폰·표�
 
 ## 책임과 의존 방향
 
-WxGame은 여러 도메인 플러그인을 조립한다. WxCore는 그 아래에서 GameplayTag와 인터페이스를 제공하며 전투·인벤토리·월드 구현에 의존하지 않는다. 이 분리 덕분에 `AWxItemPickup`은 WxCore의 `IWxInteractable`을 직접 구현해 WxWorld를 참조하지 않고도 상호작용 대상이 된다. 모듈 의존성은 각 `Build.cs`, 활성화·유형은 `Wx.uproject`와 `.uplugin`을 함께 확인한다.
+WxGame은 여러 도메인 플러그인을 조립한다. WxCore는 그 아래에서 GameplayTag와 인터페이스를 제공하며 전투·인벤토리·월드 구현에 의존하지 않는다. WxCore는 순수 정의만 두고 게임플레이 로직은 구현하지 않는다(2026-09-24 사용자 확정). 그래서 모듈 클래스도 없이 엔진 기본 `FDefaultModuleImpl`로 등록한다. 이 분리 덕분에 `AWxItemPickup`은 WxCore의 `IWxInteractable`을 직접 구현해 WxWorld를 참조하지 않고도 상호작용 대상이 된다. 모듈 의존성은 각 `Build.cs`, 활성화·유형은 `Wx.uproject`와 `.uplugin`을 함께 확인한다.
 
 ## 공용 계약
 
@@ -66,6 +67,7 @@ WxGame은 여러 도메인 플러그인을 조립한다. WxCore는 그 아래에
 - [WxCore 태그 정의·로케이터 표시·픽업 상호작용 조사](../../raw/notes/2026-09-22-current-core-support.md) — 태그 정의부·로케이터 헬퍼·픽업 구현
 - [게임 조립·새 게임·부활 정적 조사](../../raw/notes/2026-09-22-current-game.md) — 캐릭터 충돌 응답
 - [레이어·대화 화면·HUD·속성 표시 수명 조사](../../raw/notes/2026-09-22-current-ui.md) — `IWxUIData`
+- [WxCore 정리: 쓰지 않는 태그·모듈 클래스 제거](../../raw/notes/2026-09-24-wxcore-cleanup.md) — 순수 정의 원칙·`FDefaultModuleImpl`
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
