@@ -47,7 +47,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Wx|AI")
 	TSubclassOf<UGameplayEffect> MoveSpeedEffect;
 private:
-	friend class FWxMirrorMovementAbilityTeleportTest;
 	void Release(UBehaviorTreeComponent& OwnerComp);
 	void HandleAbilityActivated(UGameplayAbility* Ability);
 	void HandleAbilityEnded(const FAbilityEndedData& Data);
