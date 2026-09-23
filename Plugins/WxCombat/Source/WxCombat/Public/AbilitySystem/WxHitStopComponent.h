@@ -14,7 +14,7 @@ class UAbilitySystemComponent;
  *
  * GE 수명은 월드 시간으로 흘러 GAS 쿨다운과 함께 정상 만료된다.
  * 클라이언트도 복제된 태그로 배율을 적용하지만, 원격 클라 폰의 서버 사본에는 걸지 않는다.
- * 히트스톱 중 CustomTimeDilation의 쓰기는 이 컴포넌트가 소유한다.
+ * CustomTimeDilation의 쓰기는 이 컴포넌트만 하므로 기준값은 클래스 기본값에서 읽는다.
  */
 UCLASS()
 class WXCOMBAT_API UWxHitStopComponent : public UActorComponent
@@ -35,7 +35,6 @@ private:
 	void SetFrozen(bool bFrozen);
 
 	bool bHitStopApplied = false;
-	float SavedCustomTimeDilation = 1.f;
 
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;

@@ -70,15 +70,8 @@ void UWxHitStopComponent::SetFrozen(bool bFrozen)
 	}
 
 	const float PreviousTimeDilation = Owner->CustomTimeDilation;
-	if (bApply)
-	{
-		SavedCustomTimeDilation = Owner->CustomTimeDilation;
-		Owner->CustomTimeDilation = SavedCustomTimeDilation * HitStopTimeDilation;
-	}
-	else
-	{
-		Owner->CustomTimeDilation = SavedCustomTimeDilation;
-	}
+	const float BaseTimeDilation = GetDefault<AActor>(Owner->GetClass())->CustomTimeDilation;
+	Owner->CustomTimeDilation = bApply ? BaseTimeDilation * HitStopTimeDilation : BaseTimeDilation;
 
 	bHitStopApplied = bApply;
 	UE_LOG(LogWxCombat, VeryVerbose, TEXT("HitStop %s: Actor=%s Role=%s CustomTimeDilation=%g -> %g"),
