@@ -46,7 +46,6 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
 	if (UCharacterMovementComponent* Movement = Character ? Character->GetCharacterMovement() : nullptr)
 	{
-		SavedOrientRotationToMovement = Movement->bOrientRotationToMovement;
 		Movement->bOrientRotationToMovement = false;
 	}
 
@@ -70,31 +69,29 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 			break;
 		}
 	}
-	if (!TargetComponent)
+
+	const AActor* Avatar = GetAvatarActorFromActorInfo();
+	UWxLockOnComponent* LockOnComp = Avatar ? Avatar->FindComponentByClass<UWxLockOnComponent>() : nullptr;
+	if (!TargetComponent || !LockOnComp)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
+	// 대상은 컴포넌트 하나가 들고 두 태스크는 매 틱 그 값을 읽는다 — 이후 교체·해제는 컴포넌트에만 쓴다.
+	LockOnComponent = LockOnComp;
+	LockOnComp->SetLockOnTarget(TargetComponent);
+
 	ListenForDodgeRotation();
-
-	const AActor* Owner = GetOwningActorFromActorInfo();
-	LockOnComponent = Owner ? Owner->FindComponentByClass<UWxLockOnComponent>() : nullptr;
-	if (UWxLockOnComponent* LockOnComp = LockOnComponent.Get())
+	if (!IsDodgeActive())
 	{
-		LockOnComp->OnLockOnTargetChanged.AddDynamic(this, &UWxAbility_LockOn::HandleLockOnTargetChanged);
-		LockOnComp->SetLockOnTarget(TargetComponent);
-	}
-	else if (!IsDodgeActive())
-	{
-		StartRotateToTargetTask(TargetComponent);
+		StartRotateToTargetTask();
 	}
 
-	LockOnTask = UWxAbilityTask_LockOnCamera::CreateTask(this, TargetComponent, CameraInterpSpeed, CameraPitchOffset, MaxDistance, RetargetLookThreshold);
+	UWxAbilityTask_LockOnCamera* LockOnTask = UWxAbilityTask_LockOnCamera::CreateTask(this, CameraInterpSpeed, CameraPitchOffset, MaxDistance, RetargetLookThreshold);
 	LockOnTask->OnTargetLost.AddDynamic(this, &UWxAbility_LockOn::HandleTargetLost);
 	LockOnTask->OnRetargetRequested.AddDynamic(this, &UWxAbility_LockOn::HandleRetargetRequested);
 	LockOnTask->ReadyForActivation();
-
 }
 
 void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -104,37 +101,21 @@ void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 	{
 		if (UWxLockOnComponent* LockOnComp = LockOnComponent.Get())
 		{
-			LockOnComp->OnLockOnTargetChanged.RemoveDynamic(this, &UWxAbility_LockOn::HandleLockOnTargetChanged);
 			LockOnComp->SetLockOnTarget(nullptr);
 		}
 		LockOnComponent = nullptr;
 		StopRotateToTargetTask();
 
-		if (SavedOrientRotationToMovement.IsSet())
+		// 평상시 회전 모드는 폰마다 다를 수 있으므로 무브먼트 아키타입(폰 BP·C++ 생성자 기본값)에서 읽어 되돌린다.
+		const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
+		UCharacterMovementComponent* Movement = Character ? Character->GetCharacterMovement() : nullptr;
+		if (const UCharacterMovementComponent* MovementDefaults = Movement ? Cast<UCharacterMovementComponent>(Movement->GetArchetype()) : nullptr)
 		{
-			const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
-			if (UCharacterMovementComponent* Movement = Character ? Character->GetCharacterMovement() : nullptr)
-			{
-				Movement->bOrientRotationToMovement = SavedOrientRotationToMovement.GetValue();
-			}
-
-			SavedOrientRotationToMovement.Reset();
+			Movement->bOrientRotationToMovement = MovementDefaults->bOrientRotationToMovement;
 		}
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-
-	LockOnTask = nullptr;
-}
-
-void UWxAbility_LockOn::HandleLockOnTargetChanged(USceneComponent* NewTarget)
-{
-	StopRotateToTargetTask();
-
-	if (NewTarget && !IsDodgeActive())
-	{
-		StartRotateToTargetTask(NewTarget);
-	}
 }
 
 void UWxAbility_LockOn::HandleDodgeTagAdded()
@@ -144,10 +125,7 @@ void UWxAbility_LockOn::HandleDodgeTagAdded()
 
 void UWxAbility_LockOn::HandleDodgeTagRemoved()
 {
-	if (UWxLockOnComponent* LockOnComp = LockOnComponent.Get())
-	{
-		StartRotateToTargetTask(LockOnComp->GetLockOnTarget());
-	}
+	StartRotateToTargetTask();
 }
 
 void UWxAbility_LockOn::ListenForDodgeRotation()
@@ -161,14 +139,14 @@ void UWxAbility_LockOn::ListenForDodgeRotation()
 	RemovedTask->ReadyForActivation();
 }
 
-void UWxAbility_LockOn::StartRotateToTargetTask(USceneComponent* TargetComponent)
+void UWxAbility_LockOn::StartRotateToTargetTask()
 {
-	if (!TargetComponent || RotateToTargetTask)
+	if (RotateToTargetTask)
 	{
 		return;
 	}
 
-	RotateToTargetTask = UWxAbilityTask_RotateToTarget::CreateTask(this, TargetComponent, CharacterInterpSpeed);
+	RotateToTargetTask = UWxAbilityTask_RotateToTarget::CreateTask(this, CharacterInterpSpeed);
 	RotateToTargetTask->ReadyForActivation();
 }
 
@@ -189,8 +167,8 @@ bool UWxAbility_LockOn::IsDodgeActive() const
 
 void UWxAbility_LockOn::HandleTargetLost()
 {
-	AActor* Avatar = GetOwningActorFromActorInfo();
-	UWxLockOnComponent* LockOnComp = Avatar ? Avatar->FindComponentByClass<UWxLockOnComponent>() : nullptr;
+	const AActor* Avatar = GetAvatarActorFromActorInfo();
+	UWxLockOnComponent* LockOnComp = LockOnComponent.Get();
 	if (bRetargetOnTargetLost && IsLocallyControlled() && Avatar && LockOnComp)
 	{
 		// 락온 대상은 컴포넌트지만 후보 비교/제외는 액터 단위이므로 소유 액터로 환원한다.
@@ -221,7 +199,7 @@ void UWxAbility_LockOn::HandleTargetLost()
 				continue;
 			}
 
-			// 컴포넌트에만 설정하면 태스크가 OnLockOnTargetChanged로 즉시 추적을 잇는다(권위 반영은 서버 RPC).
+			// 컴포넌트에만 설정하면 태스크가 다음 틱에 새 대상을 읽어 추적을 잇는다(권위 반영은 서버 RPC).
 			LockOnComp->SetLockOnTarget(TargetComponent);
 			return;
 		}
@@ -232,20 +210,14 @@ void UWxAbility_LockOn::HandleTargetLost()
 
 void UWxAbility_LockOn::HandleRetargetRequested(FVector2D ScreenDirection)
 {
-	if (!LockOnTask)
-	{
-		return;
-	}
-
 	APlayerController* PC = CurrentActorInfo ? Cast<APlayerController>(CurrentActorInfo->PlayerController.Get()) : nullptr;
-	AActor* Avatar = GetOwningActorFromActorInfo();
-	if (!PC || !Avatar)
+	UWxLockOnComponent* LockOnComp = LockOnComponent.Get();
+	if (!PC || !LockOnComp)
 	{
 		return;
 	}
 
-	UWxLockOnComponent* LockOnComp = Avatar->FindComponentByClass<UWxLockOnComponent>();
-	const USceneComponent* CurrentComponent = LockOnComp ? LockOnComp->GetLockOnTarget() : nullptr;
+	const USceneComponent* CurrentComponent = LockOnComp->GetLockOnTarget();
 
 	int32 ViewportX = 0;
 	int32 ViewportY = 0;
@@ -306,7 +278,7 @@ void UWxAbility_LockOn::HandleRetargetRequested(FVector2D ScreenDirection)
 		}
 	}
 
-	if (BestTargetComponent && LockOnComp)
+	if (BestTargetComponent)
 	{
 		LockOnComp->SetLockOnTarget(BestTargetComponent);
 	}
@@ -325,16 +297,7 @@ void UWxAbility_LockOn::GatherCandidates(TArray<AActor*>& OutCandidates) const
 	FTargetingSourceContext SourceContext;
 	SourceContext.SourceActor = GetOwningActorFromActorInfo();
 	FTargetingRequestHandle RequestHandle = UTargetingSubsystem::MakeTargetRequestHandle(TargetingPreset, SourceContext);
-	TargetingSubsystem->ExecuteTargetingRequestWithHandle(RequestHandle, FTargetingRequestDelegate());
-
-	FTargetingDefaultResultsSet& ResultsSet = FTargetingDefaultResultsSet::FindOrAdd(RequestHandle);
-	for (const FTargetingDefaultResultData& Result : ResultsSet.TargetResults)
-	{
-		if (AActor* Actor = Result.HitResult.GetActor())
-		{
-			OutCandidates.Add(Actor);
-		}
-	}
-
+	TargetingSubsystem->ExecuteTargetingRequestWithHandle(RequestHandle);
+	TargetingSubsystem->GetTargetingResultsActors(RequestHandle, OutCandidates);
 	UTargetingSubsystem::ReleaseTargetRequestHandle(RequestHandle);
 }

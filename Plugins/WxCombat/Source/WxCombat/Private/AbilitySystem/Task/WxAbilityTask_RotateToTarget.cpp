@@ -3,21 +3,30 @@
 #include "AbilitySystem/Task/WxAbilityTask_RotateToTarget.h"
 #include "Components/SceneComponent.h"
 #include "GameFramework/Character.h"
+#include "Targeting/WxLockOnComponent.h"
 
-UWxAbilityTask_RotateToTarget* UWxAbilityTask_RotateToTarget::CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed)
+UWxAbilityTask_RotateToTarget* UWxAbilityTask_RotateToTarget::CreateTask(UGameplayAbility* OwningAbility, float InInterpSpeed)
 {
 	UWxAbilityTask_RotateToTarget* Task = NewAbilityTask<UWxAbilityTask_RotateToTarget>(OwningAbility);
-	Task->Target = InTarget;
 	Task->InterpSpeed = InInterpSpeed;
 	Task->bTickingTask = true;
 	return Task;
+}
+
+void UWxAbilityTask_RotateToTarget::Activate()
+{
+	Super::Activate();
+
+	const AActor* Avatar = GetAvatarActor();
+	LockOnComponent = Avatar ? Avatar->FindComponentByClass<UWxLockOnComponent>() : nullptr;
 }
 
 void UWxAbilityTask_RotateToTarget::TickTask(float DeltaTime)
 {
 	Super::TickTask(DeltaTime);
 
-	const USceneComponent* TargetComponent = Target.Get();
+	const UWxLockOnComponent* Comp = LockOnComponent.Get();
+	const USceneComponent* TargetComponent = Comp ? Comp->GetLockOnTarget() : nullptr;
 	ACharacter* Character = Cast<ACharacter>(GetAvatarActor());
 	if (!TargetComponent || !Character)
 	{

@@ -6,10 +6,9 @@
 #include "Targeting/WxLockOnComponent.h"
 #include "Targeting/WxLockOnPointComponent.h"
 
-UWxAbilityTask_LockOnCamera* UWxAbilityTask_LockOnCamera::CreateTask(UGameplayAbility* OwningAbility, USceneComponent* InTarget, float InInterpSpeed, float InPitchOffset, float InMaxDistance, float InRetargetLookThreshold)
+UWxAbilityTask_LockOnCamera* UWxAbilityTask_LockOnCamera::CreateTask(UGameplayAbility* OwningAbility, float InInterpSpeed, float InPitchOffset, float InMaxDistance, float InRetargetLookThreshold)
 {
 	UWxAbilityTask_LockOnCamera* Task = NewAbilityTask<UWxAbilityTask_LockOnCamera>(OwningAbility);
-	Task->Target = InTarget;
 	Task->InterpSpeed = InInterpSpeed;
 	Task->PitchOffset = InPitchOffset;
 	Task->MaxDistanceSquared = InMaxDistance * InMaxDistance;
@@ -22,10 +21,11 @@ void UWxAbilityTask_LockOnCamera::TickTask(float DeltaTime)
 {
 	Super::TickTask(DeltaTime);
 
-	USceneComponent* TargetComponent = Target.Get();
+	UWxLockOnComponent* Comp = LockOnComponent.Get();
+	USceneComponent* TargetComponent = Comp ? Comp->GetLockOnTarget() : nullptr;
 	if (!TargetComponent)
 	{
-		// 대상 액터 또는 추적 중인 부위 컴포넌트가 파괴되면 약참조가 풀려 여기서 락온이 해제된다.
+		// 대상 액터나 추적 중인 부위 컴포넌트가 파괴돼도 GetLockOnTarget이 널로 답해 여기서 락온이 해제된다.
 		if (ShouldBroadcastAbilityTaskDelegates())
 		{
 			OnTargetLost.Broadcast();
@@ -78,12 +78,6 @@ void UWxAbilityTask_LockOnCamera::TickTask(float DeltaTime)
 	const FRotator NewControlRotation = FMath::RInterpTo(PC->GetControlRotation(), DesiredControlRotation, DeltaTime, InterpSpeed);
 	PC->SetControlRotation(NewControlRotation);
 
-	UWxLockOnComponent* Comp = LockOnComponent.Get();
-	if (!Comp)
-	{
-		return;
-	}
-
 	const FVector2D LookAxis = Comp->ConsumeLookInput();
 	if (LookAxis.IsNearlyZero())
 	{
@@ -104,81 +98,10 @@ void UWxAbilityTask_LockOnCamera::TickTask(float DeltaTime)
 	}
 }
 
-void UWxAbilityTask_LockOnCamera::OnDestroy(bool bInOwnerFinished)
-{
-	if (UWxLockOnComponent* Comp = LockOnComponent.Get())
-	{
-		Comp->OnLockOnTargetChanged.RemoveDynamic(this, &UWxAbilityTask_LockOnCamera::HandleLockOnTargetChanged);
-	}
-
-	UnbindTarget();
-
-	Super::OnDestroy(bInOwnerFinished);
-}
-
 void UWxAbilityTask_LockOnCamera::Activate()
 {
 	Super::Activate();
 
-	// 락온 대상의 권위·복제 소스는 컴포넌트다.
 	const AActor* Avatar = GetAvatarActor();
 	LockOnComponent = Avatar ? Avatar->FindComponentByClass<UWxLockOnComponent>() : nullptr;
-	if (UWxLockOnComponent* Comp = LockOnComponent.Get())
-	{
-		Comp->OnLockOnTargetChanged.AddDynamic(this, &UWxAbilityTask_LockOnCamera::HandleLockOnTargetChanged);
-		Target = Comp->GetLockOnTarget();
-	}
-
-	// 컴포넌트가 없으면 생성 시 주입된 초기 타겟으로 폴백한다.
-	BindTarget();
-}
-
-void UWxAbilityTask_LockOnCamera::HandleLockOnTargetChanged(USceneComponent* NewTarget)
-{
-	if (NewTarget == Target.Get())
-	{
-		return;
-	}
-
-	UnbindTarget();
-	Target = NewTarget;
-	if (NewTarget)
-	{
-		BindTarget();
-	}
-	// NewTarget 이 null 이면 다음 TickTask 가 무효 Target 을 감지해 OnTargetLost 를 발생시킨다.
-}
-
-void UWxAbilityTask_LockOnCamera::BindTarget()
-{
-	USceneComponent* TargetComponent = Target.Get();
-	if (!TargetComponent)
-	{
-		return;
-	}
-
-	// 파괴 이벤트는 소유 액터 단위라, 부위 컴포넌트만 파괴돼도 정확히 해제하려고 바인딩한 액터를 캐시한다.
-	AActor* TargetActor = TargetComponent->GetOwner();
-	BoundTargetActor = TargetActor;
-	if (TargetActor)
-	{
-		TargetActor->OnDestroyed.AddDynamic(this, &UWxAbilityTask_LockOnCamera::HandleTargetDestroyed);
-	}
-}
-
-void UWxAbilityTask_LockOnCamera::UnbindTarget()
-{
-	if (AActor* TargetActor = BoundTargetActor.Get())
-	{
-		TargetActor->OnDestroyed.RemoveDynamic(this, &UWxAbilityTask_LockOnCamera::HandleTargetDestroyed);
-	}
-	BoundTargetActor = nullptr;
-}
-
-void UWxAbilityTask_LockOnCamera::HandleTargetDestroyed(AActor* DestroyedActor)
-{
-	if (ShouldBroadcastAbilityTaskDelegates())
-	{
-		OnTargetLost.Broadcast();
-	}
 }
