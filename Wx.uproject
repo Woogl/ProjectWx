@@ -80,6 +80,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "DataTableRowFixup",
+			"Enabled": true
+		},
+		{
 			"Name": "BoxComponentVisualizer",
 			"Enabled": true
 		},

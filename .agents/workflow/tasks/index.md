@@ -10,6 +10,7 @@
 
 ## 작업 인계
 
+- [DataTable 행 이름 변경 시 사용처 참조 갱신](datatable-row-rename-reference-update.md)
 - [Quest 표시 VM을 WxUI로 이전](quest-presentation-vm.md)
 - [Dialogue VM을 순수 표시 데이터로 분리](dialogue-presentation-vm.md)
 - [Ability Resolver를 WxUI로 이동](ability-resolver-to-wxui.md)
