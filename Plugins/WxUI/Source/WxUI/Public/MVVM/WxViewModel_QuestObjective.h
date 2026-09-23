@@ -11,7 +11,7 @@
  * UWxViewModel_Quest 가 표시 중인 목표 하나당 하나씩 생성/소유한다.
  */
 UCLASS()
-class WXGAME_API UWxViewModel_QuestObjective : public UWxViewModel
+class WXUI_API UWxViewModel_QuestObjective : public UWxViewModel
 {
 	GENERATED_BODY()
 

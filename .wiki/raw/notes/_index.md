@@ -34,3 +34,8 @@ Last updated: 2026-09-23
 | [Workflow 승인 버전·정리 완료·승인자 기록](2026-09-22-workflow-closure.md) | P1·P2 개선 요청에 따라 승인 버전 검증, 테스트 수용과 정리 완료 분리, 승인자 기록을 구현한 근거 | wx, workflow | 2026-09-22 |
 | [Workflow 단계별 일감 대시보드](2026-09-22-workflow-dashboard.md) | 사용자 요청과 단계별 대시보드 구현·검증 범위 | wx, workflow | 2026-09-22 |
 | [Workflow 기획서 검토 전환과 검색 제거](2026-09-22-workflow-review.md) | 사용자 요청: 개발자가 전달받은 기획서를 검토하고 Workflow 문서 검색을 제거한다. | wx, workflow | 2026-09-22 |
+| [Ability Resolver의 WxUI 소유와 이전 경로 호환](2026-09-23-ability-resolver-module.md) | Ability Resolver를 WxUI로 이동하고 기존 WxGame 클래스 경로를 ClassRedirect로 유지했다. | wx, ui, static-review | 2026-09-23 |
+| [Ability Resolver를 Ability VM 파일에 통합](2026-09-23-ability-resolver-colocation.md) | 사용자 추가 지시로 WxUI의 Ability VM 헤더와 cpp에 Resolver를 함께 배치했다. | wx, ui, static-review | 2026-09-23 |
+| [Dialogue VM 순수 표시 데이터 분리와 모듈 경계](2026-09-23-dialogue-presentation-vm.md) | Dialogue VM은 WxUI 표시 데이터로, 세션 연결과 진행 입력은 WxGame Resolver와 화면으로 분리했다. | wx, ui, dialogue, architecture | 2026-09-23 |
+| [Dialogue 화면 수명으로 연결 책임 통합](2026-09-23-dialogue-screen-lifecycle.md) | 사용자 승인으로 Dialogue Resolver를 제거하고 화면 활성화·비활성화가 세션 구독과 표시 갱신을 소유한다. | wx, ui, dialogue, lifecycle | 2026-09-23 |
+| [Quest 표시 VM과 화면 연결의 분리](2026-09-23-quest-presentation-vm.md) | Quest·QuestObjective는 WxUI 표시 데이터, WxGame QuestTracker는 저널 구독을 소유 | wx, ui, quests, lifecycle | 2026-09-23 |

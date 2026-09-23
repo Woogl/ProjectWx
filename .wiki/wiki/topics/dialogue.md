@@ -2,6 +2,8 @@
 title: "WxDialogue — 대화 세션"
 category: topic
 sources:
+  - "raw/notes/2026-09-23-dialogue-screen-lifecycle.md"
+  - "raw/notes/2026-09-23-dialogue-presentation-vm.md"
   - "raw/notes/2026-09-22-current-dialogue.md"
   - "raw/notes/2026-09-22-current-dialogue-definition.md"
   - "raw/notes/2026-09-22-current-ui.md"
@@ -30,6 +32,8 @@ summary: "대화 정의는 액터에, 진행 세션은 PlayerController에 두�
 
 ## 수명과 연출
 
+화면 연결은 WxGame의 WxDialogueScreen이 담당한다. MVVM Create Instance로 생성된 WxUI의 순수 표시 VM에 활성화 때 세션 OnLineChanged를 연결하고 현재 대사를 채운다. 비활성화·파괴 때 구독을 해제하고, 다시 활성화하면 현재 상태로 복구한다. 진행 요청도 화면이 받아 관찰 세션의 Advance로 전달한다. Dialogue Resolver는 제거했으며 WxUI와 WxDialogue 간 의존성이나 WxCore 중계 로직은 추가하지 않는다. 최종 검증 범위는 [작업 기록](../../../.agents/workflow/tasks/dialogue-presentation-vm.md)에 있으며 인게임 동작과 정적·자동화 검증을 구분한다.
+
 빙의가 바뀌면 대화는 미완료로 종료된다. 종료 통지는 델리게이트를 사본으로 옮기고 원본을 비운 뒤 발행한다. 종료 콜백에서 새 대화를 여는 경우 새 구독을 지우지 않기 위한 순서다.
 
 카메라는 로컬 플레이어·Pawn·대상이 있는 경우 임시 CameraActor로 블렌드한다. 복귀 블렌드가 끝나도록 카메라에 수명을 준다. 행의 포즈 몽타주는 소프트 참조라 배치 NPC가 테이블을 붙잡고 있어도 미리 올라오지 않는다. 대상 포즈는 대사를 넘길 때 비동기 로드하며 새 포즈 요청 때 이전 핸들을 취소한다. 세션 종료는 마지막 포즈의 로딩을 취소하지 않으므로 대화 종료와 포즈 재생 수명은 같지 않다.
@@ -48,6 +52,10 @@ summary: "대화 정의는 액터에, 진행 세션은 PlayerController에 두�
 - [[ui|WxUI — 화면 레이어와 표시 수명]] ([WxUI — 화면 레이어와 표시 수명](../topics/ui.md))
 
 ## Sources
+
+- [화면 수명으로 연결 책임 통합](../../raw/notes/2026-09-23-dialogue-screen-lifecycle.md)
+
+- [Dialogue 표시 VM과 입력 분리](../../raw/notes/2026-09-23-dialogue-presentation-vm.md)
 
 - [근거 1](../../raw/notes/2026-09-22-current-dialogue.md)
 - [대화 정의·호스트·행 데이터와 세션 계약 조사](../../raw/notes/2026-09-22-current-dialogue-definition.md) — 호스트 액터·행 규칙·세션 계약

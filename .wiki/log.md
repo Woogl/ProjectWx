@@ -90,3 +90,6 @@
 ## [2026-09-23] ingest | 사망·대화 화면 주인을 컨트롤러 컴포넌트로 이동 (raw/notes/2026-09-23-player-screen-owner.md)
 
 ## [2026-09-23] compile | 1 source → 0 new articles, 2 updated (ui, dialogue). 사망·대화 화면 클래스·태그 관찰의 주인이 UWxPlayerLayoutComponent로 바뀐 것과 설정/컨트롤러 BP 배치 기준을 반영했다. 인게임 동작은 사용자 확인.
+## 2026-09-23 — 표시 VM 모듈 경계와 화면 수명
+
+Ability Resolver의 WxUI 통합과 Dialogue·Quest·QuestObjective의 순수 표시 VM 이전을 원자료 5개로 수집해 ui·dialogue·quests에 반영했다. 도메인 구독은 WxGame 화면 수명이 담당하며 새 Wx 기능 모듈 의존성이나 WxCore 로직은 추가하지 않는다. 빌드·에셋 컴파일·수명 테스트의 검증 범위는 각 작업 기록에 남겼다. 사용자 요청으로 검증용 C++ 테스트와 friend 선언을 제거했다.

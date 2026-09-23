@@ -10,6 +10,10 @@
 
 ## 작업 인계
 
+- [Quest 표시 VM을 WxUI로 이전](quest-presentation-vm.md)
+- [Dialogue VM을 순수 표시 데이터로 분리](dialogue-presentation-vm.md)
+- [Ability Resolver를 WxUI로 이동](ability-resolver-to-wxui.md)
+
 - [Wiki 전체 재생성](wiki-regeneration.md)
 - [상호작용 목록 VM 단순화](interaction-list-vm-simplification.md)
 - [사망·대화 화면 클래스를 컨트롤러 컴포넌트로 이동](player-screen-classes-to-layout-component.md)

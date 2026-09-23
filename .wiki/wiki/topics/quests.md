@@ -2,16 +2,17 @@
 title: "WxQuest — 퀘스트 실행과 저널"
 category: topic
 sources:
+  - "raw/notes/2026-09-23-quest-presentation-vm.md"
   - "raw/notes/2026-09-22-current-quests.md"
   - "raw/notes/2026-09-22-current-quest-tasks.md"
   - "raw/notes/2026-09-22-current-game.md"
 created: 2026-09-22
-updated: 2026-09-22
+updated: 2026-09-23
 tags: [wx, quests]
 aliases: ["WxQuest"]
 confidence: medium
 volatility: warm
-verified: 2026-09-22
+verified: 2026-09-23
 summary: "WxQuest는 권위 측의 단일 StateTree 러너와 제목·목표 저널을 제공하며, 실제 진행 내용은 에셋이 구성한다."
 ---
 
@@ -33,7 +34,7 @@ WxQuest는 권위 측의 단일 StateTree 러너와 제목·목표 저널을 제
 
 ## 조립과 범위
 
-WxGame의 GameState가 퀘스트 컴포넌트를 기본 서브오브젝트로 소유한다. 게임 ViewModel은 위젯 생성 때 GameState에서 컴포넌트를 찾아 `OnJournalChanged`를 구독하고 현재 저널로 값을 채운다. 컴포넌트가 늦게 준비되어도 같은 ViewModel에 다시 주입하는 경로는 없다. StateTree에는 제목·목표·도달 대기·다음 퀘스트 태스크를 조합하며 보상·대화·장치 행동은 각 도메인 노드가 담당한다. 제목·목표·다음 퀘스트 태스크는 컨텍스트 오너(GameState)에서 컴포넌트를 찾고 없으면 Failed로 끝난다. 도달 대기는 0번 PlayerController의 Pawn과 Locator 대상의 거리를 틱마다 비교한다.
+WxGame의 GameState가 퀘스트 컴포넌트를 기본 서브오브젝트로 소유한다. Quest·QuestObjective ViewModel 자체는 WxUI의 순수 표시 데이터다. WxGame의 `UWxQuestTracker`가 NativeConstruct에서 MVVM의 Create Instance 소스를 얻은 뒤 GameState의 컴포넌트를 찾아 `OnJournalChanged`를 구독하고 현재 저널을 SetJournal로 전달한다. NativeDestruct 전에 해제하고 재생성 시 새 VM에 현재 저널을 다시 채운다. 별도 Quest Resolver는 없다. 목표 행 VM은 Quest VM이 소유한다. 컴포넌트가 늦게 준비될 때 자동 재연결하는 경로는 없다. StateTree에는 제목·목표·도달 대기·다음 퀘스트 태스크를 조합하며 보상·대화·장치 행동은 각 도메인 노드가 담당한다. 제목·목표·다음 퀘스트 태스크는 컨텍스트 오너(GameState)에서 컴포넌트를 찾고 없으면 Failed로 끝난다. 도달 대기는 0번 PlayerController의 Pawn과 Locator 대상의 거리를 틱마다 비교한다.
 
 현재 컴포넌트에는 저널 복제·세이브 복원·복수 퀘스트 목록 구현이 없다. 권위 러너의 존재를 모든 클라이언트에서 동일한 저널을 볼 수 있다는 뜻으로 해석하지 않는다. 레벨 대상의 Locator가 있다고 해서 월드 파티션 로딩과 실제 도달 판정까지 검증된 것도 아니다.
 
@@ -48,6 +49,8 @@ WxGame의 GameState가 퀘스트 컴포넌트를 기본 서브오브젝트로 �
 - [[world|WxWorld — 장치와 상호작용]] ([WxWorld — 장치와 상호작용](../topics/world.md))
 
 ## Sources
+
+- [Quest 표시 VM 분리](../../raw/notes/2026-09-23-quest-presentation-vm.md) — 이전 저널 VM 구독 설명을 대체하며 검증 범위는 작업 기록에 구분한다.
 
 - [근거 1](../../raw/notes/2026-09-22-current-quests.md)
 - [퀘스트 계약·StateTree 태스크·저널 표시 조사](../../raw/notes/2026-09-22-current-quest-tasks.md) — 수주·태스크·저널 ViewModel

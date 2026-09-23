@@ -71,7 +71,7 @@ public:
 	/** 등록 순서대로 돌려준다. */
 	TArray<FText> GetObjectiveTexts() const;
 
-	/** 저널 등록·목표 갱신·정리 시 발화. HUD 뷰모델이 구독해 현재 값을 pull 한다. */
+	/** 저널 등록·목표 갱신·정리 시 발화. HUD 화면이 구독해 현재 값을 표시 뷰모델에 전달한다. */
 	UPROPERTY(BlueprintAssignable, Category = "Wx|Quest")
 	FWxOnQuestJournalChanged OnJournalChanged;
 
