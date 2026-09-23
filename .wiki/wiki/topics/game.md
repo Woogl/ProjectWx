@@ -7,6 +7,7 @@ sources:
   - "raw/notes/2026-09-23-boss-battle-three-layer.md"
   - "raw/notes/2026-09-24-nameplate-manager.md"
   - "raw/notes/2026-09-24-nameplate-manager-wxgame.md"
+  - "raw/notes/2026-09-24-ragdoll-physics-asset.md"
 created: 2026-09-22
 updated: 2026-09-24
 tags: [wx, game]
@@ -35,6 +36,8 @@ WxGame은 캐릭터·컨트롤러·GameState에 도메인 기능을 배치하고
 `AWxPlayerController`에 붙은 WxGame `UWxNameplateManagerComponent`가 빙의 캐릭터의 락온 대상과 적의 교전 태그를 직접 읽어 머리 위 Nameplate·Reticle을 붙인다. 락온(WxCombat)과 위젯·VM(WxUI)을 함께 알아야 하는 연결 코드라 조립 계층에 있다. 표시 규칙은 [UI](ui.md)의 머리 위 Nameplate 절에 있다.
 
 ASC는 PlayerState가 아니라 캐릭터의 기본 서브오브젝트다. 사망·래그돌 태그 구독은 PostInitializeComponents에 있어 시뮬레이티드 프록시까지 포함한다. 보상처럼 권위에서만 처리할 동작은 해당 구독자에서 다시 권한을 확인해야 한다.
+
+래그돌은 캐릭터 메시의 PhysicsAsset으로 시뮬레이션한다. 마네킹 메시 네 개(`SKM_Manny`·`SKM_Manny_Simple`·`SKM_Quinn`·`SKM_Quinn_Simple`)는 모두 `/Game/NiagaraExamples/Gallery/SkeletalMesh/Mannequins/Rigs/PA_Mannequin`을 쓴다. `/Game/Mannequins/Rigs/PA_Mannequin`은 쓰지 않는다. 기본 자세부터 겹치는 바디 쌍(pelvis–spine_03, spine_05–upperarm_l)의 충돌이 켜져 있어 래그돌이 떨리기 때문이다. 정본 PA가 예제 폴더에 있으므로 예제 콘텐츠를 지우면 PA 참조가 끊긴다.
 
 **알려진 미수정 문제 (2026-09-23 리뷰)**: 레벨 스트리밍으로 숨겼다 다시 보이면 `PostInitializeComponents`가 다시 실행된다(UE 5.8 `Actor.cpp` RouteEndPlay·`Level.cpp` 재초기화). 그러면 사망·래그돌 구독이 중복되어, 사망 시 `OnDeath`와 보상 지급이 두 번 일어날 수 있다.
 
@@ -89,12 +92,13 @@ ASC는 PlayerState가 아니라 캐릭터의 기본 서브오브젝트다. 사�
 - [보스 표시 세 층 구조](../../raw/notes/2026-09-23-boss-battle-three-layer.md)
 - [Nameplate·Reticle을 로컬 NameplateManager로](../../raw/notes/2026-09-24-nameplate-manager.md)
 - [NameplateManager를 WxGame으로](../../raw/notes/2026-09-24-nameplate-manager-wxgame.md)
+- [래그돌 떨림과 PhysicsAsset 통일](../../raw/notes/2026-09-24-ragdoll-physics-asset.md)
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
 
 2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
 
-빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 2026-09-23에 보스전 상태·식별 태그·재초기화 문제(커밋 `4352e9100`, UE 5.8 소스 확인)를 편찬해 추가했다. 2026-09-24에 NameplateManager 부착과 `LockOnTargetQuery` 연결(커밋 `aaf557a09`)을 HEAD `ca84c9aac` 코드와 대조해 추가했다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
+빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 2026-09-23에 보스전 상태·식별 태그·재초기화 문제(커밋 `4352e9100`, UE 5.8 소스 확인)를 편찬해 추가했다. 2026-09-24에 NameplateManager 부착과 `LockOnTargetQuery` 연결(커밋 `aaf557a09`)을 HEAD `ca84c9aac` 코드와 대조해 추가했다. 같은 날 래그돌 PhysicsAsset 절을 에셋 값(메시의 PhysicsAsset, PA 바디·컨스트레인트·충돌 비활성 표)과 대조해 추가했다(인게임 미검증). 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
 
 </details>
