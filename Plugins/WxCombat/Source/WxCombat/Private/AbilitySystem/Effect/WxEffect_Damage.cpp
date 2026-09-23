@@ -23,7 +23,7 @@ UWxEffect_Damage::UWxEffect_Damage()
 	TagReqComp->ApplicationTagRequirements.IgnoreTags.AddTag(WxGameplayTags::Ability_Death);
 	GEComponents.Add(TagReqComp);
 
-	// 실행 후 반응은 추가한 순서대로 돈다: 피격 반응 → 퍼펙트 가드 → 히트스톱 → 추가 효과.
+	// 실행 후 반응은 추가한 순서대로 돈다.
 	GEComponents.Add(CreateDefaultSubobject<UWxEffectComponent_DamageReaction>(TEXT("DamageReaction")));
 	GEComponents.Add(CreateDefaultSubobject<UWxEffectComponent_PerfectGuard>(TEXT("PerfectGuard")));
 	GEComponents.Add(CreateDefaultSubobject<UWxEffectComponent_HitStop>(TEXT("HitStop")));
@@ -168,7 +168,6 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	if (bPerfectGuardApplied)
 	{
-		// 피해 대신 반사량을 반사 메타 속성으로 출력한다.
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(Statics.IncomingReflectProperty, EGameplayModOp::Additive, FinalDamage));
 		return;
 	}

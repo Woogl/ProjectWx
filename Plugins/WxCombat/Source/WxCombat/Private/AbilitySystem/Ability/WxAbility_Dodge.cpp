@@ -200,7 +200,7 @@ void UWxAbility_Dodge::ListenForDodgeSuccess()
 		return;
 	}
 
-	// 무적의 Immunity가 공격 피해를 막은 순간이 회피 성공이다. 피해 적용은 서버에서만 일어나므로 이 통지도 서버에서만 온다.
+	// 피해 적용은 서버에서만 일어나므로 이 통지도 서버에서만 온다.
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 	{
 		ImmunityBlockHandle = ASC->OnImmunityBlockGameplayEffectDelegate.AddUObject(this, &UWxAbility_Dodge::HandleImmunityBlock);

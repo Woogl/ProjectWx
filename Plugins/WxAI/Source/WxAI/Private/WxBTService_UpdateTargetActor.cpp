@@ -46,7 +46,7 @@ void UWxBTService_UpdateTargetActor::TickNode(UBehaviorTreeComponent& OwnerComp,
 		return;
 	}
 
-	// 타겟에서 내려오는 대상은 감지 기록까지 지운다 — 청각·촉각 자극은 MaxAge 안에 남아 있어, 자격을 되찾는 순간 그대로 어그로가 된다.
+	// 타겟에서 내려오는 대상은 감지 기록까지 지운다 — Hearing·Damage 자극은 MaxAge 안에 남아 있어, 자격을 되찾는 순간 그대로 어그로가 된다.
 	Perception->ForgetActor(CurrentTarget);
 
 	WxBlackboardKeys::SetTargetActor(Blackboard, FindPerceivedTarget(*Perception, AIController->GetPawn()));

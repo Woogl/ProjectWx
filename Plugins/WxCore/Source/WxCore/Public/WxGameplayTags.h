@@ -236,7 +236,7 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Magnitude);
 	
-	/** NoCooldown/InfiniteMP/HitStop의 DurationMagnitude에서 공용으로 사용 */
+	/** WxEffect_HitStop의 DurationMagnitude에서 사용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Duration);
 
 	/** WxExecCalc_Damage가 ATK 어트리뷰트에 곱하는 배율 */

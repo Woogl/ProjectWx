@@ -199,10 +199,10 @@ bool UWxAbilityBase::DoesAbilitySatisfyTagRequirements(const UAbilitySystemCompo
 		return true;
 	}
 
-	// 콤보 창에서는 이 어빌리티가 선언한 진입 태그 조건만 면제한다 — 자기 발동이 실어 둔 상태 태그에 자기 다음 단이 막히지 않게 하려는 것이다.
+	// 자기 발동이 실어 둔 상태 태그에 자기 다음 단이 막히지 않게 한다.
 	if (IsActive() && ActionPhase == EWxAbilityActionPhase::ComboWindow)
 	{
-		// 효과가 BlockAbilityTags로 건 차단은 면제 밖이다. 무적·슈퍼아머·사망이 막겠다고 선언한 어빌리티는 콤보 중에도 막혀야 한다.
+		// 무적·슈퍼아머·사망이 막겠다고 선언한 어빌리티는 콤보 중에도 막혀야 한다.
 		if (!AbilitySystemComponent.AreAbilityTagsBlocked(GetAssetTags()))
 		{
 			return true;

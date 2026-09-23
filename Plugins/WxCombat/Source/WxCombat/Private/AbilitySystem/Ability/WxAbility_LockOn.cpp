@@ -78,7 +78,7 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	// 대상은 컴포넌트 하나가 들고 두 태스크는 매 틱 그 값을 읽는다 — 이후 교체·해제는 컴포넌트에만 쓴다.
+	// 이후 교체·해제는 컴포넌트에만 쓴다.
 	LockOnComponent = LockOnComp;
 	LockOnComp->SetLockOnTarget(TargetComponent);
 
@@ -96,7 +96,7 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	// 대상을 비워 락온을 해제한다. Reticle과 Nameplate는 NameplateManager가 이 값을 매 틱 읽어 정리한다.
+	// Reticle과 Nameplate는 NameplateManager가 이 값을 매 틱 읽어 정리한다.
 	if (ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
 	{
 		if (UWxLockOnComponent* LockOnComp = LockOnComponent.Get())
