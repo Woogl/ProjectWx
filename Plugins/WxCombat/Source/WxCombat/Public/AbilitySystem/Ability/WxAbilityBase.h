@@ -123,14 +123,8 @@ public:
 	/** UWxEffect_Cooldown 파생 GE는 테이블에 쿨다운 수치가 없으면 nullptr — 호출자들이 이것을 "쿨다운 없음" 게이트로 쓴다. */
 	virtual UGameplayEffect* GetCooldownGameplayEffect() const override;
 
-	/**
-	 * 남은 충전이 있으면 쿨다운 태그가 붙어 있어도 통과시킨다. (MaxRecharges)
-	 * 소유자에게 Effect.IgnoreCooldowns가 있으면 무조건 통과한다.
-	 */
+	/** 남은 충전이 있으면 쿨다운 태그가 붙어 있어도 통과시킨다. (MaxRecharges) */
 	virtual bool CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
-
-	/** 소유자에게 Effect.IgnoreCooldowns가 있으면 쿨다운을 걸지 않는다. */
-	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
 	/** 소유자에게 Effect.IgnoreCosts가 있으면 무조건 통과한다. */
 	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;

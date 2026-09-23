@@ -7,8 +7,8 @@
 #include "WxEffect_IgnoreCooldowns.generated.h"
 
 /**
- * 모든 어빌리티의 쿨다운을 무시하는 태그를 켜 둔다. 주인의 어빌리티를 따라 쓰는 소환물 등의 AbilitySet이 부여한다.
- * 태그만 세울 뿐이고 쿨다운을 건너뛰는 판정은 UWxAbilityBase가 한다.
+ * 유지되는 동안 쿨다운 GE(Cooldown 태그를 부여하는 GE)의 적용을 막고, 적용 시점에 걸려 있던 쿨다운도 걷어낸다.
+ * 주인의 어빌리티를 따라 쓰는 소환물 등의 AbilitySet이 부여한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxEffect_IgnoreCooldowns : public UGameplayEffect

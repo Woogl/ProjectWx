@@ -349,13 +349,8 @@ UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
 
 bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Effect_IgnoreCooldowns))
-	{
-		return true;
-	}
-
 	// 순정 판정은 쿨다운 태그가 붙어 있기만 하면 막는다.
+	const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
 	const FGameplayTagContainer* CooldownTags = GetCooldownTags();
 	if (ASC && CooldownTags && !CooldownTags->IsEmpty())
 	{
@@ -368,17 +363,6 @@ bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, cons
 
 	// 실패 사유 태그를 채워 NotifyAbilityFailed 파이프라인에 전달하는 것까지 순정에 맡긴다.
 	return Super::CheckCooldown(Handle, ActorInfo, OptionalRelevantTags);
-}
-
-void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
-{
-	const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Effect_IgnoreCooldowns))
-	{
-		return;
-	}
-
-	Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
 }
 
 bool UWxAbilityBase::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
